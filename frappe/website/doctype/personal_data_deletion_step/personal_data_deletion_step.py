@@ -6,6 +6,8 @@ from frappe.model.document import Document
 
 
 class PersonalDataDeletionStep(Document):
+	_DOCTYPE_NAME = "Personal Data Deletion Step"
+
 	# begin: auto-generated types
 	# This code is auto-generated. Do not modify anything in this block.
 

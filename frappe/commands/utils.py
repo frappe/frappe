@@ -406,9 +406,9 @@ def import_doc(context: CliCtxObj, path, force=False):
 @click.option(
 	"--type",
 	"import_type",
-	type=click.Choice(["Insert", "Update"], case_sensitive=False),
+	type=click.Choice(["Insert", "Update", "Upsert"], case_sensitive=False),
 	default="Insert",
-	help="Insert New Records or Update Existing Records",
+	help="Insert New Records, Update Existing Records, or Insert or Update Records",
 )
 @click.option("--submit-after-import", default=False, is_flag=True, help="Submit document after importing it")
 @click.option("--mute-emails", default=True, is_flag=True, help="Mute emails during import")

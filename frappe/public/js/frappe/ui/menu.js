@@ -7,6 +7,7 @@ frappe.ui.menu = class ContextMenu {
 		this.menu_items = opts.menu_items;
 		this.name = frappe.utils.get_random(5);
 		this.open_on_left = opts.open_on_left;
+		this.open_on_top = opts.open_on_top;
 		this.size = opts.size;
 		this.opts = opts;
 		Object.assign(this, opts);
@@ -62,10 +63,6 @@ frappe.ui.menu = class ContextMenu {
 			}
 		});
 
-		// if (!$.contains(document.body, this.template[0])) {
-		// 	$(document.body).append(this.template);
-		// }
-
 		// only append if there are items to show
 		if (this.menu_items_to_show.length > 0) {
 			$(document.body).append(this.template);
@@ -83,9 +80,7 @@ frappe.ui.menu = class ContextMenu {
 	add_menu_item(item) {
 		const me = this;
 		item.nested_menus = [];
-		let item_wrapper = $(
-			`<div class="dropdown-menu-item"><div class="dropdown-divider documentation-links"></div></div>`
-		);
+		let item_wrapper;
 		if (item?.is_divider) {
 			item_wrapper = $(
 				`<div class="dropdown-menu-item"><div class="dropdown-divider documentation-links"></div></div>`
@@ -103,13 +98,20 @@ frappe.ui.menu = class ContextMenu {
 				item.action ? `return ${item.action}` : ""
 			}">
 				<a>
-					<div class="menu-item-icon" ${!(iconMarkup != "") ? "hidden" : ""}>
+					<div class="frappe-menu-item-icon" ${!(iconMarkup != "") ? "hidden" : ""}>
 						${iconMarkup}
 					</div>
 					<span class="menu-item-title">${__(item.label)}</span>
 					${
+						item.shortcut
+							? `<span class="menu-item-shortcut">${frappe.ui.keys.get_shortcut_label(
+									item.shortcut
+							  )}</span>`
+							: ""
+					}
+					${
 						item.items && item.items.length
-							? `<div class="menu-item-icon" style="margin-left:auto">
+							? `<div class="frappe-menu-item-icon" style="margin-left:auto">
 						${frappe.utils.icon(`chevron-${chevron_direction}`)}
 					</div>`
 							: ""
@@ -230,7 +232,11 @@ frappe.ui.menu = class ContextMenu {
 				left = parent_menu_rect.right + this.gap;
 			}
 		} else {
-			top = parent_rect.bottom + this.gap;
+			if (this.open_on_top) {
+				top = parent_rect.top - this.template.outerHeight() - this.gap;
+			} else {
+				top = parent_rect.bottom + this.gap;
+			}
 			left = parent_rect.left;
 			if (this.open_on_left || frappe.utils.is_rtl()) {
 				left = parent_rect.right - this.template.outerWidth();
@@ -303,8 +309,11 @@ frappe.ui.create_menu = function (opts) {
 
 	document.addEventListener(
 		"click",
-		function () {
-			if (frappe.menu_map[context_menu.name].visible) {
+		function (e) {
+			if (
+				frappe.menu_map[context_menu.name].visible &&
+				!context_menu.template[0].contains(e.target)
+			) {
 				frappe.menu_map[context_menu.name].hide();
 				opts.onHide && opts.onHide(opts.parent);
 			}

@@ -6,6 +6,8 @@ from frappe.model.document import Document
 
 
 class AssignmentRuleUser(Document):
+	_DOCTYPE_NAME = "Assignment Rule User"
+
 	# begin: auto-generated types
 	# This code is auto-generated. Do not modify anything in this block.
 

@@ -14,6 +14,8 @@ from frappe.utils import cstr, random_string
 
 
 class CustomField(Document):
+	_DOCTYPE_NAME = "Custom Field"
+
 	# begin: auto-generated types
 	# This code is auto-generated. Do not modify anything in this block.
 
@@ -23,6 +25,7 @@ class CustomField(Document):
 		from frappe.types import DF
 
 		alignment: DF.Literal["", "Left", "Center", "Right"]
+		allow_bulk_edit: DF.Check
 		allow_in_quick_entry: DF.Check
 		allow_on_submit: DF.Check
 		bold: DF.Check

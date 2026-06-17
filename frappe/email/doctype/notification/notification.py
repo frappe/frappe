@@ -25,6 +25,8 @@ DATE_BASED_EVENTS = frozenset(("Days Before", "Days After"))
 
 
 class Notification(Document):
+	_DOCTYPE_NAME = "Notification"
+
 	# begin: auto-generated types
 	# This code is auto-generated. Do not modify anything in this block.
 

@@ -42,6 +42,8 @@ week_map = {
 
 
 class AutoRepeat(Document):
+	_DOCTYPE_NAME = "Auto Repeat"
+
 	# begin: auto-generated types
 	# This code is auto-generated. Do not modify anything in this block.
 

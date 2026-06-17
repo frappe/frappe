@@ -6,6 +6,8 @@ from frappe.model.document import Document
 
 
 class NotificationSettings(Document):
+	_DOCTYPE_NAME = "Notification Settings"
+
 	# begin: auto-generated types
 	# This code is auto-generated. Do not modify anything in this block.
 
@@ -57,6 +59,14 @@ def is_email_notifications_enabled_for_type(user, notification_type):
 		return False
 
 	fieldname = "enable_email_" + frappe.scrub(notification_type)
+	# A blank or unknown notification_type maps to a non-existent column (e.g. "enable_email_").
+	# Besides being a pointless lookup, on postgres the failed query aborts the surrounding
+	# transaction (MariaDB silently tolerates it via `ignore`), which then breaks unrelated work
+	# in the same request -- e.g. a Notification Log created during a background job. Skip it and
+	# fall through to the "enabled by default" behaviour.
+	if not frappe.get_meta("Notification Settings").has_field(fieldname):
+		return True
+
 	enabled = frappe.db.get_value("Notification Settings", user, fieldname, ignore=True)
 	if enabled is None:
 		return True

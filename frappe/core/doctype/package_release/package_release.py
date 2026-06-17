@@ -12,6 +12,8 @@ from frappe.query_builder.functions import Max
 
 
 class PackageRelease(Document):
+	_DOCTYPE_NAME = "Package Release"
+
 	# begin: auto-generated types
 	# This code is auto-generated. Do not modify anything in this block.
 

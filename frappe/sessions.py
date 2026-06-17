@@ -219,6 +219,7 @@ class Session:
 		self.sid = cstr(
 			frappe.form_dict.pop("sid", None) or unquote(frappe.request.cookies.get("sid", "Guest"))
 		)
+		assert isinstance(self.sid, str), "sid must be a string after cstr normalization"
 		self.user = user
 		self.user_type = user_type
 		self.full_name = full_name
@@ -295,6 +296,10 @@ class Session:
 			user.run_notifications("before_change")
 			user.run_notifications("on_update")
 			frappe.db.commit()
+
+		assert (self.user == "Guest") == (sid == "Guest"), (
+			"Guest user must use the shared 'Guest' sid and vice versa"
+		)
 
 	def insert_session_record(self):
 		Sessions = frappe.qb.DocType("Sessions")
@@ -428,22 +433,30 @@ class Session:
 			self.data.data.session_ip = frappe.local.request_ip
 
 			Sessions = frappe.qb.DocType("Sessions")
-			# update sessions table
-			(
-				frappe.qb.update(Sessions)
-				.where(Sessions.sid == self.data["sid"])
-				.set(
-					Sessions.sessiondata,
-					frappe.as_json(self.data["data"], indent=None, separators=(",", ":")),
-				)
-				.set(Sessions.lastupdate, now)
-			).run()
+			try:
+				# update sessions table
+				(
+					frappe.qb.update(Sessions)
+					.where(Sessions.sid == self.data["sid"])
+					.set(
+						Sessions.sessiondata,
+						frappe.as_json(self.data["data"], indent=None, separators=(",", ":")),
+					)
+					.set(Sessions.lastupdate, now)
+				).run()
 
-			frappe.db.set_value("User", frappe.session.user, "last_active", now, update_modified=False)
+				frappe.db.set_value("User", frappe.session.user, "last_active", now, update_modified=False)
 
-			frappe.db.commit(chain=True)
-			updated_in_db = True
-			frappe.cache.hset("session", self.sid, self.data)
+				frappe.db.commit(chain=True)
+			except frappe.QueryDeadlockError:
+				# A concurrent request updated this session row first (on postgres a REPEATABLE READ
+				# write conflict surfaces as a serialization failure). Persistence here is best-effort
+				# -- the cache is the source of truth and the next request will persist -- so roll back
+				# the conflicting transaction rather than error out of this after-response hook.
+				frappe.db.rollback()
+			else:
+				updated_in_db = True
+				frappe.cache.hset("session", self.sid, self.data)
 
 		return updated_in_db
 
@@ -484,4 +497,5 @@ def get_expiry_period():
 	if len(exp_sec.split(":")) == 2:
 		exp_sec = exp_sec + ":00"
 
+	assert len(exp_sec.split(":")) == 3, "expiry period must be normalized to HH:MM:SS"
 	return exp_sec

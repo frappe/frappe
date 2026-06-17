@@ -109,8 +109,9 @@ class XLSXStyleBuilder:
 		self.metadata = metadata
 
 		# column fieldname -> index mapping
+		# !NOTE: use .get() — columns may be DocField objects
 		self.field_index_map = {
-			col["fieldname"]: idx for idx, col in self.metadata.column_map.items() if col.get("fieldname")
+			col.get("fieldname"): idx for idx, col in self.metadata.column_map.items() if col.get("fieldname")
 		}
 
 		self.styles: list[dict] = []
@@ -627,7 +628,7 @@ def handle_html(data: str) -> str:
 	return value.replace("  \n", ", ").replace("\n", " ").replace("# ", ", ")
 
 
-def read_xlsx_file_from_attached_file(file_url=None, fcontent=None, filepath=None):
+def read_xlsx_file_from_attached_file(file_url=None, fcontent=None, filepath=None, *, read_only=False):
 	if file_url:
 		_file = frappe.get_doc("File", {"file_url": file_url})
 		filename = _file.get_full_path()
@@ -639,10 +640,12 @@ def read_xlsx_file_from_attached_file(file_url=None, fcontent=None, filepath=Non
 		return
 
 	rows = []
-	wb1 = load_workbook(filename=filename, data_only=True)
+	wb1 = load_workbook(filename=filename, data_only=True, read_only=read_only)
 	ws1 = wb1.active
 	for row in ws1.iter_rows():
 		rows.append([cell.value for cell in row])
+	if read_only:
+		wb1.close()
 	return rows
 
 

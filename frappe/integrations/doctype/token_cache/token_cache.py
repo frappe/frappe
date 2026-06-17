@@ -11,6 +11,8 @@ from frappe.utils import cint, cstr, get_datetime, get_system_timezone
 
 
 class TokenCache(Document):
+	_DOCTYPE_NAME = "Token Cache"
+
 	# begin: auto-generated types
 	# This code is auto-generated. Do not modify anything in this block.
 
@@ -44,7 +46,7 @@ class TokenCache(Document):
 		Params:
 		data - Dict with access_token, refresh_token, expires_in and scope.
 		"""
-		token_type = cstr(data.get("token_type", "")).lower()
+		token_type = cstr(data.get("token_type", "bearer")).lower()
 		if token_type not in ["bearer", "mac"]:
 			frappe.throw(_("Received an invalid token type."))
 		# 'Bearer' or 'MAC'

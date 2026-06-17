@@ -13,7 +13,10 @@ frappe.ui.get_print_settings = function (
 	var default_letter_head = "";
 
 	if (locals[":Company"] && locals[":Company"][company]) {
-		default_letter_head = locals[":Company"][company]["default_letter_head"] || "";
+		default_letter_head =
+			locals[":Company"][company]["default_letter_head_report"] ||
+			frappe.defaults.get_default("letter_head_report") ||
+			"";
 	}
 
 	var columns = [
@@ -49,6 +52,7 @@ frappe.ui.get_print_settings = function (
 			fieldtype: "Check",
 			fieldname: "with_letter_head",
 			label: __("With Letter Head"),
+			default: 1,
 		},
 		{
 			fieldtype: "Link",

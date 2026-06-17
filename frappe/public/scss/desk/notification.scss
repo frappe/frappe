@@ -12,17 +12,8 @@
 	cursor: pointer;
 }
 
-.mark-all-read {
-	margin-top: 2px;
-	margin-right: 4px;
-	cursor: pointer;
-}
-
 .close-notification-dialogue {
 	cursor: pointer;
-	.icon {
-		stroke-width: 2px;
-	}
 }
 
 .notification-settings {
@@ -361,6 +352,7 @@
 @include media-breakpoint-down(sm) {
 	.dropdown-notifications {
 		.notifications-list {
+			position: fixed;
 			max-height: 100vh;
 			min-width: 100vw;
 			width: calc(90vw - 60px);

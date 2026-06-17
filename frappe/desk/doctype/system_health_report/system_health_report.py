@@ -71,6 +71,8 @@ def health_check(step: str):
 
 
 class SystemHealthReport(Document):
+	_DOCTYPE_NAME = "System Health Report"
+
 	# begin: auto-generated types
 	# This code is auto-generated. Do not modify anything in this block.
 

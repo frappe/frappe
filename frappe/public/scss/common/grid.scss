@@ -291,6 +291,14 @@
 			padding: var(--grid-padding) !important;
 		}
 
+		// Button: same cell padding as idle rows — .grid-static-col padding is 0 above for editable rows,
+		// which shifts Button controls up versus the Document Type column.
+		.grid-static-col[data-fieldtype="Button"] {
+			padding: var(--grid-padding) !important;
+			// editable-row sets --control-bg to neutral (white); keep btn-default gray like idle rows.
+			--control-bg: var(--btn-default-bg);
+		}
+
 		.frappe-control[data-fieldtype="Select"].form-group .select-icon {
 			top: 9px;
 		}
@@ -335,6 +343,18 @@
 			background-color: var(--error-bg);
 		}
 
+		.col:last-child {
+			.field-area {
+				flex: 1;
+				min-width: 0;
+			}
+
+			.field-area .form-control:disabled {
+				background-color: transparent;
+				width: auto;
+			}
+		}
+
 		input[data-fieldtype="Int"],
 		input[data-fieldtype="Float"],
 		input[data-fieldtype="Currency"] {
@@ -342,12 +362,15 @@
 		}
 	}
 
-	.grid-static-col[data-fieldtype="Button"] .field-area {
-		margin-top: var(--margin-xs);
-		margin-left: var(--margin-xs);
+	.grid-static-col[data-fieldtype="Button"] {
+		display: flex;
+		align-items: center;
 
-		button {
-			height: 24px;
+		.field-area {
+			margin-top: 0;
+			margin-left: var(--margin-xs);
+			display: flex;
+			align-items: center;
 		}
 	}
 
@@ -625,6 +648,11 @@
 
 			&.show.active {
 				display: block;
+			}
+
+			// Tab Break creates a hidden empty section first; don't border the next section.
+			.empty-section + .form-section {
+				border-top: none;
 			}
 		}
 	}

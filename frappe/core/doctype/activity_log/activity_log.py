@@ -10,6 +10,8 @@ from frappe.utils import get_fullname, now, strip_html
 
 
 class ActivityLog(Document):
+	_DOCTYPE_NAME = "Activity Log"
+
 	# begin: auto-generated types
 	# This code is auto-generated. Do not modify anything in this block.
 

@@ -5,6 +5,9 @@
 	}
 
 	.page-form {
+		position: relative;
+		z-index: 5;
+
 		.form-group {
 			padding: 0px 16px 0px 0px;
 			margin: var(--margin-sm) 0px;
@@ -88,9 +91,10 @@
 	overflow: auto;
 	padding-left: 15px;
 	padding-right: 15px;
+	padding-bottom: 15px;
 
 	.datatable {
-		border-radius: var(--border-radius);
+		border-radius: var(--border-radius) var(--border-radius) 0 0;
 	}
 }
 

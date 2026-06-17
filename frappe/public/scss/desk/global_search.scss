@@ -13,6 +13,13 @@
 		.modal-actions {
 			z-index: 6;
 			top: 7px;
+			align-items: center;
+			gap: 2px;
+
+			.btn-open-global-search-settings {
+				/* Match minimize / close icon buttons */
+				flex-shrink: 0;
+			}
 		}
 
 		.search-input {
@@ -32,9 +39,351 @@
 			z-index: 6;
 		}
 	}
+
 	.search-results {
+		width: 100%;
+		align-self: stretch;
 		min-height: 200px;
-		place-content: center;
+		align-items: flex-start;
+		justify-content: center;
+
+		/* Widen main pane: Bootstrap col-* max-width caps the results area; sidebar stays compact. */
+		.search-shortcuts-sidebar.layout-side-section {
+			flex: 0 0 auto;
+			width: auto;
+			max-width: 11rem;
+		}
+
+		.search-main-column.layout-main-section {
+			display: flex;
+			flex-direction: column;
+			flex: 1 1 0%;
+			min-width: 0;
+			min-height: 0;
+			width: auto;
+			max-width: none;
+			box-sizing: border-box;
+			padding-inline: var(--padding-md);
+
+			.global-search-doctype-filters {
+				flex-shrink: 0;
+				padding-bottom: var(--padding-lg);
+
+				.global-search-toolbar-row,
+				.global-search-filter-toolbar {
+					width: 100%;
+				}
+
+				.global-search-visible-pills {
+					display: flex;
+					flex-wrap: wrap;
+					gap: 6px;
+					align-items: center;
+				}
+
+				button.global-search-filter-pill,
+				button.global-search-more-trigger {
+					background-color: transparent;
+					color: var(--text-color);
+					border: 1px solid var(--border-color);
+					box-shadow: none;
+				}
+
+				button.global-search-filter-pill {
+					font-weight: var(--weight-regular);
+
+					&:hover:not(:disabled):not(.active) {
+						background-color: var(--fg-color);
+						border-color: var(--border-color);
+					}
+
+					&.active {
+						background-color: var(--subtle-fg);
+						color: var(--text-color);
+						border-color: var(--border-color);
+						font-weight: var(--weight-medium);
+					}
+				}
+
+				.global-search-more-dropdown-wrap {
+					position: relative;
+					flex-shrink: 0;
+				}
+
+				button.global-search-more-trigger {
+					@include flex(inline-flex, flex-start, center);
+					gap: 4px;
+
+					&:hover:not(:disabled) {
+						background-color: var(--fg-color);
+						border-color: var(--border-color);
+					}
+				}
+
+				.global-search-more-dropdown {
+					display: none;
+					position: absolute;
+					top: calc(100% + 4px);
+					left: 0;
+					right: auto;
+					min-width: 14rem;
+					max-width: min(24rem, 92vw);
+					max-height: 75vh;
+					overflow-x: hidden;
+					overflow-y: auto;
+					background: var(--modal-bg);
+					border: 1px solid var(--border-color);
+					padding: var(--padding-xs);
+					z-index: 1070;
+
+					&.align-right {
+						left: auto;
+						right: 0;
+					}
+
+					&.menu-open {
+						display: block;
+					}
+				}
+
+				.global-search-more-group-title {
+					@include get_textstyle("sm", "semibold");
+					padding: var(--padding-sm) var(--padding-xs);
+					color: var(--text-muted);
+				}
+
+				.global-search-more-empty {
+					font-size: var(--text-xs);
+					padding: 0 var(--padding-xs) var(--padding-sm);
+				}
+
+				.global-search-more-row {
+					@include flex(flex, space-between, center);
+					gap: 4px;
+					min-height: 1.875rem;
+
+					button.global-search-dd-pick-doctype {
+						flex: 1 1 auto;
+						justify-content: flex-start;
+						text-align: left;
+						margin: 0;
+						min-width: 0;
+					}
+
+					.global-search-pin-cell {
+						flex-shrink: 0;
+						@include flex(inline-flex, flex-end, center);
+
+						button.global-search-pin-btn {
+							padding: 2px var(--padding-xs);
+							min-height: unset;
+							line-height: 1;
+
+							svg.es-icon {
+								font-size: 12px;
+							}
+						}
+					}
+				}
+			}
+		}
+
+		.results-area {
+			width: 100%;
+			min-width: 0;
+		}
+
+		.global-search-table-panel {
+			width: 100%;
+			border: none;
+			border-radius: 0;
+			overflow-x: auto;
+			overflow-y: visible;
+			background: transparent;
+			-webkit-overflow-scrolling: touch;
+		}
+
+		.list-item-table.global-search-results-list {
+			width: 100%;
+			min-width: 0;
+			border: none;
+			box-shadow: none;
+			border-radius: 0;
+			background-color: transparent;
+			display: flex;
+			flex-direction: column;
+
+			.global-search-name-cell-inner {
+				@include flex(flex, null, center, null);
+				gap: 8px;
+				min-width: 0;
+
+				.avatar {
+					flex-shrink: 0;
+				}
+			}
+
+			> .list-row-container {
+				border-bottom: none;
+			}
+
+			> .list-row-container .level.list-row,
+			> .list-row-container header.level.list-row-head {
+				width: 100%;
+				box-sizing: border-box;
+				justify-content: flex-start !important;
+			}
+
+			.list-row .level-left,
+			header.list-row-head .level-left {
+				flex: 1 1 auto !important;
+				min-width: 0 !important;
+				max-width: none !important;
+			}
+
+			> .list-row-container:not(.global-search-list-header) {
+				display: flex;
+				flex-direction: column;
+				position: relative;
+				z-index: 0;
+				padding-inline: var(--padding-sm);
+				border-radius: var(--border-radius);
+				overflow: visible;
+				background-color: transparent;
+				box-sizing: border-box;
+
+				/* Same as .list-row-container:hover in desk list.scss — background only, no outline */
+				&:hover {
+					background-color: var(--highlight-color);
+				}
+
+				/*
+				 * list.scss applies .list-row-container:focus .list-row { highlight }. tabindex made rows
+				 * focus on click so highlight stuck after mouse left. No tabindex on rows; this resets any
+				 * mouse-driven focus so highlight matches hover (keyboard still gets :focus-visible).
+				 */
+				&:focus:not(:focus-visible) {
+					outline: none;
+
+					> .level.list-row {
+						background-color: transparent;
+					}
+				}
+
+				> .level.list-row {
+					min-height: var(--list-row-height);
+					flex-shrink: 0;
+					padding: var(--padding-xs) 0;
+				}
+
+				/* Separator between rows only (like list rows); omit on single / last row */
+				&:not(:last-child) > .level.list-row {
+					border-bottom: 1px solid var(--border-color);
+				}
+			}
+
+			> .global-search-list-header {
+				position: sticky;
+				top: 0;
+				z-index: 2;
+				padding-inline: 0 !important;
+				background-color: var(--modal-bg);
+				border-radius: var(--border-radius-md);
+				overflow: hidden;
+				box-sizing: border-box;
+				margin-bottom: var(--margin-xs);
+
+				&:hover {
+					background-color: var(--highlight-color);
+				}
+
+				header.level.list-row-head {
+					border-radius: var(--border-radius-md);
+					overflow: hidden;
+				}
+			}
+
+			.global-search-level-left-multi.level-left {
+				flex: 1 1 auto !important;
+				min-width: 0 !important;
+				align-items: flex-start;
+				flex-wrap: nowrap;
+				overflow: visible;
+				white-space: normal;
+				max-width: none;
+				text-overflow: clip;
+			}
+
+			.list-row-col.global-search-grid-col {
+				flex: 1 1 0;
+				min-width: 0;
+				margin-right: var(--margin-sm);
+
+				/* Do not force .global-search-field-more-hint to block — it must stay inline with the 3rd value. */
+				> span:not(.global-search-field-more-hint) {
+					display: block;
+					min-width: 0;
+				}
+			}
+
+			.list-row-col.list-subject.global-search-grid-col {
+				flex: 2 1 0;
+				min-width: unquote("min(12rem, 35%)");
+			}
+
+			.global-search-field-col {
+				color: var(--text-muted);
+				@include get_textstyle("base", "regular");
+
+				a {
+					color: var(--primary);
+				}
+
+				&.global-search-field-col--multiline {
+					white-space: normal;
+					word-break: break-word;
+					overflow: visible;
+					text-overflow: clip;
+					line-height: 1.4;
+					align-self: flex-start;
+
+					br {
+						line-height: inherit;
+					}
+				}
+
+				.global-search-field-more-hint {
+					display: inline;
+					font-weight: var(--weight-regular);
+					font-style: italic;
+				}
+			}
+
+			.list-subject .level-item {
+				min-width: 0;
+				flex: 1 1 auto;
+				max-width: 100%;
+				overflow: hidden;
+			}
+
+			a.global-search-name-link {
+				color: var(--text-color);
+				font-weight: var(--weight-medium);
+
+				&:hover {
+					text-decoration: underline;
+					text-underline-offset: 2px;
+				}
+			}
+
+			mark {
+				border-radius: 2px;
+			}
+
+			.list-row .avatar {
+				--avatar-size: var(--avatar-size-medium, 26px);
+			}
+		}
 
 		.empty-state {
 			.empty-state-text {
@@ -42,6 +391,23 @@
 				color: var(--text-color);
 				margin-top: var(--margin-lg);
 				font-size: var(--text-xl);
+			}
+
+			.global-search-empty-state-tip {
+				font-size: var(--text-xs);
+				margin-top: var(--margin-md);
+				max-width: 28rem;
+				margin-left: auto;
+				margin-right: auto;
+				line-height: 1.45;
+
+				.global-search-shortcut-key {
+					background-color: var(--border-color);
+					padding: 2px 4px;
+					border-radius: 4px;
+					font-size: x-small;
+					display: inline-block;
+				}
 			}
 		}
 
@@ -55,8 +421,6 @@
 		}
 
 		.results-summary {
-			padding-left: var(--padding-sm);
-
 			.result-section:not(:last-child) {
 				padding-bottom: var(--padding-md);
 
@@ -68,6 +432,21 @@
 			.result-title {
 				color: var(--text-color);
 				@include get_textstyle("lg", "semibold");
+			}
+
+			.result-section.global-summary {
+				padding-left: 0;
+				padding-right: 0;
+
+				.global-search-summary-show-more {
+					padding-top: var(--padding-xs);
+				}
+
+				/* Narrower heading than other summary section titles (count lives in the same line). */
+				.result-title {
+					@include get_textstyle("md", "semibold");
+					margin-bottom: var(--margin-xs);
+				}
 			}
 
 			.result-body {
@@ -98,11 +477,9 @@
 				}
 			}
 
-			.list-more,
-			.section-more,
 			.results-status {
 				padding: var(--padding-sm) 0;
-				color: var(--primary);
+				color: var(--text-muted);
 				@include get_textstyle("sm", "regular");
 			}
 		}

@@ -10,7 +10,7 @@ from werkzeug.exceptions import HTTPException, NotFound
 from werkzeug.middleware.profiler import ProfilerMiddleware
 from werkzeug.middleware.proxy_fix import ProxyFix
 from werkzeug.middleware.shared_data import SharedDataMiddleware
-from werkzeug.wrappers import Request, Response
+from werkzeug.wrappers import Request, Response  # nosemgrep: frappe-monkey-patching-not-allowed
 from werkzeug.wsgi import ClosingIterator
 
 import frappe
@@ -48,7 +48,11 @@ import frappe.boot
 import frappe.client
 import frappe.core.doctype.file.file
 import frappe.core.doctype.user.user
-import frappe.database.mariadb.mysqlclient  # Load database related utils
+
+# Skipped under the companion manager: the gevent socketio companion forks this
+# master and refuses to start if MySQLdb is already imported. Loaded lazily there.
+if not os.environ.get("FRAPPE_GUNICORN_COMPANION"):
+	import frappe.database.mariadb.mysqlclient  # Load database related utils
 import frappe.database.query
 import frappe.desk.desktop  # workspace
 import frappe.desk.form.save
@@ -70,7 +74,7 @@ import frappe.website.website_generator  # web page doctypes
 # better werkzeug default
 # this is necessary because frappe desk sends most requests as form data
 # and some of them can exceed werkzeug's default limit of 500kb
-Request.max_form_memory_size = None
+Request.max_form_memory_size = None  # nosemgrep: frappe-monkey-patching-not-allowed
 
 
 def after_response_wrapper(app):
@@ -456,12 +460,10 @@ if sentry_dsn := os.getenv("FRAPPE_SENTRY_DSN"):
 		ArgvIntegration(),
 	]
 
-	experiments = {}
 	kwargs = {}
 
 	if os.getenv("ENABLE_SENTRY_DB_MONITORING"):
 		integrations.append(FrappeIntegration())
-		experiments["record_sql_params"] = True
 
 	if tracing_sample_rate := os.getenv("SENTRY_TRACING_SAMPLE_RATE"):
 		kwargs["traces_sample_rate"] = float(tracing_sample_rate)
@@ -478,7 +480,6 @@ if sentry_dsn := os.getenv("FRAPPE_SENTRY_DSN"):
 		auto_enabling_integrations=False,
 		default_integrations=False,
 		integrations=integrations,
-		_experiments=experiments,
 		**kwargs,
 	)
 

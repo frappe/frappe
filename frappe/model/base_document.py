@@ -415,6 +415,8 @@ class BaseDocument:
 			self.__dict__[key] = table = []
 
 		d = self._init_child(value, key)
+		assert isinstance(table, list), "child table storage must be a list"
+		assert d.parentfield == key, "appended child's parentfield must match the table key"
 
 		if position == -1:
 			table.append(d)
@@ -498,6 +500,8 @@ class BaseDocument:
 			__dict["__islocal"] = 1
 			__dict["__temporary_name"] = frappe.generate_hash(length=10)
 
+		assert isinstance(child, BaseDocument), "initialized child must be a BaseDocument"
+		assert __dict["parenttype"] == self.doctype, "child parenttype must reference its parent's doctype"
 		return child
 
 	@cached_property
@@ -590,6 +594,9 @@ class BaseDocument:
 				elif fieldtype in float_like_fields and not isinstance(value, float):
 					value = flt(value)
 
+				elif fieldtype == "Read Only" and not isinstance(value, str):
+					value = cstr(value)
+
 				elif (fieldtype in datetime_fields and value == "") or (
 					getattr(df, "unique", False) and cstr(value).strip() == ""
 				):
@@ -656,7 +663,7 @@ class BaseDocument:
 		return valid_columns_cache[self.doctype]
 
 	def is_new(self) -> bool:
-		return self.get("__islocal")
+		return bool(self.get("__islocal"))
 
 	@property
 	def docstatus(self) -> DocStatus:
@@ -764,6 +771,8 @@ class BaseDocument:
 			# name will be set by document class in most cases
 			set_new_name(self)
 
+		assert self.name, "document name must be set before db_insert"
+
 		conflict_handler = ""
 		returning = ""
 		# On postgres we can't implcitly ignore PK collision
@@ -789,6 +798,13 @@ class BaseDocument:
 		)
 
 		columns = list(d)
+		# On postgres a failed statement aborts the whole transaction, so the duplicate/unique paths
+		# below (and the hash-collision retry) would leave it unusable. Wrap the INSERT in a savepoint
+		# and roll back to it on those handled errors, so the transaction survives the raised
+		# exception exactly like MariaDB (which does not abort). MariaDB keeps its existing path.
+		save_point = f"insert_{frappe.generate_hash(length=10)}" if frappe.db.db_type == "postgres" else None
+		if save_point:
+			frappe.db.savepoint(save_point)
 		try:
 			name = frappe.db.sql(
 				"""INSERT INTO `tab{doctype}` ({columns})
@@ -804,8 +820,15 @@ class BaseDocument:
 			if (
 				frappe.db.db_type == "postgres" and self.meta.autoname == "hash" and not name
 			):  # To avoid a transaction block, we regen in try (pg specific)
+				if save_point:
+					frappe.db.release_savepoint(save_point)
+					# already released: don't let the except handler roll back to a freed savepoint
+					save_point = None
 				return self._handle_hash_conflict()
 		except Exception as e:
+			if save_point:
+				# keep the transaction usable after the failed INSERT (postgres aborts otherwise)
+				frappe.db.rollback(save_point=save_point)
 			if frappe.db.is_primary_key_violation(e):
 				if self.meta.autoname == "hash":
 					# hash collision? try again
@@ -825,6 +848,9 @@ class BaseDocument:
 
 			else:
 				raise
+		else:
+			if save_point:
+				frappe.db.release_savepoint(save_point)
 
 		self.set("__islocal", False)
 
@@ -845,6 +871,11 @@ class BaseDocument:
 
 		columns = list(d)
 
+		# see db_insert: a savepoint keeps the transaction usable on postgres after a handled unique
+		# violation (postgres aborts the transaction on any failed statement, MariaDB does not).
+		save_point = f"update_{frappe.generate_hash(length=10)}" if frappe.db.db_type == "postgres" else None
+		if save_point:
+			frappe.db.savepoint(save_point)
 		try:
 			frappe.db.sql(
 				"""UPDATE `tab{doctype}`
@@ -855,6 +886,8 @@ class BaseDocument:
 			)
 
 		except Exception as e:
+			if save_point:
+				frappe.db.rollback(save_point=save_point)
 			if frappe.db.is_data_too_long(e):
 				column = re.search(r"column\s+'([^']+)'", e.args[1])
 				if column:
@@ -872,6 +905,9 @@ class BaseDocument:
 				self.show_unique_validation_message(e)
 			else:
 				raise
+		else:
+			if save_point:
+				frappe.db.release_savepoint(save_point)
 
 	def db_update_all(self):
 		"""Raw update parent + children
@@ -1640,7 +1676,9 @@ def _filter(data, filters, limit=None):
 	return out
 
 
-CACHED_PROPERTIES = (prop for prop, value in vars(BaseDocument).items() if isinstance(value, cached_property))
+CACHED_PROPERTIES = tuple(
+	prop for prop, value in vars(BaseDocument).items() if isinstance(value, cached_property)
+)
 
 UNPICKLABLE_KEYS = frozenset(
 	(

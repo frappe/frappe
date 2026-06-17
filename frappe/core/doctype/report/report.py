@@ -19,6 +19,8 @@ from frappe.utils.xlsxutils import XLSXMetadata, XLSXStyleBuilder
 
 
 class Report(Document):
+	_DOCTYPE_NAME = "Report"
+
 	# begin: auto-generated types
 	# This code is auto-generated. Do not modify anything in this block.
 
@@ -33,13 +35,15 @@ class Report(Document):
 		add_total_row: DF.Check
 		add_translate_data: DF.Check
 		columns: DF.Table[ReportColumn]
+		default_letter_head: DF.Link | None
 		default_print_format: DF.Link | None
+		disable_prepared_report_automation: DF.Check
 		disabled: DF.Check
 		filters: DF.Table[ReportFilter]
+		generate_csv: DF.Check
 		is_standard: DF.Literal["No", "Yes"]
 		javascript: DF.Code | None
 		json: DF.Code | None
-		letter_head: DF.Link | None
 		module: DF.Link | None
 		prepared_report: DF.Check
 		query: DF.Code | None
@@ -82,8 +86,8 @@ class Report(Document):
 		if self.default_print_format and self.has_value_changed("default_print_format"):
 			self.validate_default_print_format()
 
-		if self.letter_head and self.has_value_changed("letter_head"):
-			self.validate_letter_head()
+		if self.default_letter_head and self.has_value_changed("letter_head"):
+			self.validate_default_letter_head()
 
 	def before_insert(self):
 		self.set_doctype_roles()
@@ -188,7 +192,7 @@ class Report(Document):
 
 		start_time = datetime.datetime.now()
 		prepared_report_watcher = None
-		if not self.prepared_report:
+		if not self.prepared_report and not self.disable_prepared_report_automation:
 			prepared_report_watcher = threading.Timer(
 				interval=threshold,
 				function=enable_prepared_report,
@@ -374,28 +378,39 @@ class Report(Document):
 		return order_by, group_by, group_by_args
 
 	def build_standard_report_columns(self, columns, group_by_args):
-		_columns = []
+		from frappe.model.meta import get_default_df
+
+		report_columns = []
 
 		for fieldname, doctype in columns:
 			meta = frappe.get_meta(doctype)
 
-			if meta.get_field(fieldname):
-				field = meta.get_field(fieldname)
+			if meta_df := meta.get_field(fieldname):
+				column = meta_df.as_dict()
+			elif default_df := get_default_df(fieldname):
+				column = default_df.copy()
+
+				if not column.get("label"):
+					column.label = meta.get_label(fieldname)
 			else:
-				if fieldname == "_aggregate_column":
-					label = get_group_by_column_label(group_by_args, meta)
-				else:
-					label = meta.get_label(fieldname)
+				label = (
+					get_group_by_column_label(group_by_args, meta)
+					if fieldname == "_aggregate_column"
+					else meta.get_label(fieldname)
+				)
 
-				field = frappe._dict(fieldname=fieldname, label=label)
+				column = frappe._dict(
+					{
+						"fieldname": fieldname,
+						"label": label,
+						"fieldtype": "Link" if fieldname == "name" else "Data",
+						"options": doctype if fieldname == "name" else None,
+					}
+				)
 
-				# since name is the primary key for a document, it will always be a Link datatype
-				if fieldname == "name":
-					field.fieldtype = "Link"
-					field.options = doctype
+			report_columns.append(column)
 
-			_columns.append(field)
-		return _columns
+		return report_columns
 
 	def build_data_dict(self, result, columns):
 		data = []
@@ -435,13 +450,13 @@ class Report(Document):
 		):
 			frappe.throw(_("Selected Print Format is invalid for this Report."))
 
-	def validate_letter_head(self):
-		if not self.letter_head:
+	def validate_default_letter_head(self):
+		if not self.default_letter_head:
 			return
 
 		letter_head = frappe.db.get_value(
 			"Letter Head",
-			self.letter_head,
+			self.default_letter_head,
 			["letter_head_for", "standard", "disabled"],
 			as_dict=True,
 		)
@@ -454,7 +469,7 @@ class Report(Document):
 		):
 			frappe.throw(
 				_("Selected Letter Head '{0}' is invalid for '{1}' Report.").format(
-					self.letter_head, self.name
+					self.default_letter_head, self.name
 				)
 			)
 

@@ -115,7 +115,7 @@ export function get_table_columns(df) {
 }
 
 function get_field_template(print_format, fieldname) {
-	let templates = print_format.__onload.print_templates || {};
+	let templates = print_format?.__onload?.print_templates || [];
 	for (let template of templates) {
 		if (template.field === fieldname) {
 			return template;
@@ -125,10 +125,7 @@ function get_field_template(print_format, fieldname) {
 }
 
 function get_default_header(meta) {
-	return `<div class="document-header">
-	<h3>${meta.name}</h3>
-	<p>{{ doc.name }}</p>
-</div>`;
+	return { columns: [{ label: "", fields: [] }] };
 }
 
 export function pluck(object, keys) {

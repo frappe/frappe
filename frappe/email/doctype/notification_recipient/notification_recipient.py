@@ -5,6 +5,8 @@ from frappe.model.document import Document
 
 
 class NotificationRecipient(Document):
+	_DOCTYPE_NAME = "Notification Recipient"
+
 	# begin: auto-generated types
 	# This code is auto-generated. Do not modify anything in this block.
 

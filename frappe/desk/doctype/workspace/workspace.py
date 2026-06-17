@@ -7,7 +7,7 @@ from json import loads
 import frappe
 from frappe import _
 from frappe.boot import get_sidebar_items
-from frappe.desk.desktop import get_workspace_sidebar_items, save_new_widget
+from frappe.desk.desktop import get_workspaces, save_new_widget
 from frappe.desk.doctype.workspace_sidebar.workspace_sidebar import add_to_my_workspace
 from frappe.desk.utils import validate_route_conflict
 from frappe.model.document import Document
@@ -17,6 +17,8 @@ from frappe.utils import strip_html
 
 
 class Workspace(Document):
+	_DOCTYPE_NAME = "Workspace"
+
 	# begin: auto-generated types
 	# This code is auto-generated. Do not modify anything in this block.
 
@@ -331,7 +333,7 @@ def new_page(new_page: str):
 	# add to workspace sidebar items
 	if not doc.public:
 		add_to_my_workspace(doc)
-	workspaces = get_workspace_sidebar_items()
+	workspaces = get_workspaces()
 	return {"workspace_pages": workspaces, "sidebar_items": get_sidebar_items(workspaces)}
 
 
@@ -340,8 +342,12 @@ def save_page(name: str, public: str | int, new_widgets: str, blocks: str):
 	public = frappe.parse_json(public)
 
 	doc = frappe.get_doc("Workspace", name)
-	if not (is_workspace_manager() and doc.for_user == frappe.session.user):
-		return
+	can_edit = is_workspace_manager() or (not doc.public and doc.for_user == frappe.session.user)
+	if not can_edit:
+		frappe.throw(
+			_("You need the Workspace Manager role to edit this workspace."),
+			frappe.PermissionError,
+		)
 
 	if not doc.type:
 		doc.type = "Workspace"
@@ -358,9 +364,11 @@ def update_page(name: str, title: str, icon: str, indicator_color: str, parent: 
 	public = frappe.parse_json(public)
 	doc = frappe.get_doc("Workspace", name)
 
-	if not doc.get("public") and doc.get("for_user") != frappe.session.user and not is_workspace_manager():
+	if doc.get("public") and not is_workspace_manager():
+		frappe.throw(_("Need Workspace Manager role to edit public workspaces."))
+	elif not doc.get("public") and doc.get("for_user") != frappe.session.user and not is_workspace_manager():
 		frappe.throw(
-			_("Need Workspace Manager role to edit private workspace of other users"),
+			_("Need Workspace Manager role to edit private workspace of other users."),
 			frappe.PermissionError,
 		)
 
