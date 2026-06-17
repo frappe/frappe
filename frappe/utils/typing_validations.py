@@ -161,6 +161,11 @@ def transform_parameter_types(func: Callable, args: tuple, kwargs: dict, force_t
 		elif isinstance(current_arg_value, mock.Mock):
 			continue
 
+		# form-encoded requests parse bare numeric values (e.g. numeric docnames like "1234")
+		# as int via orjson.loads; convert them back to str when that's what the parameter expects.
+		if current_arg_type is str and type(current_arg_value) is int:
+			current_arg_value = str(current_arg_value)
+
 		# allow slack for Frappe types
 		if current_arg_type in SLACK_DICT:
 			current_arg_type = SLACK_DICT[current_arg_type]
