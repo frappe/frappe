@@ -3,7 +3,7 @@ msgstr ""
 "Project-Id-Version: frappe\n"
 "Report-Msgid-Bugs-To: developers@frappe.io\n"
 "POT-Creation-Date: 2026-06-14 10:33+0000\n"
-"PO-Revision-Date: 2026-06-14 17:12\n"
+"PO-Revision-Date: 2026-06-16 18:04\n"
 "Last-Translator: developers@frappe.io\n"
 "Language-Team: Persian\n"
 "MIME-Version: 1.0\n"
@@ -30639,7 +30639,7 @@ msgstr "ستون بدون عنوان"
 #: frappe/public/js/print_format_builder/components/inspector/FieldInspector.vue:355
 #: frappe/public/js/print_format_builder/components/inspector/FieldInspector.vue:603
 msgid "Untitled section"
-msgstr ""
+msgstr "بخش بدون عنوان"
 
 #: frappe/core/doctype/file/file.js:40
 msgid "Unzip"
@@ -30682,7 +30682,7 @@ msgstr "به‌روزرسانی نام‌گذاری اصلاحیه"
 
 #: frappe/public/js/frappe/ui/toolbar/about.js:119
 msgid "Update Available"
-msgstr ""
+msgstr "به‌روزرسانی موجود است"
 
 #. Option for the 'Import Type' (Select) field in DocType 'Data Import'
 #: frappe/core/doctype/data_import/data_import.json
@@ -31480,7 +31480,7 @@ msgstr "مقدار تغییر کرده"
 #. Import'
 #: frappe/core/doctype/data_import/data_import.json
 msgid "Value Mappings"
-msgstr ""
+msgstr "نگاشت‌های مقدار"
 
 #. Label of the property_value (Data) field in DocType 'Notification'
 #: frappe/email/doctype/notification/notification.json
@@ -31525,7 +31525,7 @@ msgstr "مقدار این فیلد به عنوان تاریخ سررسید در 
 #. Mapping'
 #: frappe/core/doctype/data_import_value_mapping/data_import_value_mapping.json
 msgid "Value in File"
-msgstr ""
+msgstr "مقدار در فایل"
 
 #. Description of the 'Token Endpoint Auth Method' (Select) field in DocType
 #. 'OAuth Client'
@@ -31610,7 +31610,7 @@ msgstr "نسخه به روز شد"
 
 #: frappe/public/js/print_format_builder/components/PrintFormatControls.vue:316
 msgid "Vertical whitespace"
-msgstr ""
+msgstr "فضای خالی عمودی"
 
 #. Label of the video_url (Data) field in DocType 'Onboarding Step'
 #: frappe/desk/doctype/onboarding_step/onboarding_step.json
@@ -33437,11 +33437,11 @@ msgstr ""
 
 #: frappe/public/js/print_format_builder/PrintFormatBuilder.vue:60
 msgid "Zoom in"
-msgstr ""
+msgstr "بزرگ‌نمایی"
 
 #: frappe/public/js/print_format_builder/PrintFormatBuilder.vue:46
 msgid "Zoom out"
-msgstr ""
+msgstr "کوچک‌نمایی"
 
 #: frappe/public/js/frappe/form/footer/version_timeline_content_builder.js:363
 msgid "[Action taken by {0}]"
@@ -33977,7 +33977,7 @@ msgstr "ردیف‌ها"
 
 #: frappe/core/doctype/data_import/value_mapping.py:255
 msgid "rows {0}"
-msgstr ""
+msgstr "ردیف‌ها {0}"
 
 #: frappe/public/js/frappe/form/controls/duration.js:222
 #: frappe/public/js/frappe/utils/utils.js:1244
@@ -34961,7 +34961,7 @@ msgstr "{0} تا {1}"
 
 #: frappe/public/js/frappe/data_import/import_tree_preview.js:90
 msgid "{0} tree structure warnings found."
-msgstr ""
+msgstr "{0} هشدار ساختار درختی یافت شد."
 
 #: frappe/core/doctype/docshare/docshare.py:91
 msgid "{0} un-shared this document with {1}"
