@@ -510,6 +510,59 @@ class TestWebForm(IntegrationTestCase):
 		with self.assertRaises(frappe.PermissionError):
 			get_web_form_list(web_form="manage-events", web_form_request_key=web_form_request.key)
 
+	def test_get_web_form_list_rejects_when_show_list_disabled(self):
+		self.set_web_form_settings(key_required=1, login_required=0, allow_multiple=1, show_list=0)
+		web_form_request = self.create_web_form_request(doc_values={"event_type": "Public"})
+
+		frappe.set_user("Guest")
+		with self.assertRaises(frappe.PermissionError):
+			get_web_form_list(web_form="manage-events", web_form_request_key=web_form_request.key)
+
+	def test_get_web_form_list_rejects_expired_key(self):
+		self.set_web_form_settings(key_required=1, login_required=0, allow_multiple=1, show_list=1)
+		web_form_request = self.create_web_form_request(
+			expires_on=add_to_date(None, minutes=-1),
+			doc_values={"event_type": "Public"},
+		)
+
+		frappe.set_user("Guest")
+		with self.assertRaises(frappe.exceptions.LinkExpired):
+			get_web_form_list(web_form="manage-events", web_form_request_key=web_form_request.key)
+
+	def test_get_web_form_list_returns_only_list_fields(self):
+		from frappe.website.doctype.web_form.web_form import get_web_form_list_fields
+
+		self.set_web_form_settings(
+			key_required=1,
+			login_required=0,
+			allow_multiple=1,
+			show_list=1,
+		)
+		web_form_request = self.create_web_form_request(doc_values={"event_type": "Public"})
+
+		frappe.set_user("Guest")
+		accept(
+			web_form="manage-events",
+			data=json.dumps(
+				{
+					"doctype": "Event",
+					"subject": "_Test List Fields",
+					"starts_on": "2026-05-10",
+					"description": "_Test secret description",
+				}
+			),
+			web_form_request_key=web_form_request.key,
+		)
+
+		rows = get_web_form_list(
+			web_form="manage-events",
+			web_form_request_key=web_form_request.key,
+		)
+		allowed_fields = set(get_web_form_list_fields(frappe.get_doc("Web Form", "manage-events")))
+		for row in rows:
+			self.assertEqual(set(row.keys()), allowed_fields)
+			self.assertNotIn("description", row)
+
 	def test_guest_still_requires_login_without_web_form_request(self):
 		frappe.set_user("Guest")
 		with self.assertRaises(frappe.ValidationError):

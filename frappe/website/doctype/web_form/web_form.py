@@ -14,7 +14,7 @@ from frappe.desk.form.meta import get_code_files_via_hooks
 from frappe.modules.utils import export_module_json, get_doc_module
 from frappe.permissions import check_doctype_permission
 from frappe.rate_limiter import rate_limit
-from frappe.utils import dict_with_keys, now_datetime, strip_html
+from frappe.utils import cint, dict_with_keys, now_datetime, strip_html
 from frappe.utils.caching import redis_cache
 from frappe.utils.data import escape_html
 from frappe.website.doctype.web_form_request.web_form_request import (
@@ -893,6 +893,7 @@ def get_web_form_filters(web_form_name: str):
 
 
 @frappe.whitelist(allow_guest=True)
+@rate_limit(key="web_form", limit=10, seconds=60)
 def get_web_form_list(
 	web_form: str,
 	web_form_request_key: str,
@@ -908,6 +909,9 @@ def get_web_form_list(
 	web_form_doc: WebForm = frappe.get_lazy_doc("Web Form", web_form)
 	if web_form_doc.login_required and frappe.session.user == "Guest":
 		frappe.throw(_("You must login to use this form"), frappe.PermissionError)
+
+	if not web_form_doc.show_list:
+		frappe.throw(_("Not permitted"), frappe.PermissionError)
 
 	web_form_request: "WebFormRequest | None" = web_form_doc.get_web_form_request(
 		web_form_request_key,
@@ -932,12 +936,14 @@ def get_web_form_list(
 
 	filters["name"] = ["in", reference_names]
 
+	fields = get_web_form_list_fields(web_form_doc)
+
 	return frappe.get_list(
 		web_form_doc.doc_type,
-		fields="*",
+		fields=fields,
 		filters=filters,
-		limit_start=int(limit_start),
-		limit_page_length=int(limit),
+		limit_start=cint(limit_start),
+		limit_page_length=min(cint(limit), 100),
 		ignore_permissions=True,
 		order_by="creation desc",
 		distinct=True,
@@ -974,6 +980,20 @@ def get_form_data(doctype: str, docname: str | None = None, web_form_name: str |
 			process_link_field(field, web_form_name)
 
 	return out
+
+
+def get_web_form_list_fields(web_form_doc: "WebForm") -> list[str]:
+	if web_form_doc.list_columns:
+		fields = [col.fieldname for col in web_form_doc.list_columns]
+	else:
+		fields = [
+			col["fieldname"] for col in get_in_list_view_fields(web_form_doc.doc_type, web_form_doc.name)
+		]
+
+	if "name" not in fields:
+		fields.insert(0, "name")
+
+	return fields
 
 
 def get_in_list_view_fields(doctype, web_form_name=None):
