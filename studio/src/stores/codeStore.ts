@@ -44,6 +44,7 @@ const useCodeStore = defineStore("codeStore", () => {
 		}
 		return unwrapped
 	})
+	const pageScriptError = ref<string | null>(null)
 	// Effect scope owning the watch/watchEffect/computed the page script creates, so they
 	// are disposed when the page script is recompiled or the page is left.
 	let pageScriptScope: EffectScope | null = null
@@ -136,6 +137,7 @@ const useCodeStore = defineStore("codeStore", () => {
 		// Tear down the previous page's script effects (watchers/computed) before re-running.
 		disposePageScriptScope()
 		pageScriptBindings.value = {}
+		pageScriptError.value = null
 
 		if (codeMode) {
 			// Exported app: run the page's compiled setup() module (full import power).
@@ -169,7 +171,7 @@ const useCodeStore = defineStore("codeStore", () => {
 			const bindings = runInPageScriptScope(() => (setup as Function)(globalExecutionContext.value))
 			return (await bindings) || {}
 		} catch (error) {
-			console.error("Error running page script", error)
+			reportPageScriptError(error)
 			return {}
 		}
 	}
@@ -179,7 +181,13 @@ const useCodeStore = defineStore("codeStore", () => {
 	// effect on the canvas without a reload. (Pinia stores keep their singleton state — they refresh
 	// their code only via their own acceptHMRUpdate.)
 	async function applyPageScriptHMR(setup: unknown) {
+		pageScriptError.value = null
 		pageScriptBindings.value = await runPageScriptSetup(setup)
+	}
+
+	function reportPageScriptError(error: unknown) {
+		console.error("Error running page script", error)
+		pageScriptError.value = error instanceof Error ? error.message : String(error)
 	}
 
 	function runInPageScriptScope(run: () => any): any {
@@ -191,7 +199,7 @@ const useCodeStore = defineStore("codeStore", () => {
 			try {
 				result = run()
 			} catch (error) {
-				console.error("Error running page script", error)
+				reportPageScriptError(error)
 			}
 		})
 		return result
@@ -616,6 +624,7 @@ const useCodeStore = defineStore("codeStore", () => {
 		// page script
 		pageScriptBindings,
 		pageScriptTemplateBindings,
+		pageScriptError,
 		setPageScript,
 		applyPageScriptHMR,
 		// code execution

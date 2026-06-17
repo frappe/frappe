@@ -167,17 +167,26 @@
 			<Button size="xs" variant="ghost" icon="lucide-trash-2" @click="removeFile" title="Delete file" />
 			<Button size="xs" variant="ghost" icon="lucide-x" @click="closeFile" title="Close editor" />
 		</template>
+
+		<template #banner>
+			<ErrorMessage
+				v-if="codeStore.pageScriptError && isEditingActivePageScript"
+				class="border-b border-outline-gray-2 px-3 py-2"
+				:message="`Error: ${codeStore.pageScriptError}`"
+			/>
+		</template>
 	</CodeEditorDock>
 </template>
 
 <script setup lang="ts">
 import { ref, computed, watch, nextTick, onMounted, onBeforeUnmount } from "vue"
 import { vOnClickOutside } from "@vueuse/components"
-import { Button, Dialog, FormControl, Tree, toast, Tooltip } from "frappe-ui"
+import { Button, Dialog, ErrorMessage, FormControl, Tree, toast, Tooltip } from "frappe-ui"
 import CodeEditorDock from "@/components/CodeEditorDock.vue"
 import ContextMenu from "@/components/ContextMenu.vue"
 import EmptyState from "@/components/EmptyState.vue"
 import useStudioStore from "@/stores/studioStore"
+import useCodeStore from "@/stores/codeStore"
 import {
 	listStudioFiles,
 	readStudioFile,
@@ -194,6 +203,7 @@ import { pageScriptCompletions } from "@/utils/pageScriptCompletions"
 import type { ContextMenuOption } from "@/types"
 
 const store = useStudioStore()
+const codeStore = useCodeStore()
 const app = computed(() => store.activeApp)
 
 const treeOptions = {
@@ -279,6 +289,10 @@ const editorContent = ref("")
 const savedContent = ref("")
 const dirty = computed(() => Boolean(openFile.value) && editorContent.value !== savedContent.value)
 const language = computed(() => (openFile.value ? languageForFile(openFile.value.path) : "javascript"))
+
+const isEditingActivePageScript = computed(
+	() => Boolean(openFile.value) && openFile.value!.path === activePagePaths.value?.script,
+)
 
 function getFileBadge(path: string): { label: string; colorClass: string } {
 	const extension = path.slice(path.lastIndexOf(".")).toLowerCase()
