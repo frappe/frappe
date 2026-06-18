@@ -905,6 +905,32 @@ class TestWebForm(IntegrationTestCase):
 		self.assertEqual(link_field.fieldtype, "Autocomplete")
 		self.assertTrue(link_field.options)
 
+	def test_get_form_data_allows_used_one_time_key_without_docname(self):
+		self.set_web_form_settings(key_required=1, login_required=0, allow_multiple=0)
+		self.add_web_form_link_field()
+		web_form_request = self.create_web_form_request(doc_values={"event_type": "Public"})
+
+		frappe.set_user("Guest")
+		accept(
+			web_form="manage-events",
+			data=json.dumps(
+				{
+					"doctype": "Event",
+					"subject": "_Test One Time Get Form Data",
+					"starts_on": "2026-05-10",
+				}
+			),
+			web_form_request_key=web_form_request.key,
+		)
+
+		result = get_form_data(
+			doctype="Event",
+			web_form_name="manage-events",
+			web_form_request_key=web_form_request.key,
+		)
+		link_field = next(f for f in result.web_form.web_form_fields if f.fieldname == "reference_doctype")
+		self.assertEqual(link_field.fieldtype, "Autocomplete")
+
 	def test_guest_key_web_form_rejects_unauthorized_link_field_on_save(self):
 		self.set_web_form_settings(key_required=1, login_required=0)
 		web_form = frappe.get_doc("Web Form", "manage-events")

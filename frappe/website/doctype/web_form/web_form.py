@@ -1027,7 +1027,7 @@ def get_form_data(
 		web_form.get_web_form_request(
 			web_form_request_key,
 			docname=docname,
-			allow_used=bool(docname) or bool(web_form.allow_multiple),
+			allow_used=True,
 		)
 
 	out = frappe._dict()
@@ -1147,7 +1147,7 @@ def get_link_options(
 			web_form.name,
 			web_form_request_key,
 			required=True,
-			allow_used=bool(web_form.allow_multiple) or bool(docname),
+			allow_used=True,
 		)
 
 	ensure_guest_key_link_doctype_allowed(web_form, doctype)
