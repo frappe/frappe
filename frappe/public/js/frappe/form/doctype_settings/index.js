@@ -6,6 +6,7 @@ import "./list_panel";
 import "./tabs/email_template";
 import "./tabs/notification";
 import "./tabs/global_search"
+import "./tabs/workflow";
 
 /**
  * Open the DocType Settings dialog scoped to `doctype`.
