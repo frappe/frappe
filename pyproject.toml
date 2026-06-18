@@ -33,7 +33,7 @@ dependencies = [
     "chardet~=7.4.3",
     "croniter~=6.2.2",
     "cryptography~=48.0.1",
-    "cssutils~=2.11.1",
+    "cssutils~=2.15.0",
     "email-reply-parser~=0.5.12",
     "Faker~=18.10.1",
     "gunicorn @ git+https://github.com/frappe/gunicorn@f189de0ec3143581d8826f707343fa36c3fb0184",
