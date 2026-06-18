@@ -55,7 +55,7 @@ dependencies = [
     "psutil~=7.2.2",
     "psycopg2-binary~=2.9.11",
     "pyOpenSSL~=26.2.0",
-    "pydantic~=2.12.5",
+    "pydantic~=2.13.4",
     "pyotp~=2.9.0",
     "python-dateutil~=2.9.0.post0",
     "pytz==2025.2",
