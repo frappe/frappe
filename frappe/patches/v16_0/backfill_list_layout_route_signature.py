@@ -14,7 +14,7 @@ def execute():
 		rows = frappe.get_all(
 			"List Layout",
 			fields=["name", "reference_doctype", "filters"],
-			filters={"route_signature": ["in", ["", None]]},
+			filters={"route_signature": ["is", "not set"]},
 			limit=500,
 		)
 		if not rows:
@@ -22,11 +22,10 @@ def execute():
 
 		for row in rows:
 			signature = compute_route_signature(row.reference_doctype, row.filters)
-			if signature:
-				frappe.db.set_value(
-					"List Layout",
-					row.name,
-					"route_signature",
-					signature,
-					update_modified=False,
-				)
+			frappe.db.set_value(
+				"List Layout",
+				row.name,
+				"route_signature",
+				signature,
+				update_modified=False,
+			)
