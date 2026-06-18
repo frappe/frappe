@@ -144,7 +144,7 @@ def update_list_layout(
 		next_sort_order = sort_order if sort_order is not None else doc.sort_order
 		doc.sort_field, doc.sort_order = _sanitize_sorting(next_sort_field, next_sort_order, valid_fields)
 
-	doc.save(ignore_permissions=True)
+	doc.save(ignore_permissions=True)  # permissions checked via _can_update_list_layout above
 	return doc.as_dict()
 
 
@@ -158,7 +158,7 @@ def delete_list_layout(name: str):
 			frappe.throw(_("You are not allowed to delete global layouts"), frappe.PermissionError)
 		frappe.throw(_("You are not allowed to delete this layout"), frappe.PermissionError)
 
-	doc.delete(ignore_permissions=True)
+	doc.delete(ignore_permissions=True)  # permissions checked via _can_update_list_layout above
 	return True
 
 

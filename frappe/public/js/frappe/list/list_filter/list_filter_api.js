@@ -21,6 +21,7 @@ export const ListFilterAPI = {
 					["for_user", "=", ""],
 				],
 				order_by: "filter_name asc",
+				limit: 200,
 			})
 			.then((filters) => {
 				this.filters = (filters || []).map((layout) => this.normalize_layout(layout));

@@ -16,16 +16,11 @@ function selectLayout(label) {
 }
 
 function clearTestLayouts() {
-	return cy.call(
-		"frappe.desk.doctype.list_layout.test_list_layout.clear_list_layout_test_layouts"
-	);
+	return cy.call("frappe.tests.ui_test_helpers.clear_list_layout_test_layouts");
 }
 
 function createTestLayout(args = {}) {
-	return cy.call(
-		"frappe.desk.doctype.list_layout.test_list_layout.create_list_layout_test_layout",
-		args
-	);
+	return cy.call("frappe.tests.ui_test_helpers.create_list_layout_test_layout", args);
 }
 
 context("List View — Saved Layouts", () => {

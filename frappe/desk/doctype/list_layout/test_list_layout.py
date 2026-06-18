@@ -10,52 +10,7 @@ from frappe.desk.doctype.list_layout.list_layout import (
 	update_list_layout,
 )
 from frappe.tests import UnitTestCase
-from frappe.tests.utils import toggle_test_mode, whitelist_for_tests
-
-CYPRESS_LAYOUT_TEST_PREFIX = "_cypress_layout_"
-
-
-@whitelist_for_tests()
-def clear_list_layout_test_layouts():
-	"""Remove saved layouts created by Cypress saved-layout tests."""
-	frappe.db.delete("List Layout", {"filter_name": ["like", f"{CYPRESS_LAYOUT_TEST_PREFIX}%"]})
-
-
-@whitelist_for_tests()
-def create_list_layout_test_layout(
-	filter_name: str | None = None,
-	reference_doctype: str = "ToDo",
-	for_user: str | None = None,
-	filters: str | None = None,
-	columns: str | None = None,
-	sort_field: str = "modified",
-	sort_order: str = "desc",
-):
-	"""Insert a saved list layout for Cypress tests."""
-	frappe.set_user("Administrator")
-	filter_name = filter_name or f"{CYPRESS_LAYOUT_TEST_PREFIX}open"
-
-	if frappe.db.exists("List Layout", {"filter_name": filter_name, "reference_doctype": reference_doctype}):
-		frappe.db.delete(
-			"List Layout",
-			{"filter_name": filter_name, "reference_doctype": reference_doctype},
-		)
-
-	doc = frappe.get_doc(
-		{
-			"doctype": "List Layout",
-			"filter_name": filter_name,
-			"reference_doctype": reference_doctype,
-			"for_user": for_user if for_user is not None else frappe.session.user,
-			"filters": filters if filters is not None else json.dumps([["ToDo", "status", "=", "Open"]]),
-			"columns": columns
-			if columns is not None
-			else json.dumps([{"fieldname": "status", "label": "Status"}]),
-			"sort_field": sort_field,
-			"sort_order": sort_order,
-		}
-	).insert(ignore_permissions=True)
-	return doc.name
+from frappe.tests.utils import toggle_test_mode
 
 
 class TestListLayout(UnitTestCase):
@@ -67,7 +22,6 @@ class TestListLayout(UnitTestCase):
 		frappe.db.delete("List Layout", {"filter_name": ["like", "_test_layout_%"]})
 		frappe.db.delete("List Layout", {"filter_name": ["like", "_cypress_layout_%"]})
 		frappe.set_user("Administrator")
-		frappe.db.commit()
 
 	def _create_layout(self, **kwargs):
 		doc = frappe.get_doc(
@@ -174,6 +128,11 @@ class TestListLayout(UnitTestCase):
 		self.assertIsNone(updated["sort_order"])
 
 	def test_cypress_test_layout_helpers(self):
+		from frappe.tests.ui_test_helpers import (
+			clear_list_layout_test_layouts,
+			create_list_layout_test_layout,
+		)
+
 		layout_name = create_list_layout_test_layout(
 			filter_name="_cypress_layout_api_test",
 			filters="[]",

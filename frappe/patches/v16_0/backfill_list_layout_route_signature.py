@@ -10,17 +10,23 @@ def execute():
 	if not frappe.db.has_column("List Layout", "route_signature"):
 		return
 
-	for row in frappe.get_all(
-		"List Layout",
-		fields=["name", "reference_doctype", "filters", "route_signature"],
-		filters={"route_signature": ["in", ["", None]]},
-	):
-		signature = compute_route_signature(row.reference_doctype, row.filters)
-		if signature:
-			frappe.db.set_value(
-				"List Layout",
-				row.name,
-				"route_signature",
-				signature,
-				update_modified=False,
-			)
+	while True:
+		rows = frappe.get_all(
+			"List Layout",
+			fields=["name", "reference_doctype", "filters"],
+			filters={"route_signature": ["in", ["", None]]},
+			limit=500,
+		)
+		if not rows:
+			break
+
+		for row in rows:
+			signature = compute_route_signature(row.reference_doctype, row.filters)
+			if signature:
+				frappe.db.set_value(
+					"List Layout",
+					row.name,
+					"route_signature",
+					signature,
+					update_modified=False,
+				)
