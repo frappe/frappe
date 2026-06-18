@@ -28,6 +28,7 @@ execute:frappe.reload_doc('core', 'doctype', 'activity_log')
 execute:frappe.reload_doc('core', 'doctype', 'deleted_document')
 execute:frappe.reload_doc('core', 'doctype', 'domain_settings')
 frappe.patches.v13_0.rename_custom_client_script
+frappe.patches.v16_0.rename_list_filter_to_list_layout
 execute:frappe.reload_doc('core', 'doctype', 'role') #2017-05-23
 execute:frappe.reload_doc('core', 'doctype', 'user') #2017-10-27
 execute:frappe.reload_doc('core', 'doctype', 'report_column')
@@ -263,3 +264,4 @@ execute:frappe.db.set_value("Email Account", {}, "add_reply_to_header", 1)
 frappe.patches.v16_0.set_reply_to_header
 frappe.patches.v16_0.rename_print_format_builder_beta_route
 frappe.patches.v16_0.sync_installed_apps_to_site_config
+frappe.patches.v16_0.backfill_list_layout_route_signature
