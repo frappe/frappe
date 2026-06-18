@@ -3,7 +3,7 @@ msgstr ""
 "Project-Id-Version: frappe\n"
 "Report-Msgid-Bugs-To: developers@frappe.io\n"
 "POT-Creation-Date: 2026-06-14 10:33+0000\n"
-"PO-Revision-Date: 2026-06-17 18:12\n"
+"PO-Revision-Date: 2026-06-18 18:16\n"
 "Last-Translator: developers@frappe.io\n"
 "Language-Team: Bosnian\n"
 "MIME-Version: 1.0\n"
@@ -1901,7 +1901,7 @@ msgstr "Poravnaj Vrijednost"
 
 #: frappe/public/js/print_format_builder/components/inspector/FieldInspector.vue:670
 msgid "Align center"
-msgstr "Poravnaj centar"
+msgstr "Poravnaj centralno"
 
 #: frappe/public/js/print_format_builder/components/inspector/FieldInspector.vue:669
 msgid "Align left"
@@ -5084,7 +5084,7 @@ msgstr "Odaberi način autentifikacije koji će koristiti svi korisnici"
 
 #: frappe/core/doctype/data_import/importer.py:1072
 msgid "Circular parent reference for {0}"
-msgstr "Kružna podređena referenca za {0}"
+msgstr "Kružna nadređena referenca za {0}"
 
 #. Label of the city (Data) field in DocType 'Contact Us Settings'
 #: frappe/contacts/report/addresses_and_contacts/addresses_and_contacts.py:39
@@ -7130,7 +7130,7 @@ msgstr "Zapisnik Uvoza Podataka"
 #. Name of a DocType
 #: frappe/core/doctype/data_import_skipped_row/data_import_skipped_row.json
 msgid "Data Import Skipped Row"
-msgstr "Preskočeni red za Uvoz Podataka"
+msgstr "Preskočeni red Uvoza Podataka"
 
 #: frappe/core/doctype/data_export/exporter.py:175
 msgid "Data Import Template"
@@ -15640,7 +15640,7 @@ msgstr "Oznaka i Tip"
 
 #: frappe/public/js/print_format_builder/components/inspector/FieldInspector.vue:438
 msgid "Label case"
-msgstr "Etiketa Kutije"
+msgstr "Kutija Etikete"
 
 #: frappe/custom/doctype/custom_field/custom_field.py:150
 msgid "Label is mandatory"
@@ -19876,7 +19876,7 @@ msgstr "Otvori datoteku"
 
 #: frappe/public/js/frappe/form/sidebar/attachments.js:219
 msgid "Open file in new tab"
-msgstr "Otvori fajl u novoj kartici"
+msgstr "Otvori datoteku u novoj kartici"
 
 #. Label of the open_in_new_tab (Check) field in DocType 'Workspace Sidebar
 #. Item'
@@ -31612,7 +31612,7 @@ msgstr "Verzija Ažurirana"
 
 #: frappe/public/js/print_format_builder/components/PrintFormatControls.vue:316
 msgid "Vertical whitespace"
-msgstr "Vertikalni prazan prostor"
+msgstr "Vertikalni razmak"
 
 #. Label of the video_url (Data) field in DocType 'Onboarding Step'
 #: frappe/desk/doctype/onboarding_step/onboarding_step.json
