@@ -180,6 +180,13 @@
 	gap: 0.5rem;
 	align-items: center;
 	flex-shrink: 0;
+
+	// Buttons may carry a leading icon (e.g. "+ New"); keep icon + label aligned.
+	.btn {
+		display: inline-flex;
+		align-items: center;
+		gap: var(--padding-xs);
+	}
 }
 
 .settings-dialog-panel-body {

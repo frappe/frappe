@@ -66,8 +66,9 @@ frappe.ui.SettingsDialogPanel = class SettingsDialogPanel {
 	make_action(action) {
 		const $btn = $(`<button type="button"></button>`)
 			.addClass(`btn btn-sm ${action.primary ? "btn-primary" : "btn-default"}`)
-			.addClass(action.class || "")
-			.text(action.label || "");
+			.addClass(action.class || "");
+		if (action.icon) $btn.append(frappe.utils.icon(action.icon, "sm"));
+		$btn.append($("<span></span>").text(action.label || ""));
 		// `this` and the first argument are both the panel, so actions can mutate it.
 		action.click && $btn.on("click", () => action.click.call(this, this));
 		return $btn;

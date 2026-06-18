@@ -646,6 +646,13 @@ frappe.ui.form.Toolbar = class Toolbar {
 
 			if (!is_core_doctype && !is_doctype_custom && this.frm.meta.issingle === 0) {
 				this.page.add_menu_item(
+					__("Settings"),
+					() => {
+						frappe.doctype_settings.open(doctype);
+					},
+					true
+				);
+				this.page.add_menu_item(
 					__("Customize"),
 					() => {
 						if (this.frm.meta && this.frm.meta.custom) {

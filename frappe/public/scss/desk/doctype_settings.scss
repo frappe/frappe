@@ -1,0 +1,358 @@
+// Tab-specific layout for the DocType Settings dialog. The dialog shell itself
+// is styled in settings_dialog.scss; these `dts-` classes cover the bits the
+// reference tabs (naming, global search, print format) render into panel bodies.
+
+// ── Global Search tab: inclusion toggle + searchable-field checkbox grid ──
+// Selector carries `.switch-control` too, to beat `label.switch-control`'s padding /
+// margin-bottom from controls.scss (otherwise the divider hugs the search bar).
+.switch-control.dts-gs-switch {
+	padding-bottom: var(--padding-md);
+	margin-bottom: var(--padding-md);
+	border-bottom: 1px solid var(--border-color);
+}
+
+.dts-gs-search {
+	max-width: 320px;
+	margin-bottom: var(--margin-md);
+}
+
+.dts-gs-grid {
+	display: grid;
+	grid-template-columns: repeat(auto-fill, minmax(220px, 1fr));
+	gap: var(--padding-xs) var(--margin-md);
+}
+
+.dts-gs-empty {
+	padding: var(--padding-md) 0;
+}
+
+// Checkbox row (label + native checkbox), reused for the doctype-name option too.
+.dts-check {
+	display: flex;
+	align-items: center;
+	gap: var(--padding-sm);
+	margin: 0;
+	padding: var(--padding-xs) 0;
+	font-weight: var(--weight-regular);
+	cursor: pointer;
+
+	input {
+		margin: 0;
+		cursor: pointer;
+	}
+
+	.dts-check-label {
+		color: var(--ink-gray-7);
+		min-width: 0;
+		overflow: hidden;
+		text-overflow: ellipsis;
+		white-space: nowrap;
+	}
+}
+
+.dts-summary-row {
+	display: flex;
+	justify-content: space-between;
+	gap: var(--margin-md);
+	padding: var(--padding-sm) 0;
+	border-bottom: 1px solid var(--border-color);
+
+	.dts-summary-label {
+		color: var(--ink-gray-6);
+	}
+
+	.dts-summary-value {
+		color: var(--ink-gray-8);
+		font-weight: var(--weight-medium);
+	}
+}
+
+// ── Shared list panel (CRM-style: header + table + inline switch + overflow) ──
+.dts-list {
+	display: flex;
+	flex-direction: column;
+}
+
+.dts-list-row {
+	display: flex;
+	align-items: center;
+	gap: var(--margin-md);
+	padding: var(--padding-md) 0;
+	border-bottom: 1px solid var(--border-color);
+}
+
+.dts-list-head {
+	padding: 0 0 var(--padding-sm);
+	color: var(--ink-gray-5);
+	font-size: var(--text-sm);
+	font-weight: var(--weight-medium);
+	border-bottom: 1px solid var(--border-color);
+}
+
+.dts-list-cell {
+	flex: 1;
+	min-width: 0;
+}
+
+.dts-list-cell-title {
+	flex: 2;
+	display: flex;
+	align-items: center;
+	gap: var(--margin-md);
+}
+
+// Text block (primary + secondary) sitting next to the optional leading media.
+.dts-list-text {
+	min-width: 0;
+}
+
+.dts-list-cell-toggle {
+	flex: 0 0 6rem;
+	display: flex;
+	align-items: center;
+	justify-content: flex-start;
+}
+
+// ── Print Format tab: card grid (gray preview region + white name footer) ──
+.dts-pf-grid {
+	display: grid;
+	grid-template-columns: repeat(auto-fill, minmax(200px, 1fr));
+	gap: var(--margin-md);
+}
+
+.dts-pf-card {
+	overflow: hidden;
+	border: 1px solid var(--border-color);
+	border-radius: var(--border-radius-lg, 12px);
+	background-color: var(--surface-white);
+}
+
+// Top region: tinted, holds the badge, the star, and the "page" thumbnail. Fixed
+// height so the card width can vary without the preview growing tall.
+.dts-pf-preview {
+	position: relative;
+	height: 220px;
+	padding: var(--padding-lg) var(--padding-lg) 0;
+	overflow: hidden;
+	background-color: var(--surface-gray-2);
+}
+
+// The page peeking up from the bottom of the preview region.
+.dts-pf-thumb {
+	display: flex;
+	align-items: flex-start;
+	justify-content: center;
+	height: 100%;
+	overflow: hidden;
+	border-radius: var(--border-radius) var(--border-radius) 0 0;
+	background-color: var(--surface-white);
+	box-shadow: var(--shadow-sm);
+	cursor: pointer;
+}
+
+.dts-pf-img {
+	width: 100%;
+	height: 100%;
+	object-fit: cover;
+	object-position: top center;
+}
+
+.dts-pf-placeholder {
+	align-self: center;
+	color: var(--ink-gray-4);
+}
+
+.dts-pf-badge {
+	position: absolute;
+	top: 10px;
+	left: 10px;
+	z-index: 1;
+}
+
+.dts-pf-star {
+	position: absolute;
+	top: 10px;
+	right: 10px;
+	z-index: 1;
+	display: inline-flex;
+	padding: 6px;
+	border: none;
+	border-radius: var(--border-radius);
+	background-color: var(--surface-white);
+	box-shadow: var(--shadow-sm);
+	color: var(--ink-gray-4);
+	opacity: 0; // hidden until hover for non-default cards
+}
+
+// Show the star on hover, and always (gold) for the current default.
+.dts-pf-card:hover .dts-pf-star {
+	opacity: 1;
+}
+
+.dts-pf-card.is-default .dts-pf-star {
+	opacity: 1;
+	color: var(--amber-500);
+}
+
+.dts-pf-footer {
+	padding: var(--padding-md) var(--padding-lg);
+}
+
+.dts-pf-name {
+	display: block;
+	font-weight: var(--weight-semibold);
+	color: var(--ink-gray-8);
+	cursor: pointer;
+	overflow: hidden;
+	text-overflow: ellipsis;
+	white-space: nowrap;
+
+	&:hover {
+		text-decoration: underline;
+	}
+}
+
+// Print format full-size preview iframe (style-isolated render).
+.dts-preview-frame {
+	width: 100%;
+	height: 65vh;
+	border: 1px solid var(--border-color);
+	border-radius: var(--border-radius);
+	background-color: var(--surface-white);
+}
+
+// Notification preview dialog (rendered subject/message + condition result).
+.dts-notif-meta {
+	display: flex;
+	flex-direction: column;
+	gap: var(--padding-xs);
+	padding-bottom: var(--padding-md);
+	margin-bottom: var(--padding-md);
+	border-bottom: 1px solid var(--border-color);
+}
+
+.dts-notif-message {
+	max-height: 50vh;
+	overflow: auto;
+	padding: var(--padding-md);
+	border: 1px solid var(--border-color);
+	border-radius: var(--border-radius);
+	background-color: var(--surface-white);
+}
+
+.dts-list-cell-actions {
+	flex: 0 0 2.5rem;
+	display: flex;
+	justify-content: flex-end;
+}
+
+// Overflow menu item: icon + label grouped left (zero any inherited margins that
+// otherwise push the label to the right edge).
+.dts-action-item.dropdown-item {
+	display: flex;
+	align-items: center;
+	justify-content: flex-start;
+	gap: var(--padding-sm);
+	text-align: left;
+
+	.icon {
+		flex-shrink: 0;
+		margin: 0;
+	}
+
+	> span {
+		margin: 0;
+	}
+}
+
+.dts-list-primary-row {
+	display: flex;
+	align-items: center;
+	gap: var(--padding-sm);
+	min-width: 0;
+}
+
+.dts-list-primary {
+	color: var(--ink-gray-8);
+	font-weight: var(--weight-medium);
+	min-width: 0;
+	overflow: hidden;
+	text-overflow: ellipsis;
+	white-space: nowrap;
+
+	&.dts-list-link {
+		cursor: pointer;
+
+		&:hover {
+			color: var(--ink-gray-9);
+			text-decoration: underline;
+		}
+	}
+}
+
+.dts-list-secondary {
+	margin-top: 2px;
+	color: var(--ink-gray-5);
+	font-size: var(--text-sm);
+}
+
+.dts-list-state {
+	display: flex;
+	align-items: center;
+	gap: var(--margin-sm);
+	padding: var(--padding-lg) 0;
+}
+
+// Inline switch reuses ControlSwitch markup (.switch-control / .input-area /
+// .switch-visual) from controls.scss; nothing extra needed beyond a margin reset.
+.dts-switch {
+	margin: 0;
+	cursor: pointer;
+}
+
+// Overflow "…" menu.
+.dts-actions {
+	position: relative;
+
+	.dts-actions-btn {
+		line-height: 1;
+		font-weight: var(--weight-bold);
+	}
+
+	.dts-actions-menu {
+		display: none;
+		right: 0;
+		left: auto;
+
+		&.show {
+			display: block;
+		}
+	}
+}
+
+// Empty state.
+.dts-empty {
+	display: flex;
+	flex-direction: column;
+	align-items: center;
+	text-align: center;
+	gap: var(--margin-sm);
+	padding: var(--padding-2xl) var(--padding-lg);
+
+	.dts-empty-title {
+		color: var(--ink-gray-7);
+		font-weight: var(--weight-medium);
+	}
+
+	.dts-empty-description {
+		color: var(--ink-gray-5);
+		font-size: var(--text-sm);
+		max-width: 24rem;
+	}
+
+	.dts-empty-action {
+		margin-top: var(--margin-sm);
+	}
+}
+
+
