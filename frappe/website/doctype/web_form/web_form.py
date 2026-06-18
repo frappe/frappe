@@ -569,27 +569,30 @@ def get_context(context):
 		# load reference doc
 		if frappe.form_dict.name:
 			context.doc_name = frappe.form_dict.name
-			context.reference_doc = frappe.get_doc(self.doc_type, context.doc_name)
+			reference_doc = frappe.get_doc(self.doc_type, context.doc_name)
 			context.web_form_title = context.title
 			context.title = (
-				strip_html(
-					frappe.cstr(context.reference_doc.get(context.reference_doc.meta.get_title_field()))
-				)
+				strip_html(frappe.cstr(reference_doc.get(reference_doc.meta.get_title_field())))
 				or context.doc_name
 			)
-			context.reference_doc.add_seen()
-			context.reference_doctype = context.reference_doc.doctype
-			context.reference_name = context.reference_doc.name
+			reference_doc.add_seen()
+			context.reference_doctype = reference_doc.doctype
+			context.reference_name = reference_doc.name
 
 			if self.show_attachments:
 				context.attachments = self.get_webform_attachments(context)
 
 			if self.allow_comments:
-				context.comment_list = get_comment_list(
-					context.reference_doc.doctype, context.reference_doc.name
-				)
+				context.comment_list = get_comment_list(reference_doc.doctype, reference_doc.name)
 
-			context.reference_doc = context.reference_doc.as_dict(no_nulls=True)
+			doc_dict = reference_doc.as_dict(no_nulls=True)
+			if frappe.session.user == "Guest":
+				allowed_fields = {"name", "doctype", *(field.fieldname for field in self.web_form_fields)}
+				context.reference_doc = {
+					fieldname: doc_dict[fieldname] for fieldname in allowed_fields if fieldname in doc_dict
+				}
+			else:
+				context.reference_doc = doc_dict
 
 	def add_custom_context_and_script(self, context):
 		"""Update context from module if standard and append script"""
