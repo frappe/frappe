@@ -221,25 +221,6 @@
 	background-color: var(--surface-white);
 }
 
-// Notification preview dialog (rendered subject/message + condition result).
-.dts-notif-meta {
-	display: flex;
-	flex-direction: column;
-	gap: var(--padding-xs);
-	padding-bottom: var(--padding-md);
-	margin-bottom: var(--padding-md);
-	border-bottom: 1px solid var(--border-color);
-}
-
-.dts-notif-message {
-	max-height: 50vh;
-	overflow: auto;
-	padding: var(--padding-md);
-	border: 1px solid var(--border-color);
-	border-radius: var(--border-radius);
-	background-color: var(--surface-white);
-}
-
 .dts-list-cell-actions {
 	flex: 0 0 2.5rem;
 	display: flex;
