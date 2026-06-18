@@ -28,10 +28,16 @@ export function getStore(print_format_name) {
 				frappe.model.with_doctype(_print_format.doc_type, () => {
 					meta.value = frappe.get_meta(_print_format.doc_type);
 					print_format.value = _print_format;
+					const had_format_data = !!get_layout();
 					layout.value = get_layout() || get_default_layout();
 					// Migrate legacy string header/footer to section objects
 					layout.value.header = migrate_to_section(layout.value.header);
 					layout.value.footer = migrate_to_section(layout.value.footer);
+					// Persist the default layout immediately so print works even if
+					// the user saves from the doctype form without opening the builder
+					if (!had_format_data) {
+						print_format.value.format_data = JSON.stringify(layout.value);
+					}
 					edit_letterhead.value = false;
 					selected_field.value = null;
 					selected_section.value = null;
