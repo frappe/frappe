@@ -3,7 +3,14 @@ from unittest.mock import patch
 
 import frappe
 from frappe.tests import IntegrationTestCase
-from frappe.utils.telemetry.pulse.client import EventQueue, capture, is_enabled
+from frappe.utils.telemetry.pulse.client import (
+	EventQueue,
+	alias,
+	capture,
+	guest_capture,
+	identify,
+	is_enabled,
+)
 from frappe.utils.telemetry.pulse.utils import anonymize_user, parse_interval
 
 
@@ -279,7 +286,8 @@ class TestCapture(TestPulseClient):
 			"test_event",
 			site="test.localhost",
 			app="frappe",
-			user="test@example.com",
+			user="fc_priya",
+			team="team_test",
 			properties={"key": "value"},
 		)
 
@@ -289,19 +297,109 @@ class TestCapture(TestPulseClient):
 		self.assertEqual(events[0]["properties"]["key"], "value")
 
 	@patch("frappe.utils.telemetry.pulse.client.is_enabled")
-	def test_capture_anonymizes_user(self, mock_enabled):
-		"""Test that user is anonymized"""
+	def test_capture_user_and_team_group(self, mock_enabled):
+		"""The user is the identity; the team is a group it belongs to"""
 		is_enabled.clear_cache()
 		mock_enabled.return_value = True
 		eq = EventQueue()
 
-		test_user = "test@example.com"
-		capture("test_event", site="test.localhost", user=test_user)
+		capture("test_event", site="test.localhost", user="fc_priya", team="team_priya")
 
 		events = eq.collect(batch_size=1)
-		# User should be anonymized
-		self.assertNotEqual(events[0]["user"], test_user)
-		self.assertTrue(events[0]["user"].startswith("anon_"))
+		self.assertEqual(events[0]["user"], "fc_priya")
+		self.assertEqual(events[0]["team"], "team_priya")
+
+	@patch("frappe.utils.telemetry.pulse.client.is_enabled")
+	def test_capture_defaults_user_and_leaves_team_empty(self, mock_enabled):
+		"""On a customer site: user defaults to the anon site user; team is left
+		empty (it's joined from `site` downstream, not carried on the event)"""
+		is_enabled.clear_cache()
+		mock_enabled.return_value = True
+		eq = EventQueue()
+
+		capture("test_event", site="test.localhost")
+
+		events = eq.collect(batch_size=1)
+		# user defaults to the (anonymized) session user
+		self.assertEqual(events[0]["user"], anonymize_user(frappe.session.user))
+		# team is only set where it can't be derived from site (e.g. the dashboard)
+		self.assertIsNone(events[0]["team"])
+
+	@patch("frappe.utils.telemetry.pulse.client.is_enabled")
+	def test_guest_capture_enqueues_with_anon_user(self, mock_enabled):
+		"""guest_capture delegates to bulk_capture; pre-signup events carry anon_id"""
+		is_enabled.clear_cache()
+		mock_enabled.return_value = True
+		eq = EventQueue()
+
+		guest_capture([{"event_name": "viewed_signup", "user": "anon_abc", "site": "cloud.frappe.io"}])
+
+		events = eq.collect(batch_size=1)
+		self.assertEqual(events[0]["event_name"], "viewed_signup")
+		self.assertEqual(events[0]["user"], "anon_abc")
+
+
+class TestIdentify(TestPulseClient):
+	@patch("frappe.utils.telemetry.pulse.transport.PulseHTTP._session")
+	@patch("frappe.utils.telemetry.pulse.client.is_enabled")
+	def test_identify_noop_when_disabled(self, mock_enabled, mock_session):
+		"""identify does nothing (and posts nothing) when telemetry is disabled"""
+		is_enabled.clear_cache()
+		mock_enabled.return_value = False
+
+		identify("team_test", {"plan": "pro"})
+
+		mock_session.assert_not_called()
+
+	@patch("frappe.utils.telemetry.pulse.transport.PulseHTTP._session")
+	@patch("frappe.utils.telemetry.pulse.client.is_enabled")
+	def test_identify_posts_profile(self, mock_enabled, mock_session):
+		"""identify posts the user + properties to the identify endpoint"""
+		is_enabled.clear_cache()
+		mock_enabled.return_value = True
+
+		posted = {}
+
+		class _Resp:
+			status_code = 200
+
+		def _fake_post(url, data=None, timeout=None):
+			posted["url"] = url
+			posted["data"] = frappe.parse_json(data)
+			return _Resp()
+
+		mock_session.return_value = type("_Session", (), {"post": staticmethod(_fake_post)})()
+
+		identify("fc_priya", {"persona": "founder"})
+
+		self.assertEqual(posted["data"]["user"], "fc_priya")
+		self.assertEqual(posted["data"]["properties"]["persona"], "founder")
+		self.assertTrue(posted["url"].endswith("/api/method/pulse.api.identify"))
+
+	@patch("frappe.utils.telemetry.pulse.transport.PulseHTTP._session")
+	@patch("frappe.utils.telemetry.pulse.client.is_enabled")
+	def test_alias_posts_mapping(self, mock_enabled, mock_session):
+		"""alias posts the previous_id → user mapping to the alias endpoint"""
+		is_enabled.clear_cache()
+		mock_enabled.return_value = True
+
+		posted = {}
+
+		class _Resp:
+			status_code = 200
+
+		def _fake_post(url, data=None, timeout=None):
+			posted["url"] = url
+			posted["data"] = frappe.parse_json(data)
+			return _Resp()
+
+		mock_session.return_value = type("_Session", (), {"post": staticmethod(_fake_post)})()
+
+		alias("anon_8f2c", "fc_priya")
+
+		self.assertEqual(posted["data"]["previous_id"], "anon_8f2c")
+		self.assertEqual(posted["data"]["user"], "fc_priya")
+		self.assertTrue(posted["url"].endswith("/api/method/pulse.api.alias"))
 
 
 class TestUtils(TestPulseClient):
@@ -328,7 +426,7 @@ class TestUtils(TestPulseClient):
 
 		# Should be anonymized and consistent
 		self.assertNotEqual(anon_user, user)
-		self.assertTrue(anon_user.startswith("anon_"))
+		self.assertTrue(anon_user.startswith("user_"))
 		self.assertEqual(anonymize_user(user), anon_user)
 
 		# Standard users not anonymized

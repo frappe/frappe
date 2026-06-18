@@ -1,18 +1,16 @@
-import time
-from contextlib import suppress
 from typing import Any
 
-from orjson import JSONDecodeError
-
 import frappe
-from frappe.utils import get_request_session
+from frappe.rate_limiter import rate_limit
 from frappe.utils.caching import site_cache
 from frappe.utils.frappecloud import on_frappecloud
 
-from .utils import anonymize_user, ensure_http, parse_interval, utc_iso
+from .queue import EventQueue
+from .transport import PulseHTTP
+from .utils import anonymize_user, utc_iso
 
 
-@frappe.whitelist()
+@frappe.whitelist(allow_guest=True)
 @site_cache(ttl=60 * 60)
 def is_enabled() -> bool:
 	return bool(
@@ -29,12 +27,15 @@ def capture(
 	site: str | None = None,
 	app: str | None = None,
 	user: str | None = None,
+	team: str | None = None,
 	captured_at: str | None = None,
 	properties: dict[str, Any] | None = None,
 	interval: int | str | None = None,
 ):
 	if not is_enabled():
 		return
+
+	user = user or anonymize_user(frappe.session.user)
 
 	try:
 		eq = EventQueue()
@@ -43,9 +44,10 @@ def capture(
 				"event_name": event_name,
 				"captured_at": captured_at or utc_iso(),
 				"app": app,
-				"user": anonymize_user(user),
 				"site": site or frappe.local.site,
-				"properties": properties,
+				"user": user,
+				"team": team,
+				"properties": properties or {},
 			},
 			interval=interval,
 		)
@@ -66,172 +68,73 @@ def bulk_capture(events: str | list[dict[str, Any]]):
 			event.get("event_name"),
 			site=event.get("site"),
 			app=event.get("app"),
-			user=event.get("user") or frappe.session.user,
+			user=event.get("user"),
+			team=event.get("team"),
 			captured_at=event.get("captured_at"),
 			properties=event.get("properties"),
 			interval=event.get("interval"),
 		)
 
 
+@frappe.whitelist(allow_guest=True, methods=["POST"])
+@rate_limit(limit=1000, seconds=60 * 60)
+def guest_capture(events: str | list[dict[str, Any]]):
+	"""Guest-accessible capture for pre-signup surfaces (e.g. frappe.io, the FC
+	signup pages) where there's no session yet — callers pass an `anon_id` as the
+	event `user`.
+
+	Split from `bulk_capture` so the authenticated desk path stays unthrottled:
+	desk telemetry is high-frequency and often shares one NAT IP across many
+	users, where a per-IP limit would silently drop legit events. The per-IP rate
+	limit matches the framework's guest-API convention (see `www/contact.py`).
+	"""
+	bulk_capture(events)
+
+
+def identify(user: str, properties: str | dict[str, Any] | None = None):
+	"""Attach attributes to a user — upserts its Pulse Person profile.
+
+	Server-side only (not whitelisted): press calls this in Python when a person's
+	attributes change (e.g. setting an FC user's persona at signup/payment). Posted
+	directly rather than queued: it's low-frequency, and a missed call self-heals on
+	the next change. Telemetry never raises to the caller.
+	"""
+	if not is_enabled() or not user:
+		return
+
+	if isinstance(properties, str):
+		properties = frappe.parse_json(properties)
+
+	endpoint = frappe.conf.get("pulse_identify_endpoint") or "/api/method/pulse.api.identify"
+	PulseHTTP().post(endpoint, {"user": user, "properties": properties or {}}, label="identify")
+
+
+def alias(previous_id: str, user: str):
+	"""Link a previous (anonymous) user id to a known user.
+
+	Server-side only (not whitelisted): identity merges must be press-controlled —
+	a browser-callable alias would let anyone re-point ids and poison the graph.
+	Press calls this in its signup handler to stitch the pre-signup anonymous
+	browser id to the FC user. Same delivery semantics as identify.
+	"""
+	if not is_enabled() or not previous_id or not user:
+		return
+
+	endpoint = frappe.conf.get("pulse_alias_endpoint") or "/api/method/pulse.api.alias"
+	PulseHTTP().post(endpoint, {"previous_id": previous_id, "user": user}, label="alias")
+
+
 def send_queued_events():
 	if not is_enabled():
 		return
 
-	eq = EventQueue()
-	eq.batch_process(post, batch_size=100, max_batches=10)
-
-
-def post(events):
-	session = _create_session()
-	url = _get_ingest_url()
-	data = frappe.as_json({"events": events})
-	resp = session.post(url, data=data, timeout=15)
-	if not (200 <= resp.status_code < 300):
-		msg = f"pulse-client - post failed: {resp.status_code} {resp.text}"
-		frappe.logger("pulse").error(msg)
-		raise Exception(msg)
-	return resp
-
-
-def _create_session():
-	api_key = frappe.conf.get("pulse_api_key")
-	session = get_request_session()
-	session.headers.update(
-		{
-			"Content-Type": "application/json",
-			"X-Pulse-API-Key": api_key,
-		}
-	)
-	return session
-
-
-def _get_ingest_url():
-	host = frappe.conf.get("pulse_host") or "https://pulse.m.frappe.cloud"
-	host = ensure_http(host)
-	host = host.rstrip("/")
-
+	http = PulseHTTP()
 	endpoint = frappe.conf.get("pulse_ingest_endpoint") or "/api/method/pulse.api.bulk_ingest"
-	endpoint = endpoint.lstrip("/")
 
-	return f"{host}/{endpoint}"
+	def post_batch(events):
+		http.post(endpoint, {"events": events}, label="ingest", raise_on_error=True)
 
-
-class EventQueue:
-	def __init__(self):
-		self.queue = "pulse-client:events"
-		self.queue_size = 10000
-		self.ratelimit_prefix = "pulse-client:last_sent:"
-
-	@property
-	def length(self):
-		return frappe.cache.llen(self.queue)
-
-	def add(self, event, interval=None):
-		if self._is_ratelimited(event, interval):
-			return
-
-		self._queue_event(event)
-		self._update_ratelimit(event, interval)
-
-	def _is_ratelimited(self, event, interval):
-		if not interval:
-			return False
-
-		interval_seconds = parse_interval(interval)
-		event_key = self._get_event_key(event)
-		last_sent_key = f"{self.ratelimit_prefix}{event_key}"
-		last_sent = frappe.cache.get_value(last_sent_key)
-
-		if last_sent and time.monotonic() - float(last_sent) < interval_seconds:
-			return True
-
-		return False
-
-	def _get_event_key(self, event):
-		return f"{event.get('event_name')}:{event.get('site')}:{event.get('app')}:{event.get('user')}"
-
-	def _update_ratelimit(self, event, interval):
-		if not interval:
-			return
-		event_key = self._get_event_key(event)
-		last_sent_key = f"{self.ratelimit_prefix}{event_key}"
-		frappe.cache.set_value(last_sent_key, time.monotonic())
-
-	def _queue_event(self, event):
-		frappe.cache.lpush(self.queue, frappe.as_json(event))
-		frappe.cache.ltrim(self.queue, 0, self.queue_size - 1)
-
-	def batch_process(self, fn, batch_size=100, max_batches=10, max_retries=3, backoff_seconds=1):
-		pending_events = None
-		retry_attempts = 0
-
-		for _ in range(max_batches):
-			events = pending_events or self.collect(batch_size)
-			if not events:
-				break
-
-			try:
-				fn(events)
-				pending_events = None
-				retry_attempts = 0
-			except Exception as e:
-				retry_attempts += 1
-				if retry_attempts > max_retries:
-					# Tried enough times, re-queue pending events and exit.
-					frappe.logger("pulse").error(f"pulse-client - max retries reached: {e!s}")
-					self._requeue_events(events)
-					break
-
-				pending_events = events
-				time.sleep(backoff_seconds * (2 ** (retry_attempts - 1)))
-				frappe.logger("pulse").error(f"pulse-client - retrying batch due to error: {e!s}")
-
-	def collect(self, batch_size=100):
-		events = []
-		for _ in range(batch_size):
-			event_json = frappe.cache.rpop(self.queue)
-			if not event_json:
-				break
-			data = self._decode_event(event_json)
-			if data:
-				events.append(data)
-		return events
-
-	def _requeue_events(self, events):
-		# Preserve original processing order (FIFO): we pop from right, so re-add in reverse.
-		for event in reversed(events):
-			frappe.cache.rpush(self.queue, frappe.as_json(event))
-		frappe.cache.ltrim(self.queue, 0, self.queue_size - 1)
-
-	def _decode_event(self, event_json):
-		event_json = event_json.decode()
-		with suppress(JSONDecodeError):
-			return frappe.parse_json(event_json)
-
-	def get_events(self, limit=20):
-		events = []
-		for _ in range(limit):
-			event_json = frappe.cache.lindex(self.queue, _)
-			if not event_json:
-				break
-			data = self._decode_event(event_json)
-			if data:
-				events.append(data)
-		return events
-
-	def get_last_sent_events(self, limit=20):
-		events = []
-		keys = frappe.cache.get_keys(f"{self.ratelimit_prefix}*")[:limit]
-		for key in keys:
-			last_sent = frappe.cache.get_value(key)
-			event_key = key.replace(self.ratelimit_prefix, "")
-			events.append(
-				{
-					"event_key": event_key,
-					"last_sent": last_sent,
-				}
-			)
-		return events
+	EventQueue().batch_process(post_batch, batch_size=100, max_batches=10)
 
 
 @frappe.whitelist()

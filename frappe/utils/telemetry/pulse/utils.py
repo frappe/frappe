@@ -20,7 +20,7 @@ def anonymize_user(user):
 	user_hash = hashlib.sha256(hash_input).hexdigest()
 
 	# Return first 12 characters for readability
-	return f"anon_{user_hash[:12]}"
+	return f"user_{user_hash[:12]}"
 
 
 def parse_interval(interval):
