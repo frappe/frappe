@@ -182,9 +182,7 @@ if __name__ == "__main__":
 	only_frontend_code_changed = len(list(filter(is_frontend_code, files_list))) == len(files_list)
 	updated_py_file_count = len(list(filter(is_server_side_code, files_list)))
 	only_py_changed = updated_py_file_count == len(files_list)
-	# PostgreSQL is a supported backend: always run its server-test matrix, no longer gated
-	# behind the "postgres" label.
-	run_postgres = True
+	run_postgres = has_label(pr_number, "postgres", repo)
 
 	# Check for Skip CI label and other conditions
 	if has_skip_ci_label(pr_number, repo):
