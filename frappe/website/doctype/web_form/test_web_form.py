@@ -284,6 +284,21 @@ class TestWebForm(IntegrationTestCase):
 		delete("manage-events", event.name, web_form_request_key=web_form_request.key)
 		self.assertFalse(frappe.db.exists("Event", event.name))
 
+	def test_guest_cannot_delete_on_public_form_without_key(self):
+		self.set_web_form_settings(login_required=0, key_required=0, allow_delete=1)
+		event = frappe.get_doc(
+			{
+				"doctype": "Event",
+				"subject": "_Test Guest Delete Guard",
+				"starts_on": "2026-05-10",
+			}
+		).insert(ignore_permissions=True)
+		frappe.db.set_value("Event", event.name, "owner", "Guest")
+
+		frappe.set_user("Guest")
+		with self.assertRaises(frappe.PermissionError):
+			delete("manage-events", event.name)
+
 	def test_guest_with_valid_key_can_render_bound_document_page(self):
 		"""A Guest holding a valid request key bound to a document must be able
 		to render the view/edit page instead of being redirected to /new."""

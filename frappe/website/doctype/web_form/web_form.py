@@ -827,20 +827,21 @@ def accept(web_form: str, data: str, web_form_request_key: str | None = None):
 @frappe.whitelist(allow_guest=True)
 def delete(web_form_name: str, docname: str | int, web_form_request_key: str | None = None):
 	web_form: WebForm = frappe.get_lazy_doc("Web Form", web_form_name)
-	web_form_request: "WebFormRequest" = web_form.get_web_form_request(
+	web_form_request: "WebFormRequest | None" = web_form.get_web_form_request(
 		web_form_request_key,
 		docname=docname,
 		for_update=True,
 		allow_used=True,
 	)
 
+	if (
+		not web_form.allow_delete
+		or (frappe.session.user == "Guest" and web_form.login_required)
+		or (frappe.session.user == "Guest" and not web_form_request)
+	):
+		frappe.throw(_("Not Allowed"), frappe.PermissionError)
+
 	owner = frappe.db.get_value(web_form.doc_type, docname, "owner")
-	if not web_form.allow_delete:
-		frappe.throw(_("Not Allowed"), frappe.PermissionError)
-
-	if web_form.login_required and frappe.session.user == "Guest":
-		frappe.throw(_("Not Allowed"), frappe.PermissionError)
-
 	if web_form_request or frappe.session.user == owner:
 		if web_form_request:
 			# Drop the matching reference row before deleting the bound document
