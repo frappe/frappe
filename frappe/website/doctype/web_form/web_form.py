@@ -708,7 +708,7 @@ def get_web_form_module(doc):
 		return get_doc_module(doc.module, doc.doctype, doc.name)
 
 
-@frappe.whitelist(allow_guest=True)
+@frappe.whitelist(methods=["POST", "PUT"], allow_guest=True)
 @rate_limit(key="web_form", limit=10, seconds=60)
 def accept(web_form: str, data: str, web_form_request_key: str | None = None):
 	"""Save the web form"""
@@ -838,7 +838,8 @@ def accept(web_form: str, data: str, web_form_request_key: str | None = None):
 	return doc
 
 
-@frappe.whitelist(allow_guest=True)
+@frappe.whitelist(methods=["POST", "DELETE"], allow_guest=True)
+@rate_limit(key="web_form_name", limit=10, seconds=60)
 def delete(web_form_name: str, docname: str | int, web_form_request_key: str | None = None):
 	web_form: WebForm = frappe.get_lazy_doc("Web Form", web_form_name)
 	web_form_request: "WebFormRequest | None" = web_form.get_web_form_request(
@@ -871,7 +872,8 @@ def delete(web_form_name: str, docname: str | int, web_form_request_key: str | N
 		frappe.throw(_("Not Allowed"), frappe.PermissionError)
 
 
-@frappe.whitelist()
+@frappe.whitelist(methods=["POST", "DELETE"])
+@rate_limit(key="web_form_name", limit=10, seconds=60)
 def delete_multiple(web_form_name: str, docnames: str):
 	web_form = frappe.get_lazy_doc("Web Form", web_form_name)
 
@@ -906,6 +908,7 @@ def check_webform_perm(doctype, name):
 
 
 @frappe.whitelist(allow_guest=True)
+@frappe.read_only()
 def get_web_form_filters(web_form_name: str):
 	web_form = frappe.get_doc("Web Form", web_form_name)
 	return [field for field in web_form.web_form_fields if field.show_in_filter]
@@ -913,6 +916,7 @@ def get_web_form_filters(web_form_name: str):
 
 @frappe.whitelist(allow_guest=True)
 @rate_limit(key="web_form", limit=10, seconds=60)
+@frappe.read_only()
 def get_web_form_list(
 	web_form: str,
 	web_form_request_key: str,
@@ -970,6 +974,7 @@ def get_web_form_list(
 
 
 @frappe.whitelist(allow_guest=True)
+@frappe.read_only()
 def get_form_data(
 	doctype: str,
 	docname: str | None = None,
