@@ -240,7 +240,7 @@ function upload_image() {
 	});
 }
 
-function open_html_split_dialog({ title, initial_html, on_save }) {
+function open_html_split_dialog({ title, initial_html, on_save, doctype, docname }) {
 	let d = new frappe.ui.Dialog({
 		title,
 		size: "extra-large",
@@ -270,6 +270,27 @@ function open_html_split_dialog({ title, initial_html, on_save }) {
 	});
 	d.show();
 
+	function needs_jinja(html) {
+		return html && (html.includes("{{") || html.includes("{%"));
+	}
+
+	async function update_preview(preview, html) {
+		if (!preview) return;
+		if (needs_jinja(html) && doctype && docname) {
+			try {
+				const r = await frappe.call(
+					"frappe.utils.print_format_generator.render_jinja_template",
+					{ template: html, doctype, docname }
+				);
+				preview.innerHTML = r.message ?? html;
+			} catch {
+				preview.innerHTML = html;
+			}
+		} else {
+			preview.innerHTML = html || "";
+		}
+	}
+
 	setTimeout(() => {
 		const host = d.$wrapper.find(".pfb-html-ctrl-host")[0];
 		const preview = d.$wrapper.find(".pfb-html-preview-content")[0];
@@ -288,15 +309,15 @@ function open_html_split_dialog({ title, initial_html, on_save }) {
 		ctrl.set_value(initial_html || "");
 		d._html_ctrl = ctrl;
 
-		if (preview) preview.innerHTML = initial_html || "";
+		update_preview(preview, initial_html || "");
 
 		setTimeout(() => {
 			if (ctrl.editor) {
 				ctrl.editor.on(
 					"change",
 					frappe.utils.debounce(() => {
-						if (preview) preview.innerHTML = ctrl.editor.getValue();
-					}, 150)
+						update_preview(preview, ctrl.editor.getValue());
+					}, 400)
 				);
 				ctrl.editor.refresh();
 			}
@@ -309,6 +330,8 @@ function edit_html() {
 		title:
 			props.zone === "header" ? __("Edit Letter Head HTML") : __("Edit Letter Head Footer"),
 		initial_html: letterhead.value?.[html_content_field.value] || "",
+		doctype: store.meta.value?.name,
+		docname: store.preview_doc_name.value,
 		on_save: (html) => {
 			letterhead.value[html_content_field.value] = html;
 			letterhead.value._dirty = true;
