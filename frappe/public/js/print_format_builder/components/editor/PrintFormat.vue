@@ -235,7 +235,6 @@ watch(print_format, () => (store.dirty.value = true), { deep: true });
 
 /* Hide all editor chrome */
 .pfb-clean-preview :deep(.section-toolbar),
-.pfb-clean-preview :deep(.section-insert),
 .pfb-clean-preview :deep(.configure-columns-btn) {
 	display: none !important;
 }
