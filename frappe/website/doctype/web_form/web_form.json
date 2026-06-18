@@ -246,19 +246,19 @@
   },
   {
    "default": "0",
-   "depends_on": "login_required",
+   "depends_on": "eval: doc.login_required || doc.key_required",
    "fieldname": "show_list",
    "fieldtype": "Check",
    "label": "Show list"
   },
   {
-   "depends_on": "eval: doc.login_required && doc.show_list",
+   "depends_on": "show_list",
    "fieldname": "list_title",
    "fieldtype": "Data",
    "label": "Title"
   },
   {
-   "depends_on": "eval: doc.login_required && doc.show_list",
+   "depends_on": "show_list",
    "fieldname": "list_columns",
    "fieldtype": "Table",
    "label": "List Columns",
@@ -455,7 +455,7 @@
    "link_fieldname": "web_form"
   }
  ],
- "modified": "2026-05-10 16:22:03.799841",
+ "modified": "2026-06-18 15:58:18.453845",
  "modified_by": "Administrator",
  "module": "Website",
  "name": "Web Form",

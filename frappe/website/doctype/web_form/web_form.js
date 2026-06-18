@@ -40,7 +40,7 @@ frappe.ui.form.on("Web Form", {
 				__("Standard Web Forms can not be modified, duplicate the Web Form instead.")
 			);
 		}
-		render_list_settings_message(frm);
+		on_controlled_access_change(frm);
 
 		frm.trigger("set_fields");
 		frm.trigger("add_get_fields_button");
@@ -49,13 +49,9 @@ frappe.ui.form.on("Web Form", {
 		frm.trigger("render_dynamic_filters_table");
 	},
 
-	login_required: function (frm) {
-		render_list_settings_message(frm);
-	},
+	login_required: on_controlled_access_change,
 
-	key_required: function (frm) {
-		render_list_settings_message(frm);
-	},
+	key_required: on_controlled_access_change,
 
 	anonymous: function (frm) {
 		if (frm.doc.anonymous) {
@@ -64,14 +60,6 @@ frappe.ui.form.on("Web Form", {
 	},
 
 	validate: function (frm) {
-		const has_controlled_access = frm.doc.login_required || frm.doc.key_required;
-		if (!has_controlled_access) {
-			frm.set_value("allow_multiple", 0);
-			frm.set_value("allow_edit", 0);
-			frm.set_value("allow_delete", 0);
-			frm.set_value("show_list", 0);
-		}
-
 		// allow_delete is hidden (depends_on allow_multiple) and would otherwise
 		// retain a stale value while server-side checks read it directly.
 		!frm.doc.allow_multiple && frm.set_value("allow_delete", 0);
@@ -489,6 +477,17 @@ function get_fields_for_doctype(doctype) {
 			);
 		});
 	});
+}
+
+function on_controlled_access_change(frm) {
+	const has_controlled_access = frm.doc.login_required || frm.doc.key_required;
+	if (!has_controlled_access) {
+		frm.set_value("allow_multiple", 0);
+		frm.set_value("allow_edit", 0);
+		frm.set_value("allow_delete", 0);
+		frm.set_value("show_list", 0);
+	}
+	render_list_settings_message(frm);
 }
 
 function render_list_settings_message(frm) {
