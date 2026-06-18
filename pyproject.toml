@@ -63,7 +63,7 @@ dependencies = [
     "redis~=7.1.0",
     "hiredis~=3.3.0",
     "requests-oauthlib~=2.0.0",
-    "requests~=2.33.0",
+    "requests~=2.34.2",
     # We depend on internal attributes of RQ.
     # Do NOT add loose requirements on RQ versions.
     # Audit the code changes w.r.t. background_jobs.py before updating.
