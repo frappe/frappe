@@ -106,7 +106,7 @@ Documentation = "https://docs.frappe.io/framework"
 
 [project.optional-dependencies]
 dev = [
-    "pyngrok~=7.5.0",
+    "pyngrok~=8.1.2",
     "watchdog~=6.0.0",
     "responses==0.23.1",
     # typechecking
@@ -153,7 +153,7 @@ skip_namespaces = [
 
 [tool.bench.dev-dependencies]
 coverage = "~=7.13.5"
-pyngrok = "~=7.5.0"
+pyngrok = "~=8.1.2"
 unittest-xml-reporting = "~=3.2.0"
 watchdog = "~=6.0.0"
 hypothesis = "~=6.77.0"
