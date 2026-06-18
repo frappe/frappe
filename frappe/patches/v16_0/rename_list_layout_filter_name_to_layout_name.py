@@ -1,13 +1,22 @@
 import frappe
 
 
+def _list_layout_columns():
+	"""Read tabList Layout columns without using cached metadata."""
+	table = "tabList Layout"
+	frappe.client_cache.delete_value(f"table_columns::{table}")
+	frappe.cache.delete_value(f"table_columns::{table}")
+	return set(frappe.db.get_db_table_columns(table))
+
+
 def migrate_filter_name_to_layout_name():
 	"""Rename filter_name to layout_name on tabList Layout (idempotent)."""
 	if not frappe.db.table_exists("List Layout"):
 		return
 
-	has_filter_name = frappe.db.has_column("List Layout", "filter_name")
-	has_layout_name = frappe.db.has_column("List Layout", "layout_name")
+	columns = _list_layout_columns()
+	has_filter_name = "filter_name" in columns
+	has_layout_name = "layout_name" in columns
 
 	if has_filter_name and not has_layout_name:
 		frappe.db.rename_column("List Layout", "filter_name", "layout_name")
