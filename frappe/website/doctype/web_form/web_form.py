@@ -463,7 +463,11 @@ def get_context(context):
 
 	def load_list_data(self, context):
 		if not self.list_columns:
-			self.list_columns = get_in_list_view_fields(self.doc_type, self.name)
+			self.list_columns = get_in_list_view_fields(
+				self.doc_type,
+				self.name,
+				web_form_request_key=context.get("web_form_request_key"),
+			)
 			context.web_form_doc.list_columns = self.list_columns
 
 	def redirect_to(self, path: str):
@@ -525,13 +529,18 @@ def get_context(context):
 		if not context.max_attachment_size:
 			context.max_attachment_size = get_max_file_size() / 1024 / 1024
 
+		web_form_request_key = web_form_request.key if web_form_request else None
+		docname = frappe.form_dict.name
+
 		# For Table fields, server-side processing for meta
 		for field in context.web_form_doc.web_form_fields:
 			if field.fieldtype == "Table":
-				field.fields = get_in_list_view_fields(field.options, self.name)
+				field.fields = get_in_list_view_fields(
+					field.options, self.name, web_form_request_key, docname
+				)
 
 			if field.fieldtype == "Link":
-				process_link_field(field, self.name)
+				process_link_field(field, self.name, web_form_request_key, docname)
 
 		context.reference_doc = {}
 		if web_form_request and frappe.form_dict.is_new:
@@ -682,10 +691,14 @@ def get_context(context):
 		return permitted_attachments
 
 
-def process_link_field(field, web_form_name):
+def process_link_field(field, web_form_name, web_form_request_key=None, docname=None):
 	field.fieldtype = "Autocomplete"
 	field.options = get_link_options(
-		web_form_name, field.options, getattr(field, "allow_read_on_all_link_options", False)
+		web_form_name,
+		field.options,
+		getattr(field, "allow_read_on_all_link_options", False),
+		web_form_request_key=web_form_request_key,
+		docname=docname,
 	)
 	return field
 
@@ -941,7 +954,7 @@ def get_web_form_list(
 
 	filters["name"] = ["in", reference_names]
 
-	fields = get_web_form_list_fields(web_form_doc)
+	fields = get_web_form_list_fields(web_form_doc, web_form_request_key)
 
 	return frappe.get_list(
 		web_form_doc.doc_type,
@@ -956,11 +969,23 @@ def get_web_form_list(
 
 
 @frappe.whitelist(allow_guest=True)
-def get_form_data(doctype: str, docname: str | None = None, web_form_name: str | None = None):
+def get_form_data(
+	doctype: str,
+	docname: str | None = None,
+	web_form_name: str | None = None,
+	web_form_request_key: str | None = None,
+):
 	web_form = frappe.get_doc("Web Form", web_form_name)
 
 	if web_form.login_required and frappe.session.user == "Guest":
 		frappe.throw(_("Not Permitted"), frappe.PermissionError)
+
+	if getattr(web_form, "key_required", False):
+		web_form.get_web_form_request(
+			web_form_request_key,
+			docname=docname,
+			allow_used=bool(docname) or bool(web_form.allow_multiple),
+		)
 
 	out = frappe._dict()
 	out.web_form = web_form
@@ -978,21 +1003,24 @@ def get_form_data(doctype: str, docname: str | None = None, web_form_name: str |
 	# For Table fields, server-side processing for meta
 	for field in out.web_form.web_form_fields:
 		if field.fieldtype == "Table":
-			field.fields = get_in_list_view_fields(field.options, web_form_name)
+			field.fields = get_in_list_view_fields(
+				field.options, web_form_name, web_form_request_key, docname
+			)
 			out.update({field.fieldname: field.fields})
 
 		if field.fieldtype == "Link":
-			process_link_field(field, web_form_name)
+			process_link_field(field, web_form_name, web_form_request_key, docname)
 
 	return out
 
 
-def get_web_form_list_fields(web_form_doc: "WebForm") -> list[str]:
+def get_web_form_list_fields(web_form_doc: "WebForm", web_form_request_key: str | None = None) -> list[str]:
 	if web_form_doc.list_columns:
 		fields = [col.fieldname for col in web_form_doc.list_columns]
 	else:
 		fields = [
-			col["fieldname"] for col in get_in_list_view_fields(web_form_doc.doc_type, web_form_doc.name)
+			col["fieldname"]
+			for col in get_in_list_view_fields(web_form_doc.doc_type, web_form_doc.name, web_form_request_key)
 		]
 
 	if "name" not in fields:
@@ -1001,7 +1029,7 @@ def get_web_form_list_fields(web_form_doc: "WebForm") -> list[str]:
 	return fields
 
 
-def get_in_list_view_fields(doctype, web_form_name=None):
+def get_in_list_view_fields(doctype, web_form_name=None, web_form_request_key=None, docname=None):
 	meta = frappe.get_meta(doctype)
 	fields = []
 
@@ -1021,7 +1049,7 @@ def get_in_list_view_fields(doctype, web_form_name=None):
 
 		df = meta.get_field(fieldname).as_dict()
 		if df.get("options") and df.get("fieldtype") == "Link":
-			process_link_field(df, web_form_name)
+			process_link_field(df, web_form_name, web_form_request_key, docname)
 		return df
 
 	return [get_field_df(f) for f in fields]
@@ -1045,7 +1073,13 @@ def has_link_option(fields, doctype):
 	return False
 
 
-def get_link_options(web_form_name, doctype, allow_read_on_all_link_options=False):
+def get_link_options(
+	web_form_name,
+	doctype,
+	allow_read_on_all_link_options=False,
+	web_form_request_key=None,
+	docname=None,
+):
 	web_form: WebForm = frappe.get_lazy_doc("Web Form", web_form_name)
 
 	if web_form.login_required and frappe.session.user == "Guest":
@@ -1053,9 +1087,9 @@ def get_link_options(web_form_name, doctype, allow_read_on_all_link_options=Fals
 	if getattr(web_form, "key_required", False):
 		get_web_form_request(
 			web_form.name,
-			frappe.form_dict.web_form_request_key,
+			web_form_request_key,
 			required=True,
-			allow_used=bool(web_form.allow_multiple) or bool(frappe.form_dict.name),
+			allow_used=bool(web_form.allow_multiple) or bool(docname),
 		)
 
 	if not web_form.published or not has_link_option(web_form.web_form_fields, doctype):

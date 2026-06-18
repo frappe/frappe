@@ -5,7 +5,7 @@ import json
 import frappe
 from frappe.tests import IntegrationTestCase
 from frappe.utils import add_to_date, set_request
-from frappe.website.doctype.web_form.web_form import accept, delete, get_web_form_list
+from frappe.website.doctype.web_form.web_form import accept, delete, get_form_data, get_web_form_list
 from frappe.website.serve import get_response_content
 
 EXTRA_TEST_RECORD_DEPENDENCIES = ["Web Form"]
@@ -631,6 +631,55 @@ class TestWebForm(IntegrationTestCase):
 
 		self.assertEqual(len(context.parents), 1)
 		self.assertIn(web_form_request.key, context.parents[0]["route"])
+
+	def test_get_form_data_requires_web_form_request_key_for_link_fields(self):
+		self.add_web_form_link_field()
+		self.set_web_form_settings(key_required=1, login_required=0)
+		web_form_request = self.create_web_form_request()
+
+		frappe.set_user("Guest")
+
+		self.assertRaises(
+			frappe.PermissionError,
+			get_form_data,
+			doctype="Event",
+			web_form_name="manage-events",
+		)
+
+		result = get_form_data(
+			doctype="Event",
+			web_form_name="manage-events",
+			web_form_request_key=web_form_request.key,
+		)
+		link_field = next(f for f in result.web_form.web_form_fields if f.fieldname == "owner")
+		self.assertEqual(link_field.fieldtype, "Autocomplete")
+		self.assertTrue(link_field.options)
+
+	def add_web_form_link_field(self):
+		web_form = frappe.get_doc("Web Form", "manage-events")
+		original_fields = [field.as_dict() for field in web_form.web_form_fields]
+
+		def restore_fields():
+			restore_form = frappe.get_doc("Web Form", "manage-events")
+			restore_form.web_form_fields = []
+			for field in original_fields:
+				restore_form.append("web_form_fields", field)
+			restore_form.save(ignore_permissions=True)
+			frappe.clear_document_cache("Web Form", "manage-events")
+
+		self.addCleanup(restore_fields)
+
+		web_form.append(
+			"web_form_fields",
+			{
+				"fieldname": "owner",
+				"fieldtype": "Link",
+				"label": "Owner",
+				"options": "User",
+			},
+		)
+		web_form.save(ignore_permissions=True)
+		frappe.clear_document_cache("Web Form", "manage-events")
 
 	def create_web_form_request(
 		self, web_form_values=None, doc_values=None, expires_on=None, reference_docname=None
