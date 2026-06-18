@@ -669,8 +669,11 @@ frappe.views.QueryReport = class QueryReport extends frappe.views.BaseList {
 <<<<<<< HEAD
 =======
 					js_filters: js_filters,
+<<<<<<< HEAD
 					duckdb_sync_name: this.duckdb_sync_name || null,
 >>>>>>> 465addc5fd (refactor: trigger script report on duckdb sync selection)
+=======
+>>>>>>> d07533f621 (refactor: drop down related function parameters)
 				},
 				callback: resolve,
 				always: () => this.page.btn_secondary.prop("disabled", false),
