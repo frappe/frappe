@@ -699,7 +699,6 @@ def create_list_layout_test_layout(
 	"""Insert a saved list layout for Cypress tests."""
 	import json
 
-	frappe.set_user("Administrator")
 	filter_name = filter_name or f"{LIST_LAYOUT_TEST_PREFIX}open"
 
 	if frappe.db.exists("List Layout", {"filter_name": filter_name, "reference_doctype": reference_doctype}):
