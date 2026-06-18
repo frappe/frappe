@@ -1,0 +1,51 @@
+.settings-dialog-wrapper {
+	.user-settings-profile-header {
+		display: flex;
+		align-items: center;
+		gap: var(--padding-lg);
+		padding: var(--padding-md) 0 var(--padding-lg);
+
+		.avatar {
+			flex-shrink: 0;
+		}
+
+		.profile-user-info {
+			display: flex;
+			flex-direction: column;
+			gap: var(--margin-xs);
+		}
+
+		.profile-full-name {
+			font-size: var(--text-lg);
+			font-weight: var(--weight-semibold);
+			color: var(--ink-gray-7);
+		}
+
+		.profile-email {
+			font-size: var(--text-sm);
+			color: var(--ink-gray-5);
+		}
+	}
+
+	.user-settings-profile-actions {
+		display: flex;
+		gap: var(--margin-sm);
+		padding: var(--padding-md) 0;
+		border-top: 1px solid var(--border-color);
+
+		.btn {
+			display: flex;
+			align-items: center;
+			gap: var(--margin-xs);
+		}
+	}
+
+	.settings-shortcuts-table {
+		font-size: var(--text-sm);
+		margin-bottom: var(--margin-lg);
+
+		kbd {
+			font-size: var(--text-xs);
+		}
+	}
+}

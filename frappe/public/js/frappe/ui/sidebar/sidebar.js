@@ -386,63 +386,27 @@ frappe.ui.Sidebar = class Sidebar {
 	}
 
 	setup_user_menu() {
-		const me = this;
 		const $btn = this.wrapper.find(".sidebar-user-button");
 		const $container = this.wrapper.find(".dropdown-navbar-user");
-
-		const theme_item = {
-			name: "toggle-theme",
-			label: __("Theme"),
-			icon: frappe.ui.get_current_theme() === "dark" ? "sun" : "moon",
-			shortcut: "Shift+Ctrl+G",
-			onClick: function () {
-				new frappe.ui.ThemeSwitcher().show();
-			},
-		};
-
-		$container.on("click", function () {
-			theme_item.icon = frappe.ui.get_current_theme() === "dark" ? "sun" : "moon";
-		});
 
 		frappe.ui.create_menu({
 			parent: $container,
 			open_on_top: true,
 			menu_items: [
 				{
+					name: "settings",
+					label: __("Settings"),
+					icon: "settings",
+					onClick: function () {
+						frappe.ui.show_user_settings("profile");
+					},
+				},
+				{
 					name: "my-profile",
 					label: __("My Profile"),
 					icon: "user",
 					onClick: function () {
 						frappe.ui.toolbar.route_to_user();
-					},
-				},
-				{
-					name: "session-defaults",
-					label: __("Session Defaults"),
-					icon: "sliders-horizontal",
-					condition: function () {
-						return frappe.boot.session_defaults.length != 0;
-					},
-					onClick: function () {
-						frappe.ui.toolbar.setup_session_defaults();
-					},
-				},
-				{
-					name: "keyboard-shortcuts",
-					label: __("Keyboard Shortcuts"),
-					icon: "keyboard",
-					shortcut: "Shift+/",
-					onClick: function () {
-						frappe.ui.keys.show_keyboard_shortcut_dialog();
-					},
-				},
-				theme_item,
-				{
-					name: "toggle-full-width",
-					label: __("Toggle Full Width"),
-					icon: "maximize",
-					onClick: function () {
-						frappe.ui.toolbar.toggle_full_width();
 					},
 				},
 				{ is_divider: true },
