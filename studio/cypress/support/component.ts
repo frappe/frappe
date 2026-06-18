@@ -1,14 +1,9 @@
 import "./commands"
-// App styles so dropped components render the same way they do in the editor
 import "@/index.css"
 
 import { createPinia, setActivePinia } from "pinia"
 import { mount } from "cypress/vue"
 
-// Activate Pinia before any spec imports run. Some modules (e.g. useCanvasDropZone)
-// call useCanvasStore() at module top-level, so a Pinia must be active the moment
-// StudioCanvas is imported — in the real app this is guaranteed by app.use(pinia)
-// running before the lazily-loaded canvas. Reuse this instance in cy.mount.
 export const pinia = createPinia()
 setActivePinia(pinia)
 

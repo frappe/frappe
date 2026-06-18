@@ -1,5 +1,3 @@
-// Imported first so Pinia is active before StudioCanvas (and its top-level
-// useCanvasStore() calls) are evaluated below.
 import { pinia } from "../support/component"
 
 import { setActivePinia } from "pinia"
@@ -16,11 +14,7 @@ import { registerGlobalComponents } from "@/globals"
 import useCanvasStore from "@/stores/canvasStore"
 import type { FrappeUIComponent } from "@/types"
 
-// Skipped: these render real data and need a Frappe backend, which isn't available
-// in the component-test environment.
 const DATA_DEPENDENT = ["ListView", "Link", "Filter", "Calendar", "NumberChart", "AxisChart", "DonutChart"]
-// Skipped: these don't render as a plain child on the page canvas.
-// Dialog opens in fragment mode on drop; Repeater needs a data source to render rows.
 const SPECIAL = ["Dialog", "Repeater"]
 const SKIP = new Set([...DATA_DEPENDENT, ...SPECIAL])
 
@@ -47,7 +41,6 @@ describe("dropping frappe-ui components on the canvas", () => {
 			routes: [{ path: "/", component: { template: "<div />" } }],
 		})
 
-		// fresh empty page (body block) as the canvas root
 		const rootBlock = getBlockInstance(getBlockTemplate("body"))
 
 		cy.mount(StudioCanvas, {
@@ -57,7 +50,6 @@ describe("dropping frappe-ui components on the canvas", () => {
 			},
 		}).then(({ wrapper }) => {
 			canvas = wrapper.vm
-			// the editor registers the mounted canvas as active (see StudioPage.vue)
 			useCanvasStore().activeCanvas = canvas
 		})
 	})
