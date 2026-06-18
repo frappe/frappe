@@ -469,10 +469,11 @@ class init_site:
 
 def destroy():
 	"""Closes connection and releases werkzeug local."""
-	if db:
-		db.close()
-
-	release_local(local)
+	try:
+		if db:
+			db.close()
+	finally:
+		release_local(local)
 
 
 _redis_init_lock = threading.Lock()
