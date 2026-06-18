@@ -227,6 +227,10 @@ watch(print_format, () => (store.dirty.value = true), { deep: true });
 	flex-direction: column;
 }
 
+.section-with-insert:hover :deep(.section-insert) {
+	opacity: 1;
+}
+
 /* ── Clean preview mode (when live data is loaded) ───────── */
 
 /* Hide all editor chrome */
