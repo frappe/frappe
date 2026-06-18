@@ -274,6 +274,51 @@ class TestWebForm(IntegrationTestCase):
 
 		self.assertEqual(event.description, "_Test After Edit")
 
+	def test_pre_seeded_reference_edit_consumes_one_time_key(self):
+		self.set_web_form_settings(key_required=1, login_required=0, allow_edit=1, allow_multiple=0)
+		event = frappe.get_doc(
+			{
+				"doctype": "Event",
+				"subject": "_Test Seeded Edit",
+				"starts_on": "2026-05-10",
+			}
+		).insert(ignore_permissions=True)
+		web_form_request = self.create_web_form_request(reference_docname=event.name)
+
+		frappe.set_user("Guest")
+		event = accept(
+			web_form="manage-events",
+			data=json.dumps(
+				{
+					"doctype": "Event",
+					"name": event.name,
+					"subject": "_Test Seeded Edit",
+					"description": "_Test Edited Description",
+					"starts_on": "2026-05-10",
+				}
+			),
+			web_form_request_key=web_form_request.key,
+		)
+
+		self.assertEqual(event.description, "_Test Edited Description")
+
+		web_form_request.reload()
+		self.assertTrue(web_form_request.first_used_on)
+		self.assertEqual([row.link_name for row in web_form_request.references], [event.name])
+
+		with self.assertRaises(frappe.exceptions.LinkExpired):
+			accept(
+				web_form="manage-events",
+				data=json.dumps(
+					{
+						"doctype": "Event",
+						"subject": "_Test Seeded Edit Again",
+						"starts_on": "2026-05-10",
+					}
+				),
+				web_form_request_key=web_form_request.key,
+			)
+
 	def test_web_form_request_rejects_edit_when_allow_edit_disabled(self):
 		self.set_web_form_settings(key_required=1, login_required=0, allow_edit=0, allow_multiple=0)
 		web_form_request = self.create_web_form_request()

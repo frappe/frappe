@@ -805,6 +805,9 @@ def accept(web_form: str, data: str, web_form_request_key: str | None = None):
 			# Role Permissions on the target DocType. allow_edit is enforced
 			# above when data.name is set.
 			doc.save(ignore_permissions=True)
+			if not web_form_request.first_used_on:
+				web_form_request.first_used_on = now_datetime()
+				web_form_request.save(ignore_permissions=True)
 		elif web_form.has_web_form_permission(doctype, doc.name, "write"):
 			# has_web_form_permission uses web-form rules (owner, website
 			# permission, hooks) that are separate from Role Permissions.
