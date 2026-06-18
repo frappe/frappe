@@ -206,9 +206,11 @@ class Report(Document):
 
 		# The JOB
 		try:
-			# TODO call duckdb method here
 			if self.is_standard == "Yes":
-				res = self.execute_module(filters)
+				if self.synced_report:
+					res = self.execute_synced_report(filters)
+				else:
+					res = self.execute_module(filters)
 			else:
 				res = self.execute_script(filters)
 		finally:
@@ -238,13 +240,12 @@ class Report(Document):
 		else:
 			return self.get_columns(), loc["result"]
 
-	def execute_duckdb(self, filters, duckdb_sync_name):
-		conn = frappe.get_doc("DuckDB Sync", duckdb_sync_name).get_duckdb_conn()
+	def execute_synced_report(self, filters):
 		try:
-			execute_duckdb_method = self.get_module_method("execute_duckdb")
+			execute_synced_report = self.get_module_method("execute_synced_report")
 		except AttributeError:
 			return [], []
-		return execute_duckdb_method(frappe._dict(filters), conn)
+		return execute_synced_report(frappe._dict(filters))
 
 	def get_data(
 		self,
