@@ -35,7 +35,7 @@ dependencies = [
     "cryptography~=48.0.1",
     "cssutils~=2.15.0",
     "email-reply-parser~=0.5.12",
-    "Faker~=18.10.1",
+    "Faker~=40.23.0",
     "gunicorn @ git+https://github.com/frappe/gunicorn@f189de0ec3143581d8826f707343fa36c3fb0184",
     "html5lib~=1.1",
     "ipython~=9.14.0",
