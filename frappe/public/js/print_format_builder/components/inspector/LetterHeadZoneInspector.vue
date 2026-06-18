@@ -248,15 +248,24 @@ function open_html_split_dialog({ title, initial_html, on_save, doctype, docname
 			{
 				fieldname: "split_layout",
 				fieldtype: "HTML",
-				options: `<div class="pfb-html-split">
-					<div class="pfb-html-split-pane pfb-html-split-editor">
-						<div class="pfb-html-split-label">${__("HTML")}</div>
-						<div class="pfb-html-ctrl-host"></div>
+				options: `<style>
+					.pfb-lh-split{display:flex;height:480px;gap:0;overflow:hidden;margin:-15px}
+					.pfb-lh-split-pane{display:flex;flex-direction:column;flex:1;min-width:0;overflow:hidden}
+					.pfb-lh-split-divider{width:1px;background:var(--border-color);flex-shrink:0}
+					.pfb-lh-split-label{font-size:11px;font-weight:700;text-transform:uppercase;letter-spacing:.08em;color:var(--text-muted);padding:10px 12px 8px;border-bottom:1px solid var(--border-color);flex-shrink:0}
+					.pfb-lh-split-ctrl{flex:1;overflow:hidden}
+					.pfb-lh-split-ctrl .pfb-html-ctrl-host{height:100%}
+					.pfb-lh-preview-iframe{flex:1;width:100%;border:none;background:#fff}
+				</style>
+				<div class="pfb-lh-split">
+					<div class="pfb-lh-split-pane">
+						<div class="pfb-lh-split-label">${__("HTML")}</div>
+						<div class="pfb-lh-split-ctrl"><div class="pfb-html-ctrl-host"></div></div>
 					</div>
-					<div class="pfb-html-split-divider"></div>
-					<div class="pfb-html-split-pane pfb-html-split-preview">
-						<div class="pfb-html-split-label">${__("Preview")}</div>
-						<div class="pfb-html-preview-content"></div>
+					<div class="pfb-lh-split-divider"></div>
+					<div class="pfb-lh-split-pane">
+						<div class="pfb-lh-split-label">${__("Preview")}</div>
+						<iframe class="pfb-html-preview-content pfb-lh-preview-iframe" frameborder="0"></iframe>
 					</div>
 				</div>`,
 			},
@@ -270,24 +279,42 @@ function open_html_split_dialog({ title, initial_html, on_save, doctype, docname
 	});
 	d.show();
 
+	const PREVIEW_CSS = `
+		* { box-sizing: border-box; }
+		body { margin: 0; padding: 12px; font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif; font-size: 13px; color: #333; line-height: 1.5; }
+		img { max-width: 100%; height: auto; display: block; }
+		table { border-collapse: collapse; width: 100%; }
+		td, th { vertical-align: top; }
+	`;
+
+	function write_to_iframe(iframe, html) {
+		const doc = iframe.contentDocument || iframe.contentWindow?.document;
+		if (!doc) return;
+		doc.open();
+		doc.write(
+			`<!DOCTYPE html><html><head><meta charset="utf-8"><style>${PREVIEW_CSS}</style></head><body>${html}</body></html>`
+		);
+		doc.close();
+	}
+
 	function needs_jinja(html) {
 		return html && (html.includes("{{") || html.includes("{%"));
 	}
 
-	async function update_preview(preview, html) {
-		if (!preview) return;
+	async function update_preview(iframe, html) {
+		if (!iframe) return;
 		if (needs_jinja(html) && doctype && docname) {
 			try {
 				const r = await frappe.call(
 					"frappe.utils.print_format_generator.render_jinja_template",
 					{ template: html, doctype, docname }
 				);
-				preview.innerHTML = r.message ?? html;
+				write_to_iframe(iframe, r.message ?? html);
 			} catch {
-				preview.innerHTML = html;
+				write_to_iframe(iframe, html);
 			}
 		} else {
-			preview.innerHTML = html || "";
+			write_to_iframe(iframe, html || "");
 		}
 	}
 
