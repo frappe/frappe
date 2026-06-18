@@ -17,6 +17,7 @@ class TestWebForm(IntegrationTestCase):
 
 	def tearDown(self):
 		frappe.conf.disable_website_cache = False
+		frappe.local.request = None
 		frappe.set_user("Administrator")
 
 	def test_accept(self):
@@ -79,6 +80,7 @@ class TestWebForm(IntegrationTestCase):
 		)
 
 	def test_web_form_request_renders_prefilled_values_for_guest(self):
+		self.set_web_form_settings(key_required=1, login_required=0)
 		web_form_request = self.create_web_form_request(
 			web_form_values={
 				"subject": "_Test Request Prefill",
@@ -166,6 +168,13 @@ class TestWebForm(IntegrationTestCase):
 			web_form_request_key=web_form_request.key,
 		)
 
+		rows = get_web_form_list(
+			web_form="manage-events",
+			web_form_request_key=web_form_request.key,
+		)
+		self.assertEqual(len(rows), 1)
+		self.assertEqual(rows[0]["subject"], "_Test One Time List")
+
 		frappe.local.form_dict = frappe._dict(
 			is_list=1,
 			web_form_request_key=web_form_request.key,
@@ -177,7 +186,6 @@ class TestWebForm(IntegrationTestCase):
 		)
 		content = get_response_content("manage-events/list")
 
-		self.assertIn("_Test One Time List", content)
 		self.assertIn(web_form_request.key, content)
 
 	def test_key_required_rejects_submission_without_key(self):
@@ -390,6 +398,47 @@ class TestWebForm(IntegrationTestCase):
 
 		self.assertIn('<h1 class="ellipsis">New Manage Events</h1>', content)
 
+	def test_public_form_ignores_valid_leaked_key_for_delete(self):
+		self.set_web_form_settings(
+			login_required=0,
+			key_required=0,
+			allow_delete=1,
+			allow_edit=1,
+			allow_multiple=0,
+		)
+		event = frappe.get_doc(
+			{
+				"doctype": "Event",
+				"subject": "_Test Leaked Key Delete Guard",
+				"starts_on": "2026-05-10",
+			}
+		).insert(ignore_permissions=True)
+		web_form_request = self.create_web_form_request(reference_docname=event.name)
+
+		frappe.set_user("Guest")
+		with self.assertRaises(frappe.PermissionError):
+			delete("manage-events", event.name, web_form_request_key=web_form_request.key)
+
+		with self.assertRaises(frappe.PermissionError):
+			accept(
+				web_form="manage-events",
+				data=json.dumps(
+					{
+						"doctype": "Event",
+						"name": event.name,
+						"subject": "_Test Leaked Key Edit Guard",
+						"starts_on": "2026-05-10",
+					}
+				),
+				web_form_request_key=web_form_request.key,
+			)
+
+		self.assertTrue(frappe.db.exists("Event", event.name))
+		self.assertEqual(
+			frappe.db.get_value("Event", event.name, "subject"),
+			"_Test Leaked Key Delete Guard",
+		)
+
 	def test_guest_cannot_delete_on_public_form_without_key(self):
 		self.set_web_form_settings(login_required=0, key_required=0, allow_delete=1)
 		event = frappe.get_doc(
@@ -553,6 +602,7 @@ class TestWebForm(IntegrationTestCase):
 		self.assertTrue(frappe.db.exists("Event", existing_event.name))
 
 	def test_web_form_request_expiry_is_enforced(self):
+		self.set_web_form_settings(key_required=1, login_required=0)
 		web_form_request = self.create_web_form_request(
 			expires_on=add_to_date(None, minutes=-1),
 			doc_values={"event_type": "Public"},

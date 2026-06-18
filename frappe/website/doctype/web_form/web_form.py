@@ -483,6 +483,8 @@ def get_context(context):
 		for_update=False,
 		allow_used=False,
 	) -> "WebFormRequest | None":
+		if key and not getattr(self, "key_required", False):
+			return None
 		web_form_request = get_web_form_request(
 			self.name,
 			key,
