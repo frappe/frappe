@@ -2,6 +2,7 @@
 # For license information, please see license.txt
 
 import frappe
+from frappe import qb
 from frappe.model.document import Document
 
 
@@ -12,13 +13,10 @@ class SyncedReportSettings(Document):
 	from typing import TYPE_CHECKING
 
 	if TYPE_CHECKING:
-		from frappe.core.doctype.synced_report_settings_table.synced_report_settings_table import (
-			SyncedReportSettingsTable,
-		)
 		from frappe.types import DF
 
-		doctype_to_sync: DF.Table[SyncedReportSettingsTable]
 		enable_synced_reports: DF.Check
+		frequency: DF.Literal["Hourly", "Daily"]
 	# end: auto-generated types
 
 	_DOCTYPE_NAME = "Synced Report Doctype"
@@ -26,16 +24,18 @@ class SyncedReportSettings(Document):
 	def validate(self):
 		old_doc = self.get_doc_before_save()
 		if old_doc.enable_synced_reports != self.enable_synced_reports:
-			synced_report_scheduler(self.enable_synced_reports)
+			synced_report_scheduler(self.enable_synced_reports, self.frequency)
 
 
-def synced_report_scheduler(enable: bool = False):
+def synced_report_scheduler(enable: bool = False, frequency: str = "Daily"):
 	if enable:
+		cron_format = "0 0 * * *" if frequency == "Daily" else "0 * * * *"
+
 		# schedule cron job
 		event = frappe.get_doc(
 			{
 				"doctype": "Scheduler Event",
-				"scheduled_against": "Synced Report Doctype",
+				"scheduled_against": "Synced Report Settings",
 				"method": "frappe.core.doctype.synced_report_settings.synced_report_settings.start_sync",
 			}
 		).insert()
@@ -44,7 +44,7 @@ def synced_report_scheduler(enable: bool = False):
 				"doctype": "Scheduled Job Type",
 				"frequency": "Cron",
 				"scheduler_event": event.name,
-				"cron_format": "0 0 * * *",
+				"cron_format": cron_format,
 				"method": "frappe.core.doctype.synced_report_settings.synced_report_settings.start_sync",
 				"create_log": True,
 			}
@@ -52,7 +52,7 @@ def synced_report_scheduler(enable: bool = False):
 	else:
 		# delete cron job
 		if event := frappe.db.get_all(
-			"Scheduler Event", {"scheduled_against": "Synced Report Doctype"}, pluck="name"
+			"Scheduler Event", {"scheduled_against": "Synced Report Settings"}, pluck="name"
 		):
 			event = event[0]
 			frappe.db.delete("Scheduled Job Type", {"scheduler_event": event})
@@ -60,15 +60,19 @@ def synced_report_scheduler(enable: bool = False):
 
 
 def start_sync():
-	if frappe.get_single_value("Synced Report Doctype", "enable_synced_reports"):
-		doctypes = set(
-			frappe.db.get_all("Synced Report Doctype Table", fields=["doc_type"], pluck=["doc_type"])
-		)
-		for _dt in doctypes:
-			doc = frappe.get_doc(
-				{
-					"doctype": "DuckDB Sync",
-					"doc_type": _dt,
-				}
-			).insert()
-			doc.submit()
+	_dt = qb.DocType("Doctype To Sync")
+	to_sync = (
+		qb.from_(_dt)
+		.select(_dt.doc_type)
+		.distinct()
+		.where(_dt.parenttype.eq("Report") & _dt.parentfield.eq("doctype_to_sync"))
+		.run(pluck="doc_type")
+	)
+	for x in to_sync:
+		doc = frappe.get_doc(
+			{
+				"doctype": "DuckDB Sync",
+				"doc_type": x,
+			}
+		).insert()
+		doc.submit()
