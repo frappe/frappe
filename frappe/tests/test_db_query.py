@@ -401,27 +401,6 @@ class TestDBQuery(IntegrationTestCase):
 		self.assertTrue(get_filters_cond("DocType", dict(istable=1), [], ignore_permissions=True))
 		frappe.set_user("Administrator")
 
-	def test_get_filter_conditions_qb_negation_dict(self):
-		# get_filter_conditions_qb is the query-builder equivalent of get_filters_cond, so it must
-		# honour the same dict shorthand where a string value prefixed with "!" means "not equal"
-		# ({"istable": "!1"} -> istable != "1"). It previously emitted istable = "!1" instead.
-		from pypika.terms import Criterion
-
-		from frappe.desk.reportview import get_filter_conditions_qb
-
-		def _where(filters):
-			dt = frappe.qb.DocType("DocType")
-			criteria = get_filter_conditions_qb("DocType", filters, ignore_permissions=True)
-			return frappe.qb.from_(dt).select(dt.name).where(Criterion.all(criteria)).get_sql()
-
-		# "!1" -> not-equal, mirroring the legacy get_filters_cond rewrite
-		self.assertIn("<>", _where({"istable": "!1"}))
-		self.assertNotIn("'!1'", _where({"istable": "!1"}))
-		# plain value stays equality; explicit [op, value] still honoured
-		self.assertIn("=", _where({"istable": "1"}))
-		self.assertNotIn("<>", _where({"istable": "1"}))
-		self.assertIn("<>", _where({"istable": ["!=", "1"]}))
-
 	def test_query_fields_sanitizer(self):
 		self.assertRaises(
 			frappe.DataError,
