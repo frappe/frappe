@@ -3,9 +3,17 @@
 import json
 
 import frappe
+from frappe.core.doctype.doctype.doctype import clear_permissions_cache
+from frappe.permissions import add_permission, reset_perms
 from frappe.tests import IntegrationTestCase
 from frappe.utils import add_to_date, set_request
-from frappe.website.doctype.web_form.web_form import accept, delete, get_form_data, get_web_form_list
+from frappe.website.doctype.web_form.web_form import (
+	accept,
+	delete,
+	get_form_data,
+	get_link_options,
+	get_web_form_list,
+)
 from frappe.website.serve import get_response_content
 
 EXTRA_TEST_RECORD_DEPENDENCIES = ["Web Form"]
@@ -789,8 +797,8 @@ class TestWebForm(IntegrationTestCase):
 		self.assertIn(web_form_request.key, context.parents[0]["route"])
 
 	def test_get_form_data_requires_web_form_request_key_for_link_fields(self):
-		self.add_web_form_link_field()
 		self.set_web_form_settings(key_required=1, login_required=0)
+		self.add_web_form_link_field()
 		web_form_request = self.create_web_form_request()
 
 		frappe.set_user("Guest")
@@ -811,7 +819,80 @@ class TestWebForm(IntegrationTestCase):
 		self.assertEqual(link_field.fieldtype, "Autocomplete")
 		self.assertTrue(link_field.options)
 
+	def test_guest_key_web_form_rejects_unauthorized_link_field_on_save(self):
+		self.set_web_form_settings(key_required=1, login_required=0)
+		web_form = frappe.get_doc("Web Form", "manage-events")
+		original_fields = [field.as_dict() for field in web_form.web_form_fields]
+
+		def restore_fields():
+			restore_form = frappe.get_doc("Web Form", "manage-events")
+			restore_form.web_form_fields = []
+			for field in original_fields:
+				restore_form.append("web_form_fields", field)
+			restore_form.save(ignore_permissions=True)
+			frappe.clear_document_cache("Web Form", "manage-events")
+
+		self.addCleanup(restore_fields)
+
+		web_form.append(
+			"web_form_fields",
+			{
+				"fieldname": "restricted_link",
+				"fieldtype": "Link",
+				"label": "Restricted Link",
+				"options": "User",
+			},
+		)
+
+		with self.assertRaises(frappe.ValidationError):
+			web_form.save()
+
+	def test_get_link_options_blocked_for_unauthorized_link_on_guest_key_form(self):
+		self.set_web_form_settings(key_required=1, login_required=0)
+
+		frappe.get_doc(
+			{
+				"doctype": "Web Form Field",
+				"parent": "manage-events",
+				"parenttype": "Web Form",
+				"parentfield": "web_form_fields",
+				"fieldname": "restricted_link",
+				"fieldtype": "Link",
+				"label": "Restricted Link",
+				"options": "User",
+			}
+		).insert(ignore_permissions=True)
+		frappe.clear_document_cache("Web Form", "manage-events")
+
+		def restore_fields():
+			frappe.db.delete(
+				"Web Form Field",
+				{
+					"parent": "manage-events",
+					"parenttype": "Web Form",
+					"fieldname": "restricted_link",
+				},
+			)
+			frappe.clear_document_cache("Web Form", "manage-events")
+
+		self.addCleanup(restore_fields)
+
+		web_form_request = self.create_web_form_request()
+		frappe.set_user("Guest")
+
+		with self.assertRaises(frappe.PermissionError):
+			get_link_options(
+				"manage-events",
+				"User",
+				web_form_request_key=web_form_request.key,
+			)
+
 	def add_web_form_link_field(self):
+		link_doctype = "Salutation"
+		add_permission(link_doctype, "Guest", ptype="read")
+		clear_permissions_cache(link_doctype)
+		self.addCleanup(lambda: (reset_perms(link_doctype), clear_permissions_cache(link_doctype)))
+
 		web_form = frappe.get_doc("Web Form", "manage-events")
 		original_fields = [field.as_dict() for field in web_form.web_form_fields]
 
@@ -831,7 +912,7 @@ class TestWebForm(IntegrationTestCase):
 				"fieldname": "reference_doctype",
 				"fieldtype": "Link",
 				"label": "Reference Document Type",
-				"options": "DocType",
+				"options": link_doctype,
 			},
 		)
 		web_form.save(ignore_permissions=True)

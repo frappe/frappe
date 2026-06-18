@@ -109,6 +109,22 @@ class WebForm(WebsiteGenerator):
 			self.validate_fields()
 
 		self.validate_hidden_and_mandatory()
+		self.validate_guest_key_link_fields()
+
+	def validate_guest_key_link_fields(self):
+		if not is_guest_key_web_form(self):
+			return
+
+		for field in self.web_form_fields:
+			if field.fieldtype != "Link" or not field.options:
+				continue
+
+			if not frappe.has_permission(field.options, "read", user="Guest"):
+				frappe.throw(
+					_("{0}: Link field cannot reference DocType {1} without Guest read permission").format(
+						field.label, field.options
+					)
+				)
 
 	def validate_fields(self):
 		"""Validate all fields are present"""
@@ -696,6 +712,9 @@ def get_context(context):
 
 
 def process_link_field(field, web_form_name, web_form_request_key=None, docname=None):
+	web_form = frappe.get_lazy_doc("Web Form", web_form_name)
+	ensure_guest_key_link_doctype_allowed(web_form, field.options)
+
 	field.fieldtype = "Autocomplete"
 	field.options = get_link_options(
 		web_form_name,
@@ -1065,6 +1084,21 @@ def get_in_list_view_fields(doctype, web_form_name=None, web_form_request_key=No
 	return [get_field_df(f) for f in fields]
 
 
+def is_guest_key_web_form(web_form):
+	return cint(web_form.key_required) and not cint(web_form.login_required)
+
+
+def ensure_guest_key_link_doctype_allowed(web_form, link_doctype):
+	if not is_guest_key_web_form(web_form):
+		return
+
+	if not frappe.has_permission(link_doctype, "read", user="Guest"):
+		frappe.throw(
+			_("You don't have permission to access the {0} DocType.").format(link_doctype),
+			frappe.PermissionError,
+		)
+
+
 def has_link_option(fields, doctype):
 	for f in fields:
 		if f.options == doctype:
@@ -1101,6 +1135,8 @@ def get_link_options(
 			required=True,
 			allow_used=bool(web_form.allow_multiple) or bool(docname),
 		)
+
+	ensure_guest_key_link_doctype_allowed(web_form, doctype)
 
 	if not web_form.published or not has_link_option(web_form.web_form_fields, doctype):
 		frappe.throw(
