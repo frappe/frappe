@@ -994,7 +994,7 @@ def list_sites(context: CliCtxObj, output_json=False):
 
 @click.command("setup-chrome")
 def setup_chrome():
-	from frappe.utils.print_utils import setup_chromium
+	from frappe.utils.chromium import setup_chromium
 
 	setup_chromium()
 
