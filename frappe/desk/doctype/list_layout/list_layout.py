@@ -7,7 +7,7 @@ import frappe
 from frappe import _
 from frappe.model import std_fields
 from frappe.model.document import Document
-from frappe.utils import cstr
+from frappe.utils import cstr, strip_html
 
 
 class ListLayout(Document):
@@ -20,7 +20,7 @@ class ListLayout(Document):
 		from frappe.types import DF
 
 		columns: DF.LongText | None
-		filter_name: DF.Data | None
+		layout_name: DF.Data | None
 		filters: DF.LongText | None
 		for_user: DF.Link | None
 		reference_doctype: DF.Link | None
@@ -41,6 +41,9 @@ class ListLayout(Document):
 			frappe.throw(_("You are not allowed to assign layouts to other users"), frappe.PermissionError)
 
 	def before_save(self):
+		if self.layout_name:
+			self.layout_name = strip_html(cstr(self.layout_name)).strip()
+
 		if self.reference_doctype:
 			valid_fields = _get_valid_layout_fields(self.reference_doctype)
 			if self.filters:
@@ -128,7 +131,7 @@ def _sanitize_sorting(sort_field, sort_order, valid_fields: set[str]) -> tuple[s
 @frappe.whitelist()
 def update_list_layout(
 	name: str,
-	filter_name: str | None = None,
+	layout_name: str | None = None,
 	for_user: str | None = None,
 	filters: str | list | None = None,
 	columns: str | list | None = None,
@@ -143,8 +146,8 @@ def update_list_layout(
 			frappe.throw(_("You are not allowed to update global layouts"), frappe.PermissionError)
 		frappe.throw(_("You are not allowed to update this layout"), frappe.PermissionError)
 
-	if filter_name is not None:
-		doc.filter_name = cstr(filter_name).strip()
+	if layout_name is not None:
+		doc.layout_name = cstr(layout_name).strip()
 
 	if for_user is not None:
 		next_for_user = cstr(for_user)

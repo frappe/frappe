@@ -5,7 +5,7 @@
  "editable_grid": 1,
  "engine": "InnoDB",
  "field_order": [
-  "filter_name",
+  "layout_name",
   "reference_doctype",
   "for_user",
   "route_signature",
@@ -19,7 +19,7 @@
  ],
  "fields": [
   {
-   "fieldname": "filter_name",
+   "fieldname": "layout_name",
    "fieldtype": "Data",
    "label": "Layout Name"
   },

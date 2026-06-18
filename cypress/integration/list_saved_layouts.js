@@ -47,7 +47,7 @@ context("List View — Saved Layouts", () => {
 
 	it("does not auto-apply a layout with empty route signature on a clean URL", () => {
 		createTestLayout({
-			filter_name: "_cypress_layout_empty",
+			layout_name: "_cypress_layout_empty",
 			filters: "[]",
 		});
 
@@ -60,7 +60,7 @@ context("List View — Saved Layouts", () => {
 
 	it("auto-applies a layout when the URL matches its route signature", () => {
 		createTestLayout({
-			filter_name: "_cypress_layout_open",
+			layout_name: "_cypress_layout_open",
 			filters: JSON.stringify([["ToDo", "status", "=", "Open"]]),
 			route_signature: "status=Open",
 		});
@@ -73,7 +73,7 @@ context("List View — Saved Layouts", () => {
 
 	it("applies a saved layout from the menu and can switch back to default", () => {
 		createTestLayout({
-			filter_name: "_cypress_layout_switch",
+			layout_name: "_cypress_layout_switch",
 			filters: JSON.stringify([["ToDo", "status", "=", "Open"]]),
 			route_signature: "status=Open",
 		});
@@ -91,7 +91,7 @@ context("List View — Saved Layouts", () => {
 
 	it("opens manage layouts dialog with the saved layout listed", () => {
 		createTestLayout({
-			filter_name: "_cypress_layout_manage",
+			layout_name: "_cypress_layout_manage",
 		});
 
 		cy.visit(LIST_URL);

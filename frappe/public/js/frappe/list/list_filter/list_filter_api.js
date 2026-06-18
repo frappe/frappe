@@ -7,7 +7,7 @@ export const ListFilterAPI = {
 			.get_list("List Layout", {
 				fields: [
 					"name",
-					"filter_name",
+					"layout_name",
 					"for_user",
 					"filters",
 					"columns",
@@ -20,7 +20,7 @@ export const ListFilterAPI = {
 					["for_user", "=", frappe.session.user],
 					["for_user", "=", ""],
 				],
-				order_by: "filter_name asc",
+				order_by: "layout_name asc",
 				limit: 200,
 			})
 			.then((filters) => {
@@ -80,7 +80,7 @@ export const ListFilterAPI = {
 
 	/** Insert a new saved layout from the layout dialog. */
 	create_layout_from_dialog({
-		filter_name,
+		layout_name,
 		is_global,
 		filters,
 		columns,
@@ -92,7 +92,7 @@ export const ListFilterAPI = {
 			.insert({
 				doctype: "List Layout",
 				reference_doctype: this.list_view.doctype,
-				filter_name,
+				layout_name,
 				for_user: is_global ? "" : frappe.session.user,
 				filters: JSON.stringify(filters || []),
 				columns: JSON.stringify(columns || []),
@@ -109,14 +109,14 @@ export const ListFilterAPI = {
 	/** Update an existing layout from the layout dialog. */
 	update_layout_from_dialog(
 		layout,
-		{ filter_name, is_global, filters, columns, sort_field, sort_order, route_signature }
+		{ layout_name, is_global, filters, columns, sort_field, sort_order, route_signature }
 	) {
 		if (!layout?.name || !this.can_edit_layout(layout)) {
 			return Promise.resolve();
 		}
 		const args = {
 			name: layout.name,
-			filter_name,
+			layout_name,
 			filters: JSON.stringify(filters || []),
 			columns: JSON.stringify(columns || []),
 			sort_field,
