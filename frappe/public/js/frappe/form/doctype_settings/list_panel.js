@@ -16,7 +16,7 @@ frappe.provide("frappe.doctype_settings");
  *     load: () => Promise<rows[]>,            // or rows: [...]
  *     title_column: { label, primary(row), secondary(row), onclick(row, list),
  *                     tags: (row) => [{ label, color }] },  // inline indicator-pill tags after the name
- *     columns: [{ label, value(row), badge(row) -> {label,color,icon}|null, align, width }],  // indicator-pill badge
+ *     columns: [{ label, value(row), badge(row) -> {label,color}|null, align, width }],  // indicator-pill badge
  *     toggle: { label, value(row)->0|1, onchange(row, value, list)->Promise, disabled(row) },
  *     actions: (row) => [{ label, icon, danger, onclick(list) }],
  *     empty_state: { title, description, action: { label, onclick(list) } },
@@ -183,12 +183,10 @@ class ListPanel {
 
 			const badge = col.badge && col.badge(row);
 			if (badge) {
-				const $pill = $('<span class="indicator-pill no-indicator-dot"></span>')
+				$('<span class="indicator-pill no-indicator-dot"></span>')
 					.addClass(badge.color || "")
+					.text(badge.label)
 					.appendTo($cell);
-				// indicator-pill is already inline-flex; mr-1 gives the icon→label gap.
-				if (badge.icon) $(frappe.utils.icon(badge.icon, "xs")).addClass("mr-1").appendTo($pill);
-				$pill.append($("<span></span>").text(badge.label));
 			} else if (col.value) {
 				$cell.text(col.value(row) || "");
 			}

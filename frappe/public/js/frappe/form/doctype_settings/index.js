@@ -4,6 +4,7 @@ import "./list_panel";
 // Tabs self-register via frappe.doctype_settings.register(id, builder); each is
 // imported here as it's added.
 import "./tabs/email_template";
+import "./tabs/notification";
 
 /**
  * Open the DocType Settings dialog scoped to `doctype`.
