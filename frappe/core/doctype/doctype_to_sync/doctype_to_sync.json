@@ -7,17 +7,9 @@
  "editable_grid": 1,
  "engine": "InnoDB",
  "field_order": [
-  "report",
   "doc_type"
  ],
  "fields": [
-  {
-   "fieldname": "report",
-   "fieldtype": "Link",
-   "in_list_view": 1,
-   "label": "Report",
-   "options": "Report"
-  },
   {
    "fieldname": "doc_type",
    "fieldtype": "Link",
@@ -30,10 +22,10 @@
  "index_web_pages_for_search": 1,
  "istable": 1,
  "links": [],
- "modified": "2026-06-17 14:26:01.376917",
+ "modified": "2026-06-18 11:21:56.316632",
  "modified_by": "Administrator",
  "module": "Core",
- "name": "Doctypes To Sync",
+ "name": "Doctype To Sync",
  "owner": "Administrator",
  "permissions": [],
  "row_format": "Dynamic",
