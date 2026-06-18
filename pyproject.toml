@@ -136,7 +136,7 @@ dev = [
 test = [
     "unittest-xml-reporting~=4.0.0",
     "coverage~=7.14.1",
-    "hypothesis~=6.77.0",
+    "hypothesis~=6.155.2",
     "freezegun~=1.5.1",
 ]
 
@@ -156,7 +156,7 @@ coverage = "~=7.14.1"
 pyngrok = "~=8.1.2"
 unittest-xml-reporting = "~=4.0.0"
 watchdog = "~=6.0.0"
-hypothesis = "~=6.77.0"
+hypothesis = "~=6.155.2"
 responses = "==0.23.1"
 freezegun = "~=1.5.5"
 
