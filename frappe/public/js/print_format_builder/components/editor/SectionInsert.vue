@@ -40,27 +40,24 @@ defineEmits(["insert"]);
 	display: flex;
 	align-items: center;
 	gap: 3px;
-	padding: 2px 8px;
+	padding: 1px 8px;
 	border-radius: var(--border-radius-sm);
-	border: 1px solid var(--gray-400);
+	border: 1px solid var(--gray-300);
 	background: var(--fg-color);
 	color: var(--text-muted);
 	cursor: pointer;
-	font-size: var(--text-tiny);
-	font-weight: var(--weight-bold);
-	text-transform: uppercase;
-	letter-spacing: 0.08em;
+	font-size: var(--text-xs);
+	font-weight: var(--weight-regular);
 	white-space: nowrap;
 	box-shadow: none;
 }
 
 .section-insert:hover .section-insert-line {
-	background: var(--gray-500);
+	background: var(--gray-400);
 }
 
 .section-insert:hover .section-insert-btn {
-	border-color: var(--gray-500);
+	border-color: var(--gray-400);
 	color: var(--text-color);
-	background: var(--gray-100);
 }
 </style>
