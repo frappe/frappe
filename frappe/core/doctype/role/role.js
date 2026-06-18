@@ -8,28 +8,53 @@ const PERM_FLAGS = ["read", "write", "create", "delete", "submit", "cancel", "am
 // help text. Strings are translated lazily at field-build time, not at load.
 const PERM_SECTIONS = [
 	{
-		label: "Primary",
+		label: __("Primary"),
 		flags: [
-			{ name: "read", description: "Allows the user to view the document." },
-			{ name: "write", description: "Allows the user to edit existing records they have access to." },
-			{ name: "create", description: "Allows the user to create new documents." },
-			{ name: "delete", description: "Allows the user to delete documents." },
-			{ name: "submit", description: "Allows the user to submit documents (submittable doctypes)." },
-			{ name: "cancel", description: "Allows the user to cancel submitted documents." },
-			{ name: "amend", description: "Allows the user to amend a cancelled document into a new copy." },
-			{ name: "select", description: "Allows the user to search and see records." },
-			{ name: "mask", description: "Allows users to enable the mask property for any field of the respective doctype." },
+			{ name: "read", description: __("Allows the user to view the document.") },
+			{
+				name: "write",
+				description: __("Allows the user to edit existing records they have access to."),
+			},
+			{ name: "create", description: __("Allows the user to create new documents.") },
+			{ name: "delete", description: __("Allows the user to delete documents.") },
+			{
+				name: "submit",
+				description: __("Allows the user to submit documents (submittable doctypes)."),
+			},
+			{ name: "cancel", description: __("Allows the user to cancel submitted documents.") },
+			{
+				name: "amend",
+				description: __("Allows the user to amend a cancelled document into a new copy."),
+			},
+			{ name: "select", description: __("Allows the user to search and see records.") },
+			{
+				name: "mask",
+				description: __(
+					"Allows users to enable the mask property for any field of the respective doctype."
+				),
+			},
 		],
 	},
 	{
-		label: "Reporting & Sharing",
+		label: __("Reporting & Sharing"),
 		flags: [
-			{ name: "report", description: "Allows the user to access reports related to the document." },
-			{ name: "export", description: "Allows the user to export data from the Report view." },
-			{ name: "import", description: "Allows the user to use Data Import tool to create / update records." },
-			{ name: "share", description: "Allows sharing document access with other users." },
-			{ name: "print", description: "Allows printing or PDF download of documents." },
-			{ name: "email", description: "Allows the user to email from the document." },
+			{
+				name: "report",
+				description: __("Allows the user to access reports related to the document."),
+			},
+			{
+				name: "export",
+				description: __("Allows the user to export data from the Report view."),
+			},
+			{
+				name: "import",
+				description: __(
+					"Allows the user to use Data Import tool to create / update records."
+				),
+			},
+			{ name: "share", description: __("Allows sharing document access with other users.") },
+			{ name: "print", description: __("Allows printing or PDF download of documents.") },
+			{ name: "email", description: __("Allows the user to email from the document.") },
 		],
 	},
 ];
@@ -449,7 +474,12 @@ class DocumentsTab extends RoleTab {
 			.then(() =>
 				frappe.db.get_value(
 					"Custom DocPerm",
-					{ parent: row.parent, role: this.role, permlevel: row.permlevel, if_owner: row.if_owner || 0 },
+					{
+						parent: row.parent,
+						role: this.role,
+						permlevel: row.permlevel,
+						if_owner: row.if_owner || 0,
+					},
 					"name"
 				)
 			)
@@ -464,7 +494,12 @@ class DocumentsTab extends RoleTab {
 	remove(row) {
 		return frappe.call({
 			method: "frappe.core.page.permission_manager.permission_manager.remove",
-			args: { doctype: row.parent, role: this.role, permlevel: row.permlevel, if_owner: row.if_owner || 0 },
+			args: {
+				doctype: row.parent,
+				role: this.role,
+				permlevel: row.permlevel,
+				if_owner: row.if_owner || 0,
+			},
 		});
 	}
 

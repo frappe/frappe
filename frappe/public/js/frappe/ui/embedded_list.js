@@ -65,7 +65,9 @@ frappe.ui.EmbeddedList = class EmbeddedList {
 					this.add_button.label || __("+ Add")
 			  }</button>`
 			: "";
-		const search = `<input type="text" class="form-control form-control-sm embedded-list-search" data-action="search" placeholder="${__("Search")}">`;
+		const search = `<input type="text" class="form-control form-control-sm embedded-list-search" data-action="search" placeholder="${__(
+			"Search"
+		)}">`;
 
 		if (!title && !description && !add) {
 			this.$header.hide();
@@ -359,11 +361,19 @@ frappe.ui.EmbeddedList = class EmbeddedList {
 
 	run_action(action, row) {
 		const refresh = () => this.refresh();
+		const run = () =>
+			Promise.resolve(action.action(row, refresh)).catch((e) => {
+				frappe.msgprint({
+					title: __("Error"),
+					message: (e && e.message) || __("Action failed."),
+					indicator: "red",
+				});
+			});
 		if (action.confirm) {
 			const label = action.confirm_field ? row[action.confirm_field] : "";
-			frappe.confirm(__(action.confirm, [label]), () => action.action(row, refresh));
+			frappe.confirm(__(action.confirm, [label]), run);
 		} else {
-			action.action(row, refresh);
+			run();
 		}
 	}
 
