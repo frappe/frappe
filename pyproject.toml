@@ -58,7 +58,7 @@ dependencies = [
     "pydantic~=2.13.4",
     "pyotp~=2.9.0",
     "python-dateutil~=2.9.0.post0",
-    "pytz==2025.2",
+    "pytz==2026.2",
     "rauth~=0.7.3",
     "redis~=7.1.0",
     "hiredis~=3.3.0",
