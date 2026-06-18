@@ -95,6 +95,8 @@ def download_chromium():
 			total_size = int(r.headers.get("content-length", 0))  # Get total file size
 			with (
 				click.progressbar(length=total_size, label="Downloading Chromium") as bar,
+				# zip_path is bench-internal (<bench>/chromium/<basename of download url>), not user input.
+				# nosemgrep: frappe-semgrep-rules.rules.security.frappe-security-file-traversal
 				open(zip_path, "wb") as f,
 			):
 				for chunk in r.iter_content(chunk_size=65536):
