@@ -33,7 +33,7 @@
  "modified": "2026-06-17 14:26:01.376917",
  "modified_by": "Administrator",
  "module": "Core",
- "name": "Synced Report Doctype Table",
+ "name": "Doctypes To Sync",
  "owner": "Administrator",
  "permissions": [],
  "row_format": "Dynamic",
