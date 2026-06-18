@@ -7,27 +7,29 @@
  "engine": "InnoDB",
  "field_order": [
   "enable_synced_reports",
-  "doctype_to_sync"
+  "frequency"
  ],
  "fields": [
-  {
-   "fieldname": "doctype_to_sync",
-   "fieldtype": "Table",
-   "label": "Doctype To Sync",
-   "options": "Synced Report Doctype Table"
-  },
   {
    "default": "0",
    "fieldname": "enable_synced_reports",
    "fieldtype": "Check",
    "label": "Enable Synced Reports"
+  },
+  {
+   "default": "Daily",
+   "depends_on": "eval: doc.enable_synced_reports",
+   "fieldname": "frequency",
+   "fieldtype": "Select",
+   "label": "Frequency",
+   "options": "Hourly\nDaily"
   }
  ],
  "grid_page_length": 50,
  "index_web_pages_for_search": 1,
  "issingle": 1,
  "links": [],
- "modified": "2026-06-17 14:41:45.791622",
+ "modified": "2026-06-18 11:29:05.841034",
  "modified_by": "Administrator",
  "module": "Core",
  "name": "Synced Report Settings",
