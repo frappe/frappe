@@ -70,7 +70,12 @@
 				:style="{ '--pfb-zoom': canvas_zoom / 100 }"
 				@click="clear_selection"
 			>
-				<KeepAlive>
+				<PrintFormatSetup
+					v-if="$store.needs_setup.value"
+					@start-default="on_start_default"
+					@start-blank="on_start_blank"
+				/>
+				<KeepAlive v-else>
 					<component :is="Preview" v-if="show_preview" />
 					<component :is="PrintFormat" v-else />
 				</KeepAlive>
@@ -82,6 +87,7 @@
 
 <script setup>
 import PrintFormat from "./components/editor/PrintFormat.vue";
+import PrintFormatSetup from "./components/editor/PrintFormatSetup.vue";
 import Preview from "./components/Preview.vue";
 import PrintFormatControls from "./components/PrintFormatControls.vue";
 import FieldInspector from "./components/inspector/FieldInspector.vue";
@@ -128,6 +134,25 @@ function toggle_preview() {
 function clear_selection() {
 	$store.value.selected_field.value = null;
 	$store.value.selected_section.value = null;
+}
+
+function on_start_default() {
+	// layout is already set to get_default_layout() — just persist and enter the builder
+	$store.value.print_format.value.format_data = JSON.stringify($store.value.layout.value);
+	$store.value.dirty.value = true;
+	$store.value.needs_setup.value = false;
+}
+
+function on_start_blank() {
+	const blank = {
+		sections: [],
+		header: { columns: [{ label: "", fields: [] }] },
+		footer: { columns: [{ label: "", fields: [] }] },
+	};
+	$store.value.layout.value = blank;
+	$store.value.print_format.value.format_data = JSON.stringify(blank);
+	$store.value.dirty.value = true;
+	$store.value.needs_setup.value = false;
 }
 
 function handle_keydown(e) {
