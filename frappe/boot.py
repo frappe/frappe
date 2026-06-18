@@ -421,6 +421,53 @@ def get_sentry_dsn():
 	return os.getenv("FRAPPE_SENTRY_DSN")
 
 
+def get_authored_sidebar_items(workspace_names):
+	"""Authored `Workspace Sidebar Item` rows grouped by parent workspace.
+
+	A single query (`parenttype = "Workspace"`, `parent in workspace_names`) replaces
+	loading each workspace's child table individually. Rows are returned in `idx` order
+	and de-duplicated per workspace, so repeated rows (e.g. left behind by a re-run
+	migration) collapse to a single item.
+	"""
+	items_by_workspace = {}
+	if not workspace_names:
+		return items_by_workspace
+
+	seen = {}
+	for item in frappe.get_all(
+		"Workspace Sidebar Item",
+		filters={"parenttype": "Workspace", "parent": ["in", workspace_names]},
+		fields=[
+			"parent",
+			"idx",
+			"type",
+			"label",
+			"link_type",
+			"link_to",
+			"icon",
+			"child",
+			"indent",
+			"collapsible",
+			"keep_closed",
+			"url",
+			"show_arrow",
+			"filters",
+			"route_options",
+			"navigate_to_tab",
+			"open_in_new_tab",
+			"default_workspace",
+		],
+		order_by="idx asc",
+	):
+		key = (item.type, item.label, item.link_type, item.link_to)
+		if key in seen.setdefault(item.parent, set()):
+			continue
+		seen[item.parent].add(key)
+		items_by_workspace.setdefault(item.parent, []).append(item)
+
+	return items_by_workspace
+
+
 def get_sidebar_items():
 	"""Build the per-workspace sidebar payload (`bootinfo.workspace_sidebar_item`).
 
@@ -435,12 +482,15 @@ def get_sidebar_items():
 	perm_ctx = frappe.new_doc("Workspace")
 	sidebar_items = {}
 
-	# Primary source: authored `Workspace.sidebar_items` (the post-merge model).
-	for workspace in get_workspaces_with_sidebar():
+	# Primary source: authored `Workspace.sidebar_items` (the post-merge model). Items are
+	# fetched in a single query keyed by workspace, rather than per cached doc.
+	workspaces = get_workspaces_with_sidebar()
+	items_by_workspace = get_authored_sidebar_items([w.name for w in workspaces])
+	for workspace in workspaces:
 		add_sidebar_entry(
 			sidebar_items,
 			title=workspace.name,
-			items=workspace.sidebar_items,
+			items=items_by_workspace.get(workspace.name, []),
 			module=workspace.module,
 			app=workspace.app,
 			header_icon=workspace.icon,
@@ -483,16 +533,17 @@ def build_default_workspace_map(sidebar_items):
 
 
 def get_workspaces_with_sidebar():
-	"""Workspaces the user may see (public + own private) that carry authored sidebar items."""
-	names = frappe.get_all(
-		"Workspace",
-		or_filters={"public": 1, "for_user": frappe.session.user},
-		pluck="name",
-		order_by="sequence_id asc",
-	)
+	"""Workspaces the user may see that carry authored sidebar items.
+
+	Reuses `get_workspaces()` so the workspace selector shares a single
+	visibility/order/hidden source of truth with the desk workspace listing, then keeps
+	only the workspaces that have authored sidebar items (preserving order).
+	"""
+	from frappe.desk.desktop import get_workspaces
+
 	workspaces = []
-	for name in names:
-		workspace = frappe.get_cached_doc("Workspace", name)
+	for page in get_workspaces()["pages"]:
+		workspace = frappe.get_cached_doc("Workspace", page["name"])
 		if workspace.sidebar_items:
 			workspaces.append(workspace)
 	return workspaces

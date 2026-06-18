@@ -49,20 +49,25 @@ class Workspace(DeskViews):
 	def is_permitted(self):
 		"""Return true if the workspace is visible to the current user.
 
-		Visibility is gated by the workspace's `roles` allow-list and by the user's
-		personal allow-list (`User.workspaces`):
+		Visibility of **public** workspaces is gated by the workspace's `roles`
+		allow-list and by the user's personal allow-list (`User.workspaces`):
 
-		* If the user has customised `User.workspaces`, only the workspaces listed there
-		  are visible -- the personal allow-list is authoritative.
+		* If the user has customised `User.workspaces`, only the public workspaces listed
+		  there are visible -- the personal allow-list is authoritative.
 		* If the workspace has `roles`, the user must have one of them.
 		* Otherwise (no personal list, no roles) visibility falls back to the user's
 		  blocked modules: the workspace is hidden when its `module` is blocked.
+
+		Private (`for_user`) workspaces are owned by a single user and are gated by
+		ownership in `get_workspaces()`, so the personal allow-list does not apply to
+		them.
 		"""
 		from frappe.utils import has_common
 
-		user_workspaces = get_user_workspaces()
-		if user_workspaces:
-			return self.doc.name in user_workspaces
+		if self.doc.public:
+			user_workspaces = get_user_workspaces()
+			if user_workspaces:
+				return self.doc.name in user_workspaces
 
 		allowed = [d.role for d in self.doc.roles]
 		allowed.extend(get_custom_allowed_roles("page", self.doc.name))
@@ -348,15 +353,16 @@ def get_desktop_page(page: str | dict):
 
 
 @frappe.whitelist()
-def get_user_workspaces(user: str | None = None) -> set[str]:
-	"""Return the set of workspaces in `user`'s personal allow-list (`User.workspaces`).
+def get_user_workspaces(user: str | None = None) -> dict[str, bool]:
+	"""Return `user`'s personal workspace customisation (`User.workspaces`).
 
-	An empty set means the user has not customised their workspaces, in which case
-	visibility falls back to the workspace `roles` allow-list.
+	Maps workspace name -> personal `hidden` flag, preserving the row order of the
+	child table. An empty mapping means the user has not customised their workspaces,
+	in which case visibility falls back to roles / blocked modules.
 	"""
 	user = user or frappe.session.user
 	user_doc = frappe.get_cached_doc("User", user)
-	return {d.workspace for d in user_doc.workspaces if d.workspace}
+	return {d.workspace: bool(d.hidden) for d in user_doc.workspaces if d.workspace}
 
 
 def get_workspaces():
@@ -365,6 +371,9 @@ def get_workspaces():
 	from frappe.modules.utils import get_module_app
 
 	has_access = "Workspace Manager" in frappe.get_roles()
+
+	# personal customisation: ordered {workspace: hidden}; empty means "not customised"
+	user_workspaces = get_user_workspaces()
 
 	# adding None to allowed_domains to include pages without domain restriction
 	allowed_domains = [None, *frappe.get_active_domains()]
@@ -404,8 +413,13 @@ def get_workspaces():
 	# Filter Page based on Permission
 	for page in all_pages:
 		try:
+			# A workspace the user hid in their personal list (`User.workspaces`) is dropped
+			# from their sidebar regardless of role -- unlike workspace-level `is_hidden`,
+			# this is a per-user preference, so it applies to Workspace Managers too.
+			personally_hidden = user_workspaces.get(page.name, False)
+
 			workspace = Workspace(page, True)
-			if has_access or workspace.is_permitted():
+			if (has_access or workspace.is_permitted()) and not personally_hidden:
 				if page.public and (has_access or not page.is_hidden) and page.title != "Welcome Workspace":
 					pages.append(page)
 				elif page.for_user == frappe.session.user:
@@ -431,6 +445,12 @@ def get_workspaces():
 			pass
 	if private_pages:
 		pages.extend(private_pages)
+
+	# respect the order of the user's personal customisation; workspaces not in the
+	# customisation (e.g. private pages) keep their sequence_id order at the end
+	if user_workspaces:
+		order = {name: idx for idx, name in enumerate(user_workspaces)}
+		pages.sort(key=lambda page: order.get(page["name"], len(order)))
 
 	if len(pages) == 0:
 		welcome_workspace = next((x for x in all_pages if x["title"] == "Welcome Workspace"), None)
