@@ -89,11 +89,11 @@ function onMarkAll() {
 </script>
 
 <template>
-	<div class="flex flex-col bg-surface-white text-ink-gray-9 w-full h-full">
+	<div class="flex flex-col bg-surface-base text-ink-gray-9 w-full h-full">
 		<!-- header -->
 		<slot name="header" :unread-count="unreadCount">
 			<div class="flex items-center gap-2 px-4 py-2 pt-4">
-				<span class="text-lg font-medium mr-auto">{{ title }}</span>
+				<span class="text-md font-medium mr-auto">{{ title }}</span>
 				<Button
 					v-if="showMarkAllRead"
 					variant="ghost"
@@ -117,8 +117,8 @@ function onMarkAll() {
 		<TabButtons
 			v-if="tabs?.length"
 			v-model="activeTab"
-			:buttons="tabButtons"
-			class="px-4 py-2 [&_button]:w-full [&_div]:w-full"
+			:options="tabButtons"
+			class="px-4 py-2 [&>div]:w-full [&_button]:flex-1 [&_button>*]:w-full"
 		/>
 
 		<!-- body -->
