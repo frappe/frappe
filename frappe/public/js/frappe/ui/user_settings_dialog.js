@@ -203,26 +203,28 @@ function _email_tab(user_data) {
 		label: __("Email"),
 		icon: "mail",
 		title: __("Email"),
-		description: __("Notifications, outgoing email and signature settings."),
+		description: __("Configure your email settings"),
 		fields: [
 			{
 				fieldtype: "Switch",
 				fieldname: "thread_notify",
 				label: __("Send Notifications For Email Threads"),
+				description: __(
+					"Get notified when there's a new reply in an email thread you're part of."
+				),
 				default: user_data.thread_notify,
 			},
 			{
 				fieldtype: "Switch",
 				fieldname: "send_me_a_copy",
 				label: __("Send Me A Copy of Outgoing Emails"),
+				description: __("Receive a copy of every email you send in your inbox."),
 				default: user_data.send_me_a_copy,
 			},
 			{ fieldtype: "Section Break", label: __("Email Signature") },
 			{
 				fieldtype: "Text Editor",
 				fieldname: "email_signature",
-				label: __("Email Signature"),
-				hide_label: 1,
 				default: user_data.email_signature || "",
 			},
 		],

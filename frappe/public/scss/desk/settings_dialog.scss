@@ -207,8 +207,8 @@
 }
 
 .settings-dialog-section-heading {
-	margin-top: var(--margin-lg);
-	margin-bottom: var(--margin-md);
+	margin-top: var(--margin-md);
+	margin-bottom: var(--margin-sm);
 
 	&:first-child {
 		margin-top: 0;
@@ -233,13 +233,17 @@
 }
 
 .settings-dialog-panel-body .form-section .section-head {
-	margin: var(--margin-lg) 0 var(--margin-md);
+	margin: var(--margin-md) 0 var(--margin-xs);
 	padding: 0;
 	font-size: var(--text-base);
-	font-weight: 420;
+	font-weight: var(--weight-medium);
 	line-height: 1.5;
 	letter-spacing: 0.02em;
-	color: var(--ink-gray-6);
+	color: var(--ink-gray-8);
+}
+
+.settings-dialog-panel-body .ql-editor {
+	min-height: 120px;
 }
 
 .settings-dialog-panel-body .form-section {
@@ -254,6 +258,11 @@
 
 .settings-dialog-panel-body .form-section:not(:first-child) {
 	border-top: none;
+}
+
+.settings-dialog-panel-body .form-section:not(:first-child):has(> .section-head) {
+	border-top: 1px solid var(--border-color);
+	padding-top: var(--padding-sm);
 }
 
 .settings-dialog-panel-body .control-label {
@@ -271,4 +280,12 @@
 		line-height: 1.5;
 		letter-spacing: 0.02em;
 	}
+}
+
+.settings-dialog-panel-body
+	.frappe-control:has(> .switch-control)
+	+ .frappe-control:has(> .switch-control) {
+	border-top: 1px solid var(--border-color);
+	padding-top: var(--padding-sm);
+	margin-top: var(--padding-sm);
 }
