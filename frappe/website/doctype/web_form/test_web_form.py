@@ -707,7 +707,7 @@ class TestWebForm(IntegrationTestCase):
 			web_form_name="manage-events",
 			web_form_request_key=web_form_request.key,
 		)
-		link_field = next(f for f in result.web_form.web_form_fields if f.fieldname == "owner")
+		link_field = next(f for f in result.web_form.web_form_fields if f.fieldname == "reference_doctype")
 		self.assertEqual(link_field.fieldtype, "Autocomplete")
 		self.assertTrue(link_field.options)
 
@@ -728,10 +728,10 @@ class TestWebForm(IntegrationTestCase):
 		web_form.append(
 			"web_form_fields",
 			{
-				"fieldname": "owner",
+				"fieldname": "reference_doctype",
 				"fieldtype": "Link",
-				"label": "Owner",
-				"options": "User",
+				"label": "Reference Document Type",
+				"options": "DocType",
 			},
 		)
 		web_form.save(ignore_permissions=True)
