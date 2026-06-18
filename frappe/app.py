@@ -175,13 +175,16 @@ def run_after_request_hooks(request, response):
 
 
 def init_request(request):
-	frappe.local.request = request
-	frappe.local.request.after_response = CallbackManager()
-
-	frappe.local.is_ajax = frappe.get_request_header("X-Requested-With") == "XMLHttpRequest"
-
 	site = _site or request.headers.get("X-Frappe-Site-Name") or get_site_name(request.host)
+<<<<<<< HEAD
 	frappe.init(site=site, sites_path=_sites_path, force=True)
+=======
+	frappe.init(site, sites_path=_sites_path, force=True, is_request=True)
+
+	frappe.local.request = request
+	frappe.local.is_ajax = frappe.get_request_header("X-Requested-With") == "XMLHttpRequest"
+	request.after_response = CallbackManager()
+>>>>>>> 99f870986b (fix: Always start with clean `frappe.local` in request/jobs (#40088))
 
 	if not (frappe.local.conf and frappe.local.conf.db_name):
 		# site does not exist

@@ -192,9 +192,27 @@ message_log = local("message_log")
 lang = local("lang")
 
 
+<<<<<<< HEAD
 def init(site: str, sites_path: str = ".", new_site: bool = False, force=False) -> None:
+=======
+def init(
+	site: str,
+	sites_path: str = ".",
+	new_site: bool = False,
+	force: bool = False,
+	*,
+	is_request=False,
+	is_job=False,
+) -> None:
+>>>>>>> 99f870986b (fix: Always start with clean `frappe.local` in request/jobs (#40088))
 	"""Initialize frappe for the current site. Reset thread locals `frappe.local`"""
-	if getattr(local, "initialised", None) and not force:
+	# Reset locals at start of the request.
+	# Previous request can fail in ways we might have no control over.
+	# release_local is inexpensive, so trigger it before every request/job.
+	if force:
+		release_local(local)
+
+	if getattr(local, "initialised", None):
 		return
 
 	if site and not SITE_NAME_PATTERN.match(site):
@@ -231,7 +249,13 @@ def init(site: str, sites_path: str = ".", new_site: bool = False, force=False) 
 	local.response = _dict({"docs": []})
 	local.task_id = None
 
+<<<<<<< HEAD
 	local.conf = _dict(get_site_config())
+=======
+	from frappe.config import get_site_config
+
+	local.conf = get_site_config(sites_path=sites_path, site_path=site_path, cached=is_request)
+>>>>>>> 99f870986b (fix: Always start with clean `frappe.local` in request/jobs (#40088))
 	local.lang = local.conf.lang or "en"
 
 	local.module_app = None
@@ -262,7 +286,7 @@ def init(site: str, sites_path: str = ".", new_site: bool = False, force=False) 
 		_register_fault_handler()
 		_one_time_setup[local.conf.db_type] = True
 
-	setup_module_map(include_all_apps=not (frappe.request or frappe.job or frappe.flags.in_migrate))
+	setup_module_map(include_all_apps=not (is_request or is_job or frappe.flags.in_migrate))
 
 	local.initialised = True
 
@@ -429,10 +453,11 @@ class init_site:
 
 def destroy():
 	"""Closes connection and releases werkzeug local."""
-	if db:
-		db.close()
-
-	release_local(local)
+	try:
+		if db:
+			db.close()
+	finally:
+		release_local(local)
 
 
 def setup_redis_cache_connection():
