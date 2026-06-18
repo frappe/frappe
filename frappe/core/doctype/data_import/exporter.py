@@ -19,6 +19,7 @@ class Exporter:
 		export_filters=None,
 		export_page_length=None,
 		file_type="CSV",
+		order_by=None,
 	):
 		"""
 		Exports records of a DocType for use with Importer
@@ -34,6 +35,7 @@ class Exporter:
 		self.export_filters = export_filters
 		self.export_page_length = export_page_length
 		self.file_type = file_type
+		self.order_by = order_by
 
 		# this will contain the csv content
 		self.csv_array = []
@@ -166,6 +168,8 @@ class Exporter:
 
 		if self.meta.is_nested_set():
 			order_by = "lft ASC"
+		elif self.order_by:
+			order_by = self.order_by
 		else:
 			order_by = "creation DESC"
 
