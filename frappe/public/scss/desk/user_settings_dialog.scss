@@ -5,6 +5,34 @@
 		gap: var(--padding-lg);
 		padding: var(--padding-md) 0 var(--padding-lg);
 
+		.profile-avatar-upload {
+			position: relative;
+			flex-shrink: 0;
+			border-radius: 50%;
+			overflow: hidden;
+			cursor: pointer;
+		}
+
+		.profile-avatar-overlay {
+			position: absolute;
+			inset: 0;
+			display: flex;
+			align-items: center;
+			justify-content: center;
+			background-color: rgba(0, 0, 0, 0.45);
+			color: var(--white);
+			opacity: 0;
+			transition: opacity 0.2s ease-in-out;
+
+			.icon use {
+				stroke: var(--white);
+			}
+		}
+
+		.profile-avatar-upload:hover .profile-avatar-overlay {
+			opacity: 1;
+		}
+
 		.avatar {
 			flex-shrink: 0;
 		}
@@ -25,18 +53,13 @@
 			font-size: var(--text-sm);
 			color: var(--ink-gray-5);
 		}
-	}
 
-	.user-settings-profile-actions {
-		display: flex;
-		gap: var(--margin-sm);
-		padding: var(--padding-md) 0;
-		border-top: 1px solid var(--border-color);
-
-		.btn {
+		.change-password-btn {
 			display: flex;
 			align-items: center;
 			gap: var(--margin-xs);
+			margin-left: auto;
+			flex-shrink: 0;
 		}
 	}
 

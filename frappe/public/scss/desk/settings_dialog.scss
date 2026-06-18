@@ -242,6 +242,20 @@
 	color: var(--ink-gray-6);
 }
 
+.settings-dialog-panel-body .form-section {
+	padding: 0;
+}
+
+.settings-dialog-panel-body .form-section .section-body,
+.settings-dialog-panel-body .form-section > .section-body:first-child {
+	padding-top: 0;
+	margin-top: 0;
+}
+
+.settings-dialog-panel-body .form-section:not(:first-child) {
+	border-top: none;
+}
+
 .settings-dialog-panel-body .control-label {
 	font-size: var(--text-base);
 	font-weight: 420;
@@ -251,12 +265,7 @@
 }
 
 .settings-dialog-panel-body .switch-control {
-	.label-area {
-		font-weight: 420;
-		line-height: 1.5;
-		letter-spacing: 0.02em;
-	}
-
+	.label-area,
 	.help-box {
 		font-weight: 420;
 		line-height: 1.5;

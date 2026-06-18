@@ -2,6 +2,10 @@ frappe.provide("frappe.ui");
 
 frappe.ui.show_user_settings = async function (default_tab) {
 	const { message: user_data } = await frappe.db.get_value("User", frappe.session.user, [
+		"first_name",
+		"middle_name",
+		"last_name",
+		"username",
 		"thread_notify",
 		"send_me_a_copy",
 		"email_signature",
@@ -27,7 +31,7 @@ frappe.ui.show_user_settings = async function (default_tab) {
 			{
 				group: __("Settings"),
 				items: [
-					_profile_tab(),
+					_profile_tab(user_data || {}),
 					_email_tab(user_data || {}),
 					_appearance_tab(),
 					_preferences_tab(user_data || {}),
@@ -72,68 +76,123 @@ function _section_heading(title, description) {
 
 // ─── Profile ──────────────────────────────────────────────────────────────────
 
-function _profile_tab() {
+function _profile_tab(user_data) {
 	return {
 		id: "profile",
 		label: __("Profile"),
 		icon: "user",
 		title: __("Profile"),
 		description: __("Your name, email and account settings."),
+		actions: [
+			{
+				label: __("Save"),
+				primary: true,
+				click(panel) {
+					const values = panel.get_values();
+					if (!values) return;
+					_save_user({
+						first_name: values.first_name,
+						middle_name: values.middle_name,
+						last_name: values.last_name,
+						username: values.username,
+					}).then(() => {
+						Object.assign(user_data, {
+							first_name: values.first_name,
+							middle_name: values.middle_name,
+							last_name: values.last_name,
+							username: values.username,
+						});
+						const fn = [values.first_name, values.middle_name, values.last_name]
+							.filter(Boolean)
+							.join(" ");
+						if (frappe.boot.user_info?.[frappe.session.user]) {
+							frappe.boot.user_info[frappe.session.user].fullname =
+								fn || frappe.session.user;
+						}
+						frappe.show_alert({ message: __("Saved"), indicator: "green" });
+						panel.refresh();
+					});
+				},
+			},
+		],
 		render(panel) {
 			const user = frappe.session.user;
-			const full_name = frappe.user.full_name(user) || user;
+			const full_name = frappe.user_info(user).fullname || user;
+			const email = frappe.session.user_email || user;
 
 			panel.body.html(`
 				<div class="user-settings-profile-header">
-					${frappe.avatar(user, "avatar-xl")}
+					<div class="profile-avatar-upload" title="${__("Upload Photo")}">
+						${frappe.avatar(user, "avatar-large")}
+						<div class="profile-avatar-overlay">${frappe.utils.icon("camera", "md")}</div>
+					</div>
 					<div class="profile-user-info">
 						<div class="profile-full-name">${frappe.utils.escape_html(full_name)}</div>
-						<div class="profile-email">${frappe.utils.escape_html(user)}</div>
+						<div class="profile-email">${frappe.utils.escape_html(email)}</div>
 					</div>
-				</div>
-				<div class="user-settings-profile-actions">
 					<button class="btn btn-sm btn-default change-password-btn">
 						${frappe.utils.icon("lock", "xs")} ${__("Change Password")}
-					</button>
-					<button class="btn btn-sm btn-default configure-email-btn">
-						${frappe.utils.icon("mail", "xs")} ${__("Emails & Signature")}
 					</button>
 				</div>
 			`);
 
-			panel.body.find(".change-password-btn").on("click", _show_change_password_dialog);
-			panel.body.find(".configure-email-btn").on("click", () => panel.dialog.activate("email"));
+			panel.add_fields([
+				{
+					fieldtype: "Data",
+					fieldname: "first_name",
+					label: __("First Name"),
+					reqd: 1,
+					default: user_data.first_name || "",
+				},
+				{ fieldtype: "Column Break" },
+				{
+					fieldtype: "Data",
+					fieldname: "middle_name",
+					label: __("Middle Name"),
+					default: user_data.middle_name || "",
+				},
+				{ fieldtype: "Section Break" },
+				{
+					fieldtype: "Data",
+					fieldname: "last_name",
+					label: __("Last Name"),
+					default: user_data.last_name || "",
+				},
+				{ fieldtype: "Column Break" },
+				{
+					fieldtype: "Data",
+					fieldname: "username",
+					label: __("Username"),
+					default: user_data.username || "",
+				},
+			]);
+
+			panel.body
+				.find(".profile-avatar-upload")
+				.on("click", () => _upload_user_image(user, panel));
+			panel.body
+				.find(".change-password-btn")
+				.on("click", () => frappe.ui.show_change_password_dialog(user));
 		},
 	};
 }
 
-function _show_change_password_dialog() {
-	const d = new frappe.ui.Dialog({
-		title: __("Change Password"),
-		fields: [
-			{ fieldtype: "Password", fieldname: "old_password", label: __("Current Password"), reqd: 1 },
-			{ fieldtype: "Password", fieldname: "new_password", label: __("New Password"), reqd: 1 },
-			{ fieldtype: "Password", fieldname: "confirm_password", label: __("Confirm New Password"), reqd: 1 },
-		],
-		primary_action_label: __("Update"),
-		primary_action(values) {
-			if (values.new_password !== values.confirm_password) {
-				frappe.msgprint(__("Passwords do not match."));
-				return;
+function _upload_user_image(user, panel) {
+	new frappe.ui.FileUploader({
+		doctype: "User",
+		docname: user,
+		fieldname: "user_image",
+		allow_multiple: false,
+		restrictions: {
+			allowed_file_types: ["image/*"],
+		},
+		on_success: (file) => {
+			if (frappe.boot.user_info?.[user]) {
+				frappe.boot.user_info[user].image = file.file_url;
 			}
-			frappe.call({
-				method: "frappe.core.doctype.user.user.update_password",
-				args: { new_password: values.new_password, old_password: values.old_password, logout_all_sessions: 0 },
-				callback(r) {
-					if (!r.exc) {
-						frappe.show_alert({ message: __("Password updated"), indicator: "green" });
-						d.hide();
-					}
-				},
-			});
+			panel.refresh();
 		},
 	});
-	d.show();
 }
 
 // ─── Email ────────────────────────────────────────────────────────────────────
@@ -194,7 +253,9 @@ function _appearance_tab() {
 		title: __("Appearance"),
 		description: __("Theme and layout preferences."),
 		render(panel) {
-			panel.body.append(_section_heading(__("Theme"), __("Switch between light, dark, or system theme")));
+			panel.body.append(
+				_section_heading(__("Theme"), __("Switch between light, dark, or system theme"))
+			);
 
 			// Reuse the existing theme switcher: instantiate it and move its
 			// already-rendered grid into our panel. The unused hidden dialog
@@ -236,12 +297,38 @@ function _preferences_tab(user_data) {
 		title: __("Preferences"),
 		description: __("Language, timezone and notification preferences."),
 		fields: [
-			{ fieldtype: "Switch", fieldname: "notifications", label: __("Allow Notifications"), default: user_data.notifications },
-			{ fieldtype: "Switch", fieldname: "search_bar", label: __("Show Search Bar"), default: user_data.search_bar },
-			{ fieldtype: "Switch", fieldname: "mute_sounds", label: __("Mute Sounds"), default: user_data.mute_sounds },
+			{
+				fieldtype: "Switch",
+				fieldname: "notifications",
+				label: __("Allow Notifications"),
+				default: user_data.notifications,
+			},
+			{
+				fieldtype: "Switch",
+				fieldname: "search_bar",
+				label: __("Show Search Bar"),
+				default: user_data.search_bar,
+			},
+			{
+				fieldtype: "Switch",
+				fieldname: "mute_sounds",
+				label: __("Mute Sounds"),
+				default: user_data.mute_sounds,
+			},
 			{ fieldtype: "Section Break", label: __("Locale") },
-			{ fieldtype: "Link", fieldname: "language", label: __("Language"), options: "Language", default: user_data.language || "" },
-			{ fieldtype: "Autocomplete", fieldname: "time_zone", label: __("Time Zone"), default: user_data.time_zone || "" },
+			{
+				fieldtype: "Link",
+				fieldname: "language",
+				label: __("Language"),
+				options: "Language",
+				default: user_data.language || "",
+			},
+			{
+				fieldtype: "Autocomplete",
+				fieldname: "time_zone",
+				label: __("Time Zone"),
+				default: user_data.time_zone || "",
+			},
 		],
 		actions: [
 			{
@@ -250,9 +337,11 @@ function _preferences_tab(user_data) {
 				click(panel) {
 					const values = panel.get_values();
 					if (!values) return;
-					_save_user({ language: values.language, time_zone: values.time_zone }).then(() => {
-						frappe.show_alert({ message: __("Saved"), indicator: "green" });
-					});
+					_save_user({ language: values.language, time_zone: values.time_zone }).then(
+						() => {
+							frappe.show_alert({ message: __("Saved"), indicator: "green" });
+						}
+					);
 				},
 			},
 		],
@@ -272,9 +361,24 @@ function _lists_tab(user_data) {
 		title: __("Lists"),
 		description: __("Configure list view behaviour."),
 		fields: [
-			{ fieldtype: "Switch", fieldname: "list_sidebar", label: __("Show Sidebar"), default: user_data.list_sidebar },
-			{ fieldtype: "Switch", fieldname: "bulk_actions", label: __("Allow Bulk Actions"), default: user_data.bulk_actions },
-			{ fieldtype: "Switch", fieldname: "view_switcher", label: __("Show View Switcher"), default: user_data.view_switcher },
+			{
+				fieldtype: "Switch",
+				fieldname: "list_sidebar",
+				label: __("Show Sidebar"),
+				default: user_data.list_sidebar,
+			},
+			{
+				fieldtype: "Switch",
+				fieldname: "bulk_actions",
+				label: __("Allow Bulk Actions"),
+				default: user_data.bulk_actions,
+			},
+			{
+				fieldtype: "Switch",
+				fieldname: "view_switcher",
+				label: __("Show View Switcher"),
+				default: user_data.view_switcher,
+			},
 		],
 		render(panel) {
 			_bind_switch_autosave(panel, ["list_sidebar", "bulk_actions", "view_switcher"]);
@@ -292,11 +396,36 @@ function _forms_tab(user_data) {
 		title: __("Forms"),
 		description: __("Configure form view behaviour."),
 		fields: [
-			{ fieldtype: "Switch", fieldname: "form_sidebar", label: __("Show Sidebar"), default: user_data.form_sidebar },
-			{ fieldtype: "Switch", fieldname: "timeline", label: __("Show Timeline"), default: user_data.timeline },
-			{ fieldtype: "Switch", fieldname: "dashboard", label: __("Show Dashboard"), default: user_data.dashboard },
-			{ fieldtype: "Switch", fieldname: "show_absolute_datetime_in_timeline", label: __("Show Absolute Datetime in Timeline"), default: user_data.show_absolute_datetime_in_timeline },
-			{ fieldtype: "Switch", fieldname: "form_navigation_buttons", label: __("Show Navigation Buttons"), default: user_data.form_navigation_buttons },
+			{
+				fieldtype: "Switch",
+				fieldname: "form_sidebar",
+				label: __("Show Sidebar"),
+				default: user_data.form_sidebar,
+			},
+			{
+				fieldtype: "Switch",
+				fieldname: "timeline",
+				label: __("Show Timeline"),
+				default: user_data.timeline,
+			},
+			{
+				fieldtype: "Switch",
+				fieldname: "dashboard",
+				label: __("Show Dashboard"),
+				default: user_data.dashboard,
+			},
+			{
+				fieldtype: "Switch",
+				fieldname: "show_absolute_datetime_in_timeline",
+				label: __("Show Absolute Datetime in Timeline"),
+				default: user_data.show_absolute_datetime_in_timeline,
+			},
+			{
+				fieldtype: "Switch",
+				fieldname: "form_navigation_buttons",
+				label: __("Show Navigation Buttons"),
+				default: user_data.form_navigation_buttons,
+			},
 		],
 		render(panel) {
 			_bind_switch_autosave(panel, [
@@ -349,10 +478,18 @@ function _session_defaults_tab() {
 								args: { default_values: values },
 								callback(data) {
 									if (data.message === "success") {
-										frappe.show_alert({ message: __("Session Defaults Saved"), indicator: "green" });
+										frappe.show_alert({
+											message: __("Session Defaults Saved"),
+											indicator: "green",
+										});
 										frappe.ui.toolbar.clear_cache();
 									} else {
-										frappe.show_alert({ message: __("An error occurred while setting Session Defaults"), indicator: "red" });
+										frappe.show_alert({
+											message: __(
+												"An error occurred while setting Session Defaults"
+											),
+											indicator: "red",
+										});
 									}
 								},
 							});
@@ -363,7 +500,9 @@ function _session_defaults_tab() {
 		render: fields.length
 			? undefined
 			: (panel) => {
-					panel.body.html(`<div class="text-muted">${__("No session defaults configured.")}</div>`);
+					panel.body.html(
+						`<div class="text-muted">${__("No session defaults configured.")}</div>`
+					);
 			  },
 	};
 }
@@ -419,7 +558,9 @@ function _keyboard_shortcuts_tab() {
 			});
 
 			panel.body.append(
-				`<div class="text-muted mt-3">${__("Press Alt Key to trigger additional shortcuts in Menu and Sidebar")}</div>`
+				`<div class="text-muted mt-3">${__(
+					"Press Alt Key to trigger additional shortcuts in Menu and Sidebar"
+				)}</div>`
 			);
 		},
 	};
