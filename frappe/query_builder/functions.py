@@ -14,6 +14,7 @@ from frappe.query_builder.custom import (
 	Month,
 	MonthName,
 	Quarter,
+	Year,
 )
 from frappe.query_builder.utils import ImportMapper, db_type_is
 

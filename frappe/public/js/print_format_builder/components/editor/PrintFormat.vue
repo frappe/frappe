@@ -6,7 +6,9 @@
 			'pfb-clean-preview': !!store.preview_doc.value,
 		}"
 	>
-		<div :style="page_number_style">{{ __("1 of 2") }}</div>
+		<div v-if="!page_number_hidden" class="pfb-page-num" :style="page_number_style">
+			{{ __("1 of 2") }}
+		</div>
 
 		<LetterHeadZoneEditor zone="header" />
 
@@ -125,35 +127,25 @@ let bodyStyles = computed(() => {
 	return styles;
 });
 
+let page_number_hidden = computed(() => print_format.value.page_number.includes("Hide"));
+
 let page_number_style = computed(() => {
-	let style = {
-		position: "absolute",
-		background: "var(--fg-color)",
-		padding: "4px",
-		borderRadius: "var(--border-radius)",
-		border: "1px solid var(--border-color)",
-		fontSize: "11px",
-	};
-	if (print_format.value.page_number.includes("Top")) {
-		style.top = print_format.value.margin_top / 2 + "mm";
+	const pn = print_format.value.page_number;
+	const { margin_top, margin_bottom, margin_left, margin_right } = print_format.value;
+	const style = { position: "absolute" };
+	if (pn.includes("Top")) {
+		style.top = margin_top / 2 + "mm";
 		style.transform = "translateY(-50%)";
 	}
-	if (print_format.value.page_number.includes("Left")) {
-		style.left = print_format.value.margin_left + "mm";
-	}
-	if (print_format.value.page_number.includes("Right")) {
-		style.right = print_format.value.margin_right + "mm";
-	}
-	if (print_format.value.page_number.includes("Bottom")) {
-		style.bottom = print_format.value.margin_bottom / 2 + "mm";
+	if (pn.includes("Bottom")) {
+		style.bottom = margin_bottom / 2 + "mm";
 		style.transform = "translateY(50%)";
 	}
-	if (print_format.value.page_number.includes("Center")) {
+	if (pn.includes("Left")) style.left = margin_left + "mm";
+	if (pn.includes("Right")) style.right = margin_right + "mm";
+	if (pn.includes("Center")) {
 		style.left = "50%";
-		style.transform += " translateX(-50%)";
-	}
-	if (print_format.value.page_number.includes("Hide")) {
-		style.display = "none";
+		style.transform = (style.transform || "") + " translateX(-50%)";
 	}
 	return style;
 });
@@ -163,6 +155,17 @@ watch(print_format, () => (store.dirty.value = true), { deep: true });
 </script>
 
 <style scoped>
+.pfb-page-num {
+	font-size: var(--text-xs);
+	color: var(--text-muted);
+	background: var(--fg-color);
+	border: 1px solid var(--border-color);
+	border-radius: var(--border-radius);
+	padding: var(--padding-xs) var(--padding-sm);
+	line-height: 1.4;
+	white-space: nowrap;
+}
+
 .print-format-main {
 	position: relative;
 	margin-right: auto;

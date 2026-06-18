@@ -4,7 +4,10 @@ from unittest.case import skipIf
 import frappe
 from frappe.core.doctype.doctype.test_doctype import new_doctype
 from frappe.core.utils import find
-from frappe.custom.doctype.property_setter.property_setter import make_property_setter
+from frappe.custom.doctype.property_setter.property_setter import (
+	delete_property_setter,
+	make_property_setter,
+)
 from frappe.database import savepoint
 from frappe.query_builder.utils import db_type_is
 from frappe.tests import IntegrationTestCase
@@ -46,6 +49,15 @@ class TestDBUpdate(IntegrationTestCase):
 		doctype = "User"
 		frappe.reload_doctype("User", force=True)
 		frappe.model.meta.trim_tables("User")
+
+		def _cleanup():
+			# DDL and inserts in this test auto-commit, so we must explicitly undo.
+			# Leaving middle_name with unique=1 breaks subsequent bench migrate runs.
+			delete_property_setter(doctype, field_name="middle_name")
+			frappe.db.updatedb(doctype)
+			frappe.reload_doctype(doctype, force=True)
+
+		self.addCleanup(_cleanup)
 
 		make_property_setter(doctype, "middle_name", "unique", "1", "Check")
 		frappe.db.updatedb(doctype)

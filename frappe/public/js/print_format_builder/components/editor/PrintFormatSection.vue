@@ -97,10 +97,6 @@
 										v-html="frappe.utils.icon('x', 'xs')"
 									></button>
 									<div class="empty-drop-zone-hint">
-										<span
-											class="text-muted"
-											v-html="frappe.utils.icon('plus', 'sm')"
-										></span>
 										<span class="text-muted">{{
 											__("Drop fields here")
 										}}</span>
