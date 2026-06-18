@@ -140,7 +140,7 @@
 <script setup>
 import { computed, inject, onMounted, ref } from "vue";
 import { useStore } from "../../stores";
-import { get_image_dimensions } from "../../utils";
+import { get_image_dimensions, render_jinja_html } from "../../utils";
 
 const props = defineProps({
 	zone: { type: String, required: true },
@@ -297,25 +297,9 @@ function open_html_split_dialog({ title, initial_html, on_save, doctype, docname
 		doc.close();
 	}
 
-	function needs_jinja(html) {
-		return html && (html.includes("{{") || html.includes("{%"));
-	}
-
 	async function update_preview(iframe, html) {
 		if (!iframe) return;
-		if (needs_jinja(html) && doctype && docname) {
-			try {
-				const r = await frappe.call(
-					"frappe.utils.print_format_generator.render_jinja_template",
-					{ template: html, doctype, docname }
-				);
-				write_to_iframe(iframe, r.message ?? html);
-			} catch {
-				write_to_iframe(iframe, html);
-			}
-		} else {
-			write_to_iframe(iframe, html || "");
-		}
+		write_to_iframe(iframe, await render_jinja_html(html || "", doctype, docname));
 	}
 
 	setTimeout(() => {
