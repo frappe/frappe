@@ -85,7 +85,7 @@ dependencies = [
     "google-auth-oauthlib~=1.2.4",
     "google-auth~=2.48.0",
     "vobject~=0.9.9",
-    "pycountry~=24.6.1",
+    "pycountry~=26.2.16",
     "websockets~=15.0.1",
     # realtime (Python Socket.IO server) — speaks Socket.IO v5 / Engine.IO v4,
     # wire-compatible with the browser's socket.io-client ^4.7.1.
