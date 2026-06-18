@@ -817,11 +817,14 @@ def accept(web_form: str, data: str, web_form_request_key: str | None = None):
 		# insert
 		ignore_mandatory = True if (files or web_form.allow_incomplete) else False
 
+		# login_required, key_required + valid web_form_request (for_update),
+		# and allow_edit (updates) are enforced above; open forms allow Guest create.
 		doc.insert(ignore_permissions=True, ignore_mandatory=ignore_mandatory)
 		if web_form_request:
 			web_form_request.append("references", {"link_doctype": doctype, "link_name": doc.name})
 			if not web_form_request.first_used_on:
 				web_form_request.first_used_on = now_datetime()
+			# Request key validated above; Guest holders cannot save Web Form Request otherwise.
 			web_form_request.save(ignore_permissions=True)
 
 	# add files
@@ -850,6 +853,7 @@ def accept(web_form: str, data: str, web_form_request_key: str | None = None):
 			# update values
 			doc.set(fieldname, _file.file_url)
 
+		# Persist attachment field URLs on a document already authorized above.
 		doc.save(ignore_permissions=True)
 
 	if files_to_delete:
@@ -891,8 +895,10 @@ def delete(web_form_name: str, docname: str | int, web_form_request_key: str | N
 			web_form_request.remove(web_form_request.find_reference(docname))
 			if not web_form_request.first_used_on:
 				web_form_request.first_used_on = now_datetime()
+			# Key binding to docname verified above; update references before cascade delete.
 			web_form_request.save(ignore_permissions=True)
 
+		# allow_delete, guest/login/key gating, and owner or key binding checked above.
 		frappe.delete_doc(web_form.doc_type, docname, ignore_permissions=True)
 	else:
 		frappe.throw(_("Not Allowed"), frappe.PermissionError)
@@ -918,6 +924,7 @@ def delete_multiple(web_form_name: str, docnames: str):
 			restricted_docnames.append(docname)
 
 	for docname in allowed_docnames:
+		# Only owner-owned docnames with allow_delete enabled reach this loop.
 		frappe.delete_doc(web_form.doc_type, docname, ignore_permissions=True)
 
 	if restricted_docnames:
@@ -993,6 +1000,7 @@ def get_web_form_list(
 		filters=filters,
 		limit_start=cint(limit_start),
 		limit_page_length=min(cint(limit), 100),
+		# Valid key + show_list verified above; filters restrict to request references.
 		ignore_permissions=True,
 		order_by="creation desc",
 		distinct=True,
