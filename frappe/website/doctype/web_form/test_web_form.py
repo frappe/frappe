@@ -222,6 +222,62 @@ class TestWebForm(IntegrationTestCase):
 
 		self.assertEqual(event.description, "_Test After Edit")
 
+	def test_web_form_request_rejects_edit_when_allow_edit_disabled(self):
+		self.set_web_form_settings(key_required=1, login_required=0, allow_edit=0, allow_multiple=0)
+		web_form_request = self.create_web_form_request()
+
+		frappe.set_user("Guest")
+		event = accept(
+			web_form="manage-events",
+			data=json.dumps(
+				{
+					"doctype": "Event",
+					"subject": "_Test Request No Edit",
+					"starts_on": "2026-05-10",
+				}
+			),
+			web_form_request_key=web_form_request.key,
+		)
+
+		with self.assertRaises(frappe.ValidationError):
+			accept(
+				web_form="manage-events",
+				data=json.dumps(
+					{
+						"doctype": "Event",
+						"name": event.name,
+						"subject": "_Test Request No Edit",
+						"description": "_Test Edited",
+						"starts_on": "2026-05-10",
+					}
+				),
+				web_form_request_key=web_form_request.key,
+			)
+
+		event = frappe.get_doc(
+			{
+				"doctype": "Event",
+				"subject": "_Test Seeded No Edit",
+				"starts_on": "2026-05-10",
+			}
+		).insert(ignore_permissions=True)
+		web_form_request = self.create_web_form_request(reference_docname=event.name)
+
+		with self.assertRaises(frappe.ValidationError):
+			accept(
+				web_form="manage-events",
+				data=json.dumps(
+					{
+						"doctype": "Event",
+						"name": event.name,
+						"subject": "_Test Seeded No Edit",
+						"description": "_Test Edited",
+						"starts_on": "2026-05-10",
+					}
+				),
+				web_form_request_key=web_form_request.key,
+			)
+
 	def test_web_form_request_can_submit_multiple_responses(self):
 		self.set_web_form_settings(key_required=1, login_required=0, allow_multiple=1)
 		web_form_request = self.create_web_form_request(doc_values={"event_type": "Public"})

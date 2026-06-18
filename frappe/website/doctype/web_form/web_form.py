@@ -776,7 +776,8 @@ def accept(web_form: str, data: str, web_form_request_key: str | None = None):
 	if doc.name:
 		if web_form_request:
 			# Access was granted by the request key (often as Guest), not by
-			# Role Permissions on the target DocType.
+			# Role Permissions on the target DocType. allow_edit is enforced
+			# above when data.name is set.
 			doc.save(ignore_permissions=True)
 		elif web_form.has_web_form_permission(doctype, doc.name, "write"):
 			# has_web_form_permission uses web-form rules (owner, website
