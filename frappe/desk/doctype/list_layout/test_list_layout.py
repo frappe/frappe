@@ -49,9 +49,7 @@ class TestListLayout(UnitTestCase):
 		self.assertEqual(json.loads(updated["filters"])[0][3], "Closed")
 		self.assertEqual(updated["sort_order"], "asc")
 
-	def test_non_admin_cannot_update_global_layout(self):
-		doc = self._create_layout(filter_name="_test_layout_global", for_user="")
-		email = "test@example.com"
+	def _ensure_desk_user(self, email):
 		if not frappe.db.exists("User", email):
 			frappe.get_doc(
 				{
@@ -66,7 +64,43 @@ class TestListLayout(UnitTestCase):
 		user.roles = []
 		user.append("roles", {"role": "Desk User"})
 		user.save(ignore_permissions=True)
+		return email
 
+	def test_non_admin_cannot_reassign_layout_to_other_user(self):
+		owner = self._ensure_desk_user("test@example.com")
+		other = self._ensure_desk_user("other@example.com")
+		doc = self._create_layout(for_user=owner)
+
+		frappe.set_user(owner)
+		self.assertRaises(
+			frappe.PermissionError,
+			update_list_layout,
+			doc.name,
+			for_user=other,
+		)
+
+	def test_insert_sanitizes_invalid_fields(self):
+		doc = frappe.get_doc(
+			{
+				"doctype": "List Layout",
+				"filter_name": "_test_layout_insert_sanitize",
+				"reference_doctype": "ToDo",
+				"for_user": frappe.session.user,
+				"filters": json.dumps([["ToDo", "invalid_field_xyz", "=", "x"]]),
+				"columns": json.dumps([{"fieldname": "invalid_field_xyz", "label": "Bad"}]),
+				"sort_field": "invalid_sort_field_xyz",
+				"sort_order": "desc",
+			}
+		).insert(ignore_permissions=True)
+
+		self.assertEqual(json.loads(doc.filters), [])
+		self.assertEqual(json.loads(doc.columns), [])
+		self.assertIsNone(doc.sort_field)
+		self.assertIsNone(doc.sort_order)
+
+	def test_non_admin_cannot_update_global_layout(self):
+		doc = self._create_layout(filter_name="_test_layout_global", for_user="")
+		email = self._ensure_desk_user("test@example.com")
 		frappe.set_user(email)
 		self.assertRaises(frappe.PermissionError, update_list_layout, doc.name, sort_field="modified")
 

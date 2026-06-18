@@ -29,7 +29,30 @@ class ListLayout(Document):
 		sort_order: DF.Data | None
 	# end: auto-generated types
 
+	def validate(self):
+		if not self.for_user:
+			if not _can_edit_global_layout():
+				frappe.throw(
+					_("You are not allowed to create or edit global layouts"), frappe.PermissionError
+				)
+			return
+
+		if self.for_user != frappe.session.user and not _can_edit_global_layout():
+			frappe.throw(_("You are not allowed to assign layouts to other users"), frappe.PermissionError)
+
 	def before_save(self):
+		if self.reference_doctype:
+			valid_fields = _get_valid_layout_fields(self.reference_doctype)
+			if self.filters:
+				parsed_filters = frappe.parse_json(self.filters)
+				self.filters = json.dumps(_sanitize_filters(parsed_filters, valid_fields))
+			if self.columns:
+				parsed_columns = frappe.parse_json(self.columns)
+				self.columns = json.dumps(_sanitize_columns(parsed_columns, valid_fields))
+			self.sort_field, self.sort_order = _sanitize_sorting(
+				self.sort_field, self.sort_order, valid_fields
+			)
+
 		self.route_signature = compute_route_signature(self.reference_doctype, self.filters)
 
 
@@ -120,8 +143,6 @@ def update_list_layout(
 			frappe.throw(_("You are not allowed to update global layouts"), frappe.PermissionError)
 		frappe.throw(_("You are not allowed to update this layout"), frappe.PermissionError)
 
-	valid_fields = _get_valid_layout_fields(doc.reference_doctype)
-
 	if filter_name is not None:
 		doc.filter_name = cstr(filter_name).strip()
 
@@ -129,20 +150,21 @@ def update_list_layout(
 		next_for_user = cstr(for_user)
 		if not next_for_user and not _can_edit_global_layout():
 			frappe.throw(_("You are not allowed to update global layouts"), frappe.PermissionError)
+		if next_for_user and next_for_user != doc.for_user and not _can_edit_global_layout():
+			frappe.throw(_("You are not allowed to change layout owner"), frappe.PermissionError)
 		doc.for_user = next_for_user
 
 	if filters is not None:
-		parsed_filters = frappe.parse_json(filters)
-		doc.filters = json.dumps(_sanitize_filters(parsed_filters, valid_fields))
+		doc.filters = json.dumps(frappe.parse_json(filters) or [])
 
 	if columns is not None:
-		parsed_columns = frappe.parse_json(columns)
-		doc.columns = json.dumps(_sanitize_columns(parsed_columns, valid_fields))
+		doc.columns = json.dumps(frappe.parse_json(columns) or [])
 
-	if sort_field is not None or sort_order is not None:
-		next_sort_field = sort_field if sort_field is not None else doc.sort_field
-		next_sort_order = sort_order if sort_order is not None else doc.sort_order
-		doc.sort_field, doc.sort_order = _sanitize_sorting(next_sort_field, next_sort_order, valid_fields)
+	if sort_field is not None:
+		doc.sort_field = sort_field
+
+	if sort_order is not None:
+		doc.sort_order = sort_order
 
 	doc.save(ignore_permissions=True)  # permissions checked via _can_update_list_layout above
 	return doc.as_dict()
