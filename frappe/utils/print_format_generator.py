@@ -270,84 +270,14 @@ class PrintFormatGenerator:
 	# ----- layout normalisation ------------------------------------------
 
 	def get_layout(self, print_format):
-		layout = frappe.parse_json(print_format.format_data) or self.create_default_layout(print_format)
+		layout = frappe.parse_json(print_format.format_data) or {
+			"sections": [],
+			"header": {"columns": []},
+			"footer": {"columns": []},
+		}
 		layout = self.set_field_renderers(layout)
 		layout = self.process_margin_texts(layout)
 		return layout
-
-	def create_default_layout(self, print_format):
-		"""Build a default layout from doctype meta, mirroring the JS create_default_layout."""
-		meta = frappe.get_meta(print_format.doc_type)
-		layout = {"header": {"columns": [{"label": "", "fields": []}]}, "sections": []}
-
-		section = None
-		column = None
-
-		def new_section(df=None):
-			return {"label": (df or {}).get("label") or "", "columns": [], "has_fields": False}
-
-		def new_column(df=None):
-			return {"label": (df or {}).get("label") or "", "fields": []}
-
-		def ensure_column():
-			nonlocal section, column
-			if not section:
-				section = new_section()
-				layout["sections"].append(section)
-			if not column:
-				column = new_column()
-				section["columns"].append(column)
-
-		for df in meta.fields:
-			if not df.fieldname:
-				continue
-			if df.fieldtype == "Section Break":
-				section = new_section(df.as_dict())
-				column = None
-				layout["sections"].append(section)
-			elif df.fieldtype == "Column Break":
-				if not section:
-					section = new_section()
-					layout["sections"].append(section)
-				column = new_column(df.as_dict())
-				section["columns"].append(column)
-			elif df.label and not df.print_hide:
-				ensure_column()
-				field = {
-					"label": df.label,
-					"fieldname": df.fieldname,
-					"fieldtype": df.fieldtype,
-					"options": df.options,
-				}
-				if df.fieldtype == "Table" and df.options:
-					field["table_columns"] = self._default_table_columns(df.options)
-				column["fields"].append(field)
-				section["has_fields"] = True
-
-		layout["sections"] = [s for s in layout["sections"] if s.get("has_fields")]
-		return layout
-
-	def _default_table_columns(self, child_doctype):
-		child_meta = frappe.get_meta(child_doctype)
-		columns = []
-		total_width = 0
-		for tf in child_meta.fields:
-			if tf.fieldtype in ("Section Break", "Column Break") or tf.print_hide or not tf.label:
-				continue
-			if total_width >= 100:
-				break
-			width = tf.width if (isinstance(tf.width, int) and tf.width < 100) else (20 if tf.width else 10)
-			columns.append(
-				{
-					"label": tf.label,
-					"fieldname": tf.fieldname,
-					"fieldtype": tf.fieldtype,
-					"options": tf.options,
-					"width": width,
-				}
-			)
-			total_width += width
-		return columns
 
 	def set_field_renderers(self, layout):
 		renderers = {"HTML Editor": "HTML", "Markdown Editor": "Markdown"}

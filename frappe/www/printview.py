@@ -72,7 +72,7 @@ def get_context(context) -> PrintContext:
 
 	print_format = get_print_format_doc(None, meta=meta)
 
-	if print_format and print_format.get("print_format_builder_beta"):
+	if print_format and print_format.get("print_format_builder_beta") and print_format.get("format_data"):
 		from frappe.utils.print_format_generator import get_html
 
 		body = get_html(
@@ -357,7 +357,7 @@ def get_html_and_style(
 	print_format = get_print_format_doc(print_format, meta=document.meta)
 	set_link_titles(document)
 
-	if print_format and print_format.get("print_format_builder_beta"):
+	if print_format and print_format.get("print_format_builder_beta") and print_format.get("format_data"):
 		from frappe.utils.print_format_generator import PrintFormatGenerator
 
 		generator = PrintFormatGenerator(print_format.name, document, None if no_letterhead else letterhead)
