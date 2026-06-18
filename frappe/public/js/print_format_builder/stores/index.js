@@ -10,6 +10,7 @@ export function getStore(print_format_name) {
 	let meta = ref(null);
 	let layout = ref(null);
 	let dirty = ref(false);
+	let needs_setup = ref(false);
 	let edit_letterhead = ref(false);
 	let scroll_to_section = ref(null);
 	let selected_field = ref(null);
@@ -28,7 +29,9 @@ export function getStore(print_format_name) {
 				frappe.model.with_doctype(_print_format.doc_type, () => {
 					meta.value = frappe.get_meta(_print_format.doc_type);
 					print_format.value = _print_format;
-					layout.value = get_layout() || get_default_layout();
+					const saved_layout = get_layout();
+					needs_setup.value = !saved_layout;
+					layout.value = saved_layout || get_default_layout();
 					// Migrate legacy string header/footer to section objects
 					layout.value.header = migrate_to_section(layout.value.header);
 					layout.value.footer = migrate_to_section(layout.value.footer);
@@ -228,6 +231,7 @@ export function getStore(print_format_name) {
 		meta,
 		layout,
 		dirty,
+		needs_setup,
 		edit_letterhead,
 		scroll_to_section,
 		selected_field,
