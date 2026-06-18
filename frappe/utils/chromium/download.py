@@ -46,10 +46,9 @@ def find_or_download_chromium_executable():
 
 	platform_name = platform.system().lower()
 
-	if platform_name not in ["linux", "darwin", "windows"]:
-		click.echo(f"Unsupported platform: {platform_name}")
-
 	executable_name = EXECUTABLE_PATHS.get(platform_name)
+	if not executable_name:
+		raise RuntimeError(f"Chromium is not supported on this platform: {platform_name}")
 
 	# Construct the full path to the executable
 	exec_path = Path(chromium_dir).joinpath(*executable_name)
@@ -94,8 +93,10 @@ def download_chromium():
 		with requests.get(download_url, stream=True, timeout=(10, 60), headers=headers) as r:
 			r.raise_for_status()  # Raise an error for bad status codes
 			total_size = int(r.headers.get("content-length", 0))  # Get total file size
-			bar = click.progressbar(length=total_size, label="Downloading Chromium")
-			with open(zip_path, "wb") as f:
+			with (
+				click.progressbar(length=total_size, label="Downloading Chromium") as bar,
+				open(zip_path, "wb") as f,
+			):
 				for chunk in r.iter_content(chunk_size=65536):
 					f.write(chunk)
 					bar.update(len(chunk))
@@ -288,9 +289,9 @@ def calculate_platform():
 def get_linux_distribution_info():
 	# not tested
 	"""Retrieve Linux distribution information using the `distro` library."""
-	import distro
-
-	if not distro:
+	try:
+		import distro
+	except ImportError:
 		return {"id": "", "version": ""}
 
 	return {"id": distro.id().lower(), "version": distro.version()}
