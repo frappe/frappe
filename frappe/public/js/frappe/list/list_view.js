@@ -408,9 +408,25 @@ frappe.views.ListView = class ListView extends frappe.views.BaseList {
 		this.$result.append(this.$freeze);
 	}
 
-	setup_columns() {
+	setup_columns(fields_override = null) {
 		// setup columns for list view
 		this.columns = [];
+		if (
+			!fields_override &&
+			this.list_filter?.active_layout_name &&
+			this.list_filter.active_layout_name !== "default_layout"
+		) {
+			fields_override = this.list_filter.get_layout_columns(
+				this.list_filter.get_active_layout()
+			);
+		}
+
+		if (fields_override?.length) {
+			this.columns = this.build_columns_from_fields(fields_override);
+			this.columns = this.columns.slice(0, this.max_number_of_fields);
+			this.columns.splice(1, 0, { type: "Tag" });
+			return;
+		}
 
 		const get_df = frappe.meta.get_docfield.bind(null, this.doctype);
 
@@ -457,8 +473,8 @@ frappe.views.ListView = class ListView extends frappe.views.BaseList {
 				}))
 		);
 
-		if (this.list_view_settings.fields) {
-			this.columns = this.reorder_listview_fields();
+		if (this.list_view_settings.fields || (fields_override && fields_override.length)) {
+			this.columns = this.reorder_listview_fields(fields_override);
 		}
 
 		this.columns = this.columns.slice(0, this.max_number_of_fields);
@@ -483,9 +499,44 @@ frappe.views.ListView = class ListView extends frappe.views.BaseList {
 		}
 	}
 
-	reorder_listview_fields() {
+	/** Build list columns directly from saved layout / settings field list (order preserved). */
+	build_columns_from_fields(fields) {
+		const get_df = frappe.meta.get_docfield.bind(null, this.doctype);
+		const columns = [];
+
+		fields.forEach((field, idx) => {
+			if (field.fieldname === "status_field") {
+				if (!frappe.has_indicator(this.doctype)) return;
+				const col = { type: "Status", df: { fieldname: "status_field" } };
+				if (field.width) col.df.width = field.width;
+				columns.push(col);
+				return;
+			}
+
+			let df = get_df(field.fieldname) || {
+				label: field.label || field.fieldname,
+				fieldname: field.fieldname,
+			};
+			df = { ...df };
+			if (field.width) df.width = field.width;
+
+			if (idx === 0) {
+				columns.push({ type: "Subject", df });
+			} else {
+				columns.push({ type: "Field", df });
+			}
+		});
+
+		return columns;
+	}
+
+	reorder_listview_fields(fields_override = null) {
 		let fields_order = [];
-		let fields = JSON.parse(this.list_view_settings.fields);
+		let fields = fields_override;
+		if (!fields && this.list_view_settings.fields) {
+			fields = JSON.parse(this.list_view_settings.fields);
+		}
+		if (!fields || !fields.length) return this.columns;
 
 		// title field is fixed — but still honour any saved width from settings
 		const subjectCol = this.columns[0];
@@ -496,11 +547,8 @@ frappe.views.ListView = class ListView extends frappe.views.BaseList {
 		fields_order.push(subjectCol);
 		this.columns.splice(0, 1);
 
-		for (let fld in fields) {
-			for (let col in this.columns) {
-				let field = fields[fld];
-				let column = this.columns[col];
-
+		for (const field of fields) {
+			for (const column of this.columns) {
 				if (column.type == "Status" && field.fieldname == "status_field") {
 					if (field.width) {
 						column.df = column.df || { fieldname: "status_field" };
@@ -726,6 +774,19 @@ frappe.views.ListView = class ListView extends frappe.views.BaseList {
 	}
 
 	save_column_width(fieldname, width) {
+		if (
+			this.list_filter?.active_layout_name &&
+			this.list_filter.active_layout_name !== "default_layout"
+		) {
+			const layout = this.list_filter.get_active_layout();
+			if (!layout || !this.list_filter.can_edit_layout(layout)) return;
+			const columns = this.list_filter.get_current_columns_state();
+			const column = columns.find((row) => row.fieldname === fieldname);
+			if (column) column.width = width;
+			this.list_filter.update_layout_columns(layout, columns);
+			return;
+		}
+
 		let fields;
 
 		if (this.list_view_settings?.fields) {
@@ -767,11 +828,19 @@ frappe.views.ListView = class ListView extends frappe.views.BaseList {
 	before_render() {
 		this.settings.before_render && this.settings.before_render();
 		frappe.model.user_settings.save(this.doctype, "last_view", this.view_name);
-		this.save_view_user_settings({
-			filters: this.filter_area && this.filter_area.get(),
-			sort_by: this.sort_selector && this.sort_selector.sort_by,
-			sort_order: this.sort_selector && this.sort_selector.sort_order,
-		});
+		if (this.list_filter?._applying_layout) {
+			return;
+		}
+		if (
+			!this.list_filter?.active_layout_name ||
+			this.list_filter.active_layout_name === "default_layout"
+		) {
+			this.save_view_user_settings({
+				filters: this.filter_area && this.filter_area.get(),
+				sort_by: this.sort_selector && this.sort_selector.sort_by,
+				sort_order: this.sort_selector && this.sort_selector.sort_order,
+			});
+		}
 	}
 
 	after_render() {

@@ -13,9 +13,9 @@ frappe.views.BaseList = class BaseList {
 			() => this.hide_skeleton(),
 			() => this.check_permissions(),
 			() => this.init(),
+			() => this.setup_list_filter_by(),
 			() => this.before_refresh(),
 			() => this.refresh(),
-			() => this.setup_list_filter_by(),
 		]);
 	}
 
@@ -635,7 +635,8 @@ frappe.views.BaseList = class BaseList {
 	}
 
 	setup_list_filter_by() {
-		new ListFilter(this);
+		this.list_filter = new ListFilter(this);
+		return this.list_filter.setup_promise;
 	}
 };
 
