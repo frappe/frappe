@@ -13,6 +13,9 @@ from .utils import anonymize_user, utc_iso
 @frappe.whitelist(allow_guest=True)
 @site_cache(ttl=60 * 60)
 def is_enabled() -> bool:
+	if frappe.conf.get("pulse_force_enabled"):
+		return True
+
 	return bool(
 		not frappe.conf.get("developer_mode", 0)
 		and frappe.conf.get("pulse_api_key")
