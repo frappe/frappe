@@ -65,6 +65,7 @@ frappe.ui.EmbeddedList = class EmbeddedList {
 					this.add_button.label || __("+ Add")
 			  }</button>`
 			: "";
+		const search = `<input type="text" class="form-control form-control-sm embedded-list-search" data-action="search" placeholder="${__("Search")}">`;
 
 		if (!title && !description && !add) {
 			this.$header.hide();
@@ -72,7 +73,7 @@ frappe.ui.EmbeddedList = class EmbeddedList {
 		}
 		this.$header.html(
 			`<div class="embedded-list-heading">${title}${description}</div>
-			<div class="embedded-list-header-actions">${add}</div>`
+			<div class="embedded-list-header-actions">${search}${add}</div>`
 		);
 	}
 
@@ -107,12 +108,10 @@ frappe.ui.EmbeddedList = class EmbeddedList {
 
 		return this.get_data()
 			.then((data) => {
-				this.data = data || [];
+				this._all_data = data || [];
 				this.$loading.hide();
 				this.before_render();
-				this.render();
-				this.after_render();
-				this.toggle_result_area();
+				this._apply_filter();
 			})
 			.catch((e) => {
 				// eslint-disable-next-line no-console
@@ -120,6 +119,23 @@ frappe.ui.EmbeddedList = class EmbeddedList {
 				this.$loading.hide();
 				this.$error.text(this.error_message).show();
 			});
+	}
+
+	_apply_filter() {
+		const term = (this.$wrapper.find("[data-action='search']").val() || "")
+			.trim()
+			.toLowerCase();
+		this.data = term
+			? this._all_data.filter((row) =>
+					Object.values(row).some(
+						(val) => val != null && String(val).toLowerCase().includes(term)
+					)
+			  )
+			: [...this._all_data];
+		this.rendered_count = 0;
+		this.render();
+		this.after_render();
+		this.toggle_result_area();
 	}
 
 	before_render() {}
@@ -276,6 +292,11 @@ frappe.ui.EmbeddedList = class EmbeddedList {
 		// Namespaced + unbound first so re-instantiating on the same wrapper
 		// (e.g. on every form refresh) does not stack duplicate handlers.
 		this.$wrapper.off(".embedded_list");
+
+		// Search
+		this.$wrapper.on("input.embedded_list", "[data-action='search']", () => {
+			this._apply_filter();
+		});
 
 		// Add row
 		this.$wrapper.on("click.embedded_list", "[data-action='add-row']", (e) => {

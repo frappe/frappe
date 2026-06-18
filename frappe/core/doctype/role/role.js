@@ -10,30 +10,27 @@ const PERM_SECTIONS = [
 	{
 		label: "Primary",
 		flags: [
-			{ name: "read", description: "View documents of this type." },
-			{ name: "write", description: "Edit existing documents." },
-			{ name: "create", description: "Create new documents." },
-			{ name: "delete", description: "Delete documents." },
-			{ name: "submit", description: "Submit documents (submittable doctypes)." },
-			{ name: "cancel", description: "Cancel submitted documents." },
-			{ name: "amend", description: "Amend a cancelled document into a new copy." },
-			{ name: "select", description: "Select records in link fields." },
+			{ name: "read", description: "Allows the user to view the document." },
+			{ name: "write", description: "Allows the user to edit existing records they have access to." },
+			{ name: "create", description: "Allows the user to create new documents." },
+			{ name: "delete", description: "Allows the user to delete documents." },
+			{ name: "submit", description: "Allows the user to submit documents (submittable doctypes)." },
+			{ name: "cancel", description: "Allows the user to cancel submitted documents." },
+			{ name: "amend", description: "Allows the user to amend a cancelled document into a new copy." },
+			{ name: "select", description: "Allows the user to search and see records." },
+			{ name: "mask", description: "Allows users to enable the mask property for any field of the respective doctype." },
 		],
 	},
 	{
 		label: "Reporting & Sharing",
 		flags: [
-			{ name: "report", description: "Run reports for this DocType." },
-			{ name: "export", description: "Export records to a file." },
-			{ name: "import", description: "Import records from a file." },
-			{ name: "share", description: "Share documents with specific users." },
-			{ name: "print", description: "Print documents." },
-			{ name: "email", description: "Email documents." },
+			{ name: "report", description: "Allows the user to access reports related to the document." },
+			{ name: "export", description: "Allows the user to export data from the Report view." },
+			{ name: "import", description: "Allows the user to use Data Import tool to create / update records." },
+			{ name: "share", description: "Allows sharing document access with other users." },
+			{ name: "print", description: "Allows printing or PDF download of documents." },
+			{ name: "email", description: "Allows the user to email from the document." },
 		],
-	},
-	{
-		label: "Others",
-		flags: [{ name: "mask", description: "Mask sensitive field values." }],
 	},
 ];
 
@@ -339,7 +336,7 @@ class DocumentsTab extends RoleTab {
 
 	list_config() {
 		return {
-			page_size: 20,
+			page_size: 50,
 			description: __("DocTypes this role can access."),
 			empty_message: __("No DocTypes are accessible to this role."),
 			add_button: { label: __("+ Add Permission"), action: () => this.add() },
@@ -429,28 +426,45 @@ class DocumentsTab extends RoleTab {
 
 	update(row, values) {
 		const data = this.perm_data(values);
+
 		if (row.source === "Custom") {
 			return frappe.db.set_value("Custom DocPerm", row.name, data);
 		}
-		return frappe.db.get_doc("DocType", row.parent).then((dt) => {
-			const perm = (dt.permissions || []).find((p) => p.name === row.name);
-			if (!perm) {
-				frappe.throw(
-					__("Permission row not found. It may have been removed — please refresh.")
-				);
-			}
-			Object.assign(perm, data);
-			return client_save(dt);
-		});
+
+		// Standard row: one sequential call triggers setup_custom_perms (converts
+		// standard DocPerm → Custom DocPerm), then set_value on the new row.
+		const [[first_ptype, first_value]] = Object.entries(data);
+		return frappe
+			.call({
+				method: "frappe.core.page.permission_manager.permission_manager.update",
+				args: {
+					doctype: row.parent,
+					role: this.role,
+					permlevel: row.permlevel,
+					ptype: first_ptype,
+					value: first_value,
+					if_owner: row.if_owner || 0,
+				},
+			})
+			.then(() =>
+				frappe.db.get_value(
+					"Custom DocPerm",
+					{ parent: row.parent, role: this.role, permlevel: row.permlevel, if_owner: row.if_owner || 0 },
+					"name"
+				)
+			)
+			.then((r) => {
+				const name = r.message && r.message.name;
+				if (!name)
+					frappe.throw(__("Permission row not found after conversion. Please refresh."));
+				return frappe.db.set_value("Custom DocPerm", name, data);
+			});
 	}
 
 	remove(row) {
-		if (row.source === "Custom") {
-			return frappe.db.delete_doc("Custom DocPerm", row.name);
-		}
-		return frappe.db.get_doc("DocType", row.parent).then((dt) => {
-			dt.permissions = (dt.permissions || []).filter((p) => p.name !== row.name);
-			return client_save(dt);
+		return frappe.call({
+			method: "frappe.core.page.permission_manager.permission_manager.remove",
+			args: { doctype: row.parent, role: this.role, permlevel: row.permlevel, if_owner: row.if_owner || 0 },
 		});
 	}
 
@@ -591,7 +605,7 @@ class PermissionDialog {
 	if_owner_field(seed) {
 		const field = this.check_field(
 			"if_owner",
-			"Apply this permission only to documents created by the user.",
+			"When checked, these permissions apply only to documents this user created.",
 			seed
 		);
 		field.label = __("Only if Creator");

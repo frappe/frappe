@@ -34,6 +34,10 @@
 		gap: var(--padding-sm);
 	}
 
+	.embedded-list-search {
+		width: 180px;
+	}
+
 	.embedded-list-table-wrap {
 		border: 1px solid var(--border-color);
 		border-radius: var(--border-radius-md);
