@@ -130,6 +130,9 @@ def get():
 	from frappe.boot import get_bootinfo
 	from frappe.desk.doctype.note.note import get_unseen_notes
 	from frappe.utils.change_log import get_change_log
+	from frappe.utils.legacy_gravatar_cleanup import (
+		should_show_gravatar_deletion_prompt,
+	)
 
 	bootinfo = None
 	if not getattr(frappe.conf, "disable_session_cache", None):
@@ -182,6 +185,7 @@ def get():
 	bootinfo["navbar_settings"] = frappe.client_cache.get_doc("Navbar Settings")
 	bootinfo.has_app_updates = has_app_update_notifications()
 	bootinfo.show_external_link_warning = frappe.get_system_settings("show_external_link_warning")
+	bootinfo.show_gravatar_deletion_prompt = should_show_gravatar_deletion_prompt()
 
 	return bootinfo
 
@@ -433,22 +437,30 @@ class Session:
 			self.data.data.session_ip = frappe.local.request_ip
 
 			Sessions = frappe.qb.DocType("Sessions")
-			# update sessions table
-			(
-				frappe.qb.update(Sessions)
-				.where(Sessions.sid == self.data["sid"])
-				.set(
-					Sessions.sessiondata,
-					frappe.as_json(self.data["data"], indent=None, separators=(",", ":")),
-				)
-				.set(Sessions.lastupdate, now)
-			).run()
+			try:
+				# update sessions table
+				(
+					frappe.qb.update(Sessions)
+					.where(Sessions.sid == self.data["sid"])
+					.set(
+						Sessions.sessiondata,
+						frappe.as_json(self.data["data"], indent=None, separators=(",", ":")),
+					)
+					.set(Sessions.lastupdate, now)
+				).run()
 
-			frappe.db.set_value("User", frappe.session.user, "last_active", now, update_modified=False)
+				frappe.db.set_value("User", frappe.session.user, "last_active", now, update_modified=False)
 
-			frappe.db.commit(chain=True)
-			updated_in_db = True
-			frappe.cache.hset("session", self.sid, self.data)
+				frappe.db.commit(chain=True)
+			except frappe.QueryDeadlockError:
+				# A concurrent request updated this session row first (on postgres a REPEATABLE READ
+				# write conflict surfaces as a serialization failure). Persistence here is best-effort
+				# -- the cache is the source of truth and the next request will persist -- so roll back
+				# the conflicting transaction rather than error out of this after-response hook.
+				frappe.db.rollback()
+			else:
+				updated_in_db = True
+				frappe.cache.hset("session", self.sid, self.data)
 
 		return updated_in_db
 

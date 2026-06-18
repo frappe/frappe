@@ -277,6 +277,7 @@ $.extend(frappe.meta, {
 			if (
 				!print_format_list.includes(d.name) &&
 				d.print_format_type !== "JS" &&
+				d.print_format_for === "DocType" &&
 				(cint(enable_raw_printing) || !d.raw_printing)
 			) {
 				print_format_list.push(d.name);

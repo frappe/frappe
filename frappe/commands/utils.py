@@ -634,7 +634,8 @@ def console(context: CliCtxObj, autoreload=False):
 	try:
 		from IPython.core import ultratb
 
-		ultratb.VerboseTB._tb_highlight = "bg:ansibrightblack"
+		# Renamed from `_tb_highlight` in IPython 9.x (color system rewrite).
+		ultratb.VerboseTB.tb_highlight = "bg:ansibrightblack"
 	except Exception:
 		pass
 

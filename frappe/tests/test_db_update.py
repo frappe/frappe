@@ -4,7 +4,11 @@ from unittest.case import skipIf
 import frappe
 from frappe.core.doctype.doctype.test_doctype import new_doctype
 from frappe.core.utils import find
-from frappe.custom.doctype.property_setter.property_setter import make_property_setter
+from frappe.custom.doctype.property_setter.property_setter import (
+	delete_property_setter,
+	make_property_setter,
+)
+from frappe.database import savepoint
 from frappe.query_builder.utils import db_type_is
 from frappe.tests import IntegrationTestCase
 from frappe.tests.test_query_builder import run_only_if
@@ -45,6 +49,15 @@ class TestDBUpdate(IntegrationTestCase):
 		doctype = "User"
 		frappe.reload_doctype("User", force=True)
 		frappe.model.meta.trim_tables("User")
+
+		def _cleanup():
+			# DDL and inserts in this test auto-commit, so we must explicitly undo.
+			# Leaving middle_name with unique=1 breaks subsequent bench migrate runs.
+			delete_property_setter(doctype, field_name="middle_name")
+			frappe.db.updatedb(doctype)
+			frappe.reload_doctype(doctype, force=True)
+
+		self.addCleanup(_cleanup)
 
 		make_property_setter(doctype, "middle_name", "unique", "1", "Check")
 		frappe.db.updatedb(doctype)
@@ -182,8 +195,13 @@ class TestDBUpdate(IntegrationTestCase):
 			self.check_unique_indexes(doctype.name, "bill_no")
 
 			frappe.get_doc(doctype=doctype.name, bill_no="INV-001").insert()
-			with self.assertRaises(frappe.UniqueValidationError):
-				frappe.get_doc(doctype=doctype.name, bill_no="INV-001").insert()
+			# the duplicate insert aborts the transaction on postgres; the savepoint lets the
+			# finally cleanup (and later tests sharing the connection) still run
+			with savepoint():
+				with self.assertRaises(frappe.UniqueValidationError):
+					frappe.get_doc(doctype=doctype.name, bill_no="INV-001").insert()
+				# recover transaction to continue other tests
+				raise Exception
 		finally:
 			doctype.delete(force=True)
 			frappe.db.commit()  # nosemgrep
