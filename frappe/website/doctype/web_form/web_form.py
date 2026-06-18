@@ -186,7 +186,9 @@ def get_context(context):
 		web_form_request = self.get_web_form_request(
 			frappe.form_dict.web_form_request_key,
 			docname=frappe.form_dict.name,
-			allow_used=bool(frappe.form_dict.name) or bool(self.allow_multiple),
+			allow_used=bool(frappe.form_dict.name)
+			or bool(self.allow_multiple)
+			or bool(frappe.form_dict.is_list),
 		)
 
 		# check permissions

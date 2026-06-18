@@ -144,6 +144,42 @@ class TestWebForm(IntegrationTestCase):
 				web_form_request_key=web_form_request.key,
 			)
 
+	def test_one_time_key_allows_list_page_after_submission(self):
+		self.set_web_form_settings(
+			key_required=1,
+			login_required=0,
+			allow_multiple=0,
+			show_list=1,
+		)
+		web_form_request = self.create_web_form_request(doc_values={"event_type": "Public"})
+
+		frappe.set_user("Guest")
+		accept(
+			web_form="manage-events",
+			data=json.dumps(
+				{
+					"doctype": "Event",
+					"subject": "_Test One Time List",
+					"starts_on": "2026-05-10",
+				}
+			),
+			web_form_request_key=web_form_request.key,
+		)
+
+		frappe.local.form_dict = frappe._dict(
+			is_list=1,
+			web_form_request_key=web_form_request.key,
+		)
+		set_request(
+			method="GET",
+			path="manage-events/list",
+			query_string=f"web_form_request_key={web_form_request.key}",
+		)
+		content = get_response_content("manage-events/list")
+
+		self.assertIn("_Test One Time List", content)
+		self.assertIn(web_form_request.key, content)
+
 	def test_key_required_rejects_submission_without_key(self):
 		self.set_web_form_settings(key_required=1, login_required=0)
 
