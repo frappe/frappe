@@ -17,24 +17,22 @@ defineEmits(["insert"]);
 .section-insert {
 	display: flex;
 	align-items: center;
-	height: 1.75rem;
+	gap: 8px;
+	height: 1.5rem;
 	cursor: pointer;
 	opacity: 0;
 	transition: opacity 0.15s ease;
-	padding: 4px 0;
 }
 
-.section-insert:hover,
-.section-insert.section-insert--visible {
+.section-insert:hover {
 	opacity: 1;
 }
 
 .section-insert-line {
 	flex: 1;
-	height: 1.5px;
-	background: var(--primary);
+	height: 1px;
+	background: var(--gray-400);
 	border-radius: 1px;
-	opacity: 0.4;
 }
 
 .section-insert-btn {
@@ -42,21 +40,27 @@ defineEmits(["insert"]);
 	display: flex;
 	align-items: center;
 	gap: 3px;
-	height: 22px;
-	border-radius: var(--border-radius);
-	border: 1px solid var(--primary);
+	padding: 2px 8px;
+	border-radius: var(--border-radius-sm);
+	border: 1px solid var(--gray-400);
 	background: var(--fg-color);
-	color: var(--primary);
-	padding: 0 7px;
-	margin: 0 6px;
+	color: var(--text-muted);
 	cursor: pointer;
-	font-size: var(--text-xs);
-	font-weight: var(--weight-medium);
+	font-size: var(--text-tiny);
+	font-weight: var(--weight-bold);
+	text-transform: uppercase;
+	letter-spacing: 0.08em;
 	white-space: nowrap;
 	box-shadow: none;
 }
 
-.section-insert-btn:hover {
-	background: var(--blue-50);
+.section-insert:hover .section-insert-line {
+	background: var(--gray-500);
+}
+
+.section-insert:hover .section-insert-btn {
+	border-color: var(--gray-500);
+	color: var(--text-color);
+	background: var(--gray-100);
 }
 </style>
