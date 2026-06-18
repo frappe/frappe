@@ -123,7 +123,6 @@ class Page:
 		bench_sites = os.path.abspath(os.path.join(frappe.utils.get_bench_path(), "sites"))
 		asset_path = os.path.abspath(os.path.join(bench_sites, "assets"))
 		site_public_root = os.path.realpath(frappe.utils.get_site_path("public"))
-		files_path = os.path.realpath(frappe.utils.get_site_path("public", "files"))
 
 		def on_request_paused_event(future, response):
 			"""Callback for when a request is paused (intercepted)."""
@@ -140,8 +139,11 @@ class Page:
 						final_system_path = os.path.abspath(os.path.join(bench_sites, clean_path))
 						is_safe = os.path.commonpath([final_system_path, asset_path]) == asset_path
 					else:
+						# Covers files/, builder_assets/, etc... under public root.
 						final_system_path = os.path.realpath(os.path.join(site_public_root, clean_path))
-						is_safe = os.path.commonpath([final_system_path, files_path]) == files_path
+						is_safe = (
+							os.path.commonpath([final_system_path, site_public_root]) == site_public_root
+						)
 
 					if is_safe:
 						content = frappe.read_file(final_system_path, as_base64=True)
