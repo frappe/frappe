@@ -66,7 +66,7 @@ With tabs and custom fields:
 | `pageLength`      | `number`                                  | `20`              | Page size; "Load more" appears when more exist.                                                                                                                                                                       |
 | `title`           | `string`                                  | `'Notifications'` | Header title.                                                                                                                                                                                                         |
 | `onItemClick`     | `(n) => void`                             | —                 | Called when a row is clicked (in addition to the `item-click` event).                                                                                                                                                 |
-| `icon`            | `(n) => string \| Component \| undefined` | —                 | Resolve a row's leading visual: return a lucide/feather icon **name** (string) or a **Component**. Return `undefined` (the default) to show the sender's avatar.                                                      |
+| `icon`            | `(n) => string \| Component \| undefined` | —                 | Resolve a row's leading visual: return a Lucide icon **name** (string, e.g. `'lucide-alert-circle'` or `'alert-circle'`) or a **Component**. Return `undefined` (the default) to show the sender's avatar.            |
 | `socket`          | `{ on, off? }`                            | —                 | A socket.io socket. When provided, the panel reloads on the `notification` event.                                                                                                                                     |
 
 A tab is `{ label, filters?, filterFn?, count? }`:
@@ -95,20 +95,22 @@ A tab is `{ label, filters?, filterFn?, count? }`:
 ## Leading visual
 
 By default each row shows the **sender's avatar** (`from_user`'s photo, falling back to
-initials). Override per row with the `icon` resolver — return a string (rendered via
-frappe-ui's icon component) or your own Component:
+initials). Override per row with the `icon` resolver — return a **Lucide icon name**
+(rendered via frappe-ui's `lucide-*` icon utility, the same mechanism `Button` uses for
+string icons) or your own Component:
 
 ```ts
-// a named icon for system notifications, sender avatar for everything else
-:icon="(n) => (n.type === 'Alert' ? 'alert-circle' : undefined)"
+// a named Lucide icon for system notifications, sender avatar for everything else
+// (the `lucide-` prefix is optional: 'lucide-alert-circle' and 'alert-circle' both work)
+:icon="(n) => (n.type === 'Alert' ? 'lucide-alert-circle' : undefined)"
 
 // or a fully custom component (receives the row as a `notification` prop)
 :icon="(n) => MyIcon"
 ```
 
 `Notification Type` carries no icon/color — presentation lives entirely in the host UI, so
-string-icon names must exist in the host's icon set. For guaranteed rendering, return a
-Component instead of a string.
+a string name must be a valid Lucide icon. For guaranteed rendering, return a Component
+instead of a string.
 
 ## `useNotifications`
 

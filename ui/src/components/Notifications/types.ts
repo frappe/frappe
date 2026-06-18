@@ -31,8 +31,9 @@ export interface NotificationType {
 }
 
 /**
- * Leading visual for a row. A lucide icon name (rendered via frappe-ui) or a Component.
- * When omitted, the row renders the sender's Avatar by default.
+ * Leading visual for a row. A Lucide icon name (string, e.g. `"lucide-bell"`, rendered via
+ * frappe-ui's `lucide-*` icon utility) or a Component. When omitted, the row renders the
+ * sender's Avatar by default.
  */
 export type NotificationIcon = string | Component;
 

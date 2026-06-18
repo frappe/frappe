@@ -1,13 +1,13 @@
 <script setup lang="ts">
 import { computed } from "vue";
 import type { Component } from "vue";
-import { Avatar, FeatherIcon, dayjs } from "frappe-ui";
+import { Avatar, dayjs } from "frappe-ui";
 import { sanitizeHtml } from "../../utils/sanitize";
 import type { NotificationIcon, NotificationLog } from "./types";
 
 const props = defineProps<{
 	notification: NotificationLog;
-	/** lucide/feather icon name (string) or a Component; omitted => sender avatar */
+	/** lucide icon name (string) or a Component; omitted => sender avatar */
 	icon?: NotificationIcon;
 	class?: string;
 }>();
@@ -16,7 +16,14 @@ const emit = defineEmits<{
 	click: [n: NotificationLog];
 }>();
 
-const iconName = computed(() => (typeof props.icon === "string" ? props.icon : undefined));
+// frappe-ui v1 deprecates FeatherIcon; a Lucide icon renders as a `lucide-<name>` CSS
+// class (a mask-based Tailwind utility from frappe-ui's preset + lucide-static), the same
+// way frappe-ui's own Button renders string icons. Normalize to ensure the prefix so both
+// "lucide-bell" and "bell" resolve to the `lucide-bell` class.
+const iconClass = computed(() => {
+	if (typeof props.icon !== "string") return undefined;
+	return props.icon.startsWith("lucide-") ? props.icon : `lucide-${props.icon}`;
+});
 const iconComponent = computed(() =>
 	props.icon && typeof props.icon !== "string" ? (props.icon as Component) : undefined
 );
@@ -50,10 +57,10 @@ const timeAgo = computed(() => dayjs(props.notification.creation as string).from
 			/>
 			<component :is="iconComponent" v-if="iconComponent" :notification="notification" />
 			<div
-				v-else-if="iconName"
+				v-else-if="iconClass"
 				class="flex size-8 items-center justify-center rounded-full bg-surface-gray-3 text-ink-gray-7"
 			>
-				<FeatherIcon :name="iconName" class="size-4" />
+				<span :class="[iconClass, 'size-4']" aria-hidden="true" />
 			</div>
 			<Avatar v-else :image="notification.from_user_image" :label="avatarLabel" size="lg" />
 		</div>
