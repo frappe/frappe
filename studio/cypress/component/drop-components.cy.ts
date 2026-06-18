@@ -43,7 +43,8 @@ describe("dropping frappe-ui components on the canvas", () => {
 
 		const rootBlock = getBlockInstance(getBlockTemplate("body"))
 
-		cy.mount(StudioCanvas, {
+		cy.viewport(1440, 900)
+		cy.mount(StudioCanvas as any, {
 			props: { componentTree: rootBlock },
 			global: {
 				plugins: [pinia, router, resourcesPlugin, spritePlugin, { install: registerGlobalComponents }],
@@ -51,6 +52,12 @@ describe("dropping frappe-ui components on the canvas", () => {
 		}).then(({ wrapper }) => {
 			canvas = wrapper.vm
 			useCanvasStore().activeCanvas = canvas
+		})
+
+		cy.then(() => {
+			canvas.canvasProps.scale = 1
+			canvas.canvasProps.translateX = 0
+			canvas.canvasProps.translateY = 0
 		})
 	})
 
