@@ -5,19 +5,19 @@ import frappe
 from frappe.model.document import Document
 
 
-class SyncedReportDoctype(Document):
+class SyncedReportSettings(Document):
 	# begin: auto-generated types
 	# This code is auto-generated. Do not modify anything in this block.
 
 	from typing import TYPE_CHECKING
 
 	if TYPE_CHECKING:
-		from frappe.core.doctype.synced_report_doctype_table.synced_report_doctype_table import (
-			SyncedReportDoctypeTable,
+		from frappe.core.doctype.synced_report_settings_table.synced_report_settings_table import (
+			SyncedReportSettingsTable,
 		)
 		from frappe.types import DF
 
-		doctype_to_sync: DF.Table[SyncedReportDoctypeTable]
+		doctype_to_sync: DF.Table[SyncedReportSettingsTable]
 		enable_synced_reports: DF.Check
 	# end: auto-generated types
 
@@ -36,7 +36,7 @@ def synced_report_scheduler(enable: bool = False):
 			{
 				"doctype": "Scheduler Event",
 				"scheduled_against": "Synced Report Doctype",
-				"method": "frappe.core.doctype.synced_report_doctype.synced_report_doctype.start_sync",
+				"method": "frappe.core.doctype.synced_report_settings.synced_report_settings.start_sync",
 			}
 		).insert()
 		frappe.get_doc(
@@ -45,7 +45,7 @@ def synced_report_scheduler(enable: bool = False):
 				"frequency": "Cron",
 				"scheduler_event": event.name,
 				"cron_format": "0 0 * * *",
-				"method": "frappe.core.doctype.synced_report_doctype.synced_report_doctype.start_sync",
+				"method": "frappe.core.doctype.synced_report_settings.synced_report_settings.start_sync",
 				"create_log": True,
 			}
 		).insert()
