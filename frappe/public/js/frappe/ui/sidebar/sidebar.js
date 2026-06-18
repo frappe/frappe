@@ -694,7 +694,7 @@ frappe.ui.Sidebar = class Sidebar {
 				// ["query-report", "Balance Sheet"] -> entity is the second element
 				return route[1];
 			default:
-				return route[0];
+				return route[1];
 		}
 	}
 
