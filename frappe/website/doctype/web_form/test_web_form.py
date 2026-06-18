@@ -376,6 +376,20 @@ class TestWebForm(IntegrationTestCase):
 		delete("manage-events", event.name, web_form_request_key=web_form_request.key)
 		self.assertFalse(frappe.db.exists("Event", event.name))
 
+	def test_public_form_ignores_invalid_request_key(self):
+		self.set_web_form_settings(login_required=0, key_required=0)
+
+		frappe.set_user("Guest")
+		frappe.local.form_dict = frappe._dict(web_form_request_key="bad")
+		set_request(
+			method="GET",
+			path="manage-events/new",
+			query_string="web_form_request_key=bad",
+		)
+		content = get_response_content("manage-events/new")
+
+		self.assertIn('<h1 class="ellipsis">New Manage Events</h1>', content)
+
 	def test_guest_cannot_delete_on_public_form_without_key(self):
 		self.set_web_form_settings(login_required=0, key_required=0, allow_delete=1)
 		event = frappe.get_doc(

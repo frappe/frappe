@@ -138,7 +138,9 @@ def get_web_form_request(
 		"name",
 	)
 	if not request_name:
-		frappe.throw(_("Invalid Web Form Request"), frappe.PermissionError)
+		if required:
+			frappe.throw(_("Invalid Web Form Request"), frappe.PermissionError)
+		return
 
 	web_form_request = frappe.get_doc("Web Form Request", request_name, for_update=for_update)
 	web_form_request.validate_key(allow_used=allow_used)
