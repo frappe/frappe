@@ -83,7 +83,7 @@ dependencies = [
     # integration dependencies
     "google-api-python-client~=2.197.0",
     "google-auth-oauthlib~=1.4.0",
-    "google-auth~=2.48.0",
+    "google-auth~=2.53.0",
     "vobject~=0.9.9",
     "pycountry~=26.2.16",
     "websockets~=15.0.1",
