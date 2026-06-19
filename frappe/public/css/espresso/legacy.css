@@ -186,3 +186,18 @@
 }
 
 /* <<< deprecated tokens <<< */
+
+/* DEPRECATED radius aliases — old --border-radius-* mapped to Espresso --radius-*.
+   Values follow Espresso (note: --border-radius-sm 8px -> 4px). Migrate usages
+   to --radius-* over time, then remove. */
+:root {
+  --border-radius: var(--radius);
+  --border-radius-tiny: var(--radius-sm);
+  --border-radius-sm: var(--radius-sm);
+  --border-radius-md: var(--radius-md);
+  --border-radius-lg: var(--radius-lg);
+  --border-radius-xl: var(--radius-xl);
+  --border-radius-2xl: var(--radius-2xl);
+  --border-radius-full: var(--radius-full);
+}
+
