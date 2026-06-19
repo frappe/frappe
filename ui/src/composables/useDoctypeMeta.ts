@@ -1,7 +1,7 @@
 import { computed, ref, watch } from "vue";
 import type { Ref } from "vue";
 import { createResource, frappeRequest } from "frappe-ui";
-import type { RawMetaField } from "./types";
+import type { RawMetaField } from "../components/FormLayout/types";
 
 export interface DoctypeMeta {
   name: string;
