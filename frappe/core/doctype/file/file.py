@@ -966,7 +966,7 @@ def has_permission(doc, ptype=None, user=None, debug=False):
 		attached_to_name = doc.attached_to_name
 
 		try:
-			ref_doc = frappe.get_doc(attached_to_doctype, attached_to_name)
+			ref_doc = frappe.get_lazy_doc(attached_to_doctype, attached_to_name)
 		except (ModuleNotFoundError, ImportError):
 			return False
 		except frappe.DoesNotExistError:
