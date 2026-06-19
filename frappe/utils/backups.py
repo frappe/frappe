@@ -663,8 +663,10 @@ def delete_temp_backups(older_than=23):
 
 
 def is_file_old(file_path, older_than=24) -> bool:
-	"""Return True if file exists and is older than specified hours."""
-	if os.path.isfile(file_path):
+	"""
+	Return True if the path is older than specified hours. Also treat non-existent paths as "old".
+	"""
+	if os.path.exists(file_path):
 		from datetime import timedelta
 
 		# Get timestamp of the file
