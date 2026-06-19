@@ -379,7 +379,7 @@ frappe.ui.form.on("Dashboard Chart", {
 
 			let dialog = new frappe.ui.Dialog({
 				title: __("Set Filters"),
-				fields: fields.filter((f) => !is_dynamic_filter(f)),
+				fields: fields,
 				primary_action: function () {
 					let values = this.get_values();
 					if (values) {
