@@ -19,40 +19,42 @@
 
 /* Reviewed Espresso aliases (light+dark handled by Espresso). */
 :root {
+  --neutral: var(--ink-base);
+  --neutral-invert: var(--surface-base);
   /* Surfaces / layout */
   --bg-color: var(--surface-base);
-  --fg-color: var(--surface-elevation-2);
-  --card-bg: var(--surface-elevation-3);
-  --modal-bg: var(--surface-elevation-2);
-  --popover-bg: var(--surface-elevation-2);
-  --toast-bg: var(--surface-elevation-2);
+  --fg-color: var(--surface-base);
+  --card-bg: var(--surface-base);
+  --modal-bg: var(--bg-color);
+  --popover-bg: var(--bg-color);
+  --toast-bg: var(--modal-bg);
   --control-bg: var(--surface-gray-2);
-  --control-bg-on-gray: var(--surface-gray-2);
-  --subtle-accent: var(--surface-elevation-2);
-  --subtle-fg: var(--surface-gray-3);
-  --fg-hover-color: var(--surface-gray-3);
+  --control-bg-on-gray: var(--surface-gray-3);
+  --subtle-accent: var(--surface-gray-1);
+  --subtle-fg: var(--surface-gray-2);
+  --fg-hover-color: var(--surface-gray-2);
   --disabled-control-bg: var(--surface-gray-1);
   --navbar-bg: var(--surface-sidebar);
-  --sidebar-select-color: var(--surface-elevation-2);
-  --highlight-color: var(--surface-gray-3);
+  --sidebar-select-color: var(--surface-gray-2);
+  --highlight-color: var(--surface-gray-1);
   --skeleton-bg: var(--surface-gray-2);
   /* Text / ink */
   --text-color: var(--ink-gray-8);
   --heading-color: var(--ink-gray-9);
-  --text-muted: var(--ink-gray-5);
-  --text-light: var(--ink-gray-4);
-  --disabled-text-color: var(--ink-gray-4);
+  --text-muted: var(--ink-gray-6);
+  --text-light: var(--ink-gray-5);
+  --disabled-text-color: var(--ink-gray-5);
   --icon-stroke: currentColor;
-  --placeholder-color: var(--ink-gray-4);
+  --placeholder-color: var(--ink-gray-3);
   /* Borders / outlines */
-  --border-color: var(--outline-gray-2);
-  --dark-border-color: var(--outline-gray-3);
-  --table-border-color: var(--outline-gray-2);
+  --border-color: var(--outline-gray-1);
+  --dark-border-color: var(--outline-gray-2);
+  --table-border-color: var(--outline-gray-1);
   --btn-group-border-color: var(--outline-gray-2);
-  --border-primary: var(--ink-gray-8);
+  --border-primary: var(--outline-gray-8);
   /* Controls / Bootstrap .btn */
   --btn-default-bg: var(--surface-gray-2);
-  --btn-default-hover-bg: var(--surface-gray-3);
+  --btn-default-hover-bg: var(--surface-gray-4);
   --btn-ghost-hover-bg: var(--surface-gray-3);
   --btn-primary: var(--surface-gray-10);
   /* Color fills: --bg-<c> → surface-<c>-2 */
