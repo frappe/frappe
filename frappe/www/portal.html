@@ -18,7 +18,7 @@
         <p>{{ introduction }}</p>
     {% endif %}
 
-    {% include list_template %}
+    {% include list_template or "templates/includes/list/list.html" %}
 
     {% if list_footer %}
         {{ list_footer }}
