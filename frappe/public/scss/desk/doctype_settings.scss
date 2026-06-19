@@ -1,6 +1,7 @@
 // Tab-specific layout for the DocType Settings dialog. The dialog shell itself
 // is styled in settings_dialog.scss; these `dts-` classes cover the bits the
-// reference tabs (naming, global search, print format) render into panel bodies.
+// tabs render into panel bodies: the shared list panel, the global-search field
+// grid, the print-format card grid, and the shared empty state.
 
 // ── Global Search tab: inclusion toggle + searchable-field checkbox grid ──
 // Selector carries `.switch-control` too, to beat `label.switch-control`'s padding /
@@ -20,10 +21,6 @@
 	display: grid;
 	grid-template-columns: repeat(auto-fill, minmax(220px, 1fr));
 	gap: var(--padding-xs) var(--margin-md);
-}
-
-.dts-gs-empty {
-	padding: var(--padding-md) 0;
 }
 
 // Checkbox row (label + native checkbox), reused for the doctype-name option too.
@@ -47,23 +44,6 @@
 		overflow: hidden;
 		text-overflow: ellipsis;
 		white-space: nowrap;
-	}
-}
-
-.dts-summary-row {
-	display: flex;
-	justify-content: space-between;
-	gap: var(--margin-md);
-	padding: var(--padding-sm) 0;
-	border-bottom: 1px solid var(--border-color);
-
-	.dts-summary-label {
-		color: var(--ink-gray-6);
-	}
-
-	.dts-summary-value {
-		color: var(--ink-gray-8);
-		font-weight: var(--weight-medium);
 	}
 }
 
@@ -162,6 +142,9 @@
 	color: var(--ink-gray-4);
 }
 
+// "Custom" badge uses the standard `indicator-pill`; only the overlay position is local.
+// (A gray pill is avoided here: --bg-gray equals the preview region's --surface-gray-2,
+// so it would be invisible — hence a contrasting color.)
 .dts-pf-badge {
 	position: absolute;
 	top: 10px;
@@ -182,16 +165,22 @@
 	box-shadow: var(--shadow-sm);
 	color: var(--ink-gray-4);
 	opacity: 0; // hidden until hover for non-default cards
+
+	// es-solid-star fills with its own color; force it to follow the button's `color`.
+	.icon use {
+		fill: currentColor;
+		stroke: currentColor;
+	}
 }
 
-// Show the star on hover, and always (gold) for the current default.
+// Show the star on hover, and always (yellow) for the current default.
 .dts-pf-card:hover .dts-pf-star {
 	opacity: 1;
 }
 
 .dts-pf-card.is-default .dts-pf-star {
 	opacity: 1;
-	color: var(--amber-500);
+	color: var(--yellow-500);
 }
 
 .dts-pf-footer {
@@ -200,7 +189,7 @@
 
 .dts-pf-name {
 	display: block;
-	font-weight: var(--weight-semibold);
+	font-weight: var(--weight-regular);
 	color: var(--ink-gray-8);
 	cursor: pointer;
 	overflow: hidden;
@@ -335,5 +324,3 @@
 		margin-top: var(--margin-sm);
 	}
 }
-
-

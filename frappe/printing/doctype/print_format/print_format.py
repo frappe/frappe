@@ -43,6 +43,7 @@ class PrintFormat(Document):
 			"Hide", "Top Left", "Top Center", "Top Right", "Bottom Left", "Bottom Center", "Bottom Right"
 		]
 		pdf_generator: DF.Literal["wkhtmltopdf", "chrome"]
+		preview_image: DF.AttachImage | None
 		print_format_builder: DF.Check
 		print_format_builder_beta: DF.Check
 		print_format_for: DF.Literal["DocType", "Report"]
@@ -189,3 +190,58 @@ def make_default(name: str):
 			frappe.bold(name), frappe.bold(print_format.doc_type)
 		)
 	)
+
+
+def printable_sample(doctype: str) -> str | None:
+	"""Most recent document the user can read AND print. Submittable doctypes only
+	reliably print submitted docs (draft/cancelled hit the printview guards), so
+	restrict to those; otherwise any latest doc works."""
+	filters = {"docstatus": 1} if frappe.get_meta(doctype).is_submittable else {}
+	sample = frappe.get_list(doctype, filters=filters, limit=1, order_by="modified desc", pluck="name")
+	return sample[0] if sample else None
+
+
+@frappe.whitelist()
+def generate_preview(name: str) -> str | None:
+	"""Render this format against a sample document, screenshot the HTML via the
+	bundled Chromium, and store the result in the format's `preview_image` field.
+
+	Uses `db_set` rather than `save` so it works for standard formats too (whose
+	`validate` blocks saving) and skips the full validation cycle. Returns the new
+	image URL, or None when there's no printable sample to render against."""
+	doc = frappe.get_doc("Print Format", name)
+	doc.check_permission("read")
+
+	if doc.print_format_for != "DocType" or not doc.doc_type:
+		frappe.throw(_("Preview is only available for DocType print formats"))
+
+	sample_name = printable_sample(doc.doc_type)
+	if not sample_name:
+		frappe.msgprint(
+			_("No printable {0} document found to render a preview").format(frappe.bold(doc.doc_type))
+		)
+		return None
+
+	from frappe.utils.file_manager import save_file
+	from frappe.utils.preview import get_preview_from_html
+
+	try:
+		html = frappe.get_print(doc.doc_type, sample_name, name)
+		# 850px ≈ 8.3in at 96dpi — matches the print sheet width so margin:auto
+		# centers correctly and the screenshot captures the full page width.
+		image = get_preview_from_html(html, format="webp", width=850)
+	except Exception:
+		frappe.local.message_log = []
+		frappe.log_error(f"Print format preview generation failed: {name}")
+		frappe.throw(_("Could not generate preview for {0}. Check the error log for details.").format(frappe.bold(name)))
+
+	# Drop the previous preview file (if any) before storing the fresh one.
+	if doc.preview_image:
+		old = frappe.db.get_value("File", {"file_url": doc.preview_image}, "name")
+		if old:
+			frappe.delete_doc("File", old, ignore_permissions=True, delete_permanently=True)
+
+	fname = f"pf-preview-{frappe.generate_hash(length=10)}.webp"
+	file = save_file(fname, image, "Print Format", name, is_private=1)
+	doc.db_set("preview_image", file.file_url)
+	return file.file_url
