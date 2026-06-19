@@ -45,11 +45,40 @@ class DBTable:
 		if self.meta.get("is_virtual"):
 			# no schema to sync for virtual doctypes
 			return
-		if self.is_new():
-			self.create()
-		else:
-			frappe.client_cache.delete_value(f"table_columns::{self.table_name}")
-			self.alter()
+		try:
+			if self.is_new():
+				self.create()
+			else:
+				frappe.client_cache.delete_value(f"table_columns::{self.table_name}")
+				self.alter()
+		except Exception as e:
+			if frappe.db.is_db_table_size_limit(e):
+				self._throw_max_fields_exceeded(e)
+			raise
+
+	def _throw_max_fields_exceeded(self, exc):
+		"""Raise a user-friendly error when a table exceeds the database row size limit.
+
+		This typically happens when a DocType has too many fields (often after adding
+		several custom fields). The underlying database error ("Row size too large") is
+		not actionable for end users, so point them to the documented limit instead.
+		"""
+		docs_link = "https://docs.frappe.io/erpnext/maximum-number-of-fields-in-a-form"
+		frappe.throw(
+			_(
+				"{0} has too many fields to fit in a single database row, which is limited by the database."
+			).format(frappe.bold(_(self.doctype)))
+			+ "<br><br>"
+			+ _(
+				"{0}: Reorganise the fields to stay within the limit — for example, move a group of"
+				" related fields into a child table, or split them across separate linked DocTypes."
+			).format(frappe.bold(_("Possible Fix")))
+			+ "<br><br>"
+			+ _("Refer to {0} for detailed steps.").format(
+				f'<a href="{docs_link}" target="_blank">{_("Maximum number of fields in a form")}</a>'
+			),
+			title=_("Maximum Fields Limit Exceeded"),
+		)
 
 	def create(self):
 		pass

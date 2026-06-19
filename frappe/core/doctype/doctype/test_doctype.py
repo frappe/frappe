@@ -48,6 +48,25 @@ class TestDocType(IntegrationTestCase):
 			doc = new_doctype(name).insert()
 			doc.delete()
 
+	def test_max_fields_row_size_limit(self):
+		# When syncing a table fails because it exceeds the database row size limit
+		# (too many fields), the raw DB error should be replaced with an actionable
+		# message that points to the documented field limit.
+		from frappe.database.schema import DBTable
+
+		table = DBTable("User")
+
+		with (
+			patch.object(table, "alter", side_effect=Exception("Row size too large")),
+			patch.object(frappe.db, "is_db_table_size_limit", return_value=True),
+		):
+			with self.assertRaises(frappe.ValidationError) as cm:
+				table.sync()
+
+		message = str(cm.exception)
+		self.assertIn("too many fields", message)
+		self.assertIn("maximum-number-of-fields-in-a-form", message)
+
 	@skipIf(
 		frappe.conf.db_type == "sqlite",
 		"Not for SQLite for now",
