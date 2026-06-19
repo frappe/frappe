@@ -218,12 +218,7 @@ export default class Grid {
 				this.last_checked_docname = docname;
 			}
 			this.refresh_remove_rows_button();
-<<<<<<< HEAD
 			this.update_selection_banner();
-=======
-			this.refresh_edit_rows_button();
-			this.refresh_duplicate_rows_button();
->>>>>>> c2bdc531f7 (fix: remove selected row banner)
 		});
 	}
 
@@ -247,17 +242,6 @@ export default class Grid {
 		}
 	}
 
-<<<<<<< HEAD
-=======
-	duplicate_rows() {
-		let selected_children = this.get_selected_children();
-		selected_children.forEach((doc) => {
-			this.add_new_row(null, null, false, doc, false);
-			this.check_range(doc.name, doc.name, false);
-		});
-	}
-
->>>>>>> c2bdc531f7 (fix: remove selected row banner)
 	delete_rows() {
 		var dirty = false;
 
