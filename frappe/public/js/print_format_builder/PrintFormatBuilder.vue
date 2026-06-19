@@ -137,8 +137,14 @@ function clear_selection() {
 }
 
 function on_start_default() {
-	// layout is already set to get_default_layout() — just persist and enter the builder
-	$store.value.print_format.value.format_data = JSON.stringify($store.value.layout.value);
+	const src = $store.value.layout.value;
+	// Drop empty columns, then sections that have no columns left
+	const sections = (src.sections || [])
+		.map((s) => ({ ...s, columns: s.columns.filter((c) => c.fields.length > 0) }))
+		.filter((s) => s.columns.length > 0);
+	const layout = { ...src, sections };
+	$store.value.layout.value = layout;
+	$store.value.print_format.value.format_data = JSON.stringify(layout);
 	$store.value.dirty.value = true;
 	$store.value.needs_setup.value = false;
 }

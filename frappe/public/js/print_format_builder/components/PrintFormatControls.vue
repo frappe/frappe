@@ -181,9 +181,6 @@
 									{{ element.field_label || __("Custom block") }}
 								</div>
 							</div>
-							<svg class="icon icon-xs text-muted pfb-plus-icon">
-								<use href="#icon-plus"></use>
-							</svg>
 						</div>
 					</template>
 				</draggable>
@@ -269,6 +266,7 @@ let search_text = ref("");
 let google_fonts = ref([]);
 let activeTab = ref("fields");
 let search_input = ref(null);
+let raw_templates = ref([]);
 
 function focus_search() {
 	activeTab.value = "fields";
@@ -430,9 +428,36 @@ let field_groups = computed(() => {
 	return groups.filter((g) => g.fields.length);
 });
 
-// ── computed: templates tab ────────────────────────────────
+// ── templates tab ─────────────────────────────────────────
+function fetch_templates() {
+	const doctype = meta.value?.name;
+	if (!doctype) return;
+	Promise.all([
+		frappe.db.get_list("Print Format Field Template", {
+			fields: ["name", "template", "field"],
+			filters: { document_type: doctype },
+			limit: 100,
+		}),
+		frappe.db.get_list("Print Format Field Template", {
+			fields: ["name", "template", "field"],
+			filters: { document_type: ["is", "not set"] },
+			limit: 100,
+		}),
+	])
+		.then(([specific, generic]) => {
+			raw_templates.value = [...(specific || []), ...(generic || [])];
+		})
+		.catch(() => {
+			raw_templates.value = [];
+		});
+}
+
+watch(activeTab, (tab) => {
+	if (tab === "templates") fetch_templates();
+});
+
 let print_templates_list = computed(() => {
-	const templates = print_format.value.__onload?.print_templates || [];
+	const templates = raw_templates.value;
 	return templates.map((template) => {
 		let df;
 		let field_label = null;
