@@ -65,6 +65,26 @@ frappe.ui.form.on("Print Format", {
 					});
 				});
 			}
+
+			frm.add_custom_button(__("Generate Preview"), function () {
+				frappe.call({
+					method: "frappe.printing.doctype.print_format.print_format.generate_preview",
+					args: {
+						name: frm.doc.name,
+					},
+					freeze: true,
+					freeze_message: __("Generating preview…"),
+					callback: function (r) {
+						if (r.message) {
+							frm.reload_doc();
+							frappe.show_alert({
+								message: __("Preview updated"),
+								indicator: "green",
+							});
+						}
+					},
+				});
+			});
 		}
 	},
 	custom_format: function (frm) {

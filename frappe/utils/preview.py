@@ -17,9 +17,9 @@ from frappe.utils.data import cint
 SUPPORTED_FORMATS = ("jpg", "jpeg", "webp")
 
 
-def get_preview_from_html(html: str, format: str = "jpg") -> bytes:
+def get_preview_from_html(html: str, format: str = "jpg", width: int = 1280, height: int = 720) -> bytes:
 	"""Screenshot a raw HTML string; returns viewport-sized image bytes."""
-	return capture_screenshot(format, html=html)
+	return capture_screenshot(format, html=html, width=width, height=height)
 
 
 def get_preview_from_url(
