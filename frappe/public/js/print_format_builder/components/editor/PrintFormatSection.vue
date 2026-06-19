@@ -77,6 +77,7 @@
 							:animation="150"
 							item-key="id"
 							handle=".drag-handle"
+							:emptyInsertThreshold="100"
 						>
 							<template #item="{ element }">
 								<Field
