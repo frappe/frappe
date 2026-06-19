@@ -30,7 +30,6 @@
 	--weight-bold: 700;
 	--weight-black: 800;
 
-	// line height TODO: better names
 	// naming is based on until, example until 3xl size
 	--text-line-height-3xl: 115%;
 	--text-line-height-4xl: 160%;
@@ -42,14 +41,6 @@
 	--para-line-height-sm: 150%;
 	--para-line-height-2xl: 148%;
 	--para-line-height-3xl: 140%;
-
-	// font color
-	--heading-color: var(--gray-900);
-	--text-neutral: var(--gray-900);
-	--text-color: var(--gray-800);
-	--text-muted: var(--gray-700);
-	--text-light: var(--gray-600);
-	--text-dark: var(--fg-color);
 }
 
 .text-ink-gray-7 {

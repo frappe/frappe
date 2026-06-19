@@ -1,7 +1,7 @@
 :root {
 	--sidebar-card-button-outline: var(--surface-blue-3);
 	--sidebar-card-button-bg-color: var(--surface-blue-2);
-	--sidebar-card-button-color: var(--ink-blue-3);
+	--sidebar-card-button-color: var(--ink-blue-6);
 }
 .card-title-container {
 	display: flex;
@@ -25,7 +25,7 @@
 }
 .sidebar-card {
 	width: 100%;
-	background-color: var(--surface-modal);
+	background-color: var(--surface-elevation-2);
 	box-shadow: var(--shadow-sm);
 	border-radius: 12px;
 	padding: 16px;

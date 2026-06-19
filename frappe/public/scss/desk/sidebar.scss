@@ -36,7 +36,7 @@
 .body-sidebar {
 	position: relative;
 	width: 50px;
-	background: var(--surface-menu-bar);
+	background: var(--surface-sidebar);
 	border-right: 1px solid var(--sidebar-border-color);
 	transition-property: all;
 	transition-duration: 0.3s;
@@ -298,7 +298,7 @@
 	height: 24px;
 	border-radius: 50%;
 	border: 1px solid var(--sidebar-border-color);
-	background: var(--surface-menu-bar);
+	background: var(--surface-sidebar);
 	box-shadow: 0 1px 4px rgba(0, 0, 0, 0.1);
 	display: flex;
 	align-items: center;

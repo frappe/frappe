@@ -116,7 +116,7 @@ body {
 				width: 100%;
 
 				&:not(:disabled) {
-					background: var(--surface-gray-7);
+					background: var(--surface-gray-10);
 					color: white;
 
 					&:hover,
@@ -225,7 +225,7 @@ body {
 				border: 1px solid var(--outline-gray-2);
 				color: var(--text-color);
 				@include get_textstyle("base", "regular");
-				background-color: var(--surface-white);
+				background-color: var(--surface-base);
 				height: 28px;
 				padding: 6px 8px;
 				border-radius: var(--border-radius-sm);
@@ -235,7 +235,7 @@ body {
 				input[type="text"],
 				input[type="email"],
 				input[type="password"] {
-					border: 1px solid var(--outline-red-2);
+					border: 1px solid var(--outline-red-3);
 				}
 			}
 
@@ -249,10 +249,10 @@ body {
 				border-radius: var(--border-radius-sm);
 				@include get_textstyle("base", "regular");
 				line-height: 115%;
-				color: var(--ink-green-3);
+				color: var(--ink-green-6);
 
 				svg {
-					fill: var(--ink-green-3);
+					fill: var(--ink-green-6);
 					flex-shrink: 0;
 				}
 			}
@@ -266,10 +266,10 @@ body {
 				background-color: var(--red-50);
 				border-radius: var(--border-radius-sm);
 				@include get_textstyle("base", "regular");
-				color: var(--ink-red-4);
+				color: var(--ink-red-8);
 
 				svg {
-					fill: var(--ink-red-4);
+					fill: var(--ink-red-8);
 					flex-shrink: 0;
 				}
 			}
@@ -277,7 +277,7 @@ body {
 			.field-error {
 				display: none;
 				@include get_textstyle("base", "regular");
-				color: var(--ink-red-4);
+				color: var(--ink-red-8);
 				margin-bottom: 0;
 			}
 
@@ -285,7 +285,7 @@ body {
 				input[type="text"],
 				input[type="email"],
 				input[type="password"] {
-					border: 1px solid var(--outline-red-2);
+					border: 1px solid var(--outline-red-3);
 				}
 				.field-error {
 					display: block;
@@ -451,7 +451,7 @@ body {
 
 	.password-mismatch-message {
 		@include get_textstyle("sm", "regular");
-		color: var(--ink-red-4);
+		color: var(--ink-red-8);
 		margin-bottom: 0;
 
 		&.hidden {

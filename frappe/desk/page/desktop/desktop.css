@@ -438,7 +438,7 @@
 .desktop-edit{
     width: 36px;
     height: 36px;
-    background-color: var(--surface-gray-7);
+    background-color: var(--surface-gray-10);
     position: absolute;
     bottom: 4%;
     right: 4%;
