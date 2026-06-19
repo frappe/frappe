@@ -153,7 +153,7 @@ frappe.ui.Page = class Page {
 		this.container = this.wrapper.find(".page-body");
 		this.sidebar = this.wrapper.find(".layout-side-section");
 		this.footer = this.wrapper.find(".layout-footer");
-		this.indicator = this.wrapper.find(".title-area .indicator-pill");
+		this.indicator = this.wrapper.find(".title-area .page-indicator-pill");
 
 		this.page_actions = this.wrapper.find(".page-actions");
 		this.filters = this.wrapper.find(".filters");
@@ -218,7 +218,7 @@ frappe.ui.Page = class Page {
 		if (is_mobile) {
 			indicator_html = `<span class="indicator-doc-html" style="background-color: var(--${color}-400)"></span>`;
 		}
-		this.clear_indicator().removeClass("hide").html(indicator_html).addClass(color);
+		this.clear_indicator().removeClass("hide").html(indicator_html).attr("data-theme", color);
 
 		if (is_mobile) {
 			this.indicator.attr("title", label);
@@ -262,7 +262,8 @@ frappe.ui.Page = class Page {
 	clear_indicator() {
 		return this.indicator
 			.removeClass()
-			.addClass("indicator-pill no-indicator-dot whitespace-nowrap hide");
+			.removeAttr("data-theme")
+			.addClass("es-badge page-indicator-pill hide");
 	}
 
 	get_icon_label(icon, label) {

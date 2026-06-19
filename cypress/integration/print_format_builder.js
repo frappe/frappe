@@ -107,7 +107,7 @@ context("Print Format Builder — create flow", () => {
 		cy.get(".pfb-margin-grid").should("be.visible");
 
 		cy.get(".freeze").should("not.exist");
-		cy.get(".indicator-pill.orange").should("not.exist");
+		cy.get('[data-testid="page-status"]').should("not.be.visible");
 
 		cy.contains(".pfb-margin-cell label", "Top")
 			.closest(".pfb-margin-cell")
@@ -117,14 +117,16 @@ context("Print Format Builder — create flow", () => {
 			.trigger("change")
 			.blur();
 
-		cy.get(".indicator-pill.orange", { timeout: 5000 }).should("contain", "Not Saved");
+		cy.get('[data-testid="page-status"]', { timeout: 5000 })
+			.should("be.visible")
+			.and("contain", "Not Saved");
 
 		cy.contains(".page-actions .primary-action", "Save").click({ force: true });
 		cy.wait("@save").then((interception) => {
 			expect(interception.response.statusCode).to.equal(200);
 			expect(Number(interception.response.body.message.margin_top)).to.equal(9);
 		});
-		cy.get(".indicator-pill.orange").should("not.exist");
+		cy.get('[data-testid="page-status"]').should("not.be.visible");
 	});
 
 	// 4. Outline tab: clicking a section scrolls to it and selects it

@@ -145,7 +145,7 @@ $check-icon-dark: url("data:image/svg+xml, <svg viewBox='0 0 8 7' fill='none' xm
 	}
 
 	$indicator-colors: green, cyan, blue, orange, yellow, gray, grey, red, pink, darkgrey, purple,
-		light-blue;
+		light-blue, amber, violet;
 
 	@each $color in $indicator-colors {
 		.indicator {

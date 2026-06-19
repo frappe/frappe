@@ -223,3 +223,14 @@
   --weight-black: var(--font-weight-black);
   --text-md: var(--text-base);
 }
+
+/* Espresso theme names added to the indicator color-pair system (alongside the
+   retained legacy colors above) — so Framework's migrated indicator defs and the
+   .indicator dot render amber/violet. Map to Espresso. */
+:root {
+  --bg-amber: var(--surface-amber-2);
+  --text-on-amber: var(--ink-amber-8);
+  --bg-violet: var(--surface-violet-2);
+  --text-on-violet: var(--ink-violet-8);
+}
+
