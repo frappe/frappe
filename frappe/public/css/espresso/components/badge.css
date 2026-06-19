@@ -70,7 +70,8 @@
   --c-fg: var(--ink-green-8);
 }
 
-.es-badge[data-theme="amber"] {
+.es-badge[data-theme="amber"],
+.es-badge[data-theme="orange"] {
   --c-solid-bg: var(--surface-amber-7);
   --c-solid-fg: var(--ink-amber-1);
   --c-fill: var(--surface-amber-2);
