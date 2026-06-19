@@ -443,9 +443,13 @@ function fetch_templates() {
 			filters: { document_type: ["is", "not set"] },
 			limit: 100,
 		}),
-	]).then(([specific, generic]) => {
-		raw_templates.value = [...(specific || []), ...(generic || [])];
-	});
+	])
+		.then(([specific, generic]) => {
+			raw_templates.value = [...(specific || []), ...(generic || [])];
+		})
+		.catch(() => {
+			raw_templates.value = [];
+		});
 }
 
 watch(activeTab, (tab) => {
