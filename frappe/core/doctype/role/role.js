@@ -458,7 +458,8 @@ class DocumentsTab extends RoleTab {
 
 		// Standard row: one sequential call triggers setup_custom_perms (converts
 		// standard DocPerm → Custom DocPerm), then set_value on the new row.
-		const [[first_ptype, first_value]] = Object.entries(data);
+		// Deliberately use "read" (not "if_owner") as the trigger flag so that
+		// if_owner is not mutated before we look up the row by it.
 		return frappe
 			.call({
 				method: "frappe.core.page.permission_manager.permission_manager.update",
@@ -466,8 +467,8 @@ class DocumentsTab extends RoleTab {
 					doctype: row.parent,
 					role: this.role,
 					permlevel: row.permlevel,
-					ptype: first_ptype,
-					value: first_value,
+					ptype: "read",
+					value: data.read,
 					if_owner: row.if_owner || 0,
 				},
 			})
