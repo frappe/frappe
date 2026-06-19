@@ -552,6 +552,53 @@ function _workspaces_tab() {
 
 function _session_defaults_tab() {
 	const fields = frappe.boot.session_defaults || [];
+	const perms = frappe.perm.get_perm("Session Default Settings");
+	const can_configure = frappe.user_roles.includes("System Manager") || perms?.[0]?.read == 1;
+
+	const actions = [];
+
+	if (can_configure) {
+		actions.push({
+			label: __("Configure"),
+			click(panel) {
+				panel.dialog?.hide();
+				frappe.set_route("Form", "Session Default Settings", "Session Default Settings");
+			},
+		});
+	}
+
+	if (fields.length) {
+		actions.push({
+			label: __("Save"),
+			primary: true,
+			click(panel) {
+				const values = panel.get_values();
+				if (!values) return;
+				fields.forEach((f) => {
+					if (!values[f.fieldname]) values[f.fieldname] = "";
+				});
+				frappe.call({
+					method: "frappe.core.doctype.session_default_settings.session_default_settings.set_session_default_values",
+					args: { default_values: values },
+					callback(data) {
+						if (data.message === "success") {
+							frappe.show_alert({
+								message: __("Session Defaults Saved"),
+								indicator: "green",
+							});
+							frappe.ui.toolbar.clear_cache();
+						} else {
+							frappe.show_alert({
+								message: __("An error occurred while setting Session Defaults"),
+								indicator: "red",
+							});
+						}
+					},
+				});
+			},
+		});
+	}
+
 	return {
 		id: "session-defaults",
 		label: __("Session Defaults"),
@@ -559,41 +606,7 @@ function _session_defaults_tab() {
 		title: __("Session Defaults"),
 		description: __("Set default values for the current session."),
 		fields: fields.length ? [...fields] : undefined,
-		actions: fields.length
-			? [
-					{
-						label: __("Save"),
-						primary: true,
-						click(panel) {
-							const values = panel.get_values();
-							if (!values) return;
-							fields.forEach((f) => {
-								if (!values[f.fieldname]) values[f.fieldname] = "";
-							});
-							frappe.call({
-								method: "frappe.core.doctype.session_default_settings.session_default_settings.set_session_default_values",
-								args: { default_values: values },
-								callback(data) {
-									if (data.message === "success") {
-										frappe.show_alert({
-											message: __("Session Defaults Saved"),
-											indicator: "green",
-										});
-										frappe.ui.toolbar.clear_cache();
-									} else {
-										frappe.show_alert({
-											message: __(
-												"An error occurred while setting Session Defaults"
-											),
-											indicator: "red",
-										});
-									}
-								},
-							});
-						},
-					},
-			  ]
-			: undefined,
+		actions: actions.length ? actions : undefined,
 		render: fields.length
 			? undefined
 			: (panel) => {
