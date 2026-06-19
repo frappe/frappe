@@ -60,7 +60,6 @@ _LAZY_IMPORTS: dict[str, tuple[str, str]] = {
 	# frappe.core.doctype.system_settings.system_settings
 	"get_system_settings": ("frappe.core.doctype.system_settings.system_settings", "get_system_settings"),
 	# frappe.model.document
-	"get_doc": ("frappe.model.document", "get_doc"),
 	"get_docs": ("frappe.model.document", "get_docs"),
 	"get_lazy_doc": ("frappe.model.document", "get_lazy_doc"),
 	"copy_doc": ("frappe.model.document", "copy_doc"),
@@ -167,7 +166,6 @@ if TYPE_CHECKING:  # pragma: no cover
 		copy_doc,
 		get_cached_doc,
 		get_cached_value,
-		get_doc,
 		get_docs,
 		get_document_cache_key,
 		get_last_doc,
