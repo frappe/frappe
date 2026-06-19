@@ -553,11 +553,6 @@ body {
 			font-size: var(--text-lg);
 		}
 
-		.indicator-pill {
-			font-size: var(--text-xs);
-			@extend .ellipsis;
-		}
-
 		&:focus-visible {
 			text-decoration: underline;
 			background-color: var(--highlight-color);
