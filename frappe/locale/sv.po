@@ -3,7 +3,7 @@ msgstr ""
 "Project-Id-Version: frappe\n"
 "Report-Msgid-Bugs-To: developers@frappe.io\n"
 "POT-Creation-Date: 2026-06-14 10:33+0000\n"
-"PO-Revision-Date: 2026-06-15 17:34\n"
+"PO-Revision-Date: 2026-06-19 18:46\n"
 "Last-Translator: developers@frappe.io\n"
 "Language-Team: Swedish\n"
 "MIME-Version: 1.0\n"
@@ -2760,7 +2760,7 @@ msgstr "Tillämpa Användare Behörighet på"
 #. Description of the 'DocType Layout' (Link) field in DocType 'Workspace Link'
 #: frappe/desk/doctype/workspace_link/workspace_link.json
 msgid "Apply a specific layout when opening this DocType link"
-msgstr "Använd specifik layout när du öppnar den här DocType länk"
+msgstr "Använd specifik utseende när DocType länk öppnas"
 
 #. Label of the apply_document_permissions (Check) field in DocType 'Web Form'
 #: frappe/website/doctype/web_form/web_form.json
@@ -3785,12 +3785,12 @@ msgstr "Fel Cron Uttryck"
 #. Option for the 'Rounding Method' (Select) field in DocType 'System Settings'
 #: frappe/core/doctype/system_settings/system_settings.json
 msgid "Banker's Rounding"
-msgstr "Bankens Avrundning"
+msgstr "Bank Avrundning"
 
 #. Option for the 'Rounding Method' (Select) field in DocType 'System Settings'
 #: frappe/core/doctype/system_settings/system_settings.json
 msgid "Banker's Rounding (legacy)"
-msgstr "Bankens Avrundning (äldre system)"
+msgstr "Bank Avrundning (äldre system)"
 
 #. Label of the banner (Section Break) field in DocType 'Website Settings'
 #: frappe/website/doctype/website_settings/website_settings.json
@@ -3851,7 +3851,7 @@ msgstr "Baserat På"
 
 #: frappe/core/doctype/doctype_layout/doctype_layout.py:85
 msgid "Based On layout {0} must be for the same Document Type ({1})"
-msgstr "Baserat på layout {0} måste vara för samma Dokument Typ ({1})"
+msgstr "Baserad På Utseende {0} måste vara för samma Dokument Typ ({1})"
 
 #: frappe/public/js/print_format_builder/components/inspector/LetterHeadZoneInspector.vue:13
 msgid "Based on"
@@ -5032,18 +5032,18 @@ msgstr "Underordnad Artikel"
 #. Table'
 #: frappe/core/doctype/doctype_layout_child_table/doctype_layout_child_table.json
 msgid "Child Layout"
-msgstr "Underordnad Layout"
+msgstr "Underordnad Utseende"
 
 #. Label of the tab_break_child_layouts (Tab Break) field in DocType 'DocType
 #. Layout'
 #: frappe/core/doctype/doctype_layout/doctype_layout.json
 msgid "Child Layouts"
-msgstr "Underordnade Layouter"
+msgstr "Underordnade Utseende"
 
 #. Label of the child_tables (Table) field in DocType 'DocType Layout'
 #: frappe/core/doctype/doctype_layout/doctype_layout.json
 msgid "Child Table Layouts"
-msgstr "Underordnade Tabell Layouter"
+msgstr "Underordnade Tabell Utseende"
 
 #: frappe/core/doctype/doctype/doctype.py:1735
 msgid "Child Table {0} for field {1} must be virtual"
@@ -5168,7 +5168,7 @@ msgstr "Klicka på Anpassa för att lägga till din första widget"
 
 #: frappe/public/js/layout_builder/components/LayoutBuilder.vue:68
 msgid "Click a field to edit its layout overrides"
-msgstr "Klicka på ett fält för att redigera dess layout inställningar"
+msgstr "Klicka på ett fält för att redigera dess Utseende inställningar"
 
 #: frappe/public/js/print_format_builder/components/inspector/FieldInspector.vue:52
 msgid "Click a field to edit its properties"
@@ -7361,7 +7361,7 @@ msgstr "Standard Adress Mall kan inte tas bort"
 #. Settings'
 #: frappe/core/doctype/document_naming_settings/document_naming_settings.json
 msgid "Default Amendment Naming"
-msgstr "Standard Ändring Namngivning"
+msgstr "Standard Namngivning Ändring"
 
 #. Label of the default_app (Select) field in DocType 'System Settings'
 #. Label of the default_app (Select) field in DocType 'User'
@@ -7957,7 +7957,7 @@ msgstr "Skrivbord Ikon"
 #. Name of a DocType
 #: frappe/desk/doctype/desktop_layout/desktop_layout.json
 msgid "Desktop Layout"
-msgstr "Skrivbord Layout"
+msgstr "Skrivbord Utseende"
 
 #. Name of a DocType
 #: frappe/desk/doctype/desktop_settings/desktop_settings.json
@@ -8067,7 +8067,7 @@ msgstr "Inaktivera Förberedd Rapport Automatisering"
 #. Settings'
 #: frappe/core/doctype/system_settings/system_settings.json
 msgid "Disable Product Suggestion"
-msgstr "Inaktivera Artikelförslag"
+msgstr "Inaktivera Artikel Förslag"
 
 #: frappe/core/doctype/report/report.js:39
 msgid "Disable Report"
@@ -8238,7 +8238,7 @@ msgstr "Visning beror på (JS)"
 #. Description of the 'Title' (Data) field in DocType 'DocType Layout'
 #: frappe/core/doctype/doctype_layout/doctype_layout.json
 msgid "Display name shown in the layout switcher"
-msgstr "Visningsnamn som visas i layout väljare"
+msgstr "Visning namn som visas i Utseende väljare"
 
 #: frappe/public/js/print_format_builder/components/PrintFormatControls.vue:319
 msgid "Divider"
@@ -8395,17 +8395,17 @@ msgstr "DocType Händelse"
 #: frappe/desk/doctype/workspace_link/workspace_link.json
 #: frappe/workspace_sidebar/build.json
 msgid "DocType Layout"
-msgstr "DocType Layout"
+msgstr "DocType Utseende"
 
 #. Name of a DocType
 #: frappe/core/doctype/doctype_layout_child_table/doctype_layout_child_table.json
 msgid "DocType Layout Child Table"
-msgstr "DocType Layout Underordnad Tabell"
+msgstr "DocType Utseende Underordnad Tabell"
 
 #. Name of a DocType
 #: frappe/core/doctype/doctype_layout_field/doctype_layout_field.json
 msgid "DocType Layout Field"
-msgstr "DocType Layout Fält"
+msgstr "DocType Utseende Fält"
 
 #. Name of a DocType
 #. Option for the 'Applied On' (Select) field in DocType 'Property Setter'
@@ -11047,7 +11047,7 @@ msgstr "Fält är ej tillåtet i fråga"
 
 #: frappe/public/js/print_format_builder/components/PrintFormatControls.vue:139
 msgid "Field templates let you render specific fields with custom Jinja/HTML, e.g. a custom items table layout."
-msgstr "Fältmallar kan visa specifika fält med anpassad Jinja/HTML, t.ex. anpassad tabell layout för artiklar."
+msgstr "Fält mallar låter visa specifika fält med anpassad Jinja/HTML, t.ex. anpassad tabell utseende för artiklar."
 
 #. Description of the 'Workflow State Field' (Data) field in DocType 'Workflow'
 #: frappe/workflow/doctype/workflow/workflow.json
@@ -14257,7 +14257,7 @@ msgstr "Info:"
 #. Description of the 'Based On' (Link) field in DocType 'DocType Layout'
 #: frappe/core/doctype/doctype_layout/doctype_layout.json
 msgid "Inherit field order and properties from another layout of the same DocType"
-msgstr "Överför fältordning och egenskaper från annan layout av samma Dokument Typ"
+msgstr "Överför fältordning och egenskaper från annan utseende av samma Dokument Typ"
 
 #. Label of the initial_sync_count (Select) field in DocType 'Email Account'
 #: frappe/email/doctype/email_account/email_account.json
@@ -14603,7 +14603,7 @@ msgstr "Ogiltig Åsidosättning"
 
 #: frappe/core/doctype/package_import/package_import.py:51
 msgid "Invalid Package Name"
-msgstr "Ogiltigt Paket Namn"
+msgstr "Ogiltigt App Namn"
 
 #: frappe/integrations/doctype/connected_app/connected_app.py:204
 msgid "Invalid Parameters."
@@ -15238,7 +15238,7 @@ msgstr "JavaScript-format: frappe.query_reports['RAPPORTNAMN'] = {}"
 #. Description of the 'Condition' (Code) field in DocType 'DocType Layout'
 #: frappe/core/doctype/doctype_layout/doctype_layout.json
 msgid "JavaScript expression evaluated on every form refresh. When truthy, this layout is automatically applied and `doc.doctype_layout` is set. Example: doc.is_return == 1"
-msgstr "JavaScript uttryck utvärderas vid varje uppdatering av formulär. När det är angivet tillämpas layout automatiskt och `doc.doctype_layout` anges. Exempel: doc.is_return == 1"
+msgstr "JavaScript uttryck utvärderas vid varje uppdatering av formulär. När det är angivet tillämpas utseende automatiskt och `doc.doctype_layout` anges. Exempel: doc.is_return == 1"
 
 #. Label of the javascript (Code) field in DocType 'Report'
 #. Label of the javascript_section (Section Break) field in DocType 'Custom
@@ -15857,15 +15857,15 @@ msgstr "Senast Synkroniserad {0}"
 #. Label of the layout (Code) field in DocType 'Desktop Layout'
 #: frappe/desk/doctype/desktop_layout/desktop_layout.json
 msgid "Layout"
-msgstr "Upplägg"
+msgstr "Utseende"
 
 #: frappe/custom/doctype/customize_form/customize_form.js:207
 msgid "Layout Reset"
-msgstr "Återställ Layout"
+msgstr "Återställ Utseende"
 
 #: frappe/custom/doctype/customize_form/customize_form.js:199
 msgid "Layout will be reset to standard layout, are you sure you want to do this?"
-msgstr "Layout kommer att återställas till standard layout, är du säker på att du vill göra detta?"
+msgstr "Utseende kommer att återställas till standard Utseende. Är du säker på att du vill göra detta?"
 
 #: frappe/core/doctype/security_settings/security_settings.js:14
 #: frappe/website/web_template/section_with_features/section_with_features.html:26
@@ -17591,7 +17591,7 @@ msgstr "Modul Introduktion förlopp återställning"
 #. Description of the 'Module' (Link) field in DocType 'DocType Layout'
 #: frappe/core/doctype/doctype_layout/doctype_layout.json
 msgid "Module owning this standard layout"
-msgstr "Modul som äger denna standard layout"
+msgstr "Modul som äger denna standard utseende"
 
 #: frappe/custom/doctype/customize_form/customize_form.js:263
 msgid "Module to Export"
@@ -20245,7 +20245,7 @@ msgstr "PUT"
 #: frappe/core/doctype/package_release/package_release.json
 #: frappe/core/workspace/build/build.json frappe/www/attribution.html:34
 msgid "Package"
-msgstr "App"
+msgstr "Appar"
 
 #. Name of a DocType
 #. Label of a Link in the Build Workspace
@@ -20266,7 +20266,7 @@ msgstr "App Utgåva"
 
 #: frappe/core/doctype/package_import/package_import.py:67
 msgid "Package contains disallowed path entry"
-msgstr "Paket innehåller ogiltig sökväg"
+msgstr "App innehåller ogiltig sökväg"
 
 #. Label of a Card Break in the Build Workspace
 #: frappe/core/workspace/build/build.json
@@ -20479,7 +20479,7 @@ msgstr "Överordnad Etikett"
 #. Label of the tab_break_form (Tab Break) field in DocType 'DocType Layout'
 #: frappe/core/doctype/doctype_layout/doctype_layout.json
 msgid "Parent Layout"
-msgstr "Överordnad Layout"
+msgstr "Överordnad Utseende"
 
 #: frappe/core/doctype/doctype/doctype.py:1274
 msgid "Parent Missing"
@@ -23826,7 +23826,7 @@ msgstr "Återställ LDAP Lösenord"
 
 #: frappe/custom/doctype/customize_form/customize_form.js:137
 msgid "Reset Layout"
-msgstr "Återställ Layout"
+msgstr "Återställ Utseende"
 
 #: frappe/core/doctype/user/user.js:281
 msgid "Reset OTP Secret"
@@ -24449,7 +24449,7 @@ msgstr "Regler med högre prioritet nummer tillämpas först."
 #. Label of the dormant_days (Int) field in DocType 'System Settings'
 #: frappe/core/doctype/system_settings/system_settings.json
 msgid "Run Jobs only Daily if Inactive For (Days)"
-msgstr "Kör Jobb Daglig endast om Inaktiv för (Dagar)"
+msgstr "Kör Jobb endast Dagligen om de har varit inaktiva i (Antal Dagar)"
 
 #. Description of the 'Enable Scheduled Jobs' (Check) field in DocType 'System
 #. Settings'
@@ -26040,7 +26040,7 @@ msgstr "Ange dynamiska filtervärden i JavaScript för erfordrade fält här."
 #. Description of the 'Is Standard' (Check) field in DocType 'DocType Layout'
 #: frappe/core/doctype/doctype_layout/doctype_layout.json
 msgid "Set for layouts shipped with apps or fixtures"
-msgstr "Angiven för layouter som levereras med appar eller fixturer"
+msgstr "Angiven för Utseende som levereras med appar eller fixturer"
 
 #. Description of the 'Precision' (Select) field in DocType 'Custom Field'
 #. Description of the 'Precision' (Select) field in DocType 'Customize Form
@@ -29318,7 +29318,7 @@ msgstr "Denna webbplats körs i utvecklarläge. Alla ändringar som görs här k
 
 #: frappe/www/attribution.html:11
 msgid "This software is built on top of many open source packages."
-msgstr "Denna programvara är byggd ovanpå många andra öppen källkod programvaror."
+msgstr "Denna programvara är skapad ovanpå många andra öppen källkod programvaror."
 
 #: frappe/website/doctype/web_page/web_page.js:71
 msgid "This title will be used as the title of the webpage as well as in meta tags"
@@ -30789,7 +30789,7 @@ msgstr "Uppdatera E-post kö status. E-post kommer att hämtas vid nästa schema
 
 #: frappe/core/doctype/document_naming_rule/document_naming_rule.js:17
 msgid "Updating counter may lead to document name conflicts if not done properly"
-msgstr "Uppdatering av räknare kan leda till dokument namngivning konflikter om det inte görs på rätt sätt"
+msgstr "Uppdatering av räknare kan leda till dokument namn konflikter om det inte görs på rätt sätt"
 
 #: frappe/desk/page/setup_wizard/setup_wizard.py:25
 msgid "Updating global settings"
@@ -31867,7 +31867,7 @@ msgstr "Vi har fått begäran från dig om att ladda ner din {0} data associerad
 
 #: frappe/www/attribution.html:12
 msgid "We would like to thank the authors of these packages for their contribution."
-msgstr "Vi vill tacka utvecklarna av dessa paket för deras bidrag."
+msgstr "Vi vill tacka utvecklarna av dessa appar för deras bidrag."
 
 #: frappe/www/contact.py:58
 msgid "We've received your query!"
@@ -32450,7 +32450,7 @@ msgstr "Arbetsflöde Dokument Tillstånd"
 
 #: frappe/model/workflow.py:113
 msgid "Workflow Evaluation Error"
-msgstr "Arbetsflöde Bedömning Fel"
+msgstr "Arbetsflöde Utvärdering Fel"
 
 #. Label of the workflow_name (Data) field in DocType 'Workflow'
 #: frappe/workflow/doctype/workflow/workflow.json
