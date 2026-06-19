@@ -362,55 +362,66 @@ data = columns, result
 		validated against ref_doctype, so an unreadable Link target should just be skipped.
 		"""
 		role = "Variance Test Role"
-		if not frappe.db.exists("Role", role):
-			frappe.get_doc({"doctype": "Role", "role_name": role}).insert(ignore_permissions=True)
-
-		frappe.get_doc(
-			{
-				"doctype": "DocType",
-				"name": "Variance Test Doc",
-				"module": "Core",
-				"custom": 1,
-				"autoname": "field:title",
-				"fields": [
-					{"label": "Title", "fieldname": "title", "fieldtype": "Data"},
-					{
-						"label": "Voucher Type",
-						"fieldname": "voucher_type",
-						"fieldtype": "Link",
-						"options": "DocType",
-					},
-				],
-				"permissions": [{"role": role, "read": 1}],
-			}
-		).insert(ignore_if_duplicate=True)
-
 		user = "variance_reader@example.com"
-		if not frappe.db.exists("User", user):
+		try:
+			if not frappe.db.exists("Role", role):
+				frappe.get_doc({"doctype": "Role", "role_name": role}).insert()
+
 			frappe.get_doc(
 				{
-					"doctype": "User",
-					"email": user,
-					"first_name": "Variance",
-					"roles": [{"role": role}],
+					"doctype": "DocType",
+					"name": "Variance Test Doc",
+					"module": "Core",
+					"custom": 1,
+					"autoname": "field:title",
+					"fields": [
+						{"label": "Title", "fieldname": "title", "fieldtype": "Data"},
+						{
+							"label": "Voucher Type",
+							"fieldname": "voucher_type",
+							"fieldtype": "Link",
+							"options": "DocType",
+						},
+					],
+					"permissions": [{"role": role, "read": 1}],
 				}
-			).insert(ignore_permissions=True)
+			).insert(ignore_if_duplicate=True)
 
-		self.assertTrue(frappe.has_permission("Variance Test Doc", "read", user=user))
-		self.assertFalse(frappe.has_permission("DocType", "read", user=user))
+			if not frappe.db.exists("User", user):
+				frappe.get_doc(
+					{
+						"doctype": "User",
+						"email": user,
+						"first_name": "Variance",
+						"roles": [{"role": role}],
+					}
+				).insert()
 
-		columns = [
-			{"label": "Title", "fieldname": "title", "fieldtype": "Link", "options": "Variance Test Doc"},
-			{"label": "Voucher Type", "fieldname": "voucher_type", "fieldtype": "Link", "options": "DocType"},
-		]
-		data = [
-			{"title": "Row 1", "voucher_type": "User"},
-			{"title": "Row 2", "voucher_type": "ToDo"},
-		]
+			self.assertTrue(frappe.has_permission("Variance Test Doc", "read", user=user))
+			self.assertFalse(frappe.has_permission("DocType", "read", user=user))
 
-		# before the fix this raised frappe.PermissionError: No permission to read DocType
-		result = get_filtered_data("Variance Test Doc", columns, data, user)
-		self.assertEqual(len(result), 2)
+			columns = [
+				{"label": "Title", "fieldname": "title", "fieldtype": "Link", "options": "Variance Test Doc"},
+				{
+					"label": "Voucher Type",
+					"fieldname": "voucher_type",
+					"fieldtype": "Link",
+					"options": "DocType",
+				},
+			]
+			data = [
+				{"title": "Row 1", "voucher_type": "User"},
+				{"title": "Row 2", "voucher_type": "ToDo"},
+			]
+
+			# before the fix this raised frappe.PermissionError: No permission to read DocType
+			result = get_filtered_data("Variance Test Doc", columns, data, user)
+			self.assertEqual(len(result), 2)
+		finally:
+			frappe.delete_doc("User", user, force=True, ignore_missing=True)
+			frappe.delete_doc("DocType", "Variance Test Doc", force=True, ignore_missing=True)
+			frappe.delete_doc("Role", role, force=True, ignore_missing=True)
+			frappe.db.commit()
 
 
 def create_mock_data():
