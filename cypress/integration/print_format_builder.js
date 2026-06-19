@@ -314,7 +314,6 @@ context("Print Format Builder — setup flow", () => {
 			true
 		);
 
-		cy.intercept("POST", "api/method/frappe.client.save").as("save");
 		cy.visit(`/app/print-format-builder/${encodeURIComponent(PF_NAME)}`);
 
 		cy.get(".pfb-setup", { timeout: 20000 }).should("be.visible");
@@ -322,8 +321,12 @@ context("Print Format Builder — setup flow", () => {
 
 		cy.get(".pfb-setup").should("not.exist");
 		cy.get(".sections-container").should("be.visible");
-		cy.get(".section-with-insert").should("not.exist");
+		// blank canvas — no body sections
+		cy.get(".sections-container [data-pfb-section]").should("have.length", 0);
 
+		// explicitly save and verify the saved layout has no sections
+		cy.intercept("POST", "api/method/frappe.client.save").as("save");
+		cy.contains(".page-actions .primary-action", "Save").click({ force: true });
 		cy.wait("@save").then((interception) => {
 			expect(interception.response.statusCode).to.equal(200);
 			const layout = JSON.parse(interception.response.body.message.format_data);
@@ -339,15 +342,21 @@ context("Print Format Builder — setup flow", () => {
 			true
 		);
 
-		cy.intercept("POST", "api/method/frappe.client.save").as("save");
 		cy.visit(`/app/print-format-builder/${encodeURIComponent(PF_NAME)}`);
 
 		cy.get(".pfb-setup", { timeout: 20000 }).should("be.visible");
 		cy.contains(".pfb-setup-option-label", "Start from default").click();
 
 		cy.get(".pfb-setup").should("not.exist");
-		cy.get("[data-pfb-section]", { timeout: 10000 }).should("have.length.greaterThan", 0);
+		// body sections are populated from ToDo's default fields
+		cy.get(".sections-container [data-pfb-section]", { timeout: 10000 }).should(
+			"have.length.greaterThan",
+			0
+		);
 
+		// explicitly save and verify the saved layout has sections
+		cy.intercept("POST", "api/method/frappe.client.save").as("save");
+		cy.contains(".page-actions .primary-action", "Save").click({ force: true });
 		cy.wait("@save").then((interception) => {
 			expect(interception.response.statusCode).to.equal(200);
 			const layout = JSON.parse(interception.response.body.message.format_data);
@@ -409,11 +418,14 @@ context("Print Format Builder — section insert", () => {
 		);
 
 		cy.visit(`/app/print-format-builder/${encodeURIComponent(PF_NAME)}`);
-		cy.get("[data-pfb-section]", { timeout: 20000 }).should("have.length", 1);
+		cy.get(".sections-container [data-pfb-section]", { timeout: 20000 }).should(
+			"have.length",
+			1
+		);
 
 		cy.get(".section-with-insert .section-insert").first().click({ force: true });
 
-		cy.get("[data-pfb-section]").should("have.length", 2);
+		cy.get(".sections-container [data-pfb-section]").should("have.length", 2);
 	});
 
 	// 13. The footer insert strip appends a section after all existing sections
@@ -430,11 +442,14 @@ context("Print Format Builder — section insert", () => {
 		);
 
 		cy.visit(`/app/print-format-builder/${encodeURIComponent(PF_NAME)}`);
-		cy.get("[data-pfb-section]", { timeout: 20000 }).should("have.length", 1);
+		cy.get(".sections-container [data-pfb-section]", { timeout: 20000 }).should(
+			"have.length",
+			1
+		);
 
 		cy.get(".sections-container > .section-insert").click({ force: true });
 
-		cy.get("[data-pfb-section]").should("have.length", 2);
+		cy.get(".sections-container [data-pfb-section]").should("have.length", 2);
 	});
 
 	// 14. Multiple inserts accumulate correctly
@@ -456,16 +471,16 @@ context("Print Format Builder — section insert", () => {
 
 		cy.visit(`/app/print-format-builder/${encodeURIComponent(PF_NAME)}`);
 		cy.get(".sections-container", { timeout: 20000 }).should("be.visible");
-		cy.get("[data-pfb-section]").should("have.length", 0);
+		cy.get(".sections-container [data-pfb-section]").should("have.length", 0);
 
 		cy.get(".sections-container > .section-insert").click({ force: true });
-		cy.get("[data-pfb-section]").should("have.length", 1);
+		cy.get(".sections-container [data-pfb-section]").should("have.length", 1);
 
 		cy.get(".sections-container > .section-insert").click({ force: true });
-		cy.get("[data-pfb-section]").should("have.length", 2);
+		cy.get(".sections-container [data-pfb-section]").should("have.length", 2);
 
 		cy.get(".sections-container > .section-insert").click({ force: true });
-		cy.get("[data-pfb-section]").should("have.length", 3);
+		cy.get(".sections-container [data-pfb-section]").should("have.length", 3);
 	});
 
 	// 15. Section insert is NOT hidden in clean-preview mode (regression guard)
