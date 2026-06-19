@@ -21,6 +21,11 @@
 				></div>
 				<div v-else-if="df.fieldtype == 'Spacer'" class="field-preview-spacer"></div>
 				<div v-else-if="df.fieldtype == 'Divider'" class="field-preview-divider"></div>
+				<div
+					v-else-if="df.fieldtype == 'Field Template'"
+					class="custom-html"
+					v-html="rendered_template || ''"
+				></div>
 				<!-- Table field -->
 				<div v-else-if="df.fieldtype == 'Table'" class="field-preview-table">
 					<div v-if="df.label" class="field-preview-label">{{ df.label }}</div>
@@ -193,6 +198,7 @@
 
 <script setup>
 import ConfigureColumnsVue from "../inspector/ConfigureColumns.vue";
+import { render_jinja_html } from "../../utils";
 import { createApp, ref, nextTick, watch, computed, inject } from "vue";
 
 const props = defineProps(["df", "field_orientation"]);
@@ -201,7 +207,7 @@ let store = inject("$store");
 let editing = ref(false);
 let label_input = ref(null);
 let rendered_html = ref(null);
-let render_pending = ref(false);
+let rendered_template = ref(null);
 
 let is_selected = computed(() => store.selected_field.value === props.df);
 let preview_doc = computed(() => store.preview_doc.value);
@@ -215,26 +221,37 @@ watch(
 			rendered_html.value = null;
 			return;
 		}
-		if (!html.includes("{{") && !html.includes("{%")) {
-			rendered_html.value = html;
+		rendered_html.value = await render_jinja_html(
+			html,
+			store.meta.value?.name,
+			store.preview_doc_name.value
+		);
+	},
+	{ immediate: true }
+);
+
+// Render Field Template fields server-side when in preview mode
+watch(
+	[preview_doc, () => props.df.field_template],
+	async ([doc]) => {
+		if (!doc || props.df.fieldtype !== "Field Template" || !props.df.field_template) {
+			rendered_template.value = null;
 			return;
 		}
-		if (render_pending.value) return;
-		render_pending.value = true;
 		try {
-			const r = await frappe.call(
-				"frappe.utils.print_format_generator.render_jinja_template",
-				{
-					template: html,
-					doctype: store.meta.value.name,
-					docname: store.preview_doc_name.value,
-				}
+			const tmpl = await frappe.db.get_value(
+				"Print Format Field Template",
+				props.df.field_template,
+				"template"
 			);
-			rendered_html.value = r.message ?? html;
+			const html = tmpl?.message?.template || "";
+			rendered_template.value = await render_jinja_html(
+				html,
+				store.meta.value?.name,
+				store.preview_doc_name.value
+			);
 		} catch {
-			rendered_html.value = html;
-		} finally {
-			render_pending.value = false;
+			rendered_template.value = null;
 		}
 	},
 	{ immediate: true }
