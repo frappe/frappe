@@ -123,7 +123,9 @@ class TestQueryReport(IntegrationTestCase):
 
 		# the Date column carries a date number_format so Excel renders it as a date
 		date_style = {}
-		for sid in styles["column_styles"][0]:
+		col0_style_ids = styles["column_styles"].get(0)
+		self.assertIsNotNone(col0_style_ids, "No column style registered for the Date column")
+		for sid in col0_style_ids:
 			date_style.update(styles["styles"][sid])
 		self.assertIn("num_format", date_style)
 
