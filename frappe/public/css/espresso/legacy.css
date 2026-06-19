@@ -201,3 +201,15 @@
   --border-radius-full: var(--radius-full);
 }
 
+/* DEPRECATED effects aliases + preserved tokens. Renames -> Espresso (values
+   follow Espresso). --shadow-xs/--custom-shadow-sm/--drop-shadow have no Espresso
+   equivalent and keep their old values. Migrate usages to Espresso names over time. */
+:root {
+  --shadow-base: var(--shadow);
+  --focus-yellow: var(--focus-amber);
+  --custom-status: var(--elevation-status);
+  --shadow-xs: rgba(0, 0, 0, 0.05) 0px 0.5px 0px 0px, rgba(0, 0, 0, 0.08) 0px 0px 0px 1px, rgba(0, 0, 0, 0.05) 0px 2px 4px 0px;
+  --custom-shadow-sm: 0px 1px 4px rgba(0, 0, 0, 0.1);
+  --drop-shadow: 0px 0.5px 0px rgba(0, 0, 0, 0.05), 0px 0px 0px rgba(0, 0, 0, 0), 0px 2px 4px rgba(0, 0, 0, 0.05);
+}
+
