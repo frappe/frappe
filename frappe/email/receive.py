@@ -465,6 +465,7 @@ class Email:
 	def set_from(self):
 		# gmail mailing-list compatibility
 		# use X-Original-Sender if available, as gmail sometimes modifies the 'From'
+		self.from_real_name = None
 		_from_email = self.decode_email(self.mail.get("X-Original-From") or self.mail["From"])
 		_reply_to = self.decode_email(self.mail.get("Reply-To"))
 
@@ -491,12 +492,28 @@ class Email:
 	def decode_email(email):
 		if not email:
 			return
+
+		raw_email = email if isinstance(email, str) else email.decode("utf-8", "replace")
 		decoded = ""
 		for part, encoding in decode_header(frappe.as_unicode(email).replace('"', " ").replace("'", " ")):
 			if encoding:
 				decoded += part.decode(encoding, "replace")
 			else:
 				decoded += safe_decode(part)
+
+		# Reject malformed address headers where decoding synthesizes a bare addr-spec.
+		# Allow valid encoded display-name forms like "=?utf-8?...?= <user@example.com>".
+		if decoded and "@" in decoded and "@" not in raw_email:
+			decoded_addr_spec = parse_addr(decoded)[1]
+			if decoded_addr_spec and decoded.strip() == decoded_addr_spec:
+				frappe.log_error(
+					title=_("Malformed Address Header"),
+					message=_("Rejected malformed encoded address header with synthesized '@': {0}").format(
+						repr(raw_email)
+					),
+				)
+				return None
+
 		return decoded
 
 	def set_content_and_type(self):
