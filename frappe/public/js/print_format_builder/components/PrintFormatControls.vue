@@ -181,9 +181,6 @@
 									{{ element.field_label || __("Custom block") }}
 								</div>
 							</div>
-							<svg class="icon icon-xs text-muted pfb-plus-icon">
-								<use href="#icon-plus"></use>
-							</svg>
 						</div>
 					</template>
 				</draggable>
