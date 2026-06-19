@@ -17,6 +17,10 @@
       "import": "./src/components/FileUpload/index.ts",
       "types": "./src/components/FileUpload/index.ts"
     },
+    "./utils": {
+      "import": "./src/utils/index.ts",
+      "types": "./src/utils/index.ts"
+    },
     "./vite": {
       "import": "./vite/index.js"
     },
