@@ -1,5 +1,5 @@
 <template>
-	<h4 class="text-xl-semibold text-ink-gray-9">{{ field.label }}</h4>
+	<h4 class="text-lg-semibold text-ink-gray-9">{{ field.label }}</h4>
 </template>
 
 <script setup lang="ts">
