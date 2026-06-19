@@ -201,7 +201,7 @@ def upload_file():
 				"content": content,
 			}
 		)
-		funcs = frappe.get_hooks("after_upload_file")
+		funcs = frappe.get_hooks("after_file_upload")
 		for func in funcs:
 			doc = frappe.call(func, doc=doc)
 		return doc.save(ignore_permissions=ignore_permissions)
