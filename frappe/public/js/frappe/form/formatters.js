@@ -100,7 +100,7 @@ frappe.form.formatters = {
 			docfield.precision ||
 			cint(frappe.boot.sysdefaults && frappe.boot.sysdefaults.float_precision) ||
 			2;
-		return frappe.form.formatters._right(format_number(value, null, Math.min(precision, valuePrecision))) + "%", options);
+		return frappe.form.formatters._right(format_number(value, null, Math.min(precision, valuePrecision)) + "%", options);
 	},
 	Rating: function (value, docfield) {
 		let rating_html = "";
