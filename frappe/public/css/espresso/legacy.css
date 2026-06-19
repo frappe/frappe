@@ -66,7 +66,7 @@
   --text-muted: var(--ink-gray-5);
   --text-light: var(--ink-gray-4);
   --disabled-text-color: var(--ink-gray-4);
-  --icon-stroke: var(--ink-gray-7);
+  --icon-stroke: currentColor;
   --placeholder-color: var(--ink-gray-4);
   /* Borders / outlines */
   --border-color: var(--outline-gray-2);
@@ -223,4 +223,3 @@
   --weight-black: var(--font-weight-black);
   --text-md: var(--text-base);
 }
-
