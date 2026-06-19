@@ -2,11 +2,13 @@
 	display: flex;
 	align-items: center;
 	padding: 0 15px;
+
 	.sidebar-toggle-btn {
 		display: flex;
 		margin-right: var(--margin-sm);
 		cursor: pointer;
 		--icon-stroke: var(--gray-700);
+
 		.sidebar-toggle-icon {
 			display: none;
 		}
@@ -20,6 +22,7 @@
 			.sidebar-toggle-icon {
 				display: block;
 			}
+
 			.sidebar-toggle-placeholder {
 				display: none;
 			}
@@ -36,14 +39,17 @@
 	.title-area {
 		display: inline-flex;
 		align-items: center;
+
 		.page-indicator-pill {
 			margin-left: var(--margin-sm);
+
 			.indicator-doc-html {
 				height: 8px;
 				width: 8px;
 				border-radius: inherit;
 			}
 		}
+
 		.sub-heading {
 			@include get_textstyle("sm", "regular");
 		}
@@ -62,12 +68,14 @@
 .page-actions {
 	align-items: center;
 	padding-left: 0px;
+
 	.btn {
 		height: var(--btn-height);
 		margin-left: var(--margin-sm, 8px);
-		border-radius: var(--border-radius);
+		border-radius: var(--radius);
 		line-height: 1;
 		padding: 4px 8px;
+
 		&,
 		& .hidden-xs {
 			display: inline-flex;
@@ -75,13 +83,16 @@
 			gap: 6px;
 		}
 	}
+
 	.btn:not(.icon-btn) {
 		padding: 4px 8px;
 	}
+
 	.btn-primary,
 	.btn-secondary {
 		min-width: 40px;
 	}
+
 	.custom-btn-group {
 		display: inline-flex;
 	}
@@ -137,6 +148,7 @@ body[data-route^="Form"] {
 		padding: 0 10px 0 0;
 		margin: 8px 0;
 	}
+
 	.checkbox {
 		margin-top: 4px;
 		margin-bottom: 4px;
@@ -154,10 +166,12 @@ body[data-route^="Form"] {
 .form-inner-toolbar {
 	.inner-group-button {
 		display: inline-flex;
+
 		.icon {
 			margin-right: -var(--margin-xs);
 		}
 	}
+
 	button {
 		margin-left: var(--margin-sm);
 	}
@@ -168,9 +182,11 @@ body[data-route^="Form"] {
 .actions-btn-group,
 .page-icon-group {
 	display: flex;
+
 	.dropdown-menu {
 		width: max-content;
 	}
+
 	.dropdown-item {
 		display: flex;
 		align-items: center;
@@ -221,10 +237,12 @@ body[data-route^="Form"] {
 			height: 60px;
 			width: auto;
 			margin-bottom: var(--margin-md);
+
 			img {
 				fill: var(--fg-color);
 			}
 		}
+
 		p {
 			@include get_textstyle("base", "regular");
 		}

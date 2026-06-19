@@ -4,30 +4,6 @@
  * TODO: reconcile/remove when installing the Espresso effects/base token files. */
 
 :root {
-  --neutral-white: #ffffff;
-  --neutral-black: #000000;
-  --neutral: var(--neutral-white);
-  --invert-neutral: var(--neutral-black);
-  --white-overlay-50: rgba(255, 255, 255, 0.09);
-  --white-overlay-100: rgba(255, 255, 255, 0.18);
-  --white-overlay-200: rgba(255, 255, 255, 0.27);
-  --white-overlay-300: rgba(255, 255, 255, 0.36);
-  --white-overlay-400: rgba(255, 255, 255, 0.45);
-  --white-overlay-500: rgba(255, 255, 255, 0.54);
-  --white-overlay-600: rgba(255, 255, 255, 0.63);
-  --white-overlay-700: rgba(255, 255, 255, 0.72);
-  --white-overlay-800: rgba(255, 255, 255, 0.81);
-  --white-overlay-900: rgba(255, 255, 255, 0.9);
-  --black-overlay-50: rgba(0, 0, 0, 0.09);
-  --black-overlay-100: rgba(0, 0, 0, 0.18);
-  --black-overlay-200: rgba(0, 0, 0, 0.27);
-  --black-overlay-300: rgba(0, 0, 0, 0.36);
-  --black-overlay-400: rgba(0, 0, 0, 0.45);
-  --black-overlay-500: rgba(0, 0, 0, 0.54);
-  --black-overlay-600: rgba(0, 0, 0, 0.63);
-  --black-overlay-700: rgba(0, 0, 0, 0.72);
-  --black-overlay-800: rgba(0, 0, 0, 0.81);
-  --black-overlay-900: rgba(0, 0, 0, 0.9);
   --linear-black: linear-gradient(to bottom, rgba(46, 46, 46, 0.18) 0%, rgba(36, 36, 36, 0.14) 100%);
   --linear-blue: linear-gradient(to bottom, rgba(17, 142, 245, 0.067) 0%, rgba(7, 127, 247, 0.029) 100%);
   --angular-white: conic-gradient(rgba(255, 255, 255, 1) 72.38%, rgba(255, 255, 255, 1) 99.87%);
@@ -51,11 +27,11 @@
   --popover-bg: var(--surface-elevation-2);
   --toast-bg: var(--surface-elevation-2);
   --control-bg: var(--surface-gray-2);
-  --control-bg-on-gray: var(--surface-elevation-2);
+  --control-bg-on-gray: var(--surface-gray-2);
   --subtle-accent: var(--surface-elevation-2);
   --subtle-fg: var(--surface-gray-3);
-  --fg-hover-color: var(--surface-elevation-2);
-  --disabled-control-bg: var(--surface-elevation-2);
+  --fg-hover-color: var(--surface-gray-3);
+  --disabled-control-bg: var(--surface-gray-1);
   --navbar-bg: var(--surface-sidebar);
   --sidebar-select-color: var(--surface-elevation-2);
   --highlight-color: var(--surface-gray-3);
@@ -135,7 +111,7 @@
   --awesomebar-focus-bg: var(--fg-color);
   --awesomplete-hover-bg: var(--control-bg);
   --brand-color: var(--primary);
-  --checkbox-color: var(--neutral-black);
+  --checkbox-color: var(--ink-gray-9);
   --criticism-bg: var(--red-100);
   --criticism-color: var(--red-600);
   --date-active-bg: var(--gray-900);
@@ -171,7 +147,7 @@
   --appreciation-color: var(--dark-green-100);
   --awesomebar-focus-bg: var(--control-bg);
   --awesomplete-hover-bg: var(--gray-800);
-  --checkbox-color: var(--neutral-white);
+  --checkbox-color: var(--ink-base);
   --criticism-bg: var(--red-600);
   --criticism-color: var(--red-100);
   --date-active-bg: var(--gray-700);
@@ -186,20 +162,6 @@
 }
 
 /* <<< deprecated tokens <<< */
-
-/* DEPRECATED radius aliases — old --border-radius-* mapped to Espresso --radius-*.
-   Values follow Espresso (note: --border-radius-sm 8px -> 4px). Migrate usages
-   to --radius-* over time, then remove. */
-:root {
-  --border-radius: var(--radius);
-  --border-radius-tiny: var(--radius-sm);
-  --border-radius-sm: var(--radius-sm);
-  --border-radius-md: var(--radius-md);
-  --border-radius-lg: var(--radius-lg);
-  --border-radius-xl: var(--radius-xl);
-  --border-radius-2xl: var(--radius-2xl);
-  --border-radius-full: var(--radius-full);
-}
 
 /* DEPRECATED effects aliases + preserved tokens. Renames -> Espresso (values
    follow Espresso). --shadow-xs/--custom-shadow-sm/--drop-shadow have no Espresso
@@ -233,4 +195,3 @@
   --bg-violet: var(--surface-violet-2);
   --text-on-violet: var(--ink-violet-8);
 }
-

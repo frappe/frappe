@@ -1,7 +1,6 @@
 /* Espresso radius — canonical scale, plain CSS (source of truth).
  * Installed from design-poc/shared/tokens/espresso-radius.css (neutral :root only;
- * the Tailwind @theme adapter stays in frappe-ui). Loaded via espresso/_borders.scss.
- * Old --border-radius-* names are aliased (deprecated) in legacy.css. */
+ * the Tailwind @theme adapter stays in frappe-ui). Loaded via espresso/_borders.scss. */
 
 :root {
   --radius-0: 0px;

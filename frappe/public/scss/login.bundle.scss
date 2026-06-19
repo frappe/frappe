@@ -2,6 +2,7 @@
 
 body {
 	background-color: var(--bg-color);
+
 	.page-content-wrapper {
 		min-height: calc(100vh - 220px);
 		padding-top: 60px;
@@ -11,6 +12,7 @@ body {
 			min-height: 100svh;
 		}
 	}
+
 	.web-footer {
 		display: none;
 	}
@@ -35,7 +37,7 @@ body {
 		max-width: 371px;
 		width: 100%;
 		margin: 0 auto;
-		border-radius: var(--border-radius-lg);
+		border-radius: var(--radius-lg);
 		display: flex;
 		flex-direction: column;
 		gap: var(--margin-lg);
@@ -84,7 +86,7 @@ body {
 				border: none;
 				box-shadow: none;
 				padding: 6px 8px;
-				border-radius: var(--border-radius-sm);
+				border-radius: var(--radius);
 				width: 100%;
 
 				&:hover,
@@ -112,7 +114,7 @@ body {
 				border: none;
 				box-shadow: none;
 				padding: 6px 8px;
-				border-radius: var(--border-radius-sm);
+				border-radius: var(--radius);
 				width: 100%;
 
 				&:not(:disabled) {
@@ -147,7 +149,7 @@ body {
 				align-items: center;
 				padding: 6px 8px;
 				margin-top: 0;
-				border-radius: var(--border-radius-sm);
+				border-radius: var(--radius);
 				width: 100%;
 
 				&.btn-salesforce {
@@ -176,6 +178,7 @@ body {
 						@include media-breakpoint-up(md) {
 							min-width: 33.33%;
 						}
+
 						min-width: 50%;
 						padding: 0 4px;
 						margin-bottom: var(--margin-md);
@@ -212,11 +215,13 @@ body {
 			flex-direction: column;
 			gap: 14px;
 
-			::placeholder, /* Chrome, Firefox, Opera, Safari 10.1+ */
+			::placeholder,
+			/* Chrome, Firefox, Opera, Safari 10.1+ */
 			::-ms-input-placeholder {
 				/* Microsoft Edge */
 				color: var(--ink-gray-4);
-				opacity: 1; /* Firefox */
+				opacity: 1;
+				/* Firefox */
 			}
 
 			input[type="text"],
@@ -228,7 +233,7 @@ body {
 				background-color: var(--surface-base);
 				height: 28px;
 				padding: 6px 8px;
-				border-radius: var(--border-radius-sm);
+				border-radius: var(--radius);
 			}
 
 			&.invalid {
@@ -246,7 +251,7 @@ body {
 				gap: 8px;
 				align-self: stretch;
 				background-color: var(--surface-green-1);
-				border-radius: var(--border-radius-sm);
+				border-radius: var(--radius);
 				@include get_textstyle("base", "regular");
 				line-height: 115%;
 				color: var(--ink-green-6);
@@ -264,7 +269,7 @@ body {
 				gap: 8px;
 				align-self: stretch;
 				background-color: var(--red-50);
-				border-radius: var(--border-radius-sm);
+				border-radius: var(--radius);
 				@include get_textstyle("base", "regular");
 				color: var(--ink-red-8);
 
@@ -287,6 +292,7 @@ body {
 				input[type="password"] {
 					border: 1px solid var(--outline-red-3);
 				}
+
 				.field-error {
 					display: block;
 				}
@@ -355,6 +361,7 @@ body {
 		color: var(--ink-gray-6);
 		@include get_textstyle("sm", "regular");
 		line-height: 150%;
+
 		a {
 			color: var(--ink-gray-6);
 			font-weight: var(--weight-regular);
@@ -376,15 +383,19 @@ body {
 		100% {
 			transform: translateX(0);
 		}
+
 		20% {
 			transform: translateX(-4px);
 		}
+
 		40% {
 			transform: translateX(4px);
 		}
+
 		60% {
 			transform: translateX(-3px);
 		}
+
 		80% {
 			transform: translateX(3px);
 		}
@@ -497,12 +508,15 @@ body {
 			&.strength-red {
 				color: var(--dark-red-500, #b01f1f);
 			}
+
 			&.strength-orange {
 				color: var(--dark-orange-500, var(--orange-700));
 			}
+
 			&.strength-blue {
 				color: var(--dark-blue-500, var(--blue-700));
 			}
+
 			&.strength-green {
 				color: var(--dark-green-500, var(--green-700));
 			}
@@ -511,7 +525,7 @@ body {
 		.password-strength-bar-track {
 			height: 4px;
 			background: var(--surface-gray-2);
-			border-radius: var(--border-radius-sm);
+			border-radius: var(--radius);
 			align-self: stretch;
 			overflow: hidden;
 		}
@@ -524,12 +538,15 @@ body {
 			&.strength-red {
 				background: var(--dark-red-500, #b01f1f);
 			}
+
 			&.strength-orange {
 				background: var(--dark-orange-500, var(--orange-700));
 			}
+
 			&.strength-blue {
 				background: var(--dark-blue-500, var(--blue-700));
 			}
+
 			&.strength-green {
 				background: var(--dark-green-500, var(--green-700));
 			}

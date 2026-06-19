@@ -3,11 +3,12 @@
 	--menu-width: 200px;
 	--menu-icon-size: 16px;
 }
+
 .frappe-menu {
 	position: absolute;
 	width: var(--menu-width);
 	padding: 6px;
-	border-radius: var(--border-radius-lg);
+	border-radius: var(--radius-lg);
 	background: var(--surface-elevation-2);
 	box-shadow: var(--shadow-xl);
 	z-index: 1030;
@@ -15,7 +16,8 @@
 
 .dropdown-menu-item {
 	// padding: var(--padding-xs);
-	border-radius: var(--border-radius-sm);
+	border-radius: var(--radius);
+
 	&:hover:has(a) {
 		background-color: var(--sidebar-hover-color);
 	}
@@ -29,8 +31,10 @@
 		align-items: center;
 		overflow: hidden;
 		gap: var(--margin-sm);
+
 		.frappe-menu-item-icon {
 			line-height: 0px;
+
 			.app-logo,
 			img {
 				width: 16px;
@@ -38,10 +42,12 @@
 			}
 		}
 	}
+
 	.dropdown-divider {
 		margin-right: 0;
 		margin-left: 0;
 	}
+
 	.menu-item-title {
 		text-overflow: ellipsis;
 		text-wrap: nowrap;
@@ -50,6 +56,7 @@
 		flex: 1;
 		min-width: 0;
 	}
+
 	.menu-item-shortcut {
 		margin-left: var(--margin-xxs);
 		color: var(--ink-gray-4, #999999);
@@ -64,11 +71,13 @@
 .frappe-menu-item-icon {
 	width: var(--menu-icon-size);
 	height: var(--menu-icon-size);
+
 	& .icon-container {
 		width: 100%;
 		height: 100%;
 		padding: unset;
 		border-radius: 4px;
+
 		& .desktop-alphabet {
 			padding: 4px;
 		}

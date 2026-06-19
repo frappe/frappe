@@ -15,14 +15,15 @@
 	content: "";
 	height: 8px;
 	width: 8px;
-	border-radius: var(--border-radius);
+	border-radius: var(--radius);
 	margin: 0px 8px 0px 0px;
 }
+
 .indicator-pill,
 .indicator-pill-right {
 	@include get_textstyle("sm", "regular");
 	padding: 4.5px 8px;
-	border-radius: var(--border-radius-full);
+	border-radius: var(--radius-full);
 	height: 20px;
 }
 
@@ -59,6 +60,7 @@
 // Framework's migrated get_indicator defs now use.
 $indicator-colors: green, cyan, blue, orange, yellow, gray, grey, red, pink, darkgrey, purple,
 	light-blue, amber, violet;
+
 @each $color in $indicator-colors {
 	.indicator.#{"" + $color} {
 		&::before,
@@ -72,11 +74,13 @@ $indicator-colors: green, cyan, blue, orange, yellow, gray, grey, red, pink, dar
 	.indicator-pill-round.#{"" + $color} {
 		background: var(--bg-#{$color});
 		color: var(--text-on-#{$color});
+
 		&::before,
 		&::after {
 			background: var(--text-on-#{$color});
 		}
 	}
+
 	.indicator {
 		--indicator-dot-#{"" + $color}: var(--text-on-#{$color});
 	}

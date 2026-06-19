@@ -8,7 +8,7 @@
 		max-height: min(590px, calc(100vh - 80px));
 		display: flex;
 		flex-direction: column;
-		border-radius: var(--border-radius-xl);
+		border-radius: var(--radius-xl);
 	}
 
 	.modal-header {
@@ -81,7 +81,7 @@
 	align-items: center;
 	justify-content: center;
 	padding: 6px;
-	border-radius: var(--border-radius);
+	border-radius: var(--radius);
 	color: var(--text-muted);
 
 	&:hover {
@@ -175,7 +175,7 @@ a.about-info-title-link {
 .about-app-logo {
 	width: 32px;
 	height: 32px;
-	border-radius: var(--border-radius);
+	border-radius: var(--radius);
 	flex-shrink: 0;
 }
 

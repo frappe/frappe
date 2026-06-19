@@ -1,9 +1,6 @@
 $check-icon-dark: url("data:image/svg+xml, <svg viewBox='0 0 8 7' fill='none' xmlns='http://www.w3.org/2000/svg'><path d='M1 4.00001L2.66667 5.80001L7 1.20001' stroke='black' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'/></svg>");
 
 [data-theme="dark"] {
-	--neutral: var(--neutral-black);
-	--invert-neutral: var(--neutral-white);
-
 	--shadow-inset: var(--fg-color);
 
 	--highlight-shadow: 1px 1px 10px var(--blue-900), 0px 0px 4px var(--blue-500);
@@ -24,8 +21,8 @@ $check-icon-dark: url("data:image/svg+xml, <svg viewBox='0 0 8 7' fill='none' xm
 	// checkbox
 	--checkbox-gradient: linear-gradient(
 		180deg,
-		var(--neutral-white) -124.51%,
-		var(--neutral-white) 100%
+		var(--bg-surface-base) -124.51%,
+		var(--bg-surface-base) 100%
 	);
 	--checkbox-disabled-gradient: linear-gradient(
 		180deg,
@@ -159,7 +156,7 @@ $check-icon-dark: url("data:image/svg+xml, <svg viewBox='0 0 8 7' fill='none' xm
 		code {
 			background-color: var(--gray-800);
 			color: var(--gray-200);
-			border-radius: var(--border-radius-sm);
+			border-radius: var(--radius);
 			padding: 2px 6px;
 		}
 	}
