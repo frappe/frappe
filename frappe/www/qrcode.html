@@ -39,18 +39,6 @@
 		padding: 6px 12px;
 		flex-shrink: 0;
 	}
-
-	.check-icon {
-		display: none;
-	}
-
-	.check-icon.visible {
-		display: inline;
-	}
-
-	.copy-icon.hidden {
-		display: none;
-	}
 </style>
 
 <h1>{{ _("QR Code for Login Verification") }}</h1>
@@ -93,11 +81,11 @@
 					class='btn btn-default btn-sm copy-secret-btn'
 					title='{{ _("Copy to clipboard") }}'
 				>
-					<svg id='copy-icon' class='copy-icon' width='16' height='16' viewBox='0 0 24 24' fill='none' stroke='currentColor' stroke-width='2'>
+					<svg id='copy-icon' width='16' height='16' viewBox='0 0 24 24' fill='none' stroke='currentColor' stroke-width='2'>
 						<rect x='9' y='9' width='13' height='13' rx='2' ry='2'></rect>
 						<path d='M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1'></path>
 					</svg>
-					<svg id='check-icon' class='check-icon' width='16' height='16' viewBox='0 0 24 24' fill='none' stroke='#10b981' stroke-width='2.5'>
+					<svg id='check-icon' style='display:none' width='16' height='16' viewBox='0 0 24 24' fill='none' stroke='#10b981' stroke-width='2.5'>
 						<polyline points='20 6 9 17 4 12'></polyline>
 					</svg>
 				</button>
@@ -119,28 +107,33 @@ function copySecret() {
     input.select();
     input.setSelectionRange(0, 99999);
 
+    function showCopied() {
+        copyIcon.style.display = 'none';
+        checkIcon.style.display = 'inline';
+        setTimeout(function() {
+            copyIcon.style.display = 'inline';
+            checkIcon.style.display = 'none';
+        }, 2000);
+    }
+
+    function cleanup() {
+        input.blur();
+        window.getSelection().removeAllRanges();
+    }
+
     try {
         navigator.clipboard.writeText(input.value).then(function() {
-            copyIcon.style.display = 'none';
-            checkIcon.style.display = 'inline';
-            setTimeout(function() {
-                copyIcon.style.display = 'inline';
-                checkIcon.style.display = 'none';
-            }, 2000);
+            showCopied();
+            cleanup();
         }).catch(function() {
             document.execCommand('copy');
-            copyIcon.style.display = 'none';
-            checkIcon.style.display = 'inline';
-            setTimeout(function() {
-                copyIcon.style.display = 'inline';
-                checkIcon.style.display = 'none';
-            }, 2000);
+            showCopied();
+            cleanup();
         });
     } catch (err) {
         console.error('Copy failed:', err);
+        cleanup();
     }
-    input.blur();
-    window.getSelection().removeAllRanges();
 }
 </script>
 {% endblock %}
