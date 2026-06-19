@@ -2,7 +2,7 @@
 # License: MIT. See LICENSE
 
 import frappe
-from frappe.desk.query_report import build_xlsx_data, export_query, run
+from frappe.desk.query_report import build_xlsx_data, export_query, get_filtered_data, run
 from frappe.tests import IntegrationTestCase
 from frappe.utils.xlsxutils import XLSXMetadata, XLSXStyleBuilder, make_xlsx
 
@@ -352,6 +352,65 @@ data = columns, result
 
 		frappe.delete_doc("Report", REPORT_NAME, delete_permanently=True)
 		frappe.db.commit()
+
+	def test_report_with_unreadable_link_column_doctype(self):
+		"""Post-filtering must not abort when a Link column targets a doctype the user can't read.
+
+		Mirrors ERPNext's Stock Ledger Variance report, whose voucher_type column is a
+		Link → DocType. A role without Read on the DocType doctype used to raise
+		frappe.PermissionError out of get_user_match_filters; the report's own access was already
+		validated against ref_doctype, so an unreadable Link target should just be skipped.
+		"""
+		role = "Variance Test Role"
+		if not frappe.db.exists("Role", role):
+			frappe.get_doc({"doctype": "Role", "role_name": role}).insert(ignore_permissions=True)
+
+		frappe.get_doc(
+			{
+				"doctype": "DocType",
+				"name": "Variance Test Doc",
+				"module": "Core",
+				"custom": 1,
+				"autoname": "field:title",
+				"fields": [
+					{"label": "Title", "fieldname": "title", "fieldtype": "Data"},
+					{
+						"label": "Voucher Type",
+						"fieldname": "voucher_type",
+						"fieldtype": "Link",
+						"options": "DocType",
+					},
+				],
+				"permissions": [{"role": role, "read": 1}],
+			}
+		).insert(ignore_if_duplicate=True)
+
+		user = "variance_reader@example.com"
+		if not frappe.db.exists("User", user):
+			frappe.get_doc(
+				{
+					"doctype": "User",
+					"email": user,
+					"first_name": "Variance",
+					"roles": [{"role": role}],
+				}
+			).insert(ignore_permissions=True)
+
+		self.assertTrue(frappe.has_permission("Variance Test Doc", "read", user=user))
+		self.assertFalse(frappe.has_permission("DocType", "read", user=user))
+
+		columns = [
+			{"label": "Title", "fieldname": "title", "fieldtype": "Link", "options": "Variance Test Doc"},
+			{"label": "Voucher Type", "fieldname": "voucher_type", "fieldtype": "Link", "options": "DocType"},
+		]
+		data = [
+			{"title": "Row 1", "voucher_type": "User"},
+			{"title": "Row 2", "voucher_type": "ToDo"},
+		]
+
+		# before the fix this raised frappe.PermissionError: No permission to read DocType
+		result = get_filtered_data("Variance Test Doc", columns, data, user)
+		self.assertEqual(len(result), 2)
 
 
 def create_mock_data():
