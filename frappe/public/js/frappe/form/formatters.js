@@ -94,11 +94,9 @@ frappe.form.formatters = {
 		if (value === null) {
 			return "";
 		}
-
-
-	const valuePrecision = value?.toString().split(".")[1]?.length || 0;
-
-	const precision =
+		
+		const valuePrecision = value?.toString().split(".")[1]?.length || 0;
+		const precision =
 			docfield.precision ||
 			cint(frappe.boot.sysdefaults && frappe.boot.sysdefaults.float_precision) ||
 			2;
