@@ -35,6 +35,32 @@ class TestDocument(IntegrationTestCase):
 		d = frappe.get_doc({"doctype": "User"})
 		self.assertEqual(d.get("roles"), [])
 
+	def test_missing_column_self_heals(self):
+		# A write that fails because a defined field's column is missing from the table should
+		# recreate the column and retry, so the save succeeds instead of erroring.
+		dt = new_doctype(fields=[{"label": "FG", "fieldname": "custom_fg", "fieldtype": "Data"}]).insert().name
+		try:
+			frappe.db.sql_ddl(f"ALTER TABLE `tab{dt}` DROP COLUMN `custom_fg`")
+			frappe.db.commit()
+			frappe.clear_cache(doctype=dt)
+			self.assertNotIn("custom_fg", frappe.db.get_table_columns(dt))
+
+			# insert should self-heal: recreate the column and save successfully
+			doc = frappe.get_doc({"doctype": dt, "custom_fg": "value"}).insert()
+			self.assertTrue(doc.name)
+			frappe.clear_cache(doctype=dt)
+			self.assertIn("custom_fg", frappe.db.get_table_columns(dt))
+
+			# an unknown column that is not a defined field is NOT recovered
+			self.assertFalse(
+				frappe.new_doc(dt)._recover_missing_column(
+					Exception("(1054, \"Unknown column 'not_a_field' in 'field list'\")")
+				)
+			)
+		finally:
+			frappe.delete_doc("DocType", dt, force=True)
+			frappe.db.commit()
+
 	def test_load(self):
 		d = frappe.get_doc("DocType", "User")
 		self.assertEqual(d.doctype, "DocType")

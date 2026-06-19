@@ -846,6 +846,9 @@ class BaseDocument:
 				# unique constraint
 				self.show_unique_validation_message(e)
 
+			elif self._recover_missing_column(e):
+				return self.db_insert(ignore_if_duplicate=ignore_if_duplicate)
+
 			else:
 				raise
 		else:
@@ -853,6 +856,32 @@ class BaseDocument:
 				frappe.db.release_savepoint(save_point)
 
 		self.set("__islocal", False)
+
+	def _recover_missing_column(self, exc) -> bool:
+		"""Self-heal a write that failed because a defined field's column is missing.
+
+		When the database table is out of sync with the DocType (the field exists in the meta
+		but its column was never created), recreate the column by re-syncing the schema so the
+		write can be retried — the user's save just works instead of erroring.
+
+		Returns True if the schema was re-synced and the caller should retry the write. Returns
+		False for any other unknown column (a genuine bug, typo, or dropped non-field column),
+		so the original error is preserved. If the column cannot be recreated (for example the
+		row size limit is exceeded), the actionable error from the schema sync propagates.
+		"""
+		# Only attempt the recovery once per write to avoid an endless retry loop.
+		if self.flags.get("schema_resync_attempted") or not frappe.db.is_missing_column(exc):
+			return False
+
+		match = re.search(r"column ['\"]?(\w+)['\"]?", str(exc), flags=re.IGNORECASE)
+		column = match.group(1) if match else None
+		if not column or not self.meta.get_field(column):
+			return False
+
+		self.flags.schema_resync_attempted = True
+		frappe.db.updatedb(self.doctype)
+		frappe.clear_cache(doctype=self.doctype)
+		return True
 
 	def db_update(self):
 		if self.get("__islocal") or not self.name:
@@ -903,6 +932,8 @@ class BaseDocument:
 
 			if frappe.db.is_unique_key_violation(e):
 				self.show_unique_validation_message(e)
+			elif self._recover_missing_column(e):
+				return self.db_update()
 			else:
 				raise
 		else:
