@@ -274,14 +274,6 @@
 	}
 }
 
-.recent-item.open-docs {
-	@include flex(flex, space-between, null, null);
-
-	.indicator-pill {
-		margin: 0px;
-	}
-}
-
 .targets-container {
 	display: grid;
 	grid-template-columns: 1fr 1fr;
