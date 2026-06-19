@@ -77,7 +77,7 @@ function draw(panel, doctype, state) {
 	state.fields.forEach((o) => {
 		const $item = make_check(o.label, o.checked, (v) => (o.checked = v))
 			.addClass("dts-gs-item")
-			.attr("data-search", `${(o.label || "").toLowerCase()} ${o.value.toLowerCase()}`);
+			.attr("data-search", `${(o.label || "").toLowerCase()} ${(o.value || "").toLowerCase()}`);
 		$grid.append($item);
 	});
 
