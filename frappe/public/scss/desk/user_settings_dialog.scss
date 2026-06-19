@@ -71,4 +71,31 @@
 			font-size: var(--text-xs);
 		}
 	}
+
+	.preference-row {
+		display: flex;
+		justify-content: space-between;
+		align-items: center;
+		gap: 2rem;
+		padding: var(--padding-sm) 0;
+
+		> :first-child {
+			display: flex;
+			flex-direction: column;
+			gap: 2px;
+			min-width: 0;
+		}
+	}
+
+	.preference-label {
+		font-size: var(--text-sm);
+		font-weight: 420;
+		color: var(--ink-gray-5);
+	}
+
+	.preference-value {
+		font-size: var(--text-base);
+		font-weight: 420;
+		color: var(--ink-gray-8);
+	}
 }

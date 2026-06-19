@@ -208,19 +208,24 @@
 
 .settings-dialog-section-heading {
 	margin-top: var(--margin-md);
-	margin-bottom: var(--margin-sm);
+	margin-bottom: var(--margin-xs);
+	padding-top: var(--padding-sm);
+	border-top: 1px solid var(--outline-gray-modals);
 
 	&:first-child {
 		margin-top: 0;
+		padding-top: 0;
+		border-top: none;
 	}
 }
 
 .settings-dialog-section-title {
+	margin-top: var(--margin-md);
 	font-size: var(--text-base);
-	font-weight: 420;
+	font-weight: var(--weight-medium);
 	line-height: 1.5;
 	letter-spacing: 0.02em;
-	color: var(--ink-gray-6);
+	color: var(--ink-gray-8);
 }
 
 .settings-dialog-section-description {
@@ -261,7 +266,7 @@
 }
 
 .settings-dialog-panel-body .form-section:not(:first-child):has(> .section-head) {
-	border-top: 1px solid var(--border-color);
+	border-top: 1px solid var(--outline-gray-modals);
 	padding-top: var(--padding-sm);
 }
 
@@ -285,7 +290,7 @@
 .settings-dialog-panel-body
 	.frappe-control:has(> .switch-control)
 	+ .frappe-control:has(> .switch-control) {
-	border-top: 1px solid var(--border-color);
+	border-top: 1px solid var(--outline-gray-modals);
 	padding-top: var(--padding-sm);
 	margin-top: var(--padding-sm);
 }

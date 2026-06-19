@@ -1,6 +1,11 @@
 frappe.provide("frappe.ui");
 
 frappe.ui.show_user_settings = async function (default_tab) {
+	if (!frappe.all_timezones) {
+		const { message } = await frappe.call("frappe.core.doctype.user.user.get_timezones");
+		frappe.all_timezones = message.timezones;
+	}
+
 	const { message: user_data } = await frappe.db.get_value("User", frappe.session.user, [
 		"first_name",
 		"middle_name",
@@ -303,54 +308,126 @@ function _preferences_tab(user_data) {
 				fieldtype: "Switch",
 				fieldname: "notifications",
 				label: __("Allow Notifications"),
+				description: __(
+					"Show desktop and in-app notifications for activity on your account."
+				),
 				default: user_data.notifications,
 			},
 			{
 				fieldtype: "Switch",
 				fieldname: "search_bar",
 				label: __("Show Search Bar"),
+				description: __("Display the search bar in the navigation area for quick access."),
 				default: user_data.search_bar,
 			},
 			{
 				fieldtype: "Switch",
 				fieldname: "mute_sounds",
 				label: __("Mute Sounds"),
+				description: __(
+					"Disable all notification and alert sounds across the application."
+				),
 				default: user_data.mute_sounds,
-			},
-			{ fieldtype: "Section Break", label: __("Locale") },
-			{
-				fieldtype: "Link",
-				fieldname: "language",
-				label: __("Language"),
-				options: "Language",
-				default: user_data.language || "",
-			},
-			{
-				fieldtype: "Autocomplete",
-				fieldname: "time_zone",
-				label: __("Time Zone"),
-				default: user_data.time_zone || "",
-			},
-		],
-		actions: [
-			{
-				label: __("Save"),
-				primary: true,
-				click(panel) {
-					const values = panel.get_values();
-					if (!values) return;
-					_save_user({ language: values.language, time_zone: values.time_zone }).then(
-						() => {
-							frappe.show_alert({ message: __("Saved"), indicator: "green" });
-						}
-					);
-				},
 			},
 		],
 		render(panel) {
 			_bind_switch_autosave(panel, ["notifications", "search_bar", "mute_sounds"]);
+
+			panel.body.append(_section_heading(__("Locale")));
+
+			const $lang = _add_preference_row(panel.body, {
+				label: __("Language"),
+				value: user_data.language,
+				button_label: __("Change Language"),
+				onClick() {
+					_change_user_field({
+						field: {
+							fieldtype: "Link",
+							fieldname: "language",
+							label: __("Language"),
+							options: "Language",
+							default: user_data.language,
+							reqd: 1,
+						},
+						title: __("Change Language"),
+						on_save(value) {
+							user_data.language = value;
+							_set_language_label($lang, value);
+						},
+					});
+				},
+			});
+			_set_language_label($lang, user_data.language);
+
+			const $tz = _add_preference_row(panel.body, {
+				label: __("Time Zone"),
+				value: user_data.time_zone,
+				button_label: __("Change Time Zone"),
+				onClick() {
+					_change_user_field({
+						field: {
+							fieldtype: "Autocomplete",
+							fieldname: "time_zone",
+							label: __("Time Zone"),
+							options: frappe.all_timezones,
+							default: user_data.time_zone,
+							reqd: 1,
+						},
+						title: __("Change Time Zone"),
+						on_save(value) {
+							user_data.time_zone = value;
+							$tz.find(".preference-value").text(value || "");
+						},
+					});
+				},
+			});
 		},
 	};
+}
+
+function _add_preference_row(parent, { label, value, button_label, onClick }) {
+	const $row = $(`
+		<div class="preference-row">
+			<div>
+				<div class="preference-label">${label}</div>
+				<div class="preference-value">${frappe.utils.escape_html(value || "")}</div>
+			</div>
+			<button class="btn btn-sm btn-default">${button_label}</button>
+		</div>
+	`);
+	$row.find("button").on("click", onClick);
+	parent.append($row);
+	return $row;
+}
+
+function _set_language_label($row, code) {
+	if (!code) {
+		$row.find(".preference-value").text("");
+		return;
+	}
+	frappe.db.get_value("Language", code, "language_name").then((r) => {
+		$row.find(".preference-value").text(r.message?.language_name || code);
+	});
+}
+
+function _change_user_field({ field, title, on_save }) {
+	const dialog = new frappe.ui.Dialog({
+		title,
+		fields: [field],
+		primary_action_label: __("Save"),
+		primary_action(values) {
+			const new_value = values[field.fieldname];
+			return _save_user(field.fieldname, new_value).then(() => {
+				frappe.show_alert({
+					message: __("Saved. Refresh to see changes."),
+					indicator: "green",
+				});
+				on_save(new_value);
+				dialog.hide();
+			});
+		},
+	});
+	dialog.show();
 }
 
 // ─── Lists ────────────────────────────────────────────────────────────────────
@@ -367,18 +444,25 @@ function _lists_tab(user_data) {
 				fieldtype: "Switch",
 				fieldname: "list_sidebar",
 				label: __("Show Sidebar"),
+				description: __("Display the filter and group-by sidebar in list views."),
 				default: user_data.list_sidebar,
 			},
 			{
 				fieldtype: "Switch",
 				fieldname: "bulk_actions",
 				label: __("Allow Bulk Actions"),
+				description: __(
+					"Enable checkboxes to select multiple records and perform bulk operations."
+				),
 				default: user_data.bulk_actions,
 			},
 			{
 				fieldtype: "Switch",
 				fieldname: "view_switcher",
 				label: __("Show View Switcher"),
+				description: __(
+					"Show the toolbar to switch between List, Kanban, Report and other views."
+				),
 				default: user_data.view_switcher,
 			},
 		],
@@ -402,30 +486,41 @@ function _forms_tab(user_data) {
 				fieldtype: "Switch",
 				fieldname: "form_sidebar",
 				label: __("Show Sidebar"),
+				description: __(
+					"Display the attachments, comments and connections sidebar in forms."
+				),
 				default: user_data.form_sidebar,
 			},
 			{
 				fieldtype: "Switch",
 				fieldname: "timeline",
 				label: __("Show Timeline"),
+				description: __("Show the activity timeline with comments, emails and history."),
 				default: user_data.timeline,
 			},
 			{
 				fieldtype: "Switch",
 				fieldname: "dashboard",
 				label: __("Show Dashboard"),
+				description: __(
+					"Show the summary dashboard with charts and statistics at the top of forms."
+				),
 				default: user_data.dashboard,
 			},
 			{
 				fieldtype: "Switch",
 				fieldname: "show_absolute_datetime_in_timeline",
 				label: __("Show Absolute Datetime in Timeline"),
+				description: __(
+					"Display exact timestamps instead of relative time in the activity timeline."
+				),
 				default: user_data.show_absolute_datetime_in_timeline,
 			},
 			{
 				fieldtype: "Switch",
 				fieldname: "form_navigation_buttons",
 				label: __("Show Navigation Buttons"),
+				description: __("Show previous and next navigation buttons in the form toolbar."),
 				default: user_data.form_navigation_buttons,
 			},
 		],
