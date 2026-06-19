@@ -95,16 +95,14 @@ frappe.form.formatters = {
 			return "";
 		}
 
-<<<<<<< HEAD
-=======
-		const valuePrecision = value?.toString().split(".")[1]?.length || 0;
 
->>>>>>> 29e52f6deb (fix: percent precision when value is undefined (#37755))
-		const precision =
+	const valuePrecision = value?.toString().split(".")[1]?.length || 0;
+
+	const precision =
 			docfield.precision ||
 			cint(frappe.boot.sysdefaults && frappe.boot.sysdefaults.float_precision) ||
 			2;
-		return frappe.form.formatters._right(format_number(value, null, precision) + "%", options);
+		return frappe.form.formatters._right(format_number(value, null, Math.min(precision, valuePrecision))) + "%", options);
 	},
 	Rating: function (value, docfield) {
 		let rating_html = "";
