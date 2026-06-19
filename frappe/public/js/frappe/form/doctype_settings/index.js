@@ -5,9 +5,12 @@ import "./list_panel";
 // imported here as it's added.
 import "./tabs/email_template";
 import "./tabs/notification";
-import "./tabs/global_search"
+import "./tabs/naming";
+import "./tabs/global_search";
 import "./tabs/workflow";
 import "./tabs/print_format";
+import "./tabs/permissions";
+import "./tabs/data_import";
 
 /**
  * Open the DocType Settings dialog scoped to `doctype`.
@@ -25,6 +28,7 @@ frappe.doctype_settings.open = function (doctype) {
 	for (const group of frappe.doctype_settings.groups) {
 		const items = (group.items || [])
 			.filter((item) => builders[item.id])
+			.filter((item) => (item.condition ? item.condition(doctype) : true))
 			.map((item) => ({
 				...item,
 				render: (panel) => builders[item.id](panel, doctype),

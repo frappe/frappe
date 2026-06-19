@@ -218,14 +218,21 @@ class ListPanel {
 
 		const $input = $label.find("input").prop("checked", checked).prop("disabled", disabled);
 
+		// Last confirmed state — advanced on each success so a later failure reverts to the
+		// most recent good value, not the one captured at first render.
+		let last_good = checked;
+
 		$input.on("change", () => {
 			const value = $input.is(":checked") ? 1 : 0;
 			$input.prop("disabled", true);
 			Promise.resolve(t.onchange(row, value, this))
-				.then(() => $input.prop("disabled", false))
+				.then(() => {
+					last_good = !!value;
+					$input.prop("disabled", false);
+				})
 				.catch(() => {
-					// Revert on failure.
-					$input.prop("checked", checked).prop("disabled", false);
+					// Revert to the last confirmed state on failure.
+					$input.prop("checked", last_good).prop("disabled", false);
 					frappe.show_alert({ message: __("Could not update"), indicator: "red" });
 				});
 		});
@@ -234,38 +241,12 @@ class ListPanel {
 	}
 
 	make_actions(row) {
-		const items = this.config.actions(row) || [];
-		const $cell = $('<div class="dts-list-cell dts-list-cell-actions"></div>');
-		if (!items.length) return $cell;
-
-		const $wrap = $('<div class="dts-actions dropdown"></div>').appendTo($cell);
-		const $btn = $(
-			`<button type="button" class="btn btn-xs btn-default dts-actions-btn">⋯</button>`
-		).appendTo($wrap);
-		const $menu = $('<ul class="dropdown-menu dropdown-menu-right dts-actions-menu"></ul>').appendTo(
-			$wrap
-		);
-
-		items.forEach((item) => {
-			const $a = $('<a class="dropdown-item dts-action-item"></a>');
-			if (item.icon) $a.append(frappe.utils.icon(item.icon, "sm"));
-			$a.append($("<span></span>").text(item.label));
-			if (item.danger) $a.addClass("text-danger");
-			$('<li></li>').append($a).appendTo($menu);
-			$a.on("click", () => {
-				$menu.removeClass("show");
-				item.onclick(this);
-			});
-		});
-
-		$btn.on("click", (e) => {
-			e.stopPropagation();
-			$(".dts-actions-menu").not($menu).removeClass("show");
-			$menu.toggleClass("show");
-		});
-		$(document).on("click.dts-actions", () => $menu.removeClass("show"));
-
-		return $cell;
+		// Bind the controller into each handler, then defer to the shared overflow menu.
+		const items = (this.config.actions(row) || []).map((item) => ({
+			...item,
+			onclick: () => item.onclick(this),
+		}));
+		return frappe.doctype_settings.overflow_menu(items);
 	}
 
 	render_empty() {
@@ -274,19 +255,11 @@ class ListPanel {
 		// If the empty state offers its own create button, drop the header's primary
 		// action so there aren't two "New" buttons.
 		this.apply_header(!e.action);
-		const $empty = $('<div class="dts-empty"></div>').appendTo(this.$body);
-		$('<div class="dts-empty-title"></div>')
-			.text(e.title || __("Nothing here yet"))
-			.appendTo($empty);
-		if (e.description) {
-			$('<div class="dts-empty-description"></div>').text(e.description).appendTo($empty);
-		}
-		if (e.action) {
-			$(`<button type="button" class="btn btn-sm btn-default dts-empty-action"></button>`)
-				.text(e.action.label)
-				.appendTo($empty)
-				.on("click", () => e.action.onclick(this));
-		}
+		frappe.doctype_settings.empty_state(this.$body, {
+			title: e.title,
+			description: e.description,
+			action: e.action && { label: e.action.label, onclick: () => e.action.onclick(this) },
+		});
 	}
 
 	render_state(text) {

@@ -210,7 +210,10 @@ def generate_preview(name: str) -> str | None:
 	`validate` blocks saving) and skips the full validation cycle. Returns the new
 	image URL, or None when there's no printable sample to render against."""
 	doc = frappe.get_doc("Print Format", name)
-	doc.check_permission("read")
+	# Generating a preview writes back to the format (preview_image) and creates a File,
+	# so require write — not just read — to avoid read-only users mutating it or spawning
+	# expensive screenshot/file work.
+	doc.check_permission("write")
 
 	if doc.print_format_for != "DocType" or not doc.doc_type:
 		frappe.throw(_("Preview is only available for DocType print formats"))

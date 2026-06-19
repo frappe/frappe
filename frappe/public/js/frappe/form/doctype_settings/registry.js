@@ -12,6 +12,9 @@ frappe.provide("frappe.doctype_settings");
  * builder has not been registered are skipped when the dialog is built, so the
  * remaining tabs (workflow, notifications, email template, permissions, data
  * import) can be rolled out incrementally without touching this file's order.
+ *
+ * An item may carry an optional `condition()` predicate; when it returns false
+ * the tab is hidden (e.g. Permissions, which is System-Manager-only).
  */
 frappe.doctype_settings.builders = {};
 
@@ -19,12 +22,74 @@ frappe.doctype_settings.register = function (tab_id, builder) {
 	frappe.doctype_settings.builders[tab_id] = builder;
 };
 
+/**
+ * Shared overflow "…" menu used by list rows and custom tabs.
+ *
+ * Uses Bootstrap's native dropdown (`data-toggle="dropdown"`), which handles
+ * open/close and outside-click on its own — no manual toggling.
+ *
+ * `items`: [{ label, icon, danger, onclick() }] — falsy entries are skipped.
+ * Returns the actions cell ($div) ready to append to a row. Callers that need a
+ * controller/row in the handler should bind it into `onclick` themselves.
+ */
+frappe.doctype_settings.overflow_menu = function (items) {
+	items = (items || []).filter(Boolean);
+	const $cell = $('<div class="dts-list-cell dts-list-cell-actions"></div>');
+	if (!items.length) return $cell;
+
+	const $wrap = $('<div class="dropdown dts-actions"></div>').appendTo($cell);
+	$(
+		`<button type="button" class="btn btn-xs btn-default dts-actions-btn" data-toggle="dropdown" aria-haspopup="menu" aria-expanded="false" aria-label="${__("More actions")}"><span aria-hidden="true">⋯</span></button>`
+	).appendTo($wrap);
+	const $menu = $('<div class="dropdown-menu dropdown-menu-right" role="menu"></div>').appendTo($wrap);
+
+	items.forEach((item) => {
+		const $a = $('<button type="button" class="dropdown-item dts-action-item" role="menuitem"></button>');
+		if (item.icon) $a.append(frappe.utils.icon(item.icon, "sm"));
+		$a.append($("<span></span>").text(item.label));
+		if (item.danger) $a.addClass("text-danger");
+		$a.on("click", () => item.onclick());
+		$menu.append($a);
+	});
+
+	return $cell;
+};
+
+/**
+ * Shared empty state. Renders into `$container` (cleared by the caller).
+ * `opts`: { title, description, action: { label, onclick() } }.
+ */
+frappe.doctype_settings.empty_state = function ($container, opts) {
+	opts = opts || {};
+	const $empty = $('<div class="dts-empty"></div>').appendTo($container);
+	$('<div class="dts-empty-title"></div>')
+		.text(opts.title || __("Nothing here yet"))
+		.appendTo($empty);
+	if (opts.description) {
+		$('<div class="dts-empty-description"></div>').text(opts.description).appendTo($empty);
+	}
+	if (opts.action) {
+		$(`<button type="button" class="btn btn-sm btn-default dts-empty-action"></button>`)
+			.text(opts.action.label)
+			.appendTo($empty)
+			.on("click", () => opts.action.onclick());
+	}
+	return $empty;
+};
+
 frappe.doctype_settings.groups = [
 	{
 		group: __("Document"),
 		items: [
+			{ id: "naming", label: __("Naming"), icon: "tag" },
 			{ id: "workflow", label: __("Workflow"), icon: "workflow" },
-			{ id: "permissions", label: __("Permissions"), icon: "shield-check" },
+			{
+				id: "permissions",
+				label: __("Permissions"),
+				icon: "shield-check",
+				// Role permission APIs are System-Manager-only; hide the tab otherwise.
+				condition: () => frappe.user.has_role("System Manager"),
+			},
 		],
 	},
 	{

@@ -93,6 +93,107 @@
 	justify-content: flex-start;
 }
 
+// ── Permissions tab: per-role rights chips + customized banner + footer link ──
+// "Customized" notice with a reset action.
+.dts-perm-banner {
+	display: flex;
+	align-items: center;
+	gap: var(--padding-sm);
+	margin-bottom: var(--margin-sm);
+	padding: var(--padding-sm) var(--padding-md);
+	border-radius: var(--border-radius);
+	background-color: var(--bg-yellow);
+	color: var(--text-on-yellow);
+	font-size: var(--text-sm);
+
+	// Keep the warning glyph small and from shrinking.
+	.icon {
+		flex: 0 0 auto;
+		width: 14px;
+		height: 14px;
+	}
+
+	// Text fills the space and stays left-aligned beside the icon.
+	.dts-perm-banner-text {
+		flex: 1;
+		min-width: 0;
+	}
+
+	.dts-perm-banner-action {
+		flex: 0 0 auto;
+		color: inherit;
+		font-weight: var(--weight-medium);
+		text-decoration: underline;
+		white-space: nowrap;
+	}
+}
+
+// Role column is fixed-width so the rights take the rest of the row (otherwise the
+// default flex:2 title squeezes the chips down to ~2 per line).
+.dts-perm-row {
+	.dts-list-cell-title {
+		flex: 0 0 11rem;
+	}
+}
+
+// Right chips flow in a single left-aligned, wrapping row, filling the row's remaining
+// width. Uniform chip width keeps the wrap tidy (a checkmark doesn't shift neighbours).
+.dts-perm-rights {
+	flex: 1;
+	display: flex;
+	flex-wrap: wrap;
+	gap: var(--padding-xs);
+}
+
+// One right (read-only): outline = not granted, filled green = granted. Uniform width
+// keeps the wrap tidy. Editing is done in the Role Permissions Manager.
+.dts-perm-chip {
+	display: inline-flex;
+	align-items: center;
+	justify-content: center;
+	min-width: 5.5rem;
+	padding: 2px 8px;
+	border: 1px solid var(--border-color);
+	border-radius: var(--border-radius-full);
+	background-color: transparent;
+	color: var(--ink-gray-5);
+	font-size: var(--text-sm);
+	text-transform: capitalize;
+
+	&.is-on {
+		border-color: transparent;
+		background-color: var(--bg-green);
+		color: var(--text-on-green);
+	}
+}
+
+.dts-perm-footer {
+	display: flex;
+	align-items: center;
+	justify-content: space-between;
+	gap: var(--margin-md);
+	margin-top: var(--margin-sm);
+	padding-top: var(--padding-md);
+	border-top: 1px solid var(--border-color);
+
+	.dts-perm-footer-note {
+		display: flex;
+		align-items: center;
+		gap: var(--padding-xs);
+		color: var(--ink-gray-5);
+		font-size: var(--text-sm);
+	}
+
+	.dts-perm-footer-link {
+		display: inline-flex;
+		align-items: center;
+		gap: var(--padding-xs);
+		color: var(--ink-gray-7);
+		font-weight: var(--weight-medium);
+		white-space: nowrap;
+	}
+}
+
 // ── Print Format tab: card grid (gray preview region + white name footer) ──
 .dts-pf-grid {
 	display: grid;
@@ -280,24 +381,10 @@
 	cursor: pointer;
 }
 
-// Overflow "…" menu.
-.dts-actions {
-	position: relative;
-
-	.dts-actions-btn {
-		line-height: 1;
-		font-weight: var(--weight-bold);
-	}
-
-	.dts-actions-menu {
-		display: none;
-		right: 0;
-		left: auto;
-
-		&.show {
-			display: block;
-		}
-	}
+// Overflow "…" menu — open/close + positioning handled by Bootstrap's dropdown.
+.dts-actions .dts-actions-btn {
+	line-height: 1;
+	font-weight: var(--weight-bold);
 }
 
 // Empty state.
