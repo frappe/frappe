@@ -1299,24 +1299,23 @@ class Database:
 			self.value_cache[dt][cache_key] = count
 		return count
 
-	def _fetch_all_table_counts(self) -> dict[str, int]:
-		"""Fetch estimated row counts for all tables in the current database. Override in subclasses."""
+	def _estimate_count(self, table: str) -> int:
+		"""Get estimated count of total rows in a single table. Override in subclasses."""
 		raise NotImplementedError
 
 	def estimate_count(self, doctype: str) -> int:
 		"""Get estimated count of total rows in a table.
 
-		Counts for all tables are cached together in Redis with a 60-minute TTL so that
-		a single DB query populates estimates for every table at once.
+		The estimate is read one table at a time and cached in Redis with a 60-minute TTL
+		to avoid hammering information_schema.
 		"""
-		from frappe.utils.data import cint
-
 		table = get_table_name(doctype)
-		counts = frappe.cache.get_value("estimate_counts")
-		if counts is None:
-			counts = self._fetch_all_table_counts()
-			frappe.cache.set_value("estimate_counts", counts, expires_in_sec=60 * 60)
-		return cint(counts.get(table))
+		cache_key = f"estimate_count::{table}"
+		count = frappe.cache.get_value(cache_key)
+		if count is None:
+			count = self._estimate_count(table)
+			frappe.cache.set_value(cache_key, count, expires_in_sec=60 * 60)
+		return count
 
 	@staticmethod
 	def format_date(date):
