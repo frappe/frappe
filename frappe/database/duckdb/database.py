@@ -42,3 +42,13 @@ def get_type_map():
 		"Autocomplete": ("varchar", frappe.db.VARCHAR_LEN),
 		"JSON": ("json", ""),
 	}
+
+
+def get_latest_sync(doctype: str | None = None):
+	if doctype:
+		if latest_sync := frappe.db.get_all(
+			"DuckDB Sync", filters={"doc_type": doctype}, pluck="name", order_by="creation desc", limit=1
+		):
+			conn = frappe.get_doc("DuckDB Sync", latest_sync[0]).get_duckdb_conn()
+			return conn
+	return None
