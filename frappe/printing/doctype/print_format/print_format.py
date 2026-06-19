@@ -55,12 +55,17 @@ class PrintFormat(Document):
 	# end: auto-generated types
 
 	def onload(self):
-		templates = frappe.get_all(
+		specific = frappe.get_all(
 			"Print Format Field Template",
 			fields=["template", "field", "name"],
 			filters={"document_type": self.doc_type},
 		)
-		self.set_onload("print_templates", templates)
+		generic = frappe.get_all(
+			"Print Format Field Template",
+			fields=["template", "field", "name"],
+			filters={"document_type": ("is", "not set")},
+		)
+		self.set_onload("print_templates", specific + generic)
 
 	def before_save(self):
 		if self.print_format_for == "Report":

@@ -435,13 +435,20 @@ let field_groups = computed(() => {
 function fetch_templates() {
 	const doctype = meta.value?.name;
 	if (!doctype) return;
-	frappe.db
-		.get_list("Print Format Field Template", {
+	Promise.all([
+		frappe.db.get_list("Print Format Field Template", {
 			fields: ["name", "template", "field"],
 			filters: { document_type: doctype },
 			limit: 100,
-		})
-		.then((rows) => (raw_templates.value = rows || []));
+		}),
+		frappe.db.get_list("Print Format Field Template", {
+			fields: ["name", "template", "field"],
+			filters: { document_type: ["is", "not set"] },
+			limit: 100,
+		}),
+	]).then(([specific, generic]) => {
+		raw_templates.value = [...(specific || []), ...(generic || [])];
+	});
 }
 
 watch(activeTab, (tab) => {
