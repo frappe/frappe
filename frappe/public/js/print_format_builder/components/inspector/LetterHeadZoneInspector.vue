@@ -160,7 +160,7 @@ const height_field = computed(() =>
 	props.zone === "header" ? "image_height" : "footer_image_height"
 );
 
-const zone_source = computed(() => letterhead.value?.[source_field.value] ?? "Image");
+const zone_source = computed(() => letterhead.value?.[source_field.value] || "Image");
 const zone_align = computed(() => letterhead.value?.[align_field.value] ?? "Left");
 
 const open = ref({ html: true, image: true });
