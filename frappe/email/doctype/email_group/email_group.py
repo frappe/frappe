@@ -10,6 +10,8 @@ from frappe.utils import parse_addr, validate_email_address
 
 
 class EmailGroup(Document):
+	_DOCTYPE_NAME = "Email Group"
+
 	# begin: auto-generated types
 	# This code is auto-generated. Do not modify anything in this block.
 
@@ -150,7 +152,7 @@ def send_welcome_email(welcome_email, email, email_group):
 		return
 
 	args = dict(email=email, email_group=email_group)
-	message = frappe.render_template(welcome_email.response_, args)
+	message = frappe.render_template(welcome_email.response_, args, restrict_globals=True)
 	frappe.sendmail(email, subject=welcome_email.subject, message=message)
 
 

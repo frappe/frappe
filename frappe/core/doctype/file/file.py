@@ -47,6 +47,8 @@ FILE_ENCODING_OPTIONS = ("utf-8-sig", "utf-8", "windows-1250", "windows-1252")
 
 
 class File(Document):
+	_DOCTYPE_NAME = "File"
+
 	# begin: auto-generated types
 	# This code is auto-generated. Do not modify anything in this block.
 
@@ -303,8 +305,8 @@ class File(Document):
 		if self.is_remote_file or not self.file_url:
 			return
 
-		if not self.file_url.startswith(("/files/", "/private/files/", "/api/method/")):
-			# Probably an invalid URL since it doesn't start with http and isn't an internal URL either
+		if not self.file_url.startswith(("/files/", "/private/files/")):
+			# Probably an invalid URL since it doesn't start with http either
 			frappe.throw(
 				_("URL must start with http:// or https://"),
 				title=_("Invalid URL"),
@@ -971,7 +973,7 @@ def has_permission(doc, ptype=None, user=None, debug=False):
 		attached_to_name = doc.attached_to_name
 
 		try:
-			ref_doc = frappe.get_doc(attached_to_doctype, attached_to_name)
+			ref_doc = frappe.get_lazy_doc(attached_to_doctype, attached_to_name)
 		except (ModuleNotFoundError, ImportError):
 			return False
 		except frappe.DoesNotExistError:

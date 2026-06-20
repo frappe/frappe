@@ -15,6 +15,8 @@ from frappe.utils.data import cint
 
 
 class SubmissionQueue(Document):
+	_DOCTYPE_NAME = "Submission Queue"
+
 	# begin: auto-generated types
 	# This code is auto-generated. Do not modify anything in this block.
 

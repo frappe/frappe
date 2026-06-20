@@ -12,6 +12,8 @@ from frappe.utils.caching import http_cache
 
 
 class NotificationLog(Document):
+	_DOCTYPE_NAME = "Notification Log"
+
 	# begin: auto-generated types
 	# This code is auto-generated. Do not modify anything in this block.
 
@@ -210,7 +212,14 @@ def mark_as_read(docname: str):
 
 	if frappe.db._cursor.rowcount:
 		_decrement_unread_count(frappe.session.user)
-
+	if docname:
+		frappe.db.set_value(
+			"Notification Log",
+			{"name": str(docname), "for_user": frappe.session.user},
+			"read",
+			1,
+			update_modified=False,
+		)
 
 @frappe.whitelist()
 def trigger_indicator_hide():

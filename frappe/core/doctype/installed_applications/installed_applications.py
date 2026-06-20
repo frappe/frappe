@@ -14,6 +14,8 @@ class InvalidAppOrder(frappe.ValidationError):
 
 
 class InstalledApplications(Document):
+	_DOCTYPE_NAME = "Installed Applications"
+
 	# begin: auto-generated types
 	# This code is auto-generated. Do not modify anything in this block.
 

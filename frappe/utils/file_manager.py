@@ -377,7 +377,8 @@ def get_file_path(file_name):
 def get_content_hash(content):
 	if isinstance(content, str):
 		content = content.encode()
-	return hashlib.md5(content, usedforsecurity=False).hexdigest()
+	digest = hashlib.md5(content, usedforsecurity=False).hexdigest()
+	return digest
 
 
 def get_file_name(fname, optional_suffix):
@@ -398,12 +399,18 @@ def get_file_name(fname, optional_suffix):
 @frappe.whitelist()
 def add_attachments(doctype: str, name: str | int, attachments: str | list[str]):
 	"""Add attachments to the given DocType"""
+	if not frappe.has_permission(doctype, "write", doc=name):
+		frappe.throw(_("You need write permissions to add attachments to this record."))
+
 	if isinstance(attachments, str):
 		attachments = json.loads(attachments)
 	# loop through attachments
 	files = []
 	for a in attachments:
 		if isinstance(a, str):
+			if not frappe.has_permission("File", ptype="read", doc=a):
+				frappe.throw(_("You don't have permission to read/attach the file {0}.").format(a))
+
 			attach = frappe.db.get_value(
 				"File", {"name": a}, ["file_name", "file_url", "is_private"], as_dict=1
 			)

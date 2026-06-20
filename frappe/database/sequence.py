@@ -97,3 +97,50 @@ def set_next_val(
 			"mariadb": f"SELECT SETVAL(`{scrub(doctype_name + slug)}`, {next_val}, {is_val_used})",
 		}
 	)
+
+
+def _get_existing_sequences() -> set[str]:
+	if db.db_type == "postgres":
+		rows = db.sql(
+			"""SELECT sequence_name FROM information_schema.sequences
+			WHERE sequence_schema = 'public'"""
+		)
+	else:
+		rows = db.sql(
+			"""SELECT TABLE_NAME FROM information_schema.TABLES
+			WHERE TABLE_SCHEMA = DATABASE() AND TABLE_TYPE = 'SEQUENCE'"""
+		)
+	return {r[0] for r in rows}
+
+
+def create_missing_sequences() -> list[str]:
+	"""Recreate sequences for autoincrement doctypes whose sequence object is missing."""
+	import frappe
+	from frappe.query_builder.functions import Max
+
+	if db.db_type == "sqlite":
+		return []
+
+	doctypes = frappe.get_all(
+		"DocType",
+		filters={"autoname": "autoincrement", "issingle": 0, "is_virtual": 0},
+		pluck="name",
+	)
+	if not doctypes:
+		return []
+
+	existing = _get_existing_sequences()
+	created = []
+
+	for doctype in doctypes:
+		if scrub(f"{doctype}_id_seq") in existing:
+			continue
+
+		# align past existing rows to avoid name collisions; empty tables fall
+		# back to the default start (1), same as normal sequence creation
+		table = frappe.qb.DocType(doctype)
+		max_name = frappe.qb.from_(table).select(Max(table["name"])).run()[0][0]
+		create_sequence(doctype, check_not_exists=True, start_value=int(max_name) + 1 if max_name else 0)
+		created.append(doctype)
+
+	return created

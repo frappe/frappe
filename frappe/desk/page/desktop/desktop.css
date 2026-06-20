@@ -34,30 +34,8 @@
     z-index: 1030;
 }
 
-.desktop-search-wrapper{
-    flex: 1;
-    position: relative;
-}
-
-.desktop-search-wrapper span {
-    color: var(--text-light);
-}
-
-.desktop-navbar-modal-search {
-    background-color: var(--control-bg);
-    border-radius: var(--border-radius-sm);
-    height: 32px;
-    padding: 0px 10px;
-    display: flex;
-    align-items: center;
-    width: 100%;
-    margin-right: 0px;
-}
 #brand-logo{
     width: auto;
-}
-.desktop-search-icon > svg {
-    stroke: var(--text-light);
 }
 
 .desktop-container{
@@ -223,7 +201,7 @@
     justify-content: center;
     font-size: var(--text-2xl);
     font-weight: var(--weight-semibold);
-    color: var(--neutral-white);
+    color: var(--ink-base);
 }
 .desktop-modal-heading {
     all: unset !important;
@@ -235,7 +213,7 @@
         align-items: center;
         justify-content: center;
         & .modal-title{
-            color: var(--neutral-white);
+            color: var(--ink-base);
             font-size: var(--text-2xl);
             display: flex;
             align-items: center;
@@ -460,7 +438,7 @@
 .desktop-edit{
     width: 36px;
     height: 36px;
-    background-color: var(--surface-gray-7);
+    background-color: var(--surface-gray-10);
     position: absolute;
     bottom: 4%;
     right: 4%;
@@ -482,9 +460,6 @@
 [data-theme="dark"] .desktop-edit:hover{
 	opacity: 0.8;
 	transition: opacity 0.3s;
-}
-.desktop-navbar-modal-search:hover{
-    outline: 1px solid var(--surface-gray-3);
 }
 .desktop-pane{
     position: absolute;
@@ -542,7 +517,7 @@
 }
 
 .desktop-modal-heading .title-widget .title-input-label {
-    color: var(--neutral-white);
+    color: var(--ink-base);
     font-size: var(--text-2xl);
     line-height: 1.3;
     padding: 2px 4px;
@@ -560,7 +535,7 @@
 }
 
 .desktop-modal-heading .title-input-wrapper .title-input {
-    color: var(--neutral-white);
+    color: var(--ink-base);
     font-size: var(--text-2xl);
     line-height: 1.3;
     background: rgba(255, 255, 255, 0.1);

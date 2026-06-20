@@ -6,6 +6,8 @@ from frappe.model.document import Document
 
 
 class APIRequestLog(Document):
+	_DOCTYPE_NAME = "API Request Log"
+
 	# begin: auto-generated types
 	# This code is auto-generated. Do not modify anything in this block.
 

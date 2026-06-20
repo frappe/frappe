@@ -32,7 +32,9 @@ context("Form Builder", () => {
 			.find("div[title='Double click to edit label']")
 			.dblclick()
 			.type("Dirty");
-		cy.get(".title-area .indicator-pill.orange").should("have.text", "Not Saved");
+		cy.get('[data-testid="page-status"]')
+			.should("be.visible")
+			.and("contain.text", "Not Saved");
 	});
 
 	it("Check if Filters are applied to the link field", () => {

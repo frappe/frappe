@@ -3,6 +3,7 @@
 
 from collections import defaultdict
 
+import frappe
 from frappe import _, unscrub
 from frappe.permissions import get_valid_perms
 
@@ -54,7 +55,7 @@ def get_columns() -> list[dict]:
 			"fieldname": perm_type,
 			"fieldtype": "Check",
 		}
-		for perm_type in PERM_TYPES
+		for perm_type in get_perm_types()
 	)
 
 	return columns
@@ -70,7 +71,8 @@ def get_data(user: str) -> list[list]:
 	Args:
 	        user (str): The user for whom to retrieve the permissions.
 	"""
-	agg_perms = defaultdict(lambda: {perm_type: 0 for perm_type in PERM_TYPES})
+	perm_types = get_perm_types()
+	agg_perms = defaultdict(lambda: {perm_type: 0 for perm_type in perm_types})
 
 	for perm in get_valid_perms(user=user):
 		if perm["permlevel"] != 0:  # ignore permlevel
@@ -78,7 +80,7 @@ def get_data(user: str) -> list[list]:
 
 		dt = perm["parent"]
 		if_owner = perm["if_owner"]
-		for perm_type in PERM_TYPES:
+		for perm_type in perm_types:
 			if perm_type not in perm:
 				continue
 			agg_perms[(dt, if_owner)][perm_type] = agg_perms[(dt, if_owner)][perm_type] or perm[perm_type]
@@ -88,7 +90,13 @@ def get_data(user: str) -> list[list]:
 	for dt, if_owner in sorted_keys:
 		perm = agg_perms[(dt, if_owner)]
 		row = [dt, if_owner]
-		row.extend(perm[perm_type] for perm_type in PERM_TYPES)
+		row.extend(perm[perm_type] for perm_type in perm_types)
 		result.append(row)
 
 	return result
+
+
+def get_perm_types() -> list[str]:
+	"""Return PERM_TYPES extended with custom Permission Types."""
+	custom_perm_types = frappe.get_all("Permission Type", pluck="perm_type")
+	return PERM_TYPES + custom_perm_types

@@ -26,6 +26,8 @@ from frappe.utils.verified_command import get_signed_params, verify_request
 
 
 class WorkflowAction(Document):
+	_DOCTYPE_NAME = "Workflow Action"
+
 	# begin: auto-generated types
 	# This code is auto-generated. Do not modify anything in this block.
 

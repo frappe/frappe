@@ -10,6 +10,8 @@ from frappe.modules.export_file import export_to_files
 
 
 class FormTour(Document):
+	_DOCTYPE_NAME = "Form Tour"
+
 	# begin: auto-generated types
 	# This code is auto-generated. Do not modify anything in this block.
 

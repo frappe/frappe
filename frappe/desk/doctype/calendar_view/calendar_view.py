@@ -5,6 +5,8 @@ from frappe.model.document import Document
 
 
 class CalendarView(Document):
+	_DOCTYPE_NAME = "Calendar View"
+
 	# begin: auto-generated types
 	# This code is auto-generated. Do not modify anything in this block.
 

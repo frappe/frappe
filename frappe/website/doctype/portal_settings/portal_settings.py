@@ -7,6 +7,8 @@ from frappe.website.path_resolver import validate_path
 
 
 class PortalSettings(Document):
+	_DOCTYPE_NAME = "Portal Settings"
+
 	# begin: auto-generated types
 	# This code is auto-generated. Do not modify anything in this block.
 

@@ -53,6 +53,8 @@ def handle_error(event):
 
 
 class EmailDomain(Document):
+	_DOCTYPE_NAME = "Email Domain"
+
 	# begin: auto-generated types
 	# This code is auto-generated. Do not modify anything in this block.
 

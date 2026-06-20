@@ -16,11 +16,14 @@ from frappe.permissions import check_doctype_permission
 from frappe.rate_limiter import rate_limit
 from frappe.utils import dict_with_keys, strip_html
 from frappe.utils.caching import redis_cache
+from frappe.utils.data import escape_html
 from frappe.website.utils import get_boot_data, get_comment_list, get_sidebar_items
 from frappe.website.website_generator import WebsiteGenerator
 
 
 class WebForm(WebsiteGenerator):
+	_DOCTYPE_NAME = "Web Form"
+
 	# begin: auto-generated types
 	# This code is auto-generated. Do not modify anything in this block.
 
@@ -460,9 +463,7 @@ def get_context(context):
 		)
 
 		if context.success_message:
-			context.success_message = frappe.db.escape(context.success_message.replace("\n", "<br>")).strip(
-				"'"
-			)
+			context.success_message = escape_html(context.success_message).replace("\n", "<br>")
 
 		if not context.max_attachment_size:
 			context.max_attachment_size = get_max_file_size() / 1024 / 1024

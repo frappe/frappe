@@ -31,7 +31,6 @@ from frappe.utils import (
 	format_datetime,
 	get_formatted_email,
 	get_system_timezone,
-	has_gravatar,
 	now_datetime,
 	today,
 )
@@ -57,6 +56,8 @@ desk_properties = (
 
 
 class User(Document):
+	_DOCTYPE_NAME = "User"
+
 	# begin: auto-generated types
 	# This code is auto-generated. Do not modify anything in this block.
 
@@ -334,14 +335,6 @@ class User(Document):
 			enqueue_after_commit=True,
 		)
 
-		if self.name not in STANDARD_USERS and not self.user_image:
-			frappe.enqueue(
-				"frappe.core.doctype.user.user.update_gravatar",
-				name=self.name,
-				now=now,
-				enqueue_after_commit=True,
-			)
-
 		# Set user selected timezone
 		if self.time_zone:
 			frappe.defaults.set_default("time_zone", self.time_zone, self.name)
@@ -363,6 +356,9 @@ class User(Document):
 			frappe.cache.delete_key("enabled_users")
 		elif self.has_value_changed("allow_in_mentions") or self.has_value_changed("user_type"):
 			frappe.cache.delete_key("users_for_mentions")
+
+		if self.has_value_changed("user_type"):
+			clear_sessions(user=self.name, force=True)
 
 	def has_website_permission(self, ptype, user, verbose=False):
 		"""Return True if current user is the session user."""
@@ -419,9 +415,6 @@ class User(Document):
 		else:
 			"""Set as System User if any of the given roles has desk_access"""
 			self.user_type = "System User" if self.has_desk_access() else "Website User"
-
-		if self.has_value_changed("user_type"):
-			clear_sessions(user=self.name, force=True)
 
 	def set_roles_and_modules_based_on_user_type(self):
 		user_type_doc = frappe.get_cached_doc("User Type", self.user_type)
@@ -567,6 +560,9 @@ class User(Document):
 
 	def send_login_mail(self, subject, template, add_args, now=None, custom_template=None):
 		"""send mail with login details"""
+		if not self.enabled:
+			return
+
 		from frappe.utils import get_url
 		from frappe.utils.user import get_user_fullname
 
@@ -750,6 +746,8 @@ class User(Document):
 			if (not d.role) or (d.role in exists):
 				self.roles.remove(d)
 			exists.add(d.role)
+		retained_roles = [d.role for d in self.roles]
+		assert len(retained_roles) == len(set(retained_roles)), "roles must be unique after deduplication"
 
 	def ensure_unique_role_profiles(self):
 		seen = set()
@@ -757,6 +755,10 @@ class User(Document):
 			if rp.role_profile in seen:
 				self.role_profiles.remove(rp)
 			seen.add(rp.role_profile)
+		retained_profiles = [rp.role_profile for rp in self.role_profiles]
+		assert len(retained_profiles) == len(set(retained_profiles)), (
+			"role profiles must be unique after deduplication"
+		)
 
 	def validate_username(self):
 		if not self.username and self.is_new() and self.first_name:
@@ -1200,6 +1202,15 @@ def reset_password(user: str) -> None:
 	)
 
 
+@frappe.whitelist(methods=["POST"])
+def change_password(user: str, new_password: str, logout_all_sessions: int = 1) -> None:
+	user_doc: User = frappe.get_doc("User", user)
+	user_doc.check_permission("write")
+	user_doc.new_password = new_password
+	user_doc.logout_all_sessions = logout_all_sessions
+	user_doc.save()
+
+
 @frappe.whitelist()
 @frappe.validate_and_sanitize_search_inputs
 def user_query(doctype: str, txt: str, searchfield: str, start: int, page_len: int, filters: dict[str, Any]):
@@ -1360,12 +1371,6 @@ def handle_password_test_fail(feedback: dict):
 		msg="".join(message_parts),
 		title=_("Password requirements not met"),
 	)
-
-
-def update_gravatar(name):
-	gravatar = has_gravatar(name)
-	if gravatar:
-		frappe.db.set_value("User", name, "user_image", gravatar)
 
 
 def throttle_user_creation():

@@ -72,8 +72,8 @@ function open_new_child_doctype_dialog() {
 <style lang="scss" scoped>
 .grid-empty {
 	background-color: var(--fg-color);
-	border-bottom-left-radius: var(--border-radius);
-	border-bottom-right-radius: var(--border-radius);
+	border-bottom-left-radius: var(--radius);
+	border-bottom-right-radius: var(--radius);
 	border: 1px solid var(--table-border-color);
 }
 .table-controls {
@@ -92,11 +92,11 @@ function open_new_child_doctype_dialog() {
 			overflow: hidden;
 		}
 		&:first-child .table-field {
-			border-top-left-radius: var(--border-radius);
+			border-top-left-radius: var(--radius);
 			border-left: 1px solid var(--table-border-color);
 		}
 		&:last-child .table-field {
-			border-top-right-radius: var(--border-radius);
+			border-top-right-radius: var(--radius);
 		}
 	}
 }

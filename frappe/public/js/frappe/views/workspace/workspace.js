@@ -76,8 +76,8 @@ frappe.views.Workspace = class Workspace {
 		this.$page = $(`<div class="editor-js-container"></div>`).appendTo(this.body);
 	}
 
-	get_pages() {
-		return frappe.xcall("frappe.desk.desktop.get_workspace_sidebar_items", null, "GET");
+	get_workspaces() {
+		return frappe.xcall("frappe.desk.desktop.get_workspaces", null, "GET");
 	}
 
 	show() {
@@ -346,6 +346,7 @@ frappe.views.Workspace = class Workspace {
 		this.body.addClass("edit-mode");
 		this.initialize_editorjs_undo();
 		this.clear_page_actions();
+		$("#full-search-button").addClass("hidden");
 
 		// switch headers
 		this.wrapper.find(".page-head").removeClass("hidden");
@@ -357,6 +358,7 @@ frappe.views.Workspace = class Workspace {
 				() => {
 					this.clear_page_actions();
 					this.body.removeClass("edit-mode");
+					$("#full-search-button").removeClass("hidden");
 					this.save_page(page).then((saved) => {
 						if (!saved) return;
 						this.undo.readOnly = true;
@@ -371,6 +373,7 @@ frappe.views.Workspace = class Workspace {
 		this.page.set_secondary_action(__("Discard"), async () => {
 			this.body.removeClass("edit-mode");
 			this.clear_page_actions();
+			$("#full-search-button").removeClass("hidden");
 			await this.editor.readOnly.toggle();
 			this.is_read_only = true;
 			frappe.boot.workspaces = this.cached_pages;
@@ -384,6 +387,7 @@ frappe.views.Workspace = class Workspace {
 			});
 		}
 		$(this.workspace_actions_button).remove();
+		this.add_workspace_controls = false;
 	}
 
 	make_blocks_sortable() {
@@ -777,7 +781,7 @@ frappe.views.Workspace = class Workspace {
 	reload() {
 		delete this.pages[this._page.name];
 		this._page = null;
-		return this.get_pages().then((r) => {
+		return this.get_workspaces().then((r) => {
 			frappe.boot.workspaces = r;
 			this.setup_pages(frappe.boot.workspaces.pages);
 			this.show();

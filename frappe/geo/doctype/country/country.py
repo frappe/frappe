@@ -9,6 +9,8 @@ from frappe.model.document import Document, bulk_insert
 
 
 class Country(Document):
+	_DOCTYPE_NAME = "Country"
+
 	# begin: auto-generated types
 	# This code is auto-generated. Do not modify anything in this block.
 
