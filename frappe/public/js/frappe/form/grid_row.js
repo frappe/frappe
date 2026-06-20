@@ -1109,9 +1109,7 @@ export default class GridRow {
 		// Drag handle on the right edge of each header column to resize it inline
 		// (handled by Grid.setup_column_resize). Desktop only; skip structural cols.
 		if (this.header_row && df.fieldname && !frappe.is_mobile()) {
-			$('<div class="grid-col-resize-handle"></div>')
-				.attr("title", __("Drag to resize"))
-				.appendTo($col);
+			$('<div class="grid-col-resize-handle"></div>').appendTo($col);
 		}
 
 		$col.df = df;
