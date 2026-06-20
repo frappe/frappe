@@ -243,25 +243,18 @@
 	font-weight: bold;
 }
 
-// Red background — only the states that showed it before.
 .editable-form .grid-static-col.invalid,
 .validated-form .grid-static-col.error {
 	background-color: var(--error-bg);
 }
 
-// Required / invalid indicator as an inset box-shadow — it can't be clipped like
-// the input's border was (cut off at the bottom by the cell's zero padding and
-// the grid-body's -1px margin).
-//
-// Active editable row: draw it on the control, not the cell. The input fills the
-// cell and paints over a cell-level inset shadow, so a shadow on the cell would be
-// hidden. Live via the control's has-error class.
+// Error indicator as an inset box-shadow — a border gets clipped at the cell's
+// bottom edge. On the editable row it goes on the control (the input would cover
+// a cell-level shadow); on idle/validated rows it goes on the cell.
 .grid-body .editable-row .has-error .form-control {
 	box-shadow: inset 0 0 0 1px var(--error-border);
 }
 
-// Idle / post-validation rows show static text (no input covering the cell), so
-// the shadow goes on the cell.
 .validated-form .grid-static-col.error,
 .validated-form .grid-static-col.invalid {
 	box-shadow: inset 0 0 0 1px var(--error-border);
@@ -293,9 +286,7 @@
 	}
 }
 
-// Subtle hover highlight to make rows easier to track across wide grids. Each
-// cell paints its own background, so tint the cells (incl. sticky ones), not the
-// row. Skip the row currently being edited.
+// Row hover: tint the cells (each paints its own bg), not the row.
 .grid-body .grid-row:not(.grid-row-open) .data-row:not(.editable-row):hover {
 	.grid-static-col,
 	.col:last-child,
@@ -378,8 +369,7 @@
 			box-shadow: inset 0px 0px 0 2px rgba(124, 124, 124, 0.25);
 		}
 
-		// The error state is shown on the cell (inset box-shadow above); the input
-		// itself stays borderless so we don't get a doubled / bottom-clipped border.
+		// Drop the clippable error border; the box-shadow above is the indicator.
 		.has-error input.form-control {
 			border: 0 !important;
 		}
@@ -863,17 +853,14 @@
 .data-row.row {
 	flex-wrap: nowrap;
 }
-// Columns are sized in static pixels, applied inline in grid_row.js make_column.
-// The grid scrolls horizontally (via .form-grid-container) when the columns
-// overflow; the last data column grows to absorb any spare width so the grid
-// still spans its container.
+// Last data column grows to fill spare width (widths are inline px from make_column).
 .grid-static-col.grid-data-last {
 	flex-grow: 1 !important;
 }
 
 .form-grid {
-	// Keep the trailing action column (open / delete) pinned to the right and the
-	// index column compact, so wide, horizontally-scrolling grids stay usable.
+	// Pin the trailing action column right and keep the index column compact so
+	// wide, scrolling grids stay usable.
 	.grid-row > .row .col:last-child,
 	.grid-row > .dialog-assignment-row .col:first-child,
 	.grid-row > .dialog-assignment-row .col:last-child {
@@ -897,10 +884,8 @@
 	align-items: center;
 }
 
-// Inline column resize: a drag handle on the right edge of each header column.
-// Header data cells need a positioning context for the absolutely-placed handle;
-// scope to the data columns that actually carry one (those have data-fieldname),
-// so the structural row-index/row-check columns keep their sticky positioning.
+// Positioning context for the resize handle, scoped to data columns so the
+// sticky row-index/row-check columns keep their positioning.
 .grid-heading-row .grid-static-col[data-fieldname]:not(.sticky-grid-col) {
 	position: relative;
 }
@@ -915,9 +900,7 @@
 	cursor: col-resize;
 	user-select: none;
 
-	// No resting affordance — the column's own right border is the separator.
-	// On hover, thicken that edge with a soft gray line so the draggable boundary
-	// is obvious without adding a harsh, full-contrast bar.
+	// Invisible at rest (the column border is the separator); a soft gray edge on hover.
 	&::before {
 		content: "";
 		position: absolute;

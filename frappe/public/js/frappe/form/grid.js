@@ -4,9 +4,7 @@
 import GridRow from "./grid_row";
 import GridPagination from "./grid_pagination";
 
-// Grid columns are sized in static pixels (like the list view). These bounds and
-// the legacy 1-12 -> px map (used to migrate old `columns`/`colsize` settings)
-// live here so grid.js and grid_row.js share a single source of truth.
+// Static pixel column widths; legacy map migrates old 1-12 `columns`/`colsize`.
 export const GRID_MIN_COLUMN_WIDTH = 60;
 export const GRID_MAX_COLUMN_WIDTH = 600;
 export const LEGACY_COLSIZE_TO_PX = {
@@ -510,20 +508,15 @@ export default class Grid {
 		this.setup_column_resize();
 	}
 
-	// Drag a header column's right-edge handle to resize it inline (like the list
-	// view). The new width is applied live to the header, search and body cells of
-	// that column, then persisted per-user via GridView settings on mouseup.
 	setup_column_resize() {
 		if (frappe.is_mobile() || !this.wrapper) return;
 
 		let me = this;
-		// Unique per-grid event namespace so multiple grids on the same form don't
-		// unbind each other's listeners.
+		// Unique namespace per grid so multiple grids don't unbind each other.
 		let ns =
 			this._resize_ns || (this._resize_ns = "grid-col-resize-" + this.get_random_name());
 		let clamp = (w) => Math.max(GRID_MIN_COLUMN_WIDTH, Math.min(GRID_MAX_COLUMN_WIDTH, w));
 
-		// Re-bind cleanly on every head rebuild to avoid duplicate listeners.
 		this.wrapper.off(`mousedown.${ns}`);
 		this.wrapper.on(
 			`mousedown.${ns}`,
@@ -539,8 +532,7 @@ export default class Grid {
 				let start_width = $col.outerWidth();
 				$("body").addClass("grid-col-resizing");
 
-				// Bind document listeners only for the duration of the drag, so they
-				// can't collide with or outlive other grids.
+				// Bind document listeners only for the drag, so they don't outlive it.
 				$(document)
 					.on(`mousemove.${ns}`, function (ev) {
 						let width = clamp(start_width + (ev.pageX - start_x));
@@ -565,8 +557,7 @@ export default class Grid {
 			let df = col[0];
 			if (df.fieldname === fieldname) {
 				df.width = width;
-				// Keep the cached [df, width] tuple in sync — setup_columns renders
-				// from col[1], so rows added after a resize must use the new width.
+				// setup_columns renders from col[1]; keep it in sync for new rows.
 				col[1] = width;
 			}
 			return {
@@ -1482,8 +1473,7 @@ export default class Grid {
 		}
 	}
 
-	// Resolve a column's width in pixels.
-	// Precedence: per-user width (px) > docfield `columns` (1-12, migrated) > fieldtype default.
+	// Precedence: per-user width (px) > docfield `columns` (migrated) > fieldtype default.
 	get_column_width(df) {
 		let width;
 		if (df.width) {
@@ -1527,7 +1517,7 @@ export default class Grid {
 
 					if (column) {
 						column.in_list_view = 1;
-						// Stored as px width; migrate legacy `columns` (1-12) entries.
+						// migrate legacy `columns` (1-12) to px
 						column.width = cint(row.width) || LEGACY_COLSIZE_TO_PX[row.columns];
 						column.sticky = row.sticky;
 						return column;
