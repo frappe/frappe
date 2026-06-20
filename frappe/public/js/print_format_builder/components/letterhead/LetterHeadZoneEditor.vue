@@ -156,7 +156,7 @@ defineExpose({ aspect_ratio, range_input_field, F });
 .lh-zone {
 	position: relative;
 	border: 1px solid transparent;
-	border-radius: var(--border-radius);
+	border-radius: var(--radius);
 	padding: 1rem;
 	cursor: pointer;
 	transition: border-color 0.15s;

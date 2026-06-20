@@ -351,7 +351,7 @@ defineExpose({ toggle_preview, show_preview, $store });
 	background: transparent;
 	cursor: pointer;
 	color: var(--blue-400);
-	border-radius: var(--border-radius-sm);
+	border-radius: var(--radius);
 	line-height: 1;
 	opacity: 0.7;
 }
@@ -399,7 +399,7 @@ defineExpose({ toggle_preview, show_preview, $store });
 	font-size: var(--text-sm);
 	height: 28px;
 	padding: 2px 8px;
-	border-radius: var(--border-radius);
+	border-radius: var(--radius);
 }
 
 .canvas-toolbar-right {
@@ -418,7 +418,7 @@ defineExpose({ toggle_preview, show_preview, $store });
 	white-space: nowrap;
 	background: var(--yellow-50);
 	border: 1px solid var(--yellow-200);
-	border-radius: var(--border-radius);
+	border-radius: var(--radius);
 	padding: 3px 8px;
 }
 
@@ -430,7 +430,7 @@ defineExpose({ toggle_preview, show_preview, $store });
 	background: transparent;
 	cursor: pointer;
 	color: var(--gray-400);
-	border-radius: var(--border-radius-sm);
+	border-radius: var(--radius);
 }
 
 .canvas-clear-btn:hover {
@@ -444,7 +444,7 @@ defineExpose({ toggle_preview, show_preview, $store });
 	color: var(--green-600);
 	background: var(--green-50);
 	border: 1px solid var(--green-200);
-	border-radius: var(--border-radius-sm);
+	border-radius: var(--radius);
 	padding: 2px 6px;
 	line-height: 1.4;
 }
@@ -454,7 +454,7 @@ defineExpose({ toggle_preview, show_preview, $store });
 	display: flex;
 	align-items: center;
 	border: 1px solid var(--border-color);
-	border-radius: var(--border-radius);
+	border-radius: var(--radius);
 	overflow: hidden;
 }
 

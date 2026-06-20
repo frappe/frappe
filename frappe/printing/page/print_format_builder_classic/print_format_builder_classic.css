@@ -1,13 +1,14 @@
 .print-format-builder-section {
 	border: 1px solid var(--dark-border-color);
-	border-radius: var(--border-radius);
+	border-radius: var(--radius);
 	margin: 0px;
 	margin-bottom: var(--margin-md);
 }
 
-.print-format-builder-add-section, .print-format-builder-header {
+.print-format-builder-add-section,
+.print-format-builder-header {
 	border: 1px dashed var(--dark-border-color);
-	border-radius: var(--border-radius);
+	border-radius: var(--radius);
 	padding: var(--padding-sm);
 	width: 100%;
 	display: inline-block;
@@ -36,7 +37,7 @@
 }
 
 .print-format-builder-column {
-	border-radius: var(--border-radius);
+	border-radius: var(--radius);
 }
 
 .print-format-builder-section .section-column {
@@ -51,7 +52,7 @@
 	padding: 8px;
 	width: 100%;
 	display: inline-block;
-	border-radius: var(--border-radius);
+	border-radius: var(--radius);
 	background: var(--bg-light-gray);
 	margin-bottom: var(--margin-sm);
 	font-size: var(--text-md);
@@ -81,8 +82,7 @@
 
 .print-format-builder-section-head {
 	cursor: move;
-	padding: var(--padding-md) calc(var(--padding-md) + 8px)
-		var(--padding-sm) calc(var(--padding-md) + 8px);
+	padding: var(--padding-md) calc(var(--padding-md) + 8px) var(--padding-sm) calc(var(--padding-md) + 8px);
 }
 
 .column-selector-row {
