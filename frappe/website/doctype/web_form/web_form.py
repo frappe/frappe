@@ -493,6 +493,18 @@ def get_context(context):
 			context.reference_doctype = context.reference_doc.doctype
 			context.reference_name = context.reference_doc.name
 
+			# A user viewing a submission may have access through the web form's own
+			# permission model (e.g. document owner) without holding standard print/read
+			# permissions on the doctype. Pass a document share key so the print view can
+			# authorize them, otherwise the print button errors out. See #19160.
+			if self.allow_print and context.in_view_mode:
+				# Pass an explicit expiry so an existing key is reused within its validity
+				# window instead of creating a new one on every view.
+				expiry_days = frappe.get_system_settings("document_share_key_expiry") or 90
+				context.print_key = context.reference_doc.get_document_share_key(
+					expires_on=frappe.utils.add_days(None, expiry_days)
+				)
+
 			if self.show_attachments:
 				context.attachments = self.get_webform_attachments(context)
 

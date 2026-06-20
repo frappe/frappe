@@ -60,6 +60,30 @@ class TestWebForm(IntegrationTestCase):
 		self.assertIn('data-path="manage-events/new"', content)
 		self.assertIn('source-type="Generator"', content)
 
+	def test_webform_print(self):
+		# enable printing on the web form
+		web_form = frappe.get_doc("Web Form", "manage-events")
+		web_form.allow_print = 1
+		web_form.save()
+
+		# create a submission and view it
+		self.test_accept()
+		path = f"manage-events/{self.event_name}"
+		set_request(method="GET", path=path)
+		content = get_response_content(path)
+
+		# the print button must carry a document share key, otherwise users who can
+		# only view their submission (without standard print permission) get an error
+		# when printing. See #19160.
+		self.assertIn("/printview?doctype=Event", content)
+		self.assertIn("&key=", content)
+		self.assertTrue(
+			frappe.db.exists(
+				"Document Share Key",
+				{"reference_doctype": "Event", "reference_docname": self.event_name},
+			)
+		)
+
 	def test_webform_html_meta_is_added(self):
 		set_request(method="GET", path="manage-events/new")
 		content = self.normalize_html(get_response_content("manage-events/new"))
