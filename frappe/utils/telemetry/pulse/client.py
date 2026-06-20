@@ -3,7 +3,6 @@ from typing import Any
 import frappe
 from frappe.rate_limiter import rate_limit
 from frappe.utils.caching import site_cache
-from frappe.utils.frappecloud import on_frappecloud
 
 from .queue import EventQueue
 from .transport import PulseHTTP
@@ -19,7 +18,6 @@ def is_enabled() -> bool:
 	return bool(
 		not frappe.conf.get("developer_mode", 0)
 		and frappe.conf.get("pulse_api_key")
-		and on_frappecloud()
 		and frappe.get_system_settings("enable_telemetry")
 	)
 
