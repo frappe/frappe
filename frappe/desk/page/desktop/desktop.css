@@ -213,7 +213,7 @@
     justify-content: center;
     font-size: var(--text-2xl);
     font-weight: var(--weight-semibold);
-    color: var(--neutral-white);
+    color: var(--ink-base);
 }
 .desktop-modal-heading {
     all: unset !important;
@@ -225,7 +225,7 @@
         align-items: center;
         justify-content: center;
         & .modal-title{
-            color: var(--neutral-white);
+            color: var(--ink-base);
             font-size: var(--text-2xl);
             display: flex;
             align-items: center;
@@ -450,7 +450,7 @@
 .desktop-edit{
     width: 36px;
     height: 36px;
-    background-color: var(--surface-gray-7);
+    background-color: var(--surface-gray-10);
     position: absolute;
     bottom: 4%;
     right: 4%;
@@ -515,7 +515,7 @@
 .title-input-label{
   position: absolute;
   top: 0px;
-  color: var(--neutral-white);
+  color: var(--ink-base);
   line-height: 22px;
   z-index: 1;
   pointer-events: none;
@@ -533,5 +533,5 @@
   width: 100%;
   height: 100%;
   background: none;
-    color: var(--neutral-white);
+    color: var(--ink-base);
 }

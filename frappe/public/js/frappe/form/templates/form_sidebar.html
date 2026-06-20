@@ -36,7 +36,7 @@
 			</div>
 			{% if frm.meta.beta %}
 			<div class="pt-1">
-				<label class="indicator-pill yellow mb-0" title="{{ __("This feature is brand new and still experimental") }}">{{ __("Experimental") }}</label>
+				<span class="es-badge" data-theme="amber" title="{{ __("This feature is brand new and still experimental") }}">{%= frappe.utils.icon("flask-conical") %}{{ __("Experimental") }}</span>
 			</div>
 			{% endif %}
 			{% if (title && title !== frm.doc.name) { %}

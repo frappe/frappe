@@ -1,0 +1,141 @@
+/* Espresso Badge — framework-neutral component, plain CSS. Styled via .es-badge
+ * + data-attributes (data-variant / data-size / data-theme), binding only to
+ * espresso color/radius/spacing tokens. Source of truth in Framework; frappe-ui
+ * apps import this and wrap it in @layer components for Tailwind override.
+ * Unlayered here (Frappe/Bootstrap is unlayered; a layer would lose to it). */
+
+.es-badge {
+  --es-sp: var(--spacing, 0.25rem);
+
+  /* default theme = gray (gray is the exception: solid bg is -10, text is
+     ink-base / ink-gray-6 instead of the -1 / -8 scale) */
+  --c-solid-bg: var(--surface-gray-10);
+  --c-solid-fg: var(--ink-base);
+  --c-fill: var(--surface-gray-2);
+  --c-line: var(--outline-gray-2);
+  --c-fg: var(--ink-gray-6);
+
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: var(--es-sp);
+  /* 1 step (gap-1) */
+  width: fit-content;
+  flex-shrink: 0;
+  user-select: none;
+  white-space: nowrap;
+  overflow: clip;
+  border: 1px solid transparent;
+  border-radius: var(--radius-full, 9999px);
+  font-weight: var(--font-weight-regular, 420);
+
+  /* default size = md */
+  height: calc(var(--es-sp) * 5);
+  padding-inline: calc(var(--es-sp) * 1.5);
+  font-size: 0.75rem;
+  line-height: 1;
+
+  /* default variant = subtle */
+  background: var(--c-fill);
+  color: var(--c-fg);
+}
+
+/* ---- sizes (override the md default) ---- */
+.es-badge[data-size="sm"] {
+  height: calc(var(--es-sp) * 4);
+  padding-inline: calc(var(--es-sp) * 1.5);
+}
+
+.es-badge[data-size="lg"] {
+  height: calc(var(--es-sp) * 6);
+  padding-inline: calc(var(--es-sp) * 2);
+  font-size: 0.8125rem;
+  letter-spacing: 0.02em;
+}
+
+/* ---- themes (override the gray default — the unrolled @each) ---- */
+.es-badge[data-theme="blue"] {
+  --c-solid-bg: var(--surface-blue-7);
+  --c-solid-fg: var(--ink-blue-1);
+  --c-fill: var(--surface-blue-2);
+  --c-line: var(--outline-blue-3);
+  --c-fg: var(--ink-blue-8);
+}
+
+.es-badge[data-theme="green"] {
+  --c-solid-bg: var(--surface-green-7);
+  --c-solid-fg: var(--ink-green-1);
+  --c-fill: var(--surface-green-2);
+  --c-line: var(--outline-green-3);
+  --c-fg: var(--ink-green-8);
+}
+
+.es-badge[data-theme="amber"] {
+  --c-solid-bg: var(--surface-amber-7);
+  --c-solid-fg: var(--ink-amber-1);
+  --c-fill: var(--surface-amber-2);
+  --c-line: var(--outline-amber-3);
+  --c-fg: var(--ink-amber-8);
+}
+
+.es-badge[data-theme="red"] {
+  --c-solid-bg: var(--surface-red-7);
+  --c-solid-fg: var(--ink-red-1);
+  --c-fill: var(--surface-red-2);
+  --c-line: var(--outline-red-3);
+  --c-fg: var(--ink-red-8);
+}
+
+.es-badge[data-theme="violet"] {
+  --c-solid-bg: var(--surface-violet-7);
+  --c-solid-fg: var(--ink-violet-1);
+  --c-fill: var(--surface-violet-2);
+  --c-line: var(--outline-violet-3);
+  --c-fg: var(--ink-violet-8);
+}
+
+/* ---- variants (override the subtle default) ----
+ * outline/ghost must reset the subtle background the base applies. */
+.es-badge[data-variant="solid"] {
+  background: var(--c-solid-bg);
+  color: var(--c-solid-fg);
+}
+
+.es-badge[data-variant="outline"] {
+  background: transparent;
+  color: var(--c-fg);
+  border-color: var(--c-line);
+}
+
+.es-badge[data-variant="ghost"] {
+  background: transparent;
+  color: var(--c-fg);
+}
+
+/* ---- icons ----
+ * One rule covers both framework idioms: React passes icons as direct <svg>
+ * children (like the Raven badge); Vue wraps prefix/suffix slots in
+ * .es-badge__affix (like the frappe-ui badge). Sizing lives here, not per app.
+ * Icon size follows the badge size; the md default applies when size is absent. */
+.es-badge>svg {
+  pointer-events: none;
+}
+
+.es-badge>svg,
+.es-badge__affix {
+  flex-shrink: 0;
+  width: calc(var(--es-sp) * 2.5);
+  height: calc(var(--es-sp) * 2.5);
+}
+
+.es-badge__affix {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.es-badge[data-size="lg"]>svg,
+.es-badge[data-size="lg"] .es-badge__affix {
+  width: calc(var(--es-sp) * 3);
+  height: calc(var(--es-sp) * 3);
+}

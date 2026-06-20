@@ -143,11 +143,13 @@
 .breadcrumb-item {
 	+ .breadcrumb-item {
 		font-size: $font-size-sm;
+
 		&::before {
 			content: #{"/*!rtl:var(--left-arrow-svg);*/"}var(--right-arrow-svg);
 			display: inline-block;
 		}
 	}
+
 	a {
 		color: var(--text-color);
 	}
@@ -209,36 +211,47 @@ h5.modal-title {
 .col-xs-1 {
 	@extend .col-1;
 }
+
 .col-xs-2 {
 	@extend .col-2;
 }
+
 .col-xs-3 {
 	@extend .col-3;
 }
+
 .col-xs-4 {
 	@extend .col-4;
 }
+
 .col-xs-5 {
 	@extend .col-5;
 }
+
 .col-xs-6 {
 	@extend .col-6;
 }
+
 .col-xs-7 {
 	@extend .col-7;
 }
+
 .col-xs-8 {
 	@extend .col-8;
 }
+
 .col-xs-9 {
 	@extend .col-9;
 }
+
 .col-xs-10 {
 	@extend .col-10;
 }
+
 .col-xs-11 {
 	@extend .col-11;
 }
+
 .col-xs-12 {
 	@extend .col-12;
 }
@@ -253,6 +266,7 @@ h5.modal-title {
 
 .hidden-xs {
 	@extend .d-block;
+
 	@include media-breakpoint-between(xs, sm) {
 		display: none !important;
 	}
@@ -312,9 +326,11 @@ h5.modal-title {
 	white-space: nowrap;
 	text-overflow: ellipsis;
 }
+
 .about-section {
 	padding-top: 1rem;
 }
+
 .about-footer {
 	padding-top: 1rem;
 }
@@ -324,7 +340,7 @@ h5.modal-title {
 	padding-bottom: 45px;
 	padding-top: 45px;
 	box-shadow: var(--shadow-base);
-	border-radius: var(--border-radius-md);
+	border-radius: var(--radius-md);
 	max-width: 400px;
 	margin: 70px auto;
 	font-size: $font-size-sm;
@@ -338,6 +354,7 @@ h5.modal-title {
 	height: 60px;
 	width: auto;
 	margin-bottom: var(--margin-md);
+
 	img {
 		fill: var(--fg-color);
 	}
