@@ -1,5 +1,4 @@
 import GridRowForm from "./grid_row_form";
-import { GRID_MIN_COLUMN_WIDTH, GRID_MAX_COLUMN_WIDTH } from "./grid";
 
 const DEPENDENCY_PROPERTIES = [
 	{ expr: "depends_on", prop: "hidden_due_to_dependency", negate: true },
@@ -658,10 +657,7 @@ export default class GridRow {
 			.find(".column-width")
 			.change((event) => {
 				// Clamp to the same bounds as drag-resize.
-				let width = Math.max(
-					GRID_MIN_COLUMN_WIDTH,
-					Math.min(GRID_MAX_COLUMN_WIDTH, cint(event.target.value))
-				);
+				let width = this.grid.clamp_column_width(event.target.value);
 				event.target.value = width;
 
 				this.selected_columns_for_grid.forEach((row) => {
@@ -970,13 +966,7 @@ export default class GridRow {
 		let add_style = `flex: 0 0 ${width}px; width: ${width}px;`;
 		if (df.sticky) {
 			add_class += " sticky-grid-col";
-			if (!(df.fieldname in this.grid.sticky_rows)) {
-				this.grid.sticky_rows[df.fieldname] = this.grid.sticky_row_sum;
-				this.grid.sticky_row_sum = Object.keys(this.grid.sticky_rows).length
-					? this.grid.sticky_row_sum + width
-					: this.grid.sticky_row_sum;
-			}
-			add_style += `left: ${this.grid.sticky_rows[df.fieldname] || 71}px;`;
+			add_style += `left: ${this.grid.get_sticky_offset(df.fieldname, width)}px;`;
 		}
 
 		let grid;
