@@ -845,131 +845,30 @@
 .data-row.row {
 	flex-wrap: nowrap;
 }
-
-.frappe-control[data-fieldtype="Table"].form-group:has(.column-limit-reached):not(.highlight) {
-	overflow-x: clip;
+// Columns are sized in static pixels, applied inline in grid_row.js make_column.
+// The grid scrolls horizontally (via .form-grid-container) when the columns
+// overflow; the last data column grows to absorb any spare width so the grid
+// still spans its container.
+.grid-static-col.grid-data-last {
+	flex-grow: 1 !important;
 }
 
-.column-limit-reached {
-	background-color: var(--subtle-accent);
-	border-radius: var(--radius-md);
-	border: 1px solid var(--table-border-color);
-	overflow-y: hidden;
-
-	.form-grid {
-		display: grid;
-		grid-auto-rows: min-content;
-		border: unset;
-
-		&:focus-visible {
-			@include grid-focus();
-		}
-
-		.grid-static-col .grid-body {
-			height: 40px;
-		}
-
-		.grid-static-col.col-xs-1 {
-			flex: 1 0 60px;
-			width: 60px;
-		}
-
-		.grid-static-col.col-xs-2 {
-			flex: 1 0 100px;
-			width: 100px;
-		}
-
-		.grid-static-col.col-xs-3 {
-			flex: 1 0 140px;
-			width: 140px;
-		}
-
-		.grid-static-col.col-xs-4 {
-			flex: 1 0 200px;
-			width: 200px;
-		}
-
-		.grid-static-col.col-xs-5 {
-			flex: 1 0 250px;
-			width: 250px;
-		}
-
-		.grid-static-col.col-xs-6 {
-			flex: 1 0 300px;
-			width: 300px;
-		}
-
-		.grid-static-col.col-xs-7 {
-			flex: 1 0 350px;
-			width: 350px;
-		}
-
-		.grid-static-col.col-xs-8 {
-			flex: 1 0 400px;
-			width: 400px;
-		}
-
-		.grid-static-col.col-xs-9 {
-			flex: 1 0 450px;
-			width: 450px;
-		}
-
-		.grid-static-col.col-xs-10 {
-			flex: 1 0 500px;
-			width: 500px;
-		}
-
-		.grid-static-col.col-xs-11 {
-			flex: 1 0 550px;
-			width: 550px;
-		}
-
-		.grid-static-col.col-xs-12 {
-			flex: 1 0 600px;
-			width: 600px;
-		}
-
-		.grid-row > .row .col:last-child,
-		.grid-row > .dialog-assignment-row .col:first-child,
-		.grid-row > .dialog-assignment-row .col:last-child {
-			max-width: 30px;
-			min-width: 30px;
-			position: sticky;
-			right: 0;
-			z-index: 1;
-			line-height: 1;
-		}
-
-		.grid-row > .row .col:nth-child(2),
-		.grid-row > .dialog-assignment-row .col:nth-child(2) {
-			max-width: 40px;
-			min-width: 40px;
-		}
-
-		.grid-heading-row .grid-row .data-row.row,
-		.grid-body .rows .grid-row .data-row.row {
-			justify-content: space-between;
-		}
+.form-grid {
+	.grid-row > .row .col:last-child,
+	.grid-row > .dialog-assignment-row .col:first-child,
+	.grid-row > .dialog-assignment-row .col:last-child {
+		max-width: 30px;
+		min-width: 30px;
+		position: sticky;
+		right: 0;
+		z-index: 1;
+		line-height: 1;
 	}
-
-	scrollbar-width: auto;
-	scrollbar-color: auto;
-}
-
-.grid-scroll-bar {
-	overflow-x: auto;
-	height: 12px;
-	position: relative;
-	scrollbar-width: auto;
-	scrollbar-color: auto;
-}
-
-.grid-scroll-bar::-webkit-scrollbar {
-	height: 11px !important;
-}
-
-.grid-scroll-bar-rows {
-	height: 100%;
+	.grid-row > .row .col:nth-child(2),
+	.grid-row > .dialog-assignment-row .col:nth-child(2) {
+		max-width: 40px;
+		min-width: 40px;
+	}
 }
 
 .sticky-col-container {
@@ -982,65 +881,6 @@
 	.form-column.col-sm-6 .form-grid {
 		.row-index {
 			display: block;
-		}
-	}
-
-	.column-limit-reached {
-		.form-grid {
-			.grid-static-col.col-xs-2 {
-				flex: 1 0 90px;
-				width: 90px;
-			}
-
-			.grid-static-col.col-xs-3 {
-				flex: 1 0 120px;
-				width: 120px;
-			}
-
-			.grid-static-col.col-xs-4 {
-				flex: 1 0 160px;
-				width: 160px;
-			}
-
-			.grid-static-col.col-xs-5 {
-				flex: 1 0 200px;
-				width: 200px;
-			}
-
-			.grid-static-col.col-xs-6 {
-				flex: 1 0 240px;
-				width: 240px;
-			}
-
-			.grid-static-col.col-xs-7 {
-				flex: 1 0 300px;
-				width: 300px;
-			}
-
-			.grid-static-col.col-xs-8 {
-				flex: 1 0 350px;
-				width: 350px;
-			}
-
-			.grid-static-col.col-xs-9 {
-				flex: 1 0 400px;
-				width: 400px;
-			}
-
-			.grid-static-col.col-xs-10 {
-				flex: 1 0 450px;
-				width: 450px;
-			}
-
-			.grid-static-col.col-xs-11 {
-				flex: 1 0 500px;
-				width: 500px;
-			}
-
-			.grid-static-col.col-xs-12 {
-				flex: 1 0 550px;
-				width: 550px;
-			}
 		}
 	}
 }

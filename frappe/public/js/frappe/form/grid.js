@@ -4,6 +4,26 @@
 import GridRow from "./grid_row";
 import GridPagination from "./grid_pagination";
 
+// Grid columns are sized in static pixels (like the list view). These bounds and
+// the legacy 1-12 -> px map (used to migrate old `columns`/`colsize` settings)
+// live here so grid.js and grid_row.js share a single source of truth.
+export const GRID_MIN_COLUMN_WIDTH = 60;
+export const GRID_MAX_COLUMN_WIDTH = 600;
+export const LEGACY_COLSIZE_TO_PX = {
+	1: 60,
+	2: 100,
+	3: 140,
+	4: 200,
+	5: 250,
+	6: 300,
+	7: 350,
+	8: 400,
+	9: 450,
+	10: 500,
+	11: 550,
+	12: 600,
+};
+
 frappe.ui.form.get_open_grid_form = function () {
 	return $(".grid-row-open").data("grid_row");
 };
@@ -1346,11 +1366,10 @@ export default class Grid {
 
 		this.user_defined_columns = [];
 		this.setup_user_defined_columns();
-		var total_colsize = 1,
-			fields =
-				this.user_defined_columns && this.user_defined_columns.length > 0
-					? this.user_defined_columns
-					: this.editable_fields || this.docfields;
+		var fields =
+			this.user_defined_columns && this.user_defined_columns.length > 0
+				? this.user_defined_columns
+				: this.editable_fields || this.docfields;
 
 		this.visible_columns = [];
 
@@ -1358,7 +1377,7 @@ export default class Grid {
 			var _df = fields[ci];
 
 			// get docfield if from fieldname
-			df =
+			let df =
 				this.user_defined_columns && this.user_defined_columns.length > 0
 					? _df
 					: this.fields_map[_df.fieldname];
@@ -1370,12 +1389,6 @@ export default class Grid {
 				((this.frm && this.frm.get_perm(df.permlevel, "read")) || !this.frm) &&
 				!frappe.model.layout_fields.includes(df.fieldtype)
 			) {
-				if (df.columns) {
-					df.colsize = df.columns;
-				} else {
-					this.update_default_colsize(df);
-				}
-
 				// attach formatter on refresh
 				if (
 					df.fieldtype == "Link" &&
@@ -1389,49 +1402,41 @@ export default class Grid {
 					}
 				}
 
-				total_colsize += df.colsize;
-				this.visible_columns.push([df, df.colsize]);
+				this.visible_columns.push([df, this.get_column_width(df)]);
 			}
-		}
-
-		// redistribute if total-col size is less than 12
-		var passes = 0;
-		while (total_colsize < 11 && passes < 12) {
-			for (var i in this.visible_columns) {
-				var df = this.visible_columns[i][0];
-				var colsize = this.visible_columns[i][1];
-				if (colsize > 1 && colsize < 11 && frappe.model.is_non_std_field(df.fieldname)) {
-					if (
-						passes < 3 &&
-						["Int", "Currency", "Float", "Check", "Percent"].indexOf(df.fieldtype) !==
-							-1
-					) {
-						// don't increase col size of these fields in first 3 passes
-						continue;
-					}
-
-					this.visible_columns[i][1] += 1;
-					total_colsize++;
-				}
-
-				if (total_colsize > 10) break;
-			}
-			passes++;
 		}
 	}
 
-	update_default_colsize(df) {
-		var colsize = 2;
+	// Resolve a column's width in pixels.
+	// Precedence: per-user width (px) > docfield `columns` (1-12, migrated) > fieldtype default.
+	get_column_width(df) {
+		let width;
+		if (df.width) {
+			width = cint(df.width);
+		} else if (df.columns) {
+			width = LEGACY_COLSIZE_TO_PX[df.columns] || this.default_column_width(df);
+		} else {
+			width = this.default_column_width(df);
+		}
+		return Math.max(GRID_MIN_COLUMN_WIDTH, Math.min(width, GRID_MAX_COLUMN_WIDTH));
+	}
+
+	default_column_width(df) {
 		switch (df.fieldtype) {
 			case "Text":
-				break;
 			case "Small Text":
-				colsize = 3;
-				break;
+			case "Long Text":
+				return 200;
 			case "Check":
-				colsize = 1;
+				return 60;
+			case "Int":
+			case "Float":
+			case "Currency":
+			case "Percent":
+				return 100;
+			default:
+				return 140;
 		}
-		df.colsize = colsize;
 	}
 
 	setup_user_defined_columns() {
@@ -1447,7 +1452,8 @@ export default class Grid {
 
 					if (column) {
 						column.in_list_view = 1;
-						column.columns = row.columns;
+						// Stored as px width; migrate legacy `columns` (1-12) entries.
+						column.width = cint(row.width) || LEGACY_COLSIZE_TO_PX[row.columns];
 						column.sticky = row.sticky;
 						return column;
 					}

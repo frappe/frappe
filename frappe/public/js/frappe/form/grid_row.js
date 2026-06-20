@@ -430,7 +430,7 @@ export default class GridRow {
 		this.grid.visible_columns.forEach((row) => {
 			this.selected_columns_for_grid.push({
 				fieldname: row[0].fieldname,
-				columns: row[0].columns || row[0].colsize,
+				width: row[1],
 				sticky: row[0].sticky,
 			});
 		});
@@ -503,11 +503,10 @@ export default class GridRow {
 							this.grid.doctype,
 							selected_column
 						);
-						this.grid.update_default_colsize(docfield);
 
 						this.selected_columns_for_grid.push({
 							fieldname: selected_column,
-							columns: docfield.columns || docfield.colsize,
+							width: this.grid.get_column_width(docfield),
 							sticky: docfield.sticky,
 						});
 					}
@@ -592,10 +591,10 @@ export default class GridRow {
 							<div class='col-5' style='padding-top: 5px;'>
 								${__(docfield.label, null, docfield.parent)}
 							</div>
-							<div class='col-3' style='padding-top: 2px; margin-top:-2px;' title='${__("Columns")}'>
+							<div class='col-3' style='padding-top: 2px; margin-top:-2px;' title='${__("Width in pixels")}'>
 								<input class='form-control column-width my-1 input-xs text-right'
 								style='height: 24px; max-width: 80px; background: var(--bg-color);'
-									value='${cint(d.columns) || docfield.columns}'
+									value='${cint(d.width) || this.grid.get_column_width(docfield)}'
 									data-fieldname='${docfield.fieldname}'>
 							</div>
 							<div class='col-2 sticky-col-container' title='${__("Sticky")}' >
@@ -639,7 +638,7 @@ export default class GridRow {
 		columns.each((idx) => {
 			this.selected_columns_for_grid.push({
 				fieldname: $(columns[idx]).attr("data-fieldname"),
-				columns: cint($(columns[idx]).find(".column-width").attr("value")),
+				width: cint($(columns[idx]).find(".column-width").attr("value")),
 				sticky: $(columns[idx]).find(".sticky-column").is(":checked") ? 1 : 0,
 			});
 		});
@@ -664,7 +663,7 @@ export default class GridRow {
 
 				this.selected_columns_for_grid.forEach((row) => {
 					if (row.fieldname === event.target.dataset.fieldname) {
-						row.columns = cint(event.target.value);
+						row.width = cint(event.target.value);
 						event.target.defaultValue = cint(event.target.value);
 					}
 				});
@@ -732,17 +731,14 @@ export default class GridRow {
 				? this.grid.user_defined_columns
 				: this.docfields;
 
-		let total_colsize = 0;
-
 		this.grid.visible_columns.forEach((col, ci) => {
 			// to get update df for the row
 			let df = fields.find((field) => field?.fieldname === col[0].fieldname);
 
 			this.set_dependant_property(df);
 
-			let colsize = col[1];
+			let width = col[1];
 
-			total_colsize += colsize;
 			let txt = this.doc
 				? frappe.format(
 						this._escape_for_format(this.doc[df.fieldname], df),
@@ -757,9 +753,9 @@ export default class GridRow {
 			}
 			let column;
 			if (!this.columns[df.fieldname] && !this.show_search) {
-				column = this.make_column(df, colsize, txt, ci);
+				column = this.make_column(df, width, txt, ci);
 			} else if (!this.columns[df.fieldname] && this.show_search) {
-				column = this.make_search_column(df, colsize);
+				column = this.make_search_column(df, width);
 			} else {
 				column = this.columns[df.fieldname];
 				this.refresh_field(df.fieldname, txt);
@@ -778,20 +774,10 @@ export default class GridRow {
 			}
 		});
 
-		let current_grid = this.grid.wrapper.find(".form-grid-container");
-		if (total_colsize > 10) {
-			current_grid.addClass("column-limit-reached");
-		} else if (current_grid.hasClass("column-limit-reached")) {
-			if (Number($(current_grid).children(".form-grid").css("left")) != 0) {
-				$(current_grid).children(".form-grid").css("left", 0);
-				$(current_grid).children().find(".grid-scroll-bar").css({
-					width: "auto",
-					"margin-left": "0px",
-				});
-				$(current_grid).children().find(".grid-scroll-bar-rows").css("width", "auto");
-			}
-			current_grid.removeClass("column-limit-reached");
-		}
+		// Let the last data column grow to fill any spare width so the grid still
+		// spans its container; when columns overflow, the container scrolls instead.
+		this.columns_list.forEach((column) => column.removeClass("grid-data-last"));
+		this.columns_list[this.columns_list.length - 1]?.addClass("grid-data-last");
 
 		if (this.show_search) {
 			// last empty column
@@ -901,7 +887,7 @@ export default class GridRow {
 		return this.show_search;
 	}
 
-	make_search_column(df, colsize) {
+	make_search_column(df, width) {
 		let title = "";
 		let input_class = "";
 		let is_disabled = "";
@@ -919,7 +905,7 @@ export default class GridRow {
 		}
 
 		let $col = $(
-			'<div class="col grid-static-col col-xs-' + colsize + ' search"></div>'
+			`<div class="col grid-static-col search" style="flex: 0 0 ${width}px; width: ${width}px;"></div>`
 		).appendTo(this.row);
 
 		let $search_input = $(`
@@ -966,21 +952,7 @@ export default class GridRow {
 		return $col;
 	}
 
-	make_column(df, colsize, txt, ci) {
-		let col_sizes = {
-			1: 60,
-			2: 100,
-			3: 140,
-			4: 200,
-			5: 250,
-			6: 300,
-			7: 350,
-			8: 400,
-			9: 450,
-			10: 500,
-			11: 550,
-			12: 600,
-		};
+	make_column(df, width, txt, ci) {
 		let me = this;
 		var add_class =
 			["Text", "Small Text"].indexOf(df.fieldtype) !== -1
@@ -992,13 +964,17 @@ export default class GridRow {
 				: "";
 		add_class += ["Check"].indexOf(df.fieldtype) !== -1 ? " text-center" : "";
 
-		let add_style = "";
+		// Static pixel width (like the list view). The last data column is allowed
+		// to grow (see `grid-data-last` in setup_columns) so the grid fills its
+		// container; everything else stays at its exact width and the container
+		// scrolls horizontally when the columns overflow.
+		let add_style = `flex: 0 0 ${width}px; width: ${width}px;`;
 		if (df.sticky) {
 			add_class += " sticky-grid-col";
 			if (!(df.fieldname in this.grid.sticky_rows)) {
 				this.grid.sticky_rows[df.fieldname] = this.grid.sticky_row_sum;
 				this.grid.sticky_row_sum = Object.keys(this.grid.sticky_rows).length
-					? this.grid.sticky_row_sum + col_sizes[colsize]
+					? this.grid.sticky_row_sum + width
 					: this.grid.sticky_row_sum;
 			}
 			add_style += `left: ${this.grid.sticky_rows[df.fieldname] || 71}px;`;
@@ -1060,9 +1036,7 @@ export default class GridRow {
 
 		let is_focused = false;
 
-		var $col = $(
-			`<div class="col grid-static-col col-xs-${colsize} ${add_class}" style="${add_style}"></div>`
-		)
+		var $col = $(`<div class="col grid-static-col ${add_class}" style="${add_style}"></div>`)
 			.attr("data-fieldname", df.fieldname)
 			.attr("data-fieldtype", df.fieldtype)
 			.data("df", df)
