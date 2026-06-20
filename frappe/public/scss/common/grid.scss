@@ -879,6 +879,56 @@
 	align-items: center;
 }
 
+// Inline column resize: a drag handle on the right edge of each header column.
+// Header data cells need a positioning context for the absolutely-placed handle;
+// scope to the data columns that actually carry one (those have data-fieldname),
+// so the structural row-index/row-check columns keep their sticky positioning.
+.grid-heading-row .grid-static-col[data-fieldname]:not(.sticky-grid-col) {
+	position: relative;
+}
+
+.grid-col-resize-handle {
+	position: absolute;
+	right: -4px;
+	top: 0;
+	bottom: 0;
+	width: 9px;
+	z-index: 2;
+	cursor: col-resize;
+	user-select: none;
+	display: flex;
+	align-items: center;
+	justify-content: center;
+
+	&::before {
+		content: "";
+		width: 2px;
+		height: 14px;
+		border-radius: 2px;
+		background-color: var(--gray-500);
+		// Faint resting separator so the resize affordance is discoverable.
+		opacity: 0.2;
+		transition: opacity 0.15s, background-color 0.15s, width 0.15s, height 0.15s;
+	}
+
+	&:hover::before {
+		background-color: var(--primary);
+		width: 3px;
+		height: 20px;
+		opacity: 1;
+	}
+}
+
+// Darken every separator while the cursor is anywhere in the header row.
+.grid-heading-row:hover .grid-col-resize-handle::before {
+	opacity: 0.5;
+}
+
+body.grid-col-resizing {
+	cursor: col-resize;
+	user-select: none;
+}
+
 @media (max-width: map-get($grid-breakpoints, "md")) {
 	.form-column.col-sm-6 .form-grid {
 		.row-index {

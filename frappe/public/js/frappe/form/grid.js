@@ -506,6 +506,82 @@ export default class Grid {
 		}
 
 		this.filter_applied && this.update_search_columns();
+
+		this.setup_column_resize();
+	}
+
+	// Drag a header column's right-edge handle to resize it inline (like the list
+	// view). The new width is applied live to the header, search and body cells of
+	// that column, then persisted per-user via GridView settings on mouseup.
+	setup_column_resize() {
+		if (frappe.is_mobile() || !this.wrapper) return;
+
+		// Re-bind cleanly on every head rebuild to avoid duplicate listeners.
+		this.wrapper.off("mousedown.grid-col-resize");
+		$(document).off("mousemove.grid-col-resize mouseup.grid-col-resize");
+
+		let dragging = false;
+		let fieldname = null;
+		let start_x = 0;
+		let start_width = 0;
+		let me = this;
+
+		let clamp = (w) => Math.max(GRID_MIN_COLUMN_WIDTH, Math.min(GRID_MAX_COLUMN_WIDTH, w));
+
+		this.wrapper.on(
+			"mousedown.grid-col-resize",
+			".grid-heading-row .grid-col-resize-handle",
+			function (e) {
+				e.preventDefault();
+				e.stopPropagation();
+				let $col = $(this).closest(".grid-static-col");
+				fieldname = $col.attr("data-fieldname");
+				if (!fieldname) return;
+				dragging = true;
+				start_x = e.pageX;
+				start_width = $col.outerWidth();
+				$("body").addClass("grid-col-resizing");
+			}
+		);
+
+		$(document).on("mousemove.grid-col-resize", function (e) {
+			if (!dragging || !fieldname) return;
+			let width = clamp(start_width + (e.pageX - start_x));
+			me.wrapper.find(`.grid-static-col[data-fieldname="${fieldname}"]`).css({
+				width: `${width}px`,
+				flex: `0 0 ${width}px`,
+			});
+		});
+
+		$(document).on("mouseup.grid-col-resize", function (e) {
+			if (!dragging) return;
+			dragging = false;
+			$("body").removeClass("grid-col-resizing");
+			if (fieldname) {
+				let width = clamp(start_width + (e.pageX - start_x));
+				me.save_column_width(fieldname, width);
+			}
+			fieldname = null;
+		});
+	}
+
+	save_column_width(fieldname, width) {
+		if (!this.frm) return;
+
+		let columns = this.visible_columns.map(([df]) => {
+			if (df.fieldname === fieldname) df.width = width;
+			return {
+				fieldname: df.fieldname,
+				width: this.get_column_width(df),
+				sticky: df.sticky ? 1 : 0,
+			};
+		});
+
+		let value = {};
+		value[this.doctype] = columns;
+		frappe.model.user_settings.save(this.frm.doctype, "GridView", value).then((r) => {
+			frappe.model.user_settings[this.frm.doctype] = r.message || r;
+		});
 	}
 
 	update_search_columns() {
