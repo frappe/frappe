@@ -1,4 +1,5 @@
 import GridRowForm from "./grid_row_form";
+import { GRID_MIN_COLUMN_WIDTH, GRID_MAX_COLUMN_WIDTH } from "./grid";
 
 const DEPENDENCY_PROPERTIES = [
 	{ expr: "depends_on", prop: "hidden_due_to_dependency", negate: true },
@@ -656,15 +657,18 @@ export default class GridRow {
 		$(this.fields_html_wrapper)
 			.find(".column-width")
 			.change((event) => {
-				if (cint(event.target.value) === 0) {
-					event.target.value = cint(event.target.defaultValue);
-					frappe.throw(__("Column width cannot be zero."));
-				}
+				// Clamp to the same bounds as drag-resize so the dialog can't store
+				// an out-of-range width.
+				let width = Math.max(
+					GRID_MIN_COLUMN_WIDTH,
+					Math.min(GRID_MAX_COLUMN_WIDTH, cint(event.target.value))
+				);
+				event.target.value = width;
 
 				this.selected_columns_for_grid.forEach((row) => {
 					if (row.fieldname === event.target.dataset.fieldname) {
-						row.width = cint(event.target.value);
-						event.target.defaultValue = cint(event.target.value);
+						row.width = width;
+						event.target.defaultValue = width;
 					}
 				});
 			});
