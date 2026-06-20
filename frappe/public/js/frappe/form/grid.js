@@ -42,8 +42,10 @@ export default class Grid {
 		this.fieldinfo = {};
 		this.doctype = this.df.options;
 
+		// Sticky column left-offsets, keyed by fieldname; sum tracks the running
+		// offset (starts past the check + index columns).
 		this.sticky_row_sum = 71;
-		this.sticky_rows = [];
+		this.sticky_rows = {};
 
 		if (this.doctype) {
 			this.meta = frappe.get_meta(this.doctype);
@@ -515,7 +517,6 @@ export default class Grid {
 		// Unique namespace per grid so multiple grids don't unbind each other.
 		let ns =
 			this._resize_ns || (this._resize_ns = "grid-col-resize-" + this.get_random_name());
-		let clamp = (w) => Math.max(GRID_MIN_COLUMN_WIDTH, Math.min(GRID_MAX_COLUMN_WIDTH, w));
 
 		this.wrapper.off(`mousedown.${ns}`);
 		this.wrapper.on(
@@ -535,7 +536,7 @@ export default class Grid {
 				// Bind document listeners only for the drag, so they don't outlive it.
 				$(document)
 					.on(`mousemove.${ns}`, function (ev) {
-						let width = clamp(start_width + (ev.pageX - start_x));
+						let width = me.clamp_column_width(start_width + (ev.pageX - start_x));
 						me.wrapper.find(`.grid-static-col[data-fieldname="${fieldname}"]`).css({
 							width: `${width}px`,
 							flex: `0 0 ${width}px`,
@@ -544,7 +545,10 @@ export default class Grid {
 					.on(`mouseup.${ns}`, function (ev) {
 						$(document).off(`mousemove.${ns} mouseup.${ns}`);
 						$("body").removeClass("grid-col-resizing");
-						me.save_column_width(fieldname, clamp(start_width + (ev.pageX - start_x)));
+						me.save_column_width(
+							fieldname,
+							me.clamp_column_width(start_width + (ev.pageX - start_x))
+						);
 					});
 			}
 		);
@@ -1473,17 +1477,24 @@ export default class Grid {
 		}
 	}
 
+	clamp_column_width(width) {
+		return Math.max(GRID_MIN_COLUMN_WIDTH, Math.min(GRID_MAX_COLUMN_WIDTH, cint(width)));
+	}
+
 	// Precedence: per-user width (px) > docfield `columns` (migrated) > fieldtype default.
 	get_column_width(df) {
-		let width;
-		if (df.width) {
-			width = cint(df.width);
-		} else if (df.columns) {
-			width = LEGACY_COLSIZE_TO_PX[df.columns] || this.default_column_width(df);
-		} else {
-			width = this.default_column_width(df);
+		let width = df.width || LEGACY_COLSIZE_TO_PX[df.columns] || this.default_column_width(df);
+		return this.clamp_column_width(width);
+	}
+
+	// Sticky columns pin to the left; each one's offset is the running sum of the
+	// widths of the sticky columns before it.
+	get_sticky_offset(fieldname, width) {
+		if (!(fieldname in this.sticky_rows)) {
+			this.sticky_rows[fieldname] = this.sticky_row_sum;
+			this.sticky_row_sum += width;
 		}
-		return Math.max(GRID_MIN_COLUMN_WIDTH, Math.min(width, GRID_MAX_COLUMN_WIDTH));
+		return this.sticky_rows[fieldname];
 	}
 
 	default_column_width(df) {
