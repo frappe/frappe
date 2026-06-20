@@ -657,8 +657,7 @@ export default class GridRow {
 		$(this.fields_html_wrapper)
 			.find(".column-width")
 			.change((event) => {
-				// Clamp to the same bounds as drag-resize so the dialog can't store
-				// an out-of-range width.
+				// Clamp to the same bounds as drag-resize.
 				let width = Math.max(
 					GRID_MIN_COLUMN_WIDTH,
 					Math.min(GRID_MAX_COLUMN_WIDTH, cint(event.target.value))
@@ -778,8 +777,7 @@ export default class GridRow {
 			}
 		});
 
-		// Let the last data column grow to fill any spare width so the grid still
-		// spans its container; when columns overflow, the container scrolls instead.
+		// Last data column grows to fill spare width (see grid-data-last in grid.scss).
 		this.columns_list.forEach((column) => column.removeClass("grid-data-last"));
 		this.columns_list[this.columns_list.length - 1]?.addClass("grid-data-last");
 
@@ -968,10 +966,7 @@ export default class GridRow {
 				: "";
 		add_class += ["Check"].indexOf(df.fieldtype) !== -1 ? " text-center" : "";
 
-		// Static pixel width (like the list view). The last data column is allowed
-		// to grow (see `grid-data-last` in setup_columns) so the grid fills its
-		// container; everything else stays at its exact width and the container
-		// scrolls horizontally when the columns overflow.
+		// Static pixel width; the grid scrolls horizontally when columns overflow.
 		let add_style = `flex: 0 0 ${width}px; width: ${width}px;`;
 		if (df.sticky) {
 			add_class += " sticky-grid-col";
@@ -1110,11 +1105,9 @@ export default class GridRow {
 		}
 		df.fieldname && $col.static_area.toggleClass("reqd", Boolean(df.reqd));
 
-		// Drag handle on the right edge of each header column to resize it inline
-		// (handled by Grid.setup_column_resize). Desktop only; skip structural cols.
+		// Resize handle (see Grid.setup_column_resize); desktop, data columns only.
 		if (this.header_row && df.fieldname && !frappe.is_mobile()) {
-			// Empty title suppresses the column-label tooltip ($col's title) over
-			// the drag zone, so hovering the edge doesn't pop up the field label.
+			// Empty title suppresses $col's label tooltip over the drag zone.
 			$('<div class="grid-col-resize-handle"></div>').attr("title", "").appendTo($col);
 		}
 
