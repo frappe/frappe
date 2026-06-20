@@ -413,7 +413,9 @@ frappe.router = {
 		}
 		if (route.length === 1 && route[0] && route[0].includes("/")) {
 			// called as frappe.set_route('a/b/c') or frappe.set_route('/desk/a/b?x=1')
-			let [path, query_string] = route[0].split("?");
+			const qIdx = route[0].indexOf("?");
+			let path = qIdx >= 0 ? route[0].slice(0, qIdx) : route[0];
+			let query_string = qIdx >= 0 ? route[0].slice(qIdx + 1) : null;
 			if (query_string) {
 				frappe.route_options = frappe.route_options || {};
 				new URLSearchParams(query_string).forEach((v, k) => (frappe.route_options[k] = v));
