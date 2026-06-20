@@ -219,8 +219,8 @@ def get_address_list(doctype, txt, filters, limit_start, limit_page_length=20, o
 	user = frappe.session.user
 
 	if not filters:
-		filters = []
-	filters.append(("Address", "owner", "=", user))
+		filters = frappe._dict()
+	filters["owner"] = user
 
 	return get_list(doctype, txt, filters, limit_start, limit_page_length)
 
