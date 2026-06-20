@@ -516,60 +516,59 @@ export default class Grid {
 	setup_column_resize() {
 		if (frappe.is_mobile() || !this.wrapper) return;
 
-		// Re-bind cleanly on every head rebuild to avoid duplicate listeners.
-		this.wrapper.off("mousedown.grid-col-resize");
-		$(document).off("mousemove.grid-col-resize mouseup.grid-col-resize");
-
-		let dragging = false;
-		let fieldname = null;
-		let start_x = 0;
-		let start_width = 0;
 		let me = this;
-
+		// Unique per-grid event namespace so multiple grids on the same form don't
+		// unbind each other's listeners.
+		let ns =
+			this._resize_ns || (this._resize_ns = "grid-col-resize-" + this.get_random_name());
 		let clamp = (w) => Math.max(GRID_MIN_COLUMN_WIDTH, Math.min(GRID_MAX_COLUMN_WIDTH, w));
 
+		// Re-bind cleanly on every head rebuild to avoid duplicate listeners.
+		this.wrapper.off(`mousedown.${ns}`);
 		this.wrapper.on(
-			"mousedown.grid-col-resize",
+			`mousedown.${ns}`,
 			".grid-heading-row .grid-col-resize-handle",
 			function (e) {
 				e.preventDefault();
 				e.stopPropagation();
 				let $col = $(this).closest(".grid-static-col");
-				fieldname = $col.attr("data-fieldname");
+				let fieldname = $col.attr("data-fieldname");
 				if (!fieldname) return;
-				dragging = true;
-				start_x = e.pageX;
-				start_width = $col.outerWidth();
+
+				let start_x = e.pageX;
+				let start_width = $col.outerWidth();
 				$("body").addClass("grid-col-resizing");
+
+				// Bind document listeners only for the duration of the drag, so they
+				// can't collide with or outlive other grids.
+				$(document)
+					.on(`mousemove.${ns}`, function (ev) {
+						let width = clamp(start_width + (ev.pageX - start_x));
+						me.wrapper.find(`.grid-static-col[data-fieldname="${fieldname}"]`).css({
+							width: `${width}px`,
+							flex: `0 0 ${width}px`,
+						});
+					})
+					.on(`mouseup.${ns}`, function (ev) {
+						$(document).off(`mousemove.${ns} mouseup.${ns}`);
+						$("body").removeClass("grid-col-resizing");
+						me.save_column_width(fieldname, clamp(start_width + (ev.pageX - start_x)));
+					});
 			}
 		);
-
-		$(document).on("mousemove.grid-col-resize", function (e) {
-			if (!dragging || !fieldname) return;
-			let width = clamp(start_width + (e.pageX - start_x));
-			me.wrapper.find(`.grid-static-col[data-fieldname="${fieldname}"]`).css({
-				width: `${width}px`,
-				flex: `0 0 ${width}px`,
-			});
-		});
-
-		$(document).on("mouseup.grid-col-resize", function (e) {
-			if (!dragging) return;
-			dragging = false;
-			$("body").removeClass("grid-col-resizing");
-			if (fieldname) {
-				let width = clamp(start_width + (e.pageX - start_x));
-				me.save_column_width(fieldname, width);
-			}
-			fieldname = null;
-		});
 	}
 
 	save_column_width(fieldname, width) {
 		if (!this.frm) return;
 
-		let columns = this.visible_columns.map(([df]) => {
-			if (df.fieldname === fieldname) df.width = width;
+		let columns = this.visible_columns.map((col) => {
+			let df = col[0];
+			if (df.fieldname === fieldname) {
+				df.width = width;
+				// Keep the cached [df, width] tuple in sync — setup_columns renders
+				// from col[1], so rows added after a resize must use the new width.
+				col[1] = width;
+			}
 			return {
 				fieldname: df.fieldname,
 				width: this.get_column_width(df),
