@@ -286,10 +286,10 @@
 	}
 }
 
-// Row hover: tint the cells (each paints its own bg), not the row.
+// Row hover: tint the cells (each paints its own bg), not the row. The trailing
+// action column is left untinted so its button doesn't get a hover background.
 .grid-body .grid-row:not(.grid-row-open) .data-row:not(.editable-row):hover {
 	.grid-static-col,
-	.col:last-child,
 	.row-check {
 		background-color: var(--subtle-fg);
 	}
