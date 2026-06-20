@@ -67,11 +67,11 @@ onMounted(() => store.fetch());
 
 	.form-sidebar {
 		border-left: 1px solid var(--border-color);
-		border-bottom-right-radius: var(--border-radius);
+		border-bottom-right-radius: var(--radius);
 	}
 
 	.form-main {
-		border-radius: var(--border-radius);
+		border-radius: var(--radius);
 		border: 1px solid var(--border-color);
 		background-color: var(--card-bg);
 		margin: 5px;
@@ -96,7 +96,7 @@ onMounted(() => store.fetch());
 
 		:deep(.column-container .field.sortable-chosen) {
 			background-color: var(--bg-light-gray);
-			border-radius: var(--border-radius-sm);
+			border-radius: var(--radius);
 			border: 1px solid transparent;
 			padding: 0.3rem;
 			font-size: var(--text-sm);
@@ -118,7 +118,7 @@ onMounted(() => store.fetch());
 						padding: 2px 10px;
 						color: var(--text-dark);
 						background-color: var(--gray-500);
-						border-radius: var(--border-radius-full);
+						border-radius: var(--radius-full);
 						z-index: 1;
 					}
 					&::before {
@@ -128,7 +128,7 @@ onMounted(() => store.fetch());
 						width: 97%;
 						height: 4px;
 						background-color: var(--gray-500);
-						border-radius: var(--border-radius-full);
+						border-radius: var(--radius-full);
 					}
 				}
 			}

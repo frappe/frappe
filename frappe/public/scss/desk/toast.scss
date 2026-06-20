@@ -43,7 +43,7 @@
 	overflow-y: auto;
 	position: relative;
 	padding: 0px;
-	border-radius: var(--border-radius-md);
+	border-radius: var(--radius-md);
 
 	.alert-message-container {
 		padding: var(--padding-md);
@@ -77,6 +77,7 @@
 		color: inherit;
 		opacity: 1;
 		font-size: inherit;
+
 		.icon {
 			fill: var(--text-muted);
 		}

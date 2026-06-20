@@ -65,7 +65,7 @@ export default class WebForm extends frappe.ui.FieldGroup {
 
 	make_form_dirty() {
 		frappe.form_dirty = true;
-		$(".indicator-pill.orange").removeClass("hide");
+		$("#not-saved-badge").removeClass("hide");
 	}
 
 	set_page_breaks() {

@@ -80,6 +80,7 @@ th.fc-col-header-cell {
 .fc-daygrid-day-top {
 	margin: 5px 0 0 10px;
 	flex-direction: row !important;
+
 	.fc-daygrid-day-number {
 		float: left !important;
 	}
@@ -152,23 +153,26 @@ th.fc-col-header-cell {
 }
 
 .fc-dayGridMonth-button {
-	border-top-left-radius: var(--border-radius) !important;
-	border-bottom-left-radius: var(--border-radius) !important;
+	border-top-left-radius: var(--radius) !important;
+	border-bottom-left-radius: var(--radius) !important;
 }
+
 .fc-dayGridDay-button {
-	border-top-right-radius: var(--border-radius) !important;
-	border-bottom-right-radius: var(--border-radius) !important;
+	border-top-right-radius: var(--radius) !important;
+	border-bottom-right-radius: var(--radius) !important;
 }
 
 .fc-prev-button {
 	margin-right: 10px !important;
 }
+
 .fc-next-button {
 	margin-left: 10px;
 }
+
 .fc-today-button {
 	margin-right: 10px;
-	border-radius: var(--border-radius) !important;
+	border-radius: var(--radius) !important;
 }
 
 .fc-daygrid-event {

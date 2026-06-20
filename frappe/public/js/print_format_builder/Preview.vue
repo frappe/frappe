@@ -122,7 +122,7 @@ onMounted(() => {
 	width: 100%;
 	height: 96%;
 	border: none;
-	border-radius: var(--border-radius);
+	border-radius: var(--radius);
 }
 .btn-new-tab {
 	margin-top: auto;

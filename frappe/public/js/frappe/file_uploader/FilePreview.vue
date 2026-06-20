@@ -194,7 +194,7 @@ onMounted(() => {
 .file-preview-outline:hover {
 	background-color: var(--bg-color);
 	border-color: var(--dark-border-color);
-	border-radius: var(--border-radius);
+	border-radius: var(--radius);
 }
 
 .file-preview-outline:hover + .file-preview-outline {
@@ -202,7 +202,7 @@ onMounted(() => {
 }
 
 .file-icon {
-	border-radius: var(--border-radius);
+	border-radius: var(--radius);
 	width: 2.625rem;
 	height: 2.625rem;
 	overflow: hidden;
@@ -223,7 +223,7 @@ onMounted(() => {
 	align-items: center;
 	justify-content: center;
 	border: 1px solid var(--border-color);
-	border-radius: var(--border-radius);
+	border-radius: var(--radius);
 }
 
 .file-name {

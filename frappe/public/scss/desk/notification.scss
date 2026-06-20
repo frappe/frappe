@@ -162,7 +162,7 @@
 .recent-item {
 	padding: 10px;
 	margin: 4px 0px;
-	border-radius: var(--border-radius-md, 8px);
+	border-radius: var(--radius-md, 8px);
 	white-space: normal;
 	display: flex;
 	@include get_textstyle("base", "regular");
@@ -199,6 +199,7 @@
 			border: 2px solid var(--invert-neutral);
 			border-radius: 1000px;
 		}
+
 		.notification-body::before {
 			background: var(--invert-neutral);
 		}
@@ -271,14 +272,6 @@
 		.avatar-frame {
 			border-color: var(--border-color);
 		}
-	}
-}
-
-.recent-item.open-docs {
-	@include flex(flex, space-between, null, null);
-
-	.indicator-pill {
-		margin: 0px;
 	}
 }
 
