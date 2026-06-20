@@ -3,7 +3,7 @@ msgstr ""
 "Project-Id-Version: frappe\n"
 "Report-Msgid-Bugs-To: developers@frappe.io\n"
 "POT-Creation-Date: 2026-01-02 22:45+0000\n"
-"PO-Revision-Date: 2026-06-19 18:46\n"
+"PO-Revision-Date: 2026-06-20 19:02\n"
 "Last-Translator: developers@frappe.io\n"
 "Language-Team: Swedish\n"
 "MIME-Version: 1.0\n"
@@ -583,7 +583,7 @@ msgstr "<h4>E-post Svar Exempel</h4>\n\n"
 "- Belopp: {{ grand_total }}\n"
 "</pre>\n\n"
 "<h4>Hur hämtas fältnamn</h4>\n\n"
-"<p>Fältnamn som kan använda i e-post mall är fält i dokument som du skickar e-post meddelande från. Ta reda på fält namn för alla dokument via Inställningar &gt; Anpassa formulär vy och välja dokument typ (t.ex. Försäljning Faktura)</p>\n\n"
+"<p>Fältnamn som kan använda i e-post mall är fält i dokument som du skickar e-post meddelande från. Ta reda på fält namn för alla dokument via Inställningar &gt; Anpassa Formulär Vy och välja dokument typ (t.ex. Försäljning Faktura)</p>\n\n"
 "<h4>Mallar</h4>\n\n"
 "<p>Mallar kompileras med Jinja Templating Language. För att lära dig mer om Jinja, <a class=\"strong\" href=\"http://jinja.pocoo.org/docs/dev/templates/\">läs denna dokumentation.</a></p>\n"
 
@@ -2191,7 +2191,7 @@ msgstr "Tillåter användare att visa dokument."
 
 #: frappe/core/page/permission_manager/permission_manager_help.html:82
 msgid "Allows users to enable the mask property for any field of the respective doctype."
-msgstr "Tillåter användare att aktivera mask egenskap för vilket fält som helst i respektive doctype."
+msgstr "Tillåter användare att aktivera dold egenskap för vilket fält som helst i respektive doctype."
 
 #: frappe/core/doctype/user/user.py:981
 msgid "Already Registered"
@@ -3272,11 +3272,11 @@ msgstr "Avatar"
 #: frappe/public/js/frappe/form/controls/password.js:88
 #: frappe/public/js/frappe/ui/group_by/group_by.js:21
 msgid "Average"
-msgstr "Medel"
+msgstr "Medelvärde"
 
 #: frappe/public/js/frappe/ui/group_by/group_by.js:345
 msgid "Average of {0}"
-msgstr "Medel av {0}"
+msgstr "Medelvärde av {0}"
 
 #: frappe/utils/password_strength.py:124
 msgid "Avoid dates and years that are associated with you."
@@ -9885,12 +9885,12 @@ msgstr "Förfallo Tid för QR Kod Bild Sida"
 #: frappe/public/js/frappe/views/reports/query_report.js:1749
 #: frappe/public/js/frappe/views/reports/report_view.js:1630
 msgid "Export"
-msgstr "Export"
+msgstr "Exportera"
 
 #: frappe/public/js/frappe/list/list_view.js:2074
 msgctxt "Button in list view actions menu"
 msgid "Export"
-msgstr "Export"
+msgstr "Exportera"
 
 #: frappe/public/js/frappe/data_import/data_exporter.js:245
 msgid "Export 1 record"
@@ -12628,7 +12628,7 @@ msgstr "Om villkor är uppfylld kommer Användare att belönas med poäng. t.ex.
 
 #: frappe/core/page/permission_manager/permission_manager_help.html:83
 msgid "If the user enables the mask property for the phone number field, the value will be displayed in a masked format (e.g., 811XXXXXXX)."
-msgstr "Om användare aktiverar mask egenskap för telefonnummer fält visas värdet i ett maskerat format (t.ex. 811XXXXXXX)."
+msgstr "Om användare aktiverar dold egenskap för telefonnummer fält visas värdet i dold format (t.ex. 811XXXXXXX)."
 
 #: frappe/core/page/permission_manager/permission_manager_help.html:63
 msgid "If the user has access to Employee and Report is enabled, they can view Employee-based reports."
@@ -13040,7 +13040,7 @@ msgstr "I Standard Filter"
 #. Description of the Onboarding Step 'Generate Custom Reports'
 #: frappe/custom/onboarding_step/report_builder/report_builder.json
 msgid "In each module, you will find a host of single-click reports, ranging from financial statements to sales and purchase analytics and stock tracking reports. If a required new report is not available out-of-the-box, you can create custom reports in ERPNext by pulling values from the same multiple ERPNext tables.\n"
-msgstr "I varje modul hittar du flera enkel klick rapporter, allt från bokslut till försäljning och inköp statistik och lager spårning rapporter. Om erfordrad rapport inte är tillgänglig direkt, kan du skapa anpassade rapporter i System genom att hämta värden från tabeller.\n"
+msgstr "I varje modul hittar du mängd rapporter med ett enda klick, allt från bokslut rapporter till försäljning och inköp statistik och lager rapporter. Om ny rapport som behövs inte är tillgänglig direkt kan du skapa anpassade rapporter i System genom att hämta värden från samma System tabeller.\n"
 
 #. Description of the 'Font Size' (Float) field in DocType 'Print Settings'
 #: frappe/printing/doctype/print_settings/print_settings.json
@@ -15742,7 +15742,7 @@ msgstr "Marknadsföring Kampanj"
 
 #: frappe/core/page/permission_manager/permission_manager_help.html:81
 msgid "Mask"
-msgstr "Mask"
+msgstr "Dold"
 
 #: frappe/desk/page/setup_wizard/install_fixtures.py:50
 msgid "Master"
@@ -23279,7 +23279,7 @@ msgstr "Visning Tabell"
 #: frappe/website/doctype/web_form_field/web_form_field.json
 #: frappe/website/doctype/web_template_field/web_template_field.json
 msgid "Select"
-msgstr "Rullgardin Lista"
+msgstr "Välj"
 
 #: frappe/public/js/frappe/data_import/data_exporter.js:149
 #: frappe/public/js/frappe/form/controls/multicheck.js:167
@@ -26625,7 +26625,7 @@ msgstr "Användare kan importera nya poster eller uppdatera befintlig data för 
 
 #: frappe/core/page/permission_manager/permission_manager_help.html:28
 msgid "The user can select a Customer in Sales Order but cannot open the Customer master."
-msgstr "Användare kan välja Kund i Försäljning Order men kan inte öppna Kund registret."
+msgstr "Användare kan välja Kund i Försäljning Order men kan inte öppna Kund Inställningar."
 
 #: frappe/core/page/permission_manager/permission_manager_help.html:78
 msgid "The user can share document access with another user."
