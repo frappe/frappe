@@ -909,8 +909,8 @@
 	user-select: none;
 
 	// No resting affordance — the column's own right border is the separator.
-	// On hover, highlight that edge with a full-height line so the draggable
-	// boundary is obvious without adding a second floating mark.
+	// On hover, thicken that edge with a soft gray line so the draggable boundary
+	// is obvious without adding a harsh, full-contrast bar.
 	&::before {
 		content: "";
 		position: absolute;
@@ -918,13 +918,13 @@
 		bottom: 0;
 		right: 3px;
 		width: 2px;
-		background-color: var(--primary);
+		background-color: var(--gray-500);
 		opacity: 0;
 		transition: opacity 0.15s;
 	}
 
 	&:hover::before {
-		opacity: 1;
+		opacity: 0.6;
 	}
 }
 
