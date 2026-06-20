@@ -286,6 +286,17 @@
 	}
 }
 
+// Subtle hover highlight to make rows easier to track across wide grids. Each
+// cell paints its own background, so tint the cells (incl. sticky ones), not the
+// row. Skip the row currently being edited.
+.grid-body .grid-row:not(.grid-row-open) .data-row:not(.editable-row):hover {
+	.grid-static-col,
+	.col:last-child,
+	.row-check {
+		background-color: var(--subtle-fg);
+	}
+}
+
 .grid-body {
 	background-color: var(--subtle-accent);
 	border-bottom-left-radius: var(--radius);
