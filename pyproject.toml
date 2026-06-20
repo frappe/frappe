@@ -33,10 +33,18 @@ dependencies = [
     "beautifulsoup4~=4.13.5",
     "bleach~=6.3.0",
     "bleach-allowlist~=1.0.3",
+<<<<<<< HEAD
     "chardet~=5.2.0",
     "croniter~=6.0.0",
     "cryptography~=46.0.3",
     "cssutils~=2.11.1",
+=======
+    "chardet~=7.4.3",
+    "croniter~=6.2.2",
+    "cryptography~=48.0.1",
+    "cssutils~=2.15.0",
+    "distro~=1.9.0",
+>>>>>>> 3fea2f79fb (fix: add distro to dependencies)
     "email-reply-parser~=0.5.12",
     "gunicorn @ git+https://github.com/frappe/gunicorn@bb554053bb87218120d76ab6676af7015680e8b6",
     "html5lib~=1.1",
