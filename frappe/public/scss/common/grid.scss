@@ -243,12 +243,21 @@
 	font-weight: bold;
 }
 
-.editable-form .grid-static-col.invalid {
+// Red background — only the states that showed it before.
+.editable-form .grid-static-col.invalid,
+.validated-form .grid-static-col.error {
 	background-color: var(--error-bg);
 }
 
-.validated-form .grid-static-col.error {
-	background-color: var(--error-bg);
+// Required / invalid indicator, drawn on the cell as an inset shadow so it can't
+// be clipped — the input's own border was cut off at the bottom by the cell's
+// zero padding and the grid-body's -1px margin. Shown on the active editable row
+// (live, via the control's has-error) and on every flagged cell after a failed
+// validation.
+.grid-body .editable-row .grid-static-col:has(.frappe-control.has-error),
+.validated-form .grid-static-col.error,
+.validated-form .grid-static-col.invalid {
+	box-shadow: inset 0 0 0 1px var(--error-border);
 }
 
 .row-index {
@@ -351,10 +360,10 @@
 			box-shadow: inset 0px 0px 0 2px rgba(124, 124, 124, 0.25);
 		}
 
-		.has-error .form-control {
-			&:focus {
-				border-color: var(--error-border);
-			}
+		// The error state is shown on the cell (inset box-shadow above); the input
+		// itself stays borderless so we don't get a doubled / bottom-clipped border.
+		.has-error input.form-control {
+			border: 0 !important;
 		}
 
 		input.form-control.invalid {
