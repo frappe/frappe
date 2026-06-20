@@ -1109,7 +1109,9 @@ export default class GridRow {
 		// Drag handle on the right edge of each header column to resize it inline
 		// (handled by Grid.setup_column_resize). Desktop only; skip structural cols.
 		if (this.header_row && df.fieldname && !frappe.is_mobile()) {
-			$('<div class="grid-col-resize-handle"></div>').appendTo($col);
+			// Empty title suppresses the column-label tooltip ($col's title) over
+			// the drag zone, so hovering the edge doesn't pop up the field label.
+			$('<div class="grid-col-resize-handle"></div>').attr("title", "").appendTo($col);
 		}
 
 		$col.df = df;
