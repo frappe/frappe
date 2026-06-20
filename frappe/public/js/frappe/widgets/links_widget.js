@@ -53,7 +53,7 @@ export default class LinksWidget extends Widget {
 				return "red";
 			}
 			if (item.onboard) {
-				return item.count ? "blue" : "yellow";
+				return item.count ? "blue" : "amber";
 			}
 			return "gray";
 		};

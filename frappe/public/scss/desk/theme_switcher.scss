@@ -6,7 +6,7 @@
 	.background {
 		background-color: var(--bg-color);
 		box-shadow: var(--shadow-sm);
-		border-radius: var(--border-radius-lg);
+		border-radius: var(--radius-lg);
 		overflow: hidden;
 		cursor: pointer;
 		height: 120px;
@@ -27,7 +27,7 @@
 			background-color: var(--bg-light-gray);
 
 			margin-right: var(--margin-sm);
-			border-radius: var(--border-radius-full);
+			border-radius: var(--radius-full);
 			z-index: 1;
 		}
 	}
@@ -43,6 +43,7 @@
 
 		.preview-check {
 			background-color: var(--primary-color);
+
 			.icon use {
 				stroke: var(--white);
 			}
@@ -63,7 +64,7 @@
 	.foreground {
 		background-color: var(--card-bg);
 		box-shadow: var(--shadow-sm);
-		border-radius: var(--border-radius-sm);
+		border-radius: var(--radius);
 		margin-top: var(--margin-sm);
 		height: 50px;
 
@@ -74,7 +75,7 @@
 
 	.primary {
 		background-color: var(--primary-color);
-		border-radius: var(--border-radius-sm);
+		border-radius: var(--radius);
 		height: 10px;
 		width: 20px;
 		z-index: 1;
@@ -82,7 +83,7 @@
 
 	.text {
 		background-color: var(--text-light);
-		border-radius: var(--border-radius-sm);
+		border-radius: var(--radius);
 		height: 10px;
 		width: 40px;
 	}
@@ -93,15 +94,18 @@
 	.background {
 		border: 1px solid var(--gray-500);
 	}
+
 	.selected {
 		.preview-check {
 			background-color: var(--white) !important;
+
 			.icon use {
 				stroke: var(--primary-color) !important;
 			}
 		}
 	}
 }
+
 [data-is-auto-theme="true"] {
 	.background::after {
 		content: "";

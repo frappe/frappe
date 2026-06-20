@@ -15,7 +15,7 @@ const props = defineProps(["df"]);
 
 <style lang="scss" scoped>
 .signature-field {
-	border-radius: var(--border-radius);
+	border-radius: var(--radius);
 	height: 200px;
 	display: flex;
 	justify-content: center;

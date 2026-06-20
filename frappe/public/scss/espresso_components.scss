@@ -1,0 +1,12 @@
+/* Espresso components — aggregator for all .es-* component CSS.
+ *
+ * Each component is plain, framework-neutral CSS in css/espresso/components/,
+ * styled via its .es-<name> class + data-attributes, binding to the espresso
+ * tokens. Add new components here so bundles import a single file rather than
+ * each component individually. Unlayered (Frappe/Bootstrap is unlayered).
+ *
+ * Loaded by desk.bundle.scss (and other bundles that need the components). */
+
+@import "frappe/public/css/espresso/components/badge.css";
+/* Framework-only: legacy indicator color aliases for .es-badge (third-party-safe). */
+@import "frappe/public/css/espresso/components/badge-legacy-colors.css";
