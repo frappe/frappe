@@ -1,5 +1,5 @@
 {
     "disabledLabels": [
-        "conflicts"
+        "conflicts", "skip-greptile"
     ]
 }
