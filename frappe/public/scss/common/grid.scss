@@ -249,12 +249,19 @@
 	background-color: var(--error-bg);
 }
 
-// Required / invalid indicator, drawn on the cell as an inset shadow so it can't
-// be clipped — the input's own border was cut off at the bottom by the cell's
-// zero padding and the grid-body's -1px margin. Shown on the active editable row
-// (live, via the control's has-error) and on every flagged cell after a failed
-// validation.
-.grid-body .editable-row .grid-static-col:has(.frappe-control.has-error),
+// Required / invalid indicator as an inset box-shadow — it can't be clipped like
+// the input's border was (cut off at the bottom by the cell's zero padding and
+// the grid-body's -1px margin).
+//
+// Active editable row: draw it on the control, not the cell. The input fills the
+// cell and paints over a cell-level inset shadow, so a shadow on the cell would be
+// hidden. Live via the control's has-error class.
+.grid-body .editable-row .has-error .form-control {
+	box-shadow: inset 0 0 0 1px var(--error-border);
+}
+
+// Idle / post-validation rows show static text (no input covering the cell), so
+// the shadow goes on the cell.
 .validated-form .grid-static-col.error,
 .validated-form .grid-static-col.invalid {
 	box-shadow: inset 0 0 0 1px var(--error-border);
