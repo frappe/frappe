@@ -119,6 +119,19 @@ export default class GridRowForm {
 		$(document).on("keydown.grid-sidebar", (e) => {
 			if (e.key === "Escape") this.row.toggle_view(false);
 		});
+
+		$(document).on("mousedown.grid-sidebar", (e) => {
+			const $target = $(e.target);
+			if ($target.closest(".grid-row-sidebar").length) return;
+			// Don't close when interacting with floating UI (dropdowns, pickers, dialogs).
+			if (
+				$target.closest(
+					".dropdown-menu, .modal, .awesomplete, .picker-container, .datepicker"
+				).length
+			)
+				return;
+			this.row.toggle_view(false);
+		});
 	}
 	update_nav_state() {
 		const idx = this.row.doc.idx;
@@ -211,7 +224,7 @@ export default class GridRowForm {
 		}
 	}
 	destroy() {
-		$(document).off("keydown.grid-sidebar");
+		$(document).off(".grid-sidebar");
 		this.wrapper.remove();
 	}
 }
