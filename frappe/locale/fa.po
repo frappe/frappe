@@ -3,7 +3,7 @@ msgstr ""
 "Project-Id-Version: frappe\n"
 "Report-Msgid-Bugs-To: developers@frappe.io\n"
 "POT-Creation-Date: 2026-06-14 10:33+0000\n"
-"PO-Revision-Date: 2026-06-16 18:04\n"
+"PO-Revision-Date: 2026-06-20 19:01\n"
 "Last-Translator: developers@frappe.io\n"
 "Language-Team: Persian\n"
 "MIME-Version: 1.0\n"
@@ -17796,7 +17796,7 @@ msgstr "چندین گره ریشه مجاز نیست."
 #. Import'
 #: frappe/core/doctype/data_import/data_import.json
 msgid "Must be a publicly accessible Google Sheets URL"
-msgstr "باید یک URL کاربرگ‌نگار در دسترس عموم باشد"
+msgstr "باید یک URL قابل دسترسی عمومی در Google Sheets باشد"
 
 #. Description of the 'LDAP Search String' (Data) field in DocType 'LDAP
 #. Settings'
