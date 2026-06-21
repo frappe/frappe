@@ -2,6 +2,7 @@ import { pinia } from "../support/component"
 
 import { setActivePinia } from "pinia"
 import { createRouter, createMemoryHistory } from "vue-router"
+// @ts-ignore
 import { resourcesPlugin } from "frappe-ui"
 import { spritePlugin } from "frappe-ui/icons"
 

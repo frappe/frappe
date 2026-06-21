@@ -254,7 +254,13 @@ const isSelected = computed(() => canvasStore.activeCanvas?.selectedBlockIds?.ha
 
 const target = computed<HTMLElement | null>(() => {
 	if (!componentRef.value) return null
-	return getComponentRoot(componentRef)
+	const root = getComponentRoot(componentRef)
+	if (root instanceof HTMLElement || root instanceof SVGElement) return root as HTMLElement
+	// Fallback for renderless-root components (Popover root) with $el/$rootRef is undefined/not a DOM element
+	// return the real DOM element so the ComponentEditor can anchor to it.
+	return document.querySelector(
+		`[data-component-id="${props.block.componentId}"][data-breakpoint="${props.breakpoint}"]`,
+	) as HTMLElement | null
 })
 
 const loadEditor = computed(() => {
@@ -327,7 +333,7 @@ watch(
 	() => componentRef.value,
 	() => {
 		if (!componentRef.value) return
-		// set data-component-id on update since some frappeui components have inheritAttrs: false
+		// set data attrs for the components which only bind styles and class to the actual root element
 		if (target.value && target.value instanceof Element) {
 			target.value?.setAttribute("data-component-id", props.block.componentId)
 			target.value?.setAttribute("data-breakpoint", props.breakpoint)
