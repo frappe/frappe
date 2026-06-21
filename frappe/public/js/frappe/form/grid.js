@@ -42,10 +42,7 @@ export default class Grid {
 		this.fieldinfo = {};
 		this.doctype = this.df.options;
 
-		// Sticky column left-offsets, keyed by fieldname; sum tracks the running
-		// offset (starts past the check + index columns).
-		this.sticky_row_sum = 71;
-		this.sticky_rows = {};
+		this.sticky_offsets = {};
 
 		if (this.doctype) {
 			this.meta = frappe.get_meta(this.doctype);
@@ -468,8 +465,6 @@ export default class Grid {
 	reset_grid() {
 		this.visible_columns = [];
 		this.grid_rows = [];
-		this.sticky_rows = {};
-		this.sticky_row_sum = 71;
 
 		$(this.parent).find(".grid-body .grid-row").remove();
 		this.refresh();
@@ -1038,8 +1033,6 @@ export default class Grid {
 		// Configure Columns dialog).
 		this.visible_columns = [];
 		this.grid_rows = [];
-		this.sticky_rows = {};
-		this.sticky_row_sum = 71;
 		$(this.parent).find(".grid-body .grid-row").remove();
 
 		this.debounced_refresh();
@@ -1479,6 +1472,17 @@ export default class Grid {
 				this.visible_columns.push([df, this.get_column_width(df)]);
 			}
 		}
+
+		// Compute sticky left-offsets once from the final column list.
+		// 71 = row-check (31px) + row-index (40px) — the two always-visible sticky cols.
+		this.sticky_offsets = {};
+		let sticky_sum = 71;
+		for (let [df, width] of this.visible_columns) {
+			if (df.sticky) {
+				this.sticky_offsets[df.fieldname] = sticky_sum;
+				sticky_sum += width;
+			}
+		}
 	}
 
 	clamp_column_width(width) {
@@ -1491,14 +1495,8 @@ export default class Grid {
 		return this.clamp_column_width(width);
 	}
 
-	// Sticky columns pin to the left; each one's offset is the running sum of the
-	// widths of the sticky columns before it.
-	get_sticky_offset(fieldname, width) {
-		if (!(fieldname in this.sticky_rows)) {
-			this.sticky_rows[fieldname] = this.sticky_row_sum;
-			this.sticky_row_sum += width;
-		}
-		return this.sticky_rows[fieldname];
+	get_sticky_offset(fieldname) {
+		return this.sticky_offsets[fieldname] ?? 71;
 	}
 
 	default_column_width(df) {
