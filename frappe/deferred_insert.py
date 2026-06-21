@@ -35,17 +35,15 @@ def save_to_db():
 			records = frappe.cache.lpop(queue_key)
 			records = json.loads(records.decode("utf-8"))
 			if isinstance(records, dict):
-				record_count += 1
-				insert_record(records, doctype)
-				continue
+				records = [records]
 			for record in records:
 				record_count += 1
 				insert_record(record, doctype)
 				if record_count % 100 == 0:
 					frappe.db.commit()
 
-			if record_count % 100 == 0:
-				frappe.db.commit()
+		if record_count:
+			frappe.db.commit()
 
 
 def insert_record(record: dict | "Document", doctype: str):
