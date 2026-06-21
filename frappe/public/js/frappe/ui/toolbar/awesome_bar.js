@@ -35,6 +35,24 @@ frappe.search.AwesomeBar = class AwesomeBar {
 				placeholder="${__("Search or type a command")}" autocomplete="off"
 			/>
 			<div class="modal-divider"></div>
+		</div>
+		<div class="awesomebar-empty-state hidden">
+			<div class="text-center">
+				<img src="/assets/frappe/images/ui-states/search-empty-state.svg"
+					alt="No recent searches"
+					class="null-state"
+				/>
+				<div class="awesomebar-empty-state-text">${__("Search or run a command")}</div>
+				<div class="awesomebar-empty-state-tip text-muted">
+					${__("Type")}
+					<span class="awesomebar-shortcut-key">new ...</span>
+					${__("to create,")}
+					<span class="awesomebar-shortcut-key">... in ...</span>
+					${__("to search in a list, or")}
+					<span class="awesomebar-shortcut-key">${frappe.utils.is_mac() ? "⌘G" : "Ctrl+G"}</span>
+					${__("for Global Search")}
+				</div>
+			</div>
 		</div>`;
 
 		let search_modal_footer = `<div class="awesomebar-modal-footer flex justify-between w-100">
@@ -189,6 +207,12 @@ frappe.search.AwesomeBar = class AwesomeBar {
 				awesomplete.options_with_desc = me.create_options_with_descriptions(options);
 				Awesomplete.prototype._itemCursor = 0;
 				awesomplete.list = options;
+				const $empty_state = search_modal.find(".awesomebar-empty-state");
+				if (!txt && !options.length) {
+					$empty_state.removeClass("hidden");
+				} else {
+					$empty_state.addClass("hidden");
+				}
 			}, 50)
 		);
 

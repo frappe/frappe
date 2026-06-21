@@ -164,6 +164,39 @@
 	}
 }
 
+.awesomebar-empty-state {
+	padding: var(--padding-xl) var(--padding-lg);
+
+	.null-state {
+		width: 120px;
+		height: auto;
+	}
+
+	.awesomebar-empty-state-text {
+		font-weight: 600;
+		color: var(--text-color);
+		margin-top: var(--margin-lg);
+		font-size: var(--text-xl);
+	}
+
+	.awesomebar-empty-state-tip {
+		font-size: var(--text-xs);
+		margin-top: var(--margin-md);
+		max-width: 28rem;
+		margin-left: auto;
+		margin-right: auto;
+		line-height: 1.45;
+	}
+
+	.awesomebar-shortcut-key {
+		background-color: var(--border-color);
+		padding: 2px 4px;
+		border-radius: 4px;
+		font-size: x-small;
+		display: inline-block;
+	}
+}
+
 .navbar.bg-dark {
 	.dropdown-menu {
 		font-size: 0.75rem;
