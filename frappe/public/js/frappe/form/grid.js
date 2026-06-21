@@ -468,6 +468,8 @@ export default class Grid {
 	reset_grid() {
 		this.visible_columns = [];
 		this.grid_rows = [];
+		this.sticky_rows = {};
+		this.sticky_row_sum = 71;
 
 		$(this.parent).find(".grid-body .grid-row").remove();
 		this.refresh();
@@ -1036,6 +1038,8 @@ export default class Grid {
 		// Configure Columns dialog).
 		this.visible_columns = [];
 		this.grid_rows = [];
+		this.sticky_rows = {};
+		this.sticky_row_sum = 71;
 		$(this.parent).find(".grid-body .grid-row").remove();
 
 		this.debounced_refresh();
