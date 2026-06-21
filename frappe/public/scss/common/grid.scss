@@ -817,9 +817,6 @@ body.grid-sidebar-open::after {
 
 .data-row.row {
 	flex-wrap: nowrap;
-	// Grow to the columns' total width when they overflow, so sticky columns can
-	// pin across the full row (a sticky cell is clamped to its containing block).
-	// Stay full-width — last column grows — when the columns fit.
 	width: max-content;
 	min-width: 100%;
 }
