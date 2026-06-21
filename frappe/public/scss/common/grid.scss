@@ -83,11 +83,6 @@
 	.grid-static-col {
 		padding: 6px 8px !important;
 
-		&.grid-data-column {
-			flex: 1;
-			max-width: none;
-		}
-
 		.static-area {
 			&.reqd:after {
 				content: " *";

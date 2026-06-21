@@ -68,18 +68,17 @@ export default class GridRowForm {
 				<span class="grid-sidebar-docname"></span>
 			</div>
 			<div class="grid-sidebar-actions">
-				<button class="btn btn-secondary btn-xs grid-insert-row hidden-xs">
-					${__("Insert above")}
-				</button>
-				<button class="btn btn-secondary btn-xs grid-insert-row-below hidden-xs">
-					${__("Insert below")}
-				</button>
-				<button class="btn btn-secondary btn-xs grid-duplicate-row hidden-xs">
-					${__("Duplicate")}
-				</button>
-				<button class="btn btn-secondary btn-xs grid-move-row hidden-xs">
-					${__("Move")}
-				</button>
+				${[
+					["grid-insert-row", __("Insert above")],
+					["grid-insert-row-below", __("Insert below")],
+					["grid-duplicate-row", __("Duplicate")],
+					["grid-move-row", __("Move")],
+				]
+					.map(
+						([cls, lbl]) =>
+							`<button class="btn btn-secondary btn-xs ${cls} hidden-xs">${lbl}</button>`
+					)
+					.join("")}
 			</div>
 			<div class="grid-sidebar-body">
 				<div class="form-area"></div>
@@ -91,30 +90,16 @@ export default class GridRowForm {
 		this.set_form_events();
 	}
 	set_form_events() {
-		this.wrapper.find(".grid-sidebar-close").on("click", () => {
-			this.row.toggle_view(false);
-		});
-		this.wrapper.find(".grid-sidebar-prev").on("click", () => {
-			this.row.open_prev();
-		});
-		this.wrapper.find(".grid-sidebar-next").on("click", () => {
-			this.row.open_next();
-		});
-		this.wrapper.find(".grid-delete-row").on("click", () => {
-			this.row.remove();
-		});
-		this.wrapper.find(".grid-insert-row").on("click", () => {
-			this.row.insert(true);
-		});
-		this.wrapper.find(".grid-insert-row-below").on("click", () => {
-			this.row.insert(true, true);
-		});
-		this.wrapper.find(".grid-duplicate-row").on("click", () => {
-			this.row.insert(true, true, true);
-		});
-		this.wrapper.find(".grid-move-row").on("click", () => {
-			this.row.move();
-		});
+		[
+			[".grid-sidebar-close", () => this.row.toggle_view(false)],
+			[".grid-sidebar-prev", () => this.row.open_prev()],
+			[".grid-sidebar-next", () => this.row.open_next()],
+			[".grid-delete-row", () => this.row.remove()],
+			[".grid-insert-row", () => this.row.insert(true)],
+			[".grid-insert-row-below", () => this.row.insert(true, true)],
+			[".grid-duplicate-row", () => this.row.insert(true, true, true)],
+			[".grid-move-row", () => this.row.move()],
+		].forEach(([sel, fn]) => this.wrapper.find(sel).on("click", fn));
 
 		$(document).on("keydown.grid-sidebar", (e) => {
 			if (e.key === "Escape") this.row.toggle_view(false);
@@ -210,14 +195,7 @@ export default class GridRowForm {
 		this.render();
 		$content.animate({ opacity: 1 }, 120);
 
-		if (new_row.frm) {
-			new_row.frm.script_manager.trigger(new_row.doc.parentfield + "_on_form_rendered");
-			new_row.frm.script_manager.trigger(
-				"form_render",
-				new_row.doc.doctype,
-				new_row.doc.name
-			);
-		}
+		new_row._fire_form_render_triggers();
 	}
 	destroy() {
 		$(document).off(".grid-sidebar");

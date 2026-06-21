@@ -1417,10 +1417,7 @@ export default class GridRow {
 			frappe.utils.scroll_to(this.wrapper, true, -15);
 		}
 
-		if (this.frm) {
-			this.frm.script_manager.trigger(this.doc.parentfield + "_on_form_rendered");
-			this.frm.script_manager.trigger("form_render", this.doc.doctype, this.doc.name);
-		}
+		this._fire_form_render_triggers();
 	}
 	hide_form() {
 		$("body").removeClass("grid-sidebar-open");
@@ -1439,23 +1436,16 @@ export default class GridRow {
 	has_prev() {
 		return this.doc.idx > 1;
 	}
-	open_prev() {
-		if (!this.doc) return;
-		const row_index = this.doc.idx - 2;
-		if (this.grid_form) {
-			this.change_page_if_reqd(row_index);
-			const new_row = this.grid.grid_rows[row_index];
-			if (new_row) this.grid_form.navigate_to(new_row);
-			return;
-		}
-		this.open_row_at_index(row_index);
-	}
 	has_next() {
 		return this.doc.idx < this.grid.data.length;
 	}
+	open_prev() {
+		if (this.doc) this._navigate_to_index(this.doc.idx - 2);
+	}
 	open_next() {
-		if (!this.doc) return;
-		const row_index = this.doc.idx;
+		if (this.doc) this._navigate_to_index(this.doc.idx);
+	}
+	_navigate_to_index(row_index) {
 		if (this.grid_form) {
 			this.change_page_if_reqd(row_index);
 			const new_row = this.grid.grid_rows[row_index];
@@ -1463,6 +1453,11 @@ export default class GridRow {
 			return;
 		}
 		this.open_row_at_index(row_index);
+	}
+	_fire_form_render_triggers() {
+		if (!this.frm) return;
+		this.frm.script_manager.trigger(this.doc.parentfield + "_on_form_rendered");
+		this.frm.script_manager.trigger("form_render", this.doc.doctype, this.doc.name);
 	}
 	open_row_at_index(row_index) {
 		if (!this.grid.data[row_index]) return;
