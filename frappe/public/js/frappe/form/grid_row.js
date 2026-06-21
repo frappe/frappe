@@ -75,7 +75,7 @@ export default class GridRow {
 			this.wrapper
 				.attr("data-name", this.doc.name)
 				.attr("data-idx", this.doc.idx)
-				.find(".row-index span, .grid-form-row-index")
+				.find(".row-index span")
 				.html(this.doc.idx);
 		}
 	}
@@ -1412,6 +1412,13 @@ export default class GridRow {
 		$("body").addClass("grid-sidebar-open");
 		if (cur_frm) cur_frm.cur_grid = this;
 		this.wrapper.addClass("grid-row-open");
+
+		if (
+			!frappe.dom.is_element_in_viewport(this.wrapper) &&
+			!frappe.dom.is_element_in_modal(this.wrapper)
+		) {
+			frappe.utils.scroll_to(this.wrapper, true, -15);
+		}
 
 		if (this.frm) {
 			this.frm.script_manager.trigger(this.doc.parentfield + "_on_form_rendered");

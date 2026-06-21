@@ -35,6 +35,7 @@ export default class GridRowForm {
 		this.toggle_add_delete_button_display(this.wrapper);
 		this.update_nav_state();
 		this.row.grid.open_grid_row = this;
+		this.wrapper.find(".grid-sidebar-body").scrollTop(0);
 		this.set_focus();
 	}
 	make_form() {

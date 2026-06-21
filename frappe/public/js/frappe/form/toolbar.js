@@ -929,7 +929,7 @@ frappe.ui.form.Toolbar = class Toolbar {
 		}
 
 		// scroll to input
-		let scroll_container = grid_form.wrapper.find(".grid-form-body");
+		let scroll_container = grid_form.wrapper.find(".grid-sidebar-body");
 		frappe.utils.scroll_to(
 			$el,
 			true,
