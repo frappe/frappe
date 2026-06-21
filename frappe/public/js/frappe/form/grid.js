@@ -389,25 +389,26 @@ export default class Grid {
 		});
 	}
 
+	_any_rows_checked() {
+		return !!this.wrapper.find(".grid-body .grid-row-check:checked:first").length;
+	}
+
 	refresh_remove_rows_button() {
 		if (this.df.cannot_delete_rows) {
 			return;
 		}
 
-		const show_buttons = this.wrapper.find(".grid-body .grid-row-check:checked:first").length
-			? false
-			: true;
-		this.remove_rows_button.toggleClass("hidden", show_buttons);
+		const has_checked = this._any_rows_checked();
+		this.remove_rows_button.toggleClass("hidden", !has_checked);
 		this.duplicate_rows_button.toggleClass(
 			"hidden",
-			show_buttons || this.cannot_add_rows || (this.df && this.df.cannot_add_rows)
+			!has_checked || this.cannot_add_rows || (this.df && this.df.cannot_add_rows)
 		);
 
-		let select_all_checkbox_checked = this.wrapper.find(
-			".grid-heading-row .grid-row-check:checked:first"
-		).length;
-		let show_delete_all_btn =
-			select_all_checkbox_checked && this.data.length > this.get_selected_children().length;
+		const all_checked = !!this.wrapper.find(".grid-heading-row .grid-row-check:checked:first")
+			.length;
+		const show_delete_all_btn =
+			all_checked && this.data.length > this.get_selected_children().length;
 		this.remove_all_rows_button.toggleClass("hidden", !show_delete_all_btn);
 
 		if (show_delete_all_btn) {
@@ -421,10 +422,7 @@ export default class Grid {
 			return;
 		}
 
-		const show_button = this.wrapper.find(".grid-body .grid-row-check:checked:first").length
-			? true
-			: false;
-		this.edit_rows_button.toggleClass("hidden", !show_button);
+		this.edit_rows_button.toggleClass("hidden", !this._any_rows_checked());
 	}
 
 	debounced_refresh_remove_rows_button = frappe.utils.debounce(
@@ -437,10 +435,7 @@ export default class Grid {
 			return;
 		}
 
-		this.duplicate_rows_button.toggleClass(
-			"hidden",
-			this.wrapper.find(".grid-body .grid-row-check:checked:first").length ? false : true
-		);
+		this.duplicate_rows_button.toggleClass("hidden", !this._any_rows_checked());
 	}
 
 	debounced_duplicate_rows_button = frappe.utils.debounce(
@@ -453,20 +448,17 @@ export default class Grid {
 	}
 
 	get_selected_children() {
-		return (this.data || [])
-			.map((row) => {
-				return row.__checked ? row : 0;
-			})
-			.filter((d) => {
-				return d;
-			});
+		return (this.data || []).filter((row) => row.__checked);
+	}
+
+	_teardown_column_layout() {
+		this.visible_columns = [];
+		this.grid_rows = [];
+		$(this.parent).find(".grid-body .grid-row").remove();
 	}
 
 	reset_grid() {
-		this.visible_columns = [];
-		this.grid_rows = [];
-
-		$(this.parent).find(".grid-body .grid-row").remove();
+		this._teardown_column_layout();
 		this.refresh();
 	}
 
@@ -1025,16 +1017,7 @@ export default class Grid {
 			this.column_disp_overrides[field] = show ? 0 : 1;
 		}
 
-		// Tear down the cached column layout and the rendered rows so the new
-		// column set is rebuilt with consistent widths. Just clearing
-		// `visible_columns` is not enough: the header is rebuilt with redistributed
-		// `col-N` widths while already-rendered rows keep their old widths, leaving
-		// the grid misaligned. This mirrors `reset_grid()` (also used by the
-		// Configure Columns dialog).
-		this.visible_columns = [];
-		this.grid_rows = [];
-		$(this.parent).find(".grid-body .grid-row").remove();
-
+		this._teardown_column_layout();
 		this.debounced_refresh();
 	}
 
@@ -1433,10 +1416,10 @@ export default class Grid {
 
 		this.user_defined_columns = [];
 		this.setup_user_defined_columns();
-		var fields =
-			this.user_defined_columns && this.user_defined_columns.length > 0
-				? this.user_defined_columns
-				: this.editable_fields || this.docfields;
+		const use_user_columns = this.user_defined_columns.length > 0;
+		const fields = use_user_columns
+			? this.user_defined_columns
+			: this.editable_fields || this.docfields;
 
 		this.visible_columns = [];
 
@@ -1444,10 +1427,7 @@ export default class Grid {
 			var _df = fields[ci];
 
 			// get docfield if from fieldname
-			let df =
-				this.user_defined_columns && this.user_defined_columns.length > 0
-					? _df
-					: this.fields_map[_df.fieldname];
+			let df = use_user_columns ? _df : this.fields_map[_df.fieldname];
 
 			if (
 				df &&
