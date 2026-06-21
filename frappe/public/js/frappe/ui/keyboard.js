@@ -254,9 +254,7 @@ frappe.ui.keys.on("enter", function (e) {
 frappe.ui.keys.on("ctrl+down", function (e) {
 	const grid_row = frappe.ui.form.get_open_grid_form();
 	if (grid_row?.has_next()) {
-		grid_row.toggle_view(false, function () {
-			grid_row.open_next();
-		});
+		grid_row.open_next();
 	} else {
 		e.preventDefault();
 	}
@@ -265,9 +263,7 @@ frappe.ui.keys.on("ctrl+down", function (e) {
 frappe.ui.keys.on("ctrl+up", function (e) {
 	const grid_row = frappe.ui.form.get_open_grid_form();
 	if (grid_row?.has_prev()) {
-		grid_row.toggle_view(false, function () {
-			grid_row.open_prev();
-		});
+		grid_row.open_prev();
 	} else {
 		e.preventDefault();
 	}
