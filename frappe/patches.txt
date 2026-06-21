@@ -264,3 +264,4 @@ execute:frappe.db.set_value("Email Account", {}, "add_reply_to_header", 1)
 frappe.patches.v16_0.set_reply_to_header
 frappe.patches.v16_0.rename_print_format_builder_beta_route
 frappe.patches.v16_0.sync_installed_apps_to_site_config
+frappe.patches.v16_0.rename_calcutta_to_kolkata_timezone
