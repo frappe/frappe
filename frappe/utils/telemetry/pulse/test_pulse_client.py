@@ -6,8 +6,8 @@ from frappe.tests import IntegrationTestCase
 from frappe.utils.telemetry.pulse.client import (
 	EventQueue,
 	alias,
+	boot_config,
 	capture,
-	guest_capture,
 	identify,
 	is_enabled,
 )
@@ -263,6 +263,43 @@ class TestBatchProcessing(TestPulseClient):
 		self.assertEqual(eq.length, 5)
 
 
+class TestTelemetryGate(TestPulseClient):
+	"""is_enabled() is the privacy gate; boot_config() is the public endpoint that
+	must stay shut when the gate is off. Exercised together through real config."""
+
+	def _conf(self, **overrides):
+		conf = {"pulse_api_key": "k", "developer_mode": 0, "pulse_force_enabled": 0}
+		conf.update(overrides)
+		is_enabled.clear_cache()
+		self.addCleanup(is_enabled.clear_cache)
+		return patch.dict(frappe.conf, conf)
+
+	def test_off_by_default_and_endpoint_leaks_nothing(self):
+		with self._conf(pulse_api_key=None), patch("frappe.get_system_settings", return_value=True):
+			self.assertFalse(is_enabled())
+			self.assertEqual(boot_config(), {"enabled": False})  # public endpoint stays shut
+
+	def test_enabled_when_configured(self):
+		with (
+			self._conf(pulse_host="https://pulse.example.com"),
+			patch("frappe.get_system_settings", return_value=True),
+		):
+			self.assertTrue(is_enabled())
+			cfg = boot_config()
+
+		self.assertEqual(cfg["key"], "k")
+		self.assertEqual(cfg["client_url"], "https://pulse.example.com/assets/pulse/js/pulse_client.js")
+		self.assertIsNone(cfg["team"])
+
+	def test_force_enabled_overrides(self):
+		# Escape hatch: on despite no key / dev mode / telemetry off.
+		with (
+			self._conf(pulse_force_enabled=1, pulse_api_key=None, developer_mode=1),
+			patch("frappe.get_system_settings", return_value=False),
+		):
+			self.assertTrue(is_enabled())
+
+
 class TestCapture(TestPulseClient):
 	@patch("frappe.utils.telemetry.pulse.client.is_enabled")
 	def test_capture_when_disabled(self, mock_enabled):
@@ -324,19 +361,6 @@ class TestCapture(TestPulseClient):
 		self.assertEqual(events[0]["user"], anonymize_user(frappe.session.user))
 		# team is only set where it can't be derived from site (e.g. the dashboard)
 		self.assertIsNone(events[0]["team"])
-
-	@patch("frappe.utils.telemetry.pulse.client.is_enabled")
-	def test_guest_capture_enqueues_with_anon_user(self, mock_enabled):
-		"""guest_capture delegates to bulk_capture; pre-signup events carry anon_id"""
-		is_enabled.clear_cache()
-		mock_enabled.return_value = True
-		eq = EventQueue()
-
-		guest_capture([{"event_name": "viewed_signup", "user": "anon_abc", "site": "cloud.frappe.io"}])
-
-		events = eq.collect(batch_size=1)
-		self.assertEqual(events[0]["event_name"], "viewed_signup")
-		self.assertEqual(events[0]["user"], "anon_abc")
 
 
 class TestIdentify(TestPulseClient):

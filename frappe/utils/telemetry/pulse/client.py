@@ -6,15 +6,13 @@ from typing import Any
 >>>>>>> d3c4b9aa27 (feat(telemetry): team dimension + shared dependency-free pulse client)
 
 import frappe
-from frappe.rate_limiter import rate_limit
 from frappe.utils.caching import site_cache
 
 from .queue import EventQueue
 from .transport import PulseHTTP
-from .utils import anonymize_user, utc_iso
+from .utils import anonymize_user, pulse_host, utc_iso
 
 
-@frappe.whitelist(allow_guest=True)
 @site_cache(ttl=60 * 60)
 def is_enabled() -> bool:
 	if frappe.conf.get("pulse_force_enabled"):
@@ -27,10 +25,42 @@ def is_enabled() -> bool:
 	)
 
 
+<<<<<<< HEAD
 @frappe.whitelist()
 <<<<<<< HEAD
 def capture(event_name, site=None, app=None, user=None, captured_at=None, properties=None, interval=None):
 =======
+=======
+@frappe.whitelist(allow_guest=True)
+def boot_config() -> dict:
+	"""Direct-mode config for the browser client.
+
+	Desk reads this from bootinfo, but frappe-ui SPAs don't have desk's
+	`window.frappe.boot`, so it's also whitelisted: the telemetry plugin fetches it
+	directly and app owners don't each write their own endpoint. Self-gates —
+	returns ``{"enabled": False}`` when telemetry is off, so a disabled site hands
+	out nothing.
+
+	The key is a public, write-only ingest key — shipping it to the browser is by
+	design. On a product site `team` is null (it's joined from `site` downstream);
+	`user` is the site-salted anonymous id, never the FC account.
+	"""
+	if not is_enabled():
+		return {"enabled": False}
+
+	host = pulse_host()
+	return {
+		"enabled": True,
+		"host": host,
+		"client_url": f"{host}/assets/pulse/js/pulse_client.js",
+		"key": frappe.conf.get("pulse_api_key"),
+		"site": frappe.local.site,
+		"user": anonymize_user(frappe.session.user),
+		"team": None,
+	}
+
+
+>>>>>>> 4774101bdd (refactor(telemetry): load js client from pulse host & send events to host directly)
 def capture(
 	event_name: str,
 	site: str | None = None,
@@ -65,6 +95,7 @@ def capture(
 		frappe.logger("pulse").error(f"pulse-client - capture failed: {e!s}")
 
 
+<<<<<<< HEAD
 @frappe.whitelist()
 def bulk_capture(events):
 	if not is_enabled():
@@ -101,6 +132,8 @@ def guest_capture(events: str | list[dict[str, Any]]):
 	bulk_capture(events)
 
 
+=======
+>>>>>>> 4774101bdd (refactor(telemetry): load js client from pulse host & send events to host directly)
 def identify(user: str, properties: str | dict[str, Any] | None = None):
 	"""Attach attributes to a user — upserts its Pulse Person profile.
 
