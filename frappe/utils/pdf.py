@@ -115,7 +115,7 @@ def get_pdf(html, options=None, output: PdfWriter | None = None):
 
 	try:
 		# Set filename property to false, so no file is actually created
-		filedata = pdfkit.from_file(io.StringIO(html), options=options or {}, verbose=True)
+		filedata = pdfkit.from_string(html, options=options or {}, verbose=True)
 
 		# create in-memory binary streams from filedata and create a PdfReader object
 		reader = PdfReader(io.BytesIO(filedata))
