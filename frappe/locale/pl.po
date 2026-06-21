@@ -3,7 +3,7 @@ msgstr ""
 "Project-Id-Version: frappe\n"
 "Report-Msgid-Bugs-To: developers@frappe.io\n"
 "POT-Creation-Date: 2026-01-02 22:45+0000\n"
-"PO-Revision-Date: 2026-06-14 17:40\n"
+"PO-Revision-Date: 2026-06-21 19:30\n"
 "Last-Translator: developers@frappe.io\n"
 "Language-Team: Polish\n"
 "MIME-Version: 1.0\n"
@@ -15308,7 +15308,7 @@ msgstr "Zalogowanie jest wymagane, aby zobaczyć widok listy formularza internet
 
 #: frappe/templates/includes/login/login.js:70
 msgid "Login link sent to your email"
-msgstr "Link do logowania wysłany na Twój e-mail"
+msgstr ""
 
 #: frappe/auth.py:335 frappe/auth.py:338
 msgid "Login not allowed at this time"
@@ -15333,7 +15333,7 @@ msgstr "Zaloguj się, aby rozpocząć nową dyskusję"
 
 #: frappe/www/login.html:63
 msgid "Login to {0}"
-msgstr "Logowanie do {0}"
+msgstr ""
 
 #: frappe/templates/includes/login/login.js:327
 msgid "Login token required"
@@ -28973,7 +28973,7 @@ msgstr "Poprawny"
 #: frappe/templates/includes/login/login.js:53
 #: frappe/templates/includes/login/login.js:66
 msgid "Valid Login id required."
-msgstr "Wymagany jest prawidłowy identyfikator logowania."
+msgstr ""
 
 #: frappe/templates/includes/login/login.js:40
 msgid "Valid email and name required"
