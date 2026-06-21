@@ -3,7 +3,7 @@ msgstr ""
 "Project-Id-Version: frappe\n"
 "Report-Msgid-Bugs-To: developers@frappe.io\n"
 "POT-Creation-Date: 2026-01-02 22:45+0000\n"
-"PO-Revision-Date: 2026-06-14 17:40\n"
+"PO-Revision-Date: 2026-06-21 19:30\n"
 "Last-Translator: developers@frappe.io\n"
 "Language-Team: Portuguese\n"
 "MIME-Version: 1.0\n"
@@ -5577,7 +5577,7 @@ msgstr "Confirmar nova palavra-passe"
 
 #: frappe/www/update-password.html:24
 msgid "Confirm Password"
-msgstr "Confirmar palavra-passe"
+msgstr ""
 
 #: frappe/templates/emails/data_deletion_approval.html:6
 #: frappe/templates/emails/delete_data_confirmation.html:7
@@ -6058,7 +6058,7 @@ msgstr "Criar um novo {0}"
 
 #: frappe/www/login.html:161
 msgid "Create a {0} Account"
-msgstr "Criar uma Conta {0}"
+msgstr ""
 
 #. Description of a DocType
 #: frappe/email/doctype/newsletter/newsletter.json
@@ -13269,7 +13269,7 @@ msgstr "Instruções"
 
 #: frappe/templates/includes/login/login.js:262
 msgid "Instructions Emailed"
-msgstr "Instruções enviadas por e-mail"
+msgstr ""
 
 #: frappe/permissions.py:831
 msgid "Insufficient Permission Level for {0}"
@@ -13488,7 +13488,7 @@ msgstr "Token de login inválido"
 
 #: frappe/templates/includes/login/login.js:291
 msgid "Invalid Login. Try again."
-msgstr "Login inválido. Tente novamente."
+msgstr ""
 
 #: frappe/email/receive.py:111 frappe/email/receive.py:148
 msgid "Invalid Mail Server. Please rectify and try again."
@@ -15320,7 +15320,7 @@ msgstr "É necessário entrar para ver a vista de lista do formulário web. Ativ
 
 #: frappe/templates/includes/login/login.js:70
 msgid "Login link sent to your email"
-msgstr "Link de entrada enviado para o seu e-mail"
+msgstr ""
 
 #: frappe/auth.py:335 frappe/auth.py:338
 msgid "Login not allowed at this time"
@@ -15345,7 +15345,7 @@ msgstr "Entre para iniciar uma nova discussão"
 
 #: frappe/www/login.html:63
 msgid "Login to {0}"
-msgstr "Entrar em {0}"
+msgstr ""
 
 #: frappe/templates/includes/login/login.js:327
 msgid "Login token required"
@@ -28985,11 +28985,11 @@ msgstr "Válido"
 #: frappe/templates/includes/login/login.js:53
 #: frappe/templates/includes/login/login.js:66
 msgid "Valid Login id required."
-msgstr "É necessário um ID de início de sessão válido."
+msgstr ""
 
 #: frappe/templates/includes/login/login.js:40
 msgid "Valid email and name required"
-msgstr "É necessário um e-mail e nome válidos"
+msgstr ""
 
 #. Label of a Check field in DocType 'Onboarding Step'
 #: frappe/desk/doctype/onboarding_step/onboarding_step.json
