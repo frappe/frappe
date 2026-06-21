@@ -651,7 +651,6 @@ export default class GridRow {
 		$(this.fields_html_wrapper)
 			.find(".column-width")
 			.change((event) => {
-				// Clamp to the same bounds as drag-resize.
 				let width = this.grid.clamp_column_width(event.target.value);
 				event.target.value = width;
 
@@ -768,7 +767,6 @@ export default class GridRow {
 			}
 		});
 
-		// Last data column grows to fill spare width (see grid-data-last in grid.scss).
 		this.columns_list.forEach((column) => column.removeClass("grid-data-last"));
 		this.columns_list[this.columns_list.length - 1]?.addClass("grid-data-last");
 
@@ -951,7 +949,6 @@ export default class GridRow {
 		let me = this;
 		let add_class = this._get_fieldtype_class(df.fieldtype);
 
-		// Static pixel width; the grid scrolls horizontally when columns overflow.
 		let add_style = `flex: 0 0 ${width}px; width: ${width}px;`;
 		if (df.sticky) {
 			add_class += " sticky-grid-col";

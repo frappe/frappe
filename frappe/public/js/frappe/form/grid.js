@@ -6,7 +6,6 @@ import GridPagination from "./grid_pagination";
 
 const BULK_EDIT_CSV_HEADER_ROWS = 7; // title, labels, fieldnames, descriptions, 2 instructions, separator
 
-// Static pixel column widths; legacy map migrates old 1-12 `columns`/`colsize`.
 export const GRID_MIN_COLUMN_WIDTH = 60;
 export const GRID_MAX_COLUMN_WIDTH = 600;
 export const DEFAULT_COLUMN_WIDTHS = {
@@ -531,7 +530,6 @@ export default class Grid {
 				let start_width = $col.outerWidth();
 				$("body").addClass("grid-col-resizing");
 
-				// Bind document listeners only for the drag, so they don't outlive it.
 				$(document)
 					.on(`mousemove.${ns}`, function (ev) {
 						let width = me.clamp_column_width(start_width + (ev.pageX - start_x));
@@ -1456,7 +1454,6 @@ export default class Grid {
 			}
 		}
 
-		// Compute sticky left-offsets once from the final column list.
 		// 71 = row-check (31px) + row-index (40px) — the two always-visible sticky cols.
 		this.sticky_offsets = {};
 		let sticky_sum = 71;

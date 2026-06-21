@@ -548,7 +548,6 @@
 	}
 }
 
-// Grid row sidebar — slides in from the right when a row is opened.
 .grid-row-sidebar {
 	position: fixed;
 	top: 0;
@@ -574,7 +573,6 @@ body.grid-sidebar-open .grid-row-sidebar {
 	transform: translateX(0);
 }
 
-// Subtle backdrop behind the sidebar.
 body.grid-sidebar-open::after {
 	content: "";
 	position: fixed;
@@ -820,7 +818,6 @@ body.grid-sidebar-open::after {
 	width: max-content;
 	min-width: 100%;
 }
-// Last data column grows to fill spare width (widths are inline px from make_column).
 .grid-static-col.grid-data-last {
 	flex-grow: 1 !important;
 }
@@ -865,7 +862,6 @@ body.grid-sidebar-open::after {
 	cursor: col-resize;
 	user-select: none;
 
-	// Invisible at rest (the column border is the separator); a soft gray edge on hover.
 	&::before {
 		content: "";
 		position: absolute;

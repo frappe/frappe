@@ -123,7 +123,6 @@ export default class GridRowForm {
 		$(document).on("mousedown.grid-sidebar", (e) => {
 			const $target = $(e.target);
 			if ($target.closest(".grid-row-sidebar").length) return;
-			// Don't close when interacting with floating UI (dropdowns, pickers, dialogs).
 			if (
 				$target.closest(
 					".dropdown-menu, .modal, .awesomplete, .picker-container, .datepicker"
@@ -141,7 +140,6 @@ export default class GridRowForm {
 		this.wrapper.find(".grid-sidebar-prev").toggleClass("disabled", !this.row.has_prev());
 		this.wrapper.find(".grid-sidebar-next").toggleClass("disabled", !this.row.has_next());
 
-		// update title from first visible column value
 		const first_col = this.row.grid.visible_columns?.[0]?.[0];
 		const title = first_col && this.row.doc[first_col.fieldname];
 		this.wrapper.find(".grid-sidebar-docname").text(title || "");
@@ -192,8 +190,6 @@ export default class GridRowForm {
 		}, 200);
 	}
 	navigate_to(new_row) {
-		// Transfer sidebar ownership to new_row without closing/reopening it.
-		// The slide-in transition only fires on initial open; switching rows is instant + content fade.
 		this.row.wrapper.removeClass("grid-row-open");
 		this.row.grid_form = null;
 
