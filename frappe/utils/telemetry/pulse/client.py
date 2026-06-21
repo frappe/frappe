@@ -1,15 +1,13 @@
 from typing import Any
 
 import frappe
-from frappe.rate_limiter import rate_limit
 from frappe.utils.caching import site_cache
 
 from .queue import EventQueue
 from .transport import PulseHTTP
-from .utils import anonymize_user, utc_iso
+from .utils import anonymize_user, pulse_host, utc_iso
 
 
-@frappe.whitelist(allow_guest=True)
 @site_cache(ttl=60 * 60)
 def is_enabled() -> bool:
 	if frappe.conf.get("pulse_force_enabled"):
@@ -22,7 +20,35 @@ def is_enabled() -> bool:
 	)
 
 
-@frappe.whitelist()
+@frappe.whitelist(allow_guest=True)
+def boot_config() -> dict:
+	"""Direct-mode config for the browser client.
+
+	Desk reads this from bootinfo, but frappe-ui SPAs don't have desk's
+	`window.frappe.boot`, so it's also whitelisted: the telemetry plugin fetches it
+	directly and app owners don't each write their own endpoint. Self-gates —
+	returns ``{"enabled": False}`` when telemetry is off, so a disabled site hands
+	out nothing.
+
+	The key is a public, write-only ingest key — shipping it to the browser is by
+	design. On a product site `team` is null (it's joined from `site` downstream);
+	`user` is the site-salted anonymous id, never the FC account.
+	"""
+	if not is_enabled():
+		return {"enabled": False}
+
+	host = pulse_host()
+	return {
+		"enabled": True,
+		"host": host,
+		"client_url": f"{host}/assets/pulse/js/pulse_client.js",
+		"key": frappe.conf.get("pulse_api_key"),
+		"site": frappe.local.site,
+		"user": anonymize_user(frappe.session.user),
+		"team": None,
+	}
+
+
 def capture(
 	event_name: str,
 	site: str | None = None,
@@ -54,42 +80,6 @@ def capture(
 		)
 	except Exception as e:
 		frappe.logger("pulse").error(f"pulse-client - capture failed: {e!s}")
-
-
-@frappe.whitelist()
-def bulk_capture(events: str | list[dict[str, Any]]):
-	if not is_enabled():
-		return
-
-	if isinstance(events, str):
-		events = frappe.parse_json(events)
-
-	for event in events:
-		capture(
-			event.get("event_name"),
-			site=event.get("site"),
-			app=event.get("app"),
-			user=event.get("user"),
-			team=event.get("team"),
-			captured_at=event.get("captured_at"),
-			properties=event.get("properties"),
-			interval=event.get("interval"),
-		)
-
-
-@frappe.whitelist(allow_guest=True, methods=["POST"])
-@rate_limit(limit=1000, seconds=60 * 60)
-def guest_capture(events: str | list[dict[str, Any]]):
-	"""Guest-accessible capture for pre-signup surfaces (e.g. frappe.io, the FC
-	signup pages) where there's no session yet — callers pass an `anon_id` as the
-	event `user`.
-
-	Split from `bulk_capture` so the authenticated desk path stays unthrottled:
-	desk telemetry is high-frequency and often shares one NAT IP across many
-	users, where a per-IP limit would silently drop legit events. The per-IP rate
-	limit matches the framework's guest-API convention (see `www/contact.py`).
-	"""
-	bulk_capture(events)
 
 
 def identify(user: str, properties: str | dict[str, Any] | None = None):

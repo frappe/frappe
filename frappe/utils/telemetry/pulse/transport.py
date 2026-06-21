@@ -1,7 +1,7 @@
 import frappe
 from frappe.utils import get_request_session
 
-from .utils import ensure_http
+from .utils import ensure_http, pulse_host
 
 
 class PulseHTTP:
@@ -14,7 +14,7 @@ class PulseHTTP:
 
 	def __init__(self):
 		self.api_key = frappe.conf.get("pulse_api_key")
-		self.host = frappe.conf.get("pulse_host") or "https://pulse.m.frappe.cloud"
+		self.host = pulse_host()
 
 	def _session(self):
 		session = get_request_session()

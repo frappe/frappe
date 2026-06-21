@@ -3,6 +3,12 @@ from datetime import UTC, datetime
 
 import frappe
 
+DEFAULT_PULSE_HOST = "https://pulse.m.frappe.cloud"
+
+
+def pulse_host() -> str:
+	return frappe.conf.get("pulse_host") or DEFAULT_PULSE_HOST
+
 
 def anonymize_user(user):
 	"""

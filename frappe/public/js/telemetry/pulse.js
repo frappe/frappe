@@ -1,4 +1,8 @@
-import { PulseClient } from "./pulse_client.js";
+// The pulse client lives in one place — pulse's CDN — and desk loads it at
+// runtime, same as frappe-ui apps. There's no bundled framework copy to keep in
+// sync. Telemetry already depends on pulse being reachable (that's where events
+// POST), so loading the client from there adds no new failure mode.
+const DEFAULT_PULSE_CLIENT_URL = "https://pulse.m.frappe.cloud/assets/pulse/js/pulse_client.js";
 
 class PulseProvider {
 	constructor() {
@@ -10,12 +14,23 @@ class PulseProvider {
 		return frappe.boot.telemetry_provider?.includes("pulse") && frappe.boot.enable_telemetry;
 	}
 
-	init() {
+	async init() {
 		if (!this.is_enabled()) return;
 		this.enabled = true;
 
 		try {
-			this.client = new PulseClient({ enabled: true });
+			const t = frappe.boot.telemetry || {};
+			// A runtime variable (not a string literal) so the bundler leaves this as
+			// a real runtime import of the remote module instead of trying to bundle it.
+			const url = t.client_url || DEFAULT_PULSE_CLIENT_URL;
+			const mod = await import(url);
+			this.client = new mod.PulseClient({
+				host: t.host,
+				apiKey: t.key,
+				site: t.site,
+				enabled: t.enabled,
+				// user/team come from boot.telemetry via the client's default context
+			});
 			this.client.init();
 			this.register_pageview_handler();
 		} catch (error) {
