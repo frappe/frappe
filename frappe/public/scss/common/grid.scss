@@ -620,10 +620,20 @@ body.grid-sidebar-open::after {
 	}
 
 	.grid-sidebar-close {
+		color: var(--text-muted);
 		--icon-stroke: var(--text-muted);
 
+		.icon use {
+			stroke: var(--text-muted);
+		}
+
 		&:hover {
+			color: var(--text-color);
 			--icon-stroke: var(--text-color);
+
+			.icon use {
+				stroke: var(--text-color);
+			}
 		}
 	}
 }
