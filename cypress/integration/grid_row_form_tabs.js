@@ -123,7 +123,9 @@ context("Grid Row Form Tabs", () => {
 		cy.get(".grid-row-sidebar").as("table-form");
 
 		// Jump to a field that lives on a different tab (Details > Notes)
-		cy.get("body").type("{esc}").type("{ctrl+j}");
+		// Note: {esc} would close the sidebar — blur the focused input instead
+		cy.focused().blur();
+		cy.get("body").type("{ctrl+j}");
 		cy.get(".modal input[type='text']").first().focus();
 		cy.get("body").type("Notes").wait(1000).type("{enter}").wait(200);
 		cy.findByRole("button", { name: "Go" }).click().wait(500);
@@ -148,9 +150,10 @@ context("Grid Row Form Tabs", () => {
 		cy.get("@row1").find(".btn-open-row").click();
 		cy.get(".grid-row-sidebar").as("table-form");
 
-		// Fill fields in first tab
-		cy.fill_table_field("items", "1", "item_name", "Test Item");
-		cy.fill_table_field("items", "1", "quantity", "10");
+		// Fill fields in first tab — use fill_field (sidebar inputs) not fill_table_field
+		// (fill_table_field clicks the static table row, triggering outside-click-close)
+		cy.fill_field("item_name", "Test Item");
+		cy.fill_field("quantity", "10");
 
 		// Switch to Details tab and wait for it to become active
 		cy.get("@table-form")
@@ -162,8 +165,8 @@ context("Grid Row Form Tabs", () => {
 		cy.get("@table-form")
 			.find('.frappe-control[data-fieldname="description"]')
 			.should("be.visible");
-		cy.fill_table_field("items", "1", "description", "This is a test description");
-		cy.fill_table_field("items", "1", "notes", "Some notes here");
+		cy.fill_field("description", "This is a test description");
+		cy.fill_field("notes", "Some notes here");
 
 		// Switch back to first tab and wait for it to become active
 		cy.get("@table-form")
