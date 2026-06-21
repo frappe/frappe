@@ -101,7 +101,7 @@ context("Grid Row Form Tabs", () => {
 			.should("have.class", "active");
 
 		// Collapse first row
-		cy.get("@table-form").find(".grid-collapse-row").click();
+		cy.get(".grid-sidebar-close").click();
 
 		// Open second row - should show first tab by default (not persist from row 1)
 		cy.get("@table").find('[data-idx="2"]').as("row2");

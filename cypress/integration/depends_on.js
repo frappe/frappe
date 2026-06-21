@@ -114,7 +114,7 @@ context("Depends On", () => {
 		cy.get("@table").findByRole("button", { name: "Add row" }).click();
 		cy.get("@table").find('[data-idx="1"]').as("row1");
 		cy.get("@row1").find(".btn-open-row").click();
-		cy.get("@row1").find(".form-in-grid").as("row1-form_in_grid");
+		cy.get(".grid-row-sidebar").as("row1-form_in_grid");
 		//cy.get('@row1-form_in_grid').find('')
 		cy.fill_table_field("child_test_depends_on_field", "1", "child_test_field", "Some Value");
 		cy.fill_table_field(
@@ -124,7 +124,7 @@ context("Depends On", () => {
 			"Some Other Value"
 		);
 
-		cy.get("@row1-form_in_grid").find(".grid-collapse-row").click();
+		cy.get("@row1-form_in_grid").find(".grid-sidebar-close").click();
 
 		// set the table to read-only
 		cy.fill_field("test_field", "Some Other Value");

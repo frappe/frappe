@@ -83,7 +83,7 @@ context.skip("Form Tour", () => {
 			.click();
 		cy.wait(500);
 		// collapse row
-		cy.get(".grid-row-open .grid-collapse-row").click();
+		cy.get(".grid-row-sidebar .grid-sidebar-close").click();
 		cy.wait(500);
 
 		// assert save btn is highlighted

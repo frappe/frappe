@@ -97,8 +97,7 @@
 	}
 }
 
-.rows .grid-row .data-row,
-.rows .grid-row .grid-footer-toolbar {
+.rows .grid-row .data-row {
 	cursor: pointer;
 }
 
@@ -759,19 +758,6 @@ body.grid-sidebar-open::after {
 .page-number {
 	background-color: var(--fg-color);
 	padding: 0 3px;
-}
-
-.grid-footer-toolbar {
-	padding: var(--padding-md) var(--padding-sm) var(--padding-xs) var(--padding-sm);
-
-	// border-top: 1px solid var(--border-color);
-	span {
-		margin-right: var(--margin-xs);
-	}
-
-	button {
-		margin-left: var(--margin-xs);
-	}
 }
 
 .grid-overflow-no-ellipsis {
