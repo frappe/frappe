@@ -1402,42 +1402,16 @@ export default class GridRow {
 		return this;
 	}
 	show_form() {
-		if (frappe.utils.is_xs()) {
-			$(this.grid.form_grid).css("min-width", "0");
-			$(this.grid.form_grid).css("position", "unset");
+		if (this.grid_form) {
+			this.grid_form.destroy();
+			this.grid_form = null;
 		}
-		if (!this.grid_form) {
-			this.grid_form = new GridRowForm({
-				row: this,
-			});
-		}
-		this.grid_form.wrapper.css("display", "block");
+		this.grid_form = new GridRowForm({ row: this });
 		this.grid_form.render();
-		this.row.toggle(false);
-		// this.form_panel.toggle(true);
 
-		let cannot_add_rows =
-			this.grid.cannot_add_rows || (this.grid.df && this.grid.df.cannot_add_rows);
-		this.wrapper
-			.find(
-				".grid-insert-row-below, .grid-insert-row, .grid-duplicate-row, .grid-append-row"
-			)
-			.toggle(!cannot_add_rows);
-
-		this.wrapper
-			.find(".grid-delete-row")
-			.toggle(!(this.grid.df && this.grid.df.cannot_delete_rows));
-
-		frappe.dom.freeze("", "dark grid-form");
+		$("body").addClass("grid-sidebar-open");
 		if (cur_frm) cur_frm.cur_grid = this;
 		this.wrapper.addClass("grid-row-open");
-		if (
-			!frappe.dom.is_element_in_viewport(this.wrapper) &&
-			!frappe.dom.is_element_in_modal(this.wrapper)
-		) {
-			// -15 offset to make form look visually centered
-			frappe.utils.scroll_to(this.wrapper, true, -15);
-		}
 
 		if (this.frm) {
 			this.frm.script_manager.trigger(this.doc.parentfield + "_on_form_rendered");
@@ -1445,19 +1419,12 @@ export default class GridRow {
 		}
 	}
 	hide_form() {
-		if (frappe.utils.is_xs()) {
-			$(this.grid.form_grid).css("min-width", "738px");
-			$(this.grid.form_grid).css("position", "relative");
-		}
-		frappe.dom.unfreeze();
-		this.row.toggle(true);
-		if (!frappe.dom.is_element_in_modal(this.row)) {
-			frappe.utils.scroll_to(this.row, true, 15);
-		}
+		$("body").removeClass("grid-sidebar-open");
 		this.refresh();
 		if (cur_frm) cur_frm.cur_grid = null;
 		if (this.grid_form) {
-			this.grid_form.wrapper.css("display", "none");
+			this.grid_form.destroy();
+			this.grid_form = null;
 		}
 		this.wrapper.removeClass("grid-row-open");
 
