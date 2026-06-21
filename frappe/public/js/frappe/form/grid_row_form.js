@@ -200,7 +200,7 @@ export default class GridRowForm {
 		this.row = new_row;
 		new_row.grid_form = this;
 		new_row.wrapper.addClass("grid-row-open");
-		if (cur_frm) cur_frm.cur_grid = new_row;
+		if (new_row.frm) new_row.frm.cur_grid = new_row;
 
 		if (
 			!frappe.dom.is_element_in_viewport(new_row.wrapper) &&

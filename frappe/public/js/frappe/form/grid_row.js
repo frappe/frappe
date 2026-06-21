@@ -1410,7 +1410,7 @@ export default class GridRow {
 		this.grid_form.render();
 
 		$("body").addClass("grid-sidebar-open");
-		if (cur_frm) cur_frm.cur_grid = this;
+		if (this.frm) this.frm.cur_grid = this;
 		this.wrapper.addClass("grid-row-open");
 
 		if (
@@ -1428,7 +1428,7 @@ export default class GridRow {
 	hide_form() {
 		$("body").removeClass("grid-sidebar-open");
 		this.refresh();
-		if (cur_frm) cur_frm.cur_grid = null;
+		if (this.frm) this.frm.cur_grid = null;
 		if (this.grid_form) {
 			this.grid_form.destroy();
 			this.grid_form = null;
