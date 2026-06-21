@@ -248,9 +248,7 @@
 	background-color: var(--error-bg);
 }
 
-// Error indicator as an inset box-shadow — a border gets clipped at the cell's
-// bottom edge. On the editable row it goes on the control (the input would cover
-// a cell-level shadow); on idle/validated rows it goes on the cell.
+// Error indicator: inset shadow on the control (editable rows) or the cell (idle rows).
 .grid-body .editable-row .has-error .form-control {
 	box-shadow: inset 0 0 0 1px var(--error-border);
 }
@@ -863,8 +861,7 @@
 }
 
 .form-grid {
-	// Pin the trailing action column right and keep the index column compact so
-	// wide, scrolling grids stay usable.
+	// Pin action and index columns so wide grids stay usable.
 	.grid-row > .row .col:last-child,
 	.grid-row > .dialog-assignment-row .col:first-child,
 	.grid-row > .dialog-assignment-row .col:last-child {
@@ -888,8 +885,7 @@
 	align-items: center;
 }
 
-// Positioning context for the resize handle, scoped to data columns so the
-// sticky row-index/row-check columns keep their positioning.
+// Positioning context for the resize handle; scoped to data columns only.
 .grid-heading-row .grid-static-col[data-fieldname]:not(.sticky-grid-col) {
 	position: relative;
 }
