@@ -60,7 +60,7 @@ export default class GridRowForm {
 						${frappe.utils.icon("trash-2", "sm")}
 					</button>
 					<button class="btn btn-xs btn-default grid-sidebar-close" title="${__("Close")}">
-						${frappe.utils.icon("close", "sm")}
+						${frappe.utils.icon("x", "sm")}
 					</button>
 				</div>
 			</div>
