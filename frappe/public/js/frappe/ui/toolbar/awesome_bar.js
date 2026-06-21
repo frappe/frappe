@@ -44,8 +44,8 @@ frappe.search.AwesomeBar = class AwesomeBar {
 				<div class="awesomebar-empty-state-text">${__("Search or run a command")}</div>
 				<div class="awesomebar-empty-state-tip text-muted">
 					${__("Type to search")}
-					&nbsp;·&nbsp;<span class="awesomebar-shortcut-key">new ...</span> ${__("to create")}
-					&nbsp;·&nbsp;<span class="awesomebar-shortcut-key">... in ...</span> ${__("to scope")}
+					&nbsp;·&nbsp;<span class="awesomebar-shortcut-key">${__("new ...")}</span> ${__("to create")}
+					&nbsp;·&nbsp;<span class="awesomebar-shortcut-key">${__("... in ...")}</span> ${__("to scope")}
 					&nbsp;·&nbsp;<span class="awesomebar-shortcut-key">${
 						frappe.utils.is_mac() ? "⌘G" : "Ctrl+G"
 					}</span> ${__("global")}
