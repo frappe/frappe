@@ -3,7 +3,7 @@ msgstr ""
 "Project-Id-Version: frappe\n"
 "Report-Msgid-Bugs-To: developers@frappe.io\n"
 "POT-Creation-Date: 2026-01-02 22:45+0000\n"
-"PO-Revision-Date: 2026-06-14 17:40\n"
+"PO-Revision-Date: 2026-06-21 19:30\n"
 "Last-Translator: developers@frappe.io\n"
 "Language-Team: Italian\n"
 "MIME-Version: 1.0\n"
@@ -3359,7 +3359,7 @@ msgstr "Torna alla Home"
 
 #: frappe/www/login.html:200 frappe/www/login.html:231
 msgid "Back to Login"
-msgstr "Torna al Login"
+msgstr ""
 
 #. Label of a Color field in DocType 'Number Card'
 #. Label of a Color field in DocType 'Social Link Settings'
@@ -5575,7 +5575,7 @@ msgstr "Conferma nuova password"
 
 #: frappe/www/update-password.html:24
 msgid "Confirm Password"
-msgstr "Ripeti Password"
+msgstr ""
 
 #: frappe/templates/emails/data_deletion_approval.html:6
 #: frappe/templates/emails/delete_data_confirmation.html:7
@@ -6056,7 +6056,7 @@ msgstr "Crea un nuovo {0}"
 
 #: frappe/www/login.html:161
 msgid "Create a {0} Account"
-msgstr "Crea un Account {0}"
+msgstr ""
 
 #. Description of a DocType
 #: frappe/email/doctype/newsletter/newsletter.json
@@ -12254,7 +12254,7 @@ msgstr "Evidenzia"
 
 #: frappe/www/update-password.html:274
 msgid "Hint: Include symbols, numbers and capital letters in the password"
-msgstr "Suggerimento: Includi simboli, numeri e lettere maiuscole nella password"
+msgstr ""
 
 #. Label of a Tab Break field in DocType 'Website Settings'
 #: frappe/core/doctype/file/utils.py:29
@@ -13267,7 +13267,7 @@ msgstr "Istruzioni"
 
 #: frappe/templates/includes/login/login.js:262
 msgid "Instructions Emailed"
-msgstr "Istruzioni inviate via Email"
+msgstr ""
 
 #: frappe/permissions.py:831
 msgid "Insufficient Permission Level for {0}"
@@ -13486,7 +13486,7 @@ msgstr "Token di accesso non valido"
 
 #: frappe/templates/includes/login/login.js:291
 msgid "Invalid Login. Try again."
-msgstr "Accesso non valido. Riprovare."
+msgstr ""
 
 #: frappe/email/receive.py:111 frappe/email/receive.py:148
 msgid "Invalid Mail Server. Please rectify and try again."
@@ -15318,7 +15318,7 @@ msgstr "È necessario il login per visualizzare la vista elenco del modulo web. 
 
 #: frappe/templates/includes/login/login.js:70
 msgid "Login link sent to your email"
-msgstr "Collegamento di login inviato alla tua email"
+msgstr ""
 
 #: frappe/auth.py:335 frappe/auth.py:338
 msgid "Login not allowed at this time"
@@ -15343,7 +15343,7 @@ msgstr "Accedi per iniziare una nuova discussione"
 
 #: frappe/www/login.html:63
 msgid "Login to {0}"
-msgstr "Login a {0}"
+msgstr ""
 
 #: frappe/templates/includes/login/login.js:327
 msgid "Login token required"
@@ -25306,7 +25306,7 @@ msgstr "Stati"
 
 #: frappe/www/update-password.html:161
 msgid "Status Updated"
-msgstr "Stato Aggiornato"
+msgstr ""
 
 #: frappe/www/message.html:40
 msgid "Status: {0}"
@@ -26512,7 +26512,7 @@ msgstr ""
 
 #: frappe/www/update-password.html:86
 msgid "The password of your account has expired."
-msgstr "La password del tuo account è scaduta."
+msgstr ""
 
 #: frappe/core/page/permission_manager/permission_manager_help.html:53
 msgid "The print button is enabled for the user in the document."
@@ -28983,11 +28983,11 @@ msgstr "Valido"
 #: frappe/templates/includes/login/login.js:53
 #: frappe/templates/includes/login/login.js:66
 msgid "Valid Login id required."
-msgstr "È richiesto un ID di accesso valido."
+msgstr ""
 
 #: frappe/templates/includes/login/login.js:40
 msgid "Valid email and name required"
-msgstr "È richiesto un indirizzo e-mail e un nome validi"
+msgstr ""
 
 #. Label of a Check field in DocType 'Onboarding Step'
 #: frappe/desk/doctype/onboarding_step/onboarding_step.json
