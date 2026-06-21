@@ -41,7 +41,7 @@ defineEmits(["insert"]);
 	align-items: center;
 	gap: 3px;
 	padding: 1px 8px;
-	border-radius: var(--border-radius-sm);
+	border-radius: var(--radius);
 	border: 1px solid var(--gray-300);
 	background: var(--fg-color);
 	color: var(--text-muted);

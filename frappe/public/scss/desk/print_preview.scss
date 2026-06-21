@@ -14,7 +14,7 @@
 }
 
 .preview-beta-wrapper {
-	border-radius: var(--border-radius);
+	border-radius: var(--radius);
 	overflow: hidden;
 }
 
@@ -26,6 +26,7 @@
 	> div {
 		padding-right: 0px;
 	}
+
 	> div:last-child {
 		padding-right: var(--padding-md);
 	}
@@ -60,7 +61,7 @@
 	margin: auto;
 	min-height: 11.69in;
 	background: white;
-	border-radius: var(--border-radius);
+	border-radius: var(--radius);
 }
 
 .print-format-skeleton {
@@ -70,6 +71,7 @@
 
 	.skeleton-section {
 		padding: var(--padding-sm) 0;
+
 		.row {
 			padding: var(--padding-sm) 0;
 		}
