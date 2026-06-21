@@ -725,8 +725,8 @@ export default class GridRow {
 		this.search_columns = {};
 
 		this.grid.setup_visible_columns();
-		let fields =
-			this.grid.user_defined_columns && this.grid.user_defined_columns.length > 0
+		const fields =
+			this.grid.user_defined_columns.length > 0
 				? this.grid.user_defined_columns
 				: this.docfields;
 
@@ -885,22 +885,24 @@ export default class GridRow {
 		return this.show_search;
 	}
 
+	_get_fieldtype_class(fieldtype) {
+		if (["Text", "Small Text"].includes(fieldtype)) return "grid-overflow-no-ellipsis";
+		if (["Int", "Currency", "Float", "Percent"].includes(fieldtype)) return "text-right";
+		if (fieldtype === "Check") return "text-center";
+		return "";
+	}
+
 	make_search_column(df, width) {
 		let title = "";
-		let input_class = "";
 		let is_disabled = "";
 
-		if (["Text", "Small Text"].includes(df.fieldtype)) {
-			input_class = "grid-overflow-no-ellipsis";
-		} else if (["Int", "Currency", "Float", "Percent"].includes(df.fieldtype)) {
-			input_class = "text-right";
-		} else if (df.fieldtype === "Check") {
+		if (df.fieldtype === "Check") {
 			title = __("1 = True & 0 = False");
-			input_class = "text-center";
 		} else if (df.fieldtype === "Password") {
 			is_disabled = "disabled";
 			title = __("Password cannot be filtered");
 		}
+		let input_class = this._get_fieldtype_class(df.fieldtype);
 
 		let $col = $(
 			`<div class="col grid-static-col search" style="flex: 0 0 ${width}px; width: ${width}px;"></div>`
@@ -952,15 +954,7 @@ export default class GridRow {
 
 	make_column(df, width, txt, ci) {
 		let me = this;
-		var add_class =
-			["Text", "Small Text"].indexOf(df.fieldtype) !== -1
-				? " grid-overflow-no-ellipsis"
-				: "";
-		add_class +=
-			["Int", "Currency", "Float", "Percent"].indexOf(df.fieldtype) !== -1
-				? " text-right"
-				: "";
-		add_class += ["Check"].indexOf(df.fieldtype) !== -1 ? " text-center" : "";
+		let add_class = this._get_fieldtype_class(df.fieldtype);
 
 		// Static pixel width; the grid scrolls horizontally when columns overflow.
 		let add_style = `flex: 0 0 ${width}px; width: ${width}px;`;
