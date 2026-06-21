@@ -178,6 +178,38 @@ export default class GridRowForm {
 			}
 		}, 200);
 	}
+	navigate_to(new_row) {
+		// Transfer sidebar ownership to new_row without closing/reopening it.
+		// The slide-in transition only fires on initial open; switching rows is instant + content fade.
+		this.row.wrapper.removeClass("grid-row-open");
+		this.row.grid_form = null;
+
+		this.row = new_row;
+		new_row.grid_form = this;
+		new_row.wrapper.addClass("grid-row-open");
+		if (cur_frm) cur_frm.cur_grid = new_row;
+
+		if (
+			!frappe.dom.is_element_in_viewport(new_row.wrapper) &&
+			!frappe.dom.is_element_in_modal(new_row.wrapper)
+		) {
+			frappe.utils.scroll_to(new_row.wrapper, true, -15);
+		}
+
+		const $content = this.wrapper.find(".grid-sidebar-title, .grid-sidebar-body");
+		$content.css("opacity", 0);
+		this.render();
+		$content.animate({ opacity: 1 }, 120);
+
+		if (new_row.frm) {
+			new_row.frm.script_manager.trigger(new_row.doc.parentfield + "_on_form_rendered");
+			new_row.frm.script_manager.trigger(
+				"form_render",
+				new_row.doc.doctype,
+				new_row.doc.name
+			);
+		}
+	}
 	destroy() {
 		$(document).off("keydown.grid-sidebar");
 		this.wrapper.remove();

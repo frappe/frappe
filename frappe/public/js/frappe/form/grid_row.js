@@ -1444,15 +1444,28 @@ export default class GridRow {
 	}
 	open_prev() {
 		if (!this.doc) return;
-		this.open_row_at_index(this.doc.idx - 2);
+		const row_index = this.doc.idx - 2;
+		if (this.grid_form) {
+			this.change_page_if_reqd(row_index);
+			const new_row = this.grid.grid_rows[row_index];
+			if (new_row) this.grid_form.navigate_to(new_row);
+			return;
+		}
+		this.open_row_at_index(row_index);
 	}
 	has_next() {
 		return this.doc.idx < this.grid.data.length;
 	}
 	open_next() {
 		if (!this.doc) return;
-
-		this.open_row_at_index(this.doc.idx);
+		const row_index = this.doc.idx;
+		if (this.grid_form) {
+			this.change_page_if_reqd(row_index);
+			const new_row = this.grid.grid_rows[row_index];
+			if (new_row) this.grid_form.navigate_to(new_row);
+			return;
+		}
+		this.open_row_at_index(row_index);
 	}
 	open_row_at_index(row_index) {
 		if (!this.grid.data[row_index]) return;

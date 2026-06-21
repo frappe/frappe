@@ -610,12 +610,20 @@ body.grid-sidebar-open::after {
 	gap: var(--margin-xs);
 
 	.grid-delete-row {
-		color: var(--text-muted);
+		--icon-stroke: var(--red-400);
 
 		&:hover {
-			color: var(--red-500);
+			--icon-stroke: var(--red-600);
 			background-color: var(--red-50);
 			border-color: transparent;
+		}
+	}
+
+	.grid-sidebar-close {
+		--icon-stroke: var(--text-muted);
+
+		&:hover {
+			--icon-stroke: var(--text-color);
 		}
 	}
 }
