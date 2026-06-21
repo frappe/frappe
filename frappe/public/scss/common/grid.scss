@@ -548,17 +548,6 @@
 	}
 }
 
-@mixin base-grid() {
-	background-color: var(--modal-bg);
-	position: relative;
-	transition: opacity 0.2s ease;
-}
-
-.recorder-form-in-grid {
-	z-index: 0;
-	@include base-grid();
-}
-
 // Grid row sidebar — slides in from the right when a row is opened.
 .grid-row-sidebar {
 	position: fixed;
