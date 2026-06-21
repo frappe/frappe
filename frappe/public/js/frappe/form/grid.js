@@ -27,7 +27,7 @@ frappe.ui.form.get_open_grid_form = function () {
 };
 
 frappe.ui.form.close_grid_form = function () {
-	var open_form = frappe.ui.form.get_open_grid_form();
+	const open_form = frappe.ui.form.get_open_grid_form();
 	open_form && open_form.hide_form();
 
 	// hide editable row too
@@ -76,11 +76,7 @@ export default class Grid {
 	}
 
 	allow_on_grid_editing() {
-		if ((this.meta && this.meta.editable_grid) || !this.meta) {
-			return true;
-		} else {
-			return false;
-		}
+		return !this.meta || !!this.meta.editable_grid;
 	}
 
 	make() {
@@ -673,8 +669,8 @@ export default class Grid {
 
 		let matched_rows = new Set();
 
-		for (var ri = page_start; ri < result_length; ri++) {
-			var d = this.data[ri];
+		for (let ri = page_start; ri < result_length; ri++) {
+			const d = this.data[ri];
 			if (!d) {
 				return;
 			}
@@ -973,7 +969,7 @@ export default class Grid {
 				num = num * out_of_rating;
 			}
 
-			if (num.toString().indexOf(value) > -1) {
+			if (num.toString().includes(value)) {
 				return data;
 			}
 		} else if (fieldvalue && fieldvalue.toLowerCase().includes(value)) {
@@ -1211,24 +1207,20 @@ export default class Grid {
 	}
 
 	duplicate_row(d, copy_doc) {
-		$.each(copy_doc, function (key, value) {
-			if (
-				![
-					"creation",
-					"modified",
-					"modified_by",
-					"idx",
-					"owner",
-					"parent",
-					"doctype",
-					"name",
-					"parentfield",
-				].includes(key)
-			) {
-				d[key] = value;
-			}
-		});
-
+		const skip = [
+			"creation",
+			"modified",
+			"modified_by",
+			"idx",
+			"owner",
+			"parent",
+			"doctype",
+			"name",
+			"parentfield",
+		];
+		for (const [key, value] of Object.entries(copy_doc)) {
+			if (!skip.includes(key)) d[key] = value;
+		}
 		return d;
 	}
 
@@ -1423,9 +1415,7 @@ export default class Grid {
 
 		this.visible_columns = [];
 
-		for (var ci in fields) {
-			var _df = fields[ci];
-
+		for (const _df of fields) {
 			// get docfield if from fieldname
 			let df = use_user_columns ? _df : this.fields_map[_df.fieldname];
 
@@ -1538,8 +1528,8 @@ export default class Grid {
 	set_multiple_add(link, qty) {
 		if (this.multiple_set) return;
 
-		var link_field = frappe.meta.get_docfield(this.df.options, link);
-		var btn = $(this.wrapper).find(".grid-add-multiple-rows");
+		const link_field = frappe.meta.get_docfield(this.df.options, link);
+		const btn = $(this.wrapper).find(".grid-add-multiple-rows");
 
 		// show button
 		btn.removeClass("hidden");
@@ -1587,43 +1577,27 @@ export default class Grid {
 							allowed_file_types: [".csv"],
 						},
 						on_success(file) {
-							var data = frappe.utils.csv_to_array(
+							const data = frappe.utils.csv_to_array(
 								frappe.utils.get_decoded_string(file.dataurl)
 							);
 							if (cint(data.length) - 7 > 5000) {
 								frappe.throw(__("Cannot import table with more than 5000 rows."));
 							}
-							// row #2 contains fieldnames;
-							var fieldnames = data[2];
+							const fieldnames = data[2];
 							me.frm.clear_table(me.df.fieldname);
-							$.each(data, (i, row) => {
-								if (i > 6) {
-									var blank_row = true;
-									$.each(row, function (ci, value) {
-										if (value) {
-											blank_row = false;
-											return false;
-										}
-									});
-
-									if (!blank_row) {
-										var d = me.frm.add_child(me.df.fieldname);
-										$.each(row, (ci, value) => {
-											var fieldname = fieldnames[ci];
-											var df = frappe.meta.get_docfield(
-												me.df.options,
-												fieldname
-											);
-											if (df) {
-												d[fieldnames[ci]] = value_formatter_map[
-													df.fieldtype
-												]
-													? value_formatter_map[df.fieldtype](value)
-													: value;
-											}
-										});
+							data.forEach((row, i) => {
+								if (i <= 6) return;
+								if (!row.some((v) => v)) return;
+								const d = me.frm.add_child(me.df.fieldname);
+								row.forEach((value, ci) => {
+									const fieldname = fieldnames[ci];
+									const df = frappe.meta.get_docfield(me.df.options, fieldname);
+									if (df) {
+										d[fieldname] = value_formatter_map[df.fieldtype]
+											? value_formatter_map[df.fieldtype](value)
+											: value;
 									}
-								}
+								});
 							});
 
 							me.frm.refresh_field(me.df.fieldname);
@@ -1645,41 +1619,35 @@ export default class Grid {
 			.find(".grid-download")
 			.removeClass("hidden")
 			.on("click", () => {
-				var data = [];
-				var docfields = [];
-				data.push([__("Bulk Edit {0}", [title])]);
-				data.push([]);
-				data.push([]);
-				data.push([]);
-				data.push([__("The CSV format is case sensitive")]);
-				data.push([__("Do not edit headers which are preset in the template")]);
-				data.push(["------"]);
-				$.each(frappe.get_meta(this.df.options).fields, (i, df) => {
-					// don't include the read-only field in the template
+				const data = [
+					[__("Bulk Edit {0}", [title])],
+					[],
+					[],
+					[],
+					[__("The CSV format is case sensitive")],
+					[__("Do not edit headers which are preset in the template")],
+					["------"],
+				];
+				const docfields = [];
+				frappe.get_meta(this.df.options).fields.forEach((df) => {
 					if (frappe.model.is_value_type(df.fieldtype)) {
 						data[1].push(df.label);
 						data[2].push(df.fieldname);
 						let description = (df.description || "") + " ";
-						if (df.fieldtype === "Date") {
+						if (df.fieldtype === "Date")
 							description += frappe.boot.sysdefaults.date_format;
-						}
 						data[3].push(description);
 						docfields.push(df);
 					}
 				});
 
-				// add data
-				$.each(this.frm.doc[this.df.fieldname] || [], (i, d) => {
-					var row = [];
-					$.each(data[2], (i, fieldname) => {
-						var value = d[fieldname];
-
-						// format date
+				(this.frm.doc[this.df.fieldname] || []).forEach((d) => {
+					const row = data[2].map((fieldname, i) => {
+						let value = d[fieldname];
 						if (docfields[i].fieldtype === "Date" && value) {
 							value = frappe.datetime.str_to_user(value);
 						}
-
-						row.push(value || "");
+						return value || "";
 					});
 					data.push(row);
 				});

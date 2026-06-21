@@ -89,7 +89,6 @@ export default class GridRow {
 		this.grid.debounced_refresh_remove_rows_button();
 	}
 	remove() {
-		var me = this;
 		if (this.grid.is_editable()) {
 			if (this.get_open_form()) {
 				this.hide_form();
@@ -128,7 +127,7 @@ export default class GridRow {
 					data = this.grid.df.data;
 				}
 
-				const index = data.findIndex((d) => d.name === me.doc.name);
+				const index = data.findIndex((d) => d.name === this.doc.name);
 
 				if (index > -1) {
 					// mutate array directly,
@@ -136,7 +135,7 @@ export default class GridRow {
 					data.splice(index, 1);
 				}
 				// remap idxs
-				data.forEach(function (d, i) {
+				data.forEach((d, i) => {
 					d.idx = i + 1;
 				});
 
@@ -145,8 +144,8 @@ export default class GridRow {
 		}
 	}
 	insert(show, below, duplicate) {
-		var idx = this.doc.idx;
-		var copy_doc = duplicate ? this.doc : null;
+		let idx = this.doc.idx;
+		const copy_doc = duplicate ? this.doc : null;
 		if (below) idx++;
 		this.toggle_view(false);
 		this.grid.add_new_row(idx, null, show, copy_doc);
@@ -328,13 +327,11 @@ export default class GridRow {
 	}
 
 	add_open_form_button() {
-		var me = this;
 		if (this.doc && !this.grid.df.in_place_edit) {
-			// remove row
 			if (!this.open_form_button) {
 				this.open_form_button = $('<div class="col"></div>').appendTo(this.row);
-				this.open_form_button.on("click", function (e) {
-					me.toggle_view();
+				this.open_form_button.on("click", () => {
+					this.toggle_view();
 					return false;
 				});
 
@@ -348,9 +345,9 @@ export default class GridRow {
 
 					$(this.open_form_button)
 						.parent()
-						.on("keydown", function (ev) {
+						.on("keydown", (ev) => {
 							if (ev.key == "Enter") {
-								me.toggle_view();
+								this.toggle_view();
 								return false;
 							}
 						});
@@ -359,12 +356,10 @@ export default class GridRow {
 				}
 
 				if (this.is_too_small()) {
-					// narrow
 					this.open_form_button.css({ "margin-right": "-2px" });
 				}
-				// focus open form button after escape
-				$(document).on("escape", function () {
-					me.open_form_button.parent().focus();
+				$(document).on("escape", () => {
+					this.open_form_button.parent().focus();
 				});
 			}
 		}
@@ -1120,25 +1115,20 @@ export default class GridRow {
 	}
 
 	toggle_editable_row(show) {
-		var me = this;
-		// show static for field based on
-		// whether grid is editable
 		if (
 			this.grid.allow_on_grid_editing() &&
 			this.grid.is_editable() &&
 			this.doc &&
 			show !== false
 		) {
-			// disable other editable row
 			if (frappe.ui.form.editable_row && frappe.ui.form.editable_row !== this) {
 				frappe.ui.form.editable_row.toggle_editable_row(false);
 			}
 
 			this.row.toggleClass("editable-row", true);
 
-			// setup controls
-			this.columns_list.forEach(function (column) {
-				me.make_control(column);
+			this.columns_list.forEach((column) => {
+				this.make_control(column);
 				column.static_area.toggle(false);
 				column.field_area.toggle(true);
 			});
@@ -1245,108 +1235,90 @@ export default class GridRow {
 		this.on_grid_fields.push(field);
 	}
 	set_arrow_keys(field) {
-		var me = this;
-		let ignore_fieldtypes = ["Text", "Small Text", "Code", "Text Editor", "HTML Editor"];
-		if (field.$input) {
-			field.$input.on("keydown", function (e) {
-				var { ESCAPE, TAB, UP: UP_ARROW, DOWN: DOWN_ARROW } = frappe.ui.keyCode;
-				if (![TAB, UP_ARROW, DOWN_ARROW, ESCAPE].includes(e.which)) {
-					return;
-				}
+		const ignore_fieldtypes = ["Text", "Small Text", "Code", "Text Editor", "HTML Editor"];
+		if (!field.$input) return;
 
-				var values = me.grid.get_data();
-				var fieldname = $(this).attr("data-fieldname");
-				var fieldtype = $(this).attr("data-fieldtype");
+		field.$input.on("keydown", (e) => {
+			const { ESCAPE, TAB, UP: UP_ARROW, DOWN: DOWN_ARROW } = frappe.ui.keyCode;
+			if (![TAB, UP_ARROW, DOWN_ARROW, ESCAPE].includes(e.which)) return;
 
-				let ctrl_key = e.metaKey || e.ctrlKey;
-				if (!ignore_fieldtypes.includes(fieldtype) && ctrl_key && e.which !== TAB) {
-					me.add_new_row_using_keys(e);
-					return;
-				}
+			const values = this.grid.get_data();
+			const fieldname = $(e.currentTarget).attr("data-fieldname");
+			const fieldtype = $(e.currentTarget).attr("data-fieldtype");
+			const ctrl_key = e.metaKey || e.ctrlKey;
 
-				if (e.shiftKey && e.altKey && DOWN_ARROW === e.which) {
-					me.duplicate_row_using_keys();
-					return;
-				}
+			if (!ignore_fieldtypes.includes(fieldtype) && ctrl_key && e.which !== TAB) {
+				this.add_new_row_using_keys(e);
+				return;
+			}
 
-				var move_up_down = function (base) {
-					if (ignore_fieldtypes.includes(fieldtype) && !e.altKey) {
+			if (e.shiftKey && e.altKey && DOWN_ARROW === e.which) {
+				this.duplicate_row_using_keys();
+				return;
+			}
+
+			const move_up_down = (base) => {
+				if (ignore_fieldtypes.includes(fieldtype) && !e.altKey) return false;
+				if (field.autocomplete_open) return false;
+
+				field.parse_validate_and_set_in_model(field.get_input_value()).then(() => {
+					base.toggle_editable_row();
+					const input = base.columns[fieldname].field.$input;
+					if (input) input.focus();
+				});
+				return true;
+			};
+
+			if (e.which === ESCAPE && !e.shiftKey) {
+				if (this.doc.__unedited) this.grid.grid_rows[this.doc.idx - 1].remove();
+				return false;
+			}
+
+			if (e.which === TAB && !e.shiftKey) {
+				const last_column = this.wrapper.find("input:enabled:last").get(0);
+				const is_last_column =
+					$(e.currentTarget).attr("data-last-input") || last_column === e.currentTarget;
+
+				if (is_last_column) {
+					if (this.doc.idx === values.length) {
+						setTimeout(() => {
+							this.grid.add_new_row(null, null, true);
+							this.grid.grid_rows[
+								this.grid.grid_rows.length - 1
+							].toggle_editable_row();
+							this.grid.set_focus_on_row();
+						}, 100);
+					} else {
+						this.grid.grid_rows[this.doc.idx].toggle_editable_row();
+						this.grid.set_focus_on_row(this.doc.idx);
 						return false;
 					}
-					if (field.autocomplete_open) {
-						return false;
-					}
-
-					field.parse_validate_and_set_in_model(field.get_input_value()).then(() => {
-						base.toggle_editable_row();
-						const input = base.columns[fieldname].field.$input;
-						if (input) {
-							input.focus();
-						}
-					});
-
-					return true;
-				};
-
-				// ESC
-				if (e.which === ESCAPE && !e.shiftKey) {
-					if (me.doc.__unedited) {
-						me.grid.grid_rows[me.doc.idx - 1].remove();
-					}
-					return false;
 				}
-
-				// TAB
-				if (e.which === TAB && !e.shiftKey) {
-					var last_column = me.wrapper.find("input:enabled:last").get(0);
-					var is_last_column = $(this).attr("data-last-input") || last_column === this;
-
-					if (is_last_column) {
-						// last row
-						if (me.doc.idx === values.length) {
-							setTimeout(function () {
-								me.grid.add_new_row(null, null, true);
-								me.grid.grid_rows[
-									me.grid.grid_rows.length - 1
-								].toggle_editable_row();
-								me.grid.set_focus_on_row();
-							}, 100);
-						} else {
-							// last column before last row
-							me.grid.grid_rows[me.doc.idx].toggle_editable_row();
-							me.grid.set_focus_on_row(me.doc.idx);
-							return false;
-						}
-					}
-				} else if (e.which === UP_ARROW) {
-					if (me.doc.idx > 1) {
-						var prev = me.grid.grid_rows[me.doc.idx - 2];
-						if (move_up_down(prev)) {
-							return false;
-						}
-					}
-				} else if (e.which === DOWN_ARROW) {
-					if (me.doc.idx < values.length) {
-						var next = me.grid.grid_rows[me.doc.idx];
-						if (move_up_down(next)) {
-							return false;
-						}
-					}
-				} else if (e.which === TAB && e.shiftKey) {
-					var first_column = me.wrapper
-						.find("input:enabled:not([type='checkbox'])")
-						.first()
-						.get(0);
-					var is_first_column =
-						$(this).attr("data-first-input") || first_column === this;
-					if (is_first_column) {
-						let ri = me.grid.get_current_row(e.target);
-						if (ri == 0) return;
-						me.grid.grid_rows[ri - 1].toggle_editable_row(true);
-					}
+			} else if (e.which === UP_ARROW) {
+				if (this.doc.idx > 1) {
+					const prev = this.grid.grid_rows[this.doc.idx - 2];
+					if (move_up_down(prev)) return false;
 				}
-			});
-		}
+			} else if (e.which === DOWN_ARROW) {
+				if (this.doc.idx < values.length) {
+					const next = this.grid.grid_rows[this.doc.idx];
+					if (move_up_down(next)) return false;
+				}
+			} else if (e.which === TAB && e.shiftKey) {
+				const first_column = this.wrapper
+					.find("input:enabled:not([type='checkbox'])")
+					.first()
+					.get(0);
+				const is_first_column =
+					$(e.currentTarget).attr("data-first-input") ||
+					first_column === e.currentTarget;
+				if (is_first_column) {
+					const ri = this.grid.get_current_row(e.target);
+					if (ri == 0) return;
+					this.grid.grid_rows[ri - 1].toggle_editable_row(true);
+				}
+			}
+		});
 	}
 
 	duplicate_row_using_keys() {
@@ -1664,36 +1636,27 @@ export default class GridRow {
 	}
 
 	get_visible_columns(blacklist = []) {
-		var me = this;
-		var visible_columns = $.map(this.docfields, function (df) {
-			var visible =
+		return this.docfields.filter(
+			(df) =>
 				!df.hidden &&
 				df.in_list_view &&
-				me.grid.frm.get_perm(df.permlevel, "read") &&
+				this.grid.frm.get_perm(df.permlevel, "read") &&
 				!frappe.model.layout_fields.includes(df.fieldtype) &&
-				!blacklist.includes(df.fieldname);
-
-			return visible ? df : null;
-		});
-		return visible_columns;
+				!blacklist.includes(df.fieldname)
+		);
 	}
 	set_field_property(fieldname, property, value) {
-		// set a field property for open form / grid form
-		var me = this;
-
-		var set_property = function (field) {
+		const set_property = (field) => {
 			if (!field) return;
 			field.df[property] = value;
 			field.refresh();
 		};
 
-		// set property in grid form
 		if (this.grid_form) {
 			set_property(this.grid_form.fields_dict[fieldname]);
 			this.grid_form.layout && this.grid_form.layout.refresh_sections();
 		}
 
-		// set property in on grid fields
 		set_property(this.on_grid_fields_dict[fieldname]);
 	}
 	toggle_reqd(fieldname, reqd) {
