@@ -164,6 +164,42 @@
 	}
 }
 
+.awesomebar-empty-state {
+	padding: var(--padding-2xl) var(--padding-lg);
+
+	.awesomebar-empty-icon {
+		width: 48px;
+		height: 48px;
+		border-radius: 50%;
+		background-color: var(--bg-color);
+		display: flex;
+		align-items: center;
+		justify-content: center;
+		margin: 0 auto var(--margin-md);
+		color: var(--text-muted);
+	}
+
+	.awesomebar-empty-state-text {
+		font-weight: 600;
+		color: var(--text-color);
+		font-size: var(--text-lg);
+		margin-bottom: var(--margin-sm);
+	}
+
+	.awesomebar-empty-state-tip {
+		font-size: var(--text-xs);
+		line-height: 1.6;
+	}
+
+	.awesomebar-shortcut-key {
+		background-color: var(--border-color);
+		padding: 2px 6px;
+		border-radius: 4px;
+		font-size: var(--text-xs);
+		display: inline-block;
+	}
+}
+
 .navbar.bg-dark {
 	.dropdown-menu {
 		font-size: 0.75rem;

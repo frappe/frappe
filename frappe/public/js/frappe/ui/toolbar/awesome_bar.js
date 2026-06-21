@@ -35,6 +35,22 @@ frappe.search.AwesomeBar = class AwesomeBar {
 				placeholder="${__("Search or type a command")}" autocomplete="off"
 			/>
 			<div class="modal-divider"></div>
+		</div>
+		<div class="awesomebar-empty-state hidden">
+			<div class="text-center">
+				<div class="awesomebar-empty-icon">
+					${frappe.utils.icon("search", "md")}
+				</div>
+				<div class="awesomebar-empty-state-text">${__("Search or run a command")}</div>
+				<div class="awesomebar-empty-state-tip text-muted">
+					${__("Type to search")}
+					&nbsp;·&nbsp;<span class="awesomebar-shortcut-key">${__("new ...")}</span> ${__("to create")}
+					&nbsp;·&nbsp;<span class="awesomebar-shortcut-key">${__("... in ...")}</span> ${__("to scope")}
+					&nbsp;·&nbsp;<span class="awesomebar-shortcut-key">${
+						frappe.utils.is_mac() ? "⌘G" : "Ctrl+G"
+					}</span> ${__("global")}
+				</div>
+			</div>
 		</div>`;
 
 		let search_modal_footer = `<div class="awesomebar-modal-footer flex justify-between w-100">
@@ -42,19 +58,19 @@ frappe.search.AwesomeBar = class AwesomeBar {
 				<span class="help-item-navigate">
 					<span class="help-item">${frappe.utils.icon("arrow-up", "xs")}</span>
 					<span class="help-item">${frappe.utils.icon("arrow-down", "xs")}</span>
-					<span>${__("to navigate")}</span>
+					<span>${__("navigate")}</span>
 				</span>
 				<span class="help-item-navigate">
 					<span class="help-item">${frappe.utils.icon("corner-down-left", "xs")}</span>
-					<span>${__("to select")}</span>
+					<span>${__("select")}</span>
 				</span>
 				<span class="help-item-navigate">
 					<span class="help-item help-item-escape">${frappe.utils.is_mac() ? "⌘K" : "Ctrl+K"}</span>
-					<span>${__("to close")}</span>
+					<span>${__("close")}</span>
 				</span>
 				<span class="help-item-navigate">
 					<span class="help-item help-item-escape">${frappe.utils.is_mac() ? "⌘G" : "Ctrl+G"}</span>
-					<span>${__("to open Global Search")}</span>
+					<span>${__("Global Search")}</span>
 				</span>
 			</div>
 		</div>`;
@@ -189,6 +205,12 @@ frappe.search.AwesomeBar = class AwesomeBar {
 				awesomplete.options_with_desc = me.create_options_with_descriptions(options);
 				Awesomplete.prototype._itemCursor = 0;
 				awesomplete.list = options;
+				const $empty_state = search_modal.find(".awesomebar-empty-state");
+				if (!txt && !options.length) {
+					$empty_state.removeClass("hidden");
+				} else {
+					$empty_state.addClass("hidden");
+				}
 			}, 50)
 		);
 
