@@ -92,10 +92,11 @@ jobs:
             ${{ runner.os }}-
 
       - name: Install and run pip-audit
+        # CVE-2025-26240: no fix available, but vulnerable `pypdf.from_string` is not used in frappe codebase
         run: |
           pip install pip-audit
           cd ${GITHUB_WORKSPACE}
-          pip-audit --desc on --ignore-vuln PYSEC-2023-312 --ignore-vuln CVE-2026-4539 .
+          pip-audit --desc on --ignore-vuln PYSEC-2023-312 --ignore-vuln CVE-2026-4539 --ignore-vuln CVE-2025-26240 .
 
   precommit:
     name: 'Pre-Commit'
