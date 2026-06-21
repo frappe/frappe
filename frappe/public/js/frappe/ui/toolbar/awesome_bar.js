@@ -38,19 +38,17 @@ frappe.search.AwesomeBar = class AwesomeBar {
 		</div>
 		<div class="awesomebar-empty-state hidden">
 			<div class="text-center">
-				<img src="/assets/frappe/images/ui-states/search-empty-state.svg"
-					alt="No recent searches"
-					class="null-state"
-				/>
+				<div class="awesomebar-empty-icon">
+					${frappe.utils.icon("search", "md")}
+				</div>
 				<div class="awesomebar-empty-state-text">${__("Search or run a command")}</div>
 				<div class="awesomebar-empty-state-tip text-muted">
-					${__("Type")}
-					<span class="awesomebar-shortcut-key">new ...</span>
-					${__("to create,")}
-					<span class="awesomebar-shortcut-key">... in ...</span>
-					${__("to search in a list, or")}
-					<span class="awesomebar-shortcut-key">${frappe.utils.is_mac() ? "⌘G" : "Ctrl+G"}</span>
-					${__("for Global Search")}
+					${__("Type to search")}
+					&nbsp;·&nbsp;<span class="awesomebar-shortcut-key">new ...</span> ${__("to create")}
+					&nbsp;·&nbsp;<span class="awesomebar-shortcut-key">... in ...</span> ${__("to scope")}
+					&nbsp;·&nbsp;<span class="awesomebar-shortcut-key">${
+						frappe.utils.is_mac() ? "⌘G" : "Ctrl+G"
+					}</span> ${__("global")}
 				</div>
 			</div>
 		</div>`;
