@@ -3,7 +3,7 @@ msgstr ""
 "Project-Id-Version: frappe\n"
 "Report-Msgid-Bugs-To: developers@frappe.io\n"
 "POT-Creation-Date: 2026-01-02 22:45+0000\n"
-"PO-Revision-Date: 2026-06-14 17:40\n"
+"PO-Revision-Date: 2026-06-21 19:30\n"
 "Last-Translator: developers@frappe.io\n"
 "Language-Team: Portuguese, Brazilian\n"
 "MIME-Version: 1.0\n"
@@ -13267,7 +13267,7 @@ msgstr "Instruções"
 
 #: frappe/templates/includes/login/login.js:262
 msgid "Instructions Emailed"
-msgstr "Instruções enviadas por e-mail"
+msgstr ""
 
 #: frappe/permissions.py:831
 msgid "Insufficient Permission Level for {0}"
@@ -13486,7 +13486,7 @@ msgstr "Inválido símbolo de logon"
 
 #: frappe/templates/includes/login/login.js:291
 msgid "Invalid Login. Try again."
-msgstr "Login inválido. Tente novamente."
+msgstr ""
 
 #: frappe/email/receive.py:111 frappe/email/receive.py:148
 msgid "Invalid Mail Server. Please rectify and try again."
@@ -25306,7 +25306,7 @@ msgstr "Situação"
 
 #: frappe/www/update-password.html:161
 msgid "Status Updated"
-msgstr "Status atualizado"
+msgstr ""
 
 #: frappe/www/message.html:40
 msgid "Status: {0}"
@@ -28987,7 +28987,7 @@ msgstr "É necessário um usuário válido."
 
 #: frappe/templates/includes/login/login.js:40
 msgid "Valid email and name required"
-msgstr "É necessário um e-mail e nome válidos"
+msgstr ""
 
 #. Label of a Check field in DocType 'Onboarding Step'
 #: frappe/desk/doctype/onboarding_step/onboarding_step.json
