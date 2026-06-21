@@ -610,7 +610,7 @@ body.grid-sidebar-open::after {
 	gap: var(--margin-xs);
 
 	.grid-delete-row {
-		--icon-stroke: var(--red-400);
+		--icon-stroke: var(--red-500);
 
 		&:hover {
 			--icon-stroke: var(--red-600);
