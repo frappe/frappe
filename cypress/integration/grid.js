@@ -1,8 +1,9 @@
+function openRow(idx) {
+	cy.get("@table").find(`[data-idx="${idx}"] .btn-open-row`).click();
+	cy.get(".grid-row-open").as("table-form");
+}
+
 context("Grid", () => {
-	beforeEach(() => {
-		cy.login();
-		cy.visit("/desk/website");
-	});
 	before(() => {
 		cy.login();
 		cy.visit("/desk/website");
@@ -15,107 +16,78 @@ context("Grid", () => {
 				);
 			});
 	});
-	it("update docfield property using update_docfield_property", () => {
+	beforeEach(() => {
+		cy.login();
 		cy.visit("/desk/contact/Test Contact");
+		cy.get('.frappe-control[data-fieldname="phone_nos"]').as("table");
+	});
+
+	it("update docfield property using update_docfield_property", () => {
 		cy.window()
 			.its("cur_frm")
 			.then((frm) => {
-				cy.get('.frappe-control[data-fieldname="phone_nos"]').as("table");
-				let field = frm.get_field("phone_nos");
-				field.grid.update_docfield_property("is_primary_phone", "hidden", true);
+				frm.get_field("phone_nos").grid.update_docfield_property(
+					"is_primary_phone",
+					"hidden",
+					true
+				);
 
-				cy.get("@table").find('[data-idx="1"] .btn-open-row').click();
-				cy.get(".grid-row-open").as("table-form");
-				cy.get("@table-form")
-					.find('.frappe-control[data-fieldname="is_primary_phone"]')
-					.should("be.hidden");
-				cy.get(".grid-sidebar-close").click();
-
-				cy.get("@table").find('[data-idx="2"] .btn-open-row').click();
-				cy.get(".grid-row-open").as("table-form");
-				cy.get("@table-form")
-					.find('.frappe-control[data-fieldname="is_primary_phone"]')
-					.should("be.hidden");
-				cy.get(".grid-sidebar-close").click();
+				[1, 2].forEach((idx) => {
+					openRow(idx);
+					cy.get("@table-form")
+						.find('.frappe-control[data-fieldname="is_primary_phone"]')
+						.should("be.hidden");
+					cy.get(".grid-sidebar-close").click();
+				});
 			});
 	});
 	it("update docfield property using toggle_display", () => {
-		cy.visit("/desk/contact/Test Contact");
 		cy.window()
 			.its("cur_frm")
 			.then((frm) => {
-				cy.get('.frappe-control[data-fieldname="phone_nos"]').as("table");
-				let field = frm.get_field("phone_nos");
-				field.grid.toggle_display("is_primary_mobile_no", false);
+				frm.get_field("phone_nos").grid.toggle_display("is_primary_mobile_no", false);
 
-				cy.get("@table").find('[data-idx="1"] .btn-open-row').click();
-				cy.get(".grid-row-open").as("table-form");
-				cy.get("@table-form")
-					.find('.frappe-control[data-fieldname="is_primary_mobile_no"]')
-					.should("be.hidden");
-				cy.get(".grid-sidebar-close").click();
-
-				cy.get("@table").find('[data-idx="2"] .btn-open-row').click();
-				cy.get(".grid-row-open").as("table-form");
-				cy.get("@table-form")
-					.find('.frappe-control[data-fieldname="is_primary_mobile_no"]')
-					.should("be.hidden");
-				cy.get(".grid-sidebar-close").click();
+				[1, 2].forEach((idx) => {
+					openRow(idx);
+					cy.get("@table-form")
+						.find('.frappe-control[data-fieldname="is_primary_mobile_no"]')
+						.should("be.hidden");
+					cy.get(".grid-sidebar-close").click();
+				});
 			});
 	});
 	it("update docfield property using toggle_enable", () => {
-		cy.visit("/desk/contact/Test Contact");
 		cy.window()
 			.its("cur_frm")
 			.then((frm) => {
-				cy.get('.frappe-control[data-fieldname="phone_nos"]').as("table");
-				let field = frm.get_field("phone_nos");
-				field.grid.toggle_enable("phone", false);
+				frm.get_field("phone_nos").grid.toggle_enable("phone", false);
 
-				cy.get("@table").find('[data-idx="1"] .btn-open-row').click();
-				cy.get(".grid-row-open").as("table-form");
-				cy.get("@table-form")
-					.find('.frappe-control[data-fieldname="phone"] .control-value')
-					.should("have.class", "like-disabled-input");
-				cy.get(".grid-sidebar-close").click();
-
-				cy.get("@table").find('[data-idx="2"] .btn-open-row').click();
-				cy.get(".grid-row-open").as("table-form");
-				cy.get("@table-form")
-					.find('.frappe-control[data-fieldname="phone"] .control-value')
-					.should("have.class", "like-disabled-input");
-				cy.get(".grid-sidebar-close").click();
+				[1, 2].forEach((idx) => {
+					openRow(idx);
+					cy.get("@table-form")
+						.find('.frappe-control[data-fieldname="phone"] .control-value')
+						.should("have.class", "like-disabled-input");
+					cy.get(".grid-sidebar-close").click();
+				});
 			});
 	});
 	it("update docfield property using toggle_reqd", () => {
-		cy.visit("/desk/contact/Test Contact");
 		cy.window()
 			.its("cur_frm")
 			.then((frm) => {
-				cy.get('.frappe-control[data-fieldname="phone_nos"]').as("table");
-				let field = frm.get_field("phone_nos");
-				field.grid.toggle_reqd("phone", false);
+				frm.get_field("phone_nos").grid.toggle_reqd("phone", false);
 
-				cy.get("@table").find('[data-idx="1"] .btn-open-row').click();
-				cy.get(".grid-row-open").as("table-form");
-				cy.get_field("phone").as("phone-field");
-				cy.get("@phone-field").focus().clear().wait(500).blur();
-				cy.get("@phone-field").should("not.have.class", "has-error");
-				cy.get(".grid-sidebar-close").click();
-
-				cy.get("@table").find('[data-idx="2"] .btn-open-row').click();
-				cy.get(".grid-row-open").as("table-form");
-				cy.get_field("phone").as("phone-field");
-				cy.get("@phone-field").focus().clear().wait(500).blur();
-				cy.get("@phone-field").should("not.have.class", "has-error");
-				cy.get(".grid-sidebar-close").click();
+				[1, 2].forEach((idx) => {
+					openRow(idx);
+					cy.get_field("phone").as("phone-field");
+					cy.get("@phone-field").focus().clear().wait(500).blur();
+					cy.get("@phone-field").should("not.have.class", "has-error");
+					cy.get(".grid-sidebar-close").click();
+				});
 			});
 	});
 
 	it("shows edit button only when child table allow_bulk_edit is enabled", () => {
-		cy.visit("/desk/contact/Test Contact");
-		cy.get('.frappe-control[data-fieldname="phone_nos"]').as("table");
-
 		cy.window()
 			.its("cur_frm")
 			.then((frm) => {
@@ -140,9 +112,6 @@ context("Grid", () => {
 
 	it("bulk edit updates only selected child rows", () => {
 		const updated_phone = `99999${Date.now().toString().slice(-5)}`;
-
-		cy.visit("/desk/contact/Test Contact");
-		cy.get('.frappe-control[data-fieldname="phone_nos"]').as("table");
 
 		cy.window()
 			.its("cur_frm")
@@ -185,10 +154,7 @@ context("Grid", () => {
 	});
 
 	it("sidebar opens and closes via close button", () => {
-		cy.visit("/desk/contact/Test Contact");
-		cy.get('.frappe-control[data-fieldname="phone_nos"]').as("table");
-
-		cy.get("@table").find('[data-idx="1"] .btn-open-row').click();
+		openRow(1);
 		cy.get(".grid-row-sidebar").should("be.visible");
 		cy.get("body").should("have.class", "grid-sidebar-open");
 
@@ -197,10 +163,7 @@ context("Grid", () => {
 	});
 
 	it("sidebar closes on Escape key", () => {
-		cy.visit("/desk/contact/Test Contact");
-		cy.get('.frappe-control[data-fieldname="phone_nos"]').as("table");
-
-		cy.get("@table").find('[data-idx="1"] .btn-open-row').click();
+		openRow(1);
 		cy.get("body").should("have.class", "grid-sidebar-open");
 
 		cy.get("body").trigger("keydown", { key: "Escape" });
@@ -208,10 +171,7 @@ context("Grid", () => {
 	});
 
 	it("sidebar closes on outside click", () => {
-		cy.visit("/desk/contact/Test Contact");
-		cy.get('.frappe-control[data-fieldname="phone_nos"]').as("table");
-
-		cy.get("@table").find('[data-idx="1"] .btn-open-row').click();
+		openRow(1);
 		cy.get("body").should("have.class", "grid-sidebar-open");
 
 		cy.get(".page-head").click({ force: true });
@@ -219,10 +179,7 @@ context("Grid", () => {
 	});
 
 	it("prev/next buttons navigate rows without closing sidebar", () => {
-		cy.visit("/desk/contact/Test Contact");
-		cy.get('.frappe-control[data-fieldname="phone_nos"]').as("table");
-
-		cy.get("@table").find('[data-idx="1"] .btn-open-row').click();
+		openRow(1);
 		cy.get("body").should("have.class", "grid-sidebar-open");
 		cy.get(".grid-sidebar-row-index").should("contain", "1 /");
 		cy.get(".grid-sidebar-prev").should("have.class", "disabled");
@@ -236,10 +193,7 @@ context("Grid", () => {
 	});
 
 	it("row index and navigation state update correctly in sidebar", () => {
-		cy.visit("/desk/contact/Test Contact");
-		cy.get('.frappe-control[data-fieldname="phone_nos"]').as("table");
-
-		cy.get("@table").find('[data-idx="1"] .btn-open-row').click();
+		openRow(1);
 		cy.get(".grid-sidebar-prev").should("have.class", "disabled");
 		cy.get(".grid-sidebar-next").should("not.have.class", "disabled");
 
@@ -248,9 +202,6 @@ context("Grid", () => {
 	});
 
 	it("hides add-row and add-multiple-rows buttons when rows are selected", () => {
-		cy.visit("/desk/contact/Test Contact");
-		cy.get('.frappe-control[data-fieldname="phone_nos"]').as("table");
-
 		cy.get("@table").find('.grid-row[data-idx="1"] .grid-row-check').click({ force: true });
 
 		cy.get("@table").find(".grid-add-row").should("have.class", "hidden");
