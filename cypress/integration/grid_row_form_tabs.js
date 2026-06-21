@@ -150,10 +150,13 @@ context("Grid Row Form Tabs", () => {
 		cy.get("@row1").find(".btn-open-row").click();
 		cy.get(".grid-row-sidebar").as("table-form");
 
-		// Fill fields in first tab — use fill_field (sidebar inputs) not fill_table_field
-		// (fill_table_field clicks the static table row, triggering outside-click-close)
-		cy.fill_field("item_name", "Test Item");
-		cy.fill_field("quantity", "10");
+		// Scope all field access to the sidebar panel to avoid matching inline table row inputs
+		cy.get("@table-form")
+			.find('[data-fieldname="item_name"] input')
+			.type("Test Item", { force: true });
+		cy.get("@table-form")
+			.find('[data-fieldname="quantity"] input')
+			.type("10", { force: true });
 
 		// Switch to Details tab and wait for it to become active
 		cy.get("@table-form")
@@ -165,8 +168,12 @@ context("Grid Row Form Tabs", () => {
 		cy.get("@table-form")
 			.find('.frappe-control[data-fieldname="description"]')
 			.should("be.visible");
-		cy.fill_field("description", "This is a test description");
-		cy.fill_field("notes", "Some notes here");
+		cy.get("@table-form")
+			.find('[data-fieldname="description"] textarea')
+			.type("This is a test description", { force: true });
+		cy.get("@table-form")
+			.find('[data-fieldname="notes"] input')
+			.type("Some notes here", { force: true });
 
 		// Switch back to first tab and wait for it to become active
 		cy.get("@table-form")

@@ -114,10 +114,12 @@ context("Depends On", () => {
 		cy.get("@table").findByRole("button", { name: "Add row" }).click();
 		cy.get("@table").find('[data-idx="1"]').as("row1");
 		cy.get("@row1").find(".btn-open-row").click();
-		// sidebar is open — fill_field finds the sidebar inputs; fill_table_field would
-		// click the static table row area which triggers outside-click and closes the sidebar
-		cy.fill_field("child_test_field", "Some Value");
-		cy.fill_field("child_dependant_field", "Some Other Value");
+		cy.get(".grid-row-sidebar")
+			.find('[data-fieldname="child_test_field"] input')
+			.type("Some Value", { force: true });
+		cy.get(".grid-row-sidebar")
+			.find('[data-fieldname="child_dependant_field"] input')
+			.type("Some Other Value", { force: true });
 
 		cy.get(".grid-sidebar-close").click();
 
