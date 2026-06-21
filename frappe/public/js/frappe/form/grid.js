@@ -4,6 +4,8 @@
 import GridRow from "./grid_row";
 import GridPagination from "./grid_pagination";
 
+const BULK_EDIT_CSV_HEADER_ROWS = 7; // title, labels, fieldnames, descriptions, 2 instructions, separator
+
 // Static pixel column widths; legacy map migrates old 1-12 `columns`/`colsize`.
 export const GRID_MIN_COLUMN_WIDTH = 60;
 export const GRID_MAX_COLUMN_WIDTH = 600;
@@ -1577,13 +1579,13 @@ export default class Grid {
 							const data = frappe.utils.csv_to_array(
 								frappe.utils.get_decoded_string(file.dataurl)
 							);
-							if (cint(data.length) - 7 > 5000) {
+							if (cint(data.length) - BULK_EDIT_CSV_HEADER_ROWS > 5000) {
 								frappe.throw(__("Cannot import table with more than 5000 rows."));
 							}
 							const fieldnames = data[2];
 							me.frm.clear_table(me.df.fieldname);
 							data.forEach((row, i) => {
-								if (i <= 6) return;
+								if (i < BULK_EDIT_CSV_HEADER_ROWS) return;
 								if (!row.some((v) => v)) return;
 								const d = me.frm.add_child(me.df.fieldname);
 								row.forEach((value, ci) => {
