@@ -3,7 +3,7 @@ msgstr ""
 "Project-Id-Version: frappe\n"
 "Report-Msgid-Bugs-To: developers@frappe.io\n"
 "POT-Creation-Date: 2026-01-02 22:45+0000\n"
-"PO-Revision-Date: 2026-06-14 17:40\n"
+"PO-Revision-Date: 2026-06-21 19:30\n"
 "Last-Translator: developers@frappe.io\n"
 "Language-Team: Turkish\n"
 "MIME-Version: 1.0\n"
@@ -13311,7 +13311,7 @@ msgstr "Talimatlar"
 
 #: frappe/templates/includes/login/login.js:262
 msgid "Instructions Emailed"
-msgstr "Talimatlar E-postayla Gönderildi"
+msgstr ""
 
 #: frappe/permissions.py:831
 msgid "Insufficient Permission Level for {0}"
@@ -15362,7 +15362,7 @@ msgstr "Web formu liste görünümünü görmek için giriş yapılması gerekir
 
 #: frappe/templates/includes/login/login.js:70
 msgid "Login link sent to your email"
-msgstr "Giriş bağlantısı e-postanıza gönderildi"
+msgstr ""
 
 #: frappe/auth.py:335 frappe/auth.py:338
 msgid "Login not allowed at this time"
@@ -15387,7 +15387,7 @@ msgstr "Yeni bir tartışma başlatmak için giriş yapın"
 
 #: frappe/www/login.html:63
 msgid "Login to {0}"
-msgstr "{0} adresine giriş yapın"
+msgstr ""
 
 #: frappe/templates/includes/login/login.js:327
 msgid "Login token required"
@@ -25353,7 +25353,7 @@ msgstr "Durum"
 
 #: frappe/www/update-password.html:161
 msgid "Status Updated"
-msgstr "Durumlar Güncellendi"
+msgstr ""
 
 #: frappe/www/message.html:40
 msgid "Status: {0}"
@@ -29032,11 +29032,11 @@ msgstr "Geçerli"
 #: frappe/templates/includes/login/login.js:53
 #: frappe/templates/includes/login/login.js:66
 msgid "Valid Login id required."
-msgstr "Geçerli bir Giriş kimliği gerekli."
+msgstr ""
 
 #: frappe/templates/includes/login/login.js:40
 msgid "Valid email and name required"
-msgstr "Geçerli e-posta ve ad gereklidir"
+msgstr ""
 
 #. Label of a Check field in DocType 'Onboarding Step'
 #: frappe/desk/doctype/onboarding_step/onboarding_step.json
