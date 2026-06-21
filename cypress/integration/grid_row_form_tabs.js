@@ -32,7 +32,7 @@ context("Grid Row Form Tabs", () => {
 		cy.get("@row1").find(".btn-open-row").click();
 
 		// Verify grid row form is open
-		cy.get(".grid-row-open").as("table-form");
+		cy.get(".grid-row-sidebar").as("table-form");
 
 		// Verify tabs are visible in the grid row form
 		cy.get("@table-form").find(".form-tabs-list").should("be.visible");
@@ -53,7 +53,7 @@ context("Grid Row Form Tabs", () => {
 		// Open the grid row form
 		cy.get("@table").find('[data-idx="1"]').as("row1");
 		cy.get("@row1").find(".btn-open-row").click();
-		cy.get(".grid-row-open").as("table-form");
+		cy.get(".grid-row-sidebar").as("table-form");
 
 		// Verify initial tab content - fields from General tab should be visible
 		cy.get("@table-form")
@@ -94,7 +94,7 @@ context("Grid Row Form Tabs", () => {
 		// Open first row and switch to Details tab
 		cy.get("@table").find('[data-idx="1"]').as("row1");
 		cy.get("@row1").find(".btn-open-row").click();
-		cy.get(".grid-row-open").as("table-form");
+		cy.get(".grid-row-sidebar").as("table-form");
 		cy.get("@table-form")
 			.find('.form-tabs .nav-link[data-fieldname="tab_details"]')
 			.click()
@@ -106,7 +106,7 @@ context("Grid Row Form Tabs", () => {
 		// Open second row - should show first tab by default (not persist from row 1)
 		cy.get("@table").find('[data-idx="2"]').as("row2");
 		cy.get("@row2").find(".btn-open-row").click();
-		cy.get(".grid-row-open").as("table-form2");
+		cy.get(".grid-row-sidebar").as("table-form2");
 
 		// First tab should be active in new row
 		cy.get("@table-form2").find(".form-tabs .nav-link").first().should("have.class", "active");
@@ -120,7 +120,7 @@ context("Grid Row Form Tabs", () => {
 		cy.get('.frappe-control[data-fieldname="items"]').as("table");
 		cy.get("@table").findByRole("button", { name: "Add row" }).click();
 		cy.get("@table").find('[data-idx="1"]').find(".btn-open-row").click();
-		cy.get(".grid-row-open").as("table-form");
+		cy.get(".grid-row-sidebar").as("table-form");
 
 		// Jump to a field that lives on a different tab (Details > Notes)
 		cy.get("body").type("{esc}").type("{ctrl+j}");
@@ -129,7 +129,7 @@ context("Grid Row Form Tabs", () => {
 		cy.findByRole("button", { name: "Go" }).click().wait(500);
 
 		// Grid row form stays open and the target field is focused
-		cy.get(".grid-row-open").should("exist");
+		cy.get(".grid-row-sidebar").should("be.visible");
 		cy.get("@table-form")
 			.find('.frappe-control[data-fieldname="notes"] input')
 			.should("be.focused");
@@ -146,7 +146,7 @@ context("Grid Row Form Tabs", () => {
 		// Open the grid row form
 		cy.get("@table").find('[data-idx="1"]').as("row1");
 		cy.get("@row1").find(".btn-open-row").click();
-		cy.get(".grid-row-open").as("table-form");
+		cy.get(".grid-row-sidebar").as("table-form");
 
 		// Fill fields in first tab
 		cy.fill_table_field("items", "1", "item_name", "Test Item");

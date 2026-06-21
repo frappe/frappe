@@ -68,7 +68,7 @@ context.skip("Form Tour", () => {
 		cy.wait(500);
 
 		// assert table field is highlighted
-		cy.get('.grid-row-open .frappe-control[data-fieldname="phone"]').as("phone");
+		cy.get('.grid-row-sidebar .frappe-control[data-fieldname="phone"]').as("phone");
 		cy.get("@phone").should("have.class", "driver-highlighted-element");
 		// enter value in a table field
 		let field = cy.fill_table_field("phone_nos", "1", "phone", "1234567890");

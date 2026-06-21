@@ -114,7 +114,6 @@ context("Depends On", () => {
 		cy.get("@table").findByRole("button", { name: "Add row" }).click();
 		cy.get("@table").find('[data-idx="1"]').as("row1");
 		cy.get("@row1").find(".btn-open-row").click();
-		cy.get(".grid-row-sidebar").as("row1-form_in_grid");
 		//cy.get('@row1-form_in_grid').find('')
 		cy.fill_table_field("child_test_depends_on_field", "1", "child_test_field", "Some Value");
 		cy.fill_table_field(
@@ -124,7 +123,7 @@ context("Depends On", () => {
 			"Some Other Value"
 		);
 
-		cy.get("@row1-form_in_grid").find(".grid-sidebar-close").click();
+		cy.get(".grid-sidebar-close").click();
 
 		// set the table to read-only
 		cy.fill_field("test_field", "Some Other Value");
@@ -132,10 +131,10 @@ context("Depends On", () => {
 		// grid row form fields should be read-only
 		cy.get("@row1").find(".btn-open-row").click();
 
-		cy.get("@row1-form_in_grid")
+		cy.get(".grid-row-sidebar")
 			.find('.control-input [data-fieldname="child_test_field"]')
 			.should("be.disabled");
-		cy.get("@row1-form_in_grid")
+		cy.get(".grid-row-sidebar")
 			.find('.control-input [data-fieldname="child_dependant_field"]')
 			.should("be.disabled");
 	});

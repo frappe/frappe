@@ -131,7 +131,7 @@ context("Form", () => {
 					});
 
 				cy.get("@table").find('[data-idx="1"] .btn-open-row').click();
-				cy.get(".grid-row-open").as("table-form");
+				cy.get(".grid-row-sidebar").as("table-form");
 				cy.get("@table-form")
 					.find('.frappe-control[data-fieldname="is_primary_phone"]')
 					.should("be.hidden");
@@ -153,7 +153,7 @@ context("Form", () => {
 						);
 					});
 
-				cy.get(".grid-row-open").as("table-form");
+				cy.get(".grid-row-sidebar").as("table-form");
 				cy.get("@table-form")
 					.find('.frappe-control[data-fieldname="is_primary_phone"]')
 					.should("be.visible");

@@ -1,6 +1,6 @@
 function openRow(idx) {
 	cy.get("@table").find(`[data-idx="${idx}"] .btn-open-row`).click();
-	cy.get(".grid-row-open").as("table-form");
+	cy.get(".grid-row-sidebar").as("table-form");
 }
 
 context("Grid", () => {
