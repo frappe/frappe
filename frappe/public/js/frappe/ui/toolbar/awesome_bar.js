@@ -58,19 +58,19 @@ frappe.search.AwesomeBar = class AwesomeBar {
 				<span class="help-item-navigate">
 					<span class="help-item">${frappe.utils.icon("arrow-up", "xs")}</span>
 					<span class="help-item">${frappe.utils.icon("arrow-down", "xs")}</span>
-					<span>${__("to navigate")}</span>
+					<span>${__("navigate")}</span>
 				</span>
 				<span class="help-item-navigate">
 					<span class="help-item">${frappe.utils.icon("corner-down-left", "xs")}</span>
-					<span>${__("to select")}</span>
+					<span>${__("select")}</span>
 				</span>
 				<span class="help-item-navigate">
 					<span class="help-item help-item-escape">${frappe.utils.is_mac() ? "⌘K" : "Ctrl+K"}</span>
-					<span>${__("to close")}</span>
+					<span>${__("close")}</span>
 				</span>
 				<span class="help-item-navigate">
 					<span class="help-item help-item-escape">${frappe.utils.is_mac() ? "⌘G" : "Ctrl+G"}</span>
-					<span>${__("to open Global Search")}</span>
+					<span>${__("Global Search")}</span>
 				</span>
 			</div>
 		</div>`;
