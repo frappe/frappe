@@ -3,7 +3,7 @@ msgstr ""
 "Project-Id-Version: frappe\n"
 "Report-Msgid-Bugs-To: developers@frappe.io\n"
 "POT-Creation-Date: 2026-01-02 22:45+0000\n"
-"PO-Revision-Date: 2026-06-09 07:57\n"
+"PO-Revision-Date: 2026-06-21 19:30\n"
 "Last-Translator: developers@frappe.io\n"
 "Language-Team: Croatian\n"
 "MIME-Version: 1.0\n"
@@ -646,9 +646,9 @@ msgstr "<p><strong>Primjeri stanja:</strong></p>\n"
 msgid "<p>Multiple webforms can be created for a single doctype. Add filters specific to this webform to display correct record after submission.</p><p>For Example:</p>\n"
 "<p>If you create a separate webform every year to capture feedback from employees add a \n"
 " field named year in doctype and add a filter <b>year = 2023</b></p>\n"
-msgstr "<p>Za jedan tip dokumenta može se izraditi više web obrazaca. Dodajte filtre specifične za ovaj web-obrazac za prikaz ispravnog zapisa nakon podnošenja.</p><p>Na primjer:</p>\n"
-"<p>Ako svake godine izradite zaseban web-obrazac za prikupljanje povratnih informacija od zaposlenika, dodajte \n"
-" polje pod nazivom godina u doctype i dodajte filtar <b>godina = 2023</b></p>\n"
+msgstr "<p>Za jedan tip dokumenta može se izraditi više web obrazaca. Dodaj filtre specifične za ovaj web obrazac za prikaz ispravnog zapisa nakon podnošenja.</p><p>Na primjer:</p>\n"
+"<p>Ako svake godine izradite zaseban web obrazac za prikupljanje povratnih informacija od osoblja, dodaj\n"
+" polje pod nazivom godina u doctype i dodaj filtar <b>godina = 2023</b></p>\n"
 
 #. Description of the 'Context Script' (Code) field in DocType 'Web Page'
 #: frappe/website/doctype/web_page/web_page.json
@@ -3682,7 +3682,7 @@ msgstr "Između"
 #. Option for the 'Address Type' (Select) field in DocType 'Address'
 #: frappe/contacts/doctype/address/address.json
 msgid "Billing"
-msgstr "Naplata"
+msgstr "Fakturisanje"
 
 #: frappe/public/js/frappe/form/templates/contact_list.html:21
 msgid "Billing Contact"
@@ -12969,7 +12969,7 @@ msgstr "U danima"
 #. Description of the Onboarding Step 'Setup Limited Access for a User'
 #: frappe/custom/onboarding_step/role_permissions/role_permissions.json
 msgid "In ERPNext, you can add your Employees as Users, and give them restricted access. Tools like Role Permission and User Permission allow you to define rules which give restricted access to the user to masters and transactions."
-msgstr "U ERPNext-u možete dodati svoje zaposlenike kao korisnike i dati im ograničen pristup. Alati kao što su Dozvola za ulogu i Dozvola korisnika omogućavaju vam da definišete pravila koja daju ograničen pristup korisniku masterima i transakcijama."
+msgstr "U Sustavu možete dodati osoblje kao korisnike i dati im ograničen pristup. Alati kao što su Dozvola za ulogu i Dozvola korisnika omogućavaju vam da definišete pravila koja daju ograničen pristup korisniku postavkama i transakcijama."
 
 #. Label of a Check field in DocType 'DocField'
 #. Label of a Check field in DocType 'Customize Form Field'
