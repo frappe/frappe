@@ -7,6 +7,17 @@ import GridPagination from "./grid_pagination";
 // Static pixel column widths; legacy map migrates old 1-12 `columns`/`colsize`.
 export const GRID_MIN_COLUMN_WIDTH = 60;
 export const GRID_MAX_COLUMN_WIDTH = 600;
+export const DEFAULT_COLUMN_WIDTHS = {
+	Text: 200,
+	"Small Text": 200,
+	"Long Text": 200,
+	Check: 60,
+	Int: 100,
+	Float: 100,
+	Currency: 100,
+	Percent: 100,
+};
+
 export const LEGACY_COLSIZE_TO_PX = {
 	1: 60,
 	2: 100,
@@ -1461,30 +1472,16 @@ export default class Grid {
 
 	// Precedence: per-user width (px) > docfield `columns` (migrated) > fieldtype default.
 	get_column_width(df) {
-		let width = df.width || LEGACY_COLSIZE_TO_PX[df.columns] || this.default_column_width(df);
+		const width =
+			df.width ||
+			LEGACY_COLSIZE_TO_PX[df.columns] ||
+			DEFAULT_COLUMN_WIDTHS[df.fieldtype] ||
+			140;
 		return this.clamp_column_width(width);
 	}
 
 	get_sticky_offset(fieldname) {
 		return this.sticky_offsets[fieldname] ?? 71;
-	}
-
-	default_column_width(df) {
-		switch (df.fieldtype) {
-			case "Text":
-			case "Small Text":
-			case "Long Text":
-				return 200;
-			case "Check":
-				return 60;
-			case "Int":
-			case "Float":
-			case "Currency":
-			case "Percent":
-				return 100;
-			default:
-				return 140;
-		}
 	}
 
 	setup_user_defined_columns() {
