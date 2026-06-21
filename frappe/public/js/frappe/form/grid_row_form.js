@@ -55,28 +55,30 @@ export default class GridRowForm {
 						${frappe.utils.icon("down-arrow", "xs")}
 					</button>
 				</div>
-				<button class="btn btn-xs btn-default grid-sidebar-close" title="${__("Close")}">
-					${frappe.utils.icon("close", "sm")}
-				</button>
+				<div class="grid-sidebar-header-actions">
+					<button class="btn btn-xs btn-default grid-delete-row" title="${__("Delete row")}">
+						${frappe.utils.icon("trash-2", "sm")}
+					</button>
+					<button class="btn btn-xs btn-default grid-sidebar-close" title="${__("Close")}">
+						${frappe.utils.icon("close", "sm")}
+					</button>
+				</div>
 			</div>
 			<div class="grid-sidebar-title">
 				<span class="grid-sidebar-docname"></span>
 			</div>
 			<div class="grid-sidebar-actions">
-				<button class="btn btn-secondary btn-sm grid-insert-row hidden-xs">
-					${frappe.utils.icon("arrow-up", "xs")} ${__("Insert above")}
+				<button class="btn btn-secondary btn-xs grid-insert-row hidden-xs">
+					${__("Insert above")}
 				</button>
-				<button class="btn btn-secondary btn-sm grid-insert-row-below hidden-xs">
-					${frappe.utils.icon("arrow-down", "xs")} ${__("Insert below")}
+				<button class="btn btn-secondary btn-xs grid-insert-row-below hidden-xs">
+					${__("Insert below")}
 				</button>
-				<button class="btn btn-secondary btn-sm grid-duplicate-row hidden-xs">
-					${frappe.utils.icon("duplicate", "xs")} ${__("Duplicate")}
+				<button class="btn btn-secondary btn-xs grid-duplicate-row hidden-xs">
+					${__("Duplicate")}
 				</button>
-				<button class="btn btn-secondary btn-sm grid-move-row hidden-xs">
+				<button class="btn btn-secondary btn-xs grid-move-row hidden-xs">
 					${__("Move")}
-				</button>
-				<button class="btn btn-danger btn-sm grid-delete-row">
-					${frappe.utils.icon("delete", "xs")} ${__("Delete")}
 				</button>
 			</div>
 			<div class="grid-sidebar-body">
@@ -134,12 +136,11 @@ export default class GridRowForm {
 	}
 	toggle_add_delete_button_display($parent) {
 		const editable = this.row.grid.is_editable();
-		$parent.find(".grid-sidebar-actions").toggle(editable);
 		const cannot_add = this.row.grid.cannot_add_rows || this.row.grid.df?.cannot_add_rows;
-		$parent
-			.find(".grid-insert-row, .grid-insert-row-below, .grid-duplicate-row")
-			.toggle(!cannot_add);
-		$parent.find(".grid-delete-row").toggle(!this.row.grid.df?.cannot_delete_rows);
+		const cannot_delete = this.row.grid.df?.cannot_delete_rows;
+
+		$parent.find(".grid-sidebar-actions").toggle(editable && !cannot_add);
+		$parent.find(".grid-delete-row").toggle(editable && !cannot_delete);
 	}
 	refresh_field(fieldname) {
 		const field = this.fields_dict[fieldname];

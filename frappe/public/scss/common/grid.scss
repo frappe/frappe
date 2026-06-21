@@ -604,6 +604,22 @@ body.grid-sidebar-open::after {
 	flex-shrink: 0;
 }
 
+.grid-sidebar-header-actions {
+	display: flex;
+	align-items: center;
+	gap: var(--margin-xs);
+
+	.grid-delete-row {
+		color: var(--text-muted);
+
+		&:hover {
+			color: var(--red-500);
+			background-color: var(--red-50);
+			border-color: transparent;
+		}
+	}
+}
+
 .grid-sidebar-row-nav {
 	display: flex;
 	align-items: center;
@@ -644,10 +660,10 @@ body.grid-sidebar-open::after {
 	display: flex;
 	align-items: center;
 	gap: var(--margin-xs);
-	flex-wrap: wrap;
 	padding: var(--padding-xs) var(--padding-md);
 	border-bottom: 1px solid var(--border-color);
 	flex-shrink: 0;
+	overflow-x: auto;
 }
 
 .grid-sidebar-body {
