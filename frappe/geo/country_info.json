@@ -1288,8 +1288,7 @@
   "currency_symbol": "\u20b9",
   "number_format": "#,##,###.##",
   "timezones": [
-   "Asia/Kolkata",
-   "Asia/Calcutta"
+   "Asia/Kolkata"
   ],
   "isd": "+91"
  },
