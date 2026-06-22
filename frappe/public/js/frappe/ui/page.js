@@ -49,7 +49,7 @@ frappe.ui.Page = class Page {
 	}
 
 	setup_awesomebar() {
-		if (frappe.boot.desk_settings.search_bar) {
+		if (frappe.boot.desk_settings.search_bar && !frappe.app.awesome_bar) {
 			let awesome_bar = new frappe.search.AwesomeBar();
 			awesome_bar.setup(".navbar-modal-search-mobile");
 			frappe.app.awesome_bar = awesome_bar;
