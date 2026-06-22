@@ -509,9 +509,10 @@ frappe.views.ListView = class ListView extends frappe.views.BaseList {
 	/** Build list columns directly from saved layout / settings field list (order preserved). */
 	build_columns_from_fields(fields) {
 		const get_df = frappe.meta.get_docfield.bind(null, this.doctype);
+		const subject_fieldname = this.meta.title_field?.trim() || "name";
 		const columns = [];
 
-		fields.forEach((field, idx) => {
+		fields.forEach((field) => {
 			if (field.fieldname === "status_field") {
 				if (!frappe.has_indicator(this.doctype)) return;
 				const col = { type: "Status", df: { fieldname: "status_field" } };
@@ -527,11 +528,8 @@ frappe.views.ListView = class ListView extends frappe.views.BaseList {
 			df = { ...df };
 			if (field.width) df.width = field.width;
 
-			if (idx === 0) {
-				columns.push({ type: "Subject", df });
-			} else {
-				columns.push({ type: "Field", df });
-			}
+			const type = field.fieldname === subject_fieldname ? "Subject" : "Field";
+			columns.push({ type, df });
 		});
 
 		return columns;
