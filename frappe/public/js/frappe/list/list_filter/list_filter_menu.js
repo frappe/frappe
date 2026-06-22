@@ -21,7 +21,9 @@ export const ListFilterMenu = {
 				if (!this._default_layout_snapshot) {
 					this.capture_default_layout_state();
 				}
-				return this.restore_layout_from_route_signature({ refresh: !initial_setup });
+				if (!initial_setup) {
+					return this.restore_layout_from_route_signature({ refresh: true });
+				}
 			})
 			.then(() => {
 				this.update_layout_menu_selection({ rerender_menu: true });
@@ -61,7 +63,23 @@ export const ListFilterMenu = {
 		return params.map(([key, value]) => `${key}=${value}`).join("&");
 	},
 
-	/** Build signature from current list filters using the same encoding as the list view URL. */
+	/** Normalize filter values so layout signatures match live list filters. */
+	normalize_filter_value(operator, value) {
+		if (value === null || value === undefined) return value;
+
+		if (operator === "like" && typeof value === "string") {
+			const stripped = value.replace(/^%+|%+$/g, "");
+			return stripped ? `%${stripped}%` : value;
+		}
+
+		if (operator === "=" && typeof value === "string") {
+			return value.replace(/^%+|%+$/g, "");
+		}
+
+		return value;
+	},
+
+	/** Build signature from current filters (same encoding as list view URL). */
 	get_route_signature() {
 		const lv = this.list_view;
 		if (lv?.get_search_params) {
@@ -77,13 +95,15 @@ export const ListFilterMenu = {
 		(filters || []).forEach((filter) => {
 			const [doctype, field, operator, value] = filter;
 			const query_key = doctype === lv.doctype ? field : `${doctype}.${field}`;
-			const query_value = operator === "=" ? value : JSON.stringify([operator, value]);
+			const normalized_value = this.normalize_filter_value(operator, value);
+			const query_value =
+				operator === "=" ? normalized_value : JSON.stringify([operator, normalized_value]);
 			search_params.append(query_key, query_value);
 		});
 		return this._signature_from_search_params(search_params);
 	},
 
-	/** Return stored or derived route signature for a layout record. */
+	/** Return stored or computed route signature for a layout. */
 	get_layout_route_signature(layout) {
 		if (layout?._route_signature) return layout._route_signature;
 		const stored = layout?.route_signature;
@@ -91,14 +111,15 @@ export const ListFilterMenu = {
 		return this.get_route_signature_from_filters(this.parse_layout_filters(layout));
 	},
 
-	/** Pick active layout by route signature, otherwise fall back to Default Layout. */
+	/** Pick active layout by matching URL filter signature; else Default Layout. */
 	restore_layout_from_route_signature({ refresh = true } = {}) {
 		if (this._user_selected_layout) {
 			return Promise.resolve();
 		}
 
 		const signature = this.get_route_signature();
-		// Empty URL / no filter params → default layout; do not match layouts with empty signature.
+
+		// No URL filters → Default Layout (filters/sort from user settings already applied).
 		if (!signature) {
 			this.active_layout_name = "default_layout";
 			this.active_layout_label = this.default_layout_label;
@@ -244,10 +265,11 @@ export const ListFilterMenu = {
 	apply_default_layout({ refresh = true } = {}) {
 		const lv = this.list_view;
 		lv.user_settings = frappe.get_user_settings(lv.doctype);
-
+		// Keep snapshot captured when leaving default; user settings may hold saved-layout filters after refresh.
 		if (!this._default_layout_snapshot) {
 			this.capture_default_layout_state();
 		}
+
 		const { filters, sort_by, sort_order } = this._default_layout_snapshot;
 
 		return this.apply_layout_state({

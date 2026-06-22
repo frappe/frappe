@@ -384,6 +384,15 @@ frappe.views.ListView = class ListView extends frappe.views.BaseList {
 			this.update_url_with_filters();
 			this.setup_realtime_updates();
 			this.apply_styles_basedon_dropdown();
+
+			if (this.list_filter && !this.list_filter._initial_layout_restored) {
+				this.list_filter._initial_layout_restored = true;
+				return this.list_filter
+					.restore_layout_from_route_signature({ refresh: false })
+					.then(() =>
+						this.list_filter.update_layout_menu_selection({ rerender_menu: true })
+					);
+			}
 		});
 	}
 
@@ -829,6 +838,11 @@ frappe.views.ListView = class ListView extends frappe.views.BaseList {
 		this.settings.before_render && this.settings.before_render();
 		frappe.model.user_settings.save(this.doctype, "last_view", this.view_name);
 		if (this.list_filter?._applying_layout) {
+			return;
+		}
+		// First refresh runs before route-signature layout restore; skip so saved-layout
+		// filters are not written into default user settings.
+		if (this.list_filter && !this.list_filter._initial_layout_restored) {
 			return;
 		}
 		if (

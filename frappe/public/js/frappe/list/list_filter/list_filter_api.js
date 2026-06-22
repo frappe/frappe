@@ -197,7 +197,6 @@ export const ListFilterAPI = {
 				args: {
 					name: layout.name,
 					columns: columns_json,
-					route_signature: this.get_route_signature(),
 				},
 			})
 			.then((r) => {
