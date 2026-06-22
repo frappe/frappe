@@ -205,12 +205,17 @@ def get_territory_from_address(address):
 
 
 def get_list_context(context=None):
-	return {
-		"title": _("Addresses"),
-		"get_list": get_address_list,
-		"row_template": "templates/includes/address_row.html",
-		"no_breadcrumbs": True,
-	}
+	context = context or frappe._dict()
+	context.update(
+		{
+			"title": _("Addresses"),
+			"get_list": get_address_list,
+			"list_template": "templates/includes/list/list.html",
+			"row_template": "templates/includes/address_row.html",
+			"no_breadcrumbs": True,
+		}
+	)
+	return context
 
 
 def get_address_list(doctype, txt, filters, limit_start, limit_page_length=20, order_by=None):
@@ -220,9 +225,16 @@ def get_address_list(doctype, txt, filters, limit_start, limit_page_length=20, o
 
 	if not filters:
 		filters = []
-	filters.append(("Address", "owner", "=", user))
+	try:
+		filters["owner"] = user
+	except:
+		filters.append(("Address", "owner", "=", user))
 
-	return get_list(doctype, txt, filters, limit_start, limit_page_length)
+	addresses = get_list(doctype, txt, filters, limit_start, limit_page_length)
+	for address in addresses:
+		address.address_display = get_address_display(address)
+
+	return addresses
 
 
 def has_website_permission(doc, ptype, user, verbose=False):
