@@ -10,19 +10,20 @@ def execute():
 	if not frappe.db.has_column("List Layout", "route_signature"):
 		return
 
-	if not frappe.db.count("List Layout"):
+	table = frappe.qb.DocType("List Layout")
+	# Only NULL rows need backfill. `["is", "not set"]` also matches `""`, which is the
+	# valid signature for empty filters and caused an infinite loop on those records.
+	rows = (
+		frappe.qb.from_(table)
+		.select(table.name, table.reference_doctype, table.filters)
+		.where(table.route_signature.isnull())
+		.run(as_dict=True)
+	)
+	if not rows:
 		return
 
-	while True:
-		rows = frappe.get_all(
-			"List Layout",
-			fields=["name", "reference_doctype", "filters"],
-			filters={"route_signature": ["is", "not set"]},
-			limit=500,
-		)
-		if not rows:
-			break
-
+	frappe.db.auto_commit_on_many_writes = True
+	try:
 		for row in rows:
 			signature = compute_route_signature(row.reference_doctype, row.filters)
 			frappe.db.set_value(
@@ -32,3 +33,5 @@ def execute():
 				signature,
 				update_modified=False,
 			)
+	finally:
+		frappe.db.auto_commit_on_many_writes = False
