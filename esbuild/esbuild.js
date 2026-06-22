@@ -637,15 +637,19 @@ async function run_build_command_for_apps(apps) {
 		await run_with_concurrency(tasks, concurrency);
 	} catch (error) {
 		await terminate_build_children();
-		const step_label = error.step === "install" ? "yarn install" : "yarn build";
-		log_error(`${step_label} failed for ${error.app || "an app"}`);
-		if (VERBOSE) {
-			// Child output (if any) was already streamed by flush_verbose;
-			// surface the raw error so spawn/ENOENT failures aren't silent.
-			log(chalk.dim(error.stack || error.message || String(error)));
-		} else if (error.output) {
-			log(error.output.trim());
-		} else {
+		const errors = error instanceof AggregateError ? error.errors : [error];
+		for (const err of errors) {
+			const step_label = err.step === "install" ? "yarn install" : "yarn build";
+			log_error(`${step_label} failed for ${err.app || "an app"}`);
+			if (VERBOSE) {
+				// Child output (if any) was already streamed by flush_verbose;
+				// surface the raw error so spawn/ENOENT failures aren't silent.
+				log(chalk.dim(err.stack || err.message || String(err)));
+			} else if (err.output) {
+				log(err.output.trim());
+			}
+		}
+		if (!VERBOSE && errors.some((e) => !e.output)) {
 			log_warn("Run again with --verbose for more details.");
 		}
 		// Prevent the top-level execute().catch from re-dumping the same error:
@@ -779,13 +783,18 @@ function create_output_buffer({ max_bytes }) {
 function run_with_concurrency(tasks, concurrency) {
 	let index = 0;
 	let running = 0;
-	let rejected = false;
+	const errors = [];
 
 	return new Promise((resolve, reject) => {
+		const maybe_done = () => {
+			if (running !== 0) return;
+			if (errors.length === 1) reject(errors[0]);
+			else if (errors.length) reject(new AggregateError(errors, "One or more tasks failed"));
+			else resolve();
+		};
+
 		const schedule = () => {
-			if (rejected) {
-				return;
-			}
+			if (errors.length) return;
 			while (running < concurrency && index < tasks.length) {
 				const task = tasks[index++];
 				running += 1;
@@ -793,16 +802,14 @@ function run_with_concurrency(tasks, concurrency) {
 					.then(task)
 					.then(() => {
 						running -= 1;
-						if (index === tasks.length && running === 0) {
-							resolve();
-						} else {
-							schedule();
-						}
+						if (errors.length) maybe_done();
+						else if (index === tasks.length && running === 0) resolve();
+						else schedule();
 					})
 					.catch((error) => {
 						running -= 1;
-						rejected = true;
-						reject(error);
+						errors.push(error);
+						maybe_done();
 					});
 			}
 		};
