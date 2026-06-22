@@ -309,30 +309,84 @@ function _appearance_tab() {
 			panel.body.append(theme_switcher.body);
 
 			panel.body.append(_section_heading(__("Layout")));
-
-			// Full Width comes after the theme grid, so we add it via add_fields
-			// here rather than the declarative `fields` array (which renders first).
-			const fg = panel.add_fields([
-				{
-					fieldtype: "Switch",
-					fieldname: "full_width",
-					label: __("Full Width"),
-					description: __("Expand content to fill the full screen width"),
-					default: JSON.parse(localStorage.container_fullwidth || "false") ? 1 : 0,
-				},
-			]);
-
-			const ctrl = fg.fields_dict["full_width"];
-			ctrl?.$input.on("change", () => {
-				localStorage.container_fullwidth = ctrl.get_value() ? "true" : "false";
-				frappe.ui.toolbar.set_fullwidth_if_enabled();
-				$(document.body).trigger("toggleFullWidth");
-			});
+			_render_layout_cards(panel);
 		},
 	};
 }
 
+function _render_layout_cards(panel) {
+	const is_full = JSON.parse(localStorage.container_fullwidth || "false");
+	const options = [
+		{ name: "compact", label: __("Compact"), full: false },
+		{ name: "full", label: __("Full Width"), full: true },
+	];
+
+	const $grid = $(`<div class="layout-grid"></div>`);
+
+	options.forEach((opt) => {
+		const selected = opt.full === is_full;
+		const $card = $(`
+			<div class="theme-card-wrapper${selected ? " selected" : ""}">
+				<button type="button" class="theme-card">
+					<div class="theme-card-preview">${_layout_preview_window(opt.name)}</div>
+					<div class="theme-card-footer">
+						<span class="theme-card-label">${opt.label}</span>
+						<span class="theme-card-radio"></span>
+					</div>
+				</button>
+			</div>
+		`);
+
+		$card.on("click", () => {
+			if ($card.hasClass("selected")) return;
+			$grid.find(".theme-card-wrapper").removeClass("selected");
+			$card.addClass("selected");
+			localStorage.container_fullwidth = opt.full ? "true" : "false";
+			frappe.ui.toolbar.set_fullwidth_if_enabled();
+			$(document.body).trigger("toggleFullWidth");
+		});
+
+		$grid.append($card);
+	});
+
+	panel.body.append($grid);
+}
+
+function _layout_preview_window(type) {
+	const field = `<div class="layout-preview-field">
+		<div class="layout-preview-label"></div>
+		<div class="layout-preview-input"></div>
+	</div>`;
+
+	return `<div class="layout-preview-frame">
+		<div class="layout-preview-window">
+			<div class="layout-preview-titlebar">
+				<span class="layout-preview-dot layout-preview-dot--red"></span>
+				<span class="layout-preview-dot layout-preview-dot--yellow"></span>
+				<span class="layout-preview-dot layout-preview-dot--green"></span>
+			</div>
+			<div class="layout-preview-content">
+				<div class="layout-preview-sidebar"></div>
+				<div class="layout-preview-main">
+					<div class="layout-preview-header">
+						<div class="layout-preview-header-title"></div>
+						<div class="layout-preview-header-action"></div>
+					</div>
+					<div class="layout-preview-body layout-preview-body--${type}">
+						${field}${field}${field}${field}
+					</div>
+				</div>
+			</div>
+		</div>
+	</div>`;
+}
+
 function _theme_preview_window(theme) {
+	const field = `<div class="theme-preview-field">
+		<div class="theme-preview-label"></div>
+		<div class="theme-preview-input"></div>
+	</div>`;
+
 	return `<div class="theme-preview-container theme-preview-container--${theme}">
 		<div class="theme-preview-frame">
 			<div class="theme-preview-titlebar">
@@ -340,23 +394,10 @@ function _theme_preview_window(theme) {
 				<span class="theme-preview-dot theme-preview-dot--yellow"></span>
 				<span class="theme-preview-dot theme-preview-dot--green"></span>
 			</div>
-			<div class="theme-preview-body">
-				<div class="theme-preview-toolbar">
-					<span class="theme-preview-bar theme-preview-bar--strong theme-preview-bar--w-32"></span>
-					<span class="theme-preview-bar theme-preview-bar--w-24"></span>
-					<span class="theme-preview-bar theme-preview-bar--w-28 theme-preview-bar--right"></span>
-				</div>
-				<div class="theme-preview-cards">
-					<div class="theme-preview-card">
-						<div class="theme-preview-line theme-preview-line--strong"></div>
-						<div class="theme-preview-line theme-preview-line--w-80"></div>
-						<div class="theme-preview-line theme-preview-line--w-60"></div>
-					</div>
-					<div class="theme-preview-card">
-						<div class="theme-preview-line theme-preview-line--strong theme-preview-line--w-40"></div>
-						<div class="theme-preview-line"></div>
-						<div class="theme-preview-line theme-preview-line--w-75"></div>
-					</div>
+			<div class="theme-preview-content">
+				<div class="theme-preview-sidebar"></div>
+				<div class="theme-preview-body">
+					${field}${field}${field}${field}
 				</div>
 			</div>
 		</div>
