@@ -51,3 +51,50 @@ def get_latest_sync(doctype: str | None = None):
 		):
 			return frappe.get_doc("DuckDB Sync", latest_sync[0]).get_duckdb_conn()
 	return None
+
+
+class DuckDBConnection:
+	"""Wraps a DuckDB connection so fetch results automatically convert Decimal to float."""
+
+	def __init__(self, conn):
+		self._conn = conn
+
+	def __getattr__(self, name):
+		return getattr(self._conn, name)
+
+	def execute(self, query, parameters=None):
+		rel = self._conn.execute(query, parameters) if parameters is not None else self._conn.execute(query)
+		return DuckDBRelation(rel)
+
+	def sql(self, query):
+		return DuckDBRelation(self._conn.sql(query))
+
+
+class DuckDBRelation:
+	"""Wraps a DuckDB relation to convert Decimal results to float on fetch."""
+
+	def __init__(self, rel):
+		self._rel = rel
+
+	def __getattr__(self, name):
+		return getattr(self._rel, name)
+
+	def fetchall(self):
+		from decimal import Decimal
+
+		return [tuple(float(v) if isinstance(v, Decimal) else v for v in row) for row in self._rel.fetchall()]
+
+	def fetchone(self):
+		from decimal import Decimal
+
+		row = self._rel.fetchone()
+		if row is None:
+			return None
+		return tuple(float(v) if isinstance(v, Decimal) else v for v in row)
+
+	def fetchmany(self, size=1):
+		from decimal import Decimal
+
+		return [
+			tuple(float(v) if isinstance(v, Decimal) else v for v in row) for row in self._rel.fetchmany(size)
+		]
