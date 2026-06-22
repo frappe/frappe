@@ -92,6 +92,20 @@
 		display: flex;
 	}
 
+	.awesomebar-input-row {
+		display: flex;
+		align-items: center;
+	}
+
+	.awesomebar-search-icon {
+		display: flex;
+		align-items: center;
+		padding-left: 7px;
+		color: var(--text-muted);
+		flex-shrink: 0;
+		pointer-events: none;
+	}
+
 	.awesomplete {
 		width: 100%;
 		ul {

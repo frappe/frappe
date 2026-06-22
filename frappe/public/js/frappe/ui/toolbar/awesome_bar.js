@@ -91,6 +91,20 @@ frappe.search.AwesomeBar = class AwesomeBar {
 			maxItems: 99,
 			autoFirst: true,
 			list: [],
+			container: function (input) {
+				let container = document.createElement("div");
+				container.className = "awesomplete";
+				let input_row = document.createElement("div");
+				input_row.className = "awesomebar-input-row";
+				let icon = document.createElement("span");
+				icon.className = "awesomebar-search-icon";
+				icon.innerHTML = frappe.utils.icon("search", "sm");
+				input.parentNode.insertBefore(container, input);
+				input_row.appendChild(icon);
+				input_row.appendChild(input);
+				container.appendChild(input_row);
+				return container;
+			},
 			filter: function (text, term) {
 				return true;
 			},
