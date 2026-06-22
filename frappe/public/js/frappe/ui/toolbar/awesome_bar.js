@@ -191,13 +191,6 @@ frappe.search.AwesomeBar = class AwesomeBar {
 				awesomplete.options_with_desc = me.create_options_with_descriptions(options);
 				Awesomplete.prototype._itemCursor = 0;
 				awesomplete.list = options;
-				const has_results = Boolean(options.length);
-				$(awesomplete.ul).toggleClass("awesomebar-ul-empty", !has_results);
-				search_modal.find(".modal-divider").toggleClass("hidden", !has_results);
-				search_modal
-					.closest(".modal")
-					.find(".modal-footer")
-					.toggleClass("hidden", !has_results);
 			}, 50)
 		);
 
@@ -211,10 +204,16 @@ frappe.search.AwesomeBar = class AwesomeBar {
 
 		$input.on("awesomplete-open", function (e) {
 			me.autocomplete_open = e.target;
+			$(awesomplete.ul).removeClass("awesomebar-ul-empty");
+			search_modal.find(".modal-divider").removeClass("hidden");
+			search_modal.closest(".modal").find(".modal-footer").removeClass("hidden");
 		});
 
 		$input.on("awesomplete-close", function (e) {
 			me.autocomplete_open = false;
+			$(awesomplete.ul).addClass("awesomebar-ul-empty");
+			search_modal.find(".modal-divider").addClass("hidden");
+			search_modal.closest(".modal").find(".modal-footer").addClass("hidden");
 		});
 
 		$input.on("awesomplete-select", function (e) {
