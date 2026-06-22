@@ -12,6 +12,7 @@ import frappe
 from frappe import _, bold, is_whitelisted
 from frappe.database.schema import SPECIAL_CHAR_PATTERN
 from frappe.model.db_query import get_order_by
+from frappe.model.utils import is_single_doctype
 from frappe.permissions import has_permission
 from frappe.utils import cint, cstr, escape_html, sbool, unique
 from frappe.utils.caching import http_cache
@@ -137,6 +138,15 @@ def search_widget(
 
 	if not searchfield:
 		searchfield = "name"
+
+	if is_single_doctype(doctype):
+		meta = frappe.get_meta(doctype)
+		name = _(doctype) if meta.translated_doctype else doctype
+		if for_link_validation:
+			return [[doctype]] if txt == doctype else []
+		if as_dict:
+			return [frappe._dict({"name": name})]
+		return [[name]]
 
 	standard_queries = frappe.get_hooks().standard_queries or {}
 
