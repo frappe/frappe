@@ -24,15 +24,12 @@ def migrate_filter_name_to_layout_name():
 
 	if has_filter_name and has_layout_name:
 		# Model sync may have added an empty layout_name before this patch ran.
-		frappe.db.sql(
-			"""
-			UPDATE `tabList Layout`
-			SET layout_name = filter_name
-			WHERE ifnull(filter_name, '') != '' AND ifnull(layout_name, '') = ''
-			"""
-		)
-		if frappe.db.db_type == "mariadb":
-			frappe.db.commit()
+		table = frappe.qb.DocType("List Layout")
+		(
+			frappe.qb.update(table)
+			.set(table.layout_name, table.filter_name)
+			.where((table.filter_name != "") & ((table.layout_name == "") | table.layout_name.isnull()))
+		).run()
 		frappe.db.sql_ddl("ALTER TABLE `tabList Layout` DROP COLUMN `filter_name`")
 
 
