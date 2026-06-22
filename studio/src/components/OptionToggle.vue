@@ -3,7 +3,7 @@
 	<div class="flex w-full items-center justify-between">
 		<InputLabel v-if="label">{{ label }}</InputLabel>
 		<TabButtons
-			class="w-full min-w-[150px] [&>div>button]:flex-1 [&>div]:flex [&>div]:w-full"
+			class="w-full min-w-[150px] [&>div]:flex [&>div]:w-full [&_[data-slot=tab-button]>*]:w-full [&_[data-slot=tab-button]]:flex-1"
 			:buttons="options"
 			:modelValue="modelValue"
 			@update:modelValue="$emit('update:modelValue', $event)"
