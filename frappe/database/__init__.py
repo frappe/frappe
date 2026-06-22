@@ -102,7 +102,7 @@ def get_duckdb(read_only=True, filename=None):
 
 	db_home = os.path.realpath(frappe.utils.get_files_path(is_private=True))
 	db_with_abs_path = os.path.join(db_home, filename)
-	return duckdb.connect(f"{db_with_abs_path}", read_only=read_only)
+	return duckdb.connect(f"{db_with_abs_path}", read_only=read_only, config={"decimal_as_double": True})
 
 
 def delete_duckdb_file(filename=None):
