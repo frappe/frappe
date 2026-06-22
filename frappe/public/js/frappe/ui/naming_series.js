@@ -109,7 +109,7 @@ frappe.ui.NamingSeriesDialog = class NamingSeriesDialog {
 				</ul>
        		</li>
     		</ul>
-    Examples:
+    ${__("Examples:")}
     <ul>
         <li>INV-</li>
         <li>INV-10-</li>
@@ -145,20 +145,23 @@ frappe.ui.NamingSeriesDialog = class NamingSeriesDialog {
 	async get_transaction(doctype) {
 		this.current_doctype = doctype;
 
-		await frappe.model.with_doctype(doctype, async () => {
-			const meta = frappe.get_meta(doctype);
-			const naming_df = (meta?.fields || []).find((df) => df.fieldname === "naming_series");
-			const series_list = (naming_df?.options || "").split("\n").filter(Boolean);
-			const rows = await Promise.all(
-				series_list.map(async (series) => ({
-					series: series,
-					preview: await this.get_series_preview(series),
-				}))
-			);
+		// Only ensure the meta is loaded here. with_doctype does not await an
+		// async callback (it drops the returned Promise when the doctype is
+		// already cached), so the preview work must run after it resolves.
+		await frappe.model.with_doctype(doctype);
 
-			this.dialog.fields_dict.naming_series_options.df.data = rows;
-			this.dialog.fields_dict.naming_series_options.grid.refresh();
-		});
+		const meta = frappe.get_meta(doctype);
+		const naming_df = (meta?.fields || []).find((df) => df.fieldname === "naming_series");
+		const series_list = (naming_df?.options || "").split("\n").filter(Boolean);
+		const rows = await Promise.all(
+			series_list.map(async (series) => ({
+				series: series,
+				preview: await this.get_series_preview(series),
+			}))
+		);
+
+		this.dialog.fields_dict.naming_series_options.df.data = rows;
+		this.dialog.fields_dict.naming_series_options.grid.refresh();
 	}
 
 	save() {
@@ -187,6 +190,15 @@ frappe.ui.NamingSeriesDialog = class NamingSeriesDialog {
 				method: "update_series",
 				freeze: true,
 				callback: async () => {
+					// Keep the client-side meta cache in sync with the options
+					// just saved server-side; otherwise frappe.get_meta() returns
+					// stale `naming_series` options until a hard refresh.
+					const meta = frappe.get_meta(this.current_doctype);
+					const naming_df = (meta?.fields || []).find(
+						(df) => df.fieldname === "naming_series"
+					);
+					if (naming_df) naming_df.options = naming_series_options;
+
 					const updated_rows = await Promise.all(
 						naming_series_options
 							.split("\n")
@@ -250,7 +262,7 @@ frappe.ui.NamingSeriesTable = class NamingSeriesTable {
 			this.theme_observer.disconnect();
 		}
 
-		const observer = new MutationObserver(() => {
+		this.theme_observer = new MutationObserver(() => {
 			const badge_class = this.get_current_badge_class();
 
 			this.$wrapper
@@ -259,7 +271,7 @@ frappe.ui.NamingSeriesTable = class NamingSeriesTable {
 				.addClass(badge_class);
 		});
 
-		observer.observe(document.documentElement, {
+		this.theme_observer.observe(document.documentElement, {
 			attributes: true,
 			attributeFilter: ["data-theme"],
 		});
@@ -423,10 +435,9 @@ frappe.ui.NamingSeriesController = class NamingSeriesController {
 				title: __("{0} Naming Series", [__(doctype)]),
 				on_update: ({ naming_series_options }) => {
 					const series = naming_series_options.split("\n").filter(Boolean);
-					this.frm
-						.get_field(this.opts.table_field)
-						.$wrapper.find(`.series-cell-${frappe.scrub(doctype)}`)
-						.html(this.frm._naming_series_table?.series_list_background(series));
+					this.frm._naming_series_table?.$wrapper
+						.find(`.series-cell-${frappe.scrub(doctype)}`)
+						.html(this.frm._naming_series_table.series_list_background(series));
 					on_update?.({ doctype, naming_series_options });
 				},
 			});
