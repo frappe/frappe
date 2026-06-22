@@ -98,7 +98,8 @@ def get_assets_link(frappe_head) -> str:
 
 
 def fetch_assets(url, frappe_head, verbose=True):
-	click.secho("Retrieving assets...", fg="yellow")
+	if verbose:
+		click.secho("Retrieving assets...", fg="yellow")
 
 	prefix = mkdtemp(prefix="frappe-assets-", suffix=frappe_head)
 	assets_archive = download_file(url, prefix)
