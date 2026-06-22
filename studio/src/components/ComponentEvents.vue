@@ -51,7 +51,7 @@
 							<!-- Success Section -->
 							<div class="border-t border-outline-elevation-2 pt-4">
 								<div class="mb-3">
-									<h3 class="mb-2 text-sm font-medium text-ink-gray-8">On Success</h3>
+									<h3 class="text-sm-medium mb-2 text-ink-gray-8">On Success</h3>
 									<TabButtons
 										:buttons="[
 											{ label: 'Message', value: 'message' },
@@ -90,7 +90,7 @@
 							<!-- Failure Section -->
 							<div class="border-t border-outline-elevation-2 pt-4">
 								<div class="mb-3">
-									<h3 class="mb-2 text-sm font-medium text-ink-gray-8">On Failure</h3>
+									<h3 class="text-sm-medium mb-2 text-ink-gray-8">On Failure</h3>
 									<TabButtons
 										:buttons="[
 											{ label: 'Message', value: 'message' },

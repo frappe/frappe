@@ -1,7 +1,7 @@
 <!-- Extracted from Builder -->
 <template>
 	<span
-		class="resize-dimensions text-ink-white absolute bottom-[-40px] right-[-40px] flex h-8 w-20 items-center justify-center whitespace-nowrap rounded-full bg-surface-gray-7 p-2 text-sm opacity-80"
+		class="resize-dimensions absolute bottom-[-40px] right-[-40px] flex h-8 w-20 items-center justify-center whitespace-nowrap rounded-full bg-surface-gray-10 p-2 text-sm text-ink-base opacity-80"
 		v-if="resizing"
 	>
 		{{ targetWidth }} x
@@ -25,7 +25,7 @@
 		@mousedown.stop="handleBottomResize"
 	/>
 	<div
-		class="bg-surface-white pointer-events-auto absolute bottom-[-5px] right-[-5px] h-[12px] w-[12px] cursor-nwse-resize rounded-full border-[2.5px] border-outline-blue-4"
+		class="pointer-events-auto absolute bottom-[-5px] right-[-5px] h-[12px] w-[12px] cursor-nwse-resize rounded-full border-[2.5px] border-outline-blue-5 bg-surface-base"
 		:class="{
 			'border-outline-purple-4': targetBlock.isStudioComponent,
 		}"

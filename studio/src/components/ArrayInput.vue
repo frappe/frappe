@@ -26,7 +26,7 @@
 							@update:modelValue="
 								(val) => updateItemField(index, fieldKey as string, `{{ getIcon('${val}') }}`)
 							"
-							class="bg-surface-white w-full"
+							class="w-full bg-surface-base"
 						/>
 					</template>
 					<InlineInput
@@ -40,7 +40,7 @@
 				</div>
 				<div
 					title="Remove"
-					class="bg-surface-white absolute right-0 top-0 hidden -translate-y-1/2 translate-x-1/2 cursor-pointer rounded-full border border-outline-gray-2 p-0.5 hover:bg-surface-gray-1 group-hover/item:block"
+					class="absolute right-0 top-0 hidden -translate-y-1/2 translate-x-1/2 cursor-pointer rounded-full border border-outline-gray-2 bg-surface-base p-0.5 hover:bg-surface-gray-1 group-hover/item:block"
 				>
 					<FeatherIcon name="x" @click="removeItem(index)" class="size-3 rounded-full" />
 				</div>

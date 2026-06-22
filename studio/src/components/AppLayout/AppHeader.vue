@@ -1,6 +1,6 @@
 <template>
 	<header
-		class="bg-surface-white sticky top-0 z-10 flex w-full flex-col items-center border-b border-outline-gray-2 p-5 shadow-sm"
+		class="sticky top-0 z-10 flex w-full flex-col items-center border-b border-outline-gray-2 bg-surface-base p-5 shadow-sm"
 	>
 		<div class="w-full">
 			<div class="flex w-full items-center justify-center">
@@ -17,7 +17,7 @@
 						</div>
 						<AppLogo v-else class="h-6 w-6" />
 					</template>
-					<h1 v-if="title" class="text-xl font-semibold leading-5 text-ink-gray-7">{{ title }}</h1>
+					<h1 v-if="title" class="text-2xl-semibold leading-5 text-ink-gray-7">{{ title }}</h1>
 				</div>
 
 				<slot></slot>

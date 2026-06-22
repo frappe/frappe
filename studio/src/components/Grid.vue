@@ -33,7 +33,7 @@
 				<Draggable class="w-full" v-model="rows" group="rows" item-key="name">
 					<template #item="{ element: row, index }">
 						<div
-							class="grid-row bg-surface-white grid cursor-pointer items-center border-b border-gray-100 last:rounded-b last:border-b-0"
+							class="grid-row grid cursor-pointer items-center border-b border-gray-100 bg-surface-base last:rounded-b last:border-b-0"
 							:style="{ gridTemplateColumns: gridTemplateColumns }"
 						>
 							<div class="flex h-full items-center justify-center border-r">

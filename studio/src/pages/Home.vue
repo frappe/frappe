@@ -1,14 +1,14 @@
 <template>
-	<div class="bg-surface-white isolate h-screen flex-col overflow-hidden">
+	<div class="isolate h-screen flex-col overflow-hidden bg-surface-base">
 		<div
-			class="toolbar bg-surface-white sticky top-0 z-10 flex h-14 items-center justify-between px-3 py-2 shadow-sm"
+			class="toolbar sticky top-0 z-10 flex h-14 items-center justify-between bg-surface-base px-3 py-2 shadow-sm"
 		>
 			<Dropdown :options="[{ label: 'Logout', icon: 'lucide-log-out', onClick: () => session.logout() }]">
 				<template v-slot="{ open }">
 					<div class="flex cursor-pointer items-center gap-2">
 						<StudioLogo class="h-7 w-7"></StudioLogo>
 						<router-link class="flex items-center gap-2" :to="{ name: 'Home' }">
-							<h1 class="mt-[2px] text-md font-semibold leading-5 text-ink-gray-7">Studio</h1>
+							<h1 class="text-md-semibold mt-[2px] leading-5 text-ink-gray-7">Studio</h1>
 						</router-link>
 						<FeatherIcon :name="open ? 'chevron-up' : 'chevron-down'" class="h-4 w-4 text-ink-gray-6" />
 					</div>
@@ -19,7 +19,7 @@
 
 		<div class="flex h-full flex-col items-center px-20 py-10">
 			<div class="flex w-full flex-row justify-between">
-				<div class="text-lg font-semibold text-ink-gray-7">All Apps</div>
+				<div class="text-lg-semibold text-ink-gray-7">All Apps</div>
 				<div class="relative flex">
 					<Input
 						class="w-48"

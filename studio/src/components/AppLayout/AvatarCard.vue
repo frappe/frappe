@@ -9,7 +9,7 @@
 	>
 		<Avatar :image="imageURL" size="2xl" shape="square" />
 		<div class="flex-grow pl-2">
-			<h2 class="truncate text-lg font-semibold text-ink-gray-7">{{ title }}</h2>
+			<h2 class="text-lg-semibold truncate text-ink-gray-7">{{ title }}</h2>
 			<p class="mt-1 truncate text-sm text-ink-gray-5">{{ subtitle }}</p>
 		</div>
 		<button

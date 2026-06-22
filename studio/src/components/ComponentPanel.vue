@@ -1,6 +1,6 @@
 <template>
 	<div class="flex flex-col gap-2" ref="componentContainer">
-		<div class="bg-surface-white sticky top-[41px] z-50 mt-[-15px] flex w-full flex-col gap-3 py-3">
+		<div class="sticky top-[41px] z-50 mt-[-15px] flex w-full flex-col gap-3 bg-surface-base py-3">
 			<!-- Component Filter -->
 			<Input
 				type="text"
@@ -61,7 +61,7 @@
 					>
 						<div class="flex items-center gap-2 text-ink-gray-7">
 							<div
-								class="flex h-6 w-6 items-center justify-center rounded bg-surface-green-1 text-ink-green-3"
+								class="flex h-6 w-6 items-center justify-center rounded bg-surface-green-1 text-ink-green-6"
 							>
 								<LucideCode class="h-3 w-3" />
 							</div>

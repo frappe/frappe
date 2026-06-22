@@ -40,7 +40,7 @@
 				<div
 					class="col-span-3 row-start-3 h-2 w-[2px] self-center justify-self-center rounded bg-surface-gray-2"
 				></div>
-				<div class="h-5 w-5 self-center justify-self-center rounded bg-surface-gray-5"></div>
+				<div class="h-5 w-5 self-center justify-self-center rounded bg-surface-gray-8"></div>
 				<div
 					class="col-span-1 col-start-1 row-start-2 h-[2px] w-2 self-center justify-self-center rounded bg-surface-gray-2"
 				></div>

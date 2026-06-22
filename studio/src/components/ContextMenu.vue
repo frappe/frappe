@@ -1,7 +1,7 @@
 <!-- Extracted from Builder -->
 <template>
 	<Menu
-		class="dark:bg-zinc-900 bg-surface-white fixed z-50 h-fit w-fit min-w-[120px] rounded-lg p-1 shadow-xl"
+		class="dark:bg-zinc-900 fixed z-50 h-fit w-fit min-w-[120px] rounded-lg bg-surface-base p-1 shadow-xl"
 		:style="{ top: y + 'px', left: x + 'px' }"
 		ref="menu"
 	>

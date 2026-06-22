@@ -1,7 +1,7 @@
 <template>
 	<!-- prettier-ignore -->
 	<div
-		class="flex [&>div>input]:!bg-surface-red-7 [&>div>input]:pr-6"
+		class="flex [&>div>input]:!bg-surface-red-9 [&>div>input]:pr-6"
 		:class="[type === 'textarea' ? 'flex-col gap-1.5' : 'flex-row items-center justify-between', attrs.class]"
 		:style="(attrs.style as StyleValue)"
 	>
@@ -22,7 +22,7 @@
 				<template #body>
 					<slot name="body">
 						<div
-							class="w-fit max-w-52 rounded bg-surface-gray-9 px-2 py-1 text-center text-xs text-ink-white shadow-xl"
+							class="w-fit max-w-52 rounded bg-surface-gray-9 px-2 py-1 text-center text-xs text-ink-base shadow-xl"
 							v-html="description"
 						></div>
 					</slot>

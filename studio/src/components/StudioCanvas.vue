@@ -24,7 +24,7 @@
 				transform: `scale(${canvasProps.scale}) translate(${canvasProps.translateX}px, ${canvasProps.translateY}px)`,
 			}"
 		>
-			<div class="dark:bg-zinc-900 bg-surface-white absolute right-0 top-[-60px] flex rounded-md px-3">
+			<div class="dark:bg-zinc-900 absolute right-0 top-[-60px] flex rounded-md bg-surface-base px-3">
 				<div
 					v-show="!canvasProps.scaling && !canvasProps.panning"
 					class="w-auto cursor-pointer p-2"
@@ -43,7 +43,7 @@
 				</div>
 			</div>
 			<div
-				class="canvas bg-surface-white relative flex shadow-2xl contain-layout"
+				class="canvas relative flex bg-surface-base shadow-2xl contain-layout"
 				:class="canvasStore.editingMode === 'page' ? 'min-h-[100dvh]' : ''"
 				:style="{
 					...canvasStyles,
@@ -54,7 +54,7 @@
 				:key="breakpoint.device"
 			>
 				<div
-					class="cursor dark:text-zinc-300 absolute left-0 select-none text-3xl text-ink-gray-6"
+					class="cursor dark:text-zinc-300 absolute left-0 select-none text-4xl text-ink-gray-6"
 					:style="{
 						fontSize: `calc(${12}px * 1/${canvasProps.scale})`,
 						top: `calc(${-20}px * 1/${canvasProps.scale})`,
@@ -76,7 +76,7 @@
 		</div>
 
 		<div
-			class="bg-surface-white fixed bottom-12 left-[50%] z-40 flex translate-x-[-50%] cursor-default items-center justify-center gap-2 rounded-lg px-3 py-2 text-center text-sm font-semibold text-ink-gray-5 shadow-md"
+			class="text-sm-semibold fixed bottom-12 left-[50%] z-40 flex translate-x-[-50%] cursor-default items-center justify-center gap-2 rounded-lg bg-surface-base px-3 py-2 text-center text-ink-gray-5 shadow-md"
 			v-show="!canvasProps.panning"
 		>
 			{{ Math.round(canvasProps.scale * 100) + "%" }}
@@ -370,10 +370,10 @@ defineExpose({
 
 <style>
 .hovered-block {
-	@apply border-outline-blue-3 text-ink-gray-6 dark:border-outline-blue-9 dark:text-ink-gray-4;
+	@apply border-outline-blue-4 text-ink-gray-6 dark:border-outline-blue-9 dark:text-ink-gray-4;
 }
 .block-selected {
-	@apply border-outline-blue-4 text-ink-gray-8 dark:border-outline-blue-7 dark:text-ink-gray-1;
+	@apply border-outline-blue-5 text-ink-gray-8 dark:border-outline-blue-7 dark:text-ink-gray-1;
 }
 .slot-selected {
 	@apply border-outline-purple-4 text-ink-gray-8;

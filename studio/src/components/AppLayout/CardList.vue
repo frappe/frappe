@@ -1,6 +1,6 @@
 <template>
-	<div class="bg-surface-white h-screen min-h-screen w-full flex-1 overflow-auto p-4">
-		<div class="mb-5 text-2xl font-bold text-ink-gray-7">{{ title }}</div>
+	<div class="h-screen min-h-screen w-full flex-1 overflow-auto bg-surface-base p-4">
+		<div class="text-3xl-bold mb-5 text-ink-gray-7">{{ title }}</div>
 		<div class="flex flex-col space-y-2">
 			<AvatarCard
 				v-for="card in cards"

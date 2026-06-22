@@ -2,7 +2,7 @@
 	<div class="border-t border-outline-elevation-2 pt-4">
 		<div class="mb-3">
 			<div class="mb-2 flex min-h-7 items-center justify-between">
-				<h3 class="text-sm font-medium text-ink-gray-8">{{ title }}</h3>
+				<h3 class="text-sm-medium text-ink-gray-8">{{ title }}</h3>
 				<Button v-if="modelValue" variant="ghost" size="sm" icon="lucide-x" @click="handleRemove" />
 			</div>
 			<Code

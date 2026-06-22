@@ -22,7 +22,7 @@
 					:data-component-layer-id="element.componentId"
 					:data-indent="indent"
 					:title="element.componentId"
-					class="component-layer-item bg-surface-white relative min-w-24 cursor-pointer select-none rounded border border-transparent bg-opacity-50 text-base text-ink-gray-6"
+					class="component-layer-item relative min-w-24 cursor-pointer select-none rounded border border-transparent bg-surface-base bg-opacity-50 text-base text-ink-gray-6"
 					:class="{
 						'border-outline-blue-5 !bg-surface-blue-2 dark:!bg-surface-blue-10':
 							canvasStore.layerDraggingOverBlock === element.componentId,
@@ -105,7 +105,7 @@
 							:key="slot.slotId"
 							:data-slot-layer-id="slot.slotId"
 							:title="slot.slotName"
-							class="bg-surface-white relative min-w-24 cursor-pointer select-none rounded border border-transparent bg-opacity-50 text-base text-ink-gray-6"
+							class="relative min-w-24 cursor-pointer select-none rounded border border-transparent bg-surface-base bg-opacity-50 text-base text-ink-gray-6"
 							@click.stop="canvasStore.activeCanvas?.selectSlot(slot)"
 						>
 							<div
@@ -133,7 +133,7 @@
 		<!-- Drop indicator line -->
 		<div
 			v-if="showDropIndicator"
-			class="pointer-events-none absolute h-0.5 bg-surface-blue-6 transition-none"
+			class="pointer-events-none absolute h-0.5 bg-surface-blue-8 transition-none"
 			:style="{
 				top: dropIndicatorTop + 'px',
 				left: dropIndicatorLeft + 'px',

@@ -3,7 +3,7 @@
 		<!-- File tree -->
 		<div class="flex items-center justify-between">
 			<div class="flex flex-col gap-2">
-				<span class="text-sm font-medium text-ink-gray-7">{{ app?.app_name }}/studio</span>
+				<span class="text-sm-medium text-ink-gray-7">{{ app?.app_name }}/studio</span>
 			</div>
 			<div class="flex items-center gap-1">
 				<Button
@@ -85,7 +85,7 @@
 							:class="[
 								node.path === activePagePaths?.folder ? 'font-medium text-ink-gray-9' : '',
 								editingPath === node.path
-									? 'bg-surface-white select-text !overflow-visible whitespace-nowrap px-1 ring-1 ring-outline-gray-3'
+									? 'select-text !overflow-visible whitespace-nowrap bg-surface-base px-1 ring-1 ring-outline-gray-3'
 									: '',
 							]"
 							:contenteditable="editingPath === node.path"
@@ -101,7 +101,7 @@
 							text="Currently editing this page"
 							placement="right"
 						>
-							<span class="ml-1 mt-0.5 shrink-0 text-[8px] text-ink-blue-3">●</span>
+							<span class="ml-1 mt-0.5 shrink-0 text-[8px] text-ink-blue-6">●</span>
 						</Tooltip>
 					</div>
 				</template>
@@ -160,7 +160,7 @@
 			</span>
 			<span class="text-sm text-ink-gray-8" :title="openFile!.path">
 				{{ openFile!.path }}
-				<span v-if="dirty" class="text-ink-amber-3">•</span>
+				<span v-if="dirty" class="text-ink-amber-6">•</span>
 			</span>
 			<span v-if="openFileReadOnly" class="shrink-0 text-xs text-ink-gray-4">read-only</span>
 		</template>
@@ -314,15 +314,15 @@ function getFileBadge(path: string): { label: string; colorClass: string } {
 	const extension = path.slice(path.lastIndexOf(".")).toLowerCase()
 	switch (extension) {
 		case ".vue":
-			return { label: "V", colorClass: "text-ink-green-3" }
+			return { label: "V", colorClass: "text-ink-green-6" }
 		case ".js":
-			return { label: "JS", colorClass: "text-ink-amber-3" }
+			return { label: "JS", colorClass: "text-ink-amber-6" }
 		case ".ts":
-			return { label: "TS", colorClass: "text-ink-blue-3" }
+			return { label: "TS", colorClass: "text-ink-blue-6" }
 		case ".json":
 			return { label: "{}", colorClass: "text-ink-gray-5" }
 		case ".css":
-			return { label: "#", colorClass: "text-ink-red-3" }
+			return { label: "#", colorClass: "text-ink-red-6" }
 		default:
 			return { label: "•", colorClass: "text-ink-gray-4" }
 	}

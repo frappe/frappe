@@ -1,7 +1,7 @@
 <template>
-	<div class="flex flex-1 flex-col overflow-hidden bg-surface-white">
+	<div class="flex flex-1 flex-col overflow-hidden bg-surface-base">
 		<div
-			class="flex shrink-0 items-center justify-between border-b border-outline-gray-1 bg-surface-white px-3 py-2.5"
+			class="flex shrink-0 items-center justify-between border-b border-outline-gray-1 bg-surface-base px-3 py-2.5"
 		>
 			<div class="text-[11px] leading-4 text-ink-gray-5">Session persists for this page</div>
 			<button
@@ -49,7 +49,7 @@
 			</p>
 		</div>
 
-		<div v-if="isAIEnabled" class="shrink-0 border-t border-outline-gray-1 bg-surface-white p-4">
+		<div v-if="isAIEnabled" class="shrink-0 border-t border-outline-gray-1 bg-surface-base p-4">
 			<ErrorMessage v-if="error" :message="error" class="mb-2" />
 
 			<div v-if="isModifyMode" class="mb-2 flex items-center gap-1.5 rounded py-1">
@@ -63,7 +63,7 @@
 				<textarea
 					v-model="prompt"
 					rows="4"
-					class="w-full resize-none rounded border border-[--surface-gray-2] bg-surface-gray-2 px-2 py-1.5 text-p-sm text-ink-gray-8 placeholder-ink-gray-4 transition-colors hover:border-[--outline-gray-modals] hover:bg-surface-gray-3 focus:border-outline-gray-4 focus:bg-surface-white focus:shadow-sm focus:ring-0 focus-visible:ring-2 focus-visible:ring-outline-gray-3 disabled:cursor-not-allowed disabled:bg-surface-gray-1 disabled:text-ink-gray-5"
+					class="w-full resize-none rounded border border-[--surface-gray-2] bg-surface-gray-2 px-2 py-1.5 text-p-sm text-ink-gray-8 placeholder-ink-gray-4 transition-colors hover:border-[--outline-elevation-2] hover:bg-surface-gray-3 focus:border-outline-gray-4 focus:bg-surface-base focus:shadow-sm focus:ring-0 focus-visible:ring-2 focus-visible:ring-outline-gray-3 disabled:cursor-not-allowed disabled:bg-surface-gray-1 disabled:text-ink-gray-5"
 					:placeholder="
 						isModifyMode ? 'Describe what to change in this block...' : 'Chat to create or edit this page...'
 					"
@@ -85,7 +85,7 @@
 						</button>
 					</template>
 					<template #body="{ close }">
-						<div class="min-w-40 rounded-lg border border-outline-gray-2 bg-surface-white py-1 shadow-lg">
+						<div class="min-w-40 rounded-lg border border-outline-gray-2 bg-surface-base py-1 shadow-lg">
 							<button
 								v-for="option in modelOptions"
 								:key="option.value"

@@ -13,7 +13,7 @@
 				:max-dimension="400"
 			/>
 
-			<div class="bg-surface-white sticky top-0 z-[12] flex w-full border-outline-elevation-2 px-1 text-base">
+			<div class="sticky top-0 z-[12] flex w-full border-outline-elevation-2 bg-surface-base px-1 text-base">
 				<!-- prettier-ignore -->
 				<button
 					v-for="tab of tabs"
@@ -32,7 +32,7 @@
 
 			<div
 				v-if="showSearchInput"
-				class="bg-surface-white sticky top-[41px] z-50 mb-2 mt-[-15px] flex w-full p-3"
+				class="sticky top-[41px] z-50 mb-2 mt-[-15px] flex w-full bg-surface-base p-3"
 			>
 				<Input
 					ref="searchInput"

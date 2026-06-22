@@ -13,7 +13,7 @@
 			<span class="lucide-file size-3.5 shrink-0 text-ink-gray-5" />
 			<span class="truncate text-sm text-ink-gray-8">
 				{{ activePage?.page_title }}
-				<span v-if="dirty" class="text-ink-amber-3">•</span>
+				<span v-if="dirty" class="text-ink-amber-6">•</span>
 			</span>
 		</template>
 		<template #actions>
@@ -28,7 +28,7 @@
 					/>
 				</template>
 				<template #body>
-					<div class="max-w-sm rounded border border-outline-gray-2 bg-surface-white p-3 shadow-lg">
+					<div class="max-w-sm rounded border border-outline-gray-2 bg-surface-base p-3 shadow-lg">
 						<PageScriptHelp />
 					</div>
 				</template>

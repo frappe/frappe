@@ -1,7 +1,7 @@
 <template>
 	<div class="flex flex-col gap-1.5">
 		<span v-if="label" class="block text-xs text-ink-gray-5">{{ label }}</span>
-		<div class="bg-surface-white rounded-lg border border-outline-elevation-2">
+		<div class="rounded-lg border border-outline-elevation-2 bg-surface-base">
 			<div class="min-w-[400px] p-2">
 				<div
 					v-if="filters.length"

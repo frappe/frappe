@@ -19,7 +19,7 @@
 						<div
 							@click="setAlignment(option)"
 							@dblclick="setAlignment(option, true)"
-							class="flex size-1 items-center justify-center rounded-full bg-surface-gray-5 opacity-50 group-hover/option:hidden"
+							class="flex size-1 items-center justify-center rounded-full bg-surface-gray-8 opacity-50 group-hover/option:hidden"
 						></div>
 						<div
 							@click="setAlignment(option)"
@@ -41,21 +41,21 @@
 							}"
 						>
 							<div
-								class="rounded-sm bg-surface-gray-5"
+								class="rounded-sm bg-surface-gray-8"
 								:class="{
 									'h-2 w-1': direction === 'row',
 									'h-1 w-2': direction === 'column',
 								}"
 							></div>
 							<div
-								class="rounded-sm bg-surface-gray-5"
+								class="rounded-sm bg-surface-gray-8"
 								:class="{
 									'h-3 w-1': direction === 'row',
 									'h-1 w-3': direction === 'column',
 								}"
 							></div>
 							<div
-								class="rounded-sm bg-surface-gray-5"
+								class="rounded-sm bg-surface-gray-8"
 								:class="{
 									'h-2 w-1': direction === 'row',
 									'h-1 w-2': direction === 'column',
@@ -75,21 +75,21 @@
 					"
 				>
 					<div
-						class="rounded-sm bg-surface-gray-6"
+						class="rounded-sm bg-surface-gray-9"
 						:class="{
 							'h-1 w-2': direction === 'column',
 							'h-2 w-1': direction === 'row',
 						}"
 					></div>
 					<div
-						class="rounded-sm bg-surface-gray-6"
+						class="rounded-sm bg-surface-gray-9"
 						:class="{
 							'h-1 w-3': direction === 'column',
 							'h-3 w-1': direction === 'row',
 						}"
 					></div>
 					<div
-						class="rounded-sm bg-surface-gray-6"
+						class="rounded-sm bg-surface-gray-9"
 						:class="{
 							'h-1 w-2': direction === 'column',
 							'h-2 w-1': direction === 'row',

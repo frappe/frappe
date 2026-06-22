@@ -1,5 +1,5 @@
 <template>
-	<div class="toolbar bg-surface-white flex h-14 items-center justify-center p-2 shadow-sm">
+	<div class="toolbar flex h-14 items-center justify-center bg-surface-base p-2 shadow-sm">
 		<div class="absolute left-3 flex items-center justify-center gap-5">
 			<Dropdown
 				:options="[
@@ -96,7 +96,7 @@
 				</template>
 				<template #body="{ isOpen }">
 					<div
-						class="bg-surface-white flex w-96 flex-col gap-3 rounded p-4 shadow-lg"
+						class="flex w-96 flex-col gap-3 rounded bg-surface-base p-4 shadow-lg"
 						v-if="store.activePage && store.activeApp"
 					>
 						<PageOptions

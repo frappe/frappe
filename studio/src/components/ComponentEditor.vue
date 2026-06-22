@@ -51,7 +51,7 @@
 				}"
 			>
 				<span
-					class="text-ink-white absolute -top-3 left-0 inline-block text-nowrap text-xs"
+					class="absolute -top-3 left-0 inline-block text-nowrap text-xs text-ink-base"
 					:class="isSlotSelected(slot.slotId) ? 'bg-surface-purple-6' : 'bg-surface-purple-6/65'"
 				>
 					#{{ slotName }}
@@ -155,7 +155,7 @@ const getStyleClasses = computed(() => {
 	if (props.block.isStudioComponent) {
 		classes.push("ring-outline-purple-4")
 	} else {
-		classes.push("ring-outline-blue-4")
+		classes.push("ring-outline-blue-5")
 	}
 
 	if (isBlockSelected.value && !props.block.isRoot() && !canvasStore.isDragging) {
@@ -170,8 +170,8 @@ const getStyleClasses = computed(() => {
 const componentLabelClasses = computed(() => {
 	if (isBlockSelected.value) {
 		return props.block.isStudioComponent
-			? "bg-surface-purple-6 text-ink-white"
-			: "bg-surface-blue-6 text-ink-white"
+			? "bg-surface-purple-6 text-ink-base"
+			: "bg-surface-blue-8 text-ink-base"
 	} else {
 		return props.block.isStudioComponent ? "text-ink-purple-6" : "text-ink-blue-6"
 	}
