@@ -7,8 +7,15 @@
  "field_order": [
   "filter_name",
   "reference_doctype",
+  "column_break_mfss",
+  "sort_field",
+  "sort_order",
   "for_user",
-  "filters"
+  "route_signature",
+  "section_break_aljf",
+  "filters",
+  "section_break_lrva",
+  "columns"
  ],
  "fields": [
   {
@@ -29,14 +36,49 @@
    "options": "User"
   },
   {
+   "fieldname": "route_signature",
+   "fieldtype": "Small Text",
+   "label": "Route Signature",
+   "read_only": 1
+  },
+  {
    "fieldname": "filters",
    "fieldtype": "Long Text",
    "label": "Filters"
+  },
+  {
+   "fieldname": "columns",
+   "fieldtype": "Long Text",
+   "label": "Columns"
+  },
+  {
+   "fieldname": "sort_field",
+   "fieldtype": "Data",
+   "label": "Sort Field"
+  },
+  {
+   "fieldname": "sort_order",
+   "fieldtype": "Data",
+   "label": "Sort Order"
+  },
+  {
+   "fieldname": "column_break_mfss",
+   "fieldtype": "Column Break"
+  },
+  {
+   "fieldname": "section_break_aljf",
+   "fieldtype": "Section Break",
+   "label": "Filters"
+  },
+  {
+   "fieldname": "section_break_lrva",
+   "fieldtype": "Section Break",
+   "label": "Columns"
   }
  ],
  "in_create": 1,
  "links": [],
- "modified": "2024-03-23 16:03:29.075357",
+ "modified": "2026-06-25 12:07:04.897997",
  "modified_by": "Administrator",
  "module": "Desk",
  "name": "List Filter",
@@ -56,6 +98,7 @@
   }
  ],
  "read_only": 1,
+ "row_format": "Dynamic",
  "sort_field": "creation",
  "sort_order": "DESC",
  "states": []
