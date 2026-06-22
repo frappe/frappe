@@ -247,7 +247,7 @@ def execute_job(site, method, event, job_name, kwargs, user=None, is_async=True,
 	retval = None
 
 	if is_async:
-		frappe.init(site, force=True)
+		frappe.init(site, force=True, is_job=True)
 		frappe.connect()
 		if os.environ.get("CI"):
 			from frappe.tests.utils import toggle_test_mode
@@ -313,7 +313,7 @@ def execute_job(site, method, event, job_name, kwargs, user=None, is_async=True,
 
 	finally:
 		if not hasattr(frappe.local, "site"):
-			frappe.init(site, force=True)
+			frappe.init(site, force=True, is_job=True)
 			frappe.connect()
 		for after_job_task in frappe.get_hooks("after_job"):
 			frappe.call(after_job_task, method=method_name, kwargs=kwargs, result=retval)

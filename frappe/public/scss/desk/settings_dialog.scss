@@ -17,7 +17,7 @@
 	display: flex;
 	flex: 1;
 	min-height: 0;
-	background-color: var(--surface-menu-bar);
+	background-color: var(--surface-sidebar);
 }
 
 .settings-dialog-sidebar {
@@ -29,7 +29,7 @@
 	border-top-left-radius: var(--border-radius-lg);
 	border-bottom-left-radius: var(--border-radius-lg);
 	overflow-y: auto;
-	background-color: var(--surface-menu-bar);
+	background-color: var(--surface-sidebar);
 }
 
 .settings-dialog-group-header {
@@ -47,7 +47,7 @@
 	line-height: 1.15;
 	letter-spacing: 0.02em;
 	color: var(--ink-gray-5);
-	background-color: var(--surface-menu-bar);
+	background-color: var(--surface-sidebar);
 	cursor: default;
 	transition: all 0.3s ease-in-out;
 }
@@ -70,7 +70,7 @@
 	height: 1.875rem;
 	padding: 0;
 	border: none;
-	border-radius: var(--border-radius-sm);
+	border-radius: var(--radius);
 	background-color: transparent;
 	color: var(--ink-gray-6);
 	text-align: left;
@@ -87,11 +87,11 @@
 	}
 
 	&.active {
-		background-color: var(--surface-selected, var(--surface-white));
-		box-shadow: var(--shadow-sm);
+		background-color: var(--surface-elevation-3, var(--surface-base));
+		box-shadow: var(--shadow-xs);
 
 		&:hover {
-			background-color: var(--surface-selected, var(--surface-white));
+			background-color: var(--surface-elevation-3, var(--surface-base));
 		}
 	}
 }
@@ -142,7 +142,7 @@
 	flex-direction: column;
 	flex: 1;
 	overflow-y: auto;
-	background-color: var(--surface-modal);
+	background-color: var(--surface-elevation-2);
 }
 
 .settings-dialog-panel {

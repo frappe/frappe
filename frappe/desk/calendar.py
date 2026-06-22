@@ -21,24 +21,12 @@ def update_event(args: str, field_map: str):
 	w.save()
 
 
-def get_event_conditions(doctype, filters=None, as_qb=False):
-	"""Return user-permission + filter conditions for event queries.
-
-	By default returns a raw SQL string (legacy). Pass ``as_qb=True`` to get a list of
-	query-builder criteria instead, suitable for applying to a ``frappe.qb`` query via
-	``.where(...)`` (e.g. calendar feeds that join across multiple doctypes).
-	"""
-	from frappe.desk.reportview import (
-		get_filter_conditions_qb,
-		get_filters_cond,
-		get_match_conditions_qb,
-	)
+def get_event_conditions(doctype, filters=None):
+	"""Return SQL conditions with user permissions and filters for event queries."""
+	from frappe.desk.reportview import get_filters_cond
 
 	if not frappe.has_permission(doctype):
 		frappe.throw(_("Not Permitted"), frappe.PermissionError)
-
-	if as_qb:
-		return get_match_conditions_qb(doctype) + get_filter_conditions_qb(doctype, filters)
 
 	return get_filters_cond(doctype, filters, [], with_match_conditions=True)
 

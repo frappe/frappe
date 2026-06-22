@@ -4,7 +4,7 @@
 		     The Attach/Attach Image/Image fields in the hand-written schema are
 		     driven by the same primitive; here we exercise the consumers directly
 		     with a fake transport (placeholder URL + simulated progress). -->
-		<h3 class="mb-3 text-xl-semibold text-ink-gray-9">Upload primitive — standalone</h3>
+		<h3 class="mb-3 text-lg-semibold text-ink-gray-9">Upload primitive — standalone</h3>
 
 		<div class="flex flex-col gap-6">
 			<div>

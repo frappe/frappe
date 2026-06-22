@@ -9,13 +9,11 @@ import requests
 
 import frappe
 from frappe import _
+from frappe.utils.chromium.download import find_or_download_chromium_executable
 from frappe.utils.data import cint
-from frappe.utils.print_utils import find_or_download_chromium_executable
-
-# TODO: close browser when worker is killed.
 
 
-class ChromePDFGenerator:
+class ChromiumManager:
 	_instance = None
 
 	_browsers: ClassVar[list] = []
@@ -236,7 +234,7 @@ class ChromePDFGenerator:
 			return
 		if self._chromium_process:
 			self._chromium_process.terminate()
-		ChromePDFGenerator._instance = None
+		ChromiumManager._instance = None
 		self._chromium_process = None
 		self._devtools_url = None
 		frappe.log("Headless Chromium closed successfully.")
@@ -249,7 +247,7 @@ class ChromePDFGenerator:
 		the next PDF request starts with a fresh generator/process instead of reusing
 		the old debug session.
 		"""
-		ChromePDFGenerator._instance = None
+		ChromiumManager._instance = None
 		self._initialized = False
 		self._chromium_process = None
 		self._devtools_url = None

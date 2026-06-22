@@ -280,34 +280,9 @@ def get_module_info(module_name):
 			"Dashboard": module_info.get("Dashboard"),
 			"Page": module_info.get("Page"),
 		}
-	top_doctypes = choose_top_doctypes(module_info.get("DocType"))
-	if top_doctypes:
-		module_info["DocType"] = choose_top_doctypes(module_info.get("DocType"))
-	return module_info
-
-
-def choose_top_doctypes(doctype_names):
-	from frappe.model.utils import is_single_doctype
-
 	doctype_limit = 3
-	if len(doctype_names) > doctype_limit:
-		try:
-			doctype_count_map = {}
-			for doctype in doctype_names:
-				if not is_single_doctype(doctype) and not frappe.get_meta(doctype).is_virtual:
-					# Approximate counts are sufficient for ranking purposes and avoid
-					# expensive COUNT(*) queries (N+1 problem) on every user login.
-					doctype_count_map[doctype] = frappe.db.estimate_count(doctype)
-			top_doctypes = [
-				name
-				for name, count in sorted(doctype_count_map.items(), key=lambda x: x[1], reverse=True)[
-					:doctype_limit
-				]
-			]
-			return top_doctypes
-		except frappe.db.ProgrammingError:
-			# catches table not found errors
-			return None
+	module_info["DocType"] = (module_info.get("DocType") or [])[:doctype_limit]
+	return module_info
 
 
 def create_sidebar_items(module_info):

@@ -296,6 +296,12 @@ body {
 	max-width: 50% !important;
 }
 
+/* Keep letterhead images from overflowing the page when no explicit width is set */
+header img {
+	max-width: 100%;
+	height: auto;
+}
+
 .document-header {
 	border-bottom-width: 1px;
 	border-bottom-style: solid;
@@ -319,7 +325,7 @@ body {
 	width: 1rem;
 	height: 1rem;
 	margin-right: 0.3rem;
-	border-radius: var(--border-radius);
+	border-radius: var(--radius);
 }
 
 .field[data-fieldtype="Check"] #icon-tick {

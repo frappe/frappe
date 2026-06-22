@@ -822,7 +822,9 @@ class EmailAccount(Document):
 				sender=self.email_id,
 				reply_to=communication.incoming_email_account,
 				subject=" ".join([_("Re:"), communication.subject]),
-				content=render_template(self.auto_reply_message or "", communication.as_dict())
+				content=render_template(
+					self.auto_reply_message or "", communication.as_dict(), restrict_globals=True
+				)
 				or frappe.get_template("templates/emails/auto_reply.html").render(communication.as_dict()),
 				reference_doctype=communication.reference_doctype,
 				reference_name=communication.reference_name,

@@ -268,7 +268,7 @@ onMounted(() => selected.value && label_input.value.focus_on_label());
 	text-align: left;
 	width: 100%;
 	background-color: var(--bg-light-gray);
-	border-radius: var(--border-radius-sm);
+	border-radius: var(--radius);
 	border: 1px solid transparent;
 	padding: 0.3rem;
 	font-size: var(--text-sm);

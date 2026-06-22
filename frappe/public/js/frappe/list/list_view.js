@@ -1106,9 +1106,9 @@ frappe.views.ListView = class ListView extends frappe.views.BaseList {
 						${frappe.utils.icon("restriction")}
 					</div>`;
 			} else if (df.fieldtype === "Select") {
-				html = `<span class="${filterable} indicator-pill ${frappe.utils.guess_colour(
+				html = `<span class="${filterable} es-badge ellipsis" data-theme="${frappe.utils.guess_colour(
 					_value
-				)} ellipsis"
+				)}"
 					data-filter="${fieldname},=,${value}">
 					<span class="ellipsis"> ${__(_value)} </span>
 				</span>`;
@@ -1476,7 +1476,7 @@ frappe.views.ListView = class ListView extends frappe.views.BaseList {
 		];
 		const title = docstatus_description[doc.docstatus || 0];
 		if (indicator) {
-			return `<span class="indicator-pill ${indicator[1]} filterable no-indicator-dot ellipsis"
+			return `<span class="es-badge filterable ellipsis" data-theme="${indicator[1]}"
 				data-filter='${indicator[2]}' title='${title}'>
 				<span class="ellipsis"> ${indicator[0]}</span>
 			</span>`;
@@ -2773,6 +2773,9 @@ frappe.views.ListView = class ListView extends frappe.views.BaseList {
 					});
 				} else if (Array.isArray(value)) {
 					filters.push([doctype, field, value[0], value[1]]);
+				} else if (["_assign", "_liked_by"].includes(field)) {
+					// stored as a JSON array, so an exact match can never hit
+					filters.push([doctype, field, "like", `%${value}%`]);
 				} else {
 					filters.push([doctype, field, "=", value]);
 				}

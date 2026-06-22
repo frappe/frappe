@@ -634,7 +634,8 @@ def console(context: CliCtxObj, autoreload=False):
 	try:
 		from IPython.core import ultratb
 
-		ultratb.VerboseTB._tb_highlight = "bg:ansibrightblack"
+		# Renamed from `_tb_highlight` in IPython 9.x (color system rewrite).
+		ultratb.VerboseTB.tb_highlight = "bg:ansibrightblack"
 	except Exception:
 		pass
 
@@ -993,7 +994,7 @@ def list_sites(context: CliCtxObj, output_json=False):
 
 @click.command("setup-chrome")
 def setup_chrome():
-	from frappe.utils.print_utils import setup_chromium
+	from frappe.utils.chromium import setup_chromium
 
 	setup_chromium()
 

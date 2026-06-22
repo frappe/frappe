@@ -8,6 +8,7 @@ from frappe.custom.doctype.property_setter.property_setter import (
 	delete_property_setter,
 	make_property_setter,
 )
+from frappe.database import savepoint
 from frappe.query_builder.utils import db_type_is
 from frappe.tests import IntegrationTestCase
 from frappe.tests.test_query_builder import run_only_if
@@ -194,8 +195,13 @@ class TestDBUpdate(IntegrationTestCase):
 			self.check_unique_indexes(doctype.name, "bill_no")
 
 			frappe.get_doc(doctype=doctype.name, bill_no="INV-001").insert()
-			with self.assertRaises(frappe.UniqueValidationError):
-				frappe.get_doc(doctype=doctype.name, bill_no="INV-001").insert()
+			# the duplicate insert aborts the transaction on postgres; the savepoint lets the
+			# finally cleanup (and later tests sharing the connection) still run
+			with savepoint():
+				with self.assertRaises(frappe.UniqueValidationError):
+					frappe.get_doc(doctype=doctype.name, bill_no="INV-001").insert()
+				# recover transaction to continue other tests
+				raise Exception
 		finally:
 			doctype.delete(force=True)
 			frappe.db.commit()  # nosemgrep
