@@ -1752,7 +1752,7 @@ frappe.ui.form.Form = class FrappeForm {
 				var label = __(docfield._original_label || "", null, docfield.parent);
 				if (parentfield) {
 					grid_field_label_map[doctype + "-" + fname] =
-						label.trim() + " (" + __(currency) + ")";
+						label.trim() + " (" + currency + ")";
 				} else {
 					field_label_map[fname] = label.trim() + " (" + currency + ")";
 				}
