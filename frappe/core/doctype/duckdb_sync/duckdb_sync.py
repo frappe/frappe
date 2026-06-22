@@ -20,7 +20,7 @@ class DuckDBSync(Document):
 
 		amended_from: DF.Link | None
 		db_tables: DF.Table[DuckDBSyncItem]
-		doc_type: DF.Link | None
+		doc_type: DF.Link
 		filename: DF.Data | None
 	# end: auto-generated types
 
@@ -30,6 +30,7 @@ class DuckDBSync(Document):
 		dt = self.doc_type.lower().replace(" ", "_")
 		self.filename = f"{dt}_{self.name}.duckdb"
 
+		self.db_tables = []
 		self.append("db_tables", {"table": self.doc_type})
 		df = qb.DocType("DocField")
 		if (
@@ -67,19 +68,36 @@ class DuckDBSync(Document):
 
 @frappe.whitelist()
 def is_data_sync_pending(docname: str):
-	# TODO: permissions
+	frappe.has_permission("DuckDB Sync", ptype="write", throw=True)
 	return frappe.db.exists("DuckDB Sync Item", {"parent": docname, "synced": False})
 
 
 @frappe.whitelist()
 def start_data_sync(docname: str):
-	# TODO: permissions
+	frappe.has_permission("DuckDB Sync", ptype="write", throw=True)
 	frappe.enqueue(
 		method="frappe.core.doctype.duckdb_sync.duckdb_sync.sync_data_to_duckdb",
 		queue="long",
 		enqueue_after_commit=True,
 		docname=docname,
 	)
+
+
+def cleanup_old_syncs():
+	cutoff = frappe.utils.add_days(frappe.utils.now_datetime(), -7)
+	old_syncs = frappe.get_all(
+		"DuckDB Sync",
+		filters={"creation": ["<", cutoff], "docstatus": 1},
+	)
+	for sync in old_syncs:
+		try:
+			doc = frappe.get_doc("DuckDB Sync", sync.name)
+			doc.cancel()
+			doc.delete()
+			frappe.db.commit()
+		except Exception:
+			frappe.log_error("DuckDB cleanup failed", frappe.get_traceback())
+			frappe.db.rollback()
 
 
 def sync_data_to_duckdb(docname: str):
