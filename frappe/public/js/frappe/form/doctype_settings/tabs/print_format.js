@@ -100,7 +100,7 @@ frappe.doctype_settings.register("print-format", function (panel, doctype) {
 		const $card = $(`
 			<div class="dts-pf-card">
 				<div class="dts-pf-preview">
-					<span class="indicator-pill no-indicator-dot blue dts-pf-badge hide">${__("Custom")}</span>
+					<span class="es-badge dts-pf-badge hide" data-theme="blue">${__("Custom")}</span>
 					<button type="button" class="dts-pf-star">${frappe.utils.icon(star_icon, "sm")}</button>
 					<div class="dts-pf-thumb">
 						<span class="dts-pf-placeholder">${frappe.utils.icon("printer", "lg")}</span>

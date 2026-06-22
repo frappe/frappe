@@ -5,6 +5,13 @@ const CHANNEL_COLORS = {
 	"System Notification": "orange",
 };
 
+const CHANNEL_ICONS = {
+	Email: "mail",
+	SMS: "smartphone",
+	Slack: "slack",
+	"System Notification": "bell",
+};
+
 frappe.doctype_settings.register("notifications", function (panel, doctype) {
 	const open = (name) => {
 		panel.dialog.hide();
@@ -42,7 +49,13 @@ frappe.doctype_settings.register("notifications", function (panel, doctype) {
 			{
 				label: __("Channel"),
 				badge: (r) =>
-					r.channel ? { label: __(r.channel), color: CHANNEL_COLORS[r.channel] || "gray" } : null,
+					r.channel
+						? {
+								label: __(r.channel),
+								color: CHANNEL_COLORS[r.channel] || "gray",
+								icon: CHANNEL_ICONS[r.channel],
+						  }
+						: null,
 			},
 		],
 		actions: (r) => [
