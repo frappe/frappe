@@ -401,14 +401,6 @@ frappe.ui.Sidebar = class Sidebar {
 						frappe.ui.show_user_settings("profile");
 					},
 				},
-				{
-					name: "my-profile",
-					label: __("My Profile"),
-					icon: "user",
-					onClick: function () {
-						frappe.ui.toolbar.route_to_user();
-					},
-				},
 				{ is_divider: true },
 				{
 					name: "logout",
