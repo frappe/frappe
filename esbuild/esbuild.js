@@ -559,13 +559,16 @@ async function get_assets_json_path_and_obj(is_rtl) {
 }
 
 function get_build_concurrency(app_count) {
-	const env_limit = Number(process.env.FRAPPE_BUILD_CONCURRENCY);
-	if (Number.isInteger(env_limit)) {
-		if (env_limit === 0) {
-			return Math.min(1, app_count);
-		}
-		if (env_limit > 0) {
-			return Math.min(env_limit, app_count);
+	const raw = process.env.FRAPPE_BUILD_CONCURRENCY?.trim();
+	if (raw) {
+		const env_limit = Number(raw);
+		if (Number.isInteger(env_limit)) {
+			if (env_limit === 0) {
+				return Math.min(1, app_count);
+			}
+			if (env_limit > 0) {
+				return Math.min(env_limit, app_count);
+			}
 		}
 	}
 	const cpu_limit = Math.max(1, Math.floor(os.cpus().length / 2));
