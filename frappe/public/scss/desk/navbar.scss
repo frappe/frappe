@@ -100,11 +100,8 @@
 }
 
 .navbar-modal-wrapper {
-	position: relative;
-
 	.awesomplete {
-		flex: 1;
-		min-width: 0;
+		width: 100%;
 
 		ul {
 			position: relative;
