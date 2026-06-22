@@ -1743,10 +1743,13 @@ frappe.ui.form.Form = class FrappeForm {
 		$.each(fields_list, function (i, fname) {
 			var docfield = frappe.meta.docfield_map[doctype][fname];
 			if (docfield) {
-				var label = __(docfield.label || "", null, docfield.parent).replace(
-					/\([^\)]*\)/g,
-					""
-				); // eslint-disable-line
+				// Preserve the pristine label before any currency suffix is applied,
+				// so we don't have to strip it back out of a mutated value on reset
+				// (which would also destroy legitimate parentheticals like "Rate (ex-tax)").
+				if (docfield._original_label === undefined) {
+					docfield._original_label = docfield.label;
+				}
+				var label = __(docfield._original_label || "", null, docfield.parent);
 				if (parentfield) {
 					grid_field_label_map[doctype + "-" + fname] =
 						label.trim() + " (" + __(currency) + ")";
