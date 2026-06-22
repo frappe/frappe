@@ -73,7 +73,25 @@ jobs:
             ${{ runner.os }}-
 
       - name: Install and run pip-audit
+        # CVE-2025-26240: no fix available upstream, but vulnerable `_find_options_in_meta` is monkey-patched in frappe (b828efe)
         run: |
           pip install pip-audit
           cd ${GITHUB_WORKSPACE}
+<<<<<<< HEAD
           pip-audit --desc on --ignore-vuln GHSA-4xqq-73wg-5mjp --ignore-vuln PYSEC-2023-312 .
+=======
+          pip-audit --desc on --ignore-vuln PYSEC-2023-312 --ignore-vuln CVE-2026-4539 --ignore-vuln CVE-2025-26240 .
+
+  precommit:
+    name: 'Pre-Commit'
+    runs-on: ubuntu-latest
+    if: github.event_name == 'pull_request'
+
+    steps:
+      - uses: actions/checkout@v6
+      - uses: actions/setup-python@v6
+        with:
+          python-version: '3.14'
+          cache: pip
+      - uses: pre-commit/action@v3.0.1
+>>>>>>> dab376f139 (ci: ignore monkey-patched CVE (#40165))
