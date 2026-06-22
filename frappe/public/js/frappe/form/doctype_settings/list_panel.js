@@ -15,8 +15,8 @@ frappe.provide("frappe.doctype_settings");
  *     primary_action: { label, icon, onclick(list) },
  *     load: () => Promise<rows[]>,            // or rows: [...]
  *     title_column: { label, primary(row), secondary(row), onclick(row, list),
- *                     tags: (row) => [{ label, color }] },  // inline indicator-pill tags after the name
- *     columns: [{ label, value(row), badge(row) -> {label,color}|null, align, width }],  // indicator-pill badge
+ *                     tags: (row) => [{ label, color }] },  // inline es-badge tags after the name
+ *     columns: [{ label, value(row), badge(row) -> {label,color,icon}|null, align, width }],  // es-badge
  *     toggle: { label, value(row)->0|1, onchange(row, value, list)->Promise, disabled(row) },
  *     actions: (row) => [{ label, icon, danger, onclick(list) }],
  *     empty_state: { title, description, action: { label, onclick(list) } },
@@ -161,13 +161,13 @@ class ListPanel {
 			$primary.addClass("dts-list-link").on("click", () => tc.onclick(row, this));
 		}
 
-		// Inline tags use Frappe's existing indicator-pill badge (color = an indicator
-		// colour like "green"/"gray"); no custom badge class.
+		// Inline tags use the Espresso badge component (color = a badge theme
+		// like "green"/"gray").
 		const tags = tc.tags ? tc.tags(row) : [];
 		tags.forEach((t) =>
-			$('<span class="indicator-pill no-indicator-dot"></span>')
+			$('<span class="es-badge"></span>')
 				.text(t.label)
-				.addClass(t.color || "")
+				.attr("data-theme", t.color || "gray")
 				.appendTo($primaryRow)
 		);
 
@@ -183,10 +183,11 @@ class ListPanel {
 
 			const badge = col.badge && col.badge(row);
 			if (badge) {
-				$('<span class="indicator-pill no-indicator-dot"></span>')
-					.addClass(badge.color || "")
-					.text(badge.label)
+				const $badge = $('<span class="es-badge"></span>')
+					.attr("data-theme", badge.color || "gray")
 					.appendTo($cell);
+				if (badge.icon) $badge.append(frappe.utils.icon(badge.icon, "sm"));
+				$badge.append($("<span></span>").text(badge.label));
 			} else if (col.value) {
 				$cell.text(col.value(row) || "");
 			}
