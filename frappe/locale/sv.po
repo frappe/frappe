@@ -3,7 +3,7 @@ msgstr ""
 "Project-Id-Version: frappe\n"
 "Report-Msgid-Bugs-To: developers@frappe.io\n"
 "POT-Creation-Date: 2026-01-02 22:45+0000\n"
-"PO-Revision-Date: 2026-06-20 19:02\n"
+"PO-Revision-Date: 2026-06-22 19:33\n"
 "Last-Translator: developers@frappe.io\n"
 "Language-Team: Swedish\n"
 "MIME-Version: 1.0\n"
@@ -4900,7 +4900,7 @@ msgstr "Rensa Alla"
 #: frappe/public/js/frappe/list/list_view.js:1904
 msgctxt "Button in list view actions menu"
 msgid "Clear Assignment"
-msgstr "Rensa Tilldelning"
+msgstr "Ta bort Tilldelning"
 
 #: frappe/public/js/frappe/ui/keyboard.js:278
 msgid "Clear Cache and Reload"
