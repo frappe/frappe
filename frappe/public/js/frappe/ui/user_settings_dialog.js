@@ -42,7 +42,6 @@ frappe.ui.show_user_settings = async function (default_tab) {
 					_preferences_tab(user_data || {}),
 					_lists_tab(user_data || {}),
 					_forms_tab(user_data || {}),
-					_workspaces_tab(),
 					_session_defaults_tab(),
 					_keyboard_shortcuts_tab(),
 				],
@@ -213,7 +212,7 @@ function _email_tab(user_data) {
 			{
 				fieldtype: "Switch",
 				fieldname: "thread_notify",
-				label: __("Send Notifications For Email Threads"),
+				label: __("Send notifications for email threads"),
 				description: __(
 					"Get notified when there's a new reply in an email thread you're part of."
 				),
@@ -222,7 +221,7 @@ function _email_tab(user_data) {
 			{
 				fieldtype: "Switch",
 				fieldname: "send_me_a_copy",
-				label: __("Send Me A Copy of Outgoing Emails"),
+				label: __("Send me a copy of outgoing emails"),
 				description: __("Receive a copy of every email you send in your inbox."),
 				default: user_data.send_me_a_copy,
 			},
@@ -264,48 +263,8 @@ function _appearance_tab() {
 				_section_heading(__("Theme"), __("Switch between light, dark, or system theme"))
 			);
 
-			// Reuse the existing theme switcher's logic (toggle_theme, xcall,
-			// selection state). Only the visual card markup is swapped via
-			// the get_preview_html override.
+			// ThemeSwitcher renders the cards itself; we just embed its body.
 			const theme_switcher = new frappe.ui.ThemeSwitcher();
-			const order = ["automatic", "light", "dark"];
-			theme_switcher.themes = order.map((name) =>
-				theme_switcher.themes.find((t) => t.name === name)
-			);
-			const labels = {
-				light: __("Light"),
-				dark: __("Dark"),
-				automatic: __("System"),
-			};
-			theme_switcher.get_preview_html = function (theme) {
-				const selected = this.current_theme === theme.name;
-				const is_auto = theme.name === "automatic";
-				const preview = is_auto
-					? `<div class="theme-card-preview theme-card-preview--split">
-						${_theme_preview_window("light")}
-						${_theme_preview_window("dark")}
-					</div>`
-					: `<div class="theme-card-preview">${_theme_preview_window(theme.name)}</div>`;
-
-				const $card = $(`
-					<div class="theme-card-wrapper${selected ? " selected" : ""}">
-						<button type="button" class="theme-card">
-							${preview}
-							<div class="theme-card-footer">
-								<span class="theme-card-label">${labels[theme.name] || theme.label}</span>
-								<span class="theme-card-radio"></span>
-							</div>
-						</button>
-					</div>
-				`);
-				$card.on("click", () => {
-					if (this.current_theme === theme.name) return;
-					this.themes.forEach((th) => th.$html.removeClass("selected"));
-					$card.addClass("selected");
-					this.toggle_theme(theme.name);
-				});
-				return $card;
-			};
 			panel.body.append(theme_switcher.body);
 
 			panel.body.append(_section_heading(__("Layout")));
@@ -381,29 +340,6 @@ function _layout_preview_window(type) {
 	</div>`;
 }
 
-function _theme_preview_window(theme) {
-	const field = `<div class="theme-preview-field">
-		<div class="theme-preview-label"></div>
-		<div class="theme-preview-input"></div>
-	</div>`;
-
-	return `<div class="theme-preview-container theme-preview-container--${theme}">
-		<div class="theme-preview-frame">
-			<div class="theme-preview-titlebar">
-				<span class="theme-preview-dot theme-preview-dot--red"></span>
-				<span class="theme-preview-dot theme-preview-dot--yellow"></span>
-				<span class="theme-preview-dot theme-preview-dot--green"></span>
-			</div>
-			<div class="theme-preview-content">
-				<div class="theme-preview-sidebar"></div>
-				<div class="theme-preview-body">
-					${field}${field}${field}${field}
-				</div>
-			</div>
-		</div>
-	</div>`;
-}
-
 // ─── Preferences ──────────────────────────────────────────────────────────────
 
 function _preferences_tab(user_data) {
@@ -417,7 +353,7 @@ function _preferences_tab(user_data) {
 			{
 				fieldtype: "Switch",
 				fieldname: "notifications",
-				label: __("Allow Notifications"),
+				label: __("Allow notifications"),
 				description: __(
 					"Show desktop and in-app notifications for activity on your account."
 				),
@@ -426,14 +362,14 @@ function _preferences_tab(user_data) {
 			{
 				fieldtype: "Switch",
 				fieldname: "search_bar",
-				label: __("Show Search Bar"),
+				label: __("Show search bar"),
 				description: __("Display the search bar in the navigation area for quick access."),
 				default: user_data.search_bar,
 			},
 			{
 				fieldtype: "Switch",
 				fieldname: "mute_sounds",
-				label: __("Mute Sounds"),
+				label: __("Mute sounds"),
 				description: __(
 					"Disable all notification and alert sounds across the application."
 				),
@@ -553,14 +489,14 @@ function _lists_tab(user_data) {
 			{
 				fieldtype: "Switch",
 				fieldname: "list_sidebar",
-				label: __("Show Sidebar"),
+				label: __("Show sidebar"),
 				description: __("Display the filter and group-by sidebar in list views."),
 				default: user_data.list_sidebar,
 			},
 			{
 				fieldtype: "Switch",
 				fieldname: "bulk_actions",
-				label: __("Allow Bulk Actions"),
+				label: __("Allow bulk actions"),
 				description: __(
 					"Enable checkboxes to select multiple records and perform bulk operations."
 				),
@@ -569,7 +505,7 @@ function _lists_tab(user_data) {
 			{
 				fieldtype: "Switch",
 				fieldname: "view_switcher",
-				label: __("Show View Switcher"),
+				label: __("Show view switcher"),
 				description: __(
 					"Show the toolbar to switch between List, Kanban, Report and other views."
 				),
@@ -595,7 +531,7 @@ function _forms_tab(user_data) {
 			{
 				fieldtype: "Switch",
 				fieldname: "form_sidebar",
-				label: __("Show Sidebar"),
+				label: __("Show sidebar"),
 				description: __(
 					"Display the attachments, comments and connections sidebar in forms."
 				),
@@ -604,14 +540,14 @@ function _forms_tab(user_data) {
 			{
 				fieldtype: "Switch",
 				fieldname: "timeline",
-				label: __("Show Timeline"),
+				label: __("Show timeline"),
 				description: __("Show the activity timeline with comments, emails and history."),
 				default: user_data.timeline,
 			},
 			{
 				fieldtype: "Switch",
 				fieldname: "dashboard",
-				label: __("Show Dashboard"),
+				label: __("Show dashboard"),
 				description: __(
 					"Show the summary dashboard with charts and statistics at the top of forms."
 				),
@@ -620,7 +556,7 @@ function _forms_tab(user_data) {
 			{
 				fieldtype: "Switch",
 				fieldname: "show_absolute_datetime_in_timeline",
-				label: __("Show Absolute Datetime in Timeline"),
+				label: __("Show absolute datetime in timeline"),
 				description: __(
 					"Display exact timestamps instead of relative time in the activity timeline."
 				),
@@ -629,7 +565,7 @@ function _forms_tab(user_data) {
 			{
 				fieldtype: "Switch",
 				fieldname: "form_navigation_buttons",
-				label: __("Show Navigation Buttons"),
+				label: __("Show navigation buttons"),
 				description: __("Show previous and next navigation buttons in the form toolbar."),
 				default: user_data.form_navigation_buttons,
 			},
@@ -643,18 +579,6 @@ function _forms_tab(user_data) {
 				"form_navigation_buttons",
 			]);
 		},
-	};
-}
-
-// ─── Workspaces ───────────────────────────────────────────────────────────────
-
-function _workspaces_tab() {
-	return {
-		id: "workspaces",
-		label: __("Workspaces"),
-		icon: "layout-grid",
-		title: __("Workspaces"),
-		description: __("Manage your workspaces."),
 	};
 }
 
