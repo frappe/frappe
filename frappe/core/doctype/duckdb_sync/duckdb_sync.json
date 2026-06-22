@@ -23,8 +23,10 @@
   {
    "fieldname": "doc_type",
    "fieldtype": "Link",
+   "in_list_view": 1,
    "label": "Doctype",
-   "options": "DocType"
+   "options": "DocType",
+   "reqd": 1
   },
   {
    "fieldname": "amended_from",
@@ -54,7 +56,7 @@
  "index_web_pages_for_search": 1,
  "is_submittable": 1,
  "links": [],
- "modified": "2026-06-09 11:34:15.845680",
+ "modified": "2026-06-24 13:22:03.530667",
  "modified_by": "Administrator",
  "module": "Core",
  "name": "DuckDB Sync",
@@ -69,6 +71,30 @@
    "read": 1,
    "report": 1,
    "role": "System Manager",
+   "share": 1,
+   "write": 1
+  },
+  {
+   "create": 1,
+   "delete": 1,
+   "email": 1,
+   "export": 1,
+   "print": 1,
+   "read": 1,
+   "report": 1,
+   "role": "Accounts Manager",
+   "share": 1,
+   "write": 1
+  },
+  {
+   "create": 1,
+   "delete": 1,
+   "email": 1,
+   "export": 1,
+   "print": 1,
+   "read": 1,
+   "report": 1,
+   "role": "Sales Manager",
    "share": 1,
    "write": 1
   }
