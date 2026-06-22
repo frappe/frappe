@@ -150,7 +150,7 @@ context("Dynamic Link", () => {
 		cy.get_field("doc_type").clear();
 	});
 
-	it("Shows error when invalid DocType is passed", () => {
+	it("Shows only one option when Single DocType is passed", () => {
 		cy.new_form("Test Dynamic Link");
 		cy.get_field("doc_type").clear();
 
@@ -161,11 +161,12 @@ context("Dynamic Link", () => {
 		cy.window().its("cur_frm.doc.doc_type").should("eq", "System Settings");
 		cy.get_field("doc_id").click();
 
-		//Checking if the system throws error
-		cy.get(".modal-title").should("have.text", "Error");
-		cy.get(".msgprint").should(
-			"have.text",
-			"System Settings is not a valid DocType for Dynamic Link"
-		);
+		//Checking if the listbox have length equal to 1
+		cy.get('[data-fieldname="doc_id"]')
+			.find(".awesomplete")
+			.find("div")
+			.its("length")
+			.should("equal", 1);
+		cy.get_field("doc_type").clear();
 	});
 });
