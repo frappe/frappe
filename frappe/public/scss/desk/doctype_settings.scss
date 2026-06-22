@@ -47,9 +47,9 @@
 	}
 }
 
-// ── Naming tab: two stacked EmbeddedList sections (Series + Rules) ──
-.dts-naming-section {
-	// Space between the section header and its EmbeddedList table.
+// ── Stacked sections within a tab (Naming's Series/Rules, Data Import's Import/Export) ──
+.dts-section {
+	// Space between the section header and its content (table / controls).
 	.settings-dialog-panel-header {
 		margin-bottom: var(--margin-md);
 	}
@@ -57,6 +57,19 @@
 	& + & {
 		margin-top: var(--margin-xl);
 	}
+}
+
+// A row of buttons under a section header.
+.dts-section-actions {
+	display: flex;
+	flex-wrap: wrap;
+	gap: var(--padding-sm);
+}
+
+// Muted helper line under a section's controls (e.g. a missing-permission note).
+.dts-section-note {
+	margin-top: var(--margin-sm);
+	color: var(--ink-gray-5);
 }
 
 // ── Shared list panel (CRM-style: header + table + inline switch + overflow) ──
