@@ -50,6 +50,7 @@ import "./frappe/ui/capture.js";
 import "./frappe/ui/embedded_list.js";
 import "./frappe/ui/app_icon.js";
 import "./frappe/ui/theme_switcher.js";
+import "./frappe/ui/naming_series.js";
 
 import "./frappe/model/model.js";
 import "./frappe/db.js";
