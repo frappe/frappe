@@ -34,16 +34,29 @@ export default class LayoutDialog {
 				fieldname: "is_global",
 				fieldtype: "Check",
 				label: __("Available to All Users"),
+				description: __("Make this layout visible for everyone."),
 				default: this.get_initial_is_global(),
 			});
 		}
 
 		fields.push(
-			{ fieldtype: "Section Break", label: __("Filters") },
+			{
+				fieldtype: "Section Break",
+				label: __("Filters"),
+				description: __("Define which records should appear in this list."),
+			},
 			{ fieldtype: "HTML", fieldname: "filter_area" },
-			{ fieldtype: "Section Break", label: __("Sort By") },
+			{
+				fieldtype: "Section Break",
+				label: __("Sort By"),
+				description: __("Choose the default order in which records appear."),
+			},
 			{ fieldtype: "HTML", fieldname: "sort_area" },
-			{ fieldtype: "Section Break", label: __("Columns") },
+			{
+				fieldtype: "Section Break",
+				label: __("Columns"),
+				description: __("Choose and order the columns to display."),
+			},
 			{ fieldtype: "HTML", fieldname: "columns_area" }
 		);
 
