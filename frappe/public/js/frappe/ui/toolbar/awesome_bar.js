@@ -164,6 +164,9 @@ frappe.search.AwesomeBar = class AwesomeBar {
 
 		this.awesomplete = awesomplete;
 
+		// Start in empty state — awesomplete-open removes this, awesomplete-close restores it
+		$(awesomplete.ul).addClass("awesomebar-ul-empty");
+
 		$input.on(
 			"input",
 			frappe.utils.debounce(function (e) {
