@@ -28,6 +28,7 @@ frappe.search.AwesomeBar = class AwesomeBar {
 		});
 
 		let search_modal_body = `<div class="align-baseline flex p-2 relative navbar-modal-wrapper">
+			<span class="awesomebar-search-icon">${frappe.utils.icon("search", "sm")}</span>
 			<input
 				id="navbar-search"
 				type="text"
@@ -65,7 +66,7 @@ frappe.search.AwesomeBar = class AwesomeBar {
 		search_modal
 			.find(".modal-footer")
 			.removeClass("hide")
-			.addClass("cool-awesomebar-modal-footer")
+			.addClass("cool-awesomebar-modal-footer hidden")
 			.html(search_modal_footer);
 
 		$search_element.on("click", () => {
@@ -190,6 +191,10 @@ frappe.search.AwesomeBar = class AwesomeBar {
 				awesomplete.options_with_desc = me.create_options_with_descriptions(options);
 				Awesomplete.prototype._itemCursor = 0;
 				awesomplete.list = options;
+				search_modal
+					.closest(".modal")
+					.find(".modal-footer")
+					.toggleClass("hidden", !options.length);
 			}, 50)
 		);
 
