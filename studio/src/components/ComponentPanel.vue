@@ -1,6 +1,6 @@
 <template>
 	<div class="flex flex-col gap-2" ref="componentContainer">
-		<div class="sticky top-[41px] z-50 mt-[-15px] flex w-full flex-col gap-3 bg-white py-3">
+		<div class="bg-surface-white sticky top-[41px] z-50 mt-[-15px] flex w-full flex-col gap-3 py-3">
 			<!-- Component Filter -->
 			<Input
 				type="text"
@@ -27,12 +27,12 @@
 			<div v-else class="grid grid-cols-3 items-start gap-x-2 gap-y-4">
 				<div v-for="component in componentList" :key="component.name" class="flex flex-col">
 					<div
-						class="user-component group flex cursor-grab flex-col items-center justify-center gap-3 text-gray-700 transition-all duration-200 hover:scale-105"
+						class="user-component group flex cursor-grab flex-col items-center justify-center gap-3 text-ink-gray-6 transition-all duration-200 hover:scale-105"
 						draggable="true"
 						:data-component-name="component.name"
 					>
 						<div
-							class="flex h-16 w-16 flex-col items-center justify-center rounded-lg border border-gray-300 bg-gray-50 p-3 transition-all duration-200 group-hover:border-gray-400 group-hover:bg-gray-100 group-hover:shadow-sm"
+							class="flex h-16 w-16 flex-col items-center justify-center rounded-lg border border-outline-gray-2 bg-surface-gray-1 p-3 transition-all duration-200 group-hover:border-outline-gray-3 group-hover:bg-surface-gray-2 group-hover:shadow-sm"
 						>
 							<component :is="component.icon" class="h-6 w-6" />
 						</div>
@@ -71,7 +71,7 @@
 							<Dropdown :options="getVueComponentMenu(component)" trigger="click">
 								<template v-slot="{ open }">
 									<button
-										class="flex cursor-pointer items-center rounded-sm p-1 text-gray-700 hover:bg-gray-300"
+										class="flex cursor-pointer items-center rounded-sm p-1 text-ink-gray-6 hover:bg-surface-gray-4"
 										:class="open ? 'active-item' : ''"
 									>
 										<FeatherIcon name="more-horizontal" class="h-3 w-3" />
@@ -99,7 +99,9 @@
 						:data-is-studio-component="true"
 					>
 						<div class="flex items-center gap-2 text-ink-gray-7">
-							<div class="flex h-6 w-6 items-center justify-center rounded bg-purple-50 text-purple-600">
+							<div
+								class="flex h-6 w-6 items-center justify-center rounded bg-surface-purple-1 text-ink-purple-7"
+							>
 								<LucideBox class="h-3 w-3" />
 							</div>
 							<p class="text-sm">
@@ -110,7 +112,7 @@
 							<Dropdown :options="getComponentMenu(component)" trigger="click">
 								<template v-slot="{ open }">
 									<button
-										class="flex cursor-pointer items-center rounded-sm p-1 text-gray-700 hover:bg-gray-300"
+										class="flex cursor-pointer items-center rounded-sm p-1 text-ink-gray-6 hover:bg-surface-gray-4"
 										:class="open ? 'active-item' : ''"
 									>
 										<FeatherIcon name="more-horizontal" class="h-3 w-3" />

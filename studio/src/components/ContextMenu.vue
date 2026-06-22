@@ -1,7 +1,7 @@
 <!-- Extracted from Builder -->
 <template>
 	<Menu
-		class="dark:bg-zinc-900 fixed z-50 h-fit w-fit min-w-[120px] rounded-lg bg-white p-1 shadow-xl"
+		class="dark:bg-zinc-900 bg-surface-white fixed z-50 h-fit w-fit min-w-[120px] rounded-lg p-1 shadow-xl"
 		:style="{ top: y + 'px', left: x + 'px' }"
 		ref="menu"
 	>
@@ -16,9 +16,9 @@
 				<div
 					@click.prevent.stop="(!option.condition || option.condition()) && handleClick(option.action)"
 					:class="{
-						'text-gray-900': !disabled,
-						'dark:bg-zinc-700 bg-gray-200': active,
-						'dark:text-zinc-500 text-gray-400': disabled,
+						'text-ink-gray-8': !disabled,
+						'dark:bg-zinc-700 bg-surface-gray-3': active,
+						'dark:text-zinc-500 text-ink-gray-3': disabled,
 					}"
 				>
 					{{ option.label }}

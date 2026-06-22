@@ -37,7 +37,7 @@
 					>
 						<span
 							v-if="selectedFiltersCount > 0"
-							class="bg-ink-gray-7 ml-1 rounded-full px-2 py-0.5 text-xs text-white"
+							class="bg-ink-gray-7 text-ink-white ml-1 rounded-full px-2 py-0.5 text-xs"
 						>
 							{{ selectedFiltersCount }}
 						</span>
@@ -45,7 +45,7 @@
 					</Button>
 				</template>
 				<template #body>
-					<div class="w-48 rounded-lg bg-surface-white py-2 shadow-lg ring-1 ring-black ring-opacity-5">
+					<div class="bg-surface-white w-48 rounded-lg py-2 shadow-lg ring-1 ring-black ring-opacity-5">
 						<div class="px-3 py-2 text-xs font-medium text-ink-gray-5">Filter search results by:</div>
 						<div class="space-y-1 px-2">
 							<label

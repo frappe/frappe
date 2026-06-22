@@ -9,10 +9,10 @@
 		/>
 		<Transition name="fade">
 			<div
-				class="absolute bottom-0 left-0 right-0 top-0 z-[19] grid w-full place-items-center bg-gray-50"
+				class="absolute bottom-0 left-0 right-0 top-0 z-[19] grid w-full place-items-center bg-surface-gray-1"
 				v-show="store.settingPage"
 			>
-				<LoadingIndicator class="h-5 w-5 text-gray-700" />
+				<LoadingIndicator class="h-5 w-5 text-ink-gray-6" />
 			</div>
 		</Transition>
 
@@ -24,7 +24,7 @@
 				transform: `scale(${canvasProps.scale}) translate(${canvasProps.translateX}px, ${canvasProps.translateY}px)`,
 			}"
 		>
-			<div class="dark:bg-zinc-900 absolute right-0 top-[-60px] flex rounded-md bg-white px-3">
+			<div class="dark:bg-zinc-900 bg-surface-white absolute right-0 top-[-60px] flex rounded-md px-3">
 				<div
 					v-show="!canvasProps.scaling && !canvasProps.panning"
 					class="w-auto cursor-pointer p-2"
@@ -36,14 +36,14 @@
 						:name="breakpoint.icon"
 						class="h-8 w-6"
 						:class="{
-							'dark:text-zinc-50 text-gray-700': breakpoint.visible,
-							'dark:text-zinc-500 text-gray-300': !breakpoint.visible,
+							'dark:text-zinc-50 text-ink-gray-6': breakpoint.visible,
+							'dark:text-zinc-500 text-ink-gray-2': !breakpoint.visible,
 						}"
 					/>
 				</div>
 			</div>
 			<div
-				class="canvas relative flex bg-surface-white shadow-2xl contain-layout"
+				class="canvas bg-surface-white relative flex shadow-2xl contain-layout"
 				:class="canvasStore.editingMode === 'page' ? 'min-h-[100dvh]' : ''"
 				:style="{
 					...canvasStyles,
@@ -54,7 +54,7 @@
 				:key="breakpoint.device"
 			>
 				<div
-					class="cursor dark:text-zinc-300 absolute left-0 select-none text-3xl text-gray-700"
+					class="cursor dark:text-zinc-300 absolute left-0 select-none text-3xl text-ink-gray-6"
 					:style="{
 						fontSize: `calc(${12}px * 1/${canvasProps.scale})`,
 						top: `calc(${-20}px * 1/${canvasProps.scale})`,
@@ -76,7 +76,7 @@
 		</div>
 
 		<div
-			class="fixed bottom-12 left-[50%] z-40 flex translate-x-[-50%] cursor-default items-center justify-center gap-2 rounded-lg bg-white px-3 py-2 text-center text-sm font-semibold text-gray-600 shadow-md"
+			class="bg-surface-white fixed bottom-12 left-[50%] z-40 flex translate-x-[-50%] cursor-default items-center justify-center gap-2 rounded-lg px-3 py-2 text-center text-sm font-semibold text-ink-gray-5 shadow-md"
 			v-show="!canvasProps.panning"
 		>
 			{{ Math.round(canvasProps.scale * 100) + "%" }}
@@ -370,21 +370,21 @@ defineExpose({
 
 <style>
 .hovered-block {
-	@apply border-blue-300 text-gray-700 dark:border-blue-900 dark:text-gray-500;
+	@apply border-outline-blue-3 text-ink-gray-6 dark:border-outline-blue-9 dark:text-ink-gray-4;
 }
 .block-selected {
-	@apply border-blue-400 text-gray-900 dark:border-blue-700 dark:text-gray-200;
+	@apply border-outline-blue-4 text-ink-gray-8 dark:border-outline-blue-7 dark:text-ink-gray-1;
 }
 .slot-selected {
-	@apply border-purple-400 text-gray-900;
+	@apply border-outline-purple-4 text-ink-gray-8;
 }
 #placeholder {
 	@apply transition-all;
 }
 .vertical-placeholder {
-	@apply mx-4 h-full min-h-5 w-auto border-l-2 border-dashed border-blue-500;
+	@apply mx-4 h-full min-h-5 w-auto border-l-2 border-dashed border-outline-blue-5;
 }
 .horizontal-placeholder {
-	@apply my-4 h-auto w-full border-t-2 border-dashed border-blue-500;
+	@apply my-4 h-auto w-full border-t-2 border-dashed border-outline-blue-5;
 }
 </style>

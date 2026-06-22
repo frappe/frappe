@@ -1,11 +1,11 @@
 <template>
 	<div class="flex flex-col">
-		<div v-if="label" class="mb-1.5 text-xs text-gray-600">{{ label }}</div>
+		<div v-if="label" class="mb-1.5 text-xs text-ink-gray-5">{{ label }}</div>
 
 		<div class="rounded border border-gray-100">
 			<!-- Header -->
 			<div
-				class="grid items-center rounded-t-sm bg-gray-100"
+				class="grid items-center rounded-t-sm bg-surface-gray-2"
 				:style="{ gridTemplateColumns: gridTemplateColumns }"
 			>
 				<div class="border-r p-1 text-center">
@@ -16,11 +16,11 @@
 						@click.stop="toggleSelectAllRows($event.target.checked)"
 					/>
 				</div>
-				<div class="inline-flex h-full items-center justify-center border-r p-1 text-base text-gray-800">
+				<div class="inline-flex h-full items-center justify-center border-r p-1 text-base text-ink-gray-7">
 					No.
 				</div>
 				<div
-					class="inline-flex h-full items-center border-r p-1 text-base text-gray-800"
+					class="inline-flex h-full items-center border-r p-1 text-base text-ink-gray-7"
 					v-for="column in columns"
 					:key="column.fieldname"
 				>
@@ -33,7 +33,7 @@
 				<Draggable class="w-full" v-model="rows" group="rows" item-key="name">
 					<template #item="{ element: row, index }">
 						<div
-							class="grid-row grid cursor-pointer items-center border-b border-gray-100 bg-white last:rounded-b last:border-b-0"
+							class="grid-row bg-surface-white grid cursor-pointer items-center border-b border-gray-100 last:rounded-b last:border-b-0"
 							:style="{ gridTemplateColumns: gridTemplateColumns }"
 						>
 							<div class="flex h-full items-center justify-center border-r">
@@ -44,7 +44,7 @@
 									@click.stop="toggleSelectRow(row)"
 								/>
 							</div>
-							<div class="flex h-full items-center justify-center border-r p-1 text-sm text-gray-800">
+							<div class="flex h-full items-center justify-center border-r p-1 text-sm text-ink-gray-7">
 								{{ index + 1 }}
 							</div>
 							<div class="border-r border-gray-100" v-for="column in columns" :key="column.fieldname">
@@ -52,7 +52,7 @@
 									v-if="column.fieldtype === 'Link'"
 									:doctype="row.link_type"
 									v-model="row[column.fieldname]"
-									class="text-sm text-gray-800"
+									class="text-sm text-ink-gray-7"
 									@update:modelValue="(e) => column.onChange && column.onChange(e ?? '', index)"
 								/>
 								<Code
@@ -75,7 +75,7 @@
 									variant="outline"
 									size="md"
 									v-model="row[column.fieldname]"
-									class="text-sm text-gray-800"
+									class="text-sm text-ink-gray-7"
 									@change="
 										(e: Event) =>
 											column.onChange && column.onChange((e.target as HTMLInputElement).value, index)
@@ -87,7 +87,7 @@
 				</Draggable>
 			</template>
 
-			<div v-else class="flex flex-col items-center rounded p-5 text-sm text-gray-600">No Data</div>
+			<div v-else class="flex flex-col items-center rounded p-5 text-sm text-ink-gray-5">No Data</div>
 		</div>
 
 		<div class="mt-2 flex flex-row gap-2">

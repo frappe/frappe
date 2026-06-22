@@ -9,7 +9,7 @@
 		@click.stop
 	>
 		<div
-			class="margin-handler pointer-events-none absolute flex w-full bg-yellow-200"
+			class="margin-handler pointer-events-none absolute flex w-full bg-surface-yellow-3"
 			:style="{
 				height: topMarginHandlerHeight + 'px',
 				top: `calc(0% - ${topMarginHandlerHeight}px)`,
@@ -17,7 +17,7 @@
 			ref="topMarginHandler"
 		>
 			<div
-				class="pointer-events-auto absolute left-[50%] rounded-full border-2 border-yellow-800 bg-yellow-400 hover:scale-125"
+				class="pointer-events-auto absolute left-[50%] rounded-full border-2 border-outline-yellow-8 bg-surface-yellow-5 hover:scale-125"
 				v-show="canvasProps.scale > 0.5"
 				:style="{
 					borderWidth: handleBorderWidth,
@@ -32,12 +32,12 @@
 				}"
 				@mousedown.stop="handleMargin($event, Position.Top)"
 			/>
-			<div class="m-auto text-sm text-yellow-900" v-show="updating">
+			<div class="m-auto text-sm text-ink-yellow-10" v-show="updating">
 				{{ blockStyles.marginTop || "auto" }}
 			</div>
 		</div>
 		<div
-			class="margin-handler pointer-events-none absolute bottom-0 flex w-full bg-yellow-200"
+			class="margin-handler pointer-events-none absolute bottom-0 flex w-full bg-surface-yellow-3"
 			:style="{
 				height: bottomMarginHandlerHeight + 'px',
 				bottom: `calc(0% - ${bottomMarginHandlerHeight}px)`,
@@ -45,7 +45,7 @@
 			ref="bottomMarginHandler"
 		>
 			<div
-				class="pointer-events-auto absolute left-[50%] rounded-full border-2 border-yellow-800 bg-yellow-400 hover:scale-125"
+				class="pointer-events-auto absolute left-[50%] rounded-full border-2 border-outline-yellow-8 bg-surface-yellow-5 hover:scale-125"
 				v-show="canvasProps.scale > 0.5"
 				:style="{
 					borderWidth: handleBorderWidth,
@@ -60,12 +60,12 @@
 				}"
 				@mousedown.stop="handleMargin($event, Position.Bottom)"
 			/>
-			<div class="m-auto text-sm text-yellow-900" v-show="updating">
+			<div class="m-auto text-sm text-ink-yellow-10" v-show="updating">
 				{{ blockStyles.marginBottom || "auto" }}
 			</div>
 		</div>
 		<div
-			class="margin-handler pointer-events-none absolute left-0 flex h-full bg-yellow-200"
+			class="margin-handler pointer-events-none absolute left-0 flex h-full bg-surface-yellow-3"
 			:style="{
 				width: leftMarginHandlerWidth + 'px',
 				left: `calc(0% - ${leftMarginHandlerWidth}px)`,
@@ -73,7 +73,7 @@
 			ref="leftMarginHandler"
 		>
 			<div
-				class="pointer-events-auto absolute top-[50%] rounded-full border-2 border-yellow-800 bg-yellow-400 hover:scale-125"
+				class="pointer-events-auto absolute top-[50%] rounded-full border-2 border-outline-yellow-8 bg-surface-yellow-5 hover:scale-125"
 				v-show="canvasProps.scale > 0.5"
 				:style="{
 					borderWidth: handleBorderWidth,
@@ -88,12 +88,12 @@
 				}"
 				@mousedown.stop="handleMargin($event, Position.Left)"
 			/>
-			<div class="m-auto text-sm text-yellow-900" v-show="updating">
+			<div class="m-auto text-sm text-ink-yellow-10" v-show="updating">
 				{{ blockStyles.marginLeft || "auto" }}
 			</div>
 		</div>
 		<div
-			class="margin-handler pointer-events-none absolute right-0 flex h-full bg-yellow-200"
+			class="margin-handler pointer-events-none absolute right-0 flex h-full bg-surface-yellow-3"
 			:style="{
 				width: rightMarginHandlerWidth + 'px',
 				right: `calc(0% - ${rightMarginHandlerWidth}px)`,
@@ -101,7 +101,7 @@
 			ref="rightMarginHandler"
 		>
 			<div
-				class="pointer-events-auto absolute top-[50%] rounded-full border-2 border-yellow-800 bg-yellow-400 hover:scale-125"
+				class="pointer-events-auto absolute top-[50%] rounded-full border-2 border-outline-yellow-8 bg-surface-yellow-5 hover:scale-125"
 				v-show="canvasProps.scale > 0.5"
 				:style="{
 					borderWidth: handleBorderWidth,
@@ -116,7 +116,7 @@
 				}"
 				@mousedown.stop="handleMargin($event, Position.Right)"
 			/>
-			<div class="m-auto text-sm text-yellow-900" v-show="updating">
+			<div class="m-auto text-sm text-ink-yellow-10" v-show="updating">
 				{{ blockStyles.marginRight || "auto" }}
 			</div>
 		</div>

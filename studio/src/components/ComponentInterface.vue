@@ -29,15 +29,15 @@
 					>
 						<template #target>
 							<div
-								class="group flex flex-1 cursor-pointer justify-between rounded border border-gray-300 px-2 py-1 hover:bg-gray-50"
+								class="group flex flex-1 cursor-pointer justify-between rounded border border-outline-gray-2 px-2 py-1 hover:bg-surface-gray-1"
 								@click="editInput(input, index)"
 							>
 								<div class="flex items-center gap-2">
-									<FeatherIcon :name="getFieldTypeIcon(input.type)" class="h-4 w-4 text-gray-500" />
-									<span class="text-sm text-gray-800">{{ input.input_name }}</span>
+									<FeatherIcon :name="getFieldTypeIcon(input.type)" class="h-4 w-4 text-ink-gray-4" />
+									<span class="text-sm text-ink-gray-7">{{ input.input_name }}</span>
 								</div>
 								<button
-									class="flex cursor-pointer items-center rounded-sm p-1 text-gray-700 opacity-0 transition-opacity hover:text-gray-900 group-hover:opacity-100"
+									class="flex cursor-pointer items-center rounded-sm p-1 text-ink-gray-6 opacity-0 transition-opacity hover:text-ink-gray-8 group-hover:opacity-100"
 									@click.stop="componentEditorStore.removeComponentInput(index)"
 								>
 									<FeatherIcon name="x" class="h-4 w-4" />
@@ -76,11 +76,11 @@
 									<template #prefix>
 										<FeatherIcon
 											:name="editingInput ? getFieldTypeIcon(editingInput.type) : 'help-circle'"
-											class="mr-1 h-3 w-3 text-gray-500"
+											class="mr-1 h-3 w-3 text-ink-gray-4"
 										/>
 									</template>
 									<template #item-prefix="{ item }">
-										<FeatherIcon :name="getFieldTypeIcon(item.value)" class="h-3 w-3 text-gray-500" />
+										<FeatherIcon :name="getFieldTypeIcon(item.value)" class="h-3 w-3 text-ink-gray-4" />
 									</template>
 								</FormControl>
 								<FormControl
@@ -116,11 +116,11 @@
 									<Button variant="solid" @click="saveInput">Save</Button>
 									<Button variant="outline" @click="cancelEdit">Cancel</Button>
 								</div>
-								<div class="text-xs text-gray-500">
+								<div class="text-xs text-ink-gray-4">
 									Press
-									<kbd class="rounded bg-gray-100 px-1 py-0.5">⌘</kbd>
+									<kbd class="rounded bg-surface-gray-2 px-1 py-0.5">⌘</kbd>
 									+
-									<kbd class="rounded bg-gray-100 px-1 py-0.5">S</kbd>
+									<kbd class="rounded bg-surface-gray-2 px-1 py-0.5">S</kbd>
 									to save
 								</div>
 							</div>

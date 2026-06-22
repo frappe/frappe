@@ -28,7 +28,7 @@
 		:width="600"
 		v-if="showDynamicValueModal"
 	>
-		<template #header><div class="text-base font-semibold text-gray-800">Set Dynamic Value</div></template>
+		<template #header><div class="text-base font-semibold text-ink-gray-7">Set Dynamic Value</div></template>
 		<template #content>
 			<Code
 				language="javascript"

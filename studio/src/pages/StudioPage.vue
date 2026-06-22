@@ -1,10 +1,10 @@
 <template>
-	<div class="studio isolate h-screen flex-col overflow-hidden bg-gray-100">
+	<div class="studio isolate h-screen flex-col overflow-hidden bg-surface-gray-2">
 		<ComponentContextMenu ref="componentContextMenu"></ComponentContextMenu>
 		<StudioToolbar class="relative z-30" />
 		<div class="flex flex-col">
 			<StudioLeftPanel
-				class="absolute bottom-0 left-0 top-[var(--toolbar-height)] z-20 overflow-auto bg-white"
+				class="bg-surface-white absolute bottom-0 left-0 top-[var(--toolbar-height)] z-20 overflow-auto"
 			/>
 
 			<StudioCanvas
@@ -28,7 +28,7 @@
 			>
 				<template v-slot:header>
 					<div
-						class="absolute left-0 right-0 top-0 z-20 flex items-center justify-between bg-white p-[0.4rem] text-sm text-ink-gray-8 shadow-sm"
+						class="bg-surface-white absolute left-0 right-0 top-0 z-20 flex items-center justify-between p-[0.4rem] text-sm text-ink-gray-8 shadow-sm"
 					>
 						<div class="flex items-center gap-1 pl-2 text-xs">
 							<a @click="canvasStore.exitFragmentMode" class="cursor-pointer">
@@ -63,7 +63,7 @@
 				v-show="canvasStore.editingMode === 'page'"
 				ref="pageCanvas"
 				v-if="store.pageBlocks[0]"
-				class="canvas-container absolute bottom-0 top-[var(--toolbar-height)] flex justify-center overflow-hidden bg-gray-200 p-10"
+				class="canvas-container absolute bottom-0 top-[var(--toolbar-height)] flex justify-center overflow-hidden bg-surface-gray-3 p-10"
 				:componentTree="store.pageBlocks[0]"
 				:canvas-styles="{
 					minHeight: '1000px',
@@ -75,7 +75,7 @@
 			/>
 
 			<StudioRightPanel
-				class="no-scrollbar dark:bg-zinc-900 absolute bottom-0 right-0 top-[var(--toolbar-height)] z-20 overflow-auto border-l-[1px] bg-white shadow-lg dark:border-gray-800"
+				class="no-scrollbar dark:bg-zinc-900 bg-surface-white absolute bottom-0 right-0 top-[var(--toolbar-height)] z-20 overflow-auto border-l-[1px] shadow-lg dark:border-outline-gray-7"
 			/>
 
 			<!-- File explorer teleport for code editor -->

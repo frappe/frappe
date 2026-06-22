@@ -2,7 +2,7 @@
 	<div class="flex h-full w-full flex-col gap-3">
 		<InputLabel
 			v-if="label"
-			:class="[required ? `after:text-red-600 after:content-['_*']` : '']"
+			:class="[required ? `after:text-ink-red-7 after:content-['_*']` : '']"
 			class="mb-1"
 		>
 			{{ label }}
@@ -26,7 +26,7 @@
 							@update:modelValue="
 								(val) => updateItemField(index, fieldKey as string, `{{ getIcon('${val}') }}`)
 							"
-							class="w-full bg-white"
+							class="bg-surface-white w-full"
 						/>
 					</template>
 					<InlineInput
@@ -40,7 +40,7 @@
 				</div>
 				<div
 					title="Remove"
-					class="absolute right-0 top-0 hidden -translate-y-1/2 translate-x-1/2 cursor-pointer rounded-full border border-outline-gray-2 bg-white p-0.5 hover:bg-surface-gray-1 group-hover/item:block"
+					class="bg-surface-white absolute right-0 top-0 hidden -translate-y-1/2 translate-x-1/2 cursor-pointer rounded-full border border-outline-gray-2 p-0.5 hover:bg-surface-gray-1 group-hover/item:block"
 				>
 					<FeatherIcon name="x" @click="removeItem(index)" class="size-3 rounded-full" />
 				</div>

@@ -1,5 +1,5 @@
 <template>
-	<div class="toolbar flex h-14 items-center justify-center bg-white p-2 shadow-sm">
+	<div class="toolbar bg-surface-white flex h-14 items-center justify-center p-2 shadow-sm">
 		<div class="absolute left-3 flex items-center justify-center gap-5">
 			<Dropdown
 				:options="[
@@ -45,7 +45,7 @@
 				<template v-slot="{ open }">
 					<div class="flex cursor-pointer items-center gap-1">
 						<StudioLogo class="h-7 w-7"></StudioLogo>
-						<FeatherIcon :name="open ? 'chevron-up' : 'chevron-down'" class="h-4 w-4 text-gray-700" />
+						<FeatherIcon :name="open ? 'chevron-up' : 'chevron-down'" class="h-4 w-4 text-ink-gray-6" />
 					</div>
 				</template>
 			</Dropdown>
@@ -74,29 +74,29 @@
 			<Popover transition="default" placement="bottom" popoverClass="!mt-[20px]">
 				<template #target="{ togglePopover, isOpen }">
 					<div class="flex cursor-pointer items-center gap-2 p-2">
-						<div class="flex h-6 items-center text-base text-gray-800" v-if="!store.activePage">
+						<div class="flex h-6 items-center text-base text-ink-gray-7" v-if="!store.activePage">
 							Loading...
 						</div>
 						<div @click="togglePopover" v-else class="flex items-center gap-1">
-							<span class="max-w-48 truncate text-base text-gray-800">
+							<span class="max-w-48 truncate text-base text-ink-gray-7">
 								{{ store?.activePage?.page_title || "My Page" }}
 							</span>
 							-
-							<span class="flex max-w-96 truncate text-base text-gray-600">
+							<span class="flex max-w-96 truncate text-base text-ink-gray-5">
 								{{ routeString }}
 							</span>
 						</div>
 						<FeatherIcon
 							name="external-link"
 							v-if="store.activePage && store.activePage.published"
-							class="h-[14px] w-[14px] !text-gray-700 dark:!text-gray-200"
+							class="h-[14px] w-[14px] !text-ink-gray-6 dark:!text-ink-gray-1"
 							@click="store.openPageInBrowser(store.activeApp!, store.activePage)"
 						></FeatherIcon>
 					</div>
 				</template>
 				<template #body="{ isOpen }">
 					<div
-						class="flex w-96 flex-col gap-3 rounded bg-white p-4 shadow-lg"
+						class="bg-surface-white flex w-96 flex-col gap-3 rounded p-4 shadow-lg"
 						v-if="store.activePage && store.activeApp"
 					>
 						<PageOptions

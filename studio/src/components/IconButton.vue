@@ -1,6 +1,6 @@
 <template>
 	<Tooltip :disabled="!label" :placement="tooltipPlacement" :text="label" :hover-delay="hoverDelay">
-		<button class="flex gap-2 text-sm text-gray-600 hover:text-gray-900" v-bind="attrs" ref="rootRef">
+		<button class="flex gap-2 text-sm text-ink-gray-5 hover:text-ink-gray-8" v-bind="attrs" ref="rootRef">
 			<component :is="icon" :class="iconClasses" />
 		</button>
 	</Tooltip>

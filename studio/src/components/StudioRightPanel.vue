@@ -13,7 +13,7 @@
 				:max-dimension="400"
 			/>
 
-			<div class="sticky top-0 z-[12] flex w-full border-gray-200 bg-white px-1 text-base">
+			<div class="bg-surface-white sticky top-0 z-[12] flex w-full border-outline-elevation-2 px-1 text-base">
 				<!-- prettier-ignore -->
 				<button
 					v-for="tab of tabs"
@@ -21,8 +21,8 @@
 					class="mx-2 py-3"
 					@click="(store.studioLayout.rightPanelActiveTab = tab as RightPanelOptions)"
 					:class="{
-						'dark:border-zinc-500 dark:text-zinc-300 border-b-[1px] border-gray-900': activeTab === tab,
-						'dark:text-zinc-500 text-gray-700': activeTab !== tab,
+						'dark:border-zinc-500 dark:text-zinc-300 border-b-[1px] border-outline-gray-8': activeTab === tab,
+						'dark:text-zinc-500 text-ink-gray-6': activeTab !== tab,
 						'flex-1 px-2': !showInterfaceTab,
 					}"
 				>
@@ -30,7 +30,10 @@
 				</button>
 			</div>
 
-			<div v-if="showSearchInput" class="sticky top-[41px] z-50 mb-2 mt-[-15px] flex w-full bg-white p-3">
+			<div
+				v-if="showSearchInput"
+				class="bg-surface-white sticky top-[41px] z-50 mb-2 mt-[-15px] flex w-full p-3"
+			>
 				<Input
 					ref="searchInput"
 					type="text"

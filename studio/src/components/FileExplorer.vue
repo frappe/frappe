@@ -85,7 +85,7 @@
 							:class="[
 								node.path === activePagePaths?.folder ? 'font-medium text-ink-gray-9' : '',
 								editingPath === node.path
-									? 'select-text !overflow-visible whitespace-nowrap bg-white px-1 ring-1 ring-outline-gray-3'
+									? 'bg-surface-white select-text !overflow-visible whitespace-nowrap px-1 ring-1 ring-outline-gray-3'
 									: '',
 							]"
 							:contenteditable="editingPath === node.path"
