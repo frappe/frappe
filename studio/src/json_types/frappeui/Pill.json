@@ -1,0 +1,75 @@
+{
+  "$schema": "http://json-schema.org/draft-07/schema#",
+  "$ref": "#/definitions/PillProps",
+  "definitions": {
+    "PillProps": {
+      "type": "object",
+      "properties": {
+        "label": {
+          "type": [
+            "string",
+            "number"
+          ]
+        },
+        "variant": {
+          "type": "string",
+          "enum": [
+            "default",
+            "outline",
+            "underline",
+            "browser-tab"
+          ]
+        },
+        "size": {
+          "type": "string",
+          "enum": [
+            "sm",
+            "md"
+          ]
+        },
+        "active": {
+          "type": "boolean"
+        },
+        "icon": {
+          "type": [
+            "string"
+          ]
+        },
+        "iconLeft": {
+          "type": [
+            "string"
+          ]
+        },
+        "iconRight": {
+          "type": [
+            "string"
+          ]
+        },
+        "browserTabBase": {
+          "type": "string",
+          "enum": [
+            "none",
+            "default",
+            "left",
+            "right"
+          ]
+        },
+        "orientation": {
+          "type": "string",
+          "enum": [
+            "horizontal",
+            "vertical"
+          ]
+        },
+        "activeStyle": {
+          "type": "string",
+          "enum": [
+            "raised",
+            "subtle"
+          ]
+        }
+      },
+      "additionalProperties": false
+    }
+  }
+}

@@ -1,0 +1,107 @@
+{
+  "$schema": "http://json-schema.org/draft-07/schema#",
+  "$ref": "#/definitions/CodeEditorProps",
+  "definitions": {
+    "CodeEditorProps": {
+      "type": "object",
+      "properties": {
+        "label": {
+          "type": "string"
+        },
+        "description": {
+          "type": "string"
+        },
+        "error": {
+          "anyOf": [
+            {
+              "type": "string"
+            },
+            {
+              "type": "object",
+              "properties": {
+                "name": {
+                  "type": "string"
+                },
+                "message": {
+                  "type": "string"
+                },
+                "stack": {
+                  "type": "string"
+                },
+                "messages": {
+                  "type": "array",
+                  "items": {
+                    "type": "string"
+                  }
+                }
+              },
+              "additionalProperties": false,
+              "required": [
+                "message",
+                "name"
+              ]
+            }
+          ]
+        },
+        "required": {
+          "type": "boolean"
+        },
+        "id": {
+          "type": "string"
+        },
+        "modelValue": {
+          "type": "string"
+        },
+        "language": {
+          "anyOf": [
+            {
+              "type": "string"
+            },
+            {
+              "type": "string",
+              "enum": [
+                "json",
+                "html",
+                "javascript",
+                "python",
+                "sql",
+                "markdown",
+                "css",
+                "scss",
+                "yaml",
+                "xml",
+                "plain"
+              ]
+            }
+          ]
+        },
+        "disabled": {
+          "type": "boolean"
+        },
+        "placeholder": {
+          "type": "string"
+        },
+        "variant": {
+          "type": "string",
+          "enum": [
+            "subtle",
+            "outline"
+          ]
+        },
+        "size": {
+          "type": "string",
+          "enum": [
+            "sm",
+            "md",
+            "lg",
+            "xl"
+          ]
+        }
+      },
+      "required": [
+        "modelValue"
+      ],
+      "additionalProperties": false
+    }
+  }
+}
