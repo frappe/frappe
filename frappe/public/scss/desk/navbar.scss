@@ -99,17 +99,22 @@
 	}
 }
 
-.awesomebar-search-icon {
-	display: inline-flex;
-	align-items: center;
-	flex-shrink: 0;
-	color: var(--text-muted);
-	margin-right: var(--margin-sm);
-}
-
 .navbar-modal-wrapper {
+	.awesomebar-search-icon {
+		position: absolute;
+		left: var(--padding-sm);
+		top: var(--padding-sm);
+		height: 36px;
+		display: inline-flex;
+		align-items: center;
+		color: var(--text-muted);
+		pointer-events: none;
+		z-index: 1;
+	}
+
 	#navbar-search {
 		display: flex;
+		padding-left: 1.75rem;
 	}
 
 	.awesomplete {
