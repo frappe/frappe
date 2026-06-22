@@ -5,6 +5,7 @@
 # --------------------
 from pathlib import Path
 from shutil import which
+from urllib.parse import quote
 
 from frappe.database.database import savepoint
 
@@ -145,14 +146,21 @@ def get_command(
 		else:
 			bin, bin_name = which("psql"), "psql"
 
-		if socket and password:
-			conn_string = f"postgresql://{user}:{password}@/{db_name}?host={socket}"
+		# Percent-encode credentials before interpolating into the libpq URI.
+		# Without this, any `/`, `?`, `#`, `%`, or `:` in user/password breaks
+		# RFC 3986 authority parsing and libpq either errors out or sends the
+		# wrong credentials. safe="" forces escaping of `/` too (default is "/").
+		quoted_user = quote(user, safe="")
+		quoted_password = quote(password, safe="") if password else None
+
+		if socket and quoted_password:
+			conn_string = f"postgresql://{quoted_user}:{quoted_password}@/{db_name}?host={socket}"
 		elif socket:
-			conn_string = f"postgresql://{user}@/{db_name}?host={socket}"
-		elif password:
-			conn_string = f"postgresql://{user}:{password}@{host}:{port}/{db_name}"
+			conn_string = f"postgresql://{quoted_user}@/{db_name}?host={socket}"
+		elif quoted_password:
+			conn_string = f"postgresql://{quoted_user}:{quoted_password}@{host}:{port}/{db_name}"
 		else:
-			conn_string = f"postgresql://{user}@{host}:{port}/{db_name}"
+			conn_string = f"postgresql://{quoted_user}@{host}:{port}/{db_name}"
 
 		command = [conn_string]
 
