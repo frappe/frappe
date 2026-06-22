@@ -72,8 +72,7 @@ class DuckDBTable(DBTable):
 		if self.is_new(conn):
 			self.create(conn)
 		else:
-			frappe.client_cache.delete_value(f"table_columns::{self.table_name}")
-			self.alter()
+			return
 
 	def get_column_definitions(self):
 		column_list = [*frappe.db.DEFAULT_COLUMNS]

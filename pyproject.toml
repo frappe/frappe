@@ -17,7 +17,7 @@ dependencies = [
     "Jinja2~=3.1.6",
     "Pillow~=12.2.0",
     "PyJWT~=2.13.0",
-    "duckdb~=1.5.2",
+    "duckdb~=1.4.3",
     # We depend on internal attributes,
     # do NOT add loose requirements on PyMySQL versions.
     "PyMySQL==1.1.2",

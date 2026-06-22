@@ -113,7 +113,10 @@ def delete_duckdb_file(filename=None):
 
 	db_home = os.path.realpath(frappe.utils.get_files_path(is_private=True))
 	db_with_abs_path = os.path.join(db_home, filename)
-	os.remove(db_with_abs_path)
+	try:
+		os.remove(db_with_abs_path)
+	except FileNotFoundError:
+		return
 
 
 def get_command(
