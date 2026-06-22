@@ -10,7 +10,6 @@ import "./tabs/global_search";
 import "./tabs/workflow";
 import "./tabs/print_format";
 import "./tabs/permissions";
-import "./tabs/data_import";
 
 /**
  * Open the DocType Settings dialog scoped to `doctype`.

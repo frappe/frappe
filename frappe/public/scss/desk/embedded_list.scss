@@ -40,7 +40,7 @@
 
 	.embedded-list-table-wrap {
 		border: 1px solid var(--border-color);
-		border-radius: var(--border-radius-md);
+		border-radius: var(--radius-5);
 		overflow-x: auto;
 		overflow-y: auto;
 		max-height: 600px;
@@ -63,6 +63,16 @@
 
 		thead tr {
 			background: var(--subtle-fg);
+		}
+
+		// The sticky header paints in its own layer and so isn't clipped by the wrap's
+		// border-radius — round its own top corners to match (inset 1px for the border).
+		thead th:first-child {
+			border-top-left-radius: calc(var(--radius-5) - 1px);
+		}
+
+		thead th:last-child {
+			border-top-right-radius: calc(var(--radius-5) - 1px);
 		}
 
 		th {
