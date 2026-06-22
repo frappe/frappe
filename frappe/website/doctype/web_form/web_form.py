@@ -494,16 +494,16 @@ def get_context(context):
 			context.reference_name = context.reference_doc.name
 
 			# A user viewing a submission may have access through the web form's own
-			# permission model (e.g. document owner) without holding standard print/read
-			# permissions on the doctype. Pass a document share key so the print view can
-			# authorize them, otherwise the print button errors out. See #19160.
-			if self.allow_print and context.in_view_mode:
-				# Pass an explicit expiry so an existing key is reused within its validity
-				# window instead of creating a new one on every view.
-				expiry_days = frappe.get_system_settings("document_share_key_expiry") or 90
-				context.print_key = context.reference_doc.get_document_share_key(
-					expires_on=frappe.utils.add_days(None, expiry_days)
-				)
+			# permission model (e.g. document owner) without holding standard print
+			# permission on the doctype. The print view rejects such users, so pass them
+			# a document share key (which it accepts) and the print button works. Users
+			# who already have print permission don't need one. See #19160.
+			if (
+				self.allow_print
+				and context.in_view_mode
+				and not frappe.has_permission(self.doc_type, "print", context.reference_doc)
+			):
+				context.print_key = get_print_share_key(context.reference_doc)
 
 			if self.show_attachments:
 				context.attachments = self.get_webform_attachments(context)
@@ -641,6 +641,24 @@ def process_link_field(field, web_form_name):
 		web_form_name, field.options, getattr(field, "allow_read_on_all_link_options", False)
 	)
 	return field
+
+
+def get_print_share_key(doc):
+	"""Return a document share key for printing `doc` via the web form.
+
+	Reuses an existing, non-expired key instead of inserting a new record on every
+	view (a fresh key per request/day would accumulate unboundedly).
+	"""
+	key = frappe.db.get_value(
+		"Document Share Key",
+		{
+			"reference_doctype": doc.doctype,
+			"reference_docname": doc.name,
+			"expires_on": [">=", frappe.utils.today()],
+		},
+		"key",
+	)
+	return key or doc.get_document_share_key()
 
 
 def get_web_form_module(doc):
