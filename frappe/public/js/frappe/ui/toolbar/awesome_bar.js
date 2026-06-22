@@ -192,6 +192,7 @@ frappe.search.AwesomeBar = class AwesomeBar {
 				Awesomplete.prototype._itemCursor = 0;
 				awesomplete.list = options;
 				const has_results = Boolean(options.length);
+				$(awesomplete.ul).toggleClass("awesomebar-ul-empty", !has_results);
 				search_modal.find(".modal-divider").toggleClass("hidden", !has_results);
 				search_modal
 					.closest(".modal")

@@ -119,6 +119,10 @@
 		ul[hidden] {
 			display: block !important;
 		}
+
+		ul.awesomebar-ul-empty {
+			margin-top: 0 !important;
+		}
 	}
 
 	.modal-divider {
