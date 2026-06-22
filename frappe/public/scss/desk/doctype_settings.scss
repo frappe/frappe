@@ -47,6 +47,18 @@
 	}
 }
 
+// ── Naming tab: two stacked EmbeddedList sections (Series + Rules) ──
+.dts-naming-section {
+	// Space between the section header and its EmbeddedList table.
+	.settings-dialog-panel-header {
+		margin-bottom: var(--margin-md);
+	}
+
+	& + & {
+		margin-top: var(--margin-xl);
+	}
+}
+
 // ── Shared list panel (CRM-style: header + table + inline switch + overflow) ──
 .dts-list {
 	display: flex;
@@ -72,6 +84,13 @@
 .dts-list-cell {
 	flex: 1;
 	min-width: 0;
+
+	// Badge icon (e.g. the notification channel glyph) — badge.css's default ~10px
+	// reads too small next to the label; bump it up a notch.
+	.es-badge > svg {
+		width: 14px;
+		height: 14px;
+	}
 }
 
 .dts-list-cell-title {
@@ -93,17 +112,15 @@
 	justify-content: flex-start;
 }
 
-// ── Permissions tab: per-role rights chips + customized banner + footer link ──
-// "Customized" notice with a reset action.
+// ── Permissions tab: EmbeddedList of roles with rights badges + customized banner
+// + footer link ──
+// "Customized" notice with a reset action. Color/padding/radius come from the
+// framework's `.alert.alert-warning`; only the inline row layout is local.
 .dts-perm-banner {
 	display: flex;
 	align-items: center;
 	gap: var(--padding-sm);
 	margin-bottom: var(--margin-sm);
-	padding: var(--padding-sm) var(--padding-md);
-	border-radius: var(--border-radius);
-	background-color: var(--bg-yellow);
-	color: var(--text-on-yellow);
 	font-size: var(--text-sm);
 
 	// Keep the warning glyph small and from shrinking.
@@ -128,42 +145,12 @@
 	}
 }
 
-// Role column is fixed-width so the rights take the rest of the row (otherwise the
-// default flex:2 title squeezes the chips down to ~2 per line).
-.dts-perm-row {
-	.dts-list-cell-title {
-		flex: 0 0 11rem;
-	}
-}
+// Granted-right badge: a compact green pill holding just the check icon.
+.dts-perm-flag {
+	padding: 2px 6px;
 
-// Right chips flow in a single left-aligned, wrapping row, filling the row's remaining
-// width. Uniform chip width keeps the wrap tidy (a checkmark doesn't shift neighbours).
-.dts-perm-rights {
-	flex: 1;
-	display: flex;
-	flex-wrap: wrap;
-	gap: var(--padding-xs);
-}
-
-// One right (read-only): outline = not granted, filled green = granted. Uniform width
-// keeps the wrap tidy. Editing is done in the Role Permissions Manager.
-.dts-perm-chip {
-	display: inline-flex;
-	align-items: center;
-	justify-content: center;
-	min-width: 5.5rem;
-	padding: 2px 8px;
-	border: 1px solid var(--border-color);
-	border-radius: var(--border-radius-full);
-	background-color: transparent;
-	color: var(--ink-gray-5);
-	font-size: var(--text-sm);
-	text-transform: capitalize;
-
-	&.is-on {
-		border-color: transparent;
-		background-color: var(--bg-green);
-		color: var(--text-on-green);
+	.icon {
+		margin: 0;
 	}
 }
 
@@ -205,7 +192,7 @@
 	overflow: hidden;
 	border: 1px solid var(--border-color);
 	border-radius: var(--border-radius-lg, 12px);
-	background-color: var(--surface-white);
+	background-color: var(--surface-base);
 }
 
 // Top region: tinted, holds the badge, the star, and the "page" thumbnail. Fixed
@@ -226,7 +213,7 @@
 	height: 100%;
 	overflow: hidden;
 	border-radius: var(--border-radius) var(--border-radius) 0 0;
-	background-color: var(--surface-white);
+	background-color: var(--surface-base);
 	box-shadow: var(--shadow-sm);
 	cursor: pointer;
 }
@@ -243,9 +230,7 @@
 	color: var(--ink-gray-4);
 }
 
-// "Custom" badge uses the standard `indicator-pill`; only the overlay position is local.
-// (A gray pill is avoided here: --bg-gray equals the preview region's --surface-gray-2,
-// so it would be invisible — hence a contrasting color.)
+// "Custom" badge uses the standard `.es-badge` component; only the overlay position is local.
 .dts-pf-badge {
 	position: absolute;
 	top: 10px;
@@ -261,8 +246,9 @@
 	display: inline-flex;
 	padding: 6px;
 	border: none;
-	border-radius: var(--border-radius);
-	background-color: var(--surface-white);
+	// Half the card's own corner radius, so the overlay reads as cut from the same shape.
+	border-radius: calc(var(--border-radius-lg, 12px) / 2);
+	background-color: var(--surface-base);
 	box-shadow: var(--shadow-sm);
 	color: var(--ink-gray-4);
 	opacity: 0; // hidden until hover for non-default cards
@@ -308,7 +294,7 @@
 	height: 65vh;
 	border: 1px solid var(--border-color);
 	border-radius: var(--border-radius);
-	background-color: var(--surface-white);
+	background-color: var(--surface-base);
 }
 
 .dts-list-cell-actions {
