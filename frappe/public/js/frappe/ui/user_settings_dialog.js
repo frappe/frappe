@@ -264,10 +264,48 @@ function _appearance_tab() {
 				_section_heading(__("Theme"), __("Switch between light, dark, or system theme"))
 			);
 
-			// Reuse the existing theme switcher: instantiate it and move its
-			// already-rendered grid into our panel. The unused hidden dialog
-			// it creates is the price of not duplicating the theme markup.
+			// Reuse the existing theme switcher's logic (toggle_theme, xcall,
+			// selection state). Only the visual card markup is swapped via
+			// the get_preview_html override.
 			const theme_switcher = new frappe.ui.ThemeSwitcher();
+			const order = ["automatic", "light", "dark"];
+			theme_switcher.themes = order.map((name) =>
+				theme_switcher.themes.find((t) => t.name === name)
+			);
+			const labels = {
+				light: __("Light"),
+				dark: __("Dark"),
+				automatic: __("System"),
+			};
+			theme_switcher.get_preview_html = function (theme) {
+				const selected = this.current_theme === theme.name;
+				const is_auto = theme.name === "automatic";
+				const preview = is_auto
+					? `<div class="theme-card-preview theme-card-preview--split">
+						${_theme_preview_window("light")}
+						${_theme_preview_window("dark")}
+					</div>`
+					: `<div class="theme-card-preview">${_theme_preview_window(theme.name)}</div>`;
+
+				const $card = $(`
+					<div class="theme-card-wrapper${selected ? " selected" : ""}">
+						<button type="button" class="theme-card">
+							${preview}
+							<div class="theme-card-footer">
+								<span class="theme-card-label">${labels[theme.name] || theme.label}</span>
+								<span class="theme-card-radio"></span>
+							</div>
+						</button>
+					</div>
+				`);
+				$card.on("click", () => {
+					if (this.current_theme === theme.name) return;
+					this.themes.forEach((th) => th.$html.removeClass("selected"));
+					$card.addClass("selected");
+					this.toggle_theme(theme.name);
+				});
+				return $card;
+			};
 			panel.body.append(theme_switcher.body);
 
 			panel.body.append(_section_heading(__("Layout")));
@@ -292,6 +330,37 @@ function _appearance_tab() {
 			});
 		},
 	};
+}
+
+function _theme_preview_window(theme) {
+	return `<div class="theme-preview-container theme-preview-container--${theme}">
+		<div class="theme-preview-frame">
+			<div class="theme-preview-titlebar">
+				<span class="theme-preview-dot theme-preview-dot--red"></span>
+				<span class="theme-preview-dot theme-preview-dot--yellow"></span>
+				<span class="theme-preview-dot theme-preview-dot--green"></span>
+			</div>
+			<div class="theme-preview-body">
+				<div class="theme-preview-toolbar">
+					<span class="theme-preview-bar theme-preview-bar--strong theme-preview-bar--w-32"></span>
+					<span class="theme-preview-bar theme-preview-bar--w-24"></span>
+					<span class="theme-preview-bar theme-preview-bar--w-28 theme-preview-bar--right"></span>
+				</div>
+				<div class="theme-preview-cards">
+					<div class="theme-preview-card">
+						<div class="theme-preview-line theme-preview-line--strong"></div>
+						<div class="theme-preview-line theme-preview-line--w-80"></div>
+						<div class="theme-preview-line theme-preview-line--w-60"></div>
+					</div>
+					<div class="theme-preview-card">
+						<div class="theme-preview-line theme-preview-line--strong theme-preview-line--w-40"></div>
+						<div class="theme-preview-line"></div>
+						<div class="theme-preview-line theme-preview-line--w-75"></div>
+					</div>
+				</div>
+			</div>
+		</div>
+	</div>`;
 }
 
 // ─── Preferences ──────────────────────────────────────────────────────────────
