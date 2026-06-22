@@ -24,6 +24,13 @@ frappe.ui.form.on("User Invitation", {
 					.then(() => {
 						frappe.msgprint(__("Invitation resent"));
 					})
+					.catch((err) => {
+						frappe.msgprint({
+							title: __("Error"),
+							message: err.message,
+							indicator: "red",
+						});
+					})
 			);
 		});
 		frm.add_custom_button(__("Cancel"), () => {

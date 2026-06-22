@@ -104,7 +104,7 @@ def cancel_invitation(name: str, app_name: str):
 	return {"cancelled_now": invitation.cancel_invite()}
 
 
-@frappe.whitelist()
+@frappe.whitelist(methods=["POST"])
 def resend_invitation(
 	name: str,
 	app_name: str,
@@ -123,7 +123,6 @@ def resend_invitation(
 	if invitation.status != "Pending":
 		frappe.throw(title=_("Error"), msg=_("Only pending invitations can be resent"))
 
-	invitation.flags.ignore_permissions = True
 	invitation.send_invitation_mail()
 
 
