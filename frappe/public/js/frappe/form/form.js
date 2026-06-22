@@ -1769,6 +1769,35 @@ frappe.ui.form.Form = class FrappeForm {
 		});
 	}
 
+	reset_currency_labels(fields, parentfield) {
+		if (!fields.length) return;
+
+		const doctype = parentfield
+			? this.fields_dict[parentfield].grid.doctype
+			: this.doc.doctype;
+
+		fields.forEach((field) => {
+			const docfield = frappe.meta.docfield_map[doctype][field];
+			if (docfield) {
+				// Read the pristine label captured by set_currency_labels (or here on first use)
+				if (docfield._original_label === undefined) {
+					docfield._original_label = docfield.label;
+				}
+				const label = __(docfield._original_label || "", null, docfield.parent);
+
+				if (parentfield) {
+					this.fields_dict[parentfield].grid.update_docfield_property(
+						field,
+						"label",
+						label
+					);
+				} else {
+					this.fields_dict[field].set_label(label);
+				}
+			}
+		});
+	}
+
 	field_map(fnames, fn) {
 		if (typeof fnames === "string") {
 			if (fnames == "*") {
