@@ -27,14 +27,16 @@ frappe.search.AwesomeBar = class AwesomeBar {
 			setTimeout(() => input.focus(), 10);
 		});
 
-		let search_modal_body = `<div class="align-baseline flex p-2 relative navbar-modal-wrapper">
-			<span class="awesomebar-search-icon">${frappe.utils.icon("search", "sm")}</span>
-			<input
-				id="navbar-search"
-				type="text"
-				class="form-control bg-transparent shadow-none" aria-haspopup="true"
-				placeholder="${__("Search or type a command")}" autocomplete="off"
-			/>
+		let search_modal_body = `<div class="p-2 navbar-modal-wrapper">
+			<div class="awesomebar-input-row">
+				<span class="awesomebar-search-icon">${frappe.utils.icon("search", "sm")}</span>
+				<input
+					id="navbar-search"
+					type="text"
+					class="form-control" aria-haspopup="true"
+					placeholder="${__("Search or type a command")}" autocomplete="off"
+				/>
+			</div>
 			<div class="modal-divider"></div>
 		</div>
 		`;
@@ -182,10 +184,10 @@ frappe.search.AwesomeBar = class AwesomeBar {
 					me.options = me.options.concat(me.build_options(txt));
 					me.options = me.options.concat(me.global_results);
 				} else {
-					me.options = me.options.concat(
-						me.deduplicate(frappe.search.utils.get_recent_pages(txt || ""))
-					);
-					me.options = me.options.concat(frappe.search.utils.get_frequent_links());
+					// me.options = me.options.concat(
+					// 	me.deduplicate(frappe.search.utils.get_recent_pages(txt || ""))
+					// );
+					// me.options = me.options.concat(frappe.search.utils.get_frequent_links());
 				}
 				let options = me.deduplicate(me.options);
 				awesomplete.options_with_desc = me.create_options_with_descriptions(options);
