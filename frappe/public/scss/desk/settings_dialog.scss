@@ -219,6 +219,11 @@
 	}
 }
 
+table + .settings-dialog-section-heading {
+	border-top: none;
+	padding-top: 0;
+}
+
 .settings-dialog-section-title {
 	margin-top: var(--margin-md);
 	font-size: var(--text-base);

@@ -625,7 +625,7 @@ function _keyboard_shortcuts_tab() {
 		label: __("Keyboard Shortcuts"),
 		icon: "keyboard",
 		title: __("Keyboard Shortcuts"),
-		description: __("All available keyboard shortcuts."),
+		description: __("Get around the system quickly with keyboard shortcuts"),
 		render(panel) {
 			const all_shortcuts = frappe.ui.keys.standard_shortcuts || [];
 			const cur_page = window.cur_page?.page;
