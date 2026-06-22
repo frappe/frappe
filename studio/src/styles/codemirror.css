@@ -36,7 +36,7 @@
 	outline: none !important;
 }
 .cm-tooltip-autocomplete {
-	@apply !rounded-lg !shadow-md !bg-surface-white !p-1.5 !border-none;
+	@apply !rounded-lg !shadow-md !bg-surface-base !p-1.5 !border-none;
 }
 .cm-tooltip-autocomplete > ul {
 	font-family: 'Inter' !important;
