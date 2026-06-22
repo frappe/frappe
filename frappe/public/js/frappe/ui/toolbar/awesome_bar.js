@@ -28,15 +28,12 @@ frappe.search.AwesomeBar = class AwesomeBar {
 		});
 
 		let search_modal_body = `<div class="p-2 navbar-modal-wrapper">
-			<div class="awesomebar-input-row">
-				<span class="awesomebar-search-icon">${frappe.utils.icon("search", "sm")}</span>
-				<input
-					id="navbar-search"
-					type="text"
-					class="form-control" aria-haspopup="true"
-					placeholder="${__("Search or type a command")}" autocomplete="off"
-				/>
-			</div>
+			<input
+				id="navbar-search"
+				type="text"
+				class="form-control" aria-haspopup="true"
+				placeholder="${__("Search or type a command")}" autocomplete="off"
+			/>
 			<div class="modal-divider"></div>
 		</div>
 		`;

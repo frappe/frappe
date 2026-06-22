@@ -102,20 +102,6 @@
 .navbar-modal-wrapper {
 	position: relative;
 
-	.awesomebar-input-row {
-		display: flex;
-		align-items: flex-start;
-		gap: var(--margin-sm);
-	}
-
-	.awesomebar-search-icon {
-		flex-shrink: 0;
-		display: inline-flex;
-		align-items: center;
-		height: calc(1.5 * 1rem + 0.75rem + 2px); // match Bootstrap form-control height
-		color: var(--text-muted);
-	}
-
 	.awesomplete {
 		flex: 1;
 		min-width: 0;
