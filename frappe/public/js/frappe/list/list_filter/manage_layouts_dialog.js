@@ -46,7 +46,8 @@ export default class ManageLayoutsDialog {
 		const can_edit = this.list_filter.can_edit_layout(layout);
 		const is_global = !layout.for_user;
 		const scope_label = is_global ? __("Global") : __("Personal");
-		const disabled = can_edit ? "" : "disabled";
+		const edit_disabled = can_edit ? "" : "disabled";
+		const delete_disabled = can_edit ? "" : "disabled";
 		const esc = frappe.utils.escape_html;
 
 		return `
@@ -60,15 +61,15 @@ export default class ManageLayoutsDialog {
 				</div>
 				<div class="layout-manage-row-actions d-flex flex-shrink-0" style="gap: 4px;">
 					<button type="button" class="btn btn-default btn-xs btn-icon layout-action-edit"
-						${disabled} title="${esc(__("Edit"))}" aria-label="${esc(__("Edit"))}">
+						${edit_disabled} title="${esc(__("Edit"))}" aria-label="${esc(__("Edit"))}">
 						${frappe.utils.icon("edit", "xs")}
 					</button>
 					<button type="button" class="btn btn-default btn-xs btn-icon layout-action-duplicate"
-						${disabled} title="${esc(__("Duplicate"))}" aria-label="${esc(__("Duplicate"))}">
+						title="${esc(__("Duplicate"))}" aria-label="${esc(__("Duplicate"))}">
 						${frappe.utils.icon("duplicate", "xs")}
 					</button>
 					<button type="button" class="btn btn-default btn-xs btn-icon layout-action-delete"
-						${disabled} title="${esc(__("Delete"))}" aria-label="${esc(__("Delete"))}">
+						${delete_disabled} title="${esc(__("Delete"))}" aria-label="${esc(__("Delete"))}">
 						${frappe.utils.icon("trash", "xs")}
 					</button>
 				</div>
@@ -90,7 +91,7 @@ export default class ManageLayoutsDialog {
 		$wrapper.on("click", ".layout-action-duplicate", (e) => {
 			e.preventDefault();
 			const layout = this.get_layout_from_row(e.currentTarget);
-			if (!layout || !this.list_filter.can_edit_layout(layout)) return;
+			if (!layout) return;
 			this.dialog.hide();
 			this.list_filter.open_layout_dialog(null, { duplicate_from: layout });
 		});

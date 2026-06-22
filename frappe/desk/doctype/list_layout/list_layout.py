@@ -153,8 +153,8 @@ def update_list_layout(
 		next_for_user = cstr(for_user)
 		if not next_for_user and not _can_edit_global_layout():
 			frappe.throw(_("You are not allowed to update global layouts"), frappe.PermissionError)
-		if next_for_user and next_for_user != doc.for_user and not _can_edit_global_layout():
-			frappe.throw(_("You are not allowed to change layout owner"), frappe.PermissionError)
+		if next_for_user and next_for_user != frappe.session.user and not _can_edit_global_layout():
+			frappe.throw(_("You are not allowed to assign layouts to other users"), frappe.PermissionError)
 		doc.for_user = next_for_user
 
 	if filters is not None:

@@ -7,11 +7,11 @@
  "field_order": [
   "layout_name",
   "reference_doctype",
-  "for_user",
-  "route_signature",
   "column_break_mfss",
   "sort_field",
+  "for_user",
   "sort_order",
+  "route_signature",
   "section_break_aljf",
   "filters",
   "section_break_lrva",

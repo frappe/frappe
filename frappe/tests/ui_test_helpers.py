@@ -687,6 +687,20 @@ def clear_list_layout_test_layouts():
 
 
 @whitelist_for_tests()
+def reset_list_layout_test_user_settings(doctype: str = "ToDo"):
+	"""Clear saved layout preference so Cypress starts from Default Layout."""
+	import json
+
+	from frappe.model.utils.user_settings import get_user_settings, update_user_settings
+
+	settings = json.loads(get_user_settings(doctype, for_update=True) or "{}")
+	list_settings = settings.get("List") or {}
+	list_settings["active_layout_name"] = ""
+	settings["List"] = list_settings
+	update_user_settings(doctype, settings)
+
+
+@whitelist_for_tests()
 def create_list_layout_test_layout(
 	layout_name: str | None = None,
 	reference_doctype: str = "ToDo",

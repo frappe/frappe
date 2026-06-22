@@ -19,6 +19,10 @@ function clearTestLayouts() {
 	return cy.call("frappe.tests.ui_test_helpers.clear_list_layout_test_layouts");
 }
 
+function resetLayoutUserSettings() {
+	return cy.call("frappe.tests.ui_test_helpers.reset_list_layout_test_user_settings");
+}
+
 function createTestLayout(args = {}) {
 	return cy.call("frappe.tests.ui_test_helpers.create_list_layout_test_layout", args);
 }
@@ -31,6 +35,7 @@ context("List View — Saved Layouts", () => {
 
 	beforeEach(() => {
 		clearTestLayouts();
+		resetLayoutUserSettings();
 		cy.visit("/desk/website");
 	});
 
@@ -45,7 +50,27 @@ context("List View — Saved Layouts", () => {
 		cy.get(".saved-layout-action-item").contains("Manage Layouts").should("be.visible");
 	});
 
-	it("does not auto-apply a layout with empty route signature on a clean URL", () => {
+	it("restores last selected layout on a clean URL when no URL filters exist", () => {
+		createTestLayout({
+			layout_name: "_cypress_layout_empty",
+			filters: "[]",
+		});
+
+		cy.visit(LIST_URL);
+		cy.wait(500);
+		cy.clear_filters();
+
+		selectLayout("_cypress_layout_empty");
+		getLayoutButton().should("contain", "_cypress_layout_empty");
+
+		cy.visit(LIST_URL);
+		cy.wait(1000);
+		cy.clear_filters();
+
+		getLayoutButton().should("contain", "_cypress_layout_empty");
+	});
+
+	it("does not auto-apply empty-filter layout from URL signature alone", () => {
 		createTestLayout({
 			layout_name: "_cypress_layout_empty",
 			filters: "[]",

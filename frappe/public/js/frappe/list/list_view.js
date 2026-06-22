@@ -360,7 +360,7 @@ frappe.views.ListView = class ListView extends frappe.views.BaseList {
 
 	setup_view() {
 		this.setup_columns();
-		this.render_header();
+		// Header is rendered on first refresh after layout restore in before_refresh().
 		this.render_skeleton();
 		this.setup_events();
 		this.settings.onload && this.settings.onload(this);
@@ -377,22 +377,20 @@ frappe.views.ListView = class ListView extends frappe.views.BaseList {
 	}
 
 	refresh(refresh_header = false) {
+		if (refresh_header) {
+			this._refresh_header_on_render = true;
+		}
 		return super.refresh().then(() => {
-			this.render_header(refresh_header);
+			if (refresh_header && !this._header_rendered_in_list) {
+				this.render_header(true);
+				this.apply_column_widths();
+			}
+			this._header_rendered_in_list = false;
 			this.render_count();
 			this.update_checkbox();
 			this.update_url_with_filters();
 			this.setup_realtime_updates();
 			this.apply_styles_basedon_dropdown();
-
-			if (this.list_filter && !this.list_filter._initial_layout_restored) {
-				this.list_filter._initial_layout_restored = true;
-				return this.list_filter
-					.restore_layout_from_route_signature({ refresh: false })
-					.then(() =>
-						this.list_filter.update_layout_menu_selection({ rerender_menu: true })
-					);
-			}
 		});
 	}
 
@@ -647,6 +645,8 @@ frappe.views.ListView = class ListView extends frappe.views.BaseList {
 	}
 
 	before_refresh() {
+		let route_promise = Promise.resolve();
+
 		if (frappe.route_options && this.filter_area) {
 			if (frappe.route_options.reset_filters) {
 				frappe.route_options = null;
@@ -654,23 +654,34 @@ frappe.views.ListView = class ListView extends frappe.views.BaseList {
 				url.searchParams.delete("reset_filters");
 				history.replaceState(history.state, "", url.toString());
 				this._set_breadcrumb_layout(null);
-				return this.filter_area.clear();
-			}
+				route_promise = this.filter_area.clear();
+			} else {
+				const layout_name = frappe.route_options._layout || null;
+				this._set_breadcrumb_layout(layout_name);
 
-			const layout_name = frappe.route_options._layout || null;
-			this._set_breadcrumb_layout(layout_name);
+				this.filters = this.parse_filters_from_route_options();
+				frappe.route_options = null;
 
-			this.filters = this.parse_filters_from_route_options();
-			frappe.route_options = null;
-
-			if (this.filters.length > 0) {
-				return this.filter_area
-					.clear(false)
-					.then(() => this.filter_area.set(this.filters));
+				if (this.filters.length > 0) {
+					route_promise = this.filter_area
+						.clear(false)
+						.then(() => this.filter_area.set(this.filters));
+				}
 			}
 		}
 
-		return Promise.resolve();
+		return route_promise
+			.then(() => {
+				if (this.list_filter && !this.list_filter._initial_layout_restored) {
+					return this.list_filter.restore_layout_from_route_signature({
+						refresh: false,
+					});
+				}
+			})
+			.then(() => {
+				// First paint: rebuild header once columns/filters are resolved (avoids default→layout shift).
+				this._pending_initial_header = true;
+			});
 	}
 
 	_set_breadcrumb_layout(layout_name) {
@@ -840,8 +851,7 @@ frappe.views.ListView = class ListView extends frappe.views.BaseList {
 		if (this.list_filter?._applying_layout) {
 			return;
 		}
-		// First refresh runs before route-signature layout restore; skip so saved-layout
-		// filters are not written into default user settings.
+		// Layout restore runs in before_refresh; only persist default-layout state here.
 		if (this.list_filter && !this.list_filter._initial_layout_restored) {
 			return;
 		}
@@ -871,7 +881,13 @@ frappe.views.ListView = class ListView extends frappe.views.BaseList {
 		// clear rows
 		this.$result.find(".list-row-container").remove();
 		this.parent.page.main.parent().addClass("list-view");
-		this.render_header();
+		const refresh_header = this._refresh_header_on_render || this._pending_initial_header;
+		this.render_header(refresh_header);
+		if (refresh_header) {
+			this._header_rendered_in_list = true;
+			this._refresh_header_on_render = false;
+			this._pending_initial_header = false;
+		}
 
 		let has_assignto = false;
 

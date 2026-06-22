@@ -26,7 +26,9 @@ export const ListFilterMenu = {
 				}
 			})
 			.then(() => {
-				this.update_layout_menu_selection({ rerender_menu: true });
+				if (!initial_setup) {
+					this.update_layout_menu_selection({ rerender_menu: true });
+				}
 			});
 	},
 
@@ -111,35 +113,83 @@ export const ListFilterMenu = {
 		return this.get_route_signature_from_filters(this.parse_layout_filters(layout));
 	},
 
+	/** Saved layout name from user settings (last manual or auto selection). */
+	get_saved_active_layout_name() {
+		const lv = this.list_view;
+		return frappe.get_user_settings(lv.doctype, lv.view_name)?.active_layout_name || "";
+	},
+
+	/** Persist last active layout for normal reopen (not used when URL carries navigation filters). */
+	save_active_layout_preference(name) {
+		const lv = this.list_view;
+		frappe.model.user_settings.save(lv.doctype, lv.view_name, {
+			active_layout_name: name === "default_layout" ? "" : name,
+		});
+	},
+
+	set_active_layout(layout) {
+		this.active_layout_name = layout.name;
+		this.active_layout_label = layout.layout_name;
+	},
+
+	set_active_default_layout() {
+		this.active_layout_name = "default_layout";
+		this.active_layout_label = this.default_layout_label;
+	},
+
+	find_layout_by_name(name) {
+		return (this.filters || []).find((layout) => layout.name === name) || null;
+	},
+
+	/** Match a saved layout to the current filter signature. */
+	find_layout_by_signature(signature) {
+		if (!signature) return null;
+		return (
+			(this.filters || []).find((layout) => {
+				const layout_signature = this.get_layout_route_signature(layout);
+				return layout_signature && layout_signature === signature;
+			}) || null
+		);
+	},
+
 	/** Pick active layout by matching URL filter signature; else Default Layout. */
 	restore_layout_from_route_signature({ refresh = true } = {}) {
+		const finish = () => {
+			this._initial_layout_restored = true;
+			this.update_layout_menu_selection({ rerender_menu: true });
+		};
+
 		if (this._user_selected_layout) {
+			finish();
 			return Promise.resolve();
 		}
 
 		const signature = this.get_route_signature();
 
-		// No URL filters → Default Layout (filters/sort from user settings already applied).
+		// No URL filters → last saved layout preference, else Default Layout.
 		if (!signature) {
-			this.active_layout_name = "default_layout";
-			this.active_layout_label = this.default_layout_label;
+			const saved_name = this.get_saved_active_layout_name();
+			const saved_layout = saved_name ? this.find_layout_by_name(saved_name) : null;
+			if (saved_layout) {
+				this.set_active_layout(saved_layout);
+				return this.apply_saved_layout(saved_layout, { refresh }).then(finish, finish);
+			}
+			this.set_active_default_layout();
+			finish();
 			return Promise.resolve();
 		}
 
-		const matched_layout = (this.filters || []).find((layout) => {
-			const layout_signature = this.get_layout_route_signature(layout);
-			return layout_signature && layout_signature === signature;
-		});
+		const matched_layout = this.find_layout_by_signature(signature);
 
 		if (!matched_layout) {
-			this.active_layout_name = "default_layout";
-			this.active_layout_label = this.default_layout_label;
+			this.set_active_default_layout();
+			finish();
 			return Promise.resolve();
 		}
 
-		this.active_layout_name = matched_layout.name;
-		this.active_layout_label = matched_layout.layout_name;
-		return this.apply_saved_layout(matched_layout, { refresh });
+		this.set_active_layout(matched_layout);
+		this.save_active_layout_preference(matched_layout.name);
+		return this.apply_saved_layout(matched_layout, { refresh }).then(finish, finish);
 	},
 
 	/** Render default, global, user, and action rows in the dropdown menu. */
@@ -206,6 +256,7 @@ export const ListFilterMenu = {
 		this.active_layout_name = name;
 		this.active_layout_label = label;
 		this._user_selected_layout = true;
+		this.save_active_layout_preference(name);
 		this.update_layout_menu_selection();
 
 		const apply_promise =
@@ -221,8 +272,9 @@ export const ListFilterMenu = {
 
 	/** Sync button label and menu tick with the active layout. */
 	update_layout_menu_selection({ rerender_menu = false } = {}) {
-		this.update_active_filter_label();
 		if (!this.layout_menu_group) return;
+
+		this.update_active_filter_label();
 
 		if (rerender_menu) {
 			this.render_saved_filters();
@@ -327,10 +379,6 @@ export const ListFilterMenu = {
 			} else {
 				lv.setup_columns();
 			}
-			lv.render_header(true);
-			if (refresh) {
-				lv.apply_column_widths();
-			}
 		};
 
 		const finish = () => {
@@ -363,14 +411,18 @@ export const ListFilterMenu = {
 
 	/** Set Saved Layouts button text to the active layout name. */
 	update_active_filter_label() {
+		if (!this.layout_menu_group) return;
+
 		const label = this.active_layout_label || this.default_layout_label;
-		$(
+		const label_node = $(
 			`.inner-group-button[data-label="${encodeURIComponent(
 				this.saved_layout_group_label
 			)}"] button`
 		)
 			.contents()
-			.first()[0].textContent = label;
+			.first()[0];
+		if (!label_node) return;
+		label_node.textContent = label;
 	},
 
 	/** Show tick on the currently selected layout row. */
