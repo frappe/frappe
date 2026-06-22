@@ -61,6 +61,7 @@ frappe.search.AwesomeBar = class AwesomeBar {
 		</div>`;
 
 		search_modal.find(".modal-body").css("padding", "0").html(search_modal_body);
+		search_modal.find(".modal-divider").addClass("hidden");
 		search_modal.find(".modal-header").css("display", "none");
 		search_modal
 			.find(".modal-footer")
@@ -181,19 +182,21 @@ frappe.search.AwesomeBar = class AwesomeBar {
 					me.options = me.options.concat(me.build_options(txt));
 					me.options = me.options.concat(me.global_results);
 				} else {
-					me.options = me.options.concat(
-						me.deduplicate(frappe.search.utils.get_recent_pages(txt || ""))
-					);
-					me.options = me.options.concat(frappe.search.utils.get_frequent_links());
+					// me.options = me.options.concat(
+					// 	me.deduplicate(frappe.search.utils.get_recent_pages(txt || ""))
+					// );
+					// me.options = me.options.concat(frappe.search.utils.get_frequent_links());
 				}
 				let options = me.deduplicate(me.options);
 				awesomplete.options_with_desc = me.create_options_with_descriptions(options);
 				Awesomplete.prototype._itemCursor = 0;
 				awesomplete.list = options;
+				const has_results = Boolean(options.length);
+				search_modal.find(".modal-divider").toggleClass("hidden", !has_results);
 				search_modal
 					.closest(".modal")
 					.find(".modal-footer")
-					.toggleClass("hidden", !options.length);
+					.toggleClass("hidden", !has_results);
 			}, 50)
 		);
 
