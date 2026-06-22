@@ -10,6 +10,8 @@ from frappe.modules.export_file import export_to_files
 
 
 class FormTour(Document):
+	_DOCTYPE_NAME = "Form Tour"
+
 	# begin: auto-generated types
 	# This code is auto-generated. Do not modify anything in this block.
 
@@ -76,6 +78,7 @@ class FormTour(Document):
 
 @frappe.whitelist()
 def reset_tour(tour_name: str):
+	frappe.only_for("System Manager")
 	for user in frappe.get_all("User", pluck="name"):
 		onboarding_status = frappe.parse_json(frappe.db.get_value("User", user, "onboarding_status"))
 		onboarding_status.pop(tour_name, None)

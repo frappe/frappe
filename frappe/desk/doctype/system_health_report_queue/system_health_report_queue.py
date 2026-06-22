@@ -6,6 +6,8 @@ from frappe.model.document import Document
 
 
 class SystemHealthReportQueue(Document):
+	_DOCTYPE_NAME = "System Health Report Queue"
+
 	# begin: auto-generated types
 	# This code is auto-generated. Do not modify anything in this block.
 

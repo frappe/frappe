@@ -12,17 +12,8 @@
 	cursor: pointer;
 }
 
-.mark-all-read {
-	margin-top: 2px;
-	margin-right: 4px;
-	cursor: pointer;
-}
-
 .close-notification-dialogue {
 	cursor: pointer;
-	.icon {
-		stroke-width: 2px;
-	}
 }
 
 .notification-settings {
@@ -171,7 +162,7 @@
 .recent-item {
 	padding: 10px;
 	margin: 4px 0px;
-	border-radius: var(--border-radius-md, 8px);
+	border-radius: var(--radius-md, 8px);
 	white-space: normal;
 	display: flex;
 	@include get_textstyle("base", "regular");
@@ -208,6 +199,7 @@
 			border: 2px solid var(--invert-neutral);
 			border-radius: 1000px;
 		}
+
 		.notification-body::before {
 			background: var(--invert-neutral);
 		}
@@ -283,14 +275,6 @@
 	}
 }
 
-.recent-item.open-docs {
-	@include flex(flex, space-between, null, null);
-
-	.indicator-pill {
-		margin: 0px;
-	}
-}
-
 .targets-container {
 	display: grid;
 	grid-template-columns: 1fr 1fr;
@@ -361,6 +345,7 @@
 @include media-breakpoint-down(sm) {
 	.dropdown-notifications {
 		.notifications-list {
+			position: fixed;
 			max-height: 100vh;
 			min-width: 100vw;
 			width: calc(90vw - 60px);

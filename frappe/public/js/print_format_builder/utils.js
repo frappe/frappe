@@ -115,7 +115,7 @@ export function get_table_columns(df) {
 }
 
 function get_field_template(print_format, fieldname) {
-	let templates = print_format.__onload.print_templates || {};
+	let templates = print_format?.__onload?.print_templates || [];
 	for (let template of templates) {
 		if (template.field === fieldname) {
 			return template;
@@ -125,10 +125,7 @@ function get_field_template(print_format, fieldname) {
 }
 
 function get_default_header(meta) {
-	return `<div class="document-header">
-	<h3>${meta.name}</h3>
-	<p>{{ doc.name }}</p>
-</div>`;
+	return { columns: [{ label: "", fields: [] }] };
 }
 
 export function pluck(object, keys) {
@@ -139,6 +136,22 @@ export function pluck(object, keys) {
 		}
 	}
 	return out;
+}
+
+export async function render_jinja_html(html, doctype, docname) {
+	if (!html) return html;
+	if (!html.includes("{{") && !html.includes("{%")) return html;
+	if (!doctype || !docname) return html;
+	try {
+		const r = await frappe.call("frappe.utils.print_format_generator.render_jinja_template", {
+			template: html,
+			doctype,
+			docname,
+		});
+		return r.message ?? html;
+	} catch {
+		return html;
+	}
 }
 
 export function get_image_dimensions(src) {

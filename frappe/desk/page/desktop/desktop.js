@@ -511,9 +511,9 @@ class DesktopPage {
 
 	setup_awesomebar() {
 		if (!frappe.is_mobile()) {
-			$(".desktop-keyboard-shortcut").html("Ctrl+K");
+			$(".search-widget-shortcut").html("Ctrl+K");
 			if (frappe.utils.is_mac()) {
-				$(".desktop-keyboard-shortcut").html("⌘K");
+				$(".search-widget-shortcut").html("⌘K");
 			}
 		}
 		if (this.awesomebar_setup) return;
@@ -521,22 +521,12 @@ class DesktopPage {
 
 		if (frappe.boot.desk_settings.search_bar) {
 			let awesome_bar = new frappe.search.AwesomeBar();
-			awesome_bar.setup(".desktop-search-wrapper #desktop-navbar-modal-search");
+			awesome_bar.setup(".search-widget-wrapper #search-widget-button");
 
-			frappe.ui.keys.add_shortcut({
-				shortcut: "ctrl+g",
-				action: function (e) {
-					$(".desktop-search-wrapper #desktop-navbar-modal-search").click();
-					e.preventDefault();
-					return false;
-				},
-				description: __("Open Awesomebar"),
-				ignore_inputs: true,
-			});
 			frappe.ui.keys.add_shortcut({
 				shortcut: "ctrl+k",
 				action: function (e) {
-					$(".desktop-search-wrapper #desktop-navbar-modal-search").click();
+					$(".search-widget-wrapper #search-widget-button").click();
 					e.preventDefault();
 					return false;
 				},
@@ -956,7 +946,42 @@ class DesktopIcon {
 		if (this.icon_type == "Folder") {
 			if (this.icon_data.child_icons.length == 0) return false;
 		}
+		if (!this.is_configured() && !this.can_see_misconfigured_icons()) {
+			return false;
+		}
 		return true;
+	}
+	can_see_misconfigured_icons() {
+		return (
+			frappe.boot.developer_mode || frappe.user.has_role(["System Manager", "Administrator"])
+		);
+	}
+	is_configured() {
+		if (this.child_icons?.length && (this.icon_type == "App" || this.icon_type == "Folder")) {
+			return true;
+		}
+		return Boolean(this.icon_route);
+	}
+	get_config_issue() {
+		const icon = this.icon_data;
+		if (icon.link_type == "External") {
+			return __("This icon is an External link, but no URL is set.");
+		}
+		if (icon.link_type == "Workspace Sidebar") {
+			let sidebar = frappe.boot.workspace_sidebar_item[icon.label.toLowerCase()];
+			if (!sidebar) {
+				return __("No workspace sidebar named '{0}' was found.", [icon.label]);
+			}
+			let first_link = sidebar.items.find((i) => i.type == "Link");
+			if (!first_link) {
+				return __("The '{0}' workspace sidebar has no links to open.", [icon.label]);
+			}
+			return __(
+				"The first link in the '{0}' sidebar points to {1} '{2}', which could not be found.",
+				[icon.label, first_link.link_type, first_link.link_to]
+			);
+		}
+		return __("This icon has no link type configured.");
 	}
 	get_child_icons_data() {
 		return this.icon_data.child_icons.sort((a, b) => a.idx - b.idx);
@@ -1034,7 +1059,8 @@ class DesktopIcon {
 	setup_click() {
 		const me = this;
 		if (this.child_icons?.length && (this.icon_type == "App" || this.icon_type == "Folder")) {
-			$(this.icon).on("click", () => {
+			$(this.icon).on("click", (event) => {
+				event.preventDefault();
 				let modal = frappe.desktop_utils.create_desktop_modal(me);
 				modal.setup(me.icon_title, me.child_icons, 4);
 				let $title = modal.modal.find(".modal-title");
@@ -1070,11 +1096,12 @@ class DesktopIcon {
 				this.icon.attr("href", this.icon_route);
 			} else {
 				this.icon.on("click", function (event) {
-					frappe.msgprint(
-						__(
-							"Icon is not correctly configured please check the workspace sidebar to it"
-						)
-					);
+					event.preventDefault();
+					frappe.msgprint({
+						title: __("Icon Not Configured"),
+						message: me.get_config_issue(),
+						indicator: "orange",
+					});
 				});
 			}
 		}
@@ -1162,6 +1189,11 @@ class DesktopModal {
 			this.modal.find(".modal-dialog").attr("id", "desktop-modal");
 			this.modal.find(".modal-body").addClass("desktop-modal-body");
 			this.$child_icons_wrapper = this.modal.find(".desktop-modal-body");
+			this.modal.find(".desktop-modal-heading").on("click", (e) => {
+				if (!$(e.target).closest(".modal-title").length) {
+					this.hide();
+				}
+			});
 		} else {
 			this.modal.find(".modal-title").text(icon_title);
 			$(this.modal.find(".modal-body")).empty();

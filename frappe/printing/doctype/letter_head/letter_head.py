@@ -9,6 +9,8 @@ from frappe.utils import flt, is_image
 
 
 class LetterHead(Document):
+	_DOCTYPE_NAME = "Letter Head"
+
 	# begin: auto-generated types
 	# This code is auto-generated. Do not modify anything in this block.
 
@@ -19,6 +21,7 @@ class LetterHead(Document):
 
 		align: DF.Literal["Left", "Right", "Center"]
 		content: DF.HTMLEditor | None
+		custom_css: DF.Code | None
 		disabled: DF.Check
 		footer: DF.HTMLEditor | None
 		footer_align: DF.Literal["Left", "Right", "Center"]
@@ -39,16 +42,12 @@ class LetterHead(Document):
 		standard: DF.Literal["No", "Yes"]
 	# end: auto-generated types
 
-	def before_insert(self):
-		# for better UX, let user set from attachment
-		if not frappe.flags.in_migrate and not frappe.flags.in_install:
-			self.source = "Image"
-
 	def on_trash(self):
 		from frappe.defaults import clear_default
 
 		clear_default("letter_head", self.name)
 		clear_default("default_letter_head_content", self.content)
+		clear_default("letter_head_report", self.name)
 		frappe.clear_cache()
 
 	def validate(self):
@@ -66,7 +65,13 @@ class LetterHead(Document):
 			and not frappe.flags.in_migrate
 			and not frappe.flags.in_install
 		):
-			if not frappe.db.exists("Letter Head", dict(is_default=1)):
+			if not frappe.db.exists(
+				"Letter Head",
+				{
+					"is_default": 1,
+					"letter_head_for": self.letter_head_for,
+				},
+			):
 				self.is_default = 1
 
 	def set_image(self):
@@ -132,16 +137,32 @@ class LetterHead(Document):
 	def set_as_default(self):
 		from frappe.utils import set_default
 
-		if self.is_default:
-			frappe.db.set_value("Letter Head", {"name": ["!=", self.name]}, "is_default", 0)
+		if self.is_default and self.letter_head_for == "DocType":
+			frappe.db.set_value(
+				"Letter Head",
+				{"name": ["!=", self.name], "letter_head_for": self.letter_head_for},
+				"is_default",
+				0,
+			)
 
 			set_default("letter_head", self.name)
-
 			# update control panel - so it loads new letter directly
-			frappe.db.set_default("default_letter_head_content", self.content)
+			set_default("default_letter_head_content", self.content)
 		else:
 			frappe.defaults.clear_default("letter_head", self.name)
 			frappe.defaults.clear_default("default_letter_head_content", self.content)
+
+		if self.is_default and self.letter_head_for == "Report":
+			frappe.db.set_value(
+				"Letter Head",
+				{"name": ["!=", self.name], "letter_head_for": self.letter_head_for},
+				"is_default",
+				0,
+			)
+
+			set_default("letter_head_report", self.name)
+		else:
+			frappe.defaults.clear_default("letter_head_report", self.name)
 
 	def export_letter_head(self):
 		return export_module_json(self, self.standard == "Yes", self.module)

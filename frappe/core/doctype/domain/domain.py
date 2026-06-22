@@ -8,6 +8,8 @@ from frappe.utils import cint
 
 
 class Domain(Document):
+	_DOCTYPE_NAME = "Domain"
+
 	# begin: auto-generated types
 	# This code is auto-generated. Do not modify anything in this block.
 

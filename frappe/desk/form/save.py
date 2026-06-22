@@ -109,3 +109,7 @@ def set_local_name(doc):
 
 	if doc.get("__newname"):
 		doc.name = doc.get("__newname")
+
+
+# Separate endpoint name for better logging
+submit = savedocs

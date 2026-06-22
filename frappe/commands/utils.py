@@ -407,9 +407,9 @@ def import_doc(context: CliCtxObj, path, force=False):
 @click.option(
 	"--type",
 	"import_type",
-	type=click.Choice(["Insert", "Update"], case_sensitive=False),
+	type=click.Choice(["Insert", "Update", "Upsert"], case_sensitive=False),
 	default="Insert",
-	help="Insert New Records or Update Existing Records",
+	help="Insert New Records, Update Existing Records, or Insert or Update Records",
 )
 @click.option("--submit-after-import", default=False, is_flag=True, help="Submit document after importing it")
 @click.option("--mute-emails", default=True, is_flag=True, help="Mute emails during import")
@@ -635,7 +635,8 @@ def console(context: CliCtxObj, autoreload=False):
 	try:
 		from IPython.core import ultratb
 
-		ultratb.VerboseTB._tb_highlight = "bg:ansibrightblack"
+		# Renamed from `_tb_highlight` in IPython 9.x (color system rewrite).
+		ultratb.VerboseTB.tb_highlight = "bg:ansibrightblack"
 	except Exception:
 		pass
 
@@ -994,7 +995,7 @@ def list_sites(context: CliCtxObj, output_json=False):
 
 @click.command("setup-chrome")
 def setup_chrome():
-	from frappe.utils.print_utils import setup_chromium
+	from frappe.utils.chromium import setup_chromium
 
 	setup_chromium()
 

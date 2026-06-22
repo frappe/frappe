@@ -162,8 +162,8 @@ frappe.views.ReportView = class ReportView extends frappe.views.ListView {
 
 			// update visible DOM elements and cell tooltip
 			document.querySelectorAll(`a[data-name="${key}"]`).forEach((el) => {
-				if (el.innerHTML === link_title) return;
-				el.innerHTML = link_title;
+				if (el.textContent === link_title) return;
+				el.textContent = link_title;
 
 				$(el).closest(".dt-cell__content").attr("title", link_title);
 			});
@@ -579,6 +579,7 @@ frappe.views.ReportView = class ReportView extends frappe.views.ListView {
 					options: y_fields,
 					description: __("Showing only Numeric fields from Report"),
 					default: defaults.y_axes ? defaults.y_axes.join(", ") : null,
+					include_default: true,
 				},
 				{
 					label: __("Chart Type"),

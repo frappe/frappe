@@ -19,6 +19,8 @@ parse_cron = lru_cache(croniter)  # Cache parsed cron-expressions
 
 
 class ScheduledJobType(Document):
+	_DOCTYPE_NAME = "Scheduled Job Type"
+
 	# begin: auto-generated types
 	# This code is auto-generated. Do not modify anything in this block.
 

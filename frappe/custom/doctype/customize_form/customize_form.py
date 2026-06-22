@@ -28,6 +28,8 @@ from frappe.utils import cint
 
 
 class CustomizeForm(Document):
+	_DOCTYPE_NAME = "Customize Form"
+
 	# begin: auto-generated types
 	# This code is auto-generated. Do not modify anything in this block.
 
@@ -42,6 +44,7 @@ class CustomizeForm(Document):
 
 		actions: DF.Table[DocTypeAction]
 		allow_auto_repeat: DF.Check
+		allow_bulk_edit: DF.Check
 		allow_copy: DF.Check
 		allow_import: DF.Check
 		autoname: DF.Data | None
@@ -257,6 +260,8 @@ class CustomizeForm(Document):
 			frappe.msgprint(_("{0} updated").format(_(self.doc_type)), alert=True)
 		frappe.clear_cache(doctype=self.doc_type)
 		self.fetch_to_customize()
+
+		frappe.publish_realtime("doctype_update", {"doctype": self.doc_type}, after_commit=True)
 
 		if self.flags.rebuild_doctype_for_global_search:
 			frappe.enqueue(
@@ -744,6 +749,7 @@ doctype_properties = {
 	"track_views": "Check",
 	"allow_auto_repeat": "Check",
 	"allow_import": "Check",
+	"allow_bulk_edit": "Check",
 	"show_name_in_global_search": "Check",
 	"show_preview_popup": "Check",
 	"default_email_template": "Data",
@@ -791,6 +797,7 @@ docfield_properties = {
 	"print_hide": "Check",
 	"print_hide_if_no_value": "Check",
 	"report_hide": "Check",
+	"in_import_template": "Check",
 	"allow_on_submit": "Check",
 	"translatable": "Check",
 	"mandatory_depends_on": "Data",

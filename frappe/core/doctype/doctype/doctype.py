@@ -86,6 +86,8 @@ form_grid_templates = {"fields": "templates/form_grid/fields.html"}
 
 
 class DocType(Document):
+	_DOCTYPE_NAME = "DocType"
+
 	# begin: auto-generated types
 	# This code is auto-generated. Do not modify anything in this block.
 
@@ -101,6 +103,7 @@ class DocType(Document):
 
 		actions: DF.Table[DocTypeAction]
 		allow_auto_repeat: DF.Check
+		allow_bulk_edit: DF.Check
 		allow_copy: DF.Check
 		allow_events_in_timeline: DF.Check
 		allow_guest_to_view: DF.Check
@@ -549,17 +552,37 @@ class DocType(Document):
 			and not frappe.flags.in_import
 			and (frappe.conf.developer_mode or frappe.flags.allow_doctype_export)
 		)
+		request = getattr(frappe.local, "request", None)
+		defer_doctype_export = request and hasattr(request, "after_response")
+		defer_module_methods = allow_doctype_export and defer_doctype_export
+
+		# Snapshot insert intent: flags.in_insert is cleared before request.after_response runs.
+		needs_after_doctype_insert = bool(self.flags.in_insert)
+
+		def run_doctype_module_methods():
+			self.run_module_method("on_doctype_update")
+			if needs_after_doctype_insert:
+				self.run_module_method("after_doctype_insert")
+
 		if allow_doctype_export:
-			self.export_doc()
-			self.make_controller_template()
-			self.set_base_class_for_controller()
-			self.export_types_to_controller()
+
+			def export_doctype_files():
+				self.export_doc()
+				self.make_controller_template()
+				self.set_base_class_for_controller()
+				self.export_types_to_controller()
+				if defer_module_methods:
+					run_doctype_module_methods()
+
+			# Defer file writes until after the response so the client can sync the saved doc first.
+			if defer_doctype_export:
+				request.after_response.add(export_doctype_files)
+			else:
+				export_doctype_files()
 
 		# update index
-		if not self.custom:
-			self.run_module_method("on_doctype_update")
-			if self.flags.in_insert:
-				self.run_module_method("after_doctype_insert")
+		if not self.custom and not defer_module_methods:
+			run_doctype_module_methods()
 
 		self.sync_doctype_layouts()
 		delete_notification_count_for(doctype=self.name)
@@ -573,6 +596,8 @@ class DocType(Document):
 			self.sync_global_search()
 
 		clear_linked_doctype_cache()
+
+		frappe.publish_realtime("doctype_update", {"doctype": self.name}, after_commit=True)
 
 	@savepoint(catch=Exception)
 	def sync_doctype_layouts(self):
@@ -1662,7 +1687,8 @@ def validate_fields(meta: Meta):
 
 		if "." not in field.fetch_from:
 			return
-		source_field, _target_field = field.fetch_from.split(".", maxsplit=1)
+		parts = field.fetch_from.split(".", maxsplit=1)
+		source_field, _target_field = parts
 
 		if source_field == field.fieldname:
 			msg = _(
@@ -1791,7 +1817,6 @@ def validate_fields(meta: Meta):
 
 def get_fields_not_allowed_in_list_view(meta) -> list[str]:
 	not_allowed_in_list_view = list(copy.copy(no_value_fields))
-	not_allowed_in_list_view.append("Attach Image")
 	if meta.istable:
 		not_allowed_in_list_view.remove("Button")
 		not_allowed_in_list_view.remove("HTML")
@@ -2034,7 +2059,7 @@ def make_module_and_roles(doc, perm_fieldname="permissions"):
 def check_fieldname_conflicts(docfield):
 	"""Checks if fieldname conflicts with methods or properties"""
 	doc = frappe.get_doc({"doctype": docfield.dt})
-	available_objects = [x for x in dir(doc) if isinstance(x, str)]
+	available_objects = [x for x in dir(doc) if isinstance(x, str) and x != "docs"]
 	property_list = [x for x in available_objects if is_a_property(getattr(type(doc), x, None))]
 	method_list = [x for x in available_objects if x not in property_list and callable(getattr(doc, x))]
 	msg = _("Fieldname {0} conflicting with meta object").format(docfield.fieldname)

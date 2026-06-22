@@ -15,6 +15,8 @@ from frappe.utils import cstr
 
 
 class Address(Document):
+	_DOCTYPE_NAME = "Address"
+
 	# begin: auto-generated types
 	# This code is auto-generated. Do not modify anything in this block.
 
@@ -179,7 +181,7 @@ def render_address(address: dict | str | None, check_permissions=True) -> str | 
 	name, template = get_address_templates(address)
 
 	try:
-		return frappe.render_template(template, address)
+		return frappe.render_template(template, address, restrict_globals=True)
 	except TemplateSyntaxError:
 		frappe.throw(_("There is an error in your Address Template {0}").format(name))
 

@@ -8,6 +8,8 @@ UNSEEN_NOTES_KEY = "unseen_notes::"
 
 
 class Note(Document):
+	_DOCTYPE_NAME = "Note"
+
 	# begin: auto-generated types
 	# This code is auto-generated. Do not modify anything in this block.
 
@@ -56,6 +58,7 @@ class Note(Document):
 @frappe.whitelist()
 def mark_as_seen(note: str):
 	note: Note = frappe.get_doc("Note", note)
+	note.check_permission("read")
 	note.mark_seen_by(frappe.session.user)
 	note.save(ignore_permissions=True, ignore_version=True)
 

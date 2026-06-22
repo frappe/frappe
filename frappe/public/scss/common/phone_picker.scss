@@ -59,13 +59,11 @@
 
 .phone-picker-popover {
 	max-width: 325px;
-	left: 29px !important;
 	.picker-arrow {
 		left: 15px !important;
 	}
 	@media (max-width: 992px) {
 		max-width: 325px;
-		left: 48px !important;
 	}
 }
 

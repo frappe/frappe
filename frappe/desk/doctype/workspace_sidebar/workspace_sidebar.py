@@ -8,14 +8,16 @@ import click
 
 import frappe
 from frappe import _
-from frappe.boot import get_allowed_pages, get_allowed_reports
+from frappe.desk.desk_views import DeskViews
 from frappe.model.document import Document
 from frappe.modules.export_file import strip_default_fields
 from frappe.modules.utils import create_directory_on_app_path
 from frappe.utils.caching import site_cache
 
 
-class WorkspaceSidebar(Document):
+class WorkspaceSidebar(Document, DeskViews):
+	_DOCTYPE_NAME = "Workspace Sidebar"
+
 	# begin: auto-generated types
 	# This code is auto-generated. Do not modify anything in this block.
 
@@ -39,12 +41,6 @@ class WorkspaceSidebar(Document):
 		if not frappe.flags.in_migrate:
 			self.user = frappe.get_user()
 			self.can_read = self.get_cached("user_perm_can_read", self.get_can_read_items)
-			self.allowed_modules = self.get_cached("user_allowed_modules", self.get_allowed_modules)
-
-		self.allowed_pages = get_allowed_pages(cache=True)
-		self.allowed_reports = get_allowed_reports(cache=True)
-		self.restricted_doctypes = frappe.cache.get_value("domain_restricted_doctypes")
-		self.restricted_pages = frappe.cache.get_value("domain_restricted_pages")
 
 	def get_can_read_items(self):
 		if not self.user.can_read:
@@ -75,33 +71,9 @@ class WorkspaceSidebar(Document):
 			frappe.throw(_("You need to be Workspace Manager to delete a public workspace."))
 
 	def after_rename(self, old, new, merge):
-		delete_file(self.app, old)
-		self.export_sidebar()
-
-	def is_item_allowed(self, name, item_type, allowed_workspaces):
-		if frappe.session.user == "Administrator":
-			return True
-
-		item_type = item_type.lower()
-
-		if item_type == "doctype":
-			return (
-				name in (self.can_read or [])
-				and name in (self.restricted_doctypes or [])
-				and frappe.has_permission(name)
-			)
-		if item_type == "page":
-			return name in self.allowed_pages and name in self.restricted_pages
-		if item_type == "report":
-			return name in self.allowed_reports
-		if item_type == "help":
-			return True
-		if item_type == "dashboard":
-			return True
-		if item_type == "url":
-			return True
-		if item_type == "workspace":
-			return name in allowed_workspaces
+		if self.standard:
+			delete_file(self.app, old)
+			self.export_sidebar()
 
 	def get_cached(self, cache_key, fallback_fn):
 		value = frappe.cache.get_value(cache_key, user=frappe.session.user)
@@ -132,12 +104,6 @@ class WorkspaceSidebar(Document):
 		counts = Counter(all_modules_in_sidebars)
 		if counts and counts.most_common(1)[0]:
 			return counts.most_common(1)[0][0]
-
-	def get_allowed_modules(self):
-		if not self.user.allow_modules:
-			self.user.build_permissions()
-
-		return self.user.allow_modules
 
 
 def delete_file(app, title):
@@ -275,10 +241,7 @@ def auto_generate_sidebar_from_module():
 	"""Auto generate sidebar from module"""
 	sidebars = []
 	for module in frappe.get_all("Module Def", pluck="name"):
-		if not (
-			frappe.db.exists("Workspace Sidebar", {"module": module, "for_user": None})
-			or frappe.db.exists("Workspace Sidebar", {"name": module, "for_user": None})
-		):
+		if not (frappe.db.exists("Workspace Sidebar", {"name": module, "for_user": None})):
 			module_info = get_module_info(module)
 			sidebar_items = create_sidebar_items(module_info)
 			sidebar = frappe.new_doc("Workspace Sidebar")
@@ -317,32 +280,9 @@ def get_module_info(module_name):
 			"Dashboard": module_info.get("Dashboard"),
 			"Page": module_info.get("Page"),
 		}
-	top_doctypes = choose_top_doctypes(module_info.get("DocType"))
-	if top_doctypes:
-		module_info["DocType"] = choose_top_doctypes(module_info.get("DocType"))
-	return module_info
-
-
-def choose_top_doctypes(doctype_names):
-	from frappe.model.utils import is_single_doctype
-
 	doctype_limit = 3
-	if len(doctype_names) > doctype_limit:
-		try:
-			doctype_count_map = {}
-			for doctype in doctype_names:
-				if not is_single_doctype(doctype) and not frappe.get_meta(doctype).is_virtual:
-					doctype_count_map[doctype] = frappe.db.count(doctype)
-			top_doctypes = [
-				name
-				for name, count in sorted(doctype_count_map.items(), key=lambda x: x[1], reverse=True)[
-					:doctype_limit
-				]
-			]
-			return top_doctypes
-		except frappe.db.ProgrammingError:
-			# catches table not found errors
-			return None
+	module_info["DocType"] = (module_info.get("DocType") or [])[:doctype_limit]
+	return module_info
 
 
 def create_sidebar_items(module_info):

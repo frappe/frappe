@@ -1,15 +1,17 @@
 # Copyright (c) 2015, Frappe Technologies Pvt. Ltd. and Contributors
 # License: MIT. See LICENSE
+import functools
 import hashlib
+import inspect
 import itertools
 import json
 import time
 import warnings
-from collections.abc import Generator, Iterable
+from collections.abc import Callable, Generator, Iterable
 from contextlib import contextmanager
-from functools import wraps
+from functools import cached_property, wraps
 from types import MappingProxyType
-from typing import TYPE_CHECKING, Any, Literal, Optional, Self, TypeAlias, Union, overload, override
+from typing import TYPE_CHECKING, Any, ClassVar, Literal, Optional, Self, TypeAlias, Union, overload, override
 
 from werkzeug.exceptions import NotFound
 
@@ -40,6 +42,23 @@ if TYPE_CHECKING:
 
 DOCUMENT_LOCK_EXPIRY = 3 * 60 * 60  # All locks expire in 3 hours automatically
 DOCUMENT_LOCK_SOFT_EXPIRY = 30 * 60  # Let users force-unlock after 30 minutes
+_POSITIONAL_PARAM_KINDS = frozenset(
+	(inspect.Parameter.POSITIONAL_ONLY, inspect.Parameter.POSITIONAL_OR_KEYWORD)
+)
+
+
+@functools.cache
+def _accepts_method_argument(f: Callable) -> bool:
+	"""Return True if the doc event handler expects the `method` argument."""
+	signature = inspect.signature(f)
+	kinds = [p.kind for p in signature.parameters.values()]
+	if any(kind == inspect.Parameter.VAR_POSITIONAL for kind in kinds):
+		return True
+
+	if sum(1 for kind in kinds if kind in _POSITIONAL_PARAM_KINDS) > 1:
+		return True
+
+	return False
 
 
 type _SingleDocument = "Document"
@@ -330,8 +349,101 @@ def get_doc_permission_check(doc: "Document", check_permission: str | bool | Non
 	return doc
 
 
+class DocsCollection[T]:
+	"""APIs to manage collections of documents."""
+
+	__slots__ = ("_owner_cls",)
+
+	def __set_name__(self, owner: type, name: str) -> None:
+		self._owner_cls = owner
+
+	def __get__(self, instance, owner: type | None = None) -> "DocsCollection[T]":
+		if instance is not None:
+			raise AttributeError(
+				f"`docs` isn't accessible via {type(instance).__name__} instances; use the class instead."
+			)
+		# Bind the actual accessing class so subclasses report their own doctype.
+		bound = DocsCollection.__new__(DocsCollection)
+		bound._owner_cls = owner or self._owner_cls
+		return bound
+
+	@property
+	def _doctype(self) -> str:
+		doctype = getattr(self._owner_cls, "_DOCTYPE_NAME", None)
+		if not doctype:
+			raise AttributeError(
+				f"{self._owner_cls.__name__} does not define `_DOCTYPE_NAME`; "
+				"controller class must declare its DocType name to use `docs`."
+			)
+		return doctype
+
+	def get(
+		self,
+		name: str | int | None = None,
+		*,
+		cached: bool = False,
+		lazy: bool = False,
+		for_update: bool = False,
+		check_permission: str | bool | None = None,  # TODO: Default to true?
+	) -> T:
+		"""Fetch a single document of this DocType by name (or filter dict)."""
+		if cached and lazy:
+			raise ValueError("`cached` and `lazy` are mutually exclusive")
+
+		if not isinstance(name, str | int | None):
+			raise ValueError("`name` has to be a string or integer or None.")
+
+		if lazy:
+			return get_lazy_doc(self._doctype, name, for_update=for_update, check_permission=check_permission)
+		if cached:
+			return get_cached_doc(self._doctype, name)
+		return get_doc(self._doctype, name, for_update=for_update, check_permission=check_permission)
+
+	def last(
+		self,
+		filters: FilterSignature | None = None,
+		order_by: str = "creation desc",
+		*,
+		for_update: bool = False,
+	) -> T:
+		"""Return the most recently created document, optionally filtered."""
+		return get_last_doc(self._doctype, filters=filters, order_by=order_by, for_update=for_update)
+
+	def filter(
+		self,
+		filters: dict | None = None,
+		*,
+		chunk_size: int = 1000,
+		limit: int | None = None,
+		limit_start: int = 0,
+		order_by: str = "creation asc",
+		as_iterator: bool = False,
+		for_update: bool = False,
+		distinct: bool = False,
+	) -> list[T] | Generator[T]:
+		"""Return all documents matching `filters`."""
+		return get_docs(
+			self._doctype,
+			filters=filters,
+			chunk_size=chunk_size,
+			limit=limit,
+			limit_start=limit_start,
+			order_by=order_by,
+			as_iterator=as_iterator,
+			for_update=for_update,
+			distinct=distinct,
+		)
+
+	def new(self, **kwargs) -> T:
+		"""Create a new (unsaved) document with the given field values."""
+		return new_doc(self._doctype, **kwargs)
+
+
 class Document(BaseDocument):
 	"""All controllers inherit from `Document`."""
+
+	_DOCTYPE_NAME: ClassVar[str | None] = None
+	docs: "DocsCollection[Self]" = DocsCollection()
 
 	doctype: DF.Data
 	name: DF.Data | None
@@ -439,14 +551,13 @@ class Document(BaseDocument):
 			super().__init__(d)
 		self.flags.pop("ignore_children", None)
 
+		assert self.name, "document must have a name after loading from db"
+
 		self.load_children_from_db()
 
 		# sometimes __setup__ can depend on child values, hence calling again at the end
 		if hasattr(self, "__setup__"):
 			self.__setup__()
-
-		if not is_doctype:
-			self.mask_fields()
 
 		return self
 
@@ -699,6 +810,7 @@ class Document(BaseDocument):
 
 		self.check_if_locked()
 		self._set_defaults()
+		self._restore_masked_fields_from_db()
 		self.check_permission("write", "save")
 
 		self.set_user_and_timestamp()
@@ -871,6 +983,7 @@ class Document(BaseDocument):
 				set_new_name(d)
 
 		self.flags.name_set = True
+		assert self.name, "document name must be set after set_new_name"
 
 	def get_title(self):
 		"""Get the document title based on title_field or `title` or `name`"""
@@ -1074,7 +1187,7 @@ class Document(BaseDocument):
 		return same
 
 	def apply_fieldlevel_read_permissions(self):
-		"""Remove values the user is not allowed to read."""
+		"""Remove values the user is not allowed to read, and mask fields per mask permissions."""
 		if frappe.session.user == "Administrator":
 			return
 
@@ -1083,6 +1196,7 @@ class Document(BaseDocument):
 			all_fields += frappe.get_meta(table_field.options).fields or []
 
 		if all(df.permlevel == 0 for df in all_fields):
+			self.mask_fields()
 			return
 
 		has_access_to = self.get_permlevel_access("read")
@@ -1102,6 +1216,25 @@ class Document(BaseDocument):
 						if hasattr(child, df.fieldname):
 							delattr(child, df.fieldname)
 
+		self.mask_fields()
+
+	def _restore_masked_fields_from_db(self):
+		"""Restore masked field values from DB so that link-field user-permission checks
+		are not tripped by the XXXXXXXX placeholder sent from the client."""
+		if frappe.flags.in_install or frappe.session.user == "Administrator" or self.is_new():
+			return
+
+		mask_fields = self.meta.get_masked_fields()
+		if not mask_fields:
+			return
+
+		# frappe.db.get_value() goes through the query builder which re-masks results for
+		# non-admin users, returning XXXXXXXX. frappe.get_doc() uses load_from_db() which
+		# queries the DB directly and always returns the actual stored value.
+		db_doc = frappe.get_doc(self.doctype, self.name)
+		for df in mask_fields:
+			self.set(df.fieldname, db_doc.get(df.fieldname))
+
 	def validate_higher_perm_levels(self):
 		"""If the user does not have permissions at permlevel > 0, then reset the values to original / default"""
 		if self.flags.ignore_permissions or frappe.flags.in_install:
@@ -1113,10 +1246,8 @@ class Document(BaseDocument):
 		has_access_to = self.get_permlevel_access()
 		high_permlevel_fields = self.meta.get_high_permlevel_fields()
 
-		mask_fields = self.meta.get_masked_fields()
-
-		if high_permlevel_fields or mask_fields:
-			self.reset_values_if_no_permlevel_access(has_access_to, high_permlevel_fields, mask_fields)
+		if high_permlevel_fields:
+			self.reset_values_if_no_permlevel_access(has_access_to, high_permlevel_fields)
 
 		# If new record then don't reset the values for child table
 		if self.is_new():
@@ -1212,6 +1343,12 @@ class Document(BaseDocument):
 		- Submit (1) > Cancel (2)
 
 		"""
+		assert from_docstatus in (
+			DocStatus.DRAFT,
+			DocStatus.SUBMITTED,
+			DocStatus.CANCELLED,
+		), "from_docstatus must be a valid docstatus (0, 1, or 2)"
+
 		if self.flags.skip_docstatus_validation:
 			return
 
@@ -1467,8 +1604,10 @@ class Document(BaseDocument):
 
 		return children
 
-	def run_method(self, method, *args, **kwargs):
+	def run_method(self, method: str, *args, **kwargs):
 		"""run standard triggers, plus those in hooks"""
+
+		assert not method.startswith("__"), "Run method is for hooks, avoid usage on internal methods"
 
 		def fn(self, *args, **kwargs):
 			method_object = getattr(self, method, None)
@@ -1858,7 +1997,11 @@ class Document(BaseDocument):
 				for f in hooks:
 					try:
 						frappe.db._disable_transaction_control += 1
-						add_to_return_value(self, f(self, method, *args, **kwargs))
+						# Allow handlers to be defined without method arg, e.g. `handler(doc)`
+						if not args and not _accepts_method_argument(f):
+							add_to_return_value(self, f(self, **kwargs))
+						else:
+							add_to_return_value(self, f(self, method, *args, **kwargs))
 					finally:
 						frappe.db._disable_transaction_control -= 1
 
@@ -2387,8 +2530,8 @@ class LazyChildTable:
 		fieldname = self.fieldname
 		__dict = doc.__dict__
 		assert fieldname not in __dict, "Descriptor should not override existing values"
-		children = doc._load_child_table_from_db(fieldname, self.doctype) or []
 		__dict[fieldname] = []
+		children = doc._load_child_table_from_db(fieldname, self.doctype) or []
 		# Update __dict__ and convert to Document objects
 		doc.extend(fieldname, children)
 		return __dict[fieldname]

@@ -52,7 +52,8 @@ frappe.ui.form.ControlTable = class ControlTable extends frappe.ui.form.Control 
 				data.shift();
 			} else {
 				// no column header, map to the existing visible columns
-				const visible_columns = grid_rows[0].get_visible_columns();
+				const visible_columns =
+					grid.grid_rows_by_docname[row_docname].get_visible_columns();
 				let target_column_matched = false;
 				visible_columns.forEach((column) => {
 					// consider all columns after the target column.
@@ -110,7 +111,7 @@ frappe.ui.form.ControlTable = class ControlTable extends frappe.ui.form.Control 
 	get_field(field_name) {
 		let fieldname;
 		field_name = field_name.toLowerCase();
-		this.grid?.meta?.fields.some((field) => {
+		this.grid?.meta?.fields?.some((field) => {
 			if (frappe.model.no_value_type.includes(field.fieldtype)) {
 				return false;
 			}

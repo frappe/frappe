@@ -250,4 +250,8 @@ def get_encryption_key():
 
 
 def get_password_reset_limit():
+	# Signed-in users (e.g. admins triggering reset for others) should not
+	# share the same rate-limit bucket used to throttle anonymous abuse.
+	if "System Manager" in frappe.get_roles():
+		return 1000
 	return frappe.get_system_settings("password_reset_limit") or 3

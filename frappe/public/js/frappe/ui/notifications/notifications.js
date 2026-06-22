@@ -28,9 +28,8 @@ frappe.ui.Notifications = class Notifications {
 	}
 
 	setup_headers() {
-		// Add header actions
 		$(`<span class="notification-settings" data-action="go_to_settings">
-			${frappe.utils.icon("setting-gear")}
+			${frappe.utils.icon("settings")}
 		</span>`)
 			.on("click", (e) => {
 				e.stopImmediatePropagation();
@@ -41,14 +40,14 @@ frappe.ui.Notifications = class Notifications {
 			.tooltip({ delay: { show: 600, hide: 100 }, trigger: "hover" });
 
 		$(`<span class="mark-all-read" data-action="mark_all_as_read">
-			${frappe.utils.icon("mark-as-read")}
+			${frappe.utils.icon("check-check")}
 		</span>`)
 			.on("click", (e) => this.mark_all_as_read(e))
 			.appendTo(this.header_actions)
 			.attr("title", __("Mark all as read"))
 			.tooltip({ delay: { show: 600, hide: 100 }, trigger: "hover" });
 
-		$(`<span class="close-notification-dialogue pull-right">
+		$(`<span class="close-notification-dialogue">
 			${frappe.utils.icon("x")}
 		</span>`)
 			.on("click", (e) => {
@@ -359,9 +358,9 @@ class NotificationsView extends BaseNotificationsView {
 					$(`<div class="notification-null-state">
 					<div class="text-center">
 						<img src="/assets/frappe/images/ui-states/notification-empty-state.svg" alt="Generic Empty State" class="null-state">
-						<div class="title">${__("No New notifications")}</div>
+						<div class="title">${__("No new notifications")}</div>
 						<div class="subtitle">
-							${__("Looks like you haven’t received any notifications.")}
+							${__("Looks like you haven't received any notifications.")}
 					</div></div></div>`)
 				);
 			}
@@ -586,7 +585,7 @@ class ChangelogFeedView extends BaseNotificationsView {
 			html = `<div class="notification-null-state">
 						<div class="text-center">
 							<img src="/assets/frappe/images/ui-states/notification-empty-state.svg" alt="Generic Empty State" class="null-state">
-							<div class="title">${__("Nothing New")}</div>
+							<div class="title">${__("Nothing new")}</div>
 							<div class="subtitle">
 								${__("There is nothing new to show you right now.")}
 							</div>

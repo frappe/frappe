@@ -3,6 +3,7 @@
 	background: var(--navbar-bg);
 	border-bottom: 1px solid var(--border-color);
 	padding: 0;
+
 	.navbar-brand {
 		margin-right: 0px;
 	}
@@ -23,15 +24,18 @@
 			padding: 0;
 		}
 	}
+
 	.container {
 		padding: 0 1rem;
 	}
+
 	.vertical-bar {
 		border-right: 1px solid var(--dark-border-color);
 		height: 24px;
 		margin: auto;
 		margin-left: var(--margin-md);
 	}
+
 	.nav-item {
 		margin: auto;
 		margin-left: var(--margin-md);
@@ -49,36 +53,46 @@
 
 .search-bar {
 	max-width: 300px;
+	height: 100%;
+
 	svg {
 		stroke: var(--icon-stroke);
 		margin-bottom: 2px;
 	}
+
 	.awesomplete {
 		width: 100%;
 		--awesomebar-shadow: var(--shadow-2xl);
+
 		input {
 			width: 100% !important;
 			padding-left: 36px;
 			height: 28px;
 			@include get_textstyle("sm", "regular");
 		}
+
 		input:focus {
 			border-bottom-left-radius: 0;
 			border-bottom-right-radius: 0;
 			box-shadow: var(--awesomebar-shadow);
 			background-color: var(--awesomebar-focus-bg);
 		}
+
 		ul {
 			border: none;
 			border-top: 1px solid var(--border-color);
-			border-radius: 0 0 var(--border-radius) var(--border-radius);
+			border-radius: 0 0 var(--radius) var(--radius);
 			box-shadow: var(--awesomebar-shadow);
 		}
+
 		input::placeholder {
 			color: var(--text-light);
 		}
 	}
+
 	.search-icon {
+		display: inline-flex;
+		align-items: center;
 		background-color: var(--control-bg);
 		border-radius: 8px;
 		padding: 6px;
@@ -92,6 +106,7 @@
 
 	.awesomplete {
 		width: 100%;
+
 		ul {
 			position: relative;
 			background-color: transparent;
@@ -100,6 +115,7 @@
 			box-shadow: none;
 			margin-top: 12px;
 		}
+
 		ul[hidden] {
 			display: block !important;
 		}
@@ -122,14 +138,17 @@
 
 .awesomebar-modal-footer {
 	font-size: 12px;
+
 	.help-navigation {
 		display: flex;
 		gap: var(--margin-md);
+
 		.help-item-navigate {
 			display: flex;
 			gap: var(--margin-xs);
 			align-items: center;
 		}
+
 		.help-item {
 			background-color: var(--border-color);
 			padding: 3px;
@@ -137,6 +156,7 @@
 			font-size: x-small;
 			border-radius: 4px;
 		}
+
 		.help-item-escape {
 			padding: 2px 4px;
 			display: inline-flex;

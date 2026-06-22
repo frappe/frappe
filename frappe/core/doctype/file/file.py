@@ -47,6 +47,8 @@ FILE_ENCODING_OPTIONS = ("utf-8-sig", "utf-8", "windows-1250", "windows-1252")
 
 
 class File(Document):
+	_DOCTYPE_NAME = "File"
+
 	# begin: auto-generated types
 	# This code is auto-generated. Do not modify anything in this block.
 
@@ -102,6 +104,9 @@ class File(Document):
 			self.name = frappe.generate_hash(length=10)
 
 	def before_insert(self):
+		if self.attached_to_doctype and not self.attached_to_name:
+			self.attached_to_doctype = None
+			self.attached_to_field = None
 		# Ensure correct formatting and type
 		self.file_url = unquote(self.file_url) if self.file_url else ""
 
@@ -111,6 +116,7 @@ class File(Document):
 		self.validate_attachment_limit()
 		self.set_file_type()
 		self.validate_file_extension()
+		self.validate_private_file_access()
 
 		if self.is_folder:
 			return
@@ -200,6 +206,36 @@ class File(Document):
 			except PermissionError:
 				frappe.throw(_("Only System Managers can make this file public."))
 
+	def validate_private_file_access(self):
+		"""Validate that the user has permission to access an existing private file."""
+		if not self.file_url:
+			return
+
+		existing_files = frappe.get_all(
+			"File",
+			filters={"file_url": self.file_url},
+			fields=["name", "owner", "is_private"],
+			limit=1,
+		)
+
+		if not existing_files:
+			return
+
+		existing_file = existing_files[0]
+
+		if existing_file.is_private:
+			user = frappe.session.user
+
+			if user == existing_file.owner or user == "Administrator":
+				return
+
+			existing_doc = frappe.get_doc("File", existing_file.name)
+			if not has_permission(existing_doc, "read", user=user):
+				frappe.throw(
+					_("You do not have permission to access this file"),
+					frappe.PermissionError,
+				)
+
 	def after_rename(self, *args, **kwargs):
 		for successor in self.get_successors():
 			setup_folder_path(successor, self.name)
@@ -269,8 +305,8 @@ class File(Document):
 		if self.is_remote_file or not self.file_url:
 			return
 
-		if not self.file_url.startswith(("/files/", "/private/files/", "/api/method/")):
-			# Probably an invalid URL since it doesn't start with http and isn't an internal URL either
+		if not self.file_url.startswith(("/files/", "/private/files/")):
+			# Probably an invalid URL since it doesn't start with http either
 			frappe.throw(
 				_("URL must start with http:// or https://"),
 				title=_("Invalid URL"),
@@ -937,7 +973,7 @@ def has_permission(doc, ptype=None, user=None, debug=False):
 		attached_to_name = doc.attached_to_name
 
 		try:
-			ref_doc = frappe.get_doc(attached_to_doctype, attached_to_name)
+			ref_doc = frappe.get_lazy_doc(attached_to_doctype, attached_to_name)
 		except (ModuleNotFoundError, ImportError):
 			return False
 		except frappe.DoesNotExistError:

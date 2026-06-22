@@ -103,6 +103,9 @@ class SubmittableDocumentTree:
 		if self.root_docname in self.visited_documents.get(self.root_doctype, []):
 			self.visited_documents[self.root_doctype].remove(self.root_docname)
 
+		assert self.root_docname not in self.visited_documents.get(self.root_doctype, []), (
+			"root document must be excluded from linked children"
+		)
 		return self.visited_documents
 
 	def get_next_level_children(self, parent_dt, parent_names):
@@ -466,8 +469,14 @@ def get_linked_docs(doctype: str, name: str, linkinfo: dict | None = None) -> di
 			filters = [[linked_doctype, "name", "=", parent_info.parent]]
 
 		elif child_doctype := link_context.get("child_doctype"):
+			# doctype may link through more than one child table, each with its own Link field
+			child_links = link_context.get("child_links") or [
+				{"child_doctype": child_doctype, "fieldname": link_context["fieldname"]}
+			]
 			or_filters = [
-				[child_doctype, link_fieldnames, "=", name] for link_fieldnames in link_context["fieldname"]
+				[child_link["child_doctype"], fieldname, "=", name]
+				for child_link in child_links
+				for fieldname in child_link["fieldname"]
 			]
 
 			# dynamic link_context
@@ -624,7 +633,8 @@ def get_linked_fields(doctype, without_ignore_user_permissions_enabled=False):
 	for doctype_name in links_dict:
 		ret[doctype_name] = {"fieldname": links_dict.get(doctype_name)}
 	table_doctypes = frappe.get_all(
-		"DocType", filters=[["istable", "=", "1"], ["name", "in", tuple(links_dict)]]
+		"DocType",
+		filters=[["istable", "=", "1"], ["is_virtual", "=", "0"], ["name", "in", tuple(links_dict)]],
 	)
 	child_filters = [
 		["fieldtype", "in", frappe.model.table_fields],
@@ -637,7 +647,14 @@ def get_linked_fields(doctype, without_ignore_user_permissions_enabled=False):
 	for parent, options in frappe.get_all(
 		"DocField", fields=["parent", "options"], filters=child_filters, as_list=1
 	):
-		ret[parent] = {"child_doctype": options, "fieldname": links_dict[options]}
+		child_link = {"child_doctype": options, "fieldname": links_dict[options]}
+		if parent in ret and "child_doctype" in ret[parent]:
+			# parent links to doctype through more than one child table
+			if "child_links" not in ret[parent]:
+				ret[parent]["child_links"] = [dict(ret[parent])]
+			ret[parent]["child_links"].append(child_link)
+		else:
+			ret[parent] = child_link
 		ret.pop(options, None)
 
 	virtual_doctypes = frappe.get_all("DocType", {"is_virtual": 1}, pluck="name")

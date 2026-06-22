@@ -323,11 +323,13 @@
    "depends_on": "eval:doc.enabled && (!doc.__islocal || !cint(doc.send_welcome_email))",
    "fieldname": "change_password",
    "fieldtype": "Section Break",
+   "hidden": 1,
    "label": "Change Password"
   },
   {
    "fieldname": "new_password",
    "fieldtype": "Password",
+   "hidden": 1,
    "label": "Set New Password",
    "no_copy": 1
   },
@@ -335,6 +337,7 @@
    "default": "1",
    "fieldname": "logout_all_sessions",
    "fieldtype": "Check",
+   "hidden": 1,
    "label": "Logout From All Devices After Changing Password"
   },
   {
@@ -848,7 +851,7 @@
    "options": "User Session Display"
   },
   {
-   "default": "0",
+   "default": "1",
    "fieldname": "form_navigation_buttons",
    "fieldtype": "Check",
    "label": "Show navigation buttons"
@@ -905,7 +908,7 @@
   }
  ],
  "make_attachments_public": 1,
- "modified": "2026-02-22 13:44:36.317890",
+ "modified": "2026-05-26 11:34:02.705214",
  "modified_by": "Administrator",
  "module": "Core",
  "name": "User",

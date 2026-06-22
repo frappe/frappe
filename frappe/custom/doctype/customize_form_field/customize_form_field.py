@@ -5,6 +5,8 @@ from frappe.model.document import Document
 
 
 class CustomizeFormField(Document):
+	_DOCTYPE_NAME = "Customize Form Field"
+
 	# begin: auto-generated types
 	# This code is auto-generated. Do not modify anything in this block.
 
@@ -81,6 +83,7 @@ class CustomizeFormField(Document):
 		ignore_xss_filter: DF.Check
 		in_filter: DF.Check
 		in_global_search: DF.Check
+		in_import_template: DF.Check
 		in_list_view: DF.Check
 		in_preview: DF.Check
 		in_standard_filter: DF.Check
