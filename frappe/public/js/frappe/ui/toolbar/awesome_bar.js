@@ -184,7 +184,7 @@ frappe.search.AwesomeBar = class AwesomeBar {
 
 				// hide footer and remove spacing when there are no results
 				$(this.awesomplete.ul).toggleClass("p-0 m-0", cint(me.options?.length) == 0);
-				me.search_modal
+				search_modal
 					.find(".cool-awesomebar-modal-footer")
 					.toggleClass("hide", cint(me.options?.length) == 0);
 			}, 50)
