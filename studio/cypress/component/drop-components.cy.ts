@@ -15,9 +15,9 @@ import { registerGlobalComponents } from "@/globals"
 import useCanvasStore from "@/stores/canvasStore"
 import type { FrappeUIComponent } from "@/types"
 
-const DATA_DEPENDENT = ["ListView", "Link", "Filter", "Calendar", "NumberChart", "AxisChart", "DonutChart"]
-const SPECIAL = ["Dialog", "Repeater"]
-const SKIP = new Set([...DATA_DEPENDENT, ...SPECIAL])
+const DATA_DEPENDENT = ["ListView", "Link", "Filter", "Calendar", "NumberChart", "AxisChart", "DonutChart", "Repeater"]
+const FLOATING = ["Dialog", "Tooltip", "ContextMenu"]
+const SKIP = new Set([...DATA_DEPENDENT, ...FLOATING])
 
 const componentsToTest = componentsData.list.filter((component) => !SKIP.has(component.name))
 
