@@ -30,7 +30,6 @@ app_include_js = [
 	"controls.bundle.js",
 	"report.bundle.js",
 	"telemetry.bundle.js",
-	"/assets/frappe/js/frappe/document_queue_review.js?v=document-queue-review-20260623-22",
 ]
 
 app_include_css = [
