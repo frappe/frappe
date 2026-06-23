@@ -161,6 +161,9 @@ class SQLiteDatabase(SQLiteExceptionUtil, Database):
 
 	def create_connection(self, read_only: bool = False):
 		db_path = self.get_db_path()
+		# Columns are declared DATETIME (see SQLiteTable.create); register that name too so
+		# PARSE_DECLTYPES surfaces datetime objects -- matching MariaDB -- instead of raw strings.
+		sqlite3.register_converter("datetime", _parse_timestamp)
 		sqlite3.register_converter("timestamp", _parse_timestamp)
 		sqlite3.register_converter("date", _parse_date)
 		sqlite3.register_converter("time", _parse_time)
