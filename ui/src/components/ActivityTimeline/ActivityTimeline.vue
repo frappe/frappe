@@ -14,7 +14,7 @@
 		</div>
 		<div v-else class="activities mt-0.5">
 			<div
-				v-for="(activity, i) in orderedActivities"
+				v-for="(activity, i) in activities"
 				:key="activity.key"
 				:id="activity.key"
 				class="activity mt-2"
@@ -26,7 +26,7 @@
 					<div
 						class="relative flex justify-center after:absolute after:start-[50%] after:top-3 after:-z-10 after:border-s after:border-outline-gray-modals"
 						:class="[
-							i != orderedActivities.length - 1 && 'after:h-full',
+							i != activities.length - 1 && 'after:h-full',
 							isOneLiner(activity) && 'after:top-6',
 						]"
 					>
@@ -37,57 +37,144 @@
 								isOneLiner(activity) && 'mt-[2px]',
 							]"
 						>
-							<Avatar
-								v-if="activity.type === 'email'"
-								size="lg"
-								:label="activity.senderFullName"
-								:image="activity.senderImage"
-								class="absolute start-[0.7px] bg-surface-white"
-							/>
-							<template
-								v-else-if="
-									activity.type === 'audit' || activity.type === 'attachment_log'
-								"
-							>
-								<DotIcon
-									v-if="
-										activity.type === 'audit' &&
-										(activity.subtype === 'assigned' ||
-											activity.subtype === 'assignment_completed')
-									"
-									class="text-ink-gray-5"
+							<!-- gutter ladder: #icon-{type} slot > envelope icon > per-type default -->
+							<slot :name="`icon-${activity.type}`" :activity="activity">
+								<component
+									v-if="activity.icon && typeof activity.icon !== 'string'"
+									:is="activity.icon"
+									class="size-4 text-ink-gray-5"
 								/>
 								<span
-									v-else
-									:class="[gutterIconClass(activity), 'size-4 text-ink-gray-5']"
+									v-else-if="typeof activity.icon === 'string'"
+									:class="[
+										LUCIDE_ICON_CLASS[activity.icon],
+										'size-4 text-ink-gray-5',
+									]"
 								/>
-							</template>
-							<CommentIcon v-else class="absolute start-[7.5px] text-ink-gray-5" />
+								<template v-else>
+									<Avatar
+										v-if="activity.type === 'email'"
+										size="lg"
+										:label="activity.author.fullname"
+										:image="activity.author.image"
+										class="absolute start-[0.7px] bg-surface-white"
+									/>
+									<template
+										v-else-if="
+											activity.type === 'audit' ||
+											activity.type === 'attachment_log' ||
+											activity.type === 'version'
+										"
+									>
+										<DotIcon
+											v-if="
+												activity.type === 'version' ||
+												(activity.type === 'audit' &&
+													(activity.data.subtype === 'assigned' ||
+														activity.data.subtype ===
+															'assignment_completed'))
+											"
+											class="text-ink-gray-5"
+										/>
+										<span
+											v-else
+											:class="[
+												gutterIconClass(activity),
+												'size-4 text-ink-gray-5',
+											]"
+										/>
+									</template>
+									<CommentIcon
+										v-else
+										class="absolute start-[7.5px] text-ink-gray-5"
+									/>
+								</template>
+							</slot>
 						</div>
 					</div>
 					<!-- content column -->
 					<div
 						class="mb-4 flex flex-1"
 						:class="[
-							i == orderedActivities.length - 1 && 'mb-5',
+							i == activities.length - 1 && 'mb-5',
 							isOneLiner(activity) && 'mt-[2px]',
 						]"
+						:data-type="activity.type"
 					>
-						<EmailItem
-							v-if="activity.type === 'email'"
-							:email="activity"
-							:css-href="cssHref"
-							:current-user="currentUser"
-							class="px-3 py-2"
-							@reply="(e) => emit('email:reply', e)"
-						/>
-						<CommentItem v-else-if="activity.type === 'comment'" :comment="activity" />
-						<AuditItem
-							v-else-if="
-								activity.type === 'audit' || activity.type === 'attachment_log'
-							"
-							:activity="activity"
-						/>
+						<!-- dispatch ladder: #item-{type} slot > default slot > built-in.
+						     The default slot exposes the row as { item }. Built-ins also expose
+						     per-region slots: #item-{type}-{header,body,footer} (email & comment),
+						     forwarded only when the consumer provides them so the default markup
+						     of the other regions stays put. -->
+						<slot :name="`item-${activity.type}`" :activity="activity">
+							<!-- default slot: full per-row override, exposes the row as { item } -->
+							<slot :item="activity">
+								<EmailItem
+									v-if="activity.type === 'email'"
+									:email="activity"
+									class="px-3 py-2"
+								>
+									<template v-if="$slots['item-email-header']" #header="s">
+										<slot
+											name="item-email-header"
+											v-bind="s"
+											:activity="activity"
+										/>
+									</template>
+									<template v-if="$slots['item-email-body']" #body="s">
+										<slot
+											name="item-email-body"
+											v-bind="s"
+											:activity="activity"
+										/>
+									</template>
+									<template v-if="$slots['item-email-footer']" #footer="s">
+										<slot
+											name="item-email-footer"
+											v-bind="s"
+											:activity="activity"
+										/>
+									</template>
+								</EmailItem>
+								<CommentItem
+									v-else-if="activity.type === 'comment'"
+									:comment="activity"
+								>
+									<template v-if="$slots['item-comment-header']" #header="s">
+										<slot
+											name="item-comment-header"
+											v-bind="s"
+											:activity="activity"
+										/>
+									</template>
+									<template v-if="$slots['item-comment-body']" #body="s">
+										<slot
+											name="item-comment-body"
+											v-bind="s"
+											:activity="activity"
+										/>
+									</template>
+									<template v-if="$slots['item-comment-footer']" #footer="s">
+										<slot
+											name="item-comment-footer"
+											v-bind="s"
+											:activity="activity"
+										/>
+									</template>
+								</CommentItem>
+								<AuditItem
+									v-else-if="
+										activity.type === 'audit' ||
+										activity.type === 'attachment_log'
+									"
+									:activity="activity"
+								/>
+								<VersionItem
+									v-else-if="activity.type === 'version'"
+									:activity="activity"
+								/>
+							</slot>
+						</slot>
 					</div>
 				</div>
 			</div>
@@ -98,7 +185,6 @@
 
 <script setup lang="ts">
 import { Avatar, ErrorMessage, FeatherIcon, LoadingIndicator } from "frappe-ui";
-import { computed } from "vue";
 import AuditItem from "./AuditItem.vue";
 import CommentItem from "./CommentItem.vue";
 import EmailItem from "./EmailItem.vue";
@@ -109,37 +195,31 @@ import type {
 	AttachmentLogActivity,
 	AuditActivity,
 } from "./types";
-import { useDocInfo } from "./useDocInfo";
+import VersionItem from "./VersionItem.vue";
 
-const props = withDefaults(defineProps<ActivityTimelineProps>(), {
-	order: "desc",
+withDefaults(defineProps<ActivityTimelineProps>(), {
+	loading: false,
+	error: null,
 });
 
 // one-line activity rows (audit/attachment) align differently from the cards
 // (email/comment) — nudged to vertically center the icon with the single line
 function isOneLiner(activity: Activity): boolean {
-	return activity.type === "audit" || activity.type === "attachment_log";
+	return (
+		activity.type === "audit" ||
+		activity.type === "attachment_log" ||
+		activity.type === "version"
+	);
 }
 
 // literal lucide-* class for an audit / attachment_log gutter dot
 function gutterIconClass(activity: AuditActivity | AttachmentLogActivity): string {
 	const name =
 		activity.type === "attachment_log"
-			? activity.action === "removed"
+			? activity.data.action === "removed"
 				? "trash-2"
 				: "paperclip"
-			: activity.icon;
+			: activity.data.icon;
 	return LUCIDE_ICON_CLASS[name] ?? "";
 }
-
-const emit = defineEmits(["email:reply"]);
-
-const { activities, loading, error, reload } = useDocInfo(props.doctype, props.docname);
-
-// transform sorts ascending (canonical, shared cache); apply display order here
-const orderedActivities = computed(() =>
-	props.order === "desc" ? [...activities.value].reverse() : activities.value
-);
-
-defineExpose({ reload });
 </script>

@@ -13,6 +13,7 @@ export const LUCIDE_ICON_CLASS: Record<string, string> = {
 	'git-branch': 'lucide-git-branch',
 	info: 'lucide-info',
 	lock: 'lucide-lock',
+	eye: 'lucide-eye',
 }
 
 const svgAttrs = {

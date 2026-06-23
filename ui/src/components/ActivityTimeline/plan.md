@@ -1,5 +1,25 @@
 # ActivityTimeline — expand to the framework's activity scope
 
+## Current state (supersedes the plan below)
+
+> This is the historical phased plan, kept as a record. Since it was written, the
+> shape changed:
+>
+> - **One endpoint, not two.** The two-call data path (`get_docinfo` +
+>   `get_version_timeline`) was unified into a single whitelisted
+>   `frappe.desk.form.activity.get_activity_timeline` (new file
+>   `frappe/desk/form/activity.py`) that returns a normalized, chronologically
+>   ascending `Activity[]`. `load.py` no longer holds any timeline code.
+> - **Thin composable.** All client-side parsing (DOMParser / plaintext /
+>   `comment_type` bucketing) was deleted; `useActivityTimeline` is now a sorter
+>   (sort → groupConsecutiveVersions → order) over one default-fetcher resource.
+> - **Views are now IN scope.** "View Log" ships as an `audit` subtype `view`
+>   ("{user} viewed this", gated by `track_views`) — the "Out of scope" note
+>   below listing View Log is no longer accurate. (Milestone, Shared/Unshared,
+>   web-page-views, `document_email`, and custom hook content remain out.)
+>
+> See `architecture.md` and `customization-api-summary.md` for the current state.
+
 ## Context
 
 Reusable read-only `ActivityTimeline` component in `@framework/ui`
@@ -69,12 +89,39 @@ Desk does all this in `version_timeline_content_builder.js` (~430 lines). Do **n
 - Return structured rows: `{ creation, owner, parts: string[], kind }` — frontend renders
   text, no `v-html` of server HTML where avoidable.
 
-**Frontend:** add `VersionActivity` to the `Activity` union; fetch the version timeline
-(either a second resource or extend `docinfoFetcher` to also call the new method) and merge
-into the same chronologically-sorted list; render in `AuditItem.vue` (or a `VersionItem.vue`)
-with a lucide pencil/history icon.
+**Frontend:** add `VersionActivity` to the `Activity` union; fetch the version timeline via
+a SEPARATE resource (parallel to get_docinfo) and merge into the same chronologically-sorted
+list; render in a new `VersionItem.vue`.
 
-Defer until Phase A ships.
+**Backend permission filter (the key detail).** `get_field_display_status` is a JS-only
+helper — the Python equivalent is `frappe.model.get_permitted_fields(doctype, user=...,
+permission_type="read")`, which returns the set of fieldnames the user may read (already
+encodes permlevel + role perms). Filter is a membership test: `if fieldname not in
+permitted: skip`. Also skip `df.hidden and not df.show_on_timeline`. For `row_changed`,
+use `get_permitted_fields(child_doctype, parenttype=doctype)`. NOTE: CRM does NOT field-filter
+versions (only doc-level `has_permission`) — we are stricter, closing that leak.
+
+`Version.data` shape (version.py:104): `changed:[[field,old,new]]`,
+`added`/`removed:[[table,{dict}]]`, `row_changed:[[table,name,idx,[[field,old,new]]]]`,
+plus `created_by` / `updater_reference` / `impersonated_by` / `audit_user`; `docstatus`
+rides inside `changed` as `["docstatus", old, new]`.
+
+**Runtime sequence (step by step):**
+1. mount → `useActivityTimeline(doctype, docname)`.
+2. composable creates TWO auto resources: A = `get_docinfo` (existing), B = `get_version_timeline` (new). Both fire in parallel.
+3. A returns emails/comments/audit logs → `parseActivities` (existing; ignore A's raw `versions`).
+4. B calls `get_version_timeline(doctype, name)`.
+5. backend: `check_permission` → `permitted = get_permitted_fields(...)` → loop versions (limit 10), format+filter each diff → return `[{name, owner, creation, changes:[{field,old,new}]}]`.
+6. B transform → `VersionActivity{ type:'version', key, timestamp, author, changes }`.
+7. `activities` computed = merge(A.data, B.data) → sort (existing comparator) → `groupConsecutiveVersions` (fold runs of adjacent same-author versions into one; non-version item breaks the run).
+8. `loading = A.loading || B.loading`.
+9. `order` prop applied at display (existing `orderedActivities`).
+10. template: `<VersionItem v-else-if="activity.type==='version'">`.
+11. `VersionItem`: 1 change → inline; >1 → "Show/Hide +N changes from {user}" + chevron toggling a local `expanded` ref (no refetch).
+
+New pieces: (1) backend endpoint, (2) `groupConsecutiveVersions` post-sort pass in useActivityTimeline, (3) `VersionItem.vue`. Everything else is wiring resource B into the existing flow.
+
+Endpoint location: `frappe/desk/form/load.py` (alongside `get_communications`), whitelisted.
 
 ### Out of scope (note, don't build)
 Shared/Unshared (empty in core), Milestone, View Log, web-page-views, `document_email`
@@ -86,7 +133,7 @@ link, custom hook content.
    `workflow_logs`, `info_logs` (`DocinfoComment[]`). Add to `Activity` union:
    - `AttachmentLogActivity` — `{ action:'added'|'removed', fileName, fileUrl?, isPrivate, author }`
    - `AuditActivity` — `{ subtype:'like'|'assigned'|'assignment_completed'|'workflow'|'info', text, author }`
-2. **useDocInfo.ts** — extend `parseActivities`:
+2. **useActivityTimeline.ts** — extend `parseActivities`:
    - `parseAttachmentLog(c)` — DOMParser the content: `<a>` text→`fileName`, `href`→`fileUrl`,
      `isPrivate = /fa-lock/.test(content)`. "Attachment Removed" = bare filename (no link).
    - generic audit parse (like/assigned/workflow/info) — build `text` from `author.fullname`,
@@ -110,7 +157,7 @@ Implement with `/opus`, review with fable. Keep this file's todos updated.
 
 ## Todo (Phase A) — DONE (build green; visual check on /helpdesk/new pending)
 - [x] types.ts: extend Docinfo + AttachmentLogActivity / AuditActivity
-- [x] useDocInfo.ts: parseAttachmentLog (DOMParser) + generic audit parse, merge & sort
+- [x] useActivityTimeline.ts: parseAttachmentLog (DOMParser) + generic audit parse, merge & sort
 - [x] icons.ts: LUCIDE_ICON_CLASS literal map (heart, paperclip, trash-2, user-plus, circle-check, git-branch, info, lock)
 - [x] AuditItem.vue: structured one-line renderer (+ attachment link + lucide-lock)
 - [x] ActivityTimeline.vue: third gutter branch (uses literal LUCIDE_ICON_CLASS map)
@@ -123,14 +170,20 @@ literal `lucide-<name>` string appears in scanned source. Dynamic `'lucide-' + n
 invisible to the scanner → use the `LUCIDE_ICON_CLASS` literal map in `icons.ts`. Verified
 all 8 classes present in built CSS.
 
-## Todo (Phase B — after Phase A)
-- [ ] frappe: whitelisted `get_version_timeline(doctype, name)` — check_permission, parse Version JSON
-- [ ] backend: label lookup via `frappe.get_meta` + `get_field_display_status` perm filter (port JS gate)
-- [ ] backend: handle changed/added/removed/row_changed + docstatus (submit/cancel) + created-via/audit annotations
-- [ ] types.ts: add `VersionActivity` to the union
-- [ ] useDocInfo.ts: fetch version timeline + merge into sorted list
-- [ ] VersionItem.vue (or AuditItem): render with lucide pencil/history icon
-- [ ] yarn build green + visual check vs desk form timeline (field-change lines, perm filtering)
+## Todo (Phase B) — DONE (build green; runtime/visual check on a track_changes doc pending)
+- [x] frappe: whitelisted `get_version_timeline(doctype, name)` in load.py — check_permission, parse Version JSON
+- [x] backend: label lookup via `frappe.get_meta` + **`frappe.model.get_permitted_fields`** field-level perm filter (stricter than CRM, which doesn't field-filter)
+- [x] backend: handle changed / added / removed / row_changed + docstatus (submit/cancel). created-via/impersonated/audit deferred.
+- [x] types.ts: `VersionChange` + `VersionActivity` added to union
+- [x] useActivityTimeline.ts: second resource (`get_version_timeline`) + `groupConsecutiveVersions` post-sort pass; merge both resources
+- [x] VersionItem.vue: single change inline; >1 → "Show/Hide +N changes from {user}" collapsible (FeatherIcon chevron)
+- [x] ActivityTimeline.vue: version branch + DotIcon gutter; index.ts exports
+- [x] yarn build green
+- [ ] runtime/visual check on a doctype with track_changes + version history (verify perm filtering)
+
+NOTE: `row_changed` tuple order is `[fieldname, row_index, row_name, changes]` (per get_diff
+in version.py:173) — the version.py docstring at line 113 has row_name/row_index SWAPPED.
+NOTE: backend endpoint not executed (no bench run); imports verified present in load.py.
 
 ## Separate, still pending (not part of this plan)
 HD Ticket Comment → core Comment migration patch
