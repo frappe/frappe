@@ -1084,8 +1084,8 @@ export default class GridRow {
 		}
 		df.fieldname && $col.static_area.toggleClass("reqd", Boolean(df.reqd));
 
-		// Resize handle (see Grid.setup_column_resize); desktop, non-sticky data columns only.
-		if (this.header_row && df.fieldname && !df.sticky && !frappe.is_mobile()) {
+		// Resize handle (see Grid.setup_column_resize); desktop, data columns only.
+		if (this.header_row && df.fieldname && !frappe.is_mobile()) {
 			// Empty title suppresses $col's label tooltip over the drag zone.
 			$('<div class="grid-col-resize-handle"></div>').attr("title", "").appendTo($col);
 		}
