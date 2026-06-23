@@ -51,6 +51,7 @@
   "timeline_field",
   "nsm_parent_field",
   "max_attachments",
+  "enable_upload_first_workflow",
   "documentation",
   "column_break_23",
   "hide_toolbar",
@@ -269,6 +270,14 @@
    "label": "Max Attachments",
    "oldfieldname": "max_attachments",
    "oldfieldtype": "Int"
+  },
+  {
+   "default": "0",
+   "depends_on": "eval:!doc.istable",
+   "description": "Show an upload-first action on new forms and allow this DocType to be selected as a Document Queue target.",
+   "fieldname": "enable_upload_first_workflow",
+   "fieldtype": "Check",
+   "label": "Enable Upload First Workflow"
   },
   {
    "fieldname": "column_break_23",
