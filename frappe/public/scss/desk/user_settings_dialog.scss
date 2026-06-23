@@ -46,12 +46,12 @@
 		.profile-full-name {
 			font-size: var(--text-lg);
 			font-weight: var(--weight-semibold);
-			color: var(--ink-gray-7);
+			color: var(--text-color);
 		}
 
 		.profile-email {
 			font-size: var(--text-sm);
-			color: var(--ink-gray-5);
+			color: var(--text-muted);
 		}
 
 		.change-password-btn {
@@ -219,12 +219,12 @@
 	.preference-label {
 		font-size: var(--text-sm);
 		font-weight: 420;
-		color: var(--ink-gray-5);
+		color: var(--text-muted);
 	}
 
 	.preference-value {
 		font-size: var(--text-base);
 		font-weight: 420;
-		color: var(--ink-gray-8);
+		color: var(--text-color);
 	}
 }

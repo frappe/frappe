@@ -46,7 +46,7 @@
 	font-weight: var(--weight-medium);
 	line-height: 1.15;
 	letter-spacing: 0.02em;
-	color: var(--ink-gray-5);
+	color: var(--text-muted);
 	background-color: var(--surface-sidebar);
 	cursor: default;
 	transition: all 0.3s ease-in-out;
@@ -72,7 +72,7 @@
 	border: none;
 	border-radius: var(--radius);
 	background-color: transparent;
-	color: var(--ink-gray-6);
+	color: var(--text-muted);
 	text-align: left;
 	cursor: pointer;
 	transition: all 0.3s ease-in-out;
@@ -115,8 +115,8 @@
 	display: flex;
 	align-items: center;
 	flex-shrink: 0;
-	color: var(--ink-gray-6);
-	--icon-stroke: var(--ink-gray-6);
+	color: var(--text-muted);
+	--icon-stroke: var(--text-muted);
 }
 
 .settings-dialog-tab-icon + .settings-dialog-tab-label {
@@ -130,7 +130,7 @@
 	font-weight: 420;
 	line-height: 1.15;
 	letter-spacing: 0.02em;
-	color: var(--ink-gray-6);
+	color: var(--text-muted);
 	white-space: nowrap;
 	overflow: hidden;
 	text-overflow: ellipsis;
@@ -142,7 +142,7 @@
 	flex-direction: column;
 	flex: 1;
 	overflow-y: auto;
-	background-color: var(--surface-elevation-2);
+	background-color: var(--bg-color);
 }
 
 .settings-dialog-panel {
@@ -152,7 +152,7 @@
 	height: 100%;
 	padding: 2rem 1.5rem;
 	gap: 1rem;
-	color: var(--ink-gray-8);
+	color: var(--text-color);
 }
 
 .settings-dialog-panel-header {
@@ -160,7 +160,7 @@
 	justify-content: space-between;
 	align-items: flex-start;
 	padding: 0 0.5rem;
-	color: var(--ink-gray-7);
+	color: var(--text-color);
 }
 
 .settings-dialog-panel-heading {
@@ -178,7 +178,7 @@
 	font-weight: var(--weight-semibold);
 	line-height: 1;
 	letter-spacing: 0.01em;
-	color: var(--ink-gray-7);
+	color: var(--text-color);
 }
 
 .settings-dialog-panel-description {
@@ -186,7 +186,7 @@
 	font-weight: 420;
 	line-height: 1.5;
 	letter-spacing: 0.02em;
-	color: var(--ink-gray-6);
+	color: var(--text-muted);
 }
 
 .settings-dialog-panel-actions {
@@ -230,7 +230,7 @@ table + .settings-dialog-section-heading {
 	font-weight: var(--weight-medium);
 	line-height: 1.5;
 	letter-spacing: 0.02em;
-	color: var(--ink-gray-8);
+	color: var(--text-color);
 }
 
 .settings-dialog-section-description {
@@ -239,7 +239,7 @@ table + .settings-dialog-section-heading {
 	font-weight: 420;
 	line-height: 1.5;
 	letter-spacing: 0.02em;
-	color: var(--ink-gray-5);
+	color: var(--text-muted);
 }
 
 .settings-dialog-panel-body .form-section .section-head {
@@ -249,7 +249,7 @@ table + .settings-dialog-section-heading {
 	font-weight: var(--weight-medium);
 	line-height: 1.5;
 	letter-spacing: 0.02em;
-	color: var(--ink-gray-8);
+	color: var(--text-color);
 }
 
 .settings-dialog-panel-body .ql-editor {
@@ -280,7 +280,7 @@ table + .settings-dialog-section-heading {
 	font-weight: 420;
 	line-height: 1.5;
 	letter-spacing: 0.02em;
-	color: var(--ink-gray-6);
+	color: var(--text-muted);
 }
 
 .settings-dialog-panel-body .switch-control {
