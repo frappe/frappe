@@ -54,12 +54,10 @@ frappe.doctype_settings.register("email-template", function (panel, doctype) {
 				icon: "trash-2",
 				danger: true,
 				onclick: (list) =>
-					frappe.confirm(__("Delete {0}?", [r.name]), () =>
-						frappe.db.delete_doc("Email Template", r.name).then(() => {
-							frappe.show_alert({ message: __("Deleted"), indicator: "green" });
-							list.reload();
-						})
-					),
+					frappe.model.delete_doc("Email Template", r.name, () => {
+						frappe.show_alert({ message: __("Deleted"), indicator: "green" });
+						list.reload();
+					}),
 			});
 			return items;
 		},

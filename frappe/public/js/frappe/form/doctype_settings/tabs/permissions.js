@@ -69,20 +69,22 @@ function render(panel, doctype, { roles, is_customized, has_field_level }) {
 		// the Role form's Documents tab uses).
 		on_row_click: (row) => new frappe.ui.PermissionDialog(perm_tab(doctype, reload), { row }).show(),
 		columns: [
-			{ label: __("Role"), fieldname: "role" },
+			{
+				label: __("Role"),
+				fieldname: "role",
+				// Show an "Only own" badge beside the role when its rights are creator-scoped.
+				render: (row) =>
+					`${frappe.utils.escape_html(row.role)}${
+						cint(row.if_owner)
+							? ` <span class="es-badge" data-theme="blue">${__("Only own")}</span>`
+							: ""
+					}`,
+			},
 			...rights.map((r) => ({
 				label: __(frappe.perm_editor.capitalize(r)),
 				align: "center",
 				render: (row) => (cint(row[r]) ? flag_badge() : ""),
 			})),
-			{
-				label: __("Only own"),
-				align: "center",
-				render: (row) =>
-					cint(row.if_owner)
-						? `<span class="es-badge" data-theme="blue">${__("Yes")}</span>`
-						: `<span class="text-muted">${__("No")}</span>`,
-			},
 		],
 	});
 	list.refresh();

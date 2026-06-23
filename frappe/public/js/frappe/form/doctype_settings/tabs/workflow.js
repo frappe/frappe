@@ -53,18 +53,18 @@ frappe.doctype_settings.register("workflow", function (panel, doctype) {
 				icon: "trash-2",
 				danger: true,
 				onclick: (list) =>
-					frappe.confirm(__("Delete {0}?", [r.workflow_name || r.name]), () =>
-						frappe.db.delete_doc("Workflow", r.name).then(() => {
-							frappe.show_alert({ message: __("Deleted"), indicator: "green" });
-							list.reload();
-						})
-					),
+					frappe.model.delete_doc("Workflow", r.name, () => {
+						frappe.show_alert({ message: __("Deleted"), indicator: "green" });
+						list.reload();
+					}),
 			},
 		],
 		empty_state: {
 			icon: frappe.doctype_settings.tab_icon("workflow"),
 			title: __("No Workflows found"),
-			description: __("Create a workflow to control the states {0} moves through.", [doctype]),
+			description: __("Create a workflow to control the states {0} moves through.", [
+				doctype,
+			]),
 			action: { label: __("New Workflow"), onclick: create },
 		},
 	});
