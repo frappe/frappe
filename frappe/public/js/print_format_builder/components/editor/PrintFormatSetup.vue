@@ -60,7 +60,7 @@ defineEmits(["start-default", "start-blank"]);
 .pfb-setup-card {
 	background: var(--fg-color);
 	border: 1px solid var(--border-color);
-	border-radius: var(--border-radius-lg);
+	border-radius: var(--radius-lg);
 	padding: var(--padding-xl);
 	max-width: 480px;
 	width: 100%;
@@ -99,7 +99,7 @@ defineEmits(["start-default", "start-blank"]);
 	gap: var(--margin-md);
 	padding: var(--padding-md);
 	border: 1px solid var(--border-color);
-	border-radius: var(--border-radius);
+	border-radius: var(--radius);
 	background: var(--fg-color);
 	cursor: pointer;
 	transition: border-color 0.15s, background 0.15s;

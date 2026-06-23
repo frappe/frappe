@@ -190,7 +190,7 @@ function set_column_align(column, value) {
 .print-format-section {
 	background-color: var(--fg-color);
 	border: 1px solid var(--border-color);
-	border-radius: var(--border-radius);
+	border-radius: var(--radius);
 	overflow: hidden;
 	cursor: default;
 }
@@ -244,7 +244,7 @@ function set_column_align(column, value) {
 	color: var(--text-muted);
 	background: var(--gray-100);
 	border: 1px solid var(--gray-300);
-	border-radius: var(--border-radius-sm);
+	border-radius: var(--radius);
 	padding: 1px 6px;
 	white-space: nowrap;
 	flex-shrink: 0;
@@ -252,7 +252,7 @@ function set_column_align(column, value) {
 
 .input-section-label {
 	border: 1px solid transparent;
-	border-radius: var(--border-radius);
+	border-radius: var(--radius);
 	font-size: var(--text-sm);
 	font-weight: var(--weight-semibold);
 	background: transparent;
@@ -281,7 +281,7 @@ function set_column_align(column, value) {
 	padding: 3px;
 	box-shadow: none;
 	color: var(--text-muted);
-	border-radius: var(--border-radius-sm);
+	border-radius: var(--radius);
 }
 
 .toolbar-btn:hover {
@@ -334,7 +334,7 @@ function set_column_align(column, value) {
 	flex: 1;
 	min-width: 0;
 	min-height: 4rem;
-	border-radius: var(--border-radius);
+	border-radius: var(--radius);
 	display: flex;
 	flex-direction: column;
 	gap: 0.4rem;
@@ -348,7 +348,7 @@ function set_column_align(column, value) {
 	align-items: center;
 	justify-content: center;
 	border: 1.5px dashed var(--gray-300);
-	border-radius: var(--border-radius);
+	border-radius: var(--radius);
 	color: var(--text-muted);
 	font-size: var(--text-xs);
 	pointer-events: none;
@@ -418,7 +418,7 @@ function set_column_align(column, value) {
 	padding: 1px 2px;
 	background: var(--fg-color);
 	border: 1px solid var(--border-color);
-	border-radius: var(--border-radius-sm);
+	border-radius: var(--radius);
 	box-shadow: var(--shadow-xs);
 	align-items: center;
 	opacity: 0;

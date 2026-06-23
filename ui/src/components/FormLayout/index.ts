@@ -7,7 +7,6 @@ export type { RegisterFieldTypeOptions } from "./fieldTypes";
 // consumers, the headless engine, and the source seam from "@framework/ui/FileUpload".
 export { useDoctypeLayout } from "./useDoctypeLayout";
 export { useScriptedLayout } from "./useScriptedLayout";
-export { useDoctypeMeta } from "./useDoctypeMeta";
 export { useChildRowModel } from "./useChildRowModel";
 export { buildLayoutFromMeta, compose } from "./buildLayoutFromMeta";
 export type { BuildLayoutOptions, Decorator } from "./buildLayoutFromMeta";
@@ -44,7 +43,6 @@ export type {
   FieldComponentEmits,
 } from "./types";
 export type { UseDoctypeLayout } from "./useDoctypeLayout";
-export type { UseDoctypeMeta, DoctypeMeta } from "./useDoctypeMeta";
 export type {
   FltOptions,
   FormatNumberOptions,

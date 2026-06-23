@@ -1,10 +1,7 @@
-:root {
-	--border-radius-tiny: 4px;
-	--border-radius-sm: 8px;
-	--border-radius: 8px;
-	--border-radius-md: 10px;
-	--border-radius-lg: 12px;
-	--border-radius-xl: 16px;
-	--border-radius-2xl: 20px;
-	--border-radius-full: 999px;
-}
+// Espresso radius tokens.
+//
+// Canonical scale (--radius-*) lives in plain CSS at css/espresso/radius.css.
+// The old --border-radius-* names are kept as deprecated aliases in legacy.css
+// (mapped to Espresso --radius-*; values follow Espresso, not the old scale).
+// Migrate component usages from --border-radius-* to --radius-* over time.
+@import "frappe/public/css/espresso/radius.css";

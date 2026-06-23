@@ -442,7 +442,7 @@ watch(
 	width: 100%;
 	min-width: 0;
 	background-color: var(--bg-light-gray);
-	border-radius: var(--border-radius);
+	border-radius: var(--radius);
 	border: 1px dashed var(--gray-400);
 	padding: 0.4rem 0.5rem;
 	font-size: var(--text-sm);
@@ -509,7 +509,7 @@ watch(
 	color: var(--text-muted);
 	background: var(--control-bg);
 	border: 1px solid var(--gray-300);
-	border-radius: var(--border-radius-sm);
+	border-radius: var(--radius);
 	padding: 1px 4px;
 	white-space: nowrap;
 }
@@ -564,7 +564,7 @@ watch(
 	display: inline-block;
 	background: var(--fg-color);
 	border: 1px solid var(--gray-300);
-	border-radius: var(--border-radius-sm);
+	border-radius: var(--radius);
 	padding: 1px 6px;
 	font-size: var(--text-xs);
 	color: var(--text-color);
@@ -591,7 +591,7 @@ watch(
 	color: var(--text-muted);
 	background: var(--gray-50);
 	border: 1px solid var(--gray-200);
-	border-radius: var(--border-radius);
+	border-radius: var(--radius);
 	padding: 3px 8px;
 	cursor: pointer;
 	outline: none;
@@ -695,7 +695,7 @@ watch(
 	gap: 2px;
 	background: var(--fg-color);
 	border: 1px solid var(--border-color);
-	border-radius: var(--border-radius-sm);
+	border-radius: var(--radius);
 	padding: 1px 2px;
 	align-items: center;
 	box-shadow: var(--shadow-xs);
@@ -822,7 +822,7 @@ watch(
 	max-width: 100%;
 	max-height: 80px;
 	object-fit: contain;
-	border-radius: var(--border-radius-sm);
+	border-radius: var(--radius);
 	display: block;
 }
 </style>

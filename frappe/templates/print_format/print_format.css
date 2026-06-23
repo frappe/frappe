@@ -325,7 +325,7 @@ header img {
 	width: 1rem;
 	height: 1rem;
 	margin-right: 0.3rem;
-	border-radius: var(--border-radius);
+	border-radius: var(--radius);
 }
 
 .field[data-fieldtype="Check"] #icon-tick {
