@@ -153,6 +153,12 @@ class TestAccessLog(IntegrationTestCase):
 		)
 		new_private_file.insert()
 
+		# SQLite allows a single writer: this request is served by a separate process
+		# that writes an Access Log, so commit first to release the write lock (and make
+		# the file visible) or the synchronous request deadlocks until busy_timeout.
+		if frappe.db.db_type == "sqlite":
+			frappe.db.commit()
+
 		# access the created file
 		private_file_link = get_site_url(frappe.local.site) + new_private_file.file_url
 
@@ -170,6 +176,9 @@ class TestAccessLog(IntegrationTestCase):
 
 		# cleanup
 		new_private_file.delete()
+		if frappe.db.db_type == "sqlite":
+			# the insert above was committed, so commit the cleanup too
+			frappe.db.commit()
 
 	def tearDown(self):
 		pass
