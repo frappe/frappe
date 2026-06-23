@@ -126,9 +126,13 @@ def post_process():
 
 			# Collect EXPLAIN for executed query
 			if config.explain and is_query_type(formatted_query, ("select", "update", "delete")):
-				# Only SELECT/UPDATE/DELETE queries can be "EXPLAIN"ed
+				# Only SELECT/UPDATE/DELETE queries can be "EXPLAIN"ed. SQLite's plain EXPLAIN
+				# dumps VDBE opcodes; EXPLAIN QUERY PLAN gives the query plan like other backends.
+				explain_keyword = "EXPLAIN QUERY PLAN" if frappe.db.db_type == "sqlite" else "EXPLAIN"
 				try:
-					call["explain_result"] = frappe.db.sql(f"EXPLAIN {formatted_query}", as_dict=True)
+					call["explain_result"] = frappe.db.sql(
+						f"{explain_keyword} {formatted_query}", as_dict=True
+					)
 				except Exception:
 					pass
 		mark_duplicates(request)

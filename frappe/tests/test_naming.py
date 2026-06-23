@@ -480,7 +480,9 @@ class TestNaming(IntegrationTestCase):
 
 	def test_uuid_naming(self):
 		uuid_doctype = new_doctype(autoname="UUID").insert().name
-		self.assertEqual("uuid", frappe.db.get_column_type(uuid_doctype, "name"))
+		# SQLite has no uuid column type; UUIDs are stored as TEXT.
+		expected_type = "TEXT" if frappe.db.db_type == "sqlite" else "uuid"
+		self.assertEqual(expected_type, frappe.db.get_column_type(uuid_doctype, "name"))
 
 		# Auto set names
 		document = frappe.new_doc(uuid_doctype).insert()
