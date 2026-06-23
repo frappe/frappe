@@ -179,7 +179,8 @@ def enqueue_document_extraction(
 def extract_document_queue_record(document_queue: str) -> dict[str, Any]:
 	queue_doc = frappe.get_doc("Document Queue", document_queue)
 	queue_doc.mark_processing()
-	frappe.db.commit()  # nosemgrep: Persist Processing before long-running extraction.
+	# Persist Processing before long-running extraction.
+	frappe.db.commit()  # nosemgrep
 
 	try:
 		file_path = get_file_path(queue_doc.source_file)
@@ -191,7 +192,8 @@ def extract_document_queue_record(document_queue: str) -> dict[str, Any]:
 		error_message = str(exc) or exc.__class__.__name__
 		queue_doc = frappe.get_doc("Document Queue", document_queue)
 		queue_doc.mark_failed(error_message, frappe.get_traceback(with_context=True))
-		frappe.db.commit()  # nosemgrep: Preserve Failed status before re-raising.
+		# Preserve Failed status before re-raising.
+		frappe.db.commit()  # nosemgrep
 		raise
 
 
