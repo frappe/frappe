@@ -7,6 +7,7 @@ import frappe
 from frappe.core.doctype.doctype.doctype import InvalidFieldNameError
 from frappe.core.doctype.doctype.test_doctype import new_doctype
 from frappe.tests import IntegrationTestCase
+from frappe.tests.test_query_builder import db_type_is, unimplemented_for
 from frappe.tests.utils import make_test_records_for_doctype
 
 EXTRA_TEST_RECORD_DEPENDENCIES = ["Custom Field", "Property Setter"]
@@ -228,6 +229,9 @@ class TestCustomizeForm(IntegrationTestCase):
 	def test_core_doctype_customization(self):
 		self.assertRaises(frappe.ValidationError, self.get_customize_form, "User")
 
+	# Asserts on information_schema character_maximum_length; SQLite has no
+	# information_schema and TEXT columns are not length-constrained.
+	@unimplemented_for(db_type_is.SQLITE)
 	def test_save_customization_length_field_property(self):
 		# Using Notification Log doctype as it doesn't have any other custom fields
 		d = self.get_customize_form("Notification Log")
