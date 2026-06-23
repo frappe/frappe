@@ -56,12 +56,16 @@ frappe.doctype_settings.overflow_menu = function (items) {
 };
 
 /**
- * Shared empty state. Renders into `$container` (cleared by the caller).
- * `opts`: { title, description, action: { label, onclick() } }.
+ * Shared empty state (banking-style: muted icon ▸ title ▸ description ▸ subtle action).
+ * Renders into `$container` (cleared by the caller).
+ * `opts`: { icon, title, description, action: { label, onclick() } }.
  */
 frappe.doctype_settings.empty_state = function ($container, opts) {
 	opts = opts || {};
 	const $empty = $('<div class="dts-empty"></div>').appendTo($container);
+	$('<div class="dts-empty-icon"></div>')
+		.append(frappe.utils.icon(opts.icon || "list", "lg"))
+		.appendTo($empty);
 	$('<div class="dts-empty-title"></div>')
 		.text(opts.title || __("Nothing here yet"))
 		.appendTo($empty);
@@ -69,7 +73,7 @@ frappe.doctype_settings.empty_state = function ($container, opts) {
 		$('<div class="dts-empty-description"></div>').text(opts.description).appendTo($empty);
 	}
 	if (opts.action) {
-		$(`<button type="button" class="btn btn-sm btn-default dts-empty-action"></button>`)
+		$(`<button type="button" class="btn btn-sm dts-empty-action"></button>`)
 			.text(opts.action.label)
 			.appendTo($empty)
 			.on("click", () => opts.action.onclick());
@@ -102,9 +106,15 @@ frappe.doctype_settings.groups = [
 	},
 	{
 		group: __("Data"),
-		items: [
-			{ id: "global-search", label: __("Global Search"), icon: "search" },
-			{ id: "data-import", label: __("Data Import & Export"), icon: "database" },
-		],
+		items: [{ id: "global-search", label: __("Global Search"), icon: "search" }],
 	},
 ];
+
+// The sidebar icon for a tab id — so empty states (etc.) reuse the same glyph as the
+// sidebar instead of hardcoding their own.
+frappe.doctype_settings.tab_icon = function (id) {
+	for (const group of frappe.doctype_settings.groups) {
+		const item = group.items.find((i) => i.id === id);
+		if (item) return item.icon;
+	}
+};

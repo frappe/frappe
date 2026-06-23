@@ -177,7 +177,7 @@ function make_rules_section($body, doctype, panel) {
 			},
 		},
 		{
-			empty_message: __("No naming rules yet."),
+			empty_message: __("No Naming Rules found."),
 			// Add a derived `status` label for the badge column.
 			get_data: () =>
 				frappe.db

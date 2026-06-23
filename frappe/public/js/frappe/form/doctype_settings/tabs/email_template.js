@@ -64,7 +64,8 @@ frappe.doctype_settings.register("email-template", function (panel, doctype) {
 			return items;
 		},
 		empty_state: {
-			title: __("No email templates yet"),
+			icon: frappe.doctype_settings.tab_icon("email-template"),
+			title: __("No Email Templates found"),
 			description: __("Create a template to reuse when emailing {0}.", [doctype]),
 			action: { label: __("New Template"), onclick: create },
 		},

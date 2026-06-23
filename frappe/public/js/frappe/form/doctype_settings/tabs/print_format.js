@@ -81,7 +81,8 @@ frappe.doctype_settings.register("print-format", function (panel, doctype) {
 
 		if (!formats.length) {
 			frappe.doctype_settings.empty_state(panel.body, {
-				title: __("No print formats yet"),
+				icon: frappe.doctype_settings.tab_icon("print-format"),
+				title: __("No Print Formats found"),
 				description: __("Create a print format to customize how {0} prints.", [doctype]),
 				action: { label: __("New Print Format"), onclick: create },
 			});

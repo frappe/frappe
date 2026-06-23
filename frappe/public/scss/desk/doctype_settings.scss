@@ -47,7 +47,7 @@
 	}
 }
 
-// ── Stacked sections within a tab (Naming's Series/Rules, Data Import's Import/Export) ──
+// ── Stacked sections within a tab (e.g. Naming's Series + Rules) ──
 .dts-section {
 	// Space between the section header and its content (table / controls).
 	.settings-dialog-panel-header {
@@ -57,19 +57,6 @@
 	& + & {
 		margin-top: var(--margin-xl);
 	}
-}
-
-// A row of buttons under a section header.
-.dts-section-actions {
-	display: flex;
-	flex-wrap: wrap;
-	gap: var(--padding-sm);
-}
-
-// Muted helper line under a section's controls (e.g. a missing-permission note).
-.dts-section-note {
-	margin-top: var(--margin-sm);
-	color: var(--ink-gray-5);
 }
 
 // ── Shared list panel (CRM-style: header + table + inline switch + overflow) ──
@@ -386,27 +373,45 @@
 	font-weight: var(--weight-bold);
 }
 
-// Empty state.
+// Empty state (banking-style): muted icon ▸ bold title ▸ muted description ▸ subtle action.
 .dts-empty {
 	display: flex;
 	flex-direction: column;
 	align-items: center;
 	text-align: center;
-	gap: var(--margin-sm);
+	gap: var(--margin-xs);
 	padding: var(--padding-2xl) var(--padding-lg);
+
+	.dts-empty-icon {
+		margin-bottom: var(--margin-sm);
+		color: var(--ink-gray-4);
+
+		.icon {
+			width: 28px;
+			height: 28px;
+		}
+	}
 
 	.dts-empty-title {
 		color: var(--ink-gray-7);
-		font-weight: var(--weight-medium);
+		font-size: var(--text-lg);
 	}
 
 	.dts-empty-description {
-		color: var(--ink-gray-5);
-		font-size: var(--text-sm);
-		max-width: 24rem;
+		color: var(--ink-gray-6);
+		font-size: var(--text-base);
 	}
 
+	// Subtle gray button (no border) — matches the banking empty-state action.
 	.dts-empty-action {
-		margin-top: var(--margin-sm);
+		margin-top: var(--margin-md);
+		border: none;
+		background-color: var(--surface-gray-2);
+		color: var(--ink-gray-7);
+
+		&:hover {
+			background-color: var(--surface-gray-3);
+			color: var(--ink-gray-9);
+		}
 	}
 }

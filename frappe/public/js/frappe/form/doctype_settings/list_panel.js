@@ -257,6 +257,7 @@ class ListPanel {
 		// action so there aren't two "New" buttons.
 		this.apply_header(!e.action);
 		frappe.doctype_settings.empty_state(this.$body, {
+			icon: e.icon,
 			title: e.title,
 			description: e.description,
 			action: e.action && { label: e.action.label, onclick: () => e.action.onclick(this) },

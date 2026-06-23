@@ -88,7 +88,8 @@ frappe.doctype_settings.register("notifications", function (panel, doctype) {
 			},
 		],
 		empty_state: {
-			title: __("No notifications yet"),
+			icon: frappe.doctype_settings.tab_icon("notifications"),
+			title: __("No Notifications found"),
 			description: __("Create a notification to alert users about {0} events.", [doctype]),
 			action: { label: __("New Notification"), onclick: create },
 		},
