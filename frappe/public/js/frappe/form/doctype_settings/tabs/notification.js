@@ -63,13 +63,15 @@ frappe.doctype_settings.register("notifications", function (panel, doctype) {
 				label: r.enabled ? __("Disable") : __("Enable"),
 				icon: r.enabled ? "ban" : "circle-check",
 				onclick: (list) =>
-					frappe.db.set_value("Notification", r.name, { enabled: r.enabled ? 0 : 1 }).then(() => {
-						frappe.show_alert({
-							message: r.enabled ? __("Disabled") : __("Enabled"),
-							indicator: "green",
-						});
-						list.reload();
-					}),
+					frappe.db
+						.set_value("Notification", r.name, { enabled: r.enabled ? 0 : 1 })
+						.then(() => {
+							frappe.show_alert({
+								message: r.enabled ? __("Disabled") : __("Enabled"),
+								indicator: "green",
+							});
+							list.reload();
+						}),
 			},
 			{ label: __("Preview"), icon: "eye", onclick: () => preview(r.name) },
 			{ label: __("Duplicate"), icon: "copy", onclick: () => duplicate(panel, r.name) },
@@ -78,13 +80,13 @@ frappe.doctype_settings.register("notifications", function (panel, doctype) {
 				label: __("Delete"),
 				icon: "trash-2",
 				danger: true,
+				// frappe.model.delete_doc handles the confirm prompt, delete sound and
+				// locals cleanup; the callback runs only on success.
 				onclick: (list) =>
-					frappe.confirm(__("Delete {0}?", [r.name]), () =>
-						frappe.db.delete_doc("Notification", r.name).then(() => {
-							frappe.show_alert({ message: __("Deleted"), indicator: "green" });
-							list.reload();
-						})
-					),
+					frappe.model.delete_doc("Notification", r.name, () => {
+						frappe.show_alert({ message: __("Deleted"), indicator: "green" });
+						list.reload();
+					}),
 			},
 		],
 		empty_state: {
@@ -117,7 +119,11 @@ function preview(notification) {
 			doc,
 			doctype: doc.document_type,
 			preview_fields: [
-				{ label: __("Meets Condition?"), fieldtype: "Data", method: "preview_meets_condition" },
+				{
+					label: __("Meets Condition?"),
+					fieldtype: "Data",
+					method: "preview_meets_condition",
+				},
 				{ label: __("Subject"), fieldtype: "Data", method: "preview_subject" },
 				{ label: __("Message"), fieldtype: "Code", method: "preview_message" },
 			],

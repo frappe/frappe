@@ -11,15 +11,6 @@ frappe.doctype_settings.register("print-format", function (panel, doctype) {
 		panel.dialog.hide();
 		frappe.new_doc("Print Format", { doc_type: doctype });
 	};
-	const printview_url = (pf) =>
-		`/printview?${$.param({
-			doctype,
-			name: sample_name,
-			format: pf,
-			no_letterhead: 0,
-			trigger_print: 0,
-		})}`;
-
 	panel.set_view({
 		title: __("Print Format"),
 		description: __("Print formats available for {0}.", [doctype]),
@@ -160,10 +151,36 @@ frappe.doctype_settings.register("print-format", function (panel, doctype) {
 			size: "large",
 			fields: [{ fieldtype: "HTML", fieldname: "preview" }],
 		});
-		dialog.fields_dict.preview.$wrapper.html(
-			`<iframe class="dts-preview-frame" frameborder="0" src="${printview_url(pf)}"></iframe>`
-		);
+		const $wrapper = dialog.fields_dict.preview.$wrapper;
+		$wrapper.html(`<div class="text-muted small">${__("Loading")}</div>`);
 		dialog.show();
+
+		// Render the print HTML server-side and inject it as a static (JS-free) iframe via
+		// srcdoc. Loading the live /printview page in an iframe boots a full Frappe app
+		// whose router throws a cross-realm error if the dialog closes mid-load. We mirror
+		// the print page's own structure: the base print stylesheet (absolute URL, since
+		// srcdoc has no base) + the format style, with the html in a `.print-format` wrapper.
+		frappe.call({
+			method: "frappe.www.printview.get_html_and_style",
+			args: { doc: doctype, name: sample_name, print_format: pf, no_letterhead: 0, trigger_print: 0 },
+			callback: (r) => {
+				if (r.exc || !r.message) return;
+				const base_url = frappe.urllib.get_base_url();
+				const print_css = frappe.assets.bundled_asset("print.bundle.css");
+				const $iframe = $('<iframe class="dts-preview-frame" frameborder="0"></iframe>');
+				$wrapper.empty().append($iframe);
+				$iframe[0].srcdoc = `<!DOCTYPE html>
+<html>
+	<head>
+		<link href="${base_url}${print_css}" rel="stylesheet">
+		<style>${r.message.style || ""}</style>
+	</head>
+	<body>
+		<div class="print-format print-format-preview">${r.message.html || ""}</div>
+	</body>
+</html>`;
+			},
+		});
 	}
 
 	// Sets the doctype's default print format by writing a Property Setter — the same
