@@ -1,7 +1,7 @@
 <template>
 	<div class="isolate h-screen flex-col overflow-hidden bg-surface-base">
 		<div
-			class="toolbar sticky top-0 z-10 flex h-14 items-center justify-between bg-surface-base px-3 py-2 shadow-sm"
+			class="toolbar sticky top-0 z-10 flex h-14 items-center justify-between border-b border-outline-gray-2 bg-surface-base px-3 py-2"
 		>
 			<Dropdown :options="[{ label: 'Logout', icon: 'lucide-log-out', onClick: () => session.logout() }]">
 				<template v-slot="{ open }">

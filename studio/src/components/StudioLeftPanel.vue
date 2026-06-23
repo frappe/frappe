@@ -1,5 +1,5 @@
 <template>
-	<div class="flex flex-row overflow-auto shadow-lg">
+	<div class="flex flex-row overflow-auto border-r border-outline-gray-2">
 		<!-- Primary Menu -->
 		<div
 			class="flex h-full w-12 flex-col items-center space-y-2 border-r border-outline-elevation-2 bg-surface-base p-3"

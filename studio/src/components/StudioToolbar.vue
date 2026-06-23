@@ -1,5 +1,7 @@
 <template>
-	<div class="toolbar flex h-14 items-center justify-center bg-surface-base p-2 shadow-sm">
+	<div
+		class="toolbar flex h-14 items-center justify-center border-b border-outline-gray-2 bg-surface-base p-2"
+	>
 		<div class="absolute left-3 flex items-center justify-center gap-5">
 			<Dropdown
 				:options="[
