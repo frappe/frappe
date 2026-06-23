@@ -44,6 +44,12 @@ def make_request(
 	kwargs: dict | None = None,
 	site: str | None = None,
 ) -> TestResponse:
+	# SQLite allows a single writer: the request runs in its own thread/connection, so
+	# release this connection's write lock first or it would block until busy_timeout.
+	# Mirrors BaseTestCommands.execute() committing before spawning a bench subprocess.
+	if frappe.db and frappe.db.db_type == "sqlite":
+		frappe.db.commit()
+
 	t = ThreadWithReturnValue(target=target, args=args, kwargs=kwargs, site=site)
 	t.start()
 	t.join()
@@ -69,7 +75,16 @@ class ThreadWithReturnValue(Thread):
 				header_patch = patch("frappe.get_request_header", new=patch_request_header)
 				if authorization_token:
 					header_patch.start()
-				self._return = self._target(*self._args, **self._kwargs)
+				try:
+					self._return = self._target(*self._args, **self._kwargs)
+				finally:
+					# The test client buffers the response without closing it, so the WSGI
+					# ClosingIterator (frappe.destroy) never runs and this thread's DB
+					# connection stays open. On SQLite that leaks the write lock and the
+					# next request deadlocks on BEGIN IMMEDIATE. Close it explicitly.
+					db = getattr(frappe.local, "db", None)
+					if db and db.db_type == "sqlite":
+						db.close()
 				if authorization_token:
 					header_patch.stop()
 
