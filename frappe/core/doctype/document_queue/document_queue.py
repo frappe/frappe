@@ -54,6 +54,25 @@ class DocumentQueue(Document):
 		if self.source_file and not (_is_pdf(self.source_file) or _is_image(self.source_file)):
 			self.extraction_method = self.extraction_method or "Unsupported"
 
+	def after_insert(self):
+		self.enqueue_extraction_if_needed(force=True)
+
+	def on_update(self):
+		self.enqueue_extraction_if_needed()
+
+	def enqueue_extraction_if_needed(self, *, force: bool = False):
+		if self.flags.skip_auto_extraction or self.flags.auto_extraction_enqueued or not self.source_file:
+			return
+
+		if self.status in {"Queued", "Processing", "Completed"}:
+			return
+
+		if not force and not self.has_value_changed("source_file"):
+			return
+
+		self.flags.auto_extraction_enqueued = True
+		self.enqueue_extraction()
+
 	def enqueue_extraction(self, *, queue: str = "default", enqueue_after_commit: bool = True) -> "Document":
 		return enqueue_document_extraction(self.name, queue=queue, enqueue_after_commit=enqueue_after_commit)
 
@@ -238,7 +257,8 @@ def create_upload_first_queue(file_name: str, document_type: str) -> dict[str, A
 			"source_file": file_doc.file_url,
 			"document_type": document_type,
 		}
-	).insert()
+	)
+	queue_doc.insert()
 
 	file_doc.db_set(
 		{
@@ -248,11 +268,6 @@ def create_upload_first_queue(file_name: str, document_type: str) -> dict[str, A
 		},
 		update_modified=False,
 	)
-
-	try:
-		extract_document_queue_record(queue_doc.name)
-	except Exception:
-		pass
 
 	return get_document_review_context(queue_doc.name)
 
@@ -591,5 +606,7 @@ def _parse_tesseract_tsv_words(tsv: str) -> list[dict[str, Any]]:
 
 @frappe.whitelist()
 def enqueue_extraction(document_queue: str) -> str:
-	task = enqueue_document_extraction(document_queue)
+	queue_doc = frappe.get_doc("Document Queue", document_queue)
+	queue_doc.check_permission("write")
+	task = queue_doc.enqueue_extraction()
 	return task.name

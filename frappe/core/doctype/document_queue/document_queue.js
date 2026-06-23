@@ -1,7 +1,8 @@
 frappe.provide("frappe.document_queue");
 
-frappe.document_queue.review_script_url =
-	"/assets/frappe/js/frappe/document_queue_review.js?v=document-queue-review-20260623-22";
+frappe.document_queue.review_script_url = `/assets/frappe/js/frappe/document_queue_review.js?v=${
+	frappe.boot?.assets_version || ""
+}`;
 frappe.document_queue.review_script_fallback_url =
 	"/assets/frappe/js/frappe/document_queue_review.js";
 frappe.document_queue.reviewable_statuses = ["Ready for Review", "Failed"];
@@ -61,16 +62,6 @@ frappe.ui.form.on("Document Queue", {
 	},
 
 	refresh(frm) {
-		if (
-			!frm.is_new() &&
-			frm.doc.source_file &&
-			!["Queued", "Processing"].includes(frm.doc.status)
-		) {
-			frm.add_custom_button(__("Extract"), () => {
-				frm.call("extract_in_background").then(() => frm.reload_doc());
-			});
-		}
-
 		if (
 			!frm.is_new() &&
 			frm.doc.source_file &&
