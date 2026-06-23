@@ -17,8 +17,8 @@
 	min-width: 0;
 	overflow: hidden;
 	border-radius: var(--radius-lg);
-	border: 1px solid var(--outline-gray-modals);
-	background: var(--surface-modal);
+	border: 1px solid var(--outline-gray-2);
+	background: var(--surface-elevation-2);
 	cursor: pointer;
 	padding: 0;
 	text-align: left;
@@ -141,6 +141,7 @@
 .theme-preview-body {
 	flex: 1;
 	min-width: 0;
+	display: grid;
 	grid-template-columns: 1fr 1fr;
 	gap: 5px;
 	padding: 6px;
@@ -171,7 +172,7 @@
 	align-items: center;
 	justify-content: space-between;
 	padding: 8px 12px;
-	border-top: 1px solid var(--outline-gray-modals);
+	border-top: 1px solid var(--outline-gray-2);
 }
 
 .theme-card-label {

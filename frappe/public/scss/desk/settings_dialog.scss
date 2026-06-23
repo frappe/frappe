@@ -26,8 +26,8 @@
 	flex-shrink: 0;
 	width: 14rem;
 	margin: 0.25rem;
-	border-top-left-radius: var(--border-radius-lg);
-	border-bottom-left-radius: var(--border-radius-lg);
+	border-top-left-radius: var(--radius-lg);
+	border-bottom-left-radius: var(--radius-lg);
 	overflow-y: auto;
 	background-color: var(--surface-sidebar);
 }
@@ -210,7 +210,7 @@
 	margin-top: var(--margin-md);
 	margin-bottom: var(--margin-xs);
 	padding-top: var(--padding-sm);
-	border-top: 1px solid var(--outline-gray-modals);
+	border-top: 1px solid var(--outline-gray-2);
 
 	&:first-child {
 		margin-top: 0;
@@ -271,7 +271,7 @@ table + .settings-dialog-section-heading {
 }
 
 .settings-dialog-panel-body .form-section:not(:first-child):has(> .section-head) {
-	border-top: 1px solid var(--outline-gray-modals);
+	border-top: 1px solid var(--outline-gray-2);
 	padding-top: var(--padding-sm);
 }
 
@@ -295,7 +295,7 @@ table + .settings-dialog-section-heading {
 .settings-dialog-panel-body
 	.frappe-control:has(> .switch-control)
 	+ .frappe-control:has(> .switch-control) {
-	border-top: 1px solid var(--outline-gray-modals);
+	border-top: 1px solid var(--outline-gray-2);
 	padding-top: var(--padding-sm);
 	margin-top: var(--padding-sm);
 }
