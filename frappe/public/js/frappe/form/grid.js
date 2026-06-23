@@ -569,6 +569,20 @@ export default class Grid {
 			};
 		});
 
+		// Recompute sticky offsets with the new width and patch the DOM so
+		// subsequent sticky columns don't shift without a page reload.
+		this.sticky_offsets = {};
+		let sticky_sum = 71;
+		for (let [df, w] of this.visible_columns) {
+			if (df.sticky) {
+				this.sticky_offsets[df.fieldname] = sticky_sum;
+				this.wrapper
+					.find(`.grid-static-col[data-fieldname="${df.fieldname}"]`)
+					.css("left", `${sticky_sum}px`);
+				sticky_sum += w;
+			}
+		}
+
 		let value = {};
 		value[this.doctype] = columns;
 		frappe.model.user_settings.save(this.frm.doctype, "GridView", value).then((r) => {
