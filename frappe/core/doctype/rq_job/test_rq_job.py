@@ -181,6 +181,12 @@ class TestRQJob(IntegrationTestCase):
 		# Observed higher usage on 3.14. Temporarily raising the limit
 		LAST_MEASURED_USAGE += 6
 
+		# PR #38576 added `from frappe.concurrency_limiter import concurrent_limit` as an eager
+		# top-level import in frappe/__init__.py, which loads concurrency_limiter and its
+		# redis_semaphore dependency on every frappe startup including background jobs.
+		# (On develop this is already lazy via _LAZY_IMPORTS; backporting that is out of scope here.)
+		LAST_MEASURED_USAGE += 2
+
 		self.assertLessEqual(rss, LAST_MEASURED_USAGE * 1.05, msg)
 
 	def test_clear_failed_jobs(self):
