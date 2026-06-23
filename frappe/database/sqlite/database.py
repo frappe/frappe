@@ -820,6 +820,21 @@ _RE_NOW_INTERVAL = re.compile(
 	re.IGNORECASE,
 )
 _RE_INTERVAL_SIGN = re.compile(r"'([+-])(\d)")
+# Raw MariaDB date arithmetic written directly in SQL (e.g. `NOW() - INTERVAL '7' DAY`), as
+# opposed to the pypika-rendered form handled by _RE_NOW_INTERVAL. SQLite has no INTERVAL type.
+_RE_RAW_INTERVAL = re.compile(
+	r"(NOW\(\)|CURRENT_TIMESTAMP)\s*([+-])\s*INTERVAL\s+'?(\d+)'?\s+(YEAR|MONTH|WEEK|DAY|HOUR|MINUTE|SECOND)S?",
+	re.IGNORECASE,
+)
+_INTERVAL_UNITS = {
+	"year": "years",
+	"month": "months",
+	"week": "days",
+	"day": "days",
+	"hour": "hours",
+	"minute": "minutes",
+	"second": "seconds",
+}
 
 
 def _split_orderby_terms(clause: str) -> list:
@@ -922,6 +937,18 @@ def _rewrite_having_aliases(query: str) -> str:
 	return query[:having_start] + having_part
 
 
+def _fix_raw_interval(query: str) -> str:
+	"""Translate raw ``NOW() ± INTERVAL 'n' UNIT`` into ``datetime('now', '±n units')``."""
+
+	def repl(match: re.Match) -> str:
+		sign, n, unit = match.group(2), int(match.group(3)), match.group(4).lower()
+		if unit == "week":
+			n *= 7
+		return f"datetime('now', '{sign}{n} {_INTERVAL_UNITS[unit]}')"
+
+	return _RE_RAW_INTERVAL.sub(repl, query)
+
+
 def _fix_now_interval(query: str) -> str:
 	"""Collapse ``CURRENT_TIMESTAMP ± datetime('now', '<mods>')`` into one ``datetime('now', ...)``.
 
@@ -962,6 +989,10 @@ def modify_query(query: str) -> str:
 
 	if query.lstrip()[0:1] == "(":
 		query = _strip_wrapping_parens(query)
+
+	if "interval" in ql:
+		query = _fix_raw_interval(query)
+		ql = query.lower()
 
 	if "datetime('now'" in ql:
 		query = _fix_now_interval(query)
