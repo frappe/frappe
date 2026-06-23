@@ -242,11 +242,13 @@ frappe.document_queue_review.create_upload_first_queue = async function (frm, fi
 			},
 		});
 
-		const context = r.message;
+		let context = r.message;
 		if (!context?.queue_name) {
 			frappe.msgprint(__("Could not create a Document Queue record."));
 			return;
 		}
+
+		context = await frappe.document_queue_review.wait_for_extraction(context);
 
 		if (context.status === "Failed") {
 			frappe.msgprint({
@@ -263,6 +265,39 @@ frappe.document_queue_review.create_upload_first_queue = async function (frm, fi
 	} finally {
 		frappe.dom.unfreeze();
 	}
+};
+
+frappe.document_queue_review.wait_for_extraction = async function (context) {
+	if (!["Queued", "Processing"].includes(context.status)) {
+		return context;
+	}
+
+	let latest_context = context;
+	for (let attempt = 0; attempt < 90; attempt++) {
+		await new Promise((resolve) => setTimeout(resolve, 1000));
+
+		const response = await frappe.call({
+			method: "frappe.core.doctype.document_queue.document_queue.get_document_review_context",
+			args: {
+				document_queue: context.queue_name,
+			},
+		});
+
+		latest_context = response.message || latest_context;
+		if (!["Queued", "Processing"].includes(latest_context.status)) {
+			return latest_context;
+		}
+	}
+
+	frappe.msgprint({
+		title: __("Extraction Still Running"),
+		message: __(
+			"The document was queued, but extraction is taking longer than expected. You can continue reviewing it from Document Queue when extraction finishes."
+		),
+		indicator: "orange",
+	});
+
+	return latest_context;
 };
 
 frappe.document_queue_review.get_context = function (frm) {
@@ -665,7 +700,14 @@ frappe.document_queue_review.refresh_form = function (frm) {
 };
 
 frappe.document_queue_review.patch_list_view = function () {
-	if (frappe.document_queue_review.list_view_patched || !frappe.views?.ListView) {
+	if (
+		frappe.document_queue_review.list_view_patched ||
+		frappe.document_queue_review_loader?.list_view_patched ||
+		!frappe.views?.ListView
+	) {
+		frappe.document_queue_review.list_view_patched = Boolean(
+			frappe.document_queue_review_loader?.list_view_patched
+		);
 		return;
 	}
 
@@ -676,6 +718,9 @@ frappe.document_queue_review.patch_list_view = function () {
 	};
 
 	frappe.document_queue_review.list_view_patched = true;
+	if (frappe.document_queue_review_loader) {
+		frappe.document_queue_review_loader.list_view_patched = true;
+	}
 };
 
 frappe.document_queue_review.add_styles = function () {
