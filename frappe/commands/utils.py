@@ -105,8 +105,9 @@ def build(
 			apps = frappe.get_all_apps()
 
 		for app in apps:
-			print("Compiling translations for", app)
-			compile_translations(app, force=force)
+			if verbose:
+				print("Compiling translations for", app)
+			compile_translations(app, force=force, verbose=verbose)
 
 		run_after_build_hook(apps)
 
