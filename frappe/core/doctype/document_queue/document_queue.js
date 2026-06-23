@@ -2,7 +2,8 @@ frappe.provide("frappe.document_queue");
 
 frappe.document_queue.review_script_url =
 	"/assets/frappe/js/frappe/document_queue_review.js?v=document-queue-review-20260623-22";
-frappe.document_queue.review_script_fallback_url = "/assets/frappe/js/frappe/document_queue_review.js";
+frappe.document_queue.review_script_fallback_url =
+	"/assets/frappe/js/frappe/document_queue_review.js";
 frappe.document_queue.reviewable_statuses = ["Ready for Review", "Failed"];
 
 frappe.document_queue.load_review_script = function (url) {
@@ -18,7 +19,9 @@ frappe.document_queue.load_review_script = function (url) {
 frappe.document_queue.start_review = function (frm) {
 	const start_review = () => {
 		if (!frappe.document_queue_review?.start_from_document_queue) {
-			frappe.msgprint(__("Document review script could not be loaded. Please refresh and try again."));
+			frappe.msgprint(
+				__("Document review script could not be loaded. Please refresh and try again.")
+			);
 			return;
 		}
 
@@ -39,7 +42,9 @@ frappe.document_queue.start_review = function (frm) {
 				.then(start_review)
 				.catch(() => {
 					frappe.msgprint(
-						__("Document review script could not be loaded. Please refresh and try again.")
+						__(
+							"Document review script could not be loaded. Please refresh and try again."
+						)
 					);
 				});
 		});
@@ -56,7 +61,11 @@ frappe.ui.form.on("Document Queue", {
 	},
 
 	refresh(frm) {
-		if (!frm.is_new() && frm.doc.source_file && !["Queued", "Processing"].includes(frm.doc.status)) {
+		if (
+			!frm.is_new() &&
+			frm.doc.source_file &&
+			!["Queued", "Processing"].includes(frm.doc.status)
+		) {
 			frm.add_custom_button(__("Extract"), () => {
 				frm.call("extract_in_background").then(() => frm.reload_doc());
 			});
