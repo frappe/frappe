@@ -62,7 +62,8 @@ frappe.doctype_settings.register("workflow", function (panel, doctype) {
 			},
 		],
 		empty_state: {
-			title: __("No workflows yet"),
+			icon: frappe.doctype_settings.tab_icon("workflow"),
+			title: __("No Workflows found"),
 			description: __("Create a workflow to control the states {0} moves through.", [doctype]),
 			action: { label: __("New Workflow"), onclick: create },
 		},
