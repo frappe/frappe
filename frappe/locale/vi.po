@@ -3,7 +3,7 @@ msgstr ""
 "Project-Id-Version: frappe\n"
 "Report-Msgid-Bugs-To: developers@frappe.io\n"
 "POT-Creation-Date: 2026-01-02 22:45+0000\n"
-"PO-Revision-Date: 2026-06-21 19:30\n"
+"PO-Revision-Date: 2026-06-23 20:12\n"
 "Last-Translator: developers@frappe.io\n"
 "Language-Team: Vietnamese\n"
 "MIME-Version: 1.0\n"
@@ -13269,7 +13269,7 @@ msgstr "Hướng dẫn"
 
 #: frappe/templates/includes/login/login.js:262
 msgid "Instructions Emailed"
-msgstr ""
+msgstr "Hướng dẫn đã được gửi qua email"
 
 #: frappe/permissions.py:831
 msgid "Insufficient Permission Level for {0}"
@@ -13488,7 +13488,7 @@ msgstr "Mã thông báo đăng nhập không hợp lệ"
 
 #: frappe/templates/includes/login/login.js:291
 msgid "Invalid Login. Try again."
-msgstr ""
+msgstr "Sai thông tin đăng nhập. Vui lòng thử lại."
 
 #: frappe/email/receive.py:111 frappe/email/receive.py:148
 msgid "Invalid Mail Server. Please rectify and try again."
@@ -15316,11 +15316,11 @@ msgstr "Đăng nhập và xem trong Trình duyệt"
 
 #: frappe/website/doctype/web_form/web_form.js:381
 msgid "Login is required to see web form list view. Enable {0} to see list settings"
-msgstr "Cần đăng nhập để xem danh sách biểu mẫu web. Bật {0} để xem cài đặt danh sách"
+msgstr "Đăng nhập là bắt buộc để xem danh sách biểu mẫu web. Bật tùy chọn \" {0} \" để xem cài đặt danh sách"
 
 #: frappe/templates/includes/login/login.js:70
 msgid "Login link sent to your email"
-msgstr ""
+msgstr "Liên kết đăng nhập đã được gửi đến email của bạn"
 
 #: frappe/auth.py:335 frappe/auth.py:338
 msgid "Login not allowed at this time"
@@ -15345,7 +15345,7 @@ msgstr "Đăng nhập để bắt đầu một cuộc thảo luận mới"
 
 #: frappe/www/login.html:63
 msgid "Login to {0}"
-msgstr ""
+msgstr "Đăng nhập vào {0}"
 
 #: frappe/templates/includes/login/login.js:327
 msgid "Login token required"
