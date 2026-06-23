@@ -812,6 +812,14 @@ _RE_UNQUOTED_TAB = re.compile(r"from tab([a-zA-Z]*)", re.IGNORECASE)
 _RE_UPDATE = re.compile(r"^\s*UPDATE\b", re.IGNORECASE)
 _RE_SET_KW = re.compile(r"\bSET\s+", re.IGNORECASE)
 _RE_WHERE_KW = re.compile(r"\bWHERE\b", re.IGNORECASE)
+# pypika renders a SQLite Interval as a full `datetime('now', '+N unit')` expression, so frappe's
+# `Now() - Interval(...)` idiom becomes `CURRENT_TIMESTAMP - datetime('now', '+N unit')` -- a
+# meaningless subtraction of two timestamps. Fold it back into a single datetime() call.
+_RE_NOW_INTERVAL = re.compile(
+	r"(?:CURRENT_TIMESTAMP|NOW\(\)|datetime\('now'\))\s*([+-])\s*datetime\('now',\s*([^)]*)\)",
+	re.IGNORECASE,
+)
+_RE_INTERVAL_SIGN = re.compile(r"'([+-])(\d)")
 
 
 def _split_orderby_terms(clause: str) -> list:
@@ -914,6 +922,21 @@ def _rewrite_having_aliases(query: str) -> str:
 	return query[:having_start] + having_part
 
 
+def _fix_now_interval(query: str) -> str:
+	"""Collapse ``CURRENT_TIMESTAMP ± datetime('now', '<mods>')`` into one ``datetime('now', ...)``.
+
+	For subtraction the modifier signs are flipped (now minus 30 days -> ``'-30 days'``); for
+	addition they are kept. See ``_RE_NOW_INTERVAL`` for why this shape exists."""
+
+	def repl(match: re.Match) -> str:
+		mods = match.group(2)
+		if match.group(1) == "-":
+			mods = _RE_INTERVAL_SIGN.sub(lambda m: f"'{'-' if m.group(1) == '+' else '+'}{m.group(2)}", mods)
+		return f"datetime('now', {mods})"
+
+	return _RE_NOW_INTERVAL.sub(repl, query)
+
+
 def modify_query(query: str) -> str:
 	"""Rewrite a MariaDB-flavoured SQL query for SQLite compatibility.
 
@@ -939,6 +962,9 @@ def modify_query(query: str) -> str:
 
 	if query.lstrip()[0:1] == "(":
 		query = _strip_wrapping_parens(query)
+
+	if "datetime('now'" in ql:
+		query = _fix_now_interval(query)
 
 	if "current_" in ql:
 		query = _RE_CURRENT_DT.sub(r"current_\1", query)
