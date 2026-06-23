@@ -725,9 +725,23 @@ export default class Grid {
 
 		this._apply_layout_child_overrides();
 		this._apply_column_disp_overrides();
+		this._apply_mask_overrides();
 
 		this.docfields.forEach((df) => {
 			this.fields_map[df.fieldname] = df;
+		});
+	}
+
+	_apply_mask_overrides() {
+		const masked_fields = frappe.get_meta(this.doctype)?.masked_fields || [];
+		if (!masked_fields.length) return;
+
+		// Shallow copy so the shared `frappe.meta` docfield is not mutated. Render masked
+		// child fields as read-only Data so the grid shows the XXXXXXXX placeholder and the
+		// cell can't be edited inline, matching the form view (layout.init_field).
+		this.docfields = this.docfields.map((df) => {
+			if (!masked_fields.includes(df.fieldname)) return df;
+			return Object.assign({}, df, { read_only: 1, fieldtype: "Data" });
 		});
 	}
 

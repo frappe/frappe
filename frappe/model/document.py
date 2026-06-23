@@ -566,9 +566,25 @@ class Document(BaseDocument):
 
 		mask_fields = frappe.get_meta(self.doctype).get_masked_fields()
 
+		if mask_fields:
+			# Flag masked fields so get_valid_dict() does not cast the XXXXXXXX placeholder
+			# back to 0 for numeric fieldtypes when serializing the response.
+			self.flags.masked_fieldnames = {field.fieldname for field in mask_fields}
+
 		for field in mask_fields:
 			val = self.get(field.fieldname)
 			self.set(field.fieldname, mask_field_value(field, val))
+
+		for table_field in self.meta.get_table_fields():
+			child_mask_fields = frappe.get_meta(table_field.options).get_masked_fields()
+			if not child_mask_fields:
+				continue
+
+			masked_fieldnames = {field.fieldname for field in child_mask_fields}
+			for row in self.get(table_field.fieldname) or []:
+				row.flags.masked_fieldnames = masked_fieldnames
+				for field in child_mask_fields:
+					row.set(field.fieldname, mask_field_value(field, row.get(field.fieldname)))
 
 	def load_children_from_db(self):
 		is_doctype = self.doctype == "DocType"
@@ -1225,7 +1241,12 @@ class Document(BaseDocument):
 			return
 
 		mask_fields = self.meta.get_masked_fields()
-		if not mask_fields:
+		child_mask_fields = {
+			table_field.fieldname: masked
+			for table_field in self.meta.get_table_fields()
+			if (masked := frappe.get_meta(table_field.options).get_masked_fields())
+		}
+		if not mask_fields and not child_mask_fields:
 			return
 
 		# frappe.db.get_value() goes through the query builder which re-masks results for
@@ -1234,6 +1255,15 @@ class Document(BaseDocument):
 		db_doc = frappe.get_doc(self.doctype, self.name)
 		for df in mask_fields:
 			self.set(df.fieldname, db_doc.get(df.fieldname))
+
+		for fieldname, masked in child_mask_fields.items():
+			db_rows = {row.name: row for row in db_doc.get(fieldname)}
+			for row in self.get(fieldname) or []:
+				db_row = db_rows.get(row.name)
+				if not db_row:
+					continue
+				for df in masked:
+					row.set(df.fieldname, db_row.get(df.fieldname))
 
 	def validate_higher_perm_levels(self):
 		"""If the user does not have permissions at permlevel > 0, then reset the values to original / default"""

@@ -560,9 +560,16 @@ class BaseDocument:
 		d = _dict()
 		field_values = self.__dict__
 		field_map = self.meta._fields
+		masked_fieldnames = self.flags.get("masked_fieldnames")
 
 		for fieldname in self.meta.get_valid_fields():
 			value = field_values.get(fieldname)
+
+			# Masked fields hold the XXXXXXXX placeholder; pass it through untouched so it
+			# is not cast back to 0 for numeric fieldtypes.
+			if masked_fieldnames and fieldname in masked_fieldnames:
+				d[fieldname] = value
+				continue
 
 			# if no need for sanitization and value is None, continue
 			if not sanitize and value is None:
