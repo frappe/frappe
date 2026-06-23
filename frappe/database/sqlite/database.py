@@ -774,8 +774,10 @@ class SQLiteDatabase(SQLiteExceptionUtil, Database):
 		self.sql_ddl(f"DELETE FROM sqlite_sequence WHERE name='{table}'")
 
 	def check_implicit_commit(self, query: str, query_type: str):
-		if query_type in IMPLICIT_COMMIT_QUERY_TYPES and self.transaction_writes:
-			raise ImplicitCommitError("This statement can cause implicit commit", query)
+		# SQLite runs DDL (ALTER/CREATE/DROP/TRUNCATE) inside the current transaction and rolls it
+		# back with everything else -- unlike MariaDB/Postgres it does not implicitly commit -- so
+		# these statements are safe mid-transaction (e.g. renaming a doctype's table).
+		pass
 
 
 # ---------------------------------------------------------------------------
