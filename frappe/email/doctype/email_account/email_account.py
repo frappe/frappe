@@ -404,6 +404,9 @@ class EmailAccount(Document):
 
 	def check_email_server_connection(self, email_server, in_receive):
 		# tries to connect to email server and handles failure
+		# in_receive is also set during save validation; only a real background fetch
+		# should auto-disable the account, a failed save must surface the error
+		is_background_receive = in_receive and not bool(self.flags.validate_imap_pop_connection)
 		try:
 			email_server.connect()
 
@@ -424,9 +427,6 @@ class EmailAccount(Document):
 
 			all_error_codes = auth_error_codes + other_error_codes
 
-			# Disable only on background fetch; save validation errors should surface.
-			is_background_receive = in_receive and not bool(self.flags.validate_imap_pop_connection)
-
 			if is_background_receive and any(t in message for t in all_error_codes):
 				# if called via self.receive and it leads to authentication error,
 				# disable incoming and send email to System Manager
@@ -445,7 +445,7 @@ class EmailAccount(Document):
 				frappe.throw(cstr(e))
 
 		except OSError:
-			if in_receive:
+			if is_background_receive:
 				# timeout while connecting, see receive.py connect method
 				description = frappe.message_log.pop() if frappe.message_log else "Socket Error"
 				self.db_set("no_failed", self.no_failed + 1)
