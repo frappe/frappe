@@ -221,6 +221,7 @@ nixpkgs-deps = [
 
 [tool.uv]
 exclude-newer = "7 days"
+exclude-newer-package = { pypdf = "2026-06-18T00:00:00Z" }
 
 [tool.mypy]
 strict = false
