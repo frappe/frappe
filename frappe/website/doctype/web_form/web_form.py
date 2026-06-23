@@ -648,6 +648,10 @@ def get_print_share_key(doc):
 
 	Reuses an existing, non-expired key instead of inserting a new record on every
 	view (a fresh key per request/day would accumulate unboundedly).
+
+	The web form is served over a GET request, which the framework rolls back by
+	default. When a new key is created, flag the request to commit so the key
+	persists for the subsequent print-view request (otherwise printing 403s).
 	"""
 	key = frappe.db.get_value(
 		"Document Share Key",
@@ -658,7 +662,12 @@ def get_print_share_key(doc):
 		},
 		"key",
 	)
-	return key or doc.get_document_share_key()
+	if key:
+		return key
+
+	key = doc.get_document_share_key()
+	frappe.flags.commit = True
+	return key
 
 
 def get_web_form_module(doc):
@@ -770,6 +779,16 @@ def accept(web_form: str, data: str):
 		frappe.session.user = user
 
 	frappe.flags.web_form_doc = doc
+
+	if web_form.allow_print and doc.name:
+		# Return a document share key so the submitter can print their submission from
+		# the success page, even on anonymous/public forms where they hold no print
+		# permission. accept() is a POST, so the key is committed. See #19160.
+		response = doc.as_dict()
+		response["print_key"] = get_print_share_key(doc)
+		response["print_format"] = web_form.print_format or "Standard"
+		return response
+
 	return doc
 
 

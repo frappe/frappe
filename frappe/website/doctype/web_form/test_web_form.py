@@ -18,11 +18,13 @@ class TestWebForm(IntegrationTestCase):
 		# in form_dict, which would otherwise leak into sibling tests' /new requests
 		frappe.set_user("Administrator")
 		frappe.local.form_dict = frappe._dict()
+		frappe.flags.commit = False
 
 	def tearDown(self):
 		frappe.conf.disable_website_cache = False
 		frappe.set_user("Administrator")
 		frappe.local.form_dict = frappe._dict()
+		frappe.flags.commit = False
 		# drop any web form created during a test from the cached published-forms list
 		get_published_web_forms.clear_cache()
 
@@ -121,6 +123,10 @@ class TestWebForm(IntegrationTestCase):
 		self.assertIn(f"/printview?doctype=Note&name={note.name}", content)
 		self.assertIn("&key=", content)
 
+		# the key is created during a GET render, which is rolled back by default; the
+		# request must be flagged to commit so the key survives for the print request
+		self.assertTrue(frappe.flags.commit)
+
 		def share_key_count():
 			return frappe.db.count(
 				"Document Share Key", {"reference_doctype": "Note", "reference_docname": note.name}
@@ -132,6 +138,43 @@ class TestWebForm(IntegrationTestCase):
 		set_request(method="GET", path=path)
 		get_response_content(path)
 		self.assertEqual(share_key_count(), 1)
+
+	def test_webform_print_after_submit(self):
+		# accept() must hand back a share key + print format so the success page can show
+		# a working Print button right after submitting, even on anonymous forms. See #19160.
+		web_form = frappe.get_doc(
+			{
+				"doctype": "Web Form",
+				"title": "Test Note Print Submit",
+				"route": "test-note-print-submit",
+				"doc_type": "Note",
+				"module": "Website",
+				"login_required": 0,
+				"allow_multiple": 1,
+				"allow_print": 1,
+				"published": 1,
+				"web_form_fields": [
+					{"fieldname": "title", "fieldtype": "Data", "label": "Title", "reqd": 1}
+				],
+			}
+		).insert(ignore_permissions=True)
+
+		# simulate the submit POST (accept() is rate-limited and reads the request IP)
+		set_request(method="POST", path=f"/{web_form.route}/new")
+		frappe.local.request_ip = "127.0.0.1"
+		result = accept(
+			web_form=web_form.name,
+			data=json.dumps({"doctype": "Note", "title": "_Test Submit Print"}),
+		)
+
+		self.assertTrue(result.get("print_key"))
+		self.assertEqual(result.get("print_format"), "Standard")
+		self.assertTrue(
+			frappe.db.exists(
+				"Document Share Key",
+				{"reference_doctype": "Note", "reference_docname": result.get("name")},
+			)
+		)
 
 	def test_webform_html_meta_is_added(self):
 		set_request(method="GET", path="manage-events/new")

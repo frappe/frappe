@@ -482,5 +482,20 @@ export default class WebForm extends frappe.ui.FieldGroup {
 				</a>
 			`);
 		}
+
+		if (this.allow_print && data.name) {
+			let print_url =
+				`/printview?doctype=${encodeURIComponent(data.doctype)}` +
+				`&name=${encodeURIComponent(data.name)}` +
+				`&format=${encodeURIComponent(data.print_format || "Standard")}`;
+			if (data.print_key) {
+				print_url += `&key=${data.print_key}`;
+			}
+			$(".success-footer").append(`
+				<a href="${print_url}" target="_blank" class="print-button btn btn-default btn-md">
+					${__("Print", null, "Button in web form")}
+				</a>
+			`);
+		}
 	}
 }
