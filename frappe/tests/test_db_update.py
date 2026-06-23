@@ -165,11 +165,6 @@ class TestDBUpdate(IntegrationTestCase):
 		doctype.save()
 		frappe.get_doc(doctype=doctype.name, int_field=2**62 - 1).insert()
 
-	# Core tables come from the prebuilt framework_sqlite.db, whose columns were declared with an
-	# inline UNIQUE (yielding a second sqlite_autoindex_* alongside the named index). Fresh tables
-	# no longer do this, but these pre-existing baseline tables still carry the duplicate until the
-	# baseline is regenerated.
-	@unimplemented_for(db_type_is.SQLITE)
 	def test_unique_index_on_install(self):
 		"""Only one unique index should be added"""
 		for dt in frappe.get_all("DocType", {"is_virtual": 0, "issingle": 0}, pluck="name"):

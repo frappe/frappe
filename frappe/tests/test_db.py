@@ -595,10 +595,6 @@ class TestDB(IntegrationTestCase):
 		after = now_datetime()
 		self.assertEqual(note.name, frappe.db.exists("Note", {"creation": ("between", (before, after))}))
 
-	# ignore_duplicates relies on a UNIQUE/PK constraint to conflict against, but the bootstrap
-	# tables baked into framework_sqlite.db (tabToDo included) were generated without a PRIMARY
-	# KEY on `name`, so INSERT OR IGNORE never dedupes. Blocked on regenerating that baseline.
-	@unimplemented_for(db_type_is.SQLITE)
 	def test_bulk_insert(self):
 		current_count = frappe.db.count("ToDo")
 		test_body = f"test_bulk_insert - {random_string(10)}"

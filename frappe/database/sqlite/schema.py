@@ -21,10 +21,20 @@ class SQLiteTable(DBTable):
 					column_list.append(k)
 		return ret
 
+	def name_column_definition(self) -> str:
+		"""Definition for the primary-key `name` column.
+
+		`autoincrement` doctypes need a rowid-backed `INTEGER PRIMARY KEY AUTOINCREMENT`; everything
+		else (including UUID) is a `TEXT PRIMARY KEY`. Shared by create() and the alter() rebuild so
+		the primary key is never silently dropped when a table is reconstructed."""
+		if not self.meta.issingle and self.meta.autoname == "autoincrement":
+			return "name INTEGER PRIMARY KEY AUTOINCREMENT"
+		return "name TEXT PRIMARY KEY"
+
 	def create(self):
 		# First prepare the basic table creation without indexes
 		additional_definitions = []
-		name_column = "name TEXT PRIMARY KEY"
+		name_column = self.name_column_definition()
 
 		# columns
 		column_defs = self.get_column_definitions()
@@ -48,12 +58,6 @@ class SQLiteTable(DBTable):
 				)
 
 		index_defs.extend(self.get_column_index_queries())
-
-		# creating sequence(s)
-		if not self.meta.issingle and self.meta.autoname == "autoincrement":
-			name_column = "name INTEGER PRIMARY KEY AUTOINCREMENT"
-		elif not self.meta.issingle and self.meta.autoname == "UUID":
-			name_column = "name TEXT PRIMARY KEY"
 
 		additional_definitions = ",\n".join(additional_definitions)
 
@@ -97,12 +101,25 @@ class SQLiteTable(DBTable):
 		):
 			return
 
-		# Get current table column definitions
+		# Get current table column definitions. SQLite has no ALTER for constraints, so the table is
+		# rebuilt -- and PRAGMA table_info reports column name/type but not the PRIMARY KEY clause, so
+		# it has to be re-emitted explicitly or the rebuild silently drops the primary key.
 		existing_columns = []
+		extra_pk_columns = []
 		for column in frappe.db.sql(f"PRAGMA table_info(`{self.table_name}`)", as_dict=1):
-			existing_columns.append(f"`{column.name}` {column.type}")
+			if column.name == "name":
+				existing_columns.append(f"`name` {self.name_column_definition().split(' ', 1)[1]}")
+			else:
+				existing_columns.append(f"`{column.name}` {column.type}")
+				# Preserve any non-name primary key columns (e.g. composite keys) via a table-level
+				# constraint added below.
+				if column.pk:
+					extra_pk_columns.append((column.pk, column.name))
 
 		columns = existing_columns.copy()
+		if extra_pk_columns:
+			pk_cols = ", ".join(f"`{name}`" for _, name in sorted(extra_pk_columns))
+			columns.append(f"PRIMARY KEY ({pk_cols})")
 
 		# Modify existing columns
 		columns_to_modify = set(self.change_type + self.set_default + self.change_nullability)
