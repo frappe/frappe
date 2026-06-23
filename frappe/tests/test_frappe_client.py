@@ -14,6 +14,11 @@ from frappe.tests.test_query_builder import db_type_is, unimplemented_for
 from frappe.utils.data import get_url
 
 
+# Every test drives FrappeClient, which makes synchronous real HTTP requests to the
+# bench web server. An IntegrationTestCase holds the write lock for the whole test
+# (open transaction), so the separate server process cannot acquire it -- a single-writer
+# deadlock on SQLite.
+@unimplemented_for(db_type_is.SQLITE)
 class TestFrappeClient(IntegrationTestCase):
 	PASSWORD = frappe.conf.admin_password or "admin"
 
@@ -198,7 +203,6 @@ class TestFrappeClient(IntegrationTestCase):
 		server.delete("Note", NAME_TO_DELETE)
 		self.assertFalse(frappe.db.get_value("Note", NAME_TO_DELETE))
 
-	@unimplemented_for(db_type_is.SQLITE)
 	def test_auth_via_api_key_secret(self):
 		# generate API key and API secret for administrator
 		keys = generate_keys("Administrator")
