@@ -1,16 +1,18 @@
 <template>
 	<div>
 		<div class="flex flex-row flex-wrap gap-4">
-			<Input
-				label="Page Title"
-				type="text"
-				variant="outline"
-				class="w-full"
-				:modelValue="pageTitle"
-				@update:modelValue="(val: string) => store.updateActivePage('page_title', val)"
-			/>
+			<div class="flex w-full flex-col gap-2">
+				<label class="block text-xs text-ink-gray-5">Page Title</label>
+				<Input
+					type="text"
+					variant="outline"
+					class="w-full"
+					:modelValue="pageTitle"
+					@update:modelValue="(val: string) => store.updateActivePage('page_title', val)"
+				/>
+			</div>
 
-			<div class="flex w-full flex-col gap-1">
+			<div class="flex w-full flex-col gap-2">
 				<label class="block text-xs text-ink-gray-5">Page Route</label>
 				<div class="relative flex items-stretch">
 					<Input
