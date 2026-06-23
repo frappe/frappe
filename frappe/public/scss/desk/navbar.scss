@@ -104,6 +104,26 @@
 		display: flex;
 	}
 
+	.awesomebar-input-row {
+		display: flex;
+		align-items: center;
+
+		input {
+			flex: 1;
+			min-width: 0;
+		}
+	}
+
+	.awesomebar-search-icon {
+		display: flex;
+		align-items: center;
+		padding-left: 10px;
+		color: var(--text-muted);
+		flex-shrink: 0;
+		pointer-events: none;
+		padding-right: 2px;
+	}
+
 	.awesomplete {
 		width: 100%;
 
