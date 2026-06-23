@@ -597,6 +597,14 @@ class SQLiteDatabase(SQLiteExceptionUtil, Database):
 
 		return super().sql(*args, **kwargs)
 
+	def log_query(self, query, query_type, values=None, debug=False):
+		# The base class doesn't set last_query; MariaDB/Postgres do (via override /
+		# property). Capture it here too so tooling that reads frappe.db.last_query
+		# (e.g. the recorder) works on SQLite.
+		mogrified_query = super().log_query(query, query_type, values, debug)
+		self.last_query = mogrified_query
+		return mogrified_query
+
 	def sql_ddl(self, query, *args, **kwargs):
 		"""Execute DDL query."""
 		super().sql_ddl(query, *args, **kwargs)
