@@ -1,0 +1,195 @@
+{
+ "actions": [],
+ "autoname": "hash",
+ "creation": "2026-06-19 00:00:00.000000",
+ "doctype": "DocType",
+ "engine": "InnoDB",
+ "field_order": [
+  "source_section",
+  "source_file",
+  "document_type",
+  "status",
+  "task",
+  "column_break_status",
+  "created_document",
+  "extraction_method",
+  "extraction_started_on",
+  "extraction_completed_on",
+  "extracted_text_section",
+  "extracted_text",
+  "raw_output_section",
+  "raw_extraction_json",
+  "error_section",
+  "error_message",
+  "debug_output"
+ ],
+ "fields": [
+  {
+   "fieldname": "source_section",
+   "fieldtype": "Section Break",
+   "label": "Source"
+  },
+  {
+   "fieldname": "source_file",
+   "fieldtype": "Attach",
+   "in_list_view": 1,
+   "label": "Source File",
+   "reqd": 1
+  },
+  {
+   "fieldname": "document_type",
+   "fieldtype": "Link",
+   "in_list_view": 1,
+   "label": "Document Type",
+   "options": "DocType"
+  },
+  {
+   "default": "Draft",
+   "fieldname": "status",
+   "fieldtype": "Select",
+   "in_list_view": 1,
+   "label": "Status",
+   "options": "Draft\nQueued\nProcessing\nReady for Review\nCompleted\nFailed",
+   "read_only": 1,
+   "reqd": 1
+  },
+  {
+   "fieldname": "task",
+   "fieldtype": "Link",
+   "label": "Background Task",
+   "options": "Background Task",
+   "read_only": 1
+  },
+  {
+   "fieldname": "column_break_status",
+   "fieldtype": "Column Break"
+  },
+  {
+   "fieldname": "created_document",
+   "fieldtype": "Dynamic Link",
+   "label": "Created Document",
+   "options": "document_type",
+   "read_only": 1
+  },
+  {
+   "fieldname": "extraction_method",
+   "fieldtype": "Data",
+   "label": "Extraction Method",
+   "read_only": 1
+  },
+  {
+   "fieldname": "extraction_started_on",
+   "fieldtype": "Datetime",
+   "label": "Extraction Started On",
+   "read_only": 1
+  },
+  {
+   "fieldname": "extraction_completed_on",
+   "fieldtype": "Datetime",
+   "label": "Extraction Completed On",
+   "read_only": 1
+  },
+  {
+   "fieldname": "extracted_text_section",
+   "fieldtype": "Section Break",
+   "label": "Extracted Text"
+  },
+  {
+   "fieldname": "extracted_text",
+   "fieldtype": "Long Text",
+   "label": "Extracted Text",
+   "read_only": 1
+  },
+  {
+   "fieldname": "raw_output_section",
+   "fieldtype": "Section Break",
+   "label": "Raw Output"
+  },
+  {
+   "fieldname": "raw_extraction_json",
+   "fieldtype": "JSON",
+   "label": "Raw Extraction JSON",
+   "read_only": 1
+  },
+  {
+   "fieldname": "error_section",
+   "fieldtype": "Section Break",
+   "label": "Errors and Debug"
+  },
+  {
+   "fieldname": "error_message",
+   "fieldtype": "Long Text",
+   "label": "Error Message",
+   "read_only": 1
+  },
+  {
+   "fieldname": "debug_output",
+   "fieldtype": "Long Text",
+   "label": "Debug Output",
+   "read_only": 1
+  }
+ ],
+ "grid_page_length": 50,
+ "index_web_pages_for_search": 1,
+ "links": [],
+ "modified": "2026-06-19 00:00:00.000000",
+ "modified_by": "Administrator",
+ "module": "Core",
+ "name": "Document Queue",
+ "naming_rule": "Random",
+ "owner": "Administrator",
+ "permissions": [
+  {
+   "create": 1,
+   "delete": 1,
+   "email": 1,
+   "export": 1,
+   "print": 1,
+   "read": 1,
+   "report": 1,
+   "role": "System Manager",
+   "share": 1,
+   "write": 1
+  },
+  {
+   "create": 1,
+   "email": 1,
+   "export": 1,
+   "if_owner": 1,
+   "print": 1,
+   "read": 1,
+   "report": 1,
+   "role": "Desk User",
+   "share": 1
+  }
+ ],
+ "row_format": "Dynamic",
+ "sort_field": "creation",
+ "sort_order": "DESC",
+ "states": [
+  {
+   "color": "Gray",
+   "title": "Draft"
+  },
+  {
+   "color": "Blue",
+   "title": "Queued"
+  },
+  {
+   "color": "Orange",
+   "title": "Processing"
+  },
+  {
+   "color": "Blue",
+   "title": "Ready for Review"
+  },
+  {
+   "color": "Green",
+   "title": "Completed"
+  },
+  {
+   "color": "Red",
+   "title": "Failed"
+  }
+ ]
+}
