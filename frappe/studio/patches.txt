@@ -13,3 +13,4 @@ studio.studio.doctype.studio_page.patches.update_old_global_utility_usage
 studio.studio.doctype.studio_page.patches.migrate_dialog_to_frappe_ui_v1
 studio.studio.doctype.studio_page.patches.migrate_watchers_to_page_script
 studio.studio.doctype.studio_page.patches.migrate_espresso_color_tokens_v2
+studio.studio.doctype.studio_page.patches.migrate_text_size_tokens_v2
