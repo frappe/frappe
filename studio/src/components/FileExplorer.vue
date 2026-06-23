@@ -316,9 +316,9 @@ function getFileBadge(path: string): { label: string; colorClass: string } {
 		case ".vue":
 			return { label: "V", colorClass: "text-ink-green-6" }
 		case ".js":
-			return { label: "JS", colorClass: "text-ink-amber-6" }
+			return { label: "JS", colorClass: "text-ink-orange-6" }
 		case ".ts":
-			return { label: "TS", colorClass: "text-ink-blue-6" }
+			return { label: "TS", colorClass: "text-ink-blue-7" }
 		case ".json":
 			return { label: "{}", colorClass: "text-ink-gray-5" }
 		case ".css":
