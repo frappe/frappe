@@ -1,10 +1,11 @@
 from unittest.mock import patch
 from uuid import uuid4
 
+from pypdf import PdfWriter
+
 import frappe
 from frappe.tests import IntegrationTestCase
 from frappe.utils.file_manager import save_file
-from pypdf import PdfWriter
 
 
 class FakePDFPlumber:
@@ -57,7 +58,9 @@ class TestDocumentQueue(IntegrationTestCase):
 	def make_queue(self, file_name=None, content=None):
 		file_doc = self.make_file(file_name, content)
 		queue_doc = frappe.get_doc({"doctype": "Document Queue", "source_file": file_doc.file_url}).insert()
-		self.addCleanup(lambda: frappe.delete_doc("Document Queue", queue_doc.name, force=True, ignore_permissions=True))
+		self.addCleanup(
+			lambda: frappe.delete_doc("Document Queue", queue_doc.name, force=True, ignore_permissions=True)
+		)
 		return queue_doc
 
 	def enable_upload_first_workflow(self, doctype="File"):
@@ -103,7 +106,9 @@ class TestDocumentQueue(IntegrationTestCase):
 			]
 		)
 
-		with patch("frappe.core.doctype.document_queue.document_queue._get_pdfplumber", return_value=pdfplumber):
+		with patch(
+			"frappe.core.doctype.document_queue.document_queue._get_pdfplumber", return_value=pdfplumber
+		):
 			extract_document_queue_record(queue_doc.name)
 
 		queue_doc.reload()
@@ -115,7 +120,9 @@ class TestDocumentQueue(IntegrationTestCase):
 		self.assertIn("Amount", queue_doc.extracted_text)
 		self.assertIn("Total", queue_doc.extracted_text)
 		self.assertIn("100.00", queue_doc.extracted_text)
-		self.assertGreater(queue_doc.extracted_text.index("Amount"), queue_doc.extracted_text.index("Invoice"))
+		self.assertGreater(
+			queue_doc.extracted_text.index("Amount"), queue_doc.extracted_text.index("Invoice")
+		)
 		self.assertRegex(queue_doc.extracted_text, r"Invoice\s+Amount")
 		self.assertRegex(queue_doc.extracted_text, r"Total\s+100\.00")
 		self.assertIn("\n", queue_doc.extracted_text)
@@ -176,7 +183,9 @@ class TestDocumentQueue(IntegrationTestCase):
 		pdfplumber = FakePDFPlumber([FakePDFPage(text="", layout_text="", words=[], tables=[])])
 
 		with (
-			patch("frappe.core.doctype.document_queue.document_queue._get_pdfplumber", return_value=pdfplumber),
+			patch(
+				"frappe.core.doctype.document_queue.document_queue._get_pdfplumber", return_value=pdfplumber
+			),
 			patch(
 				"frappe.core.doctype.document_queue.document_queue.extract_pdf_text_with_tesseract",
 				return_value=("OCR fallback text from scanned PDF", ["OCR mocked"]),
@@ -222,11 +231,15 @@ class TestDocumentQueue(IntegrationTestCase):
 			]
 		)
 
-		with patch("frappe.core.doctype.document_queue.document_queue._get_pdfplumber", return_value=pdfplumber):
+		with patch(
+			"frappe.core.doctype.document_queue.document_queue._get_pdfplumber", return_value=pdfplumber
+		):
 			context = create_upload_first_queue(file_doc.name, "File")
 
 		queue_doc = frappe.get_doc("Document Queue", context["queue_name"])
-		self.addCleanup(lambda: frappe.delete_doc("Document Queue", queue_doc.name, force=True, ignore_permissions=True))
+		self.addCleanup(
+			lambda: frappe.delete_doc("Document Queue", queue_doc.name, force=True, ignore_permissions=True)
+		)
 
 		file_doc.reload()
 		self.assertEqual(queue_doc.document_type, "File")
