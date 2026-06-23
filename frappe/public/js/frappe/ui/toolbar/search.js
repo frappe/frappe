@@ -211,21 +211,29 @@ frappe.search.SearchDialog = class {
 						this.more_count,
 						type || ""
 					)
-					.then((doctype_results) => {
-						if (doctype_results.length) {
-							this.add_more_global_table_rows(type, doctype_results, $btn, $list);
-							const total = Math.max(
-								0,
-								$list.children(".list-row-container").length - 1
-							);
-							const word = total === 1 ? __("result") : __("results");
-							$section
-								.find(".result-title")
-								.text(__(type) + " (" + total + " " + word + ")");
-						} else {
-							$btn.hide();
-						}
-					});
+					.then(
+						(doctype_results) => {
+							if (doctype_results.length) {
+								this.add_more_global_table_rows(
+									type,
+									doctype_results,
+									$btn,
+									$list
+								);
+								const total = Math.max(
+									0,
+									$list.children(".list-row-container").length - 1
+								);
+								const word = total === 1 ? __("result") : __("results");
+								$section
+									.find(".result-title")
+									.text(__(type) + " (" + total + " " + word + ")");
+							} else {
+								$btn.hide();
+							}
+						},
+						(err) => console.error(err)
+					);
 				return;
 			}
 			this.$body.find(".search-sidebar").find(`*[data-category="${type}"]`).trigger("click");
@@ -307,13 +315,16 @@ frappe.search.SearchDialog = class {
 					)
 					.then(
 						(doctype_results) => {
-							doctype_results.length &&
+							if (doctype_results.length) {
 								this.add_more_global_table_rows(
 									type,
 									doctype_results,
 									$trigger,
 									$list
 								);
+							} else {
+								$trigger.hide();
+							}
 						},
 						(err) => {
 							console.error(err);
