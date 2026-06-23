@@ -102,12 +102,16 @@
 .navbar-modal-wrapper {
 	#navbar-search {
 		display: flex;
-		flex: 1;
 	}
 
 	.awesomebar-input-row {
 		display: flex;
 		align-items: center;
+
+		input {
+			flex: 1;
+			min-width: 0;
+		}
 	}
 
 	.awesomebar-search-icon {
