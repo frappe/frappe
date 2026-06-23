@@ -18,13 +18,23 @@ login.bind_events = function () {
 		var args = {};
 		args.usr = ($("#login_email").val() || "").trim();
 		args.pwd = $("#login_password").val();
-		if (!args.usr || !args.pwd) {
-			{# striptags is used to remove newlines, e is used for escaping #}
-			frappe.msgprint("{{ _('Both login and password required') | striptags | e }}");
-			return false;
+		let hasError = false;
+		if (!args.usr) {
+			login.show_field_error("login_email", {{ _("Email is required.") | tojson }});
+			hasError = true;
 		}
+		if (!args.pwd) {
+			login.show_field_error("login_password", {{ _("Password is required.") | tojson }});
+			hasError = true;
+		}
+		if (hasError) return false;
 		login.call(args, null, "/api/method/login");
 		return false;
+	});
+
+	$(".page-card-body input").on("input", function () {
+		$(this).closest(".form-group").removeClass("invalid").find(".field-error").text("");
+		$(this).closest(".page-card-body").removeClass("invalid").find(".login-error-banner").hide();
 	});
 
 	$(".form-signup").on("submit", function (event) {
@@ -34,8 +44,12 @@ login.bind_events = function () {
 		args.email = ($("#signup_email").val() || "").trim();
 		args.redirect_to = frappe.utils.sanitise_redirect(frappe.utils.get_url_arg("redirect-to"));
 		args.full_name = frappe.utils.xss_sanitise(($("#signup_fullname").val() || "").trim());
-		if (!args.email || !validate_email(args.email) || !args.full_name) {
-			login.set_status({{ _("Valid email and name required") | tojson }}, 'red');
+		if (!args.email || !validate_email(args.email)) {
+			login.show_field_error("signup_email", {{ _("Please enter a valid email.") | tojson }});
+			return false;
+		}
+		if (!args.full_name) {
+			login.show_field_error("signup_fullname", {{ _("Full name is required.") | tojson }});
 			return false;
 		}
 		login.call(args);
@@ -47,12 +61,16 @@ login.bind_events = function () {
 		var args = {};
 		args.cmd = "frappe.core.doctype.user.user.reset_password";
 		args.user = ($("#forgot_email").val() || "").trim();
-		if (!args.user) {
-			login.set_status({{ _("Valid Login id required.") | tojson }}, 'red');
+		if (!args.user || !validate_email(args.user)) {
+			login.show_field_error("forgot_email", {{ _("Invalid Email.") | tojson }});
 			return false;
 		}
 		login.call(args);
 		return false;
+	});
+
+	$("#forgot_email").on("input", function () {
+		$(".btn-forgot").prop("disabled", !$(this).val().trim());
 	});
 
 	$(".form-login-with-email-link").on("submit", function (event) {
@@ -60,13 +78,14 @@ login.bind_events = function () {
 		var args = {};
 		args.cmd = "frappe.www.login.send_login_link";
 		args.email = ($("#login_with_email_link_email").val() || "").trim();
-		if (!args.email) {
-			login.set_status({{ _("Valid Login id required.") | tojson }}, 'red');
+		if (!args.email || !validate_email(args.email)) {
+			login.show_field_error("login_with_email_link_email", {{ _("Invalid Email.") | tojson }});
 			return false;
 		}
 		login.call(args).then(() => {
-			login.set_status({{ _("Login link sent to your email") | tojson }}, 'blue');
-			$("#login_with_email_link_email").val("");
+			$("section:visible .login-success-banner").css("display", "flex");
+			$("section:visible .resend-link").css("display", "flex");
+			$("section:visible .btn-login-with-email-link").text({{ _("Sent") | tojson }}).prop("disabled", true);
 		}).catch(() => {
 			login.set_status({{ _("Send login link") | tojson }}, 'blue');
 		});
@@ -74,15 +93,22 @@ login.bind_events = function () {
 		return false;
 	});
 
+	$("#signup_fullname, #signup_email").on("input", function () {
+		var name = $("#signup_fullname").val().trim();
+		var email = $("#signup_email").val().trim();
+		$(".btn-signup").prop("disabled", !(name && email));
+	});
+
+	$(".btn-resend-link").on("click", function (e) {
+		e.preventDefault();
+		$(".form-login-with-email-link").trigger("submit");
+	});
+
 	$(".toggle-password").click(function () {
 		var input = $($(this).attr("toggle"));
-		if (input.attr("type") == "password") {
-			input.attr("type", "text");
-			$(this).text({{ _("Hide") | tojson }})
-		} else {
-			input.attr("type", "password");
-			$(this).text({{ _("Show") | tojson }})
-		}
+		var isPassword = input.attr("type") == "password";
+		input.attr("type", isPassword ? "text" : "password");
+		$(this).find("use").attr("href", isPassword ? "#es-line-hide" : "#es-line-preview");
 	});
 
 	{% if ldap_settings and ldap_settings.enabled %}
@@ -115,6 +141,17 @@ login.reset_sections = function (hide) {
 		$("section.for-forgot").toggle(false);
 		$("section.for-login-with-email-link").toggle(false);
 		$("section.for-signup").toggle(false);
+		var $forms = $(".form-forgot, .form-signup, .form-login-with-email-link");
+		$forms.find("input:not([type='submit'])").val("");
+		$forms.find(".page-card-body").removeClass("invalid");
+		$forms.find(".form-group").removeClass("invalid").find(".field-error").text("");
+		$forms.find(".login-error-banner").hide();
+		$(".form-forgot .btn-forgot").prop("disabled", true).text({{ _("Send Link") | tojson }});
+		$(".form-signup .btn-signup").prop("disabled", true).text({{ _("Create Account") | tojson }});
+		$(".form-login-with-email-link .btn-login-with-email-link").prop("disabled", false).text({{ _("Send login link") | tojson }});
+		$(".btn-login-option.btn-login-with-email-link").prop("disabled", false);
+		$("section.for-login-with-email-link .login-success-banner").hide();
+		$("section.for-login-with-email-link .resend-link").hide();
 	}
 	$('section:not(.signup-disabled) .indicator').each(function () {
 		$(this).removeClass().addClass('indicator').addClass('blue')
@@ -143,6 +180,7 @@ login.forgot = function () {
 	login.reset_sections();
 	if ($("#login_email").val()) {
 		$("#forgot_email").val($("#login_email").val());
+		$(".btn-forgot").prop("disabled", false);
 	}
 	$(".for-forgot").toggle(true);
 	$("#forgot_email").focus();
@@ -185,12 +223,22 @@ login.set_status = function (message, color) {
 	}
 }
 
+login.show_field_error = function (input_id, message) {
+	var $formGroup = $("#" + input_id).closest(".form-group");
+	$formGroup.addClass("invalid").find(".field-error").text(message);
+};
+
+login.show_error_banner = function (message) {
+	$("section:visible .login-error-banner").css("display", "flex").find("span").text(message);
+};
+
 login.set_invalid = function (message) {
 	$(".login-content.page-card").addClass('invalid-login');
 	setTimeout(() => {
 		$(".login-content.page-card").removeClass('invalid-login');
 	}, 500)
 	login.set_status(message, 'red');
+	login.show_error_banner(message);
 	$("#login_password").focus();
 }
 
@@ -213,7 +261,7 @@ login.login_handlers = (function () {
 				}) || []).join('<br>') || default_message;
 			}
 
-			login.set_invalid(default_message);
+			login.set_invalid(message);
 			if (message !== default_message) {
 				login.reset_sections(false);
 			}
@@ -249,7 +297,7 @@ login.login_handlers = (function () {
 			} else if (window.location.hash === '#forgot') {
 				// Always show the same message regardless of whether the account
 				// exists or not, to prevent username enumeration (CWE-204).
-				login.set_status({{ _("Instructions Emailed") | tojson }}, 'green');
+				login.set_status({{ _("Sent") | tojson }}, 'green');
 			} else if (window.location.hash === '#signup') {
 				if (cint(data.message[0]) == 0) {
 					login.set_status(data.message[1], 'red');
@@ -275,7 +323,7 @@ login.login_handlers = (function () {
 				}
 			}
 		},
-		401: get_error_handler({{ _("Invalid Login. Try again.") | tojson }}),
+		401: get_error_handler({{ _("Invalid credentials, try again.") | tojson }}),
 		417: get_error_handler({{ _("Oops! Something went wrong.") | tojson }}),
 		429: get_error_handler({{ _("Too many requests. Please try again later.") | tojson }}),
 		500: get_error_handler({{ _("Something went wrong.") | tojson }}),

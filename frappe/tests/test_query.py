@@ -1841,6 +1841,18 @@ class TestQuery(IntegrationTestCase):
 		sql = query.get_sql()
 		self.assertIn(self.normalize_sql("MAX(`creation`) `latest_user`"), sql)
 
+		# Test YEAR function
+		query = frappe.qb.get_query(
+			"User", fields=[{"YEAR": "creation", "as": "creation_year"}], group_by="creation_year"
+		)
+		sql = query.get_sql()
+		if frappe.db.db_type == "postgres":
+			self.assertIn("CAST(date_part('year'", sql)
+			self.assertIn('"creation_year"', sql)
+		else:
+			self.assertIn(self.normalize_sql("YEAR(`creation`) `creation_year`"), sql)
+		self.assertIn(self.normalize_sql("GROUP BY `creation_year`"), self.normalize_sql(sql))
+
 		# Test MIN function
 		query = frappe.qb.get_query(
 			"User", fields=[{"MIN": "creation", "as": "earliest_user"}], group_by="user_type"

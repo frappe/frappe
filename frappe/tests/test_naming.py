@@ -275,6 +275,22 @@ class TestNaming(IntegrationTestCase):
 
 		frappe.db.delete("Series", {"name": series})
 
+	def test_revert_series_date_based_cross_date(self):
+		# A date-templated series must revert against the date embedded in the name,
+		# not the current date. Deleting a doc created on a different day should still
+		# decrement that day's counter.
+		key = "PO-.YYYY.-.MM.-.DD.-.###"
+		series = "PO-2020-01-01-"
+		name = "PO-2020-01-01-005"
+		frappe.db.delete("Series", {"name": series})
+		frappe.db.sql("""INSERT INTO `tabSeries` (name, current) values (%s, 5)""", (series,))
+		revert_series_if_last(key, name)
+		current_index = frappe.db.sql(
+			"""SELECT current from `tabSeries` where name = %s""", series, as_dict=True
+		)[0]
+		self.assertEqual(current_index.get("current"), 4)
+		frappe.db.delete("Series", {"name": series})
+
 	def test_naming_for_cancelled_and_amended_doc(self):
 		submittable_doctype = frappe.get_doc(
 			{

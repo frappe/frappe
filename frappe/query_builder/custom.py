@@ -213,3 +213,12 @@ class Month(_PostgresIntDatePart, Function):
 			super().__init__("date_part", "month", field, alias=alias)
 		else:
 			super().__init__("MONTH", field, alias=alias)
+
+
+class Year(_PostgresIntDatePart, Function):
+	def __init__(self, field, alias=None):
+		self._postgres = _is_postgres()
+		if self._postgres:
+			super().__init__("date_part", "year", field, alias=alias)
+		else:
+			super().__init__("YEAR", field, alias=alias)

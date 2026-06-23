@@ -50,7 +50,7 @@ jobs:
       fail-fast: false
       matrix:
         db: ["mariadb"]
-        index: [1, 2, 3]
+        index: [1, 2, 3, 4]
     services:
       mariadb:
         image: mariadb:11.8
@@ -110,7 +110,7 @@ jobs:
               --group ui-shard-${{ matrix.index }}
         env:
           CYPRESS_RECORD_KEY: 4a48f41c-11b3-425b-aa88-c58048fa69eb
-          SPLIT: 3
+          SPLIT: 4
           SPLIT_INDEX: ${{ strategy.job-index }}
 
       - name: Compress Cypress Videos

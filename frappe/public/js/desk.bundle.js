@@ -47,8 +47,10 @@ import "./frappe/ui/dialog.js";
 import "./frappe/ui/settings_dialog.js";
 import "./frappe/ui/menu.js";
 import "./frappe/ui/capture.js";
+import "./frappe/ui/embedded_list.js";
 import "./frappe/ui/app_icon.js";
 import "./frappe/ui/theme_switcher.js";
+import "./frappe/ui/naming_series.js";
 
 import "./frappe/model/model.js";
 import "./frappe/db.js";
@@ -104,6 +106,7 @@ import "./frappe/ui/sort_selector.js";
 import "./frappe/change_log.html";
 import "./frappe/ui/workspace_loading_skeleton.html";
 import "./frappe/ui/workspace_sidebar_loading_skeleton.html";
+import "./frappe/legacy_gravatar_cleanup.js";
 import "./frappe/desk.js";
 import "./frappe/query_string.js";
 

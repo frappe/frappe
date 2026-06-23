@@ -148,6 +148,16 @@ frappe.setup.SetupWizard = class SetupWizard extends frappe.ui.Slides {
 		frappe.set_route(this.page_name, cstr(id));
 	}
 
+	sync_telemetry_preference() {
+		// Apply the opt-out from the final committed values, not on each checkbox
+		// change, so toggling within a slide stays reversible — disable() is one-way.
+		// Called from action_on_complete *after* initated_client_side is captured,
+		// so the funnel event still fires for users who opted out.
+		if (frappe.telemetry.enabled && !this.values.enable_telemetry) {
+			frappe.telemetry.disable();
+		}
+	}
+
 	show_hide_prev_next(id) {
 		super.show_hide_prev_next(id);
 		if (id + 1 === this.slides.length) {
@@ -206,6 +216,7 @@ frappe.setup.SetupWizard = class SetupWizard extends frappe.ui.Slides {
 		frappe.telemetry.capture("initated_client_side", "setup");
 		if (!this.current_slide.set_values()) return;
 		this.update_values();
+		this.sync_telemetry_preference();
 		this.show_working_state();
 		this.disable_keyboard_nav();
 		this.listen_for_setup_stages();
@@ -383,12 +394,6 @@ frappe.setup.SetupWizardSlide = class SetupWizardSlide extends frappe.ui.Slide {
 			field.fieldname &&
 				me.get_input(field.fieldname)?.on?.("change", function () {
 					frappe.telemetry.capture(`${field.fieldname}_set`, "setup");
-					if (
-						field.fieldname == "enable_telemetry" &&
-						!me.get_value("enable_telemetry")
-					) {
-						frappe.telemetry.disable();
-					}
 				});
 		});
 	}

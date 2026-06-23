@@ -14,6 +14,7 @@ from frappe.core.doctype.data_import.exporter import Exporter
 from frappe.core.doctype.data_import.importer import UPSERT, Importer
 from frappe.model import CORE_DOCTYPES
 from frappe.model.document import Document
+from frappe.model.utils.user_settings import get_user_settings
 from frappe.modules.import_file import import_file_by_path
 from frappe.utils import cint
 from frappe.utils.background_jobs import enqueue, get_redis_conn, is_job_enqueued
@@ -262,6 +263,18 @@ def download_template(
 	export_filters = frappe.parse_json(export_filters)
 	export_data = export_records != "blank_template"
 
+	list_settings = frappe.parse_json(get_user_settings(doctype)).get("List", {})
+	sort_by = list_settings.get("sort_by")
+	sort_order = list_settings.get("sort_order")
+
+	if sort_by and not frappe.get_meta(doctype).get_field(sort_by):
+		sort_by = None
+
+	if sort_order and sort_order.upper() not in ("ASC", "DESC"):
+		sort_order = None
+
+	order_by = f"{sort_by} {sort_order}" if sort_by and sort_order else None
+
 	e = Exporter(
 		doctype,
 		export_fields=export_fields,
@@ -269,6 +282,7 @@ def download_template(
 		export_filters=export_filters,
 		file_type=file_type,
 		export_page_length=5 if export_records == "5_records" else None,
+		order_by=order_by,
 	)
 	e.build_response()
 
@@ -337,6 +351,15 @@ def get_import_status(data_import_name: str):
 		import_status["total_records"] = logged_total
 
 	return import_status
+
+
+@frappe.whitelist(methods=["GET"])
+@frappe.read_only()
+def get_import_log_count(data_import: str):
+	doc = frappe.get_doc("Data Import", data_import)
+	doc.check_permission("read")
+
+	return frappe.db.count("Data Import Log", {"data_import": data_import})
 
 
 @frappe.whitelist()

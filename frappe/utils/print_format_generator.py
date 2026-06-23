@@ -270,7 +270,11 @@ class PrintFormatGenerator:
 	# ----- layout normalisation ------------------------------------------
 
 	def get_layout(self, print_format):
-		layout = frappe.parse_json(print_format.format_data)
+		layout = frappe.parse_json(print_format.format_data) or {
+			"sections": [],
+			"header": {"columns": []},
+			"footer": {"columns": []},
+		}
 		layout = self.set_field_renderers(layout)
 		layout = self.process_margin_texts(layout)
 		return layout

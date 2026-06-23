@@ -181,9 +181,6 @@
 									{{ element.field_label || __("Custom block") }}
 								</div>
 							</div>
-							<svg class="icon icon-xs text-muted pfb-plus-icon">
-								<use href="#icon-plus"></use>
-							</svg>
 						</div>
 					</template>
 				</draggable>
@@ -269,6 +266,7 @@ let search_text = ref("");
 let google_fonts = ref([]);
 let activeTab = ref("fields");
 let search_input = ref(null);
+let raw_templates = ref([]);
 
 function focus_search() {
 	activeTab.value = "fields";
@@ -430,9 +428,36 @@ let field_groups = computed(() => {
 	return groups.filter((g) => g.fields.length);
 });
 
-// ── computed: templates tab ────────────────────────────────
+// ── templates tab ─────────────────────────────────────────
+function fetch_templates() {
+	const doctype = meta.value?.name;
+	if (!doctype) return;
+	Promise.all([
+		frappe.db.get_list("Print Format Field Template", {
+			fields: ["name", "template", "field"],
+			filters: { document_type: doctype },
+			limit: 100,
+		}),
+		frappe.db.get_list("Print Format Field Template", {
+			fields: ["name", "template", "field"],
+			filters: { document_type: ["is", "not set"] },
+			limit: 100,
+		}),
+	])
+		.then(([specific, generic]) => {
+			raw_templates.value = [...(specific || []), ...(generic || [])];
+		})
+		.catch(() => {
+			raw_templates.value = [];
+		});
+}
+
+watch(activeTab, (tab) => {
+	if (tab === "templates") fetch_templates();
+});
+
 let print_templates_list = computed(() => {
-	const templates = print_format.value.__onload?.print_templates || [];
+	const templates = raw_templates.value;
 	return templates.map((template) => {
 		let df;
 		let field_label = null;
@@ -544,7 +569,7 @@ watch(print_format, () => (store.dirty.value = true), { deep: true });
 	padding: 6px 2px 8px;
 	border: none;
 	background: transparent;
-	border-radius: var(--border-radius) var(--border-radius) 0 0;
+	border-radius: var(--radius) var(--radius) 0 0;
 	color: var(--text-muted);
 	cursor: pointer;
 	transition: color 0.12s, background 0.12s;
@@ -715,7 +740,7 @@ watch(print_format, () => (store.dirty.value = true), { deep: true });
 	color: var(--gray-500);
 	background: var(--gray-100);
 	border: 1px solid var(--gray-200);
-	border-radius: var(--border-radius-sm);
+	border-radius: var(--radius);
 	padding: 2px 6px;
 	white-space: nowrap;
 	flex-shrink: 0;
@@ -737,7 +762,7 @@ watch(print_format, () => (store.dirty.value = true), { deep: true });
 	align-items: center;
 	gap: 10px;
 	padding: 8px 10px;
-	border-radius: var(--border-radius);
+	border-radius: var(--radius);
 	border: 1px solid var(--border-color);
 	background: var(--gray-50);
 	cursor: grab;
@@ -759,7 +784,7 @@ watch(print_format, () => (store.dirty.value = true), { deep: true });
 	justify-content: center;
 	width: 28px;
 	height: 28px;
-	border-radius: var(--border-radius);
+	border-radius: var(--radius);
 	background: var(--gray-200);
 	flex-shrink: 0;
 }
@@ -784,7 +809,7 @@ watch(print_format, () => (store.dirty.value = true), { deep: true });
 	align-items: center;
 	gap: 10px;
 	padding: 8px 10px;
-	border-radius: var(--border-radius);
+	border-radius: var(--radius);
 	border: 1px solid var(--border-color);
 	background: var(--gray-50);
 	cursor: grab;
@@ -802,7 +827,7 @@ watch(print_format, () => (store.dirty.value = true), { deep: true });
 	justify-content: center;
 	width: 32px;
 	height: 32px;
-	border-radius: var(--border-radius);
+	border-radius: var(--radius);
 	background: var(--gray-200);
 	flex-shrink: 0;
 }
@@ -851,7 +876,7 @@ watch(print_format, () => (store.dirty.value = true), { deep: true });
 	align-items: center;
 	gap: 8px;
 	padding: 6px 8px;
-	border-radius: var(--border-radius);
+	border-radius: var(--radius);
 	cursor: pointer;
 	margin-top: 2px;
 	font-size: var(--text-sm);
