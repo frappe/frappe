@@ -426,7 +426,10 @@ class EmailAccount(Document):
 
 			all_error_codes = auth_error_codes + other_error_codes
 
-			if in_receive and any(map(lambda t: t in message, all_error_codes)):
+			# Disable only on background fetch; save validation errors should surface.
+			is_background_receive = in_receive and not bool(self.flags.validate_imap_pop_connection)
+
+			if is_background_receive and any(map(lambda t: t in message, all_error_codes)):
 				# if called via self.receive and it leads to authentication error,
 				# disable incoming and send email to System Manager
 				error_message = _(
@@ -438,7 +441,7 @@ class EmailAccount(Document):
 				self.handle_incoming_connect_error(description=error_message)
 				return None
 
-			elif not in_receive and any(map(lambda t: t in message, auth_error_codes)):
+			elif not is_background_receive and any(map(lambda t: t in message, auth_error_codes)):
 				SMTPServer.throw_invalid_credentials_exception()
 			else:
 				frappe.throw(cstr(e))
