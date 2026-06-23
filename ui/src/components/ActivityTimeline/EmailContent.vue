@@ -8,27 +8,15 @@
 
 <script setup lang="ts">
 import { computed, ref, watch } from "vue";
-import { stripEmailColors, useDataTheme } from "./utils";
+import { applyCssToIframe, stripEmailColors, useDataTheme } from "./utils";
 
 const props = defineProps<{
 	content: string;
-	cssHref?: string;
 }>();
 
 const iframeRef = ref<HTMLIFrameElement | null>(null);
 const _content = ref(stripEmailColors(props.content));
 const dataTheme = useDataTheme();
-
-// Stylesheet for the iframe: explicit prop, else first same-origin stylesheet link on the page
-const resolvedCssHref = computed(() => {
-	if (props.cssHref) return props.cssHref;
-	const links = document.querySelectorAll('link[rel="stylesheet"]');
-	for (const link of links) {
-		const href = link.getAttribute("href");
-		if (href?.endsWith(".css")) return href;
-	}
-	return "";
-});
 
 const parser = new DOMParser();
 const doc = parser.parseFromString(_content.value, "text/html");
@@ -112,7 +100,6 @@ const htmlContent = computed(
   <!DOCTYPE html>
   <html>
   <head>
-    ${resolvedCssHref.value ? `<link rel="stylesheet" href="${resolvedCssHref.value}" />` : ""}
     <base target="_blank" />
     <style>
       :root {
@@ -183,6 +170,13 @@ watch(iframeRef, (iframe) => {
 			const parent = emailContent.closest("html");
 			if (!parent) return;
 			parent.setAttribute("data-theme", dataTheme.value);
+
+			// Inherit the host app's compiled styles (frappe-ui prose-f, color
+			// tokens, fonts) into the isolated iframe; external sheets load async,
+			// so re-measure the iframe height once they apply.
+			applyCssToIframe(iframe, () => {
+				iframe.style.height = parent.offsetHeight + 1 + "px";
+			});
 
 			// note: helpdesk added a per-content font class here (getFontFamily,
 			// Arabic → system-ui); dropped for now, re-add on emailContent if needed

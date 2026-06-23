@@ -60,7 +60,7 @@
 			<div class="border-0 border-t mb-3 border-outline-gray-modals !-mx-3 mt-2" />
 		</slot>
 		<slot name="body" :email="email">
-			<EmailContent :content="email.data.content" :css-href="cssHref" />
+			<EmailContent :content="email.data.content" />
 		</slot>
 		<slot name="footer" :email="email">
 			<div v-if="email.data.attachments.length" class="flex flex-wrap gap-2">
@@ -87,7 +87,6 @@ import { dateFormat, splitRecipients, timeAgo } from "./utils";
 const props = withDefaults(
 	defineProps<{
 		email: EmailActivity;
-		cssHref?: string;
 		currentUser?: string;
 	}>(),
 	{
