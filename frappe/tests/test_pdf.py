@@ -1,6 +1,7 @@
 # Copyright (c) 2018, Frappe Technologies Pvt. Ltd. and Contributors
 # License: MIT. See LICENSE
 import io
+from unittest import skipIf
 
 from pypdf import PdfReader
 
@@ -8,6 +9,14 @@ import frappe
 import frappe.utils.pdf as pdfgen
 from frappe.core.doctype.file.test_file import make_test_image_file
 from frappe.tests import IntegrationTestCase
+
+# get_pdf() shells out to wkhtmltopdf, which fetches the HTML's resources (images, assets) over
+# HTTP from the bench server. While an IntegrationTestCase holds SQLite's single write lock for
+# its whole duration, those server requests stall on the lock and each test takes ~5 minutes --
+# enough slow tests to blow the CI timeout. PDF generation itself isn't database-specific.
+_skip_pdf_on_sqlite = skipIf(
+	frappe.conf.db_type == "sqlite", "wkhtmltopdf's HTTP resource fetches stall on the write lock"
+)
 
 
 class TestPdf(IntegrationTestCase):
@@ -70,6 +79,7 @@ class TestPdf(IntegrationTestCase):
 		_, options = pdfgen.read_options_from_html(html)
 		self.assertTrue(options)
 
+	@_skip_pdf_on_sqlite
 	def test_pdf_encryption(self):
 		password = "qwe"
 		pdf = pdfgen.get_pdf(self.html, options={"password": password})
@@ -77,11 +87,13 @@ class TestPdf(IntegrationTestCase):
 		self.assertTrue(reader.is_encrypted)
 		self.assertTrue(reader.decrypt(password))
 
+	@_skip_pdf_on_sqlite
 	def test_pdf_generation_as_a_user(self):
 		frappe.set_user("Administrator")
 		pdf = pdfgen.get_pdf(self.html)
 		self.assertTrue(pdf)
 
+	@_skip_pdf_on_sqlite
 	def test_private_images_in_pdf(self):
 		with make_test_image_file(private=True) as file:
 			html = f""" <div>
