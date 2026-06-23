@@ -1,33 +1,44 @@
 frappe.provide("frappe.ui");
 
 frappe.ui.show_user_settings = async function (default_tab) {
-	if (!frappe.all_timezones) {
-		const { message } = await frappe.call("frappe.core.doctype.user.user.get_timezones");
-		frappe.all_timezones = message?.timezones || [];
-	}
+	let user_data;
+	try {
+		if (!frappe.all_timezones) {
+			const { message } = await frappe.call("frappe.core.doctype.user.user.get_timezones");
+			frappe.all_timezones = message?.timezones || [];
+		}
 
-	const { message: user_data } = await frappe.db.get_value("User", frappe.session.user, [
-		"first_name",
-		"middle_name",
-		"last_name",
-		"username",
-		"thread_notify",
-		"send_me_a_copy",
-		"email_signature",
-		"language",
-		"time_zone",
-		"notifications",
-		"search_bar",
-		"mute_sounds",
-		"list_sidebar",
-		"bulk_actions",
-		"view_switcher",
-		"form_sidebar",
-		"timeline",
-		"dashboard",
-		"show_absolute_datetime_in_timeline",
-		"form_navigation_buttons",
-	]);
+		const response = await frappe.db.get_value("User", frappe.session.user, [
+			"first_name",
+			"middle_name",
+			"last_name",
+			"username",
+			"thread_notify",
+			"send_me_a_copy",
+			"email_signature",
+			"language",
+			"time_zone",
+			"notifications",
+			"search_bar",
+			"mute_sounds",
+			"list_sidebar",
+			"bulk_actions",
+			"view_switcher",
+			"form_sidebar",
+			"timeline",
+			"dashboard",
+			"show_absolute_datetime_in_timeline",
+			"form_navigation_buttons",
+		]);
+		user_data = response.message;
+	} catch (e) {
+		frappe.show_alert({
+			message: __("Failed to load settings"),
+			indicator: "red",
+		});
+		console.error(e);
+		return;
+	}
 
 	const d = new frappe.ui.SettingsDialog({
 		title: __("Settings"),
@@ -55,7 +66,13 @@ frappe.ui.show_user_settings = async function (default_tab) {
 // ─── helpers ──────────────────────────────────────────────────────────────────
 
 function _save_user(fieldname_or_dict, value) {
-	return frappe.db.set_value("User", frappe.session.user, fieldname_or_dict, value);
+	return frappe.db
+		.set_value("User", frappe.session.user, fieldname_or_dict, value)
+		.catch((e) => {
+			frappe.show_alert({ message: __("Failed to save"), indicator: "red" });
+			console.error(e);
+			throw e;
+		});
 }
 
 // FieldGroup doesn't expose df.on_change cleanly, so we bind manually.
