@@ -632,7 +632,10 @@ class SQLiteDatabase(SQLiteExceptionUtil, Database):
 		"""Open ``BEGIN IMMEDIATE`` for writable connections, ``DEFERRED`` for read-only ones."""
 		if self._conn.in_transaction:
 			return
-		if self.read_only:
+		# A read-only scope (frappe.read_only()) must not grab the write lock even when it couldn't
+		# swap to the mode=ro connection (e.g. writes were already pending): a DEFERRED read is
+		# served concurrently under WAL, so it won't deadlock against a writer.
+		if self.read_only or frappe.flags.read_only:
 			self._cursor.execute("BEGIN DEFERRED")
 		else:
 			self._begin_immediate()
