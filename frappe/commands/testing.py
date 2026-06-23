@@ -285,7 +285,11 @@ def _get_doctypes_for_module_def(app, module_def):
 @click.option("--coverage", is_flag=True, default=False)
 @click.option("--skip-test-records", is_flag=True, default=False, help="DEPRECATED")
 @click.option("--skip-before-tests", is_flag=True, default=False, help="Don't run before tests hook")
-@click.option("--junit-xml-output", help="Destination file path for junit xml report")
+@click.option(
+	"--junit-xml-output",
+	type=click.Path(dir_okay=False, file_okay=True, resolve_path=True),
+	help="Destination file path for junit xml report",
+)
 @click.option(
 	"--failfast", is_flag=True, default=False, help="Stop the test run on the first error or failure"
 )
@@ -442,7 +446,11 @@ def run_parallel_tests(
 @click.option("--parallel", is_flag=True, help="Run UI Test in parallel mode")
 @click.option("--with-coverage", is_flag=True, help="Generate coverage report")
 @click.option("--browser", default="chrome", help="Browser to run tests in")
-@click.option("--spec", help="Spec file to run")
+@click.option(
+	"--spec",
+	type=click.Path(dir_okay=False, file_okay=True),
+	help="Spec file to run",
+)
 @click.option("--ci-build-id")
 @pass_context
 def run_ui_tests(
