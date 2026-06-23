@@ -574,6 +574,11 @@ class SQLiteDatabase(SQLiteExceptionUtil, Database):
 		raise NotImplementedError("SQLite does not support getting row size directly.")
 
 	def execute_query(self, query, values=None):
+		# Open the transaction lazily on the first statement (still BEGIN IMMEDIATE for
+		# writable connections) so the write lock isn't held idle between transactions.
+		if self._conn is not None and not self._conn.in_transaction:
+			self._begin_transaction()
+
 		if isinstance(values, dict):
 			query, bind = _bind_named_params(query, values)
 			return self._cursor.execute(query, bind)
@@ -640,8 +645,8 @@ class SQLiteDatabase(SQLiteExceptionUtil, Database):
 			self._cursor = self._conn.cursor()
 			self.read_only = read_only
 
-		if self._conn:
-			self._begin_transaction()
+		# Transaction is opened lazily by execute_query() on the first statement, not
+		# here, so the write lock is not held during idle periods between transactions.
 
 	def enter_read_only(self) -> bool:
 		"""Switch ``frappe.read_only()`` to the ``mode=ro`` connection when safe.
@@ -676,7 +681,10 @@ class SQLiteDatabase(SQLiteExceptionUtil, Database):
 			self._conn.commit()
 		self.transaction_writes = 0
 		self.value_cache.clear()
-		self.begin()  # restore transaction state (read-only snapshot if applicable)
+		# A transaction boundary ends any read-only scope (e.g. a query report that did
+		# begin(read_only=True)); return to the writable connection unless the whole site
+		# is in read-only mode (begin() still honours frappe.flags.read_only).
+		self.begin(read_only=False)
 
 		self.after_commit.run()
 
@@ -695,7 +703,8 @@ class SQLiteDatabase(SQLiteExceptionUtil, Database):
 			if self._conn.in_transaction:
 				self._conn.rollback()
 			self.value_cache.clear()
-			self.begin()
+			# See commit(): a transaction boundary ends any read-only scope.
+			self.begin(read_only=False)
 
 			self.after_rollback.run()
 		else:

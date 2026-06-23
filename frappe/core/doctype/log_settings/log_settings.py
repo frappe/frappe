@@ -186,6 +186,14 @@ def clear_log_table(doctype, days=90):
 					WHERE `{original}`.`creation` > NOW() - INTERVAL '{days}' DAY"""
 			)
 			frappe.db.sql_ddl(f"RENAME TABLE `{original}` TO `{backup}`, `{temporary}` TO `{original}`")
+		elif frappe.db.db_type == "sqlite":
+			# SQLite has no CREATE TABLE ... LIKE and the copy/swap trick is a MariaDB
+			# optimisation for big deletes; a direct delete of old rows is correct here.
+			from frappe.utils import add_to_date, now_datetime
+
+			frappe.db.delete(doctype, {"creation": ("<", add_to_date(now_datetime(), days=-days))})
+			frappe.db.commit()
+			return
 	except Exception:
 		frappe.db.rollback()
 		frappe.db.sql_ddl(f"DROP TABLE IF EXISTS `{temporary}`")
