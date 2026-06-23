@@ -273,6 +273,9 @@ class TestDocument(IntegrationTestCase):
 		d.starts_on = "2014-01-01"
 		d.validate_update_after_submit()
 
+	# SQLite maps Data/varchar fieldtypes to unbounded TEXT, so _validate_length (which only
+	# fires for "varchar" columns) never enforces a max length -- no error is raised.
+	@unimplemented_for(db_type_is.SQLITE)
 	def test_varchar_length(self):
 		d = self.test_insert()
 		d.sender = "abcde" * 100 + "@user.com"
