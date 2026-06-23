@@ -104,7 +104,8 @@ frappe.document_queue_review.store_pending_context = function (context) {
 
 frappe.document_queue_review.consume_pending_context = function () {
 	const globalContext = frappe._document_queue_pending_review_context;
-	const globalAge = Date.now() - Number(frappe._document_queue_pending_review_context_created_at || 0);
+	const globalAge =
+		Date.now() - Number(frappe._document_queue_pending_review_context_created_at || 0);
 
 	if (globalContext?.queue_name && globalAge <= frappe.document_queue_review.ttl_ms) {
 		delete frappe._document_queue_pending_review_context;
@@ -250,7 +251,9 @@ frappe.document_queue_review.create_upload_first_queue = async function (frm, fi
 		if (context.status === "Failed") {
 			frappe.msgprint({
 				title: __("Extraction Failed"),
-				message: __("The document was queued, but extraction failed. You can still review it from Document Queue."),
+				message: __(
+					"The document was queued, but extraction failed. You can still review it from Document Queue."
+				),
 				indicator: "red",
 			});
 		}
@@ -272,7 +275,9 @@ frappe.document_queue_review.hydrate_context = function (frm) {
 	}
 
 	const routeContext = frappe.route_options?.document_queue_review_context;
-	const pendingContext = frm.is_new() ? frappe.document_queue_review.consume_pending_context() : null;
+	const pendingContext = frm.is_new()
+		? frappe.document_queue_review.consume_pending_context()
+		: null;
 	const context = routeContext?.queue_name ? routeContext : pendingContext;
 
 	if (!context?.queue_name || context.document_type !== frm.doctype) {
@@ -304,7 +309,9 @@ frappe.document_queue_review.mount = function (frm) {
 
 	if (!frm.document_queue_review_panel) {
 		frm.document_queue_review_panel = $(`<aside class="document-queue-review-panel"></aside>`);
-		$std.length ? $std.prepend(frm.document_queue_review_panel) : $layout.before(frm.document_queue_review_panel);
+		$std.length
+			? $std.prepend(frm.document_queue_review_panel)
+			: $layout.before(frm.document_queue_review_panel);
 	}
 
 	frappe.document_queue_review.render_panel(frm, context);
@@ -323,33 +330,47 @@ frappe.document_queue_review.render_panel = function (frm, context) {
 	const file_name = frappe.document_queue_review.get_file_name(source_file_url);
 	const preview_type = frappe.document_queue_review.get_preview_type(source_file_url);
 	const open_sections = frm.document_queue_review_open_sections || { text: true };
-	const text_icon = frappe.utils.icon(open_sections.text ? "es-line-down" : "chevron-right", "sm", "mb-1");
+	const text_icon = frappe.utils.icon(
+		open_sections.text ? "es-line-down" : "chevron-right",
+		"sm",
+		"mb-1"
+	);
 
 	frm.document_queue_review_panel.html(`
 		<div class="document-queue-review-shell">
 			<div class="form-tabs-list document-queue-review-tabs">
 				<ul class="nav form-tabs" role="tablist" style="display: flex; justify-content: flex-start; width: 100%;">
 					<li class="nav-item" style="flex: 0 0 auto !important; width: auto !important;">
-						<button class="nav-link ${active_tab === "preview" ? "active" : ""}" data-tab="preview" type="button" role="tab" style="display: inline-flex !important; flex: none !important; width: auto !important;">
+						<button class="nav-link ${
+							active_tab === "preview" ? "active" : ""
+						}" data-tab="preview" type="button" role="tab" style="display: inline-flex !important; flex: none !important; width: auto !important;">
 							${__("Preview")}
 						</button>
 					</li>
 					<li class="nav-item" style="flex: 0 0 auto !important; width: auto !important;">
-						<button class="nav-link ${active_tab === "extraction" ? "active" : ""}" data-tab="extraction" type="button" role="tab" style="display: inline-flex !important; flex: none !important; width: auto !important;">
+						<button class="nav-link ${
+							active_tab === "extraction" ? "active" : ""
+						}" data-tab="extraction" type="button" role="tab" style="display: inline-flex !important; flex: none !important; width: auto !important;">
 							${__("Extraction")}
 						</button>
 					</li>
 				</ul>
 			</div>
 			<div class="document-queue-review-body">
-				<section class="document-queue-review-tab-panel ${active_tab === "preview" ? "active" : ""}" data-panel="preview">
+				<section class="document-queue-review-tab-panel ${
+					active_tab === "preview" ? "active" : ""
+				}" data-panel="preview">
 					<div class="document-queue-review-resize-overlay">${__("Resizing preview...")}</div>
 					${frappe.document_queue_review.get_preview_markup(source_file_url, file_name)}
 				</section>
-				<section class="document-queue-review-tab-panel ${active_tab === "extraction" ? "active" : ""}" data-panel="extraction">
+				<section class="document-queue-review-tab-panel ${
+					active_tab === "extraction" ? "active" : ""
+				}" data-panel="extraction">
 					<div class="document-queue-review-sections">
 						<div class="form-section document-queue-review-section">
-							<div class="section-head collapsible document-queue-review-section-head ${open_sections.text ? "" : "collapsed"}" data-section="text" tabindex="0">
+							<div class="section-head collapsible document-queue-review-section-head ${
+								open_sections.text ? "" : "collapsed"
+							}" data-section="text" tabindex="0">
 								${__("Extracted Text")}
 								<span class="collapse-indicator" tabindex="0">${text_icon}</span>
 							</div>
@@ -366,10 +387,14 @@ frappe.document_queue_review.render_panel = function (frm, context) {
 	frm.document_queue_review_preview_type = preview_type;
 
 	frm.document_queue_review_panel.off("click.document-queue-review");
-	frm.document_queue_review_panel.on("click.document-queue-review", ".document-queue-review-tabs .nav-link", function () {
-		frm.document_queue_review_active_tab = $(this).attr("data-tab") || "preview";
-		frappe.document_queue_review.render_panel(frm, context);
-	});
+	frm.document_queue_review_panel.on(
+		"click.document-queue-review",
+		".document-queue-review-tabs .nav-link",
+		function () {
+			frm.document_queue_review_active_tab = $(this).attr("data-tab") || "preview";
+			frappe.document_queue_review.render_panel(frm, context);
+		}
+	);
 	frm.document_queue_review_panel.on(
 		"click.document-queue-review",
 		".document-queue-review-section-head",
@@ -408,7 +433,9 @@ frappe.document_queue_review.bind_resizer = function (frm) {
 		function (event) {
 			event.preventDefault();
 
-			const $layout = frm.document_queue_review_panel.closest(".document-queue-review-layout");
+			const $layout = frm.document_queue_review_panel.closest(
+				".document-queue-review-layout"
+			);
 			if (!$layout.length) {
 				return;
 			}
@@ -426,7 +453,9 @@ frappe.document_queue_review.bind_resizer = function (frm) {
 					const width = frappe.document_queue_review.get_current_preview_width($layout);
 					frappe.document_queue_review.save_preview_width(width);
 					$("body").removeClass("document-queue-review-is-resizing");
-					frm.document_queue_review_panel.removeClass("document-queue-review-resizing-pdf");
+					frm.document_queue_review_panel.removeClass(
+						"document-queue-review-resizing-pdf"
+					);
 					$(document).off(".document-queue-review-resizer");
 				});
 		}
@@ -450,7 +479,9 @@ frappe.document_queue_review.set_preview_width = function ($layout, width) {
 };
 
 frappe.document_queue_review.get_current_preview_width = function ($layout) {
-	const value = ($layout.get(0)?.style.getPropertyValue("--document-queue-review-width") || "").trim();
+	const value = (
+		$layout.get(0)?.style.getPropertyValue("--document-queue-review-width") || ""
+	).trim();
 	return frappe.document_queue_review.clamp_preview_width(Number(value.replace("%", "")));
 };
 
@@ -458,14 +489,19 @@ frappe.document_queue_review.clamp_preview_width = function (width) {
 	const min_preview_width = 25;
 	const max_preview_width = 60;
 	return Math.min(
-		Math.max(Number(width) || frappe.document_queue_review.default_preview_width, min_preview_width),
+		Math.max(
+			Number(width) || frappe.document_queue_review.default_preview_width,
+			min_preview_width
+		),
 		max_preview_width
 	);
 };
 
 frappe.document_queue_review.get_stored_preview_width = function () {
 	try {
-		const stored_width = Number(localStorage.getItem(frappe.document_queue_review.width_storage_key));
+		const stored_width = Number(
+			localStorage.getItem(frappe.document_queue_review.width_storage_key)
+		);
 		return frappe.document_queue_review.clamp_preview_width(
 			stored_width || frappe.document_queue_review.default_preview_width
 		);
@@ -503,7 +539,9 @@ frappe.document_queue_review.get_preview_markup = function (file_url, file_name)
 		return `<img class="document-queue-review-preview-image" src="${escaped_url}" alt="${escaped_name}">`;
 	}
 
-	return `<a class="btn btn-default btn-sm" href="${escaped_url}" target="_blank" rel="noopener noreferrer">${__("Open Source File")}</a>`;
+	return `<a class="btn btn-default btn-sm" href="${escaped_url}" target="_blank" rel="noopener noreferrer">${__(
+		"Open Source File"
+	)}</a>`;
 };
 
 frappe.document_queue_review.get_preview_type = function (file_url) {
