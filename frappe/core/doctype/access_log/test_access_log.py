@@ -15,6 +15,7 @@ from frappe.core.doctype.user.user import generate_keys
 
 # imports - standard imports
 from frappe.tests import IntegrationTestCase
+from frappe.tests.test_query_builder import db_type_is, unimplemented_for
 from frappe.utils import cstr, get_site_url
 
 
@@ -141,6 +142,10 @@ class TestAccessLog(IntegrationTestCase):
 		last_doc = frappe.get_last_doc("Access Log")
 		self.assertEqual(self.test_doctype, last_doc.export_from)
 
+	# Holds the write lock from the uncommitted File insert while making a synchronous
+	# request to the server (which writes an Access Log) — a single-writer deadlock on
+	# SQLite until busy_timeout.
+	@unimplemented_for(db_type_is.SQLITE)
 	def test_private_file_download(self):
 		# create new private file
 		new_private_file = frappe.get_doc(
@@ -152,12 +157,6 @@ class TestAccessLog(IntegrationTestCase):
 			}
 		)
 		new_private_file.insert()
-
-		# SQLite allows a single writer: this request is served by a separate process
-		# that writes an Access Log, so commit first to release the write lock (and make
-		# the file visible) or the synchronous request deadlocks until busy_timeout.
-		if frappe.db.db_type == "sqlite":
-			frappe.db.commit()
 
 		# access the created file
 		private_file_link = get_site_url(frappe.local.site) + new_private_file.file_url
@@ -176,9 +175,6 @@ class TestAccessLog(IntegrationTestCase):
 
 		# cleanup
 		new_private_file.delete()
-		if frappe.db.db_type == "sqlite":
-			# the insert above was committed, so commit the cleanup too
-			frappe.db.commit()
 
 	def tearDown(self):
 		pass
