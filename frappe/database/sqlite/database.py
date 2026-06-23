@@ -122,6 +122,13 @@ class SQLiteDatabase(SQLiteExceptionUtil, Database):
 
 	def get_connection(self, read_only: bool = False):
 		conn = self.create_connection(read_only)
+		# Disable the "double-quoted string literal" misfeature. frappe only ever emits
+		# double-quotes as identifiers (backticks are rewritten to double-quotes; string
+		# literals use single quotes), so an unknown double-quoted name is a bug -- e.g. an
+		# invalid link fieldname -- and should error "no such column" instead of silently
+		# being treated as a string literal that matches nothing.
+		conn.setconfig(sqlite3.SQLITE_DBCONFIG_DQS_DDL, False)
+		conn.setconfig(sqlite3.SQLITE_DBCONFIG_DQS_DML, False)
 		conn.create_function("regexp", 2, _regexp)
 		conn.create_function("regexp_replace", 3, _regexp_replace)
 		conn.create_function("now", 0, _now)

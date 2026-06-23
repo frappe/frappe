@@ -517,10 +517,6 @@ class TestDocType(IntegrationTestCase):
 		test_doc_1.delete()
 		frappe.db.commit()
 
-	# SQLite treats an unknown double-quoted identifier as a string literal instead of
-	# erroring, so the invalid-fieldname query silently returns no rows and the expected
-	# InvalidFieldNameError is never raised.
-	@skipIf(frappe.conf.db_type == "sqlite", "Not for SQLite for now")
 	def test_links_table_fieldname_validation(self):
 		doc = new_doctype("Test Links Table Validation")
 
