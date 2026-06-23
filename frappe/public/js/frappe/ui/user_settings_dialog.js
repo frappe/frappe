@@ -111,19 +111,17 @@ function _profile_tab(user_data) {
 				click(panel) {
 					const values = panel.get_values();
 					if (!values) return;
-					_save_user({
-						first_name: values.first_name,
-						middle_name: values.middle_name,
-						last_name: values.last_name,
-						username: values.username,
-					}).then(() => {
-						Object.assign(user_data, {
-							first_name: values.first_name,
-							middle_name: values.middle_name,
-							last_name: values.last_name,
-							username: values.username,
-						});
-						const fn = [values.first_name, values.middle_name, values.last_name]
+					// get_values() omits empty fields, but the server needs explicit empty
+					// strings to clear previously-set values.
+					const payload = {
+						first_name: values.first_name || "",
+						middle_name: values.middle_name || "",
+						last_name: values.last_name || "",
+						username: values.username || "",
+					};
+					_save_user(payload).then(() => {
+						Object.assign(user_data, payload);
+						const fn = [payload.first_name, payload.middle_name, payload.last_name]
 							.filter(Boolean)
 							.join(" ");
 						if (frappe.boot.user_info?.[frappe.session.user]) {
