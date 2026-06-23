@@ -3,7 +3,7 @@ frappe.provide("frappe.ui");
 frappe.ui.show_user_settings = async function (default_tab) {
 	if (!frappe.all_timezones) {
 		const { message } = await frappe.call("frappe.core.doctype.user.user.get_timezones");
-		frappe.all_timezones = message.timezones;
+		frappe.all_timezones = message?.timezones || [];
 	}
 
 	const { message: user_data } = await frappe.db.get_value("User", frappe.session.user, [
@@ -264,7 +264,10 @@ function _appearance_tab() {
 			);
 
 			// ThemeSwitcher renders the cards itself; we just embed its body.
+			// The instance also constructs an unused frappe.ui.Dialog — discard
+			// that wrapper to prevent it from leaking into the DOM.
 			const theme_switcher = new frappe.ui.ThemeSwitcher();
+			theme_switcher.dialog.$wrapper.remove();
 			panel.body.append(theme_switcher.body);
 
 			panel.body.append(_section_heading(__("Layout")));
@@ -691,9 +694,15 @@ function _keyboard_shortcuts_tab() {
 				const rows = deduped
 					.map((s) => {
 						const key_html = s.keys
-							.map((k) => `<kbd>${frappe.ui.keys.get_shortcut_label(k)}</kbd>`)
+							.map(
+								(k) =>
+									`<kbd>${frappe.utils.escape_html(
+										frappe.ui.keys.get_shortcut_label(k)
+									)}</kbd>`
+							)
 							.join(" / ");
-						return `<tr><td width="40%">${key_html}</td><td width="60%">${s.description}</td></tr>`;
+						const description = frappe.utils.escape_html(s.description);
+						return `<tr><td width="40%">${key_html}</td><td width="60%">${description}</td></tr>`;
 					})
 					.join("");
 				panel.body.append(
