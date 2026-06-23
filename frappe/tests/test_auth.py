@@ -13,6 +13,7 @@ from frappe.frappeclient import AuthError, FrappeClient
 from frappe.sessions import Session, get_expired_sessions, get_expiry_in_seconds
 from frappe.tests import IntegrationTestCase, UnitTestCase
 from frappe.tests.test_api import FrappeAPITestCase
+from frappe.tests.test_query_builder import db_type_is, unimplemented_for
 from frappe.utils import get_datetime, get_site_url, now
 from frappe.utils.data import add_to_date
 from frappe.www.login import _generate_temporary_login_link
@@ -136,6 +137,7 @@ class TestAuth(IntegrationTestCase):
 		with self.assertRaises(Exception):
 			FrappeClient(self.HOST_NAME, self.test_user_email, self.test_user_password).get_list("ToDo")
 
+	@unimplemented_for(db_type_is.SQLITE)
 	def test_login_with_email_link(self):
 		user = self.test_user_email
 

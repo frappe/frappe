@@ -4,6 +4,7 @@ from unittest.mock import patch
 
 import frappe
 from frappe.tests import IntegrationTestCase
+from frappe.tests.test_query_builder import db_type_is, unimplemented_for
 from frappe.utils import get_site_url
 
 
@@ -114,6 +115,7 @@ class TestClient(IntegrationTestCase):
 
 		self.assertRaises(frappe.PermissionError, execute_cmd, frappe.local.form_dict.cmd)
 
+	@unimplemented_for(db_type_is.SQLITE)
 	def test_array_values_in_request_args(self):
 		import requests
 

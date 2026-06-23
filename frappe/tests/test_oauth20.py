@@ -11,6 +11,7 @@ import frappe
 from frappe.integrations.oauth2 import encode_params
 from frappe.tests import IntegrationTestCase
 from frappe.tests.test_api import get_test_client, make_request, suppress_stdout
+from frappe.tests.test_query_builder import db_type_is, unimplemented_for
 from frappe.tests.utils import make_test_records
 from frappe.utils.oauth import build_oauth_url
 
@@ -52,6 +53,7 @@ class FrappeRequestTestCase(IntegrationTestCase):
 		return make_request(target=self.TEST_CLIENT.delete, args=(path,), kwargs=kwargs, site=self.site)
 
 
+@unimplemented_for(db_type_is.SQLITE)
 class TestOAuth20(FrappeRequestTestCase):
 	site = frappe.local.site
 

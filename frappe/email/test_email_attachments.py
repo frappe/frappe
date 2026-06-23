@@ -6,6 +6,7 @@ import requests
 import frappe
 from frappe.email.receive import InboundMail
 from frappe.tests import IntegrationTestCase
+from frappe.tests.test_query_builder import db_type_is, unimplemented_for
 from frappe.utils import get_url
 
 if TYPE_CHECKING:
@@ -48,6 +49,7 @@ class TestEmailAttachments(IntegrationTestCase):
 		file.save()
 		self.assertEqual(file.file_name, "tést%42.txt")
 
+	@unimplemented_for(db_type_is.SQLITE)
 	def test_file_with_percent_in_filename(self):
 		def make_and_check_file(index: int, literal_file_name: str, disk_file_name: str):
 			content = "abcdefghijklmnop_attachment"

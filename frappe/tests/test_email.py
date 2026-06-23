@@ -14,7 +14,7 @@ from frappe.email.doctype.email_account.test_email_account import TestEmailAccou
 from frappe.email.doctype.email_queue.email_queue import QueueBuilder
 from frappe.query_builder.utils import db_type_is
 from frappe.tests import IntegrationTestCase
-from frappe.tests.test_query_builder import run_only_if
+from frappe.tests.test_query_builder import run_only_if, unimplemented_for
 
 EXTRA_TEST_RECORD_DEPENDENCIES = ["Email Account"]
 
@@ -401,6 +401,7 @@ class TestVerifiedRequests(IntegrationTestCase):
 		frappe.local.request = None
 
 
+@unimplemented_for(db_type_is.SQLITE)
 class TestEmailIntegrationTest(IntegrationTestCase):
 	"""Sends email to local SMTP server and verifies correctness.
 
