@@ -69,7 +69,6 @@ declare module 'vue' {
     InputLabel: typeof import('./src/components/InputLabel.vue')['default']
     ItemActions: typeof import('./src/components/ItemActions.vue')['default']
     ListBox: typeof import('./src/components/ListBox.vue')['default']
-    LucideExternalLink: typeof import('~icons/lucide/external-link')['default']
     MarginHandler: typeof import('./src/components/MarginHandler.vue')['default']
     MarkdownEditor: typeof import('./src/components/AppLayout/MarkdownEditor.vue')['default']
     MissingComponent: typeof import('./src/components/MissingComponent.vue')['default']

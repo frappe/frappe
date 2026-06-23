@@ -46,7 +46,12 @@ import {
 	NumberChart,
 	AxisChart,
 	DonutChart,
+	ContextMenu,
+	Duration,
+	Pill,
+	Spinner,
 } from "frappe-ui"
+import { CodeEditor } from "frappe-ui/code-editor"
 import { Filter, Link } from "frappe-ui/frappe"
 
 import Container from "@/components/AppLayout/Container.vue"
@@ -115,6 +120,11 @@ export function registerGlobalComponents(app: App) {
 	app.component("NumberChart", NumberChart)
 	app.component("AxisChart", AxisChart)
 	app.component("DonutChart", DonutChart)
+	app.component("CodeEditor", CodeEditor)
+	app.component("ContextMenu", ContextMenu)
+	app.component("Duration", Duration)
+	app.component("Pill", Pill)
+	app.component("Spinner", Spinner)
 
 	// studio components
 	app.component("Container", Container)
