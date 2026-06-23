@@ -2,6 +2,7 @@
 # See license.txt
 
 import re
+from unittest import skipIf
 
 import frappe
 import frappe.utils
@@ -127,6 +128,13 @@ class IntegrationTestUserInvitation(IntegrationTestCase):
 		invitation.cancel_invite()
 		self.assertEqual(len(self.get_email_names(False)), 2)
 
+	# Unlike the sibling tests (which never commit, so the savepoint rollback discards the queued
+	# email), this calls mark_expired_invitations() which commits -- firing the after_commit hook
+	# that synchronously sends the notification email. That email's status write needs the single
+	# SQLite write lock and deadlocks against the other test-suite processes that hold it.
+	@skipIf(
+		frappe.conf.db_type == "sqlite", "synchronous email send on commit deadlocks the single write lock"
+	)
 	def test_mark_expired_invitations(self):
 		invitation = self.get_dummy_invitation()
 		invitation.insert()
