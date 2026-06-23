@@ -179,20 +179,19 @@ def enqueue_document_extraction(
 def extract_document_queue_record(document_queue: str) -> dict[str, Any]:
 	queue_doc = frappe.get_doc("Document Queue", document_queue)
 	queue_doc.mark_processing()
-	frappe.db.commit()
+	frappe.db.commit()  # nosemgrep: Persist Processing before long-running extraction.
 
 	try:
 		file_path = get_file_path(queue_doc.source_file)
 		result = extract_file(file_path)
 		queue_doc.mark_completed(result)
-		frappe.db.commit()
 		return result
 	except Exception as exc:
 		frappe.db.rollback()
 		error_message = str(exc) or exc.__class__.__name__
 		queue_doc = frappe.get_doc("Document Queue", document_queue)
 		queue_doc.mark_failed(error_message, frappe.get_traceback(with_context=True))
-		frappe.db.commit()
+		frappe.db.commit()  # nosemgrep: Preserve Failed status before re-raising.
 		raise
 
 
@@ -281,14 +280,15 @@ def link_to_document(document_queue: str, document_type: str, document_name: str
 
 	if not frappe.db.exists(document_type, document_name):
 		frappe.throw(
-			_("Document {0} {1} does not exist.").format(frappe.bold(document_type), frappe.bold(document_name))
+			_("Document {0} {1} does not exist.").format(
+				frappe.bold(document_type), frappe.bold(document_name)
+			)
 		)
 
 	target_doc = frappe.get_doc(document_type, document_name)
 	target_doc.check_permission("write")
 	queue_doc.mark_review_completed(target_doc.doctype, target_doc.name)
 	attach_source_file_to_document(queue_doc, target_doc)
-	frappe.db.commit()
 
 	return {
 		"ok": True,
