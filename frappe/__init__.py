@@ -1594,7 +1594,16 @@ from frappe.utils.error import log_error
 from frappe.utils.formatters import format_value
 from frappe.utils.print_utils import get_print, attach_print
 from frappe.email import sendmail
-from frappe.concurrency_limiter import concurrent_limit
+
+
+def __getattr__(name: str):
+	if name == "concurrent_limit":
+		from frappe.concurrency_limiter import concurrent_limit
+
+		globals()["concurrent_limit"] = concurrent_limit
+		return concurrent_limit
+	raise AttributeError(f"module 'frappe' has no attribute {name!r}")
+
 
 # for backwards compatibility
 format = format_value
