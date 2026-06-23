@@ -21,6 +21,7 @@ from frappe.core.doctype.file.utils import get_corrupted_image_msg, get_extensio
 from frappe.desk.form.utils import add_comment
 from frappe.exceptions import ValidationError
 from frappe.tests import IntegrationTestCase
+from frappe.tests.test_query_builder import db_type_is, unimplemented_for
 from frappe.utils import get_files_path, set_request
 
 if TYPE_CHECKING:
@@ -543,6 +544,7 @@ class TestFile(IntegrationTestCase):
 		test_file.file_name = "/private/files/_file"
 		self.assertRaisesRegex(ValidationError, "File name cannot have", test_file.validate)
 
+	@unimplemented_for(db_type_is.SQLITE)
 	def test_make_thumbnail(self):
 		# test web image
 		test_file: File = frappe.get_doc(
