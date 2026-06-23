@@ -43,7 +43,12 @@ class TestNonNullableDocfield(IntegrationTestCase):
 		inserted_doc = frappe.db.get(self.nullable_doctype_name, {"name": doc.name})
 		self.assertEqual(inserted_doc.test_field, None)
 		table = DBTable(self.nullable_doctype_name)
-		query = "SELECT column_name AS name, column_default is NULL AS default_null,is_nullable = 'NO' AS not_nullable FROM information_schema.columns WHERE table_name=%s"
+		if frappe.db.db_type == "sqlite":
+			# SQLite has no information_schema; read column metadata from PRAGMA table_info.
+			# `notnull` is a SQLite keyword (the NOTNULL operator), so it must be quoted.
+			query = 'SELECT name, dflt_value IS NULL AS default_null, "notnull" AS not_nullable FROM pragma_table_info(%s)'
+		else:
+			query = "SELECT column_name AS name, column_default is NULL AS default_null,is_nullable = 'NO' AS not_nullable FROM information_schema.columns WHERE table_name=%s"
 		for column in frappe.db.sql(query, table.table_name, as_dict=True):
 			if column.name == "test_field":
 				self.assertFalse(column.not_nullable)

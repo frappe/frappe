@@ -121,10 +121,27 @@ class SQLiteTable(DBTable):
 		create_table = f"CREATE TABLE `{temp_table}` (\n{','.join(columns)}\n)"
 		frappe.db.sql_ddl(create_table)
 
-		# Copy data
+		# Copy data, coalescing NULLs to the column default for any column gaining a NOT NULL
+		# constraint -- an existing NULL would otherwise violate it while copying.
+		not_null_defaults = {}
+		for col in self.change_nullability:
+			if col.not_nullable:
+				default = get_not_null_defaults(col.fieldtype)
+				not_null_defaults[col.fieldname] = (
+					frappe.db.escape(default) if isinstance(default, str) else default
+				)
+
 		existing_columns = [col.split()[0] for col in existing_columns]
-		column_list = ", ".join(existing_columns)
-		frappe.db.sql_ddl(f"INSERT INTO `{temp_table}` SELECT {column_list} FROM `{self.table_name}`")
+		select_exprs = [
+			f"COALESCE({col}, {not_null_defaults[col.strip('`')]})"
+			if col.strip("`") in not_null_defaults
+			else col
+			for col in existing_columns
+		]
+		frappe.db.sql_ddl(
+			f"INSERT INTO `{temp_table}` ({', '.join(existing_columns)}) "
+			f"SELECT {', '.join(select_exprs)} FROM `{self.table_name}`"
+		)
 
 		# Drop old table
 		frappe.db.sql_ddl(f"DROP TABLE `{self.table_name}`")
