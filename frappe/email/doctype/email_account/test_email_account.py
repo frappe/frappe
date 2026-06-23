@@ -390,6 +390,17 @@ class TestEmailAccount(IntegrationTestCase):
 		with self.assertRaises(frappe.ValidationError):
 			email_account.check_email_server_connection(server, in_receive=True)
 
+	def test_validation_surfaces_imap_connection_error(self):
+		# a connection/timeout failure on save must raise too, not swallow into a NONAUTH leak
+		email_account = frappe.get_doc("Email Account", "_Test Email Account 1")
+		email_account.flags.validate_imap_pop_connection = True
+
+		server = MagicMock()
+		server.connect.side_effect = OSError("timed out")
+
+		with self.assertRaises(OSError):
+			email_account.check_email_server_connection(server, in_receive=True)
+
 	def test_background_receive_auth_error_disables_account(self):
 		# auth failure during background receive disables incoming instead of raising
 		email_account = frappe.get_doc("Email Account", "_Test Email Account 1")
