@@ -658,6 +658,12 @@ frappe.document_queue_review.get_ready_for_review_count = function (doctype) {
 		.catch(() => 0);
 };
 
+frappe.document_queue_review.refresh_form = function (frm) {
+	frappe.document_queue_review.hydrate_context(frm);
+	frappe.document_queue_review.mount(frm);
+	frappe.document_queue_review.setup_upload_first(frm);
+};
+
 frappe.document_queue_review.patch_list_view = function () {
 	if (frappe.document_queue_review.list_view_patched || !frappe.views?.ListView) {
 		return;
