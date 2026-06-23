@@ -1889,10 +1889,11 @@ class TestQuery(IntegrationTestCase):
 		self.assertIn(self.normalize_sql("COUNT(`name`) `total_users`"), sql)
 		self.assertIn(self.normalize_sql("MAX(`creation`) `latest_creation`"), sql)
 
-		# Test NOW function with no arguments
+		# Test NOW function with no arguments (SQLite renders NOW() as CURRENT_TIMESTAMP)
 		query = frappe.qb.get_query("User", fields=[{"NOW": None, "as": "current_time"}])
 		sql = query.get_sql()
-		self.assertIn(self.normalize_sql("NOW() `current_time`"), sql)
+		now_func = "CURRENT_TIMESTAMP" if frappe.db.db_type == "sqlite" else "NOW()"
+		self.assertIn(self.normalize_sql(f"{now_func} `current_time`"), sql)
 
 		# Test CONCAT function (which is supported)
 		query = frappe.qb.get_query(
