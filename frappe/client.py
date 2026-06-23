@@ -449,8 +449,10 @@ def validate_link_and_fetch(
 	meta = frappe.get_meta(doctype)
 	fields_to_fetch = frappe.parse_json(fields_to_fetch)
 
-	# only cache is no fields to fetch and request is GET
-	can_cache = not fields_to_fetch and frappe.request.method == "GET"
+	# only cache is no fields to fetch and request is GET (validate_link_and_fetch is also
+	# callable outside a request context, e.g. from tests, where frappe.request is unbound)
+	request = getattr(frappe.local, "request", None)
+	can_cache = not fields_to_fetch and bool(request) and request.method == "GET"
 
 	# Use search_widget to validate - ensures filters/custom queries are respected
 	# in addition to standard permission checks

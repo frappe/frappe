@@ -1,5 +1,6 @@
 import typing
 from random import choice
+from unittest import skipIf
 
 import requests
 
@@ -39,6 +40,10 @@ class TestResourceAPIV2(FrappeAPITestCase):
 			frappe.delete_doc_if_exists(cls.DOCTYPE, name)
 		frappe.db.commit()
 
+	# Unlike the sibling tests (in-process self.get/self.post), this issues a real external HTTP
+	# request to the bench server while the test holds SQLite's single write lock -- the server
+	# process can't acquire it, so the request deadlocks.
+	@skipIf(frappe.conf.db_type == "sqlite", "external HTTP request deadlocks on the single write lock")
 	def test_unauthorized_call_v2(self):
 		# test 1: fetch documents without auth
 		response = requests.get(self.resource(self.DOCTYPE))

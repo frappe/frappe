@@ -110,6 +110,9 @@ class TestAuth(IntegrationTestCase):
 		FrappeClient(self.HOST_NAME, self.test_user_email, self.test_user_password)
 		FrappeClient(self.HOST_NAME, self.test_user_name, self.test_user_password)
 
+	# Drives FrappeClient, which logs in over real HTTP; the server must write a session row, but
+	# the test holds SQLite's single write lock for its whole duration -- a single-writer deadlock.
+	@unimplemented_for(db_type_is.SQLITE)
 	def test_deny_multiple_login(self):
 		self.set_system_settings("deny_multiple_sessions", 1)
 		self.addCleanup(self.set_system_settings, "deny_multiple_sessions", 0)
