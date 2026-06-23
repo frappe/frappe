@@ -514,16 +514,19 @@ class SQLiteDatabase(SQLiteExceptionUtil, Database):
 		self.sql(f"CREATE INDEX IF NOT EXISTS `{index_name}` ON `{table_name}` ({', '.join(fields)})")
 
 		# Ensure that DB migration doesn't clear this index, assuming this is manually added
-		# via code or console.
+		# via code or console. Text-like fieldtypes can't carry a search_index flag (doctype
+		# validation rejects it), though the TEXT column above is still validly indexed.
 		if len(fields) == 1 and not (frappe.flags.in_install or frappe.flags.in_migrate):
-			make_property_setter(
-				doctype,
-				fields[0],
-				property="search_index",
-				value="1",
-				property_type="Check",
-				for_doctype=False,  # Applied on docfield
-			)
+			field = frappe.get_meta(doctype).get_field(fields[0])
+			if field and field.fieldtype not in ("Text", "Long Text", "Small Text", "Code", "Text Editor"):
+				make_property_setter(
+					doctype,
+					fields[0],
+					property="search_index",
+					value="1",
+					property_type="Check",
+					for_doctype=False,  # Applied on docfield
+				)
 
 	def add_unique(self, doctype, fields, constraint_name=None):
 		"""Creates unique constraint on fields."""

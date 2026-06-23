@@ -7,6 +7,20 @@ from frappe.utils.defaults import get_not_null_defaults
 
 
 class SQLiteTable(DBTable):
+	def get_column_definitions(self):
+		# Uniqueness is enforced through explicit named indexes (get_column_index_queries), so
+		# suppress the inline UNIQUE the base definition would add. Otherwise SQLite also builds a
+		# redundant sqlite_autoindex_* for the column, leaving two unique indexes per field.
+		column_list = [*frappe.db.DEFAULT_COLUMNS]
+		ret = []
+		for k in list(self.columns):
+			if k not in column_list:
+				d = self.columns[k].get_definition(for_modification=True)
+				if d:
+					ret.append(f"`{k}` {d}")
+					column_list.append(k)
+		return ret
+
 	def create(self):
 		# First prepare the basic table creation without indexes
 		additional_definitions = []
@@ -66,8 +80,10 @@ class SQLiteTable(DBTable):
 			col.build_for_alter_table(self.current_columns.get(col.fieldname.lower()))
 
 		for col in self.add_column:
+			# SQLite rejects ADD COLUMN with an inline UNIQUE constraint ("Cannot add a UNIQUE
+			# column"); the unique/search index is created separately via add_unique/add_index.
 			frappe.db.sql_ddl(
-				f"ALTER TABLE `{self.table_name}` ADD COLUMN `{col.fieldname}` {col.get_definition()}"
+				f"ALTER TABLE `{self.table_name}` ADD COLUMN `{col.fieldname}` {col.get_definition(for_modification=True)}"
 			)
 
 		if not (
@@ -181,7 +197,8 @@ class SQLiteTable(DBTable):
 
 	def get_indexes_to_preserve(self) -> list[str]:
 		"""Return user-defined indexes to recreate after a table rebuild."""
-		dropped_fields = {col.fieldname for col in (self.drop_index + self.drop_unique)}
+		drop_unique_fields = {col.fieldname for col in self.drop_unique}
+		drop_index_fields = {col.fieldname for col in self.drop_index}
 
 		statements = []
 		for index in frappe.db.sql(
@@ -189,7 +206,7 @@ class SQLiteTable(DBTable):
 			(self.table_name,),
 			as_dict=True,
 		):
-			if dropped_fields:
+			if drop_unique_fields or drop_index_fields:
 				index_columns = {
 					col["name"]
 					for col in frappe.db.sql(
@@ -198,7 +215,12 @@ class SQLiteTable(DBTable):
 						as_dict=True,
 					)
 				}
-				if index_columns & dropped_fields:
+				is_unique = bool(re.match(r"^\s*CREATE\s+UNIQUE\s+INDEX", index.sql, flags=re.IGNORECASE))
+				# Drop only the matching kind: toggling a column's uniqueness must not discard a
+				# co-existing search index on the same field, and vice-versa.
+				if is_unique and (index_columns & drop_unique_fields):
+					continue
+				if not is_unique and (index_columns & drop_index_fields):
 					continue
 
 			# Replays may overlap with add_index/add_unique.
