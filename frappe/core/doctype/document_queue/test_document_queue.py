@@ -55,9 +55,12 @@ class TestDocumentQueue(IntegrationTestCase):
 		self.addCleanup(lambda: frappe.delete_doc("File", file_doc.name, force=True, ignore_permissions=True))
 		return file_doc
 
-	def make_queue(self, file_name=None, content=None):
+	def make_queue(self, file_name=None, content=None, auto_extract=False):
 		file_doc = self.make_file(file_name, content)
-		queue_doc = frappe.get_doc({"doctype": "Document Queue", "source_file": file_doc.file_url}).insert()
+		queue_doc = frappe.get_doc({"doctype": "Document Queue", "source_file": file_doc.file_url})
+		if not auto_extract:
+			queue_doc.flags.skip_auto_extraction = True
+		queue_doc.insert()
 		self.addCleanup(
 			lambda: frappe.delete_doc("Document Queue", queue_doc.name, force=True, ignore_permissions=True)
 		)
@@ -85,6 +88,16 @@ class TestDocumentQueue(IntegrationTestCase):
 
 		self.assertEqual(queue_doc.status, "Draft")
 		self.assertTrue(queue_doc.source_file.endswith(".pdf"))
+
+	def test_queues_extraction_when_document_queue_record_is_created(self):
+		with patch(
+			"frappe.core.doctype.document_queue.document_queue.enqueue_document_extraction"
+		) as enqueue_document_extraction:
+			queue_doc = self.make_queue(auto_extract=True)
+
+		enqueue_document_extraction.assert_called_once_with(
+			queue_doc.name, queue="default", enqueue_after_commit=True
+		)
 
 	def test_extracts_pdf_and_marks_ready_for_review(self):
 		from frappe.core.doctype.document_queue.document_queue import extract_document_queue_record
@@ -216,25 +229,12 @@ class TestDocumentQueue(IntegrationTestCase):
 		self.assertEqual(queue_doc.document_type, "File")
 		self.assertEqual(context["document_type"], "File")
 
-	def test_create_upload_first_queue_extracts_and_returns_review_context(self):
+	def test_create_upload_first_queue_queues_extraction_and_returns_review_context(self):
 		from frappe.core.doctype.document_queue.document_queue import create_upload_first_queue
 
 		self.enable_upload_first_workflow("File")
 		file_doc = self.make_file()
-		pdfplumber = FakePDFPlumber(
-			[
-				FakePDFPage(
-					text="Upload first workflow text",
-					layout_text="Upload First     Workflow",
-					words=[{"text": "Upload", "x0": 10, "top": 20, "x1": 50, "bottom": 30}],
-				)
-			]
-		)
-
-		with patch(
-			"frappe.core.doctype.document_queue.document_queue._get_pdfplumber", return_value=pdfplumber
-		):
-			context = create_upload_first_queue(file_doc.name, "File")
+		context = create_upload_first_queue(file_doc.name, "File")
 
 		queue_doc = frappe.get_doc("Document Queue", context["queue_name"])
 		self.addCleanup(
@@ -243,10 +243,11 @@ class TestDocumentQueue(IntegrationTestCase):
 
 		file_doc.reload()
 		self.assertEqual(queue_doc.document_type, "File")
-		self.assertEqual(queue_doc.status, "Ready for Review")
-		self.assertEqual(queue_doc.extracted_text, "Upload First     Workflow")
+		self.assertEqual(queue_doc.status, "Queued")
+		self.assertTrue(queue_doc.task)
 		self.assertEqual(context["document_type"], "File")
 		self.assertEqual(context["source_file"], file_doc.file_url)
+		self.assertEqual(context["status"], "Queued")
 		self.assertEqual(file_doc.attached_to_doctype, "Document Queue")
 		self.assertEqual(file_doc.attached_to_name, queue_doc.name)
 

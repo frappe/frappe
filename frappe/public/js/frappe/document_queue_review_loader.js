@@ -95,7 +95,14 @@ frappe.document_queue_review_loader.setup_list = async function (listview) {
 };
 
 frappe.document_queue_review_loader.patch_list_view = function () {
-	if (frappe.document_queue_review_loader.list_view_patched || !frappe.views?.ListView) {
+	if (
+		frappe.document_queue_review_loader.list_view_patched ||
+		frappe.document_queue_review?.list_view_patched ||
+		!frappe.views?.ListView
+	) {
+		frappe.document_queue_review_loader.list_view_patched = Boolean(
+			frappe.document_queue_review?.list_view_patched
+		);
 		return;
 	}
 
@@ -106,6 +113,9 @@ frappe.document_queue_review_loader.patch_list_view = function () {
 	};
 
 	frappe.document_queue_review_loader.list_view_patched = true;
+	if (frappe.document_queue_review) {
+		frappe.document_queue_review.list_view_patched = true;
+	}
 };
 
 frappe.ui.form.on("*", {
