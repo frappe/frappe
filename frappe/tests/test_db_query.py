@@ -219,7 +219,7 @@ class TestDBQuery(IntegrationTestCase):
 			in build_match_conditions(as_condition=False)
 		)
 		# get as conditions
-		if frappe.db.db_type == "mariadb":
+		if frappe.db.db_type in ("mariadb", "sqlite"):
 			assertion_string = """(((ifnull(`tabTest Blog Post`.`name`, '')='' or `tabTest Blog Post`.`name` in ('_Test Blog Post 1', '_Test Blog Post'))))"""
 		elif frappe.db.db_type == "postgres":
 			assertion_string = """(((ifnull(cast(`tabTest Blog Post`.`name` as varchar), '')='' or cast(`tabTest Blog Post`.`name` as varchar) in ('_Test Blog Post 1', '_Test Blog Post'))))"""
@@ -384,16 +384,20 @@ class TestDBQuery(IntegrationTestCase):
 		cond = get_between_date_filter([start, end], date_df)
 		self.assertQueryEqual(cond, f"'{start}' AND '{end}'")
 
+		# SQLite stores datetimes via isoformat, which omits the microsecond part when it is
+		# zero; MariaDB/Postgres always render it as .000000.
+		zero_us = "" if frappe.db.db_type == "sqlite" else ".000000"
+
 		# single date should include entire day
 		start = "2021-01-01"
 		cond = get_between_date_filter([start, start], datetime_df)
-		self.assertQueryEqual(cond, f"'{start} 00:00:00.000000' AND '{start} 23:59:59.999999'")
+		self.assertQueryEqual(cond, f"'{start} 00:00:00{zero_us}' AND '{start} 23:59:59.999999'")
 
 		# datetime field on datetime type should remain same
 		start = "2021-01-01 01:01:00"
 		end = "2022-01-02 12:23:43"
 		cond = get_between_date_filter([start, end], datetime_df)
-		self.assertQueryEqual(cond, f"'{start}.000000' AND '{end}.000000'")
+		self.assertQueryEqual(cond, f"'{start}{zero_us}' AND '{end}{zero_us}'")
 
 	def test_ignore_permissions_for_get_filters_cond(self):
 		frappe.set_user("test2@example.com")
@@ -974,6 +978,12 @@ class TestDBQuery(IntegrationTestCase):
 			self.assertTrue('strpos( cast("tabautoinc_dt_test"."name" as varchar), \'1\')' in query)
 			self.assertTrue("strpos( cast(name as varchar), '1')" in query)
 			self.assertTrue('where cast("tabautoinc_dt_test"."name" as varchar) = \'1\'' in query)
+		elif frappe.db.db_type == "sqlite":
+			# backticks become double-quotes and locate() is rewritten to instr() with the
+			# arguments swapped by modify_query (applied even for run=False).
+			self.assertTrue('instr( "tabautoinc_dt_test"."name", \'1\')' in query)
+			self.assertTrue("instr( name, '1')" in query)
+			self.assertTrue('where "tabautoinc_dt_test"."name" = 1' in query)
 		else:
 			self.assertTrue("locate('1', `tabautoinc_dt_test`.`name`)" in query)
 			self.assertTrue("locate('1', name)" in query)

@@ -36,6 +36,7 @@ class TestDB(IntegrationTestCase):
 	def test_get_database_size(self):
 		self.assertIsInstance(frappe.db.get_database_size(), (float, int))
 
+	@unimplemented_for(db_type_is.SQLITE)
 	def test_db_statement_execution_timeout(self):
 		frappe.db.set_execution_timeout(2)
 		# Setting 0 means no timeout.
@@ -1196,6 +1197,10 @@ class TestReplicaConnections(IntegrationTestCase):
 			self.assertEqual(write_connection, db_id())
 
 
+# Row-level locking (FOR UPDATE / skip_locked / NOWAIT) and the two-connection contention
+# semantics these tests assert don't exist on SQLite, which serializes all writers behind a
+# single database-wide write lock; a second writer just blocks until busy_timeout.
+@unimplemented_for(db_type_is.SQLITE)
 class TestConcurrency(IntegrationTestCase):
 	@timeout(5, "There shouldn't be any lock wait")
 	def test_skip_locking(self):

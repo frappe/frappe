@@ -15,6 +15,7 @@ from frappe.desk.doctype.todo.todo import ToDo
 from frappe.model.document import Document, LazyChildTable
 from frappe.model.naming import make_autoname, parse_naming_series, revert_series_if_last
 from frappe.tests import IntegrationTestCase
+from frappe.tests.test_query_builder import db_type_is, unimplemented_for
 from frappe.utils import cint, now_datetime, set_request
 from frappe.website.serve import get_response
 
@@ -914,6 +915,9 @@ class TestGetDocs(IntegrationTestCase):
 		)
 		self.assertEqual([d.name for d in eager], [d.name for d in gen_docs])
 
+	# get_docs() deliberately drops for_update on SQLite (a single write lock already covers
+	# the rows), so the per-document flag it would otherwise set is never present.
+	@unimplemented_for(db_type_is.SQLITE)
 	def test_for_update_sets_flag(self):
 		docs = frappe.get_docs(self.parent_dt, limit=1, for_update=True)
 		self.assertTrue(docs[0].flags.for_update)
