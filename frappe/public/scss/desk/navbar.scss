@@ -100,10 +100,11 @@
 	.awesomebar-search-icon {
 		display: flex;
 		align-items: center;
-		padding: 0px 7px;
+		padding-left: 10px;
 		color: var(--text-muted);
 		flex-shrink: 0;
 		pointer-events: none;
+		padding-right: 2px;
 	}
 
 	.awesomplete {

@@ -179,7 +179,20 @@ frappe.search.AwesomeBar = class AwesomeBar {
 					me.options = me.options.concat(frappe.search.utils.get_frequent_links());
 				}
 
+<<<<<<< HEAD
 				awesomplete.list = me.deduplicate(me.options);
+=======
+				// hide footer and remove spqcing when there are no results
+				$(this.awesomplete.ul).toggleClass("p-0 m-0", cint(me.options?.length) == 0);
+				me.search_modal
+					.find(".cool-awesomebar-modal-footer")
+					.toggleClass("hide", cint(me.options?.length) == 0);
+
+				let options = me.deduplicate(me.options);
+				awesomplete.options_with_desc = me.create_options_with_descriptions(options);
+				Awesomplete.prototype._itemCursor = 0;
+				awesomplete.list = options;
+>>>>>>> 9bf1397c62 (fix(awesomebar): hide footer on empty state)
 			}, 50)
 		);
 
