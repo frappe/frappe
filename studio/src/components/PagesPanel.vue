@@ -10,7 +10,7 @@
 					<Tooltip :text="page.published ? 'Published' : 'Draft'" placement="top">
 						<div
 							class="h-2 w-2 flex-shrink-0 rounded-full"
-							:class="page.published ? 'bg-surface-green-8' : 'bg-surface-gray-8'"
+							:class="page.published ? 'bg-surface-green-6' : 'bg-surface-gray-5'"
 						></div>
 					</Tooltip>
 					<div

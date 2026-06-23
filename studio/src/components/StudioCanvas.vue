@@ -370,10 +370,10 @@ defineExpose({
 
 <style>
 .hovered-block {
-	@apply border-outline-blue-4 text-ink-gray-6 dark:border-outline-blue-9 dark:text-ink-gray-4;
+	@apply border-outline-blue-3 text-ink-gray-6 dark:border-outline-blue-9 dark:text-ink-gray-4;
 }
 .block-selected {
-	@apply border-outline-blue-5 text-ink-gray-8 dark:border-outline-blue-7 dark:text-ink-gray-1;
+	@apply border-outline-blue-4 text-ink-gray-8 dark:border-outline-blue-7 dark:text-ink-gray-1;
 }
 .slot-selected {
 	@apply border-outline-purple-4 text-ink-gray-8;

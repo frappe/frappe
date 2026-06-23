@@ -133,7 +133,7 @@
 		<!-- Drop indicator line -->
 		<div
 			v-if="showDropIndicator"
-			class="pointer-events-none absolute h-0.5 bg-surface-blue-8 transition-none"
+			class="pointer-events-none absolute h-0.5 bg-surface-blue-6 transition-none"
 			:style="{
 				top: dropIndicatorTop + 'px',
 				left: dropIndicatorLeft + 'px',

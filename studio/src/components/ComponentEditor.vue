@@ -155,7 +155,7 @@ const getStyleClasses = computed(() => {
 	if (props.block.isStudioComponent) {
 		classes.push("ring-outline-purple-4")
 	} else {
-		classes.push("ring-outline-blue-5")
+		classes.push("ring-outline-blue-4")
 	}
 
 	if (isBlockSelected.value && !props.block.isRoot() && !canvasStore.isDragging) {
@@ -171,7 +171,7 @@ const componentLabelClasses = computed(() => {
 	if (isBlockSelected.value) {
 		return props.block.isStudioComponent
 			? "bg-surface-purple-6 text-ink-base"
-			: "bg-surface-blue-8 text-ink-base"
+			: "bg-surface-blue-6 text-ink-base"
 	} else {
 		return props.block.isStudioComponent ? "text-ink-purple-6" : "text-ink-blue-6"
 	}
