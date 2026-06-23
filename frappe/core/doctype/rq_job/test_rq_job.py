@@ -3,6 +3,7 @@
 # See license.txt
 
 import time
+from unittest import skipIf
 
 from rq import exceptions as rq_exc
 from rq.job import Job
@@ -128,6 +129,10 @@ class TestRQJob(IntegrationTestCase):
 		self.check_status(job, "finished")
 		self.assertFalse(is_job_enqueued(job_id))
 
+	# Enqueues several jobs and waits for the worker process to record their results, but the test
+	# holds SQLite's single write lock for its whole duration, so the worker can't commit -- the
+	# jobs never finish and the wait times out.
+	@skipIf(frappe.conf.db_type == "sqlite", "worker can't commit while the test holds the write lock")
 	def test_auto_job_dedup(self):
 		job_id = "test_dedup"
 		job1 = frappe.enqueue(self.BG_JOB, sleep=2, job_id=job_id, deduplicate=True)
@@ -186,6 +191,9 @@ class TestRQJob(IntegrationTestCase):
 
 		self.assertLessEqual(rss, LAST_MEASURED_USAGE * 1.05, msg)
 
+	# Enqueues 20 jobs and waits for the worker to fail/record them, but the worker can't commit to
+	# SQLite while the test holds the single write lock, so the jobs never complete.
+	@skipIf(frappe.conf.db_type == "sqlite", "worker can't commit while the test holds the write lock")
 	def test_clear_failed_jobs(self):
 		limit = 10
 		update_site_config("rq_failed_jobs_limit", limit)
