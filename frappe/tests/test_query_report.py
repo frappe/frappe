@@ -4,10 +4,7 @@
 import datetime
 
 import frappe
-
-
-from frappe.desk.query_report import build_xlsx_data, export_query, format_fields, run,get_user_match_filters
-
+from frappe.desk.query_report import build_xlsx_data, export_query, format_fields, get_user_match_filters, run
 from frappe.tests import IntegrationTestCase
 from frappe.utils.xlsxutils import XLSXMetadata, XLSXStyleBuilder, make_xlsx
 
