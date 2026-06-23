@@ -9,6 +9,7 @@ from frappe.integrations.doctype.social_login_key.test_social_login_key import (
 	create_or_update_social_login_key,
 )
 from frappe.tests import IntegrationTestCase
+from frappe.tests.test_query_builder import db_type_is, unimplemented_for
 
 
 def get_user(usr, pwd):
@@ -48,6 +49,10 @@ def get_oauth_client():
 	return oauth_client
 
 
+# The web-application flow drives a full OAuth2 round-trip with synchronous real HTTP
+# requests to the running server while the test process holds the write lock -- a
+# single-writer deadlock on SQLite (same as TestOAuth20).
+@unimplemented_for(db_type_is.SQLITE)
 class TestConnectedApp(IntegrationTestCase):
 	def setUp(self):
 		"""Set up a Connected App that connects to our own oAuth provider.
