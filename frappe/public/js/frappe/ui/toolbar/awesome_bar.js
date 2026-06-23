@@ -98,6 +98,7 @@ frappe.search.AwesomeBar = class AwesomeBar {
 				input_row.className = "awesomebar-input-row";
 				let icon = document.createElement("span");
 				icon.className = "awesomebar-search-icon";
+				icon.setAttribute("aria-hidden", "true");
 				icon.innerHTML = frappe.utils.icon("search", "sm");
 				input.parentNode.insertBefore(container, input);
 				input_row.appendChild(icon);
