@@ -622,7 +622,8 @@ def get_linked_fields(doctype, without_ignore_user_permissions_enabled=False):
 	for doctype_name in links_dict:
 		ret[doctype_name] = {"fieldname": links_dict.get(doctype_name)}
 	table_doctypes = frappe.get_all(
-		"DocType", filters=[["istable", "=", "1"], ["name", "in", tuple(links_dict)]]
+		"DocType",
+		filters=[["istable", "=", "1"], ["is_virtual", "=", "0"], ["name", "in", tuple(links_dict)]],
 	)
 	child_filters = [
 		["fieldtype", "in", frappe.model.table_fields],
