@@ -290,6 +290,23 @@ class TestCommunication(IntegrationTestCase):
 		self.assertEqual(comm_with_signature.content.count(signature), 1)
 		self.assertEqual(comm_without_signature.content.count(signature), 1)
 
+	def test_make_validates_letterhead(self):
+		# Non-existent letterhead must be rejected before reaching the PDF renderer.
+		with self.assertRaises(frappe.exceptions.ValidationError):
+			make(letterhead="__nonexistent_lh__")
+
+		# Existing letterhead the current user cannot read must also be rejected.
+		lh = frappe.get_doc({"doctype": "Letter Head", "letter_head_name": "_Test LH Permission"}).insert(
+			ignore_permissions=True
+		)
+		try:
+			frappe.set_user("Guest")
+			with self.assertRaises(frappe.PermissionError):
+				make(letterhead=lh.name)
+		finally:
+			frappe.set_user("Administrator")
+			lh.delete()
+
 	def test_mark_as_spam(self):
 		frappe.get_doc(
 			{
