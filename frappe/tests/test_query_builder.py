@@ -358,12 +358,15 @@ class TestCustomFunctionsPostgres(IntegrationTestCase):
 		self.assertIsInstance(val["q"], int)
 
 	def test_unix_ts_postgres(self):
-		# EXTRACT(EPOCH ...) is double precision on postgres; it is wrapped in CAST(... AS BIGINT)
-		# so the value (and its Python type) matches MySQL's integer UNIX_TIMESTAMP.
+		# EXTRACT(EPOCH ...) is double precision on postgres; it is wrapped in CAST(... AS BIGINT) so
+		# the value (and its Python type) matches MySQL's integer UNIX_TIMESTAMP. The value is also
+		# re-interpreted in the session TimeZone (AT TIME ZONE) so the epoch matches MariaDB's
+		# UNIX_TIMESTAMP, which reads the value in the connection time zone rather than UTC.
 		# Simple Query
 		note = frappe.qb.DocType("Note")
 		self.assertEqual(
-			"cast(extract(epoch from posting_date) as bigint)",
+			"cast(extract(epoch from (cast(posting_date as timestamp) "
+			"at time zone current_setting('timezone'))) as bigint)",
 			UnixTimestamp(note.posting_date).get_sql().lower(),
 		)
 
@@ -376,8 +379,24 @@ class TestCustomFunctionsPostgres(IntegrationTestCase):
 			.select(UnixTimestamp(note.posting_date))
 		)
 		self.assertIn(
-			'cast(extract(epoch from "tabnote"."posting_date") as bigint)', str(select_query).lower()
+			'cast(extract(epoch from (cast("tabnote"."posting_date" as timestamp) '
+			"at time zone current_setting('timezone'))) as bigint)",
+			str(select_query).lower(),
 		)
+
+	def test_unix_ts_postgres_uses_session_timezone(self):
+		# MariaDB's UNIX_TIMESTAMP(value) reads the (naive) value in the connection time zone;
+		# postgres must do the same instead of treating it as UTC, otherwise heatmap day-buckets land
+		# on a different calendar day on a non-UTC server. Verify the epoch tracks the session TimeZone.
+		from datetime import datetime
+		from zoneinfo import ZoneInfo
+
+		expr = UnixTimestamp(Date("2021-06-01")).get_sql()
+		for tz in ("UTC", "Asia/Kolkata", "America/New_York"):
+			frappe.db.sql(f"SET LOCAL TIME ZONE '{tz}'")
+			(got,) = frappe.db.sql(f"SELECT {expr}")[0]
+			expected = int(datetime(2021, 6, 1, tzinfo=ZoneInfo(tz)).timestamp())
+			self.assertEqual(got, expected, msg=f"timezone {tz}")
 
 	def test_datediff_postgres(self):
 		# Postgres subtracts dates to get an integer day count, matching MariaDB DATEDIFF.
@@ -403,7 +422,8 @@ class TestCustomFunctionsPostgres(IntegrationTestCase):
 		# Order by
 		select_query = select_query.orderby(UnixTimestamp(note.posting_date))
 		self.assertIn(
-			'order by cast(extract(epoch from "tabnote"."posting_date") as bigint)',
+			'order by cast(extract(epoch from (cast("tabnote"."posting_date" as timestamp) '
+			"at time zone current_setting('timezone'))) as bigint)",
 			str(select_query).lower(),
 		)
 
@@ -412,14 +432,18 @@ class TestCustomFunctionsPostgres(IntegrationTestCase):
 			UnixTimestamp(note.posting_date) >= UnixTimestamp(Date("2021-01-01"))
 		)
 		self.assertIn(
-			'cast(extract(epoch from "tabnote"."posting_date") as bigint)>=cast(extract(epoch from date(\'2021-01-01\')) as bigint)',
+			'cast(extract(epoch from (cast("tabnote"."posting_date" as timestamp) '
+			"at time zone current_setting('timezone'))) as bigint)"
+			">=cast(extract(epoch from (cast(date('2021-01-01') as timestamp) "
+			"at time zone current_setting('timezone'))) as bigint)",
 			str(select_query).lower(),
 		)
 
 		# aliasing
 		select_query = select_query.select(UnixTimestamp(note.posting_date, alias="unix_ts"))
 		self.assertIn(
-			'cast(extract(epoch from "tabnote"."posting_date") as bigint) "unix_ts"',
+			'cast(extract(epoch from (cast("tabnote"."posting_date" as timestamp) '
+			"at time zone current_setting('timezone'))) as bigint) \"unix_ts\"",
 			str(select_query).lower(),
 		)
 
