@@ -270,6 +270,9 @@ class Engine:
 		self.is_mariadb = db_type == "mariadb"
 		self.is_postgres = db_type == "postgres"
 		self.is_sqlite = db_type == "sqlite"
+		# memoizes (doctype, fieldname) -> is-free-text so postgres case-folding does not call
+		# get_meta once per equality filter on filter-heavy queries
+		self._free_text_field_cache: dict[tuple[str, str], bool] = {}
 		self.user = user or frappe.session.user
 		self.parent_doctype = parent_doctype
 		self.reference_doctype = reference_doctype
@@ -580,11 +583,15 @@ class Engine:
 			fieldname = fieldname.split(".")[-1]
 		if fieldname == "name":
 			return False
-		try:
-			df = frappe.get_meta(doctype).get_field(fieldname)
-		except Exception:
-			return False
-		return bool(df) and df.fieldtype in CASE_INSENSITIVE_FIELDTYPES
+		key = (doctype, fieldname)
+		if key not in self._free_text_field_cache:
+			try:
+				df = frappe.get_meta(doctype).get_field(fieldname)
+				self._free_text_field_cache[key] = bool(df) and df.fieldtype in CASE_INSENSITIVE_FIELDTYPES
+			except frappe.DoesNotExistError:
+				# unknown doctype -> treat as not free-text; any other error propagates
+				self._free_text_field_cache[key] = False
+		return self._free_text_field_cache[key]
 
 	def _build_criterion_for_simple_filter(
 		self,
