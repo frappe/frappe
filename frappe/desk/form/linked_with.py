@@ -40,7 +40,7 @@ def get_submitted_linked_docs(
 	        you will be finding documents using parent document and parent document links.
 	"""
 
-	ignore_doctypes_on_cancel_all = frappe.parse_json(ignore_doctypes_on_cancel_all)
+	ignore_doctypes_on_cancel_all = frappe.parse_json(ignore_doctypes_on_cancel_all) or []
 
 	frappe.has_permission(doctype, doc=name, throw=True)
 	tree = SubmittableDocumentTree(doctype, name)
