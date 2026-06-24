@@ -2730,3 +2730,33 @@ class TestQuery(IntegrationTestCase):
 # This function is used as a permission query condition hook
 def test_permission_hook_condition(user):
 	return "`tabDashboard Settings`.`name` = 'Administrator'"
+
+
+@run_only_if(db_type_is.POSTGRES)
+class TestPostgresCaseInsensitiveEquality(IntegrationTestCase):
+	"""On postgres, equality against a free-text column is folded with LOWER() so the matched rows
+	are the same as on MariaDB (whose default collation is case-insensitive)."""
+
+	def test_free_text_equality_is_case_insensitive(self):
+		todo = frappe.get_doc(doctype="ToDo", description="CaseFoldTest_ABC").insert()
+		self.addCleanup(todo.delete)
+
+		# a Data field equality folds case -> all of these match the one ToDo
+		for value in ("CaseFoldTest_ABC", "casefoldtest_abc", "CASEFOLDTEST_ABC"):
+			names = frappe.get_all("ToDo", filters={"description": value}, pluck="name")
+			self.assertIn(todo.name, names, f"{value!r} should match case-insensitively")
+
+		# the rendered SQL uses LOWER on the column
+		frappe.get_all("ToDo", filters={"description": "x"}, limit=1)
+		self.assertIn("LOWER", str(frappe.db.last_query).upper())
+
+		# != excludes it case-insensitively
+		names = frappe.get_all("ToDo", filters={"description": ("!=", "casefoldtest_abc")}, pluck="name")
+		self.assertNotIn(todo.name, names)
+
+	def test_name_and_link_are_not_folded(self):
+		# `name` and Link fields must keep exact-case matching (no LOWER)
+		frappe.get_all("User", filters={"name": "Administrator"}, limit=1)
+		self.assertNotIn("LOWER", str(frappe.db.last_query).upper())
+		frappe.get_all("User", filters={"role_profile_name": "x"}, limit=1)
+		self.assertNotIn("LOWER", str(frappe.db.last_query).upper())

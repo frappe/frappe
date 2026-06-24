@@ -39,6 +39,22 @@ CORE_DOCTYPES = DOCTYPES_FOR_DOCTYPE | frozenset(
 	)
 )
 
+# Free-text fieldtypes whose equality MariaDB's default collation compares case-insensitively.
+# Used to fold case on postgres for parity. Deliberately excludes Link/Select/Dynamic Link and the
+# `name` column, which are matched exactly on both backends.
+CASE_INSENSITIVE_FIELDTYPES = frozenset(
+	{
+		"Data",
+		"Small Text",
+		"Text",
+		"Long Text",
+		"Text Editor",
+		"Code",
+		"HTML Editor",
+		"Markdown Editor",
+	}
+)
+
 
 def _apply_date_field_filter_conversion(value, operator: str, doctype: str, field):
 	"""Apply datetime to date conversion for Date fieldtype filters.
@@ -556,6 +572,20 @@ class Engine:
 			else:
 				self.query = self.query.where(criterion)
 
+	def _is_free_text_filter_field(self, field, _field, doctype: str) -> bool:
+		"""Return True if `field` is a free-text column (Data/Text family) whose equality MariaDB
+		compares case-insensitively. `name`, Link and Select are matched exactly and excluded."""
+		fieldname = field if isinstance(field, str) else (getattr(_field, "name", None) or str(_field))
+		if "." in fieldname:
+			fieldname = fieldname.split(".")[-1]
+		if fieldname == "name":
+			return False
+		try:
+			df = frappe.get_meta(doctype).get_field(fieldname)
+		except Exception:
+			return False
+		return bool(df) and df.fieldtype in CASE_INSENSITIVE_FIELDTYPES
+
 	def _build_criterion_for_simple_filter(
 		self,
 		field: str | Field,
@@ -701,6 +731,19 @@ class Engine:
 			operator_fn = OPERATOR_MAP["ilike"]
 		else:
 			operator_fn = OPERATOR_MAP[_operator.casefold()]
+
+		# Fold case on postgres for equality against a free-text column so the matched rows are the
+		# same as on MariaDB (whose default collation is case-insensitive). Skipped for name/Link/
+		# Select (matched exactly on both) and for empty values (handled by the NULL-fallback paths
+		# below). MariaDB keeps its existing, already case-insensitive path.
+		apply_case_insensitive = (
+			self.is_postgres
+			and _operator.casefold() in ("=", "!=")
+			and isinstance(_value, str)
+			and _value != ""
+			and self._is_free_text_filter_field(field, _field, doctype or self.doctype)
+		)
+
 		if _value is None and isinstance(_field, Field):
 			if operator_fn == builtin_operator.ne:
 				filter_field_name = (
@@ -761,6 +804,8 @@ class Engine:
 
 				_field = functions.IfNull(_field, ValueWrapper(fallback_value))
 
+			if apply_case_insensitive:
+				return operator_fn(functions.Lower(_field), _value.lower())
 			return operator_fn(_field, _value)
 
 	def _parse_nested_filters(self, nested_list: list | tuple) -> "Criterion | None":
