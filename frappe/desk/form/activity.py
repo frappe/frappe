@@ -14,7 +14,7 @@ from frappe.model.document import Document
 @frappe.whitelist()
 def get_activity_timeline(doctype: str, name: str | int) -> list[dict]:
 	doc = frappe.get_lazy_doc(doctype, name, check_permission=True)
-	user_info: dict = {}
+	user_info: dict = {}  # User info cache to avoid multiple DB calls for the same user
 
 	activities = [
 		*get_creation_activity(doc, user_info),

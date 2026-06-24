@@ -1,8 +1,5 @@
 <template>
 	<div class="flex-1 flex-col text-base">
-		<!-- header / actions / footer slots: override a region, or leave it to the
-		     default markup. Reach them by rendering this component inside
-		     ActivityTimeline's #item-comment slot. -->
 		<div class="mb-2 flex items-start justify-between gap-2">
 			<div class="min-w-0 flex-1">
 				<slot name="header" :comment="comment">
@@ -28,60 +25,46 @@
 					</div>
 				</slot>
 			</div>
-			<!-- #actions exposes the default actions as `actions`; by default they
-			     render in a triple-dot dropdown (edit / delete). -->
-			<div class="flex shrink-0 items-center gap-1">
-				<slot name="actions" :comment="comment" :actions="actions">
-					<Dropdown
-						:options="
-							actions.map((a) => ({
-								label: a.label,
-								icon: a.icon,
-								onClick: a.onClick,
-							}))
-						"
-						placement="right"
-					>
-						<Button variant="ghost" icon="more-horizontal" class="!h-6 !w-6" />
-					</Dropdown>
-				</slot>
+			<div v-if="$slots.actions && !editable" class="flex shrink-0 items-center gap-1">
+				<slot name="actions" />
 			</div>
 		</div>
-		<!-- content is sanitized server-side by Comment.validate -->
-		<!-- note: helpdesk applied a per-content font here (:class="getFontFamily(content)",
-		     Arabic → system-ui); dropped for now, re-add a :class override if needed -->
 		<div class="rounded-md bg-surface-gray-1 px-3 py-1.5 transition-colors">
-			<div class="prose-f content text-p-sm" v-html="comment.data.content" />
+			<TextEditor
+				:content="comment.data.content"
+				:editable="editable"
+				editor-class="p-1 prose-sm"
+				@change="editedContent = $event"
+			/>
 		</div>
-		<slot name="footer" :comment="comment" />
+		<div v-if="editable" class="mt-2 flex justify-end gap-2">
+			<Button variant="outline" label="Discard" @click="emit('discard')" />
+			<Button variant="solid" label="Save" @click="emit('save', editedContent)" />
+		</div>
+		<slot v-else name="footer" :comment="comment" />
 	</div>
 </template>
 
 <script setup lang="ts">
-import { Avatar, Button, Dropdown, Tooltip } from "frappe-ui";
-import { computed } from "vue";
-import type { CommentActivity, TimelineAction } from "./types";
+import { Avatar, Button, TextEditor, Tooltip } from "frappe-ui";
+import { ref } from "vue";
+import type { CommentActivity } from "./types";
 import { dateFormat, timeAgo } from "./utils";
 
-const props = defineProps<{
-	comment: CommentActivity;
-}>();
+const props = withDefaults(
+	defineProps<{
+		comment: CommentActivity;
+		editable?: boolean;
+	}>(),
+	{
+		editable: false,
+	}
+);
 
 const emit = defineEmits<{
-	edit: [CommentActivity];
-	delete: [CommentActivity];
+	save: [content: string];
+	discard: [];
 }>();
 
-// default actions, also handed to the #actions slot so a consumer can render
-// these alongside (or instead of) its own
-const actions = computed<TimelineAction[]>(() => [
-	{ key: "edit", label: "Edit", icon: "edit-2", onClick: () => emit("edit", props.comment) },
-	{
-		key: "delete",
-		label: "Delete",
-		icon: "trash-2",
-		theme: "red",
-		onClick: () => emit("delete", props.comment),
-	},
-]);
+const editedContent = ref(props.comment.data.content);
 </script>

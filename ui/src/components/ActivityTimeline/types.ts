@@ -1,14 +1,10 @@
 import type { Component } from "vue";
 
 export interface ActivityTimelineProps {
-  /** The activities to render, already in display order. Produced by a source
-   * composable (e.g. `useActivityTimeline`), keeping the renderer decoupled from where
-   * activities come from. Accepts custom (consumer-defined) types alongside the
-   * built-ins — render those via the `#item-{type}` slot. */
+  /** Custom types render via the `#item-{type}` slot. */
   activities: Array<Activity | CustomActivity>;
-  /** Show the first-load spinner (only when there are no activities yet). */
+  /** Only shown when there are no activities yet. */
   loading?: boolean;
-  /** Error message to display instead of the feed. */
   error?: string | null;
 }
 
@@ -28,18 +24,12 @@ export interface EmailAttachment {
 export interface BaseActivity<TType extends string, TData> {
   /** discriminant → picks the renderer/slot */
   type: TType;
-  /** unique; v-for key + scroll target. Prefix by type (e.g. `sla_breach:1`). */
+  /** v-for key + scroll target; prefix by type (e.g. `sla_breach:1`) */
   key: string;
-  /** Frappe / ISO datetime; sorted into the feed. Optional — pinned rows
-   * (see `pin`) aren't sorted, so they don't need one. */
   timestamp?: string;
-  /** gutter avatar + version grouping. Optional — authorless system events
-   * may omit it. */
   author?: UserInfo;
-  /** gutter icon: a lucide name (string) or a component (`<component :is>`).
-   * When absent, the gutter falls to the per-type default. */
+  /** lucide name or component; falls back to the per-type default when absent */
   icon?: string | Component;
-  /** per-type payload */
   data: TData;
 }
 
@@ -88,9 +78,8 @@ export type LogActivity = BaseActivity<
       | "workflow"
       | "info"
       | "view";
-    /** lucide icon name (no prefix) */
+    /** lucide name, no prefix */
     icon: string;
-    /** final display string */
     text: string;
   }
 >;
@@ -99,10 +88,9 @@ export type VersionActivity = BaseActivity<
   "version",
   {
     name: string;
-    /** author-less phrase for this single change, e.g. "set Status to Resolved" */
+    /** e.g. "set Status to Resolved" */
     text: string;
-    /** when present (length > 1), this is a grouped header; members are the
-     *  consecutive same-author changes folded together */
+    /** present when consecutive same-author changes are folded together */
     group?: VersionActivity[];
   }
 >;
@@ -114,38 +102,10 @@ export type Activity =
   | LogActivity
   | VersionActivity;
 
-/** A consumer-defined activity the shared package doesn't know about — same
- * envelope as the built-ins, with an opaque `data` payload. The composable
- * returns only the doc's own activities; to add one of these, merge it into the
- * `activities` you pass to ActivityTimeline and render it via the
- * `#item-{type}` slot. The built-in `Activity` union stays closed so built-in
- * narrowing stays sharp. */
+/** Consumer-defined activity; render via the `#item-{type}` slot. */
 export type CustomActivity = Omit<BaseActivity<string, unknown>, "key"> & {
-  /** Optional for custom rows — ActivityTimeline derives a fallback key (see
-   * keyOf) when absent. Built-ins always carry one. Pass an explicit key when
-   * the row can reorder, so v-for/scroll stay stable. */
+  /** Omit only for static lists — ActivityTimeline derives a fallback, but
+   * reorderable rows need an explicit key for stable v-for/scroll. */
   key?: string;
 };
 
-export interface EmailReplyPayload {
-  content: string;
-  to: string;
-  cc?: string[];
-  bcc?: string[];
-}
-
-/** A built-in item action surfaced through its `#actions` slot. The item renders
- * these as its default buttons; a consumer who overrides `#actions` gets the same
- * list as a slot prop, so it can render the defaults, add its own, or both. */
-export interface TimelineAction {
-  /** stable id — `"reply"` | `"reply-all"` | `"edit"` | `"delete"` | … */
-  key: string;
-  /** tooltip / aria label (already translated by the item) */
-  label: string;
-  /** lucide/feather name (string) or an icon component */
-  icon: string | Component;
-  /** Button theme — omit for default; `"red"` for destructive actions */
-  theme?: string;
-  /** run the built-in behavior (emits `reply` / `edit` / `delete`) */
-  onClick: () => void;
-}

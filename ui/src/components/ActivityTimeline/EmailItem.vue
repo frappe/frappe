@@ -2,9 +2,6 @@
 	<div
 		class="grow cursor-pointer rounded-md border border-outline-gray-2 bg-surface-white text-base leading-6 transition-all duration-300 ease-in-out"
 	>
-		<!-- header / actions / footer slots: override a region, or leave it to the
-		     default markup. Reach them by rendering this component inside
-		     ActivityTimeline's #item-email slot. -->
 		<slot name="header" :email="email">
 			<div class="flex items-center justify-between gap-2">
 				<div class="flex items-center gap-1">
@@ -25,31 +22,9 @@
 							{{ timeAgo(email.timestamp) }}
 						</p>
 					</Tooltip>
-					<slot name="actions" :email="email" :actions="actions">
-						<div class="flex items-center gap-1">
-							<Button
-								v-for="a in actions"
-								:key="a.key"
-								:tooltip="a.label"
-								variant="ghost"
-								:theme="a.theme"
-								@click="a.onClick"
-							>
-								<template #icon>
-									<component
-										:is="a.icon"
-										v-if="typeof a.icon !== 'string'"
-										class="text-ink-gray-7"
-									/>
-									<FeatherIcon
-										v-else
-										:name="a.icon"
-										class="size-4 text-ink-gray-7"
-									/>
-								</template>
-							</Button>
-						</div>
-					</slot>
+					<div v-if="$slots.actions" class="flex items-center gap-1">
+						<slot name="actions" />
+					</div>
 				</div>
 			</div>
 			<div class="text-p-sm text-ink-gray-5">
@@ -84,84 +59,23 @@
 </template>
 
 <script setup lang="ts">
-import { Badge, Button, FeatherIcon, Tooltip } from "frappe-ui";
+import { Badge, Tooltip } from "frappe-ui";
 import { computed } from "vue";
 import AttachmentItem from "./AttachmentItem.vue";
 import EmailContent from "./EmailContent.vue";
-import { ReplyAllIcon, ReplyIcon } from "./icons";
-import type { EmailActivity, EmailReplyPayload, TimelineAction } from "./types";
+import type { EmailActivity } from "./types";
 import { dateFormat, splitRecipients, timeAgo } from "./utils";
 
-const props = withDefaults(
-	defineProps<{
-		email: EmailActivity;
-		currentUser?: string;
-	}>(),
-	{
-		currentUser: "",
-	}
-);
-
-const emit = defineEmits<{
-	reply: [EmailReplyPayload];
+const props = defineProps<{
+	email: EmailActivity;
 }>();
 
 const status = computed(() => {
 	const _status = props.email.data.deliveryStatus;
 	let color = "red";
-	if (["Sent", "Clicked"].includes(_status)) {
-		color = "green";
-	} else if (["Sending", "Scheduled"].includes(_status)) {
-		color = "orange";
-	} else if (["Opened", "Read"].includes(_status)) {
-		color = "blue";
-	}
+	if (["Sent", "Clicked"].includes(_status)) color = "green";
+	else if (["Sending", "Scheduled"].includes(_status)) color = "orange";
+	else if (["Opened", "Read"].includes(_status)) color = "blue";
 	return { label: _status, color };
 });
-
-const reply = () => {
-	const user = props.currentUser;
-	emit("reply", {
-		content: props.email.data.content,
-		to: user === props.email.data.sender ? props.email.data.to : props.email.data.sender,
-	});
-};
-
-const replyAll = () => {
-	const user = props.currentUser;
-	const exclude = [user, props.email.data.sender];
-	const filteredTo = splitRecipients(props.email.data.to, exclude);
-	const filteredCc = splitRecipients(props.email.data.cc, exclude);
-	const filteredBcc = splitRecipients(props.email.data.bcc, exclude);
-
-	let _to: string;
-	let _cc: string[];
-	let _bcc: string[];
-
-	if (user === props.email.data.sender) {
-		// User is the sender, reply to all original recipients
-		_to = filteredTo.join(", ");
-		_cc = filteredCc;
-		_bcc = filteredBcc;
-	} else {
-		// User is a recipient, reply to sender with all other recipients in cc
-		_to = props.email.data.sender;
-		_cc = [...filteredTo, ...filteredCc];
-		_bcc = filteredBcc;
-	}
-
-	emit("reply", {
-		content: props.email.data.content,
-		to: _to,
-		cc: _cc.filter(Boolean),
-		bcc: _bcc.filter(Boolean),
-	});
-};
-
-// default actions, also handed to the #actions slot so a consumer can render
-// these alongside (or instead of) its own
-const actions = computed<TimelineAction[]>(() => [
-	{ key: "reply", label: "Reply", icon: ReplyIcon, onClick: reply },
-	{ key: "reply-all", label: "Reply All", icon: ReplyAllIcon, onClick: replyAll },
-]);
 </script>
