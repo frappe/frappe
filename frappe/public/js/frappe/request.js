@@ -59,11 +59,6 @@ frappe.call = function (opts) {
 	}
 	var args = $.extend({}, opts.args);
 
-	if (args.freeze) {
-		opts.freeze = opts.freeze || args.freeze;
-		opts.freeze_message = opts.freeze_message || args.freeze_message;
-	}
-
 	// cmd
 	if (opts.module && opts.page) {
 		args.cmd = opts.module + ".page." + opts.page + "." + opts.page + "." + opts.method;
@@ -293,14 +288,7 @@ frappe.request.call = function (opts) {
 
 	if (opts.use_json) {
 		// send a native JSON body instead of letting jQuery form-encode the args
-		let body = $.extend({}, opts.args);
-
-		// strip freeze controls: some callers nest these in `args` (e.g.
-		// bulk_operations) but they're UI hints, not endpoint arguments.
-		delete body.freeze;
-		delete body.freeze_message;
-
-		ajax_args.data = JSON.stringify(body);
+		ajax_args.data = JSON.stringify(opts.args);
 		ajax_args.contentType = "application/json; charset=UTF-8";
 		ajax_args.processData = false;
 	}
