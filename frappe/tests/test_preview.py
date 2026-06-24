@@ -18,7 +18,7 @@ def is_chromium_available() -> bool:
 	"""
 	import shutil
 
-	from frappe.utils.print_utils import EXECUTABLE_PATHS
+	from frappe.utils.chromium import EXECUTABLE_PATHS
 
 	configured = frappe.get_common_site_config().get("chromium_path", "")
 	if configured and shutil.which(configured):

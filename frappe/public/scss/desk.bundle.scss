@@ -4,4 +4,7 @@
 @import "~plyr/dist/plyr";
 @import "./desk/index";
 
+/* Espresso components (.es-* classes) — one aggregator, add new components there. */
+@import "./espresso_components";
+
 @import "frappe/public/node_modules/highlight.js/styles/tomorrow.css";

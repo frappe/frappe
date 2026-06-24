@@ -138,6 +138,22 @@ export function pluck(object, keys) {
 	return out;
 }
 
+export async function render_jinja_html(html, doctype, docname) {
+	if (!html) return html;
+	if (!html.includes("{{") && !html.includes("{%")) return html;
+	if (!doctype || !docname) return html;
+	try {
+		const r = await frappe.call("frappe.utils.print_format_generator.render_jinja_template", {
+			template: html,
+			doctype,
+			docname,
+		});
+		return r.message ?? html;
+	} catch {
+		return html;
+	}
+}
+
 export function get_image_dimensions(src) {
 	return new Promise((resolve) => {
 		let img = new Image();

@@ -560,9 +560,17 @@ class BaseDocument:
 		d = _dict()
 		field_values = self.__dict__
 		field_map = self.meta._fields
+		masked_fieldnames = self.flags.get("masked_fieldnames")
 
 		for fieldname in self.meta.get_valid_fields():
 			value = field_values.get(fieldname)
+
+			# Masked fields hold the XXXXXXXX placeholder; pass it through untouched so it is not
+			# cast back to 0 for numeric fieldtypes. Only truthy values get masked, so falsy ones
+			# fall through to the normal null-aware path.
+			if value and fieldname in (masked_fieldnames or ()):
+				d[fieldname] = value
+				continue
 
 			# if no need for sanitization and value is None, continue
 			if not sanitize and value is None:
@@ -798,13 +806,6 @@ class BaseDocument:
 		)
 
 		columns = list(d)
-		# On postgres a failed statement aborts the whole transaction, so the duplicate/unique paths
-		# below (and the hash-collision retry) would leave it unusable. Wrap the INSERT in a savepoint
-		# and roll back to it on those handled errors, so the transaction survives the raised
-		# exception exactly like MariaDB (which does not abort). MariaDB keeps its existing path.
-		save_point = f"insert_{frappe.generate_hash(length=10)}" if frappe.db.db_type == "postgres" else None
-		if save_point:
-			frappe.db.savepoint(save_point)
 		try:
 			name = frappe.db.sql(
 				"""INSERT INTO `tab{doctype}` ({columns})
@@ -820,15 +821,8 @@ class BaseDocument:
 			if (
 				frappe.db.db_type == "postgres" and self.meta.autoname == "hash" and not name
 			):  # To avoid a transaction block, we regen in try (pg specific)
-				if save_point:
-					frappe.db.release_savepoint(save_point)
-					# already released: don't let the except handler roll back to a freed savepoint
-					save_point = None
 				return self._handle_hash_conflict()
 		except Exception as e:
-			if save_point:
-				# keep the transaction usable after the failed INSERT (postgres aborts otherwise)
-				frappe.db.rollback(save_point=save_point)
 			if frappe.db.is_primary_key_violation(e):
 				if self.meta.autoname == "hash":
 					# hash collision? try again
@@ -848,9 +842,6 @@ class BaseDocument:
 
 			else:
 				raise
-		else:
-			if save_point:
-				frappe.db.release_savepoint(save_point)
 
 		self.set("__islocal", False)
 
@@ -871,11 +862,6 @@ class BaseDocument:
 
 		columns = list(d)
 
-		# see db_insert: a savepoint keeps the transaction usable on postgres after a handled unique
-		# violation (postgres aborts the transaction on any failed statement, MariaDB does not).
-		save_point = f"update_{frappe.generate_hash(length=10)}" if frappe.db.db_type == "postgres" else None
-		if save_point:
-			frappe.db.savepoint(save_point)
 		try:
 			frappe.db.sql(
 				"""UPDATE `tab{doctype}`
@@ -886,8 +872,6 @@ class BaseDocument:
 			)
 
 		except Exception as e:
-			if save_point:
-				frappe.db.rollback(save_point=save_point)
 			if frappe.db.is_data_too_long(e):
 				column = re.search(r"column\s+'([^']+)'", e.args[1])
 				if column:
@@ -905,9 +889,6 @@ class BaseDocument:
 				self.show_unique_validation_message(e)
 			else:
 				raise
-		else:
-			if save_point:
-				frappe.db.release_savepoint(save_point)
 
 	def db_update_all(self):
 		"""Raw update parent + children

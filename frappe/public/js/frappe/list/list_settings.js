@@ -53,6 +53,24 @@ export default class ListSettings {
 				indicator: "green",
 			});
 
+			if (
+				me.listview.list_filter?.active_layout_name &&
+				me.listview.list_filter.active_layout_name !== "default_layout"
+			) {
+				const layout = me.listview.list_filter.get_active_layout();
+				if (layout && me.listview.list_filter.can_edit_layout(layout)) {
+					me.listview.list_filter
+						.update_layout_columns(layout, me.fields, { debounce: false })
+						.then(() => {
+							me.listview.setup_columns(me.fields);
+							me.listview.render_header(true);
+							me.listview.apply_column_widths?.();
+							me.dialog.hide();
+						});
+					return;
+				}
+			}
+
 			frappe.call({
 				method: "frappe.desk.doctype.list_view_settings.list_view_settings.save_listview_settings",
 				args: {

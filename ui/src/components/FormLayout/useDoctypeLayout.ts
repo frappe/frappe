@@ -1,7 +1,7 @@
 import { computed } from "vue";
 import type { Ref } from "vue";
 import { buildLayoutFromMeta } from "./buildLayoutFromMeta";
-import { useDoctypeMeta } from "./useDoctypeMeta";
+import { useDoctypeMeta } from "../../composables/useDoctypeMeta";
 import type { FormLayoutSchema, RawMetaField } from "./types";
 
 export interface UseDoctypeLayout {

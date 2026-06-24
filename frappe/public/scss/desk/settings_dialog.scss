@@ -17,7 +17,7 @@
 	display: flex;
 	flex: 1;
 	min-height: 0;
-	background-color: var(--surface-menu-bar);
+	background-color: var(--surface-sidebar);
 }
 
 // --- Sidebar -------------------------------------------------------------
@@ -29,7 +29,7 @@
 	width: 14rem; // w-56
 	margin: 0.25rem; // m-1
 	overflow-y: auto;
-	background-color: var(--surface-menu-bar);
+	background-color: var(--surface-sidebar);
 }
 
 .settings-dialog-group-header {
@@ -45,7 +45,7 @@
 	font-size: var(--text-xs);
 	font-weight: var(--weight-medium);
 	color: var(--ink-gray-5);
-	background-color: var(--surface-menu-bar);
+	background-color: var(--surface-sidebar);
 	cursor: default;
 }
 
@@ -67,7 +67,7 @@
 	height: 1.875rem; // h-7.5
 	padding: 0;
 	border: none;
-	border-radius: var(--border-radius-sm); // 8px
+	border-radius: var(--radius); // 8px
 	background-color: transparent;
 	color: var(--ink-gray-6);
 	text-align: left;
@@ -84,11 +84,11 @@
 	}
 
 	&.active {
-		background-color: var(--surface-selected, var(--surface-white));
+		background-color: var(--surface-elevation-3, var(--surface-base));
 		box-shadow: var(--shadow-xs);
 
 		&:hover {
-			background-color: var(--surface-selected, var(--surface-white));
+			background-color: var(--surface-elevation-3, var(--surface-base));
 		}
 	}
 }
@@ -137,7 +137,7 @@
 	flex-direction: column;
 	flex: 1;
 	overflow-y: auto;
-	background-color: var(--surface-modal);
+	background-color: var(--surface-elevation-2);
 }
 
 .settings-dialog-panel {

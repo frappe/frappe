@@ -257,19 +257,19 @@ def clean_params(data):
 
 def parse_json(data):
 	if (filters := data.get("filters")) and isinstance(filters, str):
-		data["filters"] = json.loads(filters)
+		data["filters"] = frappe.parse_json(filters)
 	if (applied_filters := data.get("applied_filters")) and isinstance(applied_filters, str):
-		data["applied_filters"] = json.loads(applied_filters)
+		data["applied_filters"] = frappe.parse_json(applied_filters)
 	if (or_filters := data.get("or_filters")) and isinstance(or_filters, str):
-		data["or_filters"] = json.loads(or_filters)
+		data["or_filters"] = frappe.parse_json(or_filters)
 	if (fields := data.get("fields")) and isinstance(fields, str):
-		data["fields"] = ["*"] if fields == "*" else json.loads(fields)
+		data["fields"] = ["*"] if fields == "*" else frappe.parse_json(fields)
 	if isinstance(data.get("docstatus"), str):
-		data["docstatus"] = json.loads(data["docstatus"])
-	if isinstance(data.get("save_user_settings"), str):
-		data["save_user_settings"] = json.loads(data["save_user_settings"])
-	else:
+		data["docstatus"] = frappe.parse_json(data["docstatus"])
+	if "save_user_settings" not in data:
 		data["save_user_settings"] = True
+	elif isinstance(data.get("save_user_settings"), str):
+		data["save_user_settings"] = frappe.parse_json(data["save_user_settings"])
 	if isinstance(data.get("start"), str):
 		data["start"] = cint(data.get("start"))
 	if isinstance(data.get("page_length"), str):
@@ -435,11 +435,11 @@ def _export_query(form_params, csv_params, populate_response=True):
 		form_params["fields"] = form_params["fields"] + (owner_field,)
 	file_format_type = form_params.pop("file_format_type")
 	title = form_params.pop("title", doctype)
-	add_totals_row = 1 if form_params.pop("add_totals_row", None) == "1" else None
-	translate_values = 1 if form_params.pop("translate_values", None) == "1" else None
+	add_totals_row = cint(form_params.pop("add_totals_row", 0))
+	translate_values = cint(form_params.pop("translate_values", 0))
 
 	if selection := form_params.pop("selected_items", None):
-		form_params["filters"] = {"name": ("in", json.loads(selection))}
+		form_params["filters"] = {"name": ("in", frappe.parse_json(selection))}
 
 	make_access_log(
 		doctype=doctype,
@@ -662,9 +662,7 @@ def delete_items():
 	if not (frappe.get_cached_value("User", frappe.session.user, "bulk_actions")):
 		frappe.throw(_("You are not allowed to perform bulk actions."), frappe.PermissionError)
 
-	import json
-
-	items = sorted(json.loads(frappe.form_dict.get("items")), reverse=True)
+	items = sorted(frappe.parse_json(frappe.form_dict.get("items")), reverse=True)
 	doctype = frappe.form_dict.get("doctype")
 
 	if len(items) > 10:
@@ -733,15 +731,13 @@ def get_sidebar_stats(
 
 @frappe.whitelist()
 @frappe.read_only()
-def get_stats(stats: str, doctype: str, filters: str | None = None):
+def get_stats(stats: str | list, doctype: str, filters: str | list | dict | None = None):
 	"""get tag info"""
-	import json
-
 	if filters is None:
 		filters = []
-	columns = json.loads(stats)
+	columns = frappe.parse_json(stats)
 	if filters:
-		filters = json.loads(filters)
+		filters = frappe.parse_json(filters)
 	results = {}
 
 	try:
@@ -790,12 +786,10 @@ def get_stats(stats: str, doctype: str, filters: str | None = None):
 
 
 @frappe.whitelist()
-def get_filter_dashboard_data(stats: str, doctype: str, filters: str | None = None):
+def get_filter_dashboard_data(stats: str | list, doctype: str, filters: str | list | dict | None = None):
 	"""get tags info"""
-	import json
-
-	tags = json.loads(stats)
-	filters = json.loads(filters or [])
+	tags = frappe.parse_json(stats)
+	filters = frappe.parse_json(filters) or []
 	stats = {}
 
 	columns = frappe.db.get_table_columns(doctype)
@@ -886,8 +880,7 @@ def build_match_conditions(doctype, user=None, as_condition=True):
 
 
 def get_filters_cond(doctype, filters, conditions, ignore_permissions=None, with_match_conditions=False):
-	if isinstance(filters, str):
-		filters = json.loads(filters)
+	filters = frappe.parse_json(filters)
 
 	if filters:
 		flt = filters
@@ -930,67 +923,3 @@ def get_filters_cond(doctype, filters, conditions, ignore_permissions=None, with
 	else:
 		cond = ""
 	return cond
-
-
-def get_match_conditions_qb(doctype, table=None, user=None):
-	"""Return user-permission match conditions for ``doctype`` as query-builder criteria.
-
-	Query-builder equivalent of :func:`get_match_cond` / :func:`build_match_conditions`
-	(which return raw SQL strings). Returns a list of pypika criteria (0 or 1 elements)
-	covering role permissions, user permissions, sharing and the if-owner constraint as
-	well as ``permission_query_conditions`` hooks/server scripts.
-
-	The criteria can be applied to any ``frappe.qb`` query via ``.where(...)`` — including
-	joins/aliased queries where the permission-checked doctype is not the single base of
-	:func:`frappe.qb.get_query`.
-
-	Args:
-	        doctype: doctype to build permission conditions for.
-	        table: pypika table the conditions should reference. Defaults to ``frappe.qb.DocType(doctype)``.
-	        user: user to evaluate permissions for. Defaults to the session user.
-	"""
-	from frappe.database.query import Engine
-
-	engine = Engine()
-	engine.get_query(doctype, user=user, ignore_permissions=False, db_query_compat=True)
-	condition = engine.get_permission_conditions(doctype, table or engine.table)
-	return [condition] if condition is not None else []
-
-
-def get_filter_conditions_qb(doctype, filters, ignore_permissions=None):
-	"""Return ``filters`` for ``doctype`` as a list of query-builder criteria.
-
-	Query-builder equivalent of :func:`get_filters_cond` (which returns a raw SQL string).
-	Accepts the standard frappe filter forms (dict, or list of ``[doctype, field, op, value]``
-	rows) and returns pypika criteria that can be applied to any ``frappe.qb`` query via
-	``.where(...)``.
-	"""
-	if not filters:
-		return []
-
-	from pypika.terms import Criterion
-
-	# A pypika Criterion is already a usable condition; apply_filters would route it straight to
-	# the query and never populate `collect`, silently returning []. Hand it back as-is instead.
-	if isinstance(filters, Criterion):
-		return [filters]
-
-	if isinstance(filters, str):
-		filters = json.loads(filters)
-
-	if isinstance(filters, dict):
-		# Mirror get_filters_cond's dict normalization: a string value prefixed with "!" means
-		# "not equal" (e.g. {"enabled": "!1"} -> enabled != "1"). apply_filters' dict path would
-		# otherwise treat "!1" as a literal value and emit `enabled = "!1"`.
-		filters = {
-			field: ("!=", value[1:]) if isinstance(value, str) and value.startswith("!") else value
-			for field, value in filters.items()
-		}
-
-	from frappe.database.query import Engine
-
-	engine = Engine()
-	engine.get_query(doctype, ignore_permissions=ignore_permissions, db_query_compat=True)
-	criteria = []
-	engine.apply_filters(filters, collect=criteria)
-	return criteria
