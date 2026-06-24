@@ -181,6 +181,11 @@ class TestRQJob(IntegrationTestCase):
 		# Observed higher usage on 3.14. Temporarily raising the limit
 		LAST_MEASURED_USAGE += 6
 
+		# Observed higher usage after Python 3.14.6 (released 2026-06). The same bump was
+		# applied to develop in https://github.com/frappe/frappe/pull/39529 but was not
+		# backported here. Environmental drift (Python interpreter growth), not a frappe import.
+		LAST_MEASURED_USAGE += 1
+
 		self.assertLessEqual(rss, LAST_MEASURED_USAGE * 1.05, msg)
 
 	def test_clear_failed_jobs(self):
