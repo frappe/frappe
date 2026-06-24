@@ -565,9 +565,10 @@ class BaseDocument:
 		for fieldname in self.meta.get_valid_fields():
 			value = field_values.get(fieldname)
 
-			# Masked fields hold the XXXXXXXX placeholder; pass it through untouched so it
-			# is not cast back to 0 for numeric fieldtypes.
-			if masked_fieldnames and fieldname in masked_fieldnames:
+			# Masked fields hold the XXXXXXXX placeholder; pass it through untouched so it is not
+			# cast back to 0 for numeric fieldtypes. Only truthy values get masked, so falsy ones
+			# fall through to the normal null-aware path.
+			if masked_fieldnames and fieldname in masked_fieldnames and value:
 				d[fieldname] = value
 				continue
 

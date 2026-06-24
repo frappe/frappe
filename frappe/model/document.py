@@ -1260,6 +1260,7 @@ class Document(BaseDocument):
 			db_rows = {row.name: row for row in db_doc.get(fieldname)}
 			for row in self.get(fieldname) or []:
 				db_row = db_rows.get(row.name)
+				# new rows have no DB counterpart — nothing to restore
 				if not db_row:
 					continue
 				for df in masked:
