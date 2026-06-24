@@ -266,10 +266,10 @@ def parse_json(data):
 		data["fields"] = ["*"] if fields == "*" else frappe.parse_json(fields)
 	if isinstance(data.get("docstatus"), str):
 		data["docstatus"] = frappe.parse_json(data["docstatus"])
-	if isinstance(data.get("save_user_settings"), str):
-		data["save_user_settings"] = frappe.parse_json(data["save_user_settings"])
-	else:
+	if "save_user_settings" not in data:
 		data["save_user_settings"] = True
+	elif isinstance(data.get("save_user_settings"), str):
+		data["save_user_settings"] = frappe.parse_json(data["save_user_settings"])
 	if isinstance(data.get("start"), str):
 		data["start"] = cint(data.get("start"))
 	if isinstance(data.get("page_length"), str):
