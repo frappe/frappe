@@ -383,14 +383,24 @@ frappe.ui.form.PrintView = class {
 	}
 
 	set_default_letterhead() {
-		if (this.frm.doc.letter_head) {
-			this.letterhead_selector.val(this.frm.doc.letter_head);
-			return;
-		}
+		const get_default = () =>
+			frappe.db
+				.get_value(
+					"Letter Head",
+					{ disabled: 0, is_default: 1, letter_head_for: "DocType" },
+					"name"
+				)
+				.then(({ message }) => {
+					if (message?.name) this.letterhead_selector.val(message.name);
+				});
+
+		if (!this.frm.doc.letter_head) return get_default();
 
 		return frappe.db
-			.get_value("Letter Head", { disabled: 0, is_default: 1 }, "name")
-			.then(({ message }) => this.letterhead_selector.val(message.name));
+			.get_value("Letter Head", { name: this.frm.doc.letter_head, disabled: 0 }, "name")
+			.then(({ message }) =>
+				message?.name ? this.letterhead_selector.val(message.name) : get_default()
+			);
 	}
 
 	set_user_lang() {
