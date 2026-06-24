@@ -10,11 +10,21 @@ frappe.request.ajax_count = 0;
 frappe.request.waiting_for_ajax = [];
 frappe.request.logs = {};
 
-// When true, non-GET requests send their args as a native `application/json`
-// body instead of form-encoding per-key JSON-stringified values. Can be
-// overridden per-call with `opts.json` (pass `false` as an escape hatch for
-// any endpoint that still needs the legacy form-encoded payload).
-frappe.request.use_json = true;
+// Apps opt into native `application/json` request bodies (instead of
+// form-encoding per-key JSON-stringified values) by setting
+// `use_json_request_body = True` in their `hooks.py`. The boot then exposes the
+// list of opted-in apps as `frappe.boot.json_request_apps` and the encoding for
+// each call is chosen from the app that owns the endpoint (see
+// `frappe.request.app_uses_json`). Apps that don't opt in keep the legacy
+// form-encoded behaviour. A call can still override the choice with `opts.json`.
+frappe.request.app_uses_json = function (cmd) {
+	// cmd is the dotted endpoint path (e.g. "frappe.client.get_list"); its
+	// first segment is the owning app. Unrecognized apps keep legacy behaviour.
+	if (!cmd) return false;
+	let app = cmd.split(".")[0];
+	let apps = (frappe.boot && frappe.boot.json_request_apps) || [];
+	return apps.includes(app);
+};
 
 frappe.xcall = function (method, params, type, opts = {}) {
 	return new Promise((resolve, reject) => {
@@ -73,6 +83,10 @@ frappe.call = function (opts) {
 		args.cmd = opts.method;
 	}
 
+	// Pick the request body encoding from the app that owns the endpoint, unless
+	// the caller explicitly set `opts.json` as an escape hatch.
+	let json = opts.json != null ? opts.json : frappe.request.app_uses_json(args.cmd);
+
 	var callback = function (data, response_text) {
 		if (data.task_id) {
 			// async call, subscribe
@@ -118,14 +132,13 @@ frappe.call = function (opts) {
 		api_version: opts.api_version,
 		url,
 		cache: opts.cache,
-		json: opts.json,
+		json,
 	});
 };
 
 frappe.request.call = function (opts) {
 	// JSON body only applies to non-GET requests (GET carries no meaningful body).
-	let json_pref = opts.json != null ? opts.json : frappe.request.use_json;
-	opts.use_json = json_pref && (opts.type || "POST").toUpperCase() !== "GET";
+	opts.use_json = opts.json && (opts.type || "POST").toUpperCase() !== "GET";
 
 	frappe.request.prepare(opts);
 
