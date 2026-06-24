@@ -82,6 +82,152 @@
 	& ~ .modal-backdrop {
 		display: none !important;
 	}
+
+	// --- Layer 2: Gmail-shaped structure ---
+	// Hide the original auto-rendered form (controls were moved out; remaining ones stay in DOM
+	// so existing logic keeps working, just invisible).
+	.modal-body .form-layout {
+		display: none !important;
+	}
+
+	// Hide the default modal footer (Send/Discard) — replaced by our custom action bar inside the body.
+	.modal-footer {
+		display: none !important;
+	}
+
+	.modal-body {
+		padding: 0;
+	}
+
+	.gmail-compose {
+		display: flex;
+		flex-direction: column;
+		min-height: 100%;
+	}
+
+	// Address / subject rows — inline label + underlined input
+	.gmail-row {
+		display: flex;
+		align-items: center;
+		padding: 6px 16px;
+		border-bottom: 1px solid var(--border-color);
+		gap: 8px;
+
+		&.is-collapsed {
+			display: none;
+		}
+
+		.gmail-slot {
+			flex: 1;
+			min-width: 0;
+		}
+
+		// Override Frappe control styling: inline label, no box, no extra margin
+		.frappe-control {
+			margin-bottom: 0;
+
+			.form-group {
+				display: flex;
+				align-items: center;
+				margin-bottom: 0;
+				gap: 8px;
+			}
+
+			.clearfix {
+				flex: 0 0 auto;
+				width: auto;
+
+				.control-label {
+					margin-bottom: 0;
+					font-weight: normal;
+					color: var(--text-muted);
+				}
+			}
+
+			.control-input-wrapper {
+				flex: 1;
+				width: auto;
+			}
+
+			.control-input,
+			.form-control,
+			.awesomplete {
+				border: none !important;
+				background: transparent !important;
+				box-shadow: none !important;
+				padding-left: 0;
+				padding-right: 0;
+			}
+		}
+	}
+
+	// Cc / Bcc text toggles on the right of the To row
+	.gmail-cc-bcc-toggles {
+		display: flex;
+		gap: 12px;
+		flex: 0 0 auto;
+
+		.gmail-toggle {
+			cursor: pointer;
+			color: var(--text-color);
+			font-size: var(--text-sm);
+			user-select: none;
+
+			&:hover {
+				text-decoration: underline;
+			}
+		}
+	}
+
+	// Message body — fill remaining vertical space; hide Quill's top toolbar
+	// (it'll be relocated to bottom in a later layer)
+	.gmail-message-area {
+		flex: 1 1 auto;
+		padding: 12px 16px;
+		min-height: 240px;
+
+		.frappe-control {
+			margin-bottom: 0;
+			height: 100%;
+
+			.clearfix {
+				display: none;
+			}
+
+			.ql-toolbar {
+				display: none;
+			}
+
+			.ql-container {
+				border: none !important;
+				font-size: var(--text-md);
+			}
+		}
+	}
+
+	// Bottom action bar — Send on left, icon row in middle, trash on right.
+	// Uses Frappe's existing button classes (btn-primary, btn-ghost icon-btn) — no custom button styling.
+	.gmail-action-bar {
+		display: flex;
+		align-items: center;
+		gap: 8px;
+		padding: 8px 16px;
+		border-top: 1px solid var(--border-color);
+		background: var(--card-bg);
+
+		.gmail-action-bar__send {
+			display: flex;
+			align-items: center;
+		}
+
+		.gmail-icon-row {
+			flex: 1;
+			display: flex;
+			align-items: center;
+			gap: 2px;
+			margin-left: 8px;
+		}
+	}
 }
 
 // When only floating composers are open, don't lock body scroll —
