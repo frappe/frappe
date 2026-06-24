@@ -1,11 +1,11 @@
 # Copyright (c) 2015, Frappe Technologies Pvt. Ltd. and Contributors
 # License: MIT. See LICENSE
 
-import frappe
 from frappe.tests import IntegrationTestCase
+from frappe.tests.utils import whitelist_for_tests
 
 
-@frappe.whitelist()
+@whitelist_for_tests()
 def _collect_sources(source_name: str, target_doc: dict | None = None, args: dict | None = None):
 	"""A minimal mapper method: accumulates source names (and optional args) onto the target."""
 	target_doc = target_doc or {"sources": [], "args": None}
