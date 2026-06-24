@@ -412,6 +412,15 @@ def validate_print_permission(doc: "Document") -> None:
 	if (key := frappe.form_dict.key) and isinstance(key, str) and validate_key(key, doc) is not False:
 		return
 
+	for wf_name in frappe.get_all(
+		"Web Form",
+		filters={"doc_type": doc.doctype, "allow_print": 1, "published": 1},
+		pluck="name",
+	):
+		wf = frappe.get_lazy_doc("Web Form", wf_name)
+		if wf.has_web_form_permission(doc.doctype, doc.name):
+			return
+
 	doc._handle_permission_failure("print")
 
 
