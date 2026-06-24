@@ -146,21 +146,20 @@ def get_command(
 		else:
 			bin, bin_name = which("psql"), "psql"
 
-		# Percent-encode credentials before interpolating into the libpq URI.
-		# Without this, any `/`, `?`, `#`, `%`, or `:` in user/password breaks
-		# RFC 3986 authority parsing and libpq either errors out or sends the
-		# wrong credentials. safe="" forces escaping of `/` too (default is "/").
-		quoted_user = quote(user, safe="")
+		quoted_user = quote(user, safe="") if user else None
 		quoted_password = quote(password, safe="") if password else None
 
-		if socket and quoted_password:
-			conn_string = f"postgresql://{quoted_user}:{quoted_password}@/{db_name}?host={socket}"
-		elif socket:
-			conn_string = f"postgresql://{quoted_user}@/{db_name}?host={socket}"
-		elif quoted_password:
-			conn_string = f"postgresql://{quoted_user}:{quoted_password}@{host}:{port}/{db_name}"
+		cred_prefix = ""
+		if quoted_user:
+			if quoted_password:
+				cred_prefix = f"{quoted_user}:{quoted_password}@"
+			else:
+				cred_prefix = f"{quoted_user}@"
+
+		if socket:
+			conn_string = f"postgresql://{cred_prefix}/{db_name}?host={socket}"
 		else:
-			conn_string = f"postgresql://{quoted_user}@{host}:{port}/{db_name}"
+			conn_string = f"postgresql://{cred_prefix}{host}:{port}/{db_name}"
 
 		command = [conn_string]
 
