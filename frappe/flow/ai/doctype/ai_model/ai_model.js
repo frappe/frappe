@@ -3,6 +3,8 @@
 
 frappe.ui.form.on("AI Model", {
 	refresh(frm) {
+		load_provider_models(frm);
+
 		if (frm.is_new()) return;
 
 		frm.add_custom_button(__("Test Connection"), async () => {
@@ -29,4 +31,23 @@ frappe.ui.form.on("AI Model", {
 			}
 		});
 	},
+
+	provider(frm) {
+		load_provider_models(frm);
+	},
 });
+
+function load_provider_models(frm) {
+	const field = frm.fields_dict.model_id;
+	// Suggestions are hints, never a restriction — allow any typed model_id.
+	field.df.ignore_validation = true;
+	if (!frm.doc.provider) {
+		field.set_data([]);
+		return;
+	}
+	frappe.call({
+		method: "flow.ai.doctype.ai_model.ai_model.get_provider_models",
+		args: { provider: frm.doc.provider },
+		callback: ({ message }) => field.set_data(message || []),
+	});
+}
