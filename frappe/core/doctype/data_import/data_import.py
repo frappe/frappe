@@ -289,6 +289,15 @@ def get_import_status(data_import_name: str):
 	return import_status
 
 
+@frappe.whitelist(methods=["GET"])
+@frappe.read_only()
+def get_import_log_count(data_import: str):
+	doc = frappe.get_doc("Data Import", data_import)
+	doc.check_permission("read")
+
+	return frappe.db.count("Data Import Log", {"data_import": data_import})
+
+
 @frappe.whitelist()
 def get_import_logs(data_import: str):
 	doc = frappe.get_doc("Data Import", data_import)
