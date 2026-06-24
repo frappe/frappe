@@ -97,7 +97,7 @@ class TestAIAgentAssemble(IntegrationTestCase):
 
 		runtime = self.agent_doc.assemble()
 
-		self.assertEqual(runtime.max_iterations, 10)
+		self.assertEqual(runtime.max_iterations, 20)
 
 	def test_assemble_throws_when_agent_disabled(self):
 		self.agent_doc.enabled = 0

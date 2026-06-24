@@ -6,6 +6,7 @@ from __future__ import annotations
 import frappe
 
 ASSISTANT_AGENT_TITLE = "Assistant"
+ASSISTANT_MAX_ITERATIONS = 40
 
 ASSISTANT_INSTRUCTIONS = (
 	"You are a Frappe assistant working inside a Frappe site.\n\n"
@@ -71,6 +72,7 @@ def sync_builtin_assistant(model: str | None = None) -> None:
 				"title": ASSISTANT_AGENT_TITLE,
 				"model": model_name,
 				"instructions": ASSISTANT_INSTRUCTIONS,
+				"max_iterations": ASSISTANT_MAX_ITERATIONS,
 				"tools": [{"tool": slug} for slug in tool_slugs],
 				"enabled": 1,
 				"is_system_generated": 1,

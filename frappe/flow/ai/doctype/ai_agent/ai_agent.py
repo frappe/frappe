@@ -16,7 +16,7 @@ if TYPE_CHECKING:
 	from flow.lib.tool import Tool
 
 DEFAULT_TOOL_SLUGS = ("describe", "read", "execute")
-DEFAULT_MAX_ITERATIONS = 10
+DEFAULT_MAX_ITERATIONS = 20
 
 
 class AIAgent(Document):
