@@ -317,7 +317,7 @@ class Workspace(DeskViews):
 
 @frappe.whitelist()
 @frappe.read_only()
-def get_desktop_page(page: str):
+def get_desktop_page(page: str | dict):
 	"""Apply permissions, customizations and return the configuration for a page on desk.
 
 	Args:
@@ -327,7 +327,7 @@ def get_desktop_page(page: str):
 	        dict: dictionary of cards, charts and shortcuts to be displayed on website
 	"""
 	try:
-		workspace = Workspace(loads(page))
+		workspace = Workspace(frappe.parse_json(page))
 		workspace.build_workspace()
 		return {
 			"charts": workspace.charts,

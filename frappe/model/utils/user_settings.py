@@ -63,8 +63,8 @@ def sync_user_settings():
 
 
 @frappe.whitelist()
-def save(doctype: str, user_settings: str):
-	user_settings = json.loads(user_settings or "{}")
+def save(doctype: str, user_settings: str | dict):
+	user_settings = frappe.parse_json(user_settings) or {}
 	update_user_settings(doctype, user_settings)
 	return user_settings
 

@@ -909,11 +909,11 @@ def deduplicate_messages(messages):
 
 
 @frappe.whitelist()
-def update_translations_for_source(source: str | None = None, translation_dict: str | None = None):
+def update_translations_for_source(source: str | None = None, translation_dict: str | dict | None = None):
 	if not (source and translation_dict):
 		return
 
-	translation_dict = json.loads(translation_dict)
+	translation_dict = frappe.parse_json(translation_dict)
 
 	if is_html(source):
 		source = strip_html_tags(source)
