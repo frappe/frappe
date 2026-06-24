@@ -38,25 +38,76 @@
 		cursor: pointer;
 	}
 
+	// Truncation comes from the shared `.ellipsis` utility on the element.
 	.dts-check-label {
 		color: var(--ink-gray-7);
 		min-width: 0;
-		overflow: hidden;
-		text-overflow: ellipsis;
-		white-space: nowrap;
 	}
 }
 
 // ── Stacked sections within a tab (e.g. Naming's Series + Rules) ──
 .dts-section {
-	// Space between the section header and its content (table / controls).
+	// Space between the section header and its content (table / controls). The header
+	// reuses .settings-dialog-panel-header, whose 0.5rem inline padding would double up
+	// with the panel body's own padding and push the title in — zero it here.
 	.settings-dialog-panel-header {
 		margin-bottom: var(--margin-md);
+		padding: 0;
 	}
 
 	& + & {
 		margin-top: var(--margin-xl);
 	}
+}
+
+// Related Settings: a uniform settings row — label + description on the left, a compact
+// control on the right — so toggles, selects and inputs all read the same way.
+.dts-setting {
+	display: flex;
+	align-items: center;
+	justify-content: space-between;
+	gap: var(--margin-lg);
+	padding: var(--padding-md) 0;
+
+	& + & {
+		border-top: 1px solid var(--border-color);
+	}
+}
+
+.dts-setting-text {
+	min-width: 0;
+}
+
+.dts-setting-label {
+	font-size: var(--text-base);
+	color: var(--ink-gray-8);
+}
+
+.dts-setting-description {
+	margin-top: 2px;
+	font-size: var(--text-sm);
+	line-height: 1.4;
+	color: var(--ink-gray-5);
+}
+
+// Right column: the control. Inputs/selects get a fixed width so they line up; the
+// toggle sizes to itself.
+.dts-setting-control {
+	flex: 0 0 auto;
+	display: flex;
+	justify-content: flex-end;
+
+	.frappe-control {
+		margin: 0;
+		width: 200px;
+	}
+}
+
+// Bare toggle (no label-area): neutralise label.switch-control's full-width/padding so
+// it hugs the control column.
+.dts-setting-toggle.switch-control {
+	width: auto;
+	padding: 0;
 }
 
 // ── Shared list panel (CRM-style: header + table + inline switch + overflow) ──
@@ -110,6 +161,81 @@
 	display: flex;
 	align-items: center;
 	justify-content: flex-start;
+}
+
+.dts-list-cell-actions {
+	flex: 0 0 2.5rem;
+	display: flex;
+	justify-content: flex-end;
+}
+
+// Primary line: name + inline tags.
+.dts-list-primary-row {
+	display: flex;
+	align-items: center;
+	gap: var(--padding-sm);
+	min-width: 0;
+}
+
+// Truncation comes from the shared `.ellipsis` utility on the element.
+.dts-list-primary {
+	color: var(--ink-gray-8);
+	font-weight: var(--weight-medium);
+	min-width: 0;
+
+	&.dts-list-link {
+		cursor: pointer;
+
+		&:hover {
+			color: var(--ink-gray-9);
+			text-decoration: underline;
+		}
+	}
+}
+
+.dts-list-secondary {
+	margin-top: 2px;
+	color: var(--ink-gray-5);
+	font-size: var(--text-sm);
+}
+
+.dts-list-state {
+	display: flex;
+	align-items: center;
+	gap: var(--margin-sm);
+	padding: var(--padding-lg) 0;
+}
+
+// Inline switch reuses ControlSwitch markup (.switch-control / .input-area /
+// .switch-visual) from controls.scss; nothing extra needed beyond a margin reset.
+.dts-switch {
+	margin: 0;
+	cursor: pointer;
+}
+
+// Overflow "…" menu trigger — open/close + positioning handled by Bootstrap's dropdown.
+.dts-actions .dts-actions-btn {
+	line-height: 1;
+	font-weight: var(--weight-bold);
+}
+
+// Overflow menu item: icon + label grouped left (zero any inherited margins that
+// otherwise push the label to the right edge).
+.dts-action-item.dropdown-item {
+	display: flex;
+	align-items: center;
+	justify-content: flex-start;
+	gap: var(--padding-sm);
+	text-align: left;
+
+	.icon {
+		flex-shrink: 0;
+		margin: 0;
+	}
+
+	> span {
+		margin: 0;
+	}
 }
 
 // ── Permissions tab: EmbeddedList of roles with rights badges + customized banner
@@ -274,14 +400,12 @@
 	padding: var(--padding-md) var(--padding-lg);
 }
 
+// Truncation comes from the shared `.ellipsis` utility on the element.
 .dts-pf-name {
 	display: block;
 	font-weight: var(--weight-regular);
 	color: var(--ink-gray-8);
 	cursor: pointer;
-	overflow: hidden;
-	text-overflow: ellipsis;
-	white-space: nowrap;
 
 	&:hover {
 		text-decoration: underline;
@@ -295,82 +419,6 @@
 	border: 1px solid var(--border-color);
 	border-radius: var(--border-radius);
 	background-color: var(--surface-base);
-}
-
-.dts-list-cell-actions {
-	flex: 0 0 2.5rem;
-	display: flex;
-	justify-content: flex-end;
-}
-
-// Overflow menu item: icon + label grouped left (zero any inherited margins that
-// otherwise push the label to the right edge).
-.dts-action-item.dropdown-item {
-	display: flex;
-	align-items: center;
-	justify-content: flex-start;
-	gap: var(--padding-sm);
-	text-align: left;
-
-	.icon {
-		flex-shrink: 0;
-		margin: 0;
-	}
-
-	> span {
-		margin: 0;
-	}
-}
-
-.dts-list-primary-row {
-	display: flex;
-	align-items: center;
-	gap: var(--padding-sm);
-	min-width: 0;
-}
-
-.dts-list-primary {
-	color: var(--ink-gray-8);
-	font-weight: var(--weight-medium);
-	min-width: 0;
-	overflow: hidden;
-	text-overflow: ellipsis;
-	white-space: nowrap;
-
-	&.dts-list-link {
-		cursor: pointer;
-
-		&:hover {
-			color: var(--ink-gray-9);
-			text-decoration: underline;
-		}
-	}
-}
-
-.dts-list-secondary {
-	margin-top: 2px;
-	color: var(--ink-gray-5);
-	font-size: var(--text-sm);
-}
-
-.dts-list-state {
-	display: flex;
-	align-items: center;
-	gap: var(--margin-sm);
-	padding: var(--padding-lg) 0;
-}
-
-// Inline switch reuses ControlSwitch markup (.switch-control / .input-area /
-// .switch-visual) from controls.scss; nothing extra needed beyond a margin reset.
-.dts-switch {
-	margin: 0;
-	cursor: pointer;
-}
-
-// Overflow "…" menu — open/close + positioning handled by Bootstrap's dropdown.
-.dts-actions .dts-actions-btn {
-	line-height: 1;
-	font-weight: var(--weight-bold);
 }
 
 // Empty state (banking-style): muted icon ▸ bold title ▸ muted description ▸ subtle action.
