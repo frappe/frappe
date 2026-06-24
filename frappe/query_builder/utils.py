@@ -263,9 +263,9 @@ CASE_INSENSITIVE_FIELDTYPES = frozenset(
 def _qb_field_is_free_text(field) -> bool:
 	"""Return True if a pypika ``Field`` points at a Data/Text-family column whose equality MariaDB
 	folds case-insensitively. The DocType is recovered from the field's ``tab<DocType>`` table; bare
-	fields, subquery columns, unknown doctypes, ``name`` and Link/Select all return False so the
-	comparison stays exact. Result is memoized on ``frappe.local`` (per request, so multi-site and
-	custom-field changes stay correct)."""
+	fields, subquery columns, unknown doctypes, ``name``, Link/Select and framework core doctypes all
+	return False so the comparison stays exact. Result is memoized on ``frappe.local`` (per request,
+	so multi-site and custom-field changes stay correct)."""
 	table = getattr(field, "table", None)
 	table_name = getattr(table, "_table_name", None)
 	fieldname = getattr(field, "name", None)
@@ -273,7 +273,6 @@ def _qb_field_is_free_text(field) -> bool:
 		return False
 	if not isinstance(fieldname, str) or fieldname == "name" or "." in fieldname:
 		return False
-	doctype = table_name[len("tab") :]
 	try:
 		cache = frappe.local._qb_free_text_cache
 	except AttributeError:
@@ -281,13 +280,34 @@ def _qb_field_is_free_text(field) -> bool:
 	except RuntimeError:
 		# frappe.local is not bound to a context yet -- skip folding rather than fail.
 		return False
-	key = (doctype, fieldname)
-	if key not in cache:
-		try:
-			df = frappe.get_meta(doctype).get_field(fieldname)
-			cache[key] = bool(df) and df.fieldtype in CASE_INSENSITIVE_FIELDTYPES
-		except Exception:
-			cache[key] = False
+	key = (table_name, fieldname)
+	if key in cache:
+		return cache[key]
+	if getattr(frappe.local, "_qb_resolving_free_text", False):
+		# `frappe.get_meta()` itself builds queries (with their own `Field == value` criteria), so a
+		# lookup must not re-enter while one is already in flight -- that would recurse forever. Don't
+		# fold (and don't cache) the comparisons made *inside* meta resolution.
+		return False
+	doctype = table_name[len("tab") :]
+	from frappe.database.query import CORE_DOCTYPES
+
+	if doctype in CORE_DOCTYPES:
+		# Framework meta tables (DocType/DocField/Custom Field/Property Setter, ...) store identifiers
+		# -- target doctype names, fieldnames -- in text columns whose equality is meant to be exact.
+		# Folding them would corrupt schema sync / meta lookups, so never fold a core doctype.
+		cache[key] = False
+		return False
+	frappe.local._qb_resolving_free_text = True
+	try:
+		df = frappe.get_meta(doctype).get_field(fieldname)
+		cache[key] = bool(df) and df.fieldtype in CASE_INSENSITIVE_FIELDTYPES
+	except frappe.DoesNotExistError:
+		# `tab<X>` is not a DocType (alias, virtual/temp table, ...) -> compare exactly. Any other
+		# error from get_meta propagates so genuine meta failures stay visible instead of silently
+		# falling back to a case-sensitive comparison.
+		cache[key] = False
+	finally:
+		frappe.local._qb_resolving_free_text = False
 	return cache[key]
 
 
@@ -301,6 +321,15 @@ def patch_equality_operators():
 	numeric, ``None``, ``name``/Link/Select and MariaDB are left exactly as they were. Patched on
 	``Field`` (not ``Term``) so the wrapping ``Lower(field)`` -- a ``Function`` -- keeps the native
 	operator and cannot recurse.
+
+	The fold decision reads ``frappe.db.db_type`` when the criterion is *built* (the same point
+	:func:`patch_like_operators` checks), not when it is executed. db_type is stable within a request,
+	so this is safe; a criterion built before ``frappe.db`` is a Postgres connection just renders a
+	plain ``=``.
+
+	Note: ``LOWER(field) = '...'`` cannot use a plain B-tree index, so a free-text equality filter that
+	was index-backed becomes a scan on Postgres (MariaDB's case-insensitive collation indexes natively).
+	Add a functional index ``... (LOWER(column))`` -- or a ``citext`` column -- for hot free-text lookups.
 	"""
 	from pypika.functions import Lower
 	from pypika.terms import Field  # nosemgrep: frappe-monkey-patching-not-allowed
