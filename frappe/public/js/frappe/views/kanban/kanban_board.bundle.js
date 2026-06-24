@@ -304,6 +304,7 @@ frappe.provide("frappe.views");
 					});
 			},
 			set_indicator: function (context, { column, color }) {
+				column_registry[column.title]?.set_indicator(color);
 				return frappe
 					.call({
 						method: method_prefix + "set_indicator",
@@ -448,7 +449,12 @@ frappe.provide("frappe.views");
 						structure_matches = false;
 					}
 				});
-				if (structure_matches) return;
+				if (structure_matches) {
+					$existing.each(function (i) {
+						apply_column_indicator($(this), columns[i].indicator || "gray");
+					});
+					return;
+				}
 			}
 
 			self.$kanban_board.find(".kanban-column").not(".add-new-column").remove();
@@ -679,9 +685,13 @@ frappe.provide("frappe.views");
 					}
 					make_cards();
 				},
+				set_indicator(indicator) {
+					apply_column_indicator(self.$kanban_column, indicator);
+				},
 				sync_order(names) {
 					virt_state.ordered_names = names;
 					virt_state.total_cards = names.length;
+					update_column_count(names.length);
 					// Keep sortable index helpers accurate while drag defers re-render.
 					if (virt_state.virtualization_disabled) {
 						self.$kanban_cards.data({
@@ -698,6 +708,7 @@ frappe.provide("frappe.views");
 					}
 					virt_state.ordered_names = names;
 					virt_state.total_cards = names.length;
+					update_column_count(names.length);
 					if (virt_state.virtualization_disabled) {
 						return;
 					}
@@ -706,6 +717,10 @@ frappe.provide("frappe.views");
 					render_virtual_cards(true);
 				},
 			};
+		}
+
+		function update_column_count(count) {
+			self.$kanban_column?.find(".kanban-column-count").text(count);
 		}
 
 		function make_dom() {
@@ -773,6 +788,7 @@ frappe.provide("frappe.views");
 			filtered_cards = cards_index?.by_column[column.title] || [];
 			virt_state.ordered_names = get_ordered_names(column, cards_index);
 			virt_state.total_cards = virt_state.ordered_names.length;
+			update_column_count(virt_state.total_cards);
 
 			// Force render when card data changes (not only on scroll).
 			render_virtual_cards(true);
@@ -1332,6 +1348,14 @@ frappe.provide("frappe.views");
 
 	function is_active_column(col) {
 		return col.status !== "Archived";
+	}
+
+	/** Update column background and badge theme without rebuilding cards. */
+	function apply_column_indicator($column, indicator) {
+		if (!$column?.length) return;
+		const theme = frappe.scrub(indicator || "gray", "-");
+		$column.css("background-color", `var(--bg-${theme})`);
+		$column.find(".kanban-column-header .es-badge").attr("data-theme", theme);
 	}
 
 	/** Align card column fields with saved board column order (mutates cards in place). */
