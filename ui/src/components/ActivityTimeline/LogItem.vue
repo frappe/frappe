@@ -1,7 +1,7 @@
 <template>
 	<div class="flex flex-1 items-center gap-1.5 text-base text-ink-gray-5 text-p-sm pt-0.5">
-		<!-- audit one-liner: structured text, never v-html -->
-		<template v-if="activity.type === 'audit'">
+		<!-- log one-liner: structured text, never v-html -->
+		<template v-if="activity.type === 'log'">
 			<span>{{ activity.data.text }}</span>
 		</template>
 		<!-- attachment log: actor + file (link if available) + private lock -->
@@ -35,10 +35,10 @@
 
 <script setup lang="ts">
 import { Tooltip } from "frappe-ui";
-import type { AttachmentLogActivity, AuditActivity } from "./types";
+import type { AttachmentLogActivity, LogActivity } from "./types";
 import { dateFormat, timeAgo } from "./utils";
 
 defineProps<{
-	activity: AuditActivity | AttachmentLogActivity;
+	activity: LogActivity | AttachmentLogActivity;
 }>();
 </script>

@@ -77,8 +77,8 @@ export type AttachmentLogActivity = BaseActivity<
   }
 >;
 
-export type AuditActivity = BaseActivity<
-  "audit",
+export type LogActivity = BaseActivity<
+  "log",
   {
     name: string;
     subtype:
@@ -111,7 +111,7 @@ export type Activity =
   | EmailActivity
   | CommentActivity
   | AttachmentLogActivity
-  | AuditActivity
+  | LogActivity
   | VersionActivity;
 
 /** A consumer-defined activity the shared package doesn't know about — same
@@ -120,11 +120,32 @@ export type Activity =
  * `activities` you pass to ActivityTimeline and render it via the
  * `#item-{type}` slot. The built-in `Activity` union stays closed so built-in
  * narrowing stays sharp. */
-export type CustomActivity = BaseActivity<string, unknown>;
+export type CustomActivity = Omit<BaseActivity<string, unknown>, "key"> & {
+  /** Optional for custom rows — ActivityTimeline derives a fallback key (see
+   * keyOf) when absent. Built-ins always carry one. Pass an explicit key when
+   * the row can reorder, so v-for/scroll stay stable. */
+  key?: string;
+};
 
 export interface EmailReplyPayload {
   content: string;
   to: string;
   cc?: string[];
   bcc?: string[];
+}
+
+/** A built-in item action surfaced through its `#actions` slot. The item renders
+ * these as its default buttons; a consumer who overrides `#actions` gets the same
+ * list as a slot prop, so it can render the defaults, add its own, or both. */
+export interface TimelineAction {
+  /** stable id — `"reply"` | `"reply-all"` | `"edit"` | `"delete"` | … */
+  key: string;
+  /** tooltip / aria label (already translated by the item) */
+  label: string;
+  /** lucide/feather name (string) or an icon component */
+  icon: string | Component;
+  /** Button theme — omit for default; `"red"` for destructive actions */
+  theme?: string;
+  /** run the built-in behavior (emits `reply` / `edit` / `delete`) */
+  onClick: () => void;
 }

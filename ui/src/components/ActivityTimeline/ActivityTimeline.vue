@@ -15,8 +15,8 @@
 		<div v-else class="activities mt-0.5">
 			<div
 				v-for="(activity, i) in activities"
-				:key="activity.key"
-				:id="activity.key"
+				:key="getKey(activity, i)"
+				:id="getKey(activity, i)"
 				class="activity mt-2"
 			>
 				<div
@@ -61,7 +61,7 @@
 									/>
 									<template
 										v-else-if="
-											activity.type === 'audit' ||
+											activity.type === 'log' ||
 											activity.type === 'attachment_log' ||
 											activity.type === 'version'
 										"
@@ -69,10 +69,11 @@
 										<DotIcon
 											v-if="
 												activity.type === 'version' ||
-												(activity.type === 'audit' &&
+												(activity.type === 'log' &&
 													(activity.data.subtype === 'assigned' ||
 														activity.data.subtype ===
-															'assignment_completed'))
+															'assignment_completed' ||
+														activity.data.subtype === 'created'))
 											"
 											class="text-ink-gray-5"
 										/>
@@ -101,11 +102,6 @@
 						]"
 						:data-type="activity.type"
 					>
-						<!-- dispatch ladder: #item-{type} slot > default slot > built-in.
-						     The default slot exposes the row as { item }. Built-ins also expose
-						     per-region slots: #item-{type}-{header,body,footer} (email & comment),
-						     forwarded only when the consumer provides them so the default markup
-						     of the other regions stays put. -->
 						<slot :name="`item-${activity.type}`" :activity="activity">
 							<!-- default slot: full per-row override, exposes the row as { item } -->
 							<slot :item="activity">
@@ -113,58 +109,14 @@
 									v-if="activity.type === 'email'"
 									:email="activity"
 									class="px-3 py-2"
-								>
-									<template v-if="$slots['item-email-header']" #header="s">
-										<slot
-											name="item-email-header"
-											v-bind="s"
-											:activity="activity"
-										/>
-									</template>
-									<template v-if="$slots['item-email-body']" #body="s">
-										<slot
-											name="item-email-body"
-											v-bind="s"
-											:activity="activity"
-										/>
-									</template>
-									<template v-if="$slots['item-email-footer']" #footer="s">
-										<slot
-											name="item-email-footer"
-											v-bind="s"
-											:activity="activity"
-										/>
-									</template>
-								</EmailItem>
+								/>
 								<CommentItem
 									v-else-if="activity.type === 'comment'"
 									:comment="activity"
-								>
-									<template v-if="$slots['item-comment-header']" #header="s">
-										<slot
-											name="item-comment-header"
-											v-bind="s"
-											:activity="activity"
-										/>
-									</template>
-									<template v-if="$slots['item-comment-body']" #body="s">
-										<slot
-											name="item-comment-body"
-											v-bind="s"
-											:activity="activity"
-										/>
-									</template>
-									<template v-if="$slots['item-comment-footer']" #footer="s">
-										<slot
-											name="item-comment-footer"
-											v-bind="s"
-											:activity="activity"
-										/>
-									</template>
-								</CommentItem>
-								<AuditItem
+								/>
+								<LogItem
 									v-else-if="
-										activity.type === 'audit' ||
+										activity.type === 'log' ||
 										activity.type === 'attachment_log'
 									"
 									:activity="activity"
@@ -185,15 +137,16 @@
 
 <script setup lang="ts">
 import { Avatar, ErrorMessage, FeatherIcon, LoadingIndicator } from "frappe-ui";
-import AuditItem from "./AuditItem.vue";
 import CommentItem from "./CommentItem.vue";
 import EmailItem from "./EmailItem.vue";
 import { CommentIcon, DotIcon, LUCIDE_ICON_CLASS } from "./icons";
+import LogItem from "./LogItem.vue";
 import type {
 	Activity,
 	ActivityTimelineProps,
 	AttachmentLogActivity,
-	AuditActivity,
+	CustomActivity,
+	LogActivity,
 } from "./types";
 import VersionItem from "./VersionItem.vue";
 
@@ -202,18 +155,30 @@ withDefaults(defineProps<ActivityTimelineProps>(), {
 	error: null,
 });
 
-// one-line activity rows (audit/attachment) align differently from the cards
+// Stable v-for key / scroll-target id. Built-ins always carry `key`; a custom
+// row may omit it — fall back to type+timestamp (stable across reorders when a
+// timestamp exists), then to the index as a last resort.
+function getKey(activity: Activity | CustomActivity, index: number): string {
+	return (
+		activity.key ??
+		(activity.timestamp
+			? `${activity.type}:${activity.timestamp}`
+			: `${activity.type}:${index}`)
+	);
+}
+
+// one-line activity rows (log/attachment) align differently from the cards
 // (email/comment) — nudged to vertically center the icon with the single line
 function isOneLiner(activity: Activity): boolean {
 	return (
-		activity.type === "audit" ||
+		activity.type === "log" ||
 		activity.type === "attachment_log" ||
 		activity.type === "version"
 	);
 }
 
-// literal lucide-* class for an audit / attachment_log gutter dot
-function gutterIconClass(activity: AuditActivity | AttachmentLogActivity): string {
+// literal lucide-* class for a log / attachment_log gutter dot
+function gutterIconClass(activity: LogActivity | AttachmentLogActivity): string {
 	const name =
 		activity.type === "attachment_log"
 			? activity.data.action === "removed"

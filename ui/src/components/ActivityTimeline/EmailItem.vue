@@ -2,9 +2,9 @@
 	<div
 		class="grow cursor-pointer rounded-md border border-outline-gray-2 bg-surface-white text-base leading-6 transition-all duration-300 ease-in-out"
 	>
-		<!-- header / body / footer slots: override a single region, or leave it to
-		     the default markup. Surfaced through ActivityTimeline as
-		     #item-email-{header,body,footer}. -->
+		<!-- header / actions / footer slots: override a region, or leave it to the
+		     default markup. Reach them by rendering this component inside
+		     ActivityTimeline's #item-email slot. -->
 		<slot name="header" :email="email">
 			<div class="flex items-center justify-between gap-2">
 				<div class="flex items-center gap-1">
@@ -14,32 +14,42 @@
 					</span>
 				</div>
 				<div class="flex items-center gap-2">
-					<div class="flex items-center gap-0.5">
-						<Badge
-							v-if="status.label"
-							:label="status.label"
-							variant="subtle"
-							:theme="status.color"
-							class="me-1.5"
-						/>
-						<Tooltip :text="dateFormat(email.timestamp)">
-							<p class="text-xs text-ink-gray-5 md:text-sm">
-								{{ timeAgo(email.timestamp) }}
-							</p>
-						</Tooltip>
-					</div>
-					<div class="flex items-center gap-1">
-						<Button tooltip="Reply" variant="ghost" @click="reply">
-							<template #icon>
-								<ReplyIcon class="text-ink-gray-7" />
-							</template>
-						</Button>
-						<Button tooltip="Reply All" variant="ghost" @click="replyAll">
-							<template #icon>
-								<ReplyAllIcon class="text-ink-gray-7" />
-							</template>
-						</Button>
-					</div>
+					<Badge
+						v-if="status.label"
+						:label="status.label"
+						variant="subtle"
+						:theme="status.color"
+					/>
+					<Tooltip :text="dateFormat(email.timestamp)">
+						<p class="text-xs text-ink-gray-5 md:text-sm">
+							{{ timeAgo(email.timestamp) }}
+						</p>
+					</Tooltip>
+					<slot name="actions" :email="email" :actions="actions">
+						<div class="flex items-center gap-1">
+							<Button
+								v-for="a in actions"
+								:key="a.key"
+								:tooltip="a.label"
+								variant="ghost"
+								:theme="a.theme"
+								@click="a.onClick"
+							>
+								<template #icon>
+									<component
+										:is="a.icon"
+										v-if="typeof a.icon !== 'string'"
+										class="text-ink-gray-7"
+									/>
+									<FeatherIcon
+										v-else
+										:name="a.icon"
+										class="size-4 text-ink-gray-7"
+									/>
+								</template>
+							</Button>
+						</div>
+					</slot>
 				</div>
 			</div>
 			<div class="text-p-sm text-ink-gray-5">
@@ -57,11 +67,9 @@
 					</span>
 				</template>
 			</div>
-			<div class="border-0 border-t mb-3 border-outline-gray-modals !-mx-3 mt-2" />
 		</slot>
-		<slot name="body" :email="email">
-			<EmailContent :content="email.data.content" />
-		</slot>
+		<div class="border-0 border-t mb-3 border-outline-gray-modals !-mx-3 mt-2" />
+		<EmailContent :content="email.data.content" />
 		<slot name="footer" :email="email">
 			<div v-if="email.data.attachments.length" class="flex flex-wrap gap-2">
 				<AttachmentItem
@@ -76,12 +84,12 @@
 </template>
 
 <script setup lang="ts">
-import { Badge, Button, Tooltip } from "frappe-ui";
+import { Badge, Button, FeatherIcon, Tooltip } from "frappe-ui";
 import { computed } from "vue";
 import AttachmentItem from "./AttachmentItem.vue";
 import EmailContent from "./EmailContent.vue";
 import { ReplyAllIcon, ReplyIcon } from "./icons";
-import type { EmailActivity } from "./types";
+import type { EmailActivity, EmailReplyPayload, TimelineAction } from "./types";
 import { dateFormat, splitRecipients, timeAgo } from "./utils";
 
 const props = withDefaults(
@@ -94,7 +102,9 @@ const props = withDefaults(
 	}
 );
 
-const emit = defineEmits(["reply"]);
+const emit = defineEmits<{
+	reply: [EmailReplyPayload];
+}>();
 
 const status = computed(() => {
 	const _status = props.email.data.deliveryStatus;
@@ -147,4 +157,11 @@ const replyAll = () => {
 		bcc: _bcc.filter(Boolean),
 	});
 };
+
+// default actions, also handed to the #actions slot so a consumer can render
+// these alongside (or instead of) its own
+const actions = computed<TimelineAction[]>(() => [
+	{ key: "reply", label: "Reply", icon: ReplyIcon, onClick: reply },
+	{ key: "reply-all", label: "Reply All", icon: ReplyAllIcon, onClick: replyAll },
+]);
 </script>
