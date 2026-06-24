@@ -1,35 +1,29 @@
 import defaultTheme from "tailwindcss/defaultTheme"
 import { computed } from "vue"
 import { objToArray } from "@/utils/helpers.js"
-import { borderRadius, boxShadow, fontSize } from "frappe-ui/tailwind/tokens.js"
+import {
+	borderRadius,
+	boxShadow,
+	fontSize,
+	generateCSSVariables,
+	generateSemanticColors,
+} from "frappe-ui/tailwind/tokens.js"
 
-// TODO: frappe-ui should cleanly expose tokens and variables
-const semanticColorTokens = {
-	surface: [
-		"white", "gray-1", "gray-2", "gray-3", "gray-4", "gray-5", "gray-6", "gray-7",
-		"red-1", "red-2", "red-3", "red-4", "red-5", "red-6", "red-7",
-		"green-1", "green-2", "green-3", "amber-1", "amber-2", "amber-3",
-		"blue-1", "blue-2", "blue-3", "orange-1", "violet-1", "cyan-1", "pink-1",
-		"menu-bar", "cards", "modal", "selected",
-	],
-	outline: [
-		"white", "gray-1", "gray-2", "gray-3", "gray-4", "gray-5",
-		"red-1", "red-2", "red-3", "green-1", "green-2", "amber-1", "amber-2",
-		"blue-1", "orange-1", "gray-modals",
-	],
-	ink: [
-		"white", "gray-1", "gray-2", "gray-3", "gray-4", "gray-5", "gray-6", "gray-7", "gray-8", "gray-9",
-		"red-1", "red-2", "red-3", "red-4", "green-1", "green-2", "green-3",
-		"amber-1", "amber-2", "amber-3", "blue-1", "blue-2", "blue-3",
-		"cyan-1", "pink-1", "violet-1", "blue-link",
-	],
-} as const
+// frappe-ui exposes semantic colors as { category: { name: cssValue } }. Use the names and reference the CSS variable its plugin defines on :root. The
+// resolved light value is baked in as a fallback (var(--surface-base, #ffffff)),
+// exactly like frappe-ui's own utilities, so the color still renders in contexts that don't load frappe-ui's stylesheet (e.g. exported markup).
+const semanticColors = generateSemanticColors()
+const lightVars: Record<string, string> = generateCSSVariables()[":root"]
 
-const toColorOptions = (category: keyof typeof semanticColorTokens) =>
-	semanticColorTokens[category].map((name) => ({
-		label: name,
-		value: `var(--${category}-${name})`,
-	}))
+const toColorOptions = (category: "surface" | "outline" | "ink") =>
+	Object.keys(semanticColors[category]).map((name) => {
+		const variable = `--${category}-${name}`
+		const fallback = lightVars[variable]
+		return {
+			label: name,
+			value: fallback ? `var(${variable}, ${fallback})` : `var(${variable})`,
+		}
+	})
 
 const designTokens = {
 	boxShadow: boxShadow,

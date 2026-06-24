@@ -5,17 +5,17 @@
 				<div
 					@click="openPage(page)"
 					class="group flex cursor-pointer items-center gap-2 truncate rounded px-2 py-2 transition duration-300 ease-in-out"
-					:class="[isPageActive(page) ? 'border-[1px] border-gray-300' : 'hover:bg-gray-50']"
+					:class="[isPageActive(page) ? 'border-[1px] border-outline-gray-2' : 'hover:bg-surface-gray-1']"
 				>
 					<Tooltip :text="page.published ? 'Published' : 'Draft'" placement="top">
 						<div
 							class="h-2 w-2 flex-shrink-0 rounded-full"
-							:class="page.published ? 'bg-green-500' : 'bg-gray-400'"
+							:class="page.published ? 'bg-surface-green-6' : 'bg-surface-gray-5'"
 						></div>
 					</Tooltip>
 					<div
 						class="flex items-center gap-1 truncate text-base"
-						:class="[isPageActive(page) ? 'font-medium text-gray-700' : 'text-gray-500']"
+						:class="[isPageActive(page) ? 'font-medium text-ink-gray-6' : 'text-ink-gray-4']"
 					>
 						{{ page.page_title }} -
 						<span class="text-xs">{{ page.route }}</span>
@@ -26,12 +26,12 @@
 
 					<!-- Menu -->
 					<div
-						class="invisible ml-auto flex items-center gap-1.5 text-gray-600 group-hover:visible has-[.active-item]:visible"
+						class="invisible ml-auto flex items-center gap-1.5 text-ink-gray-5 group-hover:visible has-[.active-item]:visible"
 					>
 						<Dropdown :options="getPageMenu(page)" trigger="click">
 							<template v-slot="{ open }">
 								<button
-									class="flex cursor-pointer items-center rounded-sm p-0.5 text-gray-700 hover:bg-gray-300"
+									class="flex cursor-pointer items-center rounded-sm p-0.5 text-ink-gray-6 hover:bg-surface-gray-4"
 									:class="open ? 'active-item' : ''"
 								>
 									<FeatherIcon name="more-horizontal" class="h-4 w-4" />

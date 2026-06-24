@@ -2,7 +2,7 @@
 	<div class="group relative flex h-full w-full flex-col gap-1.5">
 		<template v-if="label">
 			<FormInputLabel v-if="isFormInput">{{ label }}</FormInputLabel>
-			<InputLabel v-else :class="[required ? `after:text-red-600 after:content-['_*']` : '']">
+			<InputLabel v-else :class="[required ? `after:text-ink-red-7 after:content-['_*']` : '']">
 				{{ label }}
 			</InputLabel>
 		</template>
@@ -285,7 +285,7 @@ const getAutocompletionOptions = () => {
 		maxRenderedOptions: 10,
 		closeOnBlur: false,
 		icons: false,
-		optionClass: () => "flex h-7 !px-2 items-center rounded !text-gray-600",
+		optionClass: () => "flex h-7 !px-2 items-center rounded !text-ink-gray-5",
 	})
 }
 

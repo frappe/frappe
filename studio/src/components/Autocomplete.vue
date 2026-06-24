@@ -9,7 +9,7 @@
 	>
 		<div class="relative" ref="containerRef">
 			<div
-				class="group form-input flex h-7 flex-1 items-center gap-2 rounded bg-surface-gray-2 p-0 text-sm text-ink-gray-8 transition-colors focus-within:bg-surface-white focus-within:ring-2 focus-within:ring-outline-gray-3"
+				class="group form-input flex h-7 flex-1 items-center gap-2 rounded bg-surface-gray-2 p-0 text-sm text-ink-gray-8 transition-colors focus-within:bg-surface-base focus-within:ring-2 focus-within:ring-outline-gray-3"
 			>
 				<div v-if="$slots.prefix" class="flex items-center pl-2">
 					<slot name="prefix" />
@@ -34,7 +34,7 @@
 			</div>
 
 			<ComboboxContent
-				class="absolute z-10 mt-1 max-h-80 w-full overflow-hidden rounded-lg border bg-surface-white shadow-xl"
+				class="absolute z-10 mt-1 max-h-80 w-full overflow-hidden rounded-lg border bg-surface-base shadow-xl"
 			>
 				<div class="overflow-y-auto p-1">
 					<template v-for="(option, index) in displayOptions" :key="`${option.value}-${index}`">
@@ -44,7 +44,7 @@
 						/>
 						<ComboboxLabel
 							v-else-if="option.value.startsWith('_separator')"
-							class="px-2 py-1 text-xs font-semibold text-ink-gray-5"
+							class="text-xs-semibold px-2 py-1 text-ink-gray-5"
 						>
 							{{ option.label }}
 						</ComboboxLabel>

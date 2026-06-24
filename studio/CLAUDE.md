@@ -18,7 +18,7 @@ Studio is a visual app builder for the Frappe Framework. It allows developers to
    - Reuse. Write as little code as possible.
    - Build the minimum working code, then iterate towards your goals.
    - Don't add unnecessary dependencies unless required.
-   - Don't add unnecessary comments for simple code. Use it only when the code is not self-explanatory.
+   - DO NOT ADD UNNECESSARY COMMENTS for simple code. Use it only when the code is not self-explanatory.
 2. **Frontend Development:**
    - Rely on `frappe-ui` components (e.g., buttons, dialogs, inputs) instead of building them from scratch (local copy in ./frappe-ui/)
    - Use Tailwind CSS for styling. Avoid writing raw CSS (`.css` files or `<style>` blocks) unless absolutely necessary. Use espresso tokens for styling

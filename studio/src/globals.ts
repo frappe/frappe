@@ -31,6 +31,7 @@ import {
 	Rating,
 	Select,
 	Sidebar,
+	Slider,
 	Switch,
 	TabButtons,
 	Tabs,
@@ -46,7 +47,12 @@ import {
 	NumberChart,
 	AxisChart,
 	DonutChart,
+	ContextMenu,
+	Duration,
+	Pill,
+	Spinner,
 } from "frappe-ui"
+import { CodeEditor } from "frappe-ui/code-editor"
 import { Filter, Link } from "frappe-ui/frappe"
 
 import Container from "@/components/AppLayout/Container.vue"
@@ -100,6 +106,7 @@ export function registerGlobalComponents(app: App) {
 	app.component("Rating", Rating)
 	app.component("Select", Select)
 	app.component("Sidebar", Sidebar)
+	app.component("Slider", Slider)
 	app.component("Switch", Switch)
 	app.component("TabButtons", TabButtons)
 	app.component("Tabs", Tabs)
@@ -115,6 +122,11 @@ export function registerGlobalComponents(app: App) {
 	app.component("NumberChart", NumberChart)
 	app.component("AxisChart", AxisChart)
 	app.component("DonutChart", DonutChart)
+	app.component("CodeEditor", CodeEditor)
+	app.component("ContextMenu", ContextMenu)
+	app.component("Duration", Duration)
+	app.component("Pill", Pill)
+	app.component("Spinner", Spinner)
 
 	// studio components
 	app.component("Container", Container)

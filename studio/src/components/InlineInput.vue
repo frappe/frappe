@@ -1,7 +1,7 @@
 <template>
 	<!-- prettier-ignore -->
 	<div
-		class="flex [&>div>input]:!bg-red-600 [&>div>input]:pr-6"
+		class="flex [&>div>input]:!bg-surface-red-7 [&>div>input]:pr-6"
 		:class="[type === 'textarea' ? 'flex-col gap-1.5' : 'flex-row items-center justify-between', attrs.class]"
 		:style="(attrs.style as StyleValue)"
 	>
@@ -9,7 +9,7 @@
 			:description="label"
 			:class="[
 				enableSlider ? 'cursor-ns-resize' : '',
-				required ? `after:text-red-600 after:content-['_*']` : '',
+				required ? `after:text-ink-red-7 after:content-['_*']` : '',
 			]"
 			@mousedown="handleMouseDown"
 		>
@@ -17,12 +17,12 @@
 
 			<Popover trigger="hover" v-if="description" placement="top">
 				<template #target>
-					<FeatherIcon name="info" class="ml-1 h-[12px] w-[12px] text-gray-500" />
+					<FeatherIcon name="info" class="ml-1 h-[12px] w-[12px] text-ink-gray-4" />
 				</template>
 				<template #body>
 					<slot name="body">
 						<div
-							class="w-fit max-w-52 rounded bg-gray-800 px-2 py-1 text-center text-xs text-white shadow-xl"
+							class="w-fit max-w-52 rounded bg-surface-gray-9 px-2 py-1 text-center text-xs text-ink-base shadow-xl"
 							v-html="description"
 						></div>
 					</slot>

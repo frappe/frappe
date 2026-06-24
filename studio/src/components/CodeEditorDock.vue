@@ -4,7 +4,7 @@
 	<Teleport to="#studio-code-editor-outlet">
 		<div
 			v-if="visible"
-			class="absolute bottom-0 top-[var(--toolbar-height)] z-20 flex flex-col bg-white shadow-lg"
+			class="absolute bottom-0 top-[var(--toolbar-height)] z-20 flex flex-col border-r border-outline-gray-2 bg-surface-base"
 			:style="{ left: `${panelLeft}px`, width: `${editorWidth}px` }"
 		>
 			<PanelResizer

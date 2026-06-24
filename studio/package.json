@@ -11,7 +11,9 @@
 		"copy-studio-renderer": "cp ../studio/public/frontend/renderer.html ../studio/templates/generators/studio_renderer.html",
 		"serve": "vite preview",
 		"extract-frappeui-types": "tsx src/scripts/tsToJSONGenerator.ts frappeui",
-		"extract-studio-types": "tsx src/scripts/tsToJSONGenerator.ts studio"
+		"extract-studio-types": "tsx src/scripts/tsToJSONGenerator.ts studio",
+		"test:cypress": "cypress run --component",
+		"test:cypress:open": "cypress open --component"
 	},
 	"dependencies": {
 		"@codemirror/lang-css": "^6.3.1",
@@ -26,7 +28,7 @@
 		"ace-builds": "^1.36.2",
 		"autoprefixer": "^10.4.2",
 		"codemirror": "^6.0.1",
-		"frappe-ui": "1.0.0-beta.3",
+		"frappe-ui": "1.0.0-beta.12",
 		"json5": "^2.2.3",
 		"marked": "^15.0.6",
 		"pinia": "^2.2.1",
@@ -40,6 +42,7 @@
 		"vuedraggable": "^4.1.0"
 	},
 	"devDependencies": {
+		"cypress": "^15.8.2",
 		"eslint": "^8.19.0",
 		"eslint-plugin-vue": "^9.11.0",
 		"postcss": "^8.4.5",

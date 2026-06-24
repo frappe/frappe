@@ -42,7 +42,7 @@
 				:data-slot-name="slotName"
 				:data-slot-id="slot.slotId"
 				:data-component-id="block.componentId"
-				class="pointer-events-none fixed ring-2 ring-inset ring-purple-500"
+				class="pointer-events-none fixed ring-2 ring-inset ring-outline-purple-5"
 				:class="isSlotSelected(slot.slotId) ? 'opacity-100' : 'opacity-65'"
 				:style="{
 					// set min height and width so that slots without content are visible
@@ -51,8 +51,8 @@
 				}"
 			>
 				<span
-					class="absolute -top-3 left-0 inline-block text-nowrap text-xs text-white"
-					:class="isSlotSelected(slot.slotId) ? 'bg-purple-500' : 'bg-purple-500/65'"
+					class="absolute -top-3 left-0 inline-block text-nowrap text-xs text-ink-base"
+					:class="isSlotSelected(slot.slotId) ? 'bg-surface-purple-6' : 'bg-surface-purple-6/65'"
 				>
 					#{{ slotName }}
 				</span>
@@ -153,9 +153,9 @@ const getStyleClasses = computed(() => {
 	const classes = []
 
 	if (props.block.isStudioComponent) {
-		classes.push("ring-purple-400")
+		classes.push("ring-outline-purple-4")
 	} else {
-		classes.push("ring-blue-400")
+		classes.push("ring-outline-blue-4")
 	}
 
 	if (isBlockSelected.value && !props.block.isRoot() && !canvasStore.isDragging) {
@@ -169,9 +169,11 @@ const getStyleClasses = computed(() => {
 
 const componentLabelClasses = computed(() => {
 	if (isBlockSelected.value) {
-		return props.block.isStudioComponent ? "bg-purple-500 text-white" : "bg-blue-500 text-white"
+		return props.block.isStudioComponent
+			? "bg-surface-purple-6 text-ink-base"
+			: "bg-surface-blue-6 text-ink-base"
 	} else {
-		return props.block.isStudioComponent ? "text-purple-500" : "text-blue-500"
+		return props.block.isStudioComponent ? "text-ink-purple-6" : "text-ink-blue-6"
 	}
 })
 

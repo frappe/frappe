@@ -44,10 +44,10 @@
 						class="-ml-[0.9rem] overflow-hidden"
 					/>
 					<div v-else class="flex flex-row justify-between font-mono text-xs">
-						<div class="font-semibold text-pink-700">{{ variable_name }}</div>
+						<div class="font-semibold text-ink-pink-8">{{ variable_name }}</div>
 						<template v-if="value !== ''">
-							<div class="text-gray-600">&nbsp;=&nbsp;</div>
-							<div class="text-violet-700">{{ value }}</div>
+							<div class="text-ink-gray-5">&nbsp;=&nbsp;</div>
+							<div class="text-ink-violet-8">{{ value }}</div>
 						</template>
 					</div>
 					<ItemActions

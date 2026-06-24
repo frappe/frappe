@@ -65,7 +65,7 @@ function getBlockTemplate(
 					width: "100%",
 					height: "fit-content",
 					padding: "10px 12px",
-					backgroundColor: "var(--surface-white)",
+					backgroundColor: "var(--surface-base)",
 					borderStyle: "solid",
 					borderWidth: "0px 0px 1px 0px",
 					borderColor: "var(--outline-gray-1)",

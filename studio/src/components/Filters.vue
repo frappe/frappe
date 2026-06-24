@@ -1,7 +1,7 @@
 <template>
 	<div class="flex flex-col gap-1.5">
-		<span v-if="label" class="block text-xs text-gray-600">{{ label }}</span>
-		<div class="rounded-lg border border-gray-200 bg-white">
+		<span v-if="label" class="block text-xs text-ink-gray-5">{{ label }}</span>
+		<div class="rounded-lg border border-outline-elevation-2 bg-surface-base">
 			<div class="min-w-[400px] p-2">
 				<div
 					v-if="filters.length"
@@ -11,7 +11,7 @@
 					class="mb-3 flex items-center justify-between gap-2"
 				>
 					<div class="flex flex-1 items-center gap-2">
-						<div class="w-13 flex-shrink-0 pl-2 text-end text-base text-gray-600">
+						<div class="w-13 flex-shrink-0 pl-2 text-end text-base text-ink-gray-5">
 							{{ i == 0 ? "Where" : "And" }}
 						</div>
 						<div id="fieldname" class="!min-w-[120px] flex-1">
@@ -47,7 +47,7 @@
 						<Button variant="ghost" icon="lucide-x" @click="removeFilter(i)" />
 					</div>
 				</div>
-				<div v-else class="mb-3 flex h-7 items-center px-3 text-sm text-gray-600">
+				<div v-else class="mb-3 flex h-7 items-center px-3 text-sm text-ink-gray-5">
 					Empty - Choose a field to filter by
 				</div>
 				<div class="flex items-center justify-between gap-2">
@@ -58,7 +58,7 @@
 						placeholder="Filter by..."
 					>
 						<template #trigger>
-							<Button class="!text-gray-600" variant="ghost" label="Add filter">
+							<Button class="!text-ink-gray-5" variant="ghost" label="Add filter">
 								<template #prefix>
 									<FeatherIcon name="plus" class="h-4" />
 								</template>
@@ -67,7 +67,7 @@
 					</Combobox>
 					<Button
 						v-if="filters.length"
-						class="!text-gray-600"
+						class="!text-ink-gray-5"
 						variant="ghost"
 						label="Clear all filter"
 						@click="filters = []"

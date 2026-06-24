@@ -1,0 +1,207 @@
+{
+  "$schema": "http://json-schema.org/draft-07/schema#",
+  "$ref": "#/definitions/TabButtonsProps",
+  "definitions": {
+    "TabButtonsProps": {
+      "type": "object",
+      "properties": {
+        "options": {
+          "type": "array",
+          "items": {
+            "type": "object",
+            "properties": {
+              "label": {
+                "type": [
+                  "string",
+                  "number"
+                ]
+              },
+              "value": {
+                "type": [
+                  "string",
+                  "number",
+                  "boolean"
+                ]
+              },
+              "icon": {
+                "type": [
+                  "string"
+                ]
+              },
+              "iconLeft": {
+                "type": [
+                  "string"
+                ]
+              },
+              "iconRight": {
+                "type": [
+                  "string"
+                ]
+              },
+              "active": {
+                "type": "boolean"
+              },
+              "disabled": {
+                "type": "boolean"
+              },
+              "tooltip": {
+                "type": "string"
+              },
+              "class": {
+                "anyOf": [
+                  {
+                    "type": "string"
+                  },
+                  {
+                    "type": "array",
+                    "items": {
+                      "type": "string"
+                    }
+                  },
+                  {
+                    "type": "object",
+                    "additionalProperties": {
+                      "type": "boolean"
+                    }
+                  }
+                ]
+              },
+              "route": {
+                "anyOf": [
+                  {
+                    "type": "string"
+                  },
+                  {
+                    "type": "object"
+                  }
+                ]
+              },
+              "href": {
+                "type": "string"
+              },
+              "onClick": {
+                "type": "object"
+              }
+            },
+            "additionalProperties": false
+          }
+        },
+        "buttons": {
+          "type": "array",
+          "items": {
+            "type": "object",
+            "properties": {
+              "label": {
+                "type": [
+                  "string",
+                  "number"
+                ]
+              },
+              "value": {
+                "type": [
+                  "string",
+                  "number",
+                  "boolean"
+                ]
+              },
+              "icon": {
+                "type": [
+                  "string"
+                ]
+              },
+              "iconLeft": {
+                "type": [
+                  "string"
+                ]
+              },
+              "iconRight": {
+                "type": [
+                  "string"
+                ]
+              },
+              "active": {
+                "type": "boolean"
+              },
+              "disabled": {
+                "type": "boolean"
+              },
+              "tooltip": {
+                "type": "string"
+              },
+              "class": {
+                "anyOf": [
+                  {
+                    "type": "string"
+                  },
+                  {
+                    "type": "array",
+                    "items": {
+                      "type": "string"
+                    }
+                  },
+                  {
+                    "type": "object",
+                    "additionalProperties": {
+                      "type": "boolean"
+                    }
+                  }
+                ]
+              },
+              "route": {
+                "anyOf": [
+                  {
+                    "type": "string"
+                  },
+                  {
+                    "type": "object"
+                  }
+                ]
+              },
+              "href": {
+                "type": "string"
+              },
+              "onClick": {
+                "type": "object"
+              }
+            },
+            "additionalProperties": false
+          }
+        },
+        "modelValue": {
+          "type": [
+            "string",
+            "number",
+            "boolean"
+          ]
+        },
+        "type": {
+          "type": "string",
+          "enum": [
+            "subtle",
+            "ghost",
+            "underline",
+            "browser-tab"
+          ]
+        },
+        "size": {
+          "type": "string",
+          "enum": [
+            "sm",
+            "md"
+          ]
+        },
+        "vertical": {
+          "type": "boolean"
+        },
+        "direction": {
+          "type": "string",
+          "enum": [
+            "left",
+            "right"
+          ]
+        }
+      },
+      "additionalProperties": false
+    }
+  }
+}

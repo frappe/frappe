@@ -22,9 +22,9 @@
 					:data-component-layer-id="element.componentId"
 					:data-indent="indent"
 					:title="element.componentId"
-					class="component-layer-item relative min-w-24 cursor-pointer select-none rounded border border-transparent bg-white bg-opacity-50 text-base text-gray-700"
+					class="component-layer-item relative min-w-24 cursor-pointer select-none rounded border border-transparent bg-surface-base bg-opacity-50 text-base text-ink-gray-6"
 					:class="{
-						'border-blue-500 !bg-blue-100 dark:!bg-blue-900':
+						'border-outline-blue-5 !bg-surface-blue-2 dark:!bg-surface-blue-10':
 							canvasStore.layerDraggingOverBlock === element.componentId,
 					}"
 					@click.stop="openBlockEditor(element, $event)"
@@ -50,14 +50,14 @@
 							:is="element.getIcon()"
 							class="h-3 w-3"
 							:class="{
-								'text-purple-500 opacity-80 dark:opacity-100 dark:brightness-125 dark:saturate-[0.3]':
+								'text-ink-purple-6 opacity-80 dark:opacity-100 dark:brightness-125 dark:saturate-[0.3]':
 									element.isStudioComponent,
 							}"
 						/>
 						<span
 							class="layer-label min-h-[1em] min-w-[2em] max-w-64 truncate"
 							:class="{
-								'text-purple-500 opacity-80 dark:opacity-100 dark:brightness-125 dark:saturate-[0.3]':
+								'text-ink-purple-6 opacity-80 dark:opacity-100 dark:brightness-125 dark:saturate-[0.3]':
 									element.isStudioComponent,
 							}"
 							:contenteditable="element.editable"
@@ -86,7 +86,7 @@
 								@click.stop="element.toggleVisibility()"
 							/>
 						</div>
-						<span v-if="element.isRoot()" class="ml-auto mr-2 text-sm capitalize text-gray-500">
+						<span v-if="element.isRoot()" class="ml-auto mr-2 text-sm capitalize text-ink-gray-4">
 							{{ canvasStore.activeCanvas?.activeBreakpoint }}
 						</span>
 					</span>
@@ -105,7 +105,7 @@
 							:key="slot.slotId"
 							:data-slot-layer-id="slot.slotId"
 							:title="slot.slotName"
-							class="relative min-w-24 cursor-pointer select-none rounded border border-transparent bg-white bg-opacity-50 text-base text-gray-700"
+							class="relative min-w-24 cursor-pointer select-none rounded border border-transparent bg-surface-base bg-opacity-50 text-base text-ink-gray-6"
 							@click.stop="canvasStore.activeCanvas?.selectSlot(slot)"
 						>
 							<div
@@ -133,7 +133,7 @@
 		<!-- Drop indicator line -->
 		<div
 			v-if="showDropIndicator"
-			class="pointer-events-none absolute h-0.5 bg-blue-500 transition-none"
+			class="pointer-events-none absolute h-0.5 bg-surface-blue-6 transition-none"
 			:style="{
 				top: dropIndicatorTop + 'px',
 				left: dropIndicatorLeft + 'px',

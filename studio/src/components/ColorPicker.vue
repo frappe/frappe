@@ -14,12 +14,12 @@
 			></slot>
 		</template>
 		<template #body="{ close }">
-			<div class="flex w-[200px] flex-col rounded bg-surface-white shadow-lg">
+			<div class="flex w-[200px] flex-col rounded bg-surface-base shadow-lg">
 				<Tabs v-if="showTokens" :tabs="[{ label: 'Custom' }, { label: 'Tokens' }]" v-model="activeTab"></Tabs>
 				<div
 					v-show="!showTokens || activeTab === 0"
 					ref="colorPicker"
-					class="rounded-b-lg bg-surface-white p-3"
+					class="rounded-b-lg bg-surface-base p-3"
 				>
 					<div
 						ref="colorMap"

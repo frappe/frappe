@@ -1,7 +1,9 @@
 <template>
-	<div class="flex flex-row overflow-auto shadow-lg">
+	<div class="flex flex-row overflow-auto border-r border-outline-gray-2">
 		<!-- Primary Menu -->
-		<div class="flex h-full w-12 flex-col items-center space-y-2 border-r border-gray-200 bg-white p-3">
+		<div
+			class="flex h-full w-12 flex-col items-center space-y-2 border-r border-outline-elevation-2 bg-surface-base p-3"
+		>
 			<Tooltip v-for="tab in sidebarMenu" :key="tab.label" placement="right" :text="tab.label">
 				<Button
 					:icon="tab.icon"
@@ -33,7 +35,7 @@
 					@resize="(width) => (store.studioLayout.leftPanelWidth = width)"
 				/>
 				<div
-					class="sticky left-0 top-0 z-[12] flex w-full shrink-0 justify-between border-b-[1px] border-gray-200 bg-white p-3 text-base font-semibold text-gray-800"
+					class="text-base-semibold sticky left-0 top-0 z-[12] flex w-full shrink-0 justify-between border-b-[1px] border-outline-elevation-2 bg-surface-base p-3 text-ink-gray-7"
 				>
 					{{ activeTab }}
 					<IconButton

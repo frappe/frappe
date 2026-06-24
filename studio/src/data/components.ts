@@ -46,6 +46,11 @@ import LucideDollarSign from "~icons/lucide/dollar-sign"
 import LucideChartLine from "~icons/lucide/chart-line"
 import LucideChartPie from "~icons/lucide/chart-pie"
 import LucideListFilter from "~icons/lucide/list-filter"
+import LucideSquareMousePointer from "~icons/lucide/square-mouse-pointer"
+import LucideTimer from "~icons/lucide/timer"
+import LucidePill from "~icons/lucide/pill"
+import LucideLoaderCircle from "~icons/lucide/loader-circle"
+import LucideSlidersHorizontal from "~icons/lucide/sliders-horizontal"
 
 export const COMPONENTS: FrappeUIComponents = {
 	TextBlock: {
@@ -124,6 +129,27 @@ export const COMPONENTS: FrappeUIComponents = {
 			label: "Enable feature",
 			padding: true,
 			checked: true,
+		},
+	},
+	CodeEditor: {
+		name: "CodeEditor",
+		title: "Code Editor",
+		icon: LucideCode,
+		initialState: {
+			modelValue: "console.log('Hello, world!')",
+			language: "javascript",
+		},
+	},
+	ContextMenu: {
+		name: "ContextMenu",
+		title: "Context Menu",
+		icon: LucideSquareMousePointer,
+		initialState: {
+			options: [
+				{ label: "Open", icon: "lucide-folder-open", onClick: () => {} },
+				{ label: "Rename", icon: "lucide-pencil", onClick: () => {} },
+				{ label: "Delete", icon: "lucide-trash", onClick: () => {} },
+			],
 		},
 	},
 	Combobox: {
@@ -349,6 +375,15 @@ export const COMPONENTS: FrappeUIComponents = {
 			button: { label: "Actions" },
 		},
 	},
+	Duration: {
+		name: "Duration",
+		title: "Duration",
+		icon: LucideTimer,
+		initialState: {
+			modelValue: 5445,
+			format: "short",
+		},
+	},
 	ErrorMessage: {
 		name: "ErrorMessage",
 		title: "Error Message",
@@ -497,6 +532,15 @@ export const COMPONENTS: FrappeUIComponents = {
 			],
 		},
 	},
+	Pill: {
+		name: "Pill",
+		title: "Pill",
+		icon: LucidePill,
+		initialState: {
+			label: "Pill",
+			active: true,
+		},
+	},
 	Progress: {
 		name: "Progress",
 		title: "Progress",
@@ -589,6 +633,26 @@ export const COMPONENTS: FrappeUIComponents = {
 			],
 		},
 	},
+	Slider: {
+		name: "Slider",
+		title: "Slider",
+		icon: LucideSlidersHorizontal,
+		initialState: {
+			modelValue: [40],
+			min: 0,
+			max: 100,
+			step: 1,
+		},
+	},
+	Spinner: {
+		name: "Spinner",
+		title: "Spinner",
+		icon: LucideLoaderCircle,
+		initialState: {
+			size: "md",
+			theme: "gray",
+		},
+	},
 	Switch: {
 		name: "Switch",
 		title: "Switch",
@@ -614,7 +678,7 @@ export const COMPONENTS: FrappeUIComponents = {
 		title: "Tab Buttons",
 		icon: LucideArrowRightLeft,
 		initialState: {
-			buttons: [
+			options: [
 				{
 					label: "My Tasks",
 					value: "mytasks",

@@ -9,7 +9,7 @@ const configMap: Record<string, any> = {
 			"../node_modules/frappe-ui/frappe",
 		],
 		destFolder: "src/json_types/frappeui",
-		tsconfigPath: "../node_modules/frappe-ui/tsconfig.json",
+		tsconfigPath: "../node_modules/frappe-ui/tsconfig.base.json",
 		skipFolders: ["drive"]
 	},
 	studio: {

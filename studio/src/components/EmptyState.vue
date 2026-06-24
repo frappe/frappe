@@ -1,6 +1,6 @@
 <template>
 	<div
-		class="flex flex-col items-center rounded border-2 border-dashed border-gray-300 p-5 text-center text-sm leading-5 text-gray-600"
+		class="flex flex-col items-center rounded border-2 border-dashed border-outline-gray-2 p-5 text-center text-sm leading-5 text-ink-gray-5"
 	>
 		{{ message }}
 	</div>
