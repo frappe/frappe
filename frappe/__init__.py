@@ -197,13 +197,7 @@ def init(
 	local.response_headers = Headers()
 	local.task_id = None
 
-<<<<<<< HEAD
-	local.conf = get_site_config(sites_path=sites_path, site_path=site_path, cached=bool(frappe.request))
-=======
-	from frappe.config import get_site_config
-
 	local.conf = get_site_config(sites_path=sites_path, site_path=site_path, cached=is_request)
->>>>>>> 99f870986b (fix: Always start with clean `frappe.local` in request/jobs (#40088))
 	local.lang = local.conf.lang or "en"
 
 	local.module_app = None
