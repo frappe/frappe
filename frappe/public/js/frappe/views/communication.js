@@ -39,6 +39,15 @@ frappe.views.CommunicationComposer = class {
 		});
 
 		$(this.dialog.$wrapper.find(".form-section").get(0)).addClass("to_section");
+		this.dialog.$wrapper.addClass("compose-floating");
+		// Gmail-style floating compose: no backdrop, no Escape-to-close
+		this.dialog.$wrapper.modal({ backdrop: false, keyboard: false, show: false });
+		// Gmail-style: clicking the title section toggles minimize in both directions.
+		// .title-section has fill-width so it covers the whole header except the action buttons,
+		// which keep their own click handlers (no bubbling conflict).
+		const $titleSection = this.dialog.$wrapper.find(".modal-header .title-section");
+		$titleSection.off("click");
+		$titleSection.on("click", () => this.dialog.toggle_minimize());
 
 		this.prepare();
 		this.dialog.show();
