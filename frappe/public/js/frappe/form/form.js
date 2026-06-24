@@ -1617,13 +1617,16 @@ frappe.ui.form.Form = class FrappeForm {
 		$.each(fields_list, function (i, fname) {
 			var docfield = frappe.meta.docfield_map[doctype][fname];
 			if (docfield) {
-				var label = __(docfield.label || "", null, docfield.parent).replace(
-					/\([^\)]*\)/g,
-					""
-				); // eslint-disable-line
+				// Preserve the pristine label before any currency suffix is applied,
+				// so we don't have to strip it back out of a mutated value on reset
+				// (which would also destroy legitimate parentheticals like "Rate (ex-tax)").
+				if (docfield._original_label === undefined) {
+					docfield._original_label = docfield.label;
+				}
+				var label = __(docfield._original_label || "", null, docfield.parent);
 				if (parentfield) {
 					grid_field_label_map[doctype + "-" + fname] =
-						label.trim() + " (" + __(currency) + ")";
+						label.trim() + " (" + currency + ")";
 				} else {
 					field_label_map[fname] = label.trim() + " (" + currency + ")";
 				}
@@ -1637,6 +1640,35 @@ frappe.ui.form.Form = class FrappeForm {
 		$.each(grid_field_label_map, function (fname, label) {
 			fname = fname.split("-");
 			me.fields_dict[parentfield].grid.update_docfield_property(fname[1], "label", label);
+		});
+	}
+
+	reset_currency_labels(fields, parentfield) {
+		if (!fields.length) return;
+
+		const doctype = parentfield
+			? this.fields_dict[parentfield].grid.doctype
+			: this.doc.doctype;
+
+		fields.forEach((field) => {
+			const docfield = frappe.meta.docfield_map[doctype][field];
+			if (docfield) {
+				// Read the pristine label captured by set_currency_labels (or here on first use)
+				if (docfield._original_label === undefined) {
+					docfield._original_label = docfield.label;
+				}
+				const label = __(docfield._original_label || "", null, docfield.parent);
+
+				if (parentfield) {
+					this.fields_dict[parentfield].grid.update_docfield_property(
+						field,
+						"label",
+						label
+					);
+				} else {
+					this.fields_dict[field].set_label(label);
+				}
+			}
 		});
 	}
 
