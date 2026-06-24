@@ -1,11 +1,13 @@
 # Copyright (c) 2015, Frappe Technologies Pvt. Ltd. and Contributors
 # License: MIT. See LICENSE
+import functools
 import hashlib
+import inspect
 import itertools
 import json
 import time
 import warnings
-from collections.abc import Generator, Iterable
+from collections.abc import Callable, Generator, Iterable
 from contextlib import contextmanager
 from functools import wraps
 from types import MappingProxyType
@@ -40,6 +42,23 @@ if TYPE_CHECKING:
 
 DOCUMENT_LOCK_EXPIRY = 3 * 60 * 60  # All locks expire in 3 hours automatically
 DOCUMENT_LOCK_SOFT_EXPIRY = 30 * 60  # Let users force-unlock after 30 minutes
+_POSITIONAL_PARAM_KINDS = frozenset(
+	(inspect.Parameter.POSITIONAL_ONLY, inspect.Parameter.POSITIONAL_OR_KEYWORD)
+)
+
+
+@functools.cache
+def _accepts_method_argument(f: Callable) -> bool:
+	"""Return True if the doc event handler expects the `method` argument."""
+	signature = inspect.signature(f)
+	kinds = [p.kind for p in signature.parameters.values()]
+	if any(kind == inspect.Parameter.VAR_POSITIONAL for kind in kinds):
+		return True
+
+	if sum(1 for kind in kinds if kind in _POSITIONAL_PARAM_KINDS) > 1:
+		return True
+
+	return False
 
 
 type _SingleDocument = "Document"
@@ -1169,8 +1188,10 @@ class Document(BaseDocument):
 
 		return children
 
-	def run_method(self, method, *args, **kwargs):
+	def run_method(self, method: str, *args, **kwargs):
 		"""run standard triggers, plus those in hooks"""
+
+		assert not method.startswith("__"), "Run method is for hooks, avoid usage on internal methods"
 
 		def fn(self, *args, **kwargs):
 			method_object = getattr(self, method, None)
@@ -1560,7 +1581,11 @@ class Document(BaseDocument):
 				for f in hooks:
 					try:
 						frappe.db._disable_transaction_control += 1
-						add_to_return_value(self, f(self, method, *args, **kwargs))
+						# Allow handlers to be defined without method arg, e.g. `handler(doc)`
+						if not args and not _accepts_method_argument(f):
+							add_to_return_value(self, f(self, **kwargs))
+						else:
+							add_to_return_value(self, f(self, method, *args, **kwargs))
 					finally:
 						frappe.db._disable_transaction_control -= 1
 

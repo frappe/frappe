@@ -498,8 +498,8 @@ def has_controller_permissions(doc, ptype, user=None, debug=False) -> bool:
 	return True
 
 
-def get_doctypes_with_read():
-	return list({cstr(p.parent) for p in get_valid_perms() if p.parent and p.read})
+def get_doctypes_with_read(user: str | None = None):
+	return list({cstr(p.parent) for p in get_valid_perms(user=user) if p.parent and p.read})
 
 
 def get_valid_perms(doctype=None, user=None):
@@ -938,3 +938,10 @@ def _get_parent_and_ancestors(doctype, parent):
 	from frappe.utils.nestedset import get_ancestors_of
 
 	yield from get_ancestors_of(doctype, parent)
+
+
+def check_app_permission():
+	is_system_manager = "System Manager" in frappe.get_roles(frappe.session.user)
+	if is_system_user() and is_system_manager:
+		return True
+	return False

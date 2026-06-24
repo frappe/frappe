@@ -85,63 +85,6 @@ class DesktopIcon(Document):
 		if os.path.exists(file_path):
 			os.remove(file_path)
 
-	def is_permitted(self, bootinfo):
-		icon_module = None
-		if self.icon_type == "Link" and self.link_to:
-			icon_module = frappe.db.get_value("Workspace", self.link_to, "module")
-		# module permission check
-		if icon_module:
-			blocked_modules = frappe.get_cached_doc("User", frappe.session.user).get_blocked_modules()
-			if icon_module in blocked_modules:
-				return False
-		# perform a permission check based on roles table (desktop icons)
-		allowed_roles = [d.role for d in self.get("roles") or []]
-		if allowed_roles and not set(allowed_roles).intersection(frappe.get_roles()):
-			return False
-		if self.icon_type == "Folder":
-			return True
-		elif self.icon_type == "App":
-			return self.check_app_permission()
-		else:
-			try:
-				items = bootinfo.workspace_sidebar_item[self.label.lower()]["items"]
-
-				if len(items) and all(item["type"] == "Section Break" for item in items):
-					return False
-				if len(items) == 0:
-					return False
-				return True
-			except KeyError:
-				return False
-
-	def check_app_permission(self):
-		for a in frappe.get_installed_apps():
-			if frappe.get_hooks(app_name=a)["app_title"][0] == self.label or self.app == a:
-				app_detail = frappe.get_hooks("add_to_apps_screen", app_name=a)
-				if len(app_detail) != 0:
-					permission_method = app_detail[0].get("has_permission", None)
-					if permission_method:
-						return frappe.call(permission_method)
-					else:
-						return True
-				else:
-					# App hooks.py doesn't have add_to_apps_screen
-					return True
-
-	# def is_permitted(self):
-	# 	"""Return True if `Has Role` is not set or the user is allowed."""
-	# 	from frappe.utils import has_common
-
-	# 	allowed = [d.role for d in frappe.get_all("Has Role", fields=["role"], filters={"parent": self.name})]
-
-	# 	if not allowed:
-	# 		return True
-
-	# 	roles = frappe.get_roles()
-
-	# 	if has_common(roles, allowed):
-	# 		return True
-
 	def after_insert(self):
 		clear_desktop_icons_cache()
 
@@ -158,6 +101,21 @@ def get_workspace_names(workspaces):
 	for w in workspaces["pages"]:
 		workspace_list.append(w["name"])
 	return workspace_list
+
+
+def check_app_permission(label, app):
+	for a in frappe.get_installed_apps():
+		if frappe.get_hooks(app_name=a)["app_title"][0] == label or app == a:
+			app_detail = frappe.get_hooks("add_to_apps_screen", app_name=a)
+			if len(app_detail) != 0:
+				permission_method = app_detail[0].get("has_permission", None)
+				if permission_method:
+					return frappe.call(permission_method)
+				else:
+					return True
+			else:
+				# App hooks.py doesn't have add_to_apps_screen
+				return True
 
 
 def get_desktop_icons(user=None, bootinfo=None):
@@ -211,8 +169,17 @@ def get_desktop_icons(user=None, bootinfo=None):
 		permitted_parent_labels = set()
 		if bootinfo:
 			for s in user_icons:
-				icon = frappe.get_doc("Desktop Icon", s.name)
-				if icon.is_permitted(bootinfo):
+				if s.icon_type == "Folder":
+					permitted = True
+				elif s.icon_type == "App":
+					permitted = check_app_permission(s.label, s.app)
+				else:
+					# Workspace Sidebar link: present in the boot map ⇒ user can see at least
+					# one item in it (get_sidebar_items already enforces this).
+					sidebar = bootinfo.workspace_sidebar_item.get(s.label.lower())
+					permitted = bool(sidebar and sidebar["items"])
+
+				if permitted:
 					permitted_icons.append(s)
 
 					if not s.parent_icon:

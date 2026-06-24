@@ -375,7 +375,7 @@ frappe.ui.form.ControlLink = class ControlLink extends frappe.ui.form.ControlDat
 
 		this.$input.on("awesomplete-selectcomplete", function (e) {
 			let o = e.originalEvent;
-			if (o.text.value.indexOf("__link_option") !== -1) {
+			if (cstr(o.text.value).indexOf("__link_option") !== -1) {
 				me.$input.val("");
 			}
 		});
@@ -854,7 +854,7 @@ frappe.ui.form.ControlLink = class ControlLink extends frappe.ui.form.ControlDat
 		// take filters from the link field and add to the query
 		const query_filters = this.get_query?.()?.filters || {};
 		if (query_filters) {
-			filters = { ...filters, ...query_filters };
+			filters = { ...query_filters, ...filters };
 		}
 
 		this.get_query = function () {

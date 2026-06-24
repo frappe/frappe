@@ -56,6 +56,7 @@ class Note(Document):
 @frappe.whitelist()
 def mark_as_seen(note: str):
 	note: Note = frappe.get_doc("Note", note)
+	note.check_permission("read")
 	note.mark_seen_by(frappe.session.user)
 	note.save(ignore_permissions=True, ignore_version=True)
 

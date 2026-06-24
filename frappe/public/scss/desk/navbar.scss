@@ -79,6 +79,8 @@
 		}
 	}
 	.search-icon {
+		display: inline-flex;
+		align-items: center;
 		background-color: var(--control-bg);
 		border-radius: 8px;
 		padding: 6px;
@@ -88,6 +90,26 @@
 .navbar-modal-wrapper {
 	#navbar-search {
 		display: flex;
+	}
+
+	.awesomebar-input-row {
+		display: flex;
+		align-items: center;
+
+		input {
+			flex: 1;
+			min-width: 0;
+		}
+	}
+
+	.awesomebar-search-icon {
+		display: flex;
+		align-items: center;
+		padding-left: 10px;
+		color: var(--text-muted);
+		flex-shrink: 0;
+		pointer-events: none;
+		padding-right: 2px;
 	}
 
 	.awesomplete {

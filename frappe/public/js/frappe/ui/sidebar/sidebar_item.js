@@ -33,7 +33,7 @@ frappe.ui.sidebar_item.TypeLink = class SidebarItem {
 				path = frappe.utils.generate_route(args);
 			} else if (this.item.link_type == "Workspace") {
 				let workspaces = frappe.workspaces[frappe.router.slug(this.item.link_to)];
-				if (workspaces.public) {
+				if (workspaces && workspaces.public) {
 					path = "/desk/" + frappe.router.slug(this.item.link_to);
 				} else {
 					path = "/desk/private/" + frappe.router.slug(this.item.link_to);
@@ -111,9 +111,7 @@ frappe.ui.sidebar_item.TypeLink = class SidebarItem {
 		}
 	}
 	get_shortcut_html(shortcut) {
-		if (frappe.utils.is_mac()) {
-			shortcut = shortcut.replace("Ctrl+", "⌘");
-		}
+		shortcut = frappe.ui.keys.get_shortcut_label(shortcut);
 		return `<span class="keyboard-shortcut">${shortcut}</span>`;
 	}
 	setup_editing_controls() {

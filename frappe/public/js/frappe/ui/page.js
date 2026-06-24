@@ -461,9 +461,7 @@ frappe.ui.Page = class Page {
 					<a class="grey-link dropdown-item" href="#" onClick="return false;">
 						${$icon}
 						<span class="menu-item-label">${label}</span>
-						<kbd class="pull-right">
-							<span>${shortcut_obj.shortcut_label}</span>
-						</kbd>
+						<span class="menu-item-shortcut">${shortcut_obj.shortcut_label}</span>
 					</a>
 				</li>
 			`);
@@ -516,16 +514,7 @@ frappe.ui.Page = class Page {
 		} else {
 			shortcut_obj = shortcut;
 		}
-		// label
-		if (frappe.utils.is_mac()) {
-			shortcut_obj.shortcut_label = shortcut_obj.shortcut
-				.replace("Ctrl", "⌘")
-				.replace("Alt", "⌥");
-		} else {
-			shortcut_obj.shortcut_label = shortcut_obj.shortcut;
-		}
-
-		shortcut_obj.shortcut_label = shortcut_obj.shortcut_label.replace("Shift", "⇧");
+		shortcut_obj.shortcut_label = frappe.ui.keys.get_shortcut_label(shortcut_obj.shortcut);
 
 		// actual shortcut string
 		shortcut_obj.shortcut = shortcut_obj.shortcut.toLowerCase();
@@ -602,7 +591,7 @@ frappe.ui.Page = class Page {
 	btn_disable_enable(btn, response) {
 		if (response && response.then) {
 			btn.prop("disabled", true);
-			response.then(() => {
+			response.finally(() => {
 				btn.prop("disabled", false);
 			});
 		} else if (response && response.always) {

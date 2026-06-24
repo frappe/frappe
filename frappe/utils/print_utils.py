@@ -2,8 +2,6 @@ import os
 import re
 from typing import Literal
 
-import click
-
 import frappe
 from frappe.utils.data import cint, cstr
 
@@ -131,7 +129,11 @@ def attach_print(
 
 	print_settings = frappe.db.get_singles_dict("Print Settings")
 	if print_letterhead and not letterhead:
-		letterhead = frappe.get_cached_value("Letter Head", {"is_default": 1}, "name")
+		if not doc:
+			doc = frappe.get_cached_doc(doctype, name)
+		letterhead = doc.get("letter_head") or frappe.get_cached_value(
+			"Letter Head", {"is_default": 1}, "name"
+		)
 	kwargs = dict(
 		print_format=print_format,
 		style=style,
@@ -179,8 +181,9 @@ def attach_print(
 
 def setup_chromium():
 	"""Setup Chromium at the bench level."""
-	# Load Chromium version from common_site_config.json or use default
+	import click
 
+	# Load Chromium version from common_site_config.json or use default
 	try:
 		executable = find_or_download_chromium_executable()
 		click.echo(f"Chromium is already set up at {executable}")
@@ -195,6 +198,8 @@ def find_or_download_chromium_executable():
 	import platform
 	import shutil
 	from pathlib import Path
+
+	import click
 
 	if chromium_path := shutil.which(frappe.get_common_site_config().get("chromium_path", "")):
 		return chromium_path
@@ -215,6 +220,8 @@ def find_or_download_chromium_executable():
 	if not exec_path.exists():
 		click.echo("Chromium is not available. downloading...")
 		download_chromium()
+	else:
+		make_chromium_executable(str(exec_path))
 
 	if not exec_path.exists():
 		click.echo("Error while downloading chrome")
@@ -227,6 +234,7 @@ def download_chromium():
 	import shutil
 	import zipfile
 
+	import click
 	import requests
 
 	bench_path = frappe.utils.get_bench_path()
@@ -376,6 +384,8 @@ def get_chromium_download_url():
 
 def make_chromium_executable(executable):
 	"""Make the Chromium executable."""
+	import click
+
 	if os.path.exists(executable):
 		# check if the file is executable
 		if os.access(executable, os.X_OK):

@@ -30,7 +30,6 @@ from frappe.utils import (
 	format_datetime,
 	get_formatted_email,
 	get_system_timezone,
-	has_gravatar,
 	now_datetime,
 	today,
 )
@@ -334,14 +333,6 @@ class User(Document):
 			enqueue_after_commit=True,
 		)
 
-		if self.name not in STANDARD_USERS and not self.user_image:
-			frappe.enqueue(
-				"frappe.core.doctype.user.user.update_gravatar",
-				name=self.name,
-				now=now,
-				enqueue_after_commit=True,
-			)
-
 		# Set user selected timezone
 		if self.time_zone:
 			frappe.defaults.set_default("time_zone", self.time_zone, self.name)
@@ -363,6 +354,9 @@ class User(Document):
 			frappe.cache.delete_key("enabled_users")
 		elif self.has_value_changed("allow_in_mentions") or self.has_value_changed("user_type"):
 			frappe.cache.delete_key("users_for_mentions")
+
+		if self.has_value_changed("user_type"):
+			clear_sessions(user=self.name, force=True)
 
 	def has_website_permission(self, ptype, user, verbose=False):
 		"""Return True if current user is the session user."""
@@ -419,9 +413,6 @@ class User(Document):
 		else:
 			"""Set as System User if any of the given roles has desk_access"""
 			self.user_type = "System User" if self.has_desk_access() else "Website User"
-
-		if self.has_value_changed("user_type"):
-			clear_sessions(user=self.name, force=True)
 
 	def set_roles_and_modules_based_on_user_type(self):
 		user_type_doc = frappe.get_cached_doc("User Type", self.user_type)
@@ -1353,12 +1344,6 @@ def handle_password_test_fail(feedback: dict):
 		msg="".join(message_parts),
 		title=_("Password requirements not met"),
 	)
-
-
-def update_gravatar(name):
-	gravatar = has_gravatar(name)
-	if gravatar:
-		frappe.db.set_value("User", name, "user_image", gravatar)
 
 
 def throttle_user_creation():

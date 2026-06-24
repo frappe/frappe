@@ -135,3 +135,8 @@ class Quarter(Function):
 class Month(Function):
 	def __init__(self, field, alias=None):
 		super().__init__("MONTH", field, alias=alias)
+
+
+class Year(Function):
+	def __init__(self, field, alias=None):
+		super().__init__("YEAR", field, alias=alias)
