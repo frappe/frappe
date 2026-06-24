@@ -244,8 +244,95 @@ def patch_like_operators():
 	Term.not_like = not_like  # nosemgrep: frappe-monkey-patching-not-allowed
 
 
+# Free-text fieldtypes whose equality MariaDB's default collation compares case-insensitively. The
+# same set the dict/list filter path folds; `name`, Link and Select are matched exactly on both.
+CASE_INSENSITIVE_FIELDTYPES = frozenset(
+	{
+		"Data",
+		"Small Text",
+		"Text",
+		"Long Text",
+		"Text Editor",
+		"Code",
+		"HTML Editor",
+		"Markdown Editor",
+	}
+)
+
+
+def _qb_field_is_free_text(field) -> bool:
+	"""Return True if a pypika ``Field`` points at a Data/Text-family column whose equality MariaDB
+	folds case-insensitively. The DocType is recovered from the field's ``tab<DocType>`` table; bare
+	fields, subquery columns, unknown doctypes, ``name`` and Link/Select all return False so the
+	comparison stays exact. Result is memoized on ``frappe.local`` (per request, so multi-site and
+	custom-field changes stay correct)."""
+	table = getattr(field, "table", None)
+	table_name = getattr(table, "_table_name", None)
+	fieldname = getattr(field, "name", None)
+	if not (isinstance(table_name, str) and table_name.startswith("tab")):
+		return False
+	if not isinstance(fieldname, str) or fieldname == "name" or "." in fieldname:
+		return False
+	doctype = table_name[len("tab") :]
+	try:
+		cache = frappe.local._qb_free_text_cache
+	except AttributeError:
+		cache = frappe.local._qb_free_text_cache = {}
+	except RuntimeError:
+		# frappe.local is not bound to a context yet -- skip folding rather than fail.
+		return False
+	key = (doctype, fieldname)
+	if key not in cache:
+		try:
+			df = frappe.get_meta(doctype).get_field(fieldname)
+			cache[key] = bool(df) and df.fieldtype in CASE_INSENSITIVE_FIELDTYPES
+		except Exception:
+			cache[key] = False
+	return cache[key]
+
+
+def patch_equality_operators():
+	"""Fold free-text equality case-insensitively on postgres so a hand-built ``frappe.qb`` criterion
+	(``table.text_field == "x"``) matches the same rows as MariaDB, whose default collation compares
+	text case-insensitively. Mirrors :func:`patch_like_operators` for ``=`` / ``!=`` and the LOWER()
+	folding the dict/list filter path already applies.
+
+	Only a bare ``Field == <str>`` (or ``!=``) on a Data/Text-family column is folded -- Field-vs-Field,
+	numeric, ``None``, ``name``/Link/Select and MariaDB are left exactly as they were. Patched on
+	``Field`` (not ``Term``) so the wrapping ``Lower(field)`` -- a ``Function`` -- keeps the native
+	operator and cannot recurse.
+	"""
+	from pypika.functions import Lower
+	from pypika.terms import Field  # nosemgrep: frappe-monkey-patching-not-allowed
+
+	_eq, _ne = Field.__eq__, Field.__ne__
+
+	def _foldable(self, other) -> bool:
+		return (
+			isinstance(other, str)
+			and other != ""
+			and bool(frappe.db)
+			and frappe.db.db_type == "postgres"
+			and _qb_field_is_free_text(self)
+		)
+
+	def __eq__(self, other):
+		if _foldable(self, other):
+			return _eq(Lower(self), other.lower())
+		return _eq(self, other)
+
+	def __ne__(self, other):
+		if _foldable(self, other):
+			return _ne(Lower(self), other.lower())
+		return _ne(self, other)
+
+	Field.__eq__ = __eq__  # nosemgrep: frappe-monkey-patching-not-allowed
+	Field.__ne__ = __ne__  # nosemgrep: frappe-monkey-patching-not-allowed
+
+
 def patch_all():
 	patch_query_execute()
 	patch_query_aggregation()
 	patch_get_query()
 	patch_like_operators()
+	patch_equality_operators()

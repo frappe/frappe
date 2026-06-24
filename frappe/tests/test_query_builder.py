@@ -59,6 +59,12 @@ class TestCustomFunctionsMariaDB(IntegrationTestCase):
 		not_sql = frappe.qb.from_(user).select(user.name).where(user.name.not_like("%admin%")).get_sql()
 		self.assertIn("NOT LIKE", not_sql)
 
+	def test_eq_keeps_native_operator(self):
+		# MariaDB equality is already case-insensitive (default collation); compare natively, no LOWER()
+		user = frappe.qb.DocType("User")
+		self.assertNotIn("LOWER", (user.first_name == "John").get_sql())
+		self.assertNotIn("LOWER", (user.first_name != "John").get_sql())
+
 	def test_match(self):
 		query = Match("Notes")
 		with self.assertRaises(Exception):
@@ -378,6 +384,30 @@ class TestCustomFunctionsPostgres(IntegrationTestCase):
 		self.assertIn(
 			'cast(extract(epoch from "tabnote"."posting_date") as bigint)', str(select_query).lower()
 		)
+
+	def test_eq_folds_free_text_on_postgres(self):
+		# A hand-built frappe.qb equality on a Data/Text-family column is folded with LOWER() on both
+		# sides so postgres matches the same rows as MariaDB's case-insensitive default collation.
+		user = frappe.qb.DocType("User")  # first_name is a Data field
+		eq_sql = (user.first_name == "John").get_sql()
+		self.assertIn("LOWER(", eq_sql)
+		self.assertIn("'john'", eq_sql)  # the literal is lowercased too
+		self.assertIn("LOWER(", (user.first_name != "John").get_sql())
+		# name, Field-vs-Field, numeric, a Check field and the empty string all stay exact (no LOWER)
+		self.assertNotIn("LOWER", (user.name == "Administrator").get_sql())
+		self.assertNotIn("LOWER", (user.first_name == user.last_name).get_sql())
+		self.assertNotIn("LOWER", (user.first_name == 5).get_sql())
+		self.assertNotIn("LOWER", (user.enabled == "1").get_sql())
+		self.assertNotIn("LOWER", (user.first_name == "").get_sql())
+
+	def test_eq_matches_case_insensitively_on_postgres(self):
+		# end-to-end: a differently-cased value still matches, like MariaDB
+		todo = frappe.get_doc(doctype="ToDo", description="QbEqFold_Mixed").insert()
+		self.addCleanup(todo.delete)
+		t = frappe.qb.DocType("ToDo")
+		for value in ("QbEqFold_Mixed", "qbeqfold_mixed", "QBEQFOLD_MIXED"):
+			rows = frappe.qb.from_(t).select(t.name).where(t.description == value).run()
+			self.assertIn(todo.name, [r[0] for r in rows], msg=value)
 
 	def test_datediff_postgres(self):
 		# Postgres subtracts dates to get an integer day count, matching MariaDB DATEDIFF.
