@@ -44,7 +44,8 @@ def _toggle_like(doctype, name, add, user=None):
 		else:
 			liked_by = []
 
-		if sbool(add):
+		# `add` may be the legacy string "Yes"/"No" or a native bool (JSON request body)
+		if (add == "Yes") if isinstance(add, str) else sbool(add):
 			if user not in liked_by:
 				liked_by.append(user)
 				add_comment(doctype, name)
