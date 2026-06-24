@@ -21,7 +21,9 @@ frappe.request.app_uses_json = function (cmd) {
 	// cmd is the dotted endpoint path (e.g. "frappe.client.get_list"); its
 	// first segment is the owning app. Unrecognized apps keep legacy behaviour.
 	if (!cmd) return false;
-	let app = cmd.split(".")[0];
+	// `run_doc_method` is a dotless built-in frappe endpoint (doc method calls,
+	// form saves); resolve it to frappe so it tracks frappe's opt-in.
+	let app = cmd === "run_doc_method" ? "frappe" : cmd.split(".")[0];
 	let apps = (frappe.boot && frappe.boot.json_request_apps) || [];
 	return apps.includes(app);
 };
