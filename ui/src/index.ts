@@ -11,6 +11,7 @@ export type {
   FieldComponentProps,
   FieldComponentEmits,
 } from "./components/FormLayout";
+export * from "./components/Composer";
 export * from "./components/Grid";
 export * from "./components/Link";
 export * from "./components/TableMultiSelect";
