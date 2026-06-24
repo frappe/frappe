@@ -30,9 +30,11 @@ class AISession(Document):
 	if TYPE_CHECKING:
 		from frappe.types import DF
 
+		from flow.ai.doctype.ai_session_attachment.ai_session_attachment import AISessionAttachment
 		from flow.ai.doctype.ai_session_message.ai_session_message import AISessionMessage
 
 		agent: DF.Link | None
+		attachments: DF.Table[AISessionAttachment]
 		messages: DF.Table[AISessionMessage]
 		model: DF.Link | None
 		title: DF.Data | None
