@@ -13,13 +13,17 @@ frappe.ui.form.on("DocType Layout", {
 					width: 100% !important;
 					max-width: 100% !important;
 				}
+				/* The form builder mounts on the tab pane, which lacks the section +
+				   column padding that .form-builder-container's negative margins offset.
+				   Restore it (15px section + 15px column) so the layout and right
+				   sidebar get the same padding as in Customize Form. */
+				.doctype-layout-full-width #doctype-layout-tab_break_form {
+					padding-left: 30px;
+					padding-right: 30px;
+				}
 			`;
 			document.head.appendChild(style);
 		}
-	},
-
-	onload_post_render(frm) {
-		frm.events.render_builder(frm);
 	},
 
 	tab_break_form(frm) {
@@ -51,6 +55,7 @@ frappe.ui.form.on("DocType Layout", {
 			frm.disable_save();
 		}
 		frm.events.add_buttons(frm);
+		frm.events.render_builder(frm);
 	},
 
 	async document_type(frm) {
@@ -62,9 +67,14 @@ frappe.ui.form.on("DocType Layout", {
 	},
 
 	add_buttons(frm) {
-		if (!frm.is_new()) {
-			frm.add_custom_button(__("Go to {0} List", [frm.doc.title || frm.doc.name]), () => {
-				frappe.set_route(frappe.router.slug(frm.doc.name));
+		if (!frm.is_new() && frm.doc.document_type) {
+			const label = frm.doc.title || frm.doc.name;
+			frm.add_custom_button(__("Go to {0} List", [label]), () => {
+				frappe.route_options = {
+					...frappe.utils.parse_layout_condition_to_filters(frm.doc.condition),
+					_layout: frm.doc.name,
+				};
+				frappe.set_route("List", frm.doc.document_type);
 			});
 		}
 
@@ -107,23 +117,39 @@ frappe.ui.form.on("DocType Layout", {
 		if (!frm.doc.document_type) return;
 
 		const wrapper = $(frm.fields_dict["form_builder"].wrapper).closest(".tab-pane");
+		const builder = frappe.layout_builder;
 
-		if (frappe.layout_builder?.store && frappe.layout_builder.frm === frm) {
-			frappe.layout_builder.setup_page_actions();
-			frappe.layout_builder.store.fetch();
+		if (builder?.store && builder.frm === frm) {
+			// frm (and the mounted Vue app) is reused across records of this DocType.
+			// Re-fetch only when the record or its target doctype changed, so plain
+			// refreshes don't wipe in-progress edits in the builder.
+			if (builder.docname === frm.doc.name && builder.doctype === frm.doc.document_type) {
+				return;
+			}
+			builder.docname = frm.doc.name;
+			builder.doctype = frm.doc.document_type;
+			builder.update_store();
+			builder.setup_page_actions();
+			builder.store.fetch();
 			return;
 		}
 
-		if (frappe.layout_builder) {
-			frappe.layout_builder.$wrapper = wrapper;
-			frappe.layout_builder.frm = frm;
-			frappe.layout_builder.page = frm.page;
-			frappe.layout_builder.doctype = frm.doc.document_type;
-			frappe.layout_builder.is_layout = true;
-			frappe.layout_builder.init(true);
-			frappe.layout_builder.store.fetch();
+		if (builder) {
+			builder.$wrapper = wrapper;
+			builder.frm = frm;
+			builder.page = frm.page;
+			builder.docname = frm.doc.name;
+			builder.doctype = frm.doc.document_type;
+			builder.is_layout = true;
+			builder.init(true);
+			builder.store.fetch();
 			return;
 		}
+
+		// `refresh` can fire more than once before the bundle loads — guard so
+		// only one FormBuilder instance is ever mounted.
+		if (frm._layout_builder_loading) return;
+		frm._layout_builder_loading = true;
 
 		frappe.require("form_builder.bundle.js").then(() => {
 			frappe.layout_builder = new frappe.ui.FormBuilder({
@@ -133,6 +159,8 @@ frappe.ui.form.on("DocType Layout", {
 				customize: false,
 				is_layout: true,
 			});
+			frappe.layout_builder.docname = frm.doc.name;
+			frm._layout_builder_loading = false;
 
 			// tab.refresh() is invoked by refresh_tabs() on every layout.refresh() and
 			// frm.refresh_field() call. It hides the tab when all its sections appear

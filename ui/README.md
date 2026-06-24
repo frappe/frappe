@@ -47,11 +47,26 @@ The `paths` key must match the package name `@framework/ui` (also the key under
 The host app must already provide the peers (`vue`, `vue-router`, `frappe-ui`) — every
 Frappe frontend does.
 
+### 3. Dedupe shared singletons — `vite.config.js`
+
+`@framework/ui` ships raw source compiled in place by the host bundler, so its bare
+imports of shared singletons (`vue`, `vue-router`, `frappe-ui`, `reka-ui`, `dompurify`)
+resolve by realpath into a _second_ copy unless deduped — breaking provide/inject
+context (reka-ui especially) and doubling Vue. Add the bundled plugin:
+
+```js
+import frameworkUI from "@framework/ui/vite";
+
+export default defineConfig({
+  plugins: [frameworkUI()], // pass { dedupe: [...] } to add app-specific singletons
+});
+```
+
 ## Usage
 
 ```vue
 <script setup lang="ts">
-import { Link } from '@framework/ui'
+import { Link } from "@framework/ui";
 </script>
 
 <template>
@@ -59,7 +74,7 @@ import { Link } from '@framework/ui'
 </template>
 ```
 
-Subpaths work too (via the `./*` export), e.g. `import { Link } from '@framework/ui'`.
+Subpaths work too (via the `./*` export), e.g. `import { FormLayout } from '@framework/ui/FormLayout'`.
 
 ## Adding to the package
 

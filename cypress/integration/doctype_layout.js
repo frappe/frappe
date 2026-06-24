@@ -12,6 +12,7 @@ context("DocType Layout", () => {
 		// Wipe any layouts from a previous run so field rows are deterministic
 		cy.remove_doc("DocType Layout", "Compact", true);
 		cy.remove_doc("DocType Layout", "Special", true);
+		cy.remove_doc("DocType Layout", "Todo Layout", true);
 
 		cy.insert_doc("DocType Layout", {
 			title: "Compact",
@@ -34,6 +35,12 @@ context("DocType Layout", () => {
 				{ fieldname: "is_special" },
 				{ fieldname: "description", label: "Special Notes" },
 			],
+		});
+
+		cy.insert_doc("DocType Layout", {
+			title: "Todo Layout",
+			document_type: "ToDo",
+			fields: [{ fieldname: "description", label: "Todo Notes" }],
 		});
 
 		// Reload so frappe.boot.doctype_layouts includes the newly created layouts
@@ -62,7 +69,7 @@ context("DocType Layout", () => {
 
 		// frm.dirty() + frm.refresh_field() cause an async re-render; wait for the
 		// "Not Saved" pill to appear before querying the tab.
-		cy.get(".title-area .indicator-pill").should("contain.text", "Not Saved");
+		cy.get('[data-testid="page-status"]').should("contain.text", "Not Saved");
 
 		// Wait for the form builder bundle to load and initialize before clicking the tab.
 		// cy.window().its("frappe").its("layout_builder").should("exist");
@@ -70,18 +77,47 @@ context("DocType Layout", () => {
 		cy.get(".form-builder-container").should("exist");
 	});
 
+	it("Form Builder re-renders when switching layout records without a reload", () => {
+		cy.visit("/desk/doctype-layout/Compact");
+		cy.get("body").should("have.attr", "data-ajax-state", "complete");
+		cy.findByRole("tab", { name: "Parent Layout" }).click({ force: true });
+		cy.get(".form-builder-container").should("contain.text", "Compact Data 1");
+
+		// In-app navigation to another record of the same target doctype
+		cy.window().then((win) => win.frappe.set_route("Form", "DocType Layout", "Special"));
+		cy.get("body").should("have.attr", "data-ajax-state", "complete");
+		cy.findByRole("tab", { name: "Parent Layout" }).click({ force: true });
+		cy.get(".form-builder-container").should("contain.text", "Special Notes");
+		cy.get(".form-builder-container").should("not.contain.text", "Compact Data 1");
+
+		// Switch to a layout whose target is a different doctype
+		cy.window().then((win) => win.frappe.set_route("Form", "DocType Layout", "Todo Layout"));
+		cy.get("body").should("have.attr", "data-ajax-state", "complete");
+		cy.findByRole("tab", { name: "Parent Layout" }).click({ force: true });
+		cy.get(".form-builder-container").should("contain.text", "Todo Notes");
+		cy.get(".form-builder-container").should("not.contain.text", "Special Notes");
+
+		// Revisit an already-opened record — no onload events fire on this path
+		cy.window().then((win) => win.frappe.set_route("Form", "DocType Layout", "Compact"));
+		cy.get("body").should("have.attr", "data-ajax-state", "complete");
+		cy.findByRole("tab", { name: "Parent Layout" }).click({ force: true });
+		cy.get(".form-builder-container").should("contain.text", "Compact Data 1");
+		cy.get(".form-builder-container").should("not.contain.text", "Todo Notes");
+	});
+
 	it("Condition auto-switches the layout after a matching value is saved", () => {
 		cy.visit(`/desk/${SLUG}/new`);
 		cy.get("body").should("have.attr", "data-ajax-state", "complete");
 
 		// Condition unmet — no layout
-		cy.get(".layout-indicator").should("not.exist");
+		cy.location("search").should("not.include", "layout=");
 
 		cy.fill_field("data1", "auto-switch", "Data");
 		cy.get("[data-fieldname='is_special'] label").click({ force: true });
 		cy.click_doc_primary_button("Save");
 
-		cy.get(".layout-indicator").should("contain.text", "Special");
+		// The active layout is surfaced through the breadcrumbs.
+		cy.get(".navbar-breadcrumbs").should("contain.text", "Special");
 		cy.location("search").should("include", "layout=Special");
 		cy.get("[data-fieldname='description'] .clearfix label").should(
 			"contain.text",

@@ -49,11 +49,14 @@ frappe.data_import.ImportPreview = class ImportPreview {
 		this.columns = this.preview_data.columns.map((col, i) => {
 			let df = col.df;
 			let column_width = 120;
-			if (col.header_title === "Sr. No") {
+			const is_row_number_col =
+				col.header_title === "Sr. No" || col.header_title === __("Sr. No");
+			if (is_row_number_col) {
+				const row_number_label = __("Sr. No");
 				return {
 					id: "srno",
-					name: "Sr. No",
-					content: "Sr. No",
+					name: row_number_label,
+					content: row_number_label,
 					editable: false,
 					focusable: false,
 					align: "left",
@@ -63,7 +66,7 @@ frappe.data_import.ImportPreview = class ImportPreview {
 
 			if (col.skip_import) {
 				let show_warnings_button = `<button class="btn btn-xs" data-action="show_column_warning" data-col="${i}">
-					<i class="octicon octicon-stop"></i></button>`;
+					${frappe.utils.icon("circle-alert", "sm")}</button>`;
 				if (!col.df) {
 					// increase column width for unidentified columns
 					column_width += 50;
@@ -162,6 +165,26 @@ frappe.data_import.ImportPreview = class ImportPreview {
 		});
 	}
 
+	/** Scroll to and highlight a sheet row in the table preview. */
+	highlight_table_row(row_number) {
+		const row_index = this.data.findIndex((row) => cint(row[0]) === cint(row_number));
+		if (row_index < 0 || !this.datatable) {
+			return;
+		}
+
+		if (this._highlighted_row_index != null && this._highlighted_row_index !== row_index) {
+			this.datatable.style.setStyle(`.dt-row-${this._highlighted_row_index} .dt-cell`, {
+				backgroundColor: "",
+			});
+		}
+
+		this._highlighted_row_index = row_index;
+		this.datatable.style.setStyle(`.dt-row-${row_index} .dt-cell`, {
+			backgroundColor: frappe.ui.color.get_color_shade("yellow", "extra-light"),
+		});
+		frappe.utils.scroll_to(this.$table_preview.find(`.dt-row-${row_index}`), true, 30);
+	}
+
 	/** Row count below the preview table (always shown when data exists). */
 	render_table_message() {
 		const $message = this.wrapper.find(".table-message");
@@ -257,7 +280,9 @@ frappe.data_import.ImportPreview = class ImportPreview {
 		let changed = [];
 		let fields = this.preview_data.columns.map((col, i) => {
 			let df = col.df;
-			if (col.header_title === "Sr. No") return [];
+			const is_row_number_col =
+				col.header_title === "Sr. No" || col.header_title === __("Sr. No");
+			if (is_row_number_col) return [];
 
 			let fieldname;
 			if (!df) {

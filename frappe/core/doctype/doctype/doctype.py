@@ -1687,7 +1687,8 @@ def validate_fields(meta: Meta):
 
 		if "." not in field.fetch_from:
 			return
-		source_field, _target_field = field.fetch_from.split(".", maxsplit=1)
+		parts = field.fetch_from.split(".", maxsplit=1)
+		source_field, _target_field = parts
 
 		if source_field == field.fieldname:
 			msg = _(

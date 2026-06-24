@@ -16,6 +16,8 @@ _KWD_MARK = object()  # sentinel for separating args from kwargs
 
 def __generate_request_cache_key(args: tuple, kwargs: dict) -> tuple:
 	"""Generate a key for the cache."""
+	assert isinstance(args, tuple), "args must be a tuple (from *args)"
+	assert isinstance(kwargs, dict), "kwargs must be a dict (from **kwargs)"
 
 	if not kwargs:
 		return args
@@ -120,6 +122,7 @@ def site_cache(ttl: int | None = None, maxsize: int | None = None) -> Callable:
 			func.expiration = time.monotonic() + func.ttl
 
 		if maxsize is not None and not callable(maxsize):
+			assert maxsize > 0, "site_cache maxsize must be positive to allow caching"
 			func.maxsize = maxsize
 
 		@wraps(func)

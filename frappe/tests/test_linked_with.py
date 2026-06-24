@@ -153,6 +153,54 @@ class TestLinkedWith(IntegrationTestCase):
 
 		self.assertRaises(frappe.LinkExistsError, doc.delete)
 
+	def test_virtual_child_table_excluded_from_linked_docs(self):
+		"""A virtual istable doctype with a Link field has no real table, so it must be excluded
+		from linked docs rather than resolved to its parent and queried."""
+		target = new_doctype("Linked Target DocType", issingle=1)
+		target.insert()
+
+		virtual_child = new_doctype(
+			"Virtual Linked Child",
+			fields=[
+				{
+					"label": "Target Link",
+					"fieldname": "target_link",
+					"fieldtype": "Link",
+					"options": "Linked Target DocType",
+				}
+			],
+		)
+		virtual_child.is_virtual = 1
+		virtual_child.istable = 1
+		virtual_child.insert()
+
+		parent = new_doctype(
+			"Virtual Child Parent",
+			fields=[
+				{
+					"label": "Items",
+					"fieldname": "items",
+					"fieldtype": "Table",
+					"options": "Virtual Linked Child",
+					"is_virtual": 1,
+				}
+			],
+			issingle=1,
+		)
+		parent.insert()
+
+		try:
+			linkinfo = linked_with.get_linked_doctypes("Linked Target DocType")
+
+			# the virtual child must not survive as a top-level link or be buried as a parent's child_doctype
+			self.assertNotIn("Virtual Linked Child", linkinfo)
+			self.assertNotIn(
+				"Virtual Linked Child", [info.get("child_doctype") for info in linkinfo.values()]
+			)
+		finally:
+			for doctype in ("Virtual Child Parent", "Virtual Linked Child", "Linked Target DocType"):
+				frappe.delete_doc("DocType", doctype)
+
 	def test_reserved_keywords(self):
 		dt_name = "Test " + "".join(random.sample(string.ascii_lowercase, 10))
 		new_doctype(

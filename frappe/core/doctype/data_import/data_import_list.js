@@ -14,13 +14,13 @@ frappe.listview_settings["Data Import"] = {
 	},
 	get_indicator: function (doc) {
 		var colors = {
-			Pending: "orange",
-			"Not Started": "orange",
-			"Partial Success": "orange",
+			Pending: "amber",
+			"Not Started": "amber",
+			"Partial Success": "amber",
 			Success: "green",
-			"In Progress": "orange",
+			"In Progress": "amber",
 			Error: "red",
-			"Timed Out": "orange",
+			"Timed Out": "amber",
 		};
 		let status = doc.status;
 
@@ -34,6 +34,7 @@ frappe.listview_settings["Data Import"] = {
 			return {
 				"Insert New Records": __("Insert"),
 				"Update Existing Records": __("Update"),
+				"Insert or Update Records": __("Upsert"),
 			}[value];
 		},
 	},

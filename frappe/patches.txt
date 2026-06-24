@@ -196,6 +196,8 @@ execute:frappe.delete_doc('Page', 'recorder', ignore_missing=True, force=True)
 frappe.patches.v14_0.modify_value_column_size_for_singles
 frappe.integrations.doctype.oauth_bearer_token.patches.clear_old_tokens
 execute:frappe.db.truncate("Desktop Icon")
+frappe.patches.v16_0.rename_list_filter_to_list_layout
+frappe.patches.v16_0.rename_list_layout_filter_name_to_layout_name
 
 [post_model_sync]
 execute:frappe.get_doc('Role', 'Guest').save() # remove desk access
@@ -236,6 +238,7 @@ frappe.patches.v15_0.validate_newsletter_recipients
 frappe.patches.v15_0.sanitize_workspace_titles
 frappe.patches.v15_0.migrate_role_profile_to_table_multi_select
 frappe.patches.v15_0.migrate_session_data
+frappe.patches.v15_0.skip_gravatar_deletion_prompt_if_no_urls
 frappe.custom.doctype.property_setter.patches.remove_invalid_fetch_from_expressions
 frappe.patches.v16_0.switch_default_sort_order
 frappe.integrations.doctype.oauth_client.patches.set_default_allowed_role_in_oauth_client
@@ -262,3 +265,5 @@ frappe.patches.v16_0.fix_myanmar_language_name
 execute:frappe.db.set_value("Email Account", {}, "add_reply_to_header", 1)
 frappe.patches.v16_0.set_reply_to_header
 frappe.patches.v16_0.rename_print_format_builder_beta_route
+frappe.patches.v16_0.sync_installed_apps_to_site_config
+frappe.patches.v16_0.backfill_list_layout_route_signature

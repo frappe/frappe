@@ -24,7 +24,6 @@ from collections import defaultdict
 from collections.abc import Callable, Iterable
 from typing import TYPE_CHECKING, Any, Optional, TypeAlias, Union
 
-import orjson
 from werkzeug.datastructures import Headers
 
 import frappe
@@ -34,7 +33,7 @@ from frappe.query_builder.utils import (
 )
 from frappe.utils.caching import deprecated_local_cache as local_cache
 from frappe.utils.caching import request_cache, site_cache
-from frappe.utils.data import as_unicode, bold, cint, cstr, safe_decode, safe_encode, sbool
+from frappe.utils.data import as_unicode, bold, cint, cstr, safe_decode, safe_encode, sbool, scrub, unscrub
 from frappe.utils.local import Local, LocalProxy, release_local
 from frappe.utils.translations import _, _lt, set_user_lang
 
@@ -49,6 +48,97 @@ from .utils.jinja import (
 	render_template,
 )
 
+# Lazy imports — loaded on first attribute access, then cached in globals()
+_LAZY_IMPORTS: dict[str, tuple[str, str]] = {
+	# frappe.cache_manager
+	"clear_cache": ("frappe.cache_manager", "clear_cache"),
+	"reset_metadata_version": ("frappe.cache_manager", "reset_metadata_version"),
+	# frappe.config
+	"get_common_site_config": ("frappe.config", "get_common_site_config"),
+	"get_conf": ("frappe.config", "get_conf"),
+	"get_site_config": ("frappe.config", "get_site_config"),
+	# frappe.core.doctype.system_settings.system_settings
+	"get_system_settings": ("frappe.core.doctype.system_settings.system_settings", "get_system_settings"),
+	# frappe.model.document
+	"get_doc": ("frappe.model.document", "get_doc"),
+	"get_docs": ("frappe.model.document", "get_docs"),
+	"get_lazy_doc": ("frappe.model.document", "get_lazy_doc"),
+	"copy_doc": ("frappe.model.document", "copy_doc"),
+	"new_doc": ("frappe.model.document", "new_doc"),
+	"get_cached_doc": ("frappe.model.document", "get_cached_doc"),
+	"can_cache_doc": ("frappe.model.document", "can_cache_doc"),
+	"get_document_cache_key": ("frappe.model.document", "get_document_cache_key"),
+	"clear_document_cache": ("frappe.model.document", "clear_document_cache"),
+	"get_cached_value": ("frappe.model.document", "get_cached_value"),
+	"get_single_value": ("frappe.model.document", "get_single_value"),
+	"get_last_doc": ("frappe.model.document", "get_last_doc"),
+	"get_single": ("frappe.model.document", "get_single"),
+	"_set_document_in_cache": ("frappe.model.document", "_set_document_in_cache"),
+	# frappe.model.meta
+	"get_meta": ("frappe.model.meta", "get_meta"),
+	# frappe.realtime
+	"publish_progress": ("frappe.realtime", "publish_progress"),
+	"publish_realtime": ("frappe.realtime", "publish_realtime"),
+	# frappe.utils
+	"get_traceback": ("frappe.utils", "get_traceback"),
+	"mock": ("frappe.utils", "mock"),
+	"parse_json": ("frappe.utils", "parse_json"),
+	"safe_eval": ("frappe.utils", "safe_eval"),
+	"create_folder": ("frappe.utils", "create_folder"),
+	"get_module": ("frappe.utils", "get_module"),
+	"read_file": ("frappe.utils", "read_file"),
+	"get_file_json": ("frappe.utils", "get_file_json"),
+	"get_file_items": ("frappe.utils", "get_file_items"),
+	"get_attr": ("frappe.utils", "get_attr"),
+	# frappe.utils.background_jobs
+	"enqueue": ("frappe.utils.background_jobs", "enqueue"),
+	"enqueue_doc": ("frappe.utils.background_jobs", "enqueue_doc"),
+	# frappe.utils.task_queue
+	"enqueue_task": ("frappe.utils.task_queue", "enqueue_task"),
+	"get_current_task": ("frappe.utils.task_queue", "get_current_task"),
+	# frappe.utils.error
+	"log_error": ("frappe.utils.error", "log_error"),
+	# frappe.utils.formatters
+	"format_value": ("frappe.utils.formatters", "format_value"),
+	"format": ("frappe.utils.formatters", "format_value"),
+	# frappe.utils.print_utils
+	"get_print": ("frappe.utils.print_utils", "get_print"),
+	"attach_print": ("frappe.utils.print_utils", "attach_print"),
+	# frappe.email
+	"sendmail": ("frappe.email", "sendmail"),
+	# frappe.concurrency_limiter
+	"concurrent_limit": ("frappe.concurrency_limiter", "concurrent_limit"),
+	# frappe.deprecation_dumpster
+	"get_test_records": ("frappe.deprecation_dumpster", "frappe_get_test_records"),
+	# frappe.utils.data
+	"scrub": ("frappe.utils.data", "scrub"),
+	"unscrub": ("frappe.utils.data", "unscrub"),
+	# frappe.modules.utils
+	"get_module_path": ("frappe.modules.utils", "get_module_path"),
+	"get_app_path": ("frappe.modules.utils", "get_app_path"),
+	"get_app_source_path": ("frappe.modules.utils", "get_app_source_path"),
+	"get_site_path": ("frappe.modules.utils", "get_site_path"),
+	"get_pymodule_path": ("frappe.modules.utils", "get_pymodule_path"),
+	"get_module_list": ("frappe.modules.utils", "get_module_list"),
+	# frappe.apps
+	"get_all_apps": ("frappe.apps", "get_all_apps"),
+	"get_installed_apps": ("frappe.apps", "get_installed_apps"),
+	# frappe.utils.response
+	"respond_as_web_page": ("frappe.utils.response", "respond_as_web_page"),
+	"redirect_to_message": ("frappe.utils.response", "redirect_to_message"),
+}
+
+
+def __getattr__(name: str):
+	if name in _LAZY_IMPORTS:
+		module_path, attr_name = _LAZY_IMPORTS[name]
+		mod = importlib.import_module(module_path)
+		value = getattr(mod, attr_name)
+		globals()[name] = value
+		return value
+	raise AttributeError(f"module 'frappe' has no attribute {name!r}")
+
+
 __version__ = "17.0.0-dev"
 __title__ = "Frappe Framework"
 
@@ -57,13 +147,67 @@ if TYPE_CHECKING:  # pragma: no cover
 
 	from werkzeug.wrappers import Request
 
+	# Lazy-imported names — resolved at runtime via __getattr__; listed here for editors/type checkers
+	from frappe.apps import get_all_apps, get_installed_apps
+	from frappe.cache_manager import clear_cache, reset_metadata_version
+	from frappe.concurrency_limiter import concurrent_limit
+	from frappe.config import get_common_site_config, get_conf, get_site_config
+	from frappe.core.doctype.system_settings.system_settings import get_system_settings
 	from frappe.database.mariadb.database import MariaDBDatabase as PyMariaDBDatabase
 	from frappe.database.mariadb.mysqlclient import MariaDBDatabase
 	from frappe.database.postgres.database import PostgresDatabase
 	from frappe.database.sqlite.database import SQLiteDatabase
-	from frappe.model.document import Document
+	from frappe.deprecation_dumpster import frappe_get_test_records as get_test_records
+	from frappe.email import sendmail
+	from frappe.model.document import (
+		Document,
+		_set_document_in_cache,
+		can_cache_doc,
+		clear_document_cache,
+		copy_doc,
+		get_cached_doc,
+		get_cached_value,
+		get_doc,
+		get_docs,
+		get_document_cache_key,
+		get_last_doc,
+		get_lazy_doc,
+		get_single,
+		get_single_value,
+		new_doc,
+	)
+	from frappe.model.meta import get_meta
+	from frappe.modules.utils import (
+		get_app_path,
+		get_app_source_path,
+		get_module_list,
+		get_module_path,
+		get_pymodule_path,
+		get_site_path,
+	)
 	from frappe.query_builder.builder import MariaDB, Postgres, SQLite
+	from frappe.realtime import publish_progress, publish_realtime
+	from frappe.utils import (
+		create_folder,
+		get_attr,
+		get_file_items,
+		get_file_json,
+		get_module,
+		get_traceback,
+		mock,
+		parse_json,
+		read_file,
+		safe_eval,
+	)
+	from frappe.utils.background_jobs import enqueue, enqueue_doc
+	from frappe.utils.data import scrub, unscrub
+	from frappe.utils.error import log_error
+	from frappe.utils.formatters import format_value
+	from frappe.utils.formatters import format_value as format
+	from frappe.utils.print_utils import attach_print, get_print
 	from frappe.utils.redis_wrapper import ClientCache, RedisWrapper
+	from frappe.utils.response import redirect_to_message, respond_as_web_page
+	from frappe.utils.task_queue import enqueue_task, get_current_task
 
 controllers: dict[str, type] = {}
 lazy_controllers: dict[str, type] = {}
@@ -135,9 +279,23 @@ if TYPE_CHECKING:  # pragma: no cover
 	lang: str
 
 
-def init(site: str, sites_path: str = ".", new_site: bool = False, force: bool = False) -> None:
+def init(
+	site: str,
+	sites_path: str = ".",
+	new_site: bool = False,
+	force: bool = False,
+	*,
+	is_request=False,
+	is_job=False,
+) -> None:
 	"""Initialize frappe for the current site. Reset thread locals `frappe.local`"""
-	if getattr(local, "initialised", None) and not force:
+	# Reset locals at start of the request.
+	# Previous request can fail in ways we might have no control over.
+	# release_local is inexpensive, so trigger it before every request/job.
+	if force:
+		release_local(local)
+
+	if getattr(local, "initialised", None):
 		return
 
 	if site and not SITE_NAME_PATTERN.match(site):
@@ -177,7 +335,9 @@ def init(site: str, sites_path: str = ".", new_site: bool = False, force: bool =
 	local.response_headers = Headers()
 	local.task_id = None
 
-	local.conf = get_site_config(sites_path=sites_path, site_path=site_path, cached=bool(frappe.request))
+	from frappe.config import get_site_config
+
+	local.conf = get_site_config(sites_path=sites_path, site_path=site_path, cached=is_request)
 	local.lang = local.conf.lang or "en"
 
 	local.module_app = None
@@ -202,7 +362,7 @@ def init(site: str, sites_path: str = ".", new_site: bool = False, force: bool =
 	if not cache or not client_cache:
 		setup_redis_cache_connection()
 
-	setup_module_map(include_all_apps=not (frappe.request or frappe.job or frappe.flags.in_migrate))
+	setup_module_map(include_all_apps=not (is_request or is_job or frappe.flags.in_migrate))
 
 	local.initialised = True
 
@@ -309,10 +469,11 @@ class init_site:
 
 def destroy():
 	"""Closes connection and releases werkzeug local."""
-	if db:
-		db.close()
-
-	release_local(local)
+	try:
+		if db:
+			db.close()
+	finally:
+		release_local(local)
 
 
 _redis_init_lock = threading.Lock()
@@ -552,6 +713,8 @@ def only_for(roles: list[str] | tuple[str] | str, message=False):
 
 
 def get_domain_data(module):
+	from frappe.utils import get_attr
+
 	try:
 		domain_data = get_hooks("domains")
 		if module in domain_data:
@@ -639,6 +802,8 @@ def has_website_permission(doc=None, ptype="read", user=None, verbose=False, doc
 
 	if doc:
 		if isinstance(doc, str):
+			from frappe.model.document import get_lazy_doc
+
 			doc = get_lazy_doc(doctype, doc)
 
 		doctype = doc.doctype
@@ -679,7 +844,7 @@ def get_precision(
 	doctype: str, fieldname: str, currency: str | None = None, doc: "Document" | None = None
 ) -> int:
 	"""Get precision for a given field"""
-	from frappe.model.meta import get_field_precision
+	from frappe.model.meta import get_field_precision, get_meta
 
 	return get_field_precision(get_meta(doctype).get_field(fieldname), doc, currency)
 
@@ -812,116 +977,6 @@ def rename_doc(
 	)
 
 
-def get_module(modulename: str):
-	"""Return a module object for given Python module name using `importlib.import_module`."""
-	return importlib.import_module(modulename)
-
-
-def scrub(txt: str) -> str:
-	"""Return sluggified string. e.g. `Sales Order` becomes `sales_order`."""
-	return cstr(txt).replace(" ", "_").replace("-", "_").lower()
-
-
-def unscrub(txt: str) -> str:
-	"""Return titlified string. e.g. `sales_order` becomes `Sales Order`."""
-	return txt.replace("_", " ").replace("-", " ").title()
-
-
-def get_module_path(module, *joins):
-	"""Get the path of the given module name.
-
-	:param module: Module name.
-	:param *joins: Join additional path elements using `os.path.join`."""
-	from frappe.modules.utils import get_module_app
-
-	app = get_module_app(module)
-	return get_pymodule_path(app + "." + scrub(module), *joins)
-
-
-def get_app_path(app_name, *joins):
-	"""Return path of given app.
-
-	:param app: App name.
-	:param *joins: Join additional path elements using `os.path.join`."""
-	return get_pymodule_path(app_name, *joins)
-
-
-def get_app_source_path(app_name, *joins):
-	"""Return source path of given app.
-
-	:param app: App name.
-	:param *joins: Join additional path elements using `os.path.join`."""
-	return get_app_path(app_name, "..", *joins)
-
-
-def get_site_path(*joins):
-	"""Return path of current site.
-
-	:param *joins: Join additional path elements using `os.path.join`."""
-	from os.path import join
-
-	return join(local.site_path, *joins)
-
-
-def get_pymodule_path(modulename, *joins):
-	"""Return path of given Python module name.
-
-	:param modulename: Python module name.
-	:param *joins: Join additional path elements using `os.path.join`."""
-	from os.path import abspath, dirname, join
-
-	if "public" not in joins:
-		joins = [scrub(part) for part in joins]
-
-	return abspath(join(dirname(get_module(scrub(modulename)).__file__ or ""), *joins))
-
-
-def get_module_list(app_name):
-	"""Get list of modules for given all via `app/modules.txt`."""
-	return get_file_items(get_app_path(app_name, "modules.txt"))
-
-
-def get_all_apps(with_internal_apps=True, sites_path=None):
-	"""Get list of all apps via `sites/apps.txt`."""
-	if not sites_path:
-		sites_path = local.sites_path
-
-	apps = get_file_items(os.path.join(sites_path, "apps.txt"), raise_not_found=True)
-
-	if with_internal_apps:
-		for app in get_file_items(os.path.join(local.site_path, "apps.txt")):
-			if app not in apps:
-				apps.append(app)
-
-	if "frappe" in apps:
-		apps.remove("frappe")
-	apps.insert(0, "frappe")
-
-	return apps
-
-
-@request_cache
-def get_installed_apps(*, _ensure_on_bench: bool = False) -> list[str]:
-	"""
-	Get list of installed apps in current site.
-
-	:param _ensure_on_bench: Only return apps that are present on bench.
-	"""
-	if getattr(flags, "in_install_db", True):
-		return []
-
-	if not db:
-		connect()
-
-	installed = orjson.loads(db.get_global("installed_apps") or "[]")
-
-	if _ensure_on_bench:
-		all_apps = cache.get_value("all_apps", get_all_apps)
-		installed = [app for app in installed if app in all_apps]
-
-	return installed
-
-
 def get_doc_hooks():
 	"""Return hooked methods for given doc. Expand the dict tuple if required."""
 	if not getattr(local, "doc_events_hooks", None):
@@ -941,6 +996,9 @@ def get_doc_hooks():
 
 def _load_app_hooks(app_name: str | None = None):
 	import types
+
+	from frappe.apps import get_installed_apps
+	from frappe.utils import get_module
 
 	hooks = {}
 	apps = [app_name] if app_name else get_installed_apps(_ensure_on_bench=True)
@@ -1022,6 +1080,9 @@ def setup_module_map(include_all_apps: bool = True) -> None:
 	:param: include_all_apps: Include all apps on bench, or just apps installed on the site.
 	:return: Nothing
 	"""
+	from frappe.apps import get_all_apps, get_installed_apps
+	from frappe.modules.utils import get_module_list
+
 	if include_all_apps:
 		app_modules = cache.get_value("app_modules")
 	else:
@@ -1061,65 +1122,11 @@ def setup_module_map(include_all_apps: bool = True) -> None:
 	local.module_app = module_app
 
 
-def get_file_items(path, raise_not_found=False, ignore_empty_lines=True):
-	"""Return items from text file as a list. Ignore empty lines."""
-	import frappe.utils
-
-	content = read_file(path, raise_not_found=raise_not_found)
-	if content:
-		content = frappe.utils.strip(content)
-
-		return [
-			p.strip()
-			for p in content.splitlines()
-			if (not ignore_empty_lines) or (p.strip() and not p.startswith("#"))
-		]
-	else:
-		return []
-
-
-def get_file_json(path):
-	"""Read a file and return parsed JSON object."""
-	with open(path) as f:
-		return json.load(f)
-
-
-def read_file(path, raise_not_found=False, as_base64=False):
-	"""Open a file and return its content as Unicode or Base64 string."""
-	if isinstance(path, str):
-		path = path.encode("utf-8")
-
-	if os.path.exists(path):
-		if as_base64:
-			import base64
-
-			with open(path, "rb") as f:
-				content = f.read()
-				return base64.b64encode(content).decode("utf-8")
-		else:
-			with open(path) as f:
-				content = f.read()
-				return as_unicode(content)
-	elif raise_not_found:
-		raise OSError(f"{path} Not Found")
-	else:
-		return None
-
-
-def get_attr(method_string: str) -> Any:
-	"""Get python method object from its name."""
-	app_name = method_string.split(".", 1)[0]
-	if not local.flags.in_uninstall and not local.flags.in_install and app_name not in get_installed_apps():
-		throw(_("App {0} is not installed").format(app_name), AppNotInstalledError)
-
-	modulename = ".".join(method_string.split(".")[:-1])
-	methodname = method_string.split(".")[-1]
-	return getattr(get_module(modulename), methodname)
-
-
 def call(fn: str | Callable, *args, **kwargs):
 	"""Call a function and match arguments."""
 	if isinstance(fn, str):
+		from frappe.utils import get_attr
+
 		fn = get_attr(fn)
 
 	newargs = get_newargs(fn, kwargs)
@@ -1205,6 +1212,8 @@ def make_property_setter(
 				or "Data"
 			)
 
+		from frappe.model.document import get_doc
+
 		ps = get_doc(
 			{
 				"doctype": "Property Setter",
@@ -1233,101 +1242,12 @@ def import_doc(path):
 	import_doc(path)
 
 
-def respond_as_web_page(
-	title,
-	html,
-	success=None,
-	http_status_code=None,
-	context=None,
-	indicator_color=None,
-	primary_action="/",
-	primary_label=None,
-	fullpage=False,
-	width=None,
-	template="message",
-):
-	"""Send response as a web page with a message rather than JSON. Used to show permission errors etc.
-
-	:param title: Page title and heading.
-	:param message: Message to be shown.
-	:param success: Alert message.
-	:param http_status_code: HTTP status code
-	:param context: web template context
-	:param indicator_color: color of indicator in title
-	:param primary_action: route on primary button (default is `/`)
-	:param primary_label: label on primary button (default is "Home")
-	:param fullpage: hide header / footer
-	:param width: Width of message in pixels
-	:param template: Optionally pass view template
-	"""
-	local.message_title = title
-	local.message = html
-	local.response["type"] = "page"
-	local.response["route"] = template
-	local.no_cache = 1
-
-	if http_status_code:
-		local.response["http_status_code"] = http_status_code
-
-	if not context:
-		context = {}
-
-	if not indicator_color:
-		if success:
-			indicator_color = "green"
-		elif http_status_code and http_status_code > 300:
-			indicator_color = "red"
-		else:
-			indicator_color = "blue"
-
-	context["indicator_color"] = indicator_color
-	context["primary_label"] = primary_label
-	context["primary_action"] = primary_action
-	context["error_code"] = http_status_code
-	context["fullpage"] = fullpage
-	if width:
-		context["card_width"] = width
-
-	local.response["context"] = context
-
-
 def redirect(url):
 	"""Raise a 301 redirect to url"""
 	from frappe.exceptions import Redirect
 
 	flags.redirect_location = url
 	raise Redirect
-
-
-def redirect_to_message(title, html, http_status_code=None, context=None, indicator_color=None):
-	"""Redirects to /message?id=random
-	Similar to respond_as_web_page, but used to 'redirect' and show message pages like success, failure, etc. with a detailed message
-
-	:param title: Page title and heading.
-	:param message: Message to be shown.
-	:param http_status_code: HTTP status code.
-
-	Example Usage:
-	        frappe.redirect_to_message(_('Thank you'), "<div><p>You will receive an email at test@example.com</p></div>")
-
-	"""
-
-	message_id = generate_hash(length=8)
-	message = {"context": context or {}, "http_status_code": http_status_code or 200}
-	message["context"].update({"header": title, "title": title, "message": html})
-
-	if indicator_color:
-		message["context"].update({"indicator_color": indicator_color})
-
-	cache.set_value(f"message_id:{message_id}", message, expires_in_sec=60)
-	location = f"/message?id={message_id}"
-
-	if not getattr(local, "is_ajax", False):
-		local.response["type"] = "redirect"
-		local.response["location"] = location
-
-	else:
-		return location
 
 
 def build_match_conditions(doctype, as_condition=True):
@@ -1433,12 +1353,9 @@ def are_emails_muted():
 	return flags.mute_emails or cint(conf.get("mute_emails", 0))
 
 
-from frappe.deprecation_dumpster import frappe_get_test_records as get_test_records
-
-
 def task(**task_kwargs):
 	def decorator_task(f):
-		f.enqueue = lambda **fun_kwargs: enqueue(f, **task_kwargs, **fun_kwargs)
+		f.enqueue = lambda **fun_kwargs: frappe.enqueue(f, **task_kwargs, **fun_kwargs)
 		return f
 
 	return decorator_task
@@ -1474,6 +1391,7 @@ def logger(
 
 def get_desk_link(doctype, name, show_title_with_name=False, open_in_new_tab=False):
 	from frappe.desk.utils import slug
+	from frappe.model.meta import get_meta
 	from frappe.utils.data import quoted
 
 	meta = get_meta(doctype)
@@ -1560,42 +1478,17 @@ def override_whitelisted_method(original_method: str) -> str:
 	return overrides[-1] if overrides else original_method
 
 
-# Backward compatibility
-from frappe.utils.messages import *  # noqa: I001
-
 import frappe._optimizations
-from frappe.cache_manager import clear_cache, reset_metadata_version
-from frappe.config import get_common_site_config, get_conf, get_site_config
-from frappe.core.doctype.system_settings.system_settings import get_system_settings
-from frappe.model.document import (
-	get_doc,
-	get_docs,
-	get_lazy_doc,
-	copy_doc,
-	new_doc,
-	get_cached_doc,
-	can_cache_doc,
-	get_document_cache_key,
-	clear_document_cache,
-	get_cached_value,
-	get_single_value,
-	get_last_doc,
-	get_single,
-	_set_document_in_cache,
+from frappe.utils.messages import (
+	clear_last_message,
+	clear_messages,
+	get_message_log,
+	msgprint,
+	throw,
+	throw_permission_error,
+	toast,
 )
-from frappe.model.meta import get_meta
-from frappe.realtime import publish_progress, publish_realtime
-from frappe.utils import get_traceback, mock, parse_json, safe_eval, create_folder
-from frappe.utils.background_jobs import enqueue, enqueue_doc
-from frappe.utils.task_queue import enqueue_task, get_current_task
-from frappe.utils.error import log_error
-from frappe.utils.formatters import format_value
-from frappe.utils.print_utils import get_print, attach_print
-from frappe.email import sendmail
-from frappe.concurrency_limiter import concurrent_limit
 
-# for backwards compatibility
-format = format_value
 delete_doc_if_exists = delete_doc
 
 frappe._optimizations.optimize_all()

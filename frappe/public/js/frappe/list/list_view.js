@@ -360,7 +360,7 @@ frappe.views.ListView = class ListView extends frappe.views.BaseList {
 
 	setup_view() {
 		this.setup_columns();
-		this.render_header();
+		// Header is rendered on first refresh after layout restore in before_refresh().
 		this.render_skeleton();
 		this.setup_events();
 		this.settings.onload && this.settings.onload(this);
@@ -377,8 +377,15 @@ frappe.views.ListView = class ListView extends frappe.views.BaseList {
 	}
 
 	refresh(refresh_header = false) {
+		if (refresh_header) {
+			this._refresh_header_on_render = true;
+		}
 		return super.refresh().then(() => {
-			this.render_header(refresh_header);
+			if (refresh_header && !this._header_rendered_in_list) {
+				this.render_header(true);
+				this.apply_column_widths();
+			}
+			this._header_rendered_in_list = false;
 			this.render_count();
 			this.update_checkbox();
 			this.update_url_with_filters();
@@ -408,9 +415,25 @@ frappe.views.ListView = class ListView extends frappe.views.BaseList {
 		this.$result.append(this.$freeze);
 	}
 
-	setup_columns() {
+	setup_columns(fields_override = null) {
 		// setup columns for list view
 		this.columns = [];
+		if (
+			!fields_override &&
+			this.list_filter?.active_layout_name &&
+			this.list_filter.active_layout_name !== "default_layout"
+		) {
+			fields_override = this.list_filter.get_layout_columns(
+				this.list_filter.get_active_layout()
+			);
+		}
+
+		if (fields_override?.length) {
+			this.columns = this.build_columns_from_fields(fields_override);
+			this.columns = this.columns.slice(0, this.max_number_of_fields);
+			this.columns.splice(1, 0, { type: "Tag" });
+			return;
+		}
 
 		const get_df = frappe.meta.get_docfield.bind(null, this.doctype);
 
@@ -457,8 +480,8 @@ frappe.views.ListView = class ListView extends frappe.views.BaseList {
 				}))
 		);
 
-		if (this.list_view_settings.fields) {
-			this.columns = this.reorder_listview_fields();
+		if (this.list_view_settings.fields || (fields_override && fields_override.length)) {
+			this.columns = this.reorder_listview_fields(fields_override);
 		}
 
 		this.columns = this.columns.slice(0, this.max_number_of_fields);
@@ -483,9 +506,42 @@ frappe.views.ListView = class ListView extends frappe.views.BaseList {
 		}
 	}
 
-	reorder_listview_fields() {
+	/** Build list columns directly from saved layout / settings field list (order preserved). */
+	build_columns_from_fields(fields) {
+		const get_df = frappe.meta.get_docfield.bind(null, this.doctype);
+		const subject_fieldname = this.meta.title_field?.trim() || "name";
+		const columns = [];
+
+		fields.forEach((field) => {
+			if (field.fieldname === "status_field") {
+				if (!frappe.has_indicator(this.doctype)) return;
+				const col = { type: "Status", df: { fieldname: "status_field" } };
+				if (field.width) col.df.width = field.width;
+				columns.push(col);
+				return;
+			}
+
+			let df = get_df(field.fieldname) || {
+				label: field.label || field.fieldname,
+				fieldname: field.fieldname,
+			};
+			df = { ...df };
+			if (field.width) df.width = field.width;
+
+			const type = field.fieldname === subject_fieldname ? "Subject" : "Field";
+			columns.push({ type, df });
+		});
+
+		return columns;
+	}
+
+	reorder_listview_fields(fields_override = null) {
 		let fields_order = [];
-		let fields = JSON.parse(this.list_view_settings.fields);
+		let fields = fields_override;
+		if (!fields && this.list_view_settings.fields) {
+			fields = JSON.parse(this.list_view_settings.fields);
+		}
+		if (!fields || !fields.length) return this.columns;
 
 		// title field is fixed — but still honour any saved width from settings
 		const subjectCol = this.columns[0];
@@ -496,11 +552,8 @@ frappe.views.ListView = class ListView extends frappe.views.BaseList {
 		fields_order.push(subjectCol);
 		this.columns.splice(0, 1);
 
-		for (let fld in fields) {
-			for (let col in this.columns) {
-				let field = fields[fld];
-				let column = this.columns[col];
-
+		for (const field of fields) {
+			for (const column of this.columns) {
 				if (column.type == "Status" && field.fieldname == "status_field") {
 					if (field.width) {
 						column.df = column.df || { fieldname: "status_field" };
@@ -590,6 +643,8 @@ frappe.views.ListView = class ListView extends frappe.views.BaseList {
 	}
 
 	before_refresh() {
+		let route_promise = Promise.resolve();
+
 		if (frappe.route_options && this.filter_area) {
 			if (frappe.route_options.reset_filters) {
 				frappe.route_options = null;
@@ -597,23 +652,34 @@ frappe.views.ListView = class ListView extends frappe.views.BaseList {
 				url.searchParams.delete("reset_filters");
 				history.replaceState(history.state, "", url.toString());
 				this._set_breadcrumb_layout(null);
-				return this.filter_area.clear();
-			}
+				route_promise = this.filter_area.clear();
+			} else {
+				const layout_name = frappe.route_options._layout || null;
+				this._set_breadcrumb_layout(layout_name);
 
-			const layout_name = frappe.route_options._layout || null;
-			this._set_breadcrumb_layout(layout_name);
+				this.filters = this.parse_filters_from_route_options();
+				frappe.route_options = null;
 
-			this.filters = this.parse_filters_from_route_options();
-			frappe.route_options = null;
-
-			if (this.filters.length > 0) {
-				return this.filter_area
-					.clear(false)
-					.then(() => this.filter_area.set(this.filters));
+				if (this.filters.length > 0) {
+					route_promise = this.filter_area
+						.clear(false)
+						.then(() => this.filter_area.set(this.filters));
+				}
 			}
 		}
 
-		return Promise.resolve();
+		return route_promise
+			.then(() => {
+				if (this.list_filter && !this.list_filter._initial_layout_restored) {
+					return this.list_filter.restore_layout_from_route_signature({
+						refresh: false,
+					});
+				}
+			})
+			.then(() => {
+				// First paint: rebuild header once columns/filters are resolved (avoids default→layout shift).
+				this._pending_initial_header = true;
+			});
 	}
 
 	_set_breadcrumb_layout(layout_name) {
@@ -726,6 +792,19 @@ frappe.views.ListView = class ListView extends frappe.views.BaseList {
 	}
 
 	save_column_width(fieldname, width) {
+		if (
+			this.list_filter?.active_layout_name &&
+			this.list_filter.active_layout_name !== "default_layout"
+		) {
+			const layout = this.list_filter.get_active_layout();
+			if (!layout || !this.list_filter.can_edit_layout(layout)) return;
+			const columns = this.list_filter.get_current_columns_state();
+			const column = columns.find((row) => row.fieldname === fieldname);
+			if (column) column.width = width;
+			this.list_filter.update_layout_columns(layout, columns);
+			return;
+		}
+
 		let fields;
 
 		if (this.list_view_settings?.fields) {
@@ -767,11 +846,23 @@ frappe.views.ListView = class ListView extends frappe.views.BaseList {
 	before_render() {
 		this.settings.before_render && this.settings.before_render();
 		frappe.model.user_settings.save(this.doctype, "last_view", this.view_name);
-		this.save_view_user_settings({
-			filters: this.filter_area && this.filter_area.get(),
-			sort_by: this.sort_selector && this.sort_selector.sort_by,
-			sort_order: this.sort_selector && this.sort_selector.sort_order,
-		});
+		if (this.list_filter?._applying_layout) {
+			return;
+		}
+		// Layout restore runs in before_refresh; only persist default-layout state here.
+		if (this.list_filter && !this.list_filter._initial_layout_restored) {
+			return;
+		}
+		if (
+			!this.list_filter?.active_layout_name ||
+			this.list_filter.active_layout_name === "default_layout"
+		) {
+			this.save_view_user_settings({
+				filters: this.filter_area && this.filter_area.get(),
+				sort_by: this.sort_selector && this.sort_selector.sort_by,
+				sort_order: this.sort_selector && this.sort_selector.sort_order,
+			});
+		}
 	}
 
 	after_render() {
@@ -788,7 +879,13 @@ frappe.views.ListView = class ListView extends frappe.views.BaseList {
 		// clear rows
 		this.$result.find(".list-row-container").remove();
 		this.parent.page.main.parent().addClass("list-view");
-		this.render_header();
+		const refresh_header = this._refresh_header_on_render || this._pending_initial_header;
+		this.render_header(refresh_header);
+		if (refresh_header) {
+			this._header_rendered_in_list = true;
+			this._refresh_header_on_render = false;
+			this._pending_initial_header = false;
+		}
 
 		let has_assignto = false;
 
@@ -1106,9 +1203,9 @@ frappe.views.ListView = class ListView extends frappe.views.BaseList {
 						${frappe.utils.icon("restriction")}
 					</div>`;
 			} else if (df.fieldtype === "Select") {
-				html = `<span class="${filterable} indicator-pill ${frappe.utils.guess_colour(
+				html = `<span class="${filterable} es-badge ellipsis" data-theme="${frappe.utils.guess_colour(
 					_value
-				)} ellipsis"
+				)}"
 					data-filter="${fieldname},=,${value}">
 					<span class="ellipsis"> ${__(_value)} </span>
 				</span>`;
@@ -1476,7 +1573,7 @@ frappe.views.ListView = class ListView extends frappe.views.BaseList {
 		];
 		const title = docstatus_description[doc.docstatus || 0];
 		if (indicator) {
-			return `<span class="indicator-pill ${indicator[1]} filterable no-indicator-dot ellipsis"
+			return `<span class="es-badge filterable ellipsis" data-theme="${indicator[1]}"
 				data-filter='${indicator[2]}' title='${title}'>
 				<span class="ellipsis"> ${indicator[0]}</span>
 			</span>`;
@@ -2523,6 +2620,7 @@ frappe.views.ListView = class ListView extends frappe.views.BaseList {
 					this.disable_list_update = true;
 					bulk_operations.edit(this.get_checked_items(true), field_mappings, () => {
 						this.disable_list_update = false;
+						this.clear_checked_items();
 						this.refresh();
 					});
 				},
@@ -2772,6 +2870,9 @@ frappe.views.ListView = class ListView extends frappe.views.BaseList {
 					});
 				} else if (Array.isArray(value)) {
 					filters.push([doctype, field, value[0], value[1]]);
+				} else if (["_assign", "_liked_by"].includes(field)) {
+					// stored as a JSON array, so an exact match can never hit
+					filters.push([doctype, field, "like", `%${value}%`]);
 				} else {
 					filters.push([doctype, field, "=", value]);
 				}

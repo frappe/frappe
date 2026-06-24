@@ -1,4 +1,3 @@
-import ListFilter from "./list_filter";
 frappe.provide("frappe.views");
 
 frappe.views.BaseList = class BaseList {
@@ -13,9 +12,9 @@ frappe.views.BaseList = class BaseList {
 			() => this.hide_skeleton(),
 			() => this.check_permissions(),
 			() => this.init(),
+			() => this.setup_list_filter_by(),
 			() => this.before_refresh(),
 			() => this.refresh(),
-			() => this.setup_list_filter_by(),
 		]);
 	}
 
@@ -31,6 +30,7 @@ frappe.views.BaseList = class BaseList {
 			this.setup_main_section,
 			this.setup_view,
 			this.setup_view_menu,
+			this.setup_resize_handler,
 		].map((fn) => fn.bind(this));
 
 		this.init_promise = frappe.run_serially(tasks);
@@ -429,17 +429,32 @@ frappe.views.BaseList = class BaseList {
 		});
 	}
 
+	setup_resize_handler() {
+		$(window)
+			.off("resize.list-view")
+			.on(
+				"resize.list-view",
+				frappe.utils.debounce(() => {
+					if (cur_list?.$result?.is(":visible")) {
+						cur_list.set_result_height();
+					}
+				}, 300)
+			);
+	}
+
 	set_result_height() {
 		if (this.view !== "List") return;
 		this.$result[0].style.removeProperty("height");
 		// place it at the footer of the page
 
-		let resultContainerHeight = window.innerHeight - this.$paging_area.get(0).offsetHeight;
-		if (!frappe.is_mobile()) {
-			resultContainerHeight = resultContainerHeight - this.$result.get(0).offsetTop;
-		}
-		this.$result.parent(".result-container").css({
-			height: resultContainerHeight - (frappe.is_mobile() ? 100 : 0) + "px",
+		let $result_container = this.$result.parent(".result-container");
+		let main_rect = $(".main-section").get(0).getBoundingClientRect();
+		let result_top = $result_container.get(0).getBoundingClientRect().top - main_rect.top;
+		let resultContainerHeight = Math.floor(
+			main_rect.height - this.$paging_area.get(0).getBoundingClientRect().height - result_top
+		);
+		$result_container.css({
+			height: resultContainerHeight + "px",
 		});
 
 		this.$result[0].style.height =
@@ -619,7 +634,12 @@ frappe.views.BaseList = class BaseList {
 	}
 
 	setup_list_filter_by() {
-		new ListFilter(this);
+		return new Promise((resolve) => {
+			frappe.require("list_layout.bundle.js", () => {
+				this.list_filter = new frappe.views.ListFilter(this);
+				resolve(this.list_filter.setup_promise);
+			});
+		});
 	}
 };
 
