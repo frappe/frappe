@@ -19,6 +19,7 @@ from frappe.core.doctype.doctype.test_doctype import new_doctype
 from frappe.model.utils.mask import mask_field_value
 from frappe.permissions import add_user_permission, update_permission_property
 from frappe.tests import IntegrationTestCase
+from frappe.utils import flt
 
 
 def _make_field(fieldname, fieldtype="Data", options=None, mask=1, **kwargs):
@@ -302,6 +303,106 @@ class TestMaskFieldsBehaviour(IntegrationTestCase):
 		finally:
 			update_permission_property(self.dt, self.TEST_ROLE, 0, "mask", 0)
 			frappe.clear_cache(doctype=self.dt)
+
+
+class TestMaskFieldsInChildTable(IntegrationTestCase):
+	"""Regression test for issue #39679: masked child-table fields must be masked on read
+	(numeric ones as the placeholder, not cast back to 0) and restored on save."""
+
+	TEST_USER = "test_mask_child_user@example.com"
+	TEST_ROLE = "Test Mask Child Role"
+
+	@classmethod
+	def setUpClass(cls):
+		super().setUpClass()
+
+		if not frappe.db.exists("Role", cls.TEST_ROLE):
+			frappe.get_doc({"doctype": "Role", "role_name": cls.TEST_ROLE, "desk_access": 1}).insert()
+
+		if not frappe.db.exists("User", cls.TEST_USER):
+			frappe.get_doc(
+				{
+					"doctype": "User",
+					"email": cls.TEST_USER,
+					"first_name": "Mask Child Test",
+					"send_welcome_email": 0,
+					"roles": [{"role": cls.TEST_ROLE}],
+				}
+			).insert(ignore_permissions=True)
+		else:
+			frappe.get_doc("User", cls.TEST_USER).add_roles(cls.TEST_ROLE)
+
+		# Child doctype with a masked Data field, a masked Currency field and an unmasked Float
+		cls.child_dt = (
+			new_doctype(
+				istable=1,
+				fields=[
+					_make_field("secret_note", "Data", mask=1),
+					_make_field("rate", "Currency", mask=1),
+					_make_field("public_qty", "Float", mask=0),
+				],
+			)
+			.insert()
+			.name
+		)
+
+		cls.dt = (
+			new_doctype(
+				fields=[_make_field("items", "Table", options=cls.child_dt, mask=0)],
+				permissions=[{"role": cls.TEST_ROLE, "read": 1, "write": 1, "create": 1}],
+			)
+			.insert()
+			.name
+		)
+
+		doc = frappe.get_doc(
+			{
+				"doctype": cls.dt,
+				"items": [{"secret_note": "child_secret", "rate": 1234.5, "public_qty": 7}],
+			}
+		).insert()
+		cls.docname = doc.name
+		cls.row_name = doc.items[0].name
+
+	@classmethod
+	def tearDownClass(cls):
+		frappe.set_user("Administrator")
+		frappe.db.delete(cls.dt)
+		frappe.db.delete(cls.child_dt)
+		frappe.delete_doc("DocType", cls.dt, force=True)
+		frappe.delete_doc("DocType", cls.child_dt, force=True)
+		if frappe.db.exists("User", cls.TEST_USER):
+			frappe.db.set_value("User", cls.TEST_USER, "enabled", 0)
+		super().tearDownClass()
+
+	def tearDown(self):
+		frappe.set_user("Administrator")
+
+	def test_child_masked_fields_masked_for_non_admin(self):
+		"""Child masked fields are masked on read; numeric ones survive serialization as the
+		placeholder instead of being cast to 0."""
+		frappe.set_user(self.TEST_USER)
+		doc = frappe.get_doc(self.dt, self.docname)
+		doc.apply_fieldlevel_read_permissions()
+
+		self.assertEqual(doc.items[0].secret_note, "XXXXXXXX")
+		self.assertEqual(doc.items[0].rate, "XXXXXXXX")
+		self.assertEqual(doc.items[0].public_qty, 7)  # unmasked field untouched
+		# numeric placeholder must not be cast back to 0 when serialized for the client
+		self.assertEqual(doc.as_dict()["items"][0]["rate"], "XXXXXXXX")
+
+	def test_masked_child_value_preserved_on_save(self):
+		"""Saving with the placeholder in a masked child field keeps the real DB value."""
+		frappe.set_user(self.TEST_USER)
+		doc = frappe.get_doc(self.dt, self.docname)
+		doc.items[0].rate = "XXXXXXXX"  # as sent by the client
+		doc.items[0].public_qty = 9
+		doc.save()
+
+		frappe.set_user("Administrator")
+		saved = frappe.db.get_value(self.child_dt, self.row_name, ["rate", "public_qty"], as_dict=True)
+		self.assertEqual(flt(saved.rate), 1234.5)  # masked value restored, not overwritten
+		self.assertEqual(flt(saved.public_qty), 9)  # unmasked field still writable
 
 
 class TestMaskFieldsWithUserPermissions(IntegrationTestCase):
