@@ -140,7 +140,9 @@ def get_json_request_apps() -> list[str]:
 	native `application/json` body. Apps that don't opt in keep the legacy form-encoded payload.
 	"""
 	return [
-		app for app in frappe.get_installed_apps() if frappe.get_hooks("use_json_request_body", app_name=app)
+		app
+		for app in frappe.get_installed_apps()
+		if any(frappe.get_hooks("use_json_request_body", app_name=app))
 	]
 
 
@@ -266,7 +268,7 @@ def add_home_page(bootinfo, docs):
 		page = frappe.desk.desk_page.get(home_page)
 		docs.append(page)
 		bootinfo["home_page"] = page.name
-	except (frappe.DoesNotExistError, frappe.PermissionError):
+	except frappe.DoesNotExistError, frappe.PermissionError:
 		frappe.clear_last_message()
 		bootinfo["home_page"] = "desktop"
 
