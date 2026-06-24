@@ -145,3 +145,13 @@ class AIModel(Document):
 			frappe.throw(str(e)[:500] or type(e).__name__, title=_(type(e).__name__))
 
 		return {"ok": True, "message": _("Connection OK")}
+
+
+@frappe.whitelist()
+def get_provider_models(provider: str | None = None) -> list[str]:
+	if not provider:
+		return []
+
+	import litellm
+
+	return sorted(litellm.models_by_provider.get(provider.strip().lower(), set()))
