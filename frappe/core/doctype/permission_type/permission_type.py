@@ -70,6 +70,8 @@ class PermissionType(Document):
 		for target in CUSTOM_FIELD_TARGET:
 			self.create_custom_field(target)
 
+		get_doctype_ptype_map.clear_cache()
+
 		if self.should_export():
 			from frappe.modules.export_file import export_to_files
 
@@ -116,6 +118,8 @@ class PermissionType(Document):
 
 		for target in CUSTOM_FIELD_TARGET:
 			self.delete_custom_field(target)
+
+		get_doctype_ptype_map.clear_cache()
 
 		if self.should_export():
 			module = frappe.db.get_value("DocType", self.doc_type, "module")
