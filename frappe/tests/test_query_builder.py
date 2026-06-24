@@ -391,10 +391,13 @@ class TestCustomFunctionsPostgres(IntegrationTestCase):
 		from datetime import datetime
 		from zoneinfo import ZoneInfo
 
-		expr = UnixTimestamp(Date("2021-06-01")).get_sql()
+		# select the (constant) epoch expression through the query builder so no SQL string is
+		# interpolated; DocType is always populated, so LIMIT 1 returns a row.
+		dt = frappe.qb.DocType("DocType")
+		epoch = UnixTimestamp(Date("2021-06-01"))
 		for tz in ("UTC", "Asia/Kolkata", "America/New_York"):
-			frappe.db.sql(f"SET LOCAL TIME ZONE '{tz}'")
-			(got,) = frappe.db.sql(f"SELECT {expr}")[0]
+			frappe.db.sql("SET LOCAL TIME ZONE %s", (tz,))
+			got = frappe.qb.from_(dt).select(epoch).limit(1).run()[0][0]
 			expected = int(datetime(2021, 6, 1, tzinfo=ZoneInfo(tz)).timestamp())
 			self.assertEqual(got, expected, msg=f"timezone {tz}")
 
