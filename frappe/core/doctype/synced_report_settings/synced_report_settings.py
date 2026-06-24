@@ -23,40 +23,49 @@ class SyncedReportSettings(Document):
 
 	def validate(self):
 		old_doc = self.get_doc_before_save()
-		if old_doc.enable_synced_reports != self.enable_synced_reports:
+		if (old_doc.enable_synced_reports != self.enable_synced_reports) or (
+			old_doc.frequency != self.frequency
+		):
 			synced_report_scheduler(self.enable_synced_reports, self.frequency)
 
 
-def synced_report_scheduler(enable: bool = False, frequency: str = "Daily"):
-	if enable:
-		cron_format = "0 0 * * *" if frequency == "Daily" else "0 * * * *"
+def disable_cron_job():
+	if event := frappe.db.get_all(
+		"Scheduler Event", {"scheduled_against": "Synced Report Settings"}, pluck="name"
+	):
+		event = event[0]
+		frappe.db.delete("Scheduled Job Type", {"scheduler_event": event})
+		frappe.db.delete("Scheduler Event", event)
 
-		# schedule cron job
-		event = frappe.get_doc(
-			{
-				"doctype": "Scheduler Event",
-				"scheduled_against": "Synced Report Settings",
-				"method": "frappe.core.doctype.synced_report_settings.synced_report_settings.start_sync",
-			}
-		).insert()
-		frappe.get_doc(
-			{
-				"doctype": "Scheduled Job Type",
-				"frequency": "Cron",
-				"scheduler_event": event.name,
-				"cron_format": cron_format,
-				"method": "frappe.core.doctype.synced_report_settings.synced_report_settings.start_sync",
-				"create_log": True,
-			}
-		).insert()
-	else:
-		# delete cron job
-		if event := frappe.db.get_all(
-			"Scheduler Event", {"scheduled_against": "Synced Report Settings"}, pluck="name"
-		):
-			event = event[0]
-			frappe.db.delete("Scheduled Job Type", {"scheduler_event": event})
-			frappe.db.delete("Scheduler Event", event)
+
+def enable_cron_job(frequency: str = "Daily"):
+	cron_format = "0 0 * * *" if frequency == "Daily" else "0 * * * *"
+
+	# schedule cron job
+	event = frappe.get_doc(
+		{
+			"doctype": "Scheduler Event",
+			"scheduled_against": "Synced Report Settings",
+			"method": "frappe.core.doctype.synced_report_settings.synced_report_settings.start_sync",
+		}
+	).insert()
+	frappe.get_doc(
+		{
+			"doctype": "Scheduled Job Type",
+			"frequency": "Cron",
+			"scheduler_event": event.name,
+			"cron_format": cron_format,
+			"method": "frappe.core.doctype.synced_report_settings.synced_report_settings.start_sync",
+			"create_log": True,
+		}
+	).insert()
+
+
+def synced_report_scheduler(enable: bool = False, frequency: str = "Daily"):
+	# trash old job and recreate
+	disable_cron_job()
+	if enable:
+		enable_cron_job(frequency)
 
 
 def start_sync():
