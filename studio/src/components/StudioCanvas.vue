@@ -65,7 +65,7 @@
 					{{ breakpoint.displayName }}
 				</div>
 				<StudioComponent
-					class="h-full min-h-[inherit]"
+					:class="canvasStore.editingMode === 'fragment' ? '' : 'h-full min-h-[inherit]'"
 					v-if="showBlocks && rootComponent"
 					:block="rootComponent"
 					:key="rootComponent.componentId"
