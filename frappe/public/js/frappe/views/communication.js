@@ -50,11 +50,100 @@ frappe.views.CommunicationComposer = class {
 		$titleSection.on("click", () => this.dialog.toggle_minimize());
 
 		this.prepare();
+		this.render_gmail_layout();
 		this.dialog.show();
 
 		if (this.frm) {
 			$(document).trigger("form-typing", [this.frm]);
 		}
+	}
+
+	render_gmail_layout() {
+		// Build the Gmail-shaped skeleton and move the existing rendered controls into named slots.
+		// All controls remain functional because we move the actual .frappe-control DOM (not clones)
+		// and their instances stay in this.dialog.fields_dict.
+		const $body = this.dialog.$body;
+		const icon = (name) => frappe.utils.icon(name, "sm");
+
+		const $skeleton = $(`
+			<div class="gmail-compose">
+				<div class="gmail-row gmail-to-row">
+					<div class="gmail-slot" data-slot="recipients"></div>
+					<div class="gmail-cc-bcc-toggles">
+						<a class="gmail-toggle" data-toggle="cc">${__("Cc")}</a>
+						<a class="gmail-toggle" data-toggle="bcc">${__("Bcc")}</a>
+					</div>
+				</div>
+				<div class="gmail-row gmail-cc-row is-collapsed">
+					<div class="gmail-slot" data-slot="cc"></div>
+				</div>
+				<div class="gmail-row gmail-bcc-row is-collapsed">
+					<div class="gmail-slot" data-slot="bcc"></div>
+				</div>
+				<div class="gmail-row gmail-subject-row">
+					<div class="gmail-slot" data-slot="subject"></div>
+				</div>
+				<div class="gmail-message-area">
+					<div class="gmail-slot" data-slot="content"></div>
+				</div>
+				<div class="gmail-action-bar">
+					<div class="gmail-action-bar__send" data-slot="send-button"></div>
+					<div class="gmail-icon-row">
+						<button class="btn btn-ghost icon-btn" data-action="format" title="${__(
+							"Formatting options"
+						)}">${icon("es-solid-text")}</button>
+						<button class="btn btn-ghost icon-btn" data-action="attach" title="${__("Attach files")}">${icon(
+			"es-line-attachment"
+		)}</button>
+						<button class="btn btn-ghost icon-btn" data-action="send-me-a-copy" title="${__(
+							"Send me a copy"
+						)}">${icon("es-line-copy")}</button>
+						<button class="btn btn-ghost icon-btn" data-action="send-read-receipt" title="${__(
+							"Send read receipt"
+						)}">${icon("check-check")}</button>
+						<button class="btn btn-ghost icon-btn" data-action="print" title="${__(
+							"Attach document print"
+						)}">${icon("printer")}</button>
+					</div>
+					<button class="btn btn-ghost icon-btn" data-action="discard" title="${__("Discard")}">${icon(
+			"es-line-delete"
+		)}</button>
+				</div>
+			</div>
+		`);
+		$body.prepend($skeleton);
+
+		// Move the rendered controls into their slots — autocomplete, Quill, validation all preserved
+		["recipients", "cc", "bcc", "subject", "content"].forEach((fieldname) => {
+			const $field = $body.find(`.frappe-control[data-fieldname="${fieldname}"]`);
+			if ($field.length) {
+				$skeleton.find(`[data-slot="${fieldname}"]`).append($field);
+			}
+		});
+
+		// Move Frappe's existing Send button (.btn-modal-primary) from the hidden footer into our
+		// action bar — keeps its existing click handler, classes, and styling. No custom button.
+		const $sendBtn = this.dialog.$wrapper.find(".btn-modal-primary");
+		if ($sendBtn.length) {
+			$skeleton.find('[data-slot="send-button"]').append($sendBtn);
+		}
+
+		// Cc / Bcc text toggles show/hide their rows
+		$skeleton.find('[data-toggle="cc"]').on("click", () => {
+			$skeleton.find(".gmail-cc-row").toggleClass("is-collapsed");
+		});
+		$skeleton.find('[data-toggle="bcc"]').on("click", () => {
+			$skeleton.find(".gmail-bcc-row").toggleClass("is-collapsed");
+		});
+
+		// Discard / Attach wire to existing handlers — no logic duplicated
+		$skeleton.find('[data-action="discard"]').on("click", () => {
+			this.dialog.hide();
+			this.clear_cache();
+		});
+		$skeleton.find('[data-action="attach"]').on("click", () => {
+			$body.find(".add-more-attachments button").trigger("click");
+		});
 	}
 
 	get_fields() {
