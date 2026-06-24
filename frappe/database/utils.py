@@ -30,6 +30,8 @@ QUERY_TYPE_PATTERN = re.compile(r"\s*([A-Za-z]*)")
 
 # matches a trailing DESC on an ORDER BY term (so a NULLS modifier can be chosen)
 _TRAILING_DESC = re.compile(r"\bdesc\b\s*$", re.IGNORECASE)
+# matches an existing NULLS FIRST/LAST modifier (so the term is left untouched)
+_NULLS_MODIFIER = re.compile(r"\bnulls\s+(first|last)\b", re.IGNORECASE)
 
 
 def add_null_ordering_for_postgres(order_by: str) -> str:
@@ -65,7 +67,7 @@ def add_null_ordering_for_postgres(order_by: str) -> str:
 		term = term.strip()
 		if not term:
 			continue
-		if " nulls " in f" {term.lower()} ":  # already has NULLS FIRST/LAST
+		if _NULLS_MODIFIER.search(term):  # already has NULLS FIRST/LAST
 			out.append(term)
 		elif _TRAILING_DESC.search(term):
 			out.append(f"{term} NULLS LAST")

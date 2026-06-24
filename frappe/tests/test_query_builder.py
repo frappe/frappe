@@ -784,7 +784,11 @@ class TestNullOrdering(IntegrationTestCase):
 			'COALESCE("valid_from", \'1900-01-01\') desc NULLS LAST, "creation" asc NULLS FIRST',
 		)
 		# idempotent
+		# idempotent only on a real NULLS FIRST/LAST modifier ...
 		self.assertEqual(nz('"x" desc NULLS LAST'), '"x" desc NULLS LAST')
+		# ... a column/alias literally named `nulls` is not a modifier and still gets one appended
+		self.assertEqual(nz('"nulls" desc'), '"nulls" desc NULLS LAST')
+		self.assertEqual(nz("nulls asc"), "nulls asc NULLS FIRST")
 		self.assertEqual(nz(""), "")
 
 	@run_only_if(db_type_is.POSTGRES)
@@ -793,3 +797,29 @@ class TestNullOrdering(IntegrationTestCase):
 		user = frappe.qb.DocType("User")
 		query = str(frappe.qb.from_(user).select(user.name).orderby(user.last_login, order=frappe.qb.desc))
 		self.assertIn("NULLS LAST", query.upper())
+
+	@run_only_if(db_type_is.POSTGRES)
+	def test_null_row_sorts_like_mariadb(self):
+		"""A NULL sort value lands last under DESC and first under ASC, like MariaDB."""
+		dated = frappe.get_doc(doctype="ToDo", description="nulls_dated", date="2024-01-01").insert()
+		undated = frappe.get_doc(doctype="ToDo", description="nulls_undated", date="2024-02-01").insert()
+		self.addCleanup(dated.delete)
+		self.addCleanup(undated.delete)
+		# force a genuine NULL date (the doctype would otherwise default it)
+		frappe.db.sql("UPDATE `tabToDo` SET date = NULL WHERE name = %s", undated.name)
+
+		names = ["nulls_dated", "nulls_undated"]
+		desc = frappe.get_all(
+			"ToDo",
+			filters={"description": ["in", names]},
+			fields=["description", "date"],
+			order_by="date desc",
+		)
+		asc = frappe.get_all(
+			"ToDo",
+			filters={"description": ["in", names]},
+			fields=["description", "date"],
+			order_by="date asc",
+		)
+		self.assertIsNone(desc[-1].date, "NULL date should sort last under DESC")
+		self.assertIsNone(asc[0].date, "NULL date should sort first under ASC")
