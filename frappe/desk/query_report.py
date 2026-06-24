@@ -388,6 +388,8 @@ def _export_query(form_params, csv_params, populate_response=True):
 
 	if isinstance(visible_idx, str):
 		visible_idx = json.loads(visible_idx)
+	elif not isinstance(visible_idx, list):
+		visible_idx = []
 
 	data = run(
 		report_name,
@@ -810,7 +812,7 @@ def get_data_for_custom_report(columns, result):
 
 
 @frappe.whitelist()
-def save_report(reference_report: str, report_name: str, columns: str, filters: str):
+def save_report(reference_report: str, report_name: str, columns: str | list, filters: str | list | dict):
 	report_doc = get_report_doc(reference_report)
 
 	docname = frappe.db.exists(
@@ -825,8 +827,8 @@ def save_report(reference_report: str, report_name: str, columns: str, filters: 
 	if docname:
 		report = frappe.get_doc("Report", docname)
 		existing_jd = json.loads(report.json)
-		existing_jd["columns"] = json.loads(columns)
-		existing_jd["filters"] = json.loads(filters)
+		existing_jd["columns"] = frappe.parse_json(columns)
+		existing_jd["filters"] = frappe.parse_json(filters)
 		report.update({"json": json.dumps(existing_jd, separators=(",", ":"))})
 		report.save()
 		frappe.msgprint(_("Report updated successfully"))
