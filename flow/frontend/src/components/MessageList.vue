@@ -32,19 +32,21 @@ watch(scrollTick, () => {
 <template>
 	<div
 		ref="el"
-		class="flow-scrollbar flex flex-1 flex-col gap-5 overflow-y-auto px-4 py-3"
+		class="flow-scrollbar flex flex-1 flex-col overflow-y-auto px-4 py-3"
 		@scroll="onScroll"
 	>
-		<EmptyState
-			v-if="!messages.length"
-			:setup="needsSetup"
-			:has-models="models.length > 0"
-			:has-agents="agents.length > 0"
-		/>
+		<div class="mx-auto flex w-full max-w-3xl flex-1 flex-col gap-5">
+			<EmptyState
+				v-if="!messages.length"
+				:setup="needsSetup"
+				:has-models="models.length > 0"
+				:has-agents="agents.length > 0"
+			/>
 
-		<template v-for="msg in messages" :key="msg.id">
-			<UserMessage v-if="msg.role === 'user'" :content="msg.content" />
-			<AssistantMessage v-else :message="msg" />
-		</template>
+			<template v-for="msg in messages" :key="msg.id">
+				<UserMessage v-if="msg.role === 'user'" :content="msg.content" />
+				<AssistantMessage v-else :message="msg" />
+			</template>
+		</div>
 	</div>
 </template>

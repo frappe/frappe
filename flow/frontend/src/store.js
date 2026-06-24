@@ -21,6 +21,7 @@ const runName = ref(null);
 const messages = ref([]);
 const sending = ref(false);
 const loaded = ref(false);
+const fullscreen = ref(false);
 
 // Bumped whenever new content arrives / focus is wanted; views watch & react.
 const scrollTick = ref(0);
@@ -317,6 +318,7 @@ export function useStore() {
 		messages,
 		sending,
 		loaded,
+		fullscreen,
 		scrollTick,
 		focusTick,
 		// derived

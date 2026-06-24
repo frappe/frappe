@@ -1,17 +1,22 @@
 <script setup>
 import { ref, watch, onUnmounted } from "vue";
 
-// Renders streamed assistant text as markdown. Parsing is coalesced to one call
-// per animation frame so a fast token stream can't trigger a parse per token.
+// Renders streamed assistant text as markdown. Parsing the full accumulated
+// string is O(n), so doing it per token (or per frame) is O(n²) over a long
+// response. Instead we throttle to one parse per THROTTLE_MS, with a guaranteed
+// trailing parse so the final text always renders in full.
 // Takes the whole part (not part.text) so the parent's render doesn't depend on
 // the streaming text — only this component reacts to each token.
 const props = defineProps({ part: { type: Object, required: true } });
 
+const THROTTLE_MS = 100;
 const html = ref("");
-let frame = 0;
+let timer = 0;
+let last = 0;
 
 function render() {
-	frame = 0;
+	timer = 0;
+	last = performance.now();
 	const raw = props.part.text || "";
 	let out = window.frappe?.markdown ? frappe.markdown(raw) : escapeHtml(raw);
 	// Let a wide table scroll in its own box instead of widening the panel.
@@ -21,8 +26,11 @@ function render() {
 }
 
 function schedule() {
-	if (frame) return;
-	frame = requestAnimationFrame(render);
+	// A pending timer will read the freshest text when it fires, so coalesce.
+	if (timer) return;
+	const elapsed = performance.now() - last;
+	if (elapsed >= THROTTLE_MS) render();
+	else timer = setTimeout(render, THROTTLE_MS - elapsed);
 }
 
 function escapeHtml(s) {
@@ -30,7 +38,7 @@ function escapeHtml(s) {
 }
 
 watch(() => props.part.text, schedule, { immediate: true });
-onUnmounted(() => frame && cancelAnimationFrame(frame));
+onUnmounted(() => timer && clearTimeout(timer));
 </script>
 
 <template>
