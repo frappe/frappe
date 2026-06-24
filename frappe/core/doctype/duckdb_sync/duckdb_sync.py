@@ -118,24 +118,36 @@ def sync_data_to_duckdb(docname: str):
 
 		# connect to mariadb
 		conn = frappe.get_doc("DuckDB Sync", docname).get_duckdb_conn()
-		conn.sql(
-			f"attach 'user={frappe.conf.db_name} password={frappe.conf.db_password} host={frappe.conf.db_host} database={frappe.conf.db_name}' as mariadb_db (TYPE mysql);"
-		)
-		columns = frappe.get_meta(dt).get_valid_columns()
-		# quotted fields
-		columns_sql = ", ".join([f'"{x}"' for x in columns])
-		query = f'insert into "{duck_tb.table_name}" ({columns_sql}) select {columns_sql} from mariadb_db."{duck_tb.table_name}";'
-		conn.sql(query)
-		conn.close()
+		try:
+			conn.sql(
+				f"attach 'user={frappe.conf.db_name} password={frappe.conf.db_password} host={frappe.conf.db_host} database={frappe.conf.db_name}' as mariadb_db (TYPE mysql);"
+			)
+			columns = frappe.get_meta(dt).get_valid_columns()
+			# quotted fields
+			columns_sql = ", ".join([f'"{x}"' for x in columns])
+			query = f'insert into "{duck_tb.table_name}" ({columns_sql}) select {columns_sql} from mariadb_db."{duck_tb.table_name}";'
+			conn.sql(query)
+		except Exception as e:
+			import re
 
-		# update flag
-		frappe.db.set_value("DuckDB Sync Item", name, "synced", True)
+			sanitized = re.sub(
+				r"(user|password)=\S+",
+				lambda m: f"{m.group(1)}=***",
+				str(e),
+			)
 
-		# schedule next
-		frappe.enqueue(
-			method="frappe.core.doctype.duckdb_sync.duckdb_sync.sync_data_to_duckdb",
-			queue="long",
-			is_async=True,
-			enqueue_after_commit=True,
-			docname=docname,
-		)
+			raise Exception(sanitized) from None
+		else:
+			# update flag
+			frappe.db.set_value("DuckDB Sync Item", name, "synced", True)
+
+			# schedule next
+			frappe.enqueue(
+				method="frappe.core.doctype.duckdb_sync.duckdb_sync.sync_data_to_duckdb",
+				queue="long",
+				is_async=True,
+				enqueue_after_commit=True,
+				docname=docname,
+			)
+		finally:
+			conn.close()
