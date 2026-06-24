@@ -142,7 +142,7 @@ function make_switch(label, checked, onchange) {
 function make_check(label, checked, onchange) {
 	const $label = $(`<label class="dts-check">
 			<input type="checkbox" />
-			<span class="dts-check-label"></span>
+			<span class="dts-check-label ellipsis"></span>
 		</label>`);
 	$label.find(".dts-check-label").text(label);
 	$label

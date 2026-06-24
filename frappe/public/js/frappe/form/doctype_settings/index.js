@@ -10,21 +10,34 @@ import "./tabs/global_search";
 import "./tabs/workflow";
 import "./tabs/print_format";
 import "./tabs/permissions";
+import "./tabs/related_settings";
 
 /**
  * Open the DocType Settings dialog scoped to `doctype`.
  *
- * Builds a `frappe.ui.SettingsDialog` from the registry: each item's `render`
- * delegates to the registered builder, partially applied with the doctype. Items
- * without a registered builder are omitted, and groups left empty are dropped.
+ * A cheap existence check decides whether this doctype maps any related settings; if so,
+ * the "General" tab is shown first and opened by default (it resolves its own data on
+ * render). The remaining tabs come from the registry (items without a builder are dropped,
+ * empty groups removed).
  */
 frappe.doctype_settings.open = function (doctype) {
 	if (!doctype) return;
 
+	return frappe
+		.call({
+			method: "frappe.desk.doctype_settings.related_settings.has_related_settings",
+			args: { doctype },
+		})
+		.then((r) => build_dialog(doctype, !!(r && r.message)))
+		// A failure on the check must not block the whole dialog.
+		.catch(() => build_dialog(doctype, false));
+};
+
+function build_dialog(doctype, has_general) {
 	const builders = frappe.doctype_settings.builders;
 	const tabs = [];
 
-	for (const group of frappe.doctype_settings.groups) {
+	frappe.doctype_settings.groups.forEach((group, idx) => {
 		const items = (group.items || [])
 			.filter((item) => builders[item.id])
 			.filter((item) => (item.condition ? item.condition(doctype) : true))
@@ -32,16 +45,28 @@ frappe.doctype_settings.open = function (doctype) {
 				...item,
 				render: (panel) => builders[item.id](panel, doctype),
 			}));
+
+		// Lead the first group (Document) with the data-driven General tab when present.
+		if (idx === 0 && has_general && builders["general"]) {
+			items.unshift({
+				id: "general",
+				label: __("General"),
+				icon: "settings",
+				render: (panel) => builders["general"](panel, doctype),
+			});
+		}
+
 		if (items.length) tabs.push({ group: group.group, items });
-	}
+	});
 
 	if (!tabs.length) return;
 
 	const dialog = new frappe.ui.SettingsDialog({
 		title: __("DocType Settings"),
 		tabs,
+		default_tab: has_general ? "general" : undefined,
 	});
 	dialog.doctype = doctype;
 	dialog.show();
 	return dialog;
-};
+}

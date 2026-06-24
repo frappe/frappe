@@ -99,7 +99,7 @@ frappe.doctype_settings.register("print-format", function (panel, doctype) {
 					</div>
 				</div>
 				<div class="dts-pf-footer">
-					<span class="dts-pf-name"></span>
+					<span class="dts-pf-name ellipsis"></span>
 				</div>
 			</div>
 		`);

@@ -154,7 +154,7 @@ class ListPanel {
 
 		// Primary line: name + inline tags (attributes of the row, e.g. Default / Global).
 		const $primaryRow = $('<div class="dts-list-primary-row"></div>').appendTo($text);
-		const $primary = $('<div class="dts-list-primary"></div>')
+		const $primary = $('<div class="dts-list-primary ellipsis"></div>')
 			.text(tc.primary ? tc.primary(row) : "")
 			.appendTo($primaryRow);
 		if (tc.onclick) {
