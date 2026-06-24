@@ -1,6 +1,6 @@
 <template>
 	<div
-		class="dialog-content my-8 inline-block w-full transform overflow-hidden rounded-xl bg-surface-elevation-2 text-start align-middle shadow-xl focus-visible:outline-none"
+		class="dialog-content my-8 inline-block w-full transform overflow-hidden rounded-xl bg-surface-elevation-1 text-start align-middle shadow-xl focus-visible:outline-none"
 		:class="sizeClass"
 	>
 		<!-- bare: no chrome, render default slot directly -->
@@ -12,13 +12,13 @@
 		<template v-else>
 			<!-- legacy `#body-main`: full middle override (deprecated) -->
 			<slot v-if="$slots['body-main']" name="body-main" />
-			<div v-else class="bg-surface-elevation-2 px-4 pb-6 pt-5 sm:px-6">
+			<div v-else class="bg-surface-elevation-1 px-4 pb-6 pt-5 sm:px-6">
 				<div class="flex">
 					<div class="w-full flex-1">
 						<!-- legacy `#body-header` -->
 						<slot v-if="$slots['body-header']" name="body-header" />
 						<div v-else-if="showHeader" class="mb-6 flex items-center justify-between">
-							<div class="flex items-center space-x-2">
+							<div class="flex flex-1 items-center space-x-2">
 								<div
 									v-if="resolvedIcon"
 									class="flex h-7 w-7 flex-shrink-0 items-center justify-center rounded-full"
@@ -37,10 +37,10 @@
 										aria-hidden="true"
 									/>
 								</div>
-								<header>
+								<header class="flex-1">
 									<slot name="title" :close="close">
 										<slot name="body-title">
-											<h3 v-if="resolved.title" class="text-3xl-semibold leading-6 text-ink-gray-9">
+											<h3 v-if="resolved.title" class="text-2xl-semibold leading-6 text-ink-gray-8">
 												{{ resolved.title }}
 											</h3>
 										</slot>
@@ -50,7 +50,7 @@
 							<div v-if="resolved.showCloseButton">
 								<Button variant="ghost" label="Close" @click="close">
 									<template #icon>
-										<LucideX class="h-4 w-4 text-ink-gray-9" />
+										<span class="lucide-x size-4 text-ink-gray-9" />
 									</template>
 								</Button>
 							</div>
@@ -94,7 +94,7 @@
 		>
 			<Button class="absolute right-4 top-4 z-10" variant="ghost" label="Close" @click="close">
 				<template #icon>
-					<LucideX class="h-4 w-4 text-ink-gray-9" />
+					<span class="lucide-x size-4 text-ink-gray-9" />
 				</template>
 			</Button>
 		</div>
@@ -103,7 +103,6 @@
 <script setup lang="ts">
 import { computed, reactive, ref, useSlots, watchEffect } from "vue"
 import { Button, FeatherIcon } from "frappe-ui"
-import LucideX from "~icons/lucide/x"
 
 type Theme = "gray" | "blue" | "green" | "red"
 type Size = "sm" | "md" | "lg" | "xl" | "2xl"
@@ -125,7 +124,7 @@ interface ButtonProps {
 }
 
 type DialogIconAppearance = "warning" | "info" | "danger" | "success"
-type DialogTheme = "gray" | "blue" | "green" | "red" | "yellow"
+type DialogTheme = "blue" | "green" | "red" | "yellow"
 
 type DialogIcon = {
 	name: string
@@ -273,7 +272,6 @@ const dialogIconBgClasses = computed(() => {
 		blue: "bg-surface-blue-2",
 		red: "bg-surface-red-2",
 		green: "bg-surface-green-2",
-		gray: "bg-surface-gray-2",
 	}
 	return map[theme]
 })
@@ -286,7 +284,6 @@ const dialogIconClasses = computed(() => {
 		blue: "text-ink-blue-6",
 		red: "text-ink-red-8",
 		green: "text-ink-green-6",
-		gray: "text-ink-gray-5",
 	}
 	return map[theme]
 })
