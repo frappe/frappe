@@ -671,7 +671,8 @@ frappe.views.CommunicationComposer = class {
 				if (message?.name) {
 					this.dialog.set_value("select_letter_head", message.name);
 				}
-			});
+			})
+			.catch((err) => console.error("Failed to fetch default Letter Head:", err));
 	}
 
 	setup_attach() {

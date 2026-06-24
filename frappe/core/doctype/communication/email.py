@@ -93,6 +93,9 @@ def make(
 	if doctype and name:
 		frappe.has_permission(doctype, doc=name, ptype="email", throw=True)
 
+	if letterhead and not frappe.db.exists("Letter Head", letterhead):
+		frappe.throw(frappe._("Letter Head {0} does not exist").format(letterhead), frappe.DoesNotExistError)
+
 	if raw_html and not (
 		email_template and frappe.get_cached_value("Email Template", email_template, "use_html")
 	):
