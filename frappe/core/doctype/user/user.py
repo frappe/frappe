@@ -355,6 +355,9 @@ class User(Document):
 		elif self.has_value_changed("allow_in_mentions") or self.has_value_changed("user_type"):
 			frappe.cache.delete_key("users_for_mentions")
 
+		if self.has_value_changed("user_type"):
+			clear_sessions(user=self.name, force=True)
+
 	def has_website_permission(self, ptype, user, verbose=False):
 		"""Return True if current user is the session user."""
 		return self.name == frappe.session.user
@@ -410,9 +413,6 @@ class User(Document):
 		else:
 			"""Set as System User if any of the given roles has desk_access"""
 			self.user_type = "System User" if self.has_desk_access() else "Website User"
-
-		if self.has_value_changed("user_type"):
-			clear_sessions(user=self.name, force=True)
 
 	def set_roles_and_modules_based_on_user_type(self):
 		user_type_doc = frappe.get_cached_doc("User Type", self.user_type)

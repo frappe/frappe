@@ -202,6 +202,20 @@ frappe.ui.form.ControlTextEditor = class ControlTextEditor extends frappe.ui.for
 			e.stopPropagation();
 		});
 
+		const imageResizeModule = this.quill.getModule("imageResize");
+		if (imageResizeModule) {
+			imageResizeModule.checkImage = (evt) => {
+				if (imageResizeModule.img) {
+					// Delete / Backspace key pressed
+					if (evt.keyCode == 46 || evt.keyCode == 8) {
+						const blot = Quill.find(imageResizeModule.img);
+						if (blot) blot.deleteAt(0);
+					}
+					imageResizeModule.hide();
+				}
+			};
+		}
+
 		// font size dropdown
 		let $font_size_label = this.$wrapper.find(".ql-size .ql-picker-label:first");
 		let $default_font_size = this.$wrapper.find(".ql-size .ql-picker-item:first");
