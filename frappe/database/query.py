@@ -265,6 +265,7 @@ class Engine:
 			# Fall back for functions not present in `SqlFunctions``
 			return Function(func, *_args, alias=alias or None)
 
+<<<<<<< HEAD
 	def sanitize_fields(self, fields: str | list | tuple):
 		if isinstance(fields, list | tuple):
 			return [
@@ -274,6 +275,132 @@ class Engine:
 		elif isinstance(fields, str):
 			return _sanitize_field(fields, self.is_mariadb)
 		return fields
+=======
+						if child_meta.has_field(target_fieldname):
+							# Found in child table, create handler for it
+							child_field_handler = ChildTableField(
+								doctype=df.options,
+								fieldname=target_fieldname,
+								parent_doctype=self.doctype,
+								parent_fieldname=df.fieldname,
+							)
+							parent_doctype_for_perm = self.doctype
+							self.check_filter_field_permission(
+								df.options, target_fieldname, parent_doctype_for_perm
+							)
+							self.query = child_field_handler.apply_join(self.query, engine=self)
+							return child_field_handler.field
+
+				self.check_filter_field_permission(target_doctype, target_fieldname, parent_doctype_for_perm)
+				# Convert string field name to pypika Field object for the specified/current doctype
+				return frappe.qb.DocType(target_doctype)[target_fieldname]
+
+	def check_select_field_permission(self, doctype: str, fieldname: str, parent_doctype: str | None = None):
+		"""Check if the user has permission to select the given field."""
+		self._check_field_permission(doctype, fieldname, parent_doctype, for_filtering=False)
+
+	def check_filter_field_permission(self, doctype: str, fieldname: str, parent_doctype: str | None = None):
+		"""Check if the user has permission to filter/order/group by the given field.
+
+		It allows all permlevel 0 fields for users with select permission,
+		and all permitted fields for users with read permission.
+		"""
+		self._check_field_permission(doctype, fieldname, parent_doctype, for_filtering=True)
+
+	def _check_field_permission(
+		self, doctype: str, fieldname: str, parent_doctype: str | None = None, for_filtering: bool = False
+	):
+		"""Check if the user has permission to access the given field."""
+		if not self.apply_permissions:
+			return
+
+		if fieldname in OPTIONAL_FIELDS:
+			return
+
+		# Skip field permission check if doctype has no permissions defined
+		meta = frappe.get_meta(doctype)
+		if not meta.get_permissions(parenttype=parent_doctype):
+			return
+
+		# Don't allow querying child table fields if user has only "select" permission
+		permission_type = self.get_permission_type(doctype, parent_doctype)
+		if parent_doctype and permission_type == "select":
+			frappe.throw(
+				_("You do not have permission to access child table field: {0}").format(
+					frappe.bold(f"{doctype}.{fieldname}")
+				),
+				frappe.PermissionError,
+			)
+
+		permission_source = (
+			self._get_filterable_fields if for_filtering else self._get_cached_permitted_fields
+		)
+		permitted_fields = permission_source(doctype, parent_doctype, permission_type)
+
+		if fieldname not in permitted_fields:
+			frappe.throw(
+				_("You do not have permission to access field: {0}").format(
+					frappe.bold(f"{doctype}.{fieldname}")
+				),
+				frappe.PermissionError,
+				title=_("Permission Error"),
+			)
+
+	def _get_cached_permitted_fields(self, doctype: str, parenttype: str | None, permission_type: str) -> set:
+		"""Get permitted fields with caching to avoid redundant lookups."""
+		cache_key = (doctype, parenttype, permission_type)
+		if cache_key not in self.permitted_fields_cache:
+			self.permitted_fields_cache[cache_key] = set(
+				get_permitted_fields(
+					doctype=doctype,
+					parenttype=parenttype,
+					permission_type=permission_type,
+					ignore_virtual=True,
+					user=self.user,
+				)
+			)
+		return self.permitted_fields_cache[cache_key]
+
+	def _get_filterable_fields(
+		self, doctype: str, parenttype: str | None = None, permission_type: str | None = None
+	) -> set:
+		"""Get fields that can be used in filters/order by/group by.
+
+		For users with only select permission on parent doctypes, this returns
+		all permlevel 0 fields (not just search fields which are used for selected fields).
+		For users with read permission, returns standard permitted fields.
+		"""
+		if permission_type is None:
+			permission_type = self.get_permission_type(doctype, parenttype)
+
+		if permission_type == "select":
+			meta = frappe.get_meta(doctype)
+
+			# Only allow filtering by all permlevel 0 fields for parent doctypes.
+			if meta.istable:
+				return set()
+
+			# for select permission on parent doctype, allow all permlevel 0 fields in filters
+			cache_key = (doctype, None, "_filterable_select")
+			if cache_key not in self.permitted_fields_cache:
+				if doctype in PERMITTED_CORE_DOCTYPES and doctype != "User":
+					# no restrictions - return all valid columns
+					self.permitted_fields_cache[cache_key] = set(meta.get_valid_columns())
+				else:
+					permlevel_0_fields = set(meta.default_fields) | OPTIONAL_FIELDS
+					for df in meta.get_fieldnames_with_value(with_field_meta=True, with_virtual_fields=False):
+						if df.permlevel == 0:
+							permlevel_0_fields.add(df.fieldname)
+					if doctype == "User":
+						# user_type is permlevel 1 but not itself sensitive, and the built-in
+						# Link-field search (user.user_query) filters by it for every select-only caller
+						permlevel_0_fields.add("user_type")
+					self.permitted_fields_cache[cache_key] = permlevel_0_fields
+			return self.permitted_fields_cache[cache_key]
+		else:
+			# for read permission, use standard permitted fields
+			return self._get_cached_permitted_fields(doctype, parenttype, permission_type)
+>>>>>>> b53338e (fix: filter User fields based on perms. instead of ret. unconditionally)
 
 	def parse_string_field(self, field: str):
 		if field == "*":
