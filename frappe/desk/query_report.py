@@ -839,7 +839,10 @@ def save_report(reference_report: str, report_name: str, columns: str | list, fi
 			{
 				"doctype": "Report",
 				"report_name": report_name,
-				"json": f'{{"columns":{columns},"filters":{filters}}}',
+				"json": json.dumps(
+					{"columns": frappe.parse_json(columns), "filters": frappe.parse_json(filters)},
+					separators=(",", ":"),
+				),
 				"ref_doctype": report_doc.ref_doctype,
 				"is_standard": "No",
 				"report_type": "Custom Report",
