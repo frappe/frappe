@@ -50,6 +50,7 @@ import LucideSquareMousePointer from "~icons/lucide/square-mouse-pointer"
 import LucideTimer from "~icons/lucide/timer"
 import LucidePill from "~icons/lucide/pill"
 import LucideLoaderCircle from "~icons/lucide/loader-circle"
+import LucideSlidersHorizontal from "~icons/lucide/sliders-horizontal"
 
 export const COMPONENTS: FrappeUIComponents = {
 	TextBlock: {
@@ -630,6 +631,17 @@ export const COMPONENTS: FrappeUIComponents = {
 					],
 				},
 			],
+		},
+	},
+	Slider: {
+		name: "Slider",
+		title: "Slider",
+		icon: LucideSlidersHorizontal,
+		initialState: {
+			modelValue: [40],
+			min: 0,
+			max: 100,
+			step: 1,
 		},
 	},
 	Spinner: {

@@ -31,6 +31,7 @@ export const FRAPPE_UI_COMPONENTS = [
 	"Rating",
 	"Select",
 	"Sidebar",
+	"Slider",
 	"Spinner",
 	"Switch",
 	"Tabs",

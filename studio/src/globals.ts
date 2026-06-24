@@ -31,6 +31,7 @@ import {
 	Rating,
 	Select,
 	Sidebar,
+	Slider,
 	Switch,
 	TabButtons,
 	Tabs,
@@ -105,6 +106,7 @@ export function registerGlobalComponents(app: App) {
 	app.component("Rating", Rating)
 	app.component("Select", Select)
 	app.component("Sidebar", Sidebar)
+	app.component("Slider", Slider)
 	app.component("Switch", Switch)
 	app.component("TabButtons", TabButtons)
 	app.component("Tabs", Tabs)
