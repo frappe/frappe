@@ -10,6 +10,11 @@ frappe.request.ajax_count = 0;
 frappe.request.waiting_for_ajax = [];
 frappe.request.logs = {};
 
+// When true, non-GET requests send their args as a native `application/json`
+// body instead of form-encoding per-key JSON-stringified values. Can be
+// overridden per-call with `opts.json`. Ships off; flipped in a later phase.
+frappe.request.use_json = false;
+
 frappe.xcall = function (method, params, type, opts = {}) {
 	return new Promise((resolve, reject) => {
 		frappe.call({
@@ -117,10 +122,15 @@ frappe.call = function (opts) {
 		api_version: opts.api_version,
 		url,
 		cache: opts.cache,
+		json: opts.json,
 	});
 };
 
 frappe.request.call = function (opts) {
+	// JSON body only applies to non-GET requests (GET carries no meaningful body).
+	let json_pref = opts.json != null ? opts.json : frappe.request.use_json;
+	opts.use_json = json_pref && (opts.type || "POST").toUpperCase() !== "GET";
+
 	frappe.request.prepare(opts);
 
 	var statusCode = {
@@ -280,6 +290,21 @@ frappe.request.call = function (opts) {
 		ajax_args.headers["X-Frappe-Doctype"] = encodeURIComponent(opts.args.doctype);
 	}
 
+	if (opts.use_json) {
+		// send a native JSON body instead of letting jQuery form-encode the args
+		let body = $.extend({}, opts.args);
+
+		// strip request-control keys that aren't endpoint arguments
+		delete body.freeze;
+		delete body.freeze_message;
+		delete body.btn;
+		delete body.callback;
+
+		ajax_args.data = JSON.stringify(body);
+		ajax_args.contentType = "application/json; charset=UTF-8";
+		ajax_args.processData = false;
+	}
+
 	frappe.last_request = ajax_args.data;
 
 	return $.ajax(ajax_args)
@@ -403,10 +428,12 @@ frappe.request.prepare = function (opts) {
 	// freeze page
 	if (opts.freeze) frappe.dom.freeze(opts.freeze_message);
 
-	// stringify args if required
-	for (var key in opts.args) {
-		if (opts.args[key] && ($.isPlainObject(opts.args[key]) || $.isArray(opts.args[key]))) {
-			opts.args[key] = JSON.stringify(opts.args[key]);
+	// stringify args if required (skipped when sending a native JSON body)
+	if (!opts.use_json) {
+		for (var key in opts.args) {
+			if (opts.args[key] && ($.isPlainObject(opts.args[key]) || $.isArray(opts.args[key]))) {
+				opts.args[key] = JSON.stringify(opts.args[key]);
+			}
 		}
 	}
 
@@ -643,9 +670,11 @@ frappe.request.report_error = function (xhr, request_opts) {
 frappe.request.cleanup_request_opts = function (request_opts) {
 	let doc = (request_opts.args || {}).doc;
 	if (doc) {
-		doc = JSON.parse(doc);
+		// `doc` may be a JSON string (form-encoded mode) or a native object (JSON mode)
+		let was_string = typeof doc === "string";
+		if (was_string) doc = JSON.parse(doc);
 		frappe.utils.mask_passwords(doc);
-		request_opts.args.doc = JSON.stringify(doc);
+		request_opts.args.doc = was_string ? JSON.stringify(doc) : doc;
 	}
 
 	if (request_opts.args) {
