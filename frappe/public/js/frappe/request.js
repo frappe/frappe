@@ -12,8 +12,9 @@ frappe.request.logs = {};
 
 // When true, non-GET requests send their args as a native `application/json`
 // body instead of form-encoding per-key JSON-stringified values. Can be
-// overridden per-call with `opts.json`. Ships off; flipped in a later phase.
-frappe.request.use_json = false;
+// overridden per-call with `opts.json` (pass `false` as an escape hatch for
+// any endpoint that still needs the legacy form-encoded payload).
+frappe.request.use_json = true;
 
 frappe.xcall = function (method, params, type, opts = {}) {
 	return new Promise((resolve, reject) => {
@@ -294,11 +295,10 @@ frappe.request.call = function (opts) {
 		// send a native JSON body instead of letting jQuery form-encode the args
 		let body = $.extend({}, opts.args);
 
-		// strip request-control keys that aren't endpoint arguments
+		// strip freeze controls: some callers nest these in `args` (e.g.
+		// bulk_operations) but they're UI hints, not endpoint arguments.
 		delete body.freeze;
 		delete body.freeze_message;
-		delete body.btn;
-		delete body.callback;
 
 		ajax_args.data = JSON.stringify(body);
 		ajax_args.contentType = "application/json; charset=UTF-8";
