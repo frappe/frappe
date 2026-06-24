@@ -42,15 +42,7 @@ class Note(Document):
 		self.print_heading = self.name
 		self.sub_heading = ""
 
-<<<<<<< HEAD
-	def mark_seen_by(self, user: str) -> None:
-=======
-	def clear_cache(self):
-		frappe.cache.delete_keys(UNSEEN_NOTES_KEY)
-		return super().clear_cache()
-
 	def mark_seen_by(self, user: str) -> bool:
->>>>>>> a5b99b0a9e (fix(Note): don't leak list of users (#40257))
 		if user in [d.user for d in self.seen_by]:
 			return False
 

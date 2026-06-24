@@ -87,11 +87,7 @@
  "icon": "fa fa-file-text",
  "idx": 1,
  "links": [],
-<<<<<<< HEAD
- "modified": "2023-12-08 15:52:37.525003",
-=======
  "modified": "2026-06-24 16:54:57.011270",
->>>>>>> a5b99b0a9e (fix(Note): don't leak list of users (#40257))
  "modified_by": "Administrator",
  "module": "Desk",
  "name": "Note",
