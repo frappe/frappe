@@ -14,7 +14,6 @@
   "file",
   "url",
   "reference_doctype",
-  "column_break_doctype",
   "filters",
   "content_fields",
   "auto_sync",
@@ -92,10 +91,6 @@
    "label": "Reference DocType",
    "mandatory_depends_on": "eval:doc.source_type == \"DocType\"",
    "options": "DocType"
-  },
-  {
-   "fieldname": "column_break_doctype",
-   "fieldtype": "Column Break"
   },
   {
    "depends_on": "eval:doc.source_type == \"DocType\"",
