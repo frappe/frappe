@@ -65,7 +65,7 @@ watch(focusTick, () => nextTick(() => el.value?.focus()));
 <template>
 	<div class="border-t border-outline-gray-1 px-4 pb-3.5 pt-2.5">
 		<div
-			class="flow-composer flex flex-col gap-1.5 rounded-xl border border-outline-gray-2 bg-surface-white px-2.5 py-2 shadow-sm"
+			class="flow-composer mx-auto flex w-full max-w-3xl flex-col gap-1.5 rounded-xl border border-outline-gray-2 bg-surface-white px-2.5 py-2 shadow-sm"
 		>
 			<textarea
 				ref="el"
