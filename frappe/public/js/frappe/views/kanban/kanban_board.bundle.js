@@ -8,6 +8,11 @@ frappe.provide("frappe.views");
 	var method_prefix = "frappe.desk.doctype.kanban_board.kanban_board.";
 
 	let columns_unwatcher = null;
+	const LARGE_BOARD_ORDER_SYNC_LIMIT = 200;
+	var prepared_card_cache = {};
+	var column_registry = {};
+	var suppress_cards_watch = false;
+	var kanban_realtime_syncing = false;
 
 	var store = createStore({
 		state: {
@@ -15,6 +20,7 @@ frappe.provide("frappe.views");
 			board: {},
 			card_meta: {},
 			cards: [],
+			cards_index: null,
 			columns: [],
 			filters_modified: false,
 			cur_list: {},
@@ -23,6 +29,12 @@ frappe.provide("frappe.views");
 		mutations: {
 			update_state(state, obj) {
 				Object.assign(state, obj);
+				if (obj.cards && state.board?.field_name) {
+					state.cards_index = build_cards_index(state.cards, state.board.field_name);
+					if (!obj.keep_prepared_cache) {
+						clear_prepared_card_cache();
+					}
+				}
 			},
 		},
 		actions: {
@@ -34,9 +46,8 @@ frappe.provide("frappe.views");
 				var card_meta = opts.card_meta;
 				opts.card_meta = card_meta;
 				opts.board = board;
-				var cards = opts.cards.map(function (card) {
-					return prepare_card(card, opts);
-				});
+				// Keep raw list data; prepare cards lazily when rendered.
+				var cards = opts.cards;
 				var columns = prepare_columns(board.columns);
 				context.commit("update_state", {
 					doctype: opts.doctype,
@@ -51,9 +62,7 @@ frappe.provide("frappe.views");
 			},
 			update_cards: function (context, cards) {
 				var state = context.state;
-				var _cards = cards
-					.map((card) => prepare_card(card, state))
-					.uniqBy((card) => card.name);
+				var _cards = cards.uniqBy((card) => card.name);
 
 				context.commit("update_state", {
 					cards: _cards,
@@ -158,11 +167,14 @@ frappe.provide("frappe.views");
 				context.commit("update_state", { cards: cards });
 			},
 			update_order_for_single_card: function (context, card) {
-				// cache original order
 				const _cards = context.state.cards.slice();
-				const _columns = context.state.columns.slice();
+				const _columns = context.state.columns.map((c) => ({
+					...c,
+					order: c.order,
+				}));
 				let args = {};
 				let method_name = "";
+				const is_optimistic_drag = !card.new && card.optimistic;
 
 				if (card.new) {
 					method_name = "add_card";
@@ -178,53 +190,74 @@ frappe.provide("frappe.views");
 						docname: card.name,
 						from_colname: card.from_colname,
 						to_colname: card.to_colname,
-						old_index: card.old_index,
-						new_index: card.new_index,
 					};
+					if (card.from_order != null && card.to_order != null) {
+						args.from_order = card.from_order;
+						args.to_order = card.to_order;
+					} else {
+						args.old_index = card.old_index;
+						args.new_index = card.new_index;
+					}
 				}
-				frappe.dom.freeze();
-				frappe
+
+				if (!is_optimistic_drag) {
+					frappe.dom.freeze();
+				}
+
+				return frappe
 					.call({
 						method: method_prefix + method_name,
 						args: args,
 						callback: (r) => {
-							let board = r.message;
-							let updated_cards = [
+							const board = r.message;
+							const columns = prepare_columns(board.columns);
+
+							if (is_optimistic_drag) {
+								// Local columns were set from post-drag DOM order in apply_card_move.
+								return;
+							}
+
+							const updated_cards = [
 								{ name: card.name, column: card.to_colname || card.colname },
 							];
-							let cards = update_cards_column(updated_cards);
-							let columns = prepare_columns(board.columns);
+							const cards = update_cards_column(updated_cards);
 							context.commit("update_state", {
 								cards: cards,
 								columns: columns,
 							});
-							frappe.dom.unfreeze();
 						},
 					})
 					.fail(function () {
-						// revert original order
+						if (is_optimistic_drag) {
+							restore_drag_snapshot({ cards: _cards, columns: _columns }, card);
+							return;
+						}
 						context.commit("update_state", {
 							cards: _cards,
 							columns: _columns,
 						});
-						frappe.dom.unfreeze();
+					})
+					.always(function () {
+						if (!is_optimistic_drag) {
+							frappe.dom.unfreeze();
+						}
 					});
 			},
 			update_order: function (context) {
+				if (context.state.cards.length > LARGE_BOARD_ORDER_SYNC_LIMIT) {
+					return;
+				}
+
 				// cache original order
 				const _cards = context.state.cards.slice();
 				const _columns = context.state.columns.slice();
 
+				// Derive order from state — DOM may only contain a virtual window of cards.
 				const order = {};
-				context.state.wrapper.find(".kanban-column[data-column-value]").each(function () {
-					var col_name = $(this).data().columnValue;
-					order[col_name] = [];
-					$(this)
-						.find(".kanban-card-wrapper")
-						.each(function () {
-							var card_name = decodeURIComponent($(this).data().name);
-							order[col_name].push(card_name);
-						});
+				const cards_index = context.state.cards_index;
+				context.state.columns.forEach(function (col) {
+					if (!is_active_column(col)) return;
+					order[col.title] = get_ordered_names(col, cards_index);
 				});
 
 				frappe
@@ -288,6 +321,55 @@ frappe.provide("frappe.views");
 						});
 					});
 			},
+			/** Apply card + column-order changes from another session without a full board rebuild. */
+			sync_from_realtime: function (
+				context,
+				{ cards, columns: incoming_columns, changed_names }
+			) {
+				if (kanban_realtime_syncing) return;
+				kanban_realtime_syncing = true;
+
+				if (changed_names?.length) {
+					for (let i = 0; i < changed_names.length; i++) {
+						delete prepared_card_cache[changed_names[i]];
+					}
+				}
+
+				const state = context.state;
+				const field_name = state.board.field_name;
+				const old_columns = state.columns;
+				const old_index = state.cards_index;
+				const columns = incoming_columns || state.columns;
+				const reconciled_cards = reconcile_cards_with_board_orders(
+					cards,
+					columns,
+					field_name
+				);
+				const new_index = build_cards_index(reconciled_cards, field_name);
+				const columns_to_refresh = get_columns_needing_refresh(
+					old_columns,
+					columns,
+					old_index,
+					new_index,
+					field_name
+				);
+
+				suppress_cards_watch = true;
+				context.commit("update_state", {
+					cards: reconciled_cards,
+					columns,
+					keep_prepared_cache: true,
+				});
+
+				columns_to_refresh.forEach((title) => {
+					const col = columns.find((c) => c.title === title);
+					if (!col) return;
+					const names = get_column_display_order(col, context.state.cards_index);
+					column_registry[title]?.apply_realtime_sync(names);
+				});
+				suppress_cards_watch = false;
+				kanban_realtime_syncing = false;
+			},
 		},
 	});
 
@@ -309,6 +391,12 @@ frappe.provide("frappe.views");
 			}
 		};
 
+		/** Sync cards and saved column order from realtime (other browser / user). */
+		self.sync_from_realtime = function (cards, columns, changed_names) {
+			if (!self.wrapper.find(".kanban").length) return;
+			store.dispatch("sync_from_realtime", { cards, columns, changed_names });
+		};
+
 		function init() {
 			store.dispatch("init", opts);
 			columns_unwatcher && columns_unwatcher();
@@ -327,7 +415,12 @@ frappe.provide("frappe.views");
 				return state.empty_state;
 			}, show_empty_state);
 
-			store.dispatch("update_order");
+			// Order sync on load is expensive for large boards (10k+ DB lookups server-side).
+			requestAnimationFrame(() => {
+				if (store.state.cards.length <= LARGE_BOARD_ORDER_SYNC_LIMIT) {
+					store.dispatch("update_order");
+				}
+			});
 		}
 
 		function prepare() {
@@ -344,10 +437,23 @@ frappe.provide("frappe.views");
 		}
 
 		function make_columns() {
-			self.$kanban_board.find(".kanban-column").not(".add-new-column").remove();
-			var columns = store.state.columns;
+			var columns = store.state.columns.filter(is_active_column);
+			var $existing = self.$kanban_board.find(".kanban-column").not(".add-new-column");
 
-			columns.filter(is_active_column).map(function (col) {
+			// Skip full rebuild when column structure is unchanged (e.g. update_order on load).
+			if ($existing.length === columns.length && columns.length > 0) {
+				let structure_matches = true;
+				$existing.each(function (i) {
+					if ($(this).attr("data-column-value") !== columns[i].title) {
+						structure_matches = false;
+					}
+				});
+				if (structure_matches) return;
+			}
+
+			self.$kanban_board.find(".kanban-column").not(".add-new-column").remove();
+			clear_column_registry();
+			columns.forEach(function (col) {
 				frappe.views.KanbanBoardColumn(col, self.$kanban_board, self.board_perms);
 			});
 		}
@@ -532,15 +638,74 @@ frappe.provide("frappe.views");
 		var self = {};
 		var filtered_cards = [];
 
+		// Virtualization state
+		var virt_state = {
+			card_height: 108,
+			buffer_cards: 5,
+			total_cards: 0,
+			virt_start: 0,
+			virt_end: 0,
+			scroll_listener_attached: false,
+			scroll_raf_pending: false,
+			suppress_scroll_render: false,
+			ordered_names: [],
+			virtualization_disabled: false,
+			min_cards_to_virtualize: 30,
+		};
+
 		function init() {
 			make_dom();
 			setup_sortable();
-			make_cards();
-			store.watch((state, getters) => {
-				return state.cards;
-			}, make_cards);
+			init_virtualization();
+			// Paint column chrome first, then cards on the next frame.
+			requestAnimationFrame(() => make_cards());
+			store.watch(
+				(state, getters) => {
+					return state.cards;
+				},
+				function () {
+					if (suppress_cards_watch) return;
+					make_cards();
+				}
+			);
 			bind_add_card();
 			bind_options();
+
+			column_registry[column.title] = {
+				refresh(force) {
+					if (force) {
+						virt_state.virt_start = -1;
+						virt_state.virt_end = -1;
+					}
+					make_cards();
+				},
+				sync_order(names) {
+					virt_state.ordered_names = names;
+					virt_state.total_cards = names.length;
+					// Keep sortable index helpers accurate while drag defers re-render.
+					if (virt_state.virtualization_disabled) {
+						self.$kanban_cards.data({
+							"virt-start": virt_state.virt_start || 0,
+							"virt-end": virt_state.virt_end || names.length,
+							virtualized: names.length >= virt_state.min_cards_to_virtualize,
+						});
+					}
+				},
+				/** Re-render column after remote order/membership change. */
+				apply_realtime_sync(names) {
+					if (names_array_equal(names, virt_state.ordered_names)) {
+						return;
+					}
+					virt_state.ordered_names = names;
+					virt_state.total_cards = names.length;
+					if (virt_state.virtualization_disabled) {
+						return;
+					}
+					virt_state.virt_start = -1;
+					virt_state.virt_end = -1;
+					render_virtual_cards(true);
+				},
+			};
 		}
 
 		function make_dom() {
@@ -555,30 +720,160 @@ frappe.provide("frappe.views");
 			self.$kanban_cards = self.$kanban_column.find(".kanban-cards");
 		}
 
-		function make_cards() {
-			self.$kanban_cards.empty();
-			var cards = store.state.cards;
-			filtered_cards = get_cards_for_column(cards, column);
-			var filtered_cards_names = filtered_cards.map((card) => card.name);
+		function init_virtualization() {
+			if (!virt_state.scroll_listener_attached) {
+				self.$kanban_cards.on("scroll", function () {
+					if (virt_state.suppress_scroll_render) return;
+					if (virt_state.scroll_raf_pending) return;
+					virt_state.scroll_raf_pending = true;
+					requestAnimationFrame(function () {
+						virt_state.scroll_raf_pending = false;
+						render_virtual_cards();
+					});
+				});
 
-			var order = column.order;
-			if (order) {
-				order = JSON.parse(order);
-				// new cards
-				filtered_cards.forEach(function (card) {
-					if (order.indexOf(card.name) === -1) {
-						frappe.views.KanbanBoardCard(card, self.$kanban_cards);
-					}
-				});
-				order.forEach(function (name) {
-					if (!filtered_cards_names.includes(name)) return;
-					frappe.views.KanbanBoardCard(get_card(name), self.$kanban_cards);
-				});
-			} else {
-				filtered_cards.map(function (card) {
-					frappe.views.KanbanBoardCard(card, self.$kanban_cards);
-				});
+				virt_state.scroll_listener_attached = true;
 			}
+		}
+
+		function should_virtualize() {
+			return (
+				!virt_state.virtualization_disabled &&
+				virt_state.total_cards >= virt_state.min_cards_to_virtualize
+			);
+		}
+
+		function measure_card_height() {
+			const measured = Math.round(
+				self.$kanban_cards.children(".kanban-card-wrapper").first().outerHeight(true) || 0
+			);
+			if (measured > 0) {
+				virt_state.card_height = measured;
+			}
+		}
+
+		function append_kanban_card(name) {
+			const card = get_prepared_card(name, store.state);
+			if (!card) return;
+			try {
+				frappe.views.KanbanBoardCard(card, self.$kanban_cards);
+			} catch (e) {
+				console.error("Kanban card render failed:", name, e);
+			}
+		}
+
+		function render_all_cards() {
+			self.$kanban_cards.empty();
+			virt_state.ordered_names.forEach(append_kanban_card);
+			measure_card_height();
+		}
+
+		function make_cards() {
+			const cards_index = store.state.cards_index;
+			filtered_cards = cards_index?.by_column[column.title] || [];
+			virt_state.ordered_names = get_ordered_names(column, cards_index);
+			virt_state.total_cards = virt_state.ordered_names.length;
+
+			// Force render when card data changes (not only on scroll).
+			render_virtual_cards(true);
+		}
+
+		function render_virtual_cards(force) {
+			if (virt_state.virtualization_disabled) return;
+
+			const scroll_top = self.$kanban_cards.scrollTop() || 0;
+			const container_height =
+				self.$kanban_cards.innerHeight() || self.$kanban_cards.height() || 400;
+
+			measure_card_height();
+
+			if (!should_virtualize()) {
+				if (
+					!force &&
+					self.$kanban_cards.children(".kanban-card-wrapper").length ===
+						virt_state.total_cards
+				) {
+					return;
+				}
+				virt_state.suppress_scroll_render = true;
+				render_all_cards();
+				self.$kanban_cards.scrollTop(scroll_top);
+				virt_state.virt_start = 0;
+				virt_state.virt_end = virt_state.total_cards;
+				self.$kanban_cards.data({
+					"virt-start": 0,
+					"virt-end": virt_state.total_cards,
+					virtualized: false,
+				});
+				requestAnimationFrame(() => {
+					virt_state.suppress_scroll_render = false;
+				});
+				return;
+			}
+
+			const card_height = virt_state.card_height;
+			const buffer = virt_state.buffer_cards;
+
+			let virt_start = Math.max(0, Math.floor(scroll_top / card_height) - buffer);
+			let virt_end = Math.min(
+				virt_state.total_cards,
+				Math.ceil((scroll_top + container_height) / card_height) + buffer
+			);
+
+			if (virt_end <= virt_start) {
+				virt_end = Math.min(
+					virt_state.total_cards,
+					virt_start + Math.ceil(container_height / card_height) + buffer
+				);
+			}
+
+			if (
+				!force &&
+				virt_start === virt_state.virt_start &&
+				virt_end === virt_state.virt_end
+			) {
+				return;
+			}
+
+			virt_state.virt_start = virt_start;
+			virt_state.virt_end = virt_end;
+
+			const top_spacer_height = virt_start * card_height;
+			const bottom_spacer_height = (virt_state.total_cards - virt_end) * card_height;
+
+			virt_state.suppress_scroll_render = true;
+			self.$kanban_cards.empty();
+
+			if (top_spacer_height > 0) {
+				self.$kanban_cards.append(
+					$(
+						`<div class="kanban-virtual-spacer" style="height: ${top_spacer_height}px;"></div>`
+					)
+				);
+			}
+
+			for (let i = virt_start; i < virt_end; i++) {
+				append_kanban_card(virt_state.ordered_names[i]);
+			}
+
+			if (bottom_spacer_height > 0) {
+				self.$kanban_cards.append(
+					$(
+						`<div class="kanban-virtual-spacer" style="height: ${bottom_spacer_height}px;"></div>`
+					)
+				);
+			}
+
+			measure_card_height();
+			self.$kanban_cards.data({
+				"virt-start": virt_state.virt_start,
+				"virt-end": virt_state.virt_end,
+				virtualized: true,
+			});
+			self.$kanban_cards.scrollTop(scroll_top);
+			requestAnimationFrame(() => {
+				virt_state.suppress_scroll_render = false;
+			});
 		}
 
 		function setup_sortable() {
@@ -589,24 +884,75 @@ frappe.provide("frappe.views");
 				group: "cards",
 				animation: 150,
 				dataIdAttr: "data-name",
+				filter: ".kanban-virtual-spacer",
 				onStart: function () {
-					wrapper.find(".kanban-card.add-card").fadeOut(200, function () {
-						wrapper.find(".kanban-cards").height("100vh");
-					});
+					virt_state.virtualization_disabled = true;
 				},
 				onEnd: function (e) {
-					wrapper.find(".kanban-card.add-card").fadeIn(100);
-					wrapper.find(".kanban-cards").height("auto");
-					const args = {
-						name: decodeURIComponent($(e.item).attr("data-name")),
-						from_colname: $(e.from)
-							.parents(".kanban-column")
-							.attr("data-column-value"),
-						to_colname: $(e.to).parents(".kanban-column").attr("data-column-value"),
-						old_index: e.oldIndex,
-						new_index: e.newIndex,
+					const $from = $(e.from);
+					const $to = $(e.to);
+					const from_colname = $from.parents(".kanban-column").attr("data-column-value");
+					const to_colname = $to.parents(".kanban-column").attr("data-column-value");
+					const card_name = decodeURIComponent($(e.item).attr("data-name"));
+					const old_index = get_sortable_full_index($from, e.oldIndex);
+					const new_index = get_sortable_full_index($to, e.newIndex);
+
+					const enable_virtualization = function () {
+						virt_state.virtualization_disabled = false;
 					};
-					store.dispatch("update_order_for_single_card", args);
+
+					if (from_colname === to_colname && old_index === new_index) {
+						enable_virtualization();
+						return;
+					}
+
+					const move = {
+						name: card_name,
+						from_colname,
+						to_colname,
+						old_index,
+						new_index,
+						optimistic: true,
+						$from,
+						$to,
+					};
+					const snapshot = capture_drag_snapshot();
+					const cur_list = store.state.cur_list;
+
+					suppress_cards_watch = true;
+					if (cur_list) {
+						cur_list.disable_list_update = true;
+						cur_list.skip_kanban_realtime = true;
+					}
+
+					// Keep virtualization off until state matches Sortable's DOM.
+					const orders = apply_card_move(move);
+					move.from_order = orders.from_order;
+					move.to_order = orders.to_order;
+
+					const request = store.dispatch("update_order_for_single_card", move);
+					const cleanup = function () {
+						suppress_cards_watch = false;
+						if (cur_list) {
+							cur_list.disable_list_update = false;
+							// Delay re-enabling so our own list_update / board events are ignored.
+							setTimeout(() => {
+								cur_list.skip_kanban_realtime = false;
+							}, 1500);
+						}
+						enable_virtualization();
+					};
+
+					if (request && request.fail) {
+						request.fail(function () {
+							restore_drag_snapshot(snapshot, move);
+						});
+					}
+					if (request && request.always) {
+						request.always(cleanup);
+					} else {
+						cleanup();
+					}
 				},
 			});
 		}
@@ -728,14 +1074,19 @@ frappe.provide("frappe.views");
 
 		function get_doc_content(card) {
 			let fields = [];
-			for (let field_name of cur_list.board.fields) {
+			const field_names = get_kanban_board_fields();
+			for (let field_name of field_names) {
+				const fieldname =
+					typeof field_name === "string" ? field_name : field_name?.fieldname;
+				if (!fieldname) continue;
 				let field =
-					frappe.meta.docfield_map[card.doctype]?.[field_name] ||
-					frappe.model.get_std_field(field_name);
-				let label = cur_list.board.show_labels
+					frappe.meta.docfield_map[card.doctype]?.[fieldname] ||
+					frappe.model.get_std_field(fieldname);
+				if (!field) continue;
+				let label = get_kanban_board_show_labels()
 					? `<span>${__(field.label, null, field.parent)}: </span>`
 					: "";
-				let rendered_value = card.doc[field_name];
+				let rendered_value = card.doc[fieldname];
 				if (field.fieldtype === "Data") {
 					rendered_value = frappe.utils.escape_html(rendered_value);
 				}
@@ -952,14 +1303,325 @@ frappe.provide("frappe.views");
 		});
 	}
 
+	function get_kanban_list() {
+		return store.state.cur_list || (typeof cur_list !== "undefined" ? cur_list : null);
+	}
+
+	/** Parsed Kanban Board fields config (always an array). */
+	function get_kanban_board_fields(board) {
+		const list = get_kanban_list();
+		const source = board || list?.board || store.state.board;
+		let fields = source?.fields;
+		if (Array.isArray(fields)) return fields;
+		if (typeof fields === "string") {
+			try {
+				fields = JSON.parse(fields || "[]");
+			} catch (e) {
+				return [];
+			}
+			return Array.isArray(fields) ? fields : [];
+		}
+		return [];
+	}
+
+	function get_kanban_board_show_labels(board) {
+		const list = get_kanban_list();
+		const source = board || list?.board || store.state.board;
+		return !!source?.show_labels;
+	}
+
 	function is_active_column(col) {
 		return col.status !== "Archived";
 	}
 
-	function get_cards_for_column(cards, column) {
-		return cards.filter(function (card) {
-			return card.column === column.title;
+	/** Align card column fields with saved board column order (mutates cards in place). */
+	function reconcile_cards_with_board_orders(cards, columns, field_name) {
+		if (!cards?.length) return cards || [];
+
+		const by_name = {};
+		for (let i = 0; i < cards.length; i++) {
+			by_name[cards[i].name] = cards[i];
+		}
+
+		for (let c = 0; c < columns.length; c++) {
+			const order = parse_column_order(columns[c]);
+			for (let i = 0; i < order.length; i++) {
+				const card = by_name[order[i]];
+				if (card && card[field_name] !== columns[c].title) {
+					card[field_name] = columns[c].title;
+					delete prepared_card_cache[order[i]];
+				}
+			}
+		}
+
+		return cards;
+	}
+
+	function names_array_equal(a, b) {
+		if (!a || !b || a.length !== b.length) return false;
+		for (let i = 0; i < a.length; i++) {
+			if (a[i] !== b[i]) return false;
+		}
+		return true;
+	}
+
+	/** Columns whose saved order or card membership changed since last sync. */
+	function get_columns_needing_refresh(
+		old_columns,
+		new_columns,
+		old_index,
+		new_index,
+		field_name
+	) {
+		const to_refresh = new Set();
+
+		for (let i = 0; i < old_columns.length; i++) {
+			const old_col = old_columns[i];
+			if (!is_active_column(old_col)) continue;
+			const new_col = new_columns.find((c) => c.title === old_col.title);
+			if (!new_col) continue;
+			if (!names_array_equal(parse_column_order(old_col), parse_column_order(new_col))) {
+				to_refresh.add(old_col.title);
+			}
+		}
+
+		if (old_index?.by_name) {
+			const old_names = old_index.by_name;
+			const new_names = new_index?.by_name || {};
+			for (const name in old_names) {
+				const old_col = get_card_column(old_names[name], field_name);
+				const new_card = new_names[name];
+				const new_col = new_card ? get_card_column(new_card, field_name) : null;
+				if (old_col !== new_col) {
+					if (old_col) to_refresh.add(old_col);
+					if (new_col) to_refresh.add(new_col);
+				}
+			}
+			for (const name in new_names) {
+				if (!old_names[name]) {
+					const col = get_card_column(new_names[name], field_name);
+					if (col) to_refresh.add(col);
+				}
+			}
+		}
+
+		return to_refresh;
+	}
+
+	function clear_prepared_card_cache() {
+		prepared_card_cache = {};
+	}
+
+	function clear_column_registry() {
+		Object.keys(column_registry).forEach((key) => delete column_registry[key]);
+	}
+
+	/** Map Sortable DOM index to full column index when virtualized (accounts for top spacer). */
+	function get_sortable_full_index($kanban_cards, dom_index) {
+		if (!$kanban_cards?.length) return dom_index;
+		if (!$kanban_cards.data("virtualized")) return dom_index;
+		const virt_start = $kanban_cards.data("virt-start") || 0;
+		const has_top_spacer = $kanban_cards.children().first().hasClass("kanban-virtual-spacer");
+		return virt_start + Math.max(0, dom_index - (has_top_spacer ? 1 : 0));
+	}
+
+	/** Visible card names in DOM order (skips virtual spacers). */
+	function get_dom_card_names($kanban_cards) {
+		const names = [];
+		if (!$kanban_cards?.length) return names;
+		$kanban_cards.children().each(function () {
+			const $child = $(this);
+			if ($child.hasClass("kanban-virtual-spacer")) return;
+			const raw = $child.attr("data-name");
+			if (raw) names.push(decodeURIComponent(raw));
 		});
+		return names;
+	}
+
+	/** Merge post-drag DOM order into the full column list. */
+	function rebuild_column_order_from_dom($kanban_cards, full_order) {
+		const dom_names = get_dom_card_names($kanban_cards);
+		if (!dom_names.length) return full_order.slice();
+
+		if (!$kanban_cards.data("virtualized")) {
+			return dom_names;
+		}
+
+		const virt_start = $kanban_cards.data("virt-start") || 0;
+		const result = full_order.slice();
+		for (let i = 0; i < dom_names.length; i++) {
+			const idx = virt_start + i;
+			if (idx < result.length) {
+				result[idx] = dom_names[i];
+			} else {
+				result.push(dom_names[i]);
+			}
+		}
+		return result;
+	}
+
+	/** Destination column order after a cross-column drop (card may not be in saved order yet). */
+	function order_after_cross_column_drop($kanban_cards, full_order, card_name) {
+		const dom_names = get_dom_card_names($kanban_cards);
+		if (!dom_names.length) return full_order.filter((n) => n !== card_name);
+
+		if (!$kanban_cards.data("virtualized")) {
+			return dom_names;
+		}
+
+		const insert_idx_in_dom = dom_names.indexOf(card_name);
+		if (insert_idx_in_dom === -1) {
+			return full_order.filter((n) => n !== card_name);
+		}
+
+		const without = full_order.filter((n) => n !== card_name);
+		const full_insert_idx = ($kanban_cards.data("virt-start") || 0) + insert_idx_in_dom;
+		without.splice(Math.min(full_insert_idx, without.length), 0, card_name);
+		return without;
+	}
+
+	function parse_column_order(column) {
+		if (!column?.order) return [];
+		try {
+			const order =
+				typeof column.order === "string" ? JSON.parse(column.order) : column.order;
+			return Array.isArray(order) ? order : [];
+		} catch (e) {
+			return [];
+		}
+	}
+
+	/** Column card order for display / sync — saved order first, then cards missing from it. */
+	function get_column_display_order(column, cards_index) {
+		const column_cards = cards_index?.by_column[column.title] || [];
+		if (!column_cards.length) return [];
+
+		const saved = parse_column_order(column);
+		if (!saved.length) return column_cards.map((card) => card.name);
+
+		const names_in_column = new Set(column_cards.map((card) => card.name));
+		const saved_set = new Set(saved);
+		const ordered_names = [];
+
+		for (let i = 0; i < saved.length; i++) {
+			if (names_in_column.has(saved[i])) ordered_names.push(saved[i]);
+		}
+		for (let i = 0; i < column_cards.length; i++) {
+			if (!saved_set.has(column_cards[i].name)) {
+				ordered_names.push(column_cards[i].name);
+			}
+		}
+		return ordered_names;
+	}
+
+	function capture_drag_snapshot() {
+		return {
+			cards: store.state.cards.slice(),
+			columns: store.state.columns.map((c) => ({ ...c, order: c.order })),
+		};
+	}
+
+	function restore_drag_snapshot(snapshot, move) {
+		suppress_cards_watch = true;
+		store.commit("update_state", {
+			cards: snapshot.cards,
+			columns: snapshot.columns,
+		});
+		column_registry[move.from_colname]?.refresh(true);
+		if (move.from_colname !== move.to_colname) {
+			column_registry[move.to_colname]?.refresh(true);
+		}
+		suppress_cards_watch = false;
+	}
+
+	/** Optimistic in-memory update after Sortable has already moved the DOM. */
+	function apply_card_move({ name, from_colname, to_colname, $from, $to }) {
+		const state = store.state;
+		const field_name = state.board.field_name;
+		const columns = state.columns.map((c) => ({ ...c, order: c.order }));
+		const from_column = columns.find((c) => c.title === from_colname);
+		const to_column = columns.find((c) => c.title === to_colname);
+		if (!from_column || !to_column) return { from_order: [], to_order: [] };
+
+		const from_before = get_column_display_order(from_column, state.cards_index);
+		const to_before = get_column_display_order(to_column, state.cards_index);
+		let from_names;
+		let to_names;
+
+		if (from_colname === to_colname) {
+			from_names = rebuild_column_order_from_dom($to, from_before);
+			to_names = from_names;
+			from_column.order = JSON.stringify(from_names);
+			column_registry[from_colname]?.sync_order(from_names);
+		} else {
+			const card = state.cards_index?.by_name[name];
+			if (card) {
+				card[field_name] = to_colname;
+				delete prepared_card_cache[name];
+			}
+			from_names = rebuild_column_order_from_dom($from, from_before).filter(
+				(n) => n !== name
+			);
+			to_names = order_after_cross_column_drop($to, to_before, name);
+			from_column.order = JSON.stringify(from_names);
+			to_column.order = JSON.stringify(to_names);
+			column_registry[from_colname]?.sync_order(from_names);
+			column_registry[to_colname]?.sync_order(to_names);
+		}
+
+		store.commit("update_state", { cards: state.cards, columns });
+		return { from_order: from_names, to_order: to_names };
+	}
+
+	function get_prepared_card(name, state) {
+		if (prepared_card_cache[name]) {
+			return prepared_card_cache[name];
+		}
+		const raw = state.cards_index?.by_name[name];
+		if (!raw) return null;
+		const prepared = prepare_card(raw, state);
+		prepared_card_cache[name] = prepared;
+		return prepared;
+	}
+
+	function get_card_column(card, field_name) {
+		return card.column || card[field_name];
+	}
+
+	/** Index cards by column and name in a single O(n) pass. */
+	function build_cards_index(cards, field_name) {
+		const by_column = {};
+		const by_name = {};
+		for (let i = 0; i < cards.length; i++) {
+			const card = cards[i];
+			const col = get_card_column(card, field_name);
+			if (!by_column[col]) by_column[col] = [];
+			by_column[col].push(card);
+			by_name[card.name] = card;
+		}
+		return { by_column, by_name };
+	}
+
+	/** Ordered card names for a column using the pre-built index. */
+	function get_ordered_names(column, cards_index) {
+		return get_column_display_order(column, cards_index);
+	}
+
+	function get_cards_for_column(cards, column) {
+		const field_name = store.state.board?.field_name;
+		if (store.state.cards_index) {
+			return store.state.cards_index.by_column[column.title] || [];
+		}
+		return cards.filter(function (card) {
+			return get_card_column(card, field_name) === column.title;
+		});
+	}
+
+	/** Cards for a column in board order (new cards first, then saved column.order). */
+	function get_ordered_cards_for_column(cards, column) {
+		const cards_index = store.state.cards_index;
+		const names = get_ordered_names(column, cards_index);
+		return names.map((name) => cards_index?.by_name[name] || get_card(name)).filter(Boolean);
 	}
 
 	function get_card(name) {
@@ -970,10 +1632,13 @@ frappe.provide("frappe.views");
 
 	function update_cards_column(updated_cards) {
 		var cards = store.state.cards;
+		const field_name = store.state.board?.field_name;
 		cards.forEach(function (c) {
 			updated_cards.forEach(function (uc) {
 				if (uc.name === c.name) {
 					c.column = uc.column;
+					if (field_name) c[field_name] = uc.column;
+					delete prepared_card_cache[c.name];
 				}
 			});
 		});
