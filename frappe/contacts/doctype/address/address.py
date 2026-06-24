@@ -168,7 +168,7 @@ def get_address_display(address_dict: dict | str | None) -> str | None:
 	return render_address(address_dict)
 
 
-def render_address(address: dict | str | None, check_permissions=True) -> str | None:
+def render_address(address: dict | str | None, check_permissions=True, address_template=None) -> str | None:
 	if not address:
 		return
 
@@ -178,7 +178,7 @@ def render_address(address: dict | str | None, check_permissions=True) -> str | 
 			address.check_permission()
 		address = address.as_dict()
 
-	name, template = get_address_templates(address)
+	name, template = address_template or get_address_templates(address)
 
 	try:
 		return frappe.render_template(template, address, restrict_globals=True)
@@ -205,12 +205,17 @@ def get_territory_from_address(address):
 
 
 def get_list_context(context=None):
-	return {
-		"title": _("Addresses"),
-		"get_list": get_address_list,
-		"row_template": "templates/includes/address_row.html",
-		"no_breadcrumbs": True,
-	}
+	context = context or frappe._dict()
+	context.update(
+		{
+			"title": _("Addresses"),
+			"get_list": get_address_list,
+			"list_template": "templates/includes/list/list.html",
+			"row_template": "templates/includes/address_row.html",
+			"no_breadcrumbs": True,
+		}
+	)
+	return context
 
 
 def get_address_list(doctype, txt, filters, limit_start, limit_page_length=20, order_by=None):
@@ -220,9 +225,19 @@ def get_address_list(doctype, txt, filters, limit_start, limit_page_length=20, o
 
 	if not filters:
 		filters = []
-	filters.append(("Address", "owner", "=", user))
+	try:
+		filters["owner"] = user
+	except TypeError:
+		filters.append(("Address", "owner", "=", user))
 
-	return get_list(doctype, txt, filters, limit_start, limit_page_length)
+	addresses = get_list(doctype, txt, filters, limit_start, limit_page_length)
+	address_templates, default_template = get_address_template_map(addresses)
+	for address in addresses:
+		address.address_display = render_address(
+			address, address_template=address_templates.get(address.get("country")) or default_template
+		)
+
+	return addresses
 
 
 def has_website_permission(doc, ptype, user, verbose=False):
@@ -242,16 +257,46 @@ def get_address_templates(address):
 	)
 
 	if not result:
-		result = frappe.db.get_value("Address Template", {"is_default": 1}, ["name", "template"])
+		result = get_default_address_template()
 
+	return result
+
+
+def get_default_address_template():
+	result = frappe.db.get_value("Address Template", {"is_default": 1}, ["name", "template"])
 	if not result:
 		frappe.throw(
 			_(
-				"No default Address Template found. Please create a new one from Setup > Printing and Branding > Address Template."
+				"No default Address Template found. Please create a new one from "
+				"Setup > Printing and Branding > Address Template."
 			)
 		)
-	else:
-		return result
+
+	return result
+
+
+def get_address_template_map(addresses):
+	if not addresses:
+		return {}, None
+
+	countries = {address.get("country") for address in addresses if address.get("country")}
+	has_missing_country = any(not address.get("country") for address in addresses)
+	address_templates = {}
+	if countries:
+		address_templates = {
+			template.country: (template.name, template.template)
+			for template in frappe.get_all(
+				"Address Template",
+				filters={"country": ("in", tuple(countries))},
+				fields=["country", "name", "template"],
+			)
+		}
+
+	default_template = None
+	if len(address_templates) < len(countries) or has_missing_country:
+		default_template = get_default_address_template()
+
+	return address_templates, default_template
 
 
 def get_company_address(company):
