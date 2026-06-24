@@ -1,0 +1,92 @@
+// Gmail-style floating email composer
+// Scoped to .compose-floating — applied only by frappe.views.CommunicationComposer
+
+// Layer 1: floating shell — bottom-right position, no backdrop, page stays interactive
+.modal.compose-floating {
+	// Let clicks pass through the overlay area so the page behind stays interactive
+	pointer-events: none;
+
+	.modal-dialog {
+		position: fixed;
+		right: 16px;
+		bottom: 0;
+		top: auto;
+		left: auto;
+		margin: 0;
+		width: 530px;
+		max-width: 530px;
+		min-width: 530px;
+		transform: none !important;
+
+		@include media-breakpoint-down(sm) {
+			right: 0;
+			width: 100%;
+			max-width: 100%;
+			min-width: 100%;
+		}
+	}
+
+	.modal-content {
+		// Only the compose itself is interactive
+		pointer-events: auto;
+		border-radius: var(--radius-md) var(--radius-md) 0 0;
+		border-bottom: none;
+		box-shadow: 0 8px 24px rgba(0, 0, 0, 0.15);
+		max-height: calc(100vh - 60px);
+		// Constrain children to the max-height so the body can scroll internally
+		display: flex;
+		flex-direction: column;
+		overflow: hidden;
+	}
+
+	// Sticky header + footer are already set in modal.scss;
+	// the body fills the remaining space and scrolls internally.
+	.modal-body {
+		flex: 1 1 auto;
+		overflow-y: auto;
+		overflow-x: hidden;
+	}
+
+	// .title-section fills the header (except action buttons) and is clickable to toggle minimize
+	.modal-header .title-section {
+		cursor: pointer;
+	}
+
+	// Compact minimized chip — Gmail's collapsed state
+	&.modal-minimize {
+		.modal-dialog {
+			width: 330px;
+			max-width: 330px;
+			min-width: 330px;
+
+			@include media-breakpoint-down(sm) {
+				width: 100%;
+				max-width: 100%;
+				min-width: 100%;
+			}
+		}
+
+		.modal-header {
+			padding: 6px 12px;
+			min-height: 40px;
+			border-bottom: none;
+
+			.modal-title {
+				font-size: var(--text-md);
+				line-height: 1.5;
+			}
+		}
+	}
+
+	// Belt-and-suspenders: if a stray backdrop slips in, hide it
+	& ~ .modal-backdrop {
+		display: none !important;
+	}
+}
+
+// When only floating composers are open, don't lock body scroll —
+// the user must be able to scroll/click the page behind the popup.
+body.modal-open:has(.modal.compose-floating.show):not(:has(.modal.show:not(.compose-floating))) {
+	overflow: auto !important;
+	padding-right: 0 !important;
+}
