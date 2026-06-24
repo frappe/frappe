@@ -92,7 +92,7 @@ class Notification(Document):
 	# START: PreviewRenderer API
 
 	@frappe.whitelist()
-	def preview_meets_condition(self, preview_document):
+	def preview_meets_condition(self, preview_document: str | int):
 		if not self.condition and not self.filters:
 			return _("Yes")
 		try:
@@ -107,7 +107,7 @@ class Notification(Document):
 			return _("Failed to evaluate conditions: {}").format(str(e))
 
 	@frappe.whitelist()
-	def preview_message(self, preview_document):
+	def preview_message(self, preview_document: str | int):
 		try:
 			doc = frappe.get_cached_doc(self.document_type, preview_document)
 			context = get_context(doc)
@@ -124,7 +124,7 @@ class Notification(Document):
 			return _("Failed to render message: {}").format(str(e))
 
 	@frappe.whitelist()
-	def preview_subject(self, preview_document):
+	def preview_subject(self, preview_document: str | int):
 		try:
 			doc = frappe.get_cached_doc(self.document_type, preview_document)
 			context = get_context(doc)
