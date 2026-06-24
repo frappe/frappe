@@ -225,7 +225,7 @@ def get_permitted_fields(
 	valid_columns = meta.get_valid_columns()
 
 	# note: any change here should also be made in _get_filterable_fields in query.py
-	if doctype in CORE_DOCTYPES:
+	if doctype in CORE_DOCTYPES and doctype != "User":
 		return valid_columns
 
 	# DocType has only fields of type Table (Table, Table MultiSelect)
