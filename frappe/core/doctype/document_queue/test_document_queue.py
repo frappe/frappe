@@ -66,6 +66,20 @@ class TestDocumentQueue(IntegrationTestCase):
 		)
 		return queue_doc
 
+	def make_desk_user(self):
+		email = f"document-queue-user-{uuid4().hex}@example.com"
+		user = frappe.get_doc(
+			{
+				"doctype": "User",
+				"email": email,
+				"first_name": "Document Queue",
+				"send_welcome_email": 0,
+			}
+		).insert(ignore_permissions=True)
+		user.add_roles("Desk User")
+		self.addCleanup(lambda: frappe.delete_doc("User", user.name, force=True, ignore_permissions=True))
+		return user
+
 	def enable_upload_first_workflow(self, doctype="File"):
 		original = frappe.db.get_value("DocType", doctype, "enable_upload_first_workflow")
 		frappe.db.set_value("DocType", doctype, "enable_upload_first_workflow", 1)
@@ -214,6 +228,22 @@ class TestDocumentQueue(IntegrationTestCase):
 		self.assertEqual(queue_doc.extracted_text, "OCR fallback text from scanned PDF")
 		self.assertEqual(raw["ocr_text"], "OCR fallback text from scanned PDF")
 		self.assertIn("OCR mocked", queue_doc.debug_output)
+
+	def test_read_only_owner_cannot_enqueue_or_set_document_type(self):
+		user = self.make_desk_user()
+		self.enable_upload_first_workflow("File")
+
+		with self.set_user(user.name):
+			queue_doc = self.make_queue()
+
+			with patch.object(queue_doc, "enqueue_extraction") as enqueue_extraction:
+				with self.assertRaises(frappe.PermissionError):
+					queue_doc.extract_in_background()
+
+			with self.assertRaises(frappe.PermissionError):
+				queue_doc.set_document_type("File")
+
+		enqueue_extraction.assert_not_called()
 
 	def test_set_document_type_requires_upload_first_enabled_doctype(self):
 		queue_doc = self.make_queue()
