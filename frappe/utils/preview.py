@@ -88,7 +88,13 @@ def capture_screenshot(
 			safe_execute(session and session.disconnect)
 			generator.remove_browser(browser_id)
 	except Exception:
-		generator._close_browser()  # crashed Chrome → drop the poisoned singleton
+		# Only reset the singleton when Chrome itself has crashed (process exited).
+		# Application errors (bad URL, timeout, invalid HTML) don't poison the shared
+		# instance — calling _close_browser() on every error causes runaway process
+		# spawning under concurrent load.
+		proc = generator._chromium_process
+		if proc is None or proc.poll() is not None:
+			generator._close_browser()
 		raise
 
 
