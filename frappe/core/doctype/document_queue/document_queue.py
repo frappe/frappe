@@ -142,6 +142,7 @@ class DocumentQueue(Document):
 
 	@frappe.whitelist()
 	def extract_in_background(self):
+		self.check_permission("write")
 		task = self.enqueue_extraction()
 		frappe.msgprint(
 			_("Queued extraction for {0}.").format(frappe.bold(self.name)),
@@ -152,6 +153,7 @@ class DocumentQueue(Document):
 
 	@frappe.whitelist()
 	def set_document_type(self, document_type: str):
+		self.check_permission("write")
 		validate_upload_first_workflow_doctype(document_type)
 
 		self.db_set("document_type", document_type, update_modified=True)
