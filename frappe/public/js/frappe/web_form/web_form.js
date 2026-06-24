@@ -64,6 +64,9 @@ export default class WebForm extends frappe.ui.FieldGroup {
 	}
 
 	make_form_dirty() {
+		if (!this.is_new && !this.in_edit_mode) {
+			return;
+		}
 		frappe.form_dirty = true;
 		$("#not-saved-badge").removeClass("hide");
 	}
