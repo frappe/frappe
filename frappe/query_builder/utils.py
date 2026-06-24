@@ -244,8 +244,39 @@ def patch_like_operators():
 	Term.not_like = not_like  # nosemgrep: frappe-monkey-patching-not-allowed
 
 
+def patch_null_ordering():
+	"""Make NULLs sort on postgres the way they sort on MariaDB.
+
+	MariaDB treats NULL as the lowest value -- NULLs come first under ASC and last under DESC.
+	Postgres defaults to the opposite (NULLs last under ASC, first under DESC), so an
+	``ORDER BY ... LIMIT 1`` or a first-row pick on a nullable column returns a different row on the
+	two backends. Appending an explicit ``NULLS FIRST``/``NULLS LAST`` per term reproduces MariaDB's
+	placement. This covers every query the query builder renders -- ``get_all``/``get_list`` (which
+	build on it) and raw ``frappe.qb`` alike. MariaDB rendering is untouched.
+
+	Patches ``QueryBuilder._orderby_sql`` the same way ``patch_like_operators`` patches ``Term.like``
+	(pypika has no hook for dialect-specific rendering).
+	"""
+	from pypika.queries import QueryBuilder  # nosemgrep: frappe-monkey-patching-not-allowed
+
+	_orderby_sql = QueryBuilder._orderby_sql
+	prefix = " ORDER BY "
+
+	def orderby_sql(self, *args, **kwargs):
+		sql = _orderby_sql(self, *args, **kwargs)
+		if sql and sql.startswith(prefix) and frappe.db and frappe.db.db_type == "postgres":
+			# imported lazily: frappe.database.utils <-> frappe.query_builder.builder would cycle at boot
+			from frappe.database.utils import add_null_ordering_for_postgres
+
+			sql = prefix + add_null_ordering_for_postgres(sql[len(prefix) :])
+		return sql
+
+	QueryBuilder._orderby_sql = orderby_sql  # nosemgrep: frappe-monkey-patching-not-allowed
+
+
 def patch_all():
 	patch_query_execute()
 	patch_query_aggregation()
 	patch_get_query()
 	patch_like_operators()
+	patch_null_ordering()

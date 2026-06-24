@@ -764,3 +764,32 @@ class TestOperatorIn(IntegrationTestCase):
 		self.assertIn(None, results)
 		self.assertIn("", results)
 		self.assertIn("user1", results)
+
+
+class TestNullOrdering(IntegrationTestCase):
+	def test_add_null_ordering_for_postgres(self):
+		"""The helper appends NULLS FIRST under ASC and NULLS LAST under DESC, like MariaDB."""
+		from frappe.database.utils import add_null_ordering_for_postgres as nz
+
+		self.assertEqual(nz('"valid_from" desc'), '"valid_from" desc NULLS LAST')
+		self.assertEqual(nz('"creation" asc'), '"creation" asc NULLS FIRST')
+		self.assertEqual(nz('"name"'), '"name" NULLS FIRST')  # unspecified -> ascending
+		self.assertEqual(
+			nz('"a" desc, "b" asc, "c"'),
+			'"a" desc NULLS LAST, "b" asc NULLS FIRST, "c" NULLS FIRST',
+		)
+		# commas inside a function call must not be treated as term separators
+		self.assertEqual(
+			nz('COALESCE("valid_from", \'1900-01-01\') desc, "creation" asc'),
+			'COALESCE("valid_from", \'1900-01-01\') desc NULLS LAST, "creation" asc NULLS FIRST',
+		)
+		# idempotent
+		self.assertEqual(nz('"x" desc NULLS LAST'), '"x" desc NULLS LAST')
+		self.assertEqual(nz(""), "")
+
+	@run_only_if(db_type_is.POSTGRES)
+	def test_query_builder_emits_nulls_modifier(self):
+		"""On Postgres the rendered ORDER BY carries the MariaDB-matching NULLS placement."""
+		user = frappe.qb.DocType("User")
+		query = str(frappe.qb.from_(user).select(user.name).orderby(user.last_login, order=frappe.qb.desc))
+		self.assertIn("NULLS LAST", query.upper())

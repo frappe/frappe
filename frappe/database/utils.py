@@ -28,6 +28,51 @@ NestedSetHierarchy = (
 # split when non-alphabetical character is found
 QUERY_TYPE_PATTERN = re.compile(r"\s*([A-Za-z]*)")
 
+# matches a trailing DESC on an ORDER BY term (so a NULLS modifier can be chosen)
+_TRAILING_DESC = re.compile(r"\bdesc\b\s*$", re.IGNORECASE)
+
+
+def add_null_ordering_for_postgres(order_by: str) -> str:
+	"""Append ``NULLS FIRST``/``NULLS LAST`` so NULLs sort on PostgreSQL the way they do on MariaDB.
+
+	MariaDB treats ``NULL`` as the lowest value (NULLs first under ``ASC``, last under ``DESC``);
+	PostgreSQL defaults to the opposite (``NULLS LAST`` for ``ASC``, ``NULLS FIRST`` for ``DESC``).
+	Without this, an ``ORDER BY ... LIMIT 1`` or a first-row pick on a nullable column returns a
+	different row on the two backends. Reproducing MariaDB's placement keeps them identical.
+
+	``order_by`` is the clause body (no leading ``order by``). Terms are split on *top-level* commas
+	so a function call's argument commas are preserved, and a term that already carries ``NULLS`` is
+	left untouched (idempotent). Intended for PostgreSQL only; MariaDB needs no modifier.
+	"""
+	if not order_by:
+		return order_by
+
+	terms, depth, current = [], 0, []
+	for char in order_by:
+		if char == "(":
+			depth += 1
+		elif char == ")":
+			depth = max(depth - 1, 0)
+		if char == "," and depth == 0:
+			terms.append("".join(current))
+			current = []
+		else:
+			current.append(char)
+	terms.append("".join(current))
+
+	out = []
+	for term in terms:
+		term = term.strip()
+		if not term:
+			continue
+		if " nulls " in f" {term.lower()} ":  # already has NULLS FIRST/LAST
+			out.append(term)
+		elif _TRAILING_DESC.search(term):
+			out.append(f"{term} NULLS LAST")
+		else:  # ASC or unspecified -> ascending -> NULLs first, like MariaDB
+			out.append(f"{term} NULLS FIRST")
+	return ", ".join(out)
+
 
 def convert_to_value(o: FilterValue):
 	if isinstance(o, bool):
