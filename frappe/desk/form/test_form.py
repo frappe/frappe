@@ -13,6 +13,16 @@ class TestForm(IntegrationTestCase):
 		self.assertTrue("User" in results)
 		self.assertTrue("DocType" in results)
 
+	def test_savedocs_accepts_native_dict(self):
+		from frappe.desk.form.save import savedocs
+
+		frappe.local.form_dict = frappe._dict()
+		# doc as a native dict instead of a JSON string (frappe.parse_json passthrough, L18)
+		savedocs(doc={"doctype": "ToDo", "description": "via dict"}, action="Save")
+		self.assertTrue(frappe.local.response.docs)
+		self.assertEqual(frappe.local.response.docs[0].description, "via dict")
+		frappe.delete_doc("ToDo", frappe.local.response.docs[0].name)
+
 	def test_sort_field_fallback(self):
 		self.assertIsNone(_sort_field_fallback("Note", "name"))
 		self.assertIsNone(_sort_field_fallback("Note", "creation"))
