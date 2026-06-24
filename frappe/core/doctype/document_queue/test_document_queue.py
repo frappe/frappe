@@ -333,3 +333,21 @@ class TestDocumentQueue(IntegrationTestCase):
 		self.enable_upload_first_workflow("File")
 
 		self.assertEqual(get_ready_for_review_count("File"), 1)
+
+	def test_ready_for_review_count_respects_owner_permissions(self):
+		from frappe.core.doctype.document_queue.document_queue import get_ready_for_review_count
+
+		user = self.make_desk_user()
+		owned_queue_doc = self.make_queue()
+		other_queue_doc = self.make_queue()
+		self.enable_upload_first_workflow("File")
+
+		owned_queue_doc.db_set(
+			{"document_type": "File", "status": "Ready for Review", "owner": user.name}
+		)
+		other_queue_doc.db_set({"document_type": "File", "status": "Ready for Review"})
+
+		self.assertEqual(get_ready_for_review_count("File"), 2)
+
+		with self.set_user(user.name):
+			self.assertEqual(get_ready_for_review_count("File"), 1)

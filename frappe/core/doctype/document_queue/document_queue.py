@@ -237,12 +237,16 @@ def get_ready_for_review_count(document_type: str) -> int:
 	if not is_upload_first_workflow_doctype(document_type):
 		return 0
 
-	return frappe.db.count(
-		"Document Queue",
-		{
-			"document_type": document_type,
-			"status": "Ready for Review",
-		},
+	return len(
+		frappe.get_list(
+			"Document Queue",
+			filters={
+				"document_type": document_type,
+				"status": "Ready for Review",
+			},
+			pluck="name",
+			limit=0,
+		)
 	)
 
 
