@@ -5,7 +5,10 @@ import MessageList from "./components/MessageList.vue";
 import Composer from "./components/Composer.vue";
 import { useStore } from "./store";
 
-const props = defineProps({ onClose: { type: Function, default: null } });
+const props = defineProps({
+	onClose: { type: Function, default: null },
+	onToggleFullscreen: { type: Function, default: null },
+});
 const { loadInitial } = useStore();
 
 onMounted(loadInitial);
@@ -15,7 +18,10 @@ onMounted(loadInitial);
 	<div
 		class="flow-panel flex h-full flex-col border-l border-outline-gray-2 bg-surface-white text-ink-gray-9"
 	>
-		<PanelHeader @close="props.onClose && props.onClose()" />
+		<PanelHeader
+			:on-toggle-fullscreen="props.onToggleFullscreen"
+			@close="props.onClose && props.onClose()"
+		/>
 		<MessageList />
 		<Composer />
 	</div>

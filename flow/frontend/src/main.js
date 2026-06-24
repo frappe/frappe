@@ -1,8 +1,10 @@
 import { createApp } from "vue";
 import App from "@/App.vue";
+import { useStore } from "@/store";
 import "@/index.css";
 
 const PANEL_WIDTH = 420;
+const MIN_WIDTH = 360;
 
 // Slide-in overlay panel injected into the Frappe desk. The Vue app (with real
 // frappe-ui components) mounts inside #flow-root; all bundle CSS is scoped to
@@ -31,8 +33,54 @@ class FlowPanel {
 		});
 		document.body.appendChild(this.root);
 
-		this.app = createApp(App, { onClose: () => this.hide() });
+		this.store = useStore();
+		this.app = createApp(App, {
+			onClose: () => this.hide(),
+			onToggleFullscreen: () => this.toggleFullscreen(),
+		});
 		this.app.mount(this.root);
+
+		this._addResizeHandle();
+	}
+
+	// Thin grab strip on the panel's left edge. Dragging it changes the panel
+	// width (anchored to the right). Appended after mount so Vue's render
+	// doesn't clobber it.
+	_addResizeHandle() {
+		const handle = document.createElement("div");
+		Object.assign(handle.style, {
+			position: "absolute",
+			top: "0",
+			left: "0",
+			width: "6px",
+			height: "100%",
+			cursor: "ew-resize",
+			zIndex: "10",
+		});
+		this.root.appendChild(handle);
+
+		const onMove = (e) => {
+			const max = window.innerWidth - 80;
+			const width = Math.min(max, Math.max(MIN_WIDTH, window.innerWidth - e.clientX));
+			this.root.style.width = `${width}px`;
+			// A manual resize takes the panel out of fullscreen; keep the header icon honest.
+			this.store.fullscreen.value = false;
+		};
+		const onUp = () => {
+			document.removeEventListener("mousemove", onMove);
+			document.removeEventListener("mouseup", onUp);
+			document.body.style.userSelect = "";
+			this.root.style.transition = this._savedTransition;
+		};
+		handle.addEventListener("mousedown", (e) => {
+			e.preventDefault();
+			// Drop the width transition while dragging so it tracks the cursor.
+			this._savedTransition = this.root.style.transition;
+			this.root.style.transition = "none";
+			document.body.style.userSelect = "none";
+			document.addEventListener("mousemove", onMove);
+			document.addEventListener("mouseup", onUp);
+		});
 	}
 
 	// Mirror the desk's light/dark theme onto the panel root so scoped tokens
@@ -70,6 +118,19 @@ class FlowPanel {
 
 	toggle() {
 		this.visible ? this.hide() : this.show();
+	}
+
+	// Expand the panel to the full viewport width, or restore its previous
+	// width. State lives in the store so the header icon tracks it reactively.
+	toggleFullscreen() {
+		const next = !this.store.fullscreen.value;
+		this.store.fullscreen.value = next;
+		if (next) {
+			this._savedWidth = this.root.style.width;
+			this.root.style.width = "100vw";
+		} else {
+			this.root.style.width = this._savedWidth || `${PANEL_WIDTH}px`;
+		}
 	}
 }
 

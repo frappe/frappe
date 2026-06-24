@@ -5,8 +5,9 @@ import { Button, FeatherIcon } from "@/lib/ui";
 import { useStore } from "@/store";
 import { __ } from "@/lib/translate";
 
+const props = defineProps({ onToggleFullscreen: { type: Function, default: null } });
 const emit = defineEmits(["close"]);
-const { recentSessions, switchSession, newChat } = useStore();
+const { recentSessions, switchSession, newChat, fullscreen } = useStore();
 </script>
 
 <template>
@@ -20,6 +21,18 @@ const { recentSessions, switchSession, newChat } = useStore();
 		<Button variant="ghost" :title="__('New chat')" @click="newChat">
 			<template #icon
 				><FeatherIcon name="plus" :stroke-width="2" class="h-3.5 w-3.5"
+			/></template>
+		</Button>
+		<Button
+			variant="ghost"
+			:title="fullscreen ? __('Exit full screen') : __('Full screen')"
+			@click="props.onToggleFullscreen && props.onToggleFullscreen()"
+		>
+			<template #icon
+				><FeatherIcon
+					:name="fullscreen ? 'minimize' : 'maximize'"
+					:stroke-width="2"
+					class="h-3.5 w-3.5"
 			/></template>
 		</Button>
 		<Button variant="ghost" :title="__('Close (Ctrl+M)')" @click="emit('close')">
