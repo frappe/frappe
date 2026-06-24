@@ -55,12 +55,18 @@ class Note(Document):
 		self.append("seen_by", {"user": user})
 
 
-@frappe.whitelist()
+@frappe.whitelist(methods=["POST"])
 def mark_as_seen(note: str):
 	note: Note = frappe.get_doc("Note", note)
 	note.check_permission("read")
-	note.mark_seen_by(frappe.session.user)
-	note.save(ignore_permissions=True, ignore_version=True)
+	current_user = frappe.session.user
+
+	try:
+		frappe.set_user("Administrator")
+		note.mark_seen_by(current_user)
+		note.save(ignore_version=True)
+	finally:
+		frappe.set_user(current_user)
 
 
 def get_permission_query_conditions(user):
