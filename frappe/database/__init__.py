@@ -5,6 +5,7 @@
 # --------------------
 from pathlib import Path
 from shutil import which
+from urllib.parse import quote
 
 from frappe.database.database import savepoint
 
@@ -145,14 +146,20 @@ def get_command(
 		else:
 			bin, bin_name = which("psql"), "psql"
 
-		if socket and password:
-			conn_string = f"postgresql://{user}:{password}@/{db_name}?host={socket}"
-		elif socket:
-			conn_string = f"postgresql://{user}@/{db_name}?host={socket}"
-		elif password:
-			conn_string = f"postgresql://{user}:{password}@{host}:{port}/{db_name}"
+		quoted_user = quote(user, safe="") if user else None
+		quoted_password = quote(password, safe="") if password else None
+
+		cred_prefix = ""
+		if quoted_user:
+			if quoted_password:
+				cred_prefix = f"{quoted_user}:{quoted_password}@"
+			else:
+				cred_prefix = f"{quoted_user}@"
+
+		if socket:
+			conn_string = f"postgresql://{cred_prefix}/{db_name}?host={socket}"
 		else:
-			conn_string = f"postgresql://{user}@{host}:{port}/{db_name}"
+			conn_string = f"postgresql://{cred_prefix}{host}:{port}/{db_name}"
 
 		command = [conn_string]
 
