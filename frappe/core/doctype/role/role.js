@@ -189,7 +189,7 @@ class UsersTab extends RoleTab {
 		return {
 			description: __("Users who have this role."),
 			empty_message: __("No users have this role."),
-			add_button: { label: __("+ Add User"), action: () => this.add() },
+			add_button: { label: __("Add User"), action: () => this.add() },
 			columns: [
 				{
 					label: __("Full Name"),
@@ -300,7 +300,7 @@ class DocumentsTab extends RoleTab {
 			page_size: 50,
 			description: __("DocTypes this role can access."),
 			empty_message: __("No DocTypes are accessible to this role."),
-			add_button: { label: __("+ Add Permission"), action: () => this.add() },
+			add_button: { label: __("Add Permission"), action: () => this.add() },
 			columns: this.columns(),
 			on_row_click: (row) => this.edit(row),
 			get_data: () => this.get_data(),
@@ -567,7 +567,7 @@ class ReportsTab extends RoleAccessTab {
 		return {
 			description: __("Reports this role can access."),
 			empty_message: __("This role has no Report access."),
-			add_button: { label: __("+ Add Report"), action: () => this.add() },
+			add_button: { label: __("Add Report"), action: () => this.add() },
 			columns: [
 				{
 					label: __("Report"),
@@ -595,7 +595,7 @@ class PagesTab extends RoleAccessTab {
 		return {
 			description: __("Pages this role can access."),
 			empty_message: __("This role has no Page access."),
-			add_button: { label: __("+ Add Page"), action: () => this.add() },
+			add_button: { label: __("Add Page"), action: () => this.add() },
 			columns: [
 				{
 					label: __("Title"),
@@ -624,7 +624,7 @@ class WorkspacesTab extends RoleAccessTab {
 		return {
 			description: __("Workspaces this role can access."),
 			empty_message: __("This role has no Workspace access."),
-			add_button: { label: __("+ Add Workspace"), action: () => this.add() },
+			add_button: { label: __("Add Workspace"), action: () => this.add() },
 			columns: [
 				{
 					label: __("Workspace"),
