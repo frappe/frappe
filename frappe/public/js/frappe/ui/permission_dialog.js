@@ -23,18 +23,23 @@ const PERM_SECTIONS = [
 			{ name: "delete", description: __("Allows the user to delete documents.") },
 			{
 				name: "submit",
-				description: __("Allows the user to submit documents (submittable doctypes)."),
+				description: __("Allows the user to submit documents."),
 			},
 			{ name: "cancel", description: __("Allows the user to cancel submitted documents.") },
 			{
 				name: "amend",
 				description: __("Allows the user to amend a cancelled document into a new copy."),
 			},
-			{ name: "select", description: __("Allows the user to search and see records.") },
+			{
+				name: "select",
+				description: __(
+					"Allows the user to search and select records in other forms. This does not allow the user to view the record itself."
+				),
+			},
 			{
 				name: "mask",
 				description: __(
-					"Allows users to enable the mask property for any field of the respective doctype."
+					"Allows the user to view the value of a masked field in the document."
 				),
 			},
 		],
@@ -46,14 +51,28 @@ const PERM_SECTIONS = [
 				name: "report",
 				description: __("Allows the user to access reports related to the document."),
 			},
-			{ name: "export", description: __("Allows the user to export data from the Report view.") },
+			{
+				name: "export",
+				description: __("Allows the user to export document data from the system."),
+			},
 			{
 				name: "import",
-				description: __("Allows the user to use Data Import tool to create / update records."),
+				description: __("Allows the user to use import documents into the system."),
 			},
-			{ name: "share", description: __("Allows sharing document access with other users.") },
-			{ name: "print", description: __("Allows printing or PDF download of documents.") },
-			{ name: "email", description: __("Allows the user to email from the document.") },
+			{
+				name: "share",
+				description: __(
+					"Allows the user to share document access with other users who may not have access to the document themselves."
+				),
+			},
+			{
+				name: "print",
+				description: __("Allows the user to print or download the document as a PDF."),
+			},
+			{
+				name: "email",
+				description: __("Allows the user to send emails linked to the document."),
+			},
 		],
 	},
 ];

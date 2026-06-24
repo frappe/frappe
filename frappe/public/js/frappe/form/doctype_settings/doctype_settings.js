@@ -23,14 +23,16 @@ import "./tabs/related_settings";
 frappe.doctype_settings.open = function (doctype) {
 	if (!doctype) return;
 
-	return frappe
-		.call({
-			method: "frappe.desk.doctype_settings.related_settings.has_related_settings",
-			args: { doctype },
-		})
-		.then((r) => build_dialog(doctype, !!(r && r.message)))
-		// A failure on the check must not block the whole dialog.
-		.catch(() => build_dialog(doctype, false));
+	return (
+		frappe
+			.call({
+				method: "frappe.desk.doctype_settings.related_settings.has_related_settings",
+				args: { doctype },
+			})
+			.then((r) => build_dialog(doctype, !!(r && r.message)))
+			// A failure on the check must not block the whole dialog.
+			.catch(() => build_dialog(doctype, false))
+	);
 };
 
 function build_dialog(doctype, has_general) {
