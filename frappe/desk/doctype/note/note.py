@@ -62,6 +62,8 @@ def mark_as_seen(note: str):
 	note.check_permission("read")
 	current_user = frappe.session.user
 
+	# Save as Administrator so marking a public note as seen does not expose
+	# the viewing user through standard owner/modified_by metadata.
 	try:
 		frappe.set_user("Administrator")
 		added = note.mark_seen_by(current_user)
