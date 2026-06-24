@@ -61,8 +61,8 @@ frappe.ui.EmbeddedList = class EmbeddedList {
 			? `<div class="embedded-list-description">${this.description}</div>`
 			: "";
 		const add = this.add_button
-			? `<button class="btn btn-xs btn-default" data-action="add-row">${
-					this.add_button.label || __("+ Add")
+			? `<button class="es-button" data-action="add-row">${
+					this.add_button.label || __("Add")
 			  }</button>`
 			: "";
 		const search = `<input type="text" class="form-control form-control-sm embedded-list-search" data-action="search" placeholder="${__(
@@ -186,7 +186,7 @@ frappe.ui.EmbeddedList = class EmbeddedList {
 					this.rendered_count,
 					this.data.length,
 				])}</span>
-				<button class="btn btn-xs btn-default" data-action="load-more">
+				<button class="es-button" data-action="load-more">
 					${__("Load More")}
 				</button>
 			</div>`
@@ -280,10 +280,11 @@ frappe.ui.EmbeddedList = class EmbeddedList {
 					: "";
 				// `xs` + currentColor matches Frappe's inline row actions (grid_row.js)
 				// so danger actions inherit the button's red instead of the muted stroke.
+				const icon_button = action.icon ? "true" : "false";
 				const inner = action.icon
 					? frappe.utils.icon(action.icon, "xs", "", "", "", true)
 					: frappe.utils.escape_html(action.label || "");
-				return `<button class="btn btn-xs btn-link${danger}" data-action-idx="${action_idx}"${title}>${inner}</button>`;
+				return `<button class="es-button" data-icon-button="${icon_button}" data-size="xs" data-theme="red" data-variant="ghost" data-action-idx="${action_idx}"${title}>${inner}</button>`;
 			})
 			.join("");
 	}
