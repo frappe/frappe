@@ -22,6 +22,9 @@ export default {
 		"text-p-md",
 		"text-p-lg",
 		"text-p-xl",
+		"text-p-2xl",
+		"text-p-3xl",
+		"text-p-4xl",
 	],
 	content: [
 		"./index.html",
