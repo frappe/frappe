@@ -61,6 +61,12 @@ frappe.views.KanbanView = class KanbanView extends frappe.views.ListView {
 
 	init() {
 		return super.init().then(() => {
+			// Same debounced path as list view: list_update + kanban_board_update → render_list.
+			this.debounced_refresh = frappe.utils.debounce(
+				this.process_document_refreshes.bind(this),
+				500
+			);
+			this.pending_kanban_board_refresh = false;
 			let menu_length = this.page.menu.find(".dropdown-item").length;
 			if (menu_length === 1) {
 				// Only 'Refresh' (hidden) is present (always), dropdown is visibly empty
@@ -169,7 +175,120 @@ frappe.views.KanbanView = class KanbanView extends frappe.views.ListView {
 			this.page.container.addClass("full-width");
 		}
 		this.setup_realtime_updates();
+		this.setup_kanban_board_realtime();
 		this.setup_like();
+	}
+
+	setup_kanban_board_realtime() {
+		if (this.kanban_board_realtime_setup) return;
+
+		frappe.realtime.on("kanban_board_update", (data) => {
+			if (data.board_name !== this.board_name) return;
+			if (this.skip_kanban_realtime || this.avoid_realtime_update()) return;
+			this.pending_kanban_board_refresh = true;
+			this.debounced_refresh();
+		});
+		this.kanban_board_realtime_setup = true;
+	}
+
+	/** Like list view: fetch changed docs, patch this.data, then render_list (no list sort). */
+	process_document_refreshes() {
+		const board_refresh_only =
+			!this.pending_document_refreshes?.length && this.pending_kanban_board_refresh;
+
+		if (!this.pending_document_refreshes?.length && !this.pending_kanban_board_refresh) {
+			return;
+		}
+
+		const route = frappe.get_route() || [];
+		if (!cur_list || route[0] != "List" || cur_list.doctype != route[1]) {
+			this.pending_document_refreshes = [];
+			this.pending_kanban_board_refresh = false;
+			this.disable_realtime_updates();
+			return;
+		}
+
+		if (board_refresh_only) {
+			this.pending_kanban_board_refresh = false;
+			this.render_list();
+			return;
+		}
+
+		const names = this.pending_document_refreshes.map((d) => d.name);
+		this.pending_document_refreshes = this.pending_document_refreshes.filter(
+			(d) => names.indexOf(d.name) === -1
+		);
+
+		if (!names.length) {
+			if (this.pending_kanban_board_refresh) {
+				this.pending_kanban_board_refresh = false;
+				this.render_list();
+			}
+			return;
+		}
+
+		const call_args = this.get_call_args();
+		call_args.args.filters.push([this.doctype, "name", "in", names]);
+		call_args.args.start = 0;
+
+		frappe.call(call_args).then(({ message }) => {
+			if (!message) return;
+			const data = frappe.utils.dict(message.keys, message.values);
+
+			if (!(data && data.length)) {
+				this.data = this.data.filter((d) => !names.includes(d.name));
+			} else {
+				const index_by_name = new Map(this.data.map((doc, i) => [doc.name, i]));
+				data.forEach((datum) => {
+					const index = index_by_name.get(datum.name);
+					if (index === undefined) {
+						this.data.push(datum);
+					} else {
+						this.data[index] = datum;
+					}
+				});
+			}
+
+			// Kanban column order comes from the board — do not re-sort this.data like list view.
+			this.pending_kanban_board_refresh = false;
+			this.toggle_result_area();
+			this.render_list(names);
+		});
+	}
+
+	render_list(changed_names) {
+		if (!this.kanban || this.skip_kanban_realtime) return;
+		this._changed_card_names = changed_names || null;
+		this._render_kanban_from_server();
+	}
+
+	_render_kanban_from_server() {
+		if (this._kanban_sync_in_flight) {
+			this._kanban_sync_pending = true;
+			return;
+		}
+
+		this._kanban_sync_in_flight = true;
+		return frappe.db
+			.get_doc("Kanban Board", this.board_name)
+			.then((board) => {
+				if (this.skip_kanban_realtime || !this.kanban) return;
+				const columns = (board.columns || []).map((col) => ({
+					title: col.column_name,
+					status: col.status,
+					order: col.order,
+					indicator: col.indicator || "gray",
+				}));
+				this.kanban.sync_from_realtime(this.data, columns, this._changed_card_names);
+				this._changed_card_names = null;
+			})
+			.finally(() => {
+				this._kanban_sync_in_flight = false;
+				if (this._kanban_sync_pending) {
+					this._kanban_sync_pending = false;
+					this._render_kanban_from_server();
+				}
+			});
 	}
 
 	set_fields() {
@@ -205,8 +324,6 @@ frappe.views.KanbanView = class KanbanView extends frappe.views.ListView {
 			last_kanban_board: this.board_name,
 		});
 	}
-
-	render_list() {}
 
 	on_filter_change() {
 		if (!this.board_perms.write) return; // avoid misleading ux

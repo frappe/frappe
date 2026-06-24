@@ -127,7 +127,9 @@ def update_order(board_name: str, order: str):
 			if column.column_name == col_name:
 				column.order = json.dumps(cards)
 
-	return board.save(ignore_permissions=True), updated_cards
+	saved = board.save(ignore_permissions=True)
+	publish_kanban_board_update(saved)
+	return saved, updated_cards
 
 
 @frappe.whitelist()
@@ -136,38 +138,44 @@ def update_order_for_single_card(
 	docname: str,
 	from_colname: str,
 	to_colname: str,
-	old_index: str | int,
-	new_index: str | int,
+	old_index: str | int | None = None,
+	new_index: str | int | None = None,
+	from_order: str | list | None = None,
+	to_order: str | list | None = None,
 ):
-	"""Save the order of cards in columns"""
+	"""Save the order of cards in columns."""
 	board = frappe.get_doc("Kanban Board", board_name)
 	doctype = board.reference_doctype
 
 	frappe.has_permission(doctype, "write", throw=True)
 
 	fieldname = board.field_name
-	old_index = frappe.parse_json(old_index)
-	new_index = frappe.parse_json(new_index)
-
-	# save current order and index of columns to be updated
 	from_col_order, from_col_idx = get_kanban_column_order_and_index(board, from_colname)
 	to_col_order, to_col_idx = get_kanban_column_order_and_index(board, to_colname)
 
-	if from_colname == to_colname:
-		from_col_order = to_col_order
+	if from_order is not None and to_order is not None:
+		from_col_order = frappe.parse_json(from_order)
+		to_col_order = frappe.parse_json(to_order)
+	else:
+		old_index = frappe.parse_json(old_index)
+		new_index = frappe.parse_json(new_index)
 
-	if from_col_order:
-		to_col_order.insert(new_index, from_col_order.pop(old_index))
+		if from_colname == to_colname:
+			from_col_order = to_col_order
+
+		if from_col_order:
+			to_col_order.insert(new_index, from_col_order.pop(old_index))
 
 	# save updated order
 	board.columns[from_col_idx].order = frappe.as_json(from_col_order)
 	board.columns[to_col_idx].order = frappe.as_json(to_col_order)
-	board.save(ignore_permissions=True)
+	saved = board.save(ignore_permissions=True)
+	publish_kanban_board_update(saved)
 
 	# update changed value in doc
 	frappe.set_value(doctype, docname, fieldname, to_colname)
 
-	return board
+	return saved
 
 
 def get_kanban_column_order_and_index(board, colname):
@@ -177,6 +185,15 @@ def get_kanban_column_order_and_index(board, colname):
 			col_idx = i
 
 	return col_order, col_idx
+
+
+def publish_kanban_board_update(board):
+	"""Notify open Kanban views in other sessions to sync column order."""
+	frappe.publish_realtime(
+		"kanban_board_update",
+		{"board_name": board.name, "reference_doctype": board.reference_doctype},
+		after_commit=True,
+	)
 
 
 @frappe.whitelist()
@@ -190,7 +207,9 @@ def add_card(board_name: str, docname: str, colname: str):
 
 	board.columns[col_idx].order = frappe.as_json(col_order)
 
-	return board.save(ignore_permissions=True)
+	saved = board.save(ignore_permissions=True)
+	publish_kanban_board_update(saved)
+	return saved
 
 
 @frappe.whitelist()
