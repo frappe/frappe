@@ -9,7 +9,7 @@ import frappe
 from frappe.tests import IntegrationTestCase
 from werkzeug.wrappers import Response
 
-from flow.api import resume_run, start_run
+from flow.api import attach_file, resume_run, start_run
 from flow.lib.model import ChatResponse, Model, ToolCall
 from flow.tools.builtins import sync_builtin_tools
 
@@ -433,6 +433,45 @@ class TestStartRunSecurity(IntegrationTestCase):
 		frappe.set_user(_ensure_user("third-ai-user@example.com"))
 		with self.assertRaises(frappe.PermissionError):
 			start_run("steal context", session=theirs["session"])
+
+
+class TestAttachFile(IntegrationTestCase):
+	def tearDown(self):
+		frappe.db.rollback()
+
+	def _file(self, file_name: str = "report.txt", content: str = "report body"):
+		return frappe.get_doc(
+			{"doctype": "File", "file_name": file_name, "content": content, "is_private": 1}
+		).insert()
+
+	def test_attach_file_returns_chip_metadata_and_stages_text(self):
+		from flow.ai.doctype.ai_session_attachment.ai_session_attachment import staged_text
+
+		file_doc = self._file()
+		chip = attach_file(file_doc.name)
+
+		self.assertEqual(chip["file"], file_doc.name)
+		self.assertEqual(chip["file_name"], "report.txt")
+		self.assertNotIn("extracted_text", chip)
+		self.assertEqual(staged_text(file_doc.name), "report body")
+
+	def test_attach_file_strips_and_resolves_input(self):
+		file_doc = self._file()
+		chip = attach_file(f"  {file_doc.name}  ")
+		self.assertEqual(chip["file"], file_doc.name)
+
+	def test_attach_file_rejects_empty_input(self):
+		with self.assertRaisesRegex(frappe.ValidationError, "File is required"):
+			attach_file("")
+
+	def test_attach_file_rejects_whitespace_input(self):
+		with self.assertRaisesRegex(frappe.ValidationError, "File is required"):
+			attach_file("   ")
+
+	def test_attach_file_unsupported_type_surfaces_at_upload(self):
+		file_doc = self._file(file_name="data.bin", content="x")
+		with self.assertRaisesRegex(frappe.ValidationError, "Unsupported file type"):
+			attach_file(file_doc.name)
 
 
 def _ensure_user(email: str) -> str:

@@ -59,6 +59,19 @@ def resume_run(
 	return _sse_response(out) if stream else _summarize(out)
 
 
+@frappe.whitelist()
+def attach_file(file: str) -> dict[str, Any]:
+	"""Validate and extract an uploaded File for use as a chat attachment. Errors
+	(unsupported type, unreadable, not owned) surface here, at upload time. The
+	extracted text is staged in cache; the attachment row is written on send."""
+	if not isinstance(file, str) or not file.strip():
+		frappe.throw(_("File is required."), title=_("Invalid Attachment"))
+
+	from flow.ai.doctype.ai_session_attachment.ai_session_attachment import stage_attachment
+
+	return stage_attachment(file.strip())
+
+
 def _sse_response(events: Iterable[Event]) -> Response:
 	"""Wrap an event iterable as an SSE HTTP response."""
 
