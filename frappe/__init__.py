@@ -24,13 +24,7 @@ from collections import defaultdict
 from collections.abc import Callable, Iterable
 from typing import TYPE_CHECKING, Any, Optional, TypeAlias, Union
 
-from werkzeug.datastructures import Headers
-
 import frappe
-from frappe.query_builder.utils import (
-	get_query,
-	get_query_builder,
-)
 from frappe.utils.caching import deprecated_local_cache as local_cache
 from frappe.utils.caching import request_cache, site_cache
 from frappe.utils.data import as_unicode, bold, cint, cstr, safe_decode, safe_encode, sbool, scrub, unscrub
@@ -292,6 +286,11 @@ def init(
 	# Reset locals at start of the request.
 	# Previous request can fail in ways we might have no control over.
 	# release_local is inexpensive, so trigger it before every request/job.
+
+	from werkzeug.datastructures import Headers
+
+	from frappe.query_builder.utils import get_query_builder
+
 	if force:
 		release_local(local)
 

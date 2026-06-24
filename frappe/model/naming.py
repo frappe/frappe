@@ -12,7 +12,6 @@ from uuid import UUID, uuid7
 import frappe
 from frappe import _
 from frappe.model import log_types
-from frappe.monitor import get_trace_id
 from frappe.query_builder import DocType
 from frappe.utils import cint, cstr, now_datetime
 
@@ -313,6 +312,8 @@ def make_autoname(key="", doctype="", doc="", *, ignore_validate=False):
 
 
 def _get_timestamp_prefix():
+	from frappe.monitor import get_trace_id
+
 	ts = int(time.time() * 10)  # time in deciseconds
 	# we ~~don't need~~ can't get ordering over entire lifetime, so we wrap the time.
 	ts = ts % (32**4)

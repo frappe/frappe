@@ -24,7 +24,6 @@ from email.utils import formataddr, getaddresses, parseaddr
 from typing import Any, Generic, TypeAlias, TypedDict
 
 import orjson
-from werkzeug.test import Client
 
 from frappe.deprecation_dumpster import (
 	get_gravatar,
@@ -594,8 +593,10 @@ def touch_file(path):
 	return path
 
 
-def get_test_client(use_cookies=True) -> Client:
+def get_test_client(use_cookies=True):
 	"""Return an test instance of the Frappe WSGI."""
+	from werkzeug.test import Client
+
 	from frappe.app import application
 
 	return Client(application, use_cookies=use_cookies)

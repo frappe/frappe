@@ -32,7 +32,6 @@ from frappe.types import DF
 from frappe.types.filter import FilterSignature
 from frappe.utils import compare, cstr, date_diff, file_lock, flt, get_table_name, now
 from frappe.utils.data import get_absolute_url, get_datetime, get_timedelta, getdate
-from frappe.utils.global_search import update_global_search
 
 if TYPE_CHECKING:
 	from typing import Self
@@ -1858,6 +1857,8 @@ class Document(BaseDocument):
 
 		if self.flags.get("notify_update", True):
 			self.notify_update()
+
+		from frappe.utils.global_search import update_global_search
 
 		update_global_search(self)
 

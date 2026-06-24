@@ -8,11 +8,6 @@ import orjson
 
 import frappe
 from frappe import _
-from frappe.core.doctype.installed_applications.installed_applications import (
-	get_apps_with_incomplete_dependencies,
-	get_setup_wizard_completed_apps,
-	get_setup_wizard_not_required_apps,
-)
 from frappe.utils.caching import request_cache
 
 # check if route is /desk or /desk/* and not /app1 or /app1/*
@@ -22,6 +17,11 @@ DESK_APP_PATTERN = re.compile(r"^/desk(/.*)?$")
 @frappe.whitelist()
 @request_cache
 def get_apps():
+	from frappe.core.doctype.installed_applications.installed_applications import (
+		get_setup_wizard_completed_apps,
+		get_setup_wizard_not_required_apps,
+	)
+
 	apps = frappe.get_installed_apps()
 	app_list = []
 	for app in apps:
@@ -105,6 +105,10 @@ def set_app_as_default(app_name: str):
 
 @frappe.whitelist()
 def get_incomplete_setup_route(current_app: str, app_route: str):
+	from frappe.core.doctype.installed_applications.installed_applications import (
+		get_apps_with_incomplete_dependencies,
+	)
+
 	pending_apps = get_apps_with_incomplete_dependencies(current_app)
 
 	if not pending_apps:

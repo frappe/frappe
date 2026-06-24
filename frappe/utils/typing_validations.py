@@ -4,7 +4,6 @@ from functools import lru_cache, wraps
 from inspect import _empty, isclass
 from types import EllipsisType
 from typing import ForwardRef, TypeVar, Union
-from unittest import mock
 
 from pydantic import ConfigDict, PydanticUserError
 from pydantic import TypeAdapter as PydanticTypeAdapter
@@ -106,6 +105,8 @@ def transform_parameter_types(func: Callable, args: tuple, kwargs: dict, force_t
 	Validate the types of the arguments passed to a function with the type annotations
 	defined on the function.
 	"""
+
+	from unittest import mock
 
 	annotations = func.__annotations__
 	func_params = frappe._get_cached_signature_params(func)[0]
