@@ -1,7 +1,7 @@
 import frappe
 from frappe.utils import get_request_session
 
-from .utils import ensure_http, pulse_host
+from .utils import pulse_host
 
 
 class PulseHTTP:
@@ -27,8 +27,7 @@ class PulseHTTP:
 		return session
 
 	def _url(self, endpoint: str) -> str:
-		host = ensure_http(self.host).rstrip("/")
-		return f"{host}/{endpoint.lstrip('/')}"
+		return f"{self.host}/{endpoint.lstrip('/')}"
 
 	def post(self, endpoint: str, payload: dict, label: str | None = None, raise_on_error: bool = False):
 		"""POST a JSON payload to an endpoint on the pulse host.

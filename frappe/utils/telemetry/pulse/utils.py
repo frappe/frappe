@@ -8,7 +8,10 @@ DEFAULT_PULSE_HOST = "https://pulse.m.frappe.cloud"
 
 
 def pulse_host() -> str:
-	return frappe.conf.get("pulse_host") or DEFAULT_PULSE_HOST
+	# Normalize once, here: callers (server transport + the browser `client_url`)
+	# must all see an absolute, scheme-qualified host. A scheme-less value would
+	# make the browser resolve the client import against the Frappe origin.
+	return ensure_http(frappe.conf.get("pulse_host") or DEFAULT_PULSE_HOST).rstrip("/")
 
 
 def anonymize_user(user):
