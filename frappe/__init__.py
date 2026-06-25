@@ -241,7 +241,6 @@ type FlagsDict = _dict[str, Any]  # type: ignore[no-any-explicit]
 type FormDict = _dict[str, str]
 
 db: LocalProxy["PyMariaDBDatabase" | "MariaDBDatabase" | "PostgresDatabase" | "SQLiteDatabase"] = local("db")
-duckdb = local("duckdb")
 qb: LocalProxy["MariaDB" | "Postgres" | "SQLite"] = local("qb")
 conf: LocalProxy[ConfType] = local("conf")
 form_dict: LocalProxy[FormDict] = local("form_dict")
@@ -417,7 +416,6 @@ def connect(site: str | None = None, db_name: str | None = None, set_admin_as_us
 		password=db_password,
 		cur_db_name=db_name_,
 	)
-	local.duckdb = None
 
 	if set_admin_as_user:
 		set_user("Administrator")
