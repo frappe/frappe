@@ -538,11 +538,17 @@
 					<button
 						class="btn btn-xs btn-danger-subtle"
 						@click="
-							const idx = layout.value.sections.indexOf(
-								store.selected_section.value
-							);
+							const section = store.selected_section.value;
+							const idx = layout.value.sections.indexOf(section);
 							if (idx !== -1) layout.value.sections.splice(idx, 1);
 							store.selected_section.value = null;
+							if (
+								section &&
+								section.columns.some((c) =>
+									c.fields.includes(store.selected_field.value)
+								)
+							)
+								store.selected_field.value = null;
 						"
 					>
 						<span v-html="frappe.utils.icon('x', 'xs')"></span>

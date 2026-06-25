@@ -153,6 +153,12 @@ function remove_section() {
 		if (store.selected_section.value === props.section) {
 			store.selected_section.value = null;
 		}
+		if (
+			store.selected_field.value &&
+			props.section.columns.some((c) => c.fields.includes(store.selected_field.value))
+		) {
+			store.selected_field.value = null;
+		}
 	}
 }
 
