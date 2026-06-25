@@ -349,7 +349,7 @@ function clone_field(df) {
 function add_to_layout(df) {
 	const sections = layout.value?.sections;
 	if (!sections || !sections.length) return;
-	const last_section = sections.filter((s) => !s.remove).slice(-1)[0];
+	const last_section = sections.slice(-1)[0];
 	if (!last_section) return;
 	const last_column = last_section.columns.slice(-1)[0];
 	if (!last_column) return;
@@ -413,7 +413,11 @@ let field_groups = computed(() => {
 			continue;
 		}
 		if (df.fieldtype === "Column Break") continue;
-		if (frappe.model.no_value_type.includes(df.fieldtype) && df.fieldtype !== "Table")
+		if (
+			frappe.model.no_value_type.includes(df.fieldtype) &&
+			df.fieldtype !== "Table" &&
+			df.fieldtype !== "Table MultiSelect"
+		)
 			continue;
 
 		if (q) {

@@ -26,6 +26,29 @@
 					class="custom-html"
 					v-html="rendered_template || ''"
 				></div>
+				<!-- Table MultiSelect field: render as a comma-separated value list -->
+				<div
+					v-else-if="df.fieldtype == 'Table MultiSelect'"
+					:style="{ textAlign: df.align || 'left' }"
+					:class="{ 'field-preview-lr': field_orientation === 'left-right' }"
+				>
+					<div v-if="df.label && df.show_label !== 'hide'" class="field-preview-label">
+						{{ df.label }}
+					</div>
+					<div
+						class="field-preview-value"
+						:class="{
+							'text-muted': !(preview_doc[df.fieldname] || []).length,
+						}"
+					>
+						{{
+							(preview_doc[df.fieldname] || [])
+								.map((r) => r.value)
+								.filter(Boolean)
+								.join(", ") || "—"
+						}}
+					</div>
+				</div>
 				<!-- Table field -->
 				<div v-else-if="df.fieldtype == 'Table'" class="field-preview-table">
 					<div v-if="df.label" class="field-preview-label">{{ df.label }}</div>
@@ -452,6 +475,7 @@ let short_fieldtype = computed(() => {
 		Check: "Check",
 		Select: "Select",
 		Table: "Table",
+		"Table MultiSelect": "Multi",
 		"Long Text": "Text",
 		Text: "Text",
 		Link: "Link",
