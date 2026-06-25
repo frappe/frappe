@@ -292,9 +292,9 @@ class TestTelemetryGate(TestPulseClient):
 		self.assertIsNone(cfg["team"])
 
 	def test_force_enabled_overrides(self):
-		# Escape hatch: on despite no key / dev mode / telemetry off.
+		# Escape hatch: on despite dev mode / telemetry off, but still requires an ingest key.
 		with (
-			self._conf(pulse_force_enabled=1, pulse_api_key=None, developer_mode=1),
+			self._conf(pulse_force_enabled=1, pulse_api_key="k", developer_mode=1),
 			patch("frappe.get_system_settings", return_value=False),
 		):
 			self.assertTrue(is_enabled())
