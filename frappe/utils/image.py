@@ -81,21 +81,31 @@ class PreAllocatedRawIO(io.RawIOBase):
 	def getbuffer(self):
 		return self._buffer
 
-def _resize_images_thread_func(image_abs_paths:list[os.PathLike | str], maxdim:int):
+def _resize_images_thread_func(id:int, image_abs_paths:list[os.PathLike | str], maxdim:int, err_list:list[Exception]):
 	# Thread target function to resize images.
-	for abs_path in image_abs_paths:
-		im = Image.open(abs_path)
-		size = (maxdim, maxdim)
-		if im.size[0] > size[0] or im.size[1] > size[1]:
-			im.thumbnail(size, Image.Resampling.NEAREST)
-			# Overwrite, according to existing logic, not even a warning !
-			_, image_format = os.path.splitext(abs_path)
-			image_format = image_format.strip(".").lower()
-			im.save(
-				abs_path,
-				format = image_format,
-				compress_level = 1 if image_format=="png" else 6
-			)
+	# Inputs:
+		# 1. `id`: int to associate a unique id to each worker thread.
+		# 2. image_abs_paths: set/list of images' path on the disk to process
+		# 3. `max_dim`:int
+		# 4. err_list: a common err_list, created by parent, we use `id` to put to False, if an error occured!
+	try:
+		for abs_path in image_abs_paths:
+			im = Image.open(abs_path)
+			size = (maxdim, maxdim)
+			if im.size[0] > size[0] or im.size[1] > size[1]:
+				im.thumbnail(size, Image.Resampling.NEAREST)
+				# Overwrite, according to existing logic, not even a warning !
+				_, image_format = os.path.splitext(abs_path)
+				image_format = image_format.strip(".").lower()
+				im.save(
+					abs_path,
+					format = image_format,
+					compress_level = 1 if image_format=="png" else 6
+				)
+			del im
+	except Exception as e:
+		err_list[id] = e   # safe to write to as would be independent write (no concurrency issues!)
+		return
 
 def resize_images(path:os.PathLike, maxdim=700, max_workers:int = 3):
 	"""
@@ -117,13 +127,15 @@ def resize_images(path:os.PathLike, maxdim=700, max_workers:int = 3):
 	threads_arr:list[threading.Thread] = list()
 	remainder = len(image_abs_paths) % n_workers
 	avg = len(image_abs_paths) // n_workers
+
+	err_list:list[Exception |None] = [None] * n_workers
 	for i in range(n_workers):
 		start,end = i*avg, (i+1)*avg
 		if i == n_workers - 1:
 			end += remainder
 		work = image_abs_paths[start:end]
 
-		t = threading.Thread(target = _resize_images_thread_func , args = (work, maxdim))
+		t = threading.Thread(target = _resize_images_thread_func , args = (i, work, maxdim, err_list))
 		t.start()
 		threads_arr.append(t)
 		del t
@@ -132,6 +144,10 @@ def resize_images(path:os.PathLike, maxdim=700, max_workers:int = 3):
 	# wait for them to finish.
 	for t in threads_arr:
 		t.join()
+
+	for e in err_list:
+		if not (e is None):
+			frappe.throw(f"{e}")
 
 
 def strip_exif_data(content:bytes, content_type:str) -> bytes:
