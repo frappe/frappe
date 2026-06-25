@@ -46,6 +46,7 @@ function make_request(url, headers, host, opts = {}, _redirects = 0) {
 		};
 
 		const req = lib.request(options, (res) => {
+			res.on("error", reject);
 			if (res.statusCode >= 300 && res.statusCode < 400 && res.headers.location) {
 				res.resume();
 				const redirectUrl = new URL(res.headers.location, parsed).toString();
