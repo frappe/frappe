@@ -93,7 +93,9 @@ const canvasStore = useCanvasStore()
 const activeTab = computed(() => store.studioLayout.rightPanelActiveTab)
 
 const showInterfaceTab = computed(() => canvasStore.editingMode === "component")
-const combinePropsAndStylesTab = computed(() => blockController.isText() || blockController.isContainer())
+const combinePropsAndStylesTab = computed(
+	() => blockController.isRoot() || blockController.isText() || blockController.isContainer(),
+)
 const tabs = computed(() => {
 	let _tabs = showInterfaceTab.value
 		? ["Interface", "Properties", "Styles", "Events"]
