@@ -328,6 +328,10 @@ function remove_column(index) {
 	min-height: 3rem;
 }
 
+.column:has(.sortable-ghost) .empty-drop-zone {
+	display: none;
+}
+
 .empty-drop-zone {
 	position: absolute;
 	inset: 0;
