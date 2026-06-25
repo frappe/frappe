@@ -338,6 +338,11 @@ class TestTelemetryGate(TestPulseClient):
 			with patch.dict(frappe.session, {"user": "priya@example.com"}):
 				self.assertEqual(boot_config()["user"], anonymize_user("priya@example.com"))
 
+	def test_boot_config_team_from_site_config(self):
+		# The site's fc_team is handed to the browser, so its events carry the team.
+		with self._conf(fc_team="team_x"), patch("frappe.get_system_settings", return_value=True):
+			self.assertEqual(boot_config()["team"], "team_x")
+
 	def test_client_url_is_absolute_when_host_lacks_scheme(self):
 		# A scheme-less pulse_host must still yield an absolute client_url, else the
 		# browser resolves the import against the Frappe origin and telemetry never loads.
@@ -400,8 +405,8 @@ class TestCapture(TestPulseClient):
 
 	@patch("frappe.utils.telemetry.pulse.client.is_enabled")
 	def test_capture_defaults_user_and_leaves_team_empty(self, mock_enabled):
-		"""On a customer site: user defaults to the anon site user; team is left
-		empty (it's joined from `site` downstream, not carried on the event)"""
+		"""user defaults to the anon site user; team is null when the site has no
+		fc_team configured (e.g. a marketing site)"""
 		is_enabled.clear_cache()
 		mock_enabled.return_value = True
 		eq = EventQueue()
@@ -411,8 +416,21 @@ class TestCapture(TestPulseClient):
 		events = eq.collect(batch_size=1)
 		# user defaults to the (anonymized) session user
 		self.assertEqual(events[0]["user"], anonymize_user(frappe.session.user))
-		# team is only set where it can't be derived from site (e.g. the dashboard)
+		# no fc_team in conf → team stays null
 		self.assertIsNone(events[0]["team"])
+
+	@patch("frappe.utils.telemetry.pulse.client.is_enabled")
+	def test_capture_defaults_team_from_site_config(self, mock_enabled):
+		"""A site with fc_team set stamps it on events without the caller passing it."""
+		is_enabled.clear_cache()
+		mock_enabled.return_value = True
+		eq = EventQueue()
+
+		with patch.dict(frappe.conf, {"fc_team": "team_x"}):
+			capture("test_event", site="test.localhost")
+
+		events = eq.collect(batch_size=1)
+		self.assertEqual(events[0]["team"], "team_x")
 
 
 class TestIdentify(TestPulseClient):
