@@ -266,7 +266,7 @@ export function sanitize_html(html) {
 					const val = attr.value.trim();
 					const is_data_image = /^data:image\//i.test(val);
 					const is_relative =
-						/^\/(?!\/)/.test(val) || !/^[a-z][a-z0-9+\-.]*:/i.test(val);
+						!val.startsWith("//") && !/^[a-z][a-z0-9+\-.]*:/i.test(val);
 					const is_same_origin =
 						typeof window !== "undefined" &&
 						val.startsWith(window.location.origin + "/");
