@@ -150,6 +150,26 @@ frappe.views.CommunicationComposer = class {
 			$(this).toggleClass("active");
 			$skeleton.find(".gmail-message-area").toggleClass("show-toolbar");
 		});
+
+		// Send-me-a-copy and Send-read-receipt icons toggle the existing Check fields.
+		// Active state reflects the current field value; initial value comes from the field's
+		// own default (e.g. frappe.boot.user.send_me_a_copy for send_me_a_copy).
+		const fields = this.dialog.fields_dict;
+		const bindCheckIcon = (action, fieldname) => {
+			const $btn = $skeleton.find(`[data-action="${action}"]`);
+			const field = fields[fieldname];
+			let active = !!(field.get_value() || field.df.default);
+			field.set_value(active ? 1 : 0);
+			$btn.toggleClass("active", active);
+
+			$btn.on("click", () => {
+				active = !active;
+				field.set_value(active ? 1 : 0);
+				$btn.toggleClass("active", active);
+			});
+		};
+		bindCheckIcon("send-me-a-copy", "send_me_a_copy");
+		bindCheckIcon("send-read-receipt", "send_read_receipt");
 	}
 
 	get_fields() {

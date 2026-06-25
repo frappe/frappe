@@ -231,6 +231,13 @@
 			gap: 2px;
 			margin-left: 8px;
 		}
+
+		// Active state for icon toggles — uses the same tokens Frappe uses elsewhere
+		// (e.g. theme switcher, sidebar selection).
+		.btn.icon-btn.active {
+			background-color: var(--bg-light-gray);
+			color: var(--text-on-light-gray);
+		}
 	}
 }
 
