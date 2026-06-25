@@ -3,7 +3,6 @@ import { watch, ref, inject, computed, nextTick } from "vue";
 
 export function getStore(print_format_name) {
 	// variables
-	let letterhead_name = ref(null);
 	let print_format = ref(null);
 	let letterhead = ref(null);
 	let doctype = ref(null);
@@ -226,7 +225,6 @@ export function getStore(print_format_name) {
 	});
 
 	return {
-		letterhead_name,
 		print_format,
 		letterhead,
 		doctype,

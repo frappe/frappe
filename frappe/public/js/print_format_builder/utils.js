@@ -263,7 +263,14 @@ export function sanitize_html(html) {
 				if (!SAFE_HTML_ATTRS.has(name) || name.startsWith("on")) {
 					child.removeAttribute(attr.name);
 				} else if (name === "src") {
-					if (!/^(https?:|data:image\/)/i.test(attr.value.trim()))
+					const val = attr.value.trim();
+					const is_data_image = /^data:image\//i.test(val);
+					const is_relative =
+						!val.startsWith("//") && !/^[a-z][a-z0-9+\-.]*:/i.test(val);
+					const is_same_origin =
+						typeof window !== "undefined" &&
+						val.startsWith(window.location.origin + "/");
+					if (!is_data_image && !is_relative && !is_same_origin)
 						child.removeAttribute(attr.name);
 				} else if (name === "href") {
 					if (!/^https?:/i.test(attr.value.trim())) child.removeAttribute(attr.name);
