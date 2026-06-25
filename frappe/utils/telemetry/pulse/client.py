@@ -31,19 +31,27 @@ def boot_config() -> dict:
 
 	The key is a public, write-only ingest key — shipping it to the browser is by
 	design. On a product site `team` is null (it's joined from `site` downstream);
-	`user` is the site-salted anonymous id, never the FC account.
+	`user` is the site-salted anonymized authenticated user, or null for a guest —
+	the browser client then mints its own per-browser `anon_` id. Never the FC account.
 	"""
 	if not is_enabled():
 		return {"enabled": False}
 
 	host = pulse_host()
+
+	session_user = frappe.session.user
+	if session_user in frappe.STANDARD_USERS:
+		# null for guests/standard users: there's no server-known identity, so the
+		# client falls back to its own per-browser anon id (which signup can alias).
+		session_user = None
+
 	return {
 		"enabled": True,
 		"host": host,
 		"client_url": f"{host}/assets/pulse/js/pulse_client.js",
 		"key": frappe.conf.get("pulse_api_key"),
 		"site": frappe.local.site,
-		"user": anonymize_user(frappe.session.user),
+		"user": anonymize_user(session_user),
 		"team": None,
 	}
 

@@ -329,6 +329,15 @@ class TestTelemetryGate(TestPulseClient):
 		):
 			self.assertTrue(is_enabled())
 
+	def test_boot_config_user_identity(self):
+		with self._conf(), patch("frappe.get_system_settings", return_value=True):
+			# Guests have no server-known identity → null; the client mints its own anon id.
+			with patch.dict(frappe.session, {"user": "Guest"}):
+				self.assertIsNone(boot_config()["user"])
+			# Known users → the site-salted anonymized id.
+			with patch.dict(frappe.session, {"user": "priya@example.com"}):
+				self.assertEqual(boot_config()["user"], anonymize_user("priya@example.com"))
+
 	def test_client_url_is_absolute_when_host_lacks_scheme(self):
 		# A scheme-less pulse_host must still yield an absolute client_url, else the
 		# browser resolves the import against the Frappe origin and telemetry never loads.
