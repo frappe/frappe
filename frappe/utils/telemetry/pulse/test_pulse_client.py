@@ -447,6 +447,17 @@ class TestIdentify(TestPulseClient):
 
 	@patch("frappe.utils.telemetry.pulse.transport.PulseHTTP._session")
 	@patch("frappe.utils.telemetry.pulse.client.is_enabled")
+	def test_identify_swallows_bad_json(self, mock_enabled, mock_session):
+		"""A malformed properties string is logged, not raised — and nothing is posted."""
+		is_enabled.clear_cache()
+		mock_enabled.return_value = True
+
+		identify("fc_priya", "{not valid json")  # must not raise
+
+		mock_session.assert_not_called()
+
+	@patch("frappe.utils.telemetry.pulse.transport.PulseHTTP._session")
+	@patch("frappe.utils.telemetry.pulse.client.is_enabled")
 	def test_identify_posts_profile(self, mock_enabled, mock_session):
 		"""identify posts the user + properties to the identify endpoint"""
 		is_enabled.clear_cache()
