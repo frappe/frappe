@@ -103,7 +103,13 @@ def identify(user: str, properties: str | dict[str, Any] | None = None):
 		return
 
 	if isinstance(properties, str):
-		properties = frappe.parse_json(properties)
+		try:
+			properties = frappe.parse_json(properties)
+		except Exception as e:
+			# Bad json from the caller must not break their flow — log and skip,
+			# same as any other delivery failure.
+			frappe.logger("pulse").error(f"pulse-client - identify: invalid properties json: {e!s}")
+			return
 
 	endpoint = frappe.conf.get("pulse_identify_endpoint") or "/api/method/pulse.api.identify"
 	PulseHTTP().post(endpoint, {"user": user, "properties": properties or {}}, label="identify")
