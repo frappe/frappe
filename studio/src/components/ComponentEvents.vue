@@ -147,7 +147,7 @@ import Block from "@/utils/block"
 import EmptyState from "@/components/EmptyState.vue"
 import ItemActions from "@/components/ItemActions.vue"
 
-import { isObjectEmpty, confirm, getParamsArray, getParamsObj } from "@/utils/helpers"
+import { isObjectEmpty, confirm } from "@/utils/helpers"
 
 import type { ActionConfigurations, ComponentEvent } from "@/types/ComponentEvent"
 import { Link } from "frappe-ui/frappe"
@@ -165,15 +165,11 @@ const props = defineProps<{
 }>()
 const store = useStudioStore()
 const getEditorCompletions = useStudioCompletions(true)
-const getCompletions = useStudioCompletions()
 
 const showAddEventDialog = ref(false)
 const emptyEvent: ComponentEvent = {
 	event: "click",
 	action: "Run Script",
-	// call api
-	api_endpoint: "",
-	params: [],
 	// insert document
 	doctype: "",
 	fields: [],
@@ -272,48 +268,6 @@ const actions: ActionConfigurations = {
 			},
 		},
 	],
-	"Call API": [
-		{
-			component: FormControl,
-			getProps: () => {
-				return {
-					type: "input",
-					label: "API Endpoint",
-					modelValue: newEvent.value.api_endpoint,
-					autocomplete: "off",
-				}
-			},
-			events: {
-				"update:modelValue": (val: string) => {
-					newEvent.value.api_endpoint = val
-				},
-			},
-		},
-		{
-			component: Grid,
-			getProps: () => {
-				return {
-					label: "Parameters",
-					columns: [
-						{ label: "Key", fieldname: "key", fieldtype: "Data" },
-						{
-							label: "Value",
-							fieldname: "value",
-							fieldtype: "Code",
-							completions: getCompletions,
-						},
-					],
-					rows: newEvent.value.params || [],
-					showDeleteBtn: true,
-				}
-			},
-			events: {
-				"update:rows": (val: any) => {
-					newEvent.value.params = val
-				},
-			},
-		},
-	],
 	"Insert a Document": [
 		{
 			component: Link,
@@ -363,10 +317,7 @@ const actionControls = computed(() => {
 })
 
 const showSuccessFailureOptions = computed(() => {
-	return (
-		(newEvent.value.action === "Insert a Document" && newEvent.value.doctype) ||
-		newEvent.value.action === "Call API"
-	)
+	return newEvent.value.action === "Insert a Document" && newEvent.value.doctype
 })
 
 function getFnBoilerplate(event: "success" | "error") {
@@ -396,12 +347,6 @@ function getEvent(event: ComponentEvent): ComponentEvent {
 	}
 	if (event.action === "Run Script") {
 		_event.script = event.script || ""
-	} else if (event.action === "Call API") {
-		_event.api_endpoint = event.api_endpoint
-		setEventCallbackFields(_event, event)
-		if (Array.isArray(event.params)) {
-			_event.params = getParamsObj(event.params)
-		}
 	} else if (event.action === "Insert a Document") {
 		_event.doctype = event.doctype
 		_event.fields = event.fields
@@ -455,7 +400,6 @@ const openEvent = (event: ComponentEvent) => {
 		...event,
 		isEditing: true,
 		oldEvent: event.event,
-		params: getParamsArray(event.params),
 	}
 	showAddEventDialog.value = true
 }

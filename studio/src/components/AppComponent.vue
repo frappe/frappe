@@ -171,27 +171,7 @@ const componentEvents = computed(() => {
 	const events: Record<string, Function | undefined> = {}
 	Object.entries(props.block.componentEvents).forEach(([eventName, event]) => {
 		const getEventFn = () => {
-			if (event.action === "Call API") {
-				return (...eventArgs: any[]) => {
-					const path: string[] = event.api_endpoint.split(".")
-					// get resource
-					const resource = codeStore.resources[path[0]]
-					event.eventArgs = eventArgs
-
-					if (resource) {
-						// access and call whitelisted method
-						resource[path[1]].submit()
-					} else {
-						createResource({
-							url: event.api_endpoint,
-							auto: true,
-							params: codeStore.getAPIParams(event.params, evaluationContext.value),
-							onSuccess: handleSuccess(event),
-							onError: handleError(event),
-						})
-					}
-				}
-			} else if (event.action === "Insert a Document") {
+			if (event.action === "Insert a Document") {
 				return (...eventArgs: any[]) => {
 					const fields: Record<string, any> = {}
 					event.fields.forEach((field: Field) => {
@@ -259,8 +239,6 @@ const handleSuccess = (event: any) => (data: DataResult) => {
 	} else {
 		if (event.action === "Insert a Document") {
 			toast.success(event.success_message || `${event.doctype} created successfully`)
-		} else if (event.action === "Call API" && event.success_message) {
-			toast.success(event.success_message)
 		}
 	}
 }
@@ -277,8 +255,6 @@ const handleError = (event: any) => (error: any) => {
 	} else {
 		if (event.action === "Insert a Document") {
 			toast.error(event.error_message || `Error creating ${event.doctype}`)
-		} else if (event.action === "Call API" && event.error_message) {
-			toast.error(event.error_message)
 		}
 	}
 }
