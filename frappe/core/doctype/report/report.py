@@ -324,7 +324,7 @@ class Report(Document):
 		# sort by is saved as DocType.fieldname, covert it to sql
 		return "`tab{}`.`{}`".format(*parts)
 
-	def get_standard_report_columns(self, params) -> list[tuple[str, str]]:
+	def get_standard_report_columns(self, params) -> list[list[str, str]]:
 		"""
 		Return [[fieldname, doctype], ...] for standard report based on the fields/columns.
 		"""

@@ -738,7 +738,7 @@ def get_aggregate_field_info(field: str | dict, parent_doctype: str) -> dict:
 	# Returns:
 	{
 	    "fieldname": "_aggregate_column",
-	    "label": "Count of Sales Invoice",
+	    "label": "Count",
 	    "fieldtype": "Int",
 	    "translatable": False,
 	    "options": None,
