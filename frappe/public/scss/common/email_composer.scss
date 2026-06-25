@@ -231,6 +231,12 @@
 		.gmail-action-bar__send {
 			display: flex;
 			align-items: center;
+
+			// Frappe's .btn has no border, so Bootstrap's btn-group margin-left:-1px
+			// trick leaves a visible 1px seam between Send and the chevron. Neutralize.
+			&.btn-group > .btn:not(:first-child) {
+				margin-left: 0;
+			}
 		}
 
 		.gmail-icon-row {
