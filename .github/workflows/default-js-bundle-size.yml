@@ -20,7 +20,7 @@ jobs:
 
     steps:
       - name: Clone
-        uses: actions/checkout@v6
+        uses: actions/checkout@v7
 
       - name: Check if build should be run
         id: check-build
@@ -42,7 +42,7 @@ jobs:
       DEFAULT_JS_BUNDLE_SIZE_THRESHOLD: "10"
     steps:
       - name: Clone
-        uses: actions/checkout@v6
+        uses: actions/checkout@v7
         with:
           fetch-depth: 0
           path: apps/frappe
