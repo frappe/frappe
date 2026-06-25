@@ -9,8 +9,8 @@
   "reference_doctype",
   "column_break_mfss",
   "sort_field",
-  "for_user",
   "sort_order",
+  "for_user",
   "route_signature",
   "section_break_aljf",
   "filters",
@@ -37,7 +37,7 @@
   },
   {
    "fieldname": "route_signature",
-   "fieldtype": "Data",
+   "fieldtype": "Small Text",
    "label": "Route Signature",
    "read_only": 1
   },
@@ -78,7 +78,7 @@
  ],
  "in_create": 1,
  "links": [],
- "modified": "2026-06-18 17:09:26.853519",
+ "modified": "2026-06-25 12:07:04.897997",
  "modified_by": "Administrator",
  "module": "Desk",
  "name": "List Layout",

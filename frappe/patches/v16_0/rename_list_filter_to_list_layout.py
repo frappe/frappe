@@ -9,6 +9,6 @@ def execute():
 		return
 
 	if frappe.db.table_exists("List Filter") and not frappe.db.has_column("List Filter", "route_signature"):
-		add_column("List Filter", "route_signature", "Data")
+		add_column("List Filter", "route_signature", "Small Text")
 
 	rename_doc("DocType", "List Filter", "List Layout", force=True)
