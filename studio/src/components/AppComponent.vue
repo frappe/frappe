@@ -60,7 +60,6 @@
 import Block from "@/utils/block"
 import { computed, onMounted, ref, useAttrs, inject, type ComputedRef, h } from "vue"
 import type { ComponentPublicInstance } from "vue"
-import { useRouter } from "vue-router"
 import { createResource } from "frappe-ui"
 import { getComponentRoot, isHTML, isObjectEmpty } from "@/utils/helpers"
 import { useScreenSize } from "@/utils/useScreenSize"
@@ -168,17 +167,11 @@ const showComponent = computed(() => {
 })
 
 // events
-const router = useRouter()
-
 const componentEvents = computed(() => {
 	const events: Record<string, Function | undefined> = {}
 	Object.entries(props.block.componentEvents).forEach(([eventName, event]) => {
 		const getEventFn = () => {
-			if (event.action === "Switch App Page") {
-				return () => {
-					router.push(event.page)
-				}
-			} else if (event.action === "Call API") {
+			if (event.action === "Call API") {
 				return (...eventArgs: any[]) => {
 					const path: string[] = event.api_endpoint.split(".")
 					// get resource

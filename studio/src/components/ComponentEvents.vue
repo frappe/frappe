@@ -149,8 +149,7 @@ import ItemActions from "@/components/ItemActions.vue"
 
 import { isObjectEmpty, confirm, getParamsArray, getParamsObj } from "@/utils/helpers"
 
-import type { SelectOption } from "@/types"
-import type { Actions, ActionConfigurations, ComponentEvent } from "@/types/ComponentEvent"
+import type { ActionConfigurations, ComponentEvent } from "@/types/ComponentEvent"
 import { Link } from "frappe-ui/frappe"
 import Grid from "@/components/Grid.vue"
 import Code from "@/components/Code.vue"
@@ -172,8 +171,6 @@ const showAddEventDialog = ref(false)
 const emptyEvent: ComponentEvent = {
 	event: "click",
 	action: "Run Script",
-	page: "",
-	url: "",
 	// call api
 	api_endpoint: "",
 	params: [],
@@ -359,46 +356,6 @@ const actions: ActionConfigurations = {
 			},
 		},
 	],
-	"Switch App Page": [
-		{
-			component: FormControl,
-			getProps: () => {
-				return {
-					type: "autocomplete",
-					options: Object.values(store.appPages || [])?.map((page) => {
-						return {
-							value: page.name,
-							label: page.page_title,
-						}
-					}),
-					label: "Page",
-					modelValue: newEvent.value.page,
-				}
-			},
-			events: {
-				"update:modelValue": (val: SelectOption) => {
-					newEvent.value.page = val.value
-				},
-			},
-		},
-	],
-	"Open Webpage": [
-		{
-			component: FormControl,
-			getProps: () => {
-				return {
-					type: "input",
-					label: "URL",
-					modelValue: newEvent.value.url,
-				}
-			},
-			events: {
-				"update:modelValue": (val: string) => {
-					newEvent.value.url = val
-				},
-			},
-		},
-	],
 }
 
 const actionControls = computed(() => {
@@ -449,12 +406,6 @@ function getEvent(event: ComponentEvent): ComponentEvent {
 		_event.doctype = event.doctype
 		_event.fields = event.fields
 		setEventCallbackFields(_event, event)
-	} else if (event.action === "Switch App Page") {
-		if (event.page) {
-			_event.page = store.getAppPageRoute(event.page)
-		}
-	} else if (event.action === "Open Webpage") {
-		_event.url = event.url
 	}
 
 	if (event.oldEvent) {

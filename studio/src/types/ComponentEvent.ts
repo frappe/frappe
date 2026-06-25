@@ -2,7 +2,7 @@ import type { Component } from "vue"
 
 export type Events = 'click' | 'change' | 'focus' | 'blur' | 'submit' | 'keydown' | 'keyup' | 'keypress'
 
-export type Actions = 'Call API' | 'Switch App Page' | 'Open Webpage' | 'Insert a Document' | 'Run Script'
+export type Actions = 'Call API' | 'Insert a Document' | 'Run Script'
 
 export type Field = {
 	field: string
@@ -16,10 +16,6 @@ export type ComponentEvent = {
 	/** action = 'Call API */
 	api_endpoint?: string
 	params?: Record<string, any>
-	/** action = 'Switch App Page */
-	page?: string
-	/** action = 'Open Webpage' */
-	url?: string
 	/** action = 'Insert a Document' */
 	doctype?: string
 	fields?: Array<Field>
