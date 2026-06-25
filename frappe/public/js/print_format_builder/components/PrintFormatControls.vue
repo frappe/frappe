@@ -794,10 +794,6 @@ watch(print_format, () => (store.dirty.value = true), { deep: true });
 	border-color: var(--gray-500);
 }
 
-.pfb-block-card--click {
-	cursor: pointer;
-}
-
 .pfb-block-icon {
 	display: flex;
 	align-items: center;
