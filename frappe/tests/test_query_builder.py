@@ -64,6 +64,7 @@ class TestCustomFunctionsMariaDB(IntegrationTestCase):
 		user = frappe.qb.DocType("User")
 		self.assertNotIn("LOWER", (user.first_name == "John").get_sql())
 		self.assertNotIn("LOWER", (user.first_name != "John").get_sql())
+		self.assertNotIn("LOWER", user.first_name.isin(["John"]).get_sql())
 
 	def test_match(self):
 		query = Match("Notes")
@@ -400,6 +401,21 @@ class TestCustomFunctionsPostgres(IntegrationTestCase):
 		self.assertNotIn("LOWER", (user.enabled == "1").get_sql())
 		self.assertNotIn("LOWER", (user.first_name == "").get_sql())
 
+	def test_isin_folds_free_text_on_postgres(self):
+		# `.isin([...])` (and `.notin`) on a Data/Text column folds the column and each string member
+		# with LOWER() too, so IN matches the same rows as MariaDB.
+		user = frappe.qb.DocType("User")
+		in_sql = user.first_name.isin(["John", "Jane"]).get_sql()
+		self.assertIn("LOWER(", in_sql)
+		self.assertIn("'john'", in_sql)  # members are lowercased
+		self.assertIn("'jane'", in_sql)
+		self.assertIn("LOWER(", user.first_name.notin(["John"]).get_sql())  # notin folds via isin
+		# not folded: name, a Check field, a non-string member, an empty list
+		self.assertNotIn("LOWER", user.name.isin(["Administrator"]).get_sql())
+		self.assertNotIn("LOWER", user.enabled.isin([1]).get_sql())
+		self.assertNotIn("LOWER", user.first_name.isin(["John", 5]).get_sql())
+		self.assertNotIn("LOWER", user.first_name.isin([]).get_sql())
+
 	def test_eq_matches_case_insensitively_on_postgres(self):
 		# end-to-end: a differently-cased value still matches, like MariaDB
 		todo = frappe.get_doc(doctype="ToDo", description="QbEqFold_Mixed").insert()
@@ -408,6 +424,8 @@ class TestCustomFunctionsPostgres(IntegrationTestCase):
 		for value in ("QbEqFold_Mixed", "qbeqfold_mixed", "QBEQFOLD_MIXED"):
 			rows = frappe.qb.from_(t).select(t.name).where(t.description == value).run()
 			self.assertIn(todo.name, [r[0] for r in rows], msg=value)
+			in_rows = frappe.qb.from_(t).select(t.name).where(t.description.isin([value])).run()
+			self.assertIn(todo.name, [r[0] for r in in_rows], msg=f"isin {value}")
 
 	def test_datediff_postgres(self):
 		# Postgres subtracts dates to get an integer day count, matching MariaDB DATEDIFF.

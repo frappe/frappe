@@ -313,14 +313,15 @@ def _qb_field_is_free_text(field) -> bool:
 
 def patch_equality_operators():
 	"""Fold free-text equality case-insensitively on postgres so a hand-built ``frappe.qb`` criterion
-	(``table.text_field == "x"``) matches the same rows as MariaDB, whose default collation compares
-	text case-insensitively. Mirrors :func:`patch_like_operators` for ``=`` / ``!=`` and the LOWER()
-	folding the dict/list filter path already applies.
+	(``table.text_field == "x"`` or ``table.text_field.isin([...])``) matches the same rows as MariaDB,
+	whose default collation compares text case-insensitively. Mirrors :func:`patch_like_operators` for
+	``=`` / ``!=`` / ``IN`` and the LOWER() folding the dict/list filter path already applies.
 
-	Only a bare ``Field == <str>`` (or ``!=``) on a Data/Text-family column is folded -- Field-vs-Field,
-	numeric, ``None``, ``name``/Link/Select and MariaDB are left exactly as they were. Patched on
-	``Field`` (not ``Term``) so the wrapping ``Lower(field)`` -- a ``Function`` -- keeps the native
-	operator and cannot recurse.
+	Only a bare ``Field == <str>`` / ``!= <str>`` / ``.isin([<str>, ...])`` (and ``.notin``) on a
+	Data/Text-family column is folded -- Field-vs-Field, numeric, ``None``, a non-string/subquery ``IN``
+	argument, ``name``/Link/Select and MariaDB are left exactly as they were. Patched on ``Field`` (not
+	``Term``) so the wrapping ``Lower(field)`` -- a ``Function`` -- keeps the native operator and cannot
+	recurse.
 
 	The fold decision reads ``frappe.db.db_type`` when the criterion is *built* (the same point
 	:func:`patch_like_operators` checks), not when it is executed. db_type is stable within a request,
@@ -334,29 +335,44 @@ def patch_equality_operators():
 	from pypika.functions import Lower
 	from pypika.terms import Field  # nosemgrep: frappe-monkey-patching-not-allowed
 
-	_eq, _ne = Field.__eq__, Field.__ne__
+	_eq, _ne, _isin = Field.__eq__, Field.__ne__, Field.isin
 
-	def _foldable(self, other) -> bool:
+	def _is_postgres() -> bool:
+		return bool(frappe.db) and frappe.db.db_type == "postgres"
+
+	def _eq_foldable(self, other) -> bool:
+		return isinstance(other, str) and other != "" and _is_postgres() and _qb_field_is_free_text(self)
+
+	def _in_foldable(self, arg) -> bool:
+		# only a non-empty list/tuple/set of plain strings -- never a subquery Term or mixed types
 		return (
-			isinstance(other, str)
-			and other != ""
-			and bool(frappe.db)
-			and frappe.db.db_type == "postgres"
+			isinstance(arg, (list, tuple, set, frozenset))
+			and len(arg) > 0
+			and all(isinstance(v, str) for v in arg)
+			and _is_postgres()
 			and _qb_field_is_free_text(self)
 		)
 
 	def __eq__(self, other):
-		if _foldable(self, other):
+		if _eq_foldable(self, other):
 			return _eq(Lower(self), other.lower())
 		return _eq(self, other)
 
 	def __ne__(self, other):
-		if _foldable(self, other):
+		if _eq_foldable(self, other):
 			return _ne(Lower(self), other.lower())
 		return _ne(self, other)
 
+	def isin(self, arg):
+		if _in_foldable(self, arg):
+			return _isin(Lower(self), [v.lower() for v in arg])
+		return _isin(self, arg)
+
 	Field.__eq__ = __eq__  # nosemgrep: frappe-monkey-patching-not-allowed
 	Field.__ne__ = __ne__  # nosemgrep: frappe-monkey-patching-not-allowed
+	# `Field.notin` is `Term.notin`, which delegates to `self.isin(...).negate()`, so patching `isin`
+	# folds `notin` too.
+	Field.isin = isin  # nosemgrep: frappe-monkey-patching-not-allowed
 
 
 def patch_all():
