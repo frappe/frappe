@@ -352,7 +352,7 @@ function add_to_layout(df) {
 
 	// If a field is selected, insert right after it in the same column
 	const selected_field = store.selected_field.value;
-	if (selected_field) {
+	if (selected_field && !selected_field.remove) {
 		for (const section of sections) {
 			for (const column of section.columns) {
 				const idx = column.fields.indexOf(selected_field);
