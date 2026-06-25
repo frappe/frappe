@@ -179,6 +179,9 @@ frappe.data_import.DataExporter = class DataExporter {
 				<button class="btn btn-default btn-xs" data-action="unselect_all">
 					${__("Unselect All")}
 				</button>
+				<button class="btn btn-default btn-xs" data-action="select_columns_with_data">
+					${__("Select Columns with Data")}
+				</button>
 			</div>
 		`);
 		frappe.utils.bind_actions_with_object($select_all_buttons, this);
@@ -222,6 +225,40 @@ frappe.data_import.DataExporter = class DataExporter {
 			.find(`:checkbox${update_existing_records ? ":not([data-unit=name])" : ""}`)
 			.prop("checked", false)
 			.trigger("change");
+	}
+
+	select_columns_with_data() {
+		frappe.call({
+			method: "frappe.desk.reportview.get_columns_with_data",
+			args: {
+				doctype: this.doctype,
+				filters: this.get_filters(),
+			},
+			callback: (r) => {
+				const columns_with_data = r.message || {};
+				// MultiCheck fields are keyed by the parent doctype or a child *table* fieldname;
+				// resolve each to its (child) doctype to read the right list of data-bearing columns.
+				const child_doctype_by_fieldname = {};
+				frappe.meta.get_table_fields(this.doctype).forEach((df) => {
+					child_doctype_by_fieldname[df.fieldname] = df.options;
+				});
+				this.dialog.fields
+					.filter((df) => df.fieldtype === "MultiCheck")
+					.forEach((df) => {
+						const target_doctype =
+							df.fieldname === this.doctype
+								? this.doctype
+								: child_doctype_by_fieldname[df.fieldname];
+						const fieldnames = new Set(columns_with_data[target_doctype] || []);
+						this.dialog.get_field(df.fieldname).options.forEach((option) => {
+							option.$checkbox
+								.find("input")
+								.prop("checked", fieldnames.has(option.value))
+								.trigger("change");
+						});
+					});
+			},
+		});
 	}
 
 	update_record_count_message() {
