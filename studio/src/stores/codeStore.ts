@@ -155,7 +155,7 @@ const useCodeStore = defineStore("codeStore", () => {
 			// be async (e.g. awaiting a resource fetch). Effects (watch/computed) created BEFORE the
 			// first await are owned by the page scope; declare them before awaiting so they're
 			// disposed on navigation.
-			const bindings = runInPageScriptScope(() => (setup as Function)(globalExecutionContext.value))
+			const bindings = runInPageScriptScope(() => (setup as Function)(scriptContext.value))
 			return (await bindings) || {}
 		} catch (error) {
 			reportPageScriptError(error)
@@ -204,10 +204,10 @@ const useCodeStore = defineStore("codeStore", () => {
 				has(_target, key) {
 					// let globals (console, Function, …) fall through to the outer scope
 					if (key === Symbol.unscopables) return false
-					return key in globalExecutionContext.value
+					return key in interpretedScriptContext.value
 				},
 				get(_target, key) {
-					return (globalExecutionContext.value as Record<string | symbol, any>)[key]
+					return (interpretedScriptContext.value as Record<string | symbol, any>)[key]
 				},
 			},
 		)
@@ -223,7 +223,7 @@ const useCodeStore = defineStore("codeStore", () => {
 		}) || {}
 	}
 
-	const globalContext = computed(() => {
+	const evalContext = computed(() => {
 		return {
 			...variables.value,
 			...resources.value,
@@ -234,12 +234,10 @@ const useCodeStore = defineStore("codeStore", () => {
 		}
 	})
 
-	const globalExecutionContext = computed(() => {
-		// Script context: variables and page-script bindings are passed as refs so scripts can
-		// read/write `.value`, and the Vue reactivity APIs are available for `<script setup>` code.
+	// Base context for every script scope — event/success/error handlers, function-value props, and page-script setup.
+	const scriptContext = computed(() => {
 		const variablesRefs = toRefs(variables.value)
 		return {
-			...vueReactivityApis,
 			...variablesRefs,
 			...resources.value,
 			...pageScriptBindings.value,
@@ -249,11 +247,19 @@ const useCodeStore = defineStore("codeStore", () => {
 		}
 	})
 
+	// for non-standard pages: scriptContext + vueReactivityApis since it can't import them
+	const interpretedScriptContext = computed(() => {
+		return {
+			...vueReactivityApis,
+			...scriptContext.value,
+		}
+	})
+
 	function getDynamicValue(value: string, localContext: ExpressionEvaluationContext) {
 		let result = ""
 		let lastIndex = 0
 
-		const context = { ...globalContext.value, ...localContext }
+		const context = { ...evalContext.value, ...localContext }
 
 		if (!isDynamicValue(value)) {
 			return evaluateExpression(value, context)
@@ -324,7 +330,7 @@ const useCodeStore = defineStore("codeStore", () => {
 
 	function evaluateExpression(expression: string, localContext: ExpressionEvaluationContext) {
 		try {
-			const context = { ...globalContext.value, ...localContext }
+			const context = { ...evalContext.value, ...localContext }
 			// Replace dot notation with optional chaining via AST
 			const safeExpression = toOptionalChaining(expression)
 
@@ -353,7 +359,7 @@ const useCodeStore = defineStore("codeStore", () => {
 		eventArgs?: any[],
 	) {
 		try {
-			const context = { ...globalExecutionContext.value, ...repeaterContext, ...componentContext, eventArgs }
+			const context = { ...scriptContext.value, ...repeaterContext, ...componentContext, eventArgs }
 
 			const scriptToExecute = `
 				with (context) {
@@ -379,7 +385,7 @@ const useCodeStore = defineStore("codeStore", () => {
 	) {
 		try {
 			const context = {
-				...globalExecutionContext.value,
+				...scriptContext.value,
 				...repeaterContext,
 				...componentContext,
 				eventArgs,
@@ -408,7 +414,7 @@ const useCodeStore = defineStore("codeStore", () => {
 	) {
 		try {
 			const context = {
-				...globalExecutionContext.value,
+				...scriptContext.value,
 				...repeaterContext,
 				...componentContext,
 				eventArgs,
@@ -583,11 +589,11 @@ const useCodeStore = defineStore("codeStore", () => {
 			const fn = new Function(
 				"h",
 				...Object.keys(registeredComponents),
-				...Object.keys(globalExecutionContext.value),
+				...Object.keys(scriptContext.value),
 				...Object.keys(localContext),
 				`return (${value})`
 			)
-			return fn(h, ...Object.values(registeredComponents), ...Object.values(globalExecutionContext.value), ...Object.values(localContext))
+			return fn(h, ...Object.values(registeredComponents), ...Object.values(scriptContext.value), ...Object.values(localContext))
 		} catch (e) {
 			return value
 		}
@@ -613,8 +619,9 @@ const useCodeStore = defineStore("codeStore", () => {
 		setPageScript,
 		applyPageScriptHMR,
 		// code execution
-		globalContext,
-		globalExecutionContext,
+		evalContext,
+		scriptContext,
+		interpretedScriptContext,
 		getDynamicValue,
 		evaluateDynamicValues,
 		executeUserScript,
