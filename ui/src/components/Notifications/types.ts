@@ -1,78 +1,133 @@
-import type { Component } from "vue";
-
 export interface NotificationLog {
   name: string;
-  /** canonical headline shown in the panel */
+  /** canonical headline shown in the panel — HTML, sanitized by the backend at write time */
   title?: string;
-  /** canonical body shown under the title */
+  /** canonical body shown under the title — HTML, sanitized by the backend at write time */
   description?: string;
-  /** email representation of the title (read when the notification is emailed) */
+  /** email representation of the title; used as the title fallback */
   subject?: string;
+  /** opaque category tag — used only for filtering, never for presentation */
   type?: string;
   /** app that produced this notification — used to scope the panel to a single app */
   app?: string;
   read: number | boolean;
   from_user?: string;
-  /** sender's photo, when resolved — used for the default avatar */
+  /**
+   * sender's photo for the default avatar. Resolved client-side today (see useNotifications);
+   * a candidate to become a server virtual field so the feed query carries it directly.
+   */
   from_user_image?: string;
   document_type?: string;
   document_name?: string;
   link?: string;
   creation: string;
-  // app-specific Custom Fields flow through untyped
+  // app-specific Custom Fields flow through untyped (the feed is fetched with `["*"]`)
   [key: string]: unknown;
 }
 
-/** Notification Type is purely categorical — used for tabs/filters, not presentation. */
-export interface NotificationType {
-  name: string;
-  type_name?: string;
-  enabled?: number | boolean;
+/** Minimal socket.io-compatible emitter. Supplied by the host to `useNotifications`. */
+export interface NotificationSocket {
+  on: (event: string, cb: (...args: unknown[]) => void) => void;
+  off?: (event: string, cb: (...args: unknown[]) => void) => void;
 }
 
 /**
- * Leading visual for a row. A Lucide icon name (string, e.g. `"lucide-bell"`, rendered via
- * frappe-ui's `lucide-*` icon utility) or a Component. When omitted, the row renders the
- * sender's Avatar by default.
+ * A tab is a label + a filter. The filter is overloaded by type:
+ *   - object   → server-side filter merged into the feed query (affects counts + pagination)
+ *   - function → client-side predicate applied to already-fetched rows
+ * `value` is the stable key (used for the dynamic `#tab-<value>` slot); defaults to the label.
  */
-export type NotificationIcon = string | Component;
-
 export interface NotificationTab {
   label: string;
-  /** server-side filters applied to the Notification Log list query */
-  filters?: Record<string, unknown>;
-  /** client-side predicate applied to the already-fetched rows */
-  filterFn?: (n: NotificationLog) => boolean;
-  /** badge next to the tab label */
+  value?: string;
+  filter?: Record<string, unknown> | ((n: NotificationLog) => boolean);
+  /** badge next to the label: the server unread count, or a count derived from fetched rows */
   count?: "unread" | ((items: NotificationLog[]) => number);
 }
 
-export interface NotificationPanelProps {
-  /** scope the feed to a single app — only notifications about that app's documents are shown */
+/** Options for the data plugin. The host owns this; the panel never sees socket/scope. */
+export interface UseNotificationsOptions {
+  pageLength?: number;
+  /** scope the feed to a single app (matched on the denormalized `app` column) */
   appName?: string;
   /**
-   * recipient to scope the feed to (`for_user`). Defaults to the logged-in user. Pass it to
-   * avoid a lookup round-trip, or to view a specific user's feed (e.g. a demo). Without it, an
-   * Administrator session would see every user's notifications.
+   * recipient scope (`for_user`); defaults to the logged-in user, resolved lazily. Pass it to
+   * skip a lookup, or to view a specific user's feed. Without it an Administrator session would
+   * see every user's notifications (Notification Log permits an admin to read everyone's).
    */
   currentUser?: string;
-  /** Notification Log fields to fetch; defaults include the generic set. Append custom fields here. */
-  fields?: string[];
+  /** initial server-side filters; tabs layer on top via `setFilters` */
+  filters?: Record<string, unknown>;
+  socket?: NotificationSocket;
+  /** side-effect hook run after a row is marked read — host routing lives here */
+  afterMarkAsRead?: (n: NotificationLog) => void;
+}
+
+/**
+ * The injected controller returned by `useNotifications()`. It is a `reactive` proxy, so its
+ * members read as plain (live) values — spread it onto the panel with `v-bind="controller"`.
+ * Read members directly (e.g. `controller.notifications`); destructuring would drop reactivity.
+ * State is read-only from the consumer's side — mutate only through the verbs.
+ */
+export interface NotificationStore {
+  notifications: NotificationLog[];
+  unreadCount: number;
+  hasNextPage: boolean;
+  /** true only on a cold load with nothing cached — lets the panel hold off the empty state */
+  loading: boolean;
+  /** last fetch error, surfaced to the panel's `#error` slot */
+  error: unknown;
+  markAsRead: (name: string) => Promise<void>;
+  markAllAsRead: () => Promise<void>;
+  /** clear the bell's unseen indicator — the host calls this when it opens the panel */
+  markSeen: () => void;
+  reload: () => void;
+  loadMore: () => void;
+  /** set the active tab's server filters; app + recipient scope are always preserved */
+  setFilters: (filters: Record<string, unknown>) => void;
+}
+
+/**
+ * Panel props = the controller members (spread from `useNotifications` via `v-bind="controller"`)
+ * plus presentation config. Listing the members individually keeps the panel's data dependency
+ * explicit and typed; the host still passes them in one line via the spread.
+ */
+export interface NotificationPanelProps {
+  // — data plugin (spread these from useNotifications) —
+  notifications: NotificationLog[];
+  unreadCount?: number;
+  hasNextPage: boolean;
+  loading?: boolean;
+  error?: unknown;
+  /** not meant to be overridden — extend via useNotifications' `afterMarkAsRead` hook */
+  markAsRead: (name: string) => void | Promise<void>;
+  markAllAsRead: () => void | Promise<void>;
+  loadMore: () => void;
+  /** the panel calls this when a tab with an object filter activates */
+  setFilters: (filters: Record<string, unknown>) => void;
+
+  // — presentation —
   tabs?: NotificationTab[];
-  showMarkAllRead?: boolean;
-  showClose?: boolean;
-  pageLength?: number;
   title?: string;
-  /** host routing hook; called (in addition to @item-click) when a row is clicked */
-  onItemClick?: (n: NotificationLog) => void;
-  /**
-   * Resolve the leading visual per row: return a lucide icon name (string) or a Component.
-   * Return undefined to fall back to the sender's avatar (the default for most rows).
-   */
-  icon?: (n: NotificationLog) => NotificationIcon | undefined;
-  /** a frappe-ui / socket.io socket; if provided, the panel live-reloads on the `notification` event */
-  socket?: {
-    on: (event: string, cb: (...args: unknown[]) => void) => void;
-    off?: (event: string, cb: (...args: unknown[]) => void) => void;
-  };
+}
+
+/** Scope handed to the `#header` slot. */
+export interface NotificationHeaderSlotProps {
+  title?: string;
+  unreadCount?: number;
+  tabs: NotificationTab[];
+  activeTab: string | undefined;
+  selectTab: (value: string) => void;
+  markAllAsRead: () => void | Promise<void>;
+  /** trigger the panel's `close` event (the host owns the container) */
+  close: () => void;
+}
+
+/** Scope handed to the body / `#tab-<value>` / `#item` slots. */
+export interface NotificationBodySlotProps {
+  /** rows visible under the active tab (the tab's client predicate already applied) */
+  notifications: NotificationLog[];
+  markAsRead: (name: string) => void | Promise<void>;
+  loadMore: () => void;
+  hasNextPage: boolean;
 }

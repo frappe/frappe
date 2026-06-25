@@ -1,14 +1,10 @@
 <script setup lang="ts">
 import { computed } from "vue";
-import type { Component } from "vue";
 import { Avatar, dayjs } from "frappe-ui";
-import { sanitizeHtml } from "../../utils/sanitize";
-import type { NotificationIcon, NotificationLog } from "./types";
+import type { NotificationLog } from "./types";
 
 const props = defineProps<{
 	notification: NotificationLog;
-	/** lucide icon name (string) or a Component; omitted => sender avatar */
-	icon?: NotificationIcon;
 	class?: string;
 }>();
 
@@ -16,28 +12,14 @@ const emit = defineEmits<{
 	click: [n: NotificationLog];
 }>();
 
-// frappe-ui v1 deprecates FeatherIcon; a Lucide icon renders as a `lucide-<name>` CSS
-// class (a mask-based Tailwind utility from frappe-ui's preset + lucide-static), the same
-// way frappe-ui's own Button renders string icons. Normalize to ensure the prefix so both
-// "lucide-bell" and "bell" resolve to the `lucide-bell` class.
-const iconClass = computed(() => {
-	if (typeof props.icon !== "string") return undefined;
-	return props.icon.startsWith("lucide-") ? props.icon : `lucide-${props.icon}`;
-});
-const iconComponent = computed(() =>
-	props.icon && typeof props.icon !== "string" ? (props.icon as Component) : undefined
-);
-
 const avatarLabel = computed(() =>
 	(props.notification.from_user || props.notification.type || "?").charAt(0)
 );
 
-// title/description are rendered HTML bound via v-html; sanitize to neutralize any
-// user-controlled markup injected through Jinja document-field values (stored XSS).
-const title = computed(() =>
-	sanitizeHtml(props.notification.title ?? props.notification.subject ?? "")
-);
-const description = computed(() => sanitizeHtml(props.notification.description ?? ""));
+// title/description are HTML rendered via v-html. The backend sanitizes this content at write
+// time, so the UI does not re-sanitize here.
+const title = computed(() => props.notification.title ?? props.notification.subject ?? "");
+const description = computed(() => props.notification.description ?? "");
 
 const isUnread = computed(() => !props.notification.read);
 const timeAgo = computed(() => dayjs(props.notification.creation as string).fromNow());
@@ -55,24 +37,25 @@ const timeAgo = computed(() => dayjs(props.notification.creation as string).from
 				class="absolute top-1/2 size-[5px] -translate-y-1/2 rounded-full bg-gray-800"
 				style="left: -10px"
 			/>
-			<component :is="iconComponent" v-if="iconComponent" :notification="notification" />
-			<div
-				v-else-if="iconClass"
-				class="flex size-8 items-center justify-center rounded-full bg-surface-gray-3 text-ink-gray-7"
-			>
-				<span :class="[iconClass, 'size-4']" aria-hidden="true" />
-			</div>
-			<Avatar v-else :image="notification.from_user_image" :label="avatarLabel" size="lg" />
+			<slot name="leading" :notification="notification">
+				<Avatar :image="notification.from_user_image" :label="avatarLabel" size="lg" />
+			</slot>
 		</div>
 
 		<div class="min-w-0 flex-1">
-			<div class="text-p-base text-ink-gray-8 [&_b]:font-semibold" v-html="title" />
-			<div
-				v-if="description"
-				class="mt-1 text-p-sm text-ink-gray-5 line-clamp-2"
-				v-html="description"
-			/>
-			<div class="mt-1 text-p-xs text-ink-gray-5">{{ timeAgo }}</div>
+			<slot name="title" :notification="notification">
+				<div class="text-p-base text-ink-gray-8 [&_b]:font-semibold" v-html="title" />
+			</slot>
+			<slot name="description" :notification="notification">
+				<div
+					v-if="description"
+					class="mt-1 text-p-sm text-ink-gray-5 line-clamp-2"
+					v-html="description"
+				/>
+			</slot>
+			<slot name="meta" :notification="notification">
+				<div class="mt-1 text-p-xs text-ink-gray-5">{{ timeAgo }}</div>
+			</slot>
 		</div>
 	</div>
 </template>

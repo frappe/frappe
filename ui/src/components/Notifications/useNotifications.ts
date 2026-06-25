@@ -1,48 +1,23 @@
-import { computed, onBeforeUnmount, onMounted, ref, watch } from "vue";
+import {
+  computed,
+  onBeforeUnmount,
+  onMounted,
+  reactive,
+  ref,
+  watch,
+} from "vue";
 import { call, createListResource, createResource } from "frappe-ui";
-import type { NotificationLog } from "./types";
+import type {
+  NotificationLog,
+  NotificationStore,
+  UseNotificationsOptions,
+} from "./types";
 
 const METHOD = "frappe.desk.doctype.notification_log.notification_log";
 
-export const DEFAULT_FIELDS = [
-  "name",
-  "title",
-  "description",
-  "subject",
-  "type",
-  "app",
-  "read",
-  "from_user",
-  "document_type",
-  "document_name",
-  "link",
-  "creation",
-];
-
-export interface UseNotificationsOptions {
-  fields?: string[];
-  pageLength?: number;
-  /** scope the feed to a single app — only notifications produced by that app are shown */
-  appName?: string;
-  /**
-   * scope the feed to one recipient (`for_user`). Defaults to the logged-in user
-   * (resolved from `frappe.auth.get_logged_user`). Pass it explicitly when the host already
-   * knows the user (avoids a round-trip) or to view a specific user's feed — e.g. a demo.
-   *
-   * This matters because the panel must always show *one* user's notifications: Notification
-   * Log's permission rules let an Administrator read *everyone's*, so without this filter an
-   * admin session would see all users' notifications (and inflated counts).
-   */
-  currentUser?: string;
-  filters?: Record<string, unknown>;
-  socket?: {
-    on: (event: string, cb: (...args: unknown[]) => void) => void;
-    off?: (event: string, cb: (...args: unknown[]) => void) => void;
-  };
-}
-
-export function useNotifications(options: UseNotificationsOptions = {}) {
-  const fields = options.fields?.length ? options.fields : DEFAULT_FIELDS;
+export function useNotifications(
+  options: UseNotificationsOptions = {}
+): NotificationStore {
   const pageLength = options.pageLength ?? 20;
   const appName = options.appName;
 
@@ -60,7 +35,9 @@ export function useNotifications(options: UseNotificationsOptions = {}) {
 
   const list = createListResource({
     doctype: "Notification Log",
-    fields,
+    // always fetch every column: Custom Fields flow through automatically, and trimming
+    // columns was never real fetch control (the row is read from the table regardless).
+    fields: ["*"],
     filters: { ...serverFilters.value, ...appFilter, ...userFilter() },
     orderBy: "creation desc",
     pageLength,
@@ -84,7 +61,7 @@ export function useNotifications(options: UseNotificationsOptions = {}) {
       ...new Set(
         rows
           .map((n) => n.from_user)
-          .filter((u): u is string => Boolean(u) && !(u in userImages.value)),
+          .filter((u): u is string => Boolean(u) && !(u in userImages.value))
       ),
     ];
     if (!missing.length) return;
@@ -109,12 +86,12 @@ export function useNotifications(options: UseNotificationsOptions = {}) {
       from_user_image: n.from_user
         ? userImages.value[n.from_user] || undefined
         : undefined,
-    })),
+    }))
   );
   watch(
     () => list.data,
     (rows) => resolveUserImages((rows as NotificationLog[]) || []),
-    { immediate: true },
+    { immediate: true }
   );
 
   // Unread count comes from the server (a COUNT over all of the user's matching rows),
@@ -138,14 +115,18 @@ export function useNotifications(options: UseNotificationsOptions = {}) {
     unreadResource.reload();
   }
   const unreadCount = computed<number>(
-    () => (unreadResource.data as number) ?? 0,
+    () => (unreadResource.data as number) ?? 0
   );
   const hasNextPage = computed(() => Boolean(list.hasNextPage));
   // true only while a fetch is in flight with nothing to show yet — lets the panel hold off
   // the empty state on a cold first load (a cached feed already has rows, so it stays false).
   const loading = computed(
     () =>
-      Boolean(list.list?.loading) && !(list.data as NotificationLog[])?.length,
+      Boolean(list.list?.loading) && !(list.data as NotificationLog[])?.length
+  );
+  // surfaced to the panel's #error slot; null while healthy
+  const error = computed<unknown>(
+    () => list.list?.error ?? unreadResource.error ?? null
   );
 
   async function markAsRead(name: string) {
@@ -158,6 +139,7 @@ export function useNotifications(options: UseNotificationsOptions = {}) {
     }
     await call(`${METHOD}.mark_as_read`, { docname: name });
     refreshUnreadCount();
+    if (n) options.afterMarkAsRead?.(n);
   }
 
   async function markAllAsRead() {
@@ -185,7 +167,7 @@ export function useNotifications(options: UseNotificationsOptions = {}) {
   }
 
   /** set the active tab's server-side filters; the app scope (if any) is always preserved */
-  function setServerFilters(filters: Record<string, unknown>) {
+  function setFilters(filters: Record<string, unknown>) {
     serverFilters.value = filters || {};
     applyFilters();
   }
@@ -208,7 +190,7 @@ export function useNotifications(options: UseNotificationsOptions = {}) {
         currentUser.value = user;
         applyFilters();
       },
-      { immediate: true },
+      { immediate: true }
     );
   }
 
@@ -223,19 +205,21 @@ export function useNotifications(options: UseNotificationsOptions = {}) {
     options.socket?.off?.("notification", onRealtime);
   });
 
-  return {
-    list,
+  // Returned as a `reactive` object so the panel can spread it with `v-bind="controller"`:
+  // `v-bind` does not unwrap refs nested in a plain object, but `reactive` unwraps them, so
+  // each member binds as a live value. For a custom UI, read members off the returned object
+  // (e.g. `controller.notifications`) rather than destructuring, which would drop reactivity.
+  return reactive({
     notifications,
     unreadCount,
     hasNextPage,
     loading,
+    error,
     markAsRead,
     markAllAsRead,
     markSeen,
     reload,
-    setServerFilters,
     loadMore: () => list.next?.(),
-  };
+    setFilters,
+  }) as NotificationStore;
 }
-
-export type UseNotifications = ReturnType<typeof useNotifications>;
