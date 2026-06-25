@@ -20,11 +20,11 @@ class ListLayout(Document):
 		from frappe.types import DF
 
 		columns: DF.LongText | None
-		layout_name: DF.Data | None
 		filters: DF.LongText | None
 		for_user: DF.Link | None
+		layout_name: DF.Data | None
 		reference_doctype: DF.Link | None
-		route_signature: DF.Data | None
+		route_signature: DF.SmallText | None
 		sort_field: DF.Data | None
 		sort_order: DF.Data | None
 	# end: auto-generated types
