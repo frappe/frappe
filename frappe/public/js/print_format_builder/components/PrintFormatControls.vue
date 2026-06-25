@@ -747,16 +747,6 @@ watch(print_format, () => (store.dirty.value = true), { deep: true });
 	flex-shrink: 0;
 }
 
-.pfb-plus-icon {
-	opacity: 0;
-	flex-shrink: 0;
-	transition: opacity 0.1s;
-}
-
-.pfb-template-card:hover .pfb-plus-icon {
-	opacity: 1;
-}
-
 /* ── Block card (Blocks tab) ─────────────────────────────── */
 .pfb-block-card {
 	display: flex;

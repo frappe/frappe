@@ -145,36 +145,9 @@ function select_section() {
 	store.selected_lh_footer.value = false;
 }
 
-function set_columns(n) {
-	const current = props.section.columns.length;
-	if (n === current) return;
-
-	// collect all fields preserving order
-	const all_fields = props.section.columns.flatMap((col) => col.fields);
-
-	// build n fresh columns and distribute fields round-robin
-	const new_columns = Array.from({ length: n }, () => ({ label: "", fields: [] }));
-	all_fields.forEach((field, i) => new_columns[i % n].fields.push(field));
-
-	props.section.columns = new_columns;
-}
-
 function remove_column(index) {
 	if (props.section.columns.length <= 1) return;
 	props.section.columns.splice(index, 1);
-}
-
-function toggle_page_break() {
-	props.section["page_break"] = !props.section.page_break;
-}
-
-function toggle_orientation() {
-	props.section["field_orientation"] =
-		props.section.field_orientation === "left-right" ? "" : "left-right";
-}
-
-function set_column_align(column, value) {
-	column.align = value;
 }
 </script>
 
