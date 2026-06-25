@@ -166,9 +166,9 @@ const componentProps = computed(() => {
 
 		if (
 			(isDynamicValue(config.modelValue) || isVariableBound(config.modelValue)) &&
-			["select", "checkbox", "number"].includes(config.inputType)
+			!isCodeField(config.inputType)
 		) {
-			config.inputType = "text"
+			config.inputType = "code"
 		}
 		filteredProps[propName] = config
 	})
