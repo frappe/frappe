@@ -27,3 +27,34 @@ export const getPausedRun = (session) =>
 		order_by: "creation desc",
 		limit: 1,
 	});
+
+// Upload a file as private, returning the created File doc. The chat attachment
+// flow needs the File name to stage it via attachFile.
+export async function uploadFile(file) {
+	const form = new FormData();
+	form.append("file", file, file.name);
+	form.append("is_private", "1");
+
+	const resp = await fetch("/api/method/upload_file", {
+		method: "POST",
+		headers: { "X-Frappe-CSRF-Token": frappe.csrf_token },
+		body: form,
+	});
+	const data = await resp.json().catch(() => ({}));
+	if (!resp.ok) throw new Error(serverMessage(data) || `Upload failed (${resp.status})`);
+	return data.message;
+}
+
+// Validate and stage an uploaded File for use as a chat attachment. Returns chip
+// metadata; throws (unsupported type, unreadable, …) which surfaces on the chip.
+export const attachFile = (file) => frappe.xcall("flow.api.attach_file", { file });
+
+function serverMessage(data) {
+	try {
+		const msgs = JSON.parse(data._server_messages || "[]");
+		if (msgs.length) return JSON.parse(msgs[0]).message;
+	} catch {
+		// fall through to other error fields
+	}
+	return data.exception || data._error_message || null;
+}
