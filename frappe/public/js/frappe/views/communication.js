@@ -67,7 +67,7 @@ frappe.views.CommunicationComposer = class {
 
 		const $skeleton = $(`
 			<div class="gmail-compose">
-				<div class="gmail-row gmail-to-row">
+				<div class="gmail-row">
 					<div class="gmail-slot" data-slot="recipients"></div>
 					<div class="gmail-cc-bcc-toggles">
 						<a class="gmail-toggle" data-toggle="cc">${__("Cc")}</a>
@@ -80,7 +80,7 @@ frappe.views.CommunicationComposer = class {
 				<div class="gmail-row gmail-bcc-row is-collapsed">
 					<div class="gmail-slot" data-slot="bcc"></div>
 				</div>
-				<div class="gmail-row gmail-subject-row">
+				<div class="gmail-row">
 					<div class="gmail-slot" data-slot="subject"></div>
 				</div>
 				<div class="gmail-message-area">
@@ -88,7 +88,11 @@ frappe.views.CommunicationComposer = class {
 				</div>
 				<div class="gmail-banner" hidden></div>
 				<div class="gmail-action-bar">
-					<div class="gmail-action-bar__send" data-slot="send-button"></div>
+					<div class="gmail-action-bar__send btn-group" data-slot="send-button">
+						<button class="btn btn-primary btn-sm" data-action="schedule" title="${__(
+							"Schedule send"
+						)}">${frappe.utils.icon("es-line-down", "xs")}</button>
+					</div>
 					<div class="gmail-icon-row">
 						<button class="btn btn-ghost icon-btn" data-action="format" title="${__(
 							"Formatting options"
@@ -124,9 +128,10 @@ frappe.views.CommunicationComposer = class {
 
 		// Move Frappe's existing Send button (.btn-modal-primary) from the hidden footer into our
 		// action bar — keeps its existing click handler, classes, and styling. No custom button.
+		// Prepend so Send appears before the schedule chevron in the btn-group (Send | ▾).
 		const $sendBtn = this.dialog.$wrapper.find(".btn-modal-primary");
 		if ($sendBtn.length) {
-			$skeleton.find('[data-slot="send-button"]').append($sendBtn);
+			$skeleton.find('[data-slot="send-button"]').prepend($sendBtn);
 		}
 
 		// Cc / Bcc text toggles show/hide their rows
@@ -195,6 +200,23 @@ frappe.views.CommunicationComposer = class {
 		bindCheckIcon("send-me-a-copy", "send_me_a_copy");
 		bindCheckIcon("send-read-receipt", "send_read_receipt");
 		updateBanner();
+
+		// Schedule send: ▾ next to Send opens a datetime picker for the existing send_after field.
+		// No new field, no new dialog logic — uses frappe.prompt with a Datetime input.
+		$skeleton.find('[data-action="schedule"]').on("click", () => {
+			frappe.prompt(
+				{
+					label: __("Schedule Send At"),
+					fieldname: "schedule_at",
+					fieldtype: "Datetime",
+					default: fields.send_after.get_value(),
+				},
+				(values) => {
+					this.dialog.set_value("send_after", values.schedule_at);
+				},
+				__("Schedule Send")
+			);
+		});
 	}
 
 	get_fields() {
