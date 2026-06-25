@@ -155,7 +155,7 @@ frappe.ui.FilterGroup = class {
 			this.toggle_empty_filters(false);
 			this.add_filter(this.doctype, "name");
 
-			this.filters.at(-1)?.fieldselect?.$input?.focus();
+			this.filters[this.filters.length - 1]?.fieldselect?.$input?.focus();
 		});
 
 		this.wrapper.find(".clear-filters").on("click", () => {
