@@ -8,7 +8,7 @@ import { vueApiSources } from "./vueApiCompletions"
 import type { CompletionContext } from "@codemirror/autocomplete"
 import * as globalUtils from "@/utils/globalUtils"
 
-export const useStudioCompletions = (canEditValues: boolean = false) => {
+export const useStudioCompletions = (canEditValues: boolean = false, includeVueApis: boolean = false) => {
 	const codeStore = useCodeStore()
 
 	const completionSources = computed(() => {
@@ -136,7 +136,11 @@ export const useStudioCompletions = (canEditValues: boolean = false) => {
 			})
 		})
 
-		sources.push(...vueApiSources())
+		// Only the interpreted page script has the Vue reactivity APIs injected into its scope; other
+		// editors (event/callback/transform handlers, dynamic-value expressions) don't.
+		if (includeVueApis) {
+			sources.push(...vueApiSources())
+		}
 
 		return sources
 	})
