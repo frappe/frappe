@@ -36,6 +36,25 @@ from frappe.realtime.dispatch import wire
 logger = logging.getLogger("frappe.realtime")
 
 
+def ensure_thread_context_isolation() -> None:
+	"""
+	Python 3.14's thread_inherit_context makes new threads copy the parent's
+	contextvars (on by default for free-threaded builds). frappe.local lives in
+	a contextvar, so this aliases it across threads. Refuse to start if it is on.
+
+	Ref: https://github.com/python/cpython/issues/128555
+	"""
+	import sys
+
+	if not getattr(sys.flags, "thread_inherit_context", 0):
+		return
+
+	raise RuntimeError(
+		"thread_inherit_context is enabled; this aliases frappe.local across threads. "
+		"Restart with -X thread_inherit_context=0."
+	)
+
+
 def assert_no_mysqlclient() -> None:
 	"""Fail loudly if the mysqlclient C extension was imported.
 
@@ -125,6 +144,7 @@ def serve(config: RealtimeConfig | None = None) -> None:
 	import os
 
 	assert_no_mysqlclient()
+	ensure_thread_context_isolation()
 	config = config or get_config()
 
 	if os.path.isdir("sites"):
