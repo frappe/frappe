@@ -341,10 +341,13 @@ function set_column_align(column, value) {
 	overflow: visible;
 }
 
-.empty-drop-zone {
-	position: relative;
-	flex: 1;
+.column:has(.empty-drop-zone) {
 	min-height: 3rem;
+}
+
+.empty-drop-zone {
+	position: absolute;
+	inset: 0;
 	display: flex;
 	align-items: center;
 	justify-content: center;
