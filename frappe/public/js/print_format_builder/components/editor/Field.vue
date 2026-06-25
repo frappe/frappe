@@ -303,17 +303,114 @@ function is_html_content_field(col) {
 	return HTML_CONTENT_FIELDTYPES.has(col?.fieldtype);
 }
 
+const SAFE_HTML_TAGS = new Set([
+	"a",
+	"abbr",
+	"b",
+	"blockquote",
+	"br",
+	"caption",
+	"cite",
+	"code",
+	"col",
+	"colgroup",
+	"dd",
+	"del",
+	"div",
+	"dl",
+	"dt",
+	"em",
+	"figcaption",
+	"figure",
+	"h1",
+	"h2",
+	"h3",
+	"h4",
+	"h5",
+	"h6",
+	"hr",
+	"i",
+	"img",
+	"ins",
+	"kbd",
+	"li",
+	"mark",
+	"ol",
+	"p",
+	"pre",
+	"q",
+	"s",
+	"samp",
+	"small",
+	"span",
+	"strong",
+	"sub",
+	"summary",
+	"sup",
+	"table",
+	"tbody",
+	"td",
+	"tfoot",
+	"th",
+	"thead",
+	"tr",
+	"u",
+	"ul",
+	"var",
+	"wbr",
+]);
+
+const SAFE_HTML_ATTRS = new Set([
+	"alt",
+	"cite",
+	"class",
+	"colspan",
+	"datetime",
+	"dir",
+	"height",
+	"href",
+	"lang",
+	"rowspan",
+	"scope",
+	"span",
+	"src",
+	"style",
+	"title",
+	"width",
+	"align",
+	"valign",
+	"border",
+	"cellpadding",
+	"cellspacing",
+]);
+
 function sanitize_cell_html(html) {
-	const tmp = document.createElement("div");
-	tmp.innerHTML = frappe.dom.remove_script_and_style(html || "");
-	tmp.querySelectorAll("*").forEach((el) => {
-		for (const attr of [...el.attributes]) {
-			if (attr.name.startsWith("on")) el.removeAttribute(attr.name);
+	const root = document.createElement("div");
+	root.innerHTML = frappe.dom.remove_script_and_style(html || "");
+	(function clean(node) {
+		for (const child of [...node.childNodes]) {
+			if (child.nodeType === Node.TEXT_NODE) continue;
+			if (child.nodeType !== Node.ELEMENT_NODE) {
+				child.remove();
+				continue;
+			}
+			if (!SAFE_HTML_TAGS.has(child.tagName.toLowerCase())) {
+				child.replaceWith(...child.childNodes);
+				continue;
+			}
+			for (const attr of [...child.attributes]) {
+				const name = attr.name.toLowerCase();
+				if (!SAFE_HTML_ATTRS.has(name) || name.startsWith("on")) {
+					child.removeAttribute(attr.name);
+				} else if (name === "href" || name === "src") {
+					if (!/^(https?:|data:image\/)/i.test(attr.value.trim()))
+						child.removeAttribute(attr.name);
+				}
+			}
+			clean(child);
 		}
-		if (el.tagName === "A" && /^javascript:/i.test(el.getAttribute("href") || ""))
-			el.removeAttribute("href");
-	});
-	return tmp.innerHTML;
+	})(root);
+	return root.innerHTML;
 }
 
 function format_cell(row, col) {
