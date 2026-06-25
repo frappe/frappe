@@ -31,20 +31,14 @@
 			>
 				<template #default>
 					<div class="flex flex-col gap-3">
-						<FormControl
-							type="combobox"
+						<Combobox
 							:options="eventOptions"
 							:allowCustomValue="true"
 							label="Event"
 							v-model="newEvent.event"
 							description="Type any event, optionally with modifiers — e.g. keydown.enter, click.prevent, submit.prevent.stop"
 						/>
-						<FormControl
-							type="combobox"
-							:options="Object.keys(actions)"
-							label="Action"
-							v-model="newEvent.action"
-						/>
+						<Combobox :options="Object.keys(actions)" label="Action" v-model="newEvent.action" />
 						<component
 							v-for="control in actionControls"
 							:key="control.component.name"
@@ -148,7 +142,7 @@
 
 <script setup lang="ts">
 import { ref, computed, watch } from "vue"
-import { FormControl, createResource, Dialog, TabButtons } from "frappe-ui"
+import { Combobox, FormControl, createResource, Dialog, TabButtons } from "frappe-ui"
 import useStudioStore from "@/stores/studioStore"
 import Block from "@/utils/block"
 import EmptyState from "@/components/EmptyState.vue"
@@ -257,6 +251,7 @@ const actions: ActionConfigurations = {
 			getProps: () => {
 				return {
 					label: "Script",
+					isFormInput: true,
 					language: "javascript",
 					modelValue: newEvent.value.script,
 					height: "400px",
