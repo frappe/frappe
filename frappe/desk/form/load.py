@@ -245,8 +245,8 @@ def get_comments(doctype: str, name: str, comment_type: str | list[str] = "Comme
 	return comments
 
 
-def _get_communications(doctype, name, start=0, limit=20):
-	communications = get_communication_data(doctype, name, start, limit)
+def _get_communications(doctype, name, start=0, limit=20, order="desc"):
+	communications = get_communication_data(doctype, name, start, limit, order=order)
 	for c in communications:
 		if c.communication_type in ("Communication", "Automated Message"):
 			c.attachments = json.dumps(
@@ -261,9 +261,12 @@ def _get_communications(doctype, name, start=0, limit=20):
 
 
 def get_communication_data(
-	doctype, name, start=0, limit=20, after=None, fields=None, group_by=None, as_dict=True
+	doctype, name, start=0, limit=20, after=None, fields=None, group_by=None, as_dict=True, order="desc"
 ):
 	"""Return list of communications for a given document."""
+	# whitelist to a literal — this is interpolated into SQL, never use raw input
+	direction = "ASC" if str(order).lower() == "asc" else "DESC"
+
 	if not fields:
 		fields = """
 			C.name, C.communication_type, C.communication_medium,
@@ -293,7 +296,7 @@ def get_communication_data(
 		WHERE C.communication_type IN ('Communication', 'Automated Message')
 		AND (C.reference_doctype = %(doctype)s AND C.reference_name = %(name)s)
 		{conditions}
-		ORDER BY C.communication_date DESC
+		ORDER BY C.communication_date {direction}
 		LIMIT %(cte_limit)s
 	"""
 
@@ -305,7 +308,7 @@ def get_communication_data(
 		WHERE C.communication_type IN ('Communication', 'Automated Message')
 		AND `tabCommunication Link`.link_doctype = %(doctype)s AND `tabCommunication Link`.link_name = %(name)s
 		{conditions}
-		ORDER BY `tabCommunication Link`.communication_date DESC
+		ORDER BY `tabCommunication Link`.communication_date {direction}
 		LIMIT %(cte_limit)s
 	"""
 
@@ -316,7 +319,7 @@ def get_communication_data(
 			SELECT * FROM ({part2})
 		) AS combined
 		{group_by or ""}
-		ORDER BY communication_date DESC
+		ORDER BY communication_date {direction}
 		LIMIT %(limit)s
 		OFFSET %(start)s"""
 
@@ -329,7 +332,7 @@ def get_communication_data(
 			SELECT * FROM part2
 		) AS combined
 		{group_by or ""}
-		ORDER BY communication_date DESC
+		ORDER BY communication_date {direction}
 		LIMIT %(limit)s
 		OFFSET %(start)s
 		"""

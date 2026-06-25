@@ -1,15 +1,17 @@
-import { createResource } from "frappe-ui";
-import { computed, onMounted, onUnmounted } from "vue";
+import { call, createResource } from "frappe-ui";
+import { computed, onMounted, onUnmounted, reactive, ref, watch } from "vue";
 import { getSocketInstance } from "../../socket";
 import type { Activity, VersionActivity } from "./types";
 
+// shape returned by get_activity_timeline / get_more_email_activities
+interface TimelineData {
+  activities: Activity[];
+  has_more_emails: boolean;
+}
+
 const resources = new Map<string, ReturnType<typeof createResource>>();
 
-export function useActivityTimeline(
-  doctype: string,
-  docname: string,
-  order: "asc" | "desc" = "desc"
-) {
+export function useActivityTimeline(doctype: string, docname: string) {
   const key = `${doctype}:${docname}`;
   let resource = resources.get(key);
   if (!resource) {
@@ -24,17 +26,69 @@ export function useActivityTimeline(
 
   handleLiveUpdates(doctype, docname, resource);
 
+  // The email stream is paged. The first page lives in `resource.data`; older
+  // pages accumulate in `extraEmails` and merge in the `activities` computed.
+  const extraEmails = ref<Activity[]>([]);
+  const hasNextPage = ref(false);
+  const isFetchingNextPage = ref(false);
+
+  watch(
+    () => (resource.data as TimelineData | undefined)?.has_more_emails,
+    (serverHasMore) => {
+      if (!extraEmails.value.length) hasNextPage.value = serverHasMore ?? false;
+    },
+    { immediate: true }
+  );
+
+  async function fetchNextPage() {
+    if (isFetchingNextPage.value || !hasNextPage.value) return;
+    isFetchingNextPage.value = true;
+    try {
+      const base =
+        (resource.data as TimelineData | undefined)?.activities ?? [];
+      // skip the emails already shown (first page + pages loaded so far)
+      const start =
+        base.filter((a) => a.type === "email").length +
+        extraEmails.value.length;
+      const res = (await call(
+        "frappe.desk.form.activity.get_more_email_activities",
+        { doctype, name: docname, start }
+      )) as TimelineData;
+      extraEmails.value = [...extraEmails.value, ...(res.activities ?? [])];
+      hasNextPage.value = res.has_more_emails ?? false;
+    } finally {
+      isFetchingNextPage.value = false;
+    }
+  }
+
   return {
     activities: computed<Activity[]>(() => {
-      const list = [...((resource.data as Activity[]) || [])];
-      list.sort(compareActivities);
-      const grouped = groupConsecutiveVersions(list);
-      return order === "desc" ? grouped.reverse() : grouped;
+      const base =
+        (resource.data as TimelineData | undefined)?.activities ?? [];
+      const merged = dedupeByKey([...base, ...extraEmails.value]);
+      merged.sort(compareActivities);
+      return groupConsecutiveVersions(merged);
     }),
     loading: computed<boolean>(() => resource.loading),
     error: computed(() => resource.error || null),
+    infiniteScroll: reactive({
+      hasNextPage,
+      isFetchingNextPage,
+      fetchNextPage,
+    }),
     reload: () => resource.reload(),
   };
+}
+
+function dedupeByKey(activities: Activity[]): Activity[] {
+  const seen = new Set<string>();
+  const out: Activity[] = [];
+  for (const a of activities) {
+    if (seen.has(a.key)) continue;
+    seen.add(a.key);
+    out.push(a);
+  }
+  return out;
 }
 
 function handleLiveUpdates(
@@ -53,14 +107,22 @@ function handleLiveUpdates(
     const activity = normalizeActivity(key, doc);
     if (!activity) return;
 
-    const current = (resource.data as Activity[]) || [];
+    const data = (resource.data as TimelineData | undefined) ?? {
+      activities: [],
+      has_more_emails: false,
+    };
+    const current = data.activities ?? [];
+    let next: Activity[];
     if (action === "add") {
-      resource.data = [...current, activity];
+      next = [...current, activity];
     } else if (action === "update") {
-      resource.data = current.map((a) => (a.key === activity.key ? activity : a));
+      next = current.map((a) => (a.key === activity.key ? activity : a));
     } else if (action === "delete") {
-      resource.data = current.filter((a) => a.key !== activity.key);
+      next = current.filter((a) => a.key !== activity.key);
+    } else {
+      return;
     }
+    resource.data = { ...data, activities: next };
   };
 
   onMounted(() => {

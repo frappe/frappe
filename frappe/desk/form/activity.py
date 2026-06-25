@@ -10,22 +10,41 @@ from frappe import _
 from frappe.desk.form.load import _get_communications, add_comments, get_versions, get_view_logs
 from frappe.model.document import Document
 
+# The email/communication stream is paged oldest-first; every other activity
+# source loads in full as context. The feed reads top-to-bottom oldest→newest,
+# and "load more" pages forward in time (newer emails append at the bottom).
+EMAIL_PAGE_SIZE = 20
+
 
 @frappe.whitelist()
-def get_activity_timeline(doctype: str, name: str | int) -> list[dict]:
+def get_activity_timeline(doctype: str, name: str | int) -> dict:
 	doc = frappe.get_lazy_doc(doctype, name, check_permission=True)
 	user_info: dict = {}  # User info cache to avoid multiple DB calls for the same user
 
+	emails, has_more_emails = get_email_activities(doc, user_info)
 	activities = [
 		*get_creation_activity(doc, user_info),
-		*get_email_activities(doc, user_info),
+		*emails,
 		*get_comment_and_log_activities(doc, user_info),
 		*get_view_activities(doc, user_info),
 		*get_version_activities(doc, user_info),
 	]
 
 	activities.sort(key=lambda a: (a.get("timestamp") or "", a["key"]))
-	return activities
+	return {"activities": activities, "has_more_emails": has_more_emails}
+
+
+@frappe.whitelist()
+def get_more_email_activities(
+	doctype: str, name: str | int, start: int = 0, limit: int = EMAIL_PAGE_SIZE
+) -> dict:
+	"""Next (newer) page of the email stream, normalized for the timeline renderer."""
+	doc = frappe.get_lazy_doc(doctype, name, check_permission=True)
+	user_info: dict = {}
+	emails, has_more_emails = get_email_activities(
+		doc, user_info, start=frappe.utils.cint(start), limit=frappe.utils.cint(limit)
+	)
+	return {"activities": emails, "has_more_emails": has_more_emails}
 
 
 def get_creation_activity(doc: "Document", user_info: dict) -> list[dict]:
@@ -47,8 +66,14 @@ def get_creation_activity(doc: "Document", user_info: dict) -> list[dict]:
 	]
 
 
-def get_email_activities(doc: "Document", user_info: dict) -> list[dict]:
-	communications = _get_communications(doc.doctype, doc.name, limit=21)
+def get_email_activities(
+	doc: "Document", user_info: dict, start: int = 0, limit: int = EMAIL_PAGE_SIZE
+) -> tuple[list[dict], bool]:
+	# oldest-first: page 0 is the oldest emails and "load more" pages forward in
+	# time. Fetch one extra row to detect whether a newer page exists, then trim it.
+	communications = _get_communications(doc.doctype, doc.name, start=start, limit=limit + 1, order="asc")
+	has_more = len(communications) > limit
+	communications = communications[:limit]
 	frappe.utils.add_user_info({c.sender for c in communications if c.sender}, user_info)
 
 	out = []
@@ -77,7 +102,7 @@ def get_email_activities(doc: "Document", user_info: dict) -> list[dict]:
 				},
 			}
 		)
-	return out
+	return out, has_more
 
 
 def parse_email_attachments(attachments) -> list[dict]:

@@ -6,6 +6,18 @@ export interface ActivityTimelineProps {
   /** Only shown when there are no activities yet. */
   loading?: boolean;
   error?: string | null;
+  /** Infinite-scroll controls. Omit to disable auto-loading (static feed). */
+  infiniteScroll?: InfiniteScrollControls;
+}
+
+/** Controls for scroll-driven pagination — shape matches TanStack useInfiniteQuery. */
+export interface InfiniteScrollControls {
+  /** Whether another page can be fetched. */
+  hasNextPage?: boolean;
+  /** A page fetch is in flight — drives the bottom spinner and gates re-entry. */
+  isFetchingNextPage?: boolean;
+  /** Fetch the next page (appends to the source). */
+  fetchNextPage?: () => void | Promise<void>;
 }
 
 export interface UserInfo {
@@ -108,4 +120,3 @@ export type CustomActivity = Omit<BaseActivity<string, unknown>, "key"> & {
    * reorderable rows need an explicit key for stable v-for/scroll. */
   key?: string;
 };
-

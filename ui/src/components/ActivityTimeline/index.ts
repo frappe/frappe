@@ -15,6 +15,7 @@ export type {
 	CustomActivity,
 	EmailActivity,
 	EmailAttachment,
+	InfiniteScrollControls,
 	UserInfo,
 	VersionActivity,
 } from './types'
