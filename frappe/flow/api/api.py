@@ -23,17 +23,20 @@ def start_run(
 	agent: str | None = None,
 	session: str | None = None,
 	model: str | None = None,
+	attachments: list[str] | str | None = None,
 	stream: bool | str = False,
 ) -> dict[str, Any] | Response:
-	"""Start a new turn. Creates a session if none is given. With `stream=True`, returns SSE."""
+	"""Start a new turn. Creates a session if none is given. `attachments` are uploaded File
+	names whose text is injected into this turn. With `stream=True`, returns SSE."""
 	if not isinstance(input, str) or not input.strip():
 		frappe.throw(_("Input is required."), title=_("Invalid Input"))
 
 	from flow.lib.session import load_session, new_session
 
 	stream = _is_truthy(stream)
+	files = _parse_attachments(attachments)
 	convo = load_session(session, agent=agent, model=model) if session else new_session(agent, model=model)
-	out = convo.chat(input, stream=stream)
+	out = convo.chat(input, attachments=files, stream=stream)
 	return _sse_response(out) if stream else _summarize(out)
 
 
@@ -130,6 +133,25 @@ def _is_truthy(value: Any) -> bool:
 	if isinstance(value, str):
 		return value.strip().lower() in {"1", "true", "yes", "on"}
 	return bool(value)
+
+
+def _parse_attachments(value: Any) -> list[str]:
+	"""Normalize the attachments argument (a list, a JSON-array string, or empty) to file names."""
+	if not value:
+		return []
+	if isinstance(value, str):
+		try:
+			value = json.loads(value)
+		except (TypeError, ValueError):
+			frappe.throw(_("Attachments must be a JSON array of file ids."), title=_("Invalid Attachments"))
+	if not isinstance(value, list):
+		frappe.throw(_("Attachments must be a list of file ids."), title=_("Invalid Attachments"))
+	files: list[str] = []
+	for file in value:
+		if not isinstance(file, str) or not file.strip():
+			frappe.throw(_("Each attachment must be a file id."), title=_("Invalid Attachments"))
+		files.append(file.strip())
+	return files
 
 
 def _parse_answers(answers: Any) -> dict[str, Any]:

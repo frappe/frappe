@@ -435,6 +435,104 @@ class TestStartRunSecurity(IntegrationTestCase):
 			start_run("steal context", session=theirs["session"])
 
 
+class TestStartRunAttachments(IntegrationTestCase):
+	@classmethod
+	def setUpClass(cls):
+		super().setUpClass()
+		sync_builtin_tools()
+
+	def setUp(self):
+		self.model = frappe.get_doc(_model_doc(title="Attach Model")).insert()
+		self.agent = frappe.get_doc(_agent_doc(self.model.name, title="Attach Agent")).insert()
+
+	def tearDown(self):
+		frappe.db.rollback()
+
+	def _file(self, file_name: str = "notes.txt", content: str = "the secret code is 1234"):
+		return frappe.get_doc(
+			{"doctype": "File", "file_name": file_name, "content": content, "is_private": 1}
+		).insert()
+
+	def _capture(self):
+		captured: list[list[dict[str, Any]]] = []
+
+		def chat(messages: list[dict[str, Any]], **_: Any) -> ChatResponse:
+			captured.append([dict(m) for m in messages])
+			return _final(f"reply {len(captured)}")
+
+		return captured, chat
+
+	def test_attachment_text_injected_but_stored_clean(self):
+		file_doc = self._file()
+		captured, chat = self._capture()
+		with patch.object(Model, "chat", side_effect=chat):
+			payload = start_run("summarize this", agent=self.agent.name, attachments=[file_doc.name])
+
+		user_msg = [m for m in captured[0] if m["role"] == "user"][-1]
+		self.assertIn("the secret code is 1234", user_msg["content"])
+		self.assertIn("summarize this", user_msg["content"])
+
+		session = frappe.get_doc("AI Session", payload["session"])
+		stored_user = [m for m in session.messages if m.role == "user"][-1]
+		self.assertEqual(stored_user.content, "summarize this")
+
+		self.assertEqual(len(session.attachments), 1)
+		attachment = session.attachments[0]
+		self.assertEqual(attachment.file, file_doc.name)
+		self.assertEqual(attachment.run, payload["name"])
+		self.assertEqual(attachment.extracted_text, "the secret code is 1234")
+
+	def test_attachment_replayed_on_later_turn(self):
+		file_doc = self._file()
+		captured, chat = self._capture()
+		with patch.object(Model, "chat", side_effect=chat):
+			first = start_run("turn one", agent=self.agent.name, attachments=[file_doc.name])
+			start_run("turn two", session=first["session"])
+
+		# File stays in context for the whole conversation: turn one's file is re-sent on turn two.
+		turn_two_users = [m for m in captured[1] if m["role"] == "user"]
+		self.assertEqual(turn_two_users[-1]["content"], "turn two")
+		self.assertIn("the secret code is 1234", turn_two_users[0]["content"])
+
+	def test_attachment_visible_on_resume(self):
+		file_doc = self._file()
+		with patch.object(Model, "chat", return_value=_confirm_call()):
+			paused = start_run("do it", agent=self.agent.name, attachments=[file_doc.name])
+		self.assertEqual(paused["status"], "Paused")
+
+		captured, chat = self._capture()
+		with patch.object(Model, "chat", side_effect=chat):
+			resume_run(paused["name"], {"c1": "Deny"})
+
+		user_msgs = [m for m in captured[0] if m["role"] == "user"]
+		self.assertIn("the secret code is 1234", user_msgs[0]["content"])
+
+	def test_duplicate_attachment_is_recorded_once(self):
+		file_doc = self._file()
+		with patch.object(Model, "chat", return_value=_final()):
+			payload = start_run("hi", agent=self.agent.name, attachments=[file_doc.name, file_doc.name])
+
+		session = frappe.get_doc("AI Session", payload["session"])
+		self.assertEqual(len(session.attachments), 1)
+
+	def test_attachments_accepts_json_string(self):
+		file_doc = self._file()
+		captured, chat = self._capture()
+		with patch.object(Model, "chat", side_effect=chat):
+			start_run("hi", agent=self.agent.name, attachments=json.dumps([file_doc.name]))
+
+		user_msg = [m for m in captured[0] if m["role"] == "user"][-1]
+		self.assertIn("the secret code is 1234", user_msg["content"])
+
+	def test_invalid_attachments_payload_rejected(self):
+		with self.assertRaisesRegex(frappe.ValidationError, "Attachments"):
+			start_run("hi", agent=self.agent.name, attachments="not json")
+
+	def test_unreadable_attachment_aborts_turn(self):
+		with self.assertRaises(frappe.DoesNotExistError):
+			start_run("hi", agent=self.agent.name, attachments=["nonexistent-file-id"])
+
+
 class TestAttachFile(IntegrationTestCase):
 	def tearDown(self):
 		frappe.db.rollback()
@@ -445,7 +543,7 @@ class TestAttachFile(IntegrationTestCase):
 		).insert()
 
 	def test_attach_file_returns_chip_metadata_and_stages_text(self):
-		from flow.ai.doctype.ai_session_attachment.ai_session_attachment import staged_text
+		from flow.ai.doctype.ai_session_attachment.ai_session_attachment import staged_attachment
 
 		file_doc = self._file()
 		chip = attach_file(file_doc.name)
@@ -453,7 +551,7 @@ class TestAttachFile(IntegrationTestCase):
 		self.assertEqual(chip["file"], file_doc.name)
 		self.assertEqual(chip["file_name"], "report.txt")
 		self.assertNotIn("extracted_text", chip)
-		self.assertEqual(staged_text(file_doc.name), "report body")
+		self.assertEqual(staged_attachment(file_doc.name)["extracted_text"], "report body")
 
 	def test_attach_file_strips_and_resolves_input(self):
 		file_doc = self._file()
