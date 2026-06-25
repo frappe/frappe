@@ -18,7 +18,9 @@ const SYSTEM_MODIFIERS = ["stop", "prevent", "self", "exact", "ctrl", "shift", "
  * not run for listeners bound dynamically through `v-on="object"`, so we reproduce
  * it here. Key modifiers go through `withKeys`, the rest through `withModifiers`.
  */
-export function resolveEventListener(rawName: string, handler: EventHandler): ResolvedEvent {
+export function resolveEventListener(rawName: string, handler: EventHandler, emits: string[] = []): ResolvedEvent {
+	if (emits.includes(rawName)) return { name: rawName, listener: handler }
+
 	const [name, ...modifiers] = rawName.split(".")
 	if (!modifiers.length) return { name, listener: handler }
 

@@ -65,6 +65,7 @@ import { getComponentRoot, isHTML, isObjectEmpty } from "@/utils/helpers"
 import { useScreenSize } from "@/utils/useScreenSize"
 import { isDynamicValue } from "@/utils/code"
 import { resolveEventListener } from "@/utils/eventModifiers"
+import useComponentInstance from "@/utils/useComponentInstance"
 
 import useCodeStore from "@/stores/codeStore"
 import { toast } from "frappe-ui"
@@ -171,13 +172,15 @@ const showComponent = computed(() => {
 type Listener = (...args: any[]) => any
 type ListenerMap = Record<string, Listener | Listener[]>
 
+const componentInstance = useComponentInstance(() => props.block)
+const componentEmits = computed<string[]>(() => componentInstance.value?.emits || [])
+
 const componentEvents = computed(() => {
 	const events: ListenerMap = {}
 	Object.entries(props.block.componentEvents).forEach(([eventName, event]) => {
 		const handler = getEventHandler(event)
 		if (!handler) return
-		// "keydown.enter", "click.prevent" etc. resolve to a base event + guarded handler
-		const { name, listener } = resolveEventListener(eventName, handler)
+		const { name, listener } = resolveEventListener(eventName, handler, componentEmits.value)
 		addListener(events, name, listener)
 	})
 	return events
