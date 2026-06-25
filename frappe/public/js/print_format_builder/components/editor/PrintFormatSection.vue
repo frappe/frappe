@@ -357,8 +357,9 @@ function set_column_align(column, value) {
 }
 
 .empty-drop-zone {
-	position: absolute;
-	inset: 0;
+	position: relative;
+	flex: 1;
+	min-height: 6rem;
 	display: flex;
 	align-items: center;
 	justify-content: center;
