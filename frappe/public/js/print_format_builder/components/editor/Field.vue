@@ -37,16 +37,9 @@
 					</div>
 					<div
 						class="field-preview-value"
-						:class="{
-							'text-muted': !(preview_doc[df.fieldname] || []).length,
-						}"
+						:class="{ 'text-muted': !(preview_doc[df.fieldname] || []).length }"
 					>
-						{{
-							(preview_doc[df.fieldname] || [])
-								.map((r) => r.value)
-								.filter(Boolean)
-								.join(", ") || "—"
-						}}
+						{{ multiselect_display(df) }}
 					</div>
 				</div>
 				<!-- Table field -->
@@ -320,6 +313,20 @@ const HTML_CONTENT_FIELDTYPES = new Set(["Text Editor", "Long Text"]);
 
 function numeric_align_class(col) {
 	return NUMERIC_FIELDTYPES.has(col?.fieldtype) ? "col-numeric" : "";
+}
+
+function multiselect_display(df) {
+	const rows = preview_doc.value?.[df.fieldname] || [];
+	if (!rows.length) return "—";
+	const child_meta = frappe.get_meta(df.options);
+	const link_field = child_meta?.fields.find((f) => f.fieldtype === "Link");
+	if (!link_field) return "—";
+	return (
+		rows
+			.map((r) => r[link_field.fieldname])
+			.filter(Boolean)
+			.join(", ") || "—"
+	);
 }
 
 function is_html_content_field(col) {
