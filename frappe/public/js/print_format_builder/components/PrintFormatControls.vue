@@ -349,9 +349,12 @@ function clone_field(df) {
 function add_to_layout(df) {
 	const sections = layout.value?.sections;
 	if (!sections || !sections.length) return;
-	const last_section = sections.slice(-1)[0];
-	if (!last_section) return;
-	const last_column = last_section.columns.slice(-1)[0];
+	const target_section =
+		store.selected_section.value && sections.includes(store.selected_section.value)
+			? store.selected_section.value
+			: sections.slice(-1)[0];
+	if (!target_section) return;
+	const last_column = target_section.columns.slice(-1)[0];
 	if (!last_column) return;
 	last_column.fields.push(clone_field(df));
 }
