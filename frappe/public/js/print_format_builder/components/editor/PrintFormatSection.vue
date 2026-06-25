@@ -147,7 +147,12 @@ function select_section() {
 
 function remove_section() {
 	const idx = store.layout.value.sections.indexOf(props.section);
-	if (idx !== -1) store.layout.value.sections.splice(idx, 1);
+	if (idx !== -1) {
+		store.layout.value.sections.splice(idx, 1);
+		if (store.selected_section.value === props.section) {
+			store.selected_section.value = null;
+		}
+	}
 }
 
 function remove_column(index) {
