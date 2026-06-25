@@ -98,7 +98,22 @@
 								v-html="frappe.utils.icon('x', 'xs')"
 							></button>
 							<div class="empty-drop-zone-hint">
-								<span class="text-muted">{{ __("Drop fields here") }}</span>
+								<svg
+									class="drop-icon"
+									width="16"
+									height="16"
+									viewBox="0 0 16 16"
+									fill="none"
+									xmlns="http://www.w3.org/2000/svg"
+								>
+									<path
+										d="M8 3v10M3 8h10"
+										stroke="currentColor"
+										stroke-width="1.5"
+										stroke-linecap="round"
+									/>
+								</svg>
+								<span>{{ __("Drop fields here") }}</span>
 							</div>
 						</div>
 					</div>
@@ -333,7 +348,7 @@ function set_column_align(column, value) {
 .drag-container {
 	flex: 1;
 	min-width: 0;
-	min-height: 4rem;
+	min-height: 6rem;
 	border-radius: var(--radius);
 	display: flex;
 	flex-direction: column;
@@ -347,17 +362,25 @@ function set_column_align(column, value) {
 	display: flex;
 	align-items: center;
 	justify-content: center;
-	border: 1.5px dashed var(--gray-300);
+	border: 1.5px dashed var(--gray-400);
 	border-radius: var(--radius);
 	color: var(--text-muted);
 	font-size: var(--text-xs);
 	pointer-events: none;
+	background: var(--gray-50);
+	transition: border-color 0.15s, background 0.15s;
 }
 
 .empty-drop-zone-hint {
 	display: flex;
+	flex-direction: column;
 	align-items: center;
-	gap: 0.25rem;
+	gap: 0.35rem;
+	color: var(--gray-500);
+}
+
+.drop-icon {
+	color: var(--gray-400);
 }
 
 .empty-col-remove {
