@@ -737,10 +737,3 @@ def create_list_layout_test_layout(
 		}
 	).insert(ignore_permissions=True)
 	return doc.name
-
-
-clear_list_filter_test_filters = clear_list_layout_test_layouts
-
-
-def create_list_filter_test_filter(**kwargs):
-	return create_list_layout_test_layout(**kwargs)

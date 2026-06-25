@@ -181,11 +181,11 @@ class TestListFilter(UnitTestCase):
 
 	def test_cypress_test_filter_helpers(self):
 		from frappe.tests.ui_test_helpers import (
-			clear_list_filter_test_filters,
-			create_list_filter_test_filter,
+			clear_list_layout_test_layouts,
+			create_list_layout_test_layout,
 		)
 
-		filter_name = create_list_filter_test_filter(
+		filter_name = create_list_layout_test_layout(
 			filter_name="_cypress_layout_api_test",
 			filters="[]",
 		)
@@ -195,5 +195,5 @@ class TestListFilter(UnitTestCase):
 		self.assertEqual(doc.route_signature, "")
 		self.assertEqual(json.loads(doc.filters), [])
 
-		clear_list_filter_test_filters()
+		clear_list_layout_test_layouts()
 		self.assertFalse(frappe.db.exists("List Filter", filter_name))
