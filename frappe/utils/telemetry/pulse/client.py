@@ -30,9 +30,10 @@ def boot_config() -> dict:
 	out nothing.
 
 	The key is a public, write-only ingest key — shipping it to the browser is by
-	design. On a product site `team` is null (it's joined from `site` downstream);
-	`user` is the site-salted anonymized authenticated user, or null for a guest —
-	the browser client then mints its own per-browser `anon_` id. Never the FC account.
+	design. `team` is the Frappe Cloud team from the site's `fc_team` config (null
+	where unset, e.g. a marketing site). `user` is the site-salted anonymized
+	authenticated user, or null for a guest — the browser client then mints its own
+	per-browser `anon_` id. Never the FC account.
 	"""
 	if not is_enabled():
 		return {"enabled": False}
@@ -52,7 +53,7 @@ def boot_config() -> dict:
 		"key": frappe.conf.get("pulse_api_key"),
 		"site": frappe.local.site,
 		"user": anonymize_user(session_user),
-		"team": None,
+		"team": frappe.conf.get("fc_team"),
 	}
 
 
@@ -70,6 +71,7 @@ def capture(
 		return
 
 	user = user or frappe.session.user
+	team = team or frappe.conf.get("fc_team")
 
 	try:
 		eq = EventQueue()
