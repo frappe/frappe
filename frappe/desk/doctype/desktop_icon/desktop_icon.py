@@ -167,6 +167,21 @@ def get_desktop_icons(user=None, bootinfo=None):
 		# sort by idx
 		user_icons.sort(key=lambda a: a.idx)
 
+		# map of Desktop Icon name -> set of roles configured in its `roles` child table,
+		# scoped to the icons we actually loaded for this user
+		icon_roles_map = {}
+		icon_names = [s.name for s in user_icons]
+		if icon_names:
+			icon_roles = frappe.get_all(
+				"Has Role",
+				filters={"parenttype": "Desktop Icon", "parent": ["in", icon_names]},
+				fields=["parent", "role"],
+			)
+			for r in icon_roles:
+				icon_roles_map.setdefault(r.parent, set()).add(r.role)
+
+		user_roles = set(frappe.get_roles(user))
+
 		permitted_icons = []
 		permitted_parent_labels = set()
 		if bootinfo:
@@ -180,6 +195,10 @@ def get_desktop_icons(user=None, bootinfo=None):
 					# one item in it (get_sidebar_items already enforces this).
 					sidebar = bootinfo.workspace_sidebar_item.get(s.label.lower())
 					permitted = bool(sidebar and sidebar["items"])
+
+				# if the icon restricts by role, the user must have at least one of them
+				if permitted and icon_roles_map.get(s.name):
+					permitted = bool(icon_roles_map[s.name] & user_roles)
 
 				if permitted:
 					permitted_icons.append(s)
