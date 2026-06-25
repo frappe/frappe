@@ -95,7 +95,7 @@ const set_field_options = (frm) => {
 	});
 
 	// Add 'Select All' and 'Unselect All' button
-	make_multiselect_buttons(parent_wrapper);
+	make_multiselect_buttons(frm, parent_wrapper);
 
 	frm.fields_multicheck = {};
 	related_doctypes.forEach((dt) => {
@@ -105,7 +105,7 @@ const set_field_options = (frm) => {
 	frm.refresh();
 };
 
-const make_multiselect_buttons = (parent_wrapper) => {
+const make_multiselect_buttons = (frm, parent_wrapper) => {
 	const button_container = $(parent_wrapper).append('<div class="flex"></div>').find(".flex");
 
 	["Select All", "Unselect All"].map((d) => {
@@ -123,6 +123,17 @@ const make_multiselect_buttons = (parent_wrapper) => {
 		});
 	});
 
+	frappe.ui.form.make_control({
+		parent: $(button_container),
+		df: {
+			label: __("Select Columns with Data"),
+			fieldname: "select_columns_with_data",
+			fieldtype: "Button",
+			click: () => select_columns_with_data(frm),
+		},
+		render_input: true,
+	});
+
 	$(button_container)
 		.find(".frappe-control")
 		.map((index, button) => {
@@ -136,6 +147,29 @@ const make_multiselect_buttons = (parent_wrapper) => {
 				$(element).find(`:checkbox`).prop("checked", checked).trigger("click");
 			});
 	}
+};
+
+const select_columns_with_data = (frm) => {
+	frappe.call({
+		method: "frappe.desk.reportview.get_columns_with_data",
+		args: {
+			doctype: frm.doc.reference_doctype,
+			filters: frm.filter_list.get_filters().map((filter) => filter.slice(0, 4)),
+		},
+		callback: (r) => {
+			const columns_with_data = r.message || {};
+			// fields_multicheck is keyed by (child) doctype, matching the server response.
+			Object.keys(frm.fields_multicheck).forEach((dt) => {
+				const fieldnames = new Set(columns_with_data[dt] || []);
+				frm.fields_multicheck[dt].options.forEach((option) => {
+					option.$checkbox
+						.find("input")
+						.prop("checked", fieldnames.has(option.value))
+						.trigger("change");
+				});
+			});
+		},
+	});
 };
 
 const get_doctypes = (parentdt) => {
