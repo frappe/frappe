@@ -144,6 +144,12 @@ frappe.views.CommunicationComposer = class {
 		$skeleton.find('[data-action="attach"]').on("click", () => {
 			$body.find(".add-more-attachments button").trigger("click");
 		});
+
+		// Aa toggles the Quill formatting toolbar (the existing one rendered by Text Editor)
+		$skeleton.find('[data-action="format"]').on("click", function () {
+			$(this).toggleClass("active");
+			$skeleton.find(".gmail-message-area").toggleClass("show-toolbar");
+		});
 	}
 
 	get_fields() {
