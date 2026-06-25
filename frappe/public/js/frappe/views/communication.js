@@ -86,6 +86,7 @@ frappe.views.CommunicationComposer = class {
 				<div class="gmail-message-area">
 					<div class="gmail-slot" data-slot="content"></div>
 				</div>
+				<div class="gmail-attachments" data-slot="select_attachments"></div>
 				<div class="gmail-banner" hidden></div>
 				<div class="gmail-action-bar">
 					<div class="gmail-action-bar__send btn-group" data-slot="send-button">
@@ -119,12 +120,14 @@ frappe.views.CommunicationComposer = class {
 		$body.prepend($skeleton);
 
 		// Move the rendered controls into their slots — autocomplete, Quill, validation all preserved
-		["recipients", "cc", "bcc", "subject", "content"].forEach((fieldname) => {
-			const $field = $body.find(`.frappe-control[data-fieldname="${fieldname}"]`);
-			if ($field.length) {
-				$skeleton.find(`[data-slot="${fieldname}"]`).append($field);
+		["recipients", "cc", "bcc", "subject", "content", "select_attachments"].forEach(
+			(fieldname) => {
+				const $field = $body.find(`.frappe-control[data-fieldname="${fieldname}"]`);
+				if ($field.length) {
+					$skeleton.find(`[data-slot="${fieldname}"]`).append($field);
+				}
 			}
-		});
+		);
 
 		// Move Frappe's existing Send button (.btn-modal-primary) from the hidden footer into our
 		// action bar — keeps its existing click handler, classes, and styling. No custom button.

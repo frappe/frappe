@@ -209,6 +209,23 @@
 		}
 	}
 
+	// Uploaded attachments — moved here from setup_attach() so chips are visible.
+	// The 📎 icon in the action bar already provides the Add Attachment trigger.
+	.gmail-attachments {
+		padding: var(--padding-sm) var(--padding-md);
+
+		// Hide the redundant label + Add Attachment button — 📎 icon replaces them.
+		.control-label,
+		.add-more-attachments {
+			display: none;
+		}
+
+		// Collapse to zero height when no attachments are uploaded.
+		&:has(.attach-list:empty) {
+			padding: 0;
+		}
+	}
+
 	// Informational banner above the action bar — reflects send-options state.
 	// Uses Frappe's existing alert tokens and spacing tokens.
 	.gmail-banner {
