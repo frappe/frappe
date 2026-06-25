@@ -303,12 +303,25 @@ function is_html_content_field(col) {
 	return HTML_CONTENT_FIELDTYPES.has(col?.fieldtype);
 }
 
+function sanitize_cell_html(html) {
+	const tmp = document.createElement("div");
+	tmp.innerHTML = frappe.dom.remove_script_and_style(html || "");
+	tmp.querySelectorAll("*").forEach((el) => {
+		for (const attr of [...el.attributes]) {
+			if (attr.name.startsWith("on")) el.removeAttribute(attr.name);
+		}
+		if (el.tagName === "A" && /^javascript:/i.test(el.getAttribute("href") || ""))
+			el.removeAttribute("href");
+	});
+	return tmp.innerHTML;
+}
+
 function format_cell(row, col) {
 	const raw = row[col.fieldname];
 	if (raw === null || raw === undefined || raw === "") return "";
 	if (col.fieldtype === "Check") return raw ? __("Yes") : __("No");
-	// HTML content fields: value is already HTML, return as-is for v-html rendering
-	if (HTML_CONTENT_FIELDTYPES.has(col.fieldtype)) return raw;
+	// HTML content fields: sanitize then return for v-html rendering
+	if (HTML_CONTENT_FIELDTYPES.has(col.fieldtype)) return sanitize_cell_html(raw);
 	try {
 		const formatted = frappe.format(raw, col, { only_value: true }, row);
 		if (typeof formatted === "string" && formatted.includes("<")) {
