@@ -179,8 +179,8 @@
 		}
 	}
 
-	// Message body — fill remaining vertical space; hide Quill's top toolbar
-	// (it'll be relocated to bottom in a later layer)
+	// Message body — fill remaining vertical space; Quill's toolbar is hidden by default
+	// and shown when the Aa icon is active (.show-toolbar class on the message area).
 	.gmail-message-area {
 		flex: 1 1 auto;
 		padding: 12px 16px;
@@ -202,6 +202,10 @@
 				border: none !important;
 				font-size: var(--text-md);
 			}
+		}
+
+		&.show-toolbar .ql-toolbar {
+			display: block;
 		}
 	}
 
