@@ -413,11 +413,7 @@ let field_groups = computed(() => {
 			continue;
 		}
 		if (df.fieldtype === "Column Break") continue;
-		if (
-			frappe.model.no_value_type.includes(df.fieldtype) &&
-			df.fieldtype !== "Table" &&
-			df.fieldtype !== "Table MultiSelect"
-		)
+		if (frappe.model.no_value_type.includes(df.fieldtype) && df.fieldtype !== "Table")
 			continue;
 
 		if (q) {
