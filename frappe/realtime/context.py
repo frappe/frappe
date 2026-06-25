@@ -23,11 +23,13 @@ def frappe_context(site: str, user: str):
 	import frappe
 	from frappe.realtime.server import force_pymysql
 
-	frappe.init(site)
-	force_pymysql(frappe.local.conf)
-	frappe.connect()
-	frappe.set_user(user)  # nosemgrep
 	try:
+		frappe.init(site, force=True)
+		force_pymysql(frappe.local.conf)
+
+		frappe.connect(set_admin_as_user=False)
+		frappe.set_user(user)  # nosemgrep
+
 		yield frappe
 		frappe.db.commit()  # nosemgrep
 	except Exception:
