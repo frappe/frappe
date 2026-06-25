@@ -8,6 +8,7 @@ class PulseProvider {
 	constructor() {
 		this.enabled = false;
 		this.client = null;
+		this.pending = [];
 	}
 
 	is_enabled() {
@@ -18,24 +19,40 @@ class PulseProvider {
 		if (!this.is_enabled()) return;
 		this.enabled = true;
 
+		// Attach synchronously so route changes during the async client load aren't
+		// missed; the captured events are buffered until the client is ready.
+		this.register_pageview_handler();
+
 		try {
-			const t = frappe.boot.telemetry || {};
-			// A runtime variable (not a string literal) so the bundler leaves this as
-			// a real runtime import of the remote module instead of trying to bundle it.
-			const url = t.client_url || DEFAULT_PULSE_CLIENT_URL;
-			const mod = await import(url);
-			this.client = new mod.PulseClient({
-				host: t.host,
-				apiKey: t.key,
-				site: t.site,
-				enabled: t.enabled,
-				// user/team come from boot.telemetry via the client's default context
-			});
+			this.client = await this.load_client();
 			this.client.init();
-			this.register_pageview_handler();
+			this.flush_pending();
 		} catch (error) {
-			// ignore errors
+			// Remote client failed to load: stop buffering and drop the provider.
+			this.enabled = false;
+			this.pending = [];
 		}
+	}
+
+	async load_client() {
+		const t = frappe.boot.telemetry || {};
+		// A runtime variable (not a string literal) so the bundler leaves this as
+		// a real runtime import of the remote module instead of trying to bundle it.
+		const url = t.client_url || DEFAULT_PULSE_CLIENT_URL;
+		const mod = await import(url);
+		return new mod.PulseClient({
+			host: t.host,
+			apiKey: t.key,
+			site: t.site,
+			enabled: t.enabled,
+			// user/team come from boot.telemetry via the client's default context
+		});
+	}
+
+	flush_pending() {
+		// Drain events captured during the import window.
+		this.pending.forEach(([event, app, props]) => this.client.capture(event, app, props));
+		this.pending = [];
 	}
 
 	register_pageview_handler() {
@@ -65,7 +82,11 @@ class PulseProvider {
 
 	capture(event, app, props) {
 		if (!this.enabled) return;
-		this.client?.capture(event, app, props);
+		if (this.client) {
+			this.client.capture(event, app, props);
+		} else {
+			this.pending.push([event, app, props]);
+		}
 	}
 }
 
