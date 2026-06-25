@@ -1,4 +1,5 @@
 import hashlib
+import re
 from datetime import UTC, datetime
 
 import frappe
@@ -16,6 +17,11 @@ def anonymize_user(user):
 	Same email always produces same anonymous ID.
 	"""
 	if not user or user in frappe.STANDARD_USERS:
+		return user
+
+	# if already anonymized, return as-is
+	pattern = r"^user_[a-f0-9]{12}$"
+	if re.match(pattern, user):
 		return user
 
 	# Use site-specific salt for additional security

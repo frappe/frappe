@@ -62,7 +62,7 @@ def capture(
 	if not is_enabled():
 		return
 
-	user = user or anonymize_user(frappe.session.user)
+	user = user or frappe.session.user
 
 	try:
 		eq = EventQueue()
@@ -72,7 +72,7 @@ def capture(
 				"captured_at": captured_at or utc_iso(),
 				"app": app,
 				"site": site or frappe.local.site,
-				"user": user,
+				"user": anonymize_user(user),
 				"team": team,
 				"properties": properties or {},
 			},
