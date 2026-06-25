@@ -184,6 +184,9 @@ frappe.views.CommunicationComposer = class {
 
 			$btn.on("click", () => {
 				active = !active;
+				// set_input updates input.checked (which get_value/send_action read) without
+				// firing native click — preserves per-email-only behavior, the User record
+				// is not auto-updated.
 				field.set_input(active ? 1 : 0);
 				$btn.toggleClass("active", active);
 				updateBanner();
