@@ -225,7 +225,6 @@ const SAFE_HTML_ATTRS = new Set([
 	"scope",
 	"span",
 	"src",
-	"style",
 	"title",
 	"width",
 	"align",
@@ -239,14 +238,24 @@ export function sanitize_html(html) {
 	const root = document.createElement("div");
 	root.innerHTML = frappe.dom.remove_script_and_style(html || "");
 	(function clean(node) {
-		for (const child of [...node.childNodes]) {
-			if (child.nodeType === Node.TEXT_NODE) continue;
+		// Linked-list traversal so promoted children are visited immediately
+		let child = node.firstChild;
+		while (child) {
+			const next = child.nextSibling;
+			if (child.nodeType === Node.TEXT_NODE) {
+				child = next;
+				continue;
+			}
 			if (child.nodeType !== Node.ELEMENT_NODE) {
 				child.remove();
+				child = next;
 				continue;
 			}
 			if (!SAFE_HTML_TAGS.has(child.tagName.toLowerCase())) {
+				const first_promoted = child.firstChild;
 				child.replaceWith(...child.childNodes);
+				// Continue from first promoted child so they are sanitized too
+				child = first_promoted || next;
 				continue;
 			}
 			for (const attr of [...child.attributes]) {
@@ -261,6 +270,7 @@ export function sanitize_html(html) {
 				}
 			}
 			clean(child);
+			child = next;
 		}
 	})(root);
 	return root.innerHTML;
