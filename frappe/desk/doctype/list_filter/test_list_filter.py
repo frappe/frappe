@@ -4,36 +4,36 @@
 import json
 
 import frappe
-from frappe.desk.doctype.list_layout.list_layout import (
+from frappe.desk.doctype.list_filter.list_filter import (
 	compute_route_signature,
-	delete_list_layout,
-	update_list_layout,
+	delete_list_filter,
+	update_list_filter,
 )
 from frappe.tests import UnitTestCase
 from frappe.tests.utils import toggle_test_mode
 
-LIST_LAYOUT_OWNER = "list_layout_owner@example.com"
-LIST_LAYOUT_OTHER = "list_layout_other@example.com"
+LIST_FILTER_OWNER = "list_filter_owner@example.com"
+LIST_FILTER_OTHER = "list_filter_other@example.com"
 
 
-class TestListLayout(UnitTestCase):
+class TestListFilter(UnitTestCase):
 	def setUp(self):
 		toggle_test_mode(True)
 		frappe.set_user("Administrator")
 
 	def tearDown(self):
-		frappe.db.delete("List Layout", {"layout_name": ["like", "_test_layout_%"]})
-		frappe.db.delete("List Layout", {"layout_name": ["like", "_cypress_layout_%"]})
-		for email in (LIST_LAYOUT_OWNER, LIST_LAYOUT_OTHER):
+		frappe.db.delete("List Filter", {"filter_name": ["like", "_test_filter_%"]})
+		frappe.db.delete("List Filter", {"filter_name": ["like", "_cypress_layout_%"]})
+		for email in (LIST_FILTER_OWNER, LIST_FILTER_OTHER):
 			if frappe.db.exists("User", email):
 				frappe.delete_doc("User", email, force=True, ignore_permissions=True)
 		frappe.set_user("Administrator")
 
-	def _create_layout(self, **kwargs):
+	def _create_filter(self, **kwargs):
 		doc = frappe.get_doc(
 			{
-				"doctype": "List Layout",
-				"layout_name": kwargs.get("layout_name", "_test_layout_user"),
+				"doctype": "List Filter",
+				"filter_name": kwargs.get("filter_name", "_test_filter_user"),
 				"reference_doctype": "ToDo",
 				"for_user": kwargs.get("for_user", frappe.session.user),
 				"filters": kwargs.get("filters", json.dumps([["ToDo", "status", "=", "Open"]])),
@@ -44,9 +44,9 @@ class TestListLayout(UnitTestCase):
 		).insert(ignore_permissions=True)
 		return doc
 
-	def test_user_can_update_own_layout(self):
-		doc = self._create_layout()
-		updated = update_list_layout(
+	def test_user_can_update_own_filter(self):
+		doc = self._create_filter()
+		updated = update_list_filter(
 			doc.name,
 			filters=json.dumps([["ToDo", "status", "=", "Closed"]]),
 			sort_field="modified",
@@ -72,15 +72,15 @@ class TestListLayout(UnitTestCase):
 		user.save(ignore_permissions=True)
 		return email
 
-	def test_non_admin_cannot_reassign_layout_to_other_user(self):
-		owner = self._ensure_desk_user(LIST_LAYOUT_OWNER)
-		other = self._ensure_desk_user(LIST_LAYOUT_OTHER)
-		doc = self._create_layout(for_user=owner)
+	def test_non_admin_cannot_reassign_filter_to_other_user(self):
+		owner = self._ensure_desk_user(LIST_FILTER_OWNER)
+		other = self._ensure_desk_user(LIST_FILTER_OTHER)
+		doc = self._create_filter(for_user=owner)
 
 		frappe.set_user(owner)
 		self.assertRaises(
 			frappe.PermissionError,
-			update_list_layout,
+			update_list_filter,
 			doc.name,
 			for_user=other,
 		)
@@ -88,8 +88,8 @@ class TestListLayout(UnitTestCase):
 	def test_insert_sanitizes_invalid_fields(self):
 		doc = frappe.get_doc(
 			{
-				"doctype": "List Layout",
-				"layout_name": "_test_layout_insert_sanitize",
+				"doctype": "List Filter",
+				"filter_name": "_test_filter_insert_sanitize",
 				"reference_doctype": "ToDo",
 				"for_user": frappe.session.user,
 				"filters": json.dumps([["ToDo", "invalid_field_xyz", "=", "x"]]),
@@ -104,41 +104,41 @@ class TestListLayout(UnitTestCase):
 		self.assertIsNone(doc.sort_field)
 		self.assertIsNone(doc.sort_order)
 
-	def test_insert_strips_html_from_layout_name(self):
+	def test_insert_strips_html_from_filter_name(self):
 		doc = frappe.get_doc(
 			{
-				"doctype": "List Layout",
-				"layout_name": "_test_layout_xss<script>alert(1)</script>",
+				"doctype": "List Filter",
+				"filter_name": "_test_filter_xss<script>alert(1)</script>",
 				"reference_doctype": "ToDo",
 				"for_user": frappe.session.user,
 				"filters": "[]",
 			}
 		).insert(ignore_permissions=True)
-		self.assertEqual(doc.layout_name, "_test_layout_xssalert(1)")
+		self.assertEqual(doc.filter_name, "_test_filter_xssalert(1)")
 
-	def test_non_admin_cannot_update_global_layout(self):
-		doc = self._create_layout(layout_name="_test_layout_global", for_user="")
-		email = self._ensure_desk_user(LIST_LAYOUT_OWNER)
+	def test_non_admin_cannot_update_global_filter(self):
+		doc = self._create_filter(filter_name="_test_filter_global", for_user="")
+		email = self._ensure_desk_user(LIST_FILTER_OWNER)
 		frappe.set_user(email)
-		self.assertRaises(frappe.PermissionError, update_list_layout, doc.name, sort_field="modified")
+		self.assertRaises(frappe.PermissionError, update_list_filter, doc.name, sort_field="modified")
 
-	def test_delete_own_layout(self):
-		doc = self._create_layout(layout_name="_test_layout_delete")
-		delete_list_layout(doc.name)
-		self.assertFalse(frappe.db.exists("List Layout", doc.name))
+	def test_delete_own_filter(self):
+		doc = self._create_filter(filter_name="_test_filter_delete")
+		delete_list_filter(doc.name)
+		self.assertFalse(frappe.db.exists("List Filter", doc.name))
 
-	def test_admin_can_update_global_layout(self):
-		doc = self._create_layout(layout_name="_test_layout_global_admin", for_user="")
-		updated = update_list_layout(doc.name, sort_order="asc")
+	def test_admin_can_update_global_filter(self):
+		doc = self._create_filter(filter_name="_test_filter_global_admin", for_user="")
+		updated = update_list_filter(doc.name, sort_order="asc")
 		self.assertEqual(updated["sort_order"], "asc")
 
 	def test_before_save_sets_route_signature(self):
-		doc = self._create_layout()
+		doc = self._create_filter()
 		self.assertEqual(doc.route_signature, "status=Open")
 
 	def test_before_save_empty_filters_gives_empty_route_signature(self):
-		doc = self._create_layout(
-			layout_name="_test_layout_empty_sig",
+		doc = self._create_filter(
+			filter_name="_test_filter_empty_sig",
 			filters="[]",
 		)
 		self.assertEqual(doc.route_signature, "")
@@ -151,14 +151,14 @@ class TestListLayout(UnitTestCase):
 		self.assertEqual(signature, 'modified=[">","2024-01-01"]')
 
 	def test_update_columns_only(self):
-		doc = self._create_layout()
+		doc = self._create_filter()
 		new_columns = [{"fieldname": "status", "label": "Status", "width": 120}]
-		updated = update_list_layout(doc.name, columns=json.dumps(new_columns))
+		updated = update_list_filter(doc.name, columns=json.dumps(new_columns))
 		self.assertEqual(json.loads(updated["columns"]), new_columns)
 
 	def test_sanitize_filters_drops_invalid_field(self):
-		doc = self._create_layout()
-		updated = update_list_layout(
+		doc = self._create_filter()
+		updated = update_list_filter(
 			doc.name,
 			filters=json.dumps([["ToDo", "invalid_field_xyz", "=", "x"]]),
 		)
@@ -166,34 +166,34 @@ class TestListLayout(UnitTestCase):
 		self.assertEqual(updated["route_signature"], "")
 
 	def test_sanitize_columns_drops_invalid_field(self):
-		doc = self._create_layout()
-		updated = update_list_layout(
+		doc = self._create_filter()
+		updated = update_list_filter(
 			doc.name,
 			columns=json.dumps([{"fieldname": "invalid_field_xyz", "label": "Bad"}]),
 		)
 		self.assertEqual(json.loads(updated["columns"]), [])
 
 	def test_sanitize_sort_field_clears_invalid_sort(self):
-		doc = self._create_layout()
-		updated = update_list_layout(doc.name, sort_field="invalid_sort_field_xyz")
+		doc = self._create_filter()
+		updated = update_list_filter(doc.name, sort_field="invalid_sort_field_xyz")
 		self.assertIsNone(updated["sort_field"])
 		self.assertIsNone(updated["sort_order"])
 
-	def test_cypress_test_layout_helpers(self):
+	def test_cypress_test_filter_helpers(self):
 		from frappe.tests.ui_test_helpers import (
-			clear_list_layout_test_layouts,
-			create_list_layout_test_layout,
+			clear_list_filter_test_filters,
+			create_list_filter_test_filter,
 		)
 
-		layout_name = create_list_layout_test_layout(
-			layout_name="_cypress_layout_api_test",
+		filter_name = create_list_filter_test_filter(
+			filter_name="_cypress_layout_api_test",
 			filters="[]",
 		)
-		self.assertTrue(frappe.db.exists("List Layout", layout_name))
+		self.assertTrue(frappe.db.exists("List Filter", filter_name))
 
-		doc = frappe.get_doc("List Layout", layout_name)
+		doc = frappe.get_doc("List Filter", filter_name)
 		self.assertEqual(doc.route_signature, "")
 		self.assertEqual(json.loads(doc.filters), [])
 
-		clear_list_layout_test_layouts()
-		self.assertFalse(frappe.db.exists("List Layout", layout_name))
+		clear_list_filter_test_filters()
+		self.assertFalse(frappe.db.exists("List Filter", filter_name))

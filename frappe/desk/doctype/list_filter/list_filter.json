@@ -5,7 +5,7 @@
  "editable_grid": 1,
  "engine": "InnoDB",
  "field_order": [
-  "layout_name",
+  "filter_name",
   "reference_doctype",
   "column_break_mfss",
   "sort_field",
@@ -19,9 +19,9 @@
  ],
  "fields": [
   {
-   "fieldname": "layout_name",
+   "fieldname": "filter_name",
    "fieldtype": "Data",
-   "label": "Layout Name"
+   "label": "Filter Name"
   },
   {
    "fieldname": "reference_doctype",
@@ -81,7 +81,7 @@
  "modified": "2026-06-25 12:07:04.897997",
  "modified_by": "Administrator",
  "module": "Desk",
- "name": "List Layout",
+ "name": "List Filter",
  "owner": "Administrator",
  "permissions": [
   {

@@ -1,18 +1,18 @@
 import frappe
-from frappe.desk.doctype.list_layout.list_layout import compute_route_signature
+from frappe.desk.doctype.list_filter.list_filter import compute_route_signature
 
 BATCH_SIZE = 500
 
 
 def execute():
-	"""Backfill route_signature for layouts migrated from List Filter."""
-	if not frappe.db.table_exists("List Layout"):
+	"""Backfill route_signature for saved list filters."""
+	if not frappe.db.table_exists("List Filter"):
 		return
 
-	if not frappe.db.has_column("List Layout", "route_signature"):
+	if not frappe.db.has_column("List Filter", "route_signature"):
 		return
 
-	table = frappe.qb.DocType("List Layout")
+	table = frappe.qb.DocType("List Filter")
 	frappe.db.auto_commit_on_many_writes = 1
 	try:
 		while True:
@@ -31,7 +31,7 @@ def execute():
 			for row in rows:
 				signature = compute_route_signature(row.reference_doctype, row.filters)
 				frappe.db.set_value(
-					"List Layout",
+					"List Filter",
 					row.name,
 					"route_signature",
 					signature,
