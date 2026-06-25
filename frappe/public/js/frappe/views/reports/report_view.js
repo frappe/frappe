@@ -1708,12 +1708,43 @@ frappe.views.ReportView = class ReportView extends frappe.views.ListView {
 						<div class="mb-3">
 							<button class="btn btn-default btn-xs" data-action="select_all">${__("Select All")}</button>
 							<button class="btn btn-default btn-xs" data-action="unselect_all">${__("Unselect All")}</button>
+							<button class="btn btn-default btn-xs" data-action="select_columns_with_data" title="${__(
+								"Select only the columns that hold data in the records matching the current filters"
+							)}">${__("Select Columns with Data")}</button>
 						</div>
 					`);
 					const toggleAll = (checked) =>
 						d.$wrapper.find(":checkbox").prop("checked", checked).trigger("change");
 					$bulk.on("click", "[data-action=select_all]", () => toggleAll(true));
 					$bulk.on("click", "[data-action=unselect_all]", () => toggleAll(false));
+					$bulk.on("click", "[data-action=select_columns_with_data]", (e) => {
+						frappe.call({
+							method: "frappe.desk.reportview.get_columns_with_data",
+							args: {
+								doctype: this.doctype,
+								filters: this.get_filters_for_args(),
+							},
+							btn: e.currentTarget,
+							callback: (r) => {
+								const columns_with_data = r.message || {};
+								// Each MultiCheck field maps to the doctype or a child doctype; check
+								// exactly the columns the server reported as holding data.
+								d.fields_list
+									.filter((field) => field.df.fieldtype === "MultiCheck")
+									.forEach((field) => {
+										const fieldnames = new Set(
+											columns_with_data[field.df.fieldname] || []
+										);
+										(field.options || []).forEach((option) => {
+											option.$checkbox
+												.find("input")
+												.prop("checked", fieldnames.has(option.value))
+												.trigger("change");
+										});
+									});
+							},
+						});
+					});
 					d.$body.prepend($bulk);
 
 					d.$body.prepend(`
