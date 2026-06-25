@@ -506,6 +506,14 @@ const useStudioStore = defineStore("store", () => {
 		return options
 	})
 
+	const pageScriptBindingOptions = computed<VariableOption[]>(() => {
+		return Object.entries(codeStore.pageScriptTemplateBindings).map(([key, value]) => ({
+			value: key,
+			label: key,
+			type: typeof value,
+		}))
+	})
+
 	return {
 		// layout
 		studioLayout,
@@ -557,6 +565,7 @@ const useStudioStore = defineStore("store", () => {
 		variableConfigs,
 		setPageData,
 		variableOptions,
+		pageScriptBindingOptions,
 	}
 })
 

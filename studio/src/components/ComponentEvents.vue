@@ -303,7 +303,7 @@ const actions: ActionConfigurations = {
 							label: "Variable",
 							fieldname: "value",
 							fieldtype: "select",
-							options: store.variableOptions,
+							options: [...store.variableOptions, ...store.pageScriptBindingOptions],
 						},
 					],
 					rows: newEvent.value.fields,
