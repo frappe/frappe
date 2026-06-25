@@ -14,7 +14,7 @@
 
 <script setup>
 import { useStore } from "../../stores";
-import { get_image_dimensions } from "../../utils";
+import { get_image_dimensions, render_jinja_html } from "../../utils";
 import { ref, watch, onMounted, inject, computed } from "vue";
 
 const props = defineProps({
@@ -73,33 +73,21 @@ function select_zone() {
 	raw_store.selected_section.value = null;
 }
 
-function needs_server_render(content) {
-	return content && (content.includes("{{") || content.includes("{%"));
-}
-
 async function refresh_rendered_content() {
 	const doc = preview_doc.value;
 	const content = zone_content.value;
-
 	if (!doc || !content) {
 		rendered_content.value = null;
-		return;
-	}
-	if (!needs_server_render(content)) {
-		rendered_content.value = content;
 		return;
 	}
 	if (render_pending.value) return;
 	render_pending.value = true;
 	try {
-		const r = await frappe.call("frappe.utils.print_format_generator.render_jinja_template", {
-			template: content,
-			doctype: raw_store.meta.value.name,
-			docname: raw_store.preview_doc_name.value,
-		});
-		rendered_content.value = r.message ?? content;
-	} catch {
-		rendered_content.value = content;
+		rendered_content.value = await render_jinja_html(
+			content,
+			raw_store.meta.value?.name,
+			raw_store.preview_doc_name.value
+		);
 	} finally {
 		render_pending.value = false;
 	}
@@ -168,7 +156,7 @@ defineExpose({ aspect_ratio, range_input_field, F });
 .lh-zone {
 	position: relative;
 	border: 1px solid transparent;
-	border-radius: var(--border-radius);
+	border-radius: var(--radius);
 	padding: 1rem;
 	cursor: pointer;
 	transition: border-color 0.15s;
@@ -189,5 +177,10 @@ defineExpose({ aspect_ratio, range_input_field, F });
 	color: var(--text-muted);
 	font-size: var(--text-sm);
 	padding: 0.5rem 0;
+}
+
+.lh-zone :deep(img) {
+	max-width: 100%;
+	height: auto;
 }
 </style>

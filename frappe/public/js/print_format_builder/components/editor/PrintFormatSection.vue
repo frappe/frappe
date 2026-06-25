@@ -1,11 +1,18 @@
 <template>
 	<div class="print-format-section-container" v-if="!section.remove" data-pfb-section>
-		<!-- Section drag handle shown on hover in clean-preview (toolbar is hidden) -->
-		<div
-			v-if="!is_header"
-			class="drag-handle section-drag-handle section-preview-drag"
-			v-html="frappe.utils.icon('drag', 'sm')"
-		></div>
+		<!-- Top-left actions pill shown on hover in clean-preview (toolbar is hidden) -->
+		<div v-if="!is_header" class="section-preview-actions">
+			<div
+				class="drag-handle section-drag-handle"
+				v-html="frappe.utils.icon('drag', 'xs')"
+			></div>
+			<button
+				class="btn btn-xs btn-icon"
+				:title="__('Remove section')"
+				@click.stop="section['remove'] = true"
+				v-html="frappe.utils.icon('x', 'xs')"
+			></button>
+		</div>
 		<div
 			class="print-format-section"
 			:class="{
@@ -70,6 +77,7 @@
 							:animation="150"
 							item-key="id"
 							handle=".drag-handle"
+							:emptyInsertThreshold="100"
 						>
 							<template #item="{ element }">
 								<Field
@@ -77,30 +85,22 @@
 									:field_orientation="section.field_orientation"
 								/>
 							</template>
-							<template #footer>
-								<div
-									v-if="column.fields.filter((f) => !f.remove).length === 0"
-									class="empty-drop-zone"
-								>
-									<button
-										v-if="section.columns.length > 1"
-										class="btn btn-xs btn-icon empty-col-remove"
-										:title="__('Remove column')"
-										@click.stop="remove_column(i)"
-										v-html="frappe.utils.icon('x', 'xs')"
-									></button>
-									<div class="empty-drop-zone-hint">
-										<span
-											class="text-muted"
-											v-html="frappe.utils.icon('plus', 'sm')"
-										></span>
-										<span class="text-muted">{{
-											__("Drop fields here")
-										}}</span>
-									</div>
-								</div>
-							</template>
 						</draggable>
+						<div
+							v-if="column.fields.filter((f) => !f.remove).length === 0"
+							class="empty-drop-zone"
+						>
+							<button
+								v-if="section.columns.length > 1"
+								class="btn btn-xs btn-icon empty-col-remove"
+								:title="__('Remove column')"
+								@click.stop="remove_column(i)"
+								v-html="frappe.utils.icon('x', 'xs')"
+							></button>
+							<div class="empty-drop-zone-hint">
+								<span class="text-muted">{{ __("Drop fields here") }}</span>
+							</div>
+						</div>
 					</div>
 				</template>
 			</div>
@@ -190,7 +190,7 @@ function set_column_align(column, value) {
 .print-format-section {
 	background-color: var(--fg-color);
 	border: 1px solid var(--border-color);
-	border-radius: var(--border-radius);
+	border-radius: var(--radius);
 	overflow: hidden;
 	cursor: default;
 }
@@ -204,7 +204,7 @@ function set_column_align(column, value) {
 	justify-content: space-between;
 	align-items: center;
 	padding: 0.4rem 0.6rem;
-	background: var(--gray-50);
+	background: var(--subtle-accent);
 	border-bottom: 1px solid var(--border-color);
 	gap: 0.5rem;
 }
@@ -237,14 +237,14 @@ function set_column_align(column, value) {
 }
 
 .zone-badge {
-	font-size: 10px;
-	font-weight: 700;
+	font-size: var(--text-tiny);
+	font-weight: var(--weight-bold);
 	text-transform: uppercase;
 	letter-spacing: 0.07em;
 	color: var(--text-muted);
 	background: var(--gray-100);
 	border: 1px solid var(--gray-300);
-	border-radius: var(--border-radius-sm);
+	border-radius: var(--radius);
 	padding: 1px 6px;
 	white-space: nowrap;
 	flex-shrink: 0;
@@ -252,9 +252,9 @@ function set_column_align(column, value) {
 
 .input-section-label {
 	border: 1px solid transparent;
-	border-radius: var(--border-radius);
+	border-radius: var(--radius);
 	font-size: var(--text-sm);
-	font-weight: 600;
+	font-weight: var(--weight-semibold);
 	background: transparent;
 	padding: 2px 4px;
 	flex: 1;
@@ -281,7 +281,7 @@ function set_column_align(column, value) {
 	padding: 3px;
 	box-shadow: none;
 	color: var(--text-muted);
-	border-radius: var(--border-radius-sm);
+	border-radius: var(--radius);
 }
 
 .toolbar-btn:hover {
@@ -303,7 +303,7 @@ function set_column_align(column, value) {
 .section-title-display {
 	display: none;
 	font-size: var(--text-sm);
-	font-weight: 600;
+	font-weight: var(--weight-semibold);
 	color: var(--text-muted);
 	padding: 0;
 }
@@ -320,6 +320,7 @@ function set_column_align(column, value) {
 	min-width: 0;
 	display: flex;
 	flex-direction: column;
+	position: relative;
 }
 
 .column-divider {
@@ -332,8 +333,8 @@ function set_column_align(column, value) {
 .drag-container {
 	flex: 1;
 	min-width: 0;
-	min-height: 2.5rem;
-	border-radius: var(--border-radius);
+	min-height: 4rem;
+	border-radius: var(--radius);
 	display: flex;
 	flex-direction: column;
 	gap: 0.4rem;
@@ -341,15 +342,16 @@ function set_column_align(column, value) {
 }
 
 .empty-drop-zone {
-	position: relative;
+	position: absolute;
+	inset: 0;
 	display: flex;
 	align-items: center;
 	justify-content: center;
-	min-height: 3rem;
 	border: 1.5px dashed var(--gray-300);
-	border-radius: var(--border-radius);
+	border-radius: var(--radius);
 	color: var(--text-muted);
 	font-size: var(--text-xs);
+	pointer-events: none;
 }
 
 .empty-drop-zone-hint {
@@ -367,6 +369,7 @@ function set_column_align(column, value) {
 	color: var(--gray-500);
 	opacity: 0;
 	transition: opacity 0.1s;
+	pointer-events: auto;
 }
 
 .empty-drop-zone:hover .empty-col-remove {
@@ -404,22 +407,45 @@ function set_column_align(column, value) {
 	color: var(--red-500);
 }
 
-/* ── Section preview drag handle (only visible in clean-preview, hidden in edit) ── */
-.section-preview-drag {
-	display: none; /* hidden by default; shown via .pfb-clean-preview :deep() override */
+/* ── Section preview actions pill (only visible in clean-preview, hidden in edit) ── */
+.section-preview-actions {
+	display: none; /* shown via .pfb-clean-preview :deep() override */
 	position: absolute;
 	top: 4px;
-	right: 4px;
+	left: 4px;
 	z-index: 2;
-	padding: 3px 4px;
+	gap: 2px;
+	padding: 1px 2px;
 	background: var(--fg-color);
 	border: 1px solid var(--border-color);
-	border-radius: var(--border-radius-sm);
+	border-radius: var(--radius);
 	box-shadow: var(--shadow-xs);
-	color: var(--gray-400);
-	cursor: grab;
+	align-items: center;
 	opacity: 0;
 	transition: opacity 0.12s;
+}
+
+.section-preview-actions .section-drag-handle {
+	cursor: grab;
+	color: var(--gray-400);
+	display: flex;
+	align-items: center;
+	padding: 2px;
+}
+
+.section-preview-actions .section-drag-handle:hover {
+	color: var(--gray-600);
+}
+
+.section-preview-actions .btn-icon {
+	box-shadow: none;
+	padding: 2px;
+	color: var(--text-muted);
+}
+
+.section-preview-actions .btn-icon:hover {
+	background: var(--red-50);
+	color: var(--red-500);
 }
 
 /* ── Label case: uppercase (mirrors print_format.css rules for builder canvas) */

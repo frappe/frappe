@@ -99,7 +99,7 @@ frappe.ui.form.ControlPhone = class ControlPhone extends frappe.ui.form.ControlD
 		this.$wrapper
 			.popover({
 				trigger: "manual",
-				offset: `${-this.$wrapper.width() / 4.5}, 5`,
+				offset: (offsets) => this.get_popover_offset(offsets),
 				boundary: "viewport",
 				placement: "bottom",
 				template: `
@@ -136,6 +136,17 @@ frappe.ui.form.ControlPhone = class ControlPhone extends frappe.ui.form.ControlD
 				this.$isd.text(this.value.split("-")[0]);
 			}
 		}
+	}
+
+	get_popover_offset(offsets) {
+		const { reference: ref, popper: pop } = offsets;
+		return {
+			popper: {
+				...pop,
+				left: frappe.utils.is_rtl() ? ref.left + ref.width - pop.width : ref.left,
+				top: pop.top + 5,
+			},
+		};
 	}
 
 	refresh() {
@@ -228,10 +239,7 @@ frappe.ui.form.ControlPhone = class ControlPhone extends frappe.ui.form.ControlD
 	update_padding() {
 		let len = this.$isd.text().length;
 		let diff = len - 2;
-		if (len > 2) {
-			this.$input.css("padding-left", 60 + diff * 7);
-		} else {
-			this.$input.css("padding-left", 60);
-		}
+		let prop = frappe.utils.is_rtl() ? "padding-right" : "padding-left";
+		this.$input.css(prop, len > 2 ? 60 + diff * 7 : 60);
 	}
 };

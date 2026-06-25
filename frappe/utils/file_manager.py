@@ -3,7 +3,6 @@
 
 import base64
 import hashlib
-import json
 import mimetypes
 import os
 from copy import copy
@@ -377,7 +376,8 @@ def get_file_path(file_name):
 def get_content_hash(content):
 	if isinstance(content, str):
 		content = content.encode()
-	return hashlib.md5(content, usedforsecurity=False).hexdigest()
+	digest = hashlib.md5(content, usedforsecurity=False).hexdigest()
+	return digest
 
 
 def get_file_name(fname, optional_suffix):
@@ -401,8 +401,7 @@ def add_attachments(doctype: str, name: str | int, attachments: str | list[str])
 	if not frappe.has_permission(doctype, "write", doc=name):
 		frappe.throw(_("You need write permissions to add attachments to this record."))
 
-	if isinstance(attachments, str):
-		attachments = json.loads(attachments)
+	attachments = frappe.parse_json(attachments)
 	# loop through attachments
 	files = []
 	for a in attachments:

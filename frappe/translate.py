@@ -381,7 +381,6 @@ def get_messages_from_doctype(name):
 
 
 def get_messages_from_workflow(doctype=None, app_name=None):
-	assert doctype or app_name, "doctype or app_name should be provided"
 	from frappe.gettext.extractors.utils import is_translatable
 
 	# translations for Workflows
@@ -910,11 +909,11 @@ def deduplicate_messages(messages):
 
 
 @frappe.whitelist()
-def update_translations_for_source(source: str | None = None, translation_dict: str | None = None):
+def update_translations_for_source(source: str | None = None, translation_dict: str | dict | None = None):
 	if not (source and translation_dict):
 		return
 
-	translation_dict = json.loads(translation_dict)
+	translation_dict = frappe.parse_json(translation_dict)
 
 	if is_html(source):
 		source = strip_html_tags(source)
@@ -991,17 +990,20 @@ def print_language(language: str):
 
 	# remember original values
 	_lang = frappe.local.lang
-	_jenv = frappe.local.jenv
+	_jenv_restricted = getattr(frappe.local, "jenv_restricted", None)
+	_jenv_unrestricted = getattr(frappe.local, "jenv_unrestricted", None)
 
 	# set language, empty any existing lang_full_dict and jenv
 	frappe.local.lang = language
-	frappe.local.jenv = None
+	frappe.local.jenv_restricted = None
+	frappe.local.jenv_unrestricted = None
 
 	yield
 
 	# restore original values
 	frappe.local.lang = _lang
-	frappe.local.jenv = _jenv
+	frappe.local.jenv_restricted = _jenv_restricted
+	frappe.local.jenv_unrestricted = _jenv_unrestricted
 
 
 # Backward compatibility

@@ -10,6 +10,7 @@ from frappe import _
 from frappe.database.schema import add_column
 from frappe.desk.form.document_follow import follow_document
 from frappe.utils import get_link_to_form
+from frappe.utils.data import sbool
 
 
 @frappe.whitelist()
@@ -33,6 +34,8 @@ def _toggle_like(doctype, name, add, user=None):
 	if not user:
 		user = frappe.session.user
 
+	frappe.has_permission(doctype, "read", doc=name, throw=True)
+
 	try:
 		liked_by = frappe.db.get_value(doctype, name, "_liked_by")
 
@@ -41,7 +44,8 @@ def _toggle_like(doctype, name, add, user=None):
 		else:
 			liked_by = []
 
-		if add == "Yes":
+		# `add` may be the legacy string "Yes"/"No" or a native bool (JSON request body)
+		if (add == "Yes") if isinstance(add, str) else sbool(add):
 			if user not in liked_by:
 				liked_by.append(user)
 				add_comment(doctype, name)

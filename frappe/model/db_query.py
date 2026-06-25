@@ -331,6 +331,7 @@ from {tables}
 					self.fields.append(f"{t}.name as '{t[4:-1]}:name'")
 
 		# query dict
+		assert self.tables, "extract_tables must have populated at least the primary table"
 		args.tables = self.tables[0]
 
 		# left join parent, child tables

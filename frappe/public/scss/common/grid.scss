@@ -2,9 +2,10 @@
 	outline: none;
 	border: 1px solid var(--gray-400) !important;
 }
+
 .form-grid {
 	border: 1px solid var(--table-border-color);
-	border-radius: var(--border-radius-md);
+	border-radius: var(--radius-md);
 	color: var(--text-color);
 	min-height: 75px;
 	background-color: var(--subtle-accent);
@@ -22,24 +23,26 @@
 	@include get_textstyle("sm", "regular");
 	height: 32px;
 	padding: 0 !important;
-	border-top-left-radius: var(--border-radius-md);
-	border-top-right-radius: var(--border-radius-md);
+	border-top-left-radius: var(--radius-md);
+	border-top-right-radius: var(--radius-md);
 
 	.grid-row {
 		background-color: var(--subtle-fg);
-		border-top-left-radius: var(--border-radius-md);
-		border-top-right-radius: var(--border-radius-md);
+		border-top-left-radius: var(--radius-md);
+		border-top-right-radius: var(--radius-md);
 
 		.row-check {
-			border-top-left-radius: var(--border-radius-md);
+			border-top-left-radius: var(--radius-md);
 		}
+
 		.row .col:last-child {
-			border-top-right-radius: var(--border-radius-md);
+			border-top-right-radius: var(--radius-md);
 		}
 	}
 
 	&.with-filter {
 		height: 66px;
+
 		.grid-row:nth-child(2) {
 			.row-check,
 			.row-index {
@@ -47,6 +50,7 @@
 			}
 		}
 	}
+
 	.filter-row {
 		background-color: var(--bg-color);
 
@@ -64,21 +68,26 @@
 		padding: 4px 8px !important;
 		background-color: var(--subtle-fg);
 	}
+
 	.row-check,
 	.row-index {
 		position: sticky;
 		left: 0;
 		z-index: 1;
 	}
+
 	.row-index {
 		left: 31px;
 	}
+
 	.grid-static-col {
 		padding: 6px 8px !important;
+
 		&.grid-data-column {
 			flex: 1;
 			max-width: none;
 		}
+
 		.static-area {
 			&.reqd:after {
 				content: " *";
@@ -136,6 +145,7 @@
 .grid-body .data-row {
 	@include get_textstyle("sm", "regular");
 	color: var(--text-muted);
+
 	.row-check,
 	.row-index {
 		position: sticky;
@@ -143,9 +153,11 @@
 		background-color: var(--fg-color);
 		z-index: 1;
 	}
+
 	.row-index {
 		left: 31px;
 	}
+
 	button.col:focus-visible {
 		outline: 1px solid #c9c9c9;
 	}
@@ -168,9 +180,11 @@
 	display: flex;
 	vertical-align: middle;
 }
+
 .grid-static-col:focus-visible {
 	@include grid-focus();
 }
+
 .grid-static-col,
 .row-index {
 	height: 43px;
@@ -229,12 +243,19 @@
 	font-weight: bold;
 }
 
-.editable-form .grid-static-col.invalid {
+.editable-form .grid-static-col.invalid,
+.validated-form .grid-static-col.error {
 	background-color: var(--error-bg);
 }
 
-.validated-form .grid-static-col.error {
-	background-color: var(--error-bg);
+// Error indicator: inset shadow on the control (editable rows) or the cell (idle rows).
+.grid-body .editable-row .has-error .form-control {
+	box-shadow: inset 0 0 0 1px var(--error-border);
+}
+
+.validated-form .grid-static-col.error,
+.validated-form .grid-static-col.invalid {
+	box-shadow: inset 0 0 0 1px var(--error-border);
 }
 
 .row-index {
@@ -256,16 +277,25 @@
 		border-right: 1px solid var(--table-border-color);
 		// overflow: hidden;
 	}
+
 	.sticky-grid-col {
 		position: sticky;
 		z-index: 1;
 	}
 }
 
+.grid-body .grid-row:not(.grid-row-open) .data-row:not(.editable-row):hover {
+	.grid-static-col,
+	.row-check,
+	.col:last-child {
+		background-color: var(--subtle-fg);
+	}
+}
+
 .grid-body {
 	background-color: var(--subtle-accent);
-	border-bottom-left-radius: var(--border-radius);
-	border-bottom-right-radius: var(--border-radius);
+	border-bottom-left-radius: var(--radius);
+	border-bottom-right-radius: var(--radius);
 	margin-bottom: -1px; // double bottom border
 
 	.col:last-child {
@@ -275,6 +305,7 @@
 
 	.btn-open-row {
 		line-height: unset;
+
 		div {
 			margin-left: var(--margin-xs);
 		}
@@ -284,9 +315,11 @@
 		// TODO: Dark and Light Mode
 		--control-bg: var(--neutral);
 		--input-disabled-bg: var(--gray-50);
+
 		.grid-static-col {
 			padding: 0px !important;
 		}
+
 		.grid-static-col.row-index {
 			padding: var(--grid-padding) !important;
 		}
@@ -333,14 +366,25 @@
 			box-shadow: inset 0px 0px 0 2px rgba(124, 124, 124, 0.25);
 		}
 
-		.has-error .form-control {
-			&:focus {
-				border-color: var(--error-border);
-			}
+		// Drop the clippable error border; the box-shadow above is the indicator.
+		.has-error input.form-control {
+			border: 0 !important;
 		}
 
 		input.form-control.invalid {
 			background-color: var(--error-bg);
+		}
+
+		.col:last-child {
+			.field-area {
+				flex: 1;
+				min-width: 0;
+			}
+
+			.field-area .form-control:disabled {
+				background-color: transparent;
+				width: auto;
+			}
 		}
 
 		input[data-fieldtype="Int"],
@@ -400,11 +444,13 @@
 
 	.grid-static-col {
 		background-color: var(--fg-color);
+
 		&.sticky-grid-col {
 			position: sticky;
 			z-index: 1;
 		}
 	}
+
 	// check if the awesomplete dropdown is hidden
 	.grid-static-col:has(.awesomplete > ul:not([hidden])) {
 		z-index: 2;
@@ -514,7 +560,7 @@
 	height: 0;
 	opacity: 0;
 	z-index: 1021;
-	border-radius: var(--border-radius-md);
+	border-radius: var(--radius-md);
 	@include base-grid();
 
 	.panel-title {
@@ -637,6 +683,11 @@
 			&.show.active {
 				display: block;
 			}
+
+			// Tab Break creates a hidden empty section first; don't border the next section.
+			.empty-section + .form-section {
+				border-top: none;
+			}
 		}
 	}
 }
@@ -658,6 +709,7 @@
 .grid-header-toolbar {
 	display: flex;
 	justify-content: space-between;
+
 	.row-actions {
 		button:not(:last-child) {
 			margin-left: var(--margin-xs);
@@ -674,13 +726,16 @@
 .grid-custom-buttons:empty {
 	padding: 0;
 }
+
 .grid-footer {
 	margin-top: var(--margin-sm);
 }
+
 .grid-footer,
 .grid-custom-buttons {
 	padding: var(--padding-sm) 0px;
 	background-color: var(--fg-color);
+
 	.btn {
 		box-shadow: none;
 		margin-top: -3px;
@@ -695,6 +750,7 @@
 .grid-pagination {
 	padding: 0;
 	display: flex;
+
 	.last-page {
 		margin-left: 5px;
 	}
@@ -741,6 +797,7 @@
 
 .grid-footer-toolbar {
 	padding: var(--padding-md) var(--padding-sm) var(--padding-xs) var(--padding-sm);
+
 	// border-top: 1px solid var(--border-color);
 	span {
 		margin-right: var(--margin-xs);
@@ -775,33 +832,16 @@
 	width: 100%;
 }
 
-.grid-selection-toast {
-	position: sticky;
-	bottom: var(--padding-md);
-	width: fit-content;
-	margin-left: auto;
-	margin-right: auto;
-	margin-top: calc(var(--padding-md) * -1);
-	z-index: 2;
-	display: none;
-
-	&__message {
-		display: inline-block;
-		background-color: rgba(0, 0, 0, 0.8);
-		color: var(--gray-50);
-		border-radius: var(--border-radius-sm);
-		padding: var(--padding-xs) var(--padding-md);
-	}
-}
-
 .form-grid-container:has(.grid-row.grid-row-open) {
 	overflow-x: clip;
 	white-space: normal;
 	overflow-y: unset;
+
 	.form-grid {
 		left: 0px !important;
 	}
 }
+
 .sortable-handle span {
 	width: 31px;
 	display: block;
@@ -809,110 +849,34 @@
 
 .data-row.row {
 	flex-wrap: nowrap;
+	// Grow to the columns' total width when they overflow, so sticky columns can
+	// pin across the full row (a sticky cell is clamped to its containing block).
+	// Stay full-width — last column grows — when the columns fit.
+	width: max-content;
+	min-width: 100%;
 }
-.frappe-control[data-fieldtype="Table"].form-group:has(.column-limit-reached):not(.highlight) {
-	overflow-x: clip;
+// Last data column grows to fill spare width (widths are inline px from make_column).
+.grid-static-col.grid-data-last {
+	flex-grow: 1 !important;
 }
-.column-limit-reached {
-	background-color: var(--subtle-accent);
-	border-radius: var(--border-radius-md);
-	border: 1px solid var(--table-border-color);
-	overflow-y: hidden;
-	.form-grid {
-		display: grid;
-		grid-auto-rows: min-content;
-		border: unset;
-		&:focus-visible {
-			@include grid-focus();
-		}
-		.grid-static-col .grid-body {
-			height: 40px;
-		}
-		.grid-static-col.col-xs-1 {
-			flex: 1 0 60px;
-			width: 60px;
-		}
-		.grid-static-col.col-xs-2 {
-			flex: 1 0 100px;
-			width: 100px;
-		}
-		.grid-static-col.col-xs-3 {
-			flex: 1 0 140px;
-			width: 140px;
-		}
-		.grid-static-col.col-xs-4 {
-			flex: 1 0 200px;
-			width: 200px;
-		}
-		.grid-static-col.col-xs-5 {
-			flex: 1 0 250px;
-			width: 250px;
-		}
-		.grid-static-col.col-xs-6 {
-			flex: 1 0 300px;
-			width: 300px;
-		}
-		.grid-static-col.col-xs-7 {
-			flex: 1 0 350px;
-			width: 350px;
-		}
-		.grid-static-col.col-xs-8 {
-			flex: 1 0 400px;
-			width: 400px;
-		}
-		.grid-static-col.col-xs-9 {
-			flex: 1 0 450px;
-			width: 450px;
-		}
-		.grid-static-col.col-xs-10 {
-			flex: 1 0 500px;
-			width: 500px;
-		}
-		.grid-static-col.col-xs-11 {
-			flex: 1 0 550px;
-			width: 550px;
-		}
-		.grid-static-col.col-xs-12 {
-			flex: 1 0 600px;
-			width: 600px;
-		}
-		.grid-row > .row .col:last-child,
-		.grid-row > .dialog-assignment-row .col:first-child,
-		.grid-row > .dialog-assignment-row .col:last-child {
-			max-width: 30px;
-			min-width: 30px;
-			position: sticky;
-			right: 0;
-			z-index: 1;
-			line-height: 1;
-		}
-		.grid-row > .row .col:nth-child(2),
-		.grid-row > .dialog-assignment-row .col:nth-child(2) {
-			max-width: 40px;
-			min-width: 40px;
-		}
-		.grid-heading-row .grid-row .data-row.row,
-		.grid-body .rows .grid-row .data-row.row {
-			justify-content: space-between;
-		}
+
+.form-grid {
+	// Pin action and index columns so wide grids stay usable.
+	.grid-row > .row .col:last-child,
+	.grid-row > .dialog-assignment-row .col:first-child,
+	.grid-row > .dialog-assignment-row .col:last-child {
+		max-width: 30px;
+		min-width: 30px;
+		position: sticky;
+		right: 0;
+		z-index: 1;
+		line-height: 1;
 	}
-	scrollbar-width: auto;
-	scrollbar-color: auto;
-}
-.grid-scroll-bar {
-	overflow-x: auto;
-	height: 12px;
-	position: relative;
-	scrollbar-width: auto;
-	scrollbar-color: auto;
-}
-
-.grid-scroll-bar::-webkit-scrollbar {
-	height: 11px !important;
-}
-
-.grid-scroll-bar-rows {
-	height: 100%;
+	.grid-row > .row .col:nth-child(2),
+	.grid-row > .dialog-assignment-row .col:nth-child(2) {
+		max-width: 40px;
+		min-width: 40px;
+	}
 }
 
 .sticky-col-container {
@@ -921,58 +885,48 @@
 	align-items: center;
 }
 
+// Positioning context for the resize handle; scoped to data columns only.
+.grid-heading-row .grid-static-col[data-fieldname]:not(.sticky-grid-col) {
+	position: relative;
+}
+
+.grid-col-resize-handle {
+	position: absolute;
+	right: -3px;
+	top: 0;
+	bottom: 0;
+	width: 7px;
+	z-index: 2;
+	cursor: col-resize;
+	user-select: none;
+
+	// Invisible at rest (the column border is the separator); a soft gray edge on hover.
+	&::before {
+		content: "";
+		position: absolute;
+		top: 0;
+		bottom: 0;
+		right: 3px;
+		width: 2px;
+		background-color: var(--gray-400);
+		opacity: 0;
+		transition: opacity 0.15s;
+	}
+
+	&:hover::before {
+		opacity: 0.6;
+	}
+}
+
+body.grid-col-resizing {
+	cursor: col-resize;
+	user-select: none;
+}
+
 @media (max-width: map-get($grid-breakpoints, "md")) {
 	.form-column.col-sm-6 .form-grid {
 		.row-index {
 			display: block;
-		}
-	}
-	.column-limit-reached {
-		.form-grid {
-			.grid-static-col.col-xs-2 {
-				flex: 1 0 90px;
-				width: 90px;
-			}
-			.grid-static-col.col-xs-3 {
-				flex: 1 0 120px;
-				width: 120px;
-			}
-			.grid-static-col.col-xs-4 {
-				flex: 1 0 160px;
-				width: 160px;
-			}
-			.grid-static-col.col-xs-5 {
-				flex: 1 0 200px;
-				width: 200px;
-			}
-			.grid-static-col.col-xs-6 {
-				flex: 1 0 240px;
-				width: 240px;
-			}
-			.grid-static-col.col-xs-7 {
-				flex: 1 0 300px;
-				width: 300px;
-			}
-			.grid-static-col.col-xs-8 {
-				flex: 1 0 350px;
-				width: 350px;
-			}
-			.grid-static-col.col-xs-9 {
-				flex: 1 0 400px;
-				width: 400px;
-			}
-			.grid-static-col.col-xs-10 {
-				flex: 1 0 450px;
-				width: 450px;
-			}
-			.grid-static-col.col-xs-11 {
-				flex: 1 0 500px;
-				width: 500px;
-			}
-			.grid-static-col.col-xs-12 {
-				flex: 1 0 550px;
-				width: 550px;
-			}
 		}
 	}
 }

@@ -1014,3 +1014,35 @@ def boilerplate_modules_txt(dest, app_name, app_title):
 
 	with open(os.path.join(dest, app_name, app_name, "modules.txt"), "w") as f:
 		f.write(frappe.as_unicode(app_title))
+
+
+@deprecated(
+	"frappe.utils.has_gravatar",
+	"2026-06-13",
+	"v17",
+	"Gravatar integration has been removed. Always returns empty string.",
+)
+def has_gravatar(email: str) -> str:
+	return ""
+
+
+@deprecated(
+	"frappe.utils.get_gravatar_url",
+	"2026-06-13",
+	"v17",
+	"Gravatar integration has been removed. Always returns empty string. Use get_identicon instead.",
+)
+def get_gravatar_url(email: str, default: str = "mm") -> str:
+	return ""
+
+
+@deprecated(
+	"frappe.utils.get_gravatar",
+	"2026-06-13",
+	"v17",
+	"Gravatar integration has been removed. Now always returns an identicon. Use get_identicon instead.",
+)
+def get_gravatar(email: str) -> str:
+	from frappe.utils import get_identicon
+
+	return get_identicon(email)

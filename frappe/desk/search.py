@@ -12,7 +12,7 @@ from frappe import _, bold, is_whitelisted, validate_and_sanitize_search_inputs
 from frappe.database.schema import SPECIAL_CHAR_PATTERN
 from frappe.model.db_query import get_order_by
 from frappe.permissions import has_permission
-from frappe.utils import cint, cstr, escape_html, unique
+from frappe.utils import cint, cstr, escape_html, sbool, unique
 from frappe.utils.caching import http_cache
 from frappe.utils.data import make_filter_tuple
 
@@ -62,6 +62,18 @@ def search_link(
 	return build_for_autosuggest(results, doctype=doctype)
 
 
+def make_dict_from_filter_list(filters: list) -> dict:
+	"""Reverse of `make_filter_tuple`: convert
+	[[doctype, fieldname, operator, value], ..] back to {fieldname: value} for equality
+	filters and {fieldname: [operator, value]} otherwise.
+	"""
+	_filters = {}
+	for f in filters:
+		fieldname, operator, value = f[1], f[2], f[3]
+		_filters[fieldname] = value if operator == "=" else [operator, value]
+	return _filters
+
+
 # this is called by the search box
 @frappe.whitelist()
 def search_widget(
@@ -72,13 +84,15 @@ def search_widget(
 	start: int = 0,
 	page_length: int = 10,
 	filters: str | None | dict | list = None,
-	filter_fields: str | None = None,
+	filter_fields: str | list | None = None,
 	as_dict: bool = False,
 	reference_doctype: str | None = None,
 	ignore_user_permissions: bool = False,
 	*,
 	link_fieldname: str | None = None,
 	for_link_validation: bool = False,
+	# this param has been added temporarily for compatibility - may be removed later
+	query_filters_as_dict: bool = False,
 ):
 	if ignore_user_permissions:
 		if reference_doctype and link_fieldname:
@@ -116,6 +130,10 @@ def search_widget(
 		# translated values is applied below.
 		query_txt = "" if meta.translated_doctype else txt
 		query_page_length = PAGE_LENGTH_FOR_LINK_VALIDATION if meta.translated_doctype else page_length
+
+		if sbool(query_filters_as_dict) and isinstance(filters, list):
+			filters = make_dict_from_filter_list(filters)
+
 		try:
 			is_whitelisted(frappe.get_attr(query))
 			values = frappe.call(
@@ -203,7 +221,7 @@ def search_widget(
 	# format a list of fields combining search fields and filter fields
 	fields = get_std_fields_list(meta, searchfield or "name")
 	if filter_fields:
-		fields = list(set(fields + json.loads(filter_fields)))
+		fields = list(set(fields + frappe.parse_json(filter_fields)))
 	formatted_fields = [f.strip() for f in fields]
 
 	# Insert title field query after name

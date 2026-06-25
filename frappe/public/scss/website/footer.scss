@@ -52,6 +52,7 @@
 
 .footer-col-right .footer-link {
 	margin-right: 1rem;
+
 	@include media-breakpoint-up(sm) {
 		margin-right: 0;
 		margin-left: 1rem;
@@ -93,12 +94,13 @@
 .footer-logo-extension {
 	.input-group {
 		justify-content: flex-end;
+
 		#footer-subscribe-email,
 		#footer-subscribe-button {
 			max-width: 300px;
 			border: 1px solid var(--dark-border-color);
 			box-shadow: none;
-			border-radius: var(--border-radius);
+			border-radius: var(--radius);
 			font-size: $font-size-sm;
 		}
 	}

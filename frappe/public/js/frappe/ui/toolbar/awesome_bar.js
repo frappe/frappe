@@ -107,6 +107,21 @@ frappe.search.AwesomeBar = class AwesomeBar {
 			maxItems: 99,
 			autoFirst: true,
 			list: [],
+			container: function (input) {
+				let container = document.createElement("div");
+				container.className = "awesomplete";
+				let input_row = document.createElement("div");
+				input_row.className = "awesomebar-input-row";
+				let icon = document.createElement("span");
+				icon.className = "awesomebar-search-icon";
+				icon.setAttribute("aria-hidden", "true");
+				icon.innerHTML = frappe.utils.icon("search", "sm");
+				input.parentNode.insertBefore(container, input);
+				input_row.appendChild(icon);
+				input_row.appendChild(input);
+				container.appendChild(input_row);
+				return container;
+			},
 			filter: function (text, term) {
 				return true;
 			},
@@ -185,6 +200,13 @@ frappe.search.AwesomeBar = class AwesomeBar {
 					);
 					me.options = me.options.concat(frappe.search.utils.get_frequent_links());
 				}
+
+				// hide footer and remove spacing when there are no results
+				$(this.awesomplete.ul).toggleClass("p-0 m-0", cint(me.options?.length) == 0);
+				search_modal
+					.find(".cool-awesomebar-modal-footer")
+					.toggleClass("hide", cint(me.options?.length) == 0);
+
 				let options = me.deduplicate(me.options);
 				awesomplete.options_with_desc = me.create_options_with_descriptions(options);
 				Awesomplete.prototype._itemCursor = 0;
@@ -281,6 +303,7 @@ frappe.search.AwesomeBar = class AwesomeBar {
 			.concat(
 				frappe.search.utils.get_search_in_list(txt),
 				frappe.search.utils.get_doctypes(txt),
+				frappe.search.utils.get_doctype_layouts(txt),
 				frappe.search.utils.get_reports(txt),
 				frappe.search.utils.get_pages(txt),
 				frappe.search.utils.get_desktop_icons(txt),
@@ -467,19 +490,13 @@ frappe.search.AwesomeBar = class AwesomeBar {
 	setup_correct_button(wrapper) {
 		let small_button = $(wrapper).find("#small-search-button");
 		let full_button = $(wrapper).find("#full-search-button");
-		let route = frappe.get_route();
 		if (frappe.is_mobile()) {
 			small_button.removeClass("hidden");
 			full_button.addClass("hidden");
 			return;
 		}
-		if (route[0] == "Workspaces" || frappe.is_mobile()) {
-			small_button.addClass("hidden");
-			full_button.removeClass("hidden");
-		} else {
-			full_button.addClass("hidden");
-			small_button.removeClass("hidden");
-		}
+		small_button.addClass("hidden");
+		full_button.removeClass("hidden");
 	}
 	setup_page_change_event() {
 		const me = this;
