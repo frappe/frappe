@@ -25,6 +25,7 @@ class CustomField(Document):
 		from frappe.types import DF
 
 		alignment: DF.Literal["", "Left", "Center", "Right"]
+		allow_bulk_edit: DF.Check
 		allow_in_quick_entry: DF.Check
 		allow_on_submit: DF.Check
 		bold: DF.Check

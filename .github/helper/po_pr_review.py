@@ -24,7 +24,7 @@ from urllib.error import HTTPError
 from babel.messages.pofile import read_po
 
 COMMENT_MARKER = "<!-- po-translation-review -->"
-MAX_COMMENT_BODY_CHARS = 60_000 # GitHub caps issue comments at 65536 characters
+MAX_COMMENT_BODY_CHARS = 60_000  # GitHub caps issue comments at 65536 characters
 TOO_MANY_CHANGES_MESSAGE = "Too many changes to fit into a comment."
 SIMILARITY_TOLERANCE = 0.02
 REVIEW_HIDDEN_PO_FILES = {"eo.po"}
@@ -538,9 +538,7 @@ def _render_review_comment(
 	else:
 		full_inner = inner
 
-	return (
-		f"{head}<details>\n<summary>{summary}</summary>\n\n{full_inner}\n</details>\n"
-	)
+	return f"{head}<details>\n<summary>{summary}</summary>\n\n{full_inner}\n</details>\n"
 
 
 def _section_fits_in_comment(
@@ -660,7 +658,9 @@ def build_comment_bodies(
 			empty_translation_body=empty_body,
 		)
 		if len(body) > max_body_chars:
-			raise RuntimeError("Single metadata-only review comment exceeds max_body_chars; shorten prefix or raise limit.")
+			raise RuntimeError(
+				"Single metadata-only review comment exceeds max_body_chars; shorten prefix or raise limit."
+			)
 		return [body]
 
 	flat_sections: list[str] = []

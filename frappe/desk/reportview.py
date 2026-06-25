@@ -54,6 +54,8 @@ def get_list():
 @frappe.whitelist()
 @frappe.read_only()
 def get_count() -> int | None:
+	from frappe.query_builder.functions import Count
+
 	args = get_form_params()
 
 	if is_virtual_doctype(args.doctype):
@@ -65,23 +67,24 @@ def get_count() -> int | None:
 	fieldname = f"`tab{args.doctype}`.name"
 	args.order_by = None
 
-	# args.limit is specified to avoid getting accurate count.
-	if not args.limit:
-		args.fields = [fieldname]
-		partial_query = execute(**args, run=0).get_sql()
-		return frappe.db.sql(f"select count(*) from ( {partial_query} ) p")[0][0]
-
 	args.fields = [fieldname]
 	partial_query = execute(**args, run=0)
+	count_query = frappe.qb.from_(partial_query).select(Count("*"))
+
+	# args.limit is specified to avoid getting accurate count.
+	if not args.limit:
+		return count_query.run()[0][0]
+
+	count_sql, count_params = count_query.walk()
 
 	# Count queries are notoriously unpredictable based on the type of filters used.
 	# We should not attempt to fetch accurate count for 2 entire minutes! (default timeout)
 	# Very short timeout is used to here to set an upper bound on damage a bad request can do.
 	# Users can request accurate count by dropping limit from arguments.
-	timeout_clause = "SET STATEMENT max_statement_time=1 FOR" if frappe.db.db_type == "mariadb" else ""
+	timeout_clause = "SET STATEMENT max_statement_time=1 FOR " if frappe.db.db_type == "mariadb" else ""
 
 	try:
-		count = frappe.db.sql(f"{timeout_clause} select count(*) from ( {partial_query} ) p")[0][0]
+		count = frappe.db.sql(timeout_clause + count_sql, count_params)[0][0]
 	except Exception as e:
 		if frappe.db.is_statement_timeout(e):  # Skip fetching accurate count
 			count = None
@@ -254,19 +257,19 @@ def clean_params(data):
 
 def parse_json(data):
 	if (filters := data.get("filters")) and isinstance(filters, str):
-		data["filters"] = json.loads(filters)
+		data["filters"] = frappe.parse_json(filters)
 	if (applied_filters := data.get("applied_filters")) and isinstance(applied_filters, str):
-		data["applied_filters"] = json.loads(applied_filters)
+		data["applied_filters"] = frappe.parse_json(applied_filters)
 	if (or_filters := data.get("or_filters")) and isinstance(or_filters, str):
-		data["or_filters"] = json.loads(or_filters)
+		data["or_filters"] = frappe.parse_json(or_filters)
 	if (fields := data.get("fields")) and isinstance(fields, str):
-		data["fields"] = ["*"] if fields == "*" else json.loads(fields)
+		data["fields"] = ["*"] if fields == "*" else frappe.parse_json(fields)
 	if isinstance(data.get("docstatus"), str):
-		data["docstatus"] = json.loads(data["docstatus"])
-	if isinstance(data.get("save_user_settings"), str):
-		data["save_user_settings"] = json.loads(data["save_user_settings"])
-	else:
+		data["docstatus"] = frappe.parse_json(data["docstatus"])
+	if "save_user_settings" not in data:
 		data["save_user_settings"] = True
+	elif isinstance(data.get("save_user_settings"), str):
+		data["save_user_settings"] = frappe.parse_json(data["save_user_settings"])
 	if isinstance(data.get("start"), str):
 		data["start"] = cint(data.get("start"))
 	if isinstance(data.get("page_length"), str):
@@ -432,11 +435,11 @@ def _export_query(form_params, csv_params, populate_response=True):
 		form_params["fields"] = form_params["fields"] + (owner_field,)
 	file_format_type = form_params.pop("file_format_type")
 	title = form_params.pop("title", doctype)
-	add_totals_row = 1 if form_params.pop("add_totals_row", None) == "1" else None
-	translate_values = 1 if form_params.pop("translate_values", None) == "1" else None
+	add_totals_row = cint(form_params.pop("add_totals_row", 0))
+	translate_values = cint(form_params.pop("translate_values", 0))
 
 	if selection := form_params.pop("selected_items", None):
-		form_params["filters"] = {"name": ("in", json.loads(selection))}
+		form_params["filters"] = {"name": ("in", frappe.parse_json(selection))}
 
 	make_access_log(
 		doctype=doctype,
@@ -527,6 +530,7 @@ def append_totals_row(data):
 	if not isinstance(totals[0], int | float):
 		totals[0] = "Total"
 
+	assert len(totals) == len(data[0]), "totals row must be as wide as a data row"
 	data.append(totals)
 
 	return data
@@ -658,9 +662,7 @@ def delete_items():
 	if not (frappe.get_cached_value("User", frappe.session.user, "bulk_actions")):
 		frappe.throw(_("You are not allowed to perform bulk actions."), frappe.PermissionError)
 
-	import json
-
-	items = sorted(json.loads(frappe.form_dict.get("items")), reverse=True)
+	items = sorted(frappe.parse_json(frappe.form_dict.get("items")), reverse=True)
 	doctype = frappe.form_dict.get("doctype")
 
 	if len(items) > 10:
@@ -729,15 +731,13 @@ def get_sidebar_stats(
 
 @frappe.whitelist()
 @frappe.read_only()
-def get_stats(stats: str, doctype: str, filters: str | None = None):
+def get_stats(stats: str | list, doctype: str, filters: str | list | dict | None = None):
 	"""get tag info"""
-	import json
-
 	if filters is None:
 		filters = []
-	columns = json.loads(stats)
+	columns = frappe.parse_json(stats)
 	if filters:
-		filters = json.loads(filters)
+		filters = frappe.parse_json(filters)
 	results = {}
 
 	try:
@@ -786,12 +786,10 @@ def get_stats(stats: str, doctype: str, filters: str | None = None):
 
 
 @frappe.whitelist()
-def get_filter_dashboard_data(stats: str, doctype: str, filters: str | None = None):
+def get_filter_dashboard_data(stats: str | list, doctype: str, filters: str | list | dict | None = None):
 	"""get tags info"""
-	import json
-
-	tags = json.loads(stats)
-	filters = json.loads(filters or [])
+	tags = frappe.parse_json(stats)
+	filters = frappe.parse_json(filters) or []
 	stats = {}
 
 	columns = frappe.db.get_table_columns(doctype)
@@ -882,8 +880,7 @@ def build_match_conditions(doctype, user=None, as_condition=True):
 
 
 def get_filters_cond(doctype, filters, conditions, ignore_permissions=None, with_match_conditions=False):
-	if isinstance(filters, str):
-		filters = json.loads(filters)
+	filters = frappe.parse_json(filters)
 
 	if filters:
 		flt = filters

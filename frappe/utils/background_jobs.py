@@ -63,7 +63,7 @@ def get_queues_timeout() -> dict[str, int]:
 
 	# Note: Order matters here
 	# If no queues are specified then RQ prioritizes queues in specified order
-	return {
+	timeouts = {
 		"short": default_timeout,
 		"default": default_timeout,
 		"long": 1500,
@@ -71,6 +71,9 @@ def get_queues_timeout() -> dict[str, int]:
 			worker: config.get("timeout", default_timeout) for worker, config in custom_workers_config.items()
 		},
 	}
+	# The three built-in queues must always be present; queue validation relies on this.
+	assert {"short", "default", "long"} <= timeouts.keys(), "built-in queues must always exist"
+	return timeouts
 
 
 def enqueue(
@@ -174,6 +177,7 @@ def enqueue(
 		method_name = f"{method.__module__}.{method.__qualname__}"
 	else:
 		method_name = method
+	assert method_name, "method_name must be a non-empty identifier for the queued job"
 
 	queue_args = {
 		"site": frappe.local.site,
@@ -243,7 +247,7 @@ def execute_job(site, method, event, job_name, kwargs, user=None, is_async=True,
 	retval = None
 
 	if is_async:
-		frappe.init(site, force=True)
+		frappe.init(site, force=True, is_job=True)
 		frappe.connect()
 		if os.environ.get("CI"):
 			from frappe.tests.utils import toggle_test_mode
@@ -309,7 +313,7 @@ def execute_job(site, method, event, job_name, kwargs, user=None, is_async=True,
 
 	finally:
 		if not hasattr(frappe.local, "site"):
-			frappe.init(site, force=True)
+			frappe.init(site, force=True, is_job=True)
 			frappe.connect()
 		for after_job_task in frappe.get_hooks("after_job"):
 			frappe.call(after_job_task, method=method_name, kwargs=kwargs, result=retval)
@@ -666,7 +670,9 @@ def create_job_id(job_id: str | None = None) -> str:
 		job_id = str(uuid4())
 	else:
 		job_id = job_id.replace(":", "|")
-	return f"{frappe.local.site}||{job_id}"
+	namespaced_id = f"{frappe.local.site}||{job_id}"
+	assert "||" in namespaced_id, "namespaced job id must contain site separator '||'"
+	return namespaced_id
 
 
 def is_job_enqueued(job_id: str) -> bool:

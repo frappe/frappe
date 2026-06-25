@@ -13,6 +13,8 @@ from frappe.core.doctype.installed_applications.installed_applications import (
 	get_setup_wizard_completed_apps,
 )
 from frappe.core.doctype.navbar_settings.navbar_settings import get_app_logo, get_navbar_settings
+from frappe.core.doctype.permission_type.permission_type import get_doctype_ptype_map
+from frappe.desk.desk_views import DeskViews
 from frappe.desk.doctype.changelog_feed.changelog_feed import get_changelog_feed_items
 from frappe.desk.doctype.desktop_icon.desktop_icon import get_desktop_icons
 from frappe.desk.doctype.form_tour.form_tour import get_onboarding_ui_tours
@@ -21,11 +23,7 @@ from frappe.desk.form.load import get_meta_bundle
 from frappe.email.inbox import get_email_accounts
 from frappe.integrations.frappe_providers.frappecloud_billing import current_site_info, is_fc_site
 from frappe.model.base_document import get_controller
-from frappe.permissions import has_permission
-from frappe.query_builder import DocType
-from frappe.query_builder.functions import Count
-from frappe.query_builder.terms import ParameterizedValueWrapper, SubQuery
-from frappe.utils import add_user_info, cstr, get_system_timezone
+from frappe.utils import add_user_info, get_system_timezone
 from frappe.utils.caching import redis_cache
 from frappe.utils.change_log import get_versions
 from frappe.utils.frappecloud import on_frappecloud
@@ -57,6 +55,9 @@ def get_bootinfo():
 
 	bootinfo.modules = {}
 	bootinfo.module_list = []
+	desk_views = DeskViews()
+	desk_views.build_entities()
+	desk_views.add_to_boot(bootinfo)
 	load_desktop_data(bootinfo)
 	bootinfo.desktop_icons = get_desktop_icons(bootinfo=bootinfo)
 	bootinfo.letter_heads = get_letter_heads()
@@ -69,7 +70,6 @@ def get_bootinfo():
 	bootinfo.nested_set_doctypes = frappe.get_all("DocField", {"fieldname": "lft"}, pluck="parent")
 	bootinfo.tree_view_doctypes = get_tree_view_doctypes()
 	add_home_page(bootinfo, doclist)
-	bootinfo.page_info = get_allowed_pages()
 	load_translations(bootinfo)
 	add_timezone_info(bootinfo)
 	load_conf_settings(bootinfo)
@@ -114,6 +114,7 @@ def get_bootinfo():
 	bootinfo.app_logo_url = get_app_logo()
 	bootinfo.link_title_doctypes = get_link_title_doctypes()
 	bootinfo.translated_doctypes = get_translated_doctypes()
+	bootinfo.doctype_ptype_map = get_doctype_ptype_map()
 	bootinfo.subscription_conf = add_subscription_conf()
 	bootinfo.marketplace_apps = get_marketplace_apps()
 	bootinfo.is_fc_site = is_fc_site()
@@ -125,12 +126,26 @@ def get_bootinfo():
 	if sentry_dsn := get_sentry_dsn():
 		bootinfo.sentry_dsn = sentry_dsn
 
+	bootinfo.json_request_apps = get_json_request_apps()
 	bootinfo.setup_wizard_completed_apps = get_setup_wizard_completed_apps() or []
 	bootinfo.desktop_icon_urls = get_desktop_icon_urls()
 	bootinfo.desktop_icon_style = get_icon_style() or "Subtle"
 	if bootinfo.is_fc_site:
 		bootinfo.site_info = current_site_info()
 	return bootinfo
+
+
+def get_json_request_apps() -> list[str]:
+	"""Apps that opt into native JSON request bodies via `use_json_request_body` in hooks.py.
+
+	The frontend (`frappe.request`) uses this to decide, per call, whether to send args as a
+	native `application/json` body. Apps that don't opt in keep the legacy form-encoded payload.
+	"""
+	return [
+		app
+		for app in frappe.get_installed_apps()
+		if any(frappe.get_hooks("use_json_request_body", app_name=app))
+	]
 
 
 def get_icon_style():
@@ -164,13 +179,9 @@ def load_conf_settings(bootinfo):
 
 
 def load_desktop_data(bootinfo):
-	from frappe.desk.desktop import get_workspace_sidebar_items
-
-	bootinfo.workspaces = get_workspace_sidebar_items()
 	allowed_pages = [d.name for d in bootinfo.workspaces.get("pages")]
 	bootinfo.workspace_sidebar_item = get_sidebar_items(allowed_pages)
 	bootinfo.module_wise_workspaces = get_controller("Workspace").get_module_wise_workspaces()
-	bootinfo.dashboards = frappe.get_all("Dashboard")
 	bootinfo.app_data = []
 
 	Workspace = frappe.qb.DocType("Workspace")
@@ -224,128 +235,6 @@ def load_desktop_data(bootinfo):
 				workspaces=workspaces,
 			)
 		)
-
-
-def get_allowed_pages(cache=False, user: str | None = None):
-	return get_user_pages_or_reports("Page", cache=cache, user=user)
-
-
-def get_allowed_reports(cache=False, user: str | None = None):
-	return get_user_pages_or_reports("Report", cache=cache, user=user)
-
-
-def get_allowed_report_names(cache=False, user: str | None = None) -> set[str]:
-	return {cstr(report) for report in get_allowed_reports(cache=cache, user=user).keys() if report}
-
-
-def get_user_pages_or_reports(parent, cache=False, user: str | None = None):
-	if user is None:
-		user = frappe.session.user
-
-	if cache:
-		has_role = frappe.cache.get_value("has_role:" + parent, user=user)
-		if has_role:
-			return has_role
-
-	roles = frappe.get_roles(user)
-	has_role = {}
-
-	page = DocType("Page")
-	report = DocType("Report")
-
-	is_report = parent == "Report"
-
-	if is_report:
-		columns = (report.name.as_("title"), report.ref_doctype, report.report_type)
-	else:
-		columns = (page.title.as_("title"),)
-
-	customRole = DocType("Custom Role")
-	hasRole = DocType("Has Role")
-	parentTable = DocType(parent)
-
-	# get pages or reports set on custom role
-	pages_with_custom_roles = (
-		frappe.qb.from_(customRole)
-		.from_(hasRole)
-		.from_(parentTable)
-		.select(customRole[parent.lower()].as_("name"), customRole.modified, customRole.ref_doctype, *columns)
-		.where(
-			(hasRole.parent == customRole.name)
-			& (parentTable.name == customRole[parent.lower()])
-			& (customRole[parent.lower()].isnotnull())
-			& (hasRole.role.isin(roles))
-		)
-	).run(as_dict=True)
-
-	for p in pages_with_custom_roles:
-		has_role[p.name] = {"modified": p.modified, "title": p.title, "ref_doctype": p.ref_doctype}
-
-	subq = (
-		frappe.qb.from_(customRole)
-		.select(customRole[parent.lower()])
-		.where(customRole[parent.lower()].isnotnull())
-	)
-
-	pages_with_standard_roles = (
-		frappe.qb.from_(hasRole)
-		.from_(parentTable)
-		.select(parentTable.name.as_("name"), parentTable.modified, *columns)
-		.where(
-			(hasRole.role.isin(roles)) & (hasRole.parent == parentTable.name) & (parentTable.name.notin(subq))
-		)
-		.distinct()
-	)
-
-	if is_report:
-		pages_with_standard_roles = pages_with_standard_roles.where(report.disabled == 0)
-
-	pages_with_standard_roles = pages_with_standard_roles.run(as_dict=True)
-
-	for p in pages_with_standard_roles:
-		if p.name not in has_role:
-			has_role[p.name] = {"modified": p.modified, "title": p.title}
-			if parent == "Report":
-				has_role[p.name].update({"ref_doctype": p.ref_doctype})
-
-	no_of_roles = SubQuery(
-		frappe.qb.from_(hasRole).select(Count("*")).where(hasRole.parent == parentTable.name)
-	)
-
-	# pages and reports with no role are allowed
-	rows_with_no_roles = (
-		frappe.qb.from_(parentTable)
-		.select(parentTable.name, parentTable.modified, *columns)
-		.where(no_of_roles == 0)
-	).run(as_dict=True)
-
-	for r in rows_with_no_roles:
-		if r.name not in has_role:
-			has_role[r.name] = {"modified": r.modified, "title": r.title}
-			if is_report:
-				has_role[r.name] |= {"ref_doctype": r.ref_doctype}
-
-	if is_report:
-		if not has_permission("Report", user=user, print_logs=False):
-			return {}
-
-		reports = frappe.get_list(
-			"Report",
-			fields=["name", "report_type"],
-			filters={"name": ("in", has_role.keys())},
-			ignore_ifnull=True,
-			user=user,
-		)
-		for report in reports:
-			has_role[report.name]["report_type"] = report.report_type
-
-		non_permitted_reports = set(has_role.keys()) - {r.name for r in reports}
-		for r in non_permitted_reports:
-			has_role.pop(r, None)
-
-	# Expire every six hours
-	frappe.cache.set_value("has_role:" + parent, has_role, user, 21600)
-	return has_role
 
 
 def load_translations(bootinfo):
@@ -440,8 +329,19 @@ def get_additional_filters_from_hooks():
 
 
 def add_layouts(bootinfo):
-	# add routes for readable doctypes
-	bootinfo.doctype_layouts = frappe.get_all("DocType Layout", ["name", "route", "document_type"])
+	bootinfo.doctype_layouts = frappe.get_all(
+		"DocType Layout",
+		fields=[
+			"name",
+			"title",
+			"document_type",
+			"based_on",
+			"is_standard",
+			"default_print_format",
+			"default_email_template",
+			"condition",
+		],
+	)
 
 
 def get_desk_settings():
@@ -567,57 +467,61 @@ def get_sidebar_items(allowed_workspaces):
 		else:
 			sidebar_title = sidebar.title
 			sidebar_doc = sidebar
-		if (
-			frappe.session.user == "Administrator"
-			or sidebar_title == "My Workspaces"
-			or not sidebar_doc.module
-			or sidebar_doc.module in sidebar_doc.user.allow_modules
-		):
-			sidebar_items[sidebar_title.lower()] = {
-				"label": sidebar_title,
-				"items": [],
-				"header_icon": sidebar.get("header_icon"),
-				"module_onboarding": sidebar.get("module_onboarding"),
-				"module": sidebar_doc.module,
-				"app": sidebar_doc.app,
+		is_my_workspaces = "My Workspaces" in sidebar_title
+		items = []
+		for item in sidebar_doc.items:
+			workspace_sidebar = {
+				"label": _(item.label),
+				"link_to": item.link_to,
+				"link_type": item.link_type,
+				"type": item.type,
+				"icon": item.icon,
+				"child": item.child,
+				"collapsible": item.collapsible,
+				"indent": item.indent,
+				"keep_closed": item.keep_closed,
+				"url": item.url,
+				"show_arrow": item.show_arrow,
+				"filters": item.filters,
+				"route_options": item.route_options,
+				"tab": item.navigate_to_tab,
+				"open_in_new_tab": item.open_in_new_tab,
 			}
-			for item in sidebar_doc.items:
-				workspace_sidebar = {
-					"label": _(item.label),
-					"link_to": item.link_to,
-					"link_type": item.link_type,
-					"type": item.type,
-					"icon": item.icon,
-					"child": item.child,
-					"collapsible": item.collapsible,
-					"indent": item.indent,
-					"keep_closed": item.keep_closed,
-					"url": item.url,
-					"show_arrow": item.show_arrow,
-					"filters": item.filters,
-					"route_options": item.route_options,
-					"tab": item.navigate_to_tab,
-					"open_in_new_tab": item.open_in_new_tab,
+			if (
+				item.link_type == "Report"
+				and item.link_to
+				and frappe.db.exists("Report", item.link_to)
+				and not frappe.db.get_value("Report", item.link_to, "disabled")
+			):
+				report_type, ref_doctype = frappe.db.get_value(
+					"Report", item.link_to, ["report_type", "ref_doctype"]
+				)
+				workspace_sidebar["report"] = {
+					"report_type": report_type,
+					"ref_doctype": ref_doctype,
 				}
-				if (
-					item.link_type == "Report"
-					and item.link_to
-					and frappe.db.exists("Report", item.link_to)
-					and not frappe.db.get_value("Report", item.link_to, "disabled")
-				):
-					report_type, ref_doctype = frappe.db.get_value(
-						"Report", item.link_to, ["report_type", "ref_doctype"]
-					)
-					workspace_sidebar["report"] = {
-						"report_type": report_type,
-						"ref_doctype": ref_doctype,
-					}
-				if (
-					"My Workspaces" in sidebar_title
-					or item.type == "Section Break"
-					or sidebar_doc.is_item_allowed(item.link_to, item.link_type, allowed_workspaces)
-				):
-					sidebar_items[sidebar_title.lower()]["items"].append(workspace_sidebar)
+			if (
+				is_my_workspaces
+				or item.type == "Section Break"
+				or sidebar_doc.is_item_allowed(item.link_to, item.link_type, allowed_workspaces)
+			):
+				items.append(workspace_sidebar)
+
+		# A sidebar (and its desktop icon) is shown only if the user can see at least one
+		# real item in it, i.e. a non-Section-Break item survived the per-item filter above.
+		# This is the single source of truth for sidebar permissions and mirrors
+		# Desktop Icon.is_permitted. "My Workspaces" is always shown.
+		if not is_my_workspaces and not any(item["type"] != "Section Break" for item in items):
+			continue
+
+		sidebar_items[sidebar_title.lower()] = {
+			"label": sidebar_title,
+			"items": items,
+			"header_icon": sidebar.get("header_icon"),
+			"module_onboarding": sidebar.get("module_onboarding"),
+			"module": sidebar_doc.module,
+			"app": sidebar_doc.app,
+		}
 	add_user_specific_sidebar(sidebar_items)
 	return sidebar_items
 

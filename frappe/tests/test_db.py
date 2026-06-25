@@ -1039,6 +1039,84 @@ class TestDDLCommandsPost(IntegrationTestCase):
 		)
 		self.assertEqual(len(indexs_in_table), 1)
 
+	def test_json_columns_return_strings(self) -> None:
+		# Regression: psycopg2 auto-parses json/jsonb into python objects, but frappe models JSON
+		# fields as strings (like MariaDB's longtext) and json.loads them on demand. A parsed value
+		# diverges from MariaDB and breaks re-saving a doc whose JSON field came back as a list.
+		row = frappe.db.sql("""SELECT '[1, 2]'::jsonb AS a, '{"k": 1}'::json AS b""", as_dict=True)[0]
+		self.assertIsInstance(row.a, str)
+		self.assertIsInstance(row.b, str)
+
+	def test_search_index_unique_across_tables(self) -> None:
+		# Regression: postgres index names are unique per schema (not per table like
+		# MariaDB), so two doctypes that share a search_index fieldname used to collide --
+		# `CREATE INDEX IF NOT EXISTS` skipped all but the first, leaving the other tables
+		# without their single-column index.
+		from frappe.core.doctype.doctype.test_doctype import new_doctype
+
+		def _search_indexed_doctype():
+			return new_doctype(
+				fields=[
+					{
+						"label": "Shared",
+						"fieldname": "shared_field",
+						"fieldtype": "Data",
+						"search_index": 1,
+					}
+				]
+			).insert(ignore_permissions=True)
+
+		dt1 = _search_indexed_doctype()
+		dt2 = _search_indexed_doctype()
+		try:
+			self.assertTrue(
+				frappe.db.get_column_index(f"tab{dt1.name}", "shared_field", unique=False),
+				msg=f"{dt1.name} is missing its search index",
+			)
+			self.assertTrue(
+				frappe.db.get_column_index(f"tab{dt2.name}", "shared_field", unique=False),
+				msg=f"{dt2.name} is missing its search index (schema-global index name collision)",
+			)
+		finally:
+			dt1.delete(ignore_permissions=True)
+			dt2.delete(ignore_permissions=True)
+
+	def test_add_index_unique_across_tables(self) -> None:
+		# Regression: a manual frappe.db.add_index() with the default name used to produce an
+		# unqualified, schema-global name (`field1_field2_index`), so two tables requesting an
+		# index on the same fields collided -- the second `CREATE INDEX IF NOT EXISTS` was
+		# skipped and that table never got its composite index. The default name is now
+		# table-qualified, so each table gets its own.
+		from frappe.core.doctype.doctype.test_doctype import new_doctype
+		from frappe.database.postgres.schema import get_qualified_index_name
+
+		def _two_field_doctype():
+			return new_doctype(
+				fields=[
+					{"label": "Alpha", "fieldname": "alpha", "fieldtype": "Data"},
+					{"label": "Beta", "fieldname": "beta", "fieldtype": "Data"},
+				]
+			).insert(ignore_permissions=True)
+
+		dt1 = _two_field_doctype()
+		dt2 = _two_field_doctype()
+		try:
+			frappe.db.add_index(dt1.name, ["alpha", "beta"])
+			frappe.db.add_index(dt2.name, ["alpha", "beta"])
+			for dt in (dt1, dt2):
+				index_name = get_qualified_index_name(f"tab{dt.name}", ["alpha", "beta"])
+				self.assertTrue(
+					frappe.db.sql(
+						"""SELECT 1 FROM pg_indexes
+						WHERE schemaname = current_schema() AND tablename = %s AND indexname = %s""",
+						(f"tab{dt.name}", index_name),
+					),
+					msg=f"{dt.name} is missing its composite add_index (schema-global name collision)",
+				)
+		finally:
+			dt1.delete(ignore_permissions=True)
+			dt2.delete(ignore_permissions=True)
+
 	def test_sequence_table_creation(self):
 		from frappe.core.doctype.doctype.test_doctype import new_doctype
 
@@ -1547,3 +1625,24 @@ class TestMariaDBExceptionUtil(IntegrationTestCase):
 		self.assertFalse(MariaDBExceptionUtil.is_statement_timeout(e))
 		self.assertFalse(MariaDBExceptionUtil.is_data_too_long(e))
 		self.assertFalse(MariaDBExceptionUtil.is_db_table_size_limit(e))
+
+	@run_only_if(db_type_is.POSTGRES)
+	def test_serialization_failure_is_treated_as_deadlock(self):
+		"""Postgres serialization failures (REPEATABLE READ write conflicts) must be retriable like
+		deadlocks; otherwise they surface as unhandled query errors (e.g. on the per-request session
+		update under concurrency)."""
+		from psycopg2.errorcodes import DEADLOCK_DETECTED, SERIALIZATION_FAILURE
+
+		from frappe.database.postgres.database import PostgresExceptionUtil
+
+		class _E(Exception):
+			pass
+
+		for code in (SERIALIZATION_FAILURE, DEADLOCK_DETECTED):
+			e = _E()
+			e.pgcode = code
+			self.assertTrue(PostgresExceptionUtil.is_deadlocked(e))
+
+		unrelated = _E()
+		unrelated.pgcode = "12345"
+		self.assertFalse(PostgresExceptionUtil.is_deadlocked(unrelated))

@@ -50,7 +50,7 @@ jobs:
     strategy:
       fail-fast: false
       matrix:
-        # Run against postgres too only when roulette decides it's needed
+        # Always run against postgres too -- it is a supported backend (see roulette.py).
         db: ${{ fromJson(needs.checkrun.outputs.run_postgres == 'true' && '["mariadb", "postgres"]' || '["mariadb"]') }}
         index: [1, 2]
     services:
@@ -246,7 +246,7 @@ jobs:
 
   # TIP: Require this single check in branch protection, e.g. Server / Success
   success:
-    name: Success
+    name: Server Success
     needs: [test, migrate]
     if: always()
     runs-on: ubuntu-latest

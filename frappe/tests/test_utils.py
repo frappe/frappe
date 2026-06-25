@@ -20,7 +20,6 @@ import frappe
 from frappe.installer import parse_app_name
 from frappe.model.document import Document
 from frappe.tests import IntegrationTestCase, MockedRequestTestCase, UnitTestCase
-from frappe.tests.utils import toggle_test_mode
 from frappe.utils import (
 	ceil,
 	dict_to_str,
@@ -30,7 +29,7 @@ from frappe.utils import (
 	format_timedelta,
 	get_bench_path,
 	get_file_timestamp,
-	get_gravatar,
+	get_identicon,
 	get_link_to_report,
 	get_safe_filters,
 	get_site_info,
@@ -633,6 +632,53 @@ class TestValidationUtils(IntegrationTestCase):
 			validate_email_address("test@example.com, undisclosed-recipients:;"), "test@example.com"
 		)
 
+		# Recover valid addresses from a list that contains malformed entries.
+		# Previously a single bad entry (here: `foo@bar.baz@baz`) caused strict
+		# mode to drop the whole list including the valid `bar@bar.baz`.
+		self.assertEqual(
+			validate_email_address("invalid, foo@bar.baz@baz, bar@bar.baz"),
+			"bar@bar.baz",
+		)
+
+		# Quoted display name preserved on the slow path: one entry is bad
+		# (`bad@@email`), but the valid `john@example.com` must still be
+		# recovered without the quoted comma in the display name corrupting
+		# the split.
+		self.assertEqual(
+			validate_email_address('"Smith, John" <john@example.com>, bad@@email'),
+			"john@example.com",
+		)
+
+		# Silently-truncated inputs must be rejected, not sanitized.
+		# `alice@example.com)` should NOT become `alice@example.com` just
+		# because the parser can extract a clean prefix.
+		self.assertFalse(validate_email_address("alice@example.com)"))
+		self.assertFalse(validate_email_address("alice@example.com (unclosed comment"))
+		self.assertFalse(validate_email_address("alice@[192.168.0.1"))
+
+		# Trailing garbage after a valid prefix must be rejected. The parser
+		# returns these addrs as-is (with the trailing chars attached); only a
+		# full-string regex anchor catches them. `re.match` would have accepted
+		# the valid prefix and ignored the tail.
+		self.assertFalse(validate_email_address("alice@example.com."))
+		self.assertFalse(validate_email_address("alice@example.com.."))
+		self.assertFalse(validate_email_address("alice@example.com#fragment"))
+		self.assertFalse(validate_email_address("alice@example.com\x00"))
+
+		# CRLF separator (Windows-style line endings)
+		self.assertEqual(
+			validate_email_address("test1@example.com\r\ntest2@example.com"),
+			"test1@example.com, test2@example.com",
+		)
+
+		# Throw mode rejects silently-truncated input
+		self.assertRaises(
+			frappe.InvalidEmailAddressError,
+			validate_email_address,
+			"alice@example.com)",
+			throw=True,
+		)
+
 	def test_valid_phone(self):
 		valid_phones = ["+91 1234567890", ""]
 
@@ -673,6 +719,22 @@ class TestValidationUtils(IntegrationTestCase):
 
 		for not_iban in invalid_ibans:
 			self.assertFalse(is_valid_iban(not_iban))
+
+	def test_parse_json_passthrough_and_decode(self):
+		from frappe.utils.data import parse_json
+
+		# already-native values pass through untouched (the new JSON request-body path)
+		self.assertEqual(parse_json({"a": 1}), {"a": 1})
+		self.assertEqual(parse_json([1, 2]), [1, 2])
+		self.assertEqual(parse_json(None), None)
+		self.assertEqual(parse_json(1), 1)
+
+		# strings still decode (legacy form-encoded path)
+		self.assertEqual(parse_json('{"a": 1}'), {"a": 1})
+		self.assertEqual(parse_json("[1, 2]"), [1, 2])
+
+		# decoded dicts become frappe._dict (attribute access)
+		self.assertEqual(parse_json('{"a": 1}').a, 1)
 
 
 class TestImage(IntegrationTestCase):
@@ -1205,18 +1267,14 @@ class TestLazyLoader(IntegrationTestCase):
 
 
 class TestIdenticon(IntegrationTestCase):
-	def test_get_gravatar(self):
-		# developers@frappe.io has a gravatar linked so str URL will be returned
-		toggle_test_mode(False)
-		gravatar_url = get_gravatar("developers@frappe.io")
-		toggle_test_mode(True)
-		self.assertIsInstance(gravatar_url, str)
-		self.assertTrue(gravatar_url.startswith("http"))
+	def test_get_identicon(self):
+		identicon_url = get_identicon("developers@frappe.io")
+		self.assertIsInstance(identicon_url, str)
+		self.assertTrue(identicon_url.startswith("data:image/png;base64,"))
 
-		# random email will require Identicon to be generated, which will be a base64 string
-		gravatar_url = get_gravatar(f"developers{random_string(6)}@frappe.io")
-		self.assertIsInstance(gravatar_url, str)
-		self.assertTrue(gravatar_url.startswith("data:image/png;base64,"))
+		identicon_url = get_identicon(f"developers{random_string(6)}@frappe.io")
+		self.assertIsInstance(identicon_url, str)
+		self.assertTrue(identicon_url.startswith("data:image/png;base64,"))
 
 	def test_generate_identicon(self):
 		identicon = Identicon(random_string(6))
@@ -1360,13 +1418,13 @@ class TestTypingValidations(IntegrationTestCase):
 class TestTBSanitization(IntegrationTestCase):
 	def test_traceback_sanitzation(self):
 		try:
-			password = "42"  # noqa: F841
-			args = {"password": "42", "pwd": "42", "safe": "safe_value"}
-			args = frappe._dict({"password": "42", "pwd": "42", "safe": "safe_value"})  # noqa: F841
+			password = "424242"  # noqa: F841
+			args = {"password": "424242", "pwd": "424242", "safe": "safe_value"}
+			args = frappe._dict({"password": "424242", "pwd": "424242", "safe": "safe_value"})  # noqa: F841
 			raise Exception
 		except Exception:
 			traceback = frappe.get_traceback(with_context=True)
-			self.assertNotIn("42", traceback)
+			self.assertNotIn("424242", traceback)
 			self.assertIn("********", traceback)
 			self.assertIn("password =", traceback)
 			self.assertIn("safe_value", traceback)

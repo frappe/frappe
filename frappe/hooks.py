@@ -119,6 +119,7 @@ permission_query_conditions = {
 	"Prepared Report": "frappe.core.doctype.prepared_report.prepared_report.get_permission_query_condition",
 	"File": "frappe.core.doctype.file.file.get_permission_query_conditions",
 	"User Invitation": "frappe.core.doctype.user_invitation.user_invitation.get_permission_query_conditions",
+	"Document Template": "frappe.desk.doctype.document_template.document_template.get_permission_query_conditions",
 }
 
 has_permission = {
@@ -137,6 +138,7 @@ has_permission = {
 	"Prepared Report": "frappe.core.doctype.prepared_report.prepared_report.has_permission",
 	"Notification Settings": "frappe.desk.doctype.notification_settings.notification_settings.has_permission",
 	"User Invitation": "frappe.core.doctype.user_invitation.user_invitation.has_permission",
+	"Document Template": "frappe.desk.doctype.document_template.document_template.has_permission",
 }
 
 has_website_permission = {"Address": "frappe.contacts.doctype.address.address.has_website_permission"}
@@ -272,6 +274,7 @@ scheduler_events = {
 		"frappe.automation.doctype.auto_repeat.auto_repeat.make_auto_repeat_entry",
 		"frappe.core.doctype.log_settings.log_settings.run_log_clean_up",
 		"frappe.core.doctype.user_invitation.user_invitation.mark_expired_invitations",
+		"frappe.core.doctype.duckdb_sync.duckdb_sync.cleanup_old_syncs",
 	],
 	"weekly_long": [
 		"frappe.desk.form.document_follow.send_weekly_updates",
@@ -476,6 +479,10 @@ get_changelog_feed = "frappe.desk.doctype.changelog_feed.changelog_feed.get_feed
 
 export_python_type_annotations = True
 
+# Send non-GET requests for this app's endpoints as native `application/json`
+# bodies instead of form-encoded, per-key JSON-stringified values.
+use_json_request_body = True
+
 standard_help_items = [
 	{
 		"item_label": "About",
@@ -541,5 +548,6 @@ add_to_apps_screen = [
 		"logo": app_logo_url,
 		"title": app_title,
 		"route": app_home,
+		"has_permission": "frappe.permissions.check_app_permission",
 	}
 ]

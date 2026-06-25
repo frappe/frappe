@@ -757,11 +757,13 @@ class DocType(Document):
 						# replace in one go
 						file_content = re.sub(
 							rf"{old_scrub}|{old_no_space}|{old_no_space_no_hyphen}",
-							lambda x: new_scrub
-							if x.group() == old_scrub
-							else new_no_space_no_hyphen
-							if x.group() == old_no_space_no_hyphen
-							else new_no_space,
+							lambda x: (
+								new_scrub
+								if x.group() == old_scrub
+								else new_no_space_no_hyphen
+								if x.group() == old_no_space_no_hyphen
+								else new_no_space
+							),
 							code,
 						)
 
@@ -1687,7 +1689,8 @@ def validate_fields(meta: Meta):
 
 		if "." not in field.fetch_from:
 			return
-		source_field, _target_field = field.fetch_from.split(".", maxsplit=1)
+		parts = field.fetch_from.split(".", maxsplit=1)
+		source_field, _target_field = parts
 
 		if source_field == field.fieldname:
 			msg = _(

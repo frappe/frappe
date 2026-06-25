@@ -26,7 +26,7 @@
 	font-size: var(--text-md);
 	padding: 0.3rem 1rem;
 	border: 1px solid var(--dark-border-color);
-	border-radius: var(--border-radius-md);
+	border-radius: var(--radius-md);
 	margin-right: 0.5rem;
 }
 
@@ -183,7 +183,7 @@
 
 .empty-state {
 	border: 1px solid var(--gray-300);
-	border-radius: var(--border-radius-lg);
+	border-radius: var(--radius-lg);
 	padding: 2rem;
 	display: flex;
 	justify-content: space-between;
@@ -255,14 +255,14 @@
 }
 
 .discussions-parent .ql-editor {
-	border-radius: var(--border-radius-md);
+	border-radius: var(--radius-md);
 }
 
 .mention {
 	display: inline-block;
 	height: auto;
 	width: auto;
-	border-radius: var(--border-radius-lg);
+	border-radius: var(--radius-lg);
 	border: 1px solid var(--border-color);
 	padding: 2px 5px;
 	font-size: var(--text-sm);

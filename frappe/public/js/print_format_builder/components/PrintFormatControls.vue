@@ -181,9 +181,6 @@
 									{{ element.field_label || __("Custom block") }}
 								</div>
 							</div>
-							<svg class="icon icon-xs text-muted pfb-plus-icon">
-								<use href="#icon-plus"></use>
-							</svg>
 						</div>
 					</template>
 				</draggable>
@@ -269,6 +266,7 @@ let search_text = ref("");
 let google_fonts = ref([]);
 let activeTab = ref("fields");
 let search_input = ref(null);
+let raw_templates = ref([]);
 
 function focus_search() {
 	activeTab.value = "fields";
@@ -375,6 +373,8 @@ function select_section(section) {
 	store.scroll_to_section.value = section;
 	store.selected_section.value = section;
 	store.selected_field.value = null;
+	store.selected_letterhead.value = false;
+	store.selected_lh_footer.value = false;
 }
 
 function clone_as_section() {
@@ -428,9 +428,36 @@ let field_groups = computed(() => {
 	return groups.filter((g) => g.fields.length);
 });
 
-// ── computed: templates tab ────────────────────────────────
+// ── templates tab ─────────────────────────────────────────
+function fetch_templates() {
+	const doctype = meta.value?.name;
+	if (!doctype) return;
+	Promise.all([
+		frappe.db.get_list("Print Format Field Template", {
+			fields: ["name", "template", "field"],
+			filters: { document_type: doctype },
+			limit: 100,
+		}),
+		frappe.db.get_list("Print Format Field Template", {
+			fields: ["name", "template", "field"],
+			filters: { document_type: ["is", "not set"] },
+			limit: 100,
+		}),
+	])
+		.then(([specific, generic]) => {
+			raw_templates.value = [...(specific || []), ...(generic || [])];
+		})
+		.catch(() => {
+			raw_templates.value = [];
+		});
+}
+
+watch(activeTab, (tab) => {
+	if (tab === "templates") fetch_templates();
+});
+
 let print_templates_list = computed(() => {
-	const templates = print_format.value.__onload?.print_templates || [];
+	const templates = raw_templates.value;
 	return templates.map((template) => {
 		let df;
 		let field_label = null;
@@ -542,12 +569,12 @@ watch(print_format, () => (store.dirty.value = true), { deep: true });
 	padding: 6px 2px 8px;
 	border: none;
 	background: transparent;
-	border-radius: var(--border-radius) var(--border-radius) 0 0;
+	border-radius: var(--radius) var(--radius) 0 0;
 	color: var(--text-muted);
 	cursor: pointer;
 	transition: color 0.12s, background 0.12s;
-	font-size: 10px;
-	font-weight: 500;
+	font-size: var(--text-tiny);
+	font-weight: var(--weight-medium);
 	position: relative;
 }
 
@@ -625,7 +652,7 @@ watch(print_format, () => (store.dirty.value = true), { deep: true });
 .pfb-search-kbd {
 	flex-shrink: 0;
 	font-family: inherit;
-	font-size: 10px;
+	font-size: var(--text-tiny);
 	color: var(--gray-400);
 	background: var(--gray-100);
 	border: 1px solid var(--gray-300);
@@ -644,8 +671,8 @@ watch(print_format, () => (store.dirty.value = true), { deep: true });
 }
 
 .pfb-fields-header-title {
-	font-size: 10px;
-	font-weight: 600;
+	font-size: var(--text-tiny);
+	font-weight: var(--weight-semibold);
 	letter-spacing: 0.06em;
 	color: var(--text-muted);
 }
@@ -657,8 +684,8 @@ watch(print_format, () => (store.dirty.value = true), { deep: true });
 
 /* ── Group label ─────────────────────────────────────────── */
 .pfb-group-label {
-	font-size: 10px;
-	font-weight: 600;
+	font-size: var(--text-tiny);
+	font-weight: var(--weight-semibold);
 	text-transform: uppercase;
 	letter-spacing: 0.06em;
 	color: var(--text-muted);
@@ -709,11 +736,11 @@ watch(print_format, () => (store.dirty.value = true), { deep: true });
 }
 
 .pfb-field-type {
-	font-size: 10px;
+	font-size: var(--text-tiny);
 	color: var(--gray-500);
 	background: var(--gray-100);
 	border: 1px solid var(--gray-200);
-	border-radius: var(--border-radius-sm);
+	border-radius: var(--radius);
 	padding: 2px 6px;
 	white-space: nowrap;
 	flex-shrink: 0;
@@ -735,7 +762,7 @@ watch(print_format, () => (store.dirty.value = true), { deep: true });
 	align-items: center;
 	gap: 10px;
 	padding: 8px 10px;
-	border-radius: var(--border-radius);
+	border-radius: var(--radius);
 	border: 1px solid var(--border-color);
 	background: var(--gray-50);
 	cursor: grab;
@@ -757,7 +784,7 @@ watch(print_format, () => (store.dirty.value = true), { deep: true });
 	justify-content: center;
 	width: 28px;
 	height: 28px;
-	border-radius: var(--border-radius);
+	border-radius: var(--radius);
 	background: var(--gray-200);
 	flex-shrink: 0;
 }
@@ -772,7 +799,7 @@ watch(print_format, () => (store.dirty.value = true), { deep: true });
 }
 
 .pfb-block-desc {
-	font-size: 10px;
+	font-size: var(--text-tiny);
 	margin-top: 1px;
 }
 
@@ -782,7 +809,7 @@ watch(print_format, () => (store.dirty.value = true), { deep: true });
 	align-items: center;
 	gap: 10px;
 	padding: 8px 10px;
-	border-radius: var(--border-radius);
+	border-radius: var(--radius);
 	border: 1px solid var(--border-color);
 	background: var(--gray-50);
 	cursor: grab;
@@ -800,7 +827,7 @@ watch(print_format, () => (store.dirty.value = true), { deep: true });
 	justify-content: center;
 	width: 32px;
 	height: 32px;
-	border-radius: var(--border-radius);
+	border-radius: var(--radius);
 	background: var(--gray-200);
 	flex-shrink: 0;
 }
@@ -819,7 +846,7 @@ watch(print_format, () => (store.dirty.value = true), { deep: true });
 }
 
 .pfb-template-field {
-	font-size: 10px;
+	font-size: var(--text-tiny);
 	margin-top: 1px;
 }
 
@@ -831,13 +858,13 @@ watch(print_format, () => (store.dirty.value = true), { deep: true });
 }
 
 .pfb-templates-hint {
-	font-size: 11px;
+	font-size: var(--text-tiny);
 	line-height: 1.5;
 	margin-top: 6px;
 }
 
 .pfb-manage-link {
-	font-size: 10px;
+	font-size: var(--text-tiny);
 	font-weight: 400;
 	text-transform: none;
 	letter-spacing: 0;
@@ -849,7 +876,7 @@ watch(print_format, () => (store.dirty.value = true), { deep: true });
 	align-items: center;
 	gap: 8px;
 	padding: 6px 8px;
-	border-radius: var(--border-radius);
+	border-radius: var(--radius);
 	cursor: pointer;
 	margin-top: 2px;
 	font-size: var(--text-sm);
@@ -866,7 +893,7 @@ watch(print_format, () => (store.dirty.value = true), { deep: true });
 }
 
 .pfb-outline-idx {
-	font-size: 10px;
+	font-size: var(--text-tiny);
 	font-variant-numeric: tabular-nums;
 	min-width: 18px;
 	text-align: right;
@@ -894,7 +921,7 @@ watch(print_format, () => (store.dirty.value = true), { deep: true });
 }
 
 .pfb-margin-label {
-	font-size: 10px;
+	font-size: var(--text-tiny);
 }
 
 /* ── Empty state ─────────────────────────────────────────── */

@@ -24,7 +24,7 @@ from frappe.model import OPTIONAL_FIELDS, get_permitted_fields
 from frappe.model.base_document import DOCTYPES_FOR_DOCTYPE
 from frappe.model.document import Document
 from frappe.query_builder import Criterion, Field, Order, functions
-from frappe.query_builder.custom import Month, MonthName, Quarter
+from frappe.query_builder.custom import Month, MonthName, Quarter, Year
 
 CORE_DOCTYPES = DOCTYPES_FOR_DOCTYPE | frozenset(
 	(
@@ -193,6 +193,7 @@ FUNCTION_MAPPING = {
 	"MONTHNAME": MonthName,
 	"QUARTER": Quarter,
 	"MONTH": Month,
+	"YEAR": Year,
 }
 
 # Functions that accept '*' as an argument (e.g., COUNT(*))
@@ -265,12 +266,16 @@ class Engine:
 		self.is_aggregate_query = False
 		self._grouped_queries = set()
 
+		assert db_type in ("mariadb", "postgres", "sqlite"), f"unexpected db_type: {db_type}"
+
 		if isinstance(table, Table):
 			self.table = table
 			self.doctype = get_doctype_name(table.get_sql())
 		else:
 			self.doctype = table
 			self.table = qb.DocType(table)
+
+		assert isinstance(self.doctype, str) and self.doctype, "doctype must be a non-empty string"
 
 		if self.apply_permissions:
 			self.check_select_permission()
@@ -315,8 +320,10 @@ class Engine:
 		if for_update:
 			self.query = self.query.for_update(skip_locked=skip_locked, nowait=not wait)
 
-		if any(isinstance(f, functions.AggregateFunction) for f in getattr(self, "fields", [])):
-			# check if any field in select is aggregated (done to prevent breaking queries in postgres due to order by rule)
+		# check if any field in select is aggregated (done to prevent breaking queries in postgres due to
+		# order by rule). Use pypika's is_aggregate so aggregates *nested* in an expression are detected
+		# too (e.g. `Sum(a) - Sum(b)`), not just a top-level AggregateFunction.
+		if any(getattr(f, "is_aggregate", False) for f in getattr(self, "fields", [])):
 			self.is_aggregate_query = True
 
 		if group_by:
@@ -655,6 +662,38 @@ class Engine:
 				else OPERATOR_MAP["in"]
 			)
 			return operator_fn(_field, nodes or ("",))
+
+		# The `is` ("set"/"not set") operator compares against an empty string (`= ''`).
+		# MariaDB silently coerces `''` to the column's type (e.g. `0` for an int), but
+		# postgres rejects `date/numeric = ''` outright. Compare against the
+		# type-appropriate fallback instead so the same filter behaves identically on both
+		# backends (for a column that coerces `''` to its zero-value on MariaDB, the typed
+		# fallback yields the exact same match set). MariaDB keeps its existing path.
+		if self.is_postgres and _operator.casefold() == "is" and isinstance(_field, Field):
+			value_token = str(_value).strip().lower()
+			if value_token in ("set", "not set"):
+				is_field_name = (
+					field
+					if isinstance(field, str)
+					else (_field.name if hasattr(_field, "name") else str(_field))
+				)
+				if "." in is_field_name:
+					is_field_name = is_field_name.split(".")[-1]
+
+				fallback_sql = self._get_ifnull_fallback(doctype or self.doctype, is_field_name)
+				if fallback_sql == "''":
+					fallback_value = ""
+				elif fallback_sql.startswith("'") and fallback_sql.endswith("'"):
+					fallback_value = fallback_sql[1:-1]
+				else:
+					try:
+						fallback_value = int(fallback_sql)
+					except (ValueError, TypeError):
+						fallback_value = fallback_sql
+
+				if value_token == "set":
+					return _field != fallback_value
+				return _field.isnull() | (_field == fallback_value)
 
 		if (
 			self.is_postgres and _operator.casefold() == "like"
@@ -1399,6 +1438,8 @@ class Engine:
 				else:
 					order_direction = Order.asc if direction == "asc" else Order.desc
 
+				assert order_direction in (Order.asc, Order.desc), "order direction must be asc or desc"
+
 				parsed_field = self._validate_and_parse_field_for_clause(field_name, "Order By")
 				parsed_order_fields.append((parsed_field, order_direction))
 
@@ -1741,6 +1782,7 @@ class Engine:
 			if not user_permissions:
 				return match_filters
 
+			permission_filters = {}
 			for df in self.get_doctype_link_fields(self.doctype):
 				if df.get("ignore_user_permissions"):
 					continue
@@ -1764,7 +1806,10 @@ class Engine:
 							docs.append(doc)
 
 					if docs:
-						match_filters.append({options: docs})
+						permission_filters[options] = docs
+
+			if permission_filters:
+				match_filters.append(permission_filters)
 
 			return match_filters
 
@@ -2354,6 +2399,7 @@ class SQLFunctionParser:
 		if not isinstance(right, Term):
 			right = ValueWrapper(right)
 
+		assert isinstance(left, Term) and isinstance(right, Term), "operands must be pypika Terms"
 		expression = ArithmeticExpression(operator=operator, left=left, right=right)
 
 		if alias:
