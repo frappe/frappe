@@ -7,6 +7,8 @@ import { startRun, resumeRun } from "@/api/stream";
 
 let uid = 0;
 const nextId = () => `n${++uid}`;
+let auid = 0;
+const nextAttachmentId = () => `a${++auid}`;
 
 // ── state ───────────────────────────────────────────────────────────────────
 const agents = ref([]);
@@ -19,6 +21,9 @@ const sessionName = ref(null);
 const runName = ref(null);
 
 const messages = ref([]);
+// Composer attachments staged for the next turn: { uid, file, file_name, file_size, status, error }.
+// status: "uploading" | "ready" | "error".
+const attachments = ref([]);
 const sending = ref(false);
 const loaded = ref(false);
 const fullscreen = ref(false);
@@ -30,6 +35,7 @@ const focusTick = ref(0);
 // ── derived ───────────────────────────────────────────────────────────────
 const locked = computed(() => messages.value.length > 0);
 const needsSetup = computed(() => loaded.value && (!agents.value.length || !models.value.length));
+const uploading = computed(() => attachments.value.some((a) => a.status === "uploading"));
 const paused = computed(() => {
 	const last = messages.value[messages.value.length - 1];
 	return Boolean(last?.questions?.length);
@@ -73,7 +79,43 @@ function newChat() {
 	sessionName.value = null;
 	runName.value = null;
 	messages.value = [];
+	attachments.value = [];
 	focusTick.value++;
+}
+
+// ── attachments ────────────────────────────────────────────────────────────────
+function attachFiles(fileList) {
+	for (const f of Array.from(fileList || [])) {
+		const length = attachments.value.push({
+			uid: nextAttachmentId(),
+			file: null,
+			file_name: f.name,
+			file_size: f.size,
+			status: "uploading",
+			error: "",
+		});
+		// Grab the reactive proxy (not the raw object) so the async mutations below
+		// trigger updates; uploads run concurrently.
+		uploadAndStage(f, attachments.value[length - 1]);
+	}
+}
+
+async function uploadAndStage(f, item) {
+	try {
+		const uploaded = await api.uploadFile(f);
+		const chip = await api.attachFile(uploaded.name);
+		item.file = chip.file;
+		item.file_name = chip.file_name;
+		item.file_size = chip.file_size;
+		item.status = "ready";
+	} catch (e) {
+		item.status = "error";
+		item.error = e?.message || "";
+	}
+}
+
+function removeAttachment(uid) {
+	attachments.value = attachments.value.filter((a) => a.uid !== uid);
 }
 
 async function switchSession(name) {
@@ -81,15 +123,28 @@ async function switchSession(name) {
 	sessionName.value = name;
 	runName.value = null;
 	messages.value = [];
+	attachments.value = [];
 
 	const doc = await api.getSession(name);
 	selectedAgent.value = doc.agent;
 	selectedModel.value = doc.model || null;
 
+	// Attachments are linked to their turn by run; group so each user message
+	// can render its own chips.
+	const attachmentsByRun = {};
+	for (const a of doc.attachments || []) {
+		(attachmentsByRun[a.run] ||= []).push({ file_name: a.file_name, file_size: a.file_size });
+	}
+
 	let current = null;
 	for (const m of doc.messages || []) {
 		if (m.role === "user") {
-			messages.value.push({ id: nextId(), role: "user", content: m.content });
+			messages.value.push({
+				id: nextId(),
+				role: "user",
+				content: m.content,
+				attachments: attachmentsByRun[m.run] || [],
+			});
 		} else if (m.role === "assistant") {
 			const parts = [];
 			if (m.content) parts.push({ id: nextId(), type: "text", text: m.content });
@@ -139,9 +194,14 @@ async function restorePausedRun(session) {
 // ── sending / streaming ────────────────────────────────────────────────────────
 async function send(text) {
 	text = text.trim();
-	if (!text || sending.value || paused.value) return;
+	if (!text || sending.value || paused.value || uploading.value) return;
 
-	messages.value.push({ id: nextId(), role: "user", content: text });
+	const ready = attachments.value.filter((a) => a.status === "ready");
+	const files = ready.map((a) => a.file);
+	const chips = ready.map((a) => ({ file_name: a.file_name, file_size: a.file_size }));
+	attachments.value = [];
+
+	messages.value.push({ id: nextId(), role: "user", content: text, attachments: chips });
 	const assistant = pushAssistant();
 	sending.value = true;
 	requestScroll();
@@ -150,6 +210,7 @@ async function send(text) {
 		await startRun(
 			{
 				input: text,
+				...(files.length && { attachments: files }),
 				...(sessionName.value && { session: sessionName.value }),
 				...(selectedAgent.value && !sessionName.value && { agent: selectedAgent.value }),
 				...(selectedModel.value && { model: selectedModel.value }),
@@ -316,6 +377,7 @@ export function useStore() {
 		selectedModel,
 		sessionName,
 		messages,
+		attachments,
 		sending,
 		loaded,
 		fullscreen,
@@ -325,6 +387,7 @@ export function useStore() {
 		locked,
 		needsSetup,
 		paused,
+		uploading,
 		agentLabel,
 		modelLabel,
 		// actions
@@ -336,5 +399,7 @@ export function useStore() {
 		switchSession,
 		send,
 		answerQuestion,
+		attachFiles,
+		removeAttachment,
 	};
 }
