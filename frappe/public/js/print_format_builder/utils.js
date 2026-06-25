@@ -154,6 +154,128 @@ export async function render_jinja_html(html, doctype, docname) {
 	}
 }
 
+const SAFE_HTML_TAGS = new Set([
+	"a",
+	"abbr",
+	"b",
+	"blockquote",
+	"br",
+	"caption",
+	"cite",
+	"code",
+	"col",
+	"colgroup",
+	"dd",
+	"del",
+	"div",
+	"dl",
+	"dt",
+	"em",
+	"figcaption",
+	"figure",
+	"h1",
+	"h2",
+	"h3",
+	"h4",
+	"h5",
+	"h6",
+	"hr",
+	"i",
+	"img",
+	"ins",
+	"kbd",
+	"li",
+	"mark",
+	"ol",
+	"p",
+	"pre",
+	"q",
+	"s",
+	"samp",
+	"small",
+	"span",
+	"strong",
+	"sub",
+	"summary",
+	"sup",
+	"table",
+	"tbody",
+	"td",
+	"tfoot",
+	"th",
+	"thead",
+	"tr",
+	"u",
+	"ul",
+	"var",
+	"wbr",
+]);
+
+const SAFE_HTML_ATTRS = new Set([
+	"alt",
+	"cite",
+	"class",
+	"colspan",
+	"datetime",
+	"dir",
+	"height",
+	"href",
+	"lang",
+	"rowspan",
+	"scope",
+	"span",
+	"src",
+	"title",
+	"width",
+	"align",
+	"valign",
+	"border",
+	"cellpadding",
+	"cellspacing",
+]);
+
+export function sanitize_html(html) {
+	const root = document.createElement("div");
+	root.innerHTML = frappe.dom.remove_script_and_style(html || "");
+	(function clean(node) {
+		// Linked-list traversal so promoted children are visited immediately
+		let child = node.firstChild;
+		while (child) {
+			const next = child.nextSibling;
+			if (child.nodeType === Node.TEXT_NODE) {
+				child = next;
+				continue;
+			}
+			if (child.nodeType !== Node.ELEMENT_NODE) {
+				child.remove();
+				child = next;
+				continue;
+			}
+			if (!SAFE_HTML_TAGS.has(child.tagName.toLowerCase())) {
+				const first_promoted = child.firstChild;
+				child.replaceWith(...child.childNodes);
+				// Continue from first promoted child so they are sanitized too
+				child = first_promoted || next;
+				continue;
+			}
+			for (const attr of [...child.attributes]) {
+				const name = attr.name.toLowerCase();
+				if (!SAFE_HTML_ATTRS.has(name) || name.startsWith("on")) {
+					child.removeAttribute(attr.name);
+				} else if (name === "src") {
+					if (!/^(https?:|data:image\/)/i.test(attr.value.trim()))
+						child.removeAttribute(attr.name);
+				} else if (name === "href") {
+					if (!/^https?:/i.test(attr.value.trim())) child.removeAttribute(attr.name);
+				}
+			}
+			clean(child);
+			child = next;
+		}
+	})(root);
+	return root.innerHTML;
+}
+
 export function get_image_dimensions(src) {
 	return new Promise((resolve) => {
 		let img = new Image();
