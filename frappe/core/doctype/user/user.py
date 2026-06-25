@@ -134,6 +134,7 @@ class User(Document):
 		roles: DF.Table[HasRole]
 		search_bar: DF.Check
 		send_me_a_copy: DF.Check
+		send_read_receipt: DF.Check
 		send_welcome_email: DF.Check
 		show_absolute_datetime_in_timeline: DF.Check
 		simultaneous_sessions: DF.Int
