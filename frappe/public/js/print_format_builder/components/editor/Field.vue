@@ -68,6 +68,11 @@
 										class="preview-table-img"
 										:alt="col.label || col.fieldname"
 									/>
+									<div
+										v-else-if="is_html_content_field(col)"
+										class="preview-table-html"
+										v-html="format_cell(row, col)"
+									></div>
 									<span v-else>{{ format_cell(row, col) }}</span>
 								</td>
 							</tr>
@@ -288,14 +293,22 @@ function is_image_field(col, value) {
 }
 
 const NUMERIC_FIELDTYPES = new Set(["Currency", "Float", "Int", "Percent"]);
+const HTML_CONTENT_FIELDTYPES = new Set(["Text Editor", "Long Text"]);
+
 function numeric_align_class(col) {
 	return NUMERIC_FIELDTYPES.has(col?.fieldtype) ? "col-numeric" : "";
+}
+
+function is_html_content_field(col) {
+	return HTML_CONTENT_FIELDTYPES.has(col?.fieldtype);
 }
 
 function format_cell(row, col) {
 	const raw = row[col.fieldname];
 	if (raw === null || raw === undefined || raw === "") return "";
 	if (col.fieldtype === "Check") return raw ? __("Yes") : __("No");
+	// HTML content fields: value is already HTML, return as-is for v-html rendering
+	if (HTML_CONTENT_FIELDTYPES.has(col.fieldtype)) return raw;
 	try {
 		const formatted = frappe.format(raw, col, { only_value: true }, row);
 		if (typeof formatted === "string" && formatted.includes("<")) {
@@ -816,6 +829,11 @@ watch(
 	max-width: 80px;
 	object-fit: contain;
 	display: block;
+}
+
+.preview-table-html {
+	word-break: break-word;
+	white-space: normal;
 }
 
 .preview-field-img {
