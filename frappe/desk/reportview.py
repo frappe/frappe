@@ -13,14 +13,44 @@ import frappe
 import frappe.permissions
 from frappe import _
 from frappe.core.doctype.access_log.access_log import make_access_log
-from frappe.model import child_table_fields, default_fields, get_permitted_fields, optional_fields
+from frappe.model import (
+	child_table_fields,
+	datetime_fields,
+	default_fields,
+	get_permitted_fields,
+	no_value_fields,
+	numeric_fieldtypes,
+	optional_fields,
+)
 from frappe.model.base_document import get_controller
 from frappe.model.qb_query import DatabaseQuery
 from frappe.model.utils import is_virtual_doctype
+from frappe.query_builder import Case
+from frappe.query_builder.functions import Max
 from frappe.utils import add_user_info, cint, format_duration
 from frappe.utils.data import sbool
 
 DISALLOWED_PARAMS = ("cmd", "data", "ignore_permissions", "view", "user", "csrf_token", "join")
+
+# Fieldtypes stored as numeric columns; a value of 0 is treated as "no data" for these.
+# Rating and Duration are numeric columns but are absent from frappe.model.numeric_fieldtypes.
+NUMERIC_DATA_FIELDTYPES = frozenset(numeric_fieldtypes) | {"Rating", "Duration"}
+
+# Standard framework columns a column picker can offer, mapped to the fieldtype used to judge
+# emptiness. Mirrors frappe.model.std_fields, minus `_comments` (whose "[]" default would read as
+# data). `name` is included so the export pickers keep the ID column (the key for updates) checked.
+STANDARD_DATA_COLUMNS = {
+	"name": "Data",
+	"owner": "Link",
+	"creation": "Datetime",
+	"modified": "Datetime",
+	"modified_by": "Link",
+	"idx": "Int",
+	"docstatus": "Int",
+	"_user_tags": "Data",
+	"_assign": "Text",
+	"_liked_by": "Data",
+}
 
 
 @frappe.whitelist()
@@ -99,6 +129,100 @@ def get_count() -> int | None:
 
 def execute(doctype, *args, **kwargs):
 	return DatabaseQuery(doctype).execute(*args, **kwargs)
+
+
+@frappe.whitelist()
+@frappe.read_only()
+def get_columns_with_data(doctype: str, filters: str | list | None = None) -> dict[str, list[str]]:
+	"""Return, per (child) doctype, the fieldnames that hold at least one non-empty value
+	among the records matching ``filters``.
+
+	Powers the "Select columns with data" action of the report view's Pick Columns dialog.
+	Emptiness is resolved on the server so that columns which are not currently loaded on the
+	client are considered as well.
+	"""
+	frappe.has_permission(doctype, throw=True)
+
+	# Virtual doctypes have no SQL table to aggregate over.
+	if is_virtual_doctype(doctype):
+		return {}
+
+	if isinstance(filters, str):
+		filters = json.loads(filters)
+
+	# A permission- and filter-aware subquery of the matching parent names, reused to scope every
+	# count to exactly the rows the report itself would show (same approach as get_count).
+	name_query = execute(
+		doctype,
+		fields=[f"`tab{doctype}`.name"],
+		filters=filters,
+		order_by=None,
+		run=0,
+	)
+
+	columns_with_data = {}
+
+	parent_columns = _columns_with_data(doctype, name_query)
+	if parent_columns:
+		columns_with_data[doctype] = parent_columns
+
+	# A child doctype may back more than one table field; check each only once.
+	child_doctypes = {df.options for df in frappe.get_meta(doctype).get_table_fields()}
+	for child_doctype in child_doctypes:
+		child_columns = _columns_with_data(child_doctype, name_query, parent_doctype=doctype)
+		if child_columns:
+			columns_with_data[child_doctype] = child_columns
+
+	return columns_with_data
+
+
+def _columns_with_data(doctype: str, name_query, parent_doctype: str | None = None) -> list[str]:
+	"""Return the fieldnames of ``doctype`` whose column holds at least one non-empty value among
+	the rows selected by ``name_query`` (a subquery of the permitted parent names). Both the
+	doctype's own fields and the standard columns the picker offers (Created On, owner, ...) are
+	checked; fields the user is not permitted to read (e.g. a higher permlevel) are skipped."""
+	table_columns = set(frappe.db.get_table_columns(doctype))
+	permitted_fields = set(get_permitted_fields(doctype, parenttype=parent_doctype))
+
+	fieldtypes = {df.fieldname: df.fieldtype for df in frappe.get_meta(doctype).fields}
+	for fieldname, fieldtype in STANDARD_DATA_COLUMNS.items():
+		fieldtypes.setdefault(fieldname, fieldtype)
+
+	fields = [
+		(fieldname, fieldtype)
+		for fieldname, fieldtype in fieldtypes.items()
+		if fieldtype not in no_value_fields and fieldname in table_columns and fieldname in permitted_fields
+	]
+	if not fields:
+		return []
+
+	table = frappe.qb.DocType(doctype)
+	if parent_doctype:
+		scope = (table["parenttype"] == parent_doctype) & table["parent"].isin(name_query)
+	else:
+		scope = table["name"].isin(name_query)
+
+	query = frappe.qb.from_(table).where(scope)
+	for fieldname, fieldtype in fields:
+		has_value = _has_value_condition(table[fieldname], fieldtype)
+		query = query.select(Max(Case().when(has_value, 1).else_(0)).as_(fieldname))
+
+	row = query.run(as_dict=True)
+	return [fieldname for fieldname, has_data in row[0].items() if has_data] if row else []
+
+
+def _has_value_condition(column, fieldtype: str):
+	"""Query-builder predicate that is true when ``column`` holds meaningful data.
+
+	Numeric columns treat 0 as empty (an all-zero column carries no useful data to export);
+	date/time columns are empty only when NULL; all other columns must be both non-NULL and a
+	non-empty string.
+	"""
+	if fieldtype in NUMERIC_DATA_FIELDTYPES:
+		return column != 0
+	if fieldtype in datetime_fields:
+		return column.isnotnull()
+	return column.isnotnull() & (column != "")
 
 
 def get_form_params():
