@@ -349,6 +349,22 @@ function clone_field(df) {
 function add_to_layout(df) {
 	const sections = layout.value?.sections;
 	if (!sections || !sections.length) return;
+
+	// If a field is selected, insert right after it in the same column
+	const selected_field = store.selected_field.value;
+	if (selected_field) {
+		for (const section of sections) {
+			for (const column of section.columns) {
+				const idx = column.fields.indexOf(selected_field);
+				if (idx !== -1) {
+					column.fields.splice(idx + 1, 0, clone_field(df));
+					return;
+				}
+			}
+		}
+	}
+
+	// Otherwise add to the last column of the selected (or last) section
 	const target_section =
 		store.selected_section.value && sections.includes(store.selected_section.value)
 			? store.selected_section.value
