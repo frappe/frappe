@@ -48,9 +48,8 @@ function make_request(url, headers, host, opts = {}, _redirects = 0) {
 		const req = lib.request(options, (res) => {
 			if (res.statusCode >= 300 && res.statusCode < 400 && res.headers.location) {
 				res.resume();
-				return resolve(
-					make_request(res.headers.location, headers, host, opts, _redirects + 1)
-				);
+				const redirectUrl = new URL(res.headers.location, parsed).toString();
+				return resolve(make_request(redirectUrl, headers, host, opts, _redirects + 1));
 			}
 			let data = "";
 			res.on("data", (chunk) => {
