@@ -78,6 +78,7 @@
 							item-key="id"
 							handle=".drag-handle"
 							:emptyInsertThreshold="100"
+							@add="select_section"
 						>
 							<template #item="{ element }">
 								<Field
