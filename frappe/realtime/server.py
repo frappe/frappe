@@ -36,6 +36,27 @@ from frappe.realtime.dispatch import wire
 logger = logging.getLogger("frappe.realtime")
 
 
+def patch_pre_existing_stdlib_thread_locks() -> None:
+	"""
+	Thread locks can cause deadlocks when getting used in greenlets.
+	We import frappe model during preload and the locks gets created that time
+	and copied over to the realtime process.
+
+	So, after patch we need to re-init the locks, so that gevent patch can
+	make it gevent.threading.Lock
+	"""
+	import sys
+	import threading
+
+	if "frappe" not in sys.modules:
+		return
+
+	import frappe as _frappe
+
+	if hasattr(_frappe, "_redis_init_lock"):
+		_frappe._redis_init_lock = threading.Lock()
+
+
 def ensure_thread_context_isolation() -> None:
 	"""
 	Python 3.14's thread_inherit_context makes new threads copy the parent's
@@ -145,6 +166,8 @@ def serve(config: RealtimeConfig | None = None) -> None:
 
 	assert_no_mysqlclient()
 	ensure_thread_context_isolation()
+	patch_pre_existing_stdlib_thread_locks()
+
 	config = config or get_config()
 
 	if os.path.isdir("sites"):
