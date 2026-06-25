@@ -347,13 +347,17 @@ function clone_field(df) {
 }
 
 function add_to_layout(df) {
-	const sections = layout.value?.sections;
+	const lv = layout.value;
+	const sections = lv?.sections;
 	if (!sections || !sections.length) return;
 
-	// If a field is selected, insert right after it in the same column
+	// If a field is selected, insert right after it in the same column.
+	// Search body sections and header/footer zones so a selected header field
+	// is used as the anchor when inserting from the panel.
 	const selected_field = store.selected_field.value;
 	if (selected_field && !selected_field.remove) {
-		for (const section of sections) {
+		const all_zones = [lv?.header, lv?.footer, ...sections].filter(Boolean);
+		for (const section of all_zones) {
 			for (const column of section.columns) {
 				const idx = column.fields.indexOf(selected_field);
 				if (idx !== -1) {
@@ -364,11 +368,13 @@ function add_to_layout(df) {
 		}
 	}
 
-	// Otherwise add to the last column of the selected (or last) section
-	const target_section =
-		store.selected_section.value && sections.includes(store.selected_section.value)
-			? store.selected_section.value
-			: sections.slice(-1)[0];
+	// Otherwise add to the last column of the selected (or last body) section.
+	// Header/footer zone sections are valid targets when they are selected.
+	const selected = store.selected_section.value;
+	const is_valid_target =
+		selected &&
+		(sections.includes(selected) || selected === lv?.header || selected === lv?.footer);
+	const target_section = is_valid_target ? selected : sections.slice(-1)[0];
 	if (!target_section) return;
 	const last_column = target_section.columns.slice(-1)[0];
 	if (!last_column) return;
