@@ -538,7 +538,10 @@
 					<button
 						class="btn btn-xs btn-danger-subtle"
 						@click="
-							selected_section.remove = true;
+							const idx = layout.value.sections.indexOf(
+								store.selected_section.value
+							);
+							if (idx !== -1) layout.value.sections.splice(idx, 1);
 							store.selected_section.value = null;
 						"
 					>
