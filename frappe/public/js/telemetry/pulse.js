@@ -45,7 +45,9 @@ class PulseProvider {
 			apiKey: t.key,
 			site: t.site,
 			enabled: t.enabled,
-			// user/team come from boot.telemetry via the client's default context
+			// default context the client stamps onto every event
+			user: t.user,
+			team: t.team,
 		});
 	}
 
