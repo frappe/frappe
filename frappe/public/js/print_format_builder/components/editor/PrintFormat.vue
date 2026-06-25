@@ -33,7 +33,7 @@
 				@add="on_section_add"
 			>
 				<template #item="{ element, index }">
-					<div class="section-with-insert">
+					<div v-if="!element.remove" class="section-with-insert">
 						<SectionInsert @insert="add_section_at(index)" />
 						<PrintFormatSection :section="element" />
 					</div>
