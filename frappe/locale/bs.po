@@ -3,7 +3,7 @@ msgstr ""
 "Project-Id-Version: frappe\n"
 "Report-Msgid-Bugs-To: developers@frappe.io\n"
 "POT-Creation-Date: 2026-06-24 16:55+0000\n"
-"PO-Revision-Date: 2026-06-24 20:34\n"
+"PO-Revision-Date: 2026-06-25 20:55\n"
 "Last-Translator: developers@frappe.io\n"
 "Language-Team: Bosnian\n"
 "MIME-Version: 1.0\n"
@@ -22929,7 +22929,7 @@ msgstr "S3 Backup Settings"
 
 #: frappe/integrations/doctype/s3_backup_settings/s3_backup_settings.js:20
 msgid "S3 Backup has been queued. You can track the progress <a href='/app/rq-job/{0}' target='_blank'>here</a>."
-msgstr ""
+msgstr "S3 Sigurnosna kopija je stavljena u red čekanja. Napredak možete pratiti <a href='/app/rq-job/{0}' target='_blank'>ovdje</a>."
 
 #. Label of a Section Break field in DocType 'S3 Backup Settings'
 #: frappe/integrations/doctype/s3_backup_settings/s3_backup_settings.json
