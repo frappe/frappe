@@ -103,6 +103,36 @@ class TestEventQueue(TestPulseClient):
 		for i, event in enumerate(requeued):
 			self.assertEqual(event["event_name"], event_names[i])
 
+	def test_requeue_survives_a_full_queue(self):
+		"""A failed batch requeued onto a full queue must not be trimmed away:
+		overflow should shed the newest captures, not the events being retried."""
+		eq = EventQueue()
+		queue_size = eq.queue_size
+
+		def make(name):
+			return {
+				"event_name": name,
+				"captured_at": "2026-01-01T00:00:00",
+				"app": "frappe",
+				"user": "test@example.com",
+				"site": "test.localhost",
+				"properties": {},
+			}
+
+		# Ingest is down: this batch was collected and exhausted its retries.
+		failed = [make(f"failed_{i}") for i in range(5)]
+		# Meanwhile fresh captures refilled the queue to capacity.
+		for i in range(queue_size):
+			eq.add(make(f"fresh_{i}"))
+		self.assertEqual(eq.length, queue_size)
+
+		eq._requeue_events(failed)
+
+		# Still bounded, and the failed batch sits at the consume end intact.
+		self.assertEqual(eq.length, queue_size)
+		drained = eq.collect(batch_size=len(failed))
+		self.assertEqual([e["event_name"] for e in drained], [e["event_name"] for e in failed])
+
 
 class TestRateLimiting(TestPulseClient):
 	def test_ratelimit_basic(self):
@@ -355,7 +385,8 @@ class TestCapture(TestPulseClient):
 		capture("test_event", site="test.localhost", user="fc_priya", team="team_priya")
 
 		events = eq.collect(batch_size=1)
-		self.assertEqual(events[0]["user"], "fc_priya")
+		# user is always anonymized (the privacy gate); team is the raw group id
+		self.assertEqual(events[0]["user"], anonymize_user("fc_priya"))
 		self.assertEqual(events[0]["team"], "team_priya")
 
 	@patch("frappe.utils.telemetry.pulse.client.is_enabled")

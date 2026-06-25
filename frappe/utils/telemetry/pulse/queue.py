@@ -93,7 +93,10 @@ class EventQueue:
 		# Preserve original processing order (FIFO): we pop from right, so re-add in reverse.
 		for event in reversed(events):
 			frappe.cache.rpush(self.queue, frappe.as_json(event))
-		frappe.cache.ltrim(self.queue, 0, self.queue_size - 1)
+		# Keep the rightmost (consume-end) queue_size: the requeued batch sits there and
+		# must survive. Trimming to the left here would drop it; instead overflow sheds
+		# the newest captures from the left, matching the producer's keep-newest bound.
+		frappe.cache.ltrim(self.queue, -self.queue_size, -1)
 
 	def _decode_event(self, event_json):
 		event_json = event_json.decode()
