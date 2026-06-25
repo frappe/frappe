@@ -6,8 +6,9 @@ from frappe.tests import IntegrationTestCase
 
 from flow.ai.doctype.ai_session_attachment.ai_session_attachment import (
 	extract_attachment,
+	resolve_attachment,
 	stage_attachment,
-	staged_text,
+	staged_attachment,
 )
 
 
@@ -74,18 +75,33 @@ class TestStageAttachment(IntegrationTestCase):
 		frappe.set_user("Administrator")
 		frappe.db.rollback()
 
-	def test_stage_caches_text_and_returns_chip_metadata(self):
+	def test_stage_caches_extraction_and_returns_chip_metadata(self):
 		file_doc = _file(content="staged body")
 		chip = stage_attachment(file_doc.name)
 		self.assertEqual(set(chip), {"file", "file_name", "file_size"})
 		self.assertEqual(chip["file"], file_doc.name)
-		self.assertEqual(staged_text(file_doc.name), "staged body")
+		self.assertEqual(staged_attachment(file_doc.name)["extracted_text"], "staged body")
 
-	def test_staged_text_is_user_scoped(self):
+	def test_staged_attachment_is_user_scoped(self):
 		file_doc = _file(content="staged body")
 		stage_attachment(file_doc.name)  # cached under Administrator
 		frappe.set_user(_ensure_user("attach-scope@example.com"))
-		self.assertIsNone(staged_text(file_doc.name))
+		self.assertIsNone(staged_attachment(file_doc.name))
 
-	def test_staged_text_missing_returns_none(self):
-		self.assertIsNone(staged_text("no-such-file"))
+	def test_staged_attachment_missing_returns_none(self):
+		self.assertIsNone(staged_attachment("no-such-file"))
+
+	def test_resolve_uses_cache_then_falls_back_to_extraction(self):
+		file_doc = _file(content="resolved body")
+		stage_attachment(file_doc.name)
+		self.assertEqual(resolve_attachment(file_doc.name)["extracted_text"], "resolved body")
+
+		frappe.cache.delete_value(f"chat_attachment:{frappe.session.user}:{file_doc.name}")
+		# Cache miss re-extracts (and re-checks permission).
+		self.assertEqual(resolve_attachment(file_doc.name)["extracted_text"], "resolved body")
+
+	def test_resolve_on_cache_miss_rejects_unreadable_file(self):
+		file_doc = _file(content="secret body")  # owned by Administrator, private
+		frappe.set_user(_ensure_user("attach-miss@example.com"))
+		with self.assertRaises(frappe.PermissionError):
+			resolve_attachment(file_doc.name)
