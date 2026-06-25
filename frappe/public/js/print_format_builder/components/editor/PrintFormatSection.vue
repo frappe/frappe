@@ -329,6 +329,12 @@ function remove_column(index) {
 }
 
 .column:has(.sortable-ghost) .empty-drop-zone {
+	background: transparent;
+	border-color: var(--blue-300);
+	border-style: solid;
+}
+
+.column:has(.sortable-ghost) .empty-drop-zone-hint {
 	display: none;
 }
 
