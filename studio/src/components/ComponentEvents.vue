@@ -31,7 +31,14 @@
 			>
 				<template #default>
 					<div class="flex flex-col gap-3">
-						<FormControl type="combobox" :options="eventOptions" label="Event" v-model="newEvent.event" />
+						<FormControl
+							type="combobox"
+							:options="eventOptions"
+							:allowCustomValue="true"
+							label="Event"
+							v-model="newEvent.event"
+							description="Type any event, optionally with modifiers — e.g. keydown.enter, click.prevent, submit.prevent.stop"
+						/>
 						<FormControl
 							type="combobox"
 							:options="Object.keys(actions)"
