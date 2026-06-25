@@ -45,6 +45,13 @@ class TestContact(IntegrationTestCase):
 			"John Jane Doe",
 		)
 
+	def test_address_query_accepts_native_list(self):
+		from frappe.contacts.doctype.contact.contact import address_query
+
+		# links as a native list of dicts instead of a JSON string (frappe.parse_json passthrough)
+		result = address_query(links=[{"link_doctype": "User", "link_name": "Administrator"}])
+		self.assertIsInstance(result, list)
+
 	def test_get_contact_list(self):
 		# First time from database
 		results = get_contact_list("_Test Supplier")

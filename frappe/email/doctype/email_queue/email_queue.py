@@ -493,8 +493,7 @@ def retry_sending(queues: str | list[str]):
 	if not frappe.has_permission("Email Queue", throw=True):
 		return
 
-	if isinstance(queues, str):
-		queues = json.loads(queues)
+	queues = frappe.parse_json(queues)
 
 	if not queues:
 		return

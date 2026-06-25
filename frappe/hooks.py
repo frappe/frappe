@@ -274,6 +274,7 @@ scheduler_events = {
 		"frappe.automation.doctype.auto_repeat.auto_repeat.make_auto_repeat_entry",
 		"frappe.core.doctype.log_settings.log_settings.run_log_clean_up",
 		"frappe.core.doctype.user_invitation.user_invitation.mark_expired_invitations",
+		"frappe.core.doctype.duckdb_sync.duckdb_sync.cleanup_old_syncs",
 	],
 	"weekly_long": [
 		"frappe.desk.form.document_follow.send_weekly_updates",
@@ -477,6 +478,10 @@ extend_bootinfo = [
 get_changelog_feed = "frappe.desk.doctype.changelog_feed.changelog_feed.get_feed"
 
 export_python_type_annotations = True
+
+# Send non-GET requests for this app's endpoints as native `application/json`
+# bodies instead of form-encoded, per-key JSON-stringified values.
+use_json_request_body = True
 
 standard_help_items = [
 	{

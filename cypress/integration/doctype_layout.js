@@ -69,7 +69,7 @@ context("DocType Layout", () => {
 
 		// frm.dirty() + frm.refresh_field() cause an async re-render; wait for the
 		// "Not Saved" pill to appear before querying the tab.
-		cy.get(".title-area .indicator-pill").should("contain.text", "Not Saved");
+		cy.get('[data-testid="page-status"]').should("contain.text", "Not Saved");
 
 		// Wait for the form builder bundle to load and initialize before clicking the tab.
 		// cy.window().its("frappe").its("layout_builder").should("exist");

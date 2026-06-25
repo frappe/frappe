@@ -202,7 +202,7 @@ class IntegrationTestUserInvitation(IntegrationTestCase):
 		).insert()
 		self.assertEqual(len(frappe.get_all("User", filters={"email": invitation.email}, pluck="name")), 0)
 		self.assertEqual(len(self.get_email_names(False)), 1)
-		key = invitation._after_insert()
+		key = invitation.send_invitation_mail()
 		self.assertEqual(len(self.get_email_names(False)), 2)
 		_accept_invitation(key, True)
 		res = frappe.local.response
@@ -225,7 +225,7 @@ class IntegrationTestUserInvitation(IntegrationTestCase):
 		original_disable_user_pass_login = frappe.get_system_settings("disable_user_pass_login")
 		frappe.db.set_single_value("System Settings", "disable_user_pass_login", 1)
 		self.assertEqual(len(self.get_email_names(False)), 1)
-		key = invitation._after_insert()
+		key = invitation.send_invitation_mail()
 		self.assertEqual(len(self.get_email_names(False)), 2)
 		_accept_invitation(key, True)
 		frappe.db.set_single_value(

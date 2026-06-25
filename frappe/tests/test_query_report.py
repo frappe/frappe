@@ -1,8 +1,11 @@
 # Copyright (c) 2019, Frappe Technologies Pvt. Ltd. and Contributors
 # License: MIT. See LICENSE
 
+import datetime
+import json
+
 import frappe
-from frappe.desk.query_report import build_xlsx_data, export_query, run
+from frappe.desk.query_report import build_xlsx_data, export_query, format_fields, run
 from frappe.tests import IntegrationTestCase
 from frappe.utils.xlsxutils import XLSXMetadata, XLSXStyleBuilder, make_xlsx
 
@@ -15,6 +18,66 @@ class TestQueryReport(IntegrationTestCase):
 
 	def tearDown(self):
 		frappe.db.rollback()
+
+	def test_save_report_accepts_native_columns_and_filters(self):
+		from frappe.desk.query_report import save_report
+
+		frappe.set_user("Administrator")
+		ref = frappe.get_doc(
+			{
+				"doctype": "Report",
+				"ref_doctype": "ToDo",
+				"report_name": "Native Save Reference " + frappe.generate_hash(length=6),
+				"report_type": "Report Builder",
+				"is_standard": "No",
+			}
+		).insert(ignore_permissions=True)
+
+		custom_name = "Native Save Custom " + frappe.generate_hash(length=6)
+		frappe.get_doc(
+			{
+				"doctype": "Report",
+				"report_name": custom_name,
+				"json": '{"columns":[],"filters":[]}',
+				"ref_doctype": "ToDo",
+				"is_standard": "No",
+				"report_type": "Custom Report",
+				"reference_report": ref.name,
+			}
+		).insert(ignore_permissions=True)
+
+		# columns as a native list and filters as a native dict (frappe.parse_json passthrough)
+		docname = save_report(
+			ref.name, custom_name, columns=[{"fieldname": "name"}], filters={"status": "Open"}
+		)
+		saved = json.loads(frappe.get_doc("Report", docname).json)
+		self.assertEqual(saved["columns"], [{"fieldname": "name"}])
+		self.assertEqual(saved["filters"], {"status": "Open"})
+
+	def test_export_query_coerces_non_list_visible_idx(self):
+		frappe.set_user("Administrator")
+		report = frappe.get_doc(
+			{
+				"doctype": "Report",
+				"report_name": "Native Export Query " + frappe.generate_hash(length=6),
+				"ref_doctype": "ToDo",
+				"report_type": "Report Builder",
+				"is_standard": "No",
+				"roles": [{"role": "System Manager"}],
+			}
+		).insert(ignore_permissions=True)
+
+		# visible_idx as a non-list, non-str value is coerced to [] (the new elif branch).
+		# The coercion runs before the report executes, so the call must complete without the
+		# TypeError that a non-list visible_idx would otherwise cause downstream.
+		frappe.local.form_dict = frappe._dict(
+			report_name=report.name,
+			file_format_type="CSV",
+			visible_idx=5,
+		)
+		frappe.local.response = frappe._dict()
+		export_query()
+		self.assertIn("type", frappe.local.response)
 
 	def test_xlsx_data_with_multiple_datatypes(self):
 		"""Test exporting report using rows with multiple datatypes (list, dict)"""
@@ -89,6 +152,49 @@ class TestQueryReport(IntegrationTestCase):
 		for row in xlsx_data:
 			# column_b should be 'str' even with composite cell value
 			self.assertEqual(type(row[1]), str)
+
+	def test_xlsx_export_preserves_date_objects(self):
+		"""Date/Datetime columns must reach Excel as real date objects, while CSV keeps strings"""
+
+		posting_date = datetime.date(2026, 6, 1)
+		created_on = datetime.datetime(2026, 6, 1, 9, 30)
+
+		def make_data():
+			return frappe._dict(
+				report_name="",
+				columns=[
+					{"label": "Posting Date", "fieldname": "posting_date", "fieldtype": "Date"},
+					{"label": "Created On", "fieldname": "created_on", "fieldtype": "Datetime"},
+				],
+				result=[{"posting_date": posting_date, "created_on": created_on}],
+				filters={},
+				applied_filters={},
+			)
+
+		# Excel: date objects are preserved so make_xlsx can write real date cells
+		excel_data = make_data()
+		format_fields(excel_data, "Excel")
+		self.assertEqual(excel_data.result[0]["posting_date"], posting_date)
+		self.assertIsInstance(excel_data.result[0]["created_on"], datetime.datetime)
+
+		# build_xlsx_data passes the date through untouched for the Excel sheet
+		xlsx_data, _, styles = build_xlsx_data(excel_data, build_styles=True)
+		self.assertIsInstance(xlsx_data[1][0], datetime.date)
+		self.assertIsInstance(xlsx_data[1][1], datetime.datetime)
+
+		# the Date column carries a date number_format so Excel renders it as a date
+		date_style = {}
+		col0_style_ids = styles["column_styles"].get(0)
+		self.assertIsNotNone(col0_style_ids, "No column style registered for the Date column")
+		for sid in col0_style_ids:
+			date_style.update(styles["styles"][sid])
+		self.assertIn("num_format", date_style)
+
+		# CSV (default): dates are stringified for display
+		csv_data = make_data()
+		format_fields(csv_data)
+		self.assertIsInstance(csv_data.result[0]["posting_date"], str)
+		self.assertIsInstance(csv_data.result[0]["created_on"], str)
 
 	def test_csv(self):
 		from csv import QUOTE_ALL, QUOTE_MINIMAL, QUOTE_NONE, QUOTE_NONNUMERIC, DictReader

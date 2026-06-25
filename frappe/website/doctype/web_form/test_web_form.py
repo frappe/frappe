@@ -5,7 +5,7 @@ import json
 import frappe
 from frappe.tests import IntegrationTestCase
 from frappe.utils import set_request
-from frappe.website.doctype.web_form.web_form import accept
+from frappe.website.doctype.web_form.web_form import accept, delete_multiple
 from frappe.website.serve import get_response_content
 
 EXTRA_TEST_RECORD_DEPENDENCIES = ["Web Form"]
@@ -32,6 +32,30 @@ class TestWebForm(IntegrationTestCase):
 
 		self.event_name = frappe.db.get_value("Event", {"subject": "_Test Event Web Form"})
 		self.assertTrue(self.event_name)
+
+	def test_accept_and_delete_multiple_accept_native_payloads(self):
+		frappe.set_user("Administrator")
+
+		# accept with a native dict instead of a JSON string (frappe.parse_json passthrough)
+		accept(
+			web_form="manage-events",
+			data={
+				"doctype": "Event",
+				"subject": "_Test Event Web Form Native",
+				"description": "_Test Event Description",
+				"starts_on": "2014-09-09",
+			},
+		)
+		event_name = frappe.db.get_value("Event", {"subject": "_Test Event Web Form Native"})
+		self.assertTrue(event_name)
+
+		web_form = frappe.get_doc("Web Form", "manage-events")
+		web_form.allow_delete = 1
+		web_form.save(ignore_permissions=True)
+
+		# delete_multiple with a native list of docnames
+		delete_multiple("manage-events", [event_name])
+		self.assertFalse(frappe.db.exists("Event", event_name))
 
 	def test_edit(self):
 		self.test_accept()

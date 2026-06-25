@@ -63,7 +63,7 @@
 		</span>
 		<span class="actions" style="flex-shrink: 0">
 			{% if (doc._doc_status && doc._doc_status_indicator) { %}
-			<span class="indicator-pill {%= doc._doc_status_indicator %}"
+			<span class="es-badge" data-theme="{%= doc._doc_status_indicator %}"
 				title="{%= __(doc._doc_status) %}"
 				style="order: -1">
 				<span class="hidden-xs small">

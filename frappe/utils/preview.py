@@ -41,13 +41,11 @@ def capture_screenshot(
 	"""Drive Chromium over CDP, reusing the PDF generator's process + lifecycle:
 	register the browser so Chromium isn't torn down mid-use, and reset the
 	singleton on crash so the next request gets a fresh instance."""
+	from frappe.utils.chromium import CDPSocketClient, ChromiumManager, Page
 	from frappe.utils.pdf import get_host_url
-	from frappe.utils.pdf_generator.cdp_connection import CDPSocketClient
-	from frappe.utils.pdf_generator.chrome_pdf_generator import ChromePDFGenerator
-	from frappe.utils.pdf_generator.page import Page
 
 	image_format = get_image_format(format)
-	generator = ChromePDFGenerator()
+	generator = ChromiumManager()
 	browser_id = frappe.utils.random_string(10)
 	generator.add_browser(browser_id)
 	session = page = None
@@ -88,7 +86,13 @@ def capture_screenshot(
 			safe_execute(session and session.disconnect)
 			generator.remove_browser(browser_id)
 	except Exception:
-		generator._close_browser()  # crashed Chrome → drop the poisoned singleton
+		# Only reset the singleton when the local Chrome process has actually exited.
+		# - proc is None: external chromium_websocket_url is in use — no local process
+		#   to check; transient network errors must not reset the singleton.
+		# - proc.poll() is None: local process is still running — error is application-level.
+		proc = generator._chromium_process
+		if proc is not None and proc.poll() is not None:
+			generator._close_browser()
 		raise
 
 

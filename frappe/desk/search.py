@@ -84,7 +84,7 @@ def search_widget(
 	start: int = 0,
 	page_length: int = 10,
 	filters: str | None | dict | list = None,
-	filter_fields: str | None = None,
+	filter_fields: str | list | None = None,
 	as_dict: bool = False,
 	reference_doctype: str | None = None,
 	ignore_user_permissions: bool = False,
@@ -221,7 +221,7 @@ def search_widget(
 	# format a list of fields combining search fields and filter fields
 	fields = get_std_fields_list(meta, searchfield or "name")
 	if filter_fields:
-		fields = list(set(fields + json.loads(filter_fields)))
+		fields = list(set(fields + frappe.parse_json(filter_fields)))
 	formatted_fields = [f.strip() for f in fields]
 
 	# Insert title field query after name

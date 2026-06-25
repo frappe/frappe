@@ -167,12 +167,12 @@ def is_valid_access_token(access_token: str) -> bool:
 
 
 @frappe.whitelist(methods=["GET"])
-def callback(state: str, code: str | None = None, error: str | None = None) -> None:
+def callback(state: str | dict, code: str | None = None, error: str | None = None) -> None:
 	"""Common callback for google integrations.
 	Invokes functions using `frappe.get_attr` and also adds required (keyworded) arguments
 	along with committing and redirecting us back to frappe site."""
 
-	state = json.loads(state)
+	state = frappe.parse_json(state)
 	redirect = state.pop("redirect", "/desk")
 	success_query_param = state.pop("success_query_param", "")
 	failure_query_param = state.pop("failure_query_param", "")

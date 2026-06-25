@@ -2,7 +2,6 @@
 # License: MIT. See LICENSE
 
 import itertools
-import json
 from collections import defaultdict
 
 import frappe
@@ -41,8 +40,7 @@ def get_submitted_linked_docs(
 	        you will be finding documents using parent document and parent document links.
 	"""
 
-	if isinstance(ignore_doctypes_on_cancel_all, str):
-		ignore_doctypes_on_cancel_all = json.loads(ignore_doctypes_on_cancel_all)
+	ignore_doctypes_on_cancel_all = frappe.parse_json(ignore_doctypes_on_cancel_all) or []
 
 	frappe.has_permission(doctype, doc=name, throw=True)
 	tree = SubmittableDocumentTree(doctype, name)
@@ -370,7 +368,7 @@ def get_referencing_documents(
 
 
 @frappe.whitelist()
-def cancel_all_linked_docs(docs: str, ignore_doctypes_on_cancel_all: str | list[str] | None = None):
+def cancel_all_linked_docs(docs: str | list, ignore_doctypes_on_cancel_all: str | list[str] | None = None):
 	"""
 	Cancel all linked doctype, optionally ignore doctypes specified in a list.
 
@@ -381,9 +379,8 @@ def cancel_all_linked_docs(docs: str, ignore_doctypes_on_cancel_all: str | list[
 	if ignore_doctypes_on_cancel_all is None:
 		ignore_doctypes_on_cancel_all = []
 
-	docs = json.loads(docs)
-	if isinstance(ignore_doctypes_on_cancel_all, str):
-		ignore_doctypes_on_cancel_all = json.loads(ignore_doctypes_on_cancel_all)
+	docs = frappe.parse_json(docs)
+	ignore_doctypes_on_cancel_all = frappe.parse_json(ignore_doctypes_on_cancel_all)
 	for i, doc in enumerate(docs, 1):
 		if validate_linked_doc(doc, ignore_doctypes_on_cancel_all):
 			linked_doc = frappe.get_doc(doc.get("doctype"), doc.get("name"))
@@ -428,9 +425,8 @@ def get_exempted_doctypes():
 
 
 def get_linked_docs(doctype: str, name: str, linkinfo: dict | None = None) -> dict[str, list]:
-	if isinstance(linkinfo, str):
-		# additional fields are added in linkinfo
-		linkinfo = json.loads(linkinfo)
+	# additional fields are added in linkinfo
+	linkinfo = frappe.parse_json(linkinfo)
 
 	results = {}
 
@@ -469,8 +465,14 @@ def get_linked_docs(doctype: str, name: str, linkinfo: dict | None = None) -> di
 			filters = [[linked_doctype, "name", "=", parent_info.parent]]
 
 		elif child_doctype := link_context.get("child_doctype"):
+			# doctype may link through more than one child table, each with its own Link field
+			child_links = link_context.get("child_links") or [
+				{"child_doctype": child_doctype, "fieldname": link_context["fieldname"]}
+			]
 			or_filters = [
-				[child_doctype, link_fieldnames, "=", name] for link_fieldnames in link_context["fieldname"]
+				[child_link["child_doctype"], fieldname, "=", name]
+				for child_link in child_links
+				for fieldname in child_link["fieldname"]
 			]
 
 			# dynamic link_context
@@ -627,7 +629,8 @@ def get_linked_fields(doctype, without_ignore_user_permissions_enabled=False):
 	for doctype_name in links_dict:
 		ret[doctype_name] = {"fieldname": links_dict.get(doctype_name)}
 	table_doctypes = frappe.get_all(
-		"DocType", filters=[["istable", "=", "1"], ["name", "in", tuple(links_dict)]]
+		"DocType",
+		filters=[["istable", "=", "1"], ["is_virtual", "=", "0"], ["name", "in", tuple(links_dict)]],
 	)
 	child_filters = [
 		["fieldtype", "in", frappe.model.table_fields],
@@ -640,7 +643,14 @@ def get_linked_fields(doctype, without_ignore_user_permissions_enabled=False):
 	for parent, options in frappe.get_all(
 		"DocField", fields=["parent", "options"], filters=child_filters, as_list=1
 	):
-		ret[parent] = {"child_doctype": options, "fieldname": links_dict[options]}
+		child_link = {"child_doctype": options, "fieldname": links_dict[options]}
+		if parent in ret and "child_doctype" in ret[parent]:
+			# parent links to doctype through more than one child table
+			if "child_links" not in ret[parent]:
+				ret[parent]["child_links"] = [dict(ret[parent])]
+			ret[parent]["child_links"].append(child_link)
+		else:
+			ret[parent] = child_link
 		ret.pop(options, None)
 
 	virtual_doctypes = frappe.get_all("DocType", {"is_virtual": 1}, pluck="name")
