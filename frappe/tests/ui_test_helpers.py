@@ -702,6 +702,7 @@ def reset_list_layout_test_user_settings(doctype: str = "ToDo"):
 
 @whitelist_for_tests()
 def create_list_layout_test_layout(
+	layout_name: str | None = None,
 	filter_name: str | None = None,
 	reference_doctype: str = "ToDo",
 	for_user: str | None = None,
@@ -710,10 +711,10 @@ def create_list_layout_test_layout(
 	sort_field: str = "modified",
 	sort_order: str = "desc",
 ):
-	"""Insert a saved list layout for Cypress tests."""
+	"""Insert a saved list filter for Cypress tests."""
 	import json
 
-	filter_name = filter_name or f"{LIST_LAYOUT_TEST_PREFIX}open"
+	filter_name = filter_name or layout_name or f"{LIST_LAYOUT_TEST_PREFIX}open"
 
 	if frappe.db.exists("List Filter", {"filter_name": filter_name, "reference_doctype": reference_doctype}):
 		frappe.db.delete(
@@ -736,3 +737,10 @@ def create_list_layout_test_layout(
 		}
 	).insert(ignore_permissions=True)
 	return doc.name
+
+
+clear_list_filter_test_filters = clear_list_layout_test_layouts
+
+
+def create_list_filter_test_filter(**kwargs):
+	return create_list_layout_test_layout(**kwargs)
