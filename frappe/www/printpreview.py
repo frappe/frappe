@@ -10,7 +10,7 @@ def get_context(context):
 
 	pf = frappe.get_doc("Print Format", print_format)
 
-	if pf.get("print_format_builder_beta"):
+	if pf.get("print_format_builder_beta") and pf.get("format_data"):
 		from frappe.utils.print_format_generator import get_html
 
 		context.body = get_html(pf.doc_type, docname, print_format, letterhead)

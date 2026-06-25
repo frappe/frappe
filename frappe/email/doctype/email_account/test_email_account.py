@@ -2,10 +2,11 @@
 # License: MIT. See LICENSE
 
 import email
+import imaplib
 import os
 import unittest
 from datetime import datetime, timedelta
-from unittest.mock import patch
+from unittest.mock import MagicMock, patch
 
 import frappe
 from frappe.core.doctype.communication.email import make
@@ -377,6 +378,42 @@ class TestEmailAccount(IntegrationTestCase):
 
 		with self.assertRaises(Exception):
 			email_account.validate()
+
+	def test_validation_surfaces_imap_auth_error(self):
+		# auth failure on save must raise, not swallow and leak a NONAUTH LIST error
+		email_account = frappe.get_doc("Email Account", "_Test Email Account 1")
+		email_account.flags.validate_imap_pop_connection = True
+
+		server = MagicMock()
+		server.connect.side_effect = imaplib.IMAP4.error("[AUTHENTICATIONFAILED] Invalid credentials")
+
+		with self.assertRaises(frappe.ValidationError):
+			email_account.check_email_server_connection(server, in_receive=True)
+
+	def test_validation_surfaces_imap_connection_error(self):
+		# a connection/timeout failure on save must raise too, not swallow into a NONAUTH leak
+		email_account = frappe.get_doc("Email Account", "_Test Email Account 1")
+		email_account.flags.validate_imap_pop_connection = True
+
+		server = MagicMock()
+		server.connect.side_effect = OSError("timed out")
+
+		with self.assertRaises(OSError):
+			email_account.check_email_server_connection(server, in_receive=True)
+
+	def test_background_receive_auth_error_disables_account(self):
+		# auth failure during background receive disables incoming instead of raising
+		email_account = frappe.get_doc("Email Account", "_Test Email Account 1")
+		email_account.flags.validate_imap_pop_connection = False
+
+		server = MagicMock()
+		server.connect.side_effect = imaplib.IMAP4.error("[AUTHENTICATIONFAILED] Invalid credentials")
+
+		with patch.object(email_account, "handle_incoming_connect_error") as mocked_handler:
+			result = email_account.check_email_server_connection(server, in_receive=True)
+
+		self.assertIsNone(result)
+		mocked_handler.assert_called_once()
 
 	def test_append_to(self):
 		email_account = frappe.get_doc("Email Account", "_Test Email Account 1")

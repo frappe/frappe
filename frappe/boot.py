@@ -13,6 +13,7 @@ from frappe.core.doctype.installed_applications.installed_applications import (
 	get_setup_wizard_completed_apps,
 )
 from frappe.core.doctype.navbar_settings.navbar_settings import get_app_logo, get_navbar_settings
+from frappe.core.doctype.permission_type.permission_type import get_doctype_ptype_map
 from frappe.desk.desk_views import DeskViews
 from frappe.desk.doctype.changelog_feed.changelog_feed import get_changelog_feed_items
 from frappe.desk.doctype.desktop_icon.desktop_icon import get_desktop_icons
@@ -113,6 +114,7 @@ def get_bootinfo():
 	bootinfo.app_logo_url = get_app_logo()
 	bootinfo.link_title_doctypes = get_link_title_doctypes()
 	bootinfo.translated_doctypes = get_translated_doctypes()
+	bootinfo.doctype_ptype_map = get_doctype_ptype_map()
 	bootinfo.subscription_conf = add_subscription_conf()
 	bootinfo.marketplace_apps = get_marketplace_apps()
 	bootinfo.is_fc_site = is_fc_site()
@@ -124,12 +126,26 @@ def get_bootinfo():
 	if sentry_dsn := get_sentry_dsn():
 		bootinfo.sentry_dsn = sentry_dsn
 
+	bootinfo.json_request_apps = get_json_request_apps()
 	bootinfo.setup_wizard_completed_apps = get_setup_wizard_completed_apps() or []
 	bootinfo.desktop_icon_urls = get_desktop_icon_urls()
 	bootinfo.desktop_icon_style = get_icon_style() or "Subtle"
 	if bootinfo.is_fc_site:
 		bootinfo.site_info = current_site_info()
 	return bootinfo
+
+
+def get_json_request_apps() -> list[str]:
+	"""Apps that opt into native JSON request bodies via `use_json_request_body` in hooks.py.
+
+	The frontend (`frappe.request`) uses this to decide, per call, whether to send args as a
+	native `application/json` body. Apps that don't opt in keep the legacy form-encoded payload.
+	"""
+	return [
+		app
+		for app in frappe.get_installed_apps()
+		if any(frappe.get_hooks("use_json_request_body", app_name=app))
+	]
 
 
 def get_icon_style():

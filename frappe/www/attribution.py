@@ -129,8 +129,14 @@ def get_js_deps(app: str) -> list[dict]:
 					author = author.get("name")
 				if not author:
 					maintainers = pkg_data.get("maintainers", [])
-					if maintainers:
-						author = ", ".join([m for m in maintainers if m])
+					names = []
+					for m in maintainers:
+						if isinstance(m, dict):
+							m = m.get("name")
+						if m and isinstance(m, str):
+							names.append(m)
+					if names:
+						author = ", ".join(names)
 				if author:
 					package_info["author"] = author
 

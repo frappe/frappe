@@ -1,5 +1,5 @@
 import type { Component } from "vue";
-import { setScoped } from "./scopedRegistry";
+import { setScoped } from "../../utils/scopedRegistry";
 import AutocompleteField from "./fields/AutocompleteField.vue";
 import ButtonField from "./fields/ButtonField.vue";
 import CheckField from "./fields/CheckField.vue";

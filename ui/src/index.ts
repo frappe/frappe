@@ -11,6 +11,9 @@ export type {
   FieldComponentProps,
   FieldComponentEmits,
 } from "./components/FormLayout";
+export { useDoctypeMeta } from "./composables/useDoctypeMeta";
+export type { UseDoctypeMeta, DoctypeMeta } from "./composables/useDoctypeMeta";
+export * from "./utils";
 export * from "./components/Grid";
 export * from "./components/Link";
 export * from "./components/Phone";

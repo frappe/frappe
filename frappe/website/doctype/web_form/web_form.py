@@ -638,9 +638,9 @@ def get_web_form_module(doc):
 
 @frappe.whitelist(allow_guest=True)
 @rate_limit(key="web_form", limit=10, seconds=60)
-def accept(web_form: str, data: str):
+def accept(web_form: str, data: str | dict):
 	"""Save the web form"""
-	data = frappe._dict(json.loads(data))
+	data = frappe._dict(frappe.parse_json(data))
 
 	files = []
 	files_to_delete = []
@@ -755,10 +755,10 @@ def delete(web_form_name: str, docname: str | int):
 
 
 @frappe.whitelist()
-def delete_multiple(web_form_name: str, docnames: str):
+def delete_multiple(web_form_name: str, docnames: str | list):
 	web_form = frappe.get_lazy_doc("Web Form", web_form_name)
 
-	docnames = json.loads(docnames)
+	docnames = frappe.parse_json(docnames)
 
 	allowed_docnames = []
 	restricted_docnames = []

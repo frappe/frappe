@@ -77,6 +77,7 @@
 							:animation="150"
 							item-key="id"
 							handle=".drag-handle"
+							:emptyInsertThreshold="100"
 						>
 							<template #item="{ element }">
 								<Field
@@ -84,26 +85,22 @@
 									:field_orientation="section.field_orientation"
 								/>
 							</template>
-							<template #footer>
-								<div
-									v-if="column.fields.filter((f) => !f.remove).length === 0"
-									class="empty-drop-zone"
-								>
-									<button
-										v-if="section.columns.length > 1"
-										class="btn btn-xs btn-icon empty-col-remove"
-										:title="__('Remove column')"
-										@click.stop="remove_column(i)"
-										v-html="frappe.utils.icon('x', 'xs')"
-									></button>
-									<div class="empty-drop-zone-hint">
-										<span class="text-muted">{{
-											__("Drop fields here")
-										}}</span>
-									</div>
-								</div>
-							</template>
 						</draggable>
+						<div
+							v-if="column.fields.filter((f) => !f.remove).length === 0"
+							class="empty-drop-zone"
+						>
+							<button
+								v-if="section.columns.length > 1"
+								class="btn btn-xs btn-icon empty-col-remove"
+								:title="__('Remove column')"
+								@click.stop="remove_column(i)"
+								v-html="frappe.utils.icon('x', 'xs')"
+							></button>
+							<div class="empty-drop-zone-hint">
+								<span class="text-muted">{{ __("Drop fields here") }}</span>
+							</div>
+						</div>
 					</div>
 				</template>
 			</div>
@@ -193,7 +190,7 @@ function set_column_align(column, value) {
 .print-format-section {
 	background-color: var(--fg-color);
 	border: 1px solid var(--border-color);
-	border-radius: var(--border-radius);
+	border-radius: var(--radius);
 	overflow: hidden;
 	cursor: default;
 }
@@ -247,7 +244,7 @@ function set_column_align(column, value) {
 	color: var(--text-muted);
 	background: var(--gray-100);
 	border: 1px solid var(--gray-300);
-	border-radius: var(--border-radius-sm);
+	border-radius: var(--radius);
 	padding: 1px 6px;
 	white-space: nowrap;
 	flex-shrink: 0;
@@ -255,7 +252,7 @@ function set_column_align(column, value) {
 
 .input-section-label {
 	border: 1px solid transparent;
-	border-radius: var(--border-radius);
+	border-radius: var(--radius);
 	font-size: var(--text-sm);
 	font-weight: var(--weight-semibold);
 	background: transparent;
@@ -284,7 +281,7 @@ function set_column_align(column, value) {
 	padding: 3px;
 	box-shadow: none;
 	color: var(--text-muted);
-	border-radius: var(--border-radius-sm);
+	border-radius: var(--radius);
 }
 
 .toolbar-btn:hover {
@@ -323,6 +320,7 @@ function set_column_align(column, value) {
 	min-width: 0;
 	display: flex;
 	flex-direction: column;
+	position: relative;
 }
 
 .column-divider {
@@ -335,8 +333,8 @@ function set_column_align(column, value) {
 .drag-container {
 	flex: 1;
 	min-width: 0;
-	min-height: 2.5rem;
-	border-radius: var(--border-radius);
+	min-height: 4rem;
+	border-radius: var(--radius);
 	display: flex;
 	flex-direction: column;
 	gap: 0.4rem;
@@ -344,15 +342,16 @@ function set_column_align(column, value) {
 }
 
 .empty-drop-zone {
-	position: relative;
+	position: absolute;
+	inset: 0;
 	display: flex;
 	align-items: center;
 	justify-content: center;
-	min-height: 3rem;
 	border: 1.5px dashed var(--gray-300);
-	border-radius: var(--border-radius);
+	border-radius: var(--radius);
 	color: var(--text-muted);
 	font-size: var(--text-xs);
+	pointer-events: none;
 }
 
 .empty-drop-zone-hint {
@@ -370,6 +369,7 @@ function set_column_align(column, value) {
 	color: var(--gray-500);
 	opacity: 0;
 	transition: opacity 0.1s;
+	pointer-events: auto;
 }
 
 .empty-drop-zone:hover .empty-col-remove {
@@ -418,7 +418,7 @@ function set_column_align(column, value) {
 	padding: 1px 2px;
 	background: var(--fg-color);
 	border: 1px solid var(--border-color);
-	border-radius: var(--border-radius-sm);
+	border-radius: var(--radius);
 	box-shadow: var(--shadow-xs);
 	align-items: center;
 	opacity: 0;

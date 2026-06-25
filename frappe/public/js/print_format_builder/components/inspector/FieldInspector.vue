@@ -943,7 +943,7 @@ function set_padding(side, value) {
 	border: none;
 	background: transparent;
 	cursor: pointer;
-	border-radius: var(--border-radius-sm);
+	border-radius: var(--radius);
 	color: var(--text-muted);
 	font-size: var(--text-xs);
 	transition: background 0.1s, color 0.1s;
@@ -1061,7 +1061,7 @@ function set_padding(side, value) {
 	justify-content: space-between;
 	padding: 5px 8px;
 	border: 1px solid var(--border-color);
-	border-radius: var(--border-radius);
+	border-radius: var(--radius);
 	background: var(--control-bg);
 	gap: 6px;
 	min-width: 0;
@@ -1081,7 +1081,7 @@ function set_padding(side, value) {
 	color: var(--text-muted);
 	background: var(--gray-100);
 	border: 1px solid var(--gray-300);
-	border-radius: var(--border-radius-sm);
+	border-radius: var(--radius);
 	padding: 1px 5px;
 	white-space: nowrap;
 	flex-shrink: 0;
@@ -1093,7 +1093,7 @@ function set_padding(side, value) {
 	padding: 6px 8px;
 	font-size: var(--text-sm);
 	border: 1px solid var(--border-color);
-	border-radius: var(--border-radius);
+	border-radius: var(--radius);
 	background: var(--fg-color);
 	color: var(--text-color);
 	outline: none;
@@ -1109,7 +1109,7 @@ function set_padding(side, value) {
 	display: inline-flex;
 	background: var(--control-bg);
 	border: 1px solid var(--border-color);
-	border-radius: var(--border-radius);
+	border-radius: var(--radius);
 	overflow: hidden;
 	width: 100%;
 }
@@ -1150,7 +1150,7 @@ function set_padding(side, value) {
 	display: inline-flex;
 	align-items: center;
 	border: 1px solid var(--border-color);
-	border-radius: var(--border-radius);
+	border-radius: var(--radius);
 	overflow: hidden;
 	background: var(--subtle-accent);
 	width: 100%;
@@ -1228,7 +1228,7 @@ function set_padding(side, value) {
 .pfb-swatch {
 	width: 28px;
 	height: 28px;
-	border-radius: var(--border-radius);
+	border-radius: var(--radius);
 	border: 1.5px solid var(--border-color);
 	cursor: pointer;
 	padding: 0;
@@ -1283,7 +1283,7 @@ function set_padding(side, value) {
 	color: var(--red-500);
 	background: transparent;
 	border: 1px solid var(--red-200);
-	border-radius: var(--border-radius);
+	border-radius: var(--radius);
 	padding: 5px 10px;
 	font-size: var(--text-sm);
 	cursor: pointer;
@@ -1337,7 +1337,7 @@ function set_padding(side, value) {
 	font-size: var(--text-tiny);
 	text-align: right;
 	border: 1px solid var(--border-color);
-	border-radius: var(--border-radius-sm);
+	border-radius: var(--radius);
 	background: var(--fg-color);
 	flex-shrink: 0;
 }
@@ -1367,7 +1367,7 @@ function set_padding(side, value) {
 	background: transparent;
 	cursor: pointer;
 	color: var(--gray-300);
-	border-radius: var(--border-radius-sm);
+	border-radius: var(--radius);
 	flex-shrink: 0;
 }
 
@@ -1417,7 +1417,7 @@ function set_padding(side, value) {
 	color: var(--text-muted);
 	padding: 6px 8px;
 	border: 1px solid var(--border-color);
-	border-radius: var(--border-radius);
+	border-radius: var(--radius);
 	background: var(--gray-50);
 	max-height: 80px;
 	overflow: hidden;
@@ -1449,7 +1449,7 @@ function set_padding(side, value) {
 	color: var(--text-muted);
 	padding: 6px 8px;
 	border: 1px solid var(--border-color);
-	border-radius: var(--border-radius);
+	border-radius: var(--radius);
 	background: var(--gray-50);
 	max-height: 100px;
 	overflow: hidden;
@@ -1521,7 +1521,7 @@ function set_padding(side, value) {
 	font-size: 13px;
 	font-family: var(--monospace-font-family, monospace);
 	border: 1px solid var(--border-color);
-	border-radius: var(--border-radius);
+	border-radius: var(--radius);
 }
 
 .pfb-html-ctrl-host .CodeMirror-scroll {

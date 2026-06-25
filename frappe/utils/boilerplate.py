@@ -410,6 +410,10 @@ app_description = "{app_description}"
 app_email = "{app_email}"
 app_license = "{app_license}"
 
+# Send non-GET requests for this app's endpoints as native `application/json`
+# bodies instead of form-encoded, per-key JSON-stringified values.
+use_json_request_body = True
+
 # Apps
 # ------------------
 
@@ -617,6 +621,8 @@ app_license = "{app_license}"
 # ----------
 # before_job = ["{app_name}.utils.before_job"]
 # after_job = ["{app_name}.utils.after_job"]
+
+# after_file_upload = ["{app_name}.utils.after_file_upload"]
 
 # User Data Protection
 # --------------------

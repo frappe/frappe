@@ -10,6 +10,24 @@ frappe.request.ajax_count = 0;
 frappe.request.waiting_for_ajax = [];
 frappe.request.logs = {};
 
+// Apps opt into native `application/json` request bodies (instead of
+// form-encoding per-key JSON-stringified values) by setting
+// `use_json_request_body = True` in their `hooks.py`. The boot then exposes the
+// list of opted-in apps as `frappe.boot.json_request_apps` and the encoding for
+// each call is chosen from the app that owns the endpoint (see
+// `frappe.request.app_uses_json`). Apps that don't opt in keep the legacy
+// form-encoded behaviour. A call can still override the choice with `opts.json`.
+frappe.request.app_uses_json = function (cmd) {
+	// cmd is the dotted endpoint path (e.g. "frappe.client.get_list"); its
+	// first segment is the owning app. Unrecognized apps keep legacy behaviour.
+	if (!cmd) return false;
+	// `run_doc_method` is a dotless built-in frappe endpoint (doc method calls,
+	// form saves); resolve it to frappe so it tracks frappe's opt-in.
+	let app = cmd === "run_doc_method" ? "frappe" : cmd.split(".")[0];
+	let apps = (frappe.boot && frappe.boot.json_request_apps) || [];
+	return apps.includes(app);
+};
+
 frappe.xcall = function (method, params, type, opts = {}) {
 	return new Promise((resolve, reject) => {
 		frappe.call({
@@ -53,11 +71,6 @@ frappe.call = function (opts) {
 	}
 	var args = $.extend({}, opts.args);
 
-	if (args.freeze) {
-		opts.freeze = opts.freeze || args.freeze;
-		opts.freeze_message = opts.freeze_message || args.freeze_message;
-	}
-
 	// cmd
 	if (opts.module && opts.page) {
 		args.cmd = opts.module + ".page." + opts.page + "." + opts.page + "." + opts.method;
@@ -71,6 +84,10 @@ frappe.call = function (opts) {
 	} else if (opts.method) {
 		args.cmd = opts.method;
 	}
+
+	// Pick the request body encoding from the app that owns the endpoint, unless
+	// the caller explicitly set `opts.json` as an escape hatch.
+	let json = opts.json != null ? opts.json : frappe.request.app_uses_json(args.cmd);
 
 	var callback = function (data, response_text) {
 		if (data.task_id) {
@@ -117,10 +134,14 @@ frappe.call = function (opts) {
 		api_version: opts.api_version,
 		url,
 		cache: opts.cache,
+		json,
 	});
 };
 
 frappe.request.call = function (opts) {
+	// JSON body only applies to non-GET requests (GET carries no meaningful body).
+	opts.use_json = opts.json && (opts.type || "POST").toUpperCase() !== "GET";
+
 	frappe.request.prepare(opts);
 
 	var statusCode = {
@@ -280,6 +301,13 @@ frappe.request.call = function (opts) {
 		ajax_args.headers["X-Frappe-Doctype"] = encodeURIComponent(opts.args.doctype);
 	}
 
+	if (opts.use_json) {
+		// send a native JSON body instead of letting jQuery form-encode the args
+		ajax_args.data = JSON.stringify(opts.args);
+		ajax_args.contentType = "application/json; charset=UTF-8";
+		ajax_args.processData = false;
+	}
+
 	frappe.last_request = ajax_args.data;
 
 	return $.ajax(ajax_args)
@@ -403,10 +431,12 @@ frappe.request.prepare = function (opts) {
 	// freeze page
 	if (opts.freeze) frappe.dom.freeze(opts.freeze_message);
 
-	// stringify args if required
-	for (var key in opts.args) {
-		if (opts.args[key] && ($.isPlainObject(opts.args[key]) || $.isArray(opts.args[key]))) {
-			opts.args[key] = JSON.stringify(opts.args[key]);
+	// stringify args if required (skipped when sending a native JSON body)
+	if (!opts.use_json) {
+		for (var key in opts.args) {
+			if (opts.args[key] && ($.isPlainObject(opts.args[key]) || $.isArray(opts.args[key]))) {
+				opts.args[key] = JSON.stringify(opts.args[key]);
+			}
 		}
 	}
 
@@ -643,9 +673,11 @@ frappe.request.report_error = function (xhr, request_opts) {
 frappe.request.cleanup_request_opts = function (request_opts) {
 	let doc = (request_opts.args || {}).doc;
 	if (doc) {
-		doc = JSON.parse(doc);
+		// `doc` may be a JSON string (form-encoded mode) or a native object (JSON mode)
+		let was_string = typeof doc === "string";
+		if (was_string) doc = JSON.parse(doc);
 		frappe.utils.mask_passwords(doc);
-		request_opts.args.doc = JSON.stringify(doc);
+		request_opts.args.doc = was_string ? JSON.stringify(doc) : doc;
 	}
 
 	if (request_opts.args) {
