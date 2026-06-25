@@ -299,6 +299,18 @@ class TestTelemetryGate(TestPulseClient):
 		):
 			self.assertTrue(is_enabled())
 
+	def test_client_url_is_absolute_when_host_lacks_scheme(self):
+		# A scheme-less pulse_host must still yield an absolute client_url, else the
+		# browser resolves the import against the Frappe origin and telemetry never loads.
+		with (
+			self._conf(pulse_host="pulse.example.com"),
+			patch("frappe.get_system_settings", return_value=True),
+		):
+			cfg = boot_config()
+
+		self.assertEqual(cfg["host"], "https://pulse.example.com")
+		self.assertEqual(cfg["client_url"], "https://pulse.example.com/assets/pulse/js/pulse_client.js")
+
 
 class TestCapture(TestPulseClient):
 	@patch("frappe.utils.telemetry.pulse.client.is_enabled")
