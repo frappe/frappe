@@ -34,6 +34,17 @@ $.extend(frappe.perm, {
 
 	doctype_perm: {},
 
+	// Mirror of `frappe.permissions.get_rights()` on the server: the standard rights
+	// plus any custom permission types (Permission Type doctype) defined for `doctype`.
+	// Without this, custom ptypes — though enforced server-side — are silently dropped
+	// client-side. See https://github.com/frappe/frappe/issues/40233
+	get_rights: (doctype) => {
+		const custom_rights = (doctype && frappe.boot?.doctype_ptype_map?.[doctype]) || [];
+		return custom_rights.length
+			? [...frappe.perm.rights, ...custom_rights]
+			: frappe.perm.rights;
+	},
+
 	has_perm: (doctype, permlevel = 0, ptype = "read", doc) => {
 		const perms = frappe.perm.get_perm(doctype, doc);
 		return !!perms?.[permlevel]?.[ptype];
@@ -51,6 +62,39 @@ $.extend(frappe.perm, {
 	},
 
 	_get_perm: (doctype, doc) => {
+<<<<<<< HEAD
+=======
+		const user = frappe.session.user;
+		let meta = frappe.get_meta(doctype);
+
+		// Administrator should get all rights (consistent with Python has_permission/get_role_permissions)
+		if (user === "Administrator" || frappe.user_roles.includes("Administrator")) {
+			// Default permission level
+			let permlevels = [0];
+
+			// Get all unique permission levels from the doctype's permissions
+			// Always include level 0 (default level) and sort in ascending order
+			if (meta && meta.permissions) {
+				const levels = meta.permissions.map((permission) => cint(permission.permlevel));
+				// used Set for "unique" levels
+				permlevels = [...new Set([0, ...levels])].sort();
+			}
+			const rights = frappe.perm.get_rights(doctype);
+			const admin_perm = [];
+			permlevels.forEach((level) => {
+				const p = {
+					permlevel: level,
+					rights_without_if_owner: new Set(rights),
+				};
+				rights.forEach((right) => {
+					p[right] = 1;
+				});
+				admin_perm[level] = p;
+			});
+			return admin_perm;
+		}
+
+>>>>>>> 796bfd2ae3 (fix(perm): respect custom permission types client-side (#40251))
 		let perm = [{ read: 0, permlevel: 0 }];
 
 		let meta = frappe.get_meta(doctype);
@@ -80,7 +124,7 @@ $.extend(frappe.perm, {
 
 			// if owner
 			if (doc.owner !== user) {
-				for (const right of frappe.perm.rights) {
+				for (const right of frappe.perm.get_rights(doctype)) {
 					if (base_perm[right] && !base_perm.rights_without_if_owner.has(right)) {
 						base_perm[right] = 0;
 					}
@@ -126,6 +170,7 @@ $.extend(frappe.perm, {
 		*/
 
 		let perm = [{ read: 0, permlevel: 0 }];
+		const rights = frappe.perm.get_rights(meta.name);
 
 		(meta.permissions || []).forEach((p) => {
 			const permlevel = cint(p.permlevel);
@@ -137,7 +182,7 @@ $.extend(frappe.perm, {
 
 			// if user has this role
 			if (frappe.user_roles.includes(p.role)) {
-				frappe.perm.rights.forEach((right) => {
+				rights.forEach((right) => {
 					if (!p[right]) return;
 
 					current_perm[right] = 1;
