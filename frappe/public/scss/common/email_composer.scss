@@ -209,6 +209,15 @@
 		}
 	}
 
+	// Informational banner above the action bar — reflects send-options state.
+	// Uses Frappe's existing alert tokens and spacing tokens.
+	.gmail-banner {
+		padding: var(--padding-sm) var(--padding-md);
+		background-color: var(--alert-bg-info);
+		color: var(--alert-text-info);
+		font-size: var(--text-sm);
+	}
+
 	// Bottom action bar — Send on left, icon row in middle, trash on right.
 	// Uses Frappe's existing button classes (btn-primary, btn-ghost icon-btn) — no custom button styling.
 	.gmail-action-bar {

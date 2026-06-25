@@ -86,6 +86,7 @@ frappe.views.CommunicationComposer = class {
 				<div class="gmail-message-area">
 					<div class="gmail-slot" data-slot="content"></div>
 				</div>
+				<div class="gmail-banner" hidden></div>
 				<div class="gmail-action-bar">
 					<div class="gmail-action-bar__send" data-slot="send-button"></div>
 					<div class="gmail-icon-row">
@@ -155,21 +156,42 @@ frappe.views.CommunicationComposer = class {
 		// Active state reflects the current field value; initial value comes from the field's
 		// own default (e.g. frappe.boot.user.send_me_a_copy for send_me_a_copy).
 		const fields = this.dialog.fields_dict;
+
+		// Banner above the action bar — reflects current send-options state
+		const $banner = $skeleton.find(".gmail-banner");
+		const updateBanner = () => {
+			const copy = !!fields.send_me_a_copy.get_value();
+			const receipt = !!fields.send_read_receipt.get_value();
+			let text = "";
+			if (copy && receipt) {
+				text = __("You will receive a copy of this email and a read receipt");
+			} else if (copy) {
+				text = __("You will receive a copy of this email");
+			} else if (receipt) {
+				text = __("You will receive a read receipt");
+			}
+			$banner.text(text);
+			if (text) $banner.removeAttr("hidden");
+			else $banner.attr("hidden", "");
+		};
+
 		const bindCheckIcon = (action, fieldname) => {
 			const $btn = $skeleton.find(`[data-action="${action}"]`);
 			const field = fields[fieldname];
 			let active = !!(field.get_value() || field.df.default);
-			field.set_value(active ? 1 : 0);
+			field.set_input(active ? 1 : 0);
 			$btn.toggleClass("active", active);
 
 			$btn.on("click", () => {
 				active = !active;
-				field.set_value(active ? 1 : 0);
+				field.set_input(active ? 1 : 0);
 				$btn.toggleClass("active", active);
+				updateBanner();
 			});
 		};
 		bindCheckIcon("send-me-a-copy", "send_me_a_copy");
 		bindCheckIcon("send-read-receipt", "send_read_receipt");
+		updateBanner();
 	}
 
 	get_fields() {
