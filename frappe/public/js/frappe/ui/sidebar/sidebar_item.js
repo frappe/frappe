@@ -33,7 +33,7 @@ frappe.ui.sidebar_item.TypeLink = class SidebarItem {
 				path = frappe.utils.generate_route(args);
 			} else if (this.item.link_type == "Workspace") {
 				let workspaces = frappe.workspaces[frappe.router.slug(this.item.link_to)];
-				if (workspaces.public) {
+				if (workspaces && workspaces.public) {
 					path = "/desk/" + frappe.router.slug(this.item.link_to);
 				} else {
 					path = "/desk/private/" + frappe.router.slug(this.item.link_to);
@@ -70,6 +70,20 @@ frappe.ui.sidebar_item.TypeLink = class SidebarItem {
 					args.route_options = JSON.parse(this.item.route_options);
 				}
 				path = frappe.utils.generate_route(args);
+
+				// If a DocType Layout is specified on this link, append ?layout=<route>
+				// so the form/list opens under that layout context.
+				if (this.item.link_type === "DocType" && this.item.doctype_layout) {
+					const layout_info = (frappe.boot.doctype_layouts || []).find(
+						(l) => l.name === this.item.doctype_layout
+					);
+					if (layout_info) {
+						const doctype_slug = frappe.router.slug(this.item.link_to);
+						path = `/app/${doctype_slug}?layout=${encodeURIComponent(
+							layout_info.name
+						)}`;
+					}
+				}
 			}
 		}
 		return path;

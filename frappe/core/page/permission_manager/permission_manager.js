@@ -601,7 +601,7 @@ frappe.PermissionEngine = class PermissionEngine {
 			"share",
 			"mask",
 		];
-		const STATUS_COLOR = { Added: "green", Removed: "red", Updated: "orange", Reset: "blue" };
+		const STATUS_COLOR = { Added: "green", Removed: "red", Updated: "amber", Reset: "blue" };
 
 		let doctype = this.get_doctype();
 		let show_doctype_column = !doctype;
@@ -673,7 +673,7 @@ frappe.PermissionEngine = class PermissionEngine {
 								"—";
 						}
 
-						let badge_color = STATUS_COLOR[log.status] || "grey";
+						let badge_color = STATUS_COLOR[log.status] || "gray";
 						let ts = frappe.datetime.comment_when(log.changed_at);
 						let user_display = log.changed_by || "—";
 
@@ -688,7 +688,7 @@ frappe.PermissionEngine = class PermissionEngine {
 
 						return `<tr>
 							<td>${user_display}</td>
-							<td><span class="indicator-pill ${badge_color}">${__(log.status)}</span></td>
+							<td><span class="es-badge" data-theme="${badge_color}">${__(log.status)}</span></td>
 							<td>${__(role)}</td>
 							${doctype_cell}
 							<td class="small">${changes_text}</td>

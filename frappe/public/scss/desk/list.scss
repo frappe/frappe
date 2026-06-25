@@ -5,10 +5,12 @@
 				min-width: 100%;
 				width: auto;
 				display: table;
+
 				.list-row-container {
 					width: fit-content;
 					min-width: 100%;
 				}
+
 				.list-row-container {
 					.level-left {
 						.list-row-col {
@@ -57,7 +59,7 @@
 	.list-skeleton-box {
 		background-color: var(--skeleton-bg);
 		height: 100%;
-		border-radius: var(--border-radius);
+		border-radius: var(--radius);
 	}
 }
 
@@ -80,7 +82,7 @@
 	display: flex;
 	flex-direction: column;
 	padding-inline: var(--padding-sm);
-	border-radius: var(--border-radius);
+	border-radius: var(--radius);
 
 	&:focus {
 		.list-row {
@@ -106,17 +108,20 @@
 
 .frappe-list {
 	margin: 0 var(--margin-md);
+
 	.result.has-assign-to {
 		.list-row .level-right {
 			flex: 0 0 180px;
 			width: 180px;
 		}
+
 		&.assign-to-length-1 {
 			.list-row .level-right {
 				flex: 0 0 165px;
 				width: 165px;
 			}
 		}
+
 		&.assign-to-length-3 {
 			.list-row .level-right {
 				flex: 0 0 200px;
@@ -151,6 +156,7 @@
 		min-width: 80%;
 		padding: var(--padding-xs) 0;
 	}
+
 	.level-right {
 		position: sticky;
 		right: 0;
@@ -271,7 +277,7 @@ body.list-col-resizing {
 	@extend .list-row;
 	cursor: default;
 	background-color: var(--subtle-fg);
-	border-radius: var(--border-radius);
+	border-radius: var(--radius);
 	height: var(--list-row-height);
 	padding-inline: var(--padding-sm);
 
@@ -292,14 +298,17 @@ body.list-col-resizing {
 	.checkbox-actions {
 		display: none;
 	}
+
 	.level-right {
 		background-color: var(--subtle-fg);
 		height: var(--list-row-height);
 		border-left: none;
+
 		&:hover {
 			background-color: var(--subtle-fg);
 		}
 	}
+
 	&:hover .level-right {
 		background-color: var(--subtle-fg);
 	}
@@ -317,10 +326,6 @@ body.list-col-resizing {
 		cursor: pointer;
 		text-decoration: underline;
 	}
-}
-
-.list-row-col .indicator-pill {
-	max-width: 150px;
 }
 
 $level-margin-right: 8px;
@@ -343,16 +348,19 @@ $level-margin-right: 8px;
 
 	.btn-group {
 		border: 1px solid var(--border-color);
-		border-radius: var(--border-radius);
+		border-radius: var(--radius);
+
 		.btn-paging.btn-info {
 			&:not(:first-child) {
 				border-left: 1px solid var(--border-color);
 			}
+
 			background-color: var(--bg-color);
 			color: var(--text-color);
 			font-weight: var(--weight-medium);
 		}
 	}
+
 	.btn-paging {
 		background-color: var(--control-bg);
 	}
@@ -520,9 +528,6 @@ input.list-header-checkbox {
 		justify-content: flex-end;
 	}
 }
-// .like-action.octicon-heart {
-// 	color: $heart-color;
-// }
 
 .list-comment-count {
 	display: inline-block;
@@ -595,6 +600,7 @@ input.list-header-checkbox {
 	.sort-selector {
 		.btn-group {
 			margin: var(--margin-xs) 0 var(--margin-xs) var(--margin-xs);
+
 			.btn:focus {
 				z-index: unset;
 			}
@@ -609,6 +615,7 @@ input.list-header-checkbox {
 	.icon {
 		width: 14px;
 		height: 14px;
+
 		use {
 			stroke: var(--yellow-800);
 		}
@@ -650,6 +657,7 @@ input.list-header-checkbox {
 	.frappe-list {
 		.result-container {
 			overflow-x: auto;
+
 			.result {
 				overflow-y: hidden;
 				display: table;
@@ -663,12 +671,15 @@ input.list-header-checkbox {
 	.frappe-list {
 		.list-row-container {
 			width: auto;
+
 			.level-left {
 				flex: 0;
+
 				.list-row-col {
 					min-width: auto;
 				}
 			}
+
 			.level-right {
 				border-left: none;
 			}
@@ -688,6 +699,7 @@ input.list-header-checkbox {
 	.layout-main-section-wrapper {
 		width: 100%;
 	}
+
 	.frappe-list {
 		.list-row {
 			.level-right {
@@ -703,34 +715,41 @@ input.list-header-checkbox {
 		.result {
 			overflow: hidden;
 			display: block;
+
 			input.list-row-checkbox,
 			input.list-header-checkbox {
 				width: 15px !important;
 				height: 15px;
 			}
 		}
+
 		.list-row-container:not(:has(.list-row-head)) {
 			.list-row {
 				&.level {
 					align-items: flex-start;
 				}
+
 				.level-left {
 					min-width: auto;
 					display: block;
+
 					.mobile-layout {
 						display: inline-block;
 						z-index: 1;
 						position: relative;
 						padding-left: 10px;
+
 						.list-row-col {
 							margin-right: 0px;
 							min-width: auto;
 						}
+
 						&:has(.filterable:empty) {
 							display: none;
 							padding-left: 37px;
 						}
 					}
+
 					.mobile-layout-seperator:not(.mobile-layout-seperator
 							~ .mobile-layout-seperator) {
 						padding-left: 27px;
@@ -746,10 +765,12 @@ input.list-header-checkbox {
 						}
 					}
 				}
+
 				.level-right {
 					flex: 0 0 auto;
 					width: auto;
 					border-left: none;
+
 					.level-item.visible-xs {
 						margin-top: 1px;
 					}
@@ -757,6 +778,7 @@ input.list-header-checkbox {
 			}
 		}
 	}
+
 	.page-indicator-pill {
 		display: none;
 	}

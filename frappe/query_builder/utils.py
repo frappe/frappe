@@ -158,11 +158,11 @@ def execute_child_queries(queries, result):
 
 
 def prepare_query(query):
+	from frappe.utils.safe_exec import SERVER_SCRIPT_FILE_PREFIX, check_safe_sql_query
+
 	param_collector = NamedParameterWrapper()
 	query = query.get_sql(param_wrapper=param_collector)
 	if frappe.local.flags.get("in_safe_exec", False):
-		from frappe.utils.safe_exec import SERVER_SCRIPT_FILE_PREFIX, check_safe_sql_query
-
 		if not check_safe_sql_query(query, throw=False):
 			callstack = inspect.stack()
 
@@ -179,6 +179,10 @@ def prepare_query(query):
 			if len(callstack) >= 3 and SERVER_SCRIPT_FILE_PREFIX in callstack[2].filename:
 				raise frappe.PermissionError("Only SELECT SQL allowed in scripting")
 
+	if frappe.local.flags.get("in_render_safe_exec", False):
+		check_safe_sql_query(query, throw=True)
+
+	assert isinstance(query, str), "prepared query must be a SQL string"
 	return query, param_collector.parameters
 
 
@@ -210,7 +214,38 @@ def patch_get_query():
 	Base.get_query = get_query
 
 
+def patch_like_operators():
+	"""Render the query-builder LIKE / NOT LIKE operators as ILIKE / NOT ILIKE on postgres.
+
+	MariaDB's default collation makes LIKE case-insensitive; postgres compares text
+	case-sensitively, so a `.like()` search (link-field autocomplete, etc.) would only match
+	exact case on postgres. Mapping to ILIKE keeps pattern matching case-insensitive on both
+	backends -- matching MariaDB and the like->ilike translation `frappe.db.get_list` already
+	applies for its filter path. MariaDB keeps native LIKE.
+	"""
+	# pypika has no hook for dialect-specific operator rendering, so patch Term.like/not_like the same
+	# way the query-builder patches above (QueryBuilder.run, Base.max, ...) and app.py's
+	# Request.max_form_memory_size do. The rule anchors on the import, so suppress it there too.
+	from pypika.terms import Term  # nosemgrep: frappe-monkey-patching-not-allowed
+
+	_like, _not_like = Term.like, Term.not_like
+
+	def like(self, expr: str):
+		if frappe.db and frappe.db.db_type == "postgres":
+			return self.ilike(expr)
+		return _like(self, expr)
+
+	def not_like(self, expr: str):
+		if frappe.db and frappe.db.db_type == "postgres":
+			return self.not_ilike(expr)
+		return _not_like(self, expr)
+
+	Term.like = like  # nosemgrep: frappe-monkey-patching-not-allowed
+	Term.not_like = not_like  # nosemgrep: frappe-monkey-patching-not-allowed
+
+
 def patch_all():
 	patch_query_execute()
 	patch_query_aggregation()
 	patch_get_query()
+	patch_like_operators()

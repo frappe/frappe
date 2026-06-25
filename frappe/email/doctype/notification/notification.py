@@ -93,7 +93,7 @@ class Notification(Document):
 	# START: PreviewRenderer API
 
 	@frappe.whitelist()
-	def preview_meets_condition(self, preview_document: str):
+	def preview_meets_condition(self, preview_document: str | int):
 		if not self.condition and not self.filters:
 			return _("Yes")
 		try:
@@ -108,7 +108,7 @@ class Notification(Document):
 			return _("Failed to evaluate conditions: {}").format(str(e))
 
 	@frappe.whitelist()
-	def preview_message(self, preview_document: str):
+	def preview_message(self, preview_document: str | int):
 		try:
 			doc = frappe.get_cached_doc(self.document_type, preview_document)
 			context = get_context(doc)
@@ -117,7 +117,7 @@ class Notification(Document):
 				context["comments"] = json.loads(doc.get("_comments"))
 			if self.is_standard:
 				self.load_standard_properties(context)
-			msg = frappe.render_template(self.message, context)
+			msg = frappe.render_template(self.message, context, restrict_globals=True)
 			if self.channel == "SMS":
 				return frappe.utils.strip_html_tags(msg)
 			return msg
@@ -125,7 +125,7 @@ class Notification(Document):
 			return _("Failed to render message: {}").format(str(e))
 
 	@frappe.whitelist()
-	def preview_subject(self, preview_document: str):
+	def preview_subject(self, preview_document: str | int):
 		try:
 			doc = frappe.get_cached_doc(self.document_type, preview_document)
 			context = get_context(doc)
@@ -137,7 +137,7 @@ class Notification(Document):
 			if not self.subject:
 				return _("No subject")
 			if "{" in self.subject:
-				return frappe.render_template(self.subject, context)
+				return frappe.render_template(self.subject, context, restrict_globals=True)
 			return self.subject
 		except Exception as e:
 			return _("Failed to render subject: {}").format(str(e))
@@ -438,7 +438,7 @@ def get_context(context):
 	def create_system_notification(self, doc, context):
 		subject = self.subject
 		if "{" in subject:
-			subject = frappe.render_template(self.subject, context)
+			subject = frappe.render_template(self.subject, context, restrict_globals=True)
 
 		attachments = self.get_attachment(doc)
 
@@ -455,7 +455,7 @@ def get_context(context):
 			"document_name": get_reference_name(doc),
 			"subject": subject,
 			"from_user": doc.modified_by or doc.owner,
-			"email_content": frappe.render_template(self.message, context),
+			"email_content": frappe.render_template(self.message, context, restrict_globals=True),
 			"attached_file": json.dumps(attachments) if attachments else None,
 		}
 		enqueue_create_notification(users, notification_doc)
@@ -467,7 +467,7 @@ def get_context(context):
 
 		subject = self.subject
 		if "{" in subject:
-			subject = frappe.render_template(self.subject, context)
+			subject = frappe.render_template(self.subject, context, restrict_globals=True)
 
 		attachments = self.get_attachment(doc)
 		recipients, cc, bcc = self.get_list_of_recipients(doc, context)
@@ -475,7 +475,7 @@ def get_context(context):
 			return
 
 		sender = None
-		message = frappe.render_template(self.message, context)
+		message = frappe.render_template(self.message, context, restrict_globals=True)
 		if self.sender and self.sender_email:
 			sender = formataddr((self.sender, self.sender_email))
 
@@ -526,7 +526,7 @@ def get_context(context):
 	def send_a_slack_msg(self, doc, context):
 		send_slack_message(
 			webhook_url=self.slack_webhook_url,
-			message=frappe.render_template(self.message, context),
+			message=frappe.render_template(self.message, context, restrict_globals=True),
 			reference_doctype=get_reference_doctype(doc),
 			reference_name=get_reference_name(doc),
 		)
@@ -534,7 +534,9 @@ def get_context(context):
 	def send_sms(self, doc, context):
 		send_sms(
 			receiver_list=self.get_receiver_list(doc, context, "mobile_no", self.get_mobile_no),
-			msg=frappe.utils.strip_html_tags(frappe.render_template(self.message, context)),
+			msg=frappe.utils.strip_html_tags(
+				frappe.render_template(self.message, context, restrict_globals=True)
+			),
 		)
 
 	@staticmethod
@@ -863,7 +865,7 @@ def get_emails_from_template(template, context):
 	if not template:
 		return ()
 
-	emails = frappe.render_template(template, context) if "{" in template else template
+	emails = frappe.render_template(template, context, restrict_globals=True) if "{" in template else template
 	return filter(None, emails.replace(",", "\n").split("\n"))
 
 

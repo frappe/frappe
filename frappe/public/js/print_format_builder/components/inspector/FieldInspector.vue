@@ -2,7 +2,6 @@
 	<div class="pfb-inspector" @click.stop>
 		<!-- Header -->
 		<div class="pfb-inspector-head">
-			<div class="pfb-inspector-eyebrow">{{ __("Inspector") }}</div>
 			<div class="pfb-inspector-title">
 				<span class="pfb-inspector-kind">{{ inspector_kind }}</span>
 				<span
@@ -16,6 +15,7 @@
 				>
 					{{ inspector_subtitle }}
 				</span>
+				<span v-else class="pfb-inspector-eyebrow-inline">{{ __("Inspector") }}</span>
 			</div>
 		</div>
 
@@ -36,7 +36,6 @@
 
 		<!-- Letter Head notice — shown whenever the letterhead is selected -->
 		<div v-if="selected_letterhead || selected_lh_footer" class="pfb-lh-notice">
-			<span v-html="frappe.utils.icon('alert-circle', 'xs')"></span>
 			{{ __("Edits here update the Letter Head document directly.") }}
 		</div>
 
@@ -65,19 +64,7 @@
 
 		<!-- ── Table field inspector ───────────────────────────────── -->
 		<template v-else-if="selected_field && is_table_field">
-			<div class="pfb-insp-tabs">
-				<button
-					v-for="tab in field_tabs"
-					:key="tab.id"
-					class="pfb-insp-tab"
-					:class="{ active: active_tab === tab.id }"
-					@click="active_tab = tab.id"
-				>
-					{{ tab.label }}
-				</button>
-			</div>
-
-			<div v-if="active_tab === 'properties'" class="pfb-insp-body">
+			<div class="pfb-insp-body">
 				<!-- TABLE section -->
 				<div class="pfb-insp-section">
 					<div class="pfb-insp-section-head" @click="toggle('t_table')">
@@ -216,22 +203,11 @@
 						</draggable>
 						<!-- Add column picker -->
 						<div class="pfb-col-add-row" v-if="available_columns.length">
-							<select class="pfb-col-add-select" v-model="add_col_select">
-								<option value="" disabled>{{ __("+ Add column...") }}</option>
-								<option
-									v-for="col in available_columns"
-									:key="col.fieldname"
-									:value="col.fieldname"
-								>
-									{{ col.label || col.fieldname }}
-								</option>
-							</select>
-							<button
-								class="pfb-col-add-btn"
-								@click="add_table_column"
-								:disabled="!add_col_select"
-								v-html="frappe.utils.icon('plus', 'xs')"
-							></button>
+							<Autocomplete
+								:options="available_column_opts"
+								:placeholder="__('Add column...')"
+								@select="pick_column"
+							/>
 						</div>
 						<div
 							v-else
@@ -243,21 +219,6 @@
 					</div>
 				</div>
 
-				<!-- BEHAVIOR section -->
-				<div class="pfb-insp-section">
-					<div class="pfb-insp-section-head" @click="toggle('t_behavior')">
-						<span class="pfb-insp-section-label">{{ __("Behavior") }}</span>
-						<span
-							class="pfb-insp-chevron"
-							:class="{ collapsed: !open.t_behavior }"
-							v-html="frappe.utils.icon('chevron-down', 'xs')"
-						></span>
-					</div>
-					<div v-show="open.t_behavior" class="pfb-insp-section-body">
-						<p class="pfb-insp-hint text-muted">{{ __("Coming soon.") }}</p>
-					</div>
-				</div>
-
 				<div class="pfb-insp-actions">
 					<button class="btn btn-xs btn-danger-subtle" @click="remove_field">
 						<span v-html="frappe.utils.icon('x', 'xs')"></span>
@@ -265,27 +226,11 @@
 					</button>
 				</div>
 			</div>
-
-			<div v-else class="pfb-insp-body pfb-insp-placeholder">
-				<p class="text-muted">{{ __("Coming soon.") }}</p>
-			</div>
 		</template>
 
 		<!-- ── Field inspector ─────────────────────────────────── -->
 		<template v-else-if="selected_field">
-			<div class="pfb-insp-tabs">
-				<button
-					v-for="tab in field_tabs"
-					:key="tab.id"
-					class="pfb-insp-tab"
-					:class="{ active: active_tab === tab.id }"
-					@click="active_tab = tab.id"
-				>
-					{{ tab.label }}
-				</button>
-			</div>
-
-			<div v-if="active_tab === 'properties'" class="pfb-insp-body">
+			<div class="pfb-insp-body">
 				<div class="pfb-insp-section">
 					<div class="pfb-insp-section-head" @click="toggle('f_field')">
 						<span class="pfb-insp-section-label">{{ __("Field") }}</span>
@@ -363,22 +308,6 @@
 				</div>
 
 				<div class="pfb-insp-section">
-					<div class="pfb-insp-section-head" @click="toggle('f_format')">
-						<span class="pfb-insp-section-label">{{ __("Format") }}</span>
-						<span
-							class="pfb-insp-chevron"
-							:class="{ collapsed: !open.f_format }"
-							v-html="frappe.utils.icon('chevron-down', 'xs')"
-						></span>
-					</div>
-					<div v-show="open.f_format" class="pfb-insp-section-body">
-						<p class="pfb-insp-hint text-muted">
-							{{ __("Additional formatting options coming soon.") }}
-						</p>
-					</div>
-				</div>
-
-				<div class="pfb-insp-section">
 					<div class="pfb-insp-section-head" @click="toggle('f_visibility')">
 						<span class="pfb-insp-section-label">{{ __("Visibility") }}</span>
 						<span
@@ -401,27 +330,11 @@
 					</button>
 				</div>
 			</div>
-
-			<div v-else class="pfb-insp-body pfb-insp-placeholder">
-				<p class="text-muted">{{ __("Coming soon.") }}</p>
-			</div>
 		</template>
 
 		<!-- ── Section inspector ───────────────────────────────── -->
 		<template v-else-if="selected_section">
-			<div class="pfb-insp-tabs">
-				<button
-					v-for="tab in section_tabs"
-					:key="tab.id"
-					class="pfb-insp-tab"
-					:class="{ active: active_tab === tab.id }"
-					@click="active_tab = tab.id"
-				>
-					{{ tab.label }}
-				</button>
-			</div>
-
-			<div v-if="active_tab === 'properties'" class="pfb-insp-body">
+			<div class="pfb-insp-body">
 				<!-- SECTION properties -->
 				<div class="pfb-insp-section">
 					<div class="pfb-insp-section-head" @click="toggle('s_section')">
@@ -541,40 +454,7 @@
 					</div>
 				</div>
 
-				<!-- VISIBILITY -->
-				<div class="pfb-insp-section">
-					<div class="pfb-insp-section-head" @click="toggle('s_visibility')">
-						<span class="pfb-insp-section-label">{{ __("Visibility") }}</span>
-						<span
-							class="pfb-insp-chevron"
-							:class="{ collapsed: !open.s_visibility }"
-							v-html="frappe.utils.icon('chevron-down', 'xs')"
-						></span>
-					</div>
-					<div v-show="open.s_visibility" class="pfb-insp-section-body">
-						<p class="pfb-insp-hint text-muted">
-							{{ __("Conditional visibility coming soon.") }}
-						</p>
-					</div>
-				</div>
-
-				<div class="pfb-insp-actions">
-					<button
-						class="btn btn-xs btn-danger-subtle"
-						@click="
-							selected_section.remove = true;
-							store.selected_section.value = null;
-						"
-					>
-						<span v-html="frappe.utils.icon('x', 'xs')"></span>
-						{{ __("Remove section") }}
-					</button>
-				</div>
-			</div>
-
-			<!-- ── Style tab ───────────────────────────────────────── -->
-			<div v-else-if="active_tab === 'style'" class="pfb-insp-body">
-				<!-- Background -->
+				<!-- BACKGROUND -->
 				<div class="pfb-insp-section">
 					<div class="pfb-insp-section-head" @click="toggle('s_bg')">
 						<span class="pfb-insp-section-label">{{ __("Background") }}</span>
@@ -599,7 +479,7 @@
 					</div>
 				</div>
 
-				<!-- Padding -->
+				<!-- PADDING -->
 				<div class="pfb-insp-section">
 					<div class="pfb-insp-section-head" @click="toggle('s_padding')">
 						<span class="pfb-insp-section-label">{{ __("Padding") }}</span>
@@ -636,10 +516,36 @@
 						</div>
 					</div>
 				</div>
-			</div>
 
-			<div v-else class="pfb-insp-body pfb-insp-placeholder">
-				<p class="text-muted">{{ __("Coming soon.") }}</p>
+				<!-- VISIBILITY -->
+				<div class="pfb-insp-section">
+					<div class="pfb-insp-section-head" @click="toggle('s_visibility')">
+						<span class="pfb-insp-section-label">{{ __("Visibility") }}</span>
+						<span
+							class="pfb-insp-chevron"
+							:class="{ collapsed: !open.s_visibility }"
+							v-html="frappe.utils.icon('chevron-down', 'xs')"
+						></span>
+					</div>
+					<div v-show="open.s_visibility" class="pfb-insp-section-body">
+						<p class="pfb-insp-hint text-muted">
+							{{ __("Conditional visibility coming soon.") }}
+						</p>
+					</div>
+				</div>
+
+				<div class="pfb-insp-actions">
+					<button
+						class="btn btn-xs btn-danger-subtle"
+						@click="
+							selected_section.remove = true;
+							store.selected_section.value = null;
+						"
+					>
+						<span v-html="frappe.utils.icon('x', 'xs')"></span>
+						{{ __("Remove section") }}
+					</button>
+				</div>
 			</div>
 		</template>
 	</div>
@@ -650,6 +556,7 @@ import { computed, inject, ref } from "vue";
 import draggable from "vuedraggable";
 import { useStore } from "../../stores";
 import LetterHeadZoneInspector from "./LetterHeadZoneInspector.vue";
+import Autocomplete from "../../../vue-components/Autocomplete.vue";
 
 let store = inject("$store");
 let { letterhead, layout } = useStore();
@@ -659,22 +566,8 @@ let selected_section = computed(() => store.selected_section.value);
 let selected_letterhead = computed(() => store.selected_letterhead.value);
 let selected_lh_footer = computed(() => store.selected_lh_footer.value);
 
-let active_tab = ref("properties");
-
-const field_tabs = [
-	{ id: "properties", label: __("Properties") },
-	{ id: "style", label: __("Style") },
-	{ id: "logic", label: __("Logic") },
-];
-const section_tabs = [
-	{ id: "properties", label: __("Properties") },
-	{ id: "style", label: __("Style") },
-	{ id: "logic", label: __("Logic") },
-];
-
 const open = ref({
 	f_field: true,
-	f_format: false,
 	f_visibility: false,
 	s_section: true,
 	s_bg: true,
@@ -682,7 +575,6 @@ const open = ref({
 	s_visibility: false,
 	t_table: true,
 	t_columns: true,
-	t_behavior: false,
 });
 
 function toggle(key) {
@@ -765,7 +657,6 @@ let current_align = computed(() => selected_field.value?.align ?? "left");
 const show_label_opts = [
 	{ value: "show", label: __("Show") },
 	{ value: "hide", label: __("Hide") },
-	{ value: "inline", label: __("Inline") },
 ];
 
 const align_icons = {
@@ -888,19 +779,23 @@ let available_columns = computed(() => {
 		.filter((f) => !existing.has(f.fieldname));
 });
 
-let add_col_select = ref("");
+let available_column_opts = computed(() =>
+	available_columns.value.map((c) => ({
+		label: c.label || c.fieldname,
+		value: c.fieldname,
+		badge: c.fieldtype,
+	}))
+);
 
-function add_table_column() {
-	if (!add_col_select.value) return;
-	const fieldname = add_col_select.value;
+function pick_column(opt) {
 	const meta = frappe.get_meta(selected_field.value.options);
-	let col;
-	if (fieldname === "idx") {
-		col = { label: __("Sr No."), fieldname: "idx", fieldtype: "Data", width: 10 };
+	let entry;
+	if (opt.value === "idx") {
+		entry = { label: __("Sr No."), fieldname: "idx", fieldtype: "Data", width: 10 };
 	} else {
-		const df = meta?.fields.find((f) => f.fieldname === fieldname);
+		const df = meta?.fields.find((f) => f.fieldname === opt.value);
 		if (!df) return;
-		col = {
+		entry = {
 			label: df.label,
 			fieldname: df.fieldname,
 			fieldtype: df.fieldtype,
@@ -909,10 +804,7 @@ function add_table_column() {
 		};
 	}
 	if (!selected_field.value.table_columns) selected_field.value.table_columns = [];
-	selected_field.value.table_columns.push(col);
-	add_col_select.value = "";
-	// trigger reactivity
-	selected_field.value.table_columns = [...selected_field.value.table_columns];
+	selected_field.value.table_columns = [...selected_field.value.table_columns, entry];
 }
 
 function remove_table_column(idx) {
@@ -994,44 +886,53 @@ function set_padding(side, value) {
 
 /* ── Header ─────────────────────────────────────────────── */
 .pfb-inspector-head {
-	padding: 12px 14px 10px;
+	padding: 8px 12px;
 	border-bottom: 1px solid var(--border-color);
 	flex-shrink: 0;
-}
-
-.pfb-inspector-eyebrow {
-	font-size: 10px;
-	font-weight: 600;
-	text-transform: uppercase;
-	letter-spacing: 0.08em;
-	color: var(--text-muted);
-	margin-bottom: 3px;
+	min-height: 0;
 }
 
 .pfb-inspector-title {
 	display: flex;
-	align-items: baseline;
+	align-items: center;
 	gap: 6px;
+	min-width: 0;
 }
 
 .pfb-inspector-kind {
-	font-size: var(--text-lg);
-	font-weight: 700;
+	font-size: var(--text-sm);
+	font-weight: var(--weight-semibold);
+	white-space: nowrap;
+	flex-shrink: 0;
 }
 
 .pfb-inspector-name {
-	font-size: var(--text-base);
+	font-size: var(--text-sm);
 	color: var(--text-muted);
 	overflow: hidden;
 	text-overflow: ellipsis;
 	white-space: nowrap;
+	flex: 1;
+	min-width: 0;
+}
+
+.pfb-inspector-name::before {
+	content: "·";
+	margin-right: 6px;
+	opacity: 0.4;
+}
+
+.pfb-inspector-eyebrow-inline {
+	font-size: var(--text-sm);
+	font-weight: var(--weight-medium);
+	color: var(--text-muted);
 }
 
 /* ── Breadcrumb ──────────────────────────────────────────── */
 .pfb-breadcrumb {
 	padding: 4px 10px;
 	border-bottom: 1px solid var(--border-color);
-	background: var(--gray-50);
+	background: var(--fg-color);
 }
 
 .pfb-breadcrumb-btn {
@@ -1042,7 +943,7 @@ function set_padding(side, value) {
 	border: none;
 	background: transparent;
 	cursor: pointer;
-	border-radius: var(--border-radius-sm);
+	border-radius: var(--radius);
 	color: var(--text-muted);
 	font-size: var(--text-xs);
 	transition: background 0.1s, color 0.1s;
@@ -1051,7 +952,6 @@ function set_padding(side, value) {
 
 .pfb-breadcrumb-btn:hover {
 	background: var(--gray-100);
-	color: var(--blue-500);
 }
 
 .pfb-breadcrumb-label {
@@ -1075,50 +975,6 @@ function set_padding(side, value) {
 	padding: 24px;
 	text-align: center;
 	font-size: var(--text-sm);
-}
-
-/* ── Tabs ────────────────────────────────────────────────── */
-.pfb-insp-tabs {
-	display: flex;
-	padding: 8px 10px 0;
-	gap: 2px;
-	border-bottom: 1px solid var(--border-color);
-	flex-shrink: 0;
-	background: var(--gray-50);
-}
-
-.pfb-insp-tab {
-	flex: 1;
-	padding: 6px 4px 8px;
-	font-size: var(--text-sm);
-	font-weight: 500;
-	border: none;
-	background: transparent;
-	color: var(--text-muted);
-	cursor: pointer;
-	border-radius: var(--border-radius) var(--border-radius) 0 0;
-	position: relative;
-	transition: color 0.12s;
-}
-
-.pfb-insp-tab:hover {
-	color: var(--text-color);
-}
-
-.pfb-insp-tab.active {
-	color: var(--text-color);
-	font-weight: 600;
-}
-
-.pfb-insp-tab.active::after {
-	content: "";
-	position: absolute;
-	bottom: 0;
-	left: 0;
-	right: 0;
-	height: 2px;
-	background: var(--gray-700);
-	border-radius: 2px 2px 0 0;
 }
 
 /* ── Body ────────────────────────────────────────────────── */
@@ -1151,12 +1007,12 @@ function set_padding(side, value) {
 }
 
 .pfb-insp-section-head:hover {
-	background: var(--gray-50);
+	background: var(--subtle-accent);
 }
 
 .pfb-insp-section-label {
-	font-size: 10px;
-	font-weight: 700;
+	font-size: var(--text-tiny);
+	font-weight: var(--weight-bold);
 	text-transform: uppercase;
 	letter-spacing: 0.08em;
 	color: var(--text-muted);
@@ -1205,9 +1061,11 @@ function set_padding(side, value) {
 	justify-content: space-between;
 	padding: 5px 8px;
 	border: 1px solid var(--border-color);
-	border-radius: var(--border-radius);
-	background: var(--gray-50);
+	border-radius: var(--radius);
+	background: var(--control-bg);
 	gap: 6px;
+	min-width: 0;
+	overflow: hidden;
 }
 
 .pfb-source-name {
@@ -1215,14 +1073,15 @@ function set_padding(side, value) {
 	overflow: hidden;
 	text-overflow: ellipsis;
 	white-space: nowrap;
+	min-width: 0;
 }
 
 .pfb-type-badge {
-	font-size: 10px;
+	font-size: var(--text-tiny);
 	color: var(--text-muted);
 	background: var(--gray-100);
 	border: 1px solid var(--gray-300);
-	border-radius: var(--border-radius-sm);
+	border-radius: var(--radius);
 	padding: 1px 5px;
 	white-space: nowrap;
 	flex-shrink: 0;
@@ -1234,7 +1093,7 @@ function set_padding(side, value) {
 	padding: 6px 8px;
 	font-size: var(--text-sm);
 	border: 1px solid var(--border-color);
-	border-radius: var(--border-radius);
+	border-radius: var(--radius);
 	background: var(--fg-color);
 	color: var(--text-color);
 	outline: none;
@@ -1248,9 +1107,9 @@ function set_padding(side, value) {
 /* ── Segmented control ───────────────────────────────────── */
 .pfb-seg {
 	display: inline-flex;
-	background: var(--gray-100);
+	background: var(--control-bg);
 	border: 1px solid var(--border-color);
-	border-radius: var(--border-radius);
+	border-radius: var(--radius);
 	overflow: hidden;
 	width: 100%;
 }
@@ -1258,8 +1117,8 @@ function set_padding(side, value) {
 .pfb-seg button {
 	flex: 1;
 	padding: 5px 6px;
-	font-size: 11px;
-	font-weight: 500;
+	font-size: var(--text-tiny);
+	font-weight: var(--weight-medium);
 	border: none;
 	border-radius: 0;
 	background: transparent;
@@ -1291,9 +1150,9 @@ function set_padding(side, value) {
 	display: inline-flex;
 	align-items: center;
 	border: 1px solid var(--border-color);
-	border-radius: var(--border-radius);
+	border-radius: var(--radius);
 	overflow: hidden;
-	background: var(--gray-50);
+	background: var(--subtle-accent);
 	width: 100%;
 }
 
@@ -1350,7 +1209,7 @@ function set_padding(side, value) {
 }
 
 .pfb-stepper-unit {
-	font-size: 10px;
+	font-size: var(--text-tiny);
 	color: var(--text-muted);
 	padding: 0 6px 0 2px;
 }
@@ -1369,7 +1228,7 @@ function set_padding(side, value) {
 .pfb-swatch {
 	width: 28px;
 	height: 28px;
-	border-radius: var(--border-radius);
+	border-radius: var(--radius);
 	border: 1.5px solid var(--border-color);
 	cursor: pointer;
 	padding: 0;
@@ -1399,7 +1258,7 @@ function set_padding(side, value) {
 }
 
 .pfb-padding-label {
-	font-size: 10px;
+	font-size: var(--text-tiny);
 	color: var(--text-muted);
 	text-align: center;
 }
@@ -1424,7 +1283,7 @@ function set_padding(side, value) {
 	color: var(--red-500);
 	background: transparent;
 	border: 1px solid var(--red-200);
-	border-radius: var(--border-radius);
+	border-radius: var(--radius);
 	padding: 5px 10px;
 	font-size: var(--text-sm);
 	cursor: pointer;
@@ -1475,10 +1334,10 @@ function set_padding(side, value) {
 .pfb-col-width-input {
 	width: 40px;
 	padding: 2px 4px;
-	font-size: 11px;
+	font-size: var(--text-tiny);
 	text-align: right;
 	border: 1px solid var(--border-color);
-	border-radius: var(--border-radius-sm);
+	border-radius: var(--radius);
 	background: var(--fg-color);
 	flex-shrink: 0;
 }
@@ -1495,7 +1354,7 @@ function set_padding(side, value) {
 }
 
 .pfb-col-width-unit {
-	font-size: 10px;
+	font-size: var(--text-tiny);
 	color: var(--text-muted);
 	flex-shrink: 0;
 }
@@ -1508,7 +1367,7 @@ function set_padding(side, value) {
 	background: transparent;
 	cursor: pointer;
 	color: var(--gray-300);
-	border-radius: var(--border-radius-sm);
+	border-radius: var(--radius);
 	flex-shrink: 0;
 }
 
@@ -1518,56 +1377,12 @@ function set_padding(side, value) {
 }
 
 .pfb-col-add-row {
-	display: flex;
-	align-items: center;
-	gap: 6px;
 	padding: 6px 14px 10px;
 	border-top: 1px solid var(--gray-100);
 }
 
-.pfb-col-add-select {
-	flex: 1;
-	font-size: var(--text-sm);
-	padding: 4px 6px;
-	border: 1px solid var(--border-color);
-	border-radius: var(--border-radius);
-	background: var(--fg-color);
-	color: var(--text-color);
-	outline: none;
-	min-width: 0;
-}
-
-.pfb-col-add-select:focus {
-	border-color: var(--gray-500);
-}
-
-.pfb-col-add-btn {
-	display: flex;
-	align-items: center;
-	justify-content: center;
-	width: 26px;
-	height: 26px;
-	border: 1px solid var(--border-color);
-	border-radius: var(--border-radius);
-	background: var(--gray-50);
-	cursor: pointer;
-	color: var(--text-muted);
-	flex-shrink: 0;
-}
-
-.pfb-col-add-btn:hover:not(:disabled) {
-	background: var(--gray-100);
-	color: var(--text-color);
-	border-color: var(--gray-400);
-}
-
-.pfb-col-add-btn:disabled {
-	opacity: 0.4;
-	cursor: not-allowed;
-}
-
 .pfb-insp-col-count {
-	font-size: 11px;
+	font-size: var(--text-tiny);
 }
 
 /* ── Letter Head inspector ───────────────────────────────── */
@@ -1575,8 +1390,8 @@ function set_padding(side, value) {
 	display: flex;
 	align-items: center;
 	gap: 6px;
-	font-size: 11px;
-	font-weight: 600;
+	font-size: var(--text-tiny);
+	font-weight: var(--weight-semibold);
 	text-transform: uppercase;
 	letter-spacing: 0.06em;
 	color: var(--blue-500);
@@ -1602,7 +1417,7 @@ function set_padding(side, value) {
 	color: var(--text-muted);
 	padding: 6px 8px;
 	border: 1px solid var(--border-color);
-	border-radius: var(--border-radius);
+	border-radius: var(--radius);
 	background: var(--gray-50);
 	max-height: 80px;
 	overflow: hidden;
@@ -1619,10 +1434,10 @@ function set_padding(side, value) {
 	display: flex;
 	align-items: center;
 	gap: 6px;
-	font-size: 11px;
-	color: var(--yellow-800, #854d0e);
-	background: var(--yellow-50, #fefce8);
-	border-bottom: 1px solid var(--yellow-200, #fde68a);
+	font-size: var(--text-tiny);
+	color: var(--yellow-800);
+	background: var(--yellow-50);
+	border-bottom: 1px solid var(--yellow-200);
 	padding: 7px 14px;
 	flex-shrink: 0;
 	line-height: 1.4;
@@ -1634,7 +1449,7 @@ function set_padding(side, value) {
 	color: var(--text-muted);
 	padding: 6px 8px;
 	border: 1px solid var(--border-color);
-	border-radius: var(--border-radius);
+	border-radius: var(--radius);
 	background: var(--gray-50);
 	max-height: 100px;
 	overflow: hidden;
@@ -1667,8 +1482,8 @@ function set_padding(side, value) {
 }
 
 .pfb-html-split-label {
-	font-size: 10px;
-	font-weight: 700;
+	font-size: var(--text-tiny);
+	font-weight: var(--weight-bold);
 	text-transform: uppercase;
 	letter-spacing: 0.08em;
 	color: var(--text-muted);
@@ -1706,7 +1521,7 @@ function set_padding(side, value) {
 	font-size: 13px;
 	font-family: var(--monospace-font-family, monospace);
 	border: 1px solid var(--border-color);
-	border-radius: var(--border-radius);
+	border-radius: var(--radius);
 }
 
 .pfb-html-ctrl-host .CodeMirror-scroll {

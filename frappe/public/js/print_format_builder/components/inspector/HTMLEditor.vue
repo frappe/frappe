@@ -59,7 +59,7 @@ function get_value() {
 .html-editor {
 	position: relative;
 	border: 1px solid var(--dark-border-color);
-	border-radius: var(--border-radius);
+	border-radius: var(--radius);
 	padding: 1rem;
 	margin-bottom: 1rem;
 }

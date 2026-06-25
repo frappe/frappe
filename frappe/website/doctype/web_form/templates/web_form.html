@@ -91,7 +91,9 @@
 							<h1 class="ellipsis">{{ _(title) }}</h1>
 						{% endif %}
 					</div>
-					<span class="indicator-pill orange hide">{{ _("Not Saved") }}</span>
+					{% if is_new or in_edit_mode %}
+						<span class="es-badge hide" id="not-saved-badge" data-theme="amber">{{ _("Not Saved") }}</span>
+					{% endif %}
 					<div class="web-form-actions">
 						{{ header_buttons() }}
 					</div>
