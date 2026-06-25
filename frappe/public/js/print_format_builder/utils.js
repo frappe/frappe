@@ -253,9 +253,11 @@ export function sanitize_html(html) {
 				const name = attr.name.toLowerCase();
 				if (!SAFE_HTML_ATTRS.has(name) || name.startsWith("on")) {
 					child.removeAttribute(attr.name);
-				} else if (name === "href" || name === "src") {
+				} else if (name === "src") {
 					if (!/^(https?:|data:image\/)/i.test(attr.value.trim()))
 						child.removeAttribute(attr.name);
+				} else if (name === "href") {
+					if (!/^https?:/i.test(attr.value.trim())) child.removeAttribute(attr.name);
 				}
 			}
 			clean(child);
