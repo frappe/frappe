@@ -1,5 +1,5 @@
 <template>
-	<div class="print-format-section-container" v-if="!section.remove" data-pfb-section>
+	<div class="print-format-section-container" data-pfb-section>
 		<!-- Top-left actions pill shown on hover in clean-preview (toolbar is hidden) -->
 		<div v-if="!is_header" class="section-preview-actions">
 			<div
@@ -9,7 +9,7 @@
 			<button
 				class="btn btn-xs btn-icon"
 				:title="__('Remove section')"
-				@click.stop="section['remove'] = true"
+				@click.stop="remove_section"
 				v-html="frappe.utils.icon('x', 'xs')"
 			></button>
 		</div>
@@ -45,7 +45,7 @@
 						v-if="!is_header"
 						class="btn btn-xs btn-icon toolbar-btn toolbar-btn-danger"
 						:title="__('Remove section')"
-						@click.stop="section['remove'] = true"
+						@click.stop="remove_section"
 					>
 						<span v-html="frappe.utils.icon('x', 'sm')"></span>
 					</button>
@@ -143,6 +143,11 @@ function select_section() {
 	store.selected_field.value = null;
 	store.selected_letterhead.value = false;
 	store.selected_lh_footer.value = false;
+}
+
+function remove_section() {
+	const idx = store.layout.value.sections.indexOf(props.section);
+	if (idx !== -1) store.layout.value.sections.splice(idx, 1);
 }
 
 function remove_column(index) {
