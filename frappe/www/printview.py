@@ -349,7 +349,7 @@ def get_html_and_style(
 ) -> dict[str, str | None]:
 	"""Return `html` and `style` of print format, used in PDF etc."""
 
-	if isinstance(name, str):
+	if isinstance(doc, str) and isinstance(name, str):
 		document = frappe.get_lazy_doc(doc, name, check_permission=True)
 	else:
 		document = frappe.get_doc(frappe.parse_json(doc), check_permission=True)
@@ -386,7 +386,7 @@ def get_rendered_raw_commands(
 ) -> dict:
 	"""Return Rendered Raw Commands of print format, used to send directly to printer."""
 
-	if isinstance(name, str):
+	if isinstance(doc, str) and isinstance(name, str):
 		document = frappe.get_lazy_doc(doc, name, check_permission=True)
 	else:
 		document = frappe.get_doc(frappe.parse_json(doc), check_permission=True)
