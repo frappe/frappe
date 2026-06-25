@@ -58,7 +58,7 @@ function authenticate_with_frappe(socket, next) {
 		if (secret) {
 			headers["X-Frappe-Socket-Secret"] = secret;
 		}
-		return make_request(get_url(socket, path), headers, socket.request.headers.host, opts);
+		return make_request(get_url(socket, path), headers, get_site_name(socket), opts);
 	};
 
 	socket
