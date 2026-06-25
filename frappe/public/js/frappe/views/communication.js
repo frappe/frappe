@@ -328,6 +328,7 @@ frappe.views.CommunicationComposer = class {
 				label: __("Send Read Receipt"),
 				fieldtype: "Check",
 				fieldname: "send_read_receipt",
+				default: frappe.boot.user.send_read_receipt,
 			},
 			{
 				label: __("Attach Document Print"),
