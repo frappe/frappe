@@ -720,7 +720,8 @@ frappe.provide("frappe.views");
 		}
 
 		function update_column_count(count) {
-			self.$kanban_column?.find(".kanban-column-count").text(count);
+			const total = store.state.cur_list?.get_column_total_count?.(column.title);
+			self.$kanban_column?.find(".kanban-column-count").text(total || count);
 		}
 
 		function make_dom() {
@@ -887,9 +888,19 @@ frappe.provide("frappe.views");
 				virtualized: true,
 			});
 			self.$kanban_cards.scrollTop(scroll_top);
+			maybe_prefetch_more();
 			requestAnimationFrame(() => {
 				virt_state.suppress_scroll_render = false;
 			});
+		}
+
+		function maybe_prefetch_more() {
+			const list = store.state.cur_list;
+			if (!list?.prefetch_kanban_column) return;
+			const trigger = list.get_prefetch_trigger_distance?.() ?? 10;
+			if (virt_state.total_cards - virt_state.virt_end <= trigger) {
+				list.prefetch_kanban_column(column.title);
+			}
 		}
 
 		function setup_sortable() {
@@ -1628,6 +1639,17 @@ frappe.provide("frappe.views");
 
 	/** Ordered card names for a column using the pre-built index. */
 	function get_ordered_names(column, cards_index) {
+		const list = store.state.cur_list;
+		const loaded_names = list?.get_column_ordered_names?.(column.title);
+		if (Array.isArray(loaded_names) && loaded_names.length) {
+			const names_in_column = new Set(
+				(cards_index?.by_column[column.title] || []).map((card) => card.name)
+			);
+			const visible = loaded_names.filter((name) => names_in_column.has(name));
+			if (visible.length) {
+				return visible;
+			}
+		}
 		return get_column_display_order(column, cards_index);
 	}
 
@@ -1669,20 +1691,34 @@ frappe.provide("frappe.views");
 		return cards;
 	}
 
+	var column_indicators_cache = null;
+	var column_indicators_promise = null;
+
 	function get_column_indicators(callback) {
-		frappe.model.with_doctype("Kanban Board Column", function () {
-			var meta = frappe.get_meta("Kanban Board Column");
-			var indicators;
-			meta.fields.forEach(function (df) {
-				if (df.fieldname === "indicator") {
-					indicators = df.options.split("\n");
-				}
+		if (column_indicators_cache) {
+			callback(column_indicators_cache);
+			return;
+		}
+
+		if (!column_indicators_promise) {
+			column_indicators_promise = new Promise(function (resolve) {
+				frappe.model.with_doctype("Kanban Board Column", function () {
+					var meta = frappe.get_meta("Kanban Board Column");
+					var indicators;
+					meta.fields.forEach(function (df) {
+						if (df.fieldname === "indicator") {
+							indicators = df.options.split("\n");
+						}
+					});
+					if (!indicators) {
+						indicators = ["green", "blue", "orange", "gray"];
+					}
+					column_indicators_cache = indicators;
+					resolve(indicators);
+				});
 			});
-			if (!indicators) {
-				//
-				indicators = ["green", "blue", "orange", "gray"];
-			}
-			callback(indicators);
-		});
+		}
+
+		column_indicators_promise.then(callback);
 	}
 })();
