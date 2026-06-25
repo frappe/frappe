@@ -358,10 +358,6 @@ class TestCustomFunctionsPostgres(IntegrationTestCase):
 		self.assertIsInstance(val["q"], int)
 
 	def test_unix_ts_postgres(self):
-		# EXTRACT(EPOCH ...) is double precision on postgres; it is wrapped in CAST(... AS BIGINT) so
-		# the value (and its Python type) matches MySQL's integer UNIX_TIMESTAMP. The value is also
-		# re-interpreted in the session TimeZone (AT TIME ZONE) so the epoch matches MariaDB's
-		# UNIX_TIMESTAMP, which reads the value in the connection time zone rather than UTC.
 		# Simple Query
 		note = frappe.qb.DocType("Note")
 		self.assertEqual(
@@ -385,21 +381,19 @@ class TestCustomFunctionsPostgres(IntegrationTestCase):
 		)
 
 	def test_unix_ts_postgres_uses_session_timezone(self):
-		# MariaDB's UNIX_TIMESTAMP(value) reads the (naive) value in the connection time zone;
-		# postgres must do the same instead of treating it as UTC, otherwise heatmap day-buckets land
-		# on a different calendar day on a non-UTC server. Verify the epoch tracks the session TimeZone.
 		from datetime import datetime
 		from zoneinfo import ZoneInfo
 
-		# select the (constant) epoch expression through the query builder so no SQL string is
-		# interpolated; DocType is always populated, so LIMIT 1 returns a row.
 		dt = frappe.qb.DocType("DocType")
 		epoch = UnixTimestamp(Date("2021-06-01"))
-		for tz in ("UTC", "Asia/Kolkata", "America/New_York"):
-			frappe.db.sql("SET LOCAL TIME ZONE %s", (tz,))
-			got = frappe.qb.from_(dt).select(epoch).limit(1).run()[0][0]
-			expected = int(datetime(2021, 6, 1, tzinfo=ZoneInfo(tz)).timestamp())
-			self.assertEqual(got, expected, msg=f"timezone {tz}")
+		try:
+			for tz in ("UTC", "Asia/Kolkata", "America/New_York"):
+				frappe.db.sql("SET LOCAL TIME ZONE %s", (tz,))
+				got = frappe.qb.from_(dt).select(epoch).limit(1).run()[0][0]
+				expected = int(datetime(2021, 6, 1, tzinfo=ZoneInfo(tz)).timestamp())
+				self.assertEqual(got, expected, msg=f"timezone {tz}")
+		finally:
+			frappe.db.sql("RESET TIME ZONE")
 
 	def test_datediff_postgres(self):
 		# Postgres subtracts dates to get an integer day count, matching MariaDB DATEDIFF.

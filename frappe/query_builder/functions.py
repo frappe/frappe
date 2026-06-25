@@ -142,14 +142,6 @@ class _PostgresUnixTimestamp(Extract):
 		with_alias = kwargs.pop("with_alias", False)
 		field = self.field if isinstance(self.field, Term) else Term.wrap_constant(self.field)
 		field_sql = field.get_sql(**kwargs)
-		# MySQL's UNIX_TIMESTAMP(value) reads the (naive) value in the connection's time zone and
-		# returns the UTC epoch. Postgres EXTRACT(EPOCH FROM <timestamp without time zone>) instead
-		# treats the value as UTC, so on a server whose time zone is not UTC the two diverge by the
-		# server's offset (e.g. an Item heatmap bucket lands on a different day). Re-interpret the
-		# value in the session TimeZone so the epoch matches MariaDB. The value is cast to a naive
-		# timestamp first: AT TIME ZONE on a bare `date` picks the wrong overload (it converts a
-		# timestamptz back to local time) and would double-shift the result.
-		# CAST to BIGINT because EXTRACT returns double precision while MySQL returns an integer.
 		sql = (
 			"CAST(EXTRACT(EPOCH FROM "
 			f"(CAST({field_sql} AS TIMESTAMP) AT TIME ZONE CURRENT_SETTING('TimeZone'))) AS BIGINT)"
