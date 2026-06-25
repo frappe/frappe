@@ -27,8 +27,11 @@ function get_url(socket, path) {
 	return url + path;
 }
 
-function make_request(url, headers, host, opts = {}) {
+function make_request(url, headers, host, opts = {}, _redirects = 0) {
 	return new Promise((resolve, reject) => {
+		if (_redirects > 5) {
+			return reject(new Error("Too many redirects"));
+		}
 		const parsed = new URL(url);
 		const lib = parsed.protocol === "https:" ? https : http;
 		const options = {
@@ -43,6 +46,12 @@ function make_request(url, headers, host, opts = {}) {
 		};
 
 		const req = lib.request(options, (res) => {
+			if (res.statusCode >= 300 && res.statusCode < 400 && res.headers.location) {
+				res.resume();
+				return resolve(
+					make_request(res.headers.location, headers, host, opts, _redirects + 1)
+				);
+			}
 			let data = "";
 			res.on("data", (chunk) => {
 				data += chunk;
