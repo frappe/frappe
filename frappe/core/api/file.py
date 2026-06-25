@@ -46,8 +46,8 @@ def get_files_in_folder(folder: str, start: int = 0, page_length: int = 20) -> d
 		"File",
 		{"folder": folder},
 		fields,
-		start=start,
-		page_length=page_length + 1,
+		offset=start,
+		limit=page_length + 1,
 	)
 
 	seen_urls = set()
