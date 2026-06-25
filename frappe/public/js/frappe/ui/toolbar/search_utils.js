@@ -66,7 +66,7 @@ frappe.search.utils = {
 				const doctype = route[1];
 				if (route.length > 2 && doctype !== route[2]) {
 					const docname = route[2];
-					out.label = __(doctype) + " " + docname.bold();
+					out.label = __(doctype) + " " + frappe.utils.bold(docname);
 					out.value = __(doctype) + " " + docname;
 				} else {
 					out.label = __(doctype).bold();
