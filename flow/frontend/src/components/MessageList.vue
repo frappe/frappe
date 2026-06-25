@@ -44,7 +44,11 @@ watch(scrollTick, () => {
 			/>
 
 			<template v-for="msg in messages" :key="msg.id">
-				<UserMessage v-if="msg.role === 'user'" :content="msg.content" />
+				<UserMessage
+					v-if="msg.role === 'user'"
+					:content="msg.content"
+					:attachments="msg.attachments"
+				/>
 				<AssistantMessage v-else :message="msg" />
 			</template>
 		</div>
