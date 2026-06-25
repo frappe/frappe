@@ -3,7 +3,7 @@ msgstr ""
 "Project-Id-Version: frappe\n"
 "Report-Msgid-Bugs-To: developers@frappe.io\n"
 "POT-Creation-Date: 2026-06-24 16:55+0000\n"
-"PO-Revision-Date: 2026-06-24 20:32\n"
+"PO-Revision-Date: 2026-06-25 20:54\n"
 "Last-Translator: developers@frappe.io\n"
 "Language-Team: German\n"
 "MIME-Version: 1.0\n"
@@ -624,14 +624,18 @@ msgstr "<h5>Nachrichtenbeispiel</h5>\n\n"
 msgid "<p><strong>{{ __(\"Condition Examples\") }}:</strong></p>\n"
 "<pre><code class=\"language-python\">doc.status==\"Open\"<br>doc.due_date==nowdate()<br>doc.total &gt; 40000\n"
 "</code></pre>\n"
-msgstr ""
+msgstr "<p><strong>{{ __(\"Condition Examples\") }}:</strong></p>\n"
+"<pre><code class=\"language-python\">doc.status==\"Open\"<br>doc.due_date==nowdate()<br>doc.total &gt; 40000\n"
+"</code></pre>\n"
 
 #. Content of the 'html_condition' (HTML) field in DocType 'Webhook'
 #: frappe/integrations/doctype/webhook/webhook.json
 msgid "<p><strong>{{ __(\"Condition Examples\") }}:</strong></p>\n"
 "<pre>doc.status==\"Open\"<br>doc.due_date==nowdate()<br>doc.total &gt; 40000\n"
 "</pre>"
-msgstr ""
+msgstr "<p><strong>{{ __(\"Condition Examples\") }}:</strong></p>\n"
+"<pre>doc.status==\"Open\"<br>doc.due_date==nowdate()<br>doc.total &gt; 40000\n"
+"</pre>"
 
 #. Content of the 'Condition description' (HTML) field in DocType 'Web Form'
 #: frappe/website/doctype/web_form/web_form.json
@@ -2123,7 +2127,7 @@ msgstr "Erlaubt"
 #. Label of a Small Text field in DocType 'System Settings'
 #: frappe/core/doctype/system_settings/system_settings.json
 msgid "Allowed Doctypes for Guest Uploads"
-msgstr ""
+msgstr "Zulässige DocTypes für Gast-Uploads"
 
 #. Label of a Small Text field in DocType 'System Settings'
 #: frappe/core/doctype/system_settings/system_settings.json
@@ -2156,51 +2160,51 @@ msgstr "DocType, DocType zulassen. Achtung!"
 
 #: frappe/core/page/permission_manager/permission_manager_help.html:52
 msgid "Allows printing or PDF download of documents."
-msgstr ""
+msgstr "Ermöglicht das Drucken oder Herunterladen von Dokumenten als PDF."
 
 #: frappe/core/page/permission_manager/permission_manager_help.html:77
 msgid "Allows sharing document access with other users."
-msgstr ""
+msgstr "Ermöglicht die Freigabe des Zugriffs auf Dokumente für andere Benutzer."
 
 #: frappe/core/page/permission_manager/permission_manager_help.html:62
 msgid "Allows the user to access reports related to the document."
-msgstr ""
+msgstr "Ermöglicht dem Benutzer den Zugriff auf Berichte, die sich auf das Dokument beziehen."
 
 #: frappe/core/page/permission_manager/permission_manager_help.html:42
 msgid "Allows the user to create new documents."
-msgstr ""
+msgstr "Ermöglicht es dem Benutzer, neue Dokumente zu erstellen."
 
 #: frappe/core/page/permission_manager/permission_manager_help.html:47
 msgid "Allows the user to delete documents."
-msgstr ""
+msgstr "Ermöglicht es dem Benutzer, Dokumente zu löschen."
 
 #: frappe/core/page/permission_manager/permission_manager_help.html:37
 msgid "Allows the user to edit existing records they have access to."
-msgstr ""
+msgstr "Ermöglicht es dem Benutzer, vorhandene Datensätze zu bearbeiten, auf die er Zugriff hat."
 
 #: frappe/core/page/permission_manager/permission_manager_help.html:57
 msgid "Allows the user to email from the document."
-msgstr ""
+msgstr "Ermöglicht es dem Benutzer, direkt aus dem Dokument heraus eine E-Mail zu versenden."
 
 #: frappe/core/page/permission_manager/permission_manager_help.html:67
 msgid "Allows the user to export data from the Report view."
-msgstr ""
+msgstr "Ermöglicht dem Benutzer, Daten aus der Berichtsansicht zu exportieren."
 
 #: frappe/core/page/permission_manager/permission_manager_help.html:27
 msgid "Allows the user to search and see records."
-msgstr ""
+msgstr "Ermöglicht es dem Benutzer, Datensätze zu suchen und anzuzeigen."
 
 #: frappe/core/page/permission_manager/permission_manager_help.html:72
 msgid "Allows the user to use Data Import tool to create / update records."
-msgstr ""
+msgstr "Ermöglicht dem Benutzer, mit dem Datenimport-Tool Datensätze zu erstellen/aktualisieren."
 
 #: frappe/core/page/permission_manager/permission_manager_help.html:32
 msgid "Allows the user to view the document."
-msgstr ""
+msgstr "Ermöglicht es dem Benutzer, das Dokument anzusehen."
 
 #: frappe/core/page/permission_manager/permission_manager_help.html:82
 msgid "Allows users to enable the mask property for any field of the respective doctype."
-msgstr ""
+msgstr "Ermöglicht es Benutzern, die Maskeneigenschaft für jedes beliebige Feld des jeweiligen DocType zu aktivieren."
 
 #: frappe/core/doctype/user/user.py:1002
 msgid "Already Registered"
@@ -2440,7 +2444,7 @@ msgstr "App {0} ist nicht installiert"
 
 #: frappe/apps.py:118
 msgid "App {} is not installed"
-msgstr ""
+msgstr "App {0} ist nicht installiert"
 
 #. Label of a Check field in DocType 'Email Account'
 #. Label of a Check field in DocType 'Email Domain'
@@ -2670,7 +2674,7 @@ msgstr "Sind Sie sicher, dass Sie diese Mitteilung an {0} neu verknüpfen wollen
 
 #: frappe/core/doctype/communication/communication.js:166
 msgid "Are you sure you want to relink this communication?"
-msgstr ""
+msgstr "Sind Sie sicher, dass Sie die Verknüpfung dieser Kommunikation ändern möchten?"
 
 #: frappe/core/doctype/rq_job/rq_job_list.js:10
 msgid "Are you sure you want to remove all failed jobs?"
@@ -3013,14 +3017,14 @@ msgstr "Es wird versucht, QZ Tray zu starten ..."
 
 #: frappe/desk/doctype/event/event.py:254
 msgid "Attendee not found in this event."
-msgstr ""
+msgstr "Teilnehmer wurde in diesem Event nicht gefunden."
 
 #. Label of a Select field in DocType 'Event'
 #. Label of a Select field in DocType 'Event Participants'
 #: frappe/desk/doctype/event/event.json
 #: frappe/desk/doctype/event_participants/event_participants.json
 msgid "Attending"
-msgstr ""
+msgstr "Teilnehmend"
 
 #. Label of a Table field in DocType 'Newsletter'
 #: frappe/email/doctype/newsletter/newsletter.json
@@ -5970,7 +5974,7 @@ msgstr "Die Spalte {0} konnte dem Feld {1} nicht zugeordnet werden."
 
 #: frappe/desk/page/setup_wizard/setup_wizard.js:241
 msgid "Could not start up: "
-msgstr ""
+msgstr "Konnte nicht starten: "
 
 #: frappe/public/js/frappe/web_form/web_form.js:388
 msgid "Couldn't save, please check the data you have entered"
@@ -8554,7 +8558,7 @@ msgstr "Ziehen Sie die Dateien hierher oder laden Sie sie von"
 
 #: frappe/public/js/print_format_builder/ConfigureColumns.vue:76
 msgid "Drag columns to set order. Column width is set in percentage. The total width should not be more than 100. Columns marked in red will be removed."
-msgstr ""
+msgstr "Ziehen Sie die Spalten, um die Reihenfolge festzulegen. Die Spaltenbreite wird in Prozent angegeben. Die Gesamtbreite sollte nicht mehr als 100 betragen. Rot markierte Spalten werden entfernt."
 
 #: frappe/printing/page/print_format_builder/print_format_builder_layout.html:3
 msgid "Drag elements from the sidebar to add. Drag them back to trash."
@@ -8791,7 +8795,7 @@ msgstr "Filter bearbeiten"
 
 #: frappe/public/js/print_format_builder/PrintFormat.vue:29
 msgid "Edit Footer"
-msgstr ""
+msgstr "Fußzeile bearbeiten"
 
 #: frappe/printing/doctype/print_format/print_format.js:29
 msgid "Edit Format"
@@ -8808,7 +8812,7 @@ msgstr "HTML bearbeiten"
 
 #: frappe/public/js/print_format_builder/PrintFormat.vue:9
 msgid "Edit Header"
-msgstr ""
+msgstr "Kopfzeile bearbeiten"
 
 #: frappe/printing/page/print_format_builder/print_format_builder.js:604
 #: frappe/printing/page/print_format_builder/print_format_builder_layout.html:8
@@ -8839,7 +8843,7 @@ msgstr "Eigenschaften bearbeiten"
 
 #: frappe/printing/page/print_format_builder/print_format_builder.js:414
 msgid "Edit Section"
-msgstr ""
+msgstr "Abschnitt bearbeiten"
 
 #. Label of a Button field in DocType 'Web Page Block'
 #. Label of a Button field in DocType 'Website Settings'
@@ -9933,11 +9937,11 @@ msgstr "Exekutive"
 
 #: frappe/public/js/frappe/legacy_gravatar_cleanup.js:28
 msgid "Existing Gravatar URLs may still be stored on User and Contact records. Do you want to delete these URLs now?"
-msgstr ""
+msgstr "Vorhandene Gravatar-URLs sind möglicherweise noch in Benutzer- und Kontaktdatensätzen gespeichert. Möchten Sie diese URLs jetzt löschen?"
 
 #: frappe/public/js/frappe/legacy_gravatar_cleanup.js:25
 msgid "Existing Gravatar URLs may still be stored on User, Contact, and Lead records. Do you want to delete these URLs now?"
-msgstr ""
+msgstr "Vorhandene Gravatar-URLs sind möglicherweise noch in Benutzer-, Kontakt- und Interessenten-Datensätzen gespeichert. Möchten Sie diese URLs jetzt löschen?"
 
 #: frappe/public/js/frappe/widgets/base_widget.js:160
 msgid "Expand"
@@ -10408,11 +10412,11 @@ msgstr "Feldname"
 
 #: frappe/public/js/print_format_builder/PrintFormatSection.vue:141
 msgid "Field Orientation (Left-Right)"
-msgstr ""
+msgstr "Feldausrichtung (links-rechts)"
 
 #: frappe/public/js/print_format_builder/PrintFormatSection.vue:148
 msgid "Field Orientation (Top-Down)"
-msgstr ""
+msgstr "Feldausrichtung (oben-unten)"
 
 #: frappe/public/js/print_format_builder/PrintFormatControls.vue:233
 #: frappe/public/js/print_format_builder/utils.js:69
@@ -11334,7 +11338,7 @@ msgstr "Frappe Support"
 
 #: frappe/public/js/frappe/legacy_gravatar_cleanup.js:18
 msgid "Frappe no longer uses Gravatar because it can disclose hashed email addresses to a third-party service. To fully stop this behavior, existing Gravatar image URLs must be deleted."
-msgstr ""
+msgstr "Frappe verwendet Gravatar nicht mehr, da dadurch gehashte E-Mail-Adressen an einen Drittanbieter weitergegeben werden könnten. Um dieses Verhalten vollständig zu unterbinden, müssen bestehende Gravatar-Bild-URLs gelöscht werden."
 
 #: frappe/website/doctype/web_page/web_page.js:97
 msgid "Frappe page builder using components"
@@ -11600,7 +11604,7 @@ msgstr "Erhalten Sie eine Vorschau der generierten Namen eines Nummernkreises."
 
 #: frappe/public/js/frappe/list/list_sidebar.js:282
 msgid "Get more insights with"
-msgstr ""
+msgstr "Erhalten Sie mehr Einblicke mit"
 
 #. Description of the 'Email Threads on Assigned Document' (Check) field in
 #. DocType 'Notification Settings'
@@ -11909,11 +11913,11 @@ msgstr "Diagramm"
 
 #: frappe/public/js/frappe/legacy_gravatar_cleanup.js:54
 msgid "Gravatar URL deletion has been queued."
-msgstr ""
+msgstr "Die Löschung der Gravatar-URLs wurde in die Warteschlange gestellt."
 
 #: frappe/public/js/frappe/legacy_gravatar_cleanup.js:59
 msgid "Gravatar URLs will not be deleted."
-msgstr ""
+msgstr "Gravatar-URLs werden nicht gelöscht."
 
 #. Option for the 'Color' (Select) field in DocType 'DocType State'
 #. Option for the 'Indicator' (Select) field in DocType 'Kanban Board Column'
@@ -11997,7 +12001,7 @@ msgstr "Gruppiert nach <span style='font-weight:600;'>{0}</b>"
 
 #: frappe/handler.py:187
 msgid "Guests are not allowed to upload files for {0} Doctype"
-msgstr ""
+msgstr "Gäste dürfen keine Dateien für den „ {0} “-DocType hochladen"
 
 #. Description of the 'Policy' (Data) field in DocType 'Security Settings'
 #: frappe/core/doctype/security_settings/security_settings.json
@@ -12764,7 +12768,7 @@ msgstr "Wenn aktiviert, werden die Benutzer jedes Mal benachrichtigt, wenn sie s
 #. Settings'
 #: frappe/integrations/doctype/s3_backup_settings/s3_backup_settings.json
 msgid "If it's empty, it will backup to the root of the bucket."
-msgstr ""
+msgstr "Falls leer, erfolgt die Sicherung im Stammverzeichnis des Buckets."
 
 #. Description of the 'Default Workspace' (Link) field in DocType 'User'
 #: frappe/core/doctype/user/user.json
@@ -12806,11 +12810,11 @@ msgstr "Wenn die Bedingung erfüllt ist, wird der Benutzer mit den Punkten beloh
 
 #: frappe/core/page/permission_manager/permission_manager_help.html:83
 msgid "If the user enables the mask property for the phone number field, the value will be displayed in a masked format (e.g., 811XXXXXXX)."
-msgstr ""
+msgstr "Wenn der Benutzer die Maskeneigenschaft für das Telefonnummernfeld aktiviert, wird der Wert in einem maskierten Format angezeigt (z. B. 811XXXXXXX)."
 
 #: frappe/core/page/permission_manager/permission_manager_help.html:63
 msgid "If the user has access to Employee and Report is enabled, they can view Employee-based reports."
-msgstr ""
+msgstr "Wenn der Benutzer Zugriff auf „Mitarbeiter“ hat und die Funktion „Bericht“ aktiviert ist, kann er mitarbeiterbezogene Berichte einsehen."
 
 #. Description of the 'User Type' (Link) field in DocType 'User'
 #: frappe/core/doctype/user/user.json
@@ -13599,7 +13603,7 @@ msgstr "Interne Aufzeichnung von Dokumentfreigaben"
 #. Label of a Select field in DocType 'Event Notifications'
 #: frappe/desk/doctype/event_notifications/event_notifications.json
 msgid "Interval"
-msgstr ""
+msgstr "Intervall"
 
 #: frappe/desk/page/user_profile/user_profile_sidebar.html:22
 msgid "Intro"
@@ -13846,7 +13850,7 @@ msgstr "Ungültiger Ausdruck im Filter {0} ({1}) gesetzt"
 
 #: frappe/desk/page/user_profile/user_profile.py:34
 msgid "Invalid field for grouping"
-msgstr ""
+msgstr "Ungültiges Feld für die Gruppierung"
 
 #: frappe/utils/data.py:2023
 msgid "Invalid field name {0}"
@@ -16072,7 +16076,7 @@ msgstr "Maximum von {0} Zeilen erlaubt"
 #: frappe/desk/doctype/event/event.json
 #: frappe/desk/doctype/event_participants/event_participants.json
 msgid "Maybe"
-msgstr ""
+msgstr "Vielleicht"
 
 #: frappe/public/js/frappe/list/list_sidebar_group_by.js:221
 msgid "Me"
@@ -16080,7 +16084,7 @@ msgstr "Mir"
 
 #: frappe/core/page/permission_manager/permission_manager_help.html:14
 msgid "Meaning of Different Permission Types"
-msgstr ""
+msgstr "Bedeutung der verschiedenen Berechtigungstypen"
 
 #. Option for the 'Priority' (Select) field in DocType 'ToDo'
 #. Label of a Data field in DocType 'Web Page View'
@@ -16708,7 +16712,7 @@ msgstr "Abschnitte in neue Registerkarte verschieben"
 
 #: frappe/public/js/form_builder/components/Field.vue:239
 msgid "Move the current field and the following fields to a new column"
-msgstr ""
+msgstr "Aktuelles und folgende Felder in eine neue Spalte verschieben"
 
 #: frappe/public/js/frappe/form/grid_row.js:160
 msgid "Move to Row Number"
@@ -16966,7 +16970,7 @@ msgstr "Zum Hauptinhalt navigieren"
 #. Label of a Check field in DocType 'User'
 #: frappe/core/doctype/user/user.json
 msgid "Navigation Buttons"
-msgstr ""
+msgstr "Navigationsschalftflächen"
 
 #. Label of a Section Break field in DocType 'User'
 #: frappe/core/doctype/user/user.json
@@ -17742,7 +17746,7 @@ msgstr "Nicht negativ"
 
 #: frappe/desk/page/setup_wizard/install_fixtures.py:33
 msgid "Non-Conforming"
-msgstr ""
+msgstr "Non-konform"
 
 #. Option for the 'Backup Frequency' (Select) field in DocType 'S3 Backup
 #. Settings'
@@ -18790,7 +18794,7 @@ msgstr "Orientierung"
 
 #: frappe/core/doctype/version/version.py:217
 msgid "Original"
-msgstr ""
+msgstr "Original"
 
 #: frappe/core/doctype/version/version_view.html:74
 #: frappe/core/doctype/version/version_view.html:139
@@ -18970,7 +18974,7 @@ msgstr "Paket-Release"
 
 #: frappe/core/doctype/package_import/package_import.py:65
 msgid "Package contains disallowed path entry"
-msgstr ""
+msgstr "Das Paket enthält einen unzulässigen Pfadeintrag"
 
 #. Label of a Card Break in the Build Workspace
 #: frappe/core/workspace/build/build.json
@@ -19027,7 +19031,7 @@ msgstr "Seitenhöhe (in mm)"
 
 #: frappe/public/js/print_format_builder/PrintFormatControls.vue:5
 msgid "Page Margins"
-msgstr ""
+msgstr "Seitenränder"
 
 #. Label of a Data field in DocType 'Page'
 #: frappe/core/doctype/page/page.json
@@ -19443,7 +19447,7 @@ msgstr "{0} endgültig löschen?"
 
 #: frappe/core/page/permission_manager/permission_manager_help.html:19
 msgid "Permission"
-msgstr ""
+msgstr "Berechtigung"
 
 #: frappe/desk/doctype/workspace/workspace.py:96
 msgid "Permission Error"
@@ -20202,7 +20206,7 @@ msgstr "Vorhersehbare Substitutionen wie &#39;@&#39; anstelle von &#39;a&#39; he
 
 #: frappe/desk/page/setup_wizard/install_fixtures.py:34
 msgid "Prefer not to say"
-msgstr ""
+msgstr "Keine Angabe"
 
 #. Label of a Check field in DocType 'Address'
 #: frappe/contacts/doctype/address/address.json
@@ -21890,7 +21894,7 @@ msgstr "Umbenannte Dateien und ersetzter Code in Controllern, bitte überprüfen
 
 #: frappe/public/js/print_format_builder/PrintFormatSection.vue:17
 msgid "Render labels to the left and values to the right in this section"
-msgstr ""
+msgstr "Beschriftungen nach links und Werte nach rechts in diesem Abschnitt anordnen"
 
 #: frappe/core/doctype/communication/communication.js:43
 #: frappe/desk/doctype/todo/todo.js:36
@@ -22927,7 +22931,7 @@ msgstr "S3-Sicherungseinstellungen"
 
 #: frappe/integrations/doctype/s3_backup_settings/s3_backup_settings.js:20
 msgid "S3 Backup has been queued. You can track the progress <a href='/app/rq-job/{0}' target='_blank'>here</a>."
-msgstr ""
+msgstr "Die S3-Sicherung wurde in die Warteschlange gestellt. Den Fortschritt können Sie <a href='/app/rq-job/{0}' target='_blank'>hier</a> verfolgen."
 
 #. Label of a Section Break field in DocType 'S3 Backup Settings'
 #: frappe/integrations/doctype/s3_backup_settings/s3_backup_settings.json
@@ -23544,7 +23548,7 @@ msgstr "Sicherheitseinstellungen Sprache"
 #. Label of a Section Break field in DocType 'Security Settings'
 #: frappe/core/doctype/security_settings/security_settings.json
 msgid "Security.txt"
-msgstr ""
+msgstr "Security.txt"
 
 #: frappe/core/doctype/security_settings/security_settings.js:13
 msgid "Security.txt will be served only under HTTPS."
@@ -23849,7 +23853,7 @@ msgstr "Bild auswählen"
 
 #: frappe/www/apps.html:10
 msgid "Select an app to continue"
-msgstr ""
+msgstr "Wählen Sie eine App aus, um fortzufahren"
 
 #: frappe/printing/page/print_format_builder/print_format_builder_start.html:2
 msgid "Select an existing format to edit or start a new format."
@@ -24592,7 +24596,7 @@ msgstr "Einstellungen für die „Über uns“-Seite"
 #. Description of a DocType
 #: frappe/website/doctype/blog_settings/blog_settings.json
 msgid "Settings to control blog categories and interactions like comments and likes"
-msgstr ""
+msgstr "Einstellungen zur Steuerung von Blog-Kategorien und Interaktionen wie Kommentare und Likes"
 
 #. Option for the 'Show in Module Section' (Select) field in DocType 'DocType'
 #. Label of a Card Break in the Website Workspace
@@ -25494,7 +25498,7 @@ msgstr "Standard-Webformulare können nicht geändert werden, duplizieren Sie st
 
 #: frappe/core/doctype/report/report.py:400
 msgid "Standard reports can only be created in developer mode."
-msgstr ""
+msgstr "Standardberichte können nur im Entwicklermodus erstellt werden."
 
 #: frappe/website/doctype/web_page/web_page.js:94
 msgid "Standard rich text editor with controls"
@@ -26852,7 +26856,7 @@ msgstr "Der ausgewählte Dokumenttyp ist eine untergeordnete Tabelle, daher ist 
 
 #: frappe/core/page/permission_manager/permission_manager_help.html:58
 msgid "The email button is enabled for the user in the document."
-msgstr ""
+msgstr "Die E-Mail-Schaltfläche ist für den Benutzer im Dokument aktiviert."
 
 #: frappe/core/doctype/user_type/user_type.py:78
 msgid "The field {0} is mandatory"
@@ -26919,7 +26923,7 @@ msgstr "Das Passwort Ihres Kontos ist abgelaufen."
 
 #: frappe/core/page/permission_manager/permission_manager_help.html:53
 msgid "The print button is enabled for the user in the document."
-msgstr ""
+msgstr "Die Schaltfläche „Drucken“ ist für den Benutzer in dem Dokument aktiviert."
 
 #: frappe/website/doctype/personal_data_deletion_request/personal_data_deletion_request.py:395
 msgid "The process for deletion of {0} data associated with {1} has been initiated."
@@ -26968,35 +26972,35 @@ msgstr "Die Gesamtbreite aller Spalten darf nicht mehr als 10 sein."
 
 #: frappe/core/page/permission_manager/permission_manager_help.html:43
 msgid "The user can create a new Item but cannot edit existing items."
-msgstr ""
+msgstr "Der Benutzer kann einen neuen Artikel anlegen, bestehende Artikel jedoch nicht bearbeiten."
 
 #: frappe/core/page/permission_manager/permission_manager_help.html:48
 msgid "The user can delete Draft / Cancelled documents."
-msgstr ""
+msgstr "Der Benutzer kann Entwürfe und stornierte Dokumente löschen."
 
 #: frappe/core/page/permission_manager/permission_manager_help.html:68
 msgid "The user can export report data."
-msgstr ""
+msgstr "Der Benutzer kann Berichtsdaten exportieren."
 
 #: frappe/core/page/permission_manager/permission_manager_help.html:73
 msgid "The user can import new records or update existing data for the document."
-msgstr ""
+msgstr "Der Benutzer kann neue Datensätze importieren oder bestehende Daten für das Dokument aktualisieren."
 
 #: frappe/core/page/permission_manager/permission_manager_help.html:28
 msgid "The user can select a Customer in Sales Order but cannot open the Customer master."
-msgstr ""
+msgstr "Der Benutzer kann im Auftrag einen Kunden auswählen, die Stammdaten des Kunden jedoch nicht öffnen."
 
 #: frappe/core/page/permission_manager/permission_manager_help.html:78
 msgid "The user can share document access with another user."
-msgstr ""
+msgstr "Der Benutzer kann den Dokumentenzugriff mit einem anderen Benutzer teilen."
 
 #: frappe/core/page/permission_manager/permission_manager_help.html:38
 msgid "The user can update a customer or any other fields in an existing Sales Order but cannot create a new Sales Order."
-msgstr ""
+msgstr "Der Benutzer kann den Kunden oder beliebige andere Felder in einem bestehenden Auftragsentwurf ändern, jedoch keinen neuen Auftrag anlegen."
 
 #: frappe/core/page/permission_manager/permission_manager_help.html:33
 msgid "The user can view Sales Invoices but cannot modify any field values in them."
-msgstr ""
+msgstr "Der Benutzer kann Ausgangsrechnungen einsehen, darf jedoch keine Werte in bestehenden Rechnungsentwürfen ändern."
 
 #. Description of the 'User Field' (Select) field in DocType 'Energy Point
 #. Rule'
@@ -27870,7 +27874,7 @@ msgstr "Rasteransicht wechseln"
 
 #: frappe/public/js/frappe/views/workspace/workspace.js:212
 msgid "Toggle Section: {0}"
-msgstr ""
+msgstr "Abschnitt ein-/ausblenden: {0}"
 
 #: frappe/public/js/frappe/ui/page.js:194
 #: frappe/public/js/frappe/ui/page.js:196
@@ -30768,11 +30772,11 @@ msgstr "Sie können die Sperre manuell entfernen, wenn Sie denken, dass dies sic
 
 #: frappe/website/doctype/discussion_topic/discussion_topic.py:29
 msgid "You can only edit your own replies."
-msgstr ""
+msgstr "Sie können nur Ihre eigenen Antworten bearbeiten."
 
 #: frappe/desk/form/document_follow.py:51
 msgid "You can only follow documents for yourself."
-msgstr ""
+msgstr "Sie können Dokumenten nur für sich selbst folgen."
 
 #: frappe/public/js/frappe/form/controls/markdown_editor.js:75
 msgid "You can only insert images in Markdown fields"
@@ -30784,7 +30788,7 @@ msgstr "Sie können nur bis zu {0} Dokumente auf einmal drucken"
 
 #: frappe/desk/form/document_follow.py:69
 msgid "You can only unfollow documents for yourself."
-msgstr ""
+msgstr "Sie können Dokumenten nur für sich selbst entfolgen."
 
 #: frappe/handler.py:244
 msgid "You can only upload JPG, PNG, GIF, PDF, TXT, CSV or Microsoft documents."
@@ -30904,7 +30908,7 @@ msgstr "Sie haben keine Importberechtigung für {0}"
 
 #: frappe/desk/form/document_follow.py:54
 msgid "You do not have permission to access this document."
-msgstr ""
+msgstr "Sie haben keine Berechtigung, auf dieses Dokument zuzugreifen."
 
 #: frappe/desk/query_report.py:929
 msgid "You do not have permission to access {0}: {1}."
@@ -30912,11 +30916,11 @@ msgstr "Sie haben keine Zugriffsberechtigung für {0}: {1}."
 
 #: frappe/core/doctype/deleted_document/deleted_document.py:52
 msgid "You do not have permission to create or restore documents of type {0}."
-msgstr ""
+msgstr "Sie haben keine Berechtigung, Dokumente vom Typ {0} zu erstellen oder wiederherzustellen."
 
 #: frappe/core/doctype/deleted_document/deleted_document.py:57
 msgid "You do not have permission to restore this document."
-msgstr ""
+msgstr "Sie haben keine Berechtigung, dieses Dokument wiederherzustellen."
 
 #: frappe/public/js/frappe/form/form.js:929
 msgid "You do not have permissions to cancel all linked documents."
@@ -30936,11 +30940,11 @@ msgstr "Keine Berechtigung für den Zugriff auf diese Datei vorhanden"
 
 #: frappe/desk/reportview.py:309
 msgid "You don't have permission to create Report records."
-msgstr ""
+msgstr "Sie haben keine Berechtigung zum Erstellen von Berichtsdatensätzen."
 
 #: frappe/desk/reportview.py:312
 msgid "You don't have permission to create report for {0}"
-msgstr ""
+msgstr "Sie haben keine Berechtigung, einen Bericht für {0} zu erstellen"
 
 #: frappe/desk/query_report.py:49
 msgid "You don't have permission to get a report on: {0}"
@@ -30948,7 +30952,7 @@ msgstr "Sie haben keine ausreichenden Benutzerrechte um einen Bericht über: {0}
 
 #: frappe/utils/file_manager.py:414
 msgid "You don't have permission to read/attach the file {0}."
-msgstr ""
+msgstr "Sie haben keine Berechtigung, die Datei {0} zu lesen/anzuhängen."
 
 #: frappe/website/doctype/web_form/web_form.py:191
 msgid "You don't have the permissions to access this document"
@@ -31093,7 +31097,7 @@ msgstr "Sie benötigen Schreibberechtigung für {0} {1} zum Umbenennen"
 
 #: frappe/utils/file_manager.py:405
 msgid "You need write permissions to add attachments to this record."
-msgstr ""
+msgstr "Sie benötigen Schreibrechte, um diesem Datensatz Anhänge hinzuzufügen."
 
 #: frappe/client.py:480
 msgid "You need {0} permission to fetch values from {1} {2}"
@@ -31304,7 +31308,7 @@ msgstr "`as_iterator` funktioniert nur mit `as_list=True` oder `as_dict=True`"
 
 #: frappe/custom/doctype/property_setter/property_setter.py:144
 msgid "`doctype` and `fieldname` are required for deleting property setters."
-msgstr ""
+msgstr "`doctype` und `fieldname` sind für das Löschen von Einstellprogrammen für Eigenschaften erforderlich."
 
 #: frappe/utils/background_jobs.py:95
 msgid "`job_id` paramater is required for deduplication."
@@ -33361,7 +33365,7 @@ msgstr ""
 
 #: frappe/public/js/frappe/form/grid.js:238
 msgid "{0} row(s) selected"
-msgstr ""
+msgstr "{0} Zeile(n) ausgewählt"
 
 #: frappe/public/js/frappe/form/footer/version_timeline_content_builder.js:304
 msgctxt "User removed rows from child table"
