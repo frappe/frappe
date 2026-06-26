@@ -18,8 +18,7 @@
   "enable_email_assignment",
   "enable_email_share",
   "user",
-  "seen",
-  "unread_count"
+  "seen"
  ],
  "fields": [
   {
@@ -114,13 +113,6 @@
    "fieldname": "enable_email_threads_on_assigned_document",
    "fieldtype": "Check",
    "label": "Email Threads on Assigned Document"
-  },
-  {
-   "default": "0",
-   "fieldname": "unread_count",
-   "fieldtype": "Int",
-   "hidden": 1,
-   "label": "Unread Count"
   }
  ],
  "in_create": 1,

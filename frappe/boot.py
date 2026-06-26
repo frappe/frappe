@@ -78,6 +78,7 @@ def get_bootinfo():
 	bootinfo.home_folder = frappe.db.get_value("File", {"is_home_folder": 1})
 	bootinfo.navbar_settings = get_navbar_settings()
 	bootinfo.notification_settings = get_notification_settings()
+	bootinfo.notification_unread_count = get_notification_unread_count()
 	bootinfo.onboarding_tours = get_onboarding_ui_tours()
 	set_time_zone(bootinfo)
 
@@ -349,6 +350,12 @@ def get_desk_settings():
 
 def get_notification_settings():
 	return frappe.get_cached_doc("Notification Settings", frappe.session.user)
+
+
+def get_notification_unread_count():
+	from frappe.desk.doctype.notification_log.notification_log import get_unread_count
+
+	return get_unread_count()
 
 
 def get_link_title_doctypes():

@@ -32,7 +32,6 @@ class NotificationSettings(Document):
 		enabled: DF.Check
 		seen: DF.Check
 		subscribed_documents: DF.TableMultiSelect[NotificationSubscribedDocument]
-		unread_count: DF.Int
 		user: DF.Link | None
 	# end: auto-generated types
 

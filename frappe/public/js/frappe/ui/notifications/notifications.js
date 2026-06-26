@@ -233,7 +233,7 @@ class NotificationsView extends BaseNotificationsView {
 
 		this.dropdown_items = [];
 		this.notifications_fetched = false;
-		this.unread_count = this.settings?.unread_count || 0;
+		this.unread_count = frappe.boot.notification_unread_count || 0;
 
 		if (this.settings && this.settings.seen == 0) {
 			this.toggle_notification_icon(false);
