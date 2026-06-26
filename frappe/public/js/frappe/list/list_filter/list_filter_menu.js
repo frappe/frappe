@@ -129,7 +129,7 @@ export const ListFilterMenu = {
 
 	set_active_layout(layout) {
 		this.active_layout_name = layout.name;
-		this.active_layout_label = layout.layout_name;
+		this.active_layout_label = layout.filter_name;
 	},
 
 	set_active_default_layout() {
@@ -199,7 +199,7 @@ export const ListFilterMenu = {
 
 		const $default_item = this.filter_template({
 			name: "default_layout",
-			layout_name: this.default_layout_label,
+			filter_name: this.default_layout_label,
 		});
 		$default_item.find(".dropdown-item").on("click", (e) => {
 			e.preventDefault();
@@ -239,7 +239,7 @@ export const ListFilterMenu = {
 			const $item = this.filter_template(filter);
 			$item.find(".dropdown-item").on("click", (e) => {
 				e.preventDefault();
-				this.select_layout(filter.name, filter.layout_name);
+				this.select_layout(filter.name, filter.filter_name);
 			});
 			$menu.append($item);
 		});
@@ -517,7 +517,7 @@ export const ListFilterMenu = {
 							${frappe.utils.icon("tick", "xs")}
 						</span>
 						<span class="filter-label">
-							${frappe.utils.escape_html(__(filter.layout_name))}
+							${frappe.utils.escape_html(__(filter.filter_name))}
 						</span>
 					</span>
 				</a>

@@ -10,7 +10,7 @@ from frappe.model.document import Document
 from frappe.utils import cstr, strip_html
 
 
-class ListLayout(Document):
+class ListFilter(Document):
 	# begin: auto-generated types
 	# This code is auto-generated. Do not modify anything in this block.
 
@@ -20,9 +20,9 @@ class ListLayout(Document):
 		from frappe.types import DF
 
 		columns: DF.LongText | None
+		filter_name: DF.Data | None
 		filters: DF.LongText | None
 		for_user: DF.Link | None
-		layout_name: DF.Data | None
 		reference_doctype: DF.Link | None
 		route_signature: DF.SmallText | None
 		sort_field: DF.Data | None
@@ -31,21 +31,21 @@ class ListLayout(Document):
 
 	def validate(self):
 		if not self.for_user:
-			if not _can_edit_global_layout():
+			if not _can_edit_global_filter():
 				frappe.throw(
 					_("You are not allowed to create or edit global layouts"), frappe.PermissionError
 				)
 			return
 
-		if self.for_user != frappe.session.user and not _can_edit_global_layout():
+		if self.for_user != frappe.session.user and not _can_edit_global_filter():
 			frappe.throw(_("You are not allowed to assign layouts to other users"), frappe.PermissionError)
 
 	def before_save(self):
-		if self.layout_name:
-			self.layout_name = strip_html(cstr(self.layout_name)).strip()
+		if self.filter_name:
+			self.filter_name = strip_html(cstr(self.filter_name)).strip()
 
 		if self.reference_doctype:
-			valid_fields = _get_valid_layout_fields(self.reference_doctype)
+			valid_fields = _get_valid_filter_fields(self.reference_doctype)
 			if self.filters:
 				parsed_filters = frappe.parse_json(self.filters)
 				self.filters = json.dumps(_sanitize_filters(parsed_filters, valid_fields))
@@ -82,17 +82,17 @@ def compute_route_signature(reference_doctype: str | None, filters) -> str:
 	return "&".join(f"{key}={value}" for key, value in params)
 
 
-def _can_edit_global_layout() -> bool:
+def _can_edit_global_filter() -> bool:
 	return frappe.session.user == "Administrator" or "System Manager" in frappe.get_roles()
 
 
-def _can_update_list_layout(doc: Document) -> bool:
+def _can_update_list_filter(doc: Document) -> bool:
 	if not doc.for_user:
-		return _can_edit_global_layout()
+		return _can_edit_global_filter()
 	return doc.for_user == frappe.session.user
 
 
-def _get_valid_layout_fields(reference_doctype: str) -> set[str]:
+def _get_valid_filter_fields(reference_doctype: str) -> set[str]:
 	meta = frappe.get_meta(reference_doctype)
 	valid_fields = {field["fieldname"] for field in std_fields}
 	valid_fields.add("status_field")
@@ -129,31 +129,31 @@ def _sanitize_sorting(sort_field, sort_order, valid_fields: set[str]) -> tuple[s
 
 
 @frappe.whitelist()
-def update_list_layout(
+def update_list_filter(
 	name: str,
-	layout_name: str | None = None,
+	filter_name: str | None = None,
 	for_user: str | None = None,
 	filters: str | list | None = None,
 	columns: str | list | None = None,
 	sort_field: str | None = None,
 	sort_order: str | None = None,
 ):
-	"""Update saved layout state with permission checks."""
-	doc = frappe.get_doc("List Layout", name)
+	"""Update saved filter state with permission checks."""
+	doc = frappe.get_doc("List Filter", name)
 
-	if not _can_update_list_layout(doc):
+	if not _can_update_list_filter(doc):
 		if not doc.for_user:
 			frappe.throw(_("You are not allowed to update global layouts"), frappe.PermissionError)
 		frappe.throw(_("You are not allowed to update this layout"), frappe.PermissionError)
 
-	if layout_name is not None:
-		doc.layout_name = cstr(layout_name).strip()
+	if filter_name is not None:
+		doc.filter_name = cstr(filter_name).strip()
 
 	if for_user is not None:
 		next_for_user = cstr(for_user)
-		if not next_for_user and not _can_edit_global_layout():
+		if not next_for_user and not _can_edit_global_filter():
 			frappe.throw(_("You are not allowed to update global layouts"), frappe.PermissionError)
-		if next_for_user and next_for_user != frappe.session.user and not _can_edit_global_layout():
+		if next_for_user and next_for_user != frappe.session.user and not _can_edit_global_filter():
 			frappe.throw(_("You are not allowed to assign layouts to other users"), frappe.PermissionError)
 		doc.for_user = next_for_user
 
@@ -169,30 +169,32 @@ def update_list_layout(
 	if sort_order is not None:
 		doc.sort_order = sort_order
 
-	doc.save(ignore_permissions=True)  # permissions checked via _can_update_list_layout above
+	doc.save(ignore_permissions=True)  # permissions checked via _can_update_list_filter above
 	return doc.as_dict()
 
 
 @frappe.whitelist()
-def delete_list_layout(name: str):
-	"""Delete a saved layout with permission checks."""
-	doc = frappe.get_doc("List Layout", name)
+def delete_list_filter(name: str):
+	"""Delete a saved filter with permission checks."""
+	doc = frappe.get_doc("List Filter", name)
 
-	if not _can_update_list_layout(doc):
+	if not _can_update_list_filter(doc):
 		if not doc.for_user:
 			frappe.throw(_("You are not allowed to delete global layouts"), frappe.PermissionError)
 		frappe.throw(_("You are not allowed to delete this layout"), frappe.PermissionError)
 
-	doc.delete(ignore_permissions=True)  # permissions checked via _can_update_list_layout above
+	doc.delete(ignore_permissions=True)  # permissions checked via _can_update_list_filter above
 	return True
 
 
 # Backward compatibility for older clients during rollout.
 @frappe.whitelist()
-def update_list_filter(name: str, **kwargs):
-	return update_list_layout(name, **kwargs)
+def update_list_layout(name: str, **kwargs):
+	if "layout_name" in kwargs and "filter_name" not in kwargs:
+		kwargs["filter_name"] = kwargs.pop("layout_name")
+	return update_list_filter(name, **kwargs)
 
 
 @frappe.whitelist()
-def delete_list_filter(name: str):
-	return delete_list_layout(name)
+def delete_list_layout(name: str):
+	return delete_list_filter(name)

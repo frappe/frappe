@@ -4,10 +4,10 @@ export const ListFilterAPI = {
 	get_list_filters() {
 		if (frappe.session.user === "Guest") return Promise.resolve();
 		return frappe.db
-			.get_list("List Layout", {
+			.get_list("List Filter", {
 				fields: [
 					"name",
-					"layout_name",
+					"filter_name",
 					"for_user",
 					"filters",
 					"columns",
@@ -20,7 +20,7 @@ export const ListFilterAPI = {
 					["for_user", "=", frappe.session.user],
 					["for_user", "=", ""],
 				],
-				order_by: "layout_name asc",
+				order_by: "filter_name asc",
 				limit: 200,
 			})
 			.then((filters) => {
@@ -80,7 +80,7 @@ export const ListFilterAPI = {
 
 	/** Insert a new saved layout from the layout dialog. */
 	create_layout_from_dialog({
-		layout_name,
+		filter_name,
 		is_global,
 		filters,
 		columns,
@@ -90,9 +90,9 @@ export const ListFilterAPI = {
 	}) {
 		return frappe.db
 			.insert({
-				doctype: "List Layout",
+				doctype: "List Filter",
 				reference_doctype: this.list_view.doctype,
-				layout_name,
+				filter_name,
 				for_user: is_global ? "" : frappe.session.user,
 				filters: JSON.stringify(filters || []),
 				columns: JSON.stringify(columns || []),
@@ -109,14 +109,14 @@ export const ListFilterAPI = {
 	/** Update an existing layout from the layout dialog. */
 	update_layout_from_dialog(
 		layout,
-		{ layout_name, is_global, filters, columns, sort_field, sort_order, route_signature }
+		{ filter_name, is_global, filters, columns, sort_field, sort_order, route_signature }
 	) {
 		if (!layout?.name || !this.can_edit_layout(layout)) {
 			return Promise.resolve();
 		}
 		const args = {
 			name: layout.name,
-			layout_name,
+			filter_name,
 			filters: JSON.stringify(filters || []),
 			columns: JSON.stringify(columns || []),
 			sort_field,
@@ -128,7 +128,7 @@ export const ListFilterAPI = {
 		}
 		return frappe
 			.call({
-				method: "frappe.desk.doctype.list_layout.list_layout.update_list_layout",
+				method: "frappe.desk.doctype.list_filter.list_filter.update_list_filter",
 				args,
 			})
 			.then((r) => {
@@ -158,7 +158,7 @@ export const ListFilterAPI = {
 
 		return frappe
 			.call({
-				method: "frappe.desk.doctype.list_layout.list_layout.delete_list_layout",
+				method: "frappe.desk.doctype.list_filter.list_filter.delete_list_filter",
 				args: { name: layout.name },
 			})
 			.then(() => {
@@ -193,7 +193,7 @@ export const ListFilterAPI = {
 		const columns_json = JSON.stringify(columns || []);
 		return frappe
 			.call({
-				method: "frappe.desk.doctype.list_layout.list_layout.update_list_layout",
+				method: "frappe.desk.doctype.list_filter.list_filter.update_list_filter",
 				args: {
 					name: layout.name,
 					columns: columns_json,

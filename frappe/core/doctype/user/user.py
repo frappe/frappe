@@ -649,8 +649,8 @@ class User(Document):
 		# Remove user link from Workflow Action
 		frappe.db.set_value("Workflow Action", {"user": self.name}, "user", None)
 
-		# Delete user's List Layouts
-		frappe.db.delete("List Layout", {"for_user": self.name})
+		# Delete user's List Filters
+		frappe.db.delete("List Filter", {"for_user": self.name})
 
 		# Remove user from Note's Seen By table
 		seen_notes = frappe.get_docs("Note", filters=[["Note Seen By", "user", "=", self.name]])
