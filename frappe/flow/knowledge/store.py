@@ -25,7 +25,8 @@ MAX_SEARCH_LIMIT = 100
 
 
 def db_path() -> str:
-	return frappe.get_site_path("private", "files", "lancedb")
+	name = "lancedb_test" if frappe.flags.in_test else "lancedb"
+	return frappe.get_site_path("private", "files", name)
 
 
 def _connect():
