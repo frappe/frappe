@@ -56,6 +56,9 @@ def patch_pre_existing_stdlib_thread_locks() -> None:
 	if hasattr(_frappe, "_redis_init_lock"):
 		_frappe._redis_init_lock = threading.Lock()
 
+	if getattr(_frappe, "client_cache", None) is not None:
+		_frappe.client_cache.lock = threading.RLock()
+
 
 def ensure_thread_context_isolation() -> None:
 	"""
