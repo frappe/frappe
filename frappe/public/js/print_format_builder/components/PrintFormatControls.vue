@@ -347,11 +347,36 @@ function clone_field(df) {
 }
 
 function add_to_layout(df) {
-	const sections = layout.value?.sections;
+	const lv = layout.value;
+	const sections = lv?.sections;
 	if (!sections || !sections.length) return;
-	const last_section = sections.filter((s) => !s.remove).slice(-1)[0];
-	if (!last_section) return;
-	const last_column = last_section.columns.slice(-1)[0];
+
+	// If a field is selected, insert right after it in the same column.
+	// Search body sections and header/footer zones so a selected header field
+	// is used as the anchor when inserting from the panel.
+	const selected_field = store.selected_field.value;
+	if (selected_field && !selected_field.remove) {
+		const all_zones = [lv?.header, lv?.footer, ...sections].filter(Boolean);
+		for (const section of all_zones) {
+			for (const column of section.columns) {
+				const idx = column.fields.indexOf(selected_field);
+				if (idx !== -1) {
+					column.fields.splice(idx + 1, 0, clone_field(df));
+					return;
+				}
+			}
+		}
+	}
+
+	// Otherwise add to the last column of the selected (or last body) section.
+	// Header/footer zone sections are valid targets when they are selected.
+	const selected = store.selected_section.value;
+	const is_valid_target =
+		selected &&
+		(sections.includes(selected) || selected === lv?.header || selected === lv?.footer);
+	const target_section = is_valid_target ? selected : sections.slice(-1)[0];
+	if (!target_section) return;
+	const last_column = target_section.columns.slice(-1)[0];
 	if (!last_column) return;
 	last_column.fields.push(clone_field(df));
 }
@@ -413,7 +438,12 @@ let field_groups = computed(() => {
 			continue;
 		}
 		if (df.fieldtype === "Column Break") continue;
-		if (frappe.model.no_value_type.includes(df.fieldtype)) continue;
+		if (
+			frappe.model.no_value_type.includes(df.fieldtype) &&
+			df.fieldtype !== "Table" &&
+			df.fieldtype !== "Table MultiSelect"
+		)
+			continue;
 
 		if (q) {
 			const match =
@@ -746,16 +776,6 @@ watch(print_format, () => (store.dirty.value = true), { deep: true });
 	flex-shrink: 0;
 }
 
-.pfb-plus-icon {
-	opacity: 0;
-	flex-shrink: 0;
-	transition: opacity 0.1s;
-}
-
-.pfb-template-card:hover .pfb-plus-icon {
-	opacity: 1;
-}
-
 /* ── Block card (Blocks tab) ─────────────────────────────── */
 .pfb-block-card {
 	display: flex;
@@ -772,10 +792,6 @@ watch(print_format, () => (store.dirty.value = true), { deep: true });
 .pfb-block-card:hover {
 	background: var(--gray-100);
 	border-color: var(--gray-500);
-}
-
-.pfb-block-card--click {
-	cursor: pointer;
 }
 
 .pfb-block-icon {

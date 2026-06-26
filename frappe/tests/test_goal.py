@@ -27,6 +27,22 @@ class TestGoal(IntegrationTestCase):
 
 		self.assertEqual(result_dict.get(format_date(today(), "MM-yyyy")), 2)
 
+	def test_get_monthly_results_sum(self):
+		"""sum/avg must aggregate the column, not a string literal -- the literal form
+		(`sum('send_reminder')`) sums to 0 on MariaDB and errors on Postgres."""
+		for name in frappe.get_all("Event", filters={"event_type": "Private"}, pluck="name"):
+			frappe.db.set_value("Event", name, "send_reminder", 1)
+
+		result_dict = get_monthly_results(
+			"Event",
+			"send_reminder",
+			"creation",
+			filters={"event_type": "Private"},
+			aggregation="sum",
+		)
+
+		self.assertEqual(result_dict.get(format_date(today(), "MM-yyyy")), 2)
+
 	def test_get_monthly_goal_graph_data(self):
 		"""Test for accurate values in graph data (based on test_get_monthly_results)"""
 		docname = frappe.get_list("Event", filters={"subject": ["=", "_Test Event 1"]})[0]["name"]

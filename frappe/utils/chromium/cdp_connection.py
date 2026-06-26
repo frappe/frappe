@@ -28,7 +28,7 @@ class CDPSocketClient:
 
 	async def _connect(self):
 		try:
-			self.connection = await websockets.connect(self.websocket_url)
+			self.connection = await websockets.connect(self.websocket_url, max_size=None)
 		except Exception:
 			frappe.log_error(title="Failed to connect to WebSocket:", message=f"{frappe.get_traceback()}")
 			raise
