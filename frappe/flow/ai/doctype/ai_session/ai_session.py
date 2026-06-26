@@ -55,6 +55,9 @@ class AISession(Document):
 		self._validate_agent_unchanged()
 		self._validate_model_enabled()
 
+	def on_trash(self):
+		_purge_attachment_chunks(self.name)
+
 	def _validate_model_enabled(self):
 		if not self.model:
 			return
@@ -84,7 +87,9 @@ class AISession(Document):
 		for batch in frappe.utils.create_batch(sessions, 100):
 			frappe.db.delete("AI Run", {"session": ["in", batch]})
 			frappe.db.delete("AI Session Message", {"parent": ["in", batch]})
+			frappe.db.delete("AI Session Attachment", {"parent": ["in", batch]})
 			frappe.db.delete("AI Session", {"name": ["in", batch]})
+			_purge_attachment_chunks(batch)
 
 	def transcript(self) -> list[dict[str, Any]]:
 		"""Return the conversation history in OpenAI message format."""
@@ -352,6 +357,17 @@ class AISession(Document):
 			_("This session already has a run in progress."),
 			title=_("Run In Progress"),
 		)
+
+
+def _purge_attachment_chunks(session: str | list[str]) -> None:
+	"""Best-effort removal of a session's (or batch's) retrieval chunks. The chunk index is
+	disposable, so a failure here must never block deleting the session."""
+	from flow.knowledge import attachment_store
+
+	try:
+		attachment_store.delete(session=session)
+	except Exception:
+		frappe.log_error(title="Chat attachment cleanup failed")
 
 
 def _embeddings_configured() -> bool:

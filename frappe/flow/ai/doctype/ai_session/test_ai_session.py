@@ -83,8 +83,12 @@ class TestClearOldLogs(IntegrationTestCase):
 		frappe.db.rollback()
 
 	def _session_with_run(self, *, age_days: int) -> str:
+		f = frappe.get_doc({"doctype": "File", "file_name": "f.txt", "content": "x", "is_private": 1}).insert(
+			ignore_permissions=True
+		)
 		session = frappe.get_doc({"doctype": "AI Session", "title": "chat"})
 		session.append("messages", {"role": "user", "content": "hi"})
+		session.append("attachments", {"file": f.name, "file_name": "f.txt", "file_size": 1})
 		session.insert(ignore_permissions=True)
 		run = frappe.get_doc(
 			{"doctype": "AI Run", "session": session.name, "source": "Manual", "status": "Completed"}
@@ -101,6 +105,7 @@ class TestClearOldLogs(IntegrationTestCase):
 		self.assertFalse(frappe.db.exists("AI Session", old_session))
 		self.assertFalse(frappe.db.exists("AI Run", old_run))
 		self.assertEqual(frappe.db.count("AI Session Message", {"parent": old_session}), 0)
+		self.assertEqual(frappe.db.count("AI Session Attachment", {"parent": old_session}), 0)
 
 	def test_recent_session_is_kept(self):
 		recent_session, recent_run = self._session_with_run(age_days=1)
@@ -366,3 +371,29 @@ class TestIndexRetrievalAttachments(IntegrationTestCase):
 			s._index_retrieval_attachments(None)
 		s.reload()
 		self.assertEqual(s.attachments[0].mode, "Inline")
+
+
+class TestAttachmentCleanup(IntegrationTestCase):
+	def tearDown(self):
+		frappe.db.rollback()
+
+	def test_on_trash_purges_session_chunks(self):
+		s = frappe.get_doc({"doctype": "AI Session"}).insert(ignore_permissions=True)
+		with patch("flow.knowledge.attachment_store.delete") as delete:
+			frappe.delete_doc("AI Session", s.name, ignore_permissions=True)
+		delete.assert_called_once_with(session=s.name)
+
+	def test_cleanup_failure_does_not_block_delete(self):
+		s = frappe.get_doc({"doctype": "AI Session"}).insert(ignore_permissions=True)
+		with patch("flow.knowledge.attachment_store.delete", side_effect=RuntimeError("store down")):
+			frappe.delete_doc("AI Session", s.name, ignore_permissions=True)
+		self.assertFalse(frappe.db.exists("AI Session", s.name))
+
+	def test_clear_old_logs_purges_chunks_for_batch(self):
+		s = frappe.get_doc({"doctype": "AI Session", "title": "old"}).insert(ignore_permissions=True)
+		old = frappe.utils.add_days(frappe.utils.now(), -100)
+		frappe.db.set_value("AI Session", s.name, "modified", old, update_modified=False)
+		with patch("flow.knowledge.attachment_store.delete") as delete:
+			AISession.clear_old_logs(days=30)
+		batch = delete.call_args.kwargs["session"]
+		self.assertIn(s.name, batch)
