@@ -146,7 +146,7 @@ context("Depends On", () => {
 		// must be re-evaluated on the model change, not only on the next full refresh.
 		cy.new_form("Test Depends On");
 		cy.get('.frappe-control[data-fieldname="child_test_depends_on_field"]').as("table");
-		cy.get("@table").findByRole("button", { name: "Add row" }).click();
+		cy.get("@table").findByRole("button", { name: "Add Row" }).click();
 
 		let dependant_df = (win) => {
 			let cdn =
