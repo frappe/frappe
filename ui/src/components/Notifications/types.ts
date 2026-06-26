@@ -83,28 +83,24 @@ export interface NotificationStore {
   markSeen: () => void;
   reload: () => void;
   loadMore: () => void;
-  /** set the active tab's server filters; app + recipient scope are always preserved */
+  /** set arbitrary server filters; app + recipient scope are always preserved */
   setFilters: (filters: Record<string, unknown>) => void;
+  /** apply a tab's object filter to the feed (function filters are client-side, in the panel) */
+  filterByTab: (tab?: NotificationTab) => void;
 }
 
 /**
- * Panel props = the controller members (spread from `useNotifications` via `v-bind="controller"`)
- * plus presentation config. Listing the members individually keeps the panel's data dependency
- * explicit and typed; the host still passes them in one line via the spread.
+ * Panel props are *data* only — spread the controller's data members via `v-bind="controller"`.
+ * Actions are surfaced as **events** (`mark-as-read`, `mark-all-as-read`, `load-more`,
+ * `tab-change`), not function props; the active tab is two-way via `v-model:activeTab`.
  */
 export interface NotificationPanelProps {
-  // — data plugin (spread these from useNotifications) —
+  // — data (spread these from useNotifications via v-bind="controller") —
   notifications: NotificationLog[];
   unreadCount?: number;
   hasNextPage: boolean;
   loading?: boolean;
   error?: unknown;
-  /** not meant to be overridden — extend via useNotifications' `afterMarkAsRead` hook */
-  markAsRead: (name: string) => void | Promise<void>;
-  markAllAsRead: () => void | Promise<void>;
-  loadMore: () => void;
-  /** the panel calls this when a tab with an object filter activates */
-  setFilters: (filters: Record<string, unknown>) => void;
 
   // — presentation —
   tabs?: NotificationTab[];
@@ -123,11 +119,13 @@ export interface NotificationHeaderSlotProps {
   close: () => void;
 }
 
-/** Scope handed to the body / `#tab-<value>` / `#item` slots. */
+/** Scope handed to the body / `#tab-<value>` / `#item` slots. The callables emit panel events. */
 export interface NotificationBodySlotProps {
   /** rows visible under the active tab (the tab's client predicate already applied) */
   notifications: NotificationLog[];
-  markAsRead: (name: string) => void | Promise<void>;
+  /** emits `mark-as-read` for the given row */
+  markAsRead: (n: NotificationLog) => void;
+  /** emits `load-more` */
   loadMore: () => void;
   hasNextPage: boolean;
 }

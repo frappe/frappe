@@ -1,10 +1,14 @@
 <script setup lang="ts">
-import { computed, ref, watch } from "vue";
+import { computed, watch } from "vue";
 import { Button, TabButtons } from "frappe-ui";
 import LucideCheckCheck from "~icons/lucide/check-check";
 import LucideX from "~icons/lucide/x";
 import NotificationItem from "./NotificationItem.vue";
 import type { NotificationLog, NotificationPanelProps, NotificationTab } from "./types";
+
+// data binds as props (v-bind="controller"); the controller's verb members fall through as
+// attrs, so don't inherit them onto the root — actions are surfaced as events instead.
+defineOptions({ inheritAttrs: false });
 
 const props = withDefaults(defineProps<NotificationPanelProps>(), {
 	title: "Notifications",
@@ -12,17 +16,26 @@ const props = withDefaults(defineProps<NotificationPanelProps>(), {
 
 const emit = defineEmits<{
 	close: [];
+	"mark-as-read": [n: NotificationLog];
+	"mark-all-as-read": [];
+	"load-more": [];
+	"tab-change": [tab: NotificationTab | undefined];
 }>();
+
+// controllable active tab (P2); falls back to the first tab when uncontrolled
+const activeTab = defineModel<string | undefined>("activeTab");
 
 // a tab's stable key — used as the TabButtons value and the `#tab-<value>` slot name
 const tabValue = (tab: NotificationTab) => tab.value ?? tab.label;
 
-const activeTab = ref<string | undefined>(props.tabs?.[0] ? tabValue(props.tabs[0]) : undefined);
+if (activeTab.value === undefined && props.tabs?.length) {
+	activeTab.value = tabValue(props.tabs[0]);
+}
 
 const currentTab = computed(() => props.tabs?.find((t) => tabValue(t) === activeTab.value));
 
 // rows to render: a tab's function filter is applied client-side here; an object filter is
-// pushed to the server via setFilters (see the watch below), so it's already reflected in props.
+// applied by the host on `tab-change` (it re-queries the server), so props already reflect it.
 const visibleNotifications = computed<NotificationLog[]>(() => {
 	const f = currentTab.value?.filter;
 	return typeof f === "function" ? props.notifications.filter(f) : props.notifications;
@@ -46,23 +59,24 @@ const tabButtons = computed(() =>
 	})
 );
 
-// switch server-side filters when the tab changes (object filter → server; function/none → clear)
-watch(activeTab, () => {
-	const f = currentTab.value?.filter;
-	props.setFilters(f && typeof f !== "function" ? f : {});
-});
+// announce the active tab when it changes; the host applies its filter (e.g. via the
+// controller's filterByTab). Function filters are applied client-side in visibleNotifications.
+watch(activeTab, () => emit("tab-change", currentTab.value));
 
 function selectTab(value: string) {
 	activeTab.value = value;
 }
-
 function close() {
 	emit("close");
 }
-
-function onItemClick(n: NotificationLog) {
-	// host side-effects (routing) ride useNotifications' afterMarkAsRead hook
-	props.markAsRead(n.name);
+function markAllAsRead() {
+	emit("mark-all-as-read");
+}
+function markRead(n: NotificationLog) {
+	emit("mark-as-read", n);
+}
+function loadMore() {
+	emit("load-more");
 }
 
 const headerScope = computed(() => ({
@@ -71,14 +85,14 @@ const headerScope = computed(() => ({
 	tabs: props.tabs ?? [],
 	activeTab: activeTab.value,
 	selectTab,
-	markAllAsRead: props.markAllAsRead,
+	markAllAsRead,
 	close,
 }));
 
 const bodyScope = computed(() => ({
 	notifications: visibleNotifications.value,
-	markAsRead: props.markAsRead,
-	loadMore: props.loadMore,
+	markAsRead: markRead,
+	loadMore,
 	hasNextPage: props.hasNextPage,
 }));
 
@@ -95,11 +109,19 @@ const activeTabSlot = computed(() => (activeTab.value ? `tab-${activeTab.value}`
 				<Button
 					variant="ghost"
 					tooltip="Mark all as read"
+					aria-label="Mark all as read"
 					:icon="LucideCheckCheck"
 					size="sm"
-					@click="markAllAsRead()"
+					@click="markAllAsRead"
 				/>
-				<Button variant="ghost" size="sm" tooltip="Close" :icon="LucideX" @click="close" />
+				<Button
+					variant="ghost"
+					size="sm"
+					tooltip="Close"
+					aria-label="Close"
+					:icon="LucideX"
+					@click="close"
+				/>
 			</div>
 		</slot>
 
@@ -125,16 +147,19 @@ const activeTabSlot = computed(() => (activeTab.value ? `tab-${activeTab.value}`
 			<template v-else>
 				<template v-if="visibleNotifications.length">
 					<template v-for="(n, i) in visibleNotifications" :key="n.name">
-						<!-- fully custom row -->
-						<div v-if="$slots.item" @click="onItemClick(n)">
-							<slot name="item" :notification="n" :mark-as-read="markAsRead" />
-						</div>
+						<!-- fully custom row (consumer owns interaction; calls markAsRead) -->
+						<slot
+							v-if="$slots.item"
+							name="item"
+							:notification="n"
+							:mark-as-read="markRead"
+						/>
 						<!-- default row -->
 						<NotificationItem
-							:class="i === visibleNotifications.length - 1 ? '' : 'border-b'"
 							v-else
+							:class="i === visibleNotifications.length - 1 ? '' : 'border-b'"
 							:notification="n"
-							@click="onItemClick"
+							@click="markRead"
 						/>
 					</template>
 

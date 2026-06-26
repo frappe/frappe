@@ -23,27 +23,40 @@ const description = computed(() => props.notification.description ?? "");
 
 const isUnread = computed(() => !props.notification.read);
 const timeAgo = computed(() => dayjs(props.notification.creation as string).fromNow());
+
+function activate() {
+	emit("click", props.notification);
+}
 </script>
 
 <template>
+	<!-- keyboard-operable row (P12): role + tabindex + Enter/Space, focus ring on keyboard focus -->
 	<div
-		class="flex items-start gap-3 px-4 py-3 cursor-pointer hover:bg-surface-gray-1"
+		role="button"
+		tabindex="0"
+		data-slot="item"
+		:data-state="isUnread ? 'unread' : 'read'"
+		class="flex items-start gap-3 px-4 py-3 cursor-pointer hover:bg-surface-gray-1 focus:outline-none focus-visible:ring-2 focus-visible:ring-outline-gray-3"
 		:class="[isUnread ? 'bg-surface-gray-1/40' : '', props.class]"
-		@click="emit('click', notification)"
+		@click="activate"
+		@keydown.enter.prevent="activate"
+		@keydown.space.prevent="activate"
 	>
 		<div class="relative mt-0.5 flex-shrink-0">
 			<span
 				v-if="isUnread"
 				class="absolute top-1/2 size-[5px] -translate-y-1/2 rounded-full bg-gray-800"
 				style="left: -10px"
-			/>
-			<slot name="leading" :notification="notification">
+			>
+				<span class="sr-only">Unread</span>
+			</span>
+			<slot name="prefix" :notification="notification">
 				<Avatar :image="notification.from_user_image" :label="avatarLabel" size="lg" />
 			</slot>
 		</div>
 
 		<div class="min-w-0 flex-1">
-			<slot name="title" :notification="notification">
+			<slot :notification="notification">
 				<div class="text-p-base text-ink-gray-8 [&_b]:font-semibold" v-html="title" />
 			</slot>
 			<slot name="description" :notification="notification">
@@ -53,7 +66,7 @@ const timeAgo = computed(() => dayjs(props.notification.creation as string).from
 					v-html="description"
 				/>
 			</slot>
-			<slot name="meta" :notification="notification">
+			<slot name="suffix" :notification="notification">
 				<div class="mt-1 text-p-xs text-ink-gray-5">{{ timeAgo }}</div>
 			</slot>
 		</div>

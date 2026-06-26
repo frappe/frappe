@@ -18,6 +18,10 @@
 			<NotificationPanel
 				v-bind="controller"
 				:tabs="withTabs ? tabs : undefined"
+				@mark-as-read="(n) => controller.markAsRead(n.name)"
+				@mark-all-as-read="controller.markAllAsRead"
+				@load-more="controller.loadMore"
+				@tab-change="controller.filterByTab"
 				@close="onClose"
 			/>
 		</div>
@@ -83,6 +87,7 @@ const controller = reactive({
 	reload: () => console.log("reload"),
 	loadMore: () => console.log("loadMore"),
 	setFilters: (f: Record<string, unknown>) => console.log("setFilters", f),
+	filterByTab: (tab?: NotificationTab) => console.log("filterByTab", tab?.label),
 }) as NotificationStore;
 
 function onClose() {

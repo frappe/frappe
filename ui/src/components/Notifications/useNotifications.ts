@@ -10,6 +10,7 @@ import { call, createListResource, createResource } from "frappe-ui";
 import type {
   NotificationLog,
   NotificationStore,
+  NotificationTab,
   UseNotificationsOptions,
 } from "./types";
 
@@ -166,10 +167,17 @@ export function useNotifications(
     refreshUnreadCount();
   }
 
-  /** set the active tab's server-side filters; the app scope (if any) is always preserved */
+  /** set arbitrary server-side filters; the app scope (if any) is always preserved */
   function setFilters(filters: Record<string, unknown>) {
     serverFilters.value = filters || {};
     applyFilters();
+  }
+
+  /** apply a tab's filter when it activates: object filters re-query the server, function
+   *  filters are client-side (handled by the panel) so they clear the server filter here. */
+  function filterByTab(tab?: NotificationTab) {
+    const f = tab?.filter;
+    setFilters(f && typeof f !== "function" ? f : {});
   }
 
   // Resolve the logged-in user when the host didn't supply one, then re-scope the feed.
@@ -221,5 +229,6 @@ export function useNotifications(
     reload,
     loadMore: () => list.next?.(),
     setFilters,
+    filterByTab,
   }) as NotificationStore;
 }

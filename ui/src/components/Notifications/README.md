@@ -19,27 +19,47 @@ const controller = useNotifications({ socket });
 </script>
 
 <template>
-  <NotificationPanel v-bind="controller" />
+  <NotificationPanel
+    v-bind="controller"
+    @mark-as-read="(n) => controller.markAsRead(n.name)"
+    @mark-all-as-read="controller.markAllAsRead"
+    @load-more="controller.loadMore"
+    @tab-change="controller.filterByTab"
+  />
 </template>
 ```
 
-`v-bind="controller"` spreads the controller's members as props. The controller is a `reactive`
-object, so each member binds as a live value (don't destructure it — that drops reactivity).
+`v-bind="controller"` spreads the controller's **data** members as props (the controller is a
+`reactive` object, so each binds as a live value — don't destructure it). **Actions are events**,
+not props: wire `@mark-as-read` / `@mark-all-as-read` / `@load-more` / `@tab-change` to the
+controller's verbs (`@tab-change` carries the active tab; `filterByTab` resolves its filter).
+The active tab is two-way via `v-model:activeTab` (optional).
 
 Scoped to a single app, with tabs:
 
 ```vue
 <script setup lang="ts">
+import { ref } from "vue";
+
 const controller = useNotifications({ appName: "crm", socket });
 const tabs = [
-  { label: "All" },
+  { label: "All", value: "all" },
   { label: "Unread", value: "unread", filter: (n) => !n.read, count: "unread" },
   { label: "Alerts", value: "alerts", filter: { type: "Alert" } },
 ];
+const activeTab = ref("all"); // optional: read/control the active tab
 </script>
 
 <template>
-  <NotificationPanel v-bind="controller" :tabs="tabs" />
+  <NotificationPanel
+    v-bind="controller"
+    :tabs="tabs"
+    v-model:activeTab="activeTab"
+    @mark-as-read="(n) => controller.markAsRead(n.name)"
+    @mark-all-as-read="controller.markAllAsRead"
+    @load-more="controller.loadMore"
+    @tab-change="controller.filterByTab"
+  />
 </template>
 ```
 
@@ -62,14 +82,15 @@ The panel does not clear the bell's unseen indicator itself — the host owns th
 
 ## Props
 
-The panel's data props are the members of the `useNotifications()` controller — pass them in
-one line via `v-bind="controller"`. The presentation props are set directly.
+The panel takes **data** props — spread the controller's data members via `v-bind="controller"`.
+Actions are events (below), not props. The presentation props are set directly.
 
-| Prop         | Type                             | Description                                                                                                                 |
-| ------------ | -------------------------------- | --------------------------------------------------------------------------------------------------------------------------- |
-| `tabs`       | `NotificationTab[]`              | Tabs. Without it, a flat list is shown.                                                                                     |
-| `title`      | `string` (`'Notifications'`)     | Header title.                                                                                                               |
-| _controller_ | spread via `v-bind="controller"` | `notifications`, `unreadCount`, `hasNextPage`, `loading`, `error`, `markAsRead`, `markAllAsRead`, `loadMore`, `setFilters`. |
+| Prop                | Type                             | Description                                                        |
+| ------------------- | -------------------------------- | ------------------------------------------------------------------ |
+| `tabs`              | `NotificationTab[]`              | Tabs. Without it, a flat list is shown.                            |
+| `title`             | `string` (`'Notifications'`)     | Header title.                                                      |
+| `v-model:activeTab` | `string`                         | Active tab value (two-way; defaults to the first tab).             |
+| _controller data_   | spread via `v-bind="controller"` | `notifications`, `unreadCount`, `hasNextPage`, `loading`, `error`. |
 
 A tab is `{ label, value?, filter?, count? }`:
 
@@ -78,14 +99,25 @@ A tab is `{ label, value?, filter?, count? }`:
   **function** `(n) => boolean` is a client-side predicate over already-fetched rows.
 - `count` — `'unread'` or `(items) => number`; surfaced inline in the tab label.
 
+> **Wiring note:** object (server) filters only take effect when `@tab-change` is wired (to
+> `filterByTab`, or your own `setFilters`). Function filters are applied client-side by the
+> panel and work without any listener. So if every tab uses a function filter (or no filter),
+> `@tab-change` is optional; wire it as soon as one tab uses an object filter.
+
 ## Events
 
-| Event   | When                |
-| ------- | ------------------- |
-| `close` | "Close" is clicked. |
+Actions are events; wire them to the controller's verbs.
 
-There is no `item-click` event — a row click calls the controller's `markAsRead`; route or run
-other side-effects through `useNotifications({ afterMarkAsRead })`.
+| Event              | Payload           | When                                           |
+| ------------------ | ----------------- | ---------------------------------------------- |
+| `mark-as-read`     | `NotificationLog` | A row is clicked / activated.                  |
+| `mark-all-as-read` | —                 | "Mark all as read" is clicked.                 |
+| `load-more`        | —                 | "Load more" is clicked.                        |
+| `tab-change`       | `NotificationTab` | The active tab changes. Wire to `filterByTab`. |
+| `close`            | —                 | "Close" is clicked.                            |
+
+Routing / side-effects can live in the `@mark-as-read` handler, or in
+`useNotifications({ afterMarkAsRead })` (fires when `controller.markAsRead` runs).
 
 ## Slots
 
@@ -100,9 +132,45 @@ Every slot's default is the standard markup, so passing none renders the default
 | `empty`       | —                                                                          | Replace the empty state.       |
 | `error`       | `{ error }`                                                                | Shown only on a fetch failure. |
 
-`NotificationItem` also exposes `leading`, `title`, `description`, and `meta` slots (each
-scoped with `{ notification }`) for per-row customization — `leading` defaults to the sender's
-avatar.
+The `markAsRead` slot prop takes the row (`markAsRead(notification)`) and emits `mark-as-read`.
+
+`NotificationItem` exposes the canonical `#prefix` (leading visual), default (title),
+`#description`, and `#suffix` (meta) slots — each scoped with `{ notification }`. `#prefix`
+defaults to the sender's avatar.
+
+### Example
+
+A custom body for one tab plus a custom empty state — every other slot keeps its default:
+
+```vue
+<template>
+  <NotificationPanel
+    v-bind="controller"
+    :tabs="tabs"
+    @mark-as-read="(n) => controller.markAsRead(n.name)"
+    @tab-change="controller.filterByTab"
+  >
+    <!-- replace the body for the Alerts tab (value: "alerts") -->
+    <template #tab-alerts="{ notifications, markAsRead }">
+      <button
+        v-for="n in notifications"
+        :key="n.name"
+        class="block w-full px-4 py-3 text-left hover:bg-surface-gray-1"
+        @click="markAsRead(n)"
+      >
+        <span class="text-ink-amber-3">⚠</span> <span v-html="n.title" />
+      </button>
+    </template>
+
+    <!-- custom empty state -->
+    <template #empty>
+      <div class="py-12 text-center text-ink-gray-5">
+        You're all caught up 🎉
+      </div>
+    </template>
+  </NotificationPanel>
+</template>
+```
 
 ## `useNotifications`
 
@@ -120,7 +188,7 @@ const controller = useNotifications({
 
 // controller (a reactive object):
 // notifications, unreadCount, hasNextPage, loading, error,
-// markAsRead, markAllAsRead, markSeen, reload, loadMore, setFilters
+// markAsRead, markAllAsRead, markSeen, reload, loadMore, setFilters, filterByTab
 ```
 
 The feed is always fetched with `["*"]`, so app-specific Custom Fields flow through to
