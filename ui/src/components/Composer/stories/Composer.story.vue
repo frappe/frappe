@@ -2,10 +2,11 @@
 	<div class="max-w-3xl p-6">
 		<h3 class="mb-1 text-xl-semibold text-ink-gray-9">Composer</h3>
 		<p class="mb-6 text-p-sm text-ink-gray-6">
-			EmailComposer and CommentComposer are window-agnostic content. The host owns the
-			window: drop them into a
-			<code>FloatingWindow</code> for a draggable reply box, or render them inline. They are
-			transport-agnostic, so here <code>onSubmit</code> just logs the payload.
+			EmailComposer owns its window — it wraps itself in a
+			<code>FloatingWindow</code>, so drive it with <code>v-model:mode</code> (docked /
+			floating / minimized). CommentComposer is window-agnostic content the host drops into a
+			<code>FloatingWindow</code> (or renders inline). Both are transport-agnostic, so here
+			<code>onSubmit</code> just logs the payload.
 		</p>
 
 		<!-- ── Controls ──────────────────────────────────────────────────── -->
@@ -15,34 +16,30 @@
 				<Select v-model="mode" :options="modeOptions" />
 			</div>
 			<div class="flex items-center gap-3">
-				<span class="text-p-sm text-ink-gray-6">optionalFields</span>
+				<span class="text-p-sm text-ink-gray-6">fields</span>
 				<Checkbox v-model="fieldSubject" label="subject" />
 				<Checkbox v-model="fieldCc" label="cc" />
 				<Checkbox v-model="fieldBcc" label="bcc" />
 			</div>
 		</div>
 
-		<!-- ── In a FloatingWindow (host owns the window) ────────────────── -->
+		<!-- ── EmailComposer owns its window; CommentComposer is host-wrapped ─ -->
 		<div class="mb-8 flex flex-wrap gap-8">
 			<div>
 				<div class="mb-2 text-sm-medium text-ink-gray-7">
-					EmailComposer in FloatingWindow
+					EmailComposer (owns its FloatingWindow — drive with v-model:mode)
 				</div>
-				<FloatingWindow
+				<EmailComposer
 					v-model:mode="mode"
-					title="Email"
-					:minimizable="false"
-					storage-key="story:composer:email:window"
-				>
-					<EmailComposer
-						:optional-fields="optionalFields"
-						v-model:recipients="recipients"
-						storage-key="story:composer:email"
-						placeholder="Write your reply…"
-						:on-submit="(p) => log('email:submit', p)"
-						@discard="log('email:discard')"
-					/>
-				</FloatingWindow>
+					:fields="fields"
+					v-model:recipients="recipients"
+					:search-recipients="searchRecipients"
+					expandable
+					storage-key="story:composer:email"
+					placeholder="Write your reply…"
+					:on-submit="(p) => log('email:submit', p)"
+					@discard="log('email:discard')"
+				/>
 			</div>
 
 			<div>
@@ -65,15 +62,16 @@
 			</div>
 		</div>
 
-		<!-- ── Inline (no window) ────────────────────────────────────────── -->
+		<!-- ── Fixed docked (expandable=false): no pop-out control ───────── -->
 		<div class="mb-8">
 			<div class="mb-2 text-sm-medium text-ink-gray-7">
-				EmailComposer inline — with a host-supplied From picker (#from) and
-				<code>v-model:body</code>
+				EmailComposer fixed-docked (<code>:expandable="false"</code>) — with a
+				host-supplied From picker (#from) and <code>v-model:body</code>
 			</div>
-			<div class="rounded-md border border-outline-gray-2 bg-surface-white p-2">
+			<div class="rounded-md border border-outline-gray-2 bg-surface-base p-2">
 				<EmailComposer
-					:optional-fields="optionalFields"
+					:fields="fields"
+					:expandable="false"
 					v-model:body="draftBody"
 					:signature="signature"
 					placeholder="Write your reply…"
@@ -103,10 +101,17 @@
 
 <script setup lang="ts">
 import { computed, ref } from "vue";
-import { Checkbox, FloatingWindow, Select } from "frappe-ui";
-import type { WindowMode } from "frappe-ui";
+import { Checkbox, Select } from "frappe-ui";
+import { FloatingWindow, type WindowMode } from "frappe-ui";
 import { CommentComposer, EmailComposer } from "../index";
-import type { CommentPayload, EmailPayload, Mention, OptionalField, Recipients } from "../types";
+import type {
+	CommentPayload,
+	EmailPayload,
+	Field,
+	Mention,
+	Recipient,
+	Recipients,
+} from "../types";
 
 const mode = ref<WindowMode>("docked");
 const modeOptions: WindowMode[] = ["docked", "floating", "minimized"];
@@ -114,7 +119,7 @@ const modeOptions: WindowMode[] = ["docked", "floating", "minimized"];
 const fieldSubject = ref(true);
 const fieldCc = ref(true);
 const fieldBcc = ref(false);
-const optionalFields = computed<OptionalField[]>(() =>
+const fields = computed<Field[]>(() =>
 	(
 		[
 			["subject", fieldSubject.value],
@@ -139,6 +144,28 @@ const mentions: Mention[] = [
 	{ label: "Jane Smith", value: "jane@example.com" },
 	{ label: "Sam Patel", value: "sam@example.com" },
 ];
+
+// Recipient search is host-supplied: the composer calls it (debounced) as the
+// user types To/Cc/Bcc. Here a mocked directory with fake latency stands in for
+// a server endpoint; a real host would hit its contacts/users API.
+const directory: Recipient[] = [
+	{ label: "John Doe", email: "john@example.com" },
+	{ label: "Jane Smith", email: "jane@example.com" },
+	{ label: "Sam Patel", email: "sam@example.com" },
+	{ label: "Riya Kapoor", email: "riya@example.com" },
+	{ label: "Marco Silva", email: "marco@example.com" },
+];
+function searchRecipients(query: string): Promise<Recipient[]> {
+	const text = query.trim().toLowerCase();
+	const matches = text
+		? directory.filter(
+				(person) =>
+					person.label!.toLowerCase().includes(text) ||
+					person.email.toLowerCase().includes(text)
+		  )
+		: directory;
+	return new Promise((resolve) => setTimeout(() => resolve(matches), 300));
+}
 
 const identities = ["support@example.com", "sales@example.com"];
 const fromEmail = ref(identities[0]);

@@ -17,11 +17,19 @@ export interface Recipients {
 }
 
 /**
- * Optional email fields a host can opt into via `optionalFields`. "Subject"
- * shows statically whenever listed (like the always-present "To" row); "cc" /
- * "bcc" are offered as header toggles the user reveals on demand.
+ * Async recipient lookup the host supplies. Called (debounced) as the user
+ * types into To/Cc/Bcc, and once with `""` when a field opens, so the host can
+ * search its own directory (contacts, users, …). The library stays
+ * backend-agnostic — it just renders whatever Recipients you resolve.
  */
-export type OptionalField = "subject" | "cc" | "bcc";
+export type RecipientSearch = (query: string) => Promise<Recipient[]>;
+
+/**
+ * Email fields a host can opt into via `fields`, beyond the always-present
+ * "To" row. "subject" shows statically whenever listed; "cc" / "bcc" are
+ * offered as header toggles the user reveals on demand.
+ */
+export type Field = "subject" | "cc" | "bcc";
 
 /** A file object, as returned by FileUploader's `success` event. */
 export interface UploadedFile {
@@ -107,11 +115,24 @@ export type EmailSubmitHandler = (
 export interface EmailComposerProps
   extends Omit<ComposerProps, "onSubmit" | "mentions"> {
   /**
-   * Optional email fields to include. "To" is always present. List "subject"
+   * Which fields to include beyond the always-present "To" row. List "subject"
    * to show the Subject row statically; "cc" / "bcc" are offered as header
    * toggles. Pass `[]` for a To-only composer. Defaults to `["cc", "bcc"]`.
    */
-  optionalFields?: OptionalField[];
+  fields?: Field[];
+  /**
+   * Async lookup for recipient suggestions, called as the user types in
+   * To/Cc/Bcc. Omit it for a plain creatable-email field (the user can still
+   * type any valid address); supply it to offer a searchable directory.
+   */
+  searchRecipients?: RecipientSearch;
+  /**
+   * Show the window control in the header — pop-out while docked, close (dock
+   * back) while floating. EmailComposer owns its FloatingWindow, so this drives
+   * its own window; observe or set the state with `v-model:mode`. On by default;
+   * set `false` for a fixed, docked-only composer.
+   */
+  expandable?: boolean;
   /** Send method invoked with the full email payload. */
   onSubmit?: EmailSubmitHandler;
 }
