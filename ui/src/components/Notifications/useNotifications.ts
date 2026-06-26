@@ -140,7 +140,6 @@ export function useNotifications(
     }
     await call(`${METHOD}.mark_as_read`, { docname: name });
     refreshUnreadCount();
-    if (n) options.afterMarkAsRead?.(n);
   }
 
   async function markAllAsRead() {

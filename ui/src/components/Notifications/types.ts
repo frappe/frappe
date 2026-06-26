@@ -59,8 +59,6 @@ export interface UseNotificationsOptions {
   /** initial server-side filters; tabs layer on top via `setFilters` */
   filters?: Record<string, unknown>;
   socket?: NotificationSocket;
-  /** side-effect hook run after a row is marked read — host routing lives here */
-  afterMarkAsRead?: (n: NotificationLog) => void;
 }
 
 /**

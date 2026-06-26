@@ -116,8 +116,8 @@ Actions are events; wire them to the controller's verbs.
 | `tab-change`       | `NotificationTab` | The active tab changes. Wire to `filterByTab`. |
 | `close`            | —                 | "Close" is clicked.                            |
 
-Routing / side-effects can live in the `@mark-as-read` handler, or in
-`useNotifications({ afterMarkAsRead })` (fires when `controller.markAsRead` runs).
+Routing / side-effects live in the `@mark-as-read` handler (or wherever you call
+`controller.markAsRead` from your own UI).
 
 ## Slots
 
@@ -183,7 +183,6 @@ const controller = useNotifications({
   filters, // initial server-side filters
   pageLength, // default 20
   socket, // a frappe-ui / socket.io socket; live-reloads on the `notification` event
-  afterMarkAsRead, // (n) => void — host routing / side-effects after a row is read
 });
 
 // controller (a reactive object):
