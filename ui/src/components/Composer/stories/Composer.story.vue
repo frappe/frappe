@@ -21,6 +21,7 @@
 				<Checkbox v-model="fieldCc" label="cc" />
 				<Checkbox v-model="fieldBcc" label="bcc" />
 			</div>
+			<Checkbox v-model="switchable" label="switchable (Email/Comment)" />
 		</div>
 
 		<!-- ── EmailComposer owns its window; CommentComposer is host-wrapped ─ -->
@@ -34,10 +35,13 @@
 					:fields="fields"
 					v-model:recipients="recipients"
 					:search-recipients="searchRecipients"
+					:mentions="mentions"
 					expandable
+					:switchable="switchable"
 					storage-key="story:composer:email"
 					placeholder="Write your reply…"
 					:on-submit="(p) => log('email:submit', p)"
+					:on-comment="(p) => log('email:comment', p)"
 					@discard="log('email:discard')"
 				/>
 			</div>
@@ -119,6 +123,7 @@ const modeOptions: WindowMode[] = ["docked", "floating", "minimized"];
 const fieldSubject = ref(true);
 const fieldCc = ref(true);
 const fieldBcc = ref(false);
+const switchable = ref(false);
 const fields = computed<Field[]>(() =>
 	(
 		[

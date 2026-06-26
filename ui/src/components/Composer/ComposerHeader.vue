@@ -10,7 +10,11 @@
 		FloatingWindow's built-in chrome (title + `#actions`) entirely.
 	-->
 	<div class="flex items-center justify-between gap-2 py-1.5">
-		<span class="font-medium text-ink-gray-8">{{ title }}</span>
+		<!-- Title, or a host-supplied trigger (e.g. EmailComposer's channel
+			 dropdown) that replaces the plain label. -->
+		<slot name="title">
+			<span class="font-medium text-ink-gray-8">{{ title }}</span>
+		</slot>
 
 		<div class="flex items-center gap-1">
 			<slot name="actions" />

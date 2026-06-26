@@ -11,6 +11,7 @@ export type { WindowMode } from "frappe-ui";
 // (CommentComposerProps = ComposerProps, CommentPayload = CoreSubmitPayload, etc.)
 // are structural, so they keep resolving without re-exporting the base names.
 export type {
+  Channel,
   CommentComposerProps,
   CommentPayload,
   CommentSubmitHandler,

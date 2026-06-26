@@ -103,6 +103,13 @@ export type EmailSubmitHandler = (
 ) => void | Promise<void>;
 
 /**
+ * The composer's active channel when `switchable` is on. "email" shows the
+ * recipient rows and sends via `onSubmit`; "comment" hides them and sends via
+ * `onComment`. Drive/observe it with `v-model:channel`.
+ */
+export type Channel = "email" | "comment";
+
+/**
  * Props for EmailComposer. Recipients, subject and body are not props — they're
  * two-way state the host drives with v-models, one source of truth (no
  * init-prop-vs-internal-state desync):
@@ -113,7 +120,7 @@ export type EmailSubmitHandler = (
  * removal is reported via the `remove-attachment` event for server cleanup.
  */
 export interface EmailComposerProps
-  extends Omit<ComposerProps, "onSubmit" | "mentions"> {
+  extends Omit<ComposerProps, "onSubmit"> {
   /**
    * Which fields to include beyond the always-present "To" row. List "subject"
    * to show the Subject row statically; "cc" / "bcc" are offered as header
@@ -135,6 +142,15 @@ export interface EmailComposerProps
   expandable?: boolean;
   /** Send method invoked with the full email payload. */
   onSubmit?: EmailSubmitHandler;
+  /**
+   * Turn the header title into a channel dropdown ("Email ▾" / "Comment").
+   * Off by default. When on, switching to "comment" hides the recipient rows
+   * and the Cc/Bcc toggles and routes submit to `onComment` instead of
+   * `onSubmit`. Observe or drive the active channel with `v-model:channel`.
+   */
+  switchable?: boolean;
+  /** Send method invoked when the composer is in "comment" mode (no recipients). */
+  onComment?: CommentSubmitHandler;
 }
 
 // --- CommentComposer -------------------------------------------------------
