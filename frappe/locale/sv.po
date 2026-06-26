@@ -3,7 +3,7 @@ msgstr ""
 "Project-Id-Version: frappe\n"
 "Report-Msgid-Bugs-To: developers@frappe.io\n"
 "POT-Creation-Date: 2026-06-24 16:55+0000\n"
-"PO-Revision-Date: 2026-06-24 20:33\n"
+"PO-Revision-Date: 2026-06-25 20:54\n"
 "Last-Translator: developers@frappe.io\n"
 "Language-Team: Swedish\n"
 "MIME-Version: 1.0\n"
@@ -7961,12 +7961,12 @@ msgstr "DocType Händelse"
 #. Name of a DocType
 #: frappe/custom/doctype/doctype_layout/doctype_layout.json
 msgid "DocType Layout"
-msgstr "DocType Utseende"
+msgstr "DocType Uppsättning"
 
 #. Name of a DocType
 #: frappe/custom/doctype/doctype_layout_field/doctype_layout_field.json
 msgid "DocType Layout Field"
-msgstr "DocType Utseende Fält"
+msgstr "DocType Uppsättning Fält"
 
 #. Name of a DocType
 #. Option for the 'Applied On' (Select) field in DocType 'Property Setter'
@@ -14858,11 +14858,11 @@ msgstr "Senast Synkroniserad {0}"
 
 #: frappe/custom/doctype/customize_form/customize_form.js:194
 msgid "Layout Reset"
-msgstr "Återställ Utseende"
+msgstr "Återställ Uppsättning"
 
 #: frappe/custom/doctype/customize_form/customize_form.js:186
 msgid "Layout will be reset to standard layout, are you sure you want to do this?"
-msgstr "Utseende kommer att återställas till standard utseende. Är du säker på att du vill göra detta?"
+msgstr "Uppsättning kommer att återställas till standard uppsättning. Är du säker på att du vill göra detta?"
 
 #: frappe/desk/page/leaderboard/leaderboard.js:15
 #: frappe/desk/page/user_profile/user_profile_sidebar.html:55
@@ -20482,7 +20482,7 @@ msgstr "Utskrift Format {0} är inaktiverad"
 #. Description of the Onboarding Step 'Customize Print Formats'
 #: frappe/custom/onboarding_step/print_format/print_format.json
 msgid "Print Formats allow you can define looks for documents when printed or converted to PDF. You can also create a custom Print Format using drag-and-drop tools."
-msgstr "Utskrift Format definierar utseende för dokument när de skrivs ut eller konverteras till PDF. Skapa anpassat Utskrift Format med hjälp av dra-och-släpp verktyg."
+msgstr "Med utskrift format kan du definiera utseende på dokument när de skrivs ut eller konverteras till PDF. Du kan också skapa anpassat utskrift med hjälp av dra-och-släpp-verktyg."
 
 #. Label of a Link in the Tools Workspace
 #. Name of a DocType
@@ -22311,7 +22311,7 @@ msgstr "Återställ LDAP Lösenord"
 
 #: frappe/custom/doctype/customize_form/customize_form.js:128
 msgid "Reset Layout"
-msgstr "Återställ Utseende"
+msgstr "Återställ Uppsättning"
 
 #: frappe/core/doctype/user/user.js:240
 msgid "Reset OTP Secret"
@@ -22928,7 +22928,7 @@ msgstr "S3 Säkerhetskopia Inställningar"
 
 #: frappe/integrations/doctype/s3_backup_settings/s3_backup_settings.js:20
 msgid "S3 Backup has been queued. You can track the progress <a href='/app/rq-job/{0}' target='_blank'>here</a>."
-msgstr ""
+msgstr "S3 Säkerhetskopiering har placerats i kö. Du kan följa förlopp <a href='/app/rq-job/{0}' target='_blank'>här</a>."
 
 #. Label of a Section Break field in DocType 'S3 Backup Settings'
 #: frappe/integrations/doctype/s3_backup_settings/s3_backup_settings.json
@@ -29384,7 +29384,7 @@ msgstr "Giltig Login ID Erfodras"
 
 #: frappe/templates/includes/login/login.js:40
 msgid "Valid email and name required"
-msgstr "Giltig e-post och namn erfodras"
+msgstr "Giltig e-post och namn erfordras"
 
 #. Label of a Check field in DocType 'Onboarding Step'
 #: frappe/desk/doctype/onboarding_step/onboarding_step.json
