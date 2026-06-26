@@ -1,6 +1,7 @@
 <script setup>
 import { ref, computed, watch, nextTick } from "vue";
 import PanelDropdown from "./PanelDropdown.vue";
+import AttachmentChip from "./AttachmentChip.vue";
 import { Button, FeatherIcon } from "@/lib/ui";
 import { useStore } from "@/store";
 import { __ } from "@/lib/translate";
@@ -10,20 +11,31 @@ const {
 	models,
 	selectedAgent,
 	selectedModel,
+	attachments,
 	sending,
 	paused,
 	locked,
 	needsSetup,
+	uploading,
 	focusTick,
 	agentLabel,
 	modelLabel,
 	setAgent,
 	setModel,
 	send,
+	attachFiles,
+	removeAttachment,
 } = useStore();
+
+const ACCEPT =
+	".pdf,.xlsx,.docx,.html,.htm,.txt,.text,.md,.markdown,.csv,.tsv,.log,.rst,.json,.yaml,.yml";
 
 const text = ref("");
 const el = ref(null);
+const fileInput = ref(null);
+const dragging = ref(false);
+
+const inputDisabled = computed(() => sending.value || paused.value || needsSetup.value);
 
 const agentItems = computed(() => agents.value.map((a) => ({ value: a.name, label: a.title })));
 const modelItems = computed(() => [
@@ -32,7 +44,12 @@ const modelItems = computed(() => [
 ]);
 
 const canSend = computed(
-	() => text.value.trim() && !sending.value && !paused.value && !needsSetup.value
+	() =>
+		text.value.trim() &&
+		!sending.value &&
+		!paused.value &&
+		!needsSetup.value &&
+		!uploading.value
 );
 const placeholder = computed(() =>
 	needsSetup.value ? __("Setup required…") : __("Ask {0}…", [agentLabel(selectedAgent.value)])
@@ -43,6 +60,33 @@ function submit() {
 	send(text.value);
 	text.value = "";
 	resize();
+}
+
+function pickFiles() {
+	fileInput.value?.click();
+}
+
+function onFilesPicked(e) {
+	attachFiles(e.target.files);
+	e.target.value = ""; // allow re-picking the same file
+}
+
+function onDragOver(e) {
+	if (inputDisabled.value) return;
+	e.preventDefault();
+	dragging.value = true;
+}
+
+function onDragLeave(e) {
+	if (e.currentTarget.contains(e.relatedTarget)) return;
+	dragging.value = false;
+}
+
+function onDrop(e) {
+	e.preventDefault();
+	dragging.value = false;
+	if (inputDisabled.value) return;
+	attachFiles(e.dataTransfer.files);
 }
 
 function onKeydown(e) {
@@ -65,8 +109,25 @@ watch(focusTick, () => nextTick(() => el.value?.focus()));
 <template>
 	<div class="border-t border-outline-gray-1 px-4 pb-3.5 pt-2.5">
 		<div
-			class="flow-composer mx-auto flex w-full max-w-3xl flex-col gap-1.5 rounded-xl border border-outline-gray-2 bg-surface-white px-2.5 py-2 shadow-sm"
+			class="flow-composer mx-auto flex w-full max-w-3xl flex-col gap-1.5 rounded-xl border bg-surface-white px-2.5 py-2 shadow-sm transition-colors"
+			:class="dragging ? 'border-outline-gray-4 bg-surface-gray-1' : 'border-outline-gray-2'"
+			@dragover="onDragOver"
+			@dragleave="onDragLeave"
+			@drop="onDrop"
 		>
+			<div v-if="attachments.length" class="flex flex-wrap gap-1.5">
+				<AttachmentChip
+					v-for="a in attachments"
+					:key="a.uid"
+					:file-name="a.file_name"
+					:file-size="a.file_size"
+					:status="a.status"
+					:error="a.error"
+					removable
+					@remove="removeAttachment(a.uid)"
+				/>
+			</div>
+
 			<textarea
 				ref="el"
 				v-model="text"
@@ -79,6 +140,24 @@ watch(focusTick, () => nextTick(() => el.value?.focus()));
 			></textarea>
 
 			<div class="flex items-center gap-1.5">
+				<!-- attach -->
+				<button
+					class="flex h-6 w-6 items-center justify-center rounded text-ink-gray-6 hover:bg-surface-gray-2 disabled:cursor-default disabled:opacity-40 disabled:hover:bg-transparent"
+					:disabled="inputDisabled"
+					:title="__('Attach file')"
+					@click="pickFiles"
+				>
+					<FeatherIcon name="paperclip" class="h-3.5 w-3.5" />
+				</button>
+				<input
+					ref="fileInput"
+					type="file"
+					multiple
+					:accept="ACCEPT"
+					class="hidden"
+					@change="onFilesPicked"
+				/>
+
 				<!-- agent -->
 				<PanelDropdown
 					:items="agentItems"
@@ -93,7 +172,6 @@ watch(focusTick, () => nextTick(() => el.value?.focus()));
 							:title="__('Agent')"
 							@click="toggle"
 						>
-							<span class="h-1.5 w-1.5 rounded-full bg-surface-green-3"></span>
 							<span class="font-medium text-ink-gray-8">{{
 								agentLabel(selectedAgent)
 							}}</span>

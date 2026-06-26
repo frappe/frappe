@@ -18,6 +18,7 @@ import frappe
 from frappe import _
 
 TEXT_EXTENSIONS = {"txt", "text", "md", "markdown", "csv", "tsv", "log", "rst", "json", "yaml", "yml"}
+FILE_EXTENSIONS = {"pdf", "xlsx", "docx", "html", "htm"} | TEXT_EXTENSIONS
 
 CHILD_FIELDTYPES = {"Table", "Table MultiSelect"}
 HTML_FIELDTYPES = {"Text Editor"}
@@ -53,9 +54,14 @@ def _extract_text_source(source) -> list[ExtractedDoc]:
 
 def _extract_file_source(source) -> list[ExtractedDoc]:
 	file_doc = frappe.get_doc("File", {"file_url": source.file})
-	extension = os.path.splitext(file_doc.file_name or source.file or "")[1].lower().lstrip(".")
-	text = _extract_by_extension(file_doc.get_content(), extension)
-	return _single(text.strip())
+	return _single(extract_file(file_doc))
+
+
+def extract_file(file_doc) -> str:
+	"""Extract plain text from a File document by its extension. Reusable for any
+	caller (knowledge sources, chat attachments) that holds a File doc."""
+	extension = os.path.splitext(file_doc.file_name or file_doc.file_url or "")[1].lower().lstrip(".")
+	return _extract_by_extension(file_doc.get_content(), extension).strip()
 
 
 def _extract_url_source(source) -> list[ExtractedDoc]:

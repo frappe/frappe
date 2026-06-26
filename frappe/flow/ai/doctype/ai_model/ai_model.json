@@ -11,6 +11,7 @@
   "section_break_config",
   "provider",
   "model_id",
+  "context_window",
   "api_key",
   "base_url",
   "section_break_params",
@@ -49,6 +50,13 @@
    "in_list_view": 1,
    "label": "Model ID",
    "reqd": 1
+  },
+  {
+   "description": "Max input tokens. Auto-detected from the model on save when left empty; override if your provider differs. 0 = unknown.",
+   "fieldname": "context_window",
+   "fieldtype": "Int",
+   "label": "Context Window",
+   "non_negative": 1
   },
   {
    "description": "API key for the provider named in the Model ID. Leave empty for local servers (Ollama, LM Studio) that don't require authentication.",

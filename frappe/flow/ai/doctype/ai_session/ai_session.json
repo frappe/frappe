@@ -9,7 +9,8 @@
   "agent",
   "model",
   "section_break_transcript",
-  "messages"
+  "messages",
+  "attachments"
  ],
  "fields": [
   {
@@ -49,6 +50,14 @@
    "fieldtype": "Table",
    "label": "Messages",
    "options": "AI Session Message",
+   "read_only": 1
+  },
+  {
+   "description": "Files attached across all runs in this conversation.",
+   "fieldname": "attachments",
+   "fieldtype": "Table",
+   "label": "Attachments",
+   "options": "AI Session Attachment",
    "read_only": 1
   }
  ],

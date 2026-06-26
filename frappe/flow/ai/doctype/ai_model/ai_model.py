@@ -27,6 +27,7 @@ class AIModel(Document):
 
 		api_key: DF.Password | None
 		base_url: DF.Data | None
+		context_window: DF.Int
 		enabled: DF.Check
 		model_id: DF.Data
 		params: DF.JSON | None
@@ -41,6 +42,7 @@ class AIModel(Document):
 		self._validate_base_url()
 		self._validate_params()
 		self._validate_provider_known()
+		self._resolve_context_window()
 
 	def after_insert(self):
 		if not self.enabled:
@@ -101,6 +103,14 @@ class AIModel(Document):
 				title=_("Reserved Params"),
 			)
 
+	def _resolve_context_window(self):
+		# Auto-detect only when empty, or when the model changed on an existing doc. A value
+		# set by hand is kept — including one provided at creation. If litellm doesn't know
+		# the model, leave the existing value (callers fall back to a default when it's 0).
+		if self.context_window and (self.is_new() or not self.has_value_changed("model_id")):
+			return
+		self.context_window = _detect_context_window(self.model_id) or self.context_window or 0
+
 	def _validate_provider_known(self):
 		try:
 			import litellm
@@ -145,6 +155,17 @@ class AIModel(Document):
 			frappe.throw(str(e)[:500] or type(e).__name__, title=_(type(e).__name__))
 
 		return {"ok": True, "message": _("Connection OK")}
+
+
+def _detect_context_window(model_id: str) -> int:
+	"""Max input tokens for `model_id` per litellm, or 0 if unknown/unmapped."""
+	import litellm
+
+	try:
+		info = litellm.get_model_info(model_id)
+	except Exception:
+		return 0
+	return int(info.get("max_input_tokens") or 0)
 
 
 @frappe.whitelist()

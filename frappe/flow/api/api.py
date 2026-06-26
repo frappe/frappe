@@ -23,17 +23,20 @@ def start_run(
 	agent: str | None = None,
 	session: str | None = None,
 	model: str | None = None,
+	attachments: list[str] | str | None = None,
 	stream: bool | str = False,
 ) -> dict[str, Any] | Response:
-	"""Start a new turn. Creates a session if none is given. With `stream=True`, returns SSE."""
+	"""Start a new turn. Creates a session if none is given. `attachments` are uploaded File
+	names whose text is injected into this turn. With `stream=True`, returns SSE."""
 	if not isinstance(input, str) or not input.strip():
 		frappe.throw(_("Input is required."), title=_("Invalid Input"))
 
 	from flow.lib.session import load_session, new_session
 
 	stream = _is_truthy(stream)
+	files = _parse_attachments(attachments)
 	convo = load_session(session, agent=agent, model=model) if session else new_session(agent, model=model)
-	out = convo.chat(input, stream=stream)
+	out = convo.chat(input, attachments=files, stream=stream)
 	return _sse_response(out) if stream else _summarize(out)
 
 
@@ -57,6 +60,42 @@ def resume_run(
 
 	out = load_session(run.session).resume(parsed_answers, stream=stream)
 	return _sse_response(out) if stream else _summarize(out)
+
+
+@frappe.whitelist()
+def recover_session(session: str) -> dict[str, int]:
+	"""Fail any Running run on session (re)load. The client that owned the stream is
+	gone, so the run is abandoned; clearing it here unblocks the next turn instead of
+	waiting for the stale-run timeout on the next send."""
+	if not isinstance(session, str) or not session.strip():
+		frappe.throw(_("Session is required."), title=_("Invalid Session"))
+
+	from flow.lib.session import _assert_session_owner
+
+	doc = frappe.get_doc("AI Session", session.strip())
+	_assert_session_owner(doc)
+
+	abandoned = frappe.get_all("AI Run", filters={"session": doc.name, "status": "Running"}, pluck="name")
+	for name in abandoned:
+		frappe.db.set_value(
+			"AI Run",
+			name,
+			{"status": "Failed", "error": "Run abandoned: stream ended without completing."},
+		)
+	return {"recovered": len(abandoned)}
+
+
+@frappe.whitelist()
+def attach_file(file: str) -> dict[str, Any]:
+	"""Validate and extract an uploaded File for use as a chat attachment. Errors
+	(unsupported type, unreadable, not owned) surface here, at upload time. The
+	extracted text is staged in cache; the attachment row is written on send."""
+	if not isinstance(file, str) or not file.strip():
+		frappe.throw(_("File is required."), title=_("Invalid Attachment"))
+
+	from flow.ai.doctype.ai_session_attachment.ai_session_attachment import stage_attachment
+
+	return stage_attachment(file.strip())
 
 
 def _sse_response(events: Iterable[Event]) -> Response:
@@ -117,6 +156,25 @@ def _is_truthy(value: Any) -> bool:
 	if isinstance(value, str):
 		return value.strip().lower() in {"1", "true", "yes", "on"}
 	return bool(value)
+
+
+def _parse_attachments(value: Any) -> list[str]:
+	"""Normalize the attachments argument (a list, a JSON-array string, or empty) to file names."""
+	if not value:
+		return []
+	if isinstance(value, str):
+		try:
+			value = json.loads(value)
+		except (TypeError, ValueError):
+			frappe.throw(_("Attachments must be a JSON array of file ids."), title=_("Invalid Attachments"))
+	if not isinstance(value, list):
+		frappe.throw(_("Attachments must be a list of file ids."), title=_("Invalid Attachments"))
+	files: list[str] = []
+	for file in value:
+		if not isinstance(file, str) or not file.strip():
+			frappe.throw(_("Each attachment must be a file id."), title=_("Invalid Attachments"))
+		files.append(file.strip())
+	return files
 
 
 def _parse_answers(answers: Any) -> dict[str, Any]:

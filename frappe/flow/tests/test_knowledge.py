@@ -8,7 +8,7 @@ from unittest.mock import patch
 import frappe
 from frappe.tests import IntegrationTestCase
 
-from flow.knowledge import Knowledge, store
+from flow.knowledge import Knowledge, attachment_store, store
 from flow.knowledge.chunker import chunk_text
 from flow.knowledge.embedder import embed_texts, probe_dimension
 from flow.knowledge.extract import (
@@ -26,7 +26,7 @@ from flow.knowledge.ingest import (
 	reconcile_source,
 	sync_due_sources,
 )
-from flow.knowledge.retriever import retrieve
+from flow.knowledge.retriever import retrieve, retrieve_attachments
 
 DIM = 4
 
@@ -1078,3 +1078,152 @@ class TestAgentKnowledge(IntegrationTestCase):
 		with patch("flow.knowledge.retriever.retrieve", return_value=[]) as mock:
 			search(query="hi")
 		mock.assert_called_once_with("hi", kbs=[first.name, second.name])
+
+
+class TestAttachmentStore(IntegrationTestCase):
+	def setUp(self):
+		attachment_store.drop_table()
+
+	def tearDown(self):
+		attachment_store.drop_table()
+
+	def _seed(self):
+		attachment_store.ensure_table(DIM)
+		attachment_store.add(
+			"SES-a",
+			"ATT-1",
+			["wifi not connecting on macbook", "printer not detected on windows"],
+			[[1.0, 0.0, 0.0, 0.0], [0.0, 1.0, 0.0, 0.0]],
+		)
+		attachment_store.add("SES-b", "ATT-2", ["how to set up your laptop"], [[0.9, 0.1, 0.0, 0.0]])
+
+	def test_ensure_table_idempotent(self):
+		attachment_store.ensure_table(DIM)
+		attachment_store.ensure_table(DIM)
+		self.assertTrue(attachment_store._table_exists())
+
+	def test_ensure_table_recreates_on_dimension_change(self):
+		self._seed()
+		attachment_store.ensure_table(DIM + 1)  # different width -> dropped and recreated
+		self.assertEqual(attachment_store._open_table().count_rows(), 0)
+
+	def test_ensure_table_rejects_invalid_dimension(self):
+		with self.assertRaises(ValueError):
+			attachment_store.ensure_table(0)
+
+	def test_add_length_mismatch_raises(self):
+		attachment_store.ensure_table(DIM)
+		with self.assertRaises(ValueError):
+			attachment_store.add("SES-a", "ATT-1", ["one", "two"], [[1.0, 0.0, 0.0, 0.0]])
+
+	def test_search_before_table_returns_empty(self):
+		self.assertEqual(attachment_store.search([1.0, 0.0, 0.0, 0.0], session="SES-a"), [])
+
+	def test_search_requires_session(self):
+		self._seed()
+		with self.assertRaises(ValueError):
+			attachment_store.search([1.0, 0.0, 0.0, 0.0], session="")
+
+	def test_vector_search_scopes_to_session(self):
+		self._seed()
+		hits = attachment_store.search([1.0, 0.0, 0.0, 0.0], session="SES-a", limit=5)
+		self.assertTrue(hits)
+		self.assertTrue(all("laptop" not in h["content"] for h in hits))  # SES-b not leaked
+
+	def test_search_excludes_other_sessions(self):
+		self._seed()
+		hits = attachment_store.search([0.9, 0.1, 0.0, 0.0], session="SES-b", limit=5)
+		self.assertEqual([h["content"] for h in hits], ["how to set up your laptop"])
+
+	def test_hybrid_search_surfaces_keyword(self):
+		self._seed()
+		hits = attachment_store.search([1.0, 0.0, 0.0, 0.0], session="SES-a", text="printer", limit=2)
+		self.assertTrue(any("printer" in h["content"] for h in hits))
+
+	def test_delete_by_attachment(self):
+		self._seed()
+		attachment_store.delete(session="SES-a", attachment="ATT-1")
+		self.assertEqual(attachment_store.search([1.0, 0.0, 0.0, 0.0], session="SES-a", limit=5), [])
+
+	def test_delete_by_session(self):
+		self._seed()
+		attachment_store.delete(session="SES-b")
+		self.assertEqual(attachment_store.search([0.9, 0.1, 0.0, 0.0], session="SES-b", limit=5), [])
+
+	def test_delete_requires_a_criterion(self):
+		with self.assertRaises(ValueError):
+			attachment_store.delete()
+
+	def test_delete_by_session_list(self):
+		self._seed()
+		attachment_store.delete(session=["SES-a", "SES-b"])
+		self.assertEqual(attachment_store.search([1.0, 0.0, 0.0, 0.0], session="SES-a", limit=5), [])
+		self.assertEqual(attachment_store.search([0.9, 0.1, 0.0, 0.0], session="SES-b", limit=5), [])
+
+	def test_delete_session_list_leaves_others(self):
+		self._seed()
+		attachment_store.delete(session=["SES-a"])
+		self.assertEqual(attachment_store.search([1.0, 0.0, 0.0, 0.0], session="SES-a", limit=5), [])
+		self.assertTrue(attachment_store.search([0.9, 0.1, 0.0, 0.0], session="SES-b", limit=5))
+
+	def test_delete_empty_session_list_is_noop(self):
+		self._seed()
+		attachment_store.delete(session=[])
+		self.assertTrue(attachment_store.search([0.9, 0.1, 0.0, 0.0], session="SES-b", limit=5))
+
+
+class TestRetrieveAttachments(IntegrationTestCase):
+	def setUp(self):
+		attachment_store.drop_table()
+		self.model = _make_model()
+		_set_settings(embedding_model=self.model.name, embedding_dimension=DIM, search_type="Hybrid")
+		attachment_store.ensure_table(DIM)
+		attachment_store.add(
+			"SES-x",
+			"ATT-1",
+			["the refund policy allows returns within thirty days"],
+			[[1.0, 0.0, 0.0, 0.0]],
+		)
+
+	def tearDown(self):
+		attachment_store.drop_table()
+		frappe.db.rollback()
+
+	def _fake_embed(self, input, **kwargs):
+		return _embedding_response([[1.0, 0.0, 0.0, 0.0]] * len(input))
+
+	def test_retrieve_returns_scoped_content(self):
+		with patch("litellm.embedding", side_effect=self._fake_embed):
+			results = retrieve_attachments("refund", session="SES-x")
+		self.assertTrue(results)
+		self.assertIn("refund", results[0]["content"])
+
+	def test_retrieve_blank_query_returns_empty(self):
+		with patch("litellm.embedding") as mocked:
+			self.assertEqual(retrieve_attachments("   ", session="SES-x"), [])
+		mocked.assert_not_called()  # no embedding call for an empty query
+
+	def test_retrieve_requires_session(self):
+		self.assertEqual(retrieve_attachments("refund", session=""), [])
+
+	def test_retrieve_other_session_finds_nothing(self):
+		with patch("litellm.embedding", side_effect=self._fake_embed):
+			self.assertEqual(retrieve_attachments("refund", session="SES-other"), [])
+
+	def test_search_type_vector_skips_text(self):
+		_set_settings(search_type="Vector")
+		with (
+			patch("litellm.embedding", side_effect=self._fake_embed),
+			patch.object(attachment_store, "search", return_value=[]) as mocked,
+		):
+			retrieve_attachments("refund", session="SES-x")
+		self.assertIsNone(mocked.call_args.kwargs["text"])  # Vector mode -> no FTS text
+
+	def test_search_type_hybrid_passes_text(self):
+		_set_settings(search_type="Hybrid")
+		with (
+			patch("litellm.embedding", side_effect=self._fake_embed),
+			patch.object(attachment_store, "search", return_value=[]) as mocked,
+		):
+			retrieve_attachments("refund", session="SES-x")
+		self.assertEqual(mocked.call_args.kwargs["text"], "refund")

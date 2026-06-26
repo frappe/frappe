@@ -3,7 +3,9 @@ import { ref, watch } from "vue";
 import UserMessage from "./UserMessage.vue";
 import AssistantMessage from "./AssistantMessage.vue";
 import EmptyState from "./EmptyState.vue";
+import { FeatherIcon } from "@/lib/ui";
 import { useStore } from "@/store";
+import { __ } from "@/lib/translate";
 
 const { messages, needsSetup, agents, models, scrollTick } = useStore();
 
@@ -44,7 +46,16 @@ watch(scrollTick, () => {
 			/>
 
 			<template v-for="msg in messages" :key="msg.id">
-				<UserMessage v-if="msg.role === 'user'" :content="msg.content" />
+				<template v-if="msg.role === 'user'">
+					<UserMessage :content="msg.content" :attachments="msg.attachments" />
+					<div
+						v-if="msg.interrupted"
+						class="flex items-center gap-1.5 text-[length:var(--text-sm)] text-ink-gray-5"
+					>
+						<FeatherIcon name="alert-circle" class="h-3.5 w-3.5 shrink-0" />
+						{{ __("Response interrupted") }}
+					</div>
+				</template>
 				<AssistantMessage v-else :message="msg" />
 			</template>
 		</div>
