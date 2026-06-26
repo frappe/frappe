@@ -1,6 +1,6 @@
 <template>
 	<div class="flex flex-col gap-1.5">
-		<span v-if="label" class="block text-xs text-ink-gray-5">{{ label }}</span>
+		<FormInputLabel v-if="label">{{ label }}</FormInputLabel>
 		<div class="rounded-lg border border-outline-elevation-2 bg-surface-base">
 			<div class="min-w-[400px] p-2">
 				<div
@@ -83,6 +83,7 @@ import { Combobox, FeatherIcon, FormControl } from "frappe-ui"
 import { computed, h, ref, watch } from "vue"
 import { Link } from "frappe-ui/frappe"
 
+import FormInputLabel from "@/components/FormInputLabel.vue"
 import type { DocTypeField, Fieldtype, Filter, Operators } from "@/types"
 import { isObjectEmpty } from "@/utils/helpers"
 import type { Filters } from "@/types/Studio/StudioResource"

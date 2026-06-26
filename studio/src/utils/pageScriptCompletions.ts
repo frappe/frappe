@@ -5,7 +5,7 @@ import type { CompletionSource } from "@/types"
 import { getCompletions } from "./autocompletions"
 import { vueImportCompletions } from "./vueApiCompletions"
 
-// A code-mode page script's `setup(context)` param holds the page's runtime context. Treat that
+// An ES module/standard app's page script's `setup(context)` param holds the page's runtime context. Treat that
 // param as a single object whose members are the page's data sources, variables, route and router,
 // then reuse the event-script completion engine — it reads nested objects straight off the live
 // values, so `context.todos.data` completes the same way `todos.data` does in an event script.

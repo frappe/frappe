@@ -31,13 +31,14 @@
 			>
 				<template #default>
 					<div class="flex flex-col gap-3">
-						<FormControl type="combobox" :options="eventOptions" label="Event" v-model="newEvent.event" />
-						<FormControl
-							type="combobox"
-							:options="Object.keys(actions)"
-							label="Action"
-							v-model="newEvent.action"
+						<Combobox
+							:options="eventOptions"
+							:allowCustomValue="true"
+							label="Event"
+							v-model="newEvent.event"
+							description="Type any event, optionally with modifiers — e.g. keydown.enter, click.prevent, submit.prevent.stop"
 						/>
+						<Combobox :options="Object.keys(actions)" label="Action" v-model="newEvent.action" />
 						<component
 							v-for="control in actionControls"
 							:key="control.component.name"
@@ -141,16 +142,15 @@
 
 <script setup lang="ts">
 import { ref, computed, watch } from "vue"
-import { FormControl, createResource, Dialog, TabButtons } from "frappe-ui"
+import { Combobox, FormControl, createResource, Dialog, TabButtons } from "frappe-ui"
 import useStudioStore from "@/stores/studioStore"
 import Block from "@/utils/block"
 import EmptyState from "@/components/EmptyState.vue"
 import ItemActions from "@/components/ItemActions.vue"
 
-import { isObjectEmpty, confirm, getParamsArray, getParamsObj } from "@/utils/helpers"
+import { isObjectEmpty, confirm } from "@/utils/helpers"
 
-import type { SelectOption } from "@/types"
-import type { Actions, ActionConfigurations, ComponentEvent } from "@/types/ComponentEvent"
+import type { ActionConfigurations, ComponentEvent } from "@/types/ComponentEvent"
 import { Link } from "frappe-ui/frappe"
 import Grid from "@/components/Grid.vue"
 import Code from "@/components/Code.vue"
@@ -166,17 +166,11 @@ const props = defineProps<{
 }>()
 const store = useStudioStore()
 const getEditorCompletions = useStudioCompletions(true)
-const getCompletions = useStudioCompletions()
 
 const showAddEventDialog = ref(false)
 const emptyEvent: ComponentEvent = {
 	event: "click",
 	action: "Run Script",
-	page: "",
-	url: "",
-	// call api
-	api_endpoint: "",
-	params: [],
 	// insert document
 	doctype: "",
 	fields: [],
@@ -257,6 +251,7 @@ const actions: ActionConfigurations = {
 			getProps: () => {
 				return {
 					label: "Script",
+					isFormInput: true,
 					language: "javascript",
 					modelValue: newEvent.value.script,
 					height: "400px",
@@ -272,48 +267,6 @@ const actions: ActionConfigurations = {
 					newEvent.value.script = val
 				},
 				save: () => saveEvent(newEvent.value),
-			},
-		},
-	],
-	"Call API": [
-		{
-			component: FormControl,
-			getProps: () => {
-				return {
-					type: "input",
-					label: "API Endpoint",
-					modelValue: newEvent.value.api_endpoint,
-					autocomplete: "off",
-				}
-			},
-			events: {
-				"update:modelValue": (val: string) => {
-					newEvent.value.api_endpoint = val
-				},
-			},
-		},
-		{
-			component: Grid,
-			getProps: () => {
-				return {
-					label: "Parameters",
-					columns: [
-						{ label: "Key", fieldname: "key", fieldtype: "Data" },
-						{
-							label: "Value",
-							fieldname: "value",
-							fieldtype: "Code",
-							completions: getCompletions,
-						},
-					],
-					rows: newEvent.value.params || [],
-					showDeleteBtn: true,
-				}
-			},
-			events: {
-				"update:rows": (val: any) => {
-					newEvent.value.params = val
-				},
 			},
 		},
 	],
@@ -345,7 +298,7 @@ const actions: ActionConfigurations = {
 							label: "Variable",
 							fieldname: "value",
 							fieldtype: "select",
-							options: store.variableOptions,
+							options: [...store.variableOptions, ...store.pageScriptBindingOptions],
 						},
 					],
 					rows: newEvent.value.fields,
@@ -359,46 +312,6 @@ const actions: ActionConfigurations = {
 			},
 		},
 	],
-	"Switch App Page": [
-		{
-			component: FormControl,
-			getProps: () => {
-				return {
-					type: "autocomplete",
-					options: Object.values(store.appPages || [])?.map((page) => {
-						return {
-							value: page.name,
-							label: page.page_title,
-						}
-					}),
-					label: "Page",
-					modelValue: newEvent.value.page,
-				}
-			},
-			events: {
-				"update:modelValue": (val: SelectOption) => {
-					newEvent.value.page = val.value
-				},
-			},
-		},
-	],
-	"Open Webpage": [
-		{
-			component: FormControl,
-			getProps: () => {
-				return {
-					type: "input",
-					label: "URL",
-					modelValue: newEvent.value.url,
-				}
-			},
-			events: {
-				"update:modelValue": (val: string) => {
-					newEvent.value.url = val
-				},
-			},
-		},
-	],
 }
 
 const actionControls = computed(() => {
@@ -406,10 +319,7 @@ const actionControls = computed(() => {
 })
 
 const showSuccessFailureOptions = computed(() => {
-	return (
-		(newEvent.value.action === "Insert a Document" && newEvent.value.doctype) ||
-		newEvent.value.action === "Call API"
-	)
+	return newEvent.value.action === "Insert a Document" && newEvent.value.doctype
 })
 
 function getFnBoilerplate(event: "success" | "error") {
@@ -439,22 +349,10 @@ function getEvent(event: ComponentEvent): ComponentEvent {
 	}
 	if (event.action === "Run Script") {
 		_event.script = event.script || ""
-	} else if (event.action === "Call API") {
-		_event.api_endpoint = event.api_endpoint
-		setEventCallbackFields(_event, event)
-		if (Array.isArray(event.params)) {
-			_event.params = getParamsObj(event.params)
-		}
 	} else if (event.action === "Insert a Document") {
 		_event.doctype = event.doctype
 		_event.fields = event.fields
 		setEventCallbackFields(_event, event)
-	} else if (event.action === "Switch App Page") {
-		if (event.page) {
-			_event.page = store.getAppPageRoute(event.page)
-		}
-	} else if (event.action === "Open Webpage") {
-		_event.url = event.url
 	}
 
 	if (event.oldEvent) {
@@ -504,7 +402,6 @@ const openEvent = (event: ComponentEvent) => {
 		...event,
 		isEditing: true,
 		oldEvent: event.event,
-		params: getParamsArray(event.params),
 	}
 	showAddEventDialog.value = true
 }

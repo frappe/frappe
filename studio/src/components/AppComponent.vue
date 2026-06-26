@@ -60,11 +60,12 @@
 import Block from "@/utils/block"
 import { computed, onMounted, ref, useAttrs, inject, type ComputedRef, h } from "vue"
 import type { ComponentPublicInstance } from "vue"
-import { useRouter } from "vue-router"
 import { createResource } from "frappe-ui"
 import { getComponentRoot, isHTML, isObjectEmpty } from "@/utils/helpers"
 import { useScreenSize } from "@/utils/useScreenSize"
 import { isDynamicValue } from "@/utils/code"
+import { resolveEventListener } from "@/utils/eventModifiers"
+import useComponentInstance from "@/utils/useComponentInstance"
 
 import useCodeStore from "@/stores/codeStore"
 import { toast } from "frappe-ui"
@@ -168,91 +169,68 @@ const showComponent = computed(() => {
 })
 
 // events
-const router = useRouter()
+type Listener = (...args: any[]) => any
+type ListenerMap = Record<string, Listener | Listener[]>
+
+const componentInstance = useComponentInstance(() => props.block)
+const componentEmits = computed<string[]>(() => componentInstance.value?.emits || [])
 
 const componentEvents = computed(() => {
-	const events: Record<string, Function | undefined> = {}
+	const events: ListenerMap = {}
 	Object.entries(props.block.componentEvents).forEach(([eventName, event]) => {
-		const getEventFn = () => {
-			if (event.action === "Switch App Page") {
-				return () => {
-					router.push(event.page)
-				}
-			} else if (event.action === "Call API") {
-				return (...eventArgs: any[]) => {
-					const path: string[] = event.api_endpoint.split(".")
-					// get resource
-					const resource = codeStore.resources[path[0]]
-					event.eventArgs = eventArgs
-
-					if (resource) {
-						// access and call whitelisted method
-						resource[path[1]].submit()
-					} else {
-						createResource({
-							url: event.api_endpoint,
-							auto: true,
-							params: codeStore.getAPIParams(event.params, evaluationContext.value),
-							onSuccess: handleSuccess(event),
-							onError: handleError(event),
-						})
-					}
-				}
-			} else if (event.action === "Insert a Document") {
-				return (...eventArgs: any[]) => {
-					const fields: Record<string, any> = {}
-					event.fields.forEach((field: Field) => {
-						fields[field.field] = codeStore.getValueFromVariable(field.value, evaluationContext.value)
-					})
-					event.eventArgs = eventArgs
-					createResource({
-						url: "frappe.client.insert",
-						method: "POST",
-						params: {
-							doc: {
-								doctype: event.doctype,
-								...fields,
-							},
-						},
-						onSuccess: handleSuccess(event),
-						onError: handleError(event),
-					}).submit()
-				}
-			} else if (event.action === "Run Script") {
-				return (...eventArgs: any[]) => {
-					codeStore.executeUserScript(
-						event.script,
-						repeaterContext?.value,
-						componentContext?.value,
-						eventArgs,
-					)
-				}
-			}
-		}
-		events[eventName] = getEventFn()
+		const handler = getEventHandler(event)
+		if (!handler) return
+		const { name, listener } = resolveEventListener(eventName, handler, componentEmits.value)
+		addListener(events, name, listener)
 	})
-
 	return events
 })
 
-const mergedListeners = computed(() => {
-	const merged: Record<string, Function | Array<Function> | undefined> = { ...vModelListeners.value }
-
-	Object.entries(componentEvents.value).forEach(([eventName, handler]) => {
-		if (merged[eventName] && handler) {
-			const existingHandler = merged[eventName]
-			if (Array.isArray(existingHandler)) {
-				merged[eventName] = [...existingHandler, handler]
-			} else {
-				merged[eventName] = [existingHandler, handler]
-			}
-		} else {
-			merged[eventName] = handler
+function getEventHandler(event: any): Listener | undefined {
+	if (event.action === "Insert a Document") {
+		return (...eventArgs: any[]) => {
+			const fields: Record<string, any> = {}
+			event.fields.forEach((field: Field) => {
+				fields[field.field] = codeStore.getValueFromVariable(field.value, evaluationContext.value)
+			})
+			event.eventArgs = eventArgs
+			createResource({
+				url: "frappe.client.insert",
+				method: "POST",
+				params: { doc: { doctype: event.doctype, ...fields } },
+				onSuccess: handleSuccess(event),
+				onError: handleError(event),
+			}).submit()
 		}
-	})
+	} else if (event.action === "Run Script") {
+		return (...eventArgs: any[]) => {
+			codeStore.executeUserScript(event.script, repeaterContext?.value, componentContext?.value, eventArgs)
+		}
+	}
+}
 
+const mergedListeners = computed(() => {
+	const merged: ListenerMap = {}
+	for (const [name, listener] of Object.entries(vModelListeners.value)) {
+		addListener(merged, name, listener as Listener)
+	}
+	for (const [name, listener] of Object.entries(componentEvents.value)) {
+		const handlers = Array.isArray(listener) ? listener : [listener]
+		handlers.forEach((handler) => addListener(merged, name, handler))
+	}
 	return merged
 })
+
+function addListener(map: ListenerMap, name: string, listener: Listener) {
+	const existing = map[name]
+	if (!existing) {
+		map[name] = listener
+	} else if (Array.isArray(existing)) {
+		existing.push(listener)
+	} else {
+		map[name] = [existing, listener]
+	}
+}
 
 const handleSuccess = (event: any) => (data: DataResult) => {
 	if (event.on_success === "script" && event.on_success_script) {
@@ -266,8 +244,6 @@ const handleSuccess = (event: any) => (data: DataResult) => {
 	} else {
 		if (event.action === "Insert a Document") {
 			toast.success(event.success_message || `${event.doctype} created successfully`)
-		} else if (event.action === "Call API" && event.success_message) {
-			toast.success(event.success_message)
 		}
 	}
 }
@@ -284,8 +260,6 @@ const handleError = (event: any) => (error: any) => {
 	} else {
 		if (event.action === "Insert a Document") {
 			toast.error(event.error_message || `Error creating ${event.doctype}`)
-		} else if (event.action === "Call API" && event.error_message) {
-			toast.error(event.error_message)
 		}
 	}
 }

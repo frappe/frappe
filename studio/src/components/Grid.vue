@@ -1,6 +1,6 @@
 <template>
 	<div class="flex flex-col">
-		<div v-if="label" class="mb-1.5 text-xs text-ink-gray-5">{{ label }}</div>
+		<FormInputLabel v-if="label" :label="label">{{ label }}</FormInputLabel>
 
 		<div class="rounded border border-gray-100">
 			<!-- Header -->
@@ -104,6 +104,7 @@ import Draggable from "vuedraggable"
 
 import { Link } from "frappe-ui/frappe"
 import { generateId } from "@/utils/helpers"
+import FormInputLabel from "@/components/FormInputLabel.vue"
 import type { GridColumn, GridRow } from "@/types/doctype"
 
 const props = defineProps<{

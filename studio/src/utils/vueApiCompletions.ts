@@ -9,7 +9,7 @@ import { vueReactivityApis } from "@/stores/codeStore"
 // suggest (and auto-import) in code files.
 const VUE_API_NAMES = Object.keys(vueReactivityApis)
 
-// Interpreted page/event scripts: the APIs are injected globally, so completion just inserts a call.
+// Interpreted page script: the APIs are injected into its scope, so completion just inserts a call.
 export function vueApiSources(): CompletionSource[] {
 	return VUE_API_NAMES.map((name) => ({
 		item: undefined,

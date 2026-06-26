@@ -6,7 +6,7 @@
 		@after-leave="reset"
 	>
 		<template #default>
-			<div class="flex flex-col space-y-4">
+			<div class="flex flex-col gap-4">
 				<FormControl
 					label="Data Source Name"
 					:required="true"
@@ -121,13 +121,11 @@
 						v-model="newResource.document_name"
 					/>
 
-					<div class="mt-5">
-						<Checkbox
-							size="sm"
-							v-model="newResource.fetch_document_using_filters"
-							label="Dynamically fetch document using filters"
-						/>
-					</div>
+					<Checkbox
+						size="sm"
+						v-model="newResource.fetch_document_using_filters"
+						label="Dynamically fetch document using filters"
+					/>
 
 					<Filters
 						v-if="newResource.fetch_document_using_filters"
@@ -144,9 +142,7 @@
 					/>
 				</template>
 
-				<div class="mt-5">
-					<Checkbox size="sm" label="Auto fetch data on load" v-model="newResource.auto" />
-				</div>
+				<Checkbox size="sm" label="Auto fetch data on load" v-model="newResource.auto" />
 
 				<!-- Transform Results for any Resource Type -->
 				<ScriptSection
@@ -204,7 +200,6 @@ import { computed, ref, watch } from "vue"
 import { createResource, Dialog, FormControl, Checkbox } from "frappe-ui"
 import { Link } from "frappe-ui/frappe"
 import ScriptSection from "@/components/ScriptSection.vue"
-import InputLabel from "@/components/InputLabel.vue"
 import Filters from "@/components/Filters.vue"
 import Grid from "@/components/Grid.vue"
 

@@ -65,7 +65,7 @@ import useStudioStore from "@/stores/studioStore"
 
 const store = useStudioStore()
 const codeStore = useCodeStore()
-const getCompletions = useStudioCompletions(true)
+const getCompletions = useStudioCompletions(true, true)
 
 const activePage = computed(() => store.activePage)
 

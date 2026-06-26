@@ -231,7 +231,7 @@ function selectBlock(block: Block, e: MouseEvent | null, multiSelect = false, se
 		setActiveBreakpoint(breakpoint)
 	}
 
-	if (block.isText() || block.isContainer()) {
+	if (block.isRoot() || block.isText() || block.isContainer()) {
 		// combined props and styles
 		store.studioLayout.rightPanelActiveTab = "Styles"
 	} else {
