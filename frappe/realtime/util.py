@@ -43,8 +43,11 @@ def get_url(origin: str | None, path: str, config: RealtimeConfig) -> str:
 		base = config.webserver_host
 		if "://" not in base:
 			base = f"http://{base}"
-		if urlsplit(base).port is None:
-			base = f"{base}:{config.webserver_port}"
+		parts = urlsplit(base)
+		if parts.port is None:
+			base = f"{parts.scheme}://{parts.netloc}:{config.webserver_port}"
+		else:
+			base = f"{parts.scheme}://{parts.netloc}"
 		return base + (path or "")
 	url = origin or ""
 	if config.developer_mode and config.webserver_port:
