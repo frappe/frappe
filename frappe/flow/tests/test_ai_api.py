@@ -10,6 +10,7 @@ from frappe.tests import IntegrationTestCase
 from werkzeug.wrappers import Response
 
 from flow.api import attach_file, resume_run, start_run
+from flow.api.api import _parse_attachments
 from flow.lib.model import ChatResponse, Model, ToolCall
 from flow.tools.builtins import sync_builtin_tools
 
@@ -586,3 +587,35 @@ def _ensure_user(email: str) -> str:
 	)
 	user.insert(ignore_permissions=True)
 	return email
+
+
+class TestParseAttachments(IntegrationTestCase):
+	def test_empty_values_return_empty_list(self):
+		for value in (None, "", [], "[]"):
+			with self.subTest(value=value):
+				self.assertEqual(_parse_attachments(value), [])
+
+	def test_list_of_ids_passthrough(self):
+		self.assertEqual(_parse_attachments(["a", "b"]), ["a", "b"])
+
+	def test_json_string_array_parsed(self):
+		self.assertEqual(_parse_attachments('["a", "b"]'), ["a", "b"])
+
+	def test_whitespace_stripped(self):
+		self.assertEqual(_parse_attachments(["  a  ", "b\n"]), ["a", "b"])
+
+	def test_invalid_json_rejected(self):
+		with self.assertRaisesRegex(frappe.ValidationError, "Attachments"):
+			_parse_attachments("not json")
+
+	def test_non_list_json_rejected(self):
+		with self.assertRaisesRegex(frappe.ValidationError, "Attachments"):
+			_parse_attachments('{"a": 1}')
+
+	def test_non_string_item_rejected(self):
+		with self.assertRaisesRegex(frappe.ValidationError, "file id"):
+			_parse_attachments(["ok", 123])
+
+	def test_blank_item_rejected(self):
+		with self.assertRaisesRegex(frappe.ValidationError, "file id"):
+			_parse_attachments(["ok", "   "])
