@@ -1154,6 +1154,23 @@ class TestAttachmentStore(IntegrationTestCase):
 		with self.assertRaises(ValueError):
 			attachment_store.delete()
 
+	def test_delete_by_session_list(self):
+		self._seed()
+		attachment_store.delete(session=["SES-a", "SES-b"])
+		self.assertEqual(attachment_store.search([1.0, 0.0, 0.0, 0.0], session="SES-a", limit=5), [])
+		self.assertEqual(attachment_store.search([0.9, 0.1, 0.0, 0.0], session="SES-b", limit=5), [])
+
+	def test_delete_session_list_leaves_others(self):
+		self._seed()
+		attachment_store.delete(session=["SES-a"])
+		self.assertEqual(attachment_store.search([1.0, 0.0, 0.0, 0.0], session="SES-a", limit=5), [])
+		self.assertTrue(attachment_store.search([0.9, 0.1, 0.0, 0.0], session="SES-b", limit=5))
+
+	def test_delete_empty_session_list_is_noop(self):
+		self._seed()
+		attachment_store.delete(session=[])
+		self.assertTrue(attachment_store.search([0.9, 0.1, 0.0, 0.0], session="SES-b", limit=5))
+
 
 class TestRetrieveAttachments(IntegrationTestCase):
 	def setUp(self):

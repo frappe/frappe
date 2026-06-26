@@ -102,16 +102,22 @@ def search(
 	]
 
 
-def delete(*, session: str | None = None, attachment: str | None = None) -> None:
-	"""Delete rows matching ALL given criteria. At least one is required."""
+def delete(*, session: str | list[str] | None = None, attachment: str | None = None) -> None:
+	"""Delete rows matching ALL given criteria. At least one is required.
+	`session` may be a single id or a list of ids (an empty list is a no-op)."""
 	if session is None and attachment is None:
 		raise ValueError("delete() requires session and/or attachment")
+	if isinstance(session, list) and not session:
+		return
 	if not _table_exists():
 		return
 
 	conditions = []
 	if session is not None:
-		conditions.append(f"session = {_quote(session)}")
+		if isinstance(session, str):
+			conditions.append(f"session = {_quote(session)}")
+		else:
+			conditions.append(f"session IN ({', '.join(_quote(s) for s in session)})")
 	if attachment is not None:
 		conditions.append(f"attachment = {_quote(attachment)}")
 	_open_table().delete(" AND ".join(conditions))
