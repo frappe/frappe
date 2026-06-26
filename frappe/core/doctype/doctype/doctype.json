@@ -285,7 +285,11 @@
   },
   {
    "default": "1",
+<<<<<<< HEAD
    "depends_on": "eval:doc.naming_rule !== \"Autoincrement\"",
+=======
+   "depends_on": "eval:!doc.issingle",
+>>>>>>> 26dce3b (fix: prevent renaming Single DocTypes)
    "fieldname": "allow_rename",
    "fieldtype": "Check",
    "label": "Allow Rename",
@@ -793,7 +797,11 @@
    "link_fieldname": "reference_doctype"
   }
  ],
+<<<<<<< HEAD
  "modified": "2025-09-23 06:48:13.555017",
+=======
+ "modified": "2026-09-17 12:46:29.020996",
+>>>>>>> 26dce3b (fix: prevent renaming Single DocTypes)
  "modified_by": "Administrator",
  "module": "Core",
  "name": "DocType",
