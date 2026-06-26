@@ -139,7 +139,6 @@ class Meta(Document):
 			"DocType Action",
 			"DocType Link",
 			"DocType State",
-			"DocType Related Setting",
 		)
 	)
 	standard_set_once_fields = (

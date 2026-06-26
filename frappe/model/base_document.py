@@ -88,7 +88,6 @@ DOCTYPE_TABLE_FIELDS = [
 	_dict(fieldname="actions", options="DocType Action"),
 	_dict(fieldname="links", options="DocType Link"),
 	_dict(fieldname="states", options="DocType State"),
-	_dict(fieldname="related_settings", options="DocType Related Setting"),
 ]
 
 TABLE_DOCTYPES_FOR_DOCTYPE = MappingProxyType({df["fieldname"]: df["options"] for df in DOCTYPE_TABLE_FIELDS})

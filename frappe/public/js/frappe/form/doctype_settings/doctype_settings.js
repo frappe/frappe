@@ -10,12 +10,12 @@ import "./tabs/global_search";
 import "./tabs/workflow";
 import "./tabs/print_format";
 import "./tabs/permissions";
-import "./tabs/related_settings";
+import "./tabs/settings_map";
 
 /**
  * Open the DocType Settings dialog scoped to `doctype`.
  *
- * A cheap existence check decides whether this doctype maps any related settings; if so,
+ * A cheap existence check decides whether this doctype has a settings map; if so,
  * the "General" tab is shown first and opened by default (it resolves its own data on
  * render). The remaining tabs come from the registry (items without a builder are dropped,
  * empty groups removed).
@@ -26,7 +26,7 @@ frappe.doctype_settings.open = function (doctype) {
 	return (
 		frappe
 			.call({
-				method: "frappe.desk.doctype_settings.related_settings.has_related_settings",
+				method: "frappe.desk.doctype_settings.settings_map.has_settings_map",
 				args: { doctype },
 			})
 			.then((r) => build_dialog(doctype, !!(r && r.message)))
