@@ -98,9 +98,6 @@ class DocType(Document):
 		from frappe.core.doctype.docperm.docperm import DocPerm
 		from frappe.core.doctype.doctype_action.doctype_action import DocTypeAction
 		from frappe.core.doctype.doctype_link.doctype_link import DocTypeLink
-		from frappe.core.doctype.doctype_related_setting.doctype_related_setting import (
-			DocTypeRelatedSetting,
-		)
 		from frappe.core.doctype.doctype_state.doctype_state import DocTypeState
 		from frappe.types import DF
 
@@ -165,7 +162,6 @@ class DocType(Document):
 		quick_entry: DF.Check
 		read_only: DF.Check
 		recipient_account_field: DF.Data | None
-		related_settings: DF.Table[DocTypeRelatedSetting]
 		restrict_to_domain: DF.Link | None
 		route: DF.Data | None
 		row_format: DF.Literal["Dynamic", "Compressed"]

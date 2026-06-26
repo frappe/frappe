@@ -4,7 +4,7 @@
 from frappe.model.document import Document
 
 
-class DocTypeRelatedSetting(Document):
+class DocTypeSettingsMapItem(Document):
 	# begin: auto-generated types
 	# This code is auto-generated. Do not modify anything in this block.
 
@@ -17,7 +17,7 @@ class DocTypeRelatedSetting(Document):
 		parentfield: DF.Data
 		parenttype: DF.Data
 		setting_field: DF.Data
-		settings_doctype: DF.Data
+		settings_doctype: DF.Link
 	# end: auto-generated types
 
 	pass

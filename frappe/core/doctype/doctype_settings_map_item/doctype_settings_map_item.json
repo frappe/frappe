@@ -13,9 +13,10 @@
    "columns": 4,
    "description": "A Single (Settings) doctype.",
    "fieldname": "settings_doctype",
-   "fieldtype": "Autocomplete",
+   "fieldtype": "Link",
    "in_list_view": 1,
    "label": "Settings DocType",
+   "options": "DocType",
    "reqd": 1
   },
   {
@@ -34,7 +35,7 @@
  "modified": "2026-06-24 00:00:00.000000",
  "modified_by": "Administrator",
  "module": "Core",
- "name": "DocType Related Setting",
+ "name": "DocType Settings Map Item",
  "owner": "Administrator",
  "permissions": [],
  "sort_field": "creation",
