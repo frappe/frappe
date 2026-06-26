@@ -7,21 +7,17 @@ frappe.ui.form.on("AI Knowledge Source", {
 			return;
 		}
 
-		frm.add_custom_button(__("Resync"), () =>
-			frm.call("resync").then(() => {
-				frappe.show_alert({ message: __("Resync started"), indicator: "blue" });
-				frm.reload_doc();
-			})
-		);
+		frm.add_custom_button(__("Resync"), async () => {
+			await frm.call("resync");
+			frappe.show_alert({ message: __("Resync started"), indicator: "blue" });
+			frm.reload_doc();
+		});
 
 		if (frm.doc.source_type === "DocType") {
-			frm.add_custom_button(__("Reconcile"), () =>
-				frm
-					.call("reconcile")
-					.then(() =>
-						frappe.show_alert({ message: __("Reconcile started"), indicator: "blue" })
-					)
-			);
+			frm.add_custom_button(__("Reconcile"), async () => {
+				await frm.call("reconcile");
+				frappe.show_alert({ message: __("Reconcile started"), indicator: "blue" });
+			});
 		}
 	},
 });
