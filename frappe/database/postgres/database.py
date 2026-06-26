@@ -280,17 +280,28 @@ class PostgresDatabase(PostgresExceptionUtil, Database):
 		return self.last_query
 
 	def get_tables(self, cached=True):
-		return [
-			d[0]
-			for d in self.sql(
-				"""select table_name
-			from information_schema.tables
-			where table_catalog=%s
-				and table_type = 'BASE TABLE'
-				and table_schema=%s""",
-				(self.cur_db_name, self.db_schema),
-			)
-		]
+		"""Return list of tables."""
+		to_query = not cached
+
+		if cached:
+			tables = frappe.client_cache.get_value("db_tables")
+			to_query = not tables
+
+		if to_query:
+			tables = [
+				d[0]
+				for d in self.sql(
+					"""select table_name
+				from information_schema.tables
+				where table_catalog=%s
+					and table_type = 'BASE TABLE'
+					and table_schema=%s""",
+					(self.cur_db_name, self.db_schema),
+				)
+			]
+			frappe.client_cache.set_value("db_tables", tables)
+
+		return tables
 
 	def get_db_table_columns(self, table) -> list[str]:
 		"""Returns list of column names from given table."""

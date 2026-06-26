@@ -36,6 +36,15 @@ class TestDB(IntegrationTestCase):
 	def test_get_database_size(self):
 		self.assertIsInstance(frappe.db.get_database_size(), (float, int))
 
+	def test_get_tables_cached(self):
+		frappe.client_cache.delete_value("db_tables")
+		tables = frappe.db.get_tables(cached=True)
+		self.assertIn("tabDocType", tables)
+		with self.assertQueryCount(0):
+			self.assertEqual(frappe.db.get_tables(cached=True), tables)
+		with self.assertQueryCount(1):
+			frappe.db.get_tables(cached=False)
+
 	def test_db_statement_execution_timeout(self):
 		frappe.db.set_execution_timeout(2)
 		# Setting 0 means no timeout.
