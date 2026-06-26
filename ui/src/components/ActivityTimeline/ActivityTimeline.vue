@@ -132,7 +132,7 @@
 				</div>
 			</div>
 			<!-- newer emails auto-load near the bottom via useLoadMoreOnScroll -->
-			<div v-if="infiniteScroll?.isFetchingNextPage" class="flex justify-center py-3">
+			<div v-if="pagination?.isFetchingNextPage" class="flex justify-center py-3">
 				<LoadingIndicator class="size-4 text-ink-gray-5" />
 			</div>
 		</template>
@@ -163,7 +163,7 @@ const props = withDefaults(defineProps<ActivityTimelineProps>(), {
 });
 
 const rootEl = ref<HTMLElement | null>(null);
-useLoadMoreOnScroll(rootEl, () => props.infiniteScroll);
+useLoadMoreOnScroll(rootEl, () => props.pagination);
 
 // Stable v-for key / scroll-target id. Built-ins always carry `key`; a custom
 // row may omit it — fall back to type+timestamp (stable across reorders when a

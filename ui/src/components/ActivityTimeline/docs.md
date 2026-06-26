@@ -23,7 +23,7 @@ together or independently:
 <script setup lang="ts">
 import { ActivityTimeline, useActivityTimeline } from "@framework/ui";
 
-const { activities, loading, error, infiniteScroll, reload } =
+const { activities, loading, error,reload, pagination } =
   useActivityTimeline("HD Ticket", docname);
 </script>
 
@@ -32,14 +32,14 @@ const { activities, loading, error, infiniteScroll, reload } =
     :activities
     :loading
     :error
-    :infinite-scroll="infiniteScroll"
+    :pagination="pagination"
   />
 </template>
 ```
 
 The feed reads **oldest-first**: oldest at the top, newest at the bottom.
-`:infinite-scroll` is optional — omit it for a static feed (see
-[Infinite scroll](#infinite-scroll)).
+`:pagination` is optional — omit it for a static feed (see
+[Pagination](#pagination)).
 
 ---
 
@@ -51,16 +51,16 @@ The feed reads **oldest-first**: oldest at the top, newest at the bottom.
 │   • createResource → get_activity_timeline   (default fetcher)│
 │   • server returns normalized Activity[] (ascending)         │
 │   • dedupe + sort (defensive) + groupConsecutiveVersions     │
-│   • pages the email stream via a reactive `infiniteScroll`   │
+│   • pages the email stream via a reactive `pagination`   │
 │   • realtime: patches the list in place on docinfo_update    │
-│   returns { activities, loading, error, infiniteScroll,      │
+│   returns { activities, loading, error, pagination,      │
 │             reload }                                          │
 └──────────────────────────────────────────────────────────────┘
                        │  Activity[]  (the contract, display order)
                        ▼
 ┌──────────────────────────────────────────────────────────────┐
 │ RENDER LAYER — ActivityTimeline.vue (presentational)         │
-│   props: { activities, loading?, error?, infiniteScroll? }   │
+│   props: { activities, loading?, error?, pagination? }   │
 │   NO data fetching. NO doctype/docname. NO emits. Renders.   │
 │   EmailItem · CommentItem · LogItem · VersionItem            │
 └──────────────────────────────────────────────────────────────┘
@@ -115,7 +115,9 @@ interface BaseActivity<TType extends string, TData> {
 
 `author` lives on the envelope so the gutter never special-cases a type, and the
 union still narrows: `activity.type === "email"` types `activity.data` as the
-email payload. `key` is the only required field beyond `type`/`data`;
+email payload. `key` is required on the built-in `Activity` types; on
+`CustomActivity` it's optional — the renderer derives a `type:timestamp`/`type:index`
+fallback, so an explicit `key` is only needed for reorderable custom rows.
 `timestamp` is optional (a row without one sorts to the oldest end).
 
 #### Each type, as a plain object
@@ -162,10 +164,10 @@ interface ActivityTimelineProps {
   activities: Array<Activity | CustomActivity>;
   loading?: boolean;                       // first-load spinner (only when no activities yet)
   error?: string | null;                   // error state instead of the feed
-  infiniteScroll?: InfiniteScrollControls; // scroll-driven paging (optional)
+  pagination?: PaginationControls; // scroll-driven paging (optional)
 }
 
-interface InfiniteScrollControls {
+interface PaginationControls {
   hasNextPage?: boolean;
   isFetchingNextPage?: boolean;
   fetchNextPage?: () => void | Promise<void>;
@@ -182,19 +184,19 @@ leaves them visible (flicker-free).
 Because it has no idea where `activities` came from, it works equally with a
 doctype, a static fixture, a websocket stream, or a non-Frappe backend.
 
-### Infinite scroll
+### Pagination
 
 The feed is fixed **oldest-first**, so "more" always pages **forward in time** —
 newer emails appended at the **bottom**. The renderer delegates to
 `useLoadMoreOnScroll` (which wraps VueUse's `useInfiniteScroll`): it resolves the
-nearest scrollable ancestor at mount and calls `infiniteScroll.fetchNextPage()`
+nearest scrollable ancestor at mount and calls `pagination.fetchNextPage()`
 once scrolled within ~**400px** of the bottom, gated by
 `hasNextPage && !isFetchingNextPage`, re-checking after each page settles. A
 spinner shows at the bottom while a page is in flight. There is **no button and
-no `@load-more` emit** — the consumer hands over the single `infiniteScroll` prop
+no `@load-more` emit** — the consumer hands over the single `pagination` prop
 and the renderer wires the scroll container itself.
 
-`infiniteScroll` is **opt-in**, and all three of its fields are optional — omit
+`pagination` is **opt-in**, and all three of its fields are optional — omit
 the prop (or any field) and the feed is simply static.
 
 ---
@@ -206,7 +208,7 @@ policy **and the display order** (fixed **oldest-first**); the renderer owns non
 of it.
 
 ```ts
-const { activities, loading, error, infiniteScroll, reload } =
+const { activities, loading, error, pagination, reload } =
   useActivityTimeline("HD Ticket", "37422");
 ```
 
@@ -215,11 +217,11 @@ const { activities, loading, error, infiniteScroll, reload } =
 | `activities` | `ComputedRef<Activity[]>` — deduped, sorted, grouped, **in display order** |
 | `loading` | `ComputedRef<boolean>` — the resource's loading state |
 | `error` | `ComputedRef<error \| null>` — the resource's error, or `null` |
-| `infiniteScroll` | reactive `{ hasNextPage, isFetchingNextPage, fetchNextPage }` — drop straight onto the `:infinite-scroll` prop |
+| `pagination` | reactive `{ hasNextPage, isFetchingNextPage, fetchNextPage }` — drop straight onto the `:pagination` prop |
 | `reload` | `() => void` — refetch the resource |
 
-> **Why `infiniteScroll` is `reactive(...)`, not a plain object of refs.** The
-> renderer reads `infiniteScroll.hasNextPage` expecting a **boolean** (the prop
+> **Why `pagination` is `reactive(...)`, not a plain object of refs.** The
+> renderer reads `pagination.hasNextPage` expecting a **boolean** (the prop
 > type is `boolean`, matching what a bring-your-own consumer passes —
 > `comms.hasNextPage`). `reactive()` unwraps the inner refs so the fields read as
 > live booleans; a plain object would expose `Ref` wrappers (always truthy),
@@ -293,7 +295,7 @@ Acceptable today; add ref-counting only if that breaks.)
 ## 5. Customization
 
 All customization is **slot-based** and never touches the chrome (gutter,
-connector, spacing, ordering, loading/error/empty, infinite-scroll paging). Two
+connector, spacing, ordering, loading/error/empty, pagination). Two
 tiers:
 
 - **Tier 1 — replace a whole row** for a type → `#item-{type}` slot (with a
@@ -522,14 +524,14 @@ remount live in the app, not in `@framework/ui`:
     :activities="activities"
     :loading="loading"
     :error="error"
-    :infinite-scroll="infiniteScroll"
+    :pagination="pagination"
   />
 </template>
 
 <script setup lang="ts">
 import { ActivityTimeline, useActivityTimeline } from "@framework/ui";
 const props = defineProps<{ doctype: string; docname: string }>();
-const { activities, loading, error, infiniteScroll } =
+const { activities, loading, error, pagination } =
   useActivityTimeline(props.doctype, props.docname);
 </script>
 ```
@@ -573,7 +575,7 @@ whitelist is the injection guard.
 ActivityTimeline.vue     presentational renderer (props in, slots out)
 useActivityTimeline.ts   data layer: fetch + dedupe/sort/group + paging + realtime → Activity[]
 useLoadMoreOnScroll.ts   scroll-detection composable (wraps VueUse useInfiniteScroll)
-types.ts                 Activity union (the contract) + ActivityTimelineProps + InfiniteScrollControls
+types.ts                 Activity union (the contract) + ActivityTimelineProps + PaginationControls
 EmailItem.vue · CommentItem.vue · LogItem.vue · VersionItem.vue   item renderers
 EmailContent.vue · AttachmentItem.vue · PreviewDialog.vue          render helpers
 icons.ts · utils.ts                                                shared bits
@@ -615,7 +617,7 @@ load.py                  _get_communications / get_communication_data (+ order a
 - `customActivities` injection into the composable — replaced by consumer-side
   merge.
 - An `order` prop / arg — removed; the feed is fixed oldest-first and the email
-  stream pages forward via infinite scroll.
+  stream pages forward via pagination.
 - `pin`/row pinning; `RenderableContent` (`{ is, props }`) content form; granular
   email sub-slots (`#recipients`/`#content`/`#attachments`) — replaced by the
   `#header`/`#footer`/`#actions` regions.
@@ -634,7 +636,7 @@ under `apps/helpdesk/desk/src/pages/activity-playground/`.
 
 | Scenario | Demonstrates |
 | --- | --- |
-| **basic** | built-in rendering, infinite-scroll paging wired (single `infiniteScroll` prop) |
+| **basic** | built-in rendering, pagination wired (single `pagination` prop) |
 | **replace** | override `#item-comment` with a custom component |
 | **icon** | override only the gutter via `#icon-comment`; content stays built-in |
 | **regions** | render `CommentItem` inside `#item-comment` and override its `#header` + `#footer` |
@@ -656,6 +658,6 @@ export { ReplyIcon, ReplyAllIcon } from "./icons";
 export type {
   Activity, ActivityTimelineProps, AttachmentLogActivity, LogActivity,
   BaseActivity, CommentActivity, CustomActivity, EmailActivity, EmailAttachment,
-  InfiniteScrollControls, UserInfo, VersionActivity,
+  PaginationControls, UserInfo, VersionActivity,
 } from "./types";
 ```

@@ -266,8 +266,7 @@ def get_version_activities(doc: "Document", user_info: dict) -> list[dict]:
 
 	frappe.utils.add_user_info({v.owner for v in versions if v.owner}, user_info)
 
-	child_permitted_cache: dict[str, set] = {}
-	child_meta_cache: dict[str, "frappe.Meta"] = {}
+	child_cache: dict[str, tuple[set, "frappe.Meta"]] = {}
 
 	result = []
 	for v in versions:
@@ -282,16 +281,11 @@ def get_version_activities(doc: "Document", user_info: dict) -> list[dict]:
 					texts.append(_("cancelled this document"))
 				continue
 
-			if fieldname not in permitted:
-				continue
-
-			df = meta.get_field(fieldname)
+			df = permitted_field(meta, permitted, fieldname)
 			if not df:
 				continue
-			if df.hidden and not df.show_on_timeline:
-				continue
 
-			texts.append(_("set {0} to {1}").format(_(df.label or fieldname), format_version_value(new, df)))
+			texts.append(_("set {0} to {1}").format(_(df.label or fieldname), truncate_value(new)))
 
 		for key, label_fmt in (
 			("added", _("added {0} row(s) to {1}")),
@@ -301,12 +295,8 @@ def get_version_activities(doc: "Document", user_info: dict) -> list[dict]:
 			for table_fieldname, _row in data.get(key, []):
 				counts[table_fieldname] = counts.get(table_fieldname, 0) + 1
 			for table_fieldname, count in counts.items():
-				if table_fieldname not in permitted:
-					continue
-				df = meta.get_field(table_fieldname)
+				df = permitted_field(meta, permitted, table_fieldname)
 				if not df:
-					continue
-				if df.hidden and not df.show_on_timeline:
 					continue
 				texts.append(label_fmt.format(count, _(df.label or table_fieldname)))
 
@@ -314,40 +304,33 @@ def get_version_activities(doc: "Document", user_info: dict) -> list[dict]:
 			# get_diff order is (table_fieldname, row_index, row_name, changes) —
 			# version.py docstring has row_name/row_index swapped; the code is authoritative
 			table_fieldname, row_index, _row_name, child_changes = entry
-			if table_fieldname not in permitted:
-				continue
-			df = meta.get_field(table_fieldname)
+			df = permitted_field(meta, permitted, table_fieldname)
 			if not df:
-				continue
-			if df.hidden and not df.show_on_timeline:
 				continue
 
 			child_dt = df.options
-			if child_dt not in child_permitted_cache:
-				child_permitted_cache[child_dt] = set(
-					frappe.model.get_permitted_fields(
-						child_dt,
-						parenttype=doctype,
-						user=frappe.session.user,
-						permission_type="read",
-					)
+			if child_dt not in child_cache:
+				child_cache[child_dt] = (
+					set(
+						frappe.model.get_permitted_fields(
+							child_dt,
+							parenttype=doctype,
+							user=frappe.session.user,
+							permission_type="read",
+						)
+					),
+					frappe.get_meta(child_dt),
 				)
-				child_meta_cache[child_dt] = frappe.get_meta(child_dt)
-			child_permitted = child_permitted_cache[child_dt]
-			child_meta = child_meta_cache[child_dt]
+			child_permitted, child_meta = child_cache[child_dt]
 
 			for cfield, _cold, cnew in child_changes:
-				if cfield not in child_permitted:
-					continue
-				cdf = child_meta.get_field(cfield)
+				cdf = permitted_field(child_meta, child_permitted, cfield)
 				if not cdf:
-					continue
-				if cdf.hidden and not cdf.show_on_timeline:
 					continue
 				texts.append(
 					_("set {0} to {1} in row #{2}").format(
 						_(cdf.label or cfield),
-						format_version_value(cnew, cdf),
+						truncate_value(cnew),
 						row_index + 1,
 					)
 				)
@@ -367,10 +350,18 @@ def get_version_activities(doc: "Document", user_info: dict) -> list[dict]:
 	return result
 
 
-def format_version_value(value, df) -> str:
+def permitted_field(meta, permitted: set, fieldname: str):
+	"""The docfield, or None if it's not readable or is hidden from the timeline."""
+	if fieldname not in permitted:
+		return None
+	df = meta.get_field(fieldname)
+	if not df or (df.hidden and not df.show_on_timeline):
+		return None
+	return df
+
+
+def truncate_value(value) -> str:
 	if value is None or value == "":
 		return ""
 	s = frappe.utils.strip_html(str(value))
-	if len(s) > 40:
-		s = s[:40] + "…"
-	return s
+	return s[:40] + "…" if len(s) > 40 else s

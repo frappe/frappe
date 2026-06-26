@@ -1,16 +1,19 @@
 import { useInfiniteScroll } from "@vueuse/core";
 import { onMounted, ref, type Ref } from "vue";
-import type { InfiniteScrollControls } from "./types";
+import type { PaginationControls } from "./types";
 
 // px from the bottom of the scroll container at which to fetch the next page
 const SCROLL_DISTANCE = 400;
 
 /**
- Calls `controls().fetchNextPage()` when `rootEl`'s nearest scrollable ancestor
+ * Calls `controls().fetchNextPage()` when `rootEl`'s nearest scrollable ancestor
+ * is scrolled within `distance` px of the bottom, gated by `hasNextPage` and
+ * `isFetchingNextPage`. Resolves the scroll container at mount; falls back to the
+ * window. No-op when `controls()` is undefined (pagination disabled).
  */
 export function useLoadMoreOnScroll(
   rootEl: Ref<HTMLElement | null>,
-  controls: () => InfiniteScrollControls | undefined,
+  controls: () => PaginationControls | undefined,
   distance: number = SCROLL_DISTANCE
 ) {
   const target = ref<HTMLElement | Window | null>(null);

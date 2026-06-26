@@ -6,12 +6,12 @@ export interface ActivityTimelineProps {
   /** Only shown when there are no activities yet. */
   loading?: boolean;
   error?: string | null;
-  /** Infinite-scroll controls. Omit to disable auto-loading (static feed). */
-  infiniteScroll?: InfiniteScrollControls;
+  /** Pagination controls. Omit to disable auto-loading (static feed). */
+  pagination?: PaginationControls;
 }
 
 /** Controls for scroll-driven pagination — shape matches TanStack useInfiniteQuery. */
-export interface InfiniteScrollControls {
+export interface PaginationControls {
   /** Whether another page can be fetched. */
   hasNextPage?: boolean;
   /** A page fetch is in flight — drives the bottom spinner and gates re-entry. */
