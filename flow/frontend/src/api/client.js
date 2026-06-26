@@ -28,6 +28,10 @@ export const getPausedRun = (session) =>
 		limit: 1,
 	});
 
+// Fail any Running run left behind by a stream that was cut off (refresh/navigation),
+// so a reloaded session isn't blocked from starting the next turn.
+export const recoverSession = (session) => frappe.xcall("flow.api.recover_session", { session });
+
 // Upload a file as private, returning the created File doc. The chat attachment
 // flow needs the File name to stage it via attachFile.
 export async function uploadFile(file) {

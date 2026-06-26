@@ -63,6 +63,29 @@ def resume_run(
 
 
 @frappe.whitelist()
+def recover_session(session: str) -> dict[str, int]:
+	"""Fail any Running run on session (re)load. The client that owned the stream is
+	gone, so the run is abandoned; clearing it here unblocks the next turn instead of
+	waiting for the stale-run timeout on the next send."""
+	if not isinstance(session, str) or not session.strip():
+		frappe.throw(_("Session is required."), title=_("Invalid Session"))
+
+	from flow.lib.session import _assert_session_owner
+
+	doc = frappe.get_doc("AI Session", session.strip())
+	_assert_session_owner(doc)
+
+	abandoned = frappe.get_all("AI Run", filters={"session": doc.name, "status": "Running"}, pluck="name")
+	for name in abandoned:
+		frappe.db.set_value(
+			"AI Run",
+			name,
+			{"status": "Failed", "error": "Run abandoned: stream ended without completing."},
+		)
+	return {"recovered": len(abandoned)}
+
+
+@frappe.whitelist()
 def attach_file(file: str) -> dict[str, Any]:
 	"""Validate and extract an uploaded File for use as a chat attachment. Errors
 	(unsupported type, unreadable, not owned) surface here, at upload time. The
