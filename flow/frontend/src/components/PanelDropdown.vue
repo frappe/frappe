@@ -37,7 +37,7 @@ function select(item) {
 				<button
 					v-for="item in items"
 					:key="item.value ?? '__default'"
-					class="flex w-full items-center gap-2.5 rounded-md px-3 py-2 text-left text-sm text-ink-gray-8 hover:bg-surface-gray-2"
+					class="flex w-full items-center gap-2.5 rounded-md px-3 py-2 text-left text-xs text-ink-gray-8 hover:bg-surface-gray-2"
 					:class="{ 'bg-surface-gray-2': item.value === modelValue }"
 					@click="select(item)"
 				>

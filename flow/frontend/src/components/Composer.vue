@@ -172,7 +172,6 @@ watch(focusTick, () => nextTick(() => el.value?.focus()));
 							:title="__('Agent')"
 							@click="toggle"
 						>
-							<span class="h-1.5 w-1.5 rounded-full bg-surface-green-3"></span>
 							<span class="font-medium text-ink-gray-8">{{
 								agentLabel(selectedAgent)
 							}}</span>
