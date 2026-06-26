@@ -172,6 +172,14 @@ class MariaDBTable(DBTable):
 					).format(fieldname, self.table_name)
 				)
 
+			if frappe.db.is_data_truncated(e):
+				frappe.throw(
+					_(
+						"Cannot change field type in {0}: some existing values cannot be converted to the new type"
+					).format(self.doctype),
+					title=_("Incompatible Values"),
+				)
+
 			raise
 
 	def alter_primary_key(self) -> str | None:
