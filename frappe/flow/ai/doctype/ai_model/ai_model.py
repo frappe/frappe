@@ -104,10 +104,10 @@ class AIModel(Document):
 			)
 
 	def _resolve_context_window(self):
-		# Auto-detect when empty or when the model changed; a manual value is kept as
-		# long as the model is unchanged. If litellm doesn't know the model, leave the
-		# existing value (callers fall back to a default when it's 0).
-		if self.context_window and not self.has_value_changed("model_id"):
+		# Auto-detect only when empty, or when the model changed on an existing doc. A value
+		# set by hand is kept — including one provided at creation. If litellm doesn't know
+		# the model, leave the existing value (callers fall back to a default when it's 0).
+		if self.context_window and (self.is_new() or not self.has_value_changed("model_id")):
 			return
 		self.context_window = _detect_context_window(self.model_id) or self.context_window or 0
 
