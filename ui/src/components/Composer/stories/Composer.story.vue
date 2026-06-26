@@ -21,7 +21,6 @@
 				<Checkbox v-model="fieldCc" label="cc" />
 				<Checkbox v-model="fieldBcc" label="bcc" />
 			</div>
-			<Checkbox v-model="switchable" label="switchable (Email/Comment)" />
 		</div>
 
 		<!-- ── EmailComposer owns its window; CommentComposer is host-wrapped ─ -->
@@ -37,12 +36,28 @@
 					:search-recipients="searchRecipients"
 					:mentions="mentions"
 					expandable
-					:switchable="switchable"
 					storage-key="story:composer:email"
 					placeholder="Write your reply…"
 					:on-submit="(p) => log('email:submit', p)"
-					:on-comment="(p) => log('email:comment', p)"
 					@discard="log('email:discard')"
+				/>
+			</div>
+
+			<div>
+				<div class="mb-2 text-sm-medium text-ink-gray-7">
+					MultiComposer (Via Email ▾ / Comment — channel: {{ channel }})
+				</div>
+				<MultiComposer
+					v-model:channel="channel"
+					:fields="fields"
+					:search-recipients="searchRecipients"
+					:mentions="mentions"
+					expandable
+					storage-key="story:composer:multi"
+					placeholder="Write your reply…"
+					:on-submit="(p) => log('multi:email', p)"
+					:on-comment="(p) => log('multi:comment', p)"
+					@discard="log('multi:discard')"
 				/>
 			</div>
 
@@ -107,8 +122,9 @@
 import { computed, ref } from "vue";
 import { Checkbox, Select } from "frappe-ui";
 import { FloatingWindow, type WindowMode } from "frappe-ui";
-import { CommentComposer, EmailComposer } from "../index";
+import { CommentComposer, EmailComposer, MultiComposer } from "../index";
 import type {
+	Channel,
 	CommentPayload,
 	EmailPayload,
 	Field,
@@ -120,10 +136,12 @@ import type {
 const mode = ref<WindowMode>("docked");
 const modeOptions: WindowMode[] = ["docked", "floating", "minimized"];
 
+// MultiComposer's active channel, driven by its header dropdown.
+const channel = ref<Channel>("email");
+
 const fieldSubject = ref(true);
 const fieldCc = ref(true);
 const fieldBcc = ref(false);
-const switchable = ref(false);
 const fields = computed<Field[]>(() =>
 	(
 		[

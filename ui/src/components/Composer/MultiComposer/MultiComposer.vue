@@ -1,9 +1,11 @@
 <template>
 	<!--
-		Email owns its window: the composer wraps itself in a FloatingWindow so the
-		title, field toggles, and the float/dock control share one bar that doubles
-		as the window's title bar and drag handle. `v-model:mode` lets a host
-		observe or drive docked / floating / minimized.
+		A two-channel composer: an email composer whose header title is a dropdown
+		that flips the *same* editor between "Email" and "Comment". Built on the same
+		private core as EmailComposer (it owns a FloatingWindow, so the channel
+		switch, Cc/Bcc toggles, and float/dock control share the title bar / drag
+		handle). `v-model:channel` lets a host observe or drive the active channel;
+		`v-model:mode` the docked / floating / minimized window state.
 	-->
 	<FloatingWindow
 		v-model:mode="windowMode"
@@ -13,12 +15,28 @@
 		<template #header="{ mode, float, dock }">
 			<ComposerHeader
 				class="px-2.5"
-				title="Email"
+				:title="channelLabel"
 				:expandable="expandable"
 				:floating="mode !== 'docked'"
 				@expand="mode === 'docked' ? float() : dock()"
 			>
-				<template #actions>
+				<!-- Channel switcher: turns the title into an Email/Comment dropdown. -->
+				<template #title>
+					<div class="flex gap-[4px] items-center">
+						<span class="text-ink-gray-5 text-base">Via</span>
+						<Dropdown :options="channelOptions" placement="bottom-start">
+							<button
+								class="flex items-center gap-1 rounded px-1.5 py-0.5 text-base text-ink-gray-7 hover:bg-surface-gray-2"
+							>
+								{{ channelLabel }}
+								<FeatherIcon name="chevron-down" class="h-4 w-4 text-ink-gray-5" />
+							</button>
+						</Dropdown>
+					</div>
+				</template>
+
+				<!-- Cc/Bcc toggles only apply to email; hidden in comment mode. -->
+				<template v-if="channel === 'email'" #actions>
 					<!-- Reveal the optional Cc/Bcc recipient rows. Which toggles appear
 					 is set by `fields`; To/Subject are prop-driven, not toggled. -->
 					<Button
@@ -43,9 +61,9 @@
 			ref="composer"
 			:storage-key="storageKey"
 			:placeholder="placeholder"
-			:label="label"
+			:label="submitLabel"
 			:upload-function="uploadFunction"
-			:signature="signature"
+			:signature="channel === 'comment' ? undefined : signature"
 			:mentions="mentions"
 			v-model:body="body"
 			:on-submit="handleSubmit"
@@ -54,16 +72,19 @@
 			@remove-attachment="emit('remove-attachment', $event)"
 		>
 			<template #top>
-				<!-- The host's From picker, above the recipient rows. -->
-				<slot name="from" />
-				<RecipientFields
-					v-model="recipients"
-					v-model:subject="subject"
-					:show-subject="showSubject"
-					:show-cc="showCc"
-					:show-bcc="showBcc"
-					:search="searchRecipients"
-				/>
+				<!-- Email-only: the host's From picker and the recipient rows.
+					 Comment mode is just the editing core, so they're hidden. -->
+				<template v-if="channel === 'email'">
+					<slot name="from" />
+					<RecipientFields
+						v-model="recipients"
+						v-model:subject="subject"
+						:show-subject="showSubject"
+						:show-cc="showCc"
+						:show-bcc="showBcc"
+						:search="searchRecipients"
+					/>
+				</template>
 			</template>
 
 			<!-- Attachments, canned-response pickers, etc. are host-supplied: wire a
@@ -77,13 +98,19 @@
 
 <script setup lang="ts">
 import { computed, ref } from "vue";
-import { Button, FloatingWindow, toast, type WindowMode } from "frappe-ui";
+import { Button, Dropdown, FeatherIcon, FloatingWindow, toast, type WindowMode } from "frappe-ui";
 import Composer from "../Composer.vue";
 import ComposerHeader from "../ComposerHeader.vue";
-import RecipientFields from "./RecipientFields.vue";
-import type { CoreSubmitPayload, EmailComposerProps, Recipients, UploadedFile } from "../types";
+import RecipientFields from "../EmailComposer/RecipientFields.vue";
+import type {
+	Channel,
+	CoreSubmitPayload,
+	MultiComposerProps,
+	Recipients,
+	UploadedFile,
+} from "../types";
 
-const props = withDefaults(defineProps<EmailComposerProps>(), {
+const props = withDefaults(defineProps<MultiComposerProps>(), {
 	fields: () => ["cc", "bcc"],
 	expandable: true,
 });
@@ -93,9 +120,19 @@ const emit = defineEmits<{
 	"remove-attachment": [file: UploadedFile];
 }>();
 
-// The window state, host-observable via `v-model:mode`. The composer owns its
-// own FloatingWindow now, so the float/dock control lives in its header.
+// The window state, host-observable via `v-model:mode`. This composer owns its
+// own FloatingWindow, so the float/dock control lives in its header.
 const windowMode = defineModel<WindowMode>("mode", { default: "docked" });
+
+// The active channel, host-observable via `v-model:channel`. The header
+// dropdown flips it between email and comment.
+const channel = defineModel<Channel>("channel", { default: "email" });
+const channelLabel = computed(() => (channel.value === "comment" ? "Comment" : "Email"));
+const submitLabel = computed(() => (channel.value === "comment" ? "Comment" : props.label));
+const channelOptions = [
+	{ label: "Email", onClick: () => (channel.value = "email") },
+	{ label: "Comment", onClick: () => (channel.value = "comment") },
+];
 
 // Two-way state, host-owned. Seed and observe via v-models; defaults make them
 // optional. (Attachments stay owned by the base — see `remove-attachment`.)
@@ -118,12 +155,17 @@ function hasRecipients() {
 	return Boolean(to.length || cc.length || bcc.length);
 }
 
-// The base hands us the body + attachments; we guard recipients, add the email
-// envelope, and pass it on. Throwing aborts the submit and keeps the draft.
+// The base hands us the body + attachments. Comment mode carries no recipients,
+// so it goes straight to onComment; email mode guards recipients, adds the
+// envelope, and sends via onSubmit. Throwing aborts the submit, keeping the draft.
 async function handleSubmit({ body: message, attachments }: CoreSubmitPayload) {
+	if (channel.value === "comment") {
+		await props.onComment?.({ body: message, attachments });
+		return;
+	}
 	if (!hasRecipients()) {
 		toast.warning("Add at least one recipient before sending.");
-		throw new Error("EmailComposer: no recipients");
+		throw new Error("MultiComposer: no recipients");
 	}
 	await props.onSubmit?.({
 		subject: subject.value,
