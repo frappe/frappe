@@ -927,8 +927,19 @@ class File(Document):
 
 	@staticmethod
 	def zip_files(files):
+		# zstd module is bundled with (C)Python distributions from version 3.14
+		zstd_module_available = False
+		try:
+			from compression import zstd     # its fast, as already would be loaded during `import zipfile`.
+			zstd_module_available = True
+		except ImportError as e:
+			pass
+
 		zip_file = io.BytesIO()
-		zf = zipfile.ZipFile(zip_file, "w", zipfile.ZIP_DEFLATED)
+		compression = zipfile.ZIP_DEFLATED
+		if zstd_module_available:
+			compression = zipfile.ZIP_ZSTANDARD
+		zf = zipfile.ZipFile(zip_file, "w", compression)
 		for _file in files:
 			if isinstance(_file, str):
 				_file = frappe.get_doc("File", _file)
