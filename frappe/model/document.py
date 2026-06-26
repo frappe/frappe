@@ -1803,3 +1803,268 @@ def unlock_document(doctype: str | None = None, name: str | None = None, args=No
 		name = str(args["name"])
 	frappe.get_doc(doctype, name).unlock()
 	frappe.msgprint(frappe._("Document Unlocked"), alert=True)
+<<<<<<< HEAD
+=======
+
+
+def get_lazy_controller(doctype):
+	lazy_controllers = frappe.lazy_controllers.setdefault(frappe.local.site, {})
+	if doctype not in lazy_controllers:
+		meta = frappe.get_meta(doctype)
+		original_controller = get_controller(doctype)
+		if meta.is_virtual:  # not supported
+			lazy_controllers[doctype] = original_controller
+			warnings.warn("Virtual doctypes don't support lazy loading", stacklevel=2)
+			return original_controller
+
+		# Dynamically construct a class that subclasses LazyDocument and original controller.
+		lazy_controller = type(f"Lazy{original_controller.__name__}", (LazyDocument, original_controller), {})
+		for df in meta.get_table_fields():
+			setattr(lazy_controller, df.fieldname, LazyChildTable(df.fieldname, df.options))
+
+		lazy_controllers[doctype] = lazy_controller
+	return lazy_controllers[doctype]
+
+
+class LazyDocument:
+	"""Mixin for Document class that implments lazy loading for child tables."""
+
+	@override
+	def load_children_from_db(self: Document):
+		"""Override Document which eagerly loads child tables"""
+		# This is a map of loaded children, it should get erased whenever load_children_from_db is
+		# called to allow reloading lazily again.
+		for fieldname in self._table_fieldnames:
+			self.__dict__.pop(fieldname, None)
+
+	@override
+	def get(self: Document, key, filters=None, limit=None, default=None):
+		# Ensure that table descriptor is triggered at least once
+		if isinstance(key, str) and key in self._table_fieldnames:
+			getattr(self, key, None)
+		return super().get(key, filters, limit, default)
+
+	@override
+	def append(self, key: str, value: D | dict | None = None, position: int = -1) -> D:
+		# Ensure that table descriptor is triggered at least once
+		# key is assumed to be a table fieldname (as expected by BaseDocument.append)
+		if key not in self.__dict__:
+			getattr(self, key, None)
+		return super().append(key, value, position)
+
+	@override
+	def db_update_all(self):
+		self.db_update()
+		for fieldname in self._table_fieldnames:
+			if fieldname not in self.__dict__:
+				# Not fetched, can't possibly change so no need to update
+				continue
+			for doc in self.get(fieldname):
+				doc.db_update()
+
+	@override
+	def init_child_tables(self):
+		# Avoid initializing anything, descriptor handles it.
+		return
+
+
+class LazyChildTable:
+	__slots__ = ("doctype", "fieldname")
+
+	def __init__(self, fieldname: str, doctype: str) -> None:
+		self.fieldname = fieldname
+		self.doctype = doctype
+
+	def __get__(self, doc: Document, objtype=None):
+		# Note: avoid any high level access here, can cause recursion
+		fieldname = self.fieldname
+		__dict = doc.__dict__
+		assert fieldname not in __dict, "Descriptor should not override existing values"
+		__dict[fieldname] = []
+		children = doc._load_child_table_from_db(fieldname, self.doctype) or []
+		# Update __dict__ and convert to Document objects
+		doc.extend(fieldname, children)
+		return __dict[fieldname]
+
+	# Note: Don't implement __set__ method! https://docs.python.org/3/howto/descriptor.html#descriptor-protocol
+
+
+def copy_doc(doc: "Document", ignore_no_copy: bool = True) -> "Document":
+	"""No_copy fields also get copied."""
+	import copy
+	from types import MappingProxyType
+
+	from frappe.model.base_document import BaseDocument
+
+	def remove_no_copy_fields(d):
+		for df in d.meta.get("fields", {"no_copy": 1}):
+			if hasattr(d, df.fieldname):
+				d.set(df.fieldname, None)
+
+	fields_to_clear = ["name", "owner", "creation", "modified", "modified_by"]
+
+	if not frappe.in_test:
+		fields_to_clear.append("docstatus")
+
+	if isinstance(doc, BaseDocument):
+		d = doc.as_dict()
+	elif isinstance(doc, MappingProxyType):  # global test record
+		d = dict(doc)
+	else:
+		d = doc
+
+	newdoc = get_doc(copy.deepcopy(d))
+	newdoc.set("__islocal", 1)
+	for fieldname in [*fields_to_clear, "amended_from", "amendment_date"]:
+		newdoc.set(fieldname, None)
+
+	if not ignore_no_copy:
+		remove_no_copy_fields(newdoc)
+
+	for d in newdoc.get_all_children():
+		d.set("__islocal", 1)
+
+		for fieldname in fields_to_clear:
+			d.set(fieldname, None)
+
+		if not ignore_no_copy:
+			remove_no_copy_fields(d)
+
+	return newdoc
+
+
+def new_doc(
+	doctype: str,
+	*,
+	parent_doc: "Document" | None = None,
+	parentfield: str | None = None,
+	as_dict: bool = False,
+	**kwargs,
+) -> "Document":
+	"""Return a new document of the given DocType with defaults set.
+
+	:param doctype: DocType of the new document.
+	:param parent_doc: [optional] add to parent document.
+	:param parentfield: [optional] add against this `parentfield`.
+	:param as_dict: [optional] return as dictionary instead of Document.
+	:param kwargs: [optional] You can specify fields as field=value pairs in function call.
+	"""
+
+	from frappe.model.create_new import get_new_doc
+
+	new_doc = get_new_doc(doctype, parent_doc, parentfield, as_dict=as_dict)
+
+	return new_doc.update(kwargs)
+
+
+def get_cached_doc(*args: Any, **kwargs: Any) -> "Document":
+	"""Identical to `frappe.get_doc`, but return from cache if available."""
+	if (key := can_cache_doc(args)) and (doc := frappe.cache.get_value(key)):
+		return doc
+
+	# Not found in cache, fetch from DB
+	doc = get_doc(*args, **kwargs)
+
+	# Store in cache
+	if not key:
+		key = get_document_cache_key(doc.doctype, doc.name)
+
+	_set_document_in_cache(key, doc)
+
+	return doc
+
+
+def _set_document_in_cache(key: str, doc: "Document") -> None:
+	frappe.cache.set_value(key, doc, expires_in_sec=3600)
+
+
+def can_cache_doc(args) -> str | None:
+	"""
+	Determine if document should be cached based on get_doc params.
+	Return cache key if doc can be cached, None otherwise.
+	"""
+
+	if not args:
+		return
+
+	doctype = args[0]
+	name = doctype if len(args) == 1 or args[1] is None else args[1]
+
+	# Only cache if both doctype and name are strings
+	if isinstance(doctype, str) and isinstance(name, str):
+		return get_document_cache_key(doctype, name)
+
+
+def get_document_cache_key(doctype: str, name: str):
+	return f"document_cache::{doctype}::{name}"
+
+
+def clear_document_cache(doctype: str, name: str | None = None) -> None:
+	frappe.db.value_cache.pop(doctype, None)
+
+	def clear_in_redis():
+		if name is not None:
+			frappe.cache.delete_value(get_document_cache_key(doctype, name))
+		else:
+			frappe.cache.delete_keys(get_document_cache_key(doctype, ""))
+
+	clear_in_redis()
+	if hasattr(frappe.db, "after_commit"):
+		frappe.db.after_commit.add(clear_in_redis)
+		frappe.db.after_rollback.add(clear_in_redis)
+
+	if doctype == "System Settings" and hasattr(frappe.local, "system_settings"):
+		delattr(frappe.local, "system_settings")
+
+	if doctype == "Website Settings" and hasattr(frappe.local, "website_settings"):
+		delattr(frappe.local, "website_settings")
+
+
+def get_cached_value(
+	doctype: str, name: str | dict, fieldname: str | Iterable[str] = "name", as_dict: bool = False
+) -> Any:
+	try:
+		doc = get_cached_doc(doctype, name)
+	except frappe.DoesNotExistError:
+		frappe.clear_last_message()
+		return
+
+	if isinstance(fieldname, str):
+		if as_dict:
+			frappe.throw("Cannot make dict for single fieldname")
+		return doc.get(fieldname)
+
+	values = [doc.get(f) for f in fieldname]
+	if as_dict:
+		return frappe._dict(zip(fieldname, values, strict=False))
+	return values
+
+
+def get_single_value(setting: str, fieldname: str, /, *, as_dict: bool = False):
+	"""Return the cached value associated with the given fieldname from single DocType.
+
+	Usage:
+		telemetry_enabled = frappe.get_single_value("System Settings", "telemetry_enabled")
+	"""
+	return get_cached_value(setting, setting, fieldname=fieldname, as_dict=as_dict)
+
+
+def get_last_doc(
+	doctype,
+	filters: FilterSignature | None = None,
+	order_by="creation desc",
+	*,
+	for_update=False,
+):
+	"""Get last created document of this type."""
+	d = frappe.get_all(doctype, filters=filters, limit_page_length=1, order_by=order_by, pluck="name")
+	if d:
+		return get_doc(doctype, d[0], for_update=for_update)
+	else:
+		raise frappe.DoesNotExistError(doctype=doctype)
+
+
+def get_single(doctype):
+	"""Return a `frappe.model.document.Document` object of the given Single doctype."""
+	return get_doc(doctype, doctype)
+>>>>>>> 87bacae96e (fix(document): add check to avoid recursion)
