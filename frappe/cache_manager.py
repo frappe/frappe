@@ -122,6 +122,11 @@ def clear_defaults_cache(user=None):
 def clear_doctype_cache(doctype=None):
 	clear_controller_cache(doctype)
 
+	if doctype:
+		frappe.local.valid_columns.pop(doctype, None)
+	else:
+		frappe.local.valid_columns = {}
+
 	_clear_doctype_cache_from_redis(doctype)
 	if hasattr(frappe.db, "after_commit"):
 		frappe.db.after_commit.add(lambda: _clear_doctype_cache_from_redis(doctype))
@@ -239,3 +244,58 @@ def build_domain_restriced_page_cache(*args, **kwargs):
 	frappe.cache.set_value("domain_restricted_pages", pages)
 
 	return pages
+<<<<<<< HEAD
+=======
+
+
+def clear_cache(user: str | None = None, doctype: str | None = None):
+	"""Clear **User**, **DocType** or global cache.
+
+	:param user: If user is given, only user cache is cleared.
+	:param doctype: If doctype is given, only DocType cache is cleared."""
+	import frappe.cache_manager
+	import frappe.utils.caching
+	from frappe.website.router import clear_routing_cache
+
+	if doctype:
+		frappe.cache_manager.clear_doctype_cache(doctype)
+		reset_metadata_version()
+	elif user:
+		frappe.cache_manager.clear_user_cache(user)
+	else:  # everything
+		# Delete ALL keys associated with this site.
+		keys_to_delete = set(frappe.cache.get_keys(""))
+		for key in frappe.get_hooks("persistent_cache_keys"):
+			keys_to_delete.difference_update(frappe.cache.get_keys(key))
+		frappe.cache.delete_value(list(keys_to_delete), make_keys=False)
+		frappe.cache.delete_value(bench_cache_keys, shared=True)
+
+		reset_metadata_version()
+		frappe.local.cache = {}
+		frappe.local.valid_columns = {}
+		frappe.local.new_doc_templates = {}
+
+		for fn in frappe.get_hooks("clear_cache"):
+			frappe.get_attr(fn)()
+
+	if (not doctype and not user) or doctype == "DocType":
+		frappe.utils.caching._SITE_CACHE.clear()
+		frappe.client_cache.clear_cache()
+
+	frappe.local.role_permissions = {}
+	if hasattr(frappe.local, "request_cache"):
+		frappe.local.request_cache.clear()
+	if hasattr(frappe.local, "system_settings"):
+		del frappe.local.system_settings
+	if hasattr(frappe.local, "website_settings"):
+		del frappe.local.website_settings
+
+	clear_routing_cache()
+
+
+def reset_metadata_version():
+	"""Reset `metadata_version` (Client (Javascript) build ID) hash."""
+	v = frappe.generate_hash()
+	frappe.client_cache.set_value("metadata_version", v)
+	return v
+>>>>>>> 44257377b1 (fix(cache_manager): reset valid_columns when doctype cache is cleared (#38886))

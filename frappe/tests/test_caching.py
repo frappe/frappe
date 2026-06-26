@@ -273,3 +273,39 @@ class TestRedisWrapper(FrappeAPITestCase):
 
 	def test_backward_compat_cache(self):
 		self.assertEqual(frappe.cache, frappe.cache())
+<<<<<<< HEAD
+=======
+
+
+class TestHttpCache(FrappeAPITestCase):
+	def test_http_headers(self):
+		resp = self.get(
+			self.method("frappe.client.is_document_amended"),
+			{"sid": self.sid, "doctype": "User", "docname": "Guest"},
+		)
+		self.assertEqual(resp.cache_control.max_age, 600)
+		self.assertTrue(resp.cache_control.private)
+
+
+class TestValidColumnsCache(IntegrationTestCase):
+	def test_clear_doctype_cache(self):
+		from frappe.cache_manager import clear_doctype_cache
+
+		frappe.get_single("System Settings")
+		clear_doctype_cache("System Settings")
+		self.assertNotIn("System Settings", frappe.local.valid_columns)
+
+		frappe.get_single("System Settings")
+		self.assertIn("System Settings", frappe.local.valid_columns)
+		self.assertIsInstance(frappe.local.valid_columns["System Settings"], list)
+
+	def test_clear_cache(self):
+		from frappe.cache_manager import clear_cache
+
+		frappe.get_single("System Settings")
+		self.assertIn("System Settings", frappe.local.valid_columns)
+		self.assertIsInstance(frappe.local.valid_columns["System Settings"], list)
+
+		clear_cache()
+		self.assertEqual(frappe.local.valid_columns, {})
+>>>>>>> 44257377b1 (fix(cache_manager): reset valid_columns when doctype cache is cleared (#38886))
