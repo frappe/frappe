@@ -79,8 +79,6 @@ frappe.ui.form.on("DocType", {
 			frm.dashboard.add_comment(msg, "yellow", true);
 		}
 
-		set_related_settings_doctype_options(frm);
-
 		if (frm.is_new()) {
 			frm.events.set_default_permission(frm);
 			frm.set_value("default_view", "List");
@@ -182,49 +180,3 @@ function render_form_builder(frm) {
 }
 
 extend_cscript(cur_frm.cscript, new frappe.model.DocTypeController({ frm: cur_frm }));
-
-// ── Related Settings child table: autocomplete settings_doctype (Single doctypes) and
-// setting_field (the chosen single's fields) ──
-frappe.ui.form.on("DocType Related Setting", {
-	form_render(frm, cdt, cdn) {
-		// Row form opened: populate the setting_field suggestions for this row's single.
-		set_related_setting_field_options(frm, cdn);
-	},
-	settings_doctype(frm, cdt, cdn) {
-		// Different single → its fields differ; clear the stale field and refresh suggestions.
-		frappe.model.set_value(cdt, cdn, "setting_field", "");
-		set_related_setting_field_options(frm, cdn);
-	},
-});
-
-// Suggest every Single doctype for `settings_doctype` (global to the grid — same for all rows).
-function set_related_settings_doctype_options(frm) {
-	const grid = frm.fields_dict.related_settings && frm.fields_dict.related_settings.grid;
-	if (!grid) return;
-	frappe.db
-		.get_list("DocType", { filters: { issingle: 1 }, fields: ["name"], limit: 0, order_by: "name asc" })
-		.then((rows) => {
-			grid.update_docfield_property("settings_doctype", "options", rows.map((r) => r.name).join("\n"));
-		});
-}
-
-// Suggest the chosen single's data fields for `setting_field` (per row).
-function set_related_setting_field_options(frm, cdn) {
-	const row = locals["DocType Related Setting"][cdn];
-	const grid_row = frm.fields_dict.related_settings.grid.grid_rows_by_docname[cdn];
-	const control = grid_row && grid_row.get_field && grid_row.get_field("setting_field");
-	if (!control) return;
-
-	if (!row.settings_doctype) {
-		control.set_data([]);
-		return;
-	}
-
-	frappe.model.with_doctype(row.settings_doctype, () => {
-		const data = frappe.meta
-			.get_docfields(row.settings_doctype)
-			.filter((df) => df.fieldname && !frappe.model.no_value_type.includes(df.fieldtype))
-			.map((df) => ({ value: df.fieldname, label: `${__(df.label) || df.fieldname} (${df.fieldname})` }));
-		control.set_data(data);
-	});
-}

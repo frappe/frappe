@@ -88,8 +88,6 @@
   "actions",
   "links_section",
   "links",
-  "related_settings_section",
-  "related_settings",
   "document_states_section",
   "states",
   "web_view",
@@ -510,20 +508,6 @@
    "fieldtype": "Table",
    "label": "Document Links",
    "options": "DocType Link"
-  },
-  {
-   "collapsible": 1,
-   "collapsible_depends_on": "related_settings",
-   "fieldname": "related_settings_section",
-   "fieldtype": "Tab Break",
-   "label": "Related Settings"
-  },
-  {
-   "description": "Settings fields from other (Single) doctypes that apply to this doctype. They appear in this doctype's DocType Settings → Related Settings tab.",
-   "fieldname": "related_settings",
-   "fieldtype": "Table",
-   "label": "Related Settings",
-   "options": "DocType Related Setting"
   },
   {
    "depends_on": "email_append_to",
