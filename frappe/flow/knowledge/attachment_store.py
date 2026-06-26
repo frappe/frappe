@@ -16,7 +16,7 @@ from typing import Any
 
 import pyarrow as pa
 
-from flow.knowledge.store import _connect, _quote, _vector_dim
+from flow.knowledge.store import _connect, _ensure_fts_index, _quote, _vector_dim
 
 TABLE_NAME = "chat_attachment_chunks"
 MAX_SEARCH_LIMIT = 50
@@ -65,14 +65,19 @@ def add(session: str, attachment: str, chunks: list[str], vectors: list[list[flo
 		}
 		for content, vector in zip(chunks, vectors, strict=True)
 	]
-	_open_table().add(rows)
+	table = _open_table()
+	table.add(rows)
+	_ensure_fts_index(table)
 
 
-def search(vector: list[float], *, session: str, limit: int = 8) -> list[dict[str, Any]]:
-	"""Nearest-neighbour chunks within one session, most relevant first.
+def search(
+	vector: list[float], *, session: str, text: str | None = None, limit: int = 8
+) -> list[dict[str, Any]]:
+	"""Best-matching chunks within one session, most relevant first.
 
-	Returns [{content, score}] with higher score = better match. Scoping to
-	`session` is mandatory — there is no unscoped search.
+	With `text`, runs hybrid search (vector + full-text, rank-fused); otherwise
+	vector-only. Returns [{content, score}] with higher score = better match. Scoping
+	to `session` is mandatory — there is no unscoped search.
 	"""
 	if not session:
 		raise ValueError("search requires a session scope")
@@ -84,13 +89,17 @@ def search(vector: list[float], *, session: str, limit: int = 8) -> list[dict[st
 		return []
 
 	limit = max(1, min(int(limit), MAX_SEARCH_LIMIT))
-	query = (
-		table.search([float(v) for v in vector], vector_column_name="vector")
-		.distance_type("cosine")
-		.where(f"session = {_quote(session)}", prefilter=True)
-		.limit(limit)
-	)
-	return [{"content": row["content"], "score": 1.0 - row["_distance"]} for row in query.to_list()]
+	vector = [float(v) for v in vector]
+	if text:
+		_ensure_fts_index(table)
+		query = table.search(query_type="hybrid", vector_column_name="vector").vector(vector).text(text)
+	else:
+		query = table.search(vector, vector_column_name="vector")
+	query = query.distance_type("cosine").where(f"session = {_quote(session)}", prefilter=True).limit(limit)
+	return [
+		{"content": row["content"], "score": row["_relevance_score"] if text else 1.0 - row["_distance"]}
+		for row in query.to_list()
+	]
 
 
 def delete(*, session: str | None = None, attachment: str | None = None) -> None:

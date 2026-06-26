@@ -28,6 +28,26 @@ CHUNK_DOCTYPE = "AI Knowledge Chunk"
 DEFAULT_LIMIT = 5
 
 
+def retrieve_attachments(query: str, *, session: str, limit: int = DEFAULT_LIMIT) -> list[dict[str, Any]]:
+	"""Best-matching chunks from the files attached to `session`, most relevant first.
+
+	Scoping to `session` is the boundary (enforced upstream by the session-owner check).
+	Returns [{content, score}]; empty on a blank query or when nothing is indexed.
+	"""
+	query = (query or "").strip()
+	if not query or not session:
+		return []
+
+	from flow.knowledge import attachment_store
+	from flow.knowledge.embedder import embed_texts
+
+	search_type = frappe.get_cached_value("AI Knowledge Settings", "AI Knowledge Settings", "search_type")
+	text = query if search_type != "Vector" else None
+
+	(vector,) = embed_texts([query])
+	return attachment_store.search(vector, session=session, text=text, limit=limit)
+
+
 def retrieve(query: str, *, kbs: list[str], limit: int = DEFAULT_LIMIT) -> list[dict[str, Any]]:
 	"""Return the best-matching chunks within `kbs`, most relevant first.
 
