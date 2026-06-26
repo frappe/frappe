@@ -54,7 +54,7 @@ function make_request(url, headers, host, opts = {}, _redirects = 0) {
 					make_request(
 						redirectParsed.toString(),
 						headers,
-						redirectParsed.hostname,
+						redirectParsed.host,
 						opts,
 						_redirects + 1
 					)
