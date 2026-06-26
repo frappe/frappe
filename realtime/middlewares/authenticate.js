@@ -1,6 +1,13 @@
 const cookie = require("cookie");
+<<<<<<< HEAD
 const request = require("superagent");
 const { get_url } = require("../utils");
+=======
+const { get_conf, get_redis_subscriber } = require("../../node_utils");
+const { get_url, get_hostname } = require("../utils");
+const conf = get_conf();
+const redisClient = get_redis_subscriber("redis_queue");
+>>>>>>> 542921b (fix(socketio): short circuit websocket if in frappe cloud (#40312))
 
 const { get_conf } = require("../../node_utils");
 const conf = get_conf();
@@ -42,6 +49,7 @@ function authenticate_with_frappe(socket, next) {
 		auth_req = auth_req.query({ sid: cookies.sid });
 	}
 
+<<<<<<< HEAD
 	auth_req
 		.type("form")
 		.then((res) => {
@@ -49,6 +57,41 @@ function authenticate_with_frappe(socket, next) {
 			socket.user_type = res.body.message.user_type;
 			socket.sid = cookies.sid;
 			socket.authorization_header = authorization_header;
+=======
+		let headers = {};
+		if (socket.authorization_header) {
+			headers["Authorization"] = socket.authorization_header;
+		} else if (socket.sid) {
+			headers["Cookie"] = `sid=${socket.sid}`;
+		}
+		const secret = await getSecretFromRedis();
+		if (secret) {
+			headers["X-Frappe-Socket-Secret"] = secret;
+		}
+		// Carry the tenant so loopback requests route to the right site.
+		headers["X-Frappe-Site-Name"] = get_site_name(socket);
+		return fetch(get_url(socket, path), {
+			...opts,
+			headers,
+		});
+	};
+
+	socket
+		.frappe_request("/api/method/frappe.realtime.get_user_info")
+		.then((res) => res.json())
+		.then(async ({ message }) => {
+			if (socket.user !== "Guest" && !message.installed_apps) {
+				const retry_res = await socket.frappe_request(
+					"/api/method/frappe.realtime.get_user_info"
+				);
+				const retry_data = await retry_res.json();
+				message = retry_data.message;
+			}
+
+			socket.user = message.user;
+			socket.user_type = message.user_type;
+			socket.installed_apps = message.installed_apps || [];
+>>>>>>> 542921b (fix(socketio): short circuit websocket if in frappe cloud (#40312))
 			next();
 		})
 		.catch((e) => {
@@ -72,14 +115,6 @@ function get_site_name(socket) {
 		socket.site_name = get_hostname(socket.request.headers.host);
 	}
 	return socket.site_name;
-}
-
-function get_hostname(url) {
-	if (!url) return undefined;
-	if (url.indexOf("://") > -1) {
-		url = url.split("/")[2];
-	}
-	return url.match(/:/g) ? url.slice(0, url.indexOf(":")) : url;
 }
 
 module.exports = authenticate_with_frappe;
