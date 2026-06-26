@@ -116,16 +116,32 @@ export default class WebFormList {
 			this.filters = Object.assign(this.filters, JSON.parse(filter));
 		}
 
-		let args = {
-			method: "frappe.www.list.get_list_data",
-			args: {
-				doctype: this.doctype,
-				limit_start: this.web_list_start,
-				limit: this.page_length,
-				web_form_name: this.web_form_name,
-				...this.filters,
-			},
-		};
+		let args;
+		if (frappe.web_form_doc.web_form_request_key) {
+			args = {
+				type: "GET",
+				method: "frappe.website.doctype.web_form.web_form.get_web_form_list",
+				args: {
+					web_form: this.web_form_name,
+					web_form_request_key: frappe.web_form_doc.web_form_request_key,
+					limit_start: this.web_list_start,
+					limit: this.page_length,
+					...this.filters,
+				},
+			};
+		} else {
+			args = {
+				type: "GET",
+				method: "frappe.www.list.get_list_data",
+				args: {
+					doctype: this.doctype,
+					limit_start: this.web_list_start,
+					limit: this.page_length,
+					web_form_name: this.web_form_name,
+					...this.filters,
+				},
+			};
+		}
 
 		if (this.no_change(args)) {
 			// console.log('throttled');
@@ -216,17 +232,24 @@ export default class WebFormList {
 			if (this.wrapper.find(".no-result").length) return;
 
 			this.wrapper.empty();
-			frappe.has_permission(this.doctype, "", "create", () => {
+			if (frappe.web_form_doc.web_form_request_key) {
+				// The key authorises creation; skip the Guest-blocked permission check.
 				this.setup_empty_state();
-			});
+			} else {
+				frappe.has_permission(this.doctype, "", "create", () => {
+					this.setup_empty_state();
+				});
+			}
 		}
 	}
 
 	setup_empty_state() {
+		const key = frappe.web_form_doc.web_form_request_key;
+		const query = key ? `?web_form_request_key=${encodeURIComponent(key)}` : "";
 		let new_button = `
 			<a
 				class="btn btn-primary btn-sm btn-new-doc hidden-xs"
-				href="${location.pathname.replace("/list", "")}/new">
+				href="${location.pathname.replace("/list", "")}/new${query}">
 				${__("Create a new {0}", [__(this.doctype)])}
 			</a>
 		`;
@@ -280,6 +303,12 @@ export default class WebFormList {
 	}
 
 	make_actions() {
+		if (frappe.web_form_doc.web_form_request_key) {
+			// The bulk-delete endpoint isn't key-aware yet; key holders can still
+			// delete individual rows from the form view.
+			return;
+		}
+
 		const actions = $(".web-list-actions");
 
 		frappe.has_permission(this.doctype, "", "delete", () => {
@@ -322,7 +351,9 @@ export default class WebFormList {
 			path = path.replace("/list", "");
 		}
 
-		window.location.href = path + "/" + name;
+		const key = frappe.web_form_doc.web_form_request_key;
+		const query = key ? `?web_form_request_key=${encodeURIComponent(key)}` : "";
+		window.location.href = path + "/" + name + query;
 	}
 
 	get_selected() {
@@ -345,7 +376,7 @@ export default class WebFormList {
 		if (!this.settings.allow_delete) return;
 		frappe
 			.call({
-				type: "POST",
+				type: "DELETE",
 				method: "frappe.website.doctype.web_form.web_form.delete_multiple",
 				args: {
 					web_form_name: this.web_form_name,
