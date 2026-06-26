@@ -73,7 +73,7 @@ watch(focusTick, () => nextTick(() => el.value?.focus()));
 				rows="1"
 				:placeholder="placeholder"
 				:disabled="sending || paused || needsSetup"
-				class="max-h-40 min-h-[22px] w-full resize-none border-0 bg-transparent text-base leading-relaxed text-ink-gray-9 outline-none placeholder:text-ink-gray-4"
+				class="max-h-40 min-h-[22px] w-full resize-none border-0 bg-transparent text-base font-normal leading-relaxed text-ink-gray-9 outline-none placeholder:text-ink-gray-4"
 				@keydown="onKeydown"
 				@input="resize"
 			></textarea>
