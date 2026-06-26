@@ -219,14 +219,14 @@
 <script setup lang="ts" generic="T extends GridColumn">
 import { computed, nextTick, onBeforeUnmount, onMounted, ref, watch } from "vue";
 import { Button, Checkbox } from "frappe-ui";
-import { InputLabel, InputDescription, InputError, useInputLabeling } from "frappe-ui/internals";
+import { InputLabel, InputDescription, InputError, useInputLabeling } from "frappe-ui/experimental";
 // @ts-ignore — vuedraggable ships no bundled types
 import Draggable from "vuedraggable";
 import type { GridCellSlotProps, GridColumn, GridEmits } from "./types";
 
 // Mirrors frappe-ui's `FrappeUIError` (an `Error` whose `messages?: string[]`
 // render as stacked lines). Declared locally — the type isn't re-exported from
-// `frappe-ui/internals` — and is structurally compatible with what the composable
+// `frappe-ui/experimental` — and is structurally compatible with what the composable
 // expects.
 interface GridError extends Error {
 	messages?: string[];
