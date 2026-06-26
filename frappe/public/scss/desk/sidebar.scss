@@ -5,6 +5,7 @@
 	--sidebar-border-color: #ededed;
 	--divider-color: rgba(237, 237, 237, 1);
 	--sidebar-width: 220px;
+	--sidebar-active-shadow: 0 0 1px 0 rgba(0, 0, 0, 0.14), 0 1px 3px 0 rgba(0, 0, 0, 0.14);
 }
 
 [data-theme="dark"] {
@@ -12,6 +13,8 @@
 	--sidebar-active-color: rgba(66, 66, 66, 1);
 	--sidebar-border-color: #232323;
 	--divider-color: rgba(52, 52, 52, 1);
+	--sidebar-active-shadow: 0 0 1px 0 rgba(0, 0, 0, 0.5), 0 1px 3px 0 rgba(0, 0, 0, 0.4),
+		inset 0 1px 0 rgba(255, 255, 255, 0.06);
 }
 
 // sidebar-item states
@@ -120,8 +123,8 @@
 			align-items: center;
 			// padding: 3px 0px 3px 11px;
 			flex: 1;
-			height: 30px;
-			color: var(--ink-gray-8);
+			height: 28px;
+			color: var(--ink-gray-6);
 			text-decoration: none;
 			@include transition(all, 0.3s, cubic-bezier(0.4, 0, 0.2, 1));
 
@@ -293,7 +296,7 @@
 
 .active-sidebar {
 	background: var(--sidebar-active-color);
-	box-shadow: var(--shadow-sm);
+	box-shadow: var(--sidebar-active-shadow);
 	border-radius: 8px;
 
 	:hover {

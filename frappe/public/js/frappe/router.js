@@ -383,7 +383,13 @@ frappe.router = {
 					const route_options = frappe.route_options || {};
 					const query_params = Object.entries(route_options)
 						.map(
-							([key, value]) => `${key}=` + encodeURIComponent(JSON.stringify(value))
+							([key, value]) =>
+								`${key}=` +
+								encodeURIComponent(
+									value !== null && typeof value === "object"
+										? JSON.stringify(value)
+										: String(value)
+								)
 						)
 						.join("&");
 					this.push_state(sub_path, query_params ? `?${query_params}` : "");
@@ -405,10 +411,16 @@ frappe.router = {
 			// called as frappe.set_route(['a', 'b', 'c']);
 			route = route[0];
 		}
-
 		if (route.length === 1 && route[0] && route[0].includes("/")) {
-			// called as frappe.set_route('a/b/c')
-			route = $.map(route[0].split("/"), this.decode_component);
+			// called as frappe.set_route('a/b/c') or frappe.set_route('/desk/a/b?x=1')
+			const qIdx = route[0].indexOf("?");
+			let path = qIdx >= 0 ? route[0].slice(0, qIdx) : route[0];
+			let query_string = qIdx >= 0 ? route[0].slice(qIdx + 1) : null;
+			if (query_string) {
+				frappe.route_options = frappe.route_options || {};
+				new URLSearchParams(query_string).forEach((v, k) => (frappe.route_options[k] = v));
+			}
+			route = $.map(path.split("/"), this.decode_component);
 		}
 
 		if (route && route[0] == "") {
@@ -510,7 +522,7 @@ frappe.router = {
 		if (window.location.pathname !== path || window.location.search !== query_params) {
 			// push/replace state so the browser looks fine
 			const method = frappe.route_flags.replace_route ? "replaceState" : "pushState";
-			history[method](null, null, path);
+			history[method](null, null, path + query_params);
 
 			// now process the route
 			this.route();

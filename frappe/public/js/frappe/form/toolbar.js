@@ -139,17 +139,23 @@ frappe.ui.form.Toolbar = class Toolbar {
 		let rename_document = () => {
 			if (input_name != docname) frappe.realtime.doctype_subscribe(doctype, input_name);
 			return frappe
-				.xcall("frappe.model.rename_doc.update_document_title", {
-					doctype,
-					docname,
-					name: input_name,
-					title: input_title,
-					enqueue: true,
-					merge,
-					freeze: true,
-					freeze_message: __("Updating related fields..."),
-					queue,
-				})
+				.xcall(
+					"frappe.model.rename_doc.update_document_title",
+					{
+						doctype,
+						docname,
+						name: input_name,
+						title: input_title,
+						enqueue: true,
+						merge,
+						queue,
+					},
+					"POST",
+					{
+						freeze: true,
+						freeze_message: __("Updating related fields..."),
+					}
+				)
 				.then((new_docname) => {
 					const reload_form = (input_name) => {
 						$(document).trigger("rename", [doctype, docname, input_name]);

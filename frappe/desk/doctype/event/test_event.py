@@ -70,6 +70,16 @@ class TestEvent(IntegrationTestCase):
 
 		self.assertIn("_Test Event Different Timezone", [event.subject for event in events])
 
+	def test_get_events_accepts_native_filters(self):
+		frappe.set_user("Administrator")
+		# filters as a native list instead of a JSON string (frappe.parse_json passthrough)
+		events = get_events(
+			start="2014-01-01",
+			end="2030-12-31",
+			filters=[["Event", "subject", "=", "_Test Event 1"]],
+		)
+		self.assertIsInstance(events, list)
+
 	def test_revert_logic(self):
 		ev = frappe.get_doc(self.globalTestRecords["Event"][0]).insert()
 		name = ev.name

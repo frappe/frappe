@@ -28,6 +28,7 @@ class RealtimeConfig:
 	default_site: str | None = None
 	developer_mode: bool = False
 	webserver_port: int | None = None
+	webserver_host: str | None = None
 
 
 def get_config(sites_path: str | None = None) -> RealtimeConfig:
@@ -45,4 +46,5 @@ def get_config(sites_path: str | None = None) -> RealtimeConfig:
 		default_site=conf.get("default_site") or None,
 		developer_mode=bool(conf.get("developer_mode")),
 		webserver_port=int(webserver_port) if webserver_port else None,
+		webserver_host=conf.get("webserver_host") or None,
 	)

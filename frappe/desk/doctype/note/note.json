@@ -1,5 +1,6 @@
 {
  "actions": [],
+ "allow_bulk_edit": 1,
  "autoname": "hash",
  "creation": "2013-05-24 13:41:00",
  "doctype": "DocType",
@@ -80,14 +81,14 @@
    "fieldtype": "Table",
    "label": "Seen By Table",
    "options": "Note Seen By",
-   "permlevel": 1
+   "permlevel": 2
   }
  ],
  "grid_page_length": 50,
  "icon": "fa fa-file-text",
  "idx": 1,
  "links": [],
- "modified": "2025-03-26 18:19:45.079747",
+ "modified": "2026-06-24 16:54:57.011270",
  "modified_by": "Administrator",
  "module": "Desk",
  "name": "Note",

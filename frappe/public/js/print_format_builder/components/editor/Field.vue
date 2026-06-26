@@ -26,6 +26,22 @@
 					class="custom-html"
 					v-html="rendered_template || ''"
 				></div>
+				<!-- Table MultiSelect field: render as a comma-separated value list -->
+				<div
+					v-else-if="df.fieldtype == 'Table MultiSelect'"
+					:style="{ textAlign: df.align || 'left' }"
+					:class="{ 'field-preview-lr': field_orientation === 'left-right' }"
+				>
+					<div v-if="df.label && df.show_label !== 'hide'" class="field-preview-label">
+						{{ df.label }}
+					</div>
+					<div
+						class="field-preview-value"
+						:class="{ 'text-muted': !(preview_doc[df.fieldname] || []).length }"
+					>
+						{{ multiselect_display(df) }}
+					</div>
+				</div>
 				<!-- Table field -->
 				<div v-else-if="df.fieldtype == 'Table'" class="field-preview-table">
 					<div v-if="df.label" class="field-preview-label">{{ df.label }}</div>
@@ -68,6 +84,11 @@
 										class="preview-table-img"
 										:alt="col.label || col.fieldname"
 									/>
+									<div
+										v-else-if="is_html_content_field(col)"
+										class="preview-table-html"
+										v-html="format_cell(row, col)"
+									></div>
 									<span v-else>{{ format_cell(row, col) }}</span>
 								</td>
 							</tr>
@@ -198,7 +219,7 @@
 
 <script setup>
 import ConfigureColumnsVue from "../inspector/ConfigureColumns.vue";
-import { render_jinja_html } from "../../utils";
+import { render_jinja_html, sanitize_html } from "../../utils";
 import { createApp, ref, nextTick, watch, computed, inject } from "vue";
 
 const props = defineProps(["df", "field_orientation"]);
@@ -288,14 +309,36 @@ function is_image_field(col, value) {
 }
 
 const NUMERIC_FIELDTYPES = new Set(["Currency", "Float", "Int", "Percent"]);
+const HTML_CONTENT_FIELDTYPES = new Set(["Text Editor", "Long Text"]);
+
 function numeric_align_class(col) {
 	return NUMERIC_FIELDTYPES.has(col?.fieldtype) ? "col-numeric" : "";
+}
+
+function multiselect_display(df) {
+	const rows = preview_doc.value?.[df.fieldname] || [];
+	if (!rows.length) return "—";
+	const child_meta = frappe.get_meta(df.options);
+	const link_field = child_meta?.fields.find((f) => f.fieldtype === "Link");
+	if (!link_field) return "—";
+	return (
+		rows
+			.map((r) => r[link_field.fieldname])
+			.filter(Boolean)
+			.join(", ") || "—"
+	);
+}
+
+function is_html_content_field(col) {
+	return HTML_CONTENT_FIELDTYPES.has(col?.fieldtype);
 }
 
 function format_cell(row, col) {
 	const raw = row[col.fieldname];
 	if (raw === null || raw === undefined || raw === "") return "";
 	if (col.fieldtype === "Check") return raw ? __("Yes") : __("No");
+	// HTML content fields: sanitize then return for v-html rendering
+	if (HTML_CONTENT_FIELDTYPES.has(col.fieldtype)) return sanitize_html(raw);
 	try {
 		const formatted = frappe.format(raw, col, { only_value: true }, row);
 		if (typeof formatted === "string" && formatted.includes("<")) {
@@ -329,6 +372,7 @@ let short_fieldtype = computed(() => {
 		Check: "Check",
 		Select: "Select",
 		Table: "Table",
+		"Table MultiSelect": "Multi",
 		"Long Text": "Text",
 		Text: "Text",
 		Link: "Link",
@@ -816,6 +860,11 @@ watch(
 	max-width: 80px;
 	object-fit: contain;
 	display: block;
+}
+
+.preview-table-html {
+	word-break: break-word;
+	white-space: normal;
 }
 
 .preview-field-img {
