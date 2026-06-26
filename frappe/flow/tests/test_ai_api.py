@@ -9,7 +9,7 @@ import frappe
 from frappe.tests import IntegrationTestCase
 from werkzeug.wrappers import Response
 
-from flow.api import attach_file, resume_run, start_run
+from flow.api import attach_file, recover_session, resume_run, start_run
 from flow.api.api import _parse_attachments
 from flow.lib.model import ChatResponse, Model, ToolCall
 from flow.tools.builtins import sync_builtin_tools
@@ -619,3 +619,54 @@ class TestParseAttachments(IntegrationTestCase):
 	def test_blank_item_rejected(self):
 		with self.assertRaisesRegex(frappe.ValidationError, "file id"):
 			_parse_attachments(["ok", "   "])
+
+
+class TestRecoverSession(IntegrationTestCase):
+	def tearDown(self):
+		frappe.set_user("Administrator")
+		frappe.db.rollback()
+
+	def _session(self) -> str:
+		return frappe.get_doc({"doctype": "AI Session"}).insert(ignore_permissions=True).name
+
+	def _run(self, session: str, status: str, **fields) -> str:
+		return (
+			frappe.get_doc(
+				{"doctype": "AI Run", "session": session, "source": "Manual", "status": status, **fields}
+			)
+			.insert(ignore_permissions=True)
+			.name
+		)
+
+	def test_running_run_is_marked_failed(self):
+		session = self._session()
+		run = self._run(session, "Running")
+
+		self.assertEqual(recover_session(session), {"recovered": 1})
+		doc = frappe.get_doc("AI Run", run)
+		self.assertEqual(doc.status, "Failed")
+		self.assertIn("abandoned", doc.error)
+
+	def test_completed_and_paused_runs_untouched(self):
+		session = self._session()
+		completed = self._run(session, "Completed")
+		paused = self._run(session, "Paused", questions=json.dumps([{"key": "c1"}]))
+
+		self.assertEqual(recover_session(session), {"recovered": 0})
+		self.assertEqual(frappe.db.get_value("AI Run", completed, "status"), "Completed")
+		self.assertEqual(frappe.db.get_value("AI Run", paused, "status"), "Paused")
+
+	def test_no_runs_is_noop(self):
+		self.assertEqual(recover_session(self._session()), {"recovered": 0})
+
+	def test_other_users_session_is_rejected(self):
+		session = self._session()
+		self._run(session, "Running")
+
+		frappe.set_user(_ensure_user("recover-other-user@example.com"))
+		with self.assertRaises(frappe.PermissionError):
+			recover_session(session)
+
+	def test_blank_session_raises(self):
+		with self.assertRaisesRegex(frappe.ValidationError, "required"):
+			recover_session("  ")

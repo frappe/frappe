@@ -125,6 +125,10 @@ async function switchSession(name) {
 	messages.value = [];
 	attachments.value = [];
 
+	// A prior stream cut off mid-flight may have left a Running run; clear it so the
+	// reloaded session can start a new turn instead of being blocked.
+	await api.recoverSession(name).catch(() => {});
+
 	const doc = await api.getSession(name);
 	selectedAgent.value = doc.agent;
 	selectedModel.value = doc.model || null;
@@ -173,6 +177,16 @@ async function switchSession(name) {
 			if (part) part.result = m.content;
 		}
 	}
+
+	// A turn whose stream died before persisting a reply leaves a user message with
+	// no assistant message after it; flag it so the UI notes the interruption rather
+	// than showing a bare, unanswered bubble.
+	const built = messages.value;
+	for (let i = 0; i < built.length; i++) {
+		if (built[i].role === "user" && built[i + 1]?.role !== "assistant")
+			built[i].interrupted = true;
+	}
+
 	requestScroll();
 	await restorePausedRun(name);
 }
