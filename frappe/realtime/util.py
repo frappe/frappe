@@ -36,7 +36,13 @@ def resolve_site_name(environ: dict, config: RealtimeConfig) -> str | None:
 
 
 def get_url(origin: str | None, path: str, config: RealtimeConfig) -> str:
-	"""Build the web-process URL. Loopback bypasses any proxy/CDN (e.g. Cloudflare);
-	the site travels in the X-Frappe-Site-Name header, so this still routes right."""
-	base = f"http://127.0.0.1:{config.webserver_port}" if config.webserver_port else (origin or "")
-	return base + (path or "")
+	"""Build the web-process URL for a request. Port of realtime/utils.js get_url."""
+	if config.webserver_host and config.webserver_port:
+		return f"http://{config.webserver_host}:{config.webserver_port}" + (path or "")
+	url = origin or ""
+	if config.developer_mode and config.webserver_port:
+		parts = url.split(":")
+		protocol = parts[0] if len(parts) > 0 else ""
+		host = parts[1] if len(parts) > 1 else ""
+		url = f"{protocol}:{host}:{config.webserver_port}"
+	return url + (path or "")
