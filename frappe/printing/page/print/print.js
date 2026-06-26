@@ -387,7 +387,7 @@ frappe.ui.form.PrintView = class {
 			frappe.db
 				.get_value(
 					"Letter Head",
-					{ disabled: 0, is_default: 1, letter_head_for: "DocType" },
+					{ disabled: 0, is_default: 1 },
 					"name"
 				)
 				.then(({ message }) => {
