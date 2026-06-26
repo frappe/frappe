@@ -864,7 +864,10 @@ export default class Grid {
 
 	set_value(fieldname, value, doc) {
 		if (this.display_status !== "None" && doc?.name && this.grid_rows_by_docname?.[doc.name]) {
-			this.grid_rows_by_docname[doc.name].refresh_field(fieldname, value);
+			let grid_row = this.grid_rows_by_docname[doc.name];
+			grid_row.refresh_field(fieldname, value);
+			// re-evaluate depends_on of sibling columns that reference this field
+			grid_row.refresh_dependency();
 		}
 	}
 
