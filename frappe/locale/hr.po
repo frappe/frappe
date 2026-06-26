@@ -3,7 +3,7 @@ msgstr ""
 "Project-Id-Version: frappe\n"
 "Report-Msgid-Bugs-To: developers@frappe.io\n"
 "POT-Creation-Date: 2026-06-24 16:34+0000\n"
-"PO-Revision-Date: 2026-06-24 20:31\n"
+"PO-Revision-Date: 2026-06-26 20:50\n"
 "Last-Translator: developers@frappe.io\n"
 "Language-Team: Croatian\n"
 "MIME-Version: 1.0\n"
@@ -883,7 +883,7 @@ msgstr "Datoteka s istim imenom {} već postoji"
 
 #: frappe/public/js/frappe/list/list_filter/layout_dialog.js:206
 msgid "A layout with this name already exists"
-msgstr ""
+msgstr "Raspored s ovim imenom već postoji."
 
 #. Description of the 'Scopes' (Text) field in DocType 'OAuth Client'
 #: frappe/integrations/doctype/oauth_client/oauth_client.json
@@ -2974,7 +2974,7 @@ msgstr "Jeste li sigurni da želite ukloniti sve neuspjele poslove?"
 
 #: frappe/core/doctype/user_invitation/user_invitation.js:18
 msgid "Are you sure you want to resend the invitation?"
-msgstr ""
+msgstr "Jeste li sigurni da želite ponovno poslati pozivnicu?"
 
 #: frappe/public/js/frappe/views/dashboard/dashboard_view.js:268
 msgid "Are you sure you want to reset all customizations?"
@@ -3630,7 +3630,7 @@ msgstr "Automatski naziv: {0}"
 
 #: frappe/public/js/frappe/list/list_filter/layout_dialog.js:36
 msgid "Available to All Users"
-msgstr ""
+msgstr "Dostupno Svim Korisnicima"
 
 #. Option for the 'Chart Type' (Select) field in DocType 'Dashboard Chart'
 #. Option for the 'Group By Type' (Select) field in DocType 'Dashboard Chart'
@@ -5172,7 +5172,7 @@ msgstr "Odaberi ikonu"
 
 #: frappe/public/js/frappe/list/list_filter/layout_dialog.js:58
 msgid "Choose and order the columns to display."
-msgstr ""
+msgstr "Odaberite i odredite redoslijed stupaca za prikaz."
 
 #. Description of the 'Two Factor Authentication method' (Select) field in
 #. DocType 'System Settings'
@@ -5182,7 +5182,7 @@ msgstr "Odaberite način autentifikacije koji će koristiti svi korisnici"
 
 #: frappe/public/js/frappe/list/list_filter/layout_dialog.js:52
 msgid "Choose the default order in which records appear."
-msgstr ""
+msgstr "Odaberite zadani redoslijed prikazivanja zapisa."
 
 #: frappe/core/doctype/data_import/importer.py:1093
 msgid "Circular parent reference for {0}"
@@ -6491,7 +6491,7 @@ msgstr "Izradi predložak polja"
 #: frappe/public/js/frappe/list/list_filter/layout_dialog.js:64
 #: frappe/public/js/frappe/list/list_filter/list_filter_menu.js:469
 msgid "Create Layout"
-msgstr ""
+msgstr "Izradi Raspored"
 
 #: frappe/public/js/print_format_builder/components/inspector/LetterHeadZoneInspector.vue:41
 #: frappe/public/js/print_format_builder/components/inspector/LetterHeadZoneInspector.vue:374
@@ -7511,11 +7511,11 @@ msgstr "Standard Dolazna"
 
 #: frappe/public/js/frappe/list/list_filter/list_filter.js:10
 msgid "Default Layout"
-msgstr ""
+msgstr "Zadani Raspored"
 
 #: frappe/public/js/frappe/list/list_filter/list_filter_menu.js:8
 msgid "Default Layouts"
-msgstr ""
+msgstr "Zadani Rasporedi"
 
 #. Label of the default_letter_head (Link) field in DocType 'Report'
 #. Label of the is_default (Check) field in DocType 'Letter Head'
@@ -7674,7 +7674,7 @@ msgstr "Zadano je `en`"
 
 #: frappe/public/js/frappe/list/list_filter/layout_dialog.js:46
 msgid "Define which records should appear in this list."
-msgstr ""
+msgstr "Definirajte koji bi se zapisi trebali pojaviti na ovom popisu."
 
 #. Description of a DocType
 #: frappe/workflow/doctype/workflow_transition/workflow_transition.json
@@ -7804,7 +7804,7 @@ msgstr "Izbriši cijelu karticu s poljima"
 
 #: frappe/public/js/frappe/list/list_filter/manage_layouts_dialog.js:115
 msgid "Delete layout <strong>{0}</strong>?"
-msgstr ""
+msgstr "Izbriši raspored <strong>{0}</strong>?"
 
 #: frappe/public/js/frappe/form/grid.js:290
 msgid "Delete row"
@@ -9462,7 +9462,7 @@ msgstr "Uredi Naslov"
 
 #: frappe/public/js/frappe/list/list_filter/layout_dialog.js:64
 msgid "Edit Layout"
-msgstr ""
+msgstr "Uredi Raspored"
 
 #: frappe/public/js/print_format_builder/components/inspector/LetterHeadZoneInspector.vue:342
 msgid "Edit Letter Head Footer"
@@ -10624,7 +10624,7 @@ msgstr "Primjer: {{ subject }}"
 
 #: frappe/public/js/frappe/ui/naming_series.js:112
 msgid "Examples:"
-msgstr ""
+msgstr "Primjeri:"
 
 #. Option for the 'File Type' (Select) field in DocType 'Data Export'
 #: frappe/core/doctype/data_export/data_export.json
@@ -12574,7 +12574,7 @@ msgstr "Globalno"
 
 #: frappe/public/js/frappe/list/list_filter/list_filter_menu.js:217
 msgid "Global Layouts"
-msgstr ""
+msgstr "Globalni Rasporedi"
 
 #. Name of a DocType
 #: frappe/desk/doctype/global_search_doctype/global_search_doctype.json
@@ -15155,7 +15155,7 @@ msgstr "Pozivnica nije pronađena"
 
 #: frappe/core/doctype/user_invitation/user_invitation.js:25
 msgid "Invitation resent"
-msgstr ""
+msgstr "Pozivnica ponovo poslana"
 
 #: frappe/core/doctype/user_invitation/user_invitation.py:59
 msgid "Invitation to join {0} cancelled"
@@ -16139,25 +16139,25 @@ msgstr "Izgled"
 
 #: frappe/public/js/frappe/list/list_filter/layout_dialog.js:237
 msgid "Layout <b>{0}</b> created"
-msgstr ""
+msgstr "Raspored <b>{0}</b> izrađen"
 
 #: frappe/public/js/frappe/list/list_filter/manage_layouts_dialog.js:121
 msgid "Layout <b>{0}</b> deleted"
-msgstr ""
+msgstr "Raspored <b>{0}</b> izbrisan"
 
 #: frappe/public/js/frappe/list/list_filter/layout_dialog.js:236
 msgid "Layout <b>{0}</b> updated"
-msgstr ""
+msgstr "Raspored <b>{0}</b> ažuriran"
 
 #. Label of the layout_name (Data) field in DocType 'List Layout'
 #: frappe/desk/doctype/list_layout/list_layout.json
 #: frappe/public/js/frappe/list/list_filter/layout_dialog.js:25
 msgid "Layout Name"
-msgstr ""
+msgstr "Naziv Rasporeda"
 
 #: frappe/public/js/frappe/list/list_filter/layout_dialog.js:201
 msgid "Layout Name is required"
-msgstr ""
+msgstr "Naziv Rasporeda je obavezan"
 
 #: frappe/custom/doctype/customize_form/customize_form.js:207
 msgid "Layout Reset"
@@ -16670,7 +16670,7 @@ msgstr "Izlistaj Kolone"
 #. Name of a DocType
 #: frappe/desk/doctype/list_layout/list_layout.json
 msgid "List Layout"
-msgstr ""
+msgstr "Raspored Liste"
 
 #. Label of the list_settings_section (Section Break) field in DocType 'User'
 #. Label of the section_break_8 (Section Break) field in DocType 'Customize
@@ -17125,7 +17125,7 @@ msgstr "Obavezno konfiguriši Društveni Ključ za prijavu prije deaktiviranja k
 
 #: frappe/public/js/frappe/list/list_filter/layout_dialog.js:37
 msgid "Make this layout visible for everyone."
-msgstr ""
+msgstr "Učini ovaj izgled vidljivim svima."
 
 #: frappe/utils/password_strength.py:92
 msgid "Make use of longer keyboard patterns"
@@ -17162,7 +17162,7 @@ msgstr "Upravljaj Fakturisanjem"
 #: frappe/public/js/frappe/list/list_filter/list_filter_menu.js:475
 #: frappe/public/js/frappe/list/list_filter/manage_layouts_dialog.js:11
 msgid "Manage Layouts"
-msgstr ""
+msgstr "Upravljaj Rasporedima"
 
 #. Label of the reqd (Check) field in DocType 'DocField'
 #. Label of the mandatory (Check) field in DocType 'Report Filter'
@@ -19197,7 +19197,7 @@ msgstr "Nije odabran nijedan red"
 
 #: frappe/public/js/frappe/list/list_filter/manage_layouts_dialog.js:36
 msgid "No saved layouts yet."
-msgstr ""
+msgstr "Još nema spremljenih rasporeda."
 
 #: frappe/public/js/frappe/form/template_manager.js:329
 msgid "No saved templates. Try saving the current form as a template."
@@ -20125,7 +20125,7 @@ msgstr "Samo jedan {0} može biti postavljen kao primarni."
 
 #: frappe/core/api/user_invitation.py:124
 msgid "Only pending invitations can be resent"
-msgstr ""
+msgstr "Samo se čekajuće pozivnice mogu ponovno poslati."
 
 #: frappe/desk/reportview.py:371
 msgid "Only reports of type Report Builder can be deleted"
@@ -24788,7 +24788,7 @@ msgstr "Preusmjeravanja Rute"
 #. Label of the route_signature (Data) field in DocType 'List Layout'
 #: frappe/desk/doctype/list_layout/list_layout.json
 msgid "Route Signature"
-msgstr ""
+msgstr "Potpis Rute"
 
 #. Description of the 'Home Page' (Data) field in DocType 'Role'
 #: frappe/core/doctype/role/role.json
@@ -25466,7 +25466,7 @@ msgstr "Pretraga po imenu datoteke ili ekstenziji"
 
 #: frappe/public/js/frappe/list/list_filter/layout_field_selector.js:261
 msgid "Search by label or field name"
-msgstr ""
+msgstr "Pretraži po oznaci ili nazivu polja"
 
 #: frappe/core/doctype/doctype/doctype.py:1557
 msgid "Search field {0} is not valid"
@@ -25933,7 +25933,7 @@ msgstr "Odaberi sliku približne širine 150px sa prozirnom pozadinom za najbolj
 
 #: frappe/public/js/frappe/list/list_filter/layout_dialog.js:212
 msgid "Select at least one field"
-msgstr ""
+msgstr "Odaberite barem jedno polje"
 
 #: frappe/public/js/frappe/list/bulk_operations.js:36
 msgid "Select atleast 1 record for printing"
@@ -27589,7 +27589,7 @@ msgstr "Sortiraj Uzlazno"
 
 #: frappe/public/js/frappe/list/list_filter/layout_dialog.js:51
 msgid "Sort By"
-msgstr ""
+msgstr "Sortiraj po"
 
 #: frappe/public/js/frappe/utils/datatable.js:7
 msgid "Sort Descending"
@@ -32922,7 +32922,7 @@ msgstr "Širina (px)"
 
 #: frappe/public/js/frappe/form/grid_row.js:589
 msgid "Width in pixels"
-msgstr ""
+msgstr "Širina u pikselima"
 
 #: frappe/printing/page/print_format_builder_classic/print_format_builder_column_selector.html:2
 msgid "Widths can be set in px or %."
@@ -33402,7 +33402,7 @@ msgstr "Nije vam dozvoljen pristup ovom zapisu {0} jer je povezan s {1} '{2}' u 
 #: frappe/desk/doctype/list_layout/list_layout.py:41
 #: frappe/desk/doctype/list_layout/list_layout.py:157
 msgid "You are not allowed to assign layouts to other users"
-msgstr ""
+msgstr "Nije vam dopušteno dodjeljivati rasporede drugim korisnicima."
 
 #: frappe/public/js/frappe/views/kanban/kanban_board.bundle.js:68
 msgid "You are not allowed to create columns"
@@ -33410,7 +33410,7 @@ msgstr "Nije vam dozvoljeno da kreirate kolone"
 
 #: frappe/desk/doctype/list_layout/list_layout.py:36
 msgid "You are not allowed to create or edit global layouts"
-msgstr ""
+msgstr "Nije vam dopušteno stvaranje ili uređivanje globalnih izgleda"
 
 #: frappe/core/doctype/report/report.py:108
 msgid "You are not allowed to delete Standard Report"
@@ -33426,11 +33426,11 @@ msgstr "Nije vam dozvoljeno brisanje standardne Teme Web Stranice"
 
 #: frappe/desk/doctype/list_layout/list_layout.py:183
 msgid "You are not allowed to delete global layouts"
-msgstr ""
+msgstr "Nije vam dopušteno brisati globalne rasporede."
 
 #: frappe/desk/doctype/list_layout/list_layout.py:184
 msgid "You are not allowed to delete this layout"
-msgstr ""
+msgstr "Nije vam dopušteno izbrisati ovaj raspored."
 
 #: frappe/core/doctype/report/report.py:479
 msgid "You are not allowed to edit the report."
@@ -33469,7 +33469,7 @@ msgstr "Nije vam dopušteno ažurirati prisutnost drugog korisnika."
 #: frappe/desk/doctype/list_layout/list_layout.py:146
 #: frappe/desk/doctype/list_layout/list_layout.py:155
 msgid "You are not allowed to update global layouts"
-msgstr ""
+msgstr "Nije vam dopušteno ažurirati globalne rasporede."
 
 #: frappe/website/doctype/web_form/web_form.py:656
 msgid "You are not allowed to update this Web Form Document"
@@ -33477,7 +33477,7 @@ msgstr "Nije vam dozvoljeno ažurirati ovaj dokument web forme"
 
 #: frappe/desk/doctype/list_layout/list_layout.py:147
 msgid "You are not allowed to update this layout"
-msgstr ""
+msgstr "Nije vam dopušteno ažuriranje ovog rasporeda"
 
 #: frappe/desk/doctype/event/event.py:354
 msgid "You are not allowed to view events for another user."
@@ -33969,7 +33969,7 @@ msgstr "Vaš Jezik"
 
 #: frappe/public/js/frappe/list/list_filter/list_filter_menu.js:225
 msgid "Your Layouts"
-msgstr ""
+msgstr "Vaši Rasporedi"
 
 #: frappe/templates/includes/comments/comments.html:21
 msgid "Your Name"
