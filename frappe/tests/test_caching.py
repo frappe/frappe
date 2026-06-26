@@ -288,7 +288,7 @@ class TestValidColumnsCache(FrappeTestCase):
 		self.assertIsInstance(frappe.local.valid_columns["System Settings"], list)
 
 	def test_clear_cache(self):
-		from frappe.cache_manager import clear_cache
+		from frappe import clear_cache
 
 		frappe.get_single("System Settings")
 		self.assertIn("System Settings", frappe.local.valid_columns)
