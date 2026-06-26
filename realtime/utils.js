@@ -14,7 +14,15 @@ function get_url(socket, path) {
 		path = "";
 	}
 	if (conf.webserver_host && conf.webserver_port) {
-		return `http://${conf.webserver_host}:${conf.webserver_port}${path}`;
+		let base = conf.webserver_host;
+		if (base.indexOf("://") === -1) {
+			base = `http://${base}`;
+		}
+		const authority = base.slice(base.indexOf("://") + 3).replace(/^\[[^\]]*\]/, "");
+		if (!authority.includes(":")) {
+			base = `${base}:${conf.webserver_port}`;
+		}
+		return base + path;
 	}
 	let url = socket.request.headers.origin;
 	if (conf.developer_mode) {
