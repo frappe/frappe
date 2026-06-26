@@ -26,7 +26,7 @@ from psycopg2.errors import (
 from psycopg2.extensions import ISOLATION_LEVEL_REPEATABLE_READ
 
 import frappe
-from frappe.database.database import Database
+from frappe.database.database import CREATE_OR_DROP, Database
 from frappe.database.postgres.schema import PostgresTable
 from frappe.database.utils import EmptyQueryValues, LazyDecode
 from frappe.utils import cstr, get_table_name
@@ -281,10 +281,11 @@ class PostgresDatabase(PostgresExceptionUtil, Database):
 
 	def get_tables(self, cached=True):
 		"""Return list of tables."""
+		cache_key = f"db_tables::{self.db_schema}"
 		to_query = not cached
 
 		if cached:
-			tables = frappe.client_cache.get_value("db_tables")
+			tables = frappe.client_cache.get_value(cache_key)
 			to_query = not tables
 
 		if to_query:
@@ -299,9 +300,14 @@ class PostgresDatabase(PostgresExceptionUtil, Database):
 					(self.cur_db_name, self.db_schema),
 				)
 			]
-			frappe.client_cache.set_value("db_tables", tables)
+			frappe.client_cache.set_value(cache_key, tables)
 
 		return tables
+
+	@staticmethod
+	def clear_db_table_cache(query_type: str):
+		if query_type in CREATE_OR_DROP:
+			frappe.client_cache.delete_keys("db_tables::*")
 
 	def get_db_table_columns(self, table) -> list[str]:
 		"""Returns list of column names from given table."""

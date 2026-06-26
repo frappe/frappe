@@ -37,7 +37,7 @@ class TestDB(IntegrationTestCase):
 		self.assertIsInstance(frappe.db.get_database_size(), (float, int))
 
 	def test_get_tables_cached(self):
-		frappe.client_cache.delete_value("db_tables")
+		frappe.client_cache.delete_keys("db_tables*")
 		tables = frappe.db.get_tables(cached=True)
 		self.assertIn("tabDocType", tables)
 		with self.assertQueryCount(0):
