@@ -1,5 +1,3 @@
-const http = require("http");
-const https = require("https");
 const { get_conf } = require("../node_utils");
 const conf = get_conf();
 
@@ -15,8 +13,10 @@ function get_url(socket, path) {
 	if (!path) {
 		path = "";
 	}
-	if (conf.server_ip) {
-		return `http://${conf.server_ip}${path}`;
+	// Hit the web process over loopback to bypass any proxy/CDN (e.g. Cloudflare);
+	// the site travels in the X-Frappe-Site-Name header, so this still routes right.
+	if (conf.webserver_port) {
+		return `http://127.0.0.1:${conf.webserver_port}${path}`;
 	}
 	let url = socket.request.headers.origin;
 	if (conf.developer_mode) {
@@ -27,64 +27,7 @@ function get_url(socket, path) {
 	return url + path;
 }
 
-function make_request(url, headers, host, opts = {}, _redirects = 0) {
-	return new Promise((resolve, reject) => {
-		if (_redirects > 5) {
-			return reject(new Error("Too many redirects"));
-		}
-		const parsed = new URL(url);
-		const lib = parsed.protocol === "https:" ? https : http;
-		const options = {
-			hostname: parsed.hostname,
-			port: parsed.port || (parsed.protocol === "https:" ? 443 : 80),
-			path: parsed.pathname + parsed.search,
-			method: opts.method || "GET",
-			headers: {
-				...headers,
-				Host: host,
-			},
-		};
-
-		const req = lib.request(options, (res) => {
-			res.on("error", reject);
-			if (res.statusCode >= 300 && res.statusCode < 400 && res.headers.location) {
-				res.resume();
-				const redirectParsed = new URL(res.headers.location, parsed);
-				return resolve(
-					make_request(
-						redirectParsed.toString(),
-						headers,
-						redirectParsed.host,
-						opts,
-						_redirects + 1
-					)
-				);
-			}
-			let data = "";
-			res.on("data", (chunk) => {
-				data += chunk;
-			});
-			res.on("end", () => {
-				resolve({
-					json: () => Promise.resolve(JSON.parse(data)),
-					text: () => Promise.resolve(data),
-					status: res.statusCode,
-					ok: res.statusCode >= 200 && res.statusCode < 300,
-				});
-			});
-		});
-
-		req.on("error", reject);
-
-		if (opts.body) {
-			req.write(opts.body);
-		}
-		req.end();
-	});
-}
-
 module.exports = {
 	get_hostname,
 	get_url,
-	make_request,
 };
