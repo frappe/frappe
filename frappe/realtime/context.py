@@ -33,7 +33,8 @@ def frappe_context(site: str, user: str):
 		yield frappe
 		frappe.db.commit()  # nosemgrep
 	except Exception:
-		frappe.db.rollback()
+		if frappe.db:
+			frappe.db.rollback()
 		raise
 	finally:
 		frappe.destroy()
