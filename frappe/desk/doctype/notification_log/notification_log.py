@@ -73,11 +73,9 @@ class NotificationLog(Document):
 
 	@staticmethod
 	def clear_old_logs(days=180):
-		from frappe.query_builder import Interval
-		from frappe.query_builder.functions import Now
+		from frappe.utils import add_to_date, now_datetime
 
-		table = frappe.qb.DocType("Notification Log")
-		cutoff = Now() - Interval(days=days)
+		cutoff = add_to_date(now_datetime(), days=-days)
 		affected_users = frappe.db.get_values(
 			"Notification Log",
 			filters=[["creation", "<", cutoff], ["read", "=", 0]],
@@ -85,7 +83,7 @@ class NotificationLog(Document):
 			distinct=True,
 			pluck=True,
 		)
-		frappe.db.delete(table, filters=(table.creation < cutoff))
+		frappe.db.delete("Notification Log", filters=[["creation", "<", cutoff]])
 		for user in affected_users:
 			clear_unread_count_cache(user)
 

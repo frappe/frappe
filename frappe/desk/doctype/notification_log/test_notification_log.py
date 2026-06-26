@@ -4,6 +4,7 @@ import frappe
 from frappe.core.doctype.user.user import get_system_users
 from frappe.desk.doctype.notification_log.notification_log import (
 	UNREAD_COUNT_CACHE_KEY,
+	NotificationLog,
 	enqueue_create_notification,
 	get_email_header,
 	get_unread_count,
@@ -271,6 +272,25 @@ class TestNotificationUnreadCount(IntegrationTestCase):
 
 		self.assertIsNone(frappe.cache.get_value(UNREAD_COUNT_CACHE_KEY, user=self.user, expires=True))
 		self.assertEqual(get_unread_count(self.user), 0)
+
+	def test_clear_old_logs_invalidates_cache(self):
+		from frappe.utils import add_to_date, now_datetime
+
+		log = self._insert_log()
+		frappe.db.set_value(
+			"Notification Log",
+			log.name,
+			"creation",
+			add_to_date(now_datetime(), days=-200),
+			update_modified=False,
+		)
+		frappe.cache.set_value(UNREAD_COUNT_CACHE_KEY, 5, user=self.user, expires_in_sec=60)
+
+		NotificationLog.clear_old_logs(days=180)
+		self._flush_after_commit()
+
+		self.assertIsNone(frappe.cache.get_value(UNREAD_COUNT_CACHE_KEY, user=self.user, expires=True))
+		self.assertFalse(frappe.db.exists("Notification Log", log.name))
 
 	def test_mark_as_read_does_not_affect_other_user(self):
 		other_user = "test1@example.com"
