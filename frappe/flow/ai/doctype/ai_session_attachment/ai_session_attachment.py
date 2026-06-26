@@ -31,6 +31,7 @@ class AISessionAttachment(Document):
 		file: DF.Link
 		file_name: DF.Data | None
 		file_size: DF.Int
+		mode: DF.Literal["Inline", "Retrieval"]
 		parent: DF.Data
 		parentfield: DF.Data
 		parenttype: DF.Data

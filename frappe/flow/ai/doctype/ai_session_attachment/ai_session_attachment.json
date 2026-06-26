@@ -9,6 +9,7 @@
   "file_name",
   "file_size",
   "run",
+  "mode",
   "extracted_text"
  ],
  "fields": [
@@ -42,6 +43,15 @@
    "fieldtype": "Link",
    "label": "Run",
    "options": "AI Run",
+   "read_only": 1
+  },
+  {
+   "default": "Inline",
+   "description": "Inline: full text injected every turn. Retrieval: chunked and embedded, top matches injected per turn (for oversized files).",
+   "fieldname": "mode",
+   "fieldtype": "Select",
+   "label": "Mode",
+   "options": "Inline\nRetrieval",
    "read_only": 1
   },
   {
