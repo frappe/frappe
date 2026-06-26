@@ -11,7 +11,7 @@ from frappe.utils import cstr
 
 @frappe.whitelist()
 def make_mapped_doc(
-	method: str, source_name: str, selected_children: str | list | None = None, args: str | dict | None = None
+	method: str, source_name: str, selected_children: str | dict | list | None = None, args: str | dict | None = None
 ):
 	"""Return the mapped document calling the given mapper method.
 	Set `selected_children` as flags for the `get_mapped_doc` method.
