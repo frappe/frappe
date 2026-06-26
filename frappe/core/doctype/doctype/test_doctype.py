@@ -123,6 +123,21 @@ class TestDocType(IntegrationTestCase):
 		doc1.delete()
 		doc2.delete()
 
+	def test_change_field_type_with_incompatible_values(self):
+		if frappe.db.exists("DocType", "Test Field Type Change"):
+			frappe.delete_doc("DocType", "Test Field Type Change")
+
+		dt = new_doctype("Test Field Type Change")
+		dt.insert()
+
+		doc = frappe.new_doc("Test Field Type Change")
+		doc.some_fieldname = "not a number"
+		doc.insert()
+
+		dt.fields[0].fieldtype = "Int"
+		self.assertRaises(frappe.ValidationError, dt.save)
+		frappe.db.rollback()
+
 	def test_validate_search_fields(self):
 		doc = new_doctype("Test Search Fields")
 		doc.search_fields = "some_fieldname"
