@@ -334,6 +334,22 @@ class SQLiteDatabase(SQLiteExceptionUtil, Database):
 			)"""
 		)
 
+	def create_sequence_table(self):
+		# SQLite has no native sequences; this table emulates them for
+		# autoname:autoincrement doctypes. See frappe.database.sequence.
+		from frappe.database.sequence import SQLITE_SEQUENCE_TABLE
+
+		self.sql_ddl(
+			f"""CREATE TABLE IF NOT EXISTS `{SQLITE_SEQUENCE_TABLE}` (
+			`name` TEXT PRIMARY KEY,
+			`current` INTEGER NOT NULL,
+			`increment` INTEGER NOT NULL DEFAULT 1,
+			`min_value` INTEGER NOT NULL DEFAULT 1,
+			`max_value` INTEGER,
+			`cycle` INTEGER NOT NULL DEFAULT 0
+			)"""
+		)
+
 	@staticmethod
 	def get_on_duplicate_update():
 		return "ON CONFLICT DO UPDATE SET "

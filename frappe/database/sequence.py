@@ -41,7 +41,6 @@ def create_sequence(
 	sequence_name = scrub(doctype_name + slug)
 
 	if db.db_type == "sqlite":
-		_sqlite_ensure_table()
 		# `current` stores the last value handed out; nextval returns
 		# current + increment. Seed it so the first nextval returns `start_value`
 		# (defaulting to min_value, then 1 - matching postgres defaults).
@@ -50,11 +49,15 @@ def create_sequence(
 		maxv = max_value or None
 		start = start_value or minv
 		current = start - increment
-		verb = "INSERT OR IGNORE" if check_not_exists else "INSERT"
+		# Upsert the definition so it stays authoritative even over a bare row a
+		# prior set_next_val may have created; an existing counter is preserved.
 		db.sql(
-			f"{verb} INTO `{SQLITE_SEQUENCE_TABLE}` "
+			f"INSERT INTO `{SQLITE_SEQUENCE_TABLE}` "
 			"(name, current, increment, min_value, max_value, cycle) "
-			"VALUES (%s, %s, %s, %s, %s, %s)",
+			"VALUES (%s, %s, %s, %s, %s, %s) "
+			"ON CONFLICT(name) DO UPDATE SET "
+			"increment = excluded.increment, min_value = excluded.min_value, "
+			"max_value = excluded.max_value, cycle = excluded.cycle",
 			(sequence_name, current, increment, minv, maxv, 1 if cycle else 0),
 		)
 		return sequence_name
@@ -120,7 +123,6 @@ def set_next_val(
 	doctype_name: str, next_val: int, *, slug: str = "_id_seq", is_val_used: bool = False
 ) -> None:
 	if db.db_type == "sqlite":
-		_sqlite_ensure_table()
 		sequence_name = scrub(doctype_name + slug)
 		row = db.sql(f"SELECT increment FROM `{SQLITE_SEQUENCE_TABLE}` WHERE name = %s", (sequence_name,))
 		increment = row[0][0] if row else 1
@@ -182,8 +184,9 @@ def create_missing_sequences() -> list[str]:
 
 def _sqlite_get_next_val(doctype_name: str, slug: str) -> int:
 	sequence_name = scrub(f"{doctype_name}{slug}")
-	_sqlite_ensure_table()
 
+	# The backing table is created at site setup (create_sequence_table), so the
+	# read-modify-write below can assume it exists - no per-call DDL on the hot path.
 	# Fast, fully-atomic path for unbounded sequences (which is every autoname
 	# sequence): the read-modify-write happens as one statement under SQLite's
 	# write lock, so concurrent callers can never be handed the same value.
@@ -204,17 +207,28 @@ def _sqlite_get_next_val(doctype_name: str, slug: str) -> int:
 	if not existing:
 		# Auto-created (un-declared) sequence, e.g. autoname naming: seed past any
 		# existing rows so emulated names never collide, and leave it unbounded.
-		next_val = _sqlite_seed_value(doctype_name)
-		db.sql(
-			f"INSERT INTO `{SQLITE_SEQUENCE_TABLE}` (name, current) VALUES (%s, %s)",
-			(sequence_name, next_val),
+		# The upsert makes a concurrent first-use increment the freshly-created
+		# row instead of colliding on the primary key.
+		row = db.sql(
+			f"INSERT INTO `{SQLITE_SEQUENCE_TABLE}` (name, current) VALUES (%s, %s) "
+			"ON CONFLICT(name) DO UPDATE SET current = current + increment RETURNING current",
+			(sequence_name, _sqlite_seed_value(doctype_name)),
 		)
-		return next_val
+		return row[0][0]
+
+	current, increment, min_value, max_value, cycle = existing[0]
+	if max_value is None:
+		# Unbounded row created concurrently between the statements above; the
+		# fast path missed it, so increment it atomically now.
+		return db.sql(
+			f"UPDATE `{SQLITE_SEQUENCE_TABLE}` SET current = current + increment "
+			"WHERE name = %s RETURNING current",
+			(sequence_name,),
+		)[0][0]
 
 	# Bounded sequence (max_value set): honour increment / max_value / cycle.
-	current, increment, min_value, max_value, cycle = existing[0]
 	next_val = current + increment
-	if max_value is not None and next_val > max_value:
+	if next_val > max_value:
 		if cycle:
 			next_val = min_value
 		else:
@@ -226,23 +240,16 @@ def _sqlite_get_next_val(doctype_name: str, slug: str) -> int:
 	return next_val
 
 
-def _sqlite_ensure_table() -> None:
-	db.sql_ddl(
-		f"CREATE TABLE IF NOT EXISTS `{SQLITE_SEQUENCE_TABLE}` ("
-		"name TEXT PRIMARY KEY, "
-		"current INTEGER NOT NULL, "
-		"increment INTEGER NOT NULL DEFAULT 1, "
-		"min_value INTEGER NOT NULL DEFAULT 1, "
-		"max_value INTEGER, "
-		"cycle INTEGER NOT NULL DEFAULT 0)"
-	)
-
-
 def _sqlite_seed_value(doctype_name: str) -> int:
 	# Seed past any rows that already exist so emulated names never collide with
 	# pre-existing ones (mirrors how create_missing_sequences seeds real ones).
-	max_name = db.sql(f"SELECT MAX(CAST(name AS INTEGER)) FROM `tab{doctype_name}`")[0][0]
-	return (max_name or 0) + 1
+	# Built via the query builder so the table name is safely quoted.
+	import frappe
+	from frappe.query_builder.functions import Max
+
+	table = frappe.qb.DocType(doctype_name)
+	max_name = frappe.qb.from_(table).select(Max(table.name)).run()[0][0]
+	return int(max_name or 0) + 1
 
 
 def _get_existing_sequences() -> set[str]:
