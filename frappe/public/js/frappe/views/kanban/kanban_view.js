@@ -282,6 +282,7 @@ frappe.views.KanbanView = class KanbanView extends frappe.views.ListView {
 			evicted = this.enforce_column_memory_cap(column_title, map, "top");
 			if (evicted) {
 				state.window_start += evicted;
+				state.last_backward_fetch_start = -1;
 			}
 		}
 
