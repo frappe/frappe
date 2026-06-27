@@ -82,7 +82,7 @@ class TestClearOldLogs(IntegrationTestCase):
 	def tearDown(self):
 		frappe.db.rollback()
 
-	def _session_with_run(self, *, age_days: int) -> str:
+	def _session_with_run(self, *, age_days: int) -> tuple[str, str, str]:
 		f = frappe.get_doc({"doctype": "File", "file_name": "f.txt", "content": "x", "is_private": 1}).insert(
 			ignore_permissions=True
 		)
@@ -95,10 +95,10 @@ class TestClearOldLogs(IntegrationTestCase):
 		).insert(ignore_permissions=True)
 		old = frappe.utils.add_days(frappe.utils.now(), -age_days)
 		frappe.db.set_value("AI Session", session.name, "modified", old, update_modified=False)
-		return session.name, run.name
+		return session.name, run.name, f.name
 
 	def test_old_session_and_linked_run_and_messages_are_purged(self):
-		old_session, old_run = self._session_with_run(age_days=100)
+		old_session, old_run, old_file = self._session_with_run(age_days=100)
 
 		AISession.clear_old_logs(days=30)
 
@@ -106,14 +106,16 @@ class TestClearOldLogs(IntegrationTestCase):
 		self.assertFalse(frappe.db.exists("AI Run", old_run))
 		self.assertEqual(frappe.db.count("AI Session Message", {"parent": old_session}), 0)
 		self.assertEqual(frappe.db.count("AI Session Attachment", {"parent": old_session}), 0)
+		self.assertFalse(frappe.db.exists("File", old_file))
 
 	def test_recent_session_is_kept(self):
-		recent_session, recent_run = self._session_with_run(age_days=1)
+		recent_session, recent_run, recent_file = self._session_with_run(age_days=1)
 
 		AISession.clear_old_logs(days=30)
 
 		self.assertTrue(frappe.db.exists("AI Session", recent_session))
 		self.assertTrue(frappe.db.exists("AI Run", recent_run))
+		self.assertTrue(frappe.db.exists("File", recent_file))
 
 
 class TestDeriveTitle(IntegrationTestCase):
