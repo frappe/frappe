@@ -162,9 +162,9 @@
 .icon-title{
     font-weight: var(--weight-semibold);
     font-size: var(--text-md);
-    overflow: hidden;
-	text-overflow: ellipsis;
-	white-space: nowrap;
+    overflow: visible;
+	text-overflow: unset;
+	white-space: normal;
     line-height: var(--desktop-icon-line-height);
 }
 .icon-subtitle{
