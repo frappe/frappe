@@ -3,7 +3,7 @@ msgstr ""
 "Project-Id-Version: frappe\n"
 "Report-Msgid-Bugs-To: developers@frappe.io\n"
 "POT-Creation-Date: 2026-06-24 16:34+0000\n"
-"PO-Revision-Date: 2026-06-24 20:32\n"
+"PO-Revision-Date: 2026-06-27 20:47\n"
 "Last-Translator: developers@frappe.io\n"
 "Language-Team: Uzbek\n"
 "MIME-Version: 1.0\n"
@@ -1292,7 +1292,7 @@ msgstr ""
 
 #: frappe/public/js/frappe/ui/naming_series.js:26
 msgid "Add Series Prefix"
-msgstr ""
+msgstr "Seriya prefiksini qo'shish"
 
 #. Label of the add_signature (Check) field in DocType 'Email Account'
 #: frappe/email/doctype/email_account/email_account.json
