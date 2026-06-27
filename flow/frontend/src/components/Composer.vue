@@ -27,8 +27,10 @@ const {
 	removeAttachment,
 } = useStore();
 
-const ACCEPT =
-	".pdf,.xlsx,.docx,.html,.htm,.txt,.text,.md,.markdown,.csv,.tsv,.log,.rst,.json,.yaml,.yml";
+// Backend (flow/boot.py) is the single source of truth for supported file types.
+const ACCEPT = computed(() =>
+	(frappe.boot.flow_supported_file_types || []).map((ext) => `.${ext}`).join(",")
+);
 
 const text = ref("");
 const el = ref(null);

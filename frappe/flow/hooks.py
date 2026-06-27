@@ -56,3 +56,5 @@ scheduler_events = {
 }
 
 after_migrate = ["flow.assistant.sync_builtin_assistant"]
+
+extend_bootinfo = "flow.boot.boot_session"
