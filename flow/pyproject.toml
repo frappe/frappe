@@ -11,6 +11,9 @@ dependencies = [
     "litellm<2,>=1.83.0",
     "lancedb<1,>=0.33",
     "python-docx<2,>=1.1",
+    "pdfplumber<1,>=0.11",
+    "rapidocr<4,>=3",
+    "onnxruntime<2,>=1.27",
 ]
 
 [build-system]
