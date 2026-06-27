@@ -9,6 +9,11 @@ frappe.ui.form.on("AI Knowledge Source", {
 			return;
 		}
 
+		frm.__chunking_baseline = {
+			chunk_size: frm.doc.chunk_size,
+			chunk_overlap: frm.doc.chunk_overlap,
+		};
+
 		frm.add_custom_button(__("Resync"), async () => {
 			await frm.call("resync");
 			frappe.show_alert({ message: __("Resync started"), indicator: "blue" });
@@ -21,6 +26,35 @@ frappe.ui.form.on("AI Knowledge Source", {
 				frappe.show_alert({ message: __("Reconcile started"), indicator: "blue" });
 			});
 		}
+	},
+
+	after_save(frm) {
+		const baseline = frm.__chunking_baseline;
+		if (!baseline || !frm.doc.chunk_count) {
+			return;
+		}
+		const changed =
+			baseline.chunk_size !== frm.doc.chunk_size ||
+			baseline.chunk_overlap !== frm.doc.chunk_overlap;
+		if (!changed) {
+			return;
+		}
+		frm.__chunking_baseline = {
+			chunk_size: frm.doc.chunk_size,
+			chunk_overlap: frm.doc.chunk_overlap,
+		};
+		frappe.confirm(
+			__(
+				"Chunk settings changed. The {0} existing chunks for this source will be deleted and rebuilt with the new settings. Re-process now?",
+				[frm.doc.chunk_count]
+			),
+			() => {
+				frm.call("resync", { rebuild: 1 }).then(() => {
+					frappe.show_alert({ message: __("Re-ingestion started"), indicator: "blue" });
+					frm.reload_doc();
+				});
+			}
+		);
 	},
 
 	source_type(frm) {

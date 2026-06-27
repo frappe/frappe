@@ -4,6 +4,7 @@
 import frappe
 from frappe import _
 from frappe.model.document import Document
+from frappe.utils import cint
 
 REQUIRED_INPUT = {
 	"Text": "content",
@@ -24,6 +25,8 @@ class AIKnowledgeSource(Document):
 
 		auto_sync: DF.Check
 		chunk_count: DF.Int
+		chunk_overlap: DF.Int
+		chunk_size: DF.Int
 		content: DF.LongText | None
 		content_fields: DF.SmallText | None
 		error_log: DF.LongText | None
@@ -39,6 +42,10 @@ class AIKnowledgeSource(Document):
 	# end: auto-generated types
 
 	def validate(self):
+		if self.is_new():
+			from flow.ai.doctype.ai_knowledge_settings.ai_knowledge_settings import require_embedding_model
+
+			require_embedding_model()
 		fieldname = REQUIRED_INPUT.get(self.source_type)
 		if fieldname and not self.get(fieldname):
 			frappe.throw(
@@ -52,6 +59,12 @@ class AIKnowledgeSource(Document):
 				_("Content Fields is required for a DocType source."),
 				frappe.MandatoryError,
 			)
+		self._validate_chunking()
+
+	def _validate_chunking(self):
+		"""0 inherits the global default. Only validate values set on the source itself."""
+		if self.chunk_size and self.chunk_overlap and cint(self.chunk_overlap) >= cint(self.chunk_size):
+			frappe.throw(_("Chunk Overlap must be smaller than Chunk Size."), title=_("Invalid Chunking"))
 
 	def after_insert(self):
 		if self.flags.skip_auto_ingest:
@@ -66,11 +79,13 @@ class AIKnowledgeSource(Document):
 		purge_source(self.name)
 
 	@frappe.whitelist()
-	def resync(self):
+	def resync(self, rebuild: bool = False):
+		"""rebuild forces a full re-chunk; used when chunk settings change and the
+		existing chunks are stale."""
 		from flow.knowledge.ingest import enqueue_ingestion
 
 		self.db_set("status", "Pending", update_modified=False)
-		enqueue_ingestion(self.name)
+		enqueue_ingestion(self.name, rebuild=bool(rebuild))
 
 	@frappe.whitelist()
 	def reconcile(self):

@@ -17,6 +17,10 @@
   "filters",
   "content_fields",
   "auto_sync",
+  "section_break_chunking",
+  "chunk_size",
+  "column_break_chunking",
+  "chunk_overlap",
   "section_break_status",
   "status",
   "column_break_status",
@@ -114,6 +118,32 @@
    "fieldname": "auto_sync",
    "fieldtype": "Check",
    "label": "Auto Sync"
+  },
+  {
+   "collapsible": 1,
+   "fieldname": "section_break_chunking",
+   "fieldtype": "Section Break",
+   "label": "Chunking"
+  },
+  {
+   "default": "0",
+   "description": "Characters per chunk for this source. Leave 0 to inherit the global default from AI Knowledge Settings.",
+   "fieldname": "chunk_size",
+   "fieldtype": "Int",
+   "label": "Chunk Size",
+   "non_negative": 1
+  },
+  {
+   "fieldname": "column_break_chunking",
+   "fieldtype": "Column Break"
+  },
+  {
+   "default": "0",
+   "description": "Characters shared between consecutive chunks. Leave 0 to inherit the global default.",
+   "fieldname": "chunk_overlap",
+   "fieldtype": "Int",
+   "label": "Chunk Overlap",
+   "non_negative": 1
   },
   {
    "fieldname": "section_break_status",

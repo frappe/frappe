@@ -689,6 +689,34 @@ class TestIngest(IntegrationTestCase):
 			).insert()
 		mock.assert_called_once_with(source.name)
 
+	def test_per_source_chunk_size_overrides_global(self):
+		content = "Wifi keeps dropping on the office network every afternoon. " * 4
+		default_source = self._make_source(content=content, title="Default Chunking")
+		self._ingest(default_source.name)
+		big_source = self._make_source(content=content, title="Big Chunking", chunk_size=400)
+		self._ingest(big_source.name)
+		self.assertGreater(len(self._chunks(default_source.name)), len(self._chunks(big_source.name)))
+
+	def test_per_source_overlap_must_be_smaller_than_size(self):
+		with self.assertRaisesRegex(frappe.ValidationError, "Chunk Overlap"):
+			self._make_source(content="x", chunk_size=100, chunk_overlap=100)
+
+	def test_knowledge_base_requires_embedding_model(self):
+		_set_settings(embedding_model="")
+		with self.assertRaisesRegex(frappe.ValidationError, "AI Knowledge Settings"):
+			frappe.get_doc({"doctype": "AI Knowledge Base", "title": "No Model KB"}).insert()
+
+	def test_source_requires_embedding_model(self):
+		_set_settings(embedding_model="")
+		with self.assertRaisesRegex(frappe.ValidationError, "AI Knowledge Settings"):
+			self._make_source(content="needs a model")
+
+	def test_resync_rebuild_enqueues_full_rebuild(self):
+		source = self._make_source(content="Reset your password from the account settings page. " * 4)
+		with patch("flow.knowledge.ingest.enqueue_ingestion") as mock:
+			source.resync(rebuild=True)
+		mock.assert_called_once_with(source.name, rebuild=True)
+
 
 class TestDoctypeSync(IntegrationTestCase):
 	def setUp(self):
@@ -1073,6 +1101,9 @@ class TestKnowledgeBuilder(IntegrationTestCase):
 
 
 class TestAgentKnowledge(IntegrationTestCase):
+	def setUp(self):
+		_set_settings(embedding_model=_make_model().name)
+
 	def tearDown(self):
 		frappe.db.rollback()
 

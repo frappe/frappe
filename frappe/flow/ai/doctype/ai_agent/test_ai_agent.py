@@ -125,6 +125,8 @@ class TestAIAgentKnowledgeSearch(IntegrationTestCase):
 	def setUp(self):
 		sync_builtin_tools()
 		self.model_doc = frappe.get_doc(_model()).insert()
+		frappe.db.set_single_value("AI Knowledge Settings", "embedding_model", self.model_doc.name)
+		frappe.clear_document_cache("AI Knowledge Settings", "AI Knowledge Settings")
 		self.kb = frappe.get_doc({"doctype": "AI Knowledge Base", "title": "Agent KB"}).insert()
 
 	def tearDown(self):

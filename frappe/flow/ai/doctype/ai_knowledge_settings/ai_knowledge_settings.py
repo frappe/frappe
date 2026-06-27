@@ -64,3 +64,13 @@ class AIKnowledgeSettings(Document):
 		from flow.knowledge.embedder import probe_dimension
 
 		self.embedding_dimension = probe_dimension(self.embedding_model)
+
+
+def require_embedding_model():
+	"""Knowledge ingestion needs an embedding model; block creating knowledge docs until one is set."""
+	settings = frappe.get_cached_doc("AI Knowledge Settings")
+	if not settings.embedding_model:
+		frappe.throw(
+			_("Set an embedding model in AI Knowledge Settings before adding knowledge bases or sources."),
+			title=_("AI Knowledge Settings Required"),
+		)
