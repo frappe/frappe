@@ -257,12 +257,14 @@ def _sqlite_get_next_val(doctype_name: str, slug: str) -> int:
 def _sqlite_seed_value(doctype_name: str) -> int:
 	# Seed past any rows that already exist so emulated names never collide with
 	# pre-existing ones (mirrors how create_missing_sequences seeds real ones).
-	# Built via the query builder so the table name is safely quoted.
+	# Cast to integer so a non-numeric legacy name (from import or an old naming
+	# scheme) doesn't break MAX; built via the query builder so the table name is
+	# safely quoted.
 	import frappe
-	from frappe.query_builder.functions import Max
+	from frappe.query_builder.functions import Cast_, Max
 
 	table = frappe.qb.DocType(doctype_name)
-	max_name = frappe.qb.from_(table).select(Max(table.name)).run()[0][0]
+	max_name = frappe.qb.from_(table).select(Max(Cast_(table.name, "integer"))).run()[0][0]
 	return int(max_name or 0) + 1
 
 
