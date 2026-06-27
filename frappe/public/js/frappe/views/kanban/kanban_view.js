@@ -310,6 +310,14 @@ frappe.views.KanbanView = class KanbanView extends frappe.views.ListView {
 		if (state) {
 			state.window_start = Math.max(0, state.window_start - added);
 			evicted = this.enforce_column_memory_cap(column_title, map, "bottom");
+			if (evicted) {
+				state.offset = Math.max(
+					state.window_start + state.loaded_names.length,
+					state.offset - evicted
+				);
+				state.loaded = state.offset;
+				state.last_prefetch_offset = -1;
+			}
 		}
 
 		this.data = Array.from(map.values());
@@ -353,7 +361,7 @@ frappe.views.KanbanView = class KanbanView extends frappe.views.ListView {
 	}
 
 	/** Keep pagination counts/names aligned after optimistic cross-column drag. */
-	on_kanban_card_moved(card_name, from_col, to_col) {
+	on_kanban_card_moved(card_name, from_col, to_col, old_index, new_index) {
 		if (!card_name || from_col === to_col) return;
 
 		const from_state = this.kanban_column_state[from_col];
@@ -364,14 +372,47 @@ frappe.views.KanbanView = class KanbanView extends frappe.views.ListView {
 			if (from_state.total_count != null) {
 				from_state.total_count = Math.max(0, from_state.total_count - 1);
 			}
+			if (old_index != null) {
+				if (old_index < from_state.window_start) {
+					from_state.window_start = Math.max(0, from_state.window_start - 1);
+				}
+				if (old_index < from_state.offset) {
+					from_state.loaded = Math.max(
+						from_state.window_start + from_state.loaded_names.length,
+						from_state.offset - 1
+					);
+					from_state.offset = from_state.loaded;
+				}
+			}
+			from_state.last_prefetch_offset = -1;
 		}
 		if (to_state) {
-			if (!to_state.loaded_names.includes(card_name)) {
+			const already_in_memory = to_state.loaded_names.includes(card_name);
+			const was_at_fetch_end =
+				to_state.total_count != null && to_state.loaded >= to_state.total_count;
+
+			if (!already_in_memory) {
 				to_state.loaded_names.push(card_name);
 			}
 			if (to_state.total_count != null) {
 				to_state.total_count += 1;
 			}
+			if (new_index != null) {
+				if (new_index <= to_state.window_start) {
+					to_state.window_start += 1;
+				}
+				if (new_index < to_state.offset) {
+					to_state.loaded += 1;
+					to_state.offset = to_state.loaded;
+				} else if (was_at_fetch_end) {
+					to_state.loaded = to_state.total_count;
+					to_state.offset = to_state.total_count;
+				}
+			} else if (was_at_fetch_end) {
+				to_state.loaded = to_state.total_count;
+				to_state.offset = to_state.total_count;
+			}
+			to_state.last_prefetch_offset = -1;
 		}
 	}
 
@@ -508,6 +549,16 @@ frappe.views.KanbanView = class KanbanView extends frappe.views.ListView {
 			});
 
 			const rows = this.parse_kanban_cards(message?.cards);
+
+			if (message?.total != null) {
+				state.total_count = message.total;
+				if (state.loaded > message.total) {
+					state.loaded = message.total;
+					state.offset = message.total;
+				}
+				state.last_prefetch_offset = -1;
+			}
+
 			if (!rows.length) return;
 
 			state.last_backward_fetch_start = fetch_start;

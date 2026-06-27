@@ -1094,7 +1094,9 @@ frappe.provide("frappe.views");
 								cur_list.on_kanban_card_moved?.(
 									card_name,
 									from_colname,
-									to_colname
+									to_colname,
+									old_index,
+									new_index
 								);
 							}
 							// Delay re-enabling so our own list_update / board events are ignored.
