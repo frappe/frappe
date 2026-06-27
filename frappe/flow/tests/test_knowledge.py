@@ -12,6 +12,7 @@ from flow.knowledge import Knowledge, attachment_store, store
 from flow.knowledge.chunker import chunk_text
 from flow.knowledge.embedder import embed_texts, probe_dimension
 from flow.knowledge.extract import (
+	_extract_by_extension,
 	_extract_docx,
 	_extract_html,
 	_extract_pdf,
@@ -520,6 +521,28 @@ class TestExtract(IntegrationTestCase):
 		buffer = io.BytesIO()
 		writer.write(buffer)
 		self.assertEqual(_extract_pdf(buffer.getvalue()), "")
+
+	def test_extract_image_file_via_ocr(self):
+		import io
+
+		from PIL import Image, ImageDraw
+
+		image = Image.new("RGB", (400, 120), "white")
+		ImageDraw.Draw(image).text((20, 45), "Hello World", fill="black")
+		buffer = io.BytesIO()
+		image.save(buffer, format="PNG")
+		self.assertIn("Hello", _extract_by_extension(buffer.getvalue(), "png"))
+
+	def test_extract_scanned_pdf_via_ocr(self):
+		import io
+
+		from PIL import Image, ImageDraw
+
+		image = Image.new("RGB", (600, 200), "white")
+		ImageDraw.Draw(image).text((30, 80), "Scanned Document", fill="black")
+		buffer = io.BytesIO()
+		image.save(buffer, format="PDF", resolution=100)
+		self.assertIn("Scanned", _extract_pdf(buffer.getvalue()))
 
 	def test_validate_public_url_rejects_non_http_scheme(self):
 		with self.assertRaisesRegex(frappe.ValidationError, "http"):
