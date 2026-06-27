@@ -41,6 +41,7 @@ frappe.ui.get_print_settings = function (
 			fieldname: "letter_head",
 			label: __("Letter Head"),
 			depends_on: "with_letter_head",
+			mandatory_depends_on: "eval: doc.with_letter_head",
 			options: "Letter Head",
 			default: letter_head || default_letter_head,
 			get_query: () => {
@@ -68,7 +69,6 @@ frappe.ui.get_print_settings = function (
 			get_query: () => ({
 				filters: {
 					print_format_for: "Report",
-					print_format_type: "JS",
 					report: frappe.query_report ? frappe.query_report.report_name : "",
 					disabled: 0,
 				},
@@ -82,7 +82,7 @@ frappe.ui.get_print_settings = function (
 			fieldtype: "Check",
 			fieldname: "include_filters",
 			depends_on: "eval: !doc.print_format",
-			default: 1,
+			default: 0,
 		});
 	}
 
