@@ -50,9 +50,11 @@ def create_sequence(
 		start = start_value or minv
 		current = start - increment
 		# Write the declared definition. On conflict we only adopt a row that is
-		# still implicit (declared = 0, e.g. one set_next_val/naming created): its
-		# definition is filled in while its counter is kept. An already-declared
-		# row is left untouched, so recreating a sequence never resets it.
+		# still implicit (declared = 0, e.g. one set_next_val/naming created): the
+		# declaration is authoritative, so it overwrites the placeholder counter and
+		# definition wholesale - a placeholder `current` was only meaningful for the
+		# default step, so keeping it would skew a custom increment. An
+		# already-declared row is left untouched, so recreating never resets it.
 		# Safe: f-string interpolates only the trusted SQLITE_SEQUENCE_TABLE constant.
 		# nosemgrep
 		db.sql(
@@ -60,8 +62,9 @@ def create_sequence(
 			"(name, current, increment, min_value, max_value, cycle, declared) "
 			"VALUES (%s, %s, %s, %s, %s, %s, 1) "
 			"ON CONFLICT(name) DO UPDATE SET "
-			"increment = excluded.increment, min_value = excluded.min_value, "
-			"max_value = excluded.max_value, cycle = excluded.cycle, declared = 1 "
+			"current = excluded.current, increment = excluded.increment, "
+			"min_value = excluded.min_value, max_value = excluded.max_value, "
+			"cycle = excluded.cycle, declared = 1 "
 			"WHERE declared = 0",
 			(sequence_name, current, increment, minv, maxv, 1 if cycle else 0),
 		)

@@ -73,16 +73,17 @@ class TestSequence(IntegrationTestCase):
 
 	def test_create_sequence_adopts_implicit_row(self):
 		# A row auto-created by set_next_val carries no real definition, so a later
-		# create_sequence must be able to declare its bounds (without losing the
-		# counter) instead of being ignored.
+		# create_sequence must be able to declare it instead of being ignored. The
+		# declaration is authoritative: a custom step starts from its own definition
+		# rather than skewing off the placeholder counter.
 		if frappe.db.db_type != "sqlite":
 			self.skipTest("implicit-row adoption is SQLite-specific")
 		seq_name = self.generate_sequence_name()
 		frappe.db.set_next_sequence_val(seq_name, 5, is_val_used=True)
-		frappe.db.create_sequence(seq_name, max_value=7, cycle=True, check_not_exists=True, temporary=True)
-		self.assertEqual(6, frappe.db.get_next_sequence_val(seq_name))
-		self.assertEqual(7, frappe.db.get_next_sequence_val(seq_name))
-		self.assertEqual(1, frappe.db.get_next_sequence_val(seq_name))  # cycled at the declared cap
+		frappe.db.create_sequence(seq_name, min_value=10, max_value=20, increment_by=5, temporary=True)
+		self.assertEqual(10, frappe.db.get_next_sequence_val(seq_name))
+		self.assertEqual(15, frappe.db.get_next_sequence_val(seq_name))
+		self.assertEqual(20, frappe.db.get_next_sequence_val(seq_name))
 
 	def test_autoincrement_naming_seeds_sequence(self):
 		# Naming an autoincrement doctype fetches a value before insert without a
