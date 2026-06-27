@@ -13,7 +13,7 @@ const { recentSessions, switchSession, newChat, fullscreen } = useStore();
 <template>
 	<header class="flex items-center gap-1.5 border-b border-outline-gray-1 px-3 py-2">
 		<BrandMark :size="18" />
-		<span class="text-sm font-medium text-ink-gray-9">{{ __("AI Assistant") }}</span>
+		<span class="text-sm font-medium text-ink-gray-9">{{ __("Flow") }}</span>
 		<span class="flex-1"></span>
 
 		<SessionsMenu :sessions="recentSessions" @select="switchSession" />

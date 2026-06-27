@@ -61,7 +61,7 @@ function submit() {
 	if (!canSend.value) return;
 	send(text.value);
 	text.value = "";
-	resize();
+	nextTick(resize);
 }
 
 function pickFiles() {
