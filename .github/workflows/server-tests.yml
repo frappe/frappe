@@ -145,8 +145,9 @@ jobs:
           python-version: '3.14'
           node-version: 24
           # SQLite is file-based and the targeted tests don't need the web/UI,
-          # so skip asset build, web and socketio to keep this leg fast.
-          build-assets: false
+          # so skip web and socketio to keep this leg fast. Assets must still be
+          # built: creating test records can render emails (welcome mail), which
+          # reads the built assets manifest.
           disable-web: true
           disable-socketio: true
           db-root-password: ${{ env.DB_ROOT_PASSWORD }}
