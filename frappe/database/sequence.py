@@ -227,7 +227,7 @@ def _sqlite_get_next_val(doctype_name: str, slug: str) -> int:
 		)
 		return row[0][0]
 
-	if existing[0][0] is None:
+	if existing[0][0] is None:  # pragma: no cover - only reachable under a concurrent first-use race
 		# Unbounded row created concurrently between the statements above; the
 		# fast path missed it, so increment it atomically now.
 		# Safe: f-string interpolates only the trusted SQLITE_SEQUENCE_TABLE constant.
