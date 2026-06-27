@@ -126,19 +126,18 @@ def set_next_val(
 ) -> None:
 	if db.db_type == "sqlite":
 		sequence_name = scrub(doctype_name + slug)
-		# Safe: f-string interpolates only the trusted SQLITE_SEQUENCE_TABLE constant.
-		# nosemgrep
-		row = db.sql(f"SELECT increment FROM `{SQLITE_SEQUENCE_TABLE}` WHERE name = %s", (sequence_name,))
-		increment = row[0][0] if row else 1
-		# Match SETVAL semantics: if next_val was already consumed, the following
-		# nextval returns next_val + increment; otherwise it returns next_val itself.
-		current = next_val if is_val_used else next_val - increment
+		# Like Postgres SETVAL, this only adjusts an existing sequence - it never
+		# creates one. Creating a row here would bake in default metadata and mask
+		# the real definition that create_sequence is responsible for. Match SETVAL
+		# semantics: if next_val was already consumed the next nextval returns
+		# next_val + increment, otherwise it returns next_val itself.
 		# Safe: f-string interpolates only the trusted SQLITE_SEQUENCE_TABLE constant.
 		# nosemgrep
 		db.sql(
-			f"INSERT INTO `{SQLITE_SEQUENCE_TABLE}` (name, current) VALUES (%s, %s) "
-			"ON CONFLICT(name) DO UPDATE SET current = excluded.current",
-			(sequence_name, current),
+			f"UPDATE `{SQLITE_SEQUENCE_TABLE}` "
+			"SET current = %s - (CASE WHEN %s THEN 0 ELSE increment END) "
+			"WHERE name = %s",
+			(next_val, 1 if is_val_used else 0, sequence_name),
 		)
 		return
 
