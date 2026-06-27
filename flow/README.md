@@ -9,6 +9,8 @@
 
 </div>
 
+<img width="1470" height="923" alt="image" src="https://github.com/user-attachments/assets/f097e271-47ff-4c97-9ef0-a3647959e8d4" />
+
 ---
 
 Flow puts an AI assistant inside your Frappe site. It knows your DocTypes, respects your permissions, and can operate your site in plain English — creating records, sending emails, building DocTypes, creating agents and tools, and setting up RAG chatbots.
