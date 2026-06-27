@@ -1101,6 +1101,9 @@ class TestKnowledgeBuilder(IntegrationTestCase):
 
 
 class TestAgentKnowledge(IntegrationTestCase):
+	def setUp(self):
+		_set_settings(embedding_model=_make_model().name)
+
 	def tearDown(self):
 		frappe.db.rollback()
 
