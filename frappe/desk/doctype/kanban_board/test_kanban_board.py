@@ -45,6 +45,7 @@ class TestKanbanBoard(IntegrationTestCase):
 				"reference_doctype": "ToDo",
 				"field_name": "status",
 				"private": 1,
+				"filters": frappe.as_json([["ToDo", "name", "in", cls.todos]]),
 				"columns": [
 					{
 						"column_name": "Open",
@@ -70,6 +71,7 @@ class TestKanbanBoard(IntegrationTestCase):
 
 	def setUp(self):
 		board = frappe.get_doc("Kanban Board", self.board_name)
+		board.filters = frappe.as_json([["ToDo", "name", "in", self.todos]])
 		board.columns[0].order = frappe.as_json(self.todos[:3])
 		board.columns[1].order = frappe.as_json(self.todos[3:])
 		board.save(ignore_permissions=True)

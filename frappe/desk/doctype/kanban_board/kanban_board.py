@@ -120,9 +120,15 @@ def merge_kanban_filters(board: Document, filters: list | None) -> list:
 
 
 def _kanban_filter_key(filt):
+	def _hashable(value):
+		if isinstance(value, list):
+			return tuple(value)
+		return value
+
 	if isinstance(filt, (list, tuple)):
-		return tuple(filt[:4]) if len(filt) >= 4 else tuple(filt)
-	return tuple(filt)
+		parts = list(filt[:4]) if len(filt) >= 4 else list(filt)
+		return tuple(_hashable(part) for part in parts)
+	return (_hashable(filt),)
 
 
 def column_filter(doctype: str, field_name: str, column_name: str, filters: list | None) -> list:
