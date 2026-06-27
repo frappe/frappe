@@ -3,6 +3,8 @@
 
 frappe.ui.form.on("AI Knowledge Source", {
 	refresh(frm) {
+		apply_file_restrictions(frm);
+
 		if (frm.is_new()) {
 			return;
 		}
@@ -20,4 +22,47 @@ frappe.ui.form.on("AI Knowledge Source", {
 			});
 		}
 	},
+
+	source_type(frm) {
+		apply_file_restrictions(frm);
+	},
 });
+
+// Formats the ingest pipeline can extract. Keep in sync with FILE_EXTENSIONS in
+// flow/knowledge/extract.py.
+const SUPPORTED_FILE_TYPES = [
+	".txt",
+	".text",
+	".md",
+	".markdown",
+	".csv",
+	".tsv",
+	".log",
+	".rst",
+	".json",
+	".yaml",
+	".yml",
+	".pdf",
+	".xlsx",
+	".docx",
+	".html",
+	".htm",
+	".png",
+	".jpg",
+	".jpeg",
+	".webp",
+	".bmp",
+	".tiff",
+	".tif",
+	".gif",
+];
+
+// Cap the File picker to the formats the ingest pipeline can actually extract.
+function apply_file_restrictions(frm) {
+	if (frm.doc.source_type !== "File") {
+		return;
+	}
+	frm.fields_dict.file.df.options = {
+		restrictions: { allowed_file_types: SUPPORTED_FILE_TYPES },
+	};
+}

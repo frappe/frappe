@@ -1,11 +1,7 @@
 # Copyright (c) 2026, Frappe Technologies and contributors
 # License: MIT. See LICENSE
 
-"""Turn an AI Knowledge Source into plain text, ready for chunking.
-
-Each source yields a list of records. Text/File/URL produce one; a DocType
-source produces one per matched document so each chunk can link back to its row.
-"""
+"""Turn an AI Knowledge Source into plain text, ready for chunking."""
 
 from __future__ import annotations
 
@@ -18,7 +14,10 @@ import frappe
 from frappe import _
 
 TEXT_EXTENSIONS = {"txt", "text", "md", "markdown", "csv", "tsv", "log", "rst", "json", "yaml", "yml"}
-FILE_EXTENSIONS = {"pdf", "xlsx", "docx", "html", "htm"} | TEXT_EXTENSIONS
+IMAGE_EXTENSIONS = {"png", "jpg", "jpeg", "webp", "bmp", "tiff", "tif", "gif"}
+FILE_EXTENSIONS = {"pdf", "xlsx", "docx", "html", "htm"} | TEXT_EXTENSIONS | IMAGE_EXTENSIONS
+
+OCR_DPI = 200
 
 CHILD_FIELDTYPES = {"Table", "Table MultiSelect"}
 HTML_FIELDTYPES = {"Text Editor"}
@@ -58,8 +57,7 @@ def _extract_file_source(source) -> list[ExtractedDoc]:
 
 
 def extract_file(file_doc) -> str:
-	"""Extract plain text from a File document by its extension. Reusable for any
-	caller (knowledge sources, chat attachments) that holds a File doc."""
+	"""Extract plain text from a File doc by extension. Usable by any caller that holds a File doc."""
 	extension = os.path.splitext(file_doc.file_name or file_doc.file_url or "")[1].lower().lstrip(".")
 	return _extract_by_extension(file_doc.get_content(), extension).strip()
 
@@ -135,19 +133,104 @@ def _extract_by_extension(content, extension: str) -> str:
 		return _extract_docx(_as_bytes(content))
 	if extension in ("html", "htm"):
 		return _extract_html(_as_text(content))
+	if extension in IMAGE_EXTENSIONS:
+		return _ocr_image(_as_bytes(content))
 	if extension in TEXT_EXTENSIONS:
 		return _as_text(content)
 	frappe.throw(_("Unsupported file format: .{0}").format(extension or "?"), title=_("Unsupported Format"))
 
 
 def _extract_pdf(data: bytes) -> str:
-	from pypdf import PdfReader
+	import pdfplumber
+	from pdfminer.pdfdocument import PDFPasswordIncorrect
 
-	reader = PdfReader(BytesIO(data))
-	if reader.is_encrypted and not reader.decrypt(""):
+	try:
+		with pdfplumber.open(BytesIO(data)) as pdf:
+			pages = [_extract_pdf_page(page) for page in pdf.pages]
+	except PDFPasswordIncorrect:
 		frappe.throw(_("PDF is password protected and cannot be read."), title=_("Cannot Read PDF"))
-	pages = [_clean_pdf_text(page.extract_text() or "") for page in reader.pages]
 	return "\n\n".join(page for page in pages if page)
+
+
+def _extract_pdf_page(page) -> str:
+	parts = []
+
+	tables = page.find_tables()
+	for table in tables:
+		markdown = _table_to_markdown(table.extract())
+		if markdown:
+			parts.append(markdown)
+
+	body = page
+	for table in tables:
+		body = body.outside_bbox(table.bbox)
+	prose = _clean_pdf_text(body.extract_text() or "")
+	if prose:
+		parts.append(prose)
+
+	# No text layer → raw scan; OCR the full page. Otherwise OCR every image region
+	# individually (logos, stamps, embedded scans). Duplicated text on searchable PDFs
+	# is acceptable; missing text is not.
+	if page.images and not parts:
+		parts.append(_ocr_image(_render_page_png(page)))
+	elif page.images:
+		for image in page.images:
+			text = _ocr_region(page, image)
+			if text:
+				parts.append(text)
+
+	return "\n\n".join(part for part in parts if part)
+
+
+def _table_to_markdown(table) -> str:
+	rows = [row for row in (table or []) if row]
+	if not rows:
+		return ""
+	lines = []
+	for i, row in enumerate(rows):
+		cells = [str(cell or "").replace("\n", " ").replace("|", "\\|").strip() for cell in row]
+		lines.append("| " + " | ".join(cells) + " |")
+		if i == 0:
+			lines.append("| " + " | ".join("---" for _ in cells) + " |")
+	return "\n".join(lines)
+
+
+def _ocr_region(page, image) -> str:
+	bbox = (
+		max(image["x0"], page.bbox[0]),
+		max(image["top"], page.bbox[1]),
+		min(image["x1"], page.bbox[2]),
+		min(image["bottom"], page.bbox[3]),
+	)
+	if bbox[2] <= bbox[0] or bbox[3] <= bbox[1]:
+		return ""
+	return _ocr_image(_render_page_png(page.crop(bbox)))
+
+
+def _render_page_png(page) -> bytes:
+	buffer = BytesIO()
+	page.to_image(resolution=OCR_DPI).original.save(buffer, format="PNG")
+	return buffer.getvalue()
+
+
+_ocr_engine_instance = None
+
+
+def _ocr_engine():
+	"""Lazily initialised singleton — RapidOCR model load is expensive."""
+	global _ocr_engine_instance
+	if _ocr_engine_instance is None:
+		from rapidocr import RapidOCR
+
+		_ocr_engine_instance = RapidOCR()
+	return _ocr_engine_instance
+
+
+def _ocr_image(data: bytes) -> str:
+	result = _ocr_engine()(data)
+	if not result.txts:
+		return ""
+	return "\n".join(result.txts)
 
 
 def _extract_xlsx(data: bytes) -> str:
@@ -207,7 +290,7 @@ def _as_text(content) -> str:
 
 
 def _clean_pdf_text(text: str) -> str:
-	"""Join single newlines (pypdf line-break artifacts) while keeping paragraph breaks."""
+	"""Join single newlines (line-break artifacts) while keeping paragraph breaks."""
 	text = re.sub(r"(?<!\n)[ \t]*\n[ \t]*(?!\n)", " ", text)
 	text = re.sub(r"[ \t]{2,}", " ", text)
 	return text.strip()
@@ -245,9 +328,7 @@ def _row_to_text(row: dict, fields: list[str], meta) -> str:
 
 
 def _render_rich_text(df, value: str) -> str:
-	"""Reduce rich-text fields to plain prose before indexing. HTML and Markdown
-	(including Code fields whose language is Markdown) are stripped of markup;
-	other fieldtypes pass through unchanged, so real code is never mangled."""
+	"""Strip HTML/Markdown markup to plain text; pass other fieldtypes through unchanged."""
 	if not df:
 		return value
 	if df.fieldtype in HTML_FIELDTYPES:
