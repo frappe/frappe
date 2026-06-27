@@ -17,6 +17,14 @@ export const loadHistory = () =>
 		limit: 15,
 	});
 
+export const searchSessions = (query) =>
+	getList("AI Session", {
+		filters: { owner: frappe.session.user, title: ["like", `%${query}%`] },
+		fields: ["name", "title", "creation"],
+		order_by: "creation desc",
+		limit: 20,
+	});
+
 export const getSession = (name) =>
 	frappe.xcall("frappe.client.get", { doctype: "AI Session", name });
 
