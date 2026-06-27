@@ -87,6 +87,7 @@ class AISession(Document):
 		for batch in frappe.utils.create_batch(sessions, 100):
 			frappe.db.delete("AI Run", {"session": ["in", batch]})
 			frappe.db.delete("AI Session Message", {"parent": ["in", batch]})
+			_delete_attachment_files(batch)
 			frappe.db.delete("AI Session Attachment", {"parent": ["in", batch]})
 			frappe.db.delete("AI Session", {"name": ["in", batch]})
 			_purge_attachment_chunks(batch)
@@ -357,6 +358,18 @@ class AISession(Document):
 			_("This session already has a run in progress."),
 			title=_("Run In Progress"),
 		)
+
+
+def _delete_attachment_files(sessions: list[str]) -> None:
+	"""Delete the uploaded File docs attached to these sessions. Per-doc (not bulk SQL)
+	so File.on_trash runs to remove the on-disk content, and best-effort so one failure
+	never aborts the purge."""
+	files = frappe.get_all("AI Session Attachment", filters={"parent": ["in", sessions]}, pluck="file")
+	for file in set(filter(None, files)):
+		try:
+			frappe.delete_doc("File", file, ignore_permissions=True, force=True, delete_permanently=True)
+		except Exception:
+			frappe.log_error(title="Chat attachment file cleanup failed")
 
 
 def _purge_attachment_chunks(session: str | list[str]) -> None:
