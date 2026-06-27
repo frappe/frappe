@@ -85,6 +85,14 @@
    "role": "System Manager",
    "share": 1,
    "write": 1
+  },
+  {
+   "create": 1,
+   "delete": 1,
+   "if_owner": 1,
+   "read": 1,
+   "role": "All",
+   "write": 1
   }
  ],
  "row_format": "Dynamic",
