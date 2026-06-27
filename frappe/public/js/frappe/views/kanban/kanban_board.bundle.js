@@ -780,6 +780,7 @@ frappe.provide("frappe.views");
 				sync_order(names) {
 					virt_state.ordered_names = names;
 					virt_state.total_cards = names.length;
+					column.order = JSON.stringify(names);
 					update_column_count(names.length);
 					// Keep sortable index helpers accurate while drag defers re-render.
 					if (virt_state.virtualization_disabled) {
@@ -885,10 +886,15 @@ frappe.provide("frappe.views");
 			measure_card_height();
 		}
 
+		function get_store_column() {
+			return store.state.columns.find((c) => c.title === column.title) || column;
+		}
+
 		function make_cards() {
 			const cards_index = store.state.cards_index;
-			filtered_cards = cards_index?.by_column[column.title] || [];
-			virt_state.ordered_names = get_ordered_names(column, cards_index);
+			const current_column = get_store_column();
+			filtered_cards = cards_index?.by_column[current_column.title] || [];
+			virt_state.ordered_names = get_ordered_names(current_column, cards_index);
 			virt_state.total_cards = virt_state.ordered_names.length;
 			update_column_count(virt_state.total_cards);
 

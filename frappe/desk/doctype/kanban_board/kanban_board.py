@@ -345,6 +345,7 @@ def publish_kanban_board_update(board):
 	frappe.publish_realtime(
 		"kanban_board_update",
 		{"board_name": board.name, "reference_doctype": board.reference_doctype},
+		doctype=board.reference_doctype,
 		after_commit=True,
 	)
 
