@@ -28,41 +28,14 @@ frappe.ui.form.on("AI Knowledge Source", {
 	},
 });
 
-// Formats the ingest pipeline can extract. Keep in sync with FILE_EXTENSIONS in
-// flow/knowledge/extract.py.
-const SUPPORTED_FILE_TYPES = [
-	".txt",
-	".text",
-	".md",
-	".markdown",
-	".csv",
-	".tsv",
-	".log",
-	".rst",
-	".json",
-	".yaml",
-	".yml",
-	".pdf",
-	".xlsx",
-	".docx",
-	".html",
-	".htm",
-	".png",
-	".jpg",
-	".jpeg",
-	".webp",
-	".bmp",
-	".tiff",
-	".tif",
-	".gif",
-];
-
 // Cap the File picker to the formats the ingest pipeline can actually extract.
+// Types come from frappe.boot
 function apply_file_restrictions(frm) {
 	if (frm.doc.source_type !== "File") {
 		return;
 	}
+	const types = (frappe.boot.flow_supported_file_types || []).map((ext) => `.${ext}`);
 	frm.fields_dict.file.df.options = {
-		restrictions: { allowed_file_types: SUPPORTED_FILE_TYPES },
+		restrictions: { allowed_file_types: types },
 	};
 }
