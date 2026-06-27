@@ -200,8 +200,7 @@ def _sqlite_get_next_val(doctype_name: str, slug: str) -> int:
 		return row[0][0]
 
 	existing = db.sql(
-		f"SELECT current, increment, min_value, max_value, cycle "
-		f"FROM `{SQLITE_SEQUENCE_TABLE}` WHERE name = %s",
+		f"SELECT max_value FROM `{SQLITE_SEQUENCE_TABLE}` WHERE name = %s",
 		(sequence_name,),
 	)
 	if not existing:
@@ -216,8 +215,7 @@ def _sqlite_get_next_val(doctype_name: str, slug: str) -> int:
 		)
 		return row[0][0]
 
-	current, increment, min_value, max_value, cycle = existing[0]
-	if max_value is None:
+	if existing[0][0] is None:
 		# Unbounded row created concurrently between the statements above; the
 		# fast path missed it, so increment it atomically now.
 		return db.sql(
@@ -226,18 +224,19 @@ def _sqlite_get_next_val(doctype_name: str, slug: str) -> int:
 			(sequence_name,),
 		)[0][0]
 
-	# Bounded sequence (max_value set): honour increment / max_value / cycle.
-	next_val = current + increment
-	if next_val > max_value:
-		if cycle:
-			next_val = min_value
-		else:
-			raise db.SequenceGeneratorLimitExceeded
-	db.sql(
-		f"UPDATE `{SQLITE_SEQUENCE_TABLE}` SET current = %s WHERE name = %s",
-		(next_val, sequence_name),
+	# Bounded sequence (max_value set): advance / cycle in one statement so the
+	# read-modify-write is atomic. The WHERE clause withholds the row when a
+	# non-cycling sequence would overflow, so RETURNING comes back empty and we
+	# raise instead of handing out a duplicate or out-of-range value.
+	row = db.sql(
+		f"UPDATE `{SQLITE_SEQUENCE_TABLE}` SET current = "
+		"CASE WHEN current + increment > max_value THEN min_value ELSE current + increment END "
+		"WHERE name = %s AND (current + increment <= max_value OR cycle) RETURNING current",
+		(sequence_name,),
 	)
-	return next_val
+	if not row:
+		raise db.SequenceGeneratorLimitExceeded
+	return row[0][0]
 
 
 def _sqlite_seed_value(doctype_name: str) -> int:
