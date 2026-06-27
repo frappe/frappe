@@ -393,13 +393,25 @@ frappe.views.KanbanView = class KanbanView extends frappe.views.ListView {
 				to_state.total_count != null && to_state.loaded >= to_state.total_count;
 
 			if (!already_in_memory) {
-				to_state.loaded_names.push(card_name);
+				if (new_index != null) {
+					if (
+						new_index >= to_state.window_start &&
+						new_index <= to_state.window_start + to_state.loaded_names.length
+					) {
+						const local_index = new_index - to_state.window_start;
+						to_state.loaded_names.splice(local_index, 0, card_name);
+					} else if (new_index > to_state.window_start + to_state.loaded_names.length) {
+						to_state.loaded_names.push(card_name);
+					}
+				} else {
+					to_state.loaded_names.push(card_name);
+				}
 			}
 			if (to_state.total_count != null) {
 				to_state.total_count += 1;
 			}
 			if (new_index != null) {
-				if (new_index <= to_state.window_start) {
+				if (new_index < to_state.window_start) {
 					to_state.window_start += 1;
 				}
 				if (new_index < to_state.offset) {
