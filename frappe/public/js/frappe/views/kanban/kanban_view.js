@@ -86,7 +86,8 @@ frappe.views.KanbanView = class KanbanView extends frappe.views.ListView {
 			this.card_meta = this.get_card_meta();
 			this.page_length = 0;
 			this.kanban_page_size = 50;
-			this.kanban_prefetch_trigger = 10;
+			this.kanban_prefetch_trigger = 25;
+			this.kanban_max_column_cards = 500;
 			this.kanban_column_state = {};
 
 			return frappe.run_serially([
@@ -185,19 +186,13 @@ frappe.views.KanbanView = class KanbanView extends frappe.views.ListView {
 	}
 
 	/**
-	 * Refresh Kanban with column-wise pagination: first page per column on initial load.
+	 * Refresh Kanban via server API: column totals + first page per column.
 	 */
 	refresh() {
 		this.freeze(true);
-		this._kanban_did_fetch = false;
 
 		return Promise.resolve(this.load_lib)
 			.then(() => this.refresh_kanban_pages())
-			.then(() => {
-				if (!this._kanban_did_fetch && this.get_active_kanban_columns().length) {
-					return this.fetch_all_cards_legacy();
-				}
-			})
 			.then(() => {
 				this.toggle_result_area();
 				this.before_render();
@@ -222,53 +217,202 @@ frappe.views.KanbanView = class KanbanView extends frappe.views.ListView {
 		return (this.board?.columns || []).filter((col) => col.status !== "Archived");
 	}
 
-	/** Parse saved column order safely (same rules as kanban_board.bundle.js). */
-	parse_column_order_names(column) {
-		if (!column?.order) return [];
-		try {
-			const order =
-				typeof column.order === "string" ? JSON.parse(column.order) : column.order;
-			return Array.isArray(order) ? order.filter(Boolean) : [];
-		} catch (e) {
-			return [];
-		}
-	}
-
 	build_column_state() {
 		const next = {};
 		this.get_active_kanban_columns().forEach((col) => {
-			const names = this.parse_column_order_names(col);
 			next[col.column_name] = {
-				all_names: names,
-				mode: names.length ? "order" : "query",
 				loaded: 0,
 				offset: 0,
-				total_count: names.length || null,
+				window_start: 0,
+				total_count: null,
 				inflight: false,
+				loaded_names: [],
+				last_prefetch_offset: -1,
+				last_backward_fetch_start: -1,
 			};
 		});
 		this.kanban_column_state = next;
 	}
 
-	get_column_total_count(column_title) {
-		const state = this.kanban_column_state[column_title];
-		if (!state) return 0;
-		return state.total_count ?? state.all_names?.length ?? state.loaded ?? 0;
+	/** Cards currently held in memory for a column (not the server total). */
+	get_column_memory_count(column_title) {
+		return this.kanban_column_state[column_title]?.loaded_names?.length || 0;
 	}
 
-	get_loaded_column_count(column_title) {
-		return this.kanban_column_state[column_title]?.loaded || 0;
+	get_column_total_count(column_title) {
+		return this.kanban_column_state[column_title]?.total_count ?? 0;
 	}
 
 	get_prefetch_trigger_distance() {
 		return this.kanban_prefetch_trigger;
 	}
 
-	get_column_ordered_names(column_title) {
+	/** Build API args using the same fields/filters as reportview.get. */
+	get_kanban_api_args(extra = {}) {
+		const args = { ...this.get_call_args().args };
+		args.board_name = this.board_name;
+		args.kanban_page_length = this.kanban_page_size;
+		delete args.start;
+		delete args.page_length;
+		return { ...args, ...extra };
+	}
+
+	parse_kanban_cards(cards) {
+		if (!cards) return [];
+		if (Array.isArray(cards)) return cards;
+		return frappe.utils.dict(cards.keys, cards.values);
+	}
+
+	/** Merge fetched rows at the end of a column window (scroll down). */
+	merge_kanban_cards_for_column(column_title, rows) {
+		if (!rows?.length) return 0;
+
 		const state = this.kanban_column_state[column_title];
-		if (!state) return null;
-		if (state.mode !== "order") return null;
-		return state.all_names.slice(0, state.loaded);
+		const map = new Map((this.data || []).map((d) => [d.name, d]));
+
+		rows.forEach((row) => {
+			map.set(row.name, row);
+			if (state && !state.loaded_names.includes(row.name)) {
+				state.loaded_names.push(row.name);
+			}
+		});
+
+		let evicted = 0;
+		if (state) {
+			evicted = this.enforce_column_memory_cap(column_title, map, "top");
+			if (evicted) {
+				state.window_start += evicted;
+			}
+		}
+
+		this.data = Array.from(map.values());
+		return evicted;
+	}
+
+	/** Merge fetched rows at the start of a column window (scroll up). */
+	prepend_kanban_cards_for_column(column_title, rows) {
+		if (!rows?.length) return 0;
+
+		const state = this.kanban_column_state[column_title];
+		const map = new Map((this.data || []).map((d) => [d.name, d]));
+		let added = 0;
+
+		for (let i = rows.length - 1; i >= 0; i--) {
+			const row = rows[i];
+			map.set(row.name, row);
+			if (state && !state.loaded_names.includes(row.name)) {
+				state.loaded_names.unshift(row.name);
+				added++;
+			}
+		}
+
+		let evicted = 0;
+		if (state) {
+			state.window_start = Math.max(0, state.window_start - added);
+			evicted = this.enforce_column_memory_cap(column_title, map, "bottom");
+		}
+
+		this.data = Array.from(map.values());
+		return evicted;
+	}
+
+	/** Drop cards beyond the per-column cap; evict from top or bottom of the memory window. */
+	enforce_column_memory_cap(column_title, data_map, edge = "top") {
+		const state = this.kanban_column_state[column_title];
+		const field_name = this.board?.field_name;
+		const max_cards = this.kanban_max_column_cards;
+		if (!state) return 0;
+
+		if (field_name) {
+			state.loaded_names = state.loaded_names.filter((name) => {
+				const doc = data_map.get(name);
+				return doc && doc[field_name] === column_title;
+			});
+		}
+
+		let evicted = 0;
+		while (state.loaded_names.length > max_cards) {
+			const to_evict = state.loaded_names.length - max_cards;
+			const safe_evict =
+				edge === "top"
+					? this.kanban?.get_column_safe_evict_count?.(column_title, to_evict) ??
+					  to_evict
+					: this.kanban?.get_column_safe_evict_from_bottom?.(column_title, to_evict) ??
+					  to_evict;
+			if (safe_evict <= 0) {
+				break;
+			}
+			for (let i = 0; i < safe_evict; i++) {
+				const evicted_name =
+					edge === "top" ? state.loaded_names.shift() : state.loaded_names.pop();
+				data_map.delete(evicted_name);
+				evicted++;
+			}
+		}
+		return evicted;
+	}
+
+	/** Keep pagination counts/names aligned after optimistic cross-column drag. */
+	on_kanban_card_moved(card_name, from_col, to_col) {
+		if (!card_name || from_col === to_col) return;
+
+		const from_state = this.kanban_column_state[from_col];
+		const to_state = this.kanban_column_state[to_col];
+
+		if (from_state) {
+			from_state.loaded_names = from_state.loaded_names.filter((name) => name !== card_name);
+			if (from_state.total_count != null) {
+				from_state.total_count = Math.max(0, from_state.total_count - 1);
+			}
+		}
+		if (to_state) {
+			if (!to_state.loaded_names.includes(card_name)) {
+				to_state.loaded_names.push(card_name);
+			}
+			if (to_state.total_count != null) {
+				to_state.total_count += 1;
+			}
+		}
+	}
+
+	can_prefetch_column_forward(column_title) {
+		const state = this.kanban_column_state[column_title];
+		if (!state || state.inflight) return false;
+		if (state.total_count !== null && state.loaded >= state.total_count) return false;
+		if (state.loaded_names.length < this.kanban_max_column_cards) return true;
+
+		const to_evict = state.loaded_names.length - this.kanban_max_column_cards + 1;
+		const safe_evict =
+			this.kanban?.get_column_safe_evict_count?.(column_title, to_evict) ?? to_evict;
+		return safe_evict > 0;
+	}
+
+	apply_kanban_column_result(column_title, { total, cards }) {
+		const state = this.kanban_column_state[column_title];
+		if (!state) return { rows: [], evicted: 0 };
+
+		const rows = this.parse_kanban_cards(cards);
+		if (total != null) {
+			state.total_count = total;
+		}
+
+		if (!rows.length) {
+			if (total != null) {
+				state.loaded = total;
+				state.offset = total;
+			}
+			return { rows: [], evicted: 0 };
+		}
+
+		state.loaded += rows.length;
+		state.offset = state.loaded;
+		if (total != null && rows.length < this.kanban_page_size) {
+			state.loaded = total;
+			state.offset = total;
+		}
+
+		const evicted = this.merge_kanban_cards_for_column(column_title, rows);
+		return { rows, evicted };
 	}
 
 	async refresh_kanban_pages() {
@@ -277,151 +421,106 @@ frappe.views.KanbanView = class KanbanView extends frappe.views.ListView {
 		}
 
 		this.build_column_state();
-		const initial_names = [];
-		const query_columns = [];
+		this.data = [];
 
-		Object.entries(this.kanban_column_state).forEach(([column_title, state]) => {
-			if (state.mode === "order") {
-				const take = Math.min(this.kanban_page_size, state.all_names.length);
-				state.loaded = take;
-				initial_names.push(...state.all_names.slice(0, take));
-			} else {
-				query_columns.push(column_title);
-			}
+		const { message } = await frappe.call({
+			method: "frappe.desk.doctype.kanban_board.kanban_board.get_kanban_board_data",
+			args: this.get_kanban_api_args(),
 		});
 
-		this.data = [];
-		await this.fetch_cards_by_names(initial_names);
-		await Promise.all(
-			query_columns.map((column_title) => this.prefetch_kanban_column(column_title))
-		);
-
-		// Order-mode columns still need total counts when only a page is loaded.
-		await Promise.all(
-			Object.entries(this.kanban_column_state)
-				.filter(([, state]) => state.mode === "order" && state.total_count === null)
-				.map(([column_title]) => this.ensure_column_total_count(column_title))
-		);
+		Object.entries(message?.columns || {}).forEach(([column_title, column_data]) => {
+			const state = this.kanban_column_state[column_title];
+			if (!state) return;
+			const rows = this.parse_kanban_cards(column_data.cards);
+			state.total_count = column_data.total ?? 0;
+			state.loaded = rows.length;
+			state.offset = rows.length;
+			state.window_start = 0;
+			state.loaded_names = [];
+			this.merge_kanban_cards_for_column(column_title, rows);
+		});
 	}
 
-	/** Full-board fetch used when paginated refresh did not run any request. */
-	async fetch_all_cards_legacy() {
-		const call_args = this.get_call_args();
-		call_args.args.start = 0;
-		call_args.args.page_length = 0;
-
-		const { message } = await frappe.call(call_args);
-		this._kanban_did_fetch = true;
-		const rows = Array.isArray(message)
-			? message
-			: frappe.utils.dict(message.keys, message.values);
-		this.data = rows || [];
-	}
-
-	async ensure_column_total_count(column_title) {
-		const state = this.kanban_column_state[column_title];
-		if (!state || state.total_count !== null) return;
-		state.total_count = await this.get_column_count(column_title);
-	}
-
-	async fetch_cards_by_names(names) {
-		const unique_names = [...new Set((names || []).filter(Boolean))];
-		if (!unique_names.length) return;
-
-		const call_args = this.get_call_args();
-		call_args.args.filters = (call_args.args.filters || []).concat([
-			[this.doctype, "name", "in", unique_names],
-		]);
-		call_args.args.start = 0;
-		call_args.args.page_length = 0;
-
-		const { message } = await frappe.call(call_args);
-		this._kanban_did_fetch = true;
-		const rows = Array.isArray(message)
-			? message
-			: frappe.utils.dict(message.keys, message.values);
-		if (!rows?.length) return;
-
-		const map = new Map((this.data || []).map((d) => [d.name, d]));
-		rows.forEach((row) => map.set(row.name, row));
-		this.data = Array.from(map.values());
-	}
-
-	/**
-	 * Load the next page for a single column when user nears end.
-	 */
+	/** Load the next page for a single column when the user nears the bottom. */
 	async prefetch_kanban_column(column_title) {
 		const state = this.kanban_column_state[column_title];
-		if (!state || state.inflight) {
+		if (!this.can_prefetch_column_forward(column_title)) {
 			return;
 		}
-		if (state.mode === "order" && state.loaded >= state.all_names.length) return;
-		if (
-			state.mode === "query" &&
-			state.total_count !== null &&
-			state.loaded >= state.total_count
-		)
+		if (state.last_prefetch_offset === state.offset) {
 			return;
+		}
 
 		state.inflight = true;
+		const fetch_offset = state.offset;
 
 		try {
-			if (state.mode === "order") {
-				const start = state.loaded;
-				const end = Math.min(start + this.kanban_page_size, state.all_names.length);
-				const names = state.all_names.slice(start, end);
-				await this.fetch_cards_by_names(names);
-				state.loaded = end;
-			} else {
-				const rows = await this.fetch_cards_for_column(
-					column_title,
-					state.offset,
-					this.kanban_page_size
-				);
-				state.offset += rows.length;
-				state.loaded = state.offset;
-				if (state.total_count === null) {
-					const count = await this.get_column_count(column_title);
-					state.total_count = count;
-				}
+			const { message } = await frappe.call({
+				method: "frappe.desk.doctype.kanban_board.kanban_board.get_kanban_column_page",
+				args: this.get_kanban_api_args({
+					column_name: column_title,
+					kanban_start: fetch_offset,
+				}),
+				freeze: false,
+			});
+			const { rows, evicted } = this.apply_kanban_column_result(column_title, message);
+			state.last_prefetch_offset = fetch_offset;
+
+			if (!rows.length) {
+				return;
 			}
 
 			if (this.kanban) {
-				this.kanban.update(this.data);
+				requestAnimationFrame(() => {
+					this.kanban.append_column_cards(rows, column_title, evicted, "top");
+				});
 			}
 		} finally {
 			state.inflight = false;
 		}
 	}
 
-	async fetch_cards_for_column(column_title, start, page_length) {
-		const call_args = this.get_call_args();
-		call_args.args.start = start;
-		call_args.args.page_length = page_length;
-		call_args.args.filters = (call_args.args.filters || []).concat([
-			[this.doctype, this.board.field_name, "=", column_title],
-		]);
+	/** Load the previous page when the user scrolls up into evicted territory. */
+	async prefetch_kanban_column_back(column_title) {
+		const state = this.kanban_column_state[column_title];
+		if (!state || state.inflight || state.window_start <= 0) {
+			return;
+		}
 
-		const { message } = await frappe.call(call_args);
-		this._kanban_did_fetch = true;
-		const rows = Array.isArray(message)
-			? message
-			: frappe.utils.dict(message.keys, message.values);
-		if (!rows?.length) return [];
+		const fetch_start = Math.max(0, state.window_start - this.kanban_page_size);
+		const page_length = state.window_start - fetch_start;
+		if (page_length <= 0) return;
+		if (state.last_backward_fetch_start === fetch_start) {
+			return;
+		}
 
-		const map = new Map((this.data || []).map((d) => [d.name, d]));
-		rows.forEach((row) => map.set(row.name, row));
-		this.data = Array.from(map.values());
-		return rows;
-	}
+		state.inflight = true;
 
-	async get_column_count(column_title) {
-		this._kanban_did_fetch = true;
-		return frappe.db.count(this.doctype, {
-			filters: (this.get_filters_for_args() || []).concat([
-				[this.doctype, this.board.field_name, "=", column_title],
-			]),
-		});
+		try {
+			const { message } = await frappe.call({
+				method: "frappe.desk.doctype.kanban_board.kanban_board.get_kanban_column_page",
+				args: this.get_kanban_api_args({
+					column_name: column_title,
+					kanban_start: fetch_start,
+					kanban_page_length: page_length,
+				}),
+				freeze: false,
+			});
+
+			const rows = this.parse_kanban_cards(message?.cards);
+			if (!rows.length) return;
+
+			state.last_backward_fetch_start = fetch_start;
+			const evicted = this.prepend_kanban_cards_for_column(column_title, rows);
+
+			if (this.kanban) {
+				requestAnimationFrame(() => {
+					this.kanban.append_column_cards(rows, column_title, evicted, "bottom");
+				});
+			}
+		} finally {
+			state.inflight = false;
+		}
 	}
 
 	setup_kanban_board_realtime() {
@@ -598,6 +697,7 @@ frappe.views.KanbanView = class KanbanView extends frappe.views.ListView {
 
 			this.board.filters_array = filters;
 			this.on_filter_change();
+			this.refresh();
 		});
 	}
 

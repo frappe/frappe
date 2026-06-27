@@ -3,11 +3,19 @@
 
 import frappe
 from frappe.desk.doctype.kanban_board.kanban_board import (
+	get_kanban_board_data,
 	get_kanban_column_order_and_index,
+	get_kanban_column_page,
 	update_order,
 	update_order_for_single_card,
 )
 from frappe.tests import IntegrationTestCase
+
+
+def _decompress_kanban_cards(cards):
+	if isinstance(cards, dict) and cards.get("keys"):
+		return [dict(zip(cards["keys"], values, strict=True)) for values in cards["values"]]
+	return cards or []
 
 
 class TestKanbanBoard(IntegrationTestCase):
@@ -148,3 +156,44 @@ class TestKanbanBoard(IntegrationTestCase):
 			frappe.get_doc("Kanban Board", self.board_name), "Open"
 		)
 		self.assertEqual(saved_order, reversed_open)
+
+	def test_get_kanban_board_data(self):
+		frappe.local.form_dict = frappe._dict(
+			{
+				"board_name": self.board_name,
+				"doctype": "ToDo",
+				"fields": '["name", "status", "description"]',
+				"filters": "[]",
+				"kanban_page_length": 50,
+			}
+		)
+
+		result = get_kanban_board_data()
+		open_data = result["columns"]["Open"]
+		closed_data = result["columns"]["Closed"]
+
+		self.assertEqual(open_data["total"], 3)
+		self.assertEqual(closed_data["total"], 1)
+		self.assertEqual(len(_decompress_kanban_cards(open_data["cards"])), 3)
+		self.assertEqual(len(_decompress_kanban_cards(closed_data["cards"])), 1)
+
+	def test_get_kanban_column_page(self):
+		frappe.local.form_dict = frappe._dict(
+			{
+				"board_name": self.board_name,
+				"column_name": "Open",
+				"doctype": "ToDo",
+				"fields": '["name", "status", "description"]',
+				"filters": "[]",
+				"kanban_start": 0,
+				"kanban_page_length": 2,
+			}
+		)
+
+		first_page = get_kanban_column_page()
+		self.assertEqual(first_page["total"], 3)
+		self.assertEqual(len(_decompress_kanban_cards(first_page["cards"])), 2)
+
+		frappe.local.form_dict["kanban_start"] = 2
+		second_page = get_kanban_column_page()
+		self.assertEqual(len(_decompress_kanban_cards(second_page["cards"])), 1)

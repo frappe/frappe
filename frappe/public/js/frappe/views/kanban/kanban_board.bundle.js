@@ -68,6 +68,23 @@ frappe.provide("frappe.views");
 					cards: _cards,
 				});
 			},
+			/** Merge new cards without clearing the prepared-card cache (pagination). */
+			merge_column_cards: function (context, { cards, keep_prepared_cache }) {
+				if (!cards?.length) return;
+				const map = new Map(context.state.cards.map((c) => [c.name, c]));
+				cards.forEach((card) => map.set(card.name, card));
+				context.commit("update_state", {
+					cards: Array.from(map.values()).uniqBy((card) => card.name),
+					keep_prepared_cache: !!keep_prepared_cache,
+				});
+			},
+			/** Replace store cards from list view data (after eviction / full column sync). */
+			sync_cards: function (context, { cards, keep_prepared_cache }) {
+				context.commit("update_state", {
+					cards: (cards || []).uniqBy((card) => card.name),
+					keep_prepared_cache: !!keep_prepared_cache,
+				});
+			},
 			add_column: function (context, col) {
 				if (frappe.model.can_create("Custom Field")) {
 					store.dispatch("update_column", { col, action: "add" });
@@ -392,6 +409,33 @@ frappe.provide("frappe.views");
 			}
 		};
 
+		/** Incrementally sync one column after pagination (full list data, not just new rows). */
+		self.append_column_cards = function (_cards, column_title, evicted_count, edge) {
+			if (!self.wrapper.find(".kanban").length) return;
+
+			const list = store.state.cur_list;
+			if (list?.data && (_cards?.length || evicted_count)) {
+				store.dispatch("sync_cards", {
+					cards: list.data,
+					keep_prepared_cache: true,
+				});
+			}
+			if (evicted_count) {
+				column_registry[column_title]?.on_cards_trimmed(evicted_count, edge || "top");
+			}
+			column_registry[column_title]?.refresh(false);
+		};
+
+		self.get_column_safe_evict_count = function (column_title, max_evict) {
+			return column_registry[column_title]?.get_safe_evict_count(max_evict) ?? max_evict;
+		};
+
+		self.get_column_safe_evict_from_bottom = function (column_title, max_evict) {
+			return (
+				column_registry[column_title]?.get_safe_evict_from_bottom(max_evict) ?? max_evict
+			);
+		};
+
 		/** Sync cards and saved column order from realtime (other browser / user). */
 		self.sync_from_realtime = function (cards, columns, changed_names) {
 			if (!self.wrapper.find(".kanban").length) return;
@@ -647,7 +691,7 @@ frappe.provide("frappe.views");
 		// Virtualization state
 		var virt_state = {
 			card_height: 108,
-			buffer_cards: 5,
+			buffer_cards: 8,
 			total_cards: 0,
 			virt_start: 0,
 			virt_end: 0,
@@ -666,8 +710,9 @@ frappe.provide("frappe.views");
 			// Paint column chrome first, then cards on the next frame.
 			requestAnimationFrame(() => make_cards());
 			store.watch(
-				(state, getters) => {
-					return state.cards;
+				(state) => {
+					const column_cards = state.cards_index?.by_column[column.title] || [];
+					return column_cards.map((card) => card.name).join("\u0001");
 				},
 				function () {
 					if (suppress_cards_watch) return;
@@ -684,6 +729,50 @@ frappe.provide("frappe.views");
 						virt_state.virt_end = -1;
 					}
 					make_cards();
+				},
+				get_safe_evict_count(max_evict) {
+					if (!max_evict) return 0;
+					const buffer = virt_state.buffer_cards;
+					const above_viewport = Math.max(0, virt_state.virt_start - buffer);
+					return Math.min(max_evict, above_viewport);
+				},
+				on_cards_trimmed(evicted_count, edge) {
+					if (!evicted_count) return;
+					const card_height = virt_state.card_height || 108;
+					if (edge === "bottom") {
+						virt_state.virt_end = Math.max(
+							virt_state.virt_start,
+							virt_state.virt_end - evicted_count
+						);
+						const scroll_top =
+							(self.$kanban_cards.scrollTop() || 0) + evicted_count * card_height;
+						virt_state.suppress_scroll_render = true;
+						self.$kanban_cards.scrollTop(scroll_top);
+					} else {
+						virt_state.virt_start = Math.max(0, virt_state.virt_start - evicted_count);
+						virt_state.virt_end = Math.max(
+							virt_state.virt_start,
+							virt_state.virt_end - evicted_count
+						);
+						const scroll_top = Math.max(
+							0,
+							(self.$kanban_cards.scrollTop() || 0) - evicted_count * card_height
+						);
+						virt_state.suppress_scroll_render = true;
+						self.$kanban_cards.scrollTop(scroll_top);
+					}
+					requestAnimationFrame(() => {
+						virt_state.suppress_scroll_render = false;
+					});
+				},
+				get_safe_evict_from_bottom(max_evict) {
+					if (!max_evict) return 0;
+					const buffer = virt_state.buffer_cards;
+					const below_viewport = Math.max(
+						0,
+						virt_state.total_cards - virt_state.virt_end - buffer
+					);
+					return Math.min(max_evict, below_viewport);
 				},
 				set_indicator(indicator) {
 					apply_column_indicator(self.$kanban_column, indicator);
@@ -714,6 +803,18 @@ frappe.provide("frappe.views");
 					}
 					virt_state.virt_start = -1;
 					virt_state.virt_end = -1;
+					render_virtual_cards(true);
+				},
+				/** Scroll virtual window so a card index is visible after drag-and-drop. */
+				scroll_to_card_index(card_index) {
+					if (card_index == null || card_index < 0) return;
+					if (!should_virtualize()) return;
+
+					const card_height = virt_state.card_height || 108;
+					const buffer = virt_state.buffer_cards;
+					virt_state.virt_start = -1;
+					virt_state.virt_end = -1;
+					self.$kanban_cards.scrollTop(Math.max(0, (card_index - buffer) * card_height));
 					render_virtual_cards(true);
 				},
 			};
@@ -888,7 +989,11 @@ frappe.provide("frappe.views");
 				virtualized: true,
 			});
 			self.$kanban_cards.scrollTop(scroll_top);
-			maybe_prefetch_more();
+			// Only prefetch on user scroll — not after programmatic re-renders (force=true).
+			if (!force) {
+				maybe_prefetch_more();
+				maybe_prefetch_backward();
+			}
 			requestAnimationFrame(() => {
 				virt_state.suppress_scroll_render = false;
 			});
@@ -897,9 +1002,26 @@ frappe.provide("frappe.views");
 		function maybe_prefetch_more() {
 			const list = store.state.cur_list;
 			if (!list?.prefetch_kanban_column) return;
-			const trigger = list.get_prefetch_trigger_distance?.() ?? 10;
-			if (virt_state.total_cards - virt_state.virt_end <= trigger) {
+			if (!list.can_prefetch_column_forward?.(column.title)) return;
+
+			const trigger = list.get_prefetch_trigger_distance?.() ?? 25;
+			const near_render_end = virt_state.total_cards - virt_state.virt_end <= trigger;
+
+			if (near_render_end) {
 				list.prefetch_kanban_column(column.title);
+			}
+		}
+
+		function maybe_prefetch_backward() {
+			const list = store.state.cur_list;
+			if (!list?.prefetch_kanban_column_back) return;
+
+			const col_state = list.kanban_column_state?.[column.title];
+			if (!col_state || col_state.inflight || col_state.window_start <= 0) return;
+
+			const trigger = list.get_prefetch_trigger_distance?.() ?? 25;
+			if (virt_state.virt_start <= trigger) {
+				list.prefetch_kanban_column_back(column.title);
 			}
 		}
 
@@ -962,12 +1084,27 @@ frappe.provide("frappe.views");
 						suppress_cards_watch = false;
 						if (cur_list) {
 							cur_list.disable_list_update = false;
+							if (from_colname !== to_colname) {
+								cur_list.on_kanban_card_moved?.(
+									card_name,
+									from_colname,
+									to_colname
+								);
+							}
 							// Delay re-enabling so our own list_update / board events are ignored.
 							setTimeout(() => {
 								cur_list.skip_kanban_realtime = false;
 							}, 1500);
 						}
 						enable_virtualization();
+
+						// Watch was suppressed during drag — re-render and show dropped card.
+						const affected =
+							from_colname === to_colname
+								? [from_colname]
+								: [from_colname, to_colname];
+						affected.forEach((col) => column_registry[col]?.refresh(true));
+						column_registry[to_colname]?.scroll_to_card_index?.(new_index);
 					};
 
 					if (request && request.fail) {
@@ -1639,17 +1776,6 @@ frappe.provide("frappe.views");
 
 	/** Ordered card names for a column using the pre-built index. */
 	function get_ordered_names(column, cards_index) {
-		const list = store.state.cur_list;
-		const loaded_names = list?.get_column_ordered_names?.(column.title);
-		if (Array.isArray(loaded_names) && loaded_names.length) {
-			const names_in_column = new Set(
-				(cards_index?.by_column[column.title] || []).map((card) => card.name)
-			);
-			const visible = loaded_names.filter((name) => names_in_column.has(name));
-			if (visible.length) {
-				return visible;
-			}
-		}
 		return get_column_display_order(column, cards_index);
 	}
 

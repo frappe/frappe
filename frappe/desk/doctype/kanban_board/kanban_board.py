@@ -6,6 +6,7 @@ import json
 import frappe
 from frappe import _
 from frappe.model.document import Document
+from frappe.utils import cint
 
 
 class KanbanBoard(Document):
@@ -75,6 +76,152 @@ def get_kanban_boards(doctype: str):
 		fields=["name", "filters", "reference_doctype", "private"],
 		filters={"reference_doctype": doctype},
 	)
+
+
+def get_kanban_reportview_args():
+	"""Parse reportview-style args from the request, excluding Kanban-specific params."""
+	from frappe.desk.reportview import clean_params, validate_args
+
+	data = frappe._dict(frappe.local.form_dict)
+	board_name = data.pop("board_name", None)
+	column_name = data.pop("column_name", None)
+	kanban_start = cint(data.pop("kanban_start", data.pop("start", 0)))
+	kanban_page_length = cint(data.pop("kanban_page_length", 50)) or 50
+
+	if not board_name:
+		frappe.throw(_("Board name is required"))
+
+	clean_params(data)
+	validate_args(data)
+	return board_name, column_name, kanban_start, kanban_page_length, data
+
+
+def get_kanban_board_context(board_name: str):
+	board = frappe.get_doc("Kanban Board", board_name)
+	frappe.has_permission(board.reference_doctype, "read", throw=True)
+	column_names = [col.column_name for col in board.columns if col.status != "Archived"]
+	return board, column_names
+
+
+def merge_kanban_filters(board: Document, filters: list | None) -> list:
+	merged = list(filters or [])
+	if not board.filters:
+		return merged
+
+	board_filters = frappe.parse_json(board.filters)
+	if not board_filters:
+		return merged
+
+	existing = {_kanban_filter_key(f) for f in merged}
+	for filt in board_filters:
+		if _kanban_filter_key(filt) not in existing:
+			merged.append(filt)
+	return merged
+
+
+def _kanban_filter_key(filt):
+	if isinstance(filt, (list, tuple)):
+		return tuple(filt[:4]) if len(filt) >= 4 else tuple(filt)
+	return tuple(filt)
+
+
+def column_filter(doctype: str, field_name: str, column_name: str, filters: list | None) -> list:
+	return [*(filters or []), [doctype, field_name, "=", column_name]]
+
+
+def fetch_kanban_column_cards(
+	reportview_args,
+	doctype: str,
+	field_name: str,
+	column_name: str,
+	start: int,
+	page_length: int,
+):
+	from frappe.desk.reportview import compress, execute
+
+	query_args = frappe._dict(reportview_args.copy())
+	query_args.start = cint(start)
+	query_args.page_length = cint(page_length)
+	query_args.filters = column_filter(doctype, field_name, column_name, query_args.filters)
+	data = execute(**query_args)
+	return compress(data, args=query_args)
+
+
+def get_kanban_column_counts(
+	doctype: str, field_name: str, filters: list | None, column_names: list[str]
+) -> dict[str, int]:
+	counts = {name: 0 for name in column_names}
+	if not column_names:
+		return counts
+
+	try:
+		rows = frappe.get_list(
+			doctype,
+			filters=filters,
+			group_by=field_name,
+			fields=[f"{field_name} as name", {"COUNT": "*", "as": "_count"}],
+			order_by=None,
+			limit=0,
+		)
+		for row in rows:
+			if row.name in counts:
+				counts[row.name] = cint(row.get("_count", 0))
+	except Exception:
+		for column_name in column_names:
+			counts[column_name] = frappe.db.count(
+				doctype,
+				filters=column_filter(doctype, field_name, column_name, filters),
+			)
+	return counts
+
+
+@frappe.whitelist()
+@frappe.read_only()
+def get_kanban_board_data():
+	"""Load column totals and the first page of cards for every active column."""
+	board_name, _, _, kanban_page_length, reportview_args = get_kanban_reportview_args()
+	board, column_names = get_kanban_board_context(board_name)
+	doctype = board.reference_doctype
+	field_name = board.field_name
+	filters = merge_kanban_filters(board, reportview_args.filters)
+	reportview_args.filters = filters
+
+	counts = get_kanban_column_counts(doctype, field_name, filters, column_names)
+	columns = {}
+
+	for column_name in column_names:
+		cards = fetch_kanban_column_cards(
+			reportview_args, doctype, field_name, column_name, 0, kanban_page_length
+		)
+		columns[column_name] = {"total": counts.get(column_name, 0), "cards": cards}
+
+	return {"columns": columns}
+
+
+@frappe.whitelist()
+@frappe.read_only()
+def get_kanban_column_page():
+	"""Load the next page of cards for a single column."""
+	board_name, column_name, kanban_start, kanban_page_length, reportview_args = get_kanban_reportview_args()
+	if not column_name:
+		frappe.throw(_("Column name is required"))
+
+	board, column_names = get_kanban_board_context(board_name)
+	if column_name not in column_names:
+		frappe.throw(_("Invalid column"))
+
+	doctype = board.reference_doctype
+	field_name = board.field_name
+	filters = merge_kanban_filters(board, reportview_args.filters)
+	reportview_args.filters = filters
+	col_filters = column_filter(doctype, field_name, column_name, filters)
+
+	cards = fetch_kanban_column_cards(
+		reportview_args, doctype, field_name, column_name, kanban_start, kanban_page_length
+	)
+	total = frappe.db.count(doctype, filters=col_filters)
+
+	return {"total": total, "cards": cards}
 
 
 @frappe.whitelist()
