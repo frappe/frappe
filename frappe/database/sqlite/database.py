@@ -339,6 +339,9 @@ class SQLiteDatabase(SQLiteExceptionUtil, Database):
 		# autoname:autoincrement doctypes. See frappe.database.sequence.
 		from frappe.database.sequence import SQLITE_SEQUENCE_TABLE
 
+		# `declared` is 1 for sequences defined via create_sequence and 0 for rows
+		# auto-created by naming/set_next_val; it lets create_sequence adopt an
+		# implicit row without ever overwriting an explicit definition.
 		self.sql_ddl(
 			f"""CREATE TABLE IF NOT EXISTS `{SQLITE_SEQUENCE_TABLE}` (
 			`name` TEXT PRIMARY KEY,
@@ -346,7 +349,8 @@ class SQLiteDatabase(SQLiteExceptionUtil, Database):
 			`increment` INTEGER NOT NULL DEFAULT 1,
 			`min_value` INTEGER NOT NULL DEFAULT 1,
 			`max_value` INTEGER,
-			`cycle` INTEGER NOT NULL DEFAULT 0
+			`cycle` INTEGER NOT NULL DEFAULT 0,
+			`declared` INTEGER NOT NULL DEFAULT 0
 			)"""
 		)
 

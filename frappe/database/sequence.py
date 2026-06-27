@@ -49,17 +49,20 @@ def create_sequence(
 		maxv = max_value or None
 		start = start_value or minv
 		current = start - increment
-		# check_not_exists leaves an existing definition (and its counter) fully
-		# untouched, like "CREATE SEQUENCE IF NOT EXISTS"; otherwise a duplicate
-		# raises, like a plain CREATE SEQUENCE. The columns carry defaults, so a
-		# row is always a complete definition - there is no partial row to patch.
-		verb = "INSERT OR IGNORE" if check_not_exists else "INSERT"
+		# Write the declared definition. On conflict we only adopt a row that is
+		# still implicit (declared = 0, e.g. one set_next_val/naming created): its
+		# definition is filled in while its counter is kept. An already-declared
+		# row is left untouched, so recreating a sequence never resets it.
 		# Safe: f-string interpolates only the trusted SQLITE_SEQUENCE_TABLE constant.
 		# nosemgrep
 		db.sql(
-			f"{verb} INTO `{SQLITE_SEQUENCE_TABLE}` "
-			"(name, current, increment, min_value, max_value, cycle) "
-			"VALUES (%s, %s, %s, %s, %s, %s)",
+			f"INSERT INTO `{SQLITE_SEQUENCE_TABLE}` "
+			"(name, current, increment, min_value, max_value, cycle, declared) "
+			"VALUES (%s, %s, %s, %s, %s, %s, 1) "
+			"ON CONFLICT(name) DO UPDATE SET "
+			"increment = excluded.increment, min_value = excluded.min_value, "
+			"max_value = excluded.max_value, cycle = excluded.cycle, declared = 1 "
+			"WHERE declared = 0",
 			(sequence_name, current, increment, minv, maxv, 1 if cycle else 0),
 		)
 		return sequence_name
@@ -126,18 +129,18 @@ def set_next_val(
 ) -> None:
 	if db.db_type == "sqlite":
 		sequence_name = scrub(doctype_name + slug)
-		# Like Postgres SETVAL, this only adjusts an existing sequence - it never
-		# creates one. Creating a row here would bake in default metadata and mask
-		# the real definition that create_sequence is responsible for. Match SETVAL
-		# semantics: if next_val was already consumed the next nextval returns
-		# next_val + increment, otherwise it returns next_val itself.
+		# Persist the value even if the sequence row doesn't exist yet (e.g. an
+		# explicit integer name on a brand-new autoincrement doctype): create it
+		# as an implicit row so a later create_sequence can still declare it. Match
+		# SETVAL semantics: if next_val was already consumed the next nextval
+		# returns next_val + increment, otherwise it returns next_val itself. A new
+		# implicit sequence has the default increment of 1.
 		# Safe: f-string interpolates only the trusted SQLITE_SEQUENCE_TABLE constant.
 		# nosemgrep
 		db.sql(
-			f"UPDATE `{SQLITE_SEQUENCE_TABLE}` "
-			"SET current = %s - (CASE WHEN %s THEN 0 ELSE increment END) "
-			"WHERE name = %s",
-			(next_val, 1 if is_val_used else 0, sequence_name),
+			f"INSERT INTO `{SQLITE_SEQUENCE_TABLE}` (name, current) VALUES (%s, %s) "
+			"ON CONFLICT(name) DO UPDATE SET current = %s - (CASE WHEN %s THEN 0 ELSE increment END)",
+			(sequence_name, next_val if is_val_used else next_val - 1, next_val, 1 if is_val_used else 0),
 		)
 		return
 

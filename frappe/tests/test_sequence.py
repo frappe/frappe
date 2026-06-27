@@ -61,6 +61,29 @@ class TestSequence(IntegrationTestCase):
 		self.assertEqual(2, frappe.db.get_next_sequence_val(seq_name))
 		self.assertEqual(1, frappe.db.get_next_sequence_val(seq_name))  # cycled, cap intact
 
+	def test_set_next_val_creates_missing_sequence(self):
+		# Setting a value before the sequence exists (e.g. an explicit integer name
+		# on a brand-new autoincrement doctype) must persist, so the next value
+		# continues after it instead of restarting and colliding.
+		if frappe.db.db_type != "sqlite":
+			self.skipTest("SETVAL requires an existing sequence on MariaDB/Postgres")
+		seq_name = self.generate_sequence_name()
+		frappe.db.set_next_sequence_val(seq_name, 50, is_val_used=True)
+		self.assertEqual(51, frappe.db.get_next_sequence_val(seq_name))
+
+	def test_create_sequence_adopts_implicit_row(self):
+		# A row auto-created by set_next_val carries no real definition, so a later
+		# create_sequence must be able to declare its bounds (without losing the
+		# counter) instead of being ignored.
+		if frappe.db.db_type != "sqlite":
+			self.skipTest("implicit-row adoption is SQLite-specific")
+		seq_name = self.generate_sequence_name()
+		frappe.db.set_next_sequence_val(seq_name, 5, is_val_used=True)
+		frappe.db.create_sequence(seq_name, max_value=7, cycle=True, check_not_exists=True, temporary=True)
+		self.assertEqual(6, frappe.db.get_next_sequence_val(seq_name))
+		self.assertEqual(7, frappe.db.get_next_sequence_val(seq_name))
+		self.assertEqual(1, frappe.db.get_next_sequence_val(seq_name))  # cycled at the declared cap
+
 	def test_autoincrement_naming_seeds_sequence(self):
 		# Naming an autoincrement doctype fetches a value before insert without a
 		# create_sequence call, so the sequence has to seed itself lazily from any
