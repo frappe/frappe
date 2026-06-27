@@ -51,6 +51,8 @@ def create_sequence(
 		current = start - increment
 		# Upsert the definition so it stays authoritative even over a bare row a
 		# prior set_next_val may have created; an existing counter is preserved.
+		# Safe: f-string interpolates only the trusted SQLITE_SEQUENCE_TABLE constant.
+		# nosemgrep
 		db.sql(
 			f"INSERT INTO `{SQLITE_SEQUENCE_TABLE}` "
 			"(name, current, increment, min_value, max_value, cycle) "
@@ -124,11 +126,15 @@ def set_next_val(
 ) -> None:
 	if db.db_type == "sqlite":
 		sequence_name = scrub(doctype_name + slug)
+		# Safe: f-string interpolates only the trusted SQLITE_SEQUENCE_TABLE constant.
+		# nosemgrep
 		row = db.sql(f"SELECT increment FROM `{SQLITE_SEQUENCE_TABLE}` WHERE name = %s", (sequence_name,))
 		increment = row[0][0] if row else 1
 		# Match SETVAL semantics: if next_val was already consumed, the following
 		# nextval returns next_val + increment; otherwise it returns next_val itself.
 		current = next_val if is_val_used else next_val - increment
+		# Safe: f-string interpolates only the trusted SQLITE_SEQUENCE_TABLE constant.
+		# nosemgrep
 		db.sql(
 			f"INSERT INTO `{SQLITE_SEQUENCE_TABLE}` (name, current) VALUES (%s, %s) "
 			"ON CONFLICT(name) DO UPDATE SET current = excluded.current",
@@ -191,6 +197,8 @@ def _sqlite_get_next_val(doctype_name: str, slug: str) -> int:
 	# sequence): the read-modify-write happens as one statement under SQLite's
 	# write lock, so concurrent callers can never be handed the same value.
 	# Requires SQLite >= 3.35 for RETURNING, well below any version frappe targets.
+	# Safe: f-string interpolates only the trusted SQLITE_SEQUENCE_TABLE constant.
+	# nosemgrep
 	row = db.sql(
 		f"UPDATE `{SQLITE_SEQUENCE_TABLE}` SET current = current + increment "
 		"WHERE name = %s AND max_value IS NULL RETURNING current",
@@ -199,6 +207,8 @@ def _sqlite_get_next_val(doctype_name: str, slug: str) -> int:
 	if row:
 		return row[0][0]
 
+	# Safe: f-string interpolates only the trusted SQLITE_SEQUENCE_TABLE constant.
+	# nosemgrep
 	existing = db.sql(
 		f"SELECT max_value FROM `{SQLITE_SEQUENCE_TABLE}` WHERE name = %s",
 		(sequence_name,),
@@ -208,6 +218,8 @@ def _sqlite_get_next_val(doctype_name: str, slug: str) -> int:
 		# existing rows so emulated names never collide, and leave it unbounded.
 		# The upsert makes a concurrent first-use increment the freshly-created
 		# row instead of colliding on the primary key.
+		# Safe: f-string interpolates only the trusted SQLITE_SEQUENCE_TABLE constant.
+		# nosemgrep
 		row = db.sql(
 			f"INSERT INTO `{SQLITE_SEQUENCE_TABLE}` (name, current) VALUES (%s, %s) "
 			"ON CONFLICT(name) DO UPDATE SET current = current + increment RETURNING current",
@@ -218,6 +230,8 @@ def _sqlite_get_next_val(doctype_name: str, slug: str) -> int:
 	if existing[0][0] is None:
 		# Unbounded row created concurrently between the statements above; the
 		# fast path missed it, so increment it atomically now.
+		# Safe: f-string interpolates only the trusted SQLITE_SEQUENCE_TABLE constant.
+		# nosemgrep
 		return db.sql(
 			f"UPDATE `{SQLITE_SEQUENCE_TABLE}` SET current = current + increment "
 			"WHERE name = %s RETURNING current",
@@ -228,6 +242,8 @@ def _sqlite_get_next_val(doctype_name: str, slug: str) -> int:
 	# read-modify-write is atomic. The WHERE clause withholds the row when a
 	# non-cycling sequence would overflow, so RETURNING comes back empty and we
 	# raise instead of handing out a duplicate or out-of-range value.
+	# Safe: f-string interpolates only the trusted SQLITE_SEQUENCE_TABLE constant.
+	# nosemgrep
 	row = db.sql(
 		f"UPDATE `{SQLITE_SEQUENCE_TABLE}` SET current = "
 		"CASE WHEN current + increment > max_value THEN min_value ELSE current + increment END "
