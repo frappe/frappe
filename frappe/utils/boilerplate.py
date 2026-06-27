@@ -410,6 +410,10 @@ app_description = "{app_description}"
 app_email = "{app_email}"
 app_license = "{app_license}"
 
+# Send non-GET requests for this app's endpoints as native `application/json`
+# bodies instead of form-encoded, per-key JSON-stringified values.
+use_json_request_body = True
+
 # Apps
 # ------------------
 

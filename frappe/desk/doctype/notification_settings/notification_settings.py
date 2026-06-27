@@ -17,8 +17,12 @@ class NotificationSettings(Document):
 		from frappe.desk.doctype.notification_subscribed_document.notification_subscribed_document import (
 			NotificationSubscribedDocument,
 		)
+		from frappe.desk.doctype.notification_type_preference.notification_type_preference import (
+			NotificationTypePreference,
+		)
 		from frappe.types import DF
 
+		email_notification_types: DF.TableMultiSelect[NotificationTypePreference]
 		enable_email_assignment: DF.Check
 		enable_email_event_reminders: DF.Check
 		enable_email_mention: DF.Check
@@ -51,34 +55,80 @@ def is_email_notifications_enabled(user):
 	return enabled
 
 
-def is_email_notifications_enabled_for_type(user, notification_type):
+def is_email_enabled_for_feature(user, fieldname):
+	"""Per-feature email toggle (e.g. event reminders, thread emails on assigned docs).
+
+	These are NOT Notification Types — they gate emails for features that have no in-app
+	notification, so they keep their own Notification Settings checkbox instead of the
+	`email_notification_types` allow-list. Permissive default (True) when unset, mirroring
+	the original behaviour before the allow-list was introduced.
+	"""
 	if not is_email_notifications_enabled(user):
 		return False
 
-	if notification_type == "Alert":
+	enabled = frappe.db.get_value("Notification Settings", user, fieldname, ignore=True)
+	return True if enabled is None else enabled
+
+
+def is_email_notifications_enabled_for_type(user, notification_type):
+	"""Whether `user` should be emailed for a given registered Notification Type.
+
+	`notification_type` must be a `Notification Type` name (e.g. "Mention"). For per-feature
+	email toggles that are not Notification Types (event reminders, thread emails), use
+	`is_email_enabled_for_feature` instead — they are not in the allow-list table and would
+	always read as disabled here.
+	"""
+	from frappe.desk.doctype.notification_log.notification_log import get_skip_email_types
+
+	if not is_email_notifications_enabled(user):
 		return False
 
-	fieldname = "enable_email_" + frappe.scrub(notification_type)
-	# A blank or unknown notification_type maps to a non-existent column (e.g. "enable_email_").
-	# Besides being a pointless lookup, on postgres the failed query aborts the surrounding
-	# transaction (MariaDB silently tolerates it via `ignore`), which then breaks unrelated work
-	# in the same request -- e.g. a Notification Log created during a background job. Skip it and
-	# fall through to the "enabled by default" behaviour.
-	if not frappe.get_meta("Notification Settings").has_field(fieldname):
+	# Types whose log never emails (e.g. "Alert" — the Notification rule owns email delivery).
+	if notification_type in get_skip_email_types():
+		return False
+
+	try:
+		settings = frappe.get_cached_doc("Notification Settings", user)
+	except frappe.DoesNotExistError:
+		frappe.clear_last_message()
 		return True
 
-	enabled = frappe.db.get_value("Notification Settings", user, fieldname, ignore=True)
-	if enabled is None:
-		return True
-
-	return enabled
+	# Per-type email preference is an explicit allow-list: a type is emailed only if the user
+	# has selected it. An empty table therefore means "email me for nothing" — the user opted
+	# out of every type. New users are seeded with the default types at creation, and the v16
+	# backfill seeds existing users, so an empty table is always a deliberate choice and never
+	# a missing migration.
+	return any(row.notification_type == notification_type for row in settings.email_notification_types)
 
 
 def create_notification_settings(user):
 	if not frappe.db.exists("Notification Settings", user):
 		_doc = frappe.new_doc("Notification Settings")
 		_doc.name = user
+		for notification_type in get_default_email_notification_types():
+			_doc.append("email_notification_types", {"notification_type": notification_type})
 		_doc.insert(ignore_permissions=True)
+
+
+def get_default_email_notification_types() -> list[str]:
+	"""Notification Types a new user gets emails for by default (opt-out model).
+
+	All enabled types except those that never email (e.g. "Alert").
+	"""
+	from frappe.desk.doctype.notification_log.notification_log import get_skip_email_types
+
+	skip = get_skip_email_types()
+	return [
+		name
+		for name in frappe.get_all("Notification Type", filters={"enabled": 1}, pluck="name")
+		if name not in skip
+	]
+
+
+@frappe.whitelist()
+def get_emailable_notification_types() -> list[str]:
+	"""All enabled Notification Types, used to render the email-types checkbox grid."""
+	return frappe.get_all("Notification Type", filters={"enabled": 1}, pluck="name")
 
 
 def toggle_notifications(user: str, enable: bool = False, ignore_permissions=False):

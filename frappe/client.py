@@ -1,6 +1,5 @@
 # Copyright (c) 2015, Frappe Technologies Pvt. Ltd. and Contributors
 # License: MIT. See LICENSE
-import json
 import os
 from typing import TYPE_CHECKING, Any
 
@@ -189,18 +188,21 @@ def set_value(doctype: str, name: str | int, fieldname: str | dict[str, Any], va
 	:param fieldname: fieldname string or JSON / dict with key value pair
 	:param value: value if fieldname is JSON / dict"""
 
-	if fieldname in (frappe.model.default_fields + frappe.model.child_table_fields):
-		frappe.throw(_("Cannot edit standard fields"))
-
-	if not value:
+	values = {}
+	if value is None:
 		values = fieldname
 		if isinstance(fieldname, str):
 			try:
-				values = json.loads(fieldname)
+				values = frappe.parse_json(fieldname)
 			except ValueError:
 				values = {fieldname: ""}
 	else:
 		values = {fieldname: value}
+
+	forbidden = set(frappe.model.default_fields + frappe.model.child_table_fields)
+	for field in values:
+		if field in forbidden:
+			frappe.throw(_("Cannot edit standard fields"))
 
 	# check for child table doctype
 	if not frappe.get_meta(doctype).istable:
@@ -222,8 +224,7 @@ def insert(doc: str | dict[str, Any] | None = None):
 	"""Insert a document
 
 	:param doc: JSON or dict object to be inserted"""
-	if isinstance(doc, str):
-		doc = json.loads(doc)
+	doc = frappe.parse_json(doc)
 
 	return insert_doc(doc).as_dict()
 
@@ -233,8 +234,7 @@ def insert_many(docs: str | list[dict[str, Any]] | None = None):
 	"""Insert multiple documents
 
 	:param docs: JSON or list of dict objects to be inserted in one request"""
-	if isinstance(docs, str):
-		docs = json.loads(docs)
+	docs = frappe.parse_json(docs)
 
 	if len(docs) > 200:
 		frappe.throw(_("Only 200 inserts allowed in one request"))
@@ -247,8 +247,7 @@ def save(doc: str | dict[str, Any]):
 	"""Update (save) an existing document
 
 	:param doc: JSON or dict object with the properties of the document to be updated"""
-	if isinstance(doc, str):
-		doc = json.loads(doc)
+	doc = frappe.parse_json(doc)
 
 	doc = frappe.get_doc(doc)
 	doc.save()
@@ -272,8 +271,7 @@ def submit(doc: str | dict[str, Any]):
 	"""Submit a document
 
 	:param doc: JSON or dict object to be submitted remotely"""
-	if isinstance(doc, str):
-		doc = json.loads(doc)
+	doc = frappe.parse_json(doc)
 
 	doc = frappe.get_doc(doc)
 	doc.submit()
@@ -303,11 +301,11 @@ def delete(doctype: str, name: str | int):
 
 
 @frappe.whitelist(methods=["POST", "PUT"])
-def bulk_update(docs: str):
+def bulk_update(docs: str | list):
 	"""Bulk update documents
 
 	:param docs: JSON list of documents to be updated remotely. Each document must have `docname` property"""
-	docs = json.loads(docs)
+	docs = frappe.parse_json(docs)
 	failed_docs = []
 	for doc in docs:
 		doc.pop("flags", None)

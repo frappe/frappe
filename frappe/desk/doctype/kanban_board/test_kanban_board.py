@@ -2,6 +2,7 @@
 # License: MIT. See LICENSE
 
 import frappe
+from frappe.desk.doctype.kanban_board import kanban_board as kb
 from frappe.desk.doctype.kanban_board.kanban_board import (
 	get_kanban_board_data,
 	get_kanban_column_order_and_index,
@@ -197,3 +198,23 @@ class TestKanbanBoard(IntegrationTestCase):
 		frappe.local.form_dict["kanban_start"] = 2
 		second_page = get_kanban_column_page()
 		self.assertEqual(len(_decompress_kanban_cards(second_page["cards"])), 1)
+
+
+class TestKanbanBoardNativePayloads(IntegrationTestCase):
+	def setUp(self):
+		self.board = kb.quick_kanban_board("ToDo", frappe.generate_hash(length=10), "status")
+
+	def tearDown(self):
+		frappe.delete_doc("Kanban Board", self.board.name, force=True)
+
+	def test_endpoints_accept_native_payloads(self):
+		# update_column_order with a native list (frappe.parse_json passthrough)
+		kb.update_column_order(self.board.name, [c.column_name for c in self.board.columns])
+
+		# save_settings with a native dict
+		resp = kb.save_settings(self.board.name, {"fields": [], "show_labels": 0})
+		self.assertEqual(resp["doctype"], "Kanban Board")
+
+		# update_order with a native dict
+		_board, updated_cards = kb.update_order(self.board.name, {})
+		self.assertEqual(updated_cards, [])

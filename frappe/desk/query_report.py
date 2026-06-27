@@ -130,7 +130,7 @@ def generate_report_result(
 	if isinstance(filters, dict) and filters.get("translate_data"):
 		result = translate_report_data(result, has_total_row)
 
-	return {
+	return_dict = {
 		"result": result,
 		"columns": columns,
 		"message": message,
@@ -140,6 +140,24 @@ def generate_report_result(
 		"status": None,
 		"execution_time": frappe.cache.hget("report_execution_time", report.name) or 0,
 	}
+
+	if report.synced_report and report.doctype_to_sync:
+		if latest_sync := frappe.db.get_all(
+			"DuckDB Sync",
+			filters={"doc_type": report.doctype_to_sync[0].doc_type, "docstatus": 1},
+			fields=["creation"],
+			pluck="creation",
+			order_by="creation desc",
+			limit=1,
+		):
+			return_dict.update(
+				{
+					"synced_report": True,
+					"synced_at": latest_sync[0],
+				}
+			)
+
+	return return_dict
 
 
 def normalize_result(result, columns):
@@ -388,6 +406,8 @@ def _export_query(form_params, csv_params, populate_response=True):
 
 	if isinstance(visible_idx, str):
 		visible_idx = json.loads(visible_idx)
+	elif not isinstance(visible_idx, list):
+		visible_idx = []
 
 	data = run(
 		report_name,
@@ -810,7 +830,7 @@ def get_data_for_custom_report(columns, result):
 
 
 @frappe.whitelist()
-def save_report(reference_report: str, report_name: str, columns: str, filters: str):
+def save_report(reference_report: str, report_name: str, columns: str | list, filters: str | list | dict):
 	report_doc = get_report_doc(reference_report)
 
 	docname = frappe.db.exists(
@@ -825,8 +845,8 @@ def save_report(reference_report: str, report_name: str, columns: str, filters: 
 	if docname:
 		report = frappe.get_doc("Report", docname)
 		existing_jd = json.loads(report.json)
-		existing_jd["columns"] = json.loads(columns)
-		existing_jd["filters"] = json.loads(filters)
+		existing_jd["columns"] = frappe.parse_json(columns)
+		existing_jd["filters"] = frappe.parse_json(filters)
 		report.update({"json": json.dumps(existing_jd, separators=(",", ":"))})
 		report.save()
 		frappe.msgprint(_("Report updated successfully"))
@@ -837,7 +857,10 @@ def save_report(reference_report: str, report_name: str, columns: str, filters: 
 			{
 				"doctype": "Report",
 				"report_name": report_name,
-				"json": f'{{"columns":{columns},"filters":{filters}}}',
+				"json": json.dumps(
+					{"columns": frappe.parse_json(columns), "filters": frappe.parse_json(filters)},
+					separators=(",", ":"),
+				),
 				"ref_doctype": report_doc.ref_doctype,
 				"is_standard": "No",
 				"report_type": "Custom Report",

@@ -86,7 +86,13 @@ def capture_screenshot(
 			safe_execute(session and session.disconnect)
 			generator.remove_browser(browser_id)
 	except Exception:
-		generator._close_browser()  # crashed Chrome → drop the poisoned singleton
+		# Only reset the singleton when the local Chrome process has actually exited.
+		# - proc is None: external chromium_websocket_url is in use — no local process
+		#   to check; transient network errors must not reset the singleton.
+		# - proc.poll() is None: local process is still running — error is application-level.
+		proc = generator._chromium_process
+		if proc is not None and proc.poll() is not None:
+			generator._close_browser()
 		raise
 
 

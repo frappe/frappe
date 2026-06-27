@@ -20,11 +20,11 @@ export default class LayoutDialog {
 		const is_edit = Boolean(this.layout);
 		const fields = [
 			{
-				fieldname: "layout_name",
+				fieldname: "filter_name",
 				fieldtype: "Data",
 				label: __("Layout Name"),
 				reqd: 1,
-				default: is_edit ? this.layout.layout_name : "",
+				default: is_edit ? this.layout.filter_name : "",
 			},
 		];
 
@@ -183,26 +183,26 @@ export default class LayoutDialog {
 
 	get_form_values() {
 		return {
-			layout_name: this.dialog.get_value("layout_name")?.trim(),
+			filter_name: this.dialog.get_value("filter_name")?.trim(),
 			is_global: this.can_add_global ? this.dialog.get_value("is_global") : false,
 		};
 	}
 
-	layout_name_exists(layout_name) {
+	filter_name_exists(filter_name) {
 		return (this.list_view.list_filter?.filters || []).some(
 			(row) =>
-				row.layout_name === layout_name && (!this.layout || row.name !== this.layout.name)
+				row.filter_name === filter_name && (!this.layout || row.name !== this.layout.name)
 		);
 	}
 
 	save_layout() {
-		const { layout_name, is_global } = this.get_form_values();
-		if (!layout_name) {
+		const { filter_name, is_global } = this.get_form_values();
+		if (!filter_name) {
 			frappe.msgprint(__("Layout Name is required"));
 			return;
 		}
 
-		if (this.layout_name_exists(layout_name)) {
+		if (this.filter_name_exists(filter_name)) {
 			frappe.msgprint(__("A layout with this name already exists"));
 			return;
 		}
@@ -216,7 +216,7 @@ export default class LayoutDialog {
 		const sorting = this.get_sorting();
 		const filters = this.get_filters();
 		const payload = {
-			layout_name,
+			filter_name,
 			is_global,
 			filters,
 			columns,
@@ -231,7 +231,7 @@ export default class LayoutDialog {
 			: this.list_view.list_filter.create_layout_from_dialog(payload);
 
 		return save_promise.then(() => {
-			const esc_name = frappe.utils.escape_html(layout_name);
+			const esc_name = frappe.utils.escape_html(filter_name);
 			const message = this.layout
 				? __("Layout <b>{0}</b> updated", [esc_name])
 				: __("Layout <b>{0}</b> created", [esc_name]);

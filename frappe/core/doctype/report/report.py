@@ -27,6 +27,7 @@ class Report(Document):
 	from typing import TYPE_CHECKING
 
 	if TYPE_CHECKING:
+		from frappe.core.doctype.doctype_to_sync.doctype_to_sync import DoctypeToSync
 		from frappe.core.doctype.has_role.has_role import HasRole
 		from frappe.core.doctype.report_column.report_column import ReportColumn
 		from frappe.core.doctype.report_filter.report_filter import ReportFilter
@@ -39,6 +40,8 @@ class Report(Document):
 		default_print_format: DF.Link | None
 		disable_prepared_report_automation: DF.Check
 		disabled: DF.Check
+		doctype_to_sync: DF.Table[DoctypeToSync]
+		documentation_url: DF.Data | None
 		filters: DF.Table[ReportFilter]
 		generate_csv: DF.Check
 		is_standard: DF.Literal["No", "Yes"]
@@ -53,6 +56,7 @@ class Report(Document):
 		report_script: DF.Code | None
 		report_type: DF.Literal["Report Builder", "Query Report", "Script Report", "Custom Report"]
 		roles: DF.Table[HasRole]
+		synced_report: DF.Check
 		timeout: DF.Int
 	# end: auto-generated types
 
@@ -203,7 +207,10 @@ class Report(Document):
 		# The JOB
 		try:
 			if self.is_standard == "Yes":
-				res = self.execute_module(filters)
+				if self.synced_report:
+					res = self.execute_synced_report(filters)
+				else:
+					res = self.execute_module(filters)
 			else:
 				res = self.execute_script(filters)
 		finally:
@@ -232,6 +239,13 @@ class Report(Document):
 			return loc["data"]
 		else:
 			return self.get_columns(), loc["result"]
+
+	def execute_synced_report(self, filters):
+		try:
+			execute_synced_report = self.get_module_method("execute_synced_report")
+		except AttributeError:
+			return [], []
+		return execute_synced_report(frappe._dict(filters))
 
 	def get_data(
 		self,
