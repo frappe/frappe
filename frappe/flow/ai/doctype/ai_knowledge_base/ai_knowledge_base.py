@@ -18,4 +18,8 @@ class AIKnowledgeBase(Document):
 		title: DF.Data
 	# end: auto-generated types
 
-	pass
+	def validate(self):
+		if self.is_new():
+			from flow.ai.doctype.ai_knowledge_settings.ai_knowledge_settings import require_embedding_model
+
+			require_embedding_model()

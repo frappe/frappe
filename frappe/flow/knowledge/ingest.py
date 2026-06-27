@@ -24,12 +24,13 @@ CHUNK_DOCTYPE = "AI Knowledge Chunk"
 BATCH = 500
 
 
-def enqueue_ingestion(source: str) -> None:
+def enqueue_ingestion(source: str, rebuild: bool = False) -> None:
 	frappe.enqueue(
 		"flow.knowledge.ingest.ingest_source",
 		queue="long",
 		enqueue_after_commit=True,
 		source=source,
+		rebuild=rebuild,
 	)
 
 
@@ -53,8 +54,12 @@ def enqueue_reconciliation(source: str) -> None:
 	)
 
 
-def ingest_source(source: str) -> None:
-	"""Worker: bring a source's chunks in both stores up to date."""
+def ingest_source(source: str, rebuild: bool = False) -> None:
+	"""Worker: bring a source's chunks in both stores up to date.
+
+	rebuild forces a full re-chunk of a DocType source (purge + reset watermark) so
+	new chunk settings apply to rows whose content is otherwise unchanged. Single-doc
+	sources rebuild on every run regardless."""
 	doc = frappe.get_doc("AI Knowledge Source", source)
 	doc.db_set("status", "Processing", update_modified=False)
 	frappe.db.commit()
@@ -62,6 +67,9 @@ def ingest_source(source: str) -> None:
 	try:
 		settings = frappe.get_cached_doc("AI Knowledge Settings")
 		if doc.source_type == "DocType":
+			if rebuild:
+				purge_source(doc.name)
+				doc.db_set("last_synced_at", None, update_modified=False)
 			_sync_doctype(doc, settings)
 		else:
 			_rebuild_single(doc, settings)
@@ -96,13 +104,10 @@ def _rebuild_single(doc, settings) -> None:
 	from flow.knowledge.embedder import embed_texts
 	from flow.knowledge.extract import extract
 
+	size, overlap = _chunk_params(doc, settings)
 	pieces = []
 	for extracted in extract(doc):
-		pieces.extend(
-			chunk_text(
-				extracted.text, chunk_size=cint(settings.chunk_size), overlap=cint(settings.chunk_overlap)
-			)
-		)
+		pieces.extend(chunk_text(extracted.text, chunk_size=size, overlap=overlap))
 
 	purge_source(doc.name)
 	if not pieces:
@@ -196,7 +201,7 @@ def _upsert_page(doc, settings, meta, fields, page, matched_refs, *, track_exits
 			continue
 		if existing["ids"]:
 			stale.append(name)
-		pieces = _chunk(text, settings)
+		pieces = _chunk(text, doc, settings)
 		if pieces:
 			to_embed.append((name, new_hash, pieces))
 
@@ -323,10 +328,18 @@ def _existing_names(doctype: str, names: set[str]) -> set[str]:
 	return found
 
 
-def _chunk(text, settings) -> list[str]:
+def _chunk(text, doc, settings) -> list[str]:
 	from flow.knowledge.chunker import chunk_text
 
-	return chunk_text(text, chunk_size=cint(settings.chunk_size), overlap=cint(settings.chunk_overlap))
+	size, overlap = _chunk_params(doc, settings)
+	return chunk_text(text, chunk_size=size, overlap=overlap)
+
+
+def _chunk_params(doc, settings) -> tuple[int, int]:
+	"""Per-source chunk size/overlap, each falling back to the global default when 0."""
+	size = cint(doc.chunk_size) or cint(settings.chunk_size)
+	overlap = cint(doc.chunk_overlap) or cint(settings.chunk_overlap)
+	return size, overlap
 
 
 def _content_hash(text: str) -> str:
