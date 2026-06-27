@@ -73,32 +73,19 @@ class AIKnowledgeSource(Document):
 
 		enqueue_ingestion(self.name)
 
-	def on_update(self):
-		"""Chunk size/overlap changed → existing chunks are stale. Rebuild from scratch
-		(incremental sweep is hash-gated and would skip unchanged rows)."""
-		previous = self.get_doc_before_save()
-		if previous is None:
-			return
-		if (previous.chunk_size, previous.chunk_overlap) == (self.chunk_size, self.chunk_overlap):
-			return
-		if not self.chunk_count:
-			return
-		from flow.knowledge.ingest import enqueue_ingestion
-
-		self.db_set("status", "Pending", update_modified=False)
-		enqueue_ingestion(self.name, rebuild=True)
-
 	def on_trash(self):
 		from flow.knowledge.ingest import purge_source
 
 		purge_source(self.name)
 
 	@frappe.whitelist()
-	def resync(self):
+	def resync(self, rebuild: bool = False):
+		"""rebuild forces a full re-chunk; used when chunk settings change and the
+		existing chunks are stale."""
 		from flow.knowledge.ingest import enqueue_ingestion
 
 		self.db_set("status", "Pending", update_modified=False)
-		enqueue_ingestion(self.name)
+		enqueue_ingestion(self.name, rebuild=bool(rebuild))
 
 	@frappe.whitelist()
 	def reconcile(self):

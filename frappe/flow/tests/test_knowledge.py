@@ -711,22 +711,11 @@ class TestIngest(IntegrationTestCase):
 		with self.assertRaisesRegex(frappe.ValidationError, "AI Knowledge Settings"):
 			self._make_source(content="needs a model")
 
-	def test_chunk_param_change_rebuilds_when_chunks_exist(self):
+	def test_resync_rebuild_enqueues_full_rebuild(self):
 		source = self._make_source(content="Reset your password from the account settings page. " * 4)
-		self._ingest(source.name)
-		source.reload()
-		self.assertGreater(source.chunk_count, 0)
 		with patch("flow.knowledge.ingest.enqueue_ingestion") as mock:
-			source.chunk_size = 400
-			source.save()
+			source.resync(rebuild=True)
 		mock.assert_called_once_with(source.name, rebuild=True)
-
-	def test_chunk_param_change_skips_rebuild_without_chunks(self):
-		source = self._make_source(content="never ingested")
-		with patch("flow.knowledge.ingest.enqueue_ingestion") as mock:
-			source.chunk_size = 400
-			source.save()
-		mock.assert_not_called()
 
 
 class TestDoctypeSync(IntegrationTestCase):
