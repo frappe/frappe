@@ -17,9 +17,12 @@ export const loadHistory = () =>
 		limit: 15,
 	});
 
+// Escape LIKE wildcards so a literal % or _ matches itself, not "anything".
+const escapeLike = (s) => s.replace(/[\\%_]/g, "\\$&");
+
 export const searchSessions = (query) =>
 	getList("AI Session", {
-		filters: { owner: frappe.session.user, title: ["like", `%${query}%`] },
+		filters: { owner: frappe.session.user, title: ["like", `%${escapeLike(query)}%`] },
 		fields: ["name", "title", "creation"],
 		order_by: "creation desc",
 		limit: 20,

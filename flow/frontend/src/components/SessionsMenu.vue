@@ -13,9 +13,11 @@ const results = ref([]);
 const searching = ref(false);
 
 let debounce;
+let searchSeq = 0;
 watch(query, (q) => {
 	clearTimeout(debounce);
 	q = q.trim();
+	const seq = ++searchSeq; // ignore responses from superseded queries
 	if (!q) {
 		results.value = [];
 		searching.value = false;
@@ -24,9 +26,10 @@ watch(query, (q) => {
 	searching.value = true;
 	debounce = setTimeout(async () => {
 		try {
-			results.value = await searchSessions(q);
+			const found = await searchSessions(q);
+			if (seq === searchSeq) results.value = found;
 		} finally {
-			searching.value = false;
+			if (seq === searchSeq) searching.value = false;
 		}
 	}, 250);
 });
