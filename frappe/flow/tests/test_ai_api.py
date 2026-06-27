@@ -352,11 +352,12 @@ class TestStartRunSessions(IntegrationTestCase):
 
 	def test_explicit_session_id_reuses_it(self):
 		from flow.assistant import sync_builtin_assistant
+		from flow.assistant.assistant import ASSISTANT_AGENT_TITLE
 
 		sync_builtin_assistant(model=self.model_doc.name)
-		session = frappe.get_doc({"doctype": "AI Session", "agent": "Assistant", "title": "carried"}).insert(
-			ignore_permissions=True
-		)
+		session = frappe.get_doc(
+			{"doctype": "AI Session", "agent": ASSISTANT_AGENT_TITLE, "title": "carried"}
+		).insert(ignore_permissions=True)
 
 		with patch.object(Model, "chat", return_value=_final()):
 			result = start_run("hi", session=session.name)
