@@ -49,17 +49,17 @@ def create_sequence(
 		maxv = max_value or None
 		start = start_value or minv
 		current = start - increment
-		# Upsert the definition so it stays authoritative even over a bare row a
-		# prior set_next_val may have created; an existing counter is preserved.
+		# check_not_exists leaves an existing definition (and its counter) fully
+		# untouched, like "CREATE SEQUENCE IF NOT EXISTS"; otherwise a duplicate
+		# raises, like a plain CREATE SEQUENCE. The columns carry defaults, so a
+		# row is always a complete definition - there is no partial row to patch.
+		verb = "INSERT OR IGNORE" if check_not_exists else "INSERT"
 		# Safe: f-string interpolates only the trusted SQLITE_SEQUENCE_TABLE constant.
 		# nosemgrep
 		db.sql(
-			f"INSERT INTO `{SQLITE_SEQUENCE_TABLE}` "
+			f"{verb} INTO `{SQLITE_SEQUENCE_TABLE}` "
 			"(name, current, increment, min_value, max_value, cycle) "
-			"VALUES (%s, %s, %s, %s, %s, %s) "
-			"ON CONFLICT(name) DO UPDATE SET "
-			"increment = excluded.increment, min_value = excluded.min_value, "
-			"max_value = excluded.max_value, cycle = excluded.cycle",
+			"VALUES (%s, %s, %s, %s, %s, %s)",
 			(sequence_name, current, increment, minv, maxv, 1 if cycle else 0),
 		)
 		return sequence_name

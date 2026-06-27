@@ -48,17 +48,18 @@ class TestSequence(IntegrationTestCase):
 		self.assertEqual(15, frappe.db.get_next_sequence_val(seq_name))
 		self.assertEqual(20, frappe.db.get_next_sequence_val(seq_name))
 
-	def test_recreate_preserves_counter(self):
-		# Re-creating an existing sequence must be idempotent: the counter keeps
-		# advancing instead of resetting (on SQLite this exercises the upsert that
-		# refreshes the definition without touching `current`).
+	def test_recreate_preserves_definition_and_counter(self):
+		# Re-creating with check_not_exists must be a no-op: neither the counter
+		# nor the definition may change. Use a bounded, cycling sequence so a
+		# clobbered definition would surface as a wrong value instead of cycling.
 		seq_name = self.generate_sequence_name()
-		frappe.db.create_sequence(seq_name, check_not_exists=True, temporary=True)
+		frappe.db.create_sequence(seq_name, max_value=2, cycle=True, check_not_exists=True, temporary=True)
 		self.assertEqual(1, frappe.db.get_next_sequence_val(seq_name))
-		self.assertEqual(2, frappe.db.get_next_sequence_val(seq_name))
 
+		# Recreating with default args must not reset the cap to unbounded.
 		frappe.db.create_sequence(seq_name, check_not_exists=True, temporary=True)
-		self.assertEqual(3, frappe.db.get_next_sequence_val(seq_name))
+		self.assertEqual(2, frappe.db.get_next_sequence_val(seq_name))
+		self.assertEqual(1, frappe.db.get_next_sequence_val(seq_name))  # cycled, cap intact
 
 	def test_autoincrement_naming_seeds_sequence(self):
 		# Naming an autoincrement doctype fetches a value before insert without a
