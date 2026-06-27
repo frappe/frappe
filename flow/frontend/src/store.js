@@ -54,7 +54,7 @@ async function loadInitial() {
 	const [a, m] = await Promise.all([api.loadAgents(), api.loadModels(), refreshHistory()]);
 	agents.value = a;
 	models.value = m;
-	const assistant = a.find((x) => x.name === "Assistant");
+	const assistant = a.find((x) => x.name === "Flow");
 	selectedAgent.value = assistant ? assistant.name : a[0]?.name ?? null;
 	loaded.value = true;
 	focusTick.value++;

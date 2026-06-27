@@ -35,7 +35,7 @@ defineProps({
 				>
 					{{
 						__(
-							"Enable an AI Agent (an Assistant is created automatically once a model exists)."
+							"Enable an AI Agent (Flow Agent is created automatically once a model exists)."
 						)
 					}}
 				</li>
@@ -52,7 +52,7 @@ defineProps({
 		</template>
 
 		<template v-else>
-			<div class="text-lg font-semibold text-ink-gray-9">{{ __("AI Assistant") }}</div>
+			<div class="text-lg font-semibold text-ink-gray-9">{{ __("Flow") }}</div>
 			<div class="max-w-[240px] text-xs leading-relaxed">
 				{{ __("Ask about your data, draft records, or run a task.") }}
 			</div>
