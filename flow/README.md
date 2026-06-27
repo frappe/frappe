@@ -1,57 +1,49 @@
+<div align="center">
+
 # Flow
 
-Flow is a Frappe app for running AI agents inside a Frappe site.
+**AI agents for Frappe.**
 
-It includes:
+[![License: AGPL v3](https://img.shields.io/badge/License-AGPL_v3-blue.svg)](https://www.gnu.org/licenses/agpl-3.0)
+[![CI](https://github.com/ShrihariMahabal/flow/actions/workflows/ci.yml/badge.svg)](https://github.com/ShrihariMahabal/flow/actions/workflows/ci.yml)
 
-- `AI Provider` for provider-level credentials and endpoint settings
-- `AI Model` for LiteLLM model configuration
-- `AI Tool` for reusable module or script tools
-- `AI Agent` for instructions, model selection, and tool access
-- `AI Trigger` for DocType-event and scheduled automation
-- `AI Session` and `AI Run` for persisted conversations and execution history
-- a Desk sidebar for chatting with the built-in assistant
+</div>
 
-Flow ships with built-in tools for common site operations:
+---
 
-- `find_doctypes`
-- `describe`
-- `read`
-- `create`
-- `update`
-- `delete`
-- `run_action`
-- `execute`
+Flow puts an AI assistant inside your Frappe site. It knows your DocTypes, respects your permissions, and can operate your site in plain English — creating records, sending emails, building DocTypes, creating agents and tools, and setting up RAG chatbots.
 
-## Installation
+**Set up a support agent:**
+> *"Create an agent that resolves customer support issues. It should use the Support Ticket doctype and these files as its knowledge: [attach files]"*
 
-Install Flow into an existing bench:
+Flow sets up the RAG pipeline, embeds and indexes the files, and keeps the DocType source in sync — automatically.
 
-```bash
-cd $PATH_TO_YOUR_BENCH
-bench get-app https://github.com/ShrihariMahabal/flow.git
-bench --site site-name install-app flow
-```
 
-## Usage
+**Put reporting on autopilot:**
+> *"Every weekday at 9am, email me a summary of yesterday's new leads with their contact details and source."*
 
-1. Create an `AI Provider` with your provider name and API key.
-2. Create an `AI Model` using a LiteLLM model ID such as `openai/gpt-4.1` or `anthropic/claude-sonnet-4-6`.
-3. Save the model and test the connection from the form.
-4. Create any `AI Tool` records you need. Tools can be created in code or directly from the `AI Tool` DocType.
-5. Create an `AI Agent` and attach the tools you want it to use.
-6. Open the Desk AI panel and start a conversation with the built-in `Assistant` or your own agent.
-7. Open `AI Run` to inspect the execution details.
-8. Open `AI Session` to review the saved conversation.
-9. Create an `AI Trigger` if you want the agent to run on a document event or on a schedule.
-10. For a simple trigger test, use a target like `ToDo`, pick a DocType event such as `after_insert` or `on_update`, write a prompt template, and then create or update a matching record.
-11. If a tool call pauses for confirmation, approve or respond to it from the UI and then review the updated run and session.
+**Do anything a user can do:**
+> *"Find all overdue sales orders from last month and mark them as closed."*
 
-For local providers like Ollama or LM Studio, leave the API key empty and set `Base URL` on either the provider or model.
+---
 
-## Code Examples
+## Framework
 
-### Create a tool in code
+Flow also ships as a Python framework for building agents in code.
+
+### DocTypes
+
+| DocType | Purpose |
+| --- | --- |
+| `AI Provider` | Provider-level credentials and endpoint settings |
+| `AI Model` | Model configuration — set a `model_id` like `anthropic/claude-sonnet-4-6` |
+| `AI Tool` | Reusable tools, defined as a module path or inline script |
+| `AI Agent` | Instructions, model, and tools — configurable from the Desk or in code |
+| `AI Trigger` | Run an agent on a DocType event or a schedule |
+| `AI Knowledge Base` / `AI Knowledge Source` | Knowledge sources (files, URLs, DocTypes) for retrieval-augmented answers |
+| `AI Session` / `AI Run` | Persisted conversations and execution history |
+
+### Define a tool
 
 ```python
 import frappe
@@ -67,29 +59,61 @@ def get_open_todos(allocated_to: str) -> list[dict]:
 	)
 ```
 
-The same tool can also be created from the `AI Tool` DocType as either:
-
-- a `Module` tool pointing at an import path
-- a `Script` tool with inline code
-
-### Run an agent directly
+### Run an agent
 
 ```python
 from flow import Agent
 
 agent = Agent(
-	name="todo-helper",
-	model="gemini/gemini-2.5-flash",
+	model="anthropic/claude-sonnet-4-6",
 	instructions="You help with Frappe tasks.",
-	tools=[get_open_todos]
+	tools=[get_open_todos],
 )
 
-events = agent.run("List open ToDo items assigned to me", stream=True)
-
-for event in events:
-	print(event)
+result = agent.run("List open ToDo items assigned to me")
+print(result.output)
 ```
+
+### Persist a conversation
+
+```python
+session = agent.new_session(title="Todo assistant")
+
+session.chat("What tasks do I have open?")
+session.chat("Close the ones due before last Friday.")
+```
+
+Every turn is saved as an `AI Run` linked to the session — so conversation history, tool calls, and outputs are all in the database.
+
+### Built-in tools
+
+| Tool | What it does |
+| --- | --- |
+| `find_doctypes` | Search for DocTypes by name or module |
+| `describe` | Get the fields, filters, and available actions for a DocType or record |
+| `read` | Fetch records from any DocType |
+| `create` | Create one or more records |
+| `update` | Update fields across multiple records at once |
+| `delete` | Delete records |
+| `run_action` | Call a whitelisted method or workflow action on a record |
+| `execute` | Run arbitrary Python in a sandboxed context |
+
+Tool calls can require human confirmation before executing, and every run is persisted for audit.
+
+---
+
+## Installation
+
+Install into an existing [bench](https://github.com/frappe/bench):
+
+```bash
+cd $PATH_TO_YOUR_BENCH
+bench get-app https://github.com/frappe/flow.git
+bench --site site-name install-app flow
+```
+
+Then add an `AI Provider` with your API key and an `AI Model` with a model ID such as `anthropic/claude-sonnet-4-6`, and open the Desk AI panel to start. For local providers like Ollama or LM Studio, set `Base URL` on the provider or model.
 
 ## License
 
-MIT
+[GNU AGPLv3](license.txt)
