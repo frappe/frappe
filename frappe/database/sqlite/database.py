@@ -17,6 +17,15 @@ _PARAM_COMP = re.compile(r"%\([\w]*\)s")
 IMPLICIT_COMMIT_QUERY_TYPES = frozenset(("start", "alter", "drop", "create", "truncate"))
 
 
+class SequenceGeneratorLimitExceeded(sqlite3.Error):
+	"""Raised when an emulated sequence with a max_value (and no cycle) is exhausted.
+
+	SQLite has no native sequences (frappe emulates them, see
+	``frappe.database.sequence``), so unlike MariaDB/Postgres there is no driver
+	exception to reuse for this case.
+	"""
+
+
 class SQLiteExceptionUtil:
 	ProgrammingError = sqlite3.ProgrammingError
 	TableMissingError = sqlite3.OperationalError
@@ -102,6 +111,7 @@ class SQLiteDatabase(SQLiteExceptionUtil, Database):
 	REGEX_CHARACTER = "regexp"
 	default_port = None
 	MAX_ROW_SIZE_LIMIT = None
+	SequenceGeneratorLimitExceeded = SequenceGeneratorLimitExceeded
 
 	def get_connection(self, read_only: bool = False):
 		conn = self.create_connection(read_only)
