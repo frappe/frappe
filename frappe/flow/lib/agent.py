@@ -92,10 +92,13 @@ class Agent:
 		tools: list[Tool] | None = None,
 		knowledge: Knowledge | list[Knowledge] | None = None,
 		max_iterations: int = DEFAULT_MAX_ITERATIONS,
+		auto_approve: bool = False,
 	):
 		if max_iterations < 1:
 			raise ValueError("max_iterations must be at least 1")
 
+		# Autonomous runs (triggers) auto-run confirmation tools; nobody is there to approve.
+		self.auto_approve = auto_approve
 		self.name = name
 		self.model = Model(model) if isinstance(model, str) else model
 		self.instructions = instructions
@@ -354,7 +357,7 @@ class Agent:
 		tool = self._tools_by_name.get(call.name)
 		if tool is None:
 			return json.dumps({"error": f"Unknown tool: {call.name!r}"})
-		if tool.requires_confirmation:
+		if tool.requires_confirmation and not self.auto_approve:
 			return _confirmation_question(call, tool)
 		return self._run_tool(call)
 

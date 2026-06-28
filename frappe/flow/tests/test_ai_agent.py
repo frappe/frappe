@@ -610,6 +610,19 @@ class TestAgentConfirmation(UnitTestCase):
 		self.assertIn("write_file", result.questions[0].prompt)
 		self.assertEqual(calls, [])  # tool never ran
 
+	def test_auto_approve_runs_confirmation_tool_without_pausing(self):
+		write_file, calls = self._danger_tool()
+		model = FakeModel(
+			[_tool_call("write_file", {"path": "/tmp/x", "body": "hi"}, call_id="c1"), _final("done")]
+		)
+		agent = Agent(model=model, tools=[write_file], auto_approve=True)
+
+		result = agent.run("write hi to /tmp/x")
+
+		self.assertFalse(result.paused)
+		self.assertEqual(calls, [{"path": "/tmp/x", "body": "hi"}])  # ran unattended
+		self.assertEqual(result.output, "done")
+
 	def test_approve_invokes_tool_and_feeds_real_result_to_llm(self):
 		write_file, calls = self._danger_tool()
 		pause_response = _tool_call("write_file", {"path": "/tmp/x", "body": "hi"}, call_id="c1")

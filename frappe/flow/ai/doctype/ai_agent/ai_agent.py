@@ -134,6 +134,7 @@ class AIAgent(Document):
 		trigger: str | None = None,
 		reference_doctype: str | None = None,
 		reference_name: str | None = None,
+		auto_approve: bool = False,
 		stream: bool = False,
 	) -> AIRun | Generator[Event]:
 		"""Run `input` and persist as an AI Run. Convenience wrapper over the session API:
@@ -147,6 +148,7 @@ class AIAgent(Document):
 			trigger=trigger,
 			reference_doctype=reference_doctype,
 			reference_name=reference_name,
+			auto_approve=auto_approve,
 			stream=stream,
 		)
 

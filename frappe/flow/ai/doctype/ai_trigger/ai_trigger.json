@@ -11,6 +11,7 @@
   "column_break_meta",
   "agent",
   "event",
+  "auto_approve",
   "section_break_when",
   "target_doctype",
   "doc_event",
@@ -63,6 +64,13 @@
    "label": "Event",
    "options": "DocType Event\nScheduled",
    "reqd": 1
+  },
+  {
+   "default": "0",
+   "description": "Run this trigger's tool calls without asking for approval. Required for unattended triggers — otherwise the run pauses waiting for a confirmation.",
+   "fieldname": "auto_approve",
+   "fieldtype": "Check",
+   "label": "Auto Approve Tool Calls"
   },
   {
    "fieldname": "section_break_when",
