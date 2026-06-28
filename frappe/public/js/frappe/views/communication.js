@@ -661,7 +661,7 @@ frappe.views.CommunicationComposer = class {
 
 	set_default_letterhead() {
 		const fields = this.dialog.fields_dict;
-		if (this.frm.doc.letter_head) {
+		if (this.frm.doc?.letter_head) {
 			this.dialog.set_value("select_letter_head", this.frm.doc.letter_head);
 			return;
 		}
