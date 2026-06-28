@@ -76,9 +76,7 @@ class TestChromePDFLocalResourceInterceptor(UnitTestCase):
 		):
 			_fire_request(callback, "req-1", HOST)
 
-		self.session.send.assert_any_call(
-			"Fetch.continueRequest", {"requestId": "req-1"}, return_future=True
-		)
+		self.session.send.assert_any_call("Fetch.continueRequest", {"requestId": "req-1"}, return_future=True)
 		mock_read.assert_not_called()
 
 	def test_path_traversal_sends_fail(self):
