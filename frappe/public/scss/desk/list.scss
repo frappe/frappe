@@ -326,6 +326,15 @@ body.list-col-resizing {
 		cursor: pointer;
 		text-decoration: underline;
 	}
+
+	.selected-color {
+		display: inline-block;
+		width: 12px;
+		height: 12px;
+		border-radius: 4px;
+		margin-right: 6px;
+		vertical-align: middle;
+	}
 }
 
 $level-margin-right: 8px;
