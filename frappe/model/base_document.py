@@ -837,6 +837,18 @@ class BaseDocument:
 					raise frappe.DuplicateEntryError(self.doctype, self.name, e)
 
 			elif frappe.db.is_unique_key_violation(e):
+				# When a re-inserted row collides on both its name (PK) and another
+				# unique field, MariaDB/Postgres surface the name conflict - which
+				# ignore_if_duplicate swallows above - but SQLite may surface the
+				# other unique field instead. Keep parity: treat an existing
+				# same-named row as the duplicate the caller asked to ignore.
+				if (
+					ignore_if_duplicate
+					and frappe.db.db_type == "sqlite"
+					and frappe.db.exists(self.doctype, self.name)
+				):
+					return
+
 				# unique constraint
 				self.show_unique_validation_message(e)
 

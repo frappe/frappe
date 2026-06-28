@@ -66,8 +66,11 @@ def evaluate_dynamic_routes(rules, path):
 	route_map = Map(rules)
 	endpoint = None
 
-	if hasattr(frappe.local, "request") and frappe.local.request.environ:
-		urls = route_map.bind_to_environ(frappe.local.request.environ)
+	# frappe.local.request can be present but None outside a web request (e.g. a
+	# synchronous email render during tests), so guard the attribute access.
+	request = getattr(frappe.local, "request", None)
+	if request and request.environ:
+		urls = route_map.bind_to_environ(request.environ)
 		try:
 			endpoint, args = urls.match("/" + path)
 			if args:
