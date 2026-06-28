@@ -71,6 +71,7 @@ class WorkspaceCustomization(Document):
 		self.clear_cache()
 
 	def clear_cache(self):
+		super().clear_cache()
 		# the customization changes a *public* workspace, so bust the shared bootinfo
 		# cache the same way Workspace.clear_cache does for public pages.
 		frappe.cache.delete_key("bootinfo")

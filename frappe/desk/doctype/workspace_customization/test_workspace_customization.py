@@ -1,6 +1,7 @@
 # Copyright (c) 2026, Frappe Technologies and Contributors
 # License: MIT. See LICENSE
 from json import dumps, loads
+from unittest.mock import patch
 
 import frappe
 from frappe.desk.doctype.workspace_customization.workspace_customization import (
@@ -108,7 +109,9 @@ class TestWorkspaceCustomizationIntegration(IntegrationTestCase):
 		from frappe.desk.doctype.workspace.workspace import save_page
 
 		edited = [BASE_CONTENT[0]]  # drop "My Notes"
-		save_page(self.WORKSPACE, public=1, new_widgets="{}", blocks=dumps(edited))
+		# force the site (non-developer) path: a standard workspace edit goes to the delta
+		with patch.dict(frappe.conf, {"developer_mode": 0}):
+			save_page(self.WORKSPACE, public=1, new_widgets={}, blocks=dumps(edited))
 
 		customization = frappe.get_doc("Workspace Customization", self.WORKSPACE)
 		self.assertEqual(loads(customization.content), edited)
@@ -148,20 +151,21 @@ class TestWorkspaceCustomizationIntegration(IntegrationTestCase):
 	def test_added_widget_persists_across_a_second_save(self):
 		from frappe.desk.doctype.workspace.workspace import save_page
 
-		# session 1: add "Audit"
-		save_page(
-			self.WORKSPACE,
-			public=1,
-			new_widgets=dumps({"shortcut": [ADDED_SHORTCUT_ITEM]}),
-			blocks=dumps([*BASE_CONTENT, ADDED_SHORTCUT_BLOCK]),
-		)
-		# session 2: an unrelated edit reports no new widgets, but "Audit" must survive
-		save_page(
-			self.WORKSPACE,
-			public=1,
-			new_widgets="{}",
-			blocks=dumps([BASE_CONTENT[0], ADDED_SHORTCUT_BLOCK]),
-		)
+		with patch.dict(frappe.conf, {"developer_mode": 0}):
+			# session 1: add "Audit"
+			save_page(
+				self.WORKSPACE,
+				public=1,
+				new_widgets={"shortcut": [ADDED_SHORTCUT_ITEM]},
+				blocks=dumps([*BASE_CONTENT, ADDED_SHORTCUT_BLOCK]),
+			)
+			# session 2: an unrelated edit reports no new widgets, but "Audit" must survive
+			save_page(
+				self.WORKSPACE,
+				public=1,
+				new_widgets={},
+				blocks=dumps([BASE_CONTENT[0], ADDED_SHORTCUT_BLOCK]),
+			)
 		widgets = loads(frappe.db.get_value("Workspace Customization", self.WORKSPACE, "widgets"))
 		self.assertEqual([w["label"] for w in widgets["shortcut"]], ["Audit"])
 
