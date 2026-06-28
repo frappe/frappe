@@ -1276,7 +1276,10 @@ class FilterArea {
 			];
 
 			if (input_fieldtypes.includes(df.fieldtype)) {
-				df.match_type = df.condition || "=";
+				const saved_conditions =
+					frappe.get_user_settings(this.list_view.doctype, this.list_view.view_name)
+						.filter_conditions || {};
+				df.match_type = saved_conditions[df.fieldname] || df.condition || "=";
 				this.filter_field_with_match_type(df);
 			}
 		});
@@ -1332,6 +1335,13 @@ class FilterArea {
 
 				field.df.match_type = new_type;
 				$dropdown.find("button").html(getIcon(new_type));
+
+				const saved_conditions =
+					frappe.get_user_settings(this.list_view.doctype, this.list_view.view_name)
+						.filter_conditions || {};
+				this.list_view.save_view_user_settings?.({
+					filter_conditions: { ...saved_conditions, [df.fieldname]: new_type },
+				});
 
 				let value = field.get_value?.();
 				if (new_type === "=" && value) {
