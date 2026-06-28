@@ -1,9 +1,4 @@
-<<<<<<< HEAD
-import time
-from contextlib import suppress
-=======
 from typing import Any
->>>>>>> d3c4b9aa27 (feat(telemetry): team dimension + shared dependency-free pulse client)
 
 import frappe
 from frappe.utils.caching import site_cache
@@ -24,12 +19,6 @@ def is_enabled() -> bool:
 	return bool(not frappe.conf.get("developer_mode", 0) and frappe.get_system_settings("enable_telemetry"))
 
 
-<<<<<<< HEAD
-@frappe.whitelist()
-<<<<<<< HEAD
-def capture(event_name, site=None, app=None, user=None, captured_at=None, properties=None, interval=None):
-=======
-=======
 @frappe.whitelist(allow_guest=True)
 def boot_config() -> dict:
 	"""Direct-mode config for the browser client.
@@ -68,7 +57,6 @@ def boot_config() -> dict:
 	}
 
 
->>>>>>> 4774101bdd (refactor(telemetry): load js client from pulse host & send events to host directly)
 def capture(
 	event_name: str,
 	site: str | None = None,
@@ -79,7 +67,6 @@ def capture(
 	properties: dict[str, Any] | None = None,
 	interval: int | str | None = None,
 ):
->>>>>>> d3c4b9aa27 (feat(telemetry): team dimension + shared dependency-free pulse client)
 	if not is_enabled():
 		return
 
@@ -104,45 +91,6 @@ def capture(
 		frappe.logger("pulse").error(f"pulse-client - capture failed: {e!s}")
 
 
-<<<<<<< HEAD
-@frappe.whitelist()
-def bulk_capture(events):
-	if not is_enabled():
-		return
-
-	if isinstance(events, str):
-		events = frappe.parse_json(events)
-
-	for event in events:
-		capture(
-			event.get("event_name"),
-			site=event.get("site"),
-			app=event.get("app"),
-			user=event.get("user"),
-			team=event.get("team"),
-			captured_at=event.get("captured_at"),
-			properties=event.get("properties"),
-			interval=event.get("interval"),
-		)
-
-
-@frappe.whitelist(allow_guest=True, methods=["POST"])
-@rate_limit(limit=1000, seconds=60 * 60)
-def guest_capture(events: str | list[dict[str, Any]]):
-	"""Guest-accessible capture for pre-signup surfaces (e.g. frappe.io, the FC
-	signup pages) where there's no session yet — callers pass an `anon_id` as the
-	event `user`.
-
-	Split from `bulk_capture` so the authenticated desk path stays unthrottled:
-	desk telemetry is high-frequency and often shares one NAT IP across many
-	users, where a per-IP limit would silently drop legit events. The per-IP rate
-	limit matches the framework's guest-API convention (see `www/contact.py`).
-	"""
-	bulk_capture(events)
-
-
-=======
->>>>>>> 4774101bdd (refactor(telemetry): load js client from pulse host & send events to host directly)
 def identify(user: str, properties: str | dict[str, Any] | None = None):
 	"""Attach attributes to a user — upserts its Pulse Person profile.
 
@@ -196,7 +144,9 @@ def send_queued_events():
 
 
 @frappe.whitelist()
-def get_debug_info(fetch_events=None, fetch_rate_limited_events=None):
+def get_debug_info(
+	fetch_events: int | str | bool | None = None, fetch_rate_limited_events: int | str | bool | None = None
+):
 	frappe.only_for("System Manager")
 
 	info = frappe._dict()
