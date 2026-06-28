@@ -86,6 +86,7 @@ class HTTPRequest:
 			or frappe.request.method not in UNSAFE_HTTP_METHODS
 			or frappe.conf.ignore_csrf
 			or not frappe.session
+			or not frappe.session.data
 			or not (saved_token := frappe.session.data.csrf_token)
 			or (
 				(frappe.get_request_header("X-Frappe-CSRF-Token") or frappe.form_dict.pop("csrf_token", None))
