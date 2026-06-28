@@ -1526,6 +1526,11 @@ class Database:
 		while value_chunk := tuple(itertools.islice(value_iterator, chunk_size)):
 			query.insert(*value_chunk).run()
 
+	def create_sequence_table(self):
+		# MariaDB/Postgres have native sequences and need no backing table;
+		# SQLite overrides this to create its emulation table at site setup.
+		pass
+
 	def create_sequence(self, *args, **kwargs):
 		from frappe.database.sequence import create_sequence
 
