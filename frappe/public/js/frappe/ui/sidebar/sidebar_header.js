@@ -57,14 +57,27 @@ frappe.ui.SidebarHeader = class SidebarHeader {
 		let app_workspaces = (frappe.current_app && frappe.current_app.workspaces) || [];
 
 		return app_workspaces
-			.map((name) => this.workspace_to_item(frappe.workspaces[frappe.router.slug(name)]))
+			.map((name) => frappe.workspaces[frappe.router.slug(name)])
+			.filter((workspace) => workspace && !this.is_active_workspace(workspace))
+			.map((workspace) => this.workspace_to_item(workspace))
 			.filter(Boolean);
 	}
 	get_private_workspace_items() {
 		return Object.values(frappe.workspaces || {})
-			.filter((workspace) => !workspace.public && workspace.for_user === frappe.session.user)
+			.filter(
+				(workspace) =>
+					!workspace.public &&
+					workspace.for_user === frappe.session.user &&
+					!this.is_active_workspace(workspace)
+			)
 			.map((workspace) => this.workspace_to_item(workspace))
 			.filter(Boolean);
+	}
+	// The currently shown workspace shouldn't be offered as a switch target.
+	is_active_workspace(workspace) {
+		if (!workspace) return false;
+		let active = frappe.router.slug(this.sidebar.sidebar_title || "");
+		return frappe.router.slug(workspace.name || workspace.title || "") === active;
 	}
 	workspace_to_item(workspace) {
 		if (!workspace) return null;
