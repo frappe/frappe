@@ -21,6 +21,15 @@
 		.remove-filter {
 			cursor: pointer;
 			line-height: 2;
+
+			&:focus {
+				outline: none;
+			}
+
+			&:focus-visible .icon {
+				box-shadow: var(--focus-default);
+				border-radius: 4px;
+			}
 		}
 
 		.filter-field {
@@ -58,6 +67,10 @@
 
 		.btn {
 			box-shadow: none;
+
+			&:focus-visible {
+				box-shadow: var(--focus-default) !important;
+			}
 		}
 	}
 

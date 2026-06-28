@@ -164,6 +164,13 @@ frappe.ui.Filter = class {
 			this.on_change();
 		});
 
+		this.filter_edit_area.find(".remove-filter").on("keydown", (e) => {
+			if (e.key === "Enter" || e.key === " ") {
+				e.preventDefault();
+				$(e.currentTarget).trigger("click");
+			}
+		});
+
 		this.filter_edit_area.find(".condition").change(() => {
 			if (!this.field) return;
 
