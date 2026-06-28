@@ -3,7 +3,7 @@ msgstr ""
 "Project-Id-Version: frappe\n"
 "Report-Msgid-Bugs-To: developers@frappe.io\n"
 "POT-Creation-Date: 2026-06-24 16:55+0000\n"
-"PO-Revision-Date: 2026-06-24 20:33\n"
+"PO-Revision-Date: 2026-06-28 21:07\n"
 "Last-Translator: developers@frappe.io\n"
 "Language-Team: Persian\n"
 "MIME-Version: 1.0\n"
@@ -2762,7 +2762,7 @@ msgstr "در حال واگذاری..."
 #. Option for the 'Type' (Select) field in DocType 'Notification Log'
 #: frappe/desk/doctype/notification_log/notification_log.json
 msgid "Assignment"
-msgstr "تخصیص"
+msgstr ""
 
 #. Option for the 'Comment Type' (Select) field in DocType 'Comment'
 #. Option for the 'Comment Type' (Select) field in DocType 'Communication'
@@ -12275,7 +12275,7 @@ msgstr "فیلدهای پنهان"
 
 #: frappe/public/js/frappe/views/reports/query_report.js:1633
 msgid "Hidden columns include: {0}"
-msgstr ""
+msgstr "ستون‌های پنهان شامل: {0}"
 
 #. Option for the 'Page Number' (Select) field in DocType 'Print Format'
 #: frappe/printing/doctype/print_format/print_format.json
@@ -22886,7 +22886,7 @@ msgstr "تنظیمات پشتیبان گیری S3"
 
 #: frappe/integrations/doctype/s3_backup_settings/s3_backup_settings.js:20
 msgid "S3 Backup has been queued. You can track the progress <a href='/app/rq-job/{0}' target='_blank'>here</a>."
-msgstr ""
+msgstr "پشتیبان‌گیری S3 در صف قرار گرفته است. می‌توانید پیشرفت <a href='/app/rq-job/{0}' target='_blank'>را اینجا</a> پیگیری کنید."
 
 #. Label of a Section Break field in DocType 'S3 Backup Settings'
 #: frappe/integrations/doctype/s3_backup_settings/s3_backup_settings.json

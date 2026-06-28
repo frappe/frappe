@@ -3,7 +3,7 @@ msgstr ""
 "Project-Id-Version: frappe\n"
 "Report-Msgid-Bugs-To: developers@frappe.io\n"
 "POT-Creation-Date: 2026-06-24 16:55+0000\n"
-"PO-Revision-Date: 2026-06-24 20:33\n"
+"PO-Revision-Date: 2026-06-28 21:07\n"
 "Last-Translator: developers@frappe.io\n"
 "Language-Team: Portuguese, Brazilian\n"
 "MIME-Version: 1.0\n"
@@ -11110,7 +11110,7 @@ msgstr "Por exemplo: {} Abra"
 #. Description of the 'Client script' (Code) field in DocType 'Web Form'
 #: frappe/website/doctype/web_form/web_form.json
 msgid "For help see <a href=\"https://frappeframework.com/docs/user/en/guides/portal-development/web-forms\" target=\"_blank\">Client Script API and Examples</a>"
-msgstr "Para ajuda, consulte <a href=\"https://frappeframework.com/docs/user/en/guides/portal-development/web-forms\" target=\"_blank\">API e exemplos de Script do cliente</a>"
+msgstr ""
 
 #. Description of the 'Enable Automatic Linking in Documents' (Check) field in
 #. DocType 'Email Account'

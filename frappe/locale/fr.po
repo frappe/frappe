@@ -3,7 +3,7 @@ msgstr ""
 "Project-Id-Version: frappe\n"
 "Report-Msgid-Bugs-To: developers@frappe.io\n"
 "POT-Creation-Date: 2026-06-24 16:55+0000\n"
-"PO-Revision-Date: 2026-06-24 20:32\n"
+"PO-Revision-Date: 2026-06-28 21:06\n"
 "Last-Translator: developers@frappe.io\n"
 "Language-Team: French\n"
 "MIME-Version: 1.0\n"
@@ -2797,7 +2797,7 @@ msgstr "Affectation en cours..."
 #. Option for the 'Type' (Select) field in DocType 'Notification Log'
 #: frappe/desk/doctype/notification_log/notification_log.json
 msgid "Assignment"
-msgstr "Attribution"
+msgstr ""
 
 #. Option for the 'Comment Type' (Select) field in DocType 'Comment'
 #. Option for the 'Comment Type' (Select) field in DocType 'Communication'
@@ -17722,7 +17722,7 @@ msgstr "Pas de courrier {0}"
 #: frappe/public/js/frappe/form/grid_row.js:243
 msgctxt "Title of the 'row number' column"
 msgid "No."
-msgstr "N°."
+msgstr ""
 
 #. Label of a Check field in DocType 'DocField'
 #. Label of a Check field in DocType 'Custom Field'
