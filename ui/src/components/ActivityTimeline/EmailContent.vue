@@ -2,10 +2,12 @@
 	<iframe
 		ref="iframeRef"
 		:srcdoc="htmlContent"
+		sandbox="allow-same-origin allow-popups allow-popups-to-escape-sandbox"
+		referrerpolicy="no-referrer"
 		class="prose-f block h-10 max-h-[500px] w-full"
 	/>
 </template>
-
+<!-- sandboxed iframe to prevent scripts from running and external resources from loading -->
 <script setup lang="ts">
 import { computed, ref, watch } from "vue";
 import { applyCssToIframe, stripEmailColors, useDataTheme } from "./utils";
@@ -95,11 +97,13 @@ function replaceReplyToContent(replyToContentElement: Element, forGmail: boolean
 	replyToContentElement.parentElement?.replaceChild(wrapper, replyToContentElement);
 }
 
+// <meta /> tag added to prevent scripts from running inside the iframe, and to prevent the iframe from loading any external resources (images, fonts, etc.) that could be used for tracking. The iframe is sandboxed to further restrict its capabilities.
 const htmlContent = computed(
 	() => `
   <!DOCTYPE html>
   <html>
   <head>
+    <meta http-equiv="Content-Security-Policy" content="script-src 'none'; object-src 'none';" />
     <base target="_blank" />
     <style>
       :root {
