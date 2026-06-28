@@ -3,7 +3,7 @@ msgstr ""
 "Project-Id-Version: frappe\n"
 "Report-Msgid-Bugs-To: developers@frappe.io\n"
 "POT-Creation-Date: 2026-06-24 16:55+0000\n"
-"PO-Revision-Date: 2026-06-24 20:34\n"
+"PO-Revision-Date: 2026-06-28 21:07\n"
 "Last-Translator: developers@frappe.io\n"
 "Language-Team: Norwegian Bokmal\n"
 "MIME-Version: 1.0\n"
@@ -17725,7 +17725,7 @@ msgstr "Ingen {0} e-post"
 #: frappe/public/js/frappe/form/grid_row.js:243
 msgctxt "Title of the 'row number' column"
 msgid "No."
-msgstr ""
+msgstr "Nr."
 
 #. Label of a Check field in DocType 'DocField'
 #. Label of a Check field in DocType 'Custom Field'
