@@ -48,7 +48,7 @@ whole activity history — emails included — loads in a single call.
 │ DATA LAYER — useActivityTimeline(doctype, docname)            │
 │   • createResource → get_activity_timeline   (default fetcher)│
 │   • server returns normalized Activity[] (ascending)         │
-│   • dedupe + sort (defensive) + groupConsecutiveVersions     │
+│   • dedupe + sort (defensive) + groupVersionActivities       │
 │   • realtime: patches the list in place on docinfo_update    │
 │   returns { activities, loading, error, reload }             │
 └──────────────────────────────────────────────────────────────┘
@@ -138,9 +138,12 @@ fallback, so an explicit `key` is only needed for reorderable custom rows.
           subtype: "like" | "assigned" | "assignment_completed" | "workflow" | "info" | "view",
           icon, text } }
 
-// version  (data.group present only on a folded run header)
+// version  (one change; data.group present on a folded multi-field group header)
+// each change is a VersionChange, a discriminated union on `type`:
+//   diff   → { name, fieldname?, type: "diff", prefix, from?, to, history? }  (from absent ⇒ set-from-blank)
+//   phrase → { name, fieldname?, type: "phrase", text }                    (fieldname null ⇒ doc-level)
 { type: "version", key, timestamp, author,
-  data: { name, text, group?: VersionActivity[] } }
+  data: { ...VersionChange, group?: VersionChange[] } }
 ```
 
 The raw → normalized translation is **isolated in the backend**
@@ -307,8 +310,8 @@ regions you don't override keep their defaults.
 | **CommentItem** | `{ comment, editable? }` | `save(content)` · `discard()` | `#header` (`{ comment }`) · `#actions` · `#footer` (`{ comment }`) |
 
 `#actions` is an unscoped slot rendered only when you provide it. Neither card
-ships default action buttons — you supply them (e.g. the exported `ReplyIcon` /
-`ReplyAllIcon`). `LogItem` / `VersionItem` are one-liners with nothing to
+ships default action buttons — you supply them (e.g. your own lucide icons via
+`~icons/lucide/reply`). `LogItem` / `VersionItem` are one-liners with nothing to
 sub-divide → **Tier-1 replace only** (`#item-log`, `#item-attachment_log`,
 `#item-version`; `log` and `attachment_log` both render through `LogItem`).
 
@@ -374,17 +377,19 @@ slots — `activity` is already in scope from the outer `#item-{type}` slot, so
 `#actions` needs no slot props.
 
 ```vue
-import { ActivityTimeline, EmailItem, CommentItem, ReplyIcon, ReplyAllIcon } from "@framework/ui";
+import { ActivityTimeline, EmailItem, CommentItem } from "@framework/ui";
+import LucideReply from "~icons/lucide/reply";
+import LucideReplyAll from "~icons/lucide/reply-all";
 
 <ActivityTimeline :activities :loading :error>
   <template #item-email="{ activity }">
     <EmailItem :email="activity">
       <template #actions>
         <Button variant="ghost" tooltip="Reply" @click="onReply(activity)">
-          <template #icon><ReplyIcon class="text-ink-gray-7" /></template>
+          <template #icon><LucideReply class="text-ink-gray-7" /></template>
         </Button>
         <Button variant="ghost" tooltip="Reply All" @click="onReplyAll(activity)">
-          <template #icon><ReplyAllIcon class="text-ink-gray-7" /></template>
+          <template #icon><LucideReplyAll class="text-ink-gray-7" /></template>
         </Button>
       </template>
     </EmailItem>
@@ -597,7 +602,6 @@ export { default as CommentItem } from "./CommentItem.vue";
 export { default as LogItem }     from "./LogItem.vue";
 export { default as VersionItem } from "./VersionItem.vue";
 export { useActivityTimeline } from "./useActivityTimeline";
-export { ReplyIcon, ReplyAllIcon } from "./icons";
 export type {
   Activity, ActivityTimelineProps, AttachmentLogActivity, LogActivity,
   BaseActivity, CommentActivity, CustomActivity, EmailActivity, EmailAttachment,

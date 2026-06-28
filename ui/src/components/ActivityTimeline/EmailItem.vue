@@ -50,8 +50,11 @@
 			</slot>
 		</div>
 		<hr class="border-t border-outline-gray-modals" />
-		<!-- body region owns its own horizontal padding -->
-		<div class="px-3 pb-2 pt-3">
+		<!-- body region owns its own horizontal padding. No top padding: the
+		     iframe sits flush to the <hr> so scrolled email content clips right at
+		     the border, not 12px below it — the breathing room lives *inside* the
+		     iframe (padding-top on .email-content) where it scrolls away with the content -->
+		<div class="px-3 pb-2">
 			<EmailContent :content="email.data.content" />
 			<slot name="footer" :email="email">
 				<div v-if="email.data.attachments.length" class="mt-2 flex flex-wrap gap-2">

@@ -86,14 +86,41 @@ export type LogActivity = BaseActivity<
   }
 >;
 
+interface VersionChangeBase {
+  name: string;
+  /** field changes carry it (enables same-field collapse); doc-level rows don't */
+  fieldname?: string | null;
+}
+
+/** A field value changed and we can show it — the frontend lays out the values. */
+export interface DiffChange extends VersionChangeBase {
+  type: "diff";
+  /** translated lead phrase, e.g. "changed Status" / "set Priority to" */
+  prefix: string;
+  /** old value (truncated by the frontend); absent ⇒ set-from-blank, no arrow */
+  from?: string;
+  to: string;
+  /** every hop the field took across merged saves; absent/length-1 ⇒ no chevron */
+  history?: Array<{ from: string; to: string }>;
+}
+
+/** A change we only describe in words — long-text edits, clears, or doc-level
+ *  events (submit/cancel/table rows). No values to lay out; the frontend prints it. */
+export interface PhraseChange extends VersionChangeBase {
+  type: "phrase";
+  /** full translated line, e.g. "updated Description" / "submitted this document" */
+  text: string;
+}
+
+/** One change in a version. `type` picks how the frontend lays it out:
+ *  diff (from→to, or set-from-blank when `from` is absent) · phrase (value-less line). */
+export type VersionChange = DiffChange | PhraseChange;
+
 export type VersionActivity = BaseActivity<
   "version",
-  {
-    name: string;
-    /** e.g. "set Status to Resolved" */
-    text: string;
-    /** present when consecutive same-author changes are folded together */
-    group?: VersionActivity[];
+  VersionChange & {
+    /** set when a sequence folds into >1 change */
+    group?: VersionChange[];
   }
 >;
 

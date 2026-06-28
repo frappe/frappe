@@ -1,7 +1,12 @@
 import { createResource } from "frappe-ui";
 import { computed, onMounted, onUnmounted } from "vue";
 import { getSocketInstance } from "../../socket";
-import type { Activity, UserInfo, VersionActivity } from "./types";
+import type {
+  Activity,
+  UserInfo,
+  VersionActivity,
+  VersionChange,
+} from "./types";
 
 const resources = new Map<string, ReturnType<typeof createResource>>();
 
@@ -23,34 +28,14 @@ export function useActivityTimeline(doctype: string, docname: string) {
   return {
     activities: computed<Activity[]>(() => {
       const base = (resource.data as Activity[] | undefined) ?? [];
-      const merged = dedupeByKey(base);
+      const merged = dropDuplicateKeys(base);
       merged.sort(compareActivities);
-      return groupConsecutiveVersions(merged);
+      return groupVersionActivities(merged);
     }),
     loading: computed<boolean>(() => resource.loading),
     error: computed(() => resource.error || null),
     reload: () => resource.reload(),
   };
-}
-
-function dedupeByKey(activities: Activity[]): Activity[] {
-  const seen = new Set<string>();
-  const out: Activity[] = [];
-  for (const a of activities) {
-    if (seen.has(a.key)) continue;
-    seen.add(a.key);
-    out.push(a);
-  }
-  return out;
-}
-
-function patchList(
-  list: Activity[],
-  action: "update" | "delete",
-  activity: Activity
-): Activity[] {
-  if (action === "delete") return list.filter((a) => a.key !== activity.key);
-  return list.map((a) => (a.key === activity.key ? activity : a));
 }
 
 function handleLiveUpdates(
@@ -86,7 +71,11 @@ function handleLiveUpdates(
       // new rows append and sort into place via the computed
       resource.data = [...current, activity];
     } else {
-      resource.data = patchList(current, action as "update" | "delete", activity);
+      resource.data = patchList(
+        current,
+        action as "update" | "delete",
+        activity
+      );
     }
   };
 
@@ -159,6 +148,9 @@ function normalizeActivity(
       const isRemoved = doc.comment_type === "Attachment Removed";
       const content = String(doc.content ?? "");
       const href = content.match(/href=['"]([^'"]+)['"]/);
+      const fileUrl = !isRemoved && href ? href[1] : undefined;
+      // private files are served from /private/files/… — a stable signal,
+      // unlike sniffing the `fa-lock` icon class out of the comment HTML
       return {
         type: "attachment_log",
         key: `attachment:${doc.name}`,
@@ -168,8 +160,8 @@ function normalizeActivity(
           name: doc.name as string,
           action: isRemoved ? "removed" : "added",
           fileName: stripHtml(content),
-          fileUrl: !isRemoved && href ? href[1] : undefined,
-          isPrivate: content.includes("fa-lock"),
+          isPrivate: fileUrl?.startsWith("/private/") ?? false,
+          ...(fileUrl ? { fileUrl } : {}),
         },
       };
     }
@@ -201,11 +193,43 @@ function normalizeActivity(
   }
 }
 
+function patchList(
+  list: Activity[],
+  action: "update" | "delete",
+  activity: Activity
+): Activity[] {
+  if (action === "delete") return list.filter((a) => a.key !== activity.key);
+  return list.map((a) => (a.key === activity.key ? activity : a));
+}
+
+function dropDuplicateKeys(activities: Activity[]): Activity[] {
+  const seen = new Set<string>();
+  const out: Activity[] = [];
+  for (const a of activities) {
+    if (seen.has(a.key)) continue;
+    seen.add(a.key);
+    out.push(a);
+  }
+  return out;
+}
+
+function compareActivities(
+  a: { timestamp?: string; key: string },
+  b: { timestamp?: string; key: string }
+): number {
+  return (
+    timeValue(a.timestamp) - timeValue(b.timestamp) ||
+    a.key.localeCompare(b.key)
+  );
+}
+
 function stripHtml(html: string): string {
   return html.replace(/<[^>]*>/g, "").trim();
 }
 
-export function groupConsecutiveVersions(activities: Activity[]): Activity[] {
+// Merge consecutive same-author versions into one summary; other activities pass through.
+// Groups changes by same user into one
+export function groupVersionActivities(activities: Activity[]): Activity[] {
   const out: Activity[] = [];
   let i = 0;
   while (i < activities.length) {
@@ -223,26 +247,67 @@ export function groupConsecutiveVersions(activities: Activity[]): Activity[] {
     ) {
       j++;
     }
-    if (j - i === 1) {
-      out.push(current);
-    } else {
-      const run = activities.slice(i, j) as VersionActivity[];
-      const cur = current as VersionActivity;
-      out.push({ ...cur, data: { ...cur.data, group: run } });
-    }
+    const summary = summarizeVersions(
+      activities.slice(i, j) as VersionActivity[]
+    );
+    if (summary) out.push(summary);
     i = j;
   }
   return out;
 }
 
-function compareActivities(
-  a: { timestamp?: string; key: string },
-  b: { timestamp?: string; key: string }
-): number {
-  return (
-    timeValue(a.timestamp) - timeValue(b.timestamp) ||
-    a.key.localeCompare(b.key)
+// Group similar version changes into one summary row, with a `group` of the individual changes.
+/* example: 
+  `status Open -> Closed`, status Open -> In Progress, status In Progress -> Closed` becomes `status Open -> Closed` with a `group` of the three changes. 
+*/
+function summarizeVersions(
+  versions: VersionActivity[]
+): VersionActivity | null {
+  const changes: VersionChange[] = []; // for the summary row; each is a net change (first.from → last.to) with a `history` of all similar changes in the run
+  const changeByField = new Map<string, VersionChange>(); // keyed by `fieldname` to find the net change for each field
+
+  for (const row of versions) {
+    const change = row.data;
+    // doc-level rows have no fieldname — never collapse
+    if (!change.fieldname) {
+      changes.push({ ...change });
+      continue;
+    }
+    const existing = changeByField.get(change.fieldname);
+    if (!existing) {
+      const next: VersionChange =
+        change.type === "diff"
+          ? { ...change, history: [{ from: change.from ?? "", to: change.to }] }
+          : { ...change };
+      changeByField.set(change.fieldname, next);
+      changes.push(next);
+    } else if (existing.type === "diff" && change.type === "diff") {
+      existing.to = change.to; // advance net "to"; `from` stays the first row's
+      existing.history!.push({ from: change.from ?? "", to: change.to });
+    } else {
+      // type changed mid-sequence (e.g. value edited then cleared) — take the latest
+      const replacement: VersionChange = { ...change };
+      changeByField.set(change.fieldname, replacement);
+      changes[changes.indexOf(existing)] = replacement;
+    }
+  }
+
+  // drop fields that churned back to their starting value (net no-op; `from` is the
+  // first row's, so this never matches a set-from-blank, which has no `from`)
+  const visible = changes.filter(
+    (s) => !(s.type === "diff" && s.from === s.to)
   );
+  if (visible.length === 0) return null;
+
+  // key off the first row (stable identity) so Vue reuses the item on re-derive
+  // instead of remounting and resetting its expanded state; timestamp from the last
+  const first = versions[0];
+  const last = versions[versions.length - 1];
+  const data =
+    visible.length === 1
+      ? { ...visible[0] }
+      : { ...visible[0], group: visible };
+  return { ...last, key: first.key, data };
 }
 
 // Frappe timestamps use a space separator; Date.parse needs 'T' for reliable parsing

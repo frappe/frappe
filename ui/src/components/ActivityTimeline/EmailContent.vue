@@ -5,6 +5,7 @@
 		sandbox="allow-same-origin allow-popups allow-popups-to-escape-sandbox"
 		referrerpolicy="no-referrer"
 		class="prose-f block h-10 max-h-[500px] w-full"
+		:class="{ 'email-clipped-fade': isClipped }"
 	/>
 </template>
 <!-- sandboxed iframe to prevent scripts from running and external resources from loading -->
@@ -16,7 +17,12 @@ const props = defineProps<{
 	content: string;
 }>();
 
+// keep in sync with the `max-h-[500px]` on the iframe — past this the body is
+// clipped, and we fade the cut edge instead of hard-slicing a line
+const MAX_CONTENT_HEIGHT = 500;
+
 const iframeRef = ref<HTMLIFrameElement | null>(null);
+const isClipped = ref(false);
 const _content = ref(stripEmailColors(props.content));
 const dataTheme = useDataTheme();
 
@@ -140,8 +146,28 @@ const htmlContent = computed(
       .replied-content .collapse + input:checked + div {
         display: block;
       }
+      body {
+        margin: 0;
+      }
       .email-content {
         word-break: break-word;
+        /* contain child margins so the first line isn't clipped at the iframe's
+           top edge (margin-collapse escaping the top) and the measured height
+           stays accurate */
+        display: flow-root;
+        /* breathing room between the card border and the first line — kept
+           *inside* the scroll viewport so it scrolls away with the content and
+           scrolled email clips flush at the border, not 12px below it */
+        padding-top: 12px;
+      }
+      /* drop the leading/trailing margins so the body sits flush against this
+         element's padding — the iframe-internal padding-top / card pb-2 provide
+         the breathing room */
+      .email-content > :first-child {
+        margin-top: 0;
+      }
+      .email-content > :last-child {
+        margin-bottom: 0;
       }
 
       .email-content :is(:where(img):not(:where([class~='not-prose'], [class~='not-prose'] *))) {
@@ -175,17 +201,23 @@ watch(iframeRef, (iframe) => {
 			if (!parent) return;
 			parent.setAttribute("data-theme", dataTheme.value);
 
+			// measure content → set iframe height, and flag when it overflows the
+			// cap so the template fades the clipped bottom edge
+			const syncHeight = () => {
+				const full = parent.offsetHeight + 1;
+				iframe.style.height = full + "px";
+				isClipped.value = full > MAX_CONTENT_HEIGHT;
+			};
+
 			// Inherit the host app's compiled styles (frappe-ui prose-f, color
 			// tokens, fonts) into the isolated iframe; external sheets load async,
 			// so re-measure the iframe height once they apply.
-			applyCssToIframe(iframe, () => {
-				iframe.style.height = parent.offsetHeight + 1 + "px";
-			});
+			applyCssToIframe(iframe, syncHeight);
 
 			// note: helpdesk added a per-content font class here (getFontFamily,
 			// Arabic → system-ui); dropped for now, re-add on emailContent if needed
 
-			iframe.style.height = parent.offsetHeight + 1 + "px";
+			syncHeight();
 
 			// Clicks inside the iframe don't bubble to the parent document, so popovers
 			// and dropdowns that close on outside-click never fire without this.
@@ -211,9 +243,7 @@ watch(iframeRef, (iframe) => {
 			const replyCollapsers = emailContent.querySelectorAll(".replyCollapser");
 			if (replyCollapsers.length) {
 				replyCollapsers.forEach((replyCollapser) => {
-					replyCollapser.addEventListener("change", () => {
-						iframe.style.height = parent.offsetHeight + 1 + "px";
-					});
+					replyCollapser.addEventListener("change", syncHeight);
 				});
 			}
 		};
@@ -225,3 +255,13 @@ watch(dataTheme, (theme) => {
 	if (html) html.setAttribute("data-theme", theme);
 });
 </script>
+
+<style scoped>
+/* Very subtle fade on the clipped bottom edge — softens only the last sliver
+ * (~18px) so a long email never hard-slices a line. Transparency-based, so it
+ * works on any card background and in both themes. */
+.email-clipped-fade {
+	-webkit-mask-image: linear-gradient(to bottom, #000 calc(100% - 18px), transparent);
+	mask-image: linear-gradient(to bottom, #000 calc(100% - 18px), transparent);
+}
+</style>

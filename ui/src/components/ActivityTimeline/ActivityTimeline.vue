@@ -26,12 +26,14 @@
 							class="relative flex justify-center after:absolute after:start-[50%] after:top-3 after:-z-10 after:border-s after:border-outline-gray-modals"
 							:class="[
 								i != activities.length - 1 && 'after:h-full',
-								isOneLiner(activity) && 'after:top-6',
+								isOneLinerActivity(activity) && 'after:top-6',
 							]"
 						>
 							<div
 								class="z-1 flex items-center justify-center self-start bg-surface-white"
-								:class="[isAvatarRow(activity) ? 'h-10' : 'h-6 w-6 rounded-full']"
+								:class="[
+									isAvatarActivity(activity) ? 'h-10' : 'h-6 w-6 rounded-full',
+								]"
 							>
 								<!-- gutter ladder: #icon-{type} slot > activity.icon > per-type default -->
 								<slot :name="`icon-${activity.type}`" :activity="activity">
@@ -50,7 +52,7 @@
 									<template v-else>
 										<!-- email + comment: author avatar on the timeline axis,
 										     with a channel badge (mail / comment) at its corner -->
-										<div v-if="isAvatarRow(activity)" class="relative">
+										<div v-if="isAvatarActivity(activity)" class="relative">
 											<Avatar
 												size="lg"
 												:label="activity.author.fullname"
@@ -143,7 +145,10 @@
 import { Avatar, ErrorMessage, FeatherIcon, LoadingIndicator } from "frappe-ui";
 import CommentItem from "./CommentItem.vue";
 import EmailItem from "./EmailItem.vue";
-import { CommentIcon, DotIcon, LUCIDE_ICON_CLASS, MailIcon } from "./icons";
+import { CommentIcon, DotIcon, LUCIDE_ICON_CLASS } from "./icons";
+// lucide envelope (email badge); renders via unplugin-icons — consumers need
+// `frappeui({ lucideIcons: true })` in their vite config
+import MailIcon from "~icons/lucide/mail";
 import LogItem from "./LogItem.vue";
 import type {
 	Activity,
@@ -173,13 +178,13 @@ function getKey(activity: Activity | CustomActivity, index: number): string {
 
 // email + comment render the author avatar (with a channel badge) on the
 // timeline axis instead of a plain gutter icon
-function isAvatarRow(activity: Activity): boolean {
+function isAvatarActivity(activity: Activity): boolean {
 	return activity.type === "email" || activity.type === "comment";
 }
 
 // one-line activity rows (log/attachment) align differently from the cards
 // (email/comment) — nudged to vertically center the icon with the single line
-function isOneLiner(activity: Activity): boolean {
+function isOneLinerActivity(activity: Activity): boolean {
 	return (
 		activity.type === "log" ||
 		activity.type === "attachment_log" ||

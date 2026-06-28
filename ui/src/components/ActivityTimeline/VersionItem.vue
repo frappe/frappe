@@ -3,8 +3,8 @@
 	<div
 		class="flex flex-1 flex-col gap-2 ps-[13px] text-sm font-medium leading-6 text-ink-gray-6"
 	>
-		<!-- grouped: collapsible header + per-change rows -->
-		<template v-if="activity.data.group && activity.data.group.length > 1">
+		<!-- grouped: >1 change -->
+		<template v-if="changes.length > 1">
 			<div class="flex items-center gap-1.5">
 				<button
 					type="button"
@@ -12,20 +12,9 @@
 					@click="expanded = !expanded"
 				>
 					<span>
-						<!-- reserve the wider word's width so toggling doesn't reflow the line -->
-						<span class="inline-grid justify-items-start align-baseline">
-							<span class="invisible col-start-1 row-start-1" aria-hidden="true"
-								>Show</span
-							>
-							<span class="invisible col-start-1 row-start-1" aria-hidden="true"
-								>Hide</span
-							>
-							<span class="col-start-1 row-start-1">{{
-								expanded ? "Hide" : "Show"
-							}}</span>
-						</span>
+						<span>Show</span>
 						<span class="font-medium text-ink-gray-8">
-							+{{ activity.data.group.length }} changes
+							+{{ changes.length }} changes
 						</span>
 						from
 						<span class="font-medium text-ink-gray-8">{{
@@ -46,26 +35,14 @@
 				</div>
 			</div>
 			<div v-if="expanded" class="flex flex-col gap-2">
-				<div v-for="g in activity.data.group" :key="g.key" class="flex items-center gap-2">
-					<span>
-						<span class="font-medium text-ink-gray-8">{{ g.author.fullname }}</span>
-						{{ " " }}{{ g.data.text }}
-					</span>
-					<div class="ms-auto whitespace-nowrap">
-						<Tooltip :text="dateFormat(g.timestamp)">
-							<span class="text-sm text-ink-gray-5">{{ timeAgo(g.timestamp) }}</span>
-						</Tooltip>
-					</div>
-				</div>
+				<VersionChange v-for="c in changes" :key="c.name" :change="c" />
 			</div>
 		</template>
 
 		<!-- single change -->
-		<div v-else class="flex items-center gap-1.5">
-			<span>
-				<span class="font-medium text-ink-gray-8">{{ activity.author.fullname }}</span>
-				{{ " " }}{{ activity.data.text }}
-			</span>
+		<div v-else class="flex items-start gap-1.5">
+			<span class="font-medium text-ink-gray-8">{{ activity.author.fullname }}</span>
+			<VersionChange :change="changes[0]" />
 			<div class="ms-auto whitespace-nowrap">
 				<Tooltip :text="dateFormat(activity.timestamp)">
 					<span class="text-sm text-ink-gray-5">{{ timeAgo(activity.timestamp) }}</span>
@@ -77,13 +54,19 @@
 
 <script setup lang="ts">
 import { FeatherIcon, Tooltip } from "frappe-ui";
-import { ref } from "vue";
-import type { VersionActivity } from "./types";
+import { computed, ref } from "vue";
+import type { VersionActivity, VersionChange as VersionChangeType } from "./types";
 import { dateFormat, timeAgo } from "./utils";
+import VersionChange from "./VersionChange.vue";
 
-defineProps<{
+const props = defineProps<{
 	activity: VersionActivity;
 }>();
+
+// grouped → `group`; otherwise the single change itself
+const changes = computed<VersionChangeType[]>(
+	() => props.activity.data.group ?? [props.activity.data]
+);
 
 const expanded = ref(false);
 </script>

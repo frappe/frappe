@@ -185,6 +185,7 @@ def attachment_log_activity(c, author: dict) -> dict:
 	action = "removed" if c.comment_type == "Attachment Removed" else "added"
 	content = c.content or ""
 	href = re.search(r"""href=['"]([^'"]+)['"]""", content)
+	file_url = href.group(1) if (href and action == "added") else None
 	return {
 		"type": "attachment_log",
 		"key": f"attachment:{c.name}",
@@ -194,8 +195,10 @@ def attachment_log_activity(c, author: dict) -> dict:
 			"name": c.name,
 			"action": action,
 			"fileName": activity_text(content),
-			"fileUrl": href.group(1) if (href and action == "added") else None,
-			"isPrivate": "fa-lock" in content,
+			"fileUrl": file_url,
+			# private files are served from /private/files/… — a stable signal,
+			# unlike sniffing the `fa-lock` icon class out of the comment HTML
+			"isPrivate": bool(file_url and file_url.startswith("/private/")),
 		},
 	}
 
@@ -234,6 +237,19 @@ def get_view_activities(doc: "Document", user_info: dict) -> list[dict]:
 	return out
 
 
+# Fieldtypes shown as "updated {field}" instead of a from → to diff.
+LONG_TEXT_FIELDTYPES = {
+	"Text",
+	"Small Text",
+	"Long Text",
+	"Text Editor",
+	"Code",
+	"HTML Editor",
+	"Markdown Editor",
+	"JSON",
+}
+
+
 def get_version_activities(doc: "Document", user_info: dict) -> list[dict]:
 	versions = get_versions(doc)
 	if not versions:
@@ -243,7 +259,7 @@ def get_version_activities(doc: "Document", user_info: dict) -> list[dict]:
 	meta = doc.meta
 	permitted = set(
 		frappe.model.get_permitted_fields(doctype, user=frappe.session.user, permission_type="read")
-	)
+	)  # handles field level perms aswell
 
 	frappe.utils.add_user_info({v.owner for v in versions if v.owner}, user_info)
 
@@ -252,23 +268,23 @@ def get_version_activities(doc: "Document", user_info: dict) -> list[dict]:
 	result = []
 	for v in versions:
 		data = json.loads(v.data or "{}")
-		texts: list[str] = []
+		changes: list[dict] = []
 
-		for fieldname, _old, new in data.get("changed", []):
+		for fieldname, old, new in data.get("changed", []):
 			if fieldname == "docstatus":
 				if new == 1:
-					texts.append(_("submitted this document"))
+					changes.append(format_docstatus_change(_("submitted this document")))
 				elif new == 2:
-					texts.append(_("cancelled this document"))
+					changes.append(format_docstatus_change(_("cancelled this document")))
 				continue
 
-			df = permitted_field(meta, permitted, fieldname)
+			df = is_field_visible(meta, permitted, fieldname)
 			if not df:
 				continue
 
-			texts.append(_("set {0} to {1}").format(_(df.label or fieldname), truncate_value(new)))
+			changes.append(format_version_change(df, fieldname, old, new))
 
-		for key, label_fmt in (
+		for key, value in (
 			("added", _("added {0} row(s) to {1}")),
 			("removed", _("removed {0} row(s) from {1}")),
 		):
@@ -276,16 +292,16 @@ def get_version_activities(doc: "Document", user_info: dict) -> list[dict]:
 			for table_fieldname, _row in data.get(key, []):
 				counts[table_fieldname] = counts.get(table_fieldname, 0) + 1
 			for table_fieldname, count in counts.items():
-				df = permitted_field(meta, permitted, table_fieldname)
+				df = is_field_visible(meta, permitted, table_fieldname)
 				if not df:
 					continue
-				texts.append(label_fmt.format(count, _(df.label or table_fieldname)))
+				changes.append(format_docstatus_change(value.format(count, _(df.label or table_fieldname))))
 
 		for entry in data.get("row_changed", []):
 			# get_diff order is (table_fieldname, row_index, row_name, changes) —
 			# version.py docstring has row_name/row_index swapped; the code is authoritative
 			table_fieldname, row_index, _row_name, child_changes = entry
-			df = permitted_field(meta, permitted, table_fieldname)
+			df = is_field_visible(meta, permitted, table_fieldname)
 			if not df:
 				continue
 
@@ -305,33 +321,70 @@ def get_version_activities(doc: "Document", user_info: dict) -> list[dict]:
 			child_permitted, child_meta = child_cache[child_dt]
 
 			for cfield, _cold, cnew in child_changes:
-				cdf = permitted_field(child_meta, child_permitted, cfield)
+				cdf = is_field_visible(child_meta, child_permitted, cfield)
 				if not cdf:
 					continue
-				texts.append(
-					_("set {0} to {1} in row #{2}").format(
-						_(cdf.label or cfield),
-						truncate_value(cnew),
-						row_index + 1,
+				changes.append(
+					format_docstatus_change(
+						_("set {0} to {1} in row #{2}").format(
+							_(cdf.label or cfield),
+							truncate_value(cnew),
+							row_index + 1,
+						)
 					)
 				)
 
 		author = author_from(v.owner, user_info)
-		for idx, text in enumerate(texts):
+		for idx, change in enumerate(changes):
+			change["name"] = f"{v.name}-{idx}"
 			result.append(
 				{
 					"type": "version",
 					"key": f"version:{v.name}-{idx}",
 					"timestamp": str(v.creation),
 					"author": author,
-					"data": {"name": f"{v.name}-{idx}", "text": text},
+					"data": change,
 				}
 			)
 
 	return result
 
 
-def permitted_field(meta, permitted: set, fieldname: str):
+def format_version_change(df, fieldname: str, old, new) -> dict:
+	label = _(df.label or fieldname)
+	# send the full stripped value; the frontend clips it for display
+	old_s = display_value(old)
+	new_s = display_value(new)
+
+	# long-text/HTML edits and clears can't show values — ship a finished phrase
+	if df.fieldtype in LONG_TEXT_FIELDTYPES:
+		return {"fieldname": fieldname, "type": "phrase", "text": _("updated {0}").format(label)}
+	if old_s and not new_s:
+		return {"fieldname": fieldname, "type": "phrase", "text": _("cleared {0}").format(label)}
+
+	# diff: the frontend lays out the value(s). `from` omitted ⇒ set-from-blank (no arrow)
+	if old_s:
+		return {
+			"fieldname": fieldname,
+			"type": "diff",
+			"prefix": _("changed {0}").format(label),
+			"from": old_s,
+			"to": new_s,
+		}
+	return {
+		"fieldname": fieldname,
+		"type": "diff",
+		"prefix": _("set {0} to").format(label),
+		"to": new_s,
+	}
+
+
+def format_docstatus_change(text: str) -> dict:
+	"""A doc-level change (submit/cancel/table rows) — a phrase that never folds."""
+	return {"fieldname": None, "type": "phrase", "text": text}
+
+
+def is_field_visible(meta, permitted: set, fieldname: str):
 	"""The docfield, or None if it's not readable or is hidden from the timeline."""
 	if fieldname not in permitted:
 		return None
@@ -339,6 +392,13 @@ def permitted_field(meta, permitted: set, fieldname: str):
 	if not df or (df.hidden and not df.show_on_timeline):
 		return None
 	return df
+
+
+def display_value(value) -> str:
+	"""Full HTML-stripped value; the frontend handles clipping."""
+	if value is None or value == "":
+		return ""
+	return frappe.utils.strip_html(str(value)).strip()
 
 
 def truncate_value(value) -> str:
