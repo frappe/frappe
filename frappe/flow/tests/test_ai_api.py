@@ -49,7 +49,7 @@ def _sse_events(response: Response) -> list[dict[str, Any]]:
 
 def _model_doc(**overrides: Any) -> dict:
 	doc = {
-		"doctype": "AI Model",
+		"doctype": "Flow Model",
 		"title": "Test API Model",
 		"model_id": "openai/gpt-4o-mini",
 		"enabled": 1,
@@ -60,7 +60,7 @@ def _model_doc(**overrides: Any) -> dict:
 
 def _agent_doc(model_name: str, **overrides: Any) -> dict:
 	doc = {
-		"doctype": "AI Agent",
+		"doctype": "Flow Agent",
 		"title": "Test API Agent",
 		"model": model_name,
 		"instructions": "Be terse.",
@@ -109,14 +109,14 @@ class TestStartRun(IntegrationTestCase):
 
 		self.assertEqual(payload["status"], "Completed")
 		self.assertEqual(payload["output"], "hello")
-		session = frappe.get_doc("AI Session", payload["session"])
+		session = frappe.get_doc("Flow Session", payload["session"])
 		self.assertEqual(session.agent, ASSISTANT_AGENT_TITLE)
 
 	def test_start_run_with_named_agent_links_to_agent(self):
 		with patch.object(Model, "chat", return_value=_final()):
 			payload = start_run("hi", agent=self.agent.name)
 
-		session = frappe.get_doc("AI Session", payload["session"])
+		session = frappe.get_doc("Flow Session", payload["session"])
 		self.assertEqual(session.agent, self.agent.name)
 		self.assertEqual(payload["status"], "Completed")
 
@@ -158,7 +158,7 @@ class TestStartRun(IntegrationTestCase):
 		self.assertEqual(done["status"], "Completed")
 		self.assertEqual(done["output"], "hello world")
 
-		run = frappe.get_doc("AI Run", events[0]["name"])
+		run = frappe.get_doc("Flow Run", events[0]["name"])
 		self.assertEqual(run.status, "Completed")
 		self.assertEqual(run.output, "hello world")
 
@@ -170,8 +170,8 @@ class TestStartRun(IntegrationTestCase):
 			events = _sse_events(response)
 
 		self.assertEqual(events[0]["type"], "run_started")
-		run = frappe.get_doc("AI Run", events[0]["name"])
-		session = frappe.get_doc("AI Session", run.session)
+		run = frappe.get_doc("Flow Run", events[0]["name"])
+		session = frappe.get_doc("Flow Session", run.session)
 		self.assertEqual(session.agent, ASSISTANT_AGENT_TITLE)
 
 	def test_start_run_stream_accepts_truthy_string(self):
@@ -192,7 +192,7 @@ class TestStartRun(IntegrationTestCase):
 		self.assertEqual(events[-1]["type"], "error")
 		self.assertIn("kaboom", events[-1]["message"])
 
-		run = frappe.get_doc("AI Run", events[0]["name"])
+		run = frappe.get_doc("Flow Run", events[0]["name"])
 		self.assertEqual(run.status, "Failed")
 
 
@@ -282,7 +282,7 @@ class TestResumeRun(IntegrationTestCase):
 		self.assertIn("done", types)
 		self.assertEqual(events[-1]["status"], "Completed")
 
-		run = frappe.get_doc("AI Run", run_name)
+		run = frappe.get_doc("Flow Run", run_name)
 		self.assertEqual(run.status, "Completed")
 
 	def test_resume_failure_marks_run_failed(self):
@@ -292,7 +292,7 @@ class TestResumeRun(IntegrationTestCase):
 			with self.assertRaises(RuntimeError):
 				resume_run(run_name, {"c1": "Deny"})
 
-		failed = frappe.get_doc("AI Run", run_name)
+		failed = frappe.get_doc("Flow Run", run_name)
 		self.assertEqual(failed.status, "Failed")
 		self.assertIn("boom", failed.error)
 
@@ -306,7 +306,7 @@ class TestStartRunSessions(IntegrationTestCase):
 	def setUp(self):
 		self.model_doc = frappe.get_doc(
 			{
-				"doctype": "AI Model",
+				"doctype": "Flow Model",
 				"title": "Test Session Model",
 				"model_id": "openai/gpt-4o-mini",
 				"enabled": 1,
@@ -322,7 +322,7 @@ class TestStartRunSessions(IntegrationTestCase):
 			result = start_run("hello world")
 
 		self.assertIsNotNone(result["session"])
-		session = frappe.get_doc("AI Session", result["session"])
+		session = frappe.get_doc("Flow Session", result["session"])
 		self.assertEqual(session.owner, frappe.session.user)
 		self.assertEqual(session.title, "hello world")
 
@@ -330,7 +330,7 @@ class TestStartRunSessions(IntegrationTestCase):
 		with patch.object(Model, "chat", return_value=_final()):
 			result = start_run("hi")
 
-		run = frappe.get_doc("AI Run", result["name"])
+		run = frappe.get_doc("Flow Run", result["name"])
 		self.assertEqual(run.session, result["session"])
 
 	def test_second_turn_threads_prior_messages(self):
@@ -356,7 +356,7 @@ class TestStartRunSessions(IntegrationTestCase):
 
 		sync_builtin_assistant(model=self.model_doc.name)
 		session = frappe.get_doc(
-			{"doctype": "AI Session", "agent": ASSISTANT_AGENT_TITLE, "title": "carried"}
+			{"doctype": "Flow Session", "agent": ASSISTANT_AGENT_TITLE, "title": "carried"}
 		).insert(ignore_permissions=True)
 
 		with patch.object(Model, "chat", return_value=_final()):
@@ -371,7 +371,7 @@ class TestStartRunSessions(IntegrationTestCase):
 	def test_agent_mismatch_with_session_raises(self):
 		agent_a = frappe.get_doc(
 			{
-				"doctype": "AI Agent",
+				"doctype": "Flow Agent",
 				"title": "Agent Mismatch A",
 				"model": self.model_doc.name,
 				"instructions": "x",
@@ -380,14 +380,14 @@ class TestStartRunSessions(IntegrationTestCase):
 		).insert()
 		agent_b = frappe.get_doc(
 			{
-				"doctype": "AI Agent",
+				"doctype": "Flow Agent",
 				"title": "Agent Mismatch B",
 				"model": self.model_doc.name,
 				"instructions": "x",
 				"enabled": 1,
 			}
 		).insert()
-		session = frappe.get_doc({"doctype": "AI Session", "agent": agent_a.name}).insert(
+		session = frappe.get_doc({"doctype": "Flow Session", "agent": agent_a.name}).insert(
 			ignore_permissions=True
 		)
 
@@ -414,7 +414,7 @@ class TestStartRunSecurity(IntegrationTestCase):
 	def setUp(self):
 		self.model_doc = frappe.get_doc(
 			{
-				"doctype": "AI Model",
+				"doctype": "Flow Model",
 				"title": "Test Security Model",
 				"model_id": "openai/gpt-4o-mini",
 				"enabled": 1,
@@ -474,7 +474,7 @@ class TestStartRunAttachments(IntegrationTestCase):
 		self.assertIn("the secret code is 1234", user_msg["content"])
 		self.assertIn("summarize this", user_msg["content"])
 
-		session = frappe.get_doc("AI Session", payload["session"])
+		session = frappe.get_doc("Flow Session", payload["session"])
 		stored_user = [m for m in session.messages if m.role == "user"][-1]
 		self.assertEqual(stored_user.content, "summarize this")
 
@@ -514,7 +514,7 @@ class TestStartRunAttachments(IntegrationTestCase):
 		with patch.object(Model, "chat", return_value=_final()):
 			payload = start_run("hi", agent=self.agent.name, attachments=[file_doc.name, file_doc.name])
 
-		session = frappe.get_doc("AI Session", payload["session"])
+		session = frappe.get_doc("Flow Session", payload["session"])
 		self.assertEqual(len(session.attachments), 1)
 
 	def test_attachments_accepts_json_string(self):
@@ -545,7 +545,7 @@ class TestAttachFile(IntegrationTestCase):
 		).insert()
 
 	def test_attach_file_returns_chip_metadata_and_stages_text(self):
-		from flow.ai.doctype.ai_session_attachment.ai_session_attachment import staged_attachment
+		from flow.flow.doctype.flow_session_attachment.flow_session_attachment import staged_attachment
 
 		file_doc = self._file()
 		chip = attach_file(file_doc.name)
@@ -628,12 +628,12 @@ class TestRecoverSession(IntegrationTestCase):
 		frappe.db.rollback()
 
 	def _session(self) -> str:
-		return frappe.get_doc({"doctype": "AI Session"}).insert(ignore_permissions=True).name
+		return frappe.get_doc({"doctype": "Flow Session"}).insert(ignore_permissions=True).name
 
 	def _run(self, session: str, status: str, **fields) -> str:
 		return (
 			frappe.get_doc(
-				{"doctype": "AI Run", "session": session, "source": "Manual", "status": status, **fields}
+				{"doctype": "Flow Run", "session": session, "source": "Manual", "status": status, **fields}
 			)
 			.insert(ignore_permissions=True)
 			.name
@@ -644,7 +644,7 @@ class TestRecoverSession(IntegrationTestCase):
 		run = self._run(session, "Running")
 
 		self.assertEqual(recover_session(session), {"recovered": 1})
-		doc = frappe.get_doc("AI Run", run)
+		doc = frappe.get_doc("Flow Run", run)
 		self.assertEqual(doc.status, "Failed")
 		self.assertIn("abandoned", doc.error)
 
@@ -654,8 +654,8 @@ class TestRecoverSession(IntegrationTestCase):
 		paused = self._run(session, "Paused", questions=json.dumps([{"key": "c1"}]))
 
 		self.assertEqual(recover_session(session), {"recovered": 0})
-		self.assertEqual(frappe.db.get_value("AI Run", completed, "status"), "Completed")
-		self.assertEqual(frappe.db.get_value("AI Run", paused, "status"), "Paused")
+		self.assertEqual(frappe.db.get_value("Flow Run", completed, "status"), "Completed")
+		self.assertEqual(frappe.db.get_value("Flow Run", paused, "status"), "Paused")
 
 	def test_no_runs_is_noop(self):
 		self.assertEqual(recover_session(self._session()), {"recovered": 0})

@@ -41,10 +41,10 @@ class Model:
 	):
 		if name is not None:
 			if model_id or api_key or base_url or params:
-				raise ValueError("Pass either an AI Model doc name or explicit kwargs, not both.")
-			doc = frappe.get_doc("AI Model", name)
+				raise ValueError("Pass either an Flow Model doc name or explicit kwargs, not both.")
+			doc = frappe.get_doc("Flow Model", name)
 			if not doc.enabled:
-				raise ValueError(f"AI Model {name!r} is disabled")
+				raise ValueError(f"Flow Model {name!r} is disabled")
 			model_id = doc.model_id
 			api_key = doc.get_password("api_key", raise_exception=False)
 			base_url = doc.base_url or None
@@ -53,7 +53,7 @@ class Model:
 		if not model_id:
 			raise ValueError("model_id is required")
 
-		# Fall back to the central AI Provider store for anything not set on the model itself.
+		# Fall back to the central Flow Provider store for anything not set on the model itself.
 		provider_creds = resolve_provider_credentials(model_id)
 		api_key = api_key or provider_creds.get("api_key")
 		base_url = base_url or provider_creds.get("base_url")
@@ -101,7 +101,7 @@ class Model:
 
 
 def resolve_provider_credentials(model_id: str) -> dict[str, Any]:
-	"""Look up central AI Provider credentials for a model's provider."""
+	"""Look up central Flow Provider credentials for a model's provider."""
 	try:
 		import litellm
 
@@ -109,10 +109,10 @@ def resolve_provider_credentials(model_id: str) -> dict[str, Any]:
 	except Exception:
 		return {}
 
-	if not provider or not frappe.db.exists("AI Provider", provider):
+	if not provider or not frappe.db.exists("Flow Provider", provider):
 		return {}
 
-	doc = frappe.get_doc("AI Provider", provider)
+	doc = frappe.get_doc("Flow Provider", provider)
 	if not doc.enabled:
 		return {}
 

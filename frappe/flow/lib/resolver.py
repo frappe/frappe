@@ -13,7 +13,7 @@ from frappe.utils.safe_exec import safe_exec
 from flow.lib.tool import Tool, build_schema
 
 if TYPE_CHECKING:
-	from flow.ai.doctype.ai_tool.ai_tool import AITool
+	from flow.flow.doctype.flow_tool.flow_tool import FlowTool
 
 MAIN_FUNCTION_NAME = "main"
 RESULT_VAR = "ai_tool_result"
@@ -32,8 +32,8 @@ _ARRAY_NAMES = frozenset(
 _OBJECT_NAMES = frozenset({"dict", "Dict", "Mapping"})
 
 
-def resolve_tool(doc: AITool, *, restrict_commit_rollback: bool = False) -> Tool:
-	"""Turn an AI Tool row into a runtime Tool the Agent can call.
+def resolve_tool(doc: FlowTool, *, restrict_commit_rollback: bool = False) -> Tool:
+	"""Turn an Flow Tool row into a runtime Tool the Agent can call.
 
 	`restrict_commit_rollback` removes commit/rollback from a Script tool's sandbox,
 	so it cannot escape a surrounding test transaction.
@@ -43,7 +43,7 @@ def resolve_tool(doc: AITool, *, restrict_commit_rollback: bool = False) -> Tool
 	return _resolve_script(doc, restrict_commit_rollback=restrict_commit_rollback)
 
 
-def _resolve_module(doc: AITool) -> Tool:
+def _resolve_module(doc: FlowTool) -> Tool:
 	try:
 		obj = frappe.get_attr(doc.import_path)
 	except Exception as e:
@@ -62,12 +62,12 @@ def _resolve_module(doc: AITool) -> Tool:
 	)
 
 
-def _resolve_script(doc: AITool, *, restrict_commit_rollback: bool = False) -> Tool:
+def _resolve_script(doc: FlowTool, *, restrict_commit_rollback: bool = False) -> Tool:
 	runner = _make_script_runner(doc.code, doc.slug, restrict_commit_rollback=restrict_commit_rollback)
 	return _build_tool(doc, schema_from_code(doc.code), runner)
 
 
-def _build_tool(doc: AITool, parameters: dict[str, Any], func: Any, *, confirm_prompt: Any = None) -> Tool:
+def _build_tool(doc: FlowTool, parameters: dict[str, Any], func: Any, *, confirm_prompt: Any = None) -> Tool:
 	return Tool(
 		name=doc.slug,
 		description=doc.description,

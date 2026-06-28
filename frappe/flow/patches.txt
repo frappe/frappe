@@ -1,6 +1,7 @@
 [pre_model_sync]
 # Patches added in this section will be executed before doctypes are migrated
 # Read docs to understand patches: https://docs.frappe.io/framework/user/en/database-migrations
+flow.patches.rename_ai_to_flow
 
 [post_model_sync]
 # Patches added in this section will be executed after doctypes are migrated

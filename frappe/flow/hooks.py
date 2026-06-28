@@ -38,10 +38,10 @@ doc_events = {
 
 # A knowledge chunk indexes a referenced doc; it must never block deleting that
 # doc. The incremental sweep removes the orphaned chunk afterwards.
-ignore_links_on_delete = ["AI Knowledge Chunk"]
+ignore_links_on_delete = ["Flow Knowledge Chunk"]
 
 default_log_clearing_doctypes = {
-	"AI Session": 90,
+	"Flow Session": 90,
 }
 
 scheduler_events = {

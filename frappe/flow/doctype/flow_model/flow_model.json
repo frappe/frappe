@@ -1,0 +1,115 @@
+{
+ "actions": [],
+ "allow_rename": 1,
+ "autoname": "field:title",
+ "creation": "2026-05-20 00:00:00",
+ "doctype": "DocType",
+ "engine": "InnoDB",
+ "field_order": [
+  "title",
+  "enabled",
+  "section_break_config",
+  "provider",
+  "model_id",
+  "context_window",
+  "api_key",
+  "base_url",
+  "section_break_params",
+  "params"
+ ],
+ "fields": [
+  {
+   "fieldname": "title",
+   "fieldtype": "Data",
+   "in_list_view": 1,
+   "label": "Title",
+   "reqd": 1,
+   "unique": 1
+  },
+  {
+   "default": "1",
+   "fieldname": "enabled",
+   "fieldtype": "Check",
+   "label": "Enabled"
+  },
+  {
+   "fieldname": "section_break_config",
+   "fieldtype": "Section Break"
+  },
+  {
+   "description": "Optional. Pick a provider to skip typing the <code>provider/</code> prefix in Model ID. Leave empty if Model ID already includes the provider.",
+   "fieldname": "provider",
+   "fieldtype": "Link",
+   "label": "Provider",
+   "options": "Flow Provider"
+  },
+  {
+   "description": "LiteLLM model identifier. With a Provider linked, pick or type just the model (e.g. <code>claude-sonnet-4-6</code>); otherwise use <code>provider/model</code> form, e.g. <code>anthropic/claude-sonnet-4-6</code>, <code>openai/gpt-4.1</code>, <code>ollama/llama3.1</code>",
+   "fieldname": "model_id",
+   "fieldtype": "Autocomplete",
+   "in_list_view": 1,
+   "label": "Model ID",
+   "reqd": 1
+  },
+  {
+   "description": "Max input tokens. Auto-detected from the model on save when left empty; override if your provider differs. 0 = unknown.",
+   "fieldname": "context_window",
+   "fieldtype": "Int",
+   "label": "Context Window",
+   "non_negative": 1
+  },
+  {
+   "description": "API key for the provider named in the Model ID. Leave empty for local servers (Ollama, LM Studio) that don't require authentication.",
+   "fieldname": "api_key",
+   "fieldtype": "Password",
+   "label": "API Key"
+  },
+  {
+   "description": "Optional. Override the provider's default endpoint, e.g. for a self-hosted Ollama (<code>http://localhost:11434</code>) or a proxy.",
+   "fieldname": "base_url",
+   "fieldtype": "Data",
+   "label": "Base URL"
+  },
+  {
+   "collapsible": 1,
+   "fieldname": "section_break_params",
+   "fieldtype": "Section Break",
+   "label": "Parameters"
+  },
+  {
+   "description": "Optional JSON object passed to the model (e.g. <code>{\"temperature\": 0.2, \"max_tokens\": 1024}</code>)",
+   "fieldname": "params",
+   "fieldtype": "JSON",
+   "label": "Params"
+  }
+ ],
+ "links": [],
+ "modified": "2026-05-20 18:49:51.182512",
+ "modified_by": "Administrator",
+ "module": "Flow",
+ "name": "Flow Model",
+ "naming_rule": "By fieldname",
+ "owner": "Administrator",
+ "permissions": [
+  {
+   "create": 1,
+   "delete": 1,
+   "print": 1,
+   "read": 1,
+   "report": 1,
+   "role": "System Manager",
+   "share": 1,
+   "write": 1
+  },
+  {
+   "read": 1,
+   "role": "All"
+  }
+ ],
+ "row_format": "Dynamic",
+ "sort_field": "creation",
+ "sort_order": "DESC",
+ "states": [],
+ "title_field": "title",
+ "track_changes": 1
+}

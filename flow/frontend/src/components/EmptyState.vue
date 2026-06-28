@@ -27,7 +27,7 @@ defineProps({
 					v-if="!hasModels"
 					class="rounded-lg border border-outline-gray-1 bg-surface-gray-1 px-3 py-2 text-xs leading-relaxed text-ink-gray-8"
 				>
-					{{ __("Create and enable an AI Model with your provider credentials.") }}
+					{{ __("Create and enable an Flow Model with your provider credentials.") }}
 				</li>
 				<li
 					v-if="!hasAgents"
@@ -35,7 +35,7 @@ defineProps({
 				>
 					{{
 						__(
-							"Enable an AI Agent (Flow Agent is created automatically once a model exists)."
+							"Enable an Flow Agent (Flow Agent is created automatically once a model exists)."
 						)
 					}}
 				</li>

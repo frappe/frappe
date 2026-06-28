@@ -157,7 +157,7 @@ class Agent:
 		return new_session(self, title=title)
 
 	def snapshot(self) -> dict[str, Any]:
-		"""Config record stored on each AI Run for traceability."""
+		"""Config record stored on each Flow Run for traceability."""
 		return {
 			"title": self.name,
 			"model": self.model.model_id,

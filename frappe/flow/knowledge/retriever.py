@@ -4,7 +4,7 @@
 """Query-time retrieval over the knowledge store.
 
 Embeds the query, runs a KB-scoped search (hybrid or vector-only per the
-AI Knowledge Settings search_type), and hydrates each hit from MariaDB (the
+Flow Knowledge Settings search_type), and hydrates each hit from MariaDB (the
 source of truth) for its text and provenance.
 
 Permission model — the knowledge base is the boundary. KBs are admin-curated
@@ -23,8 +23,8 @@ from typing import Any
 import frappe
 from frappe import _
 
-KB_DOCTYPE = "AI Knowledge Base"
-CHUNK_DOCTYPE = "AI Knowledge Chunk"
+KB_DOCTYPE = "Flow Knowledge Base"
+CHUNK_DOCTYPE = "Flow Knowledge Chunk"
 DEFAULT_LIMIT = 5
 
 
@@ -41,7 +41,7 @@ def retrieve_attachments(query: str, *, session: str, limit: int = DEFAULT_LIMIT
 	from flow.knowledge import attachment_store
 	from flow.knowledge.embedder import embed_texts
 
-	search_type = frappe.get_cached_value("AI Knowledge Settings", "AI Knowledge Settings", "search_type")
+	search_type = frappe.get_cached_value("Flow Knowledge Settings", "Flow Knowledge Settings", "search_type")
 	text = query if search_type != "Vector" else None
 
 	(vector,) = embed_texts([query])
@@ -69,7 +69,7 @@ def retrieve(query: str, *, kbs: list[str], limit: int = DEFAULT_LIMIT) -> list[
 	from flow.knowledge import store
 	from flow.knowledge.embedder import embed_texts
 
-	search_type = frappe.get_cached_value("AI Knowledge Settings", "AI Knowledge Settings", "search_type")
+	search_type = frappe.get_cached_value("Flow Knowledge Settings", "Flow Knowledge Settings", "search_type")
 	text = query if search_type != "Vector" else None
 
 	(vector,) = embed_texts([query])

@@ -4,13 +4,13 @@ function getList(doctype, options) {
 }
 
 export const loadAgents = () =>
-	getList("AI Agent", { filters: { enabled: 1 }, fields: ["name", "title"], limit: 50 });
+	getList("Flow Agent", { filters: { enabled: 1 }, fields: ["name", "title"], limit: 50 });
 
 export const loadModels = () =>
-	getList("AI Model", { filters: { enabled: 1 }, fields: ["name", "title"], limit: 50 });
+	getList("Flow Model", { filters: { enabled: 1 }, fields: ["name", "title"], limit: 50 });
 
 export const loadHistory = () =>
-	getList("AI Session", {
+	getList("Flow Session", {
 		filters: { owner: frappe.session.user },
 		fields: ["name", "title", "creation"],
 		order_by: "creation desc",
@@ -21,7 +21,7 @@ export const loadHistory = () =>
 const escapeLike = (s) => s.replace(/[\\%_]/g, "\\$&");
 
 export const searchSessions = (query) =>
-	getList("AI Session", {
+	getList("Flow Session", {
 		filters: { owner: frappe.session.user, title: ["like", `%${escapeLike(query)}%`] },
 		fields: ["name", "title", "creation"],
 		order_by: "creation desc",
@@ -29,10 +29,10 @@ export const searchSessions = (query) =>
 	});
 
 export const getSession = (name) =>
-	frappe.xcall("frappe.client.get", { doctype: "AI Session", name });
+	frappe.xcall("frappe.client.get", { doctype: "Flow Session", name });
 
 export const getPausedRun = (session) =>
-	getList("AI Run", {
+	getList("Flow Run", {
 		filters: { session, status: "Paused" },
 		fields: ["name", "questions"],
 		order_by: "creation desc",
