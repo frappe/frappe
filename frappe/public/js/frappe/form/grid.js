@@ -222,26 +222,6 @@ export default class Grid {
 		});
 	}
 
-	update_selection_banner() {
-		const num_selected_rows = this.get_selected_children().length;
-
-		let $container = this.wrapper.find(".form-grid-container");
-		let $toast = this.wrapper.find("> .grid-selection-toast");
-		if (num_selected_rows > 0) {
-			if (!$toast.length) {
-				$toast = $(
-					`<div class="grid-selection-toast"><span class="grid-selection-toast__message"></span></div>`
-				).insertAfter($container);
-			}
-			$toast
-				.find(".grid-selection-toast__message")
-				.text(__("{0} row(s) selected", [num_selected_rows]));
-			$toast.show();
-		} else if ($toast.length) {
-			$toast.hide();
-		}
-	}
-
 	/**
 	 * Checks or unchecks all checkboxes between two rows (included), given their docnames.
 	 * Rows are only checked only if both parameters are valid docnames.
@@ -483,7 +463,6 @@ export default class Grid {
 		this.refresh_remove_rows_button();
 
 		this.wrapper.trigger("change");
-		this.update_selection_banner();
 	}
 
 	render_result_rows($rows) {
