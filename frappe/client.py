@@ -200,9 +200,15 @@ def set_value(doctype: str, name: str | int, fieldname: str | dict[str, Any], va
 		values = {fieldname: value}
 
 	forbidden = set(frappe.model.default_fields + frappe.model.child_table_fields)
-	for field in values:
-		if field in forbidden:
-			frappe.throw(_("Cannot edit standard fields"))
+
+	# In whole-doc payloads, framework-managed fields are incidental (e.g. name,
+	# owner, creation, idx echoed back), so strip them instead of failing.
+	# throws if only editing framework-managed fields
+	editable = {field: val for field, val in values.items() if field not in forbidden}
+	if values and not editable:
+		frappe.throw(_("Cannot edit standard fields"))
+
+	values = editable
 
 	# check for child table doctype
 	if not frappe.get_meta(doctype).istable:
