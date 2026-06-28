@@ -99,6 +99,7 @@ class CustomField(Document):
 		length: DF.Int
 		link_filters: DF.JSON | None
 		mandatory_depends_on: DF.Code | None
+		mask: DF.Check
 		module: DF.Link | None
 		no_copy: DF.Check
 		non_negative: DF.Check
