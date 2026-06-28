@@ -10,6 +10,11 @@ from frappe import DoesNotExistError, ValidationError, _, _dict
 from frappe.cache_manager import build_table_count_cache
 from frappe.core.doctype.custom_role.custom_role import get_custom_allowed_roles
 from frappe.desk.desk_views import DeskViews
+from frappe.desk.doctype.workspace_customization.workspace_customization import (
+	apply_content_delta,
+	apply_customization,
+	get_customization,
+)
 from frappe.desk.utils import is_item_allowed
 
 
@@ -34,7 +39,15 @@ class Workspace(DeskViews):
 
 		self.user = frappe.get_user()
 
-		self.doc = frappe.get_cached_doc("Workspace", self.page_name)
+		# A standard workspace stays the live, app-owned base; a site's customization is a
+		# separate delta merged on top here. Use a fresh (non-cached) doc on the merge path
+		# so we never mutate the shared cached document.
+		customization = get_customization(self.page_name)
+		if customization:
+			self.doc = frappe.get_doc("Workspace", self.page_name)
+			apply_customization(self.doc, customization)
+		else:
+			self.doc = frappe.get_cached_doc("Workspace", self.page_name)
 
 		self.can_read = self.get_cached("user_perm_can_read", self.get_can_read_items)
 
@@ -365,6 +378,40 @@ def get_user_workspaces(user: str | None = None) -> dict[str, bool]:
 	return {d.workspace: bool(d.hidden) for d in user_doc.workspaces if d.workspace}
 
 
+def _overlay_customization_properties(pages: list) -> bool:
+	"""Apply each site customization's property facet onto the listed page dict.
+
+	Returns whether any `sequence_id` was overridden (so the caller knows to re-sort).
+	"""
+	resequenced = False
+	for page in pages:
+		customization = get_customization(page.name)
+		if not customization:
+			continue
+		page["is_customized"] = True
+		# merge the layout delta into the rendered block list (the frontend renders the
+		# editor.js layout from this `content`, not from get_desktop_page).
+		if customization.content_delta:
+			page["content"] = dumps(
+				apply_content_delta(loads(page.get("content") or "[]"), loads(customization.content_delta))
+			)
+		if customization.visibility == "Hidden":
+			# Hidden for regular users; like the soft `is_hidden` flag, a Workspace Manager
+			# still sees it (the workspace shows an in-page "hidden" banner) so it stays
+			# discoverable and manageable.
+			page["is_hidden"] = 1
+		elif customization.visibility == "Visible":
+			page["is_hidden"] = 0
+		if customization.icon:
+			page["icon"] = customization.icon
+		if customization.indicator_color:
+			page["indicator_color"] = customization.indicator_color
+		if customization.override_sequence:
+			page["sequence_id"] = customization.sequence_id
+			resequenced = True
+	return resequenced
+
+
 def get_workspaces():
 	"""Get list of sidebar items for desk"""
 
@@ -398,6 +445,8 @@ def get_workspaces():
 		"icon",
 		"indicator_color",
 		"is_hidden",
+		"sequence_id",
+		"standard",
 		"app",
 		"type",
 		"link_type",
@@ -407,6 +456,12 @@ def get_workspaces():
 	all_pages = frappe.get_all(
 		"Workspace", fields=fields, filters=filters, order_by=order_by, ignore_permissions=True
 	)
+
+	# overlay the property facet (visibility / icon / colour / position) of any site
+	# customization before filtering & sorting; roles & content are merged inside Workspace().
+	if _overlay_customization_properties(all_pages):
+		all_pages.sort(key=lambda page: page.get("sequence_id") or 0)
+
 	pages = []
 	private_pages = []
 

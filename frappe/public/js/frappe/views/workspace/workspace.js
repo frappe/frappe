@@ -1,6 +1,10 @@
 import EditorJS from "@editorjs/editorjs";
 import Undo from "editorjs-undo";
 
+// sentinel class on the injected "this workspace is hidden" notice block, so it can be
+// rendered for Workspace Managers but stripped before the content is saved.
+const HIDDEN_NOTICE_MARKER = "workspace-hidden-notice";
+
 frappe.standard_pages["Workspaces"] = function () {
 	var wrapper = frappe.container.add_page("Workspaces");
 
@@ -74,10 +78,6 @@ frappe.views.Workspace = class Workspace {
 	prepare_container() {
 		this.body = this.wrapper.find(".layout-main-section");
 		this.$page = $(`<div class="editor-js-container"></div>`).appendTo(this.body);
-	}
-
-	get_workspaces() {
-		return frappe.xcall("frappe.desk.desktop.get_workspaces", null, "GET");
 	}
 
 	show() {
@@ -214,6 +214,22 @@ frappe.views.Workspace = class Workspace {
 								return this.has_create_access;
 							},
 						},
+						{
+							label: "Customize Visibility & Roles",
+							icon: "setting-gear",
+							onClick: () => this.customize_workspace(current_page),
+							condition: () => {
+								return current_page.standard && this.has_access;
+							},
+						},
+						{
+							label: "Reset to Standard",
+							icon: "refresh",
+							onClick: () => this.reset_workspace_customization(current_page),
+							condition: () => {
+								return current_page.is_customized && this.has_access;
+							},
+						},
 					],
 				});
 				this.add_workspace_controls = true;
@@ -244,6 +260,7 @@ frappe.views.Workspace = class Workspace {
 
 			this.content = current_page.content;
 			this.content && this.add_custom_cards_in_content();
+			this.content && this.add_hidden_notice_in_content(current_page);
 
 			$(".item-anchor").addClass("disable-click");
 
@@ -323,6 +340,64 @@ frappe.views.Workspace = class Workspace {
 		} else {
 			this.body.find(".btn-new-workspace").addClass("hide");
 		}
+	}
+
+	add_hidden_notice_in_content(page) {
+		// A hidden workspace is dropped from everyone else's sidebar; a Workspace Manager
+		// still sees it. Prepend a display-only text block explaining why. The sentinel
+		// span lets save_page() strip it so it is never persisted into the workspace.
+		if (!page.is_hidden || !this.has_access) return;
+		if (
+			this.content.some(
+				(b) => b.type == "paragraph" && b.data?.text?.includes(HIDDEN_NOTICE_MARKER)
+			)
+		) {
+			return;
+		}
+		this.content.unshift({
+			type: "paragraph",
+			data: {
+				text: `<span class="${HIDDEN_NOTICE_MARKER}">${__(
+					"This workspace is hidden from other users. You can see it because you're a Workspace Manager."
+				)}</span>`,
+				col: "12",
+			},
+		});
+	}
+
+	customize_workspace(page) {
+		// Visibility & roles for a standard workspace live on the Workspace Customization
+		// delta (the standard record stays app-owned), so edit that record directly.
+		frappe.db.exists("Workspace Customization", page.name).then((exists) => {
+			if (exists) {
+				frappe.set_route("Form", "Workspace Customization", page.name);
+			} else {
+				frappe.new_doc("Workspace Customization", { workspace: page.name });
+			}
+		});
+	}
+
+	reset_workspace_customization(page) {
+		frappe.confirm(
+			__(
+				"Reset <b>{0}</b> to the standard, app-shipped version? This removes all site customizations.",
+				[__(page.title)]
+			),
+			() => {
+				frappe.call({
+					method: "frappe.desk.doctype.workspace_customization.workspace_customization.reset_workspace_customization",
+					args: { workspace: page.name },
+					freeze: true,
+					callback: () => {
+						frappe.show_alert({
+							message: __("Workspace reset to standard"),
+							indicator: "green",
+						});
+						this.reload();
+					},
+				});
+			}
+		);
 	}
 
 	initialize_editorjs_undo() {
@@ -732,6 +807,15 @@ frappe.views.Workspace = class Workspace {
 							item.data.card_name !== "Custom Reports")
 				);
 
+				// never persist the display-only "workspace is hidden" notice
+				blocks = blocks.filter(
+					(item) =>
+						!(
+							item.type == "paragraph" &&
+							item.data?.text?.includes(HIDDEN_NOTICE_MARKER)
+						)
+				);
+
 				if (
 					page.content == JSON.stringify(blocks) &&
 					Object.keys(new_widgets).length === 0
@@ -781,12 +865,9 @@ frappe.views.Workspace = class Workspace {
 	reload() {
 		delete this.pages[this._page.name];
 		this._page = null;
-		return this.get_workspaces().then((r) => {
-			frappe.boot.workspaces = r;
-			this.setup_pages(frappe.boot.workspaces.pages);
-			this.show();
-			if (this.undo) this.undo.readOnly = true;
-		});
+		this.setup_pages(frappe.boot.workspaces.pages);
+		this.show();
+		if (this.undo) this.undo.readOnly = true;
 	}
 
 	get_parent_pages(page) {

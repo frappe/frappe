@@ -93,6 +93,20 @@ class Workspace(Document, DeskViews):
 		except Exception:
 			frappe.throw(_("Content data shoud be a list"))
 
+		# Keep standard (app-shipped) workspaces app-owned: their content is only changed by
+		# import (migrate/install) or by an app author in developer mode. Site edits go to a
+		# Workspace Customization delta instead, so they survive app updates.
+		if (
+			self.standard
+			and not self.is_new()
+			and self.has_value_changed("content")
+			and not frappe.conf.developer_mode
+			and not disable_saving_as_public()
+		):
+			frappe.throw(
+				_("Standard workspaces can't be edited directly. Your changes are saved as a customization.")
+			)
+
 		for d in self.get("links"):
 			if d.link_type == "Report" and d.is_query_report != 1:
 				d.report_ref_doctype = frappe.get_value("Report", d.link_to, "ref_doctype")
@@ -327,7 +341,7 @@ def new_page(new_page: str | dict):
 
 
 @frappe.whitelist()
-def save_page(name: str, public: str | int, new_widgets: str, blocks: str):
+def save_page(name: str, public: str | int, new_widgets: dict, blocks: str):
 	public = frappe.parse_json(public)
 
 	doc = frappe.get_doc("Workspace", name)
@@ -337,6 +351,17 @@ def save_page(name: str, public: str | int, new_widgets: str, blocks: str):
 			_("You need the Workspace Manager role to edit this workspace."),
 			frappe.PermissionError,
 		)
+
+	# A standard (app-shipped) workspace is never edited in place on a site -- the site's
+	# layout changes are stored as a delta on top of the live base, so app updates keep
+	# flowing. In developer mode the app author edits the base itself so it exports to JSON.
+	if doc.standard and not frappe.conf.developer_mode:
+		from frappe.desk.doctype.workspace_customization.workspace_customization import (
+			upsert_content_customization,
+		)
+
+		upsert_content_customization(name, frappe.parse_json(blocks), frappe.parse_json(new_widgets or "{}"))
+		return {"name": name, "public": public, "label": doc.label}
 
 	if not doc.type:
 		doc.type = "Workspace"
@@ -360,6 +385,17 @@ def update_page(name: str, title: str, icon: str, indicator_color: str, parent: 
 			_("Need Workspace Manager role to edit private workspace of other users."),
 			frappe.PermissionError,
 		)
+
+	# A standard workspace keeps its app-owned title/route; on a site only the appearance
+	# overrides (icon / colour) are captured as a delta. In developer mode the app author
+	# edits the base itself so it exports to JSON.
+	if doc.standard and not frappe.conf.developer_mode:
+		from frappe.desk.doctype.workspace_customization.workspace_customization import (
+			upsert_property_customization,
+		)
+
+		upsert_property_customization(name, icon=icon, indicator_color=indicator_color)
+		return {"name": doc.title, "public": doc.public, "label": doc.label}
 
 	if doc:
 		child_docs = frappe.get_all("Workspace", filters={"parent_page": doc.title, "public": doc.public})
