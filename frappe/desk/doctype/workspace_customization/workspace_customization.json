@@ -20,7 +20,8 @@
   "override_sequence",
   "sequence_id",
   "content_section",
-  "content_delta"
+  "content",
+  "widgets"
  ],
  "fields": [
   {
@@ -106,15 +107,21 @@
    "label": "Content"
   },
   {
-   "description": "Layout delta (hidden / reordered / added / overridden blocks) applied on top of the live workspace. Managed by the workspace editor.",
-   "fieldname": "content_delta",
+   "description": "The site's editor.js block layout for this workspace, shown verbatim. Managed by the workspace editor.",
+   "fieldname": "content",
    "fieldtype": "Long Text",
-   "label": "Content Delta"
+   "label": "Content"
+  },
+  {
+   "description": "Item definitions (shortcuts / charts / cards ...) backing blocks the site added, so they can be rendered. Managed by the workspace editor.",
+   "fieldname": "widgets",
+   "fieldtype": "Long Text",
+   "label": "Added Widgets"
   }
  ],
  "index_web_pages_for_search": 1,
  "links": [],
- "modified": "2026-06-28 00:00:00.000000",
+ "modified": "2026-06-28 22:58:19.132064",
  "modified_by": "Administrator",
  "module": "Desk",
  "name": "Workspace Customization",

@@ -35,7 +35,7 @@ class WorkspaceCustomization(Document):
 		from frappe.types import DF
 
 		added_roles: DF.Table[HasRole]
-		content_delta: DF.LongText | None
+		content: DF.LongText | None
 		icon: DF.Data | None
 		indicator_color: DF.Literal[
 			"",
@@ -56,6 +56,7 @@ class WorkspaceCustomization(Document):
 		removed_roles: DF.Table[HasRole]
 		sequence_id: DF.Float
 		visibility: DF.Literal["Inherit", "Visible", "Hidden"]
+		widgets: DF.LongText | None
 		workspace: DF.Link
 	# end: auto-generated types
 
@@ -74,20 +75,6 @@ class WorkspaceCustomization(Document):
 		# cache the same way Workspace.clear_cache does for public pages.
 		frappe.cache.delete_key("bootinfo")
 		frappe.cache.delete_value(CUSTOMIZED_NAMES_CACHE_KEY)
-
-
-def block_key(block: dict) -> str:
-	"""Stable semantic identity for a content block, independent of the throwaway editor id."""
-	block_type = block.get("type")
-	data = block.get("data") or {}
-	if block_type in WIDGET_PARENTFIELD:
-		ident = data.get(f"{block_type}_name")
-	elif block_type == "onboarding":
-		ident = data.get("onboarding_name")
-	else:
-		# structural blocks (header/paragraph/spacer): fall back to text, then editor id
-		ident = data.get("text") or block.get("id")
-	return f"{block_type}:{ident}"
 
 
 def get_customized_workspace_names() -> set[str]:
@@ -122,9 +109,9 @@ def effective_roles(base_roles: list[str], customization: "WorkspaceCustomizatio
 def apply_customization(doc, customization: "WorkspaceCustomization") -> None:
 	"""Merge a customization onto a *fresh* (non-cached) Workspace doc, in place.
 
-	The standard record stays the live base: hidden/overridden/reordered blocks reference
-	the base by semantic key, so app-removed blocks become silent no-ops, and app-added
-	blocks flow through untouched (app owns existence, site owns presentation).
+	The standard record stays the live base and is never written. Roles and visibility
+	layer on the live base (app role changes flow through); content is shown from the
+	site's saved snapshot.
 	"""
 	_apply_roles(doc, customization)
 	_apply_properties(doc, customization)
@@ -151,155 +138,78 @@ def _apply_properties(doc, customization) -> None:
 		doc.sequence_id = customization.sequence_id
 
 
-def apply_content_delta(content: list, delta: dict) -> list:
-	"""Merge the content delta onto a list of editor.js blocks and return the new list.
-
-	Shared by the doc merge (widget data) and `get_workspaces` (the rendered block layout),
-	so both stay in sync. Drops hidden blocks, applies presentation overrides, appends the
-	site's added blocks, then reorders -- all keyed on semantic identity.
-	"""
-	hidden = set(delta.get("hidden_blocks") or [])
-	overrides = delta.get("block_overrides") or {}
-	order = delta.get("block_order") or []
-	added = delta.get("added_blocks") or []
-
-	new_content = []
-	for block in content:
-		key = block_key(block)
-		if key in hidden:
-			continue
-		if key in overrides:
-			block.setdefault("data", {}).update(overrides[key])
-		new_content.append(block)
-
-	for entry in added:
-		if entry.get("block"):
-			new_content.append(entry["block"])
-
-	if order:
-		position = {key: idx for idx, key in enumerate(order)}
-		new_content.sort(key=lambda block: position.get(block_key(block), len(position)))
-
-	return new_content
-
-
 def _apply_content(doc, customization) -> None:
-	delta = loads(customization.content_delta or "{}")
-	hidden = set(delta.get("hidden_blocks") or [])
-	overrides = delta.get("block_overrides") or {}
-	added = delta.get("added_blocks") or []
+	"""Show the site's saved block layout verbatim, plus the items backing added blocks.
 
-	# the rendered block layout
-	doc.content = dumps(apply_content_delta(loads(doc.content or "[]"), delta))
-
-	# remove the child rows backing hidden widget blocks
-	for block_type, parentfield in WIDGET_PARENTFIELD.items():
-		if block_type == "card":
-			_remove_hidden_cards(doc, hidden)
-			continue
-		kept = [row for row in doc.get(parentfield) if f"{block_type}:{row.label}" not in hidden]
-		doc.set(parentfield, kept)
-
-	# apply label overrides to the surviving child rows
-	for block_type, parentfield in WIDGET_PARENTFIELD.items():
-		for row in doc.get(parentfield):
-			override = overrides.get(f"{block_type}:{row.label}")
-			if override and override.get("label"):
-				row.label = override["label"]
-
-	# add the item rows backing site-added blocks
-	for entry in added:
-		block = entry.get("block")
-		item = entry.get("item")
-		if block and item:
-			_append_item(doc, block.get("type"), item)
-
-
-def _remove_hidden_cards(doc, hidden: set[str]) -> None:
-	"""Drop a hidden card's `Card Break` row and the `Link` rows that belong to it."""
-	links = doc.get("links")
-	kept = []
-	skip_until_next_break = False
-	for row in links:
-		if row.type == "Card Break":
-			skip_until_next_break = f"card:{row.label}" in hidden
-		if skip_until_next_break:
-			continue
-		kept.append(row)
-	doc.set("links", kept)
-
-
-def _append_item(doc, block_type: str, item: dict) -> None:
-	parentfield = WIDGET_PARENTFIELD.get(block_type)
-	if not parentfield:
-		return
-	if block_type == "card":
-		# a card item carries its own links; reuse the existing builder
-		doc.build_links_table_from_card([item])
-		return
-	doc.append(parentfield, {k: v for k, v in item.items() if k != "doctype"})
-
-
-def diff_customization(base_doc, edited_content: list, new_widgets: dict) -> dict:
-	"""Derive the content delta of an edited workspace against its live base.
-
-	`edited_content` is the full block list the editor submitted; `new_widgets` is the
-	editor's payload of freshly-added item definitions keyed by widget type. Returns the
-	`content_delta` dict stored on the customization.
+	Content is a snapshot, not a delta: the site's arrangement is authoritative (the base
+	is never written), so app changes to this workspace's layout do not flow through once
+	it has been customized. Roles / visibility still layer on the live base.
 	"""
-	base_content = loads(base_doc.content or "[]")
-	base_keys = [block_key(b) for b in base_content]
-	base_map = dict(zip(base_keys, base_content, strict=False))
-	base_set = set(base_keys)
+	if customization.content:
+		doc.content = customization.content
 
-	edited_keys = [block_key(b) for b in edited_content]
-	edited_map = dict(zip(edited_keys, edited_content, strict=False))
+	# the layout's blocks are pointers; base widgets resolve from the base child tables, but
+	# blocks the site added need their item definitions appended so they can be rendered.
+	widgets = loads(customization.widgets or "{}")
+	if widgets:
+		_append_widgets(doc, widgets)
 
-	# freshly-added item definitions, indexed by (type, label) for added_blocks resolution
-	item_index = {}
-	for block_type in WIDGET_PARENTFIELD:
-		for widget in new_widgets.get(block_type) or []:
-			item_index[(block_type, widget.get("label"))] = widget
 
-	hidden_blocks = [key for key in base_keys if key not in edited_map]
+def _append_widgets(doc, widgets: dict) -> None:
+	"""Append the stored added-widget item rows to a Workspace doc (mirrors save_new_widget)."""
+	from frappe.desk.desktop import new_widget
 
-	added_blocks = []
-	for key in edited_keys:
-		if key in base_set:
-			continue
-		block = edited_map[key]
-		block_type = block.get("type")
-		label = (block.get("data") or {}).get(f"{block_type}_name")
-		added_blocks.append({"block": block, "item": item_index.get((block_type, label))})
-
-	block_overrides = {}
-	for key in base_set & set(edited_keys):
-		base_data = base_map[key].get("data") or {}
-		edited_data = edited_map[key].get("data") or {}
-		changed = {f: v for f, v in edited_data.items() if base_data.get(f) != v}
-		if changed:
-			block_overrides[key] = changed
-
-	# store the edited order of shared blocks only when it diverges from the base order
-	shared_edited = [key for key in edited_keys if key in base_set]
-	shared_base = [key for key in base_keys if key in edited_map]
-	block_order = edited_keys if shared_edited != shared_base else []
-
-	return {
-		"hidden_blocks": hidden_blocks,
-		"block_order": block_order,
-		"block_overrides": block_overrides,
-		"added_blocks": added_blocks,
-	}
+	if widgets.get("chart"):
+		doc.charts.extend(new_widget(widgets["chart"], "Workspace Chart", "charts"))
+	if widgets.get("shortcut"):
+		doc.shortcuts.extend(new_widget(widgets["shortcut"], "Workspace Shortcut", "shortcuts"))
+	if widgets.get("quick_list"):
+		doc.quick_lists.extend(new_widget(widgets["quick_list"], "Workspace Quick List", "quick_lists"))
+	if widgets.get("custom_block"):
+		doc.custom_blocks.extend(
+			new_widget(widgets["custom_block"], "Workspace Custom Block", "custom_blocks")
+		)
+	if widgets.get("number_card"):
+		doc.number_cards.extend(new_widget(widgets["number_card"], "Workspace Number Card", "number_cards"))
+	if widgets.get("card"):
+		doc.build_links_table_from_card(widgets["card"])
 
 
 def upsert_content_customization(workspace: str, edited_content: list, new_widgets: dict) -> None:
-	"""Persist a content edit to a standard workspace as a delta (never touches the base)."""
-	base_doc = frappe.get_cached_doc("Workspace", workspace)
-	delta = diff_customization(base_doc, edited_content, new_widgets)
+	"""Persist a content edit to a standard workspace as a snapshot (never touches the base)."""
 	customization = _get_or_new(workspace)
-	customization.content_delta = dumps(delta)
+
+	# accumulate added-widget definitions across edit sessions (a later save only reports the
+	# widgets added in *that* session), then keep only those still referenced by the layout.
+	widgets = loads(customization.widgets or "{}")
+	for widget_type, items in (new_widgets or {}).items():
+		if items:
+			widgets.setdefault(widget_type, []).extend(items)
+	widgets = _prune_widgets(widgets, edited_content)
+
+	customization.content = dumps(edited_content)
+	customization.widgets = dumps(widgets)
 	customization.save(ignore_permissions=True)
+
+
+def _prune_widgets(widgets: dict, content: list) -> dict:
+	"""Drop stored widget defs no longer referenced by the layout; dedupe by label."""
+	referenced = {}
+	for block in content:
+		block_type = block.get("type")
+		if block_type in WIDGET_PARENTFIELD:
+			name = (block.get("data") or {}).get(f"{block_type}_name")
+			referenced.setdefault(block_type, set()).add(name)
+
+	pruned = {}
+	for widget_type, items in widgets.items():
+		kept = {}
+		for item in items:
+			if item.get("label") in referenced.get(widget_type, set()):
+				kept[item.get("label")] = item
+		if kept:
+			pruned[widget_type] = list(kept.values())
+	return pruned
 
 
 def upsert_property_customization(

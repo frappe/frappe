@@ -11,7 +11,6 @@ from frappe.cache_manager import build_table_count_cache
 from frappe.core.doctype.custom_role.custom_role import get_custom_allowed_roles
 from frappe.desk.desk_views import DeskViews
 from frappe.desk.doctype.workspace_customization.workspace_customization import (
-	apply_content_delta,
 	apply_customization,
 	get_customization,
 )
@@ -389,12 +388,10 @@ def _overlay_customization_properties(pages: list) -> bool:
 		if not customization:
 			continue
 		page["is_customized"] = True
-		# merge the layout delta into the rendered block list (the frontend renders the
-		# editor.js layout from this `content`, not from get_desktop_page).
-		if customization.content_delta:
-			page["content"] = dumps(
-				apply_content_delta(loads(page.get("content") or "[]"), loads(customization.content_delta))
-			)
+		# the frontend renders the editor.js layout from this `content`; show the site's
+		# saved snapshot verbatim (get_desktop_page applies the same on the doc).
+		if customization.content:
+			page["content"] = customization.content
 		if customization.visibility == "Hidden":
 			# Hidden for regular users; like the soft `is_hidden` flag, a Workspace Manager
 			# still sees it (the workspace shows an in-page "hidden" banner) so it stays
