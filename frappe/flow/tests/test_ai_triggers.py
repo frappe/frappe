@@ -245,6 +245,39 @@ class TestFire(IntegrationTestCase):
 		self.assertEqual(run.reference_doctype, "ToDo")
 		self.assertEqual(run.reference_name, todo.name)
 
+	def _execute_then_final(self):
+		from flow.lib.model import ToolCall
+
+		return [
+			ChatResponse(
+				content=None,
+				tool_calls=[ToolCall(id="c1", name="execute", arguments={"code": "result = 1"})],
+				finish_reason="tool_calls",
+			),
+			_final("done"),
+		]
+
+	def test_fire_auto_approves_confirmation_tools_when_enabled(self):
+		# auto_approve trigger: the requires_confirmation tool (execute) runs unattended
+		# instead of parking the run in Paused.
+		self.trigger.auto_approve = 1
+		self.trigger.save()
+		todo = frappe.get_doc({"doctype": "ToDo", "description": "auto-approve"}).insert()
+
+		with patch.object(Model, "chat", side_effect=self._execute_then_final()):
+			run_name = fire(self.trigger.name, target_doctype="ToDo", target_name=todo.name)
+
+		self.assertEqual(frappe.get_doc("AI Run", run_name).status, "Completed")
+
+	def test_fire_pauses_on_confirmation_tool_without_auto_approve(self):
+		# Default trigger (auto_approve off): a confirmation tool still pauses for approval.
+		todo = frappe.get_doc({"doctype": "ToDo", "description": "needs approval"}).insert()
+
+		with patch.object(Model, "chat", side_effect=self._execute_then_final()):
+			run_name = fire(self.trigger.name, target_doctype="ToDo", target_name=todo.name)
+
+		self.assertEqual(frappe.get_doc("AI Run", run_name).status, "Paused")
+
 	def test_fire_skips_disabled_trigger(self):
 		self.trigger.enabled = 0
 		self.trigger.save()

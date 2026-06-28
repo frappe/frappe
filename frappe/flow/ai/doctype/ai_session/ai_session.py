@@ -126,6 +126,7 @@ class AISession(Document):
 		trigger: str | None = None,
 		reference_doctype: str | None = None,
 		reference_name: str | None = None,
+		auto_approve: bool = False,
 		stream: bool = False,
 	) -> AIRun | Generator[Event]:
 		"""Run one turn and persist it as an AI Run. `attachments` are File names whose text
@@ -150,6 +151,10 @@ class AISession(Document):
 		self._persist_turn(input, attachment_data, run.name)
 		self._index_retrieval_attachments(run.name)
 		run_input = self._build_prompt_messages()
+
+		# Opt-in (set on the AI Trigger): run confirmation tools without approval so unattended
+		# trigger runs don't park in Paused waiting for a confirmation no one can give.
+		self._runtime.auto_approve = auto_approve
 
 		if stream:
 			return stream_with_persistence(lambda: self._runtime.run(run_input, stream=True), run)

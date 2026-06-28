@@ -87,6 +87,7 @@ def fire(
 		trigger=t.name,
 		reference_doctype=target_doctype if doc else None,
 		reference_name=target_name if doc else None,
+		auto_approve=bool(t.auto_approve),
 	)
 	return run.name
 
