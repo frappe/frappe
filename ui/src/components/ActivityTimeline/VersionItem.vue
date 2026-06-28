@@ -1,11 +1,14 @@
 <template>
-	<div class="flex flex-1 flex-col gap-1 pt-0.5 text-base text-ink-gray-5 text-p-sm">
+	<!-- ps-[13px] aligns the row text with the email/comment card text (1px border + px-3) -->
+	<div
+		class="flex flex-1 flex-col gap-2 ps-[13px] text-sm font-medium leading-6 text-ink-gray-6"
+	>
 		<!-- grouped: collapsible header + per-change rows -->
 		<template v-if="activity.data.group && activity.data.group.length > 1">
 			<div class="flex items-center gap-1.5">
 				<button
 					type="button"
-					class="flex items-center gap-1 hover:text-ink-gray-7"
+					class="flex items-center gap-2 hover:text-ink-gray-7"
 					@click="expanded = !expanded"
 				>
 					<span>
@@ -42,12 +45,8 @@
 					</Tooltip>
 				</div>
 			</div>
-			<div v-if="expanded" class="flex flex-col gap-1">
-				<div
-					v-for="g in activity.data.group"
-					:key="g.key"
-					class="flex items-center gap-1.5"
-				>
+			<div v-if="expanded" class="flex flex-col gap-2">
+				<div v-for="g in activity.data.group" :key="g.key" class="flex items-center gap-2">
 					<span>
 						<span class="font-medium text-ink-gray-8">{{ g.author.fullname }}</span>
 						{{ " " }}{{ g.data.text }}

@@ -1,5 +1,5 @@
 <template>
-	<div ref="rootEl" class="activity-timeline">
+	<div class="activity-timeline">
 		<!-- spinner only on first load; background revalidation keeps cached data visible -->
 		<div v-if="loading && !activities.length" class="flex justify-center py-8">
 			<LoadingIndicator class="size-5 text-ink-gray-5" />
@@ -20,9 +20,7 @@
 					:id="getKey(activity, i)"
 					class="activity mt-2"
 				>
-					<div
-						class="grid w-full grid-cols-[30px_minmax(auto,_1fr)] gap-2 px-6 sm:gap-4 md:px-0"
-					>
+					<div class="grid w-full grid-cols-[30px_minmax(auto,_1fr)] gap-2 px-6 md:px-0">
 						<!-- gutter column: vertical connector line + icon/avatar -->
 						<div
 							class="relative flex justify-center after:absolute after:start-[50%] after:top-3 after:-z-10 after:border-s after:border-outline-gray-modals"
@@ -32,13 +30,10 @@
 							]"
 						>
 							<div
-								class="z-1 flex items-center justify-center rounded-full bg-surface-white"
-								:class="[
-									activity.type === 'email' ? 'my-1 h-9 w-9' : 'h-6 w-6',
-									isOneLiner(activity) && 'mt-[2px]',
-								]"
+								class="z-1 flex items-center justify-center self-start bg-surface-white"
+								:class="[isAvatarRow(activity) ? 'h-10' : 'h-6 w-6 rounded-full']"
 							>
-								<!-- gutter ladder: #icon-{type} slot > envelope icon > per-type default -->
+								<!-- gutter ladder: #icon-{type} slot > activity.icon > per-type default -->
 								<slot :name="`icon-${activity.type}`" :activity="activity">
 									<component
 										v-if="activity.icon && typeof activity.icon !== 'string'"
@@ -53,13 +48,24 @@
 										]"
 									/>
 									<template v-else>
-										<Avatar
-											v-if="activity.type === 'email'"
-											size="lg"
-											:label="activity.author.fullname"
-											:image="activity.author.image"
-											class="absolute start-[0.7px] bg-surface-white"
-										/>
+										<!-- email + comment: author avatar on the timeline axis,
+										     with a channel badge (mail / comment) at its corner -->
+										<div v-if="isAvatarRow(activity)" class="relative">
+											<Avatar
+												size="lg"
+												:label="activity.author.fullname"
+												:image="activity.author.image"
+											/>
+											<span
+												class="absolute -bottom-0.5 -end-1.5 flex size-4.5 items-center justify-center rounded-full bg-surface-white text-ink-gray-5"
+											>
+												<MailIcon
+													v-if="activity.type === 'email'"
+													class="size-3"
+												/>
+												<CommentIcon v-else class="size-3" />
+											</span>
+										</div>
 										<template
 											v-else-if="
 												activity.type === 'log' ||
@@ -97,10 +103,7 @@
 						<!-- content column -->
 						<div
 							class="mb-4 flex flex-1"
-							:class="[
-								i == activities.length - 1 && 'mb-5',
-								isOneLiner(activity) && 'mt-[2px]',
-							]"
+							:class="[i == activities.length - 1 && 'mb-5']"
 							:data-type="activity.type"
 						>
 							<slot :name="`item-${activity.type}`" :activity="activity">
@@ -131,10 +134,6 @@
 					</div>
 				</div>
 			</div>
-			<!-- newer emails auto-load near the bottom via useLoadMoreOnScroll -->
-			<div v-if="pagination?.isFetchingNextPage" class="flex justify-center py-3">
-				<LoadingIndicator class="size-4 text-ink-gray-5" />
-			</div>
 		</template>
 	</div>
 	<!-- Realtime (later): subscribe to docinfo_update for doctype/docname and reload() -->
@@ -142,10 +141,9 @@
 
 <script setup lang="ts">
 import { Avatar, ErrorMessage, FeatherIcon, LoadingIndicator } from "frappe-ui";
-import { ref } from "vue";
 import CommentItem from "./CommentItem.vue";
 import EmailItem from "./EmailItem.vue";
-import { CommentIcon, DotIcon, LUCIDE_ICON_CLASS } from "./icons";
+import { CommentIcon, DotIcon, LUCIDE_ICON_CLASS, MailIcon } from "./icons";
 import LogItem from "./LogItem.vue";
 import type {
 	Activity,
@@ -154,16 +152,12 @@ import type {
 	CustomActivity,
 	LogActivity,
 } from "./types";
-import { useLoadMoreOnScroll } from "./useLoadMoreOnScroll";
 import VersionItem from "./VersionItem.vue";
 
-const props = withDefaults(defineProps<ActivityTimelineProps>(), {
+withDefaults(defineProps<ActivityTimelineProps>(), {
 	loading: false,
 	error: null,
 });
-
-const rootEl = ref<HTMLElement | null>(null);
-useLoadMoreOnScroll(rootEl, () => props.pagination);
 
 // Stable v-for key / scroll-target id. Built-ins always carry `key`; a custom
 // row may omit it — fall back to type+timestamp (stable across reorders when a
@@ -175,6 +169,12 @@ function getKey(activity: Activity | CustomActivity, index: number): string {
 			? `${activity.type}:${activity.timestamp}`
 			: `${activity.type}:${index}`)
 	);
+}
+
+// email + comment render the author avatar (with a channel badge) on the
+// timeline axis instead of a plain gutter icon
+function isAvatarRow(activity: Activity): boolean {
+	return activity.type === "email" || activity.type === "comment";
 }
 
 // one-line activity rows (log/attachment) align differently from the cards

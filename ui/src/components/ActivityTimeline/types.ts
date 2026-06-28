@@ -6,18 +6,6 @@ export interface ActivityTimelineProps {
   /** Only shown when there are no activities yet. */
   loading?: boolean;
   error?: string | null;
-  /** Pagination controls. Omit to disable auto-loading (static feed). */
-  pagination?: PaginationControls;
-}
-
-/** Controls for scroll-driven pagination — shape matches TanStack useInfiniteQuery. */
-export interface PaginationControls {
-  /** Whether another page can be fetched. */
-  hasNextPage?: boolean;
-  /** A page fetch is in flight — drives the bottom spinner and gates re-entry. */
-  isFetchingNextPage?: boolean;
-  /** Fetch the next page (appends to the source). */
-  fetchNextPage?: () => void | Promise<void>;
 }
 
 export interface UserInfo {
@@ -93,6 +81,8 @@ export type LogActivity = BaseActivity<
     /** lucide name, no prefix */
     icon: string;
     text: string;
+    /** present when consecutive same-author log rows are folded together */
+    group?: LogActivity[];
   }
 >;
 

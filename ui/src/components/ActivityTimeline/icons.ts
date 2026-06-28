@@ -30,6 +30,24 @@ export const DotIcon = () =>
 		h('circle', { cx: '8', cy: '8', r: '3.5', fill: 'currentColor' }),
 	])
 
+// envelope, drawn to match CommentIcon's 16×16 box — used as the email badge
+// pinned to the author avatar in the timeline gutter
+export const MailIcon = () =>
+	h(
+		'svg',
+		{
+			...svgAttrs,
+			stroke: 'currentColor',
+			'stroke-width': '1.2',
+			'stroke-linecap': 'round',
+			'stroke-linejoin': 'round',
+		},
+		[
+			h('rect', { x: '1.75', y: '3.5', width: '12.5', height: '9', rx: '1.75' }),
+			h('path', { d: 'M2.25 4.25 L8 8.5 L13.75 4.25' }),
+		]
+	)
+
 export const CommentIcon = () =>
 	h('svg', svgAttrs, [
 		h('path', {

@@ -2,18 +2,16 @@
 	<div
 		class="grow cursor-pointer overflow-hidden rounded-md border border-outline-gray-2 bg-surface-white text-base leading-6 transition-all duration-300 ease-in-out"
 	>
-		<div class="px-3 pb-2 pt-2">
+		<div class="ps-3" :class="$slots.actions ? 'pe-1.5' : 'pe-3'">
 			<slot name="header" :email="email">
-				<div class="flex items-center justify-between gap-2">
-					<div class="flex items-center gap-1">
-						<span>{{ email.author.fullname || "Guest" }}</span>
-						<span
-							v-if="email.data.sender"
-							class="hidden text-sm text-ink-gray-5 sm:flex"
-						>
-							{{ "<" + email.data.sender + ">" }}
-						</span>
-					</div>
+				<!-- 40px header bar; its vertical center (20px) matches the gutter avatar -->
+				<div class="flex h-10 items-center justify-between gap-2">
+					<!-- sender email is hidden; surfaced on hover via tooltip -->
+					<Tooltip :text="email.data.sender">
+						<span class="text-base font-medium text-ink-gray-6">{{
+							email.author.fullname || "Guest"
+						}}</span>
+					</Tooltip>
 					<div class="flex items-center gap-2">
 						<Badge
 							v-if="status.label"
@@ -31,7 +29,10 @@
 						</div>
 					</div>
 				</div>
-				<div class="text-p-sm text-ink-gray-5">
+				<div
+					v-if="email.data.to || email.data.cc || email.data.bcc"
+					class="pb-2 text-p-sm text-ink-gray-5"
+				>
 					<template
 						v-for="(val, label) in {
 							To: email.data.to,

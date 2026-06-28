@@ -23,7 +23,7 @@ together or independently:
 <script setup lang="ts">
 import { ActivityTimeline, useActivityTimeline } from "@framework/ui";
 
-const { activities, loading, error,reload, pagination } =
+const { activities, loading, error,reload } =
   useActivityTimeline("HD Ticket", docname);
 </script>
 
@@ -32,14 +32,12 @@ const { activities, loading, error,reload, pagination } =
     :activities
     :loading
     :error
-    :pagination="pagination"
   />
 </template>
 ```
 
-The feed reads **oldest-first**: oldest at the top, newest at the bottom.
-`:pagination` is optional — omit it for a static feed (see
-[Pagination](#pagination)).
+The feed reads **oldest-first**: oldest at the top, newest at the bottom. The
+whole activity history — emails included — loads in a single call.
 
 ---
 
@@ -51,16 +49,14 @@ The feed reads **oldest-first**: oldest at the top, newest at the bottom.
 │   • createResource → get_activity_timeline   (default fetcher)│
 │   • server returns normalized Activity[] (ascending)         │
 │   • dedupe + sort (defensive) + groupConsecutiveVersions     │
-│   • pages the email stream via a reactive `pagination`   │
 │   • realtime: patches the list in place on docinfo_update    │
-│   returns { activities, loading, error, pagination,      │
-│             reload }                                          │
+│   returns { activities, loading, error, reload }             │
 └──────────────────────────────────────────────────────────────┘
                        │  Activity[]  (the contract, display order)
                        ▼
 ┌──────────────────────────────────────────────────────────────┐
 │ RENDER LAYER — ActivityTimeline.vue (presentational)         │
-│   props: { activities, loading?, error?, pagination? }   │
+│   props: { activities, loading?, error? }                    │
 │   NO data fetching. NO doctype/docname. NO emits. Renders.   │
 │   EmailItem · CommentItem · LogItem · VersionItem            │
 └──────────────────────────────────────────────────────────────┘
@@ -164,13 +160,6 @@ interface ActivityTimelineProps {
   activities: Array<Activity | CustomActivity>;
   loading?: boolean;                       // first-load spinner (only when no activities yet)
   error?: string | null;                   // error state instead of the feed
-  pagination?: PaginationControls; // scroll-driven paging (optional)
-}
-
-interface PaginationControls {
-  hasNextPage?: boolean;
-  isFetchingNextPage?: boolean;
-  fetchNextPage?: () => void | Promise<void>;
 }
 ```
 
@@ -184,21 +173,6 @@ leaves them visible (flicker-free).
 Because it has no idea where `activities` came from, it works equally with a
 doctype, a static fixture, a websocket stream, or a non-Frappe backend.
 
-### Pagination
-
-The feed is fixed **oldest-first**, so "more" always pages **forward in time** —
-newer emails appended at the **bottom**. The renderer delegates to
-`useLoadMoreOnScroll` (which wraps VueUse's `useInfiniteScroll`): it resolves the
-nearest scrollable ancestor at mount and calls `pagination.fetchNextPage()`
-once scrolled within ~**400px** of the bottom, gated by
-`hasNextPage && !isFetchingNextPage`, re-checking after each page settles. A
-spinner shows at the bottom while a page is in flight. There is **no button and
-no `@load-more` emit** — the consumer hands over the single `pagination` prop
-and the renderer wires the scroll container itself.
-
-`pagination` is **opt-in**, and all three of its fields are optional — omit
-the prop (or any field) and the feed is simply static.
-
 ---
 
 ## 4. Data layer — `useActivityTimeline(doctype, docname)`
@@ -208,7 +182,7 @@ policy **and the display order** (fixed **oldest-first**); the renderer owns non
 of it.
 
 ```ts
-const { activities, loading, error, pagination, reload } =
+const { activities, loading, error, reload } =
   useActivityTimeline("HD Ticket", "37422");
 ```
 
@@ -217,40 +191,16 @@ const { activities, loading, error, pagination, reload } =
 | `activities` | `ComputedRef<Activity[]>` — deduped, sorted, grouped, **in display order** |
 | `loading` | `ComputedRef<boolean>` — the resource's loading state |
 | `error` | `ComputedRef<error \| null>` — the resource's error, or `null` |
-| `pagination` | reactive `{ hasNextPage, isFetchingNextPage, fetchNextPage }` — drop straight onto the `:pagination` prop |
 | `reload` | `() => void` — refetch the resource |
 
-> **Why `pagination` is `reactive(...)`, not a plain object of refs.** The
-> renderer reads `pagination.hasNextPage` expecting a **boolean** (the prop
-> type is `boolean`, matching what a bring-your-own consumer passes —
-> `comms.hasNextPage`). `reactive()` unwraps the inner refs so the fields read as
-> live booleans; a plain object would expose `Ref` wrappers (always truthy),
-> breaking the scroll guard and the spinner. The function `fetchNextPage` passes
-> through unchanged.
+### Loading the whole feed
 
-### Paging the email stream
-
-Only the **email/communication** stream is paged (mirrors desk's "Load More
-Communications"); comments, logs, views and versions load once as context.
-
-- The backend caps the first page at `EMAIL_PAGE_SIZE` (**20**) **oldest** emails
-  and fetches one extra row to set `has_more_emails`.
-  `get_activity_timeline` returns `{ activities, has_more_emails }`;
-  `get_more_email_activities(doctype, name, start, limit)` returns the next
-  (newer) page of already-normalized email `Activity[]` plus its own
-  `has_more_emails`.
-- Email pagination runs **ascending** via an `order` arg on
-  `get_communication_data` (default `desc`, so desk's own timeline is
-  unaffected).
-- In the composable the first page lives in `resource.data`; each `fetchNextPage`
-  appends a newer page into a separate `extraEmails` ref. The `activities`
-  computed merges `resource.data.activities + extraEmails` (deduped by `key`),
-  then runs the ascending sort + version-grouping — so paged-in emails land at
-  the bottom and grouping stays correct. `start` is derived from the count of
-  emails already shown, so it self-corrects across realtime adds.
-- The server's first-page `has_more_emails` drives `hasNextPage` until the user
-  starts paging; after that each `fetchNextPage` response owns it (so a realtime
-  reload of page 0 won't reset it).
+The entire activity history loads in a **single call** — there is no email
+paging or "load more". The backend (`get_activity_timeline`) merges every source
+(creation, emails, comments/logs, views, versions), sorts ascending, and returns
+the full normalized `Activity[]` in one round-trip; the email stream is fetched
+in full (capped generously at `EMAIL_LIMIT = 500`). The composable is a thin
+dedupe + ascending-sort + version-grouping pass over that one resource.
 
 ### Server-side normalization
 
@@ -295,7 +245,7 @@ Acceptable today; add ref-counting only if that breaks.)
 ## 5. Customization
 
 All customization is **slot-based** and never touches the chrome (gutter,
-connector, spacing, ordering, loading/error/empty, pagination). Two
+connector, spacing, ordering, loading/error/empty). Two
 tiers:
 
 - **Tier 1 — replace a whole row** for a type → `#item-{type}` slot (with a
@@ -524,14 +474,13 @@ remount live in the app, not in `@framework/ui`:
     :activities="activities"
     :loading="loading"
     :error="error"
-    :pagination="pagination"
   />
 </template>
 
 <script setup lang="ts">
 import { ActivityTimeline, useActivityTimeline } from "@framework/ui";
 const props = defineProps<{ doctype: string; docname: string }>();
-const { activities, loading, error, pagination } =
+const { activities, loading, error } =
   useActivityTimeline(props.doctype, props.docname);
 </script>
 ```
@@ -547,21 +496,17 @@ const { activities, loading, error, pagination } =
 
 ## 7. Backend — `frappe/desk/form/`
 
-`activity.py` (whitelisted endpoints + normalizers):
+`activity.py` (whitelisted endpoint + normalizers):
 
-- `get_activity_timeline(doctype, name)` → `{ activities, has_more_emails }` —
-  merges creation, the first page of emails, comments/logs, views and versions,
-  sorts ascending, returns the normalized `Activity[]`.
-- `get_more_email_activities(doctype, name, start, limit=EMAIL_PAGE_SIZE)` →
-  `{ activities, has_more_emails }` — the next (newer) email page, normalized.
-- `EMAIL_PAGE_SIZE = 20` — page size of the email stream (the only paged source).
-  `get_email_activities` over-fetches `limit + 1` rows ascending, sets
-  `has_more = len > limit`, then trims — that one extra row is how
-  `has_more_emails` (→ frontend `hasNextPage`) is computed.
+- `get_activity_timeline(doctype, name)` → `list[dict]` — merges creation, emails,
+  comments/logs, views and versions, sorts ascending, and returns the full
+  normalized `Activity[]` in one call.
+- `EMAIL_LIMIT = 500` — generous cap on the email stream; `get_email_activities`
+  fetches the whole stream ascending (no paging).
 
-`load.py` (data layer for communications) gained an `order` arg threaded through
+`load.py` (data layer for communications) takes an `order` arg threaded through
 `_get_communications` → `get_communication_data`, defaulting to `"desc"` so every
-existing desk caller is untouched. activity.py passes `order="asc"` to page emails
+existing desk caller is untouched. activity.py passes `order="asc"` so emails read
 oldest-first. The direction is whitelisted to a literal (`"ASC"`/`"DESC"`) before
 being interpolated into the `ORDER BY` clauses — it is never a bound param, so the
 whitelist is the injection guard.
@@ -573,16 +518,15 @@ whitelist is the injection guard.
 ```
 # shared package — apps/frappe/ui/src/components/ActivityTimeline/
 ActivityTimeline.vue     presentational renderer (props in, slots out)
-useActivityTimeline.ts   data layer: fetch + dedupe/sort/group + paging + realtime → Activity[]
-useLoadMoreOnScroll.ts   scroll-detection composable (wraps VueUse useInfiniteScroll)
-types.ts                 Activity union (the contract) + ActivityTimelineProps + PaginationControls
+useActivityTimeline.ts   data layer: fetch + dedupe/sort/group + realtime → Activity[]
+types.ts                 Activity union (the contract) + ActivityTimelineProps
 EmailItem.vue · CommentItem.vue · LogItem.vue · VersionItem.vue   item renderers
 EmailContent.vue · AttachmentItem.vue · PreviewDialog.vue          render helpers
 icons.ts · utils.ts                                                shared bits
 index.ts                 public exports (components, composables, Activity* types)
 
 # backend — apps/frappe/frappe/desk/form/
-activity.py              whitelisted get_activity_timeline / get_more_email_activities + normalizers
+activity.py              whitelisted get_activity_timeline + normalizers
 load.py                  _get_communications / get_communication_data (+ order arg)
 ```
 
@@ -616,13 +560,12 @@ load.py                  _get_communications / get_communication_data (+ order a
   default slot exposing `{ item }`.
 - `customActivities` injection into the composable — replaced by consumer-side
   merge.
-- An `order` prop / arg — removed; the feed is fixed oldest-first and the email
-  stream pages forward via pagination.
+- An `order` prop / arg — removed; the feed is fixed oldest-first.
 - `pin`/row pinning; `RenderableContent` (`{ is, props }`) content form; granular
   email sub-slots (`#recipients`/`#content`/`#attachments`) — replaced by the
   `#header`/`#footer`/`#actions` regions.
-- A generic `usePagination` composable — explored, reverted; the email-paging
-  state machine stays inline in `useActivityTimeline`.
+- Email pagination / infinite-scroll "load more" — built, then reverted; the
+  whole activity history now loads in a single call.
 
 ---
 
@@ -636,7 +579,7 @@ under `apps/helpdesk/desk/src/pages/activity-playground/`.
 
 | Scenario | Demonstrates |
 | --- | --- |
-| **basic** | built-in rendering, pagination wired (single `pagination` prop) |
+| **basic** | built-in rendering — `:activities :loading :error` only |
 | **replace** | override `#item-comment` with a custom component |
 | **icon** | override only the gutter via `#icon-comment`; content stays built-in |
 | **regions** | render `CommentItem` inside `#item-comment` and override its `#header` + `#footer` |
@@ -658,6 +601,6 @@ export { ReplyIcon, ReplyAllIcon } from "./icons";
 export type {
   Activity, ActivityTimelineProps, AttachmentLogActivity, LogActivity,
   BaseActivity, CommentActivity, CustomActivity, EmailActivity, EmailAttachment,
-  PaginationControls, UserInfo, VersionActivity,
+  UserInfo, VersionActivity,
 } from "./types";
 ```
