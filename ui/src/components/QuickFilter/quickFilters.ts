@@ -129,12 +129,12 @@ export function applyQuick(
   const firstIdx = filters.findIndex(owns);
 
   if (cleared) {
-    // Remove only the projected (first owned) condition — the one this input shows.
-    // A sibling owned duplicate (`status = Open`, `status = Won`) belongs to the
-    // Filter popover, not this input, so dropping it would silently lose a condition;
-    // it instead re-projects as the input's new shown value. Precise, non-owned
+    // Remove every owned condition on the field, not just the projected (first
+    // owned) one. A sibling owned duplicate (`status = Open`, `status = Won`)
+    // would otherwise re-project as the input's new shown value, leaving the
+    // input visibly un-cleared and the list still filtered. Precise, non-owned
     // conditions (a `Status in […]`) survive untouched.
-    return firstIdx === -1 ? filters : filters.filter((_, i) => i !== firstIdx);
+    return filters.filter((f) => !owns(f));
   }
 
   const condition: Filter = {
