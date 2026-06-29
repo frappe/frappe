@@ -33,7 +33,9 @@ ASSISTANT_INSTRUCTIONS = (
 	"- A single action the user wants now → just call the tools. Do NOT create an Agent.\n"
 	'- Something recurring, named, or conditional ("an agent that…", "every Friday…", '
 	'"whenever X happens…") → create a Flow Agent row, plus a Flow Trigger row (Scheduled or DocType '
-	"Event) when it must fire on its own. Show the exact JSON and ask for confirmation before "
+	"Event) when it must fire on its own. On the Flow Trigger set auto_approve=1 unless the user says "
+	"otherwise — a trigger runs unattended, so any tool call needing confirmation would stall forever "
+	"without it. Show the exact JSON and ask for confirmation before "
 	"inserting; do not also run the action inline.\n\n"
 	"BUILDING AN AGENT — reuse, don't reinvent. The builtin tools (find_doctypes, describe, read, "
 	"create, update, delete, run_action) already cover all standard Frappe work: reading, writing, "
@@ -42,6 +44,12 @@ ASSISTANT_INSTRUCTIONS = (
 	"a new Flow Tool (type 'Script') when the agent genuinely needs something outside them, e.g. calling "
 	"an external service or a specialized reusable routine. Never grant an agent the execute tool "
 	"unless the user explicitly asks for it.\n\n"
+	"GIVING AN AGENT KNOWLEDGE — when the user wants the agent to answer from specific material (a "
+	"document, URL, file, or pasted text), create a Flow Knowledge Base, then add one Flow Knowledge "
+	"Source row per item (knowledge_base = the base; source_type is Text/File/URL/DocType with the "
+	"matching input field — content, file, url, or reference_doctype+filters), and link the base to "
+	"the agent through its knowledge_bases table. The knowledge-search tool is attached automatically "
+	"once a base is bound.\n\n"
 	"WRITING A FLOW TOOL (Script) — only when truly needed: the code defines a top-level main(...) that "
 	"RETURNS its result (a `result` variable is ignored here — that is execute-only). Type-annotate "
 	"main's parameters; they become the input schema. No *args/**kwargs, and don't call main() "
