@@ -341,27 +341,26 @@ frappe.ui.form.PrintView = class {
 	refresh_print_format() {
 		this.set_default_print_language();
 		this.toggle_raw_printing();
-		this.update_letterhead_for_print_format();
-		this.preview();
+		this.update_letterhead_for_print_format().then(() => this.preview());
 	}
 
 	update_letterhead_for_print_format() {
 		const format_name = this.selected_format();
 		if (!format_name || format_name === "Standard") {
-			this.set_default_letterhead();
-			return;
+			return this.set_default_letterhead();
 		}
-		frappe.call({
-			method: "frappe.client.get",
-			args: { doctype: "Print Format", name: format_name },
-			callback: (r) => {
+		return frappe
+			.call({
+				method: "frappe.client.get",
+				args: { doctype: "Print Format", name: format_name },
+			})
+			.then((r) => {
 				if (r.message?.letter_head) {
 					this.letterhead_selector.val(r.message.letter_head);
 				} else {
-					this.set_default_letterhead();
+					return this.set_default_letterhead();
 				}
-			},
-		});
+			});
 	}
 
 	// bind_events () {
