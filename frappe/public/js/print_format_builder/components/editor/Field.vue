@@ -736,12 +736,8 @@ watch(
 	justify-content: space-between;
 }
 
-.field-preview-lr--space-between .field-preview-label {
-	flex-shrink: 0;
-}
-
 .field-preview-lr--space-between .field-preview-value {
-	flex: 0;
+	flex: none;
 	text-align: right;
 }
 
@@ -749,12 +745,8 @@ watch(
 	justify-content: space-evenly;
 }
 
-.field-preview-lr--space-evenly .field-preview-label {
-	flex-shrink: 0;
-}
-
 .field-preview-lr--space-evenly .field-preview-value {
-	flex: 0;
+	flex: none;
 }
 
 .field-preview-value {

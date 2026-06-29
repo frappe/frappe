@@ -175,7 +175,7 @@ body {
 .field.left-right.field-justify-space-between .label,
 .field.left-right.field-justify-space-between .value {
 	width: auto;
-	flex: 0;
+	flex: none;
 }
 
 .field.left-right.field-justify-space-between .value {
@@ -189,7 +189,7 @@ body {
 .field.left-right.field-justify-space-evenly .label,
 .field.left-right.field-justify-space-evenly .value {
 	width: auto;
-	flex: 0;
+	flex: none;
 }
 
 /* Child table */
