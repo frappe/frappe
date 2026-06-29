@@ -29,6 +29,9 @@ PERM_TYPES = [
 
 def execute(filters=None):
 	filters = frappe._dict(filters or {})
+	if not (filters.get("user") or filters.get("doctype")):
+		frappe.throw(_("Please set at least one filter: User or DocType"))
+
 	return get_columns(), get_data(filters)
 
 

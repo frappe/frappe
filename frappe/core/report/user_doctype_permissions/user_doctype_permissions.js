@@ -16,4 +16,17 @@ frappe.query_reports["User Doctype Permissions"] = {
 			options: "DocType",
 		},
 	],
+	onload(report) {
+		const refresh = report.refresh.bind(report);
+		report.refresh = function () {
+			const user = report.get_filter_value("user");
+			const doctype = report.get_filter_value("doctype");
+			if (!user && !doctype) {
+				report.toggle_message(true, __("Please set at least one filter: User or DocType"));
+				report.toggle_report(false);
+				return;
+			}
+			return refresh();
+		};
+	},
 };
