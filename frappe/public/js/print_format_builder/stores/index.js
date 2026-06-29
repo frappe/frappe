@@ -160,6 +160,9 @@ export function getStore(print_format_name) {
 		layout.value.header = clean_zone(layout.value.header);
 		layout.value.footer = clean_zone(layout.value.footer);
 
+		// Keep the Print Format doctype's letter_head field in sync with the
+		// builder selection so the print preview uses the correct letterhead.
+		print_format.value.letter_head = layout.value.letter_head || "";
 		print_format.value.format_data = JSON.stringify(layout.value);
 
 		frappe
