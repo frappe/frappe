@@ -182,6 +182,8 @@ class Page:
 			pw_opts["page_ranges"] = opts["pageRanges"]
 		if opts.get("generateTaggedPDF"):
 			pw_opts["tagged_pdf"] = True
+		if opts.get("generateOutline"):
+			pw_opts["outline"] = True
 		return pw_opts
 
 	def capture_screenshot(self, image_format="jpeg", quality=30):

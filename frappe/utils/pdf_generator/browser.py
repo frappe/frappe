@@ -237,15 +237,12 @@ class Browser:
 		updated_options = {
 			"scale": 1,
 			"printBackground": True,
-			"transferMode": "ReturnAsStream",
 			"marginTop": 0,
 			"marginBottom": 0,
 			"marginLeft": 0,
 			"marginRight": 0,
 			"landscape": options.get("orientation", "Portrait") == "Landscape",
-			"preferCSSPageSize": False,
 			"pageRanges": options.get("page-ranges", ""),
-			# Experimental
 			"generateTaggedPDF": options.get("generate-tagged-pdf", False),
 			"generateOutline": options.get("generate-outline", False),
 		}
