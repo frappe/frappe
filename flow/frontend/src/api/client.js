@@ -11,9 +11,9 @@ export const loadModels = () =>
 
 export const loadHistory = () =>
 	getList("Flow Session", {
-		filters: { owner: frappe.session.user },
-		fields: ["name", "title", "creation"],
-		order_by: "creation desc",
+		filters: { owner: frappe.session.user, source: ["!=", "Trigger"] },
+		fields: ["name", "title", "modified"],
+		order_by: "modified desc",
 		limit: 15,
 	});
 
@@ -22,9 +22,13 @@ const escapeLike = (s) => s.replace(/[\\%_]/g, "\\$&");
 
 export const searchSessions = (query) =>
 	getList("Flow Session", {
-		filters: { owner: frappe.session.user, title: ["like", `%${escapeLike(query)}%`] },
-		fields: ["name", "title", "creation"],
-		order_by: "creation desc",
+		filters: {
+			owner: frappe.session.user,
+			source: ["!=", "Trigger"],
+			title: ["like", `%${escapeLike(query)}%`],
+		},
+		fields: ["name", "title", "modified"],
+		order_by: "modified desc",
 		limit: 20,
 	});
 
