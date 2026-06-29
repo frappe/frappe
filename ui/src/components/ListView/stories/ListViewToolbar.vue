@@ -17,10 +17,18 @@
 				class="flex-1"
 				v-model:filters="view.filters.value"
 				v-model:fields="view.quickFilterFields.value"
+				v-model:customizing="view.customizing.value"
 				:doctype="doctype"
 			/>
 			<Filter v-model="view.filters.value" :doctype="doctype" />
 			<SortBy v-model="view.sorts.value" :doctype="doctype" />
+			<Button
+				v-if="view.canCustomize.value"
+				:icon="view.customizing.value ? 'lucide-check' : 'lucide-settings-2'"
+				:tooltip="view.customizing.value ? 'Done' : 'Customize Quick Filters'"
+				:variant="view.customizing.value ? 'subtle' : 'ghost'"
+				@click="view.customizing.value = !view.customizing.value"
+			/>
 		</template>
 
 		<template #footer>
@@ -31,6 +39,7 @@
 </template>
 
 <script setup lang="ts">
+import { Button } from "frappe-ui";
 import { ListViewShell } from "../index";
 import { useListView } from "../useListView";
 import { Filter } from "../../Filter";
@@ -38,5 +47,7 @@ import { SortBy } from "../../SortBy";
 import { QuickFilter } from "../../QuickFilter";
 
 const props = defineProps<{ doctype: string }>();
+// `view.customizing` / `view.canCustomize` come from the shared composable, so the
+// toggle below works regardless of where it sits — no template ref needed.
 const view = useListView(props.doctype);
 </script>

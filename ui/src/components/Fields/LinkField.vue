@@ -8,7 +8,12 @@
 		:placeholder="field.placeholder"
 		:required="field.reqd"
 		:disabled="field.readOnly"
-	/>
+	>
+		<!-- Forward any slots (e.g. a #prefix affordance) on to the Link control. -->
+		<template v-for="(_, name) in $slots" #[name]="slotProps" :key="name">
+			<slot :name="name" v-bind="slotProps" />
+		</template>
+	</Link>
 </template>
 
 <script setup lang="ts">

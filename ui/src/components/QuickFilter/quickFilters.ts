@@ -13,30 +13,43 @@ import type {
 const CHECK_TYPES = ["Check"];
 const LINK_TYPES = ["Link", "Dynamic Link"];
 const EQUALS_TYPES = ["Check", "Select", "Autocomplete", "Date", "Datetime"];
+// Free-text inputs you type into — these (and `name`) carry the `like`/`equals`
+// toggle. Number/Duration/etc. stay `like`-only: the toggle lives only where you
+// type, and their value controls have no prefix slot to host it.
+const TEXT_TYPES = ["Data", "Small Text", "Text", "Long Text", "Text Editor"];
+
+/** The `name` standard field is a self-Link in Meta, but a quick filter treats
+ *  it as free-text (substring `like` by default), only swapping in a Link picker
+ *  when flipped to `equals`. Detected by fieldname so the operator set and the
+ *  control dispatch agree. */
+export const isNameField = (field: FilterField) => field.fieldname === "name";
 
 /**
- * The operator(s) a Quick Filter owns for a fieldtype, default first. A faithful
- * port of CRM's `['Check','Select','Link','Date','Datetime'] → direct value`
- * mapping, with one deliberate divergence: **Link** owns BOTH `like` (default)
- * and `equals`, surfaced as a per-input operator toggle. You rarely recall a
- * record's exact name, so a Link quick filter substring-searches by default
- * (`like`) but can be flipped to an exact `equals` pick. Everything outside the
- * equals set (Data/Text/Number/Duration) is `like`-only.
+ * The operator(s) a Quick Filter owns for a field, default first. A port of CRM's
+ * `['Check','Select','Link','Date','Datetime'] → direct value` mapping, with one
+ * deliberate divergence: text fields (Data/Text/…, plus the `name` field) own BOTH
+ * `like` (default) and `equals`, surfaced as a per-input operator toggle —
+ * substring-search by default, flip to an exact match. Link and Dynamic Link own a
+ * single `equals` (an exact Link pick, no toggle); the equals set is `equals`-only;
+ * everything else (Number/Duration/…) is `like`-only.
  */
-export function quickFilterOperators(fieldtype: string): FilterOperator[] {
-  if (LINK_TYPES.includes(fieldtype)) return ["like", "equals"];
-  if (EQUALS_TYPES.includes(fieldtype)) return ["equals"];
+export function quickFilterOperators(field: FilterField): FilterOperator[] {
+  if (isNameField(field)) return ["like", "equals"];
+  if (LINK_TYPES.includes(field.fieldtype)) return ["equals"];
+  if (EQUALS_TYPES.includes(field.fieldtype)) return ["equals"];
+  if (TEXT_TYPES.includes(field.fieldtype)) return ["like", "equals"];
   return ["like"];
 }
 
-/** The default (canonical) operator a Quick Filter starts on for a fieldtype. */
-export function quickFilterOperator(fieldtype: string): FilterOperator {
-  return quickFilterOperators(fieldtype)[0];
+/** The default (canonical) operator a Quick Filter starts on for a field. */
+export function quickFilterOperator(field: FilterField): FilterOperator {
+  return quickFilterOperators(field)[0];
 }
 
-/** Whether the field offers an operator toggle (more than one owned operator). */
-export function hasOperatorToggle(fieldtype: string): boolean {
-  return quickFilterOperators(fieldtype).length > 1;
+/** Whether the field offers an operator toggle (more than one owned operator) —
+ *  true for free-text fields and `name`, false for Link/Select/Date/Check. */
+export function hasOperatorToggle(field: FilterField): boolean {
+  return quickFilterOperators(field).length > 1;
 }
 
 const isCheck = (field: FilterField) => CHECK_TYPES.includes(field.fieldtype);
@@ -52,7 +65,7 @@ function ownedCondition(
   filters: Filter[],
   field: FilterField
 ): Filter | undefined {
-  const ops = quickFilterOperators(field.fieldtype);
+  const ops = quickFilterOperators(field);
   return filters.find(
     (f) => f.fieldname === field.fieldname && ops.includes(f.operator)
   );
@@ -78,10 +91,7 @@ export function quickOperator(
   filters: Filter[],
   field: FilterField
 ): FilterOperator {
-  return (
-    ownedCondition(filters, field)?.operator ??
-    quickFilterOperator(field.fieldtype)
-  );
+  return ownedCondition(filters, field)?.operator ?? quickFilterOperator(field);
 }
 
 /**
@@ -100,7 +110,7 @@ export function applyQuick(
   value: FilterValue,
   operator?: FilterOperator
 ): Filter[] {
-  const ops = quickFilterOperators(field.fieldtype);
+  const ops = quickFilterOperators(field);
   const op = operator && ops.includes(operator) ? operator : ops[0];
   const owns = (f: Filter) =>
     f.fieldname === field.fieldname && ops.includes(f.operator);

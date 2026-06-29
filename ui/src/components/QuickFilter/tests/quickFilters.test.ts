@@ -35,27 +35,60 @@ const CUSTOMER: FilterField = {
   fieldtype: "Link",
   options: "Customer",
 };
+const NAME: FilterField = {
+  label: "Name",
+  value: "name",
+  fieldname: "name",
+  fieldtype: "Link",
+  options: "CRM Lead",
+};
 
 describe("quickFilterOperators / quickFilterOperator", () => {
-  it("maps the equals-set fieldtypes to a single equals operator", () => {
+  it("maps the equals-set fieldtypes to a single equals operator (no toggle)", () => {
     for (const ft of ["Check", "Select", "Autocomplete", "Date", "Datetime"]) {
-      expect(quickFilterOperators(ft)).toEqual(["equals"]);
-      expect(quickFilterOperator(ft)).toBe("equals");
+      const field = { ...TITLE, fieldtype: ft };
+      expect(quickFilterOperators(field)).toEqual(["equals"]);
+      expect(quickFilterOperator(field)).toBe("equals");
+      expect(hasOperatorToggle(field)).toBe(false);
     }
   });
 
-  it("gives Link both like (default) and equals, surfaced as a toggle", () => {
-    expect(quickFilterOperators("Link")).toEqual(["like", "equals"]);
-    expect(quickFilterOperators("Dynamic Link")).toEqual(["like", "equals"]);
-    expect(quickFilterOperator("Link")).toBe("like");
-    expect(hasOperatorToggle("Link")).toBe(true);
+  it("gives Link / Dynamic Link a single equals (Link pick, no toggle)", () => {
+    expect(quickFilterOperators(CUSTOMER)).toEqual(["equals"]);
+    expect(quickFilterOperator(CUSTOMER)).toBe("equals");
+    expect(hasOperatorToggle(CUSTOMER)).toBe(false);
+    const dyn = { ...CUSTOMER, fieldtype: "Dynamic Link" };
+    expect(quickFilterOperators(dyn)).toEqual(["equals"]);
+    expect(hasOperatorToggle(dyn)).toBe(false);
   });
 
-  it("defaults every other fieldtype to like-only (no toggle)", () => {
-    for (const ft of ["Data", "Text", "Int", "Currency", "Duration"]) {
-      expect(quickFilterOperators(ft)).toEqual(["like"]);
-      expect(hasOperatorToggle(ft)).toBe(false);
+  it("gives text fields like (default) + equals, surfaced as a toggle", () => {
+    for (const ft of [
+      "Data",
+      "Small Text",
+      "Text",
+      "Long Text",
+      "Text Editor",
+    ]) {
+      const field = { ...TITLE, fieldtype: ft };
+      expect(quickFilterOperators(field)).toEqual(["like", "equals"]);
+      expect(quickFilterOperator(field)).toBe("like");
+      expect(hasOperatorToggle(field)).toBe(true);
     }
+  });
+
+  it("keeps Number/Duration fields like-only (no toggle, no prefix slot to host one)", () => {
+    for (const ft of ["Int", "Float", "Currency", "Percent", "Duration"]) {
+      const field = { ...TITLE, fieldtype: ft };
+      expect(quickFilterOperators(field)).toEqual(["like"]);
+      expect(hasOperatorToggle(field)).toBe(false);
+    }
+  });
+
+  it("treats the name field as free-text (toggle), despite its Link fieldtype", () => {
+    expect(quickFilterOperators(NAME)).toEqual(["like", "equals"]);
+    expect(quickFilterOperator(NAME)).toBe("like");
+    expect(hasOperatorToggle(NAME)).toBe(true);
   });
 });
 
@@ -94,18 +127,21 @@ describe("quickValue (read projection)", () => {
     expect(quickValue([], ACTIVE)).toBe(false);
   });
 
-  it("reads a Link via its like (default) or equals condition", () => {
+  it("reads a free-text field via its like (default) or equals condition", () => {
     const likeCond: Filter[] = [
-      {
-        field: CUSTOMER,
-        fieldname: "customer",
-        operator: "like",
-        value: "acme",
-      },
+      { field: TITLE, fieldname: "title", operator: "like", value: "acme" },
     ];
-    expect(quickValue(likeCond, CUSTOMER)).toBe("acme");
-    expect(quickOperator(likeCond, CUSTOMER)).toBe("like");
+    expect(quickValue(likeCond, TITLE)).toBe("acme");
+    expect(quickOperator(likeCond, TITLE)).toBe("like");
 
+    const equalsCond: Filter[] = [
+      { field: TITLE, fieldname: "title", operator: "equals", value: "ACME" },
+    ];
+    expect(quickValue(equalsCond, TITLE)).toBe("ACME");
+    expect(quickOperator(equalsCond, TITLE)).toBe("equals");
+  });
+
+  it("reads a Link via its single equals condition", () => {
     const equalsCond: Filter[] = [
       {
         field: CUSTOMER,
@@ -119,8 +155,9 @@ describe("quickValue (read projection)", () => {
   });
 
   it("falls back to the field's default operator when none is set", () => {
-    expect(quickOperator([], CUSTOMER)).toBe("like");
+    expect(quickOperator([], CUSTOMER)).toBe("equals");
     expect(quickOperator([], STATUS)).toBe("equals");
+    expect(quickOperator([], TITLE)).toBe("like");
   });
 });
 
@@ -189,19 +226,21 @@ describe("applyQuick (write projection)", () => {
     expect(applyQuick(precise, STATUS, "")).toBe(precise);
   });
 
-  it("toggles a Link between like and equals, replacing not duplicating", () => {
-    const liked = applyQuick([], CUSTOMER, "acme", "like");
+  it("toggles a free-text field between like and equals, replacing not duplicating", () => {
+    const liked = applyQuick([], TITLE, "acme", "like");
     expect(liked).toEqual([
-      {
-        field: CUSTOMER,
-        fieldname: "customer",
-        operator: "like",
-        value: "acme",
-      },
+      { field: TITLE, fieldname: "title", operator: "like", value: "acme" },
     ]);
     // Flip to equals: the like condition is replaced, not kept alongside.
-    const equaled = applyQuick(liked, CUSTOMER, "ACME Inc", "equals");
+    const equaled = applyQuick(liked, TITLE, "acme", "equals");
     expect(equaled).toEqual([
+      { field: TITLE, fieldname: "title", operator: "equals", value: "acme" },
+    ]);
+  });
+
+  it("coerces an unowned operator on a Link to its single equals", () => {
+    // A Link owns only `equals`; a stray `like` request falls back to it.
+    expect(applyQuick([], CUSTOMER, "ACME Inc", "like")).toEqual([
       {
         field: CUSTOMER,
         fieldname: "customer",

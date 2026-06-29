@@ -26,8 +26,15 @@ const fields: RawMetaField[] = [
 ];
 
 describe("getQuickFilterFields", () => {
-  it("keeps only in_standard_filter fields, mapped to FilterField shape", () => {
-    expect(getQuickFilterFields(fields)).toEqual([
+  it("prepends name, then the in_standard_filter fields in FilterField shape", () => {
+    expect(getQuickFilterFields(fields, "Sales Order")).toEqual([
+      {
+        label: "Name",
+        value: "name",
+        fieldname: "name",
+        fieldtype: "Link",
+        options: "Sales Order",
+      },
       {
         label: "Status",
         value: "status",
@@ -45,21 +52,31 @@ describe("getQuickFilterFields", () => {
     ]);
   });
 
-  it("does not surface name by default (only via the customize picker)", () => {
-    const result = getQuickFilterFields(fields);
-    expect(result.some((f) => f.fieldname === "name")).toBe(false);
+  it("surfaces name first, as a self-Link against the doctype", () => {
+    const [first] = getQuickFilterFields(fields, "Sales Order");
+    expect(first.fieldname).toBe("name");
+    expect(first.options).toBe("Sales Order");
   });
 
   it("falls back to the fieldname when a flagged field has no label", () => {
-    const [field] = getQuickFilterFields([
-      { fieldname: "priority", fieldtype: "Select", in_standard_filter: 1 },
-    ]);
+    const [, field] = getQuickFilterFields(
+      [{ fieldname: "priority", fieldtype: "Select", in_standard_filter: 1 }],
+      "Sales Order"
+    );
     expect(field.label).toBe("priority");
   });
 
-  it("returns an empty list when nothing is flagged", () => {
+  it("returns just name when nothing is flagged", () => {
     expect(
-      getQuickFilterFields([{ fieldname: "x", fieldtype: "Data" }])
-    ).toEqual([]);
+      getQuickFilterFields([{ fieldname: "x", fieldtype: "Data" }], "Sales Order")
+    ).toEqual([
+      {
+        label: "Name",
+        value: "name",
+        fieldname: "name",
+        fieldtype: "Link",
+        options: "Sales Order",
+      },
+    ]);
   });
 });

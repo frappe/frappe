@@ -12,15 +12,17 @@
 
   Projection is by canonical operator (`quickFilters.ts`): a quick input owns only
   conditions on its field whose operator is in that field's canonical set, so a
-  precise popover condition (`Status in […]`) is left untouched. Link fields own
-  BOTH `like` (default) and `equals`, surfaced as the `≈`/`=` operator toggle —
-  you rarely recall a record's exact name, so a Link quick-filter substring-
-  searches by default but can be flipped to an exact pick. The value inputs are
-  the shared `Fields` components (ADR-0004); the Link toggle swaps the control
-  with the operator (text box for `like`, Link picker for `equals`).
+  precise popover condition (`Status in […]`) is left untouched. Free-text fields
+  (and the `name` field) own BOTH `like` (default) and `equals`, surfaced as a
+  `≈`/`=` toggle glued to the front of the input — substring-search by default,
+  click to flip to an exact match. Link fields are an exact pick (`equals`, no
+  toggle). The value inputs are the shared `Fields` components (ADR-0004); the
+  `name` field swaps its text box for a Link picker when flipped to `equals`.
 -->
 <template>
-	<div class="flex items-center gap-2 overflow-x-auto">
+	<!-- Wrap extra inputs to a second row instead of scrolling: overflow stays
+	     `visible` so the inputs' focus ring isn't clipped. -->
+	<div class="flex flex-wrap items-center gap-2">
 		<!-- Customize mode: chips of the surfaced fields with a remove affordance,
 		     plus an "Add Filter" picker over every labelled field. -->
 		<template v-if="customizing">
@@ -51,17 +53,13 @@
 					<span class="lucide-plus size-4" aria-hidden="true" />
 				</template>
 			</Combobox>
-			<Button
-				tooltip="Done"
-				icon="lucide-check"
-				variant="ghost"
-				@click="customizing = false"
-			/>
 		</template>
 
-		<!-- Normal mode: one inline value input per surfaced field. -->
+		<!-- Normal mode: one inline value input per surfaced field. A definite
+		     width keeps each input from growing on hover (e.g. a Link's clear
+		     button) — the label truncates instead. -->
 		<template v-else>
-			<div v-for="field in surfaced" :key="field.fieldname" class="min-w-36">
+			<div v-for="field in surfaced" :key="field.fieldname" class="w-40 shrink-0">
 				<!-- Check → a labelled checkbox (checked ⇔ equals "Yes"). -->
 				<Checkbox
 					v-if="field.fieldtype === 'Check'"
@@ -69,51 +67,48 @@
 					:modelValue="quickValue(filters, field) as boolean"
 					@update:modelValue="(v: boolean) => setValue(field, v)"
 				/>
-				<!-- Link → operator toggle (≈/=) + the matching value control. -->
-				<div v-else-if="isLink(field)" class="flex items-center">
-					<Dropdown :options="operatorOptions(field)" placement="bottom-start">
-						<Button
-							class="rounded-r-none border-r-0 !w-8 font-medium"
-							:label="operatorSymbol(activeOperator(field))"
-							:tooltip="operatorLabel(activeOperator(field))"
-						/>
-					</Dropdown>
-					<component
-						:is="linkControl(field).is"
-						v-bind="linkControl(field).props"
-						class="w-full rounded-l-none"
-						:modelValue="quickValue(filters, field)"
-						@update:modelValue="(v: FilterValue) => setValue(field, v)"
-					/>
-				</div>
-				<!-- Everything else → the fieldtype's shared value input. -->
+				<!-- The fieldtype's value control. Free-text fields (and name) carry a
+				     ≈/= operator toggle as a prefix inside the input; clicking it flips
+				     like ↔ equals in place (and, for name, swaps text box ↔ Link pick). -->
 				<component
 					v-else
-					:is="quickControl(field).is"
-					v-bind="quickControl(field).props"
+					:is="valueControl(field).is"
+					v-bind="valueControl(field).props"
 					class="w-full"
 					:modelValue="quickValue(filters, field)"
 					@update:modelValue="(v: FilterValue) => setValue(field, v)"
-				/>
+				>
+					<template v-if="hasOperatorToggle(field)" #prefix>
+						<button
+							type="button"
+							class="grid size-5 place-items-center rounded text-xs font-medium text-ink-gray-5 hover:bg-surface-gray-4 hover:text-ink-gray-8"
+							:title="operatorLabel(activeOperator(field))"
+							:aria-label="operatorLabel(activeOperator(field))"
+							@pointerdown.stop
+							@click.stop="toggleOperator(field)"
+						>
+							{{ operatorSymbol(activeOperator(field)) }}
+						</button>
+					</template>
+				</component>
 			</div>
-			<Button
-				v-if="allFields.length"
-				tooltip="Customize Quick Filters"
-				icon="lucide-settings-2"
-				variant="ghost"
-				@click="customizing = true"
-			/>
 		</template>
 	</div>
 </template>
 
 <script setup lang="ts">
-import { computed, reactive, ref } from "vue";
-import { Button, Checkbox, Combobox, Dropdown, TextInput } from "frappe-ui";
+import { computed, reactive } from "vue";
+import { Button, Checkbox, Combobox, TextInput } from "frappe-ui";
 import { useDoctypeMeta } from "../../composables/useDoctypeMeta";
 import { getFilterableFields } from "../Filter/getFilterableFields";
 import { getQuickFilterFields } from "./getQuickFilterFields";
-import { applyQuick, hasOperatorToggle, quickOperator, quickValue } from "./quickFilters";
+import {
+	applyQuick,
+	hasOperatorToggle,
+	isNameField,
+	quickOperator,
+	quickValue,
+} from "./quickFilters";
 import type { Filter, FilterField, FilterOperator, FilterValue } from "../Filter/types";
 // Shared, fieldtype-aware value inputs (ADR-0004), same subset the Filter control
 // mounts. No form-context injections are provided, so deep-injection inputs fall
@@ -139,7 +134,7 @@ const { meta } = useDoctypeMeta(props.doctype);
 // Default surfaced fields from Meta until the host/user customizes (`fields`
 // bound). Mutating in customize mode promotes the default into the model.
 const defaultFields = computed<FilterField[]>(() =>
-	getQuickFilterFields(meta.value?.fields ?? [])
+	getQuickFilterFields(meta.value?.fields ?? [], props.doctype)
 );
 const surfaced = computed<FilterField[]>(() => fields.value ?? defaultFields.value);
 
@@ -154,7 +149,9 @@ const addableFields = computed<FilterField[]>(() => {
 	return allFields.value.filter((f) => !shown.has(f.fieldname));
 });
 
-const customizing = ref(false);
+// Edit-state toggle is owned by the host (a button beside Sort), bound here so the
+// strip swaps between value inputs and the customize chips.
+const customizing = defineModel<boolean>("customizing", { default: false });
 
 // --- Surfaced-field customization -------------------------------------------
 // Mutating the surfaced set is independent of the values: removing a field only
@@ -180,7 +177,7 @@ function removeField(field: FilterField) {
 
 // --- Value projection -------------------------------------------------------
 // Read with `quickValue`/`quickOperator`; write with `applyQuick`. The operator
-// override keeps a Link toggle sticky while its input is still empty (no stored
+// override keeps a toggle sticky while its input is still empty (no stored
 // condition to read the operator back from yet).
 const operatorOverride = reactive<Record<string, FilterOperator>>({});
 
@@ -192,24 +189,15 @@ function setValue(field: FilterField, value: FilterValue) {
 	filters.value = applyQuick(filters.value, field, value, activeOperator(field));
 }
 
-const isLink = (field: FilterField) => ["Link", "Dynamic Link"].includes(field.fieldtype);
-
 const operatorSymbol = (op: FilterOperator) => (op === "equals" ? "=" : "≈");
 const operatorLabel = (op: FilterOperator) => (op === "equals" ? "Equals" : "Like");
 
-/** The Link operator toggle's Dropdown items — pick Like (substring) or Equals
- *  (exact). Switching re-applies the current value under the new operator so the
- *  shared condition flips in place. */
-function operatorOptions(field: FilterField) {
-	if (!hasOperatorToggle(field.fieldtype)) return [];
-	return (["like", "equals"] as FilterOperator[]).map((op) => ({
-		label: operatorLabel(op),
-		onClick: () => switchOperator(field, op),
-	}));
-}
-
-function switchOperator(field: FilterField, op: FilterOperator) {
-	operatorOverride[field.fieldname] = op;
+/** Flip the input's operator like ↔ equals on click (no menu). Re-applies the
+ *  current value under the new operator so the shared condition flips in place,
+ *  and — for `name` — swaps the text box for a Link picker (or back). */
+function toggleOperator(field: FilterField) {
+	const next: FilterOperator = activeOperator(field) === "equals" ? "like" : "equals";
+	operatorOverride[field.fieldname] = next;
 	const current = quickValue(filters.value, field);
 	if (current !== "" && current != null) setValue(field, current);
 }
@@ -235,20 +223,21 @@ function bareField(field: FilterField, overrides: Partial<FieldMeta> = {}): Fiel
 	};
 }
 
-/** The Link value control, swapped by the active operator: `equals` → a Link
- *  picker (exact record), `like` → a plain text box (substring). Dynamic Link has
- *  no fixed target to pick against, so it stays a text box either way. */
-function linkControl(field: FilterField): ValueControl {
-	if (activeOperator(field) === "equals" && field.fieldtype === "Link") {
+/** The value control for a field's quick input, by fieldtype — and, for the
+ *  toggle fields, the active operator. The `name` field is a text box in `like`
+ *  mode and a Link picker (against its own doctype) in `equals` mode; a real Link
+ *  is always an exact picker; Dynamic Link has no fixed target so it stays a text
+ *  box. Select gets a leading blank option so the quick filter can clear to empty. */
+function valueControl(field: FilterField): ValueControl {
+	const fieldtype = field.fieldtype;
+	if (isNameField(field)) {
+		return activeOperator(field) === "equals"
+			? { is: LinkField, props: { field: bareField(field) } }
+			: { is: TextInput, props: { type: "text", placeholder: field.label } };
+	}
+	if (fieldtype === "Link") {
 		return { is: LinkField, props: { field: bareField(field) } };
 	}
-	return { is: TextInput, props: { type: "text", placeholder: field.label } };
-}
-
-/** The non-Link, non-Check value control by fieldtype. Select gets a leading
- *  blank option so the quick filter can be cleared back to empty. */
-function quickControl(field: FilterField): ValueControl {
-	const fieldtype = field.fieldtype;
 	if (SELECT_TYPES.includes(fieldtype)) {
 		const options = "\n" + (field.options ?? "");
 		return { is: SelectField, props: { field: bareField(field, { options }) } };

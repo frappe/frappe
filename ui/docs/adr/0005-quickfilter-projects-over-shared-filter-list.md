@@ -16,15 +16,21 @@ The real work is the **projection**: in our list model a field can carry several
 conditions (`amount > 100 AND amount < 500`), so a quick filter cannot simply own
 `filters[fieldname]` the way CRM's fieldname-keyed dict does. A quick filter owns
 **only conditions on its field whose operator is in the quick filter's canonical
-operator _set_ for that fieldtype** — `equals` for Check/Select/Date/Datetime,
-`like` for the free-text types (Data/Text/Number/Duration), and for **Link** the
-two-element set `[like, equals]` with `like` the default. Link gets both because
-you rarely recall a record's exact name: a Link quick filter substring-searches by
-default but can be flipped to an exact `equals` pick through a per-input operator
-toggle (the `≈`/`=` button), which also swaps the value control — a text box for
-`like`, a Link picker for `equals`. This is a dedicated
-`quickFilterOperators(fieldtype)` table, a faithful port of CRM's
-`applyQuickFilter`/`quickFilterList` mapping (extended only by the Link toggle) —
+operator _set_** — `equals` for Check/Select/Date/Datetime and for **Link**/Dynamic
+Link (an exact record pick, no toggle), and the two-element set `[like, equals]`
+with `like` the default for the **text** types (Data/Text/Small Text/Long Text) and
+the **`name`** field. Text fields get both because a substring search is the
+everyday case but an exact match must stay reachable: the input substring-searches
+by default and can be flipped to `equals` through a per-input operator toggle — the
+`≈`/`=` button rendered **inside the input as a prefix**, switching on click (no
+menu). The toggle lives only where you type: Number/Duration/etc. stay `like`-only
+(no toggle — and their value controls have no prefix slot to host one). `name` is
+the one fieldtype-crossing case: it is a self-Link in Meta but is filtered as text,
+so its toggle additionally **swaps the value control** — a text box for `like`, a
+Link picker (against the doctype) for `equals`, with the toggle forwarded into the
+Link's own prefix slot. This is a dedicated
+`quickFilterOperators(field)` table (keyed by fieldtype, `name` special-cased by
+fieldname), a port of CRM's `applyQuickFilter`/`quickFilterList` mapping —
 **not** a reuse of the popover's `getDefaultOperator` (which starts Date on
 `between`, breaking the one-tap UX). Reads find the first owned condition for the
 field and surface its value (and active operator); writes upsert that condition
@@ -85,18 +91,21 @@ not CRM's `FormControl`.
   it would make a Date quick filter a `between` range, breaking the one-tap UX. The
   dedicated table also lets Link diverge deliberately (below) rather than inherit
   the popover's default.
-- **A single fixed operator per fieldtype, with Link on `equals` (strict CRM
-  parity).** Rejected: CRM treats Link quick filters as exact `equals` (and sneaks
-  `name` in as a `Data`/`like` field to dodge this), but for a real Link you seldom
-  recall the exact value. Giving Link a `[like, equals]` set with a per-input toggle
-  — defaulting to `like` substring — is a deliberate one-feature divergence from CRM
-  that keeps the projection a clean operator-set membership test rather than a
-  special-cased `name`.
+- **Give Link a `[like, equals]` toggle (substring-by-default).** Rejected after
+  trying it: a Link quick filter is a record picker, and a substring `like` over a
+  picker is the odd case, not the default — the toggle belongs on the **free-text**
+  inputs, where you actually type. So Link/Dynamic Link stay an exact `equals` pick
+  (CRM parity) and the `like`/`equals` toggle lives on the free-text types. CRM
+  sneaks the doctype's own records in as a `name`/`Data`/`like` field; we follow
+  that lead — `name` is filtered as free-text (substring by default) and its toggle
+  swaps in a Link picker for the `equals` case. That is the single deliberate
+  fieldtype-crossing special case (`name` keyed by fieldname, not fieldtype), and it
+  keeps every other field a clean operator-set-by-fieldtype membership test.
 - **A free operator dropdown on every quick input (the full `getOperators` list).**
   Rejected: that re-creates the Filter popover inline and defeats the one-tap point.
-  The toggle is scoped to the two operators a Link quick filter can mean (`like` vs
-  `equals`); every other fieldtype keeps its single canonical operator and shows no
-  toggle.
+  The toggle is scoped to the two operators a free-text quick filter can mean (`like`
+  vs `equals`) and switches on a single click; Link/Select/Date keep their single
+  canonical operator and show no toggle.
 - **`useListView` takes a reactive doctype ref and clears state on an internal
   watch.** Rejected: the Shell already remounts controls via `:key="doctype"`, and
   `useDoctypeMeta` is cached per doctype string — reconstructing `useListView` per

@@ -14,7 +14,9 @@
 	<div class="flex flex-col rounded-lg border border-outline-gray-1 bg-surface-white">
 		<!-- Toolbar region: the home of the list-view controls. The slotted content
 		     owns its own alignment (quick filters left, Filter/Sort right). -->
-		<div class="flex items-center gap-2 border-b border-outline-gray-1 px-3 py-2">
+		<!-- `items-start` so Filter/Sort stay pinned to the top row when the quick
+		     filters wrap to a second line, rather than centering against the taller strip. -->
+		<div class="flex items-start gap-2 border-b border-outline-gray-1 px-3 py-2">
 			<slot name="toolbar" :doctype="doctype" :meta="meta" :loading="loading" />
 		</div>
 

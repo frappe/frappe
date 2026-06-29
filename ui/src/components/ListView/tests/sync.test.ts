@@ -22,6 +22,12 @@ const CUSTOMER: FilterField = {
   fieldtype: "Link",
   options: "Customer",
 };
+const TITLE: FilterField = {
+  label: "Title",
+  value: "title",
+  fieldname: "title",
+  fieldtype: "Data",
+};
 
 describe("Filter ↔ QuickFilter sync over the shared list", () => {
   it("QuickFilter → Filter: a quick write lands in the wire filters", () => {
@@ -37,10 +43,16 @@ describe("Filter ↔ QuickFilter sync over the shared list", () => {
     expect(quickValue(filters, STATUS)).toBe("Open");
   });
 
-  it("a Link like quick filter round-trips to a wrapped wire LIKE", () => {
-    const filters = applyQuick([], CUSTOMER, "acme", "like");
-    expect(quickValue(filters, CUSTOMER)).toBe("acme");
-    expect(serializeFilters(filters)).toEqual([["customer", "LIKE", "%acme%"]]);
+  it("a free-text like quick filter round-trips to a wrapped wire LIKE", () => {
+    const filters = applyQuick([], TITLE, "acme", "like");
+    expect(quickValue(filters, TITLE)).toBe("acme");
+    expect(serializeFilters(filters)).toEqual([["title", "LIKE", "%acme%"]]);
+  });
+
+  it("a Link equals quick filter round-trips to an exact wire match", () => {
+    const filters = applyQuick([], CUSTOMER, "ACME Inc");
+    expect(quickValue(filters, CUSTOMER)).toBe("ACME Inc");
+    expect(serializeFilters(filters)).toEqual([["customer", "=", "ACME Inc"]]);
   });
 
   it("a quick filter coexists with a precise popover condition on the same field", () => {
