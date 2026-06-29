@@ -224,15 +224,18 @@ class PostgresDatabase(PostgresExceptionUtil, Database):
 		self._cursor.execute("SET search_path TO %s", (self.db_schema,))
 
 	def get_connection(self):
+		# libpq's GSSAPI (krb5) path is not fork-safe; with the default gssencmode=prefer
+		# RQ work horses segfault on fork ("work-horse terminated unexpectedly"). Validate the
+		# site-config override against libpq's modes so a bad value can't break every connection.
+		gssencmode = str(frappe.conf.get("db_gssencmode") or "disable")
+		if gssencmode not in ("disable", "allow", "prefer", "require"):
+			gssencmode = "disable"
 		conn_settings = {
 			"dbname": self.cur_db_name,
 			"user": self.user,
 			# libpg defaults to default socket if not specified
 			"host": self.host or self.socket,
-			# libpq's GSSAPI (krb5) path is not fork-safe; with the default gssencmode=prefer
-			# RQ work horses segfault on fork ("work-horse terminated unexpectedly"). `or`
-			# coerces a falsy/non-string site-config value back to a valid libpq mode.
-			"gssencmode": frappe.conf.get("db_gssencmode") or "disable",
+			"gssencmode": gssencmode,
 		}
 		if self.password:
 			conn_settings["password"] = self.password
