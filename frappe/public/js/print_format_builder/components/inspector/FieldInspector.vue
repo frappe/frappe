@@ -606,7 +606,7 @@ const open = ref({
 	s_visibility: false,
 	t_table: true,
 	t_columns: true,
-	t_visibility: false,
+	t_visibility: true,
 });
 
 function toggle(key) {
