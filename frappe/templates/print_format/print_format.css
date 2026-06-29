@@ -158,13 +158,25 @@ body {
 	text-align: right;
 }
 
-/* In left-right orientation, alignment applies to the whole flex row */
+/* In left-right orientation, alignment moves the whole label+value group */
 .field.left-right.field-align-right {
 	justify-content: flex-end;
 }
 
+.field.left-right.field-align-right .label,
+.field.left-right.field-align-right .value {
+	width: auto;
+	flex: none;
+}
+
 .field.left-right.field-align-center {
 	justify-content: center;
+}
+
+.field.left-right.field-align-center .label,
+.field.left-right.field-align-center .value {
+	width: auto;
+	flex: none;
 }
 
 /* Label-value spacing in left-right orientation */

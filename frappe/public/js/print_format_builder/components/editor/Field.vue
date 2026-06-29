@@ -30,11 +30,16 @@
 				<!-- Table MultiSelect field: render as a comma-separated value list -->
 				<div
 					v-else-if="df.fieldtype == 'Table MultiSelect'"
-					:style="{ textAlign: df.align || 'left' }"
+					:style="
+						field_orientation !== 'left-right' ? { textAlign: df.align || 'left' } : {}
+					"
 					:class="[
 						'field-preview-lr',
 						field_orientation === 'left-right' && df.label_justify
 							? `field-preview-lr--${df.label_justify}`
+							: '',
+						field_orientation === 'left-right' && df.align && df.align !== 'left'
+							? `field-preview-lr--align-${df.align}`
 							: '',
 					]"
 				>
@@ -114,11 +119,16 @@
 				<!-- Regular field -->
 				<div
 					v-else
-					:style="{ textAlign: df.align || 'left' }"
+					:style="
+						field_orientation !== 'left-right' ? { textAlign: df.align || 'left' } : {}
+					"
 					:class="[
 						'field-preview-lr',
 						field_orientation === 'left-right' && df.label_justify
 							? `field-preview-lr--${df.label_justify}`
+							: '',
+						field_orientation === 'left-right' && df.align && df.align !== 'left'
+							? `field-preview-lr--align-${df.align}`
 							: '',
 					]"
 				>
@@ -747,6 +757,26 @@ watch(
 
 .field-preview-lr--space-evenly .field-preview-value {
 	flex: none;
+}
+
+.field-preview-lr--align-center {
+	justify-content: center;
+}
+
+.field-preview-lr--align-center .field-preview-label,
+.field-preview-lr--align-center .field-preview-value {
+	flex: none;
+	width: auto;
+}
+
+.field-preview-lr--align-right {
+	justify-content: flex-end;
+}
+
+.field-preview-lr--align-right .field-preview-label,
+.field-preview-lr--align-right .field-preview-value {
+	flex: none;
+	width: auto;
 }
 
 .field-preview-value {
