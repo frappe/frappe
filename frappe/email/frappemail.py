@@ -96,7 +96,7 @@ class FrappeMail:
 	def validate(self) -> None:
 		"""Validates if the user is allowed to send or receive emails."""
 
-		endpoint = "/api/method/mail.api.auth.validate"
+		endpoint = "/auth/validate"
 		data = {"email": self.email}
 		self.request("POST", endpoint=endpoint, data=data)
 
@@ -106,7 +106,7 @@ class FrappeMail:
 		"""Sends an email using the Frappe Mail API."""
 
 		session_id = str(uuid.uuid4())
-		endpoint = "/api/method/mail.api.outbound.send_raw"
+		endpoint = "/outbound/send-raw"
 
 		if isinstance(message, str):
 			message = message.encode("utf-8")
@@ -136,7 +136,7 @@ class FrappeMail:
 	) -> dict[str, str | list[str]]:
 		"""Pull emails for the account using the Frappe Mail API."""
 
-		endpoint = "/api/method/mail.api.inbound.pull_raw"
+		endpoint = "/inbound/pull-raw"
 		if last_received_at:
 			last_received_at = add_or_update_tzinfo(last_received_at)
 
