@@ -81,6 +81,7 @@
 							:key="model.length"
 							trigger="button"
 							variant="ghost"
+							:class="canReset ? undefined : 'flex-1'"
 							:options="addableOptions"
 							:modelValue="null"
 							placeholder="Add Column"
