@@ -47,8 +47,13 @@
 			>
 				<!-- Explicit default slot: frappe-ui's `ListView` does NOT re-emit
 				     `columnWidthUpdated`, so we catch it on `ListHeader` ourselves and
-				     hand it to the composite's resize handler. -->
-				<ListHeader @columnWidthUpdated="onColumnWidthUpdated" />
+				     hand it to the composite's resize handler. The native `dblclick`
+				     falls through to the header's grid root, where we delegate the
+				     reset-to-auto gesture (frappe-ui exposes no dblclick on the resizer). -->
+				<ListHeader
+					@columnWidthUpdated="onColumnWidthUpdated"
+					@dblclick="onResizerDoubleClick"
+				/>
 				<ListRows />
 			</ListView>
 		</template>
@@ -81,6 +86,20 @@ const view = useListView(props.doctype);
 // persistence is the host's job — and just write the width into the shared ref.
 function onColumnWidthUpdated(event: { key: string; width: string }) {
 	view.setColumnWidth(event.key, event.width);
+}
+
+// frappe-ui's `ListHeaderItem` binds drag-resize to the resizer's `mousedown` but
+// exposes neither a dblclick nor its `startResizing`, so we delegate the
+// double-click-to-reset gesture on the header grid: find the double-clicked
+// resizer, map its position to a column, and clear that column's width back to
+// auto (so it flexes to fill again).
+function onResizerDoubleClick(event: MouseEvent) {
+	const resizer = (event.target as HTMLElement).closest(".cursor-col-resize");
+	const header = resizer?.closest(".grid");
+	if (!resizer || !header) return;
+	const index = Array.from(header.querySelectorAll(".cursor-col-resize")).indexOf(resizer);
+	const column = view.wireColumns.value[index];
+	if (column) view.resetColumnWidth(column.key);
 }
 
 // Stub rows so the table renders real header chrome (the resize target) without a

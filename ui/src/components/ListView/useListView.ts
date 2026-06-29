@@ -8,7 +8,11 @@ import { serializeOrderBy } from "../SortBy/orderBy";
 import type { Sort } from "../SortBy";
 import { getQuickFilterFields } from "../QuickFilter/getQuickFilterFields";
 import { getFilterableFields } from "../Filter/getFilterableFields";
-import { serializeColumns, applyColumnWidth } from "../ColumnSettings/columns";
+import {
+  serializeColumns,
+  applyColumnWidth,
+  clearColumnWidth,
+} from "../ColumnSettings/columns";
 import { getDefaultColumns } from "../ColumnSettings/getDefaultColumns";
 import type { Column, WireColumn } from "../ColumnSettings/types";
 
@@ -50,6 +54,10 @@ export interface UseListView {
    *  of the sync). The composite owns this, not ColumnSettings; the `save` flag a
    *  host might debounce on is the host's concern and ignored here. */
   setColumnWidth: (fieldname: string, width: string) => void;
+  /** Drop a column's fixed `width` so it flexes to fill again (the reset half of
+   *  the resize story). A host wires this to a double-click on the header resizer;
+   *  with no stored width, `serializeColumns` falls the column back to an `fr`. */
+  resetColumnWidth: (fieldname: string) => void;
 }
 
 /**
@@ -77,7 +85,8 @@ export function useListView(doctype: string): UseListView {
   const customColumns = ref<Column[] | null>(null);
   const columns = computed<Column[]>({
     get: () =>
-      customColumns.value ?? getDefaultColumns(meta.value?.fields ?? []),
+      customColumns.value ??
+      getDefaultColumns(meta.value?.fields ?? [], meta.value?.title_field),
     set: (value) => {
       customColumns.value = value;
     },
@@ -114,6 +123,12 @@ export function useListView(doctype: string): UseListView {
     columns.value = applyColumnWidth(columns.value, fieldname, width);
   };
 
+  // The reset half of the resize story: drop a column's fixed width so it flexes
+  // to fill again. The host wires this to a double-click on the header resizer.
+  const resetColumnWidth = (fieldname: string) => {
+    columns.value = clearColumnWidth(columns.value, fieldname);
+  };
+
   return {
     filters,
     sorts,
@@ -125,5 +140,6 @@ export function useListView(doctype: string): UseListView {
     orderBy,
     wireColumns,
     setColumnWidth,
+    resetColumnWidth,
   };
 }

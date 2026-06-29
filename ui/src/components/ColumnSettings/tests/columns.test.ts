@@ -1,6 +1,7 @@
 import { describe, expect, it } from "vitest";
 import {
   applyColumnWidth,
+  clearColumnWidth,
   getColumnAlign,
   parseColumns,
   serializeColumns,
@@ -56,14 +57,28 @@ describe("serializeColumns", () => {
     ]);
   });
 
-  it("defaults width to 10rem when a Column has none", () => {
-    const [wire] = serializeColumns(
-      [{ fieldname: "status", label: "Status" }],
+  it("flexes a width-less Column to an fr, larger for the leading column", () => {
+    const wire = serializeColumns(
+      [
+        { fieldname: "name", label: "Name" },
+        { fieldname: "status", label: "Status" },
+      ],
       FIELDS
     );
-    expect(wire.width).toBe("10rem");
-    expect(wire.options).toBe("Open\nClosed");
-    expect(wire.align).toBe("left");
+    expect(wire.map((w) => w.width)).toEqual([2, 1]);
+    expect(wire[1].options).toBe("Open\nClosed");
+    expect(wire[1].align).toBe("left");
+  });
+
+  it("keeps a resized column's fixed px width instead of flexing it", () => {
+    const wire = serializeColumns(
+      [
+        { fieldname: "name", label: "Name", width: "150px" },
+        { fieldname: "status", label: "Status" },
+      ],
+      FIELDS
+    );
+    expect(wire.map((w) => w.width)).toEqual(["150px", 1]);
   });
 
   it("falls back to a left-aligned Data column for fields absent from Meta", () => {
@@ -74,7 +89,7 @@ describe("serializeColumns", () => {
     expect(wire).toEqual({
       key: "name",
       label: "ID",
-      width: "10rem",
+      width: 2,
       type: "Data",
       options: undefined,
       align: "left",
@@ -122,5 +137,27 @@ describe("applyColumnWidth", () => {
 
   it("leaves the list untouched when no column matches", () => {
     expect(applyColumnWidth(columns, "missing", "120px")).toEqual(columns);
+  });
+});
+
+describe("clearColumnWidth", () => {
+  const columns: Column[] = [
+    { fieldname: "amount", label: "Amount", width: "8rem" },
+    { fieldname: "status", label: "Status" },
+  ];
+
+  it("drops a fixed width back to auto so the column flexes again", () => {
+    const cleared = clearColumnWidth(columns, "amount");
+    expect(cleared).toEqual([
+      { fieldname: "amount", label: "Amount" },
+      { fieldname: "status", label: "Status" },
+    ]);
+    // serialize proves the cleared column is back to a flexing fr (leading = 2).
+    expect(serializeColumns(cleared, FIELDS)[0].width).toBe(2);
+  });
+
+  it("no-ops on an already-auto column and on a missing one", () => {
+    expect(clearColumnWidth(columns, "status")).toEqual(columns);
+    expect(clearColumnWidth(columns, "missing")).toEqual(columns);
   });
 });

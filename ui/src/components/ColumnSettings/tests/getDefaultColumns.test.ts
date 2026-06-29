@@ -44,4 +44,72 @@ describe("getDefaultColumns", () => {
       ])
     ).toEqual([{ fieldname: "name", label: "Name" }]);
   });
+
+  it("leads with the title_field column instead of Name when set", () => {
+    expect(
+      getDefaultColumns(
+        [
+          {
+            fieldname: "subject",
+            fieldtype: "Data",
+            label: "Subject",
+          },
+          {
+            fieldname: "status",
+            fieldtype: "Select",
+            label: "Status",
+            in_list_view: 1,
+          },
+        ],
+        "subject"
+      )
+    ).toEqual([
+      { fieldname: "subject", label: "Subject" },
+      { fieldname: "status", label: "Status" },
+    ]);
+  });
+
+  it("drops the title_field from the in_list_view tail so it isn't listed twice", () => {
+    expect(
+      getDefaultColumns(
+        [
+          {
+            fieldname: "subject",
+            fieldtype: "Data",
+            label: "Subject",
+            in_list_view: 1,
+          },
+          {
+            fieldname: "status",
+            fieldtype: "Select",
+            label: "Status",
+            in_list_view: 1,
+          },
+        ],
+        "subject"
+      )
+    ).toEqual([
+      { fieldname: "subject", label: "Subject" },
+      { fieldname: "status", label: "Status" },
+    ]);
+  });
+
+  it("falls back to Name when title_field names a field absent from Meta", () => {
+    expect(
+      getDefaultColumns(
+        [
+          {
+            fieldname: "status",
+            fieldtype: "Select",
+            label: "Status",
+            in_list_view: 1,
+          },
+        ],
+        "missing_field"
+      )
+    ).toEqual([
+      { fieldname: "name", label: "Name" },
+      { fieldname: "status", label: "Status" },
+    ]);
+  });
 });

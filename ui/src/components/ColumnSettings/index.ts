@@ -10,6 +10,7 @@ export {
   parseColumns,
   getColumnAlign,
   applyColumnWidth,
+  clearColumnWidth,
 } from "./columns";
 export { getColumnOptions } from "./getColumnOptions";
 export { getDefaultColumns } from "./getDefaultColumns";

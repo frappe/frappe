@@ -38,7 +38,7 @@ const columns = ref<Column[]>([]);
 watch(
 	meta,
 	(value) => {
-		if (value) columns.value = getDefaultColumns(value.fields ?? []);
+		if (value) columns.value = getDefaultColumns(value.fields ?? [], value.title_field);
 	},
 	{ immediate: true }
 );

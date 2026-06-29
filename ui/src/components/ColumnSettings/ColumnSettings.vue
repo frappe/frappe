@@ -104,8 +104,8 @@
 						type="text"
 						size="md"
 						label="Width"
-						placeholder="10rem"
-						description="Number, pixel or rem (eg. 3, 30px, 10rem)"
+						placeholder="Auto"
+						description="Auto by default; set a number, pixel or rem (eg. 3, 30px, 10rem)"
 					/>
 					<div class="flex gap-2 border-t border-outline-elevation-2 pt-3">
 						<Button
@@ -176,7 +176,7 @@ function reorder(next: Column[]) {
 
 // Inline label/width edit holds a component-local draft so a Cancel discards the
 // edits without touching the model; only Update writes them back. An empty width
-// clears the override (serialize falls back to the default width).
+// clears the override (the column goes back to auto — serialize flexes it to fill).
 const editIndex = ref<number | null>(null);
 const draft = ref<{ label: string; width: string }>({ label: "", width: "" });
 
