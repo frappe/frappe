@@ -94,6 +94,22 @@ let is_visible = computed(() => evaluate_visible_if(props.modelValue, props.prev
 	color: var(--text-muted);
 }
 
+.pfb-insp-input {
+	width: 100%;
+	padding: 6px 8px;
+	font-size: var(--text-sm);
+	border: 1px solid var(--border-color);
+	border-radius: var(--radius);
+	background: var(--fg-color);
+	color: var(--text-color);
+	outline: none;
+	box-sizing: border-box;
+}
+
+.pfb-insp-input:focus {
+	border-color: var(--gray-500);
+}
+
 .pfb-insp-hint code {
 	font-size: var(--text-xs);
 	background: var(--gray-100);
