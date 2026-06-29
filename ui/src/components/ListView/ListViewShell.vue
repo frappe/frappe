@@ -12,12 +12,10 @@
 -->
 <template>
 	<div class="flex flex-col rounded-lg border border-outline-gray-1 bg-surface-white">
-		<!-- Toolbar region: the future home of the list-view controls. -->
+		<!-- Toolbar region: the home of the list-view controls. The slotted content
+		     owns its own alignment (quick filters left, Filter/Sort right). -->
 		<div class="flex items-center gap-2 border-b border-outline-gray-1 px-3 py-2">
-			<div class="text-base font-medium text-ink-gray-8">{{ title }}</div>
-			<div class="flex flex-1 items-center justify-end gap-2">
-				<slot name="toolbar" :doctype="doctype" :meta="meta" :loading="loading" />
-			</div>
+			<slot name="toolbar" :doctype="doctype" :meta="meta" :loading="loading" />
 		</div>
 
 		<!-- Table chrome region. -->
@@ -40,6 +38,11 @@
 				</div>
 			</slot>
 		</div>
+
+		<!-- Footer region: below the list (e.g. the dev wire-output readout). -->
+		<div v-if="$slots.footer" class="border-t border-outline-gray-1 px-3 py-2">
+			<slot name="footer" :doctype="doctype" :meta="meta" />
+		</div>
 	</div>
 </template>
 
@@ -51,8 +54,6 @@ import type { RawMetaField } from "../FormLayout/types";
 const props = defineProps<{ doctype: string }>();
 
 const { meta, loading, error } = useDoctypeMeta(props.doctype);
-
-const title = computed(() => meta.value?.name ?? props.doctype);
 
 const fields = computed<RawMetaField[]>(() => meta.value?.fields ?? []);
 const fieldCount = computed(() => fields.value.length);
