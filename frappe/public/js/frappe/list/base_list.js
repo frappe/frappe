@@ -634,6 +634,10 @@ frappe.views.BaseList = class BaseList {
 	}
 
 	setup_list_filter_by() {
+		if (!this.show_saved_layout_menu) {
+			return Promise.resolve();
+		}
+
 		return new Promise((resolve) => {
 			frappe.require("list_filter.bundle.js", () => {
 				this.list_filter = new frappe.views.ListFilter(this);
