@@ -14,26 +14,26 @@
 				<span class="text-p-sm text-ink-gray-6">Doctype</span>
 				<Select v-model="doctype" :options="doctypeOptions" class="w-56" />
 			</div>
-			<div v-if="view.canCustomize.value" class="flex items-center gap-2">
+			<div v-if="view.quickFilter.canCustomize.value" class="flex items-center gap-2">
 				<span class="text-p-sm text-ink-gray-6">Customize</span>
-				<Switch v-model="view.customizing.value" />
+				<Switch v-model="view.quickFilter.customizing.value" />
 			</div>
 		</div>
 
 		<div class="flex items-center gap-2">
 			<QuickFilter
 				class="flex-1"
-				v-model:filters="view.filters.value"
-				v-model:fields="view.quickFilterFields.value"
-				v-model:customizing="view.customizing.value"
+				v-model:filters="view.filters.conditions.value"
+				v-model:fields="view.quickFilter.fields.value"
+				v-model:customizing="view.quickFilter.customizing.value"
 				:doctype="doctype"
 			/>
-			<Filter v-model="view.filters.value" :doctype="doctype" />
+			<Filter v-model="view.filters.conditions.value" :doctype="doctype" />
 		</div>
 
 		<div class="flex flex-col gap-1 text-xs text-ink-gray-6">
-			<div>FilterCondition[] = {{ view.filters.value }}</div>
-			<div>filters = {{ view.wireFilters.value }}</div>
+			<div>FilterCondition[] = {{ view.filters.conditions.value }}</div>
+			<div>filters = {{ view.filters.wire.value }}</div>
 		</div>
 	</div>
 </template>

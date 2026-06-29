@@ -9,7 +9,7 @@
   handing the frappe-ui `columnWidthUpdated` event to the composite's handler.
 
   The `#table` slot mounts frappe-ui's own `ListView`/`ListHeader` — the same chrome
-  CRM renders — fed by `serializeColumns` (`view.wireColumns`), so the drag math and
+  CRM renders — fed by `serializeColumns` (`view.columns.wire`), so the drag math and
   grid layout come for free and stay pixel-parity with CRM. Rows are stubbed (no
   `get_list`); this surface proves the controls + sync, not data fetching.
 
@@ -21,31 +21,31 @@
 		<template #toolbar>
 			<QuickFilter
 				class="flex-1"
-				v-model:filters="view.filters.value"
-				v-model:fields="view.quickFilterFields.value"
-				v-model:customizing="view.customizing.value"
+				v-model:filters="view.filters.conditions.value"
+				v-model:fields="view.quickFilter.fields.value"
+				v-model:customizing="view.quickFilter.customizing.value"
 				:doctype="doctype"
 			/>
-			<Filter v-model="view.filters.value" :doctype="doctype" />
-			<SortBy v-model="view.sorts.value" :doctype="doctype" />
+			<Filter v-model="view.filters.conditions.value" :doctype="doctype" />
+			<SortBy v-model="view.sort.by.value" :doctype="doctype" />
 			<ColumnSettings
-				v-model="view.columns.value"
+				v-model="view.columns.shown.value"
 				:doctype="doctype"
-				:can-reset="view.isColumnsCustomized.value"
-				@reset="view.resetColumns()"
+				:can-reset="view.columns.isCustomized.value"
+				@reset="view.columns.reset()"
 			/>
 			<Button
-				v-if="view.canCustomize.value"
-				:icon="view.customizing.value ? 'lucide-check' : 'lucide-settings-2'"
-				:tooltip="view.customizing.value ? 'Done' : 'Customize Quick Filters'"
-				:variant="view.customizing.value ? 'subtle' : 'ghost'"
-				@click="view.customizing.value = !view.customizing.value"
+				v-if="view.quickFilter.canCustomize.value"
+				:icon="view.quickFilter.customizing.value ? 'lucide-check' : 'lucide-settings-2'"
+				:tooltip="view.quickFilter.customizing.value ? 'Done' : 'Customize Quick Filters'"
+				:variant="view.quickFilter.customizing.value ? 'subtle' : 'ghost'"
+				@click="view.quickFilter.customizing.value = !view.quickFilter.customizing.value"
 			/>
 		</template>
 
 		<template #table>
 			<ListView
-				:columns="view.wireColumns.value"
+				:columns="view.columns.wire.value"
 				:rows="stubRows"
 				row-key="name"
 				:options="{ selectable: false, showTooltip: false, resizeColumn: true }"
@@ -64,9 +64,9 @@
 		</template>
 
 		<template #footer>
-			<div class="text-xs text-ink-gray-6">order_by = "{{ view.orderBy.value }}"</div>
-			<div class="text-xs text-ink-gray-6">filters = {{ view.wireFilters.value }}</div>
-			<div class="text-xs text-ink-gray-6">columns = {{ view.wireColumns.value }}</div>
+			<div class="text-xs text-ink-gray-6">order_by = "{{ view.sort.orderBy.value }}"</div>
+			<div class="text-xs text-ink-gray-6">filters = {{ view.filters.wire.value }}</div>
+			<div class="text-xs text-ink-gray-6">columns = {{ view.columns.wire.value }}</div>
 		</template>
 	</ListViewShell>
 </template>
@@ -82,15 +82,15 @@ import { QuickFilter } from "../../QuickFilter";
 import { ColumnSettings } from "../../ColumnSettings";
 
 const props = defineProps<{ doctype: string }>();
-// `view.customizing` / `view.canCustomize` come from the shared composable, so the
-// toggle below works regardless of where it sits — no template ref needed.
+// `view.quickFilter.customizing` / `.canCustomize` come from the shared composable,
+// so the toggle below works regardless of where it sits — no template ref needed.
 const view = useListView(props.doctype);
 
 // frappe-ui's `ListHeaderItem` emits `{ key, width, save }` as a column is dragged.
 // The composite owns the handler (ADR-0006); we ignore the `save` debounce flag —
 // persistence is the host's job — and just write the width into the shared ref.
 function onColumnWidthUpdated(event: { key: string; width: string }) {
-	view.setColumnWidth(event.key, event.width);
+	view.columns.setWidth(event.key, event.width);
 }
 
 // frappe-ui's `ListHeaderItem` binds drag-resize to the resizer's `mousedown` but
@@ -103,8 +103,8 @@ function onResizerDoubleClick(event: MouseEvent) {
 	const header = resizer?.closest(".grid");
 	if (!resizer || !header) return;
 	const index = Array.from(header.querySelectorAll(".cursor-col-resize")).indexOf(resizer);
-	const column = view.wireColumns.value[index];
-	if (column) view.resetColumnWidth(column.key);
+	const column = view.columns.wire.value[index];
+	if (column) view.columns.resetWidth(column.key);
 }
 
 // Stub rows so the table renders real header chrome (the resize target) without a
@@ -112,7 +112,7 @@ function onResizerDoubleClick(event: MouseEvent) {
 const stubRows = computed(() =>
 	[1, 2, 3].map((n) => {
 		const row: Record<string, unknown> = { name: `row-${n}` };
-		for (const column of view.wireColumns.value) {
+		for (const column of view.columns.wire.value) {
 			row[column.key] = `${column.label} ${n}`;
 		}
 		return row;
