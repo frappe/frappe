@@ -745,34 +745,29 @@ watch(
 .field-preview-lr--space-between {
 	justify-content: space-between;
 }
-
-.field-preview-lr--space-between .field-preview-value {
-	flex: none;
-	text-align: right;
-}
-
 .field-preview-lr--space-evenly {
 	justify-content: space-evenly;
 }
-
-.field-preview-lr--space-evenly .field-preview-value {
-	flex: none;
-}
-
 .field-preview-lr--align-center {
 	justify-content: center;
 }
-
-.field-preview-lr--align-center .field-preview-label,
-.field-preview-lr--align-center .field-preview-value {
-	flex: none;
-	width: auto;
-}
-
 .field-preview-lr--align-right {
 	justify-content: flex-end;
 }
 
+/* Spacing: value shrinks to natural width so justify-content has room to push it */
+.field-preview-lr--space-between .field-preview-value,
+.field-preview-lr--space-evenly .field-preview-value {
+	flex: none;
+}
+
+.field-preview-lr--space-between .field-preview-value {
+	text-align: right;
+}
+
+/* Align: both label and value shrink to natural width so the pair can be repositioned */
+.field-preview-lr--align-center .field-preview-label,
+.field-preview-lr--align-center .field-preview-value,
 .field-preview-lr--align-right .field-preview-label,
 .field-preview-lr--align-right .field-preview-value {
 	flex: none;
