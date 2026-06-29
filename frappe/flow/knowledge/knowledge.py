@@ -3,7 +3,7 @@
 
 """Code-first knowledge API.
 
-Build and populate an AI Knowledge Base from Python — attach text, files, URLs,
+Build and populate a Flow Knowledge Base from Python — attach text, files, URLs,
 or DocType data without the desk UI. Ingestion is synchronous: when an add_*
 call returns, the content is embedded, indexed, and ready to search.
 """
@@ -13,13 +13,13 @@ from __future__ import annotations
 import frappe
 from frappe import _
 
-KB_DOCTYPE = "AI Knowledge Base"
-SOURCE_DOCTYPE = "AI Knowledge Source"
+KB_DOCTYPE = "Flow Knowledge Base"
+SOURCE_DOCTYPE = "Flow Knowledge Source"
 _TITLE_LIMIT = 140
 
 
 class Knowledge:
-	"""A handle to a named AI Knowledge Base. Construction is get-or-create by title."""
+	"""A handle to a named Flow Knowledge Base. Construction is get-or-create by title."""
 
 	def __init__(self, title: str, *, description: str | None = None) -> None:
 		self.name = _ensure_kb(title, description)

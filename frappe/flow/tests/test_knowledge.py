@@ -163,17 +163,17 @@ def _embedding_response(vectors, shuffle=False):
 
 
 def _make_model(title="Embed Model", model_id="openai/text-embedding-3-small"):
-	if frappe.db.exists("AI Model", title):
-		return frappe.get_doc("AI Model", title)
+	if frappe.db.exists("Flow Model", title):
+		return frappe.get_doc("Flow Model", title)
 	return frappe.get_doc(
-		{"doctype": "AI Model", "title": title, "model_id": model_id, "api_key": "sk-test", "enabled": 1}
+		{"doctype": "Flow Model", "title": title, "model_id": model_id, "api_key": "sk-test", "enabled": 1}
 	).insert()
 
 
 def _set_settings(**values):
 	for fieldname, value in values.items():
-		frappe.db.set_single_value("AI Knowledge Settings", fieldname, value)
-	frappe.clear_document_cache("AI Knowledge Settings", "AI Knowledge Settings")
+		frappe.db.set_single_value("Flow Knowledge Settings", fieldname, value)
+	frappe.clear_document_cache("Flow Knowledge Settings", "Flow Knowledge Settings")
 
 
 class TestEmbedder(IntegrationTestCase):
@@ -250,16 +250,16 @@ class TestKnowledgeSettings(IntegrationTestCase):
 		frappe.db.rollback()
 
 	def _save_settings(self, **values):
-		settings = frappe.get_doc("AI Knowledge Settings")
+		settings = frappe.get_doc("Flow Knowledge Settings")
 		settings.update(values)
 		settings.save()
 		return settings
 
 	def _make_chunk(self):
-		kb = frappe.get_doc({"doctype": "AI Knowledge Base", "title": "Settings KB"}).insert()
+		kb = frappe.get_doc({"doctype": "Flow Knowledge Base", "title": "Settings KB"}).insert()
 		source = frappe.get_doc(
 			{
-				"doctype": "AI Knowledge Source",
+				"doctype": "Flow Knowledge Source",
 				"knowledge_base": kb.name,
 				"source_type": "Text",
 				"title": "Settings Source",
@@ -268,7 +268,7 @@ class TestKnowledgeSettings(IntegrationTestCase):
 		).insert()
 		return frappe.get_doc(
 			{
-				"doctype": "AI Knowledge Chunk",
+				"doctype": "Flow Knowledge Chunk",
 				"knowledge_base": kb.name,
 				"source": source.name,
 				"chunk_index": 0,
@@ -314,7 +314,7 @@ class TestKnowledgeSettings(IntegrationTestCase):
 		with patch("flow.knowledge.embedder.probe_dimension", return_value=1536):
 			self._save_settings(embedding_model=self.model.name)
 		self._make_chunk()
-		settings = frappe.get_doc("AI Knowledge Settings")
+		settings = frappe.get_doc("Flow Knowledge Settings")
 		settings.embedding_model = self.alt_model.name
 		settings.flags.allow_embedding_model_change = True
 		with patch("flow.knowledge.embedder.probe_dimension", return_value=3072):
@@ -575,7 +575,7 @@ class TestIngest(IntegrationTestCase):
 			chunk_size=60,
 			chunk_overlap=10,
 		)
-		self.kb = frappe.get_doc({"doctype": "AI Knowledge Base", "title": "Ingest KB"}).insert()
+		self.kb = frappe.get_doc({"doctype": "Flow Knowledge Base", "title": "Ingest KB"}).insert()
 
 	def tearDown(self):
 		store.drop_table()
@@ -586,7 +586,7 @@ class TestIngest(IntegrationTestCase):
 		values.setdefault("title", "Ingest Source")
 		with patch("flow.knowledge.ingest.enqueue_ingestion"):
 			return frappe.get_doc(
-				{"doctype": "AI Knowledge Source", "knowledge_base": self.kb.name, **values}
+				{"doctype": "Flow Knowledge Source", "knowledge_base": self.kb.name, **values}
 			).insert()
 
 	def _ingest(self, source_name):
@@ -602,7 +602,7 @@ class TestIngest(IntegrationTestCase):
 
 	def _chunks(self, source_name):
 		return frappe.get_all(
-			"AI Knowledge Chunk",
+			"Flow Knowledge Chunk",
 			filters={"source": source_name},
 			fields=["name", "chunk_index", "knowledge_base"],
 			order_by="chunk_index asc",
@@ -650,7 +650,7 @@ class TestIngest(IntegrationTestCase):
 
 		source.delete()
 
-		self.assertEqual(frappe.db.count("AI Knowledge Chunk", {"source": source.name}), 0)
+		self.assertEqual(frappe.db.count("Flow Knowledge Chunk", {"source": source.name}), 0)
 		self.assertEqual(self._lance_count(), 0)
 
 	def test_empty_source_completes_with_zero_chunks(self):
@@ -674,13 +674,13 @@ class TestIngest(IntegrationTestCase):
 	def test_purge_source_is_safe_when_empty(self):
 		source = self._make_source(content="never ingested")
 		purge_source(source.name)
-		self.assertEqual(frappe.db.count("AI Knowledge Chunk", {"source": source.name}), 0)
+		self.assertEqual(frappe.db.count("Flow Knowledge Chunk", {"source": source.name}), 0)
 
 	def test_after_insert_enqueues_ingestion(self):
 		with patch("flow.knowledge.ingest.enqueue_ingestion") as mock:
 			source = frappe.get_doc(
 				{
-					"doctype": "AI Knowledge Source",
+					"doctype": "Flow Knowledge Source",
 					"knowledge_base": self.kb.name,
 					"source_type": "Text",
 					"title": "Auto Ingest",
@@ -703,12 +703,12 @@ class TestIngest(IntegrationTestCase):
 
 	def test_knowledge_base_requires_embedding_model(self):
 		_set_settings(embedding_model="")
-		with self.assertRaisesRegex(frappe.ValidationError, "AI Knowledge Settings"):
-			frappe.get_doc({"doctype": "AI Knowledge Base", "title": "No Model KB"}).insert()
+		with self.assertRaisesRegex(frappe.ValidationError, "Flow Knowledge Settings"):
+			frappe.get_doc({"doctype": "Flow Knowledge Base", "title": "No Model KB"}).insert()
 
 	def test_source_requires_embedding_model(self):
 		_set_settings(embedding_model="")
-		with self.assertRaisesRegex(frappe.ValidationError, "AI Knowledge Settings"):
+		with self.assertRaisesRegex(frappe.ValidationError, "Flow Knowledge Settings"):
 			self._make_source(content="needs a model")
 
 	def test_resync_rebuild_enqueues_full_rebuild(self):
@@ -728,7 +728,7 @@ class TestDoctypeSync(IntegrationTestCase):
 			chunk_size=200,
 			chunk_overlap=20,
 		)
-		self.kb = frappe.get_doc({"doctype": "AI Knowledge Base", "title": "Sync KB"}).insert()
+		self.kb = frappe.get_doc({"doctype": "Flow Knowledge Base", "title": "Sync KB"}).insert()
 
 	def tearDown(self):
 		store.drop_table()
@@ -742,7 +742,7 @@ class TestDoctypeSync(IntegrationTestCase):
 		with patch("flow.knowledge.ingest.enqueue_ingestion"):
 			return frappe.get_doc(
 				{
-					"doctype": "AI Knowledge Source",
+					"doctype": "Flow Knowledge Source",
 					"knowledge_base": self.kb.name,
 					"source_type": "DocType",
 					"title": "ToDo Source",
@@ -766,7 +766,7 @@ class TestDoctypeSync(IntegrationTestCase):
 		if reference_name:
 			filters["reference_name"] = reference_name
 		return frappe.get_all(
-			"AI Knowledge Chunk",
+			"Flow Knowledge Chunk",
 			filters=filters,
 			fields=["name", "reference_name", "content_hash"],
 			order_by="name asc",
@@ -891,7 +891,7 @@ class TestDoctypeSync(IntegrationTestCase):
 		with patch("flow.knowledge.ingest.enqueue_ingestion"):
 			text = frappe.get_doc(
 				{
-					"doctype": "AI Knowledge Source",
+					"doctype": "Flow Knowledge Source",
 					"knowledge_base": self.kb.name,
 					"source_type": "Text",
 					"title": "Text Source",
@@ -919,7 +919,7 @@ class TestRetriever(IntegrationTestCase):
 			chunk_size=200,
 			chunk_overlap=20,
 		)
-		self.kb = frappe.get_doc({"doctype": "AI Knowledge Base", "title": "Retrieve KB"}).insert()
+		self.kb = frappe.get_doc({"doctype": "Flow Knowledge Base", "title": "Retrieve KB"}).insert()
 
 	def tearDown(self):
 		store.drop_table()
@@ -940,7 +940,7 @@ class TestRetriever(IntegrationTestCase):
 		with patch("flow.knowledge.ingest.enqueue_ingestion"):
 			source = frappe.get_doc(
 				{
-					"doctype": "AI Knowledge Source",
+					"doctype": "Flow Knowledge Source",
 					"knowledge_base": kb,
 					"source_type": "Text",
 					"title": title,
@@ -970,7 +970,7 @@ class TestRetriever(IntegrationTestCase):
 		self.assertEqual(self._retrieve("   ", kbs=[self.kb.name]), [])
 
 	def test_retrieve_excludes_other_knowledge_bases(self):
-		other = frappe.get_doc({"doctype": "AI Knowledge Base", "title": "Other KB"}).insert()
+		other = frappe.get_doc({"doctype": "Flow Knowledge Base", "title": "Other KB"}).insert()
 		mine = self._text_source(self.kb.name, "laptop onboarding steps. " * 4)
 		self._text_source(other.name, "laptop onboarding steps. " * 4, title="Other Doc")
 		results = self._retrieve("laptop", kbs=[self.kb.name])
@@ -981,7 +981,7 @@ class TestRetriever(IntegrationTestCase):
 		self._text_source(self.kb.name, "laptop setup guide. " * 4)
 		self.assertTrue(self._retrieve("laptop", kbs=[self.kb.name]))
 
-		frappe.db.set_value("AI Knowledge Base", self.kb.name, "enabled", 0)
+		frappe.db.set_value("Flow Knowledge Base", self.kb.name, "enabled", 0)
 		self.assertEqual(self._retrieve("laptop", kbs=[self.kb.name]), [])
 
 	def test_retrieve_ignores_unknown_knowledge_base(self):
@@ -992,14 +992,14 @@ class TestRetriever(IntegrationTestCase):
 
 	def test_retrieve_vector_mode_omits_text(self):
 		self._text_source(self.kb.name, "laptop setup guide. " * 4)
-		frappe.db.set_single_value("AI Knowledge Settings", "search_type", "Vector")
+		frappe.db.set_single_value("Flow Knowledge Settings", "search_type", "Vector")
 		with patch("flow.knowledge.store.search", return_value=[]) as mock:
 			self._retrieve("laptop", kbs=[self.kb.name])
 		self.assertIsNone(mock.call_args.kwargs["text"])
 
 	def test_retrieve_hybrid_mode_passes_text(self):
 		self._text_source(self.kb.name, "laptop setup guide. " * 4)
-		frappe.db.set_single_value("AI Knowledge Settings", "search_type", "Hybrid")
+		frappe.db.set_single_value("Flow Knowledge Settings", "search_type", "Hybrid")
 		with patch("flow.knowledge.store.search", return_value=[]) as mock:
 			self._retrieve("laptop", kbs=[self.kb.name])
 		self.assertEqual(mock.call_args.kwargs["text"], "laptop")
@@ -1035,13 +1035,13 @@ class TestKnowledgeBuilder(IntegrationTestCase):
 		first = Knowledge("Shared KB")
 		second = Knowledge("Shared KB")
 		self.assertEqual(first.name, second.name)
-		self.assertEqual(frappe.db.count("AI Knowledge Base", {"title": "Shared KB"}), 1)
+		self.assertEqual(frappe.db.count("Flow Knowledge Base", {"title": "Shared KB"}), 1)
 
 	def test_add_text_makes_content_searchable(self):
 		kb = Knowledge("Builder KB")
 		source_name = self._add_text(kb, "laptop setup guide for new employees. " * 4)
 
-		source = frappe.get_doc("AI Knowledge Source", source_name)
+		source = frappe.get_doc("Flow Knowledge Source", source_name)
 		self.assertEqual(source.source_type, "Text")
 		self.assertEqual(source.knowledge_base, kb.name)
 
@@ -1068,7 +1068,7 @@ class TestKnowledgeBuilder(IntegrationTestCase):
 		finally:
 			os.unlink(path)
 
-		source = frappe.get_doc("AI Knowledge Source", source_name)
+		source = frappe.get_doc("Flow Knowledge Source", source_name)
 		self.assertEqual(source.source_type, "Text")
 		self.assertEqual(source.title, os.path.basename(path))
 
@@ -1092,7 +1092,7 @@ class TestKnowledgeBuilder(IntegrationTestCase):
 				filters={"status": "Open"},
 			)
 
-		source = frappe.get_doc("AI Knowledge Source", source_name)
+		source = frappe.get_doc("Flow Knowledge Source", source_name)
 		self.assertEqual(source.source_type, "DocType")
 		self.assertEqual(source.reference_doctype, "ToDo")
 		self.assertEqual(source.content_fields, "description, status")

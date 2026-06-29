@@ -11,7 +11,7 @@ ASSISTANT_MAX_ITERATIONS = 40
 ASSISTANT_INSTRUCTIONS = (
 	"You are a Frappe assistant operating a live Frappe site through tools. Everything in Frappe "
 	"is a DocType (a table) and a record (a row) — including configuration like Custom Field and "
-	"Workflow, and the AI Agent / AI Tool / AI Trigger rows you create. So almost any request is "
+	"Workflow, and the Flow Agent / Flow Tool / Flow Trigger rows you create. So almost any request is "
 	"reading or writing the right records.\n\n"
 	"GROUND TRUTH — never guess a name or field:\n"
 	"- find_doctypes(search, module): resolve the exact DocType name first.\n"
@@ -32,17 +32,17 @@ ASSISTANT_INSTRUCTIONS = (
 	"ONE-SHOT vs REUSABLE:\n"
 	"- A single action the user wants now → just call the tools. Do NOT create an Agent.\n"
 	'- Something recurring, named, or conditional ("an agent that…", "every Friday…", '
-	'"whenever X happens…") → create an AI Agent row, plus an AI Trigger row (Scheduled or DocType '
+	'"whenever X happens…") → create a Flow Agent row, plus a Flow Trigger row (Scheduled or DocType '
 	"Event) when it must fire on its own. Show the exact JSON and ask for confirmation before "
 	"inserting; do not also run the action inline.\n\n"
 	"BUILDING AN AGENT — reuse, don't reinvent. The builtin tools (find_doctypes, describe, read, "
 	"create, update, delete, run_action) already cover all standard Frappe work: reading, writing, "
-	"submitting, workflows, custom fields, multi-record ops. When you create an AI Agent, assign it "
-	"these existing tool slugs — do NOT author new AI Tools for anything they already do. Only create "
-	"a new AI Tool (type 'Script') when the agent genuinely needs something outside them, e.g. calling "
+	"submitting, workflows, custom fields, multi-record ops. When you create a Flow Agent, assign it "
+	"these existing tool slugs — do NOT author new Flow Tools for anything they already do. Only create "
+	"a new Flow Tool (type 'Script') when the agent genuinely needs something outside them, e.g. calling "
 	"an external service or a specialized reusable routine. Never grant an agent the execute tool "
 	"unless the user explicitly asks for it.\n\n"
-	"WRITING AN AI TOOL (Script) — only when truly needed: the code defines a top-level main(...) that "
+	"WRITING A FLOW TOOL (Script) — only when truly needed: the code defines a top-level main(...) that "
 	"RETURNS its result (a `result` variable is ignored here — that is execute-only). Type-annotate "
 	"main's parameters; they become the input schema. No *args/**kwargs, and don't call main() "
 	"yourself. Same sandbox as execute: no import; only frappe and frappe.utils in scope; no "
@@ -55,21 +55,21 @@ ASSISTANT_INSTRUCTIONS = (
 
 
 def sync_builtin_assistant(model: str | None = None) -> None:
-	"""Ensure the system Assistant agent exists and is up-to-date. Called from after_migrate and AIModel.after_insert."""
+	"""Ensure the system Assistant agent exists and is up-to-date. Called from after_migrate and FlowModel.after_insert."""
 	from flow.tools.builtins import BUILTIN_TOOLS, sync_builtin_tools
 
 	sync_builtin_tools()
 
-	model_name = model or frappe.db.get_value("AI Model", {"enabled": 1}, "name")
+	model_name = model or frappe.db.get_value("Flow Model", {"enabled": 1}, "name")
 	if not model_name:
 		return
 
 	tool_slugs = [t.name for t in BUILTIN_TOOLS]
 
-	if not frappe.db.exists("AI Agent", ASSISTANT_AGENT_TITLE):
+	if not frappe.db.exists("Flow Agent", ASSISTANT_AGENT_TITLE):
 		frappe.get_doc(
 			{
-				"doctype": "AI Agent",
+				"doctype": "Flow Agent",
 				"title": ASSISTANT_AGENT_TITLE,
 				"model": model_name,
 				"instructions": ASSISTANT_INSTRUCTIONS,
@@ -81,7 +81,7 @@ def sync_builtin_assistant(model: str | None = None) -> None:
 		).insert(ignore_permissions=True)
 		return
 
-	doc = frappe.get_doc("AI Agent", ASSISTANT_AGENT_TITLE)
+	doc = frappe.get_doc("Flow Agent", ASSISTANT_AGENT_TITLE)
 	if not doc.is_system_generated:
 		return
 

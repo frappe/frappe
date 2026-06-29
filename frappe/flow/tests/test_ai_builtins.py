@@ -221,11 +221,11 @@ class TestSyncBuiltinTools(IntegrationTestCase):
 	def test_creates_rows_for_all_builtins(self):
 		sync_builtin_tools()
 		for builtin in BUILTIN_TOOLS:
-			self.assertTrue(frappe.db.exists("AI Tool", builtin.name))
+			self.assertTrue(frappe.db.exists("Flow Tool", builtin.name))
 
 	def test_resolves_back_to_runtime_tool(self):
 		sync_builtin_tools()
-		doc = frappe.get_doc("AI Tool", "describe")
+		doc = frappe.get_doc("Flow Tool", "describe")
 		runtime = doc.to_tool()
 		self.assertEqual(runtime.name, "describe")
 		self.assertIn("doctype", runtime.parameters["properties"])
@@ -233,5 +233,5 @@ class TestSyncBuiltinTools(IntegrationTestCase):
 	def test_is_idempotent(self):
 		sync_builtin_tools()
 		sync_builtin_tools()
-		count = frappe.db.count("AI Tool", {"slug": "read"})
+		count = frappe.db.count("Flow Tool", {"slug": "read"})
 		self.assertEqual(count, 1)

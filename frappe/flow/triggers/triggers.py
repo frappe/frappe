@@ -18,7 +18,7 @@ def dispatch(doc: Document, method: str | None = None) -> None:
 	"""doc_events hook: enqueue any matching DocType Event triggers."""
 	if method not in DOC_EVENTS:
 		return
-	if doc.doctype in {"AI Run", "AI Trigger", "AI Agent", "AI Tool", "AI Model"}:
+	if doc.doctype in {"Flow Run", "Flow Trigger", "Flow Agent", "Flow Tool", "Flow Model"}:
 		return
 	if frappe.flags.in_install or frappe.flags.in_migrate or frappe.flags.in_install_db:
 		return
@@ -43,7 +43,7 @@ def dispatch_scheduled() -> None:
 
 	now = frappe.utils.now_datetime()
 	triggers = frappe.get_all(
-		"AI Trigger",
+		"Flow Trigger",
 		filters={"event": "Scheduled", "enabled": 1},
 		fields=["name", "cron_expression", "last_fired_at", "creation"],
 	)
@@ -53,10 +53,10 @@ def dispatch_scheduled() -> None:
 		try:
 			nxt = croniter(t.cron_expression, anchor).get_next(datetime)
 		except (CroniterBadCronError, ValueError):
-			frappe.log_error(title=f"AI Trigger cron parse failed: {t.name}")
+			frappe.log_error(title=f"Flow Trigger cron parse failed: {t.name}")
 			continue
 		if nxt <= now:
-			frappe.db.set_value("AI Trigger", t.name, "last_fired_at", now, update_modified=False)
+			frappe.db.set_value("Flow Trigger", t.name, "last_fired_at", now, update_modified=False)
 			frappe.enqueue("flow.triggers.fire", trigger=t.name)
 
 
@@ -65,8 +65,8 @@ def fire(
 	target_doctype: str | None = None,
 	target_name: str | None = None,
 ) -> str | None:
-	"""Worker: render the prompt and run the agent. Returns the AI Run name, or None if skipped."""
-	t = frappe.get_doc("AI Trigger", trigger)
+	"""Worker: render the prompt and run the agent. Returns the Flow Run name, or None if skipped."""
+	t = frappe.get_doc("Flow Trigger", trigger)
 	if not t.enabled:
 		return None
 
@@ -80,7 +80,7 @@ def fire(
 			return None
 
 	prompt = frappe.render_template(t.prompt_template, {"doc": doc, "now": frappe.utils.now_datetime()})
-	agent_doc = frappe.get_doc("AI Agent", t.agent)
+	agent_doc = frappe.get_doc("Flow Agent", t.agent)
 	run = agent_doc.run(
 		prompt,
 		source="Trigger",
@@ -94,7 +94,7 @@ def fire(
 
 def _doctype_triggers(target_doctype: str, doc_event: str) -> list:
 	return frappe.get_all(
-		"AI Trigger",
+		"Flow Trigger",
 		filters={
 			"event": "DocType Event",
 			"target_doctype": target_doctype,
@@ -111,5 +111,5 @@ def _eval_condition(condition: str, doc: Document) -> bool:
 	try:
 		return bool(frappe.safe_eval(condition, eval_locals=get_context(doc)))
 	except Exception:
-		frappe.log_error(title="AI Trigger condition eval failed")
+		frappe.log_error(title="Flow Trigger condition eval failed")
 		return False

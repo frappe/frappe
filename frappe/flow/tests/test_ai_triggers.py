@@ -15,7 +15,7 @@ from flow.triggers import dispatch, dispatch_scheduled, fire
 
 def _model(**overrides: Any) -> dict:
 	doc = {
-		"doctype": "AI Model",
+		"doctype": "Flow Model",
 		"title": "Triggers Test Model",
 		"model_id": "openai/gpt-4o-mini",
 		"enabled": 1,
@@ -26,7 +26,7 @@ def _model(**overrides: Any) -> dict:
 
 def _agent(model_name: str, **overrides: Any) -> dict:
 	doc = {
-		"doctype": "AI Agent",
+		"doctype": "Flow Agent",
 		"title": "Triggers Test Agent",
 		"model": model_name,
 		"instructions": "Be terse.",
@@ -38,7 +38,7 @@ def _agent(model_name: str, **overrides: Any) -> dict:
 
 def _trigger(agent_name: str, **overrides: Any) -> dict:
 	doc = {
-		"doctype": "AI Trigger",
+		"doctype": "Flow Trigger",
 		"title": "Triggers Test Trigger",
 		"agent": agent_name,
 		"enabled": 1,
@@ -102,7 +102,7 @@ class TestDispatch(IntegrationTestCase):
 		enqueue.assert_not_called()
 
 	def test_dispatch_ignores_ai_doctypes(self):
-		doc = _Bag(doctype="AI Run", name="any")
+		doc = _Bag(doctype="Flow Run", name="any")
 
 		with patch("frappe.enqueue") as enqueue:
 			dispatch(doc, "after_insert")
@@ -177,7 +177,7 @@ class TestDispatchScheduled(IntegrationTestCase):
 
 	def test_dispatch_scheduled_fires_overdue_trigger(self):
 		past = frappe.utils.now_datetime() - timedelta(minutes=5)
-		frappe.db.set_value("AI Trigger", self.trigger.name, "last_fired_at", past, update_modified=False)
+		frappe.db.set_value("Flow Trigger", self.trigger.name, "last_fired_at", past, update_modified=False)
 
 		with patch("frappe.enqueue") as enqueue:
 			dispatch_scheduled()
@@ -187,7 +187,7 @@ class TestDispatchScheduled(IntegrationTestCase):
 
 	def test_dispatch_scheduled_skips_when_next_run_in_future(self):
 		future = frappe.utils.now_datetime() + timedelta(minutes=5)
-		frappe.db.set_value("AI Trigger", self.trigger.name, "last_fired_at", future, update_modified=False)
+		frappe.db.set_value("Flow Trigger", self.trigger.name, "last_fired_at", future, update_modified=False)
 
 		with patch("frappe.enqueue") as enqueue:
 			dispatch_scheduled()
@@ -196,18 +196,18 @@ class TestDispatchScheduled(IntegrationTestCase):
 
 	def test_dispatch_scheduled_updates_last_fired_at(self):
 		past = frappe.utils.now_datetime() - timedelta(minutes=5)
-		frappe.db.set_value("AI Trigger", self.trigger.name, "last_fired_at", past, update_modified=False)
+		frappe.db.set_value("Flow Trigger", self.trigger.name, "last_fired_at", past, update_modified=False)
 
 		with patch("frappe.enqueue"):
 			dispatch_scheduled()
 
-		updated = frappe.db.get_value("AI Trigger", self.trigger.name, "last_fired_at")
+		updated = frappe.db.get_value("Flow Trigger", self.trigger.name, "last_fired_at")
 		self.assertGreater(updated, past)
 
 	def test_dispatch_scheduled_skips_disabled_triggers(self):
-		frappe.db.set_value("AI Trigger", self.trigger.name, "enabled", 0)
+		frappe.db.set_value("Flow Trigger", self.trigger.name, "enabled", 0)
 		past = frappe.utils.now_datetime() - timedelta(minutes=5)
-		frappe.db.set_value("AI Trigger", self.trigger.name, "last_fired_at", past, update_modified=False)
+		frappe.db.set_value("Flow Trigger", self.trigger.name, "last_fired_at", past, update_modified=False)
 
 		with patch("frappe.enqueue") as enqueue:
 			dispatch_scheduled()
@@ -235,10 +235,10 @@ class TestFire(IntegrationTestCase):
 		with patch.object(Model, "chat", return_value=_final("done")):
 			run_name = fire(self.trigger.name, target_doctype="ToDo", target_name=todo.name)
 
-		run = frappe.get_doc("AI Run", run_name)
+		run = frappe.get_doc("Flow Run", run_name)
 		self.assertEqual(run.source, "Trigger")
 		self.assertEqual(run.trigger, self.trigger.name)
-		session = frappe.get_doc("AI Session", run.session)
+		session = frappe.get_doc("Flow Session", run.session)
 		self.assertEqual(session.agent, self.agent.name)
 		self.assertEqual(run.status, "Completed")
 		self.assertIn(todo.name, run.input)
@@ -267,7 +267,7 @@ class TestFire(IntegrationTestCase):
 		with patch.object(Model, "chat", side_effect=self._execute_then_final()):
 			run_name = fire(self.trigger.name, target_doctype="ToDo", target_name=todo.name)
 
-		self.assertEqual(frappe.get_doc("AI Run", run_name).status, "Completed")
+		self.assertEqual(frappe.get_doc("Flow Run", run_name).status, "Completed")
 
 	def test_fire_pauses_on_confirmation_tool_without_auto_approve(self):
 		# Default trigger (auto_approve off): a confirmation tool still pauses for approval.
@@ -276,7 +276,7 @@ class TestFire(IntegrationTestCase):
 		with patch.object(Model, "chat", side_effect=self._execute_then_final()):
 			run_name = fire(self.trigger.name, target_doctype="ToDo", target_name=todo.name)
 
-		self.assertEqual(frappe.get_doc("AI Run", run_name).status, "Paused")
+		self.assertEqual(frappe.get_doc("Flow Run", run_name).status, "Paused")
 
 	def test_fire_skips_disabled_trigger(self):
 		self.trigger.enabled = 0
@@ -323,7 +323,7 @@ class TestFire(IntegrationTestCase):
 		with patch.object(Model, "chat", return_value=_final("done")):
 			run_name = fire(scheduled.name)
 
-		run = frappe.get_doc("AI Run", run_name)
+		run = frappe.get_doc("Flow Run", run_name)
 		self.assertEqual(run.status, "Completed")
 		self.assertEqual(run.trigger, scheduled.name)
 		self.assertIsNone(run.reference_doctype)

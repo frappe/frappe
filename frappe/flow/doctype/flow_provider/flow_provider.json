@@ -1,0 +1,86 @@
+{
+ "actions": [],
+ "allow_rename": 1,
+ "autoname": "field:provider",
+ "creation": "2026-05-30 00:00:00",
+ "doctype": "DocType",
+ "engine": "InnoDB",
+ "field_order": [
+  "provider",
+  "enabled",
+  "section_break_config",
+  "api_key",
+  "base_url",
+  "section_break_params",
+  "extra_params"
+ ],
+ "fields": [
+  {
+   "description": "LiteLLM provider name, e.g. <code>openai</code>, <code>anthropic</code>, <code>openrouter</code>, <code>gemini</code>. Any Flow Model whose Model ID starts with this provider uses these credentials unless it sets its own.",
+   "fieldname": "provider",
+   "fieldtype": "Data",
+   "in_list_view": 1,
+   "label": "Provider",
+   "reqd": 1,
+   "unique": 1
+  },
+  {
+   "default": "1",
+   "fieldname": "enabled",
+   "fieldtype": "Check",
+   "in_list_view": 1,
+   "label": "Enabled"
+  },
+  {
+   "fieldname": "section_break_config",
+   "fieldtype": "Section Break"
+  },
+  {
+   "description": "API key for this provider. Leave empty for local servers (Ollama, LM Studio) that don't require authentication.",
+   "fieldname": "api_key",
+   "fieldtype": "Password",
+   "label": "API Key"
+  },
+  {
+   "description": "Optional. Override the provider's default endpoint, e.g. a proxy or self-hosted gateway.",
+   "fieldname": "base_url",
+   "fieldtype": "Data",
+   "label": "Base URL"
+  },
+  {
+   "collapsible": 1,
+   "fieldname": "section_break_params",
+   "fieldtype": "Section Break",
+   "label": "Extra Parameters"
+  },
+  {
+   "description": "Optional JSON object of provider-specific kwargs merged into every call (e.g. <code>{\"api_version\": \"2024-02-01\"}</code> for Azure). A model's own params take precedence.",
+   "fieldname": "extra_params",
+   "fieldtype": "JSON",
+   "label": "Extra Params"
+  }
+ ],
+ "links": [],
+ "modified": "2026-05-30 00:00:00.000000",
+ "modified_by": "Administrator",
+ "module": "Flow",
+ "name": "Flow Provider",
+ "naming_rule": "By fieldname",
+ "owner": "Administrator",
+ "permissions": [
+  {
+   "create": 1,
+   "delete": 1,
+   "print": 1,
+   "read": 1,
+   "report": 1,
+   "role": "System Manager",
+   "share": 1,
+   "write": 1
+  }
+ ],
+ "row_format": "Dynamic",
+ "sort_field": "creation",
+ "sort_order": "DESC",
+ "track_changes": 1
+}

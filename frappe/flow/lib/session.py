@@ -9,18 +9,18 @@ import frappe
 from frappe import _
 
 if TYPE_CHECKING:
-	from flow.ai.doctype.ai_run.ai_run import AIRun
-	from flow.ai.doctype.ai_session.ai_session import AISession
+	from flow.flow.doctype.flow_run.flow_run import FlowRun
+	from flow.flow.doctype.flow_session.flow_session import FlowSession
 	from flow.lib.agent import Agent
 
 
-def new_session(agent: Any = None, *, model: str | None = None, title: str | None = None) -> AISession:
-	"""Start a conversation. `agent` may be a code `Agent`, an AI Agent doc, an agent name,
+def new_session(agent: Any = None, *, model: str | None = None, title: str | None = None) -> FlowSession:
+	"""Start a conversation. `agent` may be a code `Agent`, a Flow Agent doc, an agent name,
 	or None for the default Assistant. Code agents leave the session's agent link empty."""
 	runtime, agent_name, session_model, snapshot = _resolve_new_agent(agent, model)
 	doc = frappe.get_doc(
 		{
-			"doctype": "AI Session",
+			"doctype": "Flow Session",
 			"agent": agent_name,
 			"model": session_model,
 			"title": title,
@@ -31,10 +31,10 @@ def new_session(agent: Any = None, *, model: str | None = None, title: str | Non
 	return doc
 
 
-def load_session(name: str, *, agent: Any = None, model: str | None = None) -> AISession:
+def load_session(name: str, *, agent: Any = None, model: str | None = None) -> FlowSession:
 	"""Resume an existing conversation by id. Doctype-backed sessions rebuild their runtime
 	automatically; code-agent sessions require the same `Agent` to be passed again."""
-	doc = frappe.get_doc("AI Session", name)
+	doc = frappe.get_doc("Flow Session", name)
 	_assert_session_owner(doc)
 
 	if isinstance(agent, str) and agent and doc.agent and agent != doc.agent:
@@ -60,21 +60,21 @@ def _resolve_new_agent(agent: Any, model: str | None) -> tuple[Agent, str | None
 
 	if agent is None:
 		# The default Assistant is shared; no per-user read check (matches the desk default).
-		agent_doc = frappe.get_doc("AI Agent", _default_agent_name())
+		agent_doc = frappe.get_doc("Flow Agent", _default_agent_name())
 	else:
-		agent_doc = frappe.get_doc("AI Agent", agent) if isinstance(agent, str) else agent
-		frappe.has_permission("AI Agent", "read", agent_doc.name, throw=True)
+		agent_doc = frappe.get_doc("Flow Agent", agent) if isinstance(agent, str) else agent
+		frappe.has_permission("Flow Agent", "read", agent_doc.name, throw=True)
 	return agent_doc.assemble(model=model), agent_doc.name, (model or None), agent_doc._snapshot(model=model)
 
 
-def _resolve_existing_agent(doc: AISession, agent: Any) -> tuple[Agent, dict[str, Any]]:
+def _resolve_existing_agent(doc: FlowSession, agent: Any) -> tuple[Agent, dict[str, Any]]:
 	"""Return (runtime, snapshot) for an existing session."""
 	from flow.lib.agent import Agent
 
 	if isinstance(agent, Agent):
 		return agent, agent.snapshot()
 	if doc.agent:
-		agent_doc = frappe.get_doc("AI Agent", doc.agent)
+		agent_doc = frappe.get_doc("Flow Agent", doc.agent)
 		return agent_doc.assemble(model=doc.model), agent_doc._snapshot(model=doc.model)
 	frappe.throw(
 		_("This session was created with a code agent; pass agent= to continue it."),
@@ -85,9 +85,9 @@ def _resolve_existing_agent(doc: AISession, agent: Any) -> tuple[Agent, dict[str
 def _default_agent_name() -> str:
 	from flow.assistant import ASSISTANT_AGENT_TITLE
 
-	if not frappe.db.exists("AI Agent", ASSISTANT_AGENT_TITLE):
+	if not frappe.db.exists("Flow Agent", ASSISTANT_AGENT_TITLE):
 		frappe.throw(
-			_("The {0} agent is missing. Create an AI Model first to auto-provision it.").format(
+			_("The {0} agent is missing. Create a Flow Model first to auto-provision it.").format(
 				ASSISTANT_AGENT_TITLE
 			),
 			title=_("Missing Default Agent"),
@@ -95,17 +95,17 @@ def _default_agent_name() -> str:
 	return ASSISTANT_AGENT_TITLE
 
 
-def _assert_session_owner(doc: AISession) -> None:
+def _assert_session_owner(doc: FlowSession) -> None:
 	if doc.owner == frappe.session.user:
 		return
-	if frappe.has_permission("AI Session", "write", doc):
+	if frappe.has_permission("Flow Session", "write", doc):
 		return
 	frappe.throw(_("Not permitted to use this session."), frappe.PermissionError)
 
 
-def assert_run_owner(run: AIRun) -> None:
+def assert_run_owner(run: FlowRun) -> None:
 	if run.owner == frappe.session.user:
 		return
-	if frappe.has_permission("AI Run", "write", run):
+	if frappe.has_permission("Flow Run", "write", run):
 		return
 	frappe.throw(_("Not permitted to resume this run."), frappe.PermissionError)

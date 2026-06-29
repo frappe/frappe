@@ -1,0 +1,196 @@
+{
+ "app": "flow",
+ "charts": [],
+ "content": "[{\"id\":\"flowHeader1\",\"type\":\"header\",\"data\":{\"text\":\"<span class=\\\"h4\\\"><b>Flow</b></span>\",\"col\":12}},{\"id\":\"scAgent0001\",\"type\":\"shortcut\",\"data\":{\"shortcut_name\":\"Flow Agent\",\"col\":3}},{\"id\":\"scKnow00001\",\"type\":\"shortcut\",\"data\":{\"shortcut_name\":\"Flow Knowledge Base\",\"col\":3}},{\"id\":\"scSession01\",\"type\":\"shortcut\",\"data\":{\"shortcut_name\":\"Flow Session\",\"col\":3}},{\"id\":\"scModel0001\",\"type\":\"shortcut\",\"data\":{\"shortcut_name\":\"Flow Model\",\"col\":3}},{\"id\":\"flowManage1\",\"type\":\"header\",\"data\":{\"text\":\"<span class=\\\"h4\\\"><b>Manage</b></span>\",\"col\":12}},{\"id\":\"cardAgents1\",\"type\":\"card\",\"data\":{\"card_name\":\"Agents\",\"col\":3}},{\"id\":\"cardKnow001\",\"type\":\"card\",\"data\":{\"card_name\":\"Knowledge\",\"col\":3}},{\"id\":\"cardConvo01\",\"type\":\"card\",\"data\":{\"card_name\":\"Conversations\",\"col\":3}},{\"id\":\"cardConfig1\",\"type\":\"card\",\"data\":{\"card_name\":\"Configuration\",\"col\":3}}]",
+ "custom_blocks": [],
+ "docstatus": 0,
+ "doctype": "Workspace",
+ "for_user": "",
+ "hide_custom": 0,
+ "icon": "integration",
+ "idx": 0,
+ "indicator_color": "blue",
+ "is_hidden": 0,
+ "label": "Flow",
+ "link_type": "DocType",
+ "links": [
+  {
+   "hidden": 0,
+   "is_query_report": 0,
+   "label": "Agents",
+   "link_count": 3,
+   "link_type": "DocType",
+   "onboard": 0,
+   "type": "Card Break"
+  },
+  {
+   "hidden": 0,
+   "is_query_report": 0,
+   "label": "Flow Agent",
+   "link_count": 0,
+   "link_to": "Flow Agent",
+   "link_type": "DocType",
+   "onboard": 0,
+   "type": "Link"
+  },
+  {
+   "hidden": 0,
+   "is_query_report": 0,
+   "label": "Flow Tool",
+   "link_count": 0,
+   "link_to": "Flow Tool",
+   "link_type": "DocType",
+   "onboard": 0,
+   "type": "Link"
+  },
+  {
+   "hidden": 0,
+   "is_query_report": 0,
+   "label": "Flow Trigger",
+   "link_count": 0,
+   "link_to": "Flow Trigger",
+   "link_type": "DocType",
+   "onboard": 0,
+   "type": "Link"
+  },
+  {
+   "hidden": 0,
+   "is_query_report": 0,
+   "label": "Knowledge",
+   "link_count": 2,
+   "link_type": "DocType",
+   "onboard": 0,
+   "type": "Card Break"
+  },
+  {
+   "hidden": 0,
+   "is_query_report": 0,
+   "label": "Flow Knowledge Base",
+   "link_count": 0,
+   "link_to": "Flow Knowledge Base",
+   "link_type": "DocType",
+   "onboard": 0,
+   "type": "Link"
+  },
+  {
+   "hidden": 0,
+   "is_query_report": 0,
+   "label": "Flow Knowledge Source",
+   "link_count": 0,
+   "link_to": "Flow Knowledge Source",
+   "link_type": "DocType",
+   "onboard": 0,
+   "type": "Link"
+  },
+  {
+   "hidden": 0,
+   "is_query_report": 0,
+   "label": "Conversations",
+   "link_count": 2,
+   "link_type": "DocType",
+   "onboard": 0,
+   "type": "Card Break"
+  },
+  {
+   "hidden": 0,
+   "is_query_report": 0,
+   "label": "Flow Session",
+   "link_count": 0,
+   "link_to": "Flow Session",
+   "link_type": "DocType",
+   "onboard": 0,
+   "type": "Link"
+  },
+  {
+   "hidden": 0,
+   "is_query_report": 0,
+   "label": "Flow Run",
+   "link_count": 0,
+   "link_to": "Flow Run",
+   "link_type": "DocType",
+   "onboard": 0,
+   "type": "Link"
+  },
+  {
+   "hidden": 0,
+   "is_query_report": 0,
+   "label": "Configuration",
+   "link_count": 3,
+   "link_type": "DocType",
+   "onboard": 0,
+   "type": "Card Break"
+  },
+  {
+   "hidden": 0,
+   "is_query_report": 0,
+   "label": "Flow Model",
+   "link_count": 0,
+   "link_to": "Flow Model",
+   "link_type": "DocType",
+   "onboard": 0,
+   "type": "Link"
+  },
+  {
+   "hidden": 0,
+   "is_query_report": 0,
+   "label": "Flow Provider",
+   "link_count": 0,
+   "link_to": "Flow Provider",
+   "link_type": "DocType",
+   "onboard": 0,
+   "type": "Link"
+  },
+  {
+   "hidden": 0,
+   "is_query_report": 0,
+   "label": "Flow Knowledge Settings",
+   "link_count": 0,
+   "link_to": "Flow Knowledge Settings",
+   "link_type": "DocType",
+   "onboard": 0,
+   "type": "Link"
+  }
+ ],
+ "modified_by": "Administrator",
+ "module": "Flow",
+ "name": "Flow",
+ "number_cards": [],
+ "owner": "Administrator",
+ "parent_page": "",
+ "public": 1,
+ "quick_lists": [],
+ "roles": [],
+ "sequence_id": 1.0,
+ "shortcuts": [
+  {
+   "color": "Blue",
+   "doc_view": "List",
+   "label": "Flow Agent",
+   "link_to": "Flow Agent",
+   "type": "DocType"
+  },
+  {
+   "color": "Green",
+   "doc_view": "List",
+   "label": "Flow Knowledge Base",
+   "link_to": "Flow Knowledge Base",
+   "type": "DocType"
+  },
+  {
+   "color": "Orange",
+   "doc_view": "List",
+   "label": "Flow Session",
+   "link_to": "Flow Session",
+   "type": "DocType"
+  },
+  {
+   "color": "Grey",
+   "doc_view": "List",
+   "label": "Flow Model",
+   "link_to": "Flow Model",
+   "type": "DocType"
+  }
+ ],
+ "title": "Flow",
+ "type": "Workspace"
+}

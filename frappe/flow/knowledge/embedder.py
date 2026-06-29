@@ -3,8 +3,8 @@
 
 """Embedding calls for the knowledge store, via litellm.
 
-Credentials resolve the same way as chat models: the AI Model row first,
-falling back to the central AI Provider store.
+Credentials resolve the same way as chat models: the Flow Model row first,
+falling back to the central Flow Provider store.
 """
 
 from __future__ import annotations
@@ -20,7 +20,7 @@ PROBE_TIMEOUT = 30
 
 
 def embed_texts(texts: list[str]) -> list[list[float]]:
-	"""Embed texts with the model from AI Knowledge Settings, preserving order."""
+	"""Embed texts with the model from Flow Knowledge Settings, preserving order."""
 	if not texts:
 		return []
 	config = _embedding_config()
@@ -31,17 +31,17 @@ def embed_texts(texts: list[str]) -> list[list[float]]:
 
 
 def probe_dimension(model: str) -> int:
-	"""Vector width an AI Model's embeddings come back with, via a one-input call."""
+	"""Vector width a Flow Model's embeddings come back with, via a one-input call."""
 	config = _model_config(model)
 	(vector,) = _embed_batch(["dimension probe"], config, timeout=PROBE_TIMEOUT)
 	return len(vector)
 
 
 def _embedding_config() -> dict[str, Any]:
-	settings = frappe.get_cached_doc("AI Knowledge Settings")
+	settings = frappe.get_cached_doc("Flow Knowledge Settings")
 	if not settings.embedding_model:
 		frappe.throw(
-			_("Set an embedding model in AI Knowledge Settings first."),
+			_("Set an embedding model in Flow Knowledge Settings first."),
 			title=_("Knowledge Not Configured"),
 		)
 	return _model_config(settings.embedding_model)
@@ -50,9 +50,9 @@ def _embedding_config() -> dict[str, Any]:
 def _model_config(model: str) -> dict[str, Any]:
 	from flow.lib.model import resolve_provider_credentials
 
-	doc = frappe.get_doc("AI Model", model)
+	doc = frappe.get_doc("Flow Model", model)
 	if not doc.enabled:
-		frappe.throw(_("AI Model {0} is disabled.").format(model), title=_("Model Disabled"))
+		frappe.throw(_("Flow Model {0} is disabled.").format(model), title=_("Model Disabled"))
 
 	provider_creds = resolve_provider_credentials(doc.model_id)
 	config: dict[str, Any] = {

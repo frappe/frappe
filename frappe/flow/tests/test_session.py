@@ -35,7 +35,7 @@ class TestCodeAgentSession(IntegrationTestCase):
 
 		self.assertEqual(run.status, "Completed")
 		self.assertEqual(run.output, "hi")
-		self.assertIsNone(frappe.get_doc("AI Session", run.session).agent)
+		self.assertIsNone(frappe.get_doc("Flow Session", run.session).agent)
 
 	def test_code_agent_snapshot_uses_model_id(self):
 		with patch.object(Model, "chat", return_value=_final()):
@@ -74,11 +74,11 @@ class TestCodeAgentSession(IntegrationTestCase):
 	def test_doctype_agent_new_session_links_agent(self):
 		sync_builtin_tools()
 		model = frappe.get_doc(
-			{"doctype": "AI Model", "title": "Sess Model", "model_id": "openai/gpt-4o-mini", "enabled": 1}
+			{"doctype": "Flow Model", "title": "Sess Model", "model_id": "openai/gpt-4o-mini", "enabled": 1}
 		).insert()
 		agent_doc = frappe.get_doc(
 			{
-				"doctype": "AI Agent",
+				"doctype": "Flow Agent",
 				"title": "Sess Agent",
 				"model": model.name,
 				"instructions": "x",
@@ -89,21 +89,26 @@ class TestCodeAgentSession(IntegrationTestCase):
 		with patch.object(Model, "chat", return_value=_final()):
 			run = agent_doc.new_session().chat("hello")
 
-		self.assertEqual(frappe.get_doc("AI Session", run.session).agent, agent_doc.name)
+		self.assertEqual(frappe.get_doc("Flow Session", run.session).agent, agent_doc.name)
 
 
 class TestSessionModelOverride(IntegrationTestCase):
 	def setUp(self):
 		sync_builtin_tools()
 		self.model_a = frappe.get_doc(
-			{"doctype": "AI Model", "title": "Override Base", "model_id": "openai/gpt-4o-mini", "enabled": 1}
+			{
+				"doctype": "Flow Model",
+				"title": "Override Base",
+				"model_id": "openai/gpt-4o-mini",
+				"enabled": 1,
+			}
 		).insert()
 		self.model_b = frappe.get_doc(
-			{"doctype": "AI Model", "title": "Override Alt", "model_id": "openai/gpt-4o", "enabled": 1}
+			{"doctype": "Flow Model", "title": "Override Alt", "model_id": "openai/gpt-4o", "enabled": 1}
 		).insert()
 		self.agent_doc = frappe.get_doc(
 			{
-				"doctype": "AI Agent",
+				"doctype": "Flow Agent",
 				"title": "Override Agent",
 				"model": self.model_a.name,
 				"instructions": "x",

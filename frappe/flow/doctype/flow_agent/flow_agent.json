@@ -1,0 +1,137 @@
+{
+ "actions": [],
+ "allow_rename": 1,
+ "autoname": "field:title",
+ "creation": "2026-05-24 00:00:00",
+ "doctype": "DocType",
+ "engine": "InnoDB",
+ "field_order": [
+  "title",
+  "enabled",
+  "is_system_generated",
+  "column_break_meta",
+  "model",
+  "max_iterations",
+  "section_break_instructions",
+  "instructions",
+  "section_break_tools",
+  "tools",
+  "section_break_knowledge",
+  "knowledge_bases"
+ ],
+ "fields": [
+  {
+   "fieldname": "title",
+   "fieldtype": "Data",
+   "in_list_view": 1,
+   "label": "Title",
+   "reqd": 1,
+   "unique": 1
+  },
+  {
+   "default": "1",
+   "fieldname": "enabled",
+   "fieldtype": "Check",
+   "in_list_view": 1,
+   "in_standard_filter": 1,
+   "label": "Enabled"
+  },
+  {
+   "description": "Agents created by Frappe and protected from deletion.",
+   "fieldname": "is_system_generated",
+   "fieldtype": "Check",
+   "label": "System Generated",
+   "read_only": 1
+  },
+  {
+   "fieldname": "column_break_meta",
+   "fieldtype": "Column Break"
+  },
+  {
+   "description": "Flow Model used to drive this agent.",
+   "fieldname": "model",
+   "fieldtype": "Link",
+   "in_list_view": 1,
+   "in_standard_filter": 1,
+   "label": "Model",
+   "options": "Flow Model",
+   "reqd": 1
+  },
+  {
+   "default": "10",
+   "description": "Maximum number of think → tool → think loops before the run gives up.",
+   "fieldname": "max_iterations",
+   "fieldtype": "Int",
+   "label": "Max Iterations",
+   "non_negative": 1
+  },
+  {
+   "fieldname": "section_break_instructions",
+   "fieldtype": "Section Break",
+   "label": "Instructions"
+  },
+  {
+   "description": "System message shown to the LLM. Describe the agent's role, scope, and rules.",
+   "fieldname": "instructions",
+   "fieldtype": "Long Text",
+   "ignore_xss_filter": 1,
+   "label": "Instructions",
+   "reqd": 1
+  },
+  {
+   "fieldname": "section_break_tools",
+   "fieldtype": "Section Break",
+   "label": "Tools"
+  },
+  {
+   "description": "Flow Tools this agent can call. Defaults to the three primitives (describe, read, execute) on creation.",
+   "fieldname": "tools",
+   "fieldtype": "Table MultiSelect",
+   "label": "Tools",
+   "options": "Flow Agent Tool"
+  },
+  {
+   "fieldname": "section_break_knowledge",
+   "fieldtype": "Section Break",
+   "label": "Knowledge"
+  },
+  {
+   "description": "Knowledge bases this agent can search. Empty means all enabled knowledge bases.",
+   "fieldname": "knowledge_bases",
+   "fieldtype": "Table MultiSelect",
+   "label": "Knowledge Bases",
+   "options": "Flow Agent Knowledge Base"
+  }
+ ],
+ "index_web_pages_for_search": 1,
+ "links": [],
+ "modified": "2026-05-24 00:00:00",
+ "modified_by": "Administrator",
+ "module": "Flow",
+ "name": "Flow Agent",
+ "naming_rule": "By fieldname",
+ "owner": "Administrator",
+ "permissions": [
+  {
+   "create": 1,
+   "delete": 1,
+   "print": 1,
+   "read": 1,
+   "report": 1,
+   "role": "System Manager",
+   "share": 1,
+   "write": 1
+  },
+  {
+   "read": 1,
+   "role": "All"
+  }
+ ],
+ "row_format": "Dynamic",
+ "show_title_field_in_link": 1,
+ "sort_field": "creation",
+ "sort_order": "DESC",
+ "states": [],
+ "title_field": "title",
+ "track_changes": 1
+}

@@ -13,7 +13,7 @@ from frappe import _
 from werkzeug.wrappers import Response
 
 if TYPE_CHECKING:
-	from flow.ai.doctype.ai_run.ai_run import AIRun
+	from flow.flow.doctype.flow_run.flow_run import FlowRun
 	from flow.lib.agent import Event
 
 
@@ -50,7 +50,7 @@ def resume_run(
 	parsed_answers = _parse_answers(answers)
 	stream = _is_truthy(stream)
 
-	run = frappe.get_doc("AI Run", run_name)
+	run = frappe.get_doc("Flow Run", run_name)
 	assert_run_owner(run)
 	if run.status != "Paused":
 		frappe.throw(
@@ -72,13 +72,13 @@ def recover_session(session: str) -> dict[str, int]:
 
 	from flow.lib.session import _assert_session_owner
 
-	doc = frappe.get_doc("AI Session", session.strip())
+	doc = frappe.get_doc("Flow Session", session.strip())
 	_assert_session_owner(doc)
 
-	abandoned = frappe.get_all("AI Run", filters={"session": doc.name, "status": "Running"}, pluck="name")
+	abandoned = frappe.get_all("Flow Run", filters={"session": doc.name, "status": "Running"}, pluck="name")
 	for name in abandoned:
 		frappe.db.set_value(
-			"AI Run",
+			"Flow Run",
 			name,
 			{"status": "Failed", "error": "Run abandoned: stream ended without completing."},
 		)
@@ -93,7 +93,7 @@ def attach_file(file: str) -> dict[str, Any]:
 	if not isinstance(file, str) or not file.strip():
 		frappe.throw(_("File is required."), title=_("Invalid Attachment"))
 
-	from flow.ai.doctype.ai_session_attachment.ai_session_attachment import stage_attachment
+	from flow.flow.doctype.flow_session_attachment.flow_session_attachment import stage_attachment
 
 	return stage_attachment(file.strip())
 
@@ -118,7 +118,7 @@ def _format_sse(event: Event) -> bytes:
 
 
 def _event_to_dict(event: Event) -> dict[str, Any]:
-	from flow.ai.doctype.ai_run.ai_run import Error, RunStarted
+	from flow.flow.doctype.flow_run.flow_run import Error, RunStarted
 	from flow.lib.agent import Done, TextChunk, ToolEnded, ToolStarted
 
 	if isinstance(event, TextChunk):
@@ -188,7 +188,7 @@ def _parse_answers(answers: Any) -> dict[str, Any]:
 	return answers
 
 
-def _summarize(run: AIRun) -> dict[str, Any]:
+def _summarize(run: FlowRun) -> dict[str, Any]:
 	payload: dict[str, Any] = {
 		"name": run.name,
 		"session": run.session,

@@ -1,0 +1,78 @@
+{
+ "actions": [],
+ "creation": "2026-06-24 00:00:00",
+ "doctype": "DocType",
+ "editable_grid": 0,
+ "engine": "InnoDB",
+ "field_order": [
+  "file",
+  "file_name",
+  "file_size",
+  "run",
+  "mode",
+  "extracted_text"
+ ],
+ "fields": [
+  {
+   "fieldname": "file",
+   "fieldtype": "Link",
+   "in_list_view": 1,
+   "label": "File",
+   "options": "File",
+   "read_only": 1,
+   "reqd": 1
+  },
+  {
+   "fieldname": "file_name",
+   "fieldtype": "Data",
+   "in_list_view": 1,
+   "label": "File Name",
+   "read_only": 1
+  },
+  {
+   "description": "Size in bytes.",
+   "fieldname": "file_size",
+   "fieldtype": "Int",
+   "in_list_view": 1,
+   "label": "File Size",
+   "read_only": 1
+  },
+  {
+   "description": "The run (turn) this file was sent with.",
+   "fieldname": "run",
+   "fieldtype": "Link",
+   "label": "Run",
+   "options": "Flow Run",
+   "read_only": 1
+  },
+  {
+   "default": "Inline",
+   "description": "Inline: full text injected every turn. Retrieval: chunked and embedded, top matches injected per turn (for oversized files).",
+   "fieldname": "mode",
+   "fieldtype": "Select",
+   "label": "Mode",
+   "options": "Inline\nRetrieval",
+   "read_only": 1
+  },
+  {
+   "fieldname": "extracted_text",
+   "fieldtype": "Long Text",
+   "label": "Extracted Text",
+   "read_only": 1
+  }
+ ],
+ "index_web_pages_for_search": 0,
+ "istable": 1,
+ "links": [],
+ "modified": "2026-06-24 00:00:00",
+ "modified_by": "Administrator",
+ "module": "Flow",
+ "name": "Flow Session Attachment",
+ "owner": "Administrator",
+ "permissions": [],
+ "row_format": "Dynamic",
+ "sort_field": "idx",
+ "sort_order": "ASC",
+ "states": [],
+ "track_changes": 0
+}

@@ -3,7 +3,7 @@
 
 """Ingestion pipeline: turn a knowledge source into MariaDB chunks + LanceDB rows.
 
-MariaDB (AI Knowledge Chunk) is the source of truth; the LanceDB store is a
+MariaDB (Flow Knowledge Chunk) is the source of truth; the LanceDB store is a
 derived index keyed by chunk name.
 
 - Text / File / URL are single documents: each run rebuilds them from scratch.
@@ -20,7 +20,7 @@ import hashlib
 import frappe
 from frappe.utils import cint, now_datetime
 
-CHUNK_DOCTYPE = "AI Knowledge Chunk"
+CHUNK_DOCTYPE = "Flow Knowledge Chunk"
 BATCH = 500
 
 
@@ -37,7 +37,7 @@ def enqueue_ingestion(source: str, rebuild: bool = False) -> None:
 def sync_due_sources() -> None:
 	"""Daily scheduler: enqueue an incremental sweep for every auto-sync DocType source."""
 	sources = frappe.get_all(
-		"AI Knowledge Source",
+		"Flow Knowledge Source",
 		filters={"source_type": "DocType", "auto_sync": 1},
 		pluck="name",
 	)
@@ -60,12 +60,12 @@ def ingest_source(source: str, rebuild: bool = False) -> None:
 	rebuild forces a full re-chunk of a DocType source (purge + reset watermark) so
 	new chunk settings apply to rows whose content is otherwise unchanged. Single-doc
 	sources rebuild on every run regardless."""
-	doc = frappe.get_doc("AI Knowledge Source", source)
+	doc = frappe.get_doc("Flow Knowledge Source", source)
 	doc.db_set("status", "Processing", update_modified=False)
 	frappe.db.commit()
 
 	try:
-		settings = frappe.get_cached_doc("AI Knowledge Settings")
+		settings = frappe.get_cached_doc("Flow Knowledge Settings")
 		if doc.source_type == "DocType":
 			if rebuild:
 				purge_source(doc.name)
@@ -299,7 +299,7 @@ def reconcile_source(source: str) -> None:
 	"""Purge chunks whose reference row no longer exists. Full scan — cleans up after
 	hard deletes that left no tombstone (delete_permanently, raw SQL). Expensive, so it
 	is triggered manually, never on the sweep."""
-	doc = frappe.get_doc("AI Knowledge Source", source)
+	doc = frappe.get_doc("Flow Knowledge Source", source)
 	if doc.source_type != "DocType":
 		return
 
@@ -349,7 +349,7 @@ def _content_hash(text: str) -> str:
 def _mark_failed(source: str) -> None:
 	error = frappe.get_traceback(with_context=True)
 	frappe.db.set_value(
-		"AI Knowledge Source",
+		"Flow Knowledge Source",
 		source,
 		{"status": "Failed", "error_log": error},
 		update_modified=False,

@@ -3,7 +3,7 @@
 
 """Site-scoped LanceDB vector store.
 
-MariaDB (AI Knowledge Chunk) is the source of truth for chunk text and metadata.
+MariaDB (Flow Knowledge Chunk) is the source of truth for chunk text and metadata.
 This store holds only what search needs: the vector, scoping columns, and a copy
 of the content for the full-text index. Row `id` is the chunk's autoincrement name,
 so every hit maps back to its MariaDB row. The whole store is disposable — it can
@@ -163,7 +163,7 @@ def _open_table():
 	db = _connect()
 	if TABLE_NAME not in db.list_tables().tables:
 		frappe.throw(
-			_("Knowledge store is not initialized. Configure AI Knowledge Settings and ingest a source."),
+			_("Knowledge store is not initialized. Configure Flow Knowledge Settings and ingest a source."),
 			title=_("Knowledge Store Not Ready"),
 		)
 	return db.open_table(TABLE_NAME)

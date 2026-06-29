@@ -380,13 +380,13 @@ BUILTIN_TOOLS: list[Tool] = [
 
 
 def sync_builtin_tools() -> None:
-	"""Upsert builtin tools as AI Tool rows. Uses db.set_value to bypass the immutability
-	guard in AITool.validate (which protects user edits, not system migration)."""
+	"""Upsert builtin tools as Flow Tool rows. Uses db.set_value to bypass the immutability
+	guard in FlowTool.validate (which protects user edits, not system migration)."""
 	for builtin in BUILTIN_TOOLS:
 		import_path = f"flow.tools.builtins.{builtin.name}"
-		if frappe.db.exists("AI Tool", builtin.name):
+		if frappe.db.exists("Flow Tool", builtin.name):
 			frappe.db.set_value(
-				"AI Tool",
+				"Flow Tool",
 				builtin.name,
 				{
 					"import_path": import_path,
@@ -398,7 +398,7 @@ def sync_builtin_tools() -> None:
 		else:
 			frappe.get_doc(
 				{
-					"doctype": "AI Tool",
+					"doctype": "Flow Tool",
 					"slug": builtin.name,
 					"title": builtin.name.replace("_", " ").title(),
 					"type": "Imported",

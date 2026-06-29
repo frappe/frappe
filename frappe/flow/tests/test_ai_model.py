@@ -64,7 +64,7 @@ class TestModel(UnitTestCase):
 
 		m = Model("Claude Sonnet 4.6")
 
-		mock_get_doc.assert_called_once_with("AI Model", "Claude Sonnet 4.6")
+		mock_get_doc.assert_called_once_with("Flow Model", "Claude Sonnet 4.6")
 		self.assertEqual(m.model_id, "anthropic/claude-sonnet-4-6")
 		self.assertEqual(m._api_key, "sk-stored")
 		self.assertEqual(m.params, {"temperature": 0.3})

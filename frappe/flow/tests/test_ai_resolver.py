@@ -107,7 +107,7 @@ SCRIPT_CODE = "def main(city: str):\n\treturn f'sunny in {city}'\n"
 
 def _module_doc(**overrides: Any) -> dict:
 	doc = {
-		"doctype": "AI Tool",
+		"doctype": "Flow Tool",
 		"title": "Weather",
 		"slug": "weather",
 		"type": "Imported",
@@ -120,7 +120,7 @@ def _module_doc(**overrides: Any) -> dict:
 
 def _script_doc(**overrides: Any) -> dict:
 	doc = {
-		"doctype": "AI Tool",
+		"doctype": "Flow Tool",
 		"title": "Script Weather",
 		"slug": "script_weather",
 		"type": "Script",
