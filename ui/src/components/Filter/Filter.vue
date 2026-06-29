@@ -368,14 +368,16 @@ function valueControl(f: Filter): ValueControl {
 	return { is: TextInput, props: { type: "text", placeholder: ph } };
 }
 
-/** Per-operator / per-fieldtype placeholder copy. A port of CRM's `placeholder`. */
+/** Per-operator / per-fieldtype placeholder copy. A port of CRM's `placeholder`,
+ *  except `like`/`not like` show a bare term (not `%John%`): `serializeFilters`
+ *  wraps the value in `%` itself, so prompting for the wildcards would mislead. */
 function placeholder(f: Filter): string {
 	const fieldtype = f.field?.fieldtype ?? "Data";
 	if (f.operator === "between") return "01/01/2022 to 01/31/2022";
 	if (f.operator === "in" || f.operator === "not in")
 		return NUMBER_TYPES.includes(fieldtype) ? "100, 200, 300" : "John, Jane, Doe";
 	if (f.operator === "like" || f.operator === "not like")
-		return NUMBER_TYPES.includes(fieldtype) ? "%100%" : "%John%";
+		return NUMBER_TYPES.includes(fieldtype) ? "100" : "John";
 	if (f.operator === "is" || f.operator === "is not") return "Set";
 	if (f.operator === "timespan") return "Last Week";
 	if (NUMBER_TYPES.includes(fieldtype)) return "1000";
