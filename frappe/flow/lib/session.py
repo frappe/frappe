@@ -14,9 +14,12 @@ if TYPE_CHECKING:
 	from flow.lib.agent import Agent
 
 
-def new_session(agent: Any = None, *, model: str | None = None, title: str | None = None) -> FlowSession:
+def new_session(
+	agent: Any = None, *, model: str | None = None, title: str | None = None, source: str = "Manual"
+) -> FlowSession:
 	"""Start a conversation. `agent` may be a code `Agent`, a Flow Agent doc, an agent name,
-	or None for the default Assistant. Code agents leave the session's agent link empty."""
+	or None for the default Assistant. Code agents leave the session's agent link empty.
+	`source` records how it was started; "Trigger" sessions are hidden from the chat panel."""
 	runtime, agent_name, session_model, snapshot = _resolve_new_agent(agent, model)
 	doc = frappe.get_doc(
 		{
@@ -24,6 +27,7 @@ def new_session(agent: Any = None, *, model: str | None = None, title: str | Non
 			"agent": agent_name,
 			"model": session_model,
 			"title": title,
+			"source": source,
 		}
 	).insert(ignore_permissions=True)
 	doc._runtime = runtime

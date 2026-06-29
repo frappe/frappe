@@ -90,7 +90,7 @@ function timeAgo(ds) {
 							s.title || s.name
 						}}</span>
 						<span class="shrink-0 text-[11px] text-ink-gray-5">{{
-							timeAgo(s.creation)
+							timeAgo(s.modified)
 						}}</span>
 					</button>
 					<div v-if="searching" class="px-2 py-4 text-center text-xs text-ink-gray-5">

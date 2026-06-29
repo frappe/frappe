@@ -143,7 +143,7 @@ class FlowAgent(Document):
 		starts a conversation (or continues `session`) and calls `chat()`."""
 		from flow.lib.session import load_session, new_session
 
-		convo = load_session(session, agent=self.name) if session else new_session(self)
+		convo = load_session(session, agent=self.name) if session else new_session(self, source=source)
 		return convo.chat(
 			input,
 			source=source,
