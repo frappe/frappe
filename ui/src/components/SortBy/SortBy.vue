@@ -12,22 +12,22 @@
   drag-reorder uses `vuedraggable`; icons are lucide names.
 -->
 <template>
-	<!-- Empty: a plain "Sort" combobox button that opens the field picker.
-	     `[&_span]:!text-ink-gray-8`: the Combobox mutes its placeholder label and
-	     chevron (`text-ink-gray-4`); un-mute the trigger's icon/label/chevron so it
-	     reads at full ink like the Columns Button beside it. -->
+	<!-- Empty: a plain "Sort" button that opens the field picker. A custom
+	     #trigger renders a real Button (matching the non-empty trigger, so it can
+	     honor `hideLabel`) — full ink, no dropdown chevron, no placeholder hacks —
+	     and ComboboxAnchor auto-wires the open click. -->
 	<Combobox
 		v-if="!model.length"
-		trigger="button"
-		variant="subtle"
-		class="[&_span]:!text-ink-gray-8"
 		:options="addableOptions"
 		:modelValue="null"
-		placeholder="Sort"
 		@update:selectedOption="addSort"
 	>
-		<template #prefix>
-			<span class="lucide-arrow-up-down size-4" aria-hidden="true" />
+		<template #trigger>
+			<Button
+				:label="hideLabel ? undefined : 'Sort'"
+				:icon="hideLabel ? 'lucide-arrow-up-down' : undefined"
+				:iconLeft="!hideLabel ? 'lucide-arrow-up-down' : undefined"
+			/>
 		</template>
 	</Combobox>
 
@@ -113,24 +113,22 @@
 						Empty - Choose a field to sort by
 					</div>
 					<div class="flex items-center justify-between gap-2">
-						<!-- Remount per add: the combobox's internal model would otherwise
-						     retain the picked field and show it instead of "Add Sort". -->
-						<!-- `[&_span]:!text-ink-gray-5`: the Combobox renders its `+`
-						     icon at ink-gray-7 and its placeholder label/chevron at
-						     ink-gray-4; pin all three to gray-5 so "Add Sort" matches the
-						     "Clear Sort" button beside it. -->
+						<!-- A custom #trigger renders the same ghost Button as "Clear Sort"
+						     beside it (gray-5, `+` icon, no chevron). The label is static, so
+						     the old per-add remount (`:key`) and the placeholder / chevron CSS
+						     hacks are no longer needed. -->
 						<Combobox
-							:key="model.length"
-							class="[&_span]:!text-ink-gray-5"
-							trigger="button"
-							variant="ghost"
 							:options="addableOptions"
 							:modelValue="null"
-							placeholder="Add Sort"
 							@update:selectedOption="addSort"
 						>
-							<template #prefix>
-								<span class="lucide-plus size-4" aria-hidden="true" />
+							<template #trigger>
+								<Button
+									class="!text-ink-gray-5"
+									variant="ghost"
+									label="Add Sort"
+									iconLeft="lucide-plus"
+								/>
 							</template>
 						</Combobox>
 						<Button

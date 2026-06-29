@@ -19,23 +19,18 @@
   `Combobox`; icons are lucide names.
 -->
 <template>
-	<!-- Empty: a plain "Filter" combobox button that opens the field picker (the
-	     first picked field seeds a condition and flips to the popover view). -->
-	<!-- `[&_span]:!text-ink-gray-8`: the Combobox mutes its placeholder label and
-	     chevron (`text-ink-gray-4`); un-mute the trigger's icon/label/chevron so it
-	     reads at full ink like the Columns Button beside it. -->
+	<!-- Empty: a plain "Filter" button that opens the field picker (the first
+	     picked field seeds a condition and flips to the popover view). A custom
+	     #trigger renders a real Button — full ink, no dropdown chevron, no
+	     placeholder-recolor hacks — and ComboboxAnchor auto-wires the open click. -->
 	<Combobox
 		v-if="!model.length"
-		trigger="button"
-		variant="subtle"
-		class="[&_span]:!text-ink-gray-8"
 		:options="allFields"
 		:modelValue="null"
-		placeholder="Filter"
 		@update:selectedOption="addFilter"
 	>
-		<template #prefix>
-			<span class="lucide-list-filter size-4" aria-hidden="true" />
+		<template #trigger>
+			<Button label="Filter" iconLeft="lucide-list-filter" />
 		</template>
 	</Combobox>
 
@@ -124,24 +119,22 @@
 						Empty - Choose a field to filter by
 					</div>
 					<div class="flex items-center justify-between gap-2">
-						<!-- Remount per add: the combobox's internal model would otherwise
-						     retain the picked field and show it instead of "Add Filter". -->
-						<!-- `[&_span]:!text-ink-gray-5`: the Combobox renders its `+` icon at
-						     ink-gray-7 and its placeholder label/chevron at ink-gray-4; pin
-						     all three to gray-5 so "Add Filter" matches the "Clear All
-						     Filters" button beside it. -->
+						<!-- A custom #trigger renders the same ghost Button as "Clear All
+						     Filters" beside it (gray-5, `+` icon, no chevron). The label is
+						     static, so the old per-add remount (`:key`) and the placeholder /
+						     chevron CSS hacks are no longer needed. -->
 						<Combobox
-							:key="model.length"
-							class="[&_span]:!text-ink-gray-5"
-							trigger="button"
-							variant="ghost"
 							:options="allFields"
 							:modelValue="null"
-							placeholder="Add Filter"
 							@update:selectedOption="addFilter"
 						>
-							<template #prefix>
-								<span class="lucide-plus size-4" aria-hidden="true" />
+							<template #trigger>
+								<Button
+									class="!text-ink-gray-5"
+									variant="ghost"
+									label="Add Filter"
+									iconLeft="lucide-plus"
+								/>
 							</template>
 						</Combobox>
 						<Button

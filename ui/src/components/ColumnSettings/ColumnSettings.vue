@@ -14,7 +14,28 @@
   per SortBy); drag-reorder uses `vuedraggable`; icons are lucide names.
 -->
 <template>
-	<Popover placement="bottom-end">
+	<!-- Empty: a plain "Columns" button that opens the field picker directly (the
+	     first picked column seeds the list and flips to the popover view),
+	     mirroring Filter / SortBy. A custom #trigger renders the same Button as the
+	     non-empty popover target — full ink, no dropdown chevron, no placeholder
+	     hacks — and ComboboxAnchor auto-wires the open click. -->
+	<Combobox
+		v-if="!model.length"
+		:options="addableOptions"
+		:modelValue="null"
+		@update:selectedOption="addColumn"
+	>
+		<template #trigger>
+			<Button
+				:label="hideLabel ? undefined : 'Columns'"
+				:icon="hideLabel ? 'lucide-columns-3' : undefined"
+				:iconLeft="!hideLabel ? 'lucide-columns-3' : undefined"
+			/>
+		</template>
+	</Combobox>
+
+	<!-- Non-empty: the columns popover with its reorder / rename / remove rows. -->
+	<Popover v-else ref="popoverRef" placement="bottom-end">
 		<template #target="{ togglePopover }">
 			<Button
 				:label="hideLabel ? undefined : 'Columns'"
@@ -58,7 +79,7 @@
 								<TextInput
 									:ref="editIndex === i ? focusInput : undefined"
 									size="sm"
-									class="min-w-0 flex-1"
+									class="min-w-44 flex-1"
 									:readonly="editIndex !== i"
 									:modelValue="editIndex === i ? draft : column.label"
 									@click="editColumn(i)"
@@ -71,24 +92,27 @@
 							</div>
 						</template>
 					</Draggable>
-					<div v-else class="mb-3 flex h-7 items-center px-3 text-sm text-ink-gray-5">
-						Empty - Add a column to show
-					</div>
 					<div class="flex items-center justify-between gap-2">
-						<!-- Remount per add: the combobox's internal model would otherwise
-						     retain the picked field and show it instead of "Add Column". -->
+						<!-- A custom #trigger renders the same ghost Button as "Reset" beside
+						     it (gray-5, `+` icon, no chevron). The label is static, so the old
+						     per-add remount (`:key`) and placeholder hacks are gone. When
+						     Reset is hidden, `!flex-1` fills the row and `!justify-start`
+						     left-aligns the icon/label (Button defaults to justify-center). -->
 						<Combobox
-							:key="model.length"
-							trigger="button"
-							variant="ghost"
-							:class="canReset ? undefined : 'flex-1'"
 							:options="addableOptions"
 							:modelValue="null"
-							placeholder="Add Column"
 							@update:selectedOption="addColumn"
 						>
-							<template #prefix>
-								<span class="lucide-plus size-4" aria-hidden="true" />
+							<template #trigger>
+								<Button
+									variant="ghost"
+									label="Add Column"
+									iconLeft="lucide-plus"
+									:class="[
+										'!text-ink-gray-5',
+										canReset ? undefined : '!flex-1 !justify-start',
+									]"
+								/>
 							</template>
 						</Combobox>
 						<!-- Reset to the Meta defaults. The host owns the defaults (ADR-0006),
@@ -148,6 +172,11 @@ function onResetClick() {
 // reads and re-emits this array, never a data resource and never persistence.
 const model = defineModel<Column[]>({ default: () => [] });
 
+// The popover only mounts once a column exists (`v-else`); a ref lets us open it
+// right after the empty-state picker seeds the first one, so the user lands on the
+// row list instead of having to click "Columns" again.
+const popoverRef = ref<{ open: () => void } | null>(null);
+
 const { meta } = useDoctypeMeta(props.doctype);
 
 // Field Options derived client-side from Meta — no CRM endpoint.
@@ -173,6 +202,8 @@ function addColumn(option: unknown) {
 	if (!fieldname || model.value.some((c) => c.fieldname === fieldname)) return;
 	const label = allOptions.value.find((o) => o.fieldname === fieldname)?.label ?? fieldname;
 	model.value = [...model.value, { fieldname, label }];
+	// Open the popover once it mounts (no-op when adding from inside an open one).
+	nextTick(() => popoverRef.value?.open());
 }
 
 function removeColumn(index: number) {
