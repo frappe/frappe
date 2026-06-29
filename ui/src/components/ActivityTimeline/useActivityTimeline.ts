@@ -3,14 +3,14 @@ import { computed, onMounted, onUnmounted, reactive, ref, type Ref } from "vue";
 import { getSocketInstance } from "../../socket";
 import type {
   Activity,
+  CustomActivity,
   UserInfo,
   VersionActivity,
   VersionChange,
 } from "./types";
 
 const resources = new Map<string, ReturnType<typeof createResource>>();
-// Per-(doctype:docname) "older emails remain" flag, kept outside the resource so it
-// survives cached-resource remounts and is shared by onSuccess + fetchNextPage.
+// "older emails remain" flag, kept outside the resource so it survives cached remounts.
 const hasMoreEmailsByKey = new Map<string, Ref<boolean>>();
 
 export function useActivityTimeline(
@@ -22,7 +22,7 @@ export function useActivityTimeline(
 
   let hasMoreEmails = hasMoreEmailsByKey.get(key);
   if (!hasMoreEmails) {
-    hasMoreEmails = ref(true); // assume more until the first load tells us otherwise
+    hasMoreEmails = ref(true);
     hasMoreEmailsByKey.set(key, hasMoreEmails);
   }
 
@@ -33,7 +33,6 @@ export function useActivityTimeline(
       params: { doctype, name: docname },
       cache: `activities:${key}`,
       auto: true,
-      // transform keeps resource.data an Activity[]; onSuccess reads the raw flag
       transform: (res: { activities: Activity[] }) => res.activities,
       onSuccess: (res: { has_more_emails?: boolean }) => {
         hasMoreEmails!.value = !!res.has_more_emails;
@@ -45,11 +44,27 @@ export function useActivityTimeline(
   handleLiveUpdates(doctype, docname, resource);
 
   return {
-    activities: computed<Activity[]>(() => {
+    activities: computed<Array<Activity | CustomActivity>>(() => {
       const base = (resource.data as Activity[] | undefined) ?? [];
       const merged = dropDuplicateKeys(base);
       merged.sort(compareActivities);
-      return groupVersionActivities(merged);
+      const list = groupVersionActivities(merged);
+
+      // Inject the "Load More" row above the oldest email
+      if (!paginate || !hasMoreEmails!.value) return list;
+      const oldestEmailIdx = list.findIndex((a) => a.type === "email");
+      if (oldestEmailIdx === -1) return list;
+      const loadMore: CustomActivity = {
+        type: "load_more",
+        key: "load-more",
+        timestamp: list[oldestEmailIdx].timestamp,
+        data: null,
+      };
+      return [
+        ...list.slice(0, oldestEmailIdx),
+        loadMore,
+        ...list.slice(oldestEmailIdx),
+      ];
     }),
     loading: computed<boolean>(() => resource.loading),
     error: computed(() => resource.error || null),
@@ -60,8 +75,7 @@ export function useActivityTimeline(
   };
 }
 
-// Scroll-up email paging: fetch the next older page and append to resource.data;
-// the activities computed dedupes and re-sorts, so overlap/order are handled there.
+// Email paging: fetch the next older page and append; the activities computed re-sorts.
 function createEmailPagination(
   doctype: string,
   docname: string,
@@ -86,8 +100,7 @@ function createEmailPagination(
     moreResource.submit({ doctype, name: docname, start: emailsLoaded });
   };
 
-  // reactive() so the computed refs unwrap to plain booleans through the `paginate`
-  // prop — Vue doesn't auto-unwrap refs nested in a plain object passed to a child.
+  // reactive() so refs unwrap through the `paginate` prop (Vue won't unwrap nested refs).
   return reactive({
     hasNextPage: computed(() => hasMoreEmails.value),
     isFetchingNextPage: computed(() => moreResource.loading),
@@ -102,8 +115,7 @@ function handleLiveUpdates(
 ) {
   const socket = getSocketInstance();
 
-  // Socket payload has no avatar — reuse a resolved author already in the feed;
-  // first-time actors fall back to the payload and self-heal on the next reload.
+  // Socket payload has no avatar — reuse a resolved author from the feed, else fall back.
   const resolveAuthor = (email: string | undefined, fallback: UserInfo) => {
     if (!email) return fallback;
     const known = ((resource.data as Activity[] | undefined) ?? []).find(
@@ -124,7 +136,6 @@ function handleLiveUpdates(
     const current = (resource.data as Activity[] | undefined) ?? [];
 
     if (action === "add") {
-      // new rows append and sort into place via the computed
       resource.data = [...current, activity];
     } else {
       resource.data = patchList(
@@ -331,7 +342,11 @@ function summarizeVersions(
           ? {
               ...change,
               history: [
-                { from: change.from ?? "", to: change.to, timestamp: row.timestamp },
+                {
+                  from: change.from ?? "",
+                  to: change.to,
+                  timestamp: row.timestamp,
+                },
               ],
             }
           : { ...change };

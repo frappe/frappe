@@ -1,8 +1,6 @@
 import { onMounted, ref, type Ref } from "vue";
 
-// Finds the nearest scrollable ancestor of `rootEl` so the timeline can park itself at
-// the bottom (newest) on first render. No scroll-triggered loading — paging is driven
-// by the in-feed "Load More" button, which simply fetches without moving the viewport.
+// Nearest scrollable ancestor of `rootEl`, so the timeline can park at the bottom on first render.
 export function useScrollContainer(rootEl: Ref<HTMLElement | null>) {
   const scrollEl = ref<HTMLElement | null>(null);
 

@@ -57,7 +57,7 @@
 		<div class="px-3 pb-2">
 			<EmailContent :content="email.data.content" />
 			<slot name="footer" :email="email">
-				<div v-if="email.data.attachments.length" class="mt-2 flex flex-wrap gap-2">
+				<div v-if="email.data?.attachments?.length" class="mt-2 flex flex-wrap gap-2">
 					<AttachmentItem
 						v-for="a in email.data.attachments"
 						:key="a.file_url"

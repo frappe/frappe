@@ -6,11 +6,13 @@ export interface ActivityTimelineProps {
   /** Only shown when there are no activities yet. */
   loading?: boolean;
   error?: string | null;
-  /** When present, enables scroll-up email pagination. Same object returned by useActivityTimeline. */
+  /** When present, enables scroll-up pagination. Same object returned by useActivityTimeline. */
   paginate?: {
     hasNextPage: boolean;
     isFetchingNextPage: boolean;
     fetchNextPage: () => void;
+    /** Auto-placement of the Load More row: 'top' (default) or 'bottom'. Ignored if you inject your own `load_more` row. */
+    position?: "top" | "bottom";
   };
 }
 
@@ -50,7 +52,7 @@ export type EmailActivity = BaseActivity<
     bcc: string;
     content: string;
     deliveryStatus: string;
-    attachments: EmailAttachment[];
+    attachments?: EmailAttachment[];
   }
 >;
 

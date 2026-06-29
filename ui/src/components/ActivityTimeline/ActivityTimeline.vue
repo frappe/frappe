@@ -156,12 +156,10 @@
 <script setup lang="ts">
 import { Avatar, Button, ErrorMessage, FeatherIcon, LoadingIndicator } from "frappe-ui";
 import { computed, nextTick, onMounted, ref, watch } from "vue";
+import MailIcon from "~icons/lucide/mail";
 import CommentItem from "./CommentItem.vue";
 import EmailItem from "./EmailItem.vue";
 import { CommentIcon, DotIcon, LUCIDE_ICON_CLASS } from "./icons";
-import { useScrollContainer } from "./useScrollContainer";
-// email badge; needs `frappeui({ lucideIcons: true })` in the consumer's vite config
-import MailIcon from "~icons/lucide/mail";
 import LogItem from "./LogItem.vue";
 import type {
 	Activity,
@@ -170,6 +168,7 @@ import type {
 	CustomActivity,
 	LogActivity,
 } from "./types";
+import { useScrollContainer } from "./useScrollContainer";
 import VersionItem from "./VersionItem.vue";
 
 const props = withDefaults(defineProps<ActivityTimelineProps>(), {
@@ -180,31 +179,39 @@ const props = withDefaults(defineProps<ActivityTimelineProps>(), {
 const rootEl = ref<HTMLElement | null>(null);
 const { scrollEl } = useScrollContainer(rootEl);
 
-// Inject an in-feed "Load More" row directly above the oldest loaded email when more
-// emails remain. Clicking it fetches the next, older page; loadMore() pins the oldest
-// email so the viewport stays put while the new rows appear above the button.
+// Virtual "Load More" row (rendered as a button). If the list already carries one, the
+// placer owns its position; otherwise auto-place from paginate.position ('top' default).
 const rows = computed<Array<Activity | CustomActivity>>(() => {
 	const list = props.activities;
+	if (list.some((a) => a.type === "load_more")) return list;
 	if (!props.paginate?.hasNextPage) return list;
-	const idx = list.findIndex((a) => a.type === "email");
-	if (idx === -1) return list; // no emails loaded yet — nothing to page from
+
+	const atBottom = props.paginate.position === "bottom";
 	const loadMore: CustomActivity = {
 		type: "load_more",
 		key: "load-more",
-		timestamp: list[idx].timestamp,
+		timestamp: (atBottom ? list.at(-1) : list[0])?.timestamp,
 		data: null,
 	};
-	return [...list.slice(0, idx), loadMore, ...list.slice(idx)];
+	return atBottom ? [...list, loadMore] : [loadMore, ...list];
 });
 
-// Anchor for Load More: the oldest email's row + its offset from the scroll container.
-// Older emails insert above it, so re-pinning it after the fetch keeps the view fixed.
+// Anchor: the row just below the load_more button + its offset; re-pinning it after the
+// fetch keeps the view fixed. Null when the button is at the bottom (re-pin no-ops then).
 let anchorKey: string | null = null;
 let anchorOffset = 0;
 
+function anchorRowKey(): string | null {
+	const list = rows.value;
+	const idx = list.findIndex((a) => a.type === "load_more");
+	if (idx === -1) return null;
+	const next = list[idx + 1];
+	return next ? getKey(next, idx + 1) : null;
+}
+
 function loadMore() {
 	const el = scrollEl.value;
-	const key = props.activities.find((a) => a.type === "email")?.key ?? null;
+	const key = anchorRowKey();
 	const row =
 		el && key ? rootEl.value?.querySelector<HTMLElement>(`[id="${CSS.escape(key)}"]`) : null;
 	if (el && row && key) {
@@ -215,7 +222,7 @@ function loadMore() {
 }
 
 if (props.paginate) {
-	// re-pin the anchored email after older rows patch in, so the viewport doesn't move
+	// re-pin the anchor after older rows patch in, so the viewport doesn't move
 	watch(
 		() => props.activities.length,
 		() => {
@@ -245,12 +252,11 @@ if (props.paginate) {
 			el.scrollTop = el.scrollHeight;
 		});
 	};
-	onMounted(scrollToBottomOnce); // cached/synchronous first page
-	watch(() => props.activities.length, scrollToBottomOnce); // async first page
+	onMounted(scrollToBottomOnce);
+	watch(() => props.activities.length, scrollToBottomOnce);
 }
 
-// Stable v-for key / scroll-target id. Custom rows may omit `key` — fall back to
-// type+timestamp, then index.
+// Stable v-for key / scroll-target id; custom rows may omit `key`.
 function getKey(activity: Activity | CustomActivity, index: number): string {
 	return (
 		activity.key ??
