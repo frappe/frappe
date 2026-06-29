@@ -321,6 +321,19 @@
 									></button>
 								</div>
 							</div>
+							<div class="pfb-insp-row">
+								<span class="pfb-insp-label">{{ __("Spacing") }}</span>
+								<div class="pfb-seg">
+									<button
+										v-for="opt in label_justify_opts"
+										:key="opt.value"
+										:class="{ active: current_label_justify === opt.value }"
+										:title="opt.title"
+										@click="selected_field.label_justify = opt.value"
+										v-html="opt.icon"
+									></button>
+								</div>
+							</div>
 						</template>
 					</div>
 				</div>
@@ -685,6 +698,7 @@ let short_fieldtype = computed(() => {
 
 let current_show_label = computed(() => selected_field.value?.show_label ?? "show");
 let current_align = computed(() => selected_field.value?.align ?? "left");
+let current_label_justify = computed(() => selected_field.value?.label_justify ?? "");
 
 const show_label_opts = [
 	{ value: "show", label: __("Show") },
@@ -701,6 +715,31 @@ const align_opts = [
 	{ value: "left", title: __("Align left"), icon: align_icons.left },
 	{ value: "center", title: __("Align center"), icon: align_icons.center },
 	{ value: "right", title: __("Align right"), icon: align_icons.right },
+];
+
+// Label-value spacing (justify-content for left-right orientation)
+const justify_icons = {
+	normal: `<svg xmlns="http://www.w3.org/2000/svg" width="28" height="12" viewBox="0 0 28 12" fill="currentColor"><rect x="1" y="2" width="9" height="8" rx="1.5" opacity="0.5"/><rect x="12" y="2" width="9" height="8" rx="1.5"/></svg>`,
+	"space-between": `<svg xmlns="http://www.w3.org/2000/svg" width="28" height="12" viewBox="0 0 28 12" fill="currentColor"><rect x="1" y="2" width="9" height="8" rx="1.5" opacity="0.5"/><rect x="18" y="2" width="9" height="8" rx="1.5"/></svg>`,
+	"space-evenly": `<svg xmlns="http://www.w3.org/2000/svg" width="28" height="12" viewBox="0 0 28 12" fill="currentColor"><rect x="4" y="2" width="8" height="8" rx="1.5" opacity="0.5"/><rect x="16" y="2" width="8" height="8" rx="1.5"/></svg>`,
+};
+
+const label_justify_opts = [
+	{
+		value: "",
+		title: __("Normal — label and value packed together"),
+		icon: justify_icons.normal,
+	},
+	{
+		value: "space-between",
+		title: __("Space between — label at start, value at end"),
+		icon: justify_icons["space-between"],
+	},
+	{
+		value: "space-evenly",
+		title: __("Space evenly — equal space around label and value"),
+		icon: justify_icons["space-evenly"],
+	},
 ];
 
 function remove_field() {

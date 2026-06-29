@@ -167,6 +167,31 @@ body {
 	justify-content: center;
 }
 
+/* Label-value spacing in left-right orientation */
+.field.left-right.field-justify-space-between {
+	justify-content: space-between;
+}
+
+.field.left-right.field-justify-space-between .label,
+.field.left-right.field-justify-space-between .value {
+	width: auto;
+	flex: 0;
+}
+
+.field.left-right.field-justify-space-between .value {
+	text-align: right;
+}
+
+.field.left-right.field-justify-space-evenly {
+	justify-content: space-evenly;
+}
+
+.field.left-right.field-justify-space-evenly .label,
+.field.left-right.field-justify-space-evenly .value {
+	width: auto;
+	flex: 0;
+}
+
 /* Child table */
 .child-table {
 	margin-top: 0.5rem;

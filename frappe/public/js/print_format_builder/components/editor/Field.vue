@@ -31,7 +31,12 @@
 				<div
 					v-else-if="df.fieldtype == 'Table MultiSelect'"
 					:style="{ textAlign: df.align || 'left' }"
-					:class="{ 'field-preview-lr': field_orientation === 'left-right' }"
+					:class="[
+						'field-preview-lr',
+						field_orientation === 'left-right' && df.label_justify
+							? `field-preview-lr--${df.label_justify}`
+							: '',
+					]"
 				>
 					<div v-if="df.label && df.show_label !== 'hide'" class="field-preview-label">
 						{{ df.label }}
@@ -110,7 +115,12 @@
 				<div
 					v-else
 					:style="{ textAlign: df.align || 'left' }"
-					:class="{ 'field-preview-lr': field_orientation === 'left-right' }"
+					:class="[
+						'field-preview-lr',
+						field_orientation === 'left-right' && df.label_justify
+							? `field-preview-lr--${df.label_justify}`
+							: '',
+					]"
 				>
 					<div v-if="df.label && df.show_label !== 'hide'" class="field-preview-label">
 						{{ df.label }}
@@ -720,6 +730,31 @@ watch(
 .field-preview-lr .field-preview-value {
 	flex: 1;
 	min-width: 0;
+}
+
+.field-preview-lr--space-between {
+	justify-content: space-between;
+}
+
+.field-preview-lr--space-between .field-preview-label {
+	flex-shrink: 0;
+}
+
+.field-preview-lr--space-between .field-preview-value {
+	flex: 0;
+	text-align: right;
+}
+
+.field-preview-lr--space-evenly {
+	justify-content: space-evenly;
+}
+
+.field-preview-lr--space-evenly .field-preview-label {
+	flex-shrink: 0;
+}
+
+.field-preview-lr--space-evenly .field-preview-value {
+	flex: 0;
 }
 
 .field-preview-value {
