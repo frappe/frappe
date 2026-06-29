@@ -8,6 +8,14 @@ from frappe.utils.pdf import get_host_url
 from frappe.utils.print_utils import convert_uom, parse_float_and_unit
 
 
+class PDFDebugOpened(Exception):
+	"""Raised when debug mode loads HTML into a headed browser without generating a PDF.
+
+	The browser window stays open for the developer to inspect. The caller is
+	responsible for calling generator.detach_debug_browser() and showing a message.
+	"""
+
+
 class Browser:
 	def __init__(self, generator, print_format, html, options):
 		self.is_print_designer = frappe.get_cached_value("Print Format", print_format, "print_designer")
@@ -15,27 +23,24 @@ class Browser:
 		self.browserID = frappe.utils.random_string(10)
 		generator.add_browser(self.browserID)
 		try:
-			# sets soup from html
 			self.set_html(html)
-			# sets wkhtmltopdf options
 			self.set_options(options)
-			# start cdp connection and create browser context ( kind of like new window / incognito mode)
 			self.open(generator)
-			# opens header and footer pages and sets content ( not waiting for it to load)
 			self.prepare_header_footer()
-			# opens body page and sets content and waits for it to finshing load
 			self.setup_body_page()
-			# prepare options as per chrome for pdf
 			self.prepare_options_for_pdf()
-			# generate header and footer pages if they are not dynamic ( first, odd, even, last)
 			self.update_header_footer_page_pd()
-			# if header and footer are not dynamic start generating pdf for them (non-blocking)
 			self.try_async_header_footer_pdf()
-			# now wait for page to load as we need DOM to generate pdf
 			self.body_page.wait_for_set_content()
+
+			if self.debug_mode:
+				# All pages are loaded and the Chrome window is open.
+				# Raise to exit without generating PDFs — no download, no close.
+				# The caller (get_chrome_pdf) detaches the browser and shows the dev a message.
+				raise PDFDebugOpened()
+
 			self.body_pdf = self.body_page.generate_pdf(raw=not self.header_page and not self.footer_page)
-			if not self.debug_mode:
-				self.body_page.close()
+			self.body_page.close()
 			self.update_header_footer_page()
 
 			if self.header_page:
@@ -43,23 +48,18 @@ class Browser:
 					self.header_pdf = self.header_page.get_cached_pdf()
 				else:
 					self.header_pdf = self.header_page.generate_pdf()
-				if not self.debug_mode:
-					self.header_page.close()
+				self.header_page.close()
 
 			if self.footer_page:
 				if not self.is_footer_dynamic:
 					self.footer_pdf = self.footer_page.get_cached_pdf()
 				else:
 					self.footer_pdf = self.footer_page.generate_pdf()
-				if not self.debug_mode:
-					self.footer_page.close()
+				self.footer_page.close()
 
-			if not self.debug_mode:
-				self.close()
+			self.close()
 		finally:
 			generator.remove_browser(self.browserID)
-		if self.debug_mode:
-			generator.detach_debug_browser()
 
 	def open(self, generator):
 		# Create an isolated browser context (like a fresh incognito window).

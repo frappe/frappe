@@ -167,7 +167,7 @@ def measure_time(func):
 @measure_time
 def get_chrome_pdf(print_format, html, options, output, pdf_generator=None):
 	from frappe.utils.chromium import ChromiumManager
-	from frappe.utils.pdf_generator.browser import Browser
+	from frappe.utils.pdf_generator.browser import Browser, PDFDebugOpened
 	from frappe.utils.pdf_generator.pdf_merge import PDFTransformer
 
 	if pdf_generator != "chrome":
@@ -181,9 +181,20 @@ def get_chrome_pdf(print_format, html, options, output, pdf_generator=None):
 		transformer = PDFTransformer(browser)
 		# transforms and merges header, footer into body pdf and returns merged pdf
 		return transformer.transform_pdf(output=output)
+	except PDFDebugOpened:
+		# All pages are loaded and the headed Chrome window is open for inspection.
+		# Detach the singleton so the next regular PDF request gets a fresh headless browser.
+		# Don't call _close_browser() — the window must stay open.
+		generator.detach_debug_browser()
+		frappe.throw(
+			msg=_(
+				"Chrome window is open — inspect the rendered page in Chrome DevTools, then close it. The next PDF request will work normally."
+			),
+			title=_("PDF Debug Mode"),
+		)
 	except Exception:
-		# Chrome timeout / crash: reset singleton so the next request gets a fresh
-		# Chrome instance. _browsers cleanup is handled by Browser.__init__'s finally.
+		# Chrome timeout / crash: reset singleton so the next request gets a fresh instance.
+		# _browsers cleanup is handled by Browser.__init__'s finally block.
 		generator._close_browser()
 		raise
 
