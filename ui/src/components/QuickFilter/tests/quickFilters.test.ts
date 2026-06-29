@@ -256,14 +256,14 @@ describe("applyQuick (write projection)", () => {
     ]);
   });
 
-  it("clears only the first owned condition, preserving a sibling duplicate", () => {
+  it("clears every owned condition for the field", () => {
+    // Quick Filter is authoritative: clearing removes *all* owned conditions,
+    // including a sibling duplicate the popover allows.
     const dupes: Filter[] = [
       { field: STATUS, fieldname: "status", operator: "equals", value: "Open" },
       { field: STATUS, fieldname: "status", operator: "equals", value: "Won" },
     ];
-    expect(applyQuick(dupes, STATUS, "")).toEqual([
-      { field: STATUS, fieldname: "status", operator: "equals", value: "Won" },
-    ]);
+    expect(applyQuick(dupes, STATUS, "")).toEqual([]);
   });
 
   it("coerces an unowned operator on a Link to its single equals", () => {
