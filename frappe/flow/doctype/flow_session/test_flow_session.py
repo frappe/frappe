@@ -224,9 +224,9 @@ class TestAttachmentBudget(IntegrationTestCase):
 				"doctype": "Flow Model",
 				"title": "CW Model",
 				"model_id": "openai/gpt-4o-mini",
-				"context_window": 9000,
 			}
 		).insert()
+		frappe.db.set_value("Flow Model", model.name, "context_window", 9000)
 		self.assertEqual(self._session({"model": model.name})._context_window(), 9000)
 
 	def test_inline_threshold_is_fraction_of_window(self):
@@ -244,8 +244,9 @@ class TestAttachmentBudget(IntegrationTestCase):
 
 	def test_budget_floors_at_zero(self):
 		model = frappe.get_doc(
-			{"doctype": "Flow Model", "title": "Tiny", "model_id": "openai/gpt-4o-mini", "context_window": 1}
+			{"doctype": "Flow Model", "title": "Tiny", "model_id": "openai/gpt-4o-mini"}
 		).insert()
+		frappe.db.set_value("Flow Model", model.name, "context_window", 1)
 		s = self._session({"model": model.name})
 		s.append("messages", {"role": "user", "content": "x" * 10000, "run": None})
 		s.save(ignore_permissions=True)

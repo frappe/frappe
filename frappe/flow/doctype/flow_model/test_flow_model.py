@@ -157,22 +157,14 @@ class TestContextWindow(IntegrationTestCase):
 		with patch("litellm.get_model_info", return_value={}):
 			self.assertEqual(_detect_context_window("vendor/x"), 0)
 
-	def test_auto_fills_when_empty_on_insert(self):
+	def test_auto_fills_on_insert(self):
 		with patch("litellm.get_model_info", return_value={"max_input_tokens": 128000}):
 			doc = frappe.get_doc(_model()).insert()
 		self.assertEqual(doc.context_window, 128000)
 
-	def test_manual_value_preserved_when_model_unchanged(self):
-		with patch("litellm.get_model_info", return_value={"max_input_tokens": 128000}):
-			doc = frappe.get_doc(_model(context_window=50000)).insert()
-			self.assertEqual(doc.context_window, 50000)  # manual value kept, not overwritten
-			doc.title = "Renamed"
-			doc.save()
-		self.assertEqual(doc.context_window, 50000)
-
 	def test_redetects_on_model_id_change(self):
 		with patch("litellm.get_model_info", return_value={"max_input_tokens": 128000}):
-			doc = frappe.get_doc(_model(context_window=50000)).insert()
+			doc = frappe.get_doc(_model()).insert()
 		# New model id (valid provider) -> re-detect, overriding the prior value.
 		with patch("litellm.get_model_info", return_value={"max_input_tokens": 1000000}) as m:
 			doc.model_id = "anthropic/claude-x"
@@ -182,9 +174,9 @@ class TestContextWindow(IntegrationTestCase):
 
 	def test_keeps_existing_when_new_model_unmapped(self):
 		with patch("litellm.get_model_info", return_value={"max_input_tokens": 128000}):
-			doc = frappe.get_doc(_model(context_window=50000)).insert()
-		# Valid provider, but litellm can't map the model -> keep the prior value.
+			doc = frappe.get_doc(_model()).insert()
+		# Valid provider, but litellm can't map the model -> keep the prior detected value.
 		with patch("litellm.get_model_info", side_effect=Exception("not mapped")):
 			doc.model_id = "anthropic/made-up-model-xyz"
 			doc.save()
-		self.assertEqual(doc.context_window, 50000)
+		self.assertEqual(doc.context_window, 128000)

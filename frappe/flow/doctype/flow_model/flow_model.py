@@ -104,11 +104,8 @@ class FlowModel(Document):
 			)
 
 	def _resolve_context_window(self):
-		# Auto-detect only when empty, or when the model changed on an existing doc. A value
-		# set by hand is kept — including one provided at creation. If litellm doesn't know
-		# the model, leave the existing value (callers fall back to a default when it's 0).
-		if self.context_window and (self.is_new() or not self.has_value_changed("model_id")):
-			return
+		# Always derived from the model — never user input. Keeps the last detected value when
+		# litellm can't resolve the model, and 0 otherwise (callers fall back to a default).
 		self.context_window = _detect_context_window(self.model_id) or self.context_window or 0
 
 	def _validate_provider_known(self):
