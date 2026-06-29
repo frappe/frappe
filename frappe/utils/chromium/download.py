@@ -1,11 +1,14 @@
 """Chromium setup helpers.
 
-The primary setup path installs chrome-headless-shell via Playwright:
+The primary setup path installs Playwright's chromium-headless-shell:
 
-    bench setup-chrome          # runs: playwright install chrome-headless-shell --with-deps
+    bench setup-chrome          # runs: playwright install chromium-headless-shell --with-deps
 
-chrome-headless-shell is a stripped-down headless-only binary (~136 MB) vs
+chromium-headless-shell is a stripped-down headless-only binary (~94 MB) vs
 full Chromium (~280 MB) — sufficient for PDF and screenshot generation.
+
+In Playwright ≥1.61 the headless shell is the DEFAULT when no channel is
+specified in chromium.launch().
 
 It is installed into ~/.cache/ms-playwright/ (per user, not per bench) so it
 is shared across benches on the same machine and can be pre-installed in a
@@ -31,7 +34,7 @@ EXECUTABLE_PATHS = {
 
 
 def setup_chromium():
-	"""Install chrome-headless-shell via Playwright (cached in ~/.cache/ms-playwright/).
+	"""Install chromium-headless-shell via Playwright (cached in ~/.cache/ms-playwright/).
 
 	Uses sys.executable so the correct venv's playwright is always called.
 	In Docker: run this during image build so the layer is cached.
@@ -39,14 +42,14 @@ def setup_chromium():
 	"""
 	try:
 		subprocess.run(
-			[sys.executable, "-m", "playwright", "install", "chrome-headless-shell", "--with-deps"],
+			[sys.executable, "-m", "playwright", "install", "chromium-headless-shell", "--with-deps"],
 			check=True,
 			text=True,
 		)
-		click.echo("chrome-headless-shell installed successfully via Playwright.")
+		click.echo("chromium-headless-shell installed successfully via Playwright.")
 	except subprocess.CalledProcessError as e:
-		click.echo(f"Failed to install chrome-headless-shell: {e}")
-		raise RuntimeError(f"playwright install chrome-headless-shell failed: {e}")
+		click.echo(f"Failed to install chromium-headless-shell: {e}")
+		raise RuntimeError(f"playwright install chromium-headless-shell failed: {e}")
 	except FileNotFoundError:
 		raise RuntimeError(
 			"playwright module not found. Make sure the frappe package is installed: pip install -e apps/frappe"

@@ -135,16 +135,18 @@ class ChromiumManager:
 		from playwright.sync_api import sync_playwright
 
 		if self.debug_mode:
-			# Full Playwright Chromium: supports headless=False for interactive inspection.
-			channel = None  # no channel = Playwright's own bundled full Chromium
+			# Full Playwright Chromium (channel="chromium"): supports headless=False for
+			# interactive inspection. Install with: playwright install chromium
+			channel = None if executable_path else "chromium"
 			headless = False
 			# --no-startup-window suppresses the OS window, defeating the purpose of headed mode.
 			args = [a for a in CHROMIUM_LAUNCH_ARGS if a not in _HEADLESS_ONLY_ARGS]
 		else:
-			# chrome-headless-shell: headless-only, ~136 MB — sufficient for PDF and screenshots.
-			# When a custom executable_path is set, we don't specify a channel — the custom binary
-			# is used directly (channel would be ignored anyway when executable_path is given).
-			channel = None if executable_path else "chrome-headless-shell"
+			# No channel = Playwright's chromium-headless-shell (~94 MB, headless-only).
+			# In Playwright ≥1.61 this is the default when no channel is specified.
+			# Install with: playwright install chromium-headless-shell
+			# When a custom executable_path is set, no channel is needed either.
+			channel = None
 			headless = True
 			args = CHROMIUM_LAUNCH_ARGS
 
@@ -158,7 +160,7 @@ class ChromiumManager:
 			)
 		except Exception as e:
 			if "Executable doesn't exist" in str(e) or "playwright install" in str(e).lower():
-				binary = "chromium" if self.debug_mode else "chrome-headless-shell"
+				binary = "chromium" if self.debug_mode else "chromium-headless-shell"
 				frappe.log(f"{binary} not found — auto-installing via playwright")
 				self._auto_install_chromium()
 				self._browser = self._playwright.chromium.launch(
@@ -185,7 +187,10 @@ class ChromiumManager:
 		import subprocess
 		import sys
 
-		package = "chromium" if self.debug_mode else "chrome-headless-shell"
+		# Install names differ from channel names:
+		#   debug  → "chromium"             (full build, supports headless=False)
+		#   prod   → "chromium-headless-shell" (lightweight shell, headless-only)
+		package = "chromium" if self.debug_mode else "chromium-headless-shell"
 		try:
 			subprocess.run(
 				[sys.executable, "-m", "playwright", "install", package, "--with-deps"],

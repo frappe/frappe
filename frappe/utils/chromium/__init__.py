@@ -1,11 +1,12 @@
 """Headless-Chromium toolkit powered by Playwright.
 
-:class:`ChromiumManager` launches and manages chrome-headless-shell (~136 MB,
-headless-only) via Playwright. :meth:`~ChromiumManager.new_context` creates
-isolated browser contexts; context.close() cleans up all pages automatically.
+:class:`ChromiumManager` launches and manages Playwright's chromium-headless-shell
+(~94 MB, headless-only) for prod, and full Chromium for dev debug mode.
+:meth:`~ChromiumManager.new_context` creates isolated browser contexts;
+context.close() cleans up all pages automatically.
 
-Run ``bench setup-chrome`` once to install chrome-headless-shell
-(``playwright install chrome-headless-shell --with-deps``).
+Run ``bench setup-chrome`` once to install the headless shell
+(``playwright install chromium-headless-shell --with-deps``).
 In Docker, run it during the image build so the layer is cached.
 
 :class:`CDPSocketClient` is kept for backward compatibility (print_designer uses
