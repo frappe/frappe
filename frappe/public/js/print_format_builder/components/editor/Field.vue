@@ -59,6 +59,7 @@
 									v-for="col in df.table_columns"
 									:key="col.fieldname"
 									:class="numeric_align_class(col)"
+									:style="col.width ? { width: col.width + '%' } : {}"
 								>
 									{{ col.label || col.fieldname }}
 								</th>
@@ -784,6 +785,7 @@ watch(
 	width: 100%;
 	border-collapse: collapse;
 	font-size: var(--text-sm);
+	table-layout: fixed;
 }
 
 /* ── Default: bordered + styled header (matches PDF) ─── */
