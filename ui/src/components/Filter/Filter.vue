@@ -63,53 +63,56 @@
 				class="my-2 min-w-40 rounded-lg bg-surface-elevation-2 shadow-2xl ring-1 ring-black ring-opacity-5 focus:outline-none"
 			>
 				<div class="min-w-72 p-2 sm:min-w-[400px]">
-					<template v-if="model.length">
-						<div v-for="(f, i) in model" :key="i" class="mb-3">
-							<div class="flex items-center justify-between gap-2">
-								<div class="flex items-center gap-2">
-									<div class="w-13 pl-2 text-end text-base text-ink-gray-5">
-										{{ i == 0 ? "Where" : "And" }}
-									</div>
-									<div class="!min-w-[140px]">
-										<Combobox
-											class="w-full"
-											trigger="button"
-											variant="subtle"
-											size="md"
-											:modelValue="f.fieldname"
-											:options="allFields"
-											placeholder="Select field"
-											@update:selectedOption="(o) => updateField(o, i)"
-										/>
-									</div>
-									<div>
-										<Select
-											:modelValue="f.operator"
-											:options="
-												getOperators(f.field?.fieldtype ?? '', f.fieldname)
-											"
-											placeholder="Equals"
-											@update:modelValue="(v) => updateOperator(v, i)"
-										/>
-									</div>
-									<div class="!min-w-[140px]">
-										<component
-											:is="valueControl(f).is"
-											v-bind="valueControl(f).props"
-											:modelValue="f.value"
-											@update:modelValue="(v) => updateValue(v, i)"
-										/>
-									</div>
-								</div>
-								<Button
-									class="flex"
-									variant="ghost"
-									icon="lucide-x"
-									@click="removeFilter(i)"
+					<!-- One grid for all rows so the field / operator / value columns
+					     line up across rows instead of each row sizing to its own
+					     content. Columns auto-size to the widest cell; the controls
+					     fill their column (`w-full`) so every box shares a width. -->
+					<div
+						v-if="model.length"
+						class="mb-3 grid grid-cols-[auto_auto_auto_auto_auto] items-center gap-x-2 gap-y-3"
+					>
+						<template v-for="(f, i) in model" :key="i">
+							<div class="w-13 pl-2 text-end text-base text-ink-gray-5">
+								{{ i == 0 ? "Where" : "And" }}
+							</div>
+							<div class="min-w-[140px]">
+								<Combobox
+									class="w-full"
+									trigger="button"
+									variant="subtle"
+									size="md"
+									:modelValue="f.fieldname"
+									:options="allFields"
+									placeholder="Select field"
+									@update:selectedOption="(o) => updateField(o, i)"
 								/>
 							</div>
-						</div>
-					</template>
+							<div>
+								<Select
+									class="w-full"
+									:modelValue="f.operator"
+									:options="getOperators(f.field?.fieldtype ?? '', f.fieldname)"
+									placeholder="Equals"
+									@update:modelValue="(v) => updateOperator(v, i)"
+								/>
+							</div>
+							<div class="w-[180px]">
+								<component
+									:is="valueControl(f).is"
+									v-bind="valueControl(f).props"
+									class="w-full"
+									:modelValue="f.value"
+									@update:modelValue="(v) => updateValue(v, i)"
+								/>
+							</div>
+							<Button
+								class="flex"
+								variant="ghost"
+								icon="lucide-x"
+								@click="removeFilter(i)"
+							/>
+						</template>
+					</div>
 					<div v-else class="mb-3 flex h-7 items-center px-3 text-sm text-ink-gray-5">
 						Empty - Choose a field to filter by
 					</div>
@@ -148,7 +151,7 @@ import { computed, nextTick, ref } from "vue";
 import { Button, Combobox, Popover, Select, TextInput, DateRangePicker } from "frappe-ui";
 import { useDoctypeMeta } from "../../composables/useDoctypeMeta";
 import { getFilterableFields } from "./getFilterableFields";
-import { getOperators, getDefaultOperator, getDefaultValue } from "./operators";
+import { getOperators, getDefaultValue, conditionFor, carryOver } from "./operators";
 import type { Filter, FilterField, FilterOperator, FilterValue } from "./types";
 // The shared, fieldtype-aware value inputs (ADR-0004). Filter mounts only the
 // zero-coupling subset; it never provides the form-context injections, so the
@@ -194,16 +197,6 @@ function fieldFromOption(option: unknown): FilterField | null {
 	return allFields.value.find((o) => o.fieldname === fieldname) ?? null;
 }
 
-/** A fresh condition seeded with the field's default operator and value. */
-function conditionFor(field: FilterField): Filter {
-	return {
-		field,
-		fieldname: field.fieldname,
-		operator: getDefaultOperator(field.fieldtype),
-		value: getDefaultValue(field) as FilterValue,
-	};
-}
-
 function addFilter(option: unknown) {
 	const field = fieldFromOption(option);
 	if (!field) return;
@@ -215,7 +208,7 @@ function addFilter(option: unknown) {
 function updateField(option: unknown, index: number) {
 	const field = fieldFromOption(option);
 	if (!field) return;
-	model.value = model.value.map((f, i) => (i === index ? conditionFor(field) : f));
+	model.value = model.value.map((f, i) => (i === index ? carryOver(f, field) : f));
 }
 
 function updateOperator(operator: FilterOperator, index: number) {

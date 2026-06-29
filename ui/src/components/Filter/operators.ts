@@ -1,4 +1,4 @@
-import type { FilterField, FilterOperator, FilterValue } from "./types";
+import type { Filter, FilterField, FilterOperator, FilterValue } from "./types";
 
 /** An operator choice offered for a field, ready for a Select control. */
 export interface OperatorOption {
@@ -109,4 +109,80 @@ export function getDefaultValue(field: FilterField): FilterValue | null {
   if (CHECK_TYPES.includes(field.fieldtype)) return "Yes";
   if (DATE_TYPES.includes(field.fieldtype)) return null;
   return "";
+}
+
+/** A fresh condition seeded with the field's default operator and value. */
+export function conditionFor(field: FilterField): Filter {
+  return {
+    field,
+    fieldname: field.fieldname,
+    operator: getDefaultOperator(field.fieldtype),
+    value: getDefaultValue(field) as FilterValue,
+  };
+}
+
+// --- Field-change carry-over -------------------------------------------------
+// When a row's field changes we keep its operator (and value) where they still
+// make sense for the new field, instead of snapping back to the fieldtype
+// defaults — so refining "Status equals Open" into "Priority equals …" doesn't
+// drop the "equals". A UX nicety over CRM, which always resets on field change.
+
+/** Operators whose value is free user text, not bound to the field's domain. */
+const TEXT_OPERATORS: FilterOperator[] = ["like", "not like", "in", "not in"];
+
+/** The value-input "domain" a fieldtype maps to. A condition's value only carries
+ *  between two fields of the same domain (a number means nothing in a date input). */
+function valueDomain(fieldtype: string): string {
+  if (NUMBER_TYPES.includes(fieldtype)) return "number";
+  if (DATE_TYPES.includes(fieldtype)) return "date";
+  if (SELECT_TYPES.includes(fieldtype)) return "select";
+  if (CHECK_TYPES.includes(fieldtype)) return "check";
+  if (LINK_TYPES.includes(fieldtype)) return "link";
+  if (DURATION_TYPES.includes(fieldtype)) return "duration";
+  if (RATING_TYPES.includes(fieldtype)) return "rating";
+  return "text";
+}
+
+/** Whether `prev`'s value still applies to `field`, given a kept operator. */
+function valueCarries(prev: Filter, field: FilterField): boolean {
+  if (prev.value === "" || prev.value == null) return false;
+  if (
+    valueDomain(prev.field?.fieldtype ?? "Data") !==
+    valueDomain(field.fieldtype)
+  ) {
+    return false;
+  }
+  // Select values must exist in the new field's options; Link values belong to
+  // one target doctype — both can mismatch even within the same domain.
+  if (SELECT_TYPES.includes(field.fieldtype)) {
+    return (field.options ?? "").split("\n").includes(prev.value as string);
+  }
+  if (LINK_TYPES.includes(field.fieldtype))
+    return prev.field?.options === field.options;
+  return true;
+}
+
+/**
+ * The next condition when a row's field changes. Keeps the operator if the new
+ * field still offers it (else the field's default), then keeps the value when it
+ * still applies — operator-driven (set/not-set or free text), or the new field
+ * shares the old one's value domain (with Select options / Link doctype matched).
+ */
+export function carryOver(prev: Filter, field: FilterField): Filter {
+  const keepOperator = getOperators(field.fieldtype, field.fieldname).some(
+    (o) => o.value === prev.operator
+  );
+  if (!keepOperator) return conditionFor(field);
+
+  const operator = prev.operator;
+  const operatorDriven =
+    operator === "is" ||
+    operator === "is not" ||
+    TEXT_OPERATORS.includes(operator);
+  const value = (
+    operatorDriven || valueCarries(prev, field)
+      ? prev.value
+      : getDefaultValue(field)
+  ) as FilterValue;
+  return { field, fieldname: field.fieldname, operator, value };
 }
