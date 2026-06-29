@@ -191,6 +191,26 @@ def load_desktop_data(bootinfo):
 			app_info = apps[0]
 			has_permission = app_info.get("has_permission")
 			if has_permission and not frappe.get_attr(has_permission)():
+				# The user can't access this app, so we don't expose its routes, workspaces or
+				# modules. We still surface its name/title so things that reference the app can be
+				# labelled (e.g. the sidebar header subtitle) instead of falling back to the user's
+				# name. on_apps_screen stays False so it never shows on the apps screen, and an
+				# empty `workspaces` keeps the desk-side lookups from breaking.
+				bootinfo.app_data.append(
+					dict(
+						on_apps_screen=False,
+						app_name=app_info.get("name") or app_name,
+						app_title=app_info.get("title")
+						or (frappe.get_hooks("app_title", app_name=app_name) or [None])[0]
+						or app_name,
+						app_route="",
+						app_logo_url=app_info.get("logo")
+						or frappe.get_hooks("app_logo_url", app_name=app_name)
+						or frappe.get_hooks("app_logo_url", app_name="frappe"),
+						modules=[],
+						workspaces=[],
+					)
+				)
 				continue
 
 		workspaces = [
