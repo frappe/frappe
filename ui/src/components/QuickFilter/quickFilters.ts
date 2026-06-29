@@ -129,9 +129,11 @@ export function applyQuick(
   const firstIdx = filters.findIndex(owns);
 
   if (cleared) {
-    // Remove only the projected (first owned) condition; sibling conditions on the
-    // same field are left untouched.
-    return firstIdx === -1 ? filters : filters.filter((_, i) => i !== firstIdx);
+    // Remove *every* owned condition on the field, not just the projected (first)
+    // one: dropping only the first would let a sibling duplicate (`status = Open`,
+    // `status = Won`) re-project as the new first owned condition and bounce the
+    // cleared input back. Precise, non-owned conditions (a `Status in […]`) survive.
+    return firstIdx === -1 ? filters : filters.filter((f) => !owns(f));
   }
 
   const condition: Filter = {
