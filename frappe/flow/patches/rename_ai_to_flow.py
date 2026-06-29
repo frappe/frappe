@@ -25,14 +25,23 @@ def execute():
 	if not frappe.db.exists("Module Def", "AI"):
 		return
 
-	# Rename the module via SQL: the ORM blocks renaming non-custom modules and would
-	# trigger developer-mode folder side effects.
+	# Renaming re-saves the doctypes; controllers are already on disk as flow_* while the DB
+	# still holds the AI names, so the export would fail. in_import skips it (as model sync does).
+	in_import = frappe.flags.in_import
+	frappe.flags.in_import = True
+	try:
+		_rename_ai_to_flow()
+	finally:
+		frappe.flags.in_import = in_import
+
+
+def _rename_ai_to_flow():
+	# ORM blocks renaming non-custom modules, so do it via SQL.
 	if not frappe.db.exists("Module Def", "Flow"):
 		frappe.db.sql("update `tabModule Def` set name='Flow', module_name='Flow' where name='AI'")
 
-	# Repoint every AI doctype to Flow first. Renaming one doctype re-saves the siblings
-	# that link to it, and those saves validate the module link — so the module must be
-	# valid on all of them before the rename loop runs.
+	# Repoint every doctype to Flow before renaming: each rename re-saves linking siblings,
+	# which validate the module link.
 	frappe.db.sql("update `tabDocType` set module='Flow' where module='AI'")
 	frappe.clear_cache()
 
