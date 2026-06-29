@@ -118,7 +118,7 @@
 </template>
 
 <script setup lang="ts">
-import { computed, onBeforeUnmount, onMounted, reactive, ref } from "vue";
+import { computed, onBeforeUnmount, onMounted, reactive, ref, watch } from "vue";
 import { Button, Checkbox, Combobox, TextInput } from "frappe-ui";
 import { useDoctypeMeta } from "../../composables/useDoctypeMeta";
 import { getFilterableFields } from "../Filter/getFilterableFields";
@@ -255,6 +255,24 @@ function removeField(field: FilterField) {
 // condition to read the operator back from yet); once a condition exists, that
 // condition is the source of truth.
 const operatorOverride = reactive<Record<string, FilterOperator>>({});
+
+// Once an owned condition exists for a field — whoever created it, this control or
+// the Filter popover — that condition is the operator's source of truth, so drop any
+// transient override. This watcher generalizes `setValue`'s local cleanup to external
+// changes: without it an empty-input `equals` toggle would survive a popover add+remove
+// and resurrect `equals` on the next edit instead of falling back to the default `like`.
+watch(
+	filters,
+	(list) => {
+		for (const fieldname of Object.keys(operatorOverride)) {
+			const field = surfaced.value.find((f) => f.fieldname === fieldname);
+			if (field && hasOwnedCondition(list, field)) {
+				delete operatorOverride[fieldname];
+			}
+		}
+	},
+	{ deep: true }
+);
 
 function activeOperator(field: FilterField): FilterOperator {
 	// A stored owned condition is the source of truth — so an external delete or
