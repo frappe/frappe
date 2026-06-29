@@ -2,7 +2,7 @@
 	<div
 		class="print-format-section-container"
 		data-pfb-section
-		v-show="!preview_doc || is_section_visible"
+		:class="{ 'section-container--condition-hidden': preview_doc && !is_section_visible }"
 	>
 		<!-- Top-left actions pill shown on hover in clean-preview (toolbar is hidden) -->
 		<div v-if="!is_header" class="section-preview-actions">
@@ -184,6 +184,13 @@ function remove_column(index) {
 
 .print-format-section-container:not(:last-child) {
 	margin-bottom: 0.5rem;
+}
+
+.section-container--condition-hidden {
+	opacity: 0.35;
+	outline: 2px dashed var(--gray-400);
+	outline-offset: 2px;
+	border-radius: var(--radius);
 }
 
 .print-format-section {

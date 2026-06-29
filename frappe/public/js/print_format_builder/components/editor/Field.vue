@@ -5,8 +5,9 @@
 			'field--table': df.fieldtype == 'Table',
 			'field--selected': is_selected,
 			'field--preview': !!preview_doc,
+			'field--condition-hidden': preview_doc && !is_field_visible,
 		}"
-		v-show="!df.remove && (preview_doc ? is_field_visible : true)"
+		v-show="!df.remove"
 		:title="df.label || df.fieldname"
 		@click.stop="select_field"
 	>
@@ -672,6 +673,12 @@ watch(
 	background: transparent;
 	padding: 0;
 	position: relative;
+}
+
+.field--condition-hidden {
+	opacity: 0.35;
+	border: 1px dashed var(--gray-400) !important;
+	border-radius: var(--radius);
 }
 
 .field--preview:hover {
