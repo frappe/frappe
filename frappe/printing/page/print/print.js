@@ -351,9 +351,10 @@ frappe.ui.form.PrintView = class {
 			this.set_default_letterhead();
 			return;
 		}
-		frappe.db.get_value("Print Format", format_name, "letter_head").then(({ message }) => {
-			if (message?.letter_head) {
-				this.letterhead_selector.val(message.letter_head);
+		frappe.model.with_doc("Print Format", format_name, () => {
+			const letter_head = this.get_print_format(format_name).letter_head;
+			if (letter_head) {
+				this.letterhead_selector.val(letter_head);
 			} else {
 				this.set_default_letterhead();
 			}
