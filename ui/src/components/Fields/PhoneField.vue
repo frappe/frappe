@@ -16,7 +16,7 @@
 // Minimal `type=tel` text box; value is the raw string. Core's `controls/phone.js`
 // adds an ISD picker and stores a composite `"ISD-number"` — a later upgrade.
 import { TextInput } from "frappe-ui";
-import type { FieldComponentEmits, FieldComponentProps } from "../types";
+import type { FieldComponentEmits, FieldComponentProps } from "./types";
 
 defineProps<FieldComponentProps>();
 const emit = defineEmits<FieldComponentEmits>();

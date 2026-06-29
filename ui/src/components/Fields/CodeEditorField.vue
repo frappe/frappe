@@ -119,7 +119,7 @@ import { Button } from "frappe-ui";
 import { InputLabel, InputDescription } from "frappe-ui/internals";
 import { CodeEditor, CodePreview } from "frappe-ui/code-editor";
 import { fieldtypeToLanguage } from "./fieldtypeToLanguage";
-import type { FieldComponentEmits, FieldComponentProps } from "../types";
+import type { FieldComponentEmits, FieldComponentProps } from "./types";
 
 const props = withDefaults(
 	defineProps<

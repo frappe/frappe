@@ -76,20 +76,17 @@
 <script setup lang="ts">
 import { computed, defineAsyncComponent, inject, provide, ref, watch } from "vue";
 import { Dialog } from "frappe-ui";
-import { Grid } from "../../Grid";
-import type { GridColumn } from "../../Grid";
-import { fieldsToLayout } from "../fieldsToLayout";
-import { resolveFieldConditionals } from "../resolveLayout";
-import { DocKey, ParentDocKey, ResolveFieldKey } from "../types";
-import type {
-	FieldComponentEmits,
-	FieldComponentProps,
-	FieldNode,
-	FormLayoutSchema,
-} from "../types";
+import { Grid } from "../Grid";
+import type { GridColumn } from "../Grid";
+import { fieldsToLayout } from "../FormLayout/fieldsToLayout";
+import { resolveFieldConditionals } from "../FormLayout/resolveLayout";
+import { DocKey, ParentDocKey } from "./types";
+import { ResolveFieldKey } from "../FormLayout/types";
+import type { FieldComponentEmits, FieldComponentProps } from "./types";
+import type { FieldNode, FormLayoutSchema } from "../FormLayout/types";
 
 // Async to break the module cycle (fieldTypes → TableField → FormLayout → fieldTypes).
-const FormLayout = defineAsyncComponent(() => import("../FormLayout.vue"));
+const FormLayout = defineAsyncComponent(() => import("../FormLayout/FormLayout.vue"));
 
 const props = defineProps<FieldComponentProps>();
 const emit = defineEmits<FieldComponentEmits>();

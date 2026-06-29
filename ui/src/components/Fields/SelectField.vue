@@ -13,7 +13,7 @@
 <script setup lang="ts">
 import { computed } from "vue";
 import { Select } from "frappe-ui";
-import type { FieldComponentEmits, FieldComponentProps } from "../types";
+import type { FieldComponentEmits, FieldComponentProps } from "./types";
 
 const props = defineProps<FieldComponentProps>();
 const emit = defineEmits<FieldComponentEmits>();

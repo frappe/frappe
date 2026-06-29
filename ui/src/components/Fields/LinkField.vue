@@ -13,8 +13,8 @@
 
 <script setup lang="ts">
 import { computed } from "vue";
-import { Link } from "../../Link";
-import type { FieldComponentEmits, FieldComponentProps } from "../types";
+import { Link } from "../Link";
+import type { FieldComponentEmits, FieldComponentProps } from "./types";
 
 const props = defineProps<FieldComponentProps>();
 const emit = defineEmits<FieldComponentEmits>();

@@ -4,7 +4,7 @@
 // stored in `field.options` — so it lives here with the field wrapper rather than
 // in the framework-agnostic editor primitive.
 
-import type { FieldMeta } from "../types";
+import type { FieldMeta } from "./types";
 
 /**
  * Map a FormLayout field to a CodeMirror language key.

@@ -118,8 +118,8 @@
 // lazily mounted so the uploader/cropper load only when attaching.
 import { computed, defineAsyncComponent, ref, watch } from "vue";
 import { Popover, TextInput } from "frappe-ui";
-import type { FieldComponentEmits, FieldComponentProps } from "../types";
-import type { Restrictions, UploadResult, UploadTransport } from "../../FileUpload/types";
+import type { FieldComponentEmits, FieldComponentProps } from "./types";
+import type { Restrictions, UploadResult, UploadTransport } from "../FileUpload/types";
 
 const FileUploadDialog = defineAsyncComponent(
 	() => import("../../FileUpload/FileUploadDialog.vue")

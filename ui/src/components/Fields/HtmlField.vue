@@ -9,7 +9,7 @@
 // `$wrapper.html()`) to avoid an XSS flag; `dompurify` is a transitive `frappe-ui` dep.
 import { computed } from "vue";
 import DOMPurify from "dompurify";
-import type { FieldComponentProps } from "../types";
+import type { FieldComponentProps } from "./types";
 
 const props = defineProps<FieldComponentProps>();
 

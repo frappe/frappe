@@ -13,7 +13,7 @@
 
 <script setup lang="ts">
 import { TextInput } from "frappe-ui";
-import type { FieldComponentEmits, FieldComponentProps } from "../types";
+import type { FieldComponentEmits, FieldComponentProps } from "./types";
 
 defineProps<FieldComponentProps>();
 const emit = defineEmits<FieldComponentEmits>();

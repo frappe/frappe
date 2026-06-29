@@ -25,6 +25,10 @@
       "import": "./src/components/SortBy/index.ts",
       "types": "./src/components/SortBy/index.ts"
     },
+    "./fields": {
+      "import": "./src/components/Fields/index.ts",
+      "types": "./src/components/Fields/index.ts"
+    },
     "./utils": {
       "import": "./src/utils/index.ts",
       "types": "./src/utils/index.ts"

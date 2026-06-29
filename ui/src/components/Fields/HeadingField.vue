@@ -5,7 +5,7 @@
 <script setup lang="ts">
 // Display-only: a section heading, no value and no emit. Core renders `Heading`
 // as an `<h4>` (controls/heading.js → ControlHTML), mirrored here for parity.
-import type { FieldComponentProps } from "../types";
+import type { FieldComponentProps } from "./types";
 
 defineProps<FieldComponentProps>();
 </script>

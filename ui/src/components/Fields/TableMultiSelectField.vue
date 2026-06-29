@@ -20,9 +20,9 @@
 // target doctype; stored value is an array of child rows, bridged to the
 // control's `string[]` via `useChildRowModel`. Select-only, like `LinkField`.
 import { computed } from "vue";
-import { TableMultiSelect } from "../../TableMultiSelect";
-import { useChildRowModel } from "../useChildRowModel";
-import type { FieldComponentEmits, FieldComponentProps } from "../types";
+import { TableMultiSelect } from "../TableMultiSelect";
+import { useChildRowModel } from "../FormLayout/useChildRowModel";
+import type { FieldComponentEmits, FieldComponentProps } from "./types";
 
 const props = defineProps<FieldComponentProps>();
 const emit = defineEmits<FieldComponentEmits>();

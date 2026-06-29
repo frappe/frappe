@@ -16,7 +16,7 @@
 // `update:modelValue`; a selection is a commit, so we re-emit `change` too.
 import { computed } from "vue";
 import { Combobox } from "frappe-ui";
-import type { FieldComponentEmits, FieldComponentProps } from "../types";
+import type { FieldComponentEmits, FieldComponentProps } from "./types";
 
 const props = defineProps<FieldComponentProps>();
 const emit = defineEmits<FieldComponentEmits>();

@@ -18,11 +18,11 @@
 <script setup lang="ts">
 import { computed, inject, nextTick, ref } from "vue";
 import { TextInput } from "frappe-ui";
-import { DocKey, ParentDocKey } from "../types";
-import type { FieldComponentEmits, FieldComponentProps } from "../types";
-import { flt, formatField } from "../formatNumber";
-import { resolveFieldCurrency } from "../resolveCurrency";
-import { getFormatDefaults } from "../formatDefaults";
+import { DocKey, ParentDocKey } from "./types";
+import type { FieldComponentEmits, FieldComponentProps } from "./types";
+import { flt, formatField } from "../FormLayout/formatNumber";
+import { resolveFieldCurrency } from "../FormLayout/resolveCurrency";
+import { getFormatDefaults } from "../FormLayout/formatDefaults";
 
 const props = defineProps<FieldComponentProps>();
 const emit = defineEmits<FieldComponentEmits>();

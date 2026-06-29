@@ -1,5 +1,5 @@
 import { describe, expect, it } from "vitest";
-import { fieldtypeToLanguage } from "../fields/fieldtypeToLanguage";
+import { fieldtypeToLanguage } from "../fieldtypeToLanguage";
 import type { FieldMeta } from "../types";
 
 const field = (over: Partial<FieldMeta>): FieldMeta => ({

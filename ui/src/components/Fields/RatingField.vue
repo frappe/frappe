@@ -17,7 +17,7 @@
 // `field.options` holds the star count (defaults to 5).
 import { computed } from "vue";
 import { Rating } from "frappe-ui";
-import type { FieldComponentEmits, FieldComponentProps } from "../types";
+import type { FieldComponentEmits, FieldComponentProps } from "./types";
 
 const props = defineProps<FieldComponentProps>();
 const emit = defineEmits<FieldComponentEmits>();

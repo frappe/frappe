@@ -44,8 +44,8 @@
 // upload, no emit.
 import { computed, inject, ref, useId } from "vue";
 import { InputLabel, InputDescription } from "frappe-ui/internals";
-import { DocKey } from "../types";
-import type { FieldComponentProps } from "../types";
+import { DocKey } from "./types";
+import type { FieldComponentProps } from "./types";
 
 const props = defineProps<FieldComponentProps>();
 

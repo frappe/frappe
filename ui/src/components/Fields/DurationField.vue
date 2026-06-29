@@ -14,7 +14,7 @@
 // `v-model`. `update:modelValue` fires on commit, so we re-emit `change` too.
 import { computed } from "vue";
 import { Duration } from "frappe-ui";
-import type { FieldComponentEmits, FieldComponentProps } from "../types";
+import type { FieldComponentEmits, FieldComponentProps } from "./types";
 
 const props = defineProps<FieldComponentProps>();
 const emit = defineEmits<FieldComponentEmits>();

@@ -88,7 +88,7 @@
 // failure still surfaces as `loadError` rather than throwing silently.
 import { computed, nextTick, onBeforeUnmount, ref, watch } from "vue";
 import { Button, Dialog, TextInput } from "frappe-ui";
-import type { FieldComponentEmits, FieldComponentProps } from "../types";
+import type { FieldComponentEmits, FieldComponentProps } from "./types";
 
 const props = defineProps<FieldComponentProps>();
 const emit = defineEmits<FieldComponentEmits>();

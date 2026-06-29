@@ -15,10 +15,10 @@
 // Dynamic Link: the target doctype is named by a sibling field (`field.options`),
 // resolved via `pickSiblingValue` (row → doc → parent). Disabled until it has a value.
 import { computed, inject } from "vue";
-import { Link } from "../../Link";
-import { DocKey, ParentDocKey } from "../types";
-import { pickSiblingValue } from "../pickSiblingValue";
-import type { FieldComponentEmits, FieldComponentProps } from "../types";
+import { Link } from "../Link";
+import { DocKey, ParentDocKey } from "./types";
+import { pickSiblingValue } from "../FormLayout/pickSiblingValue";
+import type { FieldComponentEmits, FieldComponentProps } from "./types";
 
 const props = defineProps<FieldComponentProps>();
 const emit = defineEmits<FieldComponentEmits>();

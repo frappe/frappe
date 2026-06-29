@@ -4,7 +4,7 @@
 
 <script setup lang="ts">
 import { Button } from "frappe-ui";
-import type { FieldComponentProps } from "../types";
+import type { FieldComponentProps } from "./types";
 
 // A Button carries no value: it triggers an action. There is no emit-on-click
 // hack anymore — the click arrives via the node's `ui.on.click` (decorate- or
