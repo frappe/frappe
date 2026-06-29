@@ -942,7 +942,7 @@ frappe.ui.Sidebar = class Sidebar {
 	sidebar_from_module(entity) {
 		const meta = entity && frappe.get_meta(entity);
 		if (!meta?.module) return null;
-		const sidebar = this.all_sidebar_items?.[frappe.slug(meta.module)];
+		const sidebar = this.all_sidebar_items?.[meta.module.toLowerCase()];
 		return sidebar ? sidebar.label : null;
 	}
 
