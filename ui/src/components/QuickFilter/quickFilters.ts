@@ -129,11 +129,14 @@ export function applyQuick(
   const firstIdx = filters.findIndex(owns);
 
   if (cleared) {
-    // Remove every owned condition on the field, not just the projected (first
-    // owned) one. A sibling owned duplicate (`status = Open`, `status = Won`)
-    // would otherwise re-project as the input's new shown value, leaving the
-    // input visibly un-cleared and the list still filtered. Precise, non-owned
-    // conditions (a `Status in […]`) survive untouched.
+    // Quick Filter is authoritative for any field it owns: clearing removes
+    // *every* owned condition on the field — including a duplicate added via the
+    // Filter popover — because the popover should not co-own a field already
+    // controlled by the quick-filter bar (Option C; the deliberate, documented
+    // contract). Removing only the projected (first owned) one would let a sibling
+    // owned duplicate (`status = Open`, `status = Won`) re-project as the input's
+    // new shown value, leaving it visibly un-cleared and the list still filtered.
+    // Precise, non-owned conditions (a `Status in […]`) survive untouched.
     return filters.filter((f) => !owns(f));
   }
 
