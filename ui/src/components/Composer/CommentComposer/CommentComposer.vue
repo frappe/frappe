@@ -4,13 +4,13 @@
 		 base composer. -->
 	<Composer
 		ref="composer"
-		:storage-key="storageKey"
 		:placeholder="placeholder"
 		:label="label"
+		:loading="loading"
 		:upload-function="uploadFunction"
 		:mention-options="mentionOptions"
 		v-model:body="body"
-		:on-submit="onSubmit"
+		@submit="emit('submit', $event)"
 		@discard="emit('discard')"
 		@remove-attachment="emit('remove-attachment', $event)"
 	>
@@ -18,8 +18,8 @@
 			<ComposerHeader title="Comment" />
 		</template>
 
-		<template v-if="$slots.utilities" #utilities="utilityProps">
-			<slot name="utilities" v-bind="utilityProps" />
+		<template v-if="$slots.actions" #actions="actionProps">
+			<slot name="actions" v-bind="actionProps" />
 		</template>
 	</Composer>
 </template>
@@ -28,15 +28,17 @@
 import { computed, ref } from "vue";
 import Composer from "../Composer.vue";
 import ComposerHeader from "../ComposerHeader.vue";
-import type { CommentComposerProps, UploadedFile } from "../types";
+import type { CommentComposerProps, CommentPayload, UploadedFile } from "../types";
 
 withDefaults(defineProps<CommentComposerProps>(), {
-	storageKey: null,
 	placeholder: "This message is only visible to internal team.",
 	label: "Comment",
 });
 
 const emit = defineEmits<{
+	/** The user posted the comment (body + attachments). Run the send (set
+	 *  `:loading` while it does) and call the exposed `reset()` on success. */
+	submit: [payload: CommentPayload];
 	discard: [];
 	"remove-attachment": [file: UploadedFile];
 }>();

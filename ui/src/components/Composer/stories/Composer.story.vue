@@ -6,7 +6,7 @@
 			<code>FloatingWindow</code>, so drive it with <code>v-model:mode</code> (docked /
 			floating / minimized). CommentComposer is window-agnostic content the host drops into a
 			<code>FloatingWindow</code> (or renders inline). Both are transport-agnostic, so here
-			<code>onSubmit</code> just logs the payload.
+			the <code>@submit</code> handler just logs the payload.
 		</p>
 
 		<!-- ── Controls ──────────────────────────────────────────────────── -->
@@ -35,27 +35,26 @@
 					v-model:recipients="recipients"
 					:search-recipients="searchRecipients"
 					expandable
-					storage-key="story:composer:email"
 					placeholder="Write your reply…"
-					:on-submit="(p) => log('email:submit', p)"
+					@submit="(p) => log('email:submit', p)"
 					@discard="log('email:discard')"
 				/>
 			</div>
 
 			<div>
 				<div class="mb-2 text-sm-medium text-ink-gray-7">
-					MultiComposer (Via Email ▾ / Comment — channel: {{ channel }})
+					EmailComposer, multi-channel (Via Email ▾ / Comment — channel: {{ channel }})
 				</div>
-				<MultiComposer
+				<EmailComposer
 					v-model:channel="channel"
+					:channels="['email', 'comment']"
 					:fields="fields"
 					:search-recipients="searchRecipients"
 					:mention-options="mentionOptions"
 					expandable
-					storage-key="story:composer:multi"
 					placeholder="Write your reply…"
-					:on-submit="(p) => log('multi:email', p)"
-					:on-comment="(p) => log('multi:comment', p)"
+					@submit="(p) => log('multi:email', p)"
+					@submit-comment="(p) => log('multi:comment', p)"
 					@discard="log('multi:discard')"
 				/>
 			</div>
@@ -70,10 +69,9 @@
 					storage-key="story:composer:comment:window"
 				>
 					<CommentComposer
-						storage-key="story:composer:comment"
 						:mention-options="mentionOptions"
 						placeholder="Type @ to mention a teammate…"
-						:on-submit="(p) => log('comment:submit', p)"
+						@submit="(p) => log('comment:submit', p)"
 						@discard="log('comment:discard')"
 					/>
 				</FloatingWindow>
@@ -91,9 +89,8 @@
 					:fields="fields"
 					:expandable="false"
 					v-model:body="draftBody"
-					:signature="signature"
 					placeholder="Write your reply…"
-					:on-submit="(p) => log('inline:submit', p)"
+					@submit="(p) => log('inline:submit', p)"
 				>
 					<template #from>
 						<div class="flex items-center gap-2 py-1.5">
@@ -121,7 +118,7 @@
 import { computed, ref } from "vue";
 import { Checkbox, Select } from "frappe-ui";
 import { FloatingWindow, type WindowMode } from "frappe-ui/experimental";
-import { CommentComposer, EmailComposer, MultiComposer } from "../index";
+import { CommentComposer, EmailComposer } from "../index";
 import type {
 	Channel,
 	CommentPayload,
@@ -135,7 +132,7 @@ import type {
 const mode = ref<WindowMode>("docked");
 const modeOptions: WindowMode[] = ["docked", "floating", "minimized"];
 
-// MultiComposer's active channel, driven by its header dropdown.
+// Active channel for the multi-channel demo, driven by its header dropdown.
 const channel = ref<Channel>("email");
 
 const fieldSubject = ref(true);
@@ -192,14 +189,6 @@ function searchRecipients(query: string): Promise<Recipient[]> {
 const identities = ["support@example.com", "sales@example.com"];
 const fromEmail = ref(identities[0]);
 const draftBody = ref("");
-
-// Host-owned signatures, swapped when the From identity changes — the composer
-// inserts/swaps them without clobbering text the user has typed.
-const signatures: Record<string, string> = {
-	"support@example.com": "<p>— Support Team</p>",
-	"sales@example.com": "<p>— Sales Team</p>",
-};
-const signature = computed(() => signatures[fromEmail.value]);
 
 const events = ref<string[]>([]);
 function log(name: string, payload?: EmailPayload | CommentPayload) {

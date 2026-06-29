@@ -92,12 +92,12 @@
 						</div>
 
 						<div class="flex items-center justify-between gap-2 px-2.5 pb-2.5">
-							<!-- Utilities scroll horizontally so Discard/Send stay visible
-								 in a narrow window. Wrappers fill this (attach, etc). -->
+							<!-- Host actions (attach, saved replies, …) scroll horizontally
+								 so Discard/Send stay visible in a narrow window. -->
 							<div
 								class="flex min-w-0 flex-1 items-center gap-1 overflow-x-auto"
 							>
-								<slot name="utilities" v-bind="{ addAttachment, setUploading }" />
+								<slot name="actions" v-bind="{ addAttachment, setUploading }" />
 							</div>
 							<div class="flex shrink-0 items-center gap-2">
 								<Button label="Discard" @click="discard" />
@@ -118,7 +118,7 @@
 </template>
 
 <script setup lang="ts">
-import { computed, nextTick, onMounted, ref, watch } from "vue";
+import { computed, nextTick, ref, watch } from "vue";
 import { Button } from "frappe-ui";
 import {
 	Editor,
@@ -128,19 +128,20 @@ import {
 	commentToolbar,
 	type UploadedFile as EditorUploadedFile,
 } from "frappe-ui/editor";
-import type { ComposerProps, UploadedFile } from "./types";
+import type { ComposerProps, CoreSubmitPayload, UploadedFile } from "./types";
 
 const props = withDefaults(defineProps<ComposerProps>(), {
-	storageKey: null,
 	placeholder: "Type your message…",
 	label: "Send",
 });
 
 const emit = defineEmits<{
+	/** The user submitted: the built message body + attachments. The host runs
+	 *  the send (set `loading` while it does) and calls the exposed `reset()` on
+	 *  success — the composer no longer awaits or resets itself. */
+	submit: [payload: CoreSubmitPayload];
 	/** Fired when the user discards the draft. */
 	discard: [];
-	/** Fired after a successful submit (wrappers reset their own fields here). */
-	submitted: [];
 	/** Fired only when the user removes an attachment chip, so the host can
 	 *  delete that file server-side. NOT fired on reset/discard/send-clear —
 	 *  those files were either never sent or already belong to the sent email. */
@@ -183,13 +184,8 @@ const body = defineModel<string>("body", { default: "" });
 
 // The original message being replied to. Held outside the editor body in a
 // collapsible block, then appended back on send so the quoted thread travels
-// with the reply without cluttering the compose area. Persisted under the
-// storageKey when one is given; otherwise it lives only in memory for the
-// session.
-const quotedStorageKey = props.storageKey ? `${props.storageKey}:quoted-reply` : null;
-const quotedContent = ref<string | null>(
-	quotedStorageKey ? localStorage.getItem(quotedStorageKey) : null
-);
+// with the reply without cluttering the compose area. In-memory for the session.
+const quotedContent = ref<string | null>(null);
 const quotedContentRef = ref<HTMLElement | null>(null);
 const isQuoteExpanded = ref(false);
 
@@ -237,12 +233,6 @@ function onDeleteAcrossQuote(event: KeyboardEvent) {
 	}
 }
 
-watch(quotedContent, (value) => {
-	if (!quotedStorageKey) return;
-	if (value) localStorage.setItem(quotedStorageKey, value);
-	else localStorage.removeItem(quotedStorageKey);
-});
-
 function onQuotedInput() {
 	const html = quotedContentRef.value?.innerHTML ?? "";
 	// Empty-of-text (stray <br>/<p></p> left after deleting) collapses to null,
@@ -256,15 +246,6 @@ watch(quotedContent, (next, prev) => {
 			if (quotedContentRef.value) quotedContentRef.value.innerHTML = next;
 		});
 	}
-});
-
-onMounted(() => {
-	if (!quotedContent.value) return;
-	nextTick(() => {
-		if (quotedContentRef.value) {
-			quotedContentRef.value.innerHTML = quotedContent.value as string;
-		}
-	});
 });
 
 /** Body plus the quoted reply, appended as a blockquote at send time. */
@@ -287,7 +268,7 @@ function setQuotedReply(content: string) {
 }
 
 // Attachment state lives here (the toolbar renders the chips); wrappers add to
-// it through the `utilities` slot, and the files ride along in the payload. The
+// it through the `actions` slot, and the files ride along in the payload. The
 // host learns about an explicit user removal via `remove-attachment` (to clean
 // up server-side) — distinct from clearing the list on reset, which is silent.
 const attachments = ref<UploadedFile[]>([]);
@@ -306,9 +287,8 @@ function removeAttachment(file: UploadedFile) {
 	emit("remove-attachment", file);
 }
 
-const loading = ref(false);
 const isDisabled = computed(
-	() => isContentEmpty(body.value) || loading.value || isUploading.value
+	() => isContentEmpty(body.value) || props.loading || isUploading.value
 );
 
 /** True when the editor HTML carries no text and no media. */
@@ -319,59 +299,21 @@ function isContentEmpty(content: string) {
 	return (doc.body.textContent ?? "").trim().length === 0;
 }
 
-/** Plain text of an HTML fragment — used to compare signatures despite the
- *  editor's HTML normalization. */
-function textOf(html?: string) {
-	if (!html) return "";
-	const doc = new DOMParser().parseFromString(html, "text/html");
-	return (doc.body.textContent ?? "").trim();
-}
-
-/** The body with the signature placed a blank line below it. */
-function withSignature(html?: string) {
-	return html ? `${html}` : "";
-}
-
-// The host owns the signature content and switches it when the sending identity
-// changes; we own the placement. Seed it into an empty body, and swap it on
-// change — but only while the user hasn't written over it (compared by text).
-watch(
-	() => props.signature,
-	(next, previous) => {
-		const untouched =
-			isContentEmpty(body.value) || textOf(body.value) === textOf(withSignature(previous));
-		if (untouched) body.value = withSignature(next);
-	},
-	{ immediate: true }
-);
-
 function focus() {
 	setTimeout(() => editor.value?.commands?.focus("start"), 0);
 }
 
-// Hand the message to the wrapper's send method, and reset on success. The
-// wrapper owns delivery (and any validation); the draft is kept if it throws.
-async function submit() {
+// Emit the built message for the host to deliver. We don't await or reset here:
+// the host owns delivery (and `loading`), and calls the exposed `reset()` on
+// success — so a failed send simply leaves the draft untouched.
+function submit() {
 	if (isDisabled.value) return;
-
-	loading.value = true;
-	try {
-		await props.onSubmit?.({
-			body: buildMessage(),
-			attachments: attachments.value,
-		});
-	} catch (error) {
-		return;
-	} finally {
-		loading.value = false;
-	}
-	reset();
-	emit("submitted");
+	emit("submit", { body: buildMessage(), attachments: attachments.value });
 }
 
 function reset() {
-	// Re-seed the signature so a fresh compose still shows it (empty otherwise).
-	body.value = withSignature(props.signature);
+	// Clear the editor; the host re-seeds any default body (e.g. a signature).
+	body.value = "";
 	attachments.value = [];
 	quotedContent.value = null;
 	isQuoteExpanded.value = false;

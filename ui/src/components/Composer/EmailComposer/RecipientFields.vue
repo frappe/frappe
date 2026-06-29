@@ -2,7 +2,7 @@
 	<!-- Subject and To are shown when enabled by props; Cc/Bcc are revealed by
 		 the header toggles. The To row rides along so the sender can see and edit
 		 who the reply goes to. -->
-	<div class="px-2.5 last:border-b">
+	<div class="px-2.5">
 		<Row v-if="showSubject || subject" label="Subject">
 			<input
 				v-model="subject"
@@ -23,6 +23,7 @@
 		<Row v-if="showBcc || model.bcc.length" label="BCC">
 			<RecipientSelect v-model="model.bcc" class="flex-1" :search="search" />
 		</Row>
+		<div class="border-b"></div>
 	</div>
 </template>
 

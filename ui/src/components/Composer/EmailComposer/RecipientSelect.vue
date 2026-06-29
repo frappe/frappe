@@ -12,7 +12,7 @@
 		owning the render keeps names/avatars showing identically everywhere.
 	-->
 	<div class="relative w-full">
-		<div class="flex w-full flex-wrap items-center gap-1" @click="focusInput">
+		<div class="flex w-full flex-wrap items-center gap-1" @click="inputRef?.focus()">
 			<span
 				v-for="recipient in displayedRecipients"
 				:key="recipient.email"
@@ -66,7 +66,7 @@
 					:class="
 						index === activeIndex ? 'bg-surface-gray-2' : 'hover:bg-surface-gray-2'
 					"
-					@mousedown.prevent="selectOption(option)"
+					@mousedown.prevent="addRecipient(option.recipient)"
 					@mousemove="activeIndex = index"
 				>
 					<Avatar
@@ -94,6 +94,7 @@
 
 <script setup lang="ts">
 import { computed, ref } from "vue";
+import { useDebounceFn } from "@vueuse/core";
 import { Avatar, FeatherIcon } from "frappe-ui";
 import type { Recipient, RecipientSearch } from "../types";
 
@@ -119,16 +120,6 @@ function isValidEmail(value: string) {
 	return /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(value.trim());
 }
 
-// Tiny debounce so we don't hit the host's search on every keystroke. (The
-// library carries no @vueuse dependency, so we inline it.)
-function debounce<T extends (...args: never[]) => void>(fn: T, delay: number) {
-	let timer: ReturnType<typeof setTimeout> | undefined;
-	return (...args: Parameters<T>) => {
-		clearTimeout(timer);
-		timer = setTimeout(() => fn(...args), delay);
-	};
-}
-
 // Drop stale responses so an earlier-but-slower request can't overwrite the
 // latest results.
 let requestId = 0;
@@ -144,11 +135,7 @@ async function runSearch(text: string) {
 	}
 }
 
-const debouncedSearch = debounce(runSearch, 250);
-
-function focusInput() {
-	inputRef.value?.focus();
-}
+const debouncedSearch = useDebounceFn(runSearch, 250);
 
 function openDropdown() {
 	isOpen.value = true;
@@ -167,7 +154,9 @@ function onInput() {
 // corrupts its block tree on duplicate `:key`s (null-vnode crashes on patch and
 // unmount), and seeded recipients can repeat an address — so the render list is
 // always unique.
-const displayedRecipients = computed(() => dedupeByEmail(model.value));
+const displayedRecipients = computed(() => [
+	...new Map(model.value.map((r) => [r.email, r])).values(),
+]);
 
 // The dropdown excludes already-selected recipients and likewise de-duplicates
 // by email (contact data can repeat an address) so every row key is unique. A
@@ -186,17 +175,6 @@ const options = computed<Option[]>(() => {
 	}
 	return matches;
 });
-
-function dedupeByEmail(recipients: Recipient[]) {
-	const seen = new Set<string>();
-	const unique: Recipient[] = [];
-	for (const recipient of recipients) {
-		if (seen.has(recipient.email)) continue;
-		seen.add(recipient.email);
-		unique.push(recipient);
-	}
-	return unique;
-}
 
 // Row text as plain strings (no `<template v-if>` fragments in the list — those
 // trip Vue's block patcher with a null next-sibling on update).
@@ -218,12 +196,8 @@ function moveActive(delta: number) {
 
 function onEnter() {
 	const active = activeIndex.value >= 0 ? options.value[activeIndex.value] : null;
-	if (active) selectOption(active);
+	if (active) addRecipient(active.recipient);
 	else addTyped();
-}
-
-function selectOption(option: Option) {
-	addRecipient(option.recipient);
 }
 
 function addRecipient(recipient: Recipient) {
@@ -233,7 +207,7 @@ function addRecipient(recipient: Recipient) {
 	query.value = "";
 	searchResults.value = [];
 	activeIndex.value = -1;
-	focusInput();
+	inputRef.value?.focus();
 }
 
 function addTyped() {

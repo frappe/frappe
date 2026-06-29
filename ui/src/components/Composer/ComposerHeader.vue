@@ -12,11 +12,11 @@
 	<div class="flex items-center justify-between gap-2 py-1.5">
 		<!-- Title, or a host-supplied trigger (e.g. EmailComposer's channel
 			 dropdown) that replaces the plain label. While minimized the window is
-			 just a tray strip, so drop the trigger and show the plain title (the
-			 subject) instead, truncated to fit. -->
+			 just a tray strip, so drop the trigger and show the plain channel label
+			 (the active composer), truncated to fit. -->
 		<span
 			v-if="minimized"
-			class="min-w-0 truncate font-medium text-ink-gray-8"
+			class="min-w-0 truncate text-p-sm text-ink-gray-8"
 		>
 			{{ title }}
 		</span>
@@ -36,8 +36,15 @@
 			</Button>
 			<Button v-if="expandable" variant="ghost" @click="emit('expand')">
 				<template #icon>
+					<!-- Floating: close (dock back). Docked: pop out — the lucide
+						 arrow-out-of-square. -->
 					<FeatherIcon
-						:name="floating ? 'x' : 'maximize-2'"
+						v-if="floating"
+						name="x"
+						class="h-4 w-4 text-ink-gray-5"
+					/>
+					<LucideSquareArrowOutUpRight
+						v-else
 						class="h-4 w-4 text-ink-gray-5"
 					/>
 				</template>
@@ -48,6 +55,7 @@
 
 <script setup lang="ts">
 import { Button, FeatherIcon } from "frappe-ui";
+import LucideSquareArrowOutUpRight from "~icons/lucide/square-arrow-out-up-right";
 
 withDefaults(
 	defineProps<{
