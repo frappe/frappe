@@ -1,9 +1,11 @@
 """Headless-Chromium toolkit powered by Playwright.
 
-Manages a Chromium subprocess singleton (:class:`ChromiumManager`) and drives
-it via Playwright for PDF generation and screenshot previews.  The Playwright
-connection is established lazily on the first :meth:`~ChromiumManager.new_context`
-call so Chrome startup cost is paid only when needed.
+:class:`ChromiumManager` launches and manages a Chromium browser via Playwright.
+:meth:`~ChromiumManager.new_context` creates isolated browser contexts; each
+context.close() cleans up all pages automatically.
+
+Run ``bench setup-chrome`` once to install Chromium (``playwright install chromium
+--with-deps``).  In Docker, run it during the image build so the layer is cached.
 
 :class:`CDPSocketClient` is kept for backward compatibility (print_designer uses
 it directly) but is no longer used internally.

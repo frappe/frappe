@@ -1,21 +1,54 @@
-import os
-import platform
-import subprocess
-import time
-from pathlib import Path
 from typing import ClassVar
-
-import requests
 
 import frappe
 from frappe import _
-from frappe.utils.chromium.download import find_or_download_chromium_executable
-from frappe.utils.data import cint
+
+# Chrome flags for headless PDF/screenshot use.
+# Playwright adds --headless and --remote-debugging-pipe automatically — don't duplicate them.
+# https://peter.sh/experiments/chromium-command-line-switches/
+CHROMIUM_LAUNCH_ARGS = [
+	"--disable-gpu",
+	"--disable-field-trial-config",
+	"--disable-background-networking",
+	"--disable-background-timer-throttling",
+	"--disable-backgrounding-occluded-windows",
+	"--disable-back-forward-cache",
+	"--disable-breakpad",
+	"--disable-client-side-phishing-detection",
+	"--disable-component-extensions-with-background-pages",
+	"--disable-component-update",
+	"--no-default-browser-check",
+	"--disable-default-apps",
+	"--disable-dev-shm-usage",
+	"--disable-extensions",
+	"--disable-features=ImprovedCookieControls,LazyFrameLoading,GlobalMediaControls,DestroyProfileOnBrowserClose,MediaRouter,DialMediaRouteProvider,AcceptCHFrame,AutoExpandDetailsElement,CertificateTransparencyComponentUpdater,AvoidUnnecessaryBeforeUnloadCheckSync,Translate,HttpsUpgrades,PaintHolding,ThirdPartyStoragePartitioning,LensOverlay,PlzDedicatedWorker",
+	"--allow-pre-commit-input",
+	"--disable-hang-monitor",
+	"--disable-ipc-flooding-protection",
+	"--disable-popup-blocking",
+	"--disable-prompt-on-repost",
+	"--disable-renderer-backgrounding",
+	"--force-color-profile=srgb",
+	"--metrics-recording-only",
+	"--no-first-run",
+	"--password-store=basic",
+	"--use-mock-keychain",
+	"--no-service-autorun",
+	"--export-tagged-pdf",
+	"--disable-search-engine-choice-screen",
+	"--unsafely-disable-devtools-self-xss-warnings",
+	"--enable-use-zoom-for-dsf=false",
+	"--use-angle",
+	"--hide-scrollbars",
+	"--mute-audio",
+	"--blink-settings=primaryHoverType=2,availableHoverTypes=2,primaryPointerType=4,availablePointerTypes=4",
+	"--no-sandbox",
+	"--no-startup-window",
+]
 
 
 class ChromiumManager:
 	_instance = None
-
 	_browsers: ClassVar[list] = []
 
 	def add_browser(self, browser):
@@ -26,234 +59,87 @@ class ChromiumManager:
 			self._browsers.remove(browser)
 
 	def __new__(cls):
-		# Rebuild singleton when the Playwright browser connection is lost,
-		# or (before Playwright connects) when the subprocess has exited.
+		# Rebuild singleton when the Playwright browser connection is lost.
 		if cls._instance is None:
 			cls._instance = super().__new__(cls)
 		elif getattr(cls._instance, "_browser", None) is not None:
 			if not cls._instance._browser.is_connected():
 				cls._instance = super().__new__(cls)
-		elif (
-			getattr(cls._instance, "_chromium_process", None) is None
-			or cls._instance._chromium_process.poll() is not None
-		):
-			cls._instance = super().__new__(cls)
 		return cls._instance
 
 	def __init__(self):
-		"""Initialize only once."""
-		if hasattr(self, "_initialized"):  # Prevent multiple initializations
+		if hasattr(self, "_initialized"):
 			return
-		self._initialized = True  # Mark as initialized
-
-		self._chromium_process = None
-		self._chromium_path = None
-		self._devtools_url = None
+		self._initialized = True
 		self._playwright = None
 		self._browser = None
 		self._initialize_chromium()
 
 	def _initialize_chromium(self):
-		# ideally browser is initailized from before request hook.
-		# if _chromium_process is not available then initialize it.
-		if self._chromium_process:
-			return
-		# get site config and load chromium settings.
 		site_config = frappe.get_common_site_config()
-
-		# only when we want to chromium on separate docker / server ( not implemented/tested yet )
-		self.CHROMIUM_WEBSOCKET_URL = site_config.get("chromium_websocket_url", "")
-		if self.CHROMIUM_WEBSOCKET_URL:
-			frappe.warn("Using external chromium websocket url. Make sure it is accessible.")
-			self._devtools_url = self.CHROMIUM_WEBSOCKET_URL
-			return
-
-		"""
-		Number of allowed open websocket connections to chromium.
-		This number will basically define how many concurrent requests can be handled by one chromium instance.
-		#TODO: Implement/Modify logic to handle multiple chromium instance in one class / per worker. currently we are starting one chromium.
-		"""
-		self.CHROME_OPEN_CONNECTIONS = site_config.get("chromium_max_concurrent", 1)
-		# if we want to use persistent ( long running ) chromium for all sites.
-		# current approch starts chrome per worker process.
-		# TODO: Better Implement logic to support for persistent chrome proccess.
-		self.USE_PERSISTENT_CHROMIUM = site_config.get("use_persistent_chromium", False)
-		#  time to wait for chromium to start and provide dev tools url used in _set_devtools_url.
-		self.START_TIMEOUT = site_config.get("chromium_start_timeout", 3)
-		# Allow a single PDF request to opt into interactive Chromium debugging in developer mode only.
 		self.debug_mode = frappe.conf.developer_mode and bool(frappe.form_dict.get("pdf_debug"))
 
-		self._chromium_path = find_or_download_chromium_executable()
-		if self._verify_chromium_installation():
-			if not self._devtools_url:
-				self.start_chromium_process(debug=self.debug_mode)
+		# Connect to an external Chromium over CDP (separate docker/server).
+		ws_url = site_config.get("chromium_websocket_url", "")
+		if ws_url:
+			frappe.warn("Using external chromium websocket url. Make sure it is accessible.")
+			self._connect_playwright_cdp(ws_url)
+			return
 
-	def _verify_chromium_installation(self):
-		"""Ensures Chromium is available and executable, raising clearer errors if not."""
-		if not os.path.exists(self._chromium_path):
-			frappe.throw(
-				f"Chromium not available at the specified path. Please check the path: {self._chromium_path}"
-			)
-		if not os.access(self._chromium_path, os.X_OK):
-			frappe.throw(f"Chromium not executable at {self._chromium_path}")
-		return True
+		# Optional: override the binary path (e.g. custom build or system install).
+		# If not set, Playwright uses its own bundled Chromium installed via
+		# `bench setup-chrome` (which runs `playwright install chromium --with-deps`).
+		executable_path = None
+		if custom_path := site_config.get("chromium_path", ""):
+			import shutil
 
-	def start_chromium_process(self, debug=False):
+			executable_path = shutil.which(custom_path) or custom_path
+
+		self._launch_playwright_browser(executable_path=executable_path)
+
+	def _launch_playwright_browser(self, executable_path=None):
+		"""Launch Chromium via Playwright.
+
+		Playwright manages the process lifecycle — no subprocess management,
+		no stderr polling, no manual port selection needed.
 		"""
-		Launches Chromium in headless mode with robust logging and error handling.
-		chrome switches
-		https://peter.sh/experiments/chromium-command-line-switches/
+		from playwright.sync_api import sync_playwright
 
-		NOTE: dbus issue in docker
-		  https://source.chromium.org/chromium/chromium/src/+/main:content/app/content_main.cc;l=229-241?q=DBUS_SESSION_BUS_ADDRESS&ss=chromium
-		"""
+		self._playwright = sync_playwright().start()
 		try:
-			if debug:
-				command_args = [
-					"/Applications/Google Chrome.app/Contents/MacOS/Google Chrome",  # path to locally installed chrome browser for debugging.
-					"--remote-debugging-port=0",
-					"--user-data-dir=/tmp/chromium-{}-user-data".format(
-						frappe.local.site + frappe.utils.random_string(10)
-					),
-					"--disable-gpu",
-					"--no-sandbox",
-					"--no-first-run",
-					"",
-				]
-			else:
-				command_args = [
-					self._chromium_path,
-					# 0 will automatically select a random open port from the ephemeral port range.
-					"--remote-debugging-port=0",
-					"--disable-gpu",  # GPU is not available in production environment.
-					"--disable-field-trial-config",
-					"--disable-background-networking",
-					"--disable-background-timer-throttling",
-					"--disable-backgrounding-occluded-windows",
-					"--disable-back-forward-cache",
-					"--disable-breakpad",
-					"--disable-client-side-phishing-detection",
-					"--disable-component-extensions-with-background-pages",
-					"--disable-component-update",
-					"--no-default-browser-check",
-					"--disable-default-apps",
-					"--disable-dev-shm-usage",
-					"--disable-extensions",
-					"--disable-features=ImprovedCookieControls,LazyFrameLoading,GlobalMediaControls,DestroyProfileOnBrowserClose,MediaRouter,DialMediaRouteProvider,AcceptCHFrame,AutoExpandDetailsElement,CertificateTransparencyComponentUpdater,AvoidUnnecessaryBeforeUnloadCheckSync,Translate,HttpsUpgrades,PaintHolding,ThirdPartyStoragePartitioning,LensOverlay,PlzDedicatedWorker",
-					"--allow-pre-commit-input",
-					"--disable-hang-monitor",
-					"--disable-ipc-flooding-protection",
-					"--disable-popup-blocking",
-					"--disable-prompt-on-repost",
-					"--disable-renderer-backgrounding",
-					"--force-color-profile=srgb",
-					"--metrics-recording-only",
-					"--no-first-run",
-					"--password-store=basic",
-					"--use-mock-keychain",
-					"--no-service-autorun",
-					"--export-tagged-pdf",
-					"--disable-search-engine-choice-screen",
-					"--unsafely-disable-devtools-self-xss-warnings",
-					"--enable-use-zoom-for-dsf=false",
-					"--use-angle",
-					"--headless",
-					"--hide-scrollbars",
-					"--mute-audio",
-					"--blink-settings=primaryHoverType=2,availableHoverTypes=2,primaryPointerType=4,availablePointerTypes=4",
-					"--no-sandbox",
-					"--no-startup-window",
-					# related to HeadlessExperimental flag enable when Implement Deterministic rendering. check page class for more info.
-					# "--enable-surface-synchronization",
-					# "--run-all-compositor-stages-before-draw",
-					# "--disable-threaded-animation",
-					# "--disable-threaded-scrolling",
-					# "--disable-checker-imaging",
-				]
-
-			self._start_chromium_process(command_args)
-
+			self._browser = self._playwright.chromium.launch(
+				executable_path=executable_path,
+				args=CHROMIUM_LAUNCH_ARGS,
+				headless=not self.debug_mode,
+			)
 		except Exception as e:
-			frappe.log_error(f"Error starting Chromium: {e}")
-			frappe.throw(_("Could not start Chromium. Check logs for details."))
-
-	# Apply the decorator to monitor Chromium subprocess usage for development / debugging purposes.
-	# it will print and write usage data to a file ( defaults to chrome_process_usage.json).
-	# from print_designer.pdf_generator.monitor_subprocess import monitor_subprocess_usage
-	# @monitor_subprocess_usage(interval=0.1)
-	def _start_chromium_process(self, command_args):
-		if platform.system().lower() == "windows":
-			# hide cmd window
-			startupinfo = subprocess.STARTUPINFO()
-			startupinfo.dwFlags |= subprocess.STARTF_USESHOWWINDOW
-			startupinfo.wShowWindow = subprocess.SW_HIDE
-			self._chromium_process = subprocess.Popen(
-				command_args,
-				stdout=subprocess.PIPE,
-				stderr=subprocess.PIPE,
-				startupinfo=startupinfo,
-				text=True,
+			self._playwright.stop()
+			self._playwright = None
+			frappe.log_error(f"Error launching Chromium: {e}")
+			frappe.throw(
+				_(
+					"Could not start Chromium. Run 'bench setup-chrome' to install it, then retry."
+					" Check error logs for details."
+				)
 			)
-		else:
-			self._chromium_process = subprocess.Popen(
-				command_args, stdout=subprocess.PIPE, stderr=subprocess.PIPE, text=True
-			)
-		return self._chromium_process
 
-	def _set_devtools_url(self):
-		"""
-		Monitor Chromium's stderr for the DevTools WebSocket URL
-		----------------
-		other approch: if we choose port using find_available_port we can avoid this entirely and fetch_devtools_url() method.
+	def _connect_playwright_cdp(self, ws_url):
+		"""Connect to an externally managed Chromium instance over CDP."""
+		from playwright.sync_api import sync_playwright
 
-		NOTE:	1) in current approch output to stderr is pretty consistent.
-		                2) other approch may seem reliable but it is slow compared to this in testing.
-
-		TODO:
-		final approch can be decided later after testing in production.
-		"""
-		stderr = self._chromium_process.stderr
-		start_time = time.time()
-
-		while time.time() - start_time < self.START_TIMEOUT:
-			# Read a single line from stderr and check if it contains the DevTools URL.
-			# Not using select() because it is not supported on Windows for non-socket file descriptors.
-			line = stderr.readline()
-			# not sure if "DevTools listening on" is consistent in all chromium versions.
-			if "DevTools listening on" in line:
-				url_start = line.find("ws://")
-				if url_start != -1:
-					self._devtools_url = line[url_start:].strip()
-					break
-
-		if not self._devtools_url:
-			self._chromium_process.terminate()
-			raise TimeoutError("Chromium took too long to start.")
+		self._playwright = sync_playwright().start()
+		self._browser = self._playwright.chromium.connect_over_cdp(ws_url)
 
 	def new_context(self):
 		"""Create a new isolated browser context (like a fresh incognito window).
 
-		Lazily connects Playwright to Chrome via CDP on the first call.
-		Equivalent to Target.createBrowserContext, but context.close() automatically
-		closes all pages inside it — no need to track and close pages individually.
+		context.close() automatically closes all pages inside it — no need to
+		track and close pages individually.
 		"""
-		if self._browser is None:
-			self._connect_playwright()
 		return self._browser.new_context()
 
-	def _connect_playwright(self):
-		"""Connect Playwright to the already-running Chromium subprocess via CDP."""
-		if not self._devtools_url:
-			self._set_devtools_url()
-		from playwright.sync_api import sync_playwright
-
-		self._playwright = sync_playwright().start()
-		self._browser = self._playwright.chromium.connect_over_cdp(self._devtools_url)
-
 	def _close_browser(self):
-		"""
-		Close the Playwright connection and terminate the Chromium process.
-		"""
+		"""Close the Playwright browser and stop the Playwright runtime."""
 		if self._browsers:
 			frappe.log("Cannot close Chromium as there are active browser instances.")
 			return
@@ -261,60 +147,24 @@ class ChromiumManager:
 			if self._browser:
 				self._browser.close()
 		except Exception:
-			frappe.log_error("Error disconnecting Playwright from Chromium")
+			frappe.log_error("Error closing Playwright browser")
 		try:
 			if self._playwright:
 				self._playwright.stop()
 		except Exception:
 			frappe.log_error("Error stopping Playwright runtime")
-		if self._chromium_process:
-			self._chromium_process.terminate()
 		ChromiumManager._instance = None
-		self._chromium_process = None
-		self._devtools_url = None
 		self._browser = None
 		self._playwright = None
 		frappe.log("Headless Chromium closed successfully.")
 
 	def detach_debug_browser(self):
-		"""
-		Detach the generator from an interactive debug Chromium process.
+		"""Keep the debug browser open for inspection; reset the singleton.
 
-		This keeps the debug browser window available for inspection, while ensuring
-		the next PDF request starts with a fresh generator/process instead of reusing
-		the old debug session.
+		The next PDF request will start with a fresh browser instance.
 		"""
-		try:
-			if self._browser:
-				self._browser.close()  # disconnect Playwright without killing Chrome
-		except Exception:
-			pass
-		try:
-			if self._playwright:
-				self._playwright.stop()
-		except Exception:
-			pass
+		# Don't close — the developer is inspecting the browser window.
 		ChromiumManager._instance = None
 		self._initialized = False
-		self._chromium_process = None
-		self._devtools_url = None
 		self._browser = None
 		self._playwright = None
-
-	# not used anywhere in the code. read _set_devtools_url for more info.  useful in case we want to take different approch to fetch devtools url.
-	def fetch_devtools_url(self, port):
-		if not port:
-			return None
-		url = f"http://127.0.0.1:{port}/json/version"
-		try:
-			response = requests.get(url)
-			response.raise_for_status()  # Raise an exception for HTTP errors
-			response_data = response.json()
-			return response_data["webSocketDebuggerUrl"].strip()
-		except requests.ConnectionError:
-			frappe.log_error(
-				f"Failed to connect to the Chrome DevTools Protocol. Is Chrome running with --remote-debugging-port={port}"
-			)
-		except requests.RequestException as e:
-			frappe.log_error(f"An error occurred: {e}")
-		return None

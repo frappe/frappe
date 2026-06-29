@@ -1,11 +1,19 @@
-"""Locate, download and set up the bundled headless-Chromium binary.
+"""Chromium setup helpers.
 
-Moved out of ``frappe.utils.print_utils`` since these helpers are not specific to
-PDF/print — they provision the Chromium executable used by the whole
-``frappe.utils.chromium`` stack (PDF generation, previews, scraping).
+The primary setup path is Playwright's bundled Chromium:
+
+    bench setup-chrome          # runs: playwright install chromium --with-deps
+
+This installs Chromium into ~/.cache/ms-playwright/ (per user, not per bench)
+so it is shared across benches on the same machine and is cached as a Docker
+layer at build time — no per-deploy download needed.
+
+The legacy bench-level download functions below are kept for sites that set
+``chromium_path`` in common_site_config.json to point at a custom binary.
 """
 
 import os
+import subprocess
 
 import click
 
@@ -19,16 +27,25 @@ EXECUTABLE_PATHS = {
 
 
 def setup_chromium():
-	"""Setup Chromium at the bench level."""
-	# Load Chromium version from common_site_config.json or use default
+	"""Install Chromium via Playwright (cached in ~/.cache/ms-playwright/).
 
+	In Docker: run this during image build so the layer is cached.
+	On self-hosted benches: run once per machine, not per bench.
+	"""
 	try:
-		executable = find_or_download_chromium_executable()
-		click.echo(f"Chromium is already set up at {executable}")
-	except Exception as e:
-		click.echo(f"Failed to setup Chromium: {e}")
-		raise RuntimeError(f"Failed to setup Chromium: {e}")
-	return executable
+		subprocess.run(
+			["playwright", "install", "chromium", "--with-deps"],
+			check=True,
+			text=True,
+		)
+		click.echo("Chromium installed successfully via Playwright.")
+	except subprocess.CalledProcessError as e:
+		click.echo(f"Failed to install Chromium: {e}")
+		raise RuntimeError(f"playwright install chromium failed: {e}")
+	except FileNotFoundError:
+		raise RuntimeError(
+			"'playwright' CLI not found. Make sure the frappe package is installed: pip install -e apps/frappe"
+		)
 
 
 def find_or_download_chromium_executable():
