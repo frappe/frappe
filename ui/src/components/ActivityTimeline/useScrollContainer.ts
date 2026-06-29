@@ -1,31 +1,13 @@
-import { useInfiniteScroll } from "@vueuse/core";
 import { onMounted, ref, type Ref } from "vue";
 
-interface LoadMoreOptions {
-  /** Whether another page can be loaded right now (e.g. hasNextPage && !fetching). */
-  canLoadMore: () => boolean;
-  /** Kick off the next page fetch. */
-  loadMore: () => void;
-}
-
-// Reverse infinite scroll: call loadMore() near the top of `rootEl`'s scrollable
-// ancestor, which is returned so the caller can scroll-anchor after rows prepend.
-export function useLoadMoreOnScroll(
-  rootEl: Ref<HTMLElement | null>,
-  opts: LoadMoreOptions
-) {
+// Finds the nearest scrollable ancestor of `rootEl` so the timeline can park itself at
+// the bottom (newest) on first render. No scroll-triggered loading — paging is driven
+// by the in-feed "Load More" button, which simply fetches without moving the viewport.
+export function useScrollContainer(rootEl: Ref<HTMLElement | null>) {
   const scrollEl = ref<HTMLElement | null>(null);
 
   onMounted(() => {
     scrollEl.value = findScrollableAncestor(rootEl.value);
-    if (!scrollEl.value) return;
-    useInfiniteScroll(
-      scrollEl,
-      () => {
-        if (opts.canLoadMore()) opts.loadMore();
-      },
-      { direction: "top", distance: 400 }
-    );
   });
 
   return { scrollEl };
