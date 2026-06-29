@@ -11,9 +11,12 @@
   The value inputs are the shared `Fields` module's components (ADR-0004), not CRM's
   bespoke Link/Duration/Rating trio. The gaps the shared inputs don't cover are
   operator-driven swaps handled here, in the `.vue`: `is`/`is not` → a Set/Not-Set
-  select, `timespan` → a preset select, `like`/`not like`/`in`/`not in` → a plain text
-  box, and Date `between` → a range picker. Field pickers use frappe-ui's `Combobox`
-  (Autocomplete is deprecated upstream); icons are lucide names.
+  select, `timespan` → a preset select, `like`/`not like` → a plain text box, and
+  Date `between` → a range picker. `in`/`not in` over an option field (Select /
+  Autocomplete / Link) is a MultiSelect of the field's values (`MultiSelectInput` /
+  `MultiLinkInput`) so values are picked, not typed as an error-prone comma string;
+  over a free-text field it stays a comma text box. Field pickers use frappe-ui's
+  `Combobox`; icons are lucide names.
 -->
 <template>
 	<!-- Empty: a plain "Filter" combobox button that opens the field picker (the
@@ -151,8 +154,19 @@ import { computed, nextTick, ref } from "vue";
 import { Button, Combobox, Popover, Select, TextInput, DateRangePicker } from "frappe-ui";
 import { useDoctypeMeta } from "../../composables/useDoctypeMeta";
 import { getFilterableFields } from "./getFilterableFields";
-import { getOperators, getDefaultValue, conditionFor, carryOver } from "./operators";
+import {
+	getOperators,
+	conditionFor,
+	carryOver,
+	defaultValueFor,
+	isOptionField,
+} from "./operators";
 import type { Filter, FilterField, FilterOperator, FilterValue } from "./types";
+// `in` / `not in` over an option field picks values from a MultiSelect rather than
+// typing a comma string: a static list for Select/Autocomplete, a live link search
+// for Link.
+import MultiSelectInput from "./MultiSelectInput.vue";
+import MultiLinkInput from "./MultiLinkInput.vue";
 // The shared, fieldtype-aware value inputs (ADR-0004). Filter mounts only the
 // zero-coupling subset; it never provides the form-context injections, so the
 // deep-injection inputs (Number resolving currency) fall back to site defaults.
@@ -214,10 +228,10 @@ function updateField(option: unknown, index: number) {
 function updateOperator(operator: FilterOperator, index: number) {
 	model.value = model.value.map((f, i) => {
 		if (i !== index) return f;
-		// Reset the value to the field default; Set/Not-Set conditions seed to 'set'.
-		let value = getDefaultValue(f.field!) as FilterValue;
-		if (operator === "is" || operator === "is not") value = "set";
-		return { ...f, operator, value };
+		// Reset the value to a default that fits the new operator: 'set' for
+		// Set/Not-Set, an empty list for a multi-select `in`/`not in`, else the
+		// field's by-type default.
+		return { ...f, operator, value: defaultValueFor(f.field!, operator) };
 	});
 }
 
@@ -242,7 +256,7 @@ function clearAll(close: () => void) {
 const CHECK_TYPES = ["Check"];
 const LINK_TYPES = ["Link", "Dynamic Link"];
 const NUMBER_TYPES = ["Float", "Int", "Currency", "Percent"];
-const SELECT_TYPES = ["Select"];
+const SELECT_TYPES = ["Select", "Autocomplete"];
 const DATE_TYPES = ["Date", "Datetime"];
 const DURATION_TYPES = ["Duration"];
 const RATING_TYPES = ["Rating"];
@@ -305,6 +319,16 @@ function valueControl(f: Filter): ValueControl {
 	}
 	if (operator === "timespan") {
 		return { is: Select, props: { options: TIMESPAN_OPTIONS, placeholder: ph } };
+	}
+	// `in` / `not in` over an option field → a MultiSelect of the field's values
+	// (picked, not typed comma-separated). Link searches its target doctype; Select
+	// and Autocomplete read their options from meta. Dynamic Link and free-text
+	// fields fall through to the comma TextInput below.
+	if ((operator === "in" || operator === "not in") && isOptionField(fieldtype)) {
+		if (LINK_TYPES.includes(fieldtype)) {
+			return { is: MultiLinkInput, props: { field: field! } };
+		}
+		return { is: MultiSelectInput, props: { field: field! } };
 	}
 	if (TEXT_OPERATORS.includes(operator)) {
 		return { is: TextInput, props: { type: "text", placeholder: ph } };

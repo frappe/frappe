@@ -4,6 +4,7 @@ import type { FilterField } from "./types";
 /** Fieldtypes a doctype can be filtered on. A port of the `allowed_fieldtypes`
  *  whitelist in CRM's `crm.api.doc.get_filterable_fields`. */
 const FILTERABLE_FIELDTYPES = new Set([
+  "Autocomplete",
   "Check",
   "Data",
   "Float",

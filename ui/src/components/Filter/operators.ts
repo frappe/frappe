@@ -8,7 +8,9 @@ export interface OperatorOption {
 
 const STRING_TYPES = ["Data", "Long Text", "Small Text", "Text Editor", "Text"];
 const NUMBER_TYPES = ["Float", "Int", "Currency", "Percent"];
-const SELECT_TYPES = ["Select"];
+// `Autocomplete` carries a newline option list like `Select` and filters the same
+// way, so it shares the Select operator set, defaults, and value inputs.
+const SELECT_TYPES = ["Select", "Autocomplete"];
 const LINK_TYPES = ["Link", "Dynamic Link"];
 const CHECK_TYPES = ["Check"];
 const DURATION_TYPES = ["Duration"];
@@ -111,6 +113,38 @@ export function getDefaultValue(field: FilterField): FilterValue | null {
   return "";
 }
 
+/**
+ * Whether `in`/`not in` over this fieldtype picks from a known option set — so the
+ * value control is a MultiSelect (and the value a `string[]`) instead of a free,
+ * comma-separated text box. Select/Autocomplete carry their options inline; a Link
+ * resolves them from its target doctype. Dynamic Link has no fixed target, so it
+ * (and every free-text/number fieldtype) stays on the comma TextInput.
+ */
+export function isOptionField(fieldtype: string): boolean {
+  return (
+    SELECT_TYPES.includes(fieldtype) ||
+    (LINK_TYPES.includes(fieldtype) && fieldtype !== "Dynamic Link")
+  );
+}
+
+/**
+ * The value a condition resets to for a given operator on a field. `is`/`is not`
+ * seed to `set`; `in`/`not in` seed to an empty multi-select list (`[]`) on an
+ * option field or an empty comma box (`''`) otherwise; everything else falls back
+ * to the field's by-type default. Used when an operator change or a field change
+ * invalidates the previous value.
+ */
+export function defaultValueFor(
+  field: FilterField,
+  operator: FilterOperator
+): FilterValue {
+  if (operator === "is" || operator === "is not") return "set";
+  if (operator === "in" || operator === "not in") {
+    return isOptionField(field.fieldtype) ? [] : "";
+  }
+  return getDefaultValue(field) as FilterValue;
+}
+
 /** A fresh condition seeded with the field's default operator and value. */
 export function conditionFor(field: FilterField): Filter {
   return {
@@ -127,8 +161,15 @@ export function conditionFor(field: FilterField): Filter {
 // defaults — so refining "Status equals Open" into "Priority equals …" doesn't
 // drop the "equals". A UX nicety over CRM, which always resets on field change.
 
-/** Operators whose value is free user text, not bound to the field's domain. */
-const TEXT_OPERATORS: FilterOperator[] = ["like", "not like", "in", "not in"];
+/**
+ * Operators whose value carries verbatim across a field change because it isn't
+ * bound to the field's option set: `like`/`not like` are free text. `in`/`not in`
+ * are deliberately excluded — their value is an option list tied to one field (a
+ * `string[]` on option fields), so it resets via {@link defaultValueFor} unless
+ * {@link valueCarries} finds the new field shares the domain (e.g. two `User`
+ * Links keep their picks).
+ */
+const CARRYING_OPERATORS: FilterOperator[] = ["like", "not like"];
 
 /** The value-input "domain" a fieldtype maps to. A condition's value only carries
  *  between two fields of the same domain (a number means nothing in a date input). */
@@ -178,11 +219,11 @@ export function carryOver(prev: Filter, field: FilterField): Filter {
   const operatorDriven =
     operator === "is" ||
     operator === "is not" ||
-    TEXT_OPERATORS.includes(operator);
+    CARRYING_OPERATORS.includes(operator);
   const value = (
     operatorDriven || valueCarries(prev, field)
       ? prev.value
-      : getDefaultValue(field)
+      : defaultValueFor(field, operator)
   ) as FilterValue;
   return { field, fieldname: field.fieldname, operator, value };
 }

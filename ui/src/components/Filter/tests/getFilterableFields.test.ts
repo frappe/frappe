@@ -17,6 +17,23 @@ describe("getFilterableFields", () => {
     });
   });
 
+  it("keeps an Autocomplete field with its options for multi-select filtering", () => {
+    const result = getFilterableFields(
+      [
+        {
+          fieldname: "source",
+          fieldtype: "Autocomplete",
+          label: "Source",
+          options: "Web\nReferral",
+        },
+      ],
+      "Lead"
+    );
+    expect(result.find((f) => f.fieldname === "source")?.options).toBe(
+      "Web\nReferral"
+    );
+  });
+
   it("drops fields whose fieldtype is not filterable", () => {
     const fields: RawMetaField[] = [
       { fieldname: "sec", fieldtype: "Section Break" },

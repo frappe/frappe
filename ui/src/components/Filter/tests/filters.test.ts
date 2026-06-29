@@ -53,6 +53,14 @@ describe("serializeFilters", () => {
     ).toEqual([["status", "in", ["Open", "Closed"]]]);
   });
 
+  it("passes a MultiSelect array straight through for an in condition", () => {
+    expect(
+      serializeFilters([
+        { fieldname: "status", operator: "in", value: ["Open", "Closed"] },
+      ])
+    ).toEqual([["status", "in", ["Open", "Closed"]]]);
+  });
+
   it("maps a Yes/No equals value to a boolean (Check field)", () => {
     expect(
       serializeFilters([

@@ -90,6 +90,30 @@ describe("carryOver — value", () => {
     );
   });
 
+  it("resets an `in` option list to empty when the field changes", () => {
+    // The picked options belong to `status`; they're meaningless on `priority`.
+    const prev = condition(field("status", "Select", "Open\nClosed"), "in", [
+      "Open",
+      "Closed",
+    ]);
+    expect(
+      carryOver(prev, field("priority", "Select", "High\nLow"))
+    ).toMatchObject({ operator: "in", value: [] });
+  });
+
+  it("carries an `in` Link list when the target doctype matches", () => {
+    const prev = condition(field("owner", "Link", "User"), "in", [
+      "a@x.io",
+      "b@x.io",
+    ]);
+    expect(carryOver(prev, field("modified_by", "Link", "User")).value).toEqual(
+      ["a@x.io", "b@x.io"]
+    );
+    expect(
+      carryOver(prev, field("customer", "Link", "Customer")).value
+    ).toEqual([]);
+  });
+
   it("carries a Link value only when the target doctype matches", () => {
     const prev = condition(
       field("owner", "Link", "User"),

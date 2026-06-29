@@ -38,11 +38,15 @@ function toWireValue(operator: FilterOperator, value: FilterValue): unknown {
   ) {
     return `%${value}%`;
   }
-  if (
-    (operator === "in" || operator === "not in") &&
-    typeof value === "string"
-  ) {
-    return value.split(",").map((v) => v.trim());
+  if (operator === "in" || operator === "not in") {
+    // Option fields supply a ready array (MultiSelect); free-text fields a
+    // comma string to split.
+    if (Array.isArray(value)) return value;
+    if (typeof value === "string")
+      return value
+        .split(",")
+        .map((v) => v.trim())
+        .filter(Boolean);
   }
   return value;
 }
