@@ -1,3 +1,5 @@
+import "./filter_conditions";
+
 frappe.ui.Filter = class {
 	constructor(opts) {
 		$.extend(this, opts);
@@ -12,121 +14,19 @@ frappe.ui.Filter = class {
 	}
 
 	set_conditions() {
-		this.conditions = [
-			["=", __("Equals")],
-			["!=", __("Not Equals")],
-			["like", __("Like")],
-			["not like", __("Not Like")],
-			["in", __("In")],
-			["not in", __("Not In")],
-			["is", __("Is")],
-			[">", __("Greater Than")],
-			["<", __("Less Than")],
-			[">=", __("Greater Than Or Equal To")],
-			["<=", __("Less Than Or Equal To")],
-			["Between", __("Between")],
-			["Timespan", __("Timespan")],
-		];
-
-		this.nested_set_conditions = [
-			["descendants of", __("Descendants Of")],
-			["descendants of (inclusive)", __("Descendants Of (inclusive)")],
-			["not descendants of", __("Not Descendants Of")],
-			["ancestors of", __("Ancestors Of")],
-			["not ancestors of", __("Not Ancestors Of")],
-		];
-
-		this.conditions.push(...this.nested_set_conditions);
-
-		this.special_condition_labels = {
-			Date: {
-				"<": __("Before"),
-				">": __("After"),
-				"<=": __("On or Before"),
-				">=": __("On or After"),
-			},
-			Datetime: {
-				"<": __("Before"),
-				">": __("After"),
-				"<=": __("On or Before"),
-				">=": __("On or After"),
-			},
-		};
-
-		this.set_invalid_conditions_map();
-	}
-
-	set_invalid_conditions_map() {
-		const range_conditions = ["Between", "Timespan"];
-		const comparison_conditions = [">", "<", ">=", "<="];
-		const like_conditions = ["like", "not like"];
-		const in_conditions = ["in", "not in"];
-		const equality_conditions = ["=", "!="];
-
-		const text_fields = [
-			"Code",
-			"HTML Editor",
-			"Markdown Editor",
-			"Text Editor",
-			"Small Text",
-			"Long Text",
-			"Text",
-			"Password",
-		];
-
-		const numeric_fields = ["Rating", "Int", "Float", "Percent"];
-
-		const text_invalid_conditions = [
-			...range_conditions,
-			...comparison_conditions,
-			...in_conditions,
-		];
-
-		const numeric_invalid_conditions = [
-			...like_conditions,
-			...range_conditions,
-			...in_conditions,
-		];
-
-		this.invalid_condition_map = {
-			Date: like_conditions,
-			Time: range_conditions,
-			Data: range_conditions,
-			Currency: range_conditions,
-
-			Link: [...range_conditions, ...comparison_conditions],
-			Color: [...range_conditions, ...comparison_conditions],
-
-			Datetime: [...like_conditions, ...in_conditions, ...equality_conditions],
-			Select: [...like_conditions, ...range_conditions, ...comparison_conditions],
-
-			Check: this.conditions
-				.map(([condition]) => condition)
-				.filter((condition) => condition !== "="),
-
-			...Object.fromEntries(
-				text_fields.map((field) => [field, [...text_invalid_conditions]])
-			),
-
-			...Object.fromEntries(
-				numeric_fields.map((field) => [field, [...numeric_invalid_conditions]])
-			),
-		};
+		const fc = frappe.ui.filter_conditions;
+		this.conditions = fc.get_conditions();
+		this.nested_set_conditions = fc.get_nested_set_conditions();
+		this.special_condition_labels = fc.get_special_condition_labels();
+		this.invalid_condition_map = fc.build_invalid_condition_map(this.conditions);
 	}
 
 	set_conditions_from_config() {
-		if (frappe.boot.additional_filters_config) {
-			this.filters_config = frappe.boot.additional_filters_config;
-			for (let key of Object.keys(this.filters_config)) {
-				const filter = this.filters_config[key];
-				this.conditions.push([key, __(filter.label)]);
-				for (let fieldtype of Object.keys(this.invalid_condition_map)) {
-					if (!filter.valid_for_fieldtypes.includes(fieldtype)) {
-						this.invalid_condition_map[fieldtype].push(key);
-					}
-				}
-			}
-		}
+		this.filters_config = frappe.boot.additional_filters_config;
+		frappe.ui.filter_conditions.apply_additional_filters_config(
+			this.conditions,
+			this.invalid_condition_map
+		);
 	}
 
 	make() {
@@ -168,21 +68,14 @@ frappe.ui.Filter = class {
 			if (!this.field) return;
 
 			let condition = this.get_condition();
-			let fieldtype = null;
 
 			if (["in", "like", "not in", "not like"].includes(condition)) {
-				fieldtype = "Data";
 				this.add_condition_help(condition);
 			} else {
 				this.filter_edit_area.find(".filter-description").empty();
 			}
 
-			if (
-				["Select", "MultiSelect"].includes(this.field.df.fieldtype) &&
-				["in", "not in"].includes(condition)
-			) {
-				fieldtype = "MultiSelect";
-			}
+			let fieldtype = frappe.ui.filter_conditions.get_fieldtype_override(this.field.df, condition);
 
 			this.set_field(this.field.df.parent, this.field.df.fieldname, fieldtype, condition);
 		});
@@ -269,13 +162,7 @@ frappe.ui.Filter = class {
 			return false;
 		}
 
-		let df = copy_dict(original_docfield);
-
-		// filter field shouldn't be read only or hidden
-		df.read_only = 0;
-		df.hidden = 0;
-		df.is_filter = true;
-		delete df.hidden_due_to_dependency;
+		let df = this.utils.prepare_filter_docfield(original_docfield);
 
 		let c = condition ? condition : this.utils.get_default_condition(df);
 		this.set_condition(c);
@@ -477,8 +364,7 @@ frappe.ui.Filter = class {
 	}
 
 	toggle_nested_set_conditions(df) {
-		let show_condition =
-			df.fieldtype === "Link" && frappe.boot.nested_set_doctypes.includes(df.options);
+		let show_condition = frappe.ui.filter_conditions.is_nested_set_field(df);
 		this.nested_set_conditions.forEach((condition) => {
 			this.filter_edit_area
 				.find(`.condition option[value="${condition[0]}"]`)
@@ -487,317 +373,3 @@ frappe.ui.Filter = class {
 	}
 };
 
-frappe.ui.filter_utils = {
-	get_formatted_value(field, value) {
-		if (field.df.fieldname === "docstatus") {
-			value = { 0: "Draft", 1: "Submitted", 2: "Cancelled" }[value] || value;
-		} else if (field.df.original_type === "Check") {
-			value = { 0: "No", 1: "Yes" }[cint(value)];
-		}
-		return frappe.format(value, field.df, { only_value: 1 });
-	},
-
-	get_selected_value(field, condition) {
-		if (!field) return;
-
-		let val = field.get_value() ?? field.value;
-
-		if (!val && ["Link", "Dynamic Link"].includes(field.df.fieldtype)) {
-			// HACK: link field with show title are async so their input value is "" but they have
-			// some actual value set.
-			val = field.value;
-		}
-
-		if (typeof val === "string") {
-			val = strip(val);
-		}
-
-		if (condition == "is" && !val) {
-			val = field.df.options[0].value;
-		}
-
-		if (field.df.original_type == "Check") {
-			val = val == "Yes" ? 1 : 0;
-		}
-
-		if (["like", "not like"].includes(condition)) {
-			// automatically append wildcards
-			if (val && !(val.startsWith("%") || val.endsWith("%"))) {
-				val = "%" + val + "%";
-			}
-		} else if (["in", "not in"].includes(condition)) {
-			if (val) {
-				try {
-					const parsed = JSON.parse(val);
-					val = Array.isArray(parsed) ? parsed : [String(parsed)];
-				} catch {
-					val = val
-						.split(",")
-						.map((v) => strip(v))
-						.filter((v) => v != null && v !== "");
-				}
-			}
-		} else if (frappe.boot.additional_filters_config[condition]) {
-			val = field.value || val;
-		}
-		if (val === "%") {
-			val = "";
-		}
-
-		return val;
-	},
-
-	get_selected_label(field) {
-		if (["Link", "Dynamic Link"].includes(field.df.fieldtype)) {
-			return field.get_label_value();
-		}
-	},
-
-	get_default_condition(df) {
-		const meta = frappe.get_meta(df.parent);
-		if (df.fieldtype == "Data" && !meta?.is_large_table) {
-			return "like";
-		} else if (df.fieldtype == "Date" || df.fieldtype == "Datetime") {
-			return "Between";
-		} else {
-			return "=";
-		}
-	},
-
-	set_fieldtype(df, fieldtype, condition) {
-		// reset
-		if (df.original_type) df.fieldtype = df.original_type;
-		else df.original_type = df.fieldtype;
-
-		df.description = "";
-		df.reqd = 0;
-		df.length = 1000; // this won't be saved, no need to apply 140 character limit here
-		df.ignore_link_validation = true;
-
-		// given
-		if (fieldtype) {
-			df.fieldtype = fieldtype;
-			return;
-		}
-
-		// scrub
-		if (df.fieldname == "docstatus") {
-			df.fieldtype = "Select";
-			df.options = [
-				{ value: 0, label: __("Draft") },
-				{ value: 1, label: __("Submitted") },
-				{ value: 2, label: __("Cancelled") },
-			];
-		} else if (df.fieldtype == "Check") {
-			df.fieldtype = "Select";
-			df.options = [
-				{ label: __("Yes", null, "Checkbox is checked"), value: "Yes" },
-				{ label: __("No", null, "Checkbox is not checked"), value: "No" },
-			];
-		} else if (
-			[
-				"Text",
-				"Small Text",
-				"Text Editor",
-				"Code",
-				"Attach",
-				"Attach Image",
-				"Markdown Editor",
-				"HTML Editor",
-				"Tag",
-				"Phone",
-				"JSON",
-				"Comments",
-				"Barcode",
-				"Dynamic Link",
-				"Read Only",
-				"Assign",
-				"Color",
-			].indexOf(df.fieldtype) != -1
-		) {
-			df.fieldtype = "Data";
-		} else if (
-			df.fieldtype == "Link" &&
-			[
-				"=",
-				"!=",
-				"descendants of",
-				"descendants of (inclusive)",
-				"ancestors of",
-				"not descendants of",
-				"not ancestors of",
-			].indexOf(condition) == -1
-		) {
-			df.fieldtype = "Data";
-		}
-		if (df.fieldtype === "Data" && (df.options || "").toLowerCase() === "email") {
-			df.options = null;
-		}
-		if (condition == "Between" && (df.fieldtype == "Date" || df.fieldtype == "Datetime")) {
-			df.fieldtype = "DateRange";
-		}
-		if (
-			condition == "Timespan" &&
-			["Date", "Datetime", "DateRange", "Select"].includes(df.fieldtype)
-		) {
-			df.fieldtype = "Select";
-			df.options = this.get_timespan_options([
-				"Last",
-				"Yesterday",
-				"Today",
-				"Tomorrow",
-				"This",
-				"Next",
-			]);
-		}
-		if (condition === "is") {
-			df.fieldtype = "Select";
-			df.options = [
-				{ label: __("Set", null, "Field value is set"), value: "set" },
-				{ label: __("Not Set", null, "Field value is not set"), value: "not set" },
-			];
-		}
-		return;
-	},
-
-	/**
-	 * Generates timespan options for filter dropdown based on provided periods
-	 * @param {Array<string>} periods - Array of period types to include
-	 *     (e.g., "Last", "This", "Next", "Yesterday", "Today", "Tomorrow").
-	 *     Additional custom values are allowed. The order of the periods is preserved.
-	 * @returns {Array<{label: string, value: string}>} Array of option objects with label and value properties for the filter dropdown
-	 */
-	get_timespan_options(periods) {
-		const last_options = [
-			{
-				label: __("Last 7 Days"),
-				value: "last 7 days",
-			},
-			{
-				label: __("Last 14 Days"),
-				value: "last 14 days",
-			},
-			{
-				label: __("Last 30 Days"),
-				value: "last 30 days",
-			},
-			{
-				label: __("Last 90 Days"),
-				value: "last 90 days",
-			},
-			{
-				label: __("Last Week"),
-				value: "last week",
-			},
-			{
-				label: __("Last Month"),
-				value: "last month",
-			},
-			{
-				label: __("Last Quarter"),
-				value: "last quarter",
-			},
-			{
-				label: __("Last 6 Months"),
-				value: "last 6 months",
-			},
-			{
-				label: __("Last Year"),
-				value: "last year",
-			},
-		];
-		const this_options = [
-			{
-				label: __("This Week"),
-				value: "this week",
-			},
-			{
-				label: __("This Month"),
-				value: "this month",
-			},
-			{
-				label: __("This Quarter"),
-				value: "this quarter",
-			},
-			{
-				label: __("This Year"),
-				value: "this year",
-			},
-		];
-		const next_options = [
-			{
-				label: __("Next 7 Days"),
-				value: "next 7 days",
-			},
-			{
-				label: __("Next 14 Days"),
-				value: "next 14 days",
-			},
-			{
-				label: __("Next 30 Days"),
-				value: "next 30 days",
-			},
-			{
-				label: __("Next Week"),
-				value: "next week",
-			},
-			{
-				label: __("Next Month"),
-				value: "next month",
-			},
-			{
-				label: __("Next Quarter"),
-				value: "next quarter",
-			},
-			{
-				label: __("Next 6 Months"),
-				value: "next 6 months",
-			},
-			{
-				label: __("Next Year"),
-				value: "next year",
-			},
-		];
-
-		const options = [];
-		for (const period of periods) {
-			switch (period) {
-				case "Last":
-					options.push(...last_options);
-					break;
-				case "This":
-					options.push(...this_options);
-					break;
-				case "Next":
-					options.push(...next_options);
-					break;
-				case "Yesterday":
-					options.push({
-						label: __("Yesterday"),
-						value: "yesterday",
-					});
-					break;
-				case "Today":
-					options.push({
-						label: __("Today"),
-						value: "today",
-					});
-					break;
-				case "Tomorrow":
-					options.push({
-						label: __("Tomorrow"),
-						value: "tomorrow",
-					});
-					break;
-				default:
-					options.push({
-						label: __(period),
-						value: `${period.toLowerCase()}`,
-					});
-					break;
-			}
-		}
-
-		return options;
-	},
-};
