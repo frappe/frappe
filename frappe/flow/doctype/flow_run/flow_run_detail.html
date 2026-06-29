@@ -1,0 +1,64 @@
+<style>
+.flow-run h6 { font-size: var(--text-md); font-weight: 420; color: #525252; margin: 44px 0 12px; }
+.flow-run h6:first-child { margin-top: 0; }
+.flow-run table.usage { width: auto; margin: 0; }
+.flow-run table thead th { font-weight: 500; }
+.flow-run table.config { width: 100%; margin: 0; }
+.flow-run table.config th { width: 140px; font-weight: 420; color: var(--text-muted); white-space: nowrap; vertical-align: top; }
+.flow-run pre.args { white-space: pre-wrap; word-break: break-word; font-size: 12px; margin: 0; }
+.flow-run .instructions { white-space: pre-wrap; word-break: break-word; max-height: 280px; overflow: auto; font-size: 13px; line-height: 1.5; }
+.flow-run table.calls { width: 100%; margin: 0; font-size: 12px; }
+.flow-run .empty { color: var(--text-muted); }
+</style>
+{% var esc = (v) => frappe.utils.escape_html(v == null ? "" : String(v)); %}
+{% var nf = (n) => Number(n || 0).toLocaleString(); %}
+{% var hasKeys = (o) => o && Object.keys(o).length; %}
+<div class="flow-run">
+
+{% if usage %}
+<h6>{{ __("Token Usage") }}</h6>
+<table class="table table-bordered usage">
+	<thead><tr><th>{{ __("Prompt") }}</th><th>{{ __("Completion") }}</th><th>{{ __("Total") }}</th></tr></thead>
+	<tbody><tr><td>{{ nf(usage.prompt_tokens) }}</td><td>{{ nf(usage.completion_tokens) }}</td><td>{{ nf(usage.total_tokens) }}</td></tr></tbody>
+</table>
+{% endif %}
+
+{% if config %}
+<h6>{{ __("Config Snapshot") }}</h6>
+<table class="table table-bordered config">
+	<tbody>
+		<tr><th>{{ __("Title") }}</th><td>{{ esc(config.title || "—") }}</td></tr>
+		<tr><th>{{ __("Model") }}</th><td>{{ esc(config.model || "—") }}</td></tr>
+		<tr><th>{{ __("Max Iterations") }}</th><td>{{ esc(config.max_iterations || "—") }}</td></tr>
+		<tr><th>{{ __("Tools") }}</th><td>{% if config.tools && config.tools.length %}{% for t in config.tools %}<span class="indicator-pill gray" style="margin: 0 4px 4px 0;">{{ esc(t) }}</span>{% endfor %}{% else %}<span class="empty">—</span>{% endif %}</td></tr>
+		{% if config.instructions %}<tr><th>{{ __("Instructions") }}</th><td><div class="instructions">{{ esc(config.instructions) }}</div></td></tr>{% endif %}
+	</tbody>
+</table>
+{% endif %}
+
+{% if calls && calls.length %}
+<h6>{{ __("Tool Calls") }}</h6>
+<table class="table table-bordered calls">
+	<thead><tr><th style="width: 32px;">#</th><th>{{ __("Tool") }}</th><th>{{ __("Arguments") }}</th></tr></thead>
+	<tbody>
+{% for c in calls %}
+		<tr>
+			<td class="text-muted">{{ c._index + 1 }}</td>
+			<td style="white-space: nowrap;"><code>{{ esc(c.name) }}</code></td>
+			<td>{% if hasKeys(c.arguments) %}<pre class="args">{{ esc(JSON.stringify(c.arguments, null, 2)) }}</pre>{% else %}<span class="empty">—</span>{% endif %}</td>
+		</tr>
+{% endfor %}
+	</tbody>
+</table>
+{% endif %}
+
+{% if questions && questions.length %}
+<h6>{{ __("Pending Questions") }}</h6>
+<ul style="margin: 0; padding-left: 18px;">
+{% for q in questions %}
+	<li style="margin-bottom: 8px;"><div>{{ esc(q.prompt) }}</div>{% if q.options && q.options.length %}<div class="text-muted" style="margin-top: 2px;">{{ q.multi_select ? __("Select any") : __("Select one") }}: {{ q.options.map(o => esc(o)).join(", ") }}</div>{% endif %}</li>
+{% endfor %}
+</ul>
+{% endif %}
+
+</div>

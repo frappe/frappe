@@ -16,13 +16,11 @@
   "section_break_io",
   "input",
   "output",
-  "section_break_calls",
+  "section_break_detail",
+  "detail_html",
   "tool_calls",
-  "section_break_pause",
   "questions",
-  "section_break_usage",
   "usage",
-  "section_break_snapshot",
   "config_snapshot",
   "section_break_error",
   "error"
@@ -115,54 +113,43 @@
    "read_only": 1
   },
   {
-   "collapsible": 1,
-   "fieldname": "section_break_calls",
+   "fieldname": "section_break_detail",
    "fieldtype": "Section Break",
-   "label": "Tool Calls"
+   "label": "Detail"
+  },
+  {
+   "fieldname": "detail_html",
+   "fieldtype": "HTML",
+   "label": "Detail"
   },
   {
    "description": "List of tool calls the agent executed.",
    "fieldname": "tool_calls",
    "fieldtype": "JSON",
+   "hidden": 1,
    "label": "Tool Calls",
    "read_only": 1
-  },
-  {
-   "collapsible": 1,
-   "depends_on": "eval:doc.status === 'Paused'",
-   "fieldname": "section_break_pause",
-   "fieldtype": "Section Break",
-   "label": "Pending Questions"
   },
   {
    "description": "Questions waiting on a user answer. Present only when status is Paused.",
    "fieldname": "questions",
    "fieldtype": "JSON",
+   "hidden": 1,
    "label": "Questions",
    "read_only": 1
   },
   {
-   "collapsible": 1,
-   "fieldname": "section_break_usage",
-   "fieldtype": "Section Break",
-   "label": "Usage"
-  },
-  {
    "fieldname": "usage",
    "fieldtype": "JSON",
+   "hidden": 1,
    "label": "Token Usage",
    "read_only": 1
-  },
-  {
-   "collapsible": 1,
-   "fieldname": "section_break_snapshot",
-   "fieldtype": "Section Break",
-   "label": "Config Snapshot"
   },
   {
    "description": "Agent configuration captured at run start (instructions + tool slugs).",
    "fieldname": "config_snapshot",
    "fieldtype": "JSON",
+   "hidden": 1,
    "label": "Config Snapshot",
    "read_only": 1
   },
