@@ -51,9 +51,24 @@
 	.filter-action-buttons {
 		display: flex;
 		justify-content: space-between;
+		align-items: center;
+
+		.filter-action-buttons-left {
+			display: flex;
+			flex-direction: column;
+			align-items: flex-start;
+			gap: 4px;
+		}
 
 		.add-filter {
 			cursor: pointer;
+		}
+
+		.advanced-filter-link {
+			cursor: pointer;
+			display: inline-flex;
+			align-items: center;
+			gap: 4px;
 		}
 
 		.btn {

@@ -508,6 +508,9 @@ frappe.views.BaseList = class BaseList {
 			doctype: this.doctype,
 			fields: this.get_fields(),
 			filters,
+			// Advanced (nested AND/OR) filter tree; when present it supersedes the
+			// flat filters server-side (see frappe/desk/reportview.py).
+			filter_tree: this.advanced_filter_tree ? JSON.stringify(this.advanced_filter_tree) : undefined,
 			order_by: this.sort_selector && this.sort_selector.get_sql_string(),
 			start: this.start,
 			page_length: this.page_length,

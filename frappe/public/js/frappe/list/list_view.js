@@ -94,6 +94,9 @@ frappe.views.ListView = class ListView extends frappe.views.BaseList {
 		this.sort_by = this.view_user_settings.sort_by || this.sort_by || "creation";
 		this.sort_order = this.view_user_settings.sort_order || this.sort_order || "desc";
 
+		// restore an active advanced (nested AND/OR) filter, if any
+		this.advanced_filter_tree = this.view_user_settings.advanced_filter_tree || null;
+
 		// build menu items
 		this.menu_items = this.menu_items.concat(this.get_menu_items());
 
@@ -603,6 +606,7 @@ frappe.views.ListView = class ListView extends frappe.views.BaseList {
 			const layout_name = frappe.route_options._layout || null;
 			this._set_breadcrumb_layout(layout_name);
 
+			this.set_advanced_filter_from_route_options();
 			this.filters = this.parse_filters_from_route_options();
 			frappe.route_options = null;
 
@@ -769,6 +773,7 @@ frappe.views.ListView = class ListView extends frappe.views.BaseList {
 		frappe.model.user_settings.save(this.doctype, "last_view", this.view_name);
 		this.save_view_user_settings({
 			filters: this.filter_area && this.filter_area.get(),
+			advanced_filter_tree: this.advanced_filter_tree || null,
 			sort_by: this.sort_selector && this.sort_selector.sort_by,
 			sort_order: this.sort_selector && this.sort_selector.sort_order,
 		});
@@ -2064,7 +2069,28 @@ frappe.views.ListView = class ListView extends frappe.views.BaseList {
 			search_params.append(query_key, query_value);
 		});
 
+		// Reflect an active advanced (nested AND/OR) filter in the URL so it is
+		// shareable and survives reload, just like the flat filters above.
+		if (this.advanced_filter_tree) {
+			search_params.append("_filter", JSON.stringify(this.advanced_filter_tree));
+		}
+
 		return search_params;
+	}
+
+	set_advanced_filter_from_route_options() {
+		// The URL is authoritative for filter state: adopt the advanced filter from
+		// the query string when present, and clear it otherwise.
+		let raw = new URLSearchParams(window.location.search).get("_filter");
+		if (!raw && frappe.route_options) {
+			raw = frappe.route_options._filter;
+		}
+
+		try {
+			this.advanced_filter_tree = raw ? JSON.parse(raw) : null;
+		} catch (e) {
+			this.advanced_filter_tree = null;
+		}
 	}
 
 	get_menu_items() {

@@ -84,6 +84,13 @@ frappe.ui.FilterGroup = class {
 		});
 
 		this.filter_button.on("click", () => {
+			// While an advanced filter is active, the Filter button reopens the
+			// advanced builder instead of the simple popover (which is hidden anyway).
+			if (this.base_list && this.base_list.advanced_filter_tree) {
+				this.hide_popover();
+				this.show_advanced_filters();
+				return;
+			}
 			this.filter_button.popover("toggle");
 		});
 
@@ -128,10 +135,18 @@ frappe.ui.FilterGroup = class {
 	}
 
 	update_filter_button() {
-		const filters_applied = this.filters.length > 0;
-		const button_label = filters_applied
-			? __("Filters {0}", [`<span class="filter-label">${this.filters.length}</span>`])
-			: __("Filter");
+		const advanced_active = !!(this.base_list && this.base_list.advanced_filter_tree);
+		const count = this.filters.length;
+		const filters_applied = count > 0 || advanced_active;
+
+		let button_label;
+		if (advanced_active) {
+			button_label = __("Advanced Filter");
+		} else if (count > 0) {
+			button_label = __("Filters {0}", [`<span class="filter-label">${count}</span>`]);
+		} else {
+			button_label = __("Filter");
+		}
 
 		this.filter_button
 			.toggleClass("btn-default", !filters_applied)
@@ -142,7 +157,9 @@ frappe.ui.FilterGroup = class {
 		this.filter_button.find(".button-label").html(button_label);
 		this.filter_button.attr(
 			"title",
-			`${this.filters.length} Filter${this.filters.length > 1 ? "s" : ""} Applied`
+			advanced_active
+				? __("Advanced filter applied")
+				: `${count} Filter${count > 1 ? "s" : ""} Applied`
 		);
 	}
 
@@ -160,6 +177,49 @@ frappe.ui.FilterGroup = class {
 		});
 
 		this.wrapper.find(".apply-filters").on("click", () => this.hide_popover());
+
+		this.wrapper.find(".advanced-filter-link").on("click", () => {
+			this.hide_popover();
+			this.show_advanced_filters();
+		});
+	}
+
+	show_advanced_filters() {
+		// Seed the advanced builder with the current simple filters so nothing is lost,
+		// and with any advanced tree already applied to this list.
+		const seed_filters = this.get_filters();
+		const existing_tree = this.base_list && this.base_list.advanced_filter_tree;
+
+		frappe.require("advanced_filter.bundle.js").then(() => {
+			new frappe.ui.AdvancedFilter({
+				doctype: this.doctype,
+				parent_doctype: this.parent_doctype,
+				filters: seed_filters,
+				filter_tree: existing_tree,
+				on_apply: (tree) => this.apply_advanced_filter(tree),
+				on_clear: () => this.clear_advanced_filter(),
+			});
+		});
+	}
+
+	apply_advanced_filter(tree) {
+		if (!this.base_list) return;
+
+		this.base_list.advanced_filter_tree = tree || null;
+		// The advanced tree supersedes the flat filters server-side, and the simple
+		// filters were seeded into it, so clear them here to avoid a confusing duplicate.
+		this.clear_filters();
+		this.toggle_empty_filters(true);
+		this.update_filter_button();
+		this.on_change();
+	}
+
+	clear_advanced_filter() {
+		if (!this.base_list) return;
+
+		this.base_list.advanced_filter_tree = null;
+		this.update_filter_button();
+		this.on_change();
 	}
 
 	add_filters(filters) {
@@ -305,9 +365,14 @@ frappe.ui.FilterGroup = class {
 				</div>
 				<hr class="divider"></hr>
 				<div class="filter-action-buttons mt-2">
-					<button class="text-muted add-filter btn btn-xs">
-						+ ${__("Add a Filter")}
-					</button>
+					<div class="filter-action-buttons-left">
+						<button class="text-muted add-filter btn btn-xs">
+							+ ${__("Add a Filter")}
+						</button>
+						<button type="button" class="text-muted advanced-filter-link btn btn-xs">
+							${frappe.utils.icon("filter", "xs")} ${__("Use advanced filtering")}
+						</button>
+					</div>
 					<div>
 						<button class="btn btn-secondary btn-xs clear-filters">
 							${__("Clear Filters")}

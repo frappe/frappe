@@ -149,14 +149,15 @@ frappe.ui.FieldSelect = class FieldSelect {
 							: me.doctype;
 
 					// show fields where user has read access and if report hide flag is not set
+					// pass the parent Table field so the option can be labelled by it
 					if (frappe.perm.has_perm(doctype, df.permlevel, "read"))
-						me.add_field_option(df);
+						me.add_field_option(df, table_df);
 				});
 			}
 		});
 	}
 
-	add_field_option(df) {
+	add_field_option(df, table_df) {
 		let me = this;
 
 		if (df.fieldname == "docstatus" && !frappe.model.is_submittable(me.doctype)) return;
@@ -169,7 +170,12 @@ frappe.ui.FieldSelect = class FieldSelect {
 		let label = null;
 		let table = null;
 
-		if (me.doctype && df.parent == me.doctype) {
+		if (table_df) {
+			// Child-table field: label it by the parent's Table field (e.g. "Items"),
+			// not the child doctype name, so it reads in the parent's terms.
+			label = __(df.label, null, df.parent) + " (" + __(table_df.label, null, me.doctype) + ")";
+			table = df.parent;
+		} else if (me.doctype && df.parent == me.doctype) {
 			label = __(df.label, null, df.parent);
 			table = me.doctype;
 		} else {
@@ -177,10 +183,15 @@ frappe.ui.FieldSelect = class FieldSelect {
 			table = df.parent;
 		}
 
-		if (
-			frappe.model.no_value_type.indexOf(df.fieldtype) == -1 &&
-			!(me.fields_by_name[df.parent] && me.fields_by_name[df.parent][df.fieldname])
-		) {
+		// Dedupe options per source so two Table fields that share a child doctype
+		// each contribute a distinct, differentiated entry. `fields_by_name` stays
+		// keyed by [child doctype][fieldname] for value-control lookups and to keep
+		// the server-side filter contract ([child doctype, fieldname, ...]) unchanged.
+		me.seen_options = me.seen_options || new Set();
+		const option_key = (table_df ? table_df.fieldname : df.parent) + "." + df.fieldname;
+
+		if (frappe.model.no_value_type.indexOf(df.fieldtype) == -1 && !me.seen_options.has(option_key)) {
+			me.seen_options.add(option_key);
 			this.options.push({
 				label: label,
 				value: table + "." + df.fieldname,
