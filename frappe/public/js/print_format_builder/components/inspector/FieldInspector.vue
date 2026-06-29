@@ -323,16 +323,17 @@
 							</div>
 							<div class="pfb-insp-row">
 								<span class="pfb-insp-label">{{ __("Spacing") }}</span>
-								<div class="pfb-seg">
-									<button
-										v-for="opt in label_justify_opts"
-										:key="opt.value"
-										:class="{ active: current_label_justify === opt.value }"
-										:title="opt.title"
-										@click="selected_field.label_justify = opt.value"
-										v-html="opt.icon"
-									></button>
-								</div>
+								<select
+									class="pfb-insp-select"
+									:value="current_label_justify"
+									@change="selected_field.label_justify = $event.target.value"
+								>
+									<option value="">{{ __("Normal") }}</option>
+									<option value="space-between">
+										{{ __("Space Between") }}
+									</option>
+									<option value="space-evenly">{{ __("Space Evenly") }}</option>
+								</select>
 							</div>
 						</template>
 					</div>
@@ -715,31 +716,6 @@ const align_opts = [
 	{ value: "left", title: __("Align left"), icon: align_icons.left },
 	{ value: "center", title: __("Align center"), icon: align_icons.center },
 	{ value: "right", title: __("Align right"), icon: align_icons.right },
-];
-
-// Label-value spacing (justify-content for left-right orientation)
-const justify_icons = {
-	normal: `<svg xmlns="http://www.w3.org/2000/svg" width="28" height="12" viewBox="0 0 28 12" fill="currentColor"><rect x="1" y="2" width="9" height="8" rx="1.5" opacity="0.5"/><rect x="12" y="2" width="9" height="8" rx="1.5"/></svg>`,
-	"space-between": `<svg xmlns="http://www.w3.org/2000/svg" width="28" height="12" viewBox="0 0 28 12" fill="currentColor"><rect x="1" y="2" width="9" height="8" rx="1.5" opacity="0.5"/><rect x="18" y="2" width="9" height="8" rx="1.5"/></svg>`,
-	"space-evenly": `<svg xmlns="http://www.w3.org/2000/svg" width="28" height="12" viewBox="0 0 28 12" fill="currentColor"><rect x="4" y="2" width="8" height="8" rx="1.5" opacity="0.5"/><rect x="16" y="2" width="8" height="8" rx="1.5"/></svg>`,
-};
-
-const label_justify_opts = [
-	{
-		value: "",
-		title: __("Normal — label and value packed together"),
-		icon: justify_icons.normal,
-	},
-	{
-		value: "space-between",
-		title: __("Space between — label at start, value at end"),
-		icon: justify_icons["space-between"],
-	},
-	{
-		value: "space-evenly",
-		title: __("Space evenly — equal space around label and value"),
-		icon: justify_icons["space-evenly"],
-	},
 ];
 
 function remove_field() {
@@ -1172,6 +1148,22 @@ function set_padding(side, value) {
 }
 
 .pfb-insp-input:focus {
+	border-color: var(--gray-500);
+}
+
+.pfb-insp-select {
+	width: 100%;
+	padding: 5px 8px;
+	font-size: var(--text-sm);
+	border: 1px solid var(--border-color);
+	border-radius: var(--radius);
+	background: var(--fg-color);
+	color: var(--text-color);
+	outline: none;
+	cursor: pointer;
+}
+
+.pfb-insp-select:focus {
 	border-color: var(--gray-500);
 }
 
