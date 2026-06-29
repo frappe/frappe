@@ -48,11 +48,13 @@ class Page:
 		"""Navigate to a real URL and wait for it to load."""
 		self._page.goto(url, wait_until="load")
 
-	def set_content(self, html, wait_for=None):
+	def set_content(self, html):
 		"""Set page HTML content. Routes local asset/file requests from disk."""
 		self._setup_local_resource_route()
-		wait_until = "networkidle" if wait_for and "networkIdle" in wait_for else "load"
-		self._page.set_content(html, wait_until=wait_until)
+		# "load" fires after all resources (images, stylesheets) referenced in the
+		# HTML are fetched — sufficient for height measurement and PDF rendering.
+		# "networkidle" times out when the HTML references external CDN assets.
+		self._page.set_content(html, wait_until="load")
 		self.wait_for_set_content = lambda: None
 
 	def _setup_local_resource_route(self):

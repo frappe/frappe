@@ -64,7 +64,7 @@ def capture_screenshot(
 				# requests are fulfilled from disk by set_content's interceptor.
 				page.set_tab_url(get_host_url())
 				page.wait_for_navigate()
-				page.set_content(html, wait_for=["load", "DOMContentLoaded", "networkIdle"])
+				page.set_content(html)
 				page.wait_for_set_content()
 			else:
 				if headers:

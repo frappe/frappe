@@ -137,21 +137,16 @@ class Browser:
 		head = soup.find("head").contents
 		styles = soup.find_all("style")
 
-		# Wait for networkIdle so get_element_height() measures the wrapper *after*
-		# any letterhead <img> has loaded — otherwise paperHeight is set too small.
-		header_footer_wait = ["load", "DOMContentLoaded", "networkIdle"]
 		if self.header_page:
 			self.header_page.wait_for_navigate()
 			self.header_page.set_content(
 				self.get_rendered_header_footer(self.header_content, "header", head, styles, css=[]),
-				wait_for=header_footer_wait,
 			)
 
 		if self.footer_page:
 			self.footer_page.wait_for_navigate()
 			self.footer_page.set_content(
 				self.get_rendered_header_footer(self.footer_content, "footer", head, styles, css=[]),
-				wait_for=header_footer_wait,
 			)
 		if self.header_page:
 			self.header_page.wait_for_set_content()
