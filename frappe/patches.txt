@@ -267,3 +267,4 @@ frappe.patches.v16_0.set_reply_to_header
 frappe.patches.v16_0.rename_print_format_builder_beta_route
 frappe.patches.v16_0.sync_installed_apps_to_site_config
 frappe.patches.v16_0.backfill_list_layout_route_signature
+frappe.patches.v16_0.clear_if_owner_above_permlevel_zero

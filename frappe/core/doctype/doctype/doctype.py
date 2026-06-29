@@ -31,7 +31,7 @@ from frappe.model.document import Document
 from frappe.model.meta import Meta
 from frappe.modules import get_doc_path, make_boilerplate
 from frappe.modules.import_file import get_file_path
-from frappe.permissions import ALL_USER_ROLE, AUTOMATIC_ROLES, SYSTEM_USER_ROLE, get_rights
+from frappe.permissions import ALL_USER_ROLE, AUTOMATIC_ROLES, SYSTEM_USER_ROLE
 from frappe.query_builder.functions import Concat
 from frappe.utils import cint, flt, get_datetime, is_a_property, random_string
 from frappe.website.utils import clear_cache
@@ -2005,28 +2005,19 @@ def validate_permissions(doctype, for_remove=False, alert=False):
 				)
 
 	# `if_owner` is only honoured at permlevel 0. Clear it at higher levels, where it is
-	# ignored, and fold any row that becomes an exact duplicate into the existing one,
-	# merging its rights so no access is lost.
+	# ignored, then drop any row that becomes an exact duplicate of another.
 	for d in permissions:
 		if cint(d.permlevel) > 0 and d.if_owner:
 			d.if_owner = 0
-			d.flags.if_owner_cleared = True
 
-	perm_meta = frappe.get_meta("DocPerm")
-	seen = {}
+	seen = []
 	deduped = []
 	for d in permissions:
-		key = (d.role, cint(d.permlevel), cint(d.if_owner))
-		duplicate = seen.get(key)
-		if duplicate and (d.flags.if_owner_cleared or duplicate.flags.if_owner_cleared):
-			for right in (*get_rights(doctype.name), "mask"):
-				field = perm_meta.get_field(right)
-				if field and field.fieldtype != "Check":
-					continue
-				if d.get(right):
-					duplicate.set(right, 1)
+		comparable = d.as_dict(no_default_fields=True)
+		comparable.pop("name", None)
+		if comparable in seen:
 			continue
-		seen[key] = d
+		seen.append(comparable)
 		deduped.append(d)
 
 	if len(deduped) != len(permissions):
