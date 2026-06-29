@@ -3,7 +3,7 @@ from typing import ClassVar
 import frappe
 from frappe import _
 
-# Chrome flags for headless PDF/screenshot use.
+# Chrome flags used for both headless (prod) and headed (debug) launches.
 # Playwright adds --headless and --remote-debugging-pipe automatically — don't duplicate them.
 # https://peter.sh/experiments/chromium-command-line-switches/
 CHROMIUM_LAUNCH_ARGS = [
@@ -43,8 +43,16 @@ CHROMIUM_LAUNCH_ARGS = [
 	"--mute-audio",
 	"--blink-settings=primaryHoverType=2,availableHoverTypes=2,primaryPointerType=4,availablePointerTypes=4",
 	"--no-sandbox",
+	# Excluded in debug (headed) mode — prevents the browser window from opening.
 	"--no-startup-window",
 ]
+
+# Flags that only apply in headless mode; removed when launching headed for debug.
+_HEADLESS_ONLY_ARGS = {"--no-startup-window"}
+
+
+def _is_debug_mode():
+	return frappe.conf.developer_mode and bool(frappe.form_dict.get("pdf_debug"))
 
 
 class ChromiumManager:
@@ -59,12 +67,30 @@ class ChromiumManager:
 			self._browsers.remove(browser)
 
 	def __new__(cls):
-		# Rebuild singleton when the Playwright browser connection is lost.
+		is_debug = _is_debug_mode()
+
 		if cls._instance is None:
 			cls._instance = super().__new__(cls)
+		elif is_debug:
+			# Debug requests always get a fresh headed browser.
+			# Close the existing headless singleton first to avoid an orphaned process.
+			old = cls._instance
+			try:
+				if getattr(old, "_browser", None):
+					old._browser.close()
+			except Exception:
+				pass
+			try:
+				if getattr(old, "_playwright", None):
+					old._playwright.stop()
+			except Exception:
+				pass
+			cls._instance = super().__new__(cls)
 		elif getattr(cls._instance, "_browser", None) is not None:
+			# Rebuild singleton when the browser connection drops.
 			if not cls._instance._browser.is_connected():
 				cls._instance = super().__new__(cls)
+
 		return cls._instance
 
 	def __init__(self):
@@ -77,6 +103,7 @@ class ChromiumManager:
 
 	def _initialize_chromium(self):
 		site_config = frappe.get_common_site_config()
+		self.debug_mode = _is_debug_mode()
 
 		# Connect to an external Chromium over CDP (separate docker/server).
 		ws_url = site_config.get("chromium_websocket_url", "")
@@ -86,7 +113,6 @@ class ChromiumManager:
 			return
 
 		# Optional: point at a custom binary via chromium_path in common_site_config.json.
-		# If not set, Playwright uses chrome-headless-shell installed by bench setup-chrome.
 		executable_path = None
 		if custom_path := site_config.get("chromium_path", ""):
 			import shutil
@@ -96,41 +122,50 @@ class ChromiumManager:
 		self._launch_playwright_browser(executable_path=executable_path)
 
 	def _launch_playwright_browser(self, executable_path=None):
-		"""Launch chrome-headless-shell via Playwright.
+		"""Launch Chromium via Playwright.
 
-		Uses chrome-headless-shell (~136 MB, headless-only) instead of full
-		Chromium (~280 MB). Playwright manages the process lifecycle entirely —
-		no subprocess management, no stderr polling, no port selection needed.
+		Two modes:
+		- Prod (headless=True): chrome-headless-shell (~136 MB, headless-only, Docker-friendly).
+		- Debug (headless=False): full Playwright Chromium (~280 MB) so the browser window is
+		  visible and the developer can inspect the rendered content.
 
-		If chrome-headless-shell is missing it is installed automatically on
-		first use (one-time cost, then cached in ~/.cache/ms-playwright/).
+		In debug mode, full Chromium is auto-installed on first use. In prod, chrome-headless-shell
+		is installed by `bench setup-chrome` (or auto-installed on first use if that was skipped).
 		"""
 		from playwright.sync_api import sync_playwright
 
-		# channel and executable_path are mutually exclusive in Playwright.
-		# Use channel only when no custom binary path is configured.
-		channel = None if executable_path else "chrome-headless-shell"
+		if self.debug_mode:
+			# Full Playwright Chromium: supports headless=False for interactive inspection.
+			channel = None  # no channel = Playwright's own bundled full Chromium
+			headless = False
+			# --no-startup-window suppresses the OS window, defeating the purpose of headed mode.
+			args = [a for a in CHROMIUM_LAUNCH_ARGS if a not in _HEADLESS_ONLY_ARGS]
+		else:
+			# chrome-headless-shell: headless-only, ~136 MB — sufficient for PDF and screenshots.
+			# When a custom executable_path is set, we don't specify a channel — the custom binary
+			# is used directly (channel would be ignored anyway when executable_path is given).
+			channel = None if executable_path else "chrome-headless-shell"
+			headless = True
+			args = CHROMIUM_LAUNCH_ARGS
 
 		self._playwright = sync_playwright().start()
 		try:
 			self._browser = self._playwright.chromium.launch(
 				channel=channel,
 				executable_path=executable_path,
-				args=CHROMIUM_LAUNCH_ARGS,
-				headless=True,
+				args=args,
+				headless=headless,
 			)
 		except Exception as e:
 			if "Executable doesn't exist" in str(e) or "playwright install" in str(e).lower():
-				# chrome-headless-shell not yet installed — auto-install on first use.
-				# Cached in ~/.cache/ms-playwright/ so this only runs once per machine.
-				# In Docker, run bench setup-chrome at build time to avoid this cost.
-				frappe.log("chrome-headless-shell not found — auto-installing via playwright")
+				binary = "chromium" if self.debug_mode else "chrome-headless-shell"
+				frappe.log(f"{binary} not found — auto-installing via playwright")
 				self._auto_install_chromium()
 				self._browser = self._playwright.chromium.launch(
 					channel=channel,
 					executable_path=executable_path,
-					args=CHROMIUM_LAUNCH_ARGS,
-					headless=True,
+					args=args,
+					headless=headless,
 				)
 			else:
 				self._playwright.stop()
@@ -139,24 +174,28 @@ class ChromiumManager:
 				frappe.throw(_("Could not start Chromium. Check error logs for details."))
 
 	def _auto_install_chromium(self):
-		"""Install chrome-headless-shell using the current venv's playwright."""
+		"""Install the appropriate Chromium binary using the current venv's playwright.
+
+		- Debug mode: installs full Playwright Chromium (supports headless=False).
+		- Prod mode: installs chrome-headless-shell (~136 MB, headless-only).
+
+		Uses sys.executable to guarantee the venv's playwright is called, not whatever
+		is on $PATH.
+		"""
 		import subprocess
 		import sys
 
-		# Use sys.executable so we always call the playwright from the active venv,
-		# not whatever playwright happens to be on $PATH.
+		package = "chromium" if self.debug_mode else "chrome-headless-shell"
 		try:
 			subprocess.run(
-				[sys.executable, "-m", "playwright", "install", "chrome-headless-shell", "--with-deps"],
+				[sys.executable, "-m", "playwright", "install", package, "--with-deps"],
 				check=True,
 				text=True,
 			)
 		except subprocess.CalledProcessError as e:
 			self._playwright.stop()
 			self._playwright = None
-			frappe.throw(
-				_(f"Failed to auto-install chrome-headless-shell: {e}. Run 'bench setup-chrome' manually.")
-			)
+			frappe.throw(_(f"Failed to auto-install {package}: {e}. Run 'bench setup-chrome' manually."))
 
 	def _connect_playwright_cdp(self, ws_url):
 		"""Connect to an externally managed Chromium instance over CDP."""
@@ -192,3 +231,14 @@ class ChromiumManager:
 		self._browser = None
 		self._playwright = None
 		frappe.log("Headless Chromium closed successfully.")
+
+	def detach_debug_browser(self):
+		"""Keep the debug browser window open for the developer to inspect.
+
+		Resets the singleton so the next PDF request starts a fresh headless browser
+		instead of reusing the headed debug one.
+		"""
+		ChromiumManager._instance = None
+		self._initialized = False
+		self._browser = None
+		self._playwright = None
