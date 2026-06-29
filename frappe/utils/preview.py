@@ -2,10 +2,10 @@
 # License: MIT. See LICENSE
 """Native HTML/URL preview-image generation.
 
-Renders with the bundled headless-Chromium + CDP stack that already powers PDF
-generation — no Playwright/Selenium dependency or external service. Plain
-in-process helpers (call them directly, e.g. from Builder); deliberately not
-whitelisted, since rendering arbitrary HTML/URLs server-side is an SSRF surface.
+Renders with the same headless-Chromium + Playwright stack that powers PDF
+generation. Plain in-process helpers (call them directly, e.g. from Builder);
+deliberately not whitelisted, since rendering arbitrary HTML/URLs server-side
+is an SSRF surface.
 """
 
 import time
@@ -38,29 +38,24 @@ def get_image_format(format: str) -> str:
 def capture_screenshot(
 	format, *, html=None, url=None, wait_for=0, headers=None, width=1280, height=720
 ) -> bytes:
-	"""Drive Chromium over CDP, reusing the PDF generator's process + lifecycle:
-	register the browser so Chromium isn't torn down mid-use, and reset the
-	singleton on crash so the next request gets a fresh instance."""
-	from frappe.utils.chromium import CDPSocketClient, ChromiumManager, Page
+	"""Render a screenshot using the Playwright-backed Chromium singleton.
+
+	Registers a browser slot so Chromium isn't torn down mid-use, and resets
+	the singleton on crash so the next request gets a fresh instance."""
+	from frappe.utils.chromium import ChromiumManager
+	from frappe.utils.chromium.page import Page
 	from frappe.utils.pdf import get_host_url
 
 	image_format = get_image_format(format)
 	generator = ChromiumManager()
 	browser_id = frappe.utils.random_string(10)
 	generator.add_browser(browser_id)
-	session = page = None
+	context = None
 	try:
 		try:
-			if not generator._devtools_url:
-				generator._set_devtools_url()
-			session = CDPSocketClient(generator._devtools_url)
-			session.connect()
-			context, error = session.send("Target.createBrowserContext", {"disposeOnDetach": True})
-			if error:
-				raise RuntimeError(f"Error creating browser context: {error}")
-
-			page = Page(session, context["browserContextId"], "screenshot")
-			page.is_print_designer = False  # normally set by Browser.new_page
+			context = generator.new_context()
+			pw_page = context.new_page()
+			page = Page(pw_page, "screenshot")
 			page.set_media_emulation("screen")  # Page defaults to print media
 			page.set_device_metrics(width, height)
 
@@ -73,7 +68,6 @@ def capture_screenshot(
 				page.wait_for_set_content()
 			else:
 				if headers:
-					page.send("Network.enable")
 					page.send("Network.setExtraHTTPHeaders", {"headers": headers})
 				page.navigate(url)
 				if wait_for:
@@ -81,17 +75,13 @@ def capture_screenshot(
 
 			return page.capture_screenshot(image_format=image_format)
 		finally:
-			# Remove the browser before the outer except resets the singleton.
-			safe_execute(page and page.close)
-			safe_execute(session and session.disconnect)
+			# context.close() closes all pages within the context automatically.
+			safe_execute(context and context.close)
 			generator.remove_browser(browser_id)
 	except Exception:
-		# Only reset the singleton when the local Chrome process has actually exited.
-		# - proc is None: external chromium_websocket_url is in use — no local process
-		#   to check; transient network errors must not reset the singleton.
-		# - proc.poll() is None: local process is still running — error is application-level.
-		proc = generator._chromium_process
-		if proc is not None and proc.poll() is not None:
+		# Reset the singleton only when the browser connection is actually dead.
+		# Transient application errors must not kill Chrome for all other workers.
+		if generator._browser and not generator._browser.is_connected():
 			generator._close_browser()
 		raise
 

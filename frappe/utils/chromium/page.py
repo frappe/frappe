@@ -1,289 +1,111 @@
 import base64
-import time
-import urllib
+import os
+import urllib.parse
 
 import frappe
 from frappe.utils.pdf import get_host_url
 
 """
-CDP commands documentation can be found here.
-https://chromedevtools.github.io/devtools-protocol/
+Playwright-based page driver for PDF generation and screenshots.
+
+Replaces the custom CDP Page class. Each Page wraps a Playwright Page object
+created from a BrowserContext (via ChromiumManager.new_context()). Cleanup is
+handled automatically: context.close() closes all pages within the context.
 """
 
 
 class Page:
-	def __init__(self, session, browser_context_id, page_type):
-		self.session = session
-		result, error = self.session.send(
-			"Target.createTarget", {"url": "", "browserContextId": browser_context_id}
-		)
-		if error:
-			frappe.log_error(title="Error creating new page:", message=f"{error}")
-
-		self.target_id = result["targetId"]
+	def __init__(self, pw_page, page_type):
+		self._page = pw_page
 		self.type = page_type
-		result, error = self.session.send(
-			"Target.attachToTarget", {"targetId": self.target_id, "flatten": True}
-		)
-		if error:
-			raise RuntimeError(f"Error attaching to target: {error}")
-		self.session_id = result["sessionId"]
-		self.send("Page.enable")
-		self.frame_id = None
-		self.get_frame_id_on_demand()
-		self.set_media_emulation("print")
-		self.set_cookies()
+		self.is_print_designer = False
+		self.options = {}
+		self._cached_pdf = None
+		self._page.emulate_media(media="print")
 
-	# TODO: make send to return future and don't wait for it by default.
 	def send(self, method, params=None, return_future=False):
+		"""Shim for legacy CDP send() calls. Only Network.setExtraHTTPHeaders is handled."""
 		if params is None:
 			params = {}
-		return self.session.send(method, params, self.session_id, return_future)
+		if method == "Network.setExtraHTTPHeaders":
+			self._page.set_extra_http_headers(params.get("headers", {}))
+		return None, None
 
-	def get_frame_id_on_demand(self):
-		if self.frame_id:
-			return self.frame_id
-		try:
-			result, error = self.send("Page.getFrameTree")
-			if error:
-				raise RuntimeError(f"Error fetching frameId: {error}")
-			frame_tree = result["frameTree"]
-			frame = frame_tree["frame"]
-			self.frame_id = frame["id"]
-			return self.frame_id
-		except Exception:
-			frappe.log_error(title="Error fetching frameId:", message=f"{frappe.get_traceback()}")
-			raise
+	def set_media_emulation(self, media_type="print"):
+		self._page.emulate_media(media=media_type)
 
-	def _ensure_frame_id(self):
-		if not self.frame_id:
-			self.get_frame_id_on_demand()
-		return self.frame_id
+	def set_device_metrics(self, width=1280, height=720, scale_factor=1):
+		self._page.set_viewport_size({"width": width, "height": height})
 
-	def set_media_emulation(self, media_type: str = "print"):
-		"""Set media emulation for the page."""
-		return self.send("Emulation.setEmulatedMedia", {"media": media_type})
+	def set_tab_url(self, url):
+		"""Navigate to url with empty body to establish the page origin."""
+		self._page.route(url, lambda route: route.fulfill(status=200, body=""))
+		self._page.goto(url, wait_until="load")
+		self._page.unroute(url)
+		self.wait_for_navigate = lambda: None
 
-	def set_cookies(self):
-		if frappe.session and frappe.session.sid and hasattr(frappe.local, "request"):
-			domain = frappe.utils.get_host_name().split(":", 1)[0]
-			cookie = {
-				"name": "sid",
-				"value": frappe.session.sid,
-				"domain": domain,
-				"sameSite": "Strict",
-			}
-			_result, error = self.send("Network.enable")
-			if error:
-				raise RuntimeError(f"Error enabling network: {error}")
-			_result, error = self.send("Network.setCookie", cookie)
-			if error:
-				raise RuntimeError(f"Error setting cookie: {error}")
-			_result, error = self.send("Network.disable")
-			if error:
-				raise RuntimeError(f"Error disabling network: {error}")
+	def navigate(self, url, wait_for=None):
+		"""Navigate to a real URL and wait for it to load."""
+		self._page.goto(url, wait_until="load")
 
-	def intercept_request_and_fulfill(self, url_pattern):
-		"""Starts intercepting network requests for the given target_id and URL pattern."""
-		data = {}
+	def set_content(self, html, wait_for=None):
+		"""Set page HTML content. Routes local asset/file requests from disk."""
+		self._setup_local_resource_route()
+		wait_until = "networkidle" if wait_for and "networkIdle" in wait_for else "load"
+		self._page.set_content(html, wait_until=wait_until)
+		self.wait_for_set_content = lambda: None
 
-		def on_request_paused_event(future, response):
-			"""Callback for when a request is paused (intercepted)."""
-			params = response.get("params")
-			if params and params.get("requestId"):
-				data["request_id"] = params["requestId"]
-				if not future.done():
-					future.set_result(data["request_id"])
+	def _setup_local_resource_route(self):
+		"""Intercept requests for local assets and serve them from disk.
 
-		# Start listening for requestPaused event
-		event = self.session.start_listener(
-			"Fetch.requestPaused", on_request_paused_event, self.session_id, self.target_id, self.frame_id
-		)
-
-		# Enable request interception for the specified URL pattern
-		self.session.send("Fetch.enable", {"patterns": [{"urlPattern": url_pattern}]})
-
-		def intercept_and_fulfill():
-			self.session.wait_for_event(event)
-			self.session.send(
-				"Fetch.fulfillRequest",
-				{"requestId": event[1].result(), "responseCode": 200},
-				return_future=True,
-			)
-			self.session.remove_listener("Fetch.requestPaused", event)
-
-		return intercept_and_fulfill
-
-	def intercept_request_for_local_resources(self, url_pattern="*"):
-		"""Starts intercepting network requests for the given target_id and URL pattern."""
-		import os
-
-		data = {}
-
+		Security: only paths inside bench sites/assets and site public root are
+		served. Everything else is either passed through (external) or blocked.
+		"""
 		bench_sites = os.path.abspath(os.path.join(frappe.utils.get_bench_path(), "sites"))
 		asset_path = os.path.abspath(os.path.join(bench_sites, "assets"))
 		site_public_root = os.path.realpath(frappe.utils.get_site_path("public"))
 
-		def on_request_paused_event(future, response):
-			"""Callback for when a request is paused (intercepted)."""
-			params = response.get("params")
-			if params and params.get("requestId"):
-				data["request_id"] = params["requestId"]
-				url = params["request"]["url"]
+		def handle_route(route):
+			url = route.request.url
+			if url.startswith(get_host_url()):
+				path = url.replace(get_host_url(), "").split("?v", 1)[0]
+				clean_path = urllib.parse.unquote(path)
 
-				if url.startswith(get_host_url()):
-					path = url.replace(get_host_url(), "").split("?v", 1)[0]
-					clean_path = urllib.parse.unquote(path)
+				if clean_path.startswith("assets/"):
+					final_path = os.path.abspath(os.path.join(bench_sites, clean_path))
+					is_safe = os.path.commonpath([final_path, asset_path]) == asset_path
+				else:
+					final_path = os.path.realpath(os.path.join(site_public_root, clean_path))
+					is_safe = os.path.commonpath([final_path, site_public_root]) == site_public_root
 
-					if clean_path.startswith("assets/"):
-						final_system_path = os.path.abspath(os.path.join(bench_sites, clean_path))
-						is_safe = os.path.commonpath([final_system_path, asset_path]) == asset_path
-					else:
-						# Covers files/, builder_assets/, etc... under public root.
-						final_system_path = os.path.realpath(os.path.join(site_public_root, clean_path))
-						is_safe = (
-							os.path.commonpath([final_system_path, site_public_root]) == site_public_root
-						)
-
-					if is_safe and os.path.isfile(final_system_path):
-						content = frappe.read_file(final_system_path, as_base64=True)
-						response_headers = []
-						# write logic to handle all file types as required
-						if path.endswith(".svg"):
-							response_headers.append({"name": "Content-Type", "value": "image/svg+xml"})
-						if content:
-							self.session.send(
-								"Fetch.fulfillRequest",
-								{
-									"requestId": data["request_id"],
-									"responseCode": 200,  # actually hande the response code from the request
-									"responseHeaders": response_headers,
-									"body": content,
-								},
-								return_future=True,
-							)
-							return
-					elif path:
-						self.session.send(
-							"Fetch.failRequest",
-							{"requestId": data["request_id"], "errorReason": "AccessDenied"},
-							return_future=True,
-						)
-						frappe.log_error(
-							title="Attempted Unauthorized File Access in PDF Generator",
-							message=f"Blocked access to: {path} \nResolved Path to: {final_system_path}",
-						)
+				if is_safe and os.path.isfile(final_path):
+					content = frappe.read_file(final_path, as_base64=True)
+					headers = {}
+					if path.endswith(".svg"):
+						headers["Content-Type"] = "image/svg+xml"
+					if content:
+						route.fulfill(status=200, body=base64.b64decode(content), headers=headers)
 						return
-				self.session.send(
-					"Fetch.continueRequest",
-					{"requestId": data["request_id"]},
-					return_future=True,
-				)
+				elif path:
+					frappe.log_error(
+						title="Attempted Unauthorized File Access in PDF Generator",
+						message=f"Blocked access to: {path}\nResolved Path to: {final_path}",
+					)
+					route.abort("accessdenied")
+					return
+			route.continue_()
 
-		# Start listening for requestPaused event
-		self.session.start_listener(
-			"Fetch.requestPaused", on_request_paused_event, self.session_id, self.target_id, self.frame_id
-		)
-
-		# Enable request interception for the specified URL pattern
-		self.session.send("Fetch.enable", {"patterns": [{"urlPattern": url_pattern}]})
-
-	def set_tab_url(self, url):
-		"""Navigate to a URL and fulfill the request with status code 200."""
-
-		# Intercept and fulfill request with 200 status code
-		wait_and_fulfill = self.intercept_request_and_fulfill(url)
-		# Now, navigate after intercepting the request
-		wait_start = self.wait_for_load(wait_for="load")
-		page_navigate = self.send("Page.navigate", {"url": url}, return_future=True)
-		wait_and_fulfill()
-
-		def wait_for_navigate():
-			self.session.wait_for_event(page_navigate, 3)
-			wait_start()
-
-		self.wait_for_navigate = wait_for_navigate
-
-	def navigate(self, url, wait_for=None):
-		"""Really load a URL and wait for render (vs set_tab_url's empty-body stub)."""
-		wait_start = self.wait_for_load(wait_for=wait_for or ["load", "DOMContentLoaded", "networkIdle"])
-		_result, error = self.send("Page.navigate", {"url": url})
-		if error:
-			raise RuntimeError(f"Error navigating to URL: {error}")
-		wait_start()
+		self._page.route("**/*", handle_route)
 
 	def evaluate(self, expression, await_promise=False):
-		self.send("Runtime.enable")
-		result, error = self.send(
-			"Runtime.evaluate", {"expression": expression, "awaitPromise": await_promise}
-		)
-		if error:
-			# retry if error in 500ms for 3 times (just safe guard as i had few edge cases where it failed).
-			# waiting for network is still slower than this.
-			for _i in range(3):
-				print(f"Error evaluating expression: {error}. Retrying in 500ms")
-				time.sleep(0.5)
-				result, error = self.send(
-					"Runtime.evaluate", {"expression": expression, "awaitPromise": await_promise}
-				)
-				if not error:
-					break
-			raise RuntimeError(f"Error evaluating expression: {error}")
-
-		self.send("Runtime.disable")
-		return result
-
-	# set wait_for to networkIdle if pdf is not rendering correctly.
-	# if you face header Height to be incorrect as some external script is changing elements.
-	# networkIdle is most stable option but make it a lot slower so avoiding for now. enable if not stable
-	def set_content(self, html, wait_for=None):
-		if not wait_for:
-			wait_for = ["load", "DOMContentLoaded"]
-		self.intercept_request_for_local_resources()
-		wait_start = self.wait_for_load(wait_for=wait_for)
-		self.send("Page.setDocumentContent", {"frameId": self._ensure_frame_id(), "html": html})
-		self.wait_for_set_content = wait_start
-
-	def wait_for_load(self, wait_for, timeout=60):
-		self.send("Page.setLifecycleEventsEnabled", {"enabled": True})
-		status = {}
-		if isinstance(wait_for, str):
-			status[wait_for] = False
-		if isinstance(wait_for, list):
-			for event in wait_for:
-				status[event] = False
-
-		def on_lifecycle_event(future, response):
-			params = response.get("params", {})
-			if params.get("name") in status.keys():
-				status[params.get("name")] = True
-				if all(status.values()):
-					if not future.done():
-						future.set_result(response)
-
-		event = self.session.start_listener(
-			"Page.lifecycleEvent", on_lifecycle_event, self.session_id, self.target_id, self.frame_id
-		)
-
-		def start_wait():
-			self.session.wait_for_event(event, timeout)
-			self.session.remove_listener("Page.lifecycleEvent", event)
-
-		return start_wait
+		"""Evaluate JS expression. Returns CDP-style dict for call-site compatibility."""
+		result = self._page.evaluate(expression)
+		return {"result": {"value": result}}
 
 	def get_element_height(self, selector="body"):
 		if not self.is_print_designer:
 			selector = ".wrapper"
 
-		# Primary: use the wrapper's own getBoundingClientRect().height.
-		# With display:flow-root on .wrapper (chrome_pdf_header_footer.html) the BFC
-		# guarantees floated children are included in the layout height, so this is
-		# the correct rendered height.
-		#
-		# Fallback (height==0, e.g. unusual letterhead that defeats display:flow-root):
-		# walk in-flow descendants and return the farthest bottom edge.
-		# Absolutely/fixed-positioned descendants are skipped so they can't
-		# inflate the measurement beyond the actual visual content.
 		js = f"""(function() {{
 			var wrapper = document.querySelector('{selector}');
 			if (!wrapper) return 0;
@@ -304,132 +126,74 @@ class Page:
 			result = self.evaluate(js)
 			height = result.get("result", {}).get("value", 0) or 0
 		except Exception:
-			# Fallback to DOM.getBoxModel if JS evaluation fails entirely
-			try:
-				self.send("DOM.enable")
-				doc_result, _err = self.send("DOM.getDocument")
-				doc_node_id = doc_result["root"]["nodeId"]
-				result, _err = self.send("DOM.querySelector", {"nodeId": doc_node_id, "selector": selector})
-				node_id = result["nodeId"]
-				result, _err = self.send("DOM.getBoxModel", {"nodeId": node_id})
-				height = result["model"]["height"]
-			finally:
-				self.send("DOM.disable")
+			height = 0
 		return height
 
-	def add_page_size_css(self):
-		width = str(self.options["paperWidth"]) + "in"
-		height = str(self.options["paperHeight"]) + "in"
-		marginLeft = str(self.options["marginLeft"]) + "in"
-		marginRight = str(self.options["marginRight"]) + "in"
-		marginTop = str(self.options["marginTop"]) + "in"
-		marginBottom = str(self.options["marginBottom"]) + "in"
-
-		# Enable DOM and CSS agents
-		result, error = self.send("DOM.enable")
-		if error:
-			raise RuntimeError(f"Error enabling DOM: {error}")
-
-		result, error = self.send("CSS.enable")
-		if error:
-			raise RuntimeError(f"Error enabling CSS: {error}")
-
-		# Create a new stylesheet
-		result, error = self.send("CSS.createStyleSheet", {"frameId": self._ensure_frame_id()})
-		if error:
-			raise RuntimeError(f"Error creating stylesheet: {error}")
-
-		style_sheet_id = result["styleSheetId"]
-
-		# Define the CSS rule for the page size
-		css_rule = f"""
-			@page {{
-				size: {width} {height};
-				margin: {marginTop} {marginRight} {marginBottom} {marginLeft};
-			}}
-		"""
-
-		# Apply the CSS rule to the created stylesheet
-		result, error = self.send("CSS.setStyleSheetText", {"styleSheetId": style_sheet_id, "text": css_rule})
-
-		if error:
-			raise RuntimeError(f"Error setting stylesheet text: {error}")
-
-		self.send("CSS.disable")
-		self.send("DOM.disable")
-
-	def set_device_metrics(self, width=1280, height=720, scale_factor=1):
-		"""Override viewport size for deterministic screenshot dimensions (default 1280x720)."""
-		_result, error = self.send(
-			"Emulation.setDeviceMetricsOverride",
-			{"width": width, "height": height, "deviceScaleFactor": scale_factor, "mobile": False},
-		)
-		if error:
-			raise RuntimeError(f"Error setting device metrics: {error}")
-
-	def capture_screenshot(self, image_format="jpeg", quality=30):
-		"""Screenshot the current viewport; returns raw image bytes."""
-		params = {"format": image_format, "captureBeyondViewport": False}
-		if image_format in ("jpeg", "webp"):  # quality is only valid for lossy formats
-			params["quality"] = quality
-		result, error = self.send("Page.captureScreenshot", params)
-		if error:
-			raise RuntimeError(f"Error capturing screenshot: {error}")
-		return base64.b64decode(result["data"])
-
 	def generate_pdf(self, wait_for_pdf=True, raw=False):
-		self.add_page_size_css()
-		if not wait_for_pdf:
-			self.wait_for_pdf = self.send("Page.printToPDF", self.options, return_future=True)
-			return
+		"""Generate PDF from the current page.
 
-		result, error = self.send("Page.printToPDF", self.options)
-		if error:
-			raise RuntimeError(f"Error generating PDF: {error}")
-		if "stream" not in result:
-			raise ValueError("Stream handle not returned from Page.printToPDF")
-		return self.get_pdf_from_stream(result["stream"], raw)
-
-	def get_pdf_stream_id(self):
-		# wait for task to complete
-		self.session.wait_for_event(self.wait_for_pdf)
-		# wait for event to complete
-		task = self.wait_for_pdf.result()
-		future = task.result()
-		stream_id = future["result"]["stream"]
-		return stream_id
-
-	def get_pdf_from_stream(self, stream_id, raw=False):
+		wait_for_pdf=False caches the result for later retrieval via
+		get_pdf_from_stream() — matches the async CDP pattern used by browser.py
+		for header/footer optimization (now executed synchronously).
+		"""
 		from io import BytesIO
 
 		from pypdf import PdfReader
 
-		pdf_data = b""
-		offset = 0
-		while True:
-			chunk_result, error = self.send("IO.read", {"handle": stream_id, "offset": offset, "size": 4096})
-			if error:
-				raise RuntimeError(f"Error reading PDF chunk: {error}")
-			chunk_data = chunk_result["data"]
-			# we don't use base64Encode option but added check anyway as it is one of the valid options.
-			if chunk_result.get("base64Encoded", False):
-				chunk_data = base64.b64decode(chunk_data)
-			pdf_data += chunk_data
-			offset += len(chunk_data)
-			if chunk_result.get("eof", False):
-				break
+		pdf_bytes = self._page.pdf(**self._build_pdf_options())
 
-		_result, error = self.send("IO.close", {"handle": stream_id})
-		if error:
-			raise RuntimeError(f"Error closing PDF stream: {error}")
+		if not wait_for_pdf:
+			self._cached_pdf = pdf_bytes
+			return
 
 		if raw:
-			return pdf_data
+			return pdf_bytes
+		return PdfReader(BytesIO(pdf_bytes))
 
-		return PdfReader(BytesIO(pdf_data))
+	def get_pdf_stream_id(self):
+		"""Return a token for the cached PDF (replaces CDP stream handle)."""
+		return "playwright_cached"
+
+	def get_pdf_from_stream(self, stream_id, raw=False):
+		"""Retrieve the cached PDF generated with wait_for_pdf=False."""
+		from io import BytesIO
+
+		from pypdf import PdfReader
+
+		if raw:
+			return self._cached_pdf
+		return PdfReader(BytesIO(self._cached_pdf))
+
+	def _build_pdf_options(self):
+		"""Convert browser.py options dict to Playwright page.pdf() kwargs."""
+		opts = self.options
+		pw_opts = {
+			"print_background": opts.get("printBackground", True),
+			"landscape": opts.get("landscape", False),
+			"scale": float(opts.get("scale", 1)),
+			"margin": {
+				"top": f"{opts.get('marginTop', 0)}in",
+				"bottom": f"{opts.get('marginBottom', 0)}in",
+				"left": f"{opts.get('marginLeft', 0)}in",
+				"right": f"{opts.get('marginRight', 0)}in",
+			},
+		}
+		if opts.get("paperWidth"):
+			pw_opts["width"] = f"{opts['paperWidth']}in"
+		if opts.get("paperHeight"):
+			pw_opts["height"] = f"{opts['paperHeight']}in"
+		if opts.get("pageRanges"):
+			pw_opts["page_ranges"] = opts["pageRanges"]
+		if opts.get("generateTaggedPDF"):
+			pw_opts["tagged_pdf"] = True
+		return pw_opts
+
+	def capture_screenshot(self, image_format="jpeg", quality=30):
+		"""Screenshot the current viewport; returns raw image bytes."""
+		kwargs = {"type": image_format, "full_page": False}
+		if image_format in ("jpeg", "webp"):
+			kwargs["quality"] = quality
+		return self._page.screenshot(**kwargs)
 
 	def close(self):
-		self.session.send("Fetch.disable")
-		_result, error = self.send("Target.closeTarget", {"targetId": self.target_id})
-		if error:
-			raise RuntimeError(f"Error closing target: {error}")
+		self._page.close()

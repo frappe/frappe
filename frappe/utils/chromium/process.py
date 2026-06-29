@@ -26,12 +26,15 @@ class ChromiumManager:
 			self._browsers.remove(browser)
 
 	def __new__(cls):
-		# Rebuild singleton when chromium subprocess is missing or has exited.
-		# subprocess.Popen stays truthy after the underlying process dies, so
-		# `not cls._instance._chromium_process` never trips — use poll() instead.
-		if (
-			cls._instance is None
-			or cls._instance._chromium_process is None
+		# Rebuild singleton when the Playwright browser connection is lost,
+		# or (before Playwright connects) when the subprocess has exited.
+		if cls._instance is None:
+			cls._instance = super().__new__(cls)
+		elif getattr(cls._instance, "_browser", None) is not None:
+			if not cls._instance._browser.is_connected():
+				cls._instance = super().__new__(cls)
+		elif (
+			getattr(cls._instance, "_chromium_process", None) is None
 			or cls._instance._chromium_process.poll() is not None
 		):
 			cls._instance = super().__new__(cls)
@@ -46,6 +49,8 @@ class ChromiumManager:
 		self._chromium_process = None
 		self._chromium_path = None
 		self._devtools_url = None
+		self._playwright = None
+		self._browser = None
 		self._initialize_chromium()
 
 	def _initialize_chromium(self):
@@ -225,18 +230,50 @@ class ChromiumManager:
 			self._chromium_process.terminate()
 			raise TimeoutError("Chromium took too long to start.")
 
+	def new_context(self):
+		"""Create a new isolated browser context (like a fresh incognito window).
+
+		Lazily connects Playwright to Chrome via CDP on the first call.
+		Equivalent to Target.createBrowserContext, but context.close() automatically
+		closes all pages inside it — no need to track and close pages individually.
+		"""
+		if self._browser is None:
+			self._connect_playwright()
+		return self._browser.new_context()
+
+	def _connect_playwright(self):
+		"""Connect Playwright to the already-running Chromium subprocess via CDP."""
+		if not self._devtools_url:
+			self._set_devtools_url()
+		from playwright.sync_api import sync_playwright
+
+		self._playwright = sync_playwright().start()
+		self._browser = self._playwright.chromium.connect_over_cdp(self._devtools_url)
+
 	def _close_browser(self):
 		"""
-		Close the headless Chromium browser.
+		Close the Playwright connection and terminate the Chromium process.
 		"""
 		if self._browsers:
 			frappe.log("Cannot close Chromium as there are active browser instances.")
 			return
+		try:
+			if self._browser:
+				self._browser.close()
+		except Exception:
+			frappe.log_error("Error disconnecting Playwright from Chromium")
+		try:
+			if self._playwright:
+				self._playwright.stop()
+		except Exception:
+			frappe.log_error("Error stopping Playwright runtime")
 		if self._chromium_process:
 			self._chromium_process.terminate()
 		ChromiumManager._instance = None
 		self._chromium_process = None
 		self._devtools_url = None
+		self._browser = None
+		self._playwright = None
 		frappe.log("Headless Chromium closed successfully.")
 
 	def detach_debug_browser(self):
@@ -247,10 +284,22 @@ class ChromiumManager:
 		the next PDF request starts with a fresh generator/process instead of reusing
 		the old debug session.
 		"""
+		try:
+			if self._browser:
+				self._browser.close()  # disconnect Playwright without killing Chrome
+		except Exception:
+			pass
+		try:
+			if self._playwright:
+				self._playwright.stop()
+		except Exception:
+			pass
 		ChromiumManager._instance = None
 		self._initialized = False
 		self._chromium_process = None
 		self._devtools_url = None
+		self._browser = None
+		self._playwright = None
 
 	# not used anywhere in the code. read _set_devtools_url for more info.  useful in case we want to take different approch to fetch devtools url.
 	def fetch_devtools_url(self, port):

@@ -66,23 +66,22 @@ class Browser:
 			generator.detach_debug_browser()
 
 	def open(self, generator):
-		from frappe.utils.chromium import CDPSocketClient
-
-		# checking because if we share browser accross request _devtools_url will already be set for subsequent requests.
-		if not generator._devtools_url:
-			generator._set_devtools_url()
-		# start the CDP websocket connection to browser
-		self.session = CDPSocketClient(generator._devtools_url)
-
-		self.session.connect()
-		self.create_browser_context()
-
-	def create_browser_context(self):
-		# create browser context
-		result, error = self.session.send("Target.createBrowserContext", {"disposeOnDetach": True})
-		if error:
-			frappe.log_error(title="Error creating browser context:", message=f"{error}")
-		self.browser_context_id = result["browserContextId"]
+		# Create an isolated browser context (like a fresh incognito window).
+		# Cookies are set on the context so all pages inside share the session.
+		self.context = generator.new_context()
+		if frappe.session and frappe.session.sid and hasattr(frappe.local, "request"):
+			domain = frappe.utils.get_host_name().split(":", 1)[0]
+			self.context.add_cookies(
+				[
+					{
+						"name": "sid",
+						"value": frappe.session.sid,
+						"domain": domain,
+						"sameSite": "Strict",
+						"url": get_host_url(),
+					}
+				]
+			)
 
 	def set_html(self, html):
 		self.soup = BeautifulSoup(html, "html5lib")
@@ -91,20 +90,12 @@ class Browser:
 		self.options = options
 
 	def new_page(self, page_type):
-		"""
-		# create a new page in the browser inside browser context
-		----
-		TODO: Implement Deterministic rendering for headless-chrome via DevTools Protocol ( waiting for macos support )
-		https://docs.google.com/document/d/1PppegrpXhOzKKAuNlP6XOEnviXFGUiX2hop00Cxcv4o/edit?tab=t.0#bookmark=id.dukbomwxpb3j
+		"""Create a new page inside the browser context."""
+		from frappe.utils.chromium.page import Page
 
-		NOTE: In theory this will make it faster but more importantly use less cpu, ram etc.
-		"""
-
-		from frappe.utils.chromium import Page
-
-		page = Page(self.session, self.browser_context_id, page_type)
+		pw_page = self.context.new_page()
+		page = Page(pw_page, page_type)
 		page.is_print_designer = self.is_print_designer
-
 		return page
 
 	def setup_body_page(self):
@@ -457,7 +448,8 @@ class Browser:
 		self.footer_content = footer_content
 
 	def close(self):
-		self.session.disconnect()
+		# context.close() automatically closes all pages inside the context.
+		self.context.close()
 
 
 class PageSize:

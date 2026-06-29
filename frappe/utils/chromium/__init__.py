@@ -1,11 +1,12 @@
-"""Generic headless-Chromium toolkit driven over the Chrome DevTools Protocol.
+"""Headless-Chromium toolkit powered by Playwright.
 
-This is the general-purpose "spin up headless chrome and drive a page" stack:
-a singleton process manager (:class:`ChromiumManager`), a CDP websocket client
-(:class:`CDPSocketClient`), a :class:`Page` driver, and the binary download/setup
-helpers. It powers PDF generation (``frappe.utils.pdf_generator``) and screenshot
-previews (``frappe.utils.preview``), and can be used directly for browser
-automation such as scraping.
+Manages a Chromium subprocess singleton (:class:`ChromiumManager`) and drives
+it via Playwright for PDF generation and screenshot previews.  The Playwright
+connection is established lazily on the first :meth:`~ChromiumManager.new_context`
+call so Chrome startup cost is paid only when needed.
+
+:class:`CDPSocketClient` is kept for backward compatibility (print_designer uses
+it directly) but is no longer used internally.
 """
 
 from frappe.utils.chromium.cdp_connection import CDPSocketClient
