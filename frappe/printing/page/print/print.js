@@ -341,7 +341,23 @@ frappe.ui.form.PrintView = class {
 	refresh_print_format() {
 		this.set_default_print_language();
 		this.toggle_raw_printing();
+		this.update_letterhead_for_print_format();
 		this.preview();
+	}
+
+	update_letterhead_for_print_format() {
+		const format_name = this.selected_format();
+		if (!format_name || format_name === "Standard") {
+			this.set_default_letterhead();
+			return;
+		}
+		frappe.db.get_value("Print Format", format_name, "letter_head").then(({ message }) => {
+			if (message?.letter_head) {
+				this.letterhead_selector.val(message.letter_head);
+			} else {
+				this.set_default_letterhead();
+			}
+		});
 	}
 
 	// bind_events () {
