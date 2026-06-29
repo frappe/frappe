@@ -3,7 +3,7 @@ msgstr ""
 "Project-Id-Version: frappe\n"
 "Report-Msgid-Bugs-To: developers@frappe.io\n"
 "POT-Creation-Date: 2026-06-28 10:17+0000\n"
-"PO-Revision-Date: 2026-06-28 21:05\n"
+"PO-Revision-Date: 2026-06-29 21:07\n"
 "Last-Translator: developers@frappe.io\n"
 "Language-Team: Persian\n"
 "MIME-Version: 1.0\n"
@@ -20939,7 +20939,7 @@ msgstr "عرض صفحه (به میلی‌متر)"
 
 #: frappe/public/js/print_format_builder/components/editor/PrintFormat.vue:101
 msgid "Page break must follow a section"
-msgstr "شکست صفحه باید بعد از یک بخش باشد"
+msgstr "شکست صفحه باید پس از یک بخش باشد"
 
 #: frappe/www/qrcode.py:35
 msgid "Page has expired!"
