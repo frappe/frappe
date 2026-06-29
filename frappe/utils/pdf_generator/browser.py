@@ -122,12 +122,54 @@ class Browser:
 
 		return False
 
+	def _paper_width_px(self):
+		"""Return the paper width in pixels so header/footer pages can be set to
+		the correct viewport width before content is loaded.
+
+		getBoundingClientRect() measures layout at the current viewport width. If
+		the viewport is 1280px but the PDF paper is 794px (A4), a full-width
+		letterhead image renders shorter in the viewport than it will in the PDF.
+		The measured height is used as paperHeight — too small a height clips the
+		letterhead; too large adds blank space in the header and shrinks the body.
+		"""
+		from frappe.utils.print_utils import convert_uom
+
+		self._parse_pdf_options_from_html()
+		self._set_default_page_size()
+		options = self.options
+
+		# Custom page size — page-width may be set directly as a string value.
+		if page_width := options.get("page-width"):
+			if isinstance(page_width, str):
+				return int(self._get_converted_num(page_width) or 794)
+			return int(page_width)
+
+		# Standard page size — compute from PageSize table.
+		page_size = options.get("page-size", "A4")
+		size = PageSize.get(page_size)
+		if size:
+			width = size["width"]
+			height = size["height"]
+			if options.get("orientation", "Portrait") == "Landscape":
+				width, height = height, width
+			return int(convert_uom(width, "mm", "px", only_number=True))
+
+		return 794  # A4 fallback
+
 	def prepare_header_footer(self):
 		# code is structured like this to improve performance by running commands in chrome as soon as possible.
 		soup = self.soup
 		options = self.options
 		# open header and footer pages
 		self._open_header_footer_pages()
+
+		# Set the viewport to the actual paper width so getBoundingClientRect()
+		# measures heights at the same width the PDF renderer will use.
+		paper_width = self._paper_width_px()
+		if self.header_page:
+			self.header_page.set_device_metrics(width=paper_width, height=2000)
+		if self.footer_page:
+			self.footer_page.set_device_metrics(width=paper_width, height=2000)
 
 		# Inject clone_and_update into <head> so it's available in the header /
 		# footer page contexts that the template renders via {% for tag in head %}.
