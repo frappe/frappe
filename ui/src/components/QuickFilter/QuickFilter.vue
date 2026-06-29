@@ -20,9 +20,11 @@
   `name` field swaps its text box for a Link picker when flipped to `equals`.
 -->
 <template>
-	<!-- Wrap extra inputs to a second row instead of scrolling: overflow stays
-	     `visible` so the inputs' focus ring isn't clipped. -->
-	<div class="flex flex-wrap items-center gap-2">
+	<!-- One inline row by default: inputs past the available width collapse behind a
+	     "+N more" button rather than wrapping (which ate a second row). Clicking it
+	     expands to show every input, wrapping freely. `overflow` stays `visible` so
+	     the inputs' focus ring isn't clipped. -->
+	<div ref="root" class="flex flex-wrap items-center gap-2">
 		<!-- Customize mode: chips of the surfaced fields with a remove affordance,
 		     plus an "Add Filter" picker over every labelled field. -->
 		<template v-if="customizing">
@@ -59,7 +61,7 @@
 		     width keeps each input from growing on hover (e.g. a Link's clear
 		     button) — the label truncates instead. -->
 		<template v-else>
-			<div v-for="field in surfaced" :key="field.fieldname" class="w-40 shrink-0">
+			<div v-for="field in visibleFields" :key="field.fieldname" class="w-40 shrink-0">
 				<!-- Check → a labelled checkbox (checked ⇔ equals "Yes"). -->
 				<Checkbox
 					v-if="field.fieldtype === 'Check'"
@@ -92,12 +94,31 @@
 					</template>
 				</component>
 			</div>
+			<!-- Overflow affordance: collapsed inputs hide behind a count; expanding
+			     shows all and lets them wrap. A `subtle` pill (not bare ghost text) so it
+			     reads as a peer of the filled inputs beside it rather than floating. Only
+			     shown once something overflows. -->
+			<Button
+				v-if="hiddenCount > 0 || expanded"
+				class="shrink-0 whitespace-nowrap"
+				variant="subtle"
+				:label="expanded ? 'Show less' : `${hiddenCount} more`"
+				@click="expanded = !expanded"
+			>
+				<template #suffix>
+					<span
+						class="size-3.5 text-ink-gray-5"
+						:class="expanded ? 'lucide-chevron-left' : 'lucide-chevron-down'"
+						aria-hidden="true"
+					/>
+				</template>
+			</Button>
 		</template>
 	</div>
 </template>
 
 <script setup lang="ts">
-import { computed, reactive } from "vue";
+import { computed, onBeforeUnmount, onMounted, reactive, ref } from "vue";
 import { Button, Checkbox, Combobox, TextInput } from "frappe-ui";
 import { useDoctypeMeta } from "../../composables/useDoctypeMeta";
 import { getFilterableFields } from "../Filter/getFilterableFields";
@@ -152,6 +173,57 @@ const addableFields = computed<FilterField[]>(() => {
 // Edit-state toggle is owned by the host (a button beside Sort), bound here so the
 // strip swaps between value inputs and the customize chips.
 const customizing = defineModel<boolean>("customizing", { default: false });
+
+// --- Overflow collapse -------------------------------------------------------
+// Each value input is a fixed `w-40` box (160px) on an 8px gap, so how many fit on
+// one row is pure arithmetic on the container width — no per-child measurement.
+// Inputs past the fit collapse behind a "+N more" toggle; expanding shows all and
+// lets the row wrap.
+const ITEM_WIDTH = 160; // w-40
+const GAP = 8; // gap-2
+const MORE_WIDTH = 84; // room reserved for the "N more" button (+ its leading gap)
+
+const root = ref<HTMLElement | null>(null);
+const containerWidth = ref(0);
+const expanded = ref(false);
+let observer: ResizeObserver | null = null;
+
+/** Max fixed-width inputs that fit in `width`, leaving `reserve` px aside. */
+function fitCount(width: number, reserve: number): number {
+	const usable = width - reserve;
+	if (usable < ITEM_WIDTH) return 0;
+	return Math.floor((usable + GAP) / (ITEM_WIDTH + GAP));
+}
+
+// How many inputs to render when collapsed. Until the width is measured (0), show
+// all to avoid a first-paint flash of everything hidden.
+const collapsedCount = computed<number>(() => {
+	const total = surfaced.value.length;
+	const width = containerWidth.value;
+	if (width === 0) return total;
+	if (fitCount(width, 0) >= total) return total; // no overflow
+	return Math.max(1, fitCount(width, MORE_WIDTH + GAP)); // keep room for the toggle
+});
+
+const hiddenCount = computed<number>(() =>
+	Math.max(0, surfaced.value.length - collapsedCount.value)
+);
+const visibleFields = computed<FilterField[]>(() =>
+	expanded.value ? surfaced.value : surfaced.value.slice(0, collapsedCount.value)
+);
+
+onMounted(() => {
+	if (typeof ResizeObserver === "undefined" || !root.value) return;
+	observer = new ResizeObserver((entries) => {
+		containerWidth.value = entries[0].contentRect.width;
+	});
+	observer.observe(root.value);
+});
+
+onBeforeUnmount(() => {
+	observer?.disconnect();
+	observer = null;
+});
 
 // --- Surfaced-field customization -------------------------------------------
 // Mutating the surfaced set is independent of the values: removing a field only
