@@ -21,6 +21,10 @@
       "import": "./src/components/ListView/index.ts",
       "types": "./src/components/ListView/index.ts"
     },
+    "./SortBy": {
+      "import": "./src/components/SortBy/index.ts",
+      "types": "./src/components/SortBy/index.ts"
+    },
     "./utils": {
       "import": "./src/utils/index.ts",
       "types": "./src/utils/index.ts"

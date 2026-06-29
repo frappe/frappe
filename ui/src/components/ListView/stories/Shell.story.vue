@@ -17,17 +17,21 @@
 
 		<ListViewShell :key="doctype" :doctype="doctype">
 			<template #toolbar>
-				<!-- Controls mount here as they are extracted (SortBy first). -->
-				<span class="text-p-sm text-ink-gray-4">No controls yet</span>
+				<!-- Controls mount here as they are extracted. SortBy is the first. -->
+				<SortBy v-model="sorts" :doctype="doctype" />
 			</template>
 		</ListViewShell>
+
+		<div class="text-xs text-ink-gray-6">order_by = "{{ orderBy }}"</div>
 	</div>
 </template>
 
 <script setup lang="ts">
-import { ref } from "vue";
+import { computed, ref } from "vue";
 import { Select } from "frappe-ui";
 import { ListViewShell } from "../index";
+import { SortBy, serializeOrderBy } from "../../SortBy";
+import type { Sort } from "../../SortBy";
 
 const props = withDefaults(defineProps<{ doctype?: string; doctypeOptions?: string[] }>(), {
 	doctype: "CRM Lead",
@@ -36,4 +40,9 @@ const props = withDefaults(defineProps<{ doctype?: string; doctypeOptions?: stri
 
 const doctype = ref(props.doctype);
 const doctypeOptions = props.doctypeOptions;
+
+// The shell stays a controlled host: it owns the Sort[] and would serialize it to
+// `order_by` for a fetch. Reset when the doctype switches (the `:key` remounts).
+const sorts = ref<Sort[]>([]);
+const orderBy = computed(() => serializeOrderBy(sorts.value));
 </script>
