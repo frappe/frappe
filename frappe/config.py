@@ -151,6 +151,11 @@ def get_conf(site: str | None = None) -> _dict[str, Any]:
 	if hasattr(frappe.local, "conf"):
 		return frappe.local.conf
 
+	sites_path = os.environ.get("SITES_PATH", ".")
+
 	# if no site, get from common_site_config.json
-	with frappe.init_site(site):
-		return frappe.local.conf
+	if site:
+		with frappe.init_site(site):
+			return frappe.local.conf
+	else:
+		return get_common_site_config(sites_path)
