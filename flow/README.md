@@ -9,7 +9,7 @@
 
 </div>
 
-<img width="1470" height="923" alt="image" src="https://github.com/user-attachments/assets/f097e271-47ff-4c97-9ef0-a3647959e8d4" />
+<img width="1470" height="923" alt="image" src="https://github.com/user-attachments/assets/59749f10-ccc7-49ce-aa30-9d0dc46c117a" />
 
 ---
 
@@ -26,6 +26,14 @@ Flow sets up the RAG pipeline, embeds and indexes the files, and keeps the DocTy
 
 **Do anything a user can do:**
 > *"Find all overdue sales orders from last month and mark them as closed."*
+
+---
+
+## Quick Access
+
+You can open the global AI chat interface from anywhere in the Frappe Desk by pressing:
+
+<kbd>Cmd</kbd> + <kbd>I</kbd> *(or <kbd>Ctrl</kbd> + <kbd>I</kbd> on Windows)*
 
 ---
 
