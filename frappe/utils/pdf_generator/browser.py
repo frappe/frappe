@@ -66,15 +66,15 @@ class Browser:
 		# Cookies are set on the context so all pages inside share the session.
 		self.context = generator.new_context()
 		if frappe.session and frappe.session.sid and hasattr(frappe.local, "request"):
-			domain = frappe.utils.get_host_name().split(":", 1)[0]
+			# Playwright requires either url OR domain — not both.
+			# url is simpler: Playwright derives domain/path automatically.
 			self.context.add_cookies(
 				[
 					{
 						"name": "sid",
 						"value": frappe.session.sid,
-						"domain": domain,
-						"sameSite": "Strict",
 						"url": get_host_url(),
+						"sameSite": "Strict",
 					}
 				]
 			)
