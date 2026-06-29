@@ -34,7 +34,6 @@
 					:fields="fields"
 					v-model:recipients="recipients"
 					:search-recipients="searchRecipients"
-					:mentions="mentions"
 					expandable
 					storage-key="story:composer:email"
 					placeholder="Write your reply…"
@@ -51,7 +50,7 @@
 					v-model:channel="channel"
 					:fields="fields"
 					:search-recipients="searchRecipients"
-					:mentions="mentions"
+					:mention-options="mentionOptions"
 					expandable
 					storage-key="story:composer:multi"
 					placeholder="Write your reply…"
@@ -72,7 +71,7 @@
 				>
 					<CommentComposer
 						storage-key="story:composer:comment"
-						:mentions="mentions"
+						:mention-options="mentionOptions"
 						placeholder="Type @ to mention a teammate…"
 						:on-submit="(p) => log('comment:submit', p)"
 						@discard="log('comment:discard')"
@@ -121,14 +120,14 @@
 <script setup lang="ts">
 import { computed, ref } from "vue";
 import { Checkbox, Select } from "frappe-ui";
-import { FloatingWindow, type WindowMode } from "frappe-ui";
+import { FloatingWindow, type WindowMode } from "frappe-ui/experimental";
 import { CommentComposer, EmailComposer, MultiComposer } from "../index";
 import type {
 	Channel,
 	CommentPayload,
 	EmailPayload,
 	Field,
-	Mention,
+	MentionOption,
 	Recipient,
 	Recipients,
 } from "../types";
@@ -161,8 +160,8 @@ const recipients = ref<Recipients>({
 	bcc: [],
 });
 
-// Mentions are a host-supplied list; the editor filters them on @.
-const mentions: Mention[] = [
+// Mention options are a host-supplied list; the editor filters them on @.
+const mentionOptions: MentionOption[] = [
 	{ label: "John Doe", value: "john@example.com" },
 	{ label: "Jane Smith", value: "jane@example.com" },
 	{ label: "Sam Patel", value: "sam@example.com" },

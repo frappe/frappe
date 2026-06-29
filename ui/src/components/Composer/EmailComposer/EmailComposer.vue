@@ -8,19 +8,23 @@
 	<FloatingWindow
 		v-model:mode="windowMode"
 		:storage-key="storageKey ? `${storageKey}:window` : null"
-		:minimizable="false"
+		:minimizable="true"
 	>
-		<template #header="{ mode, float, dock }">
+		<template #header="{ mode, float, dock, minimize, expandFromTray }">
 			<ComposerHeader
 				class="px-2.5"
-				title="Email"
+				:title="mode === 'minimized' ? subject || 'Email' : 'Email'"
 				:expandable="expandable"
 				:floating="mode !== 'docked'"
+				:minimizable="true"
+				:minimized="mode === 'minimized'"
 				@expand="mode === 'docked' ? float() : dock()"
+				@minimize="mode === 'minimized' ? expandFromTray() : minimize()"
 			>
-				<template #actions>
+				<template v-if="mode !== 'minimized'" #actions>
 					<!-- Reveal the optional Cc/Bcc recipient rows. Which toggles appear
-					 is set by `fields`; To/Subject are prop-driven, not toggled. -->
+					 is set by `fields`; To/Subject are prop-driven, not toggled.
+					 Hidden while minimized — the tray strip shows just the subject. -->
 					<Button
 						v-if="fields?.includes('cc')"
 						variant="ghost"
@@ -46,7 +50,6 @@
 			:label="label"
 			:upload-function="uploadFunction"
 			:signature="signature"
-			:mentions="mentions"
 			v-model:body="body"
 			:on-submit="handleSubmit"
 			@discard="emit('discard')"
@@ -77,7 +80,8 @@
 
 <script setup lang="ts">
 import { computed, ref } from "vue";
-import { Button, FloatingWindow, toast, type WindowMode } from "frappe-ui";
+import { Button, toast } from "frappe-ui";
+import { FloatingWindow, type WindowMode } from "frappe-ui/experimental";
 import Composer from "../Composer.vue";
 import ComposerHeader from "../ComposerHeader.vue";
 import RecipientFields from "./RecipientFields.vue";

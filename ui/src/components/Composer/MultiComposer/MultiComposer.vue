@@ -10,15 +10,18 @@
 	<FloatingWindow
 		v-model:mode="windowMode"
 		:storage-key="storageKey ? `${storageKey}:window` : null"
-		:minimizable="false"
+		:minimizable="true"
 	>
-		<template #header="{ mode, float, dock }">
+		<template #header="{ mode, float, dock, minimize, expandFromTray }">
 			<ComposerHeader
 				class="px-2.5"
-				:title="channelLabel"
+				:title="mode === 'minimized' ? subject || channelLabel : channelLabel"
 				:expandable="expandable"
 				:floating="mode !== 'docked'"
+				:minimizable="true"
+				:minimized="mode === 'minimized'"
 				@expand="mode === 'docked' ? float() : dock()"
+				@minimize="mode === 'minimized' ? expandFromTray() : minimize()"
 			>
 				<!-- Channel switcher: turns the title into an Email/Comment dropdown. -->
 				<template #title>
@@ -35,8 +38,9 @@
 					</div>
 				</template>
 
-				<!-- Cc/Bcc toggles only apply to email; hidden in comment mode. -->
-				<template v-if="channel === 'email'" #actions>
+				<!-- Cc/Bcc toggles only apply to email; hidden in comment mode and
+					 while minimized (the tray strip shows just the subject). -->
+				<template v-if="channel === 'email' && mode !== 'minimized'" #actions>
 					<!-- Reveal the optional Cc/Bcc recipient rows. Which toggles appear
 					 is set by `fields`; To/Subject are prop-driven, not toggled. -->
 					<Button
@@ -64,7 +68,7 @@
 			:label="submitLabel"
 			:upload-function="uploadFunction"
 			:signature="channel === 'comment' ? undefined : signature"
-			:mentions="mentions"
+			:mention-options="mentionOptions"
 			v-model:body="body"
 			:on-submit="handleSubmit"
 			@discard="emit('discard')"
@@ -98,7 +102,8 @@
 
 <script setup lang="ts">
 import { computed, ref } from "vue";
-import { Button, Dropdown, FeatherIcon, FloatingWindow, toast, type WindowMode } from "frappe-ui";
+import { Button, Dropdown, FeatherIcon, toast } from "frappe-ui";
+import { FloatingWindow, type WindowMode } from "frappe-ui/experimental";
 import Composer from "../Composer.vue";
 import ComposerHeader from "../ComposerHeader.vue";
 import RecipientFields from "../EmailComposer/RecipientFields.vue";

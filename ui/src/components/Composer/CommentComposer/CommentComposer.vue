@@ -8,7 +8,7 @@
 		:placeholder="placeholder"
 		:label="label"
 		:upload-function="uploadFunction"
-		:mentions="mentions"
+		:mention-options="mentionOptions"
 		v-model:body="body"
 		:on-submit="onSubmit"
 		@discard="emit('discard')"

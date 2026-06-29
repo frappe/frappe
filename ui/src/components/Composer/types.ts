@@ -42,11 +42,12 @@ export interface UploadedFile {
 }
 
 /**
- * One @-mention suggestion forwarded to the editor (e.g. a user or agent). The
- * host owns the source list — exactly like Helpdesk, which feeds its agent
- * store's `{ label, value }` items straight into the editor's mention extension.
+ * One @-mention option forwarded to the editor (e.g. a user or agent): `label`
+ * is shown in the suggestion list, `value` is the unique id inserted into the
+ * content. The host owns the source list — exactly like Helpdesk, which feeds
+ * its agent store's `{ label, value }` items straight into the mention extension.
  */
-export interface Mention {
+export interface MentionOption {
   label: string;
   value: string;
 }
@@ -64,7 +65,7 @@ export type CoreSubmitHandler = (
   payload: CoreSubmitPayload
 ) => void | Promise<void>;
 
-/** Inline-image upload handler passed through to the TextEditor. */
+/** Inline-image upload handler passed through to the editor. */
 export type UploadFunction = (file: File) => Promise<unknown>;
 
 /** Props shared by every composer surface (owned by Composer.vue). */
@@ -75,10 +76,14 @@ export interface ComposerProps {
   placeholder?: string;
   /** Label for the primary send button. */
   label?: string;
-  /** Inline-image upload handler forwarded to the TextEditor. */
+  /** Inline-image upload handler forwarded to the editor. */
   uploadFunction?: UploadFunction;
-  /** @-mention suggestions for the editor (e.g. users/agents). Host-owned list. */
-  mentions?: Mention[];
+  /**
+   * @-mention options for the editor (e.g. users/agents), host-owned list.
+   * Only meaningful where mentions make sense (comments) — EmailComposer omits
+   * it, since an email addresses external recipients rather than @-mentioning.
+   */
+  mentionOptions?: MentionOption[];
   /**
    * Signature HTML to place below the body. The host owns the content (e.g. a
    * per-identity block) and changes this when the sending identity changes; the
@@ -112,7 +117,8 @@ export type EmailSubmitHandler = (
  * `setQuotedReply()`. Attachments stay owned by the composer; an explicit
  * removal is reported via the `remove-attachment` event for server cleanup.
  */
-export interface EmailComposerProps extends Omit<ComposerProps, "onSubmit"> {
+export interface EmailComposerProps
+  extends Omit<ComposerProps, "onSubmit" | "storageKey" | "mentionOptions"> {
   /**
    * Which fields to include beyond the always-present "To" row. List "subject"
    * to show the Subject row statically; "cc" / "bcc" are offered as header
@@ -153,6 +159,11 @@ export type Channel = "email" | "comment";
  * channel is two-way state driven with `v-model:channel`.
  */
 export interface MultiComposerProps extends EmailComposerProps {
+  /**
+   * @-mention options for the comment channel. EmailComposer drops mentions, but
+   * MultiComposer re-introduces them since its comment channel @-mentions agents.
+   */
+  mentionOptions?: MentionOption[];
   /** Send method invoked while the composer is in the "comment" channel (no recipients). */
   onComment?: CommentSubmitHandler;
 }

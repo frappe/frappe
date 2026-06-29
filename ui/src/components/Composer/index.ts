@@ -8,7 +8,7 @@ export { default as CommentComposer } from "./CommentComposer/CommentComposer.vu
 export { default as MultiComposer } from "./MultiComposer/MultiComposer.vue";
 // EmailComposer / MultiComposer own a FloatingWindow; re-export its mode type so
 // a consumer can type `v-model:mode` without reaching into frappe-ui internals.
-export type { WindowMode } from "frappe-ui";
+export type { WindowMode } from "frappe-ui/experimental";
 // ComposerProps, CoreSubmitPayload, and CoreSubmitHandler are the private core's
 // contract and stay internal alongside Composer.vue. The channel aliases below
 // (CommentComposerProps = ComposerProps, CommentPayload = CoreSubmitPayload, etc.)
@@ -22,7 +22,7 @@ export type {
   EmailPayload,
   EmailSubmitHandler,
   Field,
-  Mention,
+  MentionOption,
   MultiComposerProps,
   Recipient,
   RecipientSearch,
