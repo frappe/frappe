@@ -10,9 +10,17 @@ frappe.pages["print"].on_page_load = function (wrapper) {
 		const doctype = route[1];
 		const docname = route.slice(2).join("/");
 		if (!frappe.route_options || !frappe.route_options.frm) {
-			frappe.model.with_doc(doctype, docname, () => {
+			frappe.model.with_doc(doctype, docname, (name, r) => {
 				let frm = { doctype: doctype, docname: docname };
 				frm.doc = frappe.get_doc(doctype, docname);
+				if (!frm.doc && r && r.docs) {
+					frm.doc =
+						r.docs.find((d) => d.doctype === doctype && d.name === docname) || null;
+				}
+				// Ensure frm.doc is always an object so this.frm.doc.* never throws.
+				if (!frm.doc) {
+					frm.doc = { doctype: doctype, name: docname };
+				}
 				frappe.model.with_doctype(doctype, () => {
 					frm.meta = frappe.get_meta(route[1]);
 					frm.meta.module && frappe.app.sidebar.show_sidebar_for_module(frm.meta.module);
@@ -233,8 +241,8 @@ frappe.ui.form.PrintView = class {
 		this.sidebar_dynamic_section.empty();
 		frappe
 			.xcall("frappe.printing.page.print.print.get_print_settings_to_show", {
-				doctype: this.frm.doc.doctype,
-				docname: this.frm.doc.name,
+				doctype: this.frm.doc?.doctype || this.frm.doctype,
+				docname: this.frm.doc?.name || this.frm.docname,
 			})
 			.then((settings) => this.add_settings_to_sidebar(settings));
 	}
