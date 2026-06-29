@@ -13,6 +13,19 @@
 			<span class="text-lg font-medium text-ink-gray-8">No activity found</span>
 		</div>
 		<div v-else class="activities mt-0.5">
+			<!-- standalone Load More button (top): a UI control, not a timeline row -->
+			<div
+				v-if="showLoadMoreButton && !loadMoreAtBottom"
+				class="mb-2 flex w-full justify-center"
+			>
+				<Button
+					:loading="!!paginate?.isFetchingNextPage"
+					icon-left="lucide-refresh-cw"
+					@click="loadMore()"
+				>
+					Load More Emails
+				</Button>
+			</div>
 			<div
 				v-for="(activity, i) in rows"
 				:key="getKey(activity, i)"
@@ -23,7 +36,7 @@
 				<div class="grid w-full grid-cols-[30px_minmax(auto,_1fr)] gap-2 px-6 md:px-0">
 					<!-- gutter column: vertical connector line + icon/avatar -->
 					<div
-						class="relative flex justify-center after:absolute after:start-[50%] after:-z-10 after:border-s after:border-outline-gray-modals"
+						class="relative flex justify-center after:absolute after:start-[50%] after:z-0 after:border-s after:border-outline-gray-modals"
 						:class="
 							activity.type === 'load_more'
 								? 'after:-top-2 after:h-[calc(100%+1rem)]'
@@ -38,7 +51,7 @@
 						<!-- load_more has no gutter icon — the connector line passes straight through -->
 						<div
 							v-if="activity.type !== 'load_more'"
-							class="z-1 flex items-center justify-center self-start bg-surface-white"
+							class="relative z-10 flex items-center justify-center self-start bg-surface-white"
 							:class="[isAvatarActivity(activity) ? 'h-10' : 'h-6 w-6 rounded-full']"
 						>
 							<!-- gutter ladder: #icon-{type} slot > activity.icon > per-type default -->
@@ -149,6 +162,19 @@
 					</div>
 				</div>
 			</div>
+			<!-- standalone Load More button (bottom): a UI control, not a timeline row -->
+			<div
+				v-if="showLoadMoreButton && loadMoreAtBottom"
+				class="mt-4 flex w-full justify-center"
+			>
+				<Button
+					:loading="!!paginate?.isFetchingNextPage"
+					icon-left="lucide-refresh-cw"
+					@click="loadMore()"
+				>
+					Load More Emails
+				</Button>
+			</div>
 		</div>
 	</div>
 </template>
@@ -176,37 +202,45 @@ const props = withDefaults(defineProps<ActivityTimelineProps>(), {
 	error: null,
 });
 
+defineSlots<
+	// This is for known activity types
+	{ [K in Activity as `item-${K["type"]}`]?: (props: { activity: K }) => any } & {
+		[K in Activity as `icon-${K["type"]}`]?: (props: { activity: K }) => any;
+	} & {
+		// this is for custom activity types
+		[name: `item-${string}`]: (props: { activity: Activity | CustomActivity }) => any;
+		[name: `icon-${string}`]: (props: { activity: Activity | CustomActivity }) => any;
+		default?: (props: { item: Activity | CustomActivity }) => any;
+	}
+>();
+
 const rootEl = ref<HTMLElement | null>(null);
 const { scrollEl } = useScrollContainer(rootEl);
 
-// Virtual "Load More" row (rendered as a button). If the list already carries one, the
-// placer owns its position; otherwise auto-place from paginate.position ('top' default).
-const rows = computed<Array<Activity | CustomActivity>>(() => {
-	const list = props.activities;
-	if (list.some((a) => a.type === "load_more")) return list;
-	if (!props.paginate?.hasNextPage) return list;
+const rows = computed<Array<Activity | CustomActivity>>(() => props.activities);
 
-	const atBottom = props.paginate.position === "bottom";
-	const loadMore: CustomActivity = {
-		type: "load_more",
-		key: "load-more",
-		timestamp: (atBottom ? list.at(-1) : list[0])?.timestamp,
-		data: null,
-	};
-	return atBottom ? [...list, loadMore] : [loadMore, ...list];
-});
+// A consumer can place their own `load_more` row inside `activities` — then it renders
+// in-feed (line through it) and they own its position. Otherwise the component shows a
+// standalone Load More button outside the feed, placed by paginate.position.
+const hasInlineLoadMore = computed(() => props.activities.some((a) => a.type === "load_more"));
+const loadMoreAtBottom = computed(() => props.paginate?.position === "bottom");
+const showLoadMoreButton = computed(
+	() => !!props.paginate?.hasNextPage && !hasInlineLoadMore.value
+);
 
-// Anchor: the row just below the load_more button + its offset; re-pinning it after the
-// fetch keeps the view fixed. Null when the button is at the bottom (re-pin no-ops then).
+// Anchor: a row + its offset; re-pinning it after the fetch keeps the view fixed.
 let anchorKey: string | null = null;
 let anchorOffset = 0;
 
 function anchorRowKey(): string | null {
 	const list = rows.value;
+	// in-feed load_more: pin the row just below it
 	const idx = list.findIndex((a) => a.type === "load_more");
-	if (idx === -1) return null;
-	const next = list[idx + 1];
-	return next ? getKey(next, idx + 1) : null;
+	if (idx !== -1) return list[idx + 1] ? getKey(list[idx + 1], idx + 1) : null;
+	// standalone button: bottom appends below the viewport (no re-pin needed);
+	// top prepends older rows, so pin the current first row
+	if (loadMoreAtBottom.value) return null;
+	return list[0] ? getKey(list[0], 0) : null;
 }
 
 function loadMore() {
