@@ -244,12 +244,15 @@ frappe.breadcrumbs = {
 		if (docname.startsWith("new-" + doctype.toLowerCase().replace(/ /g, "-"))) {
 			docname_title = __("New {0}", [__(doctype)]);
 			is_new_doc = true;
-		} else {
+		} else if (doc) {
 			let title = frappe.model.get_doc_title(doc);
 			docname_title = __(title) || __(doc.name);
 			if (frappe.utils.is_html(docname_title)) {
 				docname_title = strip_html(docname_title);
 			}
+		} else {
+			// doc not yet in local cache (e.g. print page opened directly via URL)
+			docname_title = __(docname);
 		}
 
 		if (breadcrumbs.layout_name) {
