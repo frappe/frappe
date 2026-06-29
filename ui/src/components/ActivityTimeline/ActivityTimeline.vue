@@ -13,18 +13,21 @@
 			<span class="text-lg font-medium text-ink-gray-8">No activity found</span>
 		</div>
 		<div v-else class="activities mt-0.5">
-			<!-- standalone Load More button (top): a UI control, not a timeline row -->
+			<!-- standalone Load More (top): a UI control, not a timeline row -->
 			<div
 				v-if="showLoadMoreButton && !loadMoreAtBottom"
-				class="mb-2 flex w-full justify-center"
+				class="mb-3 flex w-full justify-center"
 			>
-				<Button
+				<slot
+					name="load_more"
 					:loading="!!paginate?.isFetchingNextPage"
-					icon-left="lucide-refresh-cw"
-					@click="loadMore()"
+					:loadMore="loadMore"
 				>
-					Load More Emails
-				</Button>
+					<LoadMoreButton
+						:loading="!!paginate?.isFetchingNextPage"
+						@click="loadMore()"
+					/>
+				</slot>
 			</div>
 			<div
 				v-for="(activity, i) in rows"
@@ -130,13 +133,16 @@
 							v-if="activity.type === 'load_more'"
 							class="flex w-full justify-center"
 						>
-							<Button
+							<slot
+								name="load_more"
 								:loading="!!paginate?.isFetchingNextPage"
-								icon-left="lucide-refresh-cw"
-								@click="loadMore()"
+								:loadMore="loadMore"
 							>
-								Load More Emails
-							</Button>
+								<LoadMoreButton
+									:loading="!!paginate?.isFetchingNextPage"
+									@click="loadMore()"
+								/>
+							</slot>
 						</div>
 						<slot v-else :name="`item-${activity.type}`" :activity="activity">
 							<!-- default slot: full per-row override, exposes the row as { item } -->
@@ -162,30 +168,34 @@
 					</div>
 				</div>
 			</div>
-			<!-- standalone Load More button (bottom): a UI control, not a timeline row -->
+			<!-- standalone Load More (bottom): a UI control, not a timeline row -->
 			<div
 				v-if="showLoadMoreButton && loadMoreAtBottom"
 				class="mt-4 flex w-full justify-center"
 			>
-				<Button
+				<slot
+					name="load_more"
 					:loading="!!paginate?.isFetchingNextPage"
-					icon-left="lucide-refresh-cw"
-					@click="loadMore()"
+					:loadMore="loadMore"
 				>
-					Load More Emails
-				</Button>
+					<LoadMoreButton
+						:loading="!!paginate?.isFetchingNextPage"
+						@click="loadMore()"
+					/>
+				</slot>
 			</div>
 		</div>
 	</div>
 </template>
 
 <script setup lang="ts">
-import { Avatar, Button, ErrorMessage, FeatherIcon, LoadingIndicator } from "frappe-ui";
+import { Avatar, ErrorMessage, FeatherIcon, LoadingIndicator } from "frappe-ui";
 import { computed, nextTick, onMounted, ref, watch } from "vue";
 import MailIcon from "~icons/lucide/mail";
 import CommentItem from "./CommentItem.vue";
 import EmailItem from "./EmailItem.vue";
 import { CommentIcon, DotIcon, LUCIDE_ICON_CLASS } from "./icons";
+import LoadMoreButton from "./LoadMoreButton.vue";
 import LogItem from "./LogItem.vue";
 import type {
 	Activity,
@@ -211,6 +221,8 @@ defineSlots<
 		[name: `item-${string}`]: (props: { activity: Activity | CustomActivity }) => any;
 		[name: `icon-${string}`]: (props: { activity: Activity | CustomActivity }) => any;
 		default?: (props: { item: Activity | CustomActivity }) => any;
+		// override the "Load More Emails" control (default: <LoadMoreButton>)
+		load_more?: (props: { loading: boolean; loadMore: () => void }) => any;
 	}
 >();
 

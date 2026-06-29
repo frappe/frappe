@@ -23,8 +23,8 @@ together or independently:
 <script setup lang="ts">
 import { ActivityTimeline, useActivityTimeline } from "@framework/ui";
 
-const { activities, loading, error,reload } =
-  useActivityTimeline("HD Ticket", docname);
+const { activities, loading, error, reload, paginate } =
+  useActivityTimeline("HD Ticket", docname, /* paginate */ true);
 </script>
 
 <template>
@@ -32,12 +32,16 @@ const { activities, loading, error,reload } =
     :activities
     :loading
     :error
+    :paginate
   />
 </template>
 ```
 
-The feed reads **oldest-first**: oldest at the top, newest at the bottom. The
-whole activity history — emails included — loads in a single call.
+The feed reads **oldest-first**: oldest at the top, newest at the bottom.
+Comments, logs, views and version history load **in full** on the first call;
+**emails are paged** newest-first (a page is `EMAIL_PAGE_SIZE = 20`). Pass
+`paginate: true` to give users a **"Load More Emails"** control that pulls in the
+next older page — without it, only the newest page of emails is reachable.
 
 ---
 
@@ -45,20 +49,23 @@ whole activity history — emails included — loads in a single call.
 
 ```
 ┌──────────────────────────────────────────────────────────────┐
-│ DATA LAYER — useActivityTimeline(doctype, docname)            │
+│ DATA LAYER — useActivityTimeline(doctype, docname, paginate?) │
 │   • createResource → get_activity_timeline   (default fetcher)│
 │   • server returns normalized Activity[] (ascending)         │
 │   • dedupe + sort (defensive) + groupVersionActivities       │
+│   • paginate=true → returns a `paginate` controller + injects │
+│        a `load_more` row above the oldest email              │
 │   • realtime: patches the list in place on docinfo_update    │
-│   returns { activities, loading, error, reload }             │
+│   returns { activities, loading, error, reload, paginate? }  │
 └──────────────────────────────────────────────────────────────┘
                        │  Activity[]  (the contract, display order)
                        ▼
 ┌──────────────────────────────────────────────────────────────┐
 │ RENDER LAYER — ActivityTimeline.vue (presentational)         │
-│   props: { activities, loading?, error? }                    │
+│   props: { activities, loading?, error?, paginate? }         │
 │   NO data fetching. NO doctype/docname. NO emits. Renders.   │
 │   EmailItem · CommentItem · LogItem · VersionItem            │
+│   owns the Load More button + scroll-anchoring               │
 └──────────────────────────────────────────────────────────────┘
 ```
 
@@ -81,7 +88,7 @@ type Activity =
   | EmailActivity         // type: 'email'
   | CommentActivity       // type: 'comment'
   | AttachmentLogActivity // type: 'attachment_log'
-  | LogActivity           // type: 'log'   (like / assigned / workflow / info / view …)
+  | LogActivity           // type: 'log'   (like / assigned / workflow / info / view / created …)
   | VersionActivity       // type: 'version' (field-change history; can be grouped)
 ```
 
@@ -90,7 +97,7 @@ consumer-defined types the package also exports an open escape hatch:
 
 ```ts
 // same envelope, opaque data — render via the #item-{type} slot
-type CustomActivity = BaseActivity<string, unknown>;
+type CustomActivity = Omit<BaseActivity<string, unknown>, "key"> & { key?: string };
 ```
 
 ### Envelope + `data`
@@ -101,7 +108,7 @@ payload only the matching item renderer reads:
 ```ts
 interface BaseActivity<TType extends string, TData> {
   type: TType;                 // discriminant → which item renders
-  key: string;                 // REQUIRED — unique; v-for key + scroll target
+  key: string;                 // REQUIRED on built-ins — unique; v-for key + scroll target
   timestamp?: string;          // optional — "YYYY-MM-DD HH:mm:ss.ffffff"; sorts correctly as a string
   author?: UserInfo;           // optional — gutter avatar + version grouping (system events omit it)
   icon?: string | Component;   // optional — gutter icon: lucide name or a component
@@ -132,13 +139,13 @@ fallback, so an explicit `key` is only needed for reorderable custom rows.
 { type: "attachment_log", key, timestamp, author,
   data: { name, action: "added" | "removed", fileName, fileUrl?, isPrivate } }
 
-// log
+// log  (data.group present when consecutive same-author log rows are folded)
 { type: "log", key, timestamp, author,
   data: { name,
-          subtype: "like" | "assigned" | "assignment_completed" | "workflow" | "info" | "view",
-          icon, text } }
+          subtype: "like" | "assigned" | "assignment_completed" | "workflow" | "info" | "view" | "created",
+          icon, text, group?: LogActivity[] } }
 
-// version  (one change; data.group present on a folded multi-field group header)
+// version  (data.group present on a folded multi-field group header)
 // each change is a VersionChange, a discriminated union on `type`:
 //   diff   → { name, fieldname?, type: "diff", prefix, from?, to, history? }  (from absent ⇒ set-from-blank)
 //   phrase → { name, fieldname?, type: "phrase", text }                    (fieldname null ⇒ doc-level)
@@ -163,47 +170,101 @@ interface ActivityTimelineProps {
   activities: Array<Activity | CustomActivity>;
   loading?: boolean;                       // first-load spinner (only when no activities yet)
   error?: string | null;                   // error state instead of the feed
+  paginate?: {                             // when present, enables the "Load More" control
+    hasNextPage: boolean;
+    isFetchingNextPage: boolean;
+    fetchNextPage: () => void;
+    position?: "top" | "bottom";           // standalone-button placement; default "top"
+  };
 }
 ```
 
 It receives `activities` already in display order (the composable applies it),
 dispatches each item to the right item component by `activity.type`, and owns the
-**chrome**: gutter dot/avatar, connector line, spacing, ordering, and the
-loading / error / empty states. The first-load spinner is gated on
-`loading && !activities.length`, so a background refetch over existing rows
-leaves them visible (flicker-free).
+**chrome**: gutter dot/avatar, connector line, spacing, ordering, the
+loading / error / empty states, **and the Load More button + scroll-anchoring**.
+The first-load spinner is gated on `loading && !activities.length`, so a
+background refetch over existing rows leaves them visible (flicker-free).
 
 Because it has no idea where `activities` came from, it works equally with a
-doctype, a static fixture, a websocket stream, or a non-Frappe backend.
+doctype, a static fixture, a websocket stream, or a non-Frappe backend. The
+`paginate` controller is just the shape above — `useActivityTimeline` returns one,
+but any source can supply it.
+
+### Load More — button placement & scroll behavior
+
+The feed is oldest-first, so paging pulls **older** emails in **above** the
+current oldest one. The component renders the affordance two ways:
+
+```
+1. activities contains a row with type: "load_more"   → render it IN-FEED
+     (connector line passes through, no gutter icon; consumer owns its position;
+      the standalone button is suppressed)
+2. otherwise, paginate.hasNextPage is true            → render a STANDALONE button
+     at paginate.position ("top" default, or "bottom")
+```
+
+When `useActivityTimeline(…, true)` is used, it injects a `load_more` row above
+the oldest email for you (case 1). To instead get a standalone button you fully
+control, omit that row and bind a bare `paginate` controller with a `position`.
+
+Clicking the button calls `paginate.fetchNextPage()`. Before the older rows patch
+in, the component **anchors** a visible row and restores its offset afterward, so
+the viewport doesn't jump. On first render (with `paginate`) it scrolls once to
+the bottom (newest).
+
+The button itself is an internal `LoadMoreButton` component (one default,
+rendered in whichever of the three positions is active). Override it for **all**
+positions at once via the `#load_more` slot — scoped with `{ loading, loadMore }`:
+
+```vue
+<ActivityTimeline :activities :loading :error :paginate>
+  <!-- replace the default control everywhere it appears -->
+  <template #load_more="{ loading, loadMore }">
+    <Button variant="subtle" :loading @click="loadMore">Older messages</Button>
+  </template>
+</ActivityTimeline>
+```
+
+Providing nothing keeps the default "Load More Emails" button.
 
 ---
 
-## 4. Data layer — `useActivityTimeline(doctype, docname)`
+## 4. Data layer — `useActivityTimeline(doctype, docname, paginate?)`
 
 The composable that produces activities for a Frappe document. It owns the fetch
 policy **and the display order** (fixed **oldest-first**); the renderer owns none
 of it.
 
 ```ts
-const { activities, loading, error, reload } =
-  useActivityTimeline("HD Ticket", "37422");
+const { activities, loading, error, reload, paginate } =
+  useActivityTimeline("HD Ticket", "37422", true);
 ```
 
 | Field | |
 | --- | --- |
-| `activities` | `ComputedRef<Activity[]>` — deduped, sorted, grouped, **in display order** |
+| `activities` | `ComputedRef<Activity[]>` — deduped, sorted, grouped, **in display order** (with a `load_more` row injected when paging) |
 | `loading` | `ComputedRef<boolean>` — the resource's loading state |
 | `error` | `ComputedRef<error \| null>` — the resource's error, or `null` |
 | `reload` | `() => void` — refetch the resource |
+| `paginate` | the controller (`{ hasNextPage, isFetchingNextPage, fetchNextPage }`) — **only when the 3rd arg is `true`**, else `undefined` |
 
-### Loading the whole feed
+### Email paging (opt-in)
 
-The entire activity history loads in a **single call** — there is no email
-paging or "load more". The backend (`get_activity_timeline`) merges every source
-(creation, emails, comments/logs, views, versions), sorts ascending, and returns
-the full normalized `Activity[]` in one round-trip; the email stream is fetched
-in full (capped generously at `EMAIL_LIMIT = 500`). The composable is a thin
-dedupe + ascending-sort + version-grouping pass over that one resource.
+The third positional arg, `paginate?: boolean`, is the only flag:
+
+- **`paginate` omitted / false** — `activities` is the deduped/sorted/grouped feed
+  as-is. The first call already returns only the **newest page** of emails
+  (`EMAIL_PAGE_SIZE = 20`), so older emails are simply not shown and there's no
+  affordance to fetch them. Everything else (comments, logs, views, versions)
+  loads in full.
+- **`paginate: true`** — the composable returns a `paginate` controller and
+  injects a `load_more` row above the oldest email. `fetchNextPage()` calls
+  `get_more_email_activities(doctype, name, start = emailsLoaded)`, appends the
+  next older page to `resource.data`, and the `activities` computed re-sorts.
+  `hasNextPage` mirrors the server's `has_more_emails` flag. The "older emails
+  remain" flag is held in a module-level `Map` keyed by `doctype:docname`, so it
+  survives cached remounts.
 
 ### Server-side normalization
 
@@ -211,10 +272,22 @@ All normalization the composable used to do — `comment_type` bucketing, HTML
 stripping, attachment-link parsing (`fa-lock`, `/app/...`), and label /
 permission resolution for version diffs — happens **server-side** in
 `activity.py`. The composable receives ready-made `Activity` objects and is a
-thin sorter over one default-fetcher resource. Doing the work server-side is
-where it belongs: `frappe.get_meta` (field labels) and
-`frappe.model.get_permitted_fields` (field-level permission filtering for version
-diffs) only exist on the server.
+thin sorter + grouper over one default-fetcher resource (plus a second resource
+for the older-email pages). Doing the work server-side is where it belongs:
+`frappe.get_meta` (field labels) and `frappe.model.get_permitted_fields`
+(field-level permission filtering for version diffs) only exist on the server.
+
+### Version grouping (nested changes)
+
+`groupVersionActivities` runs client-side after the sort: it folds a run of
+**consecutive same-author `version` rows** into one summary row whose `data.group`
+holds the individual `VersionChange`s. Per field it advances the net `to` (keeping
+the first `from`) and records each step in `history`; fields that churn back to
+their starting value drop out as net no-ops. `VersionItem` renders the summary as
+an expandable **"Show/Hide +N changes"** row, and a single diff with multiple
+history entries gets a chevron that reveals its `history`. `LogActivity` carries
+the same optional `group`, and `LogItem` renders the identical collapsible UI when
+one is present.
 
 ### Realtime — patch in place
 
@@ -226,13 +299,14 @@ Each event carries `{ doc, key, action }` (`action: "add" | "update" |
 "delete"`). The composable runs `normalizeActivity(key, doc)` — a client-side
 mirror of the backend normalizers for the `comments`, `like_logs`,
 `assignment_logs`, `attachment_logs` and `communications` keys — then **patches
-`resource.data.activities` in place**: append on `add`, replace-by-`key` on
-`update`, filter-out on `delete`. Unknown keys are ignored.
+`resource.data` in place**: append on `add`, replace-by-`key` on `update`,
+filter-out on `delete`. Unknown keys are ignored. (The socket payload has no
+avatar, so the author is resolved from an already-loaded row with the same email,
+falling back to a name-only `UserInfo`.)
 
 > **Coverage.** Only emails and comments (plus a few comment-backed logs) emit
 > `docinfo_update`. Versions, views, likes and assignments that don't publish
 > realtime appear on the next natural reload — matching desk behavior.
-
 
 ### Caching & lifecycle
 
@@ -248,8 +322,7 @@ Acceptable today; add ref-counting only if that breaks.)
 ## 5. Customization
 
 All customization is **slot-based** and never touches the chrome (gutter,
-connector, spacing, ordering, loading/error/empty). Two
-tiers:
+connector, spacing, ordering, loading/error/empty, Load More). Two tiers:
 
 - **Tier 1 — replace a whole row** for a type → `#item-{type}` slot (with a
   **default slot** as the generic catch-all).
@@ -257,7 +330,9 @@ tiers:
   `#header` / `#footer` / `#actions` slots (Comment & Email only).
 
 `{type}` is the activity type: `email`, `comment`, `log`, `attachment_log`,
-`version`, or any custom type.
+`version`, or any custom type. The slots are **typed**: `defineSlots` maps each
+built-in `#item-{type}` / `#icon-{type}` to its narrowed activity, and keeps the
+open `#item-${string}` / `#icon-${string}` (plus `default`) for custom types.
 
 ### Tier 1 — `#item-{type}` (every type, free)
 
@@ -294,6 +369,12 @@ First match wins:
   </template>
 </ActivityTimeline>
 ```
+
+> The framework-owned `load_more` row is rendered by the component itself (a
+> `LoadMoreButton`), **not** through `#item-load_more` — so the slot ladder never
+> sees it. Override the button via the dedicated `#load_more` slot, and control
+> its placement via `paginate.position` — see
+> [Load More](#load-more--button-placement--scroll-behavior).
 
 ### Tier 2 — region slots (Comment & Email only)
 
@@ -454,8 +535,10 @@ unless `#item-{type}` (or the default slot) is provided**. Set the gutter via
 </ActivityTimeline>
 ```
 
-Gotchas: `key` must be unique/prefixed (it's the v-for key + sort tiebreak);
-`timestamp` is optional but a row without a valid one sorts to the oldest end.
+Gotchas: `key` is optional on `CustomActivity` but must be unique/prefixed when
+present (it's the v-for key + sort tiebreak); omitting it falls back to
+`type:timestamp` / `type:index`, fine for static rows but not reorderable ones.
+`timestamp` is optional — a row without a valid one sorts to the oldest end.
 
 ### Other tweak channels
 
@@ -479,14 +562,15 @@ remount live in the app, not in `@framework/ui`:
     :activities="activities"
     :loading="loading"
     :error="error"
+    :paginate="paginate"
   />
 </template>
 
 <script setup lang="ts">
 import { ActivityTimeline, useActivityTimeline } from "@framework/ui";
 const props = defineProps<{ doctype: string; docname: string }>();
-const { activities, loading, error } =
-  useActivityTimeline(props.doctype, props.docname);
+const { activities, loading, error, paginate } =
+  useActivityTimeline(props.doctype, props.docname, true);
 </script>
 ```
 
@@ -501,20 +585,22 @@ const { activities, loading, error } =
 
 ## 7. Backend — `frappe/desk/form/`
 
-`activity.py` (whitelisted endpoint + normalizers):
+`activity.py` (whitelisted endpoints + normalizers):
 
-- `get_activity_timeline(doctype, name)` → `list[dict]` — merges creation, emails,
-  comments/logs, views and versions, sorts ascending, and returns the full
-  normalized `Activity[]` in one call.
-- `EMAIL_LIMIT = 500` — generous cap on the email stream; `get_email_activities`
-  fetches the whole stream ascending (no paging).
+- `get_activity_timeline(doctype, name)` → `{ activities, has_more_emails }` —
+  merges creation, the **newest page of emails**, comments/logs, views and
+  versions, sorts ascending, and returns the normalized `Activity[]` plus a
+  `has_more_emails` flag in one call.
+- `get_more_email_activities(doctype, name, start)` →
+  `{ activities, has_more_emails }` — the next older page of emails only (sorted
+  ascending), for the composable to append on Load More.
+- `EMAIL_PAGE_SIZE = 20` — non-email sources load in full; emails page
+  newest-first. `get_email_activities` fetches `EMAIL_PAGE_SIZE + 1` (DESC) and
+  uses the extra oldest row as a "more exist" sentinel before slicing it off.
 
-`load.py` (data layer for communications) takes an `order` arg threaded through
-`_get_communications` → `get_communication_data`, defaulting to `"desc"` so every
-existing desk caller is untouched. activity.py passes `order="asc"` so emails read
-oldest-first. The direction is whitelisted to a literal (`"ASC"`/`"DESC"`) before
-being interpolated into the `ORDER BY` clauses — it is never a bound param, so the
-whitelist is the injection guard.
+`load.py` (`_get_communications` / `get_communication_data`) is queried
+newest-first with `start` / `limit` so each page is a window over the
+communications, paged by the count of emails already loaded.
 
 ---
 
@@ -522,17 +608,20 @@ whitelist is the injection guard.
 
 ```
 # shared package — apps/frappe/ui/src/components/ActivityTimeline/
-ActivityTimeline.vue     presentational renderer (props in, slots out)
-useActivityTimeline.ts   data layer: fetch + dedupe/sort/group + realtime → Activity[]
-types.ts                 Activity union (the contract) + ActivityTimelineProps
+ActivityTimeline.vue     presentational renderer (props in, slots out) + Load More + scroll-anchor
+useActivityTimeline.ts   data layer: fetch + dedupe/sort/group + email paging + realtime → Activity[]
+useScrollContainer.ts    finds the nearest scrollable ancestor (park-at-bottom / anchor)
+types.ts                 Activity union (the contract) + ActivityTimelineProps + paginate shape
 EmailItem.vue · CommentItem.vue · LogItem.vue · VersionItem.vue   item renderers
+LoadMoreButton.vue       default "Load More Emails" control (override via #load_more)
 EmailContent.vue · AttachmentItem.vue · PreviewDialog.vue          render helpers
+VersionChange.vue · VersionChangeHistory.vue · LogText.vue         nested-change renderers
 icons.ts · utils.ts                                                shared bits
 index.ts                 public exports (components, composables, Activity* types)
 
 # backend — apps/frappe/frappe/desk/form/
-activity.py              whitelisted get_activity_timeline + normalizers
-load.py                  _get_communications / get_communication_data (+ order arg)
+activity.py              whitelisted get_activity_timeline + get_more_email_activities + normalizers
+load.py                  _get_communications / get_communication_data (paged emails)
 ```
 
 ---
@@ -542,16 +631,25 @@ load.py                  _get_communications / get_communication_data (+ order a
 - **Single contract.** The `Activity` union is the only thing crossing the
   data↔render boundary.
 - **Renderer is pure.** Works with a doctype today, or a static fixture / socket /
-  non-Frappe backend tomorrow, with zero changes to the component.
+  non-Frappe backend tomorrow, with zero changes to the component. Even paging is
+  just a `paginate` shape — the renderer doesn't fetch.
 - **Data policy is swappable.** Want two docs merged, or doc + injected synthetic
   events? Produce the same shape and feed the same renderer (the playground does
   exactly this for a custom `sla_breach` row).
 - **One endpoint.** The data layer used to stitch two calls (`get_docinfo` +
-  `get_version_timeline`) and normalize client-side. It's now a single whitelisted
-  endpoint returning the already-normalized, ascending `Activity[]` in one
-  round-trip — field labels and field-level permission filtering only exist
-  server-side, and HTML stripping / `comment_type` bucketing is cheaper and safer
-  there.
+  `get_version_timeline`) and normalize client-side. It's now whitelisted endpoints
+  returning the already-normalized, ascending `Activity[]` — field labels and
+  field-level permission filtering only exist server-side, and HTML stripping /
+  `comment_type` bucketing is cheaper and safer there.
+- **Emails page, the rest doesn't.** Comments/logs/views/versions are bounded and
+  load in full; email threads can be long, so they page newest-first (20 at a
+  time). Paging is **opt-in** — pass `paginate: true` only where older emails need
+  to be reachable.
+- **Load More, not infinite scroll.** An explicit "Load More Emails" button is
+  predictable and avoids scroll-jank: the component anchors a visible row and
+  restores its offset after older rows patch in, so the viewport never jumps.
+  Placement is configurable (`position: "top" | "bottom"`), and a consumer can
+  inject their own in-feed `load_more` row to own the position entirely.
 - **Customization-as-data carries data, not behavior.** The slot ladder
   (per-type `#item`/`#icon` → default slot → built-in) is what Vuetify, Quasar,
   Headless UI and frappe-ui all converge on. Since item slots hand back
@@ -569,8 +667,8 @@ load.py                  _get_communications / get_communication_data (+ order a
 - `pin`/row pinning; `RenderableContent` (`{ is, props }`) content form; granular
   email sub-slots (`#recipients`/`#content`/`#attachments`) — replaced by the
   `#header`/`#footer`/`#actions` regions.
-- Email pagination / infinite-scroll "load more" — built, then reverted; the
-  whole activity history now loads in a single call.
+- **Infinite-scroll** email paging — built, then dropped in favor of the explicit
+  Load More button (no scroll-jank, predictable, placement-configurable).
 
 ---
 
@@ -584,7 +682,8 @@ under `apps/helpdesk/desk/src/pages/activity-playground/`.
 
 | Scenario | Demonstrates |
 | --- | --- |
-| **basic** | built-in rendering — `:activities :loading :error` only |
+| **basic** | built-in rendering — `:activities :loading :error` only; newest email page + everything else, oldest-first, no Load More |
+| **pagination** | opt into email paging (`useActivityTimeline(…, true)`) and bind `:paginate`; the component shows the "Load More Emails" control |
 | **replace** | override `#item-comment` with a custom component |
 | **icon** | override only the gutter via `#icon-comment`; content stays built-in |
 | **regions** | render `CommentItem` inside `#item-comment` and override its `#header` + `#footer` |
@@ -605,6 +704,6 @@ export { useActivityTimeline } from "./useActivityTimeline";
 export type {
   Activity, ActivityTimelineProps, AttachmentLogActivity, LogActivity,
   BaseActivity, CommentActivity, CustomActivity, EmailActivity, EmailAttachment,
-  UserInfo, VersionActivity,
+  UserInfo, VersionActivity, VersionChange,
 } from "./types";
 ```
