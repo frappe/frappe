@@ -42,6 +42,7 @@
 	{%- endif -%}
 	{%- endif -%}
 	{% for section in layout.sections %}
+	{%- if section.get('_hidden') -%}{%- continue -%}{%- endif -%}
 	{#- Skip labelled sections where every data field is empty -#}
 	{%- set ns = namespace(has_content=false) -%}
 	{%- for column in section.columns -%}
