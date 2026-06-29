@@ -48,14 +48,11 @@ frappe.ui.Sidebar = class Sidebar {
 				return;
 			} else {
 				let app_name = frappe.boot.module_app[this.workspace_title];
-				if (app_name) {
-					let app_title = frappe.boot.app_data.find((f) => {
-						return f.app_name == app_name;
-					}).app_title;
-					this.header_subtitle = app_title;
-				} else {
-					this.header_subtitle = frappe.session.user;
-				}
+				// module_app may point to an app that isn't in app_data (not on the apps
+				// screen), so the lookup can miss -- fall back to the user instead of throwing.
+				let module_app =
+					app_name && frappe.boot.app_data.find((f) => f.app_name == app_name);
+				this.header_subtitle = module_app ? module_app.app_title : frappe.session.user;
 			}
 		}
 	}
