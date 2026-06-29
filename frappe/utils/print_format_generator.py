@@ -228,6 +228,7 @@ class PrintFormatGenerator:
 {%- for column in section.columns %}
 <div class="column col">
 {%- for df in column.get('fields', []) -%}
+{%- if not df.get('_hidden') -%}
 {%- if df.fieldtype == 'HTML' and df.html -%}
 <div class="custom-html">{{ frappe.render_template(df.html, {'doc': doc}) }}</div>
 {%- elif df.fieldtype == 'Spacer' -%}
@@ -241,6 +242,7 @@ class PrintFormatGenerator:
 {%- if df.show_label != 'hide' %}<div class="label">{{ _(df.label or df.fieldname) }}</div>{%- endif -%}
 <div class="value">{{ doc.get_formatted(df.fieldname) }}</div>
 </div>
+{%- endif -%}
 {%- endif -%}
 {%- endif -%}
 {%- endfor -%}
