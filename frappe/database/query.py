@@ -1707,7 +1707,9 @@ class Engine:
 
 		for method in condition_methods:
 			if c := frappe.call(frappe.get_attr(method), self.user, doctype=doctype):
-				conditions.append(RawCriterion(f"({c})"))
+				# Hooks may return a raw SQL string or a pypika term. A term already
+				# participates in `Criterion.all`/`get_sql`, so only strings need wrapping.
+				conditions.append(RawCriterion(f"({c})") if isinstance(c, str) else c)
 
 		active_child_tables = []
 		current_tables = self.get_queried_tables()
