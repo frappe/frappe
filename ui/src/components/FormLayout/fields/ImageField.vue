@@ -43,7 +43,7 @@
 // injected doc; falls back to its own `modelValue` if no `options` is set. No
 // upload, no emit.
 import { computed, inject, ref, useId } from "vue";
-import { InputLabel, InputDescription } from "frappe-ui/internals";
+import { InputLabel, InputDescription } from "frappe-ui/experimental";
 import { DocKey } from "../types";
 import type { FieldComponentProps } from "../types";
 
