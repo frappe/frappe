@@ -33,7 +33,7 @@ _OBJECT_NAMES = frozenset({"dict", "Dict", "Mapping"})
 
 
 def resolve_tool(doc: FlowTool, *, restrict_commit_rollback: bool = False) -> Tool:
-	"""Turn an Flow Tool row into a runtime Tool the Agent can call.
+	"""Turn a Flow Tool row into a runtime Tool the Agent can call.
 
 	`restrict_commit_rollback` removes commit/rollback from a Script tool's sandbox,
 	so it cannot escape a surrounding test transaction.

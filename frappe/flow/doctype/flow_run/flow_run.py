@@ -123,7 +123,7 @@ def create_run(
 	config_snapshot: dict[str, Any] | None = None,
 ) -> FlowRun:
 	"""Create a new Flow Run row in the Running state. `session` is required — every run
-	belongs to an Flow Session (which carries the transcript and agent linkage)."""
+	belongs to a Flow Session (which carries the transcript and agent linkage)."""
 	doc = frappe.get_doc(
 		{
 			"doctype": "Flow Run",

@@ -3,7 +3,7 @@
 
 """Code-first knowledge API.
 
-Build and populate an Flow Knowledge Base from Python — attach text, files, URLs,
+Build and populate a Flow Knowledge Base from Python — attach text, files, URLs,
 or DocType data without the desk UI. Ingestion is synchronous: when an add_*
 call returns, the content is embedded, indexed, and ready to search.
 """

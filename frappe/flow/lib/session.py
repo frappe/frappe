@@ -15,7 +15,7 @@ if TYPE_CHECKING:
 
 
 def new_session(agent: Any = None, *, model: str | None = None, title: str | None = None) -> FlowSession:
-	"""Start a conversation. `agent` may be a code `Agent`, an Flow Agent doc, an agent name,
+	"""Start a conversation. `agent` may be a code `Agent`, a Flow Agent doc, an agent name,
 	or None for the default Assistant. Code agents leave the session's agent link empty."""
 	runtime, agent_name, session_model, snapshot = _resolve_new_agent(agent, model)
 	doc = frappe.get_doc(
@@ -87,7 +87,7 @@ def _default_agent_name() -> str:
 
 	if not frappe.db.exists("Flow Agent", ASSISTANT_AGENT_TITLE):
 		frappe.throw(
-			_("The {0} agent is missing. Create an Flow Model first to auto-provision it.").format(
+			_("The {0} agent is missing. Create a Flow Model first to auto-provision it.").format(
 				ASSISTANT_AGENT_TITLE
 			),
 			title=_("Missing Default Agent"),

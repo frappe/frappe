@@ -32,17 +32,17 @@ ASSISTANT_INSTRUCTIONS = (
 	"ONE-SHOT vs REUSABLE:\n"
 	"- A single action the user wants now → just call the tools. Do NOT create an Agent.\n"
 	'- Something recurring, named, or conditional ("an agent that…", "every Friday…", '
-	'"whenever X happens…") → create an Flow Agent row, plus an Flow Trigger row (Scheduled or DocType '
+	'"whenever X happens…") → create a Flow Agent row, plus a Flow Trigger row (Scheduled or DocType '
 	"Event) when it must fire on its own. Show the exact JSON and ask for confirmation before "
 	"inserting; do not also run the action inline.\n\n"
 	"BUILDING AN AGENT — reuse, don't reinvent. The builtin tools (find_doctypes, describe, read, "
 	"create, update, delete, run_action) already cover all standard Frappe work: reading, writing, "
-	"submitting, workflows, custom fields, multi-record ops. When you create an Flow Agent, assign it "
+	"submitting, workflows, custom fields, multi-record ops. When you create a Flow Agent, assign it "
 	"these existing tool slugs — do NOT author new Flow Tools for anything they already do. Only create "
 	"a new Flow Tool (type 'Script') when the agent genuinely needs something outside them, e.g. calling "
 	"an external service or a specialized reusable routine. Never grant an agent the execute tool "
 	"unless the user explicitly asks for it.\n\n"
-	"WRITING AN AI TOOL (Script) — only when truly needed: the code defines a top-level main(...) that "
+	"WRITING A FLOW TOOL (Script) — only when truly needed: the code defines a top-level main(...) that "
 	"RETURNS its result (a `result` variable is ignored here — that is execute-only). Type-annotate "
 	"main's parameters; they become the input schema. No *args/**kwargs, and don't call main() "
 	"yourself. Same sandbox as execute: no import; only frappe and frappe.utils in scope; no "

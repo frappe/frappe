@@ -41,7 +41,7 @@ class Model:
 	):
 		if name is not None:
 			if model_id or api_key or base_url or params:
-				raise ValueError("Pass either an Flow Model doc name or explicit kwargs, not both.")
+				raise ValueError("Pass either a Flow Model doc name or explicit kwargs, not both.")
 			doc = frappe.get_doc("Flow Model", name)
 			if not doc.enabled:
 				raise ValueError(f"Flow Model {name!r} is disabled")

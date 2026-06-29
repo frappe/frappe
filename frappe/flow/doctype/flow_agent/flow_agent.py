@@ -139,7 +139,7 @@ class FlowAgent(Document):
 		auto_approve: bool = False,
 		stream: bool = False,
 	) -> FlowRun | Generator[Event]:
-		"""Run `input` and persist as an Flow Run. Convenience wrapper over the session API:
+		"""Run `input` and persist as a Flow Run. Convenience wrapper over the session API:
 		starts a conversation (or continues `session`) and calls `chat()`."""
 		from flow.lib.session import load_session, new_session
 

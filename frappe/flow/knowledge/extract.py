@@ -1,7 +1,7 @@
 # Copyright (c) 2026, Frappe Technologies and contributors
 # License: MIT. See LICENSE
 
-"""Turn an Flow Knowledge Source into plain text, ready for chunking."""
+"""Turn a Flow Knowledge Source into plain text, ready for chunking."""
 
 from __future__ import annotations
 

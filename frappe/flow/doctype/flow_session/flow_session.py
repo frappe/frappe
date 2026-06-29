@@ -129,7 +129,7 @@ class FlowSession(Document):
 		auto_approve: bool = False,
 		stream: bool = False,
 	) -> FlowRun | Generator[Event]:
-		"""Run one turn and persist it as an Flow Run. `attachments` are File names whose text
+		"""Run one turn and persist it as a Flow Run. `attachments` are File names whose text
 		is injected into this turn's prompt. With `stream=True`, returns an event generator."""
 		from flow.flow.doctype.flow_run.flow_run import create_run, stream_with_persistence
 

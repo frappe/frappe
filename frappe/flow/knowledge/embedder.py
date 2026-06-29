@@ -31,7 +31,7 @@ def embed_texts(texts: list[str]) -> list[list[float]]:
 
 
 def probe_dimension(model: str) -> int:
-	"""Vector width an Flow Model's embeddings come back with, via a one-input call."""
+	"""Vector width a Flow Model's embeddings come back with, via a one-input call."""
 	config = _model_config(model)
 	(vector,) = _embed_batch(["dimension probe"], config, timeout=PROBE_TIMEOUT)
 	return len(vector)

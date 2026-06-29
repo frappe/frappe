@@ -101,7 +101,7 @@ class FlowPanel {
 		frappe.ui.keys.add_shortcut({
 			shortcut: "ctrl+m",
 			action: () => this.toggle(),
-			description: __("Toggle AI panel"),
+			description: __("Toggle Flow panel"),
 			ignore_inputs: false,
 		});
 	}
