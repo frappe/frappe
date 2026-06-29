@@ -77,7 +77,6 @@ class ChromiumManager:
 
 	def _initialize_chromium(self):
 		site_config = frappe.get_common_site_config()
-		self.debug_mode = frappe.conf.developer_mode and bool(frappe.form_dict.get("pdf_debug"))
 
 		# Connect to an external Chromium over CDP (separate docker/server).
 		ws_url = site_config.get("chromium_websocket_url", "")
@@ -193,14 +192,3 @@ class ChromiumManager:
 		self._browser = None
 		self._playwright = None
 		frappe.log("Headless Chromium closed successfully.")
-
-	def detach_debug_browser(self):
-		"""Keep the debug browser open for inspection; reset the singleton.
-
-		The next PDF request will start with a fresh browser instance.
-		"""
-		# Don't close — the developer is inspecting the browser window.
-		ChromiumManager._instance = None
-		self._initialized = False
-		self._browser = None
-		self._playwright = None
