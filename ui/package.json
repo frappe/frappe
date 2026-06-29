@@ -33,6 +33,10 @@
       "import": "./src/components/QuickFilter/index.ts",
       "types": "./src/components/QuickFilter/index.ts"
     },
+    "./ColumnSettings": {
+      "import": "./src/components/ColumnSettings/index.ts",
+      "types": "./src/components/ColumnSettings/index.ts"
+    },
     "./fields": {
       "import": "./src/components/Fields/index.ts",
       "types": "./src/components/Fields/index.ts"

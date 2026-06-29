@@ -32,6 +32,14 @@ convenience projection over **Filter**s — a Quick Filter and its matching
 **Filter** describe the same underlying condition and stay in sync.
 _Avoid_: inline filter.
 
+**Column**:
+One shown column in the list: a `fieldname`, a (user-overridable) `label`, and an
+optional CSS `width` (`"11rem"`, `"120px"`). The Column Settings control's state is
+an ordered list of Columns — presence means shown, array order is display order, and
+`width` is the slice a column resize co-writes. A column's `align`/`type`/`options`
+are not stored here; they are derived from **Meta** at render/serialize time.
+_Avoid_: field, column setting (the control, not the datum), key (CRM's `key` ≙ `fieldname`).
+
 **Field Options**:
 The list of a doctype's fields a control offers (e.g. SortBy's sortable fields).
 Derived client-side from doctype **Meta**, not from a CRM endpoint.
