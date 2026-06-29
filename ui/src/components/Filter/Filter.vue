@@ -21,10 +21,14 @@
 <template>
 	<!-- Empty: a plain "Filter" combobox button that opens the field picker (the
 	     first picked field seeds a condition and flips to the popover view). -->
+	<!-- `[&_span]:!text-ink-gray-8`: the Combobox mutes its placeholder label and
+	     chevron (`text-ink-gray-4`); un-mute the trigger's icon/label/chevron so it
+	     reads at full ink like the Columns Button beside it. -->
 	<Combobox
 		v-if="!model.length"
 		trigger="button"
 		variant="subtle"
+		class="[&_span]:!text-ink-gray-8"
 		:options="allFields"
 		:modelValue="null"
 		placeholder="Filter"
@@ -41,7 +45,7 @@
 			<div class="flex items-center">
 				<Button
 					label="Filter"
-					class="rounded-r-none"
+					class="relative rounded-r-none focus-visible:z-10"
 					iconLeft="lucide-list-filter"
 					@click="togglePopover"
 				>
@@ -55,7 +59,7 @@
 				</Button>
 				<Button
 					tooltip="Clear All Filters"
-					class="rounded-l-none border-l"
+					class="relative rounded-l-none border-l focus-visible:z-10"
 					icon="lucide-x"
 					@click.stop="clearAll(close)"
 				/>
@@ -122,8 +126,13 @@
 					<div class="flex items-center justify-between gap-2">
 						<!-- Remount per add: the combobox's internal model would otherwise
 						     retain the picked field and show it instead of "Add Filter". -->
+						<!-- `[&_span]:!text-ink-gray-5`: the Combobox renders its `+` icon at
+						     ink-gray-7 and its placeholder label/chevron at ink-gray-4; pin
+						     all three to gray-5 so "Add Filter" matches the "Clear All
+						     Filters" button beside it. -->
 						<Combobox
 							:key="model.length"
+							class="[&_span]:!text-ink-gray-5"
 							trigger="button"
 							variant="ghost"
 							:options="allFields"

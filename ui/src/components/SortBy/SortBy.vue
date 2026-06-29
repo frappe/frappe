@@ -12,11 +12,15 @@
   drag-reorder uses `vuedraggable`; icons are lucide names.
 -->
 <template>
-	<!-- Empty: a plain "Sort" combobox button that opens the field picker. -->
+	<!-- Empty: a plain "Sort" combobox button that opens the field picker.
+	     `[&_span]:!text-ink-gray-8`: the Combobox mutes its placeholder label and
+	     chevron (`text-ink-gray-4`); un-mute the trigger's icon/label/chevron so it
+	     reads at full ink like the Columns Button beside it. -->
 	<Combobox
 		v-if="!model.length"
 		trigger="button"
 		variant="subtle"
+		class="[&_span]:!text-ink-gray-8"
 		:options="addableOptions"
 		:modelValue="null"
 		placeholder="Sort"
@@ -47,13 +51,13 @@
 			</Button>
 			<div v-else class="flex items-center justify-center">
 				<Button
-					class="rounded-r-none border-r"
+					class="relative rounded-r-none border-r focus-visible:z-10"
 					:icon="directionIcon(model[0].direction)"
 					@click.stop="toggleDirection(0)"
 				/>
 				<Button
 					:label="firstSortLabel"
-					class="shrink-0 rounded-l-none [&_svg]:text-ink-gray-5"
+					class="relative shrink-0 rounded-l-none [&_svg]:text-ink-gray-5 focus-visible:z-10"
 					:iconRight="isOpen ? 'lucide-chevron-up' : 'lucide-chevron-down'"
 					@click.stop="togglePopover"
 				/>
@@ -86,12 +90,12 @@
 								<div class="flex flex-1">
 									<Button
 										size="md"
-										class="rounded-r-none border-r"
+										class="relative rounded-r-none border-r focus-visible:z-10"
 										:icon="directionIcon(sort.direction)"
 										@click="toggleDirection(i)"
 									/>
 									<Combobox
-										class="flex-1 rounded-l-none"
+										class="relative flex-1 rounded-l-none focus-within:z-10"
 										trigger="button"
 										variant="subtle"
 										size="md"
@@ -111,8 +115,13 @@
 					<div class="flex items-center justify-between gap-2">
 						<!-- Remount per add: the combobox's internal model would otherwise
 						     retain the picked field and show it instead of "Add Sort". -->
+						<!-- `[&_span]:!text-ink-gray-5`: the Combobox renders its `+`
+						     icon at ink-gray-7 and its placeholder label/chevron at
+						     ink-gray-4; pin all three to gray-5 so "Add Sort" matches the
+						     "Clear Sort" button beside it. -->
 						<Combobox
 							:key="model.length"
+							class="[&_span]:!text-ink-gray-5"
 							trigger="button"
 							variant="ghost"
 							:options="addableOptions"
