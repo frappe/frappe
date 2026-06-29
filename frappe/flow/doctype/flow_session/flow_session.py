@@ -48,6 +48,7 @@ class FlowSession(Document):
 		attachments: DF.Table[FlowSessionAttachment]
 		messages: DF.Table[FlowSessionMessage]
 		model: DF.Link | None
+		source: DF.Literal["Manual", "Trigger"]
 		title: DF.Data | None
 	# end: auto-generated types
 

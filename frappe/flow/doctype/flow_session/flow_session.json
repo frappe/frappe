@@ -8,6 +8,7 @@
   "title",
   "agent",
   "model",
+  "source",
   "section_break_transcript",
   "messages",
   "attachments"
@@ -37,6 +38,16 @@
    "in_standard_filter": 1,
    "label": "Model",
    "options": "Flow Model"
+  },
+  {
+   "default": "Manual",
+   "description": "How this conversation was started. Trigger sessions are hidden from the chat panel's recent list.",
+   "fieldname": "source",
+   "fieldtype": "Select",
+   "in_standard_filter": 1,
+   "label": "Source",
+   "options": "Manual\nTrigger",
+   "read_only": 1
   },
   {
    "collapsible": 1,
