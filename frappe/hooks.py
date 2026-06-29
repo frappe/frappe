@@ -77,6 +77,15 @@ write_file_keys = ["file_url", "file_name"]
 
 notification_config = "frappe.core.notifications.get_notification_config"
 
+# Notification Types whose in-app Notification Log should NOT additionally send its own
+# email (e.g. "Alert" — the Notification rule already owns email delivery via its channel).
+notification_skip_email_types = ["Alert"]
+
+# Notification Types that are delivered even when the recipient is also the actor
+# (for_user == from_user). Other types suppress self-notifications.
+# TODO: This should not be hardcoded and a configurable option in future.
+notification_self_notify_types = ["Alert"]
+
 before_tests = "frappe.utils.install.before_tests"
 
 email_append_to = ["Event", "ToDo", "Communication"]
@@ -274,6 +283,7 @@ scheduler_events = {
 		"frappe.automation.doctype.auto_repeat.auto_repeat.make_auto_repeat_entry",
 		"frappe.core.doctype.log_settings.log_settings.run_log_clean_up",
 		"frappe.core.doctype.user_invitation.user_invitation.mark_expired_invitations",
+		"frappe.core.doctype.duckdb_sync.duckdb_sync.cleanup_old_syncs",
 	],
 	"weekly_long": [
 		"frappe.desk.form.document_follow.send_weekly_updates",
@@ -305,6 +315,7 @@ before_migrate = ["frappe.core.doctype.patch_log.patch_log.before_migrate"]
 after_migrate = [
 	"frappe.website.doctype.website_theme.website_theme.after_migrate",
 	"frappe.search.sqlite_search.build_index_in_background",
+	"frappe.desk.doctype.notification_type.notification_type.install_notification_types",
 ]
 
 otp_methods = ["OTP App", "Email", "SMS"]

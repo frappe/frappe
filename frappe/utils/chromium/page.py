@@ -145,7 +145,7 @@ class Page:
 							os.path.commonpath([final_system_path, site_public_root]) == site_public_root
 						)
 
-					if is_safe:
+					if is_safe and os.path.isfile(final_system_path):
 						content = frappe.read_file(final_system_path, as_base64=True)
 						response_headers = []
 						# write logic to handle all file types as required

@@ -338,21 +338,21 @@ def convert_markdown(doc: "Document") -> None:
 
 @frappe.whitelist()
 def get_html_and_style(
-	doc: str,
+	doc: str | dict,
 	name: str | None = None,
 	print_format: str | None = None,
 	no_letterhead: bool | None = None,
 	letterhead: str | None = None,
 	trigger_print: bool = False,
 	style: str | None = None,
-	settings: str | None = None,
+	settings: str | dict | None = None,
 ) -> dict[str, str | None]:
 	"""Return `html` and `style` of print format, used in PDF etc."""
 
-	if isinstance(name, str):
+	if isinstance(doc, str) and isinstance(name, str):
 		document = frappe.get_lazy_doc(doc, name, check_permission=True)
 	else:
-		document = frappe.get_doc(json.loads(doc), check_permission=True)
+		document = frappe.get_doc(frappe.parse_json(doc), check_permission=True)
 
 	print_format = get_print_format_doc(print_format, meta=document.meta)
 	set_link_titles(document)
@@ -381,13 +381,15 @@ def get_html_and_style(
 
 
 @frappe.whitelist()
-def get_rendered_raw_commands(doc: str, name: str | None = None, print_format: str | None = None) -> dict:
+def get_rendered_raw_commands(
+	doc: str | dict, name: str | None = None, print_format: str | None = None
+) -> dict:
 	"""Return Rendered Raw Commands of print format, used to send directly to printer."""
 
-	if isinstance(name, str):
+	if isinstance(doc, str) and isinstance(name, str):
 		document = frappe.get_lazy_doc(doc, name, check_permission=True)
 	else:
-		document = frappe.get_doc(json.loads(doc), check_permission=True)
+		document = frappe.get_doc(frappe.parse_json(doc), check_permission=True)
 
 	print_format = get_print_format_doc(print_format, meta=document.meta)
 

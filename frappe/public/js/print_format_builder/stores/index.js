@@ -3,7 +3,6 @@ import { watch, ref, inject, computed, nextTick } from "vue";
 
 export function getStore(print_format_name) {
 	// variables
-	let letterhead_name = ref(null);
 	let print_format = ref(null);
 	let letterhead = ref(null);
 	let doctype = ref(null);
@@ -32,6 +31,8 @@ export function getStore(print_format_name) {
 					const saved_layout = get_layout();
 					needs_setup.value = !saved_layout;
 					layout.value = saved_layout || get_default_layout();
+					// Drop legacy sections that were soft-deleted before immediate splice was introduced
+					layout.value.sections = layout.value.sections.filter((s) => !s.remove);
 					// Migrate legacy string header/footer to section objects
 					layout.value.header = migrate_to_section(layout.value.header);
 					layout.value.footer = migrate_to_section(layout.value.footer);
@@ -224,7 +225,6 @@ export function getStore(print_format_name) {
 	});
 
 	return {
-		letterhead_name,
 		print_format,
 		letterhead,
 		doctype,

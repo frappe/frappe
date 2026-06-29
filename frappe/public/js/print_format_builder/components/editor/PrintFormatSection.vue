@@ -1,5 +1,5 @@
 <template>
-	<div class="print-format-section-container" v-if="!section.remove" data-pfb-section>
+	<div class="print-format-section-container" data-pfb-section>
 		<!-- Top-left actions pill shown on hover in clean-preview (toolbar is hidden) -->
 		<div v-if="!is_header" class="section-preview-actions">
 			<div
@@ -9,7 +9,7 @@
 			<button
 				class="btn btn-xs btn-icon"
 				:title="__('Remove section')"
-				@click.stop="section['remove'] = true"
+				@click.stop="remove_section"
 				v-html="frappe.utils.icon('x', 'xs')"
 			></button>
 		</div>
@@ -45,7 +45,7 @@
 						v-if="!is_header"
 						class="btn btn-xs btn-icon toolbar-btn toolbar-btn-danger"
 						:title="__('Remove section')"
-						@click.stop="section['remove'] = true"
+						@click.stop="remove_section"
 					>
 						<span v-html="frappe.utils.icon('x', 'sm')"></span>
 					</button>
@@ -78,6 +78,7 @@
 							item-key="id"
 							handle=".drag-handle"
 							:emptyInsertThreshold="100"
+							@add="select_section"
 						>
 							<template #item="{ element }">
 								<Field
@@ -98,7 +99,7 @@
 								v-html="frappe.utils.icon('x', 'xs')"
 							></button>
 							<div class="empty-drop-zone-hint">
-								<span class="text-muted">{{ __("Drop fields here") }}</span>
+								<span>{{ __("Drop fields here") }}</span>
 							</div>
 						</div>
 					</div>
@@ -145,36 +146,25 @@ function select_section() {
 	store.selected_lh_footer.value = false;
 }
 
-function set_columns(n) {
-	const current = props.section.columns.length;
-	if (n === current) return;
-
-	// collect all fields preserving order
-	const all_fields = props.section.columns.flatMap((col) => col.fields);
-
-	// build n fresh columns and distribute fields round-robin
-	const new_columns = Array.from({ length: n }, () => ({ label: "", fields: [] }));
-	all_fields.forEach((field, i) => new_columns[i % n].fields.push(field));
-
-	props.section.columns = new_columns;
+function remove_section() {
+	const idx = store.layout.value.sections.indexOf(props.section);
+	if (idx !== -1) {
+		store.layout.value.sections.splice(idx, 1);
+		if (store.selected_section.value === props.section) {
+			store.selected_section.value = null;
+		}
+		if (
+			store.selected_field.value &&
+			props.section.columns.some((c) => c.fields.includes(store.selected_field.value))
+		) {
+			store.selected_field.value = null;
+		}
+	}
 }
 
 function remove_column(index) {
 	if (props.section.columns.length <= 1) return;
 	props.section.columns.splice(index, 1);
-}
-
-function toggle_page_break() {
-	props.section["page_break"] = !props.section.page_break;
-}
-
-function toggle_orientation() {
-	props.section["field_orientation"] =
-		props.section.field_orientation === "left-right" ? "" : "left-right";
-}
-
-function set_column_align(column, value) {
-	column.align = value;
 }
 </script>
 
@@ -333,12 +323,26 @@ function set_column_align(column, value) {
 .drag-container {
 	flex: 1;
 	min-width: 0;
-	min-height: 4rem;
+	min-height: 3rem;
 	border-radius: var(--radius);
 	display: flex;
 	flex-direction: column;
 	gap: 0.4rem;
 	overflow: visible;
+}
+
+.column:has(.empty-drop-zone) {
+	min-height: 3rem;
+}
+
+.column:has(.sortable-ghost) .empty-drop-zone {
+	background: transparent;
+	border-color: var(--blue-300);
+	border-style: solid;
+}
+
+.column:has(.sortable-ghost) .empty-drop-zone-hint {
+	display: none;
 }
 
 .empty-drop-zone {
@@ -347,17 +351,17 @@ function set_column_align(column, value) {
 	display: flex;
 	align-items: center;
 	justify-content: center;
-	border: 1.5px dashed var(--gray-300);
+	border: 1.5px dashed var(--gray-400);
 	border-radius: var(--radius);
 	color: var(--text-muted);
 	font-size: var(--text-xs);
 	pointer-events: none;
+	background: var(--gray-50);
+	transition: border-color 0.15s, background 0.15s;
 }
 
 .empty-drop-zone-hint {
-	display: flex;
-	align-items: center;
-	gap: 0.25rem;
+	color: var(--gray-500);
 }
 
 .empty-col-remove {

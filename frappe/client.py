@@ -188,10 +188,8 @@ def set_value(doctype: str, name: str | int, fieldname: str | dict[str, Any], va
 	:param fieldname: fieldname string or JSON / dict with key value pair
 	:param value: value if fieldname is JSON / dict"""
 
-	if fieldname in (frappe.model.default_fields + frappe.model.child_table_fields):
-		frappe.throw(_("Cannot edit standard fields"))
-
-	if not value:
+	values = {}
+	if value is None:
 		values = fieldname
 		if isinstance(fieldname, str):
 			try:
@@ -200,6 +198,17 @@ def set_value(doctype: str, name: str | int, fieldname: str | dict[str, Any], va
 				values = {fieldname: ""}
 	else:
 		values = {fieldname: value}
+
+	forbidden = set(frappe.model.default_fields + frappe.model.child_table_fields)
+
+	# In whole-doc payloads, framework-managed fields are incidental (e.g. name,
+	# owner, creation, idx echoed back), so strip them instead of failing.
+	# throws if only editing framework-managed fields
+	editable = {field: val for field, val in values.items() if field not in forbidden}
+	if values and not editable:
+		frappe.throw(_("Cannot edit standard fields"))
+
+	values = editable
 
 	# check for child table doctype
 	if not frappe.get_meta(doctype).istable:
