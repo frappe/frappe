@@ -42,8 +42,12 @@ export function getStore(print_format_name) {
 					selected_letterhead.value = false;
 					selected_lh_footer.value = false;
 
-					// load the letter head stored in format_data, if any
-					const lh_name = layout.value?.letter_head;
+					// load the letter head: prefer format_data, fall back to the
+					// letter_head field on the Print Format doctype itself.
+					const lh_name = layout.value?.letter_head || _print_format.letter_head;
+					if (lh_name && !layout.value.letter_head) {
+						layout.value.letter_head = lh_name;
+					}
 					const load_lh = lh_name
 						? frappe.db
 								.get_doc("Letter Head", lh_name)
