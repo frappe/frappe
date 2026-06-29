@@ -111,8 +111,16 @@ def validate_args(data):
 	setup_group_by(data)
 
 	validate_fields(data)
-	if data.filters:
+
+	if data.get("filter_tree"):
+		# Advanced (nested AND/OR) filters: validate every leaf the same way flat
+		# filters are validated, then convert the tree into the engine's nested-list
+		# format and feed it through the regular `filters` channel. When a tree is
+		# present it is authoritative and supersedes any flat `filters` in the request.
+		apply_filter_tree(data)
+	elif data.filters:
 		validate_filters(data, data.filters)
+
 	if data.or_filters:
 		validate_filters(data, data.or_filters)
 
@@ -156,24 +164,9 @@ def validate_fields(data):
 
 def validate_filters(data, filters):
 	if isinstance(filters, list):
-		# filters as list
+		# filters as a list of [fieldname, condition, value] / [doctype, fieldname, condition, value]
 		for condition in filters:
-			if len(condition) == 3:
-				# [fieldname, condition, value]
-				fieldname = condition[0]
-				if is_standard(fieldname):
-					continue
-				meta, df = get_meta_and_docfield(fieldname, data)
-				if not df:
-					raise_invalid_field(condition[0])
-			else:
-				# [doctype, fieldname, condition, value]
-				fieldname = condition[1]
-				if is_standard(fieldname):
-					continue
-				meta = frappe.get_meta(condition[0])
-				if not meta.get_field(fieldname):
-					raise_invalid_field(fieldname)
+			validate_filter_condition(data, condition)
 
 	else:
 		for fieldname in filters:
@@ -182,6 +175,60 @@ def validate_filters(data, filters):
 			meta, df = get_meta_and_docfield(fieldname, data)
 			if not df:
 				raise_invalid_field(fieldname)
+
+
+def validate_filter_condition(data, condition):
+	"""Validate a single flat filter condition: its field must exist on the doctype
+	(or be a standard field). Shared by flat filters and advanced filter-tree leaves
+	so the two paths can never drift."""
+	if len(condition) == 3:
+		# [fieldname, condition, value]
+		fieldname = condition[0]
+		if is_standard(fieldname):
+			return
+		meta, df = get_meta_and_docfield(fieldname, data)
+		if not df:
+			raise_invalid_field(condition[0])
+	else:
+		# [doctype, fieldname, condition, value]
+		fieldname = condition[1]
+		if is_standard(fieldname):
+			return
+		meta = frappe.get_meta(condition[0])
+		if not meta.get_field(fieldname):
+			raise_invalid_field(fieldname)
+
+
+def apply_filter_tree(data):
+	"""Validate the advanced (nested AND/OR) `filter_tree`, convert it into the query
+	engine's nested-list filter format, and place the result on `data.filters`.
+
+	Every rule leaf is validated with the same field-existence checks as a flat
+	filter, and the operator is checked against the engine's allow-list, so the
+	advanced path enforces identical security guarantees. The `filter_tree` key is
+	removed afterwards so it is never forwarded to the execution layer, which does
+	not accept it as an argument.
+	"""
+	from frappe.model.filter_tree import to_engine_filters
+
+	engine_filters = to_engine_filters(
+		data.get("filter_tree"),
+		validate_rule=lambda rule: validate_filter_tree_leaf(data, rule),
+	)
+	data["filters"] = engine_filters or []
+	del data["filter_tree"]
+
+
+def validate_filter_tree_leaf(data, rule):
+	"""Validate a single rule leaf of an advanced filter tree, reusing the exact
+	field-existence checks applied to a flat filter condition."""
+	doctype = rule.get("doctype")
+	if doctype:
+		condition = [doctype, rule.get("fieldname"), rule.get("operator"), rule.get("value")]
+	else:
+		condition = [rule.get("fieldname"), rule.get("operator"), rule.get("value")]
+
+	validate_filter_condition(data, condition)
 
 
 def setup_group_by(data):
@@ -259,6 +306,8 @@ def parse_json(data):
 		data["applied_filters"] = json.loads(applied_filters)
 	if (or_filters := data.get("or_filters")) and isinstance(or_filters, str):
 		data["or_filters"] = json.loads(or_filters)
+	if (filter_tree := data.get("filter_tree")) and isinstance(filter_tree, str):
+		data["filter_tree"] = json.loads(filter_tree)
 	if (fields := data.get("fields")) and isinstance(fields, str):
 		data["fields"] = ["*"] if fields == "*" else json.loads(fields)
 	if isinstance(data.get("docstatus"), str):
