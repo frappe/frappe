@@ -26,7 +26,13 @@ def get_limit():
 @frappe.whitelist(allow_guest=True)
 @rate_limit(limit=get_limit, seconds=60 * 60)
 def add_comment(
-	comment: str, comment_email: str, comment_by: str, reference_doctype: str, reference_name: str, route: str
+	comment: str,
+	comment_email: str,
+	comment_by: str,
+	reference_doctype: str,
+	reference_name: str,
+	route: str,
+	web_form: str | None = None,
 ):
 	comment_email = frappe.session.user
 	comment_by = frappe.get_value("User", frappe.session.user, "full_name")
@@ -53,7 +59,18 @@ def add_comment(
 		frappe.msgprint(_("Comments cannot have links or email addresses"))
 		return False
 
+	perm_flag = True
 	doc = frappe.get_doc(reference_doctype, reference_name)
+	if web_form:
+		web_form = frappe.get_lazy_doc("Web Form", web_form)
+		perm_flag = web_form.doc_type == reference_doctype and web_form.has_web_form_permission(
+			reference_doctype, reference_name
+		)
+	elif not (frappe.session.user == "Guest" and guest_allowed):
+		perm_flag = doc.has_permission()
+
+	if not perm_flag:
+		return
 	comment = doc.add_comment(text=clean_html(comment), comment_email=comment_email, comment_by=comment_by)
 
 	comment.db_set("published", 1)
