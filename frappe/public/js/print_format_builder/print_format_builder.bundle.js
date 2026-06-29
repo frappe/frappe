@@ -12,7 +12,6 @@ class PrintFormatBuilder {
 		this.page.clear_custom_actions();
 
 		this.page.set_title(this.print_format);
-		this.page.set_title_sub(__("Print Format Builder"));
 		this.page.set_primary_action(__("Save"), () => {
 			this.$component.$store.save_changes();
 		});
