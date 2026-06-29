@@ -18,6 +18,13 @@ import {
 	serialize,
 } from "./tree.js";
 
+// tree.js mints transient node ids via frappe.utils.get_random; provide a
+// lightweight stand-in when running outside the Desk runtime (e.g. unit tests).
+globalThis.frappe = globalThis.frappe || {};
+frappe.utils = frappe.utils || {};
+frappe.utils.get_random =
+	frappe.utils.get_random || ((len = 8) => Math.random().toString(36).slice(2, 2 + len));
+
 describe("advanced filter tree model", () => {
 	it("creates rules and groups with stable, unique ids", () => {
 		const a = make_rule();

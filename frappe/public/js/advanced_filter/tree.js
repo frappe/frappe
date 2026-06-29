@@ -13,9 +13,10 @@
  * `:key`) which is stripped on serialization.
  */
 
-let _uid = 0;
 function uid() {
-	return `fnode-${++_uid}`;
+	// Transient id used only as a stable Vue :key; reuse Frappe's id generator
+	// (same helper form_builder uses for new docfield names) rather than rolling our own.
+	return frappe.utils.get_random(10);
 }
 
 export function make_rule({ doctype = null, fieldname = null, operator = "=", value = "" } = {}) {
