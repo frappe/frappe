@@ -36,9 +36,10 @@ doc_events = {
 	}
 }
 
-# A knowledge chunk indexes a referenced doc; it must never block deleting that
-# doc. The incremental sweep removes the orphaned chunk afterwards.
-ignore_links_on_delete = ["Flow Knowledge Chunk"]
+# Flow's references to other docs are bookkeeping — they must never block deleting
+# the referenced doc. A knowledge chunk indexes a doc; a Flow Run records the doc a
+# trigger acted on. The incremental sweep removes orphaned chunks afterwards.
+ignore_links_on_delete = ["Flow Knowledge Chunk", "Flow Run"]
 
 default_log_clearing_doctypes = {
 	"Flow Session": 90,
