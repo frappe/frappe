@@ -5,7 +5,7 @@
 **AI agents for Frappe.**
 
 [![License: AGPL v3](https://img.shields.io/badge/License-AGPL_v3-blue.svg)](https://www.gnu.org/licenses/agpl-3.0)
-[![CI](https://github.com/ShrihariMahabal/flow/actions/workflows/ci.yml/badge.svg)](https://github.com/ShrihariMahabal/flow/actions/workflows/ci.yml)
+[![CI](https://github.com/frappe/flow/actions/workflows/ci.yml/badge.svg)](https://github.com/frappe/flow/actions/workflows/ci.yml)
 
 </div>
 
@@ -37,13 +37,13 @@ Flow also ships as a Python framework for building agents in code.
 
 | DocType | Purpose |
 | --- | --- |
-| `AI Provider` | Provider-level credentials and endpoint settings |
-| `AI Model` | Model configuration — set a `model_id` like `anthropic/claude-sonnet-4-6` |
-| `AI Tool` | Reusable tools, defined as a module path or inline script |
-| `AI Agent` | Instructions, model, and tools — configurable from the Desk or in code |
-| `AI Trigger` | Run an agent on a DocType event or a schedule |
-| `AI Knowledge Base` / `AI Knowledge Source` | Knowledge sources (files, URLs, DocTypes) for retrieval-augmented answers |
-| `AI Session` / `AI Run` | Persisted conversations and execution history |
+| `Flow Provider` | Provider-level credentials and endpoint settings |
+| `Flow Model` | Model configuration — set a `model_id` like `anthropic/claude-sonnet-4-6` |
+| `Flow Tool` | Reusable tools, defined as a module path or inline script |
+| `Flow Agent` | Instructions, model, and tools — configurable from the Desk or in code |
+| `Flow Trigger` | Run an agent on a DocType event or a schedule |
+| `Flow Knowledge Base` / `Flow Knowledge Source` | Knowledge sources (files, URLs, DocTypes) for retrieval-augmented answers |
+| `Flow Session` / `Flow Run` | Persisted conversations and execution history |
 
 ### Define a tool
 
@@ -85,7 +85,7 @@ session.chat("What tasks do I have open?")
 session.chat("Close the ones due before last Friday.")
 ```
 
-Every turn is saved as an `AI Run` linked to the session — so conversation history, tool calls, and outputs are all in the database.
+Every turn is saved as a `Flow Run` linked to the session — so conversation history, tool calls, and outputs are all in the database.
 
 ### Built-in tools
 
@@ -110,11 +110,11 @@ Install into an existing [bench](https://github.com/frappe/bench):
 
 ```bash
 cd $PATH_TO_YOUR_BENCH
-bench get-app https://github.com/frappe/flow.git
+bench get-app flow
 bench --site site-name install-app flow
 ```
 
-Then add an `AI Provider` with your API key and an `AI Model` with a model ID such as `anthropic/claude-sonnet-4-6`, and open the Desk AI panel to start. For local providers like Ollama or LM Studio, set `Base URL` on the provider or model.
+Then add a `Flow Provider` with your API key and a `Flow Model` with a model ID such as `anthropic/claude-sonnet-4-6`, and open the Desk Flow panel to start. For local providers like Ollama or LM Studio, set `Base URL` on the provider or model.
 
 ## License
 
