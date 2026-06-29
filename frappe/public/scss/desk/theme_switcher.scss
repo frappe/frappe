@@ -91,6 +91,11 @@
 
 // TODO: Replace with better alternative
 [data-theme="dark"] {
+	--bg-color: var(--surface-base);
+	--card-bg: var(--surface-base);
+	--subtle-accent: var(--surface-gray-1);
+	--text-light: var(--ink-gray-5);
+
 	.background {
 		border: 1px solid var(--gray-500);
 	}
