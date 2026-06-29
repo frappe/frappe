@@ -79,7 +79,7 @@ context("Control Link", () => {
 	it("should unset invalid value", () => {
 		get_dialog_with_link().as("dialog");
 
-		cy.intercept("/api/method/frappe.client.validate_link*").as("validate_link");
+		cy.intercept("/api/method/frappe.client.validate_link_and_fetch*").as("validate_link");
 		cy.get(".frappe-control[data-fieldname=link] input").focus().as("input");
 		// Wait for dropdown to appear (request might be cached)
 		cy.get("@input").parent().findByRole("listbox").should("be.visible");
@@ -92,7 +92,7 @@ context("Control Link", () => {
 	it("should be possible set empty value explicitly", () => {
 		get_dialog_with_link().as("dialog");
 
-		cy.intercept("/api/method/frappe.client.validate_link*").as("validate_link");
+		cy.intercept("/api/method/frappe.client.validate_link_and_fetch*").as("validate_link");
 
 		cy.get(".frappe-control[data-fieldname=link] input").focus().as("input");
 		// Wait for dropdown to appear (request might be cached)
@@ -179,7 +179,7 @@ context("Control Link", () => {
 	it("should update dependant fields (via fetch_from)", () => {
 		cy.get("@todos").then((todos) => {
 			cy.visit(`/desk/todo/${todos[0]}`);
-			cy.intercept("/api/method/frappe.client.validate_link*").as("validate_link");
+			cy.intercept("/api/method/frappe.client.validate_link_and_fetch*").as("validate_link");
 
 			cy.fill_field("assigned_by", cy.config("testUser"), "Link");
 			cy.call("frappe.client.get_value", {
@@ -203,7 +203,7 @@ context("Control Link", () => {
 				""
 			);
 
-			cy.window().its("cur_frm.doc.assigned_by").should("eq", null);
+			cy.window().its("cur_frm.doc.assigned_by").should("eq", undefined);
 
 			// set valid value again
 			cy.get("@input").clear().focus();

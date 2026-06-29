@@ -1,8 +1,6 @@
-from pymysql.constants.ER import DUP_ENTRY
-
 import frappe
 from frappe import _
-from frappe.database.schema import DBTable
+from frappe.database.schema import DbColumn, DBTable
 from frappe.utils.defaults import get_not_null_defaults
 
 
@@ -96,6 +94,37 @@ class MariaDBTable(DBTable):
 		):
 			add_index_query.append("ADD INDEX `modified`(`modified`)")
 
+		# logic to drop unique constraint for fields deleted from a doctype
+		meta_columns = set(self.columns.keys())
+		db_columns = set(self.current_columns.keys())
+
+		for col in db_columns:
+			if (
+				col not in meta_columns
+				and col not in frappe.db.DEFAULT_COLUMNS
+				and col not in frappe.db.OPTIONAL_COLUMNS
+			):
+				has_unique = frappe.db.get_column_index(self.table_name, col, unique=True)
+
+				if not has_unique:
+					continue
+
+				current_col = self.current_columns.get(col)
+
+				deleted_col = DbColumn(
+					table=self,
+					fieldname=current_col.name,
+					fieldtype=current_col.type,
+					length=None,
+					default=None,
+					set_index=current_col.index,
+					options=None,
+					unique=False,
+					precision=None,
+					not_nullable=current_col.not_nullable,
+				)
+				self.drop_unique.append(deleted_col)
+
 		drop_index_query = []
 
 		for col in {*self.drop_index, *self.drop_unique}:
@@ -124,7 +153,7 @@ class MariaDBTable(DBTable):
 					print(f"Failed to update data in {self.table_name} for {col.fieldname}")
 					raise
 		try:
-			for query_parts in [add_column_query, modify_column_query, add_index_query, drop_index_query]:
+			for query_parts in [add_column_query, drop_index_query, modify_column_query, add_index_query]:
 				if query_parts:
 					query_body = ", ".join(query_parts)
 					query = f"ALTER TABLE `{self.table_name}` {query_body}"
@@ -135,12 +164,20 @@ class MariaDBTable(DBTable):
 			if query := locals().get("query"):  # this weirdness is to avoid potentially unbounded vars
 				print(f"Failed to alter schema using query: {query}")
 
-			if e.args[0] == DUP_ENTRY:
+			if frappe.db.is_duplicate_entry(e):
 				fieldname = str(e).split("'")[-2]
 				frappe.throw(
 					_(
 						"{0} field cannot be set as unique in {1}, as there are non-unique existing values"
 					).format(fieldname, self.table_name)
+				)
+
+			if frappe.db.is_data_truncated(e):
+				frappe.throw(
+					_(
+						"Cannot change field type in {0}: some existing values cannot be converted to the new type"
+					).format(self.doctype),
+					title=_("Incompatible Values"),
 				)
 
 			raise

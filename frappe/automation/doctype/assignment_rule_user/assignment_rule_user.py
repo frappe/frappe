@@ -6,6 +6,8 @@ from frappe.model.document import Document
 
 
 class AssignmentRuleUser(Document):
+	_DOCTYPE_NAME = "Assignment Rule User"
+
 	# begin: auto-generated types
 	# This code is auto-generated. Do not modify anything in this block.
 
@@ -18,6 +20,7 @@ class AssignmentRuleUser(Document):
 		parentfield: DF.Data
 		parenttype: DF.Data
 		user: DF.Link
+		weight: DF.Int
 	# end: auto-generated types
 
 	pass

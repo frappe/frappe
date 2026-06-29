@@ -3,7 +3,6 @@
 
 import json
 import os
-import textwrap
 
 import frappe
 from frappe.core.doctype.user_permission.test_user_permission import create_user
@@ -21,6 +20,65 @@ class TestReport(IntegrationTestCase):
 	def setUpClass(cls) -> None:
 		cls.enterClassContext(cls.enable_safe_exec())
 		return super().setUpClass()
+
+	def test_aggregate_column_field_info(self):
+		"""Aggregate column gets proper label and fieldtype"""
+		from frappe.core.doctype.report.report import get_group_by_column_field
+
+		cases = [
+			({"aggregate_function": "count"}, "Count", "Int"),
+			(
+				{"aggregate_function": "sum", "aggregate_on": "`tabUser`.`simultaneous_sessions`"},
+				"Sum of Simultaneous Sessions",
+				"Int",
+			),
+			(
+				{"aggregate_function": "avg", "aggregate_on": "`tabUser`.`simultaneous_sessions`"},
+				"Average of Simultaneous Sessions",
+				"Float",
+			),
+		]
+
+		for args, expected_label, expected_fieldtype in cases:
+			with self.subTest(aggregate_function=args["aggregate_function"]):
+				info = get_group_by_column_field(args, "User")
+				self.assertEqual(info["label"], expected_label)
+				self.assertEqual(info["fieldtype"], expected_fieldtype)
+
+	def test_parse_aggregate_field(self):
+		"""parse_aggregate_field extracts function name and target from aggregate field"""
+		from frappe.desk.reportview import parse_aggregate_field
+
+		cases = [
+			# dict form (produced by setup_group_by for qb)
+			(
+				{"COUNT": "`tabSales Invoice`.`name`", "as": "_aggregate_column"},
+				("COUNT", "`tabSales Invoice`.`name`"),
+			),
+			(
+				{"SUM": "`tabSales Invoice`.`amount`", "as": "_aggregate_column"},
+				("SUM", "`tabSales Invoice`.`amount`"),
+			),
+			# lowercase function in dict is normalized to uppercase
+			(
+				{"avg": "`tabSales Invoice`.`amount`"},
+				("AVG", "`tabSales Invoice`.`amount`"),
+			),
+			# string form with " as " alias
+			(
+				"count(`tabSales Invoice`.`amount`) as _aggregate_column",
+				("COUNT", "`tabSales Invoice`.`amount`"),
+			),
+			# string form without alias
+			(
+				"sum(`tabSales Invoice`.`amount`)",
+				("SUM", "`tabSales Invoice`.`amount`"),
+			),
+		]
+
+		for field, expected in cases:
+			with self.subTest(field=field):
+				self.assertEqual(parse_aggregate_field(field), expected)
 
 	def test_report_builder(self):
 		if frappe.db.exists("Report", "User Activity Report"):
@@ -407,32 +465,31 @@ result = [
 		self.assertEqual(result[-1][1], 200)
 		self.assertEqual(result[-1][2], 150.50)
 
-	def test_cte_in_query_report(self):
-		cte_query = textwrap.dedent(
-			"""
-            with enabled_users as (
-                select name
-                from `tabUser`
-                where enabled = 1
-            )
-            select * from enabled_users;
-        """
-		)
+	def test_report_cache_invalidation(self):
+		import frappe.sessions
+		from frappe.utils import set_request
 
-		report = frappe.get_doc(
-			{
-				"doctype": "Report",
-				"ref_doctype": "User",
-				"report_name": "Enabled Users List",
-				"report_type": "Query Report",
-				"is_standard": "No",
-				"query": cte_query,
-			}
-		).insert()
+		frappe.set_user("test@example.com")
+		set_request(method="GET", path="/app")
 
-		if frappe.db.db_type == "mariadb":
-			col, rows = report.execute_query_report(filters={})
-			self.assertEqual(col[0], "name")
-			self.assertGreaterEqual(len(rows), 1)
-		elif frappe.db.db_type == "postgres":
-			self.assertRaises(frappe.PermissionError, report.execute_query_report, filters={})
+		try:
+			frappe.sessions.get()
+
+			report_name = _save_report(
+				"Test Cache Invalidation Report",
+				"User",
+				json.dumps([{"fieldname": "email", "fieldtype": "Data", "label": "Email"}]),
+			)
+
+			cached_bootinfo = frappe.sessions.get()
+			self.assertIn(report_name, cached_bootinfo["user"]["all_reports"])
+
+			doc = frappe.get_doc("Report", report_name)
+			delete_report(doc.name)
+
+			cached_bootinfo = frappe.sessions.get()
+			self.assertNotIn(report_name, cached_bootinfo["user"]["all_reports"])
+
+		finally:
+			frappe.local.request = None
+			frappe.set_user("Administrator")

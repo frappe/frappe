@@ -58,7 +58,7 @@
   },
   {
    "fieldname": "error_message",
-   "fieldtype": "Text",
+   "fieldtype": "Code",
    "label": "Error Message",
    "no_copy": 1,
    "print_hide": 1,

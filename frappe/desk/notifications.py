@@ -1,7 +1,6 @@
 # Copyright (c) 2015, Frappe Technologies Pvt. Ltd. and Contributors
 # License: MIT. See LICENSE
 
-import json
 from typing import Literal
 
 from bs4 import BeautifulSoup
@@ -242,7 +241,7 @@ def get_filters_for(doctype):
 
 @frappe.whitelist()
 @frappe.read_only()
-def get_open_count(doctype: str, name: str, items=None):
+def get_open_count(doctype: str, name: str | int, items: str | list[str] | None = None):
 	"""Get count for internal and external links for given transactions
 
 	:param doctype: Reference DocType
@@ -275,7 +274,7 @@ def _get_linked_document_counts(doctype: str, name: str, items=None):
 			items.extend(group.get("items"))
 
 	if not isinstance(items, list):
-		items = json.loads(items)
+		items = frappe.parse_json(items)
 
 	out = {
 		"external_links_found": [],

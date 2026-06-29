@@ -32,6 +32,8 @@ exclude_from_linked_with = True
 
 
 class Communication(Document, CommunicationEmailMixin):
+	_DOCTYPE_NAME = "Communication"
+
 	# begin: auto-generated types
 	# This code is auto-generated. Do not modify anything in this block.
 
@@ -230,7 +232,7 @@ class Communication(Document, CommunicationEmailMixin):
 		html_signature = soup.find("div", {"class": "ql-editor read-mode"})
 		_signature = None
 		if html_signature:
-			_signature = html_signature.renderContents()
+			_signature = html_signature.encode_contents()
 
 		if (cstr(_signature) or signature) not in self.content:
 			self.content = f'{self.content}</p><br><p class="signature">{signature}'
@@ -419,7 +421,7 @@ class Communication(Document, CommunicationEmailMixin):
 		# Skip timeline links if a "Sent" communication already exists
 		# else will create duplicate timeline entries
 		if self.sent_or_received == "Received" and self.find_one_by_filters(
-			message_id=self.message_id, sent_or_received="Sent"
+			message_id=self.message_id, email_account=self.email_account, sent_or_received="Sent"
 		):
 			return
 
@@ -447,11 +449,19 @@ class Communication(Document, CommunicationEmailMixin):
 			self.add_link(doctype, name)
 
 	def add_link(self, link_doctype, link_name, autosave=False):
+		title_field = frappe.get_meta(link_doctype).get_title_field()
+		link_title = (
+			frappe.db.get_value(link_doctype, link_name, title_field, cache=True, order_by=None)
+			if title_field != "name"
+			else None
+		)
+
 		self.append(
 			"timeline_links",
 			{
 				"link_doctype": link_doctype,
 				"link_name": link_name,
+				"link_title": link_title or link_name,
 				"communication_date": self.communication_date,
 			},
 		)

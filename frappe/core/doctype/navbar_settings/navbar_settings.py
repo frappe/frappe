@@ -7,6 +7,8 @@ from frappe.model.document import Document
 
 
 class NavbarSettings(Document):
+	_DOCTYPE_NAME = "Navbar Settings"
+
 	# begin: auto-generated types
 	# This code is auto-generated. Do not modify anything in this block.
 
@@ -17,7 +19,9 @@ class NavbarSettings(Document):
 		from frappe.types import DF
 
 		announcement_widget: DF.TextEditor | None
+		announcement_widget_color: DF.Color | None
 		app_logo: DF.AttachImage | None
+		dismissible_announcement_widget: DF.Check
 		help_dropdown: DF.Table[NavbarItem]
 		settings_dropdown: DF.Table[NavbarItem]
 	# end: auto-generated types

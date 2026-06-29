@@ -18,15 +18,13 @@
  ],
  "fields": [
   {
-   "depends_on": "eval:!doc.multiple",
+   "description": "Leave blank to make this template available in all print formats",
    "fieldname": "document_type",
    "fieldtype": "Link",
    "in_list_view": 1,
    "in_standard_filter": 1,
    "label": "Document Type",
-   "mandatory_depends_on": "eval:!doc.multiple",
-   "options": "DocType",
-   "reqd": 1
+   "options": "DocType"
   },
   {
    "fieldname": "field",

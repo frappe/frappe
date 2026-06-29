@@ -47,6 +47,11 @@ input {
 	cursor: pointer;
 }
 
+label {
+	display: flex;
+	align-items: center;
+}
+
 label .checkbox {
 	display: flex;
 	align-items: center;

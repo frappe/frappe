@@ -118,7 +118,7 @@ function action(clickEvent) {
 }
 .dropdown-options {
 	background-color: var(--fg-color);
-	border-radius: var(--border-radius-lg);
+	border-radius: var(--radius-lg);
 	box-shadow: var(--shadow-2xl);
 	padding: 4px;
 	border: 1px solid var(--subtle-accent);

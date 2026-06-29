@@ -21,6 +21,8 @@ WEBHOOK_SECRET_HEADER = "X-Frappe-Webhook-Signature"
 
 
 class Webhook(Document):
+	_DOCTYPE_NAME = "Webhook"
+
 	# begin: auto-generated types
 	# This code is auto-generated. Do not modify anything in this block.
 
@@ -88,7 +90,7 @@ class Webhook(Document):
 			try:
 				frappe.safe_eval(self.condition, eval_locals=get_context(temp_doc))
 			except Exception as e:
-				frappe.throw(_("Invalid Condition: {}").format(e))
+				frappe.throw(_("Invalid Condition: {}").format(str(e)))
 
 	def validate_request_url(self):
 		try:
@@ -120,7 +122,7 @@ class Webhook(Document):
 				frappe.throw(_("Invalid Webhook Secret"))
 
 	@frappe.whitelist()
-	def preview_meets_condition(self, preview_document):
+	def preview_meets_condition(self, preview_document: str):
 		if not self.condition:
 			return _("Yes")
 		try:
@@ -128,17 +130,17 @@ class Webhook(Document):
 			met_condition = frappe.safe_eval(self.condition, eval_locals=get_context(doc))
 		except Exception as e:
 			frappe.local.message_log = []
-			return _("Failed to evaluate conditions: {}").format(e)
+			return _("Failed to evaluate conditions: {}").format(str(e))
 		return _("Yes") if met_condition else _("No")
 
 	@frappe.whitelist()
-	def preview_request_body(self, preview_document):
+	def preview_request_body(self, preview_document: str):
 		try:
 			doc = frappe.get_cached_doc(self.webhook_doctype, preview_document)
 			return frappe.as_json(get_webhook_data(doc, self))
 		except Exception as e:
 			frappe.local.message_log = []
-			return _("Failed to compute request body: {}").format(e)
+			return _("Failed to compute request body: {}").format(str(e))
 
 
 def get_context(doc):
@@ -153,8 +155,8 @@ def enqueue_webhook(doc, webhook) -> None:
 		request_url = webhook.request_url
 		if webhook.is_dynamic_url:
 			request_url = frappe.render_template(webhook.request_url, get_context(doc))
-		headers = get_webhook_headers(doc, webhook)
 		data = get_webhook_data(doc, webhook)
+		headers = get_webhook_headers(doc, webhook, data=data)
 
 	except Exception as e:
 		frappe.logger().debug({"enqueue_webhook_error": e})
@@ -166,7 +168,7 @@ def enqueue_webhook(doc, webhook) -> None:
 			r = requests.request(
 				method=webhook.request_method,
 				url=request_url,
-				data=json.dumps(data, default=str),
+				data=frappe.as_json(data),
 				headers=headers,
 				timeout=webhook.timeout or 5,
 			)
@@ -182,12 +184,11 @@ def enqueue_webhook(doc, webhook) -> None:
 		except Exception as e:
 			frappe.logger().debug({"webhook_error": e, "try": i + 1})
 			log_request(webhook.name, doc.doctype, doc.name, request_url, headers, data, r)
-			sleep(3 * i + 1)
-			if i != 2:
+			if i < 2:
+				sleep(3 * i + 1)
 				continue
-			else:
-				if webhook.webhook_docevent == "workflow_transition":
-					raise e
+			if webhook.webhook_docevent == "workflow_transition":
+				raise e
 
 
 def log_request(
@@ -217,15 +218,16 @@ def log_request(
 	request_log.save(ignore_permissions=True)
 
 
-def get_webhook_headers(doc, webhook):
+def get_webhook_headers(doc, webhook, data=None):
 	headers = {}
 
 	if webhook.enable_security:
-		data = get_webhook_data(doc, webhook)
+		if data is None:
+			data = get_webhook_data(doc, webhook)
 		signature = base64.b64encode(
 			hmac.new(
 				webhook.get_password("webhook_secret").encode("utf8"),
-				json.dumps(data).encode("utf8"),
+				frappe.as_json(data).encode("utf8"),
 				hashlib.sha256,
 			).digest()
 		)

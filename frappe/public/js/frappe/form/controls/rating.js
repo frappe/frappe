@@ -43,6 +43,9 @@ frappe.ui.form.ControlRating = class ControlRating extends frappe.ui.form.Contro
 	}
 
 	update_rating(ev, click) {
+		// Rating doesn't have $input, so check write status at interaction time
+		if (!this.can_write()) return;
+
 		const el = $(ev.currentTarget);
 		let star_value = el.data("rating");
 		let left_half = false;

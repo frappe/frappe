@@ -31,7 +31,7 @@ frappe.ui.form.on("Website Slideshow", {
 				],
 				primary_action_label: __("Add to table"),
 				primary_action: ({ reference_doctype, reference_name }) => {
-					frappe.db
+					return frappe.db
 						.get_list("File", {
 							fields: ["file_url"],
 							filters: {

@@ -5,11 +5,6 @@ frappe.search.utils = {
 	setup_recent: function () {
 		this.recent = JSON.parse(frappe.boot.user.recent || "[]") || [];
 	},
-	make_icon(name) {
-		return `<span style="padding: 0 3px; margin-right: 5px;">${frappe.utils.icon(
-			name
-		)}</span>`;
-	},
 	results_to_hide: [],
 	get_recent_pages: function (keywords) {
 		if (keywords === null) keywords = "";
@@ -71,10 +66,10 @@ frappe.search.utils = {
 				const doctype = route[1];
 				if (route.length > 2 && doctype !== route[2]) {
 					const docname = route[2];
-					out.label = me.make_icon("sticky-note") + __(doctype) + " " + docname.bold();
+					out.label = __(doctype) + " " + frappe.utils.bold(docname);
 					out.value = __(doctype) + " " + docname;
 				} else {
-					out.label = me.make_icon("sticky-note") + __(doctype).bold();
+					out.label = __(doctype).bold();
 					out.value = __(doctype);
 				}
 			} else if (
@@ -84,33 +79,27 @@ frappe.search.utils = {
 				const view_type = route[0];
 				const view_name = route[1];
 
-				let icon, labelSuffix;
+				let labelSuffix;
 
 				switch (view_type) {
 					case "List":
-						icon = me.make_icon("list");
 						labelSuffix = __("List");
 						break;
 					case "Tree":
-						icon = me.make_icon("list-tree");
 						labelSuffix = __("Tree");
 						break;
 					case "Workspaces":
-						icon = me.make_icon("wallpaper");
 						labelSuffix = __("Workspace");
 						break;
 					case "query-report":
-						icon = me.make_icon("table");
 						labelSuffix = __("Report");
 						break;
 				}
 
-				out.label = icon + __(view_name.bold()) + " " + labelSuffix;
+				out.label = __(view_name.bold()) + " " + labelSuffix;
 				out.value = __(view_name) + " " + labelSuffix;
 			} else if (match[0]) {
-				out.label =
-					me.make_icon(me.recent ? "circle-dashed" : "file-text") +
-					frappe.utils.escape_html(match[0]).bold();
+				out.label = frappe.utils.escape_html(match[0]).bold();
 				out.value = match[0];
 			} else {
 				console.log("Illegal match", match);
@@ -186,9 +175,7 @@ frappe.search.utils = {
 				if (level) {
 					out.push({
 						type: "New",
-						label:
-							me.make_icon("circle-plus") +
-							__("New {0}", [search_result.marked_string || __(item)]),
+						label: __("New {0}", [search_result.marked_string || __(item)]),
 						value: __("New {0}", [__(item)]),
 						index: 1 + level,
 						match: item,
@@ -216,13 +203,6 @@ frappe.search.utils = {
 			} else {
 				label = __(`{0} ${skip_list ? "" : type}`, [marked_string || __(target)]);
 			}
-			if (type === "List") {
-				label = me.make_icon("list") + label;
-			} else if (type === "Report") {
-				label = me.make_icon("table") + label;
-			} else {
-				label = me.make_icon("search") + label;
-			}
 			return {
 				type: type,
 				label: label,
@@ -245,9 +225,7 @@ frappe.search.utils = {
 						var match = item;
 						out.push({
 							type: "New",
-							label:
-								me.make_icon("circle-plus") +
-								__("New {0}", [search_result.marked_string || __(item)]),
+							label: __("New {0}", [search_result.marked_string || __(item)]),
 							value: __("New {0}", [__(item)]),
 							index: score + 0.015,
 							match: item,
@@ -256,13 +234,68 @@ frappe.search.utils = {
 							},
 						});
 					}
-
-					out.push(option("List", ["List", item], 0.05));
+					const isTree = (frappe.boot.tree_view_doctypes || []).includes(item);
+					let option_data = option(
+						isTree ? "Tree" : "List",
+						isTree ? ["Tree", item] : ["List", item],
+						0.05
+					);
+					let sidebars = frappe.app.sidebar.get_workspace_sidebars(item);
+					if (sidebars.length > 1) {
+						sidebars.forEach((sidebar) => {
+							let sidebar_option = option(
+								isTree ? "Tree" : "List",
+								isTree ? ["Tree", item] : ["List", item],
+								0.05
+							);
+							sidebar_option.description = `${sidebar}`;
+							sidebar_option.type = "sidebar";
+							out.push(sidebar_option);
+						});
+					} else {
+						out.push(option_data);
+					}
 					if (frappe.model.can_get_report(item)) {
 						out.push(option("Report", ["List", item, "Report"], 0.04));
 					}
 				}
 			}
+		});
+		return out;
+	},
+
+	/**
+	 * Matches DocType Layouts (by title, falling back to name) so they are
+	 * navigable from the Awesome Bar. Selecting one opens the base doctype's
+	 * list filtered by the layout condition, with the layout context active.
+	 */
+	get_doctype_layouts: function (keywords) {
+		var me = this;
+		var out = [];
+		(frappe.boot.doctype_layouts || []).forEach(function (layout) {
+			if (!frappe.boot.user.can_read.includes(layout.document_type)) return;
+
+			const display = layout.title || layout.name;
+			const search_result = me.fuzzy_search(keywords, display, true);
+			if (!search_result.score) return;
+
+			// Only `_layout` (consumed by the list view for the breadcrumb +
+			// filter context) is set. Setting `layout` would make the router
+			// write `?layout=` into the URL, which shadows route_options in
+			// parse_filters_from_route_options and drops the condition filters.
+			const route_options = Object.assign(
+				frappe.utils.parse_layout_condition_to_filters(layout.condition),
+				{ _layout: layout.name }
+			);
+			out.push({
+				type: "Layout",
+				label: __("{0} List", [search_result.marked_string || display]),
+				value: __("{0} List", [display]),
+				description: __(layout.document_type),
+				index: search_result.score,
+				route: ["List", layout.document_type],
+				route_options: route_options,
+			});
 		});
 		return out;
 	},
@@ -281,9 +314,7 @@ frappe.search.utils = {
 				else route = ["query-report", item];
 				out.push({
 					type: "Report",
-					label:
-						me.make_icon("grid-3x3") +
-						__("Report {0}", [search_result.marked_string || __(item)]),
+					label: __("Report {0}", [search_result.marked_string || __(item)]),
 					value: __("Report {0}", [__(item)]),
 					index: level,
 					route: route,
@@ -309,9 +340,7 @@ frappe.search.utils = {
 				var page = me.pages[item];
 				out.push({
 					type: "Page",
-					label:
-						me.make_icon("file-text") +
-						__("Open {0}", [search_result.marked_string || __(item)]),
+					label: __("Open {0}", [search_result.marked_string || __(item)]),
 					value: __("Open {0}", [__(item)]),
 					match: item,
 					index: level,
@@ -323,7 +352,7 @@ frappe.search.utils = {
 		if (__("calendar").indexOf(keywords.toLowerCase()) === 0) {
 			out.push({
 				type: "Calendar",
-				label: me.make_icon("calendar") + __("Open {0}", [__(target)]),
+				label: __("Open {0}", [__(target)]),
 				value: __("Open {0}", [__(target)]),
 				index: me.fuzzy_search(keywords, "Calendar"),
 				match: target,
@@ -334,7 +363,7 @@ frappe.search.utils = {
 		if (__("hub").indexOf(keywords.toLowerCase()) === 0) {
 			out.push({
 				type: "Hub",
-				label: me.make_icon("earth-lock") + __("Open {0}", [__(target)]),
+				label: __("Open {0}", [__(target)]),
 				value: __("Open {0}", [__(target)]),
 				index: me.fuzzy_search(keywords, "Hub"),
 				match: target,
@@ -344,7 +373,7 @@ frappe.search.utils = {
 		if (__("email inbox").indexOf(keywords.toLowerCase()) === 0) {
 			out.push({
 				type: "Inbox",
-				label: me.make_icon("inbox") + __("Open {0}", [__("Email Inbox")]),
+				label: __("Open {0}", [__("Email Inbox")]),
 				value: __("Open {0}", [__("Email Inbox")]),
 				index: me.fuzzy_search(keywords, "email inbox"),
 				match: target,
@@ -354,21 +383,19 @@ frappe.search.utils = {
 		return out;
 	},
 
-	get_workspaces: function (keywords) {
+	get_desktop_icons: function (keywords) {
 		var me = this;
 		var out = [];
-		frappe.boot.allowed_workspaces.forEach(function (item) {
-			const search_result = me.fuzzy_search(keywords, item.name, true);
+		frappe.boot.desktop_icons.forEach(function (item) {
+			const search_result = me.fuzzy_search(keywords, item.label, true);
 			var level = search_result.score;
 			if (level > 0) {
 				var ret = {
-					type: "Workspace",
-					label:
-						me.make_icon("wallpaper") +
-						__("Open {0}", [search_result.marked_string || __(item.name)]),
-					value: __("Open {0}", [__(item.name)]),
+					type: "Desktop Icon",
+					label: __("Open {0}", [search_result.marked_string || __(item.label)]),
+					value: __("Open {0}", [__(item.label)]),
 					index: level,
-					route: [frappe.router.slug(item.name)],
+					icon_data: item,
 				};
 
 				out.push(ret);
@@ -386,9 +413,7 @@ frappe.search.utils = {
 			if (level > 0) {
 				var ret = {
 					type: "Dashboard",
-					label:
-						me.make_icon("layout-dashboard") +
-						__("{0} Dashboard", [search_result.marked_string || __(item.name)]),
+					label: __("{0} Dashboard", [search_result.marked_string || __(item.name)]),
 					value: __("{0} Dashboard", [__(item.name)]),
 					index: level,
 					route: ["dashboard-view", item.name],
@@ -495,6 +520,8 @@ frappe.search.utils = {
 					value: d.name,
 					description: make_description(d.content, d.name),
 					route: ["Form", d.doctype, d.name],
+					_global_raw_content: d.content,
+					_global_doctype: d.doctype,
 				};
 				if (d.image || d.image === null) {
 					result.image = d.image;
@@ -514,14 +541,21 @@ frappe.search.utils = {
 			return results_sets;
 		}
 		return new Promise(function (resolve, reject) {
+			var args = { text: keywords };
+			if (doctype) {
+				args.doctype = doctype;
+			}
+			var offset = parseInt(start, 10) || 0;
+			if (offset > 0) {
+				args.start = offset;
+				args.limit = parseInt(limit, 10);
+				if (!args.limit || args.limit < 1) {
+					args.limit = 20;
+				}
+			}
 			frappe.call({
 				method: "frappe.utils.global_search.search",
-				args: {
-					text: keywords,
-					start: start,
-					limit: limit,
-					doctype: doctype,
-				},
+				args: args,
 				callback: function (r) {
 					if (r.message) {
 						resolve(get_results_sets(r.message));
@@ -533,91 +567,77 @@ frappe.search.utils = {
 		});
 	},
 
-	get_nav_results: function (keywords) {
-		function sort_uniques(array) {
-			var routes = [],
-				out = [];
-			array.forEach(function (d) {
-				if (d.route) {
-					if (d.route[0] === "List" && d.route[2]) {
-						d.route.splice(2);
-					}
-					var str_route = d.route.join("/");
-					if (routes.indexOf(str_route) === -1) {
-						routes.push(str_route);
-						out.push(d);
-					} else {
-						var old = routes.indexOf(str_route);
-						if (out[old].index > d.index) {
-							out[old] = d;
-						}
-					}
-				} else {
-					out.push(d);
-				}
-			});
-			return out.sort(function (a, b) {
-				return b.index - a.index;
-			});
-		}
-		var lists = [],
-			setup = [];
-		var all_doctypes = sort_uniques(this.get_doctypes(keywords));
-		all_doctypes.forEach(function (d) {
-			if (d.type === "") {
-				setup.push(d);
-			} else {
-				lists.push(d);
+	/**
+	 * Parses `__global_search` content into { field label - value list }.
+	 * Segments are separated by `|||`; each segment is `label : value` (or `label &&& value` as fallback).
+	 * Skips blank parts and the synthetic `name` field (the real name is shown in its own column).
+	 */
+	parse_global_search_fields: function (content) {
+		const fields = {};
+		if (!content) return fields;
+		for (const raw of content.split("|||")) {
+			let part = (raw || "").trim();
+			if (!part.length) continue;
+			let sep = " : ";
+			let idx = part.indexOf(sep);
+			if (idx === -1) {
+				sep = " &&& ";
+				idx = part.indexOf(sep);
 			}
-		});
-		var in_keyword = keywords.split(" in ")[0];
-		return [
-			{
-				title: __("Recents"),
-				fetch_type: "Nav",
-				results: sort_uniques(this.get_recent_pages(keywords)),
-			},
-			{
-				title: __("Create a new ..."),
-				fetch_type: "Nav",
-				results: sort_uniques(this.get_creatables(keywords)),
-			},
-			{
-				title: __("Lists"),
-				fetch_type: "Nav",
-				results: lists,
-			},
-			{
-				title: __("Reports"),
-				fetch_type: "Nav",
-				results: sort_uniques(this.get_reports(keywords)),
-			},
-			{
-				title: __("Administration"),
-				fetch_type: "Nav",
-				results: sort_uniques(this.get_pages(keywords)),
-			},
-			{
-				title: __("Workspace"),
-				fetch_type: "Nav",
-				results: sort_uniques(this.get_workspaces(keywords)),
-			},
-			{
-				title: __("Dashboard"),
-				fetch_type: "Nav",
-				results: sort_uniques(this.get_dashboards(keywords)),
-			},
-			{
-				title: __("Setup"),
-				fetch_type: "Nav",
-				results: setup,
-			},
-			{
-				title: __("Find '{0}' in ...", [in_keyword]),
-				fetch_type: "Nav",
-				results: sort_uniques(this.get_search_in_list(keywords)),
-			},
-		];
+			if (idx === -1) continue;
+			const label = part.slice(0, idx).trim();
+			const value = part.slice(idx + sep.length).trim();
+			if (!label.length || /^name$/i.test(label)) continue;
+			if (!fields[label]) fields[label] = [];
+			fields[label].push(value);
+		}
+		return fields;
+	},
+
+	/**
+	 * Picks table column names for Global Search hits: walks each hit’s snippet text,
+	 * finds every field label in that text, then returns each label once (first time we see it).
+	 */
+	global_search_field_columns_for_results: function (results) {
+		const cols = [];
+		const seen = Object.create(null);
+		for (const r of results || []) {
+			const fields = this.parse_global_search_fields(r._global_raw_content);
+			for (const col of Object.keys(fields)) {
+				if (!seen[col]) {
+					seen[col] = 1;
+					cols.push(col);
+				}
+			}
+		}
+		return cols;
+	},
+
+	/**
+	 * Highlights search terms in text: wraps each term in `<mark>` tags.
+	 */
+	highlight_global_search_terms: function (text, keywords) {
+		const s = text == null ? "" : String(text);
+		const terms = keywords
+			.split("&")
+			.map((p) => p.trim())
+			.filter(Boolean);
+		if (!terms.length) return frappe.utils.escape_html(s);
+		const escaped = terms.map((p) => p.replace(/[.*+?^${}()|[\]\\]/g, "\\$&"));
+		try {
+			const re = new RegExp("(" + escaped.join("|") + ")", "gi");
+			return s
+				.split(re)
+				.map((part) => {
+					const isMatch =
+						part && terms.some((t) => part.toLowerCase() === t.toLowerCase());
+					const esc = frappe.utils.escape_html(part);
+					return isMatch ? "<mark>" + esc + "</mark>" : esc;
+				})
+				.join("");
+		} catch (e) {
+			return frappe.utils.escape_html(s);
+		}
 	},
 
 	fuzzy_search: function (keywords = "", _item = "", return_marked_string = false) {
@@ -710,9 +730,7 @@ frappe.search.utils = {
 			const search_result = me.fuzzy_search(keywords, item.title, true);
 			if (search_result.score > 0) {
 				var ret = {
-					label:
-						me.make_icon("arrow-down-from-line") +
-						__("Install {0} from Marketplace", [search_result.marked_string]),
+					label: __("Install {0} from Marketplace", [search_result.marked_string]),
 					value: __("Install {0} from Marketplace", [__(item.title)]),
 					index: search_result.score * 0.8,
 					route: [
@@ -727,4 +745,48 @@ frappe.search.utils = {
 		return out;
 	},
 	searchable_functions: [],
+};
+
+/** Closes the navbar Awesome Bar modal. */
+function hide_navbar_search_modal() {
+	const $modal = $("#navbar-search").closest(".modal");
+	if ($modal.length) $modal.modal("hide");
+}
+
+/**
+ * Open the global search dialog from the navbar Awesome Bar (Ctrl/Cmd+G).
+ */
+frappe.search.open_global_search_from_navbar_shortcut = function (e) {
+	const from_bar = ($("#navbar-search").val() || "").trim();
+	const dlg = frappe.searchdialog?.search;
+	if (dlg?.open_global_search_dialog) {
+		hide_navbar_search_modal();
+		dlg.open_global_search_dialog(from_bar);
+	}
+	if (e) {
+		e.preventDefault();
+	}
+	return false;
+};
+
+/**
+ * Open the navbar Awesome Bar from Global Search (Ctrl/Cmd+K).
+ */
+frappe.search.open_awesomebar_from_global_search_shortcut = function (e) {
+	if (e) {
+		e.preventDefault();
+	}
+	const awesome_bar = frappe.app.awesome_bar;
+	if (awesome_bar?.is_open()) {
+		awesome_bar.close();
+		return false;
+	}
+	const dlg = frappe.searchdialog?.search;
+	if (dlg?.search_dialog?.is_visible) {
+		const keywords = (dlg.$input?.val() || "").trim();
+		dlg.search_dialog.hide();
+		$("#navbar-search").val(keywords);
+	}
+	awesome_bar.open();
+	return false;
 };

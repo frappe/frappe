@@ -13,6 +13,8 @@ from frappe.utils.background_jobs import get_workers
 
 
 class RQWorker(Document):
+	_DOCTYPE_NAME = "RQ Worker"
+
 	# begin: auto-generated types
 	# This code is auto-generated. Do not modify anything in this block.
 
@@ -109,7 +111,6 @@ def serialize_worker(worker: Worker) -> frappe._dict:
 def compute_utilization(worker: Worker) -> float:
 	with suppress(Exception):
 		total_time = (
-			datetime.datetime.now(datetime.timezone.utc)
-			- worker.birth_date.replace(tzinfo=datetime.timezone.utc)
+			datetime.datetime.now(datetime.UTC) - worker.birth_date.replace(tzinfo=datetime.UTC)
 		).total_seconds()
 		return worker.total_working_time / total_time * 100

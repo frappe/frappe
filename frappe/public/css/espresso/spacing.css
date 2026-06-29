@@ -1,0 +1,8 @@
+/* Espresso spacing — the base unit, plain CSS (source of truth).
+ * Installed from design-poc/shared/tokens/espresso-spacing.css (neutral only;
+ * Espresso's fractional @theme steps stay in frappe-ui). Lets non-Tailwind
+ * consumers build spacing with calc(var(--spacing) * N). Loaded via espresso/_spacing.scss. */
+
+:root {
+  --spacing: 0.25rem;
+}

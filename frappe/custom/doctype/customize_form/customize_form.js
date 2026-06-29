@@ -61,13 +61,18 @@ frappe.ui.form.on("Customize Form", {
 					if (r) {
 						if (r._server_messages && r._server_messages.length) {
 							frm.set_value("doc_type", "");
+							localStorage.removeItem("customize_doctype");
 						} else {
+							localStorage["customize_doctype"] = frm.doc.doc_type;
 							frm.refresh();
 							frm.trigger("add_customize_child_table_button");
 							frm.trigger("setup_default_views");
 						}
 					}
-					localStorage["customize_doctype"] = frm.doc.doc_type;
+				},
+				error: function () {
+					frm.set_value("doc_type", "");
+					localStorage.removeItem("customize_doctype");
 				},
 			});
 		} else {
@@ -96,69 +101,77 @@ frappe.ui.form.on("Customize Form", {
 		frm.page.clear_icons();
 
 		if (frm.doc.doc_type) {
-			frappe.model.with_doctype(frm.doc.doc_type).then(() => {
-				frm.page.set_title(__("Customize Form - {0}", [__(frm.doc.doc_type)]));
-				frappe.customize_form.set_primary_action(frm);
+			frappe.model
+				.with_doctype(frm.doc.doc_type)
+				.then(() => {
+					frm.page.set_title(__("Customize Form - {0}", [__(frm.doc.doc_type)]));
+					frappe.customize_form.set_primary_action(frm);
 
-				frm.add_custom_button(
-					__("Go to {0} List", [__(frm.doc.doc_type)]),
-					function () {
-						frappe.set_route("List", frm.doc.doc_type);
-					},
-					__("Actions")
-				);
+					if (!frappe.get_meta(frm.doc.doc_type).istable) {
+						frm.add_custom_button(
+							__("Go to {0} List", [__(frm.doc.doc_type)]),
+							() => {
+								frappe.set_route("List", frm.doc.doc_type);
+							},
+							__("Actions")
+						);
+					}
 
-				frm.add_custom_button(
-					__("Set Permissions"),
-					function () {
-						frappe.set_route("permission-manager", frm.doc.doc_type);
-					},
-					__("Actions")
-				);
+					frm.add_custom_button(
+						__("Set Permissions"),
+						function () {
+							frappe.set_route("permission-manager", frm.doc.doc_type);
+						},
+						__("Actions")
+					);
 
-				frm.add_custom_button(
-					__("Reload"),
-					function () {
-						frm.script_manager.trigger("doc_type");
-					},
-					__("Actions")
-				);
+					frm.add_custom_button(
+						__("Reload"),
+						function () {
+							frm.script_manager.trigger("doc_type");
+						},
+						__("Actions")
+					);
 
-				frm.add_custom_button(
-					__("Reset Layout"),
-					() => {
-						frm.trigger("reset_layout");
-					},
-					__("Actions")
-				);
+					frm.add_custom_button(
+						__("Reset Layout"),
+						() => {
+							frm.trigger("reset_layout");
+						},
+						__("Actions")
+					);
 
-				frm.add_custom_button(
-					__("Reset All Customizations"),
-					function () {
-						frappe.customize_form.confirm(__("Remove all customizations?"), frm);
-					},
-					__("Actions")
-				);
+					frm.add_custom_button(
+						__("Reset All Customizations"),
+						function () {
+							frappe.customize_form.confirm(__("Remove all customizations?"), frm);
+						},
+						__("Actions")
+					);
 
-				frm.add_custom_button(
-					__("Trim Table"),
-					function () {
-						frm.trigger("trim_table");
-					},
-					__("Actions")
-				);
+					frm.add_custom_button(
+						__("Trim Table"),
+						function () {
+							frm.trigger("trim_table");
+						},
+						__("Actions")
+					);
 
-				const is_autoname_autoincrement = frm.doc.autoname === "autoincrement";
-				frm.set_df_property("naming_rule", "hidden", is_autoname_autoincrement);
-				frm.set_df_property("autoname", "read_only", is_autoname_autoincrement);
-				frm.toggle_display(
-					["queue_in_background"],
-					frappe.get_meta(frm.doc.doc_type).is_submittable || 0
-				);
+					const is_autoname_autoincrement = frm.doc.autoname === "autoincrement";
+					frm.set_df_property("naming_rule", "hidden", is_autoname_autoincrement);
+					frm.set_df_property("autoname", "read_only", is_autoname_autoincrement);
+					frm.toggle_display(
+						["queue_in_background"],
+						frappe.get_meta(frm.doc.doc_type).is_submittable || 0
+					);
 
-				render_form_builder(frm);
-				frm.get_field("form_builder").tab.set_active();
-			});
+					render_form_builder(frm);
+					frm.get_field("form_builder").tab.set_active();
+				})
+				.catch(() => {
+					frm.set_value("doc_type", "");
+					localStorage.removeItem("customize_doctype");
+				});
 		}
 
 		frm.events.setup_export(frm);
@@ -265,6 +278,15 @@ frappe.ui.form.on("Customize Form", {
 								),
 								default: 0,
 							},
+							{
+								fieldtype: "Check",
+								fieldname: "apply_module_export_filter",
+								label: __("Apply Module Export Filter"),
+								description: __(
+									"Export only customizations assigned to the selected module.<br><span class='text-muted'><strong>Note:</strong> You must set the <em>Module (for export)</em> field on Custom Field and Property Setter records before applying this filter.</span><p class='alert alert-warning'> <strong>Warning:</strong> Customizations from other modules will be excluded.</p>"
+								),
+								default: 0,
+							},
 						],
 						function (data) {
 							frappe.call({
@@ -274,6 +296,7 @@ frappe.ui.form.on("Customize Form", {
 									module: data.module,
 									sync_on_migrate: data.sync_on_migrate,
 									with_permissions: data.with_permissions,
+									apply_module_export_filter: data.apply_module_export_filter,
 								},
 							});
 						},

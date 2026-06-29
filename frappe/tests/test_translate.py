@@ -86,7 +86,7 @@ class TestTranslate(IntegrationTestCase):
 		self.assertEqual(_("Mobile No"), "Mobile No")
 		try:
 			frappe.local.lang = "pt-BR"
-			self.assertEqual(_("Mobile No"), "Telefone Celular")
+			self.assertEqual(_("Mobile No"), "Celular")
 			frappe.local.lang = "pt"
 			self.assertEqual(_("Mobile No"), "Nr. de Telemóvel")
 		finally:
@@ -317,6 +317,18 @@ class TestTranslate(IntegrationTestCase):
 		self.assertEqual(
 			args, ("Multiline translation with format replacements and no context {0} {1}", None)
 		)
+
+	def test_update_translations_for_source_accepts_native_dict(self):
+		from frappe.translate import update_translations_for_source
+
+		source = "Native translation source " + frappe.generate_hash(length=8)
+		frappe.db.delete("Translation", {"source_text": source})
+		# translation_dict as a native dict instead of a JSON string (frappe.parse_json passthrough)
+		update_translations_for_source(source=source, translation_dict={"de": "Hallo Quelle"})
+		self.assertTrue(
+			frappe.db.exists("Translation", {"source_text": source, "translated_text": "Hallo Quelle"})
+		)
+		frappe.db.delete("Translation", {"source_text": source})
 
 
 def verify_translation_files(app):

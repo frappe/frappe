@@ -116,7 +116,7 @@ def is_invalid_date_string(date_string: str) -> bool:
 
 
 def getdate(
-	string_date: Optional["DateTimeLikeObject"] = None, parse_day_first: bool = False
+	string_date: DateTimeLikeObject | None = None, parse_day_first: bool = False
 ) -> datetime.date | None:
 	"""
 	Convert string date (yyyy-mm-dd) to datetime.date object.
@@ -148,7 +148,7 @@ def getdate(
 
 
 def get_datetime(
-	datetime_str: Optional["DateTimeLikeObject"] | tuple | list = None,
+	datetime_str: DateTimeLikeObject | None | tuple | list = None,
 ) -> datetime.datetime | None:
 	"""Return the below mentioned values based on the given `datetime_str`:
 
@@ -373,7 +373,7 @@ def now_datetime() -> datetime.datetime:
 	return datetime.datetime.now(ZoneInfo(get_system_timezone())).replace(tzinfo=None)
 
 
-def get_timestamp(date: Optional["DateTimeLikeObject"] = None) -> float:
+def get_timestamp(date: DateTimeLikeObject | None = None) -> float:
 	"""Return the Unix timestamp (seconds since Epoch) for the given `date`.
 	If `date` is None, the current timestamp is returned.
 	"""
@@ -402,7 +402,7 @@ def convert_utc_to_timezone(utc_timestamp: datetime.datetime, time_zone: str) ->
 
 def get_datetime_in_timezone(time_zone: str) -> datetime.datetime:
 	"""Return the current datetime in the given timezone (e.g. 'Asia/Kolkata')."""
-	utc_timestamp = datetime.datetime.now(datetime.timezone.utc)
+	utc_timestamp = datetime.datetime.now(datetime.UTC)
 	return convert_utc_to_timezone(utc_timestamp, time_zone)
 
 
@@ -478,6 +478,9 @@ def get_first_day(dt, d_years: int = 0, d_months: int = 0, as_str: bool = False)
 	overflow_years, month = divmod(dt.month + d_months - 1, 12)
 	year = dt.year + d_years + overflow_years
 
+	# divmod by 12 always yields a remainder in [0, 11]; month + 1 must be a valid 1..12 month
+	assert 0 <= month <= 11, "month index out of range after divmod by 12"
+
 	return (
 		datetime.date(year, month + 1, 1).strftime(DATE_FORMAT)
 		if as_str
@@ -502,6 +505,7 @@ def get_quarter_start(dt: DateTimeLikeObject | None = None, as_str: bool = False
 	"""
 	date = getdate(dt)
 	quarter = (date.month - 1) // 3 + 1
+	assert 1 <= quarter <= 4, "quarter must be in range 1..4 for a valid month"
 	first_date_of_quarter = datetime.date(date.year, ((quarter - 1) * 3) + 1, 1)
 	return first_date_of_quarter.strftime(DATE_FORMAT) if as_str else first_date_of_quarter
 
@@ -524,7 +528,7 @@ def get_first_day_of_week(dt: DateTimeLikeObject, as_str=False) -> datetime.date
 	return date.strftime(DATE_FORMAT) if as_str else date
 
 
-def get_week_start_offset_days(dt):
+def get_week_start_offset_days(dt: datetime.date | datetime.datetime) -> int:
 	current_day_index = get_normalized_weekday_index(dt)
 	start_of_week_index = get_start_of_week_index()
 
@@ -534,7 +538,7 @@ def get_week_start_offset_days(dt):
 		return 7 - (start_of_week_index - current_day_index)
 
 
-def get_normalized_weekday_index(dt):
+def get_normalized_weekday_index(dt: datetime.date | datetime.datetime) -> int:
 	# starts Sunday with 0
 	return (dt.weekday() + 1) % 7
 
@@ -832,7 +836,7 @@ def format_duration(seconds: float | int, hide_days: bool = False) -> str:
 	return duration
 
 
-def duration_to_seconds(duration):
+def duration_to_seconds(duration: str) -> int:
 	"""Convert the given duration formatted value to duration value in seconds.
 
 	example: convert '3h 34m 45s' to 12885 (value in seconds)
@@ -862,7 +866,7 @@ def duration_to_seconds(duration):
 	return value
 
 
-def validate_duration_format(duration):
+def validate_duration_format(duration: str) -> None:
 	if not DURATION_PATTERN.match(duration):
 		frappe.throw(
 			frappe._("Value {0} must be in the valid duration format: d h m s").format(frappe.bold(duration))
@@ -1303,8 +1307,12 @@ def _round_away_from_zero(num, precision):
 
 
 def _bankers_rounding(num, precision):
+	if num == 0:
+		return 0.0
+
+	sign = -1 if num < 0 else 1
 	multiplier = 10**precision
-	num = round(num * multiplier, 12)
+	num = round(abs(num) * multiplier, 12)
 
 	if num == 0:
 		return 0.0
@@ -1312,13 +1320,13 @@ def _bankers_rounding(num, precision):
 	floor_num = math.floor(num)
 	decimal_part = num - floor_num
 
-	epsilon = 2.0 ** (math.log(abs(num), 2) - 52.0)
+	epsilon = 2.0 ** (math.log(num, 2) - 52.0)
 	if abs(decimal_part - 0.5) < epsilon:
 		num = floor_num if (floor_num % 2 == 0) else floor_num + 1
 	else:
 		num = round(num)
 
-	return num / multiplier
+	return sign * num / multiplier
 
 
 def remainder(numerator: NumericType, denominator: NumericType, precision: int = 2) -> NumericType:
@@ -1556,12 +1564,26 @@ def money_in_words(
 	if main == "0" and fraction in ["0", "00", "000"]:
 		out = _(main_currency, context="Currency") + " " + _("Zero")
 	elif main == "0":
-		out = f"{fraction_in_words()} {fraction_currency}"
+		out = f"{fraction_in_words()} {_(fraction_currency, context='Currency')}"
 	else:
-		out = _(main_currency, context="Currency") + " " + in_words(main, in_million).title()
+		if main_currency == "DZD":
+			# Use Dinars for Algerian Compliance
+			out = in_words(main, in_million).title() + " " + _("Dinars", context="Currency")
+		else:
+			out = _(main_currency, context="Currency") + " " + in_words(main, in_million).title()
 		if cint(fraction):
-			out = out + " " + _("and") + " " + fraction_in_words() + " " + fraction_currency
+			out = (
+				out
+				+ " "
+				+ _("and")
+				+ " "
+				+ fraction_in_words()
+				+ " "
+				+ _(fraction_currency, context="Currency")
+			)
 
+	if main_currency == "DZD":
+		return _("{0}.", context="Money in words").format(out)
 	return _("{0} only.", context="Money in words").format(out)
 
 
@@ -1597,6 +1619,80 @@ def is_image(filepath: str) -> bool:
 	# filepath can be https://example.com/bed.jpg?v=129
 	filepath = (filepath or "").split("?", 1)[0]
 	return (guess_type(filepath)[0] or "").startswith("image/")
+
+
+def get_image_thumbnail_uri(url: str, max_dim: int = 400, quality: int = 80) -> str:
+	"""Return a base64 data: URI thumbnail of `url`, or the original `url` on
+	any error. Used by print templates to keep generated PDFs small: Chrome's
+	`Page.printToPDF` embeds images at their natural resolution regardless of
+	the CSS display size, so a 5000x5000 stock photo bloats the PDF by several
+	MB even when the image is rendered at 100px.
+
+	Only http://, https:// and /-rooted URLs are processed; anything else is
+	returned unchanged so the caller's URL-scheme validation is preserved.
+	"""
+	import base64
+	import io
+	import os
+
+	if not url or not isinstance(url, str):
+		return url
+	if not (url.startswith("http://") or url.startswith("https://") or url.startswith("/")):
+		return url
+
+	# Per-request cache so repeated rows that share an image only resize once.
+	cache = getattr(frappe.local, "_print_thumbnail_cache", None)
+	if cache is None:
+		cache = frappe.local._print_thumbnail_cache = {}
+	key = (url, max_dim, quality)
+	if key in cache:
+		return cache[key]
+
+	try:
+		if url.startswith("/"):
+			path = None
+			for prefix in ("public", "private"):
+				candidate = frappe.get_site_path(prefix, url.lstrip("/"))
+				if os.path.exists(candidate):
+					path = candidate
+					break
+			if not path:
+				return url
+			with open(path, "rb") as f:
+				content = f.read()
+		else:
+			import requests
+
+			r = requests.get(url, timeout=5, stream=True)
+			r.raise_for_status()
+			chunks, total = [], 0
+			for chunk in r.iter_content(8192):
+				chunks.append(chunk)
+				total += len(chunk)
+				if total > 20 * 1024 * 1024:
+					return url
+			content = b"".join(chunks)
+
+		from PIL import Image
+
+		img = Image.open(io.BytesIO(content))
+		img.thumbnail((max_dim, max_dim), Image.Resampling.LANCZOS)
+		fmt = "PNG" if img.mode in ("RGBA", "LA", "P") else "JPEG"
+		if fmt == "JPEG" and img.mode != "RGB":
+			img = img.convert("RGB")
+		buf = io.BytesIO()
+		save_kwargs = {"format": fmt, "optimize": True}
+		if fmt == "JPEG":
+			save_kwargs["quality"] = quality
+		img.save(buf, **save_kwargs)
+		encoded = base64.b64encode(buf.getvalue()).decode("ascii")
+		data_uri = f"data:image/{fmt.lower()};base64,{encoded}"
+		cache[key] = data_uri
+		return data_uri
+	except Exception:
+		# Network/decode failures fall back to the original URL so the cell
+		# still renders something. No per-row log to avoid error log spam.
+		return url
 
 
 def get_thumbnail_base64_for_image(src: str) -> dict[str, str] | None:
@@ -1912,6 +2008,14 @@ def get_link_to_form(doctype: str, name: str | None = None, label: str | None = 
 		label = name or _(doctype)
 
 	return f"""<a href="{get_url_to_form(doctype, name)}">{label}</a>"""
+
+
+def get_url_to_workspace(workspace: str, is_public: bool):
+	url_prefix = "/desk/"
+	if not is_public:
+		workspace_url = "/desk/private/"
+	workspace_url = url_prefix + workspace.lower()
+	return workspace_url
 
 
 def get_link_to_report(
@@ -2287,7 +2391,7 @@ def _sanitize_column(column_name: str, db_type: str) -> str:
 	def _raise_exception():
 		frappe.throw(_("Invalid field name {0}").format(column_name), frappe.DataError)
 
-	regex = re.compile("^.*[,'();\n].*")
+	regex = re.compile("^.*[,'();\n`].*")
 	if "ifnull" in column_name:
 		if regex.match(column_name):
 			# to avoid and, or
@@ -2404,7 +2508,7 @@ def to_markdown(html: str) -> str:
 		pass
 
 
-def md_to_html(markdown_text: str) -> Optional["UnicodeWithAttrs"]:
+def md_to_html(markdown_text: str) -> "UnicodeWithAttrs" | None:
 	"""Convert the given markdown text to HTML and returns it."""
 	from markdown2 import MarkdownError
 	from markdown2 import markdown as _markdown
@@ -2424,7 +2528,7 @@ def md_to_html(markdown_text: str) -> Optional["UnicodeWithAttrs"]:
 		pass
 
 
-def markdown(markdown_text: str) -> Optional["UnicodeWithAttrs"]:
+def markdown(markdown_text: str) -> "UnicodeWithAttrs" | None:
 	"""Convert the given markdown text to HTML and returns it."""
 	return md_to_html(markdown_text)
 
@@ -2461,6 +2565,11 @@ def dict_with_keys(dict, keys):
 def guess_date_format(date_string: str) -> str:
 	DATE_FORMATS = [
 		r"%d/%b/%y",
+		r"%d/%b/%Y",
+		r"%d %b %Y",
+		r"%d %B %Y",
+		r"%d-%b-%Y",
+		r"%d-%b-%y",
 		r"%d-%m-%Y",
 		r"%m-%d-%Y",
 		r"%Y-%m-%d",
@@ -2480,8 +2589,6 @@ def guess_date_format(date_string: str) -> str:
 		r"%d.%m.%y",
 		r"%m.%d.%y",
 		r"%y.%m.%d",
-		r"%d %b %Y",
-		r"%d %B %Y",
 	]
 
 	TIME_FORMATS = [
@@ -2546,7 +2653,7 @@ def validate_json_string(string: str) -> None:
 		raise frappe.ValidationError
 
 
-def parse_json(val: str):
+def parse_json(val: Any):
 	"""
 	Parses json if string else return
 	"""
@@ -2924,3 +3031,13 @@ def attach_expanded_links(doctype: str, docs: list, fields_to_expand: list):
 			val_title = doctype_title_maps.get(link_doctype, {}).get(val)
 			if val and val_title:
 				li[fieldname] = val_title
+
+
+def scrub(txt: str) -> str:
+	"""Return sluggified string. e.g. `Sales Order` becomes `sales_order`."""
+	return cstr(txt).replace(" ", "_").replace("-", "_").lower()
+
+
+def unscrub(txt: str) -> str:
+	"""Return titlified string. e.g. `sales_order` becomes `Sales Order`."""
+	return txt.replace("_", " ").replace("-", " ").title()

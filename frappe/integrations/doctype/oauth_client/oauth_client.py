@@ -12,6 +12,8 @@ from frappe.permissions import SYSTEM_USER_ROLE
 
 
 class OAuthClient(Document):
+	_DOCTYPE_NAME = "OAuth Client"
+
 	# begin: auto-generated types
 	# This code is auto-generated. Do not modify anything in this block.
 

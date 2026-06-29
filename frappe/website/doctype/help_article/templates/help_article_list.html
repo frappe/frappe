@@ -4,7 +4,7 @@
 
 {% block page_content %}
 
-<div class="row py-8">
+<div class="row py-4">
 	<div class="col-md-8">
 		<div class="hero">
 			<div class="hero-content">
@@ -21,13 +21,13 @@
 			{{ no_result_message or _("Nothing to show") }}
 		</div>
 		{% else %}
-		<div id="blog-list" class="blog-list result row">
+		<div id="blog-list" class="blog-list result col">
 			{% for item in result %}
 			{{ item }}
 			{% endfor %}
 		</div>
 		{% endif %}
-		<button class="btn btn-light btn-more btn {% if not show_more -%} hidden {%- endif %}">{{ _("Load More") }}</button>
+		<button class="btn btn-light btn-more my-4 {% if not show_more -%} hidden {%- endif %}">{{ _("Load More") }}</button>
 	</div>
 </div>
 {% endblock %}

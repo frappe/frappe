@@ -87,8 +87,55 @@ class TestUtils(IntegrationTestCase):
 	@unittest.skipUnless(
 		os.access(frappe.get_app_path("frappe"), os.W_OK), "Only run if frappe app paths is writable"
 	)
+	def test_export_customizations_with_module_filter(self):
+		# create two customizations, one matching the module, one under a different module
+		with note_customizations() as (custom_field, property_setter, _doctype_link):
+			custom_field.db_set("module", "Custom")
+			property_setter.db_set("module", "Custom")
+
+			# create module def called OtherModule
+			other_module = frappe.new_doc("Module Def")
+
+			other_module.update({"module_name": "OtherModule", "app_name": "frappe"})
+			other_module.save(ignore_permissions=True)
+			self.addCleanup(other_module.delete)
+
+			# create a customization belonging to another module (should be excluded)
+			other_cf = create_custom_field(
+				"Note",
+				df={
+					"fieldname": "other_mod_field",
+					"label": "Other Mod Field",
+					"fieldtype": "Data",
+					"module": "OtherModule",
+				},
+			)
+
+			self.addCleanup(other_cf.delete)
+
+			file_path = export_customizations(
+				module="Custom",
+				doctype="Note",
+				apply_module_export_filter=True,
+			)
+			self.addCleanup(delete_file, path=file_path)
+
+			self.assertTrue(os.path.exists(file_path))
+
+			with open(file_path) as f:
+				exported = frappe.parse_json(f.read())
+
+			exported_fields = {f["fieldname"] for f in exported.get("custom_fields", [])}
+
+			self.assertIn("test_export_customizations_field", exported_fields)
+
+			self.assertNotIn("other_mod_field", exported_fields)
+
+	@unittest.skipUnless(
+		os.access(frappe.get_app_path("frappe"), os.W_OK), "Only run if frappe app paths is writable"
+	)
 	def test_sync_customizations(self):
-		with note_customizations() as (custom_field, property_setter):
+		with note_customizations() as (custom_field, property_setter, doctype_link):
 			file_path = export_customizations(module="Custom", doctype="Note", sync_on_migrate=True)
 			custom_field.db_set("modified", now_datetime())
 			custom_field.reload()
@@ -105,6 +152,7 @@ class TestUtils(IntegrationTestCase):
 			sync_customizations(app="frappe")
 			self.assertTrue(property_setter.doctype, property_setter.name)
 			self.assertTrue(custom_prop_setter.doctype, custom_prop_setter.name)
+			self.assertTrue(doctype_link.doctype, doctype_link.name)
 
 			self.assertTrue(file_path.endswith("/custom/custom/note.json"))
 			self.assertTrue(os.path.exists(file_path))
@@ -185,9 +233,23 @@ def note_customizations():
 		property_setter = make_property_setter(
 			"Note", fieldname="content", property="bold", value="1", property_type="Check"
 		)
-		yield custom_field, property_setter
+
+		doctype_link = frappe.get_doc(
+			{
+				"doctype": "DocType Link",
+				"parent": "Note",
+				"parenttype": "DocType",
+				"parentfield": "links",
+				"link_doctype": "User",
+				"link_fieldname": "owner",
+				"group": "Test Group",
+			}
+		).insert()
+
+		yield custom_field, property_setter, doctype_link
 	finally:
 		custom_field.delete()
 		property_setter.delete()
+		doctype_link.delete()
 		trim_table("Note", dry_run=False)
 		delete_path(frappe.get_module_path("Desk", "Note"))

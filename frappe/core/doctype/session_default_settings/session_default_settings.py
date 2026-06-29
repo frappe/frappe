@@ -2,6 +2,7 @@
 # License: MIT. See LICENSE
 
 import json
+from typing import Any
 
 import frappe
 from frappe import _
@@ -9,6 +10,8 @@ from frappe.model.document import Document
 
 
 class SessionDefaultSettings(Document):
+	_DOCTYPE_NAME = "Session Default Settings"
+
 	# begin: auto-generated types
 	# This code is auto-generated. Do not modify anything in this block.
 
@@ -43,7 +46,7 @@ def get_session_default_values():
 
 
 @frappe.whitelist()
-def set_session_default_values(default_values):
+def set_session_default_values(default_values: str | dict[str, Any]):
 	default_values = frappe.parse_json(default_values)
 	for entry in default_values:
 		try:

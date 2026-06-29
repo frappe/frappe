@@ -8,6 +8,8 @@ from frappe.model.document import Document
 
 
 class CompanyHistory(Document):
+	_DOCTYPE_NAME = "Company History"
+
 	# begin: auto-generated types
 	# This code is auto-generated. Do not modify anything in this block.
 

@@ -11,6 +11,8 @@ from frappe.website.utils import get_boot_data
 
 
 class WebsiteSettings(Document):
+	_DOCTYPE_NAME = "Website Settings"
+
 	# begin: auto-generated types
 	# This code is auto-generated. Do not modify anything in this block.
 
@@ -179,7 +181,7 @@ def get_website_settings(context=None):
 			"footer_items": modify_header_footer_items(settings.footer_items),
 			"post_login": [
 				{"label": _("My Account"), "url": "/me"},
-				{"label": _("Log out"), "url": "/?cmd=web_logout"},
+				{"label": _("Log out"), "url": "/logout"},
 			],
 		}
 	)

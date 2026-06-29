@@ -81,9 +81,24 @@ frappe.breadcrumbs = {
 				this.set_form_breadcrumb(breadcrumbs, view);
 			} else if (breadcrumbs.doctype && view === "list") {
 				this.set_list_breadcrumb(breadcrumbs);
+				if (breadcrumbs.layout_name) {
+					const layout_info = (frappe.boot.doctype_layouts || []).find(
+						(l) => l.name === breadcrumbs.layout_name
+					);
+					const display_title = layout_info?.title || breadcrumbs.layout_name;
+					const $li = this.$breadcrumbs.find("li").last();
+					$li.after(
+						`<li class="disabled"><a>${frappe.utils.escape_html(
+							__(display_title)
+						)}</a></li>`
+					);
+				}
 			} else if (breadcrumbs.doctype && view == "dashboard-view") {
 				this.set_list_breadcrumb(breadcrumbs);
 				this.set_dashboard_breadcrumb(breadcrumbs);
+			} else if (view == "query-report") {
+				breadcrumbs.label = frappe.query_report.page_title;
+				this.append_breadcrumb_element("", breadcrumbs.label);
 			}
 		}
 
@@ -97,7 +112,9 @@ frappe.breadcrumbs = {
 	append_breadcrumb_element(route, label, css_classes) {
 		const el = document.createElement("li");
 		const a = document.createElement("a");
-		a.href = route;
+		if (route) {
+			a.href = route;
+		}
 		if (css_classes) {
 			a.classList.add(css_classes);
 		}
@@ -128,11 +145,17 @@ frappe.breadcrumbs = {
 		) {
 			return;
 		}
+		if (frappe.app.sidebar.sidebar_title) {
+			let icon = frappe.utils.get_desktop_icon_by_label(frappe.app.sidebar.sidebar_title);
+			let url = frappe.utils.get_route_for_icon(icon);
+			if (url) {
+				this.append_breadcrumb_element(url, __(icon.label), "worksapce-breadcrumb");
+			}
+		}
 
-		this.append_breadcrumb_element(
-			`/desk/${frappe.router.slug(breadcrumbs.workspace)}`,
-			__(breadcrumbs.workspace)
-		);
+		let worksapce_crumb = this.$breadcrumbs.find("li a.worksapce-breadcrumb");
+
+		worksapce_crumb.parent().addClass("ellipsis");
 	},
 
 	set_workspace(breadcrumbs) {
@@ -195,15 +218,19 @@ frappe.breadcrumbs = {
 			// no user listview for non-system managers and single doctypes
 		} else {
 			let route;
-			const doctype_route = frappe.router.slug(frappe.router.doctype_layout || doctype);
+			const doctype_route = frappe.router.slug(doctype);
 			if (doctype_meta?.is_tree) {
 				let view = frappe.model.user_settings[doctype].last_view || "Tree";
 				route = `${doctype_route}/view/${view}`;
 			} else {
 				route = doctype_route;
 			}
-			this.append_breadcrumb_element(`/desk/${route}`, __(doctype), "title-text");
+			const reset = breadcrumbs.layout_name ? "?reset_filters=1" : "";
+			this.append_breadcrumb_element(`/desk/${route}${reset}`, __(doctype), "title-text");
 		}
+
+		let list_crumb = this.$breadcrumbs.find("li a.title-text");
+		list_crumb.parent().addClass("ellipsis");
 	},
 
 	set_form_breadcrumb(breadcrumbs, view) {
@@ -213,22 +240,42 @@ frappe.breadcrumbs = {
 		let form_route = `/desk/${frappe.router.slug(doctype)}/${encodeURIComponent(docname)}`;
 
 		let docname_title;
+		let is_new_doc = false;
 		if (docname.startsWith("new-" + doctype.toLowerCase().replace(/ /g, "-"))) {
 			docname_title = __("New {0}", [__(doctype)]);
+			is_new_doc = true;
 		} else {
-			docname_title = doc.name;
+			let title = frappe.model.get_doc_title(doc);
+			docname_title = __(title) || __(doc.name);
+			if (frappe.utils.is_html(docname_title)) {
+				docname_title = strip_html(docname_title);
+			}
 		}
+
+		if (breadcrumbs.layout_name) {
+			const layout_info = (frappe.boot.doctype_layouts || []).find(
+				(l) => l.name === breadcrumbs.layout_name
+			);
+			const display_title = layout_info?.title || breadcrumbs.layout_name;
+			const doctype_slug = frappe.router.slug(doctype);
+			const filter_params = frappe.utils.parse_layout_condition_to_filters(
+				layout_info?.condition
+			);
+			filter_params._layout = breadcrumbs.layout_name;
+			const query = new URLSearchParams(filter_params).toString();
+			const layout_route = `/desk/${doctype_slug}${query ? "?" + query : ""}`;
+			this.append_breadcrumb_element(layout_route, __(display_title));
+		}
+
 		this.append_breadcrumb_element(form_route, docname_title, "title-text-form");
 
 		if (view === "form") {
-			let last_crumb = this.$breadcrumbs.find("li").last();
+			let last_crumb = this.$breadcrumbs.find(".title-text-form").parent();
 			last_crumb.addClass("disabled");
-			last_crumb.addClass("ellipsis");
-			last_crumb.css("cursor", "copy");
-			last_crumb.click((event) => {
-				event.stopImmediatePropagation();
-				frappe.utils.copy_to_clipboard(last_crumb.text());
-			});
+			if (frappe.is_mobile()) {
+				last_crumb.addClass("ellipsis");
+				last_crumb.find("a").addClass("ellipsis");
+			}
 		}
 	},
 
@@ -257,7 +304,7 @@ frappe.breadcrumbs = {
 
 	clear() {
 		this.$breadcrumbs = $(".navbar-breadcrumbs").empty();
-		this.append_breadcrumb_element("/desk", frappe.utils.icon("monitor"));
+		this.append_breadcrumb_element("/desk", frappe.utils.icon("home"));
 	},
 
 	toggle(show) {
@@ -267,4 +314,10 @@ frappe.breadcrumbs = {
 			$("body").removeClass("no-breadcrumbs");
 		}
 	},
+
+	/**
+	 * Parse a layout condition string into URL query params for list filtering.
+	 * Handles AND-joined `doc.field OP value` comparisons.
+	 * Returns {} for conditions that contain || (OR) since those can't be expressed as simple filters.
+	 */
 };

@@ -6,17 +6,22 @@ from frappe.model.document import Document
 from frappe.utils.data import quoted
 from frappe.www.list import get_list_context, get_list_data
 
+no_cache = 1
+
 
 def get_context(context, **dict_params):
 	frappe.local.form_dict.update(dict_params)
 	context.show_sidebar = True
 	doctype = frappe.local.form_dict.doctype
 	if doctype:
-		context.meta = frappe.get_meta(doctype)
+		meta = frappe.get_meta(doctype)
+		if frappe.session.user == "Guest" and not meta.allow_guest_to_view:
+			frappe.throw(_("Login to view"), frappe.PermissionError)
+		context.meta = meta
 		context.update(get_list_context(context, doctype) or {})
 		context.update(get(**frappe.local.form_dict))
-	context.home_page = "/portal"
-	context.doctype = frappe.local.form_dict.doctype
+		context.home_page = "/portal"
+		context.doctype = frappe.local.form_dict.doctype
 	return context
 
 
@@ -49,7 +54,7 @@ def get(
 	list_context = frappe.flags.list_context
 
 	if not raw_result:
-		return {"result": []}
+		return {"result": [], "txt": txt}
 
 	if txt:
 		list_context.default_subtitle = _('Filtered by "{0}"').format(txt)
@@ -81,4 +86,5 @@ def get(
 		"result": result,
 		"show_more": show_more,
 		"next_start": limit_start + limit,
+		"txt": txt,
 	}

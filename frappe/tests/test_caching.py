@@ -75,7 +75,7 @@ class TestCachingUtils(IntegrationTestCase):
 
 		# ensure single call if key is hashable
 		for arg in hashable_values:
-			external_service.call_count = 0
+			external_service.reset_mock()
 			for _ in range(2):
 				request_specific_api(arg, 13)
 
@@ -83,7 +83,7 @@ class TestCachingUtils(IntegrationTestCase):
 
 		# multiple calls if key cannot be generated
 		for arg in unhashable_values:
-			external_service.call_count = 0
+			external_service.reset_mock()
 			for _ in range(2):
 				request_specific_api(arg, 13)
 
@@ -371,3 +371,26 @@ class TestHttpCache(FrappeAPITestCase):
 		)
 		self.assertEqual(resp.cache_control.max_age, 600)
 		self.assertTrue(resp.cache_control.private)
+
+
+class TestValidColumnsCache(IntegrationTestCase):
+	def test_clear_doctype_cache(self):
+		from frappe.cache_manager import clear_doctype_cache
+
+		frappe.get_single("System Settings")
+		clear_doctype_cache("System Settings")
+		self.assertNotIn("System Settings", frappe.local.valid_columns)
+
+		frappe.get_single("System Settings")
+		self.assertIn("System Settings", frappe.local.valid_columns)
+		self.assertIsInstance(frappe.local.valid_columns["System Settings"], list)
+
+	def test_clear_cache(self):
+		from frappe.cache_manager import clear_cache
+
+		frappe.get_single("System Settings")
+		self.assertIn("System Settings", frappe.local.valid_columns)
+		self.assertIsInstance(frappe.local.valid_columns["System Settings"], list)
+
+		clear_cache()
+		self.assertEqual(frappe.local.valid_columns, {})

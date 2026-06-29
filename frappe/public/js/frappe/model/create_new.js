@@ -148,7 +148,7 @@ $.extend(frappe.model, {
 			allowed_records.length;
 
 		// don't set defaults for "User" link field using User Permissions!
-		if (df.fieldtype === "Link" && df.options !== "User") {
+		if (!df.read_only && df.fieldtype === "Link" && df.options !== "User") {
 			// If user permission has Is Default enabled or single-user permission has found against respective doctype.
 			if (has_user_permissions && default_doc) {
 				value = default_doc;

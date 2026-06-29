@@ -2,10 +2,11 @@
 # License: MIT. See LICENSE
 
 import email
+import imaplib
 import os
 import unittest
 from datetime import datetime, timedelta
-from unittest.mock import patch
+from unittest.mock import MagicMock, patch
 
 import frappe
 from frappe.core.doctype.communication.email import make
@@ -132,7 +133,7 @@ class TestEmailAccount(IntegrationTestCase):
 		TestEmailAccount.mocked_email_receive(email_account, messages)
 
 		comm = frappe.get_doc("Communication", {"sender": "test_sender@example.com"})
-		self.assertTrue("From: &quot;Microsoft Outlook&quot; &lt;test_sender@example.com&gt;" in comm.content)
+		self.assertTrue('From: "Microsoft Outlook" &lt;test_sender@example.com&gt;' in comm.content)
 		self.assertTrue(
 			"This is an e-mail message sent automatically by Microsoft Outlook while" in comm.content
 		)
@@ -153,7 +154,7 @@ class TestEmailAccount(IntegrationTestCase):
 		TestEmailAccount.mocked_email_receive(email_account, messages)
 
 		comm = frappe.get_doc("Communication", {"sender": "test_sender@example.com"})
-		self.assertTrue("From: &quot;Microsoft Outlook&quot; &lt;test_sender@example.com&gt;" in comm.content)
+		self.assertTrue('From: "Microsoft Outlook" &lt;test_sender@example.com&gt;' in comm.content)
 		self.assertTrue(
 			"This is an e-mail message sent automatically by Microsoft Outlook while" in comm.content
 		)
@@ -378,6 +379,42 @@ class TestEmailAccount(IntegrationTestCase):
 		with self.assertRaises(Exception):
 			email_account.validate()
 
+	def test_validation_surfaces_imap_auth_error(self):
+		# auth failure on save must raise, not swallow and leak a NONAUTH LIST error
+		email_account = frappe.get_doc("Email Account", "_Test Email Account 1")
+		email_account.flags.validate_imap_pop_connection = True
+
+		server = MagicMock()
+		server.connect.side_effect = imaplib.IMAP4.error("[AUTHENTICATIONFAILED] Invalid credentials")
+
+		with self.assertRaises(frappe.ValidationError):
+			email_account.check_email_server_connection(server, in_receive=True)
+
+	def test_validation_surfaces_imap_connection_error(self):
+		# a connection/timeout failure on save must raise too, not swallow into a NONAUTH leak
+		email_account = frappe.get_doc("Email Account", "_Test Email Account 1")
+		email_account.flags.validate_imap_pop_connection = True
+
+		server = MagicMock()
+		server.connect.side_effect = OSError("timed out")
+
+		with self.assertRaises(OSError):
+			email_account.check_email_server_connection(server, in_receive=True)
+
+	def test_background_receive_auth_error_disables_account(self):
+		# auth failure during background receive disables incoming instead of raising
+		email_account = frappe.get_doc("Email Account", "_Test Email Account 1")
+		email_account.flags.validate_imap_pop_connection = False
+
+		server = MagicMock()
+		server.connect.side_effect = imaplib.IMAP4.error("[AUTHENTICATIONFAILED] Invalid credentials")
+
+		with patch.object(email_account, "handle_incoming_connect_error") as mocked_handler:
+			result = email_account.check_email_server_connection(server, in_receive=True)
+
+		self.assertIsNone(result)
+		mocked_handler.assert_called_once()
+
 	def test_append_to(self):
 		email_account = frappe.get_doc("Email Account", "_Test Email Account 1")
 		mail_content = self.get_test_mail(fname="incoming-2.raw")
@@ -521,12 +558,14 @@ class TestInboundMail(IntegrationTestCase):
 
 	def test_mail_exist_validation(self):
 		"""Do not create communication record if the mail is already downloaded into the system."""
+		email_account = frappe.get_doc("Email Account", "_Test Email Account 1")
 		mail_content = self.get_test_mail(fname="incoming-1.raw")
 		message_id = Email(mail_content).message_id
 		# Create new communication record in DB
-		communication = self.new_communication(message_id=message_id, sent_or_received="Received")
+		communication = self.new_communication(
+			message_id=message_id, email_account=email_account.name, sent_or_received="Received"
+		)
 
-		email_account = frappe.get_doc("Email Account", "_Test Email Account 1")
 		inbound_mail = InboundMail(mail_content, email_account, 12345, 1)
 		new_communication = inbound_mail.process()
 
@@ -637,6 +676,32 @@ class TestInboundMail(IntegrationTestCase):
 		reference_doc = inbound_mail.reference_document()
 		self.assertEqual(todo.name, reference_doc.name)
 
+	def test_subject_match_when_append_to_doctype_has_no_subject_field(self):
+		"""Inbound mail must not raise when the `Append To` doctype has no subject_field configured."""
+		mail_content = self.get_test_mail(fname="incoming-subject-placeholder.raw").replace(
+			"{{ subject }}", "RE: An unmatched subject line"
+		)
+		email_account = frappe.get_doc("Email Account", "_Test Email Account 1")
+		inbound_mail = InboundMail(mail_content, email_account, 12345, 1)
+
+		no_subject_fields = frappe._dict(subject_field=None, sender_field=None)
+		with patch.object(InboundMail, "get_email_fields", return_value=no_subject_fields):
+			# Should return None instead of raising an exception
+			self.assertIsNone(inbound_mail.match_record_by_subject_and_sender("ToDo"))
+
+	def test_subject_match_when_append_to_doctype_has_no_sender_field(self):
+		"""Subject matching must skip the sender filter (not crash) when sender_field is absent."""
+		mail_content = self.get_test_mail(fname="incoming-subject-placeholder.raw").replace(
+			"{{ subject }}", "RE: An unmatched subject line"
+		)
+		email_account = frappe.get_doc("Email Account", "_Test Email Account 1")
+		inbound_mail = InboundMail(mail_content, email_account, 12345, 1)
+
+		# subject_field set, sender_field absent: must build the subject filter and skip the sender one.
+		no_sender_field = frappe._dict(subject_field="description", sender_field=None)
+		with patch.object(InboundMail, "get_email_fields", return_value=no_sender_field):
+			self.assertIsNone(inbound_mail.match_record_by_subject_and_sender("ToDo"))
+
 	def test_reference_document_by_subject_match_with_accents(self):
 		subject = "Nouvelle tâche à faire 😃"
 		todo = self.new_todo(sender="test_sender@example.com", description=subject)
@@ -650,6 +715,68 @@ class TestInboundMail(IntegrationTestCase):
 		inbound_mail = InboundMail(mail_content, email_account, 12345, 1)
 		reference_doc = inbound_mail.reference_document()
 		self.assertEqual(todo.name, reference_doc.name)
+
+	def test_inbound_mail_decodes_rfc2047_subject(self):
+		subjects = [
+			# UTF-8 Quoted-Printable (English)
+			(
+				"=?UTF-8?Q?New_Notifications?=",
+				"RE: New Notifications",
+			),
+			# UTF-8 Base64 (English)
+			(
+				"=?UTF-8?B?TmV3IE5vdGlmaWNhdGlvbnM=?=",
+				"RE: New Notifications",
+			),
+			# FWD prefix + Base64 (Russian)
+			(
+				"FWD: =?UTF-8?B?0J/RgNC40LLQtdGCINC80LjRgA==?=",
+				"RE: FWD: Привет мир",
+			),
+			# RE prefix + Quoted-Printable (Russian)
+			(
+				"RE: =?UTF-8?Q?=D0=9E=D1=82=D1=87=D0=B5=D1=82_=D0=B3=D0=BE=D1=82=D0=BE=D0=B2?=",
+				"RE: RE: Отчет готов",
+			),
+			# Mixed plain + encoded (number symbol)
+			(
+				"Invoice =?UTF-8?Q?=E2=84=96_1234?=",
+				"RE: Invoice № 1234",
+			),
+			# Multiple encoded words (split header)
+			(
+				"=?UTF-8?B?TmV3?= =?UTF-8?B?IE5vdGlmaWNhdGlvbnM=?=",
+				"RE: New Notifications",
+			),
+			# Emoji (Quoted-Printable)
+			(
+				"=?UTF-8?Q?Deployment_complete_=F0=9F=9A=80?=",
+				"RE: Deployment complete 🚀",
+			),
+			# Lowercase encoding markers
+			(
+				"=?utf-8?b?TmV3IE5vdGlmaWNhdGlvbnM=?=",
+				"RE: New Notifications",
+			),
+			# ISO-8859-1 Quoted-Printable
+			(
+				"=?ISO-8859-1?Q?Ol=E1_Mundo?=",
+				"RE: Olá Mundo",
+			),
+			# Encoded word inside sentence
+			(
+				"Meeting about =?UTF-8?B?0L/RgNC+0LXQutGC?= tomorrow",
+				"RE: Meeting about проект tomorrow",
+			),
+		]
+
+		for subject, expected in subjects:
+			mail_content = self.get_test_mail(fname="incoming-subject-placeholder.raw").replace(
+				"{{ subject }}", subject
+			)
+			email_account = frappe.get_doc("Email Account", "_Test Email Account 1")
+			inbound_mail = InboundMail(mail_content, email_account, 12345, 1)
+			self.assertEqual(inbound_mail.subject, expected)
 
 	def test_create_communication_from_mail(self):
 		# Create email queue record

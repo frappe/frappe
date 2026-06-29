@@ -4,6 +4,8 @@ from frappe.model.document import Document
 
 
 class EventParticipants(Document):
+	_DOCTYPE_NAME = "Event Participants"
+
 	# begin: auto-generated types
 	# This code is auto-generated. Do not modify anything in this block.
 
@@ -12,6 +14,7 @@ class EventParticipants(Document):
 	if TYPE_CHECKING:
 		from frappe.types import DF
 
+		attending: DF.Literal["", "Yes", "No", "Maybe"]
 		email: DF.Data | None
 		parent: DF.Data
 		parentfield: DF.Data

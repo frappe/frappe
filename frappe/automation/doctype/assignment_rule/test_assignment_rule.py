@@ -113,6 +113,26 @@ class TestAutoAssign(IntegrationTestCase):
 				len(frappe.get_all("ToDo", dict(allocated_to=user, reference_type=TEST_DOCTYPE))), 10
 			)
 
+	def test_weighted_distribution(self):
+		self.assignment_rule.rule = "Weighted Distribution"
+		self.assignment_rule.weighted_users.clear()
+		self.assignment_rule.append("weighted_users", dict(user="test@example.com", weight=1))
+		self.assignment_rule.append("weighted_users", dict(user="test1@example.com", weight=2))
+		self.assignment_rule.save()
+
+		for _ in range(5):
+			_make_test_record(public=1)
+
+		# check if users are assigned based on weights (out of 5,
+		# test@example.com should have 2 assignments and test1@example.com should have 3 assignments )
+		self.assertEqual(
+			len(frappe.get_all("ToDo", dict(allocated_to="test@example.com", reference_type=TEST_DOCTYPE))), 2
+		)
+		self.assertEqual(
+			len(frappe.get_all("ToDo", dict(allocated_to="test1@example.com", reference_type=TEST_DOCTYPE))),
+			3,
+		)
+
 	def test_assingment_on_guest_submissions(self):
 		"""Sometimes documents are inserted as guest, check if assignment rules run on them. Use case: Web Forms"""
 		with self.set_user("Guest"):

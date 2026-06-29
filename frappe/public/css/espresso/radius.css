@@ -1,0 +1,24 @@
+/* Espresso radius — canonical scale, plain CSS (source of truth).
+ * Installed from design-poc/shared/tokens/espresso-radius.css (neutral :root only;
+ * the Tailwind @theme adapter stays in frappe-ui). Loaded via espresso/_borders.scss. */
+
+:root {
+  --radius-0: 0px;
+  --radius-1: 4px;
+  --radius-2: 5px;
+  --radius-3: 6px;
+  --radius-4: 8px;
+  --radius-5: 10px;
+  --radius-6: 12px;
+  --radius-7: 16px;
+  --radius-8: 20px;
+  --radius-9: 999px;
+  --radius-full: 9999px;
+  --radius-none: 0px;
+  --radius-sm: 4px;
+  --radius: 8px;
+  --radius-md: 10px;
+  --radius-lg: 12px;
+  --radius-xl: 16px;
+  --radius-2xl: 20px;
+}

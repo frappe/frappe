@@ -9,18 +9,6 @@
   {
    "child": 0,
    "collapsible": 1,
-   "icon": "home",
-   "indent": 0,
-   "keep_closed": 0,
-   "label": "Home",
-   "link_to": "System",
-   "link_type": "Workspace",
-   "show_arrow": 0,
-   "type": "Link"
-  },
-  {
-   "child": 0,
-   "collapsible": 1,
    "icon": "heart-pulse",
    "indent": 0,
    "keep_closed": 0,
@@ -33,7 +21,8 @@
   {
    "child": 0,
    "collapsible": 1,
-   "indent": 0,
+   "icon": "bell",
+   "indent": 1,
    "keep_closed": 0,
    "label": "Notifications",
    "link_type": "DocType",
@@ -52,7 +41,7 @@
    "type": "Link"
   },
   {
-   "child": 0,
+   "child": 1,
    "collapsible": 1,
    "indent": 0,
    "keep_closed": 0,
@@ -65,7 +54,8 @@
   {
    "child": 0,
    "collapsible": 1,
-   "indent": 0,
+   "icon": "server",
+   "indent": 1,
    "keep_closed": 0,
    "label": "Background Job",
    "link_type": "DocType",
@@ -130,7 +120,8 @@
   {
    "child": 0,
    "collapsible": 1,
-   "indent": 0,
+   "icon": "tool",
+   "indent": 1,
    "keep_closed": 0,
    "label": "Tools",
    "link_type": "DocType",
@@ -162,7 +153,8 @@
   {
    "child": 0,
    "collapsible": 1,
-   "indent": 0,
+   "icon": "logs",
+   "indent": 1,
    "keep_closed": 0,
    "label": "Logs",
    "link_type": "DocType",
@@ -226,10 +218,11 @@
    "type": "Link"
   }
  ],
- "modified": "2025-11-25 10:46:09.401204",
+ "modified": "2026-01-12 15:59:38.548532",
  "modified_by": "Administrator",
  "module": "Core",
  "name": "System",
  "owner": "Administrator",
+ "standard": 1,
  "title": "System"
 }

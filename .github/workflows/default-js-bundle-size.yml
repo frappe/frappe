@@ -1,0 +1,92 @@
+name: Default JS Bundle Size
+
+on:
+  pull_request:
+
+concurrency:
+  group: default-js-bundle-size-${{ github.event_name }}-${{ github.event.number }}
+  cancel-in-progress: true
+
+permissions:
+  # Do not change this as GITHUB_TOKEN is being used by roulette
+  contents: read
+
+jobs:
+  checkrun:
+    name: Plan Check
+    runs-on: ubuntu-latest
+    outputs:
+      build: ${{ steps.check-build.outputs.build }}
+
+    steps:
+      - name: Clone
+        uses: actions/checkout@v6
+
+      - name: Check if build should be run
+        id: check-build
+        run: |
+          python "${GITHUB_WORKSPACE}/.github/helper/roulette.py"
+        env:
+          TYPE: "ui"
+          PR_NUMBER: ${{ github.event.number }}
+          REPO_NAME: ${{ github.repository }}
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+
+  compare:
+    name: Compare
+    runs-on: ubuntu-latest
+    if: needs.checkrun.outputs.build == 'strawberry'
+    needs: checkrun
+    env:
+      NODE_ENV: "production"
+      DEFAULT_JS_BUNDLE_SIZE_THRESHOLD: "10"
+    steps:
+      - name: Clone
+        uses: actions/checkout@v6
+        with:
+          fetch-depth: 0
+          path: apps/frappe
+
+      - uses: actions/setup-node@v6
+        with:
+          node-version: 24
+          check-latest: true
+
+      - id: yarn-cache-dir-path
+        run: echo "dir=$(yarn cache dir)" >> $GITHUB_OUTPUT
+
+      - uses: actions/cache@v4
+        with:
+          path: ${{ steps.yarn-cache-dir-path.outputs.dir }}
+          key: ${{ runner.os }}-yarn-${{ hashFiles('apps/frappe/yarn.lock') }}
+          restore-keys: |
+            ${{ runner.os }}-yarn-
+
+      - name: Prepare bench layout
+        run: |
+          cp apps/frappe/.github/helper/compare_default_js_bundle_size.py /tmp/compare_default_js_bundle_size.py
+          mkdir -p sites/assets
+          echo frappe > sites/apps.txt
+
+      - name: Compare default JS bundle size
+        run: |
+          build_default_js_bundle() {
+            local ref="$1"
+
+            git -C apps/frappe checkout --force "$ref"
+            yarn --cwd apps/frappe install --frozen-lockfile
+            rm -rf sites/assets/frappe sites/assets/assets.json apps/frappe/frappe/public/dist
+            files=$(python /tmp/compare_default_js_bundle_size.py --esbuild-files)
+            (
+              cd apps/frappe
+              CI=Yes node esbuild --production --apps frappe --files "$files"
+            )
+          }
+
+          build_default_js_bundle "${{ github.event.pull_request.base.sha }}"
+          python /tmp/compare_default_js_bundle_size.py \
+            --write-json /tmp/base-default-js-bundle-size.json
+
+          build_default_js_bundle "${{ github.sha }}"
+          python /tmp/compare_default_js_bundle_size.py \
+            --compare-to /tmp/base-default-js-bundle-size.json

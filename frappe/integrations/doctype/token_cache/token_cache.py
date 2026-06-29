@@ -11,6 +11,8 @@ from frappe.utils import cint, cstr, get_datetime, get_system_timezone
 
 
 class TokenCache(Document):
+	_DOCTYPE_NAME = "Token Cache"
+
 	# begin: auto-generated types
 	# This code is auto-generated. Do not modify anything in this block.
 
@@ -44,7 +46,7 @@ class TokenCache(Document):
 		Params:
 		data - Dict with access_token, refresh_token, expires_in and scope.
 		"""
-		token_type = cstr(data.get("token_type", "")).lower()
+		token_type = cstr(data.get("token_type", "bearer")).lower()
 		if token_type not in ["bearer", "mac"]:
 			frappe.throw(_("Received an invalid token type."))
 		# 'Bearer' or 'MAC'
@@ -74,8 +76,8 @@ class TokenCache(Document):
 	def get_expires_in(self):
 		system_timezone = ZoneInfo(get_system_timezone())
 		modified: datetime.datetime = get_datetime(self.modified).replace(tzinfo=system_timezone)
-		expiry_utc = modified.astimezone(datetime.timezone.utc) + datetime.timedelta(seconds=self.expires_in)
-		now_utc = datetime.datetime.now(datetime.timezone.utc)
+		expiry_utc = modified.astimezone(datetime.UTC) + datetime.timedelta(seconds=self.expires_in)
+		now_utc = datetime.datetime.now(datetime.UTC)
 		return cint((expiry_utc - now_utc).total_seconds())
 
 	def is_expired(self):

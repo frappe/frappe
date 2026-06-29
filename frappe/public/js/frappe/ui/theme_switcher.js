@@ -161,3 +161,7 @@ frappe.ui.set_theme = (theme) => {
 	}
 	root.setAttribute("data-theme", theme || theme_mode);
 };
+
+frappe.ui.get_current_theme = () => {
+	return document.documentElement.getAttribute("data-theme");
+};

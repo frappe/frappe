@@ -66,7 +66,7 @@ def get_columns() -> list[dict]:
 			"fieldname": perm_type,
 			"fieldtype": "Check",
 		}
-		for perm_type in PERM_TYPES
+		for perm_type in get_perm_types()
 	)
 
 	return columns
@@ -82,7 +82,8 @@ def get_data(filters: dict) -> list[list]:
 	Args:
 	        filters (dict): Dictionary containing optional 'user' and 'doctype' keys
 	"""
-	agg_perms = defaultdict(lambda: {perm_type: 0 for perm_type in PERM_TYPES})
+	perm_types = get_perm_types()
+	agg_perms = defaultdict(lambda: {perm_type: 0 for perm_type in perm_types})
 	doctype, user = filters.get("doctype"), filters.get("user")
 	role_user_map = get_all_user_roles() if not user else {}
 
@@ -96,7 +97,7 @@ def get_data(filters: dict) -> list[list]:
 
 		users = [user] if user else role_user_map.get(role, [])
 
-		for perm_type in PERM_TYPES:
+		for perm_type in perm_types:
 			if perm_type not in perm:
 				continue
 
@@ -109,7 +110,7 @@ def get_data(filters: dict) -> list[list]:
 	for u, dt, if_owner in sorted_keys:
 		perm = agg_perms[(u, dt, if_owner)]
 		row = [u, dt, if_owner]
-		row.extend(perm[perm_type] for perm_type in PERM_TYPES)
+		row.extend(perm[perm_type] for perm_type in perm_types)
 		result.append(row)
 
 	return result
@@ -131,3 +132,9 @@ def get_all_user_roles():
 		role_user_map[role].append(user)
 
 	return role_user_map
+
+
+def get_perm_types() -> list[str]:
+	"""Return PERM_TYPES extended with custom Permission Types."""
+	custom_perm_types = frappe.get_all("Permission Type", pluck="perm_type")
+	return PERM_TYPES + custom_perm_types

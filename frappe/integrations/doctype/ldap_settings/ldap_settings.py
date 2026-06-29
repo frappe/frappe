@@ -26,6 +26,8 @@ if TYPE_CHECKING:
 
 
 class LDAPSettings(Document):
+	_DOCTYPE_NAME = "LDAP Settings"
+
 	# begin: auto-generated types
 	# This code is auto-generated. Do not modify anything in this block.
 
@@ -99,7 +101,7 @@ class LDAPSettings(Document):
 
 				except LDAPAttributeError as ex:
 					frappe.throw(
-						_("LDAP settings incorrect. validation response was: {0}").format(ex),
+						_("LDAP settings incorrect. validation response was: {0}").format(str(ex)),
 						title=_("Misconfigured"),
 					)
 
@@ -424,6 +426,8 @@ def login():
 
 @frappe.whitelist()
 def reset_password(user: str, password: str, logout: int):
+	frappe.only_for("System Manager")
+
 	ldap: LDAPSettings = frappe.get_doc("LDAP Settings")
 	if not ldap.enabled:
 		frappe.throw(_("LDAP is not enabled."))

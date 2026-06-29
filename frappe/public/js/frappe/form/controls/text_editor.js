@@ -202,6 +202,20 @@ frappe.ui.form.ControlTextEditor = class ControlTextEditor extends frappe.ui.for
 			e.stopPropagation();
 		});
 
+		const imageResizeModule = this.quill.getModule("imageResize");
+		if (imageResizeModule) {
+			imageResizeModule.checkImage = (evt) => {
+				if (imageResizeModule.img) {
+					// Delete / Backspace key pressed
+					if (evt.keyCode == 46 || evt.keyCode == 8) {
+						const blot = Quill.find(imageResizeModule.img);
+						if (blot) blot.deleteAt(0);
+					}
+					imageResizeModule.hide();
+				}
+			};
+		}
+
 		// font size dropdown
 		let $font_size_label = this.$wrapper.find(".ql-size .ql-picker-label:first");
 		let $default_font_size = this.$wrapper.find(".ql-size .ql-picker-item:first");
@@ -235,7 +249,7 @@ frappe.ui.form.ControlTextEditor = class ControlTextEditor extends frappe.ui.for
 			theme: this.df.theme || "snow",
 			readOnly: this.disabled || this.df.read_only,
 			bounds: this.quill_container[0],
-			placeholder: this.df.placeholder || "",
+			placeholder: __(this.df.placeholder || ""),
 		};
 
 		// In a grid row where space is constrained, hide the toolbar.
@@ -252,10 +266,12 @@ frappe.ui.form.ControlTextEditor = class ControlTextEditor extends frappe.ui.for
 			return null;
 		}
 		let me = this;
+
 		return {
-			allowedChars: /^[A-Za-z0-9_]*$/,
+			allowedChars: /^[\p{L}0-9_]*$/u,
 			mentionDenotationChars: ["@"],
 			isolateCharacter: true,
+
 			source: frappe.utils.debounce(async function (search_term, renderList) {
 				let method =
 					me.mention_search_method || "frappe.desk.search.get_names_for_mentions";
@@ -268,7 +284,8 @@ frappe.ui.form.ControlTextEditor = class ControlTextEditor extends frappe.ui.for
 			}, 300),
 			renderItem(item) {
 				let value = item.value;
-				return `${value} ${item.is_group ? frappe.utils.icon("users") : ""}`;
+				let email = item?.email ? `(${item?.email})` : "";
+				return `${value} ${email} ${item.is_group ? frappe.utils.icon("users") : ""}`;
 			},
 		};
 	}
@@ -389,7 +406,7 @@ frappe.ui.form.ControlTextEditor = class ControlTextEditor extends frappe.ui.for
 	}
 
 	get_keyboard_bindings() {
-		let bindings = {
+		const bindings = {
 			"table enter": {
 				key: "Enter",
 				formats: ["table"],
@@ -416,6 +433,14 @@ frappe.ui.form.ControlTextEditor = class ControlTextEditor extends frappe.ui.for
 				},
 			},
 		};
+
+		if (this.grid_row) {
+			bindings["tab"] = {
+				key: "Tab",
+				handler: () => true, // call default handler
+			};
+		}
+
 		return bindings;
 	}
 };

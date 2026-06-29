@@ -6,6 +6,8 @@ from frappe.model.document import Document
 
 
 class DesktopSettings(Document):
+	_DOCTYPE_NAME = "Desktop Settings"
+
 	# begin: auto-generated types
 	# This code is auto-generated. Do not modify anything in this block.
 
@@ -15,15 +17,6 @@ class DesktopSettings(Document):
 		from frappe.types import DF
 
 		icon_style: DF.Literal["Subtle", "Solid"]
-		navbar_style: DF.Literal[
-			"Awesomebar",
-			"macOS Launchpad",
-			"Brand Logo",
-			"Brand Logo with Search",
-			"Timeless Launchpad",
-			"Apps with Search",
-		]
-		show_app_icons_as_folder: DF.Check
 	# end: auto-generated types
 
 	pass

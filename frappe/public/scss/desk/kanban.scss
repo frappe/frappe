@@ -19,8 +19,10 @@
 	overflow-y: hidden;
 	margin: var(--margin-sm);
 
-	-ms-overflow-style: none; /* IE and Edge */
-	scrollbar-width: none; /* Firefox */
+	-ms-overflow-style: none;
+	/* IE and Edge */
+	scrollbar-width: none;
+	/* Firefox */
 
 	&::-webkit-scrollbar {
 		display: none;
@@ -31,7 +33,7 @@
 
 		flex: 1 0 260px;
 		max-width: 300px;
-		border-radius: var(--border-radius);
+		border-radius: var(--radius);
 		padding: var(--padding-md);
 		min-height: calc(
 			100vh - var(--navbar-height) - var(--page-head-height) - var(--margin-sm) * 2
@@ -46,7 +48,7 @@
 			height: 27px;
 			font-size: var(--text-md);
 			margin-bottom: var(--margin-sm);
-			border-radius: var(--border-radius-md);
+			border-radius: var(--radius-md);
 
 			&:hover {
 				color: var(--text-color);
@@ -80,6 +82,8 @@
 			font-weight: 500;
 			font-size: 12px;
 			// align-items: center;
+
+			// This indicator pill is being used as a button
 			.indicator-pill {
 				padding: 2px 7px;
 				width: 20px;
@@ -142,8 +146,10 @@
 			margin: -5px;
 			padding: 5px;
 			overflow-y: scroll;
-			-ms-overflow-style: none; /* IE and Edge */
-			scrollbar-width: none; /* Firefox */
+			-ms-overflow-style: none;
+			/* IE and Edge */
+			scrollbar-width: none;
+			/* Firefox */
 
 			&::-webkit-scrollbar {
 				display: none;
@@ -156,6 +162,7 @@
 				&:last-child .kanban-card {
 					margin-bottom: var(--margin-xl);
 				}
+
 				.kanban-card {
 					@include flex(flex, space-between, null, column);
 					margin-top: var(--margin-sm);
@@ -168,7 +175,7 @@
 						height: 125px;
 
 						img {
-							border-radius: var(--border-radius) var(--border-radius) 0 0;
+							border-radius: var(--radius) var(--radius) 0 0;
 							object-position: top;
 							object-fit: cover;
 							margin: 0 auto;
@@ -186,9 +193,22 @@
 
 						.kanban-title-area {
 							margin-bottom: 12px;
-							max-width: 90%;
+							width: 100%;
+							max-width: 100%;
 							font-size: var(--text-md);
 							font-weight: 500;
+
+							.kanban-card-title,
+							.kanban-card-doc {
+								white-space: normal !important;
+								display: -webkit-box;
+								-webkit-box-orient: vertical;
+								-webkit-line-clamp: 2;
+								line-clamp: 2;
+								overflow: hidden;
+								text-overflow: ellipsis;
+								word-break: break-word;
+							}
 
 							.kanban-card-doc {
 								.text-muted div {
@@ -316,7 +336,7 @@
 		.kanban-column-title.compose-column {
 			@include flex(flex, center, center, null);
 			min-height: 65px;
-			border-radius: var(--border-radius);
+			border-radius: var(--radius);
 			border: 1px dashed var(--gray-400);
 			@include get_textstyle("base", "regular");
 
@@ -329,6 +349,62 @@
 	.kanban-empty-state {
 		width: 100%;
 		line-height: 400px;
+	}
+
+	.kanban-tags .more-tags {
+		cursor: pointer;
+
+		.hidden-tags {
+			position: absolute;
+
+			bottom: 70px;
+
+			left: 50%;
+			transform: translateX(-50%);
+
+			background: var(--card-bg);
+			border: 1px solid var(--border-color);
+			padding: 10px;
+			border-radius: var(--radius-md);
+			box-shadow: var(--shadow-lg);
+
+			display: flex;
+			flex-wrap: wrap;
+			justify-content: center;
+
+			width: calc(100% - 24px);
+			max-width: 220px;
+
+			gap: 6px;
+			opacity: 0;
+			pointer-events: none;
+			z-index: 1000;
+
+			.tag-pill {
+				margin: 0 !important;
+				white-space: nowrap;
+			}
+		}
+
+		&:hover .hidden-tags {
+			opacity: 1;
+			transform: translateX(-50%) translateY(-5px);
+			pointer-events: auto;
+		}
+	}
+
+	.kanban-card-wrapper:hover {
+		z-index: 1001;
+	}
+
+	.kanban-card-wrapper:first-child {
+		.hidden-tags {
+			bottom: auto;
+		}
+
+		&:hover .hidden-tags {
+			transform: translateX(-50%) translateY(5px);
+		}
 	}
 }
 
@@ -346,10 +422,12 @@ body[data-route*="Kanban"] {
 		margin-top: 5px;
 		margin-bottom: 5px;
 	}
+
 	span:hover {
 		// background-color: @light-yellow;
 		cursor: pointer;
 	}
+
 	input {
 		border: none;
 		outline: none;

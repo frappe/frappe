@@ -1,7 +1,10 @@
 # Copyright (c) 2015, Frappe Technologies Pvt. Ltd. and Contributors
 # License: MIT. See LICENSE
 
+import os
 import re
+
+import orjson
 
 import frappe
 from frappe import _
@@ -10,12 +13,14 @@ from frappe.core.doctype.installed_applications.installed_applications import (
 	get_setup_wizard_completed_apps,
 	get_setup_wizard_not_required_apps,
 )
+from frappe.utils.caching import request_cache
 
 # check if route is /desk or /desk/* and not /app1 or /app1/*
 DESK_APP_PATTERN = re.compile(r"^/desk(/.*)?$")
 
 
 @frappe.whitelist()
+@request_cache
 def get_apps():
 	apps = frappe.get_installed_apps()
 	app_list = []
@@ -51,6 +56,8 @@ def get_apps():
 
 
 def get_route(app_name):
+	if app_name not in frappe.get_installed_apps():
+		return "/apps"  # Invalid defaults
 	apps = frappe.get_hooks("add_to_apps_screen", app_name=app_name)
 	app = next((app for app in apps if app.get("name") == app_name), None)
 	return app.get("route") if app and app.get("route") else "/apps"
@@ -86,7 +93,10 @@ def get_default_path():
 
 
 @frappe.whitelist()
-def set_app_as_default(app_name):
+def set_app_as_default(app_name: str):
+	if app_name not in frappe.get_installed_apps():
+		frappe.throw(_("App {} is not installed").format(frappe.bold(app_name)))
+
 	if frappe.db.get_value("User", frappe.session.user, "default_app") == app_name:
 		frappe.db.set_value("User", frappe.session.user, "default_app", "")
 	else:
@@ -94,7 +104,7 @@ def set_app_as_default(app_name):
 
 
 @frappe.whitelist()
-def get_incomplete_setup_route(current_app, app_route):
+def get_incomplete_setup_route(current_app: str, app_route: str):
 	pending_apps = get_apps_with_incomplete_dependencies(current_app)
 
 	if not pending_apps:
@@ -112,3 +122,42 @@ def get_incomplete_setup_route(current_app, app_route):
 			return route
 
 	return app_route
+
+
+def get_all_apps(with_internal_apps=True, sites_path=None):
+	"""Get list of all apps via `sites/apps.txt`."""
+	from frappe.utils import get_file_items
+
+	if not sites_path:
+		sites_path = frappe.local.sites_path
+
+	apps = get_file_items(os.path.join(sites_path, "apps.txt"), raise_not_found=True)
+
+	if with_internal_apps:
+		for app in get_file_items(os.path.join(frappe.local.site_path, "apps.txt")):
+			if app not in apps:
+				apps.append(app)
+
+	if "frappe" in apps:
+		apps.remove("frappe")
+	apps.insert(0, "frappe")
+
+	return apps
+
+
+@request_cache
+def get_installed_apps(*, _ensure_on_bench: bool = False) -> list[str]:
+	"""Get list of installed apps in current site."""
+	if getattr(frappe.flags, "in_install_db", True):
+		return []
+
+	if not frappe.db:
+		frappe.connect()
+
+	installed = orjson.loads(frappe.db.get_global("installed_apps") or "[]")
+
+	if _ensure_on_bench:
+		all_apps = frappe.cache.get_value("all_apps", get_all_apps)
+		installed = [app for app in installed if app in all_apps]
+
+	return installed

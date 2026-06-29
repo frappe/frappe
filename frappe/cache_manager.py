@@ -105,7 +105,8 @@ def clear_global_cache():
 
 	clear_doctype_cache()
 	clear_website_cache()
-	frappe.cache.delete_value(global_cache_keys + bench_cache_keys)
+	frappe.cache.delete_value(global_cache_keys)
+	frappe.cache.delete_value(bench_cache_keys, shared=True)
 	frappe.setup_module_map()
 
 
@@ -120,6 +121,11 @@ def clear_defaults_cache(user=None):
 def clear_doctype_cache(doctype=None):
 	clear_controller_cache(doctype)
 	frappe.client_cache.erase_persistent_caches(doctype=doctype)
+
+	if doctype:
+		frappe.local.valid_columns.pop(doctype, None)
+	else:
+		frappe.local.valid_columns = {}
 
 	_clear_doctype_cache_from_redis(doctype)
 	if hasattr(frappe.db, "after_commit"):
@@ -292,9 +298,11 @@ def clear_cache(user: str | None = None, doctype: str | None = None):
 		for key in frappe.get_hooks("persistent_cache_keys"):
 			keys_to_delete.difference_update(frappe.cache.get_keys(key))
 		frappe.cache.delete_value(list(keys_to_delete), make_keys=False)
+		frappe.cache.delete_value(bench_cache_keys, shared=True)
 
 		reset_metadata_version()
 		frappe.local.cache = {}
+		frappe.local.valid_columns = {}
 		frappe.local.new_doc_templates = {}
 
 		for fn in frappe.get_hooks("clear_cache"):

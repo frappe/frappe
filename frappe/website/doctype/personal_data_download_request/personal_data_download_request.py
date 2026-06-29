@@ -10,6 +10,8 @@ from frappe.utils.verified_command import get_signed_params
 
 
 class PersonalDataDownloadRequest(Document):
+	_DOCTYPE_NAME = "Personal Data Download Request"
+
 	# begin: auto-generated types
 	# This code is auto-generated. Do not modify anything in this block.
 
@@ -48,6 +50,7 @@ class PersonalDataDownloadRequest(Document):
 				"is_private": 1,
 			}
 		)
+		f.flags.skip_file_size_check = True
 		f.save(ignore_permissions=True)
 
 		file_link = (

@@ -5,7 +5,7 @@ from typing import ClassVar
 from unittest.mock import patch
 
 import frappe
-from frappe.search.sqlite_search import SQLiteSearch, SQLiteSearchIndexMissingError
+from frappe.search.sqlite_search import SQLiteSearch, SQLiteSearchIndexMissingError, index_docs_in_queue
 from frappe.tests import IntegrationTestCase
 
 
@@ -47,6 +47,8 @@ class TestSQLiteSearchAPI(IntegrationTestCase):
 	@classmethod
 	def setUpClass(cls):
 		super().setUpClass()
+		frappe.db.delete("Note")
+		frappe.db.delete("ToDo")
 		cls.search = TestSQLiteSearch()
 		# Clean up any existing test database
 		cls.search.drop_index()
@@ -306,6 +308,91 @@ class TestSQLiteSearchAPI(IntegrationTestCase):
 		# Should return empty results or minimal results
 		self.assertLessEqual(len(results["results"]), 1)
 
+	def test_index_queue(self):
+		self.search.build_index()
+		new_note = frappe.get_doc(
+			{
+				"doctype": "Note",
+				"title": "Newly Added Document",
+				"content": "This document was added after initial indexing",
+			}
+		)
+		new_note.insert()
+
+		try:
+			self.search.index_doc("Note", new_note.name)
+			doc_id = f"Note:{new_note.name}"
+			conn = sqlite3.connect(self.search.db_path)
+			cursor = conn.cursor()
+			doc_id = f"Note:{new_note.name}"
+
+			# should be present in the queue
+			cursor.execute("SELECT COUNT(*) FROM search_index_queue WHERE doc_id = ?", (doc_id,))
+			queue_count = cursor.fetchone()[0]
+			self.assertEqual(
+				queue_count, 1, "Document should be present in the index queue after index_doc call"
+			)
+
+			# should not be indexed yet
+			cursor.execute("SELECT COUNT(*) FROM search_fts WHERE doc_id = ?", (doc_id,))
+			db_count = cursor.fetchone()[0]
+			self.assertEqual(
+				db_count,
+				0,
+				"Document should not be indexed immediately after index_doc call, should be in queue instead",
+			)
+
+			with patch("frappe.get_hooks") as mock_get_hooks:
+				mock_get_hooks.return_value = ["frappe.tests.test_sqlite_search.TestSQLiteSearch"]
+				index_docs_in_queue()
+
+			# after processing the queue, it should be indexed and removed from the queue
+			cursor.execute("SELECT COUNT(*) FROM search_index_queue WHERE doc_id = ?", (doc_id,))
+			queue_count_after = cursor.fetchone()[0]
+			self.assertEqual(
+				queue_count_after, 0, "Document should be removed from index queue after processing"
+			)
+
+			cursor.execute("SELECT COUNT(*) FROM search_fts WHERE doc_id = ?", (doc_id,))
+			db_count_after = cursor.fetchone()[0]
+			self.assertEqual(db_count_after, 1, "Document should be indexed after processing the queue")
+			conn.close()
+
+		finally:
+			new_note.delete()
+
+	def test_index_queue_deduplication(self):
+		self.search.build_index()
+		new_note = frappe.get_doc(
+			{
+				"doctype": "Note",
+				"title": "Newly Added Document",
+				"content": "This document was added after initial indexing",
+			}
+		)
+		new_note.insert()
+
+		try:
+			self.search.index_doc("Note", new_note.name)
+			new_note.reload()
+			new_note.content = "Updated content"
+			new_note.save()
+
+			doc_id = f"Note:{new_note.name}"
+			conn = sqlite3.connect(self.search.db_path)
+			cursor = conn.cursor()
+			cursor.execute("SELECT COUNT(*) FROM search_index_queue WHERE doc_id = ?", (doc_id,))
+			queue_count = cursor.fetchall()
+			self.assertEqual(
+				len(queue_count),
+				1,
+				"There should only be one entry in the index queue for the document, even after multiple index_doc calls",
+			)
+			conn.close()
+
+		finally:
+			new_note.delete()
+
 	def test_document_indexing_operations(self):
 		"""Test individual document indexing and removal operations."""
 		self.search.build_index()
@@ -327,6 +414,10 @@ class TestSQLiteSearchAPI(IntegrationTestCase):
 
 			# Index the new document
 			self.search.index_doc("Note", new_note.name)
+			# Need to process the queue to make it findable in search results
+			with patch("frappe.get_hooks") as mock_get_hooks:
+				mock_get_hooks.return_value = ["frappe.tests.test_sqlite_search.TestSQLiteSearch"]
+				index_docs_in_queue()
 
 			# Now it should be findable
 			results = self.search.search("Newly Added Document")
@@ -440,6 +531,10 @@ class TestSQLiteSearchAPI(IntegrationTestCase):
 			# Index the document
 			self.search.index_doc("Note", html_note.name)
 
+			with patch("frappe.get_hooks") as mock_get_hooks:
+				mock_get_hooks.return_value = ["frappe.tests.test_sqlite_search.TestSQLiteSearch"]
+				index_docs_in_queue()
+
 			# Search should find processed content
 			results = self.search.search("bold text links")
 
@@ -484,10 +579,7 @@ class TestSQLiteSearchAPI(IntegrationTestCase):
 	@patch("frappe.enqueue")
 	def test_background_operations(self, mock_enqueue):
 		"""Test background job integration and module-level functions."""
-		from frappe.search.sqlite_search import (
-			build_index_in_background,
-			get_search_classes,
-		)
+		from frappe.search.sqlite_search import build_index_in_background, get_search_classes
 
 		# Test getting search classes
 		with patch("frappe.get_hooks") as mock_get_hooks:
@@ -496,10 +588,99 @@ class TestSQLiteSearchAPI(IntegrationTestCase):
 			self.assertEqual(len(classes), 1)
 			self.assertEqual(classes[0], TestSQLiteSearch)
 
+		# Ensure index doesn't exist so build_index_in_background will enqueue a job
+		self.search.drop_index()
+
 		# Test background index building
 		with patch("frappe.get_hooks") as mock_get_hooks:
 			mock_get_hooks.return_value = ["frappe.tests.test_sqlite_search.TestSQLiteSearch"]
 			build_index_in_background()
 
-			# Should have enqueued a background job
+			# Should have enqueued a background job since index doesn't exist
 			self.assertTrue(mock_enqueue.called)
+
+	def test_deduplication_on_reindex(self):
+		"""Test that re-indexing the same document does not create duplicates."""
+		self.search.build_index()
+
+		# Create a test document
+		test_note = frappe.get_doc(
+			{
+				"doctype": "Note",
+				"title": "Deduplication Test Document",
+				"content": "This document tests deduplication functionality",
+			}
+		)
+		test_note.insert()
+
+		try:
+			# Index the document
+			self.search.index_doc("Note", test_note.name)
+
+			# search results should be 0 as the document is in the queue and not indexed yet
+			results = self.search.search("Deduplication Test")
+			initial_count = len([r for r in results["results"] if r["name"] == test_note.name])
+			self.assertEqual(
+				initial_count, 0, "Document should not be found in search results before processing the queue"
+			)
+
+			with patch("frappe.get_hooks") as mock_get_hooks:
+				mock_get_hooks.return_value = ["frappe.tests.test_sqlite_search.TestSQLiteSearch"]
+				index_docs_in_queue()
+
+			# Search for the document - should find exactly one result
+			results = self.search.search("Deduplication Test")
+			initial_count = len([r for r in results["results"] if r["name"] == test_note.name])
+			self.assertEqual(initial_count, 1, "Should find exactly one instance of the document")
+
+			# Re-index the same document multiple times
+			self.search.index_doc("Note", test_note.name)
+			self.search.index_doc("Note", test_note.name)
+			self.search.index_doc("Note", test_note.name)
+
+			with patch("frappe.get_hooks") as mock_get_hooks:
+				mock_get_hooks.return_value = ["frappe.tests.test_sqlite_search.TestSQLiteSearch"]
+				index_docs_in_queue()
+
+			# Search again - should still find exactly one result
+			results = self.search.search("Deduplication Test")
+			final_count = len([r for r in results["results"] if r["name"] == test_note.name])
+			self.assertEqual(final_count, 1, "Should still find exactly one instance after re-indexing")
+
+			# Update the document content and re-index
+			test_note.content = "Updated content for deduplication testing"
+			test_note.save()
+			self.search.index_doc("Note", test_note.name)
+			with patch("frappe.get_hooks") as mock_get_hooks:
+				mock_get_hooks.return_value = ["frappe.tests.test_sqlite_search.TestSQLiteSearch"]
+				index_docs_in_queue()
+
+			# Search with updated content - should find exactly one result with new content
+			results = self.search.search("Updated content deduplication")
+			updated_results = [r for r in results["results"] if r["name"] == test_note.name]
+			self.assertEqual(len(updated_results), 1, "Should find exactly one instance with updated content")
+			# Content may contain HTML markup from search highlighting, so check for words individually
+			self.assertIn("Updated", updated_results[0]["content"])
+			self.assertIn("content", updated_results[0]["content"])
+
+			# Rebuild entire index - should not create duplicates
+			self.search.build_index()
+			with patch("frappe.get_hooks") as mock_get_hooks:
+				mock_get_hooks.return_value = ["frappe.tests.test_sqlite_search.TestSQLiteSearch"]
+				index_docs_in_queue()
+
+			results = self.search.search("Deduplication Test")
+			rebuild_count = len([r for r in results["results"] if r["name"] == test_note.name])
+			self.assertEqual(rebuild_count, 1, "Should still find exactly one instance after full rebuild")
+
+			# Verify at database level - check raw count in FTS table
+			conn = sqlite3.connect(self.search.db_path)
+			cursor = conn.cursor()
+			doc_id = f"Note:{test_note.name}"
+			cursor.execute("SELECT COUNT(*) FROM search_fts WHERE doc_id = ?", (doc_id,))
+			db_count = cursor.fetchone()[0]
+			conn.close()
+			self.assertEqual(db_count, 1, "Database should contain exactly one entry for the document")
+
+		finally:
+			test_note.delete()

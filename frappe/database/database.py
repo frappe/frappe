@@ -230,6 +230,7 @@ class Database:
 
 		debug = debug or getattr(self, "debug", False)
 		query = str(query)
+		assert isinstance(query, str), "query must be a string after coercion"
 
 		if not run:
 			return query
@@ -275,9 +276,11 @@ class Database:
 				frappe.log(f"Syntax error in query:\n{query} {values or ''}")
 
 			elif self.is_deadlocked(e):
+				self.db_type == "mariadb" and frappe.log_error("Query deadlocked", defer_insert=True)
 				raise frappe.QueryDeadlockError(e) from e
 
 			elif self.is_timedout(e):
+				self.db_type == "mariadb" and frappe.log_error("Query timed out", defer_insert=True)
 				raise frappe.QueryTimeoutError(e) from e
 
 			elif self.is_read_only_mode_error(e):
@@ -314,6 +317,12 @@ class Database:
 
 		if auto_commit:
 			self.commit()
+
+		if self.db_type == "postgres" and getattr(self._cursor, "name", None):
+			"""named cursors in Postgres are lazy and don't retrieve column names immediately,
+			so explicitly performed here to avoid early exit during `unbuffered_cursor` usage
+			"""
+			self._cursor.fetchmany(0)
 
 		if not self._cursor.description:
 			return ()
@@ -467,6 +476,9 @@ class Database:
 
 		if query_type in WRITE_QUERY_TYPES:
 			self.transaction_writes += 1
+			if frappe.conf.get("max_writes_per_transaction"):
+				self.MAX_WRITES_PER_TRANSACTION = cint(frappe.conf.max_writes_per_transaction)
+
 			if self.transaction_writes > self.MAX_WRITES_PER_TRANSACTION:
 				if self.auto_commit_on_many_writes:
 					self.commit()
@@ -622,7 +634,13 @@ class Database:
 		        # return last login of **User** `test@example.com`
 		        user = frappe.db.get_values("User", "test@example.com", "*")[0]
 		"""
+
+		from frappe.model.utils import is_single_doctype
+
 		out = None
+		if isinstance(fieldname, list):
+			fieldname = tuple(fieldname)
+
 		if cache and isinstance(filters, str) and fieldname in self.value_cache[doctype][filters]:
 			return self.value_cache[doctype][filters][fieldname]
 
@@ -638,7 +656,6 @@ class Database:
 					order_by=order_by,
 					distinct=distinct,
 					limit=limit,
-					validate_filters=True,
 					for_update=for_update,
 					skip_locked=skip_locked,
 					wait=True,
@@ -660,7 +677,6 @@ class Database:
 						fields=fieldname,
 						distinct=distinct,
 						limit=limit,
-						validate_filters=True,
 					)
 					if isinstance(fieldname, str) and fieldname == "*":
 						as_dict = True
@@ -673,25 +689,9 @@ class Database:
 						or str(e).startswith("Invalid DocType")
 					):
 						out = None
-					elif (not ignore) and frappe.db.is_table_missing(e):
-						# table not found, look in singles
-						fields = (
-							[fieldname] if (isinstance(fieldname, str) and fieldname != "*") else fieldname
-						)
-						out = self.get_values_from_single(
-							fields,
-							filters,
-							doctype,
-							as_dict,
-							debug,
-							update,
-							run=run,
-							distinct=distinct,
-						)
-
 					else:
 						raise
-			else:
+			elif is_single_doctype(doctype):
 				fields = [fieldname] if (isinstance(fieldname, str) and fieldname != "*") else fieldname
 				out = self.get_values_from_single(
 					fields,
@@ -704,6 +704,8 @@ class Database:
 					pluck=pluck,
 					distinct=distinct,
 				)
+			else:
+				return None
 
 		if cache and isinstance(filters, str):
 			self.value_cache[doctype][filters][fieldname] = out
@@ -839,6 +841,7 @@ class Database:
 			modified_by = modified_by or frappe.session.user
 			update_dict.update({"modified": modified, "modified_by": modified_by})
 
+		assert isinstance(update_dict, dict), "update dict must be a dict"
 		return update_dict
 
 	def set_single_value(
@@ -988,7 +991,6 @@ class Database:
 			table=dt,
 			filters=dn,
 			update=True,
-			validate_filters=True,
 		)
 
 		if isinstance(dn, FilterValue):
@@ -1115,6 +1117,7 @@ class Database:
 
 		conditions = {}
 		docnames = list(doc_updates.keys())
+		assert docnames, "doc_updates must be non-empty here (empty case returns early)"
 
 		for docname, row in doc_updates.items():
 			for field, value in row.items():
@@ -1295,16 +1298,29 @@ class Database:
 			filters=filters,
 			fields=Count("*"),
 			distinct=distinct,
-			validate_filters=True,
 		).run(debug=debug)[0][0]
 
 		if not filters and cache:
 			self.value_cache[dt][cache_key] = count
 		return count
 
-	def estimate_count(self, doctype: str) -> int:
-		"""Get estimated count of total rows in a table."""
+	def _estimate_count(self, table: str) -> int:
+		"""Get estimated count of total rows in a single table. Override in subclasses."""
 		raise NotImplementedError
+
+	def estimate_count(self, doctype: str) -> int:
+		"""Get estimated count of total rows in a table.
+
+		The estimate is read one table at a time and cached in Redis with a 60-minute TTL
+		to avoid hammering information_schema.
+		"""
+		table = get_table_name(doctype)
+		cache_key = f"estimate_count::{table}"
+		count = frappe.cache.get_value(cache_key)
+		if count is None:
+			count = self._estimate_count(table)
+			frappe.cache.set_value(cache_key, count, expires_in_sec=60 * 60)
+		return count
 
 	@staticmethod
 	def format_date(date):
@@ -1411,8 +1427,11 @@ class Database:
 		return self.is_missing_column(e) or self.is_table_missing(e)
 
 	def multisql(self, sql_dict, values=(), **kwargs):
+		"""
+		Chooses which query to execute based on the current database type, falling back to a wildcard query.
+		"""
 		current_dialect = self.db_type or "mariadb"
-		query = sql_dict.get(current_dialect)
+		query = sql_dict.get(current_dialect) or sql_dict.get("*")
 		return self.sql(query, values, **kwargs)
 
 	def delete(self, doctype: str, filters: dict | list | None = None, debug=False, **kwargs):
@@ -1426,7 +1445,6 @@ class Database:
 			table=doctype,
 			filters=filters,
 			delete=True,
-			validate_filters=True,
 		)
 		if "debug" not in kwargs:
 			kwargs["debug"] = debug
@@ -1507,6 +1525,11 @@ class Database:
 		value_iterator = iter(values)
 		while value_chunk := tuple(itertools.islice(value_iterator, chunk_size)):
 			query.insert(*value_chunk).run()
+
+	def create_sequence_table(self):
+		# MariaDB/Postgres have native sequences and need no backing table;
+		# SQLite overrides this to create its emulation table at site setup.
+		pass
 
 	def create_sequence(self, *args, **kwargs):
 		from frappe.database.sequence import create_sequence

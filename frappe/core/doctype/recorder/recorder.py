@@ -16,6 +16,8 @@ from frappe.utils.caching import redis_cache
 
 
 class Recorder(Document):
+	_DOCTYPE_NAME = "Recorder"
+
 	# begin: auto-generated types
 	# This code is auto-generated. Do not modify anything in this block.
 
@@ -116,7 +118,7 @@ def serialize_request(request):
 
 
 @frappe.whitelist()
-def add_indexes(indexes):
+def add_indexes(indexes: str):
 	frappe.only_for("Administrator")
 	indexes = json.loads(indexes)
 

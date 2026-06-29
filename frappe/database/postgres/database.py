@@ -1,4 +1,6 @@
+import datetime
 import re
+from contextlib import contextmanager
 
 import psycopg2
 import psycopg2.extensions
@@ -8,6 +10,7 @@ from psycopg2.errorcodes import (
 	DEADLOCK_DETECTED,
 	DUPLICATE_COLUMN,
 	INSUFFICIENT_PRIVILEGE,
+	SERIALIZATION_FAILURE,
 	STRING_DATA_RIGHT_TRUNCATION,
 	UNDEFINED_COLUMN,
 	UNDEFINED_TABLE,
@@ -23,7 +26,7 @@ from psycopg2.errors import (
 from psycopg2.extensions import ISOLATION_LEVEL_REPEATABLE_READ
 
 import frappe
-from frappe.database.database import Database
+from frappe.database.database import CREATE_OR_DROP, Database
 from frappe.database.postgres.schema import PostgresTable
 from frappe.database.utils import EmptyQueryValues, LazyDecode
 from frappe.utils import cstr, get_table_name
@@ -37,10 +40,40 @@ DEC2FLOAT = psycopg2.extensions.new_type(
 
 psycopg2.extensions.register_type(DEC2FLOAT)
 
+
+def _cast_time_as_timedelta(value, cursor):
+	"""Return TIME columns as ``timedelta`` to match MariaDB.
+
+	psycopg2 decodes a postgres ``time without time zone`` to ``datetime.time``, but frappe models
+	Time fields as ``timedelta`` everywhere (that is what MariaDB's driver returns). Returning
+	``datetime.time`` here makes the two backends diverge and breaks frappe's typed value handling.
+	"""
+	if value is None:
+		return None
+	hms, _, frac = value.partition(".")
+	microseconds = int(frac.ljust(6, "0")[:6]) if frac else 0
+	hours, minutes, seconds = (int(part) for part in hms.split(":"))
+	return datetime.timedelta(hours=hours, minutes=minutes, seconds=seconds, microseconds=microseconds)
+
+
+# OID 1083 == `time without time zone` (the type frappe uses for Time fields)
+TIME2TIMEDELTA = psycopg2.extensions.new_type((1083,), "TIME2TIMEDELTA", _cast_time_as_timedelta)
+psycopg2.extensions.register_type(TIME2TIMEDELTA)
+
+# OIDs 114 / 3802 == `json` / `jsonb`. psycopg2 auto-parses these into python dict/list, but frappe
+# models JSON fields as *strings* (the value MariaDB's longtext returns) and json.loads them on
+# demand. A parsed value diverges from MariaDB and breaks round-tripping -- e.g. re-saving a doc
+# whose JSON field came back as a list fails get_valid_dict's "cannot be a list" check. Return the
+# raw text instead so both backends behave identically.
+JSON2STR = psycopg2.extensions.new_type((114, 3802), "JSON2STR", lambda value, cursor: value)
+psycopg2.extensions.register_type(JSON2STR)
+
 LOCATE_SUB_PATTERN = re.compile(r"locate\(([^,]+),([^)]+)(\)?)\)", flags=re.IGNORECASE)
 LOCATE_QUERY_PATTERN = re.compile(r"locate\(", flags=re.IGNORECASE)
 PG_TRANSFORM_PATTERN = re.compile(r"([=><]+)\s*([+-]?\d+)(\.0)?(?![a-zA-Z\.\d])")
 FROM_TAB_PATTERN = re.compile(r"from tab([\w-]*)", flags=re.IGNORECASE)
+# MySQL's REGEXP operator -> postgres `~*` (case-insensitive, matching MySQL's default collation)
+REGEXP_PATTERN = re.compile(r"\sREGEXP\s", flags=re.IGNORECASE)
 
 
 class PostgresExceptionUtil:
@@ -55,7 +88,12 @@ class PostgresExceptionUtil:
 
 	@staticmethod
 	def is_deadlocked(e):
-		return getattr(e, "pgcode", None) == DEADLOCK_DETECTED
+		# Treat serialization failures like deadlocks: both are retriable transaction-rollback
+		# (class 40) errors. Under REPEATABLE READ, a write-write conflict makes MariaDB lock and
+		# wait, but postgres aborts the loser with SERIALIZATION_FAILURE ("could not serialize
+		# access due to concurrent update"). Classifying it here routes it through frappe's deadlock
+		# retry instead of surfacing as an unhandled query error.
+		return getattr(e, "pgcode", None) in (DEADLOCK_DETECTED, SERIALIZATION_FAILURE)
 
 	@staticmethod
 	def is_timedout(e):
@@ -100,7 +138,13 @@ class PostgresExceptionUtil:
 
 	@staticmethod
 	def is_unique_key_violation(e):
-		return getattr(e, "pgcode", None) == UNIQUE_VIOLATION and "_key" in cstr(e.args[0])
+		# Any unique-constraint violation that isn't the primary key (those are surfaced as
+		# DuplicateEntryError first). This mirrors MariaDB, whose duplicate-entry error covers every
+		# unique index regardless of name -- frappe's custom indexes (e.g. `unique_item_warehouse`)
+		# don't carry the `_key` suffix postgres auto-generates, so a name match alone misses them.
+		return PostgresExceptionUtil.is_duplicate_entry(
+			e
+		) and not PostgresExceptionUtil.is_primary_key_violation(e)
 
 	@staticmethod
 	def is_duplicate_fieldname(e):
@@ -236,17 +280,34 @@ class PostgresDatabase(PostgresExceptionUtil, Database):
 		return self.last_query
 
 	def get_tables(self, cached=True):
-		return [
-			d[0]
-			for d in self.sql(
-				"""select table_name
-			from information_schema.tables
-			where table_catalog=%s
-				and table_type = 'BASE TABLE'
-				and table_schema=%s""",
-				(self.cur_db_name, self.db_schema),
-			)
-		]
+		"""Return list of tables."""
+		cache_key = f"db_tables::{self.db_schema}"
+		to_query = not cached
+
+		if cached:
+			tables = frappe.client_cache.get_value(cache_key)
+			to_query = not tables
+
+		if to_query:
+			tables = [
+				d[0]
+				for d in self.sql(
+					"""select table_name
+				from information_schema.tables
+				where table_catalog=%s
+					and table_type = 'BASE TABLE'
+					and table_schema=%s""",
+					(self.cur_db_name, self.db_schema),
+				)
+			]
+			frappe.client_cache.set_value(cache_key, tables)
+
+		return tables
+
+	@staticmethod
+	def clear_db_table_cache(query_type: str):
+		if query_type in CREATE_OR_DROP:
+			frappe.client_cache.delete_keys("db_tables::*")
 
 	def get_db_table_columns(self, table) -> list[str]:
 		"""Returns list of column names from given table."""
@@ -391,12 +452,46 @@ class PostgresDatabase(PostgresExceptionUtil, Database):
 			(table_name, self.db_schema, index_name),
 		)
 
+	def get_column_index(self, table_name: str, fieldname: str, unique: bool = False) -> frappe._dict | None:
+		"""Check if a column is the leading column of a single-column index.
+
+		Cross-db counterpart of the MariaDB implementation (which uses ``SHOW INDEX`` with
+		``Seq_in_index = 1`` and a single-column constraint). Uses the PostgreSQL system
+		catalogs so callers stay db-agnostic.
+		"""
+		result = self.sql(
+			f"""
+			SELECT ic.relname AS "Key_name"
+			FROM pg_index i
+			JOIN pg_class tc ON tc.oid = i.indrelid
+			JOIN pg_class ic ON ic.oid = i.indexrelid
+			JOIN pg_namespace n ON n.oid = tc.relnamespace
+			JOIN pg_attribute a ON a.attrelid = tc.oid AND a.attnum = i.indkey[0]
+			WHERE tc.relname = %(table_name)s
+				AND n.nspname = %(schema)s
+				AND a.attname = %(fieldname)s
+				AND i.indisunique = {"true" if unique else "false"}
+				AND i.indnkeyatts = 1
+			LIMIT 1
+			""",
+			{"table_name": table_name, "schema": self.db_schema, "fieldname": fieldname},
+			as_dict=True,
+		)
+		return result[0] if result else None
+
 	def add_index(self, doctype: str, fields: list, index_name: str | None = None):
 		"""Creates an index with given fields if not already created.
-		Index name will be `fieldname1_fieldname2_index`"""
+		Default index name is `<table>_<field1>_<field2>_index` (table-qualified so it is unique
+		per *schema*, as postgres requires)."""
+		from frappe.database.postgres.schema import get_qualified_index_name
+
 		table_name = get_table_name(doctype)
-		index_name = index_name or self.get_index_name(fields)
-		fields_str = '", "'.join(re.sub(r"\(.*\)", "", field) for field in fields)
+		clean_fields = [re.sub(r"\(.*\)", "", field) for field in fields]
+		# postgres index names are per-schema, not per-table: an unqualified default name collides
+		# across tables sharing these fields and `CREATE INDEX IF NOT EXISTS` then silently skips
+		# all but the first, leaving the index missing. Qualify with the table so each one is made.
+		index_name = index_name or get_qualified_index_name(table_name, clean_fields)
+		fields_str = '", "'.join(clean_fields)
 
 		self.sql_ddl(
 			f'CREATE INDEX IF NOT EXISTS "{index_name}" ON "{self.db_schema}"."{table_name}" ("{fields_str}")'
@@ -436,6 +531,12 @@ class PostgresDatabase(PostgresExceptionUtil, Database):
 
 	def get_table_columns_description(self, table_name):
 		"""Return list of columns with description."""
+		# The `index`/`unique` flags say whether the column is the LEADING column of a
+		# (non-unique / unique-non-primary) index -- mirroring MariaDB's `Seq_in_index = 1`
+		# check. We resolve the leading column precisely from the catalogs (indkey[0]).
+		# A substring match on indexdef would false-positive any column whose name appears
+		# anywhere in a composite index's definition (e.g. `company` matching
+		# `posting_date_company_index`), which then wrongly suppresses creating its own index.
 		# pylint: disable=W1401
 		return self.sql(
 			f"""
@@ -443,23 +544,28 @@ class PostgresDatabase(PostgresExceptionUtil, Database):
 			CASE LOWER(a.data_type)
 				WHEN 'character varying' THEN CONCAT('varchar(', a.character_maximum_length ,')')
 				WHEN 'timestamp without time zone' THEN 'timestamp'
+				WHEN 'integer' THEN 'int'
+				WHEN 'numeric' THEN CONCAT('decimal(', a.numeric_precision, ',', a.numeric_scale, ')')
 				ELSE a.data_type
 			END AS type,
-			BOOL_OR(b.index) AS index,
+			COALESCE(BOOL_OR(NOT b.is_unique), false) AS index,
 			SPLIT_PART(COALESCE(a.column_default, NULL), '::', 1) AS default,
-			BOOL_OR(b.unique) AS unique,
+			COALESCE(BOOL_OR(b.is_unique AND NOT b.is_primary), false) AS unique,
 			COALESCE(a.is_nullable = 'NO', false) AS not_nullable
 			FROM information_schema.columns a
-			LEFT JOIN
-				(SELECT indexdef, tablename,
-					indexdef LIKE '%UNIQUE INDEX%' AS unique,
-					indexdef NOT LIKE '%UNIQUE INDEX%' AS index
-					FROM pg_indexes
-					WHERE tablename='{table_name}' AND schemaname='{self.db_schema}') b
-				ON SUBSTRING(b.indexdef, '(.*)') LIKE CONCAT('%', a.column_name, '%')
+			LEFT JOIN (
+				SELECT att.attname AS column_name,
+					i.indisunique AS is_unique,
+					i.indisprimary AS is_primary
+				FROM pg_index i
+				JOIN pg_class tc ON tc.oid = i.indrelid
+				JOIN pg_namespace n ON n.oid = tc.relnamespace
+				JOIN pg_attribute att ON att.attrelid = tc.oid AND att.attnum = i.indkey[0]
+				WHERE tc.relname = '{table_name}' AND n.nspname = '{self.db_schema}'
+			) b ON b.column_name = a.column_name
 			WHERE a.table_name = '{table_name}'
 				AND a.table_schema = '{self.db_schema}'
-			GROUP BY a.column_name, a.data_type, a.column_default, a.character_maximum_length, a.is_nullable;
+			GROUP BY a.column_name, a.data_type, a.column_default, a.character_maximum_length, a.is_nullable, a.numeric_precision, a.numeric_scale;
 		""",
 			as_dict=1,
 		)
@@ -483,13 +589,32 @@ class PostgresDatabase(PostgresExceptionUtil, Database):
 	def get_database_list(self):
 		return self.sql("SELECT datname FROM pg_database", pluck=True)
 
-	def estimate_count(self, doctype: str):
-		"""Get estimated count of total rows in a table."""
+	def _estimate_count(self, table: str) -> int:
 		from frappe.utils.data import cint
 
-		table = get_table_name(doctype)
-		count = self.sql("select reltuples from pg_class where relname = %s", table)
+		# Scope to current schema to avoid cross-site estimates
+		count = self.sql(
+			"select c.reltuples from pg_class c join pg_namespace n on n.oid = c.relnamespace where c.relname = %s and n.nspname = %s and c.relkind = 'r'",
+			(table, self.db_schema),
+		)
 		return cint(count[0][0]) if count else 0
+
+	@contextmanager
+	def unbuffered_cursor(self):
+		"""Unbuffered cursor in Postgres can only call .execute() once,
+		usage:
+			with frappe.db.unbuffered_cursor():
+				frappe.db.sql()
+		"""
+		try:
+			if not self._conn:
+				self.connect()
+			original_cursor = self._cursor
+			new_cursor = self._cursor = self._conn.cursor(name="ss_cursor")
+			yield
+		finally:
+			self._cursor = original_cursor
+			new_cursor.close()
 
 
 def modify_query(query):
@@ -497,6 +622,8 @@ def modify_query(query):
 	# replace ` with " for definitions
 	query = str(query).replace("`", '"')
 	query = replace_locate_with_strpos(query)
+	# MySQL REGEXP operator -> postgres case-insensitive regex match
+	query = REGEXP_PATTERN.sub(" ~* ", query)
 	# select from requires ""
 	query = FROM_TAB_PATTERN.sub(r'from "tab\1"', query)
 
@@ -524,8 +651,12 @@ def modify_values(values):
 		return values
 
 	if isinstance(values, dict):
-		for k, v in values.items():
-			values[k] = modify_value(v)
+		# Build a new dict instead of mutating the caller's: callers frequently pass a
+		# shared/reused dict as query params (e.g. get_stock_ledger_entries passes the
+		# same args dict that the caller keeps reading afterwards). Mutating int values
+		# to str in place silently corrupts that dict on postgres only, diverging from
+		# mariadb (which has no such transform).
+		values = {k: modify_value(v) for k, v in values.items()}
 	elif isinstance(values, tuple | list):
 		new_values = []
 		for val in values:

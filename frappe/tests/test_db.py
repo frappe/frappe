@@ -36,6 +36,15 @@ class TestDB(IntegrationTestCase):
 	def test_get_database_size(self):
 		self.assertIsInstance(frappe.db.get_database_size(), (float, int))
 
+	def test_get_tables_cached(self):
+		frappe.client_cache.delete_keys("db_tables*")
+		tables = frappe.db.get_tables(cached=True)
+		self.assertIn("tabDocType", tables)
+		with self.assertQueryCount(0):
+			self.assertEqual(frappe.db.get_tables(cached=True), tables)
+		with self.assertQueryCount(1):
+			frappe.db.get_tables(cached=False)
+
 	def test_db_statement_execution_timeout(self):
 		frappe.db.set_execution_timeout(2)
 		# Setting 0 means no timeout.
@@ -137,6 +146,14 @@ class TestDB(IntegrationTestCase):
 			),
 			frappe.db.get_value("DocType", "DocField", order_by="creation desc, modified asc, name", run=0),
 		)
+
+		# Test with list of fields and cache=True
+		result = frappe.db.get_value("User", "Administrator", ["name", "email"], cache=True)
+		self.assertEqual(result, ("Administrator", "admin@example.com"))
+		# Verify cache hit - second call should not execute any queries
+		with self.assertQueryCount(0):
+			cached_result = frappe.db.get_value("User", "Administrator", ["name", "email"], cache=True)
+		self.assertEqual(result, cached_result)
 
 	def test_escape(self):
 		frappe.db.escape("香港濟生堂製藥有限公司 - IT".encode())
@@ -415,6 +432,11 @@ class TestDB(IntegrationTestCase):
 		for doc in created_docs:
 			frappe.delete_doc(test_doctype, doc)
 		clear_custom_fields(test_doctype)
+
+	@unimplemented_for(db_type_is.POSTGRES)
+	def test_multi_statements(self):
+		with self.assertRaises(frappe.db.ProgrammingError):
+			frappe.db.sql("select 1; select 1")
 
 	def test_savepoints(self):
 		frappe.db.rollback()
@@ -1026,6 +1048,84 @@ class TestDDLCommandsPost(IntegrationTestCase):
 		)
 		self.assertEqual(len(indexs_in_table), 1)
 
+	def test_json_columns_return_strings(self) -> None:
+		# Regression: psycopg2 auto-parses json/jsonb into python objects, but frappe models JSON
+		# fields as strings (like MariaDB's longtext) and json.loads them on demand. A parsed value
+		# diverges from MariaDB and breaks re-saving a doc whose JSON field came back as a list.
+		row = frappe.db.sql("""SELECT '[1, 2]'::jsonb AS a, '{"k": 1}'::json AS b""", as_dict=True)[0]
+		self.assertIsInstance(row.a, str)
+		self.assertIsInstance(row.b, str)
+
+	def test_search_index_unique_across_tables(self) -> None:
+		# Regression: postgres index names are unique per schema (not per table like
+		# MariaDB), so two doctypes that share a search_index fieldname used to collide --
+		# `CREATE INDEX IF NOT EXISTS` skipped all but the first, leaving the other tables
+		# without their single-column index.
+		from frappe.core.doctype.doctype.test_doctype import new_doctype
+
+		def _search_indexed_doctype():
+			return new_doctype(
+				fields=[
+					{
+						"label": "Shared",
+						"fieldname": "shared_field",
+						"fieldtype": "Data",
+						"search_index": 1,
+					}
+				]
+			).insert(ignore_permissions=True)
+
+		dt1 = _search_indexed_doctype()
+		dt2 = _search_indexed_doctype()
+		try:
+			self.assertTrue(
+				frappe.db.get_column_index(f"tab{dt1.name}", "shared_field", unique=False),
+				msg=f"{dt1.name} is missing its search index",
+			)
+			self.assertTrue(
+				frappe.db.get_column_index(f"tab{dt2.name}", "shared_field", unique=False),
+				msg=f"{dt2.name} is missing its search index (schema-global index name collision)",
+			)
+		finally:
+			dt1.delete(ignore_permissions=True)
+			dt2.delete(ignore_permissions=True)
+
+	def test_add_index_unique_across_tables(self) -> None:
+		# Regression: a manual frappe.db.add_index() with the default name used to produce an
+		# unqualified, schema-global name (`field1_field2_index`), so two tables requesting an
+		# index on the same fields collided -- the second `CREATE INDEX IF NOT EXISTS` was
+		# skipped and that table never got its composite index. The default name is now
+		# table-qualified, so each table gets its own.
+		from frappe.core.doctype.doctype.test_doctype import new_doctype
+		from frappe.database.postgres.schema import get_qualified_index_name
+
+		def _two_field_doctype():
+			return new_doctype(
+				fields=[
+					{"label": "Alpha", "fieldname": "alpha", "fieldtype": "Data"},
+					{"label": "Beta", "fieldname": "beta", "fieldtype": "Data"},
+				]
+			).insert(ignore_permissions=True)
+
+		dt1 = _two_field_doctype()
+		dt2 = _two_field_doctype()
+		try:
+			frappe.db.add_index(dt1.name, ["alpha", "beta"])
+			frappe.db.add_index(dt2.name, ["alpha", "beta"])
+			for dt in (dt1, dt2):
+				index_name = get_qualified_index_name(f"tab{dt.name}", ["alpha", "beta"])
+				self.assertTrue(
+					frappe.db.sql(
+						"""SELECT 1 FROM pg_indexes
+						WHERE schemaname = current_schema() AND tablename = %s AND indexname = %s""",
+						(f"tab{dt.name}", index_name),
+					),
+					msg=f"{dt.name} is missing its composite add_index (schema-global name collision)",
+				)
+		finally:
+			dt1.delete(ignore_permissions=True)
+			dt2.delete(ignore_permissions=True)
+
 	def test_sequence_table_creation(self):
 		from frappe.core.doctype.doctype.test_doctype import new_doctype
 
@@ -1211,6 +1311,42 @@ class TestSqlIterator(IntegrationTestCase):
 	def test_unbuffered_cursor(self):
 		with frappe.db.unbuffered_cursor():
 			self.test_db_sql_iterator()
+
+	@run_only_if(db_type_is.POSTGRES)
+	def test_unbuffered_cursor_postgres(self):
+		test_queries = [
+			"select * from `tabCountry` order by name",
+			"select code from `tabCountry` order by name",
+			"select code from `tabCountry` order by name limit 5",
+		]
+
+		for query in test_queries:
+			with frappe.db.unbuffered_cursor():
+				iter_query_val = list(frappe.db.sql(query, as_dict=True, as_iterator=True))
+			query_val = frappe.db.sql(query, as_dict=True)
+			self.assertEqual(
+				query_val,
+				iter_query_val,
+				msg=f"{query=} results not same as iterator",
+			)
+
+			with frappe.db.unbuffered_cursor():
+				iter_query_val = list(frappe.db.sql(query, pluck=True, as_iterator=True))
+			query_val = frappe.db.sql(query, pluck=True)
+			self.assertEqual(
+				query_val,
+				iter_query_val,
+				msg=f"{query=} results not same as iterator",
+			)
+
+			with frappe.db.unbuffered_cursor():
+				iter_query_val = list(frappe.db.sql(query, as_list=True, as_iterator=True))
+			query_val = frappe.db.sql(query, as_list=True)
+			self.assertEqual(
+				query_val,
+				iter_query_val,
+				msg=f"{query=} results not same as iterator",
+			)
 
 
 class ExtIntegrationTestCase(IntegrationTestCase):
@@ -1472,3 +1608,50 @@ class TestDbConnectWithEnvCredentials(IntegrationTestCase):
 		frappe.init(self.current_site, force=True)
 		frappe.connect()
 		frappe.db.connect()
+
+
+class TestMariaDBExceptionUtil(IntegrationTestCase):
+	@run_only_if(db_type_is.MARIADB)
+	def test_exception_utils_handle_empty_args(self):
+		"""Exception utility methods should not raise IndexError when e.args is empty."""
+		import pymysql
+
+		from frappe.database.mariadb.database import MariaDBExceptionUtil
+
+		e = pymysql.Error()  # no args
+
+		# None of these should raise; all should return False
+		self.assertFalse(MariaDBExceptionUtil.is_deadlocked(e))
+		self.assertFalse(MariaDBExceptionUtil.is_timedout(e))
+		self.assertFalse(MariaDBExceptionUtil.is_read_only_mode_error(e))
+		self.assertFalse(MariaDBExceptionUtil.is_table_missing(e))
+		self.assertFalse(MariaDBExceptionUtil.is_missing_column(e))
+		self.assertFalse(MariaDBExceptionUtil.is_duplicate_fieldname(e))
+		self.assertFalse(MariaDBExceptionUtil.is_duplicate_entry(e))
+		self.assertFalse(MariaDBExceptionUtil.is_access_denied(e))
+		self.assertFalse(MariaDBExceptionUtil.cant_drop_field_or_key(e))
+		self.assertFalse(MariaDBExceptionUtil.is_syntax_error(e))
+		self.assertFalse(MariaDBExceptionUtil.is_statement_timeout(e))
+		self.assertFalse(MariaDBExceptionUtil.is_data_too_long(e))
+		self.assertFalse(MariaDBExceptionUtil.is_db_table_size_limit(e))
+
+	@run_only_if(db_type_is.POSTGRES)
+	def test_serialization_failure_is_treated_as_deadlock(self):
+		"""Postgres serialization failures (REPEATABLE READ write conflicts) must be retriable like
+		deadlocks; otherwise they surface as unhandled query errors (e.g. on the per-request session
+		update under concurrency)."""
+		from psycopg2.errorcodes import DEADLOCK_DETECTED, SERIALIZATION_FAILURE
+
+		from frappe.database.postgres.database import PostgresExceptionUtil
+
+		class _E(Exception):
+			pass
+
+		for code in (SERIALIZATION_FAILURE, DEADLOCK_DETECTED):
+			e = _E()
+			e.pgcode = code
+			self.assertTrue(PostgresExceptionUtil.is_deadlocked(e))
+
+		unrelated = _E()
+		unrelated.pgcode = "12345"
+		self.assertFalse(PostgresExceptionUtil.is_deadlocked(unrelated))

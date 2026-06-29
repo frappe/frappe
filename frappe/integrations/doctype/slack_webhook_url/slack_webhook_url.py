@@ -20,6 +20,8 @@ error_messages = {
 
 
 class SlackWebhookURL(Document):
+	_DOCTYPE_NAME = "Slack Webhook URL"
+
 	# begin: auto-generated types
 	# This code is auto-generated. Do not modify anything in this block.
 

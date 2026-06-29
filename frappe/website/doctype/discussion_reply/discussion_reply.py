@@ -7,6 +7,8 @@ from frappe.realtime import get_website_room
 
 
 class DiscussionReply(Document):
+	_DOCTYPE_NAME = "Discussion Reply"
+
 	# begin: auto-generated types
 	# This code is auto-generated. Do not modify anything in this block.
 
@@ -76,7 +78,7 @@ class DiscussionReply(Document):
 
 
 @frappe.whitelist()
-def delete_message(reply_name):
+def delete_message(reply_name: str):
 	owner = frappe.db.get_value("Discussion Reply", reply_name, "owner")
 	if owner == frappe.session.user:
 		frappe.delete_doc("Discussion Reply", reply_name)

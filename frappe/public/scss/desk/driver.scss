@@ -6,7 +6,7 @@ div#driver-popover-item {
 
 	padding: var(--padding-md) var(--padding-lg);
 	max-width: 350px;
-	border-radius: var(--border-radius-md);
+	border-radius: var(--radius-md);
 	box-shadow: var(--shadow-md);
 
 	.driver-popover-title {
@@ -58,9 +58,14 @@ div#driver-popover-item {
 	}
 }
 
+#driver-page-overlay {
+	pointer-events: none !important;
+}
+
 #driver-highlighted-element-stage {
 	background-color: var(--bg-color) !important;
-	border-radius: var(--border-radius) !important;
+	border-radius: var(--radius) !important;
+	pointer-events: auto !important;
 }
 
 input.driver-highlighted-element {

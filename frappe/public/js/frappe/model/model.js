@@ -178,6 +178,31 @@ $.extend(frappe.model, {
 				}
 			}
 		});
+
+		frappe.realtime.on("doctype_update", function (data) {
+			if (frappe.get_route()[0] !== "Form") return;
+			if (!cur_frm || cur_frm.doctype !== data.doctype) return;
+			if (frappe.ui.form.is_saving) return;
+
+			if (cur_frm.is_dirty()) {
+				cur_frm.dashboard.clear_headline();
+				cur_frm.dashboard.set_headline_alert(
+					__(
+						"This DocType has been updated. Save or discard your changes, then reload the page to see the latest version."
+					),
+					"yellow"
+				);
+			} else {
+				frappe.show_alert(
+					{
+						message: __("DocType updated. Reloading…"),
+						indicator: "blue",
+					},
+					1
+				);
+				setTimeout(() => location.reload(), 1000);
+			}
+		});
 	},
 
 	is_value_type: function (fieldtype) {
@@ -606,6 +631,18 @@ $.extend(frappe.model, {
 		}
 	},
 
+	get_title_from_title_field: function (doc, meta) {
+		let df = meta.fields.find((df) => df.fieldname === meta.title_field);
+		let title_value = doc[meta.title_field];
+
+		if (df?.fieldtype && ["Link", "Dynamic Link"].includes(df.fieldtype)) {
+			const doctype = df.fieldtype === "Dynamic Link" ? doc[df.options] : df.options;
+			title_value = frappe.utils.get_link_title(doctype, title_value) ?? title_value;
+		}
+
+		return title_value;
+	},
+
 	get_doc_title(doc) {
 		if (typeof doc.name == "string") {
 			if (doc.name.startsWith("new-" + doc.doctype.toLowerCase().replace(/ /g, "-"))) {
@@ -614,7 +651,7 @@ $.extend(frappe.model, {
 		}
 		let meta = frappe.get_meta(doc.doctype);
 		if (meta.title_field) {
-			return doc[meta.title_field];
+			return this.get_title_from_title_field(doc, meta);
 		} else {
 			return String(doc.name);
 		}

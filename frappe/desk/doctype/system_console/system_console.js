@@ -49,9 +49,9 @@ frappe.ui.form.on("System Console", {
 				frm.sql_output.destroy();
 				frm.get_field("sql_output").html("");
 			}
-			frm.trigger("load_completions");
 		}
 
+		frm.trigger("load_completions");
 		const field = frm.get_field("console");
 		field.df.options = frm.doc.type;
 		field.set_language();
@@ -130,6 +130,7 @@ frappe.ui.form.on("System Console", {
 	load_completions(frm) {
 		if (frm.doc.type != "Python") {
 			frm.set_df_property("console", "autocompletions", []);
+			return;
 		}
 		setTimeout(() => {
 			frappe

@@ -12,6 +12,8 @@ exclude_from_linked_with = True
 
 
 class ToDo(Document):
+	_DOCTYPE_NAME = "ToDo"
+
 	# begin: auto-generated types
 	# This code is auto-generated. Do not modify anything in this block.
 
@@ -173,5 +175,5 @@ def has_permission(doc, ptype="read", user=None):
 
 
 @frappe.whitelist()
-def new_todo(description):
+def new_todo(description: str):
 	frappe.get_doc({"doctype": "ToDo", "description": description}).insert()

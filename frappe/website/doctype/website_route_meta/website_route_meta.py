@@ -5,6 +5,8 @@ from frappe.model.document import Document
 
 
 class WebsiteRouteMeta(Document):
+	_DOCTYPE_NAME = "Website Route Meta"
+
 	# begin: auto-generated types
 	# This code is auto-generated. Do not modify anything in this block.
 

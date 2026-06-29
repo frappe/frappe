@@ -8,13 +8,14 @@
  "icon_type": "Link",
  "idx": 0,
  "label": "Automation",
- "link_to": "Assignment Rule",
- "link_type": "DocType",
- "modified": "2025-11-25 13:25:38.018090",
+ "link_to": "Automation",
+ "link_type": "Workspace Sidebar",
+ "modified": "2026-01-01 20:07:01.577056",
  "modified_by": "Administrator",
  "name": "Automation",
  "owner": "Administrator",
  "parent_icon": "Framework",
+ "restrict_removal": 0,
  "roles": [],
  "standard": 1
 }

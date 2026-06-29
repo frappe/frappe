@@ -1,3 +1,8 @@
+// ⚠️ DEPRECATED: `.indicator-pill` (and `.indicator-pill-right`) are deprecated
+// in favor of the Espresso badge component `.es-badge` (color via data-theme).
+// Kept for backward compatibility (third-party apps still emit indicator-pill).
+// NOT deprecated: the bare `.indicator` dot and `.indicator-pill-round` caret
+// have no es-badge equivalent and remain supported.
 .indicator,
 .indicator-pill,
 .indicator-pill-right,
@@ -10,14 +15,15 @@
 	content: "";
 	height: 8px;
 	width: 8px;
-	border-radius: var(--border-radius);
+	border-radius: var(--radius);
 	margin: 0px 8px 0px 0px;
 }
+
 .indicator-pill,
 .indicator-pill-right {
 	@include get_textstyle("sm", "regular");
 	padding: 4.5px 8px;
-	border-radius: var(--border-radius-full);
+	border-radius: var(--radius-full);
 	height: 20px;
 }
 
@@ -37,6 +43,7 @@
 	width: 6px;
 	border-radius: 50%;
 	margin-right: 6px;
+	flex-shrink: 0;
 }
 
 .indicator-pill.no-margin::before,
@@ -48,8 +55,12 @@
 	margin: 0 0 0 4px;
 }
 
+// Legacy indicator colours (kept for backward compat — third-party apps still
+// emit orange/yellow/etc.) PLUS the Espresso theme names (amber/violet) that
+// Framework's migrated get_indicator defs now use.
 $indicator-colors: green, cyan, blue, orange, yellow, gray, grey, red, pink, darkgrey, purple,
-	light-blue;
+	light-blue, amber, violet;
+
 @each $color in $indicator-colors {
 	.indicator.#{"" + $color} {
 		&::before,
@@ -63,11 +74,13 @@ $indicator-colors: green, cyan, blue, orange, yellow, gray, grey, red, pink, dar
 	.indicator-pill-round.#{"" + $color} {
 		background: var(--bg-#{$color});
 		color: var(--text-on-#{$color});
+
 		&::before,
 		&::after {
 			background: var(--text-on-#{$color});
 		}
 	}
+
 	.indicator {
 		--indicator-dot-#{"" + $color}: var(--text-on-#{$color});
 	}

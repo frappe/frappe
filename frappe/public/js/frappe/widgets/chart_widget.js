@@ -60,6 +60,11 @@ export default class ChartWidget extends Widget {
 		);
 		this.empty.hide().appendTo(this.body);
 
+		this.error_state = $(
+			`<div class="chart-loading-state text-danger" style="height: ${this.height}px;"></div>`
+		);
+		this.error_state.hide().appendTo(this.body);
+
 		this.chart_wrapper = $(`<div></div>`);
 		this.chart_wrapper.appendTo(this.body);
 
@@ -381,7 +386,7 @@ export default class ChartWidget extends Widget {
 
 		this.filter_button = $(
 			`<div class="filter-chart btn btn-xs pull-right">
-				${frappe.utils.icon("filter", "sm")}
+				${frappe.utils.icon("funnel", "sm")}
 			</div>`
 		);
 
@@ -506,7 +511,7 @@ export default class ChartWidget extends Widget {
 				class="btn btn-xs btn-secondary chart-menu"
 			>
 				<svg class="icon icon-sm">
-					<use href="#icon-dot-horizontal">
+					<use href="#icon-ellipsis">
 					</use>
 				</svg>
 			</button>
@@ -552,7 +557,18 @@ export default class ChartWidget extends Widget {
 				heatmap_year: args && args.heatmap_year ? args.heatmap_year : null,
 			};
 		}
-		return frappe.xcall(method, args);
+		return frappe.xcall(method, args, undefined, {
+			silent: true,
+			error: (err) => {
+				const message = JSON.parse(JSON.parse(err._server_messages)[0])?.message;
+				this.chart_wrapper.hide();
+				this.loading.hide();
+				this.$summary && this.$summary.hide();
+				this.empty.hide();
+				this.error_state.text(message);
+				this.error_state.show();
+			},
+		});
 	}
 
 	async get_source_doctype() {
@@ -570,7 +586,13 @@ export default class ChartWidget extends Widget {
 		let setup_dashboard_chart = () => {
 			const chart_args = this.get_chart_args();
 
+			const is_circular_chart = ["Pie", "Donut", "Percentage"].includes(this.chart_doc.type);
+
 			if (!this.dashboard_chart) {
+				this.dashboard_chart = frappe.utils.make_chart(this.chart_wrapper[0], chart_args);
+			} else if (is_circular_chart) {
+				this.chart_wrapper.empty();
+				delete this.dashboard_chart;
 				this.dashboard_chart = frappe.utils.make_chart(this.chart_wrapper[0], chart_args);
 			} else {
 				this.dashboard_chart.update(this.data);
@@ -582,9 +604,11 @@ export default class ChartWidget extends Widget {
 			this.loading.hide();
 			this.$summary && this.$summary.hide();
 			this.empty.show();
+			this.error_state.hide();
 		} else {
 			this.loading.hide();
 			this.empty.hide();
+			this.error_state.hide();
 			this.chart_wrapper.show();
 			this.chart_doc.document_type = await this.get_source_doctype();
 
@@ -619,6 +643,7 @@ export default class ChartWidget extends Widget {
 			colors: colors,
 			height: this.height,
 			maxSlices: this.chart_doc.number_of_groups || max_slices,
+			truncateLegends: 0,
 			axisOptions: {
 				xIsSeries: this.chart_doc.timeseries,
 				shortenYAxisNumbers: 1,

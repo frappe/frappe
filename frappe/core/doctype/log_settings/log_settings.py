@@ -29,6 +29,8 @@ def _supports_log_clearing(doctype: str) -> bool:
 
 
 class LogSettings(Document):
+	_DOCTYPE_NAME = "Log Settings"
+
 	# begin: auto-generated types
 	# This code is auto-generated. Do not modify anything in this block.
 
@@ -130,8 +132,8 @@ def has_unseen_error_log():
 
 @frappe.whitelist()
 @frappe.validate_and_sanitize_search_inputs
-def get_log_doctypes(doctype, txt, searchfield, start, page_len, filters):
-	filters = filters or {}
+def get_log_doctypes(doctype: str, txt: str, searchfield: str, start: int, page_len: int, filters: list):
+	filters = filters or []
 
 	filters.extend(
 		[

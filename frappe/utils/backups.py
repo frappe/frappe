@@ -543,7 +543,7 @@ def _get_tables(doctypes: list[str], existing_tables: list[str]) -> list[str]:
 
 
 @frappe.whitelist()
-def fetch_latest_backups(partial=False) -> dict:
+def fetch_latest_backups(partial: bool = False) -> dict:
 	"""Fetch paths of the latest backup taken in the last 30 days.
 
 	Note: Only for System Managers
@@ -648,7 +648,7 @@ def new_backup(
 	return odb
 
 
-def delete_temp_backups(older_than=24):
+def delete_temp_backups(older_than=23):
 	"""
 	Cleans up the backup_link_path directory by deleting older files
 	"""
@@ -663,8 +663,10 @@ def delete_temp_backups(older_than=24):
 
 
 def is_file_old(file_path, older_than=24) -> bool:
-	"""Return True if file exists and is older than specified hours."""
-	if os.path.isfile(file_path):
+	"""
+	Return True if the path is older than specified hours. Also treat non-existent paths as "old".
+	"""
+	if os.path.exists(file_path):
 		from datetime import timedelta
 
 		# Get timestamp of the file

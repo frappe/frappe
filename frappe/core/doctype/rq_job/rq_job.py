@@ -39,6 +39,8 @@ def check_permissions(method):
 
 
 class RQJob(Document):
+	_DOCTYPE_NAME = "RQ Job"
+
 	# begin: auto-generated types
 	# This code is auto-generated. Do not modify anything in this block.
 
@@ -241,7 +243,7 @@ def get_all_queued_jobs():
 
 
 @frappe.whitelist()
-def stop_job(job_id):
+def stop_job(job_id: str):
 	frappe.get_doc("RQ Job", job_id).stop_job()
 
 

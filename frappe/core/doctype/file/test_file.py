@@ -254,6 +254,66 @@ class TestSameContent(IntegrationTestCase):
 		limit_property.delete()
 		frappe.clear_cache(doctype="ToDo")
 
+	def test_create_attachment_copy(self):
+		doctype, docname = make_test_doc()
+		source_file = frappe.get_doc(
+			{
+				"doctype": "File",
+				"file_name": f"existing-file-{frappe.generate_hash(length=8)}.txt",
+				"content": "Existing attachment content",
+			}
+		).insert()
+		comment_count_before = frappe.db.count(
+			"Comment", {"reference_doctype": doctype, "reference_name": docname}
+		)
+
+		copied_file = source_file.create_attachment_copy(doctype, docname)
+		comment_count_after = frappe.db.count(
+			"Comment", {"reference_doctype": doctype, "reference_name": docname}
+		)
+
+		self.assertNotEqual(copied_file.name, source_file.name)
+		self.assertEqual(copied_file.file_url, source_file.file_url)
+		self.assertEqual(copied_file.attached_to_doctype, doctype)
+		self.assertEqual(copied_file.attached_to_name, docname)
+		self.assertEqual(
+			copied_file.folder,
+			frappe.db.get_value("File", {"is_attachments_folder": 1}),
+		)
+		self.assertEqual(comment_count_after, comment_count_before + 1)
+
+	def test_create_attachment_copy_respects_attachment_limit(self):
+		doctype, docname = make_test_doc()
+		from frappe.custom.doctype.property_setter.property_setter import make_property_setter
+
+		limit_property = make_property_setter("ToDo", None, "max_attachments", 1, "int", for_doctype=True)
+		source_file_1 = frappe.get_doc(
+			{
+				"doctype": "File",
+				"file_name": f"existing-limit-file-{frappe.generate_hash(length=8)}.txt",
+				"content": "Existing attachment content 1",
+			}
+		).insert()
+		source_file_2 = frappe.get_doc(
+			{
+				"doctype": "File",
+				"file_name": f"existing-limit-file-{frappe.generate_hash(length=8)}.txt",
+				"content": "Existing attachment content 2",
+			}
+		).insert()
+
+		try:
+			source_file_1.create_attachment_copy(doctype, docname)
+			self.assertRaises(
+				frappe.exceptions.AttachmentLimitReached,
+				source_file_2.create_attachment_copy,
+				doctype,
+				docname,
+			)
+		finally:
+			limit_property.delete()
+			frappe.clear_cache(doctype="ToDo")
+
 	def test_utf8_bom_content_decoding(self):
 		utf8_bom_content = test_content1.encode("utf-8-sig")
 		_file: frappe.Document = frappe.get_doc(
@@ -582,6 +642,110 @@ class TestFile(IntegrationTestCase):
 			file.save().reload()
 			self.assertIn("42", file.get_content())
 
+	@IntegrationTestCase.change_settings(
+		"System Settings", {"allow_guests_to_upload_files": 1, "allowed_doctypes_for_guest_uploads": "ToDo"}
+	)
+	def test_guest_upload_to_non_allowed_doctype(self):
+		"""Verify Guest cannot upload to a restricted DocType."""
+		from werkzeug.test import EnvironBuilder
+		from werkzeug.wrappers import Request
+
+		from frappe.handler import upload_file
+
+		builder = EnvironBuilder(path="/", base_url="http://localhost")
+		frappe.local.request = Request(builder.get_environ())
+
+		frappe.set_user("Guest")
+		frappe.form_dict.doctype = "User"
+		frappe.form_dict.docname = "Administrator"
+
+		try:
+			self.assertRaises(frappe.PermissionError, upload_file)
+		finally:
+			frappe.set_user("Administrator")
+			frappe.form_dict.pop("doctype", None)
+			frappe.form_dict.pop("docname", None)
+			if hasattr(frappe.local, "request"):
+				del frappe.local.request
+
+	@IntegrationTestCase.change_settings(
+		"System Settings",
+		{"allow_guests_to_upload_files": 1, "allowed_doctypes_for_guest_uploads": "User\nToDo"},
+	)
+	def test_guest_upload_to_allowed_doctype(self):
+		"""Verify Guest can upload to an explicitly whitelisted DocType."""
+		from werkzeug.test import EnvironBuilder
+		from werkzeug.wrappers import Request
+
+		from frappe.handler import upload_file
+
+		builder = EnvironBuilder(path="/", base_url="http://localhost")
+		frappe.local.request = Request(builder.get_environ())
+
+		frappe.set_user("Administrator")
+		todo = frappe.get_doc({"doctype": "ToDo", "description": "Test Target"}).insert()
+
+		frappe.set_user("Guest")
+		frappe.form_dict.doctype = "ToDo"
+		frappe.form_dict.docname = todo.name
+		frappe.form_dict.file_url = "https://frappe.io/assets/img/logo.png"
+		frappe.form_dict.file_name = "guest_logo.png"
+
+		file_doc = None
+		try:
+			file_doc = upload_file()
+			self.assertEqual(file_doc.attached_to_name, todo.name)
+		finally:
+			frappe.set_user("Administrator")
+
+			if file_doc:
+				file_doc.delete()
+			todo.delete()
+
+			frappe.form_dict.pop("doctype", None)
+			frappe.form_dict.pop("docname", None)
+			frappe.form_dict.pop("file_url", None)
+			frappe.form_dict.pop("file_name", None)
+
+			if hasattr(frappe.local, "request"):
+				del frappe.local.request
+
+	@IntegrationTestCase.change_settings(
+		"System Settings", {"allow_guests_to_upload_files": 1, "allowed_doctypes_for_guest_uploads": ""}
+	)
+	def test_guest_upload_for_empty_whitelist(self):
+		"""Verify Guest can upload anywhere if the configuration whitelist string is left completely empty."""
+		from werkzeug.test import EnvironBuilder
+		from werkzeug.wrappers import Request
+
+		from frappe.handler import upload_file
+
+		builder = EnvironBuilder(path="/", base_url="http://localhost")
+		frappe.local.request = Request(builder.get_environ())
+
+		frappe.set_user("Guest")
+		frappe.form_dict.doctype = "User"
+		frappe.form_dict.docname = "Administrator"
+		frappe.form_dict.file_url = "https://frappe.io/assets/img/logo.png"
+		frappe.form_dict.file_name = "guest_fallback.png"
+
+		file_doc = None
+		try:
+			file_doc = upload_file()
+			self.assertEqual(file_doc.attached_to_name, "Administrator")
+		finally:
+			frappe.set_user("Administrator")
+			if file_doc:
+				file_doc.delete()
+
+			frappe.form_dict.pop("doctype", None)
+			frappe.form_dict.pop("docname", None)
+			frappe.form_dict.pop("file_url", None)
+			frappe.form_dict.pop("file_name", None)
+
+			if hasattr(frappe.local, "request"):
+				del frappe.local.request
+
 
 @contextmanager
 def convert_to_symlink(directory):
@@ -639,6 +803,77 @@ class TestAttachment(IntegrationTestCase):
 		)
 
 		self.assertTrue(exists)
+
+
+class TestCopyAttachmentsFromAmendedFrom(IntegrationTestCase):
+	"""Test that attached_to_field and folder are copied when amending a document."""
+
+	@classmethod
+	def setUpClass(cls):
+		super().setUpClass()
+		from frappe.core.doctype.doctype.test_doctype import new_doctype
+
+		cls.test_doctype = "Test Amendable Attachment"
+		new_doctype(
+			cls.test_doctype,
+			is_submittable=1,
+			fields=[
+				{"label": "Title", "fieldname": "title", "fieldtype": "Data"},
+				{"label": "Attachment", "fieldname": "attachment", "fieldtype": "Attach"},
+			],
+		).insert(ignore_if_duplicate=True)
+
+	@classmethod
+	def tearDownClass(cls):
+		frappe.db.rollback()
+		frappe.delete_doc_if_exists("DocType", cls.test_doctype)
+
+	def test_attached_to_field_and_folder_copied_on_amend(self):
+		# Create custom folder
+		custom_folder = frappe.get_doc(
+			{"doctype": "File", "file_name": "Test Amend Folder", "is_folder": 1, "folder": "Home"}
+		).insert()
+
+		# Create original document and attach file with attached_to_field and custom folder
+		doc = frappe.get_doc(doctype=self.test_doctype, title="Original").insert()
+		file = frappe.get_doc(
+			{
+				"doctype": "File",
+				"file_name": "amend_test_attach.txt",
+				"content": "Test Content",
+				"attached_to_doctype": self.test_doctype,
+				"attached_to_name": doc.name,
+				"attached_to_field": "attachment",
+				"folder": custom_folder.name,
+			}
+		).insert()
+
+		doc.attachment = file.file_url
+		doc.save()
+
+		# Submit and cancel
+		doc.submit()
+		doc.cancel()
+
+		# Amend document
+		amended_doc = frappe.copy_doc(doc)
+		amended_doc.docstatus = 0
+		amended_doc.amended_from = doc.name
+		amended_doc.save()
+
+		# Verify copied file has attached_to_field and folder from original
+		copied_files = frappe.get_all(
+			"File",
+			filters={
+				"attached_to_doctype": self.test_doctype,
+				"attached_to_name": amended_doc.name,
+				"file_name": "amend_test_attach.txt",
+			},
+			fields=["name", "attached_to_field", "folder"],
+		)
+		self.assertEqual(len(copied_files), 1, "Exactly one file should be copied to amended doc")
+		self.assertEqual(copied_files[0].attached_to_field, "attachment")
+		self.assertEqual(copied_files[0].folder, custom_folder.name)
 
 
 class TestAttachmentsAccess(IntegrationTestCase):

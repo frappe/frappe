@@ -5,6 +5,8 @@ from frappe.model.document import Document
 
 
 class SuccessAction(Document):
+	_DOCTYPE_NAME = "Success Action"
+
 	# begin: auto-generated types
 	# This code is auto-generated. Do not modify anything in this block.
 

@@ -38,12 +38,12 @@ context("Grid Pagination", () => {
 	it("adds and deletes rows and changes page", () => {
 		cy.visit("/desk/contact/Test Contact");
 		cy.get('.frappe-control[data-fieldname="phone_nos"]').as("table");
-		cy.get("@table").findByRole("button", { name: "Add Row" }).click();
+		cy.get("@table").findByRole("button", { name: "Add row" }).click();
 		cy.get("@table").find(".grid-body .row-index").should("contain", 1001);
 		cy.get("@table").find(".current-page-number").should("have.value", "21");
 		cy.get("@table").find(".total-page-number").should("contain", "21");
 		cy.get("@table").find(".grid-body .grid-row .grid-row-check").click({ force: true });
-		cy.get("@table").findByRole("button", { name: "Delete" }).click();
+		cy.get("@table").findByRole("button", { name: "Delete row" }).click();
 		cy.get("@table").find(".grid-body .row-index").last().should("contain", 1000);
 		cy.get("@table").find(".current-page-number").should("have.value", "20");
 		cy.get("@table").find(".total-page-number").should("contain", "20");

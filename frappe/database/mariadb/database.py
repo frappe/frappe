@@ -26,19 +26,19 @@ class MariaDBExceptionUtil:
 	@staticmethod
 	def is_deadlocked(e: pymysql.Error) -> bool:
 		# Snapshot isolation is also treated as deadlock from User POV
-		return e.args[0] in (ER.LOCK_DEADLOCK, ER.CHECKREAD)
+		return e.args and e.args[0] in (ER.LOCK_DEADLOCK, ER.CHECKREAD)
 
 	@staticmethod
 	def is_timedout(e: pymysql.Error) -> bool:
-		return e.args[0] == ER.LOCK_WAIT_TIMEOUT
+		return e.args and e.args[0] == ER.LOCK_WAIT_TIMEOUT
 
 	@staticmethod
 	def is_read_only_mode_error(e: pymysql.Error) -> bool:
-		return e.args[0] == 1792
+		return e.args and e.args[0] == 1792
 
 	@staticmethod
 	def is_table_missing(e: pymysql.Error) -> bool:
-		return e.args[0] == ER.NO_SUCH_TABLE
+		return e.args and e.args[0] == ER.NO_SUCH_TABLE
 
 	@staticmethod
 	def is_missing_table(e: pymysql.Error) -> bool:
@@ -46,39 +46,43 @@ class MariaDBExceptionUtil:
 
 	@staticmethod
 	def is_missing_column(e: pymysql.Error) -> bool:
-		return e.args[0] == ER.BAD_FIELD_ERROR
+		return e.args and e.args[0] == ER.BAD_FIELD_ERROR
 
 	@staticmethod
 	def is_duplicate_fieldname(e: pymysql.Error) -> bool:
-		return e.args[0] == ER.DUP_FIELDNAME
+		return e.args and e.args[0] == ER.DUP_FIELDNAME
 
 	@staticmethod
 	def is_duplicate_entry(e: pymysql.Error) -> bool:
-		return e.args[0] == ER.DUP_ENTRY
+		return e.args and e.args[0] == ER.DUP_ENTRY
 
 	@staticmethod
 	def is_access_denied(e: pymysql.Error) -> bool:
-		return e.args[0] == ER.ACCESS_DENIED_ERROR
+		return e.args and e.args[0] == ER.ACCESS_DENIED_ERROR
 
 	@staticmethod
 	def cant_drop_field_or_key(e: pymysql.Error) -> bool:
-		return e.args[0] == ER.CANT_DROP_FIELD_OR_KEY
+		return e.args and e.args[0] == ER.CANT_DROP_FIELD_OR_KEY
 
 	@staticmethod
 	def is_syntax_error(e: pymysql.Error) -> bool:
-		return e.args[0] == ER.PARSE_ERROR
+		return e.args and e.args[0] == ER.PARSE_ERROR
 
 	@staticmethod
 	def is_statement_timeout(e: pymysql.Error) -> bool:
-		return e.args[0] == 1969
+		return e.args and e.args[0] == 1969
 
 	@staticmethod
 	def is_data_too_long(e: pymysql.Error) -> bool:
-		return e.args[0] == ER.DATA_TOO_LONG
+		return e.args and e.args[0] == ER.DATA_TOO_LONG
+
+	@staticmethod
+	def is_data_truncated(e: pymysql.Error) -> bool:
+		return e.args and e.args[0] == ER.TRUNCATED_WRONG_VALUE
 
 	@staticmethod
 	def is_db_table_size_limit(e: pymysql.Error) -> bool:
-		return e.args[0] == ER.TOO_BIG_ROWSIZE
+		return e.args and e.args[0] == ER.TOO_BIG_ROWSIZE
 
 	@staticmethod
 	def is_primary_key_violation(e: pymysql.Error) -> bool:
@@ -124,6 +128,7 @@ class MariaDBConnectionUtil:
 			"charset": "utf8mb4",
 			"collation": "utf8mb4_unicode_ci",
 			"use_unicode": True,
+			"local_infile": False,
 		}
 
 		if self.cur_db_name:
@@ -138,9 +143,6 @@ class MariaDBConnectionUtil:
 
 		if self.password:
 			conn_settings["password"] = self.password
-
-		if frappe.conf.local_infile:
-			conn_settings["local_infile"] = frappe.conf.local_infile
 
 		# Configure SSL settings
 		if frappe.conf.db_ssl_ca:
@@ -564,11 +566,12 @@ class MariaDBDatabase(MariaDBConnectionUtil, MariaDBExceptionUtil, Database):
 			self._cursor = original_cursor
 			new_cursor.close()
 
-	def estimate_count(self, doctype: str):
-		"""Get estimated count of total rows in a table."""
+	def _estimate_count(self, table: str) -> int:
 		from frappe.utils.data import cint
 
-		table = get_table_name(doctype)
-
-		count = self.sql("select table_rows from information_schema.tables where table_name = %s", table)
+		# Scope to current database to avoid cross-site estimates
+		count = self.sql(
+			"select table_rows from information_schema.tables where table_name = %s and table_schema = %s",
+			(table, frappe.db.cur_db_name),
+		)
 		return cint(count[0][0]) if count else 0

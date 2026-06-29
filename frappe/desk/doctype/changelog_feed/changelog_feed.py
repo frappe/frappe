@@ -11,6 +11,8 @@ from frappe.utils.data import add_to_date
 
 
 class ChangelogFeed(Document):
+	_DOCTYPE_NAME = "Changelog Feed"
+
 	# begin: auto-generated types
 	# This code is auto-generated. Do not modify anything in this block.
 

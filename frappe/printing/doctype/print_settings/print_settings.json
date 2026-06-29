@@ -8,6 +8,7 @@
   "pdf_settings",
   "send_print_as_pdf",
   "repeat_header_footer",
+  "pdf_generator",
   "column_break_4",
   "pdf_page_size",
   "pdf_page_height",
@@ -170,13 +171,20 @@
    "fieldname": "pdf_page_width",
    "fieldtype": "Float",
    "label": "PDF Page Width (in mm)"
+  },
+  {
+   "default": "wkhtmltopdf",
+   "fieldname": "pdf_generator",
+   "fieldtype": "Select",
+   "label": "PDF Generator",
+   "options": "wkhtmltopdf\nchrome"
   }
  ],
  "icon": "fa fa-cog",
  "index_web_pages_for_search": 1,
  "issingle": 1,
  "links": [],
- "modified": "2024-03-23 16:03:35.392721",
+ "modified": "2026-01-10 11:54:14.176810",
  "modified_by": "Administrator",
  "module": "Printing",
  "name": "Print Settings",
@@ -191,6 +199,7 @@
   }
  ],
  "quick_entry": 1,
+ "row_format": "Dynamic",
  "sort_field": "creation",
  "sort_order": "DESC",
  "states": [],

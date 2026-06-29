@@ -2,6 +2,7 @@
 # License: MIT. See LICENSE
 
 import frappe
+from frappe.core.page.permission_manager.permission_manager import get_permissions
 from frappe.model.document import Document
 from frappe.website.path_resolver import validate_path
 from frappe.website.router import clear_routing_cache
@@ -10,6 +11,8 @@ STANDARD_ROLES = ("Administrator", "System Manager", "Script Manager", "All", "G
 
 
 class Role(Document):
+	_DOCTYPE_NAME = "Role"
+
 	# begin: auto-generated types
 	# This code is auto-generated. Do not modify anything in this block.
 
@@ -80,15 +83,47 @@ class Role(Document):
 		users_with_same_user_type = frappe.get_all("User", {"user_type": role_user_type}, pluck="name")
 
 		for user_name in set(users_with_role) - set(users_with_same_user_type):
-			user = frappe.get_doc("User", user_name)
+			user = frappe.get_lazy_doc("User", user_name)
 			user_type = user.user_type
 			user.set_system_user()
 			if user_type != user.user_type:
 				user.save()
 
+	@frappe.whitelist()
+	def replicate_role(self, cur_role: str, new_role: str) -> str:
+		frappe.only_for("System Manager")
+
+		if frappe.db.get_value("Role", new_role, "name"):
+			return frappe.errprint(f"Role {new_role} already exist.")
+
+		new_role = frappe.get_doc({"doctype": "Role", "role_name": new_role}).insert().name
+
+		perms = get_permissions(role=cur_role)
+		for perm in perms:
+			perm.update(
+				{
+					"name": None,
+					"creation": None,
+					"modified": None,
+					"modified_by": None,
+					"owner": None,
+					"linked_doctypes": None,
+					"role": new_role,
+				}
+			)
+			frappe.get_doc({"doctype": "Custom DocPerm", **perm}).insert()
+
+		return new_role
+
 
 def get_info_based_on_role(role, field="email", ignore_permissions=False):
 	"""Get information of all users that have been assigned this role"""
+	# Administrator is a superuser account, not a typical role with assigned users
+	# so we resolve it directly to the Administrator user
+	if role == "Administrator":
+		user = frappe.db.get_value("User", "Administrator", field)
+		return [user] if user else []
+
 	users = frappe.get_list(
 		"Has Role",
 		filters={"role": role, "parenttype": "User"},
@@ -120,7 +155,9 @@ def get_users(role):
 # searches for active employees
 @frappe.whitelist()
 @frappe.validate_and_sanitize_search_inputs
-def role_query(doctype, txt, searchfield, start, page_len, filters):
+def role_query(
+	doctype: str, txt: str, searchfield: str, start: int, page_len: int, filters: list | dict | str
+):
 	return frappe.get_all(
 		"Role",
 		limit_start=start,

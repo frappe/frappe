@@ -11,6 +11,7 @@
   "doc_status",
   "update_field",
   "update_value",
+  "evaluate_as_expression",
   "column_break_4",
   "is_optional_state",
   "avoid_status_override",
@@ -50,6 +51,7 @@
    "label": "Update Field"
   },
   {
+   "description": "Value to set when this workflow state is applied. Use plain text (e.g. Approved) or an expression if \u201cEvaluate as Expression\u201d is enabled.",
    "fieldname": "update_value",
    "fieldtype": "Data",
    "in_list_view": 1,
@@ -113,12 +115,19 @@
    "fieldname": "send_email",
    "fieldtype": "Check",
    "label": "Send Email On State"
+  },
+  {
+   "default": "0",
+   "description": "Check this if the Update Value is a formula or expression (e.g. doc.amount * 2). Leave unchecked for plain text values.",
+   "fieldname": "evaluate_as_expression",
+   "fieldtype": "Check",
+   "label": "Evaluate as Expression"
   }
  ],
  "idx": 1,
  "istable": 1,
  "links": [],
- "modified": "2025-04-01 23:35:56.203734",
+ "modified": "2025-11-08 10:16:23.592473",
  "modified_by": "Administrator",
  "module": "Workflow",
  "name": "Workflow Document State",

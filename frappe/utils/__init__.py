@@ -2,7 +2,9 @@
 # License: MIT. See LICENSE
 
 import functools
+import importlib
 import io
+import json
 import os
 import shutil
 import sys
@@ -24,7 +26,14 @@ from typing import Any, Generic, TypeAlias, TypedDict
 import orjson
 from werkzeug.test import Client
 
-from frappe.deprecation_dumpster import gzip_compress, gzip_decompress, make_esc
+from frappe.deprecation_dumpster import (
+	get_gravatar,
+	get_gravatar_url,
+	gzip_compress,
+	gzip_decompress,
+	has_gravatar,
+	make_esc,
+)
 
 # utility functions like cint, int, flt, etc.
 from frappe.utils.data import *
@@ -47,15 +56,6 @@ EMAIL_MATCH_PATTERN = re.compile(
 UNSET = object()
 
 PropertyType: TypeAlias = property | functools.cached_property
-
-
-if sys.version_info < (3, 11):
-
-	def exception():
-		_exc_type, exc_value, _exc_traceback = sys.exc_info()
-		return exc_value
-
-	sys.exception = exception
 
 
 def get_fullname(user=None):
@@ -184,12 +184,21 @@ def validate_email_address(email_str, throw=False):
 	email_str = (email_str or "").strip()
 	out = []
 
-	# Replace newlines with commas so getaddresses can handle them
-	# getaddresses expects comma-separated values
+	# split_emails collapses \n/\r to spaces *before* splitting, so newlines
+	# would no longer act as separators. Convert them to commas up front.
 	email_str = email_str.replace("\n", ",").replace("\r", ",")
 
-	# Parse using stdlib (handles commas in display names correctly)
+	# Fast path: parse the whole string in one shot. Strict mode either gives
+	# us all entries cleanly or bails to [('', '')] on malformed input.
 	addresses = getaddresses([email_str])
+
+	# Slow path: if nothing usable came back, re-parse each piece in isolation
+	# so one malformed entry can't reject its valid neighbours. split_emails
+	# is quote-aware, so `"Last, First" <addr>` survives the split intact.
+	if not any(addr for _, addr in addresses):
+		addresses = []
+		for piece in split_emails(email_str):
+			addresses.extend(getaddresses([piece]))
 
 	for name, addr in addresses:
 		if not addr:
@@ -206,8 +215,7 @@ def validate_email_address(email_str, throw=False):
 		if "undisclosed-recipient" in addr:
 			continue
 
-		match = EMAIL_MATCH_PATTERN.match(addr)
-		if not match:
+		if not EMAIL_MATCH_PATTERN.fullmatch(addr):
 			if throw:
 				frappe.throw(
 					frappe._("{0} is not a valid Email Address").format(frappe.utils.escape_html(addr)),
@@ -300,49 +308,18 @@ def is_valid_iban(iban: str) -> bool:
 
 def random_string(length: int) -> str:
 	"""generate a random string"""
+	import secrets
 	import string
-	from random import choice
 
-	return "".join(choice(string.ascii_letters + string.digits) for i in range(length))
-
-
-def has_gravatar(email: str) -> str:
-	"""Return gravatar url if user has set an avatar at gravatar.com."""
-	import requests
-
-	if frappe.flags.in_import or frappe.flags.in_install or frappe.in_test:
-		# no gravatar if via upload
-		# since querying gravatar for every item will be slow
-		return ""
-
-	gravatar_url = get_gravatar_url(email, "404")
-	try:
-		res = requests.get(gravatar_url, timeout=5)
-		if res.status_code == 200:
-			return gravatar_url
-		else:
-			return ""
-	except requests.exceptions.RequestException:
-		return ""
+	alphabet = string.ascii_letters + string.digits
+	return "".join(secrets.choice(alphabet) for i in range(length))
 
 
-def get_gravatar_url(email: str, default: Literal["mm", "404"] = "mm") -> str:
-	"""Return gravatar URL for the given email.
-
-	If `default` is set to "404", gravatar URL will return 404 if no avatar is found.
-	If `default` is set to "mm", a placeholder image will be returned.
-	"""
-	hexdigest = hashlib.md5(frappe.as_unicode(email).encode("utf-8"), usedforsecurity=False).hexdigest()
-	return f"https://secure.gravatar.com/avatar/{hexdigest}?d={default}&s=200"
-
-
-def get_gravatar(email: str) -> str:
-	"""Return gravatar URL if user has set an avatar at gravatar.com.
-
-	Else return identicon image (base64)."""
+def get_identicon(email: str) -> str:
+	"""Return an identicon image (base64) for the given email."""
 	from frappe.utils.identicon import Identicon
 
-	return has_gravatar(email) or Identicon(email).base64()
+	return Identicon(email).base64()
 
 
 def get_traceback(with_context: bool = False) -> str:
@@ -584,7 +561,7 @@ def get_site_url(site):
 
 def encode_dict(d, encoding="utf-8"):
 	for key in d:
-		if isinstance(d[key], str) and isinstance(d[key], str):
+		if isinstance(d[key], str):
 			d[key] = d[key].encode(encoding)
 
 	return d
@@ -913,19 +890,18 @@ def call(fn, *args, **kwargs):
 
 def get_safe_filters(filters):
 	try:
-		filters = orjson.loads(filters)
-
-		if isinstance(filters, int | float):
-			filters = frappe.as_unicode(filters)
-
+		parsed = orjson.loads(filters)
 	except (TypeError, ValueError):
-		# filters are not passed, not json
-		pass
+		# not a string, or not valid json
+		return filters
+	# numeric JSON is ambiguous: docnames like "3E002" parse as floats and
+	# would be corrupted by stringifying back, so keep the original string
+	if isinstance(parsed, int | float) and not isinstance(parsed, bool):
+		return filters
+	return parsed
 
-	return filters
 
-
-def create_batch(iterable: Iterable, size: int) -> Generator[Iterable, None, None]:
+def create_batch(iterable: Iterable, size: int) -> Generator[Iterable]:
 	"""Convert an iterable to multiple batches of constant size of batch_size.
 
 	Args:
@@ -937,7 +913,9 @@ def create_batch(iterable: Iterable, size: int) -> Generator[Iterable, None, Non
 	"""
 	total_count = len(iterable)
 	for i in range(0, total_count, size):
-		yield iterable[i : min(i + size, total_count)]
+		batch = iterable[i : min(i + size, total_count)]
+		assert len(batch) <= size, "each batch must not exceed the requested size"
+		yield batch
 
 
 def set_request(**kwargs):
@@ -1047,13 +1025,17 @@ def groupby_metric(iterable: dict[str, list], key: str):
 	"""
 	records = {}
 	for category, items in iterable.items():
-		for item in items:
-			records.setdefault(item[key], {}).setdefault(category, []).append(item)
+		if items:
+			for item in items:
+				records.setdefault(item[key], {}).setdefault(category, []).append(item)
 	return records
 
 
 def get_table_name(table_name: str, wrap_in_backticks: bool = False) -> str:
 	name = f"tab{table_name}" if not table_name.startswith("__") else table_name
+	assert name.startswith(("tab", "__")), (
+		"DB table name must be a 'tab'-prefixed doctype table or a '__' system table"
+	)
 
 	if wrap_in_backticks:
 		return f"`{name}`"
@@ -1198,44 +1180,75 @@ def create_folder(path, with_init=False):
 
 
 cached_property = functools.cached_property
-if sys.version_info.minor < 12:
-	T = TypeVar("T")
 
-	class cached_property(functools.cached_property, Generic[T]):
-		"""
-		A simpler `functools.cached_property` implementation without locks.
-		This isn't needed in Python 3.12+, since lock was removed in newer versions.
-		Hence, in those versions, it returns the `functools.cached_property` object.
 
-		This does not prevent a possible race condition in multi-threaded usage.
-		The getter function could run more than once on the same instance,
-		with the latest run setting the cached value. If the cached property is
-		idempotent or otherwise not harmful to run more than once on an instance,
-		this is fine. If synchronization is needed, implement the necessary locking
-		inside the decorated getter function or around the cached property access.
-		"""
+def get_frappe_version() -> str:
+	return getattr(frappe, "__version__", "unknown")
 
-		def __init__(self, func: Callable[[Any], T]):
-			self.func = func
-			self.attrname = None
-			self.__doc__ = func.__doc__
-			self.__module__ = func.__module__
 
-		def __set_name__(self, owner, name):
-			if self.attrname is None:
-				self.attrname = name
+def get_app_version(app_name: str) -> str:
+	try:
+		return frappe.get_attr(app_name + ".__version__")
+	except Exception:
+		return "0.0.1"
 
-			elif name != self.attrname:
-				raise TypeError(
-					"Cannot assign the same cached_property to two different names "
-					f"({self.attrname!r} and {name!r})."
-				)
 
-		def __get__(self, instance, owner=None) -> T:
-			if instance is None:
-				return self
+def get_module(modulename: str):
+	"""Return a module object for given Python module name using `importlib.import_module`."""
+	return importlib.import_module(modulename)
 
-			value = self.func(instance)
-			instance.__dict__[self.attrname] = value
-			return value
-# end: custom cached_property implementation
+
+def read_file(path, raise_not_found=False, as_base64=False):
+	"""Open a file and return its content as Unicode or Base64 string."""
+	if isinstance(path, str):
+		path = path.encode("utf-8")
+
+	if os.path.exists(path):
+		if as_base64:
+			import base64
+
+			with open(path, "rb") as f:
+				return base64.b64encode(f.read()).decode("utf-8")
+		else:
+			with open(path) as f:
+				return as_unicode(f.read())
+	elif raise_not_found:
+		raise OSError(f"{path} Not Found")
+	else:
+		return None
+
+
+def get_file_json(path):
+	"""Read a file and return parsed JSON object."""
+	with open(path) as f:
+		return json.load(f)
+
+
+def get_file_items(path, raise_not_found=False, ignore_empty_lines=True):
+	"""Return items from text file as a list. Ignore empty lines."""
+	content = read_file(path, raise_not_found=raise_not_found)
+	if content:
+		content = strip(content)
+		return [
+			p.strip()
+			for p in content.splitlines()
+			if (not ignore_empty_lines) or (p.strip() and not p.startswith("#"))
+		]
+	return []
+
+
+def get_attr(method_string: str):
+	"""Get python method object from its name."""
+	import frappe
+
+	app_name = method_string.split(".", 1)[0]
+	if (
+		not frappe.local.flags.in_uninstall
+		and not frappe.local.flags.in_install
+		and app_name not in frappe.get_installed_apps()
+	):
+		frappe.throw(frappe._("App {0} is not installed").format(app_name), frappe.AppNotInstalledError)
+
+	modulename = ".".join(method_string.split(".")[:-1])
+	methodname = method_string.split(".")[-1]
+	return getattr(get_module(modulename), methodname)

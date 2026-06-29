@@ -1,7 +1,9 @@
 # Copyright (c) 2022, Frappe Technologies Pvt. Ltd. and Contributors
 # License: MIT. See LICENSE
 import datetime
+import functools
 import json
+import re
 import weakref
 from types import MappingProxyType
 from typing import TYPE_CHECKING, TypeVar
@@ -46,6 +48,40 @@ DatetimeTypes = datetime.date | datetime.datetime | datetime.time | datetime.tim
 
 max_positive_value = {"smallint": 2**15 - 1, "int": 2**31 - 1, "bigint": 2**63 - 1}
 
+# Sentinel object for cache miss detection in bulk link validation
+# Used to distinguish between "not in cache" and "cached as None (does not exist)"
+_NOT_IN_CACHE = object()
+
+
+def _fetch_link_values(doctype: str, docname: str, fields: tuple, meta) -> dict | None:
+	"""Fetch link field values from database with fallback logic.
+
+	This helper encapsulates the repeated DB query pattern:
+	1. Try get_value with cache=True
+	2. If not found, retry without cache (handles negative caching)
+	3. For virtual doctypes, use frappe.get_doc instead
+
+	Args:
+	    doctype: Target DocType
+	    docname: Document name to fetch
+	    fields: Tuple of field names to fetch
+	    meta: Meta object for the doctype
+
+	Returns:
+	    Dict of field values or None if document doesn't exist
+	"""
+	if not meta.get("is_virtual"):
+		values = frappe.db.get_value(doctype, docname, fields, as_dict=True, cache=True, order_by=None)
+		if not values:
+			values = frappe.db.get_value(doctype, docname, fields, as_dict=True, order_by=None)
+	else:
+		try:
+			values = frappe.get_doc(doctype, docname).as_dict()
+		except frappe.DoesNotExistError:
+			values = None
+	return values
+
+
 DOCTYPE_TABLE_FIELDS = [
 	_dict(fieldname="fields", options="DocField"),
 	_dict(fieldname="permissions", options="DocPerm"),
@@ -65,18 +101,15 @@ DOCTYPES_FOR_DOCTYPE = {"DocType", *TABLE_DOCTYPES_FOR_DOCTYPE.values()}
 def _reduce_extended_instance(doc):
 	"""Make extended class instances pickle-able.
 
-	When unpickling, this will use get_controller() to recreate the extended class.
+	Stores __bases__ for reconstructing the extended class during unpickling.
 	Respects the __getstate__ method for proper state handling.
 	"""
-	return (_reconstruct_extended_instance, (doc.doctype,), doc.__getstate__())
+	return (_reconstruct_extended_instance, (type(doc).__bases__,), doc.__getstate__())
 
 
-def _reconstruct_extended_instance(doctype):
-	"""
-	Helper function to reconstruct an extended class instance during unpickling.
-	"""
-	# Get the current extended class (uses caching from get_controller)
-	extended_class = get_controller(doctype)
+def _reconstruct_extended_instance(bases):
+	"""Reconstruct an extended class instance during unpickling."""
+	extended_class = _create_extended_class(bases)
 	return extended_class.__new__(extended_class)
 
 
@@ -206,9 +239,25 @@ def _get_extended_class(base_class, doctype):
 
 	# Create the extended class by combining extension classes with base class
 	# Extension classes come first in MRO, then base class
+	return _create_extended_class((*extension_classes, base_class))
+
+
+# cached to avoid recreating the same class multiple times during unpickling
+# safe to cache, classes on file don't change at runtime
+@functools.cache
+def _create_extended_class(bases):
+	"""Create an extended class from base classes.
+
+	Args:
+		bases: Tuple of base classes (extension classes first, then the controller class)
+
+	Returns:
+		Extended class combining all bases with pickle support
+	"""
+	base_class = bases[-1]
 	return type(
 		f"Extended{base_class.__name__}",
-		(*extension_classes, base_class),
+		bases,
 		{
 			"__reduce__": _reduce_extended_instance,
 			"__module__": base_class.__module__,
@@ -366,6 +415,8 @@ class BaseDocument:
 			self.__dict__[key] = table = []
 
 		d = self._init_child(value, key)
+		assert isinstance(table, list), "child table storage must be a list"
+		assert d.parentfield == key, "appended child's parentfield must match the table key"
 
 		if position == -1:
 			table.append(d)
@@ -449,6 +500,8 @@ class BaseDocument:
 			__dict["__islocal"] = 1
 			__dict["__temporary_name"] = frappe.generate_hash(length=10)
 
+		assert isinstance(child, BaseDocument), "initialized child must be a BaseDocument"
+		assert __dict["parenttype"] == self.doctype, "child parenttype must reference its parent's doctype"
 		return child
 
 	@cached_property
@@ -492,15 +545,32 @@ class BaseDocument:
 			eval_locals={"doc": self},
 		)
 
+	def get_virtual_field_value(self, df):
+		fieldname = df.fieldname
+
+		if (prop := getattr(type(self), fieldname, None)) and is_a_property(prop):
+			return getattr(self, fieldname)
+
+		elif options := getattr(df, "options", None):
+			return self._evaluate_virtual_field_options(options)
+
 	def get_valid_dict(
 		self, sanitize=True, convert_dates_to_str=False, ignore_nulls=False, ignore_virtual=False
 	) -> _dict:
 		d = _dict()
 		field_values = self.__dict__
 		field_map = self.meta._fields
+		masked_fieldnames = self.flags.get("masked_fieldnames")
 
 		for fieldname in self.meta.get_valid_fields():
 			value = field_values.get(fieldname)
+
+			# Masked fields hold the XXXXXXXX placeholder; pass it through untouched so it is not
+			# cast back to 0 for numeric fieldtypes. Only truthy values get masked, so falsy ones
+			# fall through to the normal null-aware path.
+			if value and fieldname in (masked_fieldnames or ()):
+				d[fieldname] = value
+				continue
 
 			# if no need for sanitization and value is None, continue
 			if not sanitize and value is None:
@@ -514,12 +584,7 @@ class BaseDocument:
 				if is_virtual_field:
 					if ignore_virtual or fieldname not in self.permitted_fieldnames:
 						continue
-
-					if (prop := getattr(type(self), fieldname, None)) and is_a_property(prop):
-						value = getattr(self, fieldname)
-
-					elif options := getattr(df, "options", None):
-						value = self._evaluate_virtual_field_options(options)
+					value = self.get_virtual_field_value(df)
 
 				fieldtype = df.fieldtype
 				if isinstance(value, list) and fieldtype not in table_fields:
@@ -536,6 +601,9 @@ class BaseDocument:
 
 				elif fieldtype in float_like_fields and not isinstance(value, float):
 					value = flt(value)
+
+				elif fieldtype == "Read Only" and not isinstance(value, str):
+					value = cstr(value)
 
 				elif (fieldtype in datetime_fields and value == "") or (
 					getattr(df, "unique", False) and cstr(value).strip() == ""
@@ -603,7 +671,7 @@ class BaseDocument:
 		return valid_columns_cache[self.doctype]
 
 	def is_new(self) -> bool:
-		return self.get("__islocal")
+		return bool(self.get("__islocal"))
 
 	@property
 	def docstatus(self) -> DocStatus:
@@ -711,6 +779,8 @@ class BaseDocument:
 			# name will be set by document class in most cases
 			set_new_name(self)
 
+		assert self.name, "document name must be set before db_insert"
+
 		conflict_handler = ""
 		returning = ""
 		# On postgres we can't implcitly ignore PK collision
@@ -800,7 +870,21 @@ class BaseDocument:
 				),
 				[*list(d.values()), name],
 			)
+
 		except Exception as e:
+			if frappe.db.is_data_too_long(e):
+				column = re.search(r"column\s+'([^']+)'", e.args[1])
+				if column:
+					label = self.get_label_from_fieldname(column.group(1))
+
+					# data too long for column
+					frappe.throw(
+						_(
+							"The value of the field {0} is too long in the {1} document. To resolve this issue, please reduce the value length or change the {0} field Type to Long Text using customize form, and then try again."
+						).format(frappe.bold(label), frappe.bold(self.doctype)),
+						title=_("Value Too Long"),
+					)
+
 			if frappe.db.is_unique_key_violation(e):
 				self.show_unique_validation_message(e)
 			else:
@@ -942,9 +1026,13 @@ class BaseDocument:
 
 		return missing
 
-	def get_invalid_links(self, is_submittable=False):
-		"""Return list of invalid links and also update fetch values if not set."""
+	def get_invalid_links(self, is_submittable=False, link_value_cache=None):
+		"""Return list of invalid links and also update fetch values if not set.
 
+		Args:
+			is_submittable: Whether the parent document is submittable
+			link_value_cache: Cache of prefetched link values for bulk optimization
+		"""
 		is_submittable = is_submittable or self.meta.is_submittable
 
 		def get_msg(df, docname):
@@ -962,9 +1050,7 @@ class BaseDocument:
 			if not docname:
 				continue
 
-			assert isinstance(docname, str | int) or (
-				isinstance(docname, list | tuple | set) and len(docname) == 1
-			), f"Unexpected value for field {df.fieldname}: {docname}"
+			assert isinstance(docname, str | int), f"Unexpected value for field {df.fieldname}: {docname}"
 
 			if df.fieldtype == "Link":
 				doctype = df.options
@@ -992,23 +1078,45 @@ class BaseDocument:
 				if not _df.get("fetch_if_empty")
 				or (_df.get("fetch_if_empty") and not self.get(_df.fieldname))
 			]
-			values_to_fetch = (
-				"name",
-				*(_df.fetch_from.split(".")[-1] for _df in fields_to_fetch),
-			)
-			if check_docstatus:
-				values_to_fetch += ("docstatus",)
-
-			if not meta.get("is_virtual"):
-				values = frappe.db.get_value(
-					doctype, docname, values_to_fetch, as_dict=True, cache=True, order_by=None
+			values_to_fetch = tuple(
+				sorted(
+					{
+						"name",
+						*(_df.fetch_from.split(".")[-1] for _df in fields_to_fetch),
+						*(("docstatus",) if check_docstatus else ()),
+					}
 				)
-				if not values:  # NOTE: DB Value cache does negative caching, which is hard to remove now.
-					values = frappe.db.get_value(
-						doctype, docname, values_to_fetch, as_dict=True, order_by=None
-					)
+			)
+
+			# Use cache if available (bulk optimization)
+			if link_value_cache is not None:
+				cache_for_dt = link_value_cache.get(doctype, {})
+
+				# Get cached value with sentinel for miss detection
+				if frappe.db.db_type == "mariadb" and isinstance(docname, str):
+					cached = cache_for_dt.get(docname, _NOT_IN_CACHE)
+					if cached is _NOT_IN_CACHE:
+						cached = cache_for_dt.get(docname.casefold(), _NOT_IN_CACHE)
+				else:
+					cached = cache_for_dt.get(docname, _NOT_IN_CACHE)
+
+				if cached is _NOT_IN_CACHE:
+					# Not prefetched - fall back to original DB query path
+					values = _fetch_link_values(doctype, docname, values_to_fetch, meta)
+				elif cached is None:
+					# Prefetch confirmed document doesn't exist
+					values = _dict.fromkeys(values_to_fetch, None)
+				elif all(f in cached for f in values_to_fetch):
+					# Cache has all required fields
+					values = cached
+				else:
+					# Cache missing some fields - fall back to DB
+					values = _fetch_link_values(doctype, docname, values_to_fetch, meta)
+					if values is None and not meta.get("is_virtual"):
+						values = cached  # Fall back to partial cache
 			else:
-				values = frappe.get_doc(doctype, docname).as_dict()
+				# No cache - original behavior
+				values = _fetch_link_values(doctype, docname, values_to_fetch, meta)
 
 			# fallback to dict with field_to_fetch=None if link field value is not found
 			# (for compatibility, `values` must have same data type)
@@ -1237,7 +1345,7 @@ class BaseDocument:
 			df = self.meta.get_field(key)
 			db_value = db_values.get(key)
 
-			if df and not df.allow_on_submit and (self.get(key) or db_value):
+			if df and not df.allow_on_submit and not df.is_virtual and (self.get(key) or db_value):
 				if df.fieldtype in table_fields:
 					# just check if the table size has changed
 					# individual fields will be checked in the loop for children
@@ -1390,7 +1498,10 @@ class BaseDocument:
 		):
 			currency = frappe.db.get_value("Currency", currency_value, cache=True)
 
-		val = self.get(fieldname)
+		if fieldname and (prop := getattr(type(self), fieldname, None)) and is_a_property(prop):
+			val = getattr(self, fieldname)
+		else:
+			val = self.get(fieldname)
 
 		if translated:
 			val = _(val)
@@ -1546,7 +1657,9 @@ def _filter(data, filters, limit=None):
 	return out
 
 
-CACHED_PROPERTIES = (prop for prop, value in vars(BaseDocument).items() if isinstance(value, cached_property))
+CACHED_PROPERTIES = tuple(
+	prop for prop, value in vars(BaseDocument).items() if isinstance(value, cached_property)
+)
 
 UNPICKLABLE_KEYS = frozenset(
 	(

@@ -488,7 +488,13 @@ frappe.ui.form.on("Dashboard Chart", {
 			});
 
 			dialog.show();
-			dialog.set_values(frm.dynamic_filters);
+			if (frm.dynamic_filters) {
+				let filter_values = {};
+				frm.dynamic_filters.forEach((f) => {
+					filter_values[f[0] + ":" + f[1]] = f[3];
+				});
+				dialog.set_values(filter_values);
+			}
 		});
 	},
 

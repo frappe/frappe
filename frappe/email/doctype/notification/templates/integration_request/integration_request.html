@@ -1,0 +1,117 @@
+{% set error_lines = (doc.error or "").split('\n') %}
+{% set output_lines = (doc.output or "").split('\n') %}
+{% set first_lines = 10 %}
+{% set last_lines = 15 %}
+{% set max_lines = first_lines + last_lines %}
+{% set total_error_lines = error_lines | length %}
+{% set error_needs_truncation = total_error_lines > max_lines %}
+{% set total_output_lines = output_lines | length %}
+{% set output_needs_truncation = total_output_lines > max_lines %}
+
+<table class="email-header" border="0" cellpadding="0" cellspacing="0" width="100%">
+	<tr>
+		<td>
+			<h1 class="email-header-title">
+				Integration Request
+			</h1>
+		</td>
+	</tr>
+</table>
+
+<table class="table table-bordered" style="width: 100%;">
+	<tr>
+		<td class="text-bold" style="background: #f8f8f8; width: 120px">Site</td>
+		<td><a href="{{ frappe.utils.get_url() }}">{{ frappe.utils.get_url() }}</a></td>
+	</tr>
+	<tr>
+		<td class="text-bold" style="background: #f8f8f8;">Request ID</td>
+		<td>{{ frappe.utils.get_link_to_form("Integration Request", doc.name, doc.request_id or
+			doc.name) }}</td>
+	</tr>
+	<tr>
+		<td class="text-bold" style="background: #f8f8f8;">Service</td>
+		<td>{{ doc.integration_request_service or "N/A" }}</td>
+	</tr>
+	<tr>
+		<td class="text-bold" style="background: #f8f8f8;">Status</td>
+		<td>{{ doc.status }}</td>
+	</tr>
+	{% if doc.request_description %}
+	<tr>
+		<td class="text-bold" style="background: #f8f8f8;">Description</td>
+		<td>{{ doc.request_description }}</td>
+	</tr>
+	{% endif %}
+	<tr>
+		<td class="text-bold" style="background: #f8f8f8;">Logged At</td>
+		<td>{{ frappe.utils.format_datetime(doc.creation) }}</td>
+	</tr>
+	{% if doc.url %}
+	<tr>
+		<td class="text-bold" style="background: #f8f8f8;">Endpoint URL</td>
+		<td class="text-small" style="word-break: break-all;"><a href="{{ doc.url }}">{{ doc.url}}</a></td>
+	</tr>
+	{% endif %}
+	{% if doc.reference_doctype and doc.reference_docname %}
+	<tr>
+		<td class="text-bold" style="background: #f8f8f8;">Reference</td>
+		<td>
+			<a
+				href="{{ frappe.utils.get_url_to_form(doc.reference_doctype, doc.reference_docname) }}">
+				{{ doc.reference_doctype }}: {{ doc.reference_docname }}
+			</a>
+		</td>
+	</tr>
+	{% endif %}
+</table>
+
+{% if doc.error %}
+<div style="margin-top: 20px;">
+	<div class="text-medium text-bold">
+		Error Details
+		{% if error_needs_truncation %}
+		<span class="text-muted" style="font-weight: normal;"> ({{ max_lines }} of {{
+			total_error_lines }} lines)</span>
+		{% endif %}
+	</div>
+	<div class="gray-container" style="margin-top: 8px;">
+		<pre class="text-small"
+			style="margin: 0; white-space: pre-wrap; word-wrap: break-word;">{% if error_needs_truncation %}{{ error_lines[:first_lines] | join('\n') }}
+
+<span class="text-muted" style="font-style: italic;">... {{ total_error_lines - max_lines }} lines omitted ...</span>
+
+{{ error_lines[-last_lines:] | join('\n') }}{% else %}{{ error_lines | join('\n') }}{% endif %}</pre>
+	</div>
+</div>
+{% endif %}
+
+{% if doc.output %}
+<div style="margin-top: 20px;">
+	<div class="text-medium text-bold">
+		Response Output
+		{% if output_needs_truncation %}
+		<span class="text-muted" style="font-weight: normal;"> ({{ max_lines }} of {{
+			total_output_lines }} lines)</span>
+		{% endif %}
+	</div>
+	<div class="gray-container" style="margin-top: 8px;">
+		<pre class="text-small"
+			style="margin: 0; white-space: pre-wrap; word-wrap: break-word;">{% if output_needs_truncation %}{{ output_lines[:first_lines] | join('\n') }}
+
+<span class="text-muted" style="font-style: italic;">... {{ total_output_lines - max_lines }} lines omitted ...</span>
+
+{{ output_lines[-last_lines:] | join('\n') }}{% else %}{{ output_lines | join('\n') }}{% endif %}</pre>
+	</div>
+</div>
+{% endif %}
+
+<div class="more-info">
+	<a class="btn btn-primary"
+		href="{{ frappe.utils.get_url_to_form('Integration Request', doc.name) }}">
+		View Integration Request
+	</a>
+</div>
+
+<p class="text-muted text-small" style="margin-top: 20px;">
+	This is an automated notification from {{ frappe.utils.get_host_name() }}.
+</p>

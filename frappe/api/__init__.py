@@ -1,7 +1,7 @@
 # Copyright (c) 2015, Frappe Technologies Pvt. Ltd. and Contributors
 # License: MIT. See LICENSE
 from contextlib import suppress
-from enum import Enum
+from enum import Enum, StrEnum
 
 from werkzeug.exceptions import NotFound
 from werkzeug.routing import Map, Submount
@@ -11,11 +11,11 @@ import frappe
 from frappe import _
 from frappe.modules.utils import get_doctype_app_map
 from frappe.monitor import add_data_to_monitor
-from frappe.pulse.app_heartbeat_event import capture_app_heartbeat
 from frappe.utils.response import build_response
+from frappe.utils.telemetry.pulse.app_heartbeat_event import capture_app_heartbeat
 
 
-class ApiVersion(str, Enum):
+class ApiVersion(StrEnum):
 	V1 = "v1"
 	V2 = "v2"
 
@@ -60,6 +60,7 @@ def handle(request: Request):
 	except NotFound:  # Wrap 404 - backward compatiblity
 		raise frappe.DoesNotExistError
 
+	assert callable(endpoint), "URL map must resolve to a callable endpoint"
 	data = endpoint(**arguments)
 	if isinstance(data, Response):
 		return data

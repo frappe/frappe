@@ -12,9 +12,10 @@ from textwrap import dedent, indent
 from typing import TYPE_CHECKING, Union
 
 import frappe
-from frappe import _, get_module_path, scrub
-from frappe.utils import cint, cstr, now_datetime
+from frappe import _
+from frappe.utils import cint, cstr, get_file_items, get_module, now_datetime
 from frappe.utils.caching import site_cache
+from frappe.utils.data import scrub
 
 if TYPE_CHECKING:
 	from types import ModuleType
@@ -25,7 +26,9 @@ if TYPE_CHECKING:
 doctype_python_modules = {}
 
 
-def export_module_json(doc: "Document", is_standard: bool, module: str) -> str | None:
+def export_module_json(
+	doc: "Document", is_standard: bool, module: str, *, create_init: bool | None = None
+) -> str | None:
 	"""Make a folder for the given doc and add its json file (make it a standard object that will be synced).
 
 	Return the absolute file_path without the extension.
@@ -35,12 +38,20 @@ def export_module_json(doc: "Document", is_standard: bool, module: str) -> str |
 	if not frappe.flags.in_import and is_standard and frappe.conf.developer_mode:
 		from frappe.modules.export_file import export_to_files
 
-		# json
-		export_to_files(record_list=[[doc.doctype, doc.name]], record_module=module, create_init=is_standard)
+		if create_init is None:
+			# fall back to old default behavior if new parameter is not provided
+			_create_init = is_standard
+		else:
+			_create_init = create_init
 
-		return os.path.join(
-			frappe.get_module_path(module), scrub(doc.doctype), scrub(doc.name), scrub(doc.name)
+		# json
+		export_to_files(
+			record_list=[[doc.doctype, doc.name]],
+			record_module=module,
+			create_init=_create_init,
 		)
+
+		return os.path.join(get_module_path(module), scrub(doc.doctype), scrub(doc.name), scrub(doc.name))
 
 
 def get_doc_module(module: str, doctype: str, name: str) -> "ModuleType":
@@ -51,26 +62,46 @@ def get_doc_module(module: str, doctype: str, name: str) -> "ModuleType":
 		module=scrub(module),
 		name=scrub(name),
 	)
-	return frappe.get_module(module_name)
+	return get_module(module_name)
 
 
 @frappe.whitelist()
 def export_customizations(
-	module: str, doctype: str, sync_on_migrate: bool = False, with_permissions: bool = False
+	module: str,
+	doctype: str,
+	sync_on_migrate: bool = False,
+	with_permissions: bool = False,
+	apply_module_export_filter: bool = False,
 ):
 	"""Export Custom Field and Property Setter for the current document to the app folder.
 	This will be synced with bench migrate"""
 
 	sync_on_migrate = cint(sync_on_migrate)
 	with_permissions = cint(with_permissions)
+	apply_module_export_filter = cint(apply_module_export_filter)
+
+	cf_filters = {"dt": doctype}
+	ps_filters = {"doc_type": doctype}
+
+	if apply_module_export_filter:
+		cf_filters["module"] = module
+		ps_filters["module"] = module
 
 	if not frappe.conf.developer_mode:
 		frappe.throw(_("Only allowed to export customizations in developer mode"))
 
 	custom = {
-		"custom_fields": frappe.get_all("Custom Field", fields="*", filters={"dt": doctype}, order_by="name"),
+		"custom_fields": frappe.get_all(
+			"Custom Field",
+			fields="*",
+			filters=cf_filters,
+			order_by="name",
+		),
 		"property_setters": frappe.get_all(
-			"Property Setter", fields="*", filters={"doc_type": doctype}, order_by="name"
+			"Property Setter",
+			fields="*",
+			filters=ps_filters,
+			order_by="name",
 		),
 		"custom_perms": [],
 		"links": frappe.get_all("DocType Link", fields="*", filters={"parent": doctype}, order_by="name"),
@@ -85,7 +116,9 @@ def export_customizations(
 
 	# also update the custom fields and property setters for all child tables
 	for d in frappe.get_meta(doctype).get_table_fields():
-		export_customizations(module, d.options, sync_on_migrate, with_permissions)
+		export_customizations(
+			module, d.options, sync_on_migrate, with_permissions, apply_module_export_filter
+		)
 
 	if custom["custom_fields"] or custom["property_setters"] or custom["custom_perms"]:
 		folder_path = os.path.join(get_module_path(module), "custom")
@@ -110,7 +143,7 @@ def sync_customizations(app=None):
 
 	for app_name in apps:
 		for module_name in frappe.local.app_modules.get(app_name) or []:
-			folder = frappe.get_app_path(app_name, module_name, "custom")
+			folder = get_app_path(app_name, module_name, "custom")
 			if os.path.exists(folder):
 				for fname in os.listdir(folder):
 					if fname.endswith(".json"):
@@ -154,6 +187,24 @@ def sync_customizations_for_doctype(data: dict, folder: str, filename: str = "")
 							custom_field.flags.ignore_validate = True
 							custom_field.update(d)
 							custom_field.db_update()
+				case "DocType Link":
+					for d in data[key]:
+						link = frappe.db.get_value(
+							"DocType Link",
+							{
+								"parent": doc_type,
+								"link_doctype": d.get("link_doctype"),
+								"link_fieldname": d.get("link_fieldname"),
+							},
+						)
+						if not link:
+							d["owner"] = "Administrator"
+							_insert(d)
+						else:
+							doc_link = frappe.get_doc("DocType Link", link)
+							doc_link.flags.ignore_validate = True
+							doc_link.update(d)
+							doc_link.db_update()
 				case "Property Setter":
 					# Property setter implement their own deduplication, we can just sync them as is
 					for d in data[key]:
@@ -182,6 +233,9 @@ def sync_customizations_for_doctype(data: dict, folder: str, filename: str = "")
 	if data["custom_fields"]:
 		sync("custom_fields", "Custom Field", "dt")
 		update_schema = True
+
+	if data.get("links", False):
+		sync("links", "DocType Link", "parent")
 
 	if data["property_setters"]:
 		sync("property_setters", "Property Setter", "doc_type")
@@ -258,7 +312,7 @@ def load_doctype_module(doctype, module=None, prefix="", suffix=""):
 
 	if key not in doctype_python_modules:
 		try:
-			doctype_python_modules[key] = frappe.get_module(module_name)
+			doctype_python_modules[key] = get_module(module_name)
 		except ImportError as e:
 			msg = f"Module import failed for {doctype}, the DocType you're trying to open might be deleted."
 			msg += f"\nError: {e}"
@@ -301,9 +355,7 @@ def get_app_publisher(module: str) -> str:
 	return frappe.get_hooks(hook="app_publisher", app_name=app)[0]
 
 
-def make_boilerplate(
-	template: str, doc: Union["Document", "frappe._dict"], opts: Union[dict, "frappe._dict"] = None
-):
+def make_boilerplate(template: str, doc: "Document" | "frappe._dict", opts: dict | "frappe._dict" = None):
 	target_path = get_doc_path(doc.module, doc.doctype, doc.name)
 	template_name = template.replace("controller", scrub(doc.name))
 	if template_name.endswith("._py"):
@@ -322,7 +374,7 @@ def make_boilerplate(
 	app_publisher = get_app_publisher(doc.module)
 	base_class = "Document"
 	base_class_import = "from frappe.model.document import Document"
-	controller_body = "pass"
+	controller_body = f'_DOCTYPE_NAME = "{doc.name}"'
 
 	if doc.get("is_tree"):
 		base_class = "NestedSet"
@@ -376,7 +428,7 @@ def make_boilerplate(
 
 
 def create_directory_on_app_path(folder_name, app_name):
-	app_path = frappe.get_app_path(app_name)
+	app_path = get_app_path(app_name)
 	folder_path = os.path.join(app_path, folder_name)
 
 	if not os.path.exists(folder_path):
@@ -386,7 +438,7 @@ def create_directory_on_app_path(folder_name, app_name):
 
 
 def get_app_level_directory_path(folder_name, app_name):
-	app_path = frappe.get_app_path(app_name)
+	app_path = get_app_path(app_name)
 	path = os.path.join(app_path, folder_name)
 	return path
 
@@ -394,3 +446,41 @@ def get_app_level_directory_path(folder_name, app_name):
 def delete_app_level_folder(folder_name, app_name):
 	path = get_app_level_directory_path(folder_name, app_name)
 	shutil.rmtree(path, ignore_errors=True)
+
+
+def get_module_path(module, *joins):
+	"""Get the path of the given module name."""
+	app = get_module_app(module)
+	return get_pymodule_path(app + "." + scrub(module), *joins)
+
+
+def get_app_path(app_name, *joins):
+	"""Return path of given app."""
+	return get_pymodule_path(app_name, *joins)
+
+
+def get_app_source_path(app_name, *joins):
+	"""Return source path of given app."""
+	return get_app_path(app_name, "..", *joins)
+
+
+def get_site_path(*joins):
+	"""Return path of current site."""
+	from os.path import join
+
+	return join(frappe.local.site_path, *joins)
+
+
+def get_pymodule_path(modulename, *joins):
+	"""Return path of given Python module name."""
+	from os.path import abspath, dirname, join
+
+	if "public" not in joins:
+		joins = [scrub(part) for part in joins]
+
+	return abspath(join(dirname(get_module(scrub(modulename)).__file__ or ""), *joins))
+
+
+def get_module_list(app_name):
+	"""Get list of modules for given app via `app/modules.txt`."""
+	return get_file_items(get_app_path(app_name, "modules.txt"))

@@ -97,7 +97,8 @@ def get_values_for_link_and_dynamic_link_fields(doc_dict):
 
 		doctype = field.options if field.fieldtype == "Link" else doc_dict.get(field.options)
 
-		link_doc = frappe.get_doc(doctype, doc_fieldvalue)
+		link_doc = frappe.get_doc(doctype, doc_fieldvalue, check_permission="read")
+		link_doc.apply_fieldlevel_read_permissions()
 		doc_dict.update({field.fieldname: link_doc})
 
 

@@ -8,7 +8,7 @@ permission, homepage, default variables, system defaults etc
 """
 
 import json
-from datetime import datetime, timezone
+from datetime import UTC, datetime, timezone
 from urllib.parse import unquote
 
 import redis
@@ -130,6 +130,9 @@ def get():
 	from frappe.boot import get_bootinfo
 	from frappe.desk.doctype.note.note import get_unseen_notes
 	from frappe.utils.change_log import get_change_log
+	from frappe.utils.legacy_gravatar_cleanup import (
+		should_show_gravatar_deletion_prompt,
+	)
 
 	bootinfo = None
 	if not getattr(frappe.conf, "disable_session_cache", None):
@@ -182,6 +185,7 @@ def get():
 	bootinfo["navbar_settings"] = frappe.client_cache.get_doc("Navbar Settings")
 	bootinfo.has_app_updates = has_app_update_notifications()
 	bootinfo.show_external_link_warning = frappe.get_system_settings("show_external_link_warning")
+	bootinfo.show_gravatar_deletion_prompt = should_show_gravatar_deletion_prompt()
 
 	return bootinfo
 
@@ -219,6 +223,7 @@ class Session:
 		self.sid = cstr(
 			frappe.form_dict.pop("sid", None) or unquote(frappe.request.cookies.get("sid", "Guest"))
 		)
+		assert isinstance(self.sid, str), "sid must be a string after cstr normalization"
 		self.user = user
 		self.user_type = user_type
 		self.full_name = full_name
@@ -296,6 +301,10 @@ class Session:
 			user.run_notifications("on_update")
 			frappe.db.commit()
 
+		assert (self.user == "Guest") == (sid == "Guest"), (
+			"Guest user must use the shared 'Guest' sid and vice versa"
+		)
+
 	def insert_session_record(self):
 		Sessions = frappe.qb.DocType("Sessions")
 		now = frappe.utils.now()
@@ -370,7 +379,7 @@ class Session:
 
 			if self.time_diff > expiry or (
 				(session_end := session_data.get("session_end"))
-				and datetime.now(tz=timezone.utc) > datetime.fromisoformat(session_end)
+				and datetime.now(tz=UTC) > datetime.fromisoformat(session_end)
 			):
 				self._delete_session()
 				data = None
@@ -416,32 +425,42 @@ class Session:
 		last_updated = self.data.data.last_updated
 		time_diff = frappe.utils.time_diff_in_seconds(now, last_updated) if last_updated else None
 
+		threshold = min(get_expiry_in_seconds() / 2, 600) or 600
+
 		# database persistence is secondary, don't update it too often
 		updated_in_db = False
 		if (
-			force or (time_diff is None) or (time_diff > 600) or self._update_in_cache
+			force or (time_diff is None) or (time_diff > threshold) or self._update_in_cache
 		) and not frappe.flags.read_only:
 			self.data.data.last_updated = now
 			self.data.data.lang = str(frappe.lang)
 			self.data.data.session_ip = frappe.local.request_ip
 
 			Sessions = frappe.qb.DocType("Sessions")
-			# update sessions table
-			(
-				frappe.qb.update(Sessions)
-				.where(Sessions.sid == self.data["sid"])
-				.set(
-					Sessions.sessiondata,
-					frappe.as_json(self.data["data"], indent=None, separators=(",", ":")),
-				)
-				.set(Sessions.lastupdate, now)
-			).run()
+			try:
+				# update sessions table
+				(
+					frappe.qb.update(Sessions)
+					.where(Sessions.sid == self.data["sid"])
+					.set(
+						Sessions.sessiondata,
+						frappe.as_json(self.data["data"], indent=None, separators=(",", ":")),
+					)
+					.set(Sessions.lastupdate, now)
+				).run()
 
-			frappe.db.set_value("User", frappe.session.user, "last_active", now, update_modified=False)
+				frappe.db.set_value("User", frappe.session.user, "last_active", now, update_modified=False)
 
-			frappe.db.commit(chain=True)
-			updated_in_db = True
-			frappe.cache.hset("session", self.sid, self.data)
+				frappe.db.commit(chain=True)
+			except frappe.QueryDeadlockError:
+				# A concurrent request updated this session row first (on postgres a REPEATABLE READ
+				# write conflict surfaces as a serialization failure). Persistence here is best-effort
+				# -- the cache is the source of truth and the next request will persist -- so roll back
+				# the conflicting transaction rather than error out of this after-response hook.
+				frappe.db.rollback()
+			else:
+				updated_in_db = True
+				frappe.cache.hset("session", self.sid, self.data)
 
 		return updated_in_db
 
@@ -482,4 +501,5 @@ def get_expiry_period():
 	if len(exp_sec.split(":")) == 2:
 		exp_sec = exp_sec + ":00"
 
+	assert len(exp_sec.split(":")) == 3, "expiry period must be normalized to HH:MM:SS"
 	return exp_sec

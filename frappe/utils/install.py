@@ -3,6 +3,8 @@
 import getpass
 
 import frappe
+from frappe.desk.doctype.notification_type.notification_type import install_notification_types
+from frappe.email.doctype.notification.notification import install_notification_templates
 from frappe.geo.doctype.country.country import import_country_and_currency
 from frappe.utils import cint
 from frappe.utils.password import update_password
@@ -52,6 +54,13 @@ def after_install():
 	_clear_test_log()
 
 	add_standard_navbar_items()
+
+	# standard notification types (must precede templates: the Notification
+	# `notification_type` field defaults to "Alert", so templates link to it)
+	install_notification_types()
+
+	# default templates
+	install_notification_templates()
 
 	frappe.db.commit()
 
@@ -186,10 +195,10 @@ def auto_generate_icons_and_sidebar(app_name=None):
 	)
 
 	try:
-		print("Creating Desktop Icons")
-		create_desktop_icons()
 		print("Creating Workspace Sidebars")
 		create_workspace_sidebar_for_workspaces()
+		print("Creating Desktop Icons")
+		create_desktop_icons()
 		# Save the generated icons
 		frappe.db.commit()  # nosemgrep
 		# Save the genreated sidebar links
@@ -200,7 +209,7 @@ def auto_generate_icons_and_sidebar(app_name=None):
 
 def delete_desktop_icon_and_sidebar(app_name, dry_run=False):
 	frappe.get_hooks(app_name=app_name)
-	app_title = frappe.get_hooks(app_name=app_name)["app_title"][0]
+	app_title = frappe.get_hooks("app_name", app_name=app_name)[0]
 	icons_to_be_deleted = frappe.get_all(
 		"Desktop Icon",
 		pluck="name",

@@ -1,22 +1,24 @@
-<div class="website-list-filters">
+<div class="website-list-filters my-4">
 	<div class="row">
 		<div class="col-6">
 			<form class="form-inline form-search" action="/{{ pathname }}">
 				<div class="input-group">
 					<input class="form-control" doctype="text" name="txt"
 						placeholder="Search..." value="{{ txt or '' }}">
-					<span class="input-group-btn">
+					<div class="input-group-append">
 						<button class="btn btn-light" type="submit">
-							<i class="fa fa-search"></i></button>
-					</span>
+						<span class="desktop-search-icon">
+							<svg class="icon icon-xs"><use href="#icon-search"></use></svg>
+						</span>
+						</button>
+					</div>
 				</div>
 			</form>
 		</div>
 	</div>
 	{% if txt %}
-	<div>
-		<div class="filter-message small text-muted">Results filtered by <b>{{ txt }}</b>.
-			<a href="/{{ pathname }}" class="text-muted">( <span class="close-inline">&times;</span> {{ _("clear") }} )</a></div>
-	</div>
+		<div class="filter-message small text-muted">
+			Results filtered by <b>{{ txt }}</b>.
+		</div>
 	{% endif %}
 </div>

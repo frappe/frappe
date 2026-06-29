@@ -64,6 +64,7 @@ class TestBoilerPlate(unittest.TestCase):
 			"__init__.py",
 			"hooks.py",
 			"patches.txt",
+			"patches",
 			"templates",
 			"www",
 			"config",

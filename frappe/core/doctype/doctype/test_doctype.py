@@ -123,6 +123,21 @@ class TestDocType(IntegrationTestCase):
 		doc1.delete()
 		doc2.delete()
 
+	def test_change_field_type_with_incompatible_values(self):
+		if frappe.db.exists("DocType", "Test Field Type Change"):
+			frappe.delete_doc("DocType", "Test Field Type Change")
+
+		dt = new_doctype("Test Field Type Change")
+		dt.insert()
+
+		doc = frappe.new_doc("Test Field Type Change")
+		doc.some_fieldname = "not a number"
+		doc.insert()
+
+		dt.fields[0].fieldtype = "Int"
+		self.assertRaises(frappe.ValidationError, dt.save)
+		frappe.db.rollback()
+
 	def test_validate_search_fields(self):
 		doc = new_doctype("Test Search Fields")
 		doc.search_fields = "some_fieldname"
@@ -535,6 +550,25 @@ class TestDocType(IntegrationTestCase):
 
 		self.assertRaises(InvalidFieldNameError, validate_links_table_fieldnames, doc)
 
+	def test_deduplicate_document_links(self):
+		"""Test that duplicate document links are automatically removed during validation."""
+		doc = new_doctype("Test Deduplicate Links")
+
+		doc.append("links", {"link_doctype": "User", "link_fieldname": "email"})
+		doc.append("links", {"link_doctype": "User", "link_fieldname": "email"})
+		doc.append("links", {"link_doctype": "User", "link_fieldname": "email"})
+		doc.append("links", {"link_doctype": "User", "link_fieldname": "first_name"})
+		doc.append("links", {"link_doctype": "Role", "link_fieldname": "name"})
+
+		self.assertEqual(len(doc.links), 5)
+		doc.deduplicate_document_links()
+		self.assertEqual(len(doc.links), 3)
+
+		link_tuples = [(link.link_doctype, link.link_fieldname) for link in doc.links]
+		self.assertIn(("User", "email"), link_tuples)
+		self.assertIn(("User", "first_name"), link_tuples)
+		self.assertIn(("Role", "name"), link_tuples)
+
 	def test_create_virtual_doctype(self):
 		"""Test virtual DocType."""
 		virtual_doc = new_doctype("Test Virtual Doctype")
@@ -652,6 +686,51 @@ class TestDocType(IntegrationTestCase):
 		os.access(frappe.get_app_path("frappe"), os.W_OK), "Only run if frappe app paths is writable"
 	)
 	@patch.dict(frappe.conf, {"developer_mode": 1})
+	def test_standard_doctype_insert_with_deferred_export(self):
+		import shutil
+
+		from frappe.utils import CallbackManager
+
+		previous_request = getattr(frappe.local, "request", None)
+		frappe.local.request = frappe._dict(after_response=CallbackManager())
+		doctype = None
+		controller_folder = None
+		method_calls = []
+
+		original_run_module_method = DocType.run_module_method
+
+		def spy(self, method):
+			method_calls.append(method)
+			return original_run_module_method(self, method)
+
+		try:
+			with patch.object(DocType, "run_module_method", spy):
+				doctype = new_doctype(custom=0).insert()
+				# Module hooks must be deferred until after the controller file exists.
+				self.assertEqual(method_calls, [])
+
+				frappe.local.request.after_response.run()
+				self.assertEqual(method_calls, ["on_doctype_update", "after_doctype_insert"])
+
+			controller_folder = frappe.get_module_path(doctype.module, "doctype", frappe.scrub(doctype.name))
+			controller_path = frappe.get_module_path(
+				doctype.module, "doctype", frappe.scrub(doctype.name), f"{frappe.scrub(doctype.name)}.py"
+			)
+			self.assertTrue(os.path.exists(controller_path))
+		finally:
+			try:
+				if doctype and frappe.db.exists("DocType", doctype.name):
+					doctype.delete()
+					frappe.db.commit()
+			finally:
+				if controller_folder:
+					shutil.rmtree(controller_folder, ignore_errors=True)
+				frappe.local.request = previous_request
+
+	@unittest.skipUnless(
+		os.access(frappe.get_app_path("frappe"), os.W_OK), "Only run if frappe app paths is writable"
+	)
+	@patch.dict(frappe.conf, {"developer_mode": 1})
 	def test_export_types(self):
 		"""Export python types."""
 		import ast
@@ -763,10 +842,9 @@ class TestDocType(IntegrationTestCase):
 		doctype = new_doctype(
 			fields=[
 				{
-					"fieldname": "cover_image",
-					"fieldtype": "Attach Image",
-					"label": "Cover Image",
-					"reqd": 1,  # mandatory
+					"fieldname": "btn",
+					"fieldtype": "Button",
+					"label": "Btn",
 				},
 				{
 					"fieldname": "book_name",

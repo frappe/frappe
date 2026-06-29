@@ -6,6 +6,7 @@
 	<title>{{ title }}</title>
 	<meta name="generator" content="frappe">
 	{{ include_style('print.bundle.css') }}
+	{{ include_script('print.bundle.js') }}
 	{% if print_style %}
 		<style>
 		{{ print_style }}
@@ -18,7 +19,7 @@
 			{{ _("Print") }}
 		</a>
 		<a class="p-2"
-			href="/api/method/frappe.utils.print_format.download_pdf?doctype={{doctype|e}}&name={{name|e}}&format={{print_format|e}}&letterhead={{letterhead|e}}&no_letterhead={{no_letterhead|e}}&_lang={{lang|e}}&key={{key|e}}">
+			href="/api/method/frappe.utils.print_format.download_pdf?doctype={{doctype|e}}&name={{name|e}}&format={{print_format|e}}&letterhead={{letterhead|e}}&no_letterhead={{no_letterhead|e}}&_lang={{lang|e}}&key={{key|e}}&pdf_generator={{pdf_generator|e}}">
 			{{ _('Get PDF') }}
 		</a>
 	</div>
@@ -43,6 +44,7 @@
 				footer_html.style.order = 1;
 				footer_html.style.marginTop = '20px';
 			}
+			document.querySelectorAll("svg[data-barcode-value]").forEach(render_barcode)
 		});
 	</script>
 </body>

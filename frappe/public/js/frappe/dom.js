@@ -318,14 +318,14 @@ frappe.get_data_pill = (
 		<button class="data-pill btn" style="${style}">
 			<div class="flex align-center ellipsis">
 				${image ? image : ""}
-				<span class="pill-label">${label} </span>
+				<span class="pill-label ellipsis">${label} </span>
 			</div>
 		</button>
 	`);
 	if (remove_action) {
 		let remove_btn = $(`
-			<span class="remove-btn cursor-pointer">
-				${frappe.utils.icon("close", "sm", "es-icon")}
+			<span class="remove-btn cursor-pointer flex align-items-center">
+				${frappe.utils.icon("x", "sm")}
 			</span>
 		`);
 		if (typeof remove_action === "function") {
@@ -347,12 +347,12 @@ frappe.get_modal = function (title, content) {
 						<span class="indicator hidden"></span>
 						<h4 class="modal-title">${title}</h4>
 					</div>
-					<div class="modal-actions">
-						<button class="btn btn-modal-minimize btn-link hide">
+					<div class="modal-actions d-flex">
+						<button class="btn btn-ghost btn-modal-minimize icon-btn hide">
 							${frappe.utils.icon("collapse")}
 						</button>
-						<button class="btn btn-modal-close btn-link" data-dismiss="modal">
-							${frappe.utils.icon("close", "sm")}
+						<button class="btn btn-ghost btn-modal-close icon-btn" data-dismiss="modal">
+							${frappe.utils.icon("x", "sm")}
 						</button>
 					</div>
 				</div>

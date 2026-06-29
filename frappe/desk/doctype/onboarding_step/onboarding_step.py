@@ -1,14 +1,14 @@
 # Copyright (c) 2020, Frappe Technologies and contributors
 # License: MIT. See LICENSE
 
-import json
-
 import frappe
 from frappe import _
 from frappe.model.document import Document
 
 
 class OnboardingStep(Document):
+	_DOCTYPE_NAME = "Onboarding Step"
+
 	# begin: auto-generated types
 	# This code is auto-generated. Do not modify anything in this block.
 
@@ -18,7 +18,7 @@ class OnboardingStep(Document):
 		from frappe.types import DF
 
 		action: DF.Literal[
-			"Create Entry", "Update Settings", "Show Form Tour", "View Report", "Go to Page", "Watch Video"
+			"Create Entry", "Update Settings", "Show Form Tour", "View Report", "Go to Page", "View Docs"
 		]
 		action_label: DF.Data | None
 		callback_message: DF.SmallText | None
@@ -36,6 +36,7 @@ class OnboardingStep(Document):
 		report_description: DF.Data | None
 		report_reference_doctype: DF.Data | None
 		report_type: DF.Data | None
+		route_options: DF.Code | None
 		show_form_tour: DF.Check
 		show_full_form: DF.Check
 		title: DF.Data
@@ -50,9 +51,9 @@ class OnboardingStep(Document):
 
 
 @frappe.whitelist()
-def get_onboarding_steps(ob_steps):
+def get_onboarding_steps(ob_steps: str | list):
 	steps = []
-	for s in json.loads(ob_steps):
+	for s in frappe.parse_json(ob_steps):
 		doc = frappe.get_doc("Onboarding Step", s.get("step"))
 		step = doc.as_dict().copy()
 		step.label = _(doc.title)

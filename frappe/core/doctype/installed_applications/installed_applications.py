@@ -6,6 +6,7 @@ import json
 import frappe
 from frappe import _
 from frappe.model.document import Document
+from frappe.utils.caching import redis_cache
 
 
 class InvalidAppOrder(frappe.ValidationError):
@@ -13,6 +14,8 @@ class InvalidAppOrder(frappe.ValidationError):
 
 
 class InstalledApplications(Document):
+	_DOCTYPE_NAME = "Installed Applications"
+
 	# begin: auto-generated types
 	# This code is auto-generated. Do not modify anything in this block.
 
@@ -114,8 +117,7 @@ def update_installed_apps_order(new_order: list[str] | str):
 	"""
 	frappe.only_for("System Manager")
 
-	if isinstance(new_order, str):
-		new_order = json.loads(new_order)
+	new_order = frappe.parse_json(new_order)
 
 	frappe.local.request_cache and frappe.local.request_cache.clear()
 	existing_order = frappe.get_installed_apps(_ensure_on_bench=True)
@@ -152,24 +154,16 @@ def get_installed_app_order() -> list[str]:
 	return frappe.get_installed_apps(_ensure_on_bench=True)
 
 
-@frappe.request_cache
 def get_setup_wizard_completed_apps():
 	"""Get list of apps that have completed setup wizard"""
-	return frappe.get_all(
-		"Installed Application",
-		filters={"has_setup_wizard": 1, "is_setup_complete": 1},
-		pluck="app_name",
-	)
+	apps: InstalledApplications = frappe.client_cache.get_doc("Installed Applications")
+	return [a.app_name for a in apps.installed_applications if a.has_setup_wizard and a.is_setup_complete]
 
 
-@frappe.request_cache
 def get_setup_wizard_not_required_apps():
 	"""Get list of apps that do not require setup wizard"""
-	return frappe.get_all(
-		"Installed Application",
-		filters={"has_setup_wizard": 0},
-		pluck="app_name",
-	)
+	apps: InstalledApplications = frappe.client_cache.get_doc("Installed Applications")
+	return [a.app_name for a in apps.installed_applications if not a.has_setup_wizard]
 
 
 @frappe.request_cache
@@ -190,17 +184,14 @@ def get_apps_with_incomplete_dependencies(current_app):
 	return pending_apps
 
 
-@frappe.request_cache
 def get_setup_wizard_pending_apps(apps=None):
 	"""Get list of apps that have completed setup wizard"""
 
-	filters = {"has_setup_wizard": 1, "is_setup_complete": 0}
+	apps: InstalledApplications = frappe.client_cache.get_doc("Installed Applications")
+	pending_apps = [
+		a.app_name for a in apps.installed_applications if a.has_setup_wizard and not a.is_setup_complete
+	]
 	if apps:
-		filters["app_name"] = ["in", apps]
+		pending_apps = [a for a in pending_apps if a in apps]
 
-	return frappe.get_all(
-		"Installed Application",
-		filters=filters,
-		order_by="idx",
-		pluck="app_name",
-	)
+	return pending_apps

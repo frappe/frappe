@@ -1,6 +1,8 @@
 # Copyright (c) 2015, Frappe Technologies and contributors
 # License: MIT. See LICENSE
 
+from typing import Any
+
 import frappe
 from frappe import _
 from frappe.core.doctype.submission_queue.submission_queue import queue_submission
@@ -10,6 +12,8 @@ from frappe.utils.scheduler import is_scheduler_inactive
 
 
 class BulkUpdate(Document):
+	_DOCTYPE_NAME = "Bulk Update"
+
 	# begin: auto-generated types
 	# This code is auto-generated. Do not modify anything in this block.
 
@@ -29,24 +33,34 @@ class BulkUpdate(Document):
 	def bulk_update(self):
 		self.check_permission("write")
 		limit = self.limit if self.limit and cint(self.limit) < 500 else 500
-
-		condition = ""
+		query_args = {"doctype": self.document_type, "limit": limit, "pluck": "name"}
 		if self.condition:
-			if ";" in self.condition:
-				frappe.throw(_("; not allowed in condition"))
+			try:
+				filters = frappe.parse_json(self.condition)
+				if isinstance(filters, dict):
+					if "or_filters" in filters:
+						query_args["or_filters"] = filters.pop("or_filters")
+				query_args["filters"] = filters
+			except Exception as e:
+				frappe.throw(_("The Bulk Update could not happen due to <b>{0}</b>").format(str(e)))
 
-			condition = f" where {self.condition}"
-
-		docnames = frappe.db.sql_list(
-			f"""select name from `tab{self.document_type}`{condition} limit {limit} offset 0"""
-		)
+		docnames = frappe.get_all(**query_args)
 		return submit_cancel_or_update_docs(
 			self.document_type, docnames, "update", {self.field: self.update_value}
 		)
 
 
 @frappe.whitelist()
-def submit_cancel_or_update_docs(doctype, docnames, action="submit", data=None, task_id=None):
+def submit_cancel_or_update_docs(
+	doctype: str,
+	docnames: str | list[str],
+	action: str = "submit",
+	data: str | dict[str, Any] | None = None,
+	task_id: str | None = None,
+) -> list[str] | None:
+	if not frappe.get_cached_value("User", frappe.session.user, "bulk_actions"):
+		frappe.throw(_("You are not allowed to perform bulk actions."), frappe.PermissionError)
+
 	if isinstance(docnames, str):
 		docnames = frappe.parse_json(docnames)
 
@@ -72,6 +86,7 @@ def _bulk_action(doctype, docnames, action, data, task_id=None):
 	if data:
 		data = frappe.parse_json(data)
 
+	child_table_updates = data.get("child_table_updates") if data else None
 	failed = []
 	num_documents = len(docnames)
 
@@ -90,7 +105,28 @@ def _bulk_action(doctype, docnames, action, data, task_id=None):
 				doc.cancel()
 				message = _("Cancelling {0}").format(doctype)
 			elif action == "update" and not doc.docstatus.is_cancelled():
-				doc.update(data)
+				# Handle child table updates
+				if child_table_updates:
+					table_fields = doc.meta.get_table_fields()
+					for child_doctype, field_updates in child_table_updates.items():
+						# Find the table field that contains this child doctype
+						table_fieldname = next(
+							(field.fieldname for field in table_fields if field.options == child_doctype),
+							None,
+						)
+
+						if table_fieldname and hasattr(doc, table_fieldname):
+							child_meta = frappe.get_meta(child_doctype)
+							child_docs = getattr(doc, table_fieldname)
+							for child_doc in child_docs:
+								for fieldname, value in field_updates.items():
+									if child_meta.has_field(fieldname):
+										setattr(child_doc, fieldname, value)
+
+				# Handle regular field updates
+				if data:
+					doc.update(data)
+
 				doc.save()
 				message = _("Updating {0}").format(doctype)
 			else:
@@ -104,6 +140,7 @@ def _bulk_action(doctype, docnames, action, data, task_id=None):
 			)
 
 		except Exception:
+			frappe.log_error("Bulk action failed")
 			failed.append(docname)
 			frappe.db.rollback()
 

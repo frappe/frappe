@@ -9,6 +9,8 @@ from frappe.model.document import Document
 
 
 class KanbanBoard(Document):
+	_DOCTYPE_NAME = "Kanban Board"
+
 	# begin: auto-generated types
 	# This code is auto-generated. Do not modify anything in this block.
 
@@ -66,7 +68,7 @@ def has_permission(doc, ptype, user):
 
 
 @frappe.whitelist()
-def get_kanban_boards(doctype):
+def get_kanban_boards(doctype: str):
 	"""Get Kanban Boards for doctype to show in List View"""
 	return frappe.get_list(
 		"Kanban Board",
@@ -76,7 +78,7 @@ def get_kanban_boards(doctype):
 
 
 @frappe.whitelist()
-def add_column(board_name, column_title):
+def add_column(board_name: str, column_title: str):
 	"""Adds new column to Kanban Board"""
 	doc = frappe.get_doc("Kanban Board", board_name)
 	for col in doc.columns:
@@ -89,7 +91,7 @@ def add_column(board_name, column_title):
 
 
 @frappe.whitelist()
-def archive_restore_column(board_name, column_title, status):
+def archive_restore_column(board_name: str, column_title: str, status: str):
 	"""Set column's status to status"""
 	doc = frappe.get_doc("Kanban Board", board_name)
 	for col in doc.columns:
@@ -101,7 +103,7 @@ def archive_restore_column(board_name, column_title, status):
 
 
 @frappe.whitelist()
-def update_order(board_name, order):
+def update_order(board_name: str, order: str | dict):
 	"""Save the order of cards in columns"""
 	board = frappe.get_doc("Kanban Board", board_name)
 	doctype = board.reference_doctype
@@ -112,7 +114,7 @@ def update_order(board_name, order):
 		return board, updated_cards
 
 	fieldname = board.field_name
-	order_dict = json.loads(order)
+	order_dict = frappe.parse_json(order)
 
 	for col_name, cards in order_dict.items():
 		for card in cards:
@@ -129,7 +131,14 @@ def update_order(board_name, order):
 
 
 @frappe.whitelist()
-def update_order_for_single_card(board_name, docname, from_colname, to_colname, old_index, new_index):
+def update_order_for_single_card(
+	board_name: str,
+	docname: str,
+	from_colname: str,
+	to_colname: str,
+	old_index: str | int,
+	new_index: str | int,
+):
 	"""Save the order of cards in columns"""
 	board = frappe.get_doc("Kanban Board", board_name)
 	doctype = board.reference_doctype
@@ -171,7 +180,7 @@ def get_kanban_column_order_and_index(board, colname):
 
 
 @frappe.whitelist()
-def add_card(board_name, docname, colname):
+def add_card(board_name: str, docname: str, colname: str):
 	board = frappe.get_doc("Kanban Board", board_name)
 
 	frappe.has_permission(board.reference_doctype, "write", throw=True)
@@ -185,7 +194,7 @@ def add_card(board_name, docname, colname):
 
 
 @frappe.whitelist()
-def quick_kanban_board(doctype, board_name, field_name, project=None):
+def quick_kanban_board(doctype: str, board_name: str, field_name: str, project: str | None = None):
 	"""Create new KanbanBoard quickly with default options"""
 
 	doc = frappe.new_doc("Kanban Board")
@@ -221,17 +230,17 @@ def quick_kanban_board(doctype, board_name, field_name, project=None):
 
 def get_order_for_column(board, colname):
 	filters = [[board.reference_doctype, board.field_name, "=", colname]]
-	if board.filters:
-		filters.append(frappe.parse_json(board.filters)[0])
+	if board.filters and (parsed_filters := frappe.parse_json(board.filters)):
+		filters.append(parsed_filters[0])
 
 	return frappe.as_json(frappe.get_list(board.reference_doctype, filters=filters, pluck="name"))
 
 
 @frappe.whitelist()
-def update_column_order(board_name, order):
+def update_column_order(board_name: str, order: str | list):
 	"""Set the order of columns in Kanban Board"""
 	board = frappe.get_doc("Kanban Board", board_name)
-	order = json.loads(order)
+	order = frappe.parse_json(order)
 	old_columns = board.columns
 	new_columns = []
 
@@ -260,7 +269,7 @@ def update_column_order(board_name, order):
 
 
 @frappe.whitelist()
-def set_indicator(board_name, column_name, indicator):
+def set_indicator(board_name: str, column_name: str, indicator: str):
 	"""Set the indicator color of column"""
 	board = frappe.get_doc("Kanban Board", board_name)
 
@@ -273,8 +282,8 @@ def set_indicator(board_name, column_name, indicator):
 
 
 @frappe.whitelist()
-def save_settings(board_name: str, settings: str) -> Document:
-	settings = json.loads(settings)
+def save_settings(board_name: str, settings: str | dict) -> Document:
+	settings = frappe.parse_json(settings)
 	doc = frappe.get_doc("Kanban Board", board_name)
 
 	fields = settings["fields"]

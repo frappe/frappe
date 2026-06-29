@@ -122,7 +122,7 @@ frappe.ui.OnboardingTour = class OnboardingTour {
 			popover_element,
 			modal_trigger,
 		} = step_info;
-		let element = cur_page?.page.querySelector(element_selector);
+		let element = cur_page?.page?.querySelector(element_selector);
 		!element && (element = document.querySelector(element_selector));
 		if (element && parent_element_selector) {
 			element = element.closest(parent_element_selector);
@@ -261,9 +261,9 @@ frappe.ui.init_onboarding_tour = () => {
 	// Also lot of elements are hidden on mobile so until we find a better way to do it.
 	if (!window.matchMedia("(min-device-width: 992px)").matches) return;
 
-	typeof frappe.boot.onboarding_tours == "undefined" && frappe.boot.onboarding_tours == [];
+	typeof frappe.boot.onboarding_tours == "undefined" && (frappe.boot.onboarding_tours = []);
 	typeof frappe.boot.user.onboarding_status == "undefined" &&
-		frappe.boot.user.onboarding_status == {};
+		(frappe.boot.user.onboarding_status = {});
 	let route = frappe.router.current_route;
 	if (route?.[0] === "") return;
 
@@ -337,8 +337,9 @@ frappe.ui.init_onboarding_tour = () => {
 	const tour = (frappe.ui.currentTourInstance = new frappe.ui.OnboardingTour());
 	// wait for workspace and/or data to load.
 	const wait_for_data = setInterval(() => {
-		if (cur_page?.page.querySelector(".workspace-sidebar-skeleton")) return;
-		if (cur_page?.page.querySelector(".workspace-skeleton")) return;
+		if (!cur_page?.page) return;
+		if (cur_page.page.querySelector(".workspace-sidebar-skeleton")) return;
+		if (cur_page.page.querySelector(".workspace-skeleton")) return;
 		if (document.body.getAttribute("data-ajax-state") === "complete") {
 			frappe.utils.sleep(500).then(() => {
 				tour.init({

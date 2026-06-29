@@ -12,17 +12,8 @@
 	cursor: pointer;
 }
 
-.mark-all-read {
-	margin-top: 2px;
-	margin-right: 4px;
-	cursor: pointer;
-}
-
 .close-notification-dialogue {
 	cursor: pointer;
-	.icon {
-		stroke-width: 2px;
-	}
 }
 
 .notification-settings {
@@ -44,6 +35,52 @@
 	display: none;
 }
 
+.sidebar-notification .sidebar-item-icon.indicator,
+.desktop-notification-icon.indicator {
+	position: relative;
+
+	&::before {
+		position: absolute;
+		left: auto;
+		height: 6px;
+		width: 6px;
+		margin: 0;
+		z-index: 1;
+	}
+}
+
+.desktop-notification-icon.indicator::before {
+	top: 0;
+	right: 0;
+}
+
+.sidebar-notification .sidebar-item-icon.indicator::before {
+	top: 5px;
+	right: 6px;
+	height: 5.5px;
+	width: 5.5px;
+	transition: opacity 0.2s ease-in-out;
+}
+
+.sidebar-notification:hover .sidebar-item-icon.indicator::before {
+	opacity: 0;
+}
+
+.sidebar-notification-count {
+	min-width: 20px;
+	padding: 1px 7px;
+	background-color: var(--bg-gray-100);
+	color: var(--text-muted);
+	font-size: var(--text-sm);
+	line-height: 1.2;
+	text-align: center;
+	border-radius: 10px;
+}
+
+.sidebar-notification .standard-sidebar-item .item-anchor {
+	overflow: visible;
+}
+
 .mark-read {
 	display: none;
 	margin-left: 10px;
@@ -60,7 +97,7 @@
 	min-height: 480px;
 	position: absolute;
 	top: 0;
-	box-shadow: var(--shadow-2xl);
+	box-shadow: rgba(0, 0, 0, 0.1) 8px 0px 8px;
 	background-color: var(--bg-color);
 	height: 100vh;
 	overflow: hidden;
@@ -125,7 +162,7 @@
 .recent-item {
 	padding: 10px;
 	margin: 4px 0px;
-	border-radius: var(--border-radius-md, 8px);
+	border-radius: var(--radius-md, 8px);
 	white-space: normal;
 	display: flex;
 	@include get_textstyle("base", "regular");
@@ -162,6 +199,7 @@
 			border: 2px solid var(--invert-neutral);
 			border-radius: 1000px;
 		}
+
 		.notification-body::before {
 			background: var(--invert-neutral);
 		}
@@ -237,14 +275,6 @@
 	}
 }
 
-.recent-item.open-docs {
-	@include flex(flex, space-between, null, null);
-
-	.indicator-pill {
-		margin: 0px;
-	}
-}
-
 .targets-container {
 	display: grid;
 	grid-template-columns: 1fr 1fr;
@@ -315,6 +345,7 @@
 @include media-breakpoint-down(sm) {
 	.dropdown-notifications {
 		.notifications-list {
+			position: fixed;
 			max-height: 100vh;
 			min-width: 100vw;
 			width: calc(90vw - 60px);

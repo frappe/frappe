@@ -44,7 +44,25 @@ frappe.ui.Page = class Page {
 		this.wrapper = $(this.parent);
 		this.add_main_section();
 		this.setup_scroll_handler();
-		this.setup_sidebar_toggle();
+		this.setup_main_sidebar_toggle();
+		this.setup_awesomebar();
+	}
+
+	setup_awesomebar() {
+		if (frappe.boot.desk_settings.search_bar && !frappe.app.awesome_bar) {
+			let awesome_bar = new frappe.search.AwesomeBar();
+			awesome_bar.setup(".navbar-modal-search-mobile");
+			frappe.app.awesome_bar = awesome_bar;
+			frappe.search.utils.make_function_searchable(
+				frappe.utils.generate_tracking_url,
+				__("Generate Tracking URL")
+			);
+			if (frappe.model.can_read("RQ Job")) {
+				frappe.search.utils.make_function_searchable(function () {
+					frappe.set_route("List", "RQ Job");
+				}, __("Background Jobs"));
+			}
+		}
 	}
 
 	setup_scroll_handler() {
@@ -59,8 +77,6 @@ frappe.ui.Page = class Page {
 					(frappe.boot.read_only || frappe.boot.user.impersonated_by)
 				) {
 					$(".page-head").css("top", "-15px");
-				} else if (frappe.boot.read_only || frappe.boot.user.impersonated_by) {
-					$(".page-head").css("top", "var(--navbar-height)");
 				}
 				last_scroll = current_scroll;
 			}, 500)
@@ -137,7 +153,7 @@ frappe.ui.Page = class Page {
 		this.container = this.wrapper.find(".page-body");
 		this.sidebar = this.wrapper.find(".layout-side-section");
 		this.footer = this.wrapper.find(".layout-footer");
-		this.indicator = this.wrapper.find(".indicator-pill");
+		this.indicator = this.wrapper.find(".title-area .page-indicator-pill");
 
 		this.page_actions = this.wrapper.find(".page-actions");
 		this.filters = this.wrapper.find(".filters");
@@ -153,6 +169,7 @@ frappe.ui.Page = class Page {
 
 		this.standard_actions = this.page_actions.find(".standard-actions");
 		this.custom_actions = this.page_actions.find(".custom-actions");
+		this.custom_mobile_actions = this.page_actions.find(".custom-mobile-actions");
 
 		this.page_form = $('<div class="page-form row hide"></div>').prependTo(this.main);
 		this.inner_toolbar = this.custom_actions;
@@ -164,7 +181,12 @@ frappe.ui.Page = class Page {
 
 		// keyboard shortcuts
 		let menu_btn = this.menu_btn_group.find("button");
-		menu_btn.attr("title", __("Menu")).tooltip({ delay: { show: 600, hide: 100 } });
+		menu_btn
+			.attr("title", __("Menu"))
+			.tooltip({ delay: { show: 600, hide: 100 } })
+			.on("click mousedown", function () {
+				$(this).tooltip("hide");
+			});
 		frappe.ui.keys
 			.get_shortcut_group(this.page_actions[0])
 			.add(menu_btn, menu_btn.find(".menu-btn-group-label"));
@@ -195,68 +217,18 @@ frappe.ui.Page = class Page {
 			.appendTo(this.sidebar);
 	}
 
-	setup_sidebar_toggle() {
-		let sidebar_toggle = $(".page-head").find(".sidebar-toggle-btn");
-		let sidebar_wrapper = this.wrapper.find(".layout-side-section");
-		if (this.disable_sidebar_toggle || !sidebar_wrapper.length) {
-			sidebar_toggle.last().remove();
-			this.wrapper.addClass("no-list-sidebar");
-		} else {
-			if (!frappe.is_mobile()) {
-				sidebar_toggle.attr("title", __("Toggle Sidebar"));
-			}
-			sidebar_toggle.attr("aria-label", __("Toggle Sidebar"));
-			sidebar_toggle.tooltip({
-				delay: { show: 600, hide: 100 },
-				trigger: "hover",
-			});
-			sidebar_toggle.click(() => {
-				if (frappe.utils.is_xs() || frappe.utils.is_sm()) {
-					this.setup_overlay_sidebar();
-				} else {
-					sidebar_wrapper.toggle();
-				}
-				$(document.body).trigger("toggleSidebar");
-				this.update_sidebar_icon();
-			});
-		}
-	}
-
-	setup_overlay_sidebar() {
-		this.sidebar.find(".close-sidebar").remove();
-		let overlay_sidebar = this.sidebar.find(".overlay-sidebar").addClass("opened");
-		$('<div class="close-sidebar">').hide().appendTo(this.sidebar).fadeIn();
-		let scroll_container = $("html").css("overflow-y", "hidden");
-
-		this.sidebar.find(".close-sidebar").on("click", (e) => this.close_sidebar(e));
-		this.sidebar.on("click", "button:not(.dropdown-toggle)", (e) => this.close_sidebar(e));
-
-		this.close_sidebar = () => {
-			scroll_container.css("overflow-y", "");
-			this.sidebar.find("div.close-sidebar").fadeOut(() => {
-				overlay_sidebar
-					.removeClass("opened")
-					.find(".dropdown-toggle")
-					.removeClass("text-muted");
-			});
-		};
-	}
-
-	update_sidebar_icon() {
-		let sidebar_toggle = $(".page-head").find(".sidebar-toggle-btn");
-		let sidebar_toggle_icon = sidebar_toggle.find(".sidebar-toggle-icon");
-		let sidebar_wrapper = this.wrapper.find(".layout-side-section");
-		let is_sidebar_visible = $(sidebar_wrapper).is(":visible");
-		sidebar_toggle_icon.html(
-			frappe.utils.icon(
-				is_sidebar_visible ? "es-line-sidebar-collapse" : "es-line-sidebar-expand",
-				"md"
-			)
-		);
-	}
-
 	set_indicator(label, color) {
-		this.clear_indicator().removeClass("hide").html(`<span>${label}</span>`).addClass(color);
+		let indicator_html = `<span>${label}</span>`;
+		const is_mobile = frappe.is_mobile();
+		if (is_mobile) {
+			indicator_html = `<span class="indicator-doc-html" style="background-color: var(--${color}-400)"></span>`;
+		}
+		this.clear_indicator().removeClass("hide").html(indicator_html).attr("data-theme", color);
+
+		if (is_mobile) {
+			this.indicator.attr("title", label);
+			this.indicator.tooltip();
+		}
 	}
 
 	add_action_icon(icon, click, css_class = "", tooltip_label) {
@@ -284,10 +256,19 @@ frappe.ui.Page = class Page {
 		return button;
 	}
 
+	setup_main_sidebar_toggle() {
+		this.wrapper.find(".sidebar-toggle-btn.navbar-brand").on("click", (event) => {
+			frappe.app.sidebar.set_height();
+			frappe.app.sidebar.toggle_width();
+			frappe.app.sidebar.prevent_scroll();
+		});
+	}
+
 	clear_indicator() {
 		return this.indicator
 			.removeClass()
-			.addClass("indicator-pill no-indicator-dot whitespace-nowrap hide");
+			.removeAttr("data-theme")
+			.addClass("es-badge page-indicator-pill hide");
 	}
 
 	get_icon_label(icon, label) {
@@ -484,7 +465,9 @@ frappe.ui.Page = class Page {
 		let $icon = ``;
 
 		if (icon) {
-			$icon = `<span class="menu-item-icon">${frappe.utils.icon(icon)}</span>`;
+			$icon = `<span class="menu-item-icon flex align-items-center justify-items-center">${frappe.utils.icon(
+				icon
+			)}</span>`;
 		}
 
 		if (shortcut) {
@@ -494,9 +477,7 @@ frappe.ui.Page = class Page {
 					<a class="grey-link dropdown-item" href="#" onClick="return false;">
 						${$icon}
 						<span class="menu-item-label">${label}</span>
-						<kbd class="pull-right">
-							<span>${shortcut_obj.shortcut_label}</span>
-						</kbd>
+						<span class="menu-item-shortcut">${shortcut_obj.shortcut_label}</span>
 					</a>
 				</li>
 			`);
@@ -549,16 +530,7 @@ frappe.ui.Page = class Page {
 		} else {
 			shortcut_obj = shortcut;
 		}
-		// label
-		if (frappe.utils.is_mac()) {
-			shortcut_obj.shortcut_label = shortcut_obj.shortcut
-				.replace("Ctrl", "⌘")
-				.replace("Alt", "⌥");
-		} else {
-			shortcut_obj.shortcut_label = shortcut_obj.shortcut;
-		}
-
-		shortcut_obj.shortcut_label = shortcut_obj.shortcut_label.replace("Shift", "⇧");
+		shortcut_obj.shortcut_label = frappe.ui.keys.get_shortcut_label(shortcut_obj.shortcut);
 
 		// actual shortcut string
 		shortcut_obj.shortcut = shortcut_obj.shortcut.toLowerCase();
@@ -626,16 +598,20 @@ frappe.ui.Page = class Page {
 	}
 
 	set_inner_btn_group_as_primary(label) {
-		this.get_or_add_inner_group_button(label)
-			.find("button")
-			.removeClass("btn-default")
-			.addClass("btn-primary");
+		const group = this.get_or_add_inner_group_button(label);
+		const dropdown_items = group.find(".dropdown-menu .dropdown-item");
+
+		if (dropdown_items.length > 0) {
+			group.find("button").removeClass("btn-default").addClass("btn-primary");
+		} else {
+			group.toggleClass("hide", true);
+		}
 	}
 
 	btn_disable_enable(btn, response) {
 		if (response && response.then) {
 			btn.prop("disabled", true);
-			response.then(() => {
+			response.finally(() => {
 				btn.prop("disabled", false);
 			});
 		} else if (response && response.always) {
@@ -770,6 +746,7 @@ frappe.ui.Page = class Page {
 		if (icon) {
 			title = `${frappe.utils.icon(icon)} ${title}`;
 		}
+
 		let title_wrapper = this.$title_area.find(".title-text");
 		title_wrapper.html(title);
 		title_wrapper.attr("title", __(tooltip_label) || this.title);
@@ -839,7 +816,8 @@ frappe.ui.Page = class Page {
 			</div>
 		`);
 
-		if (!parent) parent = this.custom_actions;
+		if (!parent)
+			parent = frappe.is_mobile() ? this.custom_mobile_actions : this.custom_actions;
 		parent.removeClass("hide").append(custom_btn_group);
 
 		return custom_btn_group.find(".dropdown-menu");

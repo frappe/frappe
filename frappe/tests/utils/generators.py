@@ -2,6 +2,7 @@ import datetime
 import json
 import logging
 import os
+import tomllib
 from collections import defaultdict
 from collections.abc import Generator
 from functools import cache
@@ -9,8 +10,6 @@ from importlib import reload
 from pathlib import Path
 from types import MappingProxyType, ModuleType
 from typing import TYPE_CHECKING, Any
-
-import tomli
 
 import frappe
 from frappe.model.naming import revert_series_if_last
@@ -36,9 +35,13 @@ __all__ = [
 
 
 @cache
-def get_modules(doctype) -> tuple[str, ModuleType]:
+def get_modules(doctype) -> tuple[str | None, ModuleType | None]:
 	"""Get the modules for the specified doctype"""
 	module = frappe.db.get_value("DocType", doctype, "module")
+	if not module:
+		# DocType is not installed on this site (e.g. belongs to an uninstalled app);
+		# treat it as a dead-end leaf rather than raising DoesNotExistError.
+		return None, None
 	try:
 		test_module = load_doctype_module(doctype, module, "test_")
 		if test_module:
@@ -50,7 +53,7 @@ def get_modules(doctype) -> tuple[str, ModuleType]:
 
 
 # @cache - don't cache the recursion, code depends on its recurn value declining
-def get_missing_records_doctypes(doctype, visited=None) -> list[str]:
+def get_missing_records_doctypes(doctype, visited=None, _parent=None) -> list[str]:
 	"""Get the dependencies for the specified doctype in a depth-first manner"""
 
 	if visited is None:
@@ -63,7 +66,18 @@ def get_missing_records_doctypes(doctype, visited=None) -> list[str]:
 	# Mark as visited
 	visited.add(doctype)
 
-	_module, test_module = get_modules(doctype)
+	module, test_module = get_modules(doctype)
+	if module is None:
+		# DocType is not installed on this site; skip it instead of crashing the
+		# whole test run. This typically means a Link field points to a DocType
+		# from an optional/uninstalled app.
+		testing_logger.warning(
+			"Skipping test record generation for %r (linked from %r): DocType not installed on this site",
+			doctype,
+			_parent,
+		)
+		return []
+
 	meta = frappe.get_meta(doctype)
 	link_fields = meta.get_link_fields()
 
@@ -80,7 +94,7 @@ def get_missing_records_doctypes(doctype, visited=None) -> list[str]:
 	# Recursive depth-first traversal
 	result = []
 	for dep_doctype in unique_doctypes:
-		result.extend(get_missing_records_doctypes(dep_doctype, visited))
+		result.extend(get_missing_records_doctypes(dep_doctype, visited, _parent=doctype))
 
 	result.append(doctype)
 	return result
@@ -129,7 +143,7 @@ def load_test_records_for(index_doctype) -> dict[str, Any]:
 	toml_path = os.path.join(module_path, "test_records.toml")
 	if os.path.exists(toml_path):
 		with open(toml_path, "rb") as f:
-			return tomli.load(f)
+			return tomllib.load(f)
 
 	else:
 		return {}
@@ -138,9 +152,7 @@ def load_test_records_for(index_doctype) -> dict[str, Any]:
 # Test record generation
 
 
-def _generate_all_records_towards(
-	index_doctype, reset=False, commit=False
-) -> Generator[tuple[str, int], None, None]:
+def _generate_all_records_towards(index_doctype, reset=False, commit=False) -> Generator[tuple[str, int]]:
 	"""Generate test records for the given doctype and its dependencies."""
 
 	# NOTE: visited excludes dependency discovery of any index doctype which
@@ -156,7 +168,7 @@ def _generate_all_records_towards(
 
 def _generate_records_for(
 	index_doctype: str, reset: bool = False, commit: bool = False, initial_doctype: str | None = None
-) -> Generator[tuple[str, "Document"], None, None]:
+) -> Generator[tuple[str, "Document"]]:
 	"""Create and yield test records for a specific doctype."""
 	test_module: ModuleType
 
@@ -205,7 +217,7 @@ test_record_manager_instance = None
 
 def _sync_records(
 	index_doctype: str, test_records: dict[str, list], reset: bool = False, commit: bool = False
-) -> Generator[tuple[str, "Document"], None, None]:
+) -> Generator[tuple[str, "Document"]]:
 	"""Generate test objects for a register doctype from provided records, with caching and persistence."""
 	# NOTE: This method is called in roughly these situations:
 	# 1. First sync of a index doctype's records

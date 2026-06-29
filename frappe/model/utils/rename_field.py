@@ -166,9 +166,9 @@ def update_user_settings(doctype, old_fieldname, new_fieldname):
 	sync_user_settings()
 
 	user_settings = frappe.db.sql(
-		''' select user, doctype, data from `__UserSettings`
-		where doctype=%s and data like "%%%s%%"''',
-		(doctype, old_fieldname),
+		""" select user, doctype, data from `__UserSettings`
+		where doctype=%s and data like %s""",
+		(doctype, f"%{old_fieldname}%"),
 		as_dict=1,
 	)
 

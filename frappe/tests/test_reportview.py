@@ -2,11 +2,46 @@
 # License: MIT. See LICENSE
 
 import frappe
-from frappe.desk.reportview import export_query, extract_fieldnames
+from frappe.desk.reportview import export_query, extract_fieldnames, get, get_filter_dashboard_data, get_stats
 from frappe.tests import IntegrationTestCase
 
 
 class TestReportview(IntegrationTestCase):
+	def test_get_accepts_native_filters_and_fields(self):
+		# native dict/list payloads (JSON request body) instead of JSON strings
+		frappe.local.form_dict = frappe._dict(
+			doctype="ToDo",
+			filters={"status": "Open"},
+			fields=["name", "status"],
+		)
+		result = get()
+		self.assertIn("keys", result)
+		self.assertIn("values", result)
+
+	def test_get_stats_accepts_native(self):
+		# stats as native list (L738) and filters as native list (L740)
+		out = get_stats(stats=["_user_tags"], doctype="ToDo", filters=[["ToDo", "status", "=", "Open"]])
+		self.assertIsInstance(out, dict)
+
+	def test_get_filter_dashboard_data_accepts_native(self):
+		out = get_filter_dashboard_data(
+			stats=[{"name": "status", "type": "Select"}], doctype="ToDo", filters=[]
+		)
+		self.assertIsInstance(out, dict)
+
+	def test_export_query_with_totals_and_translate(self):
+		frappe.local.form_dict = frappe._dict(
+			doctype="DocType",
+			file_format_type="CSV",
+			fields=("name", "module", "issingle"),
+			filters={"issingle": 1, "module": "Core"},
+			add_totals_row=1,
+			translate_values=1,
+		)
+		export_query()
+		self.assertTrue(frappe.response["filename"].endswith(".csv"))
+		self.assertEqual(frappe.response["type"], "binary")
+
 	def test_csv(self):
 		from csv import QUOTE_ALL, QUOTE_MINIMAL, QUOTE_NONE, QUOTE_NONNUMERIC, DictReader
 		from io import StringIO

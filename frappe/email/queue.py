@@ -5,7 +5,7 @@ from datetime import timedelta
 import frappe
 from frappe import _, msgprint
 from frappe.utils import cint, cstr, get_url, now_datetime
-from frappe.utils.data import getdate
+from frappe.utils.data import add_to_date, getdate
 from frappe.utils.verified_command import get_signed_params, verify_request
 
 # After this percent of failures in every batch, entire batch is aborted.
@@ -94,7 +94,7 @@ def get_unsubcribed_url(reference_doctype, reference_name, email, unsubscribe_me
 
 
 @frappe.whitelist(allow_guest=True)
-def unsubscribe(doctype, name, email):
+def unsubscribe(doctype: str, name: str, email: str):
 	# unsubsribe from comments and communications
 	if not frappe.in_test and not verify_request():
 		return
@@ -163,24 +163,28 @@ def flush():
 
 def get_queue():
 	batch_size = cint(frappe.conf.email_queue_batch_size) or 500
+	undo_window = add_to_date(now_datetime(), seconds=-10)
 
 	return frappe.db.sql(
-		f"""select
+		"""select
 			name, sender
 		from
 			`tabEmail Queue`
 		where
 			(status='Not Sent' or status='Partially Sent') and
-			(send_after is null or send_after < %(now)s)
+			(send_after is null or send_after < %(now)s) and
+			(creation < %(undo_window)s)
 		order
 			by priority desc, retry asc, creation asc
-		limit {batch_size}""",
-		{"now": now_datetime()},
+		limit %(batch_size)s""",
+		{"now": now_datetime(), "undo_window": undo_window, "batch_size": batch_size},
 		as_dict=True,
 	)
 
 
 def retry_sending_emails():
+	from frappe.email.doctype.email_queue.email_queue import get_email_retry_limit
+
 	emails_in_sending = frappe.get_all(
 		"Email Queue", filters={"status": "Sending"}, fields=["name", "modified"]
 	)
@@ -191,7 +195,7 @@ def retry_sending_emails():
 			sent_to_atleast_one_recipient = any(
 				rec.recipient for rec in email_queue.recipients if rec.is_mail_sent()
 			)
-			if email_queue.retry < cint(frappe.db.get_system_setting("email_retry_limit")) or 3:
+			if email_queue.retry < get_email_retry_limit():
 				update_fields.update(
 					{
 						"status": "Partially Sent" if sent_to_atleast_one_recipient else "Not Sent",

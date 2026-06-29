@@ -8,7 +8,7 @@ app_publisher = "Frappe Technologies"
 app_description = "Full stack web framework with Python, Javascript, MariaDB, Redis, Node"
 app_license = "MIT"
 app_logo_url = "/assets/frappe/images/frappe-framework-logo.svg"
-develop_version = "15.x.x-develop"
+develop_version = "17.x.x-develop"
 app_home = "/app/build"
 
 app_email = "developers@frappe.io"
@@ -24,13 +24,13 @@ page_js = {"setup-wizard": "public/js/frappe/setup_wizard.js"}
 # website
 app_include_js = [
 	"libs.bundle.js",
+	"billing.bundle.js",
 	"desk.bundle.js",
 	"list.bundle.js",
 	"form.bundle.js",
 	"controls.bundle.js",
 	"report.bundle.js",
 	"telemetry.bundle.js",
-	"billing.bundle.js",
 ]
 
 app_include_css = [
@@ -38,9 +38,10 @@ app_include_css = [
 	"report.bundle.css",
 ]
 app_include_icons = [
-	"/assets/frappe/icons/icons.svg",
+	"/assets/frappe/icons/lucide/icons.svg",
 	"/assets/frappe/icons/timeless/icons.svg",
 	"/assets/frappe/icons/espresso/icons.svg",
+	"/assets/frappe/icons/desktop_icons/alphabets.svg",
 ]
 
 doctype_js = {
@@ -51,6 +52,7 @@ doctype_js = {
 web_include_js = ["website_script.js"]
 web_include_css = []
 web_include_icons = [
+	"/assets/frappe/icons/lucide/icons.svg",
 	"/assets/frappe/icons/timeless/icons.svg",
 	"/assets/frappe/icons/espresso/icons.svg",
 ]
@@ -74,6 +76,15 @@ base_template = "templates/base.html"
 write_file_keys = ["file_url", "file_name"]
 
 notification_config = "frappe.core.notifications.get_notification_config"
+
+# Notification Types whose in-app Notification Log should NOT additionally send its own
+# email (e.g. "Alert" — the Notification rule already owns email delivery via its channel).
+notification_skip_email_types = ["Alert"]
+
+# Notification Types that are delivered even when the recipient is also the actor
+# (for_user == from_user). Other types suppress self-notifications.
+# TODO: This should not be hardcoded and a configurable option in future.
+notification_self_notify_types = ["Alert"]
 
 before_tests = "frappe.utils.install.before_tests"
 
@@ -117,6 +128,7 @@ permission_query_conditions = {
 	"Prepared Report": "frappe.core.doctype.prepared_report.prepared_report.get_permission_query_condition",
 	"File": "frappe.core.doctype.file.file.get_permission_query_conditions",
 	"User Invitation": "frappe.core.doctype.user_invitation.user_invitation.get_permission_query_conditions",
+	"Document Template": "frappe.desk.doctype.document_template.document_template.get_permission_query_conditions",
 }
 
 has_permission = {
@@ -135,6 +147,7 @@ has_permission = {
 	"Prepared Report": "frappe.core.doctype.prepared_report.prepared_report.has_permission",
 	"Notification Settings": "frappe.desk.doctype.notification_settings.notification_settings.has_permission",
 	"User Invitation": "frappe.core.doctype.user_invitation.user_invitation.has_permission",
+	"Document Template": "frappe.desk.doctype.document_template.document_template.has_permission",
 }
 
 has_website_permission = {"Address": "frappe.contacts.doctype.address.address.has_website_permission"}
@@ -147,6 +160,8 @@ jinja = {
 		"frappe.website.utils.abs_url",
 	],
 }
+
+require_type_annotated_api_methods = True
 
 standard_queries = {"User": "frappe.core.doctype.user.user.user_query"}
 
@@ -206,6 +221,7 @@ scheduler_events = {
 		# 5 minutes
 		"0/5 * * * *": [
 			"frappe.email.doctype.notification.notification.trigger_offset_alerts",
+			"frappe.search.sqlite_search.index_docs_in_queue",
 		],
 		# 15 minutes
 		"0/15 * * * *": [
@@ -214,8 +230,7 @@ scheduler_events = {
 			"frappe.deferred_insert.save_to_db",
 			"frappe.automation.doctype.reminder.reminder.send_reminders",
 			"frappe.model.utils.link_count.update_link_count",
-			"frappe.search.sqlite_search.build_index_if_not_exists",
-			"frappe.pulse.client.send_queued_events",
+			"frappe.utils.telemetry.pulse.client.send_queued_events",
 		],
 		# 10 minutes
 		"0/10 * * * *": [
@@ -225,6 +240,13 @@ scheduler_events = {
 		"30 * * * *": [],
 		# Daily but offset by 45 minutes
 		"45 0 * * *": [],
+		"0 */3 * * *": [
+			"frappe.search.sqlite_search.build_index_if_not_exists",
+		],
+		# Daily at 6:00 AM.
+		"0 6 * * *": [
+			"frappe.core.doctype.security_settings.security_settings_alert.check_security_txt_expiry",
+		],
 	},
 	"all": [
 		"frappe.email.queue.flush",
@@ -261,6 +283,7 @@ scheduler_events = {
 		"frappe.automation.doctype.auto_repeat.auto_repeat.make_auto_repeat_entry",
 		"frappe.core.doctype.log_settings.log_settings.run_log_clean_up",
 		"frappe.core.doctype.user_invitation.user_invitation.mark_expired_invitations",
+		"frappe.core.doctype.duckdb_sync.duckdb_sync.cleanup_old_syncs",
 	],
 	"weekly_long": [
 		"frappe.desk.form.document_follow.send_weekly_updates",
@@ -292,6 +315,7 @@ before_migrate = ["frappe.core.doctype.patch_log.patch_log.before_migrate"]
 after_migrate = [
 	"frappe.website.doctype.website_theme.website_theme.after_migrate",
 	"frappe.search.sqlite_search.build_index_in_background",
+	"frappe.desk.doctype.notification_type.notification_type.install_notification_types",
 ]
 
 otp_methods = ["OTP App", "Email", "SMS"]
@@ -352,7 +376,6 @@ user_data_fields = [
 			"phone",
 			"mobile_no",
 			"location",
-			"banner_image",
 			"interest",
 			"bio",
 			"email_signature",
@@ -466,79 +489,15 @@ get_changelog_feed = "frappe.desk.doctype.changelog_feed.changelog_feed.get_feed
 
 export_python_type_annotations = True
 
-standard_navbar_items = [
-	{
-		"item_label": "User Settings",
-		"item_type": "Action",
-		"action": "frappe.ui.toolbar.route_to_user()",
-		"is_standard": 1,
-	},
-	{
-		"item_label": "Workspace Settings",
-		"item_type": "Action",
-		"action": "frappe.quick_edit('Workspace Settings')",
-		"is_standard": 1,
-	},
-	{
-		"item_label": "Session Defaults",
-		"item_type": "Action",
-		"action": "frappe.ui.toolbar.setup_session_defaults()",
-		"is_standard": 1,
-	},
-	{
-		"item_label": "Reload",
-		"item_type": "Action",
-		"action": "frappe.ui.toolbar.clear_cache()",
-		"is_standard": 1,
-	},
-	{
-		"item_label": "View Website",
-		"item_type": "Action",
-		"action": "frappe.ui.toolbar.view_website()",
-		"is_standard": 1,
-	},
-	{
-		"item_label": "Apps",
-		"item_type": "Route",
-		"route": "/apps",
-		"is_standard": 1,
-	},
-	{
-		"item_label": "Toggle Full Width",
-		"item_type": "Action",
-		"action": "frappe.ui.toolbar.toggle_full_width()",
-		"is_standard": 1,
-	},
-	{
-		"item_label": "Toggle Theme",
-		"item_type": "Action",
-		"action": "new frappe.ui.ThemeSwitcher().show()",
-		"is_standard": 1,
-	},
-	{
-		"item_type": "Separator",
-		"is_standard": 1,
-		"item_label": "",
-	},
-	{
-		"item_label": "Log out",
-		"item_type": "Action",
-		"action": "frappe.app.logout()",
-		"is_standard": 1,
-	},
-]
+# Send non-GET requests for this app's endpoints as native `application/json`
+# bodies instead of form-encoded, per-key JSON-stringified values.
+use_json_request_body = True
 
 standard_help_items = [
 	{
 		"item_label": "About",
 		"item_type": "Action",
 		"action": "frappe.ui.toolbar.show_about()",
-		"is_standard": 1,
-	},
-	{
-		"item_label": "Keyboard Shortcuts",
-		"item_type": "Action",
-		"action": "frappe.ui.toolbar.show_shortcuts(event)",
 		"is_standard": 1,
 	},
 	{
@@ -561,6 +520,7 @@ default_log_clearing_doctypes = {
 	"Email Queue": 30,
 	"Scheduled Job Log": 7,
 	"Submission Queue": 7,
+	"Background Task": 7,
 	"Prepared Report": 14,
 	"Webhook Request Log": 30,
 	"Unhandled Email": 30,
@@ -582,6 +542,7 @@ persistent_cache_keys = [
 	"monitor-transactions",
 	"rate-limit-counter-*",
 	"rl:*",
+	"concurrency:*",
 ]
 
 user_invitation = {
@@ -597,5 +558,6 @@ add_to_apps_screen = [
 		"logo": app_logo_url,
 		"title": app_title,
 		"route": app_home,
+		"has_permission": "frappe.permissions.check_app_permission",
 	}
 ]

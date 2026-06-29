@@ -1,8 +1,28 @@
+import hashlib
+
 import frappe
 from frappe import _
-from frappe.database.schema import DBTable, get_definition
+from frappe.database.schema import DbColumn, DBTable, get_definition
 from frappe.utils import cint, flt
 from frappe.utils.defaults import get_not_null_defaults
+
+
+# PostgreSQL index names are unique per *schema*, not per table like MariaDB. Naming an index
+# after just its field(s) therefore collides across tables that share a field (item_code,
+# company, posting_date, lft/rgt, ...) and `CREATE INDEX IF NOT EXISTS` silently skips all but
+# the first -- so most tables never get that index. Qualify the name with the table so it is
+# schema-unique, hashing if it would exceed postgres's 63-byte identifier cap.
+def get_qualified_index_name(table_name: str, fields: list[str]) -> str:
+	base = f"{table_name}_" + "_".join(fields)
+	name = f"{base}_index"
+	if len(name.encode()) > 63:
+		digest = hashlib.md5(base.encode()).hexdigest()[:10]
+		name = f"{name[:52]}_{digest}"
+	return name
+
+
+def get_single_column_index_name(table_name: str, fieldname: str) -> str:
+	return get_qualified_index_name(table_name, [fieldname])
 
 
 class PostgresTable(DBTable):
@@ -63,8 +83,9 @@ class PostgresTable(DBTable):
 				and col.fieldtype in frappe.db.type_map
 				and frappe.db.type_map.get(col.fieldtype)[0] not in ("text", "longtext")
 			):
+				index_name = get_single_column_index_name(self.table_name, col.fieldname)
 				create_index_query += (
-					f'CREATE INDEX IF NOT EXISTS "{col.fieldname}" ON `{self.table_name}`(`{col.fieldname}`);'
+					f'CREATE INDEX IF NOT EXISTS "{index_name}" ON `{self.table_name}`(`{col.fieldname}`);'
 				)
 		if create_index_query:
 			# nosemgrep
@@ -120,8 +141,9 @@ class PostgresTable(DBTable):
 		create_contraint_query = ""
 		for col in self.add_index:
 			# if index key not exists
+			index_name = get_single_column_index_name(self.table_name, col.fieldname)
 			create_contraint_query += (
-				f'CREATE INDEX IF NOT EXISTS "{col.fieldname}" ON `{self.table_name}`(`{col.fieldname}`);'
+				f'CREATE INDEX IF NOT EXISTS "{index_name}" ON `{self.table_name}`(`{col.fieldname}`);'
 			)
 
 		for col in self.add_unique:
@@ -131,18 +153,91 @@ class PostgresTable(DBTable):
 					index_name=col.fieldname, table_name=self.table_name, field=col.fieldname
 				)
 
+		# logic to drop unique constraint for fields deleted from a doctype
+		meta_columns = set(self.columns.keys())
+		db_columns = set(self.current_columns.keys())
+
+		for col in db_columns:
+			if (
+				col not in meta_columns
+				and col not in frappe.db.DEFAULT_COLUMNS
+				and col not in frappe.db.OPTIONAL_COLUMNS
+			):
+				has_unique_index = frappe.db.sql(
+					"""
+					SELECT 1
+					FROM pg_indexes
+					WHERE tablename = %s
+					AND indexname IN (%s, %s)
+					LIMIT 1
+					""",
+					(
+						self.table_name,
+						f"{self.table_name}_{col}_key",
+						f"unique_{col}",
+					),
+				)
+
+				if not has_unique_index:
+					continue
+
+				current_col = self.current_columns.get(col)
+
+				deleted_col = DbColumn(
+					table=self,
+					fieldname=current_col.name,
+					fieldtype=current_col.type,
+					length=None,
+					default=None,
+					set_index=current_col.index,
+					options=None,
+					unique=False,
+					precision=None,
+					not_nullable=current_col.not_nullable,
+				)
+				self.drop_unique.append(deleted_col)
+
 		drop_contraint_query = ""
 		for col in self.drop_index:
 			# primary key
 			if col.fieldname != "name":
-				# if index key exists
-				drop_contraint_query += f'DROP INDEX IF EXISTS "{col.fieldname}" ;'
+				# if index key exists; use the schema-unique name (a bare-fieldname DROP would be
+				# schema-global on postgres and could drop another table's like-named index)
+				index_name = get_single_column_index_name(self.table_name, col.fieldname)
+				drop_contraint_query += f'DROP INDEX IF EXISTS "{index_name}" ;'
 
 		for col in self.drop_unique:
 			# primary key
 			if col.fieldname != "name":
-				# if index key exists
-				drop_contraint_query += f'DROP INDEX IF EXISTS "unique_{col.fieldname}" ;'
+				# drop unique constraint first if exists which automatically drops the underlying index also
+				unique_constraint_exists = frappe.db.sql(
+					"""
+					SELECT 1
+					FROM pg_constraint
+					WHERE conname = %s
+					""",
+					(f"{self.table_name}_{col.fieldname}_key",),
+				)
+
+				if unique_constraint_exists:
+					drop_contraint_query += f'ALTER TABLE "{self.table_name}" DROP CONSTRAINT IF EXISTS "{self.table_name}_{col.fieldname}_key" ;'
+
+				# drop the unique index backed by no constraint directly
+				unique_index_exists = frappe.db.sql(
+					"""
+					SELECT 1
+					FROM pg_indexes
+					WHERE tablename = %s
+					AND indexname = %s
+					""",
+					(
+						self.table_name,
+						f"unique_{col.fieldname}",
+					),
+				)
+
+				if unique_index_exists:
+					drop_contraint_query += f'DROP INDEX IF EXISTS "unique_{col.fieldname}" ;'
 
 		change_nullability = []
 		for col in self.change_nullability:
