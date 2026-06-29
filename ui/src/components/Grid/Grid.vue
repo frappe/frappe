@@ -219,7 +219,12 @@
 <script setup lang="ts" generic="T extends GridColumn">
 import { computed, nextTick, onBeforeUnmount, onMounted, ref, watch } from "vue";
 import { Button, Checkbox } from "frappe-ui";
-import { InputLabel, InputDescription, InputError, useInputLabeling } from "frappe-ui/experimental";
+import {
+	InputLabel,
+	InputDescription,
+	InputError,
+	useInputLabeling,
+} from "frappe-ui/experimental";
 // @ts-ignore — vuedraggable ships no bundled types
 import Draggable from "vuedraggable";
 import type { GridCellSlotProps, GridColumn, GridEmits } from "./types";
