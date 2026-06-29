@@ -1,7 +1,7 @@
 <template>
 	<!-- flex-col so the history list stacks under the change line -->
 	<span class="inline-flex flex-col gap-1 align-top">
-		<span class="inline-flex flex-wrap items-center gap-1.5">
+		<span class="inline-flex flex-wrap items-center gap-1.5 text-ink-gray-5">
 			<!-- diff: prefix + from → to (arrow only when there's a `from`) -->
 			<template v-if="change.type === 'diff'">
 				<span>{{ change.prefix }}</span>
@@ -30,37 +30,30 @@
 			</template>
 		</span>
 
-		<!-- change history -->
-		<span
-			v-if="hasHistory && open && change.type === 'diff'"
-			class="flex flex-col gap-0.5 ps-1 text-ink-gray-5"
-		>
-			<span
-				v-for="(hop, idx) in change.history"
-				:key="idx"
-				class="inline-flex items-center gap-1.5"
-			>
-				<span class="font-semibold text-ink-gray-7" :title="full(hop.from)">{{
-					clip(hop.from)
-				}}</span>
-				<span>→</span>
-				<span class="font-semibold text-ink-gray-7" :title="full(hop.to)">{{
-					clip(hop.to)
-				}}</span>
-			</span>
-		</span>
+		<!-- change history nested under the line; single-change row sets :show-history="false" -->
+		<VersionChangeHistory
+			v-if="hasHistory && open && showHistory && change.type === 'diff'"
+			:history="change.history!"
+			:author="author"
+			:prefix="change.prefix"
+		/>
 	</span>
 </template>
 
 <script setup lang="ts">
 import { FeatherIcon } from "frappe-ui";
-import { computed, ref } from "vue";
+import { computed } from "vue";
 import type { VersionChange } from "./types";
+import VersionChangeHistory from "./VersionChangeHistory.vue";
 
-const props = defineProps<{ change: VersionChange }>();
+const props = withDefaults(
+	defineProps<{ change: VersionChange; showHistory?: boolean; author?: string }>(),
+	{ showHistory: true, author: "" }
+);
 
-const open = ref(false);
-// chevron only when the field churned (>1 hop)
+// two-way so the single-change row can drive the chevron while rendering history outside
+const open = defineModel<boolean>("open", { default: false });
+// chevron only when the field churned (>1 field change)
 const hasHistory = computed(
 	() => props.change.type === "diff" && (props.change.history?.length ?? 0) > 1
 );

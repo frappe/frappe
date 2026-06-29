@@ -1,6 +1,6 @@
 <template>
-	<div class="activity-timeline">
-		<!-- spinner only on first load; background revalidation keeps cached data visible -->
+	<div ref="rootEl" class="activity-timeline">
+		<!-- spinner only on first load; cached data stays visible during revalidation -->
 		<div v-if="loading && !activities.length" class="flex justify-center py-8">
 			<LoadingIndicator class="size-5 text-ink-gray-5" />
 		</div>
@@ -13,12 +13,17 @@
 			<span class="text-lg font-medium text-ink-gray-8">No activity found</span>
 		</div>
 		<template v-else>
+			<!-- older emails load at the top on scroll-up -->
+			<div v-if="paginate?.isFetchingNextPage" class="flex justify-center py-2">
+				<LoadingIndicator class="size-5 text-ink-gray-5" />
+			</div>
 			<div class="activities mt-0.5">
 				<div
 					v-for="(activity, i) in activities"
 					:key="getKey(activity, i)"
 					:id="getKey(activity, i)"
 					class="activity mt-2"
+					:tabindex="0"
 				>
 					<div class="grid w-full grid-cols-[30px_minmax(auto,_1fr)] gap-2 px-6 md:px-0">
 						<!-- gutter column: vertical connector line + icon/avatar -->
@@ -50,8 +55,7 @@
 										]"
 									/>
 									<template v-else>
-										<!-- email + comment: author avatar on the timeline axis,
-										     with a channel badge (mail / comment) at its corner -->
+										<!-- avatar on the axis + channel badge (mail/comment) -->
 										<div v-if="isAvatarActivity(activity)" class="relative">
 											<Avatar
 												size="lg"
@@ -102,7 +106,6 @@
 								</slot>
 							</div>
 						</div>
-						<!-- content column -->
 						<div
 							class="mb-4 flex flex-1"
 							:class="[i == activities.length - 1 && 'mb-5']"
@@ -143,11 +146,12 @@
 
 <script setup lang="ts">
 import { Avatar, ErrorMessage, FeatherIcon, LoadingIndicator } from "frappe-ui";
+import { nextTick, onMounted, ref, watch } from "vue";
 import CommentItem from "./CommentItem.vue";
 import EmailItem from "./EmailItem.vue";
 import { CommentIcon, DotIcon, LUCIDE_ICON_CLASS } from "./icons";
-// lucide envelope (email badge); renders via unplugin-icons — consumers need
-// `frappeui({ lucideIcons: true })` in their vite config
+import { useLoadMoreOnScroll } from "./useLoadMoreOnScroll";
+// email badge; needs `frappeui({ lucideIcons: true })` in the consumer's vite config
 import MailIcon from "~icons/lucide/mail";
 import LogItem from "./LogItem.vue";
 import type {
@@ -159,14 +163,56 @@ import type {
 } from "./types";
 import VersionItem from "./VersionItem.vue";
 
-withDefaults(defineProps<ActivityTimelineProps>(), {
+const props = withDefaults(defineProps<ActivityTimelineProps>(), {
 	loading: false,
 	error: null,
 });
 
-// Stable v-for key / scroll-target id. Built-ins always carry `key`; a custom
-// row may omit it — fall back to type+timestamp (stable across reorders when a
-// timestamp exists), then to the index as a last resort.
+// Reverse infinite scroll for emails — only wired when pagination is enabled.
+const rootEl = ref<HTMLElement | null>(null);
+// scrollHeight at fetch time; anchors the viewport after older rows prepend.
+let prevScrollHeight = 0;
+
+if (props.paginate) {
+	const { scrollEl } = useLoadMoreOnScroll(rootEl, {
+		canLoadMore: () => !!props.paginate?.hasNextPage && !props.paginate?.isFetchingNextPage,
+		loadMore: () => {
+			prevScrollHeight = scrollEl.value?.scrollHeight ?? 0;
+			props.paginate?.fetchNextPage();
+		},
+	});
+
+	// after older rows patch in, push scrollTop down by the height gained to stay anchored
+	watch(
+		() => props.activities.length,
+		() => {
+			const el = scrollEl.value;
+			if (!el || !prevScrollHeight) return;
+			nextTick(() => {
+				el.scrollTop += el.scrollHeight - prevScrollHeight;
+				prevScrollHeight = 0;
+			});
+		}
+	);
+
+	// Oldest-first feed: open at the bottom (newest) on first render, then let
+	// scroll-up paging take over — also stops the top trigger firing on mount.
+	let didInitialScroll = false;
+	const scrollToBottomOnce = () => {
+		if (didInitialScroll || !props.activities.length) return;
+		const el = scrollEl.value;
+		if (!el) return;
+		didInitialScroll = true;
+		nextTick(() => {
+			el.scrollTop = el.scrollHeight;
+		});
+	};
+	onMounted(scrollToBottomOnce); // cached/synchronous first page
+	watch(() => props.activities.length, scrollToBottomOnce); // async first page
+}
+
+// Stable v-for key / scroll-target id. Custom rows may omit `key` — fall back to
+// type+timestamp, then index.
 function getKey(activity: Activity | CustomActivity, index: number): string {
 	return (
 		activity.key ??
@@ -176,14 +222,12 @@ function getKey(activity: Activity | CustomActivity, index: number): string {
 	);
 }
 
-// email + comment render the author avatar (with a channel badge) on the
-// timeline axis instead of a plain gutter icon
+// email + comment show the author avatar on the axis instead of a gutter icon
 function isAvatarActivity(activity: Activity): boolean {
 	return activity.type === "email" || activity.type === "comment";
 }
 
-// one-line activity rows (log/attachment) align differently from the cards
-// (email/comment) — nudged to vertically center the icon with the single line
+// one-line rows (log/attachment/version) nudge the icon to center on the single line
 function isOneLinerActivity(activity: Activity): boolean {
 	return (
 		activity.type === "log" ||

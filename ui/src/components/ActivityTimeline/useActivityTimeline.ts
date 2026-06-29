@@ -1,5 +1,5 @@
 import { createResource } from "frappe-ui";
-import { computed, onMounted, onUnmounted } from "vue";
+import { computed, onMounted, onUnmounted, reactive, ref, type Ref } from "vue";
 import { getSocketInstance } from "../../socket";
 import type {
   Activity,
@@ -9,9 +9,23 @@ import type {
 } from "./types";
 
 const resources = new Map<string, ReturnType<typeof createResource>>();
+// Per-(doctype:docname) "older emails remain" flag, kept outside the resource so it
+// survives cached-resource remounts and is shared by onSuccess + fetchNextPage.
+const hasMoreEmailsByKey = new Map<string, Ref<boolean>>();
 
-export function useActivityTimeline(doctype: string, docname: string) {
+export function useActivityTimeline(
+  doctype: string,
+  docname: string,
+  options: { paginate?: boolean } = {}
+) {
   const key = `${doctype}:${docname}`;
+
+  let hasMoreEmails = hasMoreEmailsByKey.get(key);
+  if (!hasMoreEmails) {
+    hasMoreEmails = ref(true); // assume more until the first load tells us otherwise
+    hasMoreEmailsByKey.set(key, hasMoreEmails);
+  }
+
   let resource = resources.get(key);
   if (!resource) {
     resource = createResource({
@@ -19,6 +33,11 @@ export function useActivityTimeline(doctype: string, docname: string) {
       params: { doctype, name: docname },
       cache: `activities:${key}`,
       auto: true,
+      // transform keeps resource.data an Activity[]; onSuccess reads the raw flag
+      transform: (res: { activities: Activity[] }) => res.activities,
+      onSuccess: (res: { has_more_emails?: boolean }) => {
+        hasMoreEmails!.value = !!res.has_more_emails;
+      },
     });
     resources.set(key, resource);
   }
@@ -35,7 +54,45 @@ export function useActivityTimeline(doctype: string, docname: string) {
     loading: computed<boolean>(() => resource.loading),
     error: computed(() => resource.error || null),
     reload: () => resource.reload(),
+    paginate: options.paginate
+      ? createEmailPagination(doctype, docname, resource, hasMoreEmails)
+      : undefined,
   };
+}
+
+// Scroll-up email paging: fetch the next older page and append to resource.data;
+// the activities computed dedupes and re-sorts, so overlap/order are handled there.
+function createEmailPagination(
+  doctype: string,
+  docname: string,
+  resource: ReturnType<typeof createResource>,
+  hasMoreEmails: Ref<boolean>
+) {
+  const moreResource = createResource({
+    url: "frappe.desk.form.activity.get_more_email_activities",
+    auto: false,
+    onSuccess: (res: { activities: Activity[]; has_more_emails?: boolean }) => {
+      const current = (resource.data as Activity[] | undefined) ?? [];
+      resource.data = [...current, ...res.activities];
+      hasMoreEmails.value = !!res.has_more_emails;
+    },
+  });
+
+  const fetchNextPage = () => {
+    if (moreResource.loading || !hasMoreEmails.value) return;
+    const emailsLoaded = (
+      (resource.data as Activity[] | undefined) ?? []
+    ).filter((a) => a.type === "email").length;
+    moreResource.submit({ doctype, name: docname, start: emailsLoaded });
+  };
+
+  // reactive() so the computed refs unwrap to plain booleans through the `paginate`
+  // prop — Vue doesn't auto-unwrap refs nested in a plain object passed to a child.
+  return reactive({
+    hasNextPage: computed(() => hasMoreEmails.value),
+    isFetchingNextPage: computed(() => moreResource.loading),
+    fetchNextPage,
+  });
 }
 
 function handleLiveUpdates(
@@ -45,9 +102,8 @@ function handleLiveUpdates(
 ) {
   const socket = getSocketInstance();
 
-  // The socket payload only carries a userid (+ best-effort name), no avatar.
-  // Reuse the fully-resolved author of anyone already in the feed; first-time
-  // actors fall back to the payload and self-heal on the next reload.
+  // Socket payload has no avatar — reuse a resolved author already in the feed;
+  // first-time actors fall back to the payload and self-heal on the next reload.
   const resolveAuthor = (email: string | undefined, fallback: UserInfo) => {
     if (!email) return fallback;
     const known = ((resource.data as Activity[] | undefined) ?? []).find(
@@ -96,8 +152,7 @@ function normalizeActivity(
 ): Activity | null {
   const timestamp = String(doc.creation);
 
-  // comment-family rows (comments, likes, assignments, attachments) carry the
-  // actor as `comment_email` (+ `comment_by` display name) or fall back to owner
+  // comment-family rows carry the actor as `comment_email`/`comment_by`, else owner
   const commentEmail = (doc.comment_email as string) || (doc.owner as string);
   const author = resolveAuthor(commentEmail, {
     email: commentEmail,
@@ -149,8 +204,7 @@ function normalizeActivity(
       const content = String(doc.content ?? "");
       const href = content.match(/href=['"]([^'"]+)['"]/);
       const fileUrl = !isRemoved && href ? href[1] : undefined;
-      // private files are served from /private/files/… — a stable signal,
-      // unlike sniffing the `fa-lock` icon class out of the comment HTML
+      // private files live under /private/… — a stabler signal than the `fa-lock` icon
       return {
         type: "attachment_log",
         key: `attachment:${doc.name}`,
@@ -227,8 +281,7 @@ function stripHtml(html: string): string {
   return html.replace(/<[^>]*>/g, "").trim();
 }
 
-// Merge consecutive same-author versions into one summary; other activities pass through.
-// Groups changes by same user into one
+// Merge consecutive same-author versions into one summary; others pass through.
 export function groupVersionActivities(activities: Activity[]): Activity[] {
   const out: Activity[] = [];
   let i = 0;
@@ -256,15 +309,13 @@ export function groupVersionActivities(activities: Activity[]): Activity[] {
   return out;
 }
 
-// Group similar version changes into one summary row, with a `group` of the individual changes.
-/* example: 
-  `status Open -> Closed`, status Open -> In Progress, status In Progress -> Closed` becomes `status Open -> Closed` with a `group` of the three changes. 
-*/
+// Collapse a run's changes into one summary row carrying a `group` of the individual
+// changes; e.g. status Open→InProgress→Closed becomes status Open→Closed.
 function summarizeVersions(
   versions: VersionActivity[]
 ): VersionActivity | null {
-  const changes: VersionChange[] = []; // for the summary row; each is a net change (first.from → last.to) with a `history` of all similar changes in the run
-  const changeByField = new Map<string, VersionChange>(); // keyed by `fieldname` to find the net change for each field
+  const changes: VersionChange[] = []; // summary row; each a net change with full `history`
+  const changeByField = new Map<string, VersionChange>(); // fieldname → its net change
 
   for (const row of versions) {
     const change = row.data;
@@ -277,13 +328,22 @@ function summarizeVersions(
     if (!existing) {
       const next: VersionChange =
         change.type === "diff"
-          ? { ...change, history: [{ from: change.from ?? "", to: change.to }] }
+          ? {
+              ...change,
+              history: [
+                { from: change.from ?? "", to: change.to, timestamp: row.timestamp },
+              ],
+            }
           : { ...change };
       changeByField.set(change.fieldname, next);
       changes.push(next);
     } else if (existing.type === "diff" && change.type === "diff") {
       existing.to = change.to; // advance net "to"; `from` stays the first row's
-      existing.history!.push({ from: change.from ?? "", to: change.to });
+      existing.history!.push({
+        from: change.from ?? "",
+        to: change.to,
+        timestamp: row.timestamp,
+      });
     } else {
       // type changed mid-sequence (e.g. value edited then cleared) — take the latest
       const replacement: VersionChange = { ...change };
@@ -292,15 +352,13 @@ function summarizeVersions(
     }
   }
 
-  // drop fields that churned back to their starting value (net no-op; `from` is the
-  // first row's, so this never matches a set-from-blank, which has no `from`)
+  // drop fields that churned back to their starting value (net no-op)
   const visible = changes.filter(
     (s) => !(s.type === "diff" && s.from === s.to)
   );
   if (visible.length === 0) return null;
 
-  // key off the first row (stable identity) so Vue reuses the item on re-derive
-  // instead of remounting and resetting its expanded state; timestamp from the last
+  // key off the first row so Vue reuses the item (keeps expanded state); timestamp from last
   const first = versions[0];
   const last = versions[versions.length - 1];
   const data =

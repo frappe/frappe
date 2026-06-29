@@ -6,6 +6,12 @@ export interface ActivityTimelineProps {
   /** Only shown when there are no activities yet. */
   loading?: boolean;
   error?: string | null;
+  /** When present, enables scroll-up email pagination. Same object returned by useActivityTimeline. */
+  paginate?: {
+    hasNextPage: boolean;
+    isFetchingNextPage: boolean;
+    fetchNextPage: () => void;
+  };
 }
 
 export interface UserInfo {
@@ -92,6 +98,13 @@ interface VersionChangeBase {
   fieldname?: string | null;
 }
 
+/** One field change: old → new value (empty `from` ⇒ set-from-blank). */
+export interface FieldChange {
+  from: string;
+  to: string;
+  timestamp: string;
+}
+
 /** A field value changed and we can show it — the frontend lays out the values. */
 export interface DiffChange extends VersionChangeBase {
   type: "diff";
@@ -100,20 +113,18 @@ export interface DiffChange extends VersionChangeBase {
   /** old value (truncated by the frontend); absent ⇒ set-from-blank, no arrow */
   from?: string;
   to: string;
-  /** every hop the field took across merged saves; absent/length-1 ⇒ no chevron */
-  history?: Array<{ from: string; to: string }>;
+  /** every field change across merged saves; absent/length-1 ⇒ no chevron */
+  history?: FieldChange[];
 }
 
-/** A change we only describe in words — long-text edits, clears, or doc-level
- *  events (submit/cancel/table rows). No values to lay out; the frontend prints it. */
+/** A value-less change described in words (long-text edits, clears, submit/cancel/rows). */
 export interface PhraseChange extends VersionChangeBase {
   type: "phrase";
   /** full translated line, e.g. "updated Description" / "submitted this document" */
   text: string;
 }
 
-/** One change in a version. `type` picks how the frontend lays it out:
- *  diff (from→to, or set-from-blank when `from` is absent) · phrase (value-less line). */
+/** One change in a version; `type` picks the layout: diff (from→to) or phrase (value-less). */
 export type VersionChange = DiffChange | PhraseChange;
 
 export type VersionActivity = BaseActivity<
@@ -133,7 +144,6 @@ export type Activity =
 
 /** Consumer-defined activity; render via the `#item-{type}` slot. */
 export type CustomActivity = Omit<BaseActivity<string, unknown>, "key"> & {
-  /** Omit only for static lists — ActivityTimeline derives a fallback, but
-   * reorderable rows need an explicit key for stable v-for/scroll. */
+  /** Omit only for static lists; reorderable rows need an explicit key for stable v-for/scroll. */
   key?: string;
 };

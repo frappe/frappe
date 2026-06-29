@@ -10,26 +10,36 @@ from frappe import _
 from frappe.desk.form.load import _get_communications, add_comments, get_versions, get_view_logs
 from frappe.model.document import Document
 
-# The whole timeline loads in one call — every activity source (emails included)
-# is fetched in full. The email stream is capped generously to bound the query.
-EMAIL_LIMIT = 500
+# Non-email sources load in full; emails are paged newest-first as the user scrolls up.
+EMAIL_PAGE_SIZE = 20
 
 
 @frappe.whitelist()
-def get_activity_timeline(doctype: str, name: str | int) -> list[dict]:
+def get_activity_timeline(doctype: str, name: str | int) -> dict:
 	doc = frappe.get_lazy_doc(doctype, name, check_permission=True)
-	user_info: dict = {}  # User info cache to avoid multiple DB calls for the same user
+	user_info: dict = {}  # cache to avoid repeat DB calls for the same user
 
+	emails, has_more_emails = get_email_activities(doc, user_info)
 	activities = [
 		*get_creation_activity(doc, user_info),
-		*get_email_activities(doc, user_info),
+		*emails,
 		*get_comment_and_log_activities(doc, user_info),
 		*get_view_activities(doc, user_info),
 		*get_version_activities(doc, user_info),
 	]
 
 	activities.sort(key=lambda a: (a.get("timestamp") or "", a["key"]))
-	return activities
+	return {"activities": activities, "has_more_emails": has_more_emails}
+
+
+@frappe.whitelist()
+def get_more_email_activities(doctype: str, name: str | int, start: int) -> dict:
+	doc = frappe.get_lazy_doc(doctype, name, check_permission=True)
+	user_info: dict = {}
+
+	emails, has_more_emails = get_email_activities(doc, user_info, start=frappe.utils.cint(start))
+	emails.sort(key=lambda a: (a.get("timestamp") or "", a["key"]))
+	return {"activities": emails, "has_more_emails": has_more_emails}
 
 
 def get_creation_activity(doc: "Document", user_info: dict) -> list[dict]:
@@ -51,12 +61,17 @@ def get_creation_activity(doc: "Document", user_info: dict) -> list[dict]:
 	]
 
 
-def get_email_activities(doc: "Document", user_info: dict) -> list[dict]:
-	# Load the full email stream in one go (capped at EMAIL_LIMIT to bound the query).
-	# Order doesn't matter here — the timeline re-sorts oldest-first on assembly.
-	communications = _get_communications(doc.doctype, doc.name, limit=EMAIL_LIMIT)
+def get_email_activities(doc: "Document", user_info: dict, start: int = 0) -> tuple[list[dict], bool]:
+	# Fetch PAGE_SIZE+1 (DESC); the extra oldest row is a sentinel for "more exist" — slice it off.
+	communications = _get_communications(doc.doctype, doc.name, start=start, limit=EMAIL_PAGE_SIZE + 1)
+	has_more = len(communications) > EMAIL_PAGE_SIZE
+	if has_more:
+		communications = communications[:EMAIL_PAGE_SIZE]
 	frappe.utils.add_user_info({c.sender for c in communications if c.sender}, user_info)
+	return build_email_activities(communications, user_info), has_more
 
+
+def build_email_activities(communications, user_info: dict) -> list[dict]:
 	out = []
 	for c in communications:
 		info = user_info.get(c.sender) or {}
@@ -196,8 +211,7 @@ def attachment_log_activity(c, author: dict) -> dict:
 			"action": action,
 			"fileName": activity_text(content),
 			"fileUrl": file_url,
-			# private files are served from /private/files/… — a stable signal,
-			# unlike sniffing the `fa-lock` icon class out of the comment HTML
+			# private files live under /private/… — a stabler signal than the `fa-lock` icon
 			"isPrivate": bool(file_url and file_url.startswith("/private/")),
 		},
 	}
@@ -298,8 +312,7 @@ def get_version_activities(doc: "Document", user_info: dict) -> list[dict]:
 				changes.append(format_docstatus_change(value.format(count, _(df.label or table_fieldname))))
 
 		for entry in data.get("row_changed", []):
-			# get_diff order is (table_fieldname, row_index, row_name, changes) —
-			# version.py docstring has row_name/row_index swapped; the code is authoritative
+			# get_diff order is (table_fieldname, row_index, row_name, changes); version.py docstring is wrong
 			table_fieldname, row_index, _row_name, child_changes = entry
 			df = is_field_visible(meta, permitted, table_fieldname)
 			if not df:
