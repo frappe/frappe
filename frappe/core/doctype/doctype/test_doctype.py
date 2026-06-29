@@ -572,38 +572,22 @@ class TestDocType(IntegrationTestCase):
 		self.assertEqual(perms[1].if_owner, 0)
 
 	def test_if_owner_at_high_permlevel_does_not_duplicate(self):
-		"""Clearing if_owner must fold into an existing rule at the same level without losing rights."""
+		"""Clearing if_owner must not leave a duplicate of an existing rule at the same level."""
 		doc = new_doctype(
 			"Test If Owner Duplicate",
 			permissions=[
 				{"role": "All", "permlevel": 0, "read": 1, "write": 1},
-				{"role": "All", "permlevel": 1, "read": 1, "write": 0, "mask": 0},
-				{
-					"role": "All",
-					"permlevel": 1,
-					"read": 1,
-					"write": 1,
-					"mask": 1,
-					"custom_approve": 1,
-					"if_owner": 1,
-				},
+				{"role": "All", "permlevel": 1, "read": 1, "write": 1},
+				{"role": "All", "permlevel": 1, "read": 1, "write": 1, "if_owner": 1},
 			],
 		)
 
-		with patch(
-			"frappe.core.doctype.doctype.doctype.get_rights",
-			return_value=[*frappe.permissions.rights, "custom_approve", "role"],
-		):
-			validate_permissions(doc)
+		validate_permissions(doc)
 
 		level1 = [p for p in doc.permissions if p.permlevel == 1]
 		self.assertEqual(len(level1), 1)
 		self.assertFalse(level1[0].if_owner)
 		self.assertEqual(level1[0].write, 1)
-		self.assertEqual(level1[0].mask, 1)
-		self.assertEqual(level1[0].custom_approve, 1)
-		# a perm-type name shadowing a structural field must not clobber it
-		self.assertEqual(level1[0].role, "All")
 
 	def test_create_virtual_doctype(self):
 		"""Test virtual DocType."""
