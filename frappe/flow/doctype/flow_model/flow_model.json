@@ -52,11 +52,12 @@
    "reqd": 1
   },
   {
-   "description": "Max input tokens. Auto-detected from the model on save when left empty; override if your provider differs. 0 = unknown.",
+   "description": "Max input tokens. Auto-detected from the model on save; managed by Flow, not user-editable. 0 = unknown.",
    "fieldname": "context_window",
    "fieldtype": "Int",
    "label": "Context Window",
-   "non_negative": 1
+   "non_negative": 1,
+   "read_only": 1
   },
   {
    "description": "API key for the provider named in the Model ID. Leave empty for local servers (Ollama, LM Studio) that don't require authentication.",
