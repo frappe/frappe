@@ -22,6 +22,11 @@ function load_print_format_builder(wrapper) {
 	$parent.empty();
 
 	if (route.length > 1) {
+		// Set title immediately so the breadcrumb shows the format name
+		// without waiting for the bundle to load.
+		wrapper.page.set_title(route[1]);
+		wrapper.page.set_title_sub(__("Print Format Builder"));
+
 		frappe.require("print_format_builder.bundle.js").then(() => {
 			frappe.print_format_builder = new frappe.ui.PrintFormatBuilder({
 				wrapper: $parent,
