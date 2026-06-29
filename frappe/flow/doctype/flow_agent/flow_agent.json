@@ -74,6 +74,7 @@
    "description": "System message shown to the LLM. Describe the agent's role, scope, and rules.",
    "fieldname": "instructions",
    "fieldtype": "Long Text",
+   "ignore_xss_filter": 1,
    "label": "Instructions",
    "reqd": 1
   },
