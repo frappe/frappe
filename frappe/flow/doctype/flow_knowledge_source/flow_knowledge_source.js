@@ -15,7 +15,7 @@ frappe.ui.form.on("Flow Knowledge Source", {
 		};
 
 		frm.add_custom_button(__("Resync"), async () => {
-			await frm.call("resync");
+			await frm.call("resync", { rebuild: 0 });
 			frappe.show_alert({ message: __("Resync started"), indicator: "blue" });
 			frm.reload_doc();
 		});
