@@ -47,7 +47,7 @@
     "vuedraggable": "^4.1.0"
   },
   "peerDependencies": {
-    "frappe-ui": "*",
+    "frappe-ui": ">=1.0.0-beta.16",
     "vue": ">=3.3.0",
     "vue-router": "^4.1.5"
   }
