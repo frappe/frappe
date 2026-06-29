@@ -102,6 +102,9 @@ class ChromiumManager:
 
 		Playwright manages the process lifecycle — no subprocess management,
 		no stderr polling, no manual port selection needed.
+
+		If Playwright's bundled Chromium is missing, it is installed automatically
+		on first use (one-time, then cached in ~/.cache/ms-playwright/).
 		"""
 		from playwright.sync_api import sync_playwright
 
@@ -113,15 +116,37 @@ class ChromiumManager:
 				headless=not self.debug_mode,
 			)
 		except Exception as e:
+			if "Executable doesn't exist" in str(e) or "playwright install" in str(e).lower():
+				# Chromium not yet installed — auto-install on first use.
+				# After this it is cached in ~/.cache/ms-playwright/ (or the Docker layer
+				# if `playwright install chromium --with-deps` is in the Dockerfile).
+				frappe.log("Chromium not found — running 'playwright install chromium --with-deps'")
+				self._auto_install_chromium()
+				self._browser = self._playwright.chromium.launch(
+					executable_path=executable_path,
+					args=CHROMIUM_LAUNCH_ARGS,
+					headless=not self.debug_mode,
+				)
+			else:
+				self._playwright.stop()
+				self._playwright = None
+				frappe.log_error(f"Error launching Chromium: {e}")
+				frappe.throw(_("Could not start Chromium. Check error logs for details."))
+
+	def _auto_install_chromium(self):
+		"""Run `playwright install chromium --with-deps` programmatically."""
+		import subprocess
+
+		try:
+			subprocess.run(
+				["playwright", "install", "chromium", "--with-deps"],
+				check=True,
+				text=True,
+			)
+		except subprocess.CalledProcessError as e:
 			self._playwright.stop()
 			self._playwright = None
-			frappe.log_error(f"Error launching Chromium: {e}")
-			frappe.throw(
-				_(
-					"Could not start Chromium. Run 'bench setup-chrome' to install it, then retry."
-					" Check error logs for details."
-				)
-			)
+			frappe.throw(_(f"Failed to auto-install Chromium: {e}. Run 'bench setup-chrome' manually."))
 
 	def _connect_playwright_cdp(self, ws_url):
 		"""Connect to an externally managed Chromium instance over CDP."""
