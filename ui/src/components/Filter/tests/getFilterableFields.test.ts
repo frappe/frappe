@@ -7,7 +7,7 @@ describe("getFilterableFields", () => {
     const fields: RawMetaField[] = [
       { fieldname: "title", fieldtype: "Data", label: "Title" },
     ];
-    const result = getFilterableFields(fields);
+    const result = getFilterableFields(fields, "Lead");
     expect(result).toContainEqual({
       label: "Title",
       value: "title",
@@ -23,16 +23,17 @@ describe("getFilterableFields", () => {
       { fieldname: "kids", fieldtype: "Table", options: "Child" },
       { fieldname: "title", fieldtype: "Data", label: "Title" },
     ];
-    const names = getFilterableFields(fields).map((f) => f.fieldname);
+    const names = getFilterableFields(fields, "Lead").map((f) => f.fieldname);
     expect(names).toContain("title");
     expect(names).not.toContain("sec");
     expect(names).not.toContain("kids");
   });
 
   it("prepends the standard fields ahead of meta fields", () => {
-    const result = getFilterableFields([
-      { fieldname: "title", fieldtype: "Data", label: "Title" },
-    ]);
+    const result = getFilterableFields(
+      [{ fieldname: "title", fieldtype: "Data", label: "Title" }],
+      "Lead"
+    );
     const names = result.map((f) => f.fieldname);
     expect(names.slice(0, 9)).toEqual([
       "name",
@@ -49,16 +50,26 @@ describe("getFilterableFields", () => {
   });
 
   it("carries Select options through for fieldtype-aware value inputs", () => {
-    const result = getFilterableFields([
-      {
-        fieldname: "status",
-        fieldtype: "Select",
-        label: "Status",
-        options: "Open\nClosed",
-      },
-    ]);
+    const result = getFilterableFields(
+      [
+        {
+          fieldname: "status",
+          fieldtype: "Select",
+          label: "Status",
+          options: "Open\nClosed",
+        },
+      ],
+      "Lead"
+    );
     expect(result.find((f) => f.fieldname === "status")?.options).toBe(
       "Open\nClosed"
+    );
+  });
+
+  it("stamps the doctype as the name field's Link target so Name filters search its records", () => {
+    const result = getFilterableFields([], "CRM Lead");
+    expect(result.find((f) => f.fieldname === "name")?.options).toBe(
+      "CRM Lead"
     );
   });
 });

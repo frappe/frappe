@@ -21,6 +21,15 @@ shared value inputs. The few gaps the shared inputs don't yet cover (Date
 operator-driven input swaps handled in the Filter `.vue`, not new field
 components.
 
+The **wire form** (`serializeFilters` / `parseFilters`) is Frappe's list of
+`[fieldname, operator, value]` triples — **not** CRM's fieldname-keyed dict
+(`parseFilters` in CRM's `Filter.vue`). This is a deliberate divergence: the same
+reason the dict-modeled `ListFilter` was rejected below (a dict can't hold one
+field filtered twice, e.g. `amount > 100 AND amount < 500`) applies equally to
+CRM's serialization, so the list form is the only shape consistent with the
+control's `Filter[]` model. Hosts pass the list straight to a Frappe `get_list`
+filters argument.
+
 ## Considered Options
 
 - **Wrap frappe-ui `ListFilter` (295 lines).** Rejected: its dict model

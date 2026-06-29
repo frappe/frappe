@@ -24,7 +24,7 @@
 		</ListViewShell>
 
 		<div class="text-xs text-ink-gray-6">order_by = "{{ orderBy }}"</div>
-		<div class="text-xs text-ink-gray-6">filters = {{ filtersDict }}</div>
+		<div class="text-xs text-ink-gray-6">filters = {{ wireFilters }}</div>
 	</div>
 </template>
 
@@ -53,5 +53,5 @@ const orderBy = computed(() => serializeOrderBy(sorts.value));
 // Likewise for Filter: the host owns the FilterCondition[] and would serialize it
 // to a Frappe filters dict for the fetch. Reset on doctype switch via the `:key`.
 const filters = ref<FilterCondition[]>([]);
-const filtersDict = computed(() => serializeFilters(filters.value));
+const wireFilters = computed(() => serializeFilters(filters.value));
 </script>

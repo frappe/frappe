@@ -17,7 +17,7 @@
 
 		<div class="flex flex-col gap-1 text-xs text-ink-gray-6">
 			<div>FilterCondition[] = {{ filters }}</div>
-			<div>filters = {{ filtersDict }}</div>
+			<div>filters = {{ wireFilters }}</div>
 		</div>
 	</div>
 </template>
@@ -32,5 +32,5 @@ const doctypeOptions = ["CRM Lead", "CRM Deal", "CRM Task", "ToDo"];
 const doctype = ref("CRM Lead");
 const filters = ref<FilterCondition[]>([]);
 
-const filtersDict = computed(() => serializeFilters(filters.value));
+const wireFilters = computed(() => serializeFilters(filters.value));
 </script>

@@ -22,7 +22,7 @@
 		v-if="!model.length"
 		trigger="button"
 		variant="subtle"
-		:options="addableOptions"
+		:options="allFields"
 		:modelValue="null"
 		placeholder="Filter"
 		@update:selectedOption="addFilter"
@@ -72,11 +72,12 @@
 									</div>
 									<div class="!min-w-[140px]">
 										<Combobox
+											class="w-full"
 											trigger="button"
 											variant="subtle"
 											size="md"
 											:modelValue="f.fieldname"
-											:options="optionsFor(f.fieldname)"
+											:options="allFields"
 											placeholder="Select field"
 											@update:selectedOption="(o) => updateField(o, i)"
 										/>
@@ -119,7 +120,7 @@
 							:key="model.length"
 							trigger="button"
 							variant="ghost"
-							:options="addableOptions"
+							:options="allFields"
 							:modelValue="null"
 							placeholder="Add Filter"
 							@update:selectedOption="addFilter"
@@ -175,20 +176,14 @@ const popoverRef = ref<{ open: () => void } | null>(null);
 const { meta } = useDoctypeMeta(props.doctype);
 
 // Field Options derived client-side from Meta — no CRM endpoint.
-const allFields = computed<FilterField[]>(() => getFilterableFields(meta.value?.fields ?? []));
+const allFields = computed<FilterField[]>(() =>
+	getFilterableFields(meta.value?.fields ?? [], props.doctype)
+);
 
-// Options offered by the "add" picker: every filterable field not already chosen.
-const addableOptions = computed<FilterField[]>(() => {
-	const chosen = new Set(model.value.map((f) => f.fieldname));
-	return allFields.value.filter((o) => !chosen.has(o.fieldname));
-});
-
-// For an in-row field picker: addable fields plus the row's own current field, so
-// the selected value stays selectable.
-function optionsFor(fieldname: string): FilterField[] {
-	const own = allFields.value.find((o) => o.fieldname === fieldname);
-	return own ? [own, ...addableOptions.value] : addableOptions.value;
-}
+// Both the empty-state picker and the in-row picker offer every filterable field.
+// Already-chosen fields are intentionally NOT excluded: a field can carry more
+// than one condition (e.g. `amount > 100 AND amount < 500`), so the list form of
+// `serializeFilters` can hold duplicates.
 
 // Combobox's `update:selectedOption` hands back the chosen option (or null); its
 // `value` is the fieldname. Resolve it to the full FilterField from Meta.
@@ -211,7 +206,7 @@ function conditionFor(field: FilterField): Filter {
 
 function addFilter(option: unknown) {
 	const field = fieldFromOption(option);
-	if (!field || model.value.some((f) => f.fieldname === field.fieldname)) return;
+	if (!field) return;
 	model.value = [...model.value, conditionFor(field)];
 	// Open the popover once it mounts (no-op when adding from inside an open one).
 	nextTick(() => popoverRef.value?.open());

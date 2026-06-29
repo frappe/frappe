@@ -64,9 +64,19 @@ const toFilterField = (
  * fields, keep only filterable fieldtypes, and stamp `label`/`value`/`fieldname`
  * onto each. The server's per-controller `restricted_fields` hook has no
  * client-side equivalent and is not applied here.
+ *
+ * `doctype` is the doctype being filtered; it backs the `name` standard field's
+ * Link target (`options`), so an `equals`/`in` filter on Name searches the
+ * doctype's own records — matching the server's `"options": doctype`.
  */
-export function getFilterableFields(fields: RawMetaField[]): FilterField[] {
-  return [...STANDARD_FIELDS, ...fields]
+export function getFilterableFields(
+  fields: RawMetaField[],
+  doctype: string
+): FilterField[] {
+  const standardFields = STANDARD_FIELDS.map((f) =>
+    f.fieldname === "name" ? { ...f, options: doctype } : f
+  );
+  return [...standardFields, ...fields]
     .filter((f) => FILTERABLE_FIELDTYPES.has(f.fieldtype))
     .map(toFilterField);
 }
