@@ -108,10 +108,14 @@ class ChromiumManager:
 		"""
 		from playwright.sync_api import sync_playwright
 
+		# channel and executable_path are mutually exclusive in Playwright.
+		# Use channel only when no custom binary path is configured.
+		channel = None if executable_path else "chrome-headless-shell"
+
 		self._playwright = sync_playwright().start()
 		try:
 			self._browser = self._playwright.chromium.launch(
-				channel="chrome-headless-shell",
+				channel=channel,
 				executable_path=executable_path,
 				args=CHROMIUM_LAUNCH_ARGS,
 				headless=True,
@@ -124,7 +128,7 @@ class ChromiumManager:
 				frappe.log("chrome-headless-shell not found — auto-installing via playwright")
 				self._auto_install_chromium()
 				self._browser = self._playwright.chromium.launch(
-					channel="chrome-headless-shell",
+					channel=channel,
 					executable_path=executable_path,
 					args=CHROMIUM_LAUNCH_ARGS,
 					headless=True,
