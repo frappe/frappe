@@ -20,18 +20,22 @@
 				:label="hideLabel ? undefined : 'Columns'"
 				:icon="hideLabel ? 'lucide-columns-3' : undefined"
 				:iconLeft="!hideLabel ? 'lucide-columns-3' : undefined"
-				@click="togglePopover"
+				@click="
+					confirmingReset = false;
+					togglePopover();
+				"
 			/>
 		</template>
 		<template #body>
 			<div
 				class="my-2 min-w-40 rounded-lg bg-surface-elevation-2 shadow-2xl ring-1 ring-black ring-opacity-5 focus:outline-none"
 			>
-				<!-- List mode: reorder / edit / remove the shown columns, add more. -->
-				<div v-if="editIndex === null" class="min-w-60 p-2">
+				<!-- Reorder / rename / remove the shown columns, add more. Width is
+				     not edited here — drag-resize in the table owns it (ADR-0006). -->
+				<div class="min-w-60 p-2">
 					<Draggable
 						v-if="model.length"
-						class="mb-2 flex flex-col gap-1"
+						class="mb-3 flex flex-col gap-2"
 						:modelValue="model"
 						:item-key="(c) => c.fieldname"
 						handle=".column-drag-handle"
@@ -39,39 +43,38 @@
 						@update:modelValue="reorder"
 					>
 						<template #item="{ element: column, index: i }">
-							<div
-								class="flex items-center justify-between gap-2 rounded px-1 py-1 text-base text-ink-gray-8 hover:bg-surface-gray-2"
-							>
-								<div class="flex min-w-0 items-center gap-2">
-									<div
-										class="column-drag-handle flex h-5 w-5 items-center justify-center"
-									>
-										<span
-											class="lucide-grip-vertical size-4 cursor-grab text-ink-gray-5"
-											aria-hidden="true"
-										/>
-									</div>
-									<div class="truncate">{{ column.label }}</div>
-								</div>
-								<div class="flex items-center gap-0.5">
-									<Button
-										variant="ghost"
-										icon="lucide-pencil"
-										@click="editColumn(i)"
-									/>
-									<Button
-										variant="ghost"
-										icon="lucide-x"
-										@click="removeColumn(i)"
+							<div class="flex items-center gap-1">
+								<div
+									class="column-drag-handle flex h-7 w-7 shrink-0 items-center justify-center"
+								>
+									<span
+										class="lucide-grip-vertical size-4 cursor-grab text-ink-gray-5"
+										aria-hidden="true"
 									/>
 								</div>
+								<!-- The label is always a TextInput: read-only at rest, click to
+								     rename. Editing writes a local `draft` (so Esc reverts and
+								     typing doesn't churn the dragged list); commit on Enter/blur. -->
+								<TextInput
+									:ref="editIndex === i ? focusInput : undefined"
+									size="sm"
+									class="min-w-0 flex-1"
+									:readonly="editIndex !== i"
+									:modelValue="editIndex === i ? draft : column.label"
+									@click="editColumn(i)"
+									@update:modelValue="(value: string) => (draft = value)"
+									@keydown.enter.prevent="commitEdit"
+									@keydown.esc.prevent="cancelEdit"
+									@blur="commitEdit"
+								/>
+								<Button variant="ghost" icon="lucide-x" @click="removeColumn(i)" />
 							</div>
 						</template>
 					</Draggable>
-					<div v-else class="mb-2 flex h-7 items-center px-2 text-sm text-ink-gray-5">
+					<div v-else class="mb-3 flex h-7 items-center px-3 text-sm text-ink-gray-5">
 						Empty - Add a column to show
 					</div>
-					<div class="border-t border-outline-elevation-2 pt-2">
+					<div class="flex items-center justify-between gap-2">
 						<!-- Remount per add: the combobox's internal model would otherwise
 						     retain the picked field and show it instead of "Add Column". -->
 						<Combobox
@@ -87,34 +90,17 @@
 								<span class="lucide-plus size-4" aria-hidden="true" />
 							</template>
 						</Combobox>
-					</div>
-				</div>
-
-				<!-- Edit mode: inline label/width edit with a local cancel buffer. -->
-				<div v-else class="flex w-60 flex-col gap-3 p-3">
-					<FormControl
-						v-model="draft.label"
-						type="text"
-						size="md"
-						label="Label"
-						placeholder="First Name"
-					/>
-					<FormControl
-						v-model="draft.width"
-						type="text"
-						size="md"
-						label="Width"
-						placeholder="Auto"
-						description="Auto by default; set a number, pixel or rem (eg. 3, 30px, 10rem)"
-					/>
-					<div class="flex gap-2 border-t border-outline-elevation-2 pt-3">
+						<!-- Reset to the Meta defaults. The host owns the defaults (ADR-0006),
+						     so this only emits; `canReset` hides it when nothing to undo. The
+						     first click arms an inline confirm, the second emits. -->
 						<Button
-							class="flex-1"
-							variant="subtle"
-							label="Cancel"
-							@click="cancelEdit"
+							v-if="canReset"
+							:class="confirmingReset ? undefined : '!text-ink-gray-5'"
+							:variant="confirmingReset ? 'subtle' : 'ghost'"
+							:theme="confirmingReset ? 'red' : 'gray'"
+							:label="confirmingReset ? 'Confirm Reset' : 'Reset'"
+							@click="onResetClick"
 						/>
-						<Button class="flex-1" variant="solid" label="Update" @click="saveEdit" />
 					</div>
 				</div>
 			</div>
@@ -123,17 +109,39 @@
 </template>
 
 <script setup lang="ts">
-import { computed, ref } from "vue";
-import { Button, Combobox, FormControl, Popover } from "frappe-ui";
+import { computed, nextTick, ref } from "vue";
+import { Button, Combobox, Popover, TextInput } from "frappe-ui";
 // @ts-ignore — vuedraggable ships no bundled types
 import Draggable from "vuedraggable";
 import { useDoctypeMeta } from "../../composables/useDoctypeMeta";
 import { getColumnOptions } from "./getColumnOptions";
 import type { Column, ColumnOption } from "./types";
 
-const props = withDefaults(defineProps<{ doctype: string; hideLabel?: boolean }>(), {
-	hideLabel: false,
-});
+const props = withDefaults(
+	defineProps<{ doctype: string; hideLabel?: boolean; canReset?: boolean }>(),
+	{
+		hideLabel: false,
+		canReset: false,
+	}
+);
+
+// Reset is the host's job (ADR-0006): the controlled popover holds no defaults, so
+// it only signals intent and the host restores them.
+const emit = defineEmits<{ reset: [] }>();
+
+// Reset discards every customization (columns shown, order, labels, widths), so
+// it confirms inline: the first click arms the button (red "Confirm Reset"), the
+// second emits. Re-opening the popover disarms it (see the trigger's @click).
+const confirmingReset = ref(false);
+
+function onResetClick() {
+	if (confirmingReset.value) {
+		emit("reset");
+		confirmingReset.value = false;
+	} else {
+		confirmingReset.value = true;
+	}
+}
 
 // `v-model` is the ordered list of Columns. The component is controlled: it only
 // reads and re-emits this array, never a data resource and never persistence.
@@ -174,29 +182,44 @@ function reorder(next: Column[]) {
 	model.value = next;
 }
 
-// Inline label/width edit holds a component-local draft so a Cancel discards the
-// edits without touching the model; only Update writes them back. An empty width
-// clears the override (the column goes back to auto — serialize flexes it to fill).
+// Inline rename holds a component-local draft so Esc discards the edit without
+// touching the model; only commit writes it back. Width is never edited here —
+// drag-resize in the table owns it (ADR-0006). An empty/whitespace label is
+// rejected so a column never loses its header.
 const editIndex = ref<number | null>(null);
-const draft = ref<{ label: string; width: string }>({ label: "", width: "" });
+const draft = ref("");
 
 function editColumn(index: number) {
-	const column = model.value[index];
-	draft.value = { label: column.label, width: column.width ?? "" };
+	// Clicking the already-active input must not reset the in-progress draft.
+	if (editIndex.value === index) return;
+	draft.value = model.value[index].label;
 	editIndex.value = index;
+}
+
+// Focus and select the rename input the moment it mounts, so typing replaces
+// the current label. TextInput exposes its native input as `.el`.
+function focusInput(component: unknown) {
+	const el = (component as { el?: HTMLInputElement } | null)?.el;
+	if (el instanceof HTMLInputElement) {
+		nextTick(() => {
+			el.focus();
+			el.select();
+		});
+	}
 }
 
 function cancelEdit() {
 	editIndex.value = null;
 }
 
-function saveEdit() {
+// Enter and blur both commit; whichever fires first clears editIndex, so the
+// other becomes a no-op.
+function commitEdit() {
 	const index = editIndex.value;
 	if (index === null) return;
-	const width = draft.value.width.trim();
-	model.value = model.value.map((c, i) =>
-		i === index ? { ...c, label: draft.value.label, width: width || undefined } : c
-	);
+	const label = draft.value.trim();
 	editIndex.value = null;
+	if (!label || label === model.value[index].label) return;
+	model.value = model.value.map((c, i) => (i === index ? { ...c, label } : c));
 }
 </script>

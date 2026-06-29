@@ -28,7 +28,12 @@
 			/>
 			<Filter v-model="view.filters.value" :doctype="doctype" />
 			<SortBy v-model="view.sorts.value" :doctype="doctype" />
-			<ColumnSettings v-model="view.columns.value" :doctype="doctype" />
+			<ColumnSettings
+				v-model="view.columns.value"
+				:doctype="doctype"
+				:can-reset="view.isColumnsCustomized.value"
+				@reset="view.resetColumns()"
+			/>
 			<Button
 				v-if="view.canCustomize.value"
 				:icon="view.customizing.value ? 'lucide-check' : 'lucide-settings-2'"

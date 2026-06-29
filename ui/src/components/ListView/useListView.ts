@@ -30,6 +30,13 @@ export interface UseListView {
    *  drag-resize writes back into — both bind this one ref, so they stay in sync
    *  with no cross-control events (ADR-0006, the column twin of Filter↔QuickFilter). */
   columns: WritableComputedRef<Column[]>;
+  /** Whether `columns` has been customized away from the Meta defaults — a Reset
+   *  trigger reads this to show itself only when there is something to undo. */
+  isColumnsCustomized: Ref<boolean>;
+  /** Restore `columns` to the Meta-derived defaults (clears the customization, so
+   *  the writable computed falls back to `getDefaultColumns`). ColumnSettings emits
+   *  `@reset` to this; defaults live here, not in the controlled popover (ADR-0006). */
+  resetColumns: () => void;
   /** The fields surfaced as QuickFilter inputs. Defaults to the doctype's
    *  `in_standard_filter` fields (from Meta) until customized; a host may bind
    *  this (alongside QuickFilter's `v-model:fields`) to persist the choice. */
@@ -92,6 +99,13 @@ export function useListView(doctype: string): UseListView {
     },
   });
 
+  // Reset is a host concern (ADR-0006): the controlled popover holds no defaults,
+  // so clearing the customization here drops `columns` back to `getDefaultColumns`.
+  const isColumnsCustomized = computed(() => customColumns.value !== null);
+  const resetColumns = () => {
+    customColumns.value = null;
+  };
+
   // `null` ⇒ "use the Meta-derived default"; a value ⇒ the host/user customized
   // it. A writable computed so the default tracks Meta as it loads, yet a
   // customization (via `v-model:fields`) sticks — no seed watch needed.
@@ -133,6 +147,8 @@ export function useListView(doctype: string): UseListView {
     filters,
     sorts,
     columns,
+    isColumnsCustomized,
+    resetColumns,
     quickFilterFields,
     customizing,
     canCustomize,
