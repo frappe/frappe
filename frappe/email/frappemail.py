@@ -68,6 +68,7 @@ class FrappeMail:
 		files: dict | None = None,
 		headers: dict[str, str] | None = None,
 		timeout: int | tuple[int, int] = (60, 120),
+		raw_response: bool = False,
 	) -> Any | None:
 		"""Makes a request to the Frappe Mail API."""
 
@@ -90,6 +91,11 @@ class FrappeMail:
 			timeout=timeout,
 		)
 		raise_for_status(response)
+
+		# The suite app routes return raw JSON without Frappe's `message`/`data`
+		# wrapper, which `post_process()` would collapse to `None`.
+		if raw_response:
+			return response.json()
 
 		return self.client.post_process(response)
 
@@ -142,7 +148,7 @@ class FrappeMail:
 
 		data = {"mailbox": mailbox, "limit": limit, "last_received_at": last_received_at}
 		headers = {"X-Site": frappe.utils.get_url()}
-		response = self.request("GET", endpoint=endpoint, data=data, headers=headers)
+		response = self.request("GET", endpoint=endpoint, data=data, headers=headers, raw_response=True)
 		last_received_at = convert_utc_to_system_timezone(get_datetime(response["last_received_at"]))
 
 		return {"latest_messages": response["mails"], "last_received_at": last_received_at}
