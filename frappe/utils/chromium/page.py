@@ -51,17 +51,19 @@ class Page:
 	def set_content(self, html):
 		"""Set page HTML content. Routes local asset/file requests from disk."""
 		self._setup_local_resource_route()
-		# "load" fires after all resources (images, stylesheets) referenced in the
-		# HTML are fetched — sufficient for height measurement and PDF rendering.
-		# "networkidle" times out when the HTML references external CDN assets.
 		self._page.set_content(html, wait_until="load")
 		self.wait_for_set_content = lambda: None
 
 	def _setup_local_resource_route(self):
-		"""Intercept requests for local assets and serve them from disk.
+		"""Intercept all requests and serve local assets from disk; abort everything else.
+
+		Every request must be resolved deterministically (fulfill or abort) so
+		the page load event fires promptly. Calling route.continue_() for
+		external URLs makes real outbound HTTP requests — if a CDN or font host
+		is unreachable the request hangs and set_content() times out.
 
 		Security: only paths inside bench sites/assets and site public root are
-		served. Everything else is either passed through (external) or blocked.
+		served. All other paths and all external URLs are aborted immediately.
 		"""
 		bench_sites = os.path.abspath(os.path.join(frappe.utils.get_bench_path(), "sites"))
 		asset_path = os.path.abspath(os.path.join(bench_sites, "assets"))
@@ -69,33 +71,38 @@ class Page:
 
 		def handle_route(route):
 			url = route.request.url
-			if url.startswith(get_host_url()):
-				path = url.replace(get_host_url(), "").split("?v", 1)[0]
-				clean_path = urllib.parse.unquote(path)
 
-				if clean_path.startswith("assets/"):
-					final_path = os.path.abspath(os.path.join(bench_sites, clean_path))
-					is_safe = os.path.commonpath([final_path, asset_path]) == asset_path
-				else:
-					final_path = os.path.realpath(os.path.join(site_public_root, clean_path))
-					is_safe = os.path.commonpath([final_path, site_public_root]) == site_public_root
+			if not url.startswith(get_host_url()):
+				# External URLs (CDN fonts, images, analytics, etc.) are not needed
+				# for PDF generation and must not be fetched — they can hang forever.
+				route.abort("failed")
+				return
 
-				if is_safe and os.path.isfile(final_path):
-					content = frappe.read_file(final_path, as_base64=True)
-					headers = {}
-					if path.endswith(".svg"):
-						headers["Content-Type"] = "image/svg+xml"
-					if content:
-						route.fulfill(status=200, body=base64.b64decode(content), headers=headers)
-						return
-				elif path:
-					frappe.log_error(
-						title="Attempted Unauthorized File Access in PDF Generator",
-						message=f"Blocked access to: {path}\nResolved Path to: {final_path}",
-					)
-					route.abort("accessdenied")
+			path = url.replace(get_host_url(), "").split("?v", 1)[0]
+			clean_path = urllib.parse.unquote(path)
+
+			if clean_path.startswith("assets/"):
+				final_path = os.path.abspath(os.path.join(bench_sites, clean_path))
+				is_safe = os.path.commonpath([final_path, asset_path]) == asset_path
+			else:
+				final_path = os.path.realpath(os.path.join(site_public_root, clean_path))
+				is_safe = os.path.commonpath([final_path, site_public_root]) == site_public_root
+
+			if is_safe and os.path.isfile(final_path):
+				content = frappe.read_file(final_path, as_base64=True)
+				headers = {}
+				if path.endswith(".svg"):
+					headers["Content-Type"] = "image/svg+xml"
+				if content:
+					route.fulfill(status=200, body=base64.b64decode(content), headers=headers)
 					return
-			route.continue_()
+
+			if path:
+				frappe.log_error(
+					title="Attempted Unauthorized File Access in PDF Generator",
+					message=f"Blocked access to: {path}\nResolved Path to: {final_path}",
+				)
+			route.abort("accessdenied")
 
 		self._page.route("**/*", handle_route)
 
