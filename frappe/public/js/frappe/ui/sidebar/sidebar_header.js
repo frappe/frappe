@@ -163,7 +163,11 @@ frappe.ui.SidebarHeader = class SidebarHeader {
 	}
 	set_header_icon() {
 		let workspace = frappe.workspaces[frappe.router.slug(this.sidebar.sidebar_title)];
-		if (workspace?.icon) {
+		if (this.sidebar.sidebar_data?.from_module) {
+			// auto-generated module sidebars have no real icon; render a letter icon from the
+			// title (matching the desktop apps screen) instead of the default app logo.
+			this.header_icon = frappe.utils.desktop_icon(this.sidebar.sidebar_title, "gray", "sm");
+		} else if (workspace?.icon) {
 			this.header_icon = frappe.utils.icon(workspace.icon, "md");
 		} else {
 			this.header_icon = `<img src=${this.get_default_icon()}></img>`;

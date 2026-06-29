@@ -269,6 +269,9 @@ def auto_generate_sidebar_from_module():
 			sidebar.items = sidebar_items
 			sidebar.module = module
 			sidebar.header_icon = "hammer"
+			# in-memory marker (not a persisted field): flags sidebars built from a module so the
+			# desk can render a generated avatar instead of the default app-logo header icon.
+			sidebar.from_module = 1
 			sidebars.append(sidebar)
 	return sidebars
 

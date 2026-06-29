@@ -510,6 +510,7 @@ def get_sidebar_items():
 			app=sidebar.get("app"),
 			header_icon=sidebar.get("header_icon"),
 			module_onboarding=sidebar.get("module_onboarding"),
+			from_module=sidebar.get("from_module"),
 			perm_ctx=perm_ctx,
 		)
 
@@ -559,6 +560,7 @@ def add_sidebar_entry(
 	header_icon,
 	module_onboarding,
 	perm_ctx,
+	from_module=0,
 ):
 	"""Add one workspace's permission-filtered sidebar to `sidebar_items`, keyed by title."""
 	from frappe import _
@@ -613,6 +615,7 @@ def add_sidebar_entry(
 		"module_onboarding": module_onboarding,
 		"module": module,
 		"app": app,
+		"from_module": from_module,
 	}
 
 
