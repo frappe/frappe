@@ -99,7 +99,7 @@ class FlowPanel {
 
 	_registerShortcut() {
 		frappe.ui.keys.add_shortcut({
-			shortcut: "ctrl+m",
+			shortcut: "ctrl+i",
 			action: () => this.toggle(),
 			description: __("Toggle Flow panel"),
 			ignore_inputs: false,
