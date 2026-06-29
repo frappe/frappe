@@ -3,7 +3,7 @@ msgstr ""
 "Project-Id-Version: frappe\n"
 "Report-Msgid-Bugs-To: developers@frappe.io\n"
 "POT-Creation-Date: 2026-06-28 10:17+0000\n"
-"PO-Revision-Date: 2026-06-28 21:05\n"
+"PO-Revision-Date: 2026-06-29 21:07\n"
 "Last-Translator: developers@frappe.io\n"
 "Language-Team: Swedish\n"
 "MIME-Version: 1.0\n"
@@ -2734,7 +2734,7 @@ msgstr "App hittades inte för modul: {0}"
 #. Description of the 'App' (Select) field in DocType 'Notification Log'
 #: frappe/desk/doctype/notification_log/notification_log.json
 msgid "App that produced this notification; used to scope app-specific panels. Derived from the reference document when not set explicitly."
-msgstr ""
+msgstr "App som skapade detta meddelande; används för att avgränsa app specifika paneler. Hämtas från referens dokument om den inte anges uttryckligen."
 
 #: frappe/utils/__init__.py:1250
 msgid "App {0} is not installed"
@@ -4669,7 +4669,7 @@ msgstr "Kan inte ändra dokument status för ej godkännbar dokument typ {0}"
 
 #: frappe/database/mariadb/schema.py:177
 msgid "Cannot change field type in {0}: some existing values cannot be converted to the new type"
-msgstr ""
+msgstr "Kan inte ändra fält typ i {0}: vissa befintliga värden kan inte konverteras till ny typ"
 
 #: frappe/public/js/workflow_builder/utils.js:170
 msgid "Cannot change state of Cancelled Document <b>({0} State)</b>"
@@ -4907,7 +4907,7 @@ msgstr "Kategori Namn"
 #. 'Notification'
 #: frappe/email/doctype/notification/notification.json
 msgid "Category for the in-app notification. Used for filtering and per-user email preferences."
-msgstr ""
+msgstr "Kategori för i app aviseringar. Används för filtrering och e-post inställningar per användare."
 
 #. Option for the 'Alignment' (Select) field in DocType 'DocField'
 #. Option for the 'Alignment' (Select) field in DocType 'Custom Field'
@@ -5202,7 +5202,7 @@ msgstr "Välj standard ordning i vilken poster visas."
 
 #: frappe/desk/doctype/notification_settings/notification_settings.js:45
 msgid "Choose which notification types are emailed to you. Unchecked types still show as in-app notifications."
-msgstr ""
+msgstr "Välj vilka avisering typer som ska skickas till dig via e-post. Ej valda typer visas fortfarande som aviseringar i appen."
 
 #: frappe/core/doctype/data_import/importer.py:1093
 msgid "Circular parent reference for {0}"
@@ -7044,7 +7044,7 @@ msgstr "Cyan"
 #. Label of the db_tables (Table) field in DocType 'DuckDB Sync'
 #: frappe/core/doctype/duckdb_sync/duckdb_sync.json
 msgid "DB Tables"
-msgstr ""
+msgstr "DuckDB Tabeller"
 
 #. Option for the 'Delivery Status Notification Type' (Select) field in DocType
 #. 'Email Account'
@@ -8474,7 +8474,7 @@ msgstr "Återställ Dokument Status"
 #: frappe/website/doctype/web_form_request/web_form_request.json
 #: frappe/website/doctype/web_form_request/web_form_request.py:104
 msgid "Doc Values"
-msgstr ""
+msgstr "Dokument Värden"
 
 #. Name of a DocType
 #. Option for the 'Applied On' (Select) field in DocType 'Property Setter'
@@ -8691,7 +8691,7 @@ msgstr "DocType"
 #: frappe/core/doctype/doctype_to_sync/doctype_to_sync.json
 #: frappe/core/doctype/report/report.json
 msgid "Doctype To Sync"
-msgstr ""
+msgstr "Doctype att Synkronisera"
 
 #: frappe/core/doctype/doctype/doctype.py:1077
 msgid "Doctype name is limited to {0} characters ({1})"
@@ -9269,12 +9269,12 @@ msgstr "Rullgardin Meny"
 #. Name of a DocType
 #: frappe/core/doctype/duckdb_sync/duckdb_sync.json
 msgid "DuckDB Sync"
-msgstr ""
+msgstr "DuckDB Synkronisering"
 
 #. Name of a DocType
 #: frappe/core/doctype/duckdb_sync_item/duckdb_sync_item.json
 msgid "DuckDB Sync Item"
-msgstr ""
+msgstr "DuckDB Synkronisering Post"
 
 #. Label of the date (Date) field in DocType 'ToDo'
 #: frappe/desk/doctype/todo/todo.json
@@ -9929,7 +9929,7 @@ msgstr "E-post Avregistrering"
 
 #: frappe/desk/doctype/notification_type/notification_type.js:16
 msgid "Email everyone for <b>{0}</b> notifications? This adds it to every user's email preferences. Users can still opt out individually afterwards."
-msgstr ""
+msgstr "Skicka e-post till alla för <b>{0}</b> aviseringar? Detta lägger till det i alla användares e-post inställningar. Användare kan fortfarande välja bort det individuellt efteråt."
 
 #: frappe/core/doctype/communication/communication.js:345
 msgid "Email has been marked as spam"
@@ -9953,7 +9953,7 @@ msgstr "E-postadress erfordras."
 #. 'Notification Settings'
 #: frappe/desk/doctype/notification_settings/notification_settings.json
 msgid "Email me for these notification types"
-msgstr ""
+msgstr "Skicka ett e-post meddelande till mig för dessa typer av aviseringar"
 
 #: frappe/public/js/frappe/views/communication.js:912
 msgid "Email not sent to {0} (unsubscribed / disabled)"
@@ -10076,7 +10076,7 @@ msgstr "Aktivera E-post Aviseringar"
 
 #: frappe/desk/doctype/notification_type/notification_type.js:13
 msgid "Enable Email Notifications for All Users"
-msgstr ""
+msgstr "Aktivera E-post Aviseringar för alla användare"
 
 #: frappe/integrations/doctype/google_calendar/google_calendar.py:108
 #: frappe/integrations/doctype/google_contacts/google_contacts.py:38
@@ -10169,7 +10169,7 @@ msgstr "Aktivera Social Inloggning"
 #. Settings'
 #: frappe/core/doctype/synced_report_settings/synced_report_settings.json
 msgid "Enable Synced Reports"
-msgstr ""
+msgstr "Aktivera Synkroniserade Rapporter"
 
 #. Label of the enabled (Check) field in DocType 'Notification Settings'
 #: frappe/desk/doctype/notification_settings/notification_settings.json
@@ -10221,7 +10221,7 @@ msgstr "Aktivera Webbplats Spårning i App"
 
 #: frappe/desk/doctype/notification_type/notification_type.py:92
 msgid "Enable the notification type before emailing it to users."
-msgstr ""
+msgstr "Aktivera avisering typ innan den skickas till användarna via e-post."
 
 #. Description of the 'Include in Import Template' (Check) field in DocType
 #. 'DocField'
@@ -10282,7 +10282,7 @@ msgstr "Om automatiskt svar aktiveras på inkommande E-post Konto, skickas autom
 
 #: frappe/desk/doctype/notification_type/notification_type.py:103
 msgid "Enabling email for {0} across all users in the background."
-msgstr ""
+msgstr "Aktiverar e-post för {0} för alla användare i bakgrunden."
 
 #. Description of a DocType
 #. Description of the 'Relay Settings' (Section Break) field in DocType 'Push
@@ -11817,7 +11817,7 @@ msgstr "Första Lyckade Meddelande"
 #. Label of the first_used_on (Datetime) field in DocType 'Web Form Request'
 #: frappe/website/doctype/web_form_request/web_form_request.json
 msgid "First Used On"
-msgstr ""
+msgstr "Först Använd"
 
 #: frappe/core/doctype/data_export/exporter.py:186
 msgid "First data column must be blank."
@@ -12717,7 +12717,7 @@ msgstr "Gå Tillbaka"
 #: frappe/website/doctype/web_form/web_form.js:501
 #: frappe/website/doctype/web_form/web_form.js:505
 msgid "Go to Access Control section"
-msgstr ""
+msgstr "Gå till Åtkomst Kontroll sektion"
 
 #: frappe/desk/doctype/notification_settings/notification_settings.js:17
 msgid "Go to Notification Settings List"
@@ -13278,7 +13278,7 @@ msgstr "Huvud Rubrik"
 #. 'Notification'
 #: frappe/email/doctype/notification/notification.json
 msgid "Headline of the in-app notification. Falls back to Subject if left blank. Supports Jinja."
-msgstr ""
+msgstr "Rubrik för avisering i app. Återgår till Ämne om det lämnas tomt. Stöder Jinja."
 
 #. Label of a Workspace Sidebar Item
 #: frappe/workspace_sidebar/system.json
@@ -13912,7 +13912,7 @@ msgstr "Om aktiverat kommer lösenordsstyrka att tillämpas baserat på värde f
 #. Description of the 'Key required' (Check) field in DocType 'Web Form'
 #: frappe/website/doctype/web_form/web_form.json
 msgid "If enabled, the web form can only be used with a <i>Key</i> from a corresponding <b>Web Form Request</b>."
-msgstr ""
+msgstr "Om webb formulär är aktiverat kan det bara användas med <i>-Nyckel</i> från motsvarande <b>Webb Formulär Begäran</b>."
 
 #. Description of the 'Bypass Two Factor Auth for users who login from
 #. restricted IP Address' (Check) field in DocType 'System Settings'
@@ -14528,7 +14528,7 @@ msgstr "Inkommande E-post Konto är inte korrekt"
 
 #: frappe/database/mariadb/schema.py:180
 msgid "Incompatible Values"
-msgstr ""
+msgstr "Inkompatibla Värden"
 
 #: frappe/model/virtual_doctype.py:79 frappe/model/virtual_doctype.py:92
 msgid "Incomplete Virtual Doctype Implementation"
@@ -14953,7 +14953,7 @@ msgstr "Ogiltig Webbplats"
 
 #: frappe/website/doctype/web_form_request/web_form_request.py:84
 msgid "Invalid JSON"
-msgstr ""
+msgstr "Ogiltig JSON"
 
 #: frappe/utils/verified_command.py:48 frappe/www/update-password.html:185
 msgid "Invalid Link"
@@ -15047,7 +15047,7 @@ msgstr "Ogiltiga Värden"
 #: frappe/website/doctype/web_form/web_form.py:980
 #: frappe/website/doctype/web_form_request/web_form_request.py:142
 msgid "Invalid Web Form Request"
-msgstr ""
+msgstr "Ogiltig Webb Formulär Begäran"
 
 #: frappe/integrations/doctype/webhook/webhook.py:122
 msgid "Invalid Webhook Secret"
@@ -15632,7 +15632,7 @@ msgstr "JSON Begäran Av"
 
 #: frappe/website/doctype/web_form_request/web_form_request.py:87
 msgid "JSON value must be an object"
-msgstr ""
+msgstr "JSON värde måste vara objekt"
 
 #: frappe/templates/signup.html:5
 msgid "Jane Doe"
@@ -15813,12 +15813,12 @@ msgstr "Nyckel"
 
 #: frappe/website/doctype/web_form/web_form.js:506
 msgid "Key Required"
-msgstr ""
+msgstr "Nyckel Erfordras"
 
 #. Label of the key_required (Check) field in DocType 'Web Form'
 #: frappe/website/doctype/web_form/web_form.json
 msgid "Key required"
-msgstr ""
+msgstr "Nyckel Erfordras"
 
 #: frappe/public/js/frappe/ui/keyboard.js:144
 #: frappe/public/js/frappe/ui/sidebar/sidebar.js:432
@@ -17060,7 +17060,7 @@ msgstr "Inloggning inte tillåtet vid denna tid"
 
 #: frappe/website/doctype/web_form/web_form.js:509
 msgid "Login or a request key is required to see web form list view. Enable {0} to see list settings"
-msgstr ""
+msgstr "Du måste logga in eller ange en begäran nyckel för att kunna visa listvy för webb formulär. Aktivera {0} för att visa list inställningar"
 
 #. Label of the login_required (Check) field in DocType 'Web Form'
 #: frappe/website/doctype/web_form/web_form.json
@@ -19552,7 +19552,7 @@ msgstr "Ej Angiven"
 
 #: frappe/website/doctype/web_form_request/web_form_request_list.js:13
 msgid "Not Used"
-msgstr ""
+msgstr "Används Ej"
 
 #: frappe/utils/csvutils.py:105
 msgid "Not a valid Comma Separated Value (CSV File)"
@@ -19724,7 +19724,7 @@ msgstr "Avisering Logg"
 #. 'Notification'
 #: frappe/email/doctype/notification/notification.json
 msgid "Notification Message"
-msgstr ""
+msgstr "Avisering Meddelande"
 
 #. Name of a DocType
 #: frappe/email/doctype/notification_recipient/notification_recipient.json
@@ -19747,7 +19747,7 @@ msgstr "Avisering Prenumererad Dokument"
 #. Label of the notification_title (Data) field in DocType 'Notification'
 #: frappe/email/doctype/notification/notification.json
 msgid "Notification Title"
-msgstr ""
+msgstr "Avisering Titel"
 
 #. Name of a DocType
 #. Label of the notification_type (Link) field in DocType 'Notification Type
@@ -19757,12 +19757,12 @@ msgstr ""
 #: frappe/desk/doctype/notification_type_preference/notification_type_preference.json
 #: frappe/email/doctype/notification/notification.json
 msgid "Notification Type"
-msgstr ""
+msgstr "Avisering Typ"
 
 #. Name of a DocType
 #: frappe/desk/doctype/notification_type_preference/notification_type_preference.json
 msgid "Notification Type Preference"
-msgstr ""
+msgstr "Avisering Typ Inställningar"
 
 #: frappe/public/js/frappe/form/templates/timeline_message_box.html:9
 msgid "Notification sent to"
@@ -20538,7 +20538,7 @@ msgstr "Alternativ {0} för fält {1} är inte underordnad tabell"
 #. 'Notification'
 #: frappe/email/doctype/notification/notification.json
 msgid "Optional body of the in-app notification. Supports Jinja."
-msgstr ""
+msgstr "Valfri brödtext för avisering i app. Stöder Jinja."
 
 #. Description of the 'CC' (Code) field in DocType 'Notification Recipient'
 #: frappe/email/doctype/notification_recipient/notification_recipient.json
@@ -23341,7 +23341,7 @@ msgstr "Uppdatering av Träd Vy stöds inte för {}"
 #. MultiSelect) field in DocType 'Notification Settings'
 #: frappe/desk/doctype/notification_settings/notification_settings.json
 msgid "Receive an email for notifications of these types. Remove a type to stop its emails (in-app notifications are unaffected)."
-msgstr ""
+msgstr "Ta emot e-post meddelande för aviseringar av dessa typer. Ta bort en typ för att stoppa dess e-postmeddelande (aviseringar i app påverkas inte)."
 
 #. Option for the 'Sent or Received' (Select) field in DocType 'Communication'
 #: frappe/core/doctype/communication/communication.json
@@ -23384,7 +23384,7 @@ msgstr "Mottagare"
 #. 'Notification Log'
 #: frappe/desk/doctype/notification_log/notification_log.json
 msgid "Recipient & Status"
-msgstr ""
+msgstr "Mottagare & Status"
 
 #. Label of the recipient_account_field (Data) field in DocType 'DocType'
 #. Label of the recipient_account_field (Data) field in DocType 'Customize
@@ -26627,7 +26627,7 @@ msgstr "Ange"
 
 #: frappe/public/js/frappe/ui/filters/filter.js:450
 msgid "Set <strong>{0}</strong> = <em>?</em> to auto complete"
-msgstr ""
+msgstr "Ange <strong>{0}</strong> = <em>?</em> för automatisk komplettering"
 
 #. Label of the set_banner_from_image (Button) field in DocType 'Website
 #. Settings'
@@ -28747,7 +28747,7 @@ msgstr "Synkronisera Kontakter"
 
 #: frappe/core/doctype/duckdb_sync/duckdb_sync.js:23
 msgid "Sync Data"
-msgstr ""
+msgstr "Synkronisera Data"
 
 #: frappe/core/doctype/doctype_layout/doctype_layout.js:81
 msgid "Sync Fields"
@@ -28788,12 +28788,12 @@ msgstr "Synkroniserade fält"
 #. Label of the synced_report (Check) field in DocType 'Report'
 #: frappe/core/doctype/report/report.json
 msgid "Synced Report"
-msgstr ""
+msgstr "Synkroniserad Rapport"
 
 #. Name of a DocType
 #: frappe/core/doctype/synced_report_settings/synced_report_settings.json
 msgid "Synced Report Settings"
-msgstr ""
+msgstr "Synkroniserad Rapport Inställningar"
 
 #: frappe/integrations/doctype/google_calendar/google_calendar.js:31
 #: frappe/integrations/doctype/google_contacts/google_contacts.js:31
@@ -29876,11 +29876,11 @@ msgstr "Detta Kvartal"
 
 #: frappe/website/doctype/web_form_request/web_form_request.py:59
 msgid "This Web Form Request has already been used"
-msgstr ""
+msgstr "Denna Webb Formulär Begäran har redan använts"
 
 #: frappe/website/doctype/web_form_request/web_form_request.py:62
 msgid "This Web Form Request has expired"
-msgstr ""
+msgstr "Denna Webb Formulär Begäran har gått ut"
 
 #: frappe/public/js/frappe/ui/filters/filter.js:778
 msgid "This Week"
@@ -30024,7 +30024,7 @@ msgstr "Detta är bakgrund rapport. Ange lämplig filter och skapa ny rapport."
 
 #: frappe/public/js/frappe/views/reports/query_report.js:807
 msgid "This is a synced report generated {0}."
-msgstr ""
+msgstr "Detta är synkroniserad rapport skapad {0}."
 
 #: frappe/utils/password_strength.py:158
 msgid "This is a top-10 common password."
@@ -31071,7 +31071,7 @@ msgstr "Typ "
 #. Label of the type_name (Data) field in DocType 'Notification Type'
 #: frappe/desk/doctype/notification_type/notification_type.json
 msgid "Type Name"
-msgstr ""
+msgstr "Typ Namn"
 
 #: frappe/public/js/frappe/form/controls/comment.js:81
 msgid "Type a reply / comment"
@@ -31765,7 +31765,7 @@ msgstr "Använd om standard inställningar inte kan identifiera din data korrekt
 
 #: frappe/www/update-password.html:63
 msgid "Use minimum of 8 characters (case sensitive) with at least one number or special character."
-msgstr ""
+msgstr "Använd minst 8 tecken (skiftlägeskänsligt) med minst en siffra eller ett specialtecken."
 
 #: frappe/model/db_query.py:516
 msgid "Use of sub-query or function is restricted"
@@ -32738,21 +32738,21 @@ msgstr "Kolumn för Webbformulär Lista Kolumn"
 #. Name of a DocType
 #: frappe/website/doctype/web_form_request/web_form_request.json
 msgid "Web Form Request"
-msgstr ""
+msgstr "Webb Formulär Begäran"
 
 #: frappe/website/doctype/web_form_request/web_form_request.py:129
 msgid "Web Form Request key is required"
-msgstr ""
+msgstr "Webb Formulär Begäran Nyckel erfordras"
 
 #: frappe/website/doctype/web_form_request/web_form_request.js:15
 msgid "Web Form Request link copied"
-msgstr ""
+msgstr "Webb Formulär Begäran länk kopierad"
 
 #. Label of the web_form_values (Code) field in DocType 'Web Form Request'
 #: frappe/website/doctype/web_form_request/web_form_request.json
 #: frappe/website/doctype/web_form_request/web_form_request.py:98
 msgid "Web Form Values"
-msgstr ""
+msgstr "Webb Formulär Värden"
 
 #. Name of a DocType
 #. Label of a Workspace Sidebar Item
@@ -33132,7 +33132,7 @@ msgstr "Välkommen! Logga in för att fortsätta."
 #. Log'
 #: frappe/desk/doctype/notification_log/notification_log.json
 msgid "What the recipient receives by email when this notification fires. Mirrors Title/Description by default; set these to make the email differ from the in-app text."
-msgstr ""
+msgstr "Vad mottagaren får via e-post när den här aviseringen utlöses. SpeglarTitel/Beskrivning som standard; ange dessa för att göra att e-post meddelande skiljer sig från text i app."
 
 #: frappe/public/js/frappe/ui/notifications/notifications.js:74
 msgid "What's New"
@@ -34097,7 +34097,7 @@ msgstr "Du måste vara inloggad för att använda detta formulär."
 #: frappe/website/doctype/web_form/web_form.py:757
 #: frappe/website/doctype/web_form/web_form.py:970
 msgid "You must login to use this form"
-msgstr ""
+msgstr "Du måste logga in för att kunna använda detta formulär"
 
 #: frappe/model/document.py:675
 msgid "You need the '{0}' permission on {1} {2} to perform this action."
@@ -35374,7 +35374,7 @@ msgstr "{0} innehåller ogiltigt Hämta Från uttryck, Hämta från kan inte var
 
 #: frappe/website/doctype/web_form_request/web_form_request.py:110
 msgid "{0} contains invalid field(s): {1}"
-msgstr ""
+msgstr "{0} innehåller ogiltiga fält: {1}"
 
 #: frappe/public/js/frappe/form/controls/link.js:699
 msgid "{0} contains {1}"
@@ -35407,7 +35407,7 @@ msgstr "{0} innehåller inte {1}"
 
 #: frappe/desk/doctype/notification_type/notification_type.py:89
 msgid "{0} does not exist"
-msgstr ""
+msgstr "{0} finns inte"
 
 #: frappe/website/doctype/website_settings/website_settings.py:98
 #: frappe/website/doctype/website_settings/website_settings.py:118
@@ -35473,7 +35473,7 @@ msgstr "{0} på rad {1} inte kan ha både URL och under artiklar"
 
 #: frappe/desk/doctype/notification_type/notification_type.py:42
 msgid "{0} is a built-in Notification Type and cannot be deleted. Disable it instead."
-msgstr ""
+msgstr "{0} är en inbyggd Avisering Typ och kan inte tas bort. Inaktivera istället."
 
 #: frappe/public/js/frappe/form/controls/link.js:740
 msgid "{0} is a descendant of {1}"
@@ -35768,7 +35768,7 @@ msgstr "{0} måste börja och sluta med bokstav och får endast innehålla bokst
 
 #: frappe/desk/doctype/notification_type/notification_type.py:95
 msgid "{0} never sends email, so it cannot be enabled for users."
-msgstr ""
+msgstr "{0} skickar aldrig e-post, så det kan inte aktiveras för användare."
 
 #: frappe/workflow/doctype/workflow/workflow.py:94
 msgid "{0} not a valid State"
@@ -36047,7 +36047,7 @@ msgstr "{0}: Fälttyp {1} för {2} kan inte vara unik"
 
 #: frappe/website/doctype/web_form/web_form.py:124
 msgid "{0}: Link field cannot reference DocType {1} without Guest read permission"
-msgstr ""
+msgstr "{0}: Länk fält kan inte hänvisa till DocType {1} utan Gäst läs behörighet"
 
 #: frappe/core/doctype/doctype/doctype.py:1865
 msgid "{0}: No basic permissions set"
