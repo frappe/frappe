@@ -71,12 +71,8 @@ def _get_site_config(sites_path: str, site_path: str) -> _dict[str, Any]:
 
 		raise ValueError(f"Unsupported db_type={db_type}")
 
-	config["redis_queue"] = (
-		os.environ.get("FRAPPE_REDIS_QUEUE") or config.get("redis_queue") or "redis://127.0.0.1:11311"
-	)
-	config["redis_cache"] = (
-		os.environ.get("FRAPPE_REDIS_CACHE") or config.get("redis_cache") or "redis://127.0.0.1:13311"
-	)
+	_apply_common_env_overrides(config)
+
 	config["db_type"] = os.environ.get("FRAPPE_DB_TYPE") or config.get("db_type") or "mariadb"
 
 	if config["db_type"] in ("mariadb", "postgres"):
@@ -124,16 +120,28 @@ def get_common_site_config(sites_path: str | None = None, cached=False) -> _dict
 		return _get_common_site_config(sites_path)
 
 
+def _apply_common_env_overrides(config: _dict[str, Any]) -> None:
+	config["redis_queue"] = (
+		os.environ.get("FRAPPE_REDIS_QUEUE") or config.get("redis_queue") or "redis://127.0.0.1:11311"
+	)
+	config["redis_cache"] = (
+		os.environ.get("FRAPPE_REDIS_CACHE") or config.get("redis_cache") or "redis://127.0.0.1:13311"
+	)
+
+
 def _get_common_site_config(sites_path: str) -> _dict[str, Any]:
 	common_site_config = os.path.join(sites_path, "common_site_config.json")
+	config = _dict()
 	if os.path.exists(common_site_config):
 		try:
-			return _dict(get_file_json(common_site_config))
+			config = _dict(get_file_json(common_site_config))
 		except Exception as error:
 			click.secho("common_site_config.json is invalid", fg="red")
 			print(error)
 			raise
-	return _dict()
+
+	_apply_common_env_overrides(config)
+	return config
 
 
 # These variants cache the values in *memory* for repeat access, use it in web requests or anywhere
