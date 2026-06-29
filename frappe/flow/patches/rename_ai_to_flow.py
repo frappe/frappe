@@ -49,6 +49,11 @@ def _rename_ai_to_flow():
 		if frappe.db.exists("DocType", old) and not frappe.db.exists("DocType", new):
 			frappe.rename_doc("DocType", old, new, force=True)
 
+	# Password fields (e.g. api_key) live in __Auth keyed by doctype name; the doctype
+	# rename doesn't migrate them, so repoint them or every saved key reads as missing.
+	for old, new in DOCTYPE_RENAMES.items():
+		frappe.db.sql("update `__Auth` set doctype=%s where doctype=%s", (new, old))
+
 	# Workspaces are pure JSON config; drop the old ones so sync recreates them as Flow.
 	for ws in ("Workspace", "Workspace Sidebar"):
 		if frappe.db.exists(ws, "AI"):
