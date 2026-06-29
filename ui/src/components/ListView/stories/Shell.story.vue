@@ -17,12 +17,14 @@
 
 		<ListViewShell :key="doctype" :doctype="doctype">
 			<template #toolbar>
-				<!-- Controls mount here as they are extracted. SortBy is the first. -->
+				<!-- Controls mount here as they are extracted. -->
+				<Filter v-model="filters" :doctype="doctype" />
 				<SortBy v-model="sorts" :doctype="doctype" />
 			</template>
 		</ListViewShell>
 
 		<div class="text-xs text-ink-gray-6">order_by = "{{ orderBy }}"</div>
+		<div class="text-xs text-ink-gray-6">filters = {{ filtersDict }}</div>
 	</div>
 </template>
 
@@ -32,6 +34,8 @@ import { Select } from "frappe-ui";
 import { ListViewShell } from "../index";
 import { SortBy, serializeOrderBy } from "../../SortBy";
 import type { Sort } from "../../SortBy";
+import { Filter, serializeFilters } from "../../Filter";
+import type { FilterCondition } from "../../Filter";
 
 const props = withDefaults(defineProps<{ doctype?: string; doctypeOptions?: string[] }>(), {
 	doctype: "CRM Lead",
@@ -45,4 +49,9 @@ const doctypeOptions = props.doctypeOptions;
 // `order_by` for a fetch. Reset when the doctype switches (the `:key` remounts).
 const sorts = ref<Sort[]>([]);
 const orderBy = computed(() => serializeOrderBy(sorts.value));
+
+// Likewise for Filter: the host owns the FilterCondition[] and would serialize it
+// to a Frappe filters dict for the fetch. Reset on doctype switch via the `:key`.
+const filters = ref<FilterCondition[]>([]);
+const filtersDict = computed(() => serializeFilters(filters.value));
 </script>

@@ -1,0 +1,376 @@
+<!--
+  Filter — a controlled, meta-driven list-view control. Its `v-model` is a list of
+  Filter conditions (`{ fieldname, operator, value, field }[]`); it owns no data
+  resource and never calls a CRM endpoint. Hosts that store a Frappe filters dict
+  convert with the exported `serializeFilters` / `parseFilters`.
+
+  Field Options come from the doctype's Meta (`useDoctypeMeta` → `getFilterableFields`),
+  and the per-fieldtype operator table from `getOperators` — both pure ports of CRM's
+  `crm.api.doc.get_filterable_fields` + `getOperators` (ADR-0001, ADR-0003).
+
+  The value inputs are the shared `Fields` module's components (ADR-0004), not CRM's
+  bespoke Link/Duration/Rating trio. The gaps the shared inputs don't cover are
+  operator-driven swaps handled here, in the `.vue`: `is`/`is not` → a Set/Not-Set
+  select, `timespan` → a preset select, `like`/`not like`/`in`/`not in` → a plain text
+  box, and Date `between` → a range picker. Field pickers use frappe-ui's `Combobox`
+  (Autocomplete is deprecated upstream); icons are lucide names.
+-->
+<template>
+	<!-- Empty: a plain "Filter" combobox button that opens the field picker (the
+	     first picked field seeds a condition and flips to the popover view). -->
+	<Combobox
+		v-if="!model.length"
+		trigger="button"
+		variant="subtle"
+		:options="addableOptions"
+		:modelValue="null"
+		placeholder="Filter"
+		@update:selectedOption="addFilter"
+	>
+		<template #prefix>
+			<span class="lucide-list-filter size-4" aria-hidden="true" />
+		</template>
+	</Combobox>
+
+	<!-- Non-empty: the filter popover with its condition rows. -->
+	<Popover v-else ref="popoverRef" placement="bottom-end">
+		<template #target="{ togglePopover, close }">
+			<div class="flex items-center">
+				<Button
+					label="Filter"
+					class="rounded-r-none"
+					iconLeft="lucide-list-filter"
+					@click="togglePopover"
+				>
+					<template #suffix>
+						<div
+							class="flex h-5 w-5 items-center justify-center rounded-[5px] bg-surface-base pt-px text-xs-medium text-ink-gray-8 shadow-sm"
+						>
+							{{ model.length }}
+						</div>
+					</template>
+				</Button>
+				<Button
+					tooltip="Clear All Filters"
+					class="rounded-l-none border-l"
+					icon="lucide-x"
+					@click.stop="clearAll(close)"
+				/>
+			</div>
+		</template>
+		<template #body="{ close }">
+			<div
+				class="my-2 min-w-40 rounded-lg bg-surface-elevation-2 shadow-2xl ring-1 ring-black ring-opacity-5 focus:outline-none"
+			>
+				<div class="min-w-72 p-2 sm:min-w-[400px]">
+					<template v-if="model.length">
+						<div v-for="(f, i) in model" :key="i" class="mb-3">
+							<div class="flex items-center justify-between gap-2">
+								<div class="flex items-center gap-2">
+									<div class="w-13 pl-2 text-end text-base text-ink-gray-5">
+										{{ i == 0 ? "Where" : "And" }}
+									</div>
+									<div class="!min-w-[140px]">
+										<Combobox
+											trigger="button"
+											variant="subtle"
+											size="md"
+											:modelValue="f.fieldname"
+											:options="optionsFor(f.fieldname)"
+											placeholder="Select field"
+											@update:selectedOption="(o) => updateField(o, i)"
+										/>
+									</div>
+									<div>
+										<Select
+											:modelValue="f.operator"
+											:options="
+												getOperators(f.field?.fieldtype ?? '', f.fieldname)
+											"
+											placeholder="Equals"
+											@update:modelValue="(v) => updateOperator(v, i)"
+										/>
+									</div>
+									<div class="!min-w-[140px]">
+										<component
+											:is="valueControl(f).is"
+											v-bind="valueControl(f).props"
+											:modelValue="f.value"
+											@update:modelValue="(v) => updateValue(v, i)"
+										/>
+									</div>
+								</div>
+								<Button
+									class="flex"
+									variant="ghost"
+									icon="lucide-x"
+									@click="removeFilter(i)"
+								/>
+							</div>
+						</div>
+					</template>
+					<div v-else class="mb-3 flex h-7 items-center px-3 text-sm text-ink-gray-5">
+						Empty - Choose a field to filter by
+					</div>
+					<div class="flex items-center justify-between gap-2">
+						<!-- Remount per add: the combobox's internal model would otherwise
+						     retain the picked field and show it instead of "Add Filter". -->
+						<Combobox
+							:key="model.length"
+							trigger="button"
+							variant="ghost"
+							:options="addableOptions"
+							:modelValue="null"
+							placeholder="Add Filter"
+							@update:selectedOption="addFilter"
+						>
+							<template #prefix>
+								<span class="lucide-plus size-4" aria-hidden="true" />
+							</template>
+						</Combobox>
+						<Button
+							v-if="model.length"
+							class="!text-ink-gray-5"
+							variant="ghost"
+							label="Clear All Filters"
+							@click="clearAll(close)"
+						/>
+					</div>
+				</div>
+			</div>
+		</template>
+	</Popover>
+</template>
+
+<script setup lang="ts">
+import { computed, nextTick, ref } from "vue";
+import { Button, Combobox, Popover, Select, TextInput, DateRangePicker } from "frappe-ui";
+import { useDoctypeMeta } from "../../composables/useDoctypeMeta";
+import { getFilterableFields } from "./getFilterableFields";
+import { getOperators, getDefaultOperator, getDefaultValue } from "./operators";
+import type { Filter, FilterField, FilterOperator, FilterValue } from "./types";
+// The shared, fieldtype-aware value inputs (ADR-0004). Filter mounts only the
+// zero-coupling subset; it never provides the form-context injections, so the
+// deep-injection inputs (Number resolving currency) fall back to site defaults.
+import SelectField from "../Fields/SelectField.vue";
+import LinkField from "../Fields/LinkField.vue";
+import NumberField from "../Fields/NumberField.vue";
+import DateField from "../Fields/DateField.vue";
+import DatetimeField from "../Fields/DatetimeField.vue";
+import DurationField from "../Fields/DurationField.vue";
+import RatingField from "../Fields/RatingField.vue";
+import type { FieldMeta } from "../Fields/types";
+
+const props = defineProps<{ doctype: string }>();
+
+// `v-model` is the list of Filter conditions. The component is controlled: it only
+// reads and re-emits this array, never a data resource.
+const model = defineModel<Filter[]>({ default: () => [] });
+
+// The popover only mounts once a condition exists (`v-else`); a ref lets us open it
+// right after the empty-state picker seeds the first one, so the user lands on the
+// row to set its operator/value instead of having to click "Filter" again.
+const popoverRef = ref<{ open: () => void } | null>(null);
+
+const { meta } = useDoctypeMeta(props.doctype);
+
+// Field Options derived client-side from Meta — no CRM endpoint.
+const allFields = computed<FilterField[]>(() => getFilterableFields(meta.value?.fields ?? []));
+
+// Options offered by the "add" picker: every filterable field not already chosen.
+const addableOptions = computed<FilterField[]>(() => {
+	const chosen = new Set(model.value.map((f) => f.fieldname));
+	return allFields.value.filter((o) => !chosen.has(o.fieldname));
+});
+
+// For an in-row field picker: addable fields plus the row's own current field, so
+// the selected value stays selectable.
+function optionsFor(fieldname: string): FilterField[] {
+	const own = allFields.value.find((o) => o.fieldname === fieldname);
+	return own ? [own, ...addableOptions.value] : addableOptions.value;
+}
+
+// Combobox's `update:selectedOption` hands back the chosen option (or null); its
+// `value` is the fieldname. Resolve it to the full FilterField from Meta.
+function fieldFromOption(option: unknown): FilterField | null {
+	if (!option) return null;
+	const fieldname =
+		typeof option === "string" ? option : (option as { value?: string }).value ?? null;
+	return allFields.value.find((o) => o.fieldname === fieldname) ?? null;
+}
+
+/** A fresh condition seeded with the field's default operator and value. */
+function conditionFor(field: FilterField): Filter {
+	return {
+		field,
+		fieldname: field.fieldname,
+		operator: getDefaultOperator(field.fieldtype),
+		value: getDefaultValue(field) as FilterValue,
+	};
+}
+
+function addFilter(option: unknown) {
+	const field = fieldFromOption(option);
+	if (!field || model.value.some((f) => f.fieldname === field.fieldname)) return;
+	model.value = [...model.value, conditionFor(field)];
+	// Open the popover once it mounts (no-op when adding from inside an open one).
+	nextTick(() => popoverRef.value?.open());
+}
+
+function updateField(option: unknown, index: number) {
+	const field = fieldFromOption(option);
+	if (!field) return;
+	model.value = model.value.map((f, i) => (i === index ? conditionFor(field) : f));
+}
+
+function updateOperator(operator: FilterOperator, index: number) {
+	model.value = model.value.map((f, i) => {
+		if (i !== index) return f;
+		// Reset the value to the field default; Set/Not-Set conditions seed to 'set'.
+		let value = getDefaultValue(f.field!) as FilterValue;
+		if (operator === "is" || operator === "is not") value = "set";
+		return { ...f, operator, value };
+	});
+}
+
+function updateValue(value: FilterValue, index: number) {
+	model.value = model.value.map((f, i) => (i === index ? { ...f, value } : f));
+}
+
+function removeFilter(index: number) {
+	model.value = model.value.filter((_, i) => i !== index);
+}
+
+function clearAll(close: () => void) {
+	model.value = [];
+	close();
+}
+
+// --- Value-control dispatch -------------------------------------------------
+// Mirrors CRM's `getValueControl`: operator-driven swaps first, then fieldtype.
+// Fieldtype controls are the shared `Fields` components; the swaps reuse frappe-ui
+// primitives. (Type groups are re-declared here, as CRM does, so `operators.ts`
+// stays a pure helper.)
+const CHECK_TYPES = ["Check"];
+const LINK_TYPES = ["Link", "Dynamic Link"];
+const NUMBER_TYPES = ["Float", "Int", "Currency", "Percent"];
+const SELECT_TYPES = ["Select"];
+const DATE_TYPES = ["Date", "Datetime"];
+const DURATION_TYPES = ["Duration"];
+const RATING_TYPES = ["Rating"];
+const TEXT_OPERATORS = ["like", "not like", "in", "not in"];
+
+const SET_OPTIONS = [
+	{ label: "Set", value: "set" },
+	{ label: "Not Set", value: "not set" },
+];
+
+const TIMESPAN_OPTIONS = [
+	"last week",
+	"last month",
+	"last quarter",
+	"last 6 months",
+	"last year",
+	"yesterday",
+	"today",
+	"tomorrow",
+	"this week",
+	"this month",
+	"this quarter",
+	"this year",
+	"next week",
+	"next month",
+	"next quarter",
+	"next 6 months",
+	"next year",
+].map((v) => ({ label: titleCase(v), value: v }));
+
+function titleCase(s: string): string {
+	return s.replace(/\b\w/g, (c) => c.toUpperCase());
+}
+
+interface ValueControl {
+	is: unknown;
+	props: Record<string, unknown>;
+}
+
+/** Field meta passed to a `Fields` value input — no label/description so the
+ *  control renders bare inside the compact filter row. */
+function bareField(field: FilterField, overrides: Partial<FieldMeta> = {}): FieldMeta {
+	return {
+		fieldname: field.fieldname,
+		fieldtype: field.fieldtype,
+		options: field.options,
+		...overrides,
+	};
+}
+
+function valueControl(f: Filter): ValueControl {
+	const operator = f.operator;
+	const field = f.field;
+	const fieldtype = field?.fieldtype ?? "Data";
+	const ph = placeholder(f);
+
+	// Operator-driven swaps (handled here, not in the field components).
+	if (operator === "is" || operator === "is not") {
+		return { is: Select, props: { options: SET_OPTIONS, placeholder: ph } };
+	}
+	if (operator === "timespan") {
+		return { is: Select, props: { options: TIMESPAN_OPTIONS, placeholder: ph } };
+	}
+	if (TEXT_OPERATORS.includes(operator)) {
+		return { is: TextInput, props: { type: "text", placeholder: ph } };
+	}
+
+	// Fieldtype-driven value inputs from the shared Fields module.
+	if (SELECT_TYPES.includes(fieldtype) || CHECK_TYPES.includes(fieldtype)) {
+		// Check filters on Yes/No; Select on its own meta options.
+		const options = CHECK_TYPES.includes(fieldtype) ? "Yes\nNo" : field?.options;
+		return {
+			is: SelectField,
+			props: { field: bareField(field!, { options, placeholder: ph }) },
+		};
+	}
+	if (LINK_TYPES.includes(fieldtype)) {
+		// Dynamic Link has no fixed target doctype to pick against — plain text.
+		if (fieldtype === "Dynamic Link")
+			return { is: TextInput, props: { type: "text", placeholder: ph } };
+		return { is: LinkField, props: { field: bareField(field!, { placeholder: ph }) } };
+	}
+	if (NUMBER_TYPES.includes(fieldtype)) {
+		return { is: NumberField, props: { field: bareField(field!, { placeholder: ph }) } };
+	}
+	if (DATE_TYPES.includes(fieldtype) && operator === "between") {
+		return { is: DateRangePicker, props: { iconLeft: "" } };
+	}
+	if (DURATION_TYPES.includes(fieldtype)) {
+		return { is: DurationField, props: { field: bareField(field!, { placeholder: ph }) } };
+	}
+	if (RATING_TYPES.includes(fieldtype)) {
+		return { is: RatingField, props: { field: bareField(field!) } };
+	}
+	if (DATE_TYPES.includes(fieldtype)) {
+		const is = fieldtype === "Date" ? DateField : DatetimeField;
+		return { is, props: { field: bareField(field!, { placeholder: ph }) } };
+	}
+	return { is: TextInput, props: { type: "text", placeholder: ph } };
+}
+
+/** Per-operator / per-fieldtype placeholder copy. A port of CRM's `placeholder`. */
+function placeholder(f: Filter): string {
+	const fieldtype = f.field?.fieldtype ?? "Data";
+	if (f.operator === "between") return "01/01/2022 to 01/31/2022";
+	if (f.operator === "in" || f.operator === "not in")
+		return NUMBER_TYPES.includes(fieldtype) ? "100, 200, 300" : "John, Jane, Doe";
+	if (f.operator === "like" || f.operator === "not like")
+		return NUMBER_TYPES.includes(fieldtype) ? "%100%" : "%John%";
+	if (f.operator === "is" || f.operator === "is not") return "Set";
+	if (f.operator === "timespan") return "Last Week";
+	if (NUMBER_TYPES.includes(fieldtype)) return "1000";
+	if (DATE_TYPES.includes(fieldtype)) return "01/01/2022";
+	if (CHECK_TYPES.includes(fieldtype)) return "Yes";
+	if (LINK_TYPES.includes(fieldtype)) return "Select a Value";
+	if (SELECT_TYPES.includes(fieldtype)) return "Select an Option";
+	return "John Doe";
+}
+</script>
