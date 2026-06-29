@@ -281,9 +281,20 @@ class PrintFormatGenerator:
 
 	def set_field_renderers(self, layout):
 		renderers = {"HTML Editor": "HTML", "Markdown Editor": "Markdown"}
+		eval_locals = {"doc": self.doc}
 		for section in layout["sections"]:
+			if section.get("visible_if"):
+				try:
+					section["_hidden"] = not frappe.safe_eval(section["visible_if"], eval_locals)
+				except Exception:
+					section["_hidden"] = False
 			for column in section["columns"]:
 				for df in column["fields"]:
+					if df.get("visible_if"):
+						try:
+							df["_hidden"] = not frappe.safe_eval(df["visible_if"], eval_locals)
+						except Exception:
+							df["_hidden"] = False
 					fieldtype = df["fieldtype"]
 					df["renderer"] = renderers.get(fieldtype) or fieldtype.replace(" ", "")
 					df["section"] = section
@@ -294,6 +305,11 @@ class PrintFormatGenerator:
 			if isinstance(zone, dict) and "columns" in zone:
 				for column in zone.get("columns", []):
 					for df in column.get("fields", []):
+						if df.get("visible_if"):
+							try:
+								df["_hidden"] = not frappe.safe_eval(df["visible_if"], eval_locals)
+							except Exception:
+								df["_hidden"] = False
 						fieldtype = df.get("fieldtype", "Data")
 						df["renderer"] = renderers.get(fieldtype) or fieldtype.replace(" ", "")
 						df["section"] = zone

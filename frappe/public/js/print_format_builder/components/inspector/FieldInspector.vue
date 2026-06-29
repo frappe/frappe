@@ -219,6 +219,24 @@
 					</div>
 				</div>
 
+				<!-- VISIBILITY section -->
+				<div class="pfb-insp-section">
+					<div class="pfb-insp-section-head" @click="toggle('t_visibility')">
+						<span class="pfb-insp-section-label">{{ __("Visibility") }}</span>
+						<span
+							class="pfb-insp-chevron"
+							:class="{ collapsed: !open.t_visibility }"
+							v-html="frappe.utils.icon('chevron-down', 'xs')"
+						></span>
+					</div>
+					<div v-show="open.t_visibility">
+						<VisibilitySection
+							v-model="selected_field.visible_if"
+							:previewDoc="preview_doc"
+						/>
+					</div>
+				</div>
+
 				<div class="pfb-insp-actions">
 					<button class="btn btn-xs btn-danger-subtle" @click="remove_field">
 						<span v-html="frappe.utils.icon('x', 'xs')"></span>
@@ -316,10 +334,11 @@
 							v-html="frappe.utils.icon('chevron-down', 'xs')"
 						></span>
 					</div>
-					<div v-show="open.f_visibility" class="pfb-insp-section-body">
-						<p class="pfb-insp-hint text-muted">
-							{{ __("Conditional visibility coming soon.") }}
-						</p>
+					<div v-show="open.f_visibility">
+						<VisibilitySection
+							v-model="selected_field.visible_if"
+							:previewDoc="preview_doc"
+						/>
 					</div>
 				</div>
 
@@ -527,10 +546,11 @@
 							v-html="frappe.utils.icon('chevron-down', 'xs')"
 						></span>
 					</div>
-					<div v-show="open.s_visibility" class="pfb-insp-section-body">
-						<p class="pfb-insp-hint text-muted">
-							{{ __("Conditional visibility coming soon.") }}
-						</p>
+					<div v-show="open.s_visibility">
+						<VisibilitySection
+							v-model="selected_section.visible_if"
+							:previewDoc="preview_doc"
+						/>
 					</div>
 				</div>
 
@@ -566,6 +586,7 @@ import draggable from "vuedraggable";
 import { useStore } from "../../stores";
 import LetterHeadZoneInspector from "./LetterHeadZoneInspector.vue";
 import Autocomplete from "../../../vue-components/Autocomplete.vue";
+import VisibilitySection from "./VisibilitySection.vue";
 
 let store = inject("$store");
 let { letterhead, layout } = useStore();
@@ -574,6 +595,7 @@ let selected_field = computed(() => store.selected_field.value);
 let selected_section = computed(() => store.selected_section.value);
 let selected_letterhead = computed(() => store.selected_letterhead.value);
 let selected_lh_footer = computed(() => store.selected_lh_footer.value);
+let preview_doc = computed(() => store.preview_doc.value);
 
 const open = ref({
 	f_field: true,
@@ -584,6 +606,7 @@ const open = ref({
 	s_visibility: false,
 	t_table: true,
 	t_columns: true,
+	t_visibility: false,
 });
 
 function toggle(key) {

@@ -6,7 +6,7 @@
 			'field--selected': is_selected,
 			'field--preview': !!preview_doc,
 		}"
-		v-show="!df.remove"
+		v-show="!df.remove && (preview_doc ? is_field_visible : true)"
 		:title="df.label || df.fieldname"
 		@click.stop="select_field"
 	>
@@ -219,7 +219,7 @@
 
 <script setup>
 import ConfigureColumnsVue from "../inspector/ConfigureColumns.vue";
-import { render_jinja_html, sanitize_html } from "../../utils";
+import { render_jinja_html, sanitize_html, evaluate_visible_if } from "../../utils";
 import { createApp, ref, nextTick, watch, computed, inject } from "vue";
 
 const props = defineProps(["df", "field_orientation"]);
@@ -232,6 +232,7 @@ let rendered_template = ref(null);
 
 let is_selected = computed(() => store.selected_field.value === props.df);
 let preview_doc = computed(() => store.preview_doc.value);
+let is_field_visible = computed(() => evaluate_visible_if(props.df.visible_if, preview_doc.value));
 
 // Render Jinja2 HTML fields server-side when in preview mode
 watch(
