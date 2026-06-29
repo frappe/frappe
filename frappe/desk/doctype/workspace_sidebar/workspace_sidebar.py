@@ -284,6 +284,9 @@ def get_module_info(module_name):
 		fieldnames = ["name"]
 		if entity.lower() == "doctype":
 			filters.append({"istable": 0})
+		if entity.lower() == "workspace":
+			# only surface public workspaces; private ones belong to individual users
+			filters.append({"public": 1})
 		if entity.lower() == "page":
 			fieldnames.append("title")
 			pluck = None
