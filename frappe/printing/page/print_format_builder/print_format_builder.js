@@ -22,13 +22,13 @@ function load_print_format_builder(wrapper) {
 	$parent.empty();
 
 	if (route.length > 1) {
-		// Keep breadcrumb as "Print Format Builder" (back to the root builder),
-		// and show the format name in the page heading only.
+		// Two-level breadcrumb: "Print Format Builder" → "[Format Name]"
 		frappe.breadcrumbs.add({
 			type: "Custom",
 			label: __("Print Format Builder"),
-			route: "print-format-builder",
+			route: "/desk/print-format-builder",
 		});
+		frappe.breadcrumbs.append_breadcrumb_element("", route[1]);
 		wrapper.page.set_title(route[1]);
 
 		frappe.require("print_format_builder.bundle.js").then(() => {
