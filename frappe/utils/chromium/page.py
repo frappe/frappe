@@ -1,4 +1,4 @@
-import base64
+import mimetypes
 import os
 import urllib.parse
 
@@ -98,9 +98,10 @@ class Page:
 				if is_safe and os.path.isfile(final_path):
 					with open(final_path, "rb") as f:
 						content = f.read()
-					headers = {}
-					if path.endswith(".svg"):
-						headers["Content-Type"] = "image/svg+xml"
+					# Chromium enforces MIME type for CSS and fonts — serve without it
+					# and the stylesheet is silently dropped, breaking all layout.
+					content_type, _ = mimetypes.guess_type(final_path)
+					headers = {"Content-Type": content_type} if content_type else {}
 					route.fulfill(status=200, body=content, headers=headers)
 					return
 
