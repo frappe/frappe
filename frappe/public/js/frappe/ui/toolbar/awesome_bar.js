@@ -67,7 +67,7 @@ frappe.search.AwesomeBar = class AwesomeBar {
 			.addClass("cool-awesomebar-modal-footer")
 			.html(search_modal_footer);
 
-		$search_element.on("click", () => {
+		$(document).on("click", element, () => {
 			if (this.is_open()) {
 				this.close();
 				return;
