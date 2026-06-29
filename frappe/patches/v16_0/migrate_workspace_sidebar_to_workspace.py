@@ -17,6 +17,11 @@ def execute():
 	sidebar_names = frappe.get_all("Workspace Sidebar", pluck="name")
 
 	for name in sidebar_names:
+		# Sidebars named "My Workspaces" were created only to give v15 private
+		# workspaces a sidebar; skip them as they have no standalone workspace.
+		if "my workspaces" in name.lower():
+			click.secho(f"Skipping Workspace Sidebar '{name}'", fg="yellow")
+			continue
 		try:
 			frappe.get_doc("Workspace Sidebar", name).migrate_to_workspace()
 		except frappe.NameError:
