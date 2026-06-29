@@ -86,9 +86,8 @@ class ChromiumManager:
 			self._connect_playwright_cdp(ws_url)
 			return
 
-		# Optional: override the binary path (e.g. custom build or system install).
-		# If not set, Playwright uses its own bundled Chromium installed via
-		# `bench setup-chrome` (which runs `playwright install chromium --with-deps`).
+		# Optional: point at a custom binary via chromium_path in common_site_config.json.
+		# If not set, Playwright uses chrome-headless-shell installed by bench setup-chrome.
 		executable_path = None
 		if custom_path := site_config.get("chromium_path", ""):
 			import shutil
@@ -98,34 +97,37 @@ class ChromiumManager:
 		self._launch_playwright_browser(executable_path=executable_path)
 
 	def _launch_playwright_browser(self, executable_path=None):
-		"""Launch Chromium via Playwright.
+		"""Launch chrome-headless-shell via Playwright.
 
-		Playwright manages the process lifecycle — no subprocess management,
-		no stderr polling, no manual port selection needed.
+		Uses chrome-headless-shell (~136 MB, headless-only) instead of full
+		Chromium (~280 MB). Playwright manages the process lifecycle entirely —
+		no subprocess management, no stderr polling, no port selection needed.
 
-		If Playwright's bundled Chromium is missing, it is installed automatically
-		on first use (one-time, then cached in ~/.cache/ms-playwright/).
+		If chrome-headless-shell is missing it is installed automatically on
+		first use (one-time cost, then cached in ~/.cache/ms-playwright/).
 		"""
 		from playwright.sync_api import sync_playwright
 
 		self._playwright = sync_playwright().start()
 		try:
 			self._browser = self._playwright.chromium.launch(
+				channel="chrome-headless-shell",
 				executable_path=executable_path,
 				args=CHROMIUM_LAUNCH_ARGS,
-				headless=not self.debug_mode,
+				headless=True,
 			)
 		except Exception as e:
 			if "Executable doesn't exist" in str(e) or "playwright install" in str(e).lower():
-				# Chromium not yet installed — auto-install on first use.
-				# After this it is cached in ~/.cache/ms-playwright/ (or the Docker layer
-				# if `playwright install chromium --with-deps` is in the Dockerfile).
-				frappe.log("Chromium not found — running 'playwright install chromium --with-deps'")
+				# chrome-headless-shell not yet installed — auto-install on first use.
+				# Cached in ~/.cache/ms-playwright/ so this only runs once per machine.
+				# In Docker, run bench setup-chrome at build time to avoid this cost.
+				frappe.log("chrome-headless-shell not found — auto-installing via playwright")
 				self._auto_install_chromium()
 				self._browser = self._playwright.chromium.launch(
+					channel="chrome-headless-shell",
 					executable_path=executable_path,
 					args=CHROMIUM_LAUNCH_ARGS,
-					headless=not self.debug_mode,
+					headless=True,
 				)
 			else:
 				self._playwright.stop()
@@ -134,19 +136,24 @@ class ChromiumManager:
 				frappe.throw(_("Could not start Chromium. Check error logs for details."))
 
 	def _auto_install_chromium(self):
-		"""Run `playwright install chromium --with-deps` programmatically."""
+		"""Install chrome-headless-shell using the current venv's playwright."""
 		import subprocess
+		import sys
 
+		# Use sys.executable so we always call the playwright from the active venv,
+		# not whatever playwright happens to be on $PATH.
 		try:
 			subprocess.run(
-				["playwright", "install", "chromium", "--with-deps"],
+				[sys.executable, "-m", "playwright", "install", "chrome-headless-shell", "--with-deps"],
 				check=True,
 				text=True,
 			)
 		except subprocess.CalledProcessError as e:
 			self._playwright.stop()
 			self._playwright = None
-			frappe.throw(_(f"Failed to auto-install Chromium: {e}. Run 'bench setup-chrome' manually."))
+			frappe.throw(
+				_(f"Failed to auto-install chrome-headless-shell: {e}. Run 'bench setup-chrome' manually.")
+			)
 
 	def _connect_playwright_cdp(self, ws_url):
 		"""Connect to an externally managed Chromium instance over CDP."""

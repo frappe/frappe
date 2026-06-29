@@ -1,12 +1,15 @@
 """Chromium setup helpers.
 
-The primary setup path is Playwright's bundled Chromium:
+The primary setup path installs chrome-headless-shell via Playwright:
 
-    bench setup-chrome          # runs: playwright install chromium --with-deps
+    bench setup-chrome          # runs: playwright install chrome-headless-shell --with-deps
 
-This installs Chromium into ~/.cache/ms-playwright/ (per user, not per bench)
-so it is shared across benches on the same machine and is cached as a Docker
-layer at build time — no per-deploy download needed.
+chrome-headless-shell is a stripped-down headless-only binary (~136 MB) vs
+full Chromium (~280 MB) — sufficient for PDF and screenshot generation.
+
+It is installed into ~/.cache/ms-playwright/ (per user, not per bench) so it
+is shared across benches on the same machine and can be pre-installed in a
+Docker layer at build time — no per-deploy download needed.
 
 The legacy bench-level download functions below are kept for sites that set
 ``chromium_path`` in common_site_config.json to point at a custom binary.
@@ -14,6 +17,7 @@ The legacy bench-level download functions below are kept for sites that set
 
 import os
 import subprocess
+import sys
 
 import click
 
@@ -27,24 +31,25 @@ EXECUTABLE_PATHS = {
 
 
 def setup_chromium():
-	"""Install Chromium via Playwright (cached in ~/.cache/ms-playwright/).
+	"""Install chrome-headless-shell via Playwright (cached in ~/.cache/ms-playwright/).
 
+	Uses sys.executable so the correct venv's playwright is always called.
 	In Docker: run this during image build so the layer is cached.
 	On self-hosted benches: run once per machine, not per bench.
 	"""
 	try:
 		subprocess.run(
-			["playwright", "install", "chromium", "--with-deps"],
+			[sys.executable, "-m", "playwright", "install", "chrome-headless-shell", "--with-deps"],
 			check=True,
 			text=True,
 		)
-		click.echo("Chromium installed successfully via Playwright.")
+		click.echo("chrome-headless-shell installed successfully via Playwright.")
 	except subprocess.CalledProcessError as e:
-		click.echo(f"Failed to install Chromium: {e}")
-		raise RuntimeError(f"playwright install chromium failed: {e}")
+		click.echo(f"Failed to install chrome-headless-shell: {e}")
+		raise RuntimeError(f"playwright install chrome-headless-shell failed: {e}")
 	except FileNotFoundError:
 		raise RuntimeError(
-			"'playwright' CLI not found. Make sure the frappe package is installed: pip install -e apps/frappe"
+			"playwright module not found. Make sure the frappe package is installed: pip install -e apps/frappe"
 		)
 
 
