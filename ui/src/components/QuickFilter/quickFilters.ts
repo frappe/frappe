@@ -71,6 +71,16 @@ function ownedCondition(
   );
 }
 
+/** Whether the shared list has a condition this field's Quick Filter owns. The
+ *  operator toggle reads its state from that condition when present, falling back
+ *  to a transient override only while the input is still empty. */
+export function hasOwnedCondition(
+  filters: Filter[],
+  field: FilterField
+): boolean {
+  return ownedCondition(filters, field) !== undefined;
+}
+
 /**
  * Read: the value a Quick Filter input shows for `field`, projected from the
  * shared Filter list. Surfaces the first owned condition's value; a Check maps to
@@ -96,13 +106,14 @@ export function quickOperator(
 
 /**
  * Write: upsert `field`'s Quick Filter condition to `value` (under `operator`, or
- * the field's default), or remove it when `value` is empty. Only conditions the
- * Quick Filter owns are touched — a precise popover condition with a different
- * operator survives, so setting a quick filter **appends** a coexisting condition
- * rather than overwriting the precise one. The first owned condition is replaced
- * in place (position preserved); any other owned duplicate is dropped. Check maps
- * checked → `equals "Yes"`, unchecked → removed (never `equals "No"`); a `like`
- * value is stored **bare** (`serializeFilters` wraps the `%`).
+ * the field's default), or remove it when `value` is empty. The Quick Filter
+ * projects only the **first owned** condition, so a write touches only that one —
+ * a precise popover condition with a different operator (and any further owned
+ * duplicate the popover allows on the same field) survives untouched. The first
+ * owned condition is replaced (or removed) in place, position preserved; when none
+ * exists a new condition is appended. Check maps checked → `equals "Yes"`,
+ * unchecked → removed (never `equals "No"`); a `like` value is stored **bare**
+ * (`serializeFilters` wraps the `%`).
  */
 export function applyQuick(
   filters: Filter[],
@@ -118,7 +129,9 @@ export function applyQuick(
   const firstIdx = filters.findIndex(owns);
 
   if (cleared) {
-    return firstIdx === -1 ? filters : filters.filter((f) => !owns(f));
+    // Remove only the projected (first owned) condition; sibling conditions on the
+    // same field are left untouched.
+    return firstIdx === -1 ? filters : filters.filter((_, i) => i !== firstIdx);
   }
 
   const condition: Filter = {
@@ -128,8 +141,7 @@ export function applyQuick(
     value: isCheck(field) ? "Yes" : value,
   };
   if (firstIdx === -1) return [...filters, condition];
-  // Replace the first owned condition in place; drop any other owned duplicate.
-  return filters
-    .map((f, i) => (i === firstIdx ? condition : f))
-    .filter((f, i) => i === firstIdx || !owns(f));
+  // Replace the projected condition in place; every other condition on the field
+  // — including a further owned duplicate the popover allows — is preserved.
+  return filters.map((f, i) => (i === firstIdx ? condition : f));
 }

@@ -126,7 +126,9 @@ import { getQuickFilterFields } from "./getQuickFilterFields";
 import {
 	applyQuick,
 	hasOperatorToggle,
+	hasOwnedCondition,
 	isNameField,
+	quickFilterOperator,
 	quickOperator,
 	quickValue,
 } from "./quickFilters";
@@ -250,28 +252,48 @@ function removeField(field: FilterField) {
 // --- Value projection -------------------------------------------------------
 // Read with `quickValue`/`quickOperator`; write with `applyQuick`. The operator
 // override keeps a toggle sticky while its input is still empty (no stored
-// condition to read the operator back from yet).
+// condition to read the operator back from yet); once a condition exists, that
+// condition is the source of truth.
 const operatorOverride = reactive<Record<string, FilterOperator>>({});
 
 function activeOperator(field: FilterField): FilterOperator {
-	return operatorOverride[field.fieldname] ?? quickOperator(filters.value, field);
+	// A stored owned condition is the source of truth — so an external delete or
+	// change in the Filter popover is reflected, and a stale override can't
+	// resurrect `equals`. The override only holds the toggle while the input is
+	// still empty.
+	if (hasOwnedCondition(filters.value, field)) {
+		return quickOperator(filters.value, field);
+	}
+	return operatorOverride[field.fieldname] ?? quickFilterOperator(field);
 }
 
 function setValue(field: FilterField, value: FilterValue) {
 	filters.value = applyQuick(filters.value, field, value, activeOperator(field));
+	// The operator now lives in the stored condition (if any), so drop the
+	// transient override — otherwise a later external delete/change in the Filter
+	// popover would let it resurrect a stale operator on the next edit.
+	if (hasOwnedCondition(filters.value, field)) {
+		delete operatorOverride[field.fieldname];
+	}
 }
 
 const operatorSymbol = (op: FilterOperator) => (op === "equals" ? "=" : "≈");
 const operatorLabel = (op: FilterOperator) => (op === "equals" ? "Equals" : "Like");
 
-/** Flip the input's operator like ↔ equals on click (no menu). Re-applies the
- *  current value under the new operator so the shared condition flips in place,
- *  and — for `name` — swaps the text box for a Link picker (or back). */
+/** Flip the input's operator like ↔ equals on click (no menu). With a value, the
+ *  stored condition flips in place under the new operator (and the override is
+ *  dropped — the condition now carries it). While empty, the override holds the
+ *  chosen operator until a value is typed. For `name`, this also swaps the text
+ *  box for a Link picker (or back). */
 function toggleOperator(field: FilterField) {
 	const next: FilterOperator = activeOperator(field) === "equals" ? "like" : "equals";
-	operatorOverride[field.fieldname] = next;
 	const current = quickValue(filters.value, field);
-	if (current !== "" && current != null) setValue(field, current);
+	if (current !== "" && current != null) {
+		filters.value = applyQuick(filters.value, field, current, next);
+		delete operatorOverride[field.fieldname];
+	} else {
+		operatorOverride[field.fieldname] = next;
+	}
 }
 
 // --- Value-control dispatch -------------------------------------------------

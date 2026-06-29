@@ -238,6 +238,34 @@ describe("applyQuick (write projection)", () => {
     ]);
   });
 
+  it("edits only the first owned condition, preserving a sibling duplicate", () => {
+    // The Filter popover allows two `status equals …` conditions; the quick input
+    // projects the first, so editing it must leave the second intact.
+    const dupes: Filter[] = [
+      { field: STATUS, fieldname: "status", operator: "equals", value: "Open" },
+      { field: STATUS, fieldname: "status", operator: "equals", value: "Won" },
+    ];
+    expect(applyQuick(dupes, STATUS, "Closed")).toEqual([
+      {
+        field: STATUS,
+        fieldname: "status",
+        operator: "equals",
+        value: "Closed",
+      },
+      { field: STATUS, fieldname: "status", operator: "equals", value: "Won" },
+    ]);
+  });
+
+  it("clears only the first owned condition, preserving a sibling duplicate", () => {
+    const dupes: Filter[] = [
+      { field: STATUS, fieldname: "status", operator: "equals", value: "Open" },
+      { field: STATUS, fieldname: "status", operator: "equals", value: "Won" },
+    ];
+    expect(applyQuick(dupes, STATUS, "")).toEqual([
+      { field: STATUS, fieldname: "status", operator: "equals", value: "Won" },
+    ]);
+  });
+
   it("coerces an unowned operator on a Link to its single equals", () => {
     // A Link owns only `equals`; a stray `like` request falls back to it.
     expect(applyQuick([], CUSTOMER, "ACME Inc", "like")).toEqual([
