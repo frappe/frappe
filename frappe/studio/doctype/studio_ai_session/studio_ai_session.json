@@ -7,6 +7,7 @@
  "field_order": [
   "page",
   "user",
+  "status",
   "selected_model",
   "last_task_type",
   "is_running",
@@ -28,6 +29,15 @@
    "in_list_view": 1,
    "label": "User",
    "options": "User",
+   "reqd": 1
+  },
+  {
+   "default": "Active",
+   "fieldname": "status",
+   "fieldtype": "Select",
+   "in_list_view": 1,
+   "label": "Status",
+   "options": "Active\nArchived",
    "reqd": 1
   },
   {
@@ -62,7 +72,7 @@
  "hide_toolbar": 1,
  "index_web_pages_for_search": 1,
  "links": [],
- "modified": "2026-05-26 12:00:00.000000",
+ "modified": "2026-06-29 12:00:00.000000",
  "modified_by": "Administrator",
  "module": "Studio",
  "name": "Studio AI Session",

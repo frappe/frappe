@@ -69,18 +69,18 @@ def get_progress_stage(content: str) -> str | None:
 def run_generation_job(prompt: str, model: str, page_id: str, user: str):
 	api_key = get_api_key()
 	session = AISession.get_or_create(page_id, model)
-	context = session.build_context_string()
-	session.add_message("user", prompt, task_type="generate")
+	session.append_message("user", prompt, task_type="generate")
+	context_messages = session.build_context_messages()
 
 	emit("progress", page_id, user, message=f"Generating with {ModelRegistry.get_label(model)}…")
 
-	system = SYSTEM_PROMPT + (f"\n\n{context}" if context else "")
 	content = ""
 	last_stage = None
 	last_progress_at = 0.0
 	try:
 		llm_messages = [
-			{"role": "system", "content": system},
+			{"role": "system", "content": SYSTEM_PROMPT},
+			*context_messages,
 			{"role": "user", "content": f"Create a page for: {prompt}"},
 		]
 		for chunk in call_llm(llm_messages, model, "complex", api_key, stream=True):
@@ -99,7 +99,7 @@ def run_generation_job(prompt: str, model: str, page_id: str, user: str):
 
 		logger.info(f"run_generation_job stream done | model={model} length={len(content)}")
 		block = BlockCodec.parse_blocks(content)
-		session.add_message("assistant", "Page generated successfully.", task_type="generate")
+		session.append_message("assistant", "Page generated successfully.", task_type="generate")
 		emit("complete", page_id, user, block=block)
 
 	except Exception as e:
@@ -137,7 +137,7 @@ def get_ai_session(page_id: str, model: str | None = None) -> dict:
 	session = AISession.get_or_create(page_id, model)
 	return {
 		"messages": session.get_messages(),
-		"selected_model": session._doc.selected_model or "",
+		"selected_model": session.selected_model or "",
 	}
 
 
@@ -153,18 +153,18 @@ def run_modify_job(prompt: str, block_context: str, model: str, page_id: str, us
 	api_key = get_api_key()
 
 	session = AISession.get_or_create(page_id, model)
-	context = session.build_context_string()
-	session.add_message("user", prompt, task_type="modify", component_id=component_id)
+	session.append_message("user", prompt, task_type="modify", component_id=component_id)
+	context_messages = session.build_context_messages()
 
 	emit("progress", page_id, user, prefix="ai_modify", message="Updating block…")
 
 	compressed = BlockCodec.strip_context(block_context)
-	system = MODIFY_SYSTEM_PROMPT + (f"\n\nConversation history:\n{context}" if context else "")
 
 	content = ""
 	try:
 		llm_messages = [
-			{"role": "system", "content": system},
+			{"role": "system", "content": MODIFY_SYSTEM_PROMPT},
+			*context_messages,
 			{"role": "user", "content": f"Current block:\n{compressed}\n\nRequest: {prompt}"},
 		]
 		for chunk in call_llm(llm_messages, model, "complex", api_key, stream=True):
@@ -176,7 +176,7 @@ def run_modify_job(prompt: str, block_context: str, model: str, page_id: str, us
 
 		logger.info(f"run_modify_job stream done | model={model} length={len(content)}")
 		block = BlockCodec.parse_blocks(content)
-		session.add_message("assistant", "Block updated.", task_type="modify", component_id=component_id)
+		session.append_message("assistant", "Block updated.", task_type="modify", component_id=component_id)
 		emit("complete", page_id, user, prefix="ai_modify", block=block, component_id=component_id)
 
 	except Exception as e:
