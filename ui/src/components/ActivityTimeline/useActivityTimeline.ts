@@ -16,7 +16,7 @@ const hasMoreEmailsByKey = new Map<string, Ref<boolean>>();
 export function useActivityTimeline(
   doctype: string,
   docname: string,
-  options: { paginate?: boolean } = {}
+  paginate?: boolean
 ) {
   const key = `${doctype}:${docname}`;
 
@@ -54,7 +54,7 @@ export function useActivityTimeline(
     loading: computed<boolean>(() => resource.loading),
     error: computed(() => resource.error || null),
     reload: () => resource.reload(),
-    paginate: options.paginate
+    paginate: paginate
       ? createEmailPagination(doctype, docname, resource, hasMoreEmails)
       : undefined,
   };
