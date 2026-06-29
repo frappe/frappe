@@ -693,7 +693,7 @@ watch(
 .field-preview-label {
 	font-size: var(--text-tiny);
 	font-weight: var(--weight-semibold);
-	color: var(--gray-500);
+	color: #6b7280;
 	margin-bottom: 1px;
 }
 
