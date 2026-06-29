@@ -229,6 +229,9 @@ class PostgresDatabase(PostgresExceptionUtil, Database):
 			"user": self.user,
 			# libpg defaults to default socket if not specified
 			"host": self.host or self.socket,
+			# libpq's GSSAPI (krb5) path is not fork-safe; with the default gssencmode=prefer
+			# RQ work horses segfault on fork ("work-horse terminated unexpectedly").
+			"gssencmode": frappe.conf.get("db_gssencmode", "disable"),
 		}
 		if self.password:
 			conn_settings["password"] = self.password
