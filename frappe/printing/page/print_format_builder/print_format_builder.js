@@ -22,11 +22,12 @@ function load_print_format_builder(wrapper) {
 	$parent.empty();
 
 	if (route.length > 1) {
-		// Override the breadcrumb to show the format name being edited.
+		// Keep breadcrumb as "Print Format Builder" (back to the root builder),
+		// and show the format name in the page heading only.
 		frappe.breadcrumbs.add({
 			type: "Custom",
-			label: route[1],
-			route: frappe.get_route_str(),
+			label: __("Print Format Builder"),
+			route: "print-format-builder",
 		});
 		wrapper.page.set_title(route[1]);
 
