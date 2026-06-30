@@ -139,11 +139,11 @@ fallback, so an explicit `key` is only needed for reorderable custom rows.
 { type: "attachment_log", key, timestamp, author,
   data: { name, action: "added" | "removed", fileName, fileUrl?, isPrivate } }
 
-// log  (data.group present when consecutive same-author log rows are folded)
+// log  (one row per entry; logs are not folded — only version rows fold)
 { type: "log", key, timestamp, author,
   data: { name,
           subtype: "like" | "assigned" | "assignment_completed" | "workflow" | "info" | "view" | "created",
-          icon, text, assignee?, group?: LogActivity[] } }
+          icon, text, assignee? } }
 // data.assignee (optional) is the assignment target the backend resolves; the row
 // bolds the actor + assignee without parsing the message text
 
@@ -432,7 +432,7 @@ wins) — symmetric with the content column:
 ```vue
 <ActivityTimeline :activities :loading :error>
   <template #icon-comment>
-    <FeatherIcon name="message-circle" class="size-4 text-ink-gray-5" />
+    <LucideMessageCircle class="size-4 text-ink-gray-5" />
   </template>
 </ActivityTimeline>
 ```
@@ -451,7 +451,7 @@ icon: AlarmClock                          // component → <component :is>
 > `lucide-<name>` string is present in the `LUCIDE_ICON_CLASS` map (Tailwind's
 > JIT only emits a `lucide-<name>` mask class for literal strings it scans). A
 > name not in the map won't render via the string path — pass a component, or use
-> the `#icon-{type}` slot (e.g. a `FeatherIcon`).
+> the `#icon-{type}` slot (e.g. a Lucide icon like `<LucideMessageCircle>`).
 
 ### Events — reply / edit / delete
 
@@ -533,7 +533,7 @@ unless `#item-{type}` (or the default slot) is provided**. Set the gutter via
 ```vue
 <ActivityTimeline :activities="feed">
   <template #item-sla_breach="{ activity }"> <SlaBreachItem :activity="activity" /> </template>
-  <template #icon-sla_breach> <FeatherIcon name="alert-triangle" class="size-4 text-ink-red-3" /> </template>
+  <template #icon-sla_breach> <LucideTriangleAlert class="size-4 text-ink-red-3" /> </template>
 </ActivityTimeline>
 ```
 
@@ -724,7 +724,9 @@ LoadMoreButton.vue       default "Load more" control (override via #load_more)
 useActivityTimeline.ts   data layer: fetch + dedupe/sort/group + email paging + realtime → Activity[]
 useTimelineScroll.ts     nearest scrollable ancestor + Load More anchor-restore + open-at-bottom-once
 types.ts                 Activity union (the contract) + ActivityTimelineProps + paginate shape
-EmailItem.vue · CommentItem.vue · LogItem.vue · VersionItem.vue   item renderers (LogItem folds the log text; VersionItem folds the per-change + history renderers)
+EmailItem.vue · CommentItem.vue · LogItem.vue · VersionItem.vue   item renderers (LogItem renders a single log/attachment row; VersionItem folds the per-change + history renderers)
+TimelineCard.vue         shared card shell (wrapper + divider + content region) for EmailItem/CommentItem
+TimeAgo.vue              relative timestamp + absolute-date hover tooltip; used by every item renderer
 EmailContent.vue         sandboxed email iframe
 Attachment.vue           attachment chip + inline image/text preview dialog
 icons.ts · utils.ts                                                shared bits (icons; dates, truncate, splitBold, recipients, iframe helpers)

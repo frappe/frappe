@@ -51,6 +51,54 @@ export function splitBold(
     .map((part) => ({ text: part, bold: bolded.has(part) }));
 }
 
+// `{n}` → non-greedy capture; returns { placeholderIndex: value } or null.
+function matchFormatTemplate(
+  template: string,
+  text: string
+): Record<number, string> | null {
+  const order: number[] = [];
+  let pattern = "^";
+  for (const part of template.split(/(\{\d+\})/)) {
+    const m = /^\{(\d+)\}$/.exec(part);
+    if (m) {
+      order.push(Number(m[1]));
+      pattern += "([\\s\\S]+?)";
+    } else {
+      pattern += escapeRegExp(part);
+    }
+  }
+  pattern += "$";
+
+  const match = new RegExp(pattern).exec(text);
+  if (!match) return null;
+  const groups: Record<number, string> = {};
+  order.forEach((idx, i) => (groups[idx] = match[i + 1]));
+  return groups;
+}
+
+// The assignee named in an assignment-log comment, or null. Mirrors the backend's
+// `assignee_from_assignment` (todo.py templates); null when the assignee is the actor.
+export function getAssignee(text: string, commentType: string): string | null {
+  // [template, assignee index | null when it's the actor]; self-assign first.
+  const templates: Array<[string, number | null]> =
+    commentType === "Assigned"
+      ? [
+          ["{0} self assigned this task: {1}", null],
+          ["{0} assigned {1}: {2}", 1],
+        ]
+      : [
+          ["{0} removed their assignment.", null],
+          ["Assignment of {0} removed by {1}", 0],
+        ];
+
+  for (const [template, assigneeIdx] of templates) {
+    const groups = matchFormatTemplate(template, text);
+    if (!groups) continue;
+    return assigneeIdx === null ? null : groups[assigneeIdx] ?? null;
+  }
+  return null;
+}
+
 const COLOR_PROPS = new Set([
   "color",
   "background",
@@ -68,14 +116,20 @@ export function stripEmailColors(html: string): string {
     const filtered = (el.getAttribute("style") || "")
       .split(";")
       .map((s) => s.trim())
-      .filter((s) => s && !COLOR_PROPS.has(s.split(":")[0].trim().toLowerCase()))
+      .filter(
+        (s) => s && !COLOR_PROPS.has(s.split(":")[0].trim().toLowerCase())
+      )
       .join("; ");
     if (filtered) el.setAttribute("style", filtered);
     else el.removeAttribute("style");
   });
 
-  div.querySelectorAll("[bgcolor]").forEach((el) => el.removeAttribute("bgcolor"));
-  div.querySelectorAll("font[color]").forEach((el) => el.removeAttribute("color"));
+  div
+    .querySelectorAll("[bgcolor]")
+    .forEach((el) => el.removeAttribute("bgcolor"));
+  div
+    .querySelectorAll("font[color]")
+    .forEach((el) => el.removeAttribute("color"));
 
   return div.innerHTML;
 }

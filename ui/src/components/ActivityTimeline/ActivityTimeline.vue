@@ -136,17 +136,21 @@ const slots = useSlots();
 
 const isFetching = computed(() => !!props.paginate?.isFetchingNextPage);
 
-// can be rendered at up to three sites (top / in-feed row / bottom) that differ only in wrapper.
-const LoadMore = () =>
-	slots.load_more
-		? slots.load_more({ loading: isFetching.value, loadMore })
-		: h(LoadMoreButton, { loading: isFetching.value, onClick: loadMore });
-
 // consumer can inject an in-feed load_more row; otherwise we show the standalone button
 const hasInlineLoadMore = computed(() => props.activities.some((a) => a.type === "load_more"));
 const showLoadMoreButton = computed(
 	() => !!props.paginate?.hasNextPage && !hasInlineLoadMore.value
 );
+
+// can be rendered at up to three sites (top / in-feed row / bottom) that differ only in wrapper.
+const LoadMore = () =>
+	slots.load_more
+		? slots.load_more({ loading: isFetching.value, loadMore })
+		: h(LoadMoreButton, {
+				loading: isFetching.value,
+				onClick: loadMore,
+				hasInlineLoadMoreOption: hasInlineLoadMore.value,
+		  });
 
 const loadMoreAtBottom = computed(() => props.paginate?.position === "bottom");
 // Which row to re-pin after older rows patch in, so the viewport doesn't move.

@@ -9,7 +9,7 @@ import type {
   VersionActivity,
   VersionChange,
 } from "./types";
-import { stripHtml } from "./utils";
+import { getAssignee, stripHtml } from "./utils";
 
 // One resource per doctype:docname for the session, so reopening a doc is instant.
 const resources = new Map<string, ReturnType<typeof createResource>>();
@@ -203,6 +203,9 @@ function normalizeLiveActivity(
 
     case "assignment_logs": {
       const isCompleted = doc.comment_type === "Assignment Completed";
+      const text = stripHtml(String(doc.content ?? ""));
+      // mirror the backend so the assignee bolds on live rows too (not just the actor)
+      const assignee = getAssignee(text, String(doc.comment_type ?? ""));
       return {
         type: "log",
         key: `log:${name}`,
@@ -212,7 +215,9 @@ function normalizeLiveActivity(
           name,
           subtype: isCompleted ? "assignment_completed" : "assigned",
           icon: isCompleted ? "circle-check" : "user-plus",
-          text: stripHtml(String(doc.content ?? "")),
+          text,
+          // additive, like the backend: only present when an assignee was found
+          ...(assignee ? { assignee } : {}),
         },
       };
     }

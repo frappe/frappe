@@ -3,52 +3,8 @@
 	<div
 		class="flex flex-1 flex-col gap-2 ps-[13px] text-sm font-medium leading-6 text-ink-gray-6"
 	>
-		<!-- grouped: collapsible "+N changes" header + per-row lines -->
-		<template v-if="group.length > 1">
-			<div class="flex items-center gap-1.5">
-				<button
-					type="button"
-					class="flex items-center gap-1.5 hover:text-ink-gray-7"
-					@click="expanded = !expanded"
-				>
-					<span class="text-ink-gray-5">
-						<!-- reserve the wider word's width so toggling doesn't reflow -->
-						<span class="inline-grid justify-items-start align-baseline">
-							<span class="invisible col-start-1 row-start-1" aria-hidden="true"
-								>Show</span
-							>
-							<span class="invisible col-start-1 row-start-1" aria-hidden="true"
-								>Hide</span
-							>
-							<span class="col-start-1 row-start-1">{{
-								expanded ? "Hide" : "Show"
-							}}</span>
-						</span>
-						<span class="font-medium text-ink-gray-8">
-							+{{ group.length }} changes
-						</span>
-						from
-						<span class="font-medium text-ink-gray-8">{{
-							activity.author?.fullname
-						}}</span>
-					</span>
-					<LucideChevronUp v-if="expanded" class="size-3.5" />
-					<LucideChevronDown v-else class="size-3.5" />
-				</button>
-				<span>·</span>
-				<TimeAgo :timestamp="activity.timestamp" class="text-sm" />
-			</div>
-			<div v-if="expanded" class="flex flex-col gap-2">
-				<div v-for="row in group" :key="row.key" class="flex items-center gap-1.5">
-					<ActorText :activity="row" />
-					<span>·</span>
-					<TimeAgo :timestamp="row.timestamp" class="text-sm" />
-				</div>
-			</div>
-		</template>
-
-		<!-- single row: log one-liner or attachment log -->
-		<div v-else class="flex items-center gap-1.5">
+		<!-- log one-liner or attachment log -->
+		<div class="flex items-center gap-1.5">
 			<!-- structured text, never v-html -->
 			<ActorText v-if="activity.type === 'log'" :activity="activity" />
 			<template v-else>
@@ -79,21 +35,14 @@
 </template>
 
 <script setup lang="ts">
-import { computed, h, ref } from "vue";
+import { h } from "vue";
 import TimeAgo from "./TimeAgo.vue";
 import type { AttachmentLogActivity, LogActivity } from "./types";
 import { splitBold } from "./utils";
 
-const props = defineProps<{
+defineProps<{
 	activity: LogActivity | AttachmentLogActivity;
 }>();
-
-// only `log` activities carry a group
-const group = computed<LogActivity[]>(() =>
-	props.activity.type === "log" ? props.activity.data.group ?? [] : []
-);
-
-const expanded = ref(false);
 
 // bolds actor + assignee (backend-supplied; no message-template parsing)
 const ActorText = ({ activity }: { activity: LogActivity }) => {

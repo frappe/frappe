@@ -94,8 +94,6 @@ export type LogActivity = BaseActivity<
     text: string;
     /** assignee on assignment logs; bolded alongside the actor (backend-supplied) */
     assignee?: string;
-    /** set when same-author log rows are folded together */
-    group?: LogActivity[];
   }
 >;
 

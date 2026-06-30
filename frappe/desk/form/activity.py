@@ -45,7 +45,7 @@ def get_more_email_activities(doctype: str, name: str | int, start: int) -> dict
 def get_creation_activity(doc: "Document", user_info: dict) -> list[dict]:
 	frappe.utils.add_user_info({doc.owner}, user_info)
 	author = get_author_info(doc.owner, user_info)
-	msg = get_creation_msg(doc.owner)
+	msg = get_creation_msg(doc.owner, author["fullname"])
 	return [
 		{
 			"type": "log",
@@ -62,9 +62,11 @@ def get_creation_activity(doc: "Document", user_info: dict) -> list[dict]:
 	]
 
 
-def get_creation_msg(owner: str):
-	is_current_user = frappe.session.user == owner
-	return _("You created this document") if is_current_user else _("{0} created this document").format(owner)
+def get_creation_msg(owner: str, fullname: str):
+	# "You" keys off the session user; everyone else shows the resolved fullname (not the raw user id)
+	if frappe.session.user == owner:
+		return _("You created this document")
+	return _("{0} created this document").format(fullname)
 
 
 def get_email_activities(doc: "Document", user_info: dict, start: int = 0) -> tuple[list[dict], bool]:
