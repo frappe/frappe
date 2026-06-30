@@ -30,6 +30,7 @@ def add_comment(
 		if reference_doctype not in ("Blog Post", "Web Page"):
 			return
 
+<<<<<<< HEAD
 		if reference_doctype == "Blog Post" and not frappe.db.get_single_value(
 			"Blog Settings", "allow_guest_to_comment"
 		):
@@ -37,6 +38,10 @@ def add_comment(
 
 		if frappe.db.exists("User", comment_email):
 			frappe.throw(_("Please login to post a comment."))
+=======
+		if not guest_allowed:
+			frappe.throw(_("Please login to post a comment."), exc=frappe.AuthenticationError)
+>>>>>>> 70779c5458 (fix: using `AuthenticationError` instead of `ValidationError` for guest users to add comments)
 
 	if not comment.strip():
 		frappe.msgprint(_("The comment cannot be empty"))
