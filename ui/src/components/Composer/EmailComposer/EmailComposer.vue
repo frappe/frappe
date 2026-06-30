@@ -2,11 +2,31 @@
 	<!-- Email composer that owns its window via FloatingWindow. `v-model:mode`
 		 drives docked/floating/minimized; pass multiple `channels` to turn the
 		 title into a switcher and gain a `submit-comment` event. -->
-	<!-- `:style` falls through onto FloatingWindow's panel; docked uses it to pin a
-		 draggable height (undefined while floating/minimized). -->
-	<FloatingWindow v-model:mode="windowMode" :minimizable="true" :style="dockedStyle">
-		<template #header="{ mode, float, dock, minimize, expandFromTray }">
-			<!-- Docked-only grip: drag up to grow the compose area (host pins the bottom). -->
+	<!-- Collapsed trigger: Transition only wraps the button — FloatingWindow uses
+		 <Teleport> as its root which breaks Vue's Transition leave-hook, so we
+		 keep them as fragment siblings and only animate the simpler element. -->
+	<button
+		v-if="isCollapsed"
+		type="button"
+		class="ec-trigger flex w-full cursor-pointer items-center gap-3 rounded-lg border border-outline-gray-2 bg-surface-white px-4 py-2.5 text-left shadow-sm transition-shadow hover:shadow"
+		@click="expand"
+	>
+		<Avatar :image="avatar || ''" :label="avatarLabel || ''" size="sm" class="shrink-0" />
+		<span class="text-base text-ink-gray-7">{{ placeholder || "Type a message…" }}</span>
+	</button>
+
+	<!-- Expanded: full docked / floating panel. -->
+	<!-- `:style` falls through onto FloatingWindow's panel; docked uses it to
+		 pin a draggable height (undefined while floating/minimized). -->
+	<FloatingWindow
+		v-if="!isCollapsed"
+		key="expanded"
+		v-model:mode="windowMode"
+		:minimizable="true"
+		:style="dockedStyle"
+	>
+		<template #header="{ mode, float, dock, expandFromTray }">
+			<!-- Docked-only grip: drag up to grow the compose area. -->
 			<button
 				v-if="mode === 'docked'"
 				type="button"
@@ -20,11 +40,11 @@
 				class="px-2.5"
 				:title="channelLabel"
 				:expandable="expandable"
-				:floating="mode !== 'docked'"
+				:floating="mode === 'floating'"
 				:minimizable="true"
 				:minimized="mode === 'minimized'"
-				@expand="mode === 'docked' ? float() : dock()"
-				@minimize="mode === 'minimized' ? expandFromTray() : minimize()"
+				@expand="mode === 'docked' ? float() : mode === 'floating' ? dock() : expandFromTray()"
+				@minimize="collapse()"
 			>
 				<!-- Multi-channel: the title becomes an Email/Comment pill toggle. -->
 				<template v-if="channels.length > 1" #title>
@@ -61,7 +81,7 @@
 			:mention-options="mentionOptions"
 			v-model:body="body"
 			@submit="handleSubmit"
-			@discard="emit('discard')"
+			@discard="handleDiscard"
 			@remove-attachment="emit('remove-attachment', $event)"
 		>
 			<!-- Email-only: From picker + recipient rows (comment mode is just the core). -->
@@ -89,7 +109,7 @@
 
 <script setup lang="ts">
 import { computed, ref, watch } from "vue";
-import { Button, TabButtons, toast } from "frappe-ui";
+import { Avatar, Button, TabButtons, toast } from "frappe-ui";
 import { FloatingWindow, type WindowMode } from "frappe-ui/experimental";
 import Composer from "../Composer.vue";
 import ComposerHeader from "../ComposerHeader.vue";
@@ -144,33 +164,70 @@ const composer = ref<InstanceType<typeof Composer> | null>(null);
 // Switching channel starts a fresh message.
 watch(channel, () => composer.value?.reset());
 
-// Docked resize: `null` sizes to content; a grip drag pins a `min-height` (not
-// height, so content still grows the panel — toggling CC/BCC never clips).
+// --- Collapsed / expanded state -------------------------------------------
+
+const isCollapsed = ref(true);
+
+function expand(): Promise<void> {
+	if (!isCollapsed.value) return Promise.resolve();
+	isCollapsed.value = false;
+	windowMode.value = "docked";
+	return new Promise((resolve) =>
+		setTimeout(() => {
+			composer.value?.focus();
+			resolve();
+		}, 180)
+	);
+}
+
+function collapse() {
+	isCollapsed.value = true;
+	dockedHeight.value = null;
+}
+
+function handleDiscard() {
+	collapse();
+	emit("discard");
+}
+
+// --- Docked resize -----------------------------------------------------------
+
+// Dragging below this height collapses back to the trigger bar.
+const COLLAPSE_THRESHOLD = 230;
+
 const dockedHeight = ref<number | null>(null);
 
 const dockedStyle = computed(() =>
 	windowMode.value === "docked" && dockedHeight.value
-		? { minHeight: `${dockedHeight.value}px` }
+		? { height: `${dockedHeight.value}px` }
 		: undefined
 );
 
 // Drag up to grow the window; seed from the rendered height so there's no jump.
+// setPointerCapture routes all pointer events to the grip bar so images and
+// links in the editor body can't steal the pointer mid-drag.
 function startDockedResize(event: PointerEvent) {
-	const panel = (event.currentTarget as HTMLElement).closest(
-		".floating-window"
-	) as HTMLElement | null;
+	const grip = event.currentTarget as HTMLElement;
+	const panel = grip.closest(".floating-window") as HTMLElement | null;
+	grip.setPointerCapture(event.pointerId);
 	const startY = event.clientY;
 	const startHeight = dockedHeight.value ?? panel?.offsetHeight ?? 0;
-	function onMove(moveEvent: PointerEvent) {
-		const next = startHeight - (moveEvent.clientY - startY);
-		dockedHeight.value = Math.min(Math.max(next, 0), window.innerHeight);
+
+	function onMove(e: PointerEvent) {
+		const next = startHeight - (e.clientY - startY);
+		if (next < COLLAPSE_THRESHOLD) {
+			collapse();
+			cleanup();
+		} else {
+			dockedHeight.value = Math.min(Math.max(next, 0), window.innerHeight);
+		}
 	}
-	function onUp() {
+	function cleanup() {
 		window.removeEventListener("pointermove", onMove);
-		window.removeEventListener("pointerup", onUp);
+		window.removeEventListener("pointerup", cleanup);
 	}
 	window.addEventListener("pointermove", onMove);
-	window.addEventListener("pointerup", onUp);
+	window.addEventListener("pointerup", cleanup);
 }
 
 // Subject shows when `fields` includes it; Cc/Bcc stay hidden until toggled or prefilled.
@@ -216,6 +273,8 @@ const editor = computed(() => composer.value?.editor);
 
 defineExpose({
 	editor,
+	expand,
+	collapse,
 	focus: () => composer.value?.focus(),
 	reset,
 	submit: () => composer.value?.submit(),

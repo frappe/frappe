@@ -1,10 +1,15 @@
 <template>
-	<div class="flex items-center gap-2 py-1.5">
-		<span class="text-p-sm text-ink-gray-4">{{ label }}</span>
+	<div class="flex gap-2 py-1.5" :class="itemsCenter ? 'items-center' : 'items-start'">
+		<span class="text-p-sm text-ink-gray-4 shrink-0" :class="[labelClass, itemsCenter ? '' : 'mt-1 relative bottom-0.5']">{{
+			label
+		}}</span>
 		<slot />
 	</div>
 </template>
 
 <script setup lang="ts">
-defineProps<{ label: string }>();
+withDefaults(defineProps<{ label: string; labelClass?: string; itemsCenter?: boolean }>(), {
+	labelClass: "w-[28px]",
+	itemsCenter: false,
+});
 </script>

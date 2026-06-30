@@ -28,10 +28,13 @@
 
 					<!-- Selection formatting popup. -->
 					<EditorBubbleMenu :items="commentToolbar" />
+					<!-- Contextual table controls (shown while cursor is inside a table). -->
+					<EditorTableMenu />
 
 					<!-- Editor space: min 7rem, grows to a 50vh cap then scrolls; toolbar stays pinned. -->
+
 					<div
-						class="flex max-h-[50vh] min-h-[7rem] flex-1 flex-col overflow-y-auto px-2.5"
+						class="flex max-h-[50vh] min-h-[7rem] flex-1 flex-col overflow-y-auto px-2.5 pb-2.5"
 					>
 						<EditorContent
 							class="prose-sm max-w-full flex-1 pb-8 pt-2 [&_p.reply-to-content]:hidden"
@@ -39,7 +42,7 @@
 						<!-- Collapsible quoted reply: the original message being
 							 replied to, kept out of the editor body and appended
 							 back on send. -->
-						<details v-if="quotedContent" class="mb-2 mt-auto" :open="isQuoteExpanded">
+						<details v-if="quotedContent" class="mb-2" :open="isQuoteExpanded">
 							<summary
 								class="w-fit cursor-pointer select-none rounded px-1 text-sm leading-none text-ink-gray-5 bg-surface-gray-2 list-none [&::-webkit-details-marker]:hidden"
 							>
@@ -54,20 +57,28 @@
 						</details>
 					</div>
 
-					<!-- Attachments + actions pinned to the foot (mt-auto) when the window outgrows the editor. -->
 					<div class="mt-auto">
 						<!-- Attachments -->
-						<div v-if="attachments.length" class="my-2 flex flex-wrap gap-2 px-5">
+						<div
+							v-if="attachments.length"
+							ref="attachmentRow"
+							class="my-2 flex overflow-x-auto gap-2 px-2.5"
+						>
 							<Button
 								v-for="attachment in attachments"
 								:key="attachment.file_url"
 								theme="gray"
 								variant="subtle"
-								:label="attachment.file_name"
+								:label="compactAttachments ? undefined : attachment.file_name"
+								:title="attachment.file_name"
+								:class="compactAttachments ? 'w-8 shrink-0' : 'min-w-0 max-w-36'"
 							>
-								<template #suffix>
+								<template #prefix>
+									<LucideFileImage class="size-3.5 shrink-0" />
+								</template>
+								<template v-if="!compactAttachments" #suffix>
 									<span
-										class="lucide-x size-3.5 cursor-pointer"
+										class="lucide-x size-3.5 cursor-pointer shrink-0"
 										@click.self.stop="removeAttachment(attachment)"
 									/>
 								</template>
@@ -75,13 +86,21 @@
 						</div>
 
 						<div class="flex items-center justify-between gap-2 px-2.5 pb-2.5">
-							<!-- Host actions scroll horizontally so Discard/Send stay visible when narrow. -->
-							<div class="flex min-w-0 flex-1 items-center gap-1 overflow-x-auto">
-								<slot name="actions" v-bind="{ addAttachment, setUploading }" />
-								<EditorFixedMenu :items="commentToolbar" button-size="sm" />
+							<!-- Host actions: clipped to 50% width, scrollable, with a right-side
+								 fade to signal overflow. -->
+							<div class="relative overflow-hidden" style="max-width: 70%">
+								<div class="flex items-center gap-1 overflow-x-auto [scrollbar-width:none] [&::-webkit-scrollbar]:hidden">
+									<slot name="actions" v-bind="{ addAttachment, setUploading }" />
+									<EditorFixedMenu :items="emailToolbar" button-size="sm" />
+								</div>
+								<!-- Fade indicating more content to the right -->
+								<div
+									class="pointer-events-none absolute inset-y-0 right-0 w-8"
+									style="background: linear-gradient(to left, var(--surface-white, white), transparent)"
+								/>
 							</div>
 							<div class="flex shrink-0 items-center gap-2">
-								<Button label="Discard" @click="discard" />
+								<Button label="Discard" :disabled="isEmpty" @click="discard" />
 								<Button
 									variant="solid"
 									:label="label"
@@ -99,16 +118,38 @@
 </template>
 
 <script setup lang="ts">
-import { computed, nextTick, ref, watch } from "vue";
+import { computed, nextTick, ref, useTemplateRef, watch } from "vue";
 import { Button } from "frappe-ui";
+import LucideFileImage from "~icons/lucide/file-image";
 import {
 	Editor,
 	EditorContent,
 	EditorBubbleMenu,
 	EditorFixedMenu,
-	CommentKit,
+	EditorTableMenu,
+	RichTextKit,
 	commentToolbar,
+	Paragraph, H2, H3, H4,
+	Separator,
+	Bold, Italic, FontColor,
+	AlignLeft, AlignCenter, AlignRight,
+	BulletList, OrderedList,
+	InsertImage, InsertVideo, InsertLink,
+	Blockquote, InlineCode, HorizontalRule,
+	InsertTable,
 } from "frappe-ui/editor";
+
+const emailToolbar = [
+	Paragraph, H2, H3, H4,
+	Separator,
+	Bold, Italic, FontColor,
+	Separator,
+	AlignLeft, AlignCenter, AlignRight,
+	BulletList, OrderedList,
+	Separator,
+	InsertImage, InsertVideo, InsertLink,
+	Blockquote, InlineCode, HorizontalRule, InsertTable,
+];
 import type { ComposerProps, CoreSubmitPayload, UploadedFile } from "./types";
 
 const props = withDefaults(defineProps<ComposerProps>(), {
@@ -138,7 +179,7 @@ const mentionItems = computed(() =>
 
 // Built once so the editor isn't torn down on change; reactive bits thread in via getters.
 const extensions = [
-	CommentKit.configure({
+	RichTextKit.configure({
 		heading: { levels: [2, 3, 4, 5, 6] },
 		mention: { items: () => mentionItems.value },
 	}),
@@ -236,6 +277,22 @@ function setQuotedReply(content: string) {
 // `remove-attachment` (reset clears silently).
 const attachments = ref<UploadedFile[]>([]);
 const isUploading = ref(false);
+const attachmentRow = useTemplateRef<HTMLElement>("attachmentRow");
+const compactAttachments = ref(false);
+
+watch(attachmentRow, (el) => {
+	if (!el) return;
+	const check = () => { compactAttachments.value = el.scrollWidth > el.clientWidth; };
+	const observer = new ResizeObserver(check);
+	observer.observe(el);
+});
+
+watch(attachments, () => {
+	nextTick(() => {
+		const el = attachmentRow.value;
+		if (el) compactAttachments.value = el.scrollWidth > el.clientWidth;
+	});
+});
 
 function addAttachment(file: UploadedFile) {
 	attachments.value.push(file);
@@ -252,6 +309,11 @@ function removeAttachment(file: UploadedFile) {
 
 const isDisabled = computed(
 	() => isContentEmpty(body.value) || props.loading || isUploading.value
+);
+
+// Nothing to discard: empty body, no attachments, no quoted reply.
+const isEmpty = computed(
+	() => isContentEmpty(body.value) && !attachments.value.length && !quotedContent.value
 );
 
 /** True when the editor HTML carries no text and no media. */

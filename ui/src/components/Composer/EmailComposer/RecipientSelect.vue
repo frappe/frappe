@@ -3,7 +3,7 @@
 		 (name + avatar) to the plain email strings it models. -->
 	<!-- Wrapper so the row's flex-1 lands on a flex child: MultiEmailInput puts
 		 attrs.class on its inner box, not its root. -->
-	<div class="w-full">
+	<div class="w-full flex-1">
 		<MultiEmailInput
 			v-model="emails"
 			:options="options"
@@ -47,7 +47,6 @@ import { Avatar, FeatherIcon } from "frappe-ui";
 import { MultiEmailInput, type MultiEmailOption } from "frappe-ui/experimental";
 import type { Recipient, RecipientSearch } from "../types";
 
-// No placeholder by default — the row's To/Cc/Bcc label already labels it.
 const props = withDefaults(defineProps<{ placeholder?: string; search?: RecipientSearch }>(), {
 	placeholder: "",
 });

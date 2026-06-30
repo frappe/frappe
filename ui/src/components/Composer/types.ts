@@ -78,6 +78,10 @@ export interface EmailComposerProps extends ComposerProps {
   /** Channels offered. More than one turns the title into a switcher and enables
    *  the `submit-comment` event. Defaults to ["email"]. */
   channels?: Channel[];
+  /** Avatar URL for the collapsed trigger bar. */
+  avatar?: string;
+  /** Name used as the Avatar fallback initial when no image is available. */
+  avatarLabel?: string;
 }
 
 // --- CommentComposer -------------------------------------------------------

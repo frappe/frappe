@@ -3,12 +3,11 @@
 		 the header toggles. The To row rides along so the sender can see and edit
 		 who the reply goes to. -->
 	<div class="px-2.5">
-		<Row v-if="showSubject || subject" label="Subject">
+		<Row v-if="showSubject || subject" label="Subject" label-class="w-[52px]" :items-center="true">
 			<input
 				v-model="subject"
 				type="text"
-				class="flex-1 border-0 bg-transparent p-0 text-base text-ink-gray-8 placeholder-ink-gray-4 focus:ring-0"
-				placeholder="Subject"
+				class="flex-1 border-0 bg-transparent p-0 text-base text-ink-gray-8 focus:ring-0"
 			/>
 		</Row>
 
@@ -23,7 +22,7 @@
 		<Row v-if="showBcc || model.bcc.length" label="BCC">
 			<RecipientSelect v-model="model.bcc" class="flex-1" :search="search" />
 		</Row>
-		<div class="border-b bg-surface-gray-1 mt-2.5"></div>
+		<div class="border-b bg-surface-gray-1 mt-1"></div>
 	</div>
 </template>
 

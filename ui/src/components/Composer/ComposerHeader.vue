@@ -14,40 +14,37 @@
 
 		<div class="flex shrink-0 items-center gap-1">
 			<slot name="actions" />
-			<Button v-if="minimizable" variant="ghost" @click="emit('minimize')">
-				<template #icon>
-					<FeatherIcon
-						:name="minimized ? 'maximize-2' : 'minus'"
-						class="h-4 w-4 text-ink-gray-5"
-					/>
-				</template>
-			</Button>
-			<Button v-if="expandable" variant="ghost" @click="emit('expand')">
-				<template #icon>
-					<!-- Floating: close (dock back). Docked: pop out. -->
-					<FeatherIcon v-if="floating" name="x" class="h-4 w-4 text-ink-gray-5" />
-					<LucideSquareArrowOutUpRight v-else class="h-4 w-4 text-ink-gray-5" />
-				</template>
-			</Button>
+			<Tooltip v-if="expandable" :text="floating ? 'Minimise' : 'Expand'" :hover-delay="0">
+				<Button variant="ghost" @click="emit('expand')">
+					<template #icon>
+						<LucideMinimize2 v-if="floating" class="h-4 w-4 text-ink-gray-5" />
+						<LucideExpand v-else class="h-4 w-4 text-ink-gray-5" />
+					</template>
+				</Button>
+			</Tooltip>
+			<Tooltip v-if="minimizable" text="Save and close" :hover-delay="0">
+				<Button variant="ghost" @click="emit('minimize')">
+					<template #icon>
+						<LucideX class="h-4 w-4 text-ink-gray-5" />
+					</template>
+				</Button>
+			</Tooltip>
 		</div>
 	</div>
 </template>
 
 <script setup lang="ts">
-import { Button, FeatherIcon } from "frappe-ui";
-import LucideSquareArrowOutUpRight from "~icons/lucide/square-arrow-out-up-right";
+import { Button, Tooltip } from "frappe-ui";
+import LucideX from "~icons/lucide/x";
+import LucideExpand from "~icons/lucide/maximize-2";
+import LucideMinimize2 from "~icons/lucide/minimize-2";
 
 withDefaults(
 	defineProps<{
-		/** Channel label shown on the left (e.g. "Email"). */
 		title: string;
-		/** Show the pop-out/close control (emits `expand`). Off by default. */
 		expandable?: boolean;
-		/** Host window detached — swaps the control's icon. */
 		floating?: boolean;
-		/** Show the minimize control (emits `minimize`). Off by default. */
 		minimizable?: boolean;
-		/** Host window minimized — swaps the control's icon. */
 		minimized?: boolean;
 	}>(),
 	{ expandable: false, minimizable: false }
