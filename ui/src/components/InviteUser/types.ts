@@ -94,8 +94,19 @@ export interface InviteStore {
   cancellingName: string | null;
   /** The invite name currently being resent, or `null`. */
   resendingName: string | null;
-  /** Latest error from any resource; `null` while healthy. */
+  /**
+   * Latest error from the invite request only; `null` while healthy. This is the
+   * email-field error the panel binds to `:error` — it stays empty on a fresh form
+   * even if a background fetch fails (see {@link loadError}).
+   */
   error: unknown;
+  /**
+   * Latest error from the background resources (pending / already-invited fetches,
+   * cancel, resend, user search); `null` while healthy. Kept off the email field so
+   * a load/permission failure doesn't mark an untouched input as invalid — surface it
+   * yourself (a banner, a toast) if your host renders those flows.
+   */
+  loadError: unknown;
 
   /** Send invites. `emails` is a comma/semicolon/newline-separated string. Resolves the buckets. */
   invite: (emails: string, roles: string[]) => Promise<InviteResult>;

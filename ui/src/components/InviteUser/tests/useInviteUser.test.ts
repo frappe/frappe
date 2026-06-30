@@ -227,6 +227,60 @@ describe("useInviteUser", () => {
     expect(pending.fetch).toHaveBeenCalledTimes(1);
   });
 
+  it("spreads extraParams under the core invite params (core wins on conflict)", async () => {
+    const appName = freshApp();
+    const store = useInviteUser({
+      appName,
+      redirectPath: "/crm",
+      // a host that (mis)uses extraParams to pass keys colliding with the core ones
+      extraParams: {
+        app_name: "other-app",
+        emails: "spoofed@x.com",
+        contact: "C-9",
+      },
+    });
+    const invite = resourceFor("invite_by_email");
+    invite.__result = {
+      invited_emails: [],
+      disabled_user_emails: [],
+      pending_invite_emails: [],
+      accepted_invite_emails: [],
+    };
+
+    await store.invite("real@x.com", ["Sales User"]);
+
+    // the non-conflicting extra is forwarded; the core params override the collisions
+    expect(invite.submit).toHaveBeenCalledWith({
+      contact: "C-9",
+      emails: "real@x.com",
+      roles: ["Sales User"],
+      redirect_to_path: "/crm",
+      app_name: appName,
+    });
+  });
+
+  it("error exposes only the invite error (the email-field-scoped one)", () => {
+    const appName = freshApp();
+    const store = useInviteUser({ appName });
+    const inviteErr = { messages: ["Not permitted"] };
+    resourceFor("invite_by_email").error = inviteErr;
+
+    expect(store.error).toBe(inviteErr);
+    expect(store.loadError).toBeNull();
+  });
+
+  it("background failures surface on loadError, never on the email field's error", () => {
+    const appName = freshApp();
+    const store = useInviteUser({ appName });
+    const loadErr = { messages: ["get_pending_invitations failed"] };
+    resourceFor("get_pending_invitations").error = loadErr;
+
+    // a failed initial load must not light up an untouched email input
+    expect(store.error).toBeNull();
+    // ...but the host can still observe it
+    expect(store.loadError).toBe(loadErr);
+  });
+
   it("exposes the host-supplied roles as a static list (no backing resource)", () => {
     const appName = freshApp();
     const roles = [

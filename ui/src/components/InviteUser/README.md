@@ -98,8 +98,12 @@ The API is permission-gated by each app's `user_invitation` hook (`hooks.py`):
   hierarchy** — roles are inserted verbatim; use `transformRoles` to expand a picked
   role into a set.
 
-A permission failure surfaces through `controller.error`, rendered inline under the
-email field (the field's `:error`).
+A permission failure on the **invite** itself surfaces through `controller.error`,
+rendered inline under the email field (the field's `:error`). A failure on a
+**background** read/mutation (the pending / already-invited fetches, cancel, resend, user
+search) goes to `controller.loadError` instead — kept off the email field so a failed
+initial load doesn't mark an untouched input as invalid. Surface `loadError` yourself
+(a banner or toast) if your host renders those flows.
 
 ## Props
 
@@ -131,8 +135,10 @@ re-render.
 > The submit button's text is `Button`'s slot content, not a prop — there's nothing to
 > forward, so retitle it via the `#submit` slot.
 
-> The controller `error` surfaces **field-scoped** — inline under the email field via
-> its `:error` prop (frappe-ui's `useInputLabeling`), not as a separate form-level line.
+> The controller `error` (the **invite** error) surfaces **field-scoped** — inline under
+> the email field via its `:error` prop (frappe-ui's `useInputLabeling`), not as a separate
+> form-level line. Background failures land on `controller.loadError` instead, so a failed
+> initial load never marks an untouched email field as invalid.
 
 > frappe-ui has no internal i18n. The fields' default labels/placeholders are English;
 > localize them through `emailProps`/`rolesProps` (or a field slot for deeper changes).
@@ -197,7 +203,7 @@ const controller = useInviteUser({
 
 // controller (a reactive object — don't destructure):
 // data:  pendingInvites, roles, users, loading, usersLoading, inviting,
-//        cancellingName, resendingName, error
+//        cancellingName, resendingName, error (invite only), loadError (background)
 // verbs: invite(emails, roles), cancel(name), resend(name), searchUsers(query),
 //        load() — lazy initial fetch (idempotent), reload() — refetch pending/invited
 ```

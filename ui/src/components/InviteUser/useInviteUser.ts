@@ -106,11 +106,14 @@ export function useInviteUser(options: UseInviteUserOptions = {}): InviteStore {
     roles: string[]
   ): Promise<InviteResult> {
     const result = (await inviteResource.submit({
+      // `extraParams` first: the controller's core params (emails, roles,
+      // redirect_to_path, app_name) must win, so a host extra can't silently
+      // retarget the invite to a different app than the pending/invited lists poll.
+      ...extraParams,
       emails,
       roles: transformRoles(roles),
       redirect_to_path: redirectPath,
       app_name: appName,
-      ...extraParams,
     })) as InviteResult;
     pendingResource.reload();
     invitedEmailsResource.reload();
@@ -160,10 +163,15 @@ export function useInviteUser(options: UseInviteUserOptions = {}): InviteStore {
     resendingName: computed<string | null>(() =>
       resendResource.loading ? resendResource.params?.name ?? null : null
     ),
-    error: computed(
+    // Only the invite error is semantically the email field's — the panel binds
+    // `error` to it. Background fetch/mutation failures go to `loadError` so a
+    // permission error on the initial pending fetch doesn't light up a blank
+    // email input; hosts can surface `loadError` however they like.
+    error: computed(() => inviteResource.error ?? null),
+    loadError: computed(
       () =>
-        inviteResource.error ??
         pendingResource.error ??
+        invitedEmailsResource.error ??
         cancelResource.error ??
         resendResource.error ??
         usersResource.error ??
