@@ -142,9 +142,12 @@ async function switchSession(name) {
 		(attachmentsByRun[a.run] ||= []).push({ file_name: a.file_name, file_size: a.file_size });
 	}
 
+	// Merge consecutive assistant rows (one per iteration in the doc) into one
+	// message, as live does — otherwise the tool grouping fragments per iteration.
 	let current = null;
 	for (const m of doc.messages || []) {
 		if (m.role === "user") {
+			current = null;
 			messages.value.push({
 				id: nextId(),
 				role: "user",
@@ -152,28 +155,28 @@ async function switchSession(name) {
 				attachments: attachmentsByRun[m.run] || [],
 			});
 		} else if (m.role === "assistant") {
-			const parts = [];
-			if (m.content) parts.push({ id: nextId(), type: "text", text: m.content });
+			if (!current) {
+				current = {
+					id: nextId(),
+					role: "assistant",
+					parts: [],
+					pending: false,
+					questions: [],
+					runName: null,
+				};
+				messages.value.push(current);
+			}
+			if (m.content) current.parts.push({ id: nextId(), type: "text", text: m.content });
 			for (const t of parseToolCalls(m.tool_calls)) {
-				parts.push({
+				current.parts.push({
 					id: t.id,
 					type: "tool",
 					name: t.function.name,
 					arguments: t.function.arguments,
 					result: null,
-					expanded: false,
 					approval: null,
 				});
 			}
-			current = {
-				id: nextId(),
-				role: "assistant",
-				parts,
-				pending: false,
-				questions: [],
-				runName: null,
-			};
-			messages.value.push(current);
 		} else if (m.role === "tool" && current) {
 			const part = current.parts.find((p) => p.type === "tool" && p.id === m.tool_call_id);
 			if (part) part.result = m.content;
@@ -246,15 +249,17 @@ async function resume(answers, pausedMsg) {
 	const rn = pausedMsg?.runName || runName.value;
 	if (!rn) return;
 
+	// Stream the resumed turn into the same message so the whole run stays one block
+	// (matches how a reload reconstructs it) instead of splitting at each approval.
 	pausedMsg.questions = [];
-	const assistant = pushAssistant();
+	pausedMsg.pending = true;
 	sending.value = true;
 	requestScroll(true);
 
 	try {
-		await resumeRun({ run_name: rn, answers }, (event) => handleEvent(event, assistant));
+		await resumeRun({ run_name: rn, answers }, (event) => handleEvent(event, pausedMsg));
 	} catch (e) {
-		failMessage(assistant, e);
+		failMessage(pausedMsg, e);
 	} finally {
 		sending.value = false;
 		requestScroll();
@@ -300,7 +305,6 @@ function handleEvent(event, msg) {
 				name: event.name,
 				arguments: event.arguments,
 				result: null,
-				expanded: false,
 				approval: null,
 			});
 			requestScroll();
