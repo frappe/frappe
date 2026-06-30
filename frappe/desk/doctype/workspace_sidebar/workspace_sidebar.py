@@ -261,7 +261,10 @@ def auto_generate_sidebar_from_module():
 	"""Auto generate sidebar from module"""
 	sidebars = []
 	for module in frappe.get_all("Module Def", pluck="name"):
-		if not (frappe.db.exists("Workspace Sidebar", {"name": module, "for_user": None})):
+		# Skip modules whose public workspace already carries authored sidebar items -- that
+		# workspace's sidebar is built from `Workspace.sidebar_items` (the source of truth), so a
+		# generated fallback would be redundant.
+		if not module_has_workspace_sidebar(module):
 			try:
 				module_info = get_module_info(module)
 				sidebar_items = create_sidebar_items(module_info)
@@ -279,6 +282,19 @@ def auto_generate_sidebar_from_module():
 			except frappe.DoesNotExistError:
 				pass
 	return sidebars
+
+
+def module_has_workspace_sidebar(module):
+	"""Whether a public Workspace for this module already carries authored sidebar items."""
+	workspaces = frappe.get_all("Workspace", {"module": module, "public": 1}, pluck="name")
+	if not workspaces:
+		return False
+	return bool(
+		frappe.db.exists(
+			"Workspace Sidebar Item",
+			{"parenttype": "Workspace", "parentfield": "sidebar_items", "parent": ["in", workspaces]},
+		)
+	)
 
 
 def get_module_info(module_name):
