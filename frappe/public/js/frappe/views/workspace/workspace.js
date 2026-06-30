@@ -216,11 +216,15 @@ frappe.views.Workspace = class Workspace {
 							},
 						},
 						{
-							label: "Customize Visibility & Roles",
-							icon: "setting-gear",
+							label: "Configure",
+							icon: "settings",
 							onClick: () => this.customize_workspace(current_page),
 							condition: () => {
-								return current_page.standard && this.has_access;
+								return (
+									!frappe.boot.developer_mode &&
+									current_page.standard &&
+									this.has_access
+								);
 							},
 						},
 						{
