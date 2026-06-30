@@ -105,7 +105,7 @@ frappe.ui.form.on("User", {
 
 		frappe.xcall("frappe.apps.get_apps").then((r) => {
 			let apps = r?.map((r) => r.name) || [];
-			frm.set_df_property("default_app", "options", [" ", ...apps]);
+			frm.set_df_property("default_app", "options", ["", ...apps]);
 		});
 
 		if (frm.is_new()) {
@@ -160,6 +160,53 @@ frappe.ui.form.on("User", {
 				);
 
 				frm.toggle_display(["sb1", "sb3", "modules_access"], true);
+			}
+
+			if (cint(frm.doc.enabled) && frm.has_perm("write")) {
+				frm.add_custom_button(
+					__("Change Password"),
+					function () {
+						const dialog = new frappe.ui.Dialog({
+							title: __("Change Password"),
+							fields: [
+								{
+									label: __("Set New Password"),
+									fieldtype: "Password",
+									fieldname: "new_password",
+									reqd: 1,
+								},
+								{
+									label: __("Logout From All Devices After Changing Password"),
+									fieldtype: "Check",
+									fieldname: "logout_all_sessions",
+									default: 1,
+								},
+							],
+							primary_action_label: __("Change Password"),
+							primary_action: (values) => {
+								return frappe
+									.call({
+										method: "frappe.core.doctype.user.user.change_password",
+										args: {
+											user: frm.doc.name,
+											new_password: values.new_password,
+											logout_all_sessions: values.logout_all_sessions,
+										},
+									})
+									.then(() => {
+										dialog.hide();
+										frappe.show_alert({
+											message: __("Password changed"),
+											indicator: "green",
+										});
+										frm.reload_doc();
+									});
+							},
+						});
+						dialog.show();
+					},
+					__("Password")
+				);
 			}
 
 			frm.add_custom_button(
@@ -378,8 +425,8 @@ frappe.ui.form.on("User", {
 	},
 	setup_impersonation: function (frm) {
 		if (
-			frappe.session.user === "Administrator" &&
-			frm.doc.name != "Administrator" &&
+			(frappe.session.user === "Administrator" || frm.has_perm("impersonate")) &&
+			frm.doc.name !== frappe.session.user &&
 			!frm.is_new()
 		) {
 			frm.add_custom_button(__("Impersonate"), () => {

@@ -1,8 +1,8 @@
 {
  "actions": [],
+ "allow_bulk_edit": 1,
  "allow_rename": 1,
  "autoname": "field:label",
- "beta": 1,
  "creation": "2020-01-23 13:45:59.470592",
  "doctype": "DocType",
  "editable_grid": 1,
@@ -262,7 +262,7 @@
  ],
  "in_create": 1,
  "links": [],
- "modified": "2024-09-26 15:47:24.710881",
+ "modified": "2026-05-30 23:29:46.848382",
  "modified_by": "Administrator",
  "module": "Desk",
  "name": "Workspace",
@@ -294,6 +294,7 @@
    "write": 1
   }
  ],
+ "row_format": "Dynamic",
  "sort_field": "creation",
  "sort_order": "DESC",
  "states": [],

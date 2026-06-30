@@ -466,6 +466,21 @@ class TestUser(IntegrationTestCase):
 			sorted(m.get("module_name") for m in get_modules_from_all_apps()),
 		)
 
+	def test_default_app(self):
+		from frappe.apps import get_default_path
+
+		with test_user(roles=["System Manager"]) as user:
+			user.default_app = "next_erp"
+			user.save()
+			self.assertFalse(user.default_app)
+
+			frappe.set_user(user.name)
+			user.db_set("default_app", "next_erp")
+			user.reload()
+			self.assertTrue(user.default_app)
+
+			get_default_path()  # defaults will also trigger hooks logic
+
 	@IntegrationTestCase.change_settings("System Settings", reset_password_link_expiry_duration=1)
 	def test_reset_password_link_expiry(self):
 		new_password = "new_password"

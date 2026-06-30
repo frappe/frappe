@@ -11,7 +11,7 @@ from frappe.utils import cstr
 
 @frappe.whitelist()
 def make_mapped_doc(
-	method: str, source_name: str, selected_children: str | None = None, args: str | None = None
+	method: str, source_name: str, selected_children: str | list | None = None, args: str | dict | None = None
 ):
 	"""Return the mapped document calling the given mapper method.
 	Set `selected_children` as flags for the `get_mapped_doc` method.
@@ -22,10 +22,10 @@ def make_mapped_doc(
 	frappe.is_whitelisted(method)
 
 	if selected_children:
-		selected_children = json.loads(selected_children)
+		selected_children = frappe.parse_json(selected_children)
 
 	if args:
-		frappe.flags.args = frappe._dict(json.loads(args))
+		frappe.flags.args = frappe._dict(frappe.parse_json(args))
 
 	frappe.flags.selected_children = selected_children or None
 
@@ -33,7 +33,9 @@ def make_mapped_doc(
 
 
 @frappe.whitelist()
-def map_docs(method: str, source_names: str, target_doc: Document | dict | str, args: str | None = None):
+def map_docs(
+	method: str, source_names: str | list, target_doc: Document | dict | str, args: str | dict | None = None
+):
 	"""Return the mapped document calling the given mapper method with each of the given source docs on the target doc.
 
 	:param args: Args as string to pass to the mapper method
@@ -44,8 +46,8 @@ def map_docs(method: str, source_names: str, target_doc: Document | dict | str, 
 
 	frappe.is_whitelisted(method)
 
-	for src in json.loads(source_names):
-		_args = (src, target_doc, json.loads(args)) if args else (src, target_doc)
+	for src in frappe.parse_json(source_names):
+		_args = (src, target_doc, frappe.parse_json(args)) if args else (src, target_doc)
 		target_doc = method(*_args)
 	return target_doc
 
@@ -83,6 +85,8 @@ def get_mapped_doc(
 		ret_doc = target_doc
 	else:
 		ret_doc = target_doc
+
+	assert ret_doc is not None, "ret_doc must be assigned in every branch above"
 
 	if not apply_strict_user_permissions and not ignore_permissions:
 		target_doc.check_permission("create")
@@ -246,6 +250,7 @@ def map_fetch_fields(target_doc, df, no_copy_fields):
 		if (
 			not target_doc.get(fetch_df.fieldname) or fetch_df.fieldtype == "Read Only"
 		) and fetch_df.fieldname not in no_copy_fields:
+			assert "." in fetch_df.fetch_from, "fetch_from selected by '<field>.' pattern must contain a dot"
 			source_fieldname = fetch_df.fetch_from.split(".")[1]
 
 			if not linked_doc:
@@ -261,6 +266,7 @@ def map_fetch_fields(target_doc, df, no_copy_fields):
 
 
 def map_child_doc(source_d, target_parent, table_map, source_parent=None):
+	assert "doctype" in table_map, "table_map must define a target 'doctype'"
 	target_child_doctype = table_map["doctype"]
 	target_parentfield = target_parent.get_parentfield_of_doctype(target_child_doctype)
 	target_d = frappe.new_doc(target_child_doctype, parent_doc=target_parent, parentfield=target_parentfield)

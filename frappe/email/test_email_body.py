@@ -244,6 +244,25 @@ Reply-To: test2_@erpnext.com
 		mail = Email.decode_email(" =?UTF-8?B?X\xe0\xe0Y?=  <xy@example.com>")
 		self.assertIn("xy@example.com", mail)
 
+	def test_rejects_encoded_addr_spec_without_raw_at_sign(self):
+		email = Email.decode_email("=?utf-8?Q?admin=40example=2Ecom?=")
+		self.assertIsNone(email)
+
+		content_bytes = b"""MIME-Version: 1.0
+Content-Type: text/plain; charset=utf-8
+Content-Disposition: inline
+Content-Transfer-Encoding: 8bit
+To: support@example.com
+From: =?utf-8?Q?admin=40example=2Ecom?=
+"""
+
+		mail = Email(content_bytes)
+		self.assertIsNone(mail.from_email)
+
+	def test_allows_encoded_display_name_with_valid_addr_spec(self):
+		email = Email.decode_email("=?utf-8?Q?Jane_Doe?= <jane@example.com>")
+		self.assertIn("jane@example.com", email)
+
 	def test_quotes_in_email_sender(self):
 		content_bytes = rb"""MIME-Version: 1.0
 Content-Type: text/plain; charset=utf-8

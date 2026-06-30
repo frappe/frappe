@@ -6,6 +6,8 @@ from frappe.model.document import Document
 
 
 class DocField(Document):
+	_DOCTYPE_NAME = "DocField"
+
 	# begin: auto-generated types
 	# This code is auto-generated. Do not modify anything in this block.
 

@@ -11,7 +11,7 @@ import frappe.share
 from frappe import _
 from frappe.contacts.doctype.contact.contact import get_default_contact
 from frappe.desk.doctype.notification_settings.notification_settings import (
-	is_email_notifications_enabled_for_type,
+	is_email_enabled_for_feature,
 )
 from frappe.desk.reportview import get_filters_cond
 from frappe.model.document import Document
@@ -48,6 +48,8 @@ if TYPE_CHECKING:
 
 
 class Event(Document):
+	_DOCTYPE_NAME = "Event"
+
 	# begin: auto-generated types
 	# This code is auto-generated. Do not modify anything in this block.
 
@@ -258,8 +260,7 @@ def update_attending_status(event_name: str, attendee: str, status: str):
 
 @frappe.whitelist()
 def delete_communication(event: str | dict[str, Any], reference_doctype: str, reference_docname: str | int):
-	if isinstance(event, str):
-		event = json.loads(event)
+	event = frappe.parse_json(event)
 
 	deleted_participant = frappe.get_doc(reference_doctype, reference_docname)
 
@@ -310,7 +311,7 @@ def send_event_digest():
 	users = [
 		user
 		for user in get_enabled_system_users()
-		if is_email_notifications_enabled_for_type(user.name, "Event Reminders")
+		if is_email_enabled_for_feature(user.name, "enable_email_event_reminders")
 	]
 
 	for user in users:
@@ -337,12 +338,14 @@ def send_event_digest():
 @frappe.whitelist()
 @http_cache(max_age=5 * 60, stale_while_revalidate=60 * 60)
 def get_events(
-	start: date,
-	end: date,
+	start: str | date,
+	end: str | date,
 	user: str | None = None,
 	for_reminder: bool = False,
 	filters: str | list | dict[str, Any] | None = None,
 ) -> list[frappe._dict]:
+	start, end = getdate(start), getdate(end)
+
 	caller = frappe.session.user
 	target_user = user or caller
 
@@ -352,8 +355,7 @@ def get_events(
 	type EventLikeDict = Event | frappe._dict
 	resolved_events: list[EventLikeDict] = []
 
-	if isinstance(filters, str):
-		filters = json.loads(filters)
+	filters = frappe.parse_json(filters)
 
 	filter_condition = get_filters_cond("Event", filters, [])
 

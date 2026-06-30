@@ -12,6 +12,7 @@
 	font-family: var(--font-stack);
 	color: var(--text-color);
 	line-height: 1.6;
+
 	h1,
 	h2,
 	h3,
@@ -20,16 +21,20 @@
 		margin-top: 0.5em;
 		margin-bottom: 0.25em;
 	}
+
 	a[href]:not(.btn) {
 		text-decoration: underline;
 	}
+
 	.ql-direction-rtl {
 		direction: rtl;
+
 		+ .table {
 			direction: ltr;
 		}
 	}
 }
+
 /*rtl:end:ignore*/
 
 // Quill doesn't use variables for :(
@@ -49,6 +54,7 @@
 .ql-snow .ql-toolbar .ql-picker-item.ql-selected {
 	color: var(--invert-neutral);
 }
+
 .ql-snow.ql-toolbar button:hover .ql-fill,
 .ql-snow .ql-toolbar button:hover .ql-fill,
 .ql-snow.ql-toolbar button:focus .ql-fill,
@@ -79,6 +85,7 @@
 .ql-snow .ql-toolbar .ql-picker-item.ql-selected .ql-stroke.ql-fill {
 	fill: var(--invert-neutral);
 }
+
 .ql-snow.ql-toolbar button:hover .ql-stroke,
 .ql-snow .ql-toolbar button:hover .ql-stroke,
 .ql-snow.ql-toolbar button:focus .ql-stroke,
@@ -111,8 +118,8 @@
 }
 
 .ql-toolbar.ql-snow {
-	border-top-left-radius: var(--border-radius);
-	border-top-right-radius: var(--border-radius);
+	border-top-left-radius: var(--radius);
+	border-top-right-radius: var(--radius);
 	background-color: var(--gray-50);
 	border-bottom: 1px solid var(--border-color);
 	padding: 0;
@@ -122,6 +129,7 @@
 		color: var(--text-color);
 	}
 }
+
 [data-theme="dark"] {
 	.ql-toolbar.ql-snow {
 		background-color: var(--gray-900);
@@ -130,30 +138,32 @@
 
 .ql-container.ql-snow {
 	background-color: var(--gray-100);
-	border-bottom-left-radius: var(--border-radius);
-	border-bottom-right-radius: var(--border-radius);
+	border-bottom-left-radius: var(--radius);
+	border-bottom-right-radius: var(--radius);
 }
 
 .ql-snow {
 	.ql-editor {
 		height: 300px;
-		border-bottom-left-radius: var(--border-radius);
-		border-bottom-right-radius: var(--border-radius);
+		border-bottom-left-radius: var(--radius);
+		border-bottom-right-radius: var(--radius);
 		resize: vertical;
 	}
+
 	.ql-stroke {
 		stroke: var(--icon-stroke);
 		stroke-width: 1.2px;
 	}
+
 	.ql-picker-options {
 		border-color: var(--border-color) !important;
 		background-color: var(--bg-color);
-		border-radius: var(--border-radius);
+		border-radius: var(--radius);
 	}
 
 	.ql-tooltip {
 		background-color: var(--fg-color);
-		border-radius: var(--border-radius-sm);
+		border-radius: var(--radius);
 		border: none;
 		color: var(--text-color);
 		box-shadow: var(--shadow-base);
@@ -208,13 +218,14 @@
 	padding: var(--padding-xs) var(--padding-sm) !important;
 	margin-bottom: var(--margin-xs) !important;
 	margin-top: var(--margin-xs) !important;
-	border-radius: var(--border-radius-sm);
+	border-radius: var(--radius);
 }
 
 .ql-bubble .ql-editor {
 	min-height: 100px;
 	max-height: 300px;
-	border-radius: var(--border-radius-sm);
+	border-radius: var(--radius);
+
 	.ql-code-block-container {
 		@extend .ql-code-block-container;
 	}
@@ -223,7 +234,7 @@
 .ql-mention-list-container {
 	width: 270px;
 	border: 1px solid var(--border-color);
-	border-radius: var(--border-radius-sm);
+	border-radius: var(--radius);
 	background-color: var(--fg-color);
 	box-shadow: var(--shadow-md);
 	z-index: 1;
@@ -245,11 +256,12 @@
 	display: inline-block;
 	height: auto;
 	width: auto;
-	border-radius: var(--border-radius-lg);
+	border-radius: var(--radius-lg);
 	border: 1px solid var(--border-color);
 	padding: 2px 5px;
 	@include get_textstyle("sm", "regular");
 	background-color: var(--user-mention-bg-color);
+
 	a[href] {
 		text-decoration: none;
 	}
@@ -268,24 +280,31 @@
 		[data-value="insert-table"]::before {
 			content: "Insert Table";
 		}
+
 		[data-value="insert-row-above"]::before {
 			content: "Insert Row Above";
 		}
+
 		[data-value="insert-row-below"]::before {
 			content: "Insert Row Below";
 		}
+
 		[data-value="insert-column-right"]::before {
 			content: "Insert Column Right";
 		}
+
 		[data-value="insert-column-left"]::before {
 			content: "Insert Column Left";
 		}
+
 		[data-value="delete-row"]::before {
 			content: "Delete Row";
 		}
+
 		[data-value="delete-column"]::before {
 			content: "Delete Column";
 		}
+
 		[data-value="delete-table"]::before {
 			content: "Delete Table";
 		}
@@ -307,9 +326,11 @@
 .ql-editor.read-mode {
 	height: unset;
 	padding: 0;
+
 	.mention {
 		--user-mention-bg-color: var(--control-bg);
 	}
+
 	p {
 		img {
 			max-width: 500px;
@@ -318,7 +339,7 @@
 }
 
 .ql-mention-list {
-	border-radius: var(--border-radius-sm);
+	border-radius: var(--radius);
 	list-style: none;
 	margin: 0;
 	padding: 0;
@@ -346,6 +367,7 @@
 .ql-bubble .ql-editor img {
 	max-width: 500px !important;
 }
+
 .mention-link::after,
 .mention-link::before {
 	display: none;

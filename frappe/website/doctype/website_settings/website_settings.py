@@ -11,6 +11,8 @@ from frappe.website.utils import get_boot_data
 
 
 class WebsiteSettings(Document):
+	_DOCTYPE_NAME = "Website Settings"
+
 	# begin: auto-generated types
 	# This code is auto-generated. Do not modify anything in this block.
 

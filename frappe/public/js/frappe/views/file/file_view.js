@@ -82,6 +82,12 @@ frappe.views.FileView = class FileView extends frappe.views.ListView {
 		});
 	}
 
+	make_new_doc() {
+		new frappe.ui.FileUploader({
+			folder: this.current_folder,
+		});
+	}
+
 	file_menu_items() {
 		return [
 			{

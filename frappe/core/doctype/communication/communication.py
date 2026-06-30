@@ -32,6 +32,8 @@ exclude_from_linked_with = True
 
 
 class Communication(Document, CommunicationEmailMixin):
+	_DOCTYPE_NAME = "Communication"
+
 	# begin: auto-generated types
 	# This code is auto-generated. Do not modify anything in this block.
 
@@ -447,11 +449,19 @@ class Communication(Document, CommunicationEmailMixin):
 			self.add_link(doctype, name)
 
 	def add_link(self, link_doctype, link_name, autosave=False):
+		title_field = frappe.get_meta(link_doctype).get_title_field()
+		link_title = (
+			frappe.db.get_value(link_doctype, link_name, title_field, cache=True, order_by=None)
+			if title_field != "name"
+			else None
+		)
+
 		self.append(
 			"timeline_links",
 			{
 				"link_doctype": link_doctype,
 				"link_name": link_name,
+				"link_title": link_title or link_name,
 				"communication_date": self.communication_date,
 			},
 		)

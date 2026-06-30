@@ -14,7 +14,17 @@ frappe.ui.Dialog = class Dialog extends frappe.ui.FieldGroup {
 		this.is_dialog = true;
 		this.last_focus = null;
 
-		$.extend(this, { animate: true, size: null, auto_make: true, centered: false }, opts);
+		$.extend(
+			this,
+			{
+				animate: true,
+				size: null,
+				auto_make: true,
+				centered: false,
+				keep_grid_form_open: false,
+			},
+			opts
+		);
 		if (this.auto_make) {
 			this.make();
 		}
@@ -94,8 +104,10 @@ frappe.ui.Dialog = class Dialog extends frappe.ui.FieldGroup {
 				me.display = false;
 				me.is_minimized = false;
 				me.hide_scrollbar(false);
-				// hide any grid row form if open
-				frappe.ui.form.get_open_grid_form?.()?.hide_form();
+				if (!me.keep_grid_form_open) {
+					// hide any grid row form if open
+					frappe.ui.form.get_open_grid_form?.()?.hide_form();
+				}
 
 				if (frappe.ui.open_dialogs[frappe.ui.open_dialogs.length - 1] === me) {
 					frappe.ui.open_dialogs.pop();
@@ -131,12 +143,28 @@ frappe.ui.Dialog = class Dialog extends frappe.ui.FieldGroup {
 			})
 			.on("keydown", function (e) {
 				if (e.key === "Escape" || e.keyCode === 27) {
-					// when dialog is open and contains an awesomplete dropdown - do not close the dialog on escape key press
-					if (me.display && me.$wrapper.find(".awesomplete").length) {
+					// _awesomplete_was_open is set in the capture-phase listener below, before
+					// Awesomplete's own keydown handler closes the dropdown and clears aria-expanded.
+					if (me._awesomplete_was_open) {
+						me._awesomplete_was_open = false;
 						e.stopImmediatePropagation();
 					}
 				}
 			});
+
+		// Runs in capture phase, before Awesomplete's bubble-phase keydown handler on the input,
+		// so aria-expanded is still "true" when the dropdown is open.
+		me.$wrapper[0].addEventListener(
+			"keydown",
+			function (e) {
+				if (e.key === "Escape" || e.keyCode === 27) {
+					me._awesomplete_was_open =
+						me.display &&
+						!!me.$wrapper.find(".awesomplete input[aria-expanded='true']").length;
+				}
+			},
+			true // capture phase
+		);
 	}
 
 	set_modal_size() {

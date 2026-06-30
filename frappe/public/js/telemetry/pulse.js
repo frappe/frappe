@@ -22,9 +22,36 @@ class PulseProvider {
 				const events = this.eq?.getBufferedEvents?.() || [];
 				if (events.length) this.sendBeacon(events);
 			});
+
+			this.register_pageview_handler();
 		} catch (error) {
 			// ignore errors
 		}
+	}
+
+	register_pageview_handler() {
+		const site_age = frappe.boot.telemetry_site_age;
+		if (site_age && site_age > 15) {
+			return;
+		}
+
+		frappe.router.on("change", () => {
+			this.capture("pageview", "frappe", { route: this.scrub_route(frappe.get_route()) });
+		});
+	}
+
+	scrub_route(route) {
+		if (!route?.length) return "";
+
+		// Document names can be PII. Replace them with a placeholder.
+		// In a Form route (e.g. ["Form", "Sales Order", "SO-0001"]) the
+		// document name is at index 2.
+		if (route[0] === "Form" && route.length >= 3 && route[2] !== route[1]) {
+			route = [...route];
+			route[2] = "*";
+		}
+
+		return route.join("/");
 	}
 
 	capture(event, app, props) {

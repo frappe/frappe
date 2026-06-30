@@ -42,6 +42,8 @@ if TYPE_CHECKING:
 
 
 class EmailQueue(Document):
+	_DOCTYPE_NAME = "Email Queue"
+
 	# begin: auto-generated types
 	# This code is auto-generated. Do not modify anything in this block.
 
@@ -491,8 +493,7 @@ def retry_sending(queues: str | list[str]):
 	if not frappe.has_permission("Email Queue", throw=True):
 		return
 
-	if isinstance(queues, str):
-		queues = json.loads(queues)
+	queues = frappe.parse_json(queues)
 
 	if not queues:
 		return

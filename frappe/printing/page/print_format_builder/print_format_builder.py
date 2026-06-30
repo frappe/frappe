@@ -1,21 +1,18 @@
+# Copyright (c) 2021, Frappe Technologies Pvt. Ltd. and Contributors
+# MIT License. See license.txt
+
+
+import functools
+
 import frappe
 
 
 @frappe.whitelist()
-def create_custom_format(
-	doctype: str, name: str | int, based_on: str = "Standard", beta: str | int | bool = False
-):
-	doc = frappe.new_doc("Print Format")
-	doc.doc_type = doctype
-	doc.name = name
-	beta = frappe.parse_json(beta)
+def get_google_fonts():
+	return _get_google_fonts()
 
-	if beta:
-		doc.print_format_builder_beta = 1
-	else:
-		doc.print_format_builder = 1
-	doc.format_data = (
-		frappe.db.get_value("Print Format", based_on, "format_data") if based_on != "Standard" else None
-	)
-	doc.insert()
-	return doc
+
+@functools.lru_cache
+def _get_google_fonts():
+	file_path = frappe.get_app_path("frappe", "data", "google_fonts.json")
+	return frappe.parse_json(frappe.read_file(file_path))

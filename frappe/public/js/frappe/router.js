@@ -116,14 +116,6 @@ frappe.router = {
 		for (let doctype of frappe.boot.user.can_read) {
 			this.routes[this.slug(doctype)] = { doctype: doctype };
 		}
-		if (frappe.boot.doctype_layouts) {
-			for (let doctype_layout of frappe.boot.doctype_layouts) {
-				this.routes[this.slug(doctype_layout.name)] = {
-					doctype: doctype_layout.document_type,
-					doctype_layout: doctype_layout.name,
-				};
-			}
-		}
 	},
 
 	async route() {
@@ -186,6 +178,9 @@ frappe.router = {
 		} else if (this.routes[route[0]]) {
 			// route
 			route = await this.set_doctype_route(route);
+		} else {
+			// Clear stale layout — standard routes skip set_doctype_route where it's normally reset.
+			this.doctype_layout = null;
 		}
 
 		return route;
@@ -232,8 +227,28 @@ frappe.router = {
 			} else {
 				route = ["List", doctype_route.doctype, "List"];
 			}
-			// reset the layout to avoid using incorrect views
-			this.doctype_layout = doctype_route.doctype_layout;
+
+			const from_route_options = frappe.route_options?.layout;
+			const from_url = new URLSearchParams(window.location.search).get("layout");
+			const layout_param = from_route_options || from_url;
+
+			this.doctype_layout = null;
+			if (layout_param) {
+				const matched = (frappe.boot.doctype_layouts || []).find(
+					(l) => l.name === layout_param && l.document_type === doctype_route.doctype
+				);
+				if (matched) this.doctype_layout = matched.name;
+				if (from_route_options) delete frappe.route_options.layout;
+			}
+
+			const _url = new URL(window.location.href);
+			if (this.doctype_layout) {
+				_url.searchParams.set("layout", this.doctype_layout);
+			} else {
+				_url.searchParams.delete("layout");
+			}
+			history.replaceState(history.state, "", _url.toString());
+
 			return route;
 		});
 	},
@@ -368,7 +383,13 @@ frappe.router = {
 					const route_options = frappe.route_options || {};
 					const query_params = Object.entries(route_options)
 						.map(
-							([key, value]) => `${key}=` + encodeURIComponent(JSON.stringify(value))
+							([key, value]) =>
+								`${key}=` +
+								encodeURIComponent(
+									value !== null && typeof value === "object"
+										? JSON.stringify(value)
+										: String(value)
+								)
 						)
 						.join("&");
 					this.push_state(sub_path, query_params ? `?${query_params}` : "");
@@ -390,10 +411,16 @@ frappe.router = {
 			// called as frappe.set_route(['a', 'b', 'c']);
 			route = route[0];
 		}
-
 		if (route.length === 1 && route[0] && route[0].includes("/")) {
-			// called as frappe.set_route('a/b/c')
-			route = $.map(route[0].split("/"), this.decode_component);
+			// called as frappe.set_route('a/b/c') or frappe.set_route('/desk/a/b?x=1')
+			const qIdx = route[0].indexOf("?");
+			let path = qIdx >= 0 ? route[0].slice(0, qIdx) : route[0];
+			let query_string = qIdx >= 0 ? route[0].slice(qIdx + 1) : null;
+			if (query_string) {
+				frappe.route_options = frappe.route_options || {};
+				new URLSearchParams(query_string).forEach((v, k) => (frappe.route_options[k] = v));
+			}
+			route = $.map(path.split("/"), this.decode_component);
 		}
 
 		if (route && route[0] == "") {
@@ -495,7 +522,7 @@ frappe.router = {
 		if (window.location.pathname !== path || window.location.search !== query_params) {
 			// push/replace state so the browser looks fine
 			const method = frappe.route_flags.replace_route ? "replaceState" : "pushState";
-			history[method](null, null, path);
+			history[method](null, null, path + query_params);
 
 			// now process the route
 			this.route();
@@ -580,6 +607,11 @@ frappe.router = {
 			// Check that the origin is external (does not prevent self-clickjacking on GET endpoints)
 			const url = new URL(aElement.href);
 			const hostname = url.hostname;
+
+			// For blob: URLs, skip the link check
+			if (url.protocol === "blob:") {
+				return false; // blob: URLs are not checked
+			}
 			if (hostname === window.location.hostname) {
 				return false; // self-linking is allowed
 			}

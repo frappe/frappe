@@ -832,7 +832,7 @@ defineExpose({
 	align-items: center;
 	justify-content: center;
 	border: 1px dashed var(--dark-border-color);
-	border-radius: var(--border-radius);
+	border-radius: var(--radius);
 	cursor: pointer;
 	background-color: var(--bg-color);
 }

@@ -6,6 +6,8 @@ from frappe.model.document import Document
 
 
 class WorkspaceSidebarItem(Document):
+	_DOCTYPE_NAME = "Workspace Sidebar Item"
+
 	# begin: auto-generated types
 	# This code is auto-generated. Do not modify anything in this block.
 
@@ -16,7 +18,6 @@ class WorkspaceSidebarItem(Document):
 
 		child: DF.Check
 		collapsible: DF.Check
-		display_depends_on: DF.Code | None
 		filters: DF.Code | None
 		indent: DF.Check
 		keep_closed: DF.Check

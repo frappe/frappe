@@ -51,6 +51,7 @@ class TestPrintFormat(IntegrationTestCase):
 		doc_dict = doc.as_dict(no_nulls=True, convert_dates_to_str=True)
 
 		self.assertTrue(os.path.exists(exported_doc_path))
+		self.assertFalse(os.path.exists(os.path.join(os.path.dirname(exported_doc_path), "__init__.py")))
 
 		with open(exported_doc_path) as f:
 			exported_doc = frappe.parse_json(f.read())

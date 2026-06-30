@@ -21,32 +21,41 @@
 							</use>
 						</svg>
 					</button>
-					<span class="indicator-pill whitespace-nowrap page-indicator-pill"></span>
+					<span class="es-badge page-indicator-pill hide" data-testid="page-status"></span>
 				</div>
 			</div>
 			<div class="align-center flex standard-items-section">
-				{% if frappe.is_mobile() %}
-					<div class="search-bar text-muted hidden">
-						<div
-							class="navbar-modal-search-mobile"
-							placeholder="Search for type a command"
-						>
-							<span class="search-icon">
-								<svg class="icon icon-sm"><use href="#icon-search"></use></svg>
-							</span>
-						</div>
-					</div>
-				{% endif %}
+				<button id="small-search-button" class="btn-reset search-bar navbar-modal-search-mobile hidden" aria-label="{{ __("Search") }}">
+					<span class="search-icon">
+						<svg class="icon icon-sm"><use href="#icon-search"></use></svg>
+					</span>
+				</button>
+				{% if(!frappe.is_mobile()) { %}
+				<button id="full-search-button" class="btn btn-default navbar-modal-search-mobile search-widget-button hidden" aria-label="{{ __("Search") }}">
+					<span class="search-widget-icon">
+						{{ frappe.utils.icon("search") }}
+					</span>
+					<span class="search-widget-label">{%= __("Search") %}</span>
+					<span class="search-widget-shortcut">
+					{% if(frappe.utils.is_mac()) { %}
+						⌘K
+					{% } else { %}
+						Ctrl+K
+					{% } %}
+					</span>
+				</button>
+
+				{% } %}
 				<div class="flex col page-actions justify-content-end {% if frappe.is_mobile() %} pl-0 {% endif %}">
 					<!-- buttons -->
 					{% if (frappe.boot.read_only) { %}
-					<span class="mr-3 indicator-pill yellow no-indicator-dot read-only-banner" title="{%= __(" Your site is undergoing
+					<span class="ml-2 es-badge read-only-banner" data-theme="amber" title="{%= __(" Your site is undergoing
 						maintenance or being updated.") %}">
 						{%= __("Read Only Mode") %}
 					</span>
 					{% } %}
 					{% if (frappe.boot.user.impersonated_by) { %}
-					<span class="mr-3 indicator-pill red no-indicator-dot" title="{%= __(" You are impersonating as another user.") %}">
+					<span class="ml-2 es-badge" data-theme="red" title="{%= __(" You are impersonating as another user.") %}">
 						{%= __("Impersonating {0}", [frappe.boot.user.name]) %}
 					</span>
 					{% } %}

@@ -11,8 +11,8 @@ frappe.ui.form.on("Workspace", {
 		frm.trigger("add_to_desktop");
 		let url = `/desk/${
 			frm.doc.public
-				? frappe.router.slug(frm.doc.title)
-				: "private/" + frappe.router.slug(frm.doc.title)
+				? frappe.router.slug(frm.doc.name)
+				: "private/" + frappe.router.slug(frm.doc.name)
 		}`;
 		frm.sidebar
 			.add_user_action(__("Go to Workspace"))

@@ -5,6 +5,7 @@ Sync's doctype and docfields from txt files to database
 perms will get synced only if none exist
 """
 
+import glob
 import os
 import re
 
@@ -160,6 +161,11 @@ def get_doc_files(files, start_path):
 						if doc_path not in files:
 							files.append(doc_path)
 
+	# DocType Layouts: doctype/{document_type}/doctype_layout/{name}.json
+	for doc_path in glob.glob(os.path.join(start_path, "doctype", "*", "doctype_layout", "*.json")):
+		if doc_path not in files:
+			files.append(doc_path)
+
 	return files
 
 
@@ -200,8 +206,8 @@ def remove_orphan_doctypes():
 	print()
 
 
-def remove_orphan_entities():
-	entites = ["Workspace", "Dashboard", "Page", "Report", "Notification"]
+def remove_orphan_entities(entity_types=None):
+	entities = ["Workspace", "Dashboard", "Page", "Report", "Notification"]
 	app_level_entities = ["Workspace Sidebar", "Desktop Icon"]
 	entity_filter_map = {
 		"Workspace": [{"public": 1, "module": ["is", "set"], "app": ["is", "set"]}],
@@ -212,9 +218,14 @@ def remove_orphan_entities():
 		"Desktop Icon": {"standard": True},
 		"Notification": {"is_standard": True},
 	}
-	entity_file_map = create_entity_file_map(entites)
+	entity_file_map = create_entity_file_map(entities)
+	if entity_types:
+		if isinstance(entity_types, list):
+			entities = entity_types
+		else:
+			entities = [entity_types]
 
-	for entity in entites:
+	for entity in entities:
 		print(f"Removing orphan {entity}s")
 		all_enitities = frappe.get_all(
 			entity, filters=entity_filter_map.get(entity), fields=["name", "module"]
@@ -235,6 +246,8 @@ def remove_orphan_entities():
 		# save the deleted icons
 		frappe.db.commit()  # nosemgrep
 	#  Remove app level entities
+	if entity_types and not set(entity_types).issubset(set(app_level_entities)):
+		return
 	for app_entity in app_level_entities:
 		print(f"Removing orphan {app_entity}s")
 		all_enitities = frappe.get_all(

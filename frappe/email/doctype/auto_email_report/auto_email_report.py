@@ -35,6 +35,8 @@ from frappe.utils.xlsxutils import make_xlsx
 
 
 class AutoEmailReport(Document):
+	_DOCTYPE_NAME = "Auto Email Report"
+
 	# begin: auto-generated types
 	# This code is auto-generated. Do not modify anything in this block.
 

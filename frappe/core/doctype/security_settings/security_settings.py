@@ -18,6 +18,8 @@ from frappe.utils import (
 
 
 class SecuritySettings(Document):
+	_DOCTYPE_NAME = "Security Settings"
+
 	# begin: auto-generated types
 	# This code is auto-generated. Do not modify anything in this block.
 

@@ -9,6 +9,8 @@ not_allowed_fieldtype_change = ["naming_series"]
 
 
 class PropertySetter(Document):
+	_DOCTYPE_NAME = "Property Setter"
+
 	# begin: auto-generated types
 	# This code is auto-generated. Do not modify anything in this block.
 

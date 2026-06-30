@@ -8,6 +8,8 @@ from frappe.utils import sanitize_html
 
 
 class Translation(Document):
+	_DOCTYPE_NAME = "Translation"
+
 	# begin: auto-generated types
 	# This code is auto-generated. Do not modify anything in this block.
 

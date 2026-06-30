@@ -1,6 +1,24 @@
 import { createPopper } from "@popperjs/core";
 frappe.provide("frappe.ui");
-// icon, title, message, condition, primary_action_label, primary_action
+/**
+ * Sidebar Card is used to render a card with a close button. It is used to show cards in the sidebar, tooltip on form descriptions and billing banners etc.
+ *
+ * @param {string} title - Title of the card
+ * @param {string} message - Message to be shown in the card
+ * @param {HTMLElement} parent - Parent element to which the card will be appended
+ * @param {HTMLElement} trigger - Element on which the card will be triggered
+ * @param {string} [icon="info"] - Icon to be shown in the card
+ * @param {boolean} [hide_icon] - If true, does not show the icon in the card
+ * @param {boolean} [close_button] - Whether to show the close button or not
+ * @param {boolean} [popper] - Whether to use popper for positioning the card
+ * @param {boolean} [outline] - Whether to show the card with outline or not
+ * @param {string} [primary_action_label] - Label for the primary action button
+ * @param {Function} [primary_action] - Function to be called when the primary action button is clicked
+ * @param {string} [primary_button_alignment] - Alignment for the primary action button (left or right)
+ * @param {string} [dismiss_it_for] - If set, it will dismiss the card for the specified duration (minute, hour, day, week) when the close button is clicked
+ * @param {string} [dismiss_key="card_next_show_time"] - Key to be used in localStorage for storing the dismiss time
+ * @param {Object} [styles] - Custom styles to be applied to the card, passed as an object with CSS variable names as keys and their values as values
+ */
 frappe.ui.SidebarCard = class SidebarCard {
 	constructor(opts) {
 		Object.assign(this, opts);

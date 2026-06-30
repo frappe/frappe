@@ -179,7 +179,8 @@ def document_list(doctype: str) -> list[dict[str, Any]]:
 		except Exception as e:
 			frappe.throw(_("Error in {0}.get_list: {1}").format(doctype, str(e)))
 
-	data = query.run(as_dict=as_dict, debug=debug)
+	data = query.run(as_dict=as_dict, debug=debug, as_list=not as_dict)
+	assert isinstance(data, list), "query.run must return a list of records"
 	frappe.response["has_next_page"] = len(data) > limit
 	return data[:limit]
 
@@ -253,8 +254,10 @@ def execute_doc_method(doctype: str, name: str, method: str | None = None):
 	doc = frappe.get_doc(doctype, name)
 	doc.is_whitelisted(method)
 
+	assert frappe.request.method in PERMISSION_MAP, "execute_doc_method route is only mounted for GET/POST"
 	doc.check_permission(PERMISSION_MAP[frappe.request.method])
 	result = doc.run_method(method, **frappe.form_dict)
+	doc.apply_fieldlevel_read_permissions()
 	frappe.response.docs.append(doc.as_dict())
 	return result
 
@@ -311,6 +314,9 @@ def execute_bulk_delete_docs(doctype: str, names: list[str | int]):
 			frappe.db.rollback(save_point=savepoint)
 			failed.append({"name": name, "error": str(e)})
 
+	assert len(deleted) + len(failed) == len(names), (
+		"every name must be either deleted or failed exactly once"
+	)
 	return {
 		"deleted": deleted,
 		"failed": failed,
@@ -566,6 +572,7 @@ def run_doc_method(method: str, document: dict[str, Any] | str, kwargs=None):
 	if kwargs is None:
 		kwargs = {}
 
+	assert frappe.request.method in PERMISSION_MAP, "run_doc_method route is only mounted for GET/POST"
 	doc = frappe.get_doc(document, check_permission=PERMISSION_MAP[frappe.request.method])
 	doc._original_modified = doc.modified
 	doc.check_if_latest()
@@ -577,6 +584,7 @@ def run_doc_method(method: str, document: dict[str, Any] | str, kwargs=None):
 
 	new_kwargs = get_newargs(fn, kwargs)
 	response = doc.run_method(method, **new_kwargs)
+	doc.apply_fieldlevel_read_permissions()
 	frappe.response.docs.append(doc)  # send modified document and result both.
 	return response
 

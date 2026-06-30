@@ -14,7 +14,7 @@ frappe.listview_settings["User"] = {
 		if (doc.enabled) {
 			return [__("Active"), "green", "enabled,=,1"];
 		} else {
-			return [__("Disabled"), "grey", "enabled,=,0"];
+			return [__("Disabled"), "gray", "enabled,=,0"];
 		}
 	},
 	set_default_app_options(listview) {
@@ -23,7 +23,7 @@ frappe.listview_settings["User"] = {
 
 		frappe.xcall("frappe.apps.get_apps").then((r) => {
 			let apps = r?.map((r) => r.name) || [];
-			default_app_field.options = [" ", ...apps].join("\n");
+			default_app_field.options = ["", ...apps].join("\n");
 		});
 	},
 };

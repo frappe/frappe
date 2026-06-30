@@ -1,3 +1,10 @@
+// Espresso spacing.
+//
+// The base unit (--spacing) lives in plain CSS at css/espresso/spacing.css
+// (Espresso's fractional steps stay in frappe-ui's @theme). The component
+// paddings below are Frappe-specific (no Espresso equivalent) and stay here.
+@import "frappe/public/css/espresso/spacing.css";
+
 :root {
 	// Input Padding
 	--input-padding: 6px 8px;

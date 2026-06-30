@@ -1,7 +1,13 @@
 {% if value %}
-<div class="field {{ df.section.field_orientation or '' }}" {{ field_attributes(df) }}>
+{%- set _show_label = df.show_label if df.show_label else 'show' -%}
+{%- set _align = df.align if df.align else '' -%}
+{%- set _orientation = df.section.field_orientation or '' -%}
+{%- set _inline = (_show_label == 'inline') or (_orientation == 'left-right') -%}
+<div class="field {{ _orientation }}{% if _inline and _orientation != 'left-right' %} field-inline{% endif %}{% if _align %} field-align-{{ _align }}{% endif %}" {{ field_attributes(df) }}>
 	{%- block label -%}
+	{%- if _show_label != 'hide' -%}
 	<div class="label">{{ _(df.label) }}</div>
+	{%- endif -%}
 	{%- endblock -%}
 	{%- block value -%}
 	<div class="value">{{ doc.get_formatted(df.fieldname) }}</div>

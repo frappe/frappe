@@ -230,6 +230,7 @@ class Database:
 
 		debug = debug or getattr(self, "debug", False)
 		query = str(query)
+		assert isinstance(query, str), "query must be a string after coercion"
 
 		if not run:
 			return query
@@ -840,6 +841,7 @@ class Database:
 			modified_by = modified_by or frappe.session.user
 			update_dict.update({"modified": modified, "modified_by": modified_by})
 
+		assert isinstance(update_dict, dict), "update dict must be a dict"
 		return update_dict
 
 	def set_single_value(
@@ -1115,6 +1117,7 @@ class Database:
 
 		conditions = {}
 		docnames = list(doc_updates.keys())
+		assert docnames, "doc_updates must be non-empty here (empty case returns early)"
 
 		for docname, row in doc_updates.items():
 			for field, value in row.items():
@@ -1301,9 +1304,23 @@ class Database:
 			self.value_cache[dt][cache_key] = count
 		return count
 
-	def estimate_count(self, doctype: str) -> int:
-		"""Get estimated count of total rows in a table."""
+	def _estimate_count(self, table: str) -> int:
+		"""Get estimated count of total rows in a single table. Override in subclasses."""
 		raise NotImplementedError
+
+	def estimate_count(self, doctype: str) -> int:
+		"""Get estimated count of total rows in a table.
+
+		The estimate is read one table at a time and cached in Redis with a 60-minute TTL
+		to avoid hammering information_schema.
+		"""
+		table = get_table_name(doctype)
+		cache_key = f"estimate_count::{table}"
+		count = frappe.cache.get_value(cache_key)
+		if count is None:
+			count = self._estimate_count(table)
+			frappe.cache.set_value(cache_key, count, expires_in_sec=60 * 60)
+		return count
 
 	@staticmethod
 	def format_date(date):

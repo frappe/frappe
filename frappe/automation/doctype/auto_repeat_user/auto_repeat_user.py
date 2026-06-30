@@ -6,6 +6,8 @@ from frappe.model.document import Document
 
 
 class AutoRepeatUser(Document):
+	_DOCTYPE_NAME = "Auto Repeat User"
+
 	# begin: auto-generated types
 	# This code is auto-generated. Do not modify anything in this block.
 

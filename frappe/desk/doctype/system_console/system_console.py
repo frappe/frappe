@@ -9,6 +9,8 @@ from frappe.utils.safe_exec import read_sql, safe_exec
 
 
 class SystemConsole(Document):
+	_DOCTYPE_NAME = "System Console"
+
 	# begin: auto-generated types
 	# This code is auto-generated. Do not modify anything in this block.
 

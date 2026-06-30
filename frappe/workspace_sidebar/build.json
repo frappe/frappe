@@ -15,6 +15,7 @@
    "label": "DocType",
    "link_to": "DocType",
    "link_type": "DocType",
+   "open_in_new_tab": 0,
    "show_arrow": 0,
    "type": "Link"
   },
@@ -27,6 +28,7 @@
    "label": "Page",
    "link_to": "Page",
    "link_type": "DocType",
+   "open_in_new_tab": 0,
    "show_arrow": 0,
    "type": "Link"
   },
@@ -39,6 +41,7 @@
    "label": "Report",
    "link_to": "Report",
    "link_type": "DocType",
+   "open_in_new_tab": 0,
    "show_arrow": 0,
    "type": "Link"
   },
@@ -51,6 +54,7 @@
    "label": "Workspace",
    "link_to": "Workspace",
    "link_type": "DocType",
+   "open_in_new_tab": 0,
    "show_arrow": 0,
    "type": "Link"
   },
@@ -63,6 +67,7 @@
    "label": "Dashboard",
    "link_to": "Dashboard",
    "link_type": "DocType",
+   "open_in_new_tab": 0,
    "show_arrow": 0,
    "type": "Link"
   },
@@ -74,6 +79,20 @@
    "label": "Module Def",
    "link_to": "Module Def",
    "link_type": "DocType",
+   "open_in_new_tab": 0,
+   "show_arrow": 0,
+   "type": "Link"
+  },
+  {
+   "child": 0,
+   "collapsible": 1,
+   "icon": "layout-dashboard",
+   "indent": 0,
+   "keep_closed": 0,
+   "label": "DocType Layout",
+   "link_to": "DocType Layout",
+   "link_type": "DocType",
+   "open_in_new_tab": 1,
    "show_arrow": 0,
    "type": "Link"
   },
@@ -85,6 +104,7 @@
    "keep_closed": 1,
    "label": "Customization",
    "link_type": "DocType",
+   "open_in_new_tab": 0,
    "show_arrow": 0,
    "type": "Section Break"
   },
@@ -97,6 +117,7 @@
    "label": "Workflow",
    "link_to": "Workflow",
    "link_type": "DocType",
+   "open_in_new_tab": 0,
    "show_arrow": 0,
    "type": "Link"
   },
@@ -109,6 +130,7 @@
    "label": "Server Script",
    "link_to": "Server Script",
    "link_type": "DocType",
+   "open_in_new_tab": 0,
    "show_arrow": 0,
    "type": "Link"
   },
@@ -121,6 +143,7 @@
    "label": "Client Script",
    "link_to": "Client Script",
    "link_type": "DocType",
+   "open_in_new_tab": 0,
    "show_arrow": 0,
    "type": "Link"
   },
@@ -132,6 +155,7 @@
    "label": "Customize Form",
    "link_to": "Customize Form",
    "link_type": "DocType",
+   "open_in_new_tab": 0,
    "show_arrow": 0,
    "type": "Link"
   },
@@ -143,6 +167,7 @@
    "label": "Custom Field",
    "link_to": "Custom Field",
    "link_type": "DocType",
+   "open_in_new_tab": 0,
    "show_arrow": 0,
    "type": "Link"
   },
@@ -154,11 +179,12 @@
    "label": "Property Setter",
    "link_to": "Property Setter",
    "link_type": "DocType",
+   "open_in_new_tab": 0,
    "show_arrow": 0,
    "type": "Link"
   }
  ],
- "modified": "2026-01-12 15:48:51.863039",
+ "modified": "2026-04-11 12:52:38.961922",
  "modified_by": "Administrator",
  "module": "Core",
  "name": "Build",

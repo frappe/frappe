@@ -9,6 +9,8 @@ from frappe.utils.data import add_to_date
 
 
 class OAuthBearerToken(Document):
+	_DOCTYPE_NAME = "OAuth Bearer Token"
+
 	# begin: auto-generated types
 	# This code is auto-generated. Do not modify anything in this block.
 

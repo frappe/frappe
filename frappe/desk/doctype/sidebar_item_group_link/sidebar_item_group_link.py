@@ -6,6 +6,8 @@ from frappe.model.document import Document
 
 
 class SidebarItemGroupLink(Document):
+	_DOCTYPE_NAME = "Sidebar Item Group Link"
+
 	# begin: auto-generated types
 	# This code is auto-generated. Do not modify anything in this block.
 

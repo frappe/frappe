@@ -7,9 +7,12 @@ from frappe import _
 from frappe.model import no_value_fields
 from frappe.model.document import Document
 from frappe.utils import cint, today
+from frappe.utils.telemetry.pulse.client import is_enabled as pulse_enabled
 
 
 class SystemSettings(Document):
+	_DOCTYPE_NAME = "System Settings"
+
 	# begin: auto-generated types
 	# This code is auto-generated. Do not modify anything in this block.
 
@@ -25,6 +28,7 @@ class SystemSettings(Document):
 		allow_login_after_fail: DF.Int
 		allow_login_using_mobile_number: DF.Check
 		allow_login_using_user_name: DF.Check
+		allowed_doctypes_for_guest_uploads: DF.SmallText | None
 		allowed_file_extensions: DF.SmallText | None
 		app_name: DF.Data | None
 		apply_strict_user_permissions: DF.Check
@@ -201,6 +205,9 @@ class SystemSettings(Document):
 	def on_update(self):
 		self.set_defaults()
 		clear_system_settings_cache()
+
+		if not frappe.flags.in_setup_wizard and self.has_value_changed("enable_telemetry"):
+			pulse_enabled.clear_cache()
 
 		if frappe.flags.update_last_reset_password_date:
 			update_last_reset_password_date()

@@ -17,7 +17,6 @@ import unittest
 from contextlib import contextmanager
 from functools import wraps
 from glob import glob
-from pathlib import Path
 from unittest.case import skipIf
 from unittest.mock import patch
 
@@ -39,7 +38,6 @@ from frappe.tests import IntegrationTestCase, timeout
 from frappe.tests.test_query_builder import run_only_if
 from frappe.utils import add_to_date, execute_in_shell, get_bench_path, get_bench_relative_path, now
 from frappe.utils.backups import BackupGenerator, fetch_latest_backups
-from frappe.utils.jinja_globals import bundled_asset
 from frappe.utils.scheduler import enable_scheduler, is_scheduler_inactive
 
 _result: Result | None = None
@@ -956,27 +954,6 @@ class TestAddNewUser(BaseTestCommands):
 		user = frappe.get_doc("User", "test@gmail.com")
 		roles = {r.role for r in user.roles}
 		self.assertEqual({"Accounts User", "Sales User"}, roles)
-
-
-class TestBenchBuild(IntegrationTestCase):
-	def test_build_assets_size_check(self):
-		CURRENT_SIZE = 3.4  # MB
-		JS_ASSET_THRESHOLD = 0.01
-
-		hooks = frappe.get_hooks()
-		default_bundle = hooks["app_include_js"]
-
-		default_bundle_size = 0.0
-
-		for chunk in default_bundle:
-			abs_path = Path.cwd() / frappe.local.sites_path / bundled_asset(chunk)[1:]
-			default_bundle_size += abs_path.stat().st_size
-
-		self.assertLessEqual(
-			default_bundle_size / (1024 * 1024),
-			CURRENT_SIZE * (1 + JS_ASSET_THRESHOLD),
-			f"Default JS bundle size increased by {JS_ASSET_THRESHOLD:.2%} or more",
-		)
 
 
 class TestDBUtils(BaseTestCommands):

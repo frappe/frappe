@@ -28,6 +28,8 @@ def get_limit():
 def add_comment(
 	comment: str, comment_email: str, comment_by: str, reference_doctype: str, reference_name: str, route: str
 ):
+	comment_email = frappe.session.user
+	comment_by = frappe.get_value("User", frappe.session.user, "full_name")
 	if frappe.session.user == "Guest":
 		allowed_doctypes = ["Web Page"]
 		comments_permission_config = frappe.get_hooks("has_comment_permission")

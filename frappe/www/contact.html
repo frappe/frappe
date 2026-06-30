@@ -21,10 +21,10 @@
 				style="display: none;">&nbsp;</p>
 			<div class="form-group">
 				<select name="subject" class="form-control">
-				{% if query_options -%}
-					{% for option in query_options.split("\n") -%}
+				{% if query_options %}
+					{% for option in query_options %}
 					<option value="{{ option }}">{{ _(option) }}</option>
-					{%- endfor %}
+					{% endfor %}
 				{% else %}
 					<option value="General">{{ _("General") }}</option>
 				{% endif %}

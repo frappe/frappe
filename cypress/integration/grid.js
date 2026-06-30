@@ -183,4 +183,18 @@ context("Grid", () => {
 				});
 			});
 	});
+
+	it("hides add-row and add-multiple-rows buttons when rows are selected", () => {
+		cy.visit("/desk/contact/Test Contact");
+		cy.get('.frappe-control[data-fieldname="phone_nos"]').as("table");
+
+		cy.get("@table").find('.grid-row[data-idx="1"] .grid-row-check').click({ force: true });
+
+		cy.get("@table").find(".grid-add-row").should("have.class", "hidden");
+		cy.get("@table").find(".grid-add-multiple-rows").should("have.class", "hidden");
+
+		cy.get("@table").find('.grid-row[data-idx="1"] .grid-row-check').click({ force: true });
+
+		cy.get("@table").find(".grid-add-row").should("not.have.class", "hidden");
+	});
 });

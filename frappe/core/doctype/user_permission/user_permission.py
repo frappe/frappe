@@ -13,6 +13,8 @@ from frappe.utils import cstr
 
 
 class UserPermission(Document):
+	_DOCTYPE_NAME = "User Permission"
+
 	# begin: auto-generated types
 	# This code is auto-generated. Do not modify anything in this block.
 

@@ -642,6 +642,110 @@ class TestFile(IntegrationTestCase):
 			file.save().reload()
 			self.assertIn("42", file.get_content())
 
+	@IntegrationTestCase.change_settings(
+		"System Settings", {"allow_guests_to_upload_files": 1, "allowed_doctypes_for_guest_uploads": "ToDo"}
+	)
+	def test_guest_upload_to_non_allowed_doctype(self):
+		"""Verify Guest cannot upload to a restricted DocType."""
+		from werkzeug.test import EnvironBuilder
+		from werkzeug.wrappers import Request
+
+		from frappe.handler import upload_file
+
+		builder = EnvironBuilder(path="/", base_url="http://localhost")
+		frappe.local.request = Request(builder.get_environ())
+
+		frappe.set_user("Guest")
+		frappe.form_dict.doctype = "User"
+		frappe.form_dict.docname = "Administrator"
+
+		try:
+			self.assertRaises(frappe.PermissionError, upload_file)
+		finally:
+			frappe.set_user("Administrator")
+			frappe.form_dict.pop("doctype", None)
+			frappe.form_dict.pop("docname", None)
+			if hasattr(frappe.local, "request"):
+				del frappe.local.request
+
+	@IntegrationTestCase.change_settings(
+		"System Settings",
+		{"allow_guests_to_upload_files": 1, "allowed_doctypes_for_guest_uploads": "User\nToDo"},
+	)
+	def test_guest_upload_to_allowed_doctype(self):
+		"""Verify Guest can upload to an explicitly whitelisted DocType."""
+		from werkzeug.test import EnvironBuilder
+		from werkzeug.wrappers import Request
+
+		from frappe.handler import upload_file
+
+		builder = EnvironBuilder(path="/", base_url="http://localhost")
+		frappe.local.request = Request(builder.get_environ())
+
+		frappe.set_user("Administrator")
+		todo = frappe.get_doc({"doctype": "ToDo", "description": "Test Target"}).insert()
+
+		frappe.set_user("Guest")
+		frappe.form_dict.doctype = "ToDo"
+		frappe.form_dict.docname = todo.name
+		frappe.form_dict.file_url = "https://frappe.io/assets/img/logo.png"
+		frappe.form_dict.file_name = "guest_logo.png"
+
+		file_doc = None
+		try:
+			file_doc = upload_file()
+			self.assertEqual(file_doc.attached_to_name, todo.name)
+		finally:
+			frappe.set_user("Administrator")
+
+			if file_doc:
+				file_doc.delete()
+			todo.delete()
+
+			frappe.form_dict.pop("doctype", None)
+			frappe.form_dict.pop("docname", None)
+			frappe.form_dict.pop("file_url", None)
+			frappe.form_dict.pop("file_name", None)
+
+			if hasattr(frappe.local, "request"):
+				del frappe.local.request
+
+	@IntegrationTestCase.change_settings(
+		"System Settings", {"allow_guests_to_upload_files": 1, "allowed_doctypes_for_guest_uploads": ""}
+	)
+	def test_guest_upload_for_empty_whitelist(self):
+		"""Verify Guest can upload anywhere if the configuration whitelist string is left completely empty."""
+		from werkzeug.test import EnvironBuilder
+		from werkzeug.wrappers import Request
+
+		from frappe.handler import upload_file
+
+		builder = EnvironBuilder(path="/", base_url="http://localhost")
+		frappe.local.request = Request(builder.get_environ())
+
+		frappe.set_user("Guest")
+		frappe.form_dict.doctype = "User"
+		frappe.form_dict.docname = "Administrator"
+		frappe.form_dict.file_url = "https://frappe.io/assets/img/logo.png"
+		frappe.form_dict.file_name = "guest_fallback.png"
+
+		file_doc = None
+		try:
+			file_doc = upload_file()
+			self.assertEqual(file_doc.attached_to_name, "Administrator")
+		finally:
+			frappe.set_user("Administrator")
+			if file_doc:
+				file_doc.delete()
+
+			frappe.form_dict.pop("doctype", None)
+			frappe.form_dict.pop("docname", None)
+			frappe.form_dict.pop("file_url", None)
+			frappe.form_dict.pop("file_name", None)
+
+			if hasattr(frappe.local, "request"):
+				del frappe.local.request
+
 
 @contextmanager
 def convert_to_symlink(directory):

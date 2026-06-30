@@ -7,6 +7,8 @@ from frappe.realtime import get_website_room
 
 
 class DiscussionReply(Document):
+	_DOCTYPE_NAME = "Discussion Reply"
+
 	# begin: auto-generated types
 	# This code is auto-generated. Do not modify anything in this block.
 

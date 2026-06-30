@@ -6,6 +6,8 @@ from frappe.model.document import Document
 
 
 class WebhookRequestLog(Document):
+	_DOCTYPE_NAME = "Webhook Request Log"
+
 	# begin: auto-generated types
 	# This code is auto-generated. Do not modify anything in this block.
 
