@@ -1,23 +1,11 @@
 <template>
-	<!--
-		The email window's title bar, rendered into FloatingWindow's `#header`
-		slot (which also serves as the drag handle while floating). It owns the
-		whole row: the channel title on the left, then the channel-specific
-		controls (the Cc/Bcc toggles, via `#actions`) and the window control on
-		the right. We render our own window button rather than FloatingWindow's
-		built-in one because a host can hide it with `expandable=false` for a
-		fixed, docked-only composer — and because supplying `#header` replaces
-		FloatingWindow's built-in chrome (title + `#actions`) entirely.
-	-->
+	<!-- Title bar for FloatingWindow's `#header` slot (also the drag handle): title
+		 on the left, `#actions` (Cc/Bcc toggles) and window controls on the right.
+		 We render our own controls so a host can hide them with `expandable=false`. -->
 	<div class="flex items-center justify-between gap-2 py-1.5">
-		<!-- Title, or a host-supplied trigger (e.g. EmailComposer's channel
-			 dropdown) that replaces the plain label. While minimized the window is
-			 just a tray strip, so drop the trigger and show the plain channel label
-			 (the active composer), truncated to fit. -->
-		<span
-			v-if="minimized"
-			class="min-w-0 truncate text-p-sm text-ink-gray-8"
-		>
+		<!-- Title, or a host-supplied trigger (e.g. the channel switcher). Minimized
+			 drops the trigger for the plain label, truncated to fit the tray strip. -->
+		<span v-if="minimized" class="min-w-0 truncate text-p-sm text-ink-gray-8">
 			{{ title }}
 		</span>
 		<slot v-else name="title">
@@ -36,17 +24,9 @@
 			</Button>
 			<Button v-if="expandable" variant="ghost" @click="emit('expand')">
 				<template #icon>
-					<!-- Floating: close (dock back). Docked: pop out — the lucide
-						 arrow-out-of-square. -->
-					<FeatherIcon
-						v-if="floating"
-						name="x"
-						class="h-4 w-4 text-ink-gray-5"
-					/>
-					<LucideSquareArrowOutUpRight
-						v-else
-						class="h-4 w-4 text-ink-gray-5"
-					/>
+					<!-- Floating: close (dock back). Docked: pop out. -->
+					<FeatherIcon v-if="floating" name="x" class="h-4 w-4 text-ink-gray-5" />
+					<LucideSquareArrowOutUpRight v-else class="h-4 w-4 text-ink-gray-5" />
 				</template>
 			</Button>
 		</div>
@@ -61,15 +41,13 @@ withDefaults(
 	defineProps<{
 		/** Channel label shown on the left (e.g. "Email"). */
 		title: string;
-		/** Show the window control (emits `expand`): pop-out vs. close-back.
-		 *  Off by default — only a host that handles `expand` (EmailComposer)
-		 *  opts in; CommentComposer renders the bare title. */
+		/** Show the pop-out/close control (emits `expand`). Off by default. */
 		expandable?: boolean;
-		/** Whether the host window is detached, which swaps the control's icon. */
+		/** Host window detached — swaps the control's icon. */
 		floating?: boolean;
 		/** Show the minimize control (emits `minimize`). Off by default. */
 		minimizable?: boolean;
-		/** Whether the host window is minimized, which swaps the control's icon. */
+		/** Host window minimized — swaps the control's icon. */
 		minimized?: boolean;
 	}>(),
 	{ expandable: false, minimizable: false }

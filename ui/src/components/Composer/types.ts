@@ -1,3 +1,5 @@
+import type { UploadedFile as EditorUploadedFile } from "frappe-ui/editor";
+
 /** A recipient chip. `label`/`image` ride along when supplied. */
 export interface Recipient {
   email: string;
@@ -32,8 +34,8 @@ export interface MentionOption {
   value: string;
 }
 
-/** Inline-image upload handler passed to the editor. */
-export type UploadFunction = (file: File) => Promise<unknown>;
+/** Inline-image upload handler passed to the editor; returns the editor's file shape. */
+export type UploadFunction = (file: File) => Promise<EditorUploadedFile>;
 
 // --- Base composer (Composer.vue) -----------------------------------------
 
@@ -48,7 +50,7 @@ export interface ComposerProps {
   placeholder?: string;
   label?: string;
   uploadFunction?: UploadFunction;
-  /** @-mention options (comments only; EmailComposer omits this). */
+  /** @-mention options for the comment editor. */
   mentionOptions?: MentionOption[];
   /** Send in flight — host-owned; drives the primary button's spinner. */
   loading?: boolean;

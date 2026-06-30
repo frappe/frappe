@@ -1,28 +1,17 @@
 <template>
-	<!--
-		The shared editing core behind EmailComposer and CommentComposer. It owns
-		the editor body, attachments, the Discard/Send toolbar, and the submit flow
-		(loading → reset, keeping the draft if the handler throws).
-
-		It is window-agnostic *content*: it fills its container and scrolls the
-		editor internally so the toolbar stays pinned. Drop it inline, or into a
-		FloatingWindow's default slot — the host owns the window chrome (drag,
-		resize, dock/pop-out). Channel bits (header, recipient fields, toolbar
-		extras) come in via slots.
-	-->
+	<!-- Shared editing core for EmailComposer and CommentComposer: editor body,
+		 attachments, Discard/Send toolbar. Window-agnostic content — the host owns
+		 the window chrome; channel bits arrive via slots. -->
 	<div class="flex h-full min-h-0 flex-col">
-		<!-- Channel header (e.g. "Via Email" + field toggles), above the editor. -->
 		<slot name="header" />
 
-		<!-- frappe-ui's molecule Editor is renderless: it owns the editor
-			 lifecycle and v-model, and we render the layout (top fields, scrolling
-			 body, bottom toolbar) inside its slot using EditorContent + the menus. -->
+		<!-- frappe-ui's Editor is renderless: we render the layout in its slot. -->
 		<Editor
 			ref="editorRef"
 			v-model="body"
 			:extensions="extensions"
 			:placeholder="placeholder"
-			:upload-function="uploadFn"
+			:upload-function="uploadFunction"
 		>
 			<template #default>
 				<div
@@ -40,11 +29,10 @@
 					<!-- Selection formatting popup. -->
 					<EditorBubbleMenu :items="commentToolbar" />
 
-					<!-- Editor space: at least 7rem, grows to fill the window's
-						 height (so dragging it taller adds compose room) up to a
-						 50vh cap, scrolling its own content past that. The toolbar
-						 below stays pinned. -->
-					<div class="flex max-h-[50vh] min-h-[7rem] flex-1 flex-col overflow-y-auto px-2.5">
+					<!-- Editor space: min 7rem, grows to a 50vh cap then scrolls; toolbar stays pinned. -->
+					<div
+						class="flex max-h-[50vh] min-h-[7rem] flex-1 flex-col overflow-y-auto px-2.5"
+					>
 						<EditorContent
 							class="prose-sm max-w-full flex-1 pb-8 pt-2 [&_p.reply-to-content]:hidden"
 						/>
@@ -66,15 +54,10 @@
 						</details>
 					</div>
 
-					<!-- Attachments + actions, pinned to the bottom (mt-auto absorbs the
-						 slack above) so the Discard/Send row sits at the foot of the
-						 window when it's taller than the bounded editor. -->
+					<!-- Attachments + actions pinned to the foot (mt-auto) when the window outgrows the editor. -->
 					<div class="mt-auto">
 						<!-- Attachments -->
-						<div
-							v-if="attachments.length"
-							class="my-2 flex flex-wrap gap-2 px-5"
-						>
+						<div v-if="attachments.length" class="my-2 flex flex-wrap gap-2 px-5">
 							<Button
 								v-for="attachment in attachments"
 								:key="attachment.file_url"
@@ -92,14 +75,9 @@
 						</div>
 
 						<div class="flex items-center justify-between gap-2 px-2.5 pb-2.5">
-							<!-- Host actions (attach, saved replies, …) scroll horizontally
-								 so Discard/Send stay visible in a narrow window. -->
-							<div
-								class="flex min-w-0 flex-1 items-center gap-1 overflow-x-auto"
-							>
+							<!-- Host actions scroll horizontally so Discard/Send stay visible when narrow. -->
+							<div class="flex min-w-0 flex-1 items-center gap-1 overflow-x-auto">
 								<slot name="actions" v-bind="{ addAttachment, setUploading }" />
-								<!-- Always-visible formatting bar, same items as the
-									 selection bubble menu. -->
 								<EditorFixedMenu :items="commentToolbar" button-size="sm" />
 							</div>
 							<div class="flex shrink-0 items-center gap-2">
@@ -130,7 +108,6 @@ import {
 	EditorFixedMenu,
 	CommentKit,
 	commentToolbar,
-	type UploadedFile as EditorUploadedFile,
 } from "frappe-ui/editor";
 import type { ComposerProps, CoreSubmitPayload, UploadedFile } from "./types";
 
@@ -140,24 +117,18 @@ const props = withDefaults(defineProps<ComposerProps>(), {
 });
 
 const emit = defineEmits<{
-	/** The user submitted: the built message body + attachments. The host runs
-	 *  the send (set `loading` while it does) and calls the exposed `reset()` on
-	 *  success — the composer no longer awaits or resets itself. */
+	/** Built body + attachments. Host runs the send and calls `reset()` on success. */
 	submit: [payload: CoreSubmitPayload];
-	/** Fired when the user discards the draft. */
 	discard: [];
-	/** Fired only when the user removes an attachment chip, so the host can
-	 *  delete that file server-side. NOT fired on reset/discard/send-clear —
-	 *  those files were either never sent or already belong to the sent email. */
+	/** Only on explicit chip removal (so the host deletes server-side); not on reset/send. */
 	"remove-attachment": [file: UploadedFile];
 }>();
 
 const editorRef = ref<InstanceType<typeof Editor> | null>(null);
 const editor = computed(() => editorRef.value?.editor);
 
-// @-mention options, mapped from the host's { label, value } list to the
-// editor's { id, label } shape. A getter keeps it live, so a late-loading list
-// (e.g. agents fetched after mount) lights up without recreating the editor.
+// @-mention options mapped to the editor's { id, label } shape. Kept live via a
+// getter so a late-loading list works without recreating the editor.
 const mentionItems = computed(() =>
 	(props.mentionOptions ?? []).map((option) => ({
 		id: option.value,
@@ -165,9 +136,7 @@ const mentionItems = computed(() =>
 	}))
 );
 
-// Comment-grade rich text (bold/italic/lists/links/images/mentions). Built once
-// so the editor isn't torn down on every change; reactive bits (mentions,
-// placeholder, upload) thread in through getters / Editor props.
+// Built once so the editor isn't torn down on change; reactive bits thread in via getters.
 const extensions = [
 	CommentKit.configure({
 		heading: { levels: [2, 3, 4, 5, 6] },
@@ -175,15 +144,7 @@ const extensions = [
 	}),
 ];
 
-// The host's upload handler is typed loosely (Promise<unknown>); the editor
-// wants the uploaded file's shape back. Same call, narrowed for the prop.
-const uploadFn = computed(
-	() => props.uploadFunction as ((file: File) => Promise<EditorUploadedFile>) | undefined
-);
-
-// The editable body. Exposed as `v-model:body` so a host can seed initial
-// content (drafts, signatures, a forwarded message) and observe edits live for
-// things like server-side draft autosave. Unbound, it's just local state.
+// Editable body, exposed as `v-model:body` so a host can seed and observe it.
 const body = defineModel<string>("body", { default: "" });
 
 // The original message being replied to. Held outside the editor body in a
@@ -271,10 +232,8 @@ function setQuotedReply(content: string) {
 	}
 }
 
-// Attachment state lives here (the toolbar renders the chips); wrappers add to
-// it through the `actions` slot, and the files ride along in the payload. The
-// host learns about an explicit user removal via `remove-attachment` (to clean
-// up server-side) — distinct from clearing the list on reset, which is silent.
+// Attachment state. Hosts add via the `actions` slot; explicit removals emit
+// `remove-attachment` (reset clears silently).
 const attachments = ref<UploadedFile[]>([]);
 const isUploading = ref(false);
 
@@ -307,9 +266,8 @@ function focus() {
 	setTimeout(() => editor.value?.commands?.focus("start"), 0);
 }
 
-// Emit the built message for the host to deliver. We don't await or reset here:
-// the host owns delivery (and `loading`), and calls the exposed `reset()` on
-// success — so a failed send simply leaves the draft untouched.
+// Emit for the host to deliver; it owns `loading` and calls `reset()` on success,
+// so a failed send leaves the draft intact.
 function submit() {
 	if (isDisabled.value) return;
 	emit("submit", { body: buildMessage(), attachments: attachments.value });

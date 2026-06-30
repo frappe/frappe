@@ -1,14 +1,8 @@
 <template>
-	<!--
-		Recipient entry for one row (To / Cc / Bcc). A thin adapter over frappe-ui's
-		experimental MultiEmailInput: that component owns the chips, dropdown, paste
-		and validation, while this wrapper bridges the two data shapes — the composer
-		models Recipient objects (name + avatar), MultiEmailInput models plain email
-		strings — and drives the host's async `search` from the input query.
-	-->
-	<!-- A wrapper so the row's `flex-1` lands on the flex child (the parent
-		 passes it to us). MultiEmailInput puts attrs.class on its inner box, not
-		 its root, so without this the field never fills the row. -->
+	<!-- Adapter over frappe-ui's MultiEmailInput: bridges Recipient objects
+		 (name + avatar) to the plain email strings it models. -->
+	<!-- Wrapper so the row's flex-1 lands on a flex child: MultiEmailInput puts
+		 attrs.class on its inner box, not its root. -->
 	<div class="w-full">
 		<MultiEmailInput
 			v-model="emails"
@@ -18,8 +12,7 @@
 			class="!gap-1 !bg-transparent !p-0"
 			@update:query="onQuery"
 		>
-			<!-- Match the composer's original chip: always show the avatar (the
-				 default hides it without an image) with the name beside it. -->
+			<!-- Always show the avatar; the default hides it when imageless. -->
 			<template #tag="{ value, option, removeTag }">
 				<Avatar size="xs" :image="option?.image" :label="option?.label || value" />
 				<span class="truncate">{{ option?.label || value }}</span>
@@ -31,8 +24,7 @@
 				</button>
 			</template>
 
-			<!-- The default stacks name and email with no gap, so they read as one
-				 cramped block; give the email its own line with a little breathing room. -->
+			<!-- Put the email on its own line; the default crams it under the name. -->
 			<template #option-label="{ option }">
 				<div class="flex min-w-0 flex-col gap-0.5 leading-tight">
 					<span class="truncate text-base text-ink-gray-8">{{ option.label }}</span>
@@ -55,8 +47,7 @@ import { Avatar, FeatherIcon } from "frappe-ui";
 import { MultiEmailInput, type MultiEmailOption } from "frappe-ui/experimental";
 import type { Recipient, RecipientSearch } from "../types";
 
-// Default to no placeholder — the row already has its "To"/"Cc"/"Bcc" label, so
-// the field should read as a seamless empty space.
+// No placeholder by default — the row's To/Cc/Bcc label already labels it.
 const props = withDefaults(defineProps<{ placeholder?: string; search?: RecipientSearch }>(), {
 	placeholder: "",
 });
@@ -65,11 +56,9 @@ const model = defineModel<Recipient[]>({ default: () => [] });
 const loading = ref(false);
 const searchResults = ref<Recipient[]>([]);
 
-// MultiEmailInput speaks plain email strings; the composer speaks Recipient
-// objects. Bridge the two: rebuild the model from the emails MultiEmailInput
-// reports, keeping each chip's name/avatar from its matched suggestion (or its
-// existing entry). A typed/pasted address with no match rides as a bare email.
-// De-dupe the chip list so a repeated seeded address can't collide on key.
+// Bridge plain emails <-> Recipient objects, restoring each chip's name/avatar
+// from its match or existing entry. Set() dedupes so a repeated seed can't
+// collide on key.
 const emails = computed<string[]>({
 	get: () => [...new Set(model.value.map((recipient) => recipient.email))],
 	set: (next) => {
@@ -86,8 +75,7 @@ const options = computed<MultiEmailOption[]>(() =>
 	}))
 );
 
-// Drop stale responses so an earlier-but-slower request can't overwrite the
-// latest results.
+// Drop stale responses so a slow earlier request can't clobber newer results.
 let requestId = 0;
 async function runSearch(query: string) {
 	if (!props.search) return;
@@ -105,17 +93,13 @@ const onQuery = useDebounceFn(runSearch, 250);
 </script>
 
 <style scoped>
-/* Suppress the box's focus ring (box-shadow) on focus-within — the composer
-   wants the row seamless. The chips keep their own focus outline (the component
-   rings the current chip via aria-current). `:deep` + the data attribute beats
-   the utility's cascade. */
+/* Hide the box's focus ring for a seamless row; chips keep their aria-current ring. */
 :deep([data-slot="control"]:focus-within) {
 	box-shadow: none;
 	outline: none;
 }
 
-/* Keep a clear outline on the chips so they stay distinct against the now
-   transparent container (the wrapper's faint default border washes out). */
+/* Clear outline on chips against the transparent container. */
 :deep([data-slot="tag"]) {
 	border-color: var(--outline-gray-2);
 }

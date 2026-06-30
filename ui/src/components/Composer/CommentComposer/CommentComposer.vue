@@ -1,7 +1,5 @@
 <template>
-	<!-- An internal comment: just the editing core, no recipients or subject. The
-		 consumer's send method receives `{ body, attachments }` straight from the
-		 base composer. -->
+	<!-- Internal comment: just the editing core, no recipients or subject. -->
 	<Composer
 		ref="composer"
 		:placeholder="placeholder"
@@ -36,14 +34,12 @@ withDefaults(defineProps<CommentComposerProps>(), {
 });
 
 const emit = defineEmits<{
-	/** The user posted the comment (body + attachments). Run the send (set
-	 *  `:loading` while it does) and call the exposed `reset()` on success. */
+	/** Posted comment (body + attachments). Run the send and call `reset()` on success. */
 	submit: [payload: CommentPayload];
 	discard: [];
 	"remove-attachment": [file: UploadedFile];
 }>();
 
-// `v-model:body` forwarded to the base so a host can seed and observe the body.
 const body = defineModel<string>("body", { default: "" });
 
 const composer = ref<InstanceType<typeof Composer> | null>(null);

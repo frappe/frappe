@@ -1,18 +1,12 @@
 <template>
-	<!--
-		An email composer that owns its window: it wraps itself in a FloatingWindow
-		so the title, field toggles, and float/dock control share one bar that
-		doubles as the title bar / drag handle. `v-model:mode` drives docked /
-		floating / minimized. Pass more than one `channel` (e.g. ["email", "comment"])
-		to turn the title into a switcher and gain a `submit-comment` event.
-	-->
-	<!-- `:style` falls through onto FloatingWindow's panel (it forwards $attrs).
-		 While docked we use it to pin a draggable height; floating/minimized keep
-		 the window's own sizing (dockedStyle is undefined then). -->
+	<!-- Email composer that owns its window via FloatingWindow. `v-model:mode`
+		 drives docked/floating/minimized; pass multiple `channels` to turn the
+		 title into a switcher and gain a `submit-comment` event. -->
+	<!-- `:style` falls through onto FloatingWindow's panel; docked uses it to pin a
+		 draggable height (undefined while floating/minimized). -->
 	<FloatingWindow v-model:mode="windowMode" :minimizable="true" :style="dockedStyle">
 		<template #header="{ mode, float, dock, minimize, expandFromTray }">
-			<!-- Docked-only top grip: drag up to grow the compose area (the host
-				 container pins the bottom). Anchors to the panel, which is relative. -->
+			<!-- Docked-only grip: drag up to grow the compose area (host pins the bottom). -->
 			<button
 				v-if="mode === 'docked'"
 				type="button"
@@ -37,8 +31,7 @@
 					<TabButtons v-model="channel" :options="channelOptions" />
 				</template>
 
-				<!-- Reveal the optional Cc/Bcc recipient rows. Email-only, and hidden
-					 while minimized (the tray strip shows just the label). -->
+				<!-- Cc/Bcc toggles: email-only, hidden while minimized. -->
 				<template v-if="channel === 'email' && mode !== 'minimized'" #actions>
 					<Button
 						v-if="fields?.includes('cc')"
@@ -71,8 +64,7 @@
 			@discard="emit('discard')"
 			@remove-attachment="emit('remove-attachment', $event)"
 		>
-			<!-- Email-only: the host's From picker and the recipient rows. Comment
-				 mode is just the editing core, so they're hidden. -->
+			<!-- Email-only: From picker + recipient rows (comment mode is just the core). -->
 			<template #top>
 				<template v-if="channel === 'email'">
 					<slot name="from" />
@@ -87,8 +79,7 @@
 				</template>
 			</template>
 
-			<!-- Attachments, canned-response pickers, etc. are host-supplied: wire a
-				 FileUploader to `addAttachment` and report progress via `setUploading`. -->
+			<!-- Host-supplied actions: wire a FileUploader to `addAttachment` / `setUploading`. -->
 			<template v-if="$slots.actions" #actions="actionProps">
 				<slot name="actions" v-bind="actionProps" />
 			</template>
@@ -141,7 +132,7 @@ const channelOptions = computed(() =>
 	}))
 );
 
-// Two-way state, host-owned. (Attachments stay owned by the base — see `remove-attachment`.)
+// Host-owned two-way state (attachments stay owned by the base).
 const body = defineModel<string>("body", { default: "" });
 const recipients = defineModel<Recipients>("recipients", {
 	default: () => ({ to: [], cc: [], bcc: [] }),
@@ -150,15 +141,11 @@ const subject = defineModel<string>("subject", { default: "" });
 
 const composer = ref<InstanceType<typeof Composer> | null>(null);
 
-// Switching channel (Email <-> Comment) starts a fresh message: clear the
-// editor body, attachments, and any quoted reply so content doesn't bleed
-// across types.
+// Switching channel starts a fresh message.
 watch(channel, () => composer.value?.reset());
 
-// Docked resize. `null` = size to content (default); a drag on the top grip
-// pins a `min-height` so the docked window can grow taller. Using min-height
-// (not height) means the panel still grows to fit its content — so toggling
-// CC/BCC never clips the footer, and the content height is always the floor.
+// Docked resize: `null` sizes to content; a grip drag pins a `min-height` (not
+// height, so content still grows the panel — toggling CC/BCC never clips).
 const dockedHeight = ref<number | null>(null);
 
 const dockedStyle = computed(() =>
@@ -167,10 +154,11 @@ const dockedStyle = computed(() =>
 		: undefined
 );
 
-// Drag the top edge up to grow the window (bottom is pinned by the host). Seed
-// from the panel's current rendered height the first time, so there's no jump.
+// Drag up to grow the window; seed from the rendered height so there's no jump.
 function startDockedResize(event: PointerEvent) {
-	const panel = (event.currentTarget as HTMLElement).closest(".floating-window") as HTMLElement | null;
+	const panel = (event.currentTarget as HTMLElement).closest(
+		".floating-window"
+	) as HTMLElement | null;
 	const startY = event.clientY;
 	const startHeight = dockedHeight.value ?? panel?.offsetHeight ?? 0;
 	function onMove(moveEvent: PointerEvent) {
@@ -185,8 +173,7 @@ function startDockedResize(event: PointerEvent) {
 	window.addEventListener("pointerup", onUp);
 }
 
-// To is always shown; Subject shows whenever `fields` includes it. Cc/Bcc stay
-// hidden until revealed from the To-row toggles (or a prefilled value opens them).
+// Subject shows when `fields` includes it; Cc/Bcc stay hidden until toggled or prefilled.
 const showSubject = computed(() => props.fields?.includes("subject") ?? false);
 const showCc = ref(false);
 const showBcc = ref(false);
@@ -196,9 +183,8 @@ function hasRecipients() {
 	return Boolean(to.length || cc.length || bcc.length);
 }
 
-// The base hands us the body + attachments. Comment mode re-emits as
-// `submit-comment`; email mode guards recipients, adds the envelope, and re-emits
-// as `submit`. Bailing without emitting aborts the send, keeping the draft.
+// Comment mode re-emits as `submit-comment`; email mode guards recipients and
+// adds the envelope. Bailing without emitting aborts the send, keeping the draft.
 function handleSubmit({ body: message, attachments }: CoreSubmitPayload) {
 	if (channel.value === "comment") {
 		emit("submit-comment", { body: message, attachments });
