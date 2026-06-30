@@ -120,7 +120,8 @@ function removeAttachment(uid) {
 }
 
 async function switchSession(name) {
-	if (sending.value || paused.value) return;
+	// A paused run is restored on return (restorePausedRun); only block mid-stream.
+	if (sending.value) return;
 	sessionName.value = name;
 	runName.value = null;
 	messages.value = [];
