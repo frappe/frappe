@@ -45,6 +45,56 @@ ImageFile.LOAD_TRUNCATED_IMAGES = True  # nosemgrep
 URL_PREFIXES = ("http://", "https://", "/api/method/")
 FILE_ENCODING_OPTIONS = ("utf-8-sig", "utf-8", "windows-1250", "windows-1252")
 
+# ----------------------------------------------------------------------------------------
+# Zlib doesn't allow to pass `options` to underlying Compressor, so we do some monkey-patching by providing our own `getter` to override existing one.
+# Our main intention is to pass `nb_workers` to zstd compressor, to leverage multi-threading in case cores are available.
+#--------------------------------------------------------------------------------------------
+import inspect
+zstd_module_available = False # include with (C)Python distributions from Python 3.14
+try:
+	# All would be loaded internally already by zipfile. (so no extra memory!)
+	from compression import zstd
+	import bz2
+	import lzma
+	import zlib
+	# Custom alternate for `_get_compressor` so as we can pass options to underlying zstd Compressor at demand.
+	_n_zstd_workers = 0      # 0 means no multi-threading, (will block the calling thread..)
+	if "cpu_count" in vars(os):
+		cpu_count = os.cpu_count()
+		if not(cpu_count is None):
+			_n_zstd_workers = min(cpu_count // 2, 256)
+		del cpu_count
+	_n_zstd_workers = 0        # for now, Todo more experiment to get a good estimate of work-load before leveraging workers!
+	def _get_compressor_patched(compress_type, compresslevel = None, zstd_nb_workers = _n_zstd_workers):
+		if compress_type == zipfile.ZIP_DEFLATED:
+			if compresslevel is not None:
+				return zlib.compressobj(compresslevel, zlib.DEFLATED)
+			return zlib.compressobj(zlib.Z_DEFAULT_COMPRESSION, zlib.DEFLATED, -15)
+		elif compress_type == zipfile.ZIP_BZIP2:
+			if compresslevel is not None:
+				return bz2.BZ2Compressor(compresslevel)
+			return bz2.BZ2Compressor()
+		# compresslevel is ignored for ZIP_LZMA
+		if compress_type == zipfile.ZIP_LZMA:
+			return lzma.LZMACompressor()
+		elif compress_type == zipfile.ZIP_ZSTANDARD:
+			options = {zstd.CompressionParameter.nb_workers:zstd_nb_workers}
+			return zstd.ZstdCompressor(level=compresslevel, options = options)
+		else:
+			return None
+	# we make sure `_get_compress` signature matches with our expectation, in `zlib` would have updated in future versions!
+	expected_signature = inspect.signature(zipfile._get_compressor)
+	expected_params = expected_signature.parameters
+	if len(expected_params) != 2 or not("compress_type" in expected_params) or not("compresslevel" in expected_params):
+		# We take it as `zipfile`'s`get_compressor` has been modified in original code, so can no longer rely on our patch!!
+		# TODO: make this known to user as a warning or something..
+		pass
+	else:
+		zipfile._get_compressor = _get_compressor_patched
+		zstd_module_available = True
+except ImportError as e:
+	pass
+# --------------------------------------------------------------------------------------
 
 class File(Document):
 	_DOCTYPE_NAME = "File"
@@ -927,14 +977,8 @@ class File(Document):
 
 	@staticmethod
 	def zip_files(files):
-		# zstd module is bundled with (C)Python distributions from version 3.14
-		zstd_module_available = False
-		try:
-			from compression import zstd     # its fast, as already would be loaded during `import zipfile`.
-			zstd_module_available = True
-		except ImportError as e:
-			pass
-
+		# TODO: opportunities to speed up by sharing the `compressor` created once and/or sharing the `trained dict`!
+		# Should shift to `.tar` archiving format and expose this in `actions` to allow user to choose for faster zipping. (Really fast compared to this mechanism for a larger number of files for Drive like use-cases!)
 		zip_file = io.BytesIO()
 		compression = zipfile.ZIP_DEFLATED
 		if zstd_module_available:
@@ -949,10 +993,9 @@ class File(Document):
 				continue
 			if not has_permission(_file, "read"):
 				continue
-			zf.writestr(_file.file_name, _file.get_content())
+			zf.writestr(_file.file_name, _file.get_content())  # internally would create a new compressor by calling our `patched` _get_compressor_patched.
 		zf.close()
 		return zip_file.getvalue()
-
 
 def on_doctype_update():
 	frappe.db.add_index("File", ["attached_to_doctype", "attached_to_name"])
