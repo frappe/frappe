@@ -1,94 +1,50 @@
 <template>
 	<!--
-		Recipient entry, modelled on Frappe Mail's: selected recipients show as
-		removable chips (avatar + name), with an inline input for typing. The
-		host's `search` (if any) feeds a dropdown of matches (avatar + name +
-		email) on focus and as the user types; a valid typed address can always
-		be added as-is, and a pasted list of addresses becomes chips at once.
-
-		Deliberately hand-rolled rather than frappe-ui's Combobox: this is a
-		multi-recipient field (Combobox is single-select), and as a library
-		component it runs against three apps' differing frappe-ui versions — so
-		owning the render keeps names/avatars showing identically everywhere.
+		Recipient entry for one row (To / Cc / Bcc). A thin adapter over frappe-ui's
+		experimental MultiEmailInput: that component owns the chips, dropdown, paste
+		and validation, while this wrapper bridges the two data shapes — the composer
+		models Recipient objects (name + avatar), MultiEmailInput models plain email
+		strings — and drives the host's async `search` from the input query.
 	-->
-	<div class="relative w-full">
-		<div class="flex w-full flex-wrap items-center gap-1" @click="inputRef?.focus()">
-			<span
-				v-for="recipient in displayedRecipients"
-				:key="recipient.email"
-				class="flex items-center gap-1 rounded bg-surface-gray-3 py-0.5 pe-1 ps-1 text-p-sm text-ink-gray-8"
-			>
-				<Avatar
-					size="xs"
-					:image="recipient.image"
-					:label="recipient.label || recipient.email"
-				/>
-				{{ recipient.label || recipient.email }}
+	<!-- A wrapper so the row's `flex-1` lands on the flex child (the parent
+		 passes it to us). MultiEmailInput puts attrs.class on its inner box, not
+		 its root, so without this the field never fills the row. -->
+	<div class="w-full">
+		<MultiEmailInput
+			v-model="emails"
+			:options="options"
+			:loading="loading"
+			:placeholder="placeholder"
+			class="!gap-1 !bg-transparent !p-0"
+			@update:query="onQuery"
+		>
+			<!-- Match the composer's original chip: always show the avatar (the
+				 default hides it without an image) with the name beside it. -->
+			<template #tag="{ value, option, removeTag }">
+				<Avatar size="xs" :image="option?.image" :label="option?.label || value" />
+				<span class="truncate">{{ option?.label || value }}</span>
 				<button
 					class="grid size-4 place-items-center rounded-sm text-ink-gray-5 hover:bg-surface-gray-4"
-					@click.stop="removeRecipient(recipient)"
+					@click.stop="removeTag"
 				>
 					<FeatherIcon name="x" class="size-3" />
 				</button>
-			</span>
+			</template>
 
-			<input
-				ref="inputRef"
-				v-model="query"
-				type="text"
-				class="h-7 min-w-[6rem] flex-1 border-0 bg-transparent p-0 text-base text-ink-gray-8 placeholder-ink-gray-4 focus:ring-0"
-				:placeholder="model.length ? '' : placeholder"
-				autocomplete="off"
-				@focus="openDropdown"
-				@input="onInput"
-				@keydown.down.prevent="moveActive(1)"
-				@keydown.up.prevent="moveActive(-1)"
-				@keydown.enter.prevent="onEnter"
-				@keydown.esc="isOpen = false"
-				@keydown.delete="onBackspace"
-				@paste="onPaste"
-				@blur="isOpen = false"
-			/>
-		</div>
-
-		<div
-			v-if="isOpen && (loading || options.length || query.trim())"
-			class="absolute z-10 mt-1 w-full overflow-hidden rounded-lg border border-outline-gray-1 bg-surface-white py-1 shadow-2xl"
-		>
-			<div v-if="loading && !options.length" class="px-3 py-1.5 text-p-sm text-ink-gray-4">
-				Searching…
-			</div>
-			<ul v-else-if="options.length" class="max-h-[12rem] overflow-y-auto px-1.5">
-				<li
-					v-for="(option, index) in options"
-					:key="option.recipient.email"
-					class="flex cursor-pointer items-center gap-2 rounded px-2 py-1"
-					:class="
-						index === activeIndex ? 'bg-surface-gray-2' : 'hover:bg-surface-gray-2'
-					"
-					@mousedown.prevent="addRecipient(option.recipient)"
-					@mousemove="activeIndex = index"
-				>
-					<Avatar
-						size="lg"
-						:image="option.recipient.image"
-						:label="option.recipient.label || option.recipient.email"
-					/>
-					<div class="flex min-w-0 flex-col">
-						<span class="truncate text-base text-ink-gray-8">
-							{{ optionTitle(option) }}
-						</span>
-						<span
-							v-if="optionSubtitle(option)"
-							class="truncate text-p-sm text-ink-gray-5"
-						>
-							{{ optionSubtitle(option) }}
-						</span>
-					</div>
-				</li>
-			</ul>
-			<div v-else class="px-3 py-1.5 text-p-sm text-ink-gray-4">No matches</div>
-		</div>
+			<!-- The default stacks name and email with no gap, so they read as one
+				 cramped block; give the email its own line with a little breathing room. -->
+			<template #option-label="{ option }">
+				<div class="flex min-w-0 flex-col gap-0.5 leading-tight">
+					<span class="truncate text-base text-ink-gray-8">{{ option.label }}</span>
+					<span
+						v-if="option.label !== option.value"
+						class="truncate text-p-sm text-ink-gray-5"
+					>
+						{{ option.value }}
+					</span>
+				</div>
+			</template>
+		</MultiEmailInput>
 	</div>
 </template>
 
@@ -96,146 +52,71 @@
 import { computed, ref } from "vue";
 import { useDebounceFn } from "@vueuse/core";
 import { Avatar, FeatherIcon } from "frappe-ui";
+import { MultiEmailInput, type MultiEmailOption } from "frappe-ui/experimental";
 import type { Recipient, RecipientSearch } from "../types";
 
-const props = defineProps<{ placeholder?: string; search?: RecipientSearch }>();
+// Default to no placeholder — the row already has its "To"/"Cc"/"Bcc" label, so
+// the field should read as a seamless empty space.
+const props = withDefaults(defineProps<{ placeholder?: string; search?: RecipientSearch }>(), {
+	placeholder: "",
+});
 const model = defineModel<Recipient[]>({ default: () => [] });
 
-interface Option {
-	recipient: Recipient;
-	/** A creatable row for a valid address the user typed (not from the directory). */
-	create?: boolean;
-}
-
-const inputRef = ref<HTMLInputElement | null>(null);
-const query = ref("");
-const isOpen = ref(false);
 const loading = ref(false);
 const searchResults = ref<Recipient[]>([]);
-const activeIndex = ref(-1);
 
-// Minimal, permissive email check — good enough to gate creation without
-// pulling in a validation dependency.
-function isValidEmail(value: string) {
-	return /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(value.trim());
-}
+// MultiEmailInput speaks plain email strings; the composer speaks Recipient
+// objects. Bridge the two: rebuild the model from the emails MultiEmailInput
+// reports, keeping each chip's name/avatar from its matched suggestion (or its
+// existing entry). A typed/pasted address with no match rides as a bare email.
+// De-dupe the chip list so a repeated seeded address can't collide on key.
+const emails = computed<string[]>({
+	get: () => [...new Set(model.value.map((recipient) => recipient.email))],
+	set: (next) => {
+		const known = new Map([...searchResults.value, ...model.value].map((r) => [r.email, r]));
+		model.value = next.map((email) => known.get(email) ?? { email });
+	},
+});
+
+const options = computed<MultiEmailOption[]>(() =>
+	searchResults.value.map((recipient) => ({
+		label: recipient.label || recipient.email,
+		value: recipient.email,
+		image: recipient.image,
+	}))
+);
 
 // Drop stale responses so an earlier-but-slower request can't overwrite the
 // latest results.
 let requestId = 0;
-async function runSearch(text: string) {
+async function runSearch(query: string) {
 	if (!props.search) return;
 	const id = ++requestId;
 	loading.value = true;
 	try {
-		const results = await props.search(text);
+		const results = await props.search(query);
 		if (id === requestId) searchResults.value = results;
 	} finally {
 		if (id === requestId) loading.value = false;
 	}
 }
 
-const debouncedSearch = useDebounceFn(runSearch, 250);
-
-function openDropdown() {
-	isOpen.value = true;
-	activeIndex.value = -1;
-	// Seed the directory once on focus so names show before the user types.
-	if (props.search && !searchResults.value.length) runSearch("");
-}
-
-function onInput() {
-	isOpen.value = true;
-	activeIndex.value = -1;
-	debouncedSearch(query.value);
-}
-
-// Selected recipients as chips, de-duplicated by email. Vue's keyed reconciler
-// corrupts its block tree on duplicate `:key`s (null-vnode crashes on patch and
-// unmount), and seeded recipients can repeat an address — so the render list is
-// always unique.
-const displayedRecipients = computed(() => [
-	...new Map(model.value.map((r) => [r.email, r])).values(),
-]);
-
-// The dropdown excludes already-selected recipients and likewise de-duplicates
-// by email (contact data can repeat an address) so every row key is unique. A
-// valid, new typed address rides on top as a creatable row.
-const options = computed<Option[]>(() => {
-	const seen = new Set(model.value.map((recipient) => recipient.email));
-	const matches: Option[] = [];
-	for (const recipient of searchResults.value) {
-		if (seen.has(recipient.email)) continue;
-		seen.add(recipient.email);
-		matches.push({ recipient });
-	}
-	const typed = query.value.trim();
-	if (typed && isValidEmail(typed) && !seen.has(typed)) {
-		return [{ recipient: { email: typed }, create: true }, ...matches];
-	}
-	return matches;
-});
-
-// Row text as plain strings (no `<template v-if>` fragments in the list — those
-// trip Vue's block patcher with a null next-sibling on update).
-function optionTitle(option: Option) {
-	if (option.create) return `Add “${option.recipient.email}”`;
-	return option.recipient.label || option.recipient.email;
-}
-
-function optionSubtitle(option: Option) {
-	return !option.create && option.recipient.label ? option.recipient.email : "";
-}
-
-function moveActive(delta: number) {
-	if (!options.value.length) return;
-	isOpen.value = true;
-	const next = activeIndex.value + delta;
-	activeIndex.value = (next + options.value.length) % options.value.length;
-}
-
-function onEnter() {
-	const active = activeIndex.value >= 0 ? options.value[activeIndex.value] : null;
-	if (active) addRecipient(active.recipient);
-	else addTyped();
-}
-
-function addRecipient(recipient: Recipient) {
-	if (!model.value.some((existing) => existing.email === recipient.email)) {
-		model.value = [...model.value, recipient];
-	}
-	query.value = "";
-	searchResults.value = [];
-	activeIndex.value = -1;
-	inputRef.value?.focus();
-}
-
-function addTyped() {
-	const typed = query.value.trim();
-	if (isValidEmail(typed)) addRecipient({ email: typed });
-}
-
-// Paste a list of addresses (comma / newline / semicolon separated) as chips.
-function onPaste(event: ClipboardEvent) {
-	const text = event.clipboardData?.getData("text") ?? "";
-	if (!text) return;
-	const selected = new Set(model.value.map((recipient) => recipient.email));
-	const emails = text
-		.split(/[\n,;]+/)
-		.map((value) => value.trim())
-		.filter((value) => isValidEmail(value) && !selected.has(value));
-	if (!emails.length) return;
-	event.preventDefault();
-	model.value = [...model.value, ...emails.map((email) => ({ email }))];
-	query.value = "";
-}
-
-function removeRecipient(recipient: Recipient) {
-	model.value = model.value.filter((item) => item.email !== recipient.email);
-}
-
-function onBackspace() {
-	if (query.value || !model.value.length) return;
-	model.value = model.value.slice(0, -1);
-}
+const onQuery = useDebounceFn(runSearch, 250);
 </script>
+
+<style scoped>
+/* Suppress the box's focus ring (box-shadow) on focus-within — the composer
+   wants the row seamless. The chips keep their own focus outline (the component
+   rings the current chip via aria-current). `:deep` + the data attribute beats
+   the utility's cascade. */
+:deep([data-slot="control"]:focus-within) {
+	box-shadow: none;
+	outline: none;
+}
+
+/* Keep a clear outline on the chips so they stay distinct against the now
+   transparent container (the wrapper's faint default border washes out). */
+:deep([data-slot="tag"]) {
+	border-color: var(--outline-gray-2);
+}
+</style>
