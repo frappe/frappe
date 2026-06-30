@@ -247,9 +247,11 @@ def load_desktop_data(bootinfo):
 				)
 				or (workspaces and "/desk/" + frappe.utils.slug(workspaces[0]))
 				or "",
+				# Only the app's own logo (from add_to_apps_screen or its app_logo_url hook); left
+				# empty when it declares none, so the desk renders an alphabet icon instead.
 				app_logo_url=app_info.get("logo")
 				or frappe.get_hooks("app_logo_url", app_name=app_name)
-				or frappe.get_hooks("app_logo_url", app_name="frappe"),
+				or None,
 				modules=frappe.get_all("Module Def", dict(app_name=app_name), pluck="name"),
 				workspaces=workspaces,
 			)

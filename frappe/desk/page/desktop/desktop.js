@@ -51,16 +51,9 @@ class DesktopPage {
 		apps.forEach((app) => {
 			const icon_data = {
 				label: app.app_title,
-				app: app.app_name,
 				logo_url: app.app_logo_url,
-				icon_type: "App",
-				link_type: "External",
-				// no per-user customization on this screen, so no hide button
-				restrict_removal: 1,
 			};
-			const $icon = $(
-				frappe.render_template("desktop_icon", { icon: icon_data, in_folder: false })
-			);
+			const $icon = $(frappe.render_template("desktop_icon", { icon: icon_data }));
 			if (app.app_route.startsWith("http")) {
 				$icon.attr("target", "_blank");
 			}
