@@ -143,11 +143,12 @@
 					</template>
 				</Popover>
 
+				<Button v-if="loading" variant="subtle" label="Stop" icon="square" @click="stop" />
 				<Button
+					v-else
 					variant="solid"
 					:label="isModifyMode ? 'Edit' : 'Generate'"
 					icon="arrow-up"
-					:loading="loading"
 					:disabled="!prompt.trim()"
 					@click="generate"
 				/>
@@ -288,6 +289,10 @@ async function generate() {
 	const text = prompt.value.trim()
 	prompt.value = ""
 	await controller.submit(text, selectedModel.value)
+}
+
+function stop() {
+	controller.cancel()
 }
 
 // A clarification option or plan approval is just the user's next message.

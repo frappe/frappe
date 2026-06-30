@@ -95,6 +95,7 @@ export class AIChatController {
 
 	cancel = async () => {
 		if (!this.sessionId) return
+		this.ctx.statusMessage.value = "Cancelling…"
 		try {
 			await call("studio.ai.api.cancel", { session_id: this.sessionId })
 		} catch {
