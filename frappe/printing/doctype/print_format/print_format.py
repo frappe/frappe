@@ -136,6 +136,30 @@ class PrintFormat(Document):
 			frappe.clear_cache(doctype=self.doc_type)
 
 		self.export_doc()
+		self.enqueue_preview_generation()
+
+	def enqueue_preview_generation(self):
+		"""Refresh the preview image in the background so saving the format isn't blocked by
+		the (slow) Chromium render. Deduplicated so rapid saves don't pile up renders."""
+		if (
+			frappe.flags.in_import
+			or frappe.flags.in_migrate
+			or frappe.flags.in_install
+			or frappe.flags.in_patch
+			or frappe.in_test
+		):
+			return
+		if self.print_format_for != "DocType" or not self.doc_type:
+			return
+
+		frappe.enqueue(
+			generate_preview,
+			queue="short",
+			enqueue_after_commit=True,
+			job_id=f"print_format_preview::{self.name}",
+			deduplicate=True,
+			name=self.name,
+		)
 
 	def after_rename(self, old: str, new: str, *args, **kwargs):
 		if self.doc_type:
@@ -254,5 +278,8 @@ def generate_preview(name: str) -> str | None:
 
 	fname = f"pf-preview-{frappe.generate_hash(length=10)}.webp"
 	file = save_file(fname, image, "Print Format", name, is_private=1)
-	doc.db_set("preview_image", file.file_url)
+	# Don't bump `modified` — generating a preview isn't a content edit. Otherwise the
+	# background refresh would stale-date an open form and break its next save with a
+	# timestamp mismatch.
+	doc.db_set("preview_image", file.file_url, update_modified=False)
 	return file.file_url
