@@ -997,6 +997,7 @@ def clear_cache(user: str | None = None, doctype: str | None = None):
 
 		reset_metadata_version()
 		local.cache = {}
+		local.valid_columns = {}
 		local.new_doc_templates = {}
 
 		for fn in get_hooks("clear_cache"):
