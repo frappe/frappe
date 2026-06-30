@@ -30,15 +30,7 @@ function load(panel, doctype) {
 					render(panel, doctype, true, r.message || []);
 				});
 		})
-		.catch(() => {
-			const $err = panel.body.empty();
-			$('<div class="text-muted small"></div>')
-				.text(__("Could not load this tab."))
-				.appendTo($err);
-			$(`<button type="button" class="es-button" data-size="xs">${__("Retry")}</button>`)
-				.appendTo($err)
-				.on("click", () => load(panel, doctype));
-		});
+		.catch(() => frappe.doctype_settings.render_error(panel, () => load(panel, doctype)));
 }
 
 function render(panel, doctype, included, options) {
