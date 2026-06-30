@@ -1,5 +1,6 @@
 # Copyright (c) 2026, Frappe Technologies Pvt Ltd and contributors
 # For license information, please see license.txt
+import frappe
 from frappe.model.document import Document
 
 
@@ -22,3 +23,10 @@ class StudioAISession(Document):
 		user: DF.Link
 
 	# end: auto-generated types
+
+	def on_trash(self):
+		self.delete_ai_messages()
+
+	def delete_ai_messages(self):
+		for message in frappe.get_all("Studio AI Message", filters={"session": self.name}, pluck="name"):
+			frappe.delete_doc("Studio AI Message", message, ignore_missing=True)
