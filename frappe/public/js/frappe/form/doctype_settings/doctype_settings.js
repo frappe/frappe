@@ -63,11 +63,16 @@ function build_dialog(doctype, has_general) {
 
 	if (!tabs.length) return;
 
-	const dialog = new frappe.ui.SettingsDialog({
-		title: __("DocType Settings"),
-		tabs,
-		default_tab: has_general ? "general" : undefined,
-	});
+	const default_tab = has_general ? "general" : undefined;
+	let dialog = frappe.doctype_settings._dialog;
+
+	if (!dialog) {
+		dialog = new frappe.ui.SettingsDialog({ title: __("DocType Settings"), tabs, default_tab });
+		frappe.doctype_settings._dialog = dialog;
+	} else if (dialog.doctype !== doctype) {
+		dialog.reset(tabs, default_tab);
+	}
+
 	dialog.doctype = doctype;
 	dialog.show();
 	return dialog;

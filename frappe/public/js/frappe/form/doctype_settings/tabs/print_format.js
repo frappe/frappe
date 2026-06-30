@@ -73,15 +73,7 @@ frappe.doctype_settings.register("print-format", function (panel, doctype) {
 				default_pf = current_default;
 				render(formats || []);
 			})
-			.catch(() => {
-				const $err = panel.body.empty();
-				$('<div class="text-muted small"></div>')
-					.text(__("Could not load this tab."))
-					.appendTo($err);
-				$(`<button type="button" class="es-button" data-size="xs">${__("Retry")}</button>`)
-					.appendTo($err)
-					.on("click", () => load());
-			});
+			.catch(() => frappe.doctype_settings.render_error(panel, load));
 	}
 
 	// Default print format lives in a Property Setter for standard doctypes (Customize

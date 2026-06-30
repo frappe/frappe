@@ -45,10 +45,11 @@ def get_settings_map(doctype: str) -> list[dict]:
 		fields=["name"],
 		order_by="is_standard asc",
 		limit=1,
+		ignore_permissions=True,
 	)
 	if not active:
 		return []
-	mappings = frappe.get_cached_doc("DocType Settings Map", active[0].name).mappings
+	mappings = frappe.get_cached_doc("DocType Settings Map", active[0].name, ignore_permissions=True).mappings
 
 	# Group the mapped fieldnames by their source Settings doctype, preserving order.
 	by_single: dict[str, list[str]] = {}
