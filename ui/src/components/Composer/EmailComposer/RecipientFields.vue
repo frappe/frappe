@@ -23,7 +23,7 @@
 		<Row v-if="showBcc || model.bcc.length" label="BCC">
 			<RecipientSelect v-model="model.bcc" class="flex-1" :search="search" />
 		</Row>
-		<div class="border-b bg-surface-gray-1 pt-2.5"></div>
+		<div class="border-b bg-surface-gray-1 mt-2.5"></div>
 	</div>
 </template>
 
