@@ -1,45 +1,69 @@
 <script setup>
 import { computed } from "vue";
 import MarkdownText from "./MarkdownText.vue";
-import ToolCall from "./ToolCall.vue";
+import ActivityGroup from "./ActivityGroup.vue";
 import ConfirmCard from "./ConfirmCard.vue";
 import WorkingIndicator from "./WorkingIndicator.vue";
 import { useStore } from "@/store";
-import { __ } from "@/lib/translate";
+import { REQUIRES_APPROVAL } from "@/lib/toolMeta";
 
 const props = defineProps({ message: { type: Object, required: true } });
 const { answerQuestion } = useStore();
 
-const lastPart = computed(() => props.message.parts[props.message.parts.length - 1]);
-const toolRunning = computed(
-	() => lastPart.value?.type === "tool" && lastPart.value.result === null
-);
-// While a tool is running it shows its own spinner; otherwise show the dots.
-const showWorking = computed(() => props.message.pending && !toolRunning.value);
-const workingLabel = computed(() => (props.message.parts.length ? "" : __("Thinking…")));
+const questionByKey = computed(() => new Map(props.message.questions.map((q) => [q.key, q])));
 
-// A tool is awaiting approval when an unanswered question targets its id.
-function isAwaiting(toolId) {
-	return props.message.questions.some((q) => q.key === toolId && q._answer === undefined);
+// Confirmation builtin, or has/had a question (covers custom tools).
+function isApproval(part) {
+	const q = questionByKey.value.get(part.id);
+	return REQUIRES_APPROVAL.has(part.name) || q !== undefined || part.approval !== null;
 }
+
+// Group parts for render: text → prose, approval tool → own line (card if pending),
+// other tools → merged activity group. Rendering-only.
+const items = computed(() => {
+	const out = [];
+	for (const part of props.message.parts) {
+		if (part.type !== "tool") {
+			out.push({ kind: "text", id: part.id, part });
+			continue;
+		}
+		if (isApproval(part)) {
+			const q = questionByKey.value.get(part.id);
+			if (q && q._answer === undefined)
+				out.push({ kind: "confirm", id: part.id, question: q, part });
+			else out.push({ kind: "approval", id: part.id, parts: [part] });
+			continue;
+		}
+		const last = out[out.length - 1];
+		if (last?.kind === "activity") last.parts.push(part);
+		else out.push({ kind: "activity", id: part.id, parts: [part] });
+	}
+	return out;
+});
+
+// Standalone "Thinking…" only until the first response part arrives; later thinking
+// shows inline as the activity group's label.
+const showWorking = computed(() => props.message.pending && !props.message.parts.length);
 </script>
 
 <template>
 	<div class="flow-parts flex flex-col">
-		<template v-for="part in message.parts" :key="part.id">
-			<MarkdownText v-if="part.type === 'text'" :part="part" />
-			<ToolCall v-else :part="part" :awaiting-approval="isAwaiting(part.id)" />
+		<template v-for="(item, i) in items" :key="item.id">
+			<MarkdownText v-if="item.kind === 'text'" :part="item.part" />
+			<ConfirmCard
+				v-else-if="item.kind === 'confirm'"
+				:question="item.question"
+				:tool="item.part"
+				@answer="(answer) => answerQuestion(item.question, answer)"
+			/>
+			<ActivityGroup
+				v-else
+				:parts="item.parts"
+				:sealed="i < items.length - 1"
+				:live="message.pending"
+			/>
 		</template>
 
-		<WorkingIndicator v-if="showWorking" :label="workingLabel" />
-
-		<div v-if="message.questions.length" class="flex flex-col gap-2">
-			<ConfirmCard
-				v-for="q in message.questions"
-				:key="q.key"
-				:question="q"
-				@answer="(answer) => answerQuestion(q, answer)"
-			/>
-		</div>
+		<WorkingIndicator v-if="showWorking" />
 	</div>
 </template>

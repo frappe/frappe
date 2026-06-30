@@ -1,35 +1,47 @@
 <script setup>
 import { ref, computed, nextTick } from "vue";
 import { Button, FeatherIcon } from "@/lib/ui";
+import ArgsView from "./ArgsView.vue";
+import { toolLabel, argEntries } from "@/lib/toolMeta";
 import { __ } from "@/lib/translate";
 
-const props = defineProps({ question: { type: Object, required: true } });
+const props = defineProps({
+	question: { type: Object, required: true },
+	tool: { type: Object, default: null },
+});
 const emit = defineEmits(["answer"]);
 
 const otherEl = ref(null);
 
-// Prompt is "<header>\n\n<body>": show the header as a title and the body
-// (summary / code) in its own readable, scrollable block.
-const header = computed(() =>
-	(props.question.prompt.split("\n\n")[0] || "").replace(/`/g, "").trim()
-);
-const body = computed(() => props.question.prompt.split("\n\n").slice(1).join("\n\n").trim());
+// Prompt is "Approve `tool`?\n\n<summary>[\n\n<detail>]". Show the summary (or tool
+// label) as title and render args readably, dropping the prompt's JSON tail.
+const paras = computed(() => props.question.prompt.split("\n\n"));
+const looksJson = (s) => /^\s*[{[]/.test(s || "");
+
+const title = computed(() => {
+	if (props.tool) {
+		const summary = (paras.value[1] || "").replace(/`/g, "").replace(/:$/, "").trim();
+		return summary && !looksJson(summary) ? summary : toolLabel(props.tool.name);
+	}
+	return (paras.value[0] || "").replace(/`/g, "").trim();
+});
+
+// A free-text (non-tool) question keeps its prose body; tool args replace any body.
+const body = computed(() => (props.tool ? "" : paras.value.slice(1).join("\n\n").trim()));
+const hasArgs = computed(() => props.tool && argEntries(props.tool.arguments).length > 0);
 const answered = computed(() => props.question._answer !== undefined);
 
 function pick(option) {
 	emit("answer", option);
 }
-
 function showOther() {
 	props.question._showOther = true;
 	nextTick(() => otherEl.value?.focus());
 }
-
 function cancelOther() {
 	props.question._showOther = false;
 	props.question._otherText = "";
 }
-
 function sendOther() {
 	const text = props.question._otherText?.trim();
 	if (text) emit("answer", text);
@@ -48,11 +60,14 @@ function sendOther() {
 				<FeatherIcon name="shield" class="h-3.5 w-3.5" />
 			</span>
 			<div class="break-words text-sm font-medium leading-snug text-ink-gray-9">
-				{{ header }}
+				{{ title }}
 			</div>
 		</div>
 
-		<pre v-if="body" class="flow-confirm-body">{{ body }}</pre>
+		<div v-if="hasArgs" class="mt-2.5">
+			<ArgsView :arguments="tool.arguments" />
+		</div>
+		<pre v-else-if="body" class="flow-confirm-body">{{ body }}</pre>
 
 		<div
 			v-if="answered"
