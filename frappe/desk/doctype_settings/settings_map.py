@@ -65,6 +65,8 @@ def get_settings_map(doctype: str) -> list[dict]:
 
 		# Field-level (permlevel) access: a field is shown only if the user has read at its
 		# permlevel, and is editable only with both doc-level write and write at its permlevel.
+		# `can_write` is a UI hint only — the real write check happens server-side on save via
+		# `frappe.client.set_value`, so this boolean isn't the enforcement boundary.
 		doc_write = bool(frappe.has_permission(single, "write"))
 		read_levels = single_meta.get_permlevel_access("read")
 		write_levels = single_meta.get_permlevel_access("write")

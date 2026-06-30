@@ -67,11 +67,21 @@ frappe.doctype_settings.register("print-format", function (panel, doctype) {
 				limit: 1,
 			}),
 			get_default(),
-		]).then(([formats, sample, current_default]) => {
-			sample_name = sample && sample.length ? sample[0].name : null;
-			default_pf = current_default;
-			render(formats || []);
-		});
+		])
+			.then(([formats, sample, current_default]) => {
+				sample_name = sample && sample.length ? sample[0].name : null;
+				default_pf = current_default;
+				render(formats || []);
+			})
+			.catch(() => {
+				const $err = panel.body.empty();
+				$('<div class="text-muted small"></div>')
+					.text(__("Could not load this tab."))
+					.appendTo($err);
+				$(`<button type="button" class="es-button" data-size="xs">${__("Retry")}</button>`)
+					.appendTo($err)
+					.on("click", () => load());
+			});
 	}
 
 	// Default print format lives in a Property Setter for standard doctypes (Customize
@@ -212,19 +222,7 @@ frappe.doctype_settings.register("print-format", function (panel, doctype) {
 		});
 	}
 
-	// Sets the doctype's default print format by writing a Property Setter — the same
-	// override Customize Form / make_default create for non-custom doctypes (which is all
-	// DocType Settings exposes). Property Setter's validation dedupes the previous one.
 	function set_default(print_format) {
-		return frappe.db
-			.insert({
-				doctype: "Property Setter",
-				doctype_or_field: "DocType",
-				doc_type: doctype,
-				property: "default_print_format",
-				property_type: "Data",
-				value: print_format,
-			})
-			.then(() => frappe.show_alert({ message: __("Default updated"), indicator: "green" }));
+		return frappe.doctype_settings.set_property(doctype, "default_print_format", print_format);
 	}
 });

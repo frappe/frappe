@@ -81,6 +81,21 @@ frappe.doctype_settings.empty_state = function ($container, opts) {
 	return $empty;
 };
 
+// Shared helper: write a DocType-level Property Setter (same mechanism Customize Form uses).
+// Deduplication is handled server-side by Property Setter's own validation.
+frappe.doctype_settings.set_property = function (doctype, property, value) {
+	return frappe.db
+		.insert({
+			doctype: "Property Setter",
+			doctype_or_field: "DocType",
+			doc_type: doctype,
+			property,
+			property_type: "Data",
+			value,
+		})
+		.then(() => frappe.show_alert({ message: __("Default updated"), indicator: "green" }));
+};
+
 frappe.doctype_settings.groups = [
 	{
 		group: __("Document"),
@@ -94,12 +109,12 @@ frappe.doctype_settings.groups = [
 				// Role permission APIs are System-Manager-only; hide the tab otherwise.
 				condition: () => frappe.user.has_role("System Manager"),
 			},
+			{ id: "print-format", label: __("Print Format"), icon: "printer" },
 		],
 	},
 	{
 		group: __("Communication"),
 		items: [
-			{ id: "print-format", label: __("Print Format"), icon: "printer" },
 			{ id: "notifications", label: __("Notifications"), icon: "bell" },
 			{ id: "email-template", label: __("Email Template"), icon: "mail" },
 		],
