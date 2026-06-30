@@ -59,10 +59,31 @@ import LetterHeadZoneEditor from "../letterhead/LetterHeadZoneEditor.vue";
 import PrintFormatSection from "./PrintFormatSection.vue";
 import SectionInsert from "./SectionInsert.vue";
 import { useStore } from "../../stores";
-import { computed, inject, watch, nextTick } from "vue";
+import { computed, inject, watch, nextTick, onUnmounted } from "vue";
 
 let { layout, letterhead, print_format } = useStore();
 let store = inject("$store");
+
+const CUSTOM_CSS_ID = "pfb-letterhead-custom-css";
+watch(
+	letterhead,
+	(lh) => {
+		let el = document.getElementById(CUSTOM_CSS_ID);
+		const css = lh?.custom_css;
+		if (!css) {
+			el?.remove();
+			return;
+		}
+		if (!el) {
+			el = document.createElement("style");
+			el.id = CUSTOM_CSS_ID;
+			document.head.appendChild(el);
+		}
+		el.textContent = css;
+	},
+	{ immediate: true }
+);
+onUnmounted(() => document.getElementById(CUSTOM_CSS_ID)?.remove());
 
 watch(
 	() => store.scroll_to_section.value,
