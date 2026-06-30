@@ -13,21 +13,13 @@ const emit = defineEmits(["answer"]);
 
 const otherEl = ref(null);
 
-// Prompt is "Approve `tool`?\n\n<summary>[\n\n<detail>]". Show the summary (or tool
-// label) as title and render args readably, dropping the prompt's JSON tail.
-const paras = computed(() => props.question.prompt.split("\n\n"));
-const looksJson = (s) => /^\s*[{[]/.test(s || "");
-
-const title = computed(() => {
-	if (props.tool) {
-		const summary = (paras.value[1] || "").replace(/`/g, "").replace(/:$/, "").trim();
-		return summary && !looksJson(summary) ? summary : toolLabel(props.tool.name);
-	}
-	return (paras.value[0] || "").replace(/`/g, "").trim();
-});
-
-// A free-text (non-tool) question keeps its prose body; tool args replace any body.
-const body = computed(() => (props.tool ? "" : paras.value.slice(1).join("\n\n").trim()));
+// Tool confirmation: name the action, show its inputs. Free-text ask: show the prompt.
+const title = computed(() =>
+	props.tool ? toolLabel(props.tool.name) : props.question.prompt.split("\n\n")[0].trim()
+);
+const body = computed(() =>
+	props.tool ? "" : props.question.prompt.split("\n\n").slice(1).join("\n\n").trim()
+);
 const hasArgs = computed(() => props.tool && argEntries(props.tool.arguments).length > 0);
 const answered = computed(() => props.question._answer !== undefined);
 
