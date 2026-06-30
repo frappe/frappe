@@ -374,13 +374,19 @@ def get_user_workspaces(user: str | None = None) -> list[str]:
 def save_workspace_preferences(workspaces: list | str):
 	"""Persist the "My Workspaces" picker selection into the user's `User.workspaces`.
 
-	`workspaces` is the ordered list of public workspaces the user wants in their workspace
-	selector. The order is preserved (it also drives sidebar ordering in `get_workspaces()`).
-	The picker sources its pool of choices from data already on the client (`frappe.boot`),
-	so this only needs to validate the names and store the selection.
+	`workspaces` is the ordered list of workspaces the user wants in their workspace selector.
+	The order is preserved (it also drives sidebar ordering in `get_workspaces()`). The picker
+	sources its pool of choices from data already on the client (`frappe.boot`), so this only
+	needs to validate the names and store the selection.
+
+	Valid choices are the public workspaces plus the user's own private (`for_user`) ones --
+	the same set the user can actually see.
 	"""
 	workspaces = frappe.parse_json(workspaces) or []
 	valid = set(frappe.get_all("Workspace", filters={"public": 1}, pluck="name"))
+	valid |= set(
+		frappe.get_all("Workspace", filters={"public": 0, "for_user": frappe.session.user}, pluck="name")
+	)
 
 	user_doc = frappe.get_doc("User", frappe.session.user)
 	user_doc.workspaces = []

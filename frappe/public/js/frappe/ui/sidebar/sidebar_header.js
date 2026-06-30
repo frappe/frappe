@@ -54,8 +54,9 @@ frappe.ui.SidebarHeader = class SidebarHeader {
 	}
 	get_public_workspace_items() {
 		// `frappe.boot.user_workspaces` is the user's personal selector preference
-		// (`User.workspaces`, hidden entries already excluded). When set, it is authoritative
-		// for the selector; otherwise fall back to the current app's workspaces.
+		// (`User.workspaces`). When set, it is authoritative for the selector and may include
+		// private workspaces too, so it drives both; otherwise fall back to the current app's
+		// workspaces (with private ones auto-listed by `get_private_workspace_items`).
 		let user_workspaces = frappe.boot.user_workspaces || [];
 		let source = user_workspaces.length
 			? user_workspaces
@@ -68,6 +69,10 @@ frappe.ui.SidebarHeader = class SidebarHeader {
 			.filter(Boolean);
 	}
 	get_private_workspace_items() {
+		// when the user has curated a selection, any private workspaces they want are already
+		// part of it (rendered above) -- don't auto-append them again
+		if ((frappe.boot.user_workspaces || []).length) return [];
+
 		return Object.values(frappe.workspaces || {})
 			.filter(
 				(workspace) =>

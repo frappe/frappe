@@ -1,7 +1,12 @@
-// "My Workspaces" picker -- lets the user curate which public workspaces appear in their
-// workspace selector, across apps. Two draggable areas: the left is a preview of the selector
-// (their chosen workspaces, reorderable); the right is the full pool of permitted workspaces,
-// browsable app-by-app. All data comes from `frappe.boot`; only the selection is saved.
+// "My Workspaces" picker -- lets the user curate which workspaces appear in their workspace
+// selector, across apps. Two draggable areas: the left is a preview of the selector (their
+// chosen workspaces, reorderable); the right is the full pool of permitted workspaces, browsable
+// app-by-app (plus a "Private" group for the user's own workspaces). All data comes from
+// `frappe.boot`; only the selection is saved.
+
+// sentinel app value for the user's private (`for_user`) workspaces in the pool dropdown
+const PRIVATE_GROUP = "__private__";
+
 frappe.ui.WorkspacePicker = class WorkspacePicker {
 	constructor() {
 		this.make();
@@ -48,8 +53,8 @@ frappe.ui.WorkspacePicker = class WorkspacePicker {
 					<div class="ws-pane-head">
 						<span>${__("Your selector")}</span>
 						<button class="ws-clear-all btn btn-ghost">${__("Clear")}</button>
-						<div class="ws-pane-sub">${__("Workspaces shown in your sidebar switcher. Drag to reorder.")}</div>
 					</div>
+											<div class="ws-pane-sub">${__("Workspaces shown in your sidebar switcher. Drag to reorder.")}</div>
 					<div class="ws-list ws-selection"></div>
 				</div>
 				<div class="ws-pane ws-pane-pool">
@@ -95,6 +100,13 @@ frappe.ui.WorkspacePicker = class WorkspacePicker {
 			)
 			.join("");
 
+		// offer the user's private workspaces as their own group
+		if (this.get_private_workspaces().length) {
+			options += `<option value="${PRIVATE_GROUP}" ${
+				this.current_app_name === PRIVATE_GROUP ? "selected" : ""
+			}>${__("Private")}</option>`;
+		}
+
 		let $picker = this.$body.find(".ws-app-picker");
 		$picker.html(`<select class="form-control">${options}</select>`);
 		$picker.find("select").on("change", (e) => {
@@ -102,6 +114,13 @@ frappe.ui.WorkspacePicker = class WorkspacePicker {
 			this.render_pool();
 			this.setup_pool_sortable();
 		});
+	}
+
+	// the user's own private (`for_user`) workspaces, by name
+	get_private_workspaces() {
+		return Object.values(frappe.workspaces || {})
+			.filter((ws) => !ws.public && ws.for_user === frappe.session.user)
+			.map((ws) => ws.name);
 	}
 
 	render_selection() {
@@ -116,8 +135,13 @@ frappe.ui.WorkspacePicker = class WorkspacePicker {
 	}
 
 	render_pool() {
-		let app = this.apps.find((a) => a.app_name === this.current_app_name);
-		let names = (app && app.workspaces) || [];
+		let names;
+		if (this.current_app_name === PRIVATE_GROUP) {
+			names = this.get_private_workspaces();
+		} else {
+			let app = this.apps.find((a) => a.app_name === this.current_app_name);
+			names = (app && app.workspaces) || [];
+		}
 		this.$pool.empty();
 		names
 			.filter((name) => this.has_meta(name))
