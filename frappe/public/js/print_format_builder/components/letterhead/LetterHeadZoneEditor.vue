@@ -1,6 +1,6 @@
 <template>
 	<div class="lh-zone" :class="{ 'lh-zone--selected': is_selected }" @click.stop="select_zone">
-		<div v-if="letterhead && zone_content">
+		<div v-if="letterhead && zone_content" class="letter-head">
 			<!-- Preview mode: render Jinja server-side; edit mode: show raw -->
 			<div v-if="preview_doc" v-html="rendered_content ?? zone_content"></div>
 			<div v-else v-html="zone_content"></div>
