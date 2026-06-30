@@ -6,6 +6,32 @@ import { useQuickFilter } from "../QuickFilter/useQuickFilter";
 import type { UseQuickFilter } from "../QuickFilter/useQuickFilter";
 import { useColumns } from "../ColumnSettings/useColumns";
 import type { UseColumns } from "../ColumnSettings/useColumns";
+import type { FilterCondition, FilterField } from "../Filter/types";
+import type { Sort } from "../SortBy/types";
+import type { Column } from "../ColumnSettings/types";
+
+/**
+ * A persistable snapshot of the whole view's customizable state — the single
+ * contract for saving and loading a layout (a per-user preference or a named saved
+ * view), so a host seeds and persists one object instead of poking each control's
+ * ref individually.
+ *
+ * Each member is the control's own state shape, which is plain-JSON-serializable
+ * and self-contained (filter conditions carry their own field Meta; quick-filter
+ * fields are full FilterFields) — so a round-trip needs no Meta and is lossless.
+ * It captures the *effective* columns / quick-filter fields (custom or the Meta
+ * default), never the transient `customizing` edit-mode flag.
+ */
+export interface ListViewSnapshot {
+  /** The shared filter conditions (Filter + QuickFilter SoT). */
+  filters: FilterCondition[];
+  /** The sort order. */
+  sort: Sort[];
+  /** The shown columns (order, labels, widths). */
+  columns: Column[];
+  /** The QuickFilter strip's surfaced fields, in display order. */
+  quickFilterFields: FilterField[];
+}
 
 export interface UseListView {
   /** The shared filter conditions (`conditions`, the SoT both Filter and QuickFilter
@@ -20,6 +46,13 @@ export interface UseListView {
    *  render columns (`wire`), customization state (`isCustomized` / `reset`), and the
    *  resize writes (`setWidth` / `resetWidth`). */
   columns: UseColumns;
+  /** Snapshot the whole view's customizable state as one persistable object —
+   *  the save half of the saved-views / layout-persistence seam. */
+  serialize: () => ListViewSnapshot;
+  /** Seed the view from a (possibly partial) snapshot — the load half. Only the
+   *  members present are applied, each over its own control's state, so a host can
+   *  restore just the parts it persisted. */
+  restore: (snapshot: Partial<ListViewSnapshot>) => void;
 }
 
 /**
@@ -39,10 +72,31 @@ export interface UseListView {
  * reset watch.
  */
 export function useListView(doctype: string): UseListView {
-  return {
-    filters: useFilters(),
-    sort: useSort(),
-    quickFilter: useQuickFilter(doctype),
-    columns: useColumns(doctype),
+  const filters = useFilters();
+  const sort = useSort();
+  const quickFilter = useQuickFilter(doctype);
+  const columns = useColumns(doctype);
+
+  // Reads the *effective* state off each control (the writable computeds resolve
+  // custom-or-default), capturing live references — safe because every control
+  // updates its array immutably (reassigns, never mutates in place), so a stored
+  // snapshot can't change underneath a later restore.
+  const serialize = (): ListViewSnapshot => ({
+    filters: filters.conditions.value,
+    sort: sort.by.value,
+    columns: columns.shown.value,
+    quickFilterFields: quickFilter.fields.value,
+  });
+
+  // Applies only the members present, each over its own control's ref — a partial
+  // snapshot restores just those parts and leaves the rest at their defaults.
+  const restore = (snapshot: Partial<ListViewSnapshot>) => {
+    if (snapshot.filters) filters.conditions.value = snapshot.filters;
+    if (snapshot.sort) sort.by.value = snapshot.sort;
+    if (snapshot.columns) columns.shown.value = snapshot.columns;
+    if (snapshot.quickFilterFields)
+      quickFilter.fields.value = snapshot.quickFilterFields;
   };
+
+  return { filters, sort, quickFilter, columns, serialize, restore };
 }
