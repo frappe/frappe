@@ -4,6 +4,8 @@
 import functools
 import logging
 import os
+import random
+import time
 
 import orjson
 from werkzeug.exceptions import HTTPException, NotFound
@@ -97,53 +99,19 @@ def after_response_wrapper(app):
 	return application
 
 
+# ponytail: background jobs retry deadlocks (background_jobs.execute_job) but interactive
+# writes don't. Adjacent docs submitted at once gap-lock each other on child-table indexes;
+# re-run the request a few times with jittered backoff before surfacing the 508.
+MAX_DEADLOCK_RETRIES = 2
+
+
 @after_response_wrapper
 @Request.application
 def application(request: Request):
 	response = None
 
 	try:
-		init_request(request)
-
-		validate_auth()
-
-		if request.method == "OPTIONS":
-			response = Response()
-
-		elif frappe.form_dict.cmd:
-			from frappe.deprecation_dumpster import deprecation_warning
-
-			deprecation_warning(
-				"unknown",
-				"v17",
-				f"{frappe.form_dict.cmd}: Sending `cmd` for RPC calls is deprecated, call REST API instead `/api/method/cmd`",
-			)
-			frappe.handler.handle()
-			response = frappe.utils.response.build_response("json")
-
-		elif request.path.startswith("/api/"):
-			response = frappe.api.handle(request)
-
-		elif request.path.startswith("/backups"):
-			response = frappe.utils.response.download_backup(request.path)
-
-		elif request.path.startswith("/private/files/"):
-			response = frappe.utils.response.download_private_file(request.path)
-
-		elif request.path == "/.well-known/security.txt" and request.method == "GET":
-			if request.scheme != "https":
-				raise NotFound
-			security_settings = frappe.get_doc("Security Settings")
-			response = Response(security_settings.security_txt, content_type="text/plain")
-
-		elif request.path.startswith("/.well-known/") and request.method == "GET":
-			response = handle_wellknown(request.path)
-
-		elif request.method in ("GET", "HEAD", "POST"):
-			response = get_response()
-
-		else:
-			raise NotFound
+		response = process_request_with_deadlock_retry(request)
 
 	except Exception as e:
 		response = e.get_response(request.environ) if isinstance(e, HTTPException) else handle_exception(e)
@@ -168,6 +136,63 @@ def application(request: Request):
 	process_response(response)
 
 	return response
+
+
+def process_request_with_deadlock_retry(request):
+	for attempt in range(MAX_DEADLOCK_RETRIES + 1):
+		try:
+			return process_request(request)
+		except frappe.QueryDeadlockError:
+			# Only writes deadlock, and the rolled-back attempt left nothing committed, so
+			# re-running from init_request (force=True resets local state) is a clean retry.
+			if request.method not in UNSAFE_HTTP_METHODS or attempt == MAX_DEADLOCK_RETRIES:
+				raise
+			if db := getattr(frappe.local, "db", None):
+				db.rollback(chain=True)
+			# Jitter so the two victims don't realign and re-collide on the same gap.
+			time.sleep(random.uniform(0.025, 0.1) * (attempt + 1))
+
+
+def process_request(request):
+	init_request(request)
+	validate_auth()
+
+	if request.method == "OPTIONS":
+		return Response()
+
+	if frappe.form_dict.cmd:
+		from frappe.deprecation_dumpster import deprecation_warning
+
+		deprecation_warning(
+			"unknown",
+			"v17",
+			f"{frappe.form_dict.cmd}: Sending `cmd` for RPC calls is deprecated, call REST API instead `/api/method/cmd`",
+		)
+		frappe.handler.handle()
+		return frappe.utils.response.build_response("json")
+
+	if request.path.startswith("/api/"):
+		return frappe.api.handle(request)
+
+	if request.path.startswith("/backups"):
+		return frappe.utils.response.download_backup(request.path)
+
+	if request.path.startswith("/private/files/"):
+		return frappe.utils.response.download_private_file(request.path)
+
+	if request.path == "/.well-known/security.txt" and request.method == "GET":
+		if request.scheme != "https":
+			raise NotFound
+		security_settings = frappe.get_doc("Security Settings")
+		return Response(security_settings.security_txt, content_type="text/plain")
+
+	if request.path.startswith("/.well-known/") and request.method == "GET":
+		return handle_wellknown(request.path)
+
+	if request.method in ("GET", "HEAD", "POST"):
+		return get_response()
+
+	raise NotFound
 
 
 def run_after_request_hooks(request, response):
