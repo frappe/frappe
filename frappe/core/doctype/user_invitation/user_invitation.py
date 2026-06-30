@@ -160,21 +160,21 @@ class UserInvitation(Document):
 	def _validate_app_name(self):
 		UserInvitation.validate_app_name(self.app_name)
 
-	def _validate_roles(self):
-		"""Reject any role the caller isn't allowed to grant for this app.
+	def _get_allowed_roles(self):
+		user_invitation_hook = frappe.get_hooks("user_invitation", app_name=self.app_name)
+		if not isinstance(user_invitation_hook, dict):
+			return []
+		res = set[str]()
+		allowed_roles_mp = user_invitation_hook.get("allowed_roles") or dict()
+		only_for = set(allowed_roles_mp.keys())
+		for role in only_for & set(frappe.get_roles()):
+			res.update(allowed_roles_mp[role])
+		return list(res)
 
-		Allowed roles come from the app's `user_invitation` hook's `allowed_roles`
-		map, scoped to the caller's own roles. The default `frappe` app declares no
-		such map, so role validation is skipped for it.
-		"""
+	def _validate_roles(self):
 		if self.app_name == "frappe":
 			return
-		user_invitation_hook = frappe.get_hooks("user_invitation", app_name=self.app_name)
-		allowed_roles = set[str]()
-		if isinstance(user_invitation_hook, dict):
-			allowed_roles_mp = user_invitation_hook.get("allowed_roles") or dict()
-			for role in set(allowed_roles_mp.keys()) & set(frappe.get_roles()):
-				allowed_roles.update(allowed_roles_mp[role])
+		allowed_roles = self._get_allowed_roles()
 		for r in self.roles:
 			if r.role in allowed_roles:
 				continue
