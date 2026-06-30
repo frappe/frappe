@@ -51,7 +51,7 @@ frappe.ui.WorkspacePicker = class WorkspacePicker {
 			<div class="workspace-picker">
 				<div class="ws-pane ws-pane-selection">
 					<div class="ws-pane-head">
-						<span>${__("Your selector")}</span>
+						<span>${__("Your workspaces")}</span>
 						<button class="ws-clear-all btn btn-ghost">${__("Clear")}</button>
 					</div>
 											<div class="ws-pane-sub">${__("Workspaces shown in your sidebar switcher. Drag to reorder.")}</div>

@@ -390,9 +390,9 @@ frappe.ui.Sidebar = class Sidebar {
 					},
 				},
 				{
-					name: "my-workspaces",
-					label: __("My Workspaces"),
-					icon: "grid",
+					name: "workspace-selector",
+					label: __("Workspace Selector"),
+					icon: "monitor",
 					onClick: function () {
 						new frappe.ui.WorkspacePicker();
 					},
