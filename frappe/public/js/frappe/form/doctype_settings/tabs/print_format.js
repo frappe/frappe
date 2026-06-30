@@ -3,13 +3,37 @@ frappe.doctype_settings.register("print-format", function (panel, doctype) {
 	let default_pf = null;
 	let sample_name = null;
 
+	// Editing a format opens it in the Print Format Builder.
 	const open_edit = (name) => {
 		panel.dialog.hide();
-		frappe.set_route("Form", "Print Format", name);
+		frappe.set_route("print-format-builder", name);
 	};
+	// Mirror the Print Format Builder's own "create" flow: make a builder-beta format for
+	// this doctype (autoname is Prompt, so ask for the name), then open it in the builder.
 	const create = () => {
-		panel.dialog.hide();
-		frappe.new_doc("Print Format", { doc_type: doctype });
+		frappe.prompt(
+			{
+				label: __("New Print Format Name"),
+				fieldname: "print_format_name",
+				fieldtype: "Data",
+				reqd: 1,
+			},
+			({ print_format_name }) => {
+				frappe.db
+					.insert({
+						doctype: "Print Format",
+						name: print_format_name,
+						doc_type: doctype,
+						print_format_builder_beta: 1,
+					})
+					.then((doc) => {
+						panel.dialog.hide();
+						frappe.set_route("print-format-builder", doc.name);
+					});
+			},
+			__("New Print Format"),
+			__("Create")
+		);
 	};
 	panel.set_view({
 		title: __("Print Format"),
@@ -167,7 +191,12 @@ frappe.doctype_settings.register("print-format", function (panel, doctype) {
 				if (r.exc || !r.message) return;
 				const base_url = frappe.urllib.get_base_url();
 				const print_css = frappe.assets.bundled_asset("print.bundle.css");
-				const $iframe = $('<iframe class="dts-preview-frame" frameborder="0"></iframe>');
+				// `sandbox` without `allow-scripts` blocks any script in the rendered template
+				// (Jinja blocks, unescaped Text Editor HTML); `allow-same-origin` keeps the
+				// linked same-origin print CSS loading.
+				const $iframe = $(
+					'<iframe class="dts-preview-frame" frameborder="0" sandbox="allow-same-origin"></iframe>'
+				);
 				$wrapper.empty().append($iframe);
 				$iframe[0].srcdoc = `<!DOCTYPE html>
 <html>

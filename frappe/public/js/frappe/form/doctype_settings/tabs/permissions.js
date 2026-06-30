@@ -14,7 +14,14 @@ frappe.doctype_settings.register("permissions", function (panel, doctype) {
 		title: __("Permissions"),
 		description: __("Who can access {0}, by role.", [doctype]),
 		actions: [
-			{ label: __("Add role"), icon: "add", primary: true, click: () => add_role(panel, doctype, reload) },
+			{
+				label: __("Add role"),
+				icon: "add",
+				primary: true,
+				// Add mode of the shared editor (doctype-centric: doctype fixed, pick the role)
+				// — sets the role + all its rights in one dialog.
+				click: () => new frappe.ui.PermissionDialog(perm_tab(doctype, reload), {}).show(),
+			},
 		],
 		render: reload,
 	});
@@ -96,9 +103,28 @@ function render(panel, doctype, { roles, is_customized, has_field_level }) {
 // reusing the same permission_manager save/remove paths as the Role form's tab.
 function perm_tab(doctype, reload) {
 	return {
-		// Only used by the dialog's add mode (which this tab doesn't open).
+		// Doctype-centric: the doctype is fixed and the role varies (the opposite of role.js).
+		// The dialog reads `doctype` (for add mode) and `role` stays null.
 		role: null,
+		doctype,
 		refresh: () => reload(),
+		// Add mode: create the role's permission row, then apply the chosen flags.
+		create(values) {
+			const permlevel = cint(values.permlevel);
+			return perm_call("add", { parent: doctype, role: values.role, permlevel })
+				.then(() =>
+					frappe.db.get_value(
+						"Custom DocPerm",
+						{ parent: doctype, role: values.role, permlevel, if_owner: 0 },
+						"name"
+					)
+				)
+				.then((r) => {
+					const name = r.message && r.message.name;
+					if (!name) frappe.throw(__("Permission row not found after add. Please refresh."));
+					return frappe.db.set_value("Custom DocPerm", name, this.perm_data(values));
+				});
+		},
 		perm_data(values) {
 			const data = {};
 			["if_owner", ...frappe.perm_editor.ALL_PERM_FLAGS].forEach(
@@ -195,30 +221,4 @@ function footer(panel, doctype, has_field_level) {
 			frappe.set_route("permission-manager", { doctype });
 		});
 	return $footer;
-}
-
-// Adds a role at permlevel 0 via the manager's `add`.
-function add_role(panel, doctype, reload) {
-	const d = new frappe.ui.Dialog({
-		title: __("Add role"),
-		fields: [
-			{
-				fieldtype: "Link",
-				options: "Role",
-				label: __("Role"),
-				fieldname: "role",
-				reqd: 1,
-				get_query: () => ({ filters: { disabled: 0 } }),
-			},
-		],
-		primary_action_label: __("Add"),
-		primary_action: ({ role }) => {
-			d.hide();
-			perm_call("add", { parent: doctype, role, permlevel: 0 }).then(() => {
-				frappe.show_alert({ message: __("Role added"), indicator: "green" });
-				reload();
-			});
-		},
-	});
-	d.show();
 }

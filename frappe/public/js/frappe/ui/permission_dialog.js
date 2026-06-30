@@ -129,6 +129,12 @@ frappe.ui.PermissionDialog = class PermissionDialog {
 		return !!this.row;
 	}
 
+	// Add mode where the adapter fixes the doctype and varies the role (the DocType Settings
+	// permissions tab). Role-centric add (role.js) leaves `tab.doctype` unset.
+	get is_doctype_centric() {
+		return !this.is_edit && !this.tab.role && !!this.tab.doctype;
+	}
+
 	show() {
 		this.dialog = new frappe.ui.Dialog({
 			title: this.title(),
@@ -139,19 +145,26 @@ frappe.ui.PermissionDialog = class PermissionDialog {
 		if (this.is_edit) this.add_row_actions();
 		this.dialog.show();
 		this.apply_visibility(this.is_edit ? this.row.permlevel : 0);
+		// Doctype-centric add has a fixed doctype, so resolve its submittable flag up front
+		// (role-centric add does this on doctype change instead).
+		if (this.is_doctype_centric) {
+			frappe.db.get_value("DocType", this.tab.doctype, "is_submittable").then((r) => {
+				this.is_submittable = !!(r.message && cint(r.message.is_submittable));
+				this.refresh_visibility();
+			});
+		}
 	}
 
 	title() {
-		return this.is_edit
-			? __("{0} Permission for {1}", [__(this.row.source), this.row.parent])
-			: __("Add Permission for {0}", [this.role]);
+		if (this.is_edit) return __("{0} Permission for {1}", [__(this.row.source), this.row.parent]);
+		return __("Add Permission for {0}", [this.is_doctype_centric ? this.tab.doctype : this.role]);
 	}
 
 	fields() {
 		const level_field = this.is_edit ? this.edit_level_field() : this.add_level_field();
 		const seed = this.is_edit ? this.row : { read: 1 };
 		return [
-			this.doctype_field(),
+			...this.subject_fields(),
 			level_field,
 			...this.flag_fields(seed),
 
@@ -163,6 +176,32 @@ frappe.ui.PermissionDialog = class PermissionDialog {
 
 			this.if_owner_field(seed),
 		];
+	}
+
+	// The "subject" of the permission. Doctype-centric add picks the role (doctype fixed);
+	// role-centric add and edit keep the doctype field.
+	subject_fields() {
+		if (this.is_doctype_centric) {
+			return [
+				{
+					fieldtype: "Link",
+					fieldname: "role",
+					label: __("Role"),
+					options: "Role",
+					reqd: 1,
+					get_query: () => ({ filters: { disabled: 0 } }),
+				},
+				{
+					fieldtype: "Link",
+					fieldname: "ref_doctype",
+					label: __("DocType"),
+					options: "DocType",
+					read_only: 1,
+					default: this.tab.doctype,
+				},
+			];
+		}
+		return [this.doctype_field()];
 	}
 
 	doctype_field() {

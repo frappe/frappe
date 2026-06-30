@@ -8,6 +8,18 @@ frappe.ui.form.on("DocType Settings Map", {
 			filters: { issingle: 1 },
 		}));
 	},
+
+	// `module` is derived from the doctype this map applies to (read-only) — it decides which
+	// app a standard map is exported to.
+	applies_to_doctype(frm) {
+		if (!frm.doc.applies_to_doctype) {
+			frm.set_value("module", null);
+			return;
+		}
+		frappe.db.get_value("DocType", frm.doc.applies_to_doctype, "module").then((r) => {
+			frm.set_value("module", (r.message && r.message.module) || null);
+		});
+	},
 });
 
 // Each row names a `settings_doctype.setting_field` to surface for this record's doctype.
