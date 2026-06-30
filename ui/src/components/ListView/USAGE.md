@@ -269,6 +269,22 @@ onMounted(async () => {
 });
 ```
 
+`restore` is **partial** — it applies only the keys you pass and leaves the rest at
+their defaults, so it doubles as a per-slice restore. Hand it just one member to
+restore that one control (a "reset filters only", or loading slices saved
+separately):
+
+```ts
+view.restore({ columns: parseColumns(saved.columns) }); // only columns; filters/sort untouched
+view.restore({ filters: parseFilters(fields, saved.filters) }); // only filters
+```
+
+Because each control is controlled and v-models its own slice, you can equally assign
+the ref directly — `view.columns.shown.value = parseColumns(saved.columns)` — without
+going through `restore` at all. The slice (filters / sort / columns /
+quickFilterFields) is the atom on both sides: `snapshot` saves them all, `restore`
+loads any subset.
+
 > Saving to `localStorage` instead? Skip the helpers entirely — the snapshot is
 > plain JSON: `localStorage.setItem(key, JSON.stringify(view.snapshot.value))` /
 > `view.restore(JSON.parse(localStorage.getItem(key)))`.
