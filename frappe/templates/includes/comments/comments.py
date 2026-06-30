@@ -62,7 +62,10 @@ def add_comment(
 		perm_flag = doc.has_permission()
 
 	if not perm_flag:
-		return
+		if frappe.session.user == "Guest":
+			raise frappe.AuthenticationError
+		raise frappe.PermissionError
+
 	comment = doc.add_comment(text=clean_html(comment), comment_email=comment_email, comment_by=comment_by)
 
 	comment.db_set("published", 1)
