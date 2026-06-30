@@ -58,11 +58,10 @@ def execute():
 			# link validation so a stale link doesn't block building the sidebar.
 			workspace.flags.ignore_links = True
 			workspace.save(ignore_permissions=True)
+			frappe.db.commit()  # nosemgrep
 			click.secho(f"Populated sidebar for Workspace '{ws.name}'", fg="green")
 		except Exception as e:
 			frappe.db.rollback()
 			click.secho(f"Failed to populate sidebar for Workspace '{ws.name}'", fg="red")
 			click.secho(str(e))
 			frappe.log_error(title="Workspace sidebar population failed", reference_name=ws.name)
-
-	frappe.db.commit()  # nosemgrep
