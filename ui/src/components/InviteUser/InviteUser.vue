@@ -39,7 +39,6 @@
 			     can't hijack the model/options/error binding). -->
 			<MultiEmailInput
 				label="Invite by email"
-				description="Pick existing users, or type a new email and press Enter — separate several with a comma or newline."
 				placeholder="Search users or type an email…"
 				empty-text="No matching users"
 				:create-label="(email) => `Invite &quot;${email}&quot;`"

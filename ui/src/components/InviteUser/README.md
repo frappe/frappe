@@ -111,13 +111,19 @@ Spread the controller's data + verbs via `v-bind="controller"`. To relabel/local
 restyle a field, forward props onto it with `emailProps` / `rolesProps` — no slot, no
 re-render.
 
-| Prop               | Type                            | Description                                                                      |
-| ------------------ | ------------------------------- | -------------------------------------------------------------------------------- |
-| `showResultToasts` | `boolean` (`true`)              | Show the standard per-bucket toasts on success.                                  |
-| `emailProps`       | `Partial<MultiEmailInputProps>` | Forwarded onto the email field — `{ label, description, placeholder, size, … }`. |
-| `rolesProps`       | `Partial<MultiSelectProps>`     | Forwarded onto the roles field.                                                  |
-| _controller data_  | via `v-bind="controller"`       | `roles`, `users`, `usersLoading`, `inviting`, `error`.                           |
-| _controller verbs_ | via `v-bind="controller"`       | `invite`, `searchUsers`, `load` (function props).                                |
+| Prop               | Type                            | Default | Description                                                                                                                                                                                        |
+| ------------------ | ------------------------------- | ------- | -------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| `showResultToasts` | `boolean`                       | `true`  | Show the standard per-bucket success toasts (invited / already-disabled / already-pending / already-accepted). Set `false` to handle results via `@invited`.                                       |
+| `emailProps`       | `Partial<MultiEmailInputProps>` | —       | Props forwarded onto the email field (`MultiEmailInput`) — e.g. `{ label, description, placeholder, size }`. The field ships with **no default description**; pass one here if you want help text. |
+| `rolesProps`       | `Partial<MultiSelectProps>`     | —       | Props forwarded onto the roles field (`MultiSelect`) — e.g. `{ label, placeholder }`.                                                                                                              |
+| `roles`            | `RoleOption[]`                  | `[]`    | _Controller data._ Roles offered in the picker. Comes from `useInviteUser({ roles })` via `v-bind="controller"`.                                                                                   |
+| `users`            | `UserOption[]`                  | `[]`    | _Controller data._ User suggestions for the email typeahead. Driven by `searchUsers`.                                                                                                              |
+| `usersLoading`     | `boolean`                       | `false` | _Controller data._ True while a user search is in flight (drives the field's loading state).                                                                                                       |
+| `inviting`         | `boolean`                       | `false` | _Controller data._ True while an invite request is in flight (disables submit, shows its spinner).                                                                                                 |
+| `error`            | `unknown`                       | `null`  | _Controller data._ The latest **invite** error; surfaced inline under the email field via its `:error`.                                                                                            |
+| `invite`           | `(emails, roles) => Promise`    | —       | _Controller verb._ Sends the invites. Wired automatically by the panel's submit.                                                                                                                   |
+| `searchUsers`      | `(query) => void`               | —       | _Controller verb._ Fetches user suggestions; the panel debounces the field's `update:query` into it (250 ms).                                                                                      |
+| `load`             | `() => void`                    | —       | _Controller verb._ Lazy initial fetch; the panel calls it once on mount.                                                                                                                           |
 
 ```vue
 <InviteUser
@@ -166,8 +172,13 @@ standard frappe-ui field, so passing none renders the standard panel.
 | `submit` | `{ submit, canSubmit, inviting }`                                 | Replace the submit control. |
 
 A slot exposes the live `value` plus a `setValue` setter (instead of leaking a writable
-ref), so bind `:model-value` / `@update:model-value` in your override. Example —
-localize the email field's label while keeping everything else:
+ref), so bind `:model-value` / `@update:model-value` in your override. Each slot is
+independent — override only the ones you need and the rest keep their standard fields.
+
+### `#email`
+
+Scope: `{ value, setValue, options, loading, error, search, onInvalid }`. Re-render the
+email field — here, localizing its label while keeping the controlled wiring:
 
 ```vue
 <InviteUser v-bind="controller">
@@ -185,6 +196,83 @@ localize the email field's label while keeping everything else:
   </template>
 </InviteUser>
 ```
+
+### `#roles`
+
+Scope: `{ value, setValue, options }`. Replace the role picker — e.g. swap `MultiSelect`
+for a checkbox group, or just relabel:
+
+```vue
+<InviteUser v-bind="controller">
+  <template #roles="{ value, setValue, options }">
+    <MultiSelect
+      :model-value="value"
+      @update:model-value="setValue"
+      :label="__('Access level')"
+      :options="options"
+    />
+  </template>
+</InviteUser>
+```
+
+### `#submit`
+
+Scope: `{ submit, canSubmit, inviting }`. Replace the submit control — the place to
+retitle the button (its text is slot content, not a prop) or restyle it:
+
+```vue
+<InviteUser v-bind="controller">
+  <template #submit="{ submit, canSubmit, inviting }">
+    <Button
+      variant="solid"
+      :loading="inviting"
+      :disabled="!canSubmit"
+      @click="submit"
+    >
+      {{ __('Send invitations') }}
+    </Button>
+  </template>
+</InviteUser>
+```
+
+### All three together
+
+```vue
+<InviteUser v-bind="controller">
+  <template #email="{ value, setValue, options, loading, error, search, onInvalid }">
+    <MultiEmailInput
+      :model-value="value"
+      @update:model-value="setValue"
+      :label="__('Invite by email')"
+      :options="options"
+      :loading="loading"
+      :error="error"
+      @update:query="search"
+      @invalid="onInvalid"
+    />
+  </template>
+
+  <template #roles="{ value, setValue, options }">
+    <MultiSelect
+      :model-value="value"
+      @update:model-value="setValue"
+      :label="__('Access level')"
+      :options="options"
+    />
+  </template>
+
+  <template #submit="{ submit, canSubmit, inviting }">
+    <Button variant="solid" :loading="inviting" :disabled="!canSubmit" @click="submit">
+      {{ __('Send invitations') }}
+    </Button>
+  </template>
+</InviteUser>
+```
+
+> Note: when you replace the `#submit` slot, drive the button from `canSubmit` /
+> `inviting` and call `submit()` — those encode the panel's rules (at least one email
+> **and** one role picked, and not already inviting). A plain `type="submit"` button also
+> works since the slot still sits inside the panel's `<form>`.
 
 ## `useInviteUser`
 
