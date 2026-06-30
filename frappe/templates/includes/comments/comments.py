@@ -59,7 +59,7 @@ def add_comment(
 		frappe.msgprint(_("Comments cannot have links or email addresses"))
 		return False
 
-	perm_flag = True
+	perm_flag = False
 	doc = frappe.get_doc(reference_doctype, reference_name)
 	if web_form:
 		web_form = frappe.get_lazy_doc("Web Form", web_form)
