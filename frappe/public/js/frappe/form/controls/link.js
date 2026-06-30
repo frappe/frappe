@@ -781,11 +781,6 @@ frappe.ui.form.ControlLink = class ControlLink extends frappe.ui.form.ControlDat
 			return obj;
 		};
 
-		// apply link field filters
-		if (this.df.link_filters && !!this.df.link_filters.length) {
-			this.apply_link_field_filters();
-		}
-
 		if (this.get_query || this.df.get_query) {
 			var get_query = this.get_query || this.df.get_query;
 			if ($.isPlainObject(get_query)) {
@@ -847,9 +842,14 @@ frappe.ui.form.ControlLink = class ControlLink extends frappe.ui.form.ControlDat
 			if (!args.filters) args.filters = {};
 			$.extend(args.filters, this.df.filters);
 		}
+
+		if (this.df.link_filters && !!this.df.link_filters.length) {
+			args.filters = { ...(args.filters || {}), ...this.apply_link_field_filters() };
+		}
 	}
 
 	apply_link_field_filters() {
+<<<<<<< HEAD
 		let filters = this.parse_filters(JSON.parse(this.df.link_filters));
 		// take filters from the link field and add to the query
 		const query_filters = this.get_query?.()?.filters || {};
@@ -862,6 +862,9 @@ frappe.ui.form.ControlLink = class ControlLink extends frappe.ui.form.ControlDat
 				filters,
 			};
 		};
+=======
+		return this.parse_filters(JSON.parse(this.df.link_filters));
+>>>>>>> b6265efd57 (fix(Link): re-evaluate link_filters per search without breaking doc-based get_query)
 	}
 
 	parse_filters(link_filters) {
