@@ -237,6 +237,7 @@ async function send(text) {
 	} finally {
 		sending.value = false;
 		requestScroll();
+		focusTick.value++;
 	}
 }
 
@@ -256,6 +257,7 @@ async function resume(answers, pausedMsg) {
 	} finally {
 		sending.value = false;
 		requestScroll();
+		focusTick.value++;
 	}
 }
 
