@@ -30,18 +30,13 @@ def add_comment(
 		if reference_doctype not in ("Blog Post", "Web Page"):
 			return
 
-<<<<<<< HEAD
 		if reference_doctype == "Blog Post" and not frappe.db.get_single_value(
 			"Blog Settings", "allow_guest_to_comment"
 		):
 			return
 
 		if frappe.db.exists("User", comment_email):
-			frappe.throw(_("Please login to post a comment."))
-=======
-		if not guest_allowed:
 			frappe.throw(_("Please login to post a comment."), exc=frappe.AuthenticationError)
->>>>>>> 70779c5458 (fix: using `AuthenticationError` instead of `ValidationError` for guest users to add comments)
 
 	if not comment.strip():
 		frappe.msgprint(_("The comment cannot be empty"))
@@ -51,19 +46,17 @@ def add_comment(
 		frappe.msgprint(_("Comments cannot have links or email addresses"))
 		return False
 
-<<<<<<< HEAD
 	comment_email = frappe.session.user
 	comment_by = frappe.get_value("User", frappe.session.user, "full_name")
-=======
+
 	perm_flag = True
->>>>>>> 46eb5c10be (fix: permission check for `add_comment`)
 	doc = frappe.get_doc(reference_doctype, reference_name)
 	if web_form:
 		web_form = frappe.get_lazy_doc("Web Form", web_form)
 		perm_flag = web_form.doc_type == reference_doctype and web_form.has_web_form_permission(
 			reference_doctype, reference_name
 		)
-	elif not (frappe.session.user == "Guest" and guest_allowed):
+	elif not (frappe.session.user == "Guest" and reference_doctype in ("Blog Post", "Web Page")):
 		perm_flag = doc.has_permission()
 
 	if not perm_flag:
