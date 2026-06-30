@@ -39,7 +39,7 @@ export type UploadFunction = (file: File) => Promise<EditorUploadedFile>;
 
 // --- Base composer (Composer.vue) -----------------------------------------
 
-/** Emitted on submit. */
+/** Built body + attachments, passed to `onSubmit`. */
 export interface CoreSubmitPayload {
   body: string;
   attachments: UploadedFile[];
@@ -50,11 +50,15 @@ export interface CoreSubmitPayload {
  *  host's call, made via the exposed `reset()` after this resolves/throws. */
 export type SubmitFunction<T> = (payload: T) => Promise<void>;
 
-/** Props shared by every composer surface. */
-export interface ComposerProps {
+/** Fields shared by every composer surface. */
+interface BaseComposerProps {
   placeholder?: string;
   label?: string;
   uploadFunction?: UploadFunction;
+}
+
+/** Props shared by every composer surface. */
+export interface ComposerProps extends BaseComposerProps {
   /** @-mention options for the comment editor. */
   mentionOptions?: MentionOption[];
   onSubmit: SubmitFunction<CoreSubmitPayload>;
@@ -69,10 +73,7 @@ export interface EmailPayload extends CoreSubmitPayload {
 }
 
 /** Window-agnostic email content. Recipients, subject and body are v-models. */
-export interface EmailComposerProps {
-  placeholder?: string;
-  label?: string;
-  uploadFunction?: UploadFunction;
+export interface EmailComposerProps extends BaseComposerProps {
   /** Rows beyond "To". Defaults to ["cc", "bcc"]. */
   fields?: Field[];
   /** Recipient lookup; omit for a plain creatable-email field. */
@@ -93,10 +94,7 @@ export type CommentComposerProps = ComposerProps;
 export type Channel = "email" | "comment";
 
 /** A wrapper over EmailComposer + CommentComposer with a channel switcher. */
-export interface MultiComposerProps {
-  placeholder?: string;
-  label?: string;
-  uploadFunction?: UploadFunction;
+export interface MultiComposerProps extends BaseComposerProps {
   /** Show the window pop-out/close control. Defaults to true. */
   expandable?: boolean;
   /** Avatar URL for the collapsed trigger bar. */

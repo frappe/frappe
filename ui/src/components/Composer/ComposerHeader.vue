@@ -1,7 +1,7 @@
 <template>
 	<!-- Title bar for FloatingWindow's `#header` slot (also the drag handle): title
-		 on the left, `#actions` (Cc/Bcc toggles) and window controls on the right.
-		 We render our own controls so a host can hide them with `expandable=false`. -->
+		 on the left, window controls on the right. We render our own controls so a
+		 host can hide them with `expandable=false`. -->
 	<div class="flex items-center justify-between gap-2 py-1.5">
 		<!-- Title, or a host-supplied trigger (e.g. the channel switcher). Minimized
 			 drops the trigger for the plain label, truncated to fit the tray strip. -->
@@ -13,7 +13,6 @@
 		</slot>
 
 		<div class="flex shrink-0 items-center gap-1">
-			<slot name="actions" />
 			<Tooltip v-if="expandable" :text="floating ? 'Minimise' : 'Expand'" :hover-delay="0">
 				<Button variant="ghost" @click="emit('expand')">
 					<template #icon>

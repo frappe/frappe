@@ -119,10 +119,13 @@ defineExpose({
 	focus: () => content.value?.focus(),
 	reset: () => content.value?.reset(),
 	submit: () => content.value?.submit(),
-	// Email-only; a no-op while the comment channel is active.
+	// Email-only; a no-op while the comment channel is active. `channel` (not
+	// duck-typing `content.value`) is the actual discriminant for which
+	// component is mounted.
 	setQuotedReply: (quoted: string) => {
-		const active = content.value;
-		if (active && "setQuotedReply" in active) active.setQuotedReply(quoted);
+		if (channel.value === "email") {
+			(content.value as InstanceType<typeof EmailComposer> | null)?.setQuotedReply(quoted);
+		}
 	},
 });
 </script>
