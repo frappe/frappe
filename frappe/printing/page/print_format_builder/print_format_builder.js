@@ -35,9 +35,7 @@ function load_print_format_builder(wrapper) {
 	$parent.empty();
 
 	if (route.length > 1) {
-		// Two-level breadcrumb: "Print Format Builder" → "[Format Name]"
-		// Store _extra_label in the breadcrumb object so update() re-renders it
-		// every time, not just once as a DOM append that gets wiped.
+		// _extra_label is re-appended on every breadcrumbs.update() call so it survives route changes
 		patch_breadcrumbs_once();
 		frappe.breadcrumbs.add({
 			type: "Custom",

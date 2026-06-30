@@ -42,12 +42,8 @@ export function getStore(print_format_name) {
 					selected_letterhead.value = false;
 					selected_lh_footer.value = false;
 
-					// load the letter head: prefer format_data, fall back to the
-					// letter_head field on the Print Format doctype itself.
-					const lh_name = layout.value?.letter_head || _print_format.letter_head;
-					if (lh_name && !layout.value.letter_head) {
-						layout.value.letter_head = lh_name;
-					}
+					// load the letter head stored in format_data, if any
+					const lh_name = layout.value?.letter_head;
 					const load_lh = lh_name
 						? frappe.db
 								.get_doc("Letter Head", lh_name)
@@ -160,9 +156,6 @@ export function getStore(print_format_name) {
 		layout.value.header = clean_zone(layout.value.header);
 		layout.value.footer = clean_zone(layout.value.footer);
 
-		// Keep the Print Format doctype's letter_head field in sync with the
-		// builder selection so the print preview uses the correct letterhead.
-		print_format.value.letter_head = layout.value.letter_head || "";
 		print_format.value.format_data = JSON.stringify(layout.value);
 
 		frappe
