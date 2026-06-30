@@ -956,7 +956,25 @@ def get_db_dump_header(file_path: str, file_bytes: int = 256) -> str:
 	# Use `gzip` to open the file if the extension is `.gz`
 	if file_path.endswith(".gz"):
 		with gzip.open(file_path, "rb") as f:
-			return f.read(file_bytes).decode()
+			return f.read(file_bytes).decode(errors="ignore")
 
 	with open(file_path, "rb") as f:
-		return f.read(file_bytes).decode()
+		return f.read(file_bytes).decode(errors="ignore")
+
+
+def get_dump_db_type(sql_file_path: str) -> str:
+	"""Return the database engine ("mariadb" or "postgres") a SQL dump was produced by.
+
+	Detection is based on markers in the dump header: mysqldump quotes identifiers with
+	backticks and emits `MariaDB dump` / `/*!40101`, while pg_dump quotes with double
+	quotes and emits `PostgreSQL database dump` / `COPY public.`.
+	"""
+	header = get_db_dump_header(sql_file_path, file_bytes=2048)
+
+	if any(marker in header for marker in ("MariaDB dump", "MySQL dump", "/*!40101", "CREATE TABLE `")):
+		return "mariadb"
+	if any(marker in header for marker in ("PostgreSQL database dump", 'CREATE TABLE "', "CREATE TABLE public.", "COPY public.")):
+		return "postgres"
+
+	# Fallback: backtick identifiers are a MariaDB-only trait
+	return "mariadb" if "`" in header else "postgres"
