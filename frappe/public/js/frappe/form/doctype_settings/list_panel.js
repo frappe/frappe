@@ -275,7 +275,7 @@ class ListPanel {
 		$('<div class="text-muted small"></div>')
 			.text(__("Could not load this tab."))
 			.appendTo($err);
-		$(`<button type="button" class="btn btn-xs btn-default">${__("Retry")}</button>`)
+		$(`<button type="button" class="es-button" data-size="xs">${__("Retry")}</button>`)
 			.appendTo($err)
 			.on("click", () => this.load());
 	}
