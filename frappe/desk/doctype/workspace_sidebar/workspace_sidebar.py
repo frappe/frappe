@@ -75,6 +75,19 @@ class WorkspaceSidebar(Document, DeskViews):
 			delete_file(self.app, old)
 			self.export_sidebar()
 
+	@staticmethod
+	def rename_private_sidebars(old_user, new_user, after_rename_user=False):
+		from frappe.model.rename_doc import rename_doc
+
+		for_user = new_user if after_rename_user else old_user
+		suffix = f"-{old_user}"
+		for sidebar in frappe.get_all("Workspace Sidebar", filters={"for_user": for_user}, fields=["name"]):
+			if not sidebar.name.endswith(suffix):
+				continue
+			new_title = sidebar.name.removesuffix(suffix) + f"-{new_user}"
+			rename_doc("Workspace Sidebar", sidebar.name, new_title, force=True, show_alert=False)
+			frappe.db.set_value("Workspace Sidebar", new_title, "title", new_title)
+
 	def get_cached(self, cache_key, fallback_fn):
 		value = frappe.cache.get_value(cache_key, user=frappe.session.user)
 		if value is not None:
