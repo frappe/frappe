@@ -48,8 +48,8 @@ beforeEach(() => {
   h.meta.value = { name: "Sales Order", fields: FIELDS };
 });
 
-describe("useListView serialize / restore", () => {
-  it("serialize captures the effective state of every control", () => {
+describe("useListView snapshot / restore", () => {
+  it("snapshot captures the effective state of every control", () => {
     const view = useListView("Sales Order");
     const condition: FilterCondition = {
       field: STATUS,
@@ -60,7 +60,7 @@ describe("useListView serialize / restore", () => {
     view.filters.conditions.value = [condition];
     view.sort.by.value = [{ fieldname: "modified", direction: "desc" }];
 
-    const snapshot = view.serialize();
+    const snapshot = view.snapshot.value;
     expect(snapshot.filters).toEqual([condition]);
     expect(snapshot.sort).toEqual([
       { fieldname: "modified", direction: "desc" },
@@ -116,7 +116,7 @@ describe("useListView serialize / restore", () => {
     expect(view.columns.isCustomized.value).toBe(false);
   });
 
-  it("round-trips: a serialized snapshot restores to the same effective state", () => {
+  it("round-trips: a captured snapshot restores to the same effective state", () => {
     const source = useListView("Sales Order");
     source.filters.conditions.value = [
       { field: STATUS, fieldname: "status", operator: "equals", value: "Open" },
@@ -128,10 +128,10 @@ describe("useListView serialize / restore", () => {
     source.quickFilter.fields.value = [STATUS];
 
     // Through a JSON round-trip, as a host persisting to a backend would.
-    const persisted = JSON.parse(JSON.stringify(source.serialize()));
+    const persisted = JSON.parse(JSON.stringify(source.snapshot.value));
     const restored = useListView("Sales Order");
     restored.restore(persisted);
 
-    expect(restored.serialize()).toEqual(source.serialize());
+    expect(restored.snapshot.value).toEqual(source.snapshot.value);
   });
 });

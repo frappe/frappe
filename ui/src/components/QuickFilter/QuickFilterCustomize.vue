@@ -45,11 +45,12 @@
 			</Button>
 		</template>
 
-		<!-- Footer (non-draggable): the "Add Filter" picker, then a Save button pushed
-		     to the far end. Save lives here — not as the host's customize toggle — so
+		<!-- Footer (non-draggable): the "Add Filter" picker, then a Done button pushed
+		     to the far end. Done lives here — not as the host's customize toggle — so
 		     exiting customize mode is part of this surface; the host hides its control
-		     cluster while customizing. Field edits already emit live, so Save just
-		     leaves edit mode (`save`). -->
+		     cluster while customizing. Field edits already emit live (and the host
+		     autosaves the snapshot), so Done only leaves edit mode — it is not a
+		     persistence affordance, hence "Done", not "Save" (`done`). -->
 		<template #footer>
 			<!-- Same "Add Filter" affordance as the Filter control: a `#trigger`-slot
 			     ghost Button opening the field picker. The label is static, so no
@@ -68,7 +69,7 @@
 					/>
 				</template>
 			</Combobox>
-			<Button class="ml-auto" variant="solid" label="Save" @click="emit('save')" />
+			<Button class="ml-auto" variant="solid" label="Done" @click="emit('done')" />
 		</template>
 	</Draggable>
 </template>
@@ -88,8 +89,9 @@ const props = defineProps<{
 
 // `update:fields` re-emits the full surfaced list on every mutation (the parent
 // owns whether that promotes the Meta-derived default into a persisted custom set);
-// `save` asks the parent to leave customize mode.
-const emit = defineEmits<{ "update:fields": [FilterField[]]; save: [] }>();
+// `done` asks the parent to leave customize mode (edits are already live, so this
+// carries nothing — it is not a save).
+const emit = defineEmits<{ "update:fields": [FilterField[]]; done: [] }>();
 
 // Combobox's `update:selectedOption` hands back the chosen option (or null); its
 // `value` is the fieldname. Resolve it against the addable set (the only fields

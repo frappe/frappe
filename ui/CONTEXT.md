@@ -55,6 +55,16 @@ emits changes, and never touches a data-fetching resource or persistence. The
 host wires fetching, persistence, and cross-control sync.
 _Avoid_: connected component, smart component.
 
+**View Snapshot**:
+The serialized, persist-able capture of a List View's state — its **Filter**s,
+**Sort**s, **Column**s, and surfaced **Quick Filter** fields. The unit a host's
+persistence layer is handed. It carries **no identity, ownership, or named-View
+concept** — whether this is a "standard", public, pinned, or named **View**, and
+who owns it, belongs entirely to the consuming app. The library tops out here and
+never owns a saved **View** entity; the host wires _when_ and _where_ to save it
+([ADR-0007](docs/adr/0007-persistence-deferred-to-host-library-tops-out-at-view-snapshot.md)).
+_Avoid_: view, saved view, view settings (all carry CRM's Views concept).
+
 **Composite List View**:
 The shared module that assembles the controls (and, later, the table, footer,
 selection banner, and a `useListView` state composable) into a full list view.

@@ -32,7 +32,6 @@
 				v-model:fields="view.quickFilter.fields.value"
 				v-model:customizing="view.quickFilter.customizing.value"
 				:doctype="doctype"
-				@save="persistView"
 			/>
 			<!-- The right-side control cluster — Filter / Sort / Columns and the
 			     "Customize Quick Filters" trigger — is the normal-mode chrome. Customize
@@ -121,7 +120,7 @@ import {
 	ListFooter,
 	toast,
 } from "frappe-ui";
-import { onMounted } from "vue";
+import { onMounted, watch } from "vue";
 import { ListViewShell } from "../index";
 import { useListView } from "../useListView";
 import { useListData } from "../useListData";
@@ -138,11 +137,9 @@ const view = useListView(props.doctype);
 // live `get_list` rows + total, and pages via the footer.
 const data = useListData(props.doctype, view);
 
-// Layout persistence via the `serialize()` / `restore()` seam. A real host would
-// save the snapshot to a per-user preference or a named saved view; the story uses
-// localStorage to prove the round-trip. Restore on mount seeds every control at
-// once (filters, sort, columns + widths, quick-filter fields) from one object —
-// no per-control wiring.
+// Layout persistence via the `snapshot` / `restore()` seam (ADR-0007). The library
+// owns no saving; the host picks when and where. Restore on mount seeds every control
+// at once (filters, sort, columns + widths, quick-filter fields) from one object.
 const storageKey = `listview:${props.doctype}`;
 
 onMounted(() => {
@@ -150,12 +147,18 @@ onMounted(() => {
 	if (saved) view.restore(JSON.parse(saved));
 });
 
-// Persist the whole view on an intentional boundary — here, QuickFilter's `@save`.
-// `serialize()` captures every control's effective state, so one call saves the lot.
-function persistView() {
-	localStorage.setItem(storageKey, JSON.stringify(view.serialize()));
-	toast.success("View layout saved");
-}
+// Autosave on ANY change — filter, sort, column add/remove/resize, quick filter.
+// `view.snapshot` is a fresh object only on a real edit, so this one watcher persists
+// the lot (no per-control wiring). A real host swaps the body for its save RPC; the
+// debounce keeps a drag-resize from writing on every pixel. The story uses
+// localStorage to prove the round-trip.
+let saveTimer: ReturnType<typeof setTimeout>;
+watch(view.snapshot, (snap) => {
+	clearTimeout(saveTimer);
+	saveTimer = setTimeout(() => {
+		localStorage.setItem(storageKey, JSON.stringify(snap));
+	}, 500);
+});
 
 // Demo bulk actions. A real host mutates here (bulk edit/delete/assign); the story
 // just confirms the selection set reaches an action handler and clears after.

@@ -1,3 +1,5 @@
+import { computed } from "vue";
+import type { ComputedRef } from "vue";
 import { useFilters } from "../Filter/useFilters";
 import type { UseFilters } from "../Filter/useFilters";
 import { useSort } from "../SortBy/useSort";
@@ -46,9 +48,11 @@ export interface UseListView {
    *  render columns (`wire`), customization state (`isCustomized` / `reset`), and the
    *  resize writes (`setWidth` / `resetWidth`). */
   columns: UseColumns;
-  /** Snapshot the whole view's customizable state as one persistable object —
-   *  the save half of the saved-views / layout-persistence seam. */
-  serialize: () => ListViewSnapshot;
+  /** The whole view's customizable state as one reactive, persistable object —
+   *  the save half of the layout-persistence seam. The library owns no saving: a
+   *  host persists by watching this (`watch(view.snapshot, save)`) and decides
+   *  *when* and *where* (ADR-0007). */
+  snapshot: ComputedRef<ListViewSnapshot>;
   /** Seed the view from a (possibly partial) snapshot — the load half. Only the
    *  members present are applied, each over its own control's state, so a host can
    *  restore just the parts it persisted. */
@@ -81,12 +85,12 @@ export function useListView(doctype: string): UseListView {
   // custom-or-default), capturing live references — safe because every control
   // updates its array immutably (reassigns, never mutates in place), so a stored
   // snapshot can't change underneath a later restore.
-  const serialize = (): ListViewSnapshot => ({
+  const snapshot = computed<ListViewSnapshot>(() => ({
     filters: filters.conditions.value,
     sort: sort.by.value,
     columns: columns.shown.value,
     quickFilterFields: quickFilter.fields.value,
-  });
+  }));
 
   // Applies only the members present, each over its own control's ref — a partial
   // snapshot restores just those parts and leaves the rest at their defaults.
@@ -98,5 +102,5 @@ export function useListView(doctype: string): UseListView {
       quickFilter.fields.value = snapshot.quickFilterFields;
   };
 
-  return { filters, sort, quickFilter, columns, serialize, restore };
+  return { filters, sort, quickFilter, columns, snapshot, restore };
 }

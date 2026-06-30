@@ -129,6 +129,10 @@ export function applyQuick(
   const firstIdx = filters.findIndex(owns);
 
   if (cleared) {
+    // Nothing owned to clear → no-op. Return the *same* array (not a fresh
+    // `.filter()` copy) so a reassignment doesn't change `conditions` identity and
+    // spuriously churn `view.snapshot` (→ a phantom autosave/refetch).
+    if (firstIdx === -1) return filters;
     // Quick Filter is authoritative for any field it owns: clearing removes
     // *every* owned condition on the field — including a duplicate added via the
     // Filter popover — because the popover should not co-own a field already

@@ -20,7 +20,7 @@ Three rules explain everything else:
 2. **Meta-driven.** Each control derives its **Field Options** (which fields it
    offers) client-side from the doctype's Meta (via the shared `useDoctypeMeta`),
    not from a backend endpoint.
-3. **Shared state, no event plumbing.** Controls that must agree bind the *same*
+3. **Shared state, no event plumbing.** Controls that must agree bind the _same_
    ref. Filter and QuickFilter both `v-model` the same `FilterCondition[]`, so a
    quick input and its matching advanced condition stay in sync with zero wiring.
    ColumnSettings and the table's drag-resize both bind the same `Column[]`.
@@ -61,9 +61,9 @@ The sort control. Binds an ordered list of `Sort` rules.
 <SortBy v-model="view.sort.by.value" :doctype="doctype" />
 ```
 
-| | |
-|---|---|
-| **Props** | `doctype: string`, `hideLabel?: boolean` |
+|             |                                                          |
+| ----------- | -------------------------------------------------------- |
+| **Props**   | `doctype: string`, `hideLabel?: boolean`                 |
 | **v-model** | `Sort[]` — `{ fieldname, direction: "asc" \| "desc" }[]` |
 
 **Helpers**
@@ -82,9 +82,9 @@ carry-over when you change a row's field.
 <Filter v-model="view.filters.conditions.value" :doctype="doctype" />
 ```
 
-| | |
-|---|---|
-| **Props** | `doctype: string` |
+|             |                                                                  |
+| ----------- | ---------------------------------------------------------------- |
+| **Props**   | `doctype: string`                                                |
 | **v-model** | `FilterCondition[]` — `{ fieldname, operator, value, field? }[]` |
 
 `FilterOperator` is CRM's UI vocabulary (`equals`, `like`, `in`, `between`,
@@ -111,17 +111,16 @@ condition it owns.
   v-model:fields="view.quickFilter.fields.value"
   v-model:customizing="view.quickFilter.customizing.value"
   :doctype="doctype"
-  @save="persistView"
 />
 ```
 
-| | |
-|---|---|
-| **Props** | `doctype: string` |
-| **v-model:filters** | `FilterCondition[]` — **the same array Filter binds** |
-| **v-model:fields** | `FilterField[]` — the surfaced fields (defaults to the doctype's `in_standard_filter` fields) |
-| **v-model:customizing** | `boolean` — whether the strip is in customize/edit mode |
-| **Emits** | `save: [FilterField[]]` — fired on an intentional save boundary; a good place to persist the view |
+|                         |                                                                                                                                                                                                                                                                                                                                       |
+| ----------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| **Props**               | `doctype: string`                                                                                                                                                                                                                                                                                                                     |
+| **v-model:filters**     | `FilterCondition[]` — **the same array Filter binds**                                                                                                                                                                                                                                                                                 |
+| **v-model:fields**      | `FilterField[]` — the surfaced fields (defaults to the doctype's `in_standard_filter` fields)                                                                                                                                                                                                                                         |
+| **v-model:customizing** | `boolean` — whether the strip is in customize/edit mode                                                                                                                                                                                                                                                                               |
+| **Emits**               | `done: [FilterField[]]` — fired when the user clicks **Done** to leave the _customize-which-fields_ surface. Field edits are already live via `v-model:fields`, so this is **not** a save (the `view.snapshot` watcher persists them). You only need it if you opted out of binding `v-model:fields` and want the final surfaced set. |
 
 `customizing` and `canCustomize` live on the shared composable, so a "Customize"
 trigger can sit anywhere in your toolbar (not just beside QuickFilter) and still
@@ -145,11 +144,11 @@ the frappe-ui `ListView`'s drag-resize.
 />
 ```
 
-| | |
-|---|---|
-| **Props** | `doctype: string`, `hideLabel?: boolean`, `canReset?: boolean` |
+|             |                                                                                               |
+| ----------- | --------------------------------------------------------------------------------------------- |
+| **Props**   | `doctype: string`, `hideLabel?: boolean`, `canReset?: boolean`                                |
 | **v-model** | `Column[]` — `{ fieldname, label, width? }[]` (order = display order; no `width` = auto/flex) |
-| **Emits** | `reset: []` — the inline-confirm "reset to defaults" gesture |
+| **Emits**   | `reset: []` — the inline-confirm "reset to defaults" gesture                                  |
 
 A column with no `width` flexes to fill; only a resized column carries a fixed
 `width`, and dropping it (double-click the resizer) returns it to auto. `align` /
@@ -168,38 +167,111 @@ at a glance which member drives which control. It owns no state itself; each sli
 lives in its co-located composable and reads Meta itself (cached).
 
 ```ts
-const view = useListView(doctype)
+const view = useListView(doctype);
 
-view.filters      // UseFilters    — { conditions: Ref<FilterCondition[]>, wire }
-view.sort         // UseSort       — { by: Ref<Sort[]>, orderBy }
-view.quickFilter  // UseQuickFilter— { fields, customizing, canCustomize }
-view.columns      // UseColumns    — { shown, isCustomized, reset, wire, setWidth, resetWidth }
+view.filters; // UseFilters    — { conditions: Ref<FilterCondition[]>, wire }
+view.sort; // UseSort       — { by: Ref<Sort[]>, orderBy }
+view.quickFilter; // UseQuickFilter— { fields, customizing, canCustomize }
+view.columns; // UseColumns    — { shown, isCustomized, reset, wire, setWidth, resetWidth }
 
-view.serialize()  // → ListViewSnapshot  (save the whole view as one JSON object)
-view.restore(snapshot) // seed from a (possibly partial) snapshot
+view.snapshot; // ComputedRef<ListViewSnapshot>  (the whole view as one JSON object)
+view.restore(snapshot); // seed from a (possibly partial) snapshot
 ```
 
 The `.wire` / `.orderBy` members are the **fetch projections** — the Frappe filter
-list and `order_by` string you query with. The controls bind the *state* members
-(`conditions`, `by`, `shown`, `fields`); you fetch with the *wire* members.
+list and `order_by` string you query with. The controls bind the _state_ members
+(`conditions`, `by`, `shown`, `fields`); you fetch with the _wire_ members.
 
-### Layout persistence (`serialize` / `restore`)
+### Saving changes — read this first
 
-`serialize()` snapshots the whole view's customizable state — filters, sort, columns
-(+ widths), quick-filter fields — as one plain-JSON object (`ListViewSnapshot`).
-`restore(partial)` seeds the controls from it, applying only the members present. No
-Meta is needed for a round-trip; conditions and quick-filter fields carry their own
-field Meta. Save it wherever you like — a per-user preference, a named saved view:
+**You do not save controls individually.** There is no "save the Filter", "save the
+SortBy", or "save the Columns". All four controls write into one object,
+`view.snapshot`, and **any** change replaces it with a new value. So you wire **one**
+watcher and it persists everything:
 
 ```ts
-function persistView() {
-  localStorage.setItem(key, JSON.stringify(view.serialize()))
-}
-onMounted(() => {
-  const saved = localStorage.getItem(key)
-  if (saved) view.restore(JSON.parse(saved))
-})
+watch(view.snapshot, (snap) => saveView(snap)); // saves ALL of the below
 ```
+
+Every one of these triggers that single watcher — there is nothing else to wire:
+
+| The user…                           | …mutates                           | …so `view.snapshot` changes and your watcher saves |
+| ----------------------------------- | ---------------------------------- | -------------------------------------------------- |
+| edits a **Filter**                  | `view.filters.conditions`          | ✅                                                 |
+| reorders/changes **SortBy**         | `view.sort.by`                     | ✅                                                 |
+| **adds / removes** a column         | `view.columns.shown`               | ✅                                                 |
+| **resizes** a column (drag header)  | `view.columns.shown` (width)       | ✅                                                 |
+| edits a **Quick Filter** value      | `view.filters.conditions` (shared) | ✅                                                 |
+| customizes which quick filters show | `view.quickFilter.fields`          | ✅                                                 |
+
+> `snapshot` is a fresh object **only when a control's state actually changes**, so
+> the watcher fires once per real edit — no `deep: true`, no spurious saves. Resize
+> and add/remove are not special cases: they both edit `view.columns.shown`, which is
+> in the snapshot.
+
+`QuickFilter`'s `@done` event is **not** how saving works — it is one _optional
+extra_ explicit boundary (the "Done customizing" button). With the watcher above you
+do not need it at all.
+
+**The library owns no saving** ([ADR-0007](../../../docs/adr/0007-persistence-deferred-to-host-library-tops-out-at-view-snapshot.md));
+the host decides _when_ and _where_. Two common shapes:
+
+```ts
+// (a) Autosave to a backend on every change (debounced so a drag-resize or fast
+//     typing doesn't spam the server). `saveView` is YOUR function — see below.
+watch(view.snapshot, useDebounceFn(saveView, 500));
+
+// (b) Or save only on an explicit "Save" button:
+function onSaveClick() {
+  saveView(view.snapshot.value);
+}
+```
+
+#### Saving to the database (the actual RPC)
+
+`view.snapshot` is the _rich_ shape (conditions carry field Meta). Your DocType wants
+the _compact wire_ shape — convert with the library's `serialize*` helpers, then call
+your own whitelisted method:
+
+```ts
+import { call } from "frappe-ui";
+import { serializeFilters } from "@framework/ui/Filter";
+import { serializeOrderBy } from "@framework/ui/SortBy";
+import { serializeColumns } from "@framework/ui/ColumnSettings";
+
+async function saveView(snap: ListViewSnapshot) {
+  await call("my_app.api.save_list_view", {
+    doctype: props.doctype,
+    filters: serializeFilters(snap.filters), // → [[fieldname, op, value], …]
+    order_by: serializeOrderBy(snap.sort), // → "modified desc, name asc"
+    columns: serializeColumns(snap.columns, fields), // → [{ key, label, width }, …]
+  });
+}
+```
+
+#### Loading it back (`restore`)
+
+On mount, read your row, turn the wire shape back into the rich shape with the
+matching `parse*` helpers, and hand it to `restore` (which applies only the parts you
+pass):
+
+```ts
+onMounted(async () => {
+  const saved = await call("my_app.api.get_list_view", {
+    doctype: props.doctype,
+  });
+  if (!saved) return;
+  view.restore({
+    filters: parseFilters(fields, saved.filters),
+    sort: parseOrderBy(saved.order_by),
+    columns: parseColumns(saved.columns),
+  });
+});
+```
+
+> Saving to `localStorage` instead? Skip the helpers entirely — the snapshot is
+> plain JSON: `localStorage.setItem(key, JSON.stringify(view.snapshot.value))` /
+> `view.restore(JSON.parse(localStorage.getItem(key)))`.
 
 ## `useListData(doctype, view)` — optional fetching
 
@@ -209,15 +281,15 @@ way). It binds `frappe.client.get_list` (rows) + `get_count` (total) and refetch
 from page 1 whenever a wire projection or the page length changes.
 
 ```ts
-const data = useListData(doctype, view)
+const data = useListData(doctype, view);
 
-data.rows        // ComputedRef<Record<string, unknown>[]>  — the table's rows
-data.loading     // first-page fetch in flight
-data.rowCount    // rows currently loaded
-data.totalCount  // total matching the filters
-data.pageLength  // Ref<number> — ListFooter v-models this; a change refetches
-data.loadMore()  // append the next page
-data.reload()    // refetch page 1
+data.rows; // ComputedRef<Record<string, unknown>[]>  — the table's rows
+data.loading; // first-page fetch in flight
+data.rowCount; // rows currently loaded
+data.totalCount; // total matching the filters
+data.pageLength; // Ref<number> — ListFooter v-models this; a change refetches
+data.loadMore(); // append the next page
+data.reload(); // refetch page 1
 ```
 
 ---
@@ -225,8 +297,9 @@ data.reload()    // refetch page 1
 ## Putting it together
 
 A complete toolbar: Filter + QuickFilter sharing one filter list, ColumnSettings
-synced with the table's drag-resize, live rows via `useListData`, and layout
-persistence on QuickFilter's `@save`. (This mirrors the `ListViewToolbar` story.)
+synced with the table's drag-resize, live rows via `useListData`, and **autosave via
+a single `watch(view.snapshot, …)`** — which covers filter, sort, and every column
+add/remove/resize, not just quick filters. (This mirrors the `ListViewToolbar` story.)
 
 ```vue
 <template>
@@ -237,7 +310,6 @@ persistence on QuickFilter's `@save`. (This mirrors the `ListViewToolbar` story.
         v-model:fields="view.quickFilter.fields.value"
         v-model:customizing="view.quickFilter.customizing.value"
         :doctype="doctype"
-        @save="persistView"
       />
       <template v-if="!view.quickFilter.customizing.value">
         <Filter v-model="view.filters.conditions.value" :doctype="doctype" />
@@ -258,7 +330,9 @@ persistence on QuickFilter's `@save`. (This mirrors the `ListViewToolbar` story.
         row-key="name"
         :options="{ selectable: true, resizeColumn: true }"
       >
-        <ListHeader @columnWidthUpdated="(e) => view.columns.setWidth(e.key, e.width)" />
+        <ListHeader
+          @columnWidthUpdated="(e) => view.columns.setWidth(e.key, e.width)"
+        />
         <ListRows />
       </ListView>
     </template>
@@ -266,7 +340,10 @@ persistence on QuickFilter's `@save`. (This mirrors the `ListViewToolbar` story.
     <template #footer>
       <ListFooter
         v-model="data.pageLength.value"
-        :options="{ rowCount: data.rowCount.value, totalCount: data.totalCount.value }"
+        :options="{
+          rowCount: data.rowCount.value,
+          totalCount: data.totalCount.value,
+        }"
         @loadMore="data.loadMore()"
       />
     </template>
@@ -274,9 +351,14 @@ persistence on QuickFilter's `@save`. (This mirrors the `ListViewToolbar` story.
 </template>
 
 <script setup lang="ts">
-import { onMounted } from "vue";
-import { ListView, ListHeader, ListRows, ListFooter, toast } from "frappe-ui";
-import { ListViewShell, useListView, useListData } from "@framework/ui/ListView";
+import { onMounted, watch } from "vue";
+import { useDebounceFn } from "@vueuse/core";
+import { ListView, ListHeader, ListRows, ListFooter } from "frappe-ui";
+import {
+  ListViewShell,
+  useListView,
+  useListData,
+} from "@framework/ui/ListView";
 import { Filter } from "@framework/ui/Filter";
 import { SortBy } from "@framework/ui/SortBy";
 import { QuickFilter } from "@framework/ui/QuickFilter";
@@ -287,14 +369,20 @@ const view = useListView(props.doctype);
 const data = useListData(props.doctype, view);
 
 const key = `listview:${props.doctype}`;
+
+// Load once on mount.
 onMounted(() => {
   const saved = localStorage.getItem(key);
   if (saved) view.restore(JSON.parse(saved));
 });
-function persistView() {
-  localStorage.setItem(key, JSON.stringify(view.serialize()));
-  toast.success("View layout saved");
-}
+
+// Autosave on ANY change — filter, sort, column add/remove/resize, quick filter.
+// One watcher; debounced so a drag-resize doesn't write on every pixel. Swap the
+// body for your `call("my_app.api.save_list_view", …)` to persist to the database.
+watch(
+  view.snapshot,
+  useDebounceFn((snap) => localStorage.setItem(key, JSON.stringify(snap)), 500)
+);
 </script>
 ```
 
@@ -306,7 +394,7 @@ Skip `useListData` and fetch with the wire projections yourself — the controls
 care who fetches:
 
 ```ts
-const view = useListView(doctype)
+const view = useListView(doctype);
 // view.filters.wire.value → Frappe filter list
 // view.sort.orderBy.value → "modified desc"
 // view.columns.wire.value → frappe-ui render columns

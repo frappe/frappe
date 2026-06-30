@@ -14,10 +14,10 @@
   `customizing` (the edit-mode toggle, owned by the host so a trigger beside Sort
   can drive it).
 
-  Field edits emit live through `v-model:fields`, but a host that wants to persist
-  on an *intentional* boundary (one backend write per Save, not one per keystroke)
-  listens for `save` — emitted with the final surfaced set when the user clicks Save
-  in customize mode, the symmetric partner to ColumnSettings' `@reset`.
+  Field edits emit live through `v-model:fields`, so the host's snapshot watcher
+  already persists customization — there is no separate save. `done` is emitted only
+  when the user clicks Done to leave customize mode; it carries the final surfaced set
+  purely so a host that opted out of binding `v-model:fields` can still read it.
 -->
 <template>
 	<QuickFilterCustomize
@@ -25,7 +25,7 @@
 		:fields="surfaced"
 		:addable-fields="addableFields"
 		@update:fields="onUpdateFields"
-		@save="onSave"
+		@done="onDone"
 	/>
 	<QuickFilterInputs v-else :fields="surfaced" v-model:filters="filters" />
 </template>
@@ -41,10 +41,10 @@ import type { Filter, FilterField } from "../Filter/types";
 
 const props = defineProps<{ doctype: string }>();
 
-// `save` re-surfaces QuickFilterCustomize's Save to the host (carrying the final
-// surfaced set) so it can persist on the explicit Save click rather than on every
-// live `update:fields` keystroke. The mirror of ColumnSettings' `@reset`.
-const emit = defineEmits<{ save: [FilterField[]] }>();
+// `done` fires when the user leaves customize mode (the Done button). Edits already
+// flow live via `update:fields`, so this is NOT a save — it carries the final
+// surfaced set only for a host that opted out of binding `v-model:fields`.
+const emit = defineEmits<{ done: [FilterField[]] }>();
 
 // Three controlled models. `fields` is left undefined when the host doesn't bind
 // it, so the Meta-derived default is used locally; mutating in customize mode
@@ -79,11 +79,11 @@ function onUpdateFields(next: FilterField[]) {
 	fields.value = next;
 }
 
-// Leave customize mode and hand the host the final surfaced set to persist. Emits
-// `surfaced` (the effective list) rather than the raw `fields` model, so a host that
-// never bound `v-model:fields` still receives the Meta-derived default the user kept.
-function onSave() {
+// Leave customize mode. Emits `surfaced` (the effective list) rather than the raw
+// `fields` model, so a host that never bound `v-model:fields` still receives the
+// Meta-derived default the user kept. Not a save — persistence already happened live.
+function onDone() {
 	customizing.value = false;
-	emit("save", surfaced.value);
+	emit("done", surfaced.value);
 }
 </script>
