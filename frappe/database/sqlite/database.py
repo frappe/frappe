@@ -483,6 +483,13 @@ class SQLiteDatabase(SQLiteExceptionUtil, Database):
 
 		return super().sql(*args, **kwargs)
 
+	def log_query(self, query, query_type, values=None, debug=False):
+		# Record the last executed query so `frappe.db.last_query` works like it
+		# does on MariaDB/Postgres (the base class never sets the attribute, and
+		# SQLite's driver cursor exposes no equivalent of it).
+		self.last_query = mogrified_query = super().log_query(query, query_type, values, debug)
+		return mogrified_query
+
 	def sql_ddl(self, query, *args, **kwargs):
 		"""Execute DDL query."""
 		super().sql_ddl(query, *args, **kwargs)
