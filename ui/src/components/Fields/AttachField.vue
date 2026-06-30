@@ -122,7 +122,7 @@ import type { FieldComponentEmits, FieldComponentProps } from "./types";
 import type { Restrictions, UploadResult, UploadTransport } from "../FileUpload/types";
 
 const FileUploadDialog = defineAsyncComponent(
-	() => import("../../FileUpload/FileUploadDialog.vue")
+	() => import("../FileUpload/FileUploadDialog.vue")
 );
 
 // `transport` / `restrictions` are optional presentation props, supplied via the
