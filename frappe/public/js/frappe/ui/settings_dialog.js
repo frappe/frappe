@@ -298,4 +298,16 @@ frappe.ui.SettingsDialog = class SettingsDialog extends frappe.ui.Dialog {
 	get_panel(id) {
 		return this._panels[id];
 	}
+
+	reset(tabs, default_tab) {
+		// Swap tabs without destroying the modal shell — clears panel state, rebuilds
+		// the sidebar, and activates the new default tab.
+		this.$panels.empty();
+		this._items = {};
+		this._panels = {};
+		this.tabs = tabs;
+		this.render_sidebar();
+		const first = default_tab || this.first_tab_id();
+		if (first) this.activate(first);
+	}
 };

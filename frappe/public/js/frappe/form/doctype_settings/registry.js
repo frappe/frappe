@@ -81,6 +81,14 @@ frappe.doctype_settings.empty_state = function ($container, opts) {
 	return $empty;
 };
 
+frappe.doctype_settings.render_error = function (panel, retry_fn) {
+	const $err = panel.body.empty();
+	$('<div class="text-muted small"></div>').text(__("Could not load this tab.")).appendTo($err);
+	$(`<button type="button" class="es-button" data-size="xs">${__("Retry")}</button>`)
+		.appendTo($err)
+		.on("click", () => retry_fn());
+};
+
 // Shared helper: write a DocType-level Property Setter (same mechanism Customize Form uses).
 // Deduplication is handled server-side by Property Setter's own validation.
 frappe.doctype_settings.set_property = function (doctype, property, value) {

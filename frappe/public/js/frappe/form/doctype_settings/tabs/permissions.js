@@ -42,24 +42,18 @@ function draw(panel, doctype) {
 	])
 		.then(([r, custom]) => {
 			const perms = r.message || [];
+			const is_customized = (custom || []).length > 0;
 			render(panel, doctype, {
+				is_customized,
 				// `source` (Standard vs Custom) drives the edit dialog title + save path.
 				roles: perms
-					.filter((p) => cint(p.permlevel) === 0)
-					.map((p) => ({ ...p, source: p.parenttype === "DocType" ? "Standard" : "Custom" })),
-				is_customized: (custom || []).length > 0,
-				has_field_level: perms.some((p) => cint(p.permlevel) > 0),
+					.map((p) => ({ ...p, source: is_customized ? "Custom" : "Standard" })),
 			});
 		})
-		.catch(() => {
-			panel.body.empty();
-			$(`<div class="text-muted small dts-perm-state">${__("Could not load permissions.")}</div>`).appendTo(
-				panel.body
-			);
-		});
+		.catch(() => frappe.doctype_settings.render_error(panel, () => load(panel, doctype)));
 }
 
-function render(panel, doctype, { roles, is_customized, has_field_level }) {
+function render(panel, doctype, { roles, is_customized }) {
 	const reload = () => draw(panel, doctype);
 	const $body = panel.body.empty();
 
@@ -87,16 +81,30 @@ function render(panel, doctype, { roles, is_customized, has_field_level }) {
 							: ""
 					}`,
 			},
+			{
+				label: __("Level"),
+				align: "center",
+				render: (row) =>
+					cint(row.permlevel) > 0
+						? `<span class="es-badge" data-theme="gray">${cint(row.permlevel)}</span>`
+						: "",
+			},
 			...rights.map((r) => ({
 				label: __(frappe.perm_editor.capitalize(r)),
 				align: "center",
-				render: (row) => (cint(row[r]) ? flag_badge() : ""),
+				// At permlevel > 0 only read/write/mask apply; hide other flags for those rows.
+				render: (row) =>
+					cint(row.permlevel) > 0 && !frappe.perm_editor.PERMLEVEL_FLAGS.includes(r)
+						? ""
+						: cint(row[r])
+						? flag_badge()
+						: "",
 			})),
 		],
 	});
 	list.refresh();
 
-	$body.append(footer(panel, doctype, has_field_level));
+	$body.append(footer(panel, doctype));
 }
 
 // Adapter the shared PermissionDialog drives: doctype-scoped (role varies per row),
@@ -202,18 +210,12 @@ function customized_banner(panel, doctype, reload) {
 	return $banner;
 }
 
-function footer(panel, doctype, has_field_level) {
+function footer(panel, doctype) {
 	const $footer = $('<div class="dts-perm-footer"></div>');
-	if (has_field_level) {
-		const $note = $('<span class="dts-perm-footer-note"></span>').appendTo($footer);
-		$note.append(frappe.utils.icon("list", "sm"));
-		$('<span></span>').text(__("Field-level rules exist for this doctype")).appendTo($note);
-	} else {
-		$('<span></span>').appendTo($footer); // spacer to keep the link right-aligned
-	}
+	$('<span></span>').appendTo($footer); // spacer to keep the link right-aligned
 	$('<a href="#" class="dts-perm-footer-link"></a>')
-		.append($("<span></span>").text(__("Open Role Permissions Manager")))
 		.append(frappe.utils.icon("link-url", "sm"))
+		.append($("<span></span>").text(__("Open Role Permissions Manager")))
 		.appendTo($footer)
 		.on("click", (e) => {
 			e.preventDefault();
