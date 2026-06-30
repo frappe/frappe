@@ -1398,7 +1398,7 @@ class FilterArea {
 			<div class="btn-group">
 				<button class="btn btn-default btn-sm filter-button">
 					<span class="filter-icon button-icon">
-						${frappe.utils.icon("funnel")}
+						${frappe.utils.icon("funnel", "sm")}
 					</span>
 					<span class="button-label hidden-xs">
 					${__("Filter")}
@@ -1406,7 +1406,7 @@ class FilterArea {
 				</button>
 				<button class="btn btn-default btn-sm filter-x-button" title="${__("Clear all filters")}">
 					<span class="filter-icon button-icon">
-						${frappe.utils.icon("funnel-x")}
+						${frappe.utils.icon("funnel-x", "sm")}
 					</span>
 				</button>
 			</div>
