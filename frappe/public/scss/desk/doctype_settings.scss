@@ -450,16 +450,8 @@
 		font-size: var(--text-base);
 	}
 
-	// Subtle gray button (no border) — matches the banking empty-state action.
+	// Spacing only — the button's look comes from `.es-button` (subtle gray variant).
 	.dts-empty-action {
 		margin-top: var(--margin-md);
-		border: none;
-		background-color: var(--surface-gray-2);
-		color: var(--ink-gray-7);
-
-		&:hover {
-			background-color: var(--surface-gray-3);
-			color: var(--ink-gray-9);
-		}
 	}
 }

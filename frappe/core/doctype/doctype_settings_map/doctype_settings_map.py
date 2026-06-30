@@ -20,14 +20,36 @@ class DocTypeSettingsMap(Document):
 		is_active: DF.Check
 		is_standard: DF.Check
 		mappings: DF.Table[DocTypeSettingsMapItem]
+		module: DF.Link | None
 	# end: auto-generated types
+
+	def autoname(self):
+		# Name the record after the doctype it applies to. A doctype may have both a custom
+		# and a standard map, which can't share a name — the custom (user-created) one keeps
+		# the plain doctype name; the standard one is suffixed to stay unique.
+		self.name = self.applies_to_doctype
+		if self.is_standard:
+			self.name = f"{self.applies_to_doctype} (Standard)"
 
 	def validate(self):
 		self._guard_standard()
 		self._validate_unique_per_doctype()
+		# Standard maps ship with an app; default the owning module to the one that owns the
+		# doctype they apply to (the dev can override). Custom maps aren't exported.
+		if self.is_standard and not self.module:
+			self.module = frappe.db.get_value("DocType", self.applies_to_doctype, "module")
 
 	def on_update(self):
 		self._enforce_single_active()
+		self.export_doc()
+
+	def export_doc(self):
+		"""Write standard maps to the app's module folder as JSON (developer mode only), so
+		they ship in code and sync to other sites on migrate — like standard Print Formats.
+		Custom maps (is_standard=0) are a no-op and stay in the site DB."""
+		from frappe.modules.utils import export_module_json
+
+		return export_module_json(self, self.is_standard, self.module, create_init=False)
 
 	def on_trash(self):
 		self._guard_standard()

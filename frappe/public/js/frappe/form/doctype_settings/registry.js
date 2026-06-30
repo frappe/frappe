@@ -39,7 +39,7 @@ frappe.doctype_settings.overflow_menu = function (items) {
 
 	const $wrap = $('<div class="dropdown dts-actions"></div>').appendTo($cell);
 	$(
-		`<button type="button" class="btn btn-xs btn-default dts-actions-btn" data-toggle="dropdown" aria-haspopup="menu" aria-expanded="false" aria-label="${__("More actions")}"><span aria-hidden="true">⋯</span></button>`
+		`<button type="button" class="es-button dts-actions-btn" data-size="xs" data-variant="ghost" data-icon-button="true" data-toggle="dropdown" aria-haspopup="menu" aria-expanded="false" aria-label="${__("More actions")}"><span aria-hidden="true">⋯</span></button>`
 	).appendTo($wrap);
 	const $menu = $('<div class="dropdown-menu dropdown-menu-right" role="menu"></div>').appendTo($wrap);
 
@@ -73,7 +73,7 @@ frappe.doctype_settings.empty_state = function ($container, opts) {
 		$('<div class="dts-empty-description"></div>').text(opts.description).appendTo($empty);
 	}
 	if (opts.action) {
-		$(`<button type="button" class="btn btn-sm dts-empty-action"></button>`)
+		$(`<button type="button" class="es-button dts-empty-action" data-size="sm"></button>`)
 			.text(opts.action.label)
 			.appendTo($empty)
 			.on("click", () => opts.action.onclick());

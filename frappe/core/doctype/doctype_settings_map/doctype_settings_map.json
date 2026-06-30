@@ -1,6 +1,5 @@
 {
  "actions": [],
- "autoname": "hash",
  "creation": "2026-06-25 00:00:00",
  "description": "Settings from Single (Settings) doctypes that apply to a given doctype. Up to one standard (shipped) and one custom (user) record per doctype; the active record's grid surfaces in the target doctype's DocType Settings \u2192 General tab.",
  "doctype": "DocType",
@@ -9,6 +8,7 @@
  "field_order": [
   "applies_to_doctype",
   "is_standard",
+  "module",
   "is_active",
   "mappings"
  ],
@@ -35,6 +35,15 @@
    "set_only_once": 1
   },
   {
+   "depends_on": "is_standard",
+   "mandatory_depends_on": "is_standard",
+   "description": "App/module this standard map ships with — defaults to the module of the doctype it applies to; change it (in Developer Mode) to ship the map with a different app. Exported here and synced to other sites on migrate.",
+   "fieldname": "module",
+   "fieldtype": "Link",
+   "label": "Module",
+   "options": "Module Def"
+  },
+  {
    "default": "1",
    "description": "When active, this map is used for its doctype. An active custom map overrides the standard one.",
    "fieldname": "is_active",
@@ -53,7 +62,7 @@
  ],
  "index_web_pages_for_search": 1,
  "links": [],
- "modified": "2026-06-26 12:17:06.094840",
+ "modified": "2026-06-29 18:17:06.094840",
  "modified_by": "Administrator",
  "module": "Core",
  "name": "DocType Settings Map",
