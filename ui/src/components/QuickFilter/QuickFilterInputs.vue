@@ -41,7 +41,7 @@
 				:is="valueControl(field).is"
 				v-bind="valueControl(field).props"
 				class="w-full"
-				:modelValue="quickValue(filters, field)"
+				:modelValue="displayValue(field)"
 				@update:modelValue="(v: FilterValue) => setValue(field, v)"
 			>
 				<template v-if="hasOperatorToggle(field)" #prefix>
@@ -82,7 +82,7 @@
 
 <script setup lang="ts">
 import { computed, onBeforeUnmount, onMounted, reactive, ref, watch } from "vue";
-import { Button, Checkbox, TextInput } from "frappe-ui";
+import { Button, Checkbox, TextInput, debounce } from "frappe-ui";
 import {
 	applyQuick,
 	hasOperatorToggle,
@@ -197,13 +197,56 @@ watch(filters, (newFilters, oldFilters) => {
 	}
 });
 
-function setValue(field: FilterField, value: FilterValue) {
+// Typed inputs (free-text / number) emit on every keystroke; committing each one
+// straight into the shared Filter[] would re-run the list query per character. We
+// hold the in-flight value in a local `draft` so the input stays responsive, and
+// debounce the commit by 500ms. Discrete picks (Select/Link/Date/Check) have no
+// keystroke stream to coalesce, so they commit immediately.
+const COMMIT_DELAY = 500;
+const draft = reactive<Record<string, FilterValue>>({});
+const debouncedCommit = new Map<string, (value: FilterValue) => void>();
+
+/** The value shown in a field's input: the in-flight draft while typing, else the
+ *  committed value projected out of the shared Filter[]. */
+function displayValue(field: FilterField): FilterValue {
+	return field.fieldname in draft ? draft[field.fieldname] : quickValue(filters.value, field);
+}
+
+/** Typed inputs route through the same `valueControl` dispatch so this never
+ *  drifts from how a field is actually rendered. */
+function isTypedField(field: FilterField): boolean {
+	const control = valueControl(field).is;
+	return control === TextInput || control === NumberField;
+}
+
+function commitValue(field: FilterField, value: FilterValue) {
 	filters.value = applyQuick(filters.value, field, value, activeOperator(field));
 	// The operator now lives in the stored condition (if any), so drop the
 	// transient override — otherwise a later external delete/change in the Filter
 	// popover would let it resurrect a stale operator on the next edit.
 	if (hasOwnedCondition(filters.value, field)) {
 		delete operatorOverride[field.fieldname];
+	}
+	delete draft[field.fieldname];
+}
+
+/** A per-field debounced committer, so concurrent typing in two fields doesn't let
+ *  one field's pending commit clobber the other's. */
+function debouncedCommitFor(field: FilterField): (value: FilterValue) => void {
+	let fn = debouncedCommit.get(field.fieldname);
+	if (!fn) {
+		fn = debounce((value: FilterValue) => commitValue(field, value), COMMIT_DELAY);
+		debouncedCommit.set(field.fieldname, fn);
+	}
+	return fn;
+}
+
+function setValue(field: FilterField, value: FilterValue) {
+	if (isTypedField(field)) {
+		draft[field.fieldname] = value; // echo immediately
+		debouncedCommitFor(field)(value); // commit after the typing settles
+	} else {
+		commitValue(field, value);
 	}
 }
 
@@ -217,10 +260,13 @@ const operatorLabel = (op: FilterOperator) => (op === "equals" ? "Equals" : "Lik
  *  box for a Link picker (or back). */
 function toggleOperator(field: FilterField) {
 	const next: FilterOperator = activeOperator(field) === "equals" ? "like" : "equals";
-	const current = quickValue(filters.value, field);
+	// Read the displayed value (the in-flight draft if typing hasn't settled), so a
+	// toggle mid-type flips the latest text rather than the last committed value.
+	const current = displayValue(field);
 	if (current !== "" && current != null) {
 		filters.value = applyQuick(filters.value, field, current, next);
 		delete operatorOverride[field.fieldname];
+		delete draft[field.fieldname];
 	} else {
 		operatorOverride[field.fieldname] = next;
 	}
