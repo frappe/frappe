@@ -65,7 +65,8 @@ DATA DISPLAY:
 - Filter: {doctype: "string", filters: {}}
 - Link: {doctype: "string"}
 - Tree: {nodeKey: "string", node: {name: "string", label: "string", children: []}}
-- Repeater: (no props — repeats child template over data)
+- Repeater: {data: array — bind to {{ <data_source>.data }}, dataKey: "field that uniquely identifies a row, usually 'name'", emptyStateMessage: "string"}
+  # Repeats its child block(s) once per item in `data`. Build ONE row template as the child — do NOT duplicate the child per record. Inside the repeater, bind child props to the CURRENT ROW via {{ dataItem.<field> }} (and dataIndex for the 0-based index). e.g. a TextBlock showing each row's title → bind prop "text" to dataItem.title.
 - Calendar: {config: {defaultMode: "Month"}, events: []}
 
 AUTOCOMPLETE:
@@ -153,6 +154,23 @@ EXAMPLE — "A login form with email, password and a submit button":
 """
 
 
+# A plain string (NOT an f-string) so the `{{ }}` binding tokens survive verbatim;
+# interpolated into AGENT_SYSTEM like the other rule blocks.
+DATA_WIRING = """# Wiring live data
+To show or use real Frappe records, wire a DATA SOURCE, then bind blocks to it.
+- A data source exposes its result as `{{ <data_source_name>.data }}` — a list for a Document List and the response for an API Resource, and `{{ <data_source_name>.doc }}` as the record for a Document.
+- The binding context for any `{{ }}` expression is: data sources (as `<name>.data`), variables, page-script bindings, and `route`/`router`. Pass expressions to bind_prop WITHOUT braces.
+- Workflow for "show records of X":
+  1. get_page_state — see if a suitable data source already exists (reuse it; don't duplicate).
+  2. list_doctypes / get_doctype_fields — confirm the exact DocType and field names.
+  3. add_data_source (Document List) with document_type + the fields[] to fetch (+ filters/limit/sort as asked). Do this BEFORE adding blocks.
+  4. Lay out the display block: a Repeater (custom row template) or a ListView (tabular). For a Repeater, add it with ONE child block as the row template, then call set_repeater_data(component_id, data_source_name, data_key='name'); for a ListView, set its columns and bind_prop(prop='rows', expression='<name>.data').
+  5. Inside a Repeater, bind each child prop to the CURRENT ROW with bind_prop using a `dataItem.<field>` expression (NOT `<source>.data.<field>`) — e.g. bind_prop(component_id=<child>, prop='text', expression='dataItem.description'). `dataItem` is the current record; `dataIndex` is its 0-based position. Do NOT add one child per record — the single template repeats automatically.
+- To show a COUNT or scalar derived from a source, bind_prop with an expression like `<name>.data.length`.
+- Keep filters concrete: e.g. open ToDos → filters {"status":"Open"}.
+"""
+
+
 AGENT_SYSTEM = f"""You are an expert UI developer & designer working inside Frappe Studio, a Vue.js low-code app builder. You build and edit pages by CALLING TOOLS — never by describing changes in prose.
 
 # How you work
@@ -180,6 +198,8 @@ For add_block, pass the new block under "block" using the BLOCK SCHEMA below (na
 {BLOCK_SCHEMA}
 
 {BUILD_RULES}
+
+{DATA_WIRING}
 
 # Asking vs proceeding
 - Small, targeted edits to an existing page (colour, text, spacing, a single block): make a reasonable decision and proceed with the tools. Do NOT ask.

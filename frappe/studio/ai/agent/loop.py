@@ -292,6 +292,8 @@ class AgentRunner:
 			parts.append(f"removed {n} {blk(n)}")
 		if n := counts.get("move_block"):
 			parts.append(f"moved {n} {blk(n)}")
+		if n := (counts.get("bind_prop", 0) + counts.get("set_repeater_data", 0)):
+			parts.append(f"wired {n} binding{'s' if n != 1 else ''}")
 
 		if not parts:
 			n = len(operations)

@@ -206,7 +206,7 @@ class Block implements BlockOptions {
 	}
 
 	canHaveChildren() {
-		if (this.isRoot() || this.isContainer() || this.hasComponentSlots()) return true
+		if (this.isRoot() || this.isContainer() || this.hasComponentSlots() || this.isRepeater()) return true
 		return false
 	}
 

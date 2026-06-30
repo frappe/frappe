@@ -163,6 +163,7 @@ import { ErrorMessage, Button, Badge, FeatherIcon, call, createResource, Popover
 import { marked } from "marked"
 import useStudioStore from "@/stores/studioStore"
 import useCanvasStore from "@/stores/canvasStore"
+import useCodeStore from "@/stores/codeStore"
 import { AIChatController } from "@/components/AIChatController"
 import { getBlockInstance, getBlockString } from "@/utils/serializer"
 import type { BlockOptions } from "@/types"
@@ -171,6 +172,7 @@ import LucideSparkle from "~icons/lucide/sparkle"
 
 const store = useStudioStore()
 const canvasStore = useCanvasStore()
+const codeStore = useCodeStore()
 const socket = inject<any>("socket")
 
 const isAIEnabled = computed(() => !!studioSettings.doc?.ai_api_key)
@@ -260,6 +262,12 @@ const controller = new AIChatController({
 	savePage: () => store.savePage(),
 	reloadSession,
 	scrollToBottom,
+	reloadPageData: ({ resources, variables }) => {
+		const page = store.activePage
+		if (!page) return
+		if (resources) codeStore.setPageResources(page)
+		if (variables) codeStore.setPageVariables(page)
+	},
 })
 
 function setupListeners() {

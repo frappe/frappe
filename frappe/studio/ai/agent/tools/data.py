@@ -1,0 +1,357 @@
+"""Data-source tools — full CRUD over a page's data sources.
+
+A "data source" is the AI/UX-facing name for a `Studio Page Resource` child row
+(backing table: `resources`). These tools are server-side: the loop runs the
+handler in the worker, which mutates the `Studio Page` doc and saves it. Saving a
+standard page auto-exports its JSON (`on_update`). After a successful write the
+handler commits and emits a `reload` event so the canvas re-fetches resources and
+live `{{ <name>.data }}` bindings start resolving.
+
+Block edits (ListView/Repeater + bind_prop) are CLIENT tools applied on the
+canvas; add the data source FIRST, then lay out and bind the blocks — that order
+keeps the canvas block edits from racing this save.
+"""
+
+import frappe
+
+from studio.ai.agent.registry import Tool
+from studio.ai.agent.selectors import walk_blocks
+from studio.ai.block_codec import BlockCodec
+
+RESOURCE_TYPES = ("Document List", "Document", "API Resource")
+# Resource child-table fields that hold JSON; serialized before assignment so the
+# value round-trips regardless of dict/list shape.
+_JSON_FIELDS = ("fields", "filters", "params", "whitelisted_methods")
+
+
+def run_add_data_source(ctx, args: dict) -> str:
+	name = (args.get("data_source_name") or "").strip()
+	source_type = (args.get("data_source_type") or "").strip()
+	if not name:
+		return "FAILED: data_source_name is required."
+	if source_type not in RESOURCE_TYPES:
+		return f"FAILED: data_source_type must be one of {list(RESOURCE_TYPES)}."
+
+	page = _load_page(ctx)
+	if page is None:
+		return "FAILED: no page in context."
+	if _find_resource(page, name):
+		return f"FAILED: a data source named '{name}' already exists. Use update_data_source to change it."
+
+	row = _build_row(name, source_type, args)
+	if error := _validate_row(source_type, row):
+		return f"FAILED: {error}"
+
+	page.append("resources", row)
+	if error := _save(page):
+		return f"FAILED: {error}"
+	_reload(ctx)
+	return f"Added {source_type} data source '{name}'. Bind blocks to it with {{{{ {name}.data }}}}."
+
+
+def run_list_data_sources(ctx, args: dict) -> str:
+	page = _load_page(ctx)
+	if page is None:
+		return "No page in context."
+	if not page.resources:
+		return "No data sources defined on this page yet."
+	out = [_describe_resource(r) for r in page.resources]
+	return f"{len(out)} data source(s):\n" + BlockCodec.to_json(out)
+
+
+def run_update_data_source(ctx, args: dict) -> str:
+	name = (args.get("data_source_name") or "").strip()
+	page = _load_page(ctx)
+	if page is None:
+		return "FAILED: no page in context."
+	row = _find_resource(page, name)
+	if row is None:
+		return f"FAILED: no data source named '{name}'. Call list_data_sources to see the current set."
+
+	changed = _apply_changes(row, args)
+	if not changed:
+		return "Nothing to update — pass the fields you want to change."
+	if error := _validate_row(row.resource_type, row):
+		return f"FAILED: {error}"
+	if error := _save(page):
+		return f"FAILED: {error}"
+	_reload(ctx)
+	return f"Updated data source '{name}' ({', '.join(changed)})."
+
+
+def run_delete_data_source(ctx, args: dict) -> str:
+	name = (args.get("data_source_name") or "").strip()
+	page = _load_page(ctx)
+	if page is None:
+		return "FAILED: no page in context."
+	row = _find_resource(page, name)
+	if row is None:
+		return f"FAILED: no data source named '{name}'."
+
+	page.resources.remove(row)
+	if error := _save(page):
+		return f"FAILED: {error}"
+	_reload(ctx)
+
+	warning = _dangling_binding_warning(ctx, name)
+	return f"Deleted data source '{name}'." + (f" {warning}" if warning else "")
+
+
+# --- row construction -----------------------------------------------------
+
+# Resource child-table fields the tools can set. Tool arg names are chosen to match
+# these fieldnames 1:1; the two renamed args (data_source_name/_type → resource_name/
+# _type) are set directly in _build_row, so they're not listed here.
+_RESOURCE_FIELDS = (
+	"document_type",
+	"document_name",
+	"fetch_document_using_filters",
+	"fields",
+	"filters",
+	"limit",
+	"sort_field",
+	"sort_order",
+	"whitelisted_methods",
+	"url",
+	"method",
+	"params",
+	"transform",
+	"on_success",
+	"on_error",
+	"auto",
+)
+
+
+def _build_row(name: str, source_type: str, args: dict) -> dict:
+	row = {"resource_name": name, "resource_type": source_type}
+	for field in _RESOURCE_FIELDS:
+		if args.get(field) is not None:
+			row[field] = _coerce(field, args[field])
+	return row
+
+
+def _apply_changes(row, args: dict) -> list[str]:
+	"""Mutate an existing child row in place with the provided fields. Returns the
+	list of fields that changed (for the result message)."""
+	changed = []
+	for field in _RESOURCE_FIELDS:
+		if args.get(field) is not None:
+			setattr(row, field, _coerce(field, args[field]))
+			changed.append(field)
+	return changed
+
+
+def _coerce(field: str, value):
+	"""JSON-typed fields are stored as strings; serialize dict/list inputs."""
+	if field in _JSON_FIELDS and isinstance(value, dict | list):
+		return frappe.as_json(value, indent=None)
+	return value
+
+
+def _validate_row(source_type: str, row) -> str | None:
+	"""Cheap pre-checks mirroring Studio Page.validate_resources, so the model gets
+	a precise correction instead of a raw save traceback."""
+	get = row.get if isinstance(row, dict) else (lambda k: getattr(row, k, None))
+	if source_type in ("Document", "Document List") and not get("document_type"):
+		return "document_type is required for Document and Document List sources."
+	if source_type == "Document List" and _is_empty(get("fields")):
+		return "Document List needs 'fields' — a non-empty list of fieldnames to fetch."
+	if source_type == "Document" and not get("fetch_document_using_filters") and not get("document_name"):
+		return "Document source needs either document_name or fetch_document_using_filters with filters."
+	if source_type == "API Resource" and not get("url"):
+		return "API Resource needs a url."
+	return None
+
+
+def _is_empty(value) -> bool:
+	if value is None:
+		return True
+	if isinstance(value, str):
+		return value.strip() in ("", "[]", "{}")
+	return not value
+
+
+# --- shared helpers -------------------------------------------------------
+
+
+def _load_page(ctx):
+	return frappe.get_doc("Studio Page", ctx.page_id) if ctx.page_id else None
+
+
+def _find_resource(page, name: str):
+	if not name:
+		return None
+	return next((r for r in page.resources if r.resource_name == name), None)
+
+
+def _save(page) -> str | None:
+	"""Save the page (runs resource validation + JSON conversion) and commit so the
+	emitted reload event sees the row. Returns an error string on failure."""
+	try:
+		page.save()
+		frappe.db.commit()
+		return None
+	except frappe.ValidationError as e:
+		frappe.db.rollback()
+		return str(e)
+	except Exception as e:  # noqa: BLE001 — surface a safe message, log the detail
+		frappe.db.rollback()
+		frappe.log_error("Studio AI add/update data source failed", str(e))
+		return "could not save the data source (see error log)."
+
+
+def _reload(ctx) -> None:
+	ctx.emit("reload", resources=True)
+
+
+def _describe_resource(r) -> dict:
+	out = {"name": r.resource_name, "type": r.resource_type}
+	for field in ("document_type", "document_name", "fields", "filters", "limit", "sort_field", "url"):
+		if value := r.get(field):
+			out[field] = value
+	return out
+
+
+def _dangling_binding_warning(ctx, name: str) -> str:
+	"""Scan the (turn-start) block tree for props still referencing the deleted
+	source's data, so the model can fix dangling bindings in the same turn."""
+	import re
+
+	root = ctx._page_root()
+	if not root:
+		return ""
+	pattern = re.compile(r"\{\{[^}]*\b" + re.escape(name) + r"\b[^}]*\}\}")
+	hits = []
+	for block, _depth in walk_blocks(root):
+		for value in (block.get("componentProps") or {}).values():
+			if isinstance(value, str) and pattern.search(value):
+				hits.append(block.get("componentId"))
+				break
+	if not hits:
+		return ""
+	return f"WARNING: these blocks still bind '{name}' and now resolve to nothing — rebind or remove them: {hits}."
+
+
+# --- tool definitions -----------------------------------------------------
+
+add_data_source = Tool(
+	name="add_data_source",
+	side="server",
+	handler=run_add_data_source,
+	description=(
+		"Create a data source on the page so real Frappe records can render. Pick the type:\n"
+		"• 'Document List' — many records of a DocType (a table/list). Needs document_type and "
+		"fields[]; optional filters, limit, sort_field, sort_order.\n"
+		"• 'Document' — one record. Needs document_type plus either document_name or "
+		"fetch_document_using_filters + filters.\n"
+		"• 'API Resource' — a REST endpoint. Needs url; optional method, params.\n"
+		"First confirm the DocType and field names with list_doctypes / get_doctype_fields. After "
+		"this, the data is available as {{ <data_source_name>.data }} — bind blocks to it with "
+		"set_repeater_data or bind_prop. Add the data source BEFORE laying out the blocks."
+	),
+	parameters={
+		"type": "object",
+		"properties": {
+			"data_source_name": {
+				"type": "string",
+				"description": "A short identifier used in bindings, e.g. 'todos' → {{ todos.data }}.",
+			},
+			"data_source_type": {
+				"type": "string",
+				"enum": list(RESOURCE_TYPES),
+				"description": "Document List | Document | API Resource.",
+			},
+			"document_type": {"type": "string", "description": "DocType to read (Document / Document List)."},
+			"fields": {
+				"type": "array",
+				"items": {"type": "string"},
+				"description": "Document List: fieldnames to fetch, e.g. ['name','description','status'].",
+			},
+			"filters": {
+				"type": "object",
+				"description": 'Filters as a map, e.g. {"status":"Open"} or {"status":["!=","Closed"]}.',
+			},
+			"limit": {"type": "integer", "description": "Document List: max rows to fetch."},
+			"sort_field": {"type": "string", "description": "Document List: field to sort by."},
+			"sort_order": {"type": "string", "enum": ["ASC", "DESC"], "description": "Sort direction."},
+			"document_name": {"type": "string", "description": "Document: the record name to fetch."},
+			"fetch_document_using_filters": {
+				"type": "boolean",
+				"description": "Document: resolve the record from filters instead of a fixed name.",
+			},
+			"url": {"type": "string", "description": "API Resource: the endpoint URL."},
+			"method": {
+				"type": "string",
+				"enum": ["GET", "POST", "PUT", "DELETE"],
+				"description": "API Resource: HTTP method (default GET).",
+			},
+			"params": {"type": "object", "description": "API Resource: request parameters map."},
+			"auto": {
+				"type": "boolean",
+				"description": "Fetch automatically on page load (default true). Set false for on-demand sources.",
+			},
+		},
+		"required": ["data_source_name", "data_source_type"],
+	},
+)
+
+list_data_sources = Tool(
+	name="list_data_sources",
+	side="server",
+	handler=run_list_data_sources,
+	description=(
+		"List the page's existing data sources with their configuration (name, type, doctype, "
+		"fields, filters, limit, sort). Use before update_data_source / delete_data_source, or to "
+		"reuse a source that already exists."
+	),
+	parameters={"type": "object", "properties": {}},
+)
+
+update_data_source = Tool(
+	name="update_data_source",
+	side="server",
+	handler=run_update_data_source,
+	description=(
+		"Change an existing data source's configuration. Identify it by data_source_name and pass "
+		"only the fields you want to change (same fields as add_data_source). The type is fixed; "
+		"create a new source to change the type."
+	),
+	parameters={
+		"type": "object",
+		"properties": {
+			"data_source_name": {"type": "string", "description": "The data source to update."},
+			"document_type": {"type": "string"},
+			"fields": {"type": "array", "items": {"type": "string"}},
+			"filters": {"type": "object"},
+			"limit": {"type": "integer"},
+			"sort_field": {"type": "string"},
+			"sort_order": {"type": "string", "enum": ["ASC", "DESC"]},
+			"document_name": {"type": "string"},
+			"fetch_document_using_filters": {"type": "boolean"},
+			"url": {"type": "string"},
+			"method": {"type": "string", "enum": ["GET", "POST", "PUT", "DELETE"]},
+			"params": {"type": "object"},
+			"auto": {"type": "boolean"},
+		},
+		"required": ["data_source_name"],
+	},
+)
+
+delete_data_source = Tool(
+	name="delete_data_source",
+	side="server",
+	handler=run_delete_data_source,
+	description=(
+		"Remove a data source from the page by name. Warns if any block still binds it, so you can "
+		"rebind or remove those blocks in the same turn."
+	),
+	parameters={
+		"type": "object",
+		"properties": {
+			"data_source_name": {"type": "string", "description": "The data source to delete."},
+		},
+		"required": ["data_source_name"],
+	},
+)
+
+TOOLS = [add_data_source, list_data_sources, update_data_source, delete_data_source]

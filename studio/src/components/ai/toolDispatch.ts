@@ -2,6 +2,7 @@ import type Block from "@/utils/block"
 import type { styleProperty } from "@/utils/block"
 import type { BlockOptions, StyleValue } from "@/types"
 import { expandBlock } from "@/utils/blockCodec"
+import { isDynamicValue } from "@/utils/code"
 import { getBlockCopyWithoutParent } from "@/utils/serializer"
 
 interface Canvas {
@@ -45,6 +46,10 @@ export class ToolDispatcher {
 				return this.removeBlock(args)
 			case "move_block":
 				return this.moveBlock(args)
+			case "bind_prop":
+				return this.bindProp(args)
+			case "set_repeater_data":
+				return this.setRepeaterData(args)
 		}
 	}
 
@@ -116,4 +121,25 @@ export class ToolDispatcher {
 		}
 		newParent.addChild(options, typeof args.index === "number" ? args.index : null)
 	}
+
+	/** Bind a prop to a `{{ expression }}`. The tool sends the bare expression; wrap it
+	 * unless the model already included braces. */
+	private bindProp(args: Record<string, any>) {
+		const block = this.ctx.getCanvas()?.findBlock(args.component_id)
+		if (block && args.prop) block.setProp(args.prop, wrapExpression(args.expression))
+	}
+
+	/** Feed a data source into a Repeater: data = {{ <source>.data }}, plus its dataKey. */
+	private setRepeaterData(args: Record<string, any>) {
+		const block = this.ctx.getCanvas()?.findBlock(args.component_id)
+		if (!block) return
+		block.setProp("data", `{{ ${args.data_source_name}.data }}`)
+		if (args.data_key) block.setProp("dataKey", args.data_key)
+	}
+}
+
+/** Wrap a raw expression in `{{ }}` unless it already is a dynamic value. */
+function wrapExpression(expression: string): string {
+	const expr = String(expression ?? "")
+	return isDynamicValue(expr) ? expr : `{{ ${expr.trim()} }}`
 }

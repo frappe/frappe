@@ -23,6 +23,7 @@ export interface AIChatContext {
 	savePage: () => void
 	reloadSession: () => void
 	scrollToBottom: () => void
+	reloadPageData: (opts: { resources?: boolean; variables?: boolean }) => void
 }
 
 /**
@@ -56,6 +57,7 @@ export class AIChatController {
 			onClarify: this.onClarify,
 			onComplete: this.onComplete,
 			onError: this.onError,
+			onReload: this.onReload,
 		}
 	}
 
@@ -147,6 +149,12 @@ export class AIChatController {
 		this.summary = ""
 		this.pageBuffer = ""
 		this.ctx.reloadSession()
+	}
+
+	onReload = (data: any) => {
+		// A server tool wrote page data (data sources / variables). Re-fetch so the
+		// canvas re-evaluates `{{ }}` bindings against the live data.
+		this.ctx.reloadPageData({ resources: !!data.resources, variables: !!data.variables })
 	}
 
 	onClarify = (data: any) => {

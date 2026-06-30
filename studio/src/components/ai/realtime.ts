@@ -10,6 +10,7 @@ export interface AIChatHandlers {
 	onClarify: Handler
 	onComplete: Handler
 	onError: Handler
+	onReload: Handler
 }
 
 interface Realtime {
@@ -25,6 +26,7 @@ function listenerMap(h: AIChatHandlers): Record<string, Handler> {
 		ai_chat_clarify: h.onClarify,
 		ai_chat_complete: h.onComplete,
 		ai_chat_error: h.onError,
+		ai_chat_reload: h.onReload,
 	}
 }
 

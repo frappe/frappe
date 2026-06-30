@@ -61,6 +61,8 @@ class WorkingTree:
 			return self.apply_move(args)
 		if tool_name == "add_block":
 			return self.apply_add(args)
+		if tool_name in ("bind_prop", "set_repeater_data"):
+			return self.apply_bind(tool_name, args)
 		# Non-block client tools (scripts) carry no ref to validate.
 		return "Applied."
 
@@ -127,3 +129,17 @@ class WorkingTree:
 		# same id — the model can reference or bind this block in the same turn.
 		args["component_id"] = new_id
 		return f"Added {component_name} block {new_id} under {parent_id}. Reference it by this id to update or bind it."
+
+	def apply_bind(self, tool_name: str, args: dict) -> str:
+		"""bind_prop / set_repeater_data target an existing block by id; only the ref
+		needs validating (the binding expression is applied on the canvas)."""
+		component_id = args.get("component_id")
+		block = self.resolve(component_id)
+		if block is None:
+			return f"FAILED: component_id '{component_id}' not found{self.id_hint(component_id)}"
+		if tool_name == "set_repeater_data":
+			source = args.get("data_source_name")
+			return f"Bound block {component_id} to repeat over {{{{ {source}.data }}}}."
+		return (
+			f"Bound prop '{args.get('prop')}' of block {component_id} to {{{{ {args.get('expression')} }}}}."
+		)
