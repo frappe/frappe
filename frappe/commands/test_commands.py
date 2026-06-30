@@ -219,6 +219,8 @@ class BaseTestCommands(IntegrationTestCase):
 
 class TestCommands(BaseTestCommands):
 	def test_browse_sid(self):
+		self.setup_test_site()
+
 		with patch("click.launch") as launch:
 			with cli(frappe.commands.site.browse, ["--user", "Administrator", "--sid"]) as result:
 				self.assertEqual(result.exit_code, 0)
