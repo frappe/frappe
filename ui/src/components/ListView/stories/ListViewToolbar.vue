@@ -33,21 +33,27 @@
 				v-model:customizing="view.quickFilter.customizing.value"
 				:doctype="doctype"
 			/>
-			<Filter v-model="view.filters.conditions.value" :doctype="doctype" />
-			<SortBy v-model="view.sort.by.value" :doctype="doctype" />
-			<ColumnSettings
-				v-model="view.columns.shown.value"
-				:doctype="doctype"
-				:can-reset="view.columns.isCustomized.value"
-				@reset="view.columns.reset()"
-			/>
-			<Button
-				v-if="view.quickFilter.canCustomize.value"
-				:icon="view.quickFilter.customizing.value ? 'lucide-check' : 'lucide-settings-2'"
-				:tooltip="view.quickFilter.customizing.value ? 'Done' : 'Customize Quick Filters'"
-				:variant="view.quickFilter.customizing.value ? 'subtle' : 'ghost'"
-				@click="view.quickFilter.customizing.value = !view.quickFilter.customizing.value"
-			/>
+			<!-- The right-side control cluster — Filter / Sort / Columns and the
+			     "Customize Quick Filters" trigger — is the normal-mode chrome. Customize
+			     mode is a focused, full-width editing surface, so the whole cluster is
+			     hidden; QuickFilterCustomize carries its own Save affordance to exit. -->
+			<template v-if="!view.quickFilter.customizing.value">
+				<Filter v-model="view.filters.conditions.value" :doctype="doctype" />
+				<SortBy v-model="view.sort.by.value" :doctype="doctype" />
+				<ColumnSettings
+					v-model="view.columns.shown.value"
+					:doctype="doctype"
+					:can-reset="view.columns.isCustomized.value"
+					@reset="view.columns.reset()"
+				/>
+				<Button
+					v-if="view.quickFilter.canCustomize.value"
+					icon="lucide-settings-2"
+					tooltip="Customize Quick Filters"
+					variant="ghost"
+					@click="view.quickFilter.customizing.value = true"
+				/>
+			</template>
 		</template>
 
 		<template #table>

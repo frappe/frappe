@@ -1,156 +1,47 @@
 <!--
   QuickFilter — a controlled, meta-driven list-view control that projects over the
   SAME `Filter[]` list the Filter control binds (ADR-0005). It owns no data
-  resource; setting a quick input upserts a condition in the shared list and
-  reading reflects whichever condition that input owns, so Filter ↔ QuickFilter
-  stay in sync with no cross-control events.
+  resource; its two faces are split into focused children and this component just
+  derives the shared field state and dispatches between them:
 
-  Two `v-model`s: `filters` (the shared Filter[] — the SoT `useListView` hands
-  both controls) and `fields` (the surfaced inputs, optional; defaults to the
-  doctype's `in_standard_filter` fields from Meta via `getQuickFilterFields`, and
-  a host may bind it to persist the user's customized set).
+    • normal mode  → `QuickFilterInputs`    (one value input per surfaced field)
+    • customize    → `QuickFilterCustomize` (draggable field chips + "Add Filter")
 
-  Projection is by canonical operator (`quickFilters.ts`): a quick input owns only
-  conditions on its field whose operator is in that field's canonical set, so a
-  precise popover condition (`Status in […]`) is left untouched. Free-text fields
-  (and the `name` field) own BOTH `like` (default) and `equals`, surfaced as a
-  `≈`/`=` toggle glued to the front of the input — substring-search by default,
-  click to flip to an exact match. Link fields are an exact pick (`equals`, no
-  toggle). The value inputs are the shared `Fields` components (ADR-0004); the
-  `name` field swaps its text box for a Link picker when flipped to `equals`.
+  Three `v-model`s: `filters` (the shared Filter[] — the SoT `useListView` hands
+  both controls), `fields` (the surfaced inputs, optional; defaults to the
+  doctype's `in_standard_filter` fields from Meta via `getQuickFilterFields`, and a
+  host may bind it to persist the user's customized + reordered set), and
+  `customizing` (the edit-mode toggle, owned by the host so a trigger beside Sort
+  can drive it).
 -->
 <template>
-	<!-- One inline row by default: inputs past the available width collapse behind a
-	     "+N more" button rather than wrapping (which ate a second row). Clicking it
-	     expands to show every input, wrapping freely. `overflow` stays `visible` so
-	     the inputs' focus ring isn't clipped. -->
-	<div ref="root" class="flex flex-wrap items-center gap-2">
-		<!-- Customize mode: chips of the surfaced fields with a remove affordance,
-		     plus an "Add Filter" picker over every labelled field. -->
-		<template v-if="customizing">
-			<Button
-				v-for="field in surfaced"
-				:key="field.fieldname"
-				class="group whitespace-nowrap"
-				:label="field.label"
-			>
-				<template #suffix>
-					<span
-						class="lucide-x size-3.5 cursor-pointer"
-						aria-hidden="true"
-						@click.stop="removeField(field)"
-					/>
-				</template>
-			</Button>
-			<Combobox
-				:key="surfaced.length"
-				trigger="button"
-				variant="ghost"
-				:options="addableFields"
-				:modelValue="null"
-				placeholder="Add Filter"
-				@update:selectedOption="addField"
-			>
-				<template #prefix>
-					<span class="lucide-plus size-4" aria-hidden="true" />
-				</template>
-			</Combobox>
-		</template>
-
-		<!-- Normal mode: one inline value input per surfaced field. A definite
-		     width keeps each input from growing on hover (e.g. a Link's clear
-		     button) — the label truncates instead. -->
-		<template v-else>
-			<div v-for="field in visibleFields" :key="field.fieldname" class="w-40 shrink-0">
-				<!-- Check → a labelled checkbox (checked ⇔ equals "Yes"). -->
-				<Checkbox
-					v-if="field.fieldtype === 'Check'"
-					:label="field.label"
-					:modelValue="quickValue(filters, field) as boolean"
-					@update:modelValue="(v: boolean) => setValue(field, v)"
-				/>
-				<!-- The fieldtype's value control. Free-text fields (and name) carry a
-				     ≈/= operator toggle as a prefix inside the input; clicking it flips
-				     like ↔ equals in place (and, for name, swaps text box ↔ Link pick). -->
-				<component
-					v-else
-					:is="valueControl(field).is"
-					v-bind="valueControl(field).props"
-					class="w-full"
-					:modelValue="quickValue(filters, field)"
-					@update:modelValue="(v: FilterValue) => setValue(field, v)"
-				>
-					<template v-if="hasOperatorToggle(field)" #prefix>
-						<button
-							type="button"
-							class="grid size-5 place-items-center rounded text-xs font-medium text-ink-gray-5 hover:bg-surface-gray-4 hover:text-ink-gray-8"
-							:title="operatorLabel(activeOperator(field))"
-							:aria-label="operatorLabel(activeOperator(field))"
-							@pointerdown.stop
-							@click.stop="toggleOperator(field)"
-						>
-							{{ operatorSymbol(activeOperator(field)) }}
-						</button>
-					</template>
-				</component>
-			</div>
-			<!-- Overflow affordance: collapsed inputs hide behind a count; expanding
-			     shows all and lets them wrap. A `subtle` pill (not bare ghost text) so it
-			     reads as a peer of the filled inputs beside it rather than floating. Only
-			     shown once something overflows. -->
-			<Button
-				v-if="hiddenCount > 0 || expanded"
-				class="shrink-0 whitespace-nowrap"
-				variant="subtle"
-				:label="expanded ? 'Show less' : `${hiddenCount} more`"
-				@click="expanded = !expanded"
-			>
-				<template #suffix>
-					<span
-						class="size-3.5 text-ink-gray-5"
-						:class="expanded ? 'lucide-chevron-left' : 'lucide-chevron-down'"
-						aria-hidden="true"
-					/>
-				</template>
-			</Button>
-		</template>
-	</div>
+	<QuickFilterCustomize
+		v-if="customizing"
+		:fields="surfaced"
+		:addable-fields="addableFields"
+		@update:fields="onUpdateFields"
+		@save="customizing = false"
+	/>
+	<QuickFilterInputs v-else :fields="surfaced" v-model:filters="filters" />
 </template>
 
 <script setup lang="ts">
-import { computed, onBeforeUnmount, onMounted, reactive, ref, watch } from "vue";
-import { Button, Checkbox, Combobox, TextInput } from "frappe-ui";
+import { computed } from "vue";
 import { useDoctypeMeta } from "../../composables/useDoctypeMeta";
 import { getFilterableFields } from "../Filter/getFilterableFields";
 import { getQuickFilterFields } from "./getQuickFilterFields";
-import {
-	applyQuick,
-	hasOperatorToggle,
-	hasOwnedCondition,
-	isNameField,
-	quickFilterOperator,
-	quickOperator,
-	quickValue,
-} from "./quickFilters";
-import type { Filter, FilterField, FilterOperator, FilterValue } from "../Filter/types";
-// Shared, fieldtype-aware value inputs (ADR-0004), same subset the Filter control
-// mounts. No form-context injections are provided, so deep-injection inputs fall
-// back to site defaults — fine for a bare filter input.
-import SelectField from "../Fields/SelectField.vue";
-import LinkField from "../Fields/LinkField.vue";
-import NumberField from "../Fields/NumberField.vue";
-import DateField from "../Fields/DateField.vue";
-import DatetimeField from "../Fields/DatetimeField.vue";
-import DurationField from "../Fields/DurationField.vue";
-import type { FieldMeta } from "../Fields/types";
+import QuickFilterInputs from "./QuickFilterInputs.vue";
+import QuickFilterCustomize from "./QuickFilterCustomize.vue";
+import type { Filter, FilterField } from "../Filter/types";
 
 const props = defineProps<{ doctype: string }>();
 
-// Two controlled models on one element: the shared Filter[] and the surfaced
-// fields. `fields` is left undefined when the host doesn't bind it, so the
-// Meta-derived default is used locally.
+// Three controlled models. `fields` is left undefined when the host doesn't bind
+// it, so the Meta-derived default is used locally; mutating in customize mode
+// promotes that default into the model.
 const filters = defineModel<Filter[]>("filters", { default: () => [] });
 const fields = defineModel<FilterField[] | undefined>("fields", { default: undefined });
+const customizing = defineModel<boolean>("customizing", { default: false });
 
 const { meta } = useDoctypeMeta(props.doctype);
 
@@ -172,191 +63,9 @@ const addableFields = computed<FilterField[]>(() => {
 	return allFields.value.filter((f) => !shown.has(f.fieldname));
 });
 
-// Edit-state toggle is owned by the host (a button beside Sort), bound here so the
-// strip swaps between value inputs and the customize chips.
-const customizing = defineModel<boolean>("customizing", { default: false });
-
-// --- Overflow collapse -------------------------------------------------------
-// Each value input is a fixed `w-40` box (160px) on an 8px gap, so how many fit on
-// one row is pure arithmetic on the container width — no per-child measurement.
-// Inputs past the fit collapse behind a "+N more" toggle; expanding shows all and
-// lets the row wrap.
-const ITEM_WIDTH = 160; // w-40
-const GAP = 8; // gap-2
-const MORE_WIDTH = 84; // room reserved for the "N more" button (+ its leading gap)
-
-const root = ref<HTMLElement | null>(null);
-const containerWidth = ref(0);
-const expanded = ref(false);
-let observer: ResizeObserver | null = null;
-
-/** Max fixed-width inputs that fit in `width`, leaving `reserve` px aside. */
-function fitCount(width: number, reserve: number): number {
-	const usable = width - reserve;
-	if (usable < ITEM_WIDTH) return 0;
-	return Math.floor((usable + GAP) / (ITEM_WIDTH + GAP));
-}
-
-// How many inputs to render when collapsed. Until the width is measured (0), show
-// all to avoid a first-paint flash of everything hidden.
-const collapsedCount = computed<number>(() => {
-	const total = surfaced.value.length;
-	const width = containerWidth.value;
-	if (width === 0) return total;
-	if (fitCount(width, 0) >= total) return total; // no overflow
-	return Math.max(1, fitCount(width, MORE_WIDTH + GAP)); // keep room for the toggle
-});
-
-const hiddenCount = computed<number>(() =>
-	Math.max(0, surfaced.value.length - collapsedCount.value)
-);
-const visibleFields = computed<FilterField[]>(() =>
-	expanded.value ? surfaced.value : surfaced.value.slice(0, collapsedCount.value)
-);
-
-onMounted(() => {
-	if (typeof ResizeObserver === "undefined" || !root.value) return;
-	observer = new ResizeObserver((entries) => {
-		containerWidth.value = entries[0].contentRect.width;
-	});
-	observer.observe(root.value);
-});
-
-onBeforeUnmount(() => {
-	observer?.disconnect();
-	observer = null;
-});
-
-// --- Surfaced-field customization -------------------------------------------
-// Mutating the surfaced set is independent of the values: removing a field only
-// hides its input, any existing Filter[] condition survives (and still shows in
-// the Filter popover). Writes go through the `fields` model so a host can persist.
-
-function fieldFromOption(option: unknown): FilterField | null {
-	if (!option) return null;
-	const fieldname =
-		typeof option === "string" ? option : (option as { value?: string }).value ?? null;
-	return allFields.value.find((f) => f.fieldname === fieldname) ?? null;
-}
-
-function addField(option: unknown) {
-	const field = fieldFromOption(option);
-	if (!field || surfaced.value.some((f) => f.fieldname === field.fieldname)) return;
-	fields.value = [...surfaced.value, field];
-}
-
-function removeField(field: FilterField) {
-	fields.value = surfaced.value.filter((f) => f.fieldname !== field.fieldname);
-}
-
-// --- Value projection -------------------------------------------------------
-// Read with `quickValue`/`quickOperator`; write with `applyQuick`. The operator
-// override keeps a toggle sticky while its input is still empty (no stored
-// condition to read the operator back from yet); once a condition exists, that
-// condition is the source of truth.
-const operatorOverride = reactive<Record<string, FilterOperator>>({});
-
-function activeOperator(field: FilterField): FilterOperator {
-	// A stored owned condition is the source of truth — so an external delete or
-	// change in the Filter popover is reflected, and a stale override can't
-	// resurrect `equals`. The override only holds the toggle while the input is
-	// still empty.
-	if (hasOwnedCondition(filters.value, field)) {
-		return quickOperator(filters.value, field);
-	}
-	return operatorOverride[field.fieldname] ?? quickFilterOperator(field);
-}
-
-// Clear stale overrides when a condition is externally removed from the Filter
-// popover — prevents a stale `equals` override from re-activating on the next edit.
-watch(filters, (newFilters, oldFilters) => {
-	for (const fieldname of Object.keys(operatorOverride)) {
-		const field = surfaced.value.find((f) => f.fieldname === fieldname);
-		if (!field) {
-			delete operatorOverride[fieldname];
-			continue;
-		}
-		if (hasOwnedCondition(oldFilters, field) && !hasOwnedCondition(newFilters, field)) {
-			delete operatorOverride[fieldname];
-		}
-	}
-});
-
-function setValue(field: FilterField, value: FilterValue) {
-	filters.value = applyQuick(filters.value, field, value, activeOperator(field));
-	// The operator now lives in the stored condition (if any), so drop the
-	// transient override — otherwise a later external delete/change in the Filter
-	// popover would let it resurrect a stale operator on the next edit.
-	if (hasOwnedCondition(filters.value, field)) {
-		delete operatorOverride[field.fieldname];
-	}
-}
-
-const operatorSymbol = (op: FilterOperator) => (op === "equals" ? "=" : "≈");
-const operatorLabel = (op: FilterOperator) => (op === "equals" ? "Equals" : "Like");
-
-/** Flip the input's operator like ↔ equals on click (no menu). With a value, the
- *  stored condition flips in place under the new operator (and the override is
- *  dropped — the condition now carries it). While empty, the override holds the
- *  chosen operator until a value is typed. For `name`, this also swaps the text
- *  box for a Link picker (or back). */
-function toggleOperator(field: FilterField) {
-	const next: FilterOperator = activeOperator(field) === "equals" ? "like" : "equals";
-	const current = quickValue(filters.value, field);
-	if (current !== "" && current != null) {
-		filters.value = applyQuick(filters.value, field, current, next);
-		delete operatorOverride[field.fieldname];
-	} else {
-		operatorOverride[field.fieldname] = next;
-	}
-}
-
-// --- Value-control dispatch -------------------------------------------------
-const NUMBER_TYPES = ["Float", "Int", "Currency", "Percent"];
-const SELECT_TYPES = ["Select", "Autocomplete"];
-
-interface ValueControl {
-	is: unknown;
-	props: Record<string, unknown>;
-}
-
-/** Bare field meta (no label/description) so the input renders compact, with the
- *  field's label as placeholder. */
-function bareField(field: FilterField, overrides: Partial<FieldMeta> = {}): FieldMeta {
-	return {
-		fieldname: field.fieldname,
-		fieldtype: field.fieldtype,
-		options: field.options,
-		placeholder: field.label,
-		...overrides,
-	};
-}
-
-/** The value control for a field's quick input, by fieldtype — and, for the
- *  toggle fields, the active operator. The `name` field is a text box in `like`
- *  mode and a Link picker (against its own doctype) in `equals` mode; a real Link
- *  is always an exact picker; Dynamic Link has no fixed target so it stays a text
- *  box. Select gets a leading blank option so the quick filter can clear to empty. */
-function valueControl(field: FilterField): ValueControl {
-	const fieldtype = field.fieldtype;
-	if (isNameField(field)) {
-		return activeOperator(field) === "equals"
-			? { is: LinkField, props: { field: bareField(field) } }
-			: { is: TextInput, props: { type: "text", placeholder: field.label } };
-	}
-	if (fieldtype === "Link") {
-		return { is: LinkField, props: { field: bareField(field) } };
-	}
-	if (SELECT_TYPES.includes(fieldtype)) {
-		const options = "\n" + (field.options ?? "");
-		return { is: SelectField, props: { field: bareField(field, { options }) } };
-	}
-	if (NUMBER_TYPES.includes(fieldtype)) {
-		return { is: NumberField, props: { field: bareField(field) } };
-	}
-	if (fieldtype === "Date") return { is: DateField, props: { field: bareField(field) } };
-	if (fieldtype === "Datetime") return { is: DatetimeField, props: { field: bareField(field) } };
-	if (fieldtype === "Duration") return { is: DurationField, props: { field: bareField(field) } };
-	return { is: TextInput, props: { type: "text", placeholder: field.label } };
+// Customize edits (add / remove / reorder) re-emit the whole surfaced list; storing
+// it through the model promotes the Meta-derived default into a persisted set.
+function onUpdateFields(next: FilterField[]) {
+	fields.value = next;
 }
 </script>
