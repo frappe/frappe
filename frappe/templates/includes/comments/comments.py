@@ -49,7 +49,7 @@ def add_comment(
 			return
 
 		if not guest_allowed:
-			frappe.throw(_("Please login to post a comment."))
+			frappe.throw(_("Please login to post a comment."), exc=frappe.AuthenticationError)
 
 	if not comment.strip():
 		frappe.msgprint(_("The comment cannot be empty"))
