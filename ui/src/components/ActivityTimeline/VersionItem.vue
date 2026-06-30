@@ -21,9 +21,7 @@
 				<FeatherIcon :name="expanded ? 'chevron-up' : 'chevron-down'" class="size-3.5" />
 			</button>
 			<div class="ms-auto whitespace-nowrap">
-				<Tooltip :text="dateFormat(activity.timestamp)">
-					<span class="text-sm text-ink-gray-5">{{ timeAgo(activity.timestamp) }}</span>
-				</Tooltip>
+				<TimeAgo :timestamp="activity.timestamp" class="text-sm" />
 			</div>
 		</div>
 
@@ -79,11 +77,7 @@
 					</span>
 					<!-- single-change timeago inline; group puts it in the header -->
 					<div v-if="changes.length === 1" class="ms-auto whitespace-nowrap">
-						<Tooltip :text="dateFormat(activity.timestamp)">
-							<span class="text-sm text-ink-gray-5">{{
-								timeAgo(activity.timestamp)
-							}}</span>
-						</Tooltip>
+						<TimeAgo :timestamp="activity.timestamp" class="text-sm" />
 					</div>
 				</div>
 
@@ -124,9 +118,7 @@
 								>{{ truncate(hop.to).text }}</span
 							>
 							<span>·</span>
-							<Tooltip :text="dateFormat(hop.timestamp)">
-								<span class="text-ink-gray-5">{{ timeAgo(hop.timestamp) }}</span>
-							</Tooltip>
+							<TimeAgo :timestamp="hop.timestamp" />
 						</div>
 					</div>
 				</div>
@@ -136,11 +128,12 @@
 </template>
 
 <script setup lang="ts">
-import { FeatherIcon, Tooltip } from "frappe-ui";
+import { FeatherIcon } from "frappe-ui";
 import { computed, reactive, ref } from "vue";
 import { DotIcon } from "./icons";
+import TimeAgo from "./TimeAgo.vue";
 import type { FieldChange, VersionActivity, VersionChange } from "./types";
-import { dateFormat, timeAgo, truncate } from "./utils";
+import { truncate } from "./utils";
 
 const props = defineProps<{
 	activity: VersionActivity;

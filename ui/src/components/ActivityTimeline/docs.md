@@ -583,6 +583,114 @@ const { activities, loading, error, paginate } =
 
 `reload` lives on the composable at the call site (not exposed by the component).
 
+### Bring your own data source (no composable)
+
+`useActivityTimeline` is just *one* producer of `Activity[]`. Because the renderer
+is pure, you can skip it entirely and feed the component from any resource — here a
+raw `createListResource` over `Communication` — by mapping each row into the
+`Activity` contract yourself and supplying your **own** `paginate` controller (the
+shape on line ~175) plus an optional `#load_more` override:
+
+```vue
+<template>
+  <div class="p-6 overflow-scroll">
+    <ActivityTimeline
+      :activities="activities"
+      :paginate="{
+        hasNextPage: emails.hasNextPage,
+        fetchNextPage: emails.next,
+        isFetchingNextPage: emails.loading,
+        position: 'bottom',
+      }"
+    >
+      <template #item-email="{ activity }">
+        <EmailItem :email="activity" />
+      </template>
+      <!-- a consumer-defined custom type, rendered via its #item-{type} slot -->
+      <template #item-feedback="{ activity }">
+        <div class="p-4 bg-gray-100 rounded-md">
+          <p class="text-gray-700">{{ activity.data.message }}</p>
+        </div>
+      </template>
+      <!-- override the Load More control for all positions -->
+      <template #load_more>
+        <div class="flex justify-center py-4">
+          <Button
+            v-if="emails.hasNextPage"
+            :loading="emails.loading"
+            @click="emails.next()"
+            :label="__('Load More')"
+          />
+        </div>
+      </template>
+    </ActivityTimeline>
+  </div>
+</template>
+
+<script setup lang="ts">
+import { ListResource } from "@/types";
+import { ActivityTimeline, EmailItem } from "@framework/ui";
+import { createListResource } from "frappe-ui";
+import { computed } from "vue";
+
+const emails: ListResource = createListResource({
+  doctype: "Communication",
+  fields: [
+    "name",
+    "subject",
+    "content",
+    "sender",
+    "sender_full_name",
+    "recipients",
+    "cc",
+    "bcc",
+    "communication_date",
+    "delivery_status",
+  ],
+  filters: {
+    reference_doctype: "HD Ticket",
+    reference_name: "26638",
+  },
+  orderBy: "communication_date desc", // newest-first, matches the feed
+  pageLength: 20,
+  auto: true,
+});
+
+// map raw Communication rows → the Activity envelope the renderer expects
+const activities = computed(() => {
+  if (emails.loading || !emails.data) return [];
+  return emails.data.map((email) => ({
+    type: "email",
+    key: email.name,
+    timestamp: email.communication_date,
+    author: {
+      name: email.sender_full_name || email.sender,
+      email: email.sender,
+      fullname: email.sender_full_name || email.sender,
+      image: "",
+    },
+    data: {
+      name: email.name,
+      subject: email.subject,
+      content: email.content,
+      sender: email.sender,
+      to: email.recipients,
+      cc: email.cc,
+      bcc: email.bcc,
+      deliveryStatus: email.delivery_status,
+    },
+  }));
+});
+</script>
+```
+
+The component never learns it's reading `Communication` rows — it sees the same
+`Activity[]` + `paginate` contract. Note the `paginate` controller is just the
+plain shape (`hasNextPage` / `fetchNextPage` / `isFetchingNextPage` / `position`),
+satisfied here directly by the list resource's `hasNextPage` / `next` / `loading`.
+Mind the ordering: this maps rows in `communication_date desc`, so prepend a sort
+(oldest-first) if you want to match the composable's default feed order.
+
 ---
 
 ## 7. Backend — `frappe/desk/form/`

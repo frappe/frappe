@@ -38,17 +38,13 @@
 					/>
 				</button>
 				<span>·</span>
-				<Tooltip :text="dateFormat(activity.timestamp)">
-					<span class="text-sm text-ink-gray-5">{{ timeAgo(activity.timestamp) }}</span>
-				</Tooltip>
+				<TimeAgo :timestamp="activity.timestamp" class="text-sm" />
 			</div>
 			<div v-if="expanded" class="flex flex-col gap-2">
 				<div v-for="row in group" :key="row.key" class="flex items-center gap-1.5">
 					<ActorText :activity="row" />
 					<span>·</span>
-					<Tooltip :text="dateFormat(row.timestamp)">
-						<span class="text-sm text-ink-gray-5">{{ timeAgo(row.timestamp) }}</span>
-					</Tooltip>
+					<TimeAgo :timestamp="row.timestamp" class="text-sm" />
 				</div>
 			</div>
 		</template>
@@ -79,19 +75,17 @@
 					activity.data.fileName
 				}}</span>
 			</template>
-			<span>·</span>
-			<Tooltip :text="dateFormat(activity.timestamp)">
-				<span class="text-sm text-ink-gray-5">{{ timeAgo(activity.timestamp) }}</span>
-			</Tooltip>
+			<TimeAgo :timestamp="activity.timestamp" class="text-sm ml-auto" />
 		</div>
 	</div>
 </template>
 
 <script setup lang="ts">
-import { FeatherIcon, Tooltip } from "frappe-ui";
+import { FeatherIcon } from "frappe-ui";
 import { computed, h, ref } from "vue";
+import TimeAgo from "./TimeAgo.vue";
 import type { AttachmentLogActivity, LogActivity } from "./types";
-import { dateFormat, splitBold, timeAgo } from "./utils";
+import { splitBold } from "./utils";
 
 const props = defineProps<{
 	activity: LogActivity | AttachmentLogActivity;

@@ -12,15 +12,13 @@
 			<FeatherIcon name="activity" class="h-7 w-7 text-ink-gray-4" />
 			<span class="text-lg font-medium text-ink-gray-8">No activity found</span>
 		</div>
-		<div v-else class="activities flex flex-col gap-2" :tabindex="0">
+		<div v-else class="activities flex flex-col gap-2 mt-2" :tabindex="0">
 			<!-- LoadMore for Pagination -->
 			<div
 				v-if="showLoadMoreButton && !loadMoreAtBottom"
 				class="mb-1 flex w-full justify-center"
 			>
-				<slot name="load_more" :loading="isFetching" :loadMore="loadMore">
-					<LoadMoreButton :loading="isFetching" @click="loadMore" />
-				</slot>
+				<LoadMore />
 			</div>
 			<div
 				v-for="(activity, i) in activities"
@@ -60,14 +58,12 @@
 						:class="[i == activities.length - 1 && 'mb-5']"
 						:data-type="activity.type"
 					>
-						<!-- in-feed Load More: fetches older communications; viewport stays put -->
+						<!-- Load More in activity -->
 						<div
 							v-if="activity.type === 'load_more'"
 							class="flex w-full justify-center"
 						>
-							<slot name="load_more" :loading="isFetching" :loadMore="loadMore">
-								<LoadMoreButton :loading="isFetching" @click="loadMore" />
-							</slot>
+							<LoadMore />
 						</div>
 						<slot v-else :name="`item-${activity.type}`" :activity="activity">
 							<!-- default slot: full per-row override, exposes the row as { item } -->
@@ -98,9 +94,7 @@
 				v-if="showLoadMoreButton && loadMoreAtBottom"
 				class="mt-4 flex w-full justify-center"
 			>
-				<slot name="load_more" :loading="isFetching" :loadMore="loadMore">
-					<LoadMoreButton :loading="isFetching" @click="loadMore" />
-				</slot>
+				<LoadMore />
 			</div>
 		</div>
 	</div>
@@ -108,7 +102,7 @@
 
 <script setup lang="ts">
 import { ErrorMessage, FeatherIcon, LoadingIndicator } from "frappe-ui";
-import { computed, ref } from "vue";
+import { computed, h, ref, useSlots } from "vue";
 import CommentItem from "./CommentItem.vue";
 import EmailItem from "./EmailItem.vue";
 import GutterIcon from "./GutterIcon.vue";
@@ -138,9 +132,15 @@ defineSlots<
 >();
 
 const rootEl = ref<HTMLElement | null>(null);
+const slots = useSlots();
 
-// next page in flight; drives Load More spinners
 const isFetching = computed(() => !!props.paginate?.isFetchingNextPage);
+
+// can be rendered at up to three sites (top / in-feed row / bottom) that differ only in wrapper.
+const LoadMore = () =>
+	slots.load_more
+		? slots.load_more({ loading: isFetching.value, loadMore })
+		: h(LoadMoreButton, { loading: isFetching.value, onClick: loadMore });
 
 // consumer can inject an in-feed load_more row; otherwise we show the standalone button
 const hasInlineLoadMore = computed(() => props.activities.some((a) => a.type === "load_more"));
