@@ -109,7 +109,7 @@ class TestComment(FrappeTestCase):
 		test_blog = make_test_blog()
 		with set_user("Guest"):
 			self.assertRaises(
-				frappe.ValidationError,
+				frappe.AuthenticationError,
 				add_comment,
 				comment="Good comment with 10 chars",
 				comment_email=some_system_user,
