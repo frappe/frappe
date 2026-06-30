@@ -60,7 +60,7 @@
 							size="sm"
 							label="Approve & build"
 							:disabled="loading"
-							@click="sendPrompt('Yes, that looks good — go ahead and build it.')"
+							@click="sendPrompt('Yes, that looks good - go ahead and build it.')"
 						/>
 					</div>
 
@@ -82,7 +82,7 @@
 				</div>
 			</template>
 
-			<p v-if="loading" class="text-xs text-ink-gray-5">
+			<p v-if="loading" class="text-p-xs text-ink-gray-5">
 				{{ statusMessage || "Generating…" }}
 			</p>
 		</div>
