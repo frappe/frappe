@@ -192,6 +192,16 @@ def new_site(
 	help="Ignore the validations and downgrade warnings. This action is not recommended",
 )
 @click.option("--encryption-key", help="Backup encryption key")
+@click.option("--source-mariadb-host", help="Host of a MariaDB server used to stage a MariaDB backup for conversion to PostgreSQL")
+@click.option("--source-mariadb-port", default="3306", help="Port of the staging MariaDB server")
+@click.option("--source-mariadb-root-username", default="root", help="Root user of the staging MariaDB server")
+@click.option("--source-mariadb-root-password", help="Root password of the staging MariaDB server")
+@click.option(
+	"--pgloader-dynamic-space-size",
+	type=int,
+	default=None,
+	help="Heap (MB) for pgloader when converting a MariaDB backup (default: pgloader's own); raise for very large dumps",
+)
 @pass_context
 def restore(
 	context: CliCtxObj,
@@ -206,13 +216,32 @@ def restore(
 	force=None,
 	with_public_files=None,
 	with_private_files=None,
+	source_mariadb_host=None,
+	source_mariadb_port="3306",
+	source_mariadb_root_username="root",
+	source_mariadb_root_password=None,
+	pgloader_dynamic_space_size=None,
 ):
 	"Restore site database from an sql file"
 
+	from frappe.database.postgres.import_from_mariadb import set_staging_mariadb
 	from frappe.utils.synchronization import filelock
 
 	site = get_site(context)
 	frappe.init(site)
+
+	# A MariaDB backup restored onto a PostgreSQL site is converted via pgloader, which
+	# needs a live MariaDB server to stage the dump (see import_from_mariadb).
+	if source_mariadb_host:
+		set_staging_mariadb(
+			{
+				"host": source_mariadb_host,
+				"port": source_mariadb_port,
+				"user": source_mariadb_root_username,
+				"password": source_mariadb_root_password,
+			},
+			dynamic_space_mb=pgloader_dynamic_space_size,
+		)
 
 	with filelock("site_restore", timeout=1):
 		_restore(
@@ -349,7 +378,7 @@ def restore_backup(
 ):
 	from pathlib import Path
 
-	from frappe.installer import _new_site, is_downgrade, is_partial, validate_database_sql
+	from frappe.installer import _new_site, get_dump_db_type, is_downgrade, is_partial, validate_database_sql
 
 	if is_partial(sql_file_path):
 		click.secho(
@@ -368,6 +397,20 @@ def restore_backup(
 			"This is not recommended and may lead to unexpected behaviour. Do you want to continue anyway?"
 		)
 		click.confirm(warn_message, abort=True)
+
+	# A MariaDB backup restored onto a PostgreSQL site is converted with pgloader first.
+	if not force and frappe.conf.db_type == "postgres" and get_dump_db_type(sql_file_path) == "mariadb":
+		click.confirm(
+			click.style(
+				"You have given a MariaDB backup for a PostgreSQL site restore. It will be converted "
+				"with pgloader before restoring.\n"
+				"- This does not work on ARM / Apple Silicon.\n"
+				"- PostgreSQL support is experimental, so a successful conversion is not guaranteed.\n"
+				"Continue with the conversion?",
+				fg="yellow",
+			),
+			abort=True,
+		)
 
 	# Validate the sql file
 	validate_database_sql(sql_file_path, _raise=not force)
@@ -1667,6 +1710,67 @@ def sync_desktop_icons(context: CliCtxObj):
 			update_progress_bar("Updating Desktop Icons", i, len(files))
 
 
+@click.command("convert-mariadb-backup")
+@click.argument("sql-file-path", type=click.Path(exists=True, dir_okay=False, resolve_path=True))
+@click.option("--output", help="Path for the converted PostgreSQL backup (default: alongside the input)")
+@click.option("--db-host", default="localhost", help="PostgreSQL host used to stage the conversion")
+@click.option("--db-port", default="5432", help="PostgreSQL port")
+@click.option("--db-root-username", default="postgres", help="PostgreSQL superuser")
+@click.option("--db-root-password", help="PostgreSQL superuser password")
+@click.option("--source-mariadb-host", default="localhost", help="Staging MariaDB host")
+@click.option("--source-mariadb-port", default="3306", help="Staging MariaDB port")
+@click.option("--source-mariadb-root-username", default="root", help="Staging MariaDB root user")
+@click.option("--source-mariadb-root-password", help="Staging MariaDB root password")
+@click.option(
+	"--dynamic-space-size",
+	type=int,
+	default=None,
+	help="Heap (MB) for pgloader (default: pgloader's own); raise for very large dumps",
+)
+def convert_mariadb_backup(
+	sql_file_path,
+	output=None,
+	db_host="localhost",
+	db_port="5432",
+	db_root_username="postgres",
+	db_root_password=None,
+	source_mariadb_host="localhost",
+	source_mariadb_port="3306",
+	source_mariadb_root_username="root",
+	source_mariadb_root_password=None,
+	dynamic_space_size=None,
+):
+	"Convert a MariaDB site backup into a restorable PostgreSQL backup (needs pgloader; x86_64 only)"
+	from frappe.database.postgres.import_from_mariadb import convert_backup_to_postgres
+
+	output = output or _converted_backup_path(sql_file_path)
+	mariadb = {
+		"host": source_mariadb_host,
+		"port": source_mariadb_port,
+		"user": source_mariadb_root_username,
+		"password": source_mariadb_root_password,
+	}
+	postgres_root = {
+		"host": db_host,
+		"port": db_port,
+		"user": db_root_username,
+		"password": db_root_password,
+	}
+	try:
+		convert_backup_to_postgres(
+			sql_file_path, output, mariadb, postgres_root, verbose=True, dynamic_space_mb=dynamic_space_size
+		)
+	except (frappe.ValidationError, frappe.ExecutableNotFound) as e:
+		click.secho(str(e), fg="red")
+		raise SystemExit(1)
+	click.secho(f"Converted PostgreSQL backup written to {output}", fg="green")
+
+
+def _converted_backup_path(sql_file_path: str) -> str:
+	base = sql_file_path.removesuffix(".gz").removesuffix(".sql")
+	return f"{base}-postgres.sql.gz"
+
+
 commands = [
 	add_system_manager,
 	add_user_for_sites,
@@ -1704,4 +1808,5 @@ commands = [
 	clear_log_table,
 	bypass_patch,
 	sync_desktop_icons,
+	convert_mariadb_backup,
 ]

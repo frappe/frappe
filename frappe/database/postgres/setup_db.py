@@ -45,8 +45,16 @@ def setup_database():
 
 
 def bootstrap_database(verbose, source_sql=None):
-	frappe.connect()
-	import_db_from_sql(source_sql, verbose)
+	from frappe.installer import get_dump_db_type
+
+	if source_sql and get_dump_db_type(source_sql) == "mariadb":
+		# A MariaDB backup restored onto a PostgreSQL site is converted with pgloader.
+		from frappe.database.postgres.import_from_mariadb import import_mariadb_dump
+
+		import_mariadb_dump(source_sql, verbose)
+	else:
+		frappe.connect()
+		import_db_from_sql(source_sql, verbose)
 
 	frappe.connect()
 	if "tabDefaultValue" not in frappe.db.get_tables():
