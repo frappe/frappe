@@ -158,14 +158,25 @@ body {
 	text-align: right;
 }
 
-/* In left-right orientation, alignment applies to the whole flex row */
-.field.left-right.field-align-right {
-	justify-content: flex-end;
+/* In left-right orientation, alignment/spacing variants reset fixed widths so
+   justify-content can actually reposition the label+value pair. */
+.field.left-right.field-align-right .label,
+.field.left-right.field-align-right .value,
+.field.left-right.field-align-center .label,
+.field.left-right.field-align-center .value,
+.field.left-right.field-justify-space-between .label,
+.field.left-right.field-justify-space-between .value,
+.field.left-right.field-justify-space-evenly .label,
+.field.left-right.field-justify-space-evenly .value {
+	width: auto;
+	flex: none;
 }
 
-.field.left-right.field-align-center {
-	justify-content: center;
-}
+.field.left-right.field-align-right { justify-content: flex-end; }
+.field.left-right.field-align-center { justify-content: center; }
+.field.left-right.field-justify-space-between { justify-content: space-between; }
+.field.left-right.field-justify-space-between .value { text-align: right; }
+.field.left-right.field-justify-space-evenly { justify-content: space-evenly; }
 
 /* Child table */
 .child-table {

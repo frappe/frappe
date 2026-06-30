@@ -219,6 +219,24 @@
 					</div>
 				</div>
 
+				<!-- VISIBILITY section -->
+				<div class="pfb-insp-section">
+					<div class="pfb-insp-section-head" @click="toggle('t_visibility')">
+						<span class="pfb-insp-section-label">{{ __("Visibility") }}</span>
+						<span
+							class="pfb-insp-chevron"
+							:class="{ collapsed: !open.t_visibility }"
+							v-html="frappe.utils.icon('chevron-down', 'xs')"
+						></span>
+					</div>
+					<div v-show="open.t_visibility">
+						<VisibilitySection
+							v-model="selected_field.visible_if"
+							:previewDoc="preview_doc"
+						/>
+					</div>
+				</div>
+
 				<div class="pfb-insp-actions">
 					<button class="btn btn-xs btn-danger-subtle" @click="remove_field">
 						<span v-html="frappe.utils.icon('x', 'xs')"></span>
@@ -303,6 +321,20 @@
 									></button>
 								</div>
 							</div>
+							<div class="pfb-insp-row">
+								<span class="pfb-insp-label">{{ __("Spacing") }}</span>
+								<select
+									class="pfb-insp-select"
+									:value="current_label_justify"
+									@change="selected_field.label_justify = $event.target.value"
+								>
+									<option value="">{{ __("Normal") }}</option>
+									<option value="space-between">
+										{{ __("Space Between") }}
+									</option>
+									<option value="space-evenly">{{ __("Space Evenly") }}</option>
+								</select>
+							</div>
 						</template>
 					</div>
 				</div>
@@ -316,10 +348,11 @@
 							v-html="frappe.utils.icon('chevron-down', 'xs')"
 						></span>
 					</div>
-					<div v-show="open.f_visibility" class="pfb-insp-section-body">
-						<p class="pfb-insp-hint text-muted">
-							{{ __("Conditional visibility coming soon.") }}
-						</p>
+					<div v-show="open.f_visibility">
+						<VisibilitySection
+							v-model="selected_field.visible_if"
+							:previewDoc="preview_doc"
+						/>
 					</div>
 				</div>
 
@@ -527,10 +560,11 @@
 							v-html="frappe.utils.icon('chevron-down', 'xs')"
 						></span>
 					</div>
-					<div v-show="open.s_visibility" class="pfb-insp-section-body">
-						<p class="pfb-insp-hint text-muted">
-							{{ __("Conditional visibility coming soon.") }}
-						</p>
+					<div v-show="open.s_visibility">
+						<VisibilitySection
+							v-model="selected_section.visible_if"
+							:previewDoc="preview_doc"
+						/>
 					</div>
 				</div>
 
@@ -566,6 +600,7 @@ import draggable from "vuedraggable";
 import { useStore } from "../../stores";
 import LetterHeadZoneInspector from "./LetterHeadZoneInspector.vue";
 import Autocomplete from "../../../vue-components/Autocomplete.vue";
+import VisibilitySection from "./VisibilitySection.vue";
 
 let store = inject("$store");
 let { letterhead, layout } = useStore();
@@ -574,6 +609,7 @@ let selected_field = computed(() => store.selected_field.value);
 let selected_section = computed(() => store.selected_section.value);
 let selected_letterhead = computed(() => store.selected_letterhead.value);
 let selected_lh_footer = computed(() => store.selected_lh_footer.value);
+let preview_doc = computed(() => store.preview_doc.value);
 
 const open = ref({
 	f_field: true,
@@ -584,6 +620,7 @@ const open = ref({
 	s_visibility: false,
 	t_table: true,
 	t_columns: true,
+	t_visibility: true,
 });
 
 function toggle(key) {
@@ -662,6 +699,7 @@ let short_fieldtype = computed(() => {
 
 let current_show_label = computed(() => selected_field.value?.show_label ?? "show");
 let current_align = computed(() => selected_field.value?.align ?? "left");
+let current_label_justify = computed(() => selected_field.value?.label_justify ?? "");
 
 const show_label_opts = [
 	{ value: "show", label: __("Show") },
@@ -1110,6 +1148,22 @@ function set_padding(side, value) {
 }
 
 .pfb-insp-input:focus {
+	border-color: var(--gray-500);
+}
+
+.pfb-insp-select {
+	width: 100%;
+	padding: 5px 8px;
+	font-size: var(--text-sm);
+	border: 1px solid var(--border-color);
+	border-radius: var(--radius);
+	background: var(--fg-color);
+	color: var(--text-color);
+	outline: none;
+	cursor: pointer;
+}
+
+.pfb-insp-select:focus {
 	border-color: var(--gray-500);
 }
 

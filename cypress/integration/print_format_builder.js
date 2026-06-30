@@ -425,7 +425,7 @@ context("Print Format Builder — section insert", () => {
 			1
 		);
 
-		cy.get(".section-with-insert .section-insert").first().click({ force: true });
+		cy.get(".section-with-insert .section-insert-btn").first().click({ force: true });
 
 		cy.get(".sections-container [data-pfb-section]").should("have.length", 2);
 	});
@@ -449,7 +449,7 @@ context("Print Format Builder — section insert", () => {
 			1
 		);
 
-		cy.get(".sections-container > .section-insert").click({ force: true });
+		cy.get(".sections-container > .section-insert .section-insert-btn").click({ force: true });
 
 		cy.get(".sections-container [data-pfb-section]").should("have.length", 2);
 	});
@@ -475,13 +475,13 @@ context("Print Format Builder — section insert", () => {
 		cy.get(".sections-container", { timeout: 20000 }).should("be.visible");
 		cy.get(".sections-container [data-pfb-section]").should("have.length", 0);
 
-		cy.get(".sections-container > .section-insert").click({ force: true });
+		cy.get(".sections-container > .section-insert .section-insert-btn").click({ force: true });
 		cy.get(".sections-container [data-pfb-section]").should("have.length", 1);
 
-		cy.get(".sections-container > .section-insert").click({ force: true });
+		cy.get(".sections-container > .section-insert .section-insert-btn").click({ force: true });
 		cy.get(".sections-container [data-pfb-section]").should("have.length", 2);
 
-		cy.get(".sections-container > .section-insert").click({ force: true });
+		cy.get(".sections-container > .section-insert .section-insert-btn").click({ force: true });
 		cy.get(".sections-container [data-pfb-section]").should("have.length", 3);
 	});
 

@@ -1,7 +1,7 @@
 <template>
-	<div class="section-insert" @click="$emit('insert')">
+	<div class="section-insert">
 		<div class="section-insert-line"></div>
-		<button class="section-insert-btn">
+		<button class="section-insert-btn" @click="$emit('insert')">
 			<span v-html="frappe.utils.icon('plus', 'xs')"></span>
 			{{ __("Add Section") }}
 		</button>
@@ -19,7 +19,6 @@ defineEmits(["insert"]);
 	align-items: center;
 	gap: 8px;
 	height: 1.5rem;
-	cursor: pointer;
 	opacity: 0;
 	transition: opacity 0.15s ease;
 }
