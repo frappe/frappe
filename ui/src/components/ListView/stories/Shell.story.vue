@@ -9,8 +9,11 @@
   the workspace convention.
 -->
 <template>
-	<div class="flex flex-col gap-4 p-6">
-		<div class="flex items-center gap-2">
+	<!-- `h-full` fills the layout's content area so the list gets a finite height
+	     to distribute (toolbar/footer fixed, rows scroll). `min-h-0` lets the flex
+	     children shrink rather than overflow the page. -->
+	<div class="flex h-full min-h-0 flex-col gap-4 p-6">
+		<div class="flex shrink-0 items-center gap-2">
 			<span class="text-p-sm text-ink-gray-6">Doctype</span>
 			<Select v-model="doctype" :options="doctypeOptions" class="w-56" />
 		</div>
@@ -26,7 +29,7 @@ import ListViewToolbar from "./ListViewToolbar.vue";
 
 const props = withDefaults(defineProps<{ doctype?: string; doctypeOptions?: string[] }>(), {
 	doctype: "CRM Lead",
-	doctypeOptions: () => ["CRM Lead", "CRM Deal", "CRM Task", "ToDo"],
+	doctypeOptions: () => ["CRM Lead", "CRM Deal", "CRM Task", "ToDo", "DocType"],
 });
 
 const doctype = ref(props.doctype);

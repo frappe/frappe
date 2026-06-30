@@ -11,17 +11,24 @@
   that meta resolved.
 -->
 <template>
-	<div class="flex flex-col rounded-lg border border-outline-gray-1 bg-surface-white">
+	<!-- Bounded flex column so only the rows scroll (CRM-parity): the toolbar and
+	     footer are fixed (`shrink-0`), the table region takes the remaining height
+	     (`flex-1 min-h-0`), and the list's own `ListRows` (`overflow-y-auto`) is the
+	     sole scroller. Needs a height from the parent (the story gives it `flex-1`);
+	     `min-h-0` lets it shrink, `overflow-hidden` clips so nothing spills the card. -->
+	<div
+		class="flex min-h-0 flex-col overflow-hidden rounded-lg border border-outline-gray-1 bg-surface-white"
+	>
 		<!-- Toolbar region: the home of the list-view controls. The slotted content
 		     owns its own alignment (quick filters left, Filter/Sort right). -->
 		<!-- `items-start` so Filter/Sort stay pinned to the top row when the quick
 		     filters wrap to a second line, rather than centering against the taller strip. -->
-		<div class="flex items-start gap-2 border-b border-outline-gray-1 px-3 py-2">
+		<div class="flex shrink-0 items-start gap-2 border-b border-outline-gray-1 px-3 py-2">
 			<slot name="toolbar" :doctype="doctype" :meta="meta" :loading="loading" />
 		</div>
 
-		<!-- Table chrome region. -->
-		<div class="min-h-32 p-3">
+		<!-- Table chrome region — grows to fill and clips; the list scrolls inside it. -->
+		<div class="flex min-h-0 flex-1 flex-col overflow-hidden p-3">
 			<div v-if="loading" class="text-p-sm text-ink-gray-5">Loading meta…</div>
 			<div v-else-if="errorMessage" class="text-p-sm text-ink-red-4">
 				{{ errorMessage }}
@@ -42,7 +49,7 @@
 		</div>
 
 		<!-- Footer region: below the list (e.g. the dev wire-output readout). -->
-		<div v-if="$slots.footer" class="border-t border-outline-gray-1 px-3 py-2">
+		<div v-if="$slots.footer" class="shrink-0 border-t border-outline-gray-1 px-3 py-2">
 			<slot name="footer" :doctype="doctype" :meta="meta" />
 		</div>
 	</div>

@@ -10,14 +10,21 @@
 
   The `#table` slot mounts frappe-ui's own `ListView`/`ListHeader` — the same chrome
   CRM renders — fed by `serializeColumns` (`view.columns.wire`), so the drag math and
-  grid layout come for free and stay pixel-parity with CRM. Rows are stubbed (no
-  `get_list`); this surface proves the controls + sync, not data fetching.
+  grid layout come for free and stay pixel-parity with CRM. Rows are now LIVE: the
+  host-side `useListData` turns the controls' wire projections (filters / order_by /
+  fields) into `frappe.client.get_list` rows, so editing any control refetches.
+
+  Selection and the footer are the host's job too — `selectable` turns on row
+  checkboxes, `ListSelectBanner` surfaces bulk actions over the live selection, and
+  `ListFooter` renders the count + Load More + page-length selector, paging through
+  `useListData`. The shared composables stay fetch-free (ADR-0001); this surface owns
+  the data + chrome around them.
 
   Mounted under the Shell story's `:key="doctype"`, so it (and `useListView`)
   reconstructs per doctype.
 -->
 <template>
-	<ListViewShell :doctype="doctype">
+	<ListViewShell :doctype="doctype" class="min-h-0 flex-1">
 		<template #toolbar>
 			<QuickFilter
 				class="flex-1"
@@ -44,11 +51,14 @@
 		</template>
 
 		<template #table>
+			<!-- `min-h-0` lets the list shrink inside the flex table region so its own
+			     `ListRows` (`overflow-y-auto`) becomes the scroller, not the page. -->
 			<ListView
+				class="min-h-0"
 				:columns="view.columns.wire.value"
-				:rows="stubRows"
+				:rows="data.rows.value"
 				row-key="name"
-				:options="{ selectable: false, showTooltip: false, resizeColumn: true }"
+				:options="{ selectable: true, showTooltip: false, resizeColumn: true }"
 			>
 				<!-- Explicit default slot: frappe-ui's `ListView` does NOT re-emit
 				     `columnWidthUpdated`, so we catch it on `ListHeader` ourselves and
@@ -60,22 +70,53 @@
 					@dblclick="onResizerDoubleClick"
 				/>
 				<ListRows />
+				<!-- The selection banner lives in the default-slot fallback we're
+				     overriding, so the host re-adds it. Its `#actions` slot is where
+				     bulk actions go; these are demo no-ops (a real host would mutate). -->
+				<ListSelectBanner>
+					<template #actions="{ selections: selected, unselectAll }">
+						<Dropdown :options="bulkActions(selected, unselectAll)">
+							<Button icon="lucide-more-horizontal" variant="ghost" />
+						</Dropdown>
+					</template>
+				</ListSelectBanner>
 			</ListView>
 		</template>
 
 		<template #footer>
-			<div class="text-xs text-ink-gray-6">order_by = "{{ view.sort.orderBy.value }}"</div>
-			<div class="text-xs text-ink-gray-6">filters = {{ view.filters.wire.value }}</div>
-			<div class="text-xs text-ink-gray-6">columns = {{ view.columns.wire.value }}</div>
+			<!-- Real list footer: page-length selector (left), Load More + "N of total"
+			     (right). `v-model` is the page length — a change refetches page 1. -->
+			<ListFooter
+				v-model="data.pageLength.value"
+				:options="{ rowCount: data.rowCount.value, totalCount: data.totalCount.value }"
+				@loadMore="data.loadMore()"
+			/>
+			<!-- The dev wire-output readout this surface was built to verify. -->
+			<div class="mt-2 space-y-0.5 border-t border-outline-gray-1 pt-2">
+				<div class="text-xs text-ink-gray-5">
+					order_by = "{{ view.sort.orderBy.value }}"
+				</div>
+				<div class="text-xs text-ink-gray-5">filters = {{ view.filters.wire.value }}</div>
+				<div class="text-xs text-ink-gray-5">columns = {{ view.columns.wire.value }}</div>
+			</div>
 		</template>
 	</ListViewShell>
 </template>
 
 <script setup lang="ts">
-import { computed } from "vue";
-import { Button, ListView, ListHeader, ListRows } from "frappe-ui";
+import {
+	Button,
+	Dropdown,
+	ListView,
+	ListHeader,
+	ListRows,
+	ListSelectBanner,
+	ListFooter,
+	toast,
+} from "frappe-ui";
 import { ListViewShell } from "../index";
 import { useListView } from "../useListView";
+import { useListData } from "../useListData";
 import { Filter } from "../../Filter";
 import { SortBy } from "../../SortBy";
 import { QuickFilter } from "../../QuickFilter";
@@ -85,6 +126,22 @@ const props = defineProps<{ doctype: string }>();
 // `view.quickFilter.customizing` / `.canCustomize` come from the shared composable,
 // so the toggle below works regardless of where it sits — no template ref needed.
 const view = useListView(props.doctype);
+// The host owns fetching: `useListData` turns the controls' wire projections into
+// live `get_list` rows + total, and pages via the footer.
+const data = useListData(props.doctype, view);
+
+// Demo bulk actions. A real host mutates here (bulk edit/delete/assign); the story
+// just confirms the selection set reaches an action handler and clears after.
+function bulkActions(selected: Set<string>, unselectAll: () => void) {
+	const run = (verb: string) => () => {
+		toast.success(`${verb} ${selected.size} ${props.doctype} (demo)`);
+		unselectAll();
+	};
+	return [
+		{ label: "Edit", onClick: run("Edit") },
+		{ label: "Delete", onClick: run("Delete") },
+	];
+}
 
 // frappe-ui's `ListHeaderItem` emits `{ key, width, save }` as a column is dragged.
 // The composite owns the handler (ADR-0006); we ignore the `save` debounce flag —
@@ -106,16 +163,4 @@ function onResizerDoubleClick(event: MouseEvent) {
 	const column = view.columns.wire.value[index];
 	if (column) view.columns.resetWidth(column.key);
 }
-
-// Stub rows so the table renders real header chrome (the resize target) without a
-// `get_list`. Each row fills every shown column's key with a placeholder cell.
-const stubRows = computed(() =>
-	[1, 2, 3].map((n) => {
-		const row: Record<string, unknown> = { name: `row-${n}` };
-		for (const column of view.columns.wire.value) {
-			row[column.key] = `${column.label} ${n}`;
-		}
-		return row;
-	})
-);
 </script>
