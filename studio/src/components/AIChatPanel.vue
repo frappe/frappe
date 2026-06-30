@@ -38,9 +38,10 @@
 					</div>
 				</div>
 				<div v-else class="flex w-full flex-col items-start gap-2">
-					<div class="w-fit max-w-full text-p-xs text-ink-gray-8">
-						<div class="whitespace-pre-wrap break-words">{{ msg.content }}</div>
-					</div>
+					<div
+						class="w-fit max-w-full break-words text-p-xs text-ink-gray-8 [&_a]:text-ink-blue-3 [&_a]:underline [&_code]:rounded [&_code]:bg-surface-gray-2 [&_code]:px-1 [&_code]:py-0.5 [&_h1]:my-1.5 [&_h1]:text-sm [&_h1]:font-semibold [&_h2]:my-1.5 [&_h2]:text-sm [&_h2]:font-semibold [&_h3]:font-semibold [&_li]:my-0.5 [&_ol]:my-1 [&_ol]:list-decimal [&_ol]:pl-5 [&_p]:my-1 [&_pre]:my-1 [&_pre]:overflow-x-auto [&_pre]:rounded [&_pre]:bg-surface-gray-2 [&_pre]:p-2 [&_strong]:font-semibold [&_ul]:my-1 [&_ul]:list-disc [&_ul]:pl-5"
+						v-html="renderMarkdown(msg.content)"
+					/>
 
 					<!-- Proposed plan: sections + palette + approve -->
 					<div
@@ -158,6 +159,7 @@
 <script lang="ts" setup>
 import { ref, computed, inject, watch, nextTick } from "vue"
 import { ErrorMessage, Button, Badge, FeatherIcon, call, createResource, Popover } from "frappe-ui"
+import { marked } from "marked"
 import useStudioStore from "@/stores/studioStore"
 import useCanvasStore from "@/stores/canvasStore"
 import { AIChatController } from "@/components/AIChatController"
@@ -230,6 +232,10 @@ function reloadSession() {
 	if (pageId.value) {
 		sessionResource.submit({ page_id: pageId.value })
 	}
+}
+
+function renderMarkdown(content: string): string {
+	return content ? (marked.parse(content, { gfm: true, breaks: true }) as string) : ""
 }
 
 const controller = new AIChatController({
