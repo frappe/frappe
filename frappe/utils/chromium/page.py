@@ -132,7 +132,7 @@ class Page:
 				url = params["request"]["url"]
 
 				if url.startswith(get_host_url()):
-					path = url.replace(get_host_url(), "").split("?v", 1)[0]
+					path = urllib.parse.urlparse(url).path
 					clean_path = urllib.parse.unquote(path)
 
 					if clean_path.startswith("assets/"):
