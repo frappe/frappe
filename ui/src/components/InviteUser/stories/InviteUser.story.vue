@@ -9,7 +9,6 @@
 
 		<div class="mb-4 flex flex-wrap items-center gap-4">
 			<Switch v-model="errored" label="Error" />
-			<Switch v-model="rolesLoading" label="Roles loading" />
 			<Switch v-model="showResultToasts" label="Result toasts" />
 		</div>
 
@@ -32,7 +31,6 @@ import InviteUser from "../InviteUser.vue";
 import type { InviteResult, InviteStore, RoleOption, UserOption } from "../types";
 
 const errored = ref(false);
-const rolesLoading = ref(false);
 const showResultToasts = ref(true);
 
 const roleFixtures: RoleOption[] = [
@@ -45,12 +43,12 @@ const userFixtures: UserOption[] = [
 	{
 		label: "Ada Lovelace",
 		value: "ada@example.com",
-		image: "https://i.pravatar.cc/80?u=ada@example.com",
+		avatar: "https://i.pravatar.cc/80?u=ada@example.com",
 	},
 	{
 		label: "Grace Hopper",
 		value: "grace@example.com",
-		image: "https://i.pravatar.cc/80?u=grace@example.com",
+		avatar: "https://i.pravatar.cc/80?u=grace@example.com",
 	},
 	{ label: "Alan Turing", value: "alan@example.com" },
 ];
@@ -66,9 +64,8 @@ const wait = (ms = 300) => new Promise((r) => setTimeout(r, ms));
 
 // a mock of the useInviteUser() controller — fixtures + in-memory verbs
 const controller = reactive({
-	roles: computed(() => (rolesLoading.value ? [] : roleFixtures)),
+	roles: roleFixtures,
 	users,
-	rolesLoading,
 	usersLoading,
 	inviting: false,
 	error: computed(() => (errored.value ? { messages: ["Permission denied"] } : null)),

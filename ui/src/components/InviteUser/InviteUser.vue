@@ -48,13 +48,16 @@
 					@invalid="onInvalidEmail"
 				/>
 
+				<!-- roles trigger sizes to its content (w-fit) instead of stretching to
+				     the form width like the email field; the class falls through to
+				     MultiSelect's LabelingWrapper. -->
 				<MultiSelect
 					v-model="selectedRoleValues"
 					:label="rolesLabel"
 					:required="true"
 					:options="roles"
-					:loading="rolesLoading"
 					:placeholder="rolesPlaceholder"
+					class="w-fit"
 				/>
 
 				<Button
@@ -97,7 +100,6 @@ const props = withDefaults(
 	{
 		roles: () => [],
 		users: () => [],
-		rolesLoading: false,
 		usersLoading: false,
 		inviting: false,
 		error: null,

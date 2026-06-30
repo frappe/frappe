@@ -17,7 +17,7 @@ export interface UserOption {
   label: string;
   value: string;
   /** Avatar image URL (the User's `user_image`), if any. */
-  image?: string;
+  avatar?: string;
 }
 
 /** One pending invitation row, as returned by `get_pending_invitations`. */
@@ -42,9 +42,9 @@ export interface InviteResult {
 export interface UseInviteUserOptions {
   /**
    * Target app the invitations belong to (the API's `app_name`). Defaults to
-   * `"frappe"`. The grantable roles shown in the picker are derived from this
-   * app's `user_invitation` hook (see `get_invitable_roles`); with the framework
-   * default only System Managers may invite for the `frappe` app.
+   * `"frappe"`. Determines who may invite (the app's `user_invitation` hook gates
+   * the API) — with the framework default, only System Managers may invite for the
+   * `frappe` app.
    */
   appName?: string;
   /** Where an invitee lands after accepting (the API's `redirect_to_path`). Defaults to `/app`. */
@@ -60,6 +60,13 @@ export interface UseInviteUserOptions {
    * `extra_invite_params` hook). Anything not whitelisted by the app is ignored.
    */
   extraParams?: Record<string, unknown>;
+  /**
+   * Roles offered in the picker. The host supplies these — the framework no longer
+   * derives them from the app's `user_invitation` hook. The backend still verifies
+   * them at invite time for apps that declare an `allowed_roles` hook (the default
+   * `frappe` app skips role validation, so it trusts this list).
+   */
+  roles?: RoleOption[];
 }
 
 /**
@@ -70,14 +77,12 @@ export interface UseInviteUserOptions {
 export interface InviteStore {
   /** Current pending invitations for `appName` (auto-fetched; no built-in UI renders them). */
   pendingInvites: PendingInvitation[];
-  /** Roles the current user may grant for `appName` (auto-fetched). */
+  /** Roles offered in the picker — the static list passed to `useInviteUser({ roles })`. */
   roles: RoleOption[];
   /** Latest user suggestions for the email field (driven by `searchUsers`). */
   users: UserOption[];
   /** True while the pending list is (re)loading. */
   loading: boolean;
-  /** True while the role list is loading. */
-  rolesLoading: boolean;
   /** True while a user search is in flight. */
   usersLoading: boolean;
   /** True while an invite request is in flight. */
@@ -113,7 +118,6 @@ export interface InviteUserProps {
   roles?: RoleOption[];
   /** User suggestions for the email field (controller data). */
   users?: UserOption[];
-  rolesLoading?: boolean;
   usersLoading?: boolean;
   inviting?: boolean;
   error?: unknown;

@@ -82,10 +82,7 @@ describe("useInviteUser", () => {
   it("creates the backing resources with the right urls and app scope", () => {
     const appName = freshApp();
     useInviteUser({ appName });
-    // roles now come from the hook-derived endpoint, not a Role list
-    expect(resourceFor("get_invitable_roles").params).toMatchObject({
-      app_name: appName,
-    });
+    // roles are a static host list now — no backing resource is created for them
     expect(resourceFor("get_pending_invitations").params).toMatchObject({
       app_name: appName,
     });
@@ -211,25 +208,36 @@ describe("useInviteUser", () => {
     expect(created.length).toBeGreaterThan(countAfterFirst);
   });
 
-  it("load() lazily fetches roles, pending, and already-invited exactly once", () => {
+  it("load() lazily fetches pending and already-invited exactly once", () => {
     const appName = freshApp();
     const store = useInviteUser({ appName });
-    const roles = resourceFor("get_invitable_roles");
     const pending = resourceFor("get_pending_invitations");
     const invited = getListFor("User Invitation");
 
     // nothing fetched on creation — fetching is lazy
-    expect(roles.fetch).not.toHaveBeenCalled();
     expect(pending.fetch).not.toHaveBeenCalled();
     expect(invited.fetch).not.toHaveBeenCalled();
 
     store.load();
-    expect(roles.fetch).toHaveBeenCalledTimes(1);
     expect(pending.fetch).toHaveBeenCalledTimes(1);
     expect(invited.fetch).toHaveBeenCalledTimes(1);
 
     // idempotent — a second load() is a no-op
     store.load();
-    expect(roles.fetch).toHaveBeenCalledTimes(1);
+    expect(pending.fetch).toHaveBeenCalledTimes(1);
+  });
+
+  it("exposes the host-supplied roles as a static list (no backing resource)", () => {
+    const appName = freshApp();
+    const roles = [
+      { label: "Sales User", value: "Sales User" },
+      { label: "Sales Manager", value: "Sales Manager" },
+    ];
+    const store = useInviteUser({ appName, roles });
+    expect(store.roles).toEqual(roles);
+    // no roles resource was ever created
+    expect(created.some((r) => r.url.includes("get_invitable_roles"))).toBe(
+      false
+    );
   });
 });

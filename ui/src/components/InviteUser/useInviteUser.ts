@@ -4,7 +4,6 @@ import type {
   InviteResult,
   InviteStore,
   PendingInvitation,
-  RoleOption,
   UserOption,
   UseInviteUserOptions,
 } from "./types";
@@ -13,7 +12,7 @@ const API = "frappe.core.api.user_invitation";
 
 /**
  * Data plugin behind `InviteUser`. Wraps Frappe's `user_invitation` API plus the
- * grantable-role and user-suggestion lookups and returns a `reactive` controller.
+ * user-suggestion lookup and returns a `reactive` controller.
  * Spread it onto the panel with `v-bind="controller"` — it's reactive, so members
  * bind as live values; don't destructure it (that would drop reactivity).
  *
@@ -29,16 +28,10 @@ export function useInviteUser(options: UseInviteUserOptions = {}): InviteStore {
   const transformRoles = options.transformRoles ?? ((roles) => roles);
   const extraParams = options.extraParams ?? {};
 
-  // Roles the current user may grant for this app, derived server-side from the
-  // app's `user_invitation` hook (falls back to all enabled roles for `frappe`).
-  const rolesResource = createResource({
-    url: `${API}.get_invitable_roles`,
-    method: "GET",
-    params: { app_name: appName },
-    auto: false,
-    transform: (names: string[]): RoleOption[] =>
-      names.map((name) => ({ label: name, value: name })),
-  });
+  // Roles offered in the picker are supplied by the host as a static list (the
+  // framework no longer derives them from the app's `user_invitation` hook); the
+  // backend still verifies them at invite time for apps that declare one.
+  const roleOptions = options.roles ?? [];
 
   const pendingResource = createResource({
     url: `${API}.get_pending_invitations`,
@@ -73,7 +66,7 @@ export function useInviteUser(options: UseInviteUserOptions = {}): InviteStore {
       rows.map((r) => ({
         label: r.full_name || r.name,
         value: r.name,
-        image: r.user_image || undefined,
+        avatar: r.user_image || undefined,
       })),
   });
 
@@ -135,12 +128,12 @@ export function useInviteUser(options: UseInviteUserOptions = {}): InviteStore {
   }
 
   // Lazy initial fetch — runs once per controller (the panel calls it on mount).
-  // Users for the email field stay on-demand via `searchUsers`.
+  // Roles are a static host list; users for the email field stay on-demand via
+  // `searchUsers`. So only the pending list + already-invited set are fetched here.
   let loaded = false;
   function load(): void {
     if (loaded) return;
     loaded = true;
-    rolesResource.fetch();
     pendingResource.fetch();
     invitedEmailsResource.fetch();
   }
@@ -149,9 +142,7 @@ export function useInviteUser(options: UseInviteUserOptions = {}): InviteStore {
     pendingInvites: computed<PendingInvitation[]>(
       () => (pendingResource.data as PendingInvitation[]) ?? []
     ),
-    roles: computed<RoleOption[]>(
-      () => (rolesResource.data as RoleOption[]) ?? []
-    ),
+    roles: roleOptions,
     users: computed<UserOption[]>(() => {
       const invited = new Set(
         (invitedEmailsResource.data as string[] | null) ?? []
@@ -160,7 +151,6 @@ export function useInviteUser(options: UseInviteUserOptions = {}): InviteStore {
       return found.filter((u) => !invited.has(u.value));
     }),
     loading: computed(() => Boolean(pendingResource.loading)),
-    rolesLoading: computed(() => Boolean(rolesResource.loading)),
     usersLoading: computed(() => Boolean(usersResource.loading)),
     inviting: computed(() => Boolean(inviteResource.loading)),
     // surface which row is busy so a host acting on pending invites can show spinners
@@ -176,7 +166,6 @@ export function useInviteUser(options: UseInviteUserOptions = {}): InviteStore {
         pendingResource.error ??
         cancelResource.error ??
         resendResource.error ??
-        rolesResource.error ??
         usersResource.error ??
         null
     ),
@@ -186,7 +175,6 @@ export function useInviteUser(options: UseInviteUserOptions = {}): InviteStore {
     searchUsers,
     load,
     reload: () => {
-      rolesResource.reload();
       pendingResource.reload();
       invitedEmailsResource.reload();
     },

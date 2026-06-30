@@ -32,6 +32,10 @@ import { InviteUser, useInviteUser } from "@framework/ui/components/InviteUser";
 const controller = useInviteUser({
   appName: "helpdesk",
   redirectPath: "/helpdesk",
+  roles: [
+    { label: "Agent", value: "Agent" },
+    { label: "Agent Manager", value: "Agent Manager" },
+  ],
 });
 </script>
 
@@ -78,12 +82,13 @@ The API is permission-gated by each app's `user_invitation` hook (`hooks.py`):
   With the framework's default hook, only **System Managers** may invite for the
   default `app_name="frappe"`. Apps usually pass their own `appName` whose hook lists
   the inviter roles.
-- **Which roles** — the picker fetches the **grantable** roles for the app via
-  `get_invitable_roles` (on mount, through `load()`), derived from the hook's
-  `allowed_roles` and scoped to the
-  caller. For `app_name="frappe"` (no declared roles) it falls back to all enabled,
-  assignable roles. There is **no role hierarchy** — roles are inserted verbatim; use
-  `transformRoles` to expand a picked role into a set.
+- **Which roles** — the host supplies the picker's roles as a static list via
+  `useInviteUser({ roles })`; the framework no longer derives them from the app's
+  hook. At invite time the backend still **verifies** the chosen roles against the
+  app's `user_invitation` hook `allowed_roles` (the default `frappe` app declares
+  none and skips this check, so it trusts the supplied list). There is **no role
+  hierarchy** — roles are inserted verbatim; use `transformRoles` to expand a picked
+  role into a set.
 
 A permission failure surfaces through `controller.error` (and the panel's `#error` slot).
 
@@ -102,7 +107,7 @@ props directly.
 | `rolesPlaceholder` | `string`                    | Roles field placeholder.                                                  |
 | `submitLabel`      | `string`                    | Submit button label.                                                      |
 | `errorText`        | `string`                    | Fallback for the default `#error` slot when the error carries no message. |
-| _controller data_  | via `v-bind="controller"`   | `roles`, `users`, `rolesLoading`, `usersLoading`, `inviting`, `error`.    |
+| _controller data_  | via `v-bind="controller"`   | `roles`, `users`, `usersLoading`, `inviting`, `error`.                    |
 | _controller verbs_ | via `v-bind="controller"`   | `invite`, `searchUsers`, `load` (function props).                         |
 
 > frappe-ui has no internal i18n, so the copy props above carry English defaults
@@ -137,15 +142,16 @@ module-level cache) and fetches **lazily** — call `load()` once you want the d
 const controller = useInviteUser({
   appName, // target app (default "frappe")
   redirectPath, // where invitees land after accepting (default "/app")
+  roles, // RoleOption[] shown in the picker (host-supplied; verified at invite time)
   transformRoles, // (selected) => string[] — expand picked roles before sending
   extraParams, // extra invite_by_email params (filtered by the app's extra_invite_params hook)
 });
 
 // controller (a reactive object — don't destructure):
-// data:  pendingInvites, roles, users, loading, rolesLoading, usersLoading, inviting,
+// data:  pendingInvites, roles, users, loading, usersLoading, inviting,
 //        cancellingName, resendingName, error
 // verbs: invite(emails, roles), cancel(name), resend(name), searchUsers(query),
-//        load() — lazy initial fetch (idempotent), reload() — refetch roles/pending/invited
+//        load() — lazy initial fetch (idempotent), reload() — refetch pending/invited
 ```
 
 ## Backend
@@ -153,7 +159,6 @@ const controller = useInviteUser({
 Whitelisted methods called:
 
 - `frappe.core.api.user_invitation.invite_by_email` (POST)
-- `frappe.core.api.user_invitation.get_invitable_roles` (GET — the role picker)
 - `frappe.core.api.user_invitation.get_pending_invitations` (GET — auto-fetch)
 - `frappe.core.api.user_invitation.cancel_invitation` (PATCH)
 - `frappe.core.api.user_invitation.resend_invitation` (POST)
