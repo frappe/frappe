@@ -1,5 +1,5 @@
-import type { Component } from 'vue'
-import { getFieldComponent, registerFieldType } from './fieldTypes'
+import type { Component } from "vue";
+import { getFieldComponent, registerFieldType } from "../Fields/fieldTypes";
 
 /** Composable over the fieldtype registry: register custom types, resolve one. */
 export function useFieldTypes() {
@@ -7,5 +7,5 @@ export function useFieldTypes() {
     register: (fieldtype: string, component: Component) =>
       registerFieldType(fieldtype, component),
     resolve: (fieldtype: string): Component => getFieldComponent(fieldtype),
-  }
+  };
 }
