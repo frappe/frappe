@@ -1,7 +1,17 @@
 import hashlib
+import re
 from datetime import UTC, datetime
 
 import frappe
+
+DEFAULT_PULSE_HOST = "https://pulse.m.frappe.cloud"
+
+
+def pulse_host() -> str:
+	# Normalize once, here: callers (server transport + the browser `client_url`)
+	# must all see an absolute, scheme-qualified host. A scheme-less value would
+	# make the browser resolve the client import against the Frappe origin.
+	return ensure_http(frappe.conf.get("pulse_host") or DEFAULT_PULSE_HOST).rstrip("/")
 
 
 def anonymize_user(user):
@@ -12,6 +22,11 @@ def anonymize_user(user):
 	if not user or user in frappe.STANDARD_USERS:
 		return user
 
+	# if already anonymized, return as-is
+	pattern = r"^user_[a-f0-9]{12}$"
+	if re.match(pattern, user):
+		return user
+
 	# Use site-specific salt for additional security
 	site_salt = frappe.local.site or "default"
 
@@ -20,7 +35,7 @@ def anonymize_user(user):
 	user_hash = hashlib.sha256(hash_input).hexdigest()
 
 	# Return first 12 characters for readability
-	return f"anon_{user_hash[:12]}"
+	return f"user_{user_hash[:12]}"
 
 
 def parse_interval(interval):

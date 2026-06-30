@@ -1,5 +1,9 @@
 <template>
-	<div class="print-format-section-container" data-pfb-section>
+	<div
+		class="print-format-section-container"
+		data-pfb-section
+		:class="{ 'section-container--condition-hidden': preview_doc && !is_section_visible }"
+	>
 		<!-- Top-left actions pill shown on hover in clean-preview (toolbar is hidden) -->
 		<div v-if="!is_header" class="section-preview-actions">
 			<div
@@ -122,12 +126,17 @@
 import draggable from "vuedraggable";
 import Field from "./Field.vue";
 import { computed, inject } from "vue";
+import { evaluate_visible_if } from "../../utils";
 
 const props = defineProps(["section", "is_header", "zone"]);
 
 let store = inject("$store");
 
 let is_selected = computed(() => store.selected_section.value === props.section);
+let preview_doc = computed(() => store.preview_doc.value);
+let is_section_visible = computed(() =>
+	evaluate_visible_if(props.section.visible_if, preview_doc.value)
+);
 
 let section_inline_style = computed(() => {
 	const style = {};
@@ -175,6 +184,13 @@ function remove_column(index) {
 
 .print-format-section-container:not(:last-child) {
 	margin-bottom: 0.5rem;
+}
+
+.section-container--condition-hidden {
+	opacity: 0.35;
+	outline: 2px dashed var(--gray-400);
+	outline-offset: 2px;
+	border-radius: var(--radius);
 }
 
 .print-format-section {

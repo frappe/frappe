@@ -17,6 +17,15 @@ _PARAM_COMP = re.compile(r"%\([\w]*\)s")
 IMPLICIT_COMMIT_QUERY_TYPES = frozenset(("start", "alter", "drop", "create", "truncate"))
 
 
+class SequenceGeneratorLimitExceeded(sqlite3.Error):
+	"""Raised when an emulated sequence with a max_value (and no cycle) is exhausted.
+
+	SQLite has no native sequences (frappe emulates them, see
+	``frappe.database.sequence``), so unlike MariaDB/Postgres there is no driver
+	exception to reuse for this case.
+	"""
+
+
 class SQLiteExceptionUtil:
 	ProgrammingError = sqlite3.ProgrammingError
 	TableMissingError = sqlite3.OperationalError
@@ -102,6 +111,7 @@ class SQLiteDatabase(SQLiteExceptionUtil, Database):
 	REGEX_CHARACTER = "regexp"
 	default_port = None
 	MAX_ROW_SIZE_LIMIT = None
+	SequenceGeneratorLimitExceeded = SequenceGeneratorLimitExceeded
 
 	def get_connection(self, read_only: bool = False):
 		conn = self.create_connection(read_only)
@@ -321,6 +331,26 @@ class SQLiteDatabase(SQLiteExceptionUtil, Database):
 			`doctype` TEXT NOT NULL,
 			`data` TEXT,
 			UNIQUE(user, doctype)
+			)"""
+		)
+
+	def create_sequence_table(self):
+		# SQLite has no native sequences; this table emulates them for
+		# autoname:autoincrement doctypes. See frappe.database.sequence.
+		from frappe.database.sequence import SQLITE_SEQUENCE_TABLE
+
+		# `declared` is 1 for sequences defined via create_sequence and 0 for rows
+		# auto-created by naming/set_next_val; it lets create_sequence adopt an
+		# implicit row without ever overwriting an explicit definition.
+		self.sql_ddl(
+			f"""CREATE TABLE IF NOT EXISTS `{SQLITE_SEQUENCE_TABLE}` (
+			`name` TEXT PRIMARY KEY,
+			`current` INTEGER NOT NULL,
+			`increment` INTEGER NOT NULL DEFAULT 1,
+			`min_value` INTEGER NOT NULL DEFAULT 1,
+			`max_value` INTEGER,
+			`cycle` INTEGER NOT NULL DEFAULT 0,
+			`declared` INTEGER NOT NULL DEFAULT 0
 			)"""
 		)
 
