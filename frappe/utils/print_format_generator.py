@@ -202,7 +202,9 @@ class PrintFormatGenerator:
 		if is_header and page_no_html:
 			parts.append(page_no_html)
 		if letterhead_html:
-			parts.append(frappe.render_template(letterhead_html, ctx))
+			parts.append(
+				'<div class="letter-head">' + frappe.render_template(letterhead_html, ctx) + "</div>"
+			)
 		if layout_template:
 			if isinstance(layout_template, str):
 				# layout_template is persisted header/footer HTML from the stored Print Format document.
