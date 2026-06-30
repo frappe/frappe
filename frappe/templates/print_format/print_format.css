@@ -148,7 +148,13 @@ body {
 	text-align: right;
 }
 
-/* Spacing/alignment variants for left-right orientation */
+/* Spacing/alignment variants for left-right orientation.
+   For right/center align and spacing variants, both label and value must be
+   flex:none so justify-content can reposition the pair as a unit. */
+.field.left-right.field-align-right .label,
+.field.left-right.field-align-right .value,
+.field.left-right.field-align-center .label,
+.field.left-right.field-align-center .value,
 .field.left-right.field-justify-space-between .value,
 .field.left-right.field-justify-space-evenly .value {
 	flex: none;
