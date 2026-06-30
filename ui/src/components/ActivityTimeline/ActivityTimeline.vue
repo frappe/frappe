@@ -9,7 +9,7 @@
 			v-else-if="!activities.length"
 			class="flex flex-col items-center justify-center gap-3 py-8"
 		>
-			<FeatherIcon name="activity" class="h-7 w-7 text-ink-gray-4" />
+			<LucideActivity class="h-7 w-7 text-ink-gray-4" />
 			<span class="text-lg font-medium text-ink-gray-8">No activity found</span>
 		</div>
 		<div v-else class="activities flex flex-col gap-2 mt-2" :tabindex="0">
@@ -101,7 +101,7 @@
 </template>
 
 <script setup lang="ts">
-import { ErrorMessage, FeatherIcon, LoadingIndicator } from "frappe-ui";
+import { ErrorMessage, LoadingIndicator } from "frappe-ui";
 import { computed, h, ref, useSlots } from "vue";
 import CommentItem from "./CommentItem.vue";
 import EmailItem from "./EmailItem.vue";

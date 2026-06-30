@@ -32,10 +32,8 @@
 							activity.author?.fullname
 						}}</span>
 					</span>
-					<FeatherIcon
-						:name="expanded ? 'chevron-up' : 'chevron-down'"
-						class="size-3.5"
-					/>
+					<LucideChevronUp v-if="expanded" class="size-3.5" />
+					<LucideChevronDown v-else class="size-3.5" />
 				</button>
 				<span>·</span>
 				<TimeAgo :timestamp="activity.timestamp" class="text-sm" />
@@ -81,7 +79,6 @@
 </template>
 
 <script setup lang="ts">
-import { FeatherIcon } from "frappe-ui";
 import { computed, h, ref } from "vue";
 import TimeAgo from "./TimeAgo.vue";
 import type { AttachmentLogActivity, LogActivity } from "./types";

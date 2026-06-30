@@ -18,7 +18,8 @@
 					from
 					<span class="font-medium text-ink-gray-8">{{ authorName }}</span>
 				</span>
-				<FeatherIcon :name="expanded ? 'chevron-up' : 'chevron-down'" class="size-3.5" />
+				<LucideChevronUp v-if="expanded" class="size-3.5" />
+				<LucideChevronDown v-else class="size-3.5" />
 			</button>
 			<div class="ms-auto whitespace-nowrap">
 				<TimeAgo :timestamp="activity.timestamp" class="text-sm" />
@@ -62,10 +63,8 @@
 								class="text-ink-gray-5 hover:text-ink-gray-7"
 								@click="toggle(change.name)"
 							>
-								<FeatherIcon
-									:name="isOpen(change.name) ? 'chevron-up' : 'chevron-down'"
-									class="size-3.5"
-								/>
+								<LucideChevronUp v-if="isOpen(change.name)" class="size-3.5" />
+								<LucideChevronDown v-else class="size-3.5" />
 							</button>
 						</template>
 						<!-- phrase: finished, value-less line -->
@@ -128,7 +127,6 @@
 </template>
 
 <script setup lang="ts">
-import { FeatherIcon } from "frappe-ui";
 import { computed, reactive, ref } from "vue";
 import { DotIcon } from "./icons";
 import TimeAgo from "./TimeAgo.vue";
