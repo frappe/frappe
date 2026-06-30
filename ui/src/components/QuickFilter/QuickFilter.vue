@@ -118,7 +118,7 @@
 </template>
 
 <script setup lang="ts">
-import { computed, onBeforeUnmount, onMounted, reactive, ref } from "vue";
+import { computed, onBeforeUnmount, onMounted, reactive, ref, watch } from "vue";
 import { Button, Checkbox, Combobox, TextInput } from "frappe-ui";
 import { useDoctypeMeta } from "../../composables/useDoctypeMeta";
 import { getFilterableFields } from "../Filter/getFilterableFields";
@@ -266,6 +266,21 @@ function activeOperator(field: FilterField): FilterOperator {
 	}
 	return operatorOverride[field.fieldname] ?? quickFilterOperator(field);
 }
+
+// Clear stale overrides when a condition is externally removed from the Filter
+// popover — prevents a stale `equals` override from re-activating on the next edit.
+watch(filters, (newFilters, oldFilters) => {
+	for (const fieldname of Object.keys(operatorOverride)) {
+		const field = surfaced.value.find((f) => f.fieldname === fieldname);
+		if (!field) {
+			delete operatorOverride[fieldname];
+			continue;
+		}
+		if (hasOwnedCondition(oldFilters, field) && !hasOwnedCondition(newFilters, field)) {
+			delete operatorOverride[fieldname];
+		}
+	}
+});
 
 function setValue(field: FilterField, value: FilterValue) {
 	filters.value = applyQuick(filters.value, field, value, activeOperator(field));
