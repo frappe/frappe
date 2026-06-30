@@ -9,7 +9,7 @@ lines with scannable, value-aware, mergeable changes.
 - **Backend** (`activity.py`) ships each change as structured, already-translated
   data — it decides *what kind* of change it is and supplies the words, but does
   **no** layout, merging, or truncation.
-- **Frontend** (`useActivityTimeline.ts` + `VersionChange.vue`) owns all
+- **Frontend** (`useActivityTimeline.ts` + `VersionItem.vue`) owns all
   presentation: same-field merging, before→after layout, value truncation.
 - **Why the split:** merging is a cross-row decision and must re-derive on every
   reload/live update, so it lives in the frontend `computed`. Per-change content
@@ -65,15 +65,16 @@ and both live under the single `phrase` type.
 | `status H→B→C→D` | `changed status H → D` (history: 3 hops, under chevron) |
 | status B→H, priority→Low, type→Bug, status H→A | `+3 changes` → `status B → A` (history: 2 hops) / `set priority to Low` / `set type to Bug` |
 
-## Rendering notes (`VersionChange.vue`)
+## Rendering notes (`VersionItem.vue`)
 
 - Values render as **bold text** (`font-semibold`), not pills.
 - Arrow is a literal `→`.
 - Group header: static "Show" + chevron (no Show/Hide swap).
 - Change `history` revealed by a chevron, not "· N hops" text.
 - **Truncation is frontend** (matches legacy desk convention): backend sends the
-  full HTML-stripped value (`display_value`), `VersionChange` clips to 40 chars
-  and shows the full value on hover via native `:title` only when clipped.
+  full HTML-stripped value (`display_value`), `VersionItem` clips to 40 chars
+  (via the shared `truncate` util) and shows the full value on hover via native
+  `:title` only when clipped.
 - Render path is text interpolation (`{{ }}`) → Vue escapes → no XSS, so
   `strip_html` (plain text) is correct; sanitize would be wrong here.
 
@@ -108,8 +109,7 @@ and both live under the single `phrase` type.
   `format_docstatus_change`, `is_field_visible`, `display_value`, `LONG_TEXT_FIELDTYPES`.
 - `ui/src/components/ActivityTimeline/types.ts` — `VersionChange`, `VersionActivity`.
 - `ui/src/components/ActivityTimeline/useActivityTimeline.ts` — `groupVersionActivities`, `summarizeVersions`.
-- `ui/src/components/ActivityTimeline/VersionChange.vue` — per-change renderer (new).
-- `ui/src/components/ActivityTimeline/VersionItem.vue` — group/single wrapper.
+- `ui/src/components/ActivityTimeline/VersionItem.vue` — group/single wrapper + per-change diff/phrase renderer + field-history mini-timeline (folds the former `VersionChange.vue` / `VersionChangeHistory.vue`).
 
 ## Scope
 

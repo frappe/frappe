@@ -10,14 +10,14 @@ from frappe import _
 from frappe.desk.form.load import _get_communications, add_comments, get_versions, get_view_logs
 from frappe.model.document import Document
 
-# Non-email sources load in full; emails are paged newest-first as the user scrolls up.
+# Non-email sources load in full; emails are paged newest-first.
 EMAIL_PAGE_SIZE = 20
 
 
 @frappe.whitelist()
 def get_activity_timeline(doctype: str, name: str | int) -> dict:
 	doc = frappe.get_lazy_doc(doctype, name, check_permission=True)
-	user_info: dict = {}  # cache to avoid repeat DB calls for the same user
+	user_info: dict = {}  # cache user lookups
 
 	emails, has_more_emails = get_email_activities(doc, user_info)
 	activities = [
@@ -44,7 +44,7 @@ def get_more_email_activities(doctype: str, name: str | int, start: int) -> dict
 
 def get_creation_activity(doc: "Document", user_info: dict) -> list[dict]:
 	frappe.utils.add_user_info({doc.owner}, user_info)
-	author = author_from(doc.owner, user_info)
+	author = get_author_info(doc.owner, user_info)
 	msg = get_creation_msg(doc.owner)
 	return [
 		{
@@ -68,7 +68,7 @@ def get_creation_msg(owner: str):
 
 
 def get_email_activities(doc: "Document", user_info: dict, start: int = 0) -> tuple[list[dict], bool]:
-	# Fetch PAGE_SIZE+1 (DESC); the extra oldest row is a sentinel for "more exist" — slice it off.
+	# Fetch PAGE_SIZE+1 (DESC); the extra oldest row signals "more exist".
 	communications = _get_communications(doc.doctype, doc.name, start=start, limit=EMAIL_PAGE_SIZE + 1)
 	has_more = len(communications) > EMAIL_PAGE_SIZE
 	if has_more:
@@ -141,37 +141,41 @@ def get_comment_and_log_activities(doc: "Document", user_info: dict) -> list[dic
 	out = []
 
 	for c in comment_log_data.comments:
-		author = author_from(c.owner, user_info)
+		author = get_author_info(c.owner, user_info)
 		out.append(
 			{
 				"type": "comment",
 				"key": f"comment:{c.name}",
 				"timestamp": str(c.creation),
 				"author": author,
-				"data": {"name": c.name, "content": c.content},  # already markdown'd by add_comments
+				"data": {"name": c.name, "content": c.content},
 			}
 		)
 
 	for c in comment_log_data.attachment_logs:
-		out.append(attachment_log_activity(c, author_from(c.owner, user_info)))
+		out.append(attachment_log_activity(c, get_author_info(c.owner, user_info)))
 
 	for c in comment_log_data.like_logs:
-		author = author_from(c.owner, user_info)
-		out.append(log_activity(c, author, "like", "heart", _("{0} liked").format(author["fullname"])))
+		author = get_author_info(c.owner, user_info)
+		out.append(add_activity_record(c, author, "like", "heart", _("{0} liked").format(author["fullname"])))
 
 	for c in comment_log_data.assignment_logs:
-		author = author_from(c.owner, user_info)
+		author = get_author_info(c.owner, user_info)
+		text = activity_text(c.content)
+		assignee = assignee_from_assignment(text, c.comment_type)
 		if c.comment_type == "Assigned":
-			out.append(log_activity(c, author, "assigned", "user-plus", activity_text(c.content)))
+			out.append(add_activity_record(c, author, "assigned", "user-plus", text, assignee=assignee))
 		else:
 			out.append(
-				log_activity(c, author, "assignment_completed", "circle-check", activity_text(c.content))
+				add_activity_record(
+					c, author, "assignment_completed", "circle-check", text, assignee=assignee
+				)
 			)
 
 	for c in comment_log_data.workflow_logs:
-		author = author_from(c.owner, user_info)
+		author = get_author_info(c.owner, user_info)
 		out.append(
-			log_activity(
+			add_activity_record(
 				c,
 				author,
 				"workflow",
@@ -181,15 +185,15 @@ def get_comment_and_log_activities(doc: "Document", user_info: dict) -> list[dic
 		)
 
 	for c in comment_log_data.info_logs:
-		author = author_from(c.owner, user_info)
+		author = get_author_info(c.owner, user_info)
 		out.append(
-			log_activity(c, author, "info", "info", f"{author['fullname']} {activity_text(c.content)}")
+			add_activity_record(c, author, "info", "info", f"{author['fullname']} {activity_text(c.content)}")
 		)
 
 	return out
 
 
-def author_from(owner: str, user_info: dict) -> dict:
+def get_author_info(owner: str, user_info: dict) -> dict:
 	info = user_info.get(owner) or {}
 	return {
 		"email": info.get("email") or owner,
@@ -200,6 +204,56 @@ def author_from(owner: str, user_info: dict) -> dict:
 
 def activity_text(html: str | None) -> str:
 	return frappe.utils.strip_html(html or "").strip()
+
+
+def assignee_from_assignment(text: str, comment_type: str) -> str | None:
+	"""The assignee named in an assignment-log comment, or None.
+
+	Extracted locale-safely from todo.py's own `_()` templates (copied verbatim),
+	not by parsing English; None when the assignee is the actor or nothing matches.
+	"""
+	if comment_type == "Assigned":
+		# (template, assignee placeholder index, or None when it's the actor).
+		# Self-assign tried first so "{0} assigned {1}: {2}" can't misread it.
+		templates = (
+			(_("{0} self assigned this task: {1}"), None),
+			(_("{0} assigned {1}: {2}"), 1),
+		)
+	else:
+		templates = (
+			(_("{0} removed their assignment."), None),
+			(_("Assignment of {0} removed by {1}"), 0),
+		)
+
+	for template, assignee_idx in templates:
+		groups = match_format_template(template, text)
+		if groups is None:
+			continue
+		return None if assignee_idx is None else groups.get(assignee_idx)
+	return None
+
+
+def match_format_template(template: str, text: str) -> dict[int, str] | None:
+	"""Match `text` against a translated `str.format` template.
+
+	Each `{n}` becomes a non-greedy capture; returns {placeholder_index: value}
+	(keyed by original index so reordered locales still resolve), or None.
+	"""
+	pattern = ["^"]
+	order: list[int] = []
+	for part in re.split(r"(\{\d+\})", template):
+		m = re.fullmatch(r"\{(\d+)\}", part)
+		if m:
+			order.append(int(m.group(1)))
+			pattern.append("(.+?)")
+		else:
+			pattern.append(re.escape(part))
+	pattern.append(r"\Z")
+
+	match = re.match("".join(pattern), text, re.DOTALL)
+	if not match:
+		return None
+	return {placeholder: match.group(i + 1) for i, placeholder in enumerate(order)}
 
 
 def attachment_log_activity(c, author: dict) -> dict:
@@ -223,13 +277,19 @@ def attachment_log_activity(c, author: dict) -> dict:
 	}
 
 
-def log_activity(c, author: dict, subtype: str, icon: str, text: str) -> dict:
+def add_activity_record(
+	c, author: dict, subtype: str, icon: str, text: str, assignee: str | None = None
+) -> dict:
+	data = {"name": c.name, "subtype": subtype, "icon": icon, "text": text}
+	# Purely additive: only assignment logs pass an assignee; others leave it absent.
+	if assignee is not None:
+		data["assignee"] = assignee
 	return {
 		"type": "log",
 		"key": f"log:{c.name}",
 		"timestamp": str(c.creation),
 		"author": author,
-		"data": {"name": c.name, "subtype": subtype, "icon": icon, "text": text},
+		"data": data,
 	}
 
 
@@ -239,7 +299,7 @@ def get_view_activities(doc: "Document", user_info: dict) -> list[dict]:
 
 	out = []
 	for v in views:
-		author = author_from(v.owner, user_info)
+		author = get_author_info(v.owner, user_info)
 		out.append(
 			{
 				"type": "log",
@@ -353,7 +413,7 @@ def get_version_activities(doc: "Document", user_info: dict) -> list[dict]:
 					)
 				)
 
-		author = author_from(v.owner, user_info)
+		author = get_author_info(v.owner, user_info)
 		for idx, change in enumerate(changes):
 			change["name"] = f"{v.name}-{idx}"
 			result.append(

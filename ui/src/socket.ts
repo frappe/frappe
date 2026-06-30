@@ -7,6 +7,8 @@ interface RealtimeSocket {
 }
 
 // Try to get the socket from various sources: injected properties or global properties like $socket or socket.
+// Assumes global socket is present via
+// provide('socket', …) or provide('$socket', …) in the app root, or via app.config.globalProperties.$socket/socket.
 export function getSocketInstance(): RealtimeSocket | undefined {
   const instance = getCurrentInstance();
   if (!instance) {

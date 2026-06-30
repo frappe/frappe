@@ -1,9 +1,9 @@
 <template>
-	<!-- ps-[13px] aligns the row text with the email/comment card text (1px border + px-3) -->
+	<!-- ps-[13px] aligns row text with the card text (1px border + px-3) -->
 	<div
 		class="flex flex-1 flex-col gap-2 ps-[13px] text-sm font-medium leading-6 text-ink-gray-6"
 	>
-		<!-- grouped: collapsible "+N changes" header + per-row lines for a same-author run -->
+		<!-- grouped: collapsible "+N changes" header + per-row lines -->
 		<template v-if="group.length > 1">
 			<div class="flex items-center gap-1.5">
 				<button
@@ -12,7 +12,7 @@
 					@click="expanded = !expanded"
 				>
 					<span class="text-ink-gray-5">
-						<!-- reserve the wider word's width so toggling doesn't reflow the line -->
+						<!-- reserve the wider word's width so toggling doesn't reflow -->
 						<span class="inline-grid justify-items-start align-baseline">
 							<span class="invisible col-start-1 row-start-1" aria-hidden="true"
 								>Show</span
@@ -43,11 +43,11 @@
 				</Tooltip>
 			</div>
 			<div v-if="expanded" class="flex flex-col gap-2">
-				<div v-for="g in group" :key="g.key" class="flex items-center gap-1.5">
-					<LogText :activity="g" />
+				<div v-for="row in group" :key="row.key" class="flex items-center gap-1.5">
+					<ActorText :activity="row" />
 					<span>·</span>
-					<Tooltip :text="dateFormat(g.timestamp)">
-						<span class="text-sm text-ink-gray-5">{{ timeAgo(g.timestamp) }}</span>
+					<Tooltip :text="dateFormat(row.timestamp)">
+						<span class="text-sm text-ink-gray-5">{{ timeAgo(row.timestamp) }}</span>
 					</Tooltip>
 				</div>
 			</div>
@@ -56,9 +56,7 @@
 		<!-- single row: log one-liner or attachment log -->
 		<div v-else class="flex items-center gap-1.5">
 			<!-- structured text, never v-html -->
-			<template v-if="activity.type === 'log'">
-				<LogText :activity="activity" />
-			</template>
+			<ActorText v-if="activity.type === 'log'" :activity="activity" />
 			<template v-else>
 				<span class="text-ink-gray-5">
 					<span class="font-medium text-ink-gray-8">{{
@@ -91,19 +89,33 @@
 
 <script setup lang="ts">
 import { FeatherIcon, Tooltip } from "frappe-ui";
-import { computed, ref } from "vue";
-import LogText from "./LogText.vue";
+import { computed, h, ref } from "vue";
 import type { AttachmentLogActivity, LogActivity } from "./types";
-import { dateFormat, timeAgo } from "./utils";
+import { dateFormat, splitBold, timeAgo } from "./utils";
 
 const props = defineProps<{
 	activity: LogActivity | AttachmentLogActivity;
 }>();
 
-// only `log` activities carry a collapsible group; attachments never do
+// only `log` activities carry a group
 const group = computed<LogActivity[]>(() =>
 	props.activity.type === "log" ? props.activity.data.group ?? [] : []
 );
 
 const expanded = ref(false);
+
+// bolds actor + assignee (backend-supplied; no message-template parsing)
+const ActorText = ({ activity }: { activity: LogActivity }) => {
+	const { author, data } = activity;
+	const segments = splitBold(data.text ?? "", [author?.fullname, data.assignee]);
+	return h(
+		"span",
+		{ class: "text-ink-gray-5" },
+		segments.map((seg) =>
+			seg.bold
+				? h("span", { class: "font-medium text-ink-gray-8" }, `${seg.text} `)
+				: `${seg.text} `
+		)
+	);
+};
 </script>

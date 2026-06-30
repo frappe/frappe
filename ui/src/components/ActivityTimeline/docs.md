@@ -143,7 +143,9 @@ fallback, so an explicit `key` is only needed for reorderable custom rows.
 { type: "log", key, timestamp, author,
   data: { name,
           subtype: "like" | "assigned" | "assignment_completed" | "workflow" | "info" | "view" | "created",
-          icon, text, group?: LogActivity[] } }
+          icon, text, assignee?, group?: LogActivity[] } }
+// data.assignee (optional) is the assignment target the backend resolves; the row
+// bolds the actor + assignee without parsing the message text
 
 // version  (data.group present on a folded multi-field group header)
 // each change is a VersionChange, a discriminated union on `type`:
@@ -213,9 +215,9 @@ in, the component **anchors** a visible row and restores its offset afterward, s
 the viewport doesn't jump. On first render (with `paginate`) it scrolls once to
 the bottom (newest).
 
-The button itself is an internal `LoadMoreButton` component (one default,
-rendered in whichever of the three positions is active). Override it for **all**
-positions at once via the `#load_more` slot — scoped with `{ loading, loadMore }`:
+The button itself is an internal `LoadMoreButton` (rendered in whichever of the
+three positions is active). Override it for **all** positions at once via the
+`#load_more` slot — scoped with `{ loading, loadMore }`:
 
 ```vue
 <ActivityTimeline :activities :loading :error :paginate>
@@ -226,7 +228,7 @@ positions at once via the `#load_more` slot — scoped with `{ loading, loadMore
 </ActivityTimeline>
 ```
 
-Providing nothing keeps the default "Load More Emails" button.
+Providing nothing keeps the default "Load more" button.
 
 ---
 
@@ -609,14 +611,15 @@ communications, paged by the count of emails already loaded.
 ```
 # shared package — apps/frappe/ui/src/components/ActivityTimeline/
 ActivityTimeline.vue     presentational renderer (props in, slots out) + Load More + scroll-anchor
+GutterIcon.vue           per-type gutter glyph (avatar+badge / dot / lucide); the default of #icon-{type}
+LoadMoreButton.vue       default "Load more" control (override via #load_more)
 useActivityTimeline.ts   data layer: fetch + dedupe/sort/group + email paging + realtime → Activity[]
-useScrollContainer.ts    finds the nearest scrollable ancestor (park-at-bottom / anchor)
+useTimelineScroll.ts     nearest scrollable ancestor + Load More anchor-restore + open-at-bottom-once
 types.ts                 Activity union (the contract) + ActivityTimelineProps + paginate shape
-EmailItem.vue · CommentItem.vue · LogItem.vue · VersionItem.vue   item renderers
-LoadMoreButton.vue       default "Load More Emails" control (override via #load_more)
-EmailContent.vue · AttachmentItem.vue · PreviewDialog.vue          render helpers
-VersionChange.vue · VersionChangeHistory.vue · LogText.vue         nested-change renderers
-icons.ts · utils.ts                                                shared bits
+EmailItem.vue · CommentItem.vue · LogItem.vue · VersionItem.vue   item renderers (LogItem folds the log text; VersionItem folds the per-change + history renderers)
+EmailContent.vue         sandboxed email iframe
+Attachment.vue           attachment chip + inline image/text preview dialog
+icons.ts · utils.ts                                                shared bits (icons; dates, truncate, splitBold, recipients, iframe helpers)
 index.ts                 public exports (components, composables, Activity* types)
 
 # backend — apps/frappe/frappe/desk/form/

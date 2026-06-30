@@ -4,12 +4,16 @@ import { getSocketInstance } from "../../socket";
 import type {
   Activity,
   CustomActivity,
+  Pagination,
   UserInfo,
   VersionActivity,
   VersionChange,
 } from "./types";
+import { stripHtml } from "./utils";
 
+// One resource per doctype:docname for the session, so reopening a doc is instant.
 const resources = new Map<string, ReturnType<typeof createResource>>();
+
 // "older emails remain" flag, kept outside the resource so it survives cached remounts.
 const hasMoreEmailsByKey = new Map<string, Ref<boolean>>();
 
@@ -18,52 +22,54 @@ export function useActivityTimeline(
   docname: string,
   paginate?: boolean
 ) {
-  const key = `${doctype}:${docname}`;
+  const cacheKey = `${doctype}:${docname}`;
 
-  let hasMoreEmails = hasMoreEmailsByKey.get(key);
+  let hasMoreEmails = hasMoreEmailsByKey.get(cacheKey);
   if (!hasMoreEmails) {
     hasMoreEmails = ref(true);
-    hasMoreEmailsByKey.set(key, hasMoreEmails);
+    hasMoreEmailsByKey.set(cacheKey, hasMoreEmails);
   }
 
-  let resource = resources.get(key);
+  let resource = resources.get(cacheKey);
   if (!resource) {
     resource = createResource({
       url: "frappe.desk.form.activity.get_activity_timeline",
       params: { doctype, name: docname },
-      cache: `activities:${key}`,
+      cache: `activities:${cacheKey}`,
       auto: true,
+      // transform only sets resource.data; onSuccess still sees the raw response,
+      // so has_more_emails is read there (not from transform's output).
       transform: (res: { activities: Activity[] }) => res.activities,
       onSuccess: (res: { has_more_emails?: boolean }) => {
         hasMoreEmails!.value = !!res.has_more_emails;
       },
     });
-    resources.set(key, resource);
+    resources.set(cacheKey, resource);
   }
 
-  handleLiveUpdates(doctype, docname, resource);
+  subscribeToLiveUpdates(doctype, docname, resource);
 
   return {
     activities: computed<Array<Activity | CustomActivity>>(() => {
-      const base = (resource.data as Activity[] | undefined) ?? [];
-      const merged = dropDuplicateKeys(base);
-      merged.sort(compareActivities);
-      const list = groupVersionActivities(merged);
+      const fetched = (resource.data as Activity[] | undefined) ?? [];
+      const uniqueActivities = dropDuplicateKeys(fetched);
+      uniqueActivities.sort(compareActivities);
+      const grouped = groupVersionActivities(uniqueActivities);
 
-      // Inject the "Load More" row above the oldest email
-      if (!paginate || !hasMoreEmails!.value) return list;
-      const oldestEmailIdx = list.findIndex((a) => a.type === "email");
-      if (oldestEmailIdx === -1) return list;
+      // If pagination true, inject a Load More row above the oldest email, to show "Load More" button. If no more emails, don't inject.
+      if (!paginate || !hasMoreEmails!.value) return grouped;
+      const oldestEmailIdx = grouped.findIndex((a) => a.type === "email");
+      if (oldestEmailIdx === -1) return grouped;
       const loadMore: CustomActivity = {
         type: "load_more",
         key: "load-more",
-        timestamp: list[oldestEmailIdx].timestamp,
+        timestamp: grouped[oldestEmailIdx].timestamp,
         data: null,
       };
       return [
-        ...list.slice(0, oldestEmailIdx),
+        ...grouped.slice(0, oldestEmailIdx),
         loadMore,
-        ...list.slice(oldestEmailIdx),
+        ...grouped.slice(oldestEmailIdx),
       ];
     }),
     loading: computed<boolean>(() => resource.loading),
@@ -81,41 +87,41 @@ function createEmailPagination(
   docname: string,
   resource: ReturnType<typeof createResource>,
   hasMoreEmails: Ref<boolean>
-) {
-  const moreResource = createResource({
+): Pagination {
+  const olderEmails = createResource({
     url: "frappe.desk.form.activity.get_more_email_activities",
     auto: false,
     onSuccess: (res: { activities: Activity[]; has_more_emails?: boolean }) => {
-      const current = (resource.data as Activity[] | undefined) ?? [];
-      resource.data = [...current, ...res.activities];
+      const loaded = (resource.data as Activity[] | undefined) ?? [];
+      resource.data = [...loaded, ...res.activities];
       hasMoreEmails.value = !!res.has_more_emails;
     },
   });
 
   const fetchNextPage = () => {
-    if (moreResource.loading || !hasMoreEmails.value) return;
-    const emailsLoaded = (
-      (resource.data as Activity[] | undefined) ?? []
-    ).filter((a) => a.type === "email").length;
-    moreResource.submit({ doctype, name: docname, start: emailsLoaded });
+    if (olderEmails.loading || !hasMoreEmails.value) return;
+    const loaded = (resource.data as Activity[] | undefined) ?? [];
+    // count-based offset: emails are only appended, so the loaded count is the next start
+    const emailsLoaded = loaded.filter((a) => a.type === "email").length;
+    olderEmails.submit({ doctype, name: docname, start: emailsLoaded });
   };
 
-  // reactive() so refs unwrap through the `paginate` prop (Vue won't unwrap nested refs).
+  // reactive() so the refs unwrap when read through the `paginate` prop.
   return reactive({
     hasNextPage: computed(() => hasMoreEmails.value),
-    isFetchingNextPage: computed(() => moreResource.loading),
+    isFetchingNextPage: computed(() => olderEmails.loading),
     fetchNextPage,
   });
 }
 
-function handleLiveUpdates(
+function subscribeToLiveUpdates(
   doctype: string,
   docname: string,
   resource: ReturnType<typeof createResource>
 ) {
   const socket = getSocketInstance();
 
-  // Socket payload has no avatar — reuse a resolved author from the feed, else fall back.
+  // The socket payload has no avatar — reuse a resolved author from the feed, else fall back.
   const resolveAuthor = (email: string | undefined, fallback: UserInfo) => {
     if (!email) return fallback;
     const known = ((resource.data as Activity[] | undefined) ?? []).find(
@@ -130,18 +136,17 @@ function handleLiveUpdates(
       key: string;
       action: "add" | "update" | "delete";
     };
-    const activity = normalizeActivity(key, doc, resolveAuthor);
+    const activity = normalizeLiveActivity(key, doc, resolveAuthor);
     if (!activity) return;
 
     const current = (resource.data as Activity[] | undefined) ?? [];
-
     if (action === "add") {
       resource.data = [...current, activity];
+    } else if (action === "delete") {
+      resource.data = current.filter((a) => a.key !== activity.key);
     } else {
-      resource.data = patchList(
-        current,
-        action as "update" | "delete",
-        activity
+      resource.data = current.map((a) =>
+        a.key === activity.key ? activity : a
       );
     }
   };
@@ -156,38 +161,40 @@ function handleLiveUpdates(
   });
 }
 
-function normalizeActivity(
+// Client mirror of the backend normalizers for the realtime socket payload. Only
+// realtime-publishing keys are handled; the rest arrive on the next reload.
+// (assignee bolding is backend-supplied, so live assignment rows bold only the actor.)
+function normalizeLiveActivity(
   key: string,
   doc: Record<string, unknown>,
   resolveAuthor: (email: string | undefined, fallback: UserInfo) => UserInfo
 ): Activity | null {
   const timestamp = String(doc.creation);
-
-  // comment-family rows carry the actor as `comment_email`/`comment_by`, else owner
-  const commentEmail = (doc.comment_email as string) || (doc.owner as string);
-  const author = resolveAuthor(commentEmail, {
-    email: commentEmail,
-    fullname: (doc.comment_by as string) || commentEmail,
+  const actorEmail = (doc.comment_email as string) || (doc.owner as string);
+  const author = resolveAuthor(actorEmail, {
+    email: actorEmail,
+    fullname: (doc.comment_by as string) || actorEmail,
   });
+  const name = doc.name as string;
 
   switch (key) {
     case "comments":
       return {
         type: "comment",
-        key: `comment:${doc.name}`,
+        key: `comment:${name}`,
         timestamp,
         author,
-        data: { name: doc.name as string, content: doc.content as string },
+        data: { name, content: doc.content as string },
       };
 
     case "like_logs":
       return {
         type: "log",
-        key: `log:${doc.name}`,
+        key: `log:${name}`,
         timestamp,
         author,
         data: {
-          name: doc.name as string,
+          name,
           subtype: "like",
           icon: "heart",
           text: `${author.fullname} liked`,
@@ -198,11 +205,11 @@ function normalizeActivity(
       const isCompleted = doc.comment_type === "Assignment Completed";
       return {
         type: "log",
-        key: `log:${doc.name}`,
+        key: `log:${name}`,
         timestamp,
         author,
         data: {
-          name: doc.name as string,
+          name,
           subtype: isCompleted ? "assignment_completed" : "assigned",
           icon: isCompleted ? "circle-check" : "user-plus",
           text: stripHtml(String(doc.content ?? "")),
@@ -215,16 +222,16 @@ function normalizeActivity(
       const content = String(doc.content ?? "");
       const href = content.match(/href=['"]([^'"]+)['"]/);
       const fileUrl = !isRemoved && href ? href[1] : undefined;
-      // private files live under /private/… — a stabler signal than the `fa-lock` icon
       return {
         type: "attachment_log",
-        key: `attachment:${doc.name}`,
+        key: `attachment:${name}`,
         timestamp,
         author,
         data: {
-          name: doc.name as string,
+          name,
           action: isRemoved ? "removed" : "added",
           fileName: stripHtml(content),
+          // private files live under /private/… — stabler than the `fa-lock` icon
           isPrivate: fileUrl?.startsWith("/private/") ?? false,
           ...(fileUrl ? { fileUrl } : {}),
         },
@@ -234,14 +241,14 @@ function normalizeActivity(
     case "communications":
       return {
         type: "email",
-        key: `email:${doc.name}`,
+        key: `email:${name}`,
         timestamp: String(doc.communication_date || doc.creation),
         author: resolveAuthor(doc.sender as string, {
           email: doc.sender as string,
           fullname: (doc.sender_full_name || doc.sender) as string,
         }),
         data: {
-          name: doc.name as string,
+          name,
           subject: doc.subject as string,
           sender: doc.sender as string,
           to: doc.recipients as string,
@@ -258,29 +265,16 @@ function normalizeActivity(
   }
 }
 
-function patchList(
-  list: Activity[],
-  action: "update" | "delete",
-  activity: Activity
-): Activity[] {
-  if (action === "delete") return list.filter((a) => a.key !== activity.key);
-  return list.map((a) => (a.key === activity.key ? activity : a));
-}
-
 function dropDuplicateKeys(activities: Activity[]): Activity[] {
-  const seen = new Set<string>();
-  const out: Activity[] = [];
-  for (const a of activities) {
-    if (seen.has(a.key)) continue;
-    seen.add(a.key);
-    out.push(a);
-  }
-  return out;
+  const uniqueActivities = new Set<string>();
+  return activities.filter((a) =>
+    uniqueActivities.has(a.key) ? false : uniqueActivities.add(a.key)
+  );
 }
 
 function compareActivities(
-  a: { timestamp?: string; key: string },
-  b: { timestamp?: string; key: string }
+  a: Pick<Activity, "timestamp" | "key">,
+  b: Pick<Activity, "timestamp" | "key">
 ): number {
   return (
     timeValue(a.timestamp) - timeValue(b.timestamp) ||
@@ -288,45 +282,48 @@ function compareActivities(
   );
 }
 
-function stripHtml(html: string): string {
-  return html.replace(/<[^>]*>/g, "").trim();
+// Frappe timestamps use a space separator; Date.parse needs 'T' for reliable parsing.
+function timeValue(ts?: string): number {
+  if (!ts) return 0;
+  const t = Date.parse(ts.includes(" ") ? ts.replace(" ", "T") : ts);
+  return Number.isNaN(t) ? 0 : t;
 }
 
-// Merge consecutive same-author versions into one summary; others pass through.
+// Fold each run of consecutive same-author version rows into one summary; others pass through.
 export function groupVersionActivities(activities: Activity[]): Activity[] {
   const out: Activity[] = [];
-  let i = 0;
-  while (i < activities.length) {
-    const current = activities[i];
-    if (current.type !== "version") {
-      out.push(current);
-      i++;
+  let runStart = 0;
+  while (runStart < activities.length) {
+    const first = activities[runStart];
+    if (first.type !== "version") {
+      out.push(first);
+      runStart++;
       continue;
     }
-    let j = i + 1;
+    let runEnd = runStart + 1;
     while (
-      j < activities.length &&
-      activities[j].type === "version" &&
-      activities[j].author?.fullname === current.author?.fullname
+      runEnd < activities.length &&
+      activities[runEnd].type === "version" &&
+      activities[runEnd].author?.fullname === first.author?.fullname
     ) {
-      j++;
+      runEnd++;
     }
     const summary = summarizeVersions(
-      activities.slice(i, j) as VersionActivity[]
+      activities.slice(runStart, runEnd) as VersionActivity[]
     );
     if (summary) out.push(summary);
-    i = j;
+    runStart = runEnd;
   }
   return out;
 }
 
-// Collapse a run's changes into one summary row carrying a `group` of the individual
-// changes; e.g. status Open→InProgress→Closed becomes status Open→Closed.
+// Collapse a run's changes into one summary row carrying a `group` of net changes;
+// e.g. status Open→InProgress→Closed becomes status Open→Closed (with full history).
 function summarizeVersions(
   versions: VersionActivity[]
 ): VersionActivity | null {
-  const changes: VersionChange[] = []; // summary row; each a net change with full `history`
-  const changeByField = new Map<string, VersionChange>(); // fieldname → its net change
+  const changes: VersionChange[] = []; // one net change per field, in first-seen order
+  const byField = new Map<string, { change: VersionChange; index: number }>();
 
   for (const row of versions) {
     const change = row.data;
@@ -335,9 +332,10 @@ function summarizeVersions(
       changes.push({ ...change });
       continue;
     }
-    const existing = changeByField.get(change.fieldname);
-    if (!existing) {
-      const next: VersionChange =
+
+    const seen = byField.get(change.fieldname);
+    if (!seen) {
+      const seeded: VersionChange =
         change.type === "diff"
           ? {
               ...change,
@@ -350,26 +348,26 @@ function summarizeVersions(
               ],
             }
           : { ...change };
-      changeByField.set(change.fieldname, next);
-      changes.push(next);
-    } else if (existing.type === "diff" && change.type === "diff") {
-      existing.to = change.to; // advance net "to"; `from` stays the first row's
-      existing.history!.push({
-        from: change.from ?? "",
-        to: change.to,
-        timestamp: row.timestamp,
-      });
+      byField.set(change.fieldname, { change: seeded, index: changes.length });
+      changes.push(seeded);
+    } else if (seen.change.type === "diff" && change.type === "diff") {
+      // advance the net "to" (keep the first row's "from") and record the hop
+      seen.change.to = change.to;
+      seen.change.history = [
+        ...(seen.change.history ?? []),
+        { from: change.from ?? "", to: change.to, timestamp: row.timestamp },
+      ];
     } else {
-      // type changed mid-sequence (e.g. value edited then cleared) — take the latest
+      // type changed mid-run (e.g. value edited then cleared) — take the latest
       const replacement: VersionChange = { ...change };
-      changeByField.set(change.fieldname, replacement);
-      changes[changes.indexOf(existing)] = replacement;
+      changes[seen.index] = replacement;
+      byField.set(change.fieldname, { change: replacement, index: seen.index });
     }
   }
 
   // drop fields that churned back to their starting value (net no-op)
   const visible = changes.filter(
-    (s) => !(s.type === "diff" && s.from === s.to)
+    (c) => !(c.type === "diff" && c.from === c.to)
   );
   if (visible.length === 0) return null;
 
@@ -381,11 +379,4 @@ function summarizeVersions(
       ? { ...visible[0] }
       : { ...visible[0], group: visible };
   return { ...last, key: first.key, data };
-}
-
-// Frappe timestamps use a space separator; Date.parse needs 'T' for reliable parsing
-function timeValue(ts?: string): number {
-  if (!ts) return 0;
-  const t = Date.parse(ts.includes(" ") ? ts.replace(" ", "T") : ts);
-  return Number.isNaN(t) ? 0 : t;
 }

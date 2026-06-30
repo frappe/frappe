@@ -1,11 +1,11 @@
 <template>
-	<!-- mirrors EmailItem's card; the content region keeps a gray background -->
+	<!-- mirrors EmailItem's card -->
 	<div
 		class="grow cursor-pointer overflow-hidden rounded-md border border-outline-gray-2 bg-surface-white text-base leading-6 transition-all duration-300 ease-in-out"
 	>
 		<div class="ps-3" :class="$slots.actions && !editable ? 'pe-1.5' : 'pe-3'">
 			<slot name="header" :comment="comment">
-				<!-- 40px header bar; its vertical center (20px) matches the gutter avatar -->
+				<!-- 40px header; center aligns with the gutter avatar -->
 				<div class="flex h-10 items-center justify-between gap-2">
 					<div class="leading-6">
 						<span class="text-base font-medium text-ink-gray-6">{{
@@ -26,7 +26,7 @@
 			</slot>
 		</div>
 		<hr class="border-t border-outline-gray-modals" />
-		<!-- content region: same padding as the email body, kept gray -->
+		<!-- content region: gray, email-body padding -->
 		<div class="bg-surface-gray-1 p-3">
 			<TextEditor
 				:content="comment.data.content"

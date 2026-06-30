@@ -4,7 +4,7 @@
 	>
 		<div class="ps-3" :class="$slots.actions ? 'pe-1.5' : 'pe-3'">
 			<slot name="header" :email="email">
-				<!-- 40px header bar; its vertical center (20px) matches the gutter avatar -->
+				<!-- 40px header; its center aligns with the gutter avatar -->
 				<div class="flex h-10 items-center justify-between gap-2">
 					<!-- sender email is hidden; surfaced on hover via tooltip -->
 					<Tooltip :text="email.data.sender">
@@ -21,6 +21,7 @@
 						/>
 						<Tooltip :text="dateFormat(email.timestamp)">
 							<p class="text-xs text-ink-gray-5 md:text-sm">
+								<!-- returns time in local timezone  -->
 								{{ timeAgo(email.timestamp) }}
 							</p>
 						</Tooltip>
@@ -50,15 +51,12 @@
 			</slot>
 		</div>
 		<hr class="border-t border-outline-gray-modals" />
-		<!-- body region owns its own horizontal padding. No top padding: the
-		     iframe sits flush to the <hr> so scrolled email content clips right at
-		     the border, not 12px below it — the breathing room lives *inside* the
-		     iframe (padding-top on .email-content) where it scrolls away with the content -->
+		<!-- no top padding so the iframe sits flush to the <hr> and scrolled content clips at the border -->
 		<div class="px-3 pb-2">
 			<EmailContent :content="email.data.content" />
 			<slot name="footer" :email="email">
 				<div v-if="email.data?.attachments?.length" class="mt-2 flex flex-wrap gap-2">
-					<AttachmentItem
+					<Attachment
 						v-for="a in email.data.attachments"
 						:key="a.file_url"
 						:label="a.file_name"
@@ -73,7 +71,7 @@
 <script setup lang="ts">
 import { Badge, Tooltip } from "frappe-ui";
 import { computed } from "vue";
-import AttachmentItem from "./AttachmentItem.vue";
+import Attachment from "./Attachment.vue";
 import EmailContent from "./EmailContent.vue";
 import type { EmailActivity } from "./types";
 import { dateFormat, splitRecipients, timeAgo } from "./utils";
@@ -83,11 +81,11 @@ const props = defineProps<{
 }>();
 
 const status = computed(() => {
-	const _status = props.email.data.deliveryStatus;
+	const deliveryStatus = props.email.data.deliveryStatus;
 	let color = "red";
-	if (["Sent", "Clicked"].includes(_status)) color = "green";
-	else if (["Sending", "Scheduled"].includes(_status)) color = "orange";
-	else if (["Opened", "Read"].includes(_status)) color = "blue";
-	return { label: _status, color };
+	if (["Sent", "Clicked"].includes(deliveryStatus)) color = "green";
+	else if (["Sending", "Scheduled"].includes(deliveryStatus)) color = "orange";
+	else if (["Opened", "Read"].includes(deliveryStatus)) color = "blue";
+	return { label: deliveryStatus, color };
 });
 </script>

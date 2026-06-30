@@ -4,11 +4,12 @@
 		:srcdoc="htmlContent"
 		sandbox="allow-same-origin allow-popups allow-popups-to-escape-sandbox"
 		referrerpolicy="no-referrer"
-		class="prose-f block h-10 max-h-[500px] w-full"
+		class="prose-f block h-10 w-full"
 		:class="{ 'email-clipped-fade': isClipped }"
+		:style="{ maxHeight: `${MAX_CONTENT_HEIGHT}px` }"
 	/>
 </template>
-<!-- sandboxed iframe to prevent scripts from running and external resources from loading -->
+<!-- sandboxed + CSP: scripts and external resources can't load -->
 <script setup lang="ts">
 import { computed, ref, watch } from "vue";
 import { applyCssToIframe, stripEmailColors, useDataTheme } from "./utils";
@@ -17,46 +18,39 @@ const props = defineProps<{
 	content: string;
 }>();
 
-// keep in sync with the `max-h-[500px]` on the iframe — past this the body is
-// clipped, and we fade the cut edge instead of hard-slicing a line
-const MAX_CONTENT_HEIGHT = 500;
+const MAX_CONTENT_HEIGHT = 500; // in px; if the email content exceeds this, the bottom edge fades to indicate more content is clipped.
 
 const iframeRef = ref<HTMLIFrameElement | null>(null);
 const isClipped = ref(false);
-const _content = ref(stripEmailColors(props.content));
-const dataTheme = useDataTheme();
+const dataTheme = useDataTheme(); // needed for the iframe to inherit the host's theme (dark/light) so the email content matches the rest of the app.
 
-const parser = new DOMParser();
-const doc = parser.parseFromString(_content.value, "text/html");
+// reactive to content: strip inline colors + fold reply quotes into a CSS-only collapse
+const processedContent = computed(() => collapseReplyQuotes(stripEmailColors(props.content)));
 
-const gmailReplyToContent = doc.querySelectorAll("div.gmail_quote");
-const outlookReplyToContent = doc.querySelectorAll("div#appendonsend");
-const replyToContent = doc.querySelectorAll("p.reply-to-content");
+// gmail → outlook → generic; only the first kind present is collapsed.
+const REPLY_QUOTE_SELECTORS = [
+	{ selector: "div.gmail_quote", forGmail: true },
+	{ selector: "div#appendonsend", forGmail: false },
+	{ selector: "p.reply-to-content", forGmail: false },
+];
 
-if (gmailReplyToContent.length) {
-	_content.value = parseReplyToContent(doc, "div.gmail_quote", true);
-} else if (outlookReplyToContent.length) {
-	_content.value = parseReplyToContent(doc, "div#appendonsend");
-} else if (replyToContent.length) {
-	_content.value = parseReplyToContent(doc, "p.reply-to-content");
-}
-
-function parseReplyToContent(doc: Document, selector: string, forGmail = false) {
-	function handleAllInstances(doc: Document) {
-		const replyToContentElements = doc.querySelectorAll(selector);
-		if (replyToContentElements.length === 0) return;
-		const replyToContentElement = replyToContentElements[0];
-		replaceReplyToContent(replyToContentElement, forGmail);
-		handleAllInstances(doc);
+function collapseReplyQuotes(html: string): string {
+	const doc = new DOMParser().parseFromString(html, "text/html");
+	for (const { selector, forGmail } of REPLY_QUOTE_SELECTORS) {
+		if (!doc.querySelector(selector)) continue;
+		doc.querySelectorAll(selector).forEach((el) => collapseQuote(doc, el, forGmail));
+		break;
 	}
-
-	handleAllInstances(doc);
 	return doc.body.innerHTML;
 }
 
-function replaceReplyToContent(replyToContentElement: Element, forGmail: boolean) {
-	if (!replyToContentElement) return;
+// wrap the quote in .replied-content: a label + checkbox reveal it via pure CSS, no JS
+function collapseQuote(doc: Document, quote: Element, forGmail: boolean) {
+	const parent = quote.parentElement;
+	if (!parent) return;
+
 	const randomId = Math.random().toString(36).substring(2, 7);
+
 	const wrapper = doc.createElement("div");
 	wrapper.classList.add("replied-content");
 
@@ -73,37 +67,28 @@ function replaceReplyToContent(replyToContentElement: Element, forGmail: boolean
 	wrapper.appendChild(collapseInput);
 
 	if (forGmail) {
-		const prevSibling = replyToContentElement.previousElementSibling;
-		if (prevSibling && prevSibling.tagName === "BR") {
-			prevSibling.remove();
-		}
-		const cloned = replyToContentElement.cloneNode(true) as Element;
+		// drop Gmail's leading <br>; keep the quote minus gmail_quote so it isn't re-detected
+		const prevSibling = quote.previousElementSibling;
+		if (prevSibling && prevSibling.tagName === "BR") prevSibling.remove();
+		const cloned = quote.cloneNode(true) as Element;
 		cloned.classList.remove("gmail_quote");
 		wrapper.appendChild(cloned);
 	} else {
-		const allSiblings = Array.from(replyToContentElement.parentElement?.children || []);
-		const replyToContentIndex = allSiblings.indexOf(replyToContentElement);
-		const followingSiblings = allSiblings.slice(replyToContentIndex + 1);
+		// move everything after the marker into the hidden block; nothing after ⇒ leave as-is
+		const siblings = Array.from(parent.children);
+		const following = siblings.slice(siblings.indexOf(quote) + 1);
+		if (following.length === 0) return;
 
-		if (followingSiblings.length === 0) return;
-
-		const clonedFollowingSiblings = followingSiblings.map((sibling) =>
-			sibling.cloneNode(true)
-		);
-
-		const div = doc.createElement("div");
-		div.append(...clonedFollowingSiblings);
-		wrapper.append(div);
-
-		for (let i = replyToContentIndex + 1; i < allSiblings.length; i++) {
-			replyToContentElement.parentElement?.removeChild(allSiblings[i]);
-		}
+		const hidden = doc.createElement("div");
+		hidden.append(...following.map((node) => node.cloneNode(true)));
+		wrapper.append(hidden);
+		following.forEach((node) => node.remove());
 	}
 
-	replyToContentElement.parentElement?.replaceChild(wrapper, replyToContentElement);
+	parent.replaceChild(wrapper, quote);
 }
 
-// <meta /> tag added to prevent scripts from running inside the iframe, and to prevent the iframe from loading any external resources (images, fonts, etc.) that could be used for tracking. The iframe is sandboxed to further restrict its capabilities.
+// CSP meta: block scripts + external resource loads
 const htmlContent = computed(
 	() => `
   <!DOCTYPE html>
@@ -151,18 +136,11 @@ const htmlContent = computed(
       }
       .email-content {
         word-break: break-word;
-        /* contain child margins so the first line isn't clipped at the iframe's
-           top edge (margin-collapse escaping the top) and the measured height
-           stays accurate */
+        /* flow-root contains child margins; padding-top adds breathing room that scrolls away */
         display: flow-root;
-        /* breathing room between the card border and the first line — kept
-           *inside* the scroll viewport so it scrolls away with the content and
-           scrolled email clips flush at the border, not 12px below it */
         padding-top: 12px;
       }
-      /* drop the leading/trailing margins so the body sits flush against this
-         element's padding — the iframe-internal padding-top / card pb-2 provide
-         the breathing room */
+      /* drop leading/trailing margins so the body sits flush to the padding */
       .email-content > :first-child {
         margin-top: 0;
       }
@@ -185,7 +163,7 @@ const htmlContent = computed(
     </style>
   </head>
   <body>
-    <div class="email-content prose-f">${_content.value}</div>
+    <div class="email-content prose-f">${processedContent.value}</div>
   </body>
   </html>
   `
@@ -201,26 +179,21 @@ watch(iframeRef, (iframe) => {
 			if (!parent) return;
 			parent.setAttribute("data-theme", dataTheme.value);
 
-			// measure content → set iframe height, and flag when it overflows the
-			// cap so the template fades the clipped bottom edge
+			// measure content → set iframe height; flag overflow so the edge fades
 			const syncHeight = () => {
 				const full = parent.offsetHeight + 1;
 				iframe.style.height = full + "px";
 				isClipped.value = full > MAX_CONTENT_HEIGHT;
 			};
 
-			// Inherit the host app's compiled styles (frappe-ui prose-f, color
-			// tokens, fonts) into the isolated iframe; external sheets load async,
-			// so re-measure the iframe height once they apply.
+			// inherit host styles into the iframe; external sheets load async, so re-measure after
 			applyCssToIframe(iframe, syncHeight);
 
-			// note: helpdesk added a per-content font class here (getFontFamily,
-			// Arabic → system-ui); dropped for now, re-add on emailContent if needed
+			// note: helpdesk's per-content font class (Arabic → system-ui) dropped; re-add if needed
 
 			syncHeight();
 
-			// Clicks inside the iframe don't bubble to the parent document, so popovers
-			// and dropdowns that close on outside-click never fire without this.
+			// re-dispatch pointerdown so outside-click popovers fire (iframe clicks don't bubble)
 			iframe.contentDocument?.addEventListener("pointerdown", () => {
 				document.dispatchEvent(new PointerEvent("pointerdown", { bubbles: true }));
 			});
@@ -257,9 +230,7 @@ watch(dataTheme, (theme) => {
 </script>
 
 <style scoped>
-/* Very subtle fade on the clipped bottom edge — softens only the last sliver
- * (~18px) so a long email never hard-slices a line. Transparency-based, so it
- * works on any card background and in both themes. */
+/* fade the clipped bottom edge (~18px) so a long email never hard-slices a line */
 .email-clipped-fade {
 	-webkit-mask-image: linear-gradient(to bottom, #000 calc(100% - 18px), transparent);
 	mask-image: linear-gradient(to bottom, #000 calc(100% - 18px), transparent);

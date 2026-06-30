@@ -1,19 +1,21 @@
 import type { Component } from "vue";
 
 export interface ActivityTimelineProps {
-  /** Custom types render via the `#item-{type}` slot. */
+  /** Rows in display order. Custom types render via the `#item-{type}` slot. */
   activities: Array<Activity | CustomActivity>;
-  /** Only shown when there are no activities yet. */
+  /** First-load spinner; only shown while there are no activities yet. */
   loading?: boolean;
   error?: string | null;
-  /** When present, enables scroll-up pagination. Same object returned by useActivityTimeline. */
-  paginate?: {
-    hasNextPage: boolean;
-    isFetchingNextPage: boolean;
-    fetchNextPage: () => void;
-    /** Auto-placement of the Load More row: 'top' (default) or 'bottom'. Ignored if you inject your own `load_more` row. */
-    position?: "top" | "bottom";
-  };
+  /** Enables Load More; same object useActivityTimeline returns. */
+  paginate?: Pagination;
+}
+
+export interface Pagination {
+  hasNextPage: boolean;
+  isFetchingNextPage: boolean;
+  fetchNextPage: () => void;
+  /** Standalone-button placement; ignored when an in-feed `load_more` row exists. */
+  position?: "top" | "bottom";
 }
 
 export interface UserInfo {
@@ -36,7 +38,7 @@ export interface BaseActivity<TType extends string, TData> {
   key: string;
   timestamp?: string;
   author?: UserInfo;
-  /** lucide name or component; falls back to the per-type default when absent */
+  /** lucide name or component; per-type default when absent */
   icon?: string | Component;
   data: TData;
 }
@@ -85,11 +87,14 @@ export type LogActivity = BaseActivity<
       | "assignment_completed"
       | "workflow"
       | "info"
-      | "view";
+      | "view"
+      | "created";
     /** lucide name, no prefix */
     icon: string;
     text: string;
-    /** present when consecutive same-author log rows are folded together */
+    /** assignee on assignment logs; bolded alongside the actor (backend-supplied) */
+    assignee?: string;
+    /** set when same-author log rows are folded together */
     group?: LogActivity[];
   }
 >;
@@ -107,19 +112,19 @@ export interface FieldChange {
   timestamp: string;
 }
 
-/** A field value changed and we can show it — the frontend lays out the values. */
+/** A shown field change; the frontend lays out the values. */
 export interface DiffChange extends VersionChangeBase {
   type: "diff";
   /** translated lead phrase, e.g. "changed Status" / "set Priority to" */
   prefix: string;
-  /** old value (truncated by the frontend); absent ⇒ set-from-blank, no arrow */
+  /** old value (frontend-truncated); absent ⇒ set-from-blank, no arrow */
   from?: string;
   to: string;
   /** every field change across merged saves; absent/length-1 ⇒ no chevron */
   history?: FieldChange[];
 }
 
-/** A value-less change described in words (long-text edits, clears, submit/cancel/rows). */
+/** A value-less change described in words (long-text edits, clears, submit/cancel). */
 export interface PhraseChange extends VersionChangeBase {
   type: "phrase";
   /** full translated line, e.g. "updated Description" / "submitted this document" */
@@ -146,6 +151,6 @@ export type Activity =
 
 /** Consumer-defined activity; render via the `#item-{type}` slot. */
 export type CustomActivity = Omit<BaseActivity<string, unknown>, "key"> & {
-  /** Omit only for static lists; reorderable rows need an explicit key for stable v-for/scroll. */
+  /** Omit for static lists; reorderable rows need a key for stable v-for/scroll. */
   key?: string;
 };
