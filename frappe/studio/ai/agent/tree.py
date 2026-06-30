@@ -116,7 +116,8 @@ class WorkingTree:
 		parent = self.resolve(parent_id)
 		if parent is None:
 			return f"FAILED: parent_component_id '{parent_id}' not found{self.id_hint(parent_id)}"
-		component_name = args.get("component_name") or "block"
+		block_def = args.get("block") or {}
+		component_name = block_def.get("name") or args.get("component_name") or "block"
 		new_id = f"{component_name}-{frappe.generate_hash(length=10)}"
 		# Insert a stub so same-turn references to the new block resolve against the mirror.
 		parent.setdefault("children", []).append(

@@ -25,3 +25,43 @@ def find_block(root: dict, component_id: str) -> dict | None:
 		if block.get("componentId") == component_id:
 			return block
 	return None
+
+
+# componentProps keys that hold user-visible copy, in priority order. Studio blocks
+# carry text in props (there is no innerHTML), so block_text reads the first non-empty
+# one — enough to ground translate/rewrite and "find all text" queries.
+TEXT_PROP_KEYS = ("text", "label", "title", "message", "description", "placeholder")
+
+
+def block_text(block: dict) -> str:
+	"""The block's own user-visible copy, from its componentProps. Empty for containers."""
+	props = block.get("componentProps") or {}
+	for key in TEXT_PROP_KEYS:
+		value = props.get(key)
+		if isinstance(value, str) and value.strip():
+			return value.strip()
+	return ""
+
+
+def is_text_block(block: dict) -> bool:
+	"""A block that carries user-visible copy (a heading, label, button, paragraph…).
+	Defined by SHAPE — a non-empty text prop — so translate/rewrite-all reaches every
+	piece of copy regardless of component."""
+	return bool(block_text(block))
+
+
+def match_block(
+	block: dict,
+	*,
+	component: str | None = None,
+	text_only: bool = False,
+	contains: str | None = None,
+) -> bool:
+	"""Does this block satisfy every supplied filter? Filters AND together."""
+	if component and (block.get("componentName") or "").lower() != component.lower():
+		return False
+	if text_only and not is_text_block(block):
+		return False
+	if contains and contains.lower() not in block_text(block).lower():
+		return False
+	return True

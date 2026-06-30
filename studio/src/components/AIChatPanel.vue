@@ -37,9 +37,47 @@
 						<div class="whitespace-pre-wrap break-words">{{ msg.content }}</div>
 					</div>
 				</div>
-				<div v-else class="flex flex-col items-start">
+				<div v-else class="flex w-full flex-col items-start gap-2">
 					<div class="w-fit max-w-full text-p-xs text-ink-gray-8">
 						<div class="whitespace-pre-wrap break-words">{{ msg.content }}</div>
+					</div>
+
+					<!-- Proposed plan: sections + palette + approve -->
+					<div
+						v-if="msg.metadata?.status === 'plan_summary'"
+						class="flex w-full flex-col gap-2 rounded-md border border-outline-gray-1 bg-surface-gray-1 p-3"
+					>
+						<ul v-if="msg.metadata.sections?.length" class="flex flex-col gap-1">
+							<li v-for="(section, i) in msg.metadata.sections" :key="i" class="text-p-xs text-ink-gray-7">
+								• {{ section }}
+							</li>
+						</ul>
+						<div v-if="msg.metadata.palette" class="text-[11px] text-ink-gray-5">
+							Palette: {{ msg.metadata.palette }}
+						</div>
+						<Button
+							variant="solid"
+							size="sm"
+							label="Approve & build"
+							:disabled="loading"
+							@click="sendPrompt('Yes, that looks good — go ahead and build it.')"
+						/>
+					</div>
+
+					<!-- Clarification: tappable answer options -->
+					<div
+						v-else-if="msg.metadata?.status === 'clarification' && msg.metadata.options?.length"
+						class="flex flex-wrap gap-1.5"
+					>
+						<Button
+							v-for="(option, i) in msg.metadata.options"
+							:key="i"
+							variant="outline"
+							size="sm"
+							:label="option"
+							:disabled="loading"
+							@click="sendPrompt(option)"
+						/>
 					</div>
 				</div>
 			</template>
@@ -120,15 +158,11 @@
 <script lang="ts" setup>
 import { ref, computed, inject, watch, nextTick } from "vue"
 import { ErrorMessage, Button, Badge, FeatherIcon, call, createResource, Popover } from "frappe-ui"
-import { toast } from "frappe-ui"
 import useStudioStore from "@/stores/studioStore"
 import useCanvasStore from "@/stores/canvasStore"
 import { AIChatController } from "@/components/AIChatController"
 import { getBlockInstance, getBlockString } from "@/utils/serializer"
-import { tryParseJsonBlock } from "@/utils/blockCodec"
-import { throttle } from "@/utils/helpers"
-import type Block from "@/utils/block"
-import type { PauseId } from "@/utils/useCanvasHistory"
+import type { BlockOptions } from "@/types"
 import { studioSettings } from "@/data/studioSettings"
 import LucideSparkle from "~icons/lucide/sparkle"
 
@@ -143,8 +177,6 @@ const loading = ref(false)
 const error = ref("")
 const statusMessage = ref("")
 const selectedModel = ref("")
-const streamBuffer = ref("")
-let historyPauseId: PauseId | undefined
 const messages = ref<any[]>([])
 const messagesEl = ref<HTMLElement | null>(null)
 
@@ -171,7 +203,7 @@ const modelLabel = computed(() => {
 })
 
 const sessionResource = createResource({
-	url: "studio.ai.page_generator.get_ai_session",
+	url: "studio.ai.api.get_ai_session",
 	onSuccess(data: any) {
 		messages.value = data.messages ?? []
 		if (data.selected_model) {
@@ -213,80 +245,24 @@ const controller = new AIChatController({
 		return root ? getBlockString(root) : "[]"
 	},
 	getSelectedBlockIds: () => (selectedBlock.value ? [selectedBlock.value.componentId] : []),
+	setRootBlock: (block: BlockOptions) => {
+		const rootBlock = getBlockInstance(block)
+		store.pageBlocks = [rootBlock]
+		canvasStore.activeCanvas?.setRootBlock(rootBlock, false)
+	},
 	savePage: () => store.savePage(),
 	reloadSession,
 	scrollToBottom,
 })
 
-function onProgress(data: any) {
-	statusMessage.value = data.message || "Generating…"
-}
-
-function onStream(data: any) {
-	canvasStore.isAIStreaming = true
-	streamBuffer.value += data.chunk || ""
-	renderStreamedBlock()
-}
-
-const renderStreamedBlock = throttle(() => {
-	const block = tryParseJsonBlock(streamBuffer.value)
-	if (block) {
-		const rootBlock = getBlockInstance(block)
-		store.pageBlocks = [rootBlock]
-		canvasStore.activeCanvas?.setRootBlock(rootBlock, false)
-	}
-}, 250)
-
-async function onComplete(data: any) {
-	canvasStore.isAIStreaming = false
-	loading.value = false
-	statusMessage.value = ""
-	streamBuffer.value = ""
-
-	const block: Block = data.block
-	if (!block) {
-		error.value = "No block was generated. Try a more descriptive prompt."
-		return
-	}
-
-	const rootBlock = getBlockInstance(block)
-	store.pageBlocks = [rootBlock]
-	canvasStore.activeCanvas?.setRootBlock(rootBlock, false)
-	historyPauseId = undefined
-
-	toast.success("Page generated successfully")
-	prompt.value = ""
-	reloadSession()
-}
-
-function onError(data: any) {
-	canvasStore.isAIStreaming = false
-	canvasStore.activeCanvas?.history?.resume(historyPauseId)
-	historyPauseId = undefined
-	loading.value = false
-	statusMessage.value = ""
-	streamBuffer.value = ""
-	error.value = data.message || "Generation failed. Please check your Studio Settings and try again."
-}
-
 function setupListeners() {
 	if (!socket || !pageId.value) return
-	const id = pageId.value
-	socket.on(`ai_generation_progress_${id}`, onProgress)
-	socket.on(`ai_generation_stream_${id}`, onStream)
-	socket.on(`ai_generation_complete_${id}`, onComplete)
-	socket.on(`ai_generation_error_${id}`, onError)
-	controller.attach(id)
+	controller.attach(pageId.value)
 }
 
 function detachListeners() {
 	if (!socket || !pageId.value) return
-	const id = pageId.value
-	socket.off(`ai_generation_progress_${id}`, onProgress)
-	socket.off(`ai_generation_stream_${id}`, onStream)
-	socket.off(`ai_generation_complete_${id}`, onComplete)
-	socket.off(`ai_generation_error_${id}`, onError)
-	controller.detach(id)
+	controller.detach(pageId.value)
 }
 
 watch(
@@ -303,40 +279,19 @@ watch(
 
 async function generate() {
 	if (!prompt.value.trim()) return
-	error.value = ""
+	const text = prompt.value.trim()
+	prompt.value = ""
+	await controller.submit(text, selectedModel.value)
+}
 
-	// Selected-block edits go through the agent loop; whole-page generation still
-	// uses the legacy one-shot path (retired in a later slice).
-	if (isModifyMode.value && selectedBlock.value) {
-		const text = prompt.value.trim()
-		prompt.value = ""
-		await controller.submit(text, selectedModel.value)
-		return
-	}
-
-	loading.value = true
-	statusMessage.value = ""
-	messages.value = [...messages.value, { id: Date.now(), role: "user", content: prompt.value }]
-	scrollToBottom()
-
-	historyPauseId = canvasStore.activeCanvas?.history?.pause()
-	try {
-		await call("studio.ai.page_generator.generate_page_from_prompt", {
-			prompt: prompt.value,
-			model: selectedModel.value,
-			page_id: pageId.value,
-		})
-	} catch (e: any) {
-		canvasStore.activeCanvas?.history?.resume(historyPauseId)
-		historyPauseId = undefined
-		loading.value = false
-		statusMessage.value = ""
-		error.value = e?.message || "Failed to start. Please try again."
-	}
+// A clarification option or plan approval is just the user's next message.
+function sendPrompt(text: string) {
+	if (loading.value) return
+	controller.submit(text, selectedModel.value)
 }
 
 async function clearSession() {
-	await call("studio.ai.page_generator.clear_ai_session", { page_id: pageId.value })
+	await call("studio.ai.api.clear_ai_session", { page_id: pageId.value })
 	messages.value = []
 }
 </script>

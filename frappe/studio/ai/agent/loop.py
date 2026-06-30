@@ -269,8 +269,22 @@ class AgentRunner:
 		def blk(n: int) -> str:
 			return "block" if n == 1 else "blocks"
 
+		if counts.get("generate_page"):
+			return (
+				"Created the page. Ask me to refine it — adjust styles, add sections, or change the layout."
+			)
+
+		# update_blocks edits many blocks in one op — count the blocks it touched.
+		batched = 0
+		for op in operations:
+			if op.get("tool_name") != "update_blocks":
+				continue
+			args = op.get("args") or {}
+			patches = args.get("patches")
+			batched += len(patches) if isinstance(patches, list) else len(args.get("component_ids") or [])
+
 		parts: list[str] = []
-		if n := counts.get("update_block"):
+		if n := (counts.get("update_block", 0) + batched):
 			parts.append(f"updated {n} {blk(n)}")
 		if n := counts.get("add_block"):
 			parts.append(f"added {n} {blk(n)}")
@@ -311,13 +325,26 @@ class AgentRunner:
 		try:
 			for _round in range(MAX_ROUNDS):
 				tool_operations, summary_text, raw_tool_calls = self.call_tool_llm(messages)
-				terminal_ops, server_ops, client_ops = self._classify(tool_operations)
+				terminal_ops, artifact_ops, server_ops, client_ops = self._classify(tool_operations)
 
 				# A terminal tool ends the turn and hands control back to the user. If the
 				# model emits more than one, the first wins (the turn is over).
 				if terminal_ops:
 					self.handle_terminal(terminal_ops[0])
 					return
+
+				# An artifact tool (full-page generation) is the turn's work: its generator
+				# streams the artifact live on the heavy model and returns the canonical client
+				# op(s). Generation ends the loop.
+				if artifact_ops:
+					for op in artifact_ops:
+						tool = self.registry.get(op["tool_name"])
+						if tool and tool.generator:
+							ops = tool.generator(self, op["args"])
+							client_operations.extend(ops)
+							if ops:
+								self.emit("tool_batch", operations=ops)
+					break
 
 				# Apply this round's edits immediately so the canvas updates live and the user
 				# sees progress during a long multi-block change. Server ops are NOT emitted —
@@ -394,11 +421,16 @@ class AgentRunner:
 		frappe.db.commit()  # commit before emit so the client's reload sees the final turn
 		self.emit("complete", message=summary_text or "Done")
 
-	def _classify(self, tool_operations: list[dict]) -> tuple[list, list, list]:
-		"""Split this round's calls by tool side. Client ops are emitted to the canvas;
-		server ops run via their handler; a terminal op ends the turn."""
-		terminal_ops, server_ops, client_ops = [], [], []
+	def _classify(self, tool_operations: list[dict]) -> tuple[list, list, list, list]:
+		"""Split this round's calls. Artifact tools (generate_page) are handled by their
+		generator and take precedence over their nominal side; client ops are emitted to the
+		canvas; server ops run via their handler; a terminal op ends the turn."""
+		terminal_ops, artifact_ops, server_ops, client_ops = [], [], [], []
 		for op in tool_operations:
+			tool = self.registry.get(op["tool_name"])
+			if tool and tool.artifact:
+				artifact_ops.append(op)
+				continue
 			side = self.registry.side(op["tool_name"])
 			if side == "terminal":
 				terminal_ops.append(op)
@@ -406,7 +438,7 @@ class AgentRunner:
 				server_ops.append(op)
 			else:
 				client_ops.append(op)
-		return terminal_ops, server_ops, client_ops
+		return terminal_ops, artifact_ops, server_ops, client_ops
 
 	def _set_running(self, running: bool) -> None:
 		if not self.session_id:

@@ -2,6 +2,9 @@ import { call } from "frappe-ui"
 import type { Ref } from "vue"
 import { type AIChatHandlers, attachAIChatListeners, detachAIChatListeners } from "@/components/ai/realtime"
 import { ToolDispatcher } from "@/components/ai/toolDispatch"
+import type { BlockOptions } from "@/types"
+import { tryParseJsonBlock } from "@/utils/blockCodec"
+import { throttle } from "@/utils/helpers"
 
 /** Everything the controller needs from the panel: the shared chat state it mutates
  * and the canvas/page helpers it drives. Keeps the controller free of Vue component
@@ -16,6 +19,7 @@ export interface AIChatContext {
 	getCanvas: () => any
 	getPageContext: () => string
 	getSelectedBlockIds: () => string[]
+	setRootBlock: (block: BlockOptions) => void
 	savePage: () => void
 	reloadSession: () => void
 	scrollToBottom: () => void
@@ -24,16 +28,24 @@ export interface AIChatContext {
 /**
  * Orchestrates one Studio AI agent turn: sends the user prompt to
  * `studio.ai.api.run` and reacts to the `ai_chat_*` realtime events. Block-tree
- * mutation lives in ToolDispatcher.
+ * mutation lives in ToolDispatcher; full-page generation streams as `page_json`.
  */
 export class AIChatController {
 	sessionId = ""
 	private readonly dispatcher: ToolDispatcher
 	private pendingAssistantId: number | null = null
 	private summary = ""
+	private pageBuffer = ""
+	private readonly renderStreamedPage: () => void
 
 	constructor(private readonly ctx: AIChatContext) {
-		this.dispatcher = new ToolDispatcher(ctx.getCanvas)
+		this.dispatcher = new ToolDispatcher({ getCanvas: ctx.getCanvas, setRootBlock: ctx.setRootBlock })
+		// Re-parsing + rebuilding the whole tree per token pegs the CPU; the final
+		// generate_page op re-applies the authoritative document, so a coarse cadence is fine.
+		this.renderStreamedPage = throttle(() => {
+			const block = tryParseJsonBlock(this.pageBuffer)
+			if (block) this.ctx.setRootBlock(block)
+		}, 200)
 	}
 
 	get handlers(): AIChatHandlers {
@@ -57,6 +69,7 @@ export class AIChatController {
 
 	async submit(promptText: string, model: string) {
 		this.summary = ""
+		this.pageBuffer = ""
 		this.ctx.error.value = ""
 		this.ctx.loading.value = true
 		this.ctx.statusMessage.value = ""
@@ -98,6 +111,11 @@ export class AIChatController {
 
 	onStream = (data: any) => {
 		if (!data.chunk) return
+		if (data.kind === "page_json") {
+			this.pageBuffer += data.chunk
+			this.renderStreamedPage()
+			return
+		}
 		this.summary += data.chunk
 		this.updatePending(this.summary)
 		this.ctx.scrollToBottom()
@@ -116,6 +134,7 @@ export class AIChatController {
 		this.updatePending(this.summary || data.message || "Done")
 		this.pendingAssistantId = null
 		this.summary = ""
+		this.pageBuffer = ""
 		this.ctx.reloadSession()
 	}
 
@@ -125,11 +144,30 @@ export class AIChatController {
 		this.ctx.error.value = data.message || "Request failed."
 		this.pendingAssistantId = null
 		this.summary = ""
+		this.pageBuffer = ""
 		this.ctx.reloadSession()
 	}
 
-	onClarify = (_data: any) => {
-		// Terminal tools (ask_clarification / propose_plan) land in a later slice.
+	onClarify = (data: any) => {
+		this.ctx.loading.value = false
+		this.ctx.statusMessage.value = ""
+		if (data.plan_summary) {
+			this.updatePending(data.headline || "Here's my plan", {
+				status: "plan_summary",
+				headline: data.headline || "",
+				sections: data.sections || [],
+				palette: data.palette || "",
+			})
+		} else {
+			this.updatePending(data.question || "Could you clarify?", {
+				status: "clarification",
+				options: data.options || [],
+			})
+		}
+		this.pendingAssistantId = null
+		this.summary = ""
+		// Backend persists+commits clarify messages before emitting, so this is race-free.
+		this.ctx.reloadSession()
 	}
 
 	// --- helpers ----------------------------------------------------------
@@ -140,12 +178,16 @@ export class AIChatController {
 		return id
 	}
 
-	private updatePending(content: string) {
+	private updatePending(content: string, metadata?: Record<string, any>) {
 		if (this.pendingAssistantId == null) return
 		const index = this.ctx.messages.value.findIndex((m) => m.id === this.pendingAssistantId)
 		if (index === -1) return
 		const next = [...this.ctx.messages.value]
-		next[index] = { ...next[index], content }
+		next[index] = {
+			...next[index],
+			content,
+			...(metadata ? { metadata: { ...next[index].metadata, ...metadata } } : {}),
+		}
 		this.ctx.messages.value = next
 	}
 }

@@ -158,8 +158,34 @@ class AISession:
 				continue
 			if r.get("status") in ("running", "error", "cancelled"):
 				continue
+			# A proposed plan is persisted as just its headline (its sections and palette live
+			# in metadata, rendered separately by the chat UI). Without them here, the model sees
+			# only a one-line headline and can't tell it already proposed a full plan — so on
+			# approval it re-proposes instead of building. Restore the full plan into context.
+			if role == "assistant" and r.get("status") == "plan_summary":
+				content = self._plan_context_content(content, r.get("metadata_json"))
 			out.append({"role": role, "content": content})
 		return out
+
+	@staticmethod
+	def _plan_context_content(headline: str, metadata_json: str | None) -> str:
+		"""Reconstruct a proposed plan's full text (headline + sections + palette) from its
+		stored metadata, for replay into the model's context."""
+		try:
+			meta = json.loads(metadata_json) if metadata_json else {}
+		except (json.JSONDecodeError, TypeError):
+			meta = {}
+		if not isinstance(meta, dict):
+			return headline
+		sections = [str(s).strip() for s in (meta.get("sections") or []) if str(s).strip()]
+		palette = (meta.get("palette") or "").strip()
+		lines = [headline]
+		if sections:
+			lines.append("Sections:")
+			lines.extend(f"- {s}" for s in sections)
+		if palette:
+			lines.append(f"Palette: {palette}")
+		return "\n".join(lines)
 
 	# --- message write ----------------------------------------------------
 

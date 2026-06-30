@@ -1,8 +1,9 @@
 """Whitelisted endpoints for the Studio AI agent.
 
 A single conversational entry point — `run` — drives the unified agent loop for
-one user turn. `cancel` requests that a running turn abort at its next stream chunk.
-The legacy one-shot endpoints still live in `page_generator.py` until they're retired.
+one user turn (generation and editing alike). `cancel` requests that a running turn
+abort at its next stream chunk; `get_ai_session`/`clear_ai_session` read and reset the
+per-page chat history.
 """
 
 import json
@@ -78,6 +79,21 @@ def cancel(session_id: str):
 	tokens once the connection drops."""
 	if session_id:
 		frappe.cache.set_value(f"studio_ai_cancel:{session_id}", "1", expires_in_sec=300)
+	return {"status": "ok"}
+
+
+@frappe.whitelist()
+@has_page_write_perm()
+def get_ai_session(page_id: str, model: str | None = None) -> dict:
+	session = AISession.get_or_create(page_id, model)
+	return {"messages": session.get_messages(), "selected_model": session.selected_model or ""}
+
+
+@frappe.whitelist()
+@has_page_write_perm()
+def clear_ai_session(page_id: str) -> dict:
+	session = AISession.get_or_create(page_id)
+	session.clear()
 	return {"status": "ok"}
 
 
