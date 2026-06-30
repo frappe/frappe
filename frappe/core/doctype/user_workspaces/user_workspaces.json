@@ -7,8 +7,7 @@
  "editable_grid": 1,
  "engine": "InnoDB",
  "field_order": [
-  "workspace",
-  "hidden"
+  "workspace"
  ],
  "fields": [
   {
@@ -17,19 +16,13 @@
    "in_list_view": 1,
    "label": "Workspace",
    "options": "Workspace"
-  },
-  {
-   "default": "0",
-   "fieldname": "hidden",
-   "fieldtype": "Check",
-   "label": "Hidden"
   }
  ],
  "grid_page_length": 50,
  "index_web_pages_for_search": 1,
  "istable": 1,
  "links": [],
- "modified": "2026-06-17 19:06:05.641252",
+ "modified": "2026-07-01 00:44:40.765789",
  "modified_by": "Administrator",
  "module": "Core",
  "name": "User Workspaces",

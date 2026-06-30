@@ -53,9 +53,15 @@ frappe.ui.SidebarHeader = class SidebarHeader {
 		};
 	}
 	get_public_workspace_items() {
-		let app_workspaces = (frappe.current_app && frappe.current_app.workspaces) || [];
+		// `frappe.boot.user_workspaces` is the user's personal selector preference
+		// (`User.workspaces`, hidden entries already excluded). When set, it is authoritative
+		// for the selector; otherwise fall back to the current app's workspaces.
+		let user_workspaces = frappe.boot.user_workspaces || [];
+		let source = user_workspaces.length
+			? user_workspaces
+			: (frappe.current_app && frappe.current_app.workspaces) || [];
 
-		return app_workspaces
+		return source
 			.map((name) => frappe.workspaces[frappe.router.slug(name)])
 			.filter((workspace) => workspace && !this.is_active_workspace(workspace))
 			.map((workspace) => this.workspace_to_item(workspace))

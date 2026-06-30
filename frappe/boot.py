@@ -174,7 +174,13 @@ def load_conf_settings(bootinfo):
 
 
 def load_desktop_data(bootinfo):
+	from frappe.desk.desktop import get_user_workspaces
+
 	allowed_pages = [d.name for d in bootinfo.workspaces.get("pages")]
+	# The user's curated workspace selection (`User.workspaces`), ordered. Kept separate from
+	# `bootinfo.workspaces` (which holds every permitted workspace link) so the workspace selector
+	# can prefer it when set, without it affecting the full workspace listing.
+	bootinfo.user_workspaces = get_user_workspaces()
 	bootinfo.workspace_sidebar_item = get_sidebar_items()
 	bootinfo.default_workspace_map = build_default_workspace_map(bootinfo.workspace_sidebar_item)
 	bootinfo.module_wise_workspaces = get_controller("Workspace").get_module_wise_workspaces()

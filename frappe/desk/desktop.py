@@ -61,25 +61,18 @@ class Workspace(DeskViews):
 	def is_permitted(self):
 		"""Return true if the workspace is visible to the current user.
 
-		Visibility of **public** workspaces is gated by the workspace's `roles`
-		allow-list and by the user's personal allow-list (`User.workspaces`):
+		Visibility is gated purely by access (roles / blocked modules):
 
-		* If the user has customised `User.workspaces`, only the public workspaces listed
-		  there are visible -- the personal allow-list is authoritative.
 		* If the workspace has `roles`, the user must have one of them.
-		* Otherwise (no personal list, no roles) visibility falls back to the user's
-		  blocked modules: the workspace is hidden when its `module` is blocked.
+		* Otherwise visibility falls back to the user's blocked modules: the workspace is
+		  hidden when its `module` is blocked.
 
-		Private (`for_user`) workspaces are owned by a single user and are gated by
-		ownership in `get_workspaces()`, so the personal allow-list does not apply to
-		them.
+		The user's personal selection (`User.workspaces`) is *not* an access filter -- it is a
+		per-user preference for the workspace selector, applied client-side from
+		`frappe.boot.user_workspaces`. Keeping it out of here ensures the full role-permitted
+		pool stays available (e.g. for the "My Workspaces" picker to choose from).
 		"""
 		from frappe.utils import has_common
-
-		if self.doc.public:
-			user_workspaces = get_user_workspaces()
-			if user_workspaces:
-				return self.doc.name in user_workspaces
 
 		allowed = [d.role for d in self.doc.roles]
 		allowed.extend(get_custom_allowed_roles("page", self.doc.name))
@@ -365,16 +358,38 @@ def get_desktop_page(page: str | dict):
 
 
 @frappe.whitelist()
-def get_user_workspaces(user: str | None = None) -> dict[str, bool]:
-	"""Return `user`'s personal workspace customisation (`User.workspaces`).
+def get_user_workspaces(user: str | None = None) -> list[str]:
+	"""Return `user`'s personal workspace selection (`User.workspaces`), in row order.
 
-	Maps workspace name -> personal `hidden` flag, preserving the row order of the
-	child table. An empty mapping means the user has not customised their workspaces,
-	in which case visibility falls back to roles / blocked modules.
+	This is the ordered list of public workspaces the user has chosen for their workspace
+	selector (via the "My Workspaces" picker). An empty list means the user has not curated a
+	selection, in which case the selector falls back to the current app's workspaces.
 	"""
 	user = user or frappe.session.user
 	user_doc = frappe.get_cached_doc("User", user)
-	return {d.workspace: bool(d.hidden) for d in user_doc.workspaces if d.workspace}
+	return [d.workspace for d in user_doc.workspaces if d.workspace]
+
+
+@frappe.whitelist()
+def save_workspace_preferences(workspaces: list | str):
+	"""Persist the "My Workspaces" picker selection into the user's `User.workspaces`.
+
+	`workspaces` is the ordered list of public workspaces the user wants in their workspace
+	selector. The order is preserved (it also drives sidebar ordering in `get_workspaces()`).
+	The picker sources its pool of choices from data already on the client (`frappe.boot`),
+	so this only needs to validate the names and store the selection.
+	"""
+	workspaces = frappe.parse_json(workspaces) or []
+	valid = set(frappe.get_all("Workspace", filters={"public": 1}, pluck="name"))
+
+	user_doc = frappe.get_doc("User", frappe.session.user)
+	user_doc.workspaces = []
+	for name in workspaces:
+		if name in valid:
+			user_doc.append("workspaces", {"workspace": name})
+	user_doc.save(ignore_permissions=True)
+
+	return True
 
 
 def _overlay_customization_properties(pages: list) -> bool:
@@ -416,7 +431,7 @@ def get_workspaces():
 
 	has_access = "Workspace Manager" in frappe.get_roles()
 
-	# personal customisation: ordered {workspace: hidden}; empty means "not customised"
+	# the user's curated selector order (ordered list of names); empty means "not customised"
 	user_workspaces = get_user_workspaces()
 
 	# adding None to allowed_domains to include pages without domain restriction
@@ -465,13 +480,8 @@ def get_workspaces():
 	# Filter Page based on Permission
 	for page in all_pages:
 		try:
-			# A workspace the user hid in their personal list (`User.workspaces`) is dropped
-			# from their sidebar regardless of role -- unlike workspace-level `is_hidden`,
-			# this is a per-user preference, so it applies to Workspace Managers too.
-			personally_hidden = user_workspaces.get(page.name, False)
-
 			workspace = Workspace(page, True)
-			if (has_access or workspace.is_permitted()) and not personally_hidden:
+			if has_access or workspace.is_permitted():
 				if page.public and (has_access or not page.is_hidden) and page.title != "Welcome Workspace":
 					pages.append(page)
 				elif page.for_user == frappe.session.user:
@@ -498,8 +508,8 @@ def get_workspaces():
 	if private_pages:
 		pages.extend(private_pages)
 
-	# respect the order of the user's personal customisation; workspaces not in the
-	# customisation (e.g. private pages) keep their sequence_id order at the end
+	# respect the order of the user's curated selection; workspaces not in the
+	# selection (e.g. private pages) keep their sequence_id order at the end
 	if user_workspaces:
 		order = {name: idx for idx, name in enumerate(user_workspaces)}
 		pages.sort(key=lambda page: order.get(page["name"], len(order)))
