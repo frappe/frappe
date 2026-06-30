@@ -57,9 +57,20 @@
 		padding: 3px;
 	}
 
+	.divider {
+		margin: 0;
+		border: 0;
+		height: 1px;
+		opacity: 1;
+		background-color: var(--border-color);
+	}
+
 	.filter-action-buttons {
 		display: flex;
+		align-items: center;
 		justify-content: space-between;
+		padding: var(--padding-sm) 0;
+		margin: 0;
 
 		.add-filter {
 			cursor: pointer;
@@ -73,10 +84,13 @@
 			}
 		}
 	}
+}
 
-	.divider {
-		background-color: var(--border-color);
-	}
+// FilterGroup in modals: drop extra section padding below the action row so spacing
+// above/below "Clear Filters" matches the divider above (shared by layout dialog,
+// multi-select dialog, widget dialogs, data export, etc.).
+.modal .form-section:has(.frappe-control[data-fieldname="filter_area"]) {
+	padding-bottom: 0;
 }
 
 // for sm and above
