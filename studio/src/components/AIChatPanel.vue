@@ -123,6 +123,7 @@ import { ErrorMessage, Button, Badge, FeatherIcon, call, createResource, Popover
 import { toast } from "frappe-ui"
 import useStudioStore from "@/stores/studioStore"
 import useCanvasStore from "@/stores/canvasStore"
+import { AIChatController } from "@/components/AIChatController"
 import { getBlockInstance, getBlockString } from "@/utils/serializer"
 import { tryParseJsonBlock } from "@/utils/blockCodec"
 import { throttle } from "@/utils/helpers"
@@ -143,7 +144,6 @@ const error = ref("")
 const statusMessage = ref("")
 const selectedModel = ref("")
 const streamBuffer = ref("")
-const modifyStreamBuffer = ref("")
 let historyPauseId: PauseId | undefined
 const messages = ref<any[]>([])
 const messagesEl = ref<HTMLElement | null>(null)
@@ -200,6 +200,24 @@ function reloadSession() {
 	}
 }
 
+const controller = new AIChatController({
+	socket,
+	messages,
+	loading,
+	statusMessage,
+	error,
+	pageId: () => pageId.value,
+	getCanvas: () => canvasStore.activeCanvas,
+	getPageContext: () => {
+		const root = store.pageBlocks?.[0] ?? canvasStore.activeCanvas?.getRootBlock()
+		return root ? getBlockString(root) : "[]"
+	},
+	getSelectedBlockIds: () => (selectedBlock.value ? [selectedBlock.value.componentId] : []),
+	savePage: () => store.savePage(),
+	reloadSession,
+	scrollToBottom,
+})
+
 function onProgress(data: any) {
 	statusMessage.value = data.message || "Generating…"
 }
@@ -251,59 +269,6 @@ function onError(data: any) {
 	error.value = data.message || "Generation failed. Please check your Studio Settings and try again."
 }
 
-function onModifyProgress(data: any) {
-	statusMessage.value = data.message || "Updating…"
-}
-
-function onModifyStream(data: any) {
-	canvasStore.isAIStreaming = true
-	modifyStreamBuffer.value += data.chunk || ""
-	const block = tryParseJsonBlock(modifyStreamBuffer.value)
-	if (block) {
-		replaceBlockInTree(data.component_id, getBlockInstance(block))
-	}
-}
-
-async function onModifyComplete(data: any) {
-	canvasStore.isAIStreaming = false
-	loading.value = false
-	statusMessage.value = ""
-	modifyStreamBuffer.value = ""
-
-	const block: Block = data.block
-	if (!block) {
-		error.value = "No block was returned. Try a more specific request."
-		return
-	}
-
-	replaceBlockInTree(data.component_id, getBlockInstance(block))
-	canvasStore.activeCanvas?.history?.resume(historyPauseId, true)
-	historyPauseId = undefined
-	toast.success("Block updated")
-	prompt.value = ""
-	reloadSession()
-}
-
-function onModifyError(data: any) {
-	canvasStore.isAIStreaming = false
-	canvasStore.activeCanvas?.history?.resume(historyPauseId)
-	historyPauseId = undefined
-	loading.value = false
-	statusMessage.value = ""
-	modifyStreamBuffer.value = ""
-	error.value = data.message || "Update failed. Please try again."
-}
-
-function replaceBlockInTree(componentId: string, newBlock: Block) {
-	const canvas = canvasStore.activeCanvas
-	if (!canvas) return
-	const oldBlock = canvas.findBlock(componentId)
-	if (!oldBlock) return
-	const parent = oldBlock.getParentBlock()
-	if (!parent) return
-	parent.replaceChild(oldBlock, newBlock)
-}
-
 function setupListeners() {
 	if (!socket || !pageId.value) return
 	const id = pageId.value
@@ -311,10 +276,7 @@ function setupListeners() {
 	socket.on(`ai_generation_stream_${id}`, onStream)
 	socket.on(`ai_generation_complete_${id}`, onComplete)
 	socket.on(`ai_generation_error_${id}`, onError)
-	socket.on(`ai_modify_progress_${id}`, onModifyProgress)
-	socket.on(`ai_modify_stream_${id}`, onModifyStream)
-	socket.on(`ai_modify_complete_${id}`, onModifyComplete)
-	socket.on(`ai_modify_error_${id}`, onModifyError)
+	controller.attach(id)
 }
 
 function detachListeners() {
@@ -324,10 +286,7 @@ function detachListeners() {
 	socket.off(`ai_generation_stream_${id}`, onStream)
 	socket.off(`ai_generation_complete_${id}`, onComplete)
 	socket.off(`ai_generation_error_${id}`, onError)
-	socket.off(`ai_modify_progress_${id}`, onModifyProgress)
-	socket.off(`ai_modify_stream_${id}`, onModifyStream)
-	socket.off(`ai_modify_complete_${id}`, onModifyComplete)
-	socket.off(`ai_modify_error_${id}`, onModifyError)
+	controller.detach(id)
 }
 
 watch(
@@ -344,30 +303,29 @@ watch(
 
 async function generate() {
 	if (!prompt.value.trim()) return
-	loading.value = true
 	error.value = ""
-	statusMessage.value = ""
 
+	// Selected-block edits go through the agent loop; whole-page generation still
+	// uses the legacy one-shot path (retired in a later slice).
+	if (isModifyMode.value && selectedBlock.value) {
+		const text = prompt.value.trim()
+		prompt.value = ""
+		await controller.submit(text, selectedModel.value)
+		return
+	}
+
+	loading.value = true
+	statusMessage.value = ""
 	messages.value = [...messages.value, { id: Date.now(), role: "user", content: prompt.value }]
 	scrollToBottom()
 
 	historyPauseId = canvasStore.activeCanvas?.history?.pause()
 	try {
-		if (isModifyMode.value && selectedBlock.value) {
-			await call("studio.ai.page_generator.modify_block_from_prompt", {
-				prompt: prompt.value,
-				block_context: getBlockString(selectedBlock.value),
-				model: selectedModel.value,
-				page_id: pageId.value,
-				component_id: selectedBlock.value.componentId,
-			})
-		} else {
-			await call("studio.ai.page_generator.generate_page_from_prompt", {
-				prompt: prompt.value,
-				model: selectedModel.value,
-				page_id: pageId.value,
-			})
-		}
+		await call("studio.ai.page_generator.generate_page_from_prompt", {
+			prompt: prompt.value,
+			model: selectedModel.value,
+			page_id: pageId.value,
+		})
 	} catch (e: any) {
 		canvasStore.activeCanvas?.history?.resume(historyPauseId)
 		historyPauseId = undefined

@@ -233,11 +233,9 @@ class AISession:
 
 	def set_running(self):
 		frappe.db.set_value(self.DOCTYPE, self._doc.name, "is_running", 1, update_modified=False)
-		frappe.db.commit()
 
 	def clear_running(self):
 		frappe.db.set_value(self.DOCTYPE, self._doc.name, "is_running", 0, update_modified=False)
-		frappe.db.commit()
 
 	@classmethod
 	def is_session_running(cls, session_id: str) -> bool:
@@ -267,7 +265,6 @@ class AISession:
 		cutoff = user_creation or target
 		frappe.db.delete(self.MESSAGE_DOCTYPE, {"session": self._doc.name, "creation": [">=", cutoff]})
 		frappe.db.set_value(self.DOCTYPE, self._doc.name, "is_running", 0, update_modified=False)
-		frappe.db.commit()
 
 	def clear(self):
 		"""Wipe all messages for this session and reset transient state."""
@@ -282,4 +279,3 @@ class AISession:
 			},
 			update_modified=False,
 		)
-		frappe.db.commit()

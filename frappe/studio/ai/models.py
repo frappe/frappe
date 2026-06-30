@@ -38,6 +38,15 @@ class ModelRegistry:
 		return model_id
 
 	@classmethod
+	def get_fallbacks(cls, model_id: str) -> list[str]:
+		"""Safety net when the chosen model is unavailable: fall back to the cheap,
+		widely-available SIMPLE model. Driven by the registry so the LLM adapter
+		carries no hardcoded model strings."""
+		if not model_id or cls.SIMPLE in model_id:
+			return []
+		return [cls.SIMPLE]
+
+	@classmethod
 	def list_all(cls) -> list:
 		return cls.AVAILABLE
 
