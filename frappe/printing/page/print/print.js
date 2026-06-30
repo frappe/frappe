@@ -355,8 +355,16 @@ frappe.ui.form.PrintView = class {
 				args: { doctype: "Print Format", name: format_name },
 			})
 			.then((r) => {
-				if (r.message?.letter_head) {
-					this.letterhead_selector.val(r.message.letter_head);
+				let letter_head = null;
+				try {
+					letter_head = r.message?.format_data
+						? JSON.parse(r.message.format_data)?.letter_head
+						: null;
+				} catch (_) {
+					// malformed format_data — fall through to default letterhead
+				}
+				if (letter_head) {
+					this.letterhead_selector.val(letter_head);
 				} else {
 					return this.set_default_letterhead();
 				}
