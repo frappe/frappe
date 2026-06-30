@@ -129,7 +129,7 @@
 
 <script setup lang="ts">
 import { Combobox, ItemListRow } from "frappe-ui";
-import { inputFontSizeClasses, useInputLabeling } from "frappe-ui/internals";
+import { inputFontSizeClasses, useInputLabeling } from "frappe-ui/experimental";
 import { computed, nextTick, onMounted, reactive, ref, useAttrs, useSlots, watch } from "vue";
 import type { Country, PhoneInputProps, PhoneInputSlots } from "./types";
 import {

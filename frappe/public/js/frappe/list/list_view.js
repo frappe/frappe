@@ -82,6 +82,10 @@ frappe.views.ListView = class ListView extends frappe.views.BaseList {
 		return "List";
 	}
 
+	get show_saved_layout_menu() {
+		return true;
+	}
+
 	get view_user_settings() {
 		return this.user_settings[this.view_name] || {};
 	}

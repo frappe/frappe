@@ -117,6 +117,8 @@ export function getStore(print_format_name) {
 								"field_template",
 								"show_label",
 								"align",
+								"label_justify",
+								"visible_if",
 							]);
 						});
 					return column;
@@ -138,6 +140,8 @@ export function getStore(print_format_name) {
 			"field_template",
 			"show_label",
 			"align",
+			"label_justify",
+			"visible_if",
 		];
 		function clean_zone(zone) {
 			if (!zone || !zone.columns) return zone;

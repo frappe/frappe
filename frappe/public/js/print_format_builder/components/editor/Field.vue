@@ -5,6 +5,7 @@
 			'field--table': df.fieldtype == 'Table',
 			'field--selected': is_selected,
 			'field--preview': !!preview_doc,
+			'field--condition-hidden': preview_doc && !is_field_visible,
 		}"
 		v-show="!df.remove"
 		:title="df.label || df.fieldname"
@@ -29,8 +30,18 @@
 				<!-- Table MultiSelect field: render as a comma-separated value list -->
 				<div
 					v-else-if="df.fieldtype == 'Table MultiSelect'"
-					:style="{ textAlign: df.align || 'left' }"
-					:class="{ 'field-preview-lr': field_orientation === 'left-right' }"
+					:style="
+						field_orientation !== 'left-right' ? { textAlign: df.align || 'left' } : {}
+					"
+					:class="[
+						'field-preview-lr',
+						field_orientation === 'left-right' && df.label_justify
+							? `field-preview-lr--${df.label_justify}`
+							: '',
+						field_orientation === 'left-right' && df.align && df.align !== 'left'
+							? `field-preview-lr--align-${df.align}`
+							: '',
+					]"
 				>
 					<div v-if="df.label && df.show_label !== 'hide'" class="field-preview-label">
 						{{ df.label }}
@@ -59,6 +70,7 @@
 									v-for="col in df.table_columns"
 									:key="col.fieldname"
 									:class="numeric_align_class(col)"
+									:style="col.width ? { width: col.width + '%' } : {}"
 								>
 									{{ col.label || col.fieldname }}
 								</th>
@@ -107,8 +119,18 @@
 				<!-- Regular field -->
 				<div
 					v-else
-					:style="{ textAlign: df.align || 'left' }"
-					:class="{ 'field-preview-lr': field_orientation === 'left-right' }"
+					:style="
+						field_orientation !== 'left-right' ? { textAlign: df.align || 'left' } : {}
+					"
+					:class="[
+						'field-preview-lr',
+						field_orientation === 'left-right' && df.label_justify
+							? `field-preview-lr--${df.label_justify}`
+							: '',
+						field_orientation === 'left-right' && df.align && df.align !== 'left'
+							? `field-preview-lr--align-${df.align}`
+							: '',
+					]"
 				>
 					<div v-if="df.label && df.show_label !== 'hide'" class="field-preview-label">
 						{{ df.label }}
@@ -219,7 +241,7 @@
 
 <script setup>
 import ConfigureColumnsVue from "../inspector/ConfigureColumns.vue";
-import { render_jinja_html, sanitize_html } from "../../utils";
+import { render_jinja_html, sanitize_html, evaluate_visible_if } from "../../utils";
 import { createApp, ref, nextTick, watch, computed, inject } from "vue";
 
 const props = defineProps(["df", "field_orientation"]);
@@ -232,6 +254,7 @@ let rendered_template = ref(null);
 
 let is_selected = computed(() => store.selected_field.value === props.df);
 let preview_doc = computed(() => store.preview_doc.value);
+let is_field_visible = computed(() => evaluate_visible_if(props.df.visible_if, preview_doc.value));
 
 // Render Jinja2 HTML fields server-side when in preview mode
 watch(
@@ -672,6 +695,12 @@ watch(
 	position: relative;
 }
 
+.field--condition-hidden {
+	opacity: 0.35;
+	border: 1px dashed var(--gray-400) !important;
+	border-radius: var(--radius);
+}
+
 .field--preview:hover {
 	border-color: var(--gray-200);
 	background: var(--gray-50);
@@ -691,7 +720,7 @@ watch(
 .field-preview-label {
 	font-size: var(--text-tiny);
 	font-weight: var(--weight-semibold);
-	color: var(--gray-500);
+	color: #6b7280;
 	margin-bottom: 1px;
 }
 
@@ -711,6 +740,38 @@ watch(
 .field-preview-lr .field-preview-value {
 	flex: 1;
 	min-width: 0;
+}
+
+.field-preview-lr--space-between {
+	justify-content: space-between;
+}
+.field-preview-lr--space-evenly {
+	justify-content: space-evenly;
+}
+.field-preview-lr--align-center {
+	justify-content: center;
+}
+.field-preview-lr--align-right {
+	justify-content: flex-end;
+}
+
+/* Spacing: value shrinks to natural width so justify-content has room to push it */
+.field-preview-lr--space-between .field-preview-value,
+.field-preview-lr--space-evenly .field-preview-value {
+	flex: none;
+}
+
+.field-preview-lr--space-between .field-preview-value {
+	text-align: right;
+}
+
+/* Align: both label and value shrink to natural width so the pair can be repositioned */
+.field-preview-lr--align-center .field-preview-label,
+.field-preview-lr--align-center .field-preview-value,
+.field-preview-lr--align-right .field-preview-label,
+.field-preview-lr--align-right .field-preview-value {
+	flex: none;
+	width: auto;
 }
 
 .field-preview-value {
@@ -784,6 +845,7 @@ watch(
 	width: 100%;
 	border-collapse: collapse;
 	font-size: var(--text-sm);
+	table-layout: fixed;
 }
 
 /* ── Default: bordered + styled header (matches PDF) ─── */

@@ -65,6 +65,9 @@ class TestMaskFieldValue(IntegrationTestCase):
 	def test_time_field_masked(self):
 		self.assertEqual(mask_field_value(self._field("Time"), "14:30:00"), "XX:XX")
 
+	def test_datetime_field_masked(self):
+		self.assertEqual(mask_field_value(self._field("Datetime"), "2024-01-15 14:30:00"), "XX-XX-XXXX XX:XX")
+
 	def test_none_value_is_not_masked(self):
 		self.assertIsNone(mask_field_value(self._field("Data"), None))
 

@@ -634,8 +634,12 @@ frappe.views.BaseList = class BaseList {
 	}
 
 	setup_list_filter_by() {
+		if (!this.show_saved_layout_menu) {
+			return Promise.resolve();
+		}
+
 		return new Promise((resolve) => {
-			frappe.require("list_layout.bundle.js", () => {
+			frappe.require("list_filter.bundle.js", () => {
 				this.list_filter = new frappe.views.ListFilter(this);
 				resolve(this.list_filter.setup_promise);
 			});
@@ -1276,7 +1280,10 @@ class FilterArea {
 			];
 
 			if (input_fieldtypes.includes(df.fieldtype)) {
-				df.match_type = df.condition || "=";
+				const saved_conditions =
+					frappe.get_user_settings(this.list_view.doctype, this.list_view.view_name)
+						.filter_conditions || {};
+				df.match_type = saved_conditions[df.fieldname] || df.condition || "=";
 				this.filter_field_with_match_type(df);
 			}
 		});
@@ -1332,6 +1339,13 @@ class FilterArea {
 
 				field.df.match_type = new_type;
 				$dropdown.find("button").html(getIcon(new_type));
+
+				const saved_conditions =
+					frappe.get_user_settings(this.list_view.doctype, this.list_view.view_name)
+						.filter_conditions || {};
+				this.list_view.save_view_user_settings?.({
+					filter_conditions: { ...saved_conditions, [df.fieldname]: new_type },
+				});
 
 				let value = field.get_value?.();
 				if (new_type === "=" && value) {
