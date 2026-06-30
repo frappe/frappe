@@ -6,8 +6,22 @@
 		floating / minimized. Pass more than one `channel` (e.g. ["email", "comment"])
 		to turn the title into a switcher and gain a `submit-comment` event.
 	-->
-	<FloatingWindow v-model:mode="windowMode" :minimizable="true">
+	<!-- `:style` falls through onto FloatingWindow's panel (it forwards $attrs).
+		 While docked we use it to pin a draggable height; floating/minimized keep
+		 the window's own sizing (dockedStyle is undefined then). -->
+	<FloatingWindow v-model:mode="windowMode" :minimizable="true" :style="dockedStyle">
 		<template #header="{ mode, float, dock, minimize, expandFromTray }">
+			<!-- Docked-only top grip: drag up to grow the compose area (the host
+				 container pins the bottom). Anchors to the panel, which is relative. -->
+			<button
+				v-if="mode === 'docked'"
+				type="button"
+				aria-label="Resize comment box"
+				class="absolute left-1/2 top-0 z-10 flex h-6 w-24 -translate-x-1/2 cursor-ns-resize touch-none items-center justify-center rounded-full opacity-60 transition-opacity hover:opacity-100 focus:opacity-100"
+				@pointerdown.prevent="startDockedResize"
+			>
+				<span class="h-1 w-10 rounded-full bg-surface-gray-4" />
+			</button>
 			<ComposerHeader
 				class="px-2.5"
 				:title="channelLabel"
@@ -18,19 +32,9 @@
 				@expand="mode === 'docked' ? float() : dock()"
 				@minimize="mode === 'minimized' ? expandFromTray() : minimize()"
 			>
-				<!-- Multi-channel: the title becomes an Email/Comment switcher. -->
+				<!-- Multi-channel: the title becomes an Email/Comment pill toggle. -->
 				<template v-if="channels.length > 1" #title>
-					<div class="flex gap-[4px] items-center">
-						<span class="text-ink-gray-5 text-base">Via</span>
-						<Dropdown :options="channelOptions" placement="bottom-start">
-							<button
-								class="flex items-center gap-1 rounded px-1.5 py-0.5 text-base text-ink-gray-7 hover:bg-surface-gray-2"
-							>
-								{{ channelLabel }}
-								<FeatherIcon name="chevron-down" class="h-4 w-4 text-ink-gray-5" />
-							</button>
-						</Dropdown>
-					</div>
+					<TabButtons v-model="channel" :options="channelOptions" />
 				</template>
 
 				<!-- Reveal the optional Cc/Bcc recipient rows. Email-only, and hidden
@@ -56,6 +60,7 @@
 
 		<Composer
 			ref="composer"
+			class="min-h-0 flex-1"
 			:placeholder="placeholder"
 			:label="submitLabel"
 			:loading="loading"
@@ -92,8 +97,8 @@
 </template>
 
 <script setup lang="ts">
-import { computed, ref } from "vue";
-import { Button, Dropdown, FeatherIcon, toast } from "frappe-ui";
+import { computed, ref, watch } from "vue";
+import { Button, TabButtons, toast } from "frappe-ui";
 import { FloatingWindow, type WindowMode } from "frappe-ui/experimental";
 import Composer from "../Composer.vue";
 import ComposerHeader from "../ComposerHeader.vue";
@@ -132,7 +137,7 @@ const submitLabel = computed(() => (channel.value === "comment" ? "Comment" : pr
 const channelOptions = computed(() =>
 	props.channels.map((value) => ({
 		label: value === "comment" ? "Comment" : "Email",
-		onClick: () => (channel.value = value),
+		value,
 	}))
 );
 
@@ -144,6 +149,41 @@ const recipients = defineModel<Recipients>("recipients", {
 const subject = defineModel<string>("subject", { default: "" });
 
 const composer = ref<InstanceType<typeof Composer> | null>(null);
+
+// Switching channel (Email <-> Comment) starts a fresh message: clear the
+// editor body, attachments, and any quoted reply so content doesn't bleed
+// across types.
+watch(channel, () => composer.value?.reset());
+
+// Docked resize. `null` = size to content (default); a drag on the top grip
+// pins a `min-height` so the docked window can grow taller. Using min-height
+// (not height) means the panel still grows to fit its content — so toggling
+// CC/BCC never clips the footer, and the content height is always the floor.
+const dockedHeight = ref<number | null>(null);
+
+const dockedStyle = computed(() =>
+	windowMode.value === "docked" && dockedHeight.value
+		? { minHeight: `${dockedHeight.value}px` }
+		: undefined
+);
+
+// Drag the top edge up to grow the window (bottom is pinned by the host). Seed
+// from the panel's current rendered height the first time, so there's no jump.
+function startDockedResize(event: PointerEvent) {
+	const panel = (event.currentTarget as HTMLElement).closest(".floating-window") as HTMLElement | null;
+	const startY = event.clientY;
+	const startHeight = dockedHeight.value ?? panel?.offsetHeight ?? 0;
+	function onMove(moveEvent: PointerEvent) {
+		const next = startHeight - (moveEvent.clientY - startY);
+		dockedHeight.value = Math.min(Math.max(next, 0), window.innerHeight);
+	}
+	function onUp() {
+		window.removeEventListener("pointermove", onMove);
+		window.removeEventListener("pointerup", onUp);
+	}
+	window.addEventListener("pointermove", onMove);
+	window.addEventListener("pointerup", onUp);
+}
 
 // To is always shown; Subject shows whenever `fields` includes it. Cc/Bcc stay
 // hidden until revealed from the To-row toggles (or a prefilled value opens them).

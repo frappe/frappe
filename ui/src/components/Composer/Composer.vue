@@ -40,11 +40,11 @@
 					<!-- Selection formatting popup. -->
 					<EditorBubbleMenu :items="commentToolbar" />
 
-					<!-- Fixed editor space (helpdesk-style): a bounded height that
-						 scrolls its own content, so the compose area stays the same
-						 whether the window is docked or floating, and the toolbar
-						 below it never moves. -->
-					<div class="flex max-h-[50vh] min-h-[7rem] flex-col overflow-y-auto px-2.5">
+					<!-- Editor space: at least 7rem, grows to fill the window's
+						 height (so dragging it taller adds compose room) up to a
+						 50vh cap, scrolling its own content past that. The toolbar
+						 below stays pinned. -->
+					<div class="flex max-h-[50vh] min-h-[7rem] flex-1 flex-col overflow-y-auto px-2.5">
 						<EditorContent
 							class="prose-sm max-w-full flex-1 pb-8 pt-2 [&_p.reply-to-content]:hidden"
 						/>
@@ -98,6 +98,9 @@
 								class="flex min-w-0 flex-1 items-center gap-1 overflow-x-auto"
 							>
 								<slot name="actions" v-bind="{ addAttachment, setUploading }" />
+								<!-- Always-visible formatting bar, same items as the
+									 selection bubble menu. -->
+								<EditorFixedMenu :items="commentToolbar" button-size="sm" />
 							</div>
 							<div class="flex shrink-0 items-center gap-2">
 								<Button label="Discard" @click="discard" />
@@ -124,6 +127,7 @@ import {
 	Editor,
 	EditorContent,
 	EditorBubbleMenu,
+	EditorFixedMenu,
 	CommentKit,
 	commentToolbar,
 	type UploadedFile as EditorUploadedFile,
