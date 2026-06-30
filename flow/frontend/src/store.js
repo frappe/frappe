@@ -310,9 +310,7 @@ function handleEvent(event, msg) {
 			requestScroll();
 			break;
 		case "tool_ended": {
-			// A resumed confirmation tool's card lives in the earlier paused message,
-			// not the new one being streamed into — so search all messages.
-			const part = findToolPart(event.id);
+			const part = msg.parts.find((p) => p.type === "tool" && p.id === event.id);
 			if (part) part.result = event.result;
 			requestScroll();
 			break;
@@ -353,14 +351,6 @@ function appendText(msg, delta) {
 	const last = msg.parts[msg.parts.length - 1];
 	if (last && last.type === "text") last.text += delta;
 	else msg.parts.push({ id: nextId(), type: "text", text: delta });
-}
-
-function findToolPart(id) {
-	for (const m of messages.value) {
-		const tc = (m.parts || []).find((p) => p.type === "tool" && p.id === id);
-		if (tc) return tc;
-	}
-	return null;
 }
 
 function failMessage(msg, error) {
