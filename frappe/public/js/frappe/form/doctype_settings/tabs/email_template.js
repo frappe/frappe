@@ -70,17 +70,6 @@ frappe.doctype_settings.register("email-template", function (panel, doctype) {
 	});
 });
 
-// Sets the doctype's default email template by writing a Property Setter — the same
-// override Customize Form creates. Property Setter's validation dedupes the previous one.
 function set_default(doctype, template) {
-	return frappe.db
-		.insert({
-			doctype: "Property Setter",
-			doctype_or_field: "DocType",
-			doc_type: doctype,
-			property: "default_email_template",
-			property_type: "Data",
-			value: template,
-		})
-		.then(() => frappe.show_alert({ message: __("Default updated"), indicator: "green" }));
+	return frappe.doctype_settings.set_property(doctype, "default_email_template", template);
 }
