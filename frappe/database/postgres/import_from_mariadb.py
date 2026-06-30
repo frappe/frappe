@@ -49,8 +49,8 @@ _dynamic_space_mb: int | None = None
 def set_staging_mariadb(conn: dict | None, dynamic_space_mb: int | None = None) -> None:
 	global _staging_mariadb, _dynamic_space_mb
 	_staging_mariadb = conn
-	if dynamic_space_mb:
-		_dynamic_space_mb = dynamic_space_mb
+	# Assign unconditionally so a later call without a heap size resets the previous one.
+	_dynamic_space_mb = dynamic_space_mb
 
 
 def assert_conversion_supported() -> None:
@@ -71,9 +71,9 @@ def assert_conversion_supported() -> None:
 		)
 
 
-def _uri(scheme: str, conn: dict, db_name: str) -> str:
+def _uri(scheme: str, conn: dict, db_name: str, include_password: bool = True) -> str:
 	user = quote(conn["user"], safe="")
-	password = quote(conn.get("password") or "", safe="")
+	password = quote(conn.get("password") or "", safe="") if include_password else ""
 	credentials = f"{user}:{password}@" if password else f"{user}@"
 	return f"{scheme}://{credentials}{conn['host']}:{conn['port']}/{db_name}"
 
@@ -150,15 +150,18 @@ class MariaDBToPostgres:
 		execute_in_shell(command, check_exit_code=True, verbose=self.verbose)
 
 	def _mysql(self) -> str:
+		# Quote every value (shell injection) and pass the password via MYSQL_PWD so it
+		# never reaches the process list.
 		args = [
 			"mysql",
 			f"--host={self.mariadb['host']}",
 			f"--port={self.mariadb['port']}",
 			f"--user={self.mariadb['user']}",
 		]
+		command = " ".join(shlex.quote(arg) for arg in args)
 		if self.mariadb.get("password"):
-			args.append(f"--password={self.mariadb['password']}")
-		return " ".join(args)
+			command = f"MYSQL_PWD={shlex.quote(self.mariadb['password'])} {command}"
+		return command
 
 	def _stage_dump_in_mariadb(self):
 		mysql = self._mysql()
@@ -174,9 +177,12 @@ class MariaDBToPostgres:
 		self._sh(f"set -o pipefail; {decompress} | sed '/\\/\\*M!999999/d' | {mysql} {self.staging_db}")
 
 	def _run_pgloader(self):
-		content = build_pgloader_command(self.staging_db, self.mariadb, self.postgres, self.postgres["db_name"])
+		content = build_pgloader_command(
+			self.staging_db, self.mariadb, self.postgres, self.postgres["db_name"]
+		)
 		with tempfile.NamedTemporaryFile("w", suffix=".load", delete=False) as load_file:
 			load_file.write(content)
+			load_file.flush()
 			path = load_file.name
 		try:
 			space = f"--dynamic-space-size {self.dynamic_space_mb} " if self.dynamic_space_mb else ""
@@ -192,7 +198,11 @@ def _connect(conn: dict, db_name: str):
 	import psycopg2
 
 	connection = psycopg2.connect(
-		host=conn["host"], port=conn["port"], dbname=db_name, user=conn["user"], password=conn.get("password") or ""
+		host=conn["host"],
+		port=conn["port"],
+		dbname=db_name,
+		user=conn["user"],
+		password=conn.get("password") or "",
 	)
 	connection.autocommit = True
 	return connection
@@ -236,7 +246,9 @@ def convert_backup_to_postgres(
 	_admin_sql(postgres_root, f'CREATE DATABASE "{scratch_db}"')
 	try:
 		target = {**postgres_root, "db_name": scratch_db}
-		MariaDBToPostgres(source_dump, mariadb, target, verbose=verbose, dynamic_space_mb=dynamic_space_mb).run()
+		MariaDBToPostgres(
+			source_dump, mariadb, target, verbose=verbose, dynamic_space_mb=dynamic_space_mb
+		).run()
 		_pg_dump_to_file(target, output, source_dump)
 	finally:
 		_admin_sql(postgres_root, f'DROP DATABASE IF EXISTS "{scratch_db}"')
@@ -254,15 +266,18 @@ def _admin_sql(postgres_root: dict, statement: str):
 
 def _pg_dump_to_file(target: dict, output: str, source_dump: str):
 	header = _frappe_metadata_header(source_dump)
-	uri = _uri("postgresql", target, target["db_name"])
+	# Password via PGPASSWORD env, not the URI, so it stays out of the process list.
+	uri = _uri("postgresql", target, target["db_name"], include_password=False)
+	pg_env = f"PGPASSWORD={shlex.quote(target['password'])} " if target.get("password") else ""
 	with tempfile.NamedTemporaryFile("w", suffix=".hdr", delete=False) as header_file:
 		header_file.write(header)
+		header_file.flush()
 		header_path = header_file.name
 	try:
 		# A gzip file may hold multiple members, so the header and dump concatenate cleanly.
 		execute_in_shell(
 			f"set -o pipefail; gzip -c {shlex.quote(header_path)} > {shlex.quote(output)}; "
-			f"pg_dump --no-owner --no-acl {shlex.quote(uri)} | gzip >> {shlex.quote(output)}",
+			f"{pg_env}pg_dump --no-owner --no-acl {shlex.quote(uri)} | gzip >> {shlex.quote(output)}",
 			check_exit_code=True,
 		)
 	finally:

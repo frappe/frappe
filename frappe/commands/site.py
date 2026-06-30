@@ -192,9 +192,14 @@ def new_site(
 	help="Ignore the validations and downgrade warnings. This action is not recommended",
 )
 @click.option("--encryption-key", help="Backup encryption key")
-@click.option("--source-mariadb-host", help="Host of a MariaDB server used to stage a MariaDB backup for conversion to PostgreSQL")
+@click.option(
+	"--source-mariadb-host",
+	help="Host of a MariaDB server used to stage a MariaDB backup for conversion to PostgreSQL",
+)
 @click.option("--source-mariadb-port", default="3306", help="Port of the staging MariaDB server")
-@click.option("--source-mariadb-root-username", default="root", help="Root user of the staging MariaDB server")
+@click.option(
+	"--source-mariadb-root-username", default="root", help="Root user of the staging MariaDB server"
+)
 @click.option("--source-mariadb-root-password", help="Root password of the staging MariaDB server")
 @click.option(
 	"--pgloader-dynamic-space-size",

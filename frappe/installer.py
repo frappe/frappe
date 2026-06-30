@@ -973,7 +973,10 @@ def get_dump_db_type(sql_file_path: str) -> str:
 
 	if any(marker in header for marker in ("MariaDB dump", "MySQL dump", "/*!40101", "CREATE TABLE `")):
 		return "mariadb"
-	if any(marker in header for marker in ("PostgreSQL database dump", 'CREATE TABLE "', "CREATE TABLE public.", "COPY public.")):
+	if any(
+		marker in header
+		for marker in ("PostgreSQL database dump", 'CREATE TABLE "', "CREATE TABLE public.", "COPY public.")
+	):
 		return "postgres"
 
 	# Fallback: backtick identifiers are a MariaDB-only trait

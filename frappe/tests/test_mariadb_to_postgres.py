@@ -23,7 +23,8 @@ POSTGRES_DUMP_HEADER = (
 
 
 def _write_dump(text: str, suffix: str) -> str:
-	path = tempfile.mktemp(suffix=suffix)
+	fd, path = tempfile.mkstemp(suffix=suffix)
+	os.close(fd)
 	opener = gzip.open if suffix.endswith(".gz") else open
 	with opener(path, "wt") as f:
 		f.write(text)
@@ -45,7 +46,10 @@ class TestMariaDBToPostgres(UnitTestCase):
 			self.assertRaises(frappe.ValidationError, converter.assert_conversion_supported)
 
 	def test_missing_pgloader_is_reported(self):
-		with patch("platform.machine", return_value="x86_64"), patch.object(converter, "which", return_value=None):
+		with (
+			patch("platform.machine", return_value="x86_64"),
+			patch.object(converter, "which", return_value=None),
+		):
 			self.assertRaises(frappe.ExecutableNotFound, converter.assert_conversion_supported)
 
 	def test_pgloader_command_uses_frappe_conventions(self):
