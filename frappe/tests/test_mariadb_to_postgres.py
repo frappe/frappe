@@ -87,3 +87,11 @@ class TestMariaDBToPostgres(UnitTestCase):
 		with patch.object(converter, "execute_in_shell") as run:
 			conv._run_pgloader()
 		self.assertIn("--dynamic-space-size 9000", run.call_args.args[0])
+
+	def test_staging_database_identifier_is_backtick_quoted(self):
+		self.assertEqual(converter._mysql_identifier("my-db"), "`my-db`")
+		self.assertEqual(converter._mysql_identifier("a`b"), "`a``b`")
+		conv = self._converter(staging_db="my-db")
+		with patch.object(converter, "execute_in_shell") as run:
+			conv._stage_dump_in_mariadb()
+		self.assertIn("CREATE DATABASE `my-db`", run.call_args_list[0].args[0])

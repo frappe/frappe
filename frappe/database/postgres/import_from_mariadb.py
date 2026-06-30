@@ -78,6 +78,11 @@ def _uri(scheme: str, conn: dict, db_name: str, include_password: bool = True) -
 	return f"{scheme}://{credentials}{conn['host']}:{conn['port']}/{db_name}"
 
 
+def _mysql_identifier(name: str) -> str:
+	"""Backtick-quote a MySQL identifier so hyphens/reserved words stay valid in DDL."""
+	return "`" + name.replace("`", "``") + "`"
+
+
 def build_pgloader_command(source_db: str, mariadb: dict, postgres: dict, target_db: str) -> str:
 	"""Return the pgloader load-file contents for a MariaDB -> PostgreSQL data copy."""
 	casts = ",\n      ".join(TYPE_CASTS)
@@ -165,16 +170,19 @@ class MariaDBToPostgres:
 
 	def _stage_dump_in_mariadb(self):
 		mysql = self._mysql()
+		staging = _mysql_identifier(self.staging_db)
 		create = (
-			f"DROP DATABASE IF EXISTS {self.staging_db}; "
-			f"CREATE DATABASE {self.staging_db} CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci;"
+			f"DROP DATABASE IF EXISTS {staging}; "
+			f"CREATE DATABASE {staging} CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci;"
 		)
 		self._sh(f"{mysql} -e {shlex.quote(create)}")
 
 		dump = shlex.quote(self.source_dump)
 		decompress = f"gzip -dc {dump}" if self.source_dump.endswith(".gz") else f"cat {dump}"
 		# Strip the MariaDB sandbox-mode line that older clients choke on (as bench restore does).
-		self._sh(f"set -o pipefail; {decompress} | sed '/\\/\\*M!999999/d' | {mysql} {self.staging_db}")
+		self._sh(
+			f"set -o pipefail; {decompress} | sed '/\\/\\*M!999999/d' | {mysql} {shlex.quote(self.staging_db)}"
+		)
 
 	def _run_pgloader(self):
 		content = build_pgloader_command(
@@ -191,7 +199,8 @@ class MariaDBToPostgres:
 			os.unlink(path)
 
 	def _drop_staging(self):
-		self._sh(f"{self._mysql()} -e {shlex.quote(f'DROP DATABASE IF EXISTS {self.staging_db};')}")
+		drop = f"DROP DATABASE IF EXISTS {_mysql_identifier(self.staging_db)};"
+		self._sh(f"{self._mysql()} -e {shlex.quote(drop)}")
 
 
 def _connect(conn: dict, db_name: str):
