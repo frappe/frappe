@@ -19,3 +19,4 @@ export * from "./components/Link";
 export * from "./components/Phone";
 export * from "./components/TableMultiSelect";
 export * from "./components/Notifications";
+export * from "./components/InviteUser";

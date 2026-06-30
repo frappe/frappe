@@ -8,6 +8,7 @@ import frappe.utils
 from frappe.core.api.user_invitation import (
 	_accept_invitation,
 	cancel_invitation,
+	get_invitable_roles,
 	get_pending_invitations,
 	invite_by_email,
 )
@@ -272,6 +273,46 @@ class IntegrationTestUserInvitation(IntegrationTestCase):
 
 		self.assertFalse(res["cancelled_now"])
 		self.assertEqual(len(self.get_email_names()), 2)
+
+	def test_get_invitable_roles_api_frappe_fallback(self):
+		from frappe.permissions import AUTOMATIC_ROLES
+
+		# the "frappe" app declares no grantable roles, so the picker falls back
+		# to every enabled, assignable role
+		roles = get_invitable_roles("frappe")
+		self.assertIsInstance(roles, list)
+		self.assertIn("System Manager", roles)
+		# auto-managed roles are never invite-assignable
+		for auto_role in AUTOMATIC_ROLES:
+			self.assertNotIn(auto_role, roles)
+		# returned sorted
+		self.assertSequenceEqual(roles, sorted(roles))
+
+	def test_get_invitable_roles_api_scoped_to_hook(self):
+		from unittest.mock import patch
+
+		# an app whose hook grants roles to the System Manager the caller holds
+		fake_hook = {"allowed_roles": {"System Manager": ["Test Role B", "Test Role A"]}}
+		with patch.object(frappe, "get_hooks", return_value=fake_hook):
+			roles = get_invitable_roles("frappe")
+		# hook values for roles the caller has, sorted — not the enabled-roles fallback
+		self.assertSequenceEqual(roles, ["Test Role A", "Test Role B"])
+
+	def test_get_invitable_roles_api_requires_invite_permission(self):
+		non_inviter_email = emails[4]
+		user = frappe.new_doc("User")
+		user.first_name = "Non"
+		user.last_name = "Inviter"
+		user.email = non_inviter_email
+		user.append_roles("Blogger")
+		user.insert()
+		frappe.set_user(non_inviter_email)
+		try:
+			# only users allowed to invite for the app may read its roles
+			self.assertRaises(frappe.PermissionError, get_invitable_roles, "frappe")
+		finally:
+			frappe.set_user(emails[0])
+			frappe.delete_doc("User", non_inviter_email)
 
 	def get_dummy_invitation(self):
 		return frappe.get_doc(

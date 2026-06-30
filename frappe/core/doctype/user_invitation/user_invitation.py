@@ -160,8 +160,14 @@ class UserInvitation(Document):
 	def _validate_app_name(self):
 		UserInvitation.validate_app_name(self.app_name)
 
-	def _get_allowed_roles(self):
-		user_invitation_hook = frappe.get_hooks("user_invitation", app_name=self.app_name)
+	@staticmethod
+	def get_allowed_roles(app_name: str) -> list[str]:
+		"""Roles the current user may grant when inviting for `app_name`.
+
+		Derived from the `user_invitation` hook's `allowed_roles` map and scoped to
+		the caller's own roles, so a user is only ever offered roles they can grant.
+		"""
+		user_invitation_hook = frappe.get_hooks("user_invitation", app_name=app_name)
 		if not isinstance(user_invitation_hook, dict):
 			return []
 		res = set[str]()
@@ -174,7 +180,7 @@ class UserInvitation(Document):
 	def _validate_roles(self):
 		if self.app_name == "frappe":
 			return
-		allowed_roles = self._get_allowed_roles()
+		allowed_roles = UserInvitation.get_allowed_roles(self.app_name)
 		for r in self.roles:
 			if r.role in allowed_roles:
 				continue

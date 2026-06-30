@@ -146,6 +146,29 @@ def get_pending_invitations(app_name: str):
 	return res
 
 
+@frappe.whitelist(methods=["GET"])
+def get_invitable_roles(app_name: str = "frappe") -> list[str]:
+	"""Roles the current user can grant when inviting for `app_name`.
+
+	Scoped to the caller's own roles via the `user_invitation` hook's
+	`allowed_roles` map. Apps that declare no `allowed_roles` (including the
+	default `frappe` app, where role validation is skipped) fall back to every
+	enabled, assignable role.
+	"""
+	UserInvitation.validate_role(app_name)
+	roles = UserInvitation.get_allowed_roles(app_name)
+	if roles:
+		return sorted(roles)
+	from frappe.permissions import AUTOMATIC_ROLES
+
+	enabled_roles = frappe.get_all(
+		"Role",
+		filters={"disabled": 0, "name": ["not in", AUTOMATIC_ROLES]},
+		pluck="name",
+	)
+	return sorted(enabled_roles)
+
+
 def _accept_invitation(key: str, in_test: bool) -> None:
 	# get invitation
 	hashed_key = frappe.utils.sha256_hash(key)
