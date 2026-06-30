@@ -7,7 +7,7 @@ import { FeatherIcon } from "@/lib/ui";
 import { useStore } from "@/store";
 import { __ } from "@/lib/translate";
 
-const { messages, needsSetup, agents, models, scrollTick } = useStore();
+const { messages, needsSetup, agents, models, scrollTick, forceScroll } = useStore();
 
 const el = ref(null);
 let frame = 0;
@@ -21,7 +21,13 @@ function onScroll() {
 function scrollDown() {
 	frame = 0;
 	const e = el.value;
-	if (e && stick) e.scrollTop = e.scrollHeight;
+	if (e && (stick || forceScroll.value)) {
+		// Smooth for explicit actions (send / approval); instant while streaming
+		// so it doesn't lag behind a fast token stream.
+		e.scrollTo({ top: e.scrollHeight, behavior: forceScroll.value ? "smooth" : "auto" });
+		stick = true;
+	}
+	forceScroll.value = false;
 }
 
 // Coalesce burst scroll requests (one per frame) so a fast token stream doesn't
