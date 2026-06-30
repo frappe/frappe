@@ -81,7 +81,7 @@ watch(
 		}
 		el.textContent = css;
 	},
-	{ immediate: true }
+	{ immediate: true, deep: true }
 );
 onUnmounted(() => document.getElementById(CUSTOM_CSS_ID)?.remove());
 
