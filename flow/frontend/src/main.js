@@ -102,7 +102,7 @@ class FlowPanel {
 			shortcut: "ctrl+i",
 			action: () => this.toggle(),
 			description: __("Toggle Flow panel"),
-			ignore_inputs: false,
+			ignore_inputs: true,
 		});
 	}
 
