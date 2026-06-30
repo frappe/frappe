@@ -30,6 +30,7 @@ const fullscreen = ref(false);
 
 // Bumped whenever new content arrives / focus is wanted; views watch & react.
 const scrollTick = ref(0);
+const forceScroll = ref(false);
 const focusTick = ref(0);
 
 // ── derived ───────────────────────────────────────────────────────────────
@@ -218,7 +219,7 @@ async function send(text) {
 	messages.value.push({ id: nextId(), role: "user", content: text, attachments: chips });
 	const assistant = pushAssistant();
 	sending.value = true;
-	requestScroll();
+	requestScroll(true);
 
 	try {
 		await startRun(
@@ -246,7 +247,7 @@ async function resume(answers, pausedMsg) {
 	pausedMsg.questions = [];
 	const assistant = pushAssistant();
 	sending.value = true;
-	requestScroll();
+	requestScroll(true);
 
 	try {
 		await resumeRun({ run_name: rn, answers }, (event) => handleEvent(event, assistant));
@@ -314,6 +315,7 @@ function handleEvent(event, msg) {
 			if (event.status === "Paused") {
 				msg.questions = prepareQuestions(event.questions);
 				msg.runName = runName.value;
+				requestScroll(true);
 			}
 			refreshHistory();
 			break;
@@ -377,7 +379,10 @@ function prepareQuestions(questions) {
 	}));
 }
 
-function requestScroll() {
+// force bypasses the "stick" guard — for explicit actions (sending, approval
+// cards) that must land at the bottom even if the user scrolled up.
+function requestScroll(force = false) {
+	if (force) forceScroll.value = true;
 	scrollTick.value++;
 }
 
@@ -396,6 +401,7 @@ export function useStore() {
 		loaded,
 		fullscreen,
 		scrollTick,
+		forceScroll,
 		focusTick,
 		// derived
 		locked,
