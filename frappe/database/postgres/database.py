@@ -230,6 +230,15 @@ class PostgresDatabase(PostgresExceptionUtil, Database):
 			# libpg defaults to default socket if not specified
 			"host": self.host or self.socket,
 		}
+		# libpq's GSSAPI (krb5) path is not fork-safe; with the default gssencmode=prefer RQ work
+		# horses segfault on fork ("work-horse terminated unexpectedly"). The option exists from
+		# libpq 12, so guard on the runtime version (an older client lib would reject it); validate
+		# any site-config override against libpq's modes so a bad value can't break every connection.
+		if psycopg2.extensions.libpq_version() >= 120000:
+			gssencmode = str(frappe.conf.get("db_gssencmode") or "disable")
+			if gssencmode not in ("disable", "allow", "prefer", "require"):
+				gssencmode = "disable"
+			conn_settings["gssencmode"] = gssencmode
 		if self.password:
 			conn_settings["password"] = self.password
 		if not self.socket and self.port:
