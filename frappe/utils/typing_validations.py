@@ -30,6 +30,24 @@ def validate_argument_types(
 ):
 	app = func.__module__.split(".")[0]
 
+	# saving annotation, func_params as soon as available to do away redundant annotations check during transform_argument_types.
+	annotations = func.__annotations__
+	func_params = inspect.signature(func).parameters # why call through another wrapper, this is what we want, would be called once for each function and that only at startup/decoration!
+
+	# Checking annotations as soon as can.(during decoration itself).
+	# would be part of closure environment. (have to do it as `force_types = any ..` code should only be used after `frappe` proper resolution.. stop making it more dynamic !!!!
+	is_annotation_valid = True
+	invalid_param_name = None
+	for idx, (param_name, parameter) in enumerate(func_params.items()):
+		if idx == 0 and param_name in ("self", "cls"):
+			continue
+		if parameter.kind in (inspect.Parameter.VAR_KEYWORD, inspect.Parameter.VAR_POSITIONAL):
+			continue
+		if not (param_name in annotations):
+			is_annotation_valid = False   # stored in closure environment, so much easier to access when wrapper would actually be called!
+			invalid_param_name = param_name
+			break
+
 	@wraps(func)
 	def wrapper(*args, **kwargs):
 		"""Validate argument types of whitelisted functions.
@@ -38,13 +56,22 @@ def validate_argument_types(
 		:param kwargs: Function keyword arguments."""
 
 		nonlocal force_types
-
+		
 		# Resolve it only once
 		if force_types is None:
 			force_types = any(frappe.get_hooks("require_type_annotated_api_methods", app_name=app))
 
+		# NOTE: force_types value depends on `frappe` module, which have to be resolved, otherwise we could have raised "not Annotations present" error in the decorator itself during startup! 
+		if force_types and not (is_annotation_valid):
+			module, qualname = func.__module__, func.__qualname__
+			raise FrappeTypeError(
+				f"Argument '{invalid_param_name}' in '{module}.{qualname}' is missing type annotation.."
+				f"All arguments must have type annotations when type checking is enforced."
+			)
+		
 		if apply_condition is None or apply_condition():
-			args, kwargs = transform_parameter_types(func, args, kwargs, force_types)
+			# setting `force_types` as False, as would have already that code in the previous block!
+			args, kwargs = transform_parameter_types(func, args, kwargs, force_types=False)
 
 		return func(*args, **kwargs)
 
