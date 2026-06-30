@@ -174,7 +174,8 @@ frappe.views.Workspace = class Workspace {
 			let current_page = this.workspaces.find((p) => p.name == page.name);
 			this._page = current_page;
 			const me = this;
-			let header_dropdown = `${__(this._page.name)}`;
+			// private workspaces are stored as `${title}-${for_user}`; show just the title
+			let header_dropdown = `${__(this._page.title)}`;
 			frappe.breadcrumbs.add({
 				type: "Custom",
 				label: header_dropdown,

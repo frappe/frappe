@@ -3,7 +3,7 @@ frappe.ui.SidebarHeader = class SidebarHeader {
 		this.sidebar = sidebar;
 		this.sidebar_wrapper = $(".body-sidebar");
 		this.drop_down_expanded = false;
-		this.title = this.sidebar.sidebar_title;
+		this.title = this.get_display_title();
 		this.dropdown_items = this.build_dropdown_items();
 		this.make();
 		this.setup_app_switcher();
@@ -160,6 +160,15 @@ frappe.ui.SidebarHeader = class SidebarHeader {
 		this.wrapper = $(".sidebar-header");
 		this.$header_title = this.wrapper.find(".header-title");
 		this.$drop_icon = this.wrapper.find(".drop-icon");
+	}
+	// Private workspaces are stored as `${title}-${for_user}`; show just the title in the
+	// header. Module-generated sidebars have no Workspace entry, so fall back to the raw title.
+	get_display_title() {
+		let workspace = frappe.workspaces[frappe.router.slug(this.sidebar.sidebar_title)];
+		if (workspace && !workspace.public && workspace.for_user) {
+			return workspace.title;
+		}
+		return this.sidebar.sidebar_title;
 	}
 	set_header_icon() {
 		let workspace = frappe.workspaces[frappe.router.slug(this.sidebar.sidebar_title)];
