@@ -3,79 +3,89 @@
 	controller with `v-bind="controller"`: its data members (roles, users, loading
 	flags, error) bind as live values, and its verbs (invite, searchUsers) arrive as
 	function props this panel drives directly. The panel owns the form UX (a user
-	typeahead + email pills, role multi-select, result toasts, reset) and emits
+	typeahead + email pills, role multi-select, submit, reset) and emits
 	`invited` / `invalid` / `error` so hosts can hook side-effects without
 	re-implementing the flow.
+
+	No copy/label props and no heading: the panel renders standard frappe-ui fields
+	with English defaults. To retitle, localize, or restyle a field, override its
+	per-field slot (`#email` / `#roles` / `#submit`) and render the field with your
+	own props — each slot's default is the standard field. Errors are field-scoped
+	the frappe-ui way: the controller error binds to the email field's `:error` and
+	renders inline under it (no global error line).
 
 	There is intentionally no pending-invitations list here — the controller still
 	fetches it lazily (`pendingInvites` / `load` / `reload`) for hosts that want it, but
 	rendering one is out of scope for this block.
 -->
 <template>
-	<div class="flex flex-col gap-5 text-ink-gray-9">
-		<!-- header -->
-		<slot name="header" :title="title">
-			<h2 class="text-lg-semibold">{{ title }}</h2>
-		</slot>
-
-		<!-- form -->
+	<form class="flex flex-col gap-4 text-ink-gray-9" @submit.prevent="submit">
+		<!-- email: frappe-ui's experimental MultiEmailInput (chips + user typeahead,
+		     self-labelling via useInputLabeling). The host debounces the search; the
+		     controller error surfaces field-scoped through `:error`. -->
 		<slot
-			name="form"
-			:emails="emails"
-			:roles="selectedRoleValues"
-			:role-options="roles"
-			:user-options="users"
-			:inviting="inviting"
-			:users-loading="usersLoading"
+			name="email"
+			:value="emails"
+			:set-value="(v: string[]) => (emails = v)"
+			:options="users"
+			:loading="usersLoading"
 			:error="error"
-			:search-users="(q: string) => searchUsers?.(q)"
-			:submit="submit"
+			:search="onSearch"
+			:on-invalid="onInvalidEmail"
 		>
-			<form class="flex flex-col gap-4" @submit.prevent="submit">
-				<!-- frappe-ui's experimental MultiEmailInput: chips + user typeahead,
-				     self-labelling via useInputLabeling. The host debounces the search. -->
-				<MultiEmailInput
-					v-model="emails"
-					:label="emailLabel"
-					:required="true"
-					:description="emailHint"
-					:options="users"
-					:loading="usersLoading"
-					placeholder="Search users or type an email…"
-					empty-text="No matching users"
-					:create-label="(email) => `Invite &quot;${email}&quot;`"
-					@update:query="onSearch"
-					@invalid="onInvalidEmail"
-				/>
-
-				<!-- roles trigger sizes to its content (w-fit) instead of stretching to
-				     the form width like the email field; the class falls through to
-				     MultiSelect's LabelingWrapper. -->
-				<MultiSelect
-					v-model="selectedRoleValues"
-					:label="rolesLabel"
-					:required="true"
-					:options="roles"
-					:placeholder="rolesPlaceholder"
-					class="w-fit"
-				/>
-
-				<Button
-					type="submit"
-					variant="solid"
-					class="w-fit"
-					:loading="inviting"
-					:disabled="!canSubmit"
-				>
-					{{ submitLabel }}
-				</Button>
-			</form>
+			<!-- attr order encodes a three-tier precedence: copy/presentation defaults
+			     first, then `v-bind="emailProps"` (host overrides win over the defaults),
+			     then the controlled wiring last (so the host can relabel/restyle but
+			     can't hijack the model/options/error binding). -->
+			<MultiEmailInput
+				label="Invite by email"
+				description="Pick existing users, or type a new email and press Enter — separate several with a comma or newline."
+				placeholder="Search users or type an email…"
+				empty-text="No matching users"
+				:create-label="(email) => `Invite &quot;${email}&quot;`"
+				v-bind="emailProps"
+				v-model="emails"
+				:required="true"
+				:options="users"
+				:loading="usersLoading"
+				:error="error as MultiEmailError"
+				@update:query="onSearch"
+				@invalid="onInvalidEmail"
+			/>
 		</slot>
 
-		<slot v-if="error" name="error" :error="error">
-			<p class="text-p-sm text-ink-red-6">{{ errorMessage }}</p>
+		<!-- roles trigger sizes to its content (w-fit) instead of stretching to the
+		     form width like the email field; the class falls through to MultiSelect's
+		     LabelingWrapper. -->
+		<slot
+			name="roles"
+			:value="selectedRoleValues"
+			:set-value="(v: string[]) => (selectedRoleValues = v)"
+			:options="roles"
+		>
+			<MultiSelect
+				label="Roles"
+				placeholder="Select roles"
+				class="w-fit"
+				v-bind="rolesProps"
+				v-model="selectedRoleValues"
+				:required="true"
+				:options="roles"
+			/>
 		</slot>
-	</div>
+
+		<slot name="submit" :submit="submit" :can-submit="canSubmit" :inviting="inviting">
+			<Button
+				type="submit"
+				variant="solid"
+				class="w-fit"
+				:loading="inviting"
+				:disabled="!canSubmit"
+			>
+				Send invites
+			</Button>
+		</slot>
+	</form>
 </template>
 
 <script setup lang="ts">
@@ -83,6 +93,11 @@ import { computed, onMounted, ref } from "vue";
 import { Button, MultiSelect, debounce, toast } from "frappe-ui";
 import { MultiEmailInput } from "frappe-ui/experimental";
 import type { InviteResult, InviteUserProps } from "./types";
+
+// MultiEmailInput's `error` prop is `string | FrappeUIError`; the controller error is
+// a Frappe error object (carries `.message` / `.messages`), which useInputLabeling
+// reads. Narrow at the boundary instead of leaking `unknown` into the field.
+type MultiEmailError = string | { message?: string; messages?: string[] } | null | undefined;
 
 // The controller's verbs come through `v-bind="controller"` as function props, so
 // they must NOT also fall through onto the root element.
@@ -103,15 +118,7 @@ const props = withDefaults(
 		usersLoading: false,
 		inviting: false,
 		error: null,
-		title: "Invite users",
 		showResultToasts: true,
-		emailLabel: "Invite by email",
-		emailHint:
-			"Pick existing users, or type a new email and press Enter — separate several with a comma or newline.",
-		rolesLabel: "Roles",
-		rolesPlaceholder: "Select roles",
-		submitLabel: "Send invites",
-		errorText: "Something went wrong",
 	}
 );
 
@@ -121,8 +128,8 @@ const emit = defineEmits<{
 	error: [error: unknown];
 }>();
 
-// Kick off the controller's lazy initial fetch (roles / pending / already-invited)
-// only once the panel is actually shown.
+// Kick off the controller's lazy initial fetch (pending / already-invited) only once
+// the panel is actually shown.
 onMounted(() => props.load?.());
 
 const emails = ref<string[]>([]);
@@ -131,13 +138,6 @@ const selectedRoleValues = ref<string[]>([]);
 const canSubmit = computed(
 	() => emails.value.length > 0 && selectedRoleValues.value.length > 0 && !props.inviting
 );
-
-// Surface the real backend message (e.g. a permission error) in the default
-// error slot instead of a blanket "something went wrong".
-const errorMessage = computed(() => {
-	const e = props.error as { messages?: string[]; message?: string } | null | undefined;
-	return e?.messages?.[0] || e?.message || props.errorText;
-});
 
 // MultiEmailInput emits `update:query` on every keystroke; debounce before
 // hitting the controller's user search (the old in-component debounce moved here).

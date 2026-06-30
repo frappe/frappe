@@ -6,7 +6,14 @@ A Vue panel for inviting users to a Frappe app by email — over Frappe's built-
 The component is **UI only**. Data is a plugin the host owns: call `useInviteUser()`
 to get a controller, then spread it onto the panel with `v-bind`. The panel renders
 the form: a **multi-email field** that autocompletes existing users (and lets you type
-brand-new addresses) plus a **role multi-select**.
+brand-new addresses), a **role multi-select**, and a submit button.
+
+The panel carries **no heading** — it renders standard frappe-ui fields with English
+defaults; add your own `<h2>` above it if you want one. To relabel/localize or restyle a
+field, forward props onto it with **`emailProps` / `rolesProps`** (the light path — no
+slot, no re-render); to replace a field's rendering wholesale, use its **per-field slot**
+(`#email` / `#roles` / `#submit`). Errors are **field-scoped** the frappe-ui way: the
+controller error binds to the email field's `:error` and renders inline under it.
 
 > The email field is frappe-ui's experimental **`MultiEmailInput`**
 > (`frappe-ui/experimental`) — a generic chips + typeahead control. This panel
@@ -40,6 +47,7 @@ const controller = useInviteUser({
 </script>
 
 <template>
+  <h2 class="text-lg-semibold">Invite users</h2>
   <InviteUser
     v-bind="controller"
     @invited="(r) => console.log('invited', r.invited_emails)"
@@ -90,29 +98,44 @@ The API is permission-gated by each app's `user_invitation` hook (`hooks.py`):
   hierarchy** — roles are inserted verbatim; use `transformRoles` to expand a picked
   role into a set.
 
-A permission failure surfaces through `controller.error` (and the panel's `#error` slot).
+A permission failure surfaces through `controller.error`, rendered inline under the
+email field (the field's `:error`).
 
 ## Props
 
-Spread the controller's data + verbs via `v-bind="controller"`; set presentation
-props directly.
+Spread the controller's data + verbs via `v-bind="controller"`. To relabel/localize or
+restyle a field, forward props onto it with `emailProps` / `rolesProps` — no slot, no
+re-render.
 
-| Prop               | Type                        | Description                                                               |
-| ------------------ | --------------------------- | ------------------------------------------------------------------------- |
-| `title`            | `string` (`'Invite users'`) | Header title.                                                             |
-| `showResultToasts` | `boolean` (`true`)          | Show the standard per-bucket toasts on success.                           |
-| `emailLabel`       | `string`                    | Email field label.                                                        |
-| `emailHint`        | `string`                    | Helper text under the email field.                                        |
-| `rolesLabel`       | `string`                    | Roles field label.                                                        |
-| `rolesPlaceholder` | `string`                    | Roles field placeholder.                                                  |
-| `submitLabel`      | `string`                    | Submit button label.                                                      |
-| `errorText`        | `string`                    | Fallback for the default `#error` slot when the error carries no message. |
-| _controller data_  | via `v-bind="controller"`   | `roles`, `users`, `usersLoading`, `inviting`, `error`.                    |
-| _controller verbs_ | via `v-bind="controller"`   | `invite`, `searchUsers`, `load` (function props).                         |
+| Prop               | Type                            | Description                                                                      |
+| ------------------ | ------------------------------- | -------------------------------------------------------------------------------- |
+| `showResultToasts` | `boolean` (`true`)              | Show the standard per-bucket toasts on success.                                  |
+| `emailProps`       | `Partial<MultiEmailInputProps>` | Forwarded onto the email field — `{ label, description, placeholder, size, … }`. |
+| `rolesProps`       | `Partial<MultiSelectProps>`     | Forwarded onto the roles field.                                                  |
+| _controller data_  | via `v-bind="controller"`       | `roles`, `users`, `usersLoading`, `inviting`, `error`.                           |
+| _controller verbs_ | via `v-bind="controller"`       | `invite`, `searchUsers`, `load` (function props).                                |
 
-> frappe-ui has no internal i18n, so the copy props above carry English defaults
-> (the same pattern as frappe-ui's own `placeholder`/`emptyText`). Pass translated
-> strings from the host to localize.
+```vue
+<InviteUser
+  v-bind="controller"
+  :email-props="{ label: __('Invite by email') }"
+  :roles-props="{ label: __('Roles') }"
+/>
+```
+
+> **Precedence** for `emailProps`/`rolesProps`: the panel's English defaults < your props
+> < the controlled wiring (`model-value`, `options`, `error`, query/invalid handlers). So
+> you can set copy + presentation, but you can't break the field's data binding. For full
+> control of the rendered field, use its slot instead (see [Slots](#slots)).
+
+> The submit button's text is `Button`'s slot content, not a prop — there's nothing to
+> forward, so retitle it via the `#submit` slot.
+
+> The controller `error` surfaces **field-scoped** — inline under the email field via
+> its `:error` prop (frappe-ui's `useInputLabeling`), not as a separate form-level line.
+
+> frappe-ui has no internal i18n. The fields' default labels/placeholders are English;
+> localize them through `emailProps`/`rolesProps` (or a field slot for deeper changes).
 
 ## Events
 
@@ -124,13 +147,38 @@ props directly.
 
 ## Slots
 
-Every slot has a default, so passing none renders the standard panel.
+Slots are the **heavy** customization tool — reach for them to replace a field's
+rendering wholesale. For just copy/presentation (labels, placeholder, size), prefer
+`emailProps`/`rolesProps` above. Each field is its own slot, so you override **just the
+field you care about** and the rest keep their defaults; every slot's default is the
+standard frappe-ui field, so passing none renders the standard panel.
 
-| Slot     | Props                                                                                             | Description             |
-| -------- | ------------------------------------------------------------------------------------------------- | ----------------------- |
-| `header` | `{ title }`                                                                                       | Replace the header.     |
-| `form`   | `{ emails, roles, roleOptions, userOptions, inviting, usersLoading, error, searchUsers, submit }` | Replace the whole form. |
-| `error`  | `{ error }`                                                                                       | Shown on a failure.     |
+| Slot     | Props                                                             | Description                 |
+| -------- | ----------------------------------------------------------------- | --------------------------- |
+| `email`  | `{ value, setValue, options, loading, error, search, onInvalid }` | Replace the email field.    |
+| `roles`  | `{ value, setValue, options }`                                    | Replace the roles field.    |
+| `submit` | `{ submit, canSubmit, inviting }`                                 | Replace the submit control. |
+
+A slot exposes the live `value` plus a `setValue` setter (instead of leaking a writable
+ref), so bind `:model-value` / `@update:model-value` in your override. Example —
+localize the email field's label while keeping everything else:
+
+```vue
+<InviteUser v-bind="controller">
+  <template #email="{ value, setValue, options, loading, error, search, onInvalid }">
+    <MultiEmailInput
+      :model-value="value"
+      @update:model-value="setValue"
+      :label="__('Invite by email')"
+      :options="options"
+      :loading="loading"
+      :error="error"
+      @update:query="search"
+      @invalid="onInvalid"
+    />
+  </template>
+</InviteUser>
+```
 
 ## `useInviteUser`
 
@@ -168,4 +216,5 @@ Whitelisted methods called:
 ## Types
 
 `RoleOption`, `UserOption`, `PendingInvitation`, `InviteResult`,
-`UseInviteUserOptions`, `InviteStore`, `InviteUserProps`, `InviteFormSlotProps`.
+`UseInviteUserOptions`, `InviteStore`, `InviteUserProps`, `InviteEmailSlotProps`,
+`InviteRolesSlotProps`, `InviteSubmitSlotProps`.

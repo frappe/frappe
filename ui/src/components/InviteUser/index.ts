@@ -11,5 +11,7 @@ export type {
   UseInviteUserOptions,
   InviteStore,
   InviteUserProps,
-  InviteFormSlotProps,
+  InviteEmailSlotProps,
+  InviteRolesSlotProps,
+  InviteSubmitSlotProps,
 } from "./types";

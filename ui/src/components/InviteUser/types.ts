@@ -5,6 +5,9 @@
  * `InviteUser` panel is UI-only and renders that store via `v-bind`.
  */
 
+import type { MultiSelectProps } from "frappe-ui";
+import type { MultiEmailInputProps } from "frappe-ui/experimental";
+
 /** A selectable role in the form's role picker. `value` is the Frappe Role name. */
 export interface RoleOption {
   label: string;
@@ -112,7 +115,15 @@ export interface InviteStore {
   reload: () => void;
 }
 
-/** Props for the `InviteUser` panel. Spread the controller's data via `v-bind="controller"`. */
+/**
+ * Props for the `InviteUser` panel. Spread the controller's data via
+ * `v-bind="controller"`. The panel renders standard frappe-ui fields with English
+ * defaults; there are no flat copy props. For light customization (relabel, localize,
+ * restyle) forward props onto a field with {@link emailProps} / {@link rolesProps}; to
+ * replace a field's rendering wholesale, use its per-field slot (`#email` / `#roles` /
+ * `#submit`). Errors are field-scoped (the `error` below surfaces under the email
+ * field), so there is no form-level error prop either.
+ */
 export interface InviteUserProps {
   /** Roles for the picker (controller data). */
   roles?: RoleOption[];
@@ -120,40 +131,62 @@ export interface InviteUserProps {
   users?: UserOption[];
   usersLoading?: boolean;
   inviting?: boolean;
+  /** Latest controller error; surfaced inline under the email field. */
   error?: unknown;
-  /** Header title. */
-  title?: string;
   /** Show the standard result toasts on success (set false to handle via `@invited`). */
   showResultToasts?: boolean;
 
-  // --- Customisable copy (frappe-ui has no internal i18n; strings are props with
-  // English defaults, matching how its own components expose `placeholder`/`emptyText`). ---
-  /** Label for the email field. */
-  emailLabel?: string;
-  /** Helper text beneath the email field. */
-  emailHint?: string;
-  /** Label for the roles field. */
-  rolesLabel?: string;
-  /** Placeholder for the roles field. */
-  rolesPlaceholder?: string;
-  /** Submit button label. */
-  submitLabel?: string;
-  /** Fallback text for the default `#error` slot when the error carries no message. */
-  errorText?: string;
+  /**
+   * Props forwarded onto the email field (`MultiEmailInput`). The lightweight way to
+   * relabel/localize or restyle the field without overriding the `#email` slot — e.g.
+   * `{ label: __('Invite by email'), size: 'lg' }`. Precedence: the panel's English
+   * defaults < your props < the controlled wiring (`model-value`, `options`, `error`,
+   * query/invalid handlers), so you can set copy and presentation but can't break the
+   * data binding. For full control of the rendered field, use the `#email` slot instead.
+   */
+  emailProps?: Partial<MultiEmailInputProps>;
+  /**
+   * Props forwarded onto the roles field (`MultiSelect`); same precedence rules as
+   * {@link emailProps}. For full control, use the `#roles` slot. The submit button's
+   * text is `Button`'s slot content (not a prop), so retitle it via the `#submit` slot.
+   */
+  rolesProps?: Partial<MultiSelectProps>;
 }
 
-/** Scope passed to the `#form` slot. */
-export interface InviteFormSlotProps {
-  emails: string[];
-  roles: string[];
-  roleOptions: RoleOption[];
-  userOptions: UserOption[];
-  inviting: boolean;
-  /** True while the user typeahead search is in flight. */
-  usersLoading: boolean;
-  /** Latest controller error, or `null`. */
+/** Scope passed to the `#email` slot — render your own email field bound to these. */
+export interface InviteEmailSlotProps {
+  /** Selected/typed addresses (the field's `model-value`). */
+  value: string[];
+  /** Write the addresses back (the field's `@update:model-value`). */
+  setValue: (emails: string[]) => void;
+  /** User suggestions for the typeahead. */
+  options: UserOption[];
+  /** True while a user search is in flight. */
+  loading: boolean;
+  /** Latest controller error, surfaced field-scoped via the field's `error` prop. */
   error: unknown;
-  /** Drive the email field's user typeahead. */
-  searchUsers: (query: string) => void;
+  /** Drive the typeahead (already debounced); wire to the field's `@update:query`. */
+  search: (query: string) => void;
+  /** Report a typed address that failed validation; wire to the field's `@invalid`. */
+  onInvalid: (email: string) => void;
+}
+
+/** Scope passed to the `#roles` slot — render your own roles field bound to these. */
+export interface InviteRolesSlotProps {
+  /** Selected role values (the field's `model-value`). */
+  value: string[];
+  /** Write the roles back (the field's `@update:model-value`). */
+  setValue: (roles: string[]) => void;
+  /** Roles offered in the picker. */
+  options: RoleOption[];
+}
+
+/** Scope passed to the `#submit` slot — render your own submit control. */
+export interface InviteSubmitSlotProps {
+  /** Send the invites. */
   submit: () => void;
+  /** False until at least one email and one role are picked (and not already inviting). */
+  canSubmit: boolean;
+  /** True while an invite request is in flight. */
+  inviting: boolean;
 }

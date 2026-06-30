@@ -21,6 +21,25 @@
 				@error="(e) => log('error', e)"
 			/>
 		</div>
+
+		<!-- ── Relabelled via emailProps / rolesProps ──────────────────────────
+		     The lightweight customization path: forward props onto the fields to
+		     relabel/restyle without a slot. The wiring (model/options/error) stays
+		     owned by the panel. Use a field slot only when you need to replace the
+		     rendered field wholesale. -->
+		<h4 class="mb-2 mt-8 text-lg-semibold text-ink-gray-9">emailProps / rolesProps</h4>
+		<div class="rounded-lg border border-outline-gray-2 p-4">
+			<InviteUser
+				v-bind="controller"
+				:show-result-toasts="showResultToasts"
+				:email-props="{
+					label: 'Teammate emails',
+					description: 'Custom label supplied via emailProps.',
+					placeholder: 'name@company.com',
+				}"
+				:roles-props="{ label: 'Access level' }"
+			/>
+		</div>
 	</div>
 </template>
 
