@@ -11,8 +11,23 @@
 	}
 
 	.ws-pane-head {
+		display: flex;
+		align-items: center;
+		justify-content: space-between;
+		min-height: 28px;
 		font-size: var(--text-md);
 		font-weight: 600;
+	}
+
+	.ws-clear-all {
+		padding: 0;
+		font-size: var(--text-sm);
+		font-weight: normal;
+		color: var(--text-muted);
+
+		&:hover {
+			color: var(--text-color);
+		}
 	}
 
 	.ws-pane-sub {

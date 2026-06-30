@@ -45,8 +45,11 @@ frappe.ui.WorkspacePicker = class WorkspacePicker {
 		this.$body.html(`
 			<div class="workspace-picker">
 				<div class="ws-pane ws-pane-selection">
-					<div class="ws-pane-head">${__("Your selector")}</div>
-					<div class="ws-pane-sub">${__("Workspaces shown in your sidebar switcher. Drag to reorder.")}</div>
+					<div class="ws-pane-head">
+						<span>${__("Your selector")}</span>
+						<button class="ws-clear-all btn btn-ghost">${__("Clear")}</button>
+						<div class="ws-pane-sub">${__("Workspaces shown in your sidebar switcher. Drag to reorder.")}</div>
+					</div>
 					<div class="ws-list ws-selection"></div>
 				</div>
 				<div class="ws-pane ws-pane-pool">
@@ -60,11 +63,20 @@ frappe.ui.WorkspacePicker = class WorkspacePicker {
 		this.$selection = this.$body.find(".ws-selection");
 		this.$pool = this.$body.find(".ws-pool");
 
+		this.$body.find(".ws-clear-all").on("click", () => this.clear_all());
+
 		this.render_app_picker();
 		this.render_selection();
 		this.render_pool();
 		this.setup_selection_sortable();
 		this.setup_pool_sortable();
+	}
+
+	clear_all() {
+		if (!this.selection.length) return;
+		this.selection = [];
+		this.render_selection();
+		this.render_pool();
 	}
 
 	render_app_picker() {
