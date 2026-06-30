@@ -101,7 +101,7 @@ body {
 	color: #111827;
 }
 
-/* Left-right (section-level): label takes 40%, value takes 60% */
+/* Left-right (section-level): label shrinks to content width, value takes the rest */
 .field.left-right,
 .field.field-inline {
 	display: flex;
@@ -118,27 +118,17 @@ body {
 	text-transform: none;
 	letter-spacing: 0;
 	padding-top: 0.05rem;
-}
-
-.field.left-right .label {
-	width: 40%;
-}
-
-.field.field-inline .label {
-	width: auto;
+	white-space: nowrap;
 }
 
 .field.field-inline .label::after {
 	content: ":";
 }
 
-.field.left-right .value {
-	width: 60%;
-	flex: 1;
-}
-
+.field.left-right .value,
 .field.field-inline .value {
 	flex: 1;
+	min-width: 0;
 }
 
 /* Field-level alignment */
@@ -158,17 +148,9 @@ body {
 	text-align: right;
 }
 
-/* In left-right orientation, alignment/spacing variants reset fixed widths so
-   justify-content can actually reposition the label+value pair. */
-.field.left-right.field-align-right .label,
-.field.left-right.field-align-right .value,
-.field.left-right.field-align-center .label,
-.field.left-right.field-align-center .value,
-.field.left-right.field-justify-space-between .label,
+/* Spacing/alignment variants for left-right orientation */
 .field.left-right.field-justify-space-between .value,
-.field.left-right.field-justify-space-evenly .label,
 .field.left-right.field-justify-space-evenly .value {
-	width: auto;
 	flex: none;
 }
 
