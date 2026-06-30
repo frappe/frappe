@@ -317,7 +317,7 @@
 .dts-pf-card {
 	overflow: hidden;
 	border: 1px solid var(--border-color);
-	border-radius: var(--border-radius-lg, 12px);
+	border-radius: var(--radius-lg);
 	background-color: var(--surface-base);
 }
 
@@ -338,7 +338,7 @@
 	justify-content: center;
 	height: 100%;
 	overflow: hidden;
-	border-radius: var(--border-radius) var(--border-radius) 0 0;
+	border-radius: var(--radius) var(--radius) 0 0;
 	background-color: var(--surface-base);
 	box-shadow: var(--shadow-sm);
 	cursor: pointer;
@@ -373,7 +373,7 @@
 	padding: 6px;
 	border: none;
 	// Half the card's own corner radius, so the overlay reads as cut from the same shape.
-	border-radius: calc(var(--border-radius-lg, 12px) / 2);
+	border-radius: calc(var(--radius-lg) / 2);
 	background-color: var(--surface-base);
 	box-shadow: var(--shadow-sm);
 	color: var(--ink-gray-4);
@@ -417,7 +417,7 @@
 	width: 100%;
 	height: 65vh;
 	border: 1px solid var(--border-color);
-	border-radius: var(--border-radius);
+	border-radius: var(--radius);
 	background-color: var(--surface-base);
 }
 

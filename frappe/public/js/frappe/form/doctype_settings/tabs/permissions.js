@@ -46,7 +46,7 @@ function draw(panel, doctype) {
 				// `source` (Standard vs Custom) drives the edit dialog title + save path.
 				roles: perms
 					.filter((p) => cint(p.permlevel) === 0)
-					.map((p) => ({ ...p, source: p.parenttype ? "Standard" : "Custom" })),
+					.map((p) => ({ ...p, source: p.parenttype === "DocType" ? "Standard" : "Custom" })),
 				is_customized: (custom || []).length > 0,
 				has_field_level: perms.some((p) => cint(p.permlevel) > 0),
 			});

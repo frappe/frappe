@@ -12,18 +12,33 @@ function load(panel, doctype) {
 	panel.body.empty();
 	$(`<div class="text-muted small">${__("Loading")}</div>`).appendTo(panel.body);
 
-	frappe.db.get_doc(SETTINGS).then((settings) => {
-		const included = (settings.allowed_in_global_search || []).some(
-			(r) => r.document_type === doctype
-		);
-		if (!included) {
-			render(panel, doctype, false, []);
-			return;
-		}
-		frappe
-			.call({ method: `${API}.get_global_search_field_options`, args: { doctype } })
-			.then((r) => render(panel, doctype, true, r.message || []));
-	});
+	frappe.db
+		.get_doc(SETTINGS)
+		.then((settings) => {
+			const included = (settings.allowed_in_global_search || []).some(
+				(r) => r.document_type === doctype
+			);
+			if (!included) {
+				render(panel, doctype, false, []);
+				return;
+			}
+			// Return the inner promise so its failures reach the shared catch.
+			return frappe
+				.call({ method: `${API}.get_global_search_field_options`, args: { doctype } })
+				.then((r) => {
+					if (r.exc) throw r.exc;
+					render(panel, doctype, true, r.message || []);
+				});
+		})
+		.catch(() => {
+			const $err = panel.body.empty();
+			$('<div class="text-muted small"></div>')
+				.text(__("Could not load this tab."))
+				.appendTo($err);
+			$(`<button type="button" class="es-button" data-size="xs">${__("Retry")}</button>`)
+				.appendTo($err)
+				.on("click", () => load(panel, doctype));
+		});
 }
 
 function render(panel, doctype, included, options) {

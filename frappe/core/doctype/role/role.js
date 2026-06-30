@@ -4,7 +4,7 @@
 // Permission-flag metadata + the add/edit dialog live in the shared permission editor
 // (frappe.ui.PermissionDialog / frappe.perm_editor), so the Role form and the DocType
 // Settings permissions tab share one implementation.
-const { PERM_FLAGS, ALL_PERM_FLAGS } = frappe.perm_editor;
+const { PERM_FLAGS, ALL_PERM_FLAGS, capitalize } = frappe.perm_editor;
 
 frappe.ui.form.on("Role", {
 	refresh(frm) {
@@ -718,9 +718,6 @@ function not_in(values) {
 	return values.length ? values : [""];
 }
 
-function capitalize(string) {
-	return string.charAt(0).toUpperCase() + string.slice(1);
-}
 
 function placeholder_html(message) {
 	return `<div class="text-muted">${message}</div>`;
