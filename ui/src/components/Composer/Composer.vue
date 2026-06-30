@@ -105,7 +105,7 @@
 									variant="solid"
 									:label="label"
 									:disabled="isDisabled"
-									:loading="loading"
+									:loading="isSubmitting"
 									@click="submit"
 								/>
 							</div>
@@ -150,7 +150,7 @@ const emailToolbar = [
 	InsertImage, InsertVideo, InsertLink,
 	Blockquote, InlineCode, HorizontalRule, InsertTable,
 ];
-import type { ComposerProps, CoreSubmitPayload, UploadedFile } from "./types";
+import type { ComposerProps, UploadedFile } from "./types";
 
 const props = withDefaults(defineProps<ComposerProps>(), {
 	placeholder: "Type your message…",
@@ -158,8 +158,6 @@ const props = withDefaults(defineProps<ComposerProps>(), {
 });
 
 const emit = defineEmits<{
-	/** Built body + attachments. Host runs the send and calls `reset()` on success. */
-	submit: [payload: CoreSubmitPayload];
 	discard: [];
 	/** Only on explicit chip removal (so the host deletes server-side); not on reset/send. */
 	"remove-attachment": [file: UploadedFile];
@@ -188,10 +186,9 @@ const extensions = [
 // Editable body, exposed as `v-model:body` so a host can seed and observe it.
 const body = defineModel<string>("body", { default: "" });
 
-// The original message being replied to. Held outside the editor body in a
-// collapsible block, then appended back on send so the quoted thread travels
-// with the reply without cluttering the compose area. In-memory for the session.
-const quotedContent = ref<string | null>(null);
+// Quoted reply, kept out of the editor body and appended back on send.
+// `v-model:quoted` lets a host (MultiComposer) preserve it across an unmount.
+const quotedContent = defineModel<string | null>("quoted", { default: null });
 const quotedContentRef = ref<HTMLElement | null>(null);
 const isQuoteExpanded = ref(false);
 
@@ -221,9 +218,8 @@ function selectAll(event: KeyboardEvent) {
 	selection.addRange(range);
 }
 
-// Backspace/Delete only empties the focused editable. When the selection spans
-// both the editor body and the quoted block (i.e. after select-all), clear
-// both so the whole composer empties.
+// Backspace/Delete only empties the focused editable; after a select-all
+// spanning both, clear both so the whole composer empties.
 function onDeleteAcrossQuote(event: KeyboardEvent) {
 	const selection = window.getSelection();
 	const quotedEl = quotedContentRef.value;
@@ -246,13 +242,18 @@ function onQuotedInput() {
 	quotedContent.value = isContentEmpty(html) ? null : html;
 }
 
-watch(quotedContent, (next, prev) => {
-	if (!prev && next) {
-		nextTick(() => {
-			if (quotedContentRef.value) quotedContentRef.value.innerHTML = next;
-		});
-	}
-});
+// `immediate` so a preserved quoted reply repaints on remount, not just on change.
+watch(
+	quotedContent,
+	(next, prev) => {
+		if (!prev && next) {
+			nextTick(() => {
+				if (quotedContentRef.value) quotedContentRef.value.innerHTML = next;
+			});
+		}
+	},
+	{ immediate: true }
+);
 
 /** Body plus the quoted reply, appended as a blockquote at send time. */
 function buildMessage() {
@@ -307,8 +308,10 @@ function removeAttachment(file: UploadedFile) {
 	emit("remove-attachment", file);
 }
 
+const isSubmitting = ref(false);
+
 const isDisabled = computed(
-	() => isContentEmpty(body.value) || props.loading || isUploading.value
+	() => isContentEmpty(body.value) || isSubmitting.value || isUploading.value
 );
 
 // Nothing to discard: empty body, no attachments, no quoted reply.
@@ -328,11 +331,18 @@ function focus() {
 	setTimeout(() => editor.value?.commands?.focus("start"), 0);
 }
 
-// Emit for the host to deliver; it owns `loading` and calls `reset()` on success,
-// so a failed send leaves the draft intact.
-function submit() {
+// Awaits the host's send and owns the spinner/disabled state for its duration.
+// Never resets on success — the host decides that (and whether to re-seed the
+// draft, e.g. a signature) by calling the exposed `reset()` itself; auto-reset
+// here would race a host that does its own post-send work before resolving.
+async function submit() {
 	if (isDisabled.value) return;
-	emit("submit", { body: buildMessage(), attachments: attachments.value });
+	isSubmitting.value = true;
+	try {
+		await props.onSubmit({ body: buildMessage(), attachments: attachments.value });
+	} finally {
+		isSubmitting.value = false;
+	}
 }
 
 function reset() {

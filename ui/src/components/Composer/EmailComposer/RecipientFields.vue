@@ -1,9 +1,13 @@
 <template>
-	<!-- Subject and To are shown when enabled by props; Cc/Bcc are revealed by
-		 the header toggles. The To row rides along so the sender can see and edit
-		 who the reply goes to. -->
+	<!-- Subject and To are shown when enabled by `fields`; Cc/Bcc are revealed by
+		 the toggles on the To row (or whenever they already carry recipients). -->
 	<div class="px-2.5">
-		<Row v-if="showSubject || subject" label="Subject" label-class="w-[52px]" :items-center="true">
+		<Row
+			v-if="showSubject || subject"
+			label="Subject"
+			label-class="w-[52px]"
+			:items-center="true"
+		>
 			<input
 				v-model="subject"
 				type="text"
@@ -13,6 +17,22 @@
 
 		<Row label="To">
 			<RecipientSelect v-model="model.to" class="flex-1" :search="search" />
+			<div v-if="canCc || canBcc" class="flex shrink-0 items-center gap-1">
+				<Button
+					v-if="canCc"
+					variant="ghost"
+					label="CC"
+					:class="showCc ? '!bg-surface-gray-4' : '!text-ink-gray-5'"
+					@click="showCc = !showCc"
+				/>
+				<Button
+					v-if="canBcc"
+					variant="ghost"
+					label="BCC"
+					:class="showBcc ? '!bg-surface-gray-4' : '!text-ink-gray-5'"
+					@click="showBcc = !showBcc"
+				/>
+			</div>
 		</Row>
 
 		<Row v-if="showCc || model.cc.length" label="CC">
@@ -27,16 +47,30 @@
 </template>
 
 <script setup lang="ts">
+import { computed, ref } from "vue";
+import { Button } from "frappe-ui";
 import RecipientSelect from "./RecipientSelect.vue";
 import Row from "./RecipientRow.vue";
-import type { Recipients, RecipientSearch } from "../types";
+import type { Field, Recipients, RecipientSearch } from "../types";
 
-defineProps<{
-	showSubject?: boolean;
-	showCc?: boolean;
-	showBcc?: boolean;
-	search?: RecipientSearch;
-}>();
+const props = withDefaults(
+	defineProps<{
+		/** Rows offered beyond the always-present "To". */
+		fields?: Field[];
+		search?: RecipientSearch;
+	}>(),
+	{ fields: () => ["cc", "bcc"] }
+);
+
 const model = defineModel<Recipients>({ required: true });
 const subject = defineModel<string>("subject", { default: "" });
+
+// Which optional rows this composer offers.
+const showSubject = computed(() => props.fields.includes("subject"));
+const canCc = computed(() => props.fields.includes("cc"));
+const canBcc = computed(() => props.fields.includes("bcc"));
+
+// Toggle state for the Cc/Bcc rows (display-only; rows also show when prefilled).
+const showCc = ref(false);
+const showBcc = ref(false);
 </script>

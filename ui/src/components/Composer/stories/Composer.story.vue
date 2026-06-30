@@ -2,11 +2,11 @@
 	<div class="max-w-3xl p-6">
 		<h3 class="mb-1 text-xl-semibold text-ink-gray-9">Composer</h3>
 		<p class="mb-6 text-p-sm text-ink-gray-6">
-			EmailComposer owns its window — it wraps itself in a
-			<code>FloatingWindow</code>, so drive it with <code>v-model:mode</code> (docked /
-			floating / minimized). CommentComposer is window-agnostic content the host drops into a
-			<code>FloatingWindow</code> (or renders inline). Both are transport-agnostic, so here
-			the <code>@submit</code> handler just logs the payload.
+			EmailComposer and CommentComposer are window-agnostic content: wrap them in a
+			<code>ComposerWindow</code> (drive it with <code>v-model:mode</code> — docked /
+			floating / minimized) or render them inline. <code>MultiComposer</code> bundles both
+			behind a channel switcher and owns the window for you. All are transport-agnostic, so
+			here <code>onSubmit</code> just logs the payload.
 		</p>
 
 		<!-- ── Controls ──────────────────────────────────────────────────── -->
@@ -23,38 +23,37 @@
 			</div>
 		</div>
 
-		<!-- ── EmailComposer owns its window; CommentComposer is host-wrapped ─ -->
+		<!-- ── Content wrapped in a window; MultiComposer owns its own ─────── -->
 		<div class="mb-8 flex flex-wrap gap-8">
 			<div>
 				<div class="mb-2 text-sm-medium text-ink-gray-7">
-					EmailComposer (owns its FloatingWindow — drive with v-model:mode)
+					EmailComposer in ComposerWindow (drive with v-model:mode)
 				</div>
-				<EmailComposer
-					v-model:mode="mode"
-					:fields="fields"
-					v-model:recipients="recipients"
-					:search-recipients="searchRecipients"
-					expandable
-					placeholder="Write your reply…"
-					@submit="(p) => log('email:submit', p)"
-					@discard="log('email:discard')"
-				/>
+				<ComposerWindow v-model:mode="mode" :expandable="true" title="Email">
+					<EmailComposer
+						:fields="fields"
+						v-model:recipients="recipients"
+						:search-recipients="searchRecipients"
+						:on-submit="async (p) => log('email:submit', p)"
+						placeholder="Write your reply…"
+						@discard="log('email:discard')"
+					/>
+				</ComposerWindow>
 			</div>
 
 			<div>
 				<div class="mb-2 text-sm-medium text-ink-gray-7">
-					EmailComposer, multi-channel (Via Email ▾ / Comment — channel: {{ channel }})
+					MultiComposer (Email ▾ / Comment switcher — channel: {{ channel }})
 				</div>
-				<EmailComposer
+				<MultiComposer
 					v-model:channel="channel"
-					:channels="['email', 'comment']"
 					:fields="fields"
 					:search-recipients="searchRecipients"
 					:mention-options="mentionOptions"
+					:on-submit="async (p) => log('multi:email', p)"
+					:on-submit-comment="async (p) => log('multi:comment', p)"
 					expandable
 					placeholder="Write your reply…"
-					@submit="(p) => log('multi:email', p)"
-					@submit-comment="(p) => log('multi:comment', p)"
 					@discard="log('multi:discard')"
 				/>
 			</div>
@@ -70,27 +69,26 @@
 				>
 					<CommentComposer
 						:mention-options="mentionOptions"
+						:on-submit="async (p) => log('comment:submit', p)"
 						placeholder="Type @ to mention a teammate…"
-						@submit="(p) => log('comment:submit', p)"
 						@discard="log('comment:discard')"
 					/>
 				</FloatingWindow>
 			</div>
 		</div>
 
-		<!-- ── Fixed docked (expandable=false): no pop-out control ───────── -->
+		<!-- ── Inline (no window): content-only EmailComposer ────────────── -->
 		<div class="mb-8">
 			<div class="mb-2 text-sm-medium text-ink-gray-7">
-				EmailComposer fixed-docked (<code>:expandable="false"</code>) — with a
-				host-supplied From picker (#from) and <code>v-model:body</code>
+				EmailComposer rendered inline (no window) — with a host-supplied From picker
+				(#from) and <code>v-model:body</code>
 			</div>
 			<div class="rounded-md border border-outline-gray-2 bg-surface-base p-2">
 				<EmailComposer
 					:fields="fields"
-					:expandable="false"
 					v-model:body="draftBody"
+					:on-submit="async (p) => log('inline:submit', p)"
 					placeholder="Write your reply…"
-					@submit="(p) => log('inline:submit', p)"
 				>
 					<template #from>
 						<div class="flex items-center gap-2 py-1.5">
@@ -118,7 +116,7 @@
 import { computed, ref } from "vue";
 import { Checkbox, Select } from "frappe-ui";
 import { FloatingWindow, type WindowMode } from "frappe-ui/experimental";
-import { CommentComposer, EmailComposer } from "../index";
+import { CommentComposer, ComposerWindow, EmailComposer, MultiComposer } from "../index";
 import type {
 	Channel,
 	CommentPayload,

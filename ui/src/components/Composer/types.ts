@@ -45,6 +45,11 @@ export interface CoreSubmitPayload {
   attachments: UploadedFile[];
 }
 
+/** Host's send. Composer awaits it, manages its own pending/spinner state, and
+ *  never resets the draft itself — reset (success) or not (failure) is the
+ *  host's call, made via the exposed `reset()` after this resolves/throws. */
+export type SubmitFunction<T> = (payload: T) => Promise<void>;
+
 /** Props shared by every composer surface. */
 export interface ComposerProps {
   placeholder?: string;
@@ -52,36 +57,27 @@ export interface ComposerProps {
   uploadFunction?: UploadFunction;
   /** @-mention options for the comment editor. */
   mentionOptions?: MentionOption[];
-  /** Send in flight — host-owned; drives the primary button's spinner. */
-  loading?: boolean;
+  onSubmit: SubmitFunction<CoreSubmitPayload>;
 }
 
 // --- EmailComposer ---------------------------------------------------------
 
-/** A channel the composer can send on; drive the active one with `v-model:channel`. */
-export type Channel = "email" | "comment";
-
-/** Emitted on `submit`: the full email envelope. */
+/** Passed to `onSubmit`: the full email envelope. */
 export interface EmailPayload extends CoreSubmitPayload {
   subject: string;
   recipients: Recipients;
 }
 
-/** Recipients, subject and body are v-models, not props. */
-export interface EmailComposerProps extends ComposerProps {
+/** Window-agnostic email content. Recipients, subject and body are v-models. */
+export interface EmailComposerProps {
+  placeholder?: string;
+  label?: string;
+  uploadFunction?: UploadFunction;
   /** Rows beyond "To". Defaults to ["cc", "bcc"]. */
   fields?: Field[];
   /** Recipient lookup; omit for a plain creatable-email field. */
   searchRecipients?: RecipientSearch;
-  /** Show the window pop-out/close control. Defaults to true. */
-  expandable?: boolean;
-  /** Channels offered. More than one turns the title into a switcher and enables
-   *  the `submit-comment` event. Defaults to ["email"]. */
-  channels?: Channel[];
-  /** Avatar URL for the collapsed trigger bar. */
-  avatar?: string;
-  /** Name used as the Avatar fallback initial when no image is available. */
-  avatarLabel?: string;
+  onSubmit: SubmitFunction<EmailPayload>;
 }
 
 // --- CommentComposer -------------------------------------------------------
@@ -90,3 +86,29 @@ export interface EmailComposerProps extends ComposerProps {
 export type CommentPayload = CoreSubmitPayload;
 
 export type CommentComposerProps = ComposerProps;
+
+// --- MultiComposer ---------------------------------------------------------
+
+/** The channel MultiComposer is showing; drive it with `v-model:channel`. */
+export type Channel = "email" | "comment";
+
+/** A wrapper over EmailComposer + CommentComposer with a channel switcher. */
+export interface MultiComposerProps {
+  placeholder?: string;
+  label?: string;
+  uploadFunction?: UploadFunction;
+  /** Show the window pop-out/close control. Defaults to true. */
+  expandable?: boolean;
+  /** Avatar URL for the collapsed trigger bar. */
+  avatar?: string;
+  /** Name used as the Avatar fallback initial when no image is available. */
+  avatarLabel?: string;
+  // email channel
+  /** Rows beyond "To". Defaults to ["cc", "bcc"]. */
+  fields?: Field[];
+  searchRecipients?: RecipientSearch;
+  onSubmit: SubmitFunction<EmailPayload>;
+  // comment channel
+  mentionOptions?: MentionOption[];
+  onSubmitComment: SubmitFunction<CommentPayload>;
+}
