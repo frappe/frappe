@@ -301,8 +301,10 @@ def get_report_type(report):
 
 
 @frappe.whitelist()
-def new_page(new_page: str | dict):
-	page = frappe.parse_json(new_page)
+def new_page(new_page: dict):
+	# frappe auto-parses JSON-looking string args back into objects before this runs, so
+	# `new_page` may already be a dict; only `loads` it when it's still a string.
+	page = loads(new_page) if isinstance(new_page, str) else new_page
 	if not page:
 		return
 
@@ -322,12 +324,14 @@ def new_page(new_page: str | dict):
 	doc = frappe.new_doc("Workspace")
 	doc.title = page.get("title")
 	doc.icon = page.get("icon") or "grid"
-	doc.indicator_color = page.get("indicator_color")
 	doc.content = page.get("content")
 	doc.parent_page = page.get("parent_page")
 	doc.label = page.get("label")
 	doc.for_user = page.get("for_user")
 	doc.public = page.get("public")
+	for role in page.get("roles") or []:
+		if role.get("role"):
+			doc.append("roles", {"role": role.get("role")})
 	doc.app = page.get("app")
 	doc.type = page.get("type")
 	doc.link_to = page.get("link_to")
@@ -335,6 +339,23 @@ def new_page(new_page: str | dict):
 	doc.external_link = page.get("external_link")
 	doc.sequence_id = last_sequence_id(doc) + 1
 	doc.save(ignore_permissions=True)
+
+	# Seed a new workspace's sidebar with a link to itself, so landing on its shell shows the
+	# workspace in its own sidebar instead of an empty "No Sidebar Items" state. This is done
+	# after the initial save: the self-link's `link_to` is validated against the Workspace
+	# doctype, so the workspace row must already exist.
+	if doc.type == "Workspace":
+		doc.append(
+			"sidebar_items",
+			{
+				"type": "Link",
+				"label": doc.title,
+				"link_type": "Workspace",
+				"link_to": doc.name,
+				"icon": doc.icon,
+			},
+		)
+		doc.save(ignore_permissions=True)
 
 	workspaces = get_workspaces()
 	return {"workspace_pages": workspaces, "sidebar_items": get_sidebar_items()}
