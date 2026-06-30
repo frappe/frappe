@@ -1,7 +1,5 @@
 # Copyright (c) 2020, Frappe Technologies and Contributors
 # License: MIT. See LICENSE
-import json
-
 import frappe
 from frappe.desk.doctype.system_console.system_console import execute_code
 from frappe.tests import IntegrationTestCase
@@ -40,7 +38,7 @@ class TestSystemConsole(IntegrationTestCase):
 
 	def test_execute_code_with_string(self):
 		"""execute_code should work with a JSON string (old call signature)."""
-		doc = json.dumps({"doctype": "System Console", "console": 'log("hello")', "type": "Python"})
+		doc = frappe.as_json({"doctype": "System Console", "console": 'log("hello")', "type": "Python"})
 		result = execute_code(doc)
 		self.assertEqual(result.get("output"), "hello")
 
