@@ -317,3 +317,124 @@ class TestPrintFormatGenerator(IntegrationTestCase):
 		html = get_html("ToDo", todo.name, pf.name)
 		# Padding values must appear as inline style on the section wrapper
 		self.assertIn("16px", html)
+
+	# ------------------------------------------------------------------ #
+	# Table layout (field_borders) + font size
+	# ------------------------------------------------------------------ #
+
+	def _grid_format_data(self, **section):
+		return json.dumps(
+			{
+				"sections": [
+					{
+						"label": "Grid",
+						"field_borders": True,
+						"columns": [
+							{
+								"fields": [
+									{"fieldtype": "Data", "fieldname": "description", "label": "Description"}
+								]
+							}
+						],
+						**section,
+					}
+				],
+				"header": {"columns": [{"label": "", "fields": []}]},
+				"footer": {"columns": [{"label": "", "fields": []}]},
+			}
+		)
+
+	def test_field_borders_renders_grid_class(self):
+		"""A section with field_borders should render the section--grid class."""
+		from frappe.utils.print_format_generator import get_html
+
+		pf = self._make_print_format(format_data=self._grid_format_data())
+		todo = self._make_todo()
+		html = get_html("ToDo", todo.name, pf.name)
+		self.assertIn("section--grid", html)
+
+	def test_field_borders_renders_cell_padding_var(self):
+		"""cell_padding on a grid section should render the --pfb-cell-pad CSS variable."""
+		from frappe.utils.print_format_generator import get_html
+
+		pf = self._make_print_format(format_data=self._grid_format_data(cell_padding=12))
+		todo = self._make_todo()
+		html = get_html("ToDo", todo.name, pf.name)
+		self.assertIn("--pfb-cell-pad:12px", html)
+
+	def test_font_size_rendered_as_px(self):
+		"""font_size should be rendered in px so the print output matches the builder preview."""
+		from frappe.utils.print_format_generator import get_html
+
+		pf = self._make_print_format(font_size=18)
+		todo = self._make_todo()
+		html = get_html("ToDo", todo.name, pf.name)
+		self.assertIn("font-size: 18px", html)
+
+	def test_section_style_is_escaped(self):
+		"""A crafted section background must be escaped so it cannot break out of the style attribute."""
+		from frappe.utils.print_format_generator import get_html
+
+		pf = self._make_print_format(
+			format_data=self._grid_format_data(field_borders=False, background='red;"><b>PWN</b>')
+		)
+		todo = self._make_todo()
+		html = get_html("ToDo", todo.name, pf.name)
+		self.assertNotIn('"><b>PWN</b>', html)
+
+	def test_blank_table_column_header_falls_back_to_fieldname(self):
+		"""A child-table column with an empty label should render its fieldname as the header."""
+		import re
+
+		from frappe.utils.print_format_generator import get_html
+
+		contact = frappe.get_doc(
+			{
+				"doctype": "Contact",
+				"first_name": f"_Test PFG {frappe.generate_hash(length=6)}",
+				"email_ids": [{"email_id": "pfg@example.com", "is_primary": 1}],
+			}
+		)
+		contact.insert(ignore_permissions=True)
+		self.addCleanup(contact.delete, ignore_permissions=True)
+
+		pf = frappe.get_doc(
+			{
+				"doctype": "Print Format",
+				"name": f"_Test PFG Contact {frappe.generate_hash(length=6)}",
+				"doc_type": "Contact",
+				"print_format_builder_beta": 1,
+				"custom_format": 0,
+				"standard": "No",
+				"format_data": json.dumps(
+					{
+						"sections": [
+							{
+								"label": "Emails",
+								"columns": [
+									{
+										"fields": [
+											{
+												"fieldtype": "Table",
+												"fieldname": "email_ids",
+												"label": "Emails",
+												"table_columns": [
+													{"fieldname": "email_id", "label": "", "width": 100}
+												],
+											}
+										]
+									}
+								],
+							}
+						],
+						"header": {"columns": [{"label": "", "fields": []}]},
+						"footer": {"columns": [{"label": "", "fields": []}]},
+					}
+				),
+			}
+		)
+		pf.insert(ignore_permissions=True)
+		self.addCleanup(pf.delete, ignore_permissions=True)
+
+		html = get_html("Contact", contact.name, pf.name)
+		self.assertRegex(html, r"email_id\s*</th>")

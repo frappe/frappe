@@ -251,6 +251,60 @@ context("Print Format Builder — create flow", () => {
 			expect(fs).to.equal(18);
 		});
 	});
+
+	// 7. Table layout: field_borders renders a grid with a column divider
+	it("table layout renders grid borders in the canvas", () => {
+		cy.visit("/app");
+
+		cy.insert_doc(
+			"Print Format",
+			{
+				name: PF_NAME,
+				doc_type: "ToDo",
+				print_format_builder_beta: 1,
+				format_data: JSON.stringify({
+					sections: [
+						{
+							label: "Grid",
+							field_borders: true,
+							columns: [
+								{
+									fields: [
+										{
+											fieldtype: "Data",
+											fieldname: "description",
+											label: "Description",
+										},
+									],
+								},
+								{
+									fields: [
+										{
+											fieldtype: "Data",
+											fieldname: "status",
+											label: "Status",
+										},
+									],
+								},
+							],
+						},
+					],
+					header: { columns: [{ label: "", fields: [] }] },
+					footer: { columns: [{ label: "", fields: [] }] },
+				}),
+			},
+			true
+		);
+
+		cy.visit(`/app/print-format-builder/${encodeURIComponent(PF_NAME)}`);
+
+		cy.get(".section--grid", { timeout: 30000 }).should("be.visible");
+		cy.get(".section--grid .column")
+			.first()
+			.should(($el) => {
+				expect(parseInt($el.css("border-right-width"), 10)).to.be.greaterThan(0);
+			});
+	});
 });
 
 // ─── Setup flow ───────────────────────────────────────────────────────────────
