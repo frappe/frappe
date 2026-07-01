@@ -34,9 +34,20 @@ export function useActivityTimeline(doctype: string, docname: string) {
       params: { doctype, name: docname },
       cache: `activities:${cacheKey}`,
       auto: true,
-      // transform only sets resource.data; onSuccess still sees the raw response,
-      // so has_more_emails is read there (not from transform's output).
-      transform: (res: { activities: Activity[] }) => res.activities,
+      // transform sets resource.data; onSuccess still sees the raw response, so
+      // has_more_emails is read there (not from transform's output). On reload
+      // (e.g. a doc_update), re-append the older email pages the user has already loaded.
+      transform: (res: { activities: Activity[] }) => {
+        const oldActivities = (resource.data as Activity[] | undefined) ?? [];
+
+        const newActivities = res.activities;
+        const newActivityKeys = new Set(newActivities.map((a) => a.key));
+
+        const paginatedOlderEmails = oldActivities.filter(
+          (a) => a.type === "email" && !newActivityKeys.has(a.key)
+        );
+        return [...newActivities, ...paginatedOlderEmails];
+      },
       onSuccess: (res: { has_more_emails?: boolean }) => {
         hasMoreEmails!.value = !!res.has_more_emails;
       },
