@@ -181,7 +181,7 @@ def update_global_settings(args):  # nosemgrep
 
 	update_system_settings(args)
 	create_or_update_user(args)
-	set_timezone(args)
+	frappe.enqueue(set_timezone, timezone=args.get("timezone"))
 
 
 def run_post_setup_complete(args):  # nosemgrep
@@ -337,10 +337,10 @@ def create_or_update_user(args):  # nosemgrep
 		update_password(email, args.get("password"))
 
 
-def set_timezone(args):  # nosemgrep
-	if args.get("timezone"):
-		for name in frappe.STANDARD_USERS:
-			frappe.db.set_value("User", name, "time_zone", args.get("timezone"))
+def set_timezone(timezone=None):
+	if not timezone:
+		return
+	frappe.db.set_value("User", {"name": ("in", frappe.STANDARD_USERS)}, "time_zone", timezone)
 
 
 def parse_args(args):  # nosemgrep
