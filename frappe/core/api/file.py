@@ -50,11 +50,12 @@ def get_files_in_folder(folder: str, start: int = 0, page_length: int = 20) -> d
 		limit=page_length + 1,
 	)
 
-	seen_urls = set()
+	seen_files = set()
 	deduped = []
 	for file in files:
-		if file.file_url not in seen_urls and file.name != "Home/Attachments":
-			seen_urls.add(file.file_url)
+		file_tuple = (file.file_url, file.file_name)
+		if file_tuple not in seen_files and file.name != "Home/Attachments":
+			seen_files.add(file_tuple)
 			deduped.append(file)
 
 	if folder == "Home" and start == 0:
@@ -89,11 +90,12 @@ def get_files_by_search_text(text: str) -> list[dict]:
 		limit=20,
 	)
 
-	seen_urls = set()
+	seen_files = set()
 	deduped = []
 	for file in files:
-		if file.file_url not in seen_urls:
-			seen_urls.add(file.file_url)
+		file_tuple = (file.file_url, file.file_name)
+		if file_tuple not in seen_files:
+			seen_files.add(file_tuple)
 			deduped.append(file)
 
 	return deduped
