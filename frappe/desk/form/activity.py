@@ -55,7 +55,6 @@ def get_creation_activity(doc: "Document", user_info: dict) -> list[dict]:
 			"data": {
 				"name": "creation",
 				"subtype": "created",
-				"icon": "file-plus",
 				"text": msg,
 			},
 		}
@@ -159,20 +158,16 @@ def get_comment_and_log_activities(doc: "Document", user_info: dict) -> list[dic
 
 	for c in comment_log_data.like_logs:
 		author = get_author_info(c.owner, user_info)
-		out.append(add_activity_record(c, author, "like", "heart", _("{0} liked").format(author["fullname"])))
+		out.append(add_activity_record(c, author, "like", _("{0} liked").format(author["fullname"])))
 
 	for c in comment_log_data.assignment_logs:
 		author = get_author_info(c.owner, user_info)
 		text = activity_text(c.content)
 		assignee = assignee_from_assignment(text, c.comment_type)
 		if c.comment_type == "Assigned":
-			out.append(add_activity_record(c, author, "assigned", "user-plus", text, assignee=assignee))
+			out.append(add_activity_record(c, author, "assigned", text, assignee=assignee))
 		else:
-			out.append(
-				add_activity_record(
-					c, author, "assignment_completed", "circle-check", text, assignee=assignee
-				)
-			)
+			out.append(add_activity_record(c, author, "assignment_completed", text, assignee=assignee))
 
 	for c in comment_log_data.workflow_logs:
 		author = get_author_info(c.owner, user_info)
@@ -181,16 +176,13 @@ def get_comment_and_log_activities(doc: "Document", user_info: dict) -> list[dic
 				c,
 				author,
 				"workflow",
-				"git-branch",
 				f"{author['fullname']} {activity_text(c.content)}",
 			)
 		)
 
 	for c in comment_log_data.info_logs:
 		author = get_author_info(c.owner, user_info)
-		out.append(
-			add_activity_record(c, author, "info", "info", f"{author['fullname']} {activity_text(c.content)}")
-		)
+		out.append(add_activity_record(c, author, "info", f"{author['fullname']} {activity_text(c.content)}"))
 
 	return out
 
@@ -279,10 +271,8 @@ def attachment_log_activity(c, author: dict) -> dict:
 	}
 
 
-def add_activity_record(
-	c, author: dict, subtype: str, icon: str, text: str, assignee: str | None = None
-) -> dict:
-	data = {"name": c.name, "subtype": subtype, "icon": icon, "text": text}
+def add_activity_record(c, author: dict, subtype: str, text: str, assignee: str | None = None) -> dict:
+	data = {"name": c.name, "subtype": subtype, "text": text}
 	# Purely additive: only assignment logs pass an assignee; others leave it absent.
 	if assignee is not None:
 		data["assignee"] = assignee
@@ -311,7 +301,6 @@ def get_view_activities(doc: "Document", user_info: dict) -> list[dict]:
 				"data": {
 					"name": v.name,
 					"subtype": "view",
-					"icon": "eye",
 					"text": _("{0} viewed this").format(author["fullname"]),
 				},
 			}

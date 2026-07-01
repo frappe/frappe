@@ -195,7 +195,6 @@ function normalizeLiveActivity(
         data: {
           name,
           subtype: "like",
-          icon: "heart",
           text: `${author.fullname} liked`,
         },
       };
@@ -213,7 +212,6 @@ function normalizeLiveActivity(
         data: {
           name,
           subtype: isCompleted ? "assignment_completed" : "assigned",
-          icon: isCompleted ? "circle-check" : "user-plus",
           text,
           // additive, like the backend: only present when an assignee was found
           ...(assignee ? { assignee } : {}),

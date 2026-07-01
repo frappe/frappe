@@ -8,12 +8,19 @@ export const LUCIDE_ICON_CLASS: Record<string, string> = {
 	heart: 'lucide-heart',
 	paperclip: 'lucide-paperclip',
 	'trash-2': 'lucide-trash-2',
-	'user-plus': 'lucide-user-plus',
-	'circle-check': 'lucide-circle-check',
 	'git-branch': 'lucide-git-branch',
 	info: 'lucide-info',
 	lock: 'lucide-lock',
 	eye: 'lucide-eye',
+}
+
+// Gutter icon per log subtype (assigned/assignment_completed/created render a
+// DotIcon instead, so they're intentionally absent).
+export const SUBTYPE_ICON: Record<string, string> = {
+	like: 'heart',
+	workflow: 'git-branch',
+	info: 'info',
+	view: 'eye',
 }
 
 const svgAttrs = {

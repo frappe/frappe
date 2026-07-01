@@ -95,8 +95,6 @@ export type LogActivity = BaseActivity<
       | "info"
       | "view"
       | "created";
-    /** lucide name, no prefix */
-    icon: string;
     text: string;
     /** assignee on assignment logs; bolded alongside the actor (backend-supplied) */
     assignee?: string;

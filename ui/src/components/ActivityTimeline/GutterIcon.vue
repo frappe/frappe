@@ -46,21 +46,22 @@
 <script setup lang="ts">
 import { Avatar } from "frappe-ui";
 import MailIcon from "~icons/lucide/mail";
-import { CommentIcon, DotIcon, LUCIDE_ICON_CLASS } from "./icons";
+import { CommentIcon, DotIcon, SUBTYPE_ICON, LUCIDE_ICON_CLASS } from "./icons";
 import type { Activity, AttachmentLogActivity, CustomActivity, LogActivity } from "./types";
 
 defineProps<{
 	activity: Activity | CustomActivity;
 }>();
 
-// literal lucide-* class for a log / attachment_log gutter dot
+// literal lucide-* class for a log / attachment_log gutter dot (log icon derived
+// from subtype; attachment from its add/remove action)
 function gutterIconClass(activity: LogActivity | AttachmentLogActivity): string {
 	const name =
 		activity.type === "attachment_log"
 			? activity.data.action === "removed"
 				? "trash-2"
 				: "paperclip"
-			: activity.data.icon;
+			: SUBTYPE_ICON[activity.data.subtype] ?? "";
 	return LUCIDE_ICON_CLASS[name] ?? "";
 }
 </script>
