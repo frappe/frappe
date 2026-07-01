@@ -321,6 +321,19 @@ const draggable_blocks = [
 		icon: "minus",
 		desc: __("Horizontal rule"),
 	},
+	{
+		label: __("Repeater"),
+		fieldname: "repeater",
+		fieldtype: "Repeater",
+		custom: 1,
+		icon: "list",
+		desc: __("Repeat child table rows as templated lines"),
+		source: "",
+		repeater_columns: [
+			{ template: [], align: "left", format: "Text" },
+			{ template: [], align: "right", format: "Auto" },
+		],
+	},
 ];
 
 // ── helpers ────────────────────────────────────────────────
@@ -339,6 +352,8 @@ function clone_field(df) {
 		"table_columns",
 		"html",
 		"field_template",
+		"source",
+		"repeater_columns",
 	]);
 	if (cloned.custom) {
 		cloned.fieldname += "_" + frappe.utils.get_random(8);

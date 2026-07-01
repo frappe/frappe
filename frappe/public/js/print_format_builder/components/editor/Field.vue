@@ -162,6 +162,34 @@
 						</tbody>
 					</table>
 				</div>
+				<!-- Repeater field -->
+				<div v-else-if="df.fieldtype == 'Repeater'" class="field-preview-repeater">
+					<div v-if="df.label" class="field-preview-label">{{ df.label }}</div>
+					<table class="preview-table preview-table--borderless">
+						<tbody>
+							<tr
+								v-for="(row, i) in (preview_doc[df.source] || []).slice(0, 6)"
+								:key="i"
+							>
+								<td
+									v-for="(col, ci) in df.repeater_columns || []"
+									:key="ci"
+									:style="{ textAlign: col.align || 'left' }"
+								>
+									{{ repeater_cell(col, row) }}
+								</td>
+							</tr>
+							<tr v-if="!(preview_doc[df.source] || []).length">
+								<td
+									class="text-muted"
+									style="text-align: center; font-size: 11px; padding: 6px"
+								>
+									{{ df.source ? __("No rows") : __("Pick a source table") }}
+								</td>
+							</tr>
+						</tbody>
+					</table>
+				</div>
 				<!-- Regular field -->
 				<div
 					v-else
@@ -281,6 +309,14 @@
 					{{ __("Configure Columns") }}
 				</button>
 			</div>
+			<div v-if="df.fieldtype == 'Repeater'" class="table-preview">
+				<div class="table-columns-list">
+					<span v-if="df.source" class="table-col-chip">{{ df.source }}</span>
+					<span v-else class="text-muted no-columns-hint">
+						{{ __("No source table selected") }}
+					</span>
+				</div>
+			</div>
 		</template>
 	</div>
 </template>
@@ -383,6 +419,12 @@ const HTML_CONTENT_FIELDTYPES = new Set(["Text Editor", "Long Text"]);
 function numeric_align_class(col) {
 	// Merged cells are left-aligned (like the PDF), even on numeric columns
 	return !has_merge(col) && NUMERIC_FIELDTYPES.has(col?.fieldtype) ? "col-numeric" : "";
+}
+
+function repeater_cell(col, row) {
+	return (col.template || [])
+		.map((tok) => (tok.t === "s" ? tok.v || "" : row?.[tok.v] ?? ""))
+		.join("");
 }
 
 function multiselect_display(df) {
@@ -524,6 +566,7 @@ let short_fieldtype = computed(() => {
 		Spacer: "Space",
 		Divider: "Line",
 		"Field Template": "Tmpl",
+		Repeater: "Repeat",
 	};
 	return map[props.df.fieldtype] || props.df.fieldtype?.substring(0, 5) || "";
 });

@@ -166,6 +166,28 @@ body {
 .field.left-right.field-justify-space-between .value { text-align: right; }
 .field.left-right.field-justify-space-evenly { justify-content: space-evenly; }
 
+/* Repeater */
+.pfb-repeater {
+	margin-top: 0.5rem;
+}
+
+.pfb-repeater > .label {
+	font-size: 0.8em;
+	font-weight: 600;
+	color: #6b7280;
+	margin-bottom: 0.4rem;
+}
+
+.pfb-repeater-table {
+	width: 100%;
+	border-collapse: collapse;
+}
+
+.pfb-repeater-cell {
+	padding: 0.25rem 0;
+	vertical-align: top;
+}
+
 /* Child table */
 .child-table {
 	margin-top: 0.5rem;

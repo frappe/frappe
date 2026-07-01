@@ -361,6 +361,96 @@
 			</div>
 		</template>
 
+		<!-- ── Repeater inspector ──────────────────────────────── -->
+		<template v-else-if="selected_field && is_repeater_field">
+			<div class="pfb-insp-body">
+				<div class="pfb-insp-section">
+					<div class="pfb-insp-section-head" @click="toggle('r_repeater')">
+						<span class="pfb-insp-section-label">{{ __("Repeater") }}</span>
+						<span
+							class="pfb-insp-chevron"
+							:class="{ collapsed: !open.r_repeater }"
+							v-html="frappe.utils.icon('chevron-down', 'xs')"
+						></span>
+					</div>
+					<div v-show="open.r_repeater" class="pfb-insp-section-body">
+						<div class="pfb-insp-row">
+							<span class="pfb-insp-label">{{ __("Source") }}</span>
+							<select class="pfb-insp-select" v-model="selected_field.source">
+								<option value="">{{ __("Select table…") }}</option>
+								<option
+									v-for="o in repeater_source_opts"
+									:key="o.value"
+									:value="o.value"
+								>
+									{{ o.label }}
+								</option>
+							</select>
+						</div>
+						<div class="pfb-insp-row pfb-insp-row--col">
+							<span class="pfb-insp-label">{{ __("Title") }}</span>
+							<input
+								class="pfb-insp-input"
+								type="text"
+								:placeholder="__('Optional heading')"
+								v-model="selected_field.label"
+							/>
+						</div>
+					</div>
+				</div>
+
+				<div class="pfb-insp-section">
+					<div class="pfb-insp-section-head" @click="toggle('r_columns')">
+						<span class="pfb-insp-section-label">{{ __("Columns") }}</span>
+						<span
+							class="pfb-insp-chevron"
+							:class="{ collapsed: !open.r_columns }"
+							v-html="frappe.utils.icon('chevron-down', 'xs')"
+						></span>
+					</div>
+					<div v-show="open.r_columns" class="pfb-insp-section-body">
+						<div
+							v-for="(col, ci) in selected_field.repeater_columns"
+							:key="ci"
+							class="pfb-rep-col"
+						>
+							<div class="pfb-rep-col-head">
+								<span class="pfb-insp-label">{{
+									__("Column {0}", [ci + 1])
+								}}</span>
+								<button
+									class="btn btn-xs btn-icon"
+									:title="__('Remove column')"
+									@click="remove_repeater_column(ci)"
+									v-html="frappe.utils.icon('x', 'xs')"
+								></button>
+							</div>
+							<TemplateInput v-model="col.template" :fields="repeater_field_opts" />
+							<div class="pfb-insp-row" style="margin-top: 8px">
+								<span class="pfb-insp-label">{{ __("Align") }}</span>
+								<Segmented v-model="col.align" :options="align_opts" />
+							</div>
+							<div class="pfb-insp-row">
+								<span class="pfb-insp-label">{{ __("Value") }}</span>
+								<Segmented v-model="col.format" :options="repeater_format_opts" />
+							</div>
+						</div>
+						<button class="pfb-add-btn" @click="add_repeater_column">
+							<span v-html="frappe.utils.icon('add', 'xs')"></span>
+							{{ __("Add column") }}
+						</button>
+					</div>
+				</div>
+
+				<div class="pfb-insp-actions">
+					<button class="btn btn-xs btn-danger-subtle" @click="remove_field">
+						<span v-html="frappe.utils.icon('x', 'xs')"></span>
+						{{ __("Remove repeater") }}
+					</button>
+				</div>
+			</div>
+		</template>
+
 		<!-- ── Field inspector ─────────────────────────────────── -->
 		<template v-else-if="selected_field">
 			<div class="pfb-insp-body">
@@ -715,9 +805,10 @@ import Autocomplete from "../../../vue-components/Autocomplete.vue";
 import VisibilitySection from "./VisibilitySection.vue";
 import Stepper from "./Stepper.vue";
 import Segmented from "./Segmented.vue";
+import TemplateInput from "./TemplateInput.vue";
 
 let store = inject("$store");
-let { letterhead, layout } = useStore();
+let { letterhead, layout, meta } = useStore();
 
 let selected_field = computed(() => store.selected_field.value);
 let selected_section = computed(() => store.selected_section.value);
@@ -736,6 +827,8 @@ const open = ref({
 	t_table: true,
 	t_columns: true,
 	t_visibility: true,
+	r_repeater: true,
+	r_columns: true,
 });
 
 function toggle(key) {
@@ -744,7 +837,40 @@ function toggle(key) {
 
 // ── Inspector header ───────────────────────────────────────
 let is_table_field = computed(() => selected_field.value?.fieldtype === "Table");
+let is_repeater_field = computed(() => selected_field.value?.fieldtype === "Repeater");
 let is_html_field = computed(() => selected_field.value?.fieldtype === "HTML");
+
+// ── Repeater helpers ───────────────────────────────────────
+let repeater_source_opts = computed(() =>
+	(meta.value?.fields || [])
+		.filter((f) => f.fieldtype === "Table")
+		.map((f) => ({ value: f.fieldname, label: f.label || f.fieldname }))
+);
+
+let repeater_field_opts = computed(() => {
+	const src = (meta.value?.fields || []).find(
+		(f) => f.fieldname === selected_field.value?.source
+	);
+	const child_meta = src?.options ? frappe.get_meta(src.options) : null;
+	if (!child_meta) return [];
+	return child_meta.fields
+		.filter((f) => !frappe.model.no_value_type.includes(f.fieldtype) && f.fieldname !== "name")
+		.map((f) => ({ value: f.fieldname, label: f.label || f.fieldname }));
+});
+
+const repeater_format_opts = [
+	{ value: "Text", label: __("Text") },
+	{ value: "Auto", label: __("Formatted") },
+];
+
+function add_repeater_column() {
+	if (!selected_field.value.repeater_columns) selected_field.value.repeater_columns = [];
+	selected_field.value.repeater_columns.push({ template: [], align: "left", format: "Text" });
+}
+
+function remove_repeater_column(i) {
+	selected_field.value.repeater_columns.splice(i, 1);
+}
 
 let inspector_kind = computed(() => {
 	if (selected_lh_footer.value) return __("Letter Head");
@@ -1679,5 +1805,36 @@ function set_section_cell_padding(value) {
 	overflow-y: auto;
 	padding: 16px 20px;
 	font-size: var(--text-sm);
+}
+
+.pfb-rep-col {
+	border: 1px solid var(--border-color);
+	border-radius: var(--radius);
+	padding: 8px;
+	margin-bottom: 8px;
+}
+.pfb-rep-col-head {
+	display: flex;
+	align-items: center;
+	justify-content: space-between;
+	margin-bottom: 6px;
+}
+.pfb-add-btn {
+	display: inline-flex;
+	align-items: center;
+	gap: 4px;
+	font-size: var(--text-sm);
+	padding: 4px 8px;
+	border: 1px dashed var(--border-color);
+	border-radius: var(--radius);
+	background: transparent;
+	color: var(--text-muted);
+	cursor: pointer;
+	width: 100%;
+	justify-content: center;
+}
+.pfb-add-btn:hover {
+	background: var(--subtle-accent);
+	color: var(--text-color);
 }
 </style>
