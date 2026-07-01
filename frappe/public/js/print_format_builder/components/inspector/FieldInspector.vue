@@ -1831,6 +1831,15 @@ function set_section_cell_padding(value) {
 	color: var(--gray-400);
 	border-radius: var(--radius);
 	flex-shrink: 0;
+	/* Hidden until the row is hovered — space is reserved so inputs don't shift.
+	   Stays visible when the column is merged (active) or its editor is open. */
+	visibility: hidden;
+}
+
+.pfb-col-item:hover .pfb-col-config,
+.pfb-col-config.active,
+.pfb-col-config.open {
+	visibility: visible;
 }
 
 .pfb-col-config:hover {
