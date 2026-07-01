@@ -54,7 +54,7 @@
 								{%- endif -%}
 							{%- endif -%}
 							<div class="cell-lines">
-								{%- for mf in _merged -%}{%- if mf.fieldname and mf.fieldname != ns.img_fn -%}<div class="cell-line cell-line--{{ mf.style or 'primary' }}">{{ row.get_formatted(mf.fieldname) }}</div>{%- endif -%}{%- endfor -%}
+								{%- for mf in _merged -%}{%- if mf.fieldname and mf.fieldname != ns.img_fn -%}<div class="cell-line cell-line--{{ mf.style or 'primary' }}">{{ row.get_formatted(mf.fieldname)|striptags }}</div>{%- endif -%}{%- endfor -%}
 							</div>
 						</div>
 					{%- else -%}

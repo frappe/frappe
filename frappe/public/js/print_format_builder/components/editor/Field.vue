@@ -453,13 +453,21 @@ function text_merges(col) {
 	return merged_fields(col).filter((mf) => mf !== img);
 }
 
-// Format a merged sub-field using its own child docfield definition
+// Format a merged sub-field using its own child docfield definition.
+// Merged lines are plain text, so strip any HTML kept for rich-text
+// fields (Text Editor / Long Text) down to its text content.
 function format_merged(row, fieldname) {
 	const dcol = frappe.meta.get_docfield(props.df.options, fieldname) || {
 		fieldname,
 		fieldtype: "Data",
 	};
-	return format_cell(row, dcol);
+	const val = format_cell(row, dcol);
+	if (typeof val === "string" && val.includes("<")) {
+		const tmp = document.createElement("div");
+		tmp.innerHTML = val;
+		return (tmp.textContent || tmp.innerText || "").trim();
+	}
+	return val;
 }
 
 function cell_image(col, row) {
