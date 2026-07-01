@@ -41,18 +41,18 @@
 								change.prefix
 							}}</span>
 							<template v-if="change.from != null">
-								<span
-									class="font-semibold text-ink-gray-8"
-									:title="truncate(change.from).title"
-									>{{ truncate(change.from).text }}</span
-								>
+								<Tooltip :text="truncate(change.from).title">
+									<span class="font-semibold text-ink-gray-8">{{
+										truncate(change.from).text
+									}}</span>
+								</Tooltip>
 								<span class="text-ink-gray-5">→</span>
 							</template>
-							<span
-								class="font-semibold text-ink-gray-8"
-								:title="truncate(change.to).title"
-								>{{ truncate(change.to).text }}</span
-							>
+							<Tooltip :text="truncate(change.to).title">
+								<span class="font-semibold text-ink-gray-8">{{
+									truncate(change.to).text
+								}}</span>
+							</Tooltip>
 							<!-- chevron reveals this field's change history -->
 							<button
 								v-if="hasHistory(change)"
@@ -85,30 +85,32 @@
 					v-if="isOpen(change.name) && hasHistory(change)"
 					class="relative ms-2 flex flex-col gap-2 ps-4"
 				>
-					<!-- inset half a row (leading-6 ÷ 2) so the line spans first→last hop centers -->
+					<!-- inset half a row (leading-6 ÷ 2) so the line spans first→last entry centers -->
 					<div class="absolute inset-y-3 start-0 w-px bg-[var(--outline-gray-modals)]" />
 					<div
-						v-for="(hop, idx) in historyOf(change)"
+						v-for="(historyEntry, idx) in historyOf(change)"
 						:key="idx"
 						class="flex flex-wrap items-center gap-1.5 leading-6 text-ink-gray-5"
 					>
 						<span class="font-medium text-ink-gray-8">{{ authorName }}</span>
 						<span>{{ prefixOf(change) }}</span>
-						<span
-							v-if="hop.from"
-							class="font-semibold text-ink-gray-8"
-							:title="truncate(hop.from).title"
-							>{{ truncate(hop.from).text }}</span
+						<Tooltip
+							v-if="historyEntry.from"
+							:text="truncate(historyEntry.from).title"
 						>
+							<span class="font-semibold text-ink-gray-8">{{
+								truncate(historyEntry.from).text
+							}}</span>
+						</Tooltip>
 						<span v-else class="text-ink-gray-5">""</span>
 						<span>→</span>
-						<span
-							class="font-semibold text-ink-gray-8"
-							:title="truncate(hop.to).title"
-							>{{ truncate(hop.to).text }}</span
-						>
+						<Tooltip :text="truncate(historyEntry.to).title">
+							<span class="font-semibold text-ink-gray-8">{{
+								truncate(historyEntry.to).text
+							}}</span>
+						</Tooltip>
 						<span>·</span>
-						<TimeAgo :timestamp="hop.timestamp" />
+						<TimeAgo :timestamp="historyEntry.timestamp" />
 					</div>
 				</div>
 			</div>
@@ -117,6 +119,7 @@
 </template>
 
 <script setup lang="ts">
+import { Tooltip } from "frappe-ui";
 import { computed, reactive, ref } from "vue";
 import TimeAgo from "./TimeAgo.vue";
 import type { FieldChange, VersionActivity, VersionChange } from "./types";
