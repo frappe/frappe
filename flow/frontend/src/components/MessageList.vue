@@ -40,7 +40,7 @@ watch(scrollTick, () => {
 <template>
 	<div
 		ref="el"
-		class="flow-scrollbar flex flex-1 flex-col overflow-y-auto px-4 py-3"
+		class="flow-scrollbar flex flex-1 flex-col overflow-y-auto px-4 pt-4 pb-32"
 		@scroll="onScroll"
 	>
 		<div class="mx-auto flex w-full max-w-3xl flex-1 flex-col gap-5">
