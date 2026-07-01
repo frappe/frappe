@@ -15,6 +15,10 @@ const agents = ref([]);
 const models = ref([]);
 const recentSessions = ref([]);
 
+// Active agent's tool slug → requires_confirmation; the cache keeps agent switches instant.
+const toolApproval = ref({});
+const toolApprovalCache = {};
+
 const selectedAgent = ref(null);
 const selectedModel = ref(null);
 const sessionName = ref(null);
@@ -57,6 +61,7 @@ async function loadInitial() {
 	models.value = m;
 	const assistant = a.find((x) => x.name === "Flow");
 	selectedAgent.value = assistant ? assistant.name : a[0]?.name ?? null;
+	loadToolApproval(selectedAgent.value);
 	loaded.value = true;
 	focusTick.value++;
 }
@@ -65,10 +70,31 @@ async function refreshHistory() {
 	recentSessions.value = await api.loadHistory();
 }
 
+// Load the classification map for `agent`. Guarded against a stale response winning
+// after a quick agent switch; a code-agent session (no agent) falls back to empty.
+async function loadToolApproval(agent) {
+	if (!agent) {
+		toolApproval.value = {};
+		return;
+	}
+	if (toolApprovalCache[agent]) {
+		toolApproval.value = toolApprovalCache[agent];
+		return;
+	}
+	try {
+		const map = await api.getAgentTools(agent);
+		toolApprovalCache[agent] = map;
+		if (selectedAgent.value === agent) toolApproval.value = map;
+	} catch {
+		if (selectedAgent.value === agent) toolApproval.value = {};
+	}
+}
+
 // ── selection ────────────────────────────────────────────────────────────────
 function setAgent(name) {
 	if (locked.value) return;
 	selectedAgent.value = name;
+	loadToolApproval(name);
 }
 function setModel(name) {
 	selectedModel.value = name;
@@ -134,6 +160,7 @@ async function switchSession(name) {
 	const doc = await api.getSession(name);
 	selectedAgent.value = doc.agent;
 	selectedModel.value = doc.model || null;
+	await loadToolApproval(doc.agent);
 
 	// Attachments are linked to their turn by run; group so each user message
 	// can render its own chips.
@@ -397,6 +424,7 @@ export function useStore() {
 		sending,
 		loaded,
 		fullscreen,
+		toolApproval,
 		scrollTick,
 		forceScroll,
 		focusTick,

@@ -5,17 +5,16 @@ import ActivityGroup from "./ActivityGroup.vue";
 import ConfirmCard from "./ConfirmCard.vue";
 import WorkingIndicator from "./WorkingIndicator.vue";
 import { useStore } from "@/store";
-import { REQUIRES_APPROVAL } from "@/lib/toolMeta";
 
 const props = defineProps({ message: { type: Object, required: true } });
-const { answerQuestion } = useStore();
+const { answerQuestion, toolApproval } = useStore();
 
 const questionByKey = computed(() => new Map(props.message.questions.map((q) => [q.key, q])));
 
-// Confirmation builtin, or has/had a question (covers custom tools).
+// A confirmation tool (per the agent's tool map), or one that has/had a question.
 function isApproval(part) {
 	const q = questionByKey.value.get(part.id);
-	return REQUIRES_APPROVAL.has(part.name) || q !== undefined || part.approval !== null;
+	return toolApproval.value[part.name] === true || q !== undefined || part.approval !== null;
 }
 
 // Group parts for render: text → prose, approval tool → own line (card if pending),

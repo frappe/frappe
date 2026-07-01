@@ -47,6 +47,10 @@ export const getPausedRun = (session) =>
 // so a reloaded session isn't blocked from starting the next turn.
 export const recoverSession = (session) => frappe.xcall("flow.api.recover_session", { session });
 
+// Map of the agent's tool slugs → requires_confirmation, so the panel can tell an
+// approval tool call from an inline one.
+export const getAgentTools = (agent) => frappe.xcall("flow.api.get_agent_tools", { agent });
+
 // Upload a file as private, returning the created File doc. The chat attachment
 // flow needs the File name to stage it via attachFile.
 export async function uploadFile(file) {

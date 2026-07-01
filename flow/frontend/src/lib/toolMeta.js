@@ -31,9 +31,6 @@ const LABELS = {
 	run_action: "Running Document Actions",
 };
 
-// Confirmation builtins — always rendered on their own line, never merged.
-export const REQUIRES_APPROVAL = new Set(["execute", "create", "update", "delete", "run_action"]);
-
 export function toolLabel(name) {
 	return LABELS[name] ? __(LABELS[name]) : humanize(name);
 }
