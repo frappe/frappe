@@ -445,7 +445,9 @@ function merge_fieldtype(mf) {
 
 // The first merged field that is an image — rendered on the left.
 function image_merge(col) {
-	return merged_fields(col).find((mf) => MERGE_IMAGE_FIELDTYPES.has(merge_fieldtype(mf))) || null;
+	return (
+		merged_fields(col).find((mf) => MERGE_IMAGE_FIELDTYPES.has(merge_fieldtype(mf))) || null
+	);
 }
 
 // Remaining fields render as stacked text lines.

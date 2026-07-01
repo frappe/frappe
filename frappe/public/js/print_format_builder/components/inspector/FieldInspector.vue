@@ -362,8 +362,9 @@
 													step="4"
 													:value="col.image_size || 40"
 													@input="
-														col.image_size =
-															Number($event.target.value)
+														col.image_size = Number(
+															$event.target.value
+														)
 													"
 												/>
 												<span class="pfb-merge-size-val"
