@@ -1928,21 +1928,40 @@ function set_section_cell_padding(value) {
 	gap: 5px;
 }
 
+/* Merged-row controls share a compact boxed look */
 .pfb-merge-field,
-.pfb-merge-style {
+.pfb-merge-style,
+.pfb-merge-tag {
 	padding: 4px 6px;
 	font-size: var(--text-tiny);
 	border: 1px solid var(--border-color);
 	border-radius: var(--radius);
 	background: var(--fg-color);
-	color: var(--text-color);
 	outline: none;
+}
+
+.pfb-merge-field,
+.pfb-merge-style {
+	color: var(--text-color);
 	cursor: pointer;
 }
 
 .pfb-merge-field {
 	flex: 1;
 	min-width: 0;
+}
+
+/* Style select + image badge: same fixed width, muted, on the right */
+.pfb-merge-style,
+.pfb-merge-tag {
+	width: 84px;
+	flex-shrink: 0;
+	color: var(--text-muted);
+}
+
+.pfb-merge-tag {
+	text-align: center;
+	background: var(--gray-100);
 }
 
 /* Base row: the column's own field, shown locked instead of a select */
@@ -1961,12 +1980,6 @@ function set_section_cell_padding(value) {
 	visibility: hidden;
 }
 
-.pfb-merge-style {
-	width: 84px;
-	flex-shrink: 0;
-	color: var(--text-muted);
-}
-
 .pfb-merge-field:focus,
 .pfb-merge-style:focus {
 	border-color: var(--gray-500);
@@ -1977,19 +1990,6 @@ function set_section_cell_padding(value) {
 	color: var(--text-muted);
 	margin: 0;
 	line-height: 1.4;
-}
-
-/* Image badge shown in place of the text-style select for image fields */
-.pfb-merge-tag {
-	width: 84px;
-	flex-shrink: 0;
-	text-align: center;
-	font-size: var(--text-tiny);
-	color: var(--text-muted);
-	background: var(--gray-100);
-	border: 1px solid var(--border-color);
-	border-radius: var(--radius);
-	padding: 4px 4px;
 }
 
 .pfb-merge-size {

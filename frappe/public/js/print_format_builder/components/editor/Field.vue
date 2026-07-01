@@ -115,8 +115,8 @@
 											<span
 												v-else
 												class="pf-cell-thumb"
-												:style="thumb_style(col, row)"
-												>{{ thumb_abbr(col, row) }}</span
+												:style="thumb(col, row).style"
+												>{{ thumb(col, row).abbr }}</span
 											>
 										</template>
 										<div class="pf-cell-lines">
@@ -477,33 +477,24 @@ function cell_image(col, row) {
 	return typeof v === "string" && v ? v : null;
 }
 
-function image_px(col) {
-	return col.image_size || 40;
-}
-
 function thumb_box(col) {
-	const s = image_px(col) + "px";
+	const s = (col.image_size || 40) + "px";
 	return { width: s, height: s };
 }
 
-// Initials fallback shown when an image field is merged but the row has none.
-function thumb_primary_text(col, row) {
-	const primary = text_merges(col)[0]?.fieldname;
-	const raw = primary ? row[primary] : "";
-	return raw === null || raw === undefined ? "" : String(raw);
-}
-
-function thumb_abbr(col, row) {
-	return frappe.get_abbr(thumb_primary_text(col, row)) || "?";
-}
-
-function thumb_style(col, row) {
-	const palette = thumb_palette_for(thumb_primary_text(col, row));
+// Initials fallback (abbr + coloured box) when an image field is merged
+// but the row has no image. Colour keyed off the first text field.
+function thumb(col, row) {
+	const raw = String(row[text_merges(col)[0]?.fieldname] ?? "");
+	const palette = thumb_palette_for(raw);
 	return {
-		...thumb_box(col),
-		fontSize: Math.round(image_px(col) * 0.4) + "px",
-		background: palette.bg,
-		color: palette.fg,
+		abbr: frappe.get_abbr(raw) || "?",
+		style: {
+			...thumb_box(col),
+			fontSize: Math.round((col.image_size || 40) * 0.4) + "px",
+			background: palette.bg,
+			color: palette.fg,
+		},
 	};
 }
 
@@ -1094,24 +1085,20 @@ watch(
 	word-break: break-word;
 }
 
-.pf-merge--primary {
-	font-weight: var(--weight-semibold);
-	color: var(--text-color);
-}
-
+.pf-merge--primary,
 .pf-merge--secondary {
 	color: var(--text-color);
 }
-
-.pf-merge--mono-sm {
-	font-family: var(--monospace-font-family, monospace);
-	font-size: 0.85em;
-	color: var(--text-muted);
+.pf-merge--primary {
+	font-weight: var(--weight-semibold);
 }
-
+.pf-merge--mono-sm,
 .pf-merge--muted-sm {
 	font-size: 0.85em;
 	color: var(--text-muted);
+}
+.pf-merge--mono-sm {
+	font-family: var(--monospace-font-family, monospace);
 }
 
 .preview-table-html {
