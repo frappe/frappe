@@ -550,3 +550,22 @@ def enable_prepared_report(report: str, site: str):
 	frappe.db.set_value("Report", report, "prepared_report", 1)
 	frappe.db.commit()
 	frappe.destroy()
+
+
+def get_permission_query_conditions(user=None):
+	"""Hide Postgres-only diagnostic reports (named with a "Postgres " prefix) from the report
+	list on other database backends, where they raise instead of running."""
+	if frappe.db.db_type == "postgres":
+		return None
+	# substr comparison, not LIKE 'Postgres %': a literal % in a permission condition is read as a
+	# printf placeholder when the list query is parameterized, raising "not enough arguments".
+	return "substr(`tabReport`.`name`, 1, 9) != 'Postgres '"
+
+
+def has_permission(doc, ptype=None, user=None, debug=False):
+	"""Deny document-level access to a Postgres-only report on other backends. Running the report
+	is separately guarded by its execute() raising on non-Postgres. Case-insensitive to match the
+	report list's SQL filter under MariaDB's case-insensitive collation."""
+	if frappe.db.db_type != "postgres" and doc.name.lower().startswith("postgres "):
+		return False
+	return True
