@@ -67,6 +67,9 @@ frappe.views.CommunicationComposer = class {
 
 		const $skeleton = $(`
 			<div class="gmail-compose">
+				<div class="gmail-row gmail-sender-row is-collapsed">
+					<div class="gmail-slot" data-slot="sender"></div>
+				</div>
 				<div class="gmail-row">
 					<div class="gmail-slot" data-slot="recipients"></div>
 					<div class="gmail-cc-bcc-toggles">
@@ -127,6 +130,7 @@ frappe.views.CommunicationComposer = class {
 
 		// Move the rendered controls into their slots — autocomplete, Quill, validation all preserved
 		[
+			"sender",
 			"recipients",
 			"cc",
 			"bcc",
@@ -140,6 +144,12 @@ frappe.views.CommunicationComposer = class {
 				$skeleton.find(`[data-slot="${fieldname}"]`).append($field);
 			}
 		});
+
+		// Show the sender row only when the user has more than one outgoing account.
+		// Single-account users get the pre-selected value silently.
+		if (this.user_email_accounts?.length > 1) {
+			$skeleton.find(".gmail-sender-row").removeClass("is-collapsed");
+		}
 
 		// email_template's original section break is hidden — Frappe applies display:none
 		// to the field. Clear it since the field is now in a visible slot.
@@ -493,7 +503,7 @@ frappe.views.CommunicationComposer = class {
 
 			fields.unshift({
 				label: __("From", null, "Email Sender"),
-				fieldtype: "Select",
+				fieldtype: "Autocomplete",
 				reqd: 1,
 				fieldname: "sender",
 				options: this.user_email_accounts,
