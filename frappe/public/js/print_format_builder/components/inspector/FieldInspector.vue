@@ -133,7 +133,7 @@
 							<span class="pfb-insp-label">{{ __("Header") }}</span>
 							<div class="pfb-seg">
 								<button
-									:class="{ active: table_header !== 'plain' }"
+									:class="{ active: table_header === 'styled' }"
 									@click="selected_field.table_header = 'styled'"
 								>
 									{{ __("Styled") }}
@@ -143,6 +143,12 @@
 									@click="selected_field.table_header = 'plain'"
 								>
 									{{ __("Plain") }}
+								</button>
+								<button
+									:class="{ active: table_header === 'none' }"
+									@click="selected_field.table_header = 'none'"
+								>
+									{{ __("None") }}
 								</button>
 							</div>
 						</div>

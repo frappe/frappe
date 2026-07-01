@@ -64,7 +64,7 @@
 							'preview-table--plain-header': df.table_header === 'plain',
 						}"
 					>
-						<thead>
+						<thead v-if="df.table_header !== 'none'">
 							<tr>
 								<th
 									v-for="col in df.table_columns"
