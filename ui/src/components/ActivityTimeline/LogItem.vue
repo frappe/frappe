@@ -16,7 +16,7 @@
 						activity.data.action === "removed" ? " removed attachment" : " attached"
 					}}</span>
 				</span>
-				<span v-if="activity.data.isPrivate" class="lucide-lock size-3.5" />
+				<LucideLock v-if="activity.data.isPrivate" class="size-3.5" />
 				<a
 					v-if="activity.data.fileUrl"
 					:href="activity.data.fileUrl"
@@ -36,6 +36,7 @@
 
 <script setup lang="ts">
 import { h } from "vue";
+import LucideLock from "~icons/lucide/lock";
 import TimeAgo from "./TimeAgo.vue";
 import type { AttachmentLogActivity, LogActivity } from "./types";
 import { splitBold } from "./utils";

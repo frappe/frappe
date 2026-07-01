@@ -37,31 +37,43 @@
 				"
 				class="text-ink-gray-3"
 			/>
-			<span v-else :class="[gutterIconClass(activity), 'size-4 text-ink-gray-5']" />
+			<component v-else :is="gutterIcon(activity)" class="size-4 text-ink-gray-5" />
 		</template>
 		<CommentIcon v-else class="absolute start-[7.5px] text-ink-gray-5" />
 	</template>
 </template>
 
 <script setup lang="ts">
+import type { Component } from "vue";
 import { Avatar } from "frappe-ui";
 import MailIcon from "~icons/lucide/mail";
-import { CommentIcon, DotIcon, SUBTYPE_ICON, LUCIDE_ICON_CLASS } from "./icons";
+import LucideHeart from "~icons/lucide/heart";
+import LucideGitBranch from "~icons/lucide/git-branch";
+import LucideInfo from "~icons/lucide/info";
+import LucideEye from "~icons/lucide/eye";
+import LucidePaperclip from "~icons/lucide/paperclip";
+import LucideTrash2 from "~icons/lucide/trash-2";
+import { CommentIcon, DotIcon, LUCIDE_ICON_CLASS } from "./icons";
 import type { Activity, AttachmentLogActivity, CustomActivity, LogActivity } from "./types";
 
 defineProps<{
 	activity: Activity | CustomActivity;
 }>();
 
-// literal lucide-* class for a log / attachment_log gutter dot (log icon derived
-// from subtype; attachment from its add/remove action)
-function gutterIconClass(activity: LogActivity | AttachmentLogActivity): string {
-	const name =
-		activity.type === "attachment_log"
-			? activity.data.action === "removed"
-				? "trash-2"
-				: "paperclip"
-			: SUBTYPE_ICON[activity.data.subtype] ?? "";
-	return LUCIDE_ICON_CLASS[name] ?? "";
+// Built-in gutter icons per log subtype, inlined as SVG components (unplugin-icons,
+// like MailIcon above) so they render without a host emitting the lucide-* mask class.
+const LOG_SUBTYPE_ICON: Record<string, Component> = {
+	like: LucideHeart,
+	workflow: LucideGitBranch,
+	info: LucideInfo,
+	view: LucideEye,
+};
+
+// The gutter icon component for a log / attachment_log row (attachment from its
+// add/remove action; log from its subtype). Undefined for subtypes with no icon.
+function gutterIcon(activity: LogActivity | AttachmentLogActivity): Component | undefined {
+	if (activity.type === "attachment_log")
+		return activity.data.action === "removed" ? LucideTrash2 : LucidePaperclip;
+	return LOG_SUBTYPE_ICON[activity.data.subtype];
 }
 </script>

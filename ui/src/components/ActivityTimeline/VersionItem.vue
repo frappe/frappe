@@ -134,7 +134,7 @@ const changes = computed<VersionChange[]>(
 	() => props.activity.data.group ?? [props.activity.data]
 );
 
-const authorName = computed(() => props.activity.author?.fullname ?? "");
+const authorName = computed(() => props.activity?.author?.fullname ?? "");
 
 // collapsible "+N changes" group toggle
 const expanded = ref(false);
