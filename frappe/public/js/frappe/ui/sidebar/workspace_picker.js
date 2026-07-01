@@ -19,7 +19,7 @@ frappe.ui.WorkspacePicker = class WorkspacePicker {
 		this.selection = this.initial_selection();
 
 		this.dialog = new frappe.ui.Dialog({
-			title: __("My Workspaces"),
+			title: __("Workspaces"),
 			size: "extra-large",
 			fields: [{ fieldtype: "HTML", fieldname: "picker" }],
 			primary_action_label: __("Save"),

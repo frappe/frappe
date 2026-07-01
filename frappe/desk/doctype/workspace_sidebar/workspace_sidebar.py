@@ -132,6 +132,12 @@ class WorkspaceSidebar(Document, DeskViews):
 		(mapping `header_icon` -> `icon`, plus `module_onboarding` and `standard`). When no
 		`Workspace` matches the sidebar, one is created to host the items so no sidebar is lost.
 		"""
+		if not is_workspace_manager():
+			frappe.throw(
+				_("You need to be Workspace Manager to migrate a sidebar."),
+				frappe.PermissionError,
+			)
+
 		# Welcome Workspace was never given a sidebar; leave its special-casing untouched.
 		if self.title == "Welcome Workspace":
 			return

@@ -357,16 +357,14 @@ def get_desktop_page(page: str | dict):
 		return {}
 
 
-@frappe.whitelist()
-def get_user_workspaces(user: str | None = None) -> list[str]:
-	"""Return `user`'s personal workspace selection (`User.workspaces`), in row order.
+def get_user_workspaces() -> list[str]:
+	"""Return the session user's personal workspace selection (`User.workspaces`), in row order.
 
 	This is the ordered list of public workspaces the user has chosen for their workspace
 	selector (via the "My Workspaces" picker). An empty list means the user has not curated a
 	selection, in which case the selector falls back to the current app's workspaces.
 	"""
-	user = user or frappe.session.user
-	user_doc = frappe.get_cached_doc("User", user)
+	user_doc = frappe.get_cached_doc("User", frappe.session.user)
 	return [d.workspace for d in user_doc.workspaces if d.workspace]
 
 

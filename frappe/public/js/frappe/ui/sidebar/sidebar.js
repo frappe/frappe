@@ -443,7 +443,7 @@ frappe.ui.Sidebar = class Sidebar {
 				},
 				{
 					name: "workspace-selector",
-					label: __("Workspace Selector"),
+					label: __("Workspaces"),
 					icon: "monitor",
 					onClick: function () {
 						new frappe.ui.WorkspacePicker();

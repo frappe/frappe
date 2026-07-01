@@ -305,7 +305,7 @@ def get_report_type(report):
 def new_page(new_page: dict):
 	# frappe auto-parses JSON-looking string args back into objects before this runs, so
 	# `new_page` may already be a dict; only `loads` it when it's still a string.
-	page = loads(new_page) if isinstance(new_page, str) else new_page
+	page = frappe.parse_json(new_page)
 	if not page:
 		return
 
