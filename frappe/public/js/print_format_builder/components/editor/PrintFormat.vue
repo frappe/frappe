@@ -143,7 +143,10 @@ let rootStyles = computed(() => {
 let bodyStyles = computed(() => {
 	const { font_size, font } = print_format.value;
 	const styles = {};
-	styles.fontSize = `${parseFloat(font_size) || 14}px`;
+	// px (not pt) to mirror the print output, which sets
+	// `font-size: {{ font_size }}px` in print_format.css. Only apply when set so an
+	// unset format falls back to the CSS default instead of being forced to a value.
+	if (font_size) styles.fontSize = `${parseFloat(font_size)}px`;
 	if (font) styles.fontFamily = `'${font}', sans-serif`;
 	return styles;
 });
