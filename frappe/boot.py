@@ -516,10 +516,13 @@ def get_sidebar_items():
 	perm_ctx = frappe.new_doc("Workspace")
 	sidebar_items = {}
 
-	# Primary source: authored `Workspace.sidebar_items` (the post-merge model). Items are
-	# fetched in a single query keyed by workspace, rather than per cached doc.
+	# Primary source: authored `Workspace.sidebar_items` (the post-merge model). Everything the
+	# boot needs is fetched in batch instead of per workspace doc: `get_workspaces()` already
+	# carries name/module/app/icon, a single query keys every authored item by workspace (a
+	# workspace is "with sidebar" iff it appears there), and one more batches `module_onboarding`.
 	workspaces = get_workspaces_with_sidebar()
 	items_by_workspace = get_authored_sidebar_items([w.name for w in workspaces])
+	module_onboarding = get_workspace_module_onboarding([w.name for w in workspaces])
 	for workspace in workspaces:
 		add_sidebar_entry(
 			sidebar_items,
@@ -528,7 +531,7 @@ def get_sidebar_items():
 			module=workspace.module,
 			app=workspace.app,
 			header_icon=workspace.icon,
-			module_onboarding=workspace.module_onboarding,
+			module_onboarding=module_onboarding.get(workspace.name),
 			perm_ctx=perm_ctx,
 		)
 
@@ -573,15 +576,44 @@ def get_workspaces_with_sidebar():
 	Reuses `get_workspaces()` so the workspace selector shares a single
 	visibility/order/hidden source of truth with the desk workspace listing, then keeps
 	only the workspaces that have authored sidebar items (preserving order).
+
+	Membership is resolved with a single existence query against `Workspace Sidebar Item`
+	rather than loading each visible workspace's doc, so this stays flat on the boot path
+	regardless of how many workspaces the user can see.
 	"""
 	from frappe.desk.desktop import get_workspaces
 
-	workspaces = []
-	for page in get_workspaces()["pages"]:
-		workspace = frappe.get_cached_doc("Workspace", page["name"])
-		if workspace.sidebar_items:
-			workspaces.append(workspace)
-	return workspaces
+	pages = get_workspaces()["pages"]
+	if not pages:
+		return []
+
+	with_sidebar = set(
+		frappe.get_all(
+			"Workspace Sidebar Item",
+			filters={"parenttype": "Workspace", "parent": ["in", [page.name for page in pages]]},
+			distinct=True,
+			pluck="parent",
+		)
+	)
+	return [page for page in pages if page.name in with_sidebar]
+
+
+def get_workspace_module_onboarding(workspace_names):
+	"""Map each workspace name to its `module_onboarding` link, in one query.
+
+	Batched so `get_sidebar_items` doesn't load a workspace doc just to read this one field.
+	"""
+	if not workspace_names:
+		return {}
+
+	return {
+		w.name: w.module_onboarding
+		for w in frappe.get_all(
+			"Workspace",
+			filters={"name": ["in", workspace_names]},
+			fields=["name", "module_onboarding"],
+		)
+	}
 
 
 def add_sidebar_entry(
