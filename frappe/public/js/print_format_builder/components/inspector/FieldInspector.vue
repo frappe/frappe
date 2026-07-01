@@ -128,6 +128,23 @@
 								</button>
 							</div>
 						</div>
+						<!-- Cell padding -->
+						<div class="pfb-insp-row">
+							<span class="pfb-insp-label">{{ __("Cell padding") }}</span>
+							<div class="pfb-stepper">
+								<button @click="adjust_cell_padding(-1)">−</button>
+								<input
+									class="pfb-stepper-input"
+									type="number"
+									min="0"
+									:value="table_cell_padding ?? ''"
+									:placeholder="__('auto')"
+									@change="(e) => set_cell_padding(e.target.value)"
+								/>
+								<span class="pfb-stepper-unit">px</span>
+								<button @click="adjust_cell_padding(1)">+</button>
+							</div>
+						</div>
 						<!-- Header -->
 						<div class="pfb-insp-row">
 							<span class="pfb-insp-label">{{ __("Header") }}</span>
@@ -815,6 +832,21 @@ function edit_html_field() {
 let table_style = computed(() => selected_field.value?.table_style ?? "lined");
 let table_bordered = computed(() => selected_field.value?.table_bordered ?? true);
 let table_header = computed(() => selected_field.value?.table_header ?? "styled");
+let table_cell_padding = computed(() => selected_field.value?.table_cell_padding ?? null);
+
+function adjust_cell_padding(delta) {
+	const current = selected_field.value?.table_cell_padding ?? 7;
+	selected_field.value.table_cell_padding = Math.max(0, current + delta);
+}
+
+function set_cell_padding(value) {
+	const v = parseInt(value);
+	if (isNaN(v) || value === "") {
+		delete selected_field.value.table_cell_padding;
+	} else {
+		selected_field.value.table_cell_padding = Math.max(0, v);
+	}
+}
 
 const table_style_opts = [
 	{ value: "lined", label: __("Lined") },

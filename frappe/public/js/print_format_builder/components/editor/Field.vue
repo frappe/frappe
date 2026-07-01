@@ -70,7 +70,12 @@
 									v-for="col in df.table_columns"
 									:key="col.fieldname"
 									:class="numeric_align_class(col)"
-									:style="col.width ? { width: col.width + '%' } : {}"
+									:style="{
+										...(col.width ? { width: col.width + '%' } : {}),
+										...(df.table_cell_padding != null
+											? { padding: df.table_cell_padding + 'px' }
+											: {}),
+									}"
 								>
 									{{ col.label || col.fieldname }}
 								</th>
@@ -86,6 +91,11 @@
 									v-for="col in df.table_columns"
 									:key="col.fieldname"
 									:class="numeric_align_class(col)"
+									:style="
+										df.table_cell_padding != null
+											? { padding: df.table_cell_padding + 'px' }
+											: {}
+									"
 								>
 									<img
 										v-if="
