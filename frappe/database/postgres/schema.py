@@ -118,7 +118,13 @@ class PostgresTable(DBTable):
 				# Duration/Rating are nullable (not in NOT_NULL_TYPES), so keep blanks NULL.
 				using_clause = f"USING NULLIF(`{col.fieldname}`::text, '')::numeric"
 			elif col.fieldtype == "Int":
-				using_clause = f"USING COALESCE(NULLIF(`{col.fieldname}`::text, ''), '0')::numeric::int"
+				# cast to the actual target type: Int with length > 11 is a bigint column
+				# (Long Int), so a plain ::int would overflow its legitimate values; a standard
+				# Int stays int and still errors on out-of-range values (use Long Int for those).
+				int_type = get_definition(col.fieldtype, length=col.length)
+				using_clause = (
+					f"USING COALESCE(NULLIF(`{col.fieldname}`::text, ''), '0')::numeric::{int_type}"
+				)
 			elif col.fieldtype == "JSON":
 				using_clause = f"USING NULLIF(`{col.fieldname}`::text, '')::json"
 
