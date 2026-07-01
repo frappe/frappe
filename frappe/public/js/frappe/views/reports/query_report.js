@@ -675,14 +675,52 @@ frappe.views.QueryReport = class QueryReport extends frappe.views.BaseList {
 				let data = r.message;
 				this.hide_status();
 				clearInterval(this.interval);
+<<<<<<< HEAD
 
 				this.execution_time = data.execution_time || 0.1;
 
 				this.synced_report = data.synced_report;
 				this.synced_at = data.synced_at;
 				if (this.synced_report) {
+=======
+				clearInterval(this.stale_report_interval);
+				this.snapshot_report = data.snapshot_report;
+				this.snapshot_at = data.snapshot_at;
+				this.refreshed_at = frappe.datetime.now_datetime();
+				this.execution_time = data.execution_time || 0.1;
+
+				const check_if_report_is_stale = () => {
+					let generated_at =
+						this.prepared_report && this.prepared_report_document
+							? this.prepared_report_document.report_end_time
+							: this.refreshed_at;
+					let pretty_diff = frappe.datetime.comment_when(generated_at);
+					const days_old = frappe.datetime.get_day_diff(
+						frappe.datetime.now_datetime(),
+						generated_at
+					);
+					const minutes_old = frappe.datetime.get_minute_diff(
+						frappe.datetime.now_datetime(),
+						generated_at
+					);
+					if (days_old > 1) {
+						pretty_diff = `<span style="color:var(--red-600)">${pretty_diff}</span>`;
+					}
+					if (minutes_old >= 1) {
+						this.show_status(`
+						<div class="indicator orange pl-1">
+							<span>
+								${__("This report was generated {0}.", [pretty_diff])}
+							</span>
+						</div>
+					`);
+					}
+				};
+
+				if (this.snapshot_report) {
+>>>>>>> f651881bff (refactor: rename feature toggle to snapshot_report)
 					if (data.result.length > 0) {
-						let diff = frappe.datetime.comment_when(this.synced_at);
+						let diff = frappe.datetime.comment_when(this.snapshot_at);
 						let pretty_diff = `<span style="color:var(--red-600)">${diff}</span>`;
 						this.show_status(`
 						<div class="indicator orange pl-1">
