@@ -18,11 +18,7 @@ const resources = new Map<string, ReturnType<typeof createResource>>();
 // "older emails remain" flag, kept outside the resource so it survives cached remounts.
 const hasMoreEmailsByKey = new Map<string, Ref<boolean>>();
 
-export function useActivityTimeline(
-  doctype: string,
-  docname: string,
-  paginate?: boolean
-) {
+export function useActivityTimeline(doctype: string, docname: string) {
   const cacheKey = `${doctype}:${docname}`;
 
   let hasMoreEmails = hasMoreEmailsByKey.get(cacheKey);
@@ -61,9 +57,7 @@ export function useActivityTimeline(
     activities,
     loading: computed<boolean>(() => resource.loading),
     reload: () => resource.reload(),
-    paginate: paginate
-      ? createEmailPagination(doctype, docname, resource, hasMoreEmails)
-      : undefined,
+    paginate: createEmailPagination(doctype, docname, resource, hasMoreEmails),
   };
 }
 
