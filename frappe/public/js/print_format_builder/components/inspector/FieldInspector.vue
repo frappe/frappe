@@ -228,7 +228,7 @@
 											:class="{
 												active:
 													col.merged_fields &&
-													col.merged_fields.length,
+													col.merged_fields.length > 1,
 												open: expanded_col === ci,
 											}"
 											@click="toggle_col(ci)"
@@ -282,7 +282,14 @@
 														class="pfb-merge-drag"
 														v-html="frappe.utils.icon('drag', 'xs')"
 													></span>
+													<span
+														v-if="is_base_merge(col, mf)"
+														class="pfb-merge-field pfb-merge-field--locked"
+														:title="__('This column\'s own field')"
+														>{{ merge_field_label(mf) }}</span
+													>
 													<select
+														v-else
 														class="pfb-merge-field"
 														:value="mf.fieldname"
 														@change="
@@ -321,6 +328,11 @@
 													</select>
 													<button
 														class="pfb-col-remove"
+														:class="{
+															'pfb-col-remove--hidden':
+																is_base_merge(col, mf),
+														}"
+														:disabled="is_base_merge(col, mf)"
 														@click="remove_merged_field(col, mi)"
 														:title="__('Remove field')"
 														v-html="frappe.utils.icon('x', 'xs')"
@@ -328,20 +340,10 @@
 												</div>
 											</template>
 										</draggable>
-										<p
-											v-if="col.merged_fields && col.merged_fields.length"
-											class="pfb-merge-hint"
-										>
+										<p class="pfb-merge-hint">
 											{{
 												__(
-													"Add two or more fields to merge them into one cell. An image field is shown on the left."
-												)
-											}}
-										</p>
-										<p v-else class="pfb-merge-hint">
-											{{
-												__(
-													"Merge several child fields into this column."
+													"Add fields to merge into this column. An image field is shown on the left."
 												)
 											}}
 										</p>
@@ -1141,8 +1143,19 @@ const IMAGE_COL_FIELDTYPES = new Set(["Attach Image", "Attach"]);
 function toggle_col(ci) {
 	const next = expanded_col.value === ci ? null : ci;
 	expanded_col.value = next;
-	// Give the draggable a real array to bind to; empty = plain single cell.
-	if (next !== null) ensure_merged(selected_field.value.table_columns[next]);
+	// Opening the editor means "merge into this column": always show the
+	// column's own field as the (non-removable) primary line.
+	if (next !== null) {
+		const col = selected_field.value.table_columns[next];
+		const mf = ensure_merged(col);
+		if (!mf.some((m) => m.fieldname === col.fieldname)) {
+			mf.unshift({
+				fieldname: col.fieldname,
+				fieldtype: own_fieldtype(col),
+				style: "primary",
+			});
+		}
+	}
 }
 
 // Value-holding fields of the child doctype, for the merged-field pickers.
@@ -1153,6 +1166,14 @@ let child_fields = computed(() => {
 	return meta.fields.filter((f) => !frappe.model.no_value_type.includes(f.fieldtype));
 });
 
+function own_fieldtype(col) {
+	return (
+		child_fields.value.find((f) => f.fieldname === col.fieldname)?.fieldtype ||
+		col.fieldtype ||
+		"Data"
+	);
+}
+
 // Options for a merged-field select: exclude fields already used by other
 // rows so each fieldname stays unique (keeps it a valid list key).
 function merge_field_opts(col, current) {
@@ -1161,6 +1182,15 @@ function merge_field_opts(col, current) {
 	return child_fields.value
 		.filter((f) => !used.has(f.fieldname))
 		.map((f) => ({ fieldname: f.fieldname, label: f.label || f.fieldname }));
+}
+
+// The base row is the column's own field — locked and not removable.
+function is_base_merge(col, mf) {
+	return mf.fieldname === col.fieldname;
+}
+
+function merge_field_label(mf) {
+	return child_fields.value.find((f) => f.fieldname === mf.fieldname)?.label || mf.fieldname;
 }
 
 function is_image_merge(mf) {
@@ -1178,16 +1208,6 @@ function ensure_merged(col) {
 
 function add_merged_field(col) {
 	const mf = ensure_merged(col);
-	// The first merged field defaults to the column's own field, as primary.
-	if (!mf.length) {
-		const own = child_fields.value.find((f) => f.fieldname === col.fieldname);
-		mf.push({
-			fieldname: col.fieldname,
-			fieldtype: own?.fieldtype || col.fieldtype || "Data",
-			style: "primary",
-		});
-		return;
-	}
 	const used = new Set(mf.map((m) => m.fieldname));
 	const next = child_fields.value.find((f) => !used.has(f.fieldname));
 	if (!next) return; // every field already merged
@@ -1923,6 +1943,22 @@ function set_section_cell_padding(value) {
 .pfb-merge-field {
 	flex: 1;
 	min-width: 0;
+}
+
+/* Base row: the column's own field, shown locked instead of a select */
+.pfb-merge-field--locked {
+	display: flex;
+	align-items: center;
+	color: var(--text-muted);
+	background: var(--gray-50);
+	cursor: default;
+	overflow: hidden;
+	text-overflow: ellipsis;
+	white-space: nowrap;
+}
+
+.pfb-col-remove--hidden {
+	visibility: hidden;
 }
 
 .pfb-merge-style {

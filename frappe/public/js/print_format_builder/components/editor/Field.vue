@@ -434,8 +434,9 @@ function merged_fields(col) {
 	return (col.merged_fields || []).filter((mf) => mf && mf.fieldname);
 }
 
+// A column is "merged" only once it has a second field beyond its own.
 function has_merge(col) {
-	return merged_fields(col).length > 0;
+	return merged_fields(col).length > 1;
 }
 
 function merge_fieldtype(mf) {

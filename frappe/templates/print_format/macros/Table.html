@@ -28,7 +28,7 @@
 			{% for row in doc.get(df.fieldname) %}
 			<tr class="table-row {{ loop.cycle('odd', 'even') }}" data-idx="{{ row.idx }}">
 				{% for column in columns %}
-				{%- set _merged = column.merged_fields -%}
+				{%- set _merged = column.merged_fields if (column.merged_fields and column.merged_fields|length > 1) else None -%}
 				<td class="column-value{% if _merged %} column-value--merged{% endif %}" width="{{ column.width }}%" {{ field_attributes(column) }}>
 					{%- if _merged -%}
 						{# Merged cell: an image field (if any) floats left, the rest stack as styled lines. #}
