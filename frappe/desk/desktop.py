@@ -15,6 +15,7 @@ from frappe.desk.doctype.workspace_customization.workspace_customization import 
 	get_customization,
 )
 from frappe.desk.utils import is_item_allowed
+from frappe.utils.caching import request_cache
 
 
 def handle_not_exist(fn):
@@ -391,6 +392,9 @@ def save_workspace_preferences(workspaces: list | str):
 	for name in workspaces:
 		if name in valid:
 			user_doc.append("workspaces", {"workspace": name})
+	# ignore_permissions: a user curating their own workspace selector need not hold write
+	# access to the User doctype. We only ever touch the session user's own record, and only
+	# its `workspaces` child table, filtered to workspaces the user can already see (`valid`).
 	user_doc.save(ignore_permissions=True)
 
 	return True
@@ -428,8 +432,17 @@ def _overlay_customization_properties(pages: list) -> bool:
 	return resequenced
 
 
+@request_cache
 def get_workspaces():
-	"""Get list of sidebar items for desk"""
+	"""Get list of sidebar items for desk.
+
+	Cached per-request: a single boot resolves the visible workspaces several times
+	(`DeskViews.build_entities`, `get_workspaces_with_sidebar`, and the lazy
+	`DeskViews.allowed_workspaces` permission context), and each pass runs a
+	`get_all("Workspace")` query plus a `Workspace()` build per page. Memoising for the
+	life of the request collapses those into one enumeration without leaking across
+	requests (the cache clears when the request ends).
+	"""
 
 	from frappe.modules.utils import get_module_app
 
