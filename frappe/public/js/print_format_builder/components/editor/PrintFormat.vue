@@ -335,12 +335,12 @@ watch(print_format, () => (store.dirty.value = true), { deep: true });
 
 /* Font size set on .pfb-body cascades into preview field text */
 .pfb-body :deep(.field-preview-value) {
-	font-size: 1em;
+	font-size: 1em !important;
 }
 .pfb-body :deep(.field-preview-label) {
-	font-size: 0.85em;
+	font-size: 0.85em !important;
 }
 .pfb-body :deep(.preview-table) {
-	font-size: 0.9em;
+	font-size: 0.9em !important;
 }
 </style>

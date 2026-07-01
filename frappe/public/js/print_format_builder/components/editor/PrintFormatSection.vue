@@ -528,9 +528,15 @@ function remove_column(index) {
 .section--grid .column-divider {
 	display: none;
 }
-.section--grid :deep(.field) {
+.section--grid :deep(.field:not(.field--preview)) {
 	padding: var(--pfb-cell-pad, 8px) !important;
 	border: none !important;
+	border-bottom: 1px solid var(--border-color) !important;
+	border-radius: 0 !important;
+	background: transparent !important;
+}
+.section--grid :deep(.field--preview) {
+	padding: var(--pfb-cell-pad, 8px) !important;
 	border-bottom: 1px solid var(--border-color) !important;
 	border-radius: 0 !important;
 	background: transparent !important;
