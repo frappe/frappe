@@ -353,10 +353,13 @@ header img {
 }
 
 /* ── Table layout (field-borders mode) ───────────────────── */
-.section--grid .col {
+.section--grid {
 	border: 1px solid #e5e7eb;
+	border-radius: 8px;
+	overflow: hidden;
+}
+.section--grid .col {
 	padding: 0;
-	margin-left: -1px;
 }
 .section--grid .field {
 	padding: var(--pfb-cell-pad, 8px);

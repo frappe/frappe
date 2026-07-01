@@ -70,7 +70,7 @@
 				"
 			>
 				<template v-for="(column, i) in section.columns" :key="i">
-					<div v-if="i > 0" class="column-divider"></div>
+					<div v-if="i > 0 && !preview_doc" class="column-divider"></div>
 					<div
 						class="column"
 						:class="{ 'column-align-right': column.align === 'right' }"
@@ -93,7 +93,9 @@
 							</template>
 						</draggable>
 						<div
-							v-if="column.fields.filter((f) => !f.remove).length === 0"
+							v-if="
+								!preview_doc && column.fields.filter((f) => !f.remove).length === 0
+							"
 							class="empty-drop-zone"
 						>
 							<button
@@ -151,6 +153,9 @@ let section_inline_style = computed(() => {
 	if (is_grid.value) {
 		const pad = props.section.cell_padding ?? 8;
 		style["--pfb-cell-pad"] = `${pad}px`;
+		style.borderRadius = "8px";
+		style.overflow = "hidden";
+		style.border = `1px solid var(--border-color)`;
 	}
 	return style;
 });
@@ -501,21 +506,19 @@ function remove_column(index) {
 
 /* ── Table layout (field borders) ───────────────────────── */
 .section--grid .column {
-	border: 1px solid var(--border-color);
 	padding: 0;
-	margin-left: -1px;
 }
 .section--grid .column-divider {
 	display: none;
 }
 .section--grid :deep(.field) {
-	padding: var(--pfb-cell-pad, 8px);
-	border: none;
-	border-bottom: 1px solid var(--border-color);
-	border-radius: 0;
-	background: transparent;
+	padding: var(--pfb-cell-pad, 8px) !important;
+	border: none !important;
+	border-bottom: 1px solid var(--border-color) !important;
+	border-radius: 0 !important;
+	background: transparent !important;
 }
 .section--grid :deep(.field:last-child) {
-	border-bottom: none;
+	border-bottom: none !important;
 }
 </style>
