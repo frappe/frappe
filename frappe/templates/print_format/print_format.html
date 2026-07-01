@@ -67,6 +67,17 @@
 		{%- set p = section.padding -%}
 		{%- set ns3.section_style = ns3.section_style + 'padding:' + (p.top or 0)|string + 'px ' + (p.right or 0)|string + 'px ' + (p.bottom or 0)|string + 'px ' + (p.left or 0)|string + 'px;' -%}
 	{%- endif -%}
+	{%- if section.border -%}
+		{%- set b = section.border -%}
+		{%- set _bc = (b.color if b.color else '#e5e7eb') -%}
+		{%- if b.top -%}{%- set ns3.section_style = ns3.section_style + 'border-top:1px solid ' + _bc + ';' -%}{%- endif -%}
+		{%- if b.right -%}{%- set ns3.section_style = ns3.section_style + 'border-right:1px solid ' + _bc + ';' -%}{%- endif -%}
+		{%- if b.bottom -%}{%- set ns3.section_style = ns3.section_style + 'border-bottom:1px solid ' + _bc + ';' -%}{%- endif -%}
+		{%- if b.left -%}{%- set ns3.section_style = ns3.section_style + 'border-left:1px solid ' + _bc + ';' -%}{%- endif -%}
+	{%- endif -%}
+	{%- if section.border_radius -%}
+		{%- set ns3.section_style = ns3.section_style + 'border-radius:' + section.border_radius|string + 'px;' -%}
+	{%- endif -%}
 	<div class="section {{ resolve_class({'page-break': section.page_break}) }} {{ 'label-uppercase' if section.label_case == 'uppercase' else '' }}"{% if ns3.section_style %} style="{{ ns3.section_style }}"{% endif %}>
 		{% if section.label and section.show_label != 'hide' %}
 		<div class="section-label">{{ _(section.label) }}</div>

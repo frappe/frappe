@@ -594,6 +594,67 @@
 					</div>
 				</div>
 
+				<!-- BORDER -->
+				<div class="pfb-insp-section">
+					<div class="pfb-insp-section-head" @click="toggle('s_border')">
+						<span class="pfb-insp-section-label">{{ __("Border") }}</span>
+						<span
+							class="pfb-insp-chevron"
+							:class="{ collapsed: !open.s_border }"
+							v-html="frappe.utils.icon('chevron-down', 'xs')"
+						></span>
+					</div>
+					<div v-show="open.s_border" class="pfb-insp-section-body">
+						<!-- Side toggles -->
+						<div class="pfb-insp-row">
+							<span class="pfb-insp-label">{{ __("Sides") }}</span>
+							<div class="pfb-seg">
+								<button
+									v-for="side in ['top', 'right', 'bottom', 'left']"
+									:key="side"
+									:class="{ active: section_border[side] }"
+									@click="toggle_border_side(side)"
+									:title="__(side[0].toUpperCase() + side.slice(1))"
+								>
+									{{ side[0].toUpperCase() }}
+								</button>
+							</div>
+						</div>
+						<!-- Color -->
+						<div class="pfb-insp-row">
+							<span class="pfb-insp-label">{{ __("Color") }}</span>
+							<div class="pfb-color-swatches">
+								<button
+									v-for="swatch in border_swatches"
+									:key="swatch.value"
+									class="pfb-swatch"
+									:class="{ active: section_border_color === swatch.value }"
+									:title="swatch.label"
+									:style="swatch.style"
+									@click="set_border_color(swatch.value)"
+								></button>
+							</div>
+						</div>
+						<!-- Radius -->
+						<div class="pfb-insp-row">
+							<span class="pfb-insp-label">{{ __("Radius") }}</span>
+							<div class="pfb-stepper">
+								<button @click="adjust_border_radius(-1)">−</button>
+								<input
+									class="pfb-stepper-input"
+									type="number"
+									min="0"
+									:value="section_border_radius ?? ''"
+									:placeholder="__('none')"
+									@change="(e) => set_border_radius(e.target.value)"
+								/>
+								<span class="pfb-stepper-unit">px</span>
+								<button @click="adjust_border_radius(1)">+</button>
+							</div>
+						</div>
+					</div>
+				</div>
+
 				<!-- VISIBILITY -->
 				<div class="pfb-insp-section">
 					<div class="pfb-insp-section-head" @click="toggle('s_visibility')">
@@ -661,6 +722,7 @@ const open = ref({
 	s_section: true,
 	s_bg: true,
 	s_padding: true,
+	s_border: false,
 	s_visibility: false,
 	t_table: true,
 	t_columns: true,
@@ -990,6 +1052,54 @@ function set_padding(side, value) {
 		selected_section.value.padding = { top: 0, right: 0, bottom: 0, left: 0 };
 	}
 	selected_section.value.padding[side] = Math.max(0, value);
+}
+
+let section_border = computed(
+	() =>
+		selected_section.value?.border || { top: false, right: false, bottom: false, left: false }
+);
+let section_border_color = computed(() => selected_section.value?.border?.color ?? "#e5e7eb");
+let section_border_radius = computed(() => selected_section.value?.border_radius ?? null);
+
+const border_swatches = [
+	{ value: "#e5e7eb", label: __("Gray"), style: "background:#e5e7eb" },
+	{ value: "#d1d5db", label: __("Dark Gray"), style: "background:#d1d5db" },
+	{ value: "#93c5fd", label: __("Blue"), style: "background:#93c5fd" },
+	{ value: "#000000", label: __("Black"), style: "background:#000000" },
+];
+
+function toggle_border_side(side) {
+	if (!selected_section.value.border) {
+		selected_section.value.border = {
+			top: false,
+			right: false,
+			bottom: false,
+			left: false,
+			color: "#e5e7eb",
+		};
+	}
+	selected_section.value.border[side] = !selected_section.value.border[side];
+}
+
+function set_border_color(color) {
+	if (!selected_section.value.border) {
+		selected_section.value.border = { top: false, right: false, bottom: false, left: false };
+	}
+	selected_section.value.border.color = color;
+}
+
+function adjust_border_radius(delta) {
+	const current = selected_section.value?.border_radius ?? 0;
+	selected_section.value.border_radius = Math.max(0, current + delta);
+}
+
+function set_border_radius(value) {
+	const v = parseInt(value);
+	if (isNaN(v) || value === "") {
+		delete selected_section.value.border_radius;
+	} else {
+		selected_section.value.border_radius = Math.max(0, v);
+	}
 }
 </script>
 

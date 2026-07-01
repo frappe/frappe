@@ -145,6 +145,17 @@ let section_inline_style = computed(() => {
 		const p = props.section.padding;
 		style.padding = `${p.top || 0}px ${p.right || 0}px ${p.bottom || 0}px ${p.left || 0}px`;
 	}
+	if (props.section.border) {
+		const b = props.section.border;
+		const color = b.color || "#e5e7eb";
+		if (b.top) style.borderTop = `1px solid ${color}`;
+		if (b.right) style.borderRight = `1px solid ${color}`;
+		if (b.bottom) style.borderBottom = `1px solid ${color}`;
+		if (b.left) style.borderLeft = `1px solid ${color}`;
+	}
+	if (props.section.border_radius) {
+		style.borderRadius = `${props.section.border_radius}px`;
+	}
 	return style;
 });
 
