@@ -204,18 +204,23 @@ frappe.doctype_settings.register("print-format", function (panel, doctype) {
 				if (r.exc || !r.message) return;
 				const base_url = frappe.urllib.get_base_url();
 				const print_css = frappe.assets.bundled_asset("print.bundle.css");
-				// `sandbox` without `allow-scripts` blocks any script in the rendered template
-				// (Jinja blocks, unescaped Text Editor HTML); `allow-same-origin` keeps the
-				// linked same-origin print CSS loading.
+				// A format's CSS is user/admin-authored and untrusted. Escaping every "</" stops
+				// a "</style>" (or any other closing tag) inside it from breaking out of the
+				// <style> block and injecting raw HTML into the srcdoc.
+				const safe_style = (r.message.style || "").replace(/<\//g, "<\\/");
+				// Sandboxed with no `allow-same-origin` (and no `allow-scripts`): the iframe gets
+				// an opaque origin, so it can't run scripts, read/send this site's cookies, or
+				// access same-origin storage — even if the CSS/HTML above were bypassed some
+				// other way. Loading the linked stylesheet doesn't require allow-same-origin.
 				const $iframe = $(
-					'<iframe class="dts-preview-frame" frameborder="0" sandbox="allow-same-origin"></iframe>'
+					'<iframe class="dts-preview-frame" frameborder="0" sandbox=""></iframe>'
 				);
 				$wrapper.empty().append($iframe);
 				$iframe[0].srcdoc = `<!DOCTYPE html>
 <html>
 	<head>
 		<link href="${base_url}${print_css}" rel="stylesheet">
-		<style>${r.message.style || ""}</style>
+		<style>${safe_style}</style>
 	</head>
 	<body>
 		<div class="print-format print-format-preview">${r.message.html || ""}</div>

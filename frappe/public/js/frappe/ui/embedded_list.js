@@ -274,17 +274,17 @@ frappe.ui.EmbeddedList = class EmbeddedList {
 	build_actions_html(col) {
 		return (col.actions || [])
 			.map((action, action_idx) => {
-				const danger = action.danger ? " text-danger" : "";
 				const title = action.label
 					? ` title="${frappe.utils.escape_html(action.label)}"`
 					: "";
-				// `xs` + currentColor matches Frappe's inline row actions (grid_row.js)
-				// so danger actions inherit the button's red instead of the muted stroke.
+				// `xs` + currentColor matches Frappe's inline row actions (grid_row.js);
+				// only danger actions take the red theme, others stay neutral gray.
+				const theme = action.danger ? "red" : "gray";
 				const icon_button = action.icon ? "true" : "false";
 				const inner = action.icon
 					? frappe.utils.icon(action.icon, "xs", "", "", "", true)
 					: frappe.utils.escape_html(action.label || "");
-				return `<button class="es-button" data-icon-button="${icon_button}" data-size="xs" data-theme="red" data-variant="ghost" data-action-idx="${action_idx}"${title}>${inner}</button>`;
+				return `<button class="es-button" data-icon-button="${icon_button}" data-size="xs" data-theme="${theme}" data-variant="ghost" data-action-idx="${action_idx}"${title}>${inner}</button>`;
 			})
 			.join("");
 	}

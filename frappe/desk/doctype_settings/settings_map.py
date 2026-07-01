@@ -24,6 +24,10 @@ def has_settings_map(doctype: str) -> bool:
 
 	Used to decide whether to show the General tab without resolving every field's metadata
 	and value. Pure existence — the full resolve happens in `get_settings_map`."""
+	# Gate on read access to the target doctype so this doesn't leak map existence for
+	# doctypes the caller can't see (matches the guard `get_settings_map` applies).
+	if not frappe.has_permission(doctype, "read"):
+		return False
 	return bool(frappe.db.exists("DocType Settings Map", {"applies_to_doctype": doctype, "is_active": 1}))
 
 
@@ -36,6 +40,12 @@ def get_settings_map(doctype: str) -> list[dict]:
 	Saving is done client-side via `frappe.client.set_value` (which re-checks permission)."""
 	if not frappe.db.exists("DocType", doctype):
 		frappe.throw(_("DocType {0} not found").format(doctype), frappe.DoesNotExistError)
+
+	# Gate on read access to the target doctype — without this, a caller without access to
+	# `doctype` could still learn it has a settings map and read every mapped Single field
+	# they happen to have access to (matches the guard `has_settings_map` applies).
+	if not frappe.has_permission(doctype, "read"):
+		frappe.throw(_("Not permitted"), frappe.PermissionError)
 
 	# Exactly one map per doctype is active (enforced by the controller). `is_standard asc`
 	# is a defensive tie-break (custom before standard) in case of inconsistent data.
