@@ -60,6 +60,8 @@ class TestMariaDBToPostgres(UnitTestCase):
 			"targetdb",
 		)
 		self.assertIn("quote identifiers", command)
+		# migrate owns the secondary indexes; pgloader must not also copy them (double indexes)
+		self.assertIn("create no indexes", command)
 		self.assertIn("ALTER SCHEMA 'srcdb' RENAME TO 'public'", command)
 		self.assertIn("type tinyint to smallint drop typemod", command)
 		self.assertIn("type decimal to numeric keep typemod", command)

@@ -84,13 +84,19 @@ def _mysql_identifier(name: str) -> str:
 
 
 def build_pgloader_command(source_db: str, mariadb: dict, postgres: dict, target_db: str) -> str:
-	"""Return the pgloader load-file contents for a MariaDB -> PostgreSQL data copy."""
+	"""Return the pgloader load-file contents for a MariaDB -> PostgreSQL data copy.
+
+	`create no indexes`: the post-restore `bench migrate` recreates the secondary indexes
+	under Frappe's own names, so letting pgloader also copy them (under its generated
+	names) would leave two indexes per column. The table's primary key is created with the
+	table, not as a secondary index, so it is unaffected.
+	"""
 	casts = ",\n      ".join(TYPE_CASTS)
 	return f"""LOAD DATABASE
      FROM      {_uri("mysql", mariadb, source_db)}
      INTO      {_uri("postgresql", postgres, target_db)}
 
- WITH include drop, create tables, create indexes, reset sequences,
+ WITH include drop, create tables, create no indexes, reset sequences,
       quote identifiers,
       workers = 8, concurrency = 1,
       batch rows = 5000, prefetch rows = 10000
