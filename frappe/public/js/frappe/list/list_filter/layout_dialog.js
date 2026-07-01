@@ -22,7 +22,7 @@ export default class LayoutDialog {
 			{
 				fieldname: "filter_name",
 				fieldtype: "Data",
-				label: __("Layout name"),
+				label: __("Layout Name"),
 				reqd: 1,
 				default: is_edit ? this.layout.filter_name : "",
 			},
@@ -40,13 +40,17 @@ export default class LayoutDialog {
 		const sorting = this.get_initial_sorting();
 
 		fields.push(
-			{ fieldtype: "Section Break", label: __("Filters") },
+			{
+				fieldtype: "Section Break",
+				label: __("Filters & Sorting"),
+				fieldname: "filters_sort_sb",
+			},
 			{ fieldtype: "HTML", fieldname: "filter_area" },
-			{ fieldtype: "Section Break", label: __("Sort by") },
+			{ fieldtype: "Section Break", fieldname: "sort_row_sb", hide_border: true },
 			{
 				fieldname: "sort_field",
 				fieldtype: "Autocomplete",
-				label: __("Field"),
+				label: __("Sort Field"),
 				options: this.get_sort_field_options(),
 				default: sorting.sort_by,
 				reqd: 1,
@@ -55,7 +59,7 @@ export default class LayoutDialog {
 			{
 				fieldname: "sort_order",
 				fieldtype: "Select",
-				label: __("Order"),
+				label: __("Sort Order"),
 				options: [
 					{ label: __("Descending"), value: "desc" },
 					{ label: __("Ascending"), value: "asc" },
