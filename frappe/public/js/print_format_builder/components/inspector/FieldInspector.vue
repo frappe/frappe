@@ -99,34 +99,23 @@
 						<!-- Style -->
 						<div class="pfb-insp-row">
 							<span class="pfb-insp-label">{{ __("Style") }}</span>
-							<div class="pfb-seg">
-								<button
-									v-for="s in table_style_opts"
-									:key="s.value"
-									:class="{ active: table_style === s.value }"
-									@click="selected_field.table_style = s.value"
-								>
-									{{ s.label }}
-								</button>
-							</div>
+							<Segmented
+								:model-value="table_style"
+								:options="table_style_opts"
+								@update:model-value="(v) => (selected_field.table_style = v)"
+							/>
 						</div>
 						<!-- Bordered -->
 						<div class="pfb-insp-row">
 							<span class="pfb-insp-label">{{ __("Bordered") }}</span>
-							<div class="pfb-seg">
-								<button
-									:class="{ active: table_bordered !== false }"
-									@click="selected_field.table_bordered = true"
-								>
-									{{ __("Yes") }}
-								</button>
-								<button
-									:class="{ active: table_bordered === false }"
-									@click="selected_field.table_bordered = false"
-								>
-									{{ __("No") }}
-								</button>
-							</div>
+							<Segmented
+								:model-value="table_bordered !== false"
+								:options="[
+									{ value: true, label: __('Yes') },
+									{ value: false, label: __('No') },
+								]"
+								@update:model-value="(v) => (selected_field.table_bordered = v)"
+							/>
 						</div>
 						<!-- Cell padding -->
 						<div class="pfb-insp-row">
@@ -143,26 +132,15 @@
 						<!-- Header -->
 						<div class="pfb-insp-row">
 							<span class="pfb-insp-label">{{ __("Header") }}</span>
-							<div class="pfb-seg">
-								<button
-									:class="{ active: table_header === 'styled' }"
-									@click="selected_field.table_header = 'styled'"
-								>
-									{{ __("Styled") }}
-								</button>
-								<button
-									:class="{ active: table_header === 'plain' }"
-									@click="selected_field.table_header = 'plain'"
-								>
-									{{ __("Plain") }}
-								</button>
-								<button
-									:class="{ active: table_header === 'none' }"
-									@click="selected_field.table_header = 'none'"
-								>
-									{{ __("None") }}
-								</button>
-							</div>
+							<Segmented
+								:model-value="table_header"
+								:options="[
+									{ value: 'styled', label: __('Styled') },
+									{ value: 'plain', label: __('Plain') },
+									{ value: 'none', label: __('None') },
+								]"
+								@update:model-value="(v) => (selected_field.table_header = v)"
+							/>
 						</div>
 						<!-- Corner radius -->
 						<div class="pfb-insp-row">
@@ -434,29 +412,19 @@
 							</div>
 							<div class="pfb-insp-row">
 								<span class="pfb-insp-label">{{ __("Show label") }}</span>
-								<div class="pfb-seg">
-									<button
-										v-for="opt in show_label_opts"
-										:key="opt.value"
-										:class="{ active: current_show_label === opt.value }"
-										@click="selected_field.show_label = opt.value"
-									>
-										{{ opt.label }}
-									</button>
-								</div>
+								<Segmented
+									:model-value="current_show_label"
+									:options="show_label_opts"
+									@update:model-value="(v) => (selected_field.show_label = v)"
+								/>
 							</div>
 							<div class="pfb-insp-row">
 								<span class="pfb-insp-label">{{ __("Align") }}</span>
-								<div class="pfb-seg">
-									<button
-										v-for="opt in align_opts"
-										:key="opt.value"
-										:class="{ active: current_align === opt.value }"
-										:title="opt.title"
-										@click="selected_field.align = opt.value"
-										v-html="opt.icon"
-									></button>
-								</div>
+								<Segmented
+									:model-value="current_align"
+									:options="align_opts"
+									@update:model-value="(v) => (selected_field.align = v)"
+								/>
 							</div>
 							<div class="pfb-insp-row">
 								<span class="pfb-insp-label">{{ __("Spacing") }}</span>
@@ -530,54 +498,43 @@
 						<!-- Show title -->
 						<div class="pfb-insp-row">
 							<span class="pfb-insp-label">{{ __("Show title") }}</span>
-							<div class="pfb-seg">
-								<button
-									:class="{ active: section_show_label !== 'hide' }"
-									@click="selected_section.show_label = 'show'"
-								>
-									{{ __("Yes") }}
-								</button>
-								<button
-									:class="{ active: section_show_label === 'hide' }"
-									@click="selected_section.show_label = 'hide'"
-								>
-									{{ __("No") }}
-								</button>
-							</div>
+							<Segmented
+								:model-value="section_show_label === 'hide' ? 'hide' : 'show'"
+								:options="[
+									{ value: 'show', label: __('Yes') },
+									{ value: 'hide', label: __('No') },
+								]"
+								@update:model-value="(v) => (selected_section.show_label = v)"
+							/>
 						</div>
 
 						<!-- Columns -->
 						<div class="pfb-insp-row">
 							<span class="pfb-insp-label">{{ __("Columns") }}</span>
-							<div class="pfb-seg">
-								<button
-									v-for="n in [1, 2, 3, 4]"
-									:key="n"
-									:class="{ active: selected_section.columns.length === n }"
-									@click="set_columns(n)"
-								>
-									{{ n }}
-								</button>
-							</div>
+							<Segmented
+								:model-value="selected_section.columns.length"
+								:options="[1, 2, 3, 4].map((n) => ({ value: n, label: n }))"
+								@update:model-value="set_columns"
+							/>
 						</div>
 
 						<!-- Orientation -->
 						<div class="pfb-insp-row">
 							<span class="pfb-insp-label">{{ __("Label side") }}</span>
-							<div class="pfb-seg">
-								<button
-									:class="{ active: section_orientation !== 'left-right' }"
-									@click="selected_section.field_orientation = ''"
-								>
-									{{ __("Top") }}
-								</button>
-								<button
-									:class="{ active: section_orientation === 'left-right' }"
-									@click="selected_section.field_orientation = 'left-right'"
-								>
-									{{ __("Left") }}
-								</button>
-							</div>
+							<Segmented
+								:model-value="
+									section_orientation === 'left-right' ? 'left-right' : 'top'
+								"
+								:options="[
+									{ value: 'top', label: __('Top') },
+									{ value: 'left-right', label: __('Left') },
+								]"
+								@update:model-value="
+									(v) =>
+										(selected_section.field_orientation =
+											v === 'left-right' ? 'left-right' : '')
+								"
+							/>
 						</div>
 
 						<!-- Gap -->
@@ -597,20 +554,16 @@
 						<!-- Label case -->
 						<div class="pfb-insp-row">
 							<span class="pfb-insp-label">{{ __("Label case") }}</span>
-							<div class="pfb-seg">
-								<button
-									:class="{ active: section_label_case !== 'uppercase' }"
-									@click="selected_section.label_case = 'normal'"
-								>
-									{{ __("Normal") }}
-								</button>
-								<button
-									:class="{ active: section_label_case === 'uppercase' }"
-									@click="selected_section.label_case = 'uppercase'"
-								>
-									{{ __("UPPER") }}
-								</button>
-							</div>
+							<Segmented
+								:model-value="
+									section_label_case === 'uppercase' ? 'uppercase' : 'normal'
+								"
+								:options="[
+									{ value: 'normal', label: __('Normal') },
+									{ value: 'uppercase', label: __('UPPER') },
+								]"
+								@update:model-value="(v) => (selected_section.label_case = v)"
+							/>
 						</div>
 					</div>
 				</div>
@@ -686,20 +639,14 @@
 						<!-- Layout mode -->
 						<div class="pfb-insp-row">
 							<span class="pfb-insp-label">{{ __("Mode") }}</span>
-							<div class="pfb-seg">
-								<button
-									:class="{ active: !section_field_borders }"
-									@click="toggle_field_borders(false)"
-								>
-									{{ __("Normal") }}
-								</button>
-								<button
-									:class="{ active: section_field_borders }"
-									@click="toggle_field_borders(true)"
-								>
-									{{ __("Table") }}
-								</button>
-							</div>
+							<Segmented
+								:model-value="section_field_borders"
+								:options="[
+									{ value: false, label: __('Normal') },
+									{ value: true, label: __('Table') },
+								]"
+								@update:model-value="toggle_field_borders"
+							/>
 						</div>
 						<!-- Cell padding -->
 						<div class="pfb-insp-row">
@@ -767,6 +714,7 @@ import LetterHeadZoneInspector from "./LetterHeadZoneInspector.vue";
 import Autocomplete from "../../../vue-components/Autocomplete.vue";
 import VisibilitySection from "./VisibilitySection.vue";
 import Stepper from "./Stepper.vue";
+import Segmented from "./Segmented.vue";
 
 let store = inject("$store");
 let { letterhead, layout } = useStore();

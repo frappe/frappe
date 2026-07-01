@@ -11,20 +11,14 @@
 			<div class="pfb-insp-section-body" style="padding-top: 10px">
 				<div class="pfb-insp-row">
 					<span class="pfb-insp-label">{{ __("Based on") }}</span>
-					<div class="pfb-seg">
-						<button
-							:class="{ active: zone_source === 'Image' }"
-							@click="set_source('Image')"
-						>
-							{{ __("Image") }}
-						</button>
-						<button
-							:class="{ active: zone_source === 'HTML' }"
-							@click="set_source('HTML')"
-						>
-							{{ __("HTML") }}
-						</button>
-					</div>
+					<Segmented
+						:model-value="zone_source"
+						:options="[
+							{ value: 'Image', label: __('Image') },
+							{ value: 'HTML', label: __('HTML') },
+						]"
+						@update:model-value="set_source"
+					/>
 				</div>
 				<!-- Letter head selection buttons — always visible for header zone -->
 				<template v-if="zone === 'header'">
@@ -96,16 +90,16 @@
 					<!-- Alignment -->
 					<div class="pfb-insp-row">
 						<span class="pfb-insp-label">{{ __("Align") }}</span>
-						<div class="pfb-seg">
-							<button
-								v-for="dir in ['Left', 'Center', 'Right']"
-								:key="dir"
-								:class="{ active: zone_align === dir }"
-								@click="set_align(dir)"
-							>
-								{{ __(dir) }}
-							</button>
-						</div>
+						<Segmented
+							:model-value="zone_align"
+							:options="
+								['Left', 'Center', 'Right'].map((d) => ({
+									value: d,
+									label: __(d),
+								}))
+							"
+							@update:model-value="set_align"
+						/>
 					</div>
 					<!-- Size slider -->
 					<div v-if="letterhead[image_field]" class="pfb-insp-row pfb-insp-row--col">
@@ -141,6 +135,7 @@
 import { computed, inject, onMounted, ref } from "vue";
 import { useStore } from "../../stores";
 import { get_image_dimensions, render_jinja_html } from "../../utils";
+import Segmented from "./Segmented.vue";
 
 const props = defineProps({
 	zone: { type: String, required: true },
