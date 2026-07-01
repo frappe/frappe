@@ -158,9 +158,6 @@ let section_inline_style = computed(() => {
 	if (is_grid.value) {
 		const pad = props.section.cell_padding ?? 8;
 		style["--pfb-cell-pad"] = `${pad}px`;
-		style.borderRadius = "8px";
-		style.overflow = "hidden";
-		style.border = `1px solid var(--border-color)`;
 	}
 	return style;
 });
@@ -510,11 +507,13 @@ function remove_column(index) {
 }
 
 /* ── Table layout (field borders) ───────────────────────── */
+.section--grid {
+	border: 1px solid var(--border-color) !important;
+	border-radius: var(--border-radius-md, 8px) !important;
+	overflow: hidden !important;
+}
 .section--grid .column {
 	padding: 0;
-}
-.section--grid .column-divider {
-	display: none;
 }
 .section--grid :deep(.field) {
 	padding: var(--pfb-cell-pad, 8px) !important;

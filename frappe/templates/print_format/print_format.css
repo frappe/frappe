@@ -355,7 +355,7 @@ header img {
 /* ── Table layout (field-borders mode) ───────────────────── */
 .section--grid {
 	border: 1px solid #e5e7eb;
-	border-radius: 8px;
+	border-radius: var(--border-radius-md, 8px);
 	overflow: hidden;
 }
 .section--grid .col {
