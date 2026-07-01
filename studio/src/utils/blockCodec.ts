@@ -20,8 +20,24 @@ export function expandBlock(node: Record<string, any>): BlockOptions {
 	if (node.id) block.componentId = node.id
 	if (node.originalElement) block.originalElement = node.originalElement
 	if (node.label) block.blockName = node.label
+	if (node.events) block.componentEvents = expandEvents(node.events)
+	if (node.visibility) block.visibilityCondition = node.visibility
 
 	return block
+}
+
+/** Expand the compact `events` map (eventName → script, or → full object) into Studio
+ * componentEvents. A bare string is a 'Run Script' handler. Mirrors BlockCodec._expand_events. */
+function expandEvents(events: Record<string, any>): Record<string, any> {
+	const out: Record<string, any> = {}
+	for (const [name, val] of Object.entries(events || {})) {
+		if (typeof val === "string") {
+			out[name] = { event: name, action: "Run Script", script: val }
+		} else if (val && typeof val === "object") {
+			out[name] = { event: name, action: "Run Script", ...val }
+		}
+	}
+	return out
 }
 
 /**

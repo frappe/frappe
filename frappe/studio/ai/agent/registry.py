@@ -90,6 +90,7 @@ def build_default_registry() -> ToolRegistry:
 		conversation,
 		data,
 		generate,
+		interactivity,
 		introspect,
 		query,
 		variables,
@@ -104,4 +105,5 @@ def build_default_registry() -> ToolRegistry:
 	registry.extend(data.TOOLS)
 	registry.extend(variables.TOOLS)
 	registry.extend(bindings.TOOLS)
+	registry.extend(interactivity.TOOLS)
 	return registry

@@ -62,6 +62,8 @@ class WorkingTree:
 			return self.apply_add(args)
 		if tool_name in ("bind_prop", "set_repeater_data"):
 			return self.apply_bind(tool_name, args)
+		if tool_name in ("set_event_handler", "set_visibility"):
+			return self.apply_interactivity(tool_name, args)
 		# Non-block client tools (scripts) carry no ref to validate.
 		return "Applied."
 
@@ -132,3 +134,14 @@ class WorkingTree:
 		return (
 			f"Bound prop '{args.get('prop')}' of block {component_id} to {{{{ {args.get('expression')} }}}}."
 		)
+
+	def apply_interactivity(self, tool_name: str, args: dict) -> str:
+		"""set_event_handler / set_visibility target an existing block by id; validate the
+		ref (the handler/condition itself is applied on the canvas)."""
+		component_id = args.get("component_id")
+		block = self.resolve(component_id)
+		if block is None:
+			return f"FAILED: component_id '{component_id}' not found{self.id_hint(component_id)}"
+		if tool_name == "set_event_handler":
+			return f"Wired {args.get('event')} handler on block {component_id}."
+		return f"Set visibility of block {component_id} to {{{{ {args.get('expression')} }}}}."

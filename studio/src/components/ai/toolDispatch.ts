@@ -50,6 +50,10 @@ export class ToolDispatcher {
 				return this.bindProp(args)
 			case "set_repeater_data":
 				return this.setRepeaterData(args)
+			case "set_event_handler":
+				return this.setEventHandler(args)
+			case "set_visibility":
+				return this.setVisibility(args)
 		}
 	}
 
@@ -135,6 +139,20 @@ export class ToolDispatcher {
 		if (!block) return
 		block.setProp("data", `{{ ${args.data_source_name}.data }}`)
 		if (args.data_key) block.setProp("dataKey", args.data_key)
+	}
+
+	/** Attach a 'Run Script' handler to an existing block for the given DOM event. */
+	private setEventHandler(args: Record<string, any>) {
+		const block = this.ctx.getCanvas()?.findBlock(args.component_id)
+		if (block && args.event && args.script) {
+			block.addEvent({ event: args.event, action: "Run Script", script: args.script })
+		}
+	}
+
+	/** Set an existing block's visibility condition to a `{{ expression }}`. */
+	private setVisibility(args: Record<string, any>) {
+		const block = this.ctx.getCanvas()?.findBlock(args.component_id)
+		if (block && args.expression) block.visibilityCondition = wrapExpression(args.expression)
 	}
 }
 

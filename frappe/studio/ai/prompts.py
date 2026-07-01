@@ -117,6 +117,8 @@ BLOCK_SCHEMA = """BLOCK SCHEMA (each block is a JSON object with these optional 
 - "mstyle": { }                 — mobile style overrides
 - "tstyle": { }                 — tablet style overrides
 - "slots": { }                  — componentSlots for frappe-ui components that hold child content
+- "events": { }                 — event handlers, eventName → JS script, e.g. {"click":"counter.value++"}. Variables are refs (write with .value); the script also sees data sources and route/router.
+- "visibility": "expr"          — render the block only when a {{ }} expression is truthy, e.g. "{{ todos.data.length > 0 }}"
 - "c": [ ]                       — children list (array of block objects)
 
 ROOT BLOCK — the page root is:
@@ -184,6 +186,10 @@ Build a data-driven view — BACKEND FIRST, then layout:
 Editing an EXISTING block's binding (it's already in the page structure): bind_prop(component_id, prop, expression) — expression WITHOUT braces — or set_repeater_data for an existing Repeater.
 
 Variables: add_variable(name, type, initial_value); reference anywhere as {{ name }}. update_variable to retype/re-seed, delete_variable to remove (warns if still bound). Reuse before duplicating (list_variables).
+
+Interactivity (events & visibility) — same new-vs-existing rule as bindings:
+- Make a block DO something on interaction with an event handler. New block → put it in the block's `events` field at creation, e.g. a button with {"events":{"click":"counter.value++"}}. Existing block → set_event_handler(component_id, event, script). The script is JS with the page context in scope; variables are refs, so write them via .value (increment a counter: counter.value++; reset: counter.value = 0).
+- Show/hide a block conditionally: new block → its `visibility` field, e.g. "{{ todos.data.length > 0 }}". Existing block → set_visibility(component_id, expression) with the expression WITHOUT braces.
 """
 
 

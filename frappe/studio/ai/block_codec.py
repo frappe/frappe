@@ -45,12 +45,30 @@ class BlockCodec:
 		if slots:
 			out["slots"] = slots
 
+		events = block.get("componentEvents") or {}
+		if events:
+			out["events"] = BlockCodec._compress_events(events)
+		if vis := block.get("visibilityCondition"):
+			out["visibility"] = vis
+
 		children = [
 			BlockCodec.compress(c, depth + 1) for c in block.get("children", []) if isinstance(c, dict)
 		]
 		if children:
 			out["c"] = children
 
+		return out
+
+	@staticmethod
+	def _compress_events(events: dict) -> dict:
+		"""Compact componentEvents for the page context. A 'Run Script' handler collapses to
+		just its script string (the common case); other action shapes pass through verbatim."""
+		out = {}
+		for name, ev in events.items():
+			if isinstance(ev, dict) and ev.get("action") == "Run Script":
+				out[name] = ev.get("script") or ""
+			else:
+				out[name] = ev
 		return out
 
 	@staticmethod
@@ -75,8 +93,29 @@ class BlockCodec:
 			block["originalElement"] = orig
 		if label := node.get("label"):
 			block["blockName"] = label
+		if events := node.get("events"):
+			block["componentEvents"] = BlockCodec._expand_events(events)
+		if vis := node.get("visibility"):
+			block["visibilityCondition"] = vis
 
 		return block
+
+	@staticmethod
+	def _expand_events(events: dict) -> dict:
+		"""Expand the compact `events` map (eventName → script, or → full object) into Studio
+		componentEvents. A bare string is a 'Run Script' handler."""
+		out = {}
+		if not isinstance(events, dict):
+			return out
+		for name, val in events.items():
+			if isinstance(val, str):
+				out[name] = {"event": name, "action": "Run Script", "script": val}
+			elif isinstance(val, dict):
+				ev = dict(val)
+				ev.setdefault("event", name)
+				ev.setdefault("action", "Run Script")
+				out[name] = ev
+		return out
 
 	@staticmethod
 	def parse_blocks(content: str) -> dict:

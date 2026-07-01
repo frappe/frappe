@@ -136,6 +136,14 @@ add_block = Tool(
 					},
 					"mstyle": {"type": "object", "description": "Mobile style overrides."},
 					"tstyle": {"type": "object", "description": "Tablet style overrides."},
+					"events": {
+						"type": "object",
+						"description": 'Event handlers: eventName → JS script, e.g. {"click":"counter.value++"}. Variables are refs (write with .value).',
+					},
+					"visibility": {
+						"type": "string",
+						"description": 'Render only when a {{ }} expression is truthy, e.g. "{{ todos.data.length > 0 }}".',
+					},
 					"c": {
 						"type": "array",
 						"description": "Child blocks (same schema, recursively).",
