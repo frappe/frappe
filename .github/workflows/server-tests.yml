@@ -24,7 +24,7 @@ jobs:
       run_postgres: ${{ steps.check-build.outputs.run_postgres }}
     steps:
       - name: Clone
-        uses: actions/checkout@v6
+        uses: actions/checkout@v7
       - name: Check if unit tests should be run
         id: check-build
         run: |
@@ -78,7 +78,7 @@ jobs:
           - 2525:25
           - 3000:80
     steps:
-      - uses: actions/checkout@v6
+      - uses: actions/checkout@v7
       - uses: ./.github/actions/setup
         name: Environment Setup
         with:
@@ -139,7 +139,7 @@ jobs:
         env:
           MARIADB_ROOT_PASSWORD: ${{ env.DB_ROOT_PASSWORD }}
     steps:
-      - uses: actions/checkout@v6
+      - uses: actions/checkout@v7
       - uses: ./.github/actions/setup
         name: Environment Setup
         with:
@@ -232,7 +232,7 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - name: Clone
-        uses: actions/checkout@v6
+        uses: actions/checkout@v7
       - name: Download artifacts
         uses: actions/download-artifact@v8.0.1
       - name: Upload coverage data

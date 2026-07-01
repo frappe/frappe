@@ -17,6 +17,30 @@
       "import": "./src/components/FileUpload/index.ts",
       "types": "./src/components/FileUpload/index.ts"
     },
+    "./ListView": {
+      "import": "./src/components/ListView/index.ts",
+      "types": "./src/components/ListView/index.ts"
+    },
+    "./SortBy": {
+      "import": "./src/components/SortBy/index.ts",
+      "types": "./src/components/SortBy/index.ts"
+    },
+    "./Filter": {
+      "import": "./src/components/Filter/index.ts",
+      "types": "./src/components/Filter/index.ts"
+    },
+    "./QuickFilter": {
+      "import": "./src/components/QuickFilter/index.ts",
+      "types": "./src/components/QuickFilter/index.ts"
+    },
+    "./ColumnSettings": {
+      "import": "./src/components/ColumnSettings/index.ts",
+      "types": "./src/components/ColumnSettings/index.ts"
+    },
+    "./fields": {
+      "import": "./src/components/Fields/index.ts",
+      "types": "./src/components/Fields/index.ts"
+    },
     "./utils": {
       "import": "./src/utils/index.ts",
       "types": "./src/utils/index.ts"

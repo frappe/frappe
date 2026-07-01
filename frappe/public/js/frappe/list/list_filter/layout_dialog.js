@@ -22,7 +22,7 @@ export default class LayoutDialog {
 			{
 				fieldname: "filter_name",
 				fieldtype: "Data",
-				label: __("Layout Name"),
+				label: __("Layout name"),
 				reqd: 1,
 				default: is_edit ? this.layout.filter_name : "",
 			},

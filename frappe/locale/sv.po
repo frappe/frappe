@@ -3,7 +3,7 @@ msgstr ""
 "Project-Id-Version: frappe\n"
 "Report-Msgid-Bugs-To: developers@frappe.io\n"
 "POT-Creation-Date: 2026-06-28 10:17+0000\n"
-"PO-Revision-Date: 2026-06-29 21:07\n"
+"PO-Revision-Date: 2026-06-30 21:07\n"
 "Last-Translator: developers@frappe.io\n"
 "Language-Team: Swedish\n"
 "MIME-Version: 1.0\n"
@@ -4990,7 +4990,7 @@ msgstr "Ändring av någon inställning återspeglas på alla E-post Konton som 
 
 #: frappe/core/doctype/system_settings/system_settings.js:67
 msgid "Changing rounding method on site with data can result in unexpected behaviour."
-msgstr "Ändring av avrundningsätt på webbplats med data kan resultera i oväntad beteende."
+msgstr "Ändring av avrundning sätt med befintlig data kan resultera i oväntad resultat."
 
 #. Label of the channel (Select) field in DocType 'Notification'
 #: frappe/email/doctype/notification/notification.json

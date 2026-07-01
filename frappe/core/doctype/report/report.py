@@ -8,7 +8,7 @@ import frappe
 from frappe import _, scrub
 from frappe.core.doctype.custom_role.custom_role import get_custom_allowed_roles
 from frappe.core.doctype.page.page import delete_custom_role
-from frappe.desk.query_report import run
+from frappe.desk.query_report import _run
 from frappe.desk.reportview import DEFAULT_AGGREGATE_FIELDNAME, append_totals_row, get_aggregate_field_info
 from frappe.model.document import Document
 from frappe.modules import make_boilerplate
@@ -272,8 +272,8 @@ class Report(Document):
 		self, filters=None, user=None, ignore_prepared_report=False, are_default_filters=True
 	):
 		columns, result = [], []
-		data = run(
-			self.name,
+		data = _run(
+			report_name=self.name,
 			filters=filters,
 			user=user,
 			ignore_prepared_report=ignore_prepared_report,

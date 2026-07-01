@@ -15,6 +15,9 @@
 	{%- if print_format.css -%}
 	<style>{{ print_format.css }}</style>
 	{%- endif -%}
+	{%- if letterhead and letterhead.custom_css -%}
+	<style>{{ letterhead.custom_css }}</style>
+	{%- endif -%}
 </head>
 <body>
 	{{ header or '' }}

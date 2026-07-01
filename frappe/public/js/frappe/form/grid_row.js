@@ -900,7 +900,7 @@ export default class GridRow {
 		let input_class = this._get_fieldtype_class(df.fieldtype);
 
 		let $col = $(
-			`<div class="col grid-static-col search" style="flex: 0 0 ${width}px; width: ${width}px;"></div>`
+			`<div class="col grid-static-col search" style="flex: 1 0 ${width}px; width: ${width}px;"></div>`
 		).appendTo(this.row);
 
 		let $search_input = $(`
@@ -951,8 +951,7 @@ export default class GridRow {
 		let me = this;
 		let add_class = this._get_fieldtype_class(df.fieldtype);
 
-		// Static pixel width; the grid scrolls horizontally when columns overflow.
-		let add_style = `flex: 0 0 ${width}px; width: ${width}px;`;
+		let add_style = `flex: 1 0 ${width}px; width: ${width}px;`;
 		if (df.sticky) {
 			add_class += " sticky-grid-col";
 			add_style += `left: ${this.grid.get_sticky_offset(df.fieldname)}px;`;
