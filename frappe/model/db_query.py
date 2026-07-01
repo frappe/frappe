@@ -65,6 +65,66 @@ FIELD_COMMA_PATTERN = re.compile(r"[0-9a-zA-Z_]+\s*,")
 STRICT_FIELD_PATTERN = re.compile(r".*/\*.*")
 STRICT_UNION_PATTERN = re.compile(r".*\s(union).*\s")
 ORDER_GROUP_PATTERN = re.compile(r".*[^a-z0-9-_ ,`'\"\.\(\)].*")
+# Matches a SQL function call and captures its name, e.g. `field(` -> "field".
+FUNCTION_CALL_PATTERN = re.compile(r"\b(\w+)\s*\(")
+ALLOWED_ORDER_BY_FUNCTIONS = frozenset(
+	(
+		"sum",
+		"count",
+		"avg",
+		"min",
+		"max",
+		"abs",
+		"round",
+		"floor",
+		"ceil",
+		"ceiling",
+		"mod",
+		"pow",
+		"power",
+		"sqrt",
+		"truncate",
+		"sign",
+		"exp",
+		"ln",
+		"log",
+		"log2",
+		"log10",
+		"pi",
+		"timestamp",
+		"date",
+		"year",
+		"month",
+		"day",
+		"dayofmonth",
+		"dayofweek",
+		"dayofyear",
+		"dayname",
+		"monthname",
+		"week",
+		"weekday",
+		"weekofyear",
+		"quarter",
+		"hour",
+		"minute",
+		"second",
+		"microsecond",
+		"datediff",
+		"timediff",
+		"timestampdiff",
+		"to_days",
+		"to_seconds",
+		"unix_timestamp",
+		"last_day",
+		"extract",
+		# type/null handling
+		"cast",
+		"convert",
+		"coalesce",
+		"ifnull",
+		"nullif",
+	)
+)
 SPECIAL_FIELD_CHARS = frozenset(("(", "`", ".", "'", '"', "*"))
 
 
@@ -1205,23 +1265,6 @@ from {tables}
 		if any(re.search(r"\b" + op + r"\b", sanitized) for op in blacklisted_operators):
 			frappe.throw(_("Illegal SQL Query"))
 
-		blacklisted_sql_functions = {
-			"sleep",
-			"benchmark",
-			"extractvalue",
-			"database",
-			"user",
-			"current_user",
-			"version",
-			"substr",
-			"substring",
-			"updatexml",
-			"load_file",
-			"session_user",
-			"system_user",
-			"get_lock",
-		}
-
 		for field in parameters.split(","):
 			field = field.strip()
 			full_field_name = "." in field and field.startswith("`tab")
@@ -1233,9 +1276,8 @@ from {tables}
 						tbl = tbl[4:-1]
 					frappe.throw(_("Please select atleast 1 column from {0} to sort/group").format(tbl))
 
-			# Check for SQL function using regex with word boundaries and optional whitespace before parenthesis
-			for func in blacklisted_sql_functions:
-				if re.search(r"\b" + re.escape(func) + r"\W*\(", field.lower()):
+			for func in FUNCTION_CALL_PATTERN.findall(field.lower()):
+				if func not in ALLOWED_ORDER_BY_FUNCTIONS:
 					frappe.throw(_("Cannot use {0} in order/group by").format(field))
 
 	def add_limit(self):
