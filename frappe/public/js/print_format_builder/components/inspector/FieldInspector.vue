@@ -220,9 +220,13 @@
 											class="pfb-col-drag"
 											v-html="frappe.utils.icon('drag', 'xs')"
 										></span>
-										<span class="pfb-col-label" :title="col.fieldname">{{
-											col.label || col.fieldname
-										}}</span>
+										<input
+											class="pfb-col-label-input"
+											type="text"
+											v-model="col.label"
+											:placeholder="col.fieldname"
+											:title="col.fieldname"
+										/>
 										<button
 											class="pfb-col-config"
 											:class="{
@@ -253,44 +257,33 @@
 										></button>
 									</div>
 
-									<!-- Per-column merged-fields editor -->
+									<!-- Per-column merged-fields editor: reuses inspector primitives -->
 									<div v-if="expanded_col === ci" class="pfb-col-editor">
-										<div class="pfb-merge-head">
-											<span class="pfb-insp-label">{{
-												__("Merged fields")
-											}}</span>
-											<button
-												class="pfb-merge-add"
-												@click="add_merged_field(col)"
-											>
-												<span
-													v-html="frappe.utils.icon('add', 'xs')"
-												></span>
-												{{ __("Add field") }}
-											</button>
-										</div>
 										<draggable
 											:list="col.merged_fields"
 											handle=".pfb-merge-drag"
 											:animation="150"
 											item-key="fieldname"
-											class="pfb-merge-list"
+											class="pfb-col-list"
 										>
 											<template #item="{ element: mf, index: mi }">
-												<div class="pfb-merge-row">
+												<div class="pfb-col-row">
 													<span
 														class="pfb-merge-drag"
 														v-html="frappe.utils.icon('drag', 'xs')"
 													></span>
-													<span
+													<input
 														v-if="is_base_merge(col, mf)"
-														class="pfb-merge-field pfb-merge-field--locked"
+														class="pfb-insp-input"
+														style="flex: 1; min-width: 0"
+														:value="merge_field_label(mf)"
 														:title="__('This column\'s own field')"
-														>{{ merge_field_label(mf) }}</span
-													>
+														disabled
+													/>
 													<select
 														v-else
-														class="pfb-merge-field"
+														class="pfb-insp-select"
+														style="flex: 1; min-width: 0"
 														:value="mf.fieldname"
 														@change="
 															set_merged_field(
@@ -309,12 +302,13 @@
 													</select>
 													<span
 														v-if="is_image_merge(mf)"
-														class="pfb-merge-tag"
+														class="pfb-type-badge"
 														>{{ __("Image") }}</span
 													>
 													<select
 														v-else
-														class="pfb-merge-style"
+														class="pfb-insp-select"
+														style="width: 96px; flex: none"
 														v-model="mf.style"
 														:title="__('Text style')"
 													>
@@ -327,12 +321,8 @@
 														</option>
 													</select>
 													<button
+														v-if="!is_base_merge(col, mf)"
 														class="pfb-col-remove"
-														:class="{
-															'pfb-col-remove--hidden':
-																is_base_merge(col, mf),
-														}"
-														:disabled="is_base_merge(col, mf)"
 														@click="remove_merged_field(col, mi)"
 														:title="__('Remove field')"
 														v-html="frappe.utils.icon('x', 'xs')"
@@ -340,36 +330,52 @@
 												</div>
 											</template>
 										</draggable>
-										<p class="pfb-merge-hint">
+										<div class="pfb-col-add-row">
+											<button
+												class="btn btn-xs btn-default"
+												@click="add_merged_field(col)"
+											>
+												<span
+													v-html="frappe.utils.icon('add', 'xs')"
+												></span>
+												{{ __("Add field") }}
+											</button>
+										</div>
+										<p
+											class="pfb-insp-hint text-muted"
+											style="padding: 0 14px 8px"
+										>
 											{{
 												__(
 													"Add fields to merge into this column. An image field is shown on the left."
 												)
 											}}
 										</p>
-
-										<!-- Image size (only when a merged image field is present) -->
-										<div v-if="has_image_merge(col)" class="pfb-insp-row">
+										<div
+											v-if="has_image_merge(col)"
+											class="pfb-insp-row"
+											style="padding: 0 14px 10px"
+										>
 											<span class="pfb-insp-label">{{
 												__("Image size")
 											}}</span>
-											<div class="pfb-merge-size">
+											<div class="pfb-stepper">
+												<button @click="adjust_image_size(col, -4)">
+													−
+												</button>
 												<input
-													type="range"
-													class="pfb-lh-slider"
-													min="24"
-													max="96"
-													step="4"
+													class="pfb-stepper-input"
+													type="number"
+													min="16"
 													:value="col.image_size || 40"
-													@input="
-														col.image_size = Number(
-															$event.target.value
-														)
+													@change="
+														(e) => set_image_size(col, e.target.value)
 													"
 												/>
-												<span class="pfb-merge-size-val"
-													>{{ col.image_size || 40 }}px</span
-												>
+												<span class="pfb-stepper-unit">px</span>
+												<button @click="adjust_image_size(col, 4)">
+													+
+												</button>
 											</div>
 										</div>
 									</div>
@@ -1225,6 +1231,16 @@ function remove_merged_field(col, mi) {
 	col.merged_fields.splice(mi, 1);
 }
 
+// Image size — same stepper pattern as table Radius / section Gap
+function adjust_image_size(col, delta) {
+	col.image_size = Math.max(16, (col.image_size || 40) + delta);
+}
+
+function set_image_size(col, value) {
+	const v = parseInt(value);
+	col.image_size = isNaN(v) ? 40 : Math.max(16, v);
+}
+
 // ── Section helpers ────────────────────────────────────────
 let section_show_label = computed(() => selected_section.value?.show_label ?? "show");
 let section_orientation = computed(() => selected_section.value?.field_orientation ?? "");
@@ -1884,131 +1900,9 @@ function set_section_cell_padding(value) {
 }
 
 .pfb-col-editor {
-	display: flex;
-	flex-direction: column;
-	gap: 8px;
-	padding: 8px 14px 12px 30px;
 	background: var(--subtle-accent);
 	border-top: 1px solid var(--gray-100);
-}
-
-.pfb-merge-head {
-	display: flex;
-	align-items: center;
-	justify-content: space-between;
-}
-
-.pfb-merge-add {
-	display: inline-flex;
-	align-items: center;
-	gap: 2px;
-	font-size: var(--text-tiny);
-	font-weight: var(--weight-medium);
-	color: var(--text-muted);
-	background: var(--fg-color);
-	border: 1px solid var(--border-color);
-	border-radius: var(--radius);
-	padding: 2px 6px;
-	cursor: pointer;
-}
-
-.pfb-merge-add:hover {
-	color: var(--text-color);
-	border-color: var(--gray-400);
-}
-
-.pfb-merge-list {
-	display: flex;
-	flex-direction: column;
-	gap: 5px;
-}
-
-.pfb-merge-row {
-	display: flex;
-	align-items: center;
-	gap: 5px;
-}
-
-/* Merged-row controls share a compact boxed look */
-.pfb-merge-field,
-.pfb-merge-style,
-.pfb-merge-tag {
-	padding: 4px 6px;
-	font-size: var(--text-tiny);
-	border: 1px solid var(--border-color);
-	border-radius: var(--radius);
-	background: var(--fg-color);
-	outline: none;
-}
-
-.pfb-merge-field,
-.pfb-merge-style {
-	color: var(--text-color);
-	cursor: pointer;
-}
-
-.pfb-merge-field {
-	flex: 1;
-	min-width: 0;
-}
-
-/* Style select + image badge: same fixed width, muted, on the right */
-.pfb-merge-style,
-.pfb-merge-tag {
-	width: 84px;
-	flex-shrink: 0;
-	color: var(--text-muted);
-}
-
-.pfb-merge-tag {
-	text-align: center;
-	background: var(--gray-100);
-}
-
-/* Base row: the column's own field, shown locked instead of a select */
-.pfb-merge-field--locked {
-	display: flex;
-	align-items: center;
-	color: var(--text-muted);
-	background: var(--gray-50);
-	cursor: default;
-	overflow: hidden;
-	text-overflow: ellipsis;
-	white-space: nowrap;
-}
-
-.pfb-col-remove--hidden {
-	visibility: hidden;
-}
-
-.pfb-merge-field:focus,
-.pfb-merge-style:focus {
-	border-color: var(--gray-500);
-}
-
-.pfb-merge-hint {
-	font-size: var(--text-tiny);
-	color: var(--text-muted);
-	margin: 0;
-	line-height: 1.4;
-}
-
-.pfb-merge-size {
-	display: flex;
-	align-items: center;
-	gap: 8px;
-}
-
-.pfb-merge-size .pfb-lh-slider {
-	flex: 1;
-	min-width: 0;
-}
-
-.pfb-merge-size-val {
-	font-size: var(--text-tiny);
-	color: var(--text-muted);
-	white-space: nowrap;
-	flex-shrink: 0;
+	padding-bottom: 6px;
 }
 
 /* ── Letter Head inspector ───────────────────────────────── */
