@@ -43,6 +43,7 @@ def get_bootinfo():
 
 	# system info
 	bootinfo.sitename = frappe.local.site
+	bootinfo.db_type = frappe.db.db_type
 	bootinfo.sysdefaults = frappe.defaults.get_defaults()
 	bootinfo.sysdefaults["setup_complete"] = frappe.is_setup_complete()
 

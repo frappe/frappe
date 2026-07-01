@@ -275,6 +275,7 @@ scheduler_events = {
 		"frappe.desk.doctype.event.event.send_event_digest",
 		"frappe.email.doctype.notification.notification.trigger_daily_alerts",
 		"frappe.desk.form.document_follow.send_daily_updates",
+		"frappe.core.doctype.report.report.refresh_all_materialized_reports",
 	],
 	"daily_long": [],
 	"daily_maintenance": [

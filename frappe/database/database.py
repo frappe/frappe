@@ -1531,6 +1531,16 @@ class Database:
 		pg_advisory_lock, MariaDB uses GET_LOCK; engines without advisory locks raise."""
 		raise NotImplementedError(f"Advisory locks are not supported on {self.db_type}.")
 
+	def create_materialized_view(self, name, query, *, with_data=True):
+		"""Materialized views are a Postgres-only feature; Postgres overrides this.
+		On other engines it is a no-op -- a materialized report just runs its query live."""
+
+	def refresh_materialized_view(self, name, **kwargs):
+		"""No-op on engines without native materialized view support."""
+
+	def drop_materialized_view(self, name):
+		"""No-op on engines without native materialized view support."""
+
 	def create_sequence_table(self):
 		# MariaDB/Postgres have native sequences and need no backing table;
 		# SQLite overrides this to create its emulation table at site setup.

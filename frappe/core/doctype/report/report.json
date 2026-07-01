@@ -32,6 +32,7 @@
   "columns",
   "section_break_6",
   "query",
+  "is_materialized",
   "report_script",
   "client_code_section",
   "javascript",
@@ -119,6 +120,13 @@
    "fieldtype": "Code",
    "label": "Query",
    "options": "SQL"
+  },
+  {
+   "depends_on": "eval:doc.report_type==\"Query Report\" && frappe.boot.db_type==\"postgres\"",
+   "description": "Cache this report's result as a materialized view, refreshed on schedule or manually. The query cannot use filter placeholders.",
+   "fieldname": "is_materialized",
+   "fieldtype": "Check",
+   "label": "Materialized"
   },
   {
    "depends_on": "eval:doc.report_type==\"Script Report\" && doc.is_standard===\"No\"",

@@ -11,6 +11,22 @@ frappe.ui.form.on("Report", {
 		}
 
 		let doc = frm.doc;
+		if (!doc.__islocal && doc.is_materialized) {
+			frm.add_custom_button(__("Refresh Materialized View"), function () {
+				frappe.call({
+					method: "frappe.core.doctype.report.report.refresh_materialized_report",
+					args: { report: doc.name },
+					freeze: true,
+					callback: function () {
+						frappe.show_alert({
+							message: __("Materialized view refreshed"),
+							indicator: "green",
+						});
+					},
+				});
+			});
+		}
+
 		if (!doc.__islocal) {
 			frm.add_custom_button(
 				__("Show Report"),

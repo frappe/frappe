@@ -1682,3 +1682,42 @@ class TestAdvisoryLockMariaDB(IntegrationTestCase):
 		with frappe.db.advisory_lock("frappe-test-lock"):
 			self.assertTrue(held())
 		self.assertFalse(held())
+
+
+class TestMaterializedView(IntegrationTestCase):
+	@run_only_if(db_type_is.POSTGRES)
+	def test_materialized_view(self):
+		frappe.db.sql_ddl("DROP TABLE IF EXISTS `tabMatviewSrc`")
+		frappe.db.drop_materialized_view("mv_test")
+		frappe.db.sql("CREATE TABLE `tabMatviewSrc` (`grp` varchar(10), `amt` int)")
+		self.addCleanup(frappe.db.sql_ddl, "DROP TABLE IF EXISTS `tabMatviewSrc`")
+		self.addCleanup(frappe.db.drop_materialized_view, "mv_test")
+		frappe.db.sql("INSERT INTO `tabMatviewSrc` VALUES ('a', 10), ('a', 5), ('b', 3)")
+		frappe.db.commit()  # nosemgrep
+
+		query = "SELECT grp, SUM(amt) AS total FROM `tabMatviewSrc` GROUP BY grp"
+		frappe.db.create_materialized_view("mv_test", query)
+		frappe.db.commit()  # nosemgrep
+
+		def total():
+			return int(frappe.db.sql("SELECT total FROM `mv_test` WHERE grp = 'a'")[0][0])
+
+		self.assertEqual(total(), 15)
+
+		# new source rows are invisible until an explicit refresh -- that is the point of a matview
+		frappe.db.sql("INSERT INTO `tabMatviewSrc` VALUES ('a', 100)")
+		frappe.db.commit()  # nosemgrep
+		self.assertEqual(total(), 15)
+		frappe.db.refresh_materialized_view("mv_test")
+		frappe.db.commit()  # nosemgrep
+		self.assertEqual(total(), 115)
+
+	@run_only_if(db_type_is.MARIADB)
+	def test_materialized_view_noop_on_mariadb(self):
+		# Materialized views are Postgres-only: on MariaDB the methods are silent no-ops and must
+		# not resurrect the old snapshot-table emulation (a `__materialized_views` registry table).
+		frappe.db.create_materialized_view("mv_noop", "SELECT 1")
+		frappe.db.refresh_materialized_view("mv_noop")
+		frappe.db.drop_materialized_view("mv_noop")
+		self.assertFalse(frappe.db.table_exists("mv_noop"))
+		self.assertFalse(frappe.db.table_exists("__materialized_views"))

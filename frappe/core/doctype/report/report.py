@@ -2,6 +2,7 @@
 # License: MIT. See LICENSE
 import datetime
 import json
+import re
 import threading
 
 import frappe
@@ -44,6 +45,7 @@ class Report(Document):
 		documentation_url: DF.Data | None
 		filters: DF.Table[ReportFilter]
 		generate_csv: DF.Check
+		is_materialized: DF.Check
 		is_standard: DF.Literal["No", "Yes"]
 		javascript: DF.Code | None
 		json: DF.Code | None
@@ -93,16 +95,40 @@ class Report(Document):
 		if self.default_letter_head and self.has_value_changed("letter_head"):
 			self.validate_default_letter_head()
 
+		if self.is_materialized:
+			if self.report_type != "Query Report":
+				frappe.throw(_("Only Query Reports can be materialized."))
+			# A materialized view takes no runtime parameters; reject printf-style placeholders
+			# (%s, %d, %(name)s). Strip quoted literals first so a LIKE '%s...' isn't misread.
+			if self.query and re.search(r"%(\(\w+\))?[sd]", re.sub(r"'[^']*'", "", self.query)):
+				frappe.throw(
+					_("A materialized report cannot use filter placeholders; it is a precomputed snapshot.")
+				)
+			# Reject an unsafe query here, before on_update runs the (non-atomic, auto-committing)
+			# drop-then-create DDL -- otherwise a query that only fails check_safe_sql_query would
+			# drop the old view and leave the report pointing at a missing relation.
+			if self.query:
+				check_safe_sql_query(self.query)
+
 	def before_insert(self):
 		self.set_doctype_roles()
 
 	def on_update(self):
 		self.export_doc()
+		# Touch the matview only when the report is materialized now (create/rebuild) or was
+		# materialized before (drop) -- a normal report save never triggers matview DDL (which
+		# auto-commits on MariaDB).
+		before = self.get_doc_before_save()
+		if self.is_materialized or (before and before.is_materialized):
+			self.sync_materialized_view()
 
 	def before_export(self, doc):
 		doc.prepared_report = 0
 
 	def on_trash(self):
+		if self.is_materialized:
+			frappe.db.drop_materialized_view(self.materialized_view_name())
+
 		if self.is_standard == "Yes":
 			if (
 				not cint(getattr(frappe.local.conf, "developer_mode", 0))
@@ -178,6 +204,10 @@ class Report(Document):
 			make_boilerplate("controller.js", self, {"name": self.name})
 
 	def execute_query_report(self, filters):
+		# Materialized views are Postgres-only; on other engines fall through and run the query live.
+		if self.is_materialized and frappe.db.db_type == "postgres":
+			return self.execute_materialized_report()
+
 		if not self.query:
 			frappe.throw(_("Must specify a Query to run"), title=_("Report Document Error"))
 
@@ -189,6 +219,27 @@ class Report(Document):
 		frappe.db.rollback()
 
 		return [columns, result]
+
+	def materialized_view_name(self):
+		return f"_report_mv_{scrub(self.name)}"[:63]
+
+	def execute_materialized_report(self):
+		"""Read the precomputed snapshot instead of re-running the query. Filters are not applied --
+		the materialized view holds the full, precomputed result. A plain SELECT needs no
+		transaction wrapper (an explicit rollback here would discard the request's pending writes)."""
+		rows = frappe.db.sql(f"SELECT * FROM `{self.materialized_view_name()}`")  # nosemgrep
+		result = [list(t) for t in rows]
+		columns = self.get_columns() or [cstr(c[0]) for c in frappe.db.get_description()]
+
+		return [columns, result]
+
+	def sync_materialized_view(self):
+		"""Rebuild (or drop) this report's materialized view to match its current definition.
+		The query is already validated by validate()/check_safe_sql_query before this runs."""
+		view = self.materialized_view_name()
+		frappe.db.drop_materialized_view(view)
+		if self.report_type == "Query Report" and self.is_materialized and self.query:
+			frappe.db.create_materialized_view(view, self.query)
 
 	def execute_script_report(self, filters):
 		# save the timestamp to automatically set to prepared
@@ -569,3 +620,31 @@ def has_permission(doc, ptype=None, user=None, debug=False):
 	if frappe.db.db_type != "postgres" and doc.name.lower().startswith("postgres "):
 		return False
 	return True
+
+
+@frappe.whitelist()
+def refresh_materialized_report(report: str):
+	frappe.only_for("System Manager")
+	doc = frappe.get_cached_doc("Report", report)
+	doc.check_permission("read")
+	if not doc.is_materialized:
+		frappe.throw(_("Report {0} is not materialized.").format(report))
+	frappe.db.refresh_materialized_view(doc.materialized_view_name())
+	frappe.db.commit()  # nosemgrep
+
+
+def refresh_all_materialized_reports():
+	"""Scheduler hook: recompute every materialized Query Report's snapshot."""
+	# limit=0 -> fetch every materialized report; get_all otherwise caps at 20 and silently
+	# leaves the rest permanently stale.
+	reports = frappe.get_all(
+		"Report", filters={"is_materialized": 1, "report_type": "Query Report"}, pluck="name", limit=0
+	)
+	for name in reports:
+		try:
+			doc = frappe.get_cached_doc("Report", name)
+			frappe.db.refresh_materialized_view(doc.materialized_view_name())
+			frappe.db.commit()  # nosemgrep
+		except Exception:
+			frappe.db.rollback()
+			frappe.log_error(title=f"Failed to refresh materialized report {name}")

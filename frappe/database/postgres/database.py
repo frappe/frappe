@@ -662,6 +662,20 @@ class PostgresDatabase(PostgresExceptionUtil, Database):
 		finally:
 			self.sql("SELECT pg_advisory_unlock(%s)", (lock_key,))
 
+	def create_materialized_view(self, name, query, *, with_data=True):
+		"""Native postgres MATERIALIZED VIEW; recompute it with refresh_materialized_view()."""
+		definition = query.get_sql() if hasattr(query, "get_sql") else str(query)
+		clause = "WITH DATA" if with_data else "WITH NO DATA"
+		self.sql_ddl(f'CREATE MATERIALIZED VIEW IF NOT EXISTS "{name}" AS {definition} {clause}')
+
+	def refresh_materialized_view(self, name, *, concurrently=False):
+		# CONCURRENTLY lets readers keep querying during the rebuild but needs a unique index on the view.
+		mode = "CONCURRENTLY " if concurrently else ""
+		self.sql_ddl(f'REFRESH MATERIALIZED VIEW {mode}"{name}"')
+
+	def drop_materialized_view(self, name):
+		self.sql_ddl(f'DROP MATERIALIZED VIEW IF EXISTS "{name}"')
+
 
 def modify_query(query):
 	""" "Modifies query according to the requirements of postgres"""
