@@ -1319,81 +1319,10 @@ function set_section_cell_padding(value) {
 }
 
 /* ── Body ────────────────────────────────────────────────── */
-.pfb-insp-body {
-	flex: 1;
-	overflow-y: auto;
-	display: flex;
-	flex-direction: column;
-}
-
-.pfb-insp-placeholder {
-	align-items: center;
-	justify-content: center;
-	padding: 24px;
-	text-align: center;
-}
 
 /* ── Collapsible sections ────────────────────────────────── */
-.pfb-insp-section {
-	border-bottom: 1px solid var(--border-color);
-}
-
-.pfb-insp-section-head {
-	display: flex;
-	align-items: center;
-	justify-content: space-between;
-	padding: 10px 14px;
-	cursor: pointer;
-	user-select: none;
-}
-
-.pfb-insp-section-head:hover {
-	background: var(--subtle-accent);
-}
-
-.pfb-insp-section-label {
-	font-size: var(--text-tiny);
-	font-weight: var(--weight-bold);
-	text-transform: uppercase;
-	letter-spacing: 0.08em;
-	color: var(--text-muted);
-}
-
-.pfb-insp-chevron {
-	display: flex;
-	align-items: center;
-	color: var(--gray-400);
-	transition: transform 0.15s;
-}
-
-.pfb-insp-chevron.collapsed {
-	transform: rotate(-90deg);
-}
-
-.pfb-insp-section-body {
-	padding: 4px 14px 12px;
-	display: flex;
-	flex-direction: column;
-	gap: 10px;
-}
 
 /* ── Rows ────────────────────────────────────────────────── */
-.pfb-insp-row {
-	display: grid;
-	grid-template-columns: 80px 1fr;
-	align-items: center;
-	gap: 8px;
-}
-
-.pfb-insp-row--col {
-	grid-template-columns: 1fr;
-	gap: 4px;
-}
-
-.pfb-insp-label {
-	font-size: var(--text-sm);
-	color: var(--text-muted);
-}
 
 /* ── Source display ──────────────────────────────────────── */
 .pfb-source-display {
@@ -1429,78 +1358,8 @@ function set_section_cell_padding(value) {
 }
 
 /* ── Input ───────────────────────────────────────────────── */
-.pfb-insp-input {
-	width: 100%;
-	padding: 6px 8px;
-	font-size: var(--text-sm);
-	border: 1px solid var(--border-color);
-	border-radius: var(--radius);
-	background: var(--fg-color);
-	color: var(--text-color);
-	outline: none;
-	box-sizing: border-box;
-}
-
-.pfb-insp-input:focus {
-	border-color: var(--gray-500);
-}
-
-.pfb-insp-select {
-	width: 100%;
-	padding: 5px 8px;
-	font-size: var(--text-sm);
-	border: 1px solid var(--border-color);
-	border-radius: var(--radius);
-	background: var(--fg-color);
-	color: var(--text-color);
-	outline: none;
-	cursor: pointer;
-}
-
-.pfb-insp-select:focus {
-	border-color: var(--gray-500);
-}
 
 /* ── Segmented control ───────────────────────────────────── */
-.pfb-seg {
-	display: inline-flex;
-	background: var(--control-bg);
-	border: 1px solid var(--border-color);
-	border-radius: var(--radius);
-	overflow: hidden;
-	width: 100%;
-}
-
-.pfb-seg button {
-	flex: 1;
-	padding: 5px 6px;
-	font-size: var(--text-tiny);
-	font-weight: var(--weight-medium);
-	border: none;
-	border-radius: 0;
-	background: transparent;
-	color: var(--text-muted);
-	cursor: pointer;
-	display: inline-flex;
-	align-items: center;
-	justify-content: center;
-	line-height: 1;
-}
-
-.pfb-seg button:not(:first-child) {
-	border-left: 1px solid var(--border-color);
-}
-
-.pfb-seg button:hover {
-	background: var(--gray-200);
-	color: var(--text-color);
-}
-
-.pfb-seg button.active {
-	background: var(--fg-color);
-	color: var(--text-color);
-	box-shadow: var(--shadow-xs);
-}
 
 /* ── Stepper (+/−) ───────────────────────────────────────── */
 /* ── Background swatches ─────────────────────────────────── */
@@ -1549,17 +1408,8 @@ function set_section_cell_padding(value) {
 }
 
 /* ── Hint ────────────────────────────────────────────────── */
-.pfb-insp-hint {
-	font-size: var(--text-sm);
-	line-height: 1.5;
-}
 
 /* ── Actions ─────────────────────────────────────────────── */
-.pfb-insp-actions {
-	padding: 12px 14px;
-	margin-top: auto;
-	border-top: 1px solid var(--border-color);
-}
 
 .btn-danger-subtle {
 	display: inline-flex;
@@ -1681,10 +1531,6 @@ function set_section_cell_padding(value) {
 .pfb-col-add-row {
 	padding: 6px 14px 10px;
 	border-top: 1px solid var(--gray-100);
-}
-
-.pfb-insp-col-count {
-	font-size: var(--text-tiny);
 }
 
 /* ── Per-column cell layout / merged fields editor ───────── */
