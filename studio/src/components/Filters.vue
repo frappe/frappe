@@ -225,7 +225,13 @@ function getDefaultOperator(fieldtype: Fieldtype): Operators {
 
 function getValueSelector(fieldtype: Fieldtype, options: string = "") {
 	if (typeSelect.includes(fieldtype) || typeCheck.includes(fieldtype)) {
-		const _options = fieldtype == "Check" ? ["Yes", "No"] : getSelectOptions(options)
+		const _options =
+			fieldtype == "Check"
+				? [
+						{ label: "Yes", value: 1 },
+						{ label: "No", value: 0 },
+					]
+				: getSelectOptions(options)
 		return h(FormControl, {
 			type: "select",
 			options: _options,
