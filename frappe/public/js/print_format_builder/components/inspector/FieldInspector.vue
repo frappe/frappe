@@ -1178,14 +1178,20 @@ function ensure_merged(col) {
 
 function add_merged_field(col) {
 	const mf = ensure_merged(col);
+	// The first merged field defaults to the column's own field, as primary.
+	if (!mf.length) {
+		const own = child_fields.value.find((f) => f.fieldname === col.fieldname);
+		mf.push({
+			fieldname: col.fieldname,
+			fieldtype: own?.fieldtype || col.fieldtype || "Data",
+			style: "primary",
+		});
+		return;
+	}
 	const used = new Set(mf.map((m) => m.fieldname));
 	const next = child_fields.value.find((f) => !used.has(f.fieldname));
 	if (!next) return; // every field already merged
-	mf.push({
-		fieldname: next.fieldname,
-		fieldtype: next.fieldtype,
-		style: mf.length ? "muted-sm" : "primary",
-	});
+	mf.push({ fieldname: next.fieldname, fieldtype: next.fieldtype, style: "muted-sm" });
 }
 
 // Keep the stored fieldtype in sync so image detection works server-side.
