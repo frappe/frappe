@@ -391,7 +391,7 @@ class TestCapture(TestPulseClient):
 
 	@patch("frappe.utils.telemetry.pulse.client.is_enabled")
 	def test_capture_user_and_team_group(self, mock_enabled):
-		"""The user is the identity; the team is a group it belongs to"""
+		"""On events, team is the identity subject and user is a per-actor dimension"""
 		is_enabled.clear_cache()
 		mock_enabled.return_value = True
 		eq = EventQueue()
@@ -441,7 +441,7 @@ class TestIdentify(TestPulseClient):
 		is_enabled.clear_cache()
 		mock_enabled.return_value = False
 
-		identify("team_test", {"plan": "pro"})
+		identify({"plan": "pro"})
 
 		mock_session.assert_not_called()
 
@@ -452,14 +452,15 @@ class TestIdentify(TestPulseClient):
 		is_enabled.clear_cache()
 		mock_enabled.return_value = True
 
-		identify("fc_priya", "{not valid json")  # must not raise
+		with patch.dict(frappe.conf, {"fc_team": "team_test"}):
+			identify("{not valid json")  # must not raise
 
 		mock_session.assert_not_called()
 
 	@patch("frappe.utils.telemetry.pulse.transport.PulseHTTP._session")
 	@patch("frappe.utils.telemetry.pulse.client.is_enabled")
 	def test_identify_posts_profile(self, mock_enabled, mock_session):
-		"""identify posts the user + properties to the identify endpoint"""
+		"""identify posts the team + properties to the identify endpoint"""
 		is_enabled.clear_cache()
 		mock_enabled.return_value = True
 
@@ -475,16 +476,17 @@ class TestIdentify(TestPulseClient):
 
 		mock_session.return_value = type("_Session", (), {"post": staticmethod(_fake_post)})()
 
-		identify("fc_priya", {"persona": "founder"})
+		with patch.dict(frappe.conf, {"fc_team": "team_x"}):
+			identify({"persona": "founder"})
 
-		self.assertEqual(posted["data"]["user"], "fc_priya")
+		self.assertEqual(posted["data"]["team"], "team_x")
 		self.assertEqual(posted["data"]["properties"]["persona"], "founder")
 		self.assertTrue(posted["url"].endswith("/api/method/pulse.api.identify"))
 
 	@patch("frappe.utils.telemetry.pulse.transport.PulseHTTP._session")
 	@patch("frappe.utils.telemetry.pulse.client.is_enabled")
 	def test_alias_posts_mapping(self, mock_enabled, mock_session):
-		"""alias posts the previous_id → user mapping to the alias endpoint"""
+		"""alias posts the previous_id → team mapping to the alias endpoint"""
 		is_enabled.clear_cache()
 		mock_enabled.return_value = True
 
@@ -500,10 +502,11 @@ class TestIdentify(TestPulseClient):
 
 		mock_session.return_value = type("_Session", (), {"post": staticmethod(_fake_post)})()
 
-		alias("anon_8f2c", "fc_priya")
+		with patch.dict(frappe.conf, {"fc_team": "team_x"}):
+			alias("anon_8f2c")
 
 		self.assertEqual(posted["data"]["previous_id"], "anon_8f2c")
-		self.assertEqual(posted["data"]["user"], "fc_priya")
+		self.assertEqual(posted["data"]["team"], "team_x")
 		self.assertTrue(posted["url"].endswith("/api/method/pulse.api.alias"))
 
 
