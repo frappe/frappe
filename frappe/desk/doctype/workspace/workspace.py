@@ -172,7 +172,10 @@ class Workspace(Document):
 	@staticmethod
 	def rename_private_workspaces(old_name, new_name):
 		for workspace in frappe.get_all(
-			"Workspace", filters={"for_user": old_name, "type": "Workspace"}, fields=["name", "title"], limit=0
+			"Workspace",
+			filters={"for_user": old_name, "type": "Workspace"},
+			fields=["name", "title"],
+			limit=0,
 		):
 			new_label = f"{workspace.title}-{new_name}"
 			if workspace.name != new_label:

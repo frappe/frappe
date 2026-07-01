@@ -81,7 +81,9 @@ class WorkspaceSidebar(Document, DeskViews):
 
 		for_user = new_user if after_rename_user else old_user
 		suffix = f"-{old_user}"
-		for sidebar in frappe.get_all("Workspace Sidebar", filters={"for_user": for_user}, fields=["name"], limit=0):
+		for sidebar in frappe.get_all(
+			"Workspace Sidebar", filters={"for_user": for_user}, fields=["name"], limit=0
+		):
 			if not sidebar.name.endswith(suffix):
 				continue
 			new_title = sidebar.name.removesuffix(suffix) + f"-{new_user}"
