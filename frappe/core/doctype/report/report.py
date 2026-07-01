@@ -8,13 +8,8 @@ import frappe
 from frappe import _, scrub
 from frappe.core.doctype.custom_role.custom_role import get_custom_allowed_roles
 from frappe.core.doctype.page.page import delete_custom_role
-<<<<<<< HEAD
-from frappe.desk.query_report import run
-from frappe.desk.reportview import append_totals_row
-=======
 from frappe.desk.query_report import _run
-from frappe.desk.reportview import DEFAULT_AGGREGATE_FIELDNAME, append_totals_row, get_aggregate_field_info
->>>>>>> b052a80844 (fix: Limit user to internal usage (#40454))
+from frappe.desk.reportview import append_totals_row
 from frappe.model.document import Document
 from frappe.modules import make_boilerplate
 from frappe.modules.export_file import export_to_files
