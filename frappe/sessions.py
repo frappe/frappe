@@ -439,10 +439,14 @@ class Session:
 			).run()
 
 <<<<<<< HEAD
+<<<<<<< HEAD
 			frappe.db.set_value("User", frappe.session.user, "last_active", now, update_modified=False)
 =======
 			update_user_metadata(frappe.session.user, last_active=now)
 >>>>>>> b9d3ddc18a (fix: Avoid deadlocking on updating a user)
+=======
+			update_user_metadata(frappe.session.user, last_active=now, last_ip=frappe.local.request_ip)
+>>>>>>> 3ec8d895ec (fix: keep updating session IP)
 
 			frappe.db.commit(chain=True)
 			updated_in_db = True
