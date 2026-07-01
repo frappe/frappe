@@ -16,6 +16,29 @@ class TestErrorLog(IntegrationTestCase):
 		error = doc.log_error("This is an error")
 		self.assertEqual(error.doctype, "Error Log")
 
+	def test_error_fingerprint(self):
+		def boom(msg):
+			raise ValueError(msg)
+
+		fingerprints = []
+		for msg in ("first", "second"):
+			try:
+				boom(msg)
+			except ValueError:
+				fingerprints.append(frappe.log_error().fingerprint)
+
+		# Same call path + exception type => same fingerprint, regardless of message
+		self.assertEqual(fingerprints[0], fingerprints[1])
+
+		# Different exception type => different fingerprint
+		try:
+			raise KeyError("first")
+		except KeyError:
+			self.assertNotEqual(frappe.log_error().fingerprint, fingerprints[0])
+
+		# No exception in context => None
+		self.assertIsNone(frappe.log_error().fingerprint)
+
 	def test_ldap_exceptions(self):
 		exc = [LDAPException, LDAPInappropriateAuthenticationResult]
 
