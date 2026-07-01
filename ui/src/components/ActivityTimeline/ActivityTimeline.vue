@@ -9,7 +9,7 @@
 			class="flex flex-col items-center justify-center gap-3 py-8"
 		>
 			<LucideActivity class="h-7 w-7 text-ink-gray-4" />
-			<span class="text-lg font-medium text-ink-gray-8">No activity found</span>
+			<span class="text-lg font-medium text-ink-gray-8">No activity yet</span>
 		</div>
 		<div v-else class="activities flex flex-col gap-2 mt-2" :tabindex="0">
 			<!-- LoadMore for Pagination -->
