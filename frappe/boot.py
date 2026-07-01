@@ -25,7 +25,6 @@ from frappe.model.base_document import get_controller
 from frappe.utils import add_user_info, get_system_timezone
 from frappe.utils.caching import redis_cache
 from frappe.utils.change_log import get_versions
-from frappe.utils.frappecloud import on_frappecloud
 from frappe.website.doctype.web_page_view.web_page_view import is_tracking_enabled
 
 
@@ -115,7 +114,6 @@ def get_bootinfo():
 	bootinfo.translated_doctypes = get_translated_doctypes()
 	bootinfo.doctype_ptype_map = get_doctype_ptype_map()
 	bootinfo.subscription_conf = add_subscription_conf()
-	bootinfo.marketplace_apps = get_marketplace_apps()
 	bootinfo.is_fc_site = is_fc_site()
 	bootinfo.enable_address_autocompletion = frappe.db.get_single_value(
 		"Geolocation Settings", "enable_address_autocompletion"
@@ -399,32 +397,6 @@ def load_currency_docs(bootinfo):
 	)
 
 	bootinfo.docs += currency_docs
-
-
-def get_marketplace_apps():
-	import requests
-
-	apps = []
-	cache_key = "frappe_marketplace_apps"
-
-	if frappe.conf.developer_mode or not on_frappecloud():
-		return apps
-
-	def get_apps_from_fc():
-		remote_site = frappe.conf.frappecloud_url or "frappecloud.com"
-		request_url = f"https://{remote_site}/api/method/press.api.marketplace.get_marketplace_apps"
-		request = requests.get(request_url, timeout=2.0)
-		return request.json()["message"]
-
-	try:
-		apps = frappe.cache.get_value(cache_key, get_apps_from_fc, shared=True)
-		installed_apps = set(frappe.get_installed_apps())
-		apps = [app for app in apps if app["name"] not in installed_apps]
-	except Exception:
-		# Don't retry for a day
-		frappe.cache.set_value(cache_key, apps, shared=True, expires_in_sec=24 * 60 * 60)
-
-	return apps
 
 
 @redis_cache
