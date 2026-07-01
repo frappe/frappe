@@ -15,7 +15,6 @@ from frappe.core.doctype.installed_applications.installed_applications import (
 from frappe.core.doctype.navbar_settings.navbar_settings import get_app_logo, get_navbar_settings
 from frappe.core.doctype.permission_type.permission_type import get_doctype_ptype_map
 from frappe.desk.desk_views import DeskViews
-from frappe.desk.doctype.changelog_feed.changelog_feed import get_changelog_feed_items
 from frappe.desk.doctype.desktop_icon.desktop_icon import get_desktop_icons
 from frappe.desk.doctype.form_tour.form_tour import get_onboarding_ui_tours
 from frappe.desk.doctype.route_history.route_history import frequently_visited_links
@@ -118,7 +117,6 @@ def get_bootinfo():
 	bootinfo.subscription_conf = add_subscription_conf()
 	bootinfo.marketplace_apps = get_marketplace_apps()
 	bootinfo.is_fc_site = is_fc_site()
-	bootinfo.changelog_feed = get_changelog_feed_items()
 	bootinfo.enable_address_autocompletion = frappe.db.get_single_value(
 		"Geolocation Settings", "enable_address_autocompletion"
 	)
