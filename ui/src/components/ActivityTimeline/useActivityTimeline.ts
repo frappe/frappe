@@ -144,15 +144,16 @@ function subscribeToLiveUpdates(
     }
   };
 
+  const onDocUpdate = () => resource.reload();
   onMounted(() => {
     socket.emit("doc_subscribe", doctype, docname); // subscribes to doc updates for this doctype:docname
     socket.on("docinfo_update", onUpdate); // subscribes to live communications, comments, likes, assignments, attachments
-    socket.on("doc_update", () => resource.reload()); // subscribes to field changes
+    socket.on("doc_update", onDocUpdate); // subscribes to field changes
   });
   onUnmounted(() => {
     socket.emit("doc_unsubscribe", doctype, docname);
     socket.off("docinfo_update", onUpdate);
-    socket.off("doc_update", () => resource.reload());
+    socket.off("doc_update", onDocUpdate);
   });
 }
 
