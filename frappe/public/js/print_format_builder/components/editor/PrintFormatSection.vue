@@ -148,13 +148,6 @@ let section_inline_style = computed(() => {
 		const p = props.section.padding;
 		style.padding = `${p.top || 0}px ${p.right || 0}px ${p.bottom || 0}px ${p.left || 0}px`;
 	}
-	if (props.section.border?.on) {
-		const color = props.section.border.color || "#e5e7eb";
-		style.border = `1px solid ${color}`;
-	}
-	if (props.section.border_radius) {
-		style.borderRadius = `${props.section.border_radius}px`;
-	}
 	if (is_grid.value) {
 		const pad = props.section.cell_padding ?? 8;
 		style["--pfb-cell-pad"] = `${pad}px`;

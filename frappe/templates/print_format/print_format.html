@@ -67,13 +67,6 @@
 		{%- set p = section.padding -%}
 		{%- set ns3.section_style = ns3.section_style + 'padding:' + (p.top or 0)|string + 'px ' + (p.right or 0)|string + 'px ' + (p.bottom or 0)|string + 'px ' + (p.left or 0)|string + 'px;' -%}
 	{%- endif -%}
-	{%- if section.border and section.border.on -%}
-		{%- set _bc = (section.border.color if section.border.color else '#e5e7eb') -%}
-		{%- set ns3.section_style = ns3.section_style + 'border:1px solid ' + _bc + ';' -%}
-	{%- endif -%}
-	{%- if section.border_radius -%}
-		{%- set ns3.section_style = ns3.section_style + 'border-radius:' + section.border_radius|string + 'px;' -%}
-	{%- endif -%}
 	{%- if section.field_borders -%}
 		{%- set _cp = (section.cell_padding if section.cell_padding is defined and section.cell_padding is not none else 8) -%}
 		{%- set ns3.section_style = ns3.section_style + '--pfb-cell-pad:' + _cp|string + 'px;' -%}
