@@ -283,10 +283,13 @@ class TestCustomFunctionsPostgres(IntegrationTestCase):
 		)
 
 	def test_match(self):
+		# 'english' regconfig is pinned so a GIN index over to_tsvector('english', col) can back it
 		query = Match("Notes")
-		self.assertEqual("TO_TSVECTOR('Notes')", query.get_sql())
+		self.assertEqual("TO_TSVECTOR('english','Notes')", query.get_sql())
 		query = Match("Notes").Against("text")
-		self.assertEqual("TO_TSVECTOR('Notes') @@ PLAINTO_TSQUERY('text')", query.get_sql())
+		self.assertEqual(
+			"TO_TSVECTOR('english','Notes') @@ PLAINTO_TSQUERY('english', 'text')", query.get_sql()
+		)
 
 	def test_constant_column(self):
 		query = frappe.qb.from_("DocType").select("name", ConstantColumn("John").as_("User"))

@@ -1057,6 +1057,47 @@ class TestDDLCommandsPost(IntegrationTestCase):
 			self.assertEqual(advisory_count(), before + 1)
 		self.assertEqual(advisory_count(), before)
 
+	def _indexdef(self, field: str, using: str) -> str:
+		from frappe.database.postgres.schema import get_qualified_index_name
+
+		name = get_qualified_index_name(f"tab{self.test_table_name}", [field], using)
+		return frappe.db.sql("SELECT indexdef FROM pg_indexes WHERE indexname = %s", (name,))[0][0]
+
+	def test_add_index_trigram(self) -> None:
+		frappe.db.add_index(self.test_table_name, ["content"], using="gin_trgm")
+		indexdef = self._indexdef("content", "gin_trgm")
+		self.assertIn("USING gin", indexdef)
+		self.assertIn("gin_trgm_ops", indexdef)
+
+	def test_add_index_fulltext(self) -> None:
+		frappe.db.add_index(self.test_table_name, ["content"], using="gin_fulltext")
+		indexdef = self._indexdef("content", "gin_fulltext")
+		self.assertIn("USING gin", indexdef)
+		self.assertIn("to_tsvector", indexdef)
+
+	def test_add_index_partial(self) -> None:
+		frappe.db.add_index(self.test_table_name, ["id"], index_name="test_partial", where="id > 0")
+		indexdef = frappe.db.sql("SELECT indexdef FROM pg_indexes WHERE indexname = 'test_partial'")[0][0]
+		self.assertIn("WHERE", indexdef)
+
+	def test_covering_index(self) -> None:
+		frappe.db.add_index(self.test_table_name, ["id"], index_name="test_covering", include=["content"])
+		indexdef = frappe.db.sql("SELECT indexdef FROM pg_indexes WHERE indexname = 'test_covering'")[0][0]
+		self.assertIn("INCLUDE", indexdef)
+		self.assertIn("content", indexdef)
+
+	def test_add_index_rejects_unknown_method(self) -> None:
+		# `using` reaches the DDL string verbatim, so an unknown method must be refused, not run.
+		with self.assertRaises(frappe.ValidationError):
+			frappe.db.add_index(self.test_table_name, ["content"], using="gin; DROP TABLE x")
+
+	def test_add_index_rejects_unsafe_columns(self) -> None:
+		# field and include column names are interpolated into the DDL, so reject non-identifiers.
+		with self.assertRaises(frappe.ValidationError):
+			frappe.db.add_index(self.test_table_name, ['id") ; DROP TABLE x --'])
+		with self.assertRaises(frappe.ValidationError):
+			frappe.db.add_index(self.test_table_name, ["id"], include=['content") ; DROP TABLE x --'])
+
 	def test_json_columns_return_strings(self) -> None:
 		# Regression: psycopg2 auto-parses json/jsonb into python objects, but frappe models JSON
 		# fields as strings (like MariaDB's longtext) and json.loads them on demand. A parsed value

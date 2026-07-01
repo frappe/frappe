@@ -441,11 +441,17 @@ class MariaDBDatabase(MariaDBConnectionUtil, MariaDBExceptionUtil, Database):
 			if not clustered_index:
 				return index
 
-	def add_index(self, doctype: str, fields: list, index_name: str | None = None):
+	def add_index(
+		self, doctype: str, fields: list, index_name: str | None = None, using=None, where=None, include=None
+	):
 		"""Creates an index with given fields if not already created.
-		Index name will be `fieldname1_fieldname2_index`"""
+		`using`/`where`/`include` are postgres-only (trigram/partial/covering) with no MariaDB
+		equivalent, so they are silently ignored: a `using` kind skips index creation, and
+		`where`/`include` fall back to a plain index over `fields`."""
 		from frappe.custom.doctype.property_setter.property_setter import make_property_setter
 
+		if using:
+			return
 		index_name = index_name or self.get_index_name(fields)
 		table_name = get_table_name(doctype)
 		if not self.has_index(table_name, index_name):
