@@ -176,12 +176,14 @@ def schema_file_exists(doctype: str) -> bool:
 	module = frappe.db.get_value("DocType", doctype, "module")
 	if not module:
 		return False
-	try:
-		module_path = frappe.get_module_path(module)
-	except Exception:
-		return False
 	scrubbed = frappe.scrub(doctype)
-	return os.path.exists(os.path.join(module_path, "doctype", scrubbed, f"{scrubbed}.json"))
+	try:
+		json_path = frappe.get_module_path(module, "doctype", scrubbed, f"{scrubbed}.json")
+	except Exception:
+		# A failed path lookup is the same fragile signal as the bug being fixed, so
+		# assume the schema is present rather than deleting a possibly-valid doctype.
+		return True
+	return os.path.exists(json_path)
 
 
 def remove_orphan_doctypes():
