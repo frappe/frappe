@@ -14,8 +14,11 @@
 
 		<Dialog v-if="preview && url" v-model:open="previewOpen" :title="label" size="4xl">
 			<template #default>
+				<div v-if="error" class="text-sm text-ink-red-3">
+					Couldn't load this file: {{ error }}
+				</div>
 				<div
-					v-if="preview === 'text'"
+					v-else-if="preview === 'text'"
 					class="prose prose-sm max-w-none whitespace-pre-wrap"
 				>
 					{{ textContent }}
@@ -65,11 +68,19 @@ function openPreview() {
 }
 
 const textContent = ref("");
+const error = ref<string | null>(null);
 
 // fetch text lazily on first open
 watch(previewOpen, async (isOpen) => {
 	if (isOpen && preview.value === "text" && props.url && !textContent.value) {
-		textContent.value = await fetch(props.url).then((res) => res.text());
+		error.value = null;
+		try {
+			const res = await fetch(props.url);
+			if (!res.ok) throw new Error(`${res.status} ${res.statusText}`);
+			textContent.value = await res.text();
+		} catch (e) {
+			error.value = e instanceof Error ? e.message : "Failed to load file";
+		}
 	}
 });
 </script>

@@ -412,7 +412,7 @@ function summarizeVersions(
   );
   if (visible.length === 0) return null;
 
-  // net changes list newest-first by each field's latest hop (first-seen order otherwise)
+  // net changes list oldest-first by each field's latest hop (first-seen order otherwise)
   visible.sort((a, b) => timeValue(a.timestamp) - timeValue(b.timestamp));
 
   // key off the first row so Vue reuses the item (keeps expanded state); timestamp from last
