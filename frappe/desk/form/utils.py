@@ -82,7 +82,7 @@ def get_next(
 	doctype: str,
 	value: str,
 	prev: str | int,
-	filters: dict | str | None = None,
+	filters: dict | str | list | None = None,
 	sort_order: str = "desc",
 	sort_field: str = "creation",
 ):

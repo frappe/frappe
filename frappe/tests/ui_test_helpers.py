@@ -675,3 +675,65 @@ def empty_my_workspaces():
 	my_workspaces = frappe.get_doc("Workspace Sidebar", "My Workspaces")
 	my_workspaces.items = []
 	my_workspaces.save()
+
+
+LIST_LAYOUT_TEST_PREFIX = "_cypress_layout_"
+
+
+@whitelist_for_tests()
+def clear_list_layout_test_layouts():
+	"""Remove saved layouts created by Cypress saved-layout tests."""
+	frappe.db.delete("List Filter", {"filter_name": ["like", f"{LIST_LAYOUT_TEST_PREFIX}%"]})
+
+
+@whitelist_for_tests()
+def reset_list_layout_test_user_settings(doctype: str = "ToDo"):
+	"""Clear saved layout preference so Cypress starts from Default Layout."""
+	import json
+
+	from frappe.model.utils.user_settings import get_user_settings, update_user_settings
+
+	settings = json.loads(get_user_settings(doctype, for_update=True) or "{}")
+	list_settings = settings.get("List") or {}
+	list_settings["active_layout_name"] = ""
+	settings["List"] = list_settings
+	update_user_settings(doctype, settings)
+
+
+@whitelist_for_tests()
+def create_list_layout_test_layout(
+	layout_name: str | None = None,
+	filter_name: str | None = None,
+	reference_doctype: str = "ToDo",
+	for_user: str | None = None,
+	filters: str | None = None,
+	columns: str | None = None,
+	sort_field: str = "modified",
+	sort_order: str = "desc",
+):
+	"""Insert a saved list filter for Cypress tests."""
+	import json
+
+	filter_name = filter_name or layout_name or f"{LIST_LAYOUT_TEST_PREFIX}open"
+
+	if frappe.db.exists("List Filter", {"filter_name": filter_name, "reference_doctype": reference_doctype}):
+		frappe.db.delete(
+			"List Filter",
+			{"filter_name": filter_name, "reference_doctype": reference_doctype},
+		)
+
+	doc = frappe.get_doc(
+		{
+			"doctype": "List Filter",
+			"filter_name": filter_name,
+			"reference_doctype": reference_doctype,
+			"for_user": for_user if for_user is not None else frappe.session.user,
+			"filters": filters if filters is not None else json.dumps([["ToDo", "status", "=", "Open"]]),
+			"columns": columns
+			if columns is not None
+			else json.dumps([{"fieldname": "status", "label": "Status"}]),
+			"sort_field": sort_field,
+			"sort_order": sort_order,
+		}
+	).insert(ignore_permissions=True)
+	return doc.name

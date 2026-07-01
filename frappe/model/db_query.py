@@ -331,6 +331,7 @@ from {tables}
 					self.fields.append(f"{t}.name as '{t[4:-1]}:name'")
 
 		# query dict
+		assert self.tables, "extract_tables must have populated at least the primary table"
 		args.tables = self.tables[0]
 
 		# left join parent, child tables
@@ -1169,6 +1170,11 @@ from {tables}
 		condition_methods = hooks.get(self.doctype, []) + hooks.get("*", [])
 		for method in condition_methods:
 			if c := frappe.call(frappe.get_attr(method), self.user, doctype=self.doctype):
+				# Hooks may return a raw SQL string or a pypika term. This path builds a
+				# string WHERE clause, so render any term to namespaced SQL using the
+				# active dialect's identifier quote char.
+				if not isinstance(c, str):
+					c = self._render_permission_criterion(c)
 				conditions.append(c)
 
 		active_child_tables = []
@@ -1187,6 +1193,23 @@ from {tables}
 				conditions.append(condition)
 
 		return " and ".join(conditions) if conditions else ""
+
+	def _render_permission_criterion(self, criterion) -> str:
+		"""Render a pypika permission criterion to a namespaced SQL string.
+
+		The legacy query path concatenates conditions into a single WHERE string, so any
+		embedded value must be inlined. We collect values via a parameter wrapper and inline
+		them with `frappe.db.escape` (the driver's escaping) rather than pypika's bare
+		quote-doubling, which is unsafe on MariaDB where backslash is an escape character.
+		"""
+		from frappe.query_builder.terms import NamedParameterWrapper
+
+		quote_char = "`" if frappe.db.db_type == "mariadb" else '"'
+		param_wrapper = NamedParameterWrapper()
+		sql = criterion.get_sql(with_namespace=True, quote_char=quote_char, param_wrapper=param_wrapper)
+		for key, value in param_wrapper.get_parameters().items():
+			sql = sql.replace(f"%({key})s", frappe.db.escape(value))
+		return sql
 
 	def set_order_by(self, args):
 		if self.order_by and self.order_by != "KEEP_DEFAULT_ORDERING":

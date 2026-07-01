@@ -247,7 +247,7 @@
 				position: relative;
 				z-index: 0;
 				padding-inline: var(--padding-sm);
-				border-radius: var(--border-radius);
+				border-radius: var(--radius);
 				overflow: visible;
 				background-color: transparent;
 				box-sizing: border-box;
@@ -288,7 +288,7 @@
 				z-index: 2;
 				padding-inline: 0 !important;
 				background-color: var(--modal-bg);
-				border-radius: var(--border-radius-md);
+				border-radius: var(--radius-md);
 				overflow: hidden;
 				box-sizing: border-box;
 				margin-bottom: var(--margin-xs);
@@ -298,7 +298,7 @@
 				}
 
 				header.level.list-row-head {
-					border-radius: var(--border-radius-md);
+					border-radius: var(--radius-md);
 					overflow: hidden;
 				}
 			}

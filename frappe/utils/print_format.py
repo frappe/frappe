@@ -1,5 +1,4 @@
 import http
-import json
 import os
 import uuid
 from io import BytesIO
@@ -61,7 +60,7 @@ def download_multi_pdf_async(
 	if isinstance(doctype, dict):
 		doc_count = sum([len(doctype[dt]) for dt in doctype])
 	else:
-		doc_count = len(json.loads(name))
+		doc_count = len(frappe.parse_json(name))
 
 	frappe.enqueue(
 		_download_multi_pdf,
@@ -124,11 +123,10 @@ def _download_multi_pdf(
 
 	pdf_writer = PdfWriter()
 
-	if isinstance(options, str):
-		options = json.loads(options)
+	options = frappe.parse_json(options)
 
 	if not isinstance(doctype, dict):
-		result = json.loads(name)
+		result = frappe.parse_json(name)
 		total_docs = len(result)
 		filename = f"{doctype}_"
 
@@ -290,7 +288,7 @@ def render_letterhead_for_print(letterhead: str | None = None, doc: dict | str |
 
 	if isinstance(doc, str):
 		try:
-			doc = json.loads(doc)
+			doc = frappe.parse_json(doc)
 		except Exception:
 			doc = {}
 

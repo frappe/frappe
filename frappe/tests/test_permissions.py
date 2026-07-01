@@ -125,6 +125,25 @@ class TestPermissions(IntegrationTestCase):
 		self.assertTrue("_Test Blog Post 1" in names)
 		self.assertFalse("_Test Blog Post" in names)
 
+	def test_user_permissions_in_report_with_multiple_link_fields(self):
+		from frappe.desk.query_report import get_user_match_filters
+
+		add_user_permission("Test Blog Category", "_Test Blog Category 1", "test2@example.com")
+		add_user_permission("Test Blogger", "_Test Blogger 1", "test2@example.com")
+
+		frappe.set_user("test2@example.com")
+		match_filters = get_user_match_filters(["Test Blog Post"], "test2@example.com")
+
+		filter_list = match_filters["Test Blog Post"]
+		self.assertEqual(len(filter_list), 1)
+		self.assertEqual(
+			filter_list[0],
+			{
+				"Test Blog Category": ["_Test Blog Category 1"],
+				"Test Blogger": ["_Test Blogger 1"],
+			},
+		)
+
 	def test_default_values(self):
 		doc = frappe.new_doc("Test Blog Post")
 		self.assertFalse(doc.get("blog_category"))

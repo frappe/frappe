@@ -264,6 +264,42 @@ frappe.search.utils = {
 		return out;
 	},
 
+	/**
+	 * Matches DocType Layouts (by title, falling back to name) so they are
+	 * navigable from the Awesome Bar. Selecting one opens the base doctype's
+	 * list filtered by the layout condition, with the layout context active.
+	 */
+	get_doctype_layouts: function (keywords) {
+		var me = this;
+		var out = [];
+		(frappe.boot.doctype_layouts || []).forEach(function (layout) {
+			if (!frappe.boot.user.can_read.includes(layout.document_type)) return;
+
+			const display = layout.title || layout.name;
+			const search_result = me.fuzzy_search(keywords, display, true);
+			if (!search_result.score) return;
+
+			// Only `_layout` (consumed by the list view for the breadcrumb +
+			// filter context) is set. Setting `layout` would make the router
+			// write `?layout=` into the URL, which shadows route_options in
+			// parse_filters_from_route_options and drops the condition filters.
+			const route_options = Object.assign(
+				frappe.utils.parse_layout_condition_to_filters(layout.condition),
+				{ _layout: layout.name }
+			);
+			out.push({
+				type: "Layout",
+				label: __("{0} List", [search_result.marked_string || display]),
+				value: __("{0} List", [display]),
+				description: __(layout.document_type),
+				index: search_result.score,
+				route: ["List", layout.document_type],
+				route_options: route_options,
+			});
+		});
+		return out;
+	},
+
 	get_reports: function (keywords) {
 		var me = this;
 		var out = [];
@@ -686,27 +722,6 @@ frappe.search.utils = {
 			action: _function,
 			args: args,
 		});
-	},
-	get_marketplace_apps: function (keywords) {
-		var me = this;
-		var out = [];
-		frappe.boot.marketplace_apps.forEach(function (item) {
-			const search_result = me.fuzzy_search(keywords, item.title, true);
-			if (search_result.score > 0) {
-				var ret = {
-					label: __("Install {0} from Marketplace", [search_result.marked_string]),
-					value: __("Install {0} from Marketplace", [__(item.title)]),
-					index: search_result.score * 0.8,
-					route: [
-						`https://frappecloud.com/${item.route}?utm_source=awesomebar`,
-						item.name,
-					],
-				};
-
-				out.push(ret);
-			}
-		});
-		return out;
 	},
 	searchable_functions: [],
 };

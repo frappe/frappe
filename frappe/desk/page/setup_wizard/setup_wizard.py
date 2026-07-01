@@ -96,6 +96,7 @@ def process_setup_stages(stages, user_input, is_background_task=False):
 	from frappe.utils.telemetry import capture
 
 	setup_wizard_completed_apps = get_setup_wizard_completed_apps()
+	telemetry_enabled = bool(cint(user_input.get("enable_telemetry")))
 
 	capture("initated_server_side", "setup")
 	try:
@@ -125,6 +126,14 @@ def process_setup_stages(stages, user_input, is_background_task=False):
 	except Exception:
 		handle_setup_exception(user_input)
 		message = current_task.get("fail_msg") if current_task else "Failed to complete setup"
+		capture(
+			"setup_failed",
+			"setup",
+			properties={
+				"telemetry_enabled": telemetry_enabled,
+				"stage": message,
+			},
+		)
 		frappe.log_error(title=f"Setup failed: {message}")
 		if not is_background_task:
 			frappe.response["setup_wizard_failure_message"] = message
@@ -136,7 +145,13 @@ def process_setup_stages(stages, user_input, is_background_task=False):
 		)
 	else:
 		run_setup_success(user_input)
-		capture("completed_server_side", "setup")
+		capture(
+			"completed_server_side",
+			"setup",
+			properties={
+				"telemetry_enabled": telemetry_enabled,
+			},
+		)
 		if not is_background_task:
 			return {"status": "ok"}
 		frappe.publish_realtime("setup_task", {"status": "ok"}, user=frappe.session.user)
@@ -169,7 +184,7 @@ def update_global_settings(args):  # nosemgrep
 
 	update_system_settings(args)
 	create_or_update_user(args)
-	set_timezone(args)
+	frappe.enqueue(set_timezone, timezone=args.get("timezone"))
 
 
 def run_post_setup_complete(args):  # nosemgrep
@@ -325,10 +340,10 @@ def create_or_update_user(args):  # nosemgrep
 		update_password(email, args.get("password"))
 
 
-def set_timezone(args):  # nosemgrep
-	if args.get("timezone"):
-		for name in frappe.STANDARD_USERS:
-			frappe.db.set_value("User", name, "time_zone", args.get("timezone"))
+def set_timezone(timezone=None):
+	if not timezone:
+		return
+	frappe.db.set_value("User", {"name": ("in", frappe.STANDARD_USERS)}, "time_zone", timezone)
 
 
 def parse_args(args):  # nosemgrep

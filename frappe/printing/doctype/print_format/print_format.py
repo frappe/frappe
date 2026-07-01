@@ -58,7 +58,11 @@ class PrintFormat(Document):
 		templates = frappe.get_all(
 			"Print Format Field Template",
 			fields=["template", "field", "name"],
-			filters={"document_type": self.doc_type},
+			or_filters=[
+				["document_type", "=", self.doc_type],
+				["document_type", "is", "not set"],
+			],
+			order_by="document_type desc",
 		)
 		self.set_onload("print_templates", templates)
 

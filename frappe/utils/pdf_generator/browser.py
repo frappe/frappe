@@ -66,7 +66,7 @@ class Browser:
 			generator.detach_debug_browser()
 
 	def open(self, generator):
-		from frappe.utils.pdf_generator.cdp_connection import CDPSocketClient
+		from frappe.utils.chromium import CDPSocketClient
 
 		# checking because if we share browser accross request _devtools_url will already be set for subsequent requests.
 		if not generator._devtools_url:
@@ -100,7 +100,7 @@ class Browser:
 		NOTE: In theory this will make it faster but more importantly use less cpu, ram etc.
 		"""
 
-		from frappe.utils.pdf_generator.page import Page
+		from frappe.utils.chromium import Page
 
 		page = Page(self.session, self.browser_context_id, page_type)
 		page.is_print_designer = self.is_print_designer

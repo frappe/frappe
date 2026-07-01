@@ -157,7 +157,11 @@ def get_result(
 		filters.append([doc.document_type, "creation", "<", to_date])
 
 	res = frappe.get_list(
-		doc.document_type, fields=fields, filters=filters, parent_doctype=doc.parent_document_type
+		doc.document_type,
+		fields=fields,
+		filters=filters,
+		parent_doctype=doc.parent_document_type,
+		order_by=None,
 	)
 	number = res[0]["result"] if res else 0
 

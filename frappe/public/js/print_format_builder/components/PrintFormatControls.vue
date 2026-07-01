@@ -181,9 +181,6 @@
 									{{ element.field_label || __("Custom block") }}
 								</div>
 							</div>
-							<svg class="icon icon-xs text-muted pfb-plus-icon">
-								<use href="#icon-plus"></use>
-							</svg>
 						</div>
 					</template>
 				</draggable>
@@ -269,6 +266,7 @@ let search_text = ref("");
 let google_fonts = ref([]);
 let activeTab = ref("fields");
 let search_input = ref(null);
+let raw_templates = ref([]);
 
 function focus_search() {
 	activeTab.value = "fields";
@@ -349,11 +347,36 @@ function clone_field(df) {
 }
 
 function add_to_layout(df) {
-	const sections = layout.value?.sections;
+	const lv = layout.value;
+	const sections = lv?.sections;
 	if (!sections || !sections.length) return;
-	const last_section = sections.filter((s) => !s.remove).slice(-1)[0];
-	if (!last_section) return;
-	const last_column = last_section.columns.slice(-1)[0];
+
+	// If a field is selected, insert right after it in the same column.
+	// Search body sections and header/footer zones so a selected header field
+	// is used as the anchor when inserting from the panel.
+	const selected_field = store.selected_field.value;
+	if (selected_field && !selected_field.remove) {
+		const all_zones = [lv?.header, lv?.footer, ...sections].filter(Boolean);
+		for (const section of all_zones) {
+			for (const column of section.columns) {
+				const idx = column.fields.indexOf(selected_field);
+				if (idx !== -1) {
+					column.fields.splice(idx + 1, 0, clone_field(df));
+					return;
+				}
+			}
+		}
+	}
+
+	// Otherwise add to the last column of the selected (or last body) section.
+	// Header/footer zone sections are valid targets when they are selected.
+	const selected = store.selected_section.value;
+	const is_valid_target =
+		selected &&
+		(sections.includes(selected) || selected === lv?.header || selected === lv?.footer);
+	const target_section = is_valid_target ? selected : sections.slice(-1)[0];
+	if (!target_section) return;
+	const last_column = target_section.columns.slice(-1)[0];
 	if (!last_column) return;
 	last_column.fields.push(clone_field(df));
 }
@@ -415,7 +438,12 @@ let field_groups = computed(() => {
 			continue;
 		}
 		if (df.fieldtype === "Column Break") continue;
-		if (frappe.model.no_value_type.includes(df.fieldtype)) continue;
+		if (
+			frappe.model.no_value_type.includes(df.fieldtype) &&
+			df.fieldtype !== "Table" &&
+			df.fieldtype !== "Table MultiSelect"
+		)
+			continue;
 
 		if (q) {
 			const match =
@@ -430,9 +458,36 @@ let field_groups = computed(() => {
 	return groups.filter((g) => g.fields.length);
 });
 
-// ── computed: templates tab ────────────────────────────────
+// ── templates tab ─────────────────────────────────────────
+function fetch_templates() {
+	const doctype = meta.value?.name;
+	if (!doctype) return;
+	Promise.all([
+		frappe.db.get_list("Print Format Field Template", {
+			fields: ["name", "template", "field"],
+			filters: { document_type: doctype },
+			limit: 100,
+		}),
+		frappe.db.get_list("Print Format Field Template", {
+			fields: ["name", "template", "field"],
+			filters: { document_type: ["is", "not set"] },
+			limit: 100,
+		}),
+	])
+		.then(([specific, generic]) => {
+			raw_templates.value = [...(specific || []), ...(generic || [])];
+		})
+		.catch(() => {
+			raw_templates.value = [];
+		});
+}
+
+watch(activeTab, (tab) => {
+	if (tab === "templates") fetch_templates();
+});
+
 let print_templates_list = computed(() => {
-	const templates = print_format.value.__onload?.print_templates || [];
+	const templates = raw_templates.value;
 	return templates.map((template) => {
 		let df;
 		let field_label = null;
@@ -544,7 +599,7 @@ watch(print_format, () => (store.dirty.value = true), { deep: true });
 	padding: 6px 2px 8px;
 	border: none;
 	background: transparent;
-	border-radius: var(--border-radius) var(--border-radius) 0 0;
+	border-radius: var(--radius) var(--radius) 0 0;
 	color: var(--text-muted);
 	cursor: pointer;
 	transition: color 0.12s, background 0.12s;
@@ -715,20 +770,10 @@ watch(print_format, () => (store.dirty.value = true), { deep: true });
 	color: var(--gray-500);
 	background: var(--gray-100);
 	border: 1px solid var(--gray-200);
-	border-radius: var(--border-radius-sm);
+	border-radius: var(--radius);
 	padding: 2px 6px;
 	white-space: nowrap;
 	flex-shrink: 0;
-}
-
-.pfb-plus-icon {
-	opacity: 0;
-	flex-shrink: 0;
-	transition: opacity 0.1s;
-}
-
-.pfb-template-card:hover .pfb-plus-icon {
-	opacity: 1;
 }
 
 /* ── Block card (Blocks tab) ─────────────────────────────── */
@@ -737,7 +782,7 @@ watch(print_format, () => (store.dirty.value = true), { deep: true });
 	align-items: center;
 	gap: 10px;
 	padding: 8px 10px;
-	border-radius: var(--border-radius);
+	border-radius: var(--radius);
 	border: 1px solid var(--border-color);
 	background: var(--gray-50);
 	cursor: grab;
@@ -749,17 +794,13 @@ watch(print_format, () => (store.dirty.value = true), { deep: true });
 	border-color: var(--gray-500);
 }
 
-.pfb-block-card--click {
-	cursor: pointer;
-}
-
 .pfb-block-icon {
 	display: flex;
 	align-items: center;
 	justify-content: center;
 	width: 28px;
 	height: 28px;
-	border-radius: var(--border-radius);
+	border-radius: var(--radius);
 	background: var(--gray-200);
 	flex-shrink: 0;
 }
@@ -784,7 +825,7 @@ watch(print_format, () => (store.dirty.value = true), { deep: true });
 	align-items: center;
 	gap: 10px;
 	padding: 8px 10px;
-	border-radius: var(--border-radius);
+	border-radius: var(--radius);
 	border: 1px solid var(--border-color);
 	background: var(--gray-50);
 	cursor: grab;
@@ -802,7 +843,7 @@ watch(print_format, () => (store.dirty.value = true), { deep: true });
 	justify-content: center;
 	width: 32px;
 	height: 32px;
-	border-radius: var(--border-radius);
+	border-radius: var(--radius);
 	background: var(--gray-200);
 	flex-shrink: 0;
 }
@@ -851,7 +892,7 @@ watch(print_format, () => (store.dirty.value = true), { deep: true });
 	align-items: center;
 	gap: 8px;
 	padding: 6px 8px;
-	border-radius: var(--border-radius);
+	border-radius: var(--radius);
 	cursor: pointer;
 	margin-top: 2px;
 	font-size: var(--text-sm);

@@ -150,7 +150,7 @@ defineExpose({ aspect_ratio, range_input_field });
 .letterhead {
 	position: relative;
 	border: 1px solid transparent;
-	border-radius: var(--border-radius);
+	border-radius: var(--radius);
 	padding: 1rem;
 	margin-bottom: 1rem;
 	cursor: pointer;
@@ -172,5 +172,10 @@ defineExpose({ aspect_ratio, range_input_field });
 	color: var(--text-muted);
 	font-size: var(--text-sm);
 	padding: 0.5rem 0;
+}
+
+.letterhead :deep(img) {
+	max-width: 100%;
+	height: auto;
 }
 </style>

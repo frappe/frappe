@@ -140,7 +140,7 @@
 <script setup>
 import { computed, inject, onMounted, ref } from "vue";
 import { useStore } from "../../stores";
-import { get_image_dimensions } from "../../utils";
+import { get_image_dimensions, render_jinja_html } from "../../utils";
 
 const props = defineProps({
 	zone: { type: String, required: true },
@@ -160,7 +160,7 @@ const height_field = computed(() =>
 	props.zone === "header" ? "image_height" : "footer_image_height"
 );
 
-const zone_source = computed(() => letterhead.value?.[source_field.value] ?? "Image");
+const zone_source = computed(() => letterhead.value?.[source_field.value] || "Image");
 const zone_align = computed(() => letterhead.value?.[align_field.value] ?? "Left");
 
 const open = ref({ html: true, image: true });
@@ -240,7 +240,7 @@ function upload_image() {
 	});
 }
 
-function open_html_split_dialog({ title, initial_html, on_save }) {
+function open_html_split_dialog({ title, initial_html, on_save, doctype, docname }) {
 	let d = new frappe.ui.Dialog({
 		title,
 		size: "extra-large",
@@ -248,15 +248,24 @@ function open_html_split_dialog({ title, initial_html, on_save }) {
 			{
 				fieldname: "split_layout",
 				fieldtype: "HTML",
-				options: `<div class="pfb-html-split">
-					<div class="pfb-html-split-pane pfb-html-split-editor">
-						<div class="pfb-html-split-label">${__("HTML")}</div>
-						<div class="pfb-html-ctrl-host"></div>
+				options: `<style>
+					.pfb-lh-split{display:flex;height:480px;gap:0;overflow:hidden;margin:-15px}
+					.pfb-lh-split-pane{display:flex;flex-direction:column;flex:1;min-width:0;overflow:hidden}
+					.pfb-lh-split-divider{width:1px;background:var(--border-color);flex-shrink:0}
+					.pfb-lh-split-label{font-size:11px;font-weight:700;text-transform:uppercase;letter-spacing:.08em;color:var(--text-muted);padding:10px 12px 8px;border-bottom:1px solid var(--border-color);flex-shrink:0}
+					.pfb-lh-split-ctrl{flex:1;overflow:hidden}
+					.pfb-lh-split-ctrl .pfb-html-ctrl-host{height:100%}
+					.pfb-lh-preview-iframe{flex:1;width:100%;border:none;background:#fff}
+				</style>
+				<div class="pfb-lh-split">
+					<div class="pfb-lh-split-pane">
+						<div class="pfb-lh-split-label">${__("HTML")}</div>
+						<div class="pfb-lh-split-ctrl"><div class="pfb-html-ctrl-host"></div></div>
 					</div>
-					<div class="pfb-html-split-divider"></div>
-					<div class="pfb-html-split-pane pfb-html-split-preview">
-						<div class="pfb-html-split-label">${__("Preview")}</div>
-						<div class="pfb-html-preview-content"></div>
+					<div class="pfb-lh-split-divider"></div>
+					<div class="pfb-lh-split-pane">
+						<div class="pfb-lh-split-label">${__("Preview")}</div>
+						<iframe class="pfb-html-preview-content pfb-lh-preview-iframe" frameborder="0"></iframe>
 					</div>
 				</div>`,
 			},
@@ -269,6 +278,29 @@ function open_html_split_dialog({ title, initial_html, on_save }) {
 		},
 	});
 	d.show();
+
+	const PREVIEW_CSS = `
+		* { box-sizing: border-box; }
+		body { margin: 0; padding: 12px; font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif; font-size: 13px; color: #333; line-height: 1.5; }
+		img { max-width: 100%; height: auto; display: block; }
+		table { border-collapse: collapse; width: 100%; }
+		td, th { vertical-align: top; }
+	`;
+
+	function write_to_iframe(iframe, html) {
+		const doc = iframe.contentDocument || iframe.contentWindow?.document;
+		if (!doc) return;
+		doc.open();
+		doc.write(
+			`<!DOCTYPE html><html><head><meta charset="utf-8"><style>${PREVIEW_CSS}</style></head><body>${html}</body></html>`
+		);
+		doc.close();
+	}
+
+	async function update_preview(iframe, html) {
+		if (!iframe) return;
+		write_to_iframe(iframe, await render_jinja_html(html || "", doctype, docname));
+	}
 
 	setTimeout(() => {
 		const host = d.$wrapper.find(".pfb-html-ctrl-host")[0];
@@ -288,15 +320,15 @@ function open_html_split_dialog({ title, initial_html, on_save }) {
 		ctrl.set_value(initial_html || "");
 		d._html_ctrl = ctrl;
 
-		if (preview) preview.innerHTML = initial_html || "";
+		update_preview(preview, initial_html || "");
 
 		setTimeout(() => {
 			if (ctrl.editor) {
 				ctrl.editor.on(
 					"change",
 					frappe.utils.debounce(() => {
-						if (preview) preview.innerHTML = ctrl.editor.getValue();
-					}, 150)
+						update_preview(preview, ctrl.editor.getValue());
+					}, 400)
 				);
 				ctrl.editor.refresh();
 			}
@@ -309,6 +341,8 @@ function edit_html() {
 		title:
 			props.zone === "header" ? __("Edit Letter Head HTML") : __("Edit Letter Head Footer"),
 		initial_html: letterhead.value?.[html_content_field.value] || "",
+		doctype: store.meta.value?.name,
+		docname: store.preview_doc_name.value,
 		on_save: (html) => {
 			letterhead.value[html_content_field.value] = html;
 			letterhead.value._dirty = true;
@@ -424,7 +458,7 @@ function lh_create_letterhead() {
 	display: inline-flex;
 	background: var(--gray-100);
 	border: 1px solid var(--border-color);
-	border-radius: var(--border-radius);
+	border-radius: var(--radius);
 	overflow: hidden;
 	width: 100%;
 }
@@ -502,7 +536,7 @@ function lh_create_letterhead() {
 	color: var(--text-muted);
 	padding: 6px 8px;
 	border: 1px solid var(--border-color);
-	border-radius: var(--border-radius);
+	border-radius: var(--radius);
 	background: var(--gray-50);
 	max-height: 100px;
 	overflow: hidden;

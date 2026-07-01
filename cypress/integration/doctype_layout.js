@@ -69,7 +69,7 @@ context("DocType Layout", () => {
 
 		// frm.dirty() + frm.refresh_field() cause an async re-render; wait for the
 		// "Not Saved" pill to appear before querying the tab.
-		cy.get(".title-area .indicator-pill").should("contain.text", "Not Saved");
+		cy.get('[data-testid="page-status"]').should("contain.text", "Not Saved");
 
 		// Wait for the form builder bundle to load and initialize before clicking the tab.
 		// cy.window().its("frappe").its("layout_builder").should("exist");
@@ -110,13 +110,14 @@ context("DocType Layout", () => {
 		cy.get("body").should("have.attr", "data-ajax-state", "complete");
 
 		// Condition unmet — no layout
-		cy.get(".layout-indicator").should("not.exist");
+		cy.location("search").should("not.include", "layout=");
 
 		cy.fill_field("data1", "auto-switch", "Data");
 		cy.get("[data-fieldname='is_special'] label").click({ force: true });
 		cy.click_doc_primary_button("Save");
 
-		cy.get(".layout-indicator").should("contain.text", "Special");
+		// The active layout is surfaced through the breadcrumbs.
+		cy.get(".navbar-breadcrumbs").should("contain.text", "Special");
 		cy.location("search").should("include", "layout=Special");
 		cy.get("[data-fieldname='description'] .clearfix label").should(
 			"contain.text",

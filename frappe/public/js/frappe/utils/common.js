@@ -187,17 +187,6 @@ frappe.get_abbr = function (txt, max_length) {
 	return abbr || "?";
 };
 
-frappe.gravatars = {};
-frappe.get_gravatar = function (email_id, size = 0) {
-	var param = size ? "s=" + size : "d=retro";
-	if (!frappe.gravatars[email_id]) {
-		// TODO: check if gravatar exists
-		frappe.gravatars[email_id] =
-			"https://secure.gravatar.com/avatar/" + md5(email_id) + "?" + param;
-	}
-	return frappe.gravatars[email_id];
-};
-
 // string commons
 
 window.repl = function repl(s, dict) {

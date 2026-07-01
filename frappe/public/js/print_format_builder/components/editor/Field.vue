@@ -5,6 +5,7 @@
 			'field--table': df.fieldtype == 'Table',
 			'field--selected': is_selected,
 			'field--preview': !!preview_doc,
+			'field--condition-hidden': preview_doc && !is_field_visible,
 		}"
 		v-show="!df.remove"
 		:title="df.label || df.fieldname"
@@ -21,6 +22,37 @@
 				></div>
 				<div v-else-if="df.fieldtype == 'Spacer'" class="field-preview-spacer"></div>
 				<div v-else-if="df.fieldtype == 'Divider'" class="field-preview-divider"></div>
+				<div
+					v-else-if="df.fieldtype == 'Field Template'"
+					class="custom-html"
+					v-html="rendered_template || ''"
+				></div>
+				<!-- Table MultiSelect field: render as a comma-separated value list -->
+				<div
+					v-else-if="df.fieldtype == 'Table MultiSelect'"
+					:style="
+						field_orientation !== 'left-right' ? { textAlign: df.align || 'left' } : {}
+					"
+					:class="[
+						'field-preview-lr',
+						field_orientation === 'left-right' && df.label_justify
+							? `field-preview-lr--${df.label_justify}`
+							: '',
+						field_orientation === 'left-right' && df.align && df.align !== 'left'
+							? `field-preview-lr--align-${df.align}`
+							: '',
+					]"
+				>
+					<div v-if="df.label && df.show_label !== 'hide'" class="field-preview-label">
+						{{ df.label }}
+					</div>
+					<div
+						class="field-preview-value"
+						:class="{ 'text-muted': !(preview_doc[df.fieldname] || []).length }"
+					>
+						{{ multiselect_display(df) }}
+					</div>
+				</div>
 				<!-- Table field -->
 				<div v-else-if="df.fieldtype == 'Table'" class="field-preview-table">
 					<div v-if="df.label" class="field-preview-label">{{ df.label }}</div>
@@ -31,13 +63,24 @@
 							'preview-table--borderless': df.table_bordered === false,
 							'preview-table--plain-header': df.table_header === 'plain',
 						}"
+						:style="
+							df.table_radius != null
+								? { borderRadius: df.table_radius + 'px', overflow: 'hidden' }
+								: {}
+						"
 					>
-						<thead>
+						<thead v-if="df.table_header !== 'none'">
 							<tr>
 								<th
 									v-for="col in df.table_columns"
 									:key="col.fieldname"
 									:class="numeric_align_class(col)"
+									:style="{
+										...(col.width ? { width: col.width + '%' } : {}),
+										...(df.table_cell_padding != null
+											? { padding: df.table_cell_padding + 'px' }
+											: {}),
+									}"
 								>
 									{{ col.label || col.fieldname }}
 								</th>
@@ -53,6 +96,11 @@
 									v-for="col in df.table_columns"
 									:key="col.fieldname"
 									:class="numeric_align_class(col)"
+									:style="
+										df.table_cell_padding != null
+											? { padding: df.table_cell_padding + 'px' }
+											: {}
+									"
 								>
 									<img
 										v-if="
@@ -63,6 +111,11 @@
 										class="preview-table-img"
 										:alt="col.label || col.fieldname"
 									/>
+									<div
+										v-else-if="is_html_content_field(col)"
+										class="preview-table-html"
+										v-html="format_cell(row, col)"
+									></div>
 									<span v-else>{{ format_cell(row, col) }}</span>
 								</td>
 							</tr>
@@ -81,8 +134,18 @@
 				<!-- Regular field -->
 				<div
 					v-else
-					:style="{ textAlign: df.align || 'left' }"
-					:class="{ 'field-preview-lr': field_orientation === 'left-right' }"
+					:style="
+						field_orientation !== 'left-right' ? { textAlign: df.align || 'left' } : {}
+					"
+					:class="[
+						'field-preview-lr',
+						field_orientation === 'left-right' && df.label_justify
+							? `field-preview-lr--${df.label_justify}`
+							: '',
+						field_orientation === 'left-right' && df.align && df.align !== 'left'
+							? `field-preview-lr--align-${df.align}`
+							: '',
+					]"
 				>
 					<div v-if="df.label && df.show_label !== 'hide'" class="field-preview-label">
 						{{ df.label }}
@@ -193,6 +256,7 @@
 
 <script setup>
 import ConfigureColumnsVue from "../inspector/ConfigureColumns.vue";
+import { render_jinja_html, sanitize_html, evaluate_visible_if } from "../../utils";
 import { createApp, ref, nextTick, watch, computed, inject } from "vue";
 
 const props = defineProps(["df", "field_orientation"]);
@@ -201,10 +265,11 @@ let store = inject("$store");
 let editing = ref(false);
 let label_input = ref(null);
 let rendered_html = ref(null);
-let render_pending = ref(false);
+let rendered_template = ref(null);
 
 let is_selected = computed(() => store.selected_field.value === props.df);
 let preview_doc = computed(() => store.preview_doc.value);
+let is_field_visible = computed(() => evaluate_visible_if(props.df.visible_if, preview_doc.value));
 
 // Render Jinja2 HTML fields server-side when in preview mode
 watch(
@@ -215,26 +280,37 @@ watch(
 			rendered_html.value = null;
 			return;
 		}
-		if (!html.includes("{{") && !html.includes("{%")) {
-			rendered_html.value = html;
+		rendered_html.value = await render_jinja_html(
+			html,
+			store.meta.value?.name,
+			store.preview_doc_name.value
+		);
+	},
+	{ immediate: true }
+);
+
+// Render Field Template fields server-side when in preview mode
+watch(
+	[preview_doc, () => props.df.field_template],
+	async ([doc]) => {
+		if (!doc || props.df.fieldtype !== "Field Template" || !props.df.field_template) {
+			rendered_template.value = null;
 			return;
 		}
-		if (render_pending.value) return;
-		render_pending.value = true;
 		try {
-			const r = await frappe.call(
-				"frappe.utils.print_format_generator.render_jinja_template",
-				{
-					template: html,
-					doctype: store.meta.value.name,
-					docname: store.preview_doc_name.value,
-				}
+			const tmpl = await frappe.db.get_value(
+				"Print Format Field Template",
+				props.df.field_template,
+				"template"
 			);
-			rendered_html.value = r.message ?? html;
+			const html = tmpl?.message?.template || "";
+			rendered_template.value = await render_jinja_html(
+				html,
+				store.meta.value?.name,
+				store.preview_doc_name.value
+			);
 		} catch {
-			rendered_html.value = html;
-		} finally {
-			render_pending.value = false;
+			rendered_template.value = null;
 		}
 	},
 	{ immediate: true }
@@ -271,14 +347,36 @@ function is_image_field(col, value) {
 }
 
 const NUMERIC_FIELDTYPES = new Set(["Currency", "Float", "Int", "Percent"]);
+const HTML_CONTENT_FIELDTYPES = new Set(["Text Editor", "Long Text"]);
+
 function numeric_align_class(col) {
 	return NUMERIC_FIELDTYPES.has(col?.fieldtype) ? "col-numeric" : "";
+}
+
+function multiselect_display(df) {
+	const rows = preview_doc.value?.[df.fieldname] || [];
+	if (!rows.length) return "—";
+	const child_meta = frappe.get_meta(df.options);
+	const link_field = child_meta?.fields.find((f) => f.fieldtype === "Link");
+	if (!link_field) return "—";
+	return (
+		rows
+			.map((r) => r[link_field.fieldname])
+			.filter(Boolean)
+			.join(", ") || "—"
+	);
+}
+
+function is_html_content_field(col) {
+	return HTML_CONTENT_FIELDTYPES.has(col?.fieldtype);
 }
 
 function format_cell(row, col) {
 	const raw = row[col.fieldname];
 	if (raw === null || raw === undefined || raw === "") return "";
 	if (col.fieldtype === "Check") return raw ? __("Yes") : __("No");
+	// HTML content fields: sanitize then return for v-html rendering
+	if (HTML_CONTENT_FIELDTYPES.has(col.fieldtype)) return sanitize_html(raw);
 	try {
 		const formatted = frappe.format(raw, col, { only_value: true }, row);
 		if (typeof formatted === "string" && formatted.includes("<")) {
@@ -312,6 +410,7 @@ let short_fieldtype = computed(() => {
 		Check: "Check",
 		Select: "Select",
 		Table: "Table",
+		"Table MultiSelect": "Multi",
 		"Long Text": "Text",
 		Text: "Text",
 		Link: "Link",
@@ -425,7 +524,7 @@ watch(
 	width: 100%;
 	min-width: 0;
 	background-color: var(--bg-light-gray);
-	border-radius: var(--border-radius);
+	border-radius: var(--radius);
 	border: 1px dashed var(--gray-400);
 	padding: 0.4rem 0.5rem;
 	font-size: var(--text-sm);
@@ -492,7 +591,7 @@ watch(
 	color: var(--text-muted);
 	background: var(--control-bg);
 	border: 1px solid var(--gray-300);
-	border-radius: var(--border-radius-sm);
+	border-radius: var(--radius);
 	padding: 1px 4px;
 	white-space: nowrap;
 }
@@ -547,7 +646,7 @@ watch(
 	display: inline-block;
 	background: var(--fg-color);
 	border: 1px solid var(--gray-300);
-	border-radius: var(--border-radius-sm);
+	border-radius: var(--radius);
 	padding: 1px 6px;
 	font-size: var(--text-xs);
 	color: var(--text-color);
@@ -574,7 +673,7 @@ watch(
 	color: var(--text-muted);
 	background: var(--gray-50);
 	border: 1px solid var(--gray-200);
-	border-radius: var(--border-radius);
+	border-radius: var(--radius);
 	padding: 3px 8px;
 	cursor: pointer;
 	outline: none;
@@ -611,6 +710,12 @@ watch(
 	position: relative;
 }
 
+.field--condition-hidden {
+	opacity: 0.35;
+	border: 1px dashed var(--gray-400) !important;
+	border-radius: var(--radius);
+}
+
 .field--preview:hover {
 	border-color: var(--gray-200);
 	background: var(--gray-50);
@@ -630,7 +735,7 @@ watch(
 .field-preview-label {
 	font-size: var(--text-tiny);
 	font-weight: var(--weight-semibold);
-	color: var(--gray-500);
+	color: #6b7280;
 	margin-bottom: 1px;
 }
 
@@ -650,6 +755,38 @@ watch(
 .field-preview-lr .field-preview-value {
 	flex: 1;
 	min-width: 0;
+}
+
+.field-preview-lr--space-between {
+	justify-content: space-between;
+}
+.field-preview-lr--space-evenly {
+	justify-content: space-evenly;
+}
+.field-preview-lr--align-center {
+	justify-content: center;
+}
+.field-preview-lr--align-right {
+	justify-content: flex-end;
+}
+
+/* Spacing: value shrinks to natural width so justify-content has room to push it */
+.field-preview-lr--space-between .field-preview-value,
+.field-preview-lr--space-evenly .field-preview-value {
+	flex: none;
+}
+
+.field-preview-lr--space-between .field-preview-value {
+	text-align: right;
+}
+
+/* Align: both label and value shrink to natural width so the pair can be repositioned */
+.field-preview-lr--align-center .field-preview-label,
+.field-preview-lr--align-center .field-preview-value,
+.field-preview-lr--align-right .field-preview-label,
+.field-preview-lr--align-right .field-preview-value {
+	flex: none;
+	width: auto;
 }
 
 .field-preview-value {
@@ -678,7 +815,7 @@ watch(
 	gap: 2px;
 	background: var(--fg-color);
 	border: 1px solid var(--border-color);
-	border-radius: var(--border-radius-sm);
+	border-radius: var(--radius);
 	padding: 1px 2px;
 	align-items: center;
 	box-shadow: var(--shadow-xs);
@@ -723,6 +860,7 @@ watch(
 	width: 100%;
 	border-collapse: collapse;
 	font-size: var(--text-sm);
+	table-layout: fixed;
 }
 
 /* ── Default: bordered + styled header (matches PDF) ─── */
@@ -801,11 +939,16 @@ watch(
 	display: block;
 }
 
+.preview-table-html {
+	word-break: break-word;
+	white-space: normal;
+}
+
 .preview-field-img {
 	max-width: 100%;
 	max-height: 80px;
 	object-fit: contain;
-	border-radius: var(--border-radius-sm);
+	border-radius: var(--radius);
 	display: block;
 }
 </style>

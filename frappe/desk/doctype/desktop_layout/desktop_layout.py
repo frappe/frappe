@@ -27,10 +27,10 @@ class DesktopLayout(Document):
 
 
 @frappe.whitelist()
-def save_layout(user: str, layout: str, new_icons: str | None = None):
+def save_layout(user: str, layout: str | dict | list, new_icons: str | list | None = None):
 	if not user:
 		user = frappe.session.user
-	layout = json.loads(layout)
+	layout = frappe.parse_json(layout)
 	desktop_layout = None
 	try:
 		desktop_layout = frappe.get_doc("Desktop Layout", frappe.session.user)
@@ -43,7 +43,7 @@ def save_layout(user: str, layout: str, new_icons: str | None = None):
 		desktop_layout.layout = json.dumps(layout)
 		desktop_layout.save()
 	if new_icons:
-		new_icons = json.loads(new_icons)
+		new_icons = frappe.parse_json(new_icons)
 		for icon in new_icons:
 			workspace = icon.get("workspace")
 			if workspace:

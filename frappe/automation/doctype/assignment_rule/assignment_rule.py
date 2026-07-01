@@ -90,7 +90,7 @@ class AssignmentRule(Document):
 				assign_to=[user],
 				doctype=doc.get("doctype"),
 				name=doc.get("name"),
-				description=frappe.render_template(self.description, doc),
+				description=frappe.render_template(self.description, doc, restrict_globals=True),
 				assignment_rule=self.name,
 				notify=True,
 				date=doc.get(self.due_date_based_on) if self.due_date_based_on else None,

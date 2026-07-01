@@ -128,12 +128,29 @@
 								</button>
 							</div>
 						</div>
+						<!-- Cell padding -->
+						<div class="pfb-insp-row">
+							<span class="pfb-insp-label">{{ __("Cell padding") }}</span>
+							<div class="pfb-stepper">
+								<button @click="adjust_cell_padding(-1)">−</button>
+								<input
+									class="pfb-stepper-input"
+									type="number"
+									min="0"
+									:value="table_cell_padding ?? ''"
+									:placeholder="__('auto')"
+									@change="(e) => set_cell_padding(e.target.value)"
+								/>
+								<span class="pfb-stepper-unit">px</span>
+								<button @click="adjust_cell_padding(1)">+</button>
+							</div>
+						</div>
 						<!-- Header -->
 						<div class="pfb-insp-row">
 							<span class="pfb-insp-label">{{ __("Header") }}</span>
 							<div class="pfb-seg">
 								<button
-									:class="{ active: table_header !== 'plain' }"
+									:class="{ active: table_header === 'styled' }"
 									@click="selected_field.table_header = 'styled'"
 								>
 									{{ __("Styled") }}
@@ -144,6 +161,29 @@
 								>
 									{{ __("Plain") }}
 								</button>
+								<button
+									:class="{ active: table_header === 'none' }"
+									@click="selected_field.table_header = 'none'"
+								>
+									{{ __("None") }}
+								</button>
+							</div>
+						</div>
+						<!-- Corner radius -->
+						<div class="pfb-insp-row">
+							<span class="pfb-insp-label">{{ __("Radius") }}</span>
+							<div class="pfb-stepper">
+								<button @click="adjust_table_radius(-1)">−</button>
+								<input
+									class="pfb-stepper-input"
+									type="number"
+									min="0"
+									:value="table_radius ?? ''"
+									:placeholder="__('none')"
+									@change="(e) => set_table_radius(e.target.value)"
+								/>
+								<span class="pfb-stepper-unit">px</span>
+								<button @click="adjust_table_radius(1)">+</button>
 							</div>
 						</div>
 					</div>
@@ -179,9 +219,13 @@
 										class="pfb-col-drag"
 										v-html="frappe.utils.icon('drag', 'xs')"
 									></span>
-									<span class="pfb-col-label" :title="col.fieldname">{{
-										col.label || col.fieldname
-									}}</span>
+									<input
+										class="pfb-col-label-input"
+										type="text"
+										v-model="col.label"
+										:placeholder="col.fieldname"
+										:title="col.fieldname"
+									/>
 									<input
 										class="pfb-col-width-input"
 										type="number"
@@ -216,6 +260,24 @@
 						>
 							{{ __("All available columns added.") }}
 						</div>
+					</div>
+				</div>
+
+				<!-- VISIBILITY section -->
+				<div class="pfb-insp-section">
+					<div class="pfb-insp-section-head" @click="toggle('t_visibility')">
+						<span class="pfb-insp-section-label">{{ __("Visibility") }}</span>
+						<span
+							class="pfb-insp-chevron"
+							:class="{ collapsed: !open.t_visibility }"
+							v-html="frappe.utils.icon('chevron-down', 'xs')"
+						></span>
+					</div>
+					<div v-show="open.t_visibility">
+						<VisibilitySection
+							v-model="selected_field.visible_if"
+							:previewDoc="preview_doc"
+						/>
 					</div>
 				</div>
 
@@ -303,6 +365,20 @@
 									></button>
 								</div>
 							</div>
+							<div class="pfb-insp-row">
+								<span class="pfb-insp-label">{{ __("Spacing") }}</span>
+								<select
+									class="pfb-insp-select"
+									:value="current_label_justify"
+									@change="selected_field.label_justify = $event.target.value"
+								>
+									<option value="">{{ __("Normal") }}</option>
+									<option value="space-between">
+										{{ __("Space Between") }}
+									</option>
+									<option value="space-evenly">{{ __("Space Evenly") }}</option>
+								</select>
+							</div>
 						</template>
 					</div>
 				</div>
@@ -316,10 +392,11 @@
 							v-html="frappe.utils.icon('chevron-down', 'xs')"
 						></span>
 					</div>
-					<div v-show="open.f_visibility" class="pfb-insp-section-body">
-						<p class="pfb-insp-hint text-muted">
-							{{ __("Conditional visibility coming soon.") }}
-						</p>
+					<div v-show="open.f_visibility">
+						<VisibilitySection
+							v-model="selected_field.visible_if"
+							:previewDoc="preview_doc"
+						/>
 					</div>
 				</div>
 
@@ -517,6 +594,57 @@
 					</div>
 				</div>
 
+				<!-- LAYOUT -->
+				<div class="pfb-insp-section">
+					<div class="pfb-insp-section-head" @click="toggle('s_layout')">
+						<span class="pfb-insp-section-label">{{ __("Layout") }}</span>
+						<span
+							class="pfb-insp-chevron"
+							:class="{ collapsed: !open.s_layout }"
+							v-html="frappe.utils.icon('chevron-down', 'xs')"
+						></span>
+					</div>
+					<div v-show="open.s_layout" class="pfb-insp-section-body">
+						<!-- Layout mode -->
+						<div class="pfb-insp-row">
+							<span class="pfb-insp-label">{{ __("Mode") }}</span>
+							<div class="pfb-seg">
+								<button
+									:class="{ active: !section_field_borders }"
+									@click="toggle_field_borders(false)"
+								>
+									{{ __("Normal") }}
+								</button>
+								<button
+									:class="{ active: section_field_borders }"
+									@click="toggle_field_borders(true)"
+								>
+									{{ __("Table") }}
+								</button>
+							</div>
+						</div>
+						<!-- Cell padding -->
+						<div class="pfb-insp-row">
+							<span class="pfb-insp-label">{{ __("Cell padding") }}</span>
+							<div class="pfb-stepper">
+								<button @click="adjust_section_cell_padding(-1)">−</button>
+								<input
+									class="pfb-stepper-input"
+									type="number"
+									min="0"
+									:value="section_cell_padding"
+									@change="
+										(e) =>
+											set_section_cell_padding(parseInt(e.target.value) || 0)
+									"
+								/>
+								<span class="pfb-stepper-unit">px</span>
+								<button @click="adjust_section_cell_padding(1)">+</button>
+							</div>
+						</div>
+					</div>
+				</div>
+
 				<!-- VISIBILITY -->
 				<div class="pfb-insp-section">
 					<div class="pfb-insp-section-head" @click="toggle('s_visibility')">
@@ -527,10 +655,11 @@
 							v-html="frappe.utils.icon('chevron-down', 'xs')"
 						></span>
 					</div>
-					<div v-show="open.s_visibility" class="pfb-insp-section-body">
-						<p class="pfb-insp-hint text-muted">
-							{{ __("Conditional visibility coming soon.") }}
-						</p>
+					<div v-show="open.s_visibility">
+						<VisibilitySection
+							v-model="selected_section.visible_if"
+							:previewDoc="preview_doc"
+						/>
 					</div>
 				</div>
 
@@ -538,8 +667,17 @@
 					<button
 						class="btn btn-xs btn-danger-subtle"
 						@click="
-							selected_section.remove = true;
+							const section = store.selected_section.value;
+							const idx = layout.value.sections.indexOf(section);
+							if (idx !== -1) layout.value.sections.splice(idx, 1);
 							store.selected_section.value = null;
+							if (
+								section &&
+								section.columns.some((c) =>
+									c.fields.includes(store.selected_field.value)
+								)
+							)
+								store.selected_field.value = null;
 						"
 					>
 						<span v-html="frappe.utils.icon('x', 'xs')"></span>
@@ -557,6 +695,7 @@ import draggable from "vuedraggable";
 import { useStore } from "../../stores";
 import LetterHeadZoneInspector from "./LetterHeadZoneInspector.vue";
 import Autocomplete from "../../../vue-components/Autocomplete.vue";
+import VisibilitySection from "./VisibilitySection.vue";
 
 let store = inject("$store");
 let { letterhead, layout } = useStore();
@@ -565,6 +704,7 @@ let selected_field = computed(() => store.selected_field.value);
 let selected_section = computed(() => store.selected_section.value);
 let selected_letterhead = computed(() => store.selected_letterhead.value);
 let selected_lh_footer = computed(() => store.selected_lh_footer.value);
+let preview_doc = computed(() => store.preview_doc.value);
 
 const open = ref({
 	f_field: true,
@@ -572,9 +712,11 @@ const open = ref({
 	s_section: true,
 	s_bg: true,
 	s_padding: true,
+	s_layout: false,
 	s_visibility: false,
 	t_table: true,
 	t_columns: true,
+	t_visibility: true,
 });
 
 function toggle(key) {
@@ -653,6 +795,7 @@ let short_fieldtype = computed(() => {
 
 let current_show_label = computed(() => selected_field.value?.show_label ?? "show");
 let current_align = computed(() => selected_field.value?.align ?? "left");
+let current_label_justify = computed(() => selected_field.value?.label_justify ?? "");
 
 const show_label_opts = [
 	{ value: "show", label: __("Show") },
@@ -758,6 +901,36 @@ function edit_html_field() {
 let table_style = computed(() => selected_field.value?.table_style ?? "lined");
 let table_bordered = computed(() => selected_field.value?.table_bordered ?? true);
 let table_header = computed(() => selected_field.value?.table_header ?? "styled");
+let table_cell_padding = computed(() => selected_field.value?.table_cell_padding ?? null);
+let table_radius = computed(() => selected_field.value?.table_radius ?? null);
+
+function adjust_cell_padding(delta) {
+	const current = selected_field.value?.table_cell_padding ?? 7;
+	selected_field.value.table_cell_padding = Math.max(0, current + delta);
+}
+
+function set_cell_padding(value) {
+	const v = parseInt(value);
+	if (isNaN(v) || value === "") {
+		delete selected_field.value.table_cell_padding;
+	} else {
+		selected_field.value.table_cell_padding = Math.max(0, v);
+	}
+}
+
+function adjust_table_radius(delta) {
+	const current = selected_field.value?.table_radius ?? 0;
+	selected_field.value.table_radius = Math.max(0, current + delta);
+}
+
+function set_table_radius(value) {
+	const v = parseInt(value);
+	if (isNaN(v) || value === "") {
+		delete selected_field.value.table_radius;
+	} else {
+		selected_field.value.table_radius = Math.max(0, v);
+	}
+}
 
 const table_style_opts = [
 	{ value: "lined", label: __("Lined") },
@@ -870,6 +1043,26 @@ function set_padding(side, value) {
 	}
 	selected_section.value.padding[side] = Math.max(0, value);
 }
+
+let section_field_borders = computed(() => !!selected_section.value?.field_borders);
+let section_cell_padding = computed(() => selected_section.value?.cell_padding ?? 8);
+
+function toggle_field_borders(on) {
+	if (on) {
+		selected_section.value.field_borders = true;
+	} else {
+		delete selected_section.value.field_borders;
+	}
+}
+
+function adjust_section_cell_padding(delta) {
+	const current = selected_section.value?.cell_padding ?? 8;
+	selected_section.value.cell_padding = Math.max(0, current + delta);
+}
+
+function set_section_cell_padding(value) {
+	selected_section.value.cell_padding = Math.max(0, value);
+}
 </script>
 
 <style scoped>
@@ -943,7 +1136,7 @@ function set_padding(side, value) {
 	border: none;
 	background: transparent;
 	cursor: pointer;
-	border-radius: var(--border-radius-sm);
+	border-radius: var(--radius);
 	color: var(--text-muted);
 	font-size: var(--text-xs);
 	transition: background 0.1s, color 0.1s;
@@ -952,7 +1145,6 @@ function set_padding(side, value) {
 
 .pfb-breadcrumb-btn:hover {
 	background: var(--gray-100);
-	color: var(--blue-500);
 }
 
 .pfb-breadcrumb-label {
@@ -1062,7 +1254,7 @@ function set_padding(side, value) {
 	justify-content: space-between;
 	padding: 5px 8px;
 	border: 1px solid var(--border-color);
-	border-radius: var(--border-radius);
+	border-radius: var(--radius);
 	background: var(--control-bg);
 	gap: 6px;
 	min-width: 0;
@@ -1082,7 +1274,7 @@ function set_padding(side, value) {
 	color: var(--text-muted);
 	background: var(--gray-100);
 	border: 1px solid var(--gray-300);
-	border-radius: var(--border-radius-sm);
+	border-radius: var(--radius);
 	padding: 1px 5px;
 	white-space: nowrap;
 	flex-shrink: 0;
@@ -1094,7 +1286,7 @@ function set_padding(side, value) {
 	padding: 6px 8px;
 	font-size: var(--text-sm);
 	border: 1px solid var(--border-color);
-	border-radius: var(--border-radius);
+	border-radius: var(--radius);
 	background: var(--fg-color);
 	color: var(--text-color);
 	outline: none;
@@ -1105,12 +1297,28 @@ function set_padding(side, value) {
 	border-color: var(--gray-500);
 }
 
+.pfb-insp-select {
+	width: 100%;
+	padding: 5px 8px;
+	font-size: var(--text-sm);
+	border: 1px solid var(--border-color);
+	border-radius: var(--radius);
+	background: var(--fg-color);
+	color: var(--text-color);
+	outline: none;
+	cursor: pointer;
+}
+
+.pfb-insp-select:focus {
+	border-color: var(--gray-500);
+}
+
 /* ── Segmented control ───────────────────────────────────── */
 .pfb-seg {
 	display: inline-flex;
 	background: var(--control-bg);
 	border: 1px solid var(--border-color);
-	border-radius: var(--border-radius);
+	border-radius: var(--radius);
 	overflow: hidden;
 	width: 100%;
 }
@@ -1151,7 +1359,7 @@ function set_padding(side, value) {
 	display: inline-flex;
 	align-items: center;
 	border: 1px solid var(--border-color);
-	border-radius: var(--border-radius);
+	border-radius: var(--radius);
 	overflow: hidden;
 	background: var(--subtle-accent);
 	width: 100%;
@@ -1229,7 +1437,7 @@ function set_padding(side, value) {
 .pfb-swatch {
 	width: 28px;
 	height: 28px;
-	border-radius: var(--border-radius);
+	border-radius: var(--radius);
 	border: 1.5px solid var(--border-color);
 	cursor: pointer;
 	padding: 0;
@@ -1284,7 +1492,7 @@ function set_padding(side, value) {
 	color: var(--red-500);
 	background: transparent;
 	border: 1px solid var(--red-200);
-	border-radius: var(--border-radius);
+	border-radius: var(--radius);
 	padding: 5px 10px;
 	font-size: var(--text-sm);
 	cursor: pointer;
@@ -1324,12 +1532,24 @@ function set_padding(side, value) {
 	color: var(--gray-500);
 }
 
-.pfb-col-label {
+.pfb-col-label-input {
 	flex: 1;
+	min-width: 0;
 	font-size: var(--text-sm);
-	overflow: hidden;
-	text-overflow: ellipsis;
-	white-space: nowrap;
+	border: 1px solid transparent;
+	border-radius: var(--radius);
+	background: transparent;
+	padding: 1px 4px;
+	outline: none;
+}
+
+.pfb-col-label-input:hover {
+	border-color: var(--gray-300);
+}
+
+.pfb-col-label-input:focus {
+	border-color: var(--gray-500);
+	background: var(--fg-color);
 }
 
 .pfb-col-width-input {
@@ -1338,7 +1558,7 @@ function set_padding(side, value) {
 	font-size: var(--text-tiny);
 	text-align: right;
 	border: 1px solid var(--border-color);
-	border-radius: var(--border-radius-sm);
+	border-radius: var(--radius);
 	background: var(--fg-color);
 	flex-shrink: 0;
 }
@@ -1368,7 +1588,7 @@ function set_padding(side, value) {
 	background: transparent;
 	cursor: pointer;
 	color: var(--gray-300);
-	border-radius: var(--border-radius-sm);
+	border-radius: var(--radius);
 	flex-shrink: 0;
 }
 
@@ -1418,7 +1638,7 @@ function set_padding(side, value) {
 	color: var(--text-muted);
 	padding: 6px 8px;
 	border: 1px solid var(--border-color);
-	border-radius: var(--border-radius);
+	border-radius: var(--radius);
 	background: var(--gray-50);
 	max-height: 80px;
 	overflow: hidden;
@@ -1450,7 +1670,7 @@ function set_padding(side, value) {
 	color: var(--text-muted);
 	padding: 6px 8px;
 	border: 1px solid var(--border-color);
-	border-radius: var(--border-radius);
+	border-radius: var(--radius);
 	background: var(--gray-50);
 	max-height: 100px;
 	overflow: hidden;
@@ -1522,7 +1742,7 @@ function set_padding(side, value) {
 	font-size: 13px;
 	font-family: var(--monospace-font-family, monospace);
 	border: 1px solid var(--border-color);
-	border-radius: var(--border-radius);
+	border-radius: var(--radius);
 }
 
 .pfb-html-ctrl-host .CodeMirror-scroll {

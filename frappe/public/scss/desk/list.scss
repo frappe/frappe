@@ -59,7 +59,7 @@
 	.list-skeleton-box {
 		background-color: var(--skeleton-bg);
 		height: 100%;
-		border-radius: var(--border-radius);
+		border-radius: var(--radius);
 	}
 }
 
@@ -82,7 +82,7 @@
 	display: flex;
 	flex-direction: column;
 	padding-inline: var(--padding-sm);
-	border-radius: var(--border-radius);
+	border-radius: var(--radius);
 
 	&:focus {
 		.list-row {
@@ -277,7 +277,7 @@ body.list-col-resizing {
 	@extend .list-row;
 	cursor: default;
 	background-color: var(--subtle-fg);
-	border-radius: var(--border-radius);
+	border-radius: var(--radius);
 	height: var(--list-row-height);
 	padding-inline: var(--padding-sm);
 
@@ -326,10 +326,15 @@ body.list-col-resizing {
 		cursor: pointer;
 		text-decoration: underline;
 	}
-}
 
-.list-row-col .indicator-pill {
-	max-width: 150px;
+	.selected-color {
+		display: inline-block;
+		width: 12px;
+		height: 12px;
+		border-radius: 4px;
+		margin-right: 6px;
+		vertical-align: middle;
+	}
 }
 
 $level-margin-right: 8px;
@@ -352,7 +357,7 @@ $level-margin-right: 8px;
 
 	.btn-group {
 		border: 1px solid var(--border-color);
-		border-radius: var(--border-radius);
+		border-radius: var(--radius);
 
 		.btn-paging.btn-info {
 			&:not(:first-child) {

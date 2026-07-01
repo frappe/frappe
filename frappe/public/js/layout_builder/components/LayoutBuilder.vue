@@ -76,7 +76,7 @@ function on_drag_end() {
 .lb-container {
 	display: flex;
 	border: 1px solid var(--border-color);
-	border-radius: var(--border-radius);
+	border-radius: var(--radius);
 	overflow: hidden;
 	min-height: 200px;
 }

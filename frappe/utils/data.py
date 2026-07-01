@@ -478,6 +478,9 @@ def get_first_day(dt, d_years: int = 0, d_months: int = 0, as_str: bool = False)
 	overflow_years, month = divmod(dt.month + d_months - 1, 12)
 	year = dt.year + d_years + overflow_years
 
+	# divmod by 12 always yields a remainder in [0, 11]; month + 1 must be a valid 1..12 month
+	assert 0 <= month <= 11, "month index out of range after divmod by 12"
+
 	return (
 		datetime.date(year, month + 1, 1).strftime(DATE_FORMAT)
 		if as_str
@@ -502,6 +505,7 @@ def get_quarter_start(dt: DateTimeLikeObject | None = None, as_str: bool = False
 	"""
 	date = getdate(dt)
 	quarter = (date.month - 1) // 3 + 1
+	assert 1 <= quarter <= 4, "quarter must be in range 1..4 for a valid month"
 	first_date_of_quarter = datetime.date(date.year, ((quarter - 1) * 3) + 1, 1)
 	return first_date_of_quarter.strftime(DATE_FORMAT) if as_str else first_date_of_quarter
 
@@ -2007,11 +2011,10 @@ def get_link_to_form(doctype: str, name: str | None = None, label: str | None = 
 
 
 def get_url_to_workspace(workspace: str, is_public: bool):
-	url_prefix = "/desk/"
-	if not is_public:
-		workspace_url = "/desk/private/"
-	workspace_url = url_prefix + workspace.lower()
-	return workspace_url
+	from frappe.desk.utils import slug
+
+	url_prefix = "/desk/" if is_public else "/desk/private/"
+	return url_prefix + slug(workspace)
 
 
 def get_link_to_report(
@@ -2649,7 +2652,7 @@ def validate_json_string(string: str) -> None:
 		raise frappe.ValidationError
 
 
-def parse_json(val: str):
+def parse_json(val: Any):
 	"""
 	Parses json if string else return
 	"""

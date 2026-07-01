@@ -551,6 +551,8 @@ class Document(BaseDocument):
 			super().__init__(d)
 		self.flags.pop("ignore_children", None)
 
+		assert self.name, "document must have a name after loading from db"
+
 		self.load_children_from_db()
 
 		# sometimes __setup__ can depend on child values, hence calling again at the end
@@ -564,9 +566,25 @@ class Document(BaseDocument):
 
 		mask_fields = frappe.get_meta(self.doctype).get_masked_fields()
 
+		if mask_fields:
+			# Flag masked fields so get_valid_dict() does not cast the XXXXXXXX placeholder
+			# back to 0 for numeric fieldtypes when serializing the response.
+			self.flags.masked_fieldnames = {field.fieldname for field in mask_fields}
+
 		for field in mask_fields:
 			val = self.get(field.fieldname)
 			self.set(field.fieldname, mask_field_value(field, val))
+
+		for table_field in self.meta.get_table_fields():
+			child_mask_fields = frappe.get_meta(table_field.options).get_masked_fields()
+			if not child_mask_fields:
+				continue
+
+			masked_fieldnames = {field.fieldname for field in child_mask_fields}
+			for row in self.get(table_field.fieldname) or []:
+				row.flags.masked_fieldnames = masked_fieldnames
+				for field in child_mask_fields:
+					row.set(field.fieldname, mask_field_value(field, row.get(field.fieldname)))
 
 	def load_children_from_db(self):
 		is_doctype = self.doctype == "DocType"
@@ -981,6 +999,7 @@ class Document(BaseDocument):
 				set_new_name(d)
 
 		self.flags.name_set = True
+		assert self.name, "document name must be set after set_new_name"
 
 	def get_title(self):
 		"""Get the document title based on title_field or `title` or `name`"""
@@ -1222,7 +1241,12 @@ class Document(BaseDocument):
 			return
 
 		mask_fields = self.meta.get_masked_fields()
-		if not mask_fields:
+		child_mask_fields = {
+			table_field.fieldname: masked
+			for table_field in self.meta.get_table_fields()
+			if (masked := frappe.get_meta(table_field.options).get_masked_fields())
+		}
+		if not mask_fields and not child_mask_fields:
 			return
 
 		# frappe.db.get_value() goes through the query builder which re-masks results for
@@ -1231,6 +1255,16 @@ class Document(BaseDocument):
 		db_doc = frappe.get_doc(self.doctype, self.name)
 		for df in mask_fields:
 			self.set(df.fieldname, db_doc.get(df.fieldname))
+
+		for fieldname, masked in child_mask_fields.items():
+			db_rows = {row.name: row for row in db_doc.get(fieldname)}
+			for row in self.get(fieldname) or []:
+				db_row = db_rows.get(row.name)
+				# new rows have no DB counterpart — nothing to restore
+				if not db_row:
+					continue
+				for df in masked:
+					row.set(df.fieldname, db_row.get(df.fieldname))
 
 	def validate_higher_perm_levels(self):
 		"""If the user does not have permissions at permlevel > 0, then reset the values to original / default"""
@@ -1340,6 +1374,12 @@ class Document(BaseDocument):
 		- Submit (1) > Cancel (2)
 
 		"""
+		assert from_docstatus in (
+			DocStatus.DRAFT,
+			DocStatus.SUBMITTED,
+			DocStatus.CANCELLED,
+		), "from_docstatus must be a valid docstatus (0, 1, or 2)"
+
 		if self.flags.skip_docstatus_validation:
 			return
 
@@ -1595,8 +1635,10 @@ class Document(BaseDocument):
 
 		return children
 
-	def run_method(self, method, *args, **kwargs):
+	def run_method(self, method: str, *args, **kwargs):
 		"""run standard triggers, plus those in hooks"""
+
+		assert not method.startswith("__"), "Run method is for hooks, avoid usage on internal methods"
 
 		def fn(self, *args, **kwargs):
 			method_object = getattr(self, method, None)
@@ -2454,7 +2496,7 @@ def get_lazy_controller(doctype):
 		original_controller = get_controller(doctype)
 		if meta.is_virtual:  # not supported
 			lazy_controllers[doctype] = original_controller
-			warnings.warn("Virtual doctypes don't support lazy loading", stacklevel=2)
+			warnings.warn(f"Virtual doctypes don't support lazy loading: {doctype}", stacklevel=3)
 			return original_controller
 
 		# Dynamically construct a class that subclasses LazyDocument and original controller.
@@ -2488,7 +2530,8 @@ class LazyDocument:
 	def append(self, key: str, value: D | dict | None = None, position: int = -1) -> D:
 		# Ensure that table descriptor is triggered at least once
 		# key is assumed to be a table fieldname (as expected by BaseDocument.append)
-		getattr(self, key, None)
+		if key not in self.__dict__:
+			getattr(self, key, None)
 		return super().append(key, value, position)
 
 	@override
@@ -2519,8 +2562,8 @@ class LazyChildTable:
 		fieldname = self.fieldname
 		__dict = doc.__dict__
 		assert fieldname not in __dict, "Descriptor should not override existing values"
-		children = doc._load_child_table_from_db(fieldname, self.doctype) or []
 		__dict[fieldname] = []
+		children = doc._load_child_table_from_db(fieldname, self.doctype) or []
 		# Update __dict__ and convert to Document objects
 		doc.extend(fieldname, children)
 		return __dict[fieldname]

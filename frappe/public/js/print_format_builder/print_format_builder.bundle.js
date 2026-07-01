@@ -11,7 +11,7 @@ class PrintFormatBuilder {
 		this.page.clear_icons();
 		this.page.clear_custom_actions();
 
-		this.page.set_title(__("Editing {0}", [this.print_format]));
+		this.page.set_title(this.print_format);
 		this.page.set_primary_action(__("Save"), () => {
 			this.$component.$store.save_changes();
 		});

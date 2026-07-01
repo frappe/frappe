@@ -72,6 +72,8 @@ frappe.views.FormFactory = class FormFactory extends frappe.views.Factory {
 	}
 
 	show_doc(route) {
+		this.clear_attachment_preview_state();
+
 		var doctype = route[1],
 			doctype_layout = frappe.router.doctype_layout || doctype,
 			name = route.slice(2).join("/");
@@ -79,7 +81,7 @@ frappe.views.FormFactory = class FormFactory extends frappe.views.Factory {
 		if (frappe.model.new_names[name]) {
 			// document has been renamed, reroute
 			name = frappe.model.new_names[name];
-			frappe.set_route("Form", doctype_layout, name);
+			this.route_to_form(doctype, name);
 			return;
 		}
 
@@ -118,12 +120,33 @@ frappe.views.FormFactory = class FormFactory extends frappe.views.Factory {
 			this.render(doctype_layout, name);
 		} else {
 			frappe.route_flags.replace_route = true;
-			frappe.set_route("Form", doctype_layout, new_name);
+			this.route_to_form(doctype, new_name);
 		}
 	}
 
+	route_to_form(doctype, name) {
+		// Route by the real doctype slug, carrying any active layout via
+		// `route_options.layout` so the router keeps it in the `?layout=` param.
+		// Using the layout name as the slug would produce an invalid route.
+		if (frappe.router.doctype_layout) {
+			frappe.route_options = frappe.route_options || {};
+			frappe.route_options.layout = frappe.router.doctype_layout;
+		}
+		frappe.set_route("Form", doctype, name);
+	}
+
 	render(doctype_layout, name) {
+		this.clear_attachment_preview_state();
 		frappe.container.change_to(doctype_layout);
 		frappe.views.formview[doctype_layout].frm.refresh(name);
+	}
+
+	clear_attachment_preview_state() {
+		$(".attachment-preview-open, .attachment-preview-resizing")
+			.removeClass("attachment-preview-open attachment-preview-resizing")
+			.each((_, el) => el.style.removeProperty("--attachment-preview-width"));
+		$(".attachment-preview").remove();
+		$(document).off("keydown.attachment_preview");
+		$(document).off(".attachment_preview_resize");
 	}
 };

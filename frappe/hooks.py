@@ -77,6 +77,15 @@ write_file_keys = ["file_url", "file_name"]
 
 notification_config = "frappe.core.notifications.get_notification_config"
 
+# Notification Types whose in-app Notification Log should NOT additionally send its own
+# email (e.g. "Alert" — the Notification rule already owns email delivery via its channel).
+notification_skip_email_types = ["Alert"]
+
+# Notification Types that are delivered even when the recipient is also the actor
+# (for_user == from_user). Other types suppress self-notifications.
+# TODO: This should not be hardcoded and a configurable option in future.
+notification_self_notify_types = ["Alert"]
+
 before_tests = "frappe.utils.install.before_tests"
 
 email_append_to = ["Event", "ToDo", "Communication"]
@@ -101,6 +110,7 @@ pdf_generator = "frappe.utils.pdf.get_chrome_pdf"
 # permissions
 
 permission_query_conditions = {
+	"Report": "frappe.core.doctype.report.report.get_permission_query_conditions",
 	"Event": "frappe.desk.doctype.event.event.get_permission_query_conditions",
 	"ToDo": "frappe.desk.doctype.todo.todo.get_permission_query_conditions",
 	"User": "frappe.core.doctype.user.user.get_permission_query_conditions",
@@ -123,6 +133,7 @@ permission_query_conditions = {
 }
 
 has_permission = {
+	"Report": "frappe.core.doctype.report.report.has_permission",
 	"Event": "frappe.desk.doctype.event.event.has_permission",
 	"ToDo": "frappe.desk.doctype.todo.todo.has_permission",
 	"Note": "frappe.desk.doctype.note.note.has_permission",
@@ -274,11 +285,11 @@ scheduler_events = {
 		"frappe.automation.doctype.auto_repeat.auto_repeat.make_auto_repeat_entry",
 		"frappe.core.doctype.log_settings.log_settings.run_log_clean_up",
 		"frappe.core.doctype.user_invitation.user_invitation.mark_expired_invitations",
+		"frappe.core.doctype.duckdb_sync.duckdb_sync.cleanup_old_syncs",
 	],
 	"weekly_long": [
 		"frappe.desk.form.document_follow.send_weekly_updates",
 		"frappe.utils.change_log.check_for_update",
-		"frappe.desk.doctype.changelog_feed.changelog_feed.fetch_changelog_feed",
 	],
 	"monthly": [
 		"frappe.email.doctype.auto_email_report.auto_email_report.send_monthly",
@@ -305,6 +316,7 @@ before_migrate = ["frappe.core.doctype.patch_log.patch_log.before_migrate"]
 after_migrate = [
 	"frappe.website.doctype.website_theme.website_theme.after_migrate",
 	"frappe.search.sqlite_search.build_index_in_background",
+	"frappe.desk.doctype.notification_type.notification_type.install_notification_types",
 ]
 
 otp_methods = ["OTP App", "Email", "SMS"]
@@ -474,9 +486,11 @@ extend_bootinfo = [
 	"frappe.core.doctype.user_permission.user_permission.send_user_permissions",
 ]
 
-get_changelog_feed = "frappe.desk.doctype.changelog_feed.changelog_feed.get_feed"
-
 export_python_type_annotations = True
+
+# Send non-GET requests for this app's endpoints as native `application/json`
+# bodies instead of form-encoded, per-key JSON-stringified values.
+use_json_request_body = True
 
 standard_help_items = [
 	{

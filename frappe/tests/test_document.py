@@ -741,14 +741,16 @@ class TestLazyDocument(IntegrationTestCase):
 		self.assertTrue(frappe.get_lazy_doc("User", "Guest").get("roles"))
 
 	def test_lazy_doc_efficient_saves(self):
-		# Only touched tables and self should be updated
+		# Only touched tables and self should be updated.
+		per_update = 1
+
 		guest = frappe.get_lazy_doc("User", "Guest")
-		with self.assertQueryCount(1):
+		with self.assertQueryCount(per_update):
 			guest.db_update_all()
 
 		guest = frappe.get_lazy_doc("User", "Guest")
 		_ = guest.roles
-		with self.assertQueryCount(1 + len(guest.roles)):
+		with self.assertQueryCount(per_update * (1 + len(guest.roles))):
 			guest.db_update_all()
 
 		# Save should works, it won't be efficient because internal code will just trigger fetching

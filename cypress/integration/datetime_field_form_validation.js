@@ -29,7 +29,7 @@ context("Datetime Field Validation", () => {
 					.then((frm) => {
 						expect(frm.is_dirty()).to.be.false;
 					});
-				cy.get(".indicator-pill").should("contain", "Draft");
+				cy.get('[data-testid="page-status"]').should("contain", "Draft");
 				cy.get(".btn-primary[data-label='Submit']").should("be.visible");
 			});
 	});

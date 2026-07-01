@@ -317,13 +317,13 @@ const options = computed(() => {
 	.form-section {
 		background-color: inherit;
 		border: 1px solid transparent;
-		border-radius: var(--border-radius);
+		border-radius: var(--radius);
 		padding: 1rem;
 		cursor: pointer;
 
 		&:last-child {
-			border-bottom-left-radius: var(--border-radius);
-			border-bottom-right-radius: var(--border-radius);
+			border-bottom-left-radius: var(--radius);
+			border-bottom-right-radius: var(--radius);
 		}
 
 		&.hovered,
@@ -387,7 +387,7 @@ const options = computed(() => {
 		.section-columns-container {
 			display: flex;
 			min-height: 2rem;
-			border-radius: var(--border-radius);
+			border-radius: var(--radius);
 		}
 	}
 }

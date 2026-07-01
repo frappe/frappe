@@ -98,7 +98,7 @@ let total_width = computed(() => {
 /* Total bar */
 .total-bar-wrapper {
 	background: var(--bg-light-gray);
-	border-radius: var(--border-radius);
+	border-radius: var(--radius);
 	padding: 0.6rem 0.75rem;
 }
 .total-bar-header {
@@ -111,7 +111,7 @@ let total_width = computed(() => {
 	font-size: var(--text-sm);
 	font-weight: var(--weight-semibold);
 	padding: 1px 8px;
-	border-radius: var(--border-radius-sm);
+	border-radius: var(--radius);
 }
 .total-badge--ok {
 	background: var(--green-100);
@@ -124,13 +124,13 @@ let total_width = computed(() => {
 .total-bar-track {
 	height: 6px;
 	background: var(--gray-200);
-	border-radius: var(--border-radius-full);
+	border-radius: var(--radius-full);
 	overflow: hidden;
 }
 .total-bar-fill {
 	height: 100%;
 	background: var(--green-400);
-	border-radius: var(--border-radius-full);
+	border-radius: var(--radius-full);
 	transition: width 0.2s ease, background 0.2s ease;
 }
 .total-bar-fill--over {
@@ -146,7 +146,7 @@ let total_width = computed(() => {
 
 /* Column row */
 .column-row {
-	border-radius: var(--border-radius);
+	border-radius: var(--radius);
 	padding: 0.25rem 0;
 }
 .column-label-row {
@@ -166,7 +166,7 @@ let total_width = computed(() => {
 }
 .input-column-label {
 	border: 1px solid transparent;
-	border-radius: var(--border-radius);
+	border-radius: var(--radius);
 	font-size: var(--text-md);
 	background: transparent;
 	padding: 2px 4px;
@@ -187,7 +187,7 @@ let total_width = computed(() => {
 	display: flex;
 	align-items: center;
 	border: 1px solid var(--gray-300);
-	border-radius: var(--border-radius);
+	border-radius: var(--radius);
 	background: var(--fg-color);
 	overflow: hidden;
 	flex: 1;

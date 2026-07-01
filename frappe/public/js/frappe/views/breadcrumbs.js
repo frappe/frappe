@@ -258,7 +258,9 @@ frappe.breadcrumbs = {
 			);
 			const display_title = layout_info?.title || breadcrumbs.layout_name;
 			const doctype_slug = frappe.router.slug(doctype);
-			const filter_params = this._parse_condition_to_params(layout_info?.condition);
+			const filter_params = frappe.utils.parse_layout_condition_to_filters(
+				layout_info?.condition
+			);
 			filter_params._layout = breadcrumbs.layout_name;
 			const query = new URLSearchParams(filter_params).toString();
 			const layout_route = `/desk/${doctype_slug}${query ? "?" + query : ""}`;
@@ -318,30 +320,4 @@ frappe.breadcrumbs = {
 	 * Handles AND-joined `doc.field OP value` comparisons.
 	 * Returns {} for conditions that contain || (OR) since those can't be expressed as simple filters.
 	 */
-	_parse_condition_to_params(condition) {
-		if (!condition || condition.includes("||")) return {};
-
-		const params = {};
-		// Match: doc.fieldname  ===|!==|>=|<=|>|<  "value" | 'value' | number
-		const re = /doc\.(\w+)\s*(===?|!==?|>=?|<=?)\s*(?:"([^"]*)"|'([^']*)'|(-?\d+(?:\.\d+)?))/g;
-		let match;
-
-		while ((match = re.exec(condition)) !== null) {
-			const fieldname = match[1];
-			const op = match[2];
-			const value = match[3] ?? match[4] ?? match[5];
-			if (value === undefined) continue;
-
-			const frappe_op =
-				op === "===" || op === "==" ? "=" : op === "!==" || op === "!=" ? "!=" : op;
-
-			if (frappe_op === "=") {
-				params[fieldname] = value;
-			} else {
-				params[fieldname] = JSON.stringify([frappe_op, value]);
-			}
-		}
-
-		return params;
-	},
 };

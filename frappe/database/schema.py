@@ -408,8 +408,13 @@ def validate_column_length(fieldname):
 		frappe.throw(_("Fieldname is limited to 64 characters ({0})").format(fieldname))
 
 
-def get_definition(fieldtype, precision=None, length=None, *, options=None):
-	d = frappe.db.type_map.get(fieldtype)
+def get_definition(fieldtype, precision=None, length=None, *, options=None, duckdb=False):
+	if duckdb:
+		from frappe.database.duckdb.database import get_type_map
+
+		d = get_type_map().get(fieldtype)
+	else:
+		d = frappe.db.type_map.get(fieldtype)
 
 	if (
 		fieldtype == "Link"
@@ -439,6 +444,7 @@ def get_definition(fieldtype, precision=None, length=None, *, options=None):
 			precision = precision if precision_is_set else DEFAULT_DECIMAL_PRECISION
 			if cint(precision) > cint(width):
 				precision = width
+			assert cint(precision) <= cint(width), "decimal precision must not exceed width"
 			size = f"{cint(width)},{cint(precision)}"
 
 		if length:

@@ -21,6 +21,7 @@
 /* Collapsible section headers with (count) before chevron. */
 .data-import-warnings-section .section-head.collapsible,
 .data-import-value-mappings-section .section-head.collapsible,
+.data-import-tree-preview-section .section-head.collapsible,
 .data-import-preview-section .section-head.collapsible {
 	display: flex;
 	align-items: center;
@@ -28,10 +29,26 @@
 
 .data-import-warnings-section .section-head .import-warnings-count,
 .data-import-value-mappings-section .section-head .value-mappings-count,
+.data-import-tree-preview-section .section-head .import-tree-preview-count,
 .data-import-preview-section .section-head .import-preview-count {
 	margin-left: auto;
 	margin-right: 6px;
 }
+
+.data-import-tree-preview-section .section-body {
+	display: block;
+	width: 100%;
+}
+
+.data-import-tree-preview-section .section-body .form-column {
+	width: 100%;
+	max-width: 100%;
+}
+
+[data-fieldname="import_tree_preview"] > .form-group .control-label {
+	display: none;
+}
+
 
 /* Preview section: full-width layout for datatable and import log. */
 .data-import-preview-section .section-body {

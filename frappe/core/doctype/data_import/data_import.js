@@ -1,6 +1,54 @@
 // Copyright (c) 2019, Frappe Technologies and contributors
 // For license information, please see license.txt
 
+const UPSERT_IMPORT_TYPE = "Insert or Update Records";
+const UPDATE_IMPORT_TYPE = "Update Existing Records";
+const IMPORT_ACTION_UPDATE = "Update";
+
+function is_upsert_import_type(import_type) {
+	return import_type === UPSERT_IMPORT_TYPE;
+}
+
+/** Progress headline shown while an import job is running. */
+function get_import_progress_message(import_type, current, total, eta_message) {
+	const args = [current, total, eta_message];
+	if (import_type === UPDATE_IMPORT_TYPE) {
+		return __("Updating {0} of {1}, {2}", args);
+	}
+	if (is_upsert_import_type(import_type)) {
+		return __("Importing or updating {0} of {1}, {2}", args);
+	}
+	return __("Importing {0} of {1}, {2}", args);
+}
+
+/** Summary headline after import completes. */
+function get_import_status_message(import_type, inserted, updated, total) {
+	if (import_type === UPDATE_IMPORT_TYPE) {
+		return __("Successfully updated {0} out of {1} records.", [inserted, total]);
+	}
+	if (is_upsert_import_type(import_type)) {
+		return __("Successfully inserted {0} and updated {1} out of {2} records.", [
+			inserted,
+			updated,
+			total,
+		]);
+	}
+	return __("Successfully imported {0} out of {1} records.", [inserted, total]);
+}
+
+/** Success message for a single import log row. */
+function get_import_log_html(import_type, import_action, doc_link) {
+	if (is_upsert_import_type(import_type)) {
+		return import_action === IMPORT_ACTION_UPDATE
+			? __("Successfully updated {0}", [doc_link])
+			: __("Successfully inserted {0}", [doc_link]);
+	}
+	if (import_type === UPDATE_IMPORT_TYPE) {
+		return __("Successfully updated {0}", [doc_link]);
+	}
+	return __("Successfully imported {0}", [doc_link]);
+}
+
 /** Deduplicate template + preview warnings: one per column (longer message wins, often has row numbers). */
 function dedupe_import_warnings(warnings) {
 	const by_col = {};
@@ -53,6 +101,40 @@ function update_section_count(frm, section_fieldname, count, count_class) {
 function get_preview_row_count(preview_data) {
 	if (!preview_data) return 0;
 	return preview_data.total_number_of_rows ?? preview_data.data?.length ?? 0;
+}
+
+function get_tree_preview_node_count(preview_data) {
+	if (!preview_data?.tree_preview) return 0;
+	return preview_data.tree_preview.total_nodes ?? preview_data.tree_preview.nodes?.length ?? 0;
+}
+
+/** Hide tree structure warnings after a finished import; keep the tree for reference. */
+function strip_tree_preview_warnings(preview_data) {
+	if (!preview_data?.tree_preview) {
+		return preview_data;
+	}
+
+	const nodes = (preview_data.tree_preview.nodes || []).map((node) => ({
+		...node,
+		warnings: [],
+	}));
+
+	return {
+		...preview_data,
+		tree_preview: {
+			...preview_data.tree_preview,
+			tree_warnings: [],
+			nodes,
+		},
+	};
+}
+
+/** Keep Tree Preview collapsed by default (unlike Preview, which expands when a file is attached). */
+function collapse_import_tree_section(frm, hide = true) {
+	const section = frm.layout?.sections_dict?.section_import_tree_preview;
+	if (section) {
+		section.collapse(hide);
+	}
 }
 
 /** Docfield for Map To: Link/Select per mapping row (child meta defaults to Data). */
@@ -111,11 +193,12 @@ frappe.ui.form.on("Data Import", {
 
 			let message;
 			if (data.success) {
-				let message_args = [data.current, data.total, eta_message];
-				message =
-					frm.doc.import_type === "Insert New Records"
-						? __("Importing {0} of {1}, {2}", message_args)
-						: __("Updating {0} of {1}, {2}", message_args);
+				message = get_import_progress_message(
+					frm.doc.import_type,
+					data.current,
+					data.total,
+					eta_message
+				);
 			}
 			if (data.skipping) {
 				message = __("Skipping {0} of {1}, {2}", [data.current, data.total, eta_message]);
@@ -243,18 +326,13 @@ frappe.ui.form.on("Data Import", {
 					return;
 				}
 
-				let message;
-				if (frm.doc.import_type === "Insert New Records") {
-					message = __("Successfully imported {0} out of {1} records.", [
-						successful_records,
-						total_records,
-					]);
-				} else {
-					message = __("Successfully updated {0} out of {1} records.", [
-						successful_records,
-						total_records,
-					]);
-				}
+				const is_upsert = is_upsert_import_type(frm.doc.import_type);
+				let message = get_import_status_message(
+					frm.doc.import_type,
+					is_upsert ? cint(r.message.inserted) : successful_records,
+					is_upsert ? cint(r.message.updated) : 0,
+					total_records
+				);
 
 				if (failed_records > 0) {
 					message +=
@@ -383,14 +461,18 @@ frappe.ui.form.on("Data Import", {
 	reset_import_ui_state(frm) {
 		$(window).off("scroll.data_import_value_mappings");
 		frm.import_preview = null;
+		frm.import_tree_preview = null;
 		frm.events.toggle_import_issues_ui(frm, false, false);
 		frm.events.toggle_import_log_ui(frm, false);
+		frm.toggle_display("section_import_tree_preview", false);
 		frm.toggle_display("section_import_preview", false);
+		frm.get_field("import_tree_preview")?.$wrapper.empty();
 		frm.get_field("import_preview")?.$wrapper.empty();
 		frm.get_field("import_warnings")?.$wrapper.html("");
 		frm.get_field("import_log_preview")?.$wrapper.empty();
 		update_section_count(frm, "import_warnings_section", 0, "import-warnings-count");
 		update_section_count(frm, "value_mappings_section", 0, "value-mappings-count");
+		update_section_count(frm, "section_import_tree_preview", 0, "import-tree-preview-count");
 		update_section_count(frm, "section_import_preview", 0, "import-preview-count");
 	},
 
@@ -554,9 +636,70 @@ frappe.ui.form.on("Data Import", {
 			},
 		}).then((r) => {
 			let preview_data = r.message;
+			frm.events.show_import_tree_preview(frm, preview_data);
 			frm.events.show_import_preview(frm, preview_data);
 			frm.events.show_import_warnings(frm, preview_data);
 		});
+	},
+
+	show_import_tree_preview(frm, preview_data) {
+		if (["Success", "Partial Success"].includes(frm.doc.status)) {
+			preview_data = strip_tree_preview_warnings(preview_data);
+		}
+
+		const show_tree = Boolean(preview_data?.tree_preview);
+		frm.toggle_display("section_import_tree_preview", show_tree);
+		frm.toggle_display("import_tree_preview", show_tree);
+
+		if (!show_tree) {
+			frm.import_tree_preview = null;
+			frm.get_field("import_tree_preview")?.$wrapper.empty();
+			update_section_count(
+				frm,
+				"section_import_tree_preview",
+				0,
+				"import-tree-preview-count"
+			);
+			return;
+		}
+
+		update_section_count(
+			frm,
+			"section_import_tree_preview",
+			get_tree_preview_node_count(preview_data),
+			"import-tree-preview-count"
+		);
+
+		const render_tree_preview = () => {
+			const wrapper = frm.get_field("import_tree_preview").$wrapper;
+			const on_row_click = (row_number) => {
+				frm.layout?.sections_dict?.section_import_preview?.collapse(false);
+				frm.import_preview?.highlight_table_row(row_number);
+			};
+
+			if (
+				frm.doc.name &&
+				frm.import_tree_preview &&
+				frm.import_tree_preview.data_import_name === frm.doc.name
+			) {
+				frm.import_tree_preview.preview_data = preview_data;
+				frm.import_tree_preview.on_row_click = on_row_click;
+				frm.import_tree_preview.refresh();
+			} else {
+				frm.import_tree_preview = new frappe.data_import.ImportTreePreview({
+					wrapper,
+					doctype: frm.doc.reference_doctype,
+					preview_data,
+					on_row_click,
+				});
+				frm.import_tree_preview.data_import_name = frm.doc.name;
+			}
+
+			// After layout refresh_section_collapse (Preview uses depends_on to expand).
+			setTimeout(() => collapse_import_tree_section(frm, true), 0);
+		};
+
+		frappe.require("data_import_tools.bundle.js", render_tree_preview);
 	},
 
 	show_import_preview(frm, preview_data) {
@@ -816,49 +959,37 @@ frappe.ui.form.on("Data Import", {
 	},
 
 	render_import_log(frm) {
-		frappe.call({
-			method: "frappe.core.doctype.data_import.data_import.get_import_logs",
-			args: {
-				data_import: frm.doc.name,
-			},
-			callback: function (r) {
-				let logs = r.message;
+		const is_upsert = is_upsert_import_type(frm.doc.import_type);
 
-				if (logs.length === 0) return;
+		const render_logs = (logs, inserted_count = 0, updated_count = 0) => {
+			if (logs.length === 0) return;
 
-				frm.events.toggle_import_log_ui(frm, true);
+			frm.events.toggle_import_log_ui(frm, true);
 
-				let rows = logs
-					.map((log) => {
-						let html = "";
-						if (log.success) {
-							if (frm.doc.import_type === "Insert New Records") {
-								html = __("Successfully imported {0}", [
-									`<span class="underline">${frappe.utils.get_form_link(
-										frm.doc.reference_doctype,
-										log.docname,
-										true
-									)}<span>`,
-								]);
-							} else {
-								html = __("Successfully updated {0}", [
-									`<span class="underline">${frappe.utils.get_form_link(
-										frm.doc.reference_doctype,
-										log.docname,
-										true
-									)}<span>`,
-								]);
-							}
-						} else {
-							let messages = JSON.parse(log.messages || "[]")
-								.map((m) => {
-									let title = m.title ? `<strong>${m.title}</strong>` : "";
-									let message = m.message ? `<div>${m.message}</div>` : "";
-									return title + message;
-								})
-								.join("");
-							let id = frappe.dom.get_unique_id();
-							html = `${messages}
+			let rows = logs
+				.map((log) => {
+					let html = "";
+					if (log.success) {
+						const doc_link = `<span class="underline">${frappe.utils.get_form_link(
+							frm.doc.reference_doctype,
+							log.docname,
+							true
+						)}<span>`;
+						html = get_import_log_html(
+							frm.doc.import_type,
+							log.import_action,
+							doc_link
+						);
+					} else {
+						let messages = JSON.parse(log.messages || "[]")
+							.map((m) => {
+								let title = m.title ? `<strong>${m.title}</strong>` : "";
+								let message = m.message ? `<div>${m.message}</div>` : "";
+								return title + message;
+							})
+							.join("");
+						let id = frappe.dom.get_unique_id();
+						html = `${messages}
 								<button class="btn btn-default btn-xs" type="button" data-toggle="collapse" data-target="#${id}" aria-expanded="false" aria-controls="${id}" style="margin-top: 15px;">
 									${__("Show Traceback")}
 								</button>
@@ -867,15 +998,15 @@ frappe.ui.form.on("Data Import", {
 										<pre>${log.exception}</pre>
 									</div>
 								</div>`;
-						}
-						let indicator_color = log.success ? "green" : "red";
-						let title = log.success ? __("Success") : __("Failure");
+					}
+					let indicator_color = log.success ? "green" : "red";
+					let title = log.success ? __("Success") : __("Failure");
 
-						if (frm.doc.show_failed_logs && log.success) {
-							return "";
-						}
+					if (frm.doc.show_failed_logs && log.success) {
+						return "";
+					}
 
-						return `<tr>
+					return `<tr>
 							<td>${JSON.parse(log.row_indexes).join(", ")}</td>
 							<td>
 								<div class="indicator ${indicator_color}">${title}</div>
@@ -884,16 +1015,25 @@ frappe.ui.form.on("Data Import", {
 								${html}
 							</td>
 						</tr>`;
-					})
-					.join("");
+				})
+				.join("");
 
-				if (!rows && frm.doc.show_failed_logs) {
-					rows = `<tr><td class="text-center text-muted" colspan=3>
+			if (!rows && frm.doc.show_failed_logs) {
+				rows = `<tr><td class="text-center text-muted" colspan=3>
 						${__("No failed logs")}
 					</td></tr>`;
-				}
+			}
 
-				frm.get_field("import_log_preview").$wrapper.html(`
+			let upsert_summary = "";
+			if (is_upsert) {
+				upsert_summary = `<div class="text-muted small mb-2">${__(
+					"Inserted {0}, Updated {1}",
+					[inserted_count, updated_count]
+				)}</div>`;
+			}
+
+			frm.get_field("import_log_preview").$wrapper.html(`
+					${upsert_summary}
 					<table class="table table-bordered">
 						<tr class="text-muted">
 							<th width="10%">${__("Row Number")}</th>
@@ -903,8 +1043,36 @@ frappe.ui.form.on("Data Import", {
 						${rows}
 					</table>
 				`);
-			},
-		});
+		};
+
+		const fetch_logs = (inserted_count = 0, updated_count = 0) => {
+			frappe.call({
+				method: "frappe.core.doctype.data_import.data_import.get_import_logs",
+				args: {
+					data_import: frm.doc.name,
+				},
+				callback: function (r) {
+					render_logs(r.message, inserted_count, updated_count);
+				},
+			});
+		};
+
+		if (is_upsert) {
+			frappe.call({
+				method: "frappe.core.doctype.data_import.data_import.get_import_status",
+				args: {
+					data_import_name: frm.doc.name,
+				},
+				callback: function (r) {
+					fetch_logs(cint(r.message.inserted), cint(r.message.updated));
+				},
+				error: function () {
+					fetch_logs();
+				},
+			});
+		} else {
+			fetch_logs();
+		}
 	},
 
 	show_import_log(frm) {
@@ -915,12 +1083,10 @@ frappe.ui.form.on("Data Import", {
 		}
 
 		frappe.call({
-			method: "frappe.client.get_count",
+			method: "frappe.core.doctype.data_import.data_import.get_import_log_count",
+			type: "GET",
 			args: {
-				doctype: "Data Import Log",
-				filters: {
-					data_import: frm.doc.name,
-				},
+				data_import: frm.doc.name,
 			},
 			callback: function (r) {
 				let count = r.message;

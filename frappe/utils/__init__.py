@@ -26,7 +26,14 @@ from typing import Any, Generic, TypeAlias, TypedDict
 import orjson
 from werkzeug.test import Client
 
-from frappe.deprecation_dumpster import gzip_compress, gzip_decompress, make_esc
+from frappe.deprecation_dumpster import (
+	get_gravatar,
+	get_gravatar_url,
+	gzip_compress,
+	gzip_decompress,
+	has_gravatar,
+	make_esc,
+)
 
 # utility functions like cint, int, flt, etc.
 from frappe.utils.data import *
@@ -177,12 +184,21 @@ def validate_email_address(email_str, throw=False):
 	email_str = (email_str or "").strip()
 	out = []
 
-	# Replace newlines with commas so getaddresses can handle them
-	# getaddresses expects comma-separated values
+	# split_emails collapses \n/\r to spaces *before* splitting, so newlines
+	# would no longer act as separators. Convert them to commas up front.
 	email_str = email_str.replace("\n", ",").replace("\r", ",")
 
-	# Parse using stdlib (handles commas in display names correctly)
+	# Fast path: parse the whole string in one shot. Strict mode either gives
+	# us all entries cleanly or bails to [('', '')] on malformed input.
 	addresses = getaddresses([email_str])
+
+	# Slow path: if nothing usable came back, re-parse each piece in isolation
+	# so one malformed entry can't reject its valid neighbours. split_emails
+	# is quote-aware, so `"Last, First" <addr>` survives the split intact.
+	if not any(addr for _, addr in addresses):
+		addresses = []
+		for piece in split_emails(email_str):
+			addresses.extend(getaddresses([piece]))
 
 	for name, addr in addresses:
 		if not addr:
@@ -199,8 +215,7 @@ def validate_email_address(email_str, throw=False):
 		if "undisclosed-recipient" in addr:
 			continue
 
-		match = EMAIL_MATCH_PATTERN.match(addr)
-		if not match:
+		if not EMAIL_MATCH_PATTERN.fullmatch(addr):
 			if throw:
 				frappe.throw(
 					frappe._("{0} is not a valid Email Address").format(frappe.utils.escape_html(addr)),
@@ -300,43 +315,11 @@ def random_string(length: int) -> str:
 	return "".join(secrets.choice(alphabet) for i in range(length))
 
 
-def has_gravatar(email: str) -> str:
-	"""Return gravatar url if user has set an avatar at gravatar.com."""
-	import requests
-
-	if frappe.flags.in_import or frappe.flags.in_install or frappe.in_test:
-		# no gravatar if via upload
-		# since querying gravatar for every item will be slow
-		return ""
-
-	gravatar_url = get_gravatar_url(email, "404")
-	try:
-		res = requests.get(gravatar_url, timeout=5)
-		if res.status_code == 200:
-			return gravatar_url
-		else:
-			return ""
-	except requests.exceptions.RequestException:
-		return ""
-
-
-def get_gravatar_url(email: str, default: Literal["mm", "404"] = "mm") -> str:
-	"""Return gravatar URL for the given email.
-
-	If `default` is set to "404", gravatar URL will return 404 if no avatar is found.
-	If `default` is set to "mm", a placeholder image will be returned.
-	"""
-	hexdigest = hashlib.md5(frappe.as_unicode(email).encode("utf-8"), usedforsecurity=False).hexdigest()
-	return f"https://secure.gravatar.com/avatar/{hexdigest}?d={default}&s=200"
-
-
-def get_gravatar(email: str) -> str:
-	"""Return gravatar URL if user has set an avatar at gravatar.com.
-
-	Else return identicon image (base64)."""
+def get_identicon(email: str) -> str:
+	"""Return an identicon image (base64) for the given email."""
 	from frappe.utils.identicon import Identicon
 
-	return has_gravatar(email) or Identicon(email).base64()
+	return Identicon(email).base64()
 
 
 def get_traceback(with_context: bool = False) -> str:
@@ -930,7 +913,9 @@ def create_batch(iterable: Iterable, size: int) -> Generator[Iterable]:
 	"""
 	total_count = len(iterable)
 	for i in range(0, total_count, size):
-		yield iterable[i : min(i + size, total_count)]
+		batch = iterable[i : min(i + size, total_count)]
+		assert len(batch) <= size, "each batch must not exceed the requested size"
+		yield batch
 
 
 def set_request(**kwargs):
@@ -1048,6 +1033,9 @@ def groupby_metric(iterable: dict[str, list], key: str):
 
 def get_table_name(table_name: str, wrap_in_backticks: bool = False) -> str:
 	name = f"tab{table_name}" if not table_name.startswith("__") else table_name
+	assert name.startswith(("tab", "__")), (
+		"DB table name must be a 'tab'-prefixed doctype table or a '__' system table"
+	)
 
 	if wrap_in_backticks:
 		return f"`{name}`"

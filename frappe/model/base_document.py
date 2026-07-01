@@ -415,6 +415,8 @@ class BaseDocument:
 			self.__dict__[key] = table = []
 
 		d = self._init_child(value, key)
+		assert isinstance(table, list), "child table storage must be a list"
+		assert d.parentfield == key, "appended child's parentfield must match the table key"
 
 		if position == -1:
 			table.append(d)
@@ -498,6 +500,8 @@ class BaseDocument:
 			__dict["__islocal"] = 1
 			__dict["__temporary_name"] = frappe.generate_hash(length=10)
 
+		assert isinstance(child, BaseDocument), "initialized child must be a BaseDocument"
+		assert __dict["parenttype"] == self.doctype, "child parenttype must reference its parent's doctype"
 		return child
 
 	@cached_property
@@ -556,9 +560,17 @@ class BaseDocument:
 		d = _dict()
 		field_values = self.__dict__
 		field_map = self.meta._fields
+		masked_fieldnames = self.flags.get("masked_fieldnames")
 
 		for fieldname in self.meta.get_valid_fields():
 			value = field_values.get(fieldname)
+
+			# Masked fields hold the XXXXXXXX placeholder; pass it through untouched so it is not
+			# cast back to 0 for numeric fieldtypes. Only truthy values get masked, so falsy ones
+			# fall through to the normal null-aware path.
+			if value and fieldname in (masked_fieldnames or ()):
+				d[fieldname] = value
+				continue
 
 			# if no need for sanitization and value is None, continue
 			if not sanitize and value is None:
@@ -766,6 +778,8 @@ class BaseDocument:
 		if not self.name:
 			# name will be set by document class in most cases
 			set_new_name(self)
+
+		assert self.name, "document name must be set before db_insert"
 
 		conflict_handler = ""
 		returning = ""

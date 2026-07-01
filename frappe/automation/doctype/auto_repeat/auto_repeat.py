@@ -417,7 +417,7 @@ class AutoRepeat(Document):
 		if not self.subject:
 			subject = _("New {0}: {1}").format(new_doc.doctype, new_doc.name)
 		elif "{" in self.subject:
-			subject = frappe.render_template(self.subject, {"doc": new_doc})
+			subject = frappe.render_template(self.subject, {"doc": new_doc}, restrict_globals=True)
 
 		print_format = self.print_format or "Standard"
 		error_string = None
@@ -445,7 +445,7 @@ class AutoRepeat(Document):
 		elif not self.message:
 			message = _("Please find attached {0}: {1}").format(new_doc.doctype, new_doc.name)
 		elif "{" in self.message:
-			message = frappe.render_template(self.message, {"doc": new_doc})
+			message = frappe.render_template(self.message, {"doc": new_doc}, restrict_globals=True)
 
 		make(
 			doctype=new_doc.doctype,
@@ -622,8 +622,8 @@ def generate_message_preview(name: str):
 	doc = frappe.get_doc(auto_repeat.reference_doctype, auto_repeat.reference_document)
 	doc.check_permission()
 	subject_preview = _("Please add a subject to your email")
-	msg_preview = frappe.render_template(auto_repeat.message, {"doc": doc})
+	msg_preview = frappe.render_template(auto_repeat.message, {"doc": doc}, restrict_globals=True)
 	if auto_repeat.subject:
-		subject_preview = frappe.render_template(auto_repeat.subject, {"doc": doc})
+		subject_preview = frappe.render_template(auto_repeat.subject, {"doc": doc}, restrict_globals=True)
 
 	return {"message": msg_preview, "subject": subject_preview}

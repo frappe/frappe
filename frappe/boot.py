@@ -13,8 +13,8 @@ from frappe.core.doctype.installed_applications.installed_applications import (
 	get_setup_wizard_completed_apps,
 )
 from frappe.core.doctype.navbar_settings.navbar_settings import get_app_logo, get_navbar_settings
+from frappe.core.doctype.permission_type.permission_type import get_doctype_ptype_map
 from frappe.desk.desk_views import DeskViews
-from frappe.desk.doctype.changelog_feed.changelog_feed import get_changelog_feed_items
 from frappe.desk.doctype.desktop_icon.desktop_icon import get_desktop_icons
 from frappe.desk.doctype.form_tour.form_tour import get_onboarding_ui_tours
 from frappe.desk.doctype.route_history.route_history import frequently_visited_links
@@ -25,7 +25,6 @@ from frappe.model.base_document import get_controller
 from frappe.utils import add_user_info, get_system_timezone
 from frappe.utils.caching import redis_cache
 from frappe.utils.change_log import get_versions
-from frappe.utils.frappecloud import on_frappecloud
 from frappe.website.doctype.web_page_view.web_page_view import is_tracking_enabled
 
 
@@ -113,10 +112,9 @@ def get_bootinfo():
 	bootinfo.app_logo_url = get_app_logo()
 	bootinfo.link_title_doctypes = get_link_title_doctypes()
 	bootinfo.translated_doctypes = get_translated_doctypes()
+	bootinfo.doctype_ptype_map = get_doctype_ptype_map()
 	bootinfo.subscription_conf = add_subscription_conf()
-	bootinfo.marketplace_apps = get_marketplace_apps()
 	bootinfo.is_fc_site = is_fc_site()
-	bootinfo.changelog_feed = get_changelog_feed_items()
 	bootinfo.enable_address_autocompletion = frappe.db.get_single_value(
 		"Geolocation Settings", "enable_address_autocompletion"
 	)
@@ -124,12 +122,26 @@ def get_bootinfo():
 	if sentry_dsn := get_sentry_dsn():
 		bootinfo.sentry_dsn = sentry_dsn
 
+	bootinfo.json_request_apps = get_json_request_apps()
 	bootinfo.setup_wizard_completed_apps = get_setup_wizard_completed_apps() or []
 	bootinfo.desktop_icon_urls = get_desktop_icon_urls()
 	bootinfo.desktop_icon_style = get_icon_style() or "Subtle"
 	if bootinfo.is_fc_site:
 		bootinfo.site_info = current_site_info()
 	return bootinfo
+
+
+def get_json_request_apps() -> list[str]:
+	"""Apps that opt into native JSON request bodies via `use_json_request_body` in hooks.py.
+
+	The frontend (`frappe.request`) uses this to decide, per call, whether to send args as a
+	native `application/json` body. Apps that don't opt in keep the legacy form-encoded payload.
+	"""
+	return [
+		app
+		for app in frappe.get_installed_apps()
+		if any(frappe.get_hooks("use_json_request_body", app_name=app))
+	]
 
 
 def get_icon_style():
@@ -385,32 +397,6 @@ def load_currency_docs(bootinfo):
 	)
 
 	bootinfo.docs += currency_docs
-
-
-def get_marketplace_apps():
-	import requests
-
-	apps = []
-	cache_key = "frappe_marketplace_apps"
-
-	if frappe.conf.developer_mode or not on_frappecloud():
-		return apps
-
-	def get_apps_from_fc():
-		remote_site = frappe.conf.frappecloud_url or "frappecloud.com"
-		request_url = f"https://{remote_site}/api/method/press.api.marketplace.get_marketplace_apps"
-		request = requests.get(request_url, timeout=2.0)
-		return request.json()["message"]
-
-	try:
-		apps = frappe.cache.get_value(cache_key, get_apps_from_fc, shared=True)
-		installed_apps = set(frappe.get_installed_apps())
-		apps = [app for app in apps if app["name"] not in installed_apps]
-	except Exception:
-		# Don't retry for a day
-		frappe.cache.set_value(cache_key, apps, shared=True, expires_in_sec=24 * 60 * 60)
-
-	return apps
 
 
 @redis_cache

@@ -330,6 +330,7 @@ class Meta(Document):
 		if "name" not in search_fields:
 			search_fields.append("name")
 
+		assert "name" in search_fields, "search fields must always include 'name'"
 		return search_fields
 
 	def get_fields_to_fetch(self, link_fieldname=None):
@@ -377,6 +378,7 @@ class Meta(Document):
 		if not title_field:
 			title_field = "name"
 
+		assert title_field, "title field must resolve to a non-empty fieldname"
 		return title_field
 
 	def get_translatable_fields(self):
@@ -603,6 +605,13 @@ class Meta(Document):
 							# Break out to add this just after the last field
 							break
 						target_position = current_field
+				elif field.fieldtype == "Tab Break" and target_position in field_order:
+					# Find the next tab break and set target_position to just one field before,
+					# so the new tab is appended after the current tab instead of splitting it
+					for current_field in field_order[field_order.index(target_position) + 1 :]:
+						if self._fields[current_field].fieldtype == "Tab Break":
+							break
+						target_position = current_field
 				insertion_map.setdefault(target_position, []).append(field.fieldname)
 
 			else:
@@ -622,6 +631,7 @@ class Meta(Document):
 			field.idx = idx
 			sorted_fields.append(field)
 
+		assert len(sorted_fields) == len(field_order), "every field in field_order must map to a field"
 		self.fields = sorted_fields
 
 	def set_custom_permissions(self):
@@ -924,6 +934,7 @@ def get_field_precision(df, doc=None, currency=None):
 	else:
 		precision = cint(frappe.db.get_default("float_precision")) or 3
 
+	assert isinstance(precision, int), "computed field precision must be an integer"
 	return precision
 
 

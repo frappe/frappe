@@ -6,7 +6,9 @@
 			'pfb-clean-preview': !!store.preview_doc.value,
 		}"
 	>
-		<div :style="page_number_style">{{ __("1 of 2") }}</div>
+		<div v-if="!page_number_hidden" class="pfb-page-num" :style="page_number_style">
+			{{ __("1 of 2") }}
+		</div>
 
 		<LetterHeadZoneEditor zone="header" />
 
@@ -57,10 +59,31 @@ import LetterHeadZoneEditor from "../letterhead/LetterHeadZoneEditor.vue";
 import PrintFormatSection from "./PrintFormatSection.vue";
 import SectionInsert from "./SectionInsert.vue";
 import { useStore } from "../../stores";
-import { computed, inject, watch, nextTick } from "vue";
+import { computed, inject, watch, nextTick, onUnmounted } from "vue";
 
 let { layout, letterhead, print_format } = useStore();
 let store = inject("$store");
+
+const CUSTOM_CSS_ID = "pfb-letterhead-custom-css";
+watch(
+	letterhead,
+	(lh) => {
+		let el = document.getElementById(CUSTOM_CSS_ID);
+		const css = lh?.custom_css;
+		if (!css) {
+			el?.remove();
+			return;
+		}
+		if (!el) {
+			el = document.createElement("style");
+			el.id = CUSTOM_CSS_ID;
+			document.head.appendChild(el);
+		}
+		el.textContent = css;
+	},
+	{ immediate: true, deep: true }
+);
+onUnmounted(() => document.getElementById(CUSTOM_CSS_ID)?.remove());
 
 watch(
 	() => store.scroll_to_section.value,
@@ -120,40 +143,30 @@ let rootStyles = computed(() => {
 let bodyStyles = computed(() => {
 	const { font_size, font } = print_format.value;
 	const styles = {};
-	if (font_size) styles.fontSize = `${font_size}pt`;
+	if (font_size) styles.fontSize = `${parseFloat(font_size)}px`;
 	if (font) styles.fontFamily = `'${font}', sans-serif`;
 	return styles;
 });
 
+let page_number_hidden = computed(() => print_format.value.page_number.includes("Hide"));
+
 let page_number_style = computed(() => {
-	let style = {
-		position: "absolute",
-		background: "var(--fg-color)",
-		padding: "4px",
-		borderRadius: "var(--border-radius)",
-		border: "1px solid var(--border-color)",
-		fontSize: "11px",
-	};
-	if (print_format.value.page_number.includes("Top")) {
-		style.top = print_format.value.margin_top / 2 + "mm";
+	const pn = print_format.value.page_number;
+	const { margin_top, margin_bottom, margin_left, margin_right } = print_format.value;
+	const style = { position: "absolute" };
+	if (pn.includes("Top")) {
+		style.top = margin_top / 2 + "mm";
 		style.transform = "translateY(-50%)";
 	}
-	if (print_format.value.page_number.includes("Left")) {
-		style.left = print_format.value.margin_left + "mm";
-	}
-	if (print_format.value.page_number.includes("Right")) {
-		style.right = print_format.value.margin_right + "mm";
-	}
-	if (print_format.value.page_number.includes("Bottom")) {
-		style.bottom = print_format.value.margin_bottom / 2 + "mm";
+	if (pn.includes("Bottom")) {
+		style.bottom = margin_bottom / 2 + "mm";
 		style.transform = "translateY(50%)";
 	}
-	if (print_format.value.page_number.includes("Center")) {
+	if (pn.includes("Left")) style.left = margin_left + "mm";
+	if (pn.includes("Right")) style.right = margin_right + "mm";
+	if (pn.includes("Center")) {
 		style.left = "50%";
-		style.transform += " translateX(-50%)";
-	}
-	if (print_format.value.page_number.includes("Hide")) {
-		style.display = "none";
+		style.transform = (style.transform || "") + " translateX(-50%)";
 	}
 	return style;
 });
@@ -163,6 +176,17 @@ watch(print_format, () => (store.dirty.value = true), { deep: true });
 </script>
 
 <style scoped>
+.pfb-page-num {
+	font-size: var(--text-xs);
+	color: var(--text-muted);
+	background: var(--fg-color);
+	border: 1px solid var(--border-color);
+	border-radius: var(--radius);
+	padding: var(--padding-xs) var(--padding-sm);
+	line-height: 1.4;
+	white-space: nowrap;
+}
+
 .print-format-main {
 	position: relative;
 	margin-right: auto;
@@ -198,7 +222,7 @@ watch(print_format, () => (store.dirty.value = true), { deep: true });
 	letter-spacing: 0.08em;
 	white-space: nowrap;
 	padding: 2px 8px;
-	border-radius: var(--border-radius-sm);
+	border-radius: var(--radius);
 }
 
 .zone-divider--header .zone-divider-label {
@@ -224,11 +248,14 @@ watch(print_format, () => (store.dirty.value = true), { deep: true });
 	flex-direction: column;
 }
 
+.section-with-insert:hover :deep(.section-insert) {
+	opacity: 1;
+}
+
 /* ── Clean preview mode (when live data is loaded) ───────── */
 
 /* Hide all editor chrome */
 .pfb-clean-preview :deep(.section-toolbar),
-.pfb-clean-preview :deep(.section-insert),
 .pfb-clean-preview :deep(.configure-columns-btn) {
 	display: none !important;
 }
@@ -236,7 +263,7 @@ watch(print_format, () => (store.dirty.value = true), { deep: true });
 /* Section hover/selected states in clean-preview */
 .pfb-clean-preview :deep(.print-format-section) {
 	border: 1px solid transparent;
-	border-radius: var(--border-radius);
+	border-radius: var(--radius);
 	overflow: visible;
 	transition: border-color 0.1s;
 }
@@ -258,7 +285,7 @@ watch(print_format, () => (store.dirty.value = true), { deep: true });
 	border: 1px solid transparent;
 	background: transparent;
 	padding: 0;
-	border-radius: var(--border-radius-sm);
+	border-radius: var(--radius);
 	transition: border-color 0.1s;
 }
 
@@ -304,5 +331,18 @@ watch(print_format, () => (store.dirty.value = true), { deep: true });
 	font-size: var(--text-lg);
 	font-weight: var(--weight-bold);
 	color: var(--text-color);
+}
+
+.pfb-body :deep(.field--preview) {
+	font-size: inherit;
+}
+.pfb-body :deep(.field--preview .field-preview-value) {
+	font-size: 1em;
+}
+.pfb-body :deep(.field--preview .field-preview-label) {
+	font-size: 0.8em;
+}
+.pfb-body :deep(.field--preview .preview-table) {
+	font-size: 0.9em;
 }
 </style>

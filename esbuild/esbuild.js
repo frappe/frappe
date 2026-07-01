@@ -1,5 +1,7 @@
 const path = require("path");
 const fs = require("fs");
+const os = require("os");
+const { spawn } = require("child_process");
 const glob = require("fast-glob");
 const esbuild = require("esbuild");
 const vue = require("esbuild-plugin-vue3");
@@ -72,6 +74,10 @@ const argv = yargs
 		type: "string",
 		description: "Specifies the target of the build output.",
 	})
+	.option("verbose", {
+		type: "boolean",
+		description: "Print detailed build output",
+	})
 	.example("node esbuild --apps frappe,erpnext", "Run build only for frappe and erpnext")
 	.example(
 		"node esbuild --files frappe/website.bundle.js,frappe/desk.bundle.js",
@@ -87,6 +93,10 @@ const WATCH_MODE = Boolean(argv.watch);
 const PRODUCTION = Boolean(argv.production);
 const RUN_BUILD_COMMAND = !WATCH_MODE && Boolean(argv["run-build-command"]);
 const ESBUILD_TARGET = argv["esbuild-target"] || "es2017";
+// Allow VERBOSE to be inherited by nested esbuild invocations (per-app yarn
+// build) via the environment; CLI flag propagation through yarn run breaks
+// chained scripts like `yarn copy && cp`.
+const VERBOSE = Boolean(argv.verbose) || process.env.FRAPPE_BUILD_VERBOSE === "1";
 
 const TOTAL_BUILD_TIME = `${chalk.black.bgGreen(" DONE ")} Total Build Time`;
 const NODE_PATHS = [].concat(
@@ -96,9 +106,15 @@ const NODE_PATHS = [].concat(
 	app_list.map((app) => path.resolve(apps_path, app)).filter(fs.existsSync)
 );
 const USING_CACHED = Boolean(argv["using-cached"]);
+// In non-verbose mode we only keep the tail of child-process output so failed
+// builds still have actionable context without growing unbounded. Verbose mode
+// uses Infinity to preserve the full log for serialized flushing.
+const MAX_OUTPUT_BUFFER = 20000;
 
 execute().catch((e) => {
-	console.error(e);
+	if (!e?.reported) {
+		console.error(e);
+	}
 	process.exit(1);
 });
 
@@ -130,16 +146,22 @@ async function execute() {
 	}
 
 	if (!WATCH_MODE) {
-		log_built_assets(results);
-		console.timeEnd(TOTAL_BUILD_TIME);
-		log();
+		if (VERBOSE) {
+			log_built_assets(results);
+			console.timeEnd(TOTAL_BUILD_TIME);
+			log();
+		} else {
+			console.timeEnd(TOTAL_BUILD_TIME);
+		}
 	} else {
 		log("Watching for changes...");
 	}
 	for (const result of results) {
 		await write_assets_json(result.metafile);
 	}
-	RUN_BUILD_COMMAND && run_build_command_for_apps(APPS);
+	if (RUN_BUILD_COMMAND) {
+		await run_build_command_for_apps(APPS);
+	}
 	if (!WATCH_MODE) {
 		process.exit(0);
 	}
@@ -536,16 +558,52 @@ async function get_assets_json_path_and_obj(is_rtl) {
 	return { obj: assets_json, path: assets_json_path };
 }
 
-function run_build_command_for_apps(apps) {
-	let cwd = process.cwd();
-	let { execSync } = require("child_process");
+function get_build_concurrency(app_count) {
+	const raw = process.env.FRAPPE_BUILD_CONCURRENCY?.trim();
+	if (raw) {
+		const env_limit = Number(raw);
+		if (Number.isInteger(env_limit)) {
+			if (env_limit === 0) {
+				return Math.min(1, app_count);
+			}
+			if (env_limit > 0) {
+				return Math.min(env_limit, app_count);
+			}
+		}
+	}
+	const cpu_limit = Math.max(1, Math.floor(os.cpus().length / 2));
+	return Math.min(cpu_limit, app_count);
+}
 
+// Track running app-build children so failures or signals can terminate all of
+// them together and avoid orphaned processes.
+const BUILD_CHILDREN = new Set();
+
+function register_build_signal_handlers() {
+	const exit_after_cleanup = (exit_code) => {
+		terminate_build_children().finally(() => process.exit(exit_code));
+	};
+
+	const on_sigint = () => exit_after_cleanup(130);
+	const on_sigterm = () => exit_after_cleanup(143);
+
+	process.once("SIGINT", on_sigint);
+	process.once("SIGTERM", on_sigterm);
+
+	return () => {
+		process.removeListener("SIGINT", on_sigint);
+		process.removeListener("SIGTERM", on_sigterm);
+	};
+}
+
+async function run_build_command_for_apps(apps) {
+	BUILD_CHILDREN.clear();
+	const build_apps = [];
 	for (let app of apps) {
 		if (app === "frappe") continue;
 
 		let root_app_path = path.resolve(apps_path, app);
 		let package_json = path.resolve(root_app_path, "package.json");
-		let node_modules = path.resolve(root_app_path, "node_modules");
 
 		if (!fs.existsSync(package_json)) {
 			continue;
@@ -556,19 +614,268 @@ function run_build_command_for_apps(apps) {
 			continue;
 		}
 
-		process.chdir(root_app_path);
-		if (!fs.existsSync(node_modules)) {
-			log(
-				`\nInstalling dependencies for ${chalk.bold(app)} (because node_modules not found)`
-			);
-			execSync("yarn install --frozen-lockfile", { encoding: "utf8", stdio: "inherit" });
-		}
-
-		log("\nRunning build command for", chalk.bold(app));
-		execSync("yarn build", { encoding: "utf8", stdio: "inherit" });
+		build_apps.push({ app, root_app_path });
 	}
 
-	process.chdir(cwd);
+	if (!build_apps.length) {
+		return;
+	}
+
+	const concurrency = get_build_concurrency(build_apps.length);
+	const execution_mode =
+		concurrency === 1 ? "sequentially" : `in parallel (${concurrency} workers)`;
+	log(`Running build commands for ${build_apps.length} app(s) ${execution_mode}...`);
+
+	const tasks = build_apps.map(
+		({ app, root_app_path }) =>
+			() =>
+				run_app_build(app, root_app_path)
+	);
+
+	const unregister_signal_handlers = register_build_signal_handlers();
+	try {
+		await run_with_concurrency(tasks, concurrency);
+	} catch (error) {
+		await terminate_build_children();
+		const errors = error instanceof AggregateError ? error.errors : [error];
+		for (const err of errors) {
+			const step_label = err.step === "install" ? "yarn install" : "yarn build";
+			log_error(`${step_label} failed for ${err.app || "an app"}`);
+			if (VERBOSE) {
+				// Child output (if any) was already streamed by flush_verbose;
+				// surface the raw error so spawn/ENOENT failures aren't silent.
+				log(chalk.dim(err.stack || err.message || String(err)));
+			} else if (err.output) {
+				log(err.output.trim());
+			}
+		}
+		if (!VERBOSE && errors.some((e) => !e.output)) {
+			log_warn("Run again with --verbose for more details.");
+		}
+		// Prevent the top-level execute().catch from re-dumping the same error:
+		// verbose builds already streamed the child output, and non-verbose builds
+		// just printed a trimmed summary above.
+		error.reported = true;
+		throw error;
+	} finally {
+		unregister_signal_handlers();
+	}
+
+	log("Build commands finished.");
+}
+
+async function run_app_build(app, root_app_path) {
+	const started = Date.now();
+	let node_modules = path.resolve(root_app_path, "node_modules");
+	if (!fs.existsSync(node_modules)) {
+		await run_command("yarn install --frozen-lockfile", {
+			cwd: root_app_path,
+			app,
+			step: "install",
+		});
+	}
+
+	await run_command("yarn build", { cwd: root_app_path, app, step: "build" });
+
+	if (!VERBOSE) {
+		const elapsed = ((Date.now() - started) / 1000).toFixed(1);
+		log(`${chalk.green("✔")} ${chalk.bold(app)} built in ${elapsed}s`);
+	}
+}
+
+function run_command(command, { cwd, app, step }) {
+	return new Promise((resolve, reject) => {
+		const child = spawn(command, {
+			cwd,
+			shell: true,
+			stdio: ["ignore", "pipe", "pipe"],
+			env: VERBOSE ? { ...process.env, FRAPPE_BUILD_VERBOSE: "1" } : process.env,
+		});
+
+		BUILD_CHILDREN.add(child);
+
+		const output_buffer = create_output_buffer({
+			max_bytes: VERBOSE ? Infinity : MAX_OUTPUT_BUFFER,
+		});
+		const on_data = (chunk) => output_buffer.append(chunk);
+		if (child.stdout) child.stdout.on("data", on_data);
+		if (child.stderr) child.stderr.on("data", on_data);
+
+		const flush_verbose = () => {
+			if (!VERBOSE || !output_buffer.length) return;
+			const banner = chalk.dim(`──── ${step} · ${chalk.bold(app)} ────`);
+			const text = output_buffer.toString();
+			const trailing = text.endsWith("\n") ? "" : "\n";
+			process.stdout.write(`\n${banner}\n${text}${trailing}`);
+		};
+
+		child.on("error", (error) => {
+			BUILD_CHILDREN.delete(child);
+			flush_verbose();
+			error.app = app;
+			error.step = step;
+			error.output = output_buffer.toString();
+			reject(error);
+		});
+
+		child.on("close", (code, signal) => {
+			BUILD_CHILDREN.delete(child);
+			flush_verbose();
+			if (code === 0) {
+				resolve();
+				return;
+			}
+
+			let exit_details = `exit code ${code}`;
+			if (signal) {
+				exit_details = `signal ${signal}`;
+			} else if (code === null) {
+				exit_details = "unknown exit status";
+			}
+
+			const error = new Error(`${step} command failed for ${app} (${exit_details})`);
+			error.app = app;
+			error.step = step;
+			error.output = output_buffer.toString();
+			reject(error);
+		});
+	});
+}
+
+function create_output_buffer({ max_bytes }) {
+	const chunks = [];
+	let size = 0;
+	let truncated = false;
+
+	const trim = () => {
+		if (max_bytes === Infinity) return;
+		while (size > max_bytes && chunks.length > 1) {
+			size -= chunks.shift().length;
+			truncated = true;
+		}
+		// A single remaining chunk can still exceed the cap; slice its tail.
+		if (chunks.length === 1 && size > max_bytes) {
+			const last = chunks[0];
+			chunks[0] = last.subarray(last.length - max_bytes);
+			size = chunks[0].length;
+			truncated = true;
+		}
+	};
+
+	return {
+		append(chunk) {
+			const buf = Buffer.isBuffer(chunk) ? chunk : Buffer.from(chunk);
+			chunks.push(buf);
+			size += buf.length;
+			trim();
+		},
+		toString() {
+			if (!chunks.length) return "";
+			const prefix = truncated ? "…(output truncated)…\n" : "";
+			return prefix + Buffer.concat(chunks, size).toString();
+		},
+		get length() {
+			return size;
+		},
+	};
+}
+
+function run_with_concurrency(tasks, concurrency) {
+	let index = 0;
+	let running = 0;
+	const errors = [];
+
+	return new Promise((resolve, reject) => {
+		const maybe_done = () => {
+			if (running !== 0) return;
+			if (errors.length === 1) reject(errors[0]);
+			else if (errors.length) reject(new AggregateError(errors, "One or more tasks failed"));
+			else resolve();
+		};
+
+		const schedule = () => {
+			if (errors.length) return;
+			while (running < concurrency && index < tasks.length) {
+				const task = tasks[index++];
+				running += 1;
+				Promise.resolve()
+					.then(task)
+					.then(() => {
+						running -= 1;
+						if (errors.length) maybe_done();
+						else if (index === tasks.length && running === 0) resolve();
+						else schedule();
+					})
+					.catch((error) => {
+						running -= 1;
+						errors.push(error);
+						maybe_done();
+					});
+			}
+		};
+
+		if (!tasks.length) {
+			resolve();
+			return;
+		}
+
+		schedule();
+	});
+}
+
+async function terminate_build_children({ grace_period_ms = 5000 } = {}) {
+	const victims = Array.from(BUILD_CHILDREN);
+	BUILD_CHILDREN.clear();
+
+	if (!victims.length) return;
+
+	for (const child of victims) {
+		try {
+			child.kill();
+		} catch (error) {
+			// no-op
+		}
+	}
+
+	await wait_for_children_exit(victims, grace_period_ms);
+
+	// Anything still alive after the grace period gets SIGKILL so we don't
+	// leave orphaned yarn/esbuild processes when the parent exits.
+	for (const child of victims) {
+		if (child.exitCode !== null || child.signalCode !== null) continue;
+		try {
+			child.kill("SIGKILL");
+		} catch (error) {
+			// no-op
+		}
+	}
+}
+
+function wait_for_children_exit(children, timeout_ms) {
+	if (!children.length) return Promise.resolve();
+	return new Promise((resolve) => {
+		let remaining = children.length;
+		let settled = false;
+		const finish = () => {
+			if (settled) return;
+			settled = true;
+			clearTimeout(timer);
+			resolve();
+		};
+		const done = () => {
+			remaining -= 1;
+			if (remaining <= 0) finish();
+		};
+		const timer = setTimeout(finish, timeout_ms);
+		timer.unref();
+		for (const child of children) {
+			if (child.exitCode !== null || child.signalCode !== null) {
+				done();
+			} else {
+				child.once("close", done);
+			}
+		}
+	});
 }
 
 async function notify_redis({ error, success, changed_files }) {
