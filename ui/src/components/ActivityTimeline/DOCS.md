@@ -5,8 +5,6 @@ comments, assignment/attachment/workflow logs, and folded version history — as
 vertical thread. The component only renders; the `useActivityTimeline` composable owns
 fetching, caching, realtime updates, and email pagination.
 
-For the version-folding vocabulary, see [`version-activities.md`](./version-activities.md).
-
 ## The mental model
 
 1. **Presentational.** `<ActivityTimeline>` takes an `activities` array and renders it.
@@ -165,8 +163,19 @@ returns; pass it through and the component wires the "Load more" control for you
 `position: "inline"` injects a `load_more` row directly above the oldest email; `top` /
 `bottom` render a standalone button. Omit `loadMore` for a default top button.
 
-For copy-only tweaks, set `loadMore.label` / `loadMore.icon`. To replace the control entirely
-(at every position it renders), use the `#load_more` slot — scoped with `{ loading, loadMore }`:
+The control is configured through the `paginate.loadMore` object you pass. The composable
+bakes in a default (`{ position: "inline", label: "Show previous conversations", icon:
+"lucide-chevrons-up" }`); override it by spreading the returned `paginate`:
+
+```vue
+<ActivityTimeline
+  :activities="activities"
+  :paginate="{ ...paginate, loadMore: { ...paginate.loadMore, position: 'bottom' } }"
+/>
+```
+
+To replace the control entirely (at every position it renders), use the `#load_more` slot
+— scoped with `{ loading, loadMore }`:
 
 ```vue
 <ActivityTimeline :activities="activities" :paginate="paginate">
@@ -198,6 +207,41 @@ Returns:
 patches the feed live — new comments/likes/assignments/attachments arrive via
 `docinfo_update`, and field changes trigger a reload via `doc_update`. It unsubscribes on
 unmount.
+
+## Smart folding
+
+`activities` is not the raw feed. The composable **re-derives a folded view** on every
+load and live update: dedupe by `key` → sort oldest-first → fold version runs → fold
+assignment runs. The split of responsibility is deliberate — the **backend ships each
+change as structured, already-translated data** (what kind of change it is + the words),
+and the **frontend owns all cross-row merging, before→after layout, and truncation**,
+because merging is a cross-row decision that must recompute on every reload.
+
+**Version folding** — a run of consecutive same-author `version` rows collapses into one
+summary (`VersionItem` renders it as a "+N changes" group):
+
+- **Same field across saves** → net `first.from → last.to`; every hop is kept in `history`
+  (revealed by a chevron).
+- **No-op churn** (`H→B→C→H` — ends where it started) → dropped entirely.
+- A run **ends at any non-version row** and **splits on a >15 min gap** between saves.
+- Row **identity keys off the first row** (stable as the run grows, so Vue keeps its
+  expanded state); the timestamp comes from the last.
+
+**Assignment folding** — a run of consecutive same-author assignment logs nets per
+assignee (+1 assigned, −1 removed): anyone who nets to zero (assigned then unassigned
+within the run) is **dropped**, and named survivors **merge into one comma-joined row per
+direction** (assigned / removed).
+
+| input | output |
+| --- | --- |
+| `status H→B→C→H` | *(nothing — net no-op)* |
+| `status H→B→C→D` | `changed status H → D` (3 hops under the chevron) |
+| `status B→H`, `priority→Low`, `status H→A` | `+3 changes` → `status B → A` / `set priority to Low` |
+
+The backend decides each change's *kind* (`format_version_change` → `diff` vs `phrase`)
+and applies field-level read permissions (`get_permitted_fields` / `is_field_visible`)
+before the frontend folds — see `frappe/desk/form/activity.py`. The `VersionChange`
+data shape is in [`types.ts`](./types.ts).
 
 ## Examples
 
