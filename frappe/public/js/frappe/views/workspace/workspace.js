@@ -210,7 +210,7 @@ frappe.views.Workspace = class Workspace {
 							},
 						},
 						{
-							label: "Configure",
+							label: "Manage",
 							icon: "settings",
 							onClick: () => this.open_workspace_manager(current_page),
 							condition: () => {
@@ -363,42 +363,56 @@ frappe.views.Workspace = class Workspace {
 	}
 
 	open_workspace_manager(current_page) {
-		// Two-pane manager: the list of workspaces the user can edit on the left, the
+		// Two-pane manager: the list of workspaces the user can manage on the left, the
 		// selected workspace's access / appearance settings on the right. Replaces the
 		// old "route to the Workspace / Workspace Customization form" flow.
-		const manageable = this.workspaces.filter((p) => p.is_editable);
-		if (!manageable.length) return;
+		//
+		// The list comes from the server, not `frappe.boot.workspaces`: the bootinfo only
+		// carries the user's *own* private workspaces, but a Workspace Manager manages every
+		// workspace (including other users' private ones).
+		frappe
+			.call({
+				method: "frappe.desk.doctype.workspace.workspace.get_manageable_workspaces",
+			})
+			.then((r) => {
+				const manageable = r.message || [];
+				if (!manageable.length) return;
 
-		const tabs = [];
-		const public_pages = manageable.filter((p) => p.public);
-		const private_pages = manageable.filter((p) => !p.public);
-		if (public_pages.length) {
-			tabs.push({
-				group: __("Public"),
-				items: public_pages.map((p) => this.workspace_manager_item(p)),
-			});
-		}
-		if (private_pages.length) {
-			tabs.push({
-				group: __("Private"),
-				items: private_pages.map((p) => this.workspace_manager_item(p)),
-			});
-		}
+				const tabs = [];
+				const public_pages = manageable.filter((p) => p.public);
+				const private_pages = manageable.filter((p) => !p.public);
+				if (public_pages.length) {
+					tabs.push({
+						group: __("Public"),
+						items: public_pages.map((p) => this.workspace_manager_item(p)),
+					});
+				}
+				if (private_pages.length) {
+					tabs.push({
+						group: __("Private"),
+						items: private_pages.map((p) => this.workspace_manager_item(p)),
+					});
+				}
 
-		const default_tab =
-			current_page && current_page.is_editable ? current_page.name : undefined;
-		this.workspace_manager = new frappe.ui.SettingsDialog({
-			title: __("Manage Workspaces"),
-			tabs,
-			default_tab,
-		});
-		this.workspace_manager.show();
+				const has_current =
+					current_page && manageable.some((p) => p.name === current_page.name);
+				this.workspace_manager = new frappe.ui.SettingsDialog({
+					title: __("Manage Workspaces"),
+					tabs,
+					default_tab: has_current ? current_page.name : undefined,
+				});
+				this.workspace_manager.show();
+			});
 	}
 
 	workspace_manager_item(page) {
+		// a manager may see private workspaces owned by other users -- label whose they are
+		const owned_by_other =
+			!page.public && page.for_user && page.for_user !== frappe.session.user;
+		const label = owned_by_other ? `${__(page.title)} (${page.for_user})` : __(page.title);
 		return {
 			id: page.name,
-			label: __(page.title),
+			label,
 			icon: page.icon || "grid",
 			render: (panel) => this.render_workspace_manager_panel(panel, page),
 		};

@@ -455,6 +455,28 @@ def update_page(name: str, title: str, icon: str, indicator_color: str, parent: 
 
 
 @frappe.whitelist()
+def get_manageable_workspaces():
+	"""Workspaces the current user may manage in the Manage Workspaces dialog.
+
+	The desk bootinfo only carries the user's *own* private workspaces, so it can't back the
+	manager for a Workspace Manager (who should see every workspace, including other users'
+	private ones). Everyone else sees only their own private workspaces.
+	"""
+	fields = ["name", "title", "icon", "public", "for_user", "standard"]
+	if is_workspace_manager():
+		filters = {}
+	else:
+		filters = {"public": 0, "for_user": frappe.session.user}
+	return frappe.get_all(
+		"Workspace",
+		fields=fields,
+		filters=filters,
+		order_by="public desc, sequence_id asc",
+		ignore_permissions=True,
+	)
+
+
+@frappe.whitelist()
 def get_workspace_settings(name: str):
 	"""Effective, editable metadata for the Manage Workspaces dialog.
 
