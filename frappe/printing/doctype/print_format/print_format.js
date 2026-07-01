@@ -65,7 +65,6 @@ frappe.ui.form.on("Print Format", {
 					});
 				});
 			}
-
 		}
 	},
 	custom_format: function (frm) {

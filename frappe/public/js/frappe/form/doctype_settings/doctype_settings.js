@@ -67,7 +67,11 @@ function build_dialog(doctype, has_general) {
 	let dialog = frappe.doctype_settings._dialog;
 
 	if (!dialog) {
-		dialog = new frappe.ui.SettingsDialog({ title: __("DocType Settings"), tabs, default_tab });
+		dialog = new frappe.ui.SettingsDialog({
+			title: __("DocType Settings"),
+			tabs,
+			default_tab,
+		});
 		frappe.doctype_settings._dialog = dialog;
 	} else if (dialog.doctype !== doctype) {
 		dialog.reset(tabs, default_tab);

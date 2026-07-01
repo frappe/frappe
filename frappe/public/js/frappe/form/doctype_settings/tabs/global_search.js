@@ -46,12 +46,18 @@ function render(panel, doctype, included, options) {
 		},
 	];
 	if (included) {
-		actions.push({ label: __("Save"), primary: true, click: () => save(panel, doctype, state) });
+		actions.push({
+			label: __("Save"),
+			primary: true,
+			click: () => save(panel, doctype, state),
+		});
 	}
 
 	panel.set_view({
 		title: __("Global Search"),
-		description: __("Index {0} in global search and choose which fields are searchable.", [doctype]),
+		description: __("Index {0} in global search and choose which fields are searchable.", [
+			doctype,
+		]),
 		actions,
 		render: (p) => draw(p, doctype, state),
 	});
@@ -61,17 +67,21 @@ function draw(panel, doctype, state) {
 	const $body = panel.body.empty();
 
 	$body.append(
-		make_switch(__("Include {0} in global search", [doctype]), state.included, (checked, input) => {
-			// Membership affects global search for everyone — confirm either way, revert on cancel.
-			const message = checked
-				? __("Add {0} to global search?", [doctype])
-				: __("Remove {0} from global search?", [doctype]);
-			frappe.confirm(
-				message,
-				() => set_included(doctype, checked).then(() => load(panel, doctype)),
-				() => (input.checked = !checked)
-			);
-		})
+		make_switch(
+			__("Include {0} in global search", [doctype]),
+			state.included,
+			(checked, input) => {
+				// Membership affects global search for everyone — confirm either way, revert on cancel.
+				const message = checked
+					? __("Add {0} to global search?", [doctype])
+					: __("Remove {0} from global search?", [doctype]);
+				frappe.confirm(
+					message,
+					() => set_included(doctype, checked).then(() => load(panel, doctype)),
+					() => (input.checked = !checked)
+				);
+			}
+		)
 	);
 
 	if (!state.included) return;
@@ -84,7 +94,10 @@ function draw(panel, doctype, state) {
 	state.fields.forEach((o) => {
 		const $item = make_check(o.label, o.checked, (v) => (o.checked = v))
 			.addClass("dts-gs-item")
-			.attr("data-search", `${(o.label || "").toLowerCase()} ${(o.value || "").toLowerCase()}`);
+			.attr(
+				"data-search",
+				`${(o.label || "").toLowerCase()} ${(o.value || "").toLowerCase()}`
+			);
 		$grid.append($item);
 	});
 
@@ -110,7 +123,9 @@ function set_included(doctype, included) {
 
 		return frappe.call({ method: "frappe.client.save", args: { doc: settings } }).then(() => {
 			frappe.show_alert({
-				message: included ? __("Added to global search") : __("Removed from global search"),
+				message: included
+					? __("Added to global search")
+					: __("Removed from global search"),
 				indicator: "green",
 			});
 		});
@@ -139,8 +154,7 @@ function make_switch(label, checked, onchange) {
 			<span class="switch-visual" aria-hidden="true"><span class="switch-thumb"></span></span>
 		</label>`);
 	$el.find(".label-area").text(label);
-	$el
-		.find("input")
+	$el.find("input")
 		.prop("checked", checked)
 		.on("change", (e) => onchange(e.target.checked, e.target));
 	return $el;

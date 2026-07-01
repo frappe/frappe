@@ -156,8 +156,11 @@ frappe.ui.PermissionDialog = class PermissionDialog {
 	}
 
 	title() {
-		if (this.is_edit) return __("{0} Permission for {1}", [__(this.row.source), this.row.parent]);
-		return __("Add Permission for {0}", [this.is_doctype_centric ? this.tab.doctype : this.role]);
+		if (this.is_edit)
+			return __("{0} Permission for {1}", [__(this.row.source), this.row.parent]);
+		return __("Add Permission for {0}", [
+			this.is_doctype_centric ? this.tab.doctype : this.role,
+		]);
 	}
 
 	fields() {
@@ -317,7 +320,11 @@ frappe.ui.PermissionDialog = class PermissionDialog {
 		this.dialog.set_df_property("if_owner", "hidden", high_level ? 1 : 0);
 		PERM_SECTIONS.forEach((section) => {
 			const any = section.flags.some((flag) => visible(flag.name));
-			this.dialog.set_df_property(section_break_fieldname(section.label), "hidden", any ? 0 : 1);
+			this.dialog.set_df_property(
+				section_break_fieldname(section.label),
+				"hidden",
+				any ? 0 : 1
+			);
 		});
 	}
 
