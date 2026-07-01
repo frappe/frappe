@@ -527,7 +527,7 @@ function remove_column(index) {
 	border-bottom: 1px solid var(--border-color) !important;
 }
 .section--grid .section-columns {
-	padding: 0 !important;
+	padding: 0;
 }
 .section--grid .column {
 	padding: 0;
@@ -543,20 +543,28 @@ function remove_column(index) {
 .section--grid :deep(.drag-container) {
 	gap: 0 !important;
 }
-.section--grid :deep(.field:not(.field--preview)) {
+/* Cell padding + horizontal row separators.
+   !important is required here: the clean-preview base rules
+   (.pfb-clean-preview .field--preview) set transparent borders at equal
+   specificity and would otherwise suppress the row lines. */
+.section--grid :deep(.field) {
 	padding: var(--pfb-cell-pad, 8px) !important;
 	border: none !important;
 	border-bottom: 1px solid var(--border-color) !important;
 	border-radius: 0 !important;
 	background: transparent !important;
 }
-.section--grid :deep(.field--preview) {
-	padding: var(--pfb-cell-pad, 8px) !important;
-	border-bottom: 1px solid var(--border-color) !important;
-	border-radius: 0 !important;
-	background: transparent !important;
-}
 .section--grid :deep(.field:last-child) {
 	border-bottom: none !important;
+}
+/* Hover/selection highlight uses outline, not border, so it draws a full box
+   (including the bottom edge) without fighting the row-separator borders. */
+.section--grid :deep(.field:hover),
+.section--grid :deep(.field--selected) {
+	outline: 1px dashed var(--gray-400);
+	outline-offset: -1px;
+}
+.section--grid :deep(.field--selected) {
+	outline-style: solid;
 }
 </style>

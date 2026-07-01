@@ -368,6 +368,9 @@ header img {
 }
 .section--grid .section-columns {
 	padding: 0;
+	/* Cancel Bootstrap .row's negative gutters so cells stay inside the border */
+	margin-left: 0;
+	margin-right: 0;
 }
 .section--grid .col {
 	padding: 0;
