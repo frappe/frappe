@@ -134,6 +134,9 @@ function subscribeToLiveUpdates(
       key: string;
       action: "add" | "update" | "delete";
     };
+    if (doc.reference_doctype !== doctype || doc.reference_name !== docname)
+      return;
+
     const activity = normalizeLiveActivity(key, doc, resolveAuthor);
     if (!activity) return;
 
@@ -149,7 +152,11 @@ function subscribeToLiveUpdates(
     }
   };
 
-  const onDocUpdate = () => resource.reload();
+  const onDocUpdate = (payload: unknown) => {
+    const { doctype: dt, name } = payload as { doctype: string; name: string };
+    if (dt !== doctype || name !== docname) return;
+    resource.reload();
+  };
   onMounted(() => {
     socket.emit("doc_subscribe", doctype, docname); // subscribes to doc updates for this doctype:docname
     socket.on("docinfo_update", onUpdate); // subscribes to live communications, comments, likes, assignments, attachments
