@@ -443,7 +443,7 @@ class Session:
 				.set(Sessions.lastupdate, now)
 			).run()
 
-			update_user_metadata(frappe.session.user, last_active=now)
+			update_user_metadata(frappe.session.user, last_active=now, last_ip=frappe.local.request_ip)
 
 			frappe.db.commit(chain=True)
 			updated_in_db = True
