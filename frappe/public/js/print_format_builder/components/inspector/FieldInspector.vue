@@ -131,19 +131,14 @@
 						<!-- Cell padding -->
 						<div class="pfb-insp-row">
 							<span class="pfb-insp-label">{{ __("Cell padding") }}</span>
-							<div class="pfb-stepper">
-								<button @click="adjust_cell_padding(-1)">−</button>
-								<input
-									class="pfb-stepper-input"
-									type="number"
-									min="0"
-									:value="table_cell_padding ?? ''"
-									:placeholder="__('auto')"
-									@change="(e) => set_cell_padding(e.target.value)"
-								/>
-								<span class="pfb-stepper-unit">px</span>
-								<button @click="adjust_cell_padding(1)">+</button>
-							</div>
+							<Stepper
+								:value="table_cell_padding ?? ''"
+								:placeholder="__('auto')"
+								unit="px"
+								@decrement="adjust_cell_padding(-1)"
+								@increment="adjust_cell_padding(1)"
+								@input="set_cell_padding"
+							/>
 						</div>
 						<!-- Header -->
 						<div class="pfb-insp-row">
@@ -172,19 +167,14 @@
 						<!-- Corner radius -->
 						<div class="pfb-insp-row">
 							<span class="pfb-insp-label">{{ __("Radius") }}</span>
-							<div class="pfb-stepper">
-								<button @click="adjust_table_radius(-1)">−</button>
-								<input
-									class="pfb-stepper-input"
-									type="number"
-									min="0"
-									:value="table_radius ?? ''"
-									:placeholder="__('none')"
-									@change="(e) => set_table_radius(e.target.value)"
-								/>
-								<span class="pfb-stepper-unit">px</span>
-								<button @click="adjust_table_radius(1)">+</button>
-							</div>
+							<Stepper
+								:value="table_radius ?? ''"
+								:placeholder="__('none')"
+								unit="px"
+								@decrement="adjust_table_radius(-1)"
+								@increment="adjust_table_radius(1)"
+								@input="set_table_radius"
+							/>
 						</div>
 					</div>
 				</div>
@@ -593,24 +583,15 @@
 						<!-- Gap -->
 						<div class="pfb-insp-row">
 							<span class="pfb-insp-label">{{ __("Gap") }}</span>
-							<div class="pfb-stepper">
-								<button @click="adjust_gap(-4)">−</button>
-								<input
-									class="pfb-stepper-input"
-									type="number"
-									min="0"
-									:value="section_gap"
-									@change="
-										(e) =>
-											(selected_section.gap = Math.max(
-												0,
-												parseInt(e.target.value) || 0
-											))
-									"
-								/>
-								<span class="pfb-stepper-unit">px</span>
-								<button @click="adjust_gap(4)">+</button>
-							</div>
+							<Stepper
+								:value="section_gap"
+								unit="px"
+								@decrement="adjust_gap(-4)"
+								@increment="adjust_gap(4)"
+								@input="
+									(v) => (selected_section.gap = Math.max(0, parseInt(v) || 0))
+								"
+							/>
 						</div>
 
 						<!-- Label case -->
@@ -679,19 +660,13 @@
 								<div class="pfb-padding-label">
 									{{ __(side[0].toUpperCase() + side.slice(1)) }}
 								</div>
-								<div class="pfb-stepper pfb-stepper--sm">
-									<button @click="adjust_padding(side, -4)">−</button>
-									<input
-										class="pfb-stepper-input"
-										type="number"
-										min="0"
-										:value="section_padding[side]"
-										@change="
-											(e) => set_padding(side, parseInt(e.target.value) || 0)
-										"
-									/>
-									<button @click="adjust_padding(side, 4)">+</button>
-								</div>
+								<Stepper
+									sm
+									:value="section_padding[side]"
+									@decrement="adjust_padding(side, -4)"
+									@increment="adjust_padding(side, 4)"
+									@input="(v) => set_padding(side, parseInt(v) || 0)"
+								/>
 							</div>
 						</div>
 					</div>
@@ -729,21 +704,13 @@
 						<!-- Cell padding -->
 						<div class="pfb-insp-row">
 							<span class="pfb-insp-label">{{ __("Cell padding") }}</span>
-							<div class="pfb-stepper">
-								<button @click="adjust_section_cell_padding(-1)">−</button>
-								<input
-									class="pfb-stepper-input"
-									type="number"
-									min="0"
-									:value="section_cell_padding"
-									@change="
-										(e) =>
-											set_section_cell_padding(parseInt(e.target.value) || 0)
-									"
-								/>
-								<span class="pfb-stepper-unit">px</span>
-								<button @click="adjust_section_cell_padding(1)">+</button>
-							</div>
+							<Stepper
+								:value="section_cell_padding"
+								unit="px"
+								@decrement="adjust_section_cell_padding(-1)"
+								@increment="adjust_section_cell_padding(1)"
+								@input="(v) => set_section_cell_padding(parseInt(v) || 0)"
+							/>
 						</div>
 					</div>
 				</div>
@@ -799,6 +766,7 @@ import { useStore } from "../../stores";
 import LetterHeadZoneInspector from "./LetterHeadZoneInspector.vue";
 import Autocomplete from "../../../vue-components/Autocomplete.vue";
 import VisibilitySection from "./VisibilitySection.vue";
+import Stepper from "./Stepper.vue";
 
 let store = inject("$store");
 let { letterhead, layout } = useStore();
@@ -1535,78 +1503,6 @@ function set_section_cell_padding(value) {
 }
 
 /* ── Stepper (+/−) ───────────────────────────────────────── */
-.pfb-stepper {
-	display: inline-flex;
-	align-items: center;
-	border: 1px solid var(--border-color);
-	border-radius: var(--radius);
-	overflow: hidden;
-	background: var(--subtle-accent);
-	width: 100%;
-}
-
-.pfb-stepper button {
-	padding: 4px 8px;
-	border: none;
-	background: transparent;
-	cursor: pointer;
-	font-size: 14px;
-	color: var(--text-muted);
-	line-height: 1;
-	flex-shrink: 0;
-}
-
-.pfb-stepper button:hover {
-	background: var(--gray-100);
-	color: var(--text-color);
-}
-
-.pfb-stepper-val {
-	flex: 1;
-	text-align: center;
-	font-size: var(--text-sm);
-	font-weight: 500;
-	border-left: 1px solid var(--border-color);
-	border-right: 1px solid var(--border-color);
-	padding: 4px 4px;
-}
-
-.pfb-stepper-input {
-	flex: 1;
-	min-width: 0;
-	width: 100%;
-	text-align: center;
-	font-size: var(--text-sm);
-	font-weight: 500;
-	border: none;
-	border-left: 1px solid var(--border-color);
-	border-right: 1px solid var(--border-color);
-	background: transparent;
-	color: var(--text-color);
-	padding: 4px 2px;
-	outline: none;
-}
-
-.pfb-stepper-input:focus {
-	background: var(--fg-color);
-}
-
-/* hide number spin arrows */
-.pfb-stepper-input::-webkit-inner-spin-button,
-.pfb-stepper-input::-webkit-outer-spin-button {
-	-webkit-appearance: none;
-}
-
-.pfb-stepper-unit {
-	font-size: var(--text-tiny);
-	color: var(--text-muted);
-	padding: 0 6px 0 2px;
-}
-
-.pfb-stepper--sm {
-	width: auto;
-}
-
 /* ── Background swatches ─────────────────────────────────── */
 .pfb-color-swatches {
 	display: flex;
