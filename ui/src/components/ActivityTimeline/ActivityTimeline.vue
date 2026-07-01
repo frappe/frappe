@@ -4,7 +4,6 @@
 		<div v-if="loading && !activities.length" class="flex justify-center py-8">
 			<LoadingIndicator class="size-5 text-ink-gray-5" />
 		</div>
-		<ErrorMessage v-else-if="error" :message="error" class="py-4" />
 		<div
 			v-else-if="!activities.length"
 			class="flex flex-col items-center justify-center gap-3 py-8"
@@ -21,7 +20,7 @@
 				<LoadMore />
 			</div>
 			<div
-				v-for="(activity, i) in activities"
+				v-for="(activity, i) in displayActivities"
 				:key="getKey(activity, i)"
 				:id="getKey(activity, i)"
 				class="activity"
@@ -34,7 +33,7 @@
 							activity.type === 'load_more'
 								? 'after:-top-2 after:h-[calc(100%+1rem)]'
 								: [
-										i != activities.length - 1 && 'after:h-full',
+										i != displayActivities.length - 1 && 'after:h-full',
 										isOneLinerActivity(activity)
 											? 'after:top-6'
 											: 'after:top-3',
@@ -55,7 +54,7 @@
 					</div>
 					<div
 						class="mb-4 flex flex-1"
-						:class="[i == activities.length - 1 && 'mb-5']"
+						:class="[i == displayActivities.length - 1 && 'mb-5']"
 						:data-type="activity.type"
 					>
 						<!-- Load More in activity -->
@@ -101,7 +100,7 @@
 </template>
 
 <script setup lang="ts">
-import { ErrorMessage, LoadingIndicator } from "frappe-ui";
+import { LoadingIndicator } from "frappe-ui";
 import { computed, h, ref, useSlots } from "vue";
 import CommentItem from "./CommentItem.vue";
 import EmailItem from "./EmailItem.vue";
@@ -114,7 +113,6 @@ import VersionItem from "./VersionItem.vue";
 
 const props = withDefaults(defineProps<ActivityTimelineProps>(), {
 	loading: false,
-	error: null,
 });
 
 defineSlots<
@@ -136,11 +134,24 @@ const slots = useSlots();
 
 const isFetching = computed(() => !!props.paginate?.isFetchingNextPage);
 
-// consumer can inject an in-feed load_more row; otherwise we show the standalone button
-const hasInlineLoadMore = computed(() => props.activities.some((a) => a.type === "load_more"));
-const showLoadMoreButton = computed(
-	() => !!props.paginate?.hasNextPage && !hasInlineLoadMore.value
-);
+// "inline" injects a load_more row above the oldest email; top/bottom show a standalone button.
+const isInline = computed(() => props.paginate?.loadMore?.position === "inline");
+const showLoadMoreButton = computed(() => !!props.paginate?.hasNextPage && !isInline.value);
+
+// Rows to render: the raw feed, plus an in-feed load_more row above the oldest email when paginating inline.
+const displayActivities = computed<Array<Activity | CustomActivity>>(() => {
+	const list = props.activities;
+	if (!isInline.value || !props.paginate?.hasNextPage) return list;
+	const idx = list.findIndex((a) => a.type === "email");
+	if (idx === -1) return list;
+	const loadMore: CustomActivity = {
+		type: "load_more",
+		key: "load-more",
+		timestamp: list[idx].timestamp,
+		data: null,
+	};
+	return [...list.slice(0, idx), loadMore, ...list.slice(idx)];
+});
 
 // can be rendered at up to three sites (top / in-feed row / bottom) that differ only in wrapper.
 const LoadMore = () =>
@@ -149,16 +160,17 @@ const LoadMore = () =>
 		: h(LoadMoreButton, {
 				loading: isFetching.value,
 				onClick: loadMore,
-				isDefaultTimeline: hasInlineLoadMore.value,
+				label: props.paginate?.loadMore?.label,
+				icon: props.paginate?.loadMore?.icon,
 		  });
 
-const loadMoreAtBottom = computed(() => props.paginate?.position === "bottom");
+const loadMoreAtBottom = computed(() => props.paginate?.loadMore?.position === "bottom");
 // Which row to re-pin after older rows patch in, so the viewport doesn't move.
 
 // scroll-to-bottom + anchor restore on Load More live in the composable
 const { captureAnchor } = useTimelineScroll(
 	rootEl,
-	computed(() => props.activities.length),
+	computed(() => displayActivities.value.length),
 	() => !!props.paginate
 );
 
@@ -167,7 +179,7 @@ function loadMore() {
 	props.paginate?.fetchNextPage();
 }
 function anchorRowKey(): string | null {
-	const list = props.activities;
+	const list = displayActivities.value;
 	// in-feed load_more: pin the row just below it
 	const idx = list.findIndex((a) => a.type === "load_more");
 	if (idx !== -1) return list[idx + 1] ? getKey(list[idx + 1], idx + 1) : null;

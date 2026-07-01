@@ -5,7 +5,6 @@ export interface ActivityTimelineProps {
   activities: Array<Activity | CustomActivity>;
   /** First-load spinner; only shown while there are no activities yet. */
   loading?: boolean;
-  error?: string | null;
   /** Enables Load More; same object useActivityTimeline returns. */
   paginate?: Pagination;
 }
@@ -14,8 +13,15 @@ export interface Pagination {
   hasNextPage: boolean;
   isFetchingNextPage: boolean;
   fetchNextPage: () => void;
-  /** Standalone-button placement; ignored when an in-feed `load_more` row exists. */
-  position?: "top" | "bottom";
+  /** Load More affordance; omit for a default "Load more" button at the top. */
+  loadMore?: {
+    /** Placement. "inline" injects a `load_more` row above the oldest email. */
+    position?: "top" | "bottom" | "inline";
+    /** Button copy; default "Load more" / "lucide-refresh-cw". */
+    label?: string;
+    /** lucide-* string, FeatherIcon name, or a component — same as `Button`'s icon. */
+    icon?: string | Component;
+  };
 }
 
 export interface UserInfo {

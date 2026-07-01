@@ -50,31 +50,16 @@ export function useActivityTimeline(
 
   subscribeToLiveUpdates(doctype, docname, resource);
 
-  return {
-    activities: computed<Array<Activity | CustomActivity>>(() => {
-      const fetched = (resource.data as Activity[] | undefined) ?? [];
-      const uniqueActivities = dropDuplicateKeys(fetched);
-      uniqueActivities.sort(compareActivities);
-      const grouped = groupActivities(uniqueActivities);
+  const activities = computed<Array<Activity | CustomActivity>>(() => {
+    const fetched = (resource.data as Activity[] | undefined) ?? [];
+    const uniqueActivities = dropDuplicateKeys(fetched);
+    uniqueActivities.sort(compareActivities);
+    return groupActivities(uniqueActivities);
+  });
 
-      // If pagination true, inject a Load More row above the oldest email, to show "Load More" button. If no more emails, don't inject.
-      if (!paginate || !hasMoreEmails!.value) return grouped;
-      const oldestEmailIdx = grouped.findIndex((a) => a.type === "email");
-      if (oldestEmailIdx === -1) return grouped;
-      const loadMore: CustomActivity = {
-        type: "load_more",
-        key: "load-more",
-        timestamp: grouped[oldestEmailIdx].timestamp,
-        data: null,
-      };
-      return [
-        ...grouped.slice(0, oldestEmailIdx),
-        loadMore,
-        ...grouped.slice(oldestEmailIdx),
-      ];
-    }),
+  return {
+    activities,
     loading: computed<boolean>(() => resource.loading),
-    error: computed(() => resource.error || null),
     reload: () => resource.reload(),
     paginate: paginate
       ? createEmailPagination(doctype, docname, resource, hasMoreEmails)
@@ -112,6 +97,12 @@ function createEmailPagination(
     hasNextPage: computed(() => hasMoreEmails.value),
     isFetchingNextPage: computed(() => olderEmails.loading),
     fetchNextPage,
+    // in-feed row above the oldest email; email-specific copy lives here, not in the component
+    loadMore: {
+      position: "inline" as const,
+      label: "Show previous conversations",
+      icon: "lucide-chevrons-up",
+    },
   });
 }
 

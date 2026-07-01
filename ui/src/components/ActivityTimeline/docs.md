@@ -23,7 +23,7 @@ together or independently:
 <script setup lang="ts">
 import { ActivityTimeline, useActivityTimeline } from "@framework/ui";
 
-const { activities, loading, error, reload, paginate } =
+const { activities, loading, reload, paginate } =
   useActivityTimeline("HD Ticket", docname, /* paginate */ true);
 </script>
 
@@ -31,7 +31,6 @@ const { activities, loading, error, reload, paginate } =
   <ActivityTimeline
     :activities
     :loading
-    :error
     :paginate
   />
 </template>
@@ -53,16 +52,16 @@ next older page — without it, only the newest page of emails is reachable.
 │   • createResource → get_activity_timeline   (default fetcher)│
 │   • server returns normalized Activity[] (ascending)         │
 │   • dedupe + sort (defensive) + groupVersionActivities       │
-│   • paginate=true → returns a `paginate` controller + injects │
-│        a `load_more` row above the oldest email              │
+│   • paginate=true → returns a `paginate` controller          │
+│        (position "inline" + "Show previous…" copy)           │
 │   • realtime: patches the list in place on docinfo_update    │
-│   returns { activities, loading, error, reload, paginate? }  │
+│   returns { activities, loading, reload, paginate? }         │
 └──────────────────────────────────────────────────────────────┘
                        │  Activity[]  (the contract, display order)
                        ▼
 ┌──────────────────────────────────────────────────────────────┐
 │ RENDER LAYER — ActivityTimeline.vue (presentational)         │
-│   props: { activities, loading?, error?, paginate? }         │
+│   props: { activities, loading?, paginate? }                 │
 │   NO data fetching. NO doctype/docname. NO emits. Renders.   │
 │   EmailItem · CommentItem · LogItem · VersionItem            │
 │   owns the Load More button + scroll-anchoring               │
@@ -171,12 +170,15 @@ slots (see [Events](#events--reply--edit--delete)).
 interface ActivityTimelineProps {
   activities: Array<Activity | CustomActivity>;
   loading?: boolean;                       // first-load spinner (only when no activities yet)
-  error?: string | null;                   // error state instead of the feed
   paginate?: {                             // when present, enables the "Load More" control
-    hasNextPage: boolean;
+    hasNextPage: boolean;                  // ── the controller ──
     isFetchingNextPage: boolean;
     fetchNextPage: () => void;
-    position?: "top" | "bottom";           // standalone-button placement; default "top"
+    loadMore?: {                           // ── the affordance's chrome (all optional) ──
+      position?: "top" | "bottom" | "inline"; // "inline" = in-feed row above the oldest email; default "top"
+      label?: string;                      // button copy; default "Load more"
+      icon?: string | Component;           // lucide-* string / FeatherIcon name / component; default "lucide-refresh-cw"
+    };
   };
 }
 ```
@@ -184,7 +186,7 @@ interface ActivityTimelineProps {
 It receives `activities` already in display order (the composable applies it),
 dispatches each item to the right item component by `activity.type`, and owns the
 **chrome**: gutter dot/avatar, connector line, spacing, ordering, the
-loading / error / empty states, **and the Load More button + scroll-anchoring**.
+loading / empty states, **and the Load More button + scroll-anchoring**.
 The first-load spinner is gated on `loading && !activities.length`, so a
 background refetch over existing rows leaves them visible (flicker-free).
 
@@ -196,31 +198,36 @@ but any source can supply it.
 ### Load More — button placement & scroll behavior
 
 The feed is oldest-first, so paging pulls **older** emails in **above** the
-current oldest one. The component renders the affordance two ways:
+current oldest one. `paginate.loadMore.position` drives where the affordance renders:
 
 ```
-1. activities contains a row with type: "load_more"   → render it IN-FEED
-     (connector line passes through, no gutter icon; consumer owns its position;
+1. position: "inline"        → the component injects a `load_more` row IN-FEED
+     above the oldest email (connector line passes through, no gutter icon;
       the standalone button is suppressed)
-2. otherwise, paginate.hasNextPage is true            → render a STANDALONE button
-     at paginate.position ("top" default, or "bottom")
+2. position: "top"/"bottom"  → a STANDALONE button at that end of the feed
+     (this is the default when position is omitted → "top")
 ```
 
-When `useActivityTimeline(…, true)` is used, it injects a `load_more` row above
-the oldest email for you (case 1). To instead get a standalone button you fully
-control, omit that row and bind a bare `paginate` controller with a `position`.
+`useActivityTimeline(…, true)` returns a controller with `loadMore.position:
+"inline"`, so you get the in-feed row for free (case 1). Binding a bare `paginate`
+controller with `loadMore: { position: "top" | "bottom" }` gives the standalone
+button instead. Either way the component owns the injection — `activities` stays a
+pure feed.
 
 Clicking the button calls `paginate.fetchNextPage()`. Before the older rows patch
 in, the component **anchors** a visible row and restores its offset afterward, so
 the viewport doesn't jump. On first render (with `paginate`) it scrolls once to
 the bottom (newest).
 
-The button itself is an internal `LoadMoreButton` (rendered in whichever of the
-three positions is active). Override it for **all** positions at once via the
-`#load_more` slot — scoped with `{ loading, loadMore }`:
+The button itself is an internal `LoadMoreButton`, rendered in whichever position
+is active. Customize its copy without a slot via `paginate.loadMore.label` /
+`paginate.loadMore.icon` (the composable sets `"Show previous conversations"` /
+`lucide-chevrons-up` for the email case; `icon` also takes a component). For full
+control, override **all** positions at once via the `#load_more` slot — scoped with
+`{ loading, loadMore }`:
 
 ```vue
-<ActivityTimeline :activities :loading :error :paginate>
+<ActivityTimeline :activities :loading :paginate>
   <!-- replace the default control everywhere it appears -->
   <template #load_more="{ loading, loadMore }">
     <Button variant="subtle" :loading @click="loadMore">Older messages</Button>
@@ -239,17 +246,16 @@ policy **and the display order** (fixed **oldest-first**); the renderer owns non
 of it.
 
 ```ts
-const { activities, loading, error, reload, paginate } =
+const { activities, loading, reload, paginate } =
   useActivityTimeline("HD Ticket", "37422", true);
 ```
 
 | Field | |
 | --- | --- |
-| `activities` | `ComputedRef<Activity[]>` — deduped, sorted, grouped, **in display order** (with a `load_more` row injected when paging) |
+| `activities` | `ComputedRef<Activity[]>` — deduped, sorted, grouped, **in display order** (a pure feed; the component injects the `load_more` row) |
 | `loading` | `ComputedRef<boolean>` — the resource's loading state |
-| `error` | `ComputedRef<error \| null>` — the resource's error, or `null` |
 | `reload` | `() => void` — refetch the resource |
-| `paginate` | the controller (`{ hasNextPage, isFetchingNextPage, fetchNextPage }`) — **only when the 3rd arg is `true`**, else `undefined` |
+| `paginate` | the controller (`{ hasNextPage, isFetchingNextPage, fetchNextPage, loadMore? }`) — **only when the 3rd arg is `true`**, else `undefined` |
 
 ### Email paging (opt-in)
 
@@ -260,8 +266,9 @@ The third positional arg, `paginate?: boolean`, is the only flag:
   (`EMAIL_PAGE_SIZE = 20`), so older emails are simply not shown and there's no
   affordance to fetch them. Everything else (comments, logs, views, versions)
   loads in full.
-- **`paginate: true`** — the composable returns a `paginate` controller and
-  injects a `load_more` row above the oldest email. `fetchNextPage()` calls
+- **`paginate: true`** — the composable returns a `paginate` controller with
+  `position: "inline"`, so the component renders a `load_more` row above the oldest
+  email. `fetchNextPage()` calls
   `get_more_email_activities(doctype, name, start = emailsLoaded)`, appends the
   next older page to `resource.data`, and the `activities` computed re-sorts.
   `hasNextPage` mirrors the server's `has_more_emails` flag. The "older emails
@@ -324,7 +331,7 @@ Acceptable today; add ref-counting only if that breaks.)
 ## 5. Customization
 
 All customization is **slot-based** and never touches the chrome (gutter,
-connector, spacing, ordering, loading/error/empty, Load More). Two tiers:
+connector, spacing, ordering, loading/empty, Load More). Two tiers:
 
 - **Tier 1 — replace a whole row** for a type → `#item-{type}` slot (with a
   **default slot** as the generic catch-all).
@@ -361,7 +368,7 @@ First match wins:
 ```
 
 ```vue
-<ActivityTimeline :activities :loading :error>
+<ActivityTimeline :activities :loading>
   <template #item-comment="{ activity }">
     <MyComment :activity />
   </template>
@@ -375,7 +382,7 @@ First match wins:
 > The framework-owned `load_more` row is rendered by the component itself (a
 > `LoadMoreButton`), **not** through `#item-load_more` — so the slot ladder never
 > sees it. Override the button via the dedicated `#load_more` slot, and control
-> its placement via `paginate.position` — see
+> its placement via `paginate.loadMore.position` — see
 > [Load More](#load-more--button-placement--scroll-behavior).
 
 ### Tier 2 — region slots (Comment & Email only)
@@ -401,7 +408,7 @@ sub-divide → **Tier-1 replace only** (`#item-log`, `#item-attachment_log`,
 ```vue
 import { ActivityTimeline, CommentItem } from "@framework/ui";
 
-<ActivityTimeline :activities :loading :error>
+<ActivityTimeline :activities :loading>
   <template #item-comment="{ activity }">
     <CommentItem :comment="activity">
       <!-- override only the header; body & actions keep their defaults -->
@@ -430,7 +437,7 @@ wins) — symmetric with the content column:
 ```
 
 ```vue
-<ActivityTimeline :activities :loading :error>
+<ActivityTimeline :activities :loading>
   <template #icon-comment>
     <LucideMessageCircle class="size-4 text-ink-gray-5" />
   </template>
@@ -464,7 +471,7 @@ import { ActivityTimeline, EmailItem, CommentItem } from "@framework/ui";
 import LucideReply from "~icons/lucide/reply";
 import LucideReplyAll from "~icons/lucide/reply-all";
 
-<ActivityTimeline :activities :loading :error>
+<ActivityTimeline :activities :loading>
   <template #item-email="{ activity }">
     <EmailItem :email="activity">
       <template #actions>
@@ -563,7 +570,6 @@ remount live in the app, not in `@framework/ui`:
   <ActivityTimeline
     :activities="activities"
     :loading="loading"
-    :error="error"
     :paginate="paginate"
   />
 </template>
@@ -571,7 +577,7 @@ remount live in the app, not in `@framework/ui`:
 <script setup lang="ts">
 import { ActivityTimeline, useActivityTimeline } from "@framework/ui";
 const props = defineProps<{ doctype: string; docname: string }>();
-const { activities, loading, error, paginate } =
+const { activities, loading, paginate } =
   useActivityTimeline(props.doctype, props.docname, true);
 </script>
 ```
@@ -600,7 +606,7 @@ shape on line ~175) plus an optional `#load_more` override:
         hasNextPage: emails.hasNextPage,
         fetchNextPage: emails.next,
         isFetchingNextPage: emails.loading,
-        position: 'bottom',
+        loadMore: { position: 'bottom' },
       }"
     >
       <template #item-email="{ activity }">
@@ -686,7 +692,7 @@ const activities = computed(() => {
 
 The component never learns it's reading `Communication` rows — it sees the same
 `Activity[]` + `paginate` contract. Note the `paginate` controller is just the
-plain shape (`hasNextPage` / `fetchNextPage` / `isFetchingNextPage` / `position`),
+plain shape (`hasNextPage` / `fetchNextPage` / `isFetchingNextPage`, plus optional `loadMore` chrome),
 satisfied here directly by the list resource's `hasNextPage` / `next` / `loading`.
 Mind the ordering: this maps rows in `communication_date desc`, so prepend a sort
 (oldest-first) if you want to match the composable's default feed order.
@@ -761,8 +767,8 @@ load.py                  _get_communications / get_communication_data (paged ema
 - **Load More, not infinite scroll.** An explicit "Load More Emails" button is
   predictable and avoids scroll-jank: the component anchors a visible row and
   restores its offset after older rows patch in, so the viewport never jumps.
-  Placement is configurable (`position: "top" | "bottom"`), and a consumer can
-  inject their own in-feed `load_more` row to own the position entirely.
+  Placement is configurable (`position: "top" | "bottom" | "inline"`) and the
+  button copy overrides via `label` / `icon` — no slot needed for the common case.
 - **Customization-as-data carries data, not behavior.** The slot ladder
   (per-type `#item`/`#icon` → default slot → built-in) is what Vuetify, Quasar,
   Headless UI and frappe-ui all converge on. Since item slots hand back
@@ -795,7 +801,7 @@ under `apps/helpdesk/desk/src/pages/activity-playground/`.
 
 | Scenario | Demonstrates |
 | --- | --- |
-| **basic** | built-in rendering — `:activities :loading :error` only; newest email page + everything else, oldest-first, no Load More |
+| **basic** | built-in rendering — `:activities :loading` only; newest email page + everything else, oldest-first, no Load More |
 | **pagination** | opt into email paging (`useActivityTimeline(…, true)`) and bind `:paginate`; the component shows the "Load More Emails" control |
 | **replace** | override `#item-comment` with a custom component |
 | **icon** | override only the gutter via `#icon-comment`; content stays built-in |
