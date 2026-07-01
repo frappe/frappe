@@ -65,8 +65,13 @@ def log_error(
 		else:
 			traceback = message
 
-	title = title or "Error"
 	traceback = frappe.as_unicode(traceback or frappe.get_traceback(with_context=True))
+
+	if not title:
+		if traceback:
+			title = traceback.splitlines()[-1][:140]
+		else:
+			title = "Error"
 
 	if not frappe.db:
 		print(f"Failed to log error in db: {title}")
