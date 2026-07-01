@@ -109,7 +109,7 @@ OUTPUT_FORMAT_RULES = """JSON OUTPUT RULES (critical — invalid JSON breaks par
 
 BLOCK_SCHEMA = """BLOCK SCHEMA (each block is a JSON object with these optional keys):
 - "name": componentName        — required, must match the catalog exactly
-- "originalElement": "div"|"body" — REQUIRED for "container" blocks and the root; WITHOUT it the block and ALL its children fail to render (blank canvas)
+- "originalElement": "div"|"body" — ONLY for layout blocks: REQUIRED on "container" blocks and the root (without it the block and ALL its children fail to render — blank canvas). NEVER put it on a component block (TextInput, Button, TextBlock, …) — a component with originalElement renders as an empty <div> instead of the component.
 - "label": descriptive name
 - "props": { }                  — component-specific props
 - "style": { }                  — panel-editable CSS (see STYLE PROPERTY ROUTING below)
