@@ -149,7 +149,7 @@ const LoadMore = () =>
 		: h(LoadMoreButton, {
 				loading: isFetching.value,
 				onClick: loadMore,
-				hasInlineLoadMoreOption: hasInlineLoadMore.value,
+				isDefaultTimeline: hasInlineLoadMore.value,
 		  });
 
 const loadMoreAtBottom = computed(() => props.paginate?.position === "bottom");

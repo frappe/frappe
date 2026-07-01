@@ -94,6 +94,8 @@ export type LogActivity = BaseActivity<
     text: string;
     /** assignee on assignment logs; bolded alongside the actor (backend-supplied) */
     assignee?: string;
+    /** set when consecutive assignment logs fold into one row; all bolded */
+    assignees?: string[];
   }
 >;
 
@@ -101,6 +103,8 @@ interface VersionChangeBase {
   name: string;
   /** field changes carry it (enables same-field collapse); doc-level rows don't */
   fieldname?: string | null;
+  /** when this net change last happened; shown per-row inside a folded group */
+  timestamp?: string;
 }
 
 /** One field change: old → new value (empty `from` ⇒ set-from-blank). */

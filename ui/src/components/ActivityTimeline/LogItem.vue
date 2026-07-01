@@ -47,7 +47,11 @@ defineProps<{
 // bolds actor + assignee (backend-supplied; no message-template parsing)
 const ActorText = ({ activity }: { activity: LogActivity }) => {
 	const { author, data } = activity;
-	const segments = splitBold(data.text ?? "", [author?.fullname, data.assignee]);
+	const segments = splitBold(data.text ?? "", [
+		author?.fullname,
+		data.assignee,
+		...(data.assignees ?? []),
+	]);
 	return h(
 		"span",
 		{ class: "text-ink-gray-5" },

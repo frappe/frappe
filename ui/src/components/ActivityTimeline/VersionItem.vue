@@ -21,9 +21,6 @@
 				<LucideChevronUp v-if="expanded" class="size-3.5" />
 				<LucideChevronDown v-else class="size-3.5" />
 			</button>
-			<div class="ms-auto whitespace-nowrap">
-				<TimeAgo :timestamp="activity.timestamp" class="text-sm" />
-			</div>
 		</div>
 
 		<!-- change list: single shown always, group on expand -->
@@ -74,51 +71,44 @@
 							}}</span>
 						</template>
 					</span>
-					<!-- single-change timeago inline; group puts it in the header -->
-					<div v-if="changes.length === 1" class="ms-auto whitespace-nowrap">
-						<TimeAgo :timestamp="activity.timestamp" class="text-sm" />
+					<!-- per-change time; the group header still shows the overall time -->
+					<div class="ms-auto whitespace-nowrap">
+						<TimeAgo
+							:timestamp="change.timestamp ?? activity.timestamp"
+							class="text-sm"
+						/>
 					</div>
 				</div>
 
-				<!-- field history: nested mini-timeline, revealed by the chevron -->
-				<div v-if="isOpen(change.name) && hasHistory(change)" class="flex flex-col gap-2">
+				<!-- field history: revealed by the chevron; single continuous line, no dots -->
+				<div
+					v-if="isOpen(change.name) && hasHistory(change)"
+					class="relative ms-2 flex flex-col gap-2 ps-4"
+				>
+					<!-- inset half a row (leading-6 ÷ 2) so the line spans first→last hop centers -->
+					<div class="absolute inset-y-3 start-0 w-px bg-[var(--outline-gray-modals)]" />
 					<div
 						v-for="(hop, idx) in historyOf(change)"
 						:key="idx"
-						class="grid grid-cols-[16px_minmax(0,1fr)] gap-2"
+						class="flex flex-wrap items-center gap-1.5 leading-6 text-ink-gray-5"
 					>
-						<div class="relative">
-							<div
-								v-if="idx !== historyOf(change).length - 1"
-								class="absolute start-1/2 top-3 h-full w-px -translate-x-1/2 bg-[var(--outline-gray-modals)]"
-							/>
-							<div class="relative z-10 flex h-6 items-center justify-center">
-								<span
-									class="flex size-4 items-center justify-center rounded-full bg-surface-white"
-								>
-									<DotIcon class="size-2 text-ink-gray-3" />
-								</span>
-							</div>
-						</div>
-						<div class="flex flex-wrap items-center gap-1.5 leading-6 text-ink-gray-5">
-							<span class="font-medium text-ink-gray-8">{{ authorName }}</span>
-							<span>{{ prefixOf(change) }}</span>
-							<span
-								v-if="hop.from"
-								class="font-semibold text-ink-gray-8"
-								:title="truncate(hop.from).title"
-								>{{ truncate(hop.from).text }}</span
-							>
-							<span v-else class="text-ink-gray-5">""</span>
-							<span>→</span>
-							<span
-								class="font-semibold text-ink-gray-8"
-								:title="truncate(hop.to).title"
-								>{{ truncate(hop.to).text }}</span
-							>
-							<span>·</span>
-							<TimeAgo :timestamp="hop.timestamp" />
-						</div>
+						<span class="font-medium text-ink-gray-8">{{ authorName }}</span>
+						<span>{{ prefixOf(change) }}</span>
+						<span
+							v-if="hop.from"
+							class="font-semibold text-ink-gray-8"
+							:title="truncate(hop.from).title"
+							>{{ truncate(hop.from).text }}</span
+						>
+						<span v-else class="text-ink-gray-5">""</span>
+						<span>→</span>
+						<span
+							class="font-semibold text-ink-gray-8"
+							:title="truncate(hop.to).title"
+							>{{ truncate(hop.to).text }}</span
+						>
+						<span>·</span>
+						<TimeAgo :timestamp="hop.timestamp" />
 					</div>
 				</div>
 			</div>
@@ -128,7 +118,6 @@
 
 <script setup lang="ts">
 import { computed, reactive, ref } from "vue";
-import { DotIcon } from "./icons";
 import TimeAgo from "./TimeAgo.vue";
 import type { FieldChange, VersionActivity, VersionChange } from "./types";
 import { truncate } from "./utils";
