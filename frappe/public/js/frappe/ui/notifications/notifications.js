@@ -82,7 +82,6 @@ frappe.ui.Notifications = class Notifications {
 			<div class="notification-list-body">
 				<div class="panel-notifications"></div>
 				<div class="panel-events"></div>
-				<div class="panel-changelog-feed"></div>
 			</div>
 		`);
 
@@ -91,7 +90,6 @@ frappe.ui.Notifications = class Notifications {
 		this.body = this.dropdown_list.find(".notification-list-body");
 		this.panel_events = this.dropdown_list.find(".panel-events");
 		this.panel_notifications = this.dropdown_list.find(".panel-notifications");
-		this.panel_changelog_feed = this.dropdown_list.find(".panel-changelog-feed");
 	}
 
 	setup_header_actions() {
@@ -155,12 +153,6 @@ frappe.ui.Notifications = class Notifications {
 				id: "todays_events",
 				view: EventsView,
 				el: this.panel_events,
-			},
-			{
-				label: __("What's New"),
-				id: "changelog_feed",
-				view: ChangelogFeedView,
-				el: this.panel_changelog_feed,
 			},
 		];
 
@@ -622,50 +614,5 @@ class EventsView extends BaseNotificationsView {
 		});
 
 		this.container.empty().append($section);
-	}
-}
-
-class ChangelogFeedView extends BaseNotificationsView {
-	make() {
-		this.render_changelog_feed_html(frappe.boot.changelog_feed || []);
-	}
-
-	render_changelog_feed_html(changelog_feed) {
-		let html = "";
-		if (changelog_feed.length) {
-			this.container.empty();
-			const get_changelog_feed_html = (changelog_feed_item) => {
-				const timestamp = frappe.datetime.prettyDate(
-					changelog_feed_item.posting_timestamp
-				);
-				const message_html = `<div class="message">
-							<div>${changelog_feed_item.title}</div>
-							<div class="notification-timestamp text-muted">
-							${changelog_feed_item.app_title} | ${timestamp}
-							</div>
-						</div>`;
-
-				const item_html = `<a class="recent-item notification-item"
-								href="${changelog_feed_item.link}"
-								data-name="${changelog_feed_item.title}"
-								target="_blank" rel="noopener noreferrer"
-							>
-							<div class="notification-body">
-								${message_html}
-							</div>
-							</div>
-						</a>`;
-
-				return item_html;
-			};
-			html = changelog_feed.map(get_changelog_feed_html).join("");
-		} else {
-			html = get_null_state_html(
-				"sparkles",
-				__("Nothing new"),
-				__("There is nothing new to show you right now.")
-			);
-		}
-		this.container.html(html);
 	}
 }
