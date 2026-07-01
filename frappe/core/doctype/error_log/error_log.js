@@ -26,6 +26,8 @@ function render_fingerprint_stats(frm) {
 
 	frappe.call({
 		method: "frappe.core.doctype.error_log.error_log.get_fingerprint_stats",
+		type: "GET",
+		cache: true,
 		args: { fingerprint: frm.doc.fingerprint },
 		callback: function (r) {
 			const stats = r.message;
