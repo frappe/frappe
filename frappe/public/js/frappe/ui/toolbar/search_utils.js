@@ -723,27 +723,6 @@ frappe.search.utils = {
 			args: args,
 		});
 	},
-	get_marketplace_apps: function (keywords) {
-		var me = this;
-		var out = [];
-		frappe.boot.marketplace_apps.forEach(function (item) {
-			const search_result = me.fuzzy_search(keywords, item.title, true);
-			if (search_result.score > 0) {
-				var ret = {
-					label: __("Install {0} from Marketplace", [search_result.marked_string]),
-					value: __("Install {0} from Marketplace", [__(item.title)]),
-					index: search_result.score * 0.8,
-					route: [
-						`https://frappecloud.com/${item.route}?utm_source=awesomebar`,
-						item.name,
-					],
-				};
-
-				out.push(ret);
-			}
-		});
-		return out;
-	},
 	searchable_functions: [],
 };
 
