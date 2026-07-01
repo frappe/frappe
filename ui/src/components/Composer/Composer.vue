@@ -89,7 +89,10 @@
 							<!-- Host actions: clipped to 50% width, scrollable, with a right-side
 								 fade to signal overflow. -->
 							<div class="relative overflow-hidden" style="max-width: 70%">
-								<div class="flex items-center gap-1 overflow-x-auto [scrollbar-width:none] [&::-webkit-scrollbar]:hidden">
+								<!-- p-0.5: without it, focus/hover rings on buttons flush against this
+									 row's edge get hard-clipped by overflow-x-auto (which also clips
+									 the vertical axis per the CSS overflow spec). -->
+								<div class="flex items-center gap-1 overflow-x-auto p-0.5 [scrollbar-width:none] [&::-webkit-scrollbar]:hidden">
 									<slot name="actions" v-bind="{ addAttachment, setUploading }" />
 									<EditorFixedMenu :items="emailToolbar" button-size="sm" />
 								</div>

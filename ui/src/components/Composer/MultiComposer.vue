@@ -22,7 +22,7 @@
 			:upload-function="uploadFunction"
 			:fields="fields"
 			:search-recipients="searchRecipients"
-			:on-submit="onSubmit"
+			:on-submit="handleSubmit"
 			v-model:body="body"
 			v-model:quoted="quotedReply"
 			v-model:recipients="recipients"
@@ -44,7 +44,7 @@
 			:placeholder="placeholder"
 			:upload-function="uploadFunction"
 			:mention-options="mentionOptions"
-			:on-submit="onSubmitComment"
+			:on-submit="handleSubmitComment"
 			v-model:body="commentBody"
 			@discard="handleDiscard"
 			@remove-attachment="emit('remove-attachment', $event)"
@@ -63,9 +63,16 @@ import { type WindowMode } from "frappe-ui/experimental";
 import ComposerWindow from "./ComposerWindow.vue";
 import EmailComposer from "./EmailComposer/EmailComposer.vue";
 import CommentComposer from "./CommentComposer/CommentComposer.vue";
-import type { Channel, MultiComposerProps, Recipients, UploadedFile } from "./types";
+import type {
+	Channel,
+	CommentPayload,
+	EmailPayload,
+	MultiComposerProps,
+	Recipients,
+	UploadedFile,
+} from "./types";
 
-withDefaults(defineProps<MultiComposerProps>(), {
+const props = withDefaults(defineProps<MultiComposerProps>(), {
 	fields: () => ["cc", "bcc"],
 	expandable: true,
 });
@@ -104,6 +111,19 @@ const content = ref<
 function handleDiscard() {
 	windowRef.value?.collapse();
 	emit("discard");
+}
+
+// Collapse once the send resolves. Only reached on success — a host that
+// wants to keep the draft on failure must reject `onSubmit`/`onSubmitComment`
+// (per the documented contract), not swallow its own error and resolve.
+async function handleSubmit(payload: EmailPayload) {
+	await props.onSubmit(payload);
+	windowRef.value?.collapse();
+}
+
+async function handleSubmitComment(payload: CommentPayload) {
+	await props.onSubmitComment(payload);
+	windowRef.value?.collapse();
 }
 
 // Open the window, then focus the freshly-mounted channel component.
