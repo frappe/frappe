@@ -172,6 +172,18 @@ def get_doc_files(files, start_path):
 	return files
 
 
+def schema_file_exists(doctype: str) -> bool:
+	module = frappe.db.get_value("DocType", doctype, "module")
+	if not module:
+		return False
+	try:
+		module_path = frappe.get_module_path(module)
+	except Exception:
+		return False
+	scrubbed = frappe.scrub(doctype)
+	return os.path.exists(os.path.join(module_path, "doctype", scrubbed, f"{scrubbed}.json"))
+
+
 def remove_orphan_doctypes():
 	"""Find and remove any orphaned doctypes.
 
@@ -184,10 +196,28 @@ def remove_orphan_doctypes():
 
 	doctype_names = frappe.get_all("DocType", {"custom": 0}, pluck="name")
 
+<<<<<<< HEAD
 	# Existence of the schema file is enough, importing the controller just to check if the doctype
 	# exists is expensive and can fail for unrelated reasons.
 	known_doctypes = create_entity_file_map(["DocType"])["DocType"]
 	orphan_doctypes = [doctype for doctype in doctype_names if doctype not in known_doctypes]
+=======
+	clear_controller_cache()
+	class_overrides = frappe.get_hooks("override_doctype_class", {})
+
+	for doctype in doctype_names:
+		if doctype in class_overrides:
+			continue
+		try:
+			get_controller(doctype=doctype)
+		except (ImportError, frappe.DoesNotExistError):
+			# An import failure alone is not proof of deletion; confirm the schema file
+			# is actually gone before treating the doctype as orphaned.
+			if not schema_file_exists(doctype):
+				orphan_doctypes.append(doctype)
+		except Exception:
+			continue
+>>>>>>> 02aa0dbf5a (fix(sync): only remove orphan doctype when its schema file is gone)
 
 	if not orphan_doctypes:
 		return
