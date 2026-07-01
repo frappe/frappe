@@ -3,7 +3,7 @@ msgstr ""
 "Project-Id-Version: frappe\n"
 "Report-Msgid-Bugs-To: developers@frappe.io\n"
 "POT-Creation-Date: 2026-06-28 10:17+0000\n"
-"PO-Revision-Date: 2026-06-30 21:07\n"
+"PO-Revision-Date: 2026-07-01 21:18\n"
 "Last-Translator: developers@frappe.io\n"
 "Language-Team: Bosnian\n"
 "MIME-Version: 1.0\n"
@@ -12344,7 +12344,7 @@ msgstr "Frappe Mail Site"
 #. Type: Route
 #: frappe/hooks.py frappe/public/js/frappe/ui/toolbar/about.js:46
 msgid "Frappe Support"
-msgstr "Frappe Podrška"
+msgstr "Podrška"
 
 #: frappe/public/js/frappe/legacy_gravatar_cleanup.js:18
 msgid "Frappe no longer uses Gravatar because it can disclose hashed email addresses to a third-party service. To fully stop this behavior, existing Gravatar image URLs must be deleted."
@@ -18310,7 +18310,7 @@ msgstr "Moj Uređaj"
 
 #: frappe/public/js/frappe/ui/sidebar/sidebar.js:413
 msgid "My Profile"
-msgstr "Moj profil"
+msgstr "Moj Profil"
 
 #. Label of a Desktop Icon
 #. Title of a Workspace Sidebar
@@ -24979,7 +24979,7 @@ msgstr "Ruta"
 #. Name of a DocType
 #: frappe/desk/doctype/route_history/route_history.json
 msgid "Route History"
-msgstr "Historija Puta"
+msgstr "Historija Rute"
 
 #. Label of the route_options (Code) field in DocType 'Onboarding Step'
 #. Label of the route_options (Code) field in DocType 'Workspace Sidebar Item'
