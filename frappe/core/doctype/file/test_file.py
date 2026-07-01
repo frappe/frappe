@@ -940,13 +940,15 @@ class TestAttachmentsAccess(IntegrationTestCase):
 	def test_duplicate_file_urls_shown_only_once(self):
 		file1 = frappe.new_doc("File", file_name="dup_a.txt", content="same blob", is_private=0).insert()
 		file2 = frappe.new_doc("File", file_name="dup_b.txt", content="same blob", is_private=0).insert()
+		file3 = frappe.new_doc("File", file_name="dup_b.txt", content="same blob", is_private=0).insert()
 
 		self.assertEqual(file1.file_url, file2.file_url)
+		self.assertEqual(file2.file_url, file3.file_url)
 
 		result = get_files_in_folder("Home")
 		# skip Home/Attachments always pinned at top
 		result["files"].pop(0)
-		self.assertEqual(len(result["files"]), 1)
+		self.assertEqual(len(result["files"]), 2)
 
 	def tearDown(self) -> None:
 		frappe.set_user("Administrator")
