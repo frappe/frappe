@@ -10,7 +10,7 @@ const HIDDEN_NOTICE_MARKER = "workspace-hidden-notice";
 //   private -> personal (public=0, for_user=current user)
 //   group   -> public but role-gated (public=1, roles=[...])
 //   public  -> visible to everyone (public=1, no roles)
-const ACCESS_PRIVATE = __("To Yourself");
+const ACCESS_PRIVATE = __("Only to you");
 const ACCESS_GROUP = __("To a group of users");
 const ACCESS_PUBLIC = __("To everyone");
 
@@ -1145,7 +1145,7 @@ frappe.views.Workspace = class Workspace {
 
 	// "Access" choices for the New Workspace dialog. Creating a public workspace (whether
 	// role-gated or open to everyone) requires the Workspace Manager role, so users without
-	// it can only ever create a private "To Yourself" workspace.
+	// it can only ever create a private "Only to you" workspace.
 	access_options() {
 		let options = [ACCESS_PRIVATE];
 		if (this.has_access) {
