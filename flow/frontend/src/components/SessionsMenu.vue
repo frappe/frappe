@@ -1,6 +1,7 @@
 <script setup>
 import { ref, computed, watch } from "vue";
 import { Button, FeatherIcon } from "@/lib/ui";
+import SearchInput from "./SearchInput.vue";
 import { __ } from "@/lib/translate";
 import { searchSessions } from "@/api/client";
 
@@ -65,20 +66,16 @@ function timeAgo(ds) {
 			<div
 				class="absolute right-0 z-50 mt-1.5 flex w-72 flex-col overflow-hidden rounded-lg border border-outline-gray-2 bg-surface-white shadow-2xl"
 			>
-				<div class="flex items-center gap-2 border-b border-outline-gray-1 py-1 pl-3 pr-2">
-					<FeatherIcon name="search" class="h-3.5 w-3.5 shrink-0 text-ink-gray-5" />
-					<input
-						v-model="query"
-						:placeholder="__('Search sessions…')"
-						class="min-w-0 flex-1 border-0 bg-transparent text-sm text-ink-gray-8 outline-none focus:shadow-none focus:outline-none focus:ring-0 placeholder:text-ink-gray-4"
-					/>
-					<button
-						class="flex h-5 w-5 shrink-0 items-center justify-center rounded text-ink-gray-5 hover:bg-surface-gray-2"
-						@click="open = false"
-					>
-						<FeatherIcon name="x" class="h-3.5 w-3.5" />
-					</button>
-				</div>
+				<SearchInput v-model="query" :placeholder="__('Search sessions…')">
+					<template #trailing>
+						<button
+							class="flex h-5 w-5 shrink-0 items-center justify-center rounded text-ink-gray-5 hover:bg-surface-gray-2"
+							@click="open = false"
+						>
+							<FeatherIcon name="x" class="h-3.5 w-3.5" />
+						</button>
+					</template>
+				</SearchInput>
 				<div class="flow-scrollbar max-h-72 overflow-y-auto p-1">
 					<button
 						v-for="s in list"
