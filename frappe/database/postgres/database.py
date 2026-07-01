@@ -719,6 +719,73 @@ class PostgresDatabase(PostgresExceptionUtil, Database):
 		finally:
 			self.sql("SELECT pg_advisory_unlock(%s)", (lock_key,))
 
+	def bulk_insert(self, doctype, fields, values, ignore_duplicates=False, *, chunk_size=10_000):
+		"""Stream rows into the table with COPY -- far faster than multi-row INSERT. Falls back to
+		the parameterized INSERT path when `ignore_duplicates` is set (COPY has no ON CONFLICT).
+		Runs in the current transaction; the caller commits."""
+		if ignore_duplicates:
+			return super().bulk_insert(doctype, fields, values, ignore_duplicates=True, chunk_size=chunk_size)
+
+		import io
+
+		table_name = get_table_name(doctype)
+		# Compose identifiers with psycopg2.sql so a field/table name is always correctly quoted.
+		copy_statement = sql.SQL("COPY {}.{} ({}) FROM STDIN").format(
+			sql.Identifier(self.db_schema),
+			sql.Identifier(table_name),
+			sql.SQL(", ").join(sql.Identifier(field) for field in fields),
+		)
+		if not self._conn:
+			self.connect()
+		cursor = self._conn.cursor()
+		copy_sql = copy_statement.as_string(cursor)
+		buffer = io.StringIO()
+		try:
+			row_count = flushed = 0
+			for value in values:
+				buffer.write("\t".join(_copy_encode(column) for column in value) + "\n")
+				row_count += 1
+				if row_count % chunk_size == 0:
+					_copy_flush(cursor, copy_sql, buffer)
+					# COPY bypasses Database.execute, so keep transaction_writes in step with the
+					# rows sent -- else auto_commit_on_many_writes never sees a large load.
+					self.transaction_writes += row_count - flushed
+					flushed = row_count
+			_copy_flush(cursor, copy_sql, buffer)
+			self.transaction_writes += row_count - flushed
+		finally:
+			cursor.close()
+
+
+def _copy_encode(value):
+	"""Encode one value for postgres COPY text format (tab-delimited, ``\\N`` = NULL)."""
+	if value is None:
+		return r"\N"
+	if value is True:
+		# Frappe Check fields are smallint, not boolean; smallint_in("true") errors under COPY.
+		# "1"/"0" is accepted by both smallint and boolean input functions, matching INSERT.
+		return "1"
+	if value is False:
+		return "0"
+	if isinstance(value, datetime.timedelta):
+		# Frappe Time fields are timedelta; str() on a >=1 day delta is "1 day, H:MM:SS", which
+		# postgres cannot parse as time. Emit HH:MM:SS[.ffffff] so the COPY text is always valid.
+		total = int(value.total_seconds())
+		hours, remainder = divmod(total, 3600)
+		minutes, seconds = divmod(remainder, 60)
+		encoded = f"{hours:02d}:{minutes:02d}:{seconds:02d}"
+		return f"{encoded}.{value.microseconds:06d}" if value.microseconds else encoded
+	return str(value).replace("\\", "\\\\").replace("\t", "\\t").replace("\n", "\\n").replace("\r", "\\r")
+
+
+def _copy_flush(cursor, copy_sql, buffer):
+	if not buffer.tell():
+		return
+	buffer.seek(0)
+	cursor.copy_expert(copy_sql, buffer)
+	buffer.seek(0)
+	buffer.truncate(0)
+
 
 def modify_query(query):
 	""" "Modifies query according to the requirements of postgres"""

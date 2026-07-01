@@ -1723,3 +1723,51 @@ class TestAdvisoryLockMariaDB(IntegrationTestCase):
 		with frappe.db.advisory_lock("frappe-test-lock"):
 			self.assertTrue(held())
 		self.assertFalse(held())
+
+
+class TestBulkInsertCopy(IntegrationTestCase):
+	def test_bulk_insert_copy(self):
+		# postgres bulk_insert streams via COPY, other engines use multi-row INSERT; both must
+		# round-trip NULLs and tab/newline characters (the COPY text encoding escapes these).
+		frappe.db.sql_ddl("DROP TABLE IF EXISTS `tabBulkLoadTest`")
+		frappe.db.sql("CREATE TABLE `tabBulkLoadTest` (`name` varchar(140), `qty` int, `note` text)")
+		self.addCleanup(frappe.db.sql_ddl, "DROP TABLE IF EXISTS `tabBulkLoadTest`")
+
+		rows = [("a", 1, "x"), ("b", 2, None), ("c\twith\ttabs", 3, "line\nbreak")]
+		frappe.db.bulk_insert("BulkLoadTest", ["name", "qty", "note"], rows)
+		frappe.db.commit()  # nosemgrep
+
+		got = frappe.db.sql("SELECT `name`, `qty`, `note` FROM `tabBulkLoadTest` ORDER BY `qty`")
+		self.assertEqual(len(got), 3)
+		self.assertIsNone(got[1][2])
+		self.assertEqual(got[2][0], "c\twith\ttabs")
+		self.assertEqual(got[2][2], "line\nbreak")
+
+	@run_only_if(db_type_is.POSTGRES)
+	def test_bulk_insert_copy_time(self):
+		# COPY encodes Time (timedelta) values itself: a sub-24h value must round-trip rather than
+		# str()'s "H:MM:SS" formatting drifting or a days component becoming "1 day, ...".
+		frappe.db.sql_ddl("DROP TABLE IF EXISTS `tabBulkTimeTest`")
+		frappe.db.sql('CREATE TABLE "tabBulkTimeTest" ("name" varchar(140), "at" time)')
+		self.addCleanup(frappe.db.sql_ddl, "DROP TABLE IF EXISTS `tabBulkTimeTest`")
+
+		value = datetime.timedelta(hours=2, minutes=30, seconds=15)
+		frappe.db.bulk_insert("BulkTimeTest", ["name", "at"], [("a", value)])
+		frappe.db.commit()  # nosemgrep
+
+		self.assertEqual(frappe.db.sql('SELECT "at" FROM "tabBulkTimeTest"')[0][0], value)
+
+	@run_only_if(db_type_is.POSTGRES)
+	def test_bulk_insert_copy_check_field(self):
+		# Check fields are smallint; COPY must encode Python True/False as 1/0 -- smallint_in("true")
+		# would raise "invalid input syntax for type smallint".
+		frappe.db.sql_ddl("DROP TABLE IF EXISTS `tabBulkFlagTest`")
+		frappe.db.sql('CREATE TABLE "tabBulkFlagTest" ("name" varchar(140), "flag" smallint)')
+		self.addCleanup(frappe.db.sql_ddl, "DROP TABLE IF EXISTS `tabBulkFlagTest`")
+
+		frappe.db.bulk_insert("BulkFlagTest", ["name", "flag"], [("a", True), ("b", False)])
+		frappe.db.commit()  # nosemgrep
+
+		got = dict(frappe.db.sql('SELECT "name", "flag" FROM "tabBulkFlagTest"'))
+		self.assertEqual(got["a"], 1)
+		self.assertEqual(got["b"], 0)
