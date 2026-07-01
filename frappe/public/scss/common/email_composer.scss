@@ -220,10 +220,30 @@
 			display: none;
 		}
 
+		.attach-list {
+			display: flex;
+			flex-wrap: wrap;
+			gap: var(--padding-xs);
+		}
+
+		// Cap width so long filenames ellipsize via .pill-label.ellipsis.
+		.gmail-attach-pill .data-pill {
+			max-width: 200px;
+			min-width: 0;
+		}
+
 		// Collapse to zero height when no attachments are uploaded.
 		&:has(.attach-list:empty) {
 			padding: 0;
 		}
+	}
+
+	// Sticky footer, mirrors .modal-header's sticky top.
+	.gmail-footer {
+		position: sticky;
+		bottom: 0;
+		z-index: 3;
+		background: var(--card-bg);
 	}
 
 	// Informational banner above the action bar — reflects send-options state.

@@ -81,53 +81,87 @@ frappe.views.CommunicationComposer = class {
 					<div class="gmail-slot" data-slot="bcc"></div>
 				</div>
 				<div class="gmail-row">
+					<div class="gmail-slot" data-slot="email_template"></div>
+					<a class="gmail-toggle" data-action="clear-template" hidden>${__("Clear")}</a>
+				</div>
+				<div class="gmail-row">
 					<div class="gmail-slot" data-slot="subject"></div>
 				</div>
 				<div class="gmail-message-area">
 					<div class="gmail-slot" data-slot="content"></div>
 				</div>
 				<div class="gmail-attachments" data-slot="select_attachments"></div>
-				<div class="gmail-banner" hidden></div>
-				<div class="gmail-action-bar">
-					<div class="gmail-action-bar__send btn-group" data-slot="send-button">
-						<button class="btn btn-primary btn-sm" data-action="schedule" title="${__(
-							"Schedule send"
-						)}">${frappe.utils.icon("es-line-down", "xs")}</button>
-					</div>
-					<div class="gmail-icon-row">
-						<button class="btn btn-ghost icon-btn" data-action="format" title="${__(
-							"Formatting options"
-						)}">${icon("es-solid-text")}</button>
-						<button class="btn btn-ghost icon-btn" data-action="attach" title="${__("Attach files")}">${icon(
+				<div class="gmail-footer">
+					<div class="gmail-banner" hidden></div>
+					<div class="gmail-action-bar">
+						<div class="gmail-action-bar__send btn-group" data-slot="send-button">
+							<button class="btn btn-primary btn-sm" data-action="schedule" title="${__(
+								"Schedule send"
+							)}">${frappe.utils.icon("es-line-down", "xs")}</button>
+						</div>
+						<div class="gmail-icon-row">
+							<button class="btn btn-ghost icon-btn" data-action="format" title="${__(
+								"Formatting options"
+							)}">${icon("es-solid-text")}</button>
+							<button class="btn btn-ghost icon-btn" data-action="attach" title="${__("Attach files")}">${icon(
 			"es-line-attachment"
 		)}</button>
-						<button class="btn btn-ghost icon-btn" data-action="send-me-a-copy" title="${__(
-							"Send me a copy"
-						)}">${icon("es-line-copy")}</button>
-						<button class="btn btn-ghost icon-btn" data-action="send-read-receipt" title="${__(
-							"Send read receipt"
-						)}">${icon("check-check")}</button>
-						<button class="btn btn-ghost icon-btn" data-action="print" title="${__(
-							"Attach document print"
-						)}">${icon("printer")}</button>
-					</div>
-					<button class="btn btn-ghost icon-btn" data-action="discard" title="${__("Discard")}">${icon(
+							<button class="btn btn-ghost icon-btn" data-action="send-me-a-copy" title="${__(
+								"Send me a copy"
+							)}">${icon("es-line-copy")}</button>
+							<button class="btn btn-ghost icon-btn" data-action="send-read-receipt" title="${__(
+								"Send read receipt"
+							)}">${icon("check-check")}</button>
+							<button class="btn btn-ghost icon-btn" data-action="print" title="${__(
+								"Attach document print"
+							)}">${icon("printer")}</button>
+						</div>
+						<button class="btn btn-ghost icon-btn" data-action="discard" title="${__("Discard")}">${icon(
 			"es-line-delete"
 		)}</button>
+					</div>
 				</div>
 			</div>
 		`);
 		$body.prepend($skeleton);
 
 		// Move the rendered controls into their slots — autocomplete, Quill, validation all preserved
-		["recipients", "cc", "bcc", "subject", "content", "select_attachments"].forEach(
-			(fieldname) => {
-				const $field = $body.find(`.frappe-control[data-fieldname="${fieldname}"]`);
-				if ($field.length) {
-					$skeleton.find(`[data-slot="${fieldname}"]`).append($field);
-				}
+		[
+			"recipients",
+			"cc",
+			"bcc",
+			"email_template",
+			"subject",
+			"content",
+			"select_attachments",
+		].forEach((fieldname) => {
+			const $field = $body.find(`.frappe-control[data-fieldname="${fieldname}"]`);
+			if ($field.length) {
+				$skeleton.find(`[data-slot="${fieldname}"]`).append($field);
 			}
-		);
+		});
+
+		// email_template's original section break is hidden — Frappe applies display:none
+		// to the field. Clear it since the field is now in a visible slot.
+		$skeleton.find('.frappe-control[data-fieldname="email_template"]').css("display", "");
+
+		const $templateClear = $skeleton.find('[data-action="clear-template"]');
+		const templateField = this.dialog.fields_dict.email_template;
+		const syncTemplateClear = () => {
+			$templateClear.prop("hidden", !templateField.get_value());
+		};
+		$templateClear.on("click", () => {
+			templateField.set_value("");
+			this.get_content_field().set_value("");
+			this.dialog.fields_dict.subject.set_value("");
+			this._last_applied_template = null;
+		});
+		syncTemplateClear();
+		const originalOnchange = templateField.df.onchange;
+		templateField.df.onchange = async function () {
+			if (originalOnchange) await originalOnchange.call(this);
+			syncTemplateClear();
+		};
 
 		// Move Frappe's existing Send button (.btn-modal-primary) from the hidden footer into our
 		// action bar — keeps its existing click handler, classes, and styling. No custom button.
@@ -183,12 +217,13 @@ frappe.views.CommunicationComposer = class {
 			else $banner.attr("hidden", "");
 		};
 
-		const bindCheckIcon = (action, fieldname) => {
+		const bindCheckIcon = (action, fieldname, onToggle) => {
 			const $btn = $skeleton.find(`[data-action="${action}"]`);
 			const field = fields[fieldname];
 			let active = !!(field.get_value() || field.df.default);
 			field.set_input(active ? 1 : 0);
 			$btn.toggleClass("active", active);
+			onToggle?.(active);
 
 			$btn.on("click", () => {
 				active = !active;
@@ -198,10 +233,55 @@ frappe.views.CommunicationComposer = class {
 				field.set_input(active ? 1 : 0);
 				$btn.toggleClass("active", active);
 				updateBanner();
+				onToggle?.(active);
 			});
 		};
+
+		const renderPrintRow = (active) => {
+			const $list = $skeleton.find(".gmail-attachments .attach-list");
+			$list.find(".gmail-print-row").remove();
+			if (!active) return;
+
+			const docName = this.frm?.doc?.name || __("Document Print");
+			const $row = $(`<div class="gmail-attach-pill gmail-print-row"></div>`);
+			const $pill = frappe.get_data_pill(
+				`${docName} (${__("Print")})`,
+				null,
+				() => {
+					fields.attach_document_print.set_input(0);
+					$skeleton.find('[data-action="print"]').removeClass("active");
+					$row.remove();
+				},
+				frappe.utils.icon("printer", "xs"),
+				false,
+				"xs"
+			);
+			// Build the /printview URL manually — frappe.utils.print appends trigger_print=1
+			// which would auto-fire the browser print dialog. We want preview only.
+			if (this.frm) {
+				$pill.on("click", (e) => {
+					if ($(e.target).closest(".remove-btn").length) return;
+					const print_format = fields.select_print_format?.get_value() || "Standard";
+					const lang = fields.print_language?.get_value() || frappe.boot.lang;
+					const url = frappe.urllib.get_full_url(
+						"/printview?doctype=" +
+							encodeURIComponent(this.frm.doctype) +
+							"&name=" +
+							encodeURIComponent(this.frm.docname) +
+							"&format=" +
+							encodeURIComponent(print_format) +
+							"&_lang=" +
+							encodeURIComponent(lang)
+					);
+					window.open(url, "_blank");
+				});
+			}
+			$list.prepend($row.append($pill));
+		};
+
 		bindCheckIcon("send-me-a-copy", "send_me_a_copy");
 		bindCheckIcon("send-read-receipt", "send_read_receipt");
+		bindCheckIcon("print", "attach_document_print", renderPrintRow);
 		updateBanner();
 
 		// Schedule send: ▾ next to Send opens a datetime picker for the existing send_after field.
@@ -290,6 +370,7 @@ frappe.views.CommunicationComposer = class {
 						return me.hide_use_html_field();
 					}
 					await me.check_email_template_html(email_template);
+					me.apply_email_template(email_template);
 				},
 			},
 			{
@@ -481,6 +562,29 @@ frappe.views.CommunicationComposer = class {
 		} else {
 			this.hide_use_html_field();
 		}
+	}
+
+	// Guarded against duplicate applies — onchange can fire more than once for the same
+	// value (Frappe field refresh, awesomplete blur), which would otherwise append twice.
+	apply_email_template(template_name) {
+		if (this._last_applied_template === template_name) return;
+		this._last_applied_template = template_name;
+		frappe.call({
+			method: "frappe.email.doctype.email_template.email_template.get_email_template",
+			args: {
+				template_name,
+				doc: this.doc,
+				sender: this.dialog.get_value("sender") || "",
+			},
+			callback: (r) => {
+				if (!r || !r.message) return;
+				const content_field = this.get_content_field();
+				const subject_field = this.dialog.fields_dict.subject;
+				const existing = content_field.get_value() || "";
+				content_field.set_value(r.message.message + existing);
+				subject_field.set_value(r.message.subject);
+			},
+		});
 	}
 
 	hide_use_html_field() {
@@ -924,29 +1028,32 @@ frappe.views.CommunicationComposer = class {
 	}
 
 	get_attachment_row(attachment, checked) {
-		return $(`<p class="checkbox flex">
-			<label title="${attachment.file_name}" style="max-width: 100%">
-				<input
-					type="checkbox"
-					data-file-name="${attachment.name}"
-					${checked ? "checked" : ""}>
-				</input>
-				<span
-					class="ellipsis"
-					style="max-width: calc(100% - var(--checkbox-size) - var(--checkbox-right-margin) - var(--padding-xs) - 16px)"
-				>
-					${attachment.file_name}
-				</span>
-				<a
-					href="${attachment.file_url}"
-					target="_blank"
-					class="btn-link"
-					style="padding-left: var(--padding-xs)"
-				>
-					${frappe.utils.icon("link", "sm")}
-				</a>
-			</label>
-		</p>`);
+		// Hidden checkbox carries data-file-name so send_action's `[data-file-name]:checked`
+		// selector still finds it — removing the row drops the checkbox with it.
+		// .gmail-attach-pill avoids the form-sidebar .attachment-row overrides that strip
+		// the pill background.
+		const $row = $(`<div class="gmail-attach-pill" title="${attachment.file_name}">
+			<input
+				type="checkbox"
+				data-file-name="${attachment.name}"
+				${checked === false ? "" : "checked"}
+				hidden
+			>
+		</div>`);
+		const size = attachment.file_size
+			? frappe.form.formatters.FileSize(attachment.file_size)
+			: null;
+		const label = size ? `${attachment.file_name} (${size})` : attachment.file_name;
+		const icon = frappe.utils.icon("link-url", "xs");
+		const $pill = frappe.get_data_pill(
+			label,
+			attachment.name,
+			() => $row.remove(),
+			icon,
+			false,
+			"xs"
+		);
+		return $row.append($pill);
 	}
 
 	setup_email() {

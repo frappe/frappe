@@ -580,6 +580,7 @@ button.data-pill {
 	.icon {
 		margin-left: var(--margin-xs);
 		margin-right: 0;
+		flex-shrink: 0;
 	}
 
 	display: flex;
@@ -593,6 +594,21 @@ button.data-pill {
 
 	.pill-label {
 		color: var(--text-color);
+	}
+
+	&.data-pill-xs {
+		height: 24px;
+		padding: 0 var(--padding-sm);
+		font-size: var(--text-sm);
+
+		> .flex {
+			gap: var(--padding-xs);
+		}
+
+		// Reset base .icon margin-left; the `gap` above handles spacing evenly on both sides.
+		.icon {
+			margin-left: 0;
+		}
 	}
 }
 
