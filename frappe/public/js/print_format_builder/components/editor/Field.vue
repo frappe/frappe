@@ -7,6 +7,7 @@
 			'field--preview': !!preview_doc,
 			'field--condition-hidden': preview_doc && !is_field_visible,
 		}"
+		:style="wrap_style"
 		v-show="!df.remove"
 		:title="df.label || df.fieldname"
 		@click.stop="select_field"
@@ -30,9 +31,7 @@
 				<!-- Table MultiSelect field: render as a comma-separated value list -->
 				<div
 					v-else-if="df.fieldtype == 'Table MultiSelect'"
-					:style="
-						field_orientation !== 'left-right' ? { textAlign: df.align || 'left' } : {}
-					"
+					:style="lr_style"
 					:class="[
 						'field-preview-lr',
 						field_orientation === 'left-right' && df.label_justify
@@ -43,12 +42,17 @@
 							: '',
 					]"
 				>
-					<div v-if="df.label && df.show_label !== 'hide'" class="field-preview-label">
+					<div
+						v-if="df.label && df.show_label !== 'hide'"
+						class="field-preview-label"
+						:style="label_style"
+					>
 						{{ df.label }}
 					</div>
 					<div
 						class="field-preview-value"
 						:class="{ 'text-muted': !(preview_doc[df.fieldname] || []).length }"
+						:style="value_style"
 					>
 						{{ multiselect_display(df) }}
 					</div>
@@ -56,72 +60,79 @@
 				<!-- Table field -->
 				<div v-else-if="df.fieldtype == 'Table'" class="field-preview-table">
 					<div v-if="df.label" class="field-preview-label">{{ df.label }}</div>
-					<table
-						class="preview-table"
-						:class="{
-							[`preview-table--${df.table_style || 'lined'}`]: true,
-							'preview-table--borderless': df.table_bordered === false,
-							'preview-table--plain-header': df.table_header === 'plain',
-						}"
-					>
-						<thead>
-							<tr>
-								<th
-									v-for="col in df.table_columns"
-									:key="col.fieldname"
-									:class="numeric_align_class(col)"
-									:style="col.width ? { width: col.width + '%' } : {}"
+					<div class="preview-table-wrap" :style="table_radius_style">
+						<table
+							class="preview-table"
+							:class="{
+								[`preview-table--${df.table_style || 'lined'}`]: true,
+								'preview-table--borderless': df.table_bordered === false,
+								'preview-table--plain-header': df.table_header === 'plain',
+							}"
+						>
+							<thead v-if="df.table_header !== 'none'">
+								<tr>
+									<th
+										v-for="col in df.table_columns"
+										:key="col.fieldname"
+										:class="numeric_align_class(col)"
+										:style="[
+											col.width ? { width: col.width + '%' } : {},
+											cell_pad_style,
+										]"
+									>
+										{{ col.label || col.fieldname }}
+									</th>
+								</tr>
+							</thead>
+							<tbody>
+								<tr
+									v-for="(row, i) in (preview_doc[df.fieldname] || []).slice(
+										0,
+										4
+									)"
+									:key="i"
+									:class="i % 2 === 0 ? 'odd' : 'even'"
 								>
-									{{ col.label || col.fieldname }}
-								</th>
-							</tr>
-						</thead>
-						<tbody>
-							<tr
-								v-for="(row, i) in (preview_doc[df.fieldname] || []).slice(0, 4)"
-								:key="i"
-								:class="i % 2 === 0 ? 'odd' : 'even'"
-							>
-								<td
-									v-for="col in df.table_columns"
-									:key="col.fieldname"
-									:class="numeric_align_class(col)"
-								>
-									<img
-										v-if="
-											is_image_field(col, row[col.fieldname]) &&
-											row[col.fieldname]
-										"
-										:src="row[col.fieldname]"
-										class="preview-table-img"
-										:alt="col.label || col.fieldname"
-									/>
-									<div
-										v-else-if="is_html_content_field(col)"
-										class="preview-table-html"
-										v-html="format_cell(row, col)"
-									></div>
-									<span v-else>{{ format_cell(row, col) }}</span>
-								</td>
-							</tr>
-							<tr v-if="!preview_doc[df.fieldname]?.length">
-								<td
-									:colspan="df.table_columns?.length || 1"
-									class="text-muted"
-									style="text-align: center; font-size: 11px; padding: 6px"
-								>
-									{{ __("No rows") }}
-								</td>
-							</tr>
-						</tbody>
-					</table>
+									<td
+										v-for="col in df.table_columns"
+										:key="col.fieldname"
+										:class="numeric_align_class(col)"
+										:style="cell_pad_style"
+									>
+										<img
+											v-if="
+												is_image_field(col, row[col.fieldname]) &&
+												row[col.fieldname]
+											"
+											:src="row[col.fieldname]"
+											class="preview-table-img"
+											:alt="col.label || col.fieldname"
+										/>
+										<div
+											v-else-if="is_html_content_field(col)"
+											class="preview-table-html"
+											v-html="format_cell(row, col)"
+										></div>
+										<span v-else>{{ format_cell(row, col) }}</span>
+									</td>
+								</tr>
+								<tr v-if="!preview_doc[df.fieldname]?.length">
+									<td
+										:colspan="df.table_columns?.length || 1"
+										class="text-muted"
+										style="text-align: center; font-size: 11px; padding: 6px"
+									>
+										{{ __("No rows") }}
+									</td>
+								</tr>
+							</tbody>
+						</table>
+					</div>
 				</div>
 				<!-- Regular field -->
 				<div
 					v-else
-					:style="
-						field_orientation !== 'left-right' ? { textAlign: df.align || 'left' } : {}
-					"
+					:style="lr_style"
 					:class="[
 						'field-preview-lr',
 						field_orientation === 'left-right' && df.label_justify
@@ -132,10 +143,18 @@
 							: '',
 					]"
 				>
-					<div v-if="df.label && df.show_label !== 'hide'" class="field-preview-label">
+					<div
+						v-if="df.label && df.show_label !== 'hide'"
+						class="field-preview-label"
+						:style="label_style"
+					>
 						{{ df.label }}
 					</div>
-					<div class="field-preview-value" :class="{ 'text-muted': !preview_value }">
+					<div
+						class="field-preview-value"
+						:class="{ 'text-muted': !preview_value }"
+						:style="value_style"
+					>
 						<img
 							v-if="is_image_field(df, preview_value) && preview_value"
 							:src="preview_value"
@@ -191,7 +210,7 @@
 							@keydown.enter="editing = false"
 							@blur="editing = false"
 						/>
-						<span v-else-if="df.label">{{ df.label }}</span>
+						<span v-else-if="df.label" :style="label_style">{{ df.label }}</span>
 						<i class="text-muted" v-else>{{ __("No Label") }} ({{ df.fieldname }})</i>
 					</div>
 					<div class="field-meta">
@@ -255,6 +274,60 @@ let rendered_template = ref(null);
 let is_selected = computed(() => store.selected_field.value === props.df);
 let preview_doc = computed(() => store.preview_doc.value);
 let is_field_visible = computed(() => evaluate_visible_if(props.df.visible_if, preview_doc.value));
+
+// ── User field styling (mirrors the PDF render in Data.html) ──
+function box_css(box) {
+	if (!box) return null;
+	return `${box.top || 0}px ${box.right || 0}px ${box.bottom || 0}px ${box.left || 0}px`;
+}
+
+let wrap_style = computed(() => {
+	const o = props.df.style;
+	if (!o) return {};
+	const st = {};
+	if (o.background) st.backgroundColor = o.background;
+	const pad = box_css(o.padding);
+	if (pad) st.padding = pad;
+	const mar = box_css(o.margin);
+	if (mar) st.margin = mar;
+	return st;
+});
+
+// Label and value carry independent typography (color / bold). Font size is
+// page-level (set in the Format tab), so it is intentionally not per-field.
+function typo_style(target) {
+	const o = props.df.style?.[target];
+	if (!o) return {};
+	const st = {};
+	if (o.color) st.color = o.color;
+	if (o.bold) st.fontWeight = "600";
+	return st;
+}
+
+let value_style = computed(() => typo_style("value"));
+
+// Per-cell padding for child tables (px). Applied to every th/td.
+let cell_pad_style = computed(() => {
+	const p = props.df.table_cell_padding;
+	return p || p === 0 ? { padding: p + "px" } : {};
+});
+
+// Table corner radius: round + clip via the wrapper so collapsed borders curve
+let table_radius_style = computed(() => {
+	const r = props.df.table_radius;
+	return r ? { borderRadius: r + "px", overflow: "hidden" } : {};
+});
+
+let label_style = computed(() => typo_style("label"));
+
+// Style for the label+value container: text alignment (top mode) + custom gap
+let lr_style = computed(() => {
+	const st = {};
+	if (props.field_orientation !== "left-right") st.textAlign = props.df.align || "left";
+	const g = props.df.style?.gap;
+	if (g) st.gap = g + "px";
+	return st;
+});
 
 // Render Jinja2 HTML fields server-side when in preview mode
 watch(
@@ -693,6 +766,9 @@ watch(
 	background: transparent;
 	padding: 0;
 	position: relative;
+	/* Inherit the page base size (.pfb-body) so the em-based label/value text
+	   below scales with the print format's font size instead of a fixed value. */
+	font-size: inherit;
 }
 
 .field--condition-hidden {
@@ -718,7 +794,7 @@ watch(
 }
 
 .field-preview-label {
-	font-size: var(--text-tiny);
+	font-size: 1em;
 	font-weight: var(--weight-semibold);
 	color: #6b7280;
 	margin-bottom: 1px;
@@ -775,7 +851,7 @@ watch(
 }
 
 .field-preview-value {
-	font-size: var(--text-sm);
+	font-size: 1em;
 	color: var(--text-color);
 	word-break: break-word;
 }
@@ -835,7 +911,7 @@ watch(
 }
 
 .field-preview-table > .field-preview-label {
-	font-size: 0.8em;
+	font-size: 1em;
 	font-weight: var(--weight-semibold);
 	color: var(--text-muted);
 	margin-bottom: 0.4rem;
@@ -844,7 +920,7 @@ watch(
 .preview-table {
 	width: 100%;
 	border-collapse: collapse;
-	font-size: var(--text-sm);
+	font-size: 1em;
 	table-layout: fixed;
 }
 
@@ -853,7 +929,7 @@ watch(
 	background-color: var(--gray-100);
 	color: var(--text-color);
 	font-weight: var(--weight-semibold);
-	font-size: var(--text-tiny);
+	font-size: 1em;
 	padding: 0.45rem 0.6rem;
 	border: 1px solid var(--gray-200);
 	text-align: left;
@@ -903,11 +979,10 @@ watch(
 	text-align: right;
 }
 
-/* ── Borderless variant ──────────────────────────────── */
+/* ── Borderless variant — no cell borders at all ─────── */
 .preview-table--borderless th,
 .preview-table--borderless td {
 	border: none;
-	border-bottom: 1px solid var(--gray-200);
 }
 
 /* ── Plain header variant ───────────────────────────── */

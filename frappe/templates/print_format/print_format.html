@@ -60,6 +60,8 @@
 	{%- if not section.label or ns.has_content -%}
 	{#- Build inline style for section background + padding -#}
 	{%- set ns3 = namespace(section_style='') -%}
+	{%- set _grid = section.field_borders -%}
+	{%- set ns4 = namespace(cols_style='') -%}
 	{%- if section.background -%}
 		{%- set ns3.section_style = ns3.section_style + 'background:' + section.background + ';' -%}
 	{%- endif -%}
@@ -67,7 +69,24 @@
 		{%- set p = section.padding -%}
 		{%- set ns3.section_style = ns3.section_style + 'padding:' + (p.top or 0)|string + 'px ' + (p.right or 0)|string + 'px ' + (p.bottom or 0)|string + 'px ' + (p.left or 0)|string + 'px;' -%}
 	{%- endif -%}
-	<div class="section {{ resolve_class({'page-break': section.page_break}) }} {{ 'label-uppercase' if section.label_case == 'uppercase' else '' }}"{% if ns3.section_style %} style="{{ ns3.section_style }}"{% endif %}>
+	{%- set _bw = (section.border.width if section.border and section.border.width else 1) -%}
+	{%- set _bs = (section.border.style if section.border and section.border.style else 'solid') -%}
+	{%- set _bc = (section.border.color if section.border and section.border.color else '#e5e7eb') -%}
+	{%- if section.border and section.border.width -%}
+		{%- set _sb = section.border -%}
+		{%- set _edge = _sb.width|string + 'px ' + (_sb.style or 'solid') + ' ' + (_sb.color or '#000000') -%}
+		{%- set _bstr = '' -%}
+		{%- if _sb.top != false -%}{%- set _bstr = _bstr + 'border-top:' + _edge + ';' -%}{%- endif -%}
+		{%- if _sb.right != false -%}{%- set _bstr = _bstr + 'border-right:' + _edge + ';' -%}{%- endif -%}
+		{%- if _sb.bottom != false -%}{%- set _bstr = _bstr + 'border-bottom:' + _edge + ';' -%}{%- endif -%}
+		{%- if _sb.left != false -%}{%- set _bstr = _bstr + 'border-left:' + _edge + ';' -%}{%- endif -%}
+		{%- if _sb.radius -%}{%- set _bstr = _bstr + 'border-radius:' + _sb.radius|string + 'px;overflow:hidden;' -%}{%- endif -%}
+		{%- if _grid -%}{%- set ns4.cols_style = ns4.cols_style + _bstr -%}{%- else -%}{%- set ns3.section_style = ns3.section_style + _bstr -%}{%- endif -%}
+	{%- endif -%}
+	{%- if _grid -%}
+		{%- set ns4.cols_style = ns4.cols_style + 'padding:0;margin:0;gap:0;--pfb-line:' + _bw|string + 'px ' + _bs + ' ' + _bc + ';--pfb-cell-pad:' + (section.cell_padding if section.cell_padding is not none else 8)|string + 'px;' -%}
+	{%- endif -%}
+	<div class="section {{ resolve_class({'page-break': section.page_break}) }} {{ 'label-uppercase' if section.label_case == 'uppercase' else '' }}{% if _grid %} section-grid{% if section.inner_rows != false %} section-grid-rows{% endif %}{% if section.inner_cols != false %} section-grid-cols{% endif %}{% endif %}"{% if ns3.section_style %} style="{{ ns3.section_style }}"{% endif %}>
 		{% if section.label and section.show_label != 'hide' %}
 		<div class="section-label">{{ _(section.label) }}</div>
 		{% endif %}
@@ -83,7 +102,7 @@
 			{%- set row_layout = '' -%}
 		{%- endif -%}
 		{%- set col_gap = (section.gap if section.gap is defined and section.gap != None else 20)|string + 'px' -%}
-		<div class="section-columns row {{ row_layout }}" style="gap:{{ col_gap }}">
+		<div class="section-columns row {{ row_layout }}"{% if _grid %} style="{{ ns4.cols_style }}"{% else %} style="gap:{{ col_gap }}"{% endif %}>
 			{% for column in section.columns %}
 			<div class="column col">
 				{% for df in column.fields %}

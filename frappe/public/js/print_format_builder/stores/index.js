@@ -113,12 +113,15 @@ export function getStore(print_format_name) {
 								"table_style",
 								"table_bordered",
 								"table_header",
+								"table_cell_padding",
+								"table_radius",
 								"html",
 								"field_template",
 								"show_label",
 								"align",
 								"label_justify",
 								"visible_if",
+								"style",
 							]);
 						});
 					return column;
@@ -136,12 +139,15 @@ export function getStore(print_format_name) {
 			"table_style",
 			"table_bordered",
 			"table_header",
+			"table_cell_padding",
+			"table_radius",
 			"html",
 			"field_template",
 			"show_label",
 			"align",
 			"label_justify",
 			"visible_if",
+			"style",
 		];
 		function clean_zone(zone) {
 			if (!zone || !zone.columns) return zone;

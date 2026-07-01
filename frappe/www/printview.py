@@ -620,10 +620,17 @@ def get_print_style(
 	if not style:
 		style = print_settings.print_style or ""
 
+	# Per-print-format font size takes precedence over the global Print Settings size
+	font_size = None
+	if print_format and print_format.get("font_size"):
+		font_size = print_format.font_size
+	font_size = font_size or print_settings.font_size or 9
+
 	context = {
 		"print_settings": print_settings,
 		"print_style": style,
 		"font": get_font(print_settings, print_format, for_legacy),
+		"font_size": font_size,
 	}
 
 	css = frappe.get_template("templates/styles/standard.css").render(context)

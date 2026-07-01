@@ -22,7 +22,7 @@
 }
 
 html, body {
-	font-size: {{ print_format.font_size }}px;
+	font-size: {{ print_format.font_size or 14 }}px;
 }
 
 body {
@@ -68,7 +68,7 @@ body {
 }
 
 .section-label {
-	font-size: 1.1rem;
+	font-size: 1em;
 	font-weight: 700;
 	color: #1a1a1a;
 	padding-bottom: 0.35rem;
@@ -89,9 +89,9 @@ body {
 	page-break-inside: avoid;
 }
 
-/* Stacked (default): muted label above value */
+/* Stacked (default): label same size as value, distinguished by weight/colour */
 .field .label {
-	font-size: 0.75em;
+	font-size: 1em;
 	font-weight: 600;
 	color: #6b7280;
 	margin-bottom: 0.1rem;
@@ -99,6 +99,33 @@ body {
 
 .field .value {
 	color: #111827;
+}
+
+/* ── Section table layout (field borders) ────────────────── */
+.section-grid .section-columns {
+	align-items: stretch;
+}
+
+.section-grid .column {
+	padding: 0;
+}
+
+.section-grid .field {
+	border: none !important;
+	border-radius: 0 !important;
+	background: transparent !important;
+	margin: 0 !important;
+	padding: var(--pfb-cell-pad, 8px) !important;
+}
+
+/* Horizontal inner lines: between rows within a column */
+.section-grid-rows .column > .field + .field {
+	border-top: var(--pfb-line, 1px solid #e5e7eb) !important;
+}
+
+/* Vertical inner lines: between columns */
+.section-grid-cols .column + .column {
+	border-left: var(--pfb-line, 1px solid #e5e7eb) !important;
 }
 
 /* Left-right (section-level): label shrinks to content width, value takes the rest */
@@ -112,7 +139,7 @@ body {
 .field.left-right .label,
 .field.field-inline .label {
 	flex-shrink: 0;
-	font-size: 0.8em;
+	font-size: 1em;
 	font-weight: 600;
 	color: #374151;
 	text-transform: none;
@@ -172,14 +199,14 @@ body {
 }
 
 .child-table > .label {
-	font-size: 0.8em;
+	font-size: 1em;
 	font-weight: 600;
 	color: #6b7280;
 	margin-bottom: 0.4rem;
 }
 
 .child-table .table {
-	font-size: 0.9em;
+	font-size: 1em;
 	border-collapse: collapse;
 	width: 100%;
 }
@@ -188,7 +215,7 @@ body {
 	background-color: #f3f4f6 !important;
 	color: #374151;
 	font-weight: 600;
-	font-size: 0.85em;
+	font-size: 1em;
 	padding: 0.45rem 0.6rem;
 	border: 1px solid #e5e7eb !important;
 }
@@ -231,11 +258,10 @@ body {
 	background-color: #ffffff !important;
 }
 
-/* borderless variant */
+/* borderless variant — remove every cell border (header keeps its background) */
 .child-table--borderless .table th,
 .child-table--borderless .table td {
 	border: none !important;
-	border-bottom: 1px solid #e5e7eb !important;
 }
 
 /* plain header variant */

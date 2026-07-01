@@ -104,7 +104,7 @@
 }
 
 .print-format {
-	font-size: {{ print_settings.font_size|flt or 9 }}pt;
+	font-size: {{ font_size|flt or 9 }}pt;
 	font-family: {{ font }};
 	-webkit-print-color-adjust:exact;
 }

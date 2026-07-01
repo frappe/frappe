@@ -143,8 +143,11 @@ let rootStyles = computed(() => {
 let bodyStyles = computed(() => {
 	const { font_size, font } = print_format.value;
 	const styles = {};
-	if (font_size) styles.fontSize = `${font_size}pt`;
-	if (font) styles.fontFamily = `'${font}', sans-serif`;
+	// Base size in px to match the actual print output (print_format.css sets
+	// `html, body { font-size: <font_size>px }`). The em-based field text below
+	// scales off this, so changing the page font size is visible here too.
+	styles.fontSize = `${parseFloat(font_size) || 14}px`;
+	if (font && font !== "Default") styles.fontFamily = `'${font}', sans-serif`;
 	return styles;
 });
 
@@ -322,13 +325,13 @@ watch(print_format, () => (store.dirty.value = true), { deep: true });
 	opacity: 1;
 }
 
-/* Section title: match PDF's .section-label look */
+/* Section title: match PDF's .section-label look (same size as body, bold) */
 .pfb-clean-preview :deep(.section-title-display) {
 	display: block;
 	padding: 0 0 0.3rem;
 	margin-bottom: 0.4rem;
 	border-bottom: 1.5px solid var(--border-color);
-	font-size: var(--text-lg);
+	font-size: 1em;
 	font-weight: var(--weight-bold);
 	color: var(--text-color);
 }

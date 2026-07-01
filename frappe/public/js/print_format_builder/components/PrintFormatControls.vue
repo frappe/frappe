@@ -227,13 +227,23 @@
 
 			<div class="pfb-group-label mt-3">{{ __("Font") }}</div>
 			<div class="form-group">
-				<label class="control-label">{{ __("Google Font") }}</label>
+				<label class="control-label">{{ __("Font family") }}</label>
 				<select class="form-control form-control-sm" v-model="print_format.font">
-					<option v-for="font in google_fonts" :value="font">{{ font }}</option>
+					<option value="Default">{{ __("Default") }}</option>
+					<optgroup :label="__('System')">
+						<option v-for="font in system_fonts" :key="font" :value="font">
+							{{ font }}
+						</option>
+					</optgroup>
+					<optgroup :label="__('Google Fonts')">
+						<option v-for="font in google_fonts" :key="font" :value="font">
+							{{ font }}
+						</option>
+					</optgroup>
 				</select>
 			</div>
 			<div class="form-group">
-				<label class="control-label">{{ __("Font Size (pt)") }}</label>
+				<label class="control-label">{{ __("Font Size (px)") }}</label>
 				<input
 					type="number"
 					class="form-control form-control-sm"
@@ -264,6 +274,17 @@ import { computed, onMounted, onUnmounted, nextTick, ref, watch, inject } from "
 // state
 let search_text = ref("");
 let google_fonts = ref([]);
+const system_fonts = [
+	"Arial",
+	"Helvetica",
+	"Verdana",
+	"Tahoma",
+	"Trebuchet MS",
+	"Georgia",
+	"Times New Roman",
+	"Garamond",
+	"Courier New",
+];
 let activeTab = ref("fields");
 let search_input = ref(null);
 let raw_templates = ref([]);
@@ -541,8 +562,10 @@ onMounted(() => {
 	let method = "frappe.printing.page.print_format_builder.print_format_builder.get_google_fonts";
 	frappe.call(method).then((r) => {
 		google_fonts.value = r.message || [];
-		if (!google_fonts.value.includes(print_format.value.font)) {
-			google_fonts.value.push(print_format.value.font);
+		// Only surface a saved font if it isn't already a Default/system option
+		const f = print_format.value.font;
+		if (f && f !== "Default" && !system_fonts.includes(f) && !google_fonts.value.includes(f)) {
+			google_fonts.value.push(f);
 		}
 	});
 

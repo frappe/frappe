@@ -2,26 +2,33 @@
 {% set _style = df.table_style or "lined" %}
 {% set _bordered = df.table_bordered != False %}
 {% set _plain_header = df.table_header == "plain" %}
+{% set _no_header = df.table_header == "none" %}
+{% set _cell_pad = df.table_cell_padding %}
+{% set _cell_style = ("padding:" ~ _cell_pad ~ "px") if _cell_pad is not none else "" %}
+{% set _radius = df.table_radius %}
 <div class="child-table child-table--{{ _style }}{% if not _bordered %} child-table--borderless{% endif %}{% if _plain_header %} child-table--plain-header{% endif %}" {{ field_attributes(df) }}>
 	<div class="label">
 		{{ _(df.label) }}
 	</div>
+	{% if _radius %}<div class="child-table-radius" style="border-radius:{{ _radius }}px;overflow:hidden;">{% endif %}
 	<table class="table{% if _bordered %} table-bordered{% endif %}">
 		{% set columns = df.table_columns %}
+		{% if not _no_header %}
 		<thead>
 			<tr class="table-row">
 				{% for column in columns %}
-				<th class="column-header" width="{{ column.width }}%" {{ field_attributes(column) }}>
+				<th class="column-header" width="{{ column.width }}%"{% if _cell_style %} style="{{ _cell_style }}"{% endif %} {{ field_attributes(column) }}>
 					{{ _(column.label) }}
 				</th>
 				{% endfor %}
 			</tr>
 		</thead>
+		{% endif %}
 		<tbody>
 			{% for row in doc.get(df.fieldname) %}
 			<tr class="table-row {{ loop.cycle('odd', 'even') }}" data-idx="{{ row.idx }}">
 				{% for column in columns %}
-				<td class="column-value" width="{{ column.width }}%" {{ field_attributes(column) }}>
+				<td class="column-value" width="{{ column.width }}%"{% if _cell_style %} style="{{ _cell_style }}"{% endif %} {{ field_attributes(column) }}>
 					{# Image cells: validated URL + server-side thumbnail + escaped src. #}
 					{%- set _src = (row.get(column.options) if column.fieldtype == "Image" else row.get(column.fieldname)) or "" -%}
 					{%- set _src = _src|string|trim -%}
@@ -38,5 +45,6 @@
 			{% endfor %}
 		</tbody>
 	</table>
+	{% if _radius %}</div>{% endif %}
 </div>
 {% endif %}

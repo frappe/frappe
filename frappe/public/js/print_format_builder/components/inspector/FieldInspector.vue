@@ -133,7 +133,7 @@
 							<span class="pfb-insp-label">{{ __("Header") }}</span>
 							<div class="pfb-seg">
 								<button
-									:class="{ active: table_header !== 'plain' }"
+									:class="{ active: table_header === 'styled' }"
 									@click="selected_field.table_header = 'styled'"
 								>
 									{{ __("Styled") }}
@@ -144,7 +144,37 @@
 								>
 									{{ __("Plain") }}
 								</button>
+								<button
+									:class="{ active: table_header === 'none' }"
+									:title="__('Hide the header row')"
+									@click="selected_field.table_header = 'none'"
+								>
+									{{ __("None") }}
+								</button>
 							</div>
+						</div>
+						<!-- Cell padding -->
+						<div class="pfb-insp-row">
+							<span class="pfb-insp-label">{{ __("Cell padding") }}</span>
+							<input
+								class="pfb-num"
+								type="number"
+								min="0"
+								:value="cell_padding"
+								@change="(e) => set_cell_padding(e.target.value)"
+							/>
+						</div>
+						<!-- Corner radius -->
+						<div class="pfb-insp-row">
+							<span class="pfb-insp-label">{{ __("Radius") }}</span>
+							<input
+								class="pfb-num"
+								type="number"
+								min="0"
+								placeholder="0"
+								:value="selected_field.table_radius || ''"
+								@change="(e) => set_table_radius(e.target.value)"
+							/>
 						</div>
 					</div>
 				</div>
@@ -179,9 +209,13 @@
 										class="pfb-col-drag"
 										v-html="frappe.utils.icon('drag', 'xs')"
 									></span>
-									<span class="pfb-col-label" :title="col.fieldname">{{
-										col.label || col.fieldname
-									}}</span>
+									<input
+										class="pfb-col-label-input"
+										type="text"
+										v-model="col.label"
+										:placeholder="col.fieldname"
+										:title="__('Header label') + ' (' + col.fieldname + ')'"
+									/>
 									<input
 										class="pfb-col-width-input"
 										type="number"
@@ -339,6 +373,111 @@
 					</div>
 				</div>
 
+				<div class="pfb-insp-section" v-if="!is_html_field">
+					<div class="pfb-insp-section-head" @click="toggle('f_style')">
+						<span class="pfb-insp-section-label">{{ __("Style") }}</span>
+						<span
+							class="pfb-insp-chevron"
+							:class="{ collapsed: !open.f_style }"
+							v-html="frappe.utils.icon('chevron-down', 'xs')"
+						></span>
+					</div>
+					<div v-show="open.f_style" class="pfb-insp-section-body">
+						<!-- Label styling -->
+						<div class="pfb-box-block">
+							<div class="pfb-box-title">{{ __("Label") }}</div>
+							<div class="pfb-insp-row pfb-insp-row--col">
+								<span class="pfb-insp-label">{{ __("Color") }}</span>
+								<ColorInput
+									:modelValue="lstyle.color || ''"
+									@update:modelValue="set_typo('label', 'color', $event)"
+								/>
+							</div>
+							<div class="pfb-insp-row">
+								<span class="pfb-insp-label">{{ __("Bold") }}</span>
+								<div class="pfb-seg">
+									<button
+										:class="{ active: !lstyle.bold }"
+										@click="set_typo('label', 'bold', false)"
+									>
+										{{ __("No") }}
+									</button>
+									<button
+										:class="{ active: !!lstyle.bold }"
+										@click="set_typo('label', 'bold', true)"
+									>
+										{{ __("Yes") }}
+									</button>
+								</div>
+							</div>
+						</div>
+						<!-- Value styling -->
+						<div class="pfb-box-block">
+							<div class="pfb-box-title">{{ __("Value") }}</div>
+							<div class="pfb-insp-row pfb-insp-row--col">
+								<span class="pfb-insp-label">{{ __("Color") }}</span>
+								<ColorInput
+									:modelValue="vstyle.color || ''"
+									@update:modelValue="set_typo('value', 'color', $event)"
+								/>
+							</div>
+							<div class="pfb-insp-row">
+								<span class="pfb-insp-label">{{ __("Bold") }}</span>
+								<div class="pfb-seg">
+									<button
+										:class="{ active: !vstyle.bold }"
+										@click="set_typo('value', 'bold', false)"
+									>
+										{{ __("No") }}
+									</button>
+									<button
+										:class="{ active: !!vstyle.bold }"
+										@click="set_typo('value', 'bold', true)"
+									>
+										{{ __("Yes") }}
+									</button>
+								</div>
+							</div>
+						</div>
+						<!-- Label / value gap -->
+						<div class="pfb-insp-row">
+							<span class="pfb-insp-label">{{ __("Gap") }}</span>
+							<input
+								class="pfb-num"
+								type="number"
+								min="0"
+								placeholder="—"
+								:value="fstyle.gap || ''"
+								@change="(e) => set_field_gap(e.target.value)"
+							/>
+						</div>
+						<!-- Background -->
+						<div class="pfb-insp-row pfb-insp-row--col">
+							<span class="pfb-insp-label">{{ __("Background") }}</span>
+							<ColorInput
+								:modelValue="fstyle.background || ''"
+								@update:modelValue="set_field_style('background', $event)"
+							/>
+						</div>
+						<!-- Padding -->
+						<div class="pfb-insp-row pfb-insp-row--col">
+							<span class="pfb-insp-label">{{ __("Padding (px)") }}</span>
+							<BoxInput
+								:modelValue="fstyle.padding"
+								@update:modelValue="(v) => set_field_box('padding', v)"
+							/>
+						</div>
+						<!-- Margin -->
+						<div class="pfb-insp-row pfb-insp-row--col">
+							<span class="pfb-insp-label">{{ __("Margin (px)") }}</span>
+							<BoxInput
+								:modelValue="fstyle.margin"
+								@update:modelValue="(v) => set_field_box('margin', v)"
+							/>
+						</div>
+					</div>
+				</div>
+
 				<div class="pfb-insp-section">
 					<div class="pfb-insp-section-head" @click="toggle('f_visibility')">
 						<span class="pfb-insp-section-label">{{ __("Visibility") }}</span>
@@ -446,24 +585,19 @@
 						<!-- Gap -->
 						<div class="pfb-insp-row">
 							<span class="pfb-insp-label">{{ __("Gap") }}</span>
-							<div class="pfb-stepper">
-								<button @click="adjust_gap(-4)">−</button>
-								<input
-									class="pfb-stepper-input"
-									type="number"
-									min="0"
-									:value="section_gap"
-									@change="
-										(e) =>
-											(selected_section.gap = Math.max(
-												0,
-												parseInt(e.target.value) || 0
-											))
-									"
-								/>
-								<span class="pfb-stepper-unit">px</span>
-								<button @click="adjust_gap(4)">+</button>
-							</div>
+							<input
+								class="pfb-num"
+								type="number"
+								min="0"
+								:value="section_gap"
+								@change="
+									(e) =>
+										(selected_section.gap = Math.max(
+											0,
+											parseInt(e.target.value) || 0
+										))
+								"
+							/>
 						</div>
 
 						<!-- Label case -->
@@ -498,16 +632,12 @@
 						></span>
 					</div>
 					<div v-show="open.s_bg" class="pfb-insp-section-body">
-						<div class="pfb-color-swatches">
-							<button
-								v-for="swatch in bg_swatches"
-								:key="swatch.value"
-								class="pfb-swatch"
-								:class="{ active: section_bg === swatch.value }"
-								:title="swatch.label"
-								:style="swatch.style"
-								@click="selected_section.background = swatch.value"
-							></button>
+						<div class="pfb-insp-row pfb-insp-row--col">
+							<span class="pfb-insp-label">{{ __("Color") }}</span>
+							<ColorInput
+								:modelValue="section_bg"
+								@update:modelValue="(v) => (selected_section.background = v)"
+							/>
 						</div>
 					</div>
 				</div>
@@ -523,30 +653,144 @@
 						></span>
 					</div>
 					<div v-show="open.s_padding" class="pfb-insp-section-body">
-						<div class="pfb-padding-grid">
-							<div
-								v-for="side in ['top', 'right', 'bottom', 'left']"
-								:key="side"
-								class="pfb-padding-cell"
-							>
-								<div class="pfb-padding-label">
-									{{ __(side[0].toUpperCase() + side.slice(1)) }}
-								</div>
-								<div class="pfb-stepper pfb-stepper--sm">
-									<button @click="adjust_padding(side, -4)">−</button>
-									<input
-										class="pfb-stepper-input"
-										type="number"
-										min="0"
-										:value="section_padding[side]"
-										@change="
-											(e) => set_padding(side, parseInt(e.target.value) || 0)
-										"
-									/>
-									<button @click="adjust_padding(side, 4)">+</button>
-								</div>
+						<BoxInput
+							:modelValue="selected_section.padding"
+							@update:modelValue="set_section_padding"
+						/>
+					</div>
+				</div>
+
+				<!-- BORDER -->
+				<div class="pfb-insp-section">
+					<div class="pfb-insp-section-head" @click="toggle('s_border')">
+						<span class="pfb-insp-section-label">{{ __("Border") }}</span>
+						<span
+							class="pfb-insp-chevron"
+							:class="{ collapsed: !open.s_border }"
+							v-html="frappe.utils.icon('chevron-down', 'xs')"
+						></span>
+					</div>
+					<div v-show="open.s_border" class="pfb-insp-section-body">
+						<!-- Table layout (field borders) -->
+						<div class="pfb-insp-row">
+							<span class="pfb-insp-label">{{ __("Table layout") }}</span>
+							<div class="pfb-seg">
+								<button
+									:class="{ active: !section_field_borders }"
+									@click="toggle_field_borders(false)"
+								>
+									{{ __("Off") }}
+								</button>
+								<button
+									:class="{ active: section_field_borders }"
+									@click="toggle_field_borders(true)"
+								>
+									{{ __("On") }}
+								</button>
 							</div>
 						</div>
+						<div class="pfb-insp-row">
+							<span class="pfb-insp-label">{{ __("Width") }}</span>
+							<input
+								class="pfb-num"
+								type="number"
+								min="0"
+								placeholder="0"
+								:value="section_border.width || ''"
+								@change="(e) => set_section_border('width', e.target.value)"
+							/>
+						</div>
+						<!-- Sides -->
+						<div class="pfb-insp-row">
+							<span class="pfb-insp-label">{{ __("Sides") }}</span>
+							<div class="pfb-seg">
+								<button
+									v-for="side in ['top', 'right', 'bottom', 'left']"
+									:key="side"
+									:class="{ active: section_border_side(side) }"
+									:title="__(side)"
+									@click="toggle_section_border_side(side)"
+								>
+									{{ side[0].toUpperCase() }}
+								</button>
+							</div>
+						</div>
+						<div class="pfb-insp-row">
+							<span class="pfb-insp-label">{{ __("Style") }}</span>
+							<select
+								class="pfb-insp-select"
+								:value="section_border.style || 'solid'"
+								@change="set_section_border('style', $event.target.value)"
+							>
+								<option value="solid">{{ __("Solid") }}</option>
+								<option value="dashed">{{ __("Dashed") }}</option>
+								<option value="dotted">{{ __("Dotted") }}</option>
+							</select>
+						</div>
+						<div class="pfb-insp-row pfb-insp-row--col">
+							<span class="pfb-insp-label">{{ __("Border color") }}</span>
+							<ColorInput
+								:modelValue="section_border.color || ''"
+								@update:modelValue="set_section_border('color', $event)"
+							/>
+						</div>
+						<div class="pfb-insp-row">
+							<span class="pfb-insp-label">{{ __("Radius") }}</span>
+							<input
+								class="pfb-num"
+								type="number"
+								min="0"
+								placeholder="0"
+								:value="section_border.radius || ''"
+								@change="(e) => set_section_border('radius', e.target.value)"
+							/>
+						</div>
+						<template v-if="section_field_borders">
+							<div class="pfb-insp-row">
+								<span class="pfb-insp-label">{{ __("Row lines") }}</span>
+								<div class="pfb-seg">
+									<button
+										:class="{ active: !section_inner_rows }"
+										@click="set_section_bool('inner_rows', false)"
+									>
+										{{ __("No") }}
+									</button>
+									<button
+										:class="{ active: section_inner_rows }"
+										@click="set_section_bool('inner_rows', true)"
+									>
+										{{ __("Yes") }}
+									</button>
+								</div>
+							</div>
+							<div class="pfb-insp-row">
+								<span class="pfb-insp-label">{{ __("Column lines") }}</span>
+								<div class="pfb-seg">
+									<button
+										:class="{ active: !section_inner_cols }"
+										@click="set_section_bool('inner_cols', false)"
+									>
+										{{ __("No") }}
+									</button>
+									<button
+										:class="{ active: section_inner_cols }"
+										@click="set_section_bool('inner_cols', true)"
+									>
+										{{ __("Yes") }}
+									</button>
+								</div>
+							</div>
+							<div class="pfb-insp-row">
+								<span class="pfb-insp-label">{{ __("Cell padding") }}</span>
+								<input
+									class="pfb-num"
+									type="number"
+									min="0"
+									:value="section_cell_padding"
+									@change="(e) => set_section_cell_padding(e.target.value)"
+								/>
+							</div>
+						</template>
 					</div>
 				</div>
 
@@ -601,6 +845,8 @@ import { useStore } from "../../stores";
 import LetterHeadZoneInspector from "./LetterHeadZoneInspector.vue";
 import Autocomplete from "../../../vue-components/Autocomplete.vue";
 import VisibilitySection from "./VisibilitySection.vue";
+import ColorInput from "./ColorInput.vue";
+import BoxInput from "./BoxInput.vue";
 
 let store = inject("$store");
 let { letterhead, layout } = useStore();
@@ -613,10 +859,12 @@ let preview_doc = computed(() => store.preview_doc.value);
 
 const open = ref({
 	f_field: true,
+	f_style: false,
 	f_visibility: false,
 	s_section: true,
 	s_bg: true,
 	s_padding: true,
+	s_border: true,
 	s_visibility: false,
 	t_table: true,
 	t_columns: true,
@@ -863,30 +1111,74 @@ function clamp_width(col) {
 	col.width = Math.max(5, Math.min(100, parseInt(col.width) || 10));
 }
 
+// ── Field style helpers ────────────────────────────────────
+let fstyle = computed(() => selected_field.value?.style ?? {});
+
+function ensure_field_style() {
+	if (!selected_field.value.style) selected_field.value.style = {};
+	return selected_field.value.style;
+}
+
+// Set/clear a flat style key. Falsy values (empty string, false, 0) clear it
+// so the saved style object stays minimal.
+function set_field_style(key, value) {
+	const s = ensure_field_style();
+	if (value === "" || value === false || value === null || value === undefined) {
+		delete s[key];
+	} else {
+		s[key] = value;
+	}
+}
+
+function set_field_box(prop, obj) {
+	const s = ensure_field_style();
+	if (obj) s[prop] = obj;
+	else delete s[prop];
+}
+
+// ── Label / Value typography (separate styling for each) ───
+let lstyle = computed(() => selected_field.value?.style?.label ?? {});
+let vstyle = computed(() => selected_field.value?.style?.value ?? {});
+
+// target = "label" | "value"
+function set_typo(target, key, value) {
+	const s = ensure_field_style();
+	if (!s[target]) s[target] = {};
+	if (value === "" || value === false || value === null || value === undefined) {
+		delete s[target][key];
+	} else {
+		s[target][key] = value;
+	}
+	if (!Object.keys(s[target]).length) delete s[target];
+}
+
+// Spacing between a field's label and its value
+function set_field_gap(value) {
+	const n = parseInt(value);
+	set_field_style("gap", n > 0 ? n : "");
+}
+
+// ── Table cell padding ─────────────────────────────────────
+let cell_padding = computed(() => selected_field.value?.table_cell_padding ?? 7);
+
+function set_cell_padding(value) {
+	if (!selected_field.value) return;
+	selected_field.value.table_cell_padding = Math.max(0, parseInt(value) || 0);
+}
+
+function set_table_radius(value) {
+	if (!selected_field.value) return;
+	const n = parseInt(value);
+	if (!n || n <= 0) delete selected_field.value.table_radius;
+	else selected_field.value.table_radius = n;
+}
+
 // ── Section helpers ────────────────────────────────────────
 let section_show_label = computed(() => selected_section.value?.show_label ?? "show");
 let section_orientation = computed(() => selected_section.value?.field_orientation ?? "");
 let section_gap = computed(() => selected_section.value?.gap ?? 20);
 let section_label_case = computed(() => selected_section.value?.label_case ?? "normal");
 let section_bg = computed(() => selected_section.value?.background ?? "");
-let section_padding = computed(() => ({
-	top: selected_section.value?.padding?.top ?? 0,
-	right: selected_section.value?.padding?.right ?? 0,
-	bottom: selected_section.value?.padding?.bottom ?? 0,
-	left: selected_section.value?.padding?.left ?? 0,
-}));
-
-const bg_swatches = [
-	{
-		value: "",
-		label: __("None"),
-		style: "background: repeating-conic-gradient(#ccc 0% 25%, #fff 0% 50%) 0 0 / 10px 10px",
-	},
-	{ value: "#ffffff", label: __("White"), style: "background:#ffffff; border-color:#e5e7eb" },
-	{ value: "#EFF6FF", label: __("Blue"), style: "background:#EFF6FF" },
-	{ value: "#F0FDF4", label: __("Green"), style: "background:#F0FDF4" },
-	{ value: "#FFF7ED", label: __("Orange"), style: "background:#FFF7ED" },
-];
 
 function set_columns(n) {
 	if (!selected_section.value) return;
@@ -898,24 +1190,81 @@ function set_columns(n) {
 	selected_section.value.columns = new_columns;
 }
 
-function adjust_gap(delta) {
-	const current = selected_section.value?.gap ?? 20;
-	selected_section.value.gap = Math.max(0, current + delta);
+function set_section_padding(obj) {
+	const s = selected_section.value;
+	if (!s) return;
+	if (obj) s.padding = obj;
+	else delete s.padding;
 }
 
-function adjust_padding(side, delta) {
-	if (!selected_section.value.padding) {
-		selected_section.value.padding = { top: 0, right: 0, bottom: 0, left: 0 };
+// ── Section table layout (field borders) ──────────────────
+let section_field_borders = computed(() => !!selected_section.value?.field_borders);
+let section_inner_rows = computed(() => selected_section.value?.inner_rows !== false);
+let section_inner_cols = computed(() => selected_section.value?.inner_cols !== false);
+let section_cell_padding = computed(() => selected_section.value?.cell_padding ?? 8);
+
+function toggle_field_borders(on) {
+	const s = selected_section.value;
+	if (!s) return;
+	if (on) {
+		s.field_borders = true;
+		// Seed sensible defaults so turning it on immediately looks like a table
+		if (!s.border) s.border = {};
+		if (!s.border.width) s.border.width = 1;
+		if (!s.border.color) s.border.color = "#e5e7eb";
+		if (s.border.radius === undefined) s.border.radius = 6;
+		if (s.inner_rows === undefined) s.inner_rows = true;
+		if (s.inner_cols === undefined) s.inner_cols = true;
+		if (s.cell_padding === undefined) s.cell_padding = 8;
+	} else {
+		delete s.field_borders;
 	}
-	const current = selected_section.value.padding[side] ?? 0;
-	selected_section.value.padding[side] = Math.max(0, current + delta);
 }
 
-function set_padding(side, value) {
-	if (!selected_section.value.padding) {
-		selected_section.value.padding = { top: 0, right: 0, bottom: 0, left: 0 };
+function set_section_bool(key, value) {
+	if (selected_section.value) selected_section.value[key] = value;
+}
+
+function set_section_cell_padding(value) {
+	if (selected_section.value) {
+		selected_section.value.cell_padding = Math.max(0, parseInt(value) || 0);
 	}
-	selected_section.value.padding[side] = Math.max(0, value);
+}
+
+// ── Section border ─────────────────────────────────────────
+let section_border = computed(() => selected_section.value?.border ?? {});
+
+function set_section_border(key, value) {
+	const s = selected_section.value;
+	if (!s) return;
+	if (!s.border) s.border = {};
+	if (key === "width" || key === "radius") {
+		const n = parseInt(value);
+		if (!n || n <= 0) delete s.border[key];
+		else s.border[key] = n;
+	} else if (value === "" || value === null || value === undefined) {
+		delete s.border[key];
+	} else {
+		s.border[key] = value;
+	}
+	// A border needs a width to render; drop the object once nothing visible remains
+	if (!s.border.width && !s.border.radius) delete s.border;
+}
+
+// Per-side toggles. Absence of a side key means "on", so we only store `false`
+// for sides the user has switched off. Sides default to all-on for a new border.
+function section_border_side(side) {
+	const b = selected_section.value?.border;
+	return !!b && b[side] !== false;
+}
+
+function toggle_section_border_side(side) {
+	const s = selected_section.value;
+	if (!s) return;
+	if (!s.border) s.border = { width: 1 };
+	if (s.border[side] === false) delete s.border[side];
+	else s.border[side] = false;
+	if (!s.border.width && !s.border.radius) delete s.border;
 }
 </script>
 
@@ -1030,13 +1379,6 @@ function set_padding(side, value) {
 	overflow-y: auto;
 	display: flex;
 	flex-direction: column;
-}
-
-.pfb-insp-placeholder {
-	align-items: center;
-	justify-content: center;
-	padding: 24px;
-	text-align: center;
 }
 
 /* ── Collapsible sections ────────────────────────────────── */
@@ -1167,6 +1509,22 @@ function set_padding(side, value) {
 	border-color: var(--gray-500);
 }
 
+.pfb-num {
+	width: 100%;
+	text-align: center;
+	border: 1px solid var(--border-color);
+	border-radius: var(--radius);
+	background: var(--fg-color);
+	color: var(--text-color);
+	padding: 4px 6px;
+	font-size: var(--text-sm);
+	outline: none;
+}
+
+.pfb-num:focus {
+	border-color: var(--primary);
+}
+
 /* ── Segmented control ───────────────────────────────────── */
 .pfb-seg {
 	display: inline-flex;
@@ -1208,122 +1566,17 @@ function set_padding(side, value) {
 	box-shadow: var(--shadow-xs);
 }
 
-/* ── Stepper (+/−) ───────────────────────────────────────── */
-.pfb-stepper {
-	display: inline-flex;
-	align-items: center;
-	border: 1px solid var(--border-color);
-	border-radius: var(--radius);
-	overflow: hidden;
-	background: var(--subtle-accent);
-	width: 100%;
-}
-
-.pfb-stepper button {
-	padding: 4px 8px;
-	border: none;
-	background: transparent;
-	cursor: pointer;
-	font-size: 14px;
-	color: var(--text-muted);
-	line-height: 1;
-	flex-shrink: 0;
-}
-
-.pfb-stepper button:hover {
-	background: var(--gray-100);
-	color: var(--text-color);
-}
-
-.pfb-stepper-val {
-	flex: 1;
-	text-align: center;
-	font-size: var(--text-sm);
-	font-weight: 500;
-	border-left: 1px solid var(--border-color);
-	border-right: 1px solid var(--border-color);
-	padding: 4px 4px;
-}
-
-.pfb-stepper-input {
-	flex: 1;
-	min-width: 0;
-	width: 100%;
-	text-align: center;
-	font-size: var(--text-sm);
-	font-weight: 500;
-	border: none;
-	border-left: 1px solid var(--border-color);
-	border-right: 1px solid var(--border-color);
-	background: transparent;
-	color: var(--text-color);
-	padding: 4px 2px;
-	outline: none;
-}
-
-.pfb-stepper-input:focus {
-	background: var(--fg-color);
-}
-
-/* hide number spin arrows */
-.pfb-stepper-input::-webkit-inner-spin-button,
-.pfb-stepper-input::-webkit-outer-spin-button {
-	-webkit-appearance: none;
-}
-
-.pfb-stepper-unit {
-	font-size: var(--text-tiny);
-	color: var(--text-muted);
-	padding: 0 6px 0 2px;
-}
-
-.pfb-stepper--sm {
-	width: auto;
-}
-
-/* ── Background swatches ─────────────────────────────────── */
-.pfb-color-swatches {
-	display: flex;
-	gap: 6px;
-	flex-wrap: wrap;
-}
-
-.pfb-swatch {
-	width: 28px;
-	height: 28px;
-	border-radius: var(--radius);
-	border: 1.5px solid var(--border-color);
-	cursor: pointer;
-	padding: 0;
-	transition: transform 0.1s, border-color 0.1s;
-}
-
-.pfb-swatch:hover {
-	transform: scale(1.1);
-}
-
-.pfb-swatch.active {
-	border-color: var(--primary);
-	box-shadow: 0 0 0 2px var(--primary-light);
-}
-
-/* ── Padding grid ────────────────────────────────────────── */
-.pfb-padding-grid {
-	display: grid;
-	grid-template-columns: 1fr 1fr;
-	gap: 8px;
-}
-
-.pfb-padding-cell {
+/* ── Box block (field padding / margin) ──────────────────── */
+.pfb-box-block {
 	display: flex;
 	flex-direction: column;
-	gap: 3px;
+	gap: 4px;
 }
 
-.pfb-padding-label {
+.pfb-box-title {
 	font-size: var(--text-tiny);
+	font-weight: var(--weight-medium);
 	color: var(--text-muted);
-	text-align: center;
 }
 
 /* ── Hint ────────────────────────────────────────────────── */
@@ -1386,12 +1639,30 @@ function set_padding(side, value) {
 	color: var(--gray-500);
 }
 
-.pfb-col-label {
+.pfb-col-label-input {
 	flex: 1;
+	min-width: 0;
 	font-size: var(--text-sm);
-	overflow: hidden;
-	text-overflow: ellipsis;
-	white-space: nowrap;
+	border: 1px solid transparent;
+	border-radius: var(--radius);
+	background: transparent;
+	color: var(--text-color);
+	padding: 2px 4px;
+	outline: none;
+}
+
+.pfb-col-label-input:hover {
+	border-color: var(--gray-300);
+}
+
+.pfb-col-label-input:focus {
+	border-color: var(--gray-500);
+	background: var(--fg-color);
+}
+
+.pfb-col-label-input::placeholder {
+	color: var(--gray-400);
+	font-style: italic;
 }
 
 .pfb-col-width-input {

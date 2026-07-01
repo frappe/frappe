@@ -4,14 +4,29 @@
 {%- set _orientation = df.section.field_orientation or '' -%}
 {%- set _inline = (_show_label == 'inline') or (_orientation == 'left-right') -%}
 {%- set _justify = df.label_justify if df.label_justify else '' -%}
-<div class="field {{ _orientation }}{% if _inline and _orientation != 'left-right' %} field-inline{% endif %}{% if _align %} field-align-{{ _align }}{% endif %}{% if _justify and _orientation == 'left-right' %} field-justify-{{ _justify }}{% endif %}" {{ field_attributes(df) }}>
+{#- Build inline styles from the field's user-defined style object -#}
+{%- set _st = df.style or {} -%}
+{%- set ns = namespace(wrap='', val='', lbl='') -%}
+{%- if _st.background -%}{%- set ns.wrap = ns.wrap + 'background:' + _st.background + ';' -%}{%- endif -%}
+{%- if _st.padding -%}{%- set p = _st.padding -%}{%- set ns.wrap = ns.wrap + 'padding:' + (p.top or 0)|string + 'px ' + (p.right or 0)|string + 'px ' + (p.bottom or 0)|string + 'px ' + (p.left or 0)|string + 'px;' -%}{%- endif -%}
+{%- if _st.margin -%}{%- set m = _st.margin -%}{%- set ns.wrap = ns.wrap + 'margin:' + (m.top or 0)|string + 'px ' + (m.right or 0)|string + 'px ' + (m.bottom or 0)|string + 'px ' + (m.left or 0)|string + 'px;' -%}{%- endif -%}
+{#- Independent label / value colour + weight (font size is page-level) -#}
+{%- set _lbl = _st.label or {} -%}
+{%- set _val = _st.value or {} -%}
+{%- if _lbl.color -%}{%- set ns.lbl = ns.lbl + 'color:' + _lbl.color + ';' -%}{%- endif -%}
+{%- if _lbl.bold -%}{%- set ns.lbl = ns.lbl + 'font-weight:600;' -%}{%- endif -%}
+{%- if _val.color -%}{%- set ns.val = ns.val + 'color:' + _val.color + ';' -%}{%- endif -%}
+{%- if _val.bold -%}{%- set ns.val = ns.val + 'font-weight:600;' -%}{%- endif -%}
+{#- Gap between label and value: horizontal when inline, vertical when stacked -#}
+{%- if _st.gap -%}{%- if _inline -%}{%- set ns.wrap = ns.wrap + 'gap:' + _st.gap|string + 'px;' -%}{%- else -%}{%- set ns.lbl = ns.lbl + 'margin-bottom:' + _st.gap|string + 'px;' -%}{%- endif -%}{%- endif -%}
+<div class="field {{ _orientation }}{% if _inline and _orientation != 'left-right' %} field-inline{% endif %}{% if _align %} field-align-{{ _align }}{% endif %}{% if _justify and _orientation == 'left-right' %} field-justify-{{ _justify }}{% endif %}"{% if ns.wrap %} style="{{ ns.wrap }}"{% endif %} {{ field_attributes(df) }}>
 	{%- block label -%}
 	{%- if _show_label != 'hide' -%}
-	<div class="label">{{ _(df.label) }}</div>
+	<div class="label"{% if ns.lbl %} style="{{ ns.lbl }}"{% endif %}>{{ _(df.label) }}</div>
 	{%- endif -%}
 	{%- endblock -%}
 	{%- block value -%}
-	<div class="value">{{ doc.get_formatted(df.fieldname) }}</div>
+	<div class="value"{% if ns.val %} style="{{ ns.val }}"{% endif %}>{{ doc.get_formatted(df.fieldname) }}</div>
 	{%- endblock -%}
 </div>
 {% endif %}

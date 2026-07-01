@@ -22,6 +22,8 @@
 			:class="{
 				'section--selected': is_selected,
 				'label-uppercase': section.label_case === 'uppercase',
+				'section--grid': is_grid,
+				'section--grid-rows': is_grid && grid_inner_rows,
 			}"
 			:style="section_inline_style"
 			@click.stop="select_section"
@@ -62,14 +64,13 @@
 			>
 				{{ section.label }}
 			</div>
-			<div
-				class="section-columns"
-				:style="
-					section.columns.length > 1 && section.gap ? { gap: section.gap + 'px' } : {}
-				"
-			>
+			<div class="section-columns" :style="columns_style">
 				<template v-for="(column, i) in section.columns" :key="i">
-					<div v-if="i > 0" class="column-divider"></div>
+					<div
+						v-if="i > 0 && show_col_divider"
+						class="column-divider"
+						:style="divider_style"
+					></div>
 					<div
 						class="column"
 						:class="{ 'column-align-right': column.align === 'right' }"
@@ -138,6 +139,29 @@ let is_section_visible = computed(() =>
 	evaluate_visible_if(props.section.visible_if, preview_doc.value)
 );
 
+// ── Table-layout (field borders) state ────────────────────
+let is_grid = computed(() => !!props.section.field_borders);
+let grid_inner_rows = computed(() => props.section.inner_rows !== false);
+let grid_inner_cols = computed(() => props.section.inner_cols !== false);
+let grid_cell_pad = computed(() => props.section.cell_padding ?? 8);
+
+// The shared "1px solid #color" edge used for both the outer box and inner lines
+let grid_edge = computed(() => {
+	const b = props.section.border || {};
+	return `${b.width || 1}px ${b.style || "solid"} ${b.color || "#e5e7eb"}`;
+});
+
+// Apply the per-side border to a target style object using the border config
+function apply_border(style, b) {
+	if (!b || !b.width) return;
+	const edge = `${b.width}px ${b.style || "solid"} ${b.color || "#000000"}`;
+	if (b.top !== false) style.borderTop = edge;
+	if (b.right !== false) style.borderRight = edge;
+	if (b.bottom !== false) style.borderBottom = edge;
+	if (b.left !== false) style.borderLeft = edge;
+	if (b.radius) style.borderRadius = b.radius + "px";
+}
+
 let section_inline_style = computed(() => {
 	const style = {};
 	if (props.section.background) style.backgroundColor = props.section.background;
@@ -145,7 +169,34 @@ let section_inline_style = computed(() => {
 		const p = props.section.padding;
 		style.padding = `${p.top || 0}px ${p.right || 0}px ${p.bottom || 0}px ${p.left || 0}px`;
 	}
+	// In grid mode the border/radius live on .section-columns instead of the wrapper
+	if (!is_grid.value) apply_border(style, props.section.border);
 	return style;
+});
+
+let columns_style = computed(() => {
+	const style = {};
+	if (props.section.columns.length > 1 && props.section.gap) {
+		style.gap = props.section.gap + "px";
+	}
+	if (is_grid.value) {
+		apply_border(style, props.section.border);
+		style.padding = "0";
+		style.gap = "0";
+		if (props.section.border?.radius) style.overflow = "hidden";
+		// CSS vars consumed by the scoped grid rules
+		style["--pfb-line"] = grid_edge.value;
+		style["--pfb-cell-pad"] = grid_cell_pad.value + "px";
+	}
+	return style;
+});
+
+// Column dividers double as the inner vertical lines in grid mode
+let show_col_divider = computed(() => (is_grid.value ? grid_inner_cols.value : true));
+let divider_style = computed(() => {
+	if (!is_grid.value) return {};
+	const b = props.section.border || {};
+	return { width: (b.width || 1) + "px", background: b.color || "#e5e7eb", margin: "0" };
 });
 
 function select_section() {
@@ -334,6 +385,35 @@ function remove_column(index) {
 	background: var(--border-color);
 	margin: 0 0.5rem;
 	flex-shrink: 0;
+}
+
+/* ── Table layout (field borders) ────────────────────────── */
+/* Cells fill their column; reset each field's own chrome and use cell padding */
+.section--grid .column {
+	padding: 0;
+}
+
+.section--grid .drag-container {
+	gap: 0;
+	min-height: 0;
+	border-radius: 0;
+}
+
+.section--grid :deep(.field) {
+	border: none !important;
+	border-radius: 0 !important;
+	background: transparent !important;
+	margin: 0 !important;
+	padding: var(--pfb-cell-pad, 8px) !important;
+}
+
+.section--grid :deep(.field-preview-wrap) {
+	padding: 0 !important;
+}
+
+/* Horizontal inner lines: between adjacent cells in a column */
+.section--grid-rows :deep(.drag-container > .field + .field) {
+	border-top: var(--pfb-line, 1px solid var(--border-color)) !important;
 }
 
 .drag-container {
