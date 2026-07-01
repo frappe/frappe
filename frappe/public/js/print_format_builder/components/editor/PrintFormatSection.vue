@@ -22,6 +22,7 @@
 			:class="{
 				'section--selected': is_selected,
 				'label-uppercase': section.label_case === 'uppercase',
+				'section--grid': is_grid,
 			}"
 			:style="section_inline_style"
 			@click.stop="select_section"
@@ -138,6 +139,8 @@ let is_section_visible = computed(() =>
 	evaluate_visible_if(props.section.visible_if, preview_doc.value)
 );
 
+let is_grid = computed(() => !!props.section.field_borders);
+
 let section_inline_style = computed(() => {
 	const style = {};
 	if (props.section.background) style.backgroundColor = props.section.background;
@@ -145,16 +148,16 @@ let section_inline_style = computed(() => {
 		const p = props.section.padding;
 		style.padding = `${p.top || 0}px ${p.right || 0}px ${p.bottom || 0}px ${p.left || 0}px`;
 	}
-	if (props.section.border) {
-		const b = props.section.border;
-		const color = b.color || "#e5e7eb";
-		if (b.top) style.borderTop = `1px solid ${color}`;
-		if (b.right) style.borderRight = `1px solid ${color}`;
-		if (b.bottom) style.borderBottom = `1px solid ${color}`;
-		if (b.left) style.borderLeft = `1px solid ${color}`;
+	if (props.section.border?.on) {
+		const color = props.section.border.color || "#e5e7eb";
+		style.border = `1px solid ${color}`;
 	}
 	if (props.section.border_radius) {
 		style.borderRadius = `${props.section.border_radius}px`;
+	}
+	if (is_grid.value) {
+		const pad = props.section.cell_padding ?? 8;
+		style["--pfb-cell-pad"] = `${pad}px`;
 	}
 	return style;
 });
@@ -501,5 +504,29 @@ function remove_column(index) {
 .print-format-section.label-uppercase :deep(.preview-table th) {
 	text-transform: uppercase;
 	letter-spacing: 0.03em;
+}
+
+/* ── Table layout (field borders) ───────────────────────── */
+.section--grid .column {
+	padding: 0;
+}
+.section--grid .drag-container {
+	display: contents;
+}
+.section--grid .section-columns {
+	display: grid;
+	grid-template-columns: repeat(auto-fit, minmax(0, 1fr));
+	gap: 0;
+}
+.section--grid .column-divider {
+	display: none;
+}
+.section--grid :deep(.field) {
+	padding: var(--pfb-cell-pad, 8px);
+	border: 1px solid var(--border-color);
+	margin: -1px 0 0 -1px;
+}
+.section--grid :deep(.field-preview-wrap) {
+	padding: 0;
 }
 </style>

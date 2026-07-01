@@ -605,36 +605,41 @@
 						></span>
 					</div>
 					<div v-show="open.s_border" class="pfb-insp-section-body">
-						<!-- Side toggles -->
+						<!-- Border on/off -->
 						<div class="pfb-insp-row">
-							<span class="pfb-insp-label">{{ __("Sides") }}</span>
+							<span class="pfb-insp-label">{{ __("Show") }}</span>
 							<div class="pfb-seg">
 								<button
-									v-for="side in ['top', 'right', 'bottom', 'left']"
-									:key="side"
-									:class="{ active: section_border[side] }"
-									@click="toggle_border_side(side)"
-									:title="__(side[0].toUpperCase() + side.slice(1))"
+									:class="{ active: !section_border_on }"
+									@click="set_section_border(false)"
 								>
-									{{ side[0].toUpperCase() }}
+									{{ __("None") }}
+								</button>
+								<button
+									:class="{ active: section_border_on }"
+									@click="set_section_border(true)"
+								>
+									{{ __("All sides") }}
 								</button>
 							</div>
 						</div>
-						<!-- Color -->
-						<div class="pfb-insp-row">
-							<span class="pfb-insp-label">{{ __("Color") }}</span>
-							<div class="pfb-color-swatches">
-								<button
-									v-for="swatch in border_swatches"
-									:key="swatch.value"
-									class="pfb-swatch"
-									:class="{ active: section_border_color === swatch.value }"
-									:title="swatch.label"
-									:style="swatch.style"
-									@click="set_border_color(swatch.value)"
-								></button>
+						<!-- Color (only when border is on) -->
+						<template v-if="section_border_on">
+							<div class="pfb-insp-row">
+								<span class="pfb-insp-label">{{ __("Color") }}</span>
+								<div class="pfb-color-swatches">
+									<button
+										v-for="swatch in border_swatches"
+										:key="swatch.value"
+										class="pfb-swatch"
+										:class="{ active: section_border_color === swatch.value }"
+										:title="swatch.label"
+										:style="swatch.style"
+										@click="set_border_color(swatch.value)"
+									></button>
+								</div>
 							</div>
-						</div>
+						</template>
 						<!-- Radius -->
 						<div class="pfb-insp-row">
 							<span class="pfb-insp-label">{{ __("Radius") }}</span>
@@ -650,6 +655,57 @@
 								/>
 								<span class="pfb-stepper-unit">px</span>
 								<button @click="adjust_border_radius(1)">+</button>
+							</div>
+						</div>
+					</div>
+				</div>
+
+				<!-- LAYOUT -->
+				<div class="pfb-insp-section">
+					<div class="pfb-insp-section-head" @click="toggle('s_layout')">
+						<span class="pfb-insp-section-label">{{ __("Layout") }}</span>
+						<span
+							class="pfb-insp-chevron"
+							:class="{ collapsed: !open.s_layout }"
+							v-html="frappe.utils.icon('chevron-down', 'xs')"
+						></span>
+					</div>
+					<div v-show="open.s_layout" class="pfb-insp-section-body">
+						<!-- Layout mode -->
+						<div class="pfb-insp-row">
+							<span class="pfb-insp-label">{{ __("Mode") }}</span>
+							<div class="pfb-seg">
+								<button
+									:class="{ active: !section_field_borders }"
+									@click="toggle_field_borders(false)"
+								>
+									{{ __("Normal") }}
+								</button>
+								<button
+									:class="{ active: section_field_borders }"
+									@click="toggle_field_borders(true)"
+								>
+									{{ __("Table") }}
+								</button>
+							</div>
+						</div>
+						<!-- Cell padding (only in table layout) -->
+						<div v-if="section_field_borders" class="pfb-insp-row">
+							<span class="pfb-insp-label">{{ __("Cell padding") }}</span>
+							<div class="pfb-stepper">
+								<button @click="adjust_section_cell_padding(-1)">−</button>
+								<input
+									class="pfb-stepper-input"
+									type="number"
+									min="0"
+									:value="section_cell_padding"
+									@change="
+										(e) =>
+											set_section_cell_padding(parseInt(e.target.value) || 0)
+									"
+								/>
+								<span class="pfb-stepper-unit">px</span>
+								<button @click="adjust_section_cell_padding(1)">+</button>
 							</div>
 						</div>
 					</div>
@@ -723,6 +779,7 @@ const open = ref({
 	s_bg: true,
 	s_padding: true,
 	s_border: false,
+	s_layout: false,
 	s_visibility: false,
 	t_table: true,
 	t_columns: true,
@@ -1054,12 +1111,11 @@ function set_padding(side, value) {
 	selected_section.value.padding[side] = Math.max(0, value);
 }
 
-let section_border = computed(
-	() =>
-		selected_section.value?.border || { top: false, right: false, bottom: false, left: false }
-);
+let section_border_on = computed(() => !!selected_section.value?.border?.on);
 let section_border_color = computed(() => selected_section.value?.border?.color ?? "#e5e7eb");
 let section_border_radius = computed(() => selected_section.value?.border_radius ?? null);
+let section_field_borders = computed(() => !!selected_section.value?.field_borders);
+let section_cell_padding = computed(() => selected_section.value?.cell_padding ?? 8);
 
 const border_swatches = [
 	{ value: "#e5e7eb", label: __("Gray"), style: "background:#e5e7eb" },
@@ -1068,22 +1124,16 @@ const border_swatches = [
 	{ value: "#000000", label: __("Black"), style: "background:#000000" },
 ];
 
-function toggle_border_side(side) {
+function set_section_border(on) {
 	if (!selected_section.value.border) {
-		selected_section.value.border = {
-			top: false,
-			right: false,
-			bottom: false,
-			left: false,
-			color: "#e5e7eb",
-		};
+		selected_section.value.border = { color: "#e5e7eb" };
 	}
-	selected_section.value.border[side] = !selected_section.value.border[side];
+	selected_section.value.border.on = on;
 }
 
 function set_border_color(color) {
 	if (!selected_section.value.border) {
-		selected_section.value.border = { top: false, right: false, bottom: false, left: false };
+		selected_section.value.border = { on: true };
 	}
 	selected_section.value.border.color = color;
 }
@@ -1100,6 +1150,23 @@ function set_border_radius(value) {
 	} else {
 		selected_section.value.border_radius = Math.max(0, v);
 	}
+}
+
+function toggle_field_borders(on) {
+	if (on) {
+		selected_section.value.field_borders = true;
+	} else {
+		delete selected_section.value.field_borders;
+	}
+}
+
+function adjust_section_cell_padding(delta) {
+	const current = selected_section.value?.cell_padding ?? 8;
+	selected_section.value.cell_padding = Math.max(0, current + delta);
+}
+
+function set_section_cell_padding(value) {
+	selected_section.value.cell_padding = Math.max(0, value);
 }
 </script>
 
