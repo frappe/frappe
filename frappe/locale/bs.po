@@ -3,7 +3,7 @@ msgstr ""
 "Project-Id-Version: frappe\n"
 "Report-Msgid-Bugs-To: developers@frappe.io\n"
 "POT-Creation-Date: 2026-06-28 10:17+0000\n"
-"PO-Revision-Date: 2026-06-29 21:07\n"
+"PO-Revision-Date: 2026-06-30 21:07\n"
 "Last-Translator: developers@frappe.io\n"
 "Language-Team: Bosnian\n"
 "MIME-Version: 1.0\n"
@@ -29879,7 +29879,7 @@ msgstr "Ovaj Kvartal"
 
 #: frappe/website/doctype/web_form_request/web_form_request.py:59
 msgid "This Web Form Request has already been used"
-msgstr "Ovaj zahtjev za web obrazac je već korišten"
+msgstr "Ovaj Web Obrazac Zahtjev je već korišten"
 
 #: frappe/website/doctype/web_form_request/web_form_request.py:62
 msgid "This Web Form Request has expired"
