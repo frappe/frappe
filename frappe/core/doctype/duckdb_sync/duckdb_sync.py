@@ -75,9 +75,11 @@ def is_data_sync_pending(docname: str):
 @frappe.whitelist()
 def start_data_sync(docname: str):
 	frappe.has_permission("DuckDB Sync", ptype="write", throw=True)
+	timeout = frappe.db.get_single_value("System Settings", "sync_timeout") or 25 * 60
 	frappe.enqueue(
 		method="frappe.core.doctype.duckdb_sync.duckdb_sync.sync_data_to_duckdb",
 		queue="long",
+		timeout=timeout,
 		enqueue_after_commit=True,
 		docname=docname,
 	)
@@ -116,6 +118,7 @@ def sync_data_to_duckdb(docname: str):
 		name = unsynced[0]["name"]
 		duck_tb = DuckDBTable(dt)
 
+		timeout = frappe.db.get_single_value("System Settings", "sync_timeout") or 25 * 60
 		# connect to mariadb
 		conn = frappe.get_doc("DuckDB Sync", docname).get_duckdb_conn()
 		try:
@@ -145,6 +148,7 @@ def sync_data_to_duckdb(docname: str):
 			frappe.enqueue(
 				method="frappe.core.doctype.duckdb_sync.duckdb_sync.sync_data_to_duckdb",
 				queue="long",
+				timeout=timeout,
 				is_async=True,
 				enqueue_after_commit=True,
 				docname=docname,
