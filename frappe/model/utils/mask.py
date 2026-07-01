@@ -17,6 +17,7 @@ def mask_field_value(field, val):
 		- Email (Data + Email option): Shows "XXXXXX@domain"
 		- Date: Shows "XX-XX-XXXX"
 		- Time: Shows "XX:XX"
+		- Datetime: Shows "XX-XX-XXXX XX:XX"
 		- Default: Shows "XXXXXXXX"
 	"""
 	if not val:
@@ -34,6 +35,8 @@ def mask_field_value(field, val):
 		return "XX-XX-XXXX"
 	elif field.fieldtype == "Time":
 		return "XX:XX"
+	elif field.fieldtype == "Datetime":
+		return "XX-XX-XXXX XX:XX"
 	else:
 		return "XXXXXXXX"
 

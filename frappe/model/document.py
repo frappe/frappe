@@ -306,9 +306,6 @@ class Document(BaseDocument):
 		if hasattr(self, "__setup__"):
 			self.__setup__()
 
-		if not is_doctype:
-			self.mask_fields()
-
 		return self
 
 	def mask_fields(self):
@@ -560,6 +557,7 @@ class Document(BaseDocument):
 
 		self.check_if_locked()
 		self._set_defaults()
+		self._restore_masked_fields_from_db()
 		self.check_permission("write", "save")
 
 		self.set_user_and_timestamp()
@@ -934,7 +932,7 @@ class Document(BaseDocument):
 		return same
 
 	def apply_fieldlevel_read_permissions(self):
-		"""Remove values the user is not allowed to read."""
+		"""Remove values the user is not allowed to read, and mask fields per mask permissions."""
 		if frappe.session.user == "Administrator":
 			return
 
@@ -943,6 +941,7 @@ class Document(BaseDocument):
 			all_fields += frappe.get_meta(table_field.options).fields or []
 
 		if all(df.permlevel == 0 for df in all_fields):
+			self.mask_fields()
 			return
 
 		has_access_to = self.get_permlevel_access("read")
@@ -962,6 +961,25 @@ class Document(BaseDocument):
 						if hasattr(child, df.fieldname):
 							delattr(child, df.fieldname)
 
+		self.mask_fields()
+
+	def _restore_masked_fields_from_db(self):
+		"""Restore masked field values from DB so that link-field user-permission checks
+		are not tripped by the XXXXXXXX placeholder sent from the client."""
+		if frappe.flags.in_install or frappe.session.user == "Administrator" or self.is_new():
+			return
+
+		mask_fields = self.meta.get_masked_fields()
+		if not mask_fields:
+			return
+
+		# frappe.db.get_value() goes through the query builder which re-masks results for
+		# non-admin users, returning XXXXXXXX. frappe.get_doc() uses load_from_db() which
+		# queries the DB directly and always returns the actual stored value.
+		db_doc = frappe.get_doc(self.doctype, self.name)
+		for df in mask_fields:
+			self.set(df.fieldname, db_doc.get(df.fieldname))
+
 	def validate_higher_perm_levels(self):
 		"""If the user does not have permissions at permlevel > 0, then reset the values to original / default"""
 		if self.flags.ignore_permissions or frappe.flags.in_install:
@@ -973,10 +991,8 @@ class Document(BaseDocument):
 		has_access_to = self.get_permlevel_access()
 		high_permlevel_fields = self.meta.get_high_permlevel_fields()
 
-		mask_fields = self.meta.get_masked_fields()
-
-		if high_permlevel_fields or mask_fields:
-			self.reset_values_if_no_permlevel_access(has_access_to, high_permlevel_fields, mask_fields)
+		if high_permlevel_fields:
+			self.reset_values_if_no_permlevel_access(has_access_to, high_permlevel_fields)
 
 		# If new record then don't reset the values for child table
 		if self.is_new():
@@ -2049,7 +2065,7 @@ def get_lazy_controller(doctype):
 		original_controller = get_controller(doctype)
 		if meta.is_virtual:  # not supported
 			lazy_controllers[doctype] = original_controller
-			warnings.warn("Virtual doctypes don't support lazy loading", stacklevel=2)
+			warnings.warn(f"Virtual doctypes don't support lazy loading: {doctype}", stacklevel=3)
 			return original_controller
 
 		# Dynamically construct a class that subclasses LazyDocument and original controller.
@@ -2083,7 +2099,8 @@ class LazyDocument:
 	def append(self, key: str, value: D | dict | None = None, position: int = -1) -> D:
 		# Ensure that table descriptor is triggered at least once
 		# key is assumed to be a table fieldname (as expected by BaseDocument.append)
-		getattr(self, key, None)
+		if key not in self.__dict__:
+			getattr(self, key, None)
 		return super().append(key, value, position)
 
 	@override

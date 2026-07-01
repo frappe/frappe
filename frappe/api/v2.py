@@ -231,6 +231,7 @@ def execute_doc_method(doctype: str, name: str, method: str | None = None):
 
 	doc.check_permission(PERMISSION_MAP[frappe.request.method])
 	result = doc.run_method(method, **frappe.form_dict)
+	doc.apply_fieldlevel_read_permissions()
 	frappe.response.docs.append(doc.as_dict())
 	return result
 
@@ -262,6 +263,7 @@ def run_doc_method(method: str, document: dict[str, Any] | str, kwargs=None):
 
 	new_kwargs = get_newargs(fn, kwargs)
 	response = doc.run_method(method, **new_kwargs)
+	doc.apply_fieldlevel_read_permissions()
 	frappe.response.docs.append(doc)  # send modified document and result both.
 	return response
 

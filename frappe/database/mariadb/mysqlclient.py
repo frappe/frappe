@@ -80,6 +80,10 @@ class MariaDBExceptionUtil:
 		return e.args and e.args[0] == ER.DATA_TOO_LONG
 
 	@staticmethod
+	def is_data_truncated(e: MySQLdb.Error) -> bool:
+		return e.args and e.args[0] == ER.TRUNCATED_WRONG_VALUE
+
+	@staticmethod
 	def is_db_table_size_limit(e: MySQLdb.Error) -> bool:
 		return e.args and e.args[0] == ER.TOO_BIG_ROWSIZE
 

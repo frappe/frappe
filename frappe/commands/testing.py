@@ -184,6 +184,10 @@ def main(
 
 
 def run_tests_in_light_mode(test_params):
+	import cProfile
+	import pstats
+	from io import StringIO
+
 	from frappe.testing.loader import FrappeTestLoader
 	from frappe.testing.result import FrappeTestResult
 	from frappe.tests.utils import toggle_test_mode
@@ -202,7 +206,20 @@ def run_tests_in_light_mode(test_params):
 
 	toggle_test_mode(True)
 	suite = FrappeTestLoader().discover_tests(test_params)
+
+	if test_params.profile:
+		pr = cProfile.Profile()
+		pr.enable()
+
 	result = unittest.TextTestRunner(failfast=test_params.failfast, resultclass=FrappeTestResult).run(suite)
+
+	if test_params.profile:
+		pr.disable()
+		s = StringIO()
+		ps = pstats.Stats(pr, stream=s).sort_stats("cumulative")
+		ps.print_stats()
+		print(s.getvalue())
+
 	if not result.wasSuccessful():
 		sys.exit(1)
 

@@ -11,6 +11,7 @@ import frappe
 from frappe import _
 from frappe.integrations.utils import make_get_request
 from frappe.model.document import Document
+from frappe.utils.synchronization import filelock
 
 if any((os.getenv("CI"), frappe.conf.developer_mode, frappe.conf.allow_tests)):
 	# Disable mandatory TLS in developer mode and tests
@@ -140,18 +141,22 @@ class ConnectedApp(Document):
 		user = user or frappe.session.user
 		token_cache = self.get_token_cache(user)
 		if token_cache and token_cache.is_expired():
-			oauth_session = self.get_oauth2_session(user)
-
 			try:
-				token = oauth_session.refresh_token(
-					body=f"redirect_uri={self.redirect_uri}",
-					token_url=self.token_uri,
-				)
+				with filelock(f"token_cache_{token_cache.name}"):
+					# Another worker may have refreshed while we waited for the lock.
+					token_cache.reload()
+					if not token_cache.is_expired():
+						return token_cache
+
+					oauth_session = self.get_oauth2_session(user)
+					token = oauth_session.refresh_token(
+						body=f"redirect_uri={self.redirect_uri}",
+						token_url=self.token_uri,
+					)
+					token_cache.update_data(token)
 			except Exception:
 				self.log_error("Token Refresh Error")
 				return None
-
-			token_cache.update_data(token)
 
 		return token_cache
 
