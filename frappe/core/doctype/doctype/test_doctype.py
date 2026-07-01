@@ -983,21 +983,21 @@ class TestDocType(IntegrationTestCase):
 	)
 	@patch.dict(frappe.conf, {"developer_mode": 1})
 	def test_keep_doctype_when_controller_import_fails_but_schema_exists(self):
-		doctype = new_doctype(custom=0).insert()
+		dt = new_doctype(custom=0).insert()
 		real_get_controller = frappe.model.sync.get_controller
 
-		def failing_get_controller(name):
-			if name == doctype.name:
+		def failing_get_controller(doctype):
+			if doctype == dt.name:
 				raise frappe.DoesNotExistError
-			return real_get_controller(name)
+			return real_get_controller(doctype)
 
 		try:
 			with patch("frappe.model.sync.get_controller", side_effect=failing_get_controller):
 				remove_orphan_doctypes()
 
-			self.assertTrue(frappe.db.exists("DocType", doctype.name))
+			self.assertTrue(frappe.db.exists("DocType", dt.name))
 		finally:
-			delete_controllers(doctype.name, doctype.module)
+			delete_controllers(dt.name, dt.module)
 
 	def test_not_in_list_view_for_not_allowed_mandatory_field(self):
 		doctype = new_doctype(
