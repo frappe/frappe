@@ -88,13 +88,14 @@ def get_change_log_for_app(app, from_version, to_version):
 
 @frappe.whitelist()
 def update_last_known_versions():
-	frappe.db.set_value(
-		"User",
-		frappe.session.user,
-		"last_known_versions",
-		json.dumps(get_versions()),
-		update_modified=False,
-	)
+	with suppress(frappe.QueryDeadlockError):
+		frappe.db.set_value(
+			"User",
+			frappe.session.user,
+			"last_known_versions",
+			json.dumps(get_versions()),
+			update_modified=False,
+		)
 
 
 @frappe.whitelist()
