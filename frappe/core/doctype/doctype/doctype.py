@@ -897,11 +897,15 @@ class DocType(Document):
 		if not previous or previous.module == self.module:
 			return
 
-		old_path = get_doc_path(previous.module, "doctype", self.name)
+		try:
+			old_path = get_doc_path(previous.module, "doctype", self.name)
+		except Exception:
+			return
+
 		frappe.msgprint(
 			_(
 				"Module changed to {0}. Files in the previous module were not moved and remain at {1}, remove or relocate them manually."
-			).format(frappe.bold(self.module), old_path),
+			).format(frappe.bold(self.module), frappe.bold(str(old_path))),
 			alert=True,
 		)
 
