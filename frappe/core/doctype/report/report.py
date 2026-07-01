@@ -56,7 +56,7 @@ class Report(Document):
 		report_script: DF.Code | None
 		report_type: DF.Literal["Report Builder", "Query Report", "Script Report", "Custom Report"]
 		roles: DF.Table[HasRole]
-		synced_report: DF.Check
+		snapshot_report: DF.Check
 		timeout: DF.Int
 	# end: auto-generated types
 
@@ -207,8 +207,8 @@ class Report(Document):
 		# The JOB
 		try:
 			if self.is_standard == "Yes":
-				if self.synced_report:
-					res = self.execute_synced_report(filters)
+				if self.snapshot_report:
+					res = self.execute_snapshot_report(filters)
 				else:
 					res = self.execute_module(filters)
 			else:
@@ -240,12 +240,12 @@ class Report(Document):
 		else:
 			return self.get_columns(), loc["result"]
 
-	def execute_synced_report(self, filters):
+	def execute_snapshot_report(self, filters):
 		try:
-			execute_synced_report = self.get_module_method("execute_synced_report")
+			execute_snapshot_report = self.get_module_method("execute_snapshot_report")
 		except AttributeError:
 			return [], []
-		return execute_synced_report(frappe._dict(filters))
+		return execute_snapshot_report(frappe._dict(filters))
 
 	def get_data(
 		self,
