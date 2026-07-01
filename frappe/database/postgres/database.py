@@ -78,6 +78,10 @@ FROM_TAB_PATTERN = re.compile(r"from tab([\w-]*)", flags=re.IGNORECASE)
 # MySQL's REGEXP operator -> postgres `~*` (case-insensitive, matching MySQL's default collation)
 REGEXP_PATTERN = re.compile(r"\sREGEXP\s", flags=re.IGNORECASE)
 
+# Index methods accepted by add_index(using=...): the two custom GIN modes plus postgres'
+# native access methods. Anything else is rejected before it reaches the DDL string.
+INDEX_METHODS = frozenset({"gin_trgm", "gin_fulltext", "btree", "hash", "gist", "gin", "brin", "spgist"})
+
 
 class PostgresExceptionUtil:
 	ProgrammingError = psycopg2.ProgrammingError
@@ -430,6 +434,14 @@ class PostgresDatabase(PostgresExceptionUtil, Database):
 				published int not null default 0,
 				unique (doctype, name))"""
 			)
+		# GIN index over the full-text vector so search()/web_search() do an index scan instead of
+		# recomputing to_tsvector for every row. Runs unconditionally (CREATE INDEX IF NOT EXISTS is
+		# idempotent) so an existing deployment that already has the table still gets it on upgrade.
+		# Expression must match the query's to_tsvector('english', content).
+		self.sql_ddl(
+			"""CREATE INDEX IF NOT EXISTS "__global_search_fts"
+			ON "__global_search" USING gin (to_tsvector('english', content))"""
+		)
 
 	def create_user_settings_table(self):
 		self.sql_ddl(
@@ -503,23 +515,68 @@ class PostgresDatabase(PostgresExceptionUtil, Database):
 		)
 		return result[0] if result else None
 
-	def add_index(self, doctype: str, fields: list, index_name: str | None = None):
+	def add_index(
+		self, doctype: str, fields: list, index_name: str | None = None, using=None, where=None, include=None
+	):
 		"""Creates an index with given fields if not already created.
+
 		Default index name is `<table>_<field1>_<field2>_index` (table-qualified so it is unique
-		per *schema*, as postgres requires)."""
+		per *schema*, as postgres requires).
+
+		using: index kind beyond the default btree --
+			"gin_trgm"     GIN + gin_trgm_ops for fast LIKE/ILIKE substring search (needs pg_trgm)
+			"gin_fulltext" GIN over to_tsvector(...) for full-text search on text columns
+			or a bare access method ("btree", "hash", "gist", "gin", "brin", "spgist").
+		where: predicate for a partial index, e.g. "docstatus < 2". A trusted DDL fragment
+			interpolated verbatim -- callers MUST NOT pass user-supplied input.
+		include: non-key columns to carry in a covering (INCLUDE) btree index, so an index-only
+			scan answers the query without touching the heap.
+		"""
 		from frappe.database.postgres.schema import get_qualified_index_name
+
+		# `using` is interpolated into DDL, so reject anything outside the known-safe set.
+		if using and using not in INDEX_METHODS:
+			frappe.throw(f"Unsupported index method: {using}")
 
 		table_name = get_table_name(doctype)
 		clean_fields = [re.sub(r"\(.*\)", "", field) for field in fields]
+		# Column identifiers are interpolated into the DDL string, so reject anything that isn't a
+		# plain name -- a value like `id") ...; DROP TABLE ...` would otherwise inject into it.
+		for column in (*clean_fields, *(include or ())):
+			if not re.fullmatch(r"\w+", column):
+				frappe.throw(f"Invalid index column: {column}")
 		# postgres index names are per-schema, not per-table: an unqualified default name collides
 		# across tables sharing these fields and `CREATE INDEX IF NOT EXISTS` then silently skips
-		# all but the first, leaving the index missing. Qualify with the table so each one is made.
-		index_name = index_name or get_qualified_index_name(table_name, clean_fields)
-		fields_str = '", "'.join(clean_fields)
+		# all but the first, leaving the index missing. Qualify with the table (and `using`, so a
+		# trigram index never clashes with the plain one on the same column).
+		index_name = index_name or get_qualified_index_name(table_name, clean_fields, using)
 
+		if using == "gin_trgm":
+			self.sql_ddl("CREATE EXTENSION IF NOT EXISTS pg_trgm")
+
+		method = f" USING {'gin' if using in ('gin_trgm', 'gin_fulltext') else using}" if using else ""
+		include_clause = f""" INCLUDE ("{'", "'.join(include)}")""" if include else ""
+		condition = f" WHERE {where}" if where else ""
 		self.sql_ddl(
-			f'CREATE INDEX IF NOT EXISTS "{index_name}" ON "{self.db_schema}"."{table_name}" ("{fields_str}")'
+			f'CREATE INDEX IF NOT EXISTS "{index_name}" ON "{self.db_schema}"."{table_name}"'
+			f"{method} ({self._index_target(clean_fields, using)}){include_clause}{condition}"
 		)
+
+	def _index_target(self, fields: list[str], using: str | None) -> str:
+		"""The column list (or functional expression) an index is built over, per `using` mode."""
+		if using == "gin_trgm":
+			return ", ".join(f'"{field}" gin_trgm_ops' for field in fields)
+		if using == "gin_fulltext":
+			# 'english' regconfig keeps to_tsvector immutable so it can be indexed; the search query
+			# must use the same config. ponytail: hardcoded -- add a `config` arg if multilingual
+			# full-text is ever needed.
+			document = (
+				f'"{fields[0]}"'
+				if len(fields) == 1
+				else " || ' ' || ".join(f"coalesce(\"{field}\", '')" for field in fields)
+			)
+			return f"to_tsvector('english', {document})"
+		return '"' + '", "'.join(fields) + '"'
 
 	def add_unique(self, doctype, fields, constraint_name=None):
 		if isinstance(fields, str):

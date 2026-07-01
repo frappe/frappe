@@ -12,8 +12,10 @@ from frappe.utils.defaults import get_not_null_defaults
 # company, posting_date, lft/rgt, ...) and `CREATE INDEX IF NOT EXISTS` silently skips all but
 # the first -- so most tables never get that index. Qualify the name with the table so it is
 # schema-unique, hashing if it would exceed postgres's 63-byte identifier cap.
-def get_qualified_index_name(table_name: str, fields: list[str]) -> str:
+def get_qualified_index_name(table_name: str, fields: list[str], suffix: str | None = None) -> str:
 	base = f"{table_name}_" + "_".join(fields)
+	if suffix:
+		base += f"_{suffix}"
 	name = f"{base}_index"
 	if len(name.encode()) > 63:
 		digest = hashlib.md5(base.encode()).hexdigest()[:10]

@@ -1381,7 +1381,7 @@ class Database:
 	def has_index(self, table_name, index_name):
 		raise NotImplementedError
 
-	def add_index(self, doctype, fields, index_name=None):
+	def add_index(self, doctype, fields, index_name=None, using=None, where=None, include=None):
 		raise NotImplementedError
 
 	def add_unique(self, doctype, fields, constraint_name=None):
