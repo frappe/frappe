@@ -185,9 +185,13 @@
 										class="pfb-col-drag"
 										v-html="frappe.utils.icon('drag', 'xs')"
 									></span>
-									<span class="pfb-col-label" :title="col.fieldname">{{
-										col.label || col.fieldname
-									}}</span>
+									<input
+										class="pfb-col-label-input"
+										type="text"
+										v-model="col.label"
+										:placeholder="col.fieldname"
+										:title="col.fieldname"
+									/>
 									<input
 										class="pfb-col-width-input"
 										type="number"
@@ -1392,12 +1396,24 @@ function set_padding(side, value) {
 	color: var(--gray-500);
 }
 
-.pfb-col-label {
+.pfb-col-label-input {
 	flex: 1;
+	min-width: 0;
 	font-size: var(--text-sm);
-	overflow: hidden;
-	text-overflow: ellipsis;
-	white-space: nowrap;
+	border: 1px solid transparent;
+	border-radius: var(--radius);
+	background: transparent;
+	padding: 1px 4px;
+	outline: none;
+}
+
+.pfb-col-label-input:hover {
+	border-color: var(--gray-300);
+}
+
+.pfb-col-label-input:focus {
+	border-color: var(--gray-500);
+	background: var(--fg-color);
 }
 
 .pfb-col-width-input {
