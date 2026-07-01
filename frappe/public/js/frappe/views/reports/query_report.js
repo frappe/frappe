@@ -687,7 +687,7 @@ frappe.views.QueryReport = class QueryReport extends frappe.views.BaseList {
 						this.show_status(`
 						<div class="indicator orange pl-1">
 							<span>
-								${__("This is a synced report generated {0}.", [pretty_diff])}
+								${__("This is a snapshot report generated {0}.", [pretty_diff])}
 							</span>
 						</div>
 					`);
