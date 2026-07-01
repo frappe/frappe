@@ -386,7 +386,8 @@ const NUMERIC_FIELDTYPES = new Set(["Currency", "Float", "Int", "Percent"]);
 const HTML_CONTENT_FIELDTYPES = new Set(["Text Editor", "Long Text"]);
 
 function numeric_align_class(col) {
-	return NUMERIC_FIELDTYPES.has(col?.fieldtype) ? "col-numeric" : "";
+	// Merged cells are left-aligned (like the PDF), even on numeric columns
+	return !has_merge(col) && NUMERIC_FIELDTYPES.has(col?.fieldtype) ? "col-numeric" : "";
 }
 
 function multiselect_display(df) {

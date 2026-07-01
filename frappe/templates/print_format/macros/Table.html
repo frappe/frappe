@@ -17,7 +17,8 @@
 		<thead>
 			<tr class="table-row">
 				{% for column in columns %}
-				<th class="column-header" width="{{ column.width }}%"{% if _cell_style %} style="{{ _cell_style|e }}"{% endif %} {{ field_attributes(column) }}>
+				{%- set _merged_col = column.merged_fields and column.merged_fields|length > 1 -%}
+				<th class="column-header{% if _merged_col %} column-value--merged{% endif %}" width="{{ column.width }}%"{% if _cell_style %} style="{{ _cell_style|e }}"{% endif %} {{ field_attributes(column) }}>
 					{{ _(column.label or column.fieldname) }}
 				</th>
 				{% endfor %}
