@@ -2,6 +2,7 @@
 	<div
 		class="print-format-section-container"
 		data-pfb-section
+		v-show="!preview_doc || has_visible_fields"
 		:class="{ 'section-container--condition-hidden': preview_doc && !is_section_visible }"
 	>
 		<!-- Top-left actions pill shown on hover in clean-preview (toolbar is hidden) -->
@@ -142,6 +143,10 @@ let is_section_visible = computed(() =>
 );
 
 let is_grid = computed(() => !!props.section.field_borders);
+
+let has_visible_fields = computed(() =>
+	props.section.columns.some((col) => col.fields.some((f) => !f.remove))
+);
 
 let section_inline_style = computed(() => {
 	const style = {};
