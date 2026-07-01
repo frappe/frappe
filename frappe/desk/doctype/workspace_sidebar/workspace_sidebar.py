@@ -2,7 +2,6 @@
 # For license information, please see license.txt
 
 import os
-from json import JSONDecodeError, dumps, loads
 
 import click
 
@@ -162,8 +161,8 @@ def create_workspace_sidebar_for_workspaces():
 
 
 @frappe.whitelist()
-def add_sidebar_items(sidebar_title: str, sidebar_items: str):
-	sidebar_items = loads(sidebar_items)
+def add_sidebar_items(sidebar_title: str, sidebar_items: str | list):
+	sidebar_items = frappe.parse_json(sidebar_items)
 	title = f"{sidebar_title}-{frappe.session.user}"
 	w = frappe.get_doc("Workspace Sidebar", sidebar_title)
 	if not frappe.conf.developer_mode:
