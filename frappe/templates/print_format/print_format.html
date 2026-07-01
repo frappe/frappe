@@ -63,7 +63,7 @@
 	{%- if section.background -%}
 		{%- set ns3.section_style = ns3.section_style + 'background:' + section.background + ';' -%}
 	{%- endif -%}
-	{%- if section.padding -%}
+	{%- if section.padding and not section.field_borders -%}
 		{%- set p = section.padding -%}
 		{%- set ns3.section_style = ns3.section_style + 'padding:' + (p.top or 0)|string + 'px ' + (p.right or 0)|string + 'px ' + (p.bottom or 0)|string + 'px ' + (p.left or 0)|string + 'px;' -%}
 	{%- endif -%}

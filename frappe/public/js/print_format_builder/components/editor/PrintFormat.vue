@@ -333,14 +333,20 @@ watch(print_format, () => (store.dirty.value = true), { deep: true });
 	color: var(--text-color);
 }
 
-/* Font size set on .pfb-body cascades into preview field text */
-.pfb-body :deep(.field-preview-value) {
-	font-size: 1em !important;
+/* Font size set on .pfb-body must cascade into preview field text.
+   Root cause: .field hard-codes font-size: var(--text-sm), which resets the
+   cascade so em-based children scale off 13px, not the body's font size.
+   Make preview fields inherit, then size their text relative to that. */
+.pfb-body :deep(.field--preview) {
+	font-size: inherit;
 }
-.pfb-body :deep(.field-preview-label) {
-	font-size: 0.85em !important;
+.pfb-body :deep(.field--preview .field-preview-value) {
+	font-size: 1em;
 }
-.pfb-body :deep(.preview-table) {
-	font-size: 0.9em !important;
+.pfb-body :deep(.field--preview .field-preview-label) {
+	font-size: 0.8em;
+}
+.pfb-body :deep(.field--preview .preview-table) {
+	font-size: 0.9em;
 }
 </style>
