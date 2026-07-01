@@ -452,19 +452,24 @@ class MariaDBDatabase(MariaDBConnectionUtil, MariaDBExceptionUtil, Database):
 		Waits up to `timeout` seconds, then raises QueryTimeoutError. The key is hashed to a fixed
 		64-char digest so long keys can't collide via GET_LOCK's silent name truncation."""
 		import hashlib
+		import time
 
 		from frappe.exceptions import QueryTimeoutError
 
 		name = hashlib.sha256(str(key).encode()).hexdigest()
-		result = self.sql("SELECT GET_LOCK(%s, %s)", (name, timeout))
-		value = result[0][0] if result else None
-		# GET_LOCK returns 1 (acquired), 0 (timed out), or NULL (server error, e.g. OOM/killed
-		# thread). Only 0 is a timeout -- surfacing NULL as QueryTimeoutError would make a caller
-		# retry straight back into the same server failure.
-		if value is None:
-			raise RuntimeError(f"GET_LOCK returned NULL acquiring advisory lock {key!r} (server error)")
-		if value != 1:
-			raise QueryTimeoutError(f"Could not acquire advisory lock {key!r} within {timeout}s")
+		deadline = time.monotonic() + timeout
+		while True:
+			remaining = deadline - time.monotonic()
+			result = self.sql("SELECT GET_LOCK(%s, %s)", (name, max(remaining, 0)))
+			value = result[0][0] if result else None
+			if value == 1:
+				break
+			# GET_LOCK returns 1 (acquired), 0 (waited out the remaining budget for the holder), or
+			# NULL (transient server error, e.g. killed thread). Retry NULL within the budget so a
+			# blip self-heals instead of failing the whole operation; give up once the budget is spent.
+			if value == 0 or remaining <= 0:
+				raise QueryTimeoutError(f"Could not acquire advisory lock {key!r} within {timeout}s")
+			time.sleep(0.1)
 		try:
 			yield
 		finally:
