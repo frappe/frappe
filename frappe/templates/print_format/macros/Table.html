@@ -28,16 +28,45 @@
 			{% for row in doc.get(df.fieldname) %}
 			<tr class="table-row {{ loop.cycle('odd', 'even') }}" data-idx="{{ row.idx }}">
 				{% for column in columns %}
-				<td class="column-value" width="{{ column.width }}%"{% if _cell_style %} style="{{ _cell_style|e }}"{% endif %} {{ field_attributes(column) }}>
-					{# Image cells: validated URL + server-side thumbnail + escaped src. #}
-					{%- set _src = (row.get(column.options) if column.fieldtype == "Image" else row.get(column.fieldname)) or "" -%}
-					{%- set _src = _src|string|trim -%}
-					{%- set _is_image = column.fieldtype in ("Attach Image", "Image") or (column.fieldtype == "Attach" and frappe.utils.is_image(_src)) -%}
-					{%- set _safe = _src.startswith("/") or _src.startswith("http://") or _src.startswith("https://") -%}
-					{%- if _is_image and _safe -%}
-						<img src="{{ frappe.utils.get_image_thumbnail_uri(_src)|e }}" alt="{{ _(column.label or '')|e }}" style="max-width: 100%; max-height: 100px;" />
+				{%- set _layout = column.cell_layout or "single" -%}
+				<td class="column-value{% if _layout != 'single' %} column-value--{{ _layout }}{% endif %}" width="{{ column.width }}%" {{ field_attributes(column) }}>
+					{%- if _layout in ("stacked", "image_text") -%}
+						{# Merged cell: render each configured field on its own styled line. #}
+						{%- set _mf = column.merged_fields or [{"fieldname": column.fieldname, "style": "primary"}] -%}
+						{%- if _layout == "image_text" -%}
+							{%- set _img = (row.get(column.image_fieldname) if column.image_fieldname else "")|string|trim -%}
+							{%- set _img_ok = _img and (_img.startswith("/") or _img.startswith("http://") or _img.startswith("https://")) -%}
+							<div class="cell-imgtext">
+								{%- if _img_ok -%}
+								<img class="cell-thumb-img" src="{{ frappe.utils.get_image_thumbnail_uri(_img)|e }}" alt="" />
+								{%- else -%}
+								{# Fallback thumbnail: initials + a deterministic colour matching the builder canvas. #}
+								{%- set _abbr = frappe.utils.get_abbr((row.get(_mf[0].fieldname) if _mf else "")|string) -%}
+								{%- set _ci = "abcdefghijklmnopqrstuvwxyz0123456789".find((_abbr[:1] or "a")|lower) -%}
+								{%- set _pal = [["#EFF6FF", "#2563EB"], ["#FFF7ED", "#EA580C"], ["#F0FDF4", "#16A34A"], ["#FAF5FF", "#9333EA"], ["#FEF2F2", "#DC2626"], ["#F0FDFA", "#0D9488"]] -%}
+								{%- set _c = _pal[(_ci if _ci >= 0 else 0) % 6] -%}
+								<span class="cell-thumb" style="background:{{ _c[0] }};color:{{ _c[1] }}">{{ _abbr|e }}</span>
+								{%- endif -%}
+								<div class="cell-lines">
+									{%- for mf in _mf -%}{%- if mf.fieldname -%}<div class="cell-line cell-line--{{ mf.style or 'primary' }}">{{ row.get_formatted(mf.fieldname) }}</div>{%- endif -%}{%- endfor -%}
+								</div>
+							</div>
+						{%- else -%}
+							<div class="cell-lines">
+								{%- for mf in _mf -%}{%- if mf.fieldname -%}<div class="cell-line cell-line--{{ mf.style or 'primary' }}">{{ row.get_formatted(mf.fieldname) }}</div>{%- endif -%}{%- endfor -%}
+							</div>
+						{%- endif -%}
 					{%- else -%}
-						{{ row.get_formatted(column.fieldname) }}
+						{# Image cells: validated URL + server-side thumbnail + escaped src. #}
+						{%- set _src = (row.get(column.options) if column.fieldtype == "Image" else row.get(column.fieldname)) or "" -%}
+						{%- set _src = _src|string|trim -%}
+						{%- set _is_image = column.fieldtype in ("Attach Image", "Image") or (column.fieldtype == "Attach" and frappe.utils.is_image(_src)) -%}
+						{%- set _safe = _src.startswith("/") or _src.startswith("http://") or _src.startswith("https://") -%}
+						{%- if _is_image and _safe -%}
+							<img src="{{ frappe.utils.get_image_thumbnail_uri(_src)|e }}" alt="{{ _(column.label or '')|e }}" style="max-width: 100%; max-height: 100px;" />
+						{%- else -%}
+							{{ row.get_formatted(column.fieldname) }}
+						{%- endif -%}
 					{%- endif -%}
 				</td>
 				{% endfor %}

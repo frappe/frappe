@@ -250,6 +250,71 @@ body {
 	text-align: right;
 }
 
+/* ── Merged "Stacked" / "Image + text" cells ─────────────── */
+.child-table .column-value--stacked,
+.child-table .column-value--image_text {
+	text-align: left !important;
+}
+
+.child-table .cell-imgtext {
+	display: flex;
+	align-items: flex-start;
+	gap: 0.5rem;
+}
+
+.child-table .cell-thumb-img,
+.child-table .cell-thumb {
+	width: 34px;
+	height: 34px;
+	border-radius: 6px;
+	flex-shrink: 0;
+}
+
+.child-table .cell-thumb-img {
+	object-fit: cover;
+}
+
+.child-table .cell-thumb {
+	display: flex;
+	align-items: center;
+	justify-content: center;
+	font-size: 0.72em;
+	font-weight: 600;
+	text-transform: uppercase;
+	line-height: 1;
+}
+
+.child-table .cell-lines {
+	display: flex;
+	flex-direction: column;
+	gap: 0.1rem;
+	min-width: 0;
+}
+
+.child-table .cell-line {
+	word-break: break-word;
+}
+
+.child-table .cell-line--primary {
+	font-weight: 600;
+	color: #111827;
+}
+
+.child-table .cell-line--secondary {
+	color: #111827;
+}
+
+.child-table .cell-line--mono-sm {
+	font-family: var(--monospace-font-family, monospace);
+	font-size: 0.85em;
+	color: #6b7280;
+}
+
+.child-table .cell-line--muted-sm {
+	font-size: 0.85em;
+	color: #6b7280;
+}
+
 .page-break {
 	page-break-after: always;
 }

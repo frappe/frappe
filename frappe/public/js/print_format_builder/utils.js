@@ -138,6 +138,31 @@ export function pluck(object, keys) {
 	return out;
 }
 
+// ── Shared thumbnail palette for merged "Image + text" table cells ──
+// Keyed deterministically by the first character so the builder canvas
+// (Field.vue) and the PDF render (templates/print_format/macros/Table.html)
+// pick the same colour for a given value. Keep the order in sync with the
+// palette literal in Table.html.
+export const THUMB_PALETTE = [
+	{ bg: "#EFF6FF", fg: "#2563EB" }, // blue
+	{ bg: "#FFF7ED", fg: "#EA580C" }, // orange
+	{ bg: "#F0FDF4", fg: "#16A34A" }, // green
+	{ bg: "#FAF5FF", fg: "#9333EA" }, // purple
+	{ bg: "#FEF2F2", fg: "#DC2626" }, // red
+	{ bg: "#F0FDFA", fg: "#0D9488" }, // teal
+];
+
+export function thumb_palette_for(text) {
+	const chars = "abcdefghijklmnopqrstuvwxyz0123456789";
+	const first = String(text || "")
+		.trim()
+		.charAt(0)
+		.toLowerCase();
+	let idx = chars.indexOf(first);
+	if (idx < 0) idx = 0;
+	return THUMB_PALETTE[idx % THUMB_PALETTE.length];
+}
+
 export async function render_jinja_html(html, doctype, docname) {
 	if (!html) return html;
 	if (!html.includes("{{") && !html.includes("{%")) return html;

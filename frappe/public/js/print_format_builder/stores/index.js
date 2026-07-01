@@ -101,6 +101,9 @@ export function getStore(print_format_name) {
 										"options",
 										"width",
 										"field_template",
+										"cell_layout",
+										"merged_fields",
+										"image_fieldname",
 									]);
 								});
 							}

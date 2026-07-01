@@ -102,21 +102,66 @@
 											: {}
 									"
 								>
-									<img
-										v-if="
-											is_image_field(col, row[col.fieldname]) &&
-											row[col.fieldname]
-										"
-										:src="row[col.fieldname]"
-										class="preview-table-img"
-										:alt="col.label || col.fieldname"
-									/>
+									<!-- Image + text: thumbnail on the left, merged fields stacked -->
 									<div
-										v-else-if="is_html_content_field(col)"
-										class="preview-table-html"
-										v-html="format_cell(row, col)"
-									></div>
-									<span v-else>{{ format_cell(row, col) }}</span>
+										v-if="col.cell_layout === 'image_text'"
+										class="pf-cell-imgtext"
+									>
+										<img
+											v-if="cell_image(col, row)"
+											:src="cell_image(col, row)"
+											class="pf-cell-thumb-img"
+											:alt="col.label || col.fieldname"
+										/>
+										<span
+											v-else
+											class="pf-cell-thumb"
+											:style="thumb_style(col, row)"
+											>{{ thumb_abbr(col, row) }}</span
+										>
+										<div class="pf-cell-lines">
+											<div
+												v-for="(mf, mi) in merged_lines(col)"
+												:key="mi"
+												class="pf-merge-line"
+												:class="`pf-merge--${mf.style || 'primary'}`"
+											>
+												{{ format_merged(row, mf.fieldname) }}
+											</div>
+										</div>
+									</div>
+									<!-- Stacked: merged fields, one per line -->
+									<div
+										v-else-if="col.cell_layout === 'stacked'"
+										class="pf-cell-lines"
+									>
+										<div
+											v-for="(mf, mi) in merged_lines(col)"
+											:key="mi"
+											class="pf-merge-line"
+											:class="`pf-merge--${mf.style || 'primary'}`"
+										>
+											{{ format_merged(row, mf.fieldname) }}
+										</div>
+									</div>
+									<!-- Single (default) -->
+									<template v-else>
+										<img
+											v-if="
+												is_image_field(col, row[col.fieldname]) &&
+												row[col.fieldname]
+											"
+											:src="row[col.fieldname]"
+											class="preview-table-img"
+											:alt="col.label || col.fieldname"
+										/>
+										<div
+											v-else-if="is_html_content_field(col)"
+											class="preview-table-html"
+											v-html="format_cell(row, col)"
+										></div>
+										<span v-else>{{ format_cell(row, col) }}</span>
+									</template>
 								</td>
 							</tr>
 							<tr v-if="!preview_doc[df.fieldname]?.length">
@@ -256,7 +301,12 @@
 
 <script setup>
 import ConfigureColumnsVue from "../inspector/ConfigureColumns.vue";
-import { render_jinja_html, sanitize_html, evaluate_visible_if } from "../../utils";
+import {
+	render_jinja_html,
+	sanitize_html,
+	evaluate_visible_if,
+	thumb_palette_for,
+} from "../../utils";
 import { createApp, ref, nextTick, watch, computed, inject } from "vue";
 
 const props = defineProps(["df", "field_orientation"]);
@@ -388,6 +438,44 @@ function format_cell(row, col) {
 	} catch {
 		return String(raw);
 	}
+}
+
+// ── Merged / image-text cell helpers ───────────────────────
+function merged_lines(col) {
+	const list =
+		Array.isArray(col.merged_fields) && col.merged_fields.length
+			? col.merged_fields
+			: [{ fieldname: col.fieldname, style: "primary" }];
+	return list.filter((mf) => mf && mf.fieldname);
+}
+
+// Format a merged sub-field using its own child docfield definition
+function format_merged(row, fieldname) {
+	const dcol = frappe.meta.get_docfield(props.df.options, fieldname) || {
+		fieldname,
+		fieldtype: "Data",
+	};
+	return format_cell(row, dcol);
+}
+
+function cell_image(col, row) {
+	const v = col.image_fieldname ? row[col.image_fieldname] : null;
+	return typeof v === "string" && v ? v : null;
+}
+
+function thumb_primary_text(col, row) {
+	const primary = merged_lines(col)[0]?.fieldname;
+	const raw = primary ? row[primary] : "";
+	return raw === null || raw === undefined ? "" : String(raw);
+}
+
+function thumb_abbr(col, row) {
+	return frappe.get_abbr(thumb_primary_text(col, row)) || "?";
+}
+
+function thumb_style(col, row) {
+	const palette = thumb_palette_for(thumb_primary_text(col, row));
+	return { background: palette.bg, color: palette.fg };
 }
 
 function select_field() {
@@ -937,6 +1025,66 @@ watch(
 	max-width: 80px;
 	object-fit: contain;
 	display: block;
+}
+
+/* ── Merged / image-text cells ───────────────────────────── */
+.pf-cell-imgtext {
+	display: flex;
+	align-items: flex-start;
+	gap: 8px;
+}
+
+.pf-cell-thumb-img,
+.pf-cell-thumb {
+	width: 34px;
+	height: 34px;
+	border-radius: 6px;
+	flex-shrink: 0;
+}
+
+.pf-cell-thumb-img {
+	object-fit: cover;
+}
+
+.pf-cell-thumb {
+	display: flex;
+	align-items: center;
+	justify-content: center;
+	font-size: 11px;
+	font-weight: var(--weight-semibold);
+	text-transform: uppercase;
+	line-height: 1;
+}
+
+.pf-cell-lines {
+	display: flex;
+	flex-direction: column;
+	gap: 2px;
+	min-width: 0;
+}
+
+.pf-merge-line {
+	word-break: break-word;
+}
+
+.pf-merge--primary {
+	font-weight: var(--weight-semibold);
+	color: var(--text-color);
+}
+
+.pf-merge--secondary {
+	color: var(--text-color);
+}
+
+.pf-merge--mono-sm {
+	font-family: var(--monospace-font-family, monospace);
+	font-size: 0.85em;
+	color: var(--text-muted);
+}
+
+.pf-merge--muted-sm {
+	font-size: 0.85em;
+	color: var(--text-muted);
 }
 
 .preview-table-html {
