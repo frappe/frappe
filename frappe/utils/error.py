@@ -71,13 +71,13 @@ def log_error(title=None, message=None, reference_doctype=None, reference_name=N
 		metadata=metadata,
 	)
 
-	# Capture exception data if telemetry is enabled
-	capture_exception(message=f"{title}\n{traceback}")
-
 	if frappe.flags.read_only or defer_insert:
 		error_log.deferred_insert()
 	else:
 		return error_log.insert(ignore_permissions=True)
+
+	# Capture exception data if telemetry is enabled
+	capture_exception(message=f"{title}\n{traceback}")
 
 
 def get_error_metadata() -> str:
