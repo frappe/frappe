@@ -1057,6 +1057,19 @@ class TestDDLCommandsPost(IntegrationTestCase):
 			self.assertEqual(advisory_count(), before + 1)
 		self.assertEqual(advisory_count(), before)
 
+	def test_advisory_lock_released_after_query_error(self) -> None:
+		# A DB error inside the block aborts the transaction; the session-scoped lock must still be
+		# released on exit, not leaked. Regression: the unlock in `finally` runs on the aborted txn.
+		def advisory_count():
+			return frappe.db.sql("SELECT count(*) FROM pg_locks WHERE locktype = 'advisory'")[0][0]
+
+		before = advisory_count()
+		with self.assertRaises(Exception):
+			with frappe.db.advisory_lock("frappe-test-lock-error"):
+				frappe.db.sql("SELECT * FROM tab_does_not_exist")
+		frappe.db.rollback()
+		self.assertEqual(advisory_count(), before)
+
 	def _indexdef(self, field: str, using: str) -> str:
 		from frappe.database.postgres.schema import get_qualified_index_name
 
@@ -1723,6 +1736,27 @@ class TestAdvisoryLockMariaDB(IntegrationTestCase):
 		with frappe.db.advisory_lock("frappe-test-lock"):
 			self.assertTrue(held())
 		self.assertFalse(held())
+
+	@run_only_if(db_type_is.MARIADB)
+	def test_advisory_lock_retries_on_transient_null(self):
+		# GET_LOCK returns NULL on a transient server error (e.g. a killed thread). The acquire loop
+		# must retry within the budget and self-heal, not fail the whole operation with a bare error.
+		from unittest.mock import patch
+
+		real_sql = frappe.db.sql
+		get_lock_calls = []
+
+		def fake_sql(query, values=(), **kwargs):
+			if isinstance(query, str) and "GET_LOCK" in query:
+				get_lock_calls.append(values)
+				return ((None,),) if len(get_lock_calls) < 3 else ((1,),)  # two blips, then acquire
+			return real_sql(query, values, **kwargs)
+
+		with patch.object(frappe.db, "sql", fake_sql):
+			with frappe.db.advisory_lock("frappe-test-null", timeout=5):
+				pass
+
+		self.assertGreaterEqual(len(get_lock_calls), 3)
 
 
 class TestBulkInsertCopy(IntegrationTestCase):
