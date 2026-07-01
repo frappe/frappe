@@ -58,16 +58,19 @@
 		{%- endfor -%}
 	{%- endfor -%}
 	{%- if not section.label or ns.has_content -%}
-	{#- Build inline style for section background + padding -#}
 	{%- set ns3 = namespace(section_style='') -%}
 	{%- if section.background -%}
 		{%- set ns3.section_style = ns3.section_style + 'background:' + section.background + ';' -%}
 	{%- endif -%}
-	{%- if section.padding -%}
+	{%- if section.padding and not section.field_borders -%}
 		{%- set p = section.padding -%}
 		{%- set ns3.section_style = ns3.section_style + 'padding:' + (p.top or 0)|string + 'px ' + (p.right or 0)|string + 'px ' + (p.bottom or 0)|string + 'px ' + (p.left or 0)|string + 'px;' -%}
 	{%- endif -%}
-	<div class="section {{ resolve_class({'page-break': section.page_break}) }} {{ 'label-uppercase' if section.label_case == 'uppercase' else '' }}"{% if ns3.section_style %} style="{{ ns3.section_style }}"{% endif %}>
+	{%- if section.field_borders -%}
+		{%- set _cp = (section.cell_padding if section.cell_padding is defined and section.cell_padding is not none else 8) -%}
+		{%- set ns3.section_style = ns3.section_style + '--pfb-cell-pad:' + _cp|string + 'px;' -%}
+	{%- endif -%}
+	<div class="section {{ resolve_class({'page-break': section.page_break}) }} {{ 'label-uppercase' if section.label_case == 'uppercase' else '' }}{{ ' section--grid' if section.field_borders else '' }}"{% if ns3.section_style %} style="{{ ns3.section_style|e }}"{% endif %}>
 		{% if section.label and section.show_label != 'hide' %}
 		<div class="section-label">{{ _(section.label) }}</div>
 		{% endif %}
@@ -82,7 +85,7 @@
 		{%- else -%}
 			{%- set row_layout = '' -%}
 		{%- endif -%}
-		{%- set col_gap = (section.gap if section.gap is defined and section.gap != None else 20)|string + 'px' -%}
+		{%- set col_gap = ('0' if section.field_borders else (section.gap if section.gap is defined and section.gap != None else 20)|string + 'px') -%}
 		<div class="section-columns row {{ row_layout }}" style="gap:{{ col_gap }}">
 			{% for column in section.columns %}
 			<div class="column col">

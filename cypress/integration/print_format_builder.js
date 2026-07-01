@@ -247,9 +247,8 @@ context("Print Format Builder — create flow", () => {
 			.blur();
 
 		cy.get(".pfb-body").should(($el) => {
-			const fs = $el.css("font-size");
-			// 18pt ≈ 24px
-			expect(parseInt(fs, 10)).to.be.greaterThan(20);
+			const fs = parseInt($el.css("font-size"), 10);
+			expect(fs).to.equal(18);
 		});
 	});
 });

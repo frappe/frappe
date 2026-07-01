@@ -143,7 +143,7 @@ let rootStyles = computed(() => {
 let bodyStyles = computed(() => {
 	const { font_size, font } = print_format.value;
 	const styles = {};
-	if (font_size) styles.fontSize = `${font_size}pt`;
+	if (font_size) styles.fontSize = `${parseFloat(font_size)}px`;
 	if (font) styles.fontFamily = `'${font}', sans-serif`;
 	return styles;
 });
@@ -331,5 +331,18 @@ watch(print_format, () => (store.dirty.value = true), { deep: true });
 	font-size: var(--text-lg);
 	font-weight: var(--weight-bold);
 	color: var(--text-color);
+}
+
+.pfb-body :deep(.field--preview) {
+	font-size: inherit;
+}
+.pfb-body :deep(.field--preview .field-preview-value) {
+	font-size: 1em;
+}
+.pfb-body :deep(.field--preview .field-preview-label) {
+	font-size: 0.8em;
+}
+.pfb-body :deep(.field--preview .preview-table) {
+	font-size: 0.9em;
 }
 </style>

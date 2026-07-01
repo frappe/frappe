@@ -2,6 +2,7 @@
 	<div
 		class="print-format-section-container"
 		data-pfb-section
+		v-show="!preview_doc || has_visible_fields"
 		:class="{ 'section-container--condition-hidden': preview_doc && !is_section_visible }"
 	>
 		<!-- Top-left actions pill shown on hover in clean-preview (toolbar is hidden) -->
@@ -22,6 +23,7 @@
 			:class="{
 				'section--selected': is_selected,
 				'label-uppercase': section.label_case === 'uppercase',
+				'section--grid': is_grid,
 			}"
 			:style="section_inline_style"
 			@click.stop="select_section"
@@ -65,11 +67,15 @@
 			<div
 				class="section-columns"
 				:style="
-					section.columns.length > 1 && section.gap ? { gap: section.gap + 'px' } : {}
+					is_grid
+						? { gap: '0' }
+						: section.columns.length > 1 && section.gap
+						? { gap: section.gap + 'px' }
+						: {}
 				"
 			>
 				<template v-for="(column, i) in section.columns" :key="i">
-					<div v-if="i > 0" class="column-divider"></div>
+					<div v-if="i > 0 && !preview_doc" class="column-divider"></div>
 					<div
 						class="column"
 						:class="{ 'column-align-right': column.align === 'right' }"
@@ -92,7 +98,9 @@
 							</template>
 						</draggable>
 						<div
-							v-if="column.fields.filter((f) => !f.remove).length === 0"
+							v-if="
+								!preview_doc && column.fields.filter((f) => !f.remove).length === 0
+							"
 							class="empty-drop-zone"
 						>
 							<button
@@ -138,12 +146,22 @@ let is_section_visible = computed(() =>
 	evaluate_visible_if(props.section.visible_if, preview_doc.value)
 );
 
+let is_grid = computed(() => !!props.section.field_borders);
+
+let has_visible_fields = computed(() =>
+	props.section.columns.some((col) => col.fields.some((f) => !f.remove))
+);
+
 let section_inline_style = computed(() => {
 	const style = {};
 	if (props.section.background) style.backgroundColor = props.section.background;
-	if (props.section.padding) {
+	if (props.section.padding && !is_grid.value) {
 		const p = props.section.padding;
 		style.padding = `${p.top || 0}px ${p.right || 0}px ${p.bottom || 0}px ${p.left || 0}px`;
+	}
+	if (is_grid.value) {
+		const pad = props.section.cell_padding ?? 8;
+		style["--pfb-cell-pad"] = `${pad}px`;
 	}
 	return style;
 });
@@ -490,5 +508,51 @@ function remove_column(index) {
 .print-format-section.label-uppercase :deep(.preview-table th) {
 	text-transform: uppercase;
 	letter-spacing: 0.03em;
+}
+
+/* ── Table layout (field borders) ───────────────────────── */
+.section--grid {
+	border: 1px solid var(--border-color) !important;
+	border-radius: var(--border-radius-md, 8px) !important;
+	overflow: hidden !important;
+	padding: 0 !important;
+}
+.section--grid .section-title-display {
+	padding: var(--pfb-cell-pad, 8px) !important;
+	margin: 0 !important;
+	border-bottom: 1px solid var(--border-color) !important;
+}
+.section--grid .section-columns {
+	padding: 0;
+}
+.section--grid .column {
+	padding: 0;
+}
+.section--grid .column:not(:last-child) {
+	border-right: 1px solid var(--border-color);
+}
+.section--grid .column-divider {
+	display: none;
+}
+.section--grid :deep(.drag-container) {
+	gap: 0 !important;
+}
+.section--grid :deep(.field) {
+	padding: var(--pfb-cell-pad, 8px) !important;
+	border: none !important;
+	border-bottom: 1px solid var(--border-color) !important;
+	border-radius: 0 !important;
+	background: transparent !important;
+}
+.section--grid :deep(.field:last-child) {
+	border-bottom: none !important;
+}
+.section--grid :deep(.field:hover),
+.section--grid :deep(.field--selected) {
+	outline: 1px dashed var(--gray-400);
+	outline-offset: -1px;
+}
+.section--grid :deep(.field--selected) {
+	outline-style: solid;
 }
 </style>

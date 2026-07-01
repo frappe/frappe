@@ -351,3 +351,37 @@ header img {
 	text-transform: uppercase;
 	letter-spacing: 0.03em;
 }
+
+/* ── Table layout (field-borders mode) ───────────────────── */
+.section--grid {
+	border: 1px solid #e5e7eb;
+	border-radius: var(--border-radius-md, 8px);
+	overflow: hidden;
+	padding: 0;
+}
+.section--grid .section-label {
+	padding: var(--pfb-cell-pad, 8px);
+	margin: 0;
+	border-bottom: 1px solid #e5e7eb;
+}
+.section--grid .section-columns {
+	padding: 0;
+	margin-left: 0;
+	margin-right: 0;
+}
+.section--grid .col {
+	padding: 0;
+}
+.section--grid .col:not(:last-child) {
+	border-right: 1px solid #e5e7eb;
+}
+.section--grid .field {
+	padding: var(--pfb-cell-pad, 8px);
+	border-bottom: 1px solid #e5e7eb;
+}
+.section--grid .field + .field {
+	margin-top: 0;
+}
+.section--grid .field:last-child {
+	border-bottom: none;
+}
