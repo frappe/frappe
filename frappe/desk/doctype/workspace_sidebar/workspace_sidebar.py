@@ -154,10 +154,11 @@ class WorkspaceSidebar(Document, DeskViews):
 			workspace.module_onboarding = self.module_onboarding
 		workspace.standard = self.standard
 
-		# A standard workspace must carry app + module so it can be exported to files.
+		# A standard workspace must carry app + module so it can be exported to files. If no app
+		# can be resolved it can't be exported, so keep it as a non-standard workspace instead.
 		if self.standard:
-			workspace = set_app_and_module(workspace, self)
-			workspace.standard = 1
+			set_app_and_module(workspace, self)
+			workspace.standard = 1 if workspace.module else 0
 
 		workspace.save(ignore_permissions=True)
 		frappe.db.commit()  # nosemgrep
@@ -171,6 +172,7 @@ class WorkspaceSidebar(Document, DeskViews):
 
 
 def set_app_and_module(workspace, sidebar):
+	"""Populate `app`/`module` on `workspace` in place. No-op when no app can be resolved."""
 	app = sidebar.app or workspace.app
 	if not app:
 		return
@@ -179,7 +181,6 @@ def set_app_and_module(workspace, sidebar):
 	if not workspace.module:
 		modules = frappe.get_module_list(app)
 		workspace.module = modules[0] if modules else None
-	return workspace
 
 
 def get_or_create_workspace(sidebar):
