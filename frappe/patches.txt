@@ -264,3 +264,4 @@ frappe.patches.v16_0.backfill_list_layout_route_signature
 execute:frappe.db.create_sequence_table()  # backfill SQLite sequence emulation table on existing sites
 frappe.patches.v16_0.migrate_workspace_sidebar_to_workspace
 frappe.patches.v16_0.populate_workspace_sidebar_from_shortcuts
+frappe.desk.doctype.workspace.patches.set_standard_flag
