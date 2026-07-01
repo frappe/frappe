@@ -173,15 +173,15 @@ def get_doc_files(files, start_path):
 
 
 def schema_file_exists(doctype: str) -> bool:
+	# Return False only when the schema file is confirmed missing; on any uncertainty
+	# assume it exists so a valid doctype is never deleted on a failed lookup.
 	module = frappe.db.get_value("DocType", doctype, "module")
 	if not module:
-		return False
+		return True
 	scrubbed = frappe.scrub(doctype)
 	try:
 		json_path = frappe.get_module_path(module, "doctype", scrubbed, f"{scrubbed}.json")
 	except Exception:
-		# A failed path lookup is the same fragile signal as the bug being fixed, so
-		# assume the schema is present rather than deleting a possibly-valid doctype.
 		return True
 	return os.path.exists(json_path)
 
