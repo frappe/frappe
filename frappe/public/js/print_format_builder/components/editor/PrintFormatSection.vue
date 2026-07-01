@@ -501,25 +501,21 @@ function remove_column(index) {
 
 /* ── Table layout (field borders) ───────────────────────── */
 .section--grid .column {
+	border: 1px solid var(--border-color);
 	padding: 0;
-}
-.section--grid .drag-container {
-	display: contents;
-}
-.section--grid .section-columns {
-	display: grid;
-	grid-template-columns: repeat(auto-fit, minmax(0, 1fr));
-	gap: 0;
+	margin-left: -1px;
 }
 .section--grid .column-divider {
 	display: none;
 }
 .section--grid :deep(.field) {
 	padding: var(--pfb-cell-pad, 8px);
-	border: 1px solid var(--border-color);
-	margin: -1px 0 0 -1px;
+	border: none;
+	border-bottom: 1px solid var(--border-color);
+	border-radius: 0;
+	background: transparent;
 }
-.section--grid :deep(.field-preview-wrap) {
-	padding: 0;
+.section--grid :deep(.field:last-child) {
+	border-bottom: none;
 }
 </style>

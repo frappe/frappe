@@ -353,16 +353,15 @@ header img {
 }
 
 /* ── Table layout (field-borders mode) ───────────────────── */
-.section--grid .section-columns {
-	display: grid;
-	grid-template-columns: repeat(auto-fit, minmax(0, 1fr));
-	gap: 0;
-}
 .section--grid .col {
+	border: 1px solid #e5e7eb;
 	padding: 0;
+	margin-left: -1px;
 }
 .section--grid .field {
 	padding: var(--pfb-cell-pad, 8px);
-	border: 1px solid #e5e7eb;
-	margin: -1px 0 0 -1px;
+	border-bottom: 1px solid #e5e7eb;
+}
+.section--grid .field:last-child {
+	border-bottom: none;
 }

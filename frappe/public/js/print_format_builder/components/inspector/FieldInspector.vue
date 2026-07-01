@@ -623,8 +623,8 @@
 								</button>
 							</div>
 						</div>
-						<!-- Cell padding (only in table layout) -->
-						<div v-if="section_field_borders" class="pfb-insp-row">
+						<!-- Cell padding -->
+						<div class="pfb-insp-row">
 							<span class="pfb-insp-label">{{ __("Cell padding") }}</span>
 							<div class="pfb-stepper">
 								<button @click="adjust_section_cell_padding(-1)">−</button>
