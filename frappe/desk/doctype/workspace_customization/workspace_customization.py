@@ -237,6 +237,31 @@ def upsert_property_customization(
 	customization.save(ignore_permissions=True)
 
 
+def upsert_settings_customization(
+	workspace: str,
+	*,
+	icon: str | None = None,
+	indicator_color: str | None = None,
+	roles: list[str] | None = None,
+) -> None:
+	"""Persist appearance + role gating for a standard workspace as a delta.
+
+	Roles are stored as the diff against the live base (`added_roles` / `removed_roles`) so
+	app changes to the base roles keep flowing through, matching `effective_roles`.
+	"""
+	customization = _get_or_new(workspace)
+	if icon is not None:
+		customization.icon = icon
+	if indicator_color is not None:
+		customization.indicator_color = indicator_color
+	if roles is not None:
+		base = {r.role for r in frappe.get_cached_doc("Workspace", workspace).roles}
+		desired = set(roles)
+		customization.set("added_roles", [{"role": r} for r in sorted(desired - base)])
+		customization.set("removed_roles", [{"role": r} for r in sorted(base - desired)])
+	customization.save(ignore_permissions=True)
+
+
 def _get_or_new(workspace: str) -> "WorkspaceCustomization":
 	if frappe.db.exists("Workspace Customization", workspace):
 		return frappe.get_doc("Workspace Customization", workspace)

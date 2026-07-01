@@ -212,13 +212,11 @@ frappe.views.Workspace = class Workspace {
 						{
 							label: "Configure",
 							icon: "settings",
-							onClick: () => this.customize_workspace(current_page),
+							onClick: () => this.open_workspace_manager(current_page),
 							condition: () => {
-								return (
-									!frappe.boot.developer_mode &&
-									current_page.standard &&
-									this.has_access
-								);
+								// available whenever the user can manage at least one workspace
+								// (a Workspace Manager, or anyone with their own private pages)
+								return this.workspaces.some((p) => p.is_editable);
 							},
 						},
 						{
@@ -364,16 +362,223 @@ frappe.views.Workspace = class Workspace {
 		});
 	}
 
-	customize_workspace(page) {
-		// Visibility & roles for a standard workspace live on the Workspace Customization
-		// delta (the standard record stays app-owned), so edit that record directly.
-		frappe.db.exists("Workspace Customization", page.name).then((exists) => {
-			if (exists) {
-				frappe.set_route("Form", "Workspace Customization", page.name);
-			} else {
-				frappe.new_doc("Workspace Customization", { workspace: page.name });
-			}
+	open_workspace_manager(current_page) {
+		// Two-pane manager: the list of workspaces the user can edit on the left, the
+		// selected workspace's access / appearance settings on the right. Replaces the
+		// old "route to the Workspace / Workspace Customization form" flow.
+		const manageable = this.workspaces.filter((p) => p.is_editable);
+		if (!manageable.length) return;
+
+		const tabs = [];
+		const public_pages = manageable.filter((p) => p.public);
+		const private_pages = manageable.filter((p) => !p.public);
+		if (public_pages.length) {
+			tabs.push({
+				group: __("Public"),
+				items: public_pages.map((p) => this.workspace_manager_item(p)),
+			});
+		}
+		if (private_pages.length) {
+			tabs.push({
+				group: __("Private"),
+				items: private_pages.map((p) => this.workspace_manager_item(p)),
+			});
+		}
+
+		const default_tab =
+			current_page && current_page.is_editable ? current_page.name : undefined;
+		this.workspace_manager = new frappe.ui.SettingsDialog({
+			title: __("Manage Workspaces"),
+			tabs,
+			default_tab,
 		});
+		this.workspace_manager.show();
+	}
+
+	workspace_manager_item(page) {
+		return {
+			id: page.name,
+			label: __(page.title),
+			icon: page.icon || "grid",
+			render: (panel) => this.render_workspace_manager_panel(panel, page),
+		};
+	}
+
+	render_workspace_manager_panel(panel, page) {
+		panel.set_header({ title: __(page.title) });
+		panel.body.html(`<div class="text-muted">${__("Loading...")}</div>`);
+
+		frappe
+			.call({
+				method: "frappe.desk.doctype.workspace.workspace.get_workspace_settings",
+				args: { name: page.name },
+			})
+			.then((r) => {
+				const settings = r.message;
+				if (!settings) return;
+
+				const actions = [];
+				if (!settings.standard) {
+					actions.push({
+						label: __("Delete"),
+						class: "btn-danger",
+						click: () => this.delete_workspace_from_manager(page),
+					});
+				}
+				actions.push({
+					label: __("Save"),
+					primary: true,
+					click: (p) => this.save_workspace_from_manager(p, settings),
+				});
+
+				panel.set_view({
+					title: __(settings.title),
+					description: settings.standard
+						? __(
+								"A standard workspace is shipped by the app; changes are saved as customizations."
+						  )
+						: __("Control who can see this workspace and how it appears."),
+					actions,
+					fields: this.workspace_manager_fields(settings),
+				});
+			});
+	}
+
+	workspace_manager_fields(settings) {
+		const access_to_label = {
+			private: ACCESS_PRIVATE,
+			group: ACCESS_GROUP,
+			public: ACCESS_PUBLIC,
+		};
+		// A standard workspace's `public` flag is app-owned, so it can only ever be shared
+		// (open to everyone or gated to a group). Custom workspaces get the full range, but
+		// only a Workspace Manager may make one public.
+		let access_options;
+		if (settings.standard) {
+			access_options = [ACCESS_GROUP, ACCESS_PUBLIC];
+		} else if (this.has_access) {
+			access_options = [ACCESS_PRIVATE, ACCESS_GROUP, ACCESS_PUBLIC];
+		} else {
+			access_options = [ACCESS_PRIVATE];
+		}
+
+		const role_rows = (settings.roles || []).map((role) => ({ role }));
+
+		return [
+			{
+				label: __("Title"),
+				fieldname: "title",
+				fieldtype: "Data",
+				default: settings.title,
+				reqd: 1,
+				read_only: settings.standard ? 1 : 0,
+				description: settings.standard
+					? __("The title of a standard workspace is managed by the app.")
+					: "",
+			},
+			{
+				label: __("Icon"),
+				fieldname: "icon",
+				fieldtype: "Icon",
+				default: settings.icon,
+			},
+			{
+				label: __("Access"),
+				fieldname: "access",
+				fieldtype: "Select",
+				options: access_options,
+				default: access_to_label[settings.access] || access_options[0],
+				reqd: 1,
+				description: __("Who can see this workspace"),
+			},
+			{
+				label: __("Roles"),
+				fieldname: "roles",
+				fieldtype: "Table",
+				depends_on: `eval:doc.access=='${ACCESS_GROUP}'`,
+				description: __("Users with any of these roles can see this workspace"),
+				data: role_rows,
+				get_data: () => role_rows,
+				fields: [
+					{
+						label: __("Role"),
+						fieldname: "role",
+						fieldtype: "Link",
+						options: "Role",
+						in_list_view: 1,
+						reqd: 1,
+					},
+				],
+			},
+		];
+	}
+
+	save_workspace_from_manager(panel, settings) {
+		const values = panel.get_values();
+		if (!values) return;
+
+		const label_to_access = {
+			[ACCESS_PRIVATE]: "private",
+			[ACCESS_GROUP]: "group",
+			[ACCESS_PUBLIC]: "public",
+		};
+		const access = label_to_access[values.access];
+		const roles =
+			access === "group" ? (values.roles || []).map((r) => r.role).filter(Boolean) : [];
+
+		frappe.call({
+			method: "frappe.desk.doctype.workspace.workspace.update_workspace_settings",
+			args: {
+				name: settings.name,
+				title: values.title,
+				icon: values.icon,
+				access,
+				roles,
+			},
+			freeze: true,
+			callback: (r) => {
+				if (!r.message) return;
+				this.apply_manager_changes(r.message);
+				frappe.show_alert({ message: __("Workspace updated"), indicator: "green" });
+				this.workspace_manager && this.workspace_manager.hide();
+			},
+		});
+	}
+
+	delete_workspace_from_manager(page) {
+		frappe.confirm(
+			__("Delete the <b>{0}</b> workspace? This cannot be undone.", [__(page.title)]),
+			() => {
+				frappe.call({
+					method: "frappe.desk.doctype.workspace.workspace.delete_page",
+					args: { name: page.name },
+					freeze: true,
+					callback: (r) => {
+						if (!r.message) return;
+						this.apply_manager_changes(r.message);
+						frappe.show_alert({
+							message: __("Workspace {0} deleted", [__(page.title)]),
+							indicator: "green",
+						});
+						this.workspace_manager && this.workspace_manager.hide();
+					},
+				});
+			}
+		);
+	}
+
+	apply_manager_changes(message) {
+		// Refresh the cached workspace + sidebar payloads and re-render, mirroring create_page.
+		frappe.boot.workspaces = message.workspace_pages;
+		this.workspaces = frappe.boot.workspaces.pages;
+		this.setup_pages(frappe.boot.workspaces.pages);
+		frappe.boot.workspace_sidebar_item = message.sidebar_items;
+		this.reload();
+		// reload() re-derives the current page synchronously; re-render its sidebar so a rename
+		// or visibility change is reflected in the shell.
+		if (frappe.app.sidebar && this._page) {
+			frappe.app.sidebar.setup(this._page.name);
+		}
 	}
 
 	reset_workspace_customization(page) {

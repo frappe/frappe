@@ -454,6 +454,162 @@ def update_page(name: str, title: str, icon: str, indicator_color: str, parent: 
 	return {"name": title, "public": public, "label": new_name}
 
 
+@frappe.whitelist()
+def get_workspace_settings(name: str):
+	"""Effective, editable metadata for the Manage Workspaces dialog.
+
+	Resolves the site's customization delta for a standard (app-shipped) workspace so the
+	dialog shows a single truth (base + overrides), matching what the desk renders.
+	"""
+	from frappe.desk.doctype.workspace_customization.workspace_customization import (
+		effective_roles,
+		get_customization,
+	)
+
+	doc = frappe.get_cached_doc("Workspace", name)
+
+	can_edit = is_workspace_manager() or (not doc.public and doc.for_user == frappe.session.user)
+	if not can_edit:
+		frappe.throw(
+			_("You need the Workspace Manager role to manage this workspace."),
+			frappe.PermissionError,
+		)
+
+	is_standard = bool(doc.standard) and not frappe.conf.developer_mode
+
+	roles = [r.role for r in doc.roles]
+	icon = doc.icon
+	indicator_color = doc.indicator_color
+
+	if is_standard and (customization := get_customization(name)):
+		roles = effective_roles([r.role for r in doc.roles], customization)
+		icon = customization.icon or icon
+		indicator_color = customization.indicator_color or indicator_color
+
+	if not doc.public:
+		access = "private"
+	elif roles:
+		access = "group"
+	else:
+		access = "public"
+
+	return {
+		"name": doc.name,
+		"title": doc.title,
+		"icon": icon,
+		"indicator_color": indicator_color,
+		"public": doc.public,
+		"for_user": doc.for_user,
+		"standard": is_standard,
+		"access": access,
+		"roles": sorted(roles),
+	}
+
+
+@frappe.whitelist()
+def update_workspace_settings(
+	name: str,
+	title: str | None = None,
+	icon: str | None = None,
+	indicator_color: str | None = None,
+	access: str | None = None,
+	roles: list | str | None = None,
+):
+	"""Save appearance + access/roles for a workspace from the Manage Workspaces dialog.
+
+	A standard (app-shipped) workspace keeps its app-owned title / route / visibility; only
+	its appearance and role gating are captured as a Workspace Customization delta. A custom
+	(or developer-mode) workspace is edited in place, with `access` mapped onto the underlying
+	`public` / `for_user` / `roles` fields (mirroring `new_page`).
+	"""
+	doc = frappe.get_doc("Workspace", name)
+
+	can_edit = is_workspace_manager() or (not doc.public and doc.for_user == frappe.session.user)
+	if not can_edit:
+		frappe.throw(
+			_("You need the Workspace Manager role to edit this workspace."),
+			frappe.PermissionError,
+		)
+
+	role_list = frappe.parse_json(roles) if isinstance(roles, str) else (roles or [])
+	# a row may be a `{role: ...}` dict (from the dialog grid) or a bare role name
+	role_names = sorted({(r.get("role") if isinstance(r, dict) else r) for r in role_list if r})
+	# roles only gate access when the workspace is shared with a group
+	if access != "group":
+		role_names = []
+
+	is_standard = bool(doc.standard) and not frappe.conf.developer_mode
+	if is_standard:
+		from frappe.desk.doctype.workspace_customization.workspace_customization import (
+			upsert_settings_customization,
+		)
+
+		upsert_settings_customization(name, icon=icon, indicator_color=indicator_color, roles=role_names)
+		return {"workspace_pages": get_workspaces(), "sidebar_items": get_sidebar_items(), "name": name}
+
+	# custom workspace: edit in place, mapping the access choice onto public / for_user / roles
+	make_public = 0 if access == "private" else 1
+	if make_public and not is_workspace_manager():
+		frappe.throw(
+			_("You need the Workspace Manager role to make a workspace public."),
+			frappe.PermissionError,
+		)
+
+	child_docs = frappe.get_all("Workspace", filters={"parent_page": doc.title, "public": doc.public})
+
+	if title:
+		doc.title = strip_html(title)
+	if icon:
+		doc.icon = icon
+	if indicator_color is not None:
+		doc.indicator_color = indicator_color
+	doc.set("roles", [{"role": r} for r in role_names])
+	if doc.public != make_public:
+		doc.sequence_id = frappe.db.count("Workspace", {"public": make_public}, cache=True)
+		doc.public = make_public
+	doc.for_user = "" if make_public else doc.for_user or frappe.session.user
+	doc.label = new_name = f"{doc.title}-{doc.for_user}" if doc.for_user else doc.title
+	doc.save(ignore_permissions=True)
+
+	if name != new_name:
+		rename_doc("Workspace", name, new_name, force=True, ignore_permissions=True)
+
+	# propagate the (possibly renamed / re-scoped) parent to its child pages, as `update_page` does
+	for child in child_docs:
+		child_doc = frappe.get_doc("Workspace", child.name)
+		child_doc.parent_page = doc.title
+		if child_doc.public != make_public:
+			child_doc.public = make_public
+		child_doc.for_user = "" if make_public else child_doc.for_user or frappe.session.user
+		child_doc.label = new_child_name = (
+			f"{child_doc.title}-{child_doc.for_user}" if child_doc.for_user else child_doc.title
+		)
+		child_doc.save(ignore_permissions=True)
+		if child.name != new_child_name:
+			rename_doc("Workspace", child.name, new_child_name, force=True, ignore_permissions=True)
+
+	return {"workspace_pages": get_workspaces(), "sidebar_items": get_sidebar_items(), "name": new_name}
+
+
+@frappe.whitelist()
+def delete_page(name: str):
+	"""Delete a custom workspace from the Manage Workspaces dialog."""
+	doc = frappe.get_doc("Workspace", name)
+
+	if doc.standard and not frappe.conf.developer_mode:
+		frappe.throw(_("Standard workspaces cannot be deleted. Reset to standard instead."))
+
+	can_edit = is_workspace_manager() or (not doc.public and doc.for_user == frappe.session.user)
+	if not can_edit:
+		frappe.throw(
+			_("You need the Workspace Manager role to delete this workspace."),
+			frappe.PermissionError,
+		)
+
+	frappe.delete_doc("Workspace", name, ignore_permissions=True)
+	return {"workspace_pages": get_workspaces(), "sidebar_items": get_sidebar_items()}
+
+
 def last_sequence_id(doc):
 	doc_exists = frappe.db.exists({"doctype": "Workspace", "public": doc.public, "for_user": doc.for_user})
 
