@@ -7,9 +7,12 @@ import psycopg2.extensions
 from psycopg2 import sql
 from psycopg2.errorcodes import (
 	CLASS_INTEGRITY_CONSTRAINT_VIOLATION,
+	DATATYPE_MISMATCH,
 	DEADLOCK_DETECTED,
 	DUPLICATE_COLUMN,
 	INSUFFICIENT_PRIVILEGE,
+	INVALID_TEXT_REPRESENTATION,
+	NUMERIC_VALUE_OUT_OF_RANGE,
 	SERIALIZATION_FAILURE,
 	STRING_DATA_RIGHT_TRUNCATION,
 	UNDEFINED_COLUMN,
@@ -157,6 +160,18 @@ class PostgresExceptionUtil:
 	@staticmethod
 	def is_data_too_long(e):
 		return getattr(e, "pgcode", None) == STRING_DATA_RIGHT_TRUNCATION
+
+	@staticmethod
+	def is_data_truncated(e):
+		# a value cannot be cast to the column's new type -- e.g. changing a field holding
+		# "not a number" to Int. MariaDB reports TRUNCATED_WRONG_VALUE; postgres is stricter and
+		# aborts the ALTER: it refuses to auto-cast the column (datatype mismatch) or a value fails
+		# the cast (invalid representation / numeric out of range).
+		return getattr(e, "pgcode", None) in (
+			DATATYPE_MISMATCH,
+			INVALID_TEXT_REPRESENTATION,
+			NUMERIC_VALUE_OUT_OF_RANGE,
+		)
 
 	@staticmethod
 	def is_db_table_size_limit(e) -> bool:
