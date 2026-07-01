@@ -3,7 +3,7 @@ from collections.abc import Callable
 from functools import lru_cache, wraps
 from inspect import _empty, isclass
 from types import EllipsisType
-from typing import ForwardRef, TypeVar, Union
+from typing import ForwardRef, TypeVar, Union, get_type_hints
 from unittest import mock
 
 from pydantic import ConfigDict, PydanticUserError
@@ -47,6 +47,16 @@ def validate_argument_types(
 			is_annotation_valid = False   # stored in closure environment, so much easier to access when wrapper would actually be called!
 			invalid_param_name = param_name
 			break
+	del annotations, func_params
+
+	# Resolving whatever forwardRefs at declaration time!
+	are_forwardRef_resolved:bool = False    # private, would be part of closure environment. (trapped)
+	try:
+		func.__annotations__ = get_type_hints(func)  # it should handle both aka `forwardRef or str` recursively!
+		are_forwardRef_resolved = True
+	except Exception as e:
+		# Should only get an error, when `ForwardRef or str` annotations couldn't be resolved. `get_type_hints` handles a lot of common cases like missing annotations without throwing errors Its ok, we will try again at runtime.
+		pass
 
 	@wraps(func)
 	def wrapper(*args, **kwargs):
@@ -55,20 +65,36 @@ def validate_argument_types(
 		:param args: Function arguments.
 		:param kwargs: Function keyword arguments."""
 
-		nonlocal force_types
-		
+		nonlocal force_types, are_forwardRef_resolved
+
 		# Resolve it only once
 		if force_types is None:
 			force_types = any(frappe.get_hooks("require_type_annotated_api_methods", app_name=app))
 
-		# NOTE: force_types value depends on `frappe` module, which have to be resolved, otherwise we could have raised "not Annotations present" error in the decorator itself during startup! 
+		# NOTE: force_types value depends on `frappe` module, which have to be resolved, otherwise we could have raised "not Annotations present" error in the decorator itself during startup!
 		if force_types and not (is_annotation_valid):
 			module, qualname = func.__module__, func.__qualname__
 			raise FrappeTypeError(
 				f"Argument '{invalid_param_name}' in '{module}.{qualname}' is missing type annotation.."
 				f"All arguments must have type annotations when type checking is enforced."
 			)
-		
+
+		if are_forwardRef_resolved:
+			# Only if error ocurred earlier this branch would be taken/necessary, meaning there are `annotations` and also `forwardRefs` which couldn't be resolved.
+			# get_type_hints, handles cases where there are no annotation for a parameter or if `cls` self like parameters, so if error occured, then it should mean `forwardRefs` failed to get resolved!
+			try:
+				func.__annotations__ = get_type_hints(func)
+			except Exception as e:
+				# We put this conditional check instead in exception block.
+				if force_types:
+					module, qualname = func.__module__, func.__qualname__
+					raise FrappeTypeError(
+						f"Couldn't resolve all ForwardRefs for function: {module}.{qualname} as {e}'"
+						f"At Runtime All ForwardRefs or ClassName (as string) must have had a Corresponding Class Declared with same name!"
+					)
+				else:
+					pass
+
 		if apply_condition is None or apply_condition():
 			# setting `force_types` as False, as would have already that code in the previous block!
 			args, kwargs = transform_parameter_types(func, args, kwargs, force_types=False)
