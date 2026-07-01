@@ -1048,6 +1048,15 @@ class TestDDLCommandsPost(IntegrationTestCase):
 		)
 		self.assertEqual(len(indexs_in_table), 1)
 
+	def test_advisory_lock(self) -> None:
+		def advisory_count():
+			return frappe.db.sql("SELECT count(*) FROM pg_locks WHERE locktype = 'advisory'")[0][0]
+
+		before = advisory_count()
+		with frappe.db.advisory_lock("frappe-test-lock"):
+			self.assertEqual(advisory_count(), before + 1)
+		self.assertEqual(advisory_count(), before)
+
 	def test_json_columns_return_strings(self) -> None:
 		# Regression: psycopg2 auto-parses json/jsonb into python objects, but frappe models JSON
 		# fields as strings (like MariaDB's longtext) and json.loads them on demand. A parsed value
@@ -1655,3 +1664,21 @@ class TestMariaDBExceptionUtil(IntegrationTestCase):
 		unrelated = _E()
 		unrelated.pgcode = "12345"
 		self.assertFalse(PostgresExceptionUtil.is_deadlocked(unrelated))
+
+
+class TestAdvisoryLockMariaDB(IntegrationTestCase):
+	@run_only_if(db_type_is.MARIADB)
+	def test_advisory_lock_get_release(self):
+		# Exercises the MariaDB GET_LOCK / RELEASE_LOCK path (the Postgres test uses pg_locks).
+		import hashlib
+
+		name = hashlib.sha256(b"frappe-test-lock").hexdigest()
+
+		def held():
+			# IS_USED_LOCK returns the connection id holding the lock, or NULL when free.
+			return frappe.db.sql("SELECT IS_USED_LOCK(%s)", (name,))[0][0] is not None
+
+		self.assertFalse(held())
+		with frappe.db.advisory_lock("frappe-test-lock"):
+			self.assertTrue(held())
+		self.assertFalse(held())

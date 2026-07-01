@@ -640,6 +640,28 @@ class PostgresDatabase(PostgresExceptionUtil, Database):
 			self._cursor = original_cursor
 			new_cursor.close()
 
+	@contextmanager
+	def advisory_lock(self, key, *, timeout=10):
+		"""Hold a session-level advisory lock for the duration of the `with` block. Session-scoped
+		(pg_advisory_lock) so it survives any intermediate commits the caller makes -- a txn-scoped
+		lock would release at the first commit. Polls pg_try_advisory_lock up to `timeout` seconds,
+		then raises QueryTimeoutError. `key` is hashed to the bigint the lock functions expect."""
+		import hashlib
+		import time
+
+		from frappe.exceptions import QueryTimeoutError
+
+		lock_key = int.from_bytes(hashlib.sha256(str(key).encode()).digest()[:8], "big", signed=True)
+		deadline = time.monotonic() + timeout
+		while not self.sql("SELECT pg_try_advisory_lock(%s)", (lock_key,))[0][0]:
+			if time.monotonic() >= deadline:
+				raise QueryTimeoutError(f"Could not acquire advisory lock {key!r} within {timeout}s")
+			time.sleep(0.1)
+		try:
+			yield
+		finally:
+			self.sql("SELECT pg_advisory_unlock(%s)", (lock_key,))
+
 
 def modify_query(query):
 	""" "Modifies query according to the requirements of postgres"""

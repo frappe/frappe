@@ -1526,6 +1526,11 @@ class Database:
 		while value_chunk := tuple(itertools.islice(value_iterator, chunk_size)):
 			query.insert(*value_chunk).run()
 
+	def advisory_lock(self, key, *, timeout=10):
+		"""Hold a session-level advisory lock for the duration of the `with` block. Postgres uses
+		pg_advisory_lock, MariaDB uses GET_LOCK; engines without advisory locks raise."""
+		raise NotImplementedError(f"Advisory locks are not supported on {self.db_type}.")
+
 	def create_sequence_table(self):
 		# MariaDB/Postgres have native sequences and need no backing table;
 		# SQLite overrides this to create its emulation table at site setup.

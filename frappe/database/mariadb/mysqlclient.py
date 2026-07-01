@@ -466,6 +466,31 @@ class MariaDBDatabase(MariaDBConnectionUtil, MariaDBExceptionUtil, Database):
 					for_doctype=False,  # Applied on docfield
 				)
 
+	@contextmanager
+	def advisory_lock(self, key, *, timeout=10):
+		"""Hold a session-level named lock (GET_LOCK) for the duration of the `with` block -- the
+		MariaDB equivalent of pg_advisory_lock. Session-scoped, so it survives intermediate commits.
+		Waits up to `timeout` seconds, then raises QueryTimeoutError. The key is hashed to a fixed
+		64-char digest so long keys can't collide via GET_LOCK's silent name truncation."""
+		import hashlib
+
+		from frappe.exceptions import QueryTimeoutError
+
+		name = hashlib.sha256(str(key).encode()).hexdigest()
+		result = self.sql("SELECT GET_LOCK(%s, %s)", (name, timeout))
+		value = result[0][0] if result else None
+		# GET_LOCK returns 1 (acquired), 0 (timed out), or NULL (server error, e.g. OOM/killed
+		# thread). Only 0 is a timeout -- surfacing NULL as QueryTimeoutError would make a caller
+		# retry straight back into the same server failure.
+		if value is None:
+			raise RuntimeError(f"GET_LOCK returned NULL acquiring advisory lock {key!r} (server error)")
+		if value != 1:
+			raise QueryTimeoutError(f"Could not acquire advisory lock {key!r} within {timeout}s")
+		try:
+			yield
+		finally:
+			self.sql("SELECT RELEASE_LOCK(%s)", (name,))
+
 	def add_unique(self, doctype, fields, constraint_name=None):
 		if isinstance(fields, str):
 			fields = [fields]
