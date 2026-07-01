@@ -56,7 +56,7 @@ class Report(Document):
 		report_script: DF.Code | None
 		report_type: DF.Literal["Report Builder", "Query Report", "Script Report", "Custom Report"]
 		roles: DF.Table[HasRole]
-		synced_report: DF.Check
+		snapshot_report: DF.Check
 		timeout: DF.Int
 	# end: auto-generated types
 
@@ -207,7 +207,7 @@ class Report(Document):
 		# The JOB
 		try:
 			if self.is_standard == "Yes":
-				if self.synced_report:
+				if self.snapshot_report:
 					res = self.execute_snapshot_report(filters)
 				else:
 					res = self.execute_module(filters)
