@@ -158,7 +158,10 @@ frappe.doctype_settings.register("print-format", function (panel, doctype) {
 			});
 		}
 
-		$card.find(".dts-pf-name").text(f.name).on("click", () => open_edit(f.name));
+		$card
+			.find(".dts-pf-name")
+			.text(f.name)
+			.on("click", () => open_edit(f.name));
 
 		return $card;
 	}
@@ -167,7 +170,9 @@ frappe.doctype_settings.register("print-format", function (panel, doctype) {
 		if (!sample_name) {
 			frappe.msgprint({
 				title: __("No document to preview"),
-				message: __("Create a {0} document first to preview this print format.", [doctype]),
+				message: __("Create a {0} document first to preview this print format.", [
+					doctype,
+				]),
 				indicator: "orange",
 			});
 			return;
@@ -188,7 +193,13 @@ frappe.doctype_settings.register("print-format", function (panel, doctype) {
 		// srcdoc has no base) + the format style, with the html in a `.print-format` wrapper.
 		frappe.call({
 			method: "frappe.www.printview.get_html_and_style",
-			args: { doc: doctype, name: sample_name, print_format: pf, no_letterhead: 0, trigger_print: 0 },
+			args: {
+				doc: doctype,
+				name: sample_name,
+				print_format: pf,
+				no_letterhead: 0,
+				trigger_print: 0,
+			},
 			callback: (r) => {
 				if (r.exc || !r.message) return;
 				const base_url = frappe.urllib.get_base_url();

@@ -39,12 +39,18 @@ frappe.doctype_settings.overflow_menu = function (items) {
 
 	const $wrap = $('<div class="dropdown dts-actions"></div>').appendTo($cell);
 	$(
-		`<button type="button" class="es-button dts-actions-btn" data-size="xs" data-variant="ghost" data-icon-button="true" data-toggle="dropdown" aria-haspopup="menu" aria-expanded="false" aria-label="${__("More actions")}"><span aria-hidden="true">⋯</span></button>`
+		`<button type="button" class="es-button dts-actions-btn" data-size="xs" data-variant="ghost" data-icon-button="true" data-toggle="dropdown" aria-haspopup="menu" aria-expanded="false" aria-label="${__(
+			"More actions"
+		)}"><span aria-hidden="true">⋯</span></button>`
 	).appendTo($wrap);
-	const $menu = $('<div class="dropdown-menu dropdown-menu-right" role="menu"></div>').appendTo($wrap);
+	const $menu = $('<div class="dropdown-menu dropdown-menu-right" role="menu"></div>').appendTo(
+		$wrap
+	);
 
 	items.forEach((item) => {
-		const $a = $('<button type="button" class="dropdown-item dts-action-item" role="menuitem"></button>');
+		const $a = $(
+			'<button type="button" class="dropdown-item dts-action-item" role="menuitem"></button>'
+		);
 		if (item.icon) $a.append(frappe.utils.icon(item.icon, "sm"));
 		$a.append($("<span></span>").text(item.label));
 		if (item.danger) $a.addClass("text-danger");

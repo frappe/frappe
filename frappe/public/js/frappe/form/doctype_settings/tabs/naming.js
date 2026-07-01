@@ -13,7 +13,10 @@ frappe.doctype_settings.register("naming", function (panel, doctype) {
 			// Series management lives behind the System-Manager-only Naming Settings, and only
 			// applies to doctypes named by a series (i.e. those with a `naming_series` field —
 			// the same signal get_options / NamingSeriesDialog key on). Hide it otherwise.
-			if (frappe.user.has_role("System Manager") && frappe.meta.get_docfield(doctype, "naming_series")) {
+			if (
+				frappe.user.has_role("System Manager") &&
+				frappe.meta.get_docfield(doctype, "naming_series")
+			) {
 				make_series_section($body, doctype);
 			}
 			make_rules_section($body, doctype, panel);
@@ -38,7 +41,7 @@ function make_section($parent, { title, description, add_label, on_add }, list_o
 	$header.find(".settings-dialog-panel-description").text(description);
 
 	const list = new frappe.ui.EmbeddedList({
-		wrapper: $('<div></div>').appendTo($section),
+		wrapper: $("<div></div>").appendTo($section),
 		...list_opts,
 	});
 	list.refresh();
@@ -60,7 +63,9 @@ function make_series_section($body, doctype) {
 		$body,
 		{
 			title: __("Naming Series"),
-			description: __("Series used to auto-name {0}, with a preview of the next names.", [doctype]),
+			description: __("Series used to auto-name {0}, with a preview of the next names.", [
+				doctype,
+			]),
 			add_label: __("Add Series"),
 			on_add: (refresh) => add_series(doctype, refresh),
 		},
@@ -183,7 +188,8 @@ async function edit_series(doctype, row, refresh) {
 						return;
 					}
 					doc.try_naming_series = value;
-					const next = ((await settings_call(doc, "preview_series")) || "").split("\n")[0] || "";
+					const next =
+						((await settings_call(doc, "preview_series")) || "").split("\n")[0] || "";
 					dialog.set_df_property("series", "description", preview_label(next));
 				},
 			},
@@ -216,10 +222,15 @@ async function edit_series(doctype, row, refresh) {
 					.map((s) => s.trim())
 					.filter(Boolean);
 				if (options.includes(new_series)) {
-					frappe.show_alert({ message: __("Series already exists"), indicator: "orange" });
+					frappe.show_alert({
+						message: __("Series already exists"),
+						indicator: "orange",
+					});
 					return;
 				}
-				doc.naming_series_options = options.map((s) => (s === series ? new_series : s)).join("\n");
+				doc.naming_series_options = options
+					.map((s) => (s === series ? new_series : s))
+					.join("\n");
 				await settings_call(doc, "update_series");
 			}
 
@@ -280,7 +291,9 @@ function make_rules_section($body, doctype, panel) {
 		$body,
 		{
 			title: __("Naming Rules"),
-			description: __("Rules that generate names for {0}, applied in priority order.", [doctype]),
+			description: __("Rules that generate names for {0}, applied in priority order.", [
+				doctype,
+			]),
 			add_label: __("New"),
 			on_add: () => {
 				panel.dialog.hide();
@@ -299,7 +312,10 @@ function make_rules_section($body, doctype, panel) {
 						limit: 0,
 					})
 					.then((rows) =>
-						rows.map((r) => ({ ...r, status: r.disabled ? __("Disabled") : __("Enabled") }))
+						rows.map((r) => ({
+							...r,
+							status: r.disabled ? __("Disabled") : __("Enabled"),
+						}))
 					),
 			on_row_click: (row) => open(row.name),
 			columns: [
@@ -328,7 +344,10 @@ function make_rules_section($body, doctype, panel) {
 							confirm_field: "prefix",
 							action: (row, refresh) =>
 								frappe.db.delete_doc("Document Naming Rule", row.name).then(() => {
-									frappe.show_alert({ message: __("Deleted"), indicator: "green" });
+									frappe.show_alert({
+										message: __("Deleted"),
+										indicator: "green",
+									});
 									refresh();
 								}),
 						},

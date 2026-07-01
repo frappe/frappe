@@ -51,7 +51,10 @@ function set_setting_field_options(frm, cdn) {
 		const data = frappe.meta
 			.get_docfields(row.settings_doctype)
 			.filter((df) => df.fieldname && !frappe.model.no_value_type.includes(df.fieldtype))
-			.map((df) => ({ value: df.fieldname, label: `${__(df.label || df.fieldname)} (${df.fieldname})` }));
+			.map((df) => ({
+				value: df.fieldname,
+				label: `${__(df.label || df.fieldname)} (${df.fieldname})`,
+			}));
 		control.set_data(data);
 	});
 }

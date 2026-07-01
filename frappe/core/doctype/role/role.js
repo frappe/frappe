@@ -718,7 +718,6 @@ function not_in(values) {
 	return values.length ? values : [""];
 }
 
-
 function placeholder_html(message) {
 	return `<div class="text-muted">${message}</div>`;
 }

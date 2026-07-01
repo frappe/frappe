@@ -38,7 +38,11 @@ function draw(panel, doctype) {
 	Promise.all([
 		perm_call("get_permissions", { doctype }),
 		// A Custom DocPerm row means this doctype's permissions diverge from standard.
-		frappe.db.get_list("Custom DocPerm", { filters: { parent: doctype }, fields: ["name"], limit: 1 }),
+		frappe.db.get_list("Custom DocPerm", {
+			filters: { parent: doctype },
+			fields: ["name"],
+			limit: 1,
+		}),
 	])
 		.then(([r, custom]) => {
 			const perms = r.message || [];
@@ -46,11 +50,10 @@ function draw(panel, doctype) {
 			render(panel, doctype, {
 				is_customized,
 				// `source` (Standard vs Custom) drives the edit dialog title + save path.
-				roles: perms
-					.map((p) => ({ ...p, source: is_customized ? "Custom" : "Standard" })),
+				roles: perms.map((p) => ({ ...p, source: is_customized ? "Custom" : "Standard" })),
 			});
 		})
-		.catch(() => frappe.doctype_settings.render_error(panel, () => load(panel, doctype)));
+		.catch(() => frappe.doctype_settings.render_error(panel, () => draw(panel, doctype)));
 }
 
 function render(panel, doctype, { roles, is_customized }) {
@@ -63,12 +66,13 @@ function render(panel, doctype, { roles, is_customized }) {
 	const rights = is_submittable ? DOC_RIGHTS.concat(SUBMIT_RIGHTS) : DOC_RIGHTS;
 
 	const list = new frappe.ui.EmbeddedList({
-		wrapper: $('<div></div>').appendTo($body),
+		wrapper: $("<div></div>").appendTo($body),
 		empty_message: __("No roles have access yet."),
 		get_data: () => Promise.resolve(roles),
 		// Clicking a row opens the shared permission editor for that role (same dialog
 		// the Role form's Documents tab uses).
-		on_row_click: (row) => new frappe.ui.PermissionDialog(perm_tab(doctype, reload), { row }).show(),
+		on_row_click: (row) =>
+			new frappe.ui.PermissionDialog(perm_tab(doctype, reload), { row }).show(),
 		columns: [
 			{
 				label: __("Role"),
@@ -129,7 +133,8 @@ function perm_tab(doctype, reload) {
 				)
 				.then((r) => {
 					const name = r.message && r.message.name;
-					if (!name) frappe.throw(__("Permission row not found after add. Please refresh."));
+					if (!name)
+						frappe.throw(__("Permission row not found after add. Please refresh."));
 					return frappe.db.set_value("Custom DocPerm", name, this.perm_data(values));
 				});
 		},
@@ -158,13 +163,21 @@ function perm_tab(doctype, reload) {
 				.then(() =>
 					frappe.db.get_value(
 						"Custom DocPerm",
-						{ parent: doctype, role: row.role, permlevel: row.permlevel, if_owner: row.if_owner || 0 },
+						{
+							parent: doctype,
+							role: row.role,
+							permlevel: row.permlevel,
+							if_owner: row.if_owner || 0,
+						},
 						"name"
 					)
 				)
 				.then((r) => {
 					const name = r.message && r.message.name;
-					if (!name) frappe.throw(__("Permission row not found after conversion. Please refresh."));
+					if (!name)
+						frappe.throw(
+							__("Permission row not found after conversion. Please refresh.")
+						);
 					return frappe.db.set_value("Custom DocPerm", name, data);
 				});
 		},
@@ -199,10 +212,15 @@ function customized_banner(panel, doctype, reload) {
 		.on("click", (e) => {
 			e.preventDefault();
 			frappe.confirm(
-				__("Reset {0} permissions to their default? This removes all customizations.", [doctype]),
+				__("Reset {0} permissions to their default? This removes all customizations.", [
+					doctype,
+				]),
 				() =>
 					perm_call("reset", { doctype }).then(() => {
-						frappe.show_alert({ message: __("Permissions reset"), indicator: "green" });
+						frappe.show_alert({
+							message: __("Permissions reset"),
+							indicator: "green",
+						});
 						reload();
 					})
 			);
@@ -212,7 +230,7 @@ function customized_banner(panel, doctype, reload) {
 
 function footer(panel, doctype) {
 	const $footer = $('<div class="dts-perm-footer"></div>');
-	$('<span></span>').appendTo($footer); // spacer to keep the link right-aligned
+	$("<span></span>").appendTo($footer); // spacer to keep the link right-aligned
 	$('<a href="#" class="dts-perm-footer-link"></a>')
 		.append(frappe.utils.icon("link-url", "sm"))
 		.append($("<span></span>").text(__("Open Role Permissions Manager")))
