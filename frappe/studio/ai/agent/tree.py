@@ -60,7 +60,7 @@ class WorkingTree:
 			return self.apply_move(args)
 		if tool_name == "add_block":
 			return self.apply_add(args)
-		if tool_name in ("bind_prop", "set_repeater_data"):
+		if tool_name in ("bind_prop", "set_repeater_data", "sync_variable"):
 			return self.apply_bind(tool_name, args)
 		if tool_name in ("set_event_handler", "set_visibility"):
 			return self.apply_interactivity(tool_name, args)
@@ -131,6 +131,11 @@ class WorkingTree:
 		if tool_name == "set_repeater_data":
 			source = args.get("data_source_name")
 			return f"Bound block {component_id} to repeat over {{{{ {source}.data }}}}."
+		if tool_name == "sync_variable":
+			prop = args.get("prop") or "modelValue"
+			return (
+				f"Synced {prop} of block {component_id} two-way with variable '{args.get('variable_name')}'."
+			)
 		return (
 			f"Bound prop '{args.get('prop')}' of block {component_id} to {{{{ {args.get('expression')} }}}}."
 		)

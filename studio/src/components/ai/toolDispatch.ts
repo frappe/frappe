@@ -50,6 +50,8 @@ export class ToolDispatcher {
 				return this.bindProp(args)
 			case "set_repeater_data":
 				return this.setRepeaterData(args)
+			case "sync_variable":
+				return this.syncVariable(args)
 			case "set_event_handler":
 				return this.setEventHandler(args)
 			case "set_visibility":
@@ -139,6 +141,14 @@ export class ToolDispatcher {
 		if (!block) return
 		block.setProp("data", `{{ ${args.data_source_name}.data }}`)
 		if (args.data_key) block.setProp("dataKey", args.data_key)
+	}
+
+	/** Two-way bind an input's value to a variable (v-model): prop = {$type:variable}. */
+	private syncVariable(args: Record<string, any>) {
+		const block = this.ctx.getCanvas()?.findBlock(args.component_id)
+		if (block && args.variable_name) {
+			block.setProp(args.prop || "modelValue", { $type: "variable", name: args.variable_name })
+		}
 	}
 
 	/** Attach a 'Run Script' handler to an existing block for the given DOM event. */

@@ -70,4 +70,32 @@ set_repeater_data = Tool(
 	},
 )
 
-TOOLS = [bind_prop, set_repeater_data]
+sync_variable = Tool(
+	name="sync_variable",
+	side="client",
+	description=(
+		"Two-way bind an input's value to a variable (v-model — the UI's 'sync with variable'). Typing "
+		"in the input updates the variable, and changing the variable updates the input. Use this for "
+		"form inputs (TextInput, FormControl, Select, Checkbox, Switch, DatePicker, Slider, …) whose "
+		"modelValue should mirror a variable — NOT bind_prop, which is a one-way read. The variable "
+		"must already exist (add_variable first). For a block you are ADDING this turn, bake the same "
+		'into its props instead: {"modelValue":{"$type":"variable","name":"<variable>"}}.'
+	),
+	parameters={
+		"type": "object",
+		"properties": {
+			"component_id": {"type": "string", "description": "The input block's id (must already exist)."},
+			"variable_name": {
+				"type": "string",
+				"description": "The variable to sync the input with (must already exist).",
+			},
+			"prop": {
+				"type": "string",
+				"description": "The v-model prop to sync — defaults to 'modelValue' (almost always correct).",
+			},
+		},
+		"required": ["component_id", "variable_name"],
+	},
+)
+
+TOOLS = [bind_prop, set_repeater_data, sync_variable]

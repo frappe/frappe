@@ -144,7 +144,8 @@ BUILD_RULES = """BUILDING BLOCKS RULES:
 BINDING_CONTRACT = """DATA BINDING — when the page shows live data or a variable, a block prop's VALUE is a `{{ }}` expression (bound at render):
 - list of records → a Repeater with props {"data":"{{ <source>.data }}","dataKey":"name"} whose ONE row-template child uses {{ dataItem.<field> }} in its props; or a ListView with props {"rows":"{{ <source>.data }}"} + columns.
 - a single Document's field → {{ <source>.doc.<field> }}; a count → {{ <source>.data.length }}.
-- a variable → {{ <variable> }} (e.g. a TextBlock with props {"text":"{{ counter }}"}).
+- a variable (read-only display) → {{ <variable> }} (e.g. a TextBlock with props {"text":"{{ counter }}"}).
+- an INPUT whose value should SYNC with a variable two-way (v-model) → props {"modelValue":{"$type":"variable","name":"<variable>"}} — an object, NOT a {{ }} string. Typing updates the variable and vice-versa; use this for TextInput/FormControl/Select/Checkbox/Switch/etc.
 Bind ONLY to the data sources / variables listed as available on the page, and only to fields a source actually fetches. Do NOT invent a data source in the JSON — sources are created separately; here you only bind to ones that already exist."""
 
 
@@ -186,6 +187,8 @@ Build a data-driven view — BACKEND FIRST, then layout:
 Editing an EXISTING block's binding (it's already in the page structure): bind_prop(component_id, prop, expression) — expression WITHOUT braces — or set_repeater_data for an existing Repeater.
 
 Variables: add_variable(name, type, initial_value); reference anywhere as {{ name }}. update_variable to retype/re-seed, delete_variable to remove (warns if still bound). Reuse before duplicating (list_variables).
+
+Two-way inputs (v-model): to make a form input's value mirror a variable BOTH ways (typing updates the variable, and vice-versa), do NOT use a {{ }} binding (that's read-only). New input → props {"modelValue":{"$type":"variable","name":"<var>"}}; existing input → sync_variable(component_id, variable_name). Create the variable first.
 
 Interactivity (events & visibility) — same new-vs-existing rule as bindings:
 - Make a block DO something on interaction with an event handler. New block → put it in the block's `events` field at creation, e.g. a button with {"events":{"click":"counter.value++"}}. Existing block → set_event_handler(component_id, event, script). The script is JS with the page context in scope; variables are refs, so write them via .value (increment a counter: counter.value++; reset: counter.value = 0).
