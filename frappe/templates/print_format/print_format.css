@@ -250,22 +250,20 @@ body {
 	text-align: right;
 }
 
-/* ── Merged "Stacked" / "Image + text" cells ─────────────── */
-.child-table .column-value--stacked,
-.child-table .column-value--image_text {
+/* ── Merged cells (multiple fields, optional left image) ─── */
+.child-table .column-value--merged {
 	text-align: left !important;
 }
 
-.child-table .cell-imgtext {
+.child-table .cell-merged {
 	display: flex;
 	align-items: flex-start;
 	gap: 0.5rem;
 }
 
+/* size comes from an inline style (column.image_size) */
 .child-table .cell-thumb-img,
 .child-table .cell-thumb {
-	width: 34px;
-	height: 34px;
 	border-radius: 6px;
 	flex-shrink: 0;
 }
@@ -278,7 +276,6 @@ body {
 	display: flex;
 	align-items: center;
 	justify-content: center;
-	font-size: 0.72em;
 	font-weight: 600;
 	text-transform: uppercase;
 	line-height: 1;

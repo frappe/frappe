@@ -94,6 +94,10 @@ export function getStore(print_format_name) {
 						.map((df) => {
 							if (df.table_columns) {
 								df.table_columns = df.table_columns.map((tf) => {
+									// Drop an empty merged list so plain columns stay clean
+									if (Array.isArray(tf.merged_fields) && !tf.merged_fields.length) {
+										delete tf.merged_fields;
+									}
 									return pluck(tf, [
 										"label",
 										"fieldname",
@@ -101,9 +105,8 @@ export function getStore(print_format_name) {
 										"options",
 										"width",
 										"field_template",
-										"cell_layout",
 										"merged_fields",
-										"image_fieldname",
+										"image_size",
 									]);
 								});
 							}

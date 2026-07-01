@@ -102,46 +102,32 @@
 											: {}
 									"
 								>
-									<!-- Image + text: thumbnail on the left, merged fields stacked -->
-									<div
-										v-if="col.cell_layout === 'image_text'"
-										class="pf-cell-imgtext"
-									>
-										<img
-											v-if="cell_image(col, row)"
-											:src="cell_image(col, row)"
-											class="pf-cell-thumb-img"
-											:alt="col.label || col.fieldname"
-										/>
-										<span
-											v-else
-											class="pf-cell-thumb"
-											:style="thumb_style(col, row)"
-											>{{ thumb_abbr(col, row) }}</span
-										>
+									<!-- Merged cell: image (if any) floats left, text lines stack -->
+									<div v-if="has_merge(col)" class="pf-cell-merged">
+										<template v-if="image_merge(col)">
+											<img
+												v-if="cell_image(col, row)"
+												:src="cell_image(col, row)"
+												class="pf-cell-thumb-img"
+												:style="thumb_box(col)"
+												:alt="col.label || col.fieldname"
+											/>
+											<span
+												v-else
+												class="pf-cell-thumb"
+												:style="thumb_style(col, row)"
+												>{{ thumb_abbr(col, row) }}</span
+											>
+										</template>
 										<div class="pf-cell-lines">
 											<div
-												v-for="(mf, mi) in merged_lines(col)"
+												v-for="(mf, mi) in text_merges(col)"
 												:key="mi"
 												class="pf-merge-line"
 												:class="`pf-merge--${mf.style || 'primary'}`"
 											>
 												{{ format_merged(row, mf.fieldname) }}
 											</div>
-										</div>
-									</div>
-									<!-- Stacked: merged fields, one per line -->
-									<div
-										v-else-if="col.cell_layout === 'stacked'"
-										class="pf-cell-lines"
-									>
-										<div
-											v-for="(mf, mi) in merged_lines(col)"
-											:key="mi"
-											class="pf-merge-line"
-											:class="`pf-merge--${mf.style || 'primary'}`"
-										>
-											{{ format_merged(row, mf.fieldname) }}
 										</div>
 									</div>
 									<!-- Single (default) -->
@@ -440,13 +426,31 @@ function format_cell(row, col) {
 	}
 }
 
-// ── Merged / image-text cell helpers ───────────────────────
-function merged_lines(col) {
-	const list =
-		Array.isArray(col.merged_fields) && col.merged_fields.length
-			? col.merged_fields
-			: [{ fieldname: col.fieldname, style: "primary" }];
-	return list.filter((mf) => mf && mf.fieldname);
+// ── Merged cell helpers ────────────────────────────────────
+// Image fieldtypes that store a URL directly, so they can float left.
+const MERGE_IMAGE_FIELDTYPES = new Set(["Attach Image", "Attach"]);
+
+function merged_fields(col) {
+	return (col.merged_fields || []).filter((mf) => mf && mf.fieldname);
+}
+
+function has_merge(col) {
+	return merged_fields(col).length > 0;
+}
+
+function merge_fieldtype(mf) {
+	return mf.fieldtype || frappe.meta.get_docfield(props.df.options, mf.fieldname)?.fieldtype;
+}
+
+// The first merged field that is an image — rendered on the left.
+function image_merge(col) {
+	return merged_fields(col).find((mf) => MERGE_IMAGE_FIELDTYPES.has(merge_fieldtype(mf))) || null;
+}
+
+// Remaining fields render as stacked text lines.
+function text_merges(col) {
+	const img = image_merge(col);
+	return merged_fields(col).filter((mf) => mf !== img);
 }
 
 // Format a merged sub-field using its own child docfield definition
@@ -459,12 +463,23 @@ function format_merged(row, fieldname) {
 }
 
 function cell_image(col, row) {
-	const v = col.image_fieldname ? row[col.image_fieldname] : null;
+	const img = image_merge(col);
+	const v = img ? row[img.fieldname] : null;
 	return typeof v === "string" && v ? v : null;
 }
 
+function image_px(col) {
+	return col.image_size || 40;
+}
+
+function thumb_box(col) {
+	const s = image_px(col) + "px";
+	return { width: s, height: s };
+}
+
+// Initials fallback shown when an image field is merged but the row has none.
 function thumb_primary_text(col, row) {
-	const primary = merged_lines(col)[0]?.fieldname;
+	const primary = text_merges(col)[0]?.fieldname;
 	const raw = primary ? row[primary] : "";
 	return raw === null || raw === undefined ? "" : String(raw);
 }
@@ -475,7 +490,12 @@ function thumb_abbr(col, row) {
 
 function thumb_style(col, row) {
 	const palette = thumb_palette_for(thumb_primary_text(col, row));
-	return { background: palette.bg, color: palette.fg };
+	return {
+		...thumb_box(col),
+		fontSize: Math.round(image_px(col) * 0.4) + "px",
+		background: palette.bg,
+		color: palette.fg,
+	};
 }
 
 function select_field() {
@@ -1027,17 +1047,16 @@ watch(
 	display: block;
 }
 
-/* ── Merged / image-text cells ───────────────────────────── */
-.pf-cell-imgtext {
+/* ── Merged cells ────────────────────────────────────────── */
+.pf-cell-merged {
 	display: flex;
 	align-items: flex-start;
 	gap: 8px;
 }
 
+/* size comes from an inline style (col.image_size) */
 .pf-cell-thumb-img,
 .pf-cell-thumb {
-	width: 34px;
-	height: 34px;
 	border-radius: 6px;
 	flex-shrink: 0;
 }
@@ -1050,7 +1069,6 @@ watch(
 	display: flex;
 	align-items: center;
 	justify-content: center;
-	font-size: 11px;
 	font-weight: var(--weight-semibold);
 	text-transform: uppercase;
 	line-height: 1;

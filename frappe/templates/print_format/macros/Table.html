@@ -28,34 +28,35 @@
 			{% for row in doc.get(df.fieldname) %}
 			<tr class="table-row {{ loop.cycle('odd', 'even') }}" data-idx="{{ row.idx }}">
 				{% for column in columns %}
-				{%- set _layout = column.cell_layout or "single" -%}
-				<td class="column-value{% if _layout != 'single' %} column-value--{{ _layout }}{% endif %}" width="{{ column.width }}%" {{ field_attributes(column) }}>
-					{%- if _layout in ("stacked", "image_text") -%}
-						{# Merged cell: render each configured field on its own styled line. #}
-						{%- set _mf = column.merged_fields or [{"fieldname": column.fieldname, "style": "primary"}] -%}
-						{%- if _layout == "image_text" -%}
-							{%- set _img = (row.get(column.image_fieldname) if column.image_fieldname else "")|string|trim -%}
-							{%- set _img_ok = _img and (_img.startswith("/") or _img.startswith("http://") or _img.startswith("https://")) -%}
-							<div class="cell-imgtext">
-								{%- if _img_ok -%}
-								<img class="cell-thumb-img" src="{{ frappe.utils.get_image_thumbnail_uri(_img)|e }}" alt="" />
+				{%- set _merged = column.merged_fields -%}
+				<td class="column-value{% if _merged %} column-value--merged{% endif %}" width="{{ column.width }}%" {{ field_attributes(column) }}>
+					{%- if _merged -%}
+						{# Merged cell: an image field (if any) floats left, the rest stack as styled lines. #}
+						{%- set _imgtypes = ("Attach Image", "Attach") -%}
+						{%- set ns = namespace(img_fn=None) -%}
+						{%- for mf in _merged -%}{%- if ns.img_fn is none and mf.fieldname and mf.fieldtype in _imgtypes -%}{%- set ns.img_fn = mf.fieldname -%}{%- endif -%}{%- endfor -%}
+						{%- set _size = column.image_size or 40 -%}
+						<div class="cell-merged">
+							{%- if ns.img_fn -%}
+								{%- set _src = (row.get(ns.img_fn) or "")|string|trim -%}
+								{%- set _safe = _src.startswith("/") or _src.startswith("http://") or _src.startswith("https://") -%}
+								{%- if _safe -%}
+								<img class="cell-thumb-img" style="width:{{ _size }}px;height:{{ _size }}px" src="{{ frappe.utils.get_image_thumbnail_uri(_src)|e }}" alt="" />
 								{%- else -%}
-								{# Fallback thumbnail: initials + a deterministic colour matching the builder canvas. #}
-								{%- set _abbr = frappe.utils.get_abbr((row.get(_mf[0].fieldname) if _mf else "")|string) -%}
+								{# Fallback: initials from the first text field, coloured to match the builder canvas. #}
+								{%- set ns2 = namespace(txt="") -%}
+								{%- for mf in _merged -%}{%- if not ns2.txt and mf.fieldname and mf.fieldname != ns.img_fn -%}{%- set ns2.txt = row.get(mf.fieldname)|string -%}{%- endif -%}{%- endfor -%}
+								{%- set _abbr = frappe.utils.get_abbr(ns2.txt) -%}
 								{%- set _ci = "abcdefghijklmnopqrstuvwxyz0123456789".find((_abbr[:1] or "a")|lower) -%}
 								{%- set _pal = [["#EFF6FF", "#2563EB"], ["#FFF7ED", "#EA580C"], ["#F0FDF4", "#16A34A"], ["#FAF5FF", "#9333EA"], ["#FEF2F2", "#DC2626"], ["#F0FDFA", "#0D9488"]] -%}
 								{%- set _c = _pal[(_ci if _ci >= 0 else 0) % 6] -%}
-								<span class="cell-thumb" style="background:{{ _c[0] }};color:{{ _c[1] }}">{{ _abbr|e }}</span>
+								<span class="cell-thumb" style="width:{{ _size }}px;height:{{ _size }}px;font-size:{{ (_size * 0.4)|int }}px;background:{{ _c[0] }};color:{{ _c[1] }}">{{ _abbr|e }}</span>
 								{%- endif -%}
-								<div class="cell-lines">
-									{%- for mf in _mf -%}{%- if mf.fieldname -%}<div class="cell-line cell-line--{{ mf.style or 'primary' }}">{{ row.get_formatted(mf.fieldname) }}</div>{%- endif -%}{%- endfor -%}
-								</div>
-							</div>
-						{%- else -%}
+							{%- endif -%}
 							<div class="cell-lines">
-								{%- for mf in _mf -%}{%- if mf.fieldname -%}<div class="cell-line cell-line--{{ mf.style or 'primary' }}">{{ row.get_formatted(mf.fieldname) }}</div>{%- endif -%}{%- endfor -%}
+								{%- for mf in _merged -%}{%- if mf.fieldname and mf.fieldname != ns.img_fn -%}<div class="cell-line cell-line--{{ mf.style or 'primary' }}">{{ row.get_formatted(mf.fieldname) }}</div>{%- endif -%}{%- endfor -%}
 							</div>
-						{%- endif -%}
+						</div>
 					{%- else -%}
 						{# Image cells: validated URL + server-side thumbnail + escaped src. #}
 						{%- set _src = (row.get(column.options) if column.fieldtype == "Image" else row.get(column.fieldname)) or "" -%}
