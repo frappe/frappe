@@ -378,21 +378,23 @@ frappe.views.Workspace = class Workspace {
 				const manageable = r.message || [];
 				if (!manageable.length) return;
 
+				// Standard = public app-shipped, Custom = public but user-created,
+				// Private = per-user workspaces.
+				const groups = [
+					{ label: __("Standard"), filter: (p) => p.public && p.standard },
+					{ label: __("Custom"), filter: (p) => p.public && !p.standard },
+					{ label: __("Private"), filter: (p) => !p.public },
+				];
 				const tabs = [];
-				const public_pages = manageable.filter((p) => p.public);
-				const private_pages = manageable.filter((p) => !p.public);
-				if (public_pages.length) {
-					tabs.push({
-						group: __("Public"),
-						items: public_pages.map((p) => this.workspace_manager_item(p)),
-					});
-				}
-				if (private_pages.length) {
-					tabs.push({
-						group: __("Private"),
-						items: private_pages.map((p) => this.workspace_manager_item(p)),
-					});
-				}
+				groups.forEach(({ label, filter }) => {
+					const pages = manageable.filter(filter);
+					if (pages.length) {
+						tabs.push({
+							group: label,
+							items: pages.map((p) => this.workspace_manager_item(p)),
+						});
+					}
+				});
 
 				const has_current =
 					current_page && manageable.some((p) => p.name === current_page.name);
