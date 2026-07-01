@@ -9,12 +9,11 @@ never travels back). A wrong ref then drives a self-correcting round.
 The mirror tracks only what reference-validation needs: it resolves refs
 against the live tree and keeps structure honest across rounds (remove detaches
 the subtree, move reparents). Style/prop changes are not mirrored — nothing
-reads them back yet. Unlike Builder, add_block assigns a componentId server-side
-and echoes it (via the result message and the mutated args) so the model can
-reference or bind the new block in the same turn.
+reads them back yet. Block ids are assigned on the canvas (client-side), so
+add_block does NOT fabricate an id or mirror the new block: a block added this
+turn has no ref the model can target, so its bindings are baked into its props
+at creation instead of applied afterward.
 """
-
-import frappe
 
 from studio.ai.agent.selectors import find_block, walk_blocks
 
@@ -115,20 +114,10 @@ class WorkingTree:
 
 	def apply_add(self, args: dict) -> str:
 		parent_id = args.get("parent_component_id")
-		parent = self.resolve(parent_id)
-		if parent is None:
+		if self.resolve(parent_id) is None:
 			return f"FAILED: parent_component_id '{parent_id}' not found{self.id_hint(parent_id)}"
-		block_def = args.get("block") or {}
-		component_name = block_def.get("name") or args.get("component_name") or "block"
-		new_id = f"{component_name}-{frappe.generate_hash(length=10)}"
-		# Insert a stub so same-turn references to the new block resolve against the mirror.
-		parent.setdefault("children", []).append(
-			{"componentId": new_id, "componentName": component_name, "children": []}
-		)
-		# Echo the assigned id back through args so the loop emits the client op with the
-		# same id — the model can reference or bind this block in the same turn.
-		args["component_id"] = new_id
-		return f"Added {component_name} block {new_id} under {parent_id}. Reference it by this id to update or bind it."
+		component_name = (args.get("block") or {}).get("name") or "block"
+		return f"Added the {component_name} block under {parent_id}."
 
 	def apply_bind(self, tool_name: str, args: dict) -> str:
 		"""bind_prop / set_repeater_data target an existing block by id; only the ref
