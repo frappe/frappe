@@ -114,6 +114,7 @@ export function getStore(print_format_name) {
 								"table_bordered",
 								"table_header",
 								"table_cell_padding",
+								"table_radius",
 								"html",
 								"field_template",
 								"show_label",

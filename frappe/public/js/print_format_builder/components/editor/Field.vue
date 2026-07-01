@@ -54,7 +54,15 @@
 					</div>
 				</div>
 				<!-- Table field -->
-				<div v-else-if="df.fieldtype == 'Table'" class="field-preview-table">
+				<div
+					v-else-if="df.fieldtype == 'Table'"
+					class="field-preview-table"
+					:style="
+						df.table_radius != null
+							? { borderRadius: df.table_radius + 'px', overflow: 'hidden' }
+							: {}
+					"
+				>
 					<div v-if="df.label" class="field-preview-label">{{ df.label }}</div>
 					<table
 						class="preview-table"

@@ -169,6 +169,23 @@
 								</button>
 							</div>
 						</div>
+						<!-- Corner radius -->
+						<div class="pfb-insp-row">
+							<span class="pfb-insp-label">{{ __("Radius") }}</span>
+							<div class="pfb-stepper">
+								<button @click="adjust_table_radius(-1)">−</button>
+								<input
+									class="pfb-stepper-input"
+									type="number"
+									min="0"
+									:value="table_radius ?? ''"
+									:placeholder="__('none')"
+									@change="(e) => set_table_radius(e.target.value)"
+								/>
+								<span class="pfb-stepper-unit">px</span>
+								<button @click="adjust_table_radius(1)">+</button>
+							</div>
+						</div>
 					</div>
 				</div>
 
@@ -833,6 +850,7 @@ let table_style = computed(() => selected_field.value?.table_style ?? "lined");
 let table_bordered = computed(() => selected_field.value?.table_bordered ?? true);
 let table_header = computed(() => selected_field.value?.table_header ?? "styled");
 let table_cell_padding = computed(() => selected_field.value?.table_cell_padding ?? null);
+let table_radius = computed(() => selected_field.value?.table_radius ?? null);
 
 function adjust_cell_padding(delta) {
 	const current = selected_field.value?.table_cell_padding ?? 7;
@@ -845,6 +863,20 @@ function set_cell_padding(value) {
 		delete selected_field.value.table_cell_padding;
 	} else {
 		selected_field.value.table_cell_padding = Math.max(0, v);
+	}
+}
+
+function adjust_table_radius(delta) {
+	const current = selected_field.value?.table_radius ?? 0;
+	selected_field.value.table_radius = Math.max(0, current + delta);
+}
+
+function set_table_radius(value) {
+	const v = parseInt(value);
+	if (isNaN(v) || value === "") {
+		delete selected_field.value.table_radius;
+	} else {
+		selected_field.value.table_radius = Math.max(0, v);
 	}
 }
 
