@@ -51,7 +51,9 @@ class ListPanel {
 	header_actions(show_primary) {
 		const pa = this.config.primary_action;
 		if (show_primary && pa) {
-			return [{ label: pa.label, icon: pa.icon, primary: true, click: () => pa.onclick(this) }];
+			return [
+				{ label: pa.label, icon: pa.icon, primary: true, click: () => pa.onclick(this) },
+			];
 		}
 		return [];
 	}
@@ -137,7 +139,8 @@ class ListPanel {
 				.text(c.toggle.label || "")
 				.appendTo($head);
 		}
-		if (c.actions) $('<div class="dts-list-cell dts-list-cell-actions"></div>').appendTo($head);
+		if (c.actions)
+			$('<div class="dts-list-cell dts-list-cell-actions"></div>').appendTo($head);
 
 		return $head;
 	}
