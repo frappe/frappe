@@ -67,7 +67,11 @@
 			<div
 				class="section-columns"
 				:style="
-					section.columns.length > 1 && section.gap ? { gap: section.gap + 'px' } : {}
+					is_grid
+						? { gap: '0' }
+						: section.columns.length > 1 && section.gap
+						? { gap: section.gap + 'px' }
+						: {}
 				"
 			>
 				<template v-for="(column, i) in section.columns" :key="i">
@@ -512,8 +516,17 @@ function remove_column(index) {
 	border-radius: var(--border-radius-md, 8px) !important;
 	overflow: hidden !important;
 }
+.section--grid .section-columns {
+	padding: 0;
+}
 .section--grid .column {
 	padding: 0;
+}
+.section--grid .column:not(:last-child) {
+	border-right: 1px solid var(--border-color);
+}
+.section--grid .column-divider {
+	display: none;
 }
 .section--grid :deep(.field) {
 	padding: var(--pfb-cell-pad, 8px) !important;

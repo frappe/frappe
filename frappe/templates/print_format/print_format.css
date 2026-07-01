@@ -361,6 +361,9 @@ header img {
 .section--grid .col {
 	padding: 0;
 }
+.section--grid .col:not(:last-child) {
+	border-right: 1px solid #e5e7eb;
+}
 .section--grid .field {
 	padding: var(--pfb-cell-pad, 8px);
 	border-bottom: 1px solid #e5e7eb;
