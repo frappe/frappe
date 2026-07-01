@@ -341,6 +341,8 @@ def create_or_update_user(args):  # nosemgrep
 
 
 def set_timezone(timezone=None):
+	if not timezone:
+		return
 	frappe.db.set_value("User", {"name": ("in", frappe.STANDARD_USERS)}, "time_zone", timezone)
 
 
