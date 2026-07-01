@@ -341,7 +341,7 @@ function groupActivityByOwner<T extends Activity>(
     while (
       runEnd < activities.length &&
       isMember(activities[runEnd]) &&
-      activities[runEnd].author?.fullname === first.author?.fullname &&
+      activities[runEnd].author?.email === first.author?.email &&
       (!groupByTime || withinGap(activities[runEnd - 1], activities[runEnd]))
     ) {
       runEnd++;
