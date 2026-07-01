@@ -294,11 +294,10 @@ def get_report_type(report):
 
 
 @frappe.whitelist()
-def new_page(new_page: str):
-	if not loads(new_page):
+def new_page(new_page: str | dict):
+	page = frappe.parse_json(new_page)
+	if not page:
 		return
-
-	page = loads(new_page)
 
 	if page.get("public") and not is_workspace_manager():
 		return
