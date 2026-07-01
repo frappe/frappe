@@ -717,7 +717,18 @@ class PostgresDatabase(PostgresExceptionUtil, Database):
 		try:
 			yield
 		finally:
-			self.sql("SELECT pg_advisory_unlock(%s)", (lock_key,))
+			try:
+				self.sql("SELECT pg_advisory_unlock(%s)", (lock_key,))
+			except Exception:
+				# A DB error inside the block leaves the transaction aborted, so the unlock above
+				# fails and the session-scoped lock would leak (ROLLBACK does not release it). Clear
+				# the aborted state and release. Guarded so a failed cleanup never masks the original
+				# error -- a dropped session releases the lock anyway.
+				try:
+					self.rollback()
+					self.sql("SELECT pg_advisory_unlock(%s)", (lock_key,))
+				except Exception:
+					pass
 
 	def bulk_insert(self, doctype, fields, values, ignore_duplicates=False, *, chunk_size=10_000):
 		"""Stream rows into the table with COPY -- far faster than multi-row INSERT. Falls back to

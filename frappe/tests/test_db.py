@@ -1057,6 +1057,19 @@ class TestDDLCommandsPost(IntegrationTestCase):
 			self.assertEqual(advisory_count(), before + 1)
 		self.assertEqual(advisory_count(), before)
 
+	def test_advisory_lock_released_after_query_error(self) -> None:
+		# A DB error inside the block aborts the transaction; the session-scoped lock must still be
+		# released on exit, not leaked. Regression: the unlock in `finally` runs on the aborted txn.
+		def advisory_count():
+			return frappe.db.sql("SELECT count(*) FROM pg_locks WHERE locktype = 'advisory'")[0][0]
+
+		before = advisory_count()
+		with self.assertRaises(Exception):
+			with frappe.db.advisory_lock("frappe-test-lock-error"):
+				frappe.db.sql("SELECT * FROM tab_does_not_exist")
+		frappe.db.rollback()
+		self.assertEqual(advisory_count(), before)
+
 	def _indexdef(self, field: str, using: str) -> str:
 		from frappe.database.postgres.schema import get_qualified_index_name
 
