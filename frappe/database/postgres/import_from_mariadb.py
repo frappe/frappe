@@ -290,8 +290,10 @@ def _pg_dump_to_file(target: dict, output: str, source_dump: str):
 		header_path = header_file.name
 	try:
 		# A gzip file may hold multiple members, so the header and dump concatenate cleanly.
+		# `&&` (not `;`) so a failed header write aborts before pg_dump, instead of silently
+		# producing a headerless/corrupt output with a zero exit code.
 		execute_in_shell(
-			f"set -o pipefail; gzip -c {shlex.quote(header_path)} > {shlex.quote(output)}; "
+			f"set -o pipefail && gzip -c {shlex.quote(header_path)} > {shlex.quote(output)} && "
 			f"{pg_env}pg_dump --no-owner --no-acl {shlex.quote(uri)} | gzip >> {shlex.quote(output)}",
 			check_exit_code=True,
 		)

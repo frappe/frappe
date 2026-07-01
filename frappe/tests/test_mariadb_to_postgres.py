@@ -97,3 +97,14 @@ class TestMariaDBToPostgres(UnitTestCase):
 		with patch.object(converter, "execute_in_shell") as run:
 			conv._stage_dump_in_mariadb()
 		self.assertIn("CREATE DATABASE `my-db`", run.call_args_list[0].args[0])
+
+	def test_pg_dump_command_aborts_on_header_failure(self):
+		target = {"host": "h", "port": "5432", "user": "u", "password": "pw", "db_name": "db"}
+		with (
+			patch.object(converter, "_frappe_metadata_header", return_value="-- hdr\n"),
+			patch.object(converter, "execute_in_shell") as run,
+		):
+			converter._pg_dump_to_file(target, "/tmp/out.sql.gz", "/src.sql.gz")
+		# header write and pg_dump are &&-chained so a failed header aborts the dump
+		self.assertIn(" && ", run.call_args.args[0])
+		self.assertNotIn("; ", run.call_args.args[0])
