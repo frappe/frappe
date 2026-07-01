@@ -618,7 +618,6 @@ frappe.views.Workspace = class Workspace {
 					parent_page: values.parent || "",
 					is_editable: true,
 					selected: true,
-					app: frappe.current_app?.app_name,
 					type: values.type,
 					link_type: values.link_type,
 					link_to: values.link_to,
@@ -665,6 +664,18 @@ frappe.views.Workspace = class Workspace {
 							me.workspaces = frappe.boot.workspaces.pages;
 							me.setup_pages(frappe.boot.workspaces.pages);
 							frappe.boot.workspace_sidebar_item = r.message.sidebar_items;
+						}
+
+						// Surface the new workspace in the selector right away (the boot.py fix
+						// makes it durable across reloads). Public ones are listed via their app's
+						// workspace list; private ones are auto-listed from frappe.workspaces.
+						if (new_page.public && new_page.app) {
+							let app = (frappe.boot.app_data || []).find(
+								(a) => a.app_name === new_page.app
+							);
+							if (app && !app.workspaces.includes(new_page.name)) {
+								app.workspaces.push(new_page.name);
+							}
 						}
 
 						// A new Workspace seeds a sidebar item linking to itself (see new_page),

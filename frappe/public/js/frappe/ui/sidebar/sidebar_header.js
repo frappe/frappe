@@ -55,12 +55,26 @@ frappe.ui.SidebarHeader = class SidebarHeader {
 	get_public_workspace_items() {
 		// `frappe.boot.user_workspaces` is the user's personal selector preference
 		// (`User.workspaces`). When set, it is authoritative for the selector and may include
-		// private workspaces too, so it drives both; otherwise fall back to the current app's
-		// workspaces (with private ones auto-listed by `get_private_workspace_items`).
+		// private workspaces too, so it drives both. Otherwise fall back to the current app's
+		// workspaces plus any public custom (user-created, non-standard) workspaces -- those
+		// don't belong to an app's list (a "true custom" workspace has no app), so they'd
+		// otherwise never appear. Private ones are auto-listed by `get_private_workspace_items`.
 		let user_workspaces = frappe.boot.user_workspaces || [];
-		let source = user_workspaces.length
-			? user_workspaces
-			: (frappe.current_app && frappe.current_app.workspaces) || [];
+		let source;
+		if (user_workspaces.length) {
+			source = user_workspaces;
+		} else {
+			// App-associated workspaces (standard and custom) come from the current app's list,
+			// so they stay scoped to their app. `frappe.current_app` is set deterministically at
+			// routing time (Sidebar.set_current_app), so it reliably reflects the active
+			// workspace's app here. App-less custom workspaces belong to no app, so they're added
+			// separately here -- otherwise they'd never appear in any selector.
+			let app_workspaces = (frappe.current_app && frappe.current_app.workspaces) || [];
+			let appless_custom = Object.values(frappe.workspaces || {})
+				.filter((workspace) => workspace.public && !workspace.standard && !workspace.app)
+				.map((workspace) => workspace.name);
+			source = [...new Set([...app_workspaces, ...appless_custom])];
+		}
 
 		return source
 			.map((name) => frappe.workspaces[frappe.router.slug(name)])
@@ -91,13 +105,14 @@ frappe.ui.SidebarHeader = class SidebarHeader {
 	}
 	workspace_to_item(workspace) {
 		if (!workspace) return null;
-		let label = workspace.title || workspace.label;
+		let label = workspace.title || workspace.label || workspace.name;
+		if (!label) return null;
 		let sidebar_name = workspace.name || label;
 		return {
 			name: label.toLowerCase(),
 			label: label,
 			// land on the workspace's first sidebar link, falling back to the workspace page
-			url: this.get_first_link_route(workspace) || frappe.utils.generate_route(workspace),
+			url: this.get_first_link_route(workspace) || this.workspace_route(workspace),
 			icon: workspace.icon,
 			// switch the sidebar to this workspace (and remember it) alongside navigating
 			onClick: () => {
@@ -109,6 +124,11 @@ frappe.ui.SidebarHeader = class SidebarHeader {
 	}
 	get_first_link_route(workspace) {
 		return frappe.app.sidebar.get_first_sidebar_route(workspace.name || workspace.title);
+	}
+	// The workspace's own desk route -- used when it has no sidebar items to land on.
+	workspace_route(workspace) {
+		let slug = frappe.router.slug(workspace.name || workspace.title);
+		return `/desk/${workspace.public ? slug : "private/" + slug}`;
 	}
 	get_help_siblings() {
 		const navbar_settings = frappe.boot.navbar_settings;

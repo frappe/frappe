@@ -27,34 +27,70 @@ frappe.ui.Sidebar = class Sidebar {
 			this.sidebar_data = frappe.boot.workspace_sidebar_item[this.workspace_title];
 			this.workspace_sidebar_items = this.sidebar_data.items;
 			this.all_sidebar_items = frappe.boot.workspace_sidebar_item;
-			this.choose_app_name();
 			this.find_nested_items();
 		} catch (e) {
 			console.log(e);
 		}
 	}
-	choose_app_name() {
+	// Resolve the app context from the current route and store it on `frappe.current_app` (plus
+	// the header's subtitle/logo). Driven by the router (called from the `route change` handler),
+	// so the app is decided by where you navigated to -- not as a side-effect of rendering the
+	// header. On a workspace route the app comes from that workspace; on any other route the app
+	// context persists (you stay "in" the app whose sidebar is active).
+	//
+	// The app is read from the workspace's own `app` field (with the sidebar payload's `app` as a
+	// backup), rather than by scanning `app_data.workspaces` for a match. That scan misses
+	// app-less/custom workspaces on a direct page load, which left `frappe.current_app` stale and
+	// made the workspace selector flaky across refreshes.
+	set_current_app() {
 		if (frappe.boot.app_name_style === "Default") return;
 
-		for (const app of frappe.boot.app_data) {
-			if (
-				app.workspaces.includes(this.sidebar_title) ||
-				(frappe.boot.workspace_sidebar_item[this.workspace_title] &&
-					app.app_name == frappe.boot.workspace_sidebar_item[this.workspace_title].app)
-			) {
-				this.header_subtitle = app.app_title;
+		const route = frappe.get_route();
+		if (route[0] === "Workspaces") {
+			// a workspace route names its workspace -> the app comes from the workspace itself.
+			// Custom (user-created, non-standard) workspaces belong to no app, so they never carry
+			// an app context -- even if an older one has a stale `app` value.
+			const name = route[route.length - 1];
+			const workspace = frappe.workspaces[frappe.router.slug(name)];
+			const sidebar = frappe.boot.workspace_sidebar_item[name.toLowerCase()];
+			const app_name =
+				workspace && !workspace.standard
+					? null
+					: (workspace && workspace.app) || (sidebar && sidebar.app);
+			const app = app_name && frappe.boot.app_data.find((a) => a.app_name === app_name);
+			if (app) {
 				frappe.current_app = app;
+				this.header_subtitle = app.app_title;
 				this.app_logo_url = app.app_logo_url;
-				return;
 			} else {
-				let app_name = frappe.boot.module_app[this.workspace_title];
-				// module_app may point to an app that isn't in app_data (not on the apps
-				// screen), so the lookup can miss -- fall back to the user instead of throwing.
-				let module_app =
-					app_name && frappe.boot.app_data.find((f) => f.app_name == app_name);
-				this.header_subtitle = module_app ? module_app.app_title : frappe.session.user;
+				// no owning app (a custom workspace) -> clear the app context so the header/selector
+				// don't keep showing the app you came from
+				frappe.current_app = null;
+				this.header_subtitle = frappe.session.user;
 			}
+			return;
 		}
+
+		// any other route -> derive the app from the routed entity (its module's app), the same
+		// way the shell/sidebar is resolved. This is what makes a cold reload onto a
+		// doctype/report figure out the app. If it can't be resolved (meta not loaded yet), keep
+		// the current app context rather than clearing it.
+		const app_name = this.app_from_route(this.entity_from_route(route));
+		const app = app_name && frappe.boot.app_data.find((a) => a.app_name === app_name);
+		if (app) {
+			frappe.current_app = app;
+			this.header_subtitle = app.app_title;
+			this.app_logo_url = app.app_logo_url;
+		}
+	}
+
+	// The app a route is heading into: the app that owns the routed doctype, resolved via its
+	// module (meta.module -> module_app). Returns undefined when the entity isn't a doctype or its
+	// meta isn't loaded yet, in which case the caller keeps the current app context.
+	app_from_route(entity) {
+		const meta = entity && frappe.get_meta(entity);
+		if (!meta?.module) return undefined;
+		return frappe.boot.module_app[frappe.scrub(meta.module)];
 	}
 
 	setup_promotional_banners() {
@@ -298,12 +334,19 @@ frappe.ui.Sidebar = class Sidebar {
 	setup_events() {
 		const me = this;
 		frappe.router.on("change", function () {
+			// Resolve the app context from the route first, so `frappe.current_app` is correct
+			// before the sidebar/header renders below.
+			frappe.app.sidebar.set_current_app();
 			if (frappe.route_options && frappe.route_options.sidebar) {
 				frappe.app.sidebar.select_sidebar(frappe.route_options.sidebar);
 				frappe.route_options = null;
 			} else {
 				frappe.app.sidebar.set_workspace_sidebar();
 			}
+			// The sidebar's setup() rebuilds the header, but it's skipped when the sidebar didn't
+			// change (e.g. navigating within the same workspace). Refresh the header here so it
+			// always reflects the app context resolved above.
+			frappe.app.sidebar.refresh_header();
 		});
 
 		frappe.ui.keys.add_shortcut({
@@ -311,6 +354,15 @@ frappe.ui.Sidebar = class Sidebar {
 			action: () => me.toggle_width(),
 			description: __("Toggle sidebar"),
 		});
+	}
+
+	// Re-render the header so it reflects the current app context (set by set_current_app) even
+	// when the sidebar itself didn't change and setup() -- which builds the header -- wasn't
+	// re-run. SidebarHeader.make() removes the existing header first, so this is safe to repeat.
+	refresh_header() {
+		if (this.sidebar_title) {
+			this.sidebar_header = new frappe.ui.SidebarHeader(this);
+		}
 	}
 
 	// Fired on page-change / form-refresh. Handles visibility, then runs the

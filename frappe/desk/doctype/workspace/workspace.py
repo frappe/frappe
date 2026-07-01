@@ -115,10 +115,11 @@ class Workspace(Document, DeskViews):
 			if shortcut.type == "Report":
 				shortcut.report_ref_doctype = frappe.get_value("Report", shortcut.link_to, "ref_doctype")
 
-		if not self.app and self.module:
-			from frappe.modules.utils import get_module_app
+		if self.standard:
+			if not self.app and self.module:
+				from frappe.modules.utils import get_module_app
 
-			self.app = get_module_app(self.module)
+				self.app = get_module_app(self.module)
 
 	def before_rename(self, old_name, new_name, merge=False):
 		if self.public and not is_workspace_manager() and not disable_saving_as_public():

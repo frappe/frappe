@@ -219,14 +219,20 @@ def load_desktop_data(bootinfo):
 				)
 				continue
 
+		# A workspace belongs to this app if its module is the app's (standard, app-shipped
+		# workspaces) or its `app` field points at it (custom workspaces have no module). Use a
+		# left join so module-less custom workspaces aren't dropped, and keep only public ones --
+		# private workspaces are surfaced separately by the selector's private listing.
 		workspaces = [
 			r[0]
 			for r in (
 				frappe.qb.from_(Workspace)
-				.inner_join(Module)
+				.left_join(Module)
 				.on(Workspace.module == Module.name)
 				.select(Workspace.name)
-				.where(Module.app_name == app_name)
+				.where(
+					((Module.app_name == app_name) | (Workspace.app == app_name)) & (Workspace.public == 1)
+				)
 				.run()
 			)
 			if r[0] in allowed_pages
