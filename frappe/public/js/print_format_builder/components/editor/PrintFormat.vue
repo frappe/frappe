@@ -143,9 +143,6 @@ let rootStyles = computed(() => {
 let bodyStyles = computed(() => {
 	const { font_size, font } = print_format.value;
 	const styles = {};
-	// px (not pt) to mirror the print output, which sets
-	// `font-size: {{ font_size }}px` in print_format.css. Only apply when set so an
-	// unset format falls back to the CSS default instead of being forced to a value.
 	if (font_size) styles.fontSize = `${parseFloat(font_size)}px`;
 	if (font) styles.fontFamily = `'${font}', sans-serif`;
 	return styles;
@@ -336,10 +333,6 @@ watch(print_format, () => (store.dirty.value = true), { deep: true });
 	color: var(--text-color);
 }
 
-/* Font size set on .pfb-body must cascade into preview field text.
-   Root cause: .field hard-codes font-size: var(--text-sm), which resets the
-   cascade so em-based children scale off 13px, not the body's font size.
-   Make preview fields inherit, then size their text relative to that. */
 .pfb-body :deep(.field--preview) {
 	font-size: inherit;
 }

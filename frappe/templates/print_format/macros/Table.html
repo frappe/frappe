@@ -4,20 +4,20 @@
 {% set _plain_header = df.table_header == "plain" %}
 {% set _no_header = df.table_header == "none" %}
 {%- set _cell_pad = df.table_cell_padding if df.table_cell_padding is defined and df.table_cell_padding is not none else none -%}
-{%- set _cell_style = ('padding:' + _cell_pad|int|string + 'px') if _cell_pad is not none else '' -%}
+{%- set _cell_style = ('padding:' + _cell_pad|string + 'px') if _cell_pad is not none else '' -%}
 {%- set _radius = df.table_radius if df.table_radius is defined and df.table_radius is not none else none -%}
-{%- set _radius_style = ('border-radius:' + _radius|int|string + 'px;overflow:hidden') if _radius is not none else '' -%}
+{%- set _radius_style = ('border-radius:' + _radius|string + 'px;overflow:hidden') if _radius is not none else '' -%}
 <div class="child-table child-table--{{ _style }}{% if not _bordered %} child-table--borderless{% endif %}{% if _plain_header %} child-table--plain-header{% endif %}" {{ field_attributes(df) }}>
 	<div class="label">
 		{{ _(df.label) }}
 	</div>
-	<table class="table{% if _bordered %} table-bordered{% endif %}"{% if _radius_style %} style="{{ _radius_style }}"{% endif %}>
+	<table class="table{% if _bordered %} table-bordered{% endif %}"{% if _radius_style %} style="{{ _radius_style|e }}"{% endif %}>
 		{% set columns = df.table_columns %}
 		{%- if not _no_header -%}
 		<thead>
 			<tr class="table-row">
 				{% for column in columns %}
-				<th class="column-header" width="{{ column.width }}%"{% if _cell_style %} style="{{ _cell_style }}"{% endif %} {{ field_attributes(column) }}>
+				<th class="column-header" width="{{ column.width }}%"{% if _cell_style %} style="{{ _cell_style|e }}"{% endif %} {{ field_attributes(column) }}>
 					{{ _(column.label or column.fieldname) }}
 				</th>
 				{% endfor %}
@@ -28,7 +28,7 @@
 			{% for row in doc.get(df.fieldname) %}
 			<tr class="table-row {{ loop.cycle('odd', 'even') }}" data-idx="{{ row.idx }}">
 				{% for column in columns %}
-				<td class="column-value" width="{{ column.width }}%"{% if _cell_style %} style="{{ _cell_style }}"{% endif %} {{ field_attributes(column) }}>
+				<td class="column-value" width="{{ column.width }}%"{% if _cell_style %} style="{{ _cell_style|e }}"{% endif %} {{ field_attributes(column) }}>
 					{# Image cells: validated URL + server-side thumbnail + escaped src. #}
 					{%- set _src = (row.get(column.options) if column.fieldtype == "Image" else row.get(column.fieldname)) or "" -%}
 					{%- set _src = _src|string|trim -%}

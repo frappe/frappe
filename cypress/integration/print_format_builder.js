@@ -248,8 +248,6 @@ context("Print Format Builder — create flow", () => {
 
 		cy.get(".pfb-body").should(($el) => {
 			const fs = parseInt($el.css("font-size"), 10);
-			// Font size is applied as px to match the print output
-			// (print_format.css: font-size: {{ font_size }}px)
 			expect(fs).to.equal(18);
 		});
 	});

@@ -155,8 +155,6 @@ let has_visible_fields = computed(() =>
 let section_inline_style = computed(() => {
 	const style = {};
 	if (props.section.background) style.backgroundColor = props.section.background;
-	// In grid (table) mode the cells sit flush against the section border, so the
-	// section itself carries no padding — spacing comes from per-cell padding instead.
 	if (props.section.padding && !is_grid.value) {
 		const p = props.section.padding;
 		style.padding = `${p.top || 0}px ${p.right || 0}px ${p.bottom || 0}px ${p.left || 0}px`;
@@ -517,10 +515,8 @@ function remove_column(index) {
 	border: 1px solid var(--border-color) !important;
 	border-radius: var(--border-radius-md, 8px) !important;
 	overflow: hidden !important;
-	/* No outer padding: cells run flush to the border so dividers reach edge-to-edge */
 	padding: 0 !important;
 }
-/* Title becomes a full-width header row with its own cell padding */
 .section--grid .section-title-display {
 	padding: var(--pfb-cell-pad, 8px) !important;
 	margin: 0 !important;
@@ -532,21 +528,15 @@ function remove_column(index) {
 .section--grid .column {
 	padding: 0;
 }
-/* Full-height vertical divider between columns */
 .section--grid .column:not(:last-child) {
 	border-right: 1px solid var(--border-color);
 }
 .section--grid .column-divider {
 	display: none;
 }
-/* Rows sit flush like table rows — cell padding provides the spacing */
 .section--grid :deep(.drag-container) {
 	gap: 0 !important;
 }
-/* Cell padding + horizontal row separators.
-   !important is required here: the clean-preview base rules
-   (.pfb-clean-preview .field--preview) set transparent borders at equal
-   specificity and would otherwise suppress the row lines. */
 .section--grid :deep(.field) {
 	padding: var(--pfb-cell-pad, 8px) !important;
 	border: none !important;
@@ -557,8 +547,6 @@ function remove_column(index) {
 .section--grid :deep(.field:last-child) {
 	border-bottom: none !important;
 }
-/* Hover/selection highlight uses outline, not border, so it draws a full box
-   (including the bottom edge) without fighting the row-separator borders. */
 .section--grid :deep(.field:hover),
 .section--grid :deep(.field--selected) {
 	outline: 1px dashed var(--gray-400);
