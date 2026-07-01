@@ -177,12 +177,16 @@ class AISession:
 			meta = {}
 		if not isinstance(meta, dict):
 			return headline
-		sections = [str(s).strip() for s in (meta.get("sections") or []) if str(s).strip()]
+		data_plan = [str(s).strip() for s in (meta.get("data_plan") or []) if str(s).strip()]
+		layout_plan = [str(s).strip() for s in (meta.get("layout_plan") or []) if str(s).strip()]
 		palette = (meta.get("palette") or "").strip()
 		lines = [headline]
-		if sections:
-			lines.append("Sections:")
-			lines.extend(f"- {s}" for s in sections)
+		if data_plan:
+			lines.append("Data plan:")
+			lines.extend(f"- {s}" for s in data_plan)
+		if layout_plan:
+			lines.append("Layout plan:")
+			lines.extend(f"- {s}" for s in layout_plan)
 		if palette:
 			lines.append(f"Palette: {palette}")
 		return "\n".join(lines)

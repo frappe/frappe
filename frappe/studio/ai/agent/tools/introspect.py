@@ -19,6 +19,33 @@ _MAX_DOCTYPES = 40
 _MAX_FIELDS = 80
 
 
+def describe_page_data(page) -> dict:
+	"""The page's data sources (with the fields each fetches) + variables — the exact
+	set the model may bind to. Shared by get_page_state and the generate_page generator
+	so both see the same available data."""
+	sources = []
+	for r in page.resources or []:
+		src = {"name": r.resource_name, "type": r.resource_type}
+		if r.document_type:
+			src["doctype"] = r.document_type
+		if fields := _resource_fields(r):
+			src["fields"] = fields
+		sources.append(src)
+	variables = [{"name": v.variable_name, "type": v.variable_type} for v in (page.variables or [])]
+	return {"data_sources": sources, "variables": variables}
+
+
+def _resource_fields(r) -> list:
+	"""A resource's fetched fields are stored as a JSON string; parse to a list of names."""
+	raw = r.get("fields")
+	if isinstance(raw, list):
+		return raw
+	if isinstance(raw, str) and raw.strip():
+		parsed = frappe.parse_json(raw)
+		return parsed if isinstance(parsed, list) else []
+	return []
+
+
 def run_get_page_state(ctx, args: dict) -> str:
 	"""A compact snapshot of the page's DATA wiring — existing data sources,
 	variables, and whether a page script is set. The block tree itself is already
@@ -26,21 +53,8 @@ def run_get_page_state(ctx, args: dict) -> str:
 	page = frappe.get_doc("Studio Page", ctx.page_id) if ctx.page_id else None
 	if page is None:
 		return "No page in context."
-
-	sources = [
-		{
-			"name": r.resource_name,
-			"type": r.resource_type,
-			"doctype": r.document_type or None,
-		}
-		for r in (page.resources or [])
-	]
-	variables = [{"name": v.variable_name, "type": v.variable_type} for v in (page.variables or [])]
-	state = {
-		"data_sources": sources,
-		"variables": variables,
-		"has_page_script": bool((page.script or "").strip()),
-	}
+	state = describe_page_data(page)
+	state["has_page_script"] = bool((page.script or "").strip())
 	return "Current page data state:\n" + BlockCodec.to_json(state)
 
 

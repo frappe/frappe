@@ -46,15 +46,23 @@ def normalize_sections(raw) -> list[str]:
 
 def _propose_plan(ctx, args: dict) -> None:
 	headline = (args.get("headline") or "Here's my plan").strip()
-	sections = normalize_sections(args.get("sections"))
+	data_plan = normalize_sections(args.get("data_plan"))
+	layout_plan = normalize_sections(args.get("layout_plan"))
 	palette = (args.get("palette") or "").strip()
+	metadata = {
+		"status": "plan_summary",
+		"headline": headline,
+		"data_plan": data_plan,
+		"layout_plan": layout_plan,
+		"palette": palette,
+	}
 	AISession.try_append_message(
 		ctx.session_id,
 		"assistant",
 		headline,
 		message_type="clarification",
 		task_type="agent",
-		metadata={"status": "plan_summary", "headline": headline, "sections": sections, "palette": palette},
+		metadata=metadata,
 	)
 	frappe.db.commit()
 	ctx.emit(
@@ -63,7 +71,8 @@ def _propose_plan(ctx, args: dict) -> None:
 		options=[],
 		plan_summary=True,
 		headline=headline,
-		sections=sections,
+		data_plan=data_plan,
+		layout_plan=layout_plan,
 		palette=palette,
 	)
 
@@ -96,10 +105,12 @@ propose_plan = Tool(
 	name="propose_plan",
 	side="terminal",
 	description=(
-		"Before building a NEW page or doing a major redesign, present a short plan and wait for "
-		"the user to approve or refine it. Ends your turn. Never call this twice in a row: if a "
-		"plan is already pending and the user approved it, call generate_page instead. Only "
-		"re-propose when the user asked for changes."
+		"Before building a NEW page or doing a major redesign, present a short plan — a DATA PLAN "
+		"(sources + variables to create first) and a LAYOUT PLAN (the sections) — and wait for the "
+		"user to approve or refine it. Ends your turn. On approval, BUILD IN ORDER: create the data "
+		"plan's sources/variables first, then generate the layout. Never call this twice in a row: if "
+		"a plan is already pending and the user approved it, proceed to build. Only re-propose when "
+		"the user asked for changes."
 	),
 	parameters={
 		"type": "object",
@@ -108,17 +119,26 @@ propose_plan = Tool(
 				"type": "string",
 				"description": "One concrete line stating what the page is and who it's for — not a slogan.",
 			},
-			"sections": {
+			"data_plan": {
 				"type": "string",
 				"description": (
-					"3–5 sections as ONE string, each section on its OWN LINE (separate with a newline). "
-					"Do NOT send a JSON array. Make each line decision-useful: the real headline/key copy "
-					"it will use (in 'single quotes'), what's concretely in it, and the layout."
+					"The DATA to create FIRST, one item per LINE (newline-separated) — omit for a page "
+					"with no live data. Each line is a data source or variable with enough to build it: "
+					'e.g. "todos — Document List on ToDo, fields subject/status/priority, filter status=Open" '
+					'or "counter — Number variable starting at 0".'
+				),
+			},
+			"layout_plan": {
+				"type": "string",
+				"description": (
+					"The LAYOUT — 3–5 sections as ONE string, each on its OWN LINE (not a JSON array). Make "
+					"each line decision-useful: the real headline/key copy (in 'single quotes'), what's in "
+					"it, the layout, and which data_plan source/variable it binds to."
 				),
 			},
 			"palette": {"type": "string", "description": "Palette description with hex codes."},
 		},
-		"required": ["headline", "sections"],
+		"required": ["headline", "layout_plan"],
 	},
 	handler=_propose_plan,
 )

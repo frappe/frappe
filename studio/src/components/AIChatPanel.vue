@@ -43,16 +43,35 @@
 						v-html="renderMarkdown(msg.content)"
 					/>
 
-					<!-- Proposed plan: sections + palette + approve -->
+					<!-- Proposed plan: data plan + layout plan + palette + approve -->
 					<div
 						v-if="msg.metadata?.status === 'plan_summary'"
-						class="flex w-full flex-col gap-2 rounded-md border border-outline-gray-1 bg-surface-gray-1 p-3"
+						class="flex w-full flex-col gap-3 rounded-md border border-outline-gray-1 bg-surface-gray-1 p-3"
 					>
-						<ul v-if="msg.metadata.sections?.length" class="flex flex-col gap-1">
-							<li v-for="(section, i) in msg.metadata.sections" :key="i" class="text-p-xs text-ink-gray-7">
-								• {{ section }}
-							</li>
-						</ul>
+						<div v-if="msg.metadata.data_plan?.length" class="flex flex-col gap-1">
+							<div class="text-[10px] font-semibold uppercase tracking-wide text-ink-gray-5">Data</div>
+							<ul class="flex flex-col gap-1">
+								<li
+									v-for="(item, i) in msg.metadata.data_plan"
+									:key="'d' + i"
+									class="text-p-xs text-ink-gray-7"
+								>
+									• {{ item }}
+								</li>
+							</ul>
+						</div>
+						<div v-if="msg.metadata.layout_plan?.length" class="flex flex-col gap-1">
+							<div class="text-[10px] font-semibold uppercase tracking-wide text-ink-gray-5">Layout</div>
+							<ul class="flex flex-col gap-1">
+								<li
+									v-for="(item, i) in msg.metadata.layout_plan"
+									:key="'l' + i"
+									class="text-p-xs text-ink-gray-7"
+								>
+									• {{ item }}
+								</li>
+							</ul>
+						</div>
 						<div v-if="msg.metadata.palette" class="text-[11px] text-ink-gray-5">
 							Palette: {{ msg.metadata.palette }}
 						</div>

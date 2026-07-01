@@ -13,7 +13,9 @@ bind_prop = Tool(
 	name="bind_prop",
 	side="client",
 	description=(
-		"Bind one prop of a block to a live expression instead of a static value. The expression is "
+		"Add a {{ }} binding to a prop of a block that ALREADY EXISTS on the page. For a block you are "
+		"creating this turn, put the binding in its props via add_block instead, since you cannot "
+		"reference a new block's id. The expression is "
 		"evaluated against the page's data context: data sources (as <data_source>.data), variables, "
 		"page-script bindings, and route/router. Pass the raw expression WITHOUT braces — e.g. "
 		"prop='value', expression='counter' binds to the counter variable; "
@@ -42,13 +44,14 @@ set_repeater_data = Tool(
 	name="set_repeater_data",
 	side="client",
 	description=(
-		"Feed a Document-List data source into a Repeater so its single child block repeats once per "
+		"Point a Repeater that ALREADY EXISTS on the page at a Document-List data source so its single child block repeats once per "
 		"record. Sets the Repeater's data to {{ <data_source_name>.data }} and its dataKey to the "
 		"field that uniquely identifies each row (usually 'name'). The Repeater must have ONE child "
 		"as the row template — do not add a child per record. Then bind that child's props (and its "
 		"descendants') to the CURRENT ROW with bind_prop using `dataItem.<field>` expressions, e.g. "
-		"bind_prop(prop='text', expression='dataItem.description'). For a tabular ListView instead, "
-		"skip this tool and bind its 'rows' prop with bind_prop(prop='rows', expression='<data_source>.data')."
+		"bind_prop(prop='text', expression='dataItem.description'). For a Repeater you are CREATING this "
+		"turn, set data and dataKey directly in its add_block props instead. For a tabular ListView, "
+		"bind its 'rows' prop to {{ <data_source>.data }}."
 	),
 	parameters={
 		"type": "object",

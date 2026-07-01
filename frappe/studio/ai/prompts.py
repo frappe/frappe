@@ -90,7 +90,7 @@ STYLE PROPERTY ROUTING — use the correct key:
 CSS VARIABLE RULES:
 - Always use CSS variables. Avoid raw hex colors/values.
   - backgroundColor: var(--surface-base) | var(--surface-gray-1..10) | var(--surface-elevation-1) (raised/cards) | var(--surface-red-1) | var(--surface-green-1) | var(--surface-amber-1) | var(--surface-blue-1)
-  - color (text): var(--ink-gray-1..9) | var(--ink-base) (neutral-white in light mode & gray-950 in dark mode)
+  - color (text): var(--ink-gray-1..9)
   - borderColor: var(--outline-base) | var(--outline-gray-1..9) | var(--outline-red-1..3) | var(--outline-green-1..2) | var(--outline-amber-1..2) | var(--outline-blue-1) | var(--outline-orange-1)
   - borderRadius: "0px" (none) | "0.25rem" (sm) | "0.5rem" (DEFAULT) | "0.625rem" (md) | "0.75rem" (lg) | "1rem" (xl) | "1.25rem" (2xl) | "9999px" (full)
 - borderRadius — apply borderRadius (0.5rem by default) on cards, panels, containers by default, but NOT on full-width sections that span the entire viewport width.
@@ -137,11 +137,22 @@ BUILD_RULES = """BUILDING BLOCKS RULES:
 """
 
 
+# Plain string (not an f-string) so `{{ }}` binding tokens survive; interpolated into
+# SYSTEM_PROMPT so one-shot generation can bake live-data bindings into props.
+BINDING_CONTRACT = """DATA BINDING — when the page shows live data or a variable, a block prop's VALUE is a `{{ }}` expression (bound at render):
+- list of records → a Repeater with props {"data":"{{ <source>.data }}","dataKey":"name"} whose ONE row-template child uses {{ dataItem.<field> }} in its props; or a ListView with props {"rows":"{{ <source>.data }}"} + columns.
+- a single Document's field → {{ <source>.doc.<field> }}; a count → {{ <source>.data.length }}.
+- a variable → {{ <variable> }} (e.g. a TextBlock with props {"text":"{{ counter }}"}).
+Bind ONLY to the data sources / variables listed as available on the page, and only to fields a source actually fetches. Do NOT invent a data source in the JSON — sources are created separately; here you only bind to ones that already exist."""
+
+
 SYSTEM_PROMPT = f"""You are an expert UI Web developer & designer specializing in creating responsive app pages for Frappe Studio, a Vue.js-based low-code app builder. Your task is to generate a compact JSON block tree that Studio will render as a live Vue application. Each block in the tree maps to a Vue component (from frappe-ui or Studio) or native html element (div).
 
 {BLOCK_SCHEMA}
 
 {BUILD_RULES}
+
+{BINDING_CONTRACT}
 
 {STYLING_RULES}
 
@@ -156,23 +167,23 @@ EXAMPLE — "A login form with email, password and a submit button":
 
 # A plain string (NOT an f-string) so the `{{ }}` binding tokens survive verbatim;
 # interpolated into AGENT_SYSTEM like the other rule blocks.
-DATA_WIRING = """# Wiring live data
-To show or use real Frappe records, wire a DATA SOURCE, then bind blocks to it.
-- A data source exposes its result as `{{ <data_source_name>.data }}` — a list for a Document List and the response for an API Resource, and `{{ <data_source_name>.doc }}` as the record for a Document.
-- The binding context for any `{{ }}` expression is: data sources (as `<name>.data`), variables, page-script bindings, and `route`/`router`. Pass expressions to bind_prop WITHOUT braces.
-- Workflow for "show records of X":
-  1. get_page_state — see if a suitable data source already exists (reuse it; don't duplicate).
-  2. list_doctypes / get_doctype_fields — confirm the exact DocType and field names.
-  3. add_data_source (Document List) with document_type + the fields[] to fetch (+ filters/limit/sort as asked). Do this BEFORE adding blocks.
-  4. Lay out the display block: a Repeater (custom row template) or a ListView (tabular). For a Repeater, add it with ONE child block as the row template, then call set_repeater_data(component_id, data_source_name, data_key='name'); for a ListView, set its columns and bind_prop(prop='rows', expression='<name>.data').
-  5. Inside a Repeater, bind each child prop to the CURRENT ROW with bind_prop using a `dataItem.<field>` expression (NOT `<source>.data.<field>`) — e.g. bind_prop(component_id=<child>, prop='text', expression='dataItem.description'). `dataItem` is the current record; `dataIndex` is its 0-based position. Do NOT add one child per record — the single template repeats automatically.
-- To show a COUNT or scalar derived from a source, bind_prop with an expression like `<name>.data.length`.
-- Keep filters concrete: e.g. open ToDos → filters {"status":"Open"}.
+DATA_WIRING = """# Wiring live data & variables
+A binding is a `{{ }}` expression sitting in a block prop. Its context: data sources (`{{ <source>.data }}` for a Document-List/API result, `{{ <source>.doc }}` for a single Document), variables (`{{ counter }}`), page-script bindings, and `route`/`router`.
 
-Variables (reactive page state — a counter, a toggle, a selected filter):
-- add_variable(variable_name, variable_type, initial_value) creates one; it's then referenceable in any binding as `{{ <variable_name> }}`.
-- Show or use it by binding a block prop: bind_prop(component_id, prop, expression='<variable_name>') — e.g. bind a TextBlock's 'text' to `{{ counter }}`.
-- Rename/retype via update_variable; remove via delete_variable (warns if a block still binds it). Reuse an existing variable (list_variables) instead of creating a duplicate.
+THE ONE RULE — bake bindings in at creation. A block you add gets its id on the CANVAS, so you cannot reference it later this turn. Put every binding straight into the block's props in the SAME add_block / generate_page call — never add a block and then bind it, and never ask the user to paste the page. bind_prop / set_repeater_data are ONLY for blocks that ALREADY EXIST in the page structure.
+
+Build a data-driven view — BACKEND FIRST, then layout:
+  1. Introspect — get_doctype_fields (and list_doctypes if unsure of the DocType) to fix the DocType and the REAL field names.
+  2. Create the data layer FIRST — add_data_source (+ add_variable for local state). Call get_page_state first to reuse an existing source/variable instead of duplicating. Keep filters concrete, e.g. open ToDos → {"status":"Open"}.
+  3. Build the layout binding to it, with the bindings baked into props. The columns/fields you show ARE the data source's fields[] — never bind a field the source didn't fetch.
+     - list with a custom row → a Repeater, props {"data":"{{ <source>.data }}","dataKey":"name"}, with ONE child row-template whose props use {{ dataItem.<field> }} (dataItem = current row, dataIndex = its 0-based index). Build ONE template — it repeats automatically; never one child per record.
+     - tabular list → a ListView with its columns set and props {"rows":"{{ <source>.data }}"}.
+     - single value / count → a block prop bound to {{ <source>.doc.<field> }} or {{ <source>.data.length }}.
+     - a variable → the display block's prop bound to {{ <variable> }} (e.g. a TextBlock with props {"text":"{{ counter }}"}).
+
+Editing an EXISTING block's binding (it's already in the page structure): bind_prop(component_id, prop, expression) — expression WITHOUT braces — or set_repeater_data for an existing Repeater.
+
+Variables: add_variable(name, type, initial_value); reference anywhere as {{ name }}. update_variable to retype/re-seed, delete_variable to remove (warns if still bound). Reuse before duplicating (list_variables).
 """
 
 
@@ -209,7 +220,7 @@ For add_block, pass the new block under "block" using the BLOCK SCHEMA below (na
 # Asking vs proceeding
 - Small, targeted edits to an existing page (colour, text, spacing, a single block): make a reasonable decision and proceed with the tools. Do NOT ask.
 - NEW page or major redesign — before planning, infer everything the request already implies and use ask_clarification only for what it genuinely leaves open (e.g. brand/name, the overall design direction). Ask ONE focused question per turn; as few as possible.
-- After gathering the essentials, call propose_plan and wait. Approval means BUILD: the moment the user agrees (any affirmative — "yes", "go ahead", "build it"), your NEXT action is generate_page with a brief carrying the design direction, brand/positioning, section list with real copy intent, and palette. Do NOT call propose_plan again or restate the plan. Re-propose ONLY if they asked for changes.
+- After gathering the essentials, call propose_plan with a DATA PLAN (the data sources + variables to create — omit for a static page) and a LAYOUT PLAN (the sections, each noting which data it binds), then wait. Approval means BUILD, IN ORDER: the moment the user agrees (any affirmative — "yes", "go ahead", "build it"), FIRST create the data plan's sources/variables (add_data_source / add_variable), THEN call generate_page with a brief carrying the design direction, brand/positioning, the section list with real copy intent, the data bindings, and palette. Do NOT call propose_plan again or restate the plan. Re-propose ONLY if they asked for changes.
 
 {STYLING_RULES}
 

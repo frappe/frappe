@@ -25,7 +25,7 @@ from studio.ai.block_codec import BlockCodec
 VARIABLE_TYPES = ("String", "Number", "Boolean", "Object")
 # A binding name has to be a bare JS identifier — it's spread into the eval context
 # and referenced as {{ <name> }}.
-_NAME_RE = re.compile(r"^[A-Za-z_$][A-Za-z0-9_$]*$")
+VARIABLE_NAME_REGEX = re.compile(r"^[A-Za-z_$][A-Za-z0-9_$]*$")
 
 
 def run_add_variable(ctx, args: dict) -> str:
@@ -120,7 +120,7 @@ def run_delete_variable(ctx, args: dict) -> str:
 def _validate_name(name: str) -> str | None:
 	if not name:
 		return "variable_name is required."
-	if not _NAME_RE.match(name):
+	if not VARIABLE_NAME_REGEX.match(name):
 		return f"'{name}' is not a valid variable name — use letters, digits and underscores, starting with a letter."
 	return None
 

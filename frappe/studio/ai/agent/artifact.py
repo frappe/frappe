@@ -17,6 +17,7 @@ import logging
 import frappe
 
 from studio.ai import llm
+from studio.ai.agent.tools.introspect import describe_page_data
 from studio.ai.block_codec import BlockCodec
 from studio.ai.prompts import GENERATION
 from studio.ai.session import AISession
@@ -41,6 +42,10 @@ def generate_page_json(ctx, args: dict) -> list[dict]:
 	]
 	# Prior conversation (incl. the approved plan) as proper role-tagged turns.
 	messages.extend(AISession.build_context_messages_from_id(ctx.session_id))
+	# The generator builds its own prompt, so it won't see data sources created earlier this
+	# turn unless told — hand it the page's data state so it binds to real, existing sources.
+	if data_note := _available_data_note(ctx):
+		messages.append({"role": "user", "content": data_note})
 	messages.append(
 		{"role": "user", "content": f"Build this page now:\n{brief}" if brief else "Build the page now."}
 	)
@@ -77,3 +82,19 @@ def generate_page_json(ctx, args: dict) -> list[dict]:
 		return []
 
 	return [{"tool_name": "generate_page", "args": {"block": block}}]
+
+
+def _available_data_note(ctx) -> str:
+	"""A message listing the data sources + variables already on the page, so the
+	generator binds the layout to real, existing sources (per the DATA BINDING rules).
+	Empty when the page has no data layer yet."""
+	page = frappe.get_doc("Studio Page", ctx.page_id) if ctx.page_id else None
+	if page is None:
+		return ""
+	state = describe_page_data(page)
+	if not state["data_sources"] and not state["variables"]:
+		return ""
+	return (
+		"Data sources and variables already created on this page — bind the layout to THESE "
+		"(and only these), per the DATA BINDING rules:\n" + BlockCodec.to_json(state)
+	)

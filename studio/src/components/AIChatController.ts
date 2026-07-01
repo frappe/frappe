@@ -164,7 +164,8 @@ export class AIChatController {
 			this.updatePending(data.headline || "Here's my plan", {
 				status: "plan_summary",
 				headline: data.headline || "",
-				sections: data.sections || [],
+				data_plan: data.data_plan || [],
+				layout_plan: data.layout_plan || [],
 				palette: data.palette || "",
 			})
 		} else {
