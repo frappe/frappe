@@ -565,6 +565,7 @@ class DocType(Document):
 				self.run_module_method("after_doctype_insert")
 
 		if allow_doctype_export:
+			self.warn_on_module_change()
 
 			def export_doctype_files():
 				self.export_doc()
@@ -889,6 +890,20 @@ class DocType(Document):
 
 		if "field_order" in docdict:
 			del docdict["field_order"]
+
+	def warn_on_module_change(self):
+		"""Warn that the old module folder is left behind after a module change, since export only writes to the new one."""
+		previous = self.get_doc_before_save()
+		if not previous or previous.module == self.module:
+			return
+
+		old_path = get_doc_path(previous.module, "doctype", self.name)
+		frappe.msgprint(
+			_(
+				"Module changed to {0}. Files in the previous module were not moved and remain at {1}, remove or relocate them manually."
+			).format(frappe.bold(self.module), old_path),
+			alert=True,
+		)
 
 	def export_doc(self):
 		"""Export to standard folder `[module]/doctype/[name]/[name].json`."""
