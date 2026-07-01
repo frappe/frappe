@@ -15,7 +15,7 @@ keeps the canvas block edits from racing this save.
 import frappe
 
 from studio.ai.agent.registry import Tool
-from studio.ai.agent.selectors import walk_blocks
+from studio.ai.agent.tools.page import dangling_binding_warning, load_page, save_page, text_arg
 from studio.ai.block_codec import BlockCodec
 
 RESOURCE_TYPES = ("Document List", "Document", "API Resource")
@@ -25,14 +25,14 @@ _JSON_FIELDS = ("fields", "filters", "params", "whitelisted_methods")
 
 
 def run_add_data_source(ctx, args: dict) -> str:
-	name = (args.get("data_source_name") or "").strip()
-	source_type = (args.get("data_source_type") or "").strip()
+	name = text_arg(args.get("data_source_name"))
+	source_type = text_arg(args.get("data_source_type"))
 	if not name:
 		return "FAILED: data_source_name is required."
 	if source_type not in RESOURCE_TYPES:
 		return f"FAILED: data_source_type must be one of {list(RESOURCE_TYPES)}."
 
-	page = _load_page(ctx)
+	page = load_page(ctx)
 	if page is None:
 		return "FAILED: no page in context."
 	if _find_resource(page, name):
@@ -43,14 +43,14 @@ def run_add_data_source(ctx, args: dict) -> str:
 		return f"FAILED: {error}"
 
 	page.append("resources", row)
-	if error := _save(page):
+	if error := save_page(page):
 		return f"FAILED: {error}"
 	_reload(ctx)
 	return f"Added {source_type} data source '{name}'. Bind blocks to it with {{{{ {name}.data }}}}."
 
 
 def run_list_data_sources(ctx, args: dict) -> str:
-	page = _load_page(ctx)
+	page = load_page(ctx)
 	if page is None:
 		return "No page in context."
 	if not page.resources:
@@ -60,8 +60,8 @@ def run_list_data_sources(ctx, args: dict) -> str:
 
 
 def run_update_data_source(ctx, args: dict) -> str:
-	name = (args.get("data_source_name") or "").strip()
-	page = _load_page(ctx)
+	name = text_arg(args.get("data_source_name"))
+	page = load_page(ctx)
 	if page is None:
 		return "FAILED: no page in context."
 	row = _find_resource(page, name)
@@ -73,15 +73,15 @@ def run_update_data_source(ctx, args: dict) -> str:
 		return "Nothing to update — pass the fields you want to change."
 	if error := _validate_row(row.resource_type, row):
 		return f"FAILED: {error}"
-	if error := _save(page):
+	if error := save_page(page):
 		return f"FAILED: {error}"
 	_reload(ctx)
 	return f"Updated data source '{name}' ({', '.join(changed)})."
 
 
 def run_delete_data_source(ctx, args: dict) -> str:
-	name = (args.get("data_source_name") or "").strip()
-	page = _load_page(ctx)
+	name = text_arg(args.get("data_source_name"))
+	page = load_page(ctx)
 	if page is None:
 		return "FAILED: no page in context."
 	row = _find_resource(page, name)
@@ -89,11 +89,11 @@ def run_delete_data_source(ctx, args: dict) -> str:
 		return f"FAILED: no data source named '{name}'."
 
 	page.resources.remove(row)
-	if error := _save(page):
+	if error := save_page(page):
 		return f"FAILED: {error}"
 	_reload(ctx)
 
-	warning = _dangling_binding_warning(ctx, name)
+	warning = dangling_binding_warning(ctx, name)
 	return f"Deleted data source '{name}'." + (f" {warning}" if warning else "")
 
 
@@ -171,33 +171,13 @@ def _is_empty(value) -> bool:
 	return not value
 
 
-# --- shared helpers -------------------------------------------------------
-
-
-def _load_page(ctx):
-	return frappe.get_doc("Studio Page", ctx.page_id) if ctx.page_id else None
+# --- resource-specific helpers --------------------------------------------
 
 
 def _find_resource(page, name: str):
 	if not name:
 		return None
 	return next((r for r in page.resources if r.resource_name == name), None)
-
-
-def _save(page) -> str | None:
-	"""Save the page (runs resource validation + JSON conversion) and commit so the
-	emitted reload event sees the row. Returns an error string on failure."""
-	try:
-		page.save()
-		frappe.db.commit()
-		return None
-	except frappe.ValidationError as e:
-		frappe.db.rollback()
-		return str(e)
-	except Exception as e:  # noqa: BLE001 — surface a safe message, log the detail
-		frappe.db.rollback()
-		frappe.log_error("Studio AI add/update data source failed", str(e))
-		return "could not save the data source (see error log)."
 
 
 def _reload(ctx) -> None:
@@ -210,26 +190,6 @@ def _describe_resource(r) -> dict:
 		if value := r.get(field):
 			out[field] = value
 	return out
-
-
-def _dangling_binding_warning(ctx, name: str) -> str:
-	"""Scan the (turn-start) block tree for props still referencing the deleted
-	source's data, so the model can fix dangling bindings in the same turn."""
-	import re
-
-	root = ctx._page_root()
-	if not root:
-		return ""
-	pattern = re.compile(r"\{\{[^}]*\b" + re.escape(name) + r"\b[^}]*\}\}")
-	hits = []
-	for block, _depth in walk_blocks(root):
-		for value in (block.get("componentProps") or {}).values():
-			if isinstance(value, str) and pattern.search(value):
-				hits.append(block.get("componentId"))
-				break
-	if not hits:
-		return ""
-	return f"WARNING: these blocks still bind '{name}' and now resolve to nothing — rebind or remove them: {hits}."
 
 
 # --- tool definitions -----------------------------------------------------

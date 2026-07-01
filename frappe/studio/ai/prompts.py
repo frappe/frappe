@@ -168,6 +168,11 @@ To show or use real Frappe records, wire a DATA SOURCE, then bind blocks to it.
   5. Inside a Repeater, bind each child prop to the CURRENT ROW with bind_prop using a `dataItem.<field>` expression (NOT `<source>.data.<field>`) — e.g. bind_prop(component_id=<child>, prop='text', expression='dataItem.description'). `dataItem` is the current record; `dataIndex` is its 0-based position. Do NOT add one child per record — the single template repeats automatically.
 - To show a COUNT or scalar derived from a source, bind_prop with an expression like `<name>.data.length`.
 - Keep filters concrete: e.g. open ToDos → filters {"status":"Open"}.
+
+Variables (reactive page state — a counter, a toggle, a selected filter):
+- add_variable(variable_name, variable_type, initial_value) creates one; it's then referenceable in any binding as `{{ <variable_name> }}`.
+- Show or use it by binding a block prop: bind_prop(component_id, prop, expression='<variable_name>') — e.g. bind a TextBlock's 'text' to `{{ counter }}`.
+- Rename/retype via update_variable; remove via delete_variable (warns if a block still binds it). Reuse an existing variable (list_variables) instead of creating a duplicate.
 """
 
 

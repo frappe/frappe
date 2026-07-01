@@ -84,7 +84,16 @@ class ToolRegistry:
 def build_default_registry() -> ToolRegistry:
 	"""Assemble the registry from the tool modules. Imported lazily to avoid
 	import cycles (tool handlers reference the agent context type)."""
-	from studio.ai.agent.tools import bindings, blocks, conversation, data, generate, introspect, query
+	from studio.ai.agent.tools import (
+		bindings,
+		blocks,
+		conversation,
+		data,
+		generate,
+		introspect,
+		query,
+		variables,
+	)
 
 	registry = ToolRegistry()
 	registry.extend(generate.TOOLS)
@@ -93,5 +102,6 @@ def build_default_registry() -> ToolRegistry:
 	registry.extend(conversation.TOOLS)
 	registry.extend(introspect.TOOLS)
 	registry.extend(data.TOOLS)
+	registry.extend(variables.TOOLS)
 	registry.extend(bindings.TOOLS)
 	return registry
