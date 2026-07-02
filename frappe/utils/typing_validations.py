@@ -72,7 +72,6 @@ def validate_argument_types(
 		func.__annotations__ = get_type_hints(func)  # it should handle both aka `forwardRef or str` recursively!
 		are_forwardRef_resolved = True
 	except Exception as e:
-		print(f"cannot resolved.. will try again at runtime..  {func.__annotations__}")
 		# Should only get an error, when `ForwardRef or str` annotations couldn't be resolved. `get_type_hints` handles a lot of common cases like missing annotations without throwing errors Its ok, we will try again at runtime.
 		pass
 
@@ -117,7 +116,7 @@ def validate_argument_types(
 
 		if apply_condition is None or apply_condition():
 			# setting `force_types` as False, as would have already that code in the previous block!
-			args, kwargs = transform_parameter_types(func, args, kwargs, force_types=False)
+			args, kwargs = transform_parameter_types(func, args, kwargs)
 
 		return func(*args, **kwargs)
 
@@ -174,28 +173,13 @@ def TypeAdapter(type_):
 		raise e
 
 
-def transform_parameter_types(func: Callable, args: tuple, kwargs: dict, force_types=False):
+def transform_parameter_types(func: Callable, args: tuple, kwargs: dict):
 	"""
 	Validate the types of the arguments passed to a function with the type annotations
 	defined on the function.
 	"""
 
 	annotations = func.__annotations__
-	func_params = frappe._get_cached_signature_params(func)[0]
-
-	# TODO: remove this block, as being handled before call to this routine.
-	if force_types:
-		for idx, (param_name, parameter) in enumerate(func_params.items()):
-			if idx == 0 and param_name in ("self", "cls"):
-				continue
-			if parameter.kind in (inspect.Parameter.VAR_KEYWORD, inspect.Parameter.VAR_POSITIONAL):
-				continue
-			if param_name not in annotations:
-				module, qualname = func.__module__, func.__qualname__
-				raise FrappeTypeError(
-					f"Argument '{param_name}' in '{module}.{qualname}' is missing type annotation. "
-					f"All arguments must have type annotations when type checking is enforced."
-				)
 
 	if (
 		not (args or kwargs)
@@ -226,34 +210,14 @@ def transform_parameter_types(func: Callable, args: tuple, kwargs: dict, force_t
 
 		current_arg_value = prepared_args[current_arg]
 
-		# if the type is a ForwardRef or str, ignore it
-		# TODO: remove checks for ForwardRef, as would be resolved using `get_type_hints` before call to this routine!
-		if isinstance(current_arg_type, ForwardRefOrStr):
-			continue
-		elif any(isinstance(x, ForwardRefOrStr) for x in getattr(current_arg_type, "__args__", [])):
-			continue
 		# ignore unittest.mock objects
-		elif isinstance(current_arg_value, mock.Mock):
+		if isinstance(current_arg_value, mock.Mock):
 			continue
 
 		# allow slack for Frappe types
 		if current_arg_type in SLACK_DICT:
 			current_arg_type = SLACK_DICT[current_arg_type]
 
-		param_def = func_params.get(current_arg)
-
-		# add default value's type in acceptable types
-		# TODO: remove this block.. as we are handling this during declaration, and it is buggy!
-		if param_def.default is not _empty:
-			if isinstance(current_arg_type, tuple):
-				if type(param_def.default) not in current_arg_type:
-					current_arg_type += (type(param_def.default),)
-				current_arg_type = Union[current_arg_type]  # noqa: UP007
-
-			elif param_def.default != current_arg_type:
-				current_arg_type = Union[current_arg_type, type(param_def.default)]  # noqa: UP007
-		elif isinstance(current_arg_type, tuple):
-			current_arg_type = Union[current_arg_type]  # noqa: UP007
 
 		# validate the type set using pydantic - raise a TypeError if Validation is raised or Ellipsis is returned
 		try:
