@@ -555,5 +555,6 @@ add_to_apps_screen = [
 		"title": app_title,
 		"route": app_home,
 		"has_permission": "frappe.permissions.check_app_permission",
+		"show_workspace_dock": True,
 	}
 ]

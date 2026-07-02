@@ -1,0 +1,189 @@
+// Slim vertical rail left of the body sidebar listing the current app's workspaces as icons, with
+// the app logo pinned to the top corner. Rendered by frappe.ui.WorkspaceDock and opt-in per app.
+.workspace-dock {
+	flex: 0 0 48px;
+	width: 48px;
+	height: 100vh;
+	z-index: 1020;
+
+	display: flex;
+	flex-direction: column;
+	align-items: center;
+	// no top padding: the logo occupies a full navbar-height band so it aligns with the navbar
+	padding: 0 0 8px 0;
+
+	background: var(--surface-gray-1);
+	border-right: 1px solid var(--sidebar-border-color);
+
+	&.hidden {
+		display: none;
+	}
+
+	.workspace-dock-logo {
+		flex: 0 0 auto;
+		// match the navbar / sidebar-header band so the logo lines up with them
+		height: var(--navbar-height, 48px);
+		display: flex;
+		align-items: center;
+		justify-content: center;
+
+		a {
+			display: flex;
+			align-items: center;
+			justify-content: center;
+			width: 32px;
+			height: 32px;
+			border-radius: var(--radius-3, 8px);
+			overflow: hidden;
+		}
+
+		img {
+			width: 100%;
+			height: 100%;
+			object-fit: contain;
+		}
+	}
+
+	.workspace-dock-divider {
+		flex: 0 0 auto;
+		width: 24px;
+		height: 1px;
+		margin: 8px 0;
+		background: var(--sidebar-border-color);
+	}
+
+	// the divider right below the logo hugs the navbar-height band, no extra top gap
+	.workspace-dock-logo + .workspace-dock-divider {
+		margin-top: 0;
+	}
+
+	.workspace-dock-actions {
+		flex: 0 0 auto;
+		width: 100%;
+		display: flex;
+		flex-direction: column;
+		align-items: center;
+		gap: 4px;
+
+		&.hidden {
+			display: none;
+		}
+	}
+
+	.workspace-dock-user {
+		flex: 0 0 auto;
+		padding: 0;
+		border: none;
+		background: transparent;
+		border-radius: 50%;
+		cursor: pointer;
+		display: flex;
+		align-items: center;
+		justify-content: center;
+
+		.avatar {
+			margin: 0;
+		}
+
+		&.user-menu-active {
+			box-shadow: 0 0 0 2px var(--sidebar-active-color);
+		}
+	}
+
+	.workspace-dock-items {
+		flex: 1 1 auto;
+		width: 100%;
+
+		display: flex;
+		flex-direction: column;
+		align-items: center;
+		gap: 4px;
+
+		overflow-y: auto;
+		// hide the scrollbar -- the rail is too narrow to spare the width
+		scrollbar-width: none;
+		&::-webkit-scrollbar {
+			display: none;
+		}
+	}
+
+	.workspace-dock-item {
+		position: relative;
+		flex: 0 0 auto;
+		width: 36px;
+		height: 36px;
+		padding: 0;
+
+		display: flex;
+		align-items: center;
+		justify-content: center;
+
+		border: none;
+		border-radius: 8px;
+		background: transparent;
+		color: var(--ink-gray-6);
+		cursor: pointer;
+
+		svg,
+		img {
+			width: 20px;
+			height: 20px;
+		}
+
+		&:hover {
+			background: var(--sidebar-hover-color);
+		}
+
+		&.active {
+			background: var(--sidebar-active-color);
+			box-shadow: var(--sidebar-active-shadow);
+			color: var(--ink-gray-8);
+		}
+
+		// unread badge on the notification bell
+		.sidebar-notification-count {
+			position: absolute;
+			top: 2px;
+			right: 2px;
+			min-width: 15px;
+			height: 15px;
+			padding: 0 4px;
+			border-radius: 999px;
+			// match the blue notification indicator dot (surface-red-4 read as pink)
+			background: var(--indicator-dot-blue);
+			color: white;
+			font-size: 10px;
+			line-height: 15px;
+			text-align: center;
+
+			&.hidden {
+				display: none;
+			}
+		}
+
+		// The shared notification.scss positions the unseen dot for the sidebar's padded 28px icon;
+		// re-place it for the dock's centered 20px icon so it sits on the bell's top-right corner.
+		.sidebar-item-icon.indicator::before {
+			top: -1px;
+			right: -1px;
+			height: 8px;
+			width: 8px;
+			border-radius: 50%;
+		}
+	}
+}
+
+// the user menu and notification bell live in the dock while it's active -- drop the sidebar copies
+body.workspace-dock-active .body-sidebar {
+	.dropdown-navbar-user,
+	.sidebar-notification {
+		display: none;
+	}
+}
+
+// mirror the body sidebar: the rail collapses away on mobile
+@include media-breakpoint-down(sm) {
+	.workspace-dock {
+		display: none;
+	}
+}
