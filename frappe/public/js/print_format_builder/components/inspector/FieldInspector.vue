@@ -380,12 +380,25 @@
 								<span class="pfb-insp-label">{{
 									__("Column {0}", [ci + 1])
 								}}</span>
-								<button
-									class="btn btn-xs btn-icon"
-									:title="__('Remove column')"
-									@click="remove_repeater_column(ci)"
-									v-html="frappe.utils.icon('x', 'xs')"
-								></button>
+								<div class="pfb-rep-col-head-actions">
+									<input
+										class="pfb-col-width-input"
+										type="number"
+										min="5"
+										max="100"
+										v-model.number="col.width"
+										@blur="clamp_repeater_width(col)"
+										:placeholder="__('auto')"
+										:title="__('Width %')"
+									/>
+									<span class="pfb-col-width-unit">%</span>
+									<button
+										class="btn btn-xs btn-icon"
+										:title="__('Remove column')"
+										@click="remove_repeater_column(ci)"
+										v-html="frappe.utils.icon('x', 'xs')"
+									></button>
+								</div>
 							</div>
 							<TemplateInput v-model="col.template" :fields="repeater_field_opts" />
 							<SegmentedRow
@@ -1043,6 +1056,14 @@ function clamp_width(col) {
 	col.width = Math.max(5, Math.min(100, parseInt(col.width) || 10));
 }
 
+function clamp_repeater_width(col) {
+	if (col.width === "" || col.width == null || isNaN(parseInt(col.width))) {
+		delete col.width;
+		return;
+	}
+	col.width = Math.max(5, Math.min(100, parseInt(col.width)));
+}
+
 // ── Per-column merged fields ───────────────────────────────
 // A column can merge several child fields into one cell. If one of the
 // merged fields is an image, it renders on the left (see Field.vue /
@@ -1614,5 +1635,10 @@ function toggle_field_borders(on) {
 	align-items: center;
 	justify-content: space-between;
 	margin-bottom: 6px;
+}
+.pfb-rep-col-head-actions {
+	display: flex;
+	align-items: center;
+	gap: 4px;
 }
 </style>

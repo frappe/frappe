@@ -3,6 +3,11 @@
 <div class="pfb-repeater" {{ field_attributes(df) }}>
 	{% if df.label and _show_label != 'hide' %}<div class="label">{{ _(df.label) }}</div>{% endif %}
 	<table class="pfb-repeater-table">
+		<colgroup>
+			{% for col in (df.repeater_columns or []) %}
+			<col{% if col.width %} style="width: {{ col.width|int }}%"{% endif %} />
+			{% endfor %}
+		</colgroup>
 		{% for row in doc.get(df.source) %}
 		<tr>
 			{% for col in (df.repeater_columns or []) %}

@@ -171,6 +171,13 @@
 						{{ df.label }}
 					</div>
 					<table class="preview-table preview-table--borderless">
+						<colgroup>
+							<col
+								v-for="(col, ci) in df.repeater_columns || []"
+								:key="ci"
+								:style="col.width ? { width: col.width + '%' } : {}"
+							/>
+						</colgroup>
 						<tbody>
 							<tr
 								v-for="(row, i) in (preview_doc[df.source] || []).slice(0, 6)"
