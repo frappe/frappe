@@ -1,6 +1,7 @@
 context("Tree View", () => {
 	before(() => {
 		cy.login();
+		cy.visit("/desk/website");
 		cy.call("frappe.tests.ui_test_helpers.setup_tree_doctype");
 	});
 
