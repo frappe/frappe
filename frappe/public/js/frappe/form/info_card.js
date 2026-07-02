@@ -43,9 +43,9 @@ export class InfoCard {
 			if (this.df.description && this.df.show_description_on_click) {
 				card_args.message += "<br>";
 			}
-			card_args.message += `<a style="display: inline-block; text-underline-offset: 2px;" class="py-1" href="${
+			card_args.message += `<a style="display: inline-flex; align-items: center; gap: 4px; text-decoration: underline; text-underline-offset: 2px;" class="py-1" href="${
 				this.df.documentation_url
-			}" target="_blank">${__("View Documentation")}</a>`;
+			}" target="_blank">${frappe.utils.icon("link-url", "sm")}${__("View Documentation")}</a>`;
 		}
 		this.card = new frappe.ui.SidebarCard(card_args);
 	}
