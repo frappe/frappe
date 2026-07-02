@@ -12,7 +12,7 @@ frappe.doctype_settings.register("permissions", function (panel, doctype) {
 	const reload = () => draw(panel, doctype);
 	panel.set_view({
 		title: __("Permissions"),
-		description: __("Who can access {0}, by role.", [doctype]),
+		description: __("Control who can access {0}.", [doctype]),
 		actions: [
 			{
 				label: __("Add role"),
@@ -231,8 +231,8 @@ function footer(panel, doctype) {
 	const $footer = $('<div class="dts-perm-footer"></div>');
 	$("<span></span>").appendTo($footer); // spacer to keep the link right-aligned
 	$('<a href="#" class="dts-perm-footer-link"></a>')
-		.append(frappe.utils.icon("link-url", "sm"))
 		.append($("<span></span>").text(__("Open Role Permissions Manager")))
+		.append(frappe.utils.icon("external-link", "sm"))
 		.appendTo($footer)
 		.on("click", (e) => {
 			e.preventDefault();

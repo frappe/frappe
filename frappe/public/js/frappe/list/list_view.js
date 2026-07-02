@@ -2221,6 +2221,18 @@ frappe.views.ListView = class ListView extends frappe.views.BaseList {
 				standard: true,
 				shortcut: "Ctrl+Y",
 			});
+
+			items.push({
+				label: __("Settings"),
+				action: () => {
+					// The DocType Settings feature ships as its own on-demand bundle
+					// (kept out of desk.bundle.js), so load it before opening.
+					frappe.require("doctype_settings.bundle.js", () => {
+						frappe.doctype_settings.open(doctype);
+					});
+				},
+				standard: true,
+			});
 		}
 
 		if (frappe.user.has_role("System Manager") && frappe.boot.developer_mode) {

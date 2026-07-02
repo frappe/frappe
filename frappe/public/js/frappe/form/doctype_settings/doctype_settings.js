@@ -73,7 +73,7 @@ function build_dialog(doctype, has_general) {
 			default_tab,
 		});
 		frappe.doctype_settings._dialog = dialog;
-	} else if (dialog.doctype !== doctype) {
+	} else {
 		dialog.reset(tabs, default_tab);
 	}
 

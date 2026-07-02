@@ -421,37 +421,37 @@
 	background-color: var(--surface-base);
 }
 
-// Empty state (banking-style): muted icon ▸ bold title ▸ muted description ▸ subtle action.
+// Empty state muted icon ▸ bold title ▸ muted description ▸ subtle action.
 .dts-empty {
 	display: flex;
 	flex-direction: column;
 	align-items: center;
 	text-align: center;
-	gap: var(--margin-xs);
 	padding: var(--padding-2xl) var(--padding-lg);
+	gap: calc(var(--spacing) * 2);
 
 	.dts-empty-icon {
-		margin-bottom: var(--margin-sm);
-		color: var(--ink-gray-4);
+		color: var(--ink-gray-5);
 
 		.icon {
-			width: 28px;
-			height: 28px;
+			width: 32px;
+			height: 32px;
 		}
 	}
 
 	.dts-empty-title {
-		color: var(--ink-gray-7);
-		font-size: var(--text-lg);
+		color: var(--ink-gray-8);
+		font-size: var(--text-2xl);
+		font-weight: var(--weight-medium);
 	}
 
 	.dts-empty-description {
-		color: var(--ink-gray-6);
+		color: var(--ink-gray-5);
 		font-size: var(--text-base);
 	}
 
 	// Spacing only — the button's look comes from `.es-button` (subtle gray variant).
 	.dts-empty-action {
-		margin-top: var(--margin-md);
+		margin-top: var(--spacing);
 	}
 }

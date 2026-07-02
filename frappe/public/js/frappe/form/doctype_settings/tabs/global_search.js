@@ -38,7 +38,7 @@ function render(panel, doctype, included, options) {
 
 	const actions = [
 		{
-			label: __("Manage Priority"),
+			label: __("Manage priority"),
 			click() {
 				panel.dialog.hide();
 				frappe.set_route("Form", SETTINGS);
@@ -49,14 +49,16 @@ function render(panel, doctype, included, options) {
 		actions.push({
 			label: __("Save"),
 			click: () => save(panel, doctype, state),
+			variant: "solid",
 		});
 	}
 
 	panel.set_view({
 		title: __("Global Search"),
-		description: __("Index {0} in global search and choose which fields are searchable.", [
-			doctype,
-		]),
+		description: __(
+			"Configure fields to show when searching for {0} globally. Open global search via {1}.",
+			[doctype, frappe.ui.keys.get_shortcut_label("Ctrl+G")]
+		),
 		actions,
 		render: (p) => draw(p, doctype, state),
 	});
@@ -84,6 +86,8 @@ function draw(panel, doctype, state) {
 	);
 
 	if (!state.included) return;
+
+	$(`<div class="text-base pb-3 font-medium">${__("Configure fields")}</div>`).appendTo($body);
 
 	const $input = $('<input type="text" class="form-control input-sm dts-gs-search" />')
 		.attr("placeholder", __("Search fields"))

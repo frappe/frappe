@@ -123,14 +123,14 @@ frappe.doctype_settings.groups = [
 				// Role permission APIs are System-Manager-only; hide the tab otherwise.
 				condition: () => frappe.user.has_role("System Manager"),
 			},
-			{ id: "print-format", label: __("Print Format"), icon: "printer" },
+			{ id: "print-format", label: __("Print Formats"), icon: "printer" },
 		],
 	},
 	{
 		group: __("Communication"),
 		items: [
 			{ id: "notifications", label: __("Notifications"), icon: "bell" },
-			{ id: "email-template", label: __("Email Template"), icon: "mail" },
+			{ id: "email-template", label: __("Email Templates"), icon: "mail" },
 		],
 	},
 	{

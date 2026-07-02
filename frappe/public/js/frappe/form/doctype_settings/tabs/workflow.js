@@ -14,7 +14,7 @@ frappe.doctype_settings.register("workflow", function (panel, doctype) {
 
 	frappe.doctype_settings.render_list(panel, {
 		title: __("Workflow"),
-		description: __("Workflows for {0}. Only one can be active at a time.", [doctype]),
+		description: __("Setup a multi-step workflow for {0}.", [doctype]),
 		show_header: true,
 		primary_action: { label: __("New"), icon: "add", onclick: create },
 		load: () =>

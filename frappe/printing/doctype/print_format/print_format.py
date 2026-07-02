@@ -225,7 +225,6 @@ def printable_sample(doctype: str) -> str | None:
 	return sample[0] if sample else None
 
 
-@frappe.whitelist()
 def generate_preview(name: str) -> str | None:
 	"""Render this format against a sample document, screenshot the HTML via the
 	bundled Chromium, and store the result in the format's `preview_image` field.
@@ -234,20 +233,10 @@ def generate_preview(name: str) -> str | None:
 	`validate` blocks saving) and skips the full validation cycle. Returns the new
 	image URL, or None when there's no printable sample to render against."""
 	doc = frappe.get_doc("Print Format", name)
-	# Generating a preview writes back to the format (preview_image) and creates a File,
-	# so require write — not just read — to avoid read-only users mutating it or spawning
-	# expensive screenshot/file work.
-	doc.check_permission("write")
-
-	if doc.print_format_for != "DocType" or not doc.doc_type:
-		frappe.throw(_("Preview is only available for DocType print formats"))
 
 	sample_name = printable_sample(doc.doc_type)
 	if not sample_name:
-		frappe.msgprint(
-			_("No printable {0} document found to render a preview").format(frappe.bold(doc.doc_type))
-		)
-		return None
+		return
 
 	from frappe.utils.file_manager import save_file
 	from frappe.utils.preview import get_preview_from_html

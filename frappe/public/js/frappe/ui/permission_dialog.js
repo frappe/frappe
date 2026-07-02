@@ -317,6 +317,7 @@ frappe.ui.PermissionDialog = class PermissionDialog {
 		ALL_PERM_FLAGS.forEach((flag) =>
 			this.dialog.set_df_property(flag, "hidden", visible(flag) ? 0 : 1)
 		);
+		this.dialog.set_df_property("sb_only_if_creator", "hidden", high_level ? 1 : 0);
 		this.dialog.set_df_property("if_owner", "hidden", high_level ? 1 : 0);
 		PERM_SECTIONS.forEach((section) => {
 			const any = section.flags.some((flag) => visible(flag.name));

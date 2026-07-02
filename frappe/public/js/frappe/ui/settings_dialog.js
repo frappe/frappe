@@ -65,7 +65,7 @@ frappe.ui.SettingsDialogPanel = class SettingsDialogPanel {
 
 	make_action(action) {
 		const $btn = $(`<button type="button" class="es-button" data-size="sm"></button>`)
-			.attr("data-variant", action.primary ? "solid" : "subtle")
+			.attr("data-variant", action.variant || "subtle")
 			.addClass(action.class || "");
 		if (action.icon) $btn.append(frappe.utils.icon(action.icon, "sm"));
 		$btn.append($("<span></span>").text(action.label || ""));

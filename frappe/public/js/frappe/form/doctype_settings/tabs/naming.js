@@ -63,9 +63,10 @@ function make_series_section($body, doctype) {
 		$body,
 		{
 			title: __("Naming Series"),
-			description: __("Series used to auto-name {0}, with a preview of the next names.", [
-				doctype,
-			]),
+			description: __(
+				"Configure naming series options for {0}. You can choose a series when creating a document.",
+				[doctype]
+			),
 			add_label: __("Add Series"),
 			on_add: (refresh) => add_series(doctype, refresh),
 		},
@@ -291,9 +292,10 @@ function make_rules_section($body, doctype, panel) {
 		$body,
 		{
 			title: __("Naming Rules"),
-			description: __("Rules that generate names for {0}, applied in priority order.", [
-				doctype,
-			]),
+			description: __(
+				"Configure conditional naming rules for {0}. Rules are applied in priority order.",
+				[doctype]
+			),
 			add_label: __("New"),
 			on_add: () => {
 				panel.dialog.hide();
@@ -301,7 +303,7 @@ function make_rules_section($body, doctype, panel) {
 			},
 		},
 		{
-			empty_message: __("No Naming Rules found."),
+			empty_message: __("No rules found."),
 			// Add a derived `status` label for the badge column.
 			get_data: () =>
 				frappe.db

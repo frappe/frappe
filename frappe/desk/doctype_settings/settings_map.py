@@ -45,7 +45,7 @@ def get_settings_map(doctype: str) -> list[dict]:
 	# `doctype` could still learn it has a settings map and read every mapped Single field
 	# they happen to have access to (matches the guard `has_settings_map` applies).
 	if not frappe.has_permission(doctype, "read"):
-		frappe.throw(_("Not permitted"), frappe.PermissionError)
+		frappe.throw(_("You are not permitted to access {0}.".format(doctype)), frappe.PermissionError)
 
 	# Exactly one map per doctype is active (enforced by the controller). `is_standard asc`
 	# is a defensive tie-break (custom before standard) in case of inconsistent data.
@@ -55,11 +55,10 @@ def get_settings_map(doctype: str) -> list[dict]:
 		fields=["name"],
 		order_by="is_standard asc",
 		limit=1,
-		ignore_permissions=True,
 	)
 	if not active:
 		return []
-	mappings = frappe.get_cached_doc("DocType Settings Map", active[0].name, ignore_permissions=True).mappings
+	mappings = frappe.get_cached_doc("DocType Settings Map", active[0].name).mappings
 
 	# Group the mapped fieldnames by their source Settings doctype, preserving order.
 	by_single: dict[str, list[str]] = {}
@@ -95,10 +94,10 @@ def get_settings_map(doctype: str) -> list[dict]:
 			fields.append(
 				{
 					"fieldname": df.fieldname,
-					"label": _(df.label) if df.label else df.fieldname,
+					"label": df.label if df.label else df.fieldname,
 					"fieldtype": df.fieldtype,
 					"options": df.options,
-					"description": _(df.description) if df.description else None,
+					"description": df.description,
 					"value": doc.get(df.fieldname),
 					"can_write": doc_write and permlevel in write_levels,
 					# Raw expressions (JavaScript) — evaluated client-side, so NOT translated.
@@ -123,7 +122,7 @@ def get_settings_map(doctype: str) -> list[dict]:
 		groups.append(
 			{
 				"settings": single,
-				"label": _(single),
+				"label": single,
 				"doc": doc_context,
 				"fields": fields,
 			}

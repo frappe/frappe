@@ -37,7 +37,10 @@ frappe.doctype_settings.register("print-format", function (panel, doctype) {
 	};
 	panel.set_view({
 		title: __("Print Format"),
-		description: __("Print formats available for {0}.", [doctype]),
+		description: __(
+			"Configure print formats for {0}. You can choose a format when printing or emailing a document.",
+			[doctype]
+		),
 		actions: [{ label: __("New"), icon: "add", click: create }],
 		render: () => load(),
 	});

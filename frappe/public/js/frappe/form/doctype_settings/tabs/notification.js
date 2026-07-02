@@ -24,7 +24,7 @@ frappe.doctype_settings.register("notifications", function (panel, doctype) {
 
 	frappe.doctype_settings.render_list(panel, {
 		title: __("Notifications"),
-		description: __("Notifications that trigger for {0}.", [doctype]),
+		description: __("Send automatic notifications for events on any {0}.", [doctype]),
 		show_header: true,
 		primary_action: { label: __("New"), icon: "add", onclick: create },
 		load: () =>
@@ -91,7 +91,7 @@ frappe.doctype_settings.register("notifications", function (panel, doctype) {
 		],
 		empty_state: {
 			icon: frappe.doctype_settings.tab_icon("notifications"),
-			title: __("No Notifications found"),
+			title: __("No notifications configured"),
 			description: __("Create a notification to alert users about {0} events.", [doctype]),
 			action: { label: __("New Notification"), onclick: create },
 		},
