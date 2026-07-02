@@ -8,12 +8,6 @@
 	display: flex;
 	flex-direction: column;
 }
-.pfb-insp-placeholder {
-	align-items: center;
-	justify-content: center;
-	padding: 24px;
-	text-align: center;
-}
 .pfb-insp-section {
 	border-bottom: 1px solid var(--border-color);
 }

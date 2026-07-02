@@ -1494,44 +1494,6 @@ function toggle_field_borders(on) {
 }
 
 /* ── Letter Head inspector ───────────────────────────────── */
-.pfb-lh-zone-label {
-	display: flex;
-	align-items: center;
-	gap: 6px;
-	font-size: var(--text-tiny);
-	font-weight: var(--weight-semibold);
-	text-transform: uppercase;
-	letter-spacing: 0.06em;
-	color: var(--blue-500);
-	background: var(--blue-50);
-	border-bottom: 1px solid var(--blue-200);
-	padding: 7px 14px;
-	flex-shrink: 0;
-}
-
-.pfb-lh-slider {
-	width: 100%;
-	accent-color: var(--primary);
-}
-
-.pfb-lh-actions {
-	display: flex;
-	flex-direction: column;
-	gap: 6px;
-}
-
-.pfb-lh-footer-preview {
-	font-size: var(--text-sm);
-	color: var(--text-muted);
-	padding: 6px 8px;
-	border: 1px solid var(--border-color);
-	border-radius: var(--radius);
-	background: var(--gray-50);
-	max-height: 80px;
-	overflow: hidden;
-	margin-bottom: 6px;
-}
-
 .pfb-lh-edit-btn {
 	display: inline-flex;
 	align-items: center;
