@@ -2,20 +2,20 @@
 	<div class="pfb-tpl">
 		<div class="table-multiselect pfb-tpl-row">
 			<template v-for="(tok, i) in modelValue" :key="i">
-				<button v-if="tok.t === 'f'" type="button" class="data-pill btn tb-selected-value">
-					<span class="pill-label">{{ field_label(tok.v) }}</span>
+				<span v-if="tok.t === 'f'" class="es-badge">
+					{{ field_label(tok.v) }}
 					<span
-						class="remove-btn"
+						class="pfb-tpl-x"
 						@click="remove(i)"
 						v-html="frappe.utils.icon('x', 'xs')"
 					></span>
-				</button>
+				</span>
 				<input
 					v-else
 					class="pfb-tpl-text"
 					type="text"
 					v-model="tok.v"
-					:size="Math.max((tok.v || '').length, only_empty_text ? 14 : 2)"
+					:size="Math.max((tok.v || '').length, only_empty_text ? 14 : 1)"
 					:placeholder="only_empty_text ? __('Type text…') : ''"
 				/>
 			</template>
@@ -115,8 +115,12 @@ function remove(i) {
 	background: transparent;
 	font-size: var(--text-sm);
 	color: var(--text-color);
-	min-width: 12px;
-	padding: 0 2px;
+	min-width: 8px;
+	padding: 0;
+}
+.pfb-tpl-x {
+	display: inline-flex;
+	cursor: pointer;
 }
 .pfb-tpl-hint {
 	font-size: var(--text-tiny);
