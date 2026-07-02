@@ -98,41 +98,13 @@
 		background-color: var(--surface-elevation-2);
 	}
 
+	// Layout-specific: titlebar and sidebar use Frappe tokens (theme-preview equivalents
+	// use --preview-* custom props; structural styles are shared in theme_switcher.scss).
 	.layout-preview-titlebar {
-		display: flex;
-		gap: 3px;
-		padding: 3px 4px;
 		border-bottom: 1px solid var(--outline-gray-2);
-		flex-shrink: 0;
-	}
-
-	.layout-preview-dot {
-		width: 6px;
-		height: 6px;
-		border-radius: 50%;
-		flex-shrink: 0;
-
-		&.layout-preview-dot--red {
-			background: #ff5f57;
-		}
-		&.layout-preview-dot--yellow {
-			background: #febc2d;
-		}
-		&.layout-preview-dot--green {
-			background: #28c840;
-		}
-	}
-
-	.layout-preview-content {
-		flex: 1;
-		display: flex;
-		overflow: hidden;
-		min-height: 0;
 	}
 
 	.layout-preview-sidebar {
-		width: 22%;
-		flex-shrink: 0;
 		background-color: var(--surface-gray-3);
 		border-right: 1px solid var(--outline-gray-2);
 	}
@@ -157,7 +129,7 @@
 	.layout-preview-header-title {
 		height: 3px;
 		width: 30%;
-		border-radius: 9999px;
+		border-radius: var(--radius-full);
 		background-color: var(--surface-gray-3);
 	}
 
@@ -168,36 +140,16 @@
 		background-color: var(--surface-gray-2);
 	}
 
-	.layout-preview-body {
-		flex: 1;
-		display: grid;
-		grid-template-columns: 1fr 1fr;
-		gap: 5px;
-		padding: 6px;
-
-		&.layout-preview-body--compact {
-			padding-left: 30px;
-			padding-right: 30px;
-		}
-	}
-
-	.layout-preview-field {
-		display: flex;
-		flex-direction: column;
-		gap: 2px;
-		justify-content: center;
+	.layout-preview-body--compact {
+		padding-left: 30px;
+		padding-right: 30px;
 	}
 
 	.layout-preview-label {
-		height: 2px;
-		width: 50%;
-		border-radius: 9999px;
 		background-color: var(--surface-gray-3);
 	}
 
 	.layout-preview-input {
-		height: 8px;
-		border-radius: 2px;
 		background-color: var(--surface-gray-2);
 	}
 
@@ -218,13 +170,13 @@
 
 	.preference-label {
 		font-size: var(--text-sm);
-		font-weight: 420;
+		font-weight: var(--weight-regular);
 		color: var(--text-muted);
 	}
 
 	.preference-value {
 		font-size: var(--text-base);
-		font-weight: 420;
+		font-weight: var(--weight-regular);
 		color: var(--text-color);
 	}
 }

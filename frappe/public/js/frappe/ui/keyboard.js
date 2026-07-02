@@ -81,75 +81,77 @@ frappe.ui.keys.add_shortcut = ({
 	}
 };
 
+frappe.ui.keys.get_shortcut_groups = () => {
+	const page_name = window.cur_page?.page?.page;
+	const frm_name = window.cur_page?.page?.frm;
+	return [
+		{ heading: __("Global Shortcuts"), shortcuts: standard_shortcuts.filter((s) => !s.page) },
+		{
+			heading: __("Page Shortcuts"),
+			shortcuts: standard_shortcuts.filter((s) => s.page && s.page === page_name),
+		},
+		{
+			heading: __("Grid Shortcuts"),
+			shortcuts: standard_shortcuts.filter((s) => s.page && s.page === frm_name),
+		},
+	];
+};
+
+frappe.ui.keys.generate_shortcuts_html = (shortcuts, heading) => {
+	if (!shortcuts.length) return "";
+
+	const deduped = [];
+	const seen = {};
+	shortcuts
+		.filter((s) => (s.condition ? s.condition() : true))
+		.filter((s) => !!s.description)
+		.forEach((shortcut) => {
+			if (seen[shortcut.description] !== undefined) {
+				deduped[seen[shortcut.description]].keys.push(shortcut.shortcut);
+			} else {
+				seen[shortcut.description] = deduped.length;
+				deduped.push({ ...shortcut, keys: [shortcut.shortcut] });
+			}
+		});
+
+	const rows = deduped
+		.map((shortcut) => {
+			const shortcut_label = shortcut.keys
+				.map(
+					(k) =>
+						`<kbd>${frappe.utils.escape_html(
+							frappe.ui.keys.get_shortcut_label(k)
+						)}</kbd>`
+				)
+				.join(" / ");
+			const description = frappe.utils.escape_html(shortcut.description || "");
+			return `<tr>
+				<td width="40%">${shortcut_label}</td>
+				<td width="60%">${description}</td>
+			</tr>`;
+		})
+		.join("");
+	if (!rows) return "";
+
+	return `<h5 style="margin: 0;">${heading}</h5>
+		<table style="margin-top: 10px;" class="table table-bordered">
+			${rows}
+		</table>`;
+};
+
 frappe.ui.keys.show_keyboard_shortcut_dialog = () => {
 	if (frappe.ui.keys.is_dialog_shown) return;
 
-	let global_shortcuts = standard_shortcuts.filter((shortcut) => !shortcut.page);
-	let current_page_shortcuts = standard_shortcuts.filter(
-		(shortcut) => shortcut.page && shortcut.page === window.cur_page.page.page
-	);
-
-	let grid_shortcuts = standard_shortcuts.filter(
-		(shortcut) => shortcut.page && shortcut.page === window.cur_page.page.frm
-	);
-
-	function generate_shortcuts_html(shortcuts, heading) {
-		if (!shortcuts.length) {
-			return "";
-		}
-		let deduped = [];
-		let seen = {};
-		shortcuts
-			.filter((s) => (s.condition ? s.condition() : true))
-			.filter((s) => !!s.description)
-			.forEach((shortcut) => {
-				if (seen[shortcut.description] !== undefined) {
-					deduped[seen[shortcut.description]].keys.push(shortcut.shortcut);
-				} else {
-					seen[shortcut.description] = deduped.length;
-					deduped.push({ ...shortcut, keys: [shortcut.shortcut] });
-				}
-			});
-		let html = deduped
-			.map((shortcut) => {
-				let shortcut_label = shortcut.keys
-					.map((k) => {
-						let label = frappe.ui.keys.get_shortcut_label(k);
-						return `<kbd>${label}</kbd>`;
-					})
-					.join(" / ");
-				return `<tr>
-					<td width="40%">${shortcut_label}</td>
-					<td width="60%">${shortcut.description || ""}</td>
-				</tr>`;
-			})
-			.join("");
-		if (!html) return "";
-
-		html = `<h5 style="margin: 0;">${heading}</h5>
-			<table style="margin-top: 10px;" class="table table-bordered">
-				${html}
-			</table>`;
-		return html;
-	}
-
-	let global_shortcuts_html = generate_shortcuts_html(global_shortcuts, __("Global Shortcuts"));
-	let current_page_shortcuts_html = generate_shortcuts_html(
-		current_page_shortcuts,
-		__("Page Shortcuts")
-	);
-	let grid_shortcuts_html = generate_shortcuts_html(grid_shortcuts, __("Grid Shortcuts"));
-
-	let dialog = new frappe.ui.Dialog({
+	const dialog = new frappe.ui.Dialog({
 		title: __("Keyboard Shortcuts"),
 		on_hide() {
 			frappe.ui.keys.is_dialog_shown = false;
 		},
 	});
 
-	dialog.$body.append(global_shortcuts_html);
-	dialog.$body.append(current_page_shortcuts_html);
-	dialog.$body.append(grid_shortcuts_html);
+	frappe.ui.keys.get_shortcut_groups().forEach(({ heading, shortcuts }) => {
+		dialog.$body.append(frappe.ui.keys.generate_shortcuts_html(shortcuts, heading));
+	});
 	dialog.$body.append(`
 		<div class="text-muted">
 			${__("Press Alt Key to trigger additional shortcuts in Menu and Sidebar")}

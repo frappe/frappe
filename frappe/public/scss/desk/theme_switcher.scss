@@ -99,46 +99,60 @@
 	overflow: hidden;
 }
 
-.theme-preview-titlebar {
+.theme-preview-titlebar,
+.layout-preview-titlebar {
 	display: flex;
 	gap: 3px;
 	padding: 3px 4px;
-	border-bottom: 1px solid var(--preview-border);
 	flex-shrink: 0;
 }
 
-.theme-preview-content {
+.theme-preview-titlebar {
+	border-bottom: 1px solid var(--preview-border);
+}
+
+.theme-preview-content,
+.layout-preview-content {
 	flex: 1;
 	display: flex;
 	overflow: hidden;
 	min-height: 0;
 }
 
-.theme-preview-sidebar {
+.theme-preview-sidebar,
+.layout-preview-sidebar {
 	width: 22%;
 	flex-shrink: 0;
+}
+
+.theme-preview-sidebar {
 	background: var(--preview-subtle);
 	border-right: 1px solid var(--preview-border);
 }
 
-.theme-preview-dot {
+.theme-preview-dot,
+.layout-preview-dot {
 	width: 6px;
 	height: 6px;
 	border-radius: 50%;
 	flex-shrink: 0;
 
-	&.theme-preview-dot--red {
+	&.theme-preview-dot--red,
+	&.layout-preview-dot--red {
 		background: #ff5f57;
 	}
-	&.theme-preview-dot--yellow {
+	&.theme-preview-dot--yellow,
+	&.layout-preview-dot--yellow {
 		background: #febc2d;
 	}
-	&.theme-preview-dot--green {
+	&.theme-preview-dot--green,
+	&.layout-preview-dot--green {
 		background: #28c840;
 	}
 }
 
-.theme-preview-body {
+.theme-preview-body,
+.layout-preview-body {
 	flex: 1;
 	min-width: 0;
 	display: grid;
@@ -147,23 +161,32 @@
 	padding: 6px;
 }
 
-.theme-preview-field {
+.theme-preview-field,
+.layout-preview-field {
 	display: flex;
 	flex-direction: column;
 	gap: 2px;
 	justify-content: center;
 }
 
-.theme-preview-label {
+.theme-preview-label,
+.layout-preview-label {
 	height: 2px;
 	width: 50%;
-	border-radius: 9999px;
+	border-radius: var(--radius-full);
+}
+
+.theme-preview-label {
 	background: var(--preview-strong);
 }
 
-.theme-preview-input {
+.theme-preview-input,
+.layout-preview-input {
 	height: 8px;
 	border-radius: 2px;
+}
+
+.theme-preview-input {
 	background: var(--preview-muted);
 }
 
@@ -177,7 +200,7 @@
 
 .theme-card-label {
 	font-size: var(--text-base);
-	font-weight: 420;
+	font-weight: var(--weight-regular);
 	color: var(--text-color);
 }
 

@@ -8,29 +8,33 @@ frappe.ui.show_user_settings = async function (default_tab) {
 			frappe.all_timezones = message?.timezones || [];
 		}
 
+		// Fields already loaded at boot time; fetch only the rest.
+		const boot_user = frappe.boot.user || {};
 		const response = await frappe.db.get_value("User", frappe.session.user, [
-			"first_name",
 			"middle_name",
-			"last_name",
 			"username",
 			"thread_notify",
-			"send_me_a_copy",
-			"email_signature",
-			"language",
 			"time_zone",
 			"notifications",
 			"search_bar",
-			"mute_sounds",
 			"list_sidebar",
 			"bulk_actions",
 			"view_switcher",
 			"form_sidebar",
 			"timeline",
 			"dashboard",
-			"show_absolute_datetime_in_timeline",
 			"form_navigation_buttons",
 		]);
-		user_data = response.message;
+		user_data = {
+			first_name: boot_user.first_name,
+			last_name: boot_user.last_name,
+			email_signature: boot_user.email_signature,
+			language: boot_user.language,
+			mute_sounds: boot_user.mute_sounds,
+			send_me_a_copy: boot_user.send_me_a_copy,
+			show_absolute_datetime_in_timeline: boot_user.show_absolute_datetime_in_timeline,
+			...response.message,
+		};
 	} catch (e) {
 		frappe.show_alert({
 			message: __("Failed to load settings"),
@@ -39,6 +43,9 @@ frappe.ui.show_user_settings = async function (default_tab) {
 		console.error(e);
 		return;
 	}
+
+	// Discard any prior instance so we don't accumulate modals in the DOM.
+	frappe.ui._user_settings_dialog?.$wrapper?.remove();
 
 	const d = new frappe.ui.SettingsDialog({
 		title: __("Settings"),
@@ -60,6 +67,7 @@ frappe.ui.show_user_settings = async function (default_tab) {
 		],
 	});
 
+	frappe.ui._user_settings_dialog = d;
 	d.show();
 };
 
@@ -318,9 +326,8 @@ function _render_layout_cards(panel) {
 			if ($card.hasClass("selected")) return;
 			$grid.find(".theme-card-wrapper").removeClass("selected");
 			$card.addClass("selected");
-			localStorage.container_fullwidth = opt.full ? "true" : "false";
-			frappe.ui.toolbar.set_fullwidth_if_enabled();
-			$(document.body).trigger("toggleFullWidth");
+			// Two cards, so clicking the other one always means toggling.
+			frappe.ui.toolbar.toggle_full_width();
 		});
 
 		$grid.append($card);
@@ -604,20 +611,18 @@ function _forms_tab(user_data) {
 
 function _session_defaults_tab() {
 	const fields = frappe.boot.session_defaults || [];
-	const perms = frappe.perm.get_perm("Session Default Settings");
-	const can_configure = frappe.user_roles.includes("System Manager") || perms?.[0]?.read == 1;
 
-	const actions = [];
-
-	if (can_configure) {
-		actions.push({
+	// Configure button is shown to everyone (feature discoverability). Users without
+	// System Manager permission see a "Not Permitted" error on route change — expected.
+	const actions = [
+		{
 			label: __("Configure"),
 			click(panel) {
 				panel.dialog?.hide();
 				frappe.set_route("Form", "Session Default Settings", "Session Default Settings");
 			},
-		});
-	}
+		},
+	];
 
 	if (fields.length) {
 		actions.push({
@@ -658,7 +663,7 @@ function _session_defaults_tab() {
 		title: __("Session Defaults"),
 		description: __("Set default values for the current session."),
 		fields: fields.length ? [...fields] : undefined,
-		actions: actions.length ? actions : undefined,
+		actions,
 		render: fields.length
 			? undefined
 			: (panel) => {
@@ -679,52 +684,10 @@ function _keyboard_shortcuts_tab() {
 		title: __("Keyboard Shortcuts"),
 		description: __("Get around the system quickly with keyboard shortcuts"),
 		render(panel) {
-			const all_shortcuts = frappe.ui.keys.standard_shortcuts || [];
-			const cur_page = window.cur_page?.page;
-
-			const groups = [
-				[__("Global Shortcuts"), (s) => !s.page],
-				[__("Page Shortcuts"), (s) => s.page && s.page === cur_page?.page],
-				[__("Grid Shortcuts"), (s) => s.page && s.page === cur_page?.frm],
-			];
-
-			groups.forEach(([heading, filter]) => {
-				const deduped = [];
-				const seen = {};
-				all_shortcuts
-					.filter(filter)
-					.filter((s) => (s.condition ? s.condition() : true))
-					.filter((s) => !!s.description)
-					.forEach((s) => {
-						if (seen[s.description] !== undefined) {
-							deduped[seen[s.description]].keys.push(s.shortcut);
-						} else {
-							seen[s.description] = deduped.length;
-							deduped.push({ ...s, keys: [s.shortcut] });
-						}
-					});
-				if (!deduped.length) return;
-
-				panel.body.append(_section_heading(heading));
-				const rows = deduped
-					.map((s) => {
-						const key_html = s.keys
-							.map(
-								(k) =>
-									`<kbd>${frappe.utils.escape_html(
-										frappe.ui.keys.get_shortcut_label(k)
-									)}</kbd>`
-							)
-							.join(" / ");
-						const description = frappe.utils.escape_html(s.description);
-						return `<tr><td width="40%">${key_html}</td><td width="60%">${description}</td></tr>`;
-					})
-					.join("");
-				panel.body.append(
-					`<table class="table table-bordered settings-shortcuts-table"><tbody>${rows}</tbody></table>`
-				);
+			frappe.ui.keys.get_shortcut_groups().forEach(({ heading, shortcuts }) => {
+				const html = frappe.ui.keys.generate_shortcuts_html(shortcuts, heading);
+				if (html) panel.body.append(html);
 			});
-
 			panel.body.append(
 				`<div class="text-muted mt-3">${__(
 					"Press Alt Key to trigger additional shortcuts in Menu and Sidebar"

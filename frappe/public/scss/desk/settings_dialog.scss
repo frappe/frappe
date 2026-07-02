@@ -45,11 +45,9 @@
 	font-size: var(--text-xs);
 	font-weight: var(--weight-medium);
 	line-height: 1.15;
-	letter-spacing: 0.02em;
 	color: var(--text-muted);
 	background-color: var(--surface-sidebar);
 	cursor: default;
-	transition: all 0.3s ease-in-out;
 }
 
 .settings-dialog-tab-list {
@@ -75,7 +73,7 @@
 	color: var(--text-muted);
 	text-align: left;
 	cursor: pointer;
-	transition: all 0.3s ease-in-out;
+	transition: background-color 0.2s ease;
 
 	&:hover {
 		background-color: var(--surface-gray-3);
@@ -108,7 +106,6 @@
 	width: 100%;
 	min-width: 0;
 	padding: 7px 0.5rem;
-	transition: all 0.3s ease-in-out;
 }
 
 .settings-dialog-tab-icon {
@@ -127,14 +124,12 @@
 	flex: 1;
 	min-width: 0;
 	font-size: var(--text-sm);
-	font-weight: 420;
+	font-weight: var(--weight-regular);
 	line-height: 1.15;
-	letter-spacing: 0.02em;
 	color: var(--text-muted);
 	white-space: nowrap;
 	overflow: hidden;
 	text-overflow: ellipsis;
-	transition: all 0.3s ease-in-out;
 }
 
 .settings-dialog-panels {
@@ -160,7 +155,6 @@
 	justify-content: space-between;
 	align-items: flex-start;
 	padding: 0 0.5rem;
-	color: var(--text-color);
 }
 
 .settings-dialog-panel-heading {
@@ -177,15 +171,12 @@
 	font-size: var(--text-xl);
 	font-weight: var(--weight-semibold);
 	line-height: 1;
-	letter-spacing: 0.01em;
-	color: var(--text-color);
 }
 
 .settings-dialog-panel-description {
 	font-size: var(--text-base);
-	font-weight: 420;
+	font-weight: var(--weight-regular);
 	line-height: 1.5;
-	letter-spacing: 0.02em;
 	color: var(--text-muted);
 }
 
@@ -229,16 +220,13 @@ table + .settings-dialog-section-heading {
 	font-size: var(--text-base);
 	font-weight: var(--weight-medium);
 	line-height: 1.5;
-	letter-spacing: 0.02em;
-	color: var(--text-color);
 }
 
 .settings-dialog-section-description {
 	margin-top: 2px;
 	font-size: var(--text-sm);
-	font-weight: 420;
+	font-weight: var(--weight-regular);
 	line-height: 1.5;
-	letter-spacing: 0.02em;
 	color: var(--text-muted);
 }
 
@@ -248,8 +236,6 @@ table + .settings-dialog-section-heading {
 	font-size: var(--text-base);
 	font-weight: var(--weight-medium);
 	line-height: 1.5;
-	letter-spacing: 0.02em;
-	color: var(--text-color);
 }
 
 .settings-dialog-panel-body .ql-editor {
@@ -277,18 +263,16 @@ table + .settings-dialog-section-heading {
 
 .settings-dialog-panel-body .control-label {
 	font-size: var(--text-base);
-	font-weight: 420;
+	font-weight: var(--weight-regular);
 	line-height: 1.5;
-	letter-spacing: 0.02em;
 	color: var(--text-muted);
 }
 
 .settings-dialog-panel-body .switch-control {
 	.label-area,
 	.help-box {
-		font-weight: 420;
+		font-weight: var(--weight-regular);
 		line-height: 1.5;
-		letter-spacing: 0.02em;
 	}
 }
 
