@@ -99,7 +99,8 @@
 						</draggable>
 						<div
 							v-if="
-								!preview_doc && column.fields.filter((f) => !f.remove).length === 0
+								(!preview_doc || is_selected) &&
+								column.fields.filter((f) => !f.remove).length === 0
 							"
 							class="empty-drop-zone"
 						>

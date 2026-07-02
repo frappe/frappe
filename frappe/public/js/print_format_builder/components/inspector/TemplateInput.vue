@@ -16,47 +16,65 @@
 					class="pfb-tpl-text"
 					type="text"
 					v-model="tok.v"
-					:size="Math.max((tok.v || '').length, 1)"
-					:placeholder="__('text')"
-					@blur="drop_if_empty(i)"
+					:size="Math.max((tok.v || '').length, 2)"
+					:placeholder="only_empty_text ? __('Type text…') : ''"
 				/>
 			</template>
-			<span v-if="!modelValue.length" class="pfb-tpl-empty">{{
-				__("Add fields and text…")
-			}}</span>
 		</div>
-		<div class="pfb-tpl-controls">
-			<select class="pfb-tpl-add" @change="add_field">
-				<option value="">{{ __("+ field") }}</option>
-				<option v-for="f in fields" :key="f.value" :value="f.value">{{ f.label }}</option>
-			</select>
-			<button type="button" class="pfb-tpl-add" @click="add_text">{{ __("+ text") }}</button>
-		</div>
+		<select class="pfb-tpl-add" @change="add_field">
+			<option value="">{{ __("+ field") }}</option>
+			<option v-for="f in fields" :key="f.value" :value="f.value">{{ f.label }}</option>
+		</select>
 	</div>
 </template>
 
 <script setup>
+import { computed, onMounted } from "vue";
+
 const props = defineProps({
 	modelValue: { type: Array, required: true },
 	fields: { type: Array, default: () => [] },
 });
 
+// Keep an editable text slot at the start, end, and between adjacent field
+// chips so literal text (e.g. " (", "%)") can always be typed inline.
+function normalize() {
+	const src = props.modelValue;
+	const out = [];
+	if (!src.length || src[0].t !== "s") out.push({ t: "s", v: "" });
+	src.forEach((tok, i) => {
+		out.push(tok);
+		if (tok.t === "f" && (!src[i + 1] || src[i + 1].t === "f")) out.push({ t: "s", v: "" });
+	});
+	if (out[out.length - 1].t !== "s") out.push({ t: "s", v: "" });
+	src.splice(0, src.length, ...out);
+}
+onMounted(normalize);
+
+let only_empty_text = computed(
+	() => props.modelValue.length === 1 && props.modelValue[0].t === "s" && !props.modelValue[0].v
+);
+
 function field_label(fieldname) {
 	return props.fields.find((f) => f.value === fieldname)?.label || fieldname;
 }
 function add_field(e) {
-	if (e.target.value) props.modelValue.push({ t: "f", v: e.target.value });
+	if (e.target.value) {
+		props.modelValue.push({ t: "f", v: e.target.value }, { t: "s", v: "" });
+	}
 	e.target.value = "";
-}
-function add_text() {
-	props.modelValue.push({ t: "s", v: "" });
 }
 function remove(i) {
 	props.modelValue.splice(i, 1);
-}
-function drop_if_empty(i) {
-	const tok = props.modelValue[i];
-	if (tok && tok.t === "s" && !tok.v) props.modelValue.splice(i, 1);
+	// merge text slots that became adjacent
+	const a = props.modelValue;
+	for (let j = a.length - 1; j > 0; j--) {
+		if (a[j].t === "s" && a[j - 1].t === "s") {
+			a[j - 1].v += a[j].v;
+			a.splice(j, 1);
+		}
+	}
+	normalize();
 }
 </script>
 
@@ -70,7 +88,7 @@ function drop_if_empty(i) {
 	display: flex;
 	flex-wrap: wrap;
 	align-items: center;
-	gap: 4px;
+	gap: 2px;
 	min-height: 30px;
 	padding: 4px 6px;
 	border: 1px solid var(--border-color);
@@ -103,19 +121,11 @@ function drop_if_empty(i) {
 	background: transparent;
 	font-size: var(--text-sm);
 	color: var(--text-color);
-	min-width: 8px;
+	min-width: 12px;
 	padding: 0 2px;
 }
-.pfb-tpl-empty {
-	font-size: var(--text-sm);
-	font-style: italic;
-	color: var(--text-muted);
-}
-.pfb-tpl-controls {
-	display: flex;
-	gap: 6px;
-}
 .pfb-tpl-add {
+	align-self: flex-start;
 	font-size: var(--text-tiny);
 	padding: 2px 6px;
 	border: 1px solid var(--border-color);
