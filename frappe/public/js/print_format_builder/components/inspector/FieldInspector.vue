@@ -407,6 +407,15 @@
 								:options="align_opts"
 								style="margin-top: 8px"
 							/>
+							<div class="pfb-insp-row" style="margin-top: 8px">
+								<span class="pfb-insp-label">{{ __("Style") }}</span>
+								<select class="pfb-insp-select" v-model="col.style">
+									<option value="">{{ __("Normal") }}</option>
+									<option v-for="s in merge_style_opts" :key="s.value" :value="s.value">
+										{{ s.label }}
+									</option>
+								</select>
+							</div>
 						</div>
 						<button class="pfb-add-btn" @click="add_repeater_column">
 							<span v-html="frappe.utils.icon('add', 'xs')"></span>

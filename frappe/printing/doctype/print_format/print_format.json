@@ -34,6 +34,8 @@
   "column_break_11",
   "font_size",
   "font",
+  "label_color",
+  "value_color",
   "page_number",
   "css_section",
   "css",
@@ -179,6 +181,18 @@
    "fieldname": "font",
    "fieldtype": "Data",
    "label": "Google Font"
+  },
+  {
+   "depends_on": "eval:!doc.custom_format",
+   "fieldname": "label_color",
+   "fieldtype": "Color",
+   "label": "Label Color"
+  },
+  {
+   "depends_on": "eval:!doc.custom_format",
+   "fieldname": "value_color",
+   "fieldtype": "Color",
+   "label": "Value Color"
   },
   {
    "depends_on": "eval:!doc.raw_printing",

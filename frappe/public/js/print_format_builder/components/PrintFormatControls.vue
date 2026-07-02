@@ -242,6 +242,33 @@
 				/>
 			</div>
 
+			<div class="pfb-group-label mt-3">{{ __("Colors") }}</div>
+			<div class="form-group" v-for="c in color_settings" :key="c.fieldname">
+				<label class="control-label">{{ c.label }}</label>
+				<div class="pfb-color-row">
+					<input
+						type="color"
+						class="pfb-color-swatch"
+						:value="print_format[c.fieldname] || c.default"
+						@input="(e) => (print_format[c.fieldname] = e.target.value)"
+					/>
+					<input
+						type="text"
+						class="form-control form-control-sm"
+						:placeholder="c.default"
+						:value="print_format[c.fieldname]"
+						@change="(e) => (print_format[c.fieldname] = e.target.value || null)"
+					/>
+					<button
+						v-if="print_format[c.fieldname]"
+						class="btn btn-xs btn-icon pfb-color-clear"
+						:title="__('Reset')"
+						@click="print_format[c.fieldname] = null"
+						v-html="frappe.utils.icon('x', 'xs')"
+					></button>
+				</div>
+			</div>
+
 			<div class="pfb-group-label mt-3">{{ __("Page number") }}</div>
 			<div class="form-group">
 				<select class="form-control form-control-sm" v-model="print_format.page_number">
@@ -333,6 +360,11 @@ const draggable_blocks = [
 			{ template: [], align: "right" },
 		],
 	},
+];
+
+const color_settings = [
+	{ fieldname: "label_color", label: __("Label"), default: "#6b7280" },
+	{ fieldname: "value_color", label: __("Value"), default: "#111827" },
 ];
 
 // ── helpers ────────────────────────────────────────────────
@@ -947,6 +979,28 @@ watch(print_format, () => (store.dirty.value = true), { deep: true });
 
 .pfb-margin-label {
 	font-size: var(--text-tiny);
+}
+
+.pfb-color-row {
+	display: flex;
+	align-items: center;
+	gap: 6px;
+}
+
+.pfb-color-swatch {
+	width: 28px;
+	height: 28px;
+	padding: 0;
+	border: 1px solid var(--border-color);
+	border-radius: var(--radius);
+	background: none;
+	cursor: pointer;
+	flex-shrink: 0;
+}
+
+.pfb-color-clear {
+	flex-shrink: 0;
+	color: var(--text-muted);
 }
 
 /* ── Empty state ─────────────────────────────────────────── */

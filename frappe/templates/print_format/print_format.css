@@ -131,6 +131,19 @@ body {
 	min-width: 0;
 }
 
+{%- if print_format.label_color %}
+.print-format .field .label,
+.print-format .field.left-right .label,
+.print-format .field.field-inline .label {
+	color: {{ print_format.label_color }};
+}
+{%- endif %}
+{%- if print_format.value_color %}
+.print-format .field .value {
+	color: {{ print_format.value_color }};
+}
+{%- endif %}
+
 /* Field-level alignment */
 .field.field-align-center {
 	text-align: center;
@@ -186,6 +199,23 @@ body {
 .pfb-repeater-cell {
 	padding: 0;
 	vertical-align: top;
+}
+
+/* Repeater column styles — mirror the child-table cell-line palette */
+.pfb-repeater-cell.cell-line--primary,
+.pfb-repeater-cell.cell-line--secondary {
+	color: #111827;
+}
+.pfb-repeater-cell.cell-line--primary {
+	font-weight: 600;
+}
+.pfb-repeater-cell.cell-line--mono-sm {
+	font-family: var(--monospace-font-family, monospace);
+}
+.pfb-repeater-cell.cell-line--mono-sm,
+.pfb-repeater-cell.cell-line--muted-sm {
+	font-size: 0.9em;
+	color: #6b7280;
 }
 
 /* Child table */

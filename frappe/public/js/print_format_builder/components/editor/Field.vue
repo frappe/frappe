@@ -186,6 +186,7 @@
 								<td
 									v-for="(col, ci) in df.repeater_columns || []"
 									:key="ci"
+									:class="col.style ? `cell-line--${col.style}` : ''"
 									:style="{ textAlign: col.align || 'left' }"
 								>
 									{{ repeater_cell(col, row) }}
@@ -901,7 +902,7 @@ watch(
 .field-preview-label {
 	font-size: var(--text-sm);
 	font-weight: var(--weight-semibold);
-	color: #6b7280;
+	color: var(--pfb-label-color, #6b7280);
 	margin-bottom: 1px;
 }
 
@@ -957,7 +958,7 @@ watch(
 
 .field-preview-value {
 	font-size: var(--text-sm);
-	color: var(--text-color);
+	color: var(--pfb-value-color, var(--text-color));
 	word-break: break-word;
 }
 
@@ -1051,6 +1052,23 @@ watch(
 .field-preview-repeater .preview-table td {
 	padding: 0;
 	border: none;
+}
+
+/* Repeater column styles — mirror the child-table cell-line palette */
+.field-preview-repeater td.cell-line--primary {
+	font-weight: 600;
+	color: #111827;
+}
+.field-preview-repeater td.cell-line--secondary {
+	color: #111827;
+}
+.field-preview-repeater td.cell-line--mono-sm {
+	font-family: var(--monospace-font-family, monospace);
+}
+.field-preview-repeater td.cell-line--mono-sm,
+.field-preview-repeater td.cell-line--muted-sm {
+	font-size: 0.9em;
+	color: #6b7280;
 }
 
 /* lined (default): no alternating rows */
