@@ -194,7 +194,7 @@ frappe.provide("frappe.views");
 				context.commit("update_state", { cards: cards });
 			},
 			update_order_for_single_card: function (context, card) {
-				const _cards = context.state.cards.slice();
+				const _cards = clone_cards_state(context.state.cards);
 				const _columns = context.state.columns.map((c) => ({
 					...c,
 					order: c.order,
@@ -1818,9 +1818,13 @@ frappe.provide("frappe.views");
 		return ordered_names;
 	}
 
+	function clone_cards_state(cards) {
+		return cards.map((card) => ({ ...card }));
+	}
+
 	function capture_drag_snapshot() {
 		return {
-			cards: store.state.cards.slice(),
+			cards: clone_cards_state(store.state.cards),
 			columns: store.state.columns.map((c) => ({ ...c, order: c.order })),
 		};
 	}
