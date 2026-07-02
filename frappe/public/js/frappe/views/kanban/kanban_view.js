@@ -355,14 +355,6 @@ frappe.views.KanbanView = class KanbanView extends frappe.views.ListView {
 			this.parse_column_order(col.order).forEach((name) => board_names.add(name));
 		}
 
-		for (const col of columns) {
-			if (col.status === "Archived") continue;
-			const state = this.kanban_column_state[col.title];
-			if (!state) continue;
-			state.loaded_names = this.rebuild_column_loaded_names(col, field_name);
-			this.reconcile_column_pagination_state(state, col.title);
-		}
-
 		return frappe
 			.call({
 				method: "frappe.desk.doctype.kanban_board.kanban_board.get_kanban_board_data",
@@ -375,21 +367,24 @@ frappe.views.KanbanView = class KanbanView extends frappe.views.ListView {
 				for (const [title, column_data] of Object.entries(message?.columns || {})) {
 					const rows = this.parse_kanban_cards(column_data.cards);
 					rows.forEach((row) => data_map.set(row.name, row));
-
-					const state = this.kanban_column_state[title];
-					if (!state) continue;
-
-					state.total_count = column_data.total ?? 0;
-					const col = columns.find((c) => c.title === title);
-					if (col) {
-						state.loaded_names = this.rebuild_column_loaded_names(col, field_name);
-					}
-					this.reconcile_column_pagination_state(state, title);
 				}
 
 				this.data = Array.from(data_map.values()).filter((doc) =>
 					board_names.has(doc.name)
 				);
+
+				for (const col of columns) {
+					if (col.status === "Archived") continue;
+					const state = this.kanban_column_state[col.title];
+					if (!state) continue;
+
+					const column_data = message?.columns?.[col.title];
+					if (column_data) {
+						state.total_count = column_data.total ?? 0;
+					}
+					state.loaded_names = this.rebuild_column_loaded_names(col, field_name);
+					this.reconcile_column_pagination_state(state, col.title);
+				}
 			})
 			.catch(() => {});
 	}
