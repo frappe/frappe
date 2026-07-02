@@ -10,7 +10,6 @@
 				:title="tab.label"
 				@click="activeTab = tab.id"
 			>
-				<span class="pfb-tab-icon" v-html="frappe.utils.icon(tab.icon, 'sm')"></span>
 				<span class="pfb-tab-label">{{ tab.label }}</span>
 			</button>
 		</div>
@@ -279,11 +278,11 @@ let { meta, print_format, layout } = useStore();
 
 // ── tab definitions ───────────────────────────────────────
 const tabs = computed(() => [
-	{ id: "fields", label: __("Fields"), icon: "list" },
-	{ id: "blocks", label: __("Blocks"), icon: "blocks" },
-	{ id: "templates", label: __("Templates"), icon: "table" },
-	{ id: "outline", label: __("Outline"), icon: "layout-list" },
-	{ id: "format", label: __("Format"), icon: "settings" },
+	{ id: "fields", label: __("Fields") },
+	{ id: "blocks", label: __("Blocks") },
+	{ id: "templates", label: __("Templates") },
+	{ id: "outline", label: __("Outline") },
+	{ id: "format", label: __("Format") },
 ]);
 
 // ── blocks tab items ──────────────────────────────────────
@@ -610,10 +609,9 @@ watch(print_format, () => (store.dirty.value = true), { deep: true });
 .pfb-tab {
 	flex: 1;
 	display: flex;
-	flex-direction: column;
 	align-items: center;
-	gap: 2px;
-	padding: 6px 2px 8px;
+	justify-content: center;
+	padding: 8px 2px;
 	border: none;
 	background: transparent;
 	border-radius: var(--radius) var(--radius) 0 0;
@@ -644,12 +642,6 @@ watch(print_format, () => (store.dirty.value = true), { deep: true });
 	height: 2px;
 	background: var(--primary);
 	border-radius: 2px 2px 0 0;
-}
-
-.pfb-tab-icon {
-	display: flex;
-	align-items: center;
-	line-height: 1;
 }
 
 .pfb-tab-label {
