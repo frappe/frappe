@@ -93,63 +93,52 @@
 							:placeholder="__('Table title')"
 						/>
 						<!-- Style -->
-						<div class="pfb-insp-row">
-							<span class="pfb-insp-label">{{ __("Style") }}</span>
-							<Segmented
-								:model-value="table_style"
-								:options="table_style_opts"
-								@update:model-value="(v) => (selected_field.table_style = v)"
-							/>
-						</div>
+						<SegmentedRow
+							:label="__('Style')"
+							:model-value="table_style"
+							:options="table_style_opts"
+							@update:model-value="(v) => (selected_field.table_style = v)"
+						/>
 						<!-- Bordered -->
-						<div class="pfb-insp-row">
-							<span class="pfb-insp-label">{{ __("Bordered") }}</span>
-							<Segmented
-								:model-value="table_bordered !== false"
-								:options="[
-									{ value: true, label: __('Yes') },
-									{ value: false, label: __('No') },
-								]"
-								@update:model-value="(v) => (selected_field.table_bordered = v)"
-							/>
-						</div>
+						<SegmentedRow
+							:label="__('Bordered')"
+							:model-value="table_bordered !== false"
+							:options="[
+								{ value: true, label: __('Yes') },
+								{ value: false, label: __('No') },
+							]"
+							@update:model-value="(v) => (selected_field.table_bordered = v)"
+						/>
 						<!-- Cell padding -->
-						<div class="pfb-insp-row">
-							<span class="pfb-insp-label">{{ __("Cell padding") }}</span>
-							<Stepper
-								:value="table_cell_padding ?? ''"
-								:placeholder="__('auto')"
-								unit="px"
-								@decrement="adjust_cell_padding(-1)"
-								@increment="adjust_cell_padding(1)"
-								@input="set_cell_padding"
-							/>
-						</div>
+						<StepperRow
+							:label="__('Cell padding')"
+							:model-value="table_cell_padding"
+							:base="7"
+							unit="px"
+							:placeholder="__('auto')"
+							allow-empty
+							@update:model-value="set_cell_padding"
+						/>
 						<!-- Header -->
-						<div class="pfb-insp-row">
-							<span class="pfb-insp-label">{{ __("Header") }}</span>
-							<Segmented
-								:model-value="table_header"
-								:options="[
-									{ value: 'styled', label: __('Styled') },
-									{ value: 'plain', label: __('Plain') },
-									{ value: 'none', label: __('None') },
-								]"
-								@update:model-value="(v) => (selected_field.table_header = v)"
-							/>
-						</div>
+						<SegmentedRow
+							:label="__('Header')"
+							:model-value="table_header"
+							:options="[
+								{ value: 'styled', label: __('Styled') },
+								{ value: 'plain', label: __('Plain') },
+								{ value: 'none', label: __('None') },
+							]"
+							@update:model-value="(v) => (selected_field.table_header = v)"
+						/>
 						<!-- Corner radius -->
-						<div class="pfb-insp-row">
-							<span class="pfb-insp-label">{{ __("Radius") }}</span>
-							<Stepper
-								:value="table_radius ?? ''"
-								:placeholder="__('none')"
-								unit="px"
-								@decrement="adjust_table_radius(-1)"
-								@increment="adjust_table_radius(1)"
-								@input="set_table_radius"
-							/>
-						</div>
+						<StepperRow
+							:label="__('Radius')"
+							:model-value="table_radius"
+							unit="px"
+							:placeholder="__('none')"
+							allow-empty
+							@update:model-value="set_table_radius"
+						/>
 					</div>
 				</div>
 
@@ -413,10 +402,12 @@
 								></button>
 							</div>
 							<TemplateInput v-model="col.template" :fields="repeater_field_opts" />
-							<div class="pfb-insp-row" style="margin-top: 8px">
-								<span class="pfb-insp-label">{{ __("Align") }}</span>
-								<Segmented v-model="col.align" :options="align_opts" />
-							</div>
+							<SegmentedRow
+								:label="__('Align')"
+								v-model="col.align"
+								:options="align_opts"
+								style="margin-top: 8px"
+							/>
 						</div>
 						<button class="pfb-add-btn" @click="add_repeater_column">
 							<span v-html="frappe.utils.icon('add', 'xs')"></span>
@@ -482,14 +473,12 @@
 								:show="selected_field.show_label"
 								@update:show="(v) => (selected_field.show_label = v)"
 							/>
-							<div class="pfb-insp-row">
-								<span class="pfb-insp-label">{{ __("Align") }}</span>
-								<Segmented
-									:model-value="current_align"
-									:options="align_opts"
-									@update:model-value="(v) => (selected_field.align = v)"
-								/>
-							</div>
+							<SegmentedRow
+								:label="__('Align')"
+								:model-value="current_align"
+								:options="align_opts"
+								@update:model-value="(v) => (selected_field.align = v)"
+							/>
 							<div class="pfb-insp-row" v-if="field_is_inline">
 								<span class="pfb-insp-label">{{ __("Spacing") }}</span>
 								<select
@@ -560,62 +549,52 @@
 						/>
 
 						<!-- Columns -->
-						<div class="pfb-insp-row">
-							<span class="pfb-insp-label">{{ __("Columns") }}</span>
-							<Segmented
-								:model-value="selected_section.columns.length"
-								:options="[1, 2, 3, 4].map((n) => ({ value: n, label: n }))"
-								@update:model-value="set_columns"
-							/>
-						</div>
+						<SegmentedRow
+							:label="__('Columns')"
+							:model-value="selected_section.columns.length"
+							:options="[1, 2, 3, 4].map((n) => ({ value: n, label: n }))"
+							@update:model-value="set_columns"
+						/>
 
 						<!-- Orientation -->
-						<div class="pfb-insp-row">
-							<span class="pfb-insp-label">{{ __("Label side") }}</span>
-							<Segmented
-								:model-value="
-									section_orientation === 'left-right' ? 'left-right' : 'top'
-								"
-								:options="[
-									{ value: 'top', label: __('Top') },
-									{ value: 'left-right', label: __('Left') },
-								]"
-								@update:model-value="
-									(v) =>
-										(selected_section.field_orientation =
-											v === 'left-right' ? 'left-right' : '')
-								"
-							/>
-						</div>
+						<SegmentedRow
+							:label="__('Label side')"
+							:model-value="
+								section_orientation === 'left-right' ? 'left-right' : 'top'
+							"
+							:options="[
+								{ value: 'top', label: __('Top') },
+								{ value: 'left-right', label: __('Left') },
+							]"
+							@update:model-value="
+								(v) =>
+									(selected_section.field_orientation =
+										v === 'left-right' ? 'left-right' : '')
+							"
+						/>
 
 						<!-- Gap -->
-						<div class="pfb-insp-row">
-							<span class="pfb-insp-label">{{ __("Gap") }}</span>
-							<Stepper
-								:value="section_gap"
-								unit="px"
-								@decrement="adjust_gap(-4)"
-								@increment="adjust_gap(4)"
-								@input="
-									(v) => (selected_section.gap = Math.max(0, parseInt(v) || 0))
-								"
-							/>
-						</div>
+						<StepperRow
+							:label="__('Gap')"
+							:model-value="section_gap"
+							:step="4"
+							:base="20"
+							unit="px"
+							@update:model-value="(v) => (selected_section.gap = v)"
+						/>
 
 						<!-- Label case -->
-						<div class="pfb-insp-row">
-							<span class="pfb-insp-label">{{ __("Label case") }}</span>
-							<Segmented
-								:model-value="
-									section_label_case === 'uppercase' ? 'uppercase' : 'normal'
-								"
-								:options="[
-									{ value: 'normal', label: __('Normal') },
-									{ value: 'uppercase', label: __('UPPER') },
-								]"
-								@update:model-value="(v) => (selected_section.label_case = v)"
-							/>
-						</div>
+						<SegmentedRow
+							:label="__('Label case')"
+							:model-value="
+								section_label_case === 'uppercase' ? 'uppercase' : 'normal'
+							"
+							:options="[
+								{ value: 'normal', label: __('Normal') },
+								{ value: 'uppercase', label: __('UPPER') },
+							]"
+							@update:model-value="(v) => (selected_section.label_case = v)"
+						/>
 					</div>
 				</div>
 
@@ -655,24 +634,10 @@
 						></span>
 					</div>
 					<div v-show="open.s_padding" class="pfb-insp-section-body">
-						<div class="pfb-padding-grid">
-							<div
-								v-for="side in ['top', 'right', 'bottom', 'left']"
-								:key="side"
-								class="pfb-padding-cell"
-							>
-								<div class="pfb-padding-label">
-									{{ __(side[0].toUpperCase() + side.slice(1)) }}
-								</div>
-								<Stepper
-									sm
-									:value="section_padding[side]"
-									@decrement="adjust_padding(side, -4)"
-									@increment="adjust_padding(side, 4)"
-									@input="(v) => set_padding(side, parseInt(v) || 0)"
-								/>
-							</div>
-						</div>
+						<PaddingGrid
+							:model-value="selected_section.padding"
+							@update:model-value="(v) => (selected_section.padding = v)"
+						/>
 					</div>
 				</div>
 
@@ -688,28 +653,23 @@
 					</div>
 					<div v-show="open.s_layout" class="pfb-insp-section-body">
 						<!-- Layout mode -->
-						<div class="pfb-insp-row">
-							<span class="pfb-insp-label">{{ __("Mode") }}</span>
-							<Segmented
-								:model-value="section_field_borders"
-								:options="[
-									{ value: false, label: __('Normal') },
-									{ value: true, label: __('Table') },
-								]"
-								@update:model-value="toggle_field_borders"
-							/>
-						</div>
+						<SegmentedRow
+							:label="__('Mode')"
+							:model-value="section_field_borders"
+							:options="[
+								{ value: false, label: __('Normal') },
+								{ value: true, label: __('Table') },
+							]"
+							@update:model-value="toggle_field_borders"
+						/>
 						<!-- Cell padding -->
-						<div class="pfb-insp-row">
-							<span class="pfb-insp-label">{{ __("Cell padding") }}</span>
-							<Stepper
-								:value="section_cell_padding"
-								unit="px"
-								@decrement="adjust_section_cell_padding(-1)"
-								@increment="adjust_section_cell_padding(1)"
-								@input="(v) => set_section_cell_padding(parseInt(v) || 0)"
-							/>
-						</div>
+						<StepperRow
+							:label="__('Cell padding')"
+							:model-value="section_cell_padding"
+							:base="8"
+							unit="px"
+							@update:model-value="(v) => (selected_section.cell_padding = v)"
+						/>
 					</div>
 				</div>
 
@@ -764,10 +724,11 @@ import { useStore } from "../../stores";
 import LetterHeadZoneInspector from "./LetterHeadZoneInspector.vue";
 import Autocomplete from "../../../vue-components/Autocomplete.vue";
 import VisibilitySection from "./VisibilitySection.vue";
-import Stepper from "./Stepper.vue";
-import Segmented from "./Segmented.vue";
 import TemplateInput from "./TemplateInput.vue";
 import LabelField from "./LabelField.vue";
+import SegmentedRow from "./SegmentedRow.vue";
+import StepperRow from "./StepperRow.vue";
+import PaddingGrid from "./PaddingGrid.vue";
 
 let store = inject("$store");
 let { letterhead, layout, meta } = useStore();
@@ -1008,32 +969,14 @@ let table_header = computed(() => selected_field.value?.table_header ?? "styled"
 let table_cell_padding = computed(() => selected_field.value?.table_cell_padding ?? null);
 let table_radius = computed(() => selected_field.value?.table_radius ?? null);
 
-function adjust_cell_padding(delta) {
-	const current = selected_field.value?.table_cell_padding ?? 7;
-	selected_field.value.table_cell_padding = Math.max(0, current + delta);
+function set_cell_padding(v) {
+	if (v === null) delete selected_field.value.table_cell_padding;
+	else selected_field.value.table_cell_padding = v;
 }
 
-function set_cell_padding(value) {
-	const v = parseInt(value);
-	if (isNaN(v) || value === "") {
-		delete selected_field.value.table_cell_padding;
-	} else {
-		selected_field.value.table_cell_padding = Math.max(0, v);
-	}
-}
-
-function adjust_table_radius(delta) {
-	const current = selected_field.value?.table_radius ?? 0;
-	selected_field.value.table_radius = Math.max(0, current + delta);
-}
-
-function set_table_radius(value) {
-	const v = parseInt(value);
-	if (isNaN(v) || value === "") {
-		delete selected_field.value.table_radius;
-	} else {
-		selected_field.value.table_radius = Math.max(0, v);
-	}
+function set_table_radius(v) {
+	if (v === null) delete selected_field.value.table_radius;
+	else selected_field.value.table_radius = v;
 }
 
 const table_style_opts = [
@@ -1175,12 +1118,6 @@ let section_orientation = computed(() => selected_section.value?.field_orientati
 let section_gap = computed(() => selected_section.value?.gap ?? 20);
 let section_label_case = computed(() => selected_section.value?.label_case ?? "normal");
 let section_bg = computed(() => selected_section.value?.background ?? "");
-let section_padding = computed(() => ({
-	top: selected_section.value?.padding?.top ?? 0,
-	right: selected_section.value?.padding?.right ?? 0,
-	bottom: selected_section.value?.padding?.bottom ?? 0,
-	left: selected_section.value?.padding?.left ?? 0,
-}));
 
 const bg_swatches = [
 	{
@@ -1204,26 +1141,6 @@ function set_columns(n) {
 	selected_section.value.columns = new_columns;
 }
 
-function adjust_gap(delta) {
-	const current = selected_section.value?.gap ?? 20;
-	selected_section.value.gap = Math.max(0, current + delta);
-}
-
-function adjust_padding(side, delta) {
-	if (!selected_section.value.padding) {
-		selected_section.value.padding = { top: 0, right: 0, bottom: 0, left: 0 };
-	}
-	const current = selected_section.value.padding[side] ?? 0;
-	selected_section.value.padding[side] = Math.max(0, current + delta);
-}
-
-function set_padding(side, value) {
-	if (!selected_section.value.padding) {
-		selected_section.value.padding = { top: 0, right: 0, bottom: 0, left: 0 };
-	}
-	selected_section.value.padding[side] = Math.max(0, value);
-}
-
 let section_field_borders = computed(() => !!selected_section.value?.field_borders);
 let section_cell_padding = computed(() => selected_section.value?.cell_padding ?? 8);
 
@@ -1233,15 +1150,6 @@ function toggle_field_borders(on) {
 	} else {
 		delete selected_section.value.field_borders;
 	}
-}
-
-function adjust_section_cell_padding(delta) {
-	const current = selected_section.value?.cell_padding ?? 8;
-	selected_section.value.cell_padding = Math.max(0, current + delta);
-}
-
-function set_section_cell_padding(value) {
-	selected_section.value.cell_padding = Math.max(0, value);
 }
 </script>
 
@@ -1350,12 +1258,6 @@ function set_section_cell_padding(value) {
 	font-size: var(--text-sm);
 }
 
-/* ── Body ────────────────────────────────────────────────── */
-
-/* ── Collapsible sections ────────────────────────────────── */
-
-/* ── Rows ────────────────────────────────────────────────── */
-
 /* ── Source display ──────────────────────────────────────── */
 .pfb-source-display {
 	display: flex;
@@ -1389,11 +1291,6 @@ function set_section_cell_padding(value) {
 	flex-shrink: 0;
 }
 
-/* ── Input ───────────────────────────────────────────────── */
-
-/* ── Segmented control ───────────────────────────────────── */
-
-/* ── Stepper (+/−) ───────────────────────────────────────── */
 /* ── Background swatches ─────────────────────────────────── */
 .pfb-color-swatches {
 	display: flex;
@@ -1418,25 +1315,6 @@ function set_section_cell_padding(value) {
 .pfb-swatch.active {
 	border-color: var(--primary);
 	box-shadow: 0 0 0 2px var(--primary-light);
-}
-
-/* ── Padding grid ────────────────────────────────────────── */
-.pfb-padding-grid {
-	display: grid;
-	grid-template-columns: 1fr 1fr;
-	gap: 8px;
-}
-
-.pfb-padding-cell {
-	display: flex;
-	flex-direction: column;
-	gap: 3px;
-}
-
-.pfb-padding-label {
-	font-size: var(--text-tiny);
-	color: var(--text-muted);
-	text-align: center;
 }
 
 /* ── Hint ────────────────────────────────────────────────── */

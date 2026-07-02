@@ -9,17 +9,15 @@
 		<!-- Based on toggle + letter head actions -->
 		<div class="pfb-insp-section">
 			<div class="pfb-insp-section-body" style="padding-top: 10px">
-				<div class="pfb-insp-row">
-					<span class="pfb-insp-label">{{ __("Based on") }}</span>
-					<Segmented
-						:model-value="zone_source"
-						:options="[
-							{ value: 'Image', label: __('Image') },
-							{ value: 'HTML', label: __('HTML') },
-						]"
-						@update:model-value="set_source"
-					/>
-				</div>
+				<SegmentedRow
+					:label="__('Based on')"
+					:model-value="zone_source"
+					:options="[
+						{ value: 'Image', label: __('Image') },
+						{ value: 'HTML', label: __('HTML') },
+					]"
+					@update:model-value="set_source"
+				/>
 				<!-- Letter head selection buttons — always visible for header zone -->
 				<template v-if="zone === 'header'">
 					<div v-if="letterhead" class="pfb-lh-actions" style="margin-top: 4px">
@@ -88,19 +86,17 @@
 			<div v-show="open.image" class="pfb-insp-section-body">
 				<template v-if="letterhead">
 					<!-- Alignment -->
-					<div class="pfb-insp-row">
-						<span class="pfb-insp-label">{{ __("Align") }}</span>
-						<Segmented
-							:model-value="zone_align"
-							:options="
-								['Left', 'Center', 'Right'].map((d) => ({
-									value: d,
-									label: __(d),
-								}))
-							"
-							@update:model-value="set_align"
-						/>
-					</div>
+					<SegmentedRow
+						:label="__('Align')"
+						:model-value="zone_align"
+						:options="
+							['Left', 'Center', 'Right'].map((d) => ({
+								value: d,
+								label: __(d),
+							}))
+						"
+						@update:model-value="set_align"
+					/>
 					<!-- Size slider -->
 					<div v-if="letterhead[image_field]" class="pfb-insp-row pfb-insp-row--col">
 						<span class="pfb-insp-label">{{ __("Size") }}</span>
@@ -135,7 +131,7 @@
 import { computed, inject, onMounted, ref } from "vue";
 import { useStore } from "../../stores";
 import { get_image_dimensions, render_jinja_html } from "../../utils";
-import Segmented from "./Segmented.vue";
+import SegmentedRow from "./SegmentedRow.vue";
 
 const props = defineProps({
 	zone: { type: String, required: true },
