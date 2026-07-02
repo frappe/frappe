@@ -730,6 +730,18 @@ class TestDBQuery(FrappeTestCase):
 				order_by="(select rank from tabRankedDocTypes where tabRankedDocTypes.name = tabDocType.name) asc",
 			)
 
+		blocked_order_bys = (
+			"xyz(qpr(module, 'Core'), -1), name",
+			"xyz(abc(end(module, 1, 1)), 67), name",
+			"length(module), name",
+			"utf(module), name",
+			"concat(module, ''), name",
+			"coalesce(xyz(module, 'Core'), 0)",
+		)
+		for order_by in blocked_order_bys:
+			with self.assertRaises(frappe.ValidationError):
+				DatabaseQuery("DocType").execute(fields=["name"], order_by=order_by)
+
 		# validate allowed usage
 		DatabaseQuery("DocType").execute(
 			fields=["name"],
@@ -949,7 +961,6 @@ class TestDBQuery(FrappeTestCase):
 				"published",
 				"`published` desc",
 				"`tabBlog Post`.`published`",
-				"field(strcmp(published, '1'), -1), name",
 			):
 				self.assertRaises(
 					frappe.PermissionError,
