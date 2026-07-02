@@ -5,7 +5,7 @@
 		v-show="!preview_doc || has_visible_fields"
 		:class="{ 'section-container--condition-hidden': preview_doc && !is_section_visible }"
 	>
-		<!-- Top-left actions pill shown on hover in clean-preview (toolbar is hidden) -->
+		<!-- Top-right actions pill shown on hover in clean-preview (toolbar is hidden) -->
 		<div v-if="!is_header" class="section-preview-actions">
 			<div
 				class="drag-handle section-drag-handle"
@@ -449,8 +449,8 @@ function remove_column(index) {
 .section-preview-actions {
 	display: none; /* shown via .pfb-clean-preview :deep() override */
 	position: absolute;
-	top: 4px;
-	left: 4px;
+	top: -12px;
+	right: 4px;
 	z-index: 2;
 	gap: 2px;
 	padding: 1px 2px;
