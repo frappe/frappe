@@ -1,16 +1,15 @@
 <template>
 	<div class="pfb-tpl">
-		<div class="pfb-tpl-row">
+		<div class="table-multiselect pfb-tpl-row">
 			<template v-for="(tok, i) in modelValue" :key="i">
-				<span v-if="tok.t === 'f'" class="pfb-tpl-chip">
-					{{ field_label(tok.v) }}
-					<button
-						type="button"
-						class="pfb-tpl-x"
+				<button v-if="tok.t === 'f'" type="button" class="data-pill btn tb-selected-value">
+					<span class="pill-label">{{ field_label(tok.v) }}</span>
+					<span
+						class="remove-btn"
 						@click="remove(i)"
 						v-html="frappe.utils.icon('x', 'xs')"
-					></button>
-				</span>
+					></span>
+				</button>
 				<input
 					v-else
 					class="pfb-tpl-text"
@@ -101,37 +100,14 @@ function remove(i) {
 	gap: 6px;
 }
 .pfb-tpl-row {
-	display: flex;
-	flex-wrap: wrap;
-	align-items: center;
 	align-self: flex-start;
 	max-width: 100%;
-	gap: 2px;
 	min-height: 30px;
-	padding: 4px 6px;
 	border: 1px solid var(--border-color);
 	border-radius: var(--radius);
 	background: var(--fg-color);
-}
-.pfb-tpl-chip {
-	display: inline-flex;
-	align-items: center;
+	padding: 4px 6px;
 	gap: 2px;
-	padding: 1px 3px 1px 6px;
-	font-size: var(--text-tiny);
-	font-weight: var(--weight-medium);
-	color: var(--blue-600);
-	background: var(--blue-100);
-	border-radius: var(--radius);
-	white-space: nowrap;
-}
-.pfb-tpl-x {
-	border: none;
-	background: transparent;
-	color: inherit;
-	cursor: pointer;
-	display: inline-flex;
-	padding: 0;
 }
 .pfb-tpl-text {
 	border: none;
