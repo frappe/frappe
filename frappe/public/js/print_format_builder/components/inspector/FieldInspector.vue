@@ -353,6 +353,10 @@
 							v-model="selected_field.label"
 							:label="__('Title')"
 							:placeholder="__('Optional heading')"
+							show-toggle
+							:show-label="__('Show title')"
+							:show="selected_field.show_label"
+							@update:show="(v) => (selected_field.show_label = v)"
 						/>
 					</div>
 				</div>
@@ -475,6 +479,17 @@
 									<option value="space-evenly">{{ __("Space Evenly") }}</option>
 								</select>
 							</div>
+							<StepperRow
+								v-if="field_is_inline"
+								:label="__('Label gap')"
+								:model-value="selected_field.label_gap"
+								:base="8"
+								:step="2"
+								unit="px"
+								:placeholder="__('auto')"
+								allow-empty
+								@update:model-value="(v) => (selected_field.label_gap = v)"
+							/>
 						</template>
 					</div>
 				</div>

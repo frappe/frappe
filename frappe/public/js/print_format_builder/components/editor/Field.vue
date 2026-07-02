@@ -30,9 +30,12 @@
 				<!-- Table MultiSelect field: render as a comma-separated value list -->
 				<div
 					v-else-if="df.fieldtype == 'Table MultiSelect'"
-					:style="
-						field_orientation !== 'left-right' ? { textAlign: df.align || 'left' } : {}
-					"
+					:style="{
+						...(field_orientation !== 'left-right'
+							? { textAlign: df.align || 'left' }
+							: {}),
+						...(df.label_gap != null ? { gap: df.label_gap + 'px' } : {}),
+					}"
 					:class="[
 						'field-preview-lr',
 						field_orientation === 'left-right' && df.label_justify
@@ -164,7 +167,9 @@
 				</div>
 				<!-- Repeater field -->
 				<div v-else-if="df.fieldtype == 'Repeater'" class="field-preview-repeater">
-					<div v-if="df.label" class="field-preview-label">{{ df.label }}</div>
+					<div v-if="df.label && df.show_label !== 'hide'" class="field-preview-label">
+						{{ df.label }}
+					</div>
 					<table class="preview-table preview-table--borderless">
 						<tbody>
 							<tr
@@ -193,9 +198,15 @@
 				<!-- Regular field -->
 				<div
 					v-else
-					:style="
-						field_orientation !== 'left-right' ? { textAlign: df.align || 'left' } : {}
-					"
+					:style="{
+						...(field_orientation !== 'left-right'
+							? { textAlign: df.align || 'left' }
+							: {}),
+						...((field_orientation === 'left-right' || df.show_label === 'inline') &&
+						df.label_gap != null
+							? { gap: df.label_gap + 'px' }
+							: {}),
+					}"
 					:class="[
 						field_orientation === 'left-right' || df.show_label === 'inline'
 							? 'field-preview-lr'
@@ -881,7 +892,7 @@ watch(
 }
 
 .field-preview-label {
-	font-size: var(--text-tiny);
+	font-size: var(--text-sm);
 	font-weight: var(--weight-semibold);
 	color: #6b7280;
 	margin-bottom: 1px;

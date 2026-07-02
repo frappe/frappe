@@ -340,7 +340,7 @@ watch(print_format, () => (store.dirty.value = true), { deep: true });
 	font-size: 1em;
 }
 .pfb-body :deep(.field--preview .field-preview-label) {
-	font-size: 0.8em;
+	font-size: 1em;
 }
 .pfb-body :deep(.field--preview .preview-table) {
 	font-size: 0.9em;

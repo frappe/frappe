@@ -133,6 +133,7 @@ export function getStore(print_format_name) {
 								"show_label",
 								"align",
 								"label_justify",
+								"label_gap",
 								"visible_if",
 							]);
 						});
@@ -158,6 +159,7 @@ export function getStore(print_format_name) {
 			"show_label",
 			"align",
 			"label_justify",
+			"label_gap",
 			"visible_if",
 		];
 		function clean_zone(zone) {

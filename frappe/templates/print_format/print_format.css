@@ -91,7 +91,7 @@ body {
 
 /* Stacked (default): muted label above value */
 .field .label {
-	font-size: 0.75em;
+	font-size: 1em;
 	font-weight: 600;
 	color: #6b7280;
 	margin-bottom: 0.1rem;
@@ -112,7 +112,7 @@ body {
 .field.left-right .label,
 .field.field-inline .label {
 	flex-shrink: 0;
-	font-size: 0.8em;
+	font-size: 1em;
 	font-weight: 600;
 	color: #374151;
 	text-transform: none;
