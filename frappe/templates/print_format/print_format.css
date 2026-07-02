@@ -250,6 +250,69 @@ body {
 	text-align: right;
 }
 
+/* ── Merged cells (multiple fields, optional left image) ─── */
+/* Same specificity as the numeric-align rule above but declared later, so
+   this wins the cascade without needing !important. */
+.child-table .column-value--merged {
+	text-align: left;
+}
+
+.child-table .cell-merged {
+	display: flex;
+	align-items: flex-start;
+	gap: 0.5rem;
+}
+
+/* size comes from an inline style (column.image_size) */
+.child-table .cell-thumb-img,
+.child-table .cell-thumb {
+	border-radius: 6px;
+	flex-shrink: 0;
+}
+
+.child-table .cell-thumb-img {
+	object-fit: cover;
+}
+
+.child-table .cell-thumb {
+	display: flex;
+	align-items: center;
+	justify-content: center;
+	font-weight: 600;
+	text-transform: uppercase;
+	line-height: 1;
+}
+
+.child-table .cell-lines {
+	display: flex;
+	flex-direction: column;
+	gap: 0.1rem;
+	min-width: 0;
+}
+
+.child-table .cell-line {
+	word-break: break-word;
+}
+
+.child-table .cell-line--primary,
+.child-table .cell-line--secondary {
+	color: #111827;
+}
+
+.child-table .cell-line--primary {
+	font-weight: 600;
+}
+
+.child-table .cell-line--mono-sm {
+	font-family: var(--monospace-font-family, monospace);
+}
+
+.child-table .cell-line--mono-sm,
+.child-table .cell-line--muted-sm {
+	font-size: 0.85em;
+	color: #6b7280;
+}
+
 .page-break {
 	page-break-after: always;
 }

@@ -164,6 +164,15 @@ function on_start_blank() {
 function handle_keydown(e) {
 	// Zoom shortcuts: Ctrl+= / Ctrl+- / Ctrl+0
 	if (e.ctrlKey || e.metaKey) {
+		if (e.key === "z" || e.key === "Z") {
+			// let inputs keep their own undo
+			const el = document.activeElement;
+			if (el?.tagName === "INPUT" || el?.tagName === "TEXTAREA" || el?.isContentEditable)
+				return;
+			e.preventDefault();
+			$store.value.undo();
+			return;
+		}
 		if (e.key === "=" || e.key === "+") {
 			e.preventDefault();
 			zoom_in();

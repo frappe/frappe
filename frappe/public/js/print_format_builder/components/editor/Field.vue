@@ -102,21 +102,52 @@
 											: {}
 									"
 								>
-									<img
-										v-if="
-											is_image_field(col, row[col.fieldname]) &&
-											row[col.fieldname]
-										"
-										:src="row[col.fieldname]"
-										class="preview-table-img"
-										:alt="col.label || col.fieldname"
-									/>
-									<div
-										v-else-if="is_html_content_field(col)"
-										class="preview-table-html"
-										v-html="format_cell(row, col)"
-									></div>
-									<span v-else>{{ format_cell(row, col) }}</span>
+									<!-- Merged cell: image (if any) floats left, text lines stack -->
+									<div v-if="has_merge(col)" class="pf-cell-merged">
+										<template v-if="image_merge(col)">
+											<img
+												v-if="cell_image(col, row)"
+												:src="cell_image(col, row)"
+												class="pf-cell-thumb-img"
+												:style="thumb_box(col)"
+												:alt="col.label || col.fieldname"
+											/>
+											<span
+												v-else
+												class="pf-cell-thumb"
+												:style="thumb(col, row).style"
+												>{{ thumb(col, row).abbr }}</span
+											>
+										</template>
+										<div class="pf-cell-lines">
+											<div
+												v-for="(mf, mi) in text_merges(col)"
+												:key="mi"
+												class="pf-merge-line"
+												:class="`pf-merge--${mf.style || 'primary'}`"
+											>
+												{{ format_merged(row, mf.fieldname) }}
+											</div>
+										</div>
+									</div>
+									<!-- Single (default) -->
+									<template v-else>
+										<img
+											v-if="
+												is_image_field(col, row[col.fieldname]) &&
+												row[col.fieldname]
+											"
+											:src="row[col.fieldname]"
+											class="preview-table-img"
+											:alt="col.label || col.fieldname"
+										/>
+										<div
+											v-else-if="is_html_content_field(col)"
+											class="preview-table-html"
+											v-html="format_cell(row, col)"
+										></div>
+										<span v-else>{{ format_cell(row, col) }}</span>
+									</template>
 								</td>
 							</tr>
 							<tr v-if="!preview_doc[df.fieldname]?.length">
@@ -256,7 +287,7 @@
 
 <script setup>
 import ConfigureColumnsVue from "../inspector/ConfigureColumns.vue";
-import { render_jinja_html, sanitize_html, evaluate_visible_if } from "../../utils";
+import { render_jinja_html, sanitize_html, evaluate_visible_if, thumb_hue } from "../../utils";
 import { createApp, ref, nextTick, watch, computed, inject } from "vue";
 
 const props = defineProps(["df", "field_orientation"]);
@@ -350,7 +381,8 @@ const NUMERIC_FIELDTYPES = new Set(["Currency", "Float", "Int", "Percent"]);
 const HTML_CONTENT_FIELDTYPES = new Set(["Text Editor", "Long Text"]);
 
 function numeric_align_class(col) {
-	return NUMERIC_FIELDTYPES.has(col?.fieldtype) ? "col-numeric" : "";
+	// Merged cells are left-aligned (like the PDF), even on numeric columns
+	return !has_merge(col) && NUMERIC_FIELDTYPES.has(col?.fieldtype) ? "col-numeric" : "";
 }
 
 function multiselect_display(df) {
@@ -388,6 +420,77 @@ function format_cell(row, col) {
 	} catch {
 		return String(raw);
 	}
+}
+
+// ── Merged cell helpers ────────────────────────────────────
+// Image fieldtypes that store a URL directly, so they can float left.
+const MERGE_IMAGE_FIELDTYPES = new Set(["Attach Image", "Attach"]);
+
+// The column's own field is always the implicit first (primary) line;
+// col.merged_fields holds only the extra fields merged in beside it.
+function merged_fields(col) {
+	const extra = (col.merged_fields || []).filter((mf) => mf && mf.fieldname);
+	if (!extra.length) return [];
+	return [{ fieldname: col.fieldname, fieldtype: col.fieldtype, style: "primary" }, ...extra];
+}
+
+function has_merge(col) {
+	return (col.merged_fields || []).length > 0;
+}
+
+// The first merged field that is an image — rendered on the left.
+function image_merge(col) {
+	return merged_fields(col).find((mf) => MERGE_IMAGE_FIELDTYPES.has(mf.fieldtype)) || null;
+}
+
+// Remaining fields render as stacked text lines.
+function text_merges(col) {
+	const img = image_merge(col);
+	return merged_fields(col).filter((mf) => mf !== img);
+}
+
+// Format a merged sub-field using its own child docfield definition.
+// Merged lines are plain text, so strip any HTML kept for rich-text
+// fields (Text Editor / Long Text) down to its text content.
+function format_merged(row, fieldname) {
+	const dcol = frappe.meta.get_docfield(props.df.options, fieldname) || {
+		fieldname,
+		fieldtype: "Data",
+	};
+	const val = format_cell(row, dcol);
+	if (typeof val === "string" && val.includes("<")) {
+		const tmp = document.createElement("div");
+		tmp.innerHTML = val;
+		return (tmp.textContent || tmp.innerText || "").trim();
+	}
+	return val;
+}
+
+function cell_image(col, row) {
+	const img = image_merge(col);
+	const v = img ? row[img.fieldname] : null;
+	return typeof v === "string" && v ? v : null;
+}
+
+function thumb_box(col) {
+	const s = (col.image_size || 40) + "px";
+	return { width: s, height: s };
+}
+
+// Initials fallback (abbr + coloured box) when an image field is merged
+// but the row has no image. Colour keyed off the first text field.
+function thumb(col, row) {
+	const raw = String(row[text_merges(col)[0]?.fieldname] ?? "");
+	const hue = thumb_hue(raw);
+	return {
+		abbr: frappe.get_abbr(raw) || "?",
+		style: {
+			...thumb_box(col),
+			fontSize: Math.round((col.image_size || 40) * 0.4) + "px",
+			background: `hsl(${hue}, 65%, 92%)`,
+			color: `hsl(${hue}, 55%, 35%)`,
+		},
+	};
 }
 
 function select_field() {
@@ -937,6 +1040,59 @@ watch(
 	max-width: 80px;
 	object-fit: contain;
 	display: block;
+}
+
+/* ── Merged cells ────────────────────────────────────────── */
+.pf-cell-merged {
+	display: flex;
+	align-items: flex-start;
+	gap: 8px;
+}
+
+/* size comes from an inline style (col.image_size) */
+.pf-cell-thumb-img,
+.pf-cell-thumb {
+	border-radius: 6px;
+	flex-shrink: 0;
+}
+
+.pf-cell-thumb-img {
+	object-fit: cover;
+}
+
+.pf-cell-thumb {
+	display: flex;
+	align-items: center;
+	justify-content: center;
+	font-weight: var(--weight-semibold);
+	text-transform: uppercase;
+	line-height: 1;
+}
+
+.pf-cell-lines {
+	display: flex;
+	flex-direction: column;
+	gap: 2px;
+	min-width: 0;
+}
+
+.pf-merge-line {
+	word-break: break-word;
+}
+.pf-merge--primary,
+.pf-merge--secondary {
+	color: var(--text-color);
+}
+.pf-merge--primary {
+	font-weight: var(--weight-semibold);
+}
+.pf-merge--mono-sm,
+.pf-merge--muted-sm {
+	font-size: 0.85em;
+	color: var(--text-muted);
+}
+.pf-merge--mono-sm {
+	font-family: var(--monospace-font-family, monospace);
 }
 
 .preview-table-html {
