@@ -87,15 +87,11 @@
 							</div>
 						</div>
 						<!-- Title -->
-						<div class="pfb-insp-row pfb-insp-row--col">
-							<span class="pfb-insp-label">{{ __("Title") }}</span>
-							<input
-								class="pfb-insp-input"
-								type="text"
-								:placeholder="__('Table title')"
-								v-model="selected_field.label"
-							/>
-						</div>
+						<LabelField
+							v-model="selected_field.label"
+							:label="__('Title')"
+							:placeholder="__('Table title')"
+						/>
 						<!-- Style -->
 						<div class="pfb-insp-row">
 							<span class="pfb-insp-label">{{ __("Style") }}</span>
@@ -382,15 +378,11 @@
 								@select="(o) => (selected_field.source = o.value)"
 							/>
 						</div>
-						<div class="pfb-insp-row pfb-insp-row--col">
-							<span class="pfb-insp-label">{{ __("Title") }}</span>
-							<input
-								class="pfb-insp-input"
-								type="text"
-								:placeholder="__('Optional heading')"
-								v-model="selected_field.label"
-							/>
-						</div>
+						<LabelField
+							v-model="selected_field.label"
+							:label="__('Title')"
+							:placeholder="__('Optional heading')"
+						/>
 					</div>
 				</div>
 
@@ -482,23 +474,14 @@
 							</button>
 						</template>
 						<template v-else>
-							<div class="pfb-insp-row pfb-insp-row--col">
-								<span class="pfb-insp-label">{{ __("Label") }}</span>
-								<input
-									class="pfb-insp-input"
-									type="text"
-									:placeholder="__('Field label')"
-									v-model="selected_field.label"
-								/>
-							</div>
-							<div class="pfb-insp-row">
-								<span class="pfb-insp-label">{{ __("Show label") }}</span>
-								<Segmented
-									:model-value="current_show_label"
-									:options="show_label_opts"
-									@update:model-value="(v) => (selected_field.show_label = v)"
-								/>
-							</div>
+							<LabelField
+								v-model="selected_field.label"
+								:label="__('Label')"
+								:placeholder="__('Field label')"
+								show-toggle
+								:show="selected_field.show_label"
+								@update:show="(v) => (selected_field.show_label = v)"
+							/>
 							<div class="pfb-insp-row">
 								<span class="pfb-insp-label">{{ __("Align") }}</span>
 								<Segmented
@@ -566,28 +549,15 @@
 					</div>
 					<div v-show="open.s_section" class="pfb-insp-section-body">
 						<!-- Title -->
-						<div class="pfb-insp-row pfb-insp-row--col">
-							<span class="pfb-insp-label">{{ __("Title") }}</span>
-							<input
-								class="pfb-insp-input"
-								type="text"
-								:placeholder="__('Untitled section')"
-								v-model="selected_section.label"
-							/>
-						</div>
-
-						<!-- Show title -->
-						<div class="pfb-insp-row">
-							<span class="pfb-insp-label">{{ __("Show title") }}</span>
-							<Segmented
-								:model-value="section_show_label === 'hide' ? 'hide' : 'show'"
-								:options="[
-									{ value: 'show', label: __('Yes') },
-									{ value: 'hide', label: __('No') },
-								]"
-								@update:model-value="(v) => (selected_section.show_label = v)"
-							/>
-						</div>
+						<LabelField
+							v-model="selected_section.label"
+							:label="__('Title')"
+							:placeholder="__('Untitled section')"
+							show-toggle
+							:show-label="__('Show title')"
+							:show="selected_section.show_label"
+							@update:show="(v) => (selected_section.show_label = v)"
+						/>
 
 						<!-- Columns -->
 						<div class="pfb-insp-row">
@@ -797,6 +767,7 @@ import VisibilitySection from "./VisibilitySection.vue";
 import Stepper from "./Stepper.vue";
 import Segmented from "./Segmented.vue";
 import TemplateInput from "./TemplateInput.vue";
+import LabelField from "./LabelField.vue";
 
 let store = inject("$store");
 let { letterhead, layout, meta } = useStore();
@@ -930,16 +901,10 @@ let short_fieldtype = computed(() => {
 	return map[selected_field.value.fieldtype] || selected_field.value.fieldtype || "";
 });
 
-let current_show_label = computed(() => selected_field.value?.show_label ?? "show");
 let current_align = computed(() => selected_field.value?.align ?? "left");
 let current_label_justify = computed(() => selected_field.value?.label_justify ?? "");
 // Spacing only applies when the field is inline (section "Label side: Left")
 let field_is_inline = computed(() => parent_section.value?.field_orientation === "left-right");
-
-const show_label_opts = [
-	{ value: "show", label: __("Show") },
-	{ value: "hide", label: __("Hide") },
-];
 
 const align_icons = {
 	left: `<svg xmlns="http://www.w3.org/2000/svg" width="14" height="12" viewBox="0 0 14 12" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"><line x1="0" y1="1" x2="14" y2="1"/><line x1="0" y1="5" x2="9" y2="5"/><line x1="0" y1="9" x2="11" y2="9"/></svg>`,
@@ -1206,7 +1171,6 @@ function set_image_size(col, value) {
 }
 
 // ── Section helpers ────────────────────────────────────────
-let section_show_label = computed(() => selected_section.value?.show_label ?? "show");
 let section_orientation = computed(() => selected_section.value?.field_orientation ?? "");
 let section_gap = computed(() => selected_section.value?.gap ?? 20);
 let section_label_case = computed(() => selected_section.value?.label_case ?? "normal");
