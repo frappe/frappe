@@ -1841,7 +1841,16 @@ function set_section_cell_padding(value) {
 .pfb-col-editor {
 	background: var(--gray-50);
 	border-top: 1px solid var(--gray-100);
+	border-left: 2px solid var(--gray-300);
+	margin-left: 10px;
 	padding-bottom: 6px;
+}
+
+/* Rows inside the merge editor are always in an active-editing context, so
+   their icons stay clearly visible instead of the outer list's hover-reveal. */
+.pfb-col-editor .pfb-col-remove,
+.pfb-col-editor .pfb-merge-drag {
+	color: var(--gray-400);
 }
 
 /* ── Letter Head inspector ───────────────────────────────── */
