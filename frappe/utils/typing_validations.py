@@ -5,6 +5,7 @@ from inspect import _empty, isclass
 from types import EllipsisType
 from typing import ForwardRef, TypeVar, Union, get_type_hints
 from unittest import mock
+from copy import deepcopy
 
 from pydantic import ConfigDict, PydanticUserError
 from pydantic import TypeAdapter as PydanticTypeAdapter
@@ -28,14 +29,30 @@ def validate_argument_types(
 	apply_condition: Callable | None = None,
 	force_types: bool | None = None,
 ):
+	# NOTE: this is evaluated/called during declaration (@whitelist) (i.e at compile time kind of) so better to do a lot of checking here!
 	app = func.__module__.split(".")[0]
 
-	# saving annotation, func_params as soon as available to do away redundant annotations check during transform_argument_types.
-	annotations = func.__annotations__
-	func_params = inspect.signature(func).parameters # why call through another wrapper, this is what we want, would be called once for each function and that only at startup/decoration!
+
+	# Evaluate default values for functions parameters. For default values we do 2 things, if only default value with no annotation, we update the `__annotations__` to reflect the type(default), if default and with annotation, we create a UNION.
+	# TODO: ideally we should prevent any default values with mismatched type, like if for float type as annotation, no int values, as this would be caught during declaration and force user to provide expected type for default value.
+	new_annotations = deepcopy(func.__annotations__)
+	func_params = inspect.signature(func).parameters
+	for (param_name, parameter) in func_params.items():
+		if not(parameter.default == inspect._empty):
+			if  param_name in new_annotations:
+				# have a default value and an annotation. Union would handle if both types are same! (a set)
+				new_annotations[param_name] = Union[new_annotations[param_name], type(parameter.default)]
+			else:
+				# have a default value but no annotation.
+				assert not(param_name in new_annotations)  # sanity check.
+				new_annotations[param_name] = type(parameter.default)
+	assert len(new_annotations) >= len(func.__annotations__)  # sanity check.
+	func.__annotations__ = new_annotations   # overwriting. (This would be reflected in `get_type_hints` as well when we later use that...)
+	del new_annotations
 
 	# Checking annotations as soon as can.(during decoration itself).
 	# would be part of closure environment. (have to do it as `force_types = any ..` code should only be used after `frappe` proper resolution.. stop making it more dynamic !!!!
+	annotations = func.__annotations__
 	is_annotation_valid = True
 	invalid_param_name = None
 	for idx, (param_name, parameter) in enumerate(func_params.items()):
@@ -74,6 +91,7 @@ def validate_argument_types(
 
 		# NOTE: force_types value depends on `frappe` module, which have to be resolved, otherwise we could have raised "not Annotations present" error in the decorator itself during startup!
 		if force_types and not (is_annotation_valid):
+			# NOTE: is_annotation_valid is evaluated during the `declaration/decoration` (by @whitelist) and then only checked if `force_types` has been set to True. (force_types) comes from this `frappe` module itself, so we have to wait it for fully resolved to get `force_types` correct value :(
 			module, qualname = func.__module__, func.__qualname__
 			raise FrappeTypeError(
 				f"Argument '{invalid_param_name}' in '{module}.{qualname}' is missing type annotation.."
@@ -84,7 +102,7 @@ def validate_argument_types(
 			# Only if error ocurred earlier this branch would be taken/necessary, meaning there are `annotations` and also `forwardRefs` which couldn't be resolved.
 			# get_type_hints, handles cases where there are no annotation for a parameter or if `cls` self like parameters, so if error occured, then it should mean `forwardRefs` failed to get resolved!
 			try:
-				func.__annotations__ = get_type_hints(func) # don't directly assign..as make sure
+				func.__annotations__ = get_type_hints(func) # No need to pass specific `globalns`, Default works expectedly otherwise we will get an error!
 				are_forwardRef_resolved = True				# would be reflected for later calls!
 			except Exception as e:
 				# We put this conditional check instead in exception block.
@@ -165,6 +183,7 @@ def transform_parameter_types(func: Callable, args: tuple, kwargs: dict, force_t
 	annotations = func.__annotations__
 	func_params = frappe._get_cached_signature_params(func)[0]
 
+	# TODO: remove this block, as being handled before call to this routine.
 	if force_types:
 		for idx, (param_name, parameter) in enumerate(func_params.items()):
 			if idx == 0 and param_name in ("self", "cls"):
@@ -208,6 +227,7 @@ def transform_parameter_types(func: Callable, args: tuple, kwargs: dict, force_t
 		current_arg_value = prepared_args[current_arg]
 
 		# if the type is a ForwardRef or str, ignore it
+		# TODO: remove checks for ForwardRef, as would be resolved using `get_type_hints` before call to this routine!
 		if isinstance(current_arg_type, ForwardRefOrStr):
 			continue
 		elif any(isinstance(x, ForwardRefOrStr) for x in getattr(current_arg_type, "__args__", [])):
@@ -223,6 +243,7 @@ def transform_parameter_types(func: Callable, args: tuple, kwargs: dict, force_t
 		param_def = func_params.get(current_arg)
 
 		# add default value's type in acceptable types
+		# TODO: remove this block.. as we are handling this during declaration, and it is buggy!
 		if param_def.default is not _empty:
 			if isinstance(current_arg_type, tuple):
 				if type(param_def.default) not in current_arg_type:
