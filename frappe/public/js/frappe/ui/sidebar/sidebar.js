@@ -426,13 +426,12 @@ frappe.ui.Sidebar = class Sidebar {
 						frappe.ui.show_user_settings("profile");
 					},
 				},
-				{ is_divider: true },
 				{
-					name: "desktop",
-					label: __("Desktop"),
-					icon: "home",
+					name: "workspace-selector",
+					label: __("Manage Workspaces"),
+					icon: "monitor",
 					onClick: function () {
-						frappe.set_route("/desk");
+						new frappe.ui.WorkspacePicker();
 					},
 				},
 				...frappe.boot.navbar_settings.settings_dropdown.map((item) => ({
