@@ -145,13 +145,6 @@ frappe.breadcrumbs = {
 		) {
 			return;
 		}
-		if (frappe.app.sidebar.sidebar_title) {
-			let icon = frappe.utils.get_desktop_icon_by_label(frappe.app.sidebar.sidebar_title);
-			let url = frappe.utils.get_route_for_icon(icon);
-			if (url) {
-				this.append_breadcrumb_element(url, __(icon.label), "worksapce-breadcrumb");
-			}
-		}
 
 		let worksapce_crumb = this.$breadcrumbs.find("li a.worksapce-breadcrumb");
 

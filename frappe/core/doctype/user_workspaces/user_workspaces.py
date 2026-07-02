@@ -1,13 +1,11 @@
-# Copyright (c) 2025, Frappe Technologies and contributors
+# Copyright (c) 2026, Frappe Technologies and contributors
 # For license information, please see license.txt
 
 # import frappe
 from frappe.model.document import Document
 
 
-class SidebarItemGroupLink(Document):
-	_DOCTYPE_NAME = "Sidebar Item Group Link"
-
+class UserWorkspaces(Document):
 	# begin: auto-generated types
 	# This code is auto-generated. Do not modify anything in this block.
 
@@ -19,7 +17,7 @@ class SidebarItemGroupLink(Document):
 		parent: DF.Data
 		parentfield: DF.Data
 		parenttype: DF.Data
-		report: DF.Link | None
+		workspace: DF.Link | None
 	# end: auto-generated types
 
-	pass
+	_DOCTYPE_NAME = "User Workspaces"

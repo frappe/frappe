@@ -81,7 +81,9 @@ class MariaDBExceptionUtil:
 
 	@staticmethod
 	def is_data_truncated(e: MySQLdb.Error) -> bool:
-		return e.args and e.args[0] == ER.TRUNCATED_WRONG_VALUE
+		# WARN_DATA_OUT_OF_RANGE: a value that doesn't fit the column's new type on a type change,
+		# mirroring postgres's NUMERIC_VALUE_OUT_OF_RANGE so both engines raise the same error
+		return e.args and e.args[0] in (ER.TRUNCATED_WRONG_VALUE, ER.WARN_DATA_OUT_OF_RANGE)
 
 	@staticmethod
 	def is_db_table_size_limit(e: MySQLdb.Error) -> bool:

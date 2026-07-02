@@ -21,3 +21,4 @@ export * from "./components/Phone";
 export * from "./components/TableMultiSelect";
 export * from "./components/Notifications";
 export * from './components/ActivityTimeline'
+export * from "./components/InviteUser";
