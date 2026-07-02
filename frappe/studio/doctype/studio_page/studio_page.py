@@ -1,6 +1,7 @@
 # Copyright (c) 2024, Frappe Technologies Pvt Ltd and contributors
 # For license information, please see license.txt
 import os
+import re
 
 import frappe
 from frappe import _
@@ -16,6 +17,10 @@ from studio.export import (
 	write_document_file,
 )
 from studio.utils import camel_case_to_kebab_case
+
+# A variable is referenced as {{ name }} and spread into the page's JS eval context, so its
+# name must be a bare JS identifier.
+VARIABLE_NAME_REGEX = re.compile(r"^[A-Za-z_$][A-Za-z0-9_$]*$")
 
 
 class StudioPage(Document):
@@ -199,6 +204,14 @@ class StudioPage(Document):
 		duplicate_variable_names = set(x for x in variable_names if variable_names.count(x) > 1)
 		if duplicate_variable_names:
 			frappe.throw(_("Duplicate variable name: {0}").format(", ".join(duplicate_variable_names)))
+
+		for variable in self.variables:
+			if not VARIABLE_NAME_REGEX.match(variable.variable_name or ""):
+				frappe.throw(
+					_(
+						"Invalid variable name '{0}' — use letters, digits and underscores, starting with a letter."
+					).format(variable.variable_name)
+				)
 
 	def process_resources(self):
 		for resource in self.resources:

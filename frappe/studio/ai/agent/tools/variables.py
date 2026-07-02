@@ -14,7 +14,6 @@ that, so the model just passes a plain value.
 """
 
 import json
-import re
 
 import frappe
 
@@ -23,24 +22,17 @@ from studio.ai.agent.tools.page import dangling_binding_warning, load_page, save
 from studio.ai.block_codec import BlockCodec
 
 VARIABLE_TYPES = ("String", "Number", "Boolean", "Object")
-# A binding name has to be a bare JS identifier — it's spread into the eval context
-# and referenced as {{ <name> }}.
-VARIABLE_NAME_REGEX = re.compile(r"^[A-Za-z_$][A-Za-z0-9_$]*$")
 
 
 def run_add_variable(ctx, args: dict) -> str:
 	name = text_arg(args.get("variable_name"))
 	var_type = text_arg(args.get("variable_type")) or "String"
-	if error := _validate_name(name):
-		return f"FAILED: {error}"
 	if var_type not in VARIABLE_TYPES:
 		return f"FAILED: variable_type must be one of {list(VARIABLE_TYPES)}."
 
 	page = load_page(ctx)
 	if page is None:
 		return "FAILED: no page in context."
-	if _find_variable(page, name):
-		return f"FAILED: a variable named '{name}' already exists. Use update_variable to change it."
 
 	page.append(
 		"variables",
@@ -115,14 +107,6 @@ def run_delete_variable(ctx, args: dict) -> str:
 
 
 # --- helpers --------------------------------------------------------------
-
-
-def _validate_name(name: str) -> str | None:
-	if not name:
-		return "variable_name is required."
-	if not VARIABLE_NAME_REGEX.match(name):
-		return f"'{name}' is not a valid variable name — use letters, digits and underscores, starting with a letter."
-	return None
 
 
 def _find_variable(page, name: str):
