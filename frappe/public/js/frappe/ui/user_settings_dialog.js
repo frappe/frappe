@@ -1,5 +1,15 @@
 frappe.provide("frappe.ui");
 
+const BOOT_USER_FIELDS = [
+	"first_name",
+	"last_name",
+	"email_signature",
+	"language",
+	"mute_sounds",
+	"send_me_a_copy",
+	"show_absolute_datetime_in_timeline",
+];
+
 frappe.ui.show_user_settings = async function (default_tab) {
 	let user_data;
 	try {
@@ -76,6 +86,29 @@ frappe.ui.show_user_settings = async function (default_tab) {
 function _save_user(fieldname_or_dict, value) {
 	return frappe.db
 		.set_value("User", frappe.session.user, fieldname_or_dict, value)
+		.then((res) => {
+			frappe.show_alert({
+				message: __("Saved. Refresh to see changes."),
+				indicator: "green",
+			});
+			if (frappe.boot.user) {
+				// Update the user data in the boot user object
+				if (typeof fieldname_or_dict === "string") {
+					// If this is a boot user field, update the boot user object
+					if (BOOT_USER_FIELDS.includes(fieldname_or_dict)) {
+						frappe.boot.user[fieldname_or_dict] = value;
+					}
+				} else {
+					// Loop over the fields and update the boot user object
+					Object.keys(fieldname_or_dict).forEach((key) => {
+						if (BOOT_USER_FIELDS.includes(key)) {
+							frappe.boot.user[key] = fieldname_or_dict[key];
+						}
+					});
+				}
+			}
+			return Promise.resolve(res);
+		})
 		.catch((e) => {
 			frappe.show_alert({ message: __("Failed to save"), indicator: "red" });
 			console.error(e);
@@ -89,14 +122,7 @@ function _bind_switch_autosave(panel, fieldnames) {
 	fieldnames.forEach((fn) => {
 		const ctrl = panel.fieldgroup.fields_dict[fn];
 		if (!ctrl || !ctrl.$input) return;
-		ctrl.$input.on("change", () =>
-			_save_user(fn, ctrl.get_value()).then(() => {
-				frappe.show_alert({
-					message: __("Saved. Refresh to see changes."),
-					indicator: "green",
-				});
-			})
-		);
+		ctrl.$input.on("change", () => _save_user(fn, ctrl.get_value()));
 	});
 }
 
@@ -143,7 +169,6 @@ function _profile_tab(user_data) {
 							frappe.boot.user_info[frappe.session.user].fullname =
 								fn || frappe.session.user;
 						}
-						frappe.show_alert({ message: __("Saved"), indicator: "green" });
 						panel.refresh();
 					});
 				},
@@ -267,9 +292,7 @@ function _email_tab(user_data) {
 				label: __("Save"),
 				variant: "solid",
 				click(panel) {
-					_save_user("email_signature", panel.get_value("email_signature")).then(() => {
-						frappe.show_alert({ message: __("Saved"), indicator: "green" });
-					});
+					_save_user("email_signature", panel.get_value("email_signature"));
 				},
 			},
 		],
@@ -501,10 +524,6 @@ function _change_user_field({ field, title, on_save }) {
 		primary_action(values) {
 			const new_value = values[field.fieldname];
 			return _save_user(field.fieldname, new_value).then(() => {
-				frappe.show_alert({
-					message: __("Saved. Refresh to see changes."),
-					indicator: "green",
-				});
 				on_save(new_value);
 				dialog.hide();
 			});
