@@ -1,7 +1,7 @@
 <template>
 	<div class="pfb-tpl">
 		<div class="table-multiselect pfb-tpl-row" ref="row" @click="focus_last">
-			<template v-for="(tok, i) in modelValue" :key="i">
+			<template v-for="(tok, i) in display" :key="i">
 				<span v-if="tok.t === 'f'" class="es-badge">
 					{{ field_label(tok.v) }}
 					<span
@@ -13,11 +13,12 @@
 				<input
 					v-else
 					class="pfb-tpl-text"
-					:class="{ 'pfb-tpl-text--fill': i === modelValue.length - 1 }"
+					:class="{ 'pfb-tpl-text--fill': i === display.length - 1 }"
 					type="text"
 					v-model="tok.v"
-					:style="i === modelValue.length - 1 ? null : { width: tok.v.length + 'ch' }"
+					:style="i === display.length - 1 ? null : { width: tok.v.length + 'ch' }"
 					:placeholder="only_empty_text ? __('Type text…') : ''"
+					@input="commit"
 				/>
 			</template>
 		</div>
@@ -39,7 +40,7 @@
 </template>
 
 <script setup>
-import { computed, onMounted, ref, nextTick } from "vue";
+import { computed, ref, nextTick, watch } from "vue";
 import Autocomplete from "../../../vue-components/Autocomplete.vue";
 
 const adding = ref(false);
@@ -59,9 +60,12 @@ const props = defineProps({
 });
 
 // Keep an editable text slot at the start, end, and between adjacent field
-// chips so literal text (e.g. " (", "%)") can always be typed inline.
-function normalize() {
-	const src = props.modelValue;
+// chips so literal text (e.g. " (", "%)") can always be typed inline. Pure —
+// does not mutate its input — so simply displaying an untouched template
+// (e.g. a freshly-added column's default `template: []`) never dirties the
+// print format on its own; only an actual edit (typing, add/remove) commits
+// the normalized shape back to modelValue.
+function build_normalized(src) {
 	const out = [];
 	if (!src.length || src[0].t !== "s") out.push({ t: "s", v: "" });
 	src.forEach((tok, i) => {
@@ -69,32 +73,45 @@ function normalize() {
 		if (tok.t === "f" && (!src[i + 1] || src[i + 1].t === "f")) out.push({ t: "s", v: "" });
 	});
 	if (out[out.length - 1].t !== "s") out.push({ t: "s", v: "" });
-	src.splice(0, src.length, ...out);
+	return out;
 }
-onMounted(normalize);
+
+const display = ref(build_normalized(props.modelValue));
+watch(
+	() => props.modelValue,
+	(v) => (display.value = build_normalized(v))
+);
+
+function commit() {
+	props.modelValue.splice(0, props.modelValue.length, ...display.value);
+}
 
 let only_empty_text = computed(
-	() => props.modelValue.length === 1 && props.modelValue[0].t === "s" && !props.modelValue[0].v
+	() => display.value.length === 1 && display.value[0].t === "s" && !display.value[0].v
 );
 
 function field_label(fieldname) {
 	return props.fields.find((f) => f.value === fieldname)?.label || fieldname;
 }
 function add_field(opt) {
-	if (opt?.value) props.modelValue.push({ t: "f", v: opt.value }, { t: "s", v: "" });
+	if (opt?.value) {
+		display.value.push({ t: "f", v: opt.value }, { t: "s", v: "" });
+		commit();
+	}
 	adding.value = false;
 }
 function remove(i) {
-	props.modelValue.splice(i, 1);
+	display.value.splice(i, 1);
 	// merge text slots that became adjacent
-	const a = props.modelValue;
+	const a = display.value;
 	for (let j = a.length - 1; j > 0; j--) {
 		if (a[j].t === "s" && a[j - 1].t === "s") {
 			a[j - 1].v += a[j].v;
 			a.splice(j, 1);
 		}
 	}
-	normalize();
+	display.value = build_normalized(a);
+	commit();
 }
 </script>
 
