@@ -1,6 +1,6 @@
 <template>
 	<div class="pfb-tpl">
-		<div class="table-multiselect pfb-tpl-row">
+		<div class="table-multiselect pfb-tpl-row" ref="row" @click="focus_last">
 			<template v-for="(tok, i) in modelValue" :key="i">
 				<span v-if="tok.t === 'f'" class="es-badge">
 					{{ field_label(tok.v) }}
@@ -13,9 +13,10 @@
 				<input
 					v-else
 					class="pfb-tpl-text"
+					:class="{ 'pfb-tpl-text--fill': i === modelValue.length - 1 }"
 					type="text"
 					v-model="tok.v"
-					:style="{ width: (tok.v.length || (only_empty_text ? 12 : 0)) + 'ch' }"
+					:style="i === modelValue.length - 1 ? null : { width: tok.v.length + 'ch' }"
 					:placeholder="only_empty_text ? __('Type text…') : ''"
 				/>
 			</template>
@@ -43,6 +44,10 @@ import Autocomplete from "../../../vue-components/Autocomplete.vue";
 
 const adding = ref(false);
 const picker = ref(null);
+const row = ref(null);
+function focus_last(e) {
+	if (e.target === row.value) row.value.querySelector(".pfb-tpl-text:last-of-type")?.focus();
+}
 function open_picker() {
 	adding.value = true;
 	nextTick(() => picker.value?.querySelector("input")?.focus());
@@ -119,6 +124,10 @@ function remove(i) {
 	padding: 0;
 }
 .pfb-tpl-text:focus {
+	min-width: 3ch;
+}
+.pfb-tpl-text--fill {
+	flex: 1;
 	min-width: 3ch;
 }
 .pfb-tpl-x {
