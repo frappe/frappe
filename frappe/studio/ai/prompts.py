@@ -5,12 +5,12 @@ LAYOUT:
 TEXT & DISPLAY:
 - TextBlock: {text: "string", tag: "p|h1|h2|h3|h4|h5|h6|span", fontSize: "text-2xs(11px)|text-xs(12px)|text-sm(13px)|text-base(14px)|text-lg(16px)|text-xl(17px)|text-2xl(18px)|text-3xl(20px)|text-p-2xs|text-p-xs|text-p-sm|text-p-base|text-p-lg|text-p-xl|text-p-2xl|text-p-3xl"}
   # text-* = tight line-height (UI labels, headings); text-p-* = relaxed line-height (body copy, descriptions)
-- Badge: {variant: "subtle|solid|outline", theme: "green|red|orange|blue|gray", size: "sm|md|lg", label: "string"}
-- Pill: {label: "string", variant: "default|outline|underline", size: "sm|md", icon: "lucide-icon-name", iconLeft: "lucide-icon-name", iconRight: "lucide-icon-name"}
+- Badge: {variant: "subtle|solid|outline", theme: "green|red|orange|blue|gray", size: "sm|md|lg", label: "string"} # slots: prefix, suffix
+- Pill: {label: "string", variant: "default|outline|underline", size: "sm|md", icon: "lucide-icon-name", iconLeft: "lucide-icon-name", iconRight: "lucide-icon-name"} # slots: prefix, suffix
 - Avatar: {shape: "circle|square", size: "xs|sm|md|lg|xl|2xl|3xl", label: "initials", image: "url" (publicly accessible)}
 - Progress: {value: 0-100, size: "sm|md|lg", label: "string"}
 - Spinner: {size: "xs|sm|md|lg", theme: "gray|red"}
-- Alert: {title: "string", description: "string", theme: "yellow|red|green|blue"}
+- Alert: {title: "string", description: "string", theme: "yellow|red|green|blue"} # slots: icon, description, footer
 - ErrorMessage: {message: "string"}
 - FeatherIcon: {name: "feather-icon-name", class: "h-5 w-5"} # (icons from https://feathericons.com/)
 - ImageView: {image: "url", size: "xs|sm|md|lg|xl"}
@@ -19,16 +19,16 @@ TEXT & DISPLAY:
 - HTML: {html: "<p>raw html</p>"}
 
 INPUTS:
-- TextInput: {modelValue: "string", label: "string", placeholder: "string"}
+- TextInput: {modelValue: "string", label: "string", placeholder: "string"} # slots: prefix, suffix (e.g. an icon before/after the field)
 - Textarea: {modelValue: "string", label: "string", placeholder: "string"}
 - FormControl: {modelValue: "string", type: "text|email|number|textarea|select|date|combobox|multiselect|password|tel|url|range", label: "string", placeholder: "string", required: "boolean", options: [{label: "string", value: "string"}] (for select and combobox)}
-- Select: {modelValue: "string", label: "string", placeholder: "string", options: [{label: "string", value: "string"}]}
+- Select: {modelValue: "string", label: "string", placeholder: "string", options: [{label: "string", value: "string"}]} # slots: prefix, suffix, item-label, empty, footer
 - Checkbox: {label: "string", modelValue: true|false}
 - Switch: {label: "string", description: "string", modelValue: true|false}
-- DatePicker: {modelValue: "string", label: "string", placeholder: "string"}
+- DatePicker: {modelValue: "string", label: "string", placeholder: "string"} # slots: prefix, suffix, actions
 - TimePicker: {modelValue: "string", label: "string", placeholder: "string"}
-- DateTimePicker: {modelValue: "string", label: "string", placeholder: "string"}
-- MultiSelect: {modelValue: [], label: "string", placeholder: "string", options: [{label: "string", value: "string"}]}
+- DateTimePicker: {modelValue: "string", label: "string", placeholder: "string"} # slots: prefix, suffix, actions
+- MultiSelect: {modelValue: [], label: "string", placeholder: "string", options: [{label: "string", value: "string"}]} # slots: prefix, suffix, summary, empty, footer
 - Rating: {modelValue: 0, max: 5, label: "string", disabled: false}
 - Slider: {modelValue: [number] (single thumb) | [number, number] (range), min: 0, max: 100, step: 1, label: "string", size: "sm|md"}
 - FileUploader: {label: "string", fileTypes: "['image/*']"}
@@ -54,25 +54,25 @@ OVERLAYS:
 
 NAVIGATION:
 - Breadcrumbs: {items: [{label: "string", route: "string"}]}
-- Tabs: {tabs: [{label: "string"}]}
+- Tabs: {tabs: [{label: "string"}]} # slots: tab-item, tab-panel
 - TabButtons: {options: [{label: "string", value: "string"}], modelValue: "string", type: "subtle|ghost|underline|browser-tab", size: "sm|md"}
-- Sidebar: {header: {title: "string", subtitle: "string"}, sections: [{label: "string", items: [{label: "string", icon: "{{ getIcon('icon-name') }}", to: "string"}]}]}
+- Sidebar: {header: {title: "string", subtitle: "string"}, sections: [{label: "string", items: [{label: "string", icon: "{{ getIcon('icon-name') }}", to: "string"}]}]} # slots: header, header-logo, sidebar-item, footer-items
   # icon-name must be a valid kebab-case lucide icon from https://lucide.dev/icons
 
 DATA DISPLAY:
 - ListView: {columns: [{label: "string", key: "string", width: number}], rows: [{key: value}], rowKey: "string"}
-- NumberChart: {config: {title: "string", value: number, prefix: "string", delta: number}}
+- NumberChart: {config: {title: "string", value: number, prefix: "string", delta: number}} # slots: title, subtitle, delta
 - AxisChart: {config: {data: [{xKey: val, yKey: val}], xAxis: {key: "dataFieldName", type: "category|time"}, yAxis: {title: "string"}, series: [{name: "dataFieldName" (should match data field key, not label), type: "bar|line"}]}}
 - DonutChart: {config: {data: [{cat: val, val: number}], categoryColumn: "string", valueColumn: "string"}}
 - Filter: {doctype: "string", filters: {}}
 - Link: {doctype: "string"}
-- Tree: {nodeKey: "string", node: {name: "string", label: "string", children: []}}
+- Tree: {nodeKey: "string", node: {name: "string", label: "string", children: []}} # slots: label, icon, node
 - Repeater: {data: array — bind to {{ <data_source>.data }}, dataKey: "field that uniquely identifies a row, usually 'name'", emptyStateMessage: "string"}
   # Repeats its child block(s) once per item in `data`. Build ONE row template as the child — do NOT duplicate the child per record. Inside the repeater, bind child props to the CURRENT ROW via {{ dataItem.<field> }} (and dataIndex for the 0-based index). e.g. a TextBlock showing each row's title → bind prop "text" to dataItem.title.
 - Calendar: {config: {defaultMode: "Month"}, events: []}
 
 AUTOCOMPLETE:
-- Combobox: {label: "string", modelValue: "string", placeholder: "string", options: [{group: "string", options: [{label, value}]}]}
+- Combobox: {label: "string", modelValue: "string", placeholder: "string", options: [{group: "string", options: [{label, value}]}]} # slots: prefix, suffix, item-label, empty, footer
 """
 
 STYLING_RULES = """COMPONENT STYLING RULES:
@@ -118,10 +118,11 @@ BLOCK_SCHEMA = """BLOCK SCHEMA (each block is a JSON object with these optional 
 - "rstyle": { }                 — raw CSS for properties not in the style panel
 - "mstyle": { }                 — mobile style overrides
 - "tstyle": { }                 — tablet style overrides
-- "slots": { }                  — componentSlots for frappe-ui components that hold child content
 - "events": { }                 — event handlers, eventName → JS script, e.g. {"click":"counter.value++"}. Variables are refs (write with .value); the script also sees data sources and route/router.
 - "visibility": "expr"          — render the block only when a {{ }} expression is truthy, e.g. "{{ todos.data.length > 0 }}"
-- "c": [ ]                       — children list (array of block objects)
+- "c": [ ]                       — children list (array of block objects). These are the block's DEFAULT-slot content (e.g. a Dialog's body, a ContextMenu's target surface).
+- "slots": { }                  — NAMED slots only, for components that expose them: {"<slotName>": [ ...child block objects... ]} (each value is a block list in THIS same schema, or a raw HTML string). Default content goes in "c" — use "slots" only for a component's named slots. On an EXISTING block, fill a named slot with set_slot(component_id, slot_name, blocks) and drop a wrong one with remove_slot(component_id, slot_name).
+  NAMED SLOTS RULE: use ONLY a component's real slot names — the ones listed after `# slots:` in its catalog entry below. NEVER invent a slot name (e.g. Sidebar's footer is called "footer-items", not "footer"); content placed in a slot the component doesn't declare silently does not render. If a component shows no `# slots:`, treat it as having none — use its props or default-slot "c".
 
 ROOT BLOCK — the page root is:
 {"name":"div","originalElement":"body","label":"body","style":{"display":"flex","flexDirection":"column","flexShrink":0,"width":"inherit","overflowX":"hidden","height":"100%"},"c":[ ... ]}

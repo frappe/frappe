@@ -46,6 +46,10 @@ export class ToolDispatcher {
 				return this.removeBlock(args)
 			case "move_block":
 				return this.moveBlock(args)
+			case "set_slot":
+				return this.setSlot(args)
+			case "remove_slot":
+				return this.removeSlot(args)
 			case "bind_prop":
 				return this.bindProp(args)
 			case "set_repeater_data":
@@ -126,6 +130,28 @@ export class ToolDispatcher {
 			return
 		}
 		newParent.addChild(options, typeof args.index === "number" ? args.index : null)
+	}
+
+	/** Fill a named slot of an existing block. `html` sets a raw-string slot; `blocks`
+	 * replaces the slot with expanded child blocks (their ids are assigned on the canvas). */
+	private setSlot(args: Record<string, any>) {
+		const block = this.ctx.getCanvas()?.findBlock(args.component_id)
+		if (!block || !args.slot_name) return
+		if (typeof args.html === "string") {
+			block.updateSlot(args.slot_name, args.html)
+			return
+		}
+		if (Array.isArray(args.blocks)) {
+			if (!block.getSlot(args.slot_name)) block.addSlot(args.slot_name)
+			block.getSlot(args.slot_name).slotContent = []
+			for (const child of args.blocks) block.updateSlot(args.slot_name, expandBlock(child))
+		}
+	}
+
+	/** Remove a named slot (and its content) from an existing block. */
+	private removeSlot(args: Record<string, any>) {
+		const block = this.ctx.getCanvas()?.findBlock(args.component_id)
+		if (block && args.slot_name) block.removeSlot(args.slot_name)
 	}
 
 	/** Bind a prop to a `{{ expression }}`. The tool sends the bare expression; wrap it

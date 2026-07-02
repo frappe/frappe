@@ -9,14 +9,30 @@ componentId / children / …) — the same shape `BlockCodec` operates on.
 from collections.abc import Iterator
 
 
+def child_blocks(block: dict) -> Iterator[dict]:
+	"""A block's direct child blocks: its `children` PLUS blocks nested in named slots
+	(componentSlots[<name>].slotContent when that content is a block list). Slotted blocks
+	are real children of the block — walking only `children` makes them unreachable for
+	selection and ref-validation."""
+	for child in block.get("children") or []:
+		if isinstance(child, dict):
+			yield child
+	for slot in (block.get("componentSlots") or {}).values():
+		content = slot.get("slotContent") if isinstance(slot, dict) else None
+		if isinstance(content, list):
+			for child in content:
+				if isinstance(child, dict):
+					yield child
+
+
 def walk_blocks(root: dict, depth: int = 0) -> Iterator[tuple[dict, int]]:
-	"""Yield (block, depth) for the root and every descendant, depth-first."""
+	"""Yield (block, depth) for the root and every descendant, depth-first — descending
+	both `children` and named-slot content (see child_blocks)."""
 	if not isinstance(root, dict):
 		return
 	yield root, depth
-	for child in root.get("children") or []:
-		if isinstance(child, dict):
-			yield from walk_blocks(child, depth + 1)
+	for child in child_blocks(root):
+		yield from walk_blocks(child, depth + 1)
 
 
 def find_block(root: dict, component_id: str) -> dict | None:

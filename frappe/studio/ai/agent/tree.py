@@ -15,7 +15,7 @@ turn has no ref the model can target, so its bindings are baked into its props
 at creation instead of applied afterward.
 """
 
-from studio.ai.agent.selectors import find_block, walk_blocks
+from studio.ai.agent.selectors import child_blocks, find_block, walk_blocks
 
 
 class WorkingTree:
@@ -27,14 +27,22 @@ class WorkingTree:
 
 	def parent_of(self, component_id: str) -> dict | None:
 		for block, _ in walk_blocks(self.root):
-			for child in block.get("children") or []:
-				if isinstance(child, dict) and child.get("componentId") == component_id:
+			for child in child_blocks(block):
+				if child.get("componentId") == component_id:
 					return block
 		return None
 
 	def detach(self, component_id: str) -> None:
-		if parent := self.parent_of(component_id):
+		"""Remove the block from its parent — whether it sits in `children` or in a named slot."""
+		parent = self.parent_of(component_id)
+		if parent is None:
+			return
+		if parent.get("children"):
 			parent["children"] = [c for c in parent["children"] if c.get("componentId") != component_id]
+		for slot in (parent.get("componentSlots") or {}).values():
+			content = slot.get("slotContent") if isinstance(slot, dict) else None
+			if isinstance(content, list):
+				slot["slotContent"] = [c for c in content if c.get("componentId") != component_id]
 
 	def id_hint(self, component_id: str | None) -> str:
 		"""The model often passes a block's HTML id (attributes.id) instead of its
@@ -60,6 +68,10 @@ class WorkingTree:
 			return self.apply_move(args)
 		if tool_name == "add_block":
 			return self.apply_add(args)
+		if tool_name == "set_slot":
+			return self.apply_set_slot(args)
+		if tool_name == "remove_slot":
+			return self.apply_remove_slot(args)
 		if tool_name in ("bind_prop", "set_repeater_data", "sync_variable"):
 			return self.apply_bind(tool_name, args)
 		if tool_name in ("set_event_handler", "set_visibility"):
@@ -120,6 +132,26 @@ class WorkingTree:
 			return f"FAILED: parent_component_id '{parent_id}' not found{self.id_hint(parent_id)}"
 		component_name = (args.get("block") or {}).get("name") or "block"
 		return f"Added the {component_name} block under {parent_id}."
+
+	def apply_set_slot(self, args: dict) -> str:
+		"""set_slot fills a NAMED slot of an existing block; only the target ref needs
+		validating (the slot's new children get their ids on the canvas, like add_block)."""
+		component_id = args.get("component_id")
+		if self.resolve(component_id) is None:
+			return f"FAILED: component_id '{component_id}' not found{self.id_hint(component_id)}"
+		return f"Set the '{args.get('slot_name')}' slot of block {component_id}."
+
+	def apply_remove_slot(self, args: dict) -> str:
+		"""remove_slot drops a named slot from an existing block; mirror the removal so a later
+		ref into that slot this turn correctly fails."""
+		component_id = args.get("component_id")
+		block = self.resolve(component_id)
+		if block is None:
+			return f"FAILED: component_id '{component_id}' not found{self.id_hint(component_id)}"
+		slot_name = args.get("slot_name")
+		if isinstance(block.get("componentSlots"), dict):
+			block["componentSlots"].pop(slot_name, None)
+		return f"Removed the '{slot_name}' slot from block {component_id}."
 
 	def apply_bind(self, tool_name: str, args: dict) -> str:
 		"""bind_prop / set_repeater_data target an existing block by id; only the ref

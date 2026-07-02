@@ -146,8 +146,12 @@ add_block = Tool(
 					},
 					"c": {
 						"type": "array",
-						"description": "Child blocks (same schema, recursively).",
+						"description": "Child blocks (same schema, recursively). These fill the component's DEFAULT slot.",
 						"items": {"type": "object"},
+					},
+					"slots": {
+						"type": "object",
+						"description": 'NAMED slots (only for components that expose them): {"<slotName>": [ child block objects ]} — each value is a list of blocks in this same schema, or a raw HTML string. Use "c" for default-slot content; use "slots" only for named slots.',
 					},
 				},
 				"required": ["name"],
@@ -200,4 +204,57 @@ move_block = Tool(
 	},
 )
 
-TOOLS = [update_block, update_blocks, add_block, remove_block, move_block]
+set_slot = Tool(
+	name="set_slot",
+	side="client",
+	description=(
+		"Fill a NAMED slot of a block that ALREADY EXISTS on the page — the component-specific slots "
+		"a frappe-ui component exposes beyond its default slot (e.g. a card's header/footer, a custom "
+		"prefix/suffix). Replaces that slot's content. Provide EITHER 'blocks' (a list of block "
+		"definitions in the add_block schema — they get their ids on the canvas, so bake any bindings/"
+		"events into their props) OR 'html' (a raw HTML string). For default-slot content, add children "
+		"with add_block instead; for a block you are CREATING this turn, put named slots in its add_block "
+		"'slots' field rather than calling this."
+	),
+	parameters={
+		"type": "object",
+		"properties": {
+			"component_id": {"type": "string", "description": "The id of the block whose slot to fill."},
+			"slot_name": {
+				"type": "string",
+				"description": "The named slot to set, e.g. 'header', 'footer', 'prefix'.",
+			},
+			"blocks": {
+				"type": "array",
+				"description": "Block definitions to place in the slot (add_block schema, recursively). Do NOT include ids.",
+				"items": {"type": "object"},
+			},
+			"html": {
+				"type": "string",
+				"description": "Raw HTML for the slot, as an alternative to 'blocks'.",
+			},
+		},
+		"required": ["component_id", "slot_name"],
+	},
+)
+
+remove_slot = Tool(
+	name="remove_slot",
+	side="client",
+	description=(
+		"Remove a NAMED slot (and its content) from a block that ALREADY EXISTS. Use this to undo a "
+		"slot set on the wrong name — e.g. a slot was put on 'footer' but the component's real slot is "
+		"'footer-items', so remove 'footer'. Only affects componentSlots; to clear default-slot content, "
+		"remove those child blocks with remove_block instead."
+	),
+	parameters={
+		"type": "object",
+		"properties": {
+			"component_id": {"type": "string", "description": "The id of the block to remove the slot from."},
+			"slot_name": {"type": "string", "description": "The named slot to remove, e.g. 'footer'."},
+		},
+		"required": ["component_id", "slot_name"],
+	},
+)
+
+TOOLS = [update_block, update_blocks, add_block, remove_block, move_block, set_slot, remove_slot]

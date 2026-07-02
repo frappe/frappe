@@ -41,9 +41,8 @@ class BlockCodec:
 		if tab and depth <= 1:
 			out["tstyle"] = tab
 
-		slots = block.get("componentSlots") or {}
-		if slots:
-			out["slots"] = slots
+		if compact_slots := BlockCodec._compress_slots(block.get("componentSlots") or {}, depth):
+			out["slots"] = compact_slots
 
 		events = block.get("componentEvents") or {}
 		if events:
@@ -57,6 +56,41 @@ class BlockCodec:
 		if children:
 			out["c"] = children
 
+		return out
+
+	@staticmethod
+	def _compress_slots(slots: dict, depth: int) -> dict:
+		"""Compact componentSlots to {slotName: [compact blocks] | "html string"}. Slot
+		children use the SAME compact shape as `c` (recurse), and the derived slotId/
+		parentBlockId are dropped (the client regenerates them). Empty slots are omitted."""
+		out = {}
+		for name, slot in slots.items():
+			if not isinstance(slot, dict):
+				continue
+			content = slot.get("slotContent")
+			if isinstance(content, list):
+				blocks = [BlockCodec.compress(b, depth + 1) for b in content if isinstance(b, dict)]
+				if blocks:
+					out[name] = blocks
+			elif isinstance(content, str) and content.strip():
+				out[name] = content
+		return out
+
+	@staticmethod
+	def _expand_slots(slots: dict) -> dict:
+		"""Expand compact slots ({slotName: [blocks] | "html"}) into componentSlots. slotId/
+		parentBlockId are backfilled by the frontend Block constructor (initializeSlots)."""
+		out = {}
+		if not isinstance(slots, dict):
+			return out
+		for name, content in slots.items():
+			if isinstance(content, list):
+				slot_content = [BlockCodec.expand(b) for b in content if isinstance(b, dict)]
+			elif isinstance(content, str):
+				slot_content = content
+			else:
+				continue
+			out[name] = {"slotName": name, "slotContent": slot_content}
 		return out
 
 	@staticmethod
@@ -81,7 +115,7 @@ class BlockCodec:
 			"baseStyles": node.get("style") or {},
 			"rawStyles": node.get("rstyle") or {},
 			"componentProps": node.get("props") or {},
-			"componentSlots": node.get("slots") or {},
+			"componentSlots": BlockCodec._expand_slots(node.get("slots") or {}),
 			"mobileStyles": node.get("mstyle") or {},
 			"tabletStyles": node.get("tstyle") or {},
 			"children": [BlockCodec.expand(c) for c in node.get("c", []) if isinstance(c, dict)],
