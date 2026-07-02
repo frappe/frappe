@@ -189,10 +189,48 @@ def _describe_resource(r) -> dict:
 	for field in ("document_type", "document_name", "fields", "filters", "limit", "sort_field", "url"):
 		if value := r.get(field):
 			out[field] = value
+	# Surface the lifecycle hooks (their full source, so the model can extend rather than clobber)
+	# and whether auto-fetch is on, so update_data_source has the current state to work from.
+	for field in ("transform", "on_success", "on_error"):
+		if value := r.get(field):
+			out[field] = value
+	out["auto"] = bool(r.get("auto"))
 	return out
 
 
 # --- tool definitions -----------------------------------------------------
+
+# The three JS lifecycle hooks. Each is a Code field whose source must DECLARE a function
+# with an exact name (Studio invokes it by that name); shared by add + update so the
+# contract can't drift. transform reshapes the result; on_success/on_error react to a fetch.
+_TRANSFORM_PARAM = {
+	"type": "string",
+	"description": (
+		"JavaScript that reshapes the fetched result before it becomes {{ <name>.data }}. MUST declare a "
+		"function named exactly `transform` taking the raw result — the records array (Document List / "
+		"API) or the doc (Document) — and RETURNING the new value. e.g. 'function transform(data) { return "
+		'data.map(d => ({ ...d, label: d.first_name + " " + d.last_name })) }\'.'
+	),
+}
+_ON_SUCCESS_PARAM = {
+	"type": "string",
+	"description": (
+		"JavaScript run after a successful fetch. MUST declare a function named exactly `onSuccess` taking "
+		"(data). The page context is in scope — variables are refs (write via .value), plus the other "
+		"resources and route/router. e.g. 'function onSuccess(data) { rowCount.value = data.length }'."
+	),
+}
+_ON_ERROR_PARAM = {
+	"type": "string",
+	"description": (
+		"JavaScript run when the fetch fails. MUST declare a function named exactly `onError` taking "
+		"(error). Same page context in scope. e.g. 'function onError(error) { loadFailed.value = true }'."
+	),
+}
+_AUTO_PARAM = {
+	"type": "boolean",
+	"description": "Fetch automatically on page load (default true). Set false for on-demand sources.",
+}
 
 add_data_source = Tool(
 	name="add_data_source",
@@ -205,6 +243,8 @@ add_data_source = Tool(
 		"• 'Document' — one record. Needs document_type plus either document_name or "
 		"fetch_document_using_filters + filters.\n"
 		"• 'API Resource' — a REST endpoint. Needs url; optional method, params.\n"
+		"Any type also accepts optional lifecycle hooks: transform (reshape the result), on_success / "
+		"on_error (react to a fetch), and auto (fetch on load, default true).\n"
 		"First confirm the DocType and field names with list_doctypes / get_doctype_fields. After "
 		"this, the data is available as {{ <data_source_name>.data }} — bind blocks to it with "
 		"set_repeater_data or bind_prop. Add the data source BEFORE laying out the blocks."
@@ -246,10 +286,10 @@ add_data_source = Tool(
 				"description": "API Resource: HTTP method (default GET).",
 			},
 			"params": {"type": "object", "description": "API Resource: request parameters map."},
-			"auto": {
-				"type": "boolean",
-				"description": "Fetch automatically on page load (default true). Set false for on-demand sources.",
-			},
+			"auto": _AUTO_PARAM,
+			"transform": _TRANSFORM_PARAM,
+			"on_success": _ON_SUCCESS_PARAM,
+			"on_error": _ON_ERROR_PARAM,
 		},
 		"required": ["data_source_name", "data_source_type"],
 	},
@@ -291,7 +331,10 @@ update_data_source = Tool(
 			"url": {"type": "string"},
 			"method": {"type": "string", "enum": ["GET", "POST", "PUT", "DELETE"]},
 			"params": {"type": "object"},
-			"auto": {"type": "boolean"},
+			"auto": _AUTO_PARAM,
+			"transform": _TRANSFORM_PARAM,
+			"on_success": _ON_SUCCESS_PARAM,
+			"on_error": _ON_ERROR_PARAM,
 		},
 		"required": ["data_source_name"],
 	},

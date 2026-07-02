@@ -184,6 +184,8 @@ Build a data-driven view — BACKEND FIRST, then layout:
      - single value / count → a block prop bound to {{ <source>.doc.<field> }} or {{ <source>.data.length }}.
      - a variable → the display block's prop bound to {{ <variable> }} (e.g. a TextBlock with props {"text":"{{ counter }}"}).
 
+Data-source lifecycle hooks (optional, on add_data_source / update_data_source) — reach for these instead of a page script when the logic belongs to ONE source: transform reshapes the fetched result before it becomes {{ <name>.data }} (declare `function transform(data)`, return the new value); on_success / on_error run after a fetch (declare `function onSuccess(data)` / `function onError(error)`, page context in scope — variables are refs, write via .value); auto=false makes the source fetch on demand instead of on load. Each hook is JS that MUST declare a function with that exact name.
+
 Editing an EXISTING block's binding (it's already in the page structure): bind_prop(component_id, prop, expression) — expression WITHOUT braces — or set_repeater_data for an existing Repeater.
 
 Variables: add_variable(name, type, initial_value); reference anywhere as {{ name }}. update_variable to retype/re-seed, delete_variable to remove (warns if still bound). Reuse before duplicating (list_variables).
