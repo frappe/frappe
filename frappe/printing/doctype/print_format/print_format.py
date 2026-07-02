@@ -33,6 +33,7 @@ class PrintFormat(Document):
 		font_size: DF.Int
 		format_data: DF.Code | None
 		html: DF.Code | None
+		label_color: DF.Color | None
 		line_breaks: DF.Check
 		margin_bottom: DF.Float
 		margin_left: DF.Float
@@ -53,6 +54,7 @@ class PrintFormat(Document):
 		report: DF.Link | None
 		show_section_headings: DF.Check
 		standard: DF.Literal["No", "Yes"]
+		value_color: DF.Color | None
 	# end: auto-generated types
 
 	def onload(self):

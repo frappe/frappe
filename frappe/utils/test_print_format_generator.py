@@ -383,6 +383,40 @@ class TestPrintFormatGenerator(IntegrationTestCase):
 		self.assertIn("background:red", html)
 		self.assertNotIn('"><b>PWN</b>', html)
 
+	# ------------------------------------------------------------------ #
+	# Label / value colors (Format settings)
+	# ------------------------------------------------------------------ #
+
+	def test_label_color_rendered_in_css(self):
+		"""A label_color set on the print format emits a scoped label color rule."""
+		from frappe.utils.print_format_generator import get_html
+
+		pf = self._make_print_format(label_color="#c0392b")
+		todo = self._make_todo()
+		html = get_html("ToDo", todo.name, pf.name)
+		self.assertIn(".print-format .field .label", html)
+		self.assertIn("#c0392b", html)
+
+	def test_value_color_rendered_in_css(self):
+		"""A value_color set on the print format emits a scoped value color rule."""
+		from frappe.utils.print_format_generator import get_html
+
+		pf = self._make_print_format(value_color="#1a5fb4")
+		todo = self._make_todo()
+		html = get_html("ToDo", todo.name, pf.name)
+		self.assertIn(".print-format .field .value", html)
+		self.assertIn("#1a5fb4", html)
+
+	def test_no_color_rule_when_colors_unset(self):
+		"""Without label/value colors, no scoped color override is emitted."""
+		from frappe.utils.print_format_generator import get_html
+
+		pf = self._make_print_format()
+		todo = self._make_todo()
+		html = get_html("ToDo", todo.name, pf.name)
+		self.assertNotIn(".print-format .field .label", html)
+		self.assertNotIn(".print-format .field .value", html)
+
 	def test_blank_table_column_header_falls_back_to_fieldname(self):
 		"""A child-table column with an empty label should render its fieldname as the header."""
 		import re
@@ -544,6 +578,45 @@ class TestPrintFormatGenerator(IntegrationTestCase):
 		)
 		html = get_html("Contact", contact.name, pf.name)
 		self.assertNotIn('"><b>PWN</b>', html)
+
+	def test_repeater_column_width_rendered(self):
+		"""A repeater column width emits a colgroup <col> with a width percentage."""
+		from frappe.utils.print_format_generator import get_html
+
+		contact = self._make_contact_with_email()
+		pf = self._make_repeater_format(
+			columns=[
+				{"template": [{"t": "f", "v": "email_id"}], "align": "left", "width": 40},
+				{"template": [{"t": "f", "v": "email_id"}], "align": "left"},
+			]
+		)
+		html = get_html("Contact", contact.name, pf.name)
+		self.assertIn("<colgroup>", html)
+		self.assertIn("width: 40%", html)
+
+	def test_repeater_column_style_rendered(self):
+		"""A repeater column style emits the matching cell-line--* class on the cell."""
+		from frappe.utils.print_format_generator import get_html
+
+		contact = self._make_contact_with_email()
+		pf = self._make_repeater_format(
+			columns=[
+				{"template": [{"t": "f", "v": "email_id"}], "align": "left", "style": "primary"}
+			]
+		)
+		html = get_html("Contact", contact.name, pf.name)
+		self.assertIn('class="pfb-repeater-cell cell-line--primary"', html)
+
+	def test_repeater_column_no_style_class_when_unset(self):
+		"""A repeater column without a style emits no cell-line--* class on the cell."""
+		from frappe.utils.print_format_generator import get_html
+
+		contact = self._make_contact_with_email()
+		pf = self._make_repeater_format(
+			columns=[{"template": [{"t": "f", "v": "email_id"}], "align": "left"}]
+		)
+		html = get_html("Contact", contact.name, pf.name)
+		self.assertNotIn('class="pfb-repeater-cell cell-line--', html)
 
 	# ------------------------------------------------------------------ #
 	# Field orientation / spacing

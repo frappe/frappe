@@ -245,28 +245,7 @@
 			<div class="pfb-group-label mt-3">{{ __("Colors") }}</div>
 			<div class="form-group" v-for="c in color_settings" :key="c.fieldname">
 				<label class="control-label">{{ c.label }}</label>
-				<div class="pfb-color-row">
-					<input
-						type="color"
-						class="pfb-color-swatch"
-						:value="print_format[c.fieldname] || c.default"
-						@input="(e) => (print_format[c.fieldname] = e.target.value)"
-					/>
-					<input
-						type="text"
-						class="form-control form-control-sm"
-						:placeholder="c.default"
-						:value="print_format[c.fieldname]"
-						@change="(e) => (print_format[c.fieldname] = e.target.value || null)"
-					/>
-					<button
-						v-if="print_format[c.fieldname]"
-						class="btn btn-xs btn-icon pfb-color-clear"
-						:title="__('Reset')"
-						@click="print_format[c.fieldname] = null"
-						v-html="frappe.utils.icon('x', 'xs')"
-					></button>
-				</div>
+				<div :ref="(el) => (color_hosts[c.fieldname] = el)"></div>
 			</div>
 
 			<div class="pfb-group-label mt-3">{{ __("Page number") }}</div>
@@ -363,9 +342,33 @@ const draggable_blocks = [
 ];
 
 const color_settings = [
-	{ fieldname: "label_color", label: __("Label"), default: "#6b7280" },
-	{ fieldname: "value_color", label: __("Value"), default: "#111827" },
+	{ fieldname: "label_color", label: __("Label") },
+	{ fieldname: "value_color", label: __("Value") },
 ];
+let color_hosts = ref({});
+let color_controls = {};
+
+function mount_color_controls() {
+	for (const c of color_settings) {
+		const host = color_hosts.value[c.fieldname];
+		if (!host) continue;
+		host.innerHTML = "";
+		const control = frappe.ui.form.make_control({
+			parent: host,
+			df: {
+				fieldtype: "Color",
+				fieldname: c.fieldname,
+				placeholder: c.label,
+				change() {
+					print_format.value[c.fieldname] = control.get_value() || null;
+				},
+			},
+			render_input: true,
+		});
+		control.set_value(print_format.value[c.fieldname] || "");
+		color_controls[c.fieldname] = control;
+	}
+}
 
 // ── helpers ────────────────────────────────────────────────
 function update_margin(fieldname, value) {
@@ -532,6 +535,7 @@ function fetch_templates() {
 
 watch(activeTab, (tab) => {
 	if (tab === "templates") fetch_templates();
+	if (tab === "format") nextTick(mount_color_controls);
 });
 
 let print_templates_list = computed(() => {
@@ -979,28 +983,6 @@ watch(print_format, () => (store.dirty.value = true), { deep: true });
 
 .pfb-margin-label {
 	font-size: var(--text-tiny);
-}
-
-.pfb-color-row {
-	display: flex;
-	align-items: center;
-	gap: 6px;
-}
-
-.pfb-color-swatch {
-	width: 28px;
-	height: 28px;
-	padding: 0;
-	border: 1px solid var(--border-color);
-	border-radius: var(--radius);
-	background: none;
-	cursor: pointer;
-	flex-shrink: 0;
-}
-
-.pfb-color-clear {
-	flex-shrink: 0;
-	color: var(--text-muted);
 }
 
 /* ── Empty state ─────────────────────────────────────────── */
