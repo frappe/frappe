@@ -38,6 +38,20 @@
     width: auto;
 }
 
+.desktop-cloud-settings {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    width: 28px;
+    height: 28px;
+    border-radius: var(--radius-md);
+    color: var(--ink-gray-7);
+}
+
+.desktop-cloud-settings:hover {
+    background: var(--surface-gray-2);
+}
+
 .desktop-container{
     display: flex;
     align-items: center;

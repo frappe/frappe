@@ -283,9 +283,25 @@ class DesktopPage {
 		$(document).trigger("desktop_screen", { desktop: this });
 		this.setup_avatar();
 		this.setup_notifications();
+		this.setup_cloud_settings();
 		this.setup_navbar();
 		this.setup_awesomebar();
 		this.handle_route_change();
+	}
+
+	setup_cloud_settings() {
+		const $button = $(".desktop-cloud-settings");
+		if (!frappe.boot.cloud_settings?.enabled) {
+			$button.addClass("hidden");
+			return;
+		}
+
+		$button.removeClass("hidden");
+		$button.off("click.cloud-settings").on("click.cloud-settings", () => {
+			frappe.require(["cloud_settings.bundle.css", "cloud_settings.bundle.js"], () => {
+				frappe.ui.CloudSettings.show();
+			});
+		});
 	}
 	setup_edit_button() {
 		if (this.edit_mode || frappe.is_mobile()) return;
