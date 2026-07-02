@@ -24,16 +24,12 @@ login.bind_events = function () {
 			login.show_field_error("login_email", {{ _("Email is required.") | tojson }});
 			hasError = true;
 		}
-<<<<<<< HEAD
-		login.call(args, null, "/login");
-=======
 		if (!args.pwd) {
 			login.show_field_error("login_password", {{ _("Password is required.") | tojson }});
 			hasError = true;
 		}
 		if (hasError) return false;
 		login.call(args, null, "/api/method/login");
->>>>>>> a9810bf318 (fix: handle error states)
 		return false;
 	});
 
