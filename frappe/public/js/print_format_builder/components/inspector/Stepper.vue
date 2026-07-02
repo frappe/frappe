@@ -40,6 +40,11 @@ defineEmits(["decrement", "increment", "input"]);
 	width: auto;
 }
 
+.pfb-stepper--sm .pfb-stepper-input {
+	width: 30px;
+	flex: none;
+}
+
 .pfb-stepper button {
 	padding: 4px 8px;
 	border: none;
