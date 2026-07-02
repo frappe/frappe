@@ -641,10 +641,20 @@ frappe.ui.form.Toolbar = class Toolbar {
 			frappe.model.can_create("Property Setter")
 		) {
 			let doctype = is_doctype_form ? this.frm.docname : this.frm.doctype;
-			let is_doctype_custom = is_doctype_form ? this.frm.doc.custom : false;
 			let is_core_doctype = frappe.model.core_doctypes_list.includes(doctype);
 
-			if (!is_core_doctype && !is_doctype_custom && this.frm.meta.issingle === 0) {
+			if (!is_core_doctype && this.frm.meta.issingle === 0) {
+				this.page.add_menu_item(
+					__("Settings"),
+					() => {
+						// The DocType Settings feature ships as its own on-demand bundle
+						// (kept out of desk.bundle.js), so load it before opening.
+						frappe.require("doctype_settings.bundle.js", () => {
+							frappe.doctype_settings.open(doctype);
+						});
+					},
+					true
+				);
 				this.page.add_menu_item(
 					__("Customize"),
 					() => {

@@ -7,7 +7,10 @@ import type { UseSort } from "../SortBy/useSort";
 import { useQuickFilter } from "../QuickFilter/useQuickFilter";
 import type { UseQuickFilter } from "../QuickFilter/useQuickFilter";
 import { useColumns } from "../ColumnSettings/useColumns";
-import type { UseColumns } from "../ColumnSettings/useColumns";
+import type {
+  UseColumns,
+  UseColumnsOptions,
+} from "../ColumnSettings/useColumns";
 import type { FilterCondition, FilterField } from "../Filter/types";
 import type { Sort } from "../SortBy/types";
 import type { Column } from "../ColumnSettings/types";
@@ -59,6 +62,10 @@ export interface UseListView {
   restore: (snapshot: Partial<ListViewSnapshot>) => void;
 }
 
+/** Host options threaded into the composed controls. Currently just the synthetic
+ *  column declarations (ADR-0033), passed to `useColumns`. */
+export interface UseListViewOptions extends UseColumnsOptions {}
+
 /**
  * The composite List View's state owner — the shared composable ADR-0001 deferred
  * until two controls needed to share state (Filter + QuickFilter are that moment,
@@ -75,11 +82,14 @@ export interface UseListView {
  * reconstructing `useListView` on a doctype switch is cheap and needs no internal
  * reset watch.
  */
-export function useListView(doctype: string): UseListView {
+export function useListView(
+  doctype: string,
+  options: UseListViewOptions = {}
+): UseListView {
   const filters = useFilters();
   const sort = useSort();
   const quickFilter = useQuickFilter(doctype);
-  const columns = useColumns(doctype);
+  const columns = useColumns(doctype, { synthetic: options.synthetic });
 
   // Reads the *effective* state off each control (the writable computeds resolve
   // custom-or-default), capturing live references — safe because every control

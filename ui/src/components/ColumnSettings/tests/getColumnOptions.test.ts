@@ -39,4 +39,17 @@ describe("getColumnOptions", () => {
       ...STANDARD,
     ]);
   });
+
+  it("appends declared synthetic columns so a hidden one is re-addable (ADR-0033)", () => {
+    expect(
+      getColumnOptions(
+        [{ fieldname: "status", fieldtype: "Select", label: "Status" }],
+        [{ key: "_indicator", label: "Status", type: "Status" }]
+      )
+    ).toEqual([
+      { label: "Status", value: "status", fieldname: "status" },
+      ...STANDARD,
+      { label: "Status", value: "_indicator", fieldname: "_indicator" },
+    ]);
+  });
 });

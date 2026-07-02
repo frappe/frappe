@@ -61,8 +61,8 @@ frappe.ui.EmbeddedList = class EmbeddedList {
 			? `<div class="embedded-list-description">${this.description}</div>`
 			: "";
 		const add = this.add_button
-			? `<button class="btn btn-xs btn-default" data-action="add-row">${
-					this.add_button.label || __("+ Add")
+			? `<button class="es-button" data-action="add-row">${
+					this.add_button.label || __("Add")
 			  }</button>`
 			: "";
 		const search = `<input type="text" class="form-control form-control-sm embedded-list-search" data-action="search" placeholder="${__(
@@ -186,7 +186,7 @@ frappe.ui.EmbeddedList = class EmbeddedList {
 					this.rendered_count,
 					this.data.length,
 				])}</span>
-				<button class="btn btn-xs btn-default" data-action="load-more">
+				<button class="es-button" data-action="load-more">
 					${__("Load More")}
 				</button>
 			</div>`
@@ -247,7 +247,7 @@ frappe.ui.EmbeddedList = class EmbeddedList {
 		if (col.type === "badge") {
 			if (raw == null || raw === "") return `<td${align}${col_attr}></td>`;
 			const color = typeof col.color === "function" ? col.color(row) : col.color || "gray";
-			return `<td${align}${col_attr}><span class="indicator-pill ${color}">${frappe.utils.escape_html(
+			return `<td${align}${col_attr}><span class="es-badge" data-theme="${color}">${frappe.utils.escape_html(
 				raw
 			)}</span></td>`;
 		}
@@ -274,16 +274,17 @@ frappe.ui.EmbeddedList = class EmbeddedList {
 	build_actions_html(col) {
 		return (col.actions || [])
 			.map((action, action_idx) => {
-				const danger = action.danger ? " text-danger" : "";
 				const title = action.label
 					? ` title="${frappe.utils.escape_html(action.label)}"`
 					: "";
-				// `xs` + currentColor matches Frappe's inline row actions (grid_row.js)
-				// so danger actions inherit the button's red instead of the muted stroke.
+				// `xs` + currentColor matches Frappe's inline row actions (grid_row.js);
+				// only danger actions take the red theme, others stay neutral gray.
+				const theme = action.danger ? "red" : "gray";
+				const icon_button = action.icon ? "true" : "false";
 				const inner = action.icon
 					? frappe.utils.icon(action.icon, "xs", "", "", "", true)
 					: frappe.utils.escape_html(action.label || "");
-				return `<button class="btn btn-xs btn-link${danger}" data-action-idx="${action_idx}"${title}>${inner}</button>`;
+				return `<button class="es-button" data-icon-button="${icon_button}" data-size="xs" data-theme="${theme}" data-variant="ghost" data-action-idx="${action_idx}"${title}>${inner}</button>`;
 			})
 			.join("");
 	}

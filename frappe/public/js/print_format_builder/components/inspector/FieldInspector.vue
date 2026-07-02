@@ -214,34 +214,137 @@
 							class="pfb-col-list"
 						>
 							<template #item="{ element: col, index: ci }">
-								<div class="pfb-col-row">
-									<span
-										class="pfb-col-drag"
-										v-html="frappe.utils.icon('drag', 'xs')"
-									></span>
-									<input
-										class="pfb-col-label-input"
-										type="text"
-										v-model="col.label"
-										:placeholder="col.fieldname"
-										:title="col.fieldname"
-									/>
-									<input
-										class="pfb-col-width-input"
-										type="number"
-										min="5"
-										max="100"
-										v-model.number="col.width"
-										@blur="clamp_width(col)"
-										:title="__('Width %')"
-									/>
-									<span class="pfb-col-width-unit">%</span>
-									<button
-										class="pfb-col-remove"
-										@click="remove_table_column(ci)"
-										:title="__('Remove column')"
-										v-html="frappe.utils.icon('x', 'xs')"
-									></button>
+								<div class="pfb-col-item">
+									<div class="pfb-col-row">
+										<span
+											class="pfb-col-drag"
+											v-html="frappe.utils.icon('drag', 'xs')"
+										></span>
+										<input
+											class="pfb-col-label-input"
+											type="text"
+											v-model="col.label"
+											:placeholder="col.fieldname"
+											:title="col.fieldname"
+										/>
+										<button
+											class="pfb-col-config"
+											:class="{
+												active:
+													col.merged_fields &&
+													col.merged_fields.length > 0,
+												open: expanded_col === ci,
+											}"
+											@click="expanded_col = expanded_col === ci ? null : ci"
+											:title="__('Merge fields')"
+											v-html="frappe.utils.icon('settings-2', 'xs')"
+										></button>
+										<input
+											class="pfb-col-width-input"
+											type="number"
+											min="5"
+											max="100"
+											v-model.number="col.width"
+											@blur="clamp_width(col)"
+											:title="__('Width %')"
+										/>
+										<span class="pfb-col-width-unit">%</span>
+										<button
+											class="pfb-col-remove"
+											@click="remove_table_column(ci)"
+											:title="__('Remove column')"
+											v-html="frappe.utils.icon('x', 'xs')"
+										></button>
+									</div>
+
+									<!-- Per-column merged-fields editor: reuses inspector primitives -->
+									<div v-if="expanded_col === ci" class="pfb-col-editor">
+										<draggable
+											:list="col.merged_fields"
+											handle=".pfb-merge-drag"
+											:animation="150"
+											item-key="fieldname"
+											class="pfb-col-list"
+										>
+											<template #item="{ element: mf, index: mi }">
+												<div class="pfb-col-row">
+													<span
+														class="pfb-merge-drag"
+														v-html="frappe.utils.icon('drag', 'xs')"
+													></span>
+													<span
+														class="pfb-insp-label"
+														style="
+															flex: 1;
+															min-width: 0;
+															color: var(--text-color);
+														"
+														>{{ merge_field_label(mf) }}</span
+													>
+													<select
+														v-if="!is_image_merge(mf)"
+														class="pfb-insp-select"
+														style="width: 104px; flex: none"
+														v-model="mf.style"
+														:title="__('Text style')"
+													>
+														<option
+															v-for="s in merge_style_opts"
+															:key="s.value"
+															:value="s.value"
+														>
+															{{ s.label }}
+														</option>
+													</select>
+													<div
+														v-else
+														class="pfb-stepper pfb-stepper--sm"
+														:title="__('Image size')"
+													>
+														<button
+															@click="adjust_image_size(col, -4)"
+														>
+															−
+														</button>
+														<input
+															class="pfb-stepper-input"
+															type="number"
+															min="16"
+															max="200"
+															:value="col.image_size || 40"
+															@change="
+																(e) =>
+																	set_image_size(
+																		col,
+																		e.target.value
+																	)
+															"
+														/>
+														<span class="pfb-stepper-unit">px</span>
+														<button @click="adjust_image_size(col, 4)">
+															+
+														</button>
+													</div>
+													<button
+														class="pfb-col-remove"
+														@click="remove_merged_field(col, mi)"
+														:title="__('Remove field')"
+														v-html="frappe.utils.icon('x', 'xs')"
+													></button>
+												</div>
+											</template>
+										</draggable>
+										<div
+											class="pfb-col-add-row"
+											v-if="merge_field_opts(col).length"
+										>
+											<Autocomplete
+												:options="merge_field_opts(col)"
+												:placeholder="__('Add field...')"
+												@select="(opt) => add_merged_field(col, opt.value)"
+											/>
+										</div>
+									</div>
 								</div>
 							</template>
 						</draggable>
@@ -690,7 +793,7 @@
 </template>
 
 <script setup>
-import { computed, inject, ref } from "vue";
+import { computed, inject, ref, watch } from "vue";
 import draggable from "vuedraggable";
 import { useStore } from "../../stores";
 import LetterHeadZoneInspector from "./LetterHeadZoneInspector.vue";
@@ -937,28 +1040,33 @@ const table_style_opts = [
 	{ value: "striped", label: __("Striped") },
 	{ value: "plain", label: __("Plain") },
 ];
+// Value-holding fields of the child doctype — shared base for both the
+// "add column" and "add merge field" pickers below.
+let child_value_fields = computed(() => {
+	const dt = selected_field.value?.options;
+	const meta = dt && frappe.get_meta(dt);
+	if (!meta) return [];
+	return meta.fields.filter((f) => !frappe.model.no_value_type.includes(f.fieldtype));
+});
+
+function to_field_opts(fields) {
+	return fields.map((f) => ({
+		label: f.label || f.fieldname,
+		value: f.fieldname,
+		badge: f.fieldtype,
+	}));
+}
+
 let available_columns = computed(() => {
 	if (!selected_field.value?.options) return [];
-	const meta = frappe.get_meta(selected_field.value.options);
-	if (!meta) return [];
 	const existing = new Set((selected_field.value.table_columns || []).map((c) => c.fieldname));
 	const standard = [{ label: __("Sr No."), fieldname: "idx", fieldtype: "Data" }];
 	return standard
-		.concat(
-			meta.fields.filter(
-				(f) => !frappe.model.no_value_type.includes(f.fieldtype) && f.fieldname !== "name"
-			)
-		)
+		.concat(child_value_fields.value.filter((f) => f.fieldname !== "name"))
 		.filter((f) => !existing.has(f.fieldname));
 });
 
-let available_column_opts = computed(() =>
-	available_columns.value.map((c) => ({
-		label: c.label || c.fieldname,
-		value: c.fieldname,
-		badge: c.fieldtype,
-	}))
-);
+let available_column_opts = computed(() => to_field_opts(available_columns.value));
 
 function pick_column(opt) {
 	const meta = frappe.get_meta(selected_field.value.options);
@@ -983,10 +1091,82 @@ function pick_column(opt) {
 function remove_table_column(idx) {
 	selected_field.value.table_columns.splice(idx, 1);
 	selected_field.value.table_columns = [...selected_field.value.table_columns];
+	expanded_col.value = null;
 }
+
+// Close the column editor when switching to a different field/table
+watch(selected_field, () => (expanded_col.value = null));
 
 function clamp_width(col) {
 	col.width = Math.max(5, Math.min(100, parseInt(col.width) || 10));
+}
+
+// ── Per-column merged fields ───────────────────────────────
+// A column can merge several child fields into one cell. If one of the
+// merged fields is an image, it renders on the left (see Field.vue /
+// Table.html); the rest stack as styled text lines.
+let expanded_col = ref(null);
+
+// Fieldtypes that store an image URL directly, so they can float left.
+const IMAGE_COL_FIELDTYPES = new Set(["Attach Image", "Attach"]);
+
+// Text style per merged line (drives the cell-line--* class in Field.vue / Table.html).
+const merge_style_opts = [
+	{ value: "primary", label: __("Primary") },
+	{ value: "secondary", label: __("Secondary") },
+	{ value: "mono-sm", label: __("Code") },
+	{ value: "muted-sm", label: __("Muted") },
+];
+
+function find_field(fieldname) {
+	return child_value_fields.value.find((f) => f.fieldname === fieldname);
+}
+
+function merge_field_label(mf) {
+	return find_field(mf.fieldname)?.label || mf.fieldname;
+}
+
+// Child fields not yet merged into this column (the column's own field is
+// always the implicit primary line, so it's excluded here too) — for the
+// "Add field..." autocomplete.
+function merge_field_opts(col) {
+	const used = new Set([col.fieldname, ...(col.merged_fields || []).map((m) => m.fieldname)]);
+	return to_field_opts(child_value_fields.value.filter((f) => !used.has(f.fieldname)));
+}
+
+function is_image_merge(mf) {
+	return IMAGE_COL_FIELDTYPES.has(mf.fieldtype);
+}
+
+function ensure_merged(col) {
+	if (!Array.isArray(col.merged_fields)) col.merged_fields = [];
+	return col.merged_fields;
+}
+
+// First added field defaults to Secondary (own field is already primary), rest Muted.
+function add_merged_field(col, fieldname) {
+	const f = find_field(fieldname);
+	const mf = ensure_merged(col);
+	if (f)
+		mf.push({
+			fieldname: f.fieldname,
+			fieldtype: f.fieldtype,
+			style: mf.length ? "muted-sm" : "secondary",
+		});
+}
+
+function remove_merged_field(col, mi) {
+	col.merged_fields.splice(mi, 1);
+}
+
+// Image size (px) — same stepper pattern as table Radius / section Gap, clamped 16–200
+function adjust_image_size(col, delta) {
+	col.image_size = Math.max(16, Math.min(200, (col.image_size || 40) + delta));
+}
+
+function set_image_size(col, value) {
+	const v = parseInt(value);
+	col.image_size = isNaN(v) ? 40 : Math.max(16, Math.min(200, v));
 }
 
 // ── Section helpers ────────────────────────────────────────
@@ -1508,19 +1688,23 @@ function set_section_cell_padding(value) {
 	padding: 4px 0;
 }
 
+.pfb-col-item {
+	border-bottom: 1px solid var(--gray-100);
+}
+
+.pfb-col-item:last-child {
+	border-bottom: none;
+}
+
 .pfb-col-row {
 	display: flex;
 	align-items: center;
 	gap: 6px;
 	padding: 5px 14px;
-	border-bottom: 1px solid var(--gray-100);
 }
 
-.pfb-col-row:last-child {
-	border-bottom: none;
-}
-
-.pfb-col-drag {
+.pfb-col-drag,
+.pfb-merge-drag {
 	cursor: grab;
 	color: var(--gray-300);
 	display: flex;
@@ -1528,7 +1712,8 @@ function set_section_cell_padding(value) {
 	flex-shrink: 0;
 }
 
-.pfb-col-drag:hover {
+.pfb-col-drag:hover,
+.pfb-merge-drag:hover {
 	color: var(--gray-500);
 }
 
@@ -1604,6 +1789,56 @@ function set_section_cell_padding(value) {
 
 .pfb-insp-col-count {
 	font-size: var(--text-tiny);
+}
+
+/* ── Per-column cell layout / merged fields editor ───────── */
+.pfb-col-config {
+	display: flex;
+	align-items: center;
+	padding: 2px;
+	border: none;
+	background: transparent;
+	cursor: pointer;
+	color: var(--gray-400);
+	border-radius: var(--radius);
+	flex-shrink: 0;
+	/* Hidden until the row is hovered — space is reserved so inputs don't shift.
+	   Stays visible when the column is merged (active) or its editor is open. */
+	visibility: hidden;
+}
+
+.pfb-col-item:hover .pfb-col-config,
+.pfb-col-config.active,
+.pfb-col-config.open {
+	visibility: visible;
+}
+
+.pfb-col-config:hover {
+	background: var(--gray-100);
+	color: var(--gray-600);
+}
+
+.pfb-col-config.active {
+	color: var(--primary);
+}
+
+.pfb-col-config.open {
+	background: var(--gray-100);
+	color: var(--gray-700);
+}
+
+.pfb-col-editor {
+	margin: 6px 10px 10px;
+	background: var(--fg-color);
+	border: 1px solid var(--border-color);
+	border-radius: var(--radius);
+}
+
+/* Rows inside the merge editor are always in an active-editing context, so
+   their icons stay clearly visible instead of the outer list's hover-reveal. */
+.pfb-col-editor .pfb-col-remove,
+.pfb-col-editor .pfb-merge-drag {
+	color: var(--gray-400);
 }
 
 /* ── Letter Head inspector ───────────────────────────────── */

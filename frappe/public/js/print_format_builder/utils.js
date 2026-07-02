@@ -138,6 +138,19 @@ export function pluck(object, keys) {
 	return out;
 }
 
+// Deterministic pastel colour for a merged-cell initials thumbnail, keyed off
+// the first character so the canvas and the PDF (Table.html, same formula)
+// always agree — no palette table to keep in sync across the two.
+export function thumb_hue(text) {
+	const idx = "abcdefghijklmnopqrstuvwxyz0123456789".indexOf(
+		String(text || "")
+			.trim()
+			.charAt(0)
+			.toLowerCase()
+	);
+	return ((idx < 0 ? 0 : idx) * 37) % 360;
+}
+
 export async function render_jinja_html(html, doctype, docname) {
 	if (!html) return html;
 	if (!html.includes("{{") && !html.includes("{%")) return html;

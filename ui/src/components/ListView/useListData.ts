@@ -1,6 +1,7 @@
 import { computed, ref, watch } from "vue";
 import type { ComputedRef, Ref } from "vue";
 import { createListResource, createResource } from "frappe-ui";
+import { fetchFields } from "../ColumnSettings/columns";
 import type { UseListView } from "./useListView";
 
 /**
@@ -36,9 +37,10 @@ export interface UseListData {
 export function useListData(doctype: string, view: UseListView): UseListData {
   const pageLength = ref(20);
 
-  // get_list fetches the row key plus every shown column's field.
+  // get_list fetches the row key plus every shown column's field, skipping synthetic
+  // columns (ADR-0033) — their keys name no docfield, so the host draws those cells.
   const fields = computed(() =>
-    Array.from(new Set(["name", ...view.columns.wire.value.map((c) => c.key)]))
+    fetchFields(view.columns.wire.value, view.columns.synthetic.value)
   );
 
   const list = createListResource({

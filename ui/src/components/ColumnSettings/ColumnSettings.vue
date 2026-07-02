@@ -140,13 +140,21 @@ import { Button, Combobox, Popover, TextInput } from "frappe-ui";
 import Draggable from "vuedraggable";
 import { useDoctypeMeta } from "../../composables/useDoctypeMeta";
 import { getColumnOptions } from "./getColumnOptions";
-import type { Column, ColumnOption } from "./types";
+import type { Column, ColumnOption, SyntheticColumn } from "./types";
 
 const props = withDefaults(
-	defineProps<{ doctype: string; hideLabel?: boolean; canReset?: boolean }>(),
+	defineProps<{
+		doctype: string;
+		hideLabel?: boolean;
+		canReset?: boolean;
+		// Host-declared synthetic columns (ADR-0033): the picker offers these in
+		// union with Meta fields, so a hidden synthetic column stays re-addable.
+		synthetic?: SyntheticColumn[];
+	}>(),
 	{
 		hideLabel: false,
 		canReset: false,
+		synthetic: () => [],
 	}
 );
 
@@ -179,8 +187,11 @@ const popoverRef = ref<{ open: () => void } | null>(null);
 
 const { meta } = useDoctypeMeta(props.doctype);
 
-// Field Options derived client-side from Meta — no CRM endpoint.
-const allOptions = computed<ColumnOption[]>(() => getColumnOptions(meta.value?.fields ?? []));
+// Field Options derived client-side from Meta, unioned with the host's synthetic
+// columns (ADR-0033) — no CRM endpoint.
+const allOptions = computed<ColumnOption[]>(() =>
+	getColumnOptions(meta.value?.fields ?? [], props.synthetic)
+);
 
 // The "add" picker offers every column not already shown.
 const addableOptions = computed<ColumnOption[]>(() => {

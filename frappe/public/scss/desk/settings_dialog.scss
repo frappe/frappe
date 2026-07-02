@@ -38,10 +38,10 @@
 	z-index: 10;
 	display: flex;
 	align-items: center;
-	gap: 0.375rem;
-	height: 1.875rem;
-	margin: 3px 0;
-	padding: 0 0.5rem;
+	gap: calc(var(--spacing) * 1.5); // gap-1.5
+	height: calc(var(--spacing) * 7.5); // h-7.5
+	margin: 3px 0; // my-[3px]
+	padding: 0 var(--spacing); // px-1
 	font-size: var(--text-xs);
 	font-weight: var(--weight-medium);
 	line-height: 1.15;

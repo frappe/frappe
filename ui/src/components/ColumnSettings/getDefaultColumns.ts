@@ -1,5 +1,5 @@
 import type { RawMetaField } from "../FormLayout/types";
-import type { Column } from "./types";
+import type { Column, SyntheticColumn } from "./types";
 
 /** The `name` standard field — the default leading column when the doctype has
  *  no `title_field`. The list always surfaces the record's identifier first (the
@@ -38,4 +38,48 @@ export function getDefaultColumns(
       .filter((f) => f.in_list_view && f.fieldname !== leading.fieldname)
       .map((f) => ({ fieldname: f.fieldname, label: f.label ?? f.fieldname })),
   ];
+}
+
+/** Convert a synthetic declaration to its persisted {@link Column} form: the `key`
+ *  rides the `fieldname` slot, the declaration's default `width` seeds the column
+ *  (dropped when unset so it flexes). Render metadata (`type`/`align`) is never
+ *  stored — `serializeColumns` re-derives it from the declaration (ADR-0033). */
+function toColumn(declaration: SyntheticColumn): Column {
+  const column: Column = {
+    fieldname: declaration.key,
+    label: declaration.label,
+  };
+  if (declaration.width) column.width = declaration.width;
+  return column;
+}
+
+/**
+ * Fold host-declared synthetic columns (ADR-0033) into a Meta-derived default seed:
+ * each declaration is inserted at its `place` anchor (`'start'` | `'after-title'`
+ * [right after the leading title/name column] | `'end'`, default `'end'`), and any
+ * docfield it `subsumes` is dropped from the seed (default-only, so it stays
+ * re-addable). Columns sharing an anchor keep their declaration order. Seeds the
+ * default `shown` *only* — once the user customizes order, the persisted layout wins.
+ * With no declarations it returns the seed untouched (same reference), so a consumer
+ * that declares none is byte-identical.
+ */
+export function foldSyntheticColumns(
+  defaults: Column[],
+  synthetic: SyntheticColumn[]
+): Column[] {
+  if (!synthetic.length) return defaults;
+  const subsumed = new Set(
+    synthetic.map((s) => s.subsumes).filter((f): f is string => !!f)
+  );
+  const kept = defaults.filter((c) => !subsumed.has(c.fieldname));
+  // Build each anchor group in one pass so declarations sharing an anchor keep their
+  // order — inserting one at a time at a fixed index would reverse them.
+  const at = (place: SyntheticColumn["place"]) =>
+    synthetic.filter((s) => (s.place ?? "end") === place).map(toColumn);
+  const [leading, ...rest] = kept;
+  const afterLeading =
+    leading === undefined
+      ? at("after-title")
+      : [leading, ...at("after-title"), ...rest];
+  return [...at("start"), ...afterLeading, ...at("end")];
 }

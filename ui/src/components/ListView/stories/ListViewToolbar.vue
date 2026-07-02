@@ -43,6 +43,7 @@
 				<ColumnSettings
 					v-model="view.columns.shown.value"
 					:doctype="doctype"
+					:synthetic="view.columns.synthetic.value"
 					:can-reset="view.columns.isCustomized.value"
 					@reset="view.columns.reset()"
 				/>
@@ -76,6 +77,20 @@
 					@dblclick="onResizerDoubleClick"
 				/>
 				<ListRows />
+				<!-- The synthetic column (ADR-0033) carries no docfield value — the HOST draws
+				     its cell. A production host (frappe-os) resolves a per-row Record indicator
+				     here; this story renders a representative badge to show the "library carries
+				     the column, host owns the cell" half of the seam. Every other cell renders
+				     its value as before. -->
+				<template #cell="{ column, item }">
+					<Badge
+						v-if="column.type === 'Status'"
+						:label="column.label"
+						theme="green"
+						variant="subtle"
+					/>
+					<span v-else class="text-base">{{ item }}</span>
+				</template>
 				<!-- The selection banner lives in the default-slot fallback we're
 				     overriding, so the host re-adds it. Its `#actions` slot is where
 				     bulk actions go; these are demo no-ops (a real host would mutate). -->
@@ -111,6 +126,7 @@
 
 <script setup lang="ts">
 import {
+	Badge,
 	Button,
 	Dropdown,
 	ListView,
@@ -120,7 +136,7 @@ import {
 	ListFooter,
 	toast,
 } from "frappe-ui";
-import { onMounted, watch } from "vue";
+import { computed, onMounted, watch } from "vue";
 import { ListViewShell } from "../index";
 import { useListView } from "../useListView";
 import { useListData } from "../useListData";
@@ -128,11 +144,31 @@ import { Filter } from "../../Filter";
 import { SortBy } from "../../SortBy";
 import { QuickFilter } from "../../QuickFilter";
 import { ColumnSettings } from "../../ColumnSettings";
+import type { SyntheticColumn } from "../../ColumnSettings";
 
-const props = defineProps<{ doctype: string }>();
+const props = defineProps<{ doctype: string; syntheticDemo?: boolean }>();
+
+// A demo synthetic column (ADR-0033) — the Record indicator, the OS's first synthetic
+// column — declared by the host and folded into the column state: after the title,
+// subsuming the raw `status` docfield. Reactive, so the Shell's toggle folds it in/out
+// live; `useColumns` takes it as a getter. Off ⇒ no declaration ⇒ identical behaviour.
+const synthetic = computed<SyntheticColumn[]>(() =>
+	props.syntheticDemo
+		? [
+				{
+					key: "_indicator",
+					label: "Status",
+					type: "Status",
+					place: "after-title",
+					subsumes: "status",
+				},
+		  ]
+		: []
+);
+
 // `view.quickFilter.customizing` / `.canCustomize` come from the shared composable,
 // so the toggle below works regardless of where it sits — no template ref needed.
-const view = useListView(props.doctype);
+const view = useListView(props.doctype, { synthetic });
 // The host owns fetching: `useListData` turns the controls' wire projections into
 // live `get_list` rows + total, and pages via the footer.
 const data = useListData(props.doctype, view);
