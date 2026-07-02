@@ -1147,21 +1147,13 @@ frappe.provide("frappe.views");
 					move.to_order = orders.to_order;
 
 					const request = store.dispatch("update_order_for_single_card", move);
-					const cleanup = function () {
+					const affected_columns =
+						from_colname === to_colname ? [from_colname] : [from_colname, to_colname];
+
+					const reset_drag_controls = function () {
 						suppress_cards_watch = false;
 						if (cur_list) {
 							cur_list.disable_list_update = false;
-							cur_list.sync_column_order_after_drag?.(from_colname, move.from_order);
-							if (from_colname !== to_colname) {
-								cur_list.sync_column_order_after_drag?.(to_colname, move.to_order);
-								cur_list.on_kanban_card_moved?.(
-									card_name,
-									from_colname,
-									to_colname,
-									old_index,
-									new_index
-								);
-							}
 							// Delay re-enabling so our own list_update / board events are ignored.
 							setTimeout(() => {
 								cur_list.skip_kanban_realtime = false;
@@ -1169,25 +1161,50 @@ frappe.provide("frappe.views");
 							}, 1500);
 						}
 						enable_virtualization();
-
-						// Watch was suppressed during drag — re-render and show dropped card.
-						const affected =
-							from_colname === to_colname
-								? [from_colname]
-								: [from_colname, to_colname];
-						affected.forEach((col) => column_registry[col]?.refresh(true));
-						column_registry[to_colname]?.scroll_to_card_index?.(new_index);
 					};
 
+					const refresh_affected_columns = function () {
+						// Watch was suppressed during drag — redraw columns after save or rollback.
+						affected_columns.forEach((col) => column_registry[col]?.refresh(true));
+					};
+
+					if (request && request.done) {
+						request.done(function () {
+							if (cur_list) {
+								cur_list.sync_column_order_after_drag?.(
+									from_colname,
+									move.from_order
+								);
+								if (from_colname !== to_colname) {
+									cur_list.sync_column_order_after_drag?.(
+										to_colname,
+										move.to_order
+									);
+									cur_list.on_kanban_card_moved?.(
+										card_name,
+										from_colname,
+										to_colname,
+										old_index,
+										new_index
+									);
+								}
+							}
+							column_registry[to_colname]?.scroll_to_card_index?.(new_index);
+						});
+					}
 					if (request && request.fail) {
 						request.fail(function () {
 							restore_drag_snapshot(snapshot, move);
 						});
 					}
 					if (request && request.always) {
-						request.always(cleanup);
+						request.always(function () {
+							reset_drag_controls();
+							refresh_affected_columns();
+						});
 					} else {
-						cleanup();
+						reset_drag_controls();
+						refresh_affected_columns();
 					}
 				},
 			});
