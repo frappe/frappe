@@ -566,6 +566,6 @@ def has_permission(doc, ptype=None, user=None, debug=False):
 	"""Deny document-level access to a Postgres-only report on other backends. Running the report
 	is separately guarded by its execute() raising on non-Postgres. Case-insensitive to match the
 	report list's SQL filter under MariaDB's case-insensitive collation."""
-	if frappe.db.db_type != "postgres" and doc.name.lower().startswith("postgres "):
+	if frappe.db.db_type != "postgres" and doc.name and doc.name.lower().startswith("postgres "):
 		return False
 	return True
