@@ -5,7 +5,7 @@ import ManageLayoutsDialog from "./manage_layouts_dialog";
 export const ListFilterMenu = {
 	/** Group label shown in page inner button for saved layouts menu. */
 	get saved_layout_group_label() {
-		return __("Default Layouts");
+		return __("Default Layout");
 	},
 
 	/** Create the Saved Layouts button and populate the dropdown menu. */
@@ -466,13 +466,13 @@ export const ListFilterMenu = {
 
 	/** Append Create / Manage action rows. */
 	append_layout_action_items($menu) {
-		const $create_item = this.layout_action_template(__("Create Layout"), "add");
+		const $create_item = this.layout_action_template(__("Create Layout"), "plus");
 		$create_item.find(".dropdown-item").on("click", (e) => {
 			e.preventDefault();
 			this.open_layout_dialog();
 		});
 		$menu.append($create_item);
-		const $manage_item = this.layout_action_template(__("Manage Layouts"), "setting-gear");
+		const $manage_item = this.layout_action_template(__("Manage Layouts"), "settings");
 		$manage_item.find(".dropdown-item").on("click", (e) => {
 			e.preventDefault();
 			this.open_manage_layouts_dialog();
@@ -499,7 +499,7 @@ export const ListFilterMenu = {
 		return $(`
 			<li class="saved-layout-action-item">
 				<a class="dropdown-item d-flex align-items-center">
-					<span class="layout-action-icon mr-2">${frappe.utils.icon(icon, "xs")}</span>
+					<span class="mr-2 flex align-items-center">${frappe.utils.icon(icon)}</span>
 					<span>${frappe.utils.escape_html(label)}</span>
 				</a>
 			</li>
