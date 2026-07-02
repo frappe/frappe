@@ -648,7 +648,11 @@ frappe.ui.form.Toolbar = class Toolbar {
 				this.page.add_menu_item(
 					__("Settings"),
 					() => {
-						frappe.doctype_settings.open(doctype);
+						// The DocType Settings feature ships as its own on-demand bundle
+						// (kept out of desk.bundle.js), so load it before opening.
+						frappe.require("doctype_settings.bundle.js", () => {
+							frappe.doctype_settings.open(doctype);
+						});
 					},
 					true
 				);

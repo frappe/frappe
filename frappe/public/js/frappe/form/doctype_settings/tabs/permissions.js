@@ -17,7 +17,6 @@ frappe.doctype_settings.register("permissions", function (panel, doctype) {
 			{
 				label: __("Add role"),
 				icon: "add",
-				primary: true,
 				// Add mode of the shared editor (doctype-centric: doctype fixed, pick the role)
 				// — sets the role + all its rights in one dialog.
 				click: () => new frappe.ui.PermissionDialog(perm_tab(doctype, reload), {}).show(),

@@ -47,7 +47,7 @@ function make_section($parent, { title, description, add_label, on_add }, list_o
 	list.refresh();
 
 	if (add_label) {
-		$(`<button type="button" class="es-button" data-size="sm" data-variant="solid"></button>`)
+		$(`<button type="button" class="es-button" data-size="sm" data-variant="subtle"></button>`)
 			.append(frappe.utils.icon("add", "sm"))
 			.append($("<span></span>").text(add_label))
 			.on("click", () => on_add(() => list.refresh()))

@@ -48,7 +48,6 @@ function render(panel, doctype, included, options) {
 	if (included) {
 		actions.push({
 			label: __("Save"),
-			primary: true,
 			click: () => save(panel, doctype, state),
 		});
 	}

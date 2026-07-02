@@ -51,9 +51,7 @@ class ListPanel {
 	header_actions(show_primary) {
 		const pa = this.config.primary_action;
 		if (show_primary && pa) {
-			return [
-				{ label: pa.label, icon: pa.icon, primary: true, click: () => pa.onclick(this) },
-			];
+			return [{ label: pa.label, icon: pa.icon, click: () => pa.onclick(this) }];
 		}
 		return [];
 	}

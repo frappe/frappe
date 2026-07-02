@@ -38,7 +38,7 @@ frappe.doctype_settings.register("print-format", function (panel, doctype) {
 	panel.set_view({
 		title: __("Print Format"),
 		description: __("Print formats available for {0}.", [doctype]),
-		actions: [{ label: __("New"), icon: "add", primary: true, click: create }],
+		actions: [{ label: __("New"), icon: "add", click: create }],
 		render: () => load(),
 	});
 
