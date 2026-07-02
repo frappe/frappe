@@ -1040,28 +1040,33 @@ const table_style_opts = [
 	{ value: "striped", label: __("Striped") },
 	{ value: "plain", label: __("Plain") },
 ];
+// Value-holding fields of the child doctype — shared base for both the
+// "add column" and "add merge field" pickers below.
+let child_value_fields = computed(() => {
+	const dt = selected_field.value?.options;
+	const meta = dt && frappe.get_meta(dt);
+	if (!meta) return [];
+	return meta.fields.filter((f) => !frappe.model.no_value_type.includes(f.fieldtype));
+});
+
+function to_field_opts(fields) {
+	return fields.map((f) => ({
+		label: f.label || f.fieldname,
+		value: f.fieldname,
+		badge: f.fieldtype,
+	}));
+}
+
 let available_columns = computed(() => {
 	if (!selected_field.value?.options) return [];
-	const meta = frappe.get_meta(selected_field.value.options);
-	if (!meta) return [];
 	const existing = new Set((selected_field.value.table_columns || []).map((c) => c.fieldname));
 	const standard = [{ label: __("Sr No."), fieldname: "idx", fieldtype: "Data" }];
 	return standard
-		.concat(
-			meta.fields.filter(
-				(f) => !frappe.model.no_value_type.includes(f.fieldtype) && f.fieldname !== "name"
-			)
-		)
+		.concat(child_value_fields.value.filter((f) => f.fieldname !== "name"))
 		.filter((f) => !existing.has(f.fieldname));
 });
 
-let available_column_opts = computed(() =>
-	available_columns.value.map((c) => ({
-		label: c.label || c.fieldname,
-		value: c.fieldname,
-		badge: c.fieldtype,
-	}))
-);
+let available_column_opts = computed(() => to_field_opts(available_columns.value));
 
 function pick_column(opt) {
 	const meta = frappe.get_meta(selected_field.value.options);
@@ -1113,16 +1118,8 @@ const merge_style_opts = [
 	{ value: "muted-sm", label: __("Muted") },
 ];
 
-// Value-holding fields of the child doctype, for the merged-field pickers.
-let child_fields = computed(() => {
-	const dt = selected_field.value?.options;
-	const meta = dt && frappe.get_meta(dt);
-	if (!meta) return [];
-	return meta.fields.filter((f) => !frappe.model.no_value_type.includes(f.fieldtype));
-});
-
 function find_field(fieldname) {
-	return child_fields.value.find((f) => f.fieldname === fieldname);
+	return child_value_fields.value.find((f) => f.fieldname === fieldname);
 }
 
 function merge_field_label(mf) {
@@ -1131,13 +1128,10 @@ function merge_field_label(mf) {
 
 // Child fields not yet merged into this column (the column's own field is
 // always the implicit primary line, so it's excluded here too) — for the
-// "Add field..." autocomplete, same {label, value, badge} shape as
-// available_column_opts.
+// "Add field..." autocomplete.
 function merge_field_opts(col) {
 	const used = new Set([col.fieldname, ...(col.merged_fields || []).map((m) => m.fieldname)]);
-	return child_fields.value
-		.filter((f) => !used.has(f.fieldname))
-		.map((f) => ({ label: f.label || f.fieldname, value: f.fieldname, badge: f.fieldtype }));
+	return to_field_opts(child_value_fields.value.filter((f) => !used.has(f.fieldname)));
 }
 
 function is_image_merge(mf) {
