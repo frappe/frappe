@@ -100,8 +100,8 @@ function remove(i) {
 	gap: 6px;
 }
 .pfb-tpl-row {
-	align-self: flex-start;
-	max-width: 100%;
+	width: 100%;
+	box-sizing: border-box;
 	min-height: 30px;
 	border: 1px solid var(--border-color);
 	border-radius: var(--radius);
