@@ -87,105 +87,58 @@
 							</div>
 						</div>
 						<!-- Title -->
-						<div class="pfb-insp-row pfb-insp-row--col">
-							<span class="pfb-insp-label">{{ __("Title") }}</span>
-							<input
-								class="pfb-insp-input"
-								type="text"
-								:placeholder="__('Table title')"
-								v-model="selected_field.label"
-							/>
-						</div>
+						<LabelField
+							v-model="selected_field.label"
+							:label="__('Title')"
+							:placeholder="__('Table title')"
+						/>
 						<!-- Style -->
-						<div class="pfb-insp-row">
-							<span class="pfb-insp-label">{{ __("Style") }}</span>
-							<div class="pfb-seg">
-								<button
-									v-for="s in table_style_opts"
-									:key="s.value"
-									:class="{ active: table_style === s.value }"
-									@click="selected_field.table_style = s.value"
-								>
-									{{ s.label }}
-								</button>
-							</div>
-						</div>
+						<SegmentedRow
+							:label="__('Style')"
+							:model-value="table_style"
+							:options="table_style_opts"
+							@update:model-value="(v) => (selected_field.table_style = v)"
+						/>
 						<!-- Bordered -->
-						<div class="pfb-insp-row">
-							<span class="pfb-insp-label">{{ __("Bordered") }}</span>
-							<div class="pfb-seg">
-								<button
-									:class="{ active: table_bordered !== false }"
-									@click="selected_field.table_bordered = true"
-								>
-									{{ __("Yes") }}
-								</button>
-								<button
-									:class="{ active: table_bordered === false }"
-									@click="selected_field.table_bordered = false"
-								>
-									{{ __("No") }}
-								</button>
-							</div>
-						</div>
+						<SegmentedRow
+							:label="__('Bordered')"
+							:model-value="table_bordered !== false"
+							:options="[
+								{ value: true, label: __('Yes') },
+								{ value: false, label: __('No') },
+							]"
+							@update:model-value="(v) => (selected_field.table_bordered = v)"
+						/>
 						<!-- Cell padding -->
-						<div class="pfb-insp-row">
-							<span class="pfb-insp-label">{{ __("Cell padding") }}</span>
-							<div class="pfb-stepper">
-								<button @click="adjust_cell_padding(-1)">−</button>
-								<input
-									class="pfb-stepper-input"
-									type="number"
-									min="0"
-									:value="table_cell_padding ?? ''"
-									:placeholder="__('auto')"
-									@change="(e) => set_cell_padding(e.target.value)"
-								/>
-								<span class="pfb-stepper-unit">px</span>
-								<button @click="adjust_cell_padding(1)">+</button>
-							</div>
-						</div>
+						<StepperRow
+							:label="__('Cell padding')"
+							:model-value="table_cell_padding"
+							:base="7"
+							unit="px"
+							:placeholder="__('auto')"
+							allow-empty
+							@update:model-value="set_cell_padding"
+						/>
 						<!-- Header -->
-						<div class="pfb-insp-row">
-							<span class="pfb-insp-label">{{ __("Header") }}</span>
-							<div class="pfb-seg">
-								<button
-									:class="{ active: table_header === 'styled' }"
-									@click="selected_field.table_header = 'styled'"
-								>
-									{{ __("Styled") }}
-								</button>
-								<button
-									:class="{ active: table_header === 'plain' }"
-									@click="selected_field.table_header = 'plain'"
-								>
-									{{ __("Plain") }}
-								</button>
-								<button
-									:class="{ active: table_header === 'none' }"
-									@click="selected_field.table_header = 'none'"
-								>
-									{{ __("None") }}
-								</button>
-							</div>
-						</div>
+						<SegmentedRow
+							:label="__('Header')"
+							:model-value="table_header"
+							:options="[
+								{ value: 'styled', label: __('Styled') },
+								{ value: 'plain', label: __('Plain') },
+								{ value: 'none', label: __('None') },
+							]"
+							@update:model-value="(v) => (selected_field.table_header = v)"
+						/>
 						<!-- Corner radius -->
-						<div class="pfb-insp-row">
-							<span class="pfb-insp-label">{{ __("Radius") }}</span>
-							<div class="pfb-stepper">
-								<button @click="adjust_table_radius(-1)">−</button>
-								<input
-									class="pfb-stepper-input"
-									type="number"
-									min="0"
-									:value="table_radius ?? ''"
-									:placeholder="__('none')"
-									@change="(e) => set_table_radius(e.target.value)"
-								/>
-								<span class="pfb-stepper-unit">px</span>
-								<button @click="adjust_table_radius(1)">+</button>
-							</div>
-						</div>
+						<StepperRow
+							:label="__('Radius')"
+							:model-value="table_radius"
+							unit="px"
+							:placeholder="__('none')"
+							allow-empty
+							@update:model-value="set_table_radius"
+						/>
 					</div>
 				</div>
 
@@ -296,34 +249,16 @@
 															{{ s.label }}
 														</option>
 													</select>
-													<div
-														v-else
-														class="pfb-stepper pfb-stepper--sm"
-														:title="__('Image size')"
-													>
-														<button
-															@click="adjust_image_size(col, -4)"
-														>
-															−
-														</button>
-														<input
-															class="pfb-stepper-input"
-															type="number"
-															min="16"
-															max="200"
+													<div v-else :title="__('Image size')">
+														<Stepper
+															sm
+															:min="16"
 															:value="col.image_size || 40"
-															@change="
-																(e) =>
-																	set_image_size(
-																		col,
-																		e.target.value
-																	)
-															"
+															unit="px"
+															@decrement="adjust_image_size(col, -4)"
+															@increment="adjust_image_size(col, 4)"
+															@input="(v) => set_image_size(col, v)"
 														/>
-														<span class="pfb-stepper-unit">px</span>
-														<button @click="adjust_image_size(col, 4)">
-															+
-														</button>
 													</div>
 													<button
 														class="pfb-col-remove"
@@ -393,6 +328,85 @@
 			</div>
 		</template>
 
+		<!-- ── Repeater inspector ──────────────────────────────── -->
+		<template v-else-if="selected_field && is_repeater_field">
+			<div class="pfb-insp-body">
+				<div class="pfb-insp-section">
+					<div class="pfb-insp-section-head" @click="toggle('r_repeater')">
+						<span class="pfb-insp-section-label">{{ __("Repeater") }}</span>
+						<span
+							class="pfb-insp-chevron"
+							:class="{ collapsed: !open.r_repeater }"
+							v-html="frappe.utils.icon('chevron-down', 'xs')"
+						></span>
+					</div>
+					<div v-show="open.r_repeater" class="pfb-insp-section-body">
+						<div class="pfb-insp-row">
+							<span class="pfb-insp-label">{{ __("Source") }}</span>
+							<Autocomplete
+								:options="repeater_source_opts"
+								:placeholder="repeater_source_label || __('Select table…')"
+								@select="(o) => (selected_field.source = o.value)"
+							/>
+						</div>
+						<LabelField
+							v-model="selected_field.label"
+							:label="__('Title')"
+							:placeholder="__('Optional heading')"
+						/>
+					</div>
+				</div>
+
+				<div class="pfb-insp-section">
+					<div class="pfb-insp-section-head" @click="toggle('r_columns')">
+						<span class="pfb-insp-section-label">{{ __("Columns") }}</span>
+						<span
+							class="pfb-insp-chevron"
+							:class="{ collapsed: !open.r_columns }"
+							v-html="frappe.utils.icon('chevron-down', 'xs')"
+						></span>
+					</div>
+					<div v-show="open.r_columns" class="pfb-insp-section-body">
+						<div
+							v-for="(col, ci) in selected_field.repeater_columns"
+							:key="ci"
+							class="pfb-rep-col"
+						>
+							<div class="pfb-rep-col-head">
+								<span class="pfb-insp-label">{{
+									__("Column {0}", [ci + 1])
+								}}</span>
+								<button
+									class="btn btn-xs btn-icon"
+									:title="__('Remove column')"
+									@click="remove_repeater_column(ci)"
+									v-html="frappe.utils.icon('x', 'xs')"
+								></button>
+							</div>
+							<TemplateInput v-model="col.template" :fields="repeater_field_opts" />
+							<SegmentedRow
+								:label="__('Align')"
+								v-model="col.align"
+								:options="align_opts"
+								style="margin-top: 8px"
+							/>
+						</div>
+						<button class="pfb-add-btn" @click="add_repeater_column">
+							<span v-html="frappe.utils.icon('add', 'xs')"></span>
+							{{ __("Add column") }}
+						</button>
+					</div>
+				</div>
+
+				<div class="pfb-insp-actions">
+					<button class="btn btn-xs btn-danger-subtle" @click="remove_field">
+						<span v-html="frappe.utils.icon('x', 'xs')"></span>
+						{{ __("Remove repeater") }}
+					</button>
+				</div>
+			</div>
+		</template>
+
 		<!-- ── Field inspector ─────────────────────────────────── -->
 		<template v-else-if="selected_field">
 			<div class="pfb-insp-body">
@@ -433,42 +447,21 @@
 							</button>
 						</template>
 						<template v-else>
-							<div class="pfb-insp-row pfb-insp-row--col">
-								<span class="pfb-insp-label">{{ __("Label") }}</span>
-								<input
-									class="pfb-insp-input"
-									type="text"
-									:placeholder="__('Field label')"
-									v-model="selected_field.label"
-								/>
-							</div>
-							<div class="pfb-insp-row">
-								<span class="pfb-insp-label">{{ __("Show label") }}</span>
-								<div class="pfb-seg">
-									<button
-										v-for="opt in show_label_opts"
-										:key="opt.value"
-										:class="{ active: current_show_label === opt.value }"
-										@click="selected_field.show_label = opt.value"
-									>
-										{{ opt.label }}
-									</button>
-								</div>
-							</div>
-							<div class="pfb-insp-row">
-								<span class="pfb-insp-label">{{ __("Align") }}</span>
-								<div class="pfb-seg">
-									<button
-										v-for="opt in align_opts"
-										:key="opt.value"
-										:class="{ active: current_align === opt.value }"
-										:title="opt.title"
-										@click="selected_field.align = opt.value"
-										v-html="opt.icon"
-									></button>
-								</div>
-							</div>
-							<div class="pfb-insp-row">
+							<LabelField
+								v-model="selected_field.label"
+								:label="__('Label')"
+								:placeholder="__('Field label')"
+								show-toggle
+								:show="selected_field.show_label"
+								@update:show="(v) => (selected_field.show_label = v)"
+							/>
+							<SegmentedRow
+								:label="__('Align')"
+								:model-value="current_align"
+								:options="align_opts"
+								@update:model-value="(v) => (selected_field.align = v)"
+							/>
+							<div class="pfb-insp-row" v-if="field_is_inline">
 								<span class="pfb-insp-label">{{ __("Spacing") }}</span>
 								<select
 									class="pfb-insp-select"
@@ -527,110 +520,63 @@
 					</div>
 					<div v-show="open.s_section" class="pfb-insp-section-body">
 						<!-- Title -->
-						<div class="pfb-insp-row pfb-insp-row--col">
-							<span class="pfb-insp-label">{{ __("Title") }}</span>
-							<input
-								class="pfb-insp-input"
-								type="text"
-								:placeholder="__('Untitled section')"
-								v-model="selected_section.label"
-							/>
-						</div>
-
-						<!-- Show title -->
-						<div class="pfb-insp-row">
-							<span class="pfb-insp-label">{{ __("Show title") }}</span>
-							<div class="pfb-seg">
-								<button
-									:class="{ active: section_show_label !== 'hide' }"
-									@click="selected_section.show_label = 'show'"
-								>
-									{{ __("Yes") }}
-								</button>
-								<button
-									:class="{ active: section_show_label === 'hide' }"
-									@click="selected_section.show_label = 'hide'"
-								>
-									{{ __("No") }}
-								</button>
-							</div>
-						</div>
+						<LabelField
+							v-model="selected_section.label"
+							:label="__('Title')"
+							:placeholder="__('Untitled section')"
+							show-toggle
+							:show-label="__('Show title')"
+							:show="selected_section.show_label"
+							@update:show="(v) => (selected_section.show_label = v)"
+						/>
 
 						<!-- Columns -->
-						<div class="pfb-insp-row">
-							<span class="pfb-insp-label">{{ __("Columns") }}</span>
-							<div class="pfb-seg">
-								<button
-									v-for="n in [1, 2, 3, 4]"
-									:key="n"
-									:class="{ active: selected_section.columns.length === n }"
-									@click="set_columns(n)"
-								>
-									{{ n }}
-								</button>
-							</div>
-						</div>
+						<SegmentedRow
+							:label="__('Columns')"
+							:model-value="selected_section.columns.length"
+							:options="[1, 2, 3, 4].map((n) => ({ value: n, label: n }))"
+							@update:model-value="set_columns"
+						/>
 
 						<!-- Orientation -->
-						<div class="pfb-insp-row">
-							<span class="pfb-insp-label">{{ __("Label side") }}</span>
-							<div class="pfb-seg">
-								<button
-									:class="{ active: section_orientation !== 'left-right' }"
-									@click="selected_section.field_orientation = ''"
-								>
-									{{ __("Top") }}
-								</button>
-								<button
-									:class="{ active: section_orientation === 'left-right' }"
-									@click="selected_section.field_orientation = 'left-right'"
-								>
-									{{ __("Left") }}
-								</button>
-							</div>
-						</div>
+						<SegmentedRow
+							:label="__('Label side')"
+							:model-value="
+								section_orientation === 'left-right' ? 'left-right' : 'top'
+							"
+							:options="[
+								{ value: 'top', label: __('Top') },
+								{ value: 'left-right', label: __('Left') },
+							]"
+							@update:model-value="
+								(v) =>
+									(selected_section.field_orientation =
+										v === 'left-right' ? 'left-right' : '')
+							"
+						/>
 
 						<!-- Gap -->
-						<div class="pfb-insp-row">
-							<span class="pfb-insp-label">{{ __("Gap") }}</span>
-							<div class="pfb-stepper">
-								<button @click="adjust_gap(-4)">−</button>
-								<input
-									class="pfb-stepper-input"
-									type="number"
-									min="0"
-									:value="section_gap"
-									@change="
-										(e) =>
-											(selected_section.gap = Math.max(
-												0,
-												parseInt(e.target.value) || 0
-											))
-									"
-								/>
-								<span class="pfb-stepper-unit">px</span>
-								<button @click="adjust_gap(4)">+</button>
-							</div>
-						</div>
+						<StepperRow
+							:label="__('Gap')"
+							:model-value="section_gap"
+							:step="4"
+							:base="20"
+							unit="px"
+							@update:model-value="(v) => (selected_section.gap = v)"
+						/>
 
 						<!-- Label case -->
-						<div class="pfb-insp-row">
-							<span class="pfb-insp-label">{{ __("Label case") }}</span>
-							<div class="pfb-seg">
-								<button
-									:class="{ active: section_label_case !== 'uppercase' }"
-									@click="selected_section.label_case = 'normal'"
-								>
-									{{ __("Normal") }}
-								</button>
-								<button
-									:class="{ active: section_label_case === 'uppercase' }"
-									@click="selected_section.label_case = 'uppercase'"
-								>
-									{{ __("UPPER") }}
-								</button>
-							</div>
-						</div>
+						<SegmentedRow
+							:label="__('Label case')"
+							:model-value="
+								section_label_case === 'uppercase' ? 'uppercase' : 'normal'
+							"
+							:options="[
+								{ value: 'normal', label: __('Normal') },
+								{ value: 'uppercase', label: __('UPPER') },
+							]"
+							@update:model-value="(v) => (selected_section.label_case = v)"
+						/>
 					</div>
 				</div>
 
@@ -670,30 +616,10 @@
 						></span>
 					</div>
 					<div v-show="open.s_padding" class="pfb-insp-section-body">
-						<div class="pfb-padding-grid">
-							<div
-								v-for="side in ['top', 'right', 'bottom', 'left']"
-								:key="side"
-								class="pfb-padding-cell"
-							>
-								<div class="pfb-padding-label">
-									{{ __(side[0].toUpperCase() + side.slice(1)) }}
-								</div>
-								<div class="pfb-stepper pfb-stepper--sm">
-									<button @click="adjust_padding(side, -4)">−</button>
-									<input
-										class="pfb-stepper-input"
-										type="number"
-										min="0"
-										:value="section_padding[side]"
-										@change="
-											(e) => set_padding(side, parseInt(e.target.value) || 0)
-										"
-									/>
-									<button @click="adjust_padding(side, 4)">+</button>
-								</div>
-							</div>
-						</div>
+						<PaddingGrid
+							:model-value="selected_section.padding"
+							@update:model-value="(v) => (selected_section.padding = v)"
+						/>
 					</div>
 				</div>
 
@@ -709,42 +635,23 @@
 					</div>
 					<div v-show="open.s_layout" class="pfb-insp-section-body">
 						<!-- Layout mode -->
-						<div class="pfb-insp-row">
-							<span class="pfb-insp-label">{{ __("Mode") }}</span>
-							<div class="pfb-seg">
-								<button
-									:class="{ active: !section_field_borders }"
-									@click="toggle_field_borders(false)"
-								>
-									{{ __("Normal") }}
-								</button>
-								<button
-									:class="{ active: section_field_borders }"
-									@click="toggle_field_borders(true)"
-								>
-									{{ __("Table") }}
-								</button>
-							</div>
-						</div>
+						<SegmentedRow
+							:label="__('Mode')"
+							:model-value="section_field_borders"
+							:options="[
+								{ value: false, label: __('Normal') },
+								{ value: true, label: __('Table') },
+							]"
+							@update:model-value="toggle_field_borders"
+						/>
 						<!-- Cell padding -->
-						<div class="pfb-insp-row">
-							<span class="pfb-insp-label">{{ __("Cell padding") }}</span>
-							<div class="pfb-stepper">
-								<button @click="adjust_section_cell_padding(-1)">−</button>
-								<input
-									class="pfb-stepper-input"
-									type="number"
-									min="0"
-									:value="section_cell_padding"
-									@change="
-										(e) =>
-											set_section_cell_padding(parseInt(e.target.value) || 0)
-									"
-								/>
-								<span class="pfb-stepper-unit">px</span>
-								<button @click="adjust_section_cell_padding(1)">+</button>
-							</div>
-						</div>
+						<StepperRow
+							:label="__('Cell padding')"
+							:model-value="section_cell_padding"
+							:base="8"
+							unit="px"
+							@update:model-value="(v) => (selected_section.cell_padding = v)"
+						/>
 					</div>
 				</div>
 
@@ -799,9 +706,15 @@ import { useStore } from "../../stores";
 import LetterHeadZoneInspector from "./LetterHeadZoneInspector.vue";
 import Autocomplete from "../../../vue-components/Autocomplete.vue";
 import VisibilitySection from "./VisibilitySection.vue";
+import TemplateInput from "./TemplateInput.vue";
+import LabelField from "./LabelField.vue";
+import SegmentedRow from "./SegmentedRow.vue";
+import StepperRow from "./StepperRow.vue";
+import PaddingGrid from "./PaddingGrid.vue";
+import Stepper from "./Stepper.vue";
 
 let store = inject("$store");
-let { letterhead, layout } = useStore();
+let { letterhead, layout, meta } = useStore();
 
 let selected_field = computed(() => store.selected_field.value);
 let selected_section = computed(() => store.selected_section.value);
@@ -820,6 +733,8 @@ const open = ref({
 	t_table: true,
 	t_columns: true,
 	t_visibility: true,
+	r_repeater: true,
+	r_columns: true,
 });
 
 function toggle(key) {
@@ -828,7 +743,41 @@ function toggle(key) {
 
 // ── Inspector header ───────────────────────────────────────
 let is_table_field = computed(() => selected_field.value?.fieldtype === "Table");
+let is_repeater_field = computed(() => selected_field.value?.fieldtype === "Repeater");
 let is_html_field = computed(() => selected_field.value?.fieldtype === "HTML");
+
+// ── Repeater helpers ───────────────────────────────────────
+let repeater_source_opts = computed(() =>
+	(meta.value?.fields || [])
+		.filter((f) => f.fieldtype === "Table")
+		.map((f) => ({ value: f.fieldname, label: f.label || f.fieldname }))
+);
+
+let repeater_field_opts = computed(() => {
+	const src = (meta.value?.fields || []).find(
+		(f) => f.fieldname === selected_field.value?.source
+	);
+	const child_meta = src?.options ? frappe.get_meta(src.options) : null;
+	if (!child_meta) return [];
+	return child_meta.fields
+		.filter((f) => !frappe.model.no_value_type.includes(f.fieldtype) && f.fieldname !== "name")
+		.map((f) => ({ value: f.fieldname, label: f.label || f.fieldname }));
+});
+
+let repeater_source_label = computed(
+	() =>
+		repeater_source_opts.value.find((o) => o.value === selected_field.value?.source)?.label ||
+		""
+);
+
+function add_repeater_column() {
+	if (!selected_field.value.repeater_columns) selected_field.value.repeater_columns = [];
+	selected_field.value.repeater_columns.push({ template: [], align: "left" });
+}
+
+function remove_repeater_column(i) {
+	selected_field.value.repeater_columns.splice(i, 1);
+}
 
 let inspector_kind = computed(() => {
 	if (selected_lh_footer.value) return __("Letter Head");
@@ -896,14 +845,10 @@ let short_fieldtype = computed(() => {
 	return map[selected_field.value.fieldtype] || selected_field.value.fieldtype || "";
 });
 
-let current_show_label = computed(() => selected_field.value?.show_label ?? "show");
 let current_align = computed(() => selected_field.value?.align ?? "left");
 let current_label_justify = computed(() => selected_field.value?.label_justify ?? "");
-
-const show_label_opts = [
-	{ value: "show", label: __("Show") },
-	{ value: "hide", label: __("Hide") },
-];
+// Spacing only applies when the field is inline (section "Label side: Left")
+let field_is_inline = computed(() => parent_section.value?.field_orientation === "left-right");
 
 const align_icons = {
 	left: `<svg xmlns="http://www.w3.org/2000/svg" width="14" height="12" viewBox="0 0 14 12" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"><line x1="0" y1="1" x2="14" y2="1"/><line x1="0" y1="5" x2="9" y2="5"/><line x1="0" y1="9" x2="11" y2="9"/></svg>`,
@@ -1007,32 +952,14 @@ let table_header = computed(() => selected_field.value?.table_header ?? "styled"
 let table_cell_padding = computed(() => selected_field.value?.table_cell_padding ?? null);
 let table_radius = computed(() => selected_field.value?.table_radius ?? null);
 
-function adjust_cell_padding(delta) {
-	const current = selected_field.value?.table_cell_padding ?? 7;
-	selected_field.value.table_cell_padding = Math.max(0, current + delta);
+function set_cell_padding(v) {
+	if (v === null) delete selected_field.value.table_cell_padding;
+	else selected_field.value.table_cell_padding = v;
 }
 
-function set_cell_padding(value) {
-	const v = parseInt(value);
-	if (isNaN(v) || value === "") {
-		delete selected_field.value.table_cell_padding;
-	} else {
-		selected_field.value.table_cell_padding = Math.max(0, v);
-	}
-}
-
-function adjust_table_radius(delta) {
-	const current = selected_field.value?.table_radius ?? 0;
-	selected_field.value.table_radius = Math.max(0, current + delta);
-}
-
-function set_table_radius(value) {
-	const v = parseInt(value);
-	if (isNaN(v) || value === "") {
-		delete selected_field.value.table_radius;
-	} else {
-		selected_field.value.table_radius = Math.max(0, v);
-	}
+function set_table_radius(v) {
+	if (v === null) delete selected_field.value.table_radius;
+	else selected_field.value.table_radius = v;
 }
 
 const table_style_opts = [
@@ -1170,17 +1097,10 @@ function set_image_size(col, value) {
 }
 
 // ── Section helpers ────────────────────────────────────────
-let section_show_label = computed(() => selected_section.value?.show_label ?? "show");
 let section_orientation = computed(() => selected_section.value?.field_orientation ?? "");
 let section_gap = computed(() => selected_section.value?.gap ?? 20);
 let section_label_case = computed(() => selected_section.value?.label_case ?? "normal");
 let section_bg = computed(() => selected_section.value?.background ?? "");
-let section_padding = computed(() => ({
-	top: selected_section.value?.padding?.top ?? 0,
-	right: selected_section.value?.padding?.right ?? 0,
-	bottom: selected_section.value?.padding?.bottom ?? 0,
-	left: selected_section.value?.padding?.left ?? 0,
-}));
 
 const bg_swatches = [
 	{
@@ -1204,26 +1124,6 @@ function set_columns(n) {
 	selected_section.value.columns = new_columns;
 }
 
-function adjust_gap(delta) {
-	const current = selected_section.value?.gap ?? 20;
-	selected_section.value.gap = Math.max(0, current + delta);
-}
-
-function adjust_padding(side, delta) {
-	if (!selected_section.value.padding) {
-		selected_section.value.padding = { top: 0, right: 0, bottom: 0, left: 0 };
-	}
-	const current = selected_section.value.padding[side] ?? 0;
-	selected_section.value.padding[side] = Math.max(0, current + delta);
-}
-
-function set_padding(side, value) {
-	if (!selected_section.value.padding) {
-		selected_section.value.padding = { top: 0, right: 0, bottom: 0, left: 0 };
-	}
-	selected_section.value.padding[side] = Math.max(0, value);
-}
-
 let section_field_borders = computed(() => !!selected_section.value?.field_borders);
 let section_cell_padding = computed(() => selected_section.value?.cell_padding ?? 8);
 
@@ -1233,15 +1133,6 @@ function toggle_field_borders(on) {
 	} else {
 		delete selected_section.value.field_borders;
 	}
-}
-
-function adjust_section_cell_padding(delta) {
-	const current = selected_section.value?.cell_padding ?? 8;
-	selected_section.value.cell_padding = Math.max(0, current + delta);
-}
-
-function set_section_cell_padding(value) {
-	selected_section.value.cell_padding = Math.max(0, value);
 }
 </script>
 
@@ -1350,83 +1241,6 @@ function set_section_cell_padding(value) {
 	font-size: var(--text-sm);
 }
 
-/* ── Body ────────────────────────────────────────────────── */
-.pfb-insp-body {
-	flex: 1;
-	overflow-y: auto;
-	display: flex;
-	flex-direction: column;
-}
-
-.pfb-insp-placeholder {
-	align-items: center;
-	justify-content: center;
-	padding: 24px;
-	text-align: center;
-}
-
-/* ── Collapsible sections ────────────────────────────────── */
-.pfb-insp-section {
-	border-bottom: 1px solid var(--border-color);
-}
-
-.pfb-insp-section-head {
-	display: flex;
-	align-items: center;
-	justify-content: space-between;
-	padding: 10px 14px;
-	cursor: pointer;
-	user-select: none;
-}
-
-.pfb-insp-section-head:hover {
-	background: var(--subtle-accent);
-}
-
-.pfb-insp-section-label {
-	font-size: var(--text-tiny);
-	font-weight: var(--weight-bold);
-	text-transform: uppercase;
-	letter-spacing: 0.08em;
-	color: var(--text-muted);
-}
-
-.pfb-insp-chevron {
-	display: flex;
-	align-items: center;
-	color: var(--gray-400);
-	transition: transform 0.15s;
-}
-
-.pfb-insp-chevron.collapsed {
-	transform: rotate(-90deg);
-}
-
-.pfb-insp-section-body {
-	padding: 4px 14px 12px;
-	display: flex;
-	flex-direction: column;
-	gap: 10px;
-}
-
-/* ── Rows ────────────────────────────────────────────────── */
-.pfb-insp-row {
-	display: grid;
-	grid-template-columns: 80px 1fr;
-	align-items: center;
-	gap: 8px;
-}
-
-.pfb-insp-row--col {
-	grid-template-columns: 1fr;
-	gap: 4px;
-}
-
-.pfb-insp-label {
-	font-size: var(--text-sm);
-	color: var(--text-muted);
-}
-
 /* ── Source display ──────────────────────────────────────── */
 .pfb-source-display {
 	display: flex;
@@ -1460,153 +1274,6 @@ function set_section_cell_padding(value) {
 	flex-shrink: 0;
 }
 
-/* ── Input ───────────────────────────────────────────────── */
-.pfb-insp-input {
-	width: 100%;
-	padding: 6px 8px;
-	font-size: var(--text-sm);
-	border: 1px solid var(--border-color);
-	border-radius: var(--radius);
-	background: var(--fg-color);
-	color: var(--text-color);
-	outline: none;
-	box-sizing: border-box;
-}
-
-.pfb-insp-input:focus {
-	border-color: var(--gray-500);
-}
-
-.pfb-insp-select {
-	width: 100%;
-	padding: 5px 8px;
-	font-size: var(--text-sm);
-	border: 1px solid var(--border-color);
-	border-radius: var(--radius);
-	background: var(--fg-color);
-	color: var(--text-color);
-	outline: none;
-	cursor: pointer;
-}
-
-.pfb-insp-select:focus {
-	border-color: var(--gray-500);
-}
-
-/* ── Segmented control ───────────────────────────────────── */
-.pfb-seg {
-	display: inline-flex;
-	background: var(--control-bg);
-	border: 1px solid var(--border-color);
-	border-radius: var(--radius);
-	overflow: hidden;
-	width: 100%;
-}
-
-.pfb-seg button {
-	flex: 1;
-	padding: 5px 6px;
-	font-size: var(--text-tiny);
-	font-weight: var(--weight-medium);
-	border: none;
-	border-radius: 0;
-	background: transparent;
-	color: var(--text-muted);
-	cursor: pointer;
-	display: inline-flex;
-	align-items: center;
-	justify-content: center;
-	line-height: 1;
-}
-
-.pfb-seg button:not(:first-child) {
-	border-left: 1px solid var(--border-color);
-}
-
-.pfb-seg button:hover {
-	background: var(--gray-200);
-	color: var(--text-color);
-}
-
-.pfb-seg button.active {
-	background: var(--fg-color);
-	color: var(--text-color);
-	box-shadow: var(--shadow-xs);
-}
-
-/* ── Stepper (+/−) ───────────────────────────────────────── */
-.pfb-stepper {
-	display: inline-flex;
-	align-items: center;
-	border: 1px solid var(--border-color);
-	border-radius: var(--radius);
-	overflow: hidden;
-	background: var(--subtle-accent);
-	width: 100%;
-}
-
-.pfb-stepper button {
-	padding: 4px 8px;
-	border: none;
-	background: transparent;
-	cursor: pointer;
-	font-size: 14px;
-	color: var(--text-muted);
-	line-height: 1;
-	flex-shrink: 0;
-}
-
-.pfb-stepper button:hover {
-	background: var(--gray-100);
-	color: var(--text-color);
-}
-
-.pfb-stepper-val {
-	flex: 1;
-	text-align: center;
-	font-size: var(--text-sm);
-	font-weight: 500;
-	border-left: 1px solid var(--border-color);
-	border-right: 1px solid var(--border-color);
-	padding: 4px 4px;
-}
-
-.pfb-stepper-input {
-	flex: 1;
-	min-width: 0;
-	width: 100%;
-	text-align: center;
-	font-size: var(--text-sm);
-	font-weight: 500;
-	border: none;
-	border-left: 1px solid var(--border-color);
-	border-right: 1px solid var(--border-color);
-	background: transparent;
-	color: var(--text-color);
-	padding: 4px 2px;
-	outline: none;
-}
-
-.pfb-stepper-input:focus {
-	background: var(--fg-color);
-}
-
-/* hide number spin arrows */
-.pfb-stepper-input::-webkit-inner-spin-button,
-.pfb-stepper-input::-webkit-outer-spin-button {
-	-webkit-appearance: none;
-}
-
-.pfb-stepper-unit {
-	font-size: var(--text-tiny);
-	color: var(--text-muted);
-	padding: 0 6px 0 2px;
-}
-
-.pfb-stepper--sm {
-	width: auto;
-}
-
 /* ── Background swatches ─────────────────────────────────── */
 .pfb-color-swatches {
 	display: flex;
@@ -1633,37 +1300,9 @@ function set_section_cell_padding(value) {
 	box-shadow: 0 0 0 2px var(--primary-light);
 }
 
-/* ── Padding grid ────────────────────────────────────────── */
-.pfb-padding-grid {
-	display: grid;
-	grid-template-columns: 1fr 1fr;
-	gap: 8px;
-}
-
-.pfb-padding-cell {
-	display: flex;
-	flex-direction: column;
-	gap: 3px;
-}
-
-.pfb-padding-label {
-	font-size: var(--text-tiny);
-	color: var(--text-muted);
-	text-align: center;
-}
-
 /* ── Hint ────────────────────────────────────────────────── */
-.pfb-insp-hint {
-	font-size: var(--text-sm);
-	line-height: 1.5;
-}
 
 /* ── Actions ─────────────────────────────────────────────── */
-.pfb-insp-actions {
-	padding: 12px 14px;
-	margin-top: auto;
-	border-top: 1px solid var(--border-color);
-}
 
 .btn-danger-subtle {
 	display: inline-flex;
@@ -1787,10 +1426,6 @@ function set_section_cell_padding(value) {
 	border-top: 1px solid var(--gray-100);
 }
 
-.pfb-insp-col-count {
-	font-size: var(--text-tiny);
-}
-
 /* ── Per-column cell layout / merged fields editor ───────── */
 .pfb-col-config {
 	display: flex;
@@ -1842,44 +1477,6 @@ function set_section_cell_padding(value) {
 }
 
 /* ── Letter Head inspector ───────────────────────────────── */
-.pfb-lh-zone-label {
-	display: flex;
-	align-items: center;
-	gap: 6px;
-	font-size: var(--text-tiny);
-	font-weight: var(--weight-semibold);
-	text-transform: uppercase;
-	letter-spacing: 0.06em;
-	color: var(--blue-500);
-	background: var(--blue-50);
-	border-bottom: 1px solid var(--blue-200);
-	padding: 7px 14px;
-	flex-shrink: 0;
-}
-
-.pfb-lh-slider {
-	width: 100%;
-	accent-color: var(--primary);
-}
-
-.pfb-lh-actions {
-	display: flex;
-	flex-direction: column;
-	gap: 6px;
-}
-
-.pfb-lh-footer-preview {
-	font-size: var(--text-sm);
-	color: var(--text-muted);
-	padding: 6px 8px;
-	border: 1px solid var(--border-color);
-	border-radius: var(--radius);
-	background: var(--gray-50);
-	max-height: 80px;
-	overflow: hidden;
-	margin-bottom: 6px;
-}
-
 .pfb-lh-edit-btn {
 	display: inline-flex;
 	align-items: center;
@@ -1989,5 +1586,18 @@ function set_section_cell_padding(value) {
 	overflow-y: auto;
 	padding: 16px 20px;
 	font-size: var(--text-sm);
+}
+
+.pfb-rep-col {
+	border: 1px solid var(--border-color);
+	border-radius: var(--radius);
+	padding: 8px;
+	margin-bottom: 8px;
+}
+.pfb-rep-col-head {
+	display: flex;
+	align-items: center;
+	justify-content: space-between;
+	margin-bottom: 6px;
 }
 </style>

@@ -1,0 +1,18 @@
+{% if df.source and doc.get(df.source) %}
+<div class="pfb-repeater" {{ field_attributes(df) }}>
+	{% if df.label %}<div class="label">{{ _(df.label) }}</div>{% endif %}
+	<table class="pfb-repeater-table">
+		{% for row in doc.get(df.source) %}
+		<tr>
+			{% for col in (df.repeater_columns or []) %}
+			<td class="pfb-repeater-cell" style="text-align: {{ (col.align or 'left')|e }}">
+				{%- for tok in (col.template or []) -%}
+					{%- if tok.t == 'f' -%}{{ row.get_formatted(tok.v) }}{%- else -%}{{ tok.v|e }}{%- endif -%}
+				{%- endfor -%}
+			</td>
+			{% endfor %}
+		</tr>
+		{% endfor %}
+	</table>
+</div>
+{% endif %}

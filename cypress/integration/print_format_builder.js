@@ -20,12 +20,31 @@ function cleanup(win, name) {
 	});
 }
 
-function one_section_layout() {
-	return JSON.stringify({
-		sections: [{ label: "Alpha", columns: [{ label: "", fields: [] }] }],
+function builder_layout(sections = []) {
+	return {
+		sections,
 		header: { columns: [{ label: "", fields: [] }] },
 		footer: { columns: [{ label: "", fields: [] }] },
-	});
+	};
+}
+
+function one_section_layout() {
+	return JSON.stringify(
+		builder_layout([{ label: "Alpha", columns: [{ label: "", fields: [] }] }])
+	);
+}
+
+function insert_builder_format(name, sections = []) {
+	cy.insert_doc(
+		"Print Format",
+		{
+			name,
+			doc_type: "ToDo",
+			print_format_builder_beta: 1,
+			format_data: JSON.stringify(builder_layout(sections)),
+		},
+		true
+	);
 }
 
 // ─── Create flow ──────────────────────────────────────────────────────────────
@@ -133,23 +152,10 @@ context("Print Format Builder — create flow", () => {
 	it("outline tab selects a section on click", () => {
 		cy.visit("/app");
 
-		cy.insert_doc(
-			"Print Format",
-			{
-				name: PF_NAME,
-				doc_type: "ToDo",
-				print_format_builder_beta: 1,
-				format_data: JSON.stringify({
-					sections: [
-						{ label: "Alpha", columns: [{ label: "", fields: [] }] },
-						{ label: "Beta", columns: [{ label: "", fields: [] }] },
-					],
-					header: { columns: [{ label: "", fields: [] }] },
-					footer: { columns: [{ label: "", fields: [] }] },
-				}),
-			},
-			true
-		);
+		insert_builder_format(PF_NAME, [
+			{ label: "Alpha", columns: [{ label: "", fields: [] }] },
+			{ label: "Beta", columns: [{ label: "", fields: [] }] },
+		]);
 
 		cy.visit(`/app/print-format-builder/${encodeURIComponent(PF_NAME)}`);
 
@@ -165,36 +171,19 @@ context("Print Format Builder — create flow", () => {
 	it("field breadcrumb navigates to parent section", () => {
 		cy.visit("/app");
 
-		cy.insert_doc(
-			"Print Format",
+		insert_builder_format(PF_NAME, [
 			{
-				name: PF_NAME,
-				doc_type: "ToDo",
-				print_format_builder_beta: 1,
-				format_data: JSON.stringify({
-					sections: [
-						{
-							label: "Details",
-							columns: [
-								{
-									label: "",
-									fields: [
-										{
-											fieldtype: "Data",
-											fieldname: "description",
-											label: "Description",
-										},
-									],
-								},
-							],
-						},
-					],
-					header: { columns: [{ label: "", fields: [] }] },
-					footer: { columns: [{ label: "", fields: [] }] },
-				}),
+				label: "Details",
+				columns: [
+					{
+						label: "",
+						fields: [
+							{ fieldtype: "Data", fieldname: "description", label: "Description" },
+						],
+					},
+				],
 			},
-			true
-		);
+		]);
 
 		cy.visit(`/app/print-format-builder/${encodeURIComponent(PF_NAME)}`);
 
@@ -217,20 +206,7 @@ context("Print Format Builder — create flow", () => {
 	it("font size change applies to canvas preview", () => {
 		cy.visit("/app");
 
-		cy.insert_doc(
-			"Print Format",
-			{
-				name: PF_NAME,
-				doc_type: "ToDo",
-				print_format_builder_beta: 1,
-				format_data: JSON.stringify({
-					sections: [],
-					header: { columns: [{ label: "", fields: [] }] },
-					footer: { columns: [{ label: "", fields: [] }] },
-				}),
-			},
-			true
-		);
+		insert_builder_format(PF_NAME, []);
 
 		cy.intercept("POST", "api/method/frappe.client.save").as("save");
 		cy.visit(`/app/print-format-builder/${encodeURIComponent(PF_NAME)}`);
@@ -250,6 +226,35 @@ context("Print Format Builder — create flow", () => {
 			const fs = parseInt($el.css("font-size"), 10);
 			expect(fs).to.equal(18);
 		});
+	});
+
+	// 7. Table layout: field_borders renders a grid with a column divider
+	it("table layout renders grid borders in the canvas", () => {
+		cy.visit("/app");
+
+		insert_builder_format(PF_NAME, [
+			{
+				label: "Grid",
+				field_borders: true,
+				columns: [
+					{
+						fields: [
+							{ fieldtype: "Data", fieldname: "description", label: "Description" },
+						],
+					},
+					{ fields: [{ fieldtype: "Data", fieldname: "status", label: "Status" }] },
+				],
+			},
+		]);
+
+		cy.visit(`/app/print-format-builder/${encodeURIComponent(PF_NAME)}`);
+
+		cy.get(".section--grid", { timeout: 30000 }).should("be.visible");
+		cy.get(".section--grid .column")
+			.first()
+			.should(($el) => {
+				expect(parseInt($el.css("border-right-width"), 10)).to.be.greaterThan(0);
+			});
 	});
 });
 

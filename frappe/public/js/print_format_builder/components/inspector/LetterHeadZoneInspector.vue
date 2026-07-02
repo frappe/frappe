@@ -9,23 +9,15 @@
 		<!-- Based on toggle + letter head actions -->
 		<div class="pfb-insp-section">
 			<div class="pfb-insp-section-body" style="padding-top: 10px">
-				<div class="pfb-insp-row">
-					<span class="pfb-insp-label">{{ __("Based on") }}</span>
-					<div class="pfb-seg">
-						<button
-							:class="{ active: zone_source === 'Image' }"
-							@click="set_source('Image')"
-						>
-							{{ __("Image") }}
-						</button>
-						<button
-							:class="{ active: zone_source === 'HTML' }"
-							@click="set_source('HTML')"
-						>
-							{{ __("HTML") }}
-						</button>
-					</div>
-				</div>
+				<SegmentedRow
+					:label="__('Based on')"
+					:model-value="zone_source"
+					:options="[
+						{ value: 'Image', label: __('Image') },
+						{ value: 'HTML', label: __('HTML') },
+					]"
+					@update:model-value="set_source"
+				/>
 				<!-- Letter head selection buttons — always visible for header zone -->
 				<template v-if="zone === 'header'">
 					<div v-if="letterhead" class="pfb-lh-actions" style="margin-top: 4px">
@@ -94,19 +86,17 @@
 			<div v-show="open.image" class="pfb-insp-section-body">
 				<template v-if="letterhead">
 					<!-- Alignment -->
-					<div class="pfb-insp-row">
-						<span class="pfb-insp-label">{{ __("Align") }}</span>
-						<div class="pfb-seg">
-							<button
-								v-for="dir in ['Left', 'Center', 'Right']"
-								:key="dir"
-								:class="{ active: zone_align === dir }"
-								@click="set_align(dir)"
-							>
-								{{ __(dir) }}
-							</button>
-						</div>
-					</div>
+					<SegmentedRow
+						:label="__('Align')"
+						:model-value="zone_align"
+						:options="
+							['Left', 'Center', 'Right'].map((d) => ({
+								value: d,
+								label: __(d),
+							}))
+						"
+						@update:model-value="set_align"
+					/>
 					<!-- Size slider -->
 					<div v-if="letterhead[image_field]" class="pfb-insp-row pfb-insp-row--col">
 						<span class="pfb-insp-label">{{ __("Size") }}</span>
@@ -141,6 +131,7 @@
 import { computed, inject, onMounted, ref } from "vue";
 import { useStore } from "../../stores";
 import { get_image_dimensions, render_jinja_html } from "../../utils";
+import SegmentedRow from "./SegmentedRow.vue";
 
 const props = defineProps({
 	zone: { type: String, required: true },
@@ -387,118 +378,6 @@ function lh_create_letterhead() {
 </script>
 
 <style scoped>
-.pfb-insp-body {
-	flex: 1;
-	overflow-y: auto;
-	display: flex;
-	flex-direction: column;
-}
-
-.pfb-insp-section {
-	border-bottom: 1px solid var(--border-color);
-}
-
-.pfb-insp-section-head {
-	display: flex;
-	align-items: center;
-	justify-content: space-between;
-	padding: 10px 14px;
-	cursor: pointer;
-	user-select: none;
-}
-
-.pfb-insp-section-head:hover {
-	background: var(--gray-50);
-}
-
-.pfb-insp-section-label {
-	font-size: var(--text-tiny);
-	font-weight: var(--weight-bold);
-	text-transform: uppercase;
-	letter-spacing: 0.08em;
-	color: var(--text-muted);
-}
-
-.pfb-insp-chevron {
-	display: flex;
-	align-items: center;
-	color: var(--gray-400);
-	transition: transform 0.15s;
-}
-
-.pfb-insp-chevron.collapsed {
-	transform: rotate(-90deg);
-}
-
-.pfb-insp-section-body {
-	padding: 4px 14px 12px;
-	display: flex;
-	flex-direction: column;
-	gap: 10px;
-}
-
-.pfb-insp-row {
-	display: grid;
-	grid-template-columns: 80px 1fr;
-	align-items: center;
-	gap: 8px;
-}
-
-.pfb-insp-row--col {
-	grid-template-columns: 1fr;
-	gap: 4px;
-}
-
-.pfb-insp-label {
-	font-size: var(--text-sm);
-	color: var(--text-muted);
-}
-
-.pfb-seg {
-	display: inline-flex;
-	background: var(--gray-100);
-	border: 1px solid var(--border-color);
-	border-radius: var(--radius);
-	overflow: hidden;
-	width: 100%;
-}
-
-.pfb-seg button {
-	flex: 1;
-	padding: 5px 6px;
-	font-size: var(--text-tiny);
-	font-weight: var(--weight-medium);
-	border: none;
-	border-radius: 0;
-	background: transparent;
-	color: var(--text-muted);
-	cursor: pointer;
-	display: inline-flex;
-	align-items: center;
-	justify-content: center;
-	line-height: 1;
-}
-
-.pfb-seg button:not(:first-child) {
-	border-left: 1px solid var(--border-color);
-}
-
-.pfb-seg button:hover {
-	background: var(--gray-200);
-	color: var(--text-color);
-}
-
-.pfb-seg button.active {
-	background: var(--fg-color);
-	color: var(--text-color);
-	box-shadow: var(--shadow-xs);
-}
-
-.pfb-insp-hint {
-	font-size: var(--text-sm);
-	line-height: 1.5;
-}
-
 .pfb-lh-zone-label {
 	display: flex;
 	align-items: center;
