@@ -56,6 +56,9 @@
 	align-items: center;
 	gap: 8px;
 }
+.pfb-insp-row > * {
+	min-width: 0;
+}
 .pfb-insp-row--col {
 	grid-template-columns: 1fr;
 	gap: 4px;
@@ -103,4 +106,22 @@
 }
 .pfb-insp-col-count {
 	font-size: var(--text-tiny);
+}
+.pfb-add-btn {
+	display: inline-flex;
+	align-items: center;
+	gap: 4px;
+	font-size: var(--text-sm);
+	padding: 4px 8px;
+	border: 1px dashed var(--border-color);
+	border-radius: var(--radius);
+	background: transparent;
+	color: var(--text-muted);
+	cursor: pointer;
+	width: 100%;
+	justify-content: center;
+}
+.pfb-add-btn:hover {
+	background: var(--subtle-accent);
+	color: var(--text-color);
 }

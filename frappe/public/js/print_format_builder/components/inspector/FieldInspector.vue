@@ -1813,22 +1813,4 @@ function set_section_cell_padding(value) {
 	justify-content: space-between;
 	margin-bottom: 6px;
 }
-.pfb-add-btn {
-	display: inline-flex;
-	align-items: center;
-	gap: 4px;
-	font-size: var(--text-sm);
-	padding: 4px 8px;
-	border: 1px dashed var(--border-color);
-	border-radius: var(--radius);
-	background: transparent;
-	color: var(--text-muted);
-	cursor: pointer;
-	width: 100%;
-	justify-content: center;
-}
-.pfb-add-btn:hover {
-	background: var(--subtle-accent);
-	color: var(--text-color);
-}
 </style>

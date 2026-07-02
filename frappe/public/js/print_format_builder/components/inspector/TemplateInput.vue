@@ -20,7 +20,7 @@
 				/>
 			</template>
 		</div>
-		<span v-if="!fields.length" class="pfb-tpl-hint">{{
+		<span v-if="!fields.length" class="pfb-insp-hint text-muted">{{
 			__("Select a source table first")
 		}}</span>
 		<div v-else-if="adding" ref="picker">
@@ -30,7 +30,7 @@
 				@select="add_field"
 			/>
 		</div>
-		<button v-else type="button" class="pfb-tpl-addbtn" @click="open_picker">
+		<button v-else type="button" class="pfb-add-btn" @click="open_picker">
 			<span v-html="frappe.utils.icon('add', 'xs')"></span>
 			{{ __("Add field") }}
 		</button>
@@ -121,28 +121,5 @@ function remove(i) {
 .pfb-tpl-x {
 	display: inline-flex;
 	cursor: pointer;
-}
-.pfb-tpl-hint {
-	font-size: var(--text-tiny);
-	font-style: italic;
-	color: var(--text-muted);
-}
-.pfb-tpl-addbtn {
-	display: inline-flex;
-	align-items: center;
-	gap: 4px;
-	align-self: flex-start;
-	font-size: var(--text-tiny);
-	font-weight: var(--weight-medium);
-	padding: 3px 8px;
-	border: 1px dashed var(--border-color);
-	border-radius: var(--radius);
-	background: transparent;
-	color: var(--text-muted);
-	cursor: pointer;
-}
-.pfb-tpl-addbtn:hover {
-	background: var(--subtle-accent);
-	color: var(--text-color);
 }
 </style>
