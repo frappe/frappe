@@ -621,6 +621,16 @@ class TestDBQuery(FrappeTestCase):
 			with self.subTest(query=query):
 				validate_generated_query(query)  # should not raise
 
+		# allowed read-only functions must pass
+		for query in [
+			"select now() as n from `tabNote`",
+			"select upper(`tabNote`.`title`) from `tabNote`",
+			"select length(`tabNote`.`title`) from `tabNote`",
+			"select ifnull(cast(`tabNote`.`name` as varchar), '') from `tabNote`",
+		]:
+			with self.subTest(query=query):
+				validate_generated_query(query)  # should not raise
+
 		# constructs a list query must never contain
 		invalid = [
 			"select `tabNote`.`name` from `tabNote` union select password from `tabUser`",
@@ -633,6 +643,12 @@ class TestDBQuery(FrappeTestCase):
 			"select `tabNote`.`name` from `tabNote` -- c\n",
 			"select un/**/ion from `tabNote`",
 			"select * into outfile '/tmp/x' from `tabNote`",
+			# functions not on the allow-list
+			"select version() from `tabNote`",
+			"select sleep(5) from `tabNote`",
+			"select `tabNote`.`name` from `tabNote` where x = user()",
+			"select `tabNote`.`name` from `tabNote` order by rand()",
+			"select updatexml(1, 2, 3) from `tabNote`",
 		]
 		for query in invalid:
 			with self.subTest(query=query):

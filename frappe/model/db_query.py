@@ -125,6 +125,55 @@ ALLOWED_ORDER_BY_FUNCTIONS = frozenset(
 		"nullif",
 	)
 )
+
+ALLOWED_SQL_FUNCTIONS = ALLOWED_ORDER_BY_FUNCTIONS | frozenset(
+	(
+		# type / null handling
+		"isnull",
+		"least",
+		# current date / time
+		"now",
+		"curdate",
+		"curtime",
+		"current_date",
+		"current_time",
+		"current_timestamp",
+		"utc_date",
+		"utc_time",
+		"utc_timestamp",
+		# date / time manipulation
+		"from_unixtime",
+		"from_days",
+		"str_to_date",
+		"date_format",
+		"time_format",
+		"date_add",
+		"date_sub",
+		"adddate",
+		"subdate",
+		"addtime",
+		"subtime",
+		"makedate",
+		"maketime",
+		"period_add",
+		"period_diff",
+		"sec_to_time",
+		"time_to_sec",
+		"yearweek",
+		# string / search helpers
+		"upper",
+		"lower",
+		"ucase",
+		"length",
+		"locate",
+		"char_length",
+		"character_length",
+		"octet_length",
+		"trim",
+		"ltrim",
+		"rtrim",
+	)
+)
 SPECIAL_FIELD_CHARS = frozenset(("(", "`", ".", "'", '"', "*"))
 
 # Set operations that must never appear in a generated list query.
@@ -141,6 +190,19 @@ def _query_has_subquery(node) -> bool:
 	return False
 
 
+def _find_disallowed_function(node) -> str | None:
+	"""Return the name of the first function call not in `ALLOWED_SQL_FUNCTIONS`, else None."""
+	for token in node.tokens:
+		if isinstance(token, Function):
+			name = token.get_name()
+			if name and name.lower() not in ALLOWED_SQL_FUNCTIONS:
+				return name
+		if token.is_group:
+			if disallowed := _find_disallowed_function(token):
+				return disallowed
+	return None
+
+
 @lru_cache(maxsize=1024)
 def validate_generated_query(query: str) -> None:
 	"""Parse a finally generated query and reject constructs a list query must never contain.
@@ -153,6 +215,7 @@ def validate_generated_query(query: str) -> None:
 	5. No `SELECT ... INTO` (blocks OUTFILE/DUMPFILE file writes).
 	6. No secondary DML/DDL statements.
 	7. No subqueries.
+	8. Only functions in `ALLOWED_SQL_FUNCTIONS` are used.
 	"""
 	statements = [s for s in sqlparse.parse(query) if s.token_first(skip_cm=True) is not None]
 
@@ -189,6 +252,11 @@ def validate_generated_query(query: str) -> None:
 
 	if _query_has_subquery(statement):
 		frappe.throw(_("Subqueries are not allowed in this query."), frappe.DataError)
+
+	if disallowed_function := _find_disallowed_function(statement):
+		frappe.throw(
+			_("Function {0} is not allowed in this query.").format(disallowed_function), frappe.DataError
+		)
 
 
 def _raise_illegal_query():
