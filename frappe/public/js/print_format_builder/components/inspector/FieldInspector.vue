@@ -1839,11 +1839,11 @@ function set_section_cell_padding(value) {
 }
 
 .pfb-col-editor {
-	background: var(--gray-50);
-	border-top: 1px solid var(--gray-100);
-	border-left: 2px solid var(--gray-300);
-	margin-left: 10px;
-	padding-bottom: 6px;
+	margin: 6px 10px 10px;
+	background: var(--fg-color);
+	border: 1px solid var(--border-color);
+	border-radius: var(--radius);
+	overflow: hidden;
 }
 
 /* Rows inside the merge editor are always in an active-editing context, so
