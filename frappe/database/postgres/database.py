@@ -26,7 +26,7 @@ from psycopg2.errors import (
 	SequenceGeneratorLimitExceeded,
 	SyntaxError,
 )
-from psycopg2.extensions import ISOLATION_LEVEL_REPEATABLE_READ
+from psycopg2.extensions import ISOLATION_LEVEL_READ_COMMITTED
 
 import frappe
 from frappe.database.database import CREATE_OR_DROP, Database
@@ -264,7 +264,7 @@ class PostgresDatabase(PostgresExceptionUtil, Database):
 			conn_settings["port"] = self.port
 
 		conn = psycopg2.connect(**conn_settings)
-		conn.set_isolation_level(ISOLATION_LEVEL_REPEATABLE_READ)
+		conn.set_isolation_level(ISOLATION_LEVEL_READ_COMMITTED)
 
 		return conn
 
