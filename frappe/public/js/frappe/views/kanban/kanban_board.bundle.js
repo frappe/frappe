@@ -23,6 +23,7 @@ frappe.provide("frappe.views");
 	var column_registry = {}; // Per-column scroll + render helpers.
 	var suppress_cards_watch = false;
 	var kanban_realtime_syncing = false;
+	var drag_list_offsets = null; // column title -> full-order index of first visible DOM card
 
 	var store = createStore({
 		state: {
@@ -764,6 +765,10 @@ frappe.provide("frappe.views");
 
 			column_registry[column.title] = {
 				// Links memory cleanup (KanbanView) with what is on screen (virt_state).
+				/** Full saved-order index of the first card currently rendered in this column. */
+				get_dom_list_offset() {
+					return get_column_dom_list_offset(self.$kanban_cards);
+				},
 				/** Redraw the column. force=true resets which cards are considered visible. */
 				refresh(force) {
 					if (force) {
@@ -1103,6 +1108,11 @@ frappe.provide("frappe.views");
 				filter: ".kanban-virtual-spacer",
 				onStart: function () {
 					virt_state.virtualization_disabled = true;
+					capture_all_drag_list_offsets();
+					const list = store.state.cur_list;
+					if (list) {
+						list.kanban_drag_in_progress = true;
+					}
 				},
 				onEnd: function (e) {
 					const $from = $(e.from);
@@ -1115,6 +1125,11 @@ frappe.provide("frappe.views");
 
 					const enable_virtualization = function () {
 						virt_state.virtualization_disabled = false;
+						clear_drag_list_offsets();
+						const list = store.state.cur_list;
+						if (list) {
+							list.kanban_drag_in_progress = false;
+						}
 					};
 
 					if (from_colname === to_colname && old_index === new_index) {
@@ -1682,6 +1697,20 @@ frappe.provide("frappe.views");
 		return $kanban_cards?.parents(".kanban-column").attr("data-column-value");
 	}
 
+	function capture_all_drag_list_offsets() {
+		drag_list_offsets = {};
+		for (const column_title in column_registry) {
+			const offset = column_registry[column_title]?.get_dom_list_offset?.();
+			if (offset != null) {
+				drag_list_offsets[column_title] = offset;
+			}
+		}
+	}
+
+	function clear_drag_list_offsets() {
+		drag_list_offsets = null;
+	}
+
 	function get_column_list_window_start($kanban_cards) {
 		const column_title = get_kanban_column_title($kanban_cards);
 		return store.state.cur_list?.kanban_column_state?.[column_title]?.window_start || 0;
@@ -1689,6 +1718,10 @@ frappe.provide("frappe.views");
 
 	/** Map visible DOM cards to indexes in the full saved column order. */
 	function get_column_dom_list_offset($kanban_cards) {
+		const column_title = get_kanban_column_title($kanban_cards);
+		if (drag_list_offsets && column_title && drag_list_offsets[column_title] != null) {
+			return drag_list_offsets[column_title];
+		}
 		const window_start = get_column_list_window_start($kanban_cards);
 		if (!$kanban_cards?.data("virtualized")) {
 			return window_start;

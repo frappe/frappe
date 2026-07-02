@@ -519,6 +519,9 @@ frappe.views.KanbanView = class KanbanView extends frappe.views.ListView {
 	@param edge - "top" = scrolling down (drop oldest), "bottom" = scrolling up (drop newest).
 	*/
 	enforce_column_memory_cap(column_title, data_map, edge = "top") {
+		if (this.kanban_drag_in_progress) {
+			return 0;
+		}
 		const state = this.kanban_column_state[column_title];
 		const field_name = this.board?.field_name;
 		const max_cards = this.kanban_max_column_cards;
@@ -708,6 +711,9 @@ frappe.views.KanbanView = class KanbanView extends frappe.views.ListView {
 	Triggered from kanban_board.bundle.js before user runs out of cards, so scroll feels smooth.
 	*/
 	async prefetch_kanban_column(column_title) {
+		if (this.kanban_drag_in_progress) {
+			return;
+		}
 		const state = this.kanban_column_state[column_title];
 		if (!this.can_prefetch_column_forward(column_title)) {
 			return;
@@ -747,6 +753,9 @@ frappe.views.KanbanView = class KanbanView extends frappe.views.ListView {
 
 	/** Load older cards when user scrolls up (cards that were removed from memory). */
 	async prefetch_kanban_column_back(column_title) {
+		if (this.kanban_drag_in_progress) {
+			return;
+		}
 		const state = this.kanban_column_state[column_title];
 		if (!state || state.inflight || state.window_start <= 0) {
 			return;
