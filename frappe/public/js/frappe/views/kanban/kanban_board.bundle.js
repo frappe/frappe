@@ -357,12 +357,6 @@ frappe.provide("frappe.views");
 				if (kanban_realtime_syncing) return;
 				kanban_realtime_syncing = true;
 
-				if (changed_names?.length) {
-					for (let i = 0; i < changed_names.length; i++) {
-						delete prepared_card_cache[changed_names[i]];
-					}
-				}
-
 				const state = context.state;
 				const field_name = state.board.field_name;
 				const old_columns = state.columns;
@@ -381,6 +375,16 @@ frappe.provide("frappe.views");
 					new_index,
 					field_name
 				);
+				const changed_name_set = new Set(changed_names || []);
+				if (changed_name_set.size) {
+					for (const name of changed_name_set) {
+						delete prepared_card_cache[name];
+						const card = new_index.by_name?.[name] || old_index?.by_name?.[name];
+						if (!card) continue;
+						const col = get_card_column(card, field_name);
+						if (col) columns_to_refresh.add(col);
+					}
+				}
 
 				suppress_cards_watch = true;
 				context.commit("update_state", {
@@ -392,8 +396,20 @@ frappe.provide("frappe.views");
 				columns_to_refresh.forEach((title) => {
 					const col = columns.find((c) => c.title === title);
 					if (!col) return;
+					const registry = column_registry[title];
+					if (!registry) return;
+
+					const has_content_change = [...changed_name_set].some((name) => {
+						const card = context.state.cards_index?.by_name?.[name];
+						return card && get_card_column(card, field_name) === title;
+					});
+					if (has_content_change) {
+						registry.refresh(true);
+						return;
+					}
+
 					const names = get_column_display_order(col, context.state.cards_index);
-					column_registry[title]?.apply_realtime_sync(names);
+					registry.apply_realtime_sync(names);
 				});
 				suppress_cards_watch = false;
 				kanban_realtime_syncing = false;
