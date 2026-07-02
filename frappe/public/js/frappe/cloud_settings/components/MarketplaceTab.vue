@@ -1,10 +1,10 @@
 <template>
-	<div>
+	<div class="cloud-settings-marketplace">
 		<div v-if="error" class="cloud-settings-alert error">{{ error }}</div>
 		<MarketplaceSkeleton v-else-if="!marketplace" />
 
 		<template v-else>
-			<div class="cloud-settings-toolbar cloud-settings-sticky">
+			<div class="cloud-settings-toolbar">
 				<SearchInput v-model="query" :placeholder="__('Search apps')" />
 				<SelectMenu
 					v-model="category"
@@ -13,20 +13,23 @@
 				/>
 			</div>
 
-			<div v-if="!filteredApps.length" class="cloud-settings-state">
-				{{ __("No apps match your search.") }}
-			</div>
-			<div v-else class="cloud-settings-apps">
-				<MarketplaceApp
-					v-for="app in filteredApps"
-					:key="app.name"
-					:app="app"
-					:pending="pending[app.name] || ''"
-					:error="errors[app.name] || ''"
-					@install="install"
-					@uninstall="uninstall"
-					@update="updateOne"
-				/>
+			<!-- Only the app list scrolls; the toolbar above stays fixed. -->
+			<div class="cloud-settings-apps-catalog">
+				<div v-if="!filteredApps.length" class="cloud-settings-state">
+					{{ __("No apps match your search.") }}
+				</div>
+				<div v-else class="cloud-settings-apps">
+					<MarketplaceApp
+						v-for="app in filteredApps"
+						:key="app.name"
+						:app="app"
+						:pending="pending[app.name] || ''"
+						:error="errors[app.name] || ''"
+						@install="install"
+						@uninstall="uninstall"
+						@update="updateOne"
+					/>
+				</div>
 			</div>
 		</template>
 	</div>

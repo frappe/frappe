@@ -142,14 +142,24 @@
 	gap: 8px;
 }
 
-// Pin the search + category controls to the top of the (scrolling) panel body
-// so only the app list scrolls beneath them.
-.cloud-settings-sticky {
-	position: sticky;
-	top: 0;
-	z-index: 2;
+// Marketplace fills the panel body and scrolls ONLY the app list, so the search
+// + category controls stay fixed and the scrollbar belongs to the list alone.
+.cloud-settings-marketplace {
+	display: flex;
+	flex-direction: column;
+	flex: 1;
+	min-height: 0;
+}
+
+.cloud-settings-marketplace .cloud-settings-toolbar {
+	flex-shrink: 0;
 	padding-bottom: 12px;
-	background: var(--surface-elevation-2);
+}
+
+.cloud-settings-apps-catalog {
+	flex: 1;
+	min-height: 0;
+	overflow-y: auto;
 }
 
 // Give framework buttons a uniform control height (matching the 32px inputs and
