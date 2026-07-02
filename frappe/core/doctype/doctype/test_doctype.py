@@ -727,6 +727,28 @@ class TestDocType(IntegrationTestCase):
 					shutil.rmtree(controller_folder, ignore_errors=True)
 				frappe.local.request = previous_request
 
+	def test_warn_on_module_change(self):
+		doc = frappe.new_doc("DocType")
+		doc.name = "Test Module Change Warning"
+		doc.module = "Custom"
+
+		messages = []
+		with patch.object(frappe, "msgprint", side_effect=lambda msg, **kwargs: messages.append(msg)):
+			doc.get_doc_before_save = lambda: frappe._dict(module="Core")
+			doc.warn_on_module_change()
+			self.assertEqual(len(messages), 1)
+			self.assertIn("Custom", messages[0])
+
+			messages.clear()
+			doc.get_doc_before_save = lambda: frappe._dict(module="Custom")
+			doc.warn_on_module_change()
+			self.assertEqual(messages, [])
+
+			messages.clear()
+			doc.get_doc_before_save = lambda: frappe._dict(module="Does Not Exist")
+			doc.warn_on_module_change()
+			self.assertEqual(messages, [])
+
 	@unittest.skipUnless(
 		os.access(frappe.get_app_path("frappe"), os.W_OK), "Only run if frappe app paths is writable"
 	)
