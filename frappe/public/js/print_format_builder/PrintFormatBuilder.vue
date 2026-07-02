@@ -192,7 +192,11 @@ function handle_keydown(e) {
 
 	if (e.key !== "Escape") return;
 	// Don't intercept if a modal/dialog is open
-	if (document.querySelector(".modal.show, .frappe-dialog:visible")) return;
+	if (document.querySelector(".modal.show")) return;
+	const dialog_open = Array.from(document.querySelectorAll(".frappe-dialog")).some(
+		(el) => el.offsetParent !== null
+	);
+	if (dialog_open) return;
 
 	const sf = $store.value.selected_field.value;
 	const ss = $store.value.selected_section.value;
