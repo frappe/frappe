@@ -53,13 +53,13 @@ export type EmailActivity = BaseActivity<
   "email",
   {
     name: string;
-    subject: string;
+    subject?: string;
     sender: string;
-    to: string;
-    cc: string;
-    bcc: string;
+    to?: string;
+    cc?: string;
+    bcc?: string;
     content: string;
-    deliveryStatus: string;
+    deliveryStatus?: string;
     attachments?: EmailAttachment[];
   }
 >;

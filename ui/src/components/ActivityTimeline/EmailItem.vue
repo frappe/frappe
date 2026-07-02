@@ -76,7 +76,7 @@ const props = defineProps<{
 }>();
 
 const status = computed(() => {
-	const deliveryStatus = props.email.data.deliveryStatus;
+	const deliveryStatus = props.email.data.deliveryStatus ?? "";
 	let color = "red";
 	if (["Sent", "Clicked"].includes(deliveryStatus)) color = "green";
 	else if (["Sending", "Scheduled"].includes(deliveryStatus)) color = "orange";

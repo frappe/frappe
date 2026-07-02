@@ -102,13 +102,13 @@ with a typed `data` payload:
   author: { email, fullname, image },
   data: {
     name: string;          // Communication docname
-    subject: string;
+    subject?: string;
     sender: string;
-    to: string;            // comma-joined recipients
-    cc: string;
-    bcc: string;
+    to?: string;           // comma-joined recipients
+    cc?: string;
+    bcc?: string;
     content: string;       // HTML body
-    deliveryStatus: string;
+    deliveryStatus?: string;
     attachments?: { file_url: string; file_name?: string; is_private?: 0 | 1 }[];
   },
 }
