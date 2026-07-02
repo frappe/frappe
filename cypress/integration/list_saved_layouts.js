@@ -1,5 +1,5 @@
 const LIST_URL = "/desk/todo";
-const LAYOUT_GROUP = encodeURIComponent("Default Layouts");
+const LAYOUT_GROUP = encodeURIComponent("Default Layout");
 
 function openSavedLayoutsMenu() {
 	cy.get(`.inner-group-button[data-label="${LAYOUT_GROUP}"] > button`).click({ force: true });
