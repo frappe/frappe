@@ -255,18 +255,99 @@ frappe.views.KanbanView = class KanbanView extends frappe.views.ListView {
 	build_column_state() {
 		const next = {};
 		this.get_active_kanban_columns().forEach((col) => {
-			next[col.column_name] = {
-				loaded: 0,
-				offset: 0,
-				window_start: 0,
-				total_count: null,
-				inflight: false,
-				loaded_names: [],
-				last_prefetch_offset: -1,
-				last_backward_fetch_start: -1,
-			};
+			next[col.column_name] = this.new_kanban_column_state();
 		});
 		this.kanban_column_state = next;
+	}
+
+	new_kanban_column_state() {
+		return {
+			loaded: 0,
+			offset: 0,
+			window_start: 0,
+			total_count: null,
+			inflight: false,
+			loaded_names: [],
+			last_prefetch_offset: -1,
+			last_backward_fetch_start: -1,
+		};
+	}
+
+	parse_column_order(order) {
+		if (!order) return [];
+		try {
+			const parsed = typeof order === "string" ? JSON.parse(order) : order;
+			return Array.isArray(parsed) ? parsed : [];
+		} catch {
+			return [];
+		}
+	}
+
+	/** Rebuild in-memory card names for a column from this.data and saved board order. */
+	rebuild_column_loaded_names(column, field_name) {
+		const saved = this.parse_column_order(column.order);
+		const in_column = (this.data || []).filter((d) => d[field_name] === column.title);
+		const in_set = new Set(in_column.map((d) => d.name));
+		const names = [];
+
+		for (const name of saved) {
+			if (in_set.has(name)) names.push(name);
+		}
+		for (const doc of in_column) {
+			if (!names.includes(doc.name)) names.push(doc.name);
+		}
+		return names;
+	}
+
+	/** Keep loaded/offset and prefetch guards aligned with what is actually in memory. */
+	reconcile_column_pagination_state(state) {
+		if (!state) return;
+
+		const memory_end = state.window_start + state.loaded_names.length;
+		if (state.total_count != null) {
+			if (state.loaded >= state.total_count && memory_end < state.total_count) {
+				state.loaded = memory_end;
+			} else {
+				state.loaded = Math.min(Math.max(state.loaded, memory_end), state.total_count);
+			}
+		} else {
+			state.loaded = Math.max(state.loaded, memory_end);
+		}
+		state.offset = state.loaded;
+		state.last_prefetch_offset = -1;
+		state.last_backward_fetch_start = -1;
+	}
+
+	/** Refresh paging state after another tab changes board order or card positions. */
+	sync_kanban_column_state_from_board(columns) {
+		const field_name = this.board?.field_name;
+		if (!field_name || !this.kanban_column_state) {
+			return Promise.resolve();
+		}
+
+		for (const col of columns) {
+			if (col.status === "Archived") continue;
+			const state = this.kanban_column_state[col.title];
+			if (!state) continue;
+			state.loaded_names = this.rebuild_column_loaded_names(col, field_name);
+			this.reconcile_column_pagination_state(state);
+		}
+
+		return frappe
+			.call({
+				method: "frappe.desk.doctype.kanban_board.kanban_board.get_kanban_board_data",
+				args: this.get_kanban_api_args(),
+				freeze: false,
+			})
+			.then(({ message }) => {
+				for (const [title, column_data] of Object.entries(message?.columns || {})) {
+					const state = this.kanban_column_state[title];
+					if (!state) continue;
+					state.total_count = column_data.total ?? 0;
+					this.reconcile_column_pagination_state(state);
+				}
+			})
+			.catch(() => {});
 	}
 
 	/** How many cards we have in memory for this column (not the total on the server). */
@@ -360,6 +441,8 @@ frappe.views.KanbanView = class KanbanView extends frappe.views.ListView {
 					state.offset - evicted
 				);
 				state.loaded = state.offset;
+			}
+			if (added) {
 				state.last_prefetch_offset = -1;
 			}
 		}
@@ -480,6 +563,9 @@ frappe.views.KanbanView = class KanbanView extends frappe.views.ListView {
 			}
 			to_state.last_prefetch_offset = -1;
 		}
+
+		this.reconcile_column_pagination_state(from_state);
+		this.reconcile_column_pagination_state(to_state);
 	}
 
 	/** Can we load more cards when scrolling down? (not at end, room to remove old ones). */
@@ -637,6 +723,7 @@ frappe.views.KanbanView = class KanbanView extends frappe.views.ListView {
 			if (!rows.length) return;
 
 			state.last_backward_fetch_start = fetch_start;
+			state.last_prefetch_offset = -1;
 			const evicted = this.prepend_kanban_cards_for_column(column_title, rows);
 
 			if (this.kanban) {
@@ -753,6 +840,7 @@ frappe.views.KanbanView = class KanbanView extends frappe.views.ListView {
 				}));
 				this.kanban.sync_from_realtime(this.data, columns, this._changed_card_names);
 				this._changed_card_names = null;
+				return this.sync_kanban_column_state_from_board(columns);
 			})
 			.finally(() => {
 				this._kanban_sync_in_flight = false;
