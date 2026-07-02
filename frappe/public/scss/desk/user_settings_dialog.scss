@@ -19,7 +19,7 @@
 			display: flex;
 			align-items: center;
 			justify-content: center;
-			background-color: rgba(0, 0, 0, 0.45);
+			background-color: var(--surface-alpha-gray-7);
 			color: var(--white);
 			opacity: 0;
 			transition: opacity 0.2s ease-in-out;
@@ -55,11 +55,7 @@
 		}
 
 		.change-password-btn {
-			display: flex;
-			align-items: center;
-			gap: var(--margin-xs);
 			margin-left: auto;
-			flex-shrink: 0;
 		}
 	}
 

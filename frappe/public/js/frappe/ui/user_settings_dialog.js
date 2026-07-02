@@ -189,7 +189,7 @@ function _profile_tab(user_data) {
 						<div class="profile-full-name">${frappe.utils.escape_html(full_name)}</div>
 						<div class="profile-email">${frappe.utils.escape_html(email)}</div>
 					</div>
-					<button class="btn btn-sm btn-default change-password-btn">
+					<button class="es-button change-password-btn">
 						${frappe.utils.icon("rotate-ccw-key")} ${__("Change Password")}
 					</button>
 				</div>
@@ -498,7 +498,7 @@ function _add_preference_row(parent, { label, value, button_label, onClick }) {
 				<div class="preference-label">${label}</div>
 				<div class="preference-value">${frappe.utils.escape_html(value || "")}</div>
 			</div>
-			<button class="btn btn-sm btn-default">${button_label}</button>
+			<button class="es-button">${button_label}</button>
 		</div>
 	`);
 	$row.find("button").on("click", onClick);
