@@ -141,6 +141,7 @@ def _query_has_subquery(node) -> bool:
 	return False
 
 
+@lru_cache(maxsize=1024)
 def validate_generated_query(query: str) -> None:
 	"""Parse a finally generated query and reject constructs a list query must never contain.
 
