@@ -438,3 +438,135 @@ class TestPrintFormatGenerator(IntegrationTestCase):
 
 		html = get_html("Contact", contact.name, pf.name)
 		self.assertRegex(html, r"email_id\s*</th>")
+
+	# ------------------------------------------------------------------ #
+	# Repeater block
+	# ------------------------------------------------------------------ #
+
+	def _make_contact_with_email(self):
+		contact = frappe.get_doc(
+			{
+				"doctype": "Contact",
+				"first_name": f"_Test PFG {frappe.generate_hash(length=6)}",
+				"email_ids": [{"email_id": "pfg@example.com", "is_primary": 1}],
+			}
+		)
+		contact.insert(ignore_permissions=True)
+		self.addCleanup(contact.delete, ignore_permissions=True)
+		return contact
+
+	def _make_repeater_format(self, label="", columns=None):
+		name = f"_Test PFG Rep {frappe.generate_hash(length=6)}"
+		pf = frappe.get_doc(
+			{
+				"doctype": "Print Format",
+				"name": name,
+				"doc_type": "Contact",
+				"print_format_builder_beta": 1,
+				"custom_format": 0,
+				"standard": "No",
+				"format_data": json.dumps(
+					{
+						"sections": [
+							{
+								"label": "",
+								"columns": [
+									{
+										"fields": [
+											{
+												"fieldtype": "Repeater",
+												"fieldname": "rep1",
+												"label": label,
+												"source": "email_ids",
+												"repeater_columns": columns or [],
+											}
+										]
+									}
+								],
+							}
+						],
+						"header": {"columns": [{"label": "", "fields": []}]},
+						"footer": {"columns": [{"label": "", "fields": []}]},
+					}
+				),
+			}
+		)
+		pf.insert(ignore_permissions=True)
+		self.addCleanup(pf.delete, ignore_permissions=True)
+		return pf
+
+	def test_repeater_renders_templated_rows(self):
+		"""A repeater renders each child row via its column token templates."""
+		from frappe.utils.print_format_generator import get_html
+
+		contact = self._make_contact_with_email()
+		pf = self._make_repeater_format(
+			columns=[
+				{
+					"template": [{"t": "s", "v": "Email: "}, {"t": "f", "v": "email_id"}],
+					"align": "left",
+				}
+			]
+		)
+		html = get_html("Contact", contact.name, pf.name)
+		self.assertIn("pfb-repeater", html)
+		self.assertIn("Email: pfg@example.com", html)
+
+	def test_repeater_no_title_when_label_blank(self):
+		"""A repeater with a blank label renders no title element."""
+		from frappe.utils.print_format_generator import get_html
+
+		contact = self._make_contact_with_email()
+		pf = self._make_repeater_format(
+			label="", columns=[{"template": [{"t": "f", "v": "email_id"}], "align": "left"}]
+		)
+		html = get_html("Contact", contact.name, pf.name)
+		self.assertNotIn('<div class="label">', html)
+
+	# ------------------------------------------------------------------ #
+	# Field orientation / spacing
+	# ------------------------------------------------------------------ #
+
+	def test_left_right_field_gets_justify_class(self):
+		"""A left-right field with label_justify emits the field-justify-* class."""
+		from frappe.utils.print_format_generator import get_html
+
+		pf = self._make_print_format(
+			format_data=json.dumps(
+				{
+					"sections": [
+						{
+							"label": "",
+							"field_orientation": "left-right",
+							"columns": [
+								{
+									"fields": [
+										{
+											"fieldtype": "Data",
+											"fieldname": "description",
+											"label": "Desc",
+											"label_justify": "space-between",
+										}
+									]
+								}
+							],
+						}
+					],
+					"header": {"columns": [{"label": "", "fields": []}]},
+					"footer": {"columns": [{"label": "", "fields": []}]},
+				}
+			)
+		)
+		todo = self._make_todo()
+		html = get_html("ToDo", todo.name, pf.name)
+		self.assertIn("field-justify-space-between", html)
+
+	def test_top_orientation_field_is_not_inline(self):
+		"""A default (Top) field is not rendered inline — no left-right/field-inline class."""
+		from frappe.utils.print_format_generator import get_html
+
+		pf = self._make_print_format()
+		todo = self._make_todo()
+		html = get_html("ToDo", todo.name, pf.name)
+		self.assertNotIn("field-justify-", html)
+		self.assertNotIn("field left-right", html)
