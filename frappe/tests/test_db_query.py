@@ -605,6 +605,61 @@ class TestDBQuery(FrappeTestCase):
 				result = search_link("ToDo", term)
 				self.assertIsInstance(result, list)
 
+	def test_validate_generated_query(self):
+		"""Unit test the final-query validator directly."""
+		from frappe.model.db_query import validate_generated_query
+
+		# legitimate generated queries must pass
+		valid = [
+			"select `tabNote`.`name`, `tabNote`.`title` from `tabNote` where `tabNote`.`title` like '%a%' order by `tabNote`.`modified` desc",
+			"select distinct `tabUser`.`name` from `tabUser` where ifnull(`tabUser`.`enabled`, 0) = 1",
+			"select count(`tabNote`.name) as c from `tabNote` group by `tabNote`.owner",
+			"select `tabA`.`name` from `tabA` left join `tabB` tb on (tb.`name` = `tabA`.`link`) where tb.`x` in ('a', 'b')",
+			"select `tabX`.`name` from `tabX` where `tabX`.`email` = 'a@b.com'",
+		]
+		for query in valid:
+			with self.subTest(query=query):
+				validate_generated_query(query)  # should not raise
+
+		# allowed read-only functions must pass
+		for query in [
+			"select now() as n from `tabNote`",
+			"select upper(`tabNote`.`title`) from `tabNote`",
+			"select length(`tabNote`.`title`) from `tabNote`",
+			"select ifnull(cast(`tabNote`.`name` as varchar), '') from `tabNote`",
+		]:
+			with self.subTest(query=query):
+				validate_generated_query(query)  # should not raise
+
+		# constructs a list query must never contain
+		invalid = [
+			"select `tabNote`.`name` from `tabNote` union select password from `tabUser`",
+			"select `tabNote`.`name` from `tabNote` union all select 1",
+			"select `tabNote`.`name` from `tabNote` intersect select 1",
+			"select `tabNote`.`name` from `tabNote` where x in (select secret from vault)",
+			"select exists(select 1 from `tabX`) from `tabNote`",
+			"select `tabNote`.`name` from `tabNote`; drop table `tabUser`",
+			"select `tabNote`.`name` /* x */ from `tabNote`",
+			"select `tabNote`.`name` from `tabNote` -- c\n",
+			"select un/**/ion from `tabNote`",
+			"select * into outfile '/tmp/x' from `tabNote`",
+			# functions not on the allow-list
+			"select version() from `tabNote`",
+			"select sleep(5) from `tabNote`",
+			"select `tabNote`.`name` from `tabNote` where x = user()",
+			"select `tabNote`.`name` from `tabNote` order by rand()",
+			"select updatexml(1, 2, 3) from `tabNote`",
+		]
+		for query in invalid:
+			with self.subTest(query=query):
+				self.assertRaises(frappe.DataError, validate_generated_query, query)
+
+	def test_permission_conditions_with_subquery_allowed(self):
+		"""Trusted permission/hook conditions may contain subqueries and must not be blocked."""
+		# Event's get_permission_query_conditions injects `or exists (select ... )`
+		query = DatabaseQuery("Event").execute(fields=["name", "subject"], limit_page_length=1, run=0)
+		self.assertIn("exists (select", query.lower())
+
 	def test_nested_permission(self):
 		frappe.set_user("Administrator")
 		create_nested_doctype()

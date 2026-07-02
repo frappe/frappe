@@ -125,7 +125,142 @@ ALLOWED_ORDER_BY_FUNCTIONS = frozenset(
 		"nullif",
 	)
 )
+
+ALLOWED_SQL_FUNCTIONS = ALLOWED_ORDER_BY_FUNCTIONS | frozenset(
+	(
+		# type / null handling
+		"isnull",
+		"least",
+		# current date / time
+		"now",
+		"curdate",
+		"curtime",
+		"current_date",
+		"current_time",
+		"current_timestamp",
+		"utc_date",
+		"utc_time",
+		"utc_timestamp",
+		# date / time manipulation
+		"from_unixtime",
+		"from_days",
+		"str_to_date",
+		"date_format",
+		"time_format",
+		"date_add",
+		"date_sub",
+		"adddate",
+		"subdate",
+		"addtime",
+		"subtime",
+		"makedate",
+		"maketime",
+		"period_add",
+		"period_diff",
+		"sec_to_time",
+		"time_to_sec",
+		"yearweek",
+		# string / search helpers
+		"upper",
+		"lower",
+		"ucase",
+		"length",
+		"locate",
+		"char_length",
+		"character_length",
+		"octet_length",
+		"trim",
+		"ltrim",
+		"rtrim",
+	)
+)
 SPECIAL_FIELD_CHARS = frozenset(("(", "`", ".", "'", '"', "*"))
+
+# Set operations that must never appear in a generated list query.
+SET_OPERATION_KEYWORDS = frozenset(("union", "intersect", "except", "minus"))
+
+
+def _query_has_subquery(node) -> bool:
+	"""Return True if any parenthesised group contains a DML keyword (i.e. a subquery)."""
+	for token in node.tokens:
+		if isinstance(token, Parenthesis) and any(t.ttype is tokens.DML for t in token.flatten()):
+			return True
+		if token.is_group and _query_has_subquery(token):
+			return True
+	return False
+
+
+def _find_disallowed_function(node) -> str | None:
+	"""Return the name of the first function call not in `ALLOWED_SQL_FUNCTIONS`, else None."""
+	for token in node.tokens:
+		if isinstance(token, Function):
+			name = token.get_name()
+			if name and name.lower() not in ALLOWED_SQL_FUNCTIONS:
+				return name
+		if token.is_group:
+			if disallowed := _find_disallowed_function(token):
+				return disallowed
+	return None
+
+
+@lru_cache(maxsize=1024)
+def validate_generated_query(query: str) -> None:
+	"""Parse a finally generated query and reject constructs a list query must never contain.
+
+	Checks:
+	1. Exactly one statement (no stacked/`;`-separated queries).
+	2. The statement is a plain SELECT.
+	3. No SQL comments (also defeats keyword obfuscation like `un/**/ion`).
+	4. No set operations (UNION / INTERSECT / EXCEPT / MINUS).
+	5. No `SELECT ... INTO` (blocks OUTFILE/DUMPFILE file writes).
+	6. No secondary DML/DDL statements.
+	7. No subqueries.
+	8. Only functions in `ALLOWED_SQL_FUNCTIONS` are used.
+	"""
+	statements = [s for s in sqlparse.parse(query) if s.token_first(skip_cm=True) is not None]
+
+	# stacked queries
+	if len(statements) != 1:
+		_raise_illegal_query()
+
+	statement = statements[0]
+
+	# only plain SELECT allowed
+	if statement.get_type() != "SELECT":
+		_raise_illegal_query()
+
+	for token in statement.flatten():
+		ttype, value = token.ttype, token.value.lower()
+
+		# comments have no place in a generated query and can hide obfuscated keywords
+		if ttype in tokens.Comment:
+			_raise_illegal_query()
+
+		if ttype in tokens.Keyword:
+			# `union`, `union all`, `intersect`, ... -> match on the leading word
+			if value.split(" ", 1)[0] in SET_OPERATION_KEYWORDS:
+				_raise_illegal_query()
+
+			# `select ... into outfile/dumpfile ...`
+			if value == "into":
+				_raise_illegal_query()
+
+		# secondary statements sneaking in as extra DML (insert/update/delete/replace)
+		# or DDL (drop/create/alter/truncate)
+		if (ttype is tokens.DML and value != "select") or ttype in tokens.DDL:
+			_raise_illegal_query()
+
+	if _query_has_subquery(statement):
+		frappe.throw(_("Subqueries are not allowed in this query."), frappe.DataError)
+
+	if disallowed_function := _find_disallowed_function(statement):
+		frappe.throw(
+			_("Function {0} is not allowed in this query.").format(disallowed_function), frappe.DataError
+		)
+
+
+def _raise_illegal_query():
+	frappe.throw(_("Illegal SQL Query"), frappe.DataError)
 
 
 class DatabaseQuery:
@@ -312,6 +447,12 @@ from {tables}
 {order_by}
 {limit}""".format(**args)
 
+		# Defense-in-depth: parse the finally generated query and reject anything a
+		# safe list query should never contain (subqueries, set operations, comments,
+		# stacked statements, etc). Skipped only for explicit `strict=False` callers.
+		if self.strict is not False:
+			self.validate_generated_query(args)
+
 		return frappe.db.sql(
 			query,
 			as_dict=not self.as_list,
@@ -320,6 +461,24 @@ from {tables}
 			ignore_ddl=self.ignore_ddl,
 			run=self.run,
 		)
+
+	def validate_generated_query(self, args):
+		"""Validate the finally generated query as a last line of defense.
+
+		Reconstructs the query from user-controllable parts only (fields, joined tables,
+		user filter conditions, order/group by) and rejects it if it contains constructs
+		a plain list query should never have. Trusted permission/hook conditions are
+		excluded because they may legitimately contain subqueries.
+		"""
+		user_conditions = self._user_conditions
+		query = "select {fields} from {tables} {conditions} {group_by} {order_by}".format(
+			fields=args.fields,
+			tables=args.tables,
+			conditions=f"where {user_conditions}" if user_conditions else "",
+			group_by=args.group_by or "",
+			order_by=args.order_by or "",
+		)
+		validate_generated_query(query)
 
 	def prepare_args(self):
 		self.parse_args()
@@ -348,13 +507,23 @@ from {tables}
 		for link in self.link_tables:
 			args.tables += f" {self.join} {link.table_name} {link.table_alias} on ({link.table_alias}.`name` = {self.tables[0]}.`{link.fieldname}`)"
 
-		if self.grouped_or_conditions:
-			self.conditions.append(f"({' or '.join(self.grouped_or_conditions)})")
+		grouped_or_clause = (
+			[f"({' or '.join(self.grouped_or_conditions)})"] if self.grouped_or_conditions else []
+		)
 
-		args.conditions = " and ".join(self.conditions)
+		def _join_conditions(parts: list) -> str:
+			conditions = " and ".join(parts)
+			if self.or_conditions:
+				conditions += (" or " if conditions else "") + " or ".join(self.or_conditions)
+			return conditions
 
-		if self.or_conditions:
-			args.conditions += (" or " if args.conditions else "") + " or ".join(self.or_conditions)
+		# Full conditions (used to run the query): user conditions + trusted permission
+		# conditions. Ordering is preserved: filters, permission conditions, grouped or.
+		args.conditions = _join_conditions(self.conditions + self.permission_conditions + grouped_or_clause)
+
+		# User-controllable conditions only (used to validate the generated query). Trusted
+		# permission/hook conditions are excluded so their subqueries don't trip validation.
+		self._user_conditions = _join_conditions(self.conditions + grouped_or_clause)
 
 		self.set_field_tables()
 		self.cast_name_fields()
@@ -701,6 +870,10 @@ from {tables}
 	def build_conditions(self):
 		self.conditions = []
 		self.grouped_or_conditions = []
+		# Permission/hook conditions are trusted (server-generated) and may legitimately
+		# contain subqueries (e.g. `... in (select ...)`), so they are tracked separately
+		# and exempted from the final-query validation in `validate_generated_query`.
+		self.permission_conditions = []
 		self.build_filter_conditions(self.filters, self.conditions)
 		self.build_filter_conditions(self.or_filters, self.grouped_or_conditions)
 
@@ -708,7 +881,7 @@ from {tables}
 		if not self.flags.ignore_permissions:
 			match_conditions = self.build_match_conditions()
 			if match_conditions:
-				self.conditions.append(f"({match_conditions})")
+				self.permission_conditions.append(f"({match_conditions})")
 
 	def build_filter_conditions(self, filters, conditions: list, ignore_permissions=None):
 		"""build conditions from user filters"""
