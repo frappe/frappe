@@ -141,16 +141,16 @@ def is_ci(file):
 
 def is_frontend_code(file):
 	"""Check if the file is frontend code."""
-	return file.lower().endswith((".css", ".scss", ".less", ".sass", ".styl", ".js", ".ts", ".vue", ".html", ".svg"))
+	return file.lower().endswith(
+		(".css", ".scss", ".less", ".sass", ".styl", ".js", ".ts", ".vue", ".html", ".svg")
+	)
 
 
 def matches_postgres_filenames(files_list):
-    """Check if any changed files suggest database involvement."""
-    db_keywords = ["database", "query", "schema", "postgres"]
-    return any(
-        any(word in f.lower() for word in db_keywords) 
-        for f in files_list
-    )
+	"""Check if any changed files suggest database involvement."""
+	db_keywords = ["database", "query", "schema", "postgres"]
+	return any(any(word in f.lower() for word in db_keywords) for f in files_list)
+
 
 def is_docs(file):
 	"""Check if the file is documentation or image."""

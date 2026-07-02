@@ -101,7 +101,7 @@ body {
 	color: #111827;
 }
 
-/* Left-right (section-level): label takes 40%, value takes 60% */
+/* Left-right (section-level): label shrinks to content width, value takes the rest */
 .field.left-right,
 .field.field-inline {
 	display: flex;
@@ -118,27 +118,17 @@ body {
 	text-transform: none;
 	letter-spacing: 0;
 	padding-top: 0.05rem;
-}
-
-.field.left-right .label {
-	width: 40%;
-}
-
-.field.field-inline .label {
-	width: auto;
+	white-space: nowrap;
 }
 
 .field.field-inline .label::after {
 	content: ":";
 }
 
-.field.left-right .value {
-	width: 60%;
-	flex: 1;
-}
-
+.field.left-right .value,
 .field.field-inline .value {
 	flex: 1;
+	min-width: 0;
 }
 
 /* Field-level alignment */
@@ -158,14 +148,23 @@ body {
 	text-align: right;
 }
 
-/* In left-right orientation, alignment applies to the whole flex row */
-.field.left-right.field-align-right {
-	justify-content: flex-end;
+/* Spacing/alignment variants for left-right orientation.
+   Right/center align: both label and value need flex:none so the pair moves as a unit.
+   Space-between/evenly: only value needs flex:none (label already has flex-shrink:0). */
+.field.left-right.field-align-right .label,
+.field.left-right.field-align-right .value,
+.field.left-right.field-align-center .label,
+.field.left-right.field-align-center .value,
+.field.left-right.field-justify-space-between .value,
+.field.left-right.field-justify-space-evenly .value {
+	flex: none;
 }
 
-.field.left-right.field-align-center {
-	justify-content: center;
-}
+.field.left-right.field-align-right { justify-content: flex-end; }
+.field.left-right.field-align-center { justify-content: center; }
+.field.left-right.field-justify-space-between { justify-content: space-between; }
+.field.left-right.field-justify-space-between .value { text-align: right; }
+.field.left-right.field-justify-space-evenly { justify-content: space-evenly; }
 
 /* Child table */
 .child-table {
@@ -351,4 +350,38 @@ header img {
 .label-uppercase .child-table .table th {
 	text-transform: uppercase;
 	letter-spacing: 0.03em;
+}
+
+/* ── Table layout (field-borders mode) ───────────────────── */
+.section--grid {
+	border: 1px solid #e5e7eb;
+	border-radius: var(--border-radius-md, 8px);
+	overflow: hidden;
+	padding: 0;
+}
+.section--grid .section-label {
+	padding: var(--pfb-cell-pad, 8px);
+	margin: 0;
+	border-bottom: 1px solid #e5e7eb;
+}
+.section--grid .section-columns {
+	padding: 0;
+	margin-left: 0;
+	margin-right: 0;
+}
+.section--grid .col {
+	padding: 0;
+}
+.section--grid .col:not(:last-child) {
+	border-right: 1px solid #e5e7eb;
+}
+.section--grid .field {
+	padding: var(--pfb-cell-pad, 8px);
+	border-bottom: 1px solid #e5e7eb;
+}
+.section--grid .field + .field {
+	margin-top: 0;
+}
+.section--grid .field:last-child {
+	border-bottom: none;
 }

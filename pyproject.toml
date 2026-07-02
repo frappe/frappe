@@ -17,10 +17,11 @@ dependencies = [
     "Jinja2~=3.1.6",
     "Pillow~=12.2.0",
     "PyJWT~=2.13.0",
+    "duckdb~=1.4.3",
     # We depend on internal attributes,
     # do NOT add loose requirements on PyMySQL versions.
     "PyMySQL==1.1.2",
-    "pypdf==6.13.2",
+    "pypdf==6.13.3",
     "PyPika @ git+https://github.com/frappe/pypika@2c50e6142b2d61d2d243e466fdd5dc03b3d918f2",
     "mysqlclient==2.2.8",
     "PyQRCode~=1.2.1",
@@ -34,6 +35,7 @@ dependencies = [
     "croniter~=6.2.2",
     "cryptography~=48.0.1",
     "cssutils~=2.15.0",
+    "distro~=1.9.0",
     "email-reply-parser~=0.5.12",
     "Faker~=40.23.0",
     "gunicorn @ git+https://github.com/frappe/gunicorn@f189de0ec3143581d8826f707343fa36c3fb0184",
@@ -162,7 +164,7 @@ freezegun = "~=1.5.5"
 
 [tool.ruff]
 line-length = 110
-target-version = "py314"
+target-version = "py313"
 exclude = [
     "**/doctype/*/boilerplate/*.py" # boilerplate are template strings, not valid python
 ]

@@ -127,6 +127,15 @@ frappe.views.KanbanView = class KanbanView extends frappe.views.ListView {
 		}
 	}
 
+	setup_result_container_area() {
+		// pass
+	}
+
+	setup_result_area() {
+		this.$result = $(`<div class="result">`);
+		this.$frappe_list.append(this.$result);
+	}
+
 	setup_paging_area() {
 		// pass
 	}

@@ -2,6 +2,7 @@
 # License: MIT. See LICENSE
 
 import datetime
+import json
 
 import frappe
 from frappe.desk.query_report import build_xlsx_data, export_query, format_fields, run
@@ -17,6 +18,66 @@ class TestQueryReport(IntegrationTestCase):
 
 	def tearDown(self):
 		frappe.db.rollback()
+
+	def test_save_report_accepts_native_columns_and_filters(self):
+		from frappe.desk.query_report import save_report
+
+		frappe.set_user("Administrator")
+		ref = frappe.get_doc(
+			{
+				"doctype": "Report",
+				"ref_doctype": "ToDo",
+				"report_name": "Native Save Reference " + frappe.generate_hash(length=6),
+				"report_type": "Report Builder",
+				"is_standard": "No",
+			}
+		).insert(ignore_permissions=True)
+
+		custom_name = "Native Save Custom " + frappe.generate_hash(length=6)
+		frappe.get_doc(
+			{
+				"doctype": "Report",
+				"report_name": custom_name,
+				"json": '{"columns":[],"filters":[]}',
+				"ref_doctype": "ToDo",
+				"is_standard": "No",
+				"report_type": "Custom Report",
+				"reference_report": ref.name,
+			}
+		).insert(ignore_permissions=True)
+
+		# columns as a native list and filters as a native dict (frappe.parse_json passthrough)
+		docname = save_report(
+			ref.name, custom_name, columns=[{"fieldname": "name"}], filters={"status": "Open"}
+		)
+		saved = json.loads(frappe.get_doc("Report", docname).json)
+		self.assertEqual(saved["columns"], [{"fieldname": "name"}])
+		self.assertEqual(saved["filters"], {"status": "Open"})
+
+	def test_export_query_coerces_non_list_visible_idx(self):
+		frappe.set_user("Administrator")
+		report = frappe.get_doc(
+			{
+				"doctype": "Report",
+				"report_name": "Native Export Query " + frappe.generate_hash(length=6),
+				"ref_doctype": "ToDo",
+				"report_type": "Report Builder",
+				"is_standard": "No",
+				"roles": [{"role": "System Manager"}],
+			}
+		).insert(ignore_permissions=True)
+
+		# visible_idx as a non-list, non-str value is coerced to [] (the new elif branch).
+		# The coercion runs before the report executes, so the call must complete without the
+		# TypeError that a non-list visible_idx would otherwise cause downstream.
+		frappe.local.form_dict = frappe._dict(
+			report_name=report.name,
+			file_format_type="CSV",
+			visible_idx=5,
+		)
+		frappe.local.response = frappe._dict()
+		export_query()
+		self.assertIn("type", frappe.local.response)
 
 	def test_xlsx_data_with_multiple_datatypes(self):
 		"""Test exporting report using rows with multiple datatypes (list, dict)"""

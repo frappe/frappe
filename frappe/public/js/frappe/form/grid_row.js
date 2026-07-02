@@ -75,7 +75,7 @@ export default class GridRow {
 			this.wrapper
 				.attr("data-name", this.doc.name)
 				.attr("data-idx", this.doc.idx)
-				.find(".row-index span")
+				.find(".row-index span, .grid-form-row-index")
 				.html(this.doc.idx);
 		}
 	}
@@ -651,6 +651,7 @@ export default class GridRow {
 		$(this.fields_html_wrapper)
 			.find(".column-width")
 			.change((event) => {
+				// Clamp to the same bounds as drag-resize.
 				let width = this.grid.clamp_column_width(event.target.value);
 				event.target.value = width;
 
@@ -767,6 +768,7 @@ export default class GridRow {
 			}
 		});
 
+		// Last data column grows to fill spare width (see grid-data-last in grid.scss).
 		this.columns_list.forEach((column) => column.removeClass("grid-data-last"));
 		this.columns_list[this.columns_list.length - 1]?.addClass("grid-data-last");
 
@@ -898,7 +900,7 @@ export default class GridRow {
 		let input_class = this._get_fieldtype_class(df.fieldtype);
 
 		let $col = $(
-			`<div class="col grid-static-col search" style="flex: 0 0 ${width}px; width: ${width}px;"></div>`
+			`<div class="col grid-static-col search" style="flex: 1 0 ${width}px; width: ${width}px;"></div>`
 		).appendTo(this.row);
 
 		let $search_input = $(`
@@ -949,7 +951,7 @@ export default class GridRow {
 		let me = this;
 		let add_class = this._get_fieldtype_class(df.fieldtype);
 
-		let add_style = `flex: 0 0 ${width}px; width: ${width}px;`;
+		let add_style = `flex: 1 0 ${width}px; width: ${width}px;`;
 		if (df.sticky) {
 			add_class += " sticky-grid-col";
 			add_style += `left: ${this.grid.get_sticky_offset(df.fieldname)}px;`;
@@ -1399,33 +1401,62 @@ export default class GridRow {
 		return this;
 	}
 	show_form() {
-		if (this.grid_form) {
-			this.grid_form.destroy();
-			this.grid_form = null;
+		if (frappe.utils.is_xs()) {
+			$(this.grid.form_grid).css("min-width", "0");
+			$(this.grid.form_grid).css("position", "unset");
 		}
-		this.grid_form = new GridRowForm({ row: this });
+		if (!this.grid_form) {
+			this.grid_form = new GridRowForm({
+				row: this,
+			});
+		}
+		this.grid_form.wrapper.css("display", "block");
 		this.grid_form.render();
+		this.row.toggle(false);
+		// this.form_panel.toggle(true);
 
-		$("body").addClass("grid-sidebar-open");
-		if (this.frm) this.frm.cur_grid = this;
+		let cannot_add_rows =
+			this.grid.cannot_add_rows || (this.grid.df && this.grid.df.cannot_add_rows);
+		this.wrapper
+			.find(
+				".grid-insert-row-below, .grid-insert-row, .grid-duplicate-row, .grid-append-row"
+			)
+			.toggle(!cannot_add_rows);
+
+		this.wrapper
+			.find(".grid-delete-row")
+			.toggle(!(this.grid.df && this.grid.df.cannot_delete_rows));
+
+		frappe.dom.freeze("", "dark grid-form");
+		if (cur_frm) cur_frm.cur_grid = this;
 		this.wrapper.addClass("grid-row-open");
-
 		if (
 			!frappe.dom.is_element_in_viewport(this.wrapper) &&
 			!frappe.dom.is_element_in_modal(this.wrapper)
 		) {
+			// -15 offset to make form look visually centered
 			frappe.utils.scroll_to(this.wrapper, true, -15);
 		}
 
-		this._fire_form_render_triggers();
+		if (this.frm) {
+			this.frm.script_manager.trigger(this.doc.parentfield + "_on_form_rendered");
+			this.frm.script_manager.trigger("form_render", this.doc.doctype, this.doc.name);
+		}
 	}
 	hide_form() {
-		$("body").removeClass("grid-sidebar-open");
+		if (frappe.utils.is_xs()) {
+			$(this.grid.form_grid).css("min-width", "738px");
+			$(this.grid.form_grid).css("position", "relative");
+		}
+		frappe.dom.unfreeze();
+		this.row.toggle(true);
+		if (!frappe.dom.is_element_in_modal(this.row)) {
+			frappe.utils.scroll_to(this.row, true, 15);
+		}
 		this.refresh();
-		if (this.frm) this.frm.cur_grid = null;
+		if (cur_frm) cur_frm.cur_grid = null;
 		if (this.grid_form) {
-			this.grid_form.destroy();
-			this.grid_form = null;
+			this.grid_form.wrapper.css("display", "none");
 		}
 		this.wrapper.removeClass("grid-row-open");
 
@@ -1436,28 +1467,17 @@ export default class GridRow {
 	has_prev() {
 		return this.doc.idx > 1;
 	}
+	open_prev() {
+		if (!this.doc) return;
+		this.open_row_at_index(this.doc.idx - 2);
+	}
 	has_next() {
 		return this.doc.idx < this.grid.data.length;
 	}
-	open_prev() {
-		if (this.doc) this._navigate_to_index(this.doc.idx - 2);
-	}
 	open_next() {
-		if (this.doc) this._navigate_to_index(this.doc.idx);
-	}
-	_navigate_to_index(row_index) {
-		if (this.grid_form) {
-			this.change_page_if_reqd(row_index);
-			const new_row = this.grid.grid_rows[row_index];
-			if (new_row) this.grid_form.navigate_to(new_row);
-			return;
-		}
-		this.open_row_at_index(row_index);
-	}
-	_fire_form_render_triggers() {
-		if (!this.frm) return;
-		this.frm.script_manager.trigger(this.doc.parentfield + "_on_form_rendered");
-		this.frm.script_manager.trigger("form_render", this.doc.doctype, this.doc.name);
+		if (!this.doc) return;
+
+		this.open_row_at_index(this.doc.idx);
 	}
 	open_row_at_index(row_index) {
 		if (!this.grid.data[row_index]) return;

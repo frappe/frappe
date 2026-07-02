@@ -56,7 +56,12 @@ from frappe.utils.bench_helper import CliCtxObj
 @click.option("--admin-password", help="Administrator password for new site", default=None)
 @click.option("--verbose", is_flag=True, default=False, help="Verbose")
 @click.option("--force", help="Force restore if site/database already exists", is_flag=True, default=False)
-@click.option("--source-sql", "--source_sql", help="Initiate database with a SQL file")
+@click.option(
+	"--source-sql",
+	"--source_sql",
+	type=click.Path(exists=True, dir_okay=False, resolve_path=True),
+	help="Initiate database with a SQL file",
+)
 @click.option("--install-app", multiple=True, help="Install app after installation")
 @click.option("--set-default", is_flag=True, default=False, help="Set the new site as default site")
 @click.option(
@@ -157,7 +162,10 @@ def new_site(
 
 
 @click.command("restore")
-@click.argument("sql-file-path")
+@click.argument(
+	"sql-file-path",
+	type=click.Path(dir_okay=False, resolve_path=True),
+)
 @click.option(
 	"--db-root-username",
 	"--mariadb-root-username",
@@ -167,9 +175,14 @@ def new_site(
 @click.option("--db-name", help="Database name for site in case it is a new one")
 @click.option("--admin-password", help="Administrator password for new site")
 @click.option("--install-app", multiple=True, help="Install app after installation")
-@click.option("--with-public-files", help="Restores the public files of the site, given path to its tar file")
+@click.option(
+	"--with-public-files",
+	type=click.Path(exists=True, dir_okay=False, resolve_path=True),
+	help="Restores the public files of the site, given path to its tar file",
+)
 @click.option(
 	"--with-private-files",
+	type=click.Path(exists=True, dir_okay=False, resolve_path=True),
 	help="Restores the private files of the site, given path to its tar file",
 )
 @click.option(
@@ -379,17 +392,16 @@ def restore_backup(
 
 
 @click.command("partial-restore")
-@click.argument("sql-file-path")
+@click.argument(
+	"sql-file-path",
+	type=click.Path(exists=True, dir_okay=False, resolve_path=True),
+)
 @click.option("--verbose", "-v", is_flag=True)
 @click.option("--encryption-key", help="Backup encryption key")
 @pass_context
 def partial_restore(context: CliCtxObj, sql_file_path, verbose, encryption_key=None):
 	from frappe.installer import is_partial, partial_restore
 	from frappe.utils.backups import decrypt_backup, get_or_generate_backup_encryption_key
-
-	if not os.path.exists(sql_file_path):
-		print("Invalid path", sql_file_path)
-		sys.exit(1)
 
 	site = get_site(context)
 	verbose = context.verbose or verbose
@@ -835,11 +847,36 @@ def use(site, sites_path="."):
 	type=str,
 	help="Specify the DocTypes to not backup seperated by commas",
 )
-@click.option("--backup-path", default=None, help="Set path for saving all the files in this operation")
-@click.option("--backup-path-db", default=None, help="Set path for saving database file")
-@click.option("--backup-path-files", default=None, help="Set path for saving public file")
-@click.option("--backup-path-private-files", default=None, help="Set path for saving private file")
-@click.option("--backup-path-conf", default=None, help="Set path for saving config file")
+@click.option(
+	"--backup-path",
+	default=None,
+	type=click.Path(dir_okay=True, file_okay=False, resolve_path=True),
+	help="Set path for saving all the files in this operation",
+)
+@click.option(
+	"--backup-path-db",
+	default=None,
+	type=click.Path(dir_okay=False, file_okay=True, resolve_path=True),
+	help="Set path for saving database file",
+)
+@click.option(
+	"--backup-path-files",
+	default=None,
+	type=click.Path(dir_okay=False, file_okay=True, resolve_path=True),
+	help="Set path for saving public file",
+)
+@click.option(
+	"--backup-path-private-files",
+	default=None,
+	type=click.Path(dir_okay=False, file_okay=True, resolve_path=True),
+	help="Set path for saving private file",
+)
+@click.option(
+	"--backup-path-conf",
+	default=None,
+	type=click.Path(dir_okay=False, file_okay=True, resolve_path=True),
+	help="Set path for saving config file",
+)
 @click.option(
 	"--ignore-backup-conf",
 	default=False,
@@ -991,7 +1028,10 @@ def uninstall(context: CliCtxObj, app, dry_run, yes, no_backup, force):
 	"--root-password",
 	help="Root password for MariaDB or PostgreSQL",
 )
-@click.option("--archived-sites-path")
+@click.option(
+	"--archived-sites-path",
+	type=click.Path(dir_okay=True, file_okay=False, resolve_path=True),
+)
 @click.option("--no-backup", is_flag=True, default=False)
 @click.option("--force", help="Force drop-site even if an error is encountered", is_flag=True, default=False)
 def drop_site(
@@ -1186,6 +1226,9 @@ def publish_realtime(context: CliCtxObj, event, message, room, user, doctype, do
 @click.argument("site", required=False)
 @click.option("--user", required=False, help="Login as user")
 @click.option(
+	"--sid", "print_sid", is_flag=True, help="Print the generated session id instead of opening the browser"
+)
+@click.option(
 	"--session-end",
 	required=False,
 	help="Session end (in ISO8601 format and timezone-aware - 2025-01-24T12:26:29.200853+00:00)",
@@ -1196,6 +1239,7 @@ def browse(
 	context: CliCtxObj,
 	site,
 	user: str | None = None,
+	print_sid: bool = False,
 	session_end: str | None = None,
 	user_for_audit: str | None = None,
 ):
@@ -1215,6 +1259,7 @@ def browse(
 	frappe.connect()
 
 	sid = ""
+	login_path = ""
 	if user:
 		if not frappe.db.exists("User", user):
 			click.echo(f"User {user} does not exist")
@@ -1225,11 +1270,19 @@ def browse(
 			frappe.local.cookie_manager = CookieManager()
 			frappe.local.login_manager = LoginManager()
 			frappe.local.login_manager.login_as(user, session_end, user_for_audit)
-			sid = f"/app?sid={frappe.session.sid}"
+			sid = frappe.session.sid
+			login_path = f"/app?sid={sid}"
 		else:
 			click.echo("Please enable developer mode to login as a user")
 
-	url = f"{frappe.utils.get_site_url(site)}{sid}"
+	if print_sid:
+		if not sid:
+			click.echo("--sid requires --user and a generated session id", err=True)
+			sys.exit(1)
+		click.echo(sid)
+		return
+
+	url = f"{frappe.utils.get_site_url(site)}{login_path}"
 
 	if user == "Administrator":
 		click.echo(f"Login URL: {url}")

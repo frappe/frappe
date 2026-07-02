@@ -1,7 +1,6 @@
 # Copyright (c) 2015, Frappe Technologies Pvt. Ltd. and Contributors
 # License: MIT. See LICENSE
 
-import json
 from typing import Literal
 
 from bs4 import BeautifulSoup
@@ -275,7 +274,7 @@ def _get_linked_document_counts(doctype: str, name: str, items=None):
 			items.extend(group.get("items"))
 
 	if not isinstance(items, list):
-		items = json.loads(items)
+		items = frappe.parse_json(items)
 
 	out = {
 		"external_links_found": [],

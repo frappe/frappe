@@ -59,10 +59,31 @@ import LetterHeadZoneEditor from "../letterhead/LetterHeadZoneEditor.vue";
 import PrintFormatSection from "./PrintFormatSection.vue";
 import SectionInsert from "./SectionInsert.vue";
 import { useStore } from "../../stores";
-import { computed, inject, watch, nextTick } from "vue";
+import { computed, inject, watch, nextTick, onUnmounted } from "vue";
 
 let { layout, letterhead, print_format } = useStore();
 let store = inject("$store");
+
+const CUSTOM_CSS_ID = "pfb-letterhead-custom-css";
+watch(
+	letterhead,
+	(lh) => {
+		let el = document.getElementById(CUSTOM_CSS_ID);
+		const css = lh?.custom_css;
+		if (!css) {
+			el?.remove();
+			return;
+		}
+		if (!el) {
+			el = document.createElement("style");
+			el.id = CUSTOM_CSS_ID;
+			document.head.appendChild(el);
+		}
+		el.textContent = css;
+	},
+	{ immediate: true, deep: true }
+);
+onUnmounted(() => document.getElementById(CUSTOM_CSS_ID)?.remove());
 
 watch(
 	() => store.scroll_to_section.value,
@@ -122,7 +143,7 @@ let rootStyles = computed(() => {
 let bodyStyles = computed(() => {
 	const { font_size, font } = print_format.value;
 	const styles = {};
-	if (font_size) styles.fontSize = `${font_size}pt`;
+	if (font_size) styles.fontSize = `${parseFloat(font_size)}px`;
 	if (font) styles.fontFamily = `'${font}', sans-serif`;
 	return styles;
 });
@@ -310,5 +331,18 @@ watch(print_format, () => (store.dirty.value = true), { deep: true });
 	font-size: var(--text-lg);
 	font-weight: var(--weight-bold);
 	color: var(--text-color);
+}
+
+.pfb-body :deep(.field--preview) {
+	font-size: inherit;
+}
+.pfb-body :deep(.field--preview .field-preview-value) {
+	font-size: 1em;
+}
+.pfb-body :deep(.field--preview .field-preview-label) {
+	font-size: 0.8em;
+}
+.pfb-body :deep(.field--preview .preview-table) {
+	font-size: 0.9em;
 }
 </style>

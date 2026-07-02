@@ -1039,6 +1039,56 @@ class TestDBQuery(IntegrationTestCase):
 
 		self.assertTrue(dashboard_settings)
 
+	def test_permission_query_condition_supports_pypika(self):
+		"""The legacy DatabaseQuery path must also accept a pypika criterion from a hook."""
+		from frappe.desk.doctype.dashboard_settings.dashboard_settings import (
+			create_dashboard_settings,
+		)
+		from frappe.model.db_query import DatabaseQuery
+
+		self.user = "test@example.com"
+		create_dashboard_settings(self.user)
+
+		with self.patch_hooks(
+			{
+				"permission_query_conditions": {
+					"Dashboard Settings": ["frappe.tests.test_query.test_permission_hook_criterion"]
+				}
+			}
+		):
+			db_query = DatabaseQuery("Dashboard Settings", user=self.user)
+			conditions = db_query.get_permission_query_conditions()
+
+			# The criterion must be rendered to a namespaced SQL string (the `tab`-prefixed
+			# table name is dialect-independent; only the surrounding quote char differs).
+			self.assertIn("tabDashboard Settings", conditions)
+			self.assertIn("name", conditions)
+
+			# And the rendered string must be valid SQL that selects the user's record.
+			rows = frappe.db.sql(
+				f"SELECT name FROM `tabDashboard Settings` WHERE {conditions}",
+				as_dict=True,
+			)
+			self.assertTrue(any(r.name == self.user for r in rows))
+
+	def test_permission_criterion_escapes_values_safely(self):
+		"""Values inside a pypika permission criterion must be driver-escaped, not inlined raw.
+
+		pypika's bare quote-doubling is unsafe on MariaDB (backslash is an escape char), so the
+		legacy path must route values through frappe.db.escape. A backslash must be doubled and a
+		quote-breakout attempt must stay inside the string literal.
+		"""
+		from frappe.model.db_query import DatabaseQuery
+
+		payload = "back\\slash' OR 1=1 -- "
+		Dashboard = frappe.qb.DocType("Dashboard Settings")
+		rendered = DatabaseQuery("Dashboard Settings")._render_permission_criterion(Dashboard.name == payload)
+
+		# The value must appear exactly as frappe.db.escape produces it (driver-quality escaping:
+		# backslash doubled, quote escaped) — never the raw breakout sequence.
+		self.assertIn(frappe.db.escape(payload), rendered)
+		self.assertNotIn("slash' OR", rendered)
+
 	def test_virtual_doctype(self):
 		"""Test that virtual doctypes can be queried using get_all"""
 

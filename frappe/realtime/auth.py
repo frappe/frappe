@@ -101,7 +101,7 @@ def authenticate(environ: dict, namespace: str, config: RealtimeConfig) -> Sessi
 	_validate_origin(environ)
 
 	credentials = _read_credentials(environ)
-	request = _make_request(environ, credentials, config)
+	request = _make_request(environ, credentials, config, site)
 	user_info = _get_user_info(request)
 
 	return _make_session(site, user_info, request)
@@ -161,7 +161,7 @@ def _read_sid(cookie_header: str | None) -> str | None:
 	return sid.value if sid else None
 
 
-def _make_request(environ: dict, credentials: Credentials, config: RealtimeConfig) -> WebRequest:
+def _make_request(environ: dict, credentials: Credentials, config: RealtimeConfig, site: str) -> WebRequest:
 	"""Build the authenticated request helper toward the web (socket.frappe_request port).
 
 	Forwards the client's credential plus the shared socketio secret (get_user_info
@@ -176,6 +176,8 @@ def _make_request(environ: dict, credentials: Credentials, config: RealtimeConfi
 		body: dict | None = None,
 	) -> dict:
 		headers = credentials.headers()
+		# Carry the tenant so loopback requests route to the right site.
+		headers["X-Frappe-Site-Name"] = site
 		if secret:
 			headers["X-Frappe-Socket-Secret"] = secret
 

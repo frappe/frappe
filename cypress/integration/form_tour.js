@@ -68,7 +68,7 @@ context.skip("Form Tour", () => {
 		cy.wait(500);
 
 		// assert table field is highlighted
-		cy.get('.grid-row-sidebar .frappe-control[data-fieldname="phone"]').as("phone");
+		cy.get('.grid-row-open .frappe-control[data-fieldname="phone"]').as("phone");
 		cy.get("@phone").should("have.class", "driver-highlighted-element");
 		// enter value in a table field
 		let field = cy.fill_table_field("phone_nos", "1", "phone", "1234567890");
@@ -83,7 +83,7 @@ context.skip("Form Tour", () => {
 			.click();
 		cy.wait(500);
 		// collapse row
-		cy.get(".grid-row-sidebar .grid-sidebar-close").click();
+		cy.get(".grid-row-open .grid-collapse-row").click();
 		cy.wait(500);
 
 		// assert save btn is highlighted

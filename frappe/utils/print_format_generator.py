@@ -202,7 +202,9 @@ class PrintFormatGenerator:
 		if is_header and page_no_html:
 			parts.append(page_no_html)
 		if letterhead_html:
-			parts.append(frappe.render_template(letterhead_html, ctx))
+			parts.append(
+				'<div class="letter-head">' + frappe.render_template(letterhead_html, ctx) + "</div>"
+			)
 		if layout_template:
 			if isinstance(layout_template, str):
 				# layout_template is persisted header/footer HTML from the stored Print Format document.
@@ -228,6 +230,7 @@ class PrintFormatGenerator:
 {%- for column in section.columns %}
 <div class="column col">
 {%- for df in column.get('fields', []) -%}
+{%- if not df.get('_hidden') -%}
 {%- if df.fieldtype == 'HTML' and df.html -%}
 <div class="custom-html">{{ frappe.render_template(df.html, {'doc': doc}) }}</div>
 {%- elif df.fieldtype == 'Spacer' -%}
@@ -241,6 +244,7 @@ class PrintFormatGenerator:
 {%- if df.show_label != 'hide' %}<div class="label">{{ _(df.label or df.fieldname) }}</div>{%- endif -%}
 <div class="value">{{ doc.get_formatted(df.fieldname) }}</div>
 </div>
+{%- endif -%}
 {%- endif -%}
 {%- endif -%}
 {%- endfor -%}
@@ -281,9 +285,20 @@ class PrintFormatGenerator:
 
 	def set_field_renderers(self, layout):
 		renderers = {"HTML Editor": "HTML", "Markdown Editor": "Markdown"}
+		eval_locals = {"doc": self.doc}
 		for section in layout["sections"]:
+			if section.get("visible_if"):
+				try:
+					section["_hidden"] = not frappe.safe_eval(section["visible_if"], eval_locals)
+				except Exception:
+					section["_hidden"] = False
 			for column in section["columns"]:
 				for df in column["fields"]:
+					if df.get("visible_if"):
+						try:
+							df["_hidden"] = not frappe.safe_eval(df["visible_if"], eval_locals)
+						except Exception:
+							df["_hidden"] = False
 					fieldtype = df["fieldtype"]
 					df["renderer"] = renderers.get(fieldtype) or fieldtype.replace(" ", "")
 					df["section"] = section
@@ -294,6 +309,11 @@ class PrintFormatGenerator:
 			if isinstance(zone, dict) and "columns" in zone:
 				for column in zone.get("columns", []):
 					for df in column.get("fields", []):
+						if df.get("visible_if"):
+							try:
+								df["_hidden"] = not frappe.safe_eval(df["visible_if"], eval_locals)
+							except Exception:
+								df["_hidden"] = False
 						fieldtype = df.get("fieldtype", "Data")
 						df["renderer"] = renderers.get(fieldtype) or fieldtype.replace(" ", "")
 						df["section"] = zone

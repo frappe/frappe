@@ -91,6 +91,14 @@ class TestWorkflow(IntegrationTestCase):
 		actions = get_common_transition_actions([todo1, todo2], "ToDo")
 		self.assertListEqual(actions, ["Review"])
 
+	def test_bulk_workflow_approval_accepts_native_list(self):
+		from frappe.model.workflow import bulk_workflow_approval
+
+		todo = create_new_todo()
+		# docnames as a native list (frappe.parse_json passthrough); < 20 docs runs inline
+		bulk_workflow_approval([todo.name], "ToDo", "Approve")
+		self.assertEqual(frappe.db.get_value("ToDo", todo.name, "workflow_state"), "Approved")
+
 	def test_if_workflow_actions_were_processed_using_role(self):
 		user = frappe.get_doc("User", "test2@example.com")
 		user.add_roles("Test Approver", "System Manager")

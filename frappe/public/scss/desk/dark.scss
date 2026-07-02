@@ -21,8 +21,8 @@ $check-icon-dark: url("data:image/svg+xml, <svg viewBox='0 0 8 7' fill='none' xm
 	// checkbox
 	--checkbox-gradient: linear-gradient(
 		180deg,
-		var(--bg-surface-base) -124.51%,
-		var(--bg-surface-base) 100%
+		var(--surface-gray-10) -124.51%,
+		var(--surface-gray-10) 100%
 	);
 	--checkbox-disabled-gradient: linear-gradient(
 		180deg,
@@ -66,7 +66,7 @@ $check-icon-dark: url("data:image/svg+xml, <svg viewBox='0 0 8 7' fill='none' xm
 	}
 
 	.modal,
-	.grid-row-sidebar {
+	.form-in-grid {
 		--control-bg: var(--gray-800);
 		--border-color: var(--gray-800);
 	}

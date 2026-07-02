@@ -245,6 +245,14 @@ class TestRenameDoc(IntegrationTestCase):
 				doctype=self.test_doctype,
 			)
 
+	def test_bulk_rename_accepts_native_merge_flag(self):
+		# 3rd column as a native bool exercises sbool(row[2]); False keeps it a simple rename
+		input_data = [[x, f"{x}-native", False] for x in self.available_documents]
+
+		with patch_db(["commit", "rollback"]), patch("frappe.enqueue"):
+			message_log = bulk_rename(self.test_doctype, input_data, via_console=False)
+			self.assertEqual(len(message_log), len(self.available_documents))
+
 	def test_doc_rename_method(self):
 		name = choice(self.available_documents)
 		new_name = f"{name}-{frappe.generate_hash(length=4)}"

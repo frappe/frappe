@@ -28,6 +28,14 @@ class TestBootData(IntegrationTestCase):
 		unseen_notes = [d.title for d in get_unseen_notes()]
 		self.assertListEqual(unseen_notes, [])
 
+	def test_get_json_request_apps_includes_frappe(self):
+		from frappe.boot import get_json_request_apps
+
+		# frappe opts into native JSON request bodies via `use_json_request_body` in hooks.py
+		apps = get_json_request_apps()
+		self.assertIsInstance(apps, list)
+		self.assertIn("frappe", apps)
+
 
 class TestPermissionQueries(IntegrationTestCase):
 	@classmethod

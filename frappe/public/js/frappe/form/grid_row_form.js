@@ -1,13 +1,13 @@
 export default class GridRowForm {
 	constructor(opts) {
 		$.extend(this, opts);
-		this.wrapper = $('<div class="grid-row-sidebar"></div>').appendTo(
-			$(this.row.grid.wrapper).closest(".form-page, .frappe-client, body").first()
-		);
+		this.wrapper = $('<div class="form-in-grid"></div>').appendTo(this.row.wrapper);
 	}
 	render() {
+		var me = this;
 		this.make_form();
 		this.form_area.empty();
+		frappe.utils.scroll_to(0, false, 0, this.wrapper.find(".grid-form-body"));
 
 		this.layout = new frappe.ui.form.Layout({
 			fields: this.row.docfields,
@@ -27,126 +27,113 @@ export default class GridRowForm {
 
 		this.layout.refresh(this.row.doc);
 
-		for (const fieldname in this.row.grid.fieldinfo || {}) {
-			const fi = this.row.grid.fieldinfo[fieldname];
-			$.extend(this.fields_dict[fieldname], fi);
+		// copy get_query to fields
+		for (var fieldname in this.row.grid.fieldinfo || {}) {
+			var fi = this.row.grid.fieldinfo[fieldname];
+			$.extend(me.fields_dict[fieldname], fi);
 		}
 
 		this.toggle_add_delete_button_display(this.wrapper);
-		this.update_nav_state();
+
 		this.row.grid.open_grid_row = this;
-		this.wrapper.find(".grid-sidebar-body").scrollTop(0);
+
 		this.set_focus();
 	}
 	make_form() {
-		if (this.form_area) return;
-
-		const template = `
-			<div class="grid-sidebar-header">
-				<div class="grid-sidebar-row-nav">
-					<span class="grid-sidebar-row-label">
-						${__("ROW")}
+		if (!this.form_area) {
+			let template = `<div class="grid-form-heading">
+				<div class="toolbar grid-header-toolbar">
+					<span class="panel-title">
+						${__("Editing Row")} #<span class="grid-form-row-index"></span></span>
+					<span class="row-actions">
+						<button class="btn btn-secondary btn-sm pull-right grid-collapse-row">
+							${frappe.utils.icon("down")}
+						</button>
+						<button class="btn btn-secondary btn-sm pull-right grid-move-row hidden-xs">
+							${__("Move")}</button>
+						<button class="btn btn-secondary btn-sm pull-right grid-duplicate-row hidden-xs">
+							${frappe.utils.icon("duplicate")}
+							${__("Duplicate")}
+						</button>
+						<button class="btn btn-secondary btn-sm pull-right grid-insert-row hidden-xs">
+							${__("Insert Above")}</button>
+						<button class="btn btn-secondary btn-sm pull-right grid-insert-row-below hidden-xs">
+							${__("Insert Below")}</button>
+						<button class="btn btn-danger btn-sm pull-right grid-delete-row">${__("Delete")}</button>
 					</span>
-					<button class="btn btn-xs btn-default grid-sidebar-prev" title="${__("Previous row")}">
-						${frappe.utils.icon("up-arrow", "xs")}
-					</button>
-					<span class="grid-sidebar-row-index"></span>
-					<button class="btn btn-xs btn-default grid-sidebar-next" title="${__("Next row")}">
-						${frappe.utils.icon("down-arrow", "xs")}
-					</button>
-				</div>
-				<div class="grid-sidebar-header-actions">
-					<button class="btn btn-xs btn-default grid-delete-row" title="${__("Delete row")}">
-						${frappe.utils.icon("trash-2", "sm")}
-					</button>
-					<button class="btn btn-xs btn-default grid-sidebar-close" title="${__("Close")}">
-						${frappe.utils.icon("x", "sm")}
-					</button>
 				</div>
 			</div>
-			<div class="grid-sidebar-title">
-				<span class="grid-sidebar-docname"></span>
-			</div>
-			<div class="grid-sidebar-actions">
-				${[
-					["grid-insert-row", __("Insert above")],
-					["grid-insert-row-below", __("Insert below")],
-					["grid-duplicate-row", __("Duplicate")],
-					["grid-move-row", __("Move")],
-				]
-					.map(
-						([cls, lbl]) =>
-							`<button class="btn btn-secondary btn-xs ${cls} hidden-xs">${lbl}</button>`
-					)
-					.join("")}
-			</div>
-			<div class="grid-sidebar-body">
+			<div class="grid-form-body">
 				<div class="form-area"></div>
+				<div class="grid-footer-toolbar hidden-xs flex justify-between">
+					<div class="grid-shortcuts">
+						<span> ${frappe.utils.icon("keyboard", "md")} </span>
+						<span class="text-medium"> ${__("Shortcuts")}: </span>
+						<kbd>${__("Ctrl + Up")}</kbd> . <kbd>${__("Ctrl + Down")}</kbd> . <kbd>${__("ESC")}</kbd>
+					</div>
+					<span class="row-actions">
+						<button class="btn btn-secondary btn-sm pull-right grid-append-row">
+							${__("Insert Below")}
+						</button>
+					</span>
+				</div>
 			</div>`;
 
-		$(template).appendTo(this.wrapper);
-		this.form_area = this.wrapper.find(".form-area");
-		this.row.set_row_index();
-		this.set_form_events();
+			$(template).appendTo(this.wrapper);
+			this.form_area = this.wrapper.find(".form-area");
+			this.row.set_row_index();
+			this.set_form_events();
+		}
 	}
 	set_form_events() {
-		[
-			[".grid-sidebar-close", () => this.row.toggle_view(false)],
-			[".grid-sidebar-prev", () => this.row.open_prev()],
-			[".grid-sidebar-next", () => this.row.open_next()],
-			[".grid-delete-row", () => this.row.remove()],
-			[".grid-insert-row", () => this.row.insert(true)],
-			[".grid-insert-row-below", () => this.row.insert(true, true)],
-			[".grid-duplicate-row", () => this.row.insert(true, true, true)],
-			[".grid-move-row", () => this.row.move()],
-		].forEach(([sel, fn]) => this.wrapper.find(sel).on("click", fn));
-
-		$(document).on("keydown.grid-sidebar", (e) => {
-			if (e.key === "Escape") this.row.toggle_view(false);
+		var me = this;
+		this.wrapper.find(".grid-delete-row").on("click", function () {
+			me.row.remove();
+			return false;
 		});
-
-		$(document).on("mousedown.grid-sidebar", (e) => {
-			const $target = $(e.target);
-			if ($target.closest(".grid-row-sidebar").length) return;
-			if (
-				$target.closest(
-					".dropdown-menu, .modal, .awesomplete, .picker-container, .datepicker"
-				).length
-			)
-				return;
-			this.row.toggle_view(false);
+		this.wrapper.find(".grid-insert-row").on("click", function () {
+			me.row.insert(true);
+			return false;
 		});
-	}
-	update_nav_state() {
-		const idx = this.row.doc.idx;
-		const total = this.row.grid.data.length;
-
-		this.wrapper.find(".grid-sidebar-row-index").text(`${idx} / ${total}`);
-		this.wrapper.find(".grid-sidebar-prev").toggleClass("disabled", !this.row.has_prev());
-		this.wrapper.find(".grid-sidebar-next").toggleClass("disabled", !this.row.has_next());
-
-		const first_col = this.row.grid.visible_columns?.[0]?.[0];
-		const title = first_col && this.row.doc[first_col.fieldname];
-		this.wrapper.find(".grid-sidebar-docname").text(title || "");
-		this.wrapper.find(".grid-sidebar-title").toggle(!!title);
+		this.wrapper.find(".grid-insert-row-below").on("click", function () {
+			me.row.insert(true, true);
+			return false;
+		});
+		this.wrapper.find(".grid-duplicate-row").on("click", function () {
+			me.row.insert(true, true, true);
+			return false;
+		});
+		this.wrapper.find(".grid-move-row").on("click", function () {
+			me.row.move();
+			return false;
+		});
+		this.wrapper.find(".grid-append-row").on("click", function () {
+			me.row.toggle_view(false);
+			me.row.grid.add_new_row(me.row.doc.idx + 1, null, true);
+			return false;
+		});
+		this.wrapper.find(".grid-form-heading, .grid-footer-toolbar").on("click", function () {
+			me.row.toggle_view();
+			return false;
+		});
 	}
 	toggle_add_delete_button_display($parent) {
-		const editable = this.row.grid.is_editable();
-		const cannot_add = this.row.grid.cannot_add_rows || this.row.grid.df?.cannot_add_rows;
-		const cannot_delete = this.row.grid.df?.cannot_delete_rows;
-
-		$parent.find(".grid-sidebar-actions").toggle(editable && !cannot_add);
-		$parent.find(".grid-delete-row").toggle(editable && !cannot_delete);
+		$parent.find(".row-actions, .grid-append-row").toggle(this.row.grid.is_editable());
 	}
 	refresh_field(fieldname) {
 		const field = this.fields_dict[fieldname];
 		if (!field) return;
+
 		field.docname = this.row.doc.name;
 		field.refresh();
 		this.layout && this.layout.refresh_dependency();
 	}
 	set_active_tab(tab) {
+		// Store the active tab for this grid row form
 		this.active_tab = tab;
+
+		// When switching tabs in grid row forms, update field display for Geolocation/Signature fields
+		// This is similar to the fix in frappe/frappe#27441 for regular forms
 		let in_tab = false;
 		for (const df of this.layout.fields) {
 			const field = this.fields_dict[df.fieldname];
@@ -158,9 +145,11 @@ export default class GridRowForm {
 		}
 	}
 	set_focus() {
-		setTimeout(() => {
-			if ((this.row.frm && this.row.frm.doc.docstatus === 0) || !this.row.frm) {
-				const first = this.form_area.find("input:first");
+		// wait for animation and then focus on the first row
+		var me = this;
+		setTimeout(function () {
+			if ((me.row.frm && me.row.frm.doc.docstatus === 0) || !me.row.frm) {
+				var first = me.form_area.find("input:first");
 				if (
 					first.length &&
 					!["Date", "Datetime", "Time"].includes(first.attr("data-fieldtype"))
@@ -168,37 +157,10 @@ export default class GridRowForm {
 					try {
 						first.get(0).focus();
 					} catch (e) {
-						// ignore
+						//
 					}
 				}
 			}
-		}, 200);
-	}
-	navigate_to(new_row) {
-		this.row.wrapper.removeClass("grid-row-open");
-		this.row.grid_form = null;
-
-		this.row = new_row;
-		new_row.grid_form = this;
-		new_row.wrapper.addClass("grid-row-open");
-		if (new_row.frm) new_row.frm.cur_grid = new_row;
-
-		if (
-			!frappe.dom.is_element_in_viewport(new_row.wrapper) &&
-			!frappe.dom.is_element_in_modal(new_row.wrapper)
-		) {
-			frappe.utils.scroll_to(new_row.wrapper, true, -15);
-		}
-
-		const $content = this.wrapper.find(".grid-sidebar-title, .grid-sidebar-body");
-		$content.css("opacity", 0);
-		this.render();
-		$content.animate({ opacity: 1 }, 120);
-
-		new_row._fire_form_render_triggers();
-	}
-	destroy() {
-		$(document).off(".grid-sidebar");
-		this.wrapper.remove();
+		}, 500);
 	}
 }

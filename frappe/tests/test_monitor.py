@@ -81,6 +81,26 @@ class TestMonitor(IntegrationTestCase):
 		log = frappe.parse_json(logs[0])
 		self.assertEqual(log.transaction_type, "request")
 
+	def test_flush_clears_redis(self):
+		set_request(method="GET", path="/api/method/frappe.ping")
+		response = build_response("json")
+
+		for _ in range(3):
+			frappe.monitor.start()
+			frappe.monitor.stop(response)
+
+		self.assertEqual(frappe.cache.llen(MONITOR_REDIS_KEY), 3)
+
+		open(frappe.monitor.log_file(), "w").close()
+		frappe.monitor.flush()
+
+		self.assertEqual(frappe.cache.llen(MONITOR_REDIS_KEY), 0)
+
+		frappe.monitor.flush()
+		with open(frappe.monitor.log_file()) as f:
+			logs = f.readlines()
+		self.assertEqual(len(logs), 3)
+
 	def test_trace_ids(self):
 		set_request(method="GET", path="/api/method/frappe.ping")
 		response = build_response("json")

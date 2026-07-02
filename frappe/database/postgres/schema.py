@@ -12,8 +12,10 @@ from frappe.utils.defaults import get_not_null_defaults
 # company, posting_date, lft/rgt, ...) and `CREATE INDEX IF NOT EXISTS` silently skips all but
 # the first -- so most tables never get that index. Qualify the name with the table so it is
 # schema-unique, hashing if it would exceed postgres's 63-byte identifier cap.
-def get_qualified_index_name(table_name: str, fields: list[str]) -> str:
+def get_qualified_index_name(table_name: str, fields: list[str], suffix: str | None = None) -> str:
 	base = f"{table_name}_" + "_".join(fields)
+	if suffix:
+		base += f"_{suffix}"
 	name = f"{base}_index"
 	if len(name.encode()) > 63:
 		digest = hashlib.md5(base.encode()).hexdigest()[:10]
@@ -100,14 +102,40 @@ class PostgresTable(DBTable):
 		new_column_names = {col.fieldname for col in self.add_column}
 
 		for col in self.change_type:
+			# Postgres won't implicitly cast text/varchar to these types, so SET DATA TYPE
+			# needs an explicit USING expression. NOT NULL numerics coalesce blanks to 0;
+			# nullable types map blanks to NULL.
 			using_clause = ""
-			if col.fieldtype in ("Datetime"):
-				# The USING option of SET DATA TYPE can actually specify any expression
-				# involving the old values of the row
-				# read more https://www.postgresql.org/docs/9.1/sql-altertable.html
-				using_clause = f"USING {col.fieldname}::timestamp without time zone"
+			if col.fieldtype == "Datetime":
+				using_clause = f"USING NULLIF(`{col.fieldname}`::text, '')::timestamp without time zone"
+			elif col.fieldtype == "Date":
+				using_clause = f"USING NULLIF(`{col.fieldname}`::text, '')::date"
+			elif col.fieldtype == "Time":
+				using_clause = f"USING NULLIF(`{col.fieldname}`::text, '')::time without time zone"
 			elif col.fieldtype == "Check":
-				using_clause = f"USING {col.fieldname}::smallint"
+				using_clause = f"USING COALESCE(NULLIF(`{col.fieldname}`::text, ''), '0')::smallint"
+			elif col.fieldtype in ("Currency", "Float", "Percent"):
+				using_clause = f"USING COALESCE(NULLIF(`{col.fieldname}`::text, ''), '0')::numeric"
+			elif col.fieldtype in ("Duration", "Rating"):
+				# Duration/Rating are nullable (not in NOT_NULL_TYPES), so keep blanks NULL.
+				using_clause = f"USING NULLIF(`{col.fieldname}`::text, '')::numeric"
+			elif col.fieldtype == "Int":
+				# cast to the actual target type: Int with length > 11 is a bigint column
+				# (Long Int), so a plain ::int would overflow its legitimate values; a standard
+				# Int stays int and still errors on out-of-range values (use Long Int for those).
+				int_type = get_definition(col.fieldtype, length=col.length)
+				using_clause = (
+					f"USING COALESCE(NULLIF(`{col.fieldname}`::text, ''), '0')::numeric::{int_type}"
+				)
+			elif col.fieldtype == "JSON":
+				using_clause = f"USING NULLIF(`{col.fieldname}`::text, '')::json"
+
+			if using_clause:
+				# the column's existing (string) DEFAULT can't be cast to the new type, so
+				# drop it and re-apply the proper default via the set_default pass below.
+				query.append(f"ALTER COLUMN `{col.fieldname}` DROP DEFAULT")
+				if col not in self.set_default:
+					self.set_default.append(col)
 
 			query.append(
 				"ALTER COLUMN `{}` TYPE {} {}".format(
@@ -131,6 +159,7 @@ class PostgresTable(DBTable):
 				col_default = flt(col.default)
 
 			elif not col.default:
+				# nullable types (e.g. Duration, Rating) keep their NULL default
 				col_default = "NULL"
 
 			else:
@@ -282,6 +311,13 @@ class PostgresTable(DBTable):
 					_(
 						"{0} field cannot be set as unique in {1}, as there are non-unique existing values"
 					).format(fieldname, self.table_name)
+				)
+			elif frappe.db.is_data_truncated(e):
+				frappe.throw(
+					_(
+						"Cannot change field type in {0}: some existing values cannot be converted to the new type"
+					).format(self.doctype),
+					title=_("Incompatible Values"),
 				)
 			else:
 				raise e

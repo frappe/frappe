@@ -6,6 +6,7 @@ import GridPagination from "./grid_pagination";
 
 const BULK_EDIT_CSV_HEADER_ROWS = 7; // title, labels, fieldnames, descriptions, 2 instructions, separator
 
+// Static pixel column widths; legacy map migrates old 1-12 `columns`/`colsize`.
 export const GRID_MIN_COLUMN_WIDTH = 60;
 export const GRID_MAX_COLUMN_WIDTH = 600;
 export const DEFAULT_COLUMN_WIDTHS = {
@@ -530,6 +531,7 @@ export default class Grid {
 				let start_width = $col.outerWidth();
 				$("body").addClass("grid-col-resizing");
 
+				// Bind document listeners only for the drag, so they don't outlive it.
 				$(document)
 					.on(`mousemove.${ns}`, function (ev) {
 						let width = me.clamp_column_width(start_width + (ev.pageX - start_x));
@@ -566,6 +568,20 @@ export default class Grid {
 				sticky: df.sticky ? 1 : 0,
 			};
 		});
+
+		// Recompute sticky offsets with the new width and patch the DOM so
+		// subsequent sticky columns don't shift without a page reload.
+		this.sticky_offsets = {};
+		let sticky_sum = 71;
+		for (let [df, w] of this.visible_columns) {
+			if (df.sticky) {
+				this.sticky_offsets[df.fieldname] = sticky_sum;
+				this.wrapper
+					.find(`.grid-static-col[data-fieldname="${df.fieldname}"]`)
+					.css("left", `${sticky_sum}px`);
+				sticky_sum += w;
+			}
+		}
 
 		let value = {};
 		value[this.doctype] = columns;
@@ -811,9 +827,23 @@ export default class Grid {
 
 		this._apply_layout_child_overrides();
 		this._apply_column_disp_overrides();
+		this._apply_mask_overrides();
 
 		this.docfields.forEach((df) => {
 			this.fields_map[df.fieldname] = df;
+		});
+	}
+
+	_apply_mask_overrides() {
+		const masked_fields = frappe.get_meta(this.doctype)?.masked_fields || [];
+		if (!masked_fields.length) return;
+
+		// Shallow copy so the shared `frappe.meta` docfield is not mutated. Render masked
+		// child fields as read-only Data so the grid shows the XXXXXXXX placeholder and the
+		// cell can't be edited inline, matching the form view (layout.init_field).
+		this.docfields = this.docfields.map((df) => {
+			if (!masked_fields.includes(df.fieldname)) return df;
+			return Object.assign({}, df, { read_only: 1, fieldtype: "Data" });
 		});
 	}
 
@@ -1127,7 +1157,10 @@ export default class Grid {
 
 	set_value(fieldname, value, doc) {
 		if (this.display_status !== "None" && doc?.name && this.grid_rows_by_docname?.[doc.name]) {
-			this.grid_rows_by_docname[doc.name].refresh_field(fieldname, value);
+			let grid_row = this.grid_rows_by_docname[doc.name];
+			grid_row.refresh_field(fieldname, value);
+			// re-evaluate depends_on of sibling columns that reference this field
+			grid_row.refresh_dependency();
 		}
 	}
 
@@ -1454,6 +1487,7 @@ export default class Grid {
 			}
 		}
 
+		// Compute sticky left-offsets once from the final column list.
 		// 71 = row-check (31px) + row-index (40px) — the two always-visible sticky cols.
 		this.sticky_offsets = {};
 		let sticky_sum = 71;

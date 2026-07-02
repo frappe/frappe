@@ -12,6 +12,7 @@ import "./frappe/ui/keyboard.js";
 import "./frappe/ui/colors.js";
 import "./frappe/ui/sidebar/sidebar_header.js";
 import "./frappe/ui/sidebar/sidebar_header.html";
+import "./frappe/ui/sidebar/workspace_picker.js";
 import "./frappe/ui/sidebar/sidebar.html";
 import "./frappe/ui/sidebar/sidebar_item.html";
 import "./frappe/ui/sidebar/sidebar.js";
@@ -51,6 +52,7 @@ import "./frappe/ui/capture.js";
 import "./frappe/ui/embedded_list.js";
 import "./frappe/ui/app_icon.js";
 import "./frappe/ui/theme_switcher.js";
+import "./frappe/ui/naming_series.js";
 
 import "./frappe/model/model.js";
 import "./frappe/db.js";

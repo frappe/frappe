@@ -235,7 +235,7 @@ frappe.ui.form.FormTour = class FormTour {
 
 		// setup a listener on close row button
 		// so, once the row is closed, move to next step automatically
-		const $close_row = ".grid-row-sidebar .grid-sidebar-close";
+		const $close_row = ".grid-row-open .grid-collapse-row";
 		$($close_row).one("click", () => {
 			const next_step = this.get_next_step();
 			const next_element = next_step.options.is_save_step ? null : next_step.node;
@@ -270,7 +270,7 @@ frappe.ui.form.FormTour = class FormTour {
 	}
 
 	add_collapse_row_step() {
-		const $close_row = ".grid-row-sidebar .grid-sidebar-close";
+		const $close_row = ".grid-row-open .grid-collapse-row";
 		const close_row_step = {
 			element: $close_row,
 			popover: { title: __("Collapse"), description: "", position: "left" },

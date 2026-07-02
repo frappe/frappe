@@ -6,6 +6,7 @@
    "label": "Clear Cache"
   }
  ],
+ "allow_bulk_edit": 1,
  "creation": "2013-04-30 12:58:46",
  "doctype": "DocType",
  "document_type": "Other",
@@ -273,6 +274,7 @@
    "label": "Robots.txt"
   },
   {
+   "allow_bulk_edit": 1,
    "fieldname": "route_redirects",
    "fieldtype": "Table",
    "label": "Route Redirects",
@@ -280,7 +282,7 @@
   },
   {
    "default": "0",
-   "description": "To use Google Indexing, enable <a href=\"/desk/google-settings\">Google Settings</a>.",
+   "description": "To use Google Indexing, enable <a href=\"/desk/google-settings\" rel=\"noopener noreferrer\">Google Settings</a>.",
    "fieldname": "enable_google_indexing",
    "fieldtype": "Check",
    "label": "Enable Google indexing"
@@ -483,7 +485,7 @@
  "index_web_pages_for_search": 1,
  "issingle": 1,
  "links": [],
- "modified": "2024-03-23 16:04:03.999928",
+ "modified": "2026-07-01 14:44:11.211127",
  "modified_by": "Administrator",
  "module": "Website",
  "name": "Website Settings",
@@ -504,6 +506,7 @@
    "role": "All"
   }
  ],
+ "row_format": "Dynamic",
  "sort_field": "creation",
  "sort_order": "DESC",
  "states": [],
