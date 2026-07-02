@@ -47,7 +47,7 @@
 								{# Fallback: initials from the first text field, coloured to match the builder canvas. #}
 								{%- set ns2 = namespace(txt="") -%}
 								{%- for mf in _merged -%}{%- if not ns2.txt and mf.fieldname and mf.fieldname != ns.img_fn -%}{%- set ns2.txt = row.get(mf.fieldname)|string -%}{%- endif -%}{%- endfor -%}
-								{%- set _abbr = frappe.utils.get_abbr(ns2.txt) -%}
+								{%- set _abbr = frappe.utils.get_abbr(ns2.txt) or "?" -%}
 								{%- set _ci = "abcdefghijklmnopqrstuvwxyz0123456789".find((_abbr[:1] or "a")|lower) -%}
 								{%- set _pal = [["#EFF6FF", "#2563EB"], ["#FFF7ED", "#EA580C"], ["#F0FDF4", "#16A34A"], ["#FAF5FF", "#9333EA"], ["#FEF2F2", "#DC2626"], ["#F0FDFA", "#0D9488"]] -%}
 								{%- set _c = _pal[(_ci if _ci >= 0 else 0) % 6] -%}

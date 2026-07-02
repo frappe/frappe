@@ -367,6 +367,7 @@
 													class="pfb-stepper-input"
 													type="number"
 													min="16"
+													max="200"
 													:value="col.image_size || 40"
 													@change="
 														(e) => set_image_size(col, e.target.value)
@@ -1231,14 +1232,14 @@ function remove_merged_field(col, mi) {
 	col.merged_fields.splice(mi, 1);
 }
 
-// Image size — same stepper pattern as table Radius / section Gap
+// Image size (px) — same stepper pattern as table Radius / section Gap, clamped 16–200
 function adjust_image_size(col, delta) {
-	col.image_size = Math.max(16, (col.image_size || 40) + delta);
+	col.image_size = Math.max(16, Math.min(200, (col.image_size || 40) + delta));
 }
 
 function set_image_size(col, value) {
 	const v = parseInt(value);
-	col.image_size = isNaN(v) ? 40 : Math.max(16, v);
+	col.image_size = isNaN(v) ? 40 : Math.max(16, Math.min(200, v));
 }
 
 // ── Section helpers ────────────────────────────────────────
