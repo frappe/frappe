@@ -941,6 +941,37 @@ class TestDBQuery(FrappeTestCase):
 			self.assertTrue("name" in data[0])
 			self.assertEqual(len(data[0]), 1)
 
+	def test_permlevel_fields_in_order_by(self):
+		# A permlevel-protected field must not be usable in order by / group by,
+		# else its value leaks via a sorting side-channel oracle.
+		with setup_patched_blog_post(), setup_test_user(set_user=True):
+			for order_by in (
+				"published",
+				"`published` desc",
+				"`tabBlog Post`.`published`",
+				"field(strcmp(published, '1'), -1), name",
+			):
+				self.assertRaises(
+					frappe.PermissionError,
+					frappe.get_list,
+					"Blog Post",
+					fields=["name"],
+					order_by=order_by,
+					limit=1,
+				)
+
+			self.assertRaises(
+				frappe.PermissionError,
+				frappe.get_list,
+				"Blog Post",
+				fields=["name"],
+				group_by="published",
+				limit=1,
+			)
+
+			# permlevel-0 field must still be sortable
+			frappe.get_list("Blog Post", fields=["name"], order_by="title asc", limit=1)
+
 			data = frappe.get_list(
 				"Blog Post",
 				filters={"published": 1},

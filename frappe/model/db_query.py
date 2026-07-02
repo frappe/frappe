@@ -327,9 +327,11 @@ from {tables}
 		self.set_order_by(args)
 
 		self.validate_order_by_and_group_by(args.order_by)
+		self.validate_fieldlevel_permissions_for_sort(args.order_by)
 		args.order_by = (args.order_by and (" order by " + args.order_by)) or ""
 
 		self.validate_order_by_and_group_by(self.group_by)
+		self.validate_fieldlevel_permissions_for_sort(self.group_by)
 		args.group_by = (self.group_by and (" group by " + self.group_by)) or ""
 
 		return args
@@ -1237,6 +1239,41 @@ from {tables}
 			for func in blacklisted_sql_functions:
 				if re.search(r"\b" + re.escape(func) + r"\W*\(", field.lower()):
 					frappe.throw(_("Cannot use {0} in order/group by").format(field))
+
+	def validate_fieldlevel_permissions_for_sort(self, parameters: str):
+		"""Block sorting/grouping by a field the user can't read at its permlevel."""
+		if not parameters or self.flags.ignore_permissions:
+			return
+
+		from frappe.desk.reportview import extract_fieldnames
+
+		for column in extract_fieldnames(parameters):
+			if not column or column == "*" or column[0] in {"'", '"'} or column.isnumeric():
+				continue
+
+			doctype = self.doctype
+			fieldname = column
+			if "." in column:
+				table, fieldname = column.split(".", 1)
+				doctype = self.linked_table_aliases.get(table, table)
+				doctype = doctype.replace("`", "").removeprefix("tab")
+
+			# Only real docfields with permlevel > 0 are gated. Standard/meta fields,
+			# aliases and pseudo-columns (get_field returns None) and permlevel-0 fields
+			# are always readable
+			df = frappe.get_meta(doctype).get_field(fieldname)
+			if not df or not df.permlevel:
+				continue
+
+			permitted = get_permitted_fields(
+				doctype=doctype,
+				parenttype=self.parent_doctype,
+				permission_type=self.permission_map.get(doctype),
+			)
+			if fieldname not in permitted:
+				raise frappe.PermissionError(
+					_("Not permitted to sort or group by {0}").format(frappe.bold(fieldname))
+				)
 
 	def add_limit(self):
 		if self.limit_page_length:
