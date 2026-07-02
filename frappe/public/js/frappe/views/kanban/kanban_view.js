@@ -839,9 +839,8 @@ frappe.views.KanbanView = class KanbanView extends frappe.views.ListView {
 
 		frappe.realtime.on("kanban_board_update", (data) => {
 			if (data.board_name !== this.board_name) return;
-			if (this.avoid_realtime_update()) return;
 			this.pending_kanban_board_refresh = true;
-			if (this.skip_kanban_realtime) return;
+			if (this.avoid_realtime_update() || this.skip_kanban_realtime) return;
 			this.debounced_refresh();
 		});
 		this.kanban_board_realtime_setup = true;

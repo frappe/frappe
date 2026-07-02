@@ -1154,6 +1154,7 @@ frappe.provide("frappe.views");
 						suppress_cards_watch = false;
 						if (cur_list) {
 							cur_list.disable_list_update = false;
+							cur_list.flush_deferred_kanban_realtime?.();
 							// Delay re-enabling so our own list_update / board events are ignored.
 							setTimeout(() => {
 								cur_list.skip_kanban_realtime = false;
