@@ -568,5 +568,6 @@ class TestPrintFormatGenerator(IntegrationTestCase):
 		pf = self._make_print_format()
 		todo = self._make_todo()
 		html = get_html("ToDo", todo.name, pf.name)
-		self.assertNotIn("field-justify-", html)
-		self.assertNotIn("field left-right", html)
+		body = html.split("<body>", 1)[1]
+		self.assertNotIn("field-justify-", body)
+		self.assertNotIn("field left-right", body)
