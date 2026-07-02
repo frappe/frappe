@@ -251,8 +251,10 @@ body {
 }
 
 /* ── Merged cells (multiple fields, optional left image) ─── */
+/* Same specificity as the numeric-align rule above but declared later, so
+   this wins the cascade without needing !important. */
 .child-table .column-value--merged {
-	text-align: left !important;
+	text-align: left;
 }
 
 .child-table .cell-merged {
