@@ -296,6 +296,35 @@
 															{{ s.label }}
 														</option>
 													</select>
+													<div
+														v-else
+														class="pfb-stepper pfb-stepper--sm"
+														:title="__('Image size')"
+													>
+														<button
+															@click="adjust_image_size(col, -4)"
+														>
+															−
+														</button>
+														<input
+															class="pfb-stepper-input"
+															type="number"
+															min="16"
+															max="200"
+															:value="col.image_size || 40"
+															@change="
+																(e) =>
+																	set_image_size(
+																		col,
+																		e.target.value
+																	)
+															"
+														/>
+														<span class="pfb-stepper-unit">px</span>
+														<button @click="adjust_image_size(col, 4)">
+															+
+														</button>
+													</div>
 													<button
 														class="pfb-col-remove"
 														@click="remove_merged_field(col, mi)"
@@ -314,34 +343,6 @@
 												:placeholder="__('Add field...')"
 												@select="(opt) => add_merged_field(col, opt.value)"
 											/>
-										</div>
-										<div
-											v-if="has_image_merge(col)"
-											class="pfb-insp-row"
-											style="padding: 0 14px 10px"
-										>
-											<span class="pfb-insp-label">{{
-												__("Image size")
-											}}</span>
-											<div class="pfb-stepper">
-												<button @click="adjust_image_size(col, -4)">
-													−
-												</button>
-												<input
-													class="pfb-stepper-input"
-													type="number"
-													min="16"
-													max="200"
-													:value="col.image_size || 40"
-													@change="
-														(e) => set_image_size(col, e.target.value)
-													"
-												/>
-												<span class="pfb-stepper-unit">px</span>
-												<button @click="adjust_image_size(col, 4)">
-													+
-												</button>
-											</div>
 										</div>
 									</div>
 								</div>
@@ -1141,12 +1142,6 @@ function merge_field_opts(col) {
 
 function is_image_merge(mf) {
 	return IMAGE_COL_FIELDTYPES.has(mf.fieldtype);
-}
-
-function has_image_merge(col) {
-	return (
-		IMAGE_COL_FIELDTYPES.has(col.fieldtype) || (col.merged_fields || []).some(is_image_merge)
-	);
 }
 
 function ensure_merged(col) {
