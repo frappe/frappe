@@ -1465,8 +1465,8 @@ def validate_fields(meta: Meta):
 			default_value = cstr(d.default).strip()
 			if default_value not in ("0", "1"):
 				frappe.throw(
-					_("Default for 'Check' type of field {0} must be either '0' or '1'").format(
-						frappe.bold(d.fieldname)
+					_("The default value for the Check field {0} must be either '0' or '1'").format(
+						frappe.bold(d.label or d.fieldname)
 					)
 				)
 			d.default = default_value
