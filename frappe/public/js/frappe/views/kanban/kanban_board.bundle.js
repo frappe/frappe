@@ -279,12 +279,12 @@ frappe.provide("frappe.views");
 				const _cards = context.state.cards.slice();
 				const _columns = context.state.columns.slice();
 
-				// Build order from saved state — DOM may only show part of the column.
+				// Build order from saved column order — not only in-memory cards.
 				const order = {};
 				const cards_index = context.state.cards_index;
 				context.state.columns.forEach(function (col) {
 					if (!is_active_column(col)) return;
-					order[col.title] = get_ordered_names(col, cards_index);
+					order[col.title] = get_column_full_order(col, cards_index);
 				});
 
 				frappe
@@ -1135,7 +1135,9 @@ frappe.provide("frappe.views");
 						suppress_cards_watch = false;
 						if (cur_list) {
 							cur_list.disable_list_update = false;
+							cur_list.sync_column_order_after_drag?.(from_colname, move.from_order);
 							if (from_colname !== to_colname) {
+								cur_list.sync_column_order_after_drag?.(to_colname, move.to_order);
 								cur_list.on_kanban_card_moved?.(
 									card_name,
 									from_colname,
@@ -1641,16 +1643,28 @@ frappe.provide("frappe.views");
 		Object.keys(column_registry).forEach((key) => delete column_registry[key]);
 	}
 
+	function get_kanban_column_title($kanban_cards) {
+		return $kanban_cards?.parents(".kanban-column").attr("data-column-value");
+	}
+
+	function get_column_list_window_start($kanban_cards) {
+		const column_title = get_kanban_column_title($kanban_cards);
+		return store.state.cur_list?.kanban_column_state?.[column_title]?.window_start || 0;
+	}
+
 	/** Convert drag position on screen to position in the full column list.
 
 	Only some cards are on screen; add virt_start and account for the top spacer.
 	*/
 	function get_sortable_full_index($kanban_cards, dom_index) {
 		if (!$kanban_cards?.length) return dom_index;
-		if (!$kanban_cards.data("virtualized")) return dom_index;
-		const virt_start = $kanban_cards.data("virt-start") || 0;
 		const has_top_spacer = $kanban_cards.children().first().hasClass("kanban-virtual-spacer");
-		return virt_start + Math.max(0, dom_index - (has_top_spacer ? 1 : 0));
+		const dom_offset = Math.max(0, dom_index - (has_top_spacer ? 1 : 0));
+		if (!$kanban_cards.data("virtualized")) {
+			return get_column_list_window_start($kanban_cards) + dom_offset;
+		}
+		const virt_start = $kanban_cards.data("virt-start") || 0;
+		return virt_start + dom_offset;
 	}
 
 	/** Card names currently shown on screen (ignores spacers). */
@@ -1671,11 +1685,17 @@ frappe.provide("frappe.views");
 		const dom_names = get_dom_card_names($kanban_cards);
 		if (!dom_names.length) return full_order.slice();
 
-		if (!$kanban_cards.data("virtualized")) {
+		if (!$kanban_cards.data("virtualized") && dom_names.length >= full_order.length) {
 			return dom_names;
 		}
 
-		const virt_start = $kanban_cards.data("virt-start") || 0;
+		return patch_full_order_from_dom($kanban_cards, full_order, dom_names);
+	}
+
+	function patch_full_order_from_dom($kanban_cards, full_order, dom_names) {
+		const virt_start = $kanban_cards.data("virtualized")
+			? $kanban_cards.data("virt-start") || 0
+			: get_column_list_window_start($kanban_cards);
 		const result = full_order.slice();
 		for (let i = 0; i < dom_names.length; i++) {
 			const idx = virt_start + i;
@@ -1693,17 +1713,16 @@ frappe.provide("frappe.views");
 		const dom_names = get_dom_card_names($kanban_cards);
 		if (!dom_names.length) return full_order.filter((n) => n !== card_name);
 
-		if (!$kanban_cards.data("virtualized")) {
-			return dom_names;
-		}
-
 		const insert_idx_in_dom = dom_names.indexOf(card_name);
 		if (insert_idx_in_dom === -1) {
 			return full_order.filter((n) => n !== card_name);
 		}
 
 		const without = full_order.filter((n) => n !== card_name);
-		const full_insert_idx = ($kanban_cards.data("virt-start") || 0) + insert_idx_in_dom;
+		const virt_start = $kanban_cards.data("virtualized")
+			? $kanban_cards.data("virt-start") || 0
+			: get_column_list_window_start($kanban_cards);
+		const full_insert_idx = virt_start + insert_idx_in_dom;
 		without.splice(Math.min(full_insert_idx, without.length), 0, card_name);
 		return without;
 	}
@@ -1717,6 +1736,29 @@ frappe.provide("frappe.views");
 		} catch (e) {
 			return [];
 		}
+	}
+
+	/** Full column order for drag/save — saved order plus loaded cards not in it yet. */
+	function get_column_full_order(column, cards_index) {
+		const saved = parse_column_order(column);
+		const column_cards = cards_index?.by_column[column.title] || [];
+
+		if (!saved.length) {
+			return column_cards.map((card) => card.name);
+		}
+		if (!column_cards.length) {
+			return saved.slice();
+		}
+
+		const saved_set = new Set(saved);
+		const ordered_names = saved.slice();
+
+		for (let i = 0; i < column_cards.length; i++) {
+			if (!saved_set.has(column_cards[i].name)) {
+				ordered_names.push(column_cards[i].name);
+			}
+		}
+		return ordered_names;
 	}
 
 	/** Column card order for display / sync — saved order first, then cards missing from it. */
@@ -1771,8 +1813,8 @@ frappe.provide("frappe.views");
 		const to_column = columns.find((c) => c.title === to_colname);
 		if (!from_column || !to_column) return { from_order: [], to_order: [] };
 
-		const from_before = get_column_display_order(from_column, state.cards_index);
-		const to_before = get_column_display_order(to_column, state.cards_index);
+		const from_before = get_column_full_order(from_column, state.cards_index);
+		const to_before = get_column_full_order(to_column, state.cards_index);
 		let from_names;
 		let to_names;
 

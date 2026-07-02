@@ -419,6 +419,25 @@ frappe.views.KanbanView = class KanbanView extends frappe.views.ListView {
 		return frappe.utils.dict(cards.keys, cards.values);
 	}
 
+	/** Re-sort loaded_names to match saved board order after fetch or drag. */
+	align_column_loaded_names(column_title) {
+		const col = this.get_active_kanban_columns().find((c) => c.column_name === column_title);
+		const state = this.kanban_column_state?.[column_title];
+		const field_name = this.board?.field_name;
+		if (!col || !state || !field_name) return;
+		state.loaded_names = this.rebuild_column_loaded_names(col, field_name);
+	}
+
+	/** Keep pagination loaded_names aligned with persisted order after drag. */
+	sync_column_order_after_drag(column_title, order_names) {
+		const state = this.kanban_column_state?.[column_title];
+		if (!state || !order_names?.length) return;
+
+		const memory = new Set(state.loaded_names);
+		state.loaded_names = order_names.filter((name) => memory.has(name));
+		this.reconcile_column_pagination_state(state, column_title);
+	}
+
 	/** Add new cards at the end of a column (user scrolled down).
 
 	At 500 cards, removes the oldest from memory and moves window_start forward.
@@ -447,6 +466,7 @@ frappe.views.KanbanView = class KanbanView extends frappe.views.ListView {
 		}
 
 		this.data = Array.from(map.values());
+		this.align_column_loaded_names(column_title);
 		return evicted;
 	}
 
@@ -487,6 +507,7 @@ frappe.views.KanbanView = class KanbanView extends frappe.views.ListView {
 		}
 
 		this.data = Array.from(map.values());
+		this.align_column_loaded_names(column_title);
 		return evicted;
 	}
 
@@ -678,6 +699,7 @@ frappe.views.KanbanView = class KanbanView extends frappe.views.ListView {
 			state.window_start = 0;
 			state.loaded_names = [];
 			this.merge_kanban_cards_for_column(column_title, rows);
+			this.align_column_loaded_names(column_title);
 		});
 	}
 
