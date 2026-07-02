@@ -11,7 +11,15 @@ export {
   getColumnAlign,
   applyColumnWidth,
   clearColumnWidth,
+  dropOrphanedSyntheticColumns,
+  fetchFields,
+  SYNTHETIC_KEY_PREFIX,
 } from "./columns";
 export { getColumnOptions } from "./getColumnOptions";
-export { getDefaultColumns } from "./getDefaultColumns";
-export type { Column, ColumnOption, WireColumn } from "./types";
+export { getDefaultColumns, foldSyntheticColumns } from "./getDefaultColumns";
+export type {
+  Column,
+  ColumnOption,
+  SyntheticColumn,
+  WireColumn,
+} from "./types";
