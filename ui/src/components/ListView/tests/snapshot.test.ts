@@ -116,6 +116,25 @@ describe("useListView snapshot / restore", () => {
     expect(view.columns.isCustomized.value).toBe(false);
   });
 
+  it("threads synthetic column declarations through to useColumns (ADR-0033)", () => {
+    const indicator = {
+      key: "_indicator",
+      label: "Status",
+      type: "Status",
+      place: "after-title" as const,
+      subsumes: "status",
+    };
+    const view = useListView("Sales Order", { synthetic: [indicator] });
+    // Folded into the default shown at its anchor, `status` subsumed out of the seed.
+    expect(view.columns.shown.value.map((c) => c.fieldname)).toEqual([
+      "name",
+      "_indicator",
+      "customer",
+    ]);
+    // And exposed so the host can bind ColumnSettings' picker union from one place.
+    expect(view.columns.synthetic.value).toEqual([indicator]);
+  });
+
   it("round-trips: a captured snapshot restores to the same effective state", () => {
     const source = useListView("Sales Order");
     source.filters.conditions.value = [

@@ -103,4 +103,54 @@ describe("useColumns", () => {
     const { wire } = useColumns("Test DT");
     expect(wire.value.map((c) => c.key)).toEqual(["name", "status", "amount"]);
   });
+
+  const indicator = {
+    key: "_indicator",
+    label: "Status",
+    type: "Status",
+    place: "after-title" as const,
+    subsumes: "status",
+  };
+
+  it("folds a synthetic declaration into the default shown at its place anchor", () => {
+    setMeta(FIELDS);
+    const { shown } = useColumns("Test DT", { synthetic: [indicator] });
+    // after-title → right after `name`; `subsumes: status` drops the status field.
+    expect(shown.value.map((c) => c.fieldname)).toEqual([
+      "name",
+      "_indicator",
+      "amount",
+    ]);
+  });
+
+  it("wires a synthetic column's render metadata from the declaration (type Status)", () => {
+    setMeta(FIELDS);
+    const { wire } = useColumns("Test DT", { synthetic: [indicator] });
+    expect(wire.value.find((c) => c.key === "_indicator")?.type).toBe("Status");
+  });
+
+  it("exposes the declarations so the host can bind ColumnSettings' picker union", () => {
+    setMeta(FIELDS);
+    const { synthetic } = useColumns("Test DT", { synthetic: [indicator] });
+    expect(synthetic.value).toEqual([indicator]);
+  });
+
+  it("folds in a declaration that resolves asynchronously (a ref source)", async () => {
+    const { ref } = await import("vue");
+    setMeta(FIELDS);
+    // The indicator rides a live field-meta fetch, so it is empty at first and arrives later.
+    const source = ref<any[]>([]);
+    const { shown } = useColumns("Test DT", { synthetic: source });
+    expect(shown.value.map((c) => c.fieldname)).toEqual([
+      "name",
+      "status",
+      "amount",
+    ]);
+    source.value = [indicator];
+    expect(shown.value.map((c) => c.fieldname)).toEqual([
+      "name",
+      "_indicator",
+      "amount",
+    ]);
+  });
 });

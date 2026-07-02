@@ -1,5 +1,5 @@
 import type { RawMetaField } from "../FormLayout/types";
-import type { Column, WireColumn } from "./types";
+import type { Column, SyntheticColumn, WireColumn } from "./types";
 
 /** Auto-width (fr) a column flexes to when its Column carries no explicit `width`.
  *  frappe-ui's `getGridTemplateColumns` renders a *number* as `fr` (flex, fills
@@ -33,25 +33,51 @@ export function getColumnAlign(fieldtype: string): "left" | "right" {
  * the available space (a numeric `fr`, larger for the leading column); only a
  * resized column carries a fixed px `width`. A Column with no Meta field — a
  * standard field like `name` that isn't in `meta.fields` — falls back to a
- * left-aligned `Data` column. The inverse of {@link parseColumns}.
+ * left-aligned `Data` column. A Column whose `fieldname` matches a host-declared
+ * synthetic column (ADR-0033) takes its render metadata from the declaration instead
+ * of Meta. The inverse of {@link parseColumns}.
  */
 export function serializeColumns(
   columns: Column[],
-  fields: RawMetaField[]
+  fields: RawMetaField[],
+  synthetic: SyntheticColumn[] = []
 ): WireColumn[] {
   const byName = new Map(fields.map((f) => [f.fieldname, f]));
+  const bySynthetic = new Map(synthetic.map((s) => [s.key, s]));
+  const autoWidth = (i: number) => (i === 0 ? AUTO_LEADING_FR : AUTO_FR);
   return columns.map((c, i) => {
+    const declaration = bySynthetic.get(c.fieldname);
+    if (declaration) return syntheticWireColumn(c, declaration, autoWidth(i));
     const field = byName.get(c.fieldname);
     const type = field?.fieldtype ?? "Data";
     return {
       key: c.fieldname,
       label: c.label,
-      width: c.width ?? (i === 0 ? AUTO_LEADING_FR : AUTO_FR),
+      width: c.width ?? autoWidth(i),
       type,
       options: field?.options,
       align: getColumnAlign(type),
     };
   });
+}
+
+/** The wire form of a synthetic column (ADR-0033): its `type`/`align` come from the
+ *  host declaration (never Meta), while a user resize (`column.width`) still overrides
+ *  the declaration's default width, falling back to the auto `fr` when neither is set. */
+function syntheticWireColumn(
+  column: Column,
+  declaration: SyntheticColumn,
+  autoWidth: number
+): WireColumn {
+  const type = declaration.type ?? "Data";
+  return {
+    key: column.fieldname,
+    label: column.label,
+    width: column.width ?? declaration.width ?? autoWidth,
+    type,
+    options: undefined,
+    align: declaration.align ?? getColumnAlign(type),
+  };
 }
 
 /**
@@ -102,4 +128,21 @@ export function clearColumnWidth(
     const { width: _omit, ...rest } = c;
     return rest;
   });
+}
+
+/**
+ * The field set `get_list` fetches for a set of wire columns: `name` plus each
+ * column's key, minus the host-declared synthetic columns (ADR-0033). A synthetic
+ * key (`_indicator`) names no docfield, so requesting it would error the fetch —
+ * the real fields its cell reads are the host's concern, fetched separately. Deduped.
+ * With no synthetic declarations it is `name` + every key (byte-identical default).
+ * The library-side companion to a host's own fetch-field builder.
+ */
+export function fetchFields(
+  wire: WireColumn[],
+  synthetic: SyntheticColumn[] = []
+): string[] {
+  const syntheticKeys = new Set(synthetic.map((s) => s.key));
+  const keys = wire.map((c) => c.key).filter((key) => !syntheticKeys.has(key));
+  return Array.from(new Set(["name", ...keys]));
 }

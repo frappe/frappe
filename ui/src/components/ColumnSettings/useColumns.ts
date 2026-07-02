@@ -1,13 +1,28 @@
-import { computed, ref } from "vue";
-import type { Ref, WritableComputedRef } from "vue";
+import { computed, ref, toValue } from "vue";
+import type {
+  ComputedRef,
+  MaybeRefOrGetter,
+  Ref,
+  WritableComputedRef,
+} from "vue";
 import { useDoctypeMeta } from "../../composables/useDoctypeMeta";
 import {
   serializeColumns,
   applyColumnWidth,
   clearColumnWidth,
 } from "./columns";
-import { getDefaultColumns } from "./getDefaultColumns";
-import type { Column, WireColumn } from "./types";
+import { getDefaultColumns, foldSyntheticColumns } from "./getDefaultColumns";
+import type { Column, SyntheticColumn, WireColumn } from "./types";
+
+export interface UseColumnsOptions {
+  /** Host-declared synthetic columns (ADR-0033) — columns not resolved from Meta.
+   *  Folded into the default `shown` at their `place` anchor, wired from their own
+   *  render metadata, and offered back by the picker. Default: none (byte-identical).
+   *  A `MaybeRefOrGetter` so a host whose declarations resolve asynchronously (e.g. the
+   *  Record indicator, which rides a live field-meta fetch) can pass a computed and have
+   *  the fold recompute when it arrives — plain arrays work unchanged. */
+  synthetic?: MaybeRefOrGetter<SyntheticColumn[]>;
+}
 
 export interface UseColumns {
   /** The list's shown columns (order = display order, `width` = the resize slice).
@@ -29,6 +44,11 @@ export interface UseColumns {
   /** Write a resized column's width back into `shown` by `fieldname` (the
    *  resize→settings half of the sync). The `save` flag a host might debounce on is
    *  the host's concern and ignored here. */
+  /** The resolved host-declared synthetic columns (ADR-0033), so a host can bind
+   *  ColumnSettings' `:synthetic` prop (its picker union) from the same place it reads
+   *  `shown` — one source, threaded from `useListView`. A `ComputedRef` so it tracks a
+   *  reactive/async declaration source. */
+  synthetic: ComputedRef<SyntheticColumn[]>;
   setWidth: (fieldname: string, width: string) => void;
   /** Drop a column's fixed `width` so it flexes to fill again (the reset half of the
    *  resize story). A host wires this to a double-click on the header resizer; with
@@ -44,17 +64,29 @@ export interface UseColumns {
  * `doctype` is taken by value: the Shell remounts the controls via `:key="doctype"`
  * and Meta is cached per doctype string, so reconstructing on a switch is cheap.
  */
-export function useColumns(doctype: string): UseColumns {
+export function useColumns(
+  doctype: string,
+  options: UseColumnsOptions = {}
+): UseColumns {
   const { meta } = useDoctypeMeta(doctype);
+  // Resolved reactively so an async declaration source (the indicator rides a live
+  // field-meta fetch) folds in the moment it arrives, like the Meta-derived defaults do.
+  const synthetic = computed<SyntheticColumn[]>(
+    () => toValue(options.synthetic) ?? []
+  );
 
   // `null` ⇒ "use the Meta-derived default"; a value ⇒ customized. The default
   // tracks Meta as it loads, yet the first write (a ColumnSettings edit or a resize)
-  // sticks — no seed watch needed.
+  // sticks — no seed watch needed. Synthetic declarations fold into the default seed
+  // only (ADR-0033); once customized, the persisted layout carries them.
   const customColumns = ref<Column[] | null>(null);
   const shown = computed<Column[]>({
     get: () =>
       customColumns.value ??
-      getDefaultColumns(meta.value?.fields ?? [], meta.value?.title_field),
+      foldSyntheticColumns(
+        getDefaultColumns(meta.value?.fields ?? [], meta.value?.title_field),
+        synthetic.value
+      ),
     set: (value) => {
       customColumns.value = value;
     },
@@ -66,7 +98,7 @@ export function useColumns(doctype: string): UseColumns {
   };
 
   const wire = computed(() =>
-    serializeColumns(shown.value, meta.value?.fields ?? [])
+    serializeColumns(shown.value, meta.value?.fields ?? [], synthetic.value)
   );
 
   // A drag in the frappe-ui header emits `{ key, width }`; writing it back into
@@ -81,5 +113,5 @@ export function useColumns(doctype: string): UseColumns {
     shown.value = clearColumnWidth(shown.value, fieldname);
   };
 
-  return { shown, isCustomized, reset, wire, setWidth, resetWidth };
+  return { shown, isCustomized, reset, wire, synthetic, setWidth, resetWidth };
 }
