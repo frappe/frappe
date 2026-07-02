@@ -8,7 +8,7 @@
 						<!-- sender email is hidden; surfaced on hover via tooltip -->
 						<Tooltip :text="email.data.sender">
 							<span class="text-base font-medium text-ink-gray-6">{{
-								email.author.fullname || "Guest"
+								email?.author?.fullname || "Guest"
 							}}</span>
 						</Tooltip>
 						<div class="flex items-center gap-2">
