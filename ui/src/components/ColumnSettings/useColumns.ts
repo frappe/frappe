@@ -10,6 +10,7 @@ import {
   serializeColumns,
   applyColumnWidth,
   clearColumnWidth,
+  dropOrphanedSyntheticColumns,
 } from "./columns";
 import { getDefaultColumns, foldSyntheticColumns } from "./getDefaultColumns";
 import type { Column, SyntheticColumn, WireColumn } from "./types";
@@ -78,15 +79,23 @@ export function useColumns(
   // `null` ⇒ "use the Meta-derived default"; a value ⇒ customized. The default
   // tracks Meta as it loads, yet the first write (a ColumnSettings edit or a resize)
   // sticks — no seed watch needed. Synthetic declarations fold into the default seed
-  // only (ADR-0033); once customized, the persisted layout carries them.
+  // only (ADR-0033); once customized, the persisted layout carries them. A customized
+  // layout is scrubbed of orphaned synthetic keys on read (`dropOrphanedSyntheticColumns`):
+  // a declaration can be removed after the user customized, leaving a `_`-prefixed column
+  // that names no docfield and would error `get_list` — dropping it keeps the layout valid
+  // while a re-declared key simply reappears.
   const customColumns = ref<Column[] | null>(null);
   const shown = computed<Column[]>({
     get: () =>
-      customColumns.value ??
-      foldSyntheticColumns(
-        getDefaultColumns(meta.value?.fields ?? [], meta.value?.title_field),
-        synthetic.value
-      ),
+      customColumns.value
+        ? dropOrphanedSyntheticColumns(customColumns.value, synthetic.value)
+        : foldSyntheticColumns(
+            getDefaultColumns(
+              meta.value?.fields ?? [],
+              meta.value?.title_field
+            ),
+            synthetic.value
+          ),
     set: (value) => {
       customColumns.value = value;
     },

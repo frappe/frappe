@@ -1,6 +1,12 @@
 import type { RawMetaField } from "../FormLayout/types";
 import type { Column, SyntheticColumn, WireColumn } from "./types";
 
+/** The leading character reserved for a synthetic column's `key` (ADR-0033), so it
+ *  can never collide with a docfield. A `_`-prefixed column in a persisted layout is
+ *  only valid while a live declaration still claims it — see
+ *  {@link dropOrphanedSyntheticColumns}. */
+export const SYNTHETIC_KEY_PREFIX = "_";
+
 /** Auto-width (fr) a column flexes to when its Column carries no explicit `width`.
  *  frappe-ui's `getGridTemplateColumns` renders a *number* as `fr` (flex, fills
  *  the available track) and a *string* (`"150px"`, `"10rem"`) as a fixed size — so
@@ -128,6 +134,27 @@ export function clearColumnWidth(
     const { width: _omit, ...rest } = c;
     return rest;
   });
+}
+
+/**
+ * Drop **orphaned synthetic columns** from a persisted layout: any `_`-prefixed
+ * column (a synthetic `key`, ADR-0033) no longer claimed by a live declaration. A
+ * customized layout can outlive the declaration that seeded it — the host stops
+ * declaring the Record indicator, yet `_indicator` still sits in the stored
+ * `Column[]`. Left in, it names no docfield, so `serializeColumns` mistakes it for a
+ * `Data` field and `fetchFields` requests it, erroring `get_list`. This scrubs it on
+ * read, keeping the rest of the user's customization; a docfield column (no `_`) is
+ * always kept. Returns the same reference when nothing is orphaned (byte-identical),
+ * so a layout with no synthetic residue is untouched.
+ */
+export function dropOrphanedSyntheticColumns(
+  columns: Column[],
+  synthetic: SyntheticColumn[]
+): Column[] {
+  const live = new Set(synthetic.map((s) => s.key));
+  const isOrphan = (c: Column) =>
+    c.fieldname.startsWith(SYNTHETIC_KEY_PREFIX) && !live.has(c.fieldname);
+  return columns.some(isOrphan) ? columns.filter((c) => !isOrphan(c)) : columns;
 }
 
 /**

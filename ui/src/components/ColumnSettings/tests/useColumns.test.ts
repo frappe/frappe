@@ -153,4 +153,43 @@ describe("useColumns", () => {
       "amount",
     ]);
   });
+
+  it("scrubs an orphaned synthetic key from a customized layout when the declaration is removed", async () => {
+    const { ref } = await import("vue");
+    setMeta(FIELDS);
+    const source = ref<any[]>([indicator]);
+    const { shown } = useColumns("Test DT", { synthetic: source });
+    // The user customizes while the indicator is active — `_indicator` sticks in the
+    // persisted layout, ahead of the docfields.
+    shown.value = [
+      { fieldname: "name", label: "Name" },
+      { fieldname: "_indicator", label: "Status" },
+      { fieldname: "amount", label: "Amount" },
+    ];
+    // The declaration is later removed (the syntheticDemo toggle). The orphaned
+    // `_indicator` would otherwise name no docfield and error get_list.
+    source.value = [];
+    expect(shown.value.map((c) => c.fieldname)).toEqual(["name", "amount"]);
+    // A re-declared key simply reappears — the customized layout still carries it.
+    source.value = [indicator];
+    expect(shown.value.map((c) => c.fieldname)).toEqual([
+      "name",
+      "_indicator",
+      "amount",
+    ]);
+  });
+
+  it("keeps the orphaned key out of the wire columns (so get_list never requests it)", async () => {
+    const { ref } = await import("vue");
+    setMeta(FIELDS);
+    const source = ref<any[]>([indicator]);
+    const { shown, wire } = useColumns("Test DT", { synthetic: source });
+    shown.value = [
+      { fieldname: "name", label: "Name" },
+      { fieldname: "_indicator", label: "Status" },
+      { fieldname: "amount", label: "Amount" },
+    ];
+    source.value = [];
+    expect(wire.value.map((c) => c.key)).toEqual(["name", "amount"]);
+  });
 });

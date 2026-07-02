@@ -2,6 +2,7 @@ import { describe, expect, it } from "vitest";
 import {
   applyColumnWidth,
   clearColumnWidth,
+  dropOrphanedSyntheticColumns,
   fetchFields,
   getColumnAlign,
   parseColumns,
@@ -231,5 +232,43 @@ describe("fetchFields", () => {
 
   it("fetches every column key when nothing is synthetic (byte-identical default)", () => {
     expect(fetchFields(wire)).toEqual(["name", "_indicator", "status"]);
+  });
+});
+
+describe("dropOrphanedSyntheticColumns", () => {
+  const layout: Column[] = [
+    { fieldname: "name", label: "Name" },
+    { fieldname: "_indicator", label: "Status" },
+    { fieldname: "amount", label: "Amount" },
+  ];
+
+  it("drops a `_`-prefixed column no live declaration claims", () => {
+    // The declaration was removed after the user customized; `_indicator` is orphaned.
+    expect(dropOrphanedSyntheticColumns(layout, []).map((c) => c.fieldname)).toEqual(
+      ["name", "amount"]
+    );
+  });
+
+  it("keeps a `_`-prefixed column a live declaration still claims", () => {
+    expect(
+      dropOrphanedSyntheticColumns(layout, [{ key: "_indicator", label: "Status" }])
+    ).toBe(layout);
+  });
+
+  it("returns the same reference when no column is synthetic (byte-identical)", () => {
+    const docfields: Column[] = [
+      { fieldname: "name", label: "Name" },
+      { fieldname: "amount", label: "Amount" },
+    ];
+    expect(dropOrphanedSyntheticColumns(docfields, [])).toBe(docfields);
+  });
+
+  it("never drops a docfield column, even with no declarations", () => {
+    expect(
+      dropOrphanedSyntheticColumns(
+        [{ fieldname: "amount", label: "Amount" }],
+        []
+      )
+    ).toEqual([{ fieldname: "amount", label: "Amount" }]);
   });
 });

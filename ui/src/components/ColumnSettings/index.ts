@@ -11,7 +11,9 @@ export {
   getColumnAlign,
   applyColumnWidth,
   clearColumnWidth,
+  dropOrphanedSyntheticColumns,
   fetchFields,
+  SYNTHETIC_KEY_PREFIX,
 } from "./columns";
 export { getColumnOptions } from "./getColumnOptions";
 export { getDefaultColumns, foldSyntheticColumns } from "./getDefaultColumns";
