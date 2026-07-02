@@ -146,8 +146,10 @@ let is_section_visible = computed(() =>
 
 let is_grid = computed(() => !!props.section.field_borders);
 
-let has_visible_fields = computed(() =>
-	props.section.columns.some((col) => col.fields.some((f) => !f.remove))
+let has_visible_fields = computed(
+	() =>
+		!props.section.label ||
+		props.section.columns.some((col) => col.fields.some((f) => !f.remove))
 );
 
 let section_inline_style = computed(() => {
