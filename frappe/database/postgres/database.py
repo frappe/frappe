@@ -96,10 +96,10 @@ class PostgresExceptionUtil:
 	@staticmethod
 	def is_deadlocked(e):
 		# Treat serialization failures like deadlocks: both are retriable transaction-rollback
-		# (class 40) errors. Under REPEATABLE READ, a write-write conflict makes MariaDB lock and
-		# wait, but postgres aborts the loser with SERIALIZATION_FAILURE ("could not serialize
-		# access due to concurrent update"). Classifying it here routes it through frappe's deadlock
-		# retry instead of surfacing as an unhandled query error.
+		# (class 40) errors. READ COMMITTED (the default now) doesn't raise SERIALIZATION_FAILURE
+		# on plain write conflicts, but transactions explicitly run at a stricter level still can;
+		# keep classifying it here so those route through frappe's deadlock retry instead of
+		# surfacing as an unhandled query error.
 		return getattr(e, "pgcode", None) in (DEADLOCK_DETECTED, SERIALIZATION_FAILURE)
 
 	@staticmethod
