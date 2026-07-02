@@ -380,6 +380,7 @@ class TestPrintFormatGenerator(IntegrationTestCase):
 		)
 		todo = self._make_todo()
 		html = get_html("ToDo", todo.name, pf.name)
+		self.assertIn("background:red", html)
 		self.assertNotIn('"><b>PWN</b>', html)
 
 	def test_blank_table_column_header_falls_back_to_fieldname(self):
@@ -455,8 +456,16 @@ class TestPrintFormatGenerator(IntegrationTestCase):
 		self.addCleanup(contact.delete, ignore_permissions=True)
 		return contact
 
-	def _make_repeater_format(self, label="", columns=None):
+	def _make_repeater_format(self, label="", columns=None, omit_repeater_columns=False):
 		name = f"_Test PFG Rep {frappe.generate_hash(length=6)}"
+		repeater_field = {
+			"fieldtype": "Repeater",
+			"fieldname": "rep1",
+			"label": label,
+			"source": "email_ids",
+		}
+		if not omit_repeater_columns:
+			repeater_field["repeater_columns"] = columns or []
 		pf = frappe.get_doc(
 			{
 				"doctype": "Print Format",
@@ -470,19 +479,7 @@ class TestPrintFormatGenerator(IntegrationTestCase):
 						"sections": [
 							{
 								"label": "",
-								"columns": [
-									{
-										"fields": [
-											{
-												"fieldtype": "Repeater",
-												"fieldname": "rep1",
-												"label": label,
-												"source": "email_ids",
-												"repeater_columns": columns or [],
-											}
-										]
-									}
-								],
+								"columns": [{"fields": [repeater_field]}],
 							}
 						],
 						"header": {"columns": [{"label": "", "fields": []}]},
@@ -522,6 +519,31 @@ class TestPrintFormatGenerator(IntegrationTestCase):
 		)
 		html = get_html("Contact", contact.name, pf.name)
 		self.assertNotIn('<div class="label">', html)
+
+	def test_repeater_with_missing_columns_key_does_not_crash(self):
+		"""A repeater whose source is set but with no repeater_columns key must not raise."""
+		from frappe.utils.print_format_generator import get_html
+
+		contact = self._make_contact_with_email()
+		pf = self._make_repeater_format(omit_repeater_columns=True)
+		html = get_html("Contact", contact.name, pf.name)
+		self.assertIn("pfb-repeater", html)
+
+	def test_repeater_column_values_are_escaped(self):
+		"""A crafted column align/text token must be escaped so it cannot inject markup."""
+		from frappe.utils.print_format_generator import get_html
+
+		contact = self._make_contact_with_email()
+		pf = self._make_repeater_format(
+			columns=[
+				{
+					"template": [{"t": "s", "v": '"><b>PWN</b>'}],
+					"align": '"><b>PWN</b>',
+				}
+			]
+		)
+		html = get_html("Contact", contact.name, pf.name)
+		self.assertNotIn('"><b>PWN</b>', html)
 
 	# ------------------------------------------------------------------ #
 	# Field orientation / spacing
