@@ -1027,6 +1027,12 @@ watch(
 	color: var(--text-color);
 }
 
+/* Repeater rows are tight by default — spacing is opt-in via the section */
+.field-preview-repeater .preview-table td {
+	padding: 0;
+	border: none;
+}
+
 /* lined (default): no alternating rows */
 .preview-table--lined tr.odd td,
 .preview-table--lined tr.even td {

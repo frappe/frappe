@@ -7,9 +7,7 @@
 			{% for col in df.repeater_columns %}
 			<td class="pfb-repeater-cell" style="text-align: {{ col.align or 'left' }}">
 				{%- for tok in col.template -%}
-					{%- if tok.t == 'f' -%}
-						{%- if col.format == 'Auto' -%}{{ row.get_formatted(tok.v) }}{%- else -%}{{ row.get(tok.v) if row.get(tok.v) is not none else '' }}{%- endif -%}
-					{%- else -%}{{ tok.v }}{%- endif -%}
+					{%- if tok.t == 'f' -%}{{ row.get_formatted(tok.v) }}{%- else -%}{{ tok.v }}{%- endif -%}
 				{%- endfor -%}
 			</td>
 			{% endfor %}

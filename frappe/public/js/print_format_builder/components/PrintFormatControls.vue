@@ -330,8 +330,8 @@ const draggable_blocks = [
 		desc: __("Repeat child table rows as templated lines"),
 		source: "",
 		repeater_columns: [
-			{ template: [], align: "left", format: "Text" },
-			{ template: [], align: "right", format: "Auto" },
+			{ template: [], align: "left" },
+			{ template: [], align: "right" },
 		],
 	},
 ];
@@ -358,6 +358,8 @@ function clone_field(df) {
 	if (cloned.custom) {
 		cloned.fieldname += "_" + frappe.utils.get_random(8);
 	}
+	// Repeater has no title by default — the palette label is only for the palette.
+	if (cloned.fieldtype === "Repeater") cloned.label = "";
 	return cloned;
 }
 

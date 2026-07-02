@@ -376,16 +376,11 @@
 					<div v-show="open.r_repeater" class="pfb-insp-section-body">
 						<div class="pfb-insp-row">
 							<span class="pfb-insp-label">{{ __("Source") }}</span>
-							<select class="pfb-insp-select" v-model="selected_field.source">
-								<option value="">{{ __("Select table…") }}</option>
-								<option
-									v-for="o in repeater_source_opts"
-									:key="o.value"
-									:value="o.value"
-								>
-									{{ o.label }}
-								</option>
-							</select>
+							<Autocomplete
+								:options="repeater_source_opts"
+								:placeholder="repeater_source_label || __('Select table…')"
+								@select="(o) => (selected_field.source = o.value)"
+							/>
 						</div>
 						<div class="pfb-insp-row pfb-insp-row--col">
 							<span class="pfb-insp-label">{{ __("Title") }}</span>
@@ -429,10 +424,6 @@
 							<div class="pfb-insp-row" style="margin-top: 8px">
 								<span class="pfb-insp-label">{{ __("Align") }}</span>
 								<Segmented v-model="col.align" :options="align_opts" />
-							</div>
-							<div class="pfb-insp-row">
-								<span class="pfb-insp-label">{{ __("Value") }}</span>
-								<Segmented v-model="col.format" :options="repeater_format_opts" />
 							</div>
 						</div>
 						<button class="pfb-add-btn" @click="add_repeater_column">
@@ -858,14 +849,15 @@ let repeater_field_opts = computed(() => {
 		.map((f) => ({ value: f.fieldname, label: f.label || f.fieldname }));
 });
 
-const repeater_format_opts = [
-	{ value: "Text", label: __("Text") },
-	{ value: "Auto", label: __("Formatted") },
-];
+let repeater_source_label = computed(
+	() =>
+		repeater_source_opts.value.find((o) => o.value === selected_field.value?.source)?.label ||
+		""
+);
 
 function add_repeater_column() {
 	if (!selected_field.value.repeater_columns) selected_field.value.repeater_columns = [];
-	selected_field.value.repeater_columns.push({ template: [], align: "left", format: "Text" });
+	selected_field.value.repeater_columns.push({ template: [], align: "left" });
 }
 
 function remove_repeater_column(i) {
