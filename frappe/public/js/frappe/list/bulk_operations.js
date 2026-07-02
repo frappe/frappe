@@ -447,6 +447,71 @@ export default class BulkOperations {
 		dialog.show();
 	}
 
+	assign_role(docnames, done) {
+		if (!docnames.length) {
+			frappe.msgprint(__("Select records for role assignment"));
+			return;
+		}
+
+		const dialog = new frappe.ui.Dialog({
+			title: __("Assign Roles"),
+			size: "large",
+			fields: [
+				{
+					fieldtype: "MultiCheck",
+					fieldname: "roles",
+					label: __("Select Roles"),
+					select_all: true,
+					columns: "12rem",
+					get_data: () => {
+						return frappe
+							.xcall("frappe.core.doctype.user.user.get_all_roles")
+							.then((roles) => {
+								return roles.map((role) => ({
+									label: __(role),
+									value: role,
+									checked: 0,
+								}));
+							});
+					},
+				},
+			],
+			primary_action_label: __("Assign to {0} users", [docnames.length]),
+			primary_action({ roles }) {
+				if (!roles || !roles.length) {
+					frappe.msgprint(__("Select at least one role"));
+					return;
+				}
+				dialog.disable_primary_action();
+				frappe
+					.call({
+						method: "frappe.desk.doctype.bulk_update.bulk_update.bulk_assign_roles",
+						args: {
+							docnames: docnames,
+							roles: roles,
+						},
+						freeze: true,
+						freeze_message: __("Assigning roles..."),
+					})
+					.then((r) => {
+						const failed = r.message || [];
+						if (failed.length && !r._server_messages) {
+							dialog.enable_primary_action();
+							frappe.throw(
+								__("Cannot assign roles to {0}", [
+									failed.map((f) => (f.bold ? f.bold() : f)).join(", "),
+								])
+							);
+						}
+						done();
+						dialog.hide();
+						frappe.show_alert(__("Roles assigned successfully"));
+					});
+			},
+		});
+		dialog.show();
+	}
+
 	add_tags(docnames, done) {
 		const dialog = new frappe.ui.Dialog({
 			title: __("Add Tags"),

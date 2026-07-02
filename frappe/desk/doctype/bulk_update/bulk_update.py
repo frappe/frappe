@@ -117,7 +117,7 @@ def _bulk_action(doctype, docnames, action, data, task_id=None):
 
 						if table_fieldname and hasattr(doc, table_fieldname):
 							child_meta = frappe.get_meta(child_doctype)
-							child_docs = [doc.append(table_fieldname, {})]
+							child_docs = getattr(doc, table_fieldname)
 							for child_doc in child_docs:
 								for fieldname, value in field_updates.items():
 									if child_meta.has_field(fieldname):
@@ -141,6 +141,34 @@ def _bulk_action(doctype, docnames, action, data, task_id=None):
 
 		except Exception:
 			frappe.log_error("Bulk action failed")
+			failed.append(docname)
+			frappe.db.rollback()
+
+	return failed
+
+
+@frappe.whitelist()
+def bulk_assign_roles(docnames: str | list[str], roles: str | list[str]) -> list[str]:
+	if isinstance(docnames, str):
+		docnames = frappe.parse_json(docnames)
+	if isinstance(roles, str):
+		roles = frappe.parse_json(roles)
+
+	if not frappe.get_cached_value("User", frappe.session.user, "bulk_actions"):
+		frappe.throw(_("You are not allowed to perform bulk actions."), frappe.PermissionError)
+
+	failed = []
+	for docname in docnames:
+		try:
+			user = frappe.get_doc("User", docname)
+			existing_roles = {r.role for r in user.roles}
+			for role in roles:
+				if role not in existing_roles:
+					user.append("roles", {"role": role})
+			user.save(ignore_permissions=True)
+			frappe.db.commit()
+		except Exception:
+			frappe.log_error("Bulk role assignment failed")
 			failed.append(docname)
 			frappe.db.rollback()
 
