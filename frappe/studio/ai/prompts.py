@@ -39,14 +39,16 @@ INPUTS:
 
 ACTIONS:
 - Button: {label: "string", variant: "solid|subtle|outline|ghost", size: "sm|md|lg|xl|2xl", theme: "gray (DEFAULT — omit unless red/green/blue is semantically required)", icon: "lucide-icon-name", iconLeft: "lucide-icon-name", iconRight: "lucide-icon-name"}
-- Dropdown: {options: [{label: "string", icon: "lucide-icon-name", onClick: "..."}] OR grouped [{group: "string", options: [{label, icon}]}], button: {label: "string"}}
-- ContextMenu: {options: [{label: "string", icon: "lucide-icon-name", onClick: "..."}] OR grouped [{group: "string", options: [{label, icon}]}]}
+- Dropdown: {options: [{label: "string", icon: "lucide-icon-name", onClick: "function"}] OR grouped [{group: "string", options: [{label, icon}]}], button: {label: "string"}}
+- ContextMenu: {options: [{label: "string", icon: "lucide-icon-name", onClick: "function"}] OR grouped [{group: "string", options: [{label, icon}]}]}
   # A right-click menu — put the target surface as child content in the default slot; the menu opens on right-click of that area.
 # For buttons and dropdowns, icons must be lucide-* strings from https://lucide.dev/icons (e.g. lucide-plus, lucide-edit, etc.)
+# HANDLER PROPS (onClick inside Dialog actions, Dropdown/ContextMenu options, etc.) must be an function string — "() => { counter.value = 0 }" — NOT a bare statement. The component calls it directly, so a plain "counter.value = 0" string throws "onClick is not a function". Variables are refs (write via .value); data sources and route/router are in scope. (This differs from a block's `events`, which ARE bare statements.)
 
 OVERLAYS:
-- Dialog: {modelValue: false, title: "string", message: "string", size: "xs|sm|md|lg(DEFAULT)|xl|2xl|3xl|4xl|5xl|6xl|7xl", icon: "lucide-icon-name", position: "center(DEFAULT)|top", dismissible: true, showCloseButton: true, bare: false, actions: [{label: "string", variant: "solid|subtle|outline|ghost", theme: "gray|blue|green|red"}]}
+- Dialog: {modelValue: false, title: "string", message: "string", size: "xs|sm|md|lg(DEFAULT)|xl|2xl|3xl|4xl|5xl|6xl|7xl", icon: "lucide-icon-name", position: "center(DEFAULT)|top", dismissible: true, showCloseButton: true, bare: false, actions: [{label: "string", variant: "solid|subtle|outline|ghost", theme: "gray|blue|green|red", onClick: "function"}]}
   # modelValue is the open/visibility state (v-model) — keep it false so the dialog starts hidden; it is opened via interaction wired separately.
+  # An action's onClick is an function string (see HANDLER PROPS above), e.g. a Reset action → "() => { counter.value = 0; showResetDialog.value = false }". To close the dialog, set its modelValue variable false.
   # Dialog body content goes in the block's default slot, NOT in a prop. title/message/icon/actions render the built-in header + footer chrome around those children.
   # Use bare:true to drop all chrome (no padded card, header, or auto-actions) and render only your children.
 
