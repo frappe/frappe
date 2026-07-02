@@ -24,13 +24,30 @@
 		<span v-if="!fields.length" class="pfb-tpl-hint">{{
 			__("Select a source table first")
 		}}</span>
-		<Autocomplete v-else :options="fields" :placeholder="__('+ field')" @select="add_field" />
+		<div v-else-if="adding" ref="picker">
+			<Autocomplete
+				:options="fields"
+				:placeholder="__('Search field…')"
+				@select="add_field"
+			/>
+		</div>
+		<button v-else type="button" class="pfb-tpl-addbtn" @click="open_picker">
+			<span v-html="frappe.utils.icon('add', 'xs')"></span>
+			{{ __("Add field") }}
+		</button>
 	</div>
 </template>
 
 <script setup>
-import { computed, onMounted } from "vue";
+import { computed, onMounted, ref, nextTick } from "vue";
 import Autocomplete from "../../../vue-components/Autocomplete.vue";
+
+const adding = ref(false);
+const picker = ref(null);
+function open_picker() {
+	adding.value = true;
+	nextTick(() => picker.value?.querySelector("input")?.focus());
+}
 
 const props = defineProps({
 	modelValue: { type: Array, required: true },
@@ -61,6 +78,7 @@ function field_label(fieldname) {
 }
 function add_field(opt) {
 	if (opt?.value) props.modelValue.push({ t: "f", v: opt.value }, { t: "s", v: "" });
+	adding.value = false;
 }
 function remove(i) {
 	props.modelValue.splice(i, 1);
@@ -126,5 +144,23 @@ function remove(i) {
 	font-size: var(--text-tiny);
 	font-style: italic;
 	color: var(--text-muted);
+}
+.pfb-tpl-addbtn {
+	display: inline-flex;
+	align-items: center;
+	gap: 4px;
+	align-self: flex-start;
+	font-size: var(--text-tiny);
+	font-weight: var(--weight-medium);
+	padding: 3px 8px;
+	border: 1px dashed var(--border-color);
+	border-radius: var(--radius);
+	background: transparent;
+	color: var(--text-muted);
+	cursor: pointer;
+}
+.pfb-tpl-addbtn:hover {
+	background: var(--subtle-accent);
+	color: var(--text-color);
 }
 </style>
