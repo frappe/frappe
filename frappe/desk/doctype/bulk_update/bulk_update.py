@@ -159,12 +159,10 @@ def bulk_assign_roles(docnames: str | list[str], roles: str | list[str]) -> list
 
 	failed = []
 	for docname in docnames:
+		if not frappe.has_permission("User", "write", doc=docname):
+			failed.append(docname)
+			continue
 		try:
-			if not frappe.has_permission("User", "write", doc=docname):
-				frappe.throw(
-					_("Not permitted to modify user {0}").format(frappe.bold(docname)),
-					frappe.PermissionError,
-				)
 			user = frappe.get_doc("User", docname)
 			existing_roles = {r.role for r in user.roles}
 			for role in roles:
