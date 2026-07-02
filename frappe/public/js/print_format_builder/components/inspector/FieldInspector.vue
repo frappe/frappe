@@ -286,6 +286,21 @@
 														class="pfb-type-badge"
 														>{{ __("Image") }}</span
 													>
+													<select
+														v-else
+														class="pfb-insp-select"
+														style="width: 92px; flex: none"
+														v-model="mf.style"
+														:title="__('Text style')"
+													>
+														<option
+															v-for="s in merge_style_opts"
+															:key="s.value"
+															:value="s.value"
+														>
+															{{ s.label }}
+														</option>
+													</select>
 													<button
 														v-if="!is_base_merge(col, mf)"
 														class="pfb-col-remove"
@@ -1095,6 +1110,14 @@ let expanded_col = ref(null);
 // Fieldtypes that store an image URL directly, so they can float left.
 const IMAGE_COL_FIELDTYPES = new Set(["Attach Image", "Attach"]);
 
+// Text style per merged line (drives the cell-line--* class in Field.vue / Table.html).
+const merge_style_opts = [
+	{ value: "primary", label: __("Primary") },
+	{ value: "secondary", label: __("Secondary") },
+	{ value: "mono-sm", label: __("Code") },
+	{ value: "muted-sm", label: __("Muted") },
+];
+
 function toggle_col(ci) {
 	const next = expanded_col.value === ci ? null : ci;
 	expanded_col.value = next;
@@ -1108,6 +1131,7 @@ function toggle_col(ci) {
 		mf.unshift({
 			fieldname: col.fieldname,
 			fieldtype: own?.fieldtype || col.fieldtype || "Data",
+			style: "primary",
 		});
 	}
 }
@@ -1157,7 +1181,12 @@ function ensure_merged(col) {
 
 function add_merged_field(col, fieldname) {
 	const f = find_field(fieldname);
-	if (f) ensure_merged(col).push({ fieldname: f.fieldname, fieldtype: f.fieldtype });
+	if (f)
+		ensure_merged(col).push({
+			fieldname: f.fieldname,
+			fieldtype: f.fieldtype,
+			style: "muted-sm",
+		});
 }
 
 function remove_merged_field(col, mi) {

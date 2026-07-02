@@ -124,7 +124,7 @@
 												v-for="(mf, mi) in text_merges(col)"
 												:key="mi"
 												class="pf-merge-line"
-												:class="{ 'pf-merge-line--primary': mi === 0 }"
+												:class="`pf-merge--${mf.style || 'primary'}`"
 											>
 												{{ format_merged(row, mf.fieldname) }}
 											</div>
@@ -1075,14 +1075,21 @@ watch(
 
 .pf-merge-line {
 	word-break: break-word;
+}
+.pf-merge--primary,
+.pf-merge--secondary {
+	color: var(--text-color);
+}
+.pf-merge--primary {
+	font-weight: var(--weight-semibold);
+}
+.pf-merge--mono-sm,
+.pf-merge--muted-sm {
 	font-size: 0.85em;
 	color: var(--text-muted);
 }
-
-.pf-merge-line--primary {
-	font-size: 1em;
-	font-weight: var(--weight-semibold);
-	color: var(--text-color);
+.pf-merge--mono-sm {
+	font-family: var(--monospace-font-family, monospace);
 }
 
 .preview-table-html {

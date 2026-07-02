@@ -57,8 +57,7 @@
 								{%- endif -%}
 							{%- endif -%}
 							<div class="cell-lines">
-								{%- set nsl = namespace(first=True) -%}
-								{%- for mf in _merged -%}{%- if mf.fieldname and mf.fieldname != ns.img_fn -%}<div class="cell-line{% if nsl.first %} cell-line--primary{% endif %}">{{ row.get_formatted(mf.fieldname)|striptags|e }}</div>{%- set nsl.first = False -%}{%- endif -%}{%- endfor -%}
+								{%- for mf in _merged -%}{%- if mf.fieldname and mf.fieldname != ns.img_fn -%}<div class="cell-line cell-line--{{ (mf.style or 'primary')|e }}">{{ row.get_formatted(mf.fieldname)|striptags|e }}</div>{%- endif -%}{%- endfor -%}
 							</div>
 						</div>
 					{%- else -%}
