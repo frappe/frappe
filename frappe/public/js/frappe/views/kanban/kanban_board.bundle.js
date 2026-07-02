@@ -1686,6 +1686,15 @@ frappe.provide("frappe.views");
 		return store.state.cur_list?.kanban_column_state?.[column_title]?.window_start || 0;
 	}
 
+	/** Map visible DOM cards to indexes in the full saved column order. */
+	function get_column_dom_list_offset($kanban_cards) {
+		const window_start = get_column_list_window_start($kanban_cards);
+		if (!$kanban_cards?.data("virtualized")) {
+			return window_start;
+		}
+		return window_start + ($kanban_cards.data("virt-start") || 0);
+	}
+
 	/** Convert drag position on screen to position in the full column list.
 
 	Only some cards are on screen; add virt_start and account for the top spacer.
@@ -1694,11 +1703,7 @@ frappe.provide("frappe.views");
 		if (!$kanban_cards?.length) return dom_index;
 		const has_top_spacer = $kanban_cards.children().first().hasClass("kanban-virtual-spacer");
 		const dom_offset = Math.max(0, dom_index - (has_top_spacer ? 1 : 0));
-		if (!$kanban_cards.data("virtualized")) {
-			return get_column_list_window_start($kanban_cards) + dom_offset;
-		}
-		const virt_start = $kanban_cards.data("virt-start") || 0;
-		return virt_start + dom_offset;
+		return get_column_dom_list_offset($kanban_cards) + dom_offset;
 	}
 
 	/** Card names currently shown on screen (ignores spacers). */
@@ -1727,12 +1732,10 @@ frappe.provide("frappe.views");
 	}
 
 	function patch_full_order_from_dom($kanban_cards, full_order, dom_names) {
-		const virt_start = $kanban_cards.data("virtualized")
-			? $kanban_cards.data("virt-start") || 0
-			: get_column_list_window_start($kanban_cards);
+		const patch_start = get_column_dom_list_offset($kanban_cards);
 		const result = full_order.slice();
 		for (let i = 0; i < dom_names.length; i++) {
-			const idx = virt_start + i;
+			const idx = patch_start + i;
 			if (idx < result.length) {
 				result[idx] = dom_names[i];
 			} else {
@@ -1753,10 +1756,7 @@ frappe.provide("frappe.views");
 		}
 
 		const without = full_order.filter((n) => n !== card_name);
-		const virt_start = $kanban_cards.data("virtualized")
-			? $kanban_cards.data("virt-start") || 0
-			: get_column_list_window_start($kanban_cards);
-		const full_insert_idx = virt_start + insert_idx_in_dom;
+		const full_insert_idx = get_column_dom_list_offset($kanban_cards) + insert_idx_in_dom;
 		without.splice(Math.min(full_insert_idx, without.length), 0, card_name);
 		return without;
 	}
