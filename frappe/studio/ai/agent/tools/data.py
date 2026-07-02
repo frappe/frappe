@@ -12,16 +12,11 @@ canvas; add the data source FIRST, then lay out and bind the blocks — that ord
 keeps the canvas block edits from racing this save.
 """
 
-import frappe
-
 from studio.ai.agent.registry import Tool
 from studio.ai.agent.tools.page import dangling_binding_warning, load_page, save_page, text_arg
 from studio.ai.block_codec import BlockCodec
 
 RESOURCE_TYPES = ("Document List", "Document", "API Resource")
-# Resource child-table fields that hold JSON; serialized before assignment so the
-# value round-trips regardless of dict/list shape.
-_JSON_FIELDS = ("fields", "filters", "params", "whitelisted_methods")
 
 
 def run_add_data_source(ctx, args: dict) -> str:
@@ -38,11 +33,7 @@ def run_add_data_source(ctx, args: dict) -> str:
 	if _find_resource(page, name):
 		return f"FAILED: a data source named '{name}' already exists. Use update_data_source to change it."
 
-	row = _build_row(name, source_type, args)
-	if error := _validate_row(source_type, row):
-		return f"FAILED: {error}"
-
-	page.append("resources", row)
+	page.append("resources", _build_row(name, source_type, args))
 	if error := save_page(page):
 		return f"FAILED: {error}"
 	_reload(ctx)
@@ -71,8 +62,6 @@ def run_update_data_source(ctx, args: dict) -> str:
 	changed = _apply_changes(row, args)
 	if not changed:
 		return "Nothing to update — pass the fields you want to change."
-	if error := _validate_row(row.resource_type, row):
-		return f"FAILED: {error}"
 	if error := save_page(page):
 		return f"FAILED: {error}"
 	_reload(ctx)
@@ -126,7 +115,7 @@ def _build_row(name: str, source_type: str, args: dict) -> dict:
 	row = {"resource_name": name, "resource_type": source_type}
 	for field in _RESOURCE_FIELDS:
 		if args.get(field) is not None:
-			row[field] = _coerce(field, args[field])
+			row[field] = args[field]
 	return row
 
 
@@ -136,39 +125,9 @@ def _apply_changes(row, args: dict) -> list[str]:
 	changed = []
 	for field in _RESOURCE_FIELDS:
 		if args.get(field) is not None:
-			setattr(row, field, _coerce(field, args[field]))
+			setattr(row, field, args[field])
 			changed.append(field)
 	return changed
-
-
-def _coerce(field: str, value):
-	"""JSON-typed fields are stored as strings; serialize dict/list inputs."""
-	if field in _JSON_FIELDS and isinstance(value, dict | list):
-		return frappe.as_json(value, indent=None)
-	return value
-
-
-def _validate_row(source_type: str, row) -> str | None:
-	"""Cheap pre-checks mirroring Studio Page.validate_resources, so the model gets
-	a precise correction instead of a raw save traceback."""
-	get = row.get if isinstance(row, dict) else (lambda k: getattr(row, k, None))
-	if source_type in ("Document", "Document List") and not get("document_type"):
-		return "document_type is required for Document and Document List sources."
-	if source_type == "Document List" and _is_empty(get("fields")):
-		return "Document List needs 'fields' — a non-empty list of fieldnames to fetch."
-	if source_type == "Document" and not get("fetch_document_using_filters") and not get("document_name"):
-		return "Document source needs either document_name or fetch_document_using_filters with filters."
-	if source_type == "API Resource" and not get("url"):
-		return "API Resource needs a url."
-	return None
-
-
-def _is_empty(value) -> bool:
-	if value is None:
-		return True
-	if isinstance(value, str):
-		return value.strip() in ("", "[]", "{}")
-	return not value
 
 
 # --- resource-specific helpers --------------------------------------------
