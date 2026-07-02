@@ -111,7 +111,10 @@ def build_email_activities(communications, user_info: dict) -> list[dict]:
 def parse_email_attachments(attachments) -> list[dict]:
 	if not attachments:
 		return []
-	parsed = json.loads(attachments) if isinstance(attachments, str) else attachments
+	try:
+		parsed = json.loads(attachments) if isinstance(attachments, str) else attachments
+	except (json.JSONDecodeError, TypeError):
+		return []
 	out = []
 	for a in parsed or []:
 		file_url = a.get("file_url")
