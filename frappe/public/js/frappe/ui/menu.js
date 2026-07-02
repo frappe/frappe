@@ -76,6 +76,8 @@ frappe.ui.menu = class ContextMenu {
 				width: this.size,
 			});
 		}
+		// `grid` renders the items as a grid of icon-over-label cells instead of a list.
+		this.template.toggleClass("grid-menu", !!this.grid);
 	}
 	add_menu_item(item) {
 		const me = this;
@@ -84,6 +86,12 @@ frappe.ui.menu = class ContextMenu {
 		if (item?.is_divider) {
 			item_wrapper = $(
 				`<div class="dropdown-menu-item"><div class="dropdown-divider documentation-links"></div></div>`
+			);
+		} else if (item?.group) {
+			item_wrapper = $(
+				`<div class="dropdown-menu-item dropdown-menu-header"><span class="menu-group-heading">${__(
+					item.group
+				)}</span></div>`
 			);
 		} else {
 			const iconMarkup = item.icon_url
@@ -160,7 +168,8 @@ frappe.ui.menu = class ContextMenu {
 						menu.hide();
 					});
 					me.hide();
-					me.opts.onHide && me.opts.onHide(me);
+					me.opts.onHide && me.opts.onHide(me.parent);
+					item.onClick && item.onClick();
 					if (item.url.startsWith("/desk")) {
 						frappe.set_route(item.url);
 					} else if (item.url.startsWith("/")) {
@@ -198,6 +207,8 @@ frappe.ui.menu = class ContextMenu {
 			parent: item_wrapper,
 			menu_items: item.items,
 			nested: true,
+			grid: item.grid,
+			scroll_after: item.scroll_after,
 			parent_data: item,
 			parent_menu: this.name,
 		});
@@ -246,7 +257,7 @@ frappe.ui.menu = class ContextMenu {
 		if (left < 0) left = 10;
 
 		this.template.css({
-			display: "block",
+			display: this.grid ? "grid" : "block",
 			position: "fixed",
 			top: top + "px",
 			left: left + "px",
@@ -310,9 +321,15 @@ frappe.ui.create_menu = function (opts) {
 	document.addEventListener(
 		"click",
 		function (e) {
+			// Ignore clicks on the toggle parent (for non-right-click menus) so its own
+			// toggle handler can close the menu instead of this listener pre-emptively
+			// hiding it (which would let the parent handler immediately re-open it).
+			const parent_el = $(opts.parent)[0];
+			const clicked_parent = !opts.right_click && parent_el && parent_el.contains(e.target);
 			if (
 				frappe.menu_map[context_menu.name].visible &&
-				!context_menu.template[0].contains(e.target)
+				!context_menu.template[0].contains(e.target) &&
+				!clicked_parent
 			) {
 				frappe.menu_map[context_menu.name].hide();
 				opts.onHide && opts.onHide(opts.parent);

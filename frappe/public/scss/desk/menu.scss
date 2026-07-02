@@ -68,6 +68,60 @@
 	}
 }
 
+.dropdown-menu-item.dropdown-menu-header {
+	padding: 6px 8px 2px 8px;
+	&:hover {
+		background-color: transparent;
+	}
+	.menu-group-heading {
+		display: block;
+		color: var(--ink-gray-5);
+		font-size: var(--text-sm);
+		font-weight: 500;
+		line-height: 1.15;
+		text-overflow: ellipsis;
+		white-space: nowrap;
+		overflow: hidden;
+	}
+}
+
+.frappe-menu.grid-menu {
+	width: auto;
+	display: grid;
+	grid-template-columns: repeat(3, 1fr);
+	gap: 4px;
+
+	.dropdown-menu-item {
+		a {
+			height: 50px;
+			width: 72px;
+			flex-direction: column;
+			justify-content: flex-start;
+			text-align: center;
+			gap: 6px;
+			padding: 10px 6px;
+		}
+
+		.frappe-menu-item-icon {
+			width: 24px;
+			height: 24px;
+
+			.app-logo,
+			img {
+				width: 24px;
+				height: 24px;
+			}
+		}
+
+		.menu-item-title {
+			flex: none;
+			white-space: normal;
+			text-wrap: wrap;
+			font-size: var(--text-sm);
+		}
+	}
+}
+
 .frappe-menu-item-icon {
 	width: var(--menu-icon-size);
 	height: var(--menu-icon-size);
