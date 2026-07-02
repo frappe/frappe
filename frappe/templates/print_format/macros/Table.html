@@ -32,10 +32,15 @@
 				{%- set _merged = column.merged_fields if (column.merged_fields and column.merged_fields|length > 1) else None -%}
 				<td class="column-value{% if _merged %} column-value--merged{% endif %}" width="{{ column.width }}%"{% if _cell_style %} style="{{ _cell_style|e }}"{% endif %} {{ field_attributes(column) }}>
 					{%- if _merged -%}
-						{# Merged cell: an image field (if any) floats left, the rest stack as styled lines. #}
-						{%- set _imgtypes = ("Attach Image", "Attach") -%}
-						{%- set ns = namespace(img_fn=None) -%}
-						{%- for mf in _merged -%}{%- if ns.img_fn is none and mf.fieldname and mf.fieldtype in _imgtypes -%}{%- set ns.img_fn = mf.fieldname -%}{%- endif -%}{%- endfor -%}
+						{# Merged cell: an image field (if any) floats left, the rest stack as text lines (first = primary). #}
+						{%- set ns = namespace(img_fn=None, first_txt="") -%}
+						{%- for mf in _merged -%}
+							{%- if mf.fieldtype in ("Attach Image", "Attach") -%}
+								{%- if ns.img_fn is none -%}{%- set ns.img_fn = mf.fieldname -%}{%- endif -%}
+							{%- elif mf.fieldname and not ns.first_txt -%}
+								{%- set ns.first_txt = row.get(mf.fieldname)|string -%}
+							{%- endif -%}
+						{%- endfor -%}
 						{%- set _size = (column.image_size or 40)|int -%}
 						<div class="cell-merged">
 							{%- if ns.img_fn -%}
@@ -44,18 +49,16 @@
 								{%- if _safe -%}
 								<img class="cell-thumb-img" style="width:{{ _size }}px;height:{{ _size }}px" src="{{ frappe.utils.get_image_thumbnail_uri(_src)|e }}" alt="{{ _(column.label or '')|e }}" />
 								{%- else -%}
-								{# Fallback: initials from the first text field, coloured to match the builder canvas. #}
-								{%- set ns2 = namespace(txt="") -%}
-								{%- for mf in _merged -%}{%- if not ns2.txt and mf.fieldname and mf.fieldname != ns.img_fn -%}{%- set ns2.txt = row.get(mf.fieldname)|string -%}{%- endif -%}{%- endfor -%}
-								{%- set _abbr = frappe.utils.get_abbr(ns2.txt) or "?" -%}
-								{%- set _ci = "abcdefghijklmnopqrstuvwxyz0123456789".find((_abbr[:1] or "a")|lower) -%}
-								{%- set _pal = [["#EFF6FF", "#2563EB"], ["#FFF7ED", "#EA580C"], ["#F0FDF4", "#16A34A"], ["#FAF5FF", "#9333EA"], ["#FEF2F2", "#DC2626"], ["#F0FDFA", "#0D9488"]] -%}
-								{%- set _c = _pal[(_ci if _ci >= 0 else 0) % 6] -%}
-								<span class="cell-thumb" style="width:{{ _size }}px;height:{{ _size }}px;font-size:{{ (_size * 0.4)|int }}px;background:{{ _c[0] }};color:{{ _c[1] }}">{{ _abbr|e }}</span>
+								{# Fallback: initials, coloured to match the builder canvas (same hue formula, no shared palette table). #}
+								{%- set _abbr = frappe.utils.get_abbr(ns.first_txt) or "?" -%}
+								{%- set _fc = "abcdefghijklmnopqrstuvwxyz0123456789".find((_abbr[:1] or "a")|lower) -%}
+								{%- set _hue = ((_fc if _fc >= 0 else 0) * 37) % 360 -%}
+								<span class="cell-thumb" style="width:{{ _size }}px;height:{{ _size }}px;font-size:{{ (_size * 0.4)|int }}px;background:hsl({{ _hue }},65%,92%);color:hsl({{ _hue }},55%,35%)">{{ _abbr|e }}</span>
 								{%- endif -%}
 							{%- endif -%}
 							<div class="cell-lines">
-								{%- for mf in _merged -%}{%- if mf.fieldname and mf.fieldname != ns.img_fn -%}<div class="cell-line cell-line--{{ (mf.style or 'primary')|e }}">{{ row.get_formatted(mf.fieldname)|striptags|e }}</div>{%- endif -%}{%- endfor -%}
+								{%- set nsl = namespace(first=True) -%}
+								{%- for mf in _merged -%}{%- if mf.fieldname and mf.fieldname != ns.img_fn -%}<div class="cell-line{% if nsl.first %} cell-line--primary{% endif %}">{{ row.get_formatted(mf.fieldname)|striptags|e }}</div>{%- set nsl.first = False -%}{%- endif -%}{%- endfor -%}
 							</div>
 						</div>
 					{%- else -%}

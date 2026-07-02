@@ -124,7 +124,7 @@
 												v-for="(mf, mi) in text_merges(col)"
 												:key="mi"
 												class="pf-merge-line"
-												:class="`pf-merge--${mf.style || 'primary'}`"
+												:class="{ 'pf-merge-line--primary': mi === 0 }"
 											>
 												{{ format_merged(row, mf.fieldname) }}
 											</div>
@@ -287,12 +287,7 @@
 
 <script setup>
 import ConfigureColumnsVue from "../inspector/ConfigureColumns.vue";
-import {
-	render_jinja_html,
-	sanitize_html,
-	evaluate_visible_if,
-	thumb_palette_for,
-} from "../../utils";
+import { render_jinja_html, sanitize_html, evaluate_visible_if, thumb_hue } from "../../utils";
 import { createApp, ref, nextTick, watch, computed, inject } from "vue";
 
 const props = defineProps(["df", "field_orientation"]);
@@ -440,15 +435,9 @@ function has_merge(col) {
 	return merged_fields(col).length > 1;
 }
 
-function merge_fieldtype(mf) {
-	return mf.fieldtype || frappe.meta.get_docfield(props.df.options, mf.fieldname)?.fieldtype;
-}
-
 // The first merged field that is an image — rendered on the left.
 function image_merge(col) {
-	return (
-		merged_fields(col).find((mf) => MERGE_IMAGE_FIELDTYPES.has(merge_fieldtype(mf))) || null
-	);
+	return merged_fields(col).find((mf) => MERGE_IMAGE_FIELDTYPES.has(mf.fieldtype)) || null;
 }
 
 // Remaining fields render as stacked text lines.
@@ -489,14 +478,14 @@ function thumb_box(col) {
 // but the row has no image. Colour keyed off the first text field.
 function thumb(col, row) {
 	const raw = String(row[text_merges(col)[0]?.fieldname] ?? "");
-	const palette = thumb_palette_for(raw);
+	const hue = thumb_hue(raw);
 	return {
 		abbr: frappe.get_abbr(raw) || "?",
 		style: {
 			...thumb_box(col),
 			fontSize: Math.round((col.image_size || 40) * 0.4) + "px",
-			background: palette.bg,
-			color: palette.fg,
+			background: `hsl(${hue}, 65%, 92%)`,
+			color: `hsl(${hue}, 55%, 35%)`,
 		},
 	};
 }
@@ -1086,22 +1075,14 @@ watch(
 
 .pf-merge-line {
 	word-break: break-word;
-}
-
-.pf-merge--primary,
-.pf-merge--secondary {
-	color: var(--text-color);
-}
-.pf-merge--primary {
-	font-weight: var(--weight-semibold);
-}
-.pf-merge--mono-sm,
-.pf-merge--muted-sm {
 	font-size: 0.85em;
 	color: var(--text-muted);
 }
-.pf-merge--mono-sm {
-	font-family: var(--monospace-font-family, monospace);
+
+.pf-merge-line--primary {
+	font-size: 1em;
+	font-weight: var(--weight-semibold);
+	color: var(--text-color);
 }
 
 .preview-table-html {

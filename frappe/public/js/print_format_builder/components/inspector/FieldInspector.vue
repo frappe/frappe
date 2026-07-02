@@ -272,54 +272,20 @@
 														class="pfb-merge-drag"
 														v-html="frappe.utils.icon('drag', 'xs')"
 													></span>
-													<input
-														v-if="is_base_merge(col, mf)"
-														class="pfb-insp-input"
-														style="flex: 1; min-width: 0"
-														:value="merge_field_label(mf)"
-														:title="__('This column\'s own field')"
-														disabled
-													/>
-													<select
-														v-else
-														class="pfb-insp-select"
-														style="flex: 1; min-width: 0"
-														:value="mf.fieldname"
-														@change="
-															set_merged_field(
-																mf,
-																$event.target.value
-															)
+													<span
+														class="pfb-insp-label"
+														style="
+															flex: 1;
+															min-width: 0;
+															color: var(--text-color);
 														"
+														>{{ merge_field_label(mf) }}</span
 													>
-														<option
-															v-for="f in merge_field_opts(col, mf)"
-															:key="f.fieldname"
-															:value="f.fieldname"
-														>
-															{{ f.label }}
-														</option>
-													</select>
 													<span
 														v-if="is_image_merge(mf)"
 														class="pfb-type-badge"
 														>{{ __("Image") }}</span
 													>
-													<select
-														v-else
-														class="pfb-insp-select"
-														style="width: 96px; flex: none"
-														v-model="mf.style"
-														:title="__('Text style')"
-													>
-														<option
-															v-for="s in merge_style_opts"
-															:key="s.value"
-															:value="s.value"
-														>
-															{{ s.label }}
-														</option>
-													</select>
 													<button
 														v-if="!is_base_merge(col, mf)"
 														class="pfb-col-remove"
@@ -330,27 +296,16 @@
 												</div>
 											</template>
 										</draggable>
-										<div class="pfb-col-add-row">
-											<button
-												class="btn btn-xs btn-default"
-												@click="add_merged_field(col)"
-											>
-												<span
-													v-html="frappe.utils.icon('add', 'xs')"
-												></span>
-												{{ __("Add field") }}
-											</button>
-										</div>
-										<p
-											class="pfb-insp-hint text-muted"
-											style="padding: 0 14px 8px"
+										<div
+											class="pfb-col-add-row"
+											v-if="merge_field_opts(col).length"
 										>
-											{{
-												__(
-													"Add fields to merge into this column. An image field is shown on the left."
-												)
-											}}
-										</p>
+											<Autocomplete
+												:options="merge_field_opts(col)"
+												:placeholder="__('Add field...')"
+												@select="(opt) => add_merged_field(col, opt.value)"
+											/>
+										</div>
 										<div
 											v-if="has_image_merge(col)"
 											class="pfb-insp-row"
@@ -1136,14 +1091,6 @@ function clamp_width(col) {
 // merged fields is an image, it renders on the left (see Field.vue /
 // Table.html); the rest stack as styled text lines.
 let expanded_col = ref(null);
-const DEFAULT_IMAGE_SIZE = 40;
-
-const merge_style_opts = [
-	{ value: "primary", label: __("Primary") },
-	{ value: "secondary", label: __("Secondary") },
-	{ value: "mono-sm", label: __("Code") },
-	{ value: "muted-sm", label: __("Muted") },
-];
 
 // Fieldtypes that store an image URL directly, so they can float left.
 const IMAGE_COL_FIELDTYPES = new Set(["Attach Image", "Attach"]);
@@ -1151,18 +1098,17 @@ const IMAGE_COL_FIELDTYPES = new Set(["Attach Image", "Attach"]);
 function toggle_col(ci) {
 	const next = expanded_col.value === ci ? null : ci;
 	expanded_col.value = next;
+	if (next === null) return;
 	// Opening the editor means "merge into this column": always show the
 	// column's own field as the (non-removable) primary line.
-	if (next !== null) {
-		const col = selected_field.value.table_columns[next];
-		const mf = ensure_merged(col);
-		if (!mf.some((m) => m.fieldname === col.fieldname)) {
-			mf.unshift({
-				fieldname: col.fieldname,
-				fieldtype: own_fieldtype(col),
-				style: "primary",
-			});
-		}
+	const col = selected_field.value.table_columns[next];
+	const mf = ensure_merged(col);
+	if (!mf.some((m) => m.fieldname === col.fieldname)) {
+		const own = find_field(col.fieldname);
+		mf.unshift({
+			fieldname: col.fieldname,
+			fieldtype: own?.fieldtype || col.fieldtype || "Data",
+		});
 	}
 }
 
@@ -1174,31 +1120,26 @@ let child_fields = computed(() => {
 	return meta.fields.filter((f) => !frappe.model.no_value_type.includes(f.fieldtype));
 });
 
-function own_fieldtype(col) {
-	return (
-		child_fields.value.find((f) => f.fieldname === col.fieldname)?.fieldtype ||
-		col.fieldtype ||
-		"Data"
-	);
+function find_field(fieldname) {
+	return child_fields.value.find((f) => f.fieldname === fieldname);
 }
 
-// Options for a merged-field select: exclude fields already used by other
-// rows so each fieldname stays unique (keeps it a valid list key).
-function merge_field_opts(col, current) {
+function merge_field_label(mf) {
+	return find_field(mf.fieldname)?.label || mf.fieldname;
+}
+
+// Child fields not yet merged into this column, for the "Add field..."
+// autocomplete — same {label, value, badge} shape as available_column_opts.
+function merge_field_opts(col) {
 	const used = new Set((col.merged_fields || []).map((m) => m.fieldname));
-	used.delete(current.fieldname);
 	return child_fields.value
 		.filter((f) => !used.has(f.fieldname))
-		.map((f) => ({ fieldname: f.fieldname, label: f.label || f.fieldname }));
+		.map((f) => ({ label: f.label || f.fieldname, value: f.fieldname, badge: f.fieldtype }));
 }
 
 // The base row is the column's own field — locked and not removable.
 function is_base_merge(col, mf) {
 	return mf.fieldname === col.fieldname;
-}
-
-function merge_field_label(mf) {
-	return child_fields.value.find((f) => f.fieldname === mf.fieldname)?.label || mf.fieldname;
 }
 
 function is_image_merge(mf) {
@@ -1214,18 +1155,9 @@ function ensure_merged(col) {
 	return col.merged_fields;
 }
 
-function add_merged_field(col) {
-	const mf = ensure_merged(col);
-	const used = new Set(mf.map((m) => m.fieldname));
-	const next = child_fields.value.find((f) => !used.has(f.fieldname));
-	if (!next) return; // every field already merged
-	mf.push({ fieldname: next.fieldname, fieldtype: next.fieldtype, style: "muted-sm" });
-}
-
-// Keep the stored fieldtype in sync so image detection works server-side.
-function set_merged_field(mf, fieldname) {
-	mf.fieldname = fieldname;
-	mf.fieldtype = child_fields.value.find((f) => f.fieldname === fieldname)?.fieldtype || "Data";
+function add_merged_field(col, fieldname) {
+	const f = find_field(fieldname);
+	if (f) ensure_merged(col).push({ fieldname: f.fieldname, fieldtype: f.fieldtype });
 }
 
 function remove_merged_field(col, mi) {
