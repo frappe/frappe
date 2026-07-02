@@ -38,6 +38,10 @@ def boot_config() -> dict:
 	if not is_enabled():
 		return {"enabled": False}
 
+	# Local import: telemetry/__init__ imports this module, so a top-level import
+	# would be a cycle (site_age is defined after that import runs).
+	from frappe.utils.telemetry import site_age
+
 	host = pulse_host()
 
 	session_user = frappe.session.user
@@ -54,6 +58,7 @@ def boot_config() -> dict:
 		"site": frappe.local.site,
 		"user": anonymize_user(session_user),
 		"team": frappe.conf.get("fc_team"),
+		"site_age": site_age(),
 	}
 
 
