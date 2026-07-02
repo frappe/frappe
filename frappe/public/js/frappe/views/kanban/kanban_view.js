@@ -300,8 +300,12 @@ frappe.views.KanbanView = class KanbanView extends frappe.views.ListView {
 	}
 
 	/** Keep loaded/offset and prefetch guards aligned with what is actually in memory. */
-	reconcile_column_pagination_state(state) {
+	reconcile_column_pagination_state(state, column_title) {
 		if (!state) return;
+
+		if (column_title != null && state.total_count != null) {
+			this.prune_stale_column_cards(column_title, state.total_count);
+		}
 
 		const memory_end = state.window_start + state.loaded_names.length;
 		if (state.total_count != null) {
@@ -318,6 +322,26 @@ frappe.views.KanbanView = class KanbanView extends frappe.views.ListView {
 		state.last_backward_fetch_start = -1;
 	}
 
+	/** Drop extra in-memory cards when the server total is smaller than our window. */
+	prune_stale_column_cards(column_title, total_count) {
+		const field_name = this.board?.field_name;
+		const state = this.kanban_column_state?.[column_title];
+		if (!field_name || !state || total_count == null) return;
+
+		if (state.window_start >= total_count) {
+			state.window_start = Math.max(0, total_count - state.loaded_names.length);
+		}
+
+		const max_names = Math.max(0, total_count - state.window_start);
+		if (state.loaded_names.length <= max_names) return;
+
+		const removed = state.loaded_names.splice(max_names);
+		const removed_set = new Set(removed);
+		this.data = (this.data || []).filter(
+			(doc) => !(doc[field_name] === column_title && removed_set.has(doc.name))
+		);
+	}
+
 	/** Refresh paging state after another tab changes board order or card positions. */
 	sync_kanban_column_state_from_board(columns) {
 		const field_name = this.board?.field_name;
@@ -325,12 +349,18 @@ frappe.views.KanbanView = class KanbanView extends frappe.views.ListView {
 			return Promise.resolve();
 		}
 
+		const board_names = new Set();
+		for (const col of columns) {
+			if (col.status === "Archived") continue;
+			this.parse_column_order(col.order).forEach((name) => board_names.add(name));
+		}
+
 		for (const col of columns) {
 			if (col.status === "Archived") continue;
 			const state = this.kanban_column_state[col.title];
 			if (!state) continue;
 			state.loaded_names = this.rebuild_column_loaded_names(col, field_name);
-			this.reconcile_column_pagination_state(state);
+			this.reconcile_column_pagination_state(state, col.title);
 		}
 
 		return frappe
@@ -340,12 +370,26 @@ frappe.views.KanbanView = class KanbanView extends frappe.views.ListView {
 				freeze: false,
 			})
 			.then(({ message }) => {
+				const data_map = new Map((this.data || []).map((doc) => [doc.name, doc]));
+
 				for (const [title, column_data] of Object.entries(message?.columns || {})) {
+					const rows = this.parse_kanban_cards(column_data.cards);
+					rows.forEach((row) => data_map.set(row.name, row));
+
 					const state = this.kanban_column_state[title];
 					if (!state) continue;
+
 					state.total_count = column_data.total ?? 0;
-					this.reconcile_column_pagination_state(state);
+					const col = columns.find((c) => c.title === title);
+					if (col) {
+						state.loaded_names = this.rebuild_column_loaded_names(col, field_name);
+					}
+					this.reconcile_column_pagination_state(state, title);
 				}
+
+				this.data = Array.from(data_map.values()).filter((doc) =>
+					board_names.has(doc.name)
+				);
 			})
 			.catch(() => {});
 	}
@@ -564,8 +608,8 @@ frappe.views.KanbanView = class KanbanView extends frappe.views.ListView {
 			to_state.last_prefetch_offset = -1;
 		}
 
-		this.reconcile_column_pagination_state(from_state);
-		this.reconcile_column_pagination_state(to_state);
+		this.reconcile_column_pagination_state(from_state, from_col);
+		this.reconcile_column_pagination_state(to_state, to_col);
 	}
 
 	/** Can we load more cards when scrolling down? (not at end, room to remove old ones). */
@@ -713,11 +757,8 @@ frappe.views.KanbanView = class KanbanView extends frappe.views.ListView {
 
 			if (message?.total != null) {
 				state.total_count = message.total;
-				if (state.loaded > message.total) {
-					state.loaded = message.total;
-					state.offset = message.total;
-				}
-				state.last_prefetch_offset = -1;
+				this.prune_stale_column_cards(column_title, message.total);
+				this.reconcile_column_pagination_state(state, column_title);
 			}
 
 			if (!rows.length) return;
@@ -768,8 +809,17 @@ frappe.views.KanbanView = class KanbanView extends frappe.views.ListView {
 
 		if (board_refresh_only) {
 			this.pending_kanban_board_refresh = false;
-			this.render_list();
-			return;
+			return this.refresh_kanban_pages()
+				.then(() => {
+					if (this.kanban) {
+						this.kanban.update(this.data);
+					} else {
+						return this.render_kanban_board();
+					}
+				})
+				.catch((err) => {
+					console.error("Kanban board refresh failed:", err);
+				});
 		}
 
 		const names = this.pending_document_refreshes.map((d) => d.name);
