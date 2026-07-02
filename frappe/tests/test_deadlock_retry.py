@@ -13,23 +13,21 @@ class FakeRequest:
 
 
 class TestDeadlockRetry(unittest.TestCase):
-	"""process_request_with_deadlock_retry: writes retry on deadlock, reads don't."""
+	"""retry_deadlocks: writes retry on deadlock, reads don't."""
 
 	def _run(self, method, fail_times):
 		calls = {"n": 0}
 		sleeps = []
 
-		def fake_process_request(request):
+		@app.retry_deadlocks
+		def dispatch(request):
 			if calls["n"] < fail_times:
 				calls["n"] += 1
 				raise frappe.QueryDeadlockError("deadlock")
 			return "ok"
 
-		with (
-			patch.object(app, "process_request", fake_process_request),
-			patch.object(app.time, "sleep", sleeps.append),
-		):
-			result = app.process_request_with_deadlock_retry(FakeRequest(method))
+		with patch.object(app.time, "sleep", sleeps.append):
+			result = dispatch(FakeRequest(method))
 		return result, calls["n"], sleeps
 
 	def test_write_succeeds_after_retries(self):

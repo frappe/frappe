@@ -111,7 +111,7 @@ def application(request: Request):
 	response = None
 
 	try:
-		response = process_request_with_deadlock_retry(request)
+		response = process_request(request)
 
 	except Exception as e:
 		response = e.get_response(request.environ) if isinstance(e, HTTPException) else handle_exception(e)
@@ -138,21 +138,26 @@ def application(request: Request):
 	return response
 
 
-def process_request_with_deadlock_retry(request):
-	for attempt in range(MAX_DEADLOCK_RETRIES + 1):
-		try:
-			return process_request(request)
-		except frappe.QueryDeadlockError:
-			# Only writes deadlock, and the rolled-back attempt left nothing committed, so
-			# re-running from init_request (force=True resets local state) is a clean retry.
-			if request.method not in UNSAFE_HTTP_METHODS or attempt == MAX_DEADLOCK_RETRIES:
-				raise
-			if db := getattr(frappe.local, "db", None):
-				db.rollback(chain=True)
-			# Jitter so the two victims don't realign and re-collide on the same gap.
-			time.sleep(random.uniform(0.025, 0.1) * (attempt + 1))
+def retry_deadlocks(fn):
+	@functools.wraps(fn)
+	def wrapper(request):
+		for attempt in range(MAX_DEADLOCK_RETRIES + 1):
+			try:
+				return fn(request)
+			except frappe.QueryDeadlockError:
+				# Only writes deadlock, and the rolled-back attempt left nothing committed, so
+				# re-running from init_request (force=True resets local state) is a clean retry.
+				if request.method not in UNSAFE_HTTP_METHODS or attempt == MAX_DEADLOCK_RETRIES:
+					raise
+				if db := getattr(frappe.local, "db", None):
+					db.rollback(chain=True)
+				# Jitter so the two victims don't realign and re-collide on the same gap.
+				time.sleep(random.uniform(0.025, 0.1) * (attempt + 1))
+
+	return wrapper
 
 
+@retry_deadlocks
 def process_request(request):
 	init_request(request)
 	validate_auth()
