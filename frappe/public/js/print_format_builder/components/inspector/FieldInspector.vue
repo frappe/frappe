@@ -1832,7 +1832,6 @@ function set_section_cell_padding(value) {
 	background: var(--fg-color);
 	border: 1px solid var(--border-color);
 	border-radius: var(--radius);
-	overflow: hidden;
 }
 
 /* Rows inside the merge editor are always in an active-editing context, so
