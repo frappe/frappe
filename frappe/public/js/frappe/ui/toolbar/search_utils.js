@@ -335,22 +335,25 @@ frappe.search.utils = {
 		return out;
 	},
 
-	get_desktop_icons: function (keywords) {
+	get_workspaces: function (keywords) {
 		var me = this;
 		var out = [];
-		frappe.boot.desktop_icons.forEach(function (item) {
-			const search_result = me.fuzzy_search(keywords, item.label, true);
-			var level = search_result.score;
+		const sidebars = frappe.boot.workspace_sidebar_item || {};
+		Object.keys(sidebars).forEach(function (key) {
+			const title = sidebars[key].label || key;
+			const search_result = me.fuzzy_search(keywords, title, true);
+			const level = search_result.score;
 			if (level > 0) {
-				var ret = {
-					type: "Desktop Icon",
-					label: __("Open {0}", [search_result.marked_string || __(item.label)]),
-					value: __("Open {0}", [__(item.label)]),
+				out.push({
+					type: "Workspace",
+					label: __("Open {0} Workspace", [search_result.marked_string || __(title)]),
+					value: __("Open {0} Workspace", [__(title)]),
 					index: level,
-					icon_data: item,
-				};
-
-				out.push(ret);
+					// open the workspace's sidebar and land on its first item
+					onclick: function () {
+						frappe.app.sidebar.open_workspace(title);
+					},
+				});
 			}
 		});
 		return out;

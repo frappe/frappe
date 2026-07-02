@@ -684,13 +684,6 @@ def slow_task(duration, title, doctype, docname):
 
 
 @whitelist_for_tests()
-def empty_my_workspaces():
-	my_workspaces = frappe.get_doc("Workspace Sidebar", "My Workspaces")
-	my_workspaces.items = []
-	my_workspaces.save()
-
-
-@whitelist_for_tests()
 def create_webform_with_child_table_dropdown():
 	"""Set up a Web Form that is long enough to scroll and has a child table with an
 	Autocomplete field, so tests can check where the dropdown is drawn."""
