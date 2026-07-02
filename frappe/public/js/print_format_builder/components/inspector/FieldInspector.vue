@@ -507,7 +507,7 @@
 									@update:model-value="(v) => (selected_field.align = v)"
 								/>
 							</div>
-							<div class="pfb-insp-row">
+							<div class="pfb-insp-row" v-if="field_is_inline">
 								<span class="pfb-insp-label">{{ __("Spacing") }}</span>
 								<select
 									class="pfb-insp-select"
@@ -933,6 +933,8 @@ let short_fieldtype = computed(() => {
 let current_show_label = computed(() => selected_field.value?.show_label ?? "show");
 let current_align = computed(() => selected_field.value?.align ?? "left");
 let current_label_justify = computed(() => selected_field.value?.label_justify ?? "");
+// Spacing only applies when the field is inline (section "Label side: Left")
+let field_is_inline = computed(() => parent_section.value?.field_orientation === "left-right");
 
 const show_label_opts = [
 	{ value: "show", label: __("Show") },

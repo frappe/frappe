@@ -197,7 +197,9 @@
 						field_orientation !== 'left-right' ? { textAlign: df.align || 'left' } : {}
 					"
 					:class="[
-						'field-preview-lr',
+						field_orientation === 'left-right' || df.show_label === 'inline'
+							? 'field-preview-lr'
+							: '',
 						field_orientation === 'left-right' && df.label_justify
 							? `field-preview-lr--${df.label_justify}`
 							: '',
