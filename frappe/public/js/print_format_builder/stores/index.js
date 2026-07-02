@@ -96,10 +96,10 @@ export function getStore(print_format_name) {
 						.map((df) => {
 							if (df.table_columns) {
 								df.table_columns = df.table_columns.map((tf) => {
-									// A single (base-only) merge is just a plain column — drop it
+									// An empty merge list is just a plain column — drop it
 									if (
 										Array.isArray(tf.merged_fields) &&
-										tf.merged_fields.length < 2
+										!tf.merged_fields.length
 									) {
 										delete tf.merged_fields;
 									}

@@ -232,10 +232,10 @@
 											:class="{
 												active:
 													col.merged_fields &&
-													col.merged_fields.length > 1,
+													col.merged_fields.length > 0,
 												open: expanded_col === ci,
 											}"
-											@click="toggle_col(ci)"
+											@click="expanded_col = expanded_col === ci ? null : ci"
 											:title="__('Merge fields')"
 											v-html="frappe.utils.icon('settings-2', 'xs')"
 										></button>
@@ -298,12 +298,6 @@
 													</select>
 													<button
 														class="pfb-col-remove"
-														:style="
-															is_base_merge(col, mf)
-																? 'visibility: hidden'
-																: ''
-														"
-														:disabled="is_base_merge(col, mf)"
 														@click="remove_merged_field(col, mi)"
 														:title="__('Remove field')"
 														v-html="frappe.utils.icon('x', 'xs')"
@@ -1118,24 +1112,6 @@ const merge_style_opts = [
 	{ value: "muted-sm", label: __("Muted") },
 ];
 
-function toggle_col(ci) {
-	const next = expanded_col.value === ci ? null : ci;
-	expanded_col.value = next;
-	if (next === null) return;
-	// Opening the editor means "merge into this column": always show the
-	// column's own field as the (non-removable) primary line.
-	const col = selected_field.value.table_columns[next];
-	const mf = ensure_merged(col);
-	if (!mf.some((m) => m.fieldname === col.fieldname)) {
-		const own = find_field(col.fieldname);
-		mf.unshift({
-			fieldname: col.fieldname,
-			fieldtype: own?.fieldtype || col.fieldtype || "Data",
-			style: "primary",
-		});
-	}
-}
-
 // Value-holding fields of the child doctype, for the merged-field pickers.
 let child_fields = computed(() => {
 	const dt = selected_field.value?.options;
@@ -1152,18 +1128,15 @@ function merge_field_label(mf) {
 	return find_field(mf.fieldname)?.label || mf.fieldname;
 }
 
-// Child fields not yet merged into this column, for the "Add field..."
-// autocomplete — same {label, value, badge} shape as available_column_opts.
+// Child fields not yet merged into this column (the column's own field is
+// always the implicit primary line, so it's excluded here too) — for the
+// "Add field..." autocomplete, same {label, value, badge} shape as
+// available_column_opts.
 function merge_field_opts(col) {
-	const used = new Set((col.merged_fields || []).map((m) => m.fieldname));
+	const used = new Set([col.fieldname, ...(col.merged_fields || []).map((m) => m.fieldname)]);
 	return child_fields.value
 		.filter((f) => !used.has(f.fieldname))
 		.map((f) => ({ label: f.label || f.fieldname, value: f.fieldname, badge: f.fieldtype }));
-}
-
-// The base row is the column's own field — locked and not removable.
-function is_base_merge(col, mf) {
-	return mf.fieldname === col.fieldname;
 }
 
 function is_image_merge(mf) {
@@ -1171,7 +1144,9 @@ function is_image_merge(mf) {
 }
 
 function has_image_merge(col) {
-	return (col.merged_fields || []).some(is_image_merge);
+	return (
+		IMAGE_COL_FIELDTYPES.has(col.fieldtype) || (col.merged_fields || []).some(is_image_merge)
+	);
 }
 
 function ensure_merged(col) {
@@ -1179,13 +1154,15 @@ function ensure_merged(col) {
 	return col.merged_fields;
 }
 
+// First added field defaults to Secondary (own field is already primary), rest Muted.
 function add_merged_field(col, fieldname) {
 	const f = find_field(fieldname);
+	const mf = ensure_merged(col);
 	if (f)
-		ensure_merged(col).push({
+		mf.push({
 			fieldname: f.fieldname,
 			fieldtype: f.fieldtype,
-			style: "muted-sm",
+			style: mf.length ? "muted-sm" : "secondary",
 		});
 }
 
@@ -1862,7 +1839,7 @@ function set_section_cell_padding(value) {
 }
 
 .pfb-col-editor {
-	background: var(--fg-color);
+	background: var(--gray-50);
 	border-top: 1px solid var(--gray-100);
 	padding-bottom: 6px;
 }

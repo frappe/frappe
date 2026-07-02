@@ -426,13 +426,16 @@ function format_cell(row, col) {
 // Image fieldtypes that store a URL directly, so they can float left.
 const MERGE_IMAGE_FIELDTYPES = new Set(["Attach Image", "Attach"]);
 
+// The column's own field is always the implicit first (primary) line;
+// col.merged_fields holds only the extra fields merged in beside it.
 function merged_fields(col) {
-	return (col.merged_fields || []).filter((mf) => mf && mf.fieldname);
+	const extra = (col.merged_fields || []).filter((mf) => mf && mf.fieldname);
+	if (!extra.length) return [];
+	return [{ fieldname: col.fieldname, fieldtype: col.fieldtype, style: "primary" }, ...extra];
 }
 
-// A column is "merged" only once it has a second field beyond its own.
 function has_merge(col) {
-	return merged_fields(col).length > 1;
+	return (col.merged_fields || []).length > 0;
 }
 
 // The first merged field that is an image — rendered on the left.

@@ -17,7 +17,7 @@
 		<thead>
 			<tr class="table-row">
 				{% for column in columns %}
-				{%- set _merged_col = column.merged_fields and column.merged_fields|length > 1 -%}
+				{%- set _merged_col = column.merged_fields and column.merged_fields|length > 0 -%}
 				<th class="column-header{% if _merged_col %} column-value--merged{% endif %}" width="{{ column.width }}%"{% if _cell_style %} style="{{ _cell_style|e }}"{% endif %} {{ field_attributes(column) }}>
 					{{ _(column.label or column.fieldname) }}
 				</th>
@@ -29,7 +29,8 @@
 			{% for row in doc.get(df.fieldname) %}
 			<tr class="table-row {{ loop.cycle('odd', 'even') }}" data-idx="{{ row.idx }}">
 				{% for column in columns %}
-				{%- set _merged = column.merged_fields if (column.merged_fields and column.merged_fields|length > 1) else None -%}
+				{# Column's own field is always the implicit primary line; merged_fields holds the extra fields. #}
+				{%- set _merged = ([{"fieldname": column.fieldname, "fieldtype": column.fieldtype, "style": "primary"}] + column.merged_fields) if column.merged_fields else None -%}
 				<td class="column-value{% if _merged %} column-value--merged{% endif %}" width="{{ column.width }}%"{% if _cell_style %} style="{{ _cell_style|e }}"{% endif %} {{ field_attributes(column) }}>
 					{%- if _merged -%}
 						{# Merged cell: an image field (if any) floats left, the rest stack as text lines (first = primary). #}
