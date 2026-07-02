@@ -53,7 +53,7 @@ def validate_argument_types(
 	# Checking annotations as soon as can.(during decoration itself).
 	# would be part of closure environment. (have to do it as `force_types = any ..` code should only be used after `frappe` proper resolution.. stop making it more dynamic !!!!
 	annotations = func.__annotations__
-	is_annotation_valid = True
+	are_annotations_comprehensive = True
 	invalid_param_name = None
 	for idx, (param_name, parameter) in enumerate(func_params.items()):
 		if idx == 0 and param_name in ("self", "cls"):
@@ -61,7 +61,7 @@ def validate_argument_types(
 		if parameter.kind in (inspect.Parameter.VAR_KEYWORD, inspect.Parameter.VAR_POSITIONAL):
 			continue
 		if not (param_name in annotations):
-			is_annotation_valid = False   # stored in closure environment, so much easier to access when wrapper would actually be called!
+			are_annotations_comprehensive = False   # stored in closure environment, so much easier to access when wrapper would actually be called!
 			invalid_param_name = param_name
 			break
 	del annotations, func_params
@@ -89,8 +89,8 @@ def validate_argument_types(
 			force_types = any(frappe.get_hooks("require_type_annotated_api_methods", app_name=app))
 
 		# NOTE: force_types value depends on `frappe` module, which have to be resolved, otherwise we could have raised "not Annotations present" error in the decorator itself during startup!
-		if force_types and not (is_annotation_valid):
-			# NOTE: is_annotation_valid is evaluated during the `declaration/decoration` (by @whitelist) and then only checked if `force_types` has been set to True. (force_types) comes from this `frappe` module itself, so we have to wait it for fully resolved to get `force_types` correct value :(
+		if force_types and not (are_annotations_comprehensive):
+			# NOTE: are_annotations_comprehensive is evaluated during the `declaration/decoration` (by @whitelist) and then only checked if `force_types` has been set to True. (force_types) comes from this `frappe` module itself, so we have to wait it for fully resolved to get `force_types` correct value :(
 			module, qualname = func.__module__, func.__qualname__
 			raise FrappeTypeError(
 				f"Argument '{invalid_param_name}' in '{module}.{qualname}' is missing type annotation.."
