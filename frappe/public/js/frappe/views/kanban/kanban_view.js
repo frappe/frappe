@@ -637,8 +637,7 @@ frappe.views.KanbanView = class KanbanView extends frappe.views.ListView {
 
 		if (!rows.length) {
 			if (total != null) {
-				state.loaded = total;
-				state.offset = total;
+				this.reconcile_column_pagination_state(state, column_title);
 			}
 			return { rows: [], evicted: 0 };
 		}
@@ -651,6 +650,9 @@ frappe.views.KanbanView = class KanbanView extends frappe.views.ListView {
 		}
 
 		const evicted = this.merge_kanban_cards_for_column(column_title, rows);
+		if (total != null) {
+			this.reconcile_column_pagination_state(state, column_title);
+		}
 		return { rows, evicted };
 	}
 
