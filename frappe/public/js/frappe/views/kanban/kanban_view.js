@@ -839,8 +839,9 @@ frappe.views.KanbanView = class KanbanView extends frappe.views.ListView {
 
 		frappe.realtime.on("kanban_board_update", (data) => {
 			if (data.board_name !== this.board_name) return;
-			if (this.skip_kanban_realtime || this.avoid_realtime_update()) return;
+			if (this.avoid_realtime_update()) return;
 			this.pending_kanban_board_refresh = true;
+			if (this.skip_kanban_realtime) return;
 			this.debounced_refresh();
 		});
 		this.kanban_board_realtime_setup = true;
@@ -852,6 +853,10 @@ frappe.views.KanbanView = class KanbanView extends frappe.views.ListView {
 			!this.pending_document_refreshes?.length && this.pending_kanban_board_refresh;
 
 		if (!this.pending_document_refreshes?.length && !this.pending_kanban_board_refresh) {
+			return;
+		}
+
+		if (this.skip_kanban_realtime) {
 			return;
 		}
 
@@ -914,6 +919,14 @@ frappe.views.KanbanView = class KanbanView extends frappe.views.ListView {
 		if (!this.kanban || this.skip_kanban_realtime) return;
 		this._changed_card_names = changed_names || null;
 		this._render_kanban_from_server();
+	}
+
+	/** Apply board/card realtime updates queued while a local drag is settling. */
+	flush_deferred_kanban_realtime() {
+		if (this.skip_kanban_realtime) return;
+		if (this.pending_kanban_board_refresh || this.pending_document_refreshes?.length) {
+			this.debounced_refresh();
+		}
 	}
 
 	/** After a realtime update, load latest column order and refresh cards. */

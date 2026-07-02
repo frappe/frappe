@@ -1165,6 +1165,7 @@ frappe.provide("frappe.views");
 							// Delay re-enabling so our own list_update / board events are ignored.
 							setTimeout(() => {
 								cur_list.skip_kanban_realtime = false;
+								cur_list.flush_deferred_kanban_realtime?.();
 							}, 1500);
 						}
 						enable_virtualization();
