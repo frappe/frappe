@@ -146,6 +146,7 @@ class TestJinjaGlobals(IntegrationTestCase):
 		# reinit to create a new local ctx, this "simulates" two request running in two diff
 		# thread.
 		frappe.init(frappe.local.site, force=True)
+		frappe.connect()
 		second = get_jenv()
 		self.assertIsNot(first, second)
 		self.assertIsNot(first.globals, second.globals)

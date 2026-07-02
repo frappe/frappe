@@ -11,6 +11,10 @@
   <p>
     <a target="_blank" class="underline" href="{{ pdf_link }}">{{ _('View document') }}</a>
   </p>
+  {% if is_guest %}
+  <a href="/login?redirect-to={{ action_link | urlencode }}" class="btn btn-primary btn-action">{{ action }}</a>
+  {% else %}
   <a href="{{ action_link }}" class="btn btn-primary btn-action">{{ action }}</a>
+  {% endif %}
   <a href="/" class="btn btn-secondary btn-action">Cancel</a>
 {% endblock %}

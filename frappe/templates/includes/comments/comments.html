@@ -154,7 +154,11 @@
 				route: "{{ pathname }}",
 			}
 
-			if(!args.comment_by || !args.comment_email || !args.comment) {
+			if (frappe.web_form) {
+				args.web_form = frappe.web_form.name;
+			}
+
+			if (!args.comment_by || !args.comment_email || !args.comment) {
 				frappe.msgprint('{{ _("All fields are necessary to submit the comment.") }}');
 				return false;
 			}

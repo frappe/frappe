@@ -816,6 +816,7 @@ docfield_properties = {
 	"placeholder": "Data",
 	"button_color": "Select",
 	"mask": "Check",
+	"set_only_once": "Check",
 }
 
 doctype_link_properties = {
