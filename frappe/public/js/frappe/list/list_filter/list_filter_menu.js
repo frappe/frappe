@@ -5,7 +5,7 @@ import ManageLayoutsDialog from "./manage_layouts_dialog";
 export const ListFilterMenu = {
 	/** Group label shown in page inner button for saved layouts menu. */
 	get saved_layout_group_label() {
-		return __("Default Layouts");
+		return __("Default Layout");
 	},
 
 	/** Create the Saved Layouts button and populate the dropdown menu. */
