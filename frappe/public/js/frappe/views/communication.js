@@ -115,9 +115,12 @@ frappe.views.CommunicationComposer = class {
 							<button class="btn btn-ghost icon-btn" data-action="send-read-receipt" title="${__(
 								"Send read receipt"
 							)}">${icon("check-check")}</button>
-							<button class="btn btn-ghost icon-btn" data-action="print" title="${__(
-								"Attach document print"
-							)}">${icon("printer")}</button>
+							<div class="dropdown">
+								<button class="btn btn-ghost icon-btn" data-action="print" data-toggle="dropdown" title="${__(
+									"Attach document print"
+								)}">${icon("printer")}</button>
+								<div class="dropdown-menu dropdown-menu-right gmail-print-menu"></div>
+							</div>
 						</div>
 						<button class="btn btn-ghost icon-btn" data-action="discard" title="${__("Discard")}">${icon(
 			"es-line-delete"
@@ -247,6 +250,9 @@ frappe.views.CommunicationComposer = class {
 			});
 		};
 
+		// Assigned inside the `if (this.frm)` block below; no-op default when there's no doc.
+		let syncPrintMenu = () => {};
+
 		const renderPrintRow = (active) => {
 			const $list = $skeleton.find(".gmail-attachments .attach-list");
 			$list.find(".gmail-print-row").remove();
@@ -259,8 +265,8 @@ frappe.views.CommunicationComposer = class {
 				null,
 				() => {
 					fields.attach_document_print.set_input(0);
-					$skeleton.find('[data-action="print"]').removeClass("active");
 					$row.remove();
+					syncPrintMenu();
 				},
 				frappe.utils.icon("printer", "xs"),
 				false,
@@ -291,7 +297,42 @@ frappe.views.CommunicationComposer = class {
 
 		bindCheckIcon("send-me-a-copy", "send_me_a_copy");
 		bindCheckIcon("send-read-receipt", "send_read_receipt");
-		bindCheckIcon("print", "attach_document_print", renderPrintRow);
+
+		// 🖨 print dropdown — populate with format options for the current doc.
+		// Clicking a format sets the value + activates attach_document_print. If there's
+		// no doc to print (no this.frm), hide the entire dropdown.
+		const $printBtn = $skeleton.find('[data-action="print"]');
+		const $printMenu = $skeleton.find(".gmail-print-menu");
+		if (!this.frm) {
+			$printBtn.parent().hide();
+		} else {
+			const formats = frappe.meta.get_print_formats(this.frm.meta.name) || [];
+			syncPrintMenu = () => {
+				const current = fields.select_print_format.get_value();
+				$printBtn.toggleClass("active", !!fields.attach_document_print.get_value());
+				$printMenu.find(".dropdown-item").each(function () {
+					$(this).toggleClass("selected", $(this).data("format") === current);
+				});
+			};
+			formats.forEach((f) => {
+				const $item = $(
+					`<a class="dropdown-item" href="#" data-format="${frappe.utils.escape_html(
+						f
+					)}">${frappe.utils.escape_html(f)}</a>`
+				);
+				$item.on("click", (e) => {
+					e.preventDefault();
+					fields.select_print_format.set_value(f);
+					if (!fields.attach_document_print.get_value()) {
+						fields.attach_document_print.set_input(1);
+						renderPrintRow(true);
+					}
+					syncPrintMenu();
+				});
+				$printMenu.append($item);
+			});
+			syncPrintMenu();
+		}
 		updateBanner();
 
 		// Schedule send: ▾ next to Send opens a datetime picker for the existing send_after field.
