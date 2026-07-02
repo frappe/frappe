@@ -18,7 +18,6 @@ def list_apps(client) -> dict:
 	if not isinstance(catalog, list):
 		catalog = []
 	installed = _installed_versions(client)
-	print(installed)
 
 	apps = [_app_row(entry, installed) for entry in catalog if entry.get("name")]
 	# the apps also includes Framework. We should not show framework in the catalog.
