@@ -777,6 +777,43 @@ frappe.views.KanbanView = class KanbanView extends frappe.views.ListView {
 		}
 	}
 
+	/** Map Kanban Board child rows to the column shape used by the board UI. */
+	map_kanban_board_columns(board) {
+		return (board?.columns || []).map((col) => ({
+			title: col.column_name,
+			status: col.status,
+			order: col.order,
+			indicator: col.indicator || "gray",
+		}));
+	}
+
+	apply_kanban_board_doc(board) {
+		this.board = board;
+		this.board.filters_array = JSON.parse(this.board.filters || "[]");
+		this.board.fields = JSON.parse(this.board.fields || "[]");
+	}
+
+	/** Reload card pages and column order after a cross-tab board update. */
+	refresh_kanban_board_from_realtime() {
+		return frappe.db
+			.get_doc("Kanban Board", this.board_name)
+			.then((board) => {
+				this.apply_kanban_board_doc(board);
+				const columns = this.map_kanban_board_columns(board);
+
+				return this.refresh_kanban_pages().then(() => {
+					if (this.kanban && !this.skip_kanban_realtime) {
+						this.kanban.sync_from_realtime(this.data, columns, null);
+					} else if (!this.kanban) {
+						return this.render_kanban_board();
+					}
+				});
+			})
+			.catch((err) => {
+				console.error("Kanban board refresh failed:", err);
+			});
+	}
+
 	/** Refresh when another user changes column order on this board. */
 	setup_kanban_board_realtime() {
 		if (this.kanban_board_realtime_setup) return;
@@ -809,17 +846,7 @@ frappe.views.KanbanView = class KanbanView extends frappe.views.ListView {
 
 		if (board_refresh_only) {
 			this.pending_kanban_board_refresh = false;
-			return this.refresh_kanban_pages()
-				.then(() => {
-					if (this.kanban) {
-						this.kanban.update(this.data);
-					} else {
-						return this.render_kanban_board();
-					}
-				})
-				.catch((err) => {
-					console.error("Kanban board refresh failed:", err);
-				});
+			return this.refresh_kanban_board_from_realtime();
 		}
 
 		const names = this.pending_document_refreshes.map((d) => d.name);
@@ -882,12 +909,8 @@ frappe.views.KanbanView = class KanbanView extends frappe.views.ListView {
 			.get_doc("Kanban Board", this.board_name)
 			.then((board) => {
 				if (this.skip_kanban_realtime || !this.kanban) return;
-				const columns = (board.columns || []).map((col) => ({
-					title: col.column_name,
-					status: col.status,
-					order: col.order,
-					indicator: col.indicator || "gray",
-				}));
+				this.apply_kanban_board_doc(board);
+				const columns = this.map_kanban_board_columns(board);
 				this.kanban.sync_from_realtime(this.data, columns, this._changed_card_names);
 				this._changed_card_names = null;
 				return this.sync_kanban_column_state_from_board(columns);
