@@ -23,14 +23,16 @@
 					variant="ghost"
 					label="CC"
 					:class="showCc ? '!bg-surface-gray-4' : '!text-ink-gray-5'"
-					@click="showCc = !showCc"
+					@click="toggleCc"
+					size="xs"
 				/>
 				<Button
 					v-if="canBcc"
 					variant="ghost"
 					label="BCC"
 					:class="showBcc ? '!bg-surface-gray-4' : '!text-ink-gray-5'"
-					@click="showBcc = !showBcc"
+					@click="toggleBcc"
+					size="xs"
 				/>
 			</div>
 		</Row>
@@ -70,7 +72,17 @@ const showSubject = computed(() => props.fields.includes("subject"));
 const canCc = computed(() => props.fields.includes("cc"));
 const canBcc = computed(() => props.fields.includes("bcc"));
 
-// Toggle state for the Cc/Bcc rows (display-only; rows also show when prefilled).
+// Toggle state for the Cc/Bcc rows; rows also show when prefilled.
 const showCc = ref(false);
 const showBcc = ref(false);
+
+function toggleCc() {
+	showCc.value = !showCc.value;
+	if (!showCc.value) model.value.cc = [];
+}
+
+function toggleBcc() {
+	showBcc.value = !showBcc.value;
+	if (!showBcc.value) model.value.bcc = [];
+}
 </script>

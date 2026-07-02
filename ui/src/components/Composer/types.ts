@@ -39,34 +39,34 @@ export type UploadFunction = (file: File) => Promise<EditorUploadedFile>;
 
 // --- Base composer (Composer.vue) -----------------------------------------
 
-/** Built body + attachments, passed to `onSubmit`. */
+/** Built body + attachments, emitted on `submit`. */
 export interface CoreSubmitPayload {
   body: string;
   attachments: UploadedFile[];
 }
-
-/** Host's send. Composer awaits it, manages its own pending/spinner state, and
- *  never resets the draft itself — reset (success) or not (failure) is the
- *  host's call, made via the exposed `reset()` after this resolves/throws. */
-export type SubmitFunction<T> = (payload: T) => Promise<void>;
 
 /** Fields shared by every composer surface. */
 interface BaseComposerProps {
   placeholder?: string;
   label?: string;
   uploadFunction?: UploadFunction;
+  /** Wrap the composer in a ComposerWindow (collapsible trigger bar + pop-out/dock),
+   *  instead of always-visible content. Defaults to false. */
+  expandable?: boolean;
+  /** Trigger-bar avatar, used when `expandable` is true. */
+  avatar?: string;
+  avatarLabel?: string;
 }
 
 /** Props shared by every composer surface. */
 export interface ComposerProps extends BaseComposerProps {
   /** @-mention options for the comment editor. */
   mentionOptions?: MentionOption[];
-  onSubmit: SubmitFunction<CoreSubmitPayload>;
 }
 
 // --- EmailComposer ---------------------------------------------------------
 
-/** Passed to `onSubmit`: the full email envelope. */
+/** Emitted on `submit`: the full email envelope. */
 export interface EmailPayload extends CoreSubmitPayload {
   subject: string;
   recipients: Recipients;
@@ -78,7 +78,6 @@ export interface EmailComposerProps extends BaseComposerProps {
   fields?: Field[];
   /** Recipient lookup; omit for a plain creatable-email field. */
   searchRecipients?: RecipientSearch;
-  onSubmit: SubmitFunction<EmailPayload>;
 }
 
 // --- CommentComposer -------------------------------------------------------
@@ -95,18 +94,10 @@ export type Channel = "email" | "comment";
 
 /** A wrapper over EmailComposer + CommentComposer with a channel switcher. */
 export interface MultiComposerProps extends BaseComposerProps {
-  /** Show the window pop-out/close control. Defaults to true. */
-  expandable?: boolean;
-  /** Avatar URL for the collapsed trigger bar. */
-  avatar?: string;
-  /** Name used as the Avatar fallback initial when no image is available. */
-  avatarLabel?: string;
   // email channel
   /** Rows beyond "To". Defaults to ["cc", "bcc"]. */
   fields?: Field[];
   searchRecipients?: RecipientSearch;
-  onSubmit: SubmitFunction<EmailPayload>;
   // comment channel
   mentionOptions?: MentionOption[];
-  onSubmitComment: SubmitFunction<CommentPayload>;
 }

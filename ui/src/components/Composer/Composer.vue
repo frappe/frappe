@@ -31,10 +31,12 @@
 					<!-- Contextual table controls (shown while cursor is inside a table). -->
 					<EditorTableMenu />
 
-					<!-- Editor space: min 7rem, grows to a 50vh cap then scrolls; toolbar stays pinned. -->
+					<!-- Editor space: grows to a 50vh cap then scrolls, shrinks all the way to 0
+						 so a docked-resize drag never pushes the footer below into scroll — the
+						 footer (mt-auto, not flex-1) always keeps whatever it needs. -->
 
 					<div
-						class="flex max-h-[50vh] min-h-[7rem] flex-1 flex-col overflow-y-auto px-2.5 pb-2.5"
+						class="flex max-h-[50vh] min-h-0 flex-1 flex-col overflow-y-auto px-2.5 pb-2.5"
 					>
 						<EditorContent
 							class="prose-sm max-w-full flex-1 pb-8 pt-2 [&_p.reply-to-content]:hidden"
@@ -92,14 +94,25 @@
 								<!-- p-0.5: without it, focus/hover rings on buttons flush against this
 									 row's edge get hard-clipped by overflow-x-auto (which also clips
 									 the vertical axis per the CSS overflow spec). -->
-								<div class="flex items-center gap-1 overflow-x-auto p-0.5 [scrollbar-width:none] [&::-webkit-scrollbar]:hidden">
-									<slot name="actions" v-bind="{ addAttachment, setUploading }" />
+								<div
+									class="flex items-center gap-1 overflow-x-auto p-0.5 [scrollbar-width:none] [&::-webkit-scrollbar]:hidden"
+								>
+									<slot
+										name="actions"
+										v-bind="{ addAttachment, setUploading }"
+									/>
 									<EditorFixedMenu :items="emailToolbar" button-size="sm" />
 								</div>
 								<!-- Fade indicating more content to the right -->
 								<div
 									class="pointer-events-none absolute inset-y-0 right-0 w-8"
-									style="background: linear-gradient(to left, var(--surface-white, white), transparent)"
+									style="
+										background: linear-gradient(
+											to left,
+											var(--surface-white, white),
+											transparent
+										);
+									"
 								/>
 							</div>
 							<div class="flex shrink-0 items-center gap-2">
@@ -108,7 +121,6 @@
 									variant="solid"
 									:label="label"
 									:disabled="isDisabled"
-									:loading="isSubmitting"
 									@click="submit"
 								/>
 							</div>
@@ -132,26 +144,51 @@ import {
 	EditorTableMenu,
 	RichTextKit,
 	commentToolbar,
-	Paragraph, H2, H3, H4,
+	Paragraph,
+	H2,
+	H3,
+	H4,
 	Separator,
-	Bold, Italic, FontColor,
-	AlignLeft, AlignCenter, AlignRight,
-	BulletList, OrderedList,
-	InsertImage, InsertVideo, InsertLink,
-	Blockquote, InlineCode, HorizontalRule,
+	Bold,
+	Italic,
+	FontColor,
+	AlignLeft,
+	AlignCenter,
+	AlignRight,
+	BulletList,
+	OrderedList,
+	InsertImage,
+	InsertVideo,
+	InsertLink,
+	Blockquote,
+	InlineCode,
+	HorizontalRule,
 	InsertTable,
 } from "frappe-ui/editor";
 
 const emailToolbar = [
-	Paragraph, H2, H3, H4,
+	Paragraph,
+	H2,
+	H3,
+	H4,
 	Separator,
-	Bold, Italic, FontColor,
+	Bold,
+	Italic,
+	FontColor,
 	Separator,
-	AlignLeft, AlignCenter, AlignRight,
-	BulletList, OrderedList,
+	AlignLeft,
+	AlignCenter,
+	AlignRight,
+	BulletList,
+	OrderedList,
 	Separator,
-	InsertImage, InsertVideo, InsertLink,
-	Blockquote, InlineCode, HorizontalRule, InsertTable,
+	InsertImage,
+	InsertVideo,
+	InsertLink,
+	Blockquote,
+	InlineCode,
+	HorizontalRule,
+	InsertTable,
 ];
 import type { ComposerProps, UploadedFile } from "./types";
 
@@ -164,6 +201,9 @@ const emit = defineEmits<{
 	discard: [];
 	/** Only on explicit chip removal (so the host deletes server-side); not on reset/send. */
 	"remove-attachment": [file: UploadedFile];
+	/** Host runs the send and calls `reset()` itself when done; if it wants a
+	 *  pending/spinner state, that's the host's own UI to build. */
+	submit: [payload: CoreSubmitPayload];
 }>();
 
 const editorRef = ref<InstanceType<typeof Editor> | null>(null);
@@ -286,7 +326,9 @@ const compactAttachments = ref(false);
 
 watch(attachmentRow, (el) => {
 	if (!el) return;
-	const check = () => { compactAttachments.value = el.scrollWidth > el.clientWidth; };
+	const check = () => {
+		compactAttachments.value = el.scrollWidth > el.clientWidth;
+	};
 	const observer = new ResizeObserver(check);
 	observer.observe(el);
 });
@@ -311,11 +353,7 @@ function removeAttachment(file: UploadedFile) {
 	emit("remove-attachment", file);
 }
 
-const isSubmitting = ref(false);
-
-const isDisabled = computed(
-	() => isContentEmpty(body.value) || isSubmitting.value || isUploading.value
-);
+const isDisabled = computed(() => isContentEmpty(body.value) || isUploading.value);
 
 // Nothing to discard: empty body, no attachments, no quoted reply.
 const isEmpty = computed(
@@ -334,18 +372,12 @@ function focus() {
 	setTimeout(() => editor.value?.commands?.focus("start"), 0);
 }
 
-// Awaits the host's send and owns the spinner/disabled state for its duration.
-// Never resets on success — the host decides that (and whether to re-seed the
-// draft, e.g. a signature) by calling the exposed `reset()` itself; auto-reset
-// here would race a host that does its own post-send work before resolving.
-async function submit() {
+// Emits and steps back — the host runs the send and calls the exposed `reset()`
+// itself once done (never automatic here, so the host can do its own post-send
+// work first).
+function submit() {
 	if (isDisabled.value) return;
-	isSubmitting.value = true;
-	try {
-		await props.onSubmit({ body: buildMessage(), attachments: attachments.value });
-	} finally {
-		isSubmitting.value = false;
-	}
+	emit("submit", { body: buildMessage(), attachments: attachments.value });
 }
 
 function reset() {

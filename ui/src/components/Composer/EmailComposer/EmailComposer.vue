@@ -1,14 +1,56 @@
 <template>
-	<!-- Email content: a From slot + recipient/subject rows above the shared
-		 editing core. Window-agnostic; for a channel switcher use MultiComposer. -->
+	<!-- Email content: a From slot + recipient/subject rows above the shared editing
+		 core. Window-agnostic by default; set `expandable` for a standalone collapsible
+		 window (for a channel switcher instead, use MultiComposer). -->
+	<ComposerWindow
+		v-if="expandable"
+		ref="windowRef"
+		v-bind="$attrs"
+		:expandable="true"
+		:minimizable="false"
+		:start-expanded="true"
+		title="Email"
+		:avatar="avatar"
+		:avatar-label="avatarLabel"
+		:placeholder="preview || placeholder"
+	>
+		<Composer
+			ref="composer"
+			:placeholder="placeholder"
+			:label="label"
+			:upload-function="uploadFunction"
+			v-model:body="body"
+			v-model:quoted="quoted"
+			@submit="handleSubmit"
+			@discard="emit('discard')"
+			@remove-attachment="emit('remove-attachment', $event)"
+		>
+			<template #top>
+				<slot name="from" />
+				<RecipientFields
+					v-model="recipients"
+					v-model:subject="subject"
+					:fields="fields"
+					:search="searchRecipients"
+				/>
+			</template>
+
+			<template v-if="$slots.actions" #actions="actionProps">
+				<slot name="actions" v-bind="actionProps" />
+			</template>
+		</Composer>
+	</ComposerWindow>
+
 	<Composer
+		v-else
 		ref="composer"
+		v-bind="$attrs"
 		:placeholder="placeholder"
 		:label="label"
 		:upload-function="uploadFunction"
-		:on-submit="handleSubmit"
 		v-model:body="body"
 		v-model:quoted="quoted"
+		@submit="handleSubmit"
 		@discard="emit('discard')"
 		@remove-attachment="emit('remove-attachment', $event)"
 	>
@@ -34,8 +76,18 @@
 import { computed, ref } from "vue";
 import { toast } from "frappe-ui";
 import Composer from "../Composer.vue";
+import ComposerWindow from "../ComposerWindow.vue";
 import RecipientFields from "./RecipientFields.vue";
-import type { CoreSubmitPayload, EmailComposerProps, Recipients, UploadedFile } from "../types";
+import { textPreview } from "../textPreview";
+import type {
+	CoreSubmitPayload,
+	EmailComposerProps,
+	EmailPayload,
+	Recipients,
+	UploadedFile,
+} from "../types";
+
+defineOptions({ inheritAttrs: false });
 
 const props = withDefaults(defineProps<EmailComposerProps>(), {
 	fields: () => ["cc", "bcc"],
@@ -45,6 +97,9 @@ const props = withDefaults(defineProps<EmailComposerProps>(), {
 const emit = defineEmits<{
 	discard: [];
 	"remove-attachment": [file: UploadedFile];
+	/** Host runs the send and calls `reset()` (and `collapse()`, if windowed) itself
+	 *  when done. */
+	submit: [payload: EmailPayload];
 }>();
 
 // Host-owned two-way state (attachments stay owned by the core).
@@ -58,19 +113,21 @@ const recipients = defineModel<Recipients>("recipients", {
 const subject = defineModel<string>("subject", { default: "" });
 
 const composer = ref<InstanceType<typeof Composer> | null>(null);
+const windowRef = ref<InstanceType<typeof ComposerWindow> | null>(null);
+const preview = computed(() => textPreview(body.value));
 
 function hasRecipients() {
 	const { to, cc, bcc } = recipients.value;
 	return Boolean(to.length || cc.length || bcc.length);
 }
 
-// Bailing without calling onSubmit aborts the send and keeps the draft.
-async function handleSubmit({ body: message, attachments }: CoreSubmitPayload) {
+// Bailing without emitting `submit` aborts the send and keeps the draft.
+function handleSubmit({ body: message, attachments }: CoreSubmitPayload) {
 	if (!hasRecipients()) {
 		toast.warning("Add at least one recipient before sending.");
 		return;
 	}
-	await props.onSubmit({
+	emit("submit", {
 		subject: subject.value,
 		body: message,
 		recipients: recipients.value,
@@ -94,5 +151,8 @@ defineExpose({
 	// Drop a quoted message into the collapsible reply block. To pre-fill a reply,
 	// set `v-model:recipients` and call this.
 	setQuotedReply: (content: string) => composer.value?.setQuotedReply(content),
+	// No-ops when `expandable` is false — there's no window to (un)collapse.
+	expand: () => windowRef.value?.expand(),
+	collapse: () => windowRef.value?.collapse(),
 });
 </script>

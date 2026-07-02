@@ -6,7 +6,7 @@
 			<code>ComposerWindow</code> (drive it with <code>v-model:mode</code> — docked /
 			floating / minimized) or render them inline. <code>MultiComposer</code> bundles both
 			behind a channel switcher and owns the window for you. All are transport-agnostic, so
-			here <code>onSubmit</code> just logs the payload.
+			here <code>submit</code> just logs the payload.
 		</p>
 
 		<!-- ── Controls ──────────────────────────────────────────────────── -->
@@ -34,7 +34,7 @@
 						:fields="fields"
 						v-model:recipients="recipients"
 						:search-recipients="searchRecipients"
-						:on-submit="async (p) => log('email:submit', p)"
+						@submit="(p) => log('email:submit', p)"
 						placeholder="Write your reply…"
 						@discard="log('email:discard')"
 					/>
@@ -50,8 +50,8 @@
 					:fields="fields"
 					:search-recipients="searchRecipients"
 					:mention-options="mentionOptions"
-					:on-submit="async (p) => log('multi:email', p)"
-					:on-submit-comment="async (p) => log('multi:comment', p)"
+					@submit="(p) => log('multi:email', p)"
+					@submit-comment="(p) => log('multi:comment', p)"
 					expandable
 					placeholder="Write your reply…"
 					@discard="log('multi:discard')"
@@ -69,7 +69,7 @@
 				>
 					<CommentComposer
 						:mention-options="mentionOptions"
-						:on-submit="async (p) => log('comment:submit', p)"
+						@submit="(p) => log('comment:submit', p)"
 						placeholder="Type @ to mention a teammate…"
 						@discard="log('comment:discard')"
 					/>
@@ -87,7 +87,7 @@
 				<EmailComposer
 					:fields="fields"
 					v-model:body="draftBody"
-					:on-submit="async (p) => log('inline:submit', p)"
+					@submit="(p) => log('inline:submit', p)"
 					placeholder="Write your reply…"
 				>
 					<template #from>

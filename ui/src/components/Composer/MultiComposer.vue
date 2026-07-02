@@ -8,7 +8,7 @@
 		:expandable="expandable"
 		:avatar="avatar"
 		:avatar-label="avatarLabel"
-		:placeholder="placeholder"
+		:placeholder="preview || placeholder"
 	>
 		<template #title>
 			<TabButtons v-model="channel" :options="channelOptions" />
@@ -22,11 +22,11 @@
 			:upload-function="uploadFunction"
 			:fields="fields"
 			:search-recipients="searchRecipients"
-			:on-submit="handleSubmit"
 			v-model:body="body"
 			v-model:quoted="quotedReply"
 			v-model:recipients="recipients"
 			v-model:subject="subject"
+			@submit="emit('submit', $event)"
 			@discard="handleDiscard"
 			@remove-attachment="emit('remove-attachment', $event)"
 		>
@@ -44,8 +44,8 @@
 			:placeholder="placeholder"
 			:upload-function="uploadFunction"
 			:mention-options="mentionOptions"
-			:on-submit="handleSubmitComment"
 			v-model:body="commentBody"
+			@submit="emit('submit-comment', $event)"
 			@discard="handleDiscard"
 			@remove-attachment="emit('remove-attachment', $event)"
 		>
@@ -63,6 +63,7 @@ import { type WindowMode } from "frappe-ui/experimental";
 import ComposerWindow from "./ComposerWindow.vue";
 import EmailComposer from "./EmailComposer/EmailComposer.vue";
 import CommentComposer from "./CommentComposer/CommentComposer.vue";
+import { textPreview } from "./textPreview";
 import type {
 	Channel,
 	CommentPayload,
@@ -72,7 +73,7 @@ import type {
 	UploadedFile,
 } from "./types";
 
-const props = withDefaults(defineProps<MultiComposerProps>(), {
+withDefaults(defineProps<MultiComposerProps>(), {
 	fields: () => ["cc", "bcc"],
 	expandable: true,
 });
@@ -80,6 +81,9 @@ const props = withDefaults(defineProps<MultiComposerProps>(), {
 const emit = defineEmits<{
 	discard: [];
 	"remove-attachment": [file: UploadedFile];
+	/** Host runs the send and calls `reset()`/`collapse()` itself when done. */
+	submit: [payload: EmailPayload];
+	"submit-comment": [payload: CommentPayload];
 }>();
 
 // Window + channel state, host-observable via v-models.
@@ -98,6 +102,9 @@ const commentBody = ref("");
 const quotedReply = ref<string | null>(null);
 
 const channelLabel = computed(() => (channel.value === "comment" ? "Comment" : "Email"));
+const preview = computed(() =>
+	textPreview(channel.value === "comment" ? commentBody.value : body.value)
+);
 const channelOptions = [
 	{ label: "Email", value: "email" },
 	{ label: "Comment", value: "comment" },
@@ -111,19 +118,6 @@ const content = ref<
 function handleDiscard() {
 	windowRef.value?.collapse();
 	emit("discard");
-}
-
-// Collapse once the send resolves. Only reached on success — a host that
-// wants to keep the draft on failure must reject `onSubmit`/`onSubmitComment`
-// (per the documented contract), not swallow its own error and resolve.
-async function handleSubmit(payload: EmailPayload) {
-	await props.onSubmit(payload);
-	windowRef.value?.collapse();
-}
-
-async function handleSubmitComment(payload: CommentPayload) {
-	await props.onSubmitComment(payload);
-	windowRef.value?.collapse();
 }
 
 // Open the window, then focus the freshly-mounted channel component.

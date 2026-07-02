@@ -19,7 +19,6 @@ export type {
   Recipient,
   RecipientSearch,
   Recipients,
-  SubmitFunction,
   UploadedFile,
   UploadFunction,
 } from "./types";
