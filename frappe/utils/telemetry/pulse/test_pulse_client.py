@@ -343,6 +343,15 @@ class TestTelemetryGate(TestPulseClient):
 		with self._conf(fc_team="team_x"), patch("frappe.get_system_settings", return_value=True):
 			self.assertEqual(boot_config()["team"], "team_x")
 
+	def test_boot_config_includes_site_age(self):
+		# Exposed so frappe-ui apps can gate onboarding-only tracking the way desk does.
+		with (
+			self._conf(),
+			patch("frappe.get_system_settings", return_value=True),
+			patch("frappe.utils.telemetry.site_age", return_value=3),
+		):
+			self.assertEqual(boot_config()["site_age"], 3)
+
 	def test_client_url_is_absolute_when_host_lacks_scheme(self):
 		# A scheme-less pulse_host must still yield an absolute client_url, else the
 		# browser resolves the import against the Frappe origin and telemetry never loads.
