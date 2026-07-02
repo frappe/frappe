@@ -2,6 +2,15 @@ import KanbanSettings from "./kanban_settings";
 
 frappe.provide("frappe.views");
 
+/*
+ * Kanban list view — loads card data from the server.
+ *
+ * This file fetches cards in pages and keeps them in memory (this.data).
+ * The board UI (kanban_board.bundle.js) only draws the cards you can see on screen.
+ *
+ * See build_column_state() for how paging works.
+ */
+
 frappe.views.KanbanView = class KanbanView extends frappe.views.ListView {
 	static full_page = true;
 	static no_sidebar = true;
@@ -85,6 +94,10 @@ frappe.views.KanbanView = class KanbanView extends frappe.views.ListView {
 			this.page_title = __(this.board_name);
 			this.card_meta = this.get_card_meta();
 			this.page_length = 0;
+			// How many cards to load and keep in memory (works with kanban_board.bundle.js):
+			// kanban_page_size — cards per server request (first load + each scroll load).
+			// kanban_prefetch_trigger — start loading more when user is this many cards from the bottom.
+			// kanban_max_column_cards — max cards kept in memory per column; older ones are removed.
 			this.kanban_page_size = 50;
 			this.kanban_prefetch_trigger = 25;
 			this.kanban_max_column_cards = 500;
@@ -186,7 +199,7 @@ frappe.views.KanbanView = class KanbanView extends frappe.views.ListView {
 	}
 
 	/**
-	 * Refresh Kanban via server API: column totals + first page per column.
+	 * Reload the board: fetch totals + first page per column, then draw it.
 	 */
 	refresh() {
 		this.freeze(true);
@@ -212,11 +225,33 @@ frappe.views.KanbanView = class KanbanView extends frappe.views.ListView {
 			});
 	}
 
-	/** Non-archived board columns used for pagination and rendering. */
+	/** Columns that are not archived. */
 	get_active_kanban_columns() {
 		return (this.board?.columns || []).filter((col) => col.status !== "Archived");
 	}
 
+	/*
+	 * Per-column state — which cards are loaded in memory.
+	 *
+	 * Old behaviour: open board → load ALL cards for ALL columns (very slow on big boards).
+	 * New behaviour: load 50 per column first, load more on scroll, keep max 500 in memory.
+	 *
+	 * Steps:
+	 *   1. First load — totals + 50 cards per column (refresh_kanban_pages).
+	 *   2. Scroll down — load next 50 (prefetch_kanban_column).
+	 *   3. Over 500 in memory — remove oldest cards (enforce_column_memory_cap).
+	 *   4. Scroll up — load cards that were removed (prefetch_kanban_column_back).
+	 *
+	 * Key fields per column:
+	 *   total_count  — how many cards exist (shown in column header).
+	 *   window_start — index of the first card we still have in memory.
+	 *   offset       — where to start the next server request.
+	 *   loaded_names — card names currently in this.data for this column.
+	 *
+	 * kanban_board.bundle.js only draws visible cards on screen; this file controls
+	 * which card data exists in memory at all.
+	 */
+	/** Reset paging state for every column. */
 	build_column_state() {
 		const next = {};
 		this.get_active_kanban_columns().forEach((col) => {
@@ -234,7 +269,7 @@ frappe.views.KanbanView = class KanbanView extends frappe.views.ListView {
 		this.kanban_column_state = next;
 	}
 
-	/** Cards currently held in memory for a column (not the server total). */
+	/** How many cards we have in memory for this column (not the total on the server). */
 	get_column_memory_count(column_title) {
 		return this.kanban_column_state[column_title]?.loaded_names?.length || 0;
 	}
@@ -247,7 +282,7 @@ frappe.views.KanbanView = class KanbanView extends frappe.views.ListView {
 		return this.kanban_prefetch_trigger;
 	}
 
-	/** Build API args using the same fields/filters as reportview.get. */
+	/** Build API request with the same fields and filters as list view. */
 	get_kanban_api_args(extra = {}) {
 		const args = { ...this.get_call_args().args };
 		args.board_name = this.board_name;
@@ -257,13 +292,18 @@ frappe.views.KanbanView = class KanbanView extends frappe.views.ListView {
 		return { ...args, ...extra };
 	}
 
+	/** Turn server response into a list of card objects. */
 	parse_kanban_cards(cards) {
 		if (!cards) return [];
 		if (Array.isArray(cards)) return cards;
 		return frappe.utils.dict(cards.keys, cards.values);
 	}
 
-	/** Merge fetched rows at the end of a column window (scroll down). */
+	/** Add new cards at the end of a column (user scrolled down).
+
+	At 500 cards, removes the oldest from memory and moves window_start forward.
+	User can load them again by scrolling up.
+	*/
 	merge_kanban_cards_for_column(column_title, rows) {
 		if (!rows?.length) return 0;
 
@@ -290,7 +330,10 @@ frappe.views.KanbanView = class KanbanView extends frappe.views.ListView {
 		return evicted;
 	}
 
-	/** Merge fetched rows at the start of a column window (scroll up). */
+	/** Add cards at the start of a column (user scrolled up).
+
+	Moves window_start back. May remove newest cards from the bottom to stay under 500.
+	*/
 	prepend_kanban_cards_for_column(column_title, rows) {
 		if (!rows?.length) return 0;
 
@@ -325,7 +368,13 @@ frappe.views.KanbanView = class KanbanView extends frappe.views.ListView {
 		return evicted;
 	}
 
-	/** Drop cards beyond the per-column cap; evict from top or bottom of the memory window. */
+	/** Remove extra cards when a column has more than 500 in memory.
+
+	Only removes cards that are not on screen (checked via column_registry),
+	so the scroll position does not jump.
+
+	@param edge - "top" = scrolling down (drop oldest), "bottom" = scrolling up (drop newest).
+	*/
 	enforce_column_memory_cap(column_title, data_map, edge = "top") {
 		const state = this.kanban_column_state[column_title];
 		const field_name = this.board?.field_name;
@@ -361,7 +410,11 @@ frappe.views.KanbanView = class KanbanView extends frappe.views.ListView {
 		return evicted;
 	}
 
-	/** Keep pagination counts/names aligned after optimistic cross-column drag. */
+	/** Update counts and loaded card lists after dragging a card to another column.
+
+	@param old_index - card position in the full source column (not just visible cards).
+	@param new_index - card position in the full destination column.
+	*/
 	on_kanban_card_moved(card_name, from_col, to_col, old_index, new_index) {
 		if (!card_name || from_col === to_col) return;
 
@@ -429,6 +482,7 @@ frappe.views.KanbanView = class KanbanView extends frappe.views.ListView {
 		}
 	}
 
+	/** Can we load more cards when scrolling down? (not at end, room to remove old ones). */
 	can_prefetch_column_forward(column_title) {
 		const state = this.kanban_column_state[column_title];
 		if (!state || state.inflight) return false;
@@ -441,6 +495,7 @@ frappe.views.KanbanView = class KanbanView extends frappe.views.ListView {
 		return safe_evict > 0;
 	}
 
+	/** Save the result of a column page API call into memory. */
 	apply_kanban_column_result(column_title, { total, cards }) {
 		const state = this.kanban_column_state[column_title];
 		if (!state) return { rows: [], evicted: 0 };
@@ -469,6 +524,10 @@ frappe.views.KanbanView = class KanbanView extends frappe.views.ListView {
 		return { rows, evicted };
 	}
 
+	/** First load: get total count + first 50 cards for each column.
+
+	Example: 4 columns load 200 cards, not the whole board.
+	*/
 	async refresh_kanban_pages() {
 		if (!this.board?.columns?.length) {
 			return;
@@ -495,7 +554,10 @@ frappe.views.KanbanView = class KanbanView extends frappe.views.ListView {
 		});
 	}
 
-	/** Load the next page for a single column when the user nears the bottom. */
+	/** Load the next 50 cards when user nears the bottom of a column.
+
+	Triggered from kanban_board.bundle.js before user runs out of cards, so scroll feels smooth.
+	*/
 	async prefetch_kanban_column(column_title) {
 		const state = this.kanban_column_state[column_title];
 		if (!this.can_prefetch_column_forward(column_title)) {
@@ -534,7 +596,7 @@ frappe.views.KanbanView = class KanbanView extends frappe.views.ListView {
 		}
 	}
 
-	/** Load the previous page when the user scrolls up into evicted territory. */
+	/** Load older cards when user scrolls up (cards that were removed from memory). */
 	async prefetch_kanban_column_back(column_title) {
 		const state = this.kanban_column_state[column_title];
 		if (!state || state.inflight || state.window_start <= 0) {
@@ -587,6 +649,7 @@ frappe.views.KanbanView = class KanbanView extends frappe.views.ListView {
 		}
 	}
 
+	/** Refresh when another user changes column order on this board. */
 	setup_kanban_board_realtime() {
 		if (this.kanban_board_realtime_setup) return;
 
@@ -599,7 +662,7 @@ frappe.views.KanbanView = class KanbanView extends frappe.views.ListView {
 		this.kanban_board_realtime_setup = true;
 	}
 
-	/** Like list view: fetch changed docs, patch this.data, then render_list (no list sort). */
+	/** When a card changes, update it in memory and redraw (no full list re-sort). */
 	process_document_refreshes() {
 		const board_refresh_only =
 			!this.pending_document_refreshes?.length && this.pending_kanban_board_refresh;
@@ -670,6 +733,7 @@ frappe.views.KanbanView = class KanbanView extends frappe.views.ListView {
 		this._render_kanban_from_server();
 	}
 
+	/** After a realtime update, load latest column order and refresh cards. */
 	_render_kanban_from_server() {
 		if (this._kanban_sync_in_flight) {
 			this._kanban_sync_pending = true;

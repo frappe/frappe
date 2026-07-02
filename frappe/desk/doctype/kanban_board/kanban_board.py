@@ -78,8 +78,17 @@ def get_kanban_boards(doctype: str):
 	)
 
 
+# Paginated Kanban APIs — load cards in chunks instead of all at once.
+#
+# Before: opening Kanban loaded every card for every column (slow on large boards).
+# Now:
+#   get_kanban_board_data  — first open: count per column + first 50 cards each.
+#   get_kanban_column_page — load more for one column when user scrolls.
+#
+# Uses the same filters and fields as list view. Client sends kanban_start and
+# kanban_page_length to ask for the next chunk.
 def get_kanban_reportview_args():
-	"""Parse reportview-style args from the request, excluding Kanban-specific params."""
+	"""Read list-view style args from the request, plus Kanban paging fields."""
 	from frappe.desk.reportview import clean_params, validate_args
 
 	data = frappe._dict(frappe.local.form_dict)
@@ -97,6 +106,7 @@ def get_kanban_reportview_args():
 
 
 def get_kanban_board_context(board_name: str):
+	"""Load the board and return active (non-archived) column names."""
 	board = frappe.get_doc("Kanban Board", board_name)
 	frappe.has_permission(board.reference_doctype, "read", throw=True)
 	column_names = [col.column_name for col in board.columns if col.status != "Archived"]
@@ -104,6 +114,7 @@ def get_kanban_board_context(board_name: str):
 
 
 def merge_kanban_filters(board: Document, filters: list | None) -> list:
+	"""Add board filters to the request without duplicating them."""
 	merged = list(filters or [])
 	if not board.filters:
 		return merged
@@ -120,6 +131,8 @@ def merge_kanban_filters(board: Document, filters: list | None) -> list:
 
 
 def _kanban_filter_key(filt):
+	"""Simple key so we do not add the same filter twice."""
+
 	def _hashable(value):
 		if isinstance(value, list):
 			return tuple(value)
@@ -132,6 +145,7 @@ def _kanban_filter_key(filt):
 
 
 def column_filter(doctype: str, field_name: str, column_name: str, filters: list | None) -> list:
+	"""Add a filter so we only get cards in this column."""
 	return [*(filters or []), [doctype, field_name, "=", column_name]]
 
 
@@ -143,6 +157,7 @@ def fetch_kanban_column_cards(
 	start: int,
 	page_length: int,
 ):
+	"""Load one page of cards for a column from the database."""
 	from frappe.desk.reportview import compress, execute
 
 	query_args = frappe._dict(reportview_args.copy())
@@ -156,6 +171,7 @@ def fetch_kanban_column_cards(
 def get_kanban_column_counts(
 	doctype: str, field_name: str, filters: list | None, column_names: list[str]
 ) -> dict[str, int]:
+	"""Count cards in each column. If group-by fails, count each column separately."""
 	counts = {name: 0 for name in column_names}
 	if not column_names:
 		return counts
@@ -184,7 +200,10 @@ def get_kanban_column_counts(
 @frappe.whitelist()
 @frappe.read_only()
 def get_kanban_board_data():
-	"""Load column totals and the first page of cards for every active column."""
+	"""First load: total per column + first page of cards (default 50 each).
+
+	Example: 4 columns load 200 cards, not the entire board.
+	"""
 	board_name, _, _, kanban_page_length, reportview_args = get_kanban_reportview_args()
 	board, column_names = get_kanban_board_context(board_name)
 	doctype = board.reference_doctype
@@ -207,7 +226,10 @@ def get_kanban_board_data():
 @frappe.whitelist()
 @frappe.read_only()
 def get_kanban_column_page():
-	"""Load the next page of cards for a single column."""
+	"""Load the next chunk of cards for one column (scroll up or down).
+
+	kanban_start = which card index to start from (0 = first card in column).
+	"""
 	board_name, column_name, kanban_start, kanban_page_length, reportview_args = get_kanban_reportview_args()
 	if not column_name:
 		frappe.throw(_("Column name is required"))
@@ -296,7 +318,11 @@ def update_order_for_single_card(
 	from_order: str | list | None = None,
 	to_order: str | list | None = None,
 ):
-	"""Save the order of cards in columns."""
+	"""Save card order after drag.
+
+	Send from_order and to_order when the client already has the full lists.
+	Otherwise send old_index and new_index.
+	"""
 	board = frappe.get_doc("Kanban Board", board_name)
 	doctype = board.reference_doctype
 
@@ -332,6 +358,7 @@ def update_order_for_single_card(
 
 
 def get_kanban_column_order_and_index(board, colname):
+	"""Return parsed card-name order list and board.columns index for a column."""
 	for i, col in enumerate(board.columns):
 		if col.column_name == colname:
 			col_order = frappe.parse_json(col.order)
@@ -341,7 +368,7 @@ def get_kanban_column_order_and_index(board, colname):
 
 
 def publish_kanban_board_update(board):
-	"""Notify open Kanban views in other sessions to sync column order."""
+	"""Tell other open Kanban tabs to refresh column order."""
 	frappe.publish_realtime(
 		"kanban_board_update",
 		{"board_name": board.name, "reference_doctype": board.reference_doctype},
@@ -352,6 +379,7 @@ def publish_kanban_board_update(board):
 
 @frappe.whitelist()
 def add_card(board_name: str, docname: str, colname: str):
+	"""Prepend a new card to a column's saved order and notify other sessions."""
 	board = frappe.get_doc("Kanban Board", board_name)
 
 	frappe.has_permission(board.reference_doctype, "write", throw=True)

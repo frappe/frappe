@@ -1,4 +1,14 @@
 // TODO: Refactor for better UX
+//
+// Kanban runs in two steps for speed:
+//
+// 1. Load data in pages (kanban_view.js)
+//    - 50 cards per column at first, more on scroll, max 500 kept in memory.
+// 2. Only draw visible cards (this file)
+//    - 500 cards would still mean 500 HTML elements; we only render what you see.
+//    - Columns with 30+ cards use empty spacers so scroll still feels full height.
+//
+// Result: fast open, less memory, smooth scroll, drag-and-drop without redrawing everything.
 
 import { createStore } from "vuex";
 
@@ -9,8 +19,8 @@ frappe.provide("frappe.views");
 
 	let columns_unwatcher = null;
 	const LARGE_BOARD_ORDER_SYNC_LIMIT = 200;
-	var prepared_card_cache = {};
-	var column_registry = {};
+	var prepared_card_cache = {}; // Card HTML built only when shown on screen.
+	var column_registry = {}; // Per-column scroll + render helpers.
 	var suppress_cards_watch = false;
 	var kanban_realtime_syncing = false;
 
@@ -68,7 +78,7 @@ frappe.provide("frappe.views");
 					cards: _cards,
 				});
 			},
-			/** Merge new cards without clearing the prepared-card cache (pagination). */
+			/** Add new cards to the store without clearing the card HTML cache. */
 			merge_column_cards: function (context, { cards, keep_prepared_cache }) {
 				if (!cards?.length) return;
 				const map = new Map(context.state.cards.map((c) => [c.name, c]));
@@ -78,7 +88,7 @@ frappe.provide("frappe.views");
 					keep_prepared_cache: !!keep_prepared_cache,
 				});
 			},
-			/** Replace store cards from list view data (after eviction / full column sync). */
+			/** Replace all cards in the store (e.g. after cards removed from memory). */
 			sync_cards: function (context, { cards, keep_prepared_cache }) {
 				context.commit("update_state", {
 					cards: (cards || []).uniqBy((card) => card.name),
@@ -269,7 +279,7 @@ frappe.provide("frappe.views");
 				const _cards = context.state.cards.slice();
 				const _columns = context.state.columns.slice();
 
-				// Derive order from state — DOM may only contain a virtual window of cards.
+				// Build order from saved state — DOM may only show part of the column.
 				const order = {};
 				const cards_index = context.state.cards_index;
 				context.state.columns.forEach(function (col) {
@@ -339,7 +349,7 @@ frappe.provide("frappe.views");
 						});
 					});
 			},
-			/** Apply card + column-order changes from another session without a full board rebuild. */
+			/** Apply card and order changes from another tab without rebuilding the whole board. */
 			sync_from_realtime: function (
 				context,
 				{ cards, columns: incoming_columns, changed_names }
@@ -409,7 +419,11 @@ frappe.provide("frappe.views");
 			}
 		};
 
-		/** Incrementally sync one column after pagination (full list data, not just new rows). */
+		/** Update the board after more cards are loaded or removed from memory.
+
+		KanbanView updates this.data, then calls here to refresh the store.
+		If cards were removed, scroll position is fixed so the screen does not jump.
+		*/
 		self.append_column_cards = function (_cards, column_title, evicted_count, edge) {
 			if (!self.wrapper.find(".kanban").length) return;
 
@@ -688,7 +702,17 @@ frappe.provide("frappe.views");
 		var self = {};
 		var filtered_cards = [];
 
-		// Virtualization state
+		/*
+		 * Which cards are drawn on screen for this column.
+		 *
+		 * ordered_names — full list of card names in this column (from memory).
+		 * virt_start / virt_end — which cards are actually drawn (e.g. cards 20–40 of 500).
+		 * Top/bottom spacers — empty blocks that keep scroll bar the right size.
+		 * card_height — height of one card (used for math).
+		 * buffer_cards — draw a few extra cards above/below so scroll does not flicker.
+		 * virtualization_disabled — turned off while dragging so the card stays under the cursor.
+		 * min_cards_to_virtualize — under 30 cards, just draw them all (simpler).
+		 */
 		var virt_state = {
 			card_height: 108,
 			buffer_cards: 8,
@@ -723,6 +747,8 @@ frappe.provide("frappe.views");
 			bind_options();
 
 			column_registry[column.title] = {
+				// Links memory cleanup (KanbanView) with what is on screen (virt_state).
+				/** Redraw the column. force=true resets which cards are considered visible. */
 				refresh(force) {
 					if (force) {
 						virt_state.virt_start = -1;
@@ -730,12 +756,14 @@ frappe.provide("frappe.views");
 					}
 					make_cards();
 				},
+				/** How many cards above the screen can be removed from memory safely. */
 				get_safe_evict_count(max_evict) {
 					if (!max_evict) return 0;
 					const buffer = virt_state.buffer_cards;
 					const above_viewport = Math.max(0, virt_state.virt_start - buffer);
 					return Math.min(max_evict, above_viewport);
 				},
+				/** Fix scroll position after cards are removed from memory. */
 				on_cards_trimmed(evicted_count, edge) {
 					if (!evicted_count) return;
 					const card_height = virt_state.card_height || 108;
@@ -765,6 +793,7 @@ frappe.provide("frappe.views");
 						virt_state.suppress_scroll_render = false;
 					});
 				},
+				/** How many cards below the screen can be removed from memory safely. */
 				get_safe_evict_from_bottom(max_evict) {
 					if (!max_evict) return 0;
 					const buffer = virt_state.buffer_cards;
@@ -777,6 +806,7 @@ frappe.provide("frappe.views");
 				set_indicator(indicator) {
 					apply_column_indicator(self.$kanban_column, indicator);
 				},
+				/** Update card order in memory during drag. */
 				sync_order(names) {
 					virt_state.ordered_names = names;
 					virt_state.total_cards = names.length;
@@ -791,7 +821,7 @@ frappe.provide("frappe.views");
 						});
 					}
 				},
-				/** Re-render column after remote order/membership change. */
+				/** Redraw column after another user/tab changed card order. */
 				apply_realtime_sync(names) {
 					if (names_array_equal(names, virt_state.ordered_names)) {
 						return;
@@ -806,7 +836,7 @@ frappe.provide("frappe.views");
 					virt_state.virt_end = -1;
 					render_virtual_cards(true);
 				},
-				/** Scroll virtual window so a card index is visible after drag-and-drop. */
+				/** Scroll so the dropped card is visible after drag-and-drop. */
 				scroll_to_card_index(card_index) {
 					if (card_index == null || card_index < 0) return;
 					if (!should_virtualize()) return;
@@ -854,6 +884,7 @@ frappe.provide("frappe.views");
 			}
 		}
 
+		/** Use virtual scrolling only when the column has 30+ cards. */
 		function should_virtualize() {
 			return (
 				!virt_state.virtualization_disabled &&
@@ -902,6 +933,15 @@ frappe.provide("frappe.views");
 			render_virtual_cards(true);
 		}
 
+		/** Draw only the cards visible on screen (+ spacers + load more on scroll).
+
+		On scroll:
+		  1. Work out which card indexes are visible (virt_start to virt_end).
+		  2. Draw those cards; use empty spacers for the rest.
+		  3. Ask KanbanView to load more data if user is near the top or bottom.
+
+		force=true means data changed — redraw but do not trigger a new server load.
+		*/
 		function render_virtual_cards(force) {
 			if (virt_state.virtualization_disabled) return;
 
@@ -995,7 +1035,7 @@ frappe.provide("frappe.views");
 				virtualized: true,
 			});
 			self.$kanban_cards.scrollTop(scroll_top);
-			// Only prefetch on user scroll — not after programmatic re-renders (force=true).
+			// Only prefetch when user scrolls — not when we redraw after data changes.
 			if (!force) {
 				maybe_prefetch_more();
 				maybe_prefetch_backward();
@@ -1005,6 +1045,7 @@ frappe.provide("frappe.views");
 			});
 		}
 
+		/** Ask server for the next page when user is near the bottom. */
 		function maybe_prefetch_more() {
 			const list = store.state.cur_list;
 			if (!list?.prefetch_kanban_column) return;
@@ -1018,6 +1059,7 @@ frappe.provide("frappe.views");
 			}
 		}
 
+		/** Ask server for older cards when user scrolls near the top. */
 		function maybe_prefetch_backward() {
 			const list = store.state.cur_list;
 			if (!list?.prefetch_kanban_column_back) return;
@@ -1035,6 +1077,9 @@ frappe.provide("frappe.views");
 			// Block card dragging/record editing without 'write' access to reference doctype
 			if (!frappe.model.can_write(store.state.doctype)) return;
 
+			// Drag with only part of the column on screen:
+			// - onStart: stop redrawing while dragging.
+			// - onEnd: convert screen position to full column index, save order, redraw columns.
 			Sortable.create(self.$kanban_cards.get(0), {
 				group: "cards",
 				animation: 150,
@@ -1080,7 +1125,7 @@ frappe.provide("frappe.views");
 						cur_list.skip_kanban_realtime = true;
 					}
 
-					// Keep virtualization off until state matches Sortable's DOM.
+					// Keep virtual scrolling off until drag is saved.
 					const orders = apply_card_move(move);
 					move.from_order = orders.from_order;
 					move.to_order = orders.to_order;
@@ -1596,7 +1641,10 @@ frappe.provide("frappe.views");
 		Object.keys(column_registry).forEach((key) => delete column_registry[key]);
 	}
 
-	/** Map Sortable DOM index to full column index when virtualized (accounts for top spacer). */
+	/** Convert drag position on screen to position in the full column list.
+
+	Only some cards are on screen; add virt_start and account for the top spacer.
+	*/
 	function get_sortable_full_index($kanban_cards, dom_index) {
 		if (!$kanban_cards?.length) return dom_index;
 		if (!$kanban_cards.data("virtualized")) return dom_index;
@@ -1605,7 +1653,7 @@ frappe.provide("frappe.views");
 		return virt_start + Math.max(0, dom_index - (has_top_spacer ? 1 : 0));
 	}
 
-	/** Visible card names in DOM order (skips virtual spacers). */
+	/** Card names currently shown on screen (ignores spacers). */
 	function get_dom_card_names($kanban_cards) {
 		const names = [];
 		if (!$kanban_cards?.length) return names;
@@ -1618,7 +1666,7 @@ frappe.provide("frappe.views");
 		return names;
 	}
 
-	/** Merge post-drag DOM order into the full column list. */
+	/** After drag, merge on-screen order back into the full column list. */
 	function rebuild_column_order_from_dom($kanban_cards, full_order) {
 		const dom_names = get_dom_card_names($kanban_cards);
 		if (!dom_names.length) return full_order.slice();
@@ -1714,7 +1762,7 @@ frappe.provide("frappe.views");
 		suppress_cards_watch = false;
 	}
 
-	/** Optimistic in-memory update after Sortable has already moved the DOM. */
+	/** Update card order in memory right after drag (before server saves). */
 	function apply_card_move({ name, from_colname, to_colname, $from, $to }) {
 		const state = store.state;
 		const field_name = state.board.field_name;
@@ -1753,6 +1801,7 @@ frappe.provide("frappe.views");
 		return { from_order: from_names, to_order: to_names };
 	}
 
+	/** Build card HTML only when it is drawn on screen; reuse if seen before. */
 	function get_prepared_card(name, state) {
 		if (prepared_card_cache[name]) {
 			return prepared_card_cache[name];
@@ -1768,7 +1817,7 @@ frappe.provide("frappe.views");
 		return card.column || card[field_name];
 	}
 
-	/** Index cards by column and name in a single O(n) pass. */
+	/** Group cards by column and name once — faster than filtering on every scroll. */
 	function build_cards_index(cards, field_name) {
 		const by_column = {};
 		const by_name = {};
