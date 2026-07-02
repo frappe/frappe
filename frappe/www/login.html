@@ -51,6 +51,30 @@
 	<button class="btn btn-sm {{ "btn-primary" if disable_user_pass_login else "btn-default" }} btn-block btn-login btn-ldap-login">
 		{{ _("Login with LDAP") }}</button>
 	{% endif %}
+<<<<<<< HEAD
+=======
+	{% if login_with_email_link %}
+	<a href="#login-with-email-link"
+		class="btn btn-block btn-default btn-sm btn-login-option btn-login-with-email-link">
+		{{ _("Login with Email Link") }}</a>
+	{% endif %}
+	{% if social_login %}
+	<div class="social-logins text-center">
+		<div class="social-login-buttons">
+			{% for provider in provider_logins %}
+			<div class="login-button-wrapper">
+				<a href="{{ provider.auth_url }}"
+					class="btn btn-block btn-default btn-sm btn-login-option btn-{{ provider.name }}">
+					{% if provider.icon %}
+						{{ provider.icon }}
+					{% endif %}
+					{{ _("Login with {0}").format(provider.provider_name) }}</a>
+			</div>
+			{% endfor %}
+		</div>
+	</div>
+	{% endif %}
+>>>>>>> 10dc0f0ff5 (fix(login): remove login with Frappe Cloud (#40526))
 </div>
 {% endmacro %}
 
