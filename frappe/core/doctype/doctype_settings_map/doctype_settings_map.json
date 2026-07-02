@@ -1,0 +1,86 @@
+{
+ "actions": [],
+ "creation": "2026-06-25 00:00:00",
+ "description": "Settings from Single (Settings) doctypes that apply to a given doctype. Up to one standard (shipped) and one custom (user) record per doctype; the active record's grid surfaces in the target doctype's DocType Settings \u2192 General tab.",
+ "doctype": "DocType",
+ "editable_grid": 1,
+ "engine": "InnoDB",
+ "field_order": [
+  "applies_to_doctype",
+  "module",
+  "is_standard",
+  "is_active",
+  "mappings"
+ ],
+ "fields": [
+  {
+   "description": "The DocType these settings apply to.",
+   "fieldname": "applies_to_doctype",
+   "fieldtype": "Link",
+   "in_list_view": 1,
+   "in_standard_filter": 1,
+   "label": "Applies to DocType",
+   "options": "DocType",
+   "reqd": 1,
+   "set_only_once": 1
+  },
+  {
+   "default": "0",
+   "description": "Standard maps are shipped with an app and can only be changed in Developer Mode. Leave unchecked for user-created (custom) maps.",
+   "fieldname": "is_standard",
+   "fieldtype": "Check",
+   "in_list_view": 1,
+   "in_standard_filter": 1,
+   "label": "Is standard",
+   "set_only_once": 1
+  },
+  {
+   "depends_on": "is_standard",
+   "fieldname": "module",
+   "fieldtype": "Link",
+   "label": "Module",
+   "mandatory_depends_on": "is_standard",
+   "options": "Module Def"
+  },
+  {
+   "default": "1",
+   "description": "When active, this map is used for its doctype. An active custom map overrides the standard one.",
+   "fieldname": "is_active",
+   "fieldtype": "Check",
+   "in_list_view": 1,
+   "in_standard_filter": 1,
+   "label": "Is active"
+  },
+  {
+   "description": "Each row maps a field on a Single (Settings) doctype to surface for this doctype.",
+   "fieldname": "mappings",
+   "fieldtype": "Table",
+   "label": "Mappings",
+   "options": "DocType Settings Map Item"
+  }
+ ],
+ "index_web_pages_for_search": 1,
+ "links": [],
+ "modified": "2026-06-30 15:02:17.168692",
+ "modified_by": "Administrator",
+ "module": "Core",
+ "name": "DocType Settings Map",
+ "owner": "Administrator",
+ "permissions": [
+  {
+   "create": 1,
+   "delete": 1,
+   "email": 1,
+   "print": 1,
+   "read": 1,
+   "role": "System Manager",
+   "share": 1,
+   "write": 1
+  }
+ ],
+ "row_format": "Dynamic",
+ "sort_field": "creation",
+ "sort_order": "DESC",
+ "states": [],
+ "track_changes": 1
+}
