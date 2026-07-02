@@ -93,9 +93,7 @@ frappe.ui.ThemeSwitcher = class ThemeSwitcher {
 			<div class="theme-preview-input"></div>
 		</div>`;
 
-		const window_html = (
-			t
-		) => `<div class="theme-preview-container theme-preview-container--${t}">
+		const window_html = (t) => `<div class="theme-preview-container" data-theme="${t}">
 			<div class="theme-preview-frame">
 				<div class="theme-preview-titlebar">
 					<span class="theme-preview-dot theme-preview-dot--red"></span>
@@ -104,15 +102,21 @@ frappe.ui.ThemeSwitcher = class ThemeSwitcher {
 				</div>
 				<div class="theme-preview-content">
 					<div class="theme-preview-sidebar"></div>
-					<div class="theme-preview-body">
-						${field}${field}${field}${field}
+					<div class="theme-preview-main">
+						<div class="theme-preview-header">
+							<div class="theme-preview-header-title"></div>
+							<div class="theme-preview-header-action"></div>
+						</div>
+						<div class="theme-preview-body">
+							${field}${field}${field}${field}
+						</div>
 					</div>
 				</div>
 			</div>
 		</div>`;
 
 		const preview = is_auto
-			? `<div class="theme-card-preview theme-card-preview--split">
+			? `<div class="theme-card-preview">
 				${window_html("light")}
 				${window_html("dark")}
 			</div>`

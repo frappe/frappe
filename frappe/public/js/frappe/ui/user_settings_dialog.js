@@ -89,7 +89,14 @@ function _bind_switch_autosave(panel, fieldnames) {
 	fieldnames.forEach((fn) => {
 		const ctrl = panel.fieldgroup.fields_dict[fn];
 		if (!ctrl || !ctrl.$input) return;
-		ctrl.$input.on("change", () => _save_user(fn, ctrl.get_value()));
+		ctrl.$input.on("change", () =>
+			_save_user(fn, ctrl.get_value()).then(() => {
+				frappe.show_alert({
+					message: __("Saved. Refresh to see changes."),
+					indicator: "green",
+				});
+			})
+		);
 	});
 }
 
@@ -111,11 +118,11 @@ function _profile_tab(user_data) {
 		label: __("Profile"),
 		icon: "user",
 		title: __("Profile"),
-		description: __("Your name, email and account settings."),
+		description: __("Manage your profile information and display picture."),
 		actions: [
 			{
 				label: __("Save"),
-				primary: true,
+				variant: "solid",
 				click(panel) {
 					const values = panel.get_values();
 					if (!values) return;
@@ -158,7 +165,7 @@ function _profile_tab(user_data) {
 						<div class="profile-email">${frappe.utils.escape_html(email)}</div>
 					</div>
 					<button class="btn btn-sm btn-default change-password-btn">
-						${frappe.utils.icon("lock", "xs")} ${__("Change Password")}
+						${frappe.utils.icon("rotate-ccw-key")} ${__("Change Password")}
 					</button>
 				</div>
 			`);
@@ -230,7 +237,7 @@ function _email_tab(user_data) {
 		label: __("Email"),
 		icon: "mail",
 		title: __("Email"),
-		description: __("Configure your email settings"),
+		description: __("Configure your email settings."),
 		fields: [
 			{
 				fieldtype: "Switch",
@@ -258,7 +265,7 @@ function _email_tab(user_data) {
 		actions: [
 			{
 				label: __("Save"),
-				primary: true,
+				variant: "solid",
 				click(panel) {
 					_save_user("email_signature", panel.get_value("email_signature")).then(() => {
 						frappe.show_alert({ message: __("Saved"), indicator: "green" });
@@ -283,7 +290,7 @@ function _appearance_tab() {
 		description: __("Theme and layout preferences."),
 		render(panel) {
 			panel.body.append(
-				_section_heading(__("Theme"), __("Switch between light, dark, or system theme"))
+				_section_heading(__("Theme"), __("Switch between light, dark, or system theme."))
 			);
 
 			// ThemeSwitcher renders the cards itself; we just embed its body.
@@ -293,7 +300,12 @@ function _appearance_tab() {
 			theme_switcher.dialog.$wrapper.remove();
 			panel.body.append(theme_switcher.body);
 
-			panel.body.append(_section_heading(__("Layout")));
+			panel.body.append(
+				_section_heading(
+					__("Layout"),
+					__("Choose whether forms should be displayed in compact or full width.")
+				)
+			);
 			_render_layout_cards(panel);
 		},
 	};
@@ -337,26 +349,26 @@ function _render_layout_cards(panel) {
 }
 
 function _layout_preview_window(type) {
-	const field = `<div class="layout-preview-field">
-		<div class="layout-preview-label"></div>
-		<div class="layout-preview-input"></div>
+	const field = `<div class="theme-preview-field">
+		<div class="theme-preview-label"></div>
+		<div class="theme-preview-input"></div>
 	</div>`;
 
 	return `<div class="layout-preview-frame">
 		<div class="layout-preview-window">
-			<div class="layout-preview-titlebar">
-				<span class="layout-preview-dot layout-preview-dot--red"></span>
-				<span class="layout-preview-dot layout-preview-dot--yellow"></span>
-				<span class="layout-preview-dot layout-preview-dot--green"></span>
+			<div class="theme-preview-titlebar">
+				<span class="theme-preview-dot theme-preview-dot--red"></span>
+				<span class="theme-preview-dot theme-preview-dot--yellow"></span>
+				<span class="theme-preview-dot theme-preview-dot--green"></span>
 			</div>
-			<div class="layout-preview-content">
-				<div class="layout-preview-sidebar"></div>
-				<div class="layout-preview-main">
-					<div class="layout-preview-header">
-						<div class="layout-preview-header-title"></div>
-						<div class="layout-preview-header-action"></div>
+			<div class="theme-preview-content">
+				<div class="theme-preview-sidebar"></div>
+				<div class="theme-preview-main">
+					<div class="theme-preview-header">
+						<div class="theme-preview-header-title"></div>
+						<div class="theme-preview-header-action"></div>
 					</div>
-					<div class="layout-preview-body layout-preview-body--${type}">
+					<div class="theme-preview-body layout-preview-body--${type}">
 						${field}${field}${field}${field}
 					</div>
 				</div>
@@ -532,7 +544,7 @@ function _lists_tab(user_data) {
 				fieldname: "view_switcher",
 				label: __("Show view switcher"),
 				description: __(
-					"Show the toolbar to switch between List, Kanban, Report and other views."
+					"Allow switching between list, kanban, report, and other views from the toolbar"
 				),
 				default: user_data.view_switcher,
 			},
@@ -558,7 +570,7 @@ function _forms_tab(user_data) {
 				fieldname: "form_sidebar",
 				label: __("Show sidebar"),
 				description: __(
-					"Display the attachments, comments and connections sidebar in forms."
+					"Display a sidebar in forms with attachments, preview image, tags, and other details."
 				),
 				default: user_data.form_sidebar,
 			},
@@ -566,7 +578,9 @@ function _forms_tab(user_data) {
 				fieldtype: "Switch",
 				fieldname: "timeline",
 				label: __("Show timeline"),
-				description: __("Show the activity timeline with comments, emails and history."),
+				description: __(
+					"Show the activity timeline with comments, emails, and version history."
+				),
 				default: user_data.timeline,
 			},
 			{
@@ -574,7 +588,7 @@ function _forms_tab(user_data) {
 				fieldname: "dashboard",
 				label: __("Show dashboard"),
 				description: __(
-					"Show the summary dashboard with charts and statistics at the top of forms."
+					"Show a summary dashboard with charts and statistics, where available, at the top of forms."
 				),
 				default: user_data.dashboard,
 			},
@@ -591,7 +605,9 @@ function _forms_tab(user_data) {
 				fieldtype: "Switch",
 				fieldname: "form_navigation_buttons",
 				label: __("Show navigation buttons"),
-				description: __("Show previous and next navigation buttons in the form toolbar."),
+				description: __(
+					"Show navigation buttons to view the previous and next record in the form toolbar."
+				),
 				default: user_data.form_navigation_buttons,
 			},
 		],
@@ -627,7 +643,7 @@ function _session_defaults_tab() {
 	if (fields.length) {
 		actions.push({
 			label: __("Save"),
-			primary: true,
+			variant: "solid",
 			click(panel) {
 				const values = panel.get_values();
 				if (!values) return;
@@ -640,13 +656,15 @@ function _session_defaults_tab() {
 					callback(data) {
 						if (data.message === "success") {
 							frappe.show_alert({
-								message: __("Session Defaults Saved"),
+								message: __("Saved"),
 								indicator: "green",
 							});
 							frappe.ui.toolbar.clear_cache();
 						} else {
 							frappe.show_alert({
-								message: __("An error occurred while setting Session Defaults"),
+								message: __(
+									"An error occurred while updating your session defaults."
+								),
 								indicator: "red",
 							});
 						}
@@ -661,7 +679,9 @@ function _session_defaults_tab() {
 		label: __("Session Defaults"),
 		icon: "sliders-horizontal",
 		title: __("Session Defaults"),
-		description: __("Set default values for the current session."),
+		description: __(
+			"Set default values for the current session. Values set here will be autofilled in forms and reports."
+		),
 		fields: fields.length ? [...fields] : undefined,
 		actions,
 		render: fields.length
@@ -682,14 +702,14 @@ function _keyboard_shortcuts_tab() {
 		label: __("Keyboard Shortcuts"),
 		icon: "keyboard",
 		title: __("Keyboard Shortcuts"),
-		description: __("Get around the system quickly with keyboard shortcuts"),
+		description: __("Get around the system quickly with keyboard shortcuts."),
 		render(panel) {
 			frappe.ui.keys.get_shortcut_groups().forEach(({ heading, shortcuts }) => {
 				const html = frappe.ui.keys.generate_shortcuts_html(shortcuts, heading);
 				if (html) panel.body.append(html);
 			});
 			panel.body.append(
-				`<div class="text-muted mt-3">${__(
+				`<div class="text-muted mt-2">${__(
 					"Press Alt Key to trigger additional shortcuts in Menu and Sidebar"
 				)}</div>`
 			);

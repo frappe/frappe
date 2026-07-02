@@ -17,7 +17,7 @@
 	display: flex;
 	flex: 1;
 	min-height: 0;
-	background-color: var(--surface-sidebar);
+	background-color: var(--surface-elevation-1);
 }
 
 .settings-dialog-sidebar {
@@ -25,7 +25,7 @@
 	flex-direction: column;
 	flex-shrink: 0;
 	width: 14rem;
-	margin: 0.25rem;
+	padding: var(--spacing);
 	border-top-left-radius: var(--radius-lg);
 	border-bottom-left-radius: var(--radius-lg);
 	overflow-y: auto;
@@ -92,11 +92,6 @@
 			background-color: var(--surface-elevation-3, var(--surface-base));
 		}
 	}
-}
-
-[data-theme="dark"] .settings-dialog-tab-item.active {
-	box-shadow: 0px 1px 3px rgba(0, 0, 0, 0.7), 0px 0px 14px rgba(0, 0, 0, 0.18),
-		0px 0.5px 0.5px 0.5px rgba(255, 255, 255, 0.04) inset;
 }
 
 .settings-dialog-tab-item-content {

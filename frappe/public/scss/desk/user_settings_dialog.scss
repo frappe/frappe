@@ -85,7 +85,8 @@
 		display: flex;
 		padding-left: 20px;
 		padding-top: 14px;
-		background-color: var(--surface-gray-2);
+		background-color: var(--surface-base);
+		border-top-left-radius: var(--radius-sm);
 	}
 
 	.layout-preview-window {
@@ -94,63 +95,15 @@
 		flex-direction: column;
 		overflow: hidden;
 		border: 1px solid var(--outline-gray-2);
-		border-top-left-radius: 2px;
-		background-color: var(--surface-elevation-2);
-	}
-
-	// Layout-specific: titlebar and sidebar use Frappe tokens (theme-preview equivalents
-	// use --preview-* custom props; structural styles are shared in theme_switcher.scss).
-	.layout-preview-titlebar {
-		border-bottom: 1px solid var(--outline-gray-2);
-	}
-
-	.layout-preview-sidebar {
-		background-color: var(--surface-gray-3);
-		border-right: 1px solid var(--outline-gray-2);
-	}
-
-	.layout-preview-main {
-		flex: 1;
-		display: flex;
-		flex-direction: column;
-		min-width: 0;
-	}
-
-	.layout-preview-header {
-		height: 10px;
-		display: flex;
-		align-items: center;
-		justify-content: space-between;
-		padding: 0 5px;
-		border-bottom: 1px solid var(--outline-gray-2);
-		flex-shrink: 0;
-	}
-
-	.layout-preview-header-title {
-		height: 3px;
-		width: 30%;
-		border-radius: var(--radius-full);
-		background-color: var(--surface-gray-3);
-	}
-
-	.layout-preview-header-action {
-		height: 5px;
-		width: 18%;
-		border-radius: 2px;
-		background-color: var(--surface-gray-2);
+		border-bottom: none;
+		border-right: none;
+		border-top-left-radius: var(--radius-sm);
+		background-color: var(--surface-base);
 	}
 
 	.layout-preview-body--compact {
 		padding-left: 30px;
 		padding-right: 30px;
-	}
-
-	.layout-preview-label {
-		background-color: var(--surface-gray-3);
-	}
-
-	.layout-preview-input {
-		background-color: var(--surface-gray-2);
 	}
 
 	.preference-row {
