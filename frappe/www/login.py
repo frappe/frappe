@@ -112,11 +112,6 @@ def get_context(context):
 	context["login_label"] = f" {_('or')} ".join(login_label)
 
 	context["login_with_email_link"] = frappe.get_system_settings("login_with_email_link")
-	context["login_with_frappe_cloud_url"] = (
-		f"{get_site_login_url()}?site={frappe.local.site}"
-		if on_frappecloud() and frappe.conf.get("fc_communication_secret")
-		else None
-	)
 
 	return context
 
