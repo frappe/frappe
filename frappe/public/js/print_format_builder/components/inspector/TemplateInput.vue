@@ -16,12 +16,15 @@
 					class="pfb-tpl-text"
 					type="text"
 					v-model="tok.v"
-					:size="Math.max((tok.v || '').length, 2)"
+					:size="Math.max((tok.v || '').length, only_empty_text ? 14 : 2)"
 					:placeholder="only_empty_text ? __('Type text…') : ''"
 				/>
 			</template>
 		</div>
-		<select class="pfb-tpl-add" @change="add_field">
+		<span v-if="!fields.length" class="pfb-tpl-hint">{{
+			__("Select a source table first")
+		}}</span>
+		<select v-else class="pfb-tpl-add" @change="add_field">
 			<option value="">{{ __("+ field") }}</option>
 			<option v-for="f in fields" :key="f.value" :value="f.value">{{ f.label }}</option>
 		</select>
@@ -123,6 +126,11 @@ function remove(i) {
 	color: var(--text-color);
 	min-width: 12px;
 	padding: 0 2px;
+}
+.pfb-tpl-hint {
+	font-size: var(--text-tiny);
+	font-style: italic;
+	color: var(--text-muted);
 }
 .pfb-tpl-add {
 	align-self: flex-start;
