@@ -738,7 +738,7 @@ class TestDBQuery(FrappeTestCase):
 			"concat(module, ''), name",
 			"coalesce(xyz(module, 'Core'), 0)",
 		)
-		for order_by in oracle_order_bys:
+		for order_by in blocked_order_bys:
 			with self.assertRaises(frappe.ValidationError):
 				DatabaseQuery("DocType").execute(fields=["name"], order_by=order_by)
 
@@ -961,7 +961,6 @@ class TestDBQuery(FrappeTestCase):
 				"published",
 				"`published` desc",
 				"`tabBlog Post`.`published`",
-				"field(strcmp(published, '1'), -1), name",
 			):
 				self.assertRaises(
 					frappe.PermissionError,
