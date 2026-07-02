@@ -146,13 +146,8 @@ def apply_action(action, doctype, docname, current_state, user=None, last_modifi
 		return_link_expired_page(doc, doc_workflow_state)
 
 
-<<<<<<< HEAD
-@frappe.whitelist(allow_guest=True)
-def confirm_action(doctype, docname, user, action):
-=======
 @frappe.whitelist()
 def confirm_action(doctype: str, docname: str | int, user: str, action: str):
->>>>>>> d74717ff09 (fix(workflow): gate confirm action via email by forcing login)
 	if not verify_request():
 		return
 
