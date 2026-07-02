@@ -41,14 +41,14 @@ export interface UseColumns {
   /** The frappe-ui `ListView` render columns (`serializeColumns`): the table binds
    *  these for headers + grid tracks, with `align`/`type`/`options` derived from Meta. */
   wire: Ref<WireColumn[]>;
-  /** Write a resized column's width back into `shown` by `fieldname` (the
-   *  resize→settings half of the sync). The `save` flag a host might debounce on is
-   *  the host's concern and ignored here. */
   /** The resolved host-declared synthetic columns (ADR-0033), so a host can bind
    *  ColumnSettings' `:synthetic` prop (its picker union) from the same place it reads
    *  `shown` — one source, threaded from `useListView`. A `ComputedRef` so it tracks a
    *  reactive/async declaration source. */
   synthetic: ComputedRef<SyntheticColumn[]>;
+  /** Write a resized column's width back into `shown` by `fieldname` (the
+   *  resize→settings half of the sync). The `save` flag a host might debounce on is
+   *  the host's concern and ignored here. */
   setWidth: (fieldname: string, width: string) => void;
   /** Drop a column's fixed `width` so it flexes to fill again (the reset half of the
    *  resize story). A host wires this to a double-click on the header resizer; with

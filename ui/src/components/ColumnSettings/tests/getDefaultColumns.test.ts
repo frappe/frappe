@@ -144,6 +144,26 @@ describe("foldSyntheticColumns", () => {
     ).toEqual(["_flag", "subject", "status", "modified"]);
   });
 
+  it("keeps declaration order for multiple columns sharing the `after-title` anchor", () => {
+    // A host declaring a flag then a status badge, both after-title, must see them in
+    // that order — not reversed by inserting each at the same fixed index.
+    expect(
+      foldSyntheticColumns(defaults, [
+        { key: "_flag", label: "Flag", place: "after-title" },
+        { key: "_indicator", label: "Status", place: "after-title" },
+      ]).map((c) => c.fieldname)
+    ).toEqual(["subject", "_flag", "_indicator", "status", "modified"]);
+  });
+
+  it("keeps declaration order for multiple `start` columns", () => {
+    expect(
+      foldSyntheticColumns(defaults, [
+        { key: "_a", label: "A", place: "start" },
+        { key: "_b", label: "B", place: "start" },
+      ]).map((c) => c.fieldname)
+    ).toEqual(["_a", "_b", "subject", "status", "modified"]);
+  });
+
   it("drops the docfield a declaration subsumes from the seed", () => {
     expect(
       foldSyntheticColumns(defaults, [

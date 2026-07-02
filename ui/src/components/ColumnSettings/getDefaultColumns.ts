@@ -58,9 +58,10 @@ function toColumn(declaration: SyntheticColumn): Column {
  * each declaration is inserted at its `place` anchor (`'start'` | `'after-title'`
  * [right after the leading title/name column] | `'end'`, default `'end'`), and any
  * docfield it `subsumes` is dropped from the seed (default-only, so it stays
- * re-addable). Seeds the default `shown` *only* — once the user customizes order, the
- * persisted layout wins. With no declarations it returns the seed untouched (same
- * reference), so a consumer that declares none is byte-identical.
+ * re-addable). Columns sharing an anchor keep their declaration order. Seeds the
+ * default `shown` *only* — once the user customizes order, the persisted layout wins.
+ * With no declarations it returns the seed untouched (same reference), so a consumer
+ * that declares none is byte-identical.
  */
 export function foldSyntheticColumns(
   defaults: Column[],
@@ -70,12 +71,15 @@ export function foldSyntheticColumns(
   const subsumed = new Set(
     synthetic.map((s) => s.subsumes).filter((f): f is string => !!f)
   );
-  const columns = defaults.filter((c) => !subsumed.has(c.fieldname));
-  for (const declaration of synthetic) {
-    const column = toColumn(declaration);
-    if (declaration.place === "start") columns.unshift(column);
-    else if (declaration.place === "after-title") columns.splice(1, 0, column);
-    else columns.push(column);
-  }
-  return columns;
+  const kept = defaults.filter((c) => !subsumed.has(c.fieldname));
+  // Build each anchor group in one pass so declarations sharing an anchor keep their
+  // order — inserting one at a time at a fixed index would reverse them.
+  const at = (place: SyntheticColumn["place"]) =>
+    synthetic.filter((s) => (s.place ?? "end") === place).map(toColumn);
+  const [leading, ...rest] = kept;
+  const afterLeading =
+    leading === undefined
+      ? at("after-title")
+      : [leading, ...at("after-title"), ...rest];
+  return [...at("start"), ...afterLeading, ...at("end")];
 }
