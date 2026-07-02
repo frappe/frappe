@@ -51,6 +51,8 @@ export function getStore(print_format_name) {
 						: Promise.resolve((letterhead.value = null));
 
 					load_lh.then(() => {
+						history = [];
+						last_snap = JSON.stringify(layout.value);
 						nextTick(() => (dirty.value = false));
 						resolve();
 					});
@@ -231,10 +233,40 @@ export function getStore(print_format_name) {
 		});
 	}
 
+	// ── Undo history (Ctrl/Cmd+Z) ──────────────────────────
+	let history = [];
+	let restoring = false;
+	let last_snap = null;
+	const record_history = frappe.utils.debounce(() => {
+		const snap = JSON.stringify(layout.value);
+		if (snap === last_snap) return;
+		if (last_snap !== null) history.push(last_snap);
+		if (history.length > 50) history.shift();
+		last_snap = snap;
+	}, 400);
+
+	function undo() {
+		if (!history.length) return;
+		restoring = true;
+		last_snap = history.pop();
+		layout.value = JSON.parse(last_snap);
+		selected_field.value = null;
+		selected_section.value = null;
+	}
+
 	// watch
-	watch(layout, () => {
-		dirty.value = true;
-	});
+	watch(
+		layout,
+		() => {
+			dirty.value = true;
+			if (restoring) {
+				restoring = false;
+				return;
+			}
+			record_history();
+		},
+		{ deep: true }
+	);
 	watch(print_format, () => {
 		dirty.value = true;
 	});
@@ -263,6 +295,7 @@ export function getStore(print_format_name) {
 		get_layout,
 		get_default_layout,
 		change_letterhead,
+		undo,
 	};
 }
 

@@ -281,15 +281,10 @@
 														"
 														>{{ merge_field_label(mf) }}</span
 													>
-													<span
-														v-if="is_image_merge(mf)"
-														class="pfb-type-badge"
-														>{{ __("Image") }}</span
-													>
 													<select
-														v-else
+														v-if="!is_image_merge(mf)"
 														class="pfb-insp-select"
-														style="width: 92px; flex: none"
+														style="width: 104px; flex: none"
 														v-model="mf.style"
 														:title="__('Text style')"
 													>
@@ -302,8 +297,13 @@
 														</option>
 													</select>
 													<button
-														v-if="!is_base_merge(col, mf)"
 														class="pfb-col-remove"
+														:style="
+															is_base_merge(col, mf)
+																? 'visibility: hidden'
+																: ''
+														"
+														:disabled="is_base_merge(col, mf)"
 														@click="remove_merged_field(col, mi)"
 														:title="__('Remove field')"
 														v-html="frappe.utils.icon('x', 'xs')"
@@ -1862,7 +1862,7 @@ function set_section_cell_padding(value) {
 }
 
 .pfb-col-editor {
-	background: var(--subtle-accent);
+	background: var(--fg-color);
 	border-top: 1px solid var(--gray-100);
 	padding-bottom: 6px;
 }
