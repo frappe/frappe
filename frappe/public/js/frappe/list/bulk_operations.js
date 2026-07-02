@@ -496,12 +496,12 @@ export default class BulkOperations {
 					.then((r) => {
 						const failed = r.message || [];
 						if (failed.length && !r._server_messages) {
-							dialog.enable_primary_action();
-							frappe.throw(
-								__("Cannot assign roles to {0}", [
+							frappe.msgprint({
+								message: __("Cannot assign roles to {0}", [
 									failed.map((f) => (f.bold ? f.bold() : f)).join(", "),
-								])
-							);
+								]),
+								indicator: "red",
+							});
 						}
 						done();
 						dialog.hide();
