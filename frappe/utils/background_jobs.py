@@ -212,6 +212,8 @@ def enqueue(
 		frappe.db.after_commit.add(enqueue_call)
 		return
 
+	# Immediate pushes survive a transaction rollback; deadlock replay must not repeat them.
+	frappe.local.flags.enqueued_jobs = (frappe.local.flags.enqueued_jobs or 0) + 1
 	return enqueue_call()
 
 

@@ -99,9 +99,9 @@ def after_response_wrapper(app):
 	return application
 
 
-# ponytail: background jobs retry deadlocks (background_jobs.execute_job) but interactive
-# writes don't. Adjacent docs submitted at once gap-lock each other on child-table indexes;
-# re-run the request a few times with jittered backoff before surfacing the 508.
+# ponytail: adjacent docs submitted concurrently gap-lock each other on child-table indexes.
+# Retry just the dispatch (auth, hooks, and the DB connection are reused) with jittered
+# backoff, and only when the failed attempt did nothing a rollback can't undo.
 MAX_DEADLOCK_RETRIES = 2
 
 
@@ -138,30 +138,54 @@ def application(request: Request):
 	return response
 
 
-def retry_deadlocks(fn):
-	@functools.wraps(fn)
+def retry_deadlocks(handler):
+	@functools.wraps(handler)
 	def wrapper(request):
 		for attempt in range(MAX_DEADLOCK_RETRIES + 1):
+			commits_before = frappe.db.commit_count
+			jobs_before = frappe.local.flags.enqueued_jobs
 			try:
-				return fn(request)
+				return handler(request)
 			except frappe.QueryDeadlockError:
-				# Only writes deadlock, and the rolled-back attempt left nothing committed, so
-				# re-running from init_request (force=True resets local state) is a clean retry.
-				if request.method not in UNSAFE_HTTP_METHODS or attempt == MAX_DEADLOCK_RETRIES:
+				if attempt == MAX_DEADLOCK_RETRIES or not replay_is_safe(request, commits_before, jobs_before):
 					raise
-				if db := getattr(frappe.local, "db", None):
-					db.rollback(chain=True)
+				frappe.db.rollback()
+				reset_response_state()
+				frappe.logger().warning(
+					f"Deadlock retry {attempt + 1}/{MAX_DEADLOCK_RETRIES}: {request.method} {request.path}"
+				)
 				# Jitter so the two victims don't realign and re-collide on the same gap.
 				time.sleep(random.uniform(0.025, 0.1) * (attempt + 1))
 
 	return wrapper
 
 
-@retry_deadlocks
+def replay_is_safe(request, commits_before, jobs_before):
+	# Commits, redis-pushed jobs, and consumed multipart streams survive the rollback —
+	# replaying after any of them duplicates work or corrupts uploads.
+	return (
+		frappe.db.commit_count == commits_before
+		and frappe.local.flags.enqueued_jobs == jobs_before
+		and request.mimetype != "multipart/form-data"
+	)
+
+
+def reset_response_state():
+	# Mirrors init_local: the failed attempt may have dirtied these; auth and form_dict stay valid.
+	frappe.local.error_log = []
+	frappe.local.message_log = []
+	frappe.local.debug_log = []
+	frappe.local.response = frappe._dict({"docs": []})
+
+
 def process_request(request):
 	init_request(request)
 	validate_auth()
+	return dispatch_request(request)
 
+
+@retry_deadlocks
+def dispatch_request(request):
 	if request.method == "OPTIONS":
 		return Response()
 
@@ -402,10 +426,13 @@ def handle_exception(e):
 	elif isinstance(e, frappe.SessionStopped):
 		response = frappe.utils.response.handle_session_stopped()
 
-	elif (
-		http_status_code == 500
-		and (frappe.db and isinstance(e, frappe.db.InternalError))
-		and (frappe.db and (frappe.db.is_deadlocked(e) or frappe.db.is_timedout(e)))
+	elif http_status_code == 500 and (
+		isinstance(e, (frappe.QueryDeadlockError, frappe.QueryTimeoutError))
+		or (
+			frappe.db
+			and isinstance(e, frappe.db.InternalError)
+			and (frappe.db.is_deadlocked(e) or frappe.db.is_timedout(e))
+		)
 	):
 		http_status_code = 508
 

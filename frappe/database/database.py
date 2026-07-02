@@ -120,6 +120,7 @@ class Database:
 		self._conn = None
 
 		self.transaction_writes = 0
+		self.commit_count = 0
 		self.auto_commit_on_many_writes = 0
 
 		self.value_cache = recursive_defaultdict()
@@ -1195,6 +1196,7 @@ class Database:
 			self.sql("commit")
 			self.begin()
 
+		self.commit_count += 1
 		self.value_cache.clear()
 		self.after_commit.run()
 
