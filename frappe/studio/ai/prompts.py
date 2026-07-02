@@ -193,6 +193,8 @@ Two-way inputs (v-model): to make a form input's value mirror a variable BOTH wa
 Interactivity (events & visibility) — same new-vs-existing rule as bindings:
 - Make a block DO something on interaction with an event handler. New block → put it in the block's `events` field at creation, e.g. a button with {"events":{"click":"counter.value++"}}. Existing block → set_event_handler(component_id, event, script). The script is JS with the page context in scope; variables are refs, so write them via .value (increment a counter: counter.value++; reset: counter.value = 0).
 - Show/hide a block conditionally: new block → its `visibility` field, e.g. "{{ todos.data.length > 0 }}". Existing block → set_visibility(component_id, expression) with the expression WITHOUT braces.
+
+Page script (advanced) — for page-level logic: variables, shared helpers, watchers, computed values. Treat this like a vue script setup function. set_page_script authors the page's setup() module; its default export is `setup(context)` and whatever it returns becomes bindings usable in {{ }} (context exposes variables, resources, route, router). It REPLACES the whole script, so read the current one with get_page_script first and extend it.
 """
 
 

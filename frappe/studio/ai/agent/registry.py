@@ -93,6 +93,7 @@ def build_default_registry() -> ToolRegistry:
 		interactivity,
 		introspect,
 		query,
+		scripts,
 		variables,
 	)
 
@@ -106,4 +107,5 @@ def build_default_registry() -> ToolRegistry:
 	registry.extend(variables.TOOLS)
 	registry.extend(bindings.TOOLS)
 	registry.extend(interactivity.TOOLS)
+	registry.extend(scripts.TOOLS)
 	return registry
