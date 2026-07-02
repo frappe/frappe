@@ -249,34 +249,16 @@
 															{{ s.label }}
 														</option>
 													</select>
-													<div
-														v-else
-														class="pfb-stepper pfb-stepper--sm"
-														:title="__('Image size')"
-													>
-														<button
-															@click="adjust_image_size(col, -4)"
-														>
-															−
-														</button>
-														<input
-															class="pfb-stepper-input"
-															type="number"
-															min="16"
-															max="200"
+													<div v-else :title="__('Image size')">
+														<Stepper
+															sm
+															:min="16"
 															:value="col.image_size || 40"
-															@change="
-																(e) =>
-																	set_image_size(
-																		col,
-																		e.target.value
-																	)
-															"
+															unit="px"
+															@decrement="adjust_image_size(col, -4)"
+															@increment="adjust_image_size(col, 4)"
+															@input="(v) => set_image_size(col, v)"
 														/>
-														<span class="pfb-stepper-unit">px</span>
-														<button @click="adjust_image_size(col, 4)">
-															+
-														</button>
 													</div>
 													<button
 														class="pfb-col-remove"
@@ -729,6 +711,7 @@ import LabelField from "./LabelField.vue";
 import SegmentedRow from "./SegmentedRow.vue";
 import StepperRow from "./StepperRow.vue";
 import PaddingGrid from "./PaddingGrid.vue";
+import Stepper from "./Stepper.vue";
 
 let store = inject("$store");
 let { letterhead, layout, meta } = useStore();
