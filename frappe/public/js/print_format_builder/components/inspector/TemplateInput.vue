@@ -15,7 +15,7 @@
 					class="pfb-tpl-text"
 					type="text"
 					v-model="tok.v"
-					:size="Math.max((tok.v || '').length, only_empty_text ? 14 : 1)"
+					:style="{ width: (tok.v.length || (only_empty_text ? 12 : 0)) + 'ch' }"
 					:placeholder="only_empty_text ? __('Type text…') : ''"
 				/>
 			</template>
@@ -107,7 +107,7 @@ function remove(i) {
 	border-radius: var(--radius);
 	background: var(--fg-color);
 	padding: 4px 6px;
-	gap: 2px;
+	gap: 0;
 }
 .pfb-tpl-text {
 	border: none;
@@ -115,11 +115,17 @@ function remove(i) {
 	background: transparent;
 	font-size: var(--text-sm);
 	color: var(--text-color);
-	min-width: 8px;
+	min-width: 0;
 	padding: 0;
+}
+.pfb-tpl-text:focus {
+	min-width: 3ch;
 }
 .pfb-tpl-x {
 	display: inline-flex;
 	cursor: pointer;
+}
+.pfb-tpl-row :deep(.es-badge) {
+	margin: 1px;
 }
 </style>
