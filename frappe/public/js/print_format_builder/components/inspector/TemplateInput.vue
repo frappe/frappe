@@ -24,15 +24,13 @@
 		<span v-if="!fields.length" class="pfb-tpl-hint">{{
 			__("Select a source table first")
 		}}</span>
-		<select v-else class="pfb-tpl-add" @change="add_field">
-			<option value="">{{ __("+ field") }}</option>
-			<option v-for="f in fields" :key="f.value" :value="f.value">{{ f.label }}</option>
-		</select>
+		<Autocomplete v-else :options="fields" :placeholder="__('+ field')" @select="add_field" />
 	</div>
 </template>
 
 <script setup>
 import { computed, onMounted } from "vue";
+import Autocomplete from "../../../vue-components/Autocomplete.vue";
 
 const props = defineProps({
 	modelValue: { type: Array, required: true },
@@ -61,11 +59,8 @@ let only_empty_text = computed(
 function field_label(fieldname) {
 	return props.fields.find((f) => f.value === fieldname)?.label || fieldname;
 }
-function add_field(e) {
-	if (e.target.value) {
-		props.modelValue.push({ t: "f", v: e.target.value }, { t: "s", v: "" });
-	}
-	e.target.value = "";
+function add_field(opt) {
+	if (opt?.value) props.modelValue.push({ t: "f", v: opt.value }, { t: "s", v: "" });
 }
 function remove(i) {
 	props.modelValue.splice(i, 1);
@@ -131,15 +126,5 @@ function remove(i) {
 	font-size: var(--text-tiny);
 	font-style: italic;
 	color: var(--text-muted);
-}
-.pfb-tpl-add {
-	align-self: flex-start;
-	font-size: var(--text-tiny);
-	padding: 2px 6px;
-	border: 1px solid var(--border-color);
-	border-radius: var(--radius);
-	background: var(--subtle-accent);
-	color: var(--text-muted);
-	cursor: pointer;
 }
 </style>
