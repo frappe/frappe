@@ -730,7 +730,7 @@ class TestDBQuery(FrappeTestCase):
 				order_by="(select rank from tabRankedDocTypes where tabRankedDocTypes.name = tabDocType.name) asc",
 			)
 
-		oracle_order_bys = (
+		blocked_order_bys = (
 			"xyz(qpr(module, 'Core'), -1), name",
 			"xyz(abc(end(module, 1, 1)), 67), name",
 			"length(module), name",
