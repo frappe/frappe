@@ -104,6 +104,8 @@ function remove(i) {
 	display: flex;
 	flex-wrap: wrap;
 	align-items: center;
+	align-self: flex-start;
+	max-width: 100%;
 	gap: 2px;
 	min-height: 30px;
 	padding: 4px 6px;
