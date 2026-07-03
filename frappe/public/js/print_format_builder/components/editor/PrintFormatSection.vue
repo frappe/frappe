@@ -132,7 +132,7 @@
 import draggable from "vuedraggable";
 import Field from "./Field.vue";
 import { computed, inject } from "vue";
-import { evaluate_visible_if } from "../../utils";
+import { evaluate_visible_if, parse_inline_style } from "../../utils";
 
 const props = defineProps(["section", "is_header", "zone"]);
 
@@ -163,7 +163,7 @@ let section_inline_style = computed(() => {
 		const pad = props.section.cell_padding ?? 8;
 		style["--pfb-cell-pad"] = `${pad}px`;
 	}
-	return style;
+	return { ...style, ...parse_inline_style(props.section.custom_style) };
 });
 
 function select_section() {

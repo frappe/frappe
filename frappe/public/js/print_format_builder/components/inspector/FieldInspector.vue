@@ -301,6 +301,21 @@
 					</div>
 				</div>
 
+				<!-- STYLE section -->
+				<div class="pfb-insp-section">
+					<div class="pfb-insp-section-head" @click="toggle('t_style')">
+						<span class="pfb-insp-section-label">{{ __("Style") }}</span>
+						<span
+							class="pfb-insp-chevron"
+							:class="{ collapsed: !open.t_style }"
+							v-html="frappe.utils.icon('chevron-down', 'xs')"
+						></span>
+					</div>
+					<div v-show="open.t_style">
+						<StyleSection v-model="selected_field.custom_style" />
+					</div>
+				</div>
+
 				<!-- VISIBILITY section -->
 				<div class="pfb-insp-section">
 					<div class="pfb-insp-section-head" @click="toggle('t_visibility')">
@@ -422,6 +437,20 @@
 					</div>
 				</div>
 
+				<div class="pfb-insp-section">
+					<div class="pfb-insp-section-head" @click="toggle('r_style')">
+						<span class="pfb-insp-section-label">{{ __("Style") }}</span>
+						<span
+							class="pfb-insp-chevron"
+							:class="{ collapsed: !open.r_style }"
+							v-html="frappe.utils.icon('chevron-down', 'xs')"
+						></span>
+					</div>
+					<div v-show="open.r_style">
+						<StyleSection v-model="selected_field.custom_style" />
+					</div>
+				</div>
+
 				<div class="pfb-insp-actions">
 					<button class="btn btn-xs btn-danger-subtle" @click="remove_field">
 						<span v-html="frappe.utils.icon('x', 'xs')"></span>
@@ -511,6 +540,20 @@
 								@update:model-value="(v) => (selected_field.label_gap = v)"
 							/>
 						</template>
+					</div>
+				</div>
+
+				<div class="pfb-insp-section">
+					<div class="pfb-insp-section-head" @click="toggle('f_style')">
+						<span class="pfb-insp-section-label">{{ __("Style") }}</span>
+						<span
+							class="pfb-insp-chevron"
+							:class="{ collapsed: !open.f_style }"
+							v-html="frappe.utils.icon('chevron-down', 'xs')"
+						></span>
+					</div>
+					<div v-show="open.f_style">
+						<StyleSection v-model="selected_field.custom_style" />
 					</div>
 				</div>
 
@@ -680,6 +723,21 @@
 					</div>
 				</div>
 
+				<!-- STYLE -->
+				<div class="pfb-insp-section">
+					<div class="pfb-insp-section-head" @click="toggle('s_style')">
+						<span class="pfb-insp-section-label">{{ __("Style") }}</span>
+						<span
+							class="pfb-insp-chevron"
+							:class="{ collapsed: !open.s_style }"
+							v-html="frappe.utils.icon('chevron-down', 'xs')"
+						></span>
+					</div>
+					<div v-show="open.s_style">
+						<StyleSection v-model="selected_section.custom_style" />
+					</div>
+				</div>
+
 				<!-- VISIBILITY -->
 				<div class="pfb-insp-section">
 					<div class="pfb-insp-section-head" @click="toggle('s_visibility')">
@@ -731,6 +789,7 @@ import { useStore } from "../../stores";
 import LetterHeadZoneInspector from "./LetterHeadZoneInspector.vue";
 import Autocomplete from "../../../vue-components/Autocomplete.vue";
 import VisibilitySection from "./VisibilitySection.vue";
+import StyleSection from "./StyleSection.vue";
 import TemplateInput from "./TemplateInput.vue";
 import LabelField from "./LabelField.vue";
 import SegmentedRow from "./SegmentedRow.vue";
@@ -749,17 +808,21 @@ let preview_doc = computed(() => store.preview_doc.value);
 
 const open = ref({
 	f_field: true,
+	f_style: false,
 	f_visibility: false,
 	s_section: true,
 	s_bg: true,
 	s_padding: true,
 	s_layout: false,
+	s_style: false,
 	s_visibility: false,
 	t_table: true,
 	t_columns: true,
+	t_style: false,
 	t_visibility: true,
 	r_repeater: true,
 	r_columns: true,
+	r_style: false,
 });
 
 function toggle(key) {

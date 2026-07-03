@@ -135,6 +135,7 @@ export function getStore(print_format_name) {
 								"label_justify",
 								"label_gap",
 								"visible_if",
+								"custom_style",
 							]);
 						});
 					return column;
@@ -161,6 +162,7 @@ export function getStore(print_format_name) {
 			"label_justify",
 			"label_gap",
 			"visible_if",
+			"custom_style",
 		];
 		function clean_zone(zone) {
 			if (!zone || !zone.columns) return zone;

@@ -138,6 +138,21 @@ export function pluck(object, keys) {
 	return out;
 }
 
+// Parse "border: 1px solid; padding: 4px" into a Vue style-binding object.
+// Splits on the first ":" per declaration so values like url(http://…) survive.
+export function parse_inline_style(css) {
+	const style = {};
+	if (!css || typeof css !== "string") return style;
+	for (const decl of css.split(";")) {
+		const idx = decl.indexOf(":");
+		if (idx === -1) continue;
+		const prop = decl.slice(0, idx).trim();
+		const value = decl.slice(idx + 1).trim();
+		if (prop && value) style[prop] = value;
+	}
+	return style;
+}
+
 // Deterministic pastel colour for a merged-cell initials thumbnail, keyed off
 // the first character so the canvas and the PDF (Table.html, same formula)
 // always agree — no palette table to keep in sync across the two.

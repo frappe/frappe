@@ -384,6 +384,70 @@ class TestPrintFormatGenerator(IntegrationTestCase):
 		self.assertNotIn('"><b>PWN</b>', html)
 
 	# ------------------------------------------------------------------ #
+	# Custom style (per-component inline CSS)
+	# ------------------------------------------------------------------ #
+
+	def _custom_style_format_data(self, field_style=None, section_style=None):
+		section = {
+			"label": "Styled",
+			"columns": [
+				{
+					"fields": [
+						{
+							"fieldtype": "Data",
+							"fieldname": "description",
+							"label": "Description",
+							**({"custom_style": field_style} if field_style else {}),
+						}
+					]
+				}
+			],
+		}
+		if section_style:
+			section["custom_style"] = section_style
+		return json.dumps(
+			{
+				"sections": [section],
+				"header": {"columns": [{"label": "", "fields": []}]},
+				"footer": {"columns": [{"label": "", "fields": []}]},
+			}
+		)
+
+	def test_field_custom_style_in_html(self):
+		"""custom_style on a field should render as an inline style on the field wrapper."""
+		from frappe.utils.print_format_generator import get_html
+
+		pf = self._make_print_format(
+			format_data=self._custom_style_format_data(field_style="border: 1px solid #123456; padding: 6px")
+		)
+		todo = self._make_todo()
+		html = get_html("ToDo", todo.name, pf.name)
+		self.assertIn("border: 1px solid #123456; padding: 6px", html)
+
+	def test_section_custom_style_in_html(self):
+		"""custom_style on a section should render as an inline style on the section wrapper."""
+		from frappe.utils.print_format_generator import get_html
+
+		pf = self._make_print_format(
+			format_data=self._custom_style_format_data(section_style="border-radius: 9px")
+		)
+		todo = self._make_todo()
+		html = get_html("ToDo", todo.name, pf.name)
+		self.assertIn("border-radius: 9px", html)
+
+	def test_field_custom_style_is_escaped(self):
+		"""A crafted custom_style must not break out of the style attribute."""
+		from frappe.utils.print_format_generator import get_html
+
+		pf = self._make_print_format(
+			format_data=self._custom_style_format_data(field_style='color:red;"><b>PWN</b>')
+		)
+		todo = self._make_todo()
+		html = get_html("ToDo", todo.name, pf.name)
+		self.assertIn("color:red", html)
+		self.assertNotIn('"><b>PWN</b>', html)
+
+	# ------------------------------------------------------------------ #
 	# Label / value colors (Format settings)
 	# ------------------------------------------------------------------ #
 

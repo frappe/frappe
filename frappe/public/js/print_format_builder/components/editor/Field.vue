@@ -13,7 +13,7 @@
 	>
 		<!-- ── Preview mode: show actual doc values ─────────── -->
 		<template v-if="preview_doc">
-			<div class="field-preview-wrap">
+			<div class="field-preview-wrap" :style="custom_style">
 				<!-- Handle HTML fields: render Jinja2 server-side if needed -->
 				<div
 					v-if="df.fieldtype == 'HTML' && df.html"
@@ -333,7 +333,13 @@
 
 <script setup>
 import ConfigureColumnsVue from "../inspector/ConfigureColumns.vue";
-import { render_jinja_html, sanitize_html, evaluate_visible_if, thumb_hue } from "../../utils";
+import {
+	render_jinja_html,
+	sanitize_html,
+	evaluate_visible_if,
+	thumb_hue,
+	parse_inline_style,
+} from "../../utils";
 import { createApp, ref, nextTick, watch, computed, inject } from "vue";
 
 const props = defineProps(["df", "field_orientation"]);
@@ -359,6 +365,8 @@ let editing = ref(false);
 let label_input = ref(null);
 let rendered_html = ref(null);
 let rendered_template = ref(null);
+
+let custom_style = computed(() => parse_inline_style(props.df.custom_style));
 
 let is_selected = computed(() => store.selected_field.value === props.df);
 let preview_doc = computed(() => store.preview_doc.value);
