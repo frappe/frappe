@@ -415,6 +415,30 @@ class TestPrintFormatGenerator(IntegrationTestCase):
 		self.assertNotIn(".print-format .field .label {", html)
 		self.assertNotIn(".print-format .field .value {", html)
 
+	def test_non_hex_color_rejected(self):
+		"""Colors that are not #RRGGBB hex codes are rejected on save."""
+		with self.assertRaises(frappe.ValidationError):
+			self._make_print_format(label_color="red; } * { display: none")
+
+	def test_repeater_column_unknown_style_ignored(self):
+		"""A repeater column style outside the whitelist renders no style class."""
+		from frappe.utils.print_format_generator import get_html
+
+		contact = self._make_contact_with_email()
+		pf = self._make_repeater_format(
+			columns=[
+				{
+					"template": [{"t": "f", "v": "email_id"}],
+					"align": "up; position:fixed",
+					"style": "primary muted-sm",
+				}
+			]
+		)
+		html = get_html("Contact", contact.name, pf.name)
+		self.assertNotIn("primary muted-sm", html)
+		self.assertNotIn("position:fixed", html)
+		self.assertIn('class="pfb-repeater-cell" style="text-align: left"', html)
+
 	def test_blank_table_column_header_falls_back_to_fieldname(self):
 		"""A child-table column with an empty label should render its fieldname as the header."""
 		import re

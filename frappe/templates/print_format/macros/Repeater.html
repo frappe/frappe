@@ -11,7 +11,9 @@
 		{% for row in doc.get(df.source) %}
 		<tr>
 			{% for col in (df.repeater_columns or []) %}
-			<td class="pfb-repeater-cell{% if col.style %} cell-line--{{ col.style|e }}{% endif %}" style="text-align: {{ (col.align or 'left')|e }}">
+			{%- set _style = col.style if col.style in ("primary", "secondary", "mono-sm", "muted-sm") else None -%}
+			{%- set _align = col.align if col.align in ("left", "center", "right") else "left" -%}
+			<td class="pfb-repeater-cell{% if _style %} cell-line--{{ _style }}{% endif %}" style="text-align: {{ _align }}">
 				{%- for tok in (col.template or []) -%}
 					{%- if tok.t == 'f' -%}{{ row.get_formatted(tok.v) }}{%- else -%}{{ tok.v|e }}{%- endif -%}
 				{%- endfor -%}
