@@ -465,6 +465,7 @@ def get_email_html(
 
 def inline_style_in_html(html, add_css=True):
 	"""Convert email.css and html to inline-styled html."""
+	return html
 	from premailer import Premailer
 
 	from frappe.utils.jinja_globals import bundled_asset
