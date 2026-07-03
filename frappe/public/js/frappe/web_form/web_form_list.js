@@ -258,7 +258,7 @@ export default class WebFormList {
 			<div class="no-result text-muted flex justify-center align-center">
 				<div class="text-center">
 					<svg class="mb-4 icon icon-xl" style="stroke: var(--text-light);">
-						<use href="#icon-small-file"></use>
+						<use href="#icon-file"></use>
 					</svg>
 					<p class="small mb-2">${__("No {0} found", [__(this.doctype)])}</p>
 					${new_button}

@@ -9,7 +9,7 @@
 		<div v-if="!is_header" class="section-preview-actions">
 			<div
 				class="drag-handle section-drag-handle"
-				v-html="frappe.utils.icon('drag', 'xs')"
+				v-html="frappe.utils.icon('grip', 'xs')"
 			></div>
 			<button
 				class="btn btn-xs btn-icon"
@@ -34,7 +34,7 @@
 						v-if="!is_header"
 						class="drag-handle section-drag-handle"
 						title="Drag to reorder"
-						v-html="frappe.utils.icon('drag', 'sm')"
+						v-html="frappe.utils.icon('grip', 'sm')"
 					></div>
 					<span v-if="zone" class="zone-badge">{{
 						zone === "header" ? __("Header") : __("Footer")

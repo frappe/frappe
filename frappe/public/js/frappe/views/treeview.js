@@ -483,7 +483,7 @@ frappe.views.TreeView = class TreeView {
 				function () {
 					me.new_node();
 				},
-				"add"
+				"plus"
 			);
 		}
 	}

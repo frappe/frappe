@@ -251,7 +251,9 @@ frappe.Application = class Application {
 					},
 				],
 			});
-			s.fields_dict.checking.$wrapper.html('<i class="fa fa-spinner fa-spin fa-4x"></i>');
+			s.fields_dict.checking.$wrapper.html(
+				frappe.utils.icon("loader-circle", "xl", "", "animation: spin 1s linear infinite")
+			);
 			s.show();
 			frappe.call({
 				method: "frappe.email.doctype.email_account.email_account.set_email_password",

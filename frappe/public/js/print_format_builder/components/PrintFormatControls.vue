@@ -62,7 +62,7 @@
 						>
 							<span
 								class="pfb-field-drag"
-								v-html="frappe.utils.icon('drag', 'xs')"
+								v-html="frappe.utils.icon('grip', 'xs')"
 							></span>
 							<span class="pfb-field-label">{{ element.label }}</span>
 							<span class="pfb-field-type">{{ element.fieldtype }}</span>

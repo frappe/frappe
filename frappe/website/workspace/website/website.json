@@ -13,7 +13,7 @@
  "doctype": "Workspace",
  "for_user": "",
  "hide_custom": 0,
- "icon": "website",
+ "icon": "app-window",
  "idx": 5,
  "is_hidden": 0,
  "label": "Website",
@@ -96,7 +96,7 @@
    "type": "Link"
   }
  ],
- "modified": "2026-06-11 11:51:23.165769",
+ "modified": "2026-07-03 11:51:23.165769",
  "modified_by": "Administrator",
  "module": "Website",
  "name": "Website",
@@ -126,7 +126,7 @@
   {
    "child": 0,
    "collapsible": 1,
-   "icon": "home",
+   "icon": "house",
    "indent": 0,
    "keep_closed": 0,
    "label": "Home",
@@ -139,7 +139,7 @@
   {
    "child": 0,
    "collapsible": 1,
-   "icon": "web",
+   "icon": "globe",
    "indent": 0,
    "keep_closed": 0,
    "label": "Web Page",
@@ -191,7 +191,7 @@
   {
    "child": 0,
    "collapsible": 1,
-   "icon": "customization",
+   "icon": "paintbrush",
    "indent": 1,
    "keep_closed": 0,
    "label": "Customize",

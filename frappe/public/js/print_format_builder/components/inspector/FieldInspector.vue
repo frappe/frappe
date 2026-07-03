@@ -47,7 +47,7 @@
 			class="pfb-inspector-empty"
 		>
 			<svg class="icon icon-md text-muted" style="margin-bottom: 8px">
-				<use href="#icon-cursor-text"></use>
+				<use href="#icon-text-cursor"></use>
 			</svg>
 			<p class="text-muted">{{ __("Click a field to edit its properties") }}</p>
 		</div>
@@ -171,7 +171,7 @@
 									<div class="pfb-col-row">
 										<span
 											class="pfb-col-drag"
-											v-html="frappe.utils.icon('drag', 'xs')"
+											v-html="frappe.utils.icon('grip', 'xs')"
 										></span>
 										<input
 											class="pfb-col-label-input"
@@ -223,7 +223,7 @@
 												<div class="pfb-col-row">
 													<span
 														class="pfb-merge-drag"
-														v-html="frappe.utils.icon('drag', 'xs')"
+														v-html="frappe.utils.icon('grip', 'xs')"
 													></span>
 													<span
 														class="pfb-insp-label"
@@ -416,7 +416,7 @@
 							</div>
 						</div>
 						<button class="pfb-add-btn" @click="add_repeater_column">
-							<span v-html="frappe.utils.icon('add', 'xs')"></span>
+							<span v-html="frappe.utils.icon('plus', 'xs')"></span>
 							{{ __("Add column") }}
 						</button>
 					</div>
@@ -466,7 +466,7 @@
 								class="btn btn-xs btn-default pfb-lh-edit-btn"
 								@click="edit_html_field"
 							>
-								<span v-html="frappe.utils.icon('edit', 'xs')"></span>
+								<span v-html="frappe.utils.icon('pencil', 'xs')"></span>
 								{{ __("Edit HTML") }}
 							</button>
 						</template>

@@ -8,12 +8,12 @@
 		<div class="canvas-area">
 			<!-- Sidebar-open hint -->
 			<div v-if="sidebar_open && !hint_dismissed" class="pfb-sidebar-hint">
-				<span v-html="frappe.utils.icon('solid-info', 'sm', 'pfb-hint-icon')"></span>
+				<span v-html="frappe.utils.icon('info', 'sm', 'pfb-hint-icon')"></span>
 				<span class="pfb-hint-text">{{
 					__("Tip: Close the left sidebar for more editing space.")
 				}}</span>
 				<button class="pfb-hint-dismiss" @click="dismiss_hint" :aria-label="__('Dismiss')">
-					<span v-html="frappe.utils.icon('close', 'xs')"></span>
+					<span v-html="frappe.utils.icon('x', 'xs')"></span>
 				</button>
 			</div>
 
@@ -60,7 +60,7 @@
 							:title="__('Zoom in')"
 							:disabled="canvas_zoom >= ZOOM_MAX"
 							@click="zoom_in"
-							v-html="frappe.utils.icon('add', 'xs')"
+							v-html="frappe.utils.icon('plus', 'xs')"
 						></button>
 					</div>
 				</div>

@@ -42,7 +42,7 @@
 				<div class="column-row row align-items-center mt-2">
 					<div class="col-8">
 						<div class="column-label-row">
-							<div class="icon-drag" v-html="frappe.utils.icon('drag', 'xs')"></div>
+							<div class="icon-drag" v-html="frappe.utils.icon('grip', 'xs')"></div>
 							<input
 								class="input-column-label"
 								:class="{ 'text-danger': column.invalid_width }"

@@ -234,7 +234,7 @@
 			<div class="field-preview-actions">
 				<div
 					class="drag-handle field-drag-handle"
-					v-html="frappe.utils.icon('drag', 'xs')"
+					v-html="frappe.utils.icon('grip', 'xs')"
 				></div>
 				<button
 					class="btn btn-xs btn-icon field-remove-btn"
@@ -253,7 +253,7 @@
 			>
 				<div
 					class="drag-handle field-drag-handle"
-					v-html="frappe.utils.icon('drag', 'xs')"
+					v-html="frappe.utils.icon('grip', 'xs')"
 				></div>
 				<div class="field-body">
 					<div class="field-content">
@@ -285,7 +285,7 @@
 								v-if="df.fieldtype == 'HTML'"
 								class="btn btn-xs btn-icon"
 								@click.stop="edit_html"
-								v-html="frappe.utils.icon('edit', 'sm')"
+								v-html="frappe.utils.icon('pencil', 'sm')"
 							></button>
 							<button
 								class="btn btn-xs btn-icon"
