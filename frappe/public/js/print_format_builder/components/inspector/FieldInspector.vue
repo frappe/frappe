@@ -364,7 +364,8 @@
 							<span class="pfb-insp-label">{{ __("Source") }}</span>
 							<Autocomplete
 								:options="repeater_source_opts"
-								:placeholder="repeater_source_label || __('Select table…')"
+								:model-value="selected_field.source || ''"
+								:placeholder="__('Select table…')"
 								@select="(o) => (selected_field.source = o.value)"
 							/>
 						</div>
@@ -842,12 +843,6 @@ let repeater_field_opts = computed(() => {
 		.filter((f) => !frappe.model.no_value_type.includes(f.fieldtype) && f.fieldname !== "name")
 		.map((f) => ({ value: f.fieldname, label: f.label || f.fieldname }));
 });
-
-let repeater_source_label = computed(
-	() =>
-		repeater_source_opts.value.find((o) => o.value === selected_field.value?.source)?.label ||
-		""
-);
 
 function add_repeater_column() {
 	if (!selected_field.value.repeater_columns) selected_field.value.repeater_columns = [];
