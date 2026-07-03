@@ -7,7 +7,8 @@
    Raw palette + semantic aliases (--surface-* / --ink-* / --outline-*) as plain
    CSS custom properties on :root / .dark. This file alone is enough to style all Espresso components; it works with or without Tailwind. */
 
-:root {
+:root,
+[data-theme="light"] {
   --gray-50: #f8f8f8;
   --gray-100: #f3f3f3;
   --gray-200: #ededed;
