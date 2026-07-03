@@ -17,39 +17,30 @@
 
 		<Row label="To">
 			<RecipientSelect v-model="model.to" class="flex-1" :search="search" />
-			<div v-if="canCc || canBcc" class="flex shrink-0 items-center gap-1">
+			<div v-if="rows.length" class="flex shrink-0 items-center gap-1">
 				<Button
-					v-if="canCc"
+					v-for="field in rows"
+					:key="field"
 					variant="ghost"
-					label="CC"
-					:class="showCc ? '!bg-surface-gray-4' : '!text-ink-gray-5'"
-					@click="toggleCc"
-					size="xs"
-				/>
-				<Button
-					v-if="canBcc"
-					variant="ghost"
-					label="BCC"
-					:class="showBcc ? '!bg-surface-gray-4' : '!text-ink-gray-5'"
-					@click="toggleBcc"
+					:label="field.toUpperCase()"
+					:class="open[field] ? '!bg-surface-gray-4' : '!text-ink-gray-5'"
+					@click="toggle(field)"
 					size="xs"
 				/>
 			</div>
 		</Row>
 
-		<Row v-if="showCc || model.cc.length" label="CC">
-			<RecipientSelect v-model="model.cc" class="flex-1" :search="search" />
-		</Row>
-
-		<Row v-if="showBcc || model.bcc.length" label="BCC">
-			<RecipientSelect v-model="model.bcc" class="flex-1" :search="search" />
-		</Row>
+		<template v-for="field in rows" :key="field">
+			<Row v-if="open[field]" :label="field.toUpperCase()">
+				<RecipientSelect v-model="model[field]" class="flex-1" :search="search" />
+			</Row>
+		</template>
 		<div class="border-b bg-surface-gray-1 mt-1"></div>
 	</div>
 </template>
 
 <script setup lang="ts">
-import { computed, ref } from "vue";
+import { computed, reactive, watch } from "vue";
 import { Button } from "frappe-ui";
 import RecipientSelect from "./RecipientSelect.vue";
 import Row from "./RecipientRow.vue";
@@ -67,22 +58,39 @@ const props = withDefaults(
 const model = defineModel<Recipients>({ required: true });
 const subject = defineModel<string>("subject", { default: "" });
 
-// Which optional rows this composer offers.
+// The optional recipient rows, in fixed order. `subject` is handled separately
+// (it's a plain text field, not a recipient list).
+const OPTIONAL = ["cc", "bcc"] as const;
+type OptionalField = (typeof OPTIONAL)[number];
+
 const showSubject = computed(() => props.fields.includes("subject"));
-const canCc = computed(() => props.fields.includes("cc"));
-const canBcc = computed(() => props.fields.includes("bcc"));
+// Which optional rows this composer offers — each gets a toggle button + a row.
+const rows = computed(() => OPTIONAL.filter((field) => props.fields.includes(field)));
 
-// Toggle state for the Cc/Bcc rows; rows also show when prefilled.
-const showCc = ref(false);
-const showBcc = ref(false);
+// Whether each optional row is open — the single source of truth for both the
+// row and its toggle button, so the button's highlighted state always matches
+// what's on screen.
+const open = reactive<Record<OptionalField, boolean>>({ cc: false, bcc: false });
 
-function toggleCc() {
-	showCc.value = !showCc.value;
-	if (!showCc.value) model.value.cc = [];
+// Auto-open a row as soon as it carries recipients — prefilled at mount, or
+// seeded later by the host (e.g. a reply that pre-fills Cc). Without this a
+// pre-filled row would show under an "off"-looking toggle, and clicking it
+// would silently wipe those recipients.
+for (const field of OPTIONAL) {
+	watch(
+		() => model.value[field].length,
+		(count) => {
+			if (count) open[field] = true;
+		},
+		{ immediate: true }
+	);
 }
 
-function toggleBcc() {
-	showBcc.value = !showBcc.value;
-	if (!showBcc.value) model.value.bcc = [];
+// Closing a row drops its recipients — hidden recipients would otherwise be
+// sent invisibly. Because the toggle honestly reflects the open state, this is
+// a deliberate action, not a silent surprise.
+function toggle(field: OptionalField) {
+	open[field] = !open[field];
+	if (!open[field]) model.value[field] = [];
 }
 </script>

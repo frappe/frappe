@@ -23,7 +23,9 @@
 			/>
 		</template>
 
-		<!-- Host-supplied actions: wire a FileUploader to `addAttachment` / `setUploading`. -->
+		<!-- Extra footer actions. Attachments already have a built-in button (pass
+			 `uploadFunction`); this slot is for anything more, and still exposes
+			 `addAttachment` / `setUploading` for a fully custom uploader. -->
 		<template v-if="$slots.actions" #actions="actionProps">
 			<slot name="actions" v-bind="actionProps" />
 		</template>

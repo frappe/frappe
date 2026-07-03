@@ -196,7 +196,10 @@ import {
 	HorizontalRule,
 	InsertTable,
 } from "frappe-ui/editor";
+import { injectComposer } from "./composerContext";
+import type { ComposerEditorProps, CoreSubmitPayload, UploadedFile } from "./types";
 
+// Fixed formatting toolbar rendered in the footer (headings, bold, lists, …).
 const emailToolbar = [
 	Paragraph,
 	H2,
@@ -221,8 +224,6 @@ const emailToolbar = [
 	HorizontalRule,
 	InsertTable,
 ];
-import { injectComposer } from "./composerContext";
-import type { ComposerEditorProps, CoreSubmitPayload, UploadedFile } from "./types";
 
 const props = withDefaults(defineProps<ComposerEditorProps>(), {
 	placeholder: "Type your message…",
@@ -349,13 +350,15 @@ const isUploading = ref(false);
 const attachmentRow = useTemplateRef<HTMLElement>("attachmentRow");
 const compactAttachments = ref(false);
 
-watch(attachmentRow, (el) => {
+watch(attachmentRow, (el, _prev, onCleanup) => {
 	if (!el) return;
-	const check = () => {
+	const observer = new ResizeObserver(() => {
 		compactAttachments.value = el.scrollWidth > el.clientWidth;
-	};
-	const observer = new ResizeObserver(check);
+	});
 	observer.observe(el);
+	// Disconnect when the row element swaps out or the component unmounts, so
+	// observers don't pile up across add/remove cycles.
+	onCleanup(() => observer.disconnect());
 });
 
 watch(attachments, () => {
@@ -415,7 +418,12 @@ function removeAttachment(file: UploadedFile) {
 	emit("remove-attachment", file);
 }
 
-const isDisabled = computed(() => isContentEmpty(body.value) || isUploading.value);
+// A message needs a body or at least one attachment to send (an attachment-only
+// email is valid) — and never sends mid-upload. A quoted reply alone doesn't
+// count: there's something to discard, but nothing new to send.
+const isDisabled = computed(
+	() => (isContentEmpty(body.value) && !attachments.value.length) || isUploading.value
+);
 
 // Nothing to discard: empty body, no attachments, no quoted reply.
 const isEmpty = computed(

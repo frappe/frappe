@@ -7,6 +7,10 @@
 		class="ec-trigger flex w-full cursor-pointer items-center gap-3 rounded-lg border border-outline-gray-2 bg-surface-white px-4 py-2 text-left shadow-sm hover:border-outline-gray-3 hover:bg-surface-gray-1"
 		@click="onClick"
 	>
+		<!-- The preview is capped to a fraction of the bar so a long draft stays a
+			 short hint rather than filling the whole trigger; the rest of the bar
+			 is clickable open-affordance. A host replacing the slot (e.g. to add an
+			 avatar) should keep a similar cap. -->
 		<slot :preview="preview">
 			<span class="min-w-0 max-w-[30%] truncate text-base text-ink-gray-5">{{
 				preview || placeholder

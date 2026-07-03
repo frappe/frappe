@@ -12,6 +12,9 @@
 		@submit="emit('submit', $event)"
 		@remove-attachment="emit('remove-attachment', $event)"
 	>
+		<!-- Extra footer actions. Attachments already have a built-in button (pass
+			 `uploadFunction`); this slot is for anything more, and still exposes
+			 `addAttachment` / `setUploading` for a fully custom uploader. -->
 		<template v-if="$slots.actions" #actions="actionProps">
 			<slot name="actions" v-bind="actionProps" />
 		</template>
