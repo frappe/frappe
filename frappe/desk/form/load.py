@@ -11,7 +11,6 @@ import frappe.defaults
 import frappe.desk.form.meta
 import frappe.utils
 from frappe import _, _dict
-from frappe.core.doctype.permission_type.permission_type import get_doctype_ptype_map
 from frappe.desk.form.document_follow import is_document_followed
 from frappe.model.document import Document
 from frappe.model.utils.user_settings import get_user_settings
@@ -128,7 +127,6 @@ def get_docinfo(
 			"is_document_followed": is_document_followed(doc.doctype, doc.name, frappe.session.user),
 			"tags": get_tags(doc.doctype, doc.name),
 			"document_email": get_document_email(doc.doctype, doc.name),
-			"custom_perm_types": get_doctype_ptype_map().get(doc.doctype, []),
 		}
 	)
 
@@ -503,9 +501,9 @@ def update_user_info(docinfo, doc=None):
 
 
 @frappe.whitelist()
-def get_user_info_for_viewers(users: str):
+def get_user_info_for_viewers(users: str | list):
 	user_info = {}
-	for user in json.loads(users):
+	for user in frappe.parse_json(users):
 		frappe.utils.add_user_info(user, user_info)
 
 	return user_info

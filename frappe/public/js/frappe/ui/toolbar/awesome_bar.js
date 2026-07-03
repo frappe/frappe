@@ -67,7 +67,7 @@ frappe.search.AwesomeBar = class AwesomeBar {
 			.addClass("cool-awesomebar-modal-footer")
 			.html(search_modal_footer);
 
-		$search_element.on("click", () => {
+		$(document).on("click", element, () => {
 			if (this.is_open()) {
 				this.close();
 				return;
@@ -107,6 +107,21 @@ frappe.search.AwesomeBar = class AwesomeBar {
 			maxItems: 99,
 			autoFirst: true,
 			list: [],
+			container: function (input) {
+				let container = document.createElement("div");
+				container.className = "awesomplete";
+				let input_row = document.createElement("div");
+				input_row.className = "awesomebar-input-row";
+				let icon = document.createElement("span");
+				icon.className = "awesomebar-search-icon";
+				icon.setAttribute("aria-hidden", "true");
+				icon.innerHTML = frappe.utils.icon("search", "sm");
+				input.parentNode.insertBefore(container, input);
+				input_row.appendChild(icon);
+				input_row.appendChild(input);
+				container.appendChild(input_row);
+				return container;
+			},
 			filter: function (text, term) {
 				return true;
 			},
@@ -127,18 +142,6 @@ frappe.search.AwesomeBar = class AwesomeBar {
 							)
 						)
 					);
-				}
-				if (d.type == "sidebar") {
-					d.route_options = {
-						sidebar: d.description,
-					};
-				}
-				if (d.type == "Desktop Icon") {
-					target = frappe.utils.get_route_for_icon(d.icon_data);
-					d.route = target;
-					d.route_options = {
-						sidebar: d.icon_data.label,
-					};
 				}
 				let html = `<span>${__(d.label || d.value)}</span>`;
 
@@ -185,6 +188,13 @@ frappe.search.AwesomeBar = class AwesomeBar {
 					);
 					me.options = me.options.concat(frappe.search.utils.get_frequent_links());
 				}
+
+				// hide footer and remove spacing when there are no results
+				$(this.awesomplete.ul).toggleClass("p-0 m-0", cint(me.options?.length) == 0);
+				search_modal
+					.find(".cool-awesomebar-modal-footer")
+					.toggleClass("hide", cint(me.options?.length) == 0);
+
 				let options = me.deduplicate(me.options);
 				awesomplete.options_with_desc = me.create_options_with_descriptions(options);
 				Awesomplete.prototype._itemCursor = 0;
@@ -284,11 +294,10 @@ frappe.search.AwesomeBar = class AwesomeBar {
 				frappe.search.utils.get_doctype_layouts(txt),
 				frappe.search.utils.get_reports(txt),
 				frappe.search.utils.get_pages(txt),
-				frappe.search.utils.get_desktop_icons(txt),
+				frappe.search.utils.get_workspaces(txt),
 				frappe.search.utils.get_dashboards(txt),
 				frappe.search.utils.get_recent_pages(txt || ""),
-				frappe.search.utils.get_executables(txt),
-				frappe.search.utils.get_marketplace_apps(txt)
+				frappe.search.utils.get_executables(txt)
 			);
 		if (txt.charAt(0) === "#") {
 			options = frappe.tags.utils.get_tags(txt);

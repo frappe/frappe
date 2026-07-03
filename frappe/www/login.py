@@ -109,7 +109,6 @@ def get_context(context):
 	context["login_label"] = f" {_('or')} ".join(login_label)
 
 	context["login_with_email_link"] = frappe.get_system_settings("login_with_email_link")
-	context["login_with_frappe_cloud_url"] = None
 
 	return context
 

@@ -38,7 +38,7 @@ def get_email_accounts(user=None):
 
 
 @frappe.whitelist()
-def create_email_flag_queue(names: str, action: str):
+def create_email_flag_queue(names: str | list, action: str):
 	"""create email flag queue to mark email either as read or unread"""
 
 	def mark_as_seen_unseen(name, action):
@@ -53,7 +53,7 @@ def create_email_flag_queue(names: str, action: str):
 	if not all([names, action]):
 		return
 
-	for name in json.loads(names or []):
+	for name in frappe.parse_json(names):
 		uid, seen_status, email_account = frappe.db.get_value(
 			"Communication", name, ["uid", "seen", "email_account"]
 		)

@@ -154,7 +154,7 @@ export default class QuickListWidget extends Widget {
 
 		if (indicator) {
 			$(`
-				<div class="status indicator-pill ${indicator[1]} ellipsis">
+				<div class="status es-badge ellipsis" data-theme="${indicator[1]}">
 					${indicator[0]}
 				</div>
 			`).appendTo($quick_list_item);

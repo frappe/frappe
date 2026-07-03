@@ -2011,11 +2011,10 @@ def get_link_to_form(doctype: str, name: str | None = None, label: str | None = 
 
 
 def get_url_to_workspace(workspace: str, is_public: bool):
-	url_prefix = "/desk/"
-	if not is_public:
-		workspace_url = "/desk/private/"
-	workspace_url = url_prefix + workspace.lower()
-	return workspace_url
+	from frappe.desk.utils import slug
+
+	url_prefix = "/desk/" if is_public else "/desk/private/"
+	return url_prefix + slug(workspace)
 
 
 def get_link_to_report(
@@ -2653,7 +2652,7 @@ def validate_json_string(string: str) -> None:
 		raise frappe.ValidationError
 
 
-def parse_json(val: str):
+def parse_json(val: Any):
 	"""
 	Parses json if string else return
 	"""

@@ -1,0 +1,199 @@
+/* Espresso legacy color tokens — overlays, gradients, and the neutral family
+ * that the canonical Espresso color scale (colors.css) does not (yet) define but
+ * Desk still references. Preserved verbatim from the old espresso/_colors.scss.
+ * TODO: reconcile/remove when installing the Espresso effects/base token files. */
+
+:root {
+  --linear-black: linear-gradient(to bottom, rgba(46, 46, 46, 0.18) 0%, rgba(36, 36, 36, 0.14) 100%);
+  --linear-blue: linear-gradient(to bottom, rgba(17, 142, 245, 0.067) 0%, rgba(7, 127, 247, 0.029) 100%);
+  --angular-white: conic-gradient(rgba(255, 255, 255, 1) 72.38%, rgba(255, 255, 255, 1) 99.87%);
+  --angular-black: conic-gradient(rgba(56, 56, 56, 0.22) 72.38%, rgba(56, 56, 56, 0.22) 99.87%);
+  --angular-green: conic-gradient(rgba(23, 117, 75, 0.092) 72.38%, rgba(23, 117, 75, 0.092) 99.87%);
+  --angular-red: conic-gradient(rgba(205, 41, 41, 0.804) 72.38%, rgba(205, 41, 41, 0.804) 99.87%);
+  --angular-blue: conic-gradient(rgba(0, 110, 219, 0) 72.38%, rgba(0, 110, 219, 0) 99.87%);
+}
+
+/* >>> deprecated tokens — generated from migration/legacy-map.css + old files >>> */
+/* DEPRECATED — do not use in new code. Kept so existing Framework code and
+   third-party apps keep working; migrate usages to Espresso tokens directly. */
+
+/* Reviewed Espresso aliases (light+dark handled by Espresso). */
+:root {
+  --neutral: var(--ink-base);
+  --neutral-invert: var(--surface-base);
+  /* Surfaces / layout */
+  --bg-color: var(--surface-base);
+  --fg-color: var(--surface-base);
+  --card-bg: var(--surface-base);
+  --modal-bg: var(--bg-color);
+  --popover-bg: var(--bg-color);
+  --toast-bg: var(--modal-bg);
+  --control-bg: var(--surface-gray-2);
+  --control-bg-on-gray: var(--surface-gray-3);
+  --subtle-accent: var(--surface-gray-1);
+  --subtle-fg: var(--surface-gray-2);
+  --fg-hover-color: var(--surface-gray-2);
+  --disabled-control-bg: var(--surface-gray-1);
+  --navbar-bg: var(--surface-sidebar);
+  --sidebar-select-color: var(--surface-gray-2);
+  --highlight-color: var(--surface-gray-1);
+  --skeleton-bg: var(--surface-gray-2);
+  /* Text / ink */
+  --text-color: var(--ink-gray-8);
+  --heading-color: var(--ink-gray-9);
+  --text-muted: var(--ink-gray-6);
+  --text-light: var(--ink-gray-5);
+  --disabled-text-color: var(--ink-gray-5);
+  --icon-stroke: currentColor;
+  --placeholder-color: var(--ink-gray-3);
+  /* Borders / outlines */
+  --border-color: var(--outline-gray-1);
+  --dark-border-color: var(--outline-gray-2);
+  --table-border-color: var(--outline-gray-1);
+  --btn-group-border-color: var(--outline-gray-2);
+  --border-primary: var(--outline-gray-8);
+  /* Controls / Bootstrap .btn */
+  --btn-default-bg: var(--surface-gray-2);
+  --btn-default-hover-bg: var(--surface-gray-4);
+  --btn-ghost-hover-bg: var(--surface-gray-3);
+  --btn-primary: var(--surface-gray-10);
+  /* Color fills: --bg-<c> → surface-<c>-2 */
+  --bg-blue: var(--surface-blue-2);
+  --bg-light-blue: var(--surface-blue-1);
+  --bg-dark-blue: var(--surface-blue-3);
+  --bg-green: var(--surface-green-2);
+  --bg-yellow: var(--surface-yellow-2);
+  --bg-orange: var(--surface-orange-2);
+  --bg-red: var(--surface-red-2);
+  --bg-gray: var(--surface-gray-2);
+  --bg-grey: var(--surface-gray-2);
+  --bg-light-gray: var(--surface-gray-2);
+  --bg-dark-gray: var(--surface-gray-5);
+  --bg-darkgrey: var(--surface-gray-5);
+  --bg-purple: var(--surface-purple-2);
+  --bg-pink: var(--surface-pink-2);
+  --bg-cyan: var(--surface-cyan-2);
+  /* Color text: --text-on-<c> → ink-<c>-8 (standardized, no dark nudge) */
+  --text-on-blue: var(--ink-blue-8);
+  --text-on-light-blue: var(--ink-blue-8);
+  --text-on-dark-blue: var(--ink-blue-8);
+  --text-on-green: var(--ink-green-8);
+  --text-on-yellow: var(--ink-yellow-8);
+  --text-on-orange: var(--ink-orange-8);
+  --text-on-red: var(--ink-red-8);
+  --text-on-gray: var(--ink-gray-8);
+  --text-on-grey: var(--ink-gray-8);
+  --text-on-darkgrey: var(--ink-gray-8);
+  --text-on-dark-gray: var(--ink-gray-8);
+  --text-on-light-gray: var(--ink-gray-8);
+  --text-on-purple: var(--ink-purple-8);
+  --text-on-pink: var(--ink-pink-8);
+  --text-on-cyan: var(--ink-cyan-8);
+  /* Misc */
+  --scrollbar-thumb-color: var(--outline-gray-3);
+  --scrollbar-track-color: var(--surface-gray-3);
+  --switch-bg: var(--outline-gray-3);
+  --diff-added: var(--surface-green-2);
+  --diff-removed: var(--surface-red-2);
+  --diff-changed: var(--surface-blue-2);
+}
+
+/* Preserved legacy color tokens — OLD values verbatim, TODO: remap to Espresso. */
+:root {
+  --alert-bg-danger: var(--red-50);
+  --alert-bg-info: var(--blue-50);
+  --alert-bg-success: var(--green-100);
+  --alert-bg-warning: var(--yellow-50);
+  --alert-text-danger: var(--red-600);
+  --alert-text-info: var(--blue-700);
+  --alert-text-success: var(--green-700);
+  --alert-text-warning: var(--yellow-700);
+  --appreciation-bg: var(--green-100);
+  --appreciation-color: var(--green-600);
+  --awesomebar-focus-bg: var(--fg-color);
+  --awesomplete-hover-bg: var(--control-bg);
+  --brand-color: var(--primary);
+  --checkbox-color: var(--ink-gray-9);
+  --criticism-bg: var(--red-100);
+  --criticism-color: var(--red-600);
+  --date-active-bg: var(--gray-900);
+  --date-active-text: var(--gray-100);
+  --date-range-bg: var(--subtle-fg);
+  --error-bg: var(--red-50);
+  --error-border: var(--red-400);
+  --group-mention-bg-color: var(--bg-purple);
+  --icon-fill: transparent;
+  --icon-fill-bg: var(--fg-color);
+  --input-disabled-bg: var(--gray-200);
+  --primary-color: var(--gray-900);
+  --progress-bar-bg: var(--primary);
+  --text-dark: var(--fg-color);
+  --text-neutral: var(--gray-900);
+  --timeline-badge-bg: var(--gray-100);
+  --timeline-badge-color: var(--gray-900);
+  --user-mention-bg-color: var(--fg-color);
+  --yellow-highlight-color: var(--yellow-50);
+}
+
+[data-theme="dark"],
+.dark {
+  --alert-bg-danger: var(--red-900);
+  --alert-bg-info: var(--blue-900);
+  --alert-bg-success: var(--green-900);
+  --alert-bg-warning: var(--yellow-900);
+  --alert-text-danger: var(--red-300);
+  --alert-text-info: var(--blue-300);
+  --alert-text-success: var(--green-300);
+  --alert-text-warning: var(--yellow-300);
+  --appreciation-bg: var(--dark-green-600);
+  --appreciation-color: var(--dark-green-100);
+  --awesomebar-focus-bg: var(--control-bg);
+  --awesomplete-hover-bg: var(--gray-800);
+  --checkbox-color: var(--ink-base);
+  --criticism-bg: var(--red-600);
+  --criticism-color: var(--red-100);
+  --date-active-bg: var(--gray-700);
+  --error-bg: var(--red-800);
+  --input-disabled-bg: none;
+  --progress-bar-bg: var(--light);
+  --text-dark: var(--gray-900);
+  --text-neutral: var(--gray-50);
+  --timeline-badge-bg: var(--gray-900);
+  --timeline-badge-color: var(--gray-500);
+  --yellow-highlight-color: var(--yellow-700);
+}
+
+/* <<< deprecated tokens <<< */
+
+/* DEPRECATED effects aliases + preserved tokens. Renames -> Espresso (values
+   follow Espresso). --shadow-xs/--custom-shadow-sm/--drop-shadow have no Espresso
+   equivalent and keep their old values. Migrate usages to Espresso names over time. */
+:root {
+  --shadow-base: var(--shadow);
+  --focus-yellow: var(--focus-amber);
+  --custom-status: var(--elevation-status);
+  --shadow-xs: rgba(0, 0, 0, 0.05) 0px 0.5px 0px 0px, rgba(0, 0, 0, 0.08) 0px 0px 0px 1px, rgba(0, 0, 0, 0.05) 0px 2px 4px 0px;
+  --custom-shadow-sm: 0px 1px 4px rgba(0, 0, 0, 0.1);
+  --drop-shadow: 0px 0.5px 0px rgba(0, 0, 0, 0.05), 0px 0px 0px rgba(0, 0, 0, 0), 0px 2px 4px rgba(0, 0, 0, 0.05);
+}
+
+/* DEPRECATED typography aliases — old weight names -> Espresso --font-weight-*,
+   and --text-md (was a 14px alias of base). Migrate usages to Espresso names. */
+:root {
+  --weight-regular: var(--font-weight-regular);
+  --weight-medium: var(--font-weight-medium);
+  --weight-semibold: var(--font-weight-semibold);
+  --weight-bold: var(--font-weight-bold);
+  --weight-black: var(--font-weight-black);
+  --text-md: var(--text-base);
+}
+
+/* Espresso theme names added to the indicator color-pair system (alongside the
+   retained legacy colors above) — so Framework's migrated indicator defs and the
+   .indicator dot render amber/violet. Map to Espresso. */
+:root {
+  --bg-amber: var(--surface-amber-2);
+  --text-on-amber: var(--ink-amber-8);
+  --bg-violet: var(--surface-violet-2);
+  --text-on-violet: var(--ink-violet-8);
+}

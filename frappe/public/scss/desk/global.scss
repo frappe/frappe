@@ -194,7 +194,7 @@ footer {
 	text-align: center;
 	width: 140px;
 	height: 140px;
-	border-radius: var(--border-radius-sm);
+	border-radius: var(--radius);
 
 	&.small {
 		width: 20px;
@@ -491,7 +491,7 @@ kbd {
 		@include get_textstyle("base", "regular");
 		padding: 8px 12px;
 		margin-bottom: 2px;
-		border-radius: var(--border-radius);
+		border-radius: var(--radius);
 		overflow: hidden;
 		cursor: pointer;
 

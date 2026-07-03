@@ -1304,24 +1304,23 @@ class Database:
 			self.value_cache[dt][cache_key] = count
 		return count
 
-	def _fetch_all_table_counts(self) -> dict[str, int]:
-		"""Fetch estimated row counts for all tables in the current database. Override in subclasses."""
+	def _estimate_count(self, table: str) -> int:
+		"""Get estimated count of total rows in a single table. Override in subclasses."""
 		raise NotImplementedError
 
 	def estimate_count(self, doctype: str) -> int:
 		"""Get estimated count of total rows in a table.
 
-		Counts for all tables are cached together in Redis with a 60-minute TTL so that
-		a single DB query populates estimates for every table at once.
+		The estimate is read one table at a time and cached in Redis with a 60-minute TTL
+		to avoid hammering information_schema.
 		"""
-		from frappe.utils.data import cint
-
 		table = get_table_name(doctype)
-		counts = frappe.cache.get_value("estimate_counts")
-		if counts is None:
-			counts = self._fetch_all_table_counts()
-			frappe.cache.set_value("estimate_counts", counts, expires_in_sec=60 * 60)
-		return cint(counts.get(table))
+		cache_key = f"estimate_count::{table}"
+		count = frappe.cache.get_value(cache_key)
+		if count is None:
+			count = self._estimate_count(table)
+			frappe.cache.set_value(cache_key, count, expires_in_sec=60 * 60)
+		return count
 
 	@staticmethod
 	def format_date(date):
@@ -1382,7 +1381,7 @@ class Database:
 	def has_index(self, table_name, index_name):
 		raise NotImplementedError
 
-	def add_index(self, doctype, fields, index_name=None):
+	def add_index(self, doctype, fields, index_name=None, using=None, where=None, include=None):
 		raise NotImplementedError
 
 	def add_unique(self, doctype, fields, constraint_name=None):
@@ -1526,6 +1525,16 @@ class Database:
 		value_iterator = iter(values)
 		while value_chunk := tuple(itertools.islice(value_iterator, chunk_size)):
 			query.insert(*value_chunk).run()
+
+	def advisory_lock(self, key, *, timeout=10):
+		"""Hold a session-level advisory lock for the duration of the `with` block. Postgres uses
+		pg_advisory_lock, MariaDB uses GET_LOCK; engines without advisory locks raise."""
+		raise NotImplementedError(f"Advisory locks are not supported on {self.db_type}.")
+
+	def create_sequence_table(self):
+		# MariaDB/Postgres have native sequences and need no backing table;
+		# SQLite overrides this to create its emulation table at site setup.
+		pass
 
 	def create_sequence(self, *args, **kwargs):
 		from frappe.database.sequence import create_sequence

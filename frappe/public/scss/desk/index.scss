@@ -16,6 +16,8 @@
 @import "navbar";
 @import "search_widget";
 @import "../common/modal";
+@import "settings_dialog";
+@import "doctype_settings";
 @import "../common/about";
 @import "slides";
 @import "toast";
@@ -49,6 +51,7 @@
 @import "data_import";
 @import "driver";
 @import "role_editor";
+@import "embedded_list";
 @import "user_profile";
 @import "theme_switcher";
 @import "link_preview";
@@ -58,4 +61,5 @@
 @import "menu";
 @import "sidebar_header";
 @import "sidebar_card";
+@import "workspace_picker";
 @import "document_template";

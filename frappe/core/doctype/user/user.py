@@ -71,6 +71,7 @@ class User(Document):
 		from frappe.core.doctype.user_role_profile.user_role_profile import UserRoleProfile
 		from frappe.core.doctype.user_session_display.user_session_display import UserSessionDisplay
 		from frappe.core.doctype.user_social_login.user_social_login import UserSocialLogin
+		from frappe.core.doctype.user_workspaces.user_workspaces import UserWorkspaces
 		from frappe.types import DF
 
 		active_sessions: DF.Table[UserSessionDisplay]
@@ -147,6 +148,7 @@ class User(Document):
 		user_type: DF.Link | None
 		username: DF.Data | None
 		view_switcher: DF.Check
+		workspaces: DF.Table[UserWorkspaces]
 	# end: auto-generated types
 
 	__new_password = None
@@ -357,6 +359,9 @@ class User(Document):
 		elif self.has_value_changed("allow_in_mentions") or self.has_value_changed("user_type"):
 			frappe.cache.delete_key("users_for_mentions")
 
+		if self.has_value_changed("user_type"):
+			clear_sessions(user=self.name, force=True)
+
 	def has_website_permission(self, ptype, user, verbose=False):
 		"""Return True if current user is the session user."""
 		return self.name == frappe.session.user
@@ -412,9 +417,6 @@ class User(Document):
 		else:
 			"""Set as System User if any of the given roles has desk_access"""
 			self.user_type = "System User" if self.has_desk_access() else "Website User"
-
-		if self.has_value_changed("user_type"):
-			clear_sessions(user=self.name, force=True)
 
 	def set_roles_and_modules_based_on_user_type(self):
 		user_type_doc = frappe.get_cached_doc("User Type", self.user_type)

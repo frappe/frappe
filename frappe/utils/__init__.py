@@ -184,12 +184,21 @@ def validate_email_address(email_str, throw=False):
 	email_str = (email_str or "").strip()
 	out = []
 
-	# Replace newlines with commas so getaddresses can handle them
-	# getaddresses expects comma-separated values
+	# split_emails collapses \n/\r to spaces *before* splitting, so newlines
+	# would no longer act as separators. Convert them to commas up front.
 	email_str = email_str.replace("\n", ",").replace("\r", ",")
 
-	# Parse using stdlib (handles commas in display names correctly)
+	# Fast path: parse the whole string in one shot. Strict mode either gives
+	# us all entries cleanly or bails to [('', '')] on malformed input.
 	addresses = getaddresses([email_str])
+
+	# Slow path: if nothing usable came back, re-parse each piece in isolation
+	# so one malformed entry can't reject its valid neighbours. split_emails
+	# is quote-aware, so `"Last, First" <addr>` survives the split intact.
+	if not any(addr for _, addr in addresses):
+		addresses = []
+		for piece in split_emails(email_str):
+			addresses.extend(getaddresses([piece]))
 
 	for name, addr in addresses:
 		if not addr:
@@ -206,8 +215,7 @@ def validate_email_address(email_str, throw=False):
 		if "undisclosed-recipient" in addr:
 			continue
 
-		match = EMAIL_MATCH_PATTERN.match(addr)
-		if not match:
+		if not EMAIL_MATCH_PATTERN.fullmatch(addr):
 			if throw:
 				frappe.throw(
 					frappe._("{0} is not a valid Email Address").format(frappe.utils.escape_html(addr)),

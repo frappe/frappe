@@ -206,8 +206,8 @@ function delete_tab(tab, with_children) {
 	background-color: var(--fg-color);
 	border-bottom: 1px solid var(--border-color);
 	padding-left: var(--padding-xs);
-	border-top-left-radius: var(--border-radius);
-	border-top-right-radius: var(--border-radius);
+	border-top-left-radius: var(--radius);
+	border-top-right-radius: var(--radius);
 
 	.tabs {
 		display: flex;
@@ -290,7 +290,7 @@ function delete_tab(tab, with_children) {
 	max-height: calc(100vh - 217px);
 	overflow-y: auto;
 	overflow-x: hidden;
-	border-radius: var(--border-radius);
+	border-radius: var(--radius);
 	min-height: 70px;
 
 	.tab-content {
@@ -304,7 +304,7 @@ function delete_tab(tab, with_children) {
 		.tab-content-container {
 			flex: 1;
 			min-height: 4rem;
-			border-radius: var(--border-radius);
+			border-radius: var(--radius);
 			z-index: 1;
 
 			&:empty {

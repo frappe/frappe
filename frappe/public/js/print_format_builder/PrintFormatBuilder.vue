@@ -70,7 +70,12 @@
 				:style="{ '--pfb-zoom': canvas_zoom / 100 }"
 				@click="clear_selection"
 			>
-				<KeepAlive>
+				<PrintFormatSetup
+					v-if="$store.needs_setup.value"
+					@start-default="on_start_default"
+					@start-blank="on_start_blank"
+				/>
+				<KeepAlive v-else>
 					<component :is="Preview" v-if="show_preview" />
 					<component :is="PrintFormat" v-else />
 				</KeepAlive>
@@ -82,6 +87,7 @@
 
 <script setup>
 import PrintFormat from "./components/editor/PrintFormat.vue";
+import PrintFormatSetup from "./components/editor/PrintFormatSetup.vue";
 import Preview from "./components/Preview.vue";
 import PrintFormatControls from "./components/PrintFormatControls.vue";
 import FieldInspector from "./components/inspector/FieldInspector.vue";
@@ -130,9 +136,43 @@ function clear_selection() {
 	$store.value.selected_section.value = null;
 }
 
+function on_start_default() {
+	const src = $store.value.layout.value;
+	// Drop empty columns, then sections that have no columns left
+	const sections = (src.sections || [])
+		.map((s) => ({ ...s, columns: s.columns.filter((c) => c.fields.length > 0) }))
+		.filter((s) => s.columns.length > 0);
+	const layout = { ...src, sections };
+	$store.value.layout.value = layout;
+	$store.value.print_format.value.format_data = JSON.stringify(layout);
+	$store.value.dirty.value = true;
+	$store.value.needs_setup.value = false;
+}
+
+function on_start_blank() {
+	const blank = {
+		sections: [],
+		header: { columns: [{ label: "", fields: [] }] },
+		footer: { columns: [{ label: "", fields: [] }] },
+	};
+	$store.value.layout.value = blank;
+	$store.value.print_format.value.format_data = JSON.stringify(blank);
+	$store.value.dirty.value = true;
+	$store.value.needs_setup.value = false;
+}
+
 function handle_keydown(e) {
 	// Zoom shortcuts: Ctrl+= / Ctrl+- / Ctrl+0
 	if (e.ctrlKey || e.metaKey) {
+		if (e.key === "z" || e.key === "Z") {
+			// let inputs keep their own undo
+			const el = document.activeElement;
+			if (el?.tagName === "INPUT" || el?.tagName === "TEXTAREA" || el?.isContentEditable)
+				return;
+			e.preventDefault();
+			$store.value.undo();
+			return;
+		}
 		if (e.key === "=" || e.key === "+") {
 			e.preventDefault();
 			zoom_in();
@@ -152,7 +192,11 @@ function handle_keydown(e) {
 
 	if (e.key !== "Escape") return;
 	// Don't intercept if a modal/dialog is open
-	if (document.querySelector(".modal.show, .frappe-dialog:visible")) return;
+	if (document.querySelector(".modal.show")) return;
+	const dialog_open = Array.from(document.querySelectorAll(".frappe-dialog")).some(
+		(el) => el.offsetParent !== null
+	);
+	if (dialog_open) return;
 
 	const sf = $store.value.selected_field.value;
 	const ss = $store.value.selected_section.value;
@@ -320,7 +364,7 @@ defineExpose({ toggle_preview, show_preview, $store });
 	background: transparent;
 	cursor: pointer;
 	color: var(--blue-400);
-	border-radius: var(--border-radius-sm);
+	border-radius: var(--radius);
 	line-height: 1;
 	opacity: 0.7;
 }
@@ -368,7 +412,7 @@ defineExpose({ toggle_preview, show_preview, $store });
 	font-size: var(--text-sm);
 	height: 28px;
 	padding: 2px 8px;
-	border-radius: var(--border-radius);
+	border-radius: var(--radius);
 }
 
 .canvas-toolbar-right {
@@ -387,7 +431,7 @@ defineExpose({ toggle_preview, show_preview, $store });
 	white-space: nowrap;
 	background: var(--yellow-50);
 	border: 1px solid var(--yellow-200);
-	border-radius: var(--border-radius);
+	border-radius: var(--radius);
 	padding: 3px 8px;
 }
 
@@ -399,7 +443,7 @@ defineExpose({ toggle_preview, show_preview, $store });
 	background: transparent;
 	cursor: pointer;
 	color: var(--gray-400);
-	border-radius: var(--border-radius-sm);
+	border-radius: var(--radius);
 }
 
 .canvas-clear-btn:hover {
@@ -413,7 +457,7 @@ defineExpose({ toggle_preview, show_preview, $store });
 	color: var(--green-600);
 	background: var(--green-50);
 	border: 1px solid var(--green-200);
-	border-radius: var(--border-radius-sm);
+	border-radius: var(--radius);
 	padding: 2px 6px;
 	line-height: 1.4;
 }
@@ -423,7 +467,7 @@ defineExpose({ toggle_preview, show_preview, $store });
 	display: flex;
 	align-items: center;
 	border: 1px solid var(--border-color);
-	border-radius: var(--border-radius);
+	border-radius: var(--radius);
 	overflow: hidden;
 }
 

@@ -262,7 +262,7 @@ Object.assign(frappe.utils, {
 	},
 
 	escape_html: function (txt) {
-		if (!txt) return "";
+		if (txt == null) return ""; // null or undefined, but keep 0 / false
 		let escape_html_mapping = {
 			"&": "&amp;",
 			"<": "&lt;",
@@ -556,7 +556,7 @@ Object.assign(frappe.utils, {
 			text = cstr(text);
 			if (has_words(["Pending", "Review", "Medium", "Not Approved"], text)) {
 				style = "warning";
-				colour = "orange";
+				colour = "amber";
 			} else if (
 				has_words(["Open", "Urgent", "High", "Failed", "Rejected", "Error"], text)
 			) {
@@ -606,7 +606,7 @@ Object.assign(frappe.utils, {
 				const style = state.style;
 				const colour_map = {
 					Success: "green",
-					Warning: "orange",
+					Warning: "amber",
 					Danger: "red",
 					Primary: "blue",
 				};
@@ -1378,66 +1378,8 @@ Object.assign(frappe.utils, {
 		},
 		image_path: "/assets/frappe/images/leaflet/",
 	},
-	get_route_for_icon(desktop_icon) {
-		let route;
-		if (!desktop_icon) return;
-		let item = {};
-		if (desktop_icon.link_type == "External" && desktop_icon.link) {
-			route = desktop_icon.link;
-		} else {
-			let sidebar = frappe.boot.workspace_sidebar_item[desktop_icon.label.toLowerCase()];
-			if (desktop_icon.link_type == "Workspace Sidebar" && sidebar) {
-				let first_link = sidebar.items.find((i) => i.type == "Link");
-				if (first_link) {
-					if (first_link.link_type === "Report") {
-						let args = {
-							type: first_link.link_type,
-							name: first_link.link_to,
-						};
-
-						if (first_link.report || !frappe.app.sidebar.editor.edit_mode) {
-							args.is_query_report =
-								first_link.report.report_type === "Query Report" ||
-								first_link.report.report_type == "Script Report";
-							args.report_ref_doctype = first_link.report.ref_doctype;
-						}
-
-						route = frappe.utils.generate_route(args);
-					} else if (first_link.link_type == "Workspace") {
-						let workspaces = frappe.workspaces[frappe.router.slug(first_link.link_to)];
-						if (workspaces) {
-							if (workspaces.public) {
-								route = "/desk/" + frappe.router.slug(first_link.link_to);
-							} else {
-								route = "/desk/private/" + frappe.router.slug(workspaces.title);
-							}
-						}
-
-						if (first_link.route) {
-							route = first_link.route;
-						}
-					} else if (first_link.link_type === "URL") {
-						route = first_link.url;
-					} else if (first_link.link_type == "Page" && first_link.route_options) {
-						route = frappe.utils.generate_route({
-							type: first_link.link_type,
-							name: first_link.link_to,
-							route_options: JSON.parse(first_link.route_options),
-						});
-					} else {
-						route = frappe.utils.generate_route({
-							type: first_link.link_type,
-							name: first_link.link_to,
-							tab: first_link.tab,
-						});
-					}
-				}
-			}
-		}
-		return route;
-	},
-	desktop_icon(label, color, size) {
-		let letter = label.charAt(0).toUpperCase();
+	desktop_icon(label, color, size, style) {
+		let letter = frappe.utils.escape_html(label.charAt(0).toUpperCase());
 		let icon_size = size ? size : "md";
 		let opacity_hex = "1A";
 		let icon_html = $(`
@@ -1450,7 +1392,9 @@ Object.assign(frappe.utils, {
 		let pallete_color = this.desktop_pallete[color || "blue"];
 		let bg_color = pallete_color + opacity_hex;
 		let stroke_color = pallete_color;
-		if (frappe.boot.desktop_icon_style == "Solid") {
+		// `style` overrides the global desktop_icon_style for callers that always want a
+		// specific look (e.g. a solid letter icon regardless of the user's setting).
+		if ((style || frappe.boot.desktop_icon_style) == "Solid") {
 			bg_color = stroke_color;
 			stroke_color = "var(--white)";
 		}
@@ -1526,41 +1470,10 @@ Object.assign(frappe.utils, {
 		);
 	},
 
-	get_desktop_icon(icon_name, variant) {
-		let exists = false;
-		let icon_data = this.get_desktop_icon_by_label(icon_name);
-		variant = variant.toLowerCase();
-		if (!icon_data?.app) return exists;
-		let app_name = icon_data.app;
-		let icon_url = `assets/${app_name}/icons/desktop_icons/${variant}/${frappe.scrub(
-			icon_name
-		)}.svg`;
-
-		if (
-			frappe.boot.desktop_icon_urls[app_name] &&
-			frappe.boot.desktop_icon_urls[app_name][variant].includes(icon_url)
-		) {
-			return `/${icon_url}`;
-		}
-		return exists;
-	},
-
 	desktop_icon_exists(app_name, url) {
 		let exists = false;
 		if (frappe.boot.desktop_icon_urls[app_name].includes(url)) exists = true;
 		return exists;
-	},
-	get_desktop_icon_by_label(title, filters) {
-		if (!filters) {
-			return frappe.boot.desktop_icons.find((f) => f.label === title);
-		} else {
-			return frappe.boot.desktop_icons.find((f) => {
-				return (
-					f.label === title &&
-					Object.keys(filters).every((key) => f[key] === filters[key])
-				);
-			});
-		}
 	},
 
 	make_chart(wrapper, custom_options = {}) {

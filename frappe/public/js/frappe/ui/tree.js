@@ -259,9 +259,12 @@ frappe.ui.Tree = class {
 			return this.get_label(node);
 		}
 		if (node.title && node.title != node.label) {
-			return __(node.title) + ` <span class='text-muted'>(${node.label})</span>`;
+			return (
+				frappe.utils.escape_html(__(node.title)) +
+				` <span class='text-muted'>(${frappe.utils.escape_html(node.label)})</span>`
+			);
 		} else {
-			return __(node.title || node.label);
+			return frappe.utils.escape_html(__(node.title || node.label));
 		}
 	}
 
@@ -277,9 +280,11 @@ frappe.ui.Tree = class {
 
 		$(icon_html).appendTo(node.$tree_link);
 		$(
-			`<a class="tree-label" data-doctype="${this.args.doctype}" data-name="${
-				node.label
-			}"> ${this.get_node_label(node)}</a>`
+			`<a class="tree-label" data-doctype="${frappe.utils.escape_html(
+				this.args.doctype
+			)}" data-name="${frappe.utils.escape_html(node.label)}"> ${this.get_node_label(
+				node
+			)}</a>`
 		).appendTo(node.$tree_link);
 
 		node.$tree_link.on("click", () => {

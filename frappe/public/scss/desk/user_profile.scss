@@ -9,6 +9,7 @@
 			width: 100%;
 			height: 100px;
 		}
+
 		&:not(:last-of-type) {
 			border-bottom: 1px solid var(--border-color);
 		}
@@ -24,6 +25,7 @@
 		.chart-legend {
 			display: none;
 		}
+
 		.chart-container {
 			margin: 0 auto;
 		}
@@ -56,7 +58,7 @@
 	.sidebar-image {
 		width: 100%;
 		height: 100%;
-		border-radius: var(--border-radius-lg);
+		border-radius: var(--radius-lg);
 	}
 
 	.profile-details {

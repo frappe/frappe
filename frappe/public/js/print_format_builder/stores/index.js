@@ -3,13 +3,13 @@ import { watch, ref, inject, computed, nextTick } from "vue";
 
 export function getStore(print_format_name) {
 	// variables
-	let letterhead_name = ref(null);
 	let print_format = ref(null);
 	let letterhead = ref(null);
 	let doctype = ref(null);
 	let meta = ref(null);
 	let layout = ref(null);
 	let dirty = ref(false);
+	let needs_setup = ref(false);
 	let edit_letterhead = ref(false);
 	let scroll_to_section = ref(null);
 	let selected_field = ref(null);
@@ -28,7 +28,11 @@ export function getStore(print_format_name) {
 				frappe.model.with_doctype(_print_format.doc_type, () => {
 					meta.value = frappe.get_meta(_print_format.doc_type);
 					print_format.value = _print_format;
-					layout.value = get_layout() || get_default_layout();
+					const saved_layout = get_layout();
+					needs_setup.value = !saved_layout;
+					layout.value = saved_layout || get_default_layout();
+					// Drop legacy sections that were soft-deleted before immediate splice was introduced
+					layout.value.sections = layout.value.sections.filter((s) => !s.remove);
 					// Migrate legacy string header/footer to section objects
 					layout.value.header = migrate_to_section(layout.value.header);
 					layout.value.footer = migrate_to_section(layout.value.footer);
@@ -47,6 +51,8 @@ export function getStore(print_format_name) {
 						: Promise.resolve((letterhead.value = null));
 
 					load_lh.then(() => {
+						history = [];
+						last_snap = JSON.stringify(layout.value);
 						nextTick(() => (dirty.value = false));
 						resolve();
 					});
@@ -90,6 +96,13 @@ export function getStore(print_format_name) {
 						.map((df) => {
 							if (df.table_columns) {
 								df.table_columns = df.table_columns.map((tf) => {
+									// An empty merge list is just a plain column — drop it
+									if (
+										Array.isArray(tf.merged_fields) &&
+										!tf.merged_fields.length
+									) {
+										delete tf.merged_fields;
+									}
 									return pluck(tf, [
 										"label",
 										"fieldname",
@@ -97,6 +110,8 @@ export function getStore(print_format_name) {
 										"options",
 										"width",
 										"field_template",
+										"merged_fields",
+										"image_size",
 									]);
 								});
 							}
@@ -109,10 +124,17 @@ export function getStore(print_format_name) {
 								"table_style",
 								"table_bordered",
 								"table_header",
+								"table_cell_padding",
+								"table_radius",
 								"html",
 								"field_template",
+								"source",
+								"repeater_columns",
 								"show_label",
 								"align",
+								"label_justify",
+								"label_gap",
+								"visible_if",
 							]);
 						});
 					return column;
@@ -132,8 +154,13 @@ export function getStore(print_format_name) {
 			"table_header",
 			"html",
 			"field_template",
+			"source",
+			"repeater_columns",
 			"show_label",
 			"align",
+			"label_justify",
+			"label_gap",
+			"visible_if",
 		];
 		function clean_zone(zone) {
 			if (!zone || !zone.columns) return zone;
@@ -201,33 +228,66 @@ export function getStore(print_format_name) {
 	function get_default_layout() {
 		return create_default_layout(meta.value, print_format.value);
 	}
-	function change_letterhead(_letterhead) {
+	function change_letterhead(_letterhead, { keep_clean = false } = {}) {
 		return frappe.db.get_doc("Letter Head", _letterhead).then((doc) => {
 			letterhead.value = doc;
 			// persist the letter head name inside format_data (layout) so it
 			// survives save → reload without needing a separate doctype field
 			if (layout.value) {
 				layout.value.letter_head = _letterhead;
+				if (keep_clean) {
+					nextTick(() => (dirty.value = false));
+				}
 			}
 		});
 	}
 
+	// ── Undo history (Ctrl/Cmd+Z) ──────────────────────────
+	let history = [];
+	let restoring = false;
+	let last_snap = null;
+	const record_history = frappe.utils.debounce(() => {
+		const snap = JSON.stringify(layout.value);
+		if (snap === last_snap) return;
+		if (last_snap !== null) history.push(last_snap);
+		if (history.length > 50) history.shift();
+		last_snap = snap;
+	}, 400);
+
+	function undo() {
+		if (!history.length) return;
+		restoring = true;
+		last_snap = history.pop();
+		layout.value = JSON.parse(last_snap);
+		selected_field.value = null;
+		selected_section.value = null;
+	}
+
 	// watch
-	watch(layout, () => {
-		dirty.value = true;
-	});
+	watch(
+		layout,
+		() => {
+			dirty.value = true;
+			if (restoring) {
+				restoring = false;
+				return;
+			}
+			record_history();
+		},
+		{ deep: true }
+	);
 	watch(print_format, () => {
 		dirty.value = true;
 	});
 
 	return {
-		letterhead_name,
 		print_format,
 		letterhead,
 		doctype,
 		meta,
 		layout,
 		dirty,
+		needs_setup,
 		edit_letterhead,
 		scroll_to_section,
 		selected_field,
@@ -244,6 +304,7 @@ export function getStore(print_format_name) {
 		get_layout,
 		get_default_layout,
 		change_letterhead,
+		undo,
 	};
 }
 

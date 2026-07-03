@@ -25,6 +25,7 @@ class CustomField(Document):
 		from frappe.types import DF
 
 		alignment: DF.Literal["", "Left", "Center", "Right"]
+		allow_bulk_edit: DF.Check
 		allow_in_quick_entry: DF.Check
 		allow_on_submit: DF.Check
 		bold: DF.Check
@@ -101,6 +102,7 @@ class CustomField(Document):
 		length: DF.Int
 		link_filters: DF.JSON | None
 		mandatory_depends_on: DF.Code | None
+		mask: DF.Check
 		module: DF.Link | None
 		no_copy: DF.Check
 		non_negative: DF.Check

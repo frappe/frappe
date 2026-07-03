@@ -78,6 +78,7 @@ frappe.ui.get_print_settings = function (
 			fieldtype: "Check",
 			fieldname: "include_filters",
 			depends_on: "eval: !doc.print_format",
+			default: 1,
 		});
 	}
 

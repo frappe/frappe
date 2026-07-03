@@ -34,8 +34,6 @@ class Browser:
 			# now wait for page to load as we need DOM to generate pdf
 			self.body_page.wait_for_set_content()
 			self.body_pdf = self.body_page.generate_pdf(raw=not self.header_page and not self.footer_page)
-			if not self.debug_mode:
-				self.body_page.close()
 			self.update_header_footer_page()
 
 			if self.header_page:
@@ -45,8 +43,6 @@ class Browser:
 					)
 				else:
 					self.header_pdf = self.header_page.generate_pdf()
-				if not self.debug_mode:
-					self.header_page.close()
 
 			if self.footer_page:
 				if not self.is_footer_dynamic:
@@ -55,18 +51,25 @@ class Browser:
 					)
 				else:
 					self.footer_pdf = self.footer_page.generate_pdf()
-				if not self.debug_mode:
-					self.footer_page.close()
-
-			if not self.debug_mode:
-				self.close()
 		finally:
+			if not self.debug_mode:
+				for attr in ("body_page", "header_page", "footer_page"):
+					page = getattr(self, attr, None)
+					if page:
+						try:
+							page.close()
+						except Exception:
+							frappe.log_error(f"Failed to close {attr} in Chrome")
+				try:
+					self.close()
+				except Exception:
+					frappe.log_error("Failed to disconnect CDP session")
 			generator.remove_browser(self.browserID)
 		if self.debug_mode:
 			generator.detach_debug_browser()
 
 	def open(self, generator):
-		from frappe.utils.pdf_generator.cdp_connection import CDPSocketClient
+		from frappe.utils.chromium import CDPSocketClient
 
 		# checking because if we share browser accross request _devtools_url will already be set for subsequent requests.
 		if not generator._devtools_url:
@@ -100,7 +103,7 @@ class Browser:
 		NOTE: In theory this will make it faster but more importantly use less cpu, ram etc.
 		"""
 
-		from frappe.utils.pdf_generator.page import Page
+		from frappe.utils.chromium import Page
 
 		page = Page(self.session, self.browser_context_id, page_type)
 		page.is_print_designer = self.is_print_designer

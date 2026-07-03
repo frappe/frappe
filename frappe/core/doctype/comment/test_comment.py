@@ -107,7 +107,7 @@ class TestComment(IntegrationTestCase):
 		test_blog = frappe.get_doc("Web Page", "test-web-page-1")
 		with set_user("Guest"):
 			self.assertRaises(
-				frappe.ValidationError,
+				frappe.AuthenticationError,
 				add_comment,
 				comment="Good comment with 10 chars",
 				comment_email=some_system_user,

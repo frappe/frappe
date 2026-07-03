@@ -15,7 +15,7 @@
 	padding: 0 10px;
 	background-color: var(--control-bg);
 	border: 1px solid var(--border-color);
-	border-radius: var(--border-radius-sm);
+	border-radius: var(--radius);
 	width: 100%;
 	justify-content: space-between;
 	color: var(--text-light);
@@ -26,6 +26,7 @@
 
 	.search-widget-icon {
 		margin-bottom: 1px;
+
 		svg {
 			stroke: var(--text-muted);
 		}

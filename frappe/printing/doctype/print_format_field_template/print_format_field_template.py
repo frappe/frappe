@@ -17,7 +17,7 @@ class PrintFormatFieldTemplate(Document):
 	if TYPE_CHECKING:
 		from frappe.types import DF
 
-		document_type: DF.Link
+		document_type: DF.Link | None
 		field: DF.Data | None
 		module: DF.Link | None
 		standard: DF.Check
@@ -39,7 +39,7 @@ class PrintFormatFieldTemplate(Document):
 	def validate_duplicate(self):
 		if not self.standard:
 			return
-		if not self.field:
+		if not self.field or not self.document_type:
 			return
 
 		filters = {"document_type": self.document_type, "field": self.field}

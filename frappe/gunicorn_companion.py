@@ -101,5 +101,5 @@ def _socketio_backend() -> str:
 	try:
 		with open(path) as config_file:  # nosemgrep
 			return (json.load(config_file) or {}).get("socketio_backend", "node")
-	except OSError, ValueError:
+	except (OSError, ValueError):
 		return "node"

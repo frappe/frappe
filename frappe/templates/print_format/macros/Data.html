@@ -3,7 +3,8 @@
 {%- set _align = df.align if df.align else '' -%}
 {%- set _orientation = df.section.field_orientation or '' -%}
 {%- set _inline = (_show_label == 'inline') or (_orientation == 'left-right') -%}
-<div class="field {{ _orientation }}{% if _inline and _orientation != 'left-right' %} field-inline{% endif %}{% if _align %} field-align-{{ _align }}{% endif %}" {{ field_attributes(df) }}>
+{%- set _justify = df.label_justify if df.label_justify else '' -%}
+<div class="field {{ _orientation }}{% if _inline and _orientation != 'left-right' %} field-inline{% endif %}{% if _align %} field-align-{{ _align }}{% endif %}{% if _justify and _orientation == 'left-right' %} field-justify-{{ _justify }}{% endif %}" {% if _inline and df.label_gap is not none %}style="gap: {{ df.label_gap|int }}px"{% endif %} {{ field_attributes(df) }}>
 	{%- block label -%}
 	{%- if _show_label != 'hide' -%}
 	<div class="label">{{ _(df.label) }}</div>

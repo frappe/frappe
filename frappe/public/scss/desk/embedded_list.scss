@@ -1,0 +1,162 @@
+.embedded-list {
+	.embedded-list-loading,
+	.embedded-list-error {
+		padding: var(--padding-sm) 0;
+		font-size: var(--text-md);
+	}
+
+	.embedded-list-header {
+		display: flex;
+		justify-content: space-between;
+		align-items: flex-start;
+		gap: var(--padding-md);
+		margin-bottom: 12px;
+	}
+
+	.embedded-list-title {
+		font-weight: 600;
+		font-size: var(--text-md);
+		color: var(--text-color);
+		margin-bottom: 2px;
+	}
+
+	.embedded-list-description {
+		font-size: var(--text-sm);
+		color: var(--text-muted);
+	}
+
+	.embedded-list-header-actions {
+		flex-shrink: 0;
+		display: flex;
+		align-items: center;
+		gap: var(--padding-sm);
+	}
+
+	.embedded-list-search {
+		width: 180px;
+	}
+
+	.embedded-list-table-wrap {
+		border: 1px solid var(--border-color);
+		border-radius: var(--radius-5);
+		overflow-x: auto;
+		overflow-y: auto;
+		max-height: 600px;
+		-webkit-overflow-scrolling: touch;
+		margin-bottom: 16px;
+	}
+
+	table.embedded-list-table {
+		width: 100%;
+		margin-bottom: 0;
+		border-collapse: collapse;
+		font-size: var(--text-md);
+		color: var(--text-color);
+
+		thead {
+			position: sticky;
+			top: 0;
+			z-index: 1;
+		}
+
+		thead tr {
+			background: var(--subtle-fg);
+		}
+
+		// The sticky header paints in its own layer and so isn't clipped by the wrap's
+		// border-radius — round its own top corners to match (inset 1px for the border).
+		thead th:first-child {
+			border-top-left-radius: calc(var(--radius-5) - 1px);
+		}
+
+		thead th:last-child {
+			border-top-right-radius: calc(var(--radius-5) - 1px);
+		}
+
+		th {
+			padding: 8px 10px;
+			font-weight: 400;
+			color: var(--text-muted);
+			border-bottom: 1px solid var(--border-color);
+			white-space: nowrap;
+		}
+
+		td {
+			padding: 10px;
+			border-bottom: 1px solid var(--border-color);
+			vertical-align: middle;
+			white-space: nowrap;
+			overflow: hidden;
+			text-overflow: ellipsis;
+			max-width: 320px;
+		}
+
+		tbody tr:last-child td {
+			border-bottom: none;
+		}
+
+		tbody tr:hover {
+			background: var(--highlight-color);
+		}
+
+		a {
+			color: var(--text-color);
+		}
+
+		.embedded-list-index {
+			width: 42px;
+			text-align: center;
+			color: var(--text-muted);
+			font-size: var(--text-sm);
+		}
+
+		.embedded-list-clickable {
+			cursor: pointer;
+		}
+
+		// Inline row actions sit on the right, muted until hovered.
+		.embedded-list-actions {
+			width: 1%;
+			white-space: nowrap;
+			text-align: right;
+
+			.btn-link {
+				padding: 2px 4px;
+				line-height: 1;
+				color: var(--text-muted);
+				text-decoration: none;
+				background: none;
+
+				&:hover {
+					color: var(--text-color);
+					background: none;
+				}
+
+				&.text-danger:hover {
+					color: var(--red-500);
+				}
+			}
+		}
+	}
+
+	.embedded-list-no-result {
+		text-align: center;
+		padding: 40px 20px;
+		border: 1px dashed var(--border-color);
+		border-radius: var(--radius-5);
+		margin-bottom: 14px;
+	}
+
+	.embedded-list-more {
+		display: flex;
+		justify-content: space-between;
+		align-items: center;
+		margin-top: 10px;
+		margin-bottom: 16px;
+
+		.embedded-list-count {
+			font-size: var(--text-sm);
+			color: var(--text-muted);
+		}
+	}
+}

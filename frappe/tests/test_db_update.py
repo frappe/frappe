@@ -4,7 +4,11 @@ from unittest.case import skipIf
 import frappe
 from frappe.core.doctype.doctype.test_doctype import new_doctype
 from frappe.core.utils import find
-from frappe.custom.doctype.property_setter.property_setter import make_property_setter
+from frappe.custom.doctype.property_setter.property_setter import (
+	delete_property_setter,
+	make_property_setter,
+)
+from frappe.database import savepoint
 from frappe.query_builder.utils import db_type_is
 from frappe.tests import IntegrationTestCase
 from frappe.tests.test_query_builder import run_only_if
@@ -45,6 +49,15 @@ class TestDBUpdate(IntegrationTestCase):
 		doctype = "User"
 		frappe.reload_doctype("User", force=True)
 		frappe.model.meta.trim_tables("User")
+
+		def _cleanup():
+			# DDL and inserts in this test auto-commit, so we must explicitly undo.
+			# Leaving middle_name with unique=1 breaks subsequent bench migrate runs.
+			delete_property_setter(doctype, field_name="middle_name")
+			frappe.db.updatedb(doctype)
+			frappe.reload_doctype(doctype, force=True)
+
+		self.addCleanup(_cleanup)
 
 		make_property_setter(doctype, "middle_name", "unique", "1", "Check")
 		frappe.db.updatedb(doctype)
@@ -131,6 +144,30 @@ class TestDBUpdate(IntegrationTestCase):
 		doctype.save()
 		frappe.get_doc(doctype=doctype.name, int_field=2**62 - 1).insert()
 
+	def test_bigint_conversion_with_existing_data(self):
+		# existing text data beyond int4 range must survive a Data -> Int(bigint) change; length > 11
+		# maps Int to a bigint column, so the postgres USING cast has to widen to bigint too
+		big_value = 2**40  # > int4 max (2,147,483,647)
+		doctype = new_doctype(fields=[{"fieldname": "big_field", "fieldtype": "Data"}]).insert()
+		doc = frappe.get_doc(doctype=doctype.name, big_field=str(big_value)).insert()
+
+		doctype.fields[0].fieldtype = "Int"
+		doctype.fields[0].length = 14
+		doctype.save()
+
+		self.assertEqual(frappe.db.get_value(doctype.name, doc.name, "big_field"), big_value)
+
+	def test_int_conversion_overflow_errors_on_standard_int(self):
+		# a standard Int column (int4) must still reject a value out of its range; only Int with
+		# length > 11 (a bigint column) may hold it
+		doctype = new_doctype(fields=[{"fieldname": "big_field", "fieldtype": "Data"}]).insert()
+		frappe.get_doc(doctype=doctype.name, big_field=str(2**40)).insert()
+
+		doctype.fields[0].fieldtype = "Int"  # no length -> standard int4 column
+		with self.assertRaises(frappe.ValidationError):
+			doctype.save()
+		frappe.db.rollback()
+
 	def test_unique_index_on_install(self):
 		"""Only one unique index should be added"""
 		for dt in frappe.get_all("DocType", {"is_virtual": 0, "issingle": 0}, pluck="name"):
@@ -182,8 +219,13 @@ class TestDBUpdate(IntegrationTestCase):
 			self.check_unique_indexes(doctype.name, "bill_no")
 
 			frappe.get_doc(doctype=doctype.name, bill_no="INV-001").insert()
-			with self.assertRaises(frappe.UniqueValidationError):
-				frappe.get_doc(doctype=doctype.name, bill_no="INV-001").insert()
+			# the duplicate insert aborts the transaction on postgres; the savepoint lets the
+			# finally cleanup (and later tests sharing the connection) still run
+			with savepoint():
+				with self.assertRaises(frappe.UniqueValidationError):
+					frappe.get_doc(doctype=doctype.name, bill_no="INV-001").insert()
+				# recover transaction to continue other tests
+				raise Exception
 		finally:
 			doctype.delete(force=True)
 			frappe.db.commit()  # nosemgrep
