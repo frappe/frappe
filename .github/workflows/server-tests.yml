@@ -92,6 +92,7 @@ jobs:
 
       - name: Run Tests
         run: |
+          ./env/bin/python3 -m pip uninstall -y lxml
           cd sites && ../env/bin/python3 ../apps/frappe/.github/helper/ci.py
         env:
           DB: ${{ matrix.db }}
