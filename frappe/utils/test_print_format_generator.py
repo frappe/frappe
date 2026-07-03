@@ -598,9 +598,7 @@ class TestPrintFormatGenerator(IntegrationTestCase):
 
 		contact = self._make_contact_with_email()
 		pf = self._make_repeater_format(
-			columns=[
-				{"template": [{"t": "f", "v": "email_id"}], "align": "left", "style": "primary"}
-			]
+			columns=[{"template": [{"t": "f", "v": "email_id"}], "align": "left", "style": "primary"}]
 		)
 		html = get_html("Contact", contact.name, pf.name)
 		self.assertIn('class="pfb-repeater-cell cell-line--primary"', html)
