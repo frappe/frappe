@@ -459,8 +459,18 @@ function numeric_align_class(col) {
 
 function repeater_cell(col, row) {
 	return (col.template || [])
-		.map((tok) => (tok.t === "s" ? tok.v || "" : row?.[tok.v] ?? ""))
+		.map((tok) => {
+			if (tok.t === "s") return tok.v || "";
+			const child_df = repeater_child_df(tok.v);
+			return child_df ? format_cell(row || {}, child_df) : row?.[tok.v] ?? "";
+		})
 		.join("");
+}
+
+function repeater_child_df(fieldname) {
+	const source = store.meta.value?.fields?.find((f) => f.fieldname === props.df.source);
+	if (!source) return null;
+	return frappe.get_meta(source.options)?.fields?.find((f) => f.fieldname === fieldname) || null;
 }
 
 function multiselect_display(df) {
