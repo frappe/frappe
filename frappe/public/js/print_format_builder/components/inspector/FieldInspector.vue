@@ -353,6 +353,10 @@
 							v-model="selected_field.label"
 							:label="__('Title')"
 							:placeholder="__('Optional heading')"
+							show-toggle
+							:show-label="__('Show title')"
+							:show="selected_field.show_label"
+							@update:show="(v) => (selected_field.show_label = v)"
 						/>
 					</div>
 				</div>
@@ -376,12 +380,25 @@
 								<span class="pfb-insp-label">{{
 									__("Column {0}", [ci + 1])
 								}}</span>
-								<button
-									class="btn btn-xs btn-icon"
-									:title="__('Remove column')"
-									@click="remove_repeater_column(ci)"
-									v-html="frappe.utils.icon('x', 'xs')"
-								></button>
+								<div class="pfb-rep-col-head-actions">
+									<input
+										class="pfb-col-width-input"
+										type="number"
+										min="5"
+										max="100"
+										v-model.number="col.width"
+										@blur="clamp_repeater_width(col)"
+										:placeholder="__('auto')"
+										:title="__('Width %')"
+									/>
+									<span class="pfb-col-width-unit">%</span>
+									<button
+										class="btn btn-xs btn-icon"
+										:title="__('Remove column')"
+										@click="remove_repeater_column(ci)"
+										v-html="frappe.utils.icon('x', 'xs')"
+									></button>
+								</div>
 							</div>
 							<TemplateInput v-model="col.template" :fields="repeater_field_opts" />
 							<SegmentedRow
@@ -390,6 +407,13 @@
 								:options="align_opts"
 								style="margin-top: 8px"
 							/>
+							<div class="pfb-insp-row" style="margin-top: 8px">
+								<span class="pfb-insp-label">{{ __("Color") }}</span>
+								<div
+									class="pfb-rep-col-color"
+									:ref="(el) => (rep_color_hosts[ci] = el)"
+								></div>
+							</div>
 						</div>
 						<button class="pfb-add-btn" @click="add_repeater_column">
 							<span v-html="frappe.utils.icon('add', 'xs')"></span>
@@ -475,6 +499,17 @@
 									<option value="space-evenly">{{ __("Space Evenly") }}</option>
 								</select>
 							</div>
+							<StepperRow
+								v-if="field_is_inline"
+								:label="__('Label gap')"
+								:model-value="selected_field.label_gap"
+								:base="8"
+								:step="2"
+								unit="px"
+								:placeholder="__('auto')"
+								allow-empty
+								@update:model-value="(v) => (selected_field.label_gap = v)"
+							/>
 						</template>
 					</div>
 				</div>
@@ -591,17 +626,7 @@
 						></span>
 					</div>
 					<div v-show="open.s_bg" class="pfb-insp-section-body">
-						<div class="pfb-color-swatches">
-							<button
-								v-for="swatch in bg_swatches"
-								:key="swatch.value"
-								class="pfb-swatch"
-								:class="{ active: section_bg === swatch.value }"
-								:title="swatch.label"
-								:style="swatch.style"
-								@click="selected_section.background = swatch.value"
-							></button>
-						</div>
+						<div ref="bg_color_host"></div>
 					</div>
 				</div>
 
@@ -700,7 +725,7 @@
 </template>
 
 <script setup>
-import { computed, inject, ref, watch } from "vue";
+import { computed, inject, nextTick, ref, watch } from "vue";
 import draggable from "vuedraggable";
 import { useStore } from "../../stores";
 import LetterHeadZoneInspector from "./LetterHeadZoneInspector.vue";
@@ -1028,6 +1053,15 @@ function clamp_width(col) {
 	col.width = Math.max(5, Math.min(100, parseInt(col.width) || 10));
 }
 
+function clamp_repeater_width(col) {
+	// Repeater widths are optional — a blank value means "auto"
+	if (isNaN(parseInt(col.width))) {
+		delete col.width;
+		return;
+	}
+	clamp_width(col);
+}
+
 // ── Per-column merged fields ───────────────────────────────
 // A column can merge several child fields into one cell. If one of the
 // merged fields is an image, it renders on the left (see Field.vue /
@@ -1100,19 +1134,65 @@ function set_image_size(col, value) {
 let section_orientation = computed(() => selected_section.value?.field_orientation ?? "");
 let section_gap = computed(() => selected_section.value?.gap ?? 20);
 let section_label_case = computed(() => selected_section.value?.label_case ?? "normal");
-let section_bg = computed(() => selected_section.value?.background ?? "");
+const bg_color_host = ref(null);
 
-const bg_swatches = [
-	{
-		value: "",
-		label: __("None"),
-		style: "background: repeating-conic-gradient(#ccc 0% 25%, #fff 0% 50%) 0 0 / 10px 10px",
-	},
-	{ value: "#ffffff", label: __("White"), style: "background:#ffffff; border-color:#e5e7eb" },
-	{ value: "#EFF6FF", label: __("Blue"), style: "background:#EFF6FF" },
-	{ value: "#F0FDF4", label: __("Green"), style: "background:#F0FDF4" },
-	{ value: "#FFF7ED", label: __("Orange"), style: "background:#FFF7ED" },
-];
+function mount_bg_color_control() {
+	const host = bg_color_host.value;
+	if (!host) return;
+	host.innerHTML = "";
+	const control = frappe.ui.form.make_control({
+		parent: host,
+		df: {
+			fieldtype: "Color",
+			fieldname: "section_background",
+			placeholder: __("Transparent"),
+			change() {
+				const value = control.get_value() || "";
+				if ((selected_section.value?.background ?? "") !== value) {
+					selected_section.value.background = value;
+				}
+			},
+		},
+		render_input: true,
+		only_input: true,
+	});
+	control.set_value(selected_section.value?.background || "");
+}
+
+watch(selected_section, () => nextTick(mount_bg_color_control), { immediate: true });
+
+const rep_color_hosts = ref({});
+
+function mount_repeater_color_controls() {
+	(selected_field.value?.repeater_columns || []).forEach((col, ci) => {
+		const host = rep_color_hosts.value[ci];
+		if (!host) return;
+		host.innerHTML = "";
+		const control = frappe.ui.form.make_control({
+			parent: host,
+			df: {
+				fieldtype: "Color",
+				fieldname: `repeater_col_color_${ci}`,
+				placeholder: __("Default"),
+				change() {
+					const value = control.get_value() || "";
+					if ((col.color ?? "") !== value) {
+						col.color = value;
+					}
+				},
+			},
+			render_input: true,
+			only_input: true,
+		});
+		control.set_value(col.color || "");
+	});
+}
+
+watch(
+	() => [selected_field.value, selected_field.value?.repeater_columns?.length],
+	() => nextTick(mount_repeater_color_controls),
+	{ immediate: true }
+);
 
 function set_columns(n) {
 	if (!selected_section.value) return;
@@ -1272,32 +1352,6 @@ function toggle_field_borders(on) {
 	padding: 1px 5px;
 	white-space: nowrap;
 	flex-shrink: 0;
-}
-
-/* ── Background swatches ─────────────────────────────────── */
-.pfb-color-swatches {
-	display: flex;
-	gap: 6px;
-	flex-wrap: wrap;
-}
-
-.pfb-swatch {
-	width: 28px;
-	height: 28px;
-	border-radius: var(--radius);
-	border: 1.5px solid var(--border-color);
-	cursor: pointer;
-	padding: 0;
-	transition: transform 0.1s, border-color 0.1s;
-}
-
-.pfb-swatch:hover {
-	transform: scale(1.1);
-}
-
-.pfb-swatch.active {
-	border-color: var(--primary);
-	box-shadow: 0 0 0 2px var(--primary-light);
 }
 
 /* ── Hint ────────────────────────────────────────────────── */
@@ -1599,5 +1653,10 @@ function toggle_field_borders(on) {
 	align-items: center;
 	justify-content: space-between;
 	margin-bottom: 6px;
+}
+.pfb-rep-col-head-actions {
+	display: flex;
+	align-items: center;
+	gap: 4px;
 }
 </style>

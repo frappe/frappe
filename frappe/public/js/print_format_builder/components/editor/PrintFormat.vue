@@ -141,10 +141,12 @@ let rootStyles = computed(() => {
 });
 
 let bodyStyles = computed(() => {
-	const { font_size, font } = print_format.value;
+	const { font_size, font, label_color, value_color } = print_format.value;
 	const styles = {};
 	if (font_size) styles.fontSize = `${parseFloat(font_size)}px`;
 	if (font) styles.fontFamily = `'${font}', sans-serif`;
+	if (label_color) styles["--pfb-label-color"] = label_color;
+	if (value_color) styles["--pfb-value-color"] = value_color;
 	return styles;
 });
 
@@ -322,6 +324,17 @@ watch(print_format, () => (store.dirty.value = true), { deep: true });
 	opacity: 1;
 }
 
+/* Hide the section pill while a field inside is hovered/selected so it doesn't
+   collide with the field's own top-right pill */
+.pfb-clean-preview
+	:deep(.print-format-section-container:has(.field--preview:hover) .section-preview-actions),
+.pfb-clean-preview
+	:deep(.print-format-section-container:has(.field--preview.field--selected)
+		.section-preview-actions) {
+	opacity: 0;
+	pointer-events: none;
+}
+
 /* Section title: match PDF's .section-label look */
 .pfb-clean-preview :deep(.section-title-display) {
 	display: block;
@@ -340,7 +353,7 @@ watch(print_format, () => (store.dirty.value = true), { deep: true });
 	font-size: 1em;
 }
 .pfb-body :deep(.field--preview .field-preview-label) {
-	font-size: 0.8em;
+	font-size: 1em;
 }
 .pfb-body :deep(.field--preview .preview-table) {
 	font-size: 0.9em;

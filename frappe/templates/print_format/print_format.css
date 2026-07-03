@@ -91,8 +91,7 @@ body {
 
 /* Stacked (default): muted label above value */
 .field .label {
-	font-size: 0.75em;
-	font-weight: 600;
+	font-size: 1em;
 	color: #6b7280;
 	margin-bottom: 0.1rem;
 }
@@ -112,8 +111,7 @@ body {
 .field.left-right .label,
 .field.field-inline .label {
 	flex-shrink: 0;
-	font-size: 0.8em;
-	font-weight: 600;
+	font-size: 1em;
 	color: #374151;
 	text-transform: none;
 	letter-spacing: 0;
@@ -130,6 +128,17 @@ body {
 	flex: 1;
 	min-width: 0;
 }
+
+{%- if print_format.label_color %}
+.print-format .field .label {
+	color: {{ print_format.label_color }};
+}
+{%- endif %}
+{%- if print_format.value_color %}
+.print-format .field .value {
+	color: {{ print_format.value_color }};
+}
+{%- endif %}
 
 /* Field-level alignment */
 .field.field-align-center {

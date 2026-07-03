@@ -2,6 +2,7 @@
 # License: MIT. See LICENSE
 
 import json
+import re
 
 import frappe
 import frappe.utils
@@ -33,6 +34,7 @@ class PrintFormat(Document):
 		font_size: DF.Int
 		format_data: DF.Code | None
 		html: DF.Code | None
+		label_color: DF.Color | None
 		line_breaks: DF.Check
 		margin_bottom: DF.Float
 		margin_left: DF.Float
@@ -53,6 +55,7 @@ class PrintFormat(Document):
 		report: DF.Link | None
 		show_section_headings: DF.Check
 		standard: DF.Literal["No", "Yes"]
+		value_color: DF.Color | None
 	# end: auto-generated types
 
 	def onload(self):
@@ -115,6 +118,18 @@ class PrintFormat(Document):
 
 		if self.print_format_for == "Report" and not self.report:
 			frappe.throw(_("{0} is required").format(frappe.bold(_("Report"))), frappe.MandatoryError)
+
+		self.validate_colors()
+
+	def validate_colors(self):
+		for fieldname in ("label_color", "value_color"):
+			value = self.get(fieldname)
+			if value and not re.fullmatch(r"#[0-9a-fA-F]{6}", value):
+				frappe.throw(
+					_("{0} must be a hex color code like #1a5fb4").format(
+						frappe.bold(_(self.meta.get_label(fieldname)))
+					)
+				)
 
 	def extract_images(self):
 		from frappe.core.doctype.file.utils import extract_images_from_html

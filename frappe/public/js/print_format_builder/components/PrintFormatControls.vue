@@ -10,7 +10,6 @@
 				:title="tab.label"
 				@click="activeTab = tab.id"
 			>
-				<span class="pfb-tab-icon" v-html="frappe.utils.icon(tab.icon, 'sm')"></span>
 				<span class="pfb-tab-label">{{ tab.label }}</span>
 			</button>
 		</div>
@@ -210,22 +209,22 @@
 		</div>
 
 		<!-- ── Format ─────────────────────────────────────────── -->
-		<div v-else-if="activeTab === 'format'" class="pfb-tab-body">
-			<div class="pfb-group-label">{{ __("Page margins (mm)") }}</div>
-			<div class="pfb-margin-grid">
-				<div class="pfb-margin-cell" v-for="df in margins" :key="df.fieldname">
-					<label class="pfb-margin-label control-label">{{ df.label }}</label>
-					<input
-						type="number"
-						class="form-control form-control-sm"
-						:value="print_format[df.fieldname]"
-						min="0"
-						@change="(e) => update_margin(df.fieldname, e.target.value)"
-					/>
+		<div v-else-if="activeTab === 'format'" class="pfb-tab-body pfb-format-tab">
+			<div class="form-group">
+				<label class="control-label">{{ __("Page Margins (mm)") }}</label>
+				<div class="pfb-margin-grid">
+					<div class="pfb-margin-cell" v-for="df in margins" :key="df.fieldname">
+						<label class="pfb-margin-label control-label">{{ df.label }}</label>
+						<input
+							type="number"
+							class="form-control form-control-sm"
+							:value="print_format[df.fieldname]"
+							min="0"
+							@change="(e) => update_margin(df.fieldname, e.target.value)"
+						/>
+					</div>
 				</div>
 			</div>
-
-			<div class="pfb-group-label mt-3">{{ __("Font") }}</div>
 			<div class="form-group">
 				<label class="control-label">{{ __("Google Font") }}</label>
 				<select class="form-control form-control-sm" v-model="print_format.font">
@@ -242,9 +241,12 @@
 					@change="(e) => (print_format.font_size = parseFloat(e.target.value))"
 				/>
 			</div>
-
-			<div class="pfb-group-label mt-3">{{ __("Page number") }}</div>
+			<div class="form-group" v-for="c in color_settings" :key="c.fieldname">
+				<label class="control-label">{{ c.label }}</label>
+				<div :ref="(el) => (color_hosts[c.fieldname] = el)"></div>
+			</div>
 			<div class="form-group">
+				<label class="control-label">{{ __("Page Number") }}</label>
 				<select class="form-control form-control-sm" v-model="print_format.page_number">
 					<option v-for="p in page_number_positions" :value="p.value">
 						{{ p.label }}
@@ -279,11 +281,11 @@ let { meta, print_format, layout } = useStore();
 
 // ── tab definitions ───────────────────────────────────────
 const tabs = computed(() => [
-	{ id: "fields", label: __("Fields"), icon: "list" },
-	{ id: "blocks", label: __("Blocks"), icon: "blocks" },
-	{ id: "templates", label: __("Templates"), icon: "table" },
-	{ id: "outline", label: __("Outline"), icon: "layout-list" },
-	{ id: "format", label: __("Format"), icon: "settings" },
+	{ id: "fields", label: __("Fields") },
+	{ id: "blocks", label: __("Blocks") },
+	{ id: "templates", label: __("Templates") },
+	{ id: "outline", label: __("Outline") },
+	{ id: "format", label: __("Format") },
 ]);
 
 // ── blocks tab items ──────────────────────────────────────
@@ -335,6 +337,39 @@ const draggable_blocks = [
 		],
 	},
 ];
+
+const color_settings = [
+	{ fieldname: "label_color", label: __("Label Color") },
+	{ fieldname: "value_color", label: __("Value Color") },
+];
+let color_hosts = ref({});
+
+// The Format tab is v-if, so its DOM is recreated on each visit — (re)mount the
+// Frappe color controls into the fresh host divs when the tab is shown.
+function mount_color_controls() {
+	for (const c of color_settings) {
+		const host = color_hosts.value[c.fieldname];
+		if (!host) continue;
+		host.innerHTML = "";
+		const control = frappe.ui.form.make_control({
+			parent: host,
+			df: {
+				fieldtype: "Color",
+				fieldname: c.fieldname,
+				placeholder: c.label,
+				change() {
+					const value = control.get_value() || null;
+					if ((print_format.value[c.fieldname] ?? null) !== value) {
+						print_format.value[c.fieldname] = value;
+					}
+				},
+			},
+			render_input: true,
+			only_input: true,
+		});
+		control.set_value(print_format.value[c.fieldname] || "");
+	}
+}
 
 // ── helpers ────────────────────────────────────────────────
 function update_margin(fieldname, value) {
@@ -501,6 +536,7 @@ function fetch_templates() {
 
 watch(activeTab, (tab) => {
 	if (tab === "templates") fetch_templates();
+	if (tab === "format") nextTick(mount_color_controls);
 });
 
 let print_templates_list = computed(() => {
@@ -610,10 +646,9 @@ watch(print_format, () => (store.dirty.value = true), { deep: true });
 .pfb-tab {
 	flex: 1;
 	display: flex;
-	flex-direction: column;
 	align-items: center;
-	gap: 2px;
-	padding: 6px 2px 8px;
+	justify-content: center;
+	padding: 8px 2px;
 	border: none;
 	background: transparent;
 	border-radius: var(--radius) var(--radius) 0 0;
@@ -644,12 +679,6 @@ watch(print_format, () => (store.dirty.value = true), { deep: true });
 	height: 2px;
 	background: var(--primary);
 	border-radius: 2px 2px 0 0;
-}
-
-.pfb-tab-icon {
-	display: flex;
-	align-items: center;
-	line-height: 1;
 }
 
 .pfb-tab-label {
@@ -940,11 +969,22 @@ watch(print_format, () => (store.dirty.value = true), { deep: true });
 }
 
 /* ── Format tab ──────────────────────────────────────────── */
+.pfb-format-tab .form-group {
+	margin-bottom: 10px;
+}
+
+.pfb-format-tab .form-group:last-child {
+	margin-bottom: 0;
+}
+
+.pfb-format-tab :deep(.frappe-control) {
+	margin-bottom: 0;
+}
+
 .pfb-margin-grid {
 	display: grid;
 	grid-template-columns: 1fr 1fr;
 	gap: 6px;
-	margin-bottom: 6px;
 }
 
 .pfb-margin-cell {

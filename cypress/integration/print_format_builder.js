@@ -256,6 +256,76 @@ context("Print Format Builder — create flow", () => {
 				expect(parseInt($el.css("border-right-width"), 10)).to.be.greaterThan(0);
 			});
 	});
+
+	// 8. Format tab: label color uses the Frappe Color control and persists on save
+	it("Format tab: label color persists on save", () => {
+		cy.visit("/app");
+
+		insert_builder_format(PF_NAME, []);
+
+		cy.intercept("POST", "api/method/frappe.client.save").as("save");
+		cy.visit(`/app/print-format-builder/${encodeURIComponent(PF_NAME)}`);
+
+		cy.get(".pfb-tab[title='Format']", { timeout: 30000 }).click();
+		cy.get(".pfb-margin-grid").should("be.visible");
+
+		// The color field is rendered with Frappe's ControlColor (adds .selected-color swatch)
+		cy.get('[data-fieldname="label_color"] .selected-color').should("exist");
+
+		cy.get('[data-fieldname="label_color"] input:visible')
+			.clear()
+			.type("#c0392b")
+			.trigger("change")
+			.blur();
+
+		cy.get('[data-testid="page-status"]', { timeout: 5000 })
+			.should("be.visible")
+			.and("contain", "Not Saved");
+
+		cy.contains(".page-actions .primary-action", "Save").click({ force: true });
+		cy.wait("@save").then((interception) => {
+			expect(interception.response.statusCode).to.equal(200);
+			expect(interception.response.body.message.label_color).to.equal("#c0392b");
+		});
+	});
+
+	// 9. Selecting a repeater field exposes per-column width and color controls
+	it("repeater inspector shows column width and color controls", () => {
+		cy.visit("/app");
+
+		insert_builder_format(PF_NAME, [
+			{
+				label: "Rep Section",
+				columns: [
+					{
+						label: "",
+						fields: [
+							{
+								fieldtype: "Repeater",
+								fieldname: "rep1",
+								label: "Rep",
+								repeater_columns: [{ template: [], align: "left" }],
+							},
+						],
+					},
+				],
+			},
+		]);
+
+		cy.visit(`/app/print-format-builder/${encodeURIComponent(PF_NAME)}`);
+
+		cy.get("[data-pfb-section]", { timeout: 30000 }).should("be.visible");
+		cy.contains("[data-pfb-section]", "Rep Section")
+			.find(".field")
+			.first()
+			.click({ force: true });
+
+		cy.get(".pfb-inspector").should("contain", "Repeater");
+		cy.get(".pfb-inspector").should("contain", "Columns");
+		cy.get(".pfb-inspector").should("contain", "Color");
+		cy.get(".pfb-inspector .pfb-rep-col-color .selected-color").should("exist");
+		cy.get(".pfb-inspector .pfb-col-width-input").should("exist");
+	});
 });
 
 // ─── Setup flow ───────────────────────────────────────────────────────────────

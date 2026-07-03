@@ -30,9 +30,7 @@
 				<!-- Table MultiSelect field: render as a comma-separated value list -->
 				<div
 					v-else-if="df.fieldtype == 'Table MultiSelect'"
-					:style="
-						field_orientation !== 'left-right' ? { textAlign: df.align || 'left' } : {}
-					"
+					:style="field_style(df, true)"
 					:class="[
 						'field-preview-lr',
 						field_orientation === 'left-right' && df.label_justify
@@ -164,8 +162,17 @@
 				</div>
 				<!-- Repeater field -->
 				<div v-else-if="df.fieldtype == 'Repeater'" class="field-preview-repeater">
-					<div v-if="df.label" class="field-preview-label">{{ df.label }}</div>
+					<div v-if="df.label && df.show_label !== 'hide'" class="field-preview-label">
+						{{ df.label }}
+					</div>
 					<table class="preview-table preview-table--borderless">
+						<colgroup>
+							<col
+								v-for="(col, ci) in df.repeater_columns || []"
+								:key="ci"
+								:style="col.width ? { width: col.width + '%' } : {}"
+							/>
+						</colgroup>
 						<tbody>
 							<tr
 								v-for="(row, i) in (preview_doc[df.source] || []).slice(0, 6)"
@@ -174,7 +181,10 @@
 								<td
 									v-for="(col, ci) in df.repeater_columns || []"
 									:key="ci"
-									:style="{ textAlign: col.align || 'left' }"
+									:style="{
+										textAlign: col.align || 'left',
+										...(col.color ? { color: col.color } : {}),
+									}"
 								>
 									{{ repeater_cell(col, row) }}
 								</td>
@@ -193,9 +203,7 @@
 				<!-- Regular field -->
 				<div
 					v-else
-					:style="
-						field_orientation !== 'left-right' ? { textAlign: df.align || 'left' } : {}
-					"
+					:style="field_style(df)"
 					:class="[
 						field_orientation === 'left-right' || df.show_label === 'inline'
 							? 'field-preview-lr'
@@ -329,6 +337,22 @@ import { render_jinja_html, sanitize_html, evaluate_visible_if, thumb_hue } from
 import { createApp, ref, nextTick, watch, computed, inject } from "vue";
 
 const props = defineProps(["df", "field_orientation"]);
+
+// Inline style for a preview field: text alignment (stacked only) plus an
+// optional label-to-value gap. `always_row` is for fields that are always a
+// flex row (e.g. Table MultiSelect) regardless of section orientation.
+function field_style(df, always_row = false) {
+	const style = {};
+	if (props.field_orientation !== "left-right") {
+		style.textAlign = df.align || "left";
+	}
+	const is_row =
+		always_row || props.field_orientation === "left-right" || df.show_label === "inline";
+	if (is_row && df.label_gap != null) {
+		style.gap = df.label_gap + "px";
+	}
+	return style;
+}
 
 let store = inject("$store");
 let editing = ref(false);
@@ -881,9 +905,8 @@ watch(
 }
 
 .field-preview-label {
-	font-size: var(--text-tiny);
-	font-weight: var(--weight-semibold);
-	color: #6b7280;
+	font-size: var(--text-sm);
+	color: var(--pfb-label-color, #6b7280);
 	margin-bottom: 1px;
 }
 
@@ -939,7 +962,7 @@ watch(
 
 .field-preview-value {
 	font-size: var(--text-sm);
-	color: var(--text-color);
+	color: var(--pfb-value-color, var(--text-color));
 	word-break: break-word;
 }
 
