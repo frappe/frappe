@@ -588,6 +588,13 @@ class Engine:
 			frappe.throw(_("Document cannot be used as a filter value"))
 		_operator = operator
 
+		# _assign and _liked_by store a JSON array of user ids, so `=`/`!=` never match a
+		# single member; treat them as `like`/`not like` against the serialized value.
+		if isinstance(field, str) and field in ("_assign", "_liked_by") and _operator in ("=", "!="):
+			_operator = "like" if _operator == "=" else "not like"
+			if isinstance(_value, str) and _value:
+				_value = f"%{_value}%"
+
 		if _operator.lower() in ("timespan", "previous", "next"):
 			from frappe.model.db_query import get_date_range
 

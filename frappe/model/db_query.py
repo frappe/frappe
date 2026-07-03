@@ -817,6 +817,13 @@ from {tables}
 		df = meta.get("fields", {"fieldname": f.fieldname})
 		df = df[0] if df else None
 
+		# _assign and _liked_by store a JSON array of user ids, so `=`/`!=` never match a
+		# single member; treat them as `like`/`not like` against the serialized value.
+		if f.fieldname in ("_assign", "_liked_by") and f.operator in ("=", "!="):
+			f.operator = "like" if f.operator == "=" else "not like"
+			if isinstance(f.value, str) and f.value:
+				f.value = f"%{f.value}%"
+
 		# primary key is never nullable, modified is usually indexed by default and always present
 		can_be_null = f.fieldname not in ("name", "modified", "creation")
 
