@@ -358,7 +358,10 @@ function mount_color_controls() {
 				fieldname: c.fieldname,
 				placeholder: c.label,
 				change() {
-					print_format.value[c.fieldname] = control.get_value() || null;
+					const value = control.get_value() || null;
+					if ((print_format.value[c.fieldname] ?? null) !== value) {
+						print_format.value[c.fieldname] = value;
+					}
 				},
 			},
 			render_input: true,

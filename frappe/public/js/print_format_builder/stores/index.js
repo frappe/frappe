@@ -228,13 +228,16 @@ export function getStore(print_format_name) {
 	function get_default_layout() {
 		return create_default_layout(meta.value, print_format.value);
 	}
-	function change_letterhead(_letterhead) {
+	function change_letterhead(_letterhead, { keep_clean = false } = {}) {
 		return frappe.db.get_doc("Letter Head", _letterhead).then((doc) => {
 			letterhead.value = doc;
 			// persist the letter head name inside format_data (layout) so it
 			// survives save → reload without needing a separate doctype field
 			if (layout.value) {
 				layout.value.letter_head = _letterhead;
+				if (keep_clean) {
+					nextTick(() => (dirty.value = false));
+				}
 			}
 		});
 	}
