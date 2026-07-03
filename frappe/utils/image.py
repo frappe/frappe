@@ -33,6 +33,8 @@ def strip_exif_data(content, content_type):
 	"""
 
 	original_image = Image.open(io.BytesIO(content))
+	if not original_image.getexif():
+		return content
 	# Apply EXIF orientation to pixels before stripping the tag.
 	original_image = ImageOps.exif_transpose(original_image)
 	output = io.BytesIO()
