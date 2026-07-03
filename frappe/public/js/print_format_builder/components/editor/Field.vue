@@ -53,7 +53,9 @@
 				</div>
 				<!-- Table field -->
 				<div v-else-if="df.fieldtype == 'Table'" class="field-preview-table">
-					<div v-if="df.label" class="field-preview-label">{{ df.label }}</div>
+					<div v-if="df.label && df.show_label !== 'hide'" class="field-preview-label">
+						{{ df.label }}
+					</div>
 					<table
 						class="preview-table"
 						:class="{

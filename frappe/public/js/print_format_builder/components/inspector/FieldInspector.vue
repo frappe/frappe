@@ -91,6 +91,10 @@
 							v-model="selected_field.label"
 							:label="__('Title')"
 							:placeholder="__('Table title')"
+							show-toggle
+							:show-label="__('Show title')"
+							:show="selected_field.show_label"
+							@update:show="(v) => (selected_field.show_label = v)"
 						/>
 						<!-- Style -->
 						<SegmentedRow

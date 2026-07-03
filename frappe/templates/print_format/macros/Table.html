@@ -8,9 +8,12 @@
 {%- set _radius = df.table_radius if df.table_radius is defined and df.table_radius is not none else none -%}
 {%- set _radius_style = ('border-radius:' + _radius|string + 'px;overflow:hidden') if _radius is not none else '' -%}
 <div class="child-table child-table--{{ _style }}{% if not _bordered %} child-table--borderless{% endif %}{% if _plain_header %} child-table--plain-header{% endif %}"{% if df.custom_style %} style="{{ df.custom_style|e }}"{% endif %} {{ field_attributes(df) }}>
+	{%- set _show_label = df.show_label if df.show_label else 'show' -%}
+	{% if df.label and _show_label != 'hide' %}
 	<div class="label">
 		{{ _(df.label) }}
 	</div>
+	{% endif %}
 	<table class="table{% if _bordered %} table-bordered{% endif %}"{% if _radius_style %} style="{{ _radius_style|e }}"{% endif %}>
 		{% set columns = df.table_columns %}
 		{%- if not _no_header -%}
