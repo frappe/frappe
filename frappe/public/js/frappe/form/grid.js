@@ -218,7 +218,6 @@ export default class Grid {
 				this.last_checked_docname = docname;
 			}
 			this.refresh_remove_rows_button();
-			this.update_selection_banner();
 		});
 	}
 
