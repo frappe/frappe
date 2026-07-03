@@ -297,23 +297,20 @@ async function resume(answers, pausedMsg) {
 
 // Records one answer and stamps the tool's approval state; once every question
 // on the paused message is answered, resumes the run with all answers at once.
-function answerQuestion(question, answer) {
+function answerQuestion(msg, question, answer) {
 	const a = (answer || "").trim();
-	if (!a) return;
-
-	const pausedMsg = messages.value[messages.value.length - 1];
-	if (!pausedMsg) return;
+	if (!a || !msg) return;
 
 	question._answer = a;
-	const tool = pausedMsg.parts.find((p) => p.type === "tool" && p.id === question.key);
+	const tool = msg.parts.find((p) => p.type === "tool" && p.id === question.key);
 	if (tool)
 		tool.approval = a === "Approve" ? "approved" : a === "Deny" ? "denied" : "redirected";
 
-	if (pausedMsg.questions.some((q) => q._answer === undefined)) return;
+	if (msg.questions.some((q) => q._answer === undefined)) return;
 
 	const answers = {};
-	pausedMsg.questions.forEach((q) => (answers[q.key] = q._answer));
-	resume(answers, pausedMsg);
+	msg.questions.forEach((q) => (answers[q.key] = q._answer));
+	resume(answers, msg);
 }
 
 function handleEvent(event, msg) {

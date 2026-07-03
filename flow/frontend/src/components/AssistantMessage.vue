@@ -53,7 +53,7 @@ const showWorking = computed(() => props.message.pending && !props.message.parts
 				v-else-if="item.kind === 'confirm'"
 				:question="item.question"
 				:tool="item.part"
-				@answer="(answer) => answerQuestion(item.question, answer)"
+				@answer="(answer) => answerQuestion(message, item.question, answer)"
 			/>
 			<ActivityGroup
 				v-else
