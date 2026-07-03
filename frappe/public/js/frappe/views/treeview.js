@@ -36,6 +36,9 @@ frappe.views.TreeFactory = class TreeFactory extends frappe.views.Factory {
 		let treeview = frappe.views.trees[route[1]];
 		if (treeview && treeview.tree) {
 			cur_tree = treeview.tree;
+			if (treeview.scroll_position) {
+				frappe.utils.scroll_to(treeview.scroll_position, false, 0, $(".main-section"));
+			}
 		}
 	}
 
@@ -87,6 +90,11 @@ frappe.views.TreeView = class TreeView {
 		if (!this.opts || !this.opts.do_not_make_page) {
 			this.parent = frappe.container.add_page(this.page_name);
 			$(this.parent).addClass("treeview");
+			$(".main-section").on("scroll.treeview_" + this.page_name, () => {
+				if (frappe.get_route_str() === me.page_name) {
+					me.scroll_position = $(".main-section").scrollTop();
+				}
+			});
 			frappe.ui.make_app_page({ parent: this.parent, single_column: true });
 			this.page = this.parent.page;
 			frappe.container.change_to(this.page_name);
