@@ -152,6 +152,25 @@ BINDING_CONTRACT = """DATA BINDING — when the page shows live data or a variab
 Bind ONLY to the data sources / variables listed as available on the page, and only to fields a source actually fetches. Do NOT invent a data source in the JSON — sources are created separately; here you only bind to ones that already exist."""
 
 
+# SYSTEM_PROMPT (one-shot generation) and the agent prompt so every place that writes executable JS
+# — a block's events, a handler prop (Button/Dialog/Dropdown onClick), a page script — uses the real
+# runtime scope instead of inventing `frappe.db.*`.
+SCRIPTING_RULES = """WRITING SCRIPT LOGIC (page script, a block's `events`, a handler prop like a Button/Dialog/Dropdown onClick, or the page script):
+This JS has the page context in scope plus ordinary browser globals (`window`, `document`, `console`, …). But to read or write BACKEND DATA, do NOT reach for `frappe`, `frappe.db`, `frappe.call`, or raw `fetch`/`axios` (a common hallucination is `frappe.db.insert` — it does not exist). Use the page's data sources or `call()`:
+- The page's DATA SOURCES (created with add_data_source) — each is a frappe-ui resource. Do CRUD THROUGH the source, not through `frappe`:
+  - create → `<source>.insert.submit({ field: value, ... })`
+  - update → `<source>.setValue.submit({ name, field: value, ... })`
+  - delete → `<source>.delete.submit(name)`
+  - refetch → `<source>.reload()` (insert/delete already refresh a list source, so you rarely need this)
+  - read → `<source>.data` (list) or `<source>.doc` (single Document)
+  Every `.submit(...)` returns a Promise — chain `.then(() => { ... })` to close a dialog, clear inputs, or toast after it lands.
+- `call('dotted.method.path', { arg: value })` — a frappe-ui helper for a ONE-OFF whitelisted server call not tied to a source; returns a Promise, e.g. `call('frappe.client.get_count', { doctype: 'Note' }).then((n) => { count.value = n })`. Do NOT use `createResource`/`createListResource` in inline JS — they are NOT in scope here; use an existing source or `call`.
+- `toast.success(msg)` / `toast.error(msg)`; `getIcon(name)`; variables (refs — read/write via `.value`); `route`, `router`.
+CRUD example — a Dialog "Save" action that creates a Note via the `notes` source (NOT frappe.db), then clears + closes:
+  "() => { notes.insert.submit({ title: newNoteTitle.value }).then(() => { newNoteTitle.value = ''; showNewNoteDialog.value = false }) }"
+"""
+
+
 SYSTEM_PROMPT = f"""You are an expert UI Web developer & designer specializing in creating responsive app pages for Frappe Studio, a Vue.js-based low-code app builder. Your task is to generate a compact JSON block tree that Studio will render as a live Vue application. Each block in the tree maps to a Vue component (from frappe-ui or Studio) or native html element (div).
 
 {BLOCK_SCHEMA}
@@ -159,6 +178,8 @@ SYSTEM_PROMPT = f"""You are an expert UI Web developer & designer specializing i
 {BUILD_RULES}
 
 {BINDING_CONTRACT}
+
+{SCRIPTING_RULES}
 
 {STYLING_RULES}
 
@@ -245,6 +266,8 @@ For add_block, pass the new block under "block" using the BLOCK SCHEMA below (na
 {BUILD_RULES}
 
 {data_and_code_wiring}
+
+{SCRIPTING_RULES}
 
 # Asking vs proceeding
 - Small, targeted edits to an existing page (colour, text, spacing, a single block): make a reasonable decision and proceed with the tools. Do NOT ask.
