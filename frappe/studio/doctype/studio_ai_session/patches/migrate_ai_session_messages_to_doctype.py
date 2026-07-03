@@ -5,11 +5,17 @@ import frappe
 
 def execute():
 	"""Backfill legacy `Studio AI Session.messages_json` blobs into `Studio AI Message`
-	rows. Leaves messages_json untouched so the old one-shot path keeps reading it."""
-	sessions = frappe.get_all(
-		"Studio AI Session",
-		filters={"messages_json": ["is", "set"]},
-		fields=["name", "messages_json"],
+	rows. The messages_json field has since been dropped, so a site created after that
+	removal has nothing to backfill — bail before touching the missing column."""
+	if not frappe.db.has_column("Studio AI Session", "messages_json"):
+		return
+
+	# Read the column raw — it's no longer in the doctype JSON, so query the table directly
+	# instead of through get_all, which resolves fields against the doctype meta.
+	sessions = frappe.db.sql(
+		"SELECT name, messages_json FROM `tabStudio AI Session` "
+		"WHERE messages_json IS NOT NULL AND messages_json != '' AND messages_json != '[]'",
+		as_dict=True,
 	)
 	for session in sessions:
 		if frappe.db.exists("Studio AI Message", {"session": session.name}):

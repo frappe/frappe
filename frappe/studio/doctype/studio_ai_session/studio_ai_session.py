@@ -16,7 +16,6 @@ class StudioAISession(Document):
 		is_running: DF.Check
 		last_interaction_on: DF.Datetime | None
 		last_task_type: DF.Data | None
-		messages_json: DF.LongText | None
 		page: DF.Link
 		selected_model: DF.Data | None
 		status: DF.Literal["Active", "Archived"]
