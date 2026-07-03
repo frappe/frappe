@@ -1,10 +1,9 @@
 # Copyright (c) 2015, Frappe Technologies Pvt. Ltd. and Contributors
 # License: MIT. See LICENSE
 
+import json
 import os
 import re
-
-import orjson
 
 import frappe
 from frappe import _
@@ -154,7 +153,7 @@ def get_installed_apps(*, _ensure_on_bench: bool = False) -> list[str]:
 	if not frappe.db:
 		frappe.connect()
 
-	installed = orjson.loads(frappe.db.get_global("installed_apps") or "[]")
+	installed = json.loads(frappe.db.get_global("installed_apps") or "[]")
 
 	if _ensure_on_bench:
 		all_apps = frappe.cache.get_value("all_apps", get_all_apps)

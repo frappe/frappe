@@ -2,10 +2,10 @@
 # License: MIT. See LICENSE
 
 import functools
+import json
 import logging
 import os
 
-import orjson
 from werkzeug.exceptions import HTTPException, NotFound
 from werkzeug.middleware.profiler import ProfilerMiddleware
 from werkzeug.middleware.proxy_fix import ProxyFix
@@ -331,8 +331,8 @@ def make_form_dict(request: Request):
 	request_data = request.get_data(as_text=True)
 	if request_data and request.is_json:
 		try:
-			args = orjson.loads(request_data)
-		except orjson.JSONDecodeError:
+			args = json.loads(request_data)
+		except json.JSONDecodeError:
 			frappe.throw(_("Invalid request body"), frappe.DataError)
 	else:
 		args = {}

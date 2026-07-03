@@ -1,9 +1,8 @@
 # Copyright (c) 2015, Frappe Technologies Pvt. Ltd. and Contributors
 # License: MIT. See LICENSE
 import hashlib
+import json
 import os
-
-import orjson
 
 import frappe
 from frappe.model.base_document import get_controller
@@ -174,7 +173,7 @@ def read_doc_from_file(path):
 	if os.path.exists(path):
 		with open(path) as f:
 			try:
-				doc = orjson.loads(f.read())
+				doc = json.loads(f.read())
 			except ValueError:
 				print(f"bad json: {path}")
 				raise

@@ -1,7 +1,6 @@
 import time
 from contextlib import suppress
-
-from orjson import JSONDecodeError
+from json import JSONDecodeError
 
 import frappe
 

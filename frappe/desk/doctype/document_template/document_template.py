@@ -1,7 +1,7 @@
 # Copyright (c) 2026, Frappe Technologies and contributors
 # For license information, please see license.txt
 
-import orjson
+import json
 
 import frappe
 from frappe import _
@@ -84,8 +84,8 @@ class DocumentTemplate(Document):
 		- Reformats the stored JSON with consistent indentation.
 		"""
 		try:
-			parsed_data = orjson.loads(self.data)
-		except orjson.JSONDecodeError:
+			parsed_data = json.loads(self.data)
+		except json.JSONDecodeError:
 			frappe.throw(_("Template data must be valid JSON"))
 
 		if not isinstance(parsed_data, dict) or not parsed_data:
@@ -166,7 +166,7 @@ def _has_user_permissions_on_template_data(template_data: str, reference_doctype
 	role permissions *and* user permissions (link-field restrictions) are both
 	evaluated, matching the same path taken for real documents.
 	"""
-	data = orjson.loads(template_data)
+	data = json.loads(template_data)
 	temp_doc = frappe.get_doc({"doctype": reference_doctype, "__islocal": 1, **data})
 	return has_user_permission(temp_doc, user=user, strict=False)
 

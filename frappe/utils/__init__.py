@@ -23,7 +23,6 @@ from email.header import decode_header, make_header
 from email.utils import formataddr, getaddresses, parseaddr
 from typing import Any, Generic, TypeAlias, TypedDict
 
-import orjson
 from werkzeug.test import Client
 
 from frappe.deprecation_dumpster import (
@@ -848,7 +847,7 @@ def get_site_info():
 		site_info.update(frappe.get_attr(method_name)(site_info) or {})
 
 	# dumps -> loads to prevent datatype conflicts
-	return orjson.loads(frappe.as_json(site_info))
+	return json.loads(frappe.as_json(site_info))
 
 
 def get_db_count(*args):
@@ -869,7 +868,7 @@ def get_db_count(*args):
 	for doctype in args:
 		db_count[doctype] = frappe.db.count(doctype)
 
-	return orjson.loads(frappe.as_json(db_count))
+	return json.loads(frappe.as_json(db_count))
 
 
 def call(fn, *args, **kwargs):
@@ -885,12 +884,12 @@ def call(fn, *args, **kwargs):
 	        via terminal:
 	                bench --site erpnext.local execute frappe.utils.call --args '''["frappe.get_all", "Activity Log"]''' --kwargs '''{"fields": ["user", "creation", "full_name"], "filters":{"Operation": "Login", "Status": "Success"}, "limit": "10"}'''
 	"""
-	return orjson.loads(frappe.as_json(frappe.call(fn, *args, **kwargs)))
+	return json.loads(frappe.as_json(frappe.call(fn, *args, **kwargs)))
 
 
 def get_safe_filters(filters):
 	try:
-		parsed = orjson.loads(filters)
+		parsed = json.loads(filters)
 	except (TypeError, ValueError):
 		# not a string, or not valid json
 		return filters
@@ -1055,7 +1054,7 @@ def safe_json_loads(*args):
 
 	for arg in args:
 		try:
-			arg = orjson.loads(arg)
+			arg = json.loads(arg)
 		except Exception:
 			pass
 

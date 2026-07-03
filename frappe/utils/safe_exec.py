@@ -11,7 +11,6 @@ from itertools import chain
 from types import FunctionType, MethodType, ModuleType
 from typing import TYPE_CHECKING, Any
 
-import orjson
 import RestrictedPython.Guards
 from RestrictedPython import PrintCollector, compile_restricted, safe_globals
 from RestrictedPython.transformer import RestrictingNodeTransformer
@@ -917,10 +916,7 @@ WHITELISTED_SAFE_EVAL_GLOBALS = {
 	"_inplacevar_": protected_inplacevar,
 }
 
-SAFE_ORJSON = NamespaceDict(loads=orjson.loads, dumps=orjson.dumps)
-for key, val in vars(orjson).items():
-	if key.startswith("OPT_"):
-		SAFE_ORJSON[key] = val
+SAFE_ORJSON = NamespaceDict(loads=json.loads, dumps=json.dumps)
 
 SAFE_EXCEPTIONS = get_module_properties(
 	frappe.exceptions, lambda obj: inspect.isclass(obj) and issubclass(obj, Exception)

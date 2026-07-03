@@ -3,6 +3,7 @@
 
 import datetime
 import functools
+import json
 import mimetypes
 import os
 import sys
@@ -14,7 +15,6 @@ from typing import TYPE_CHECKING
 from urllib.parse import quote
 from uuid import UUID
 
-import orjson
 import werkzeug.utils
 from werkzeug.exceptions import Forbidden, NotFound
 from werkzeug.local import LocalProxy
@@ -195,15 +195,13 @@ def _make_logs_v1():
 	if frappe.error_log and is_traceback_allowed():
 		if source := guess_exception_source(frappe.local.error_log and frappe.local.error_log[0]["exc"]):
 			response["_exc_source"] = source
-		response["exc"] = orjson.dumps([frappe.utils.cstr(d["exc"]) for d in frappe.local.error_log]).decode()
+		response["exc"] = json.dumps([frappe.utils.cstr(d["exc"]) for d in frappe.local.error_log])
 
 	if frappe.local.message_log:
-		response["_server_messages"] = orjson.dumps(
-			[orjson.dumps(d).decode() for d in frappe.local.message_log]
-		).decode()
+		response["_server_messages"] = json.dumps([json.dumps(d) for d in frappe.local.message_log])
 
 	if frappe.debug_log and is_traceback_allowed():
-		response["_debug_messages"] = orjson.dumps(frappe.local.debug_log).decode()
+		response["_debug_messages"] = json.dumps(frappe.local.debug_log)
 
 	if frappe.flags.error_message:
 		response["_error_message"] = frappe.flags.error_message
@@ -252,8 +250,6 @@ def json_handler(obj):
 	elif isinstance(obj, Path):
 		return str(obj)
 
-	# orjson does this already
-	# but json_handler needs to be compatible with built-in json module also
 	elif isinstance(obj, UUID):
 		return str(obj)
 
