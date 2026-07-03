@@ -381,8 +381,11 @@
 
 	// es-solid-star fills with its own color; force it to follow the button's `color`.
 	.icon use {
-		fill: currentColor;
 		stroke: currentColor;
+	}
+
+	&[data-selected="true"] .icon use {
+		fill: currentColor;
 	}
 }
 

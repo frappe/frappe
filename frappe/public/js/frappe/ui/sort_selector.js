@@ -46,7 +46,8 @@ frappe.ui.SortSelector = class SortSelector {
 		if (this.sort_order !== sort_order) {
 			this.sort_order = sort_order;
 			const title = sort_order === "desc" ? __("ascending") : __("descending");
-			const icon_name = sort_order === "asc" ? "sort-ascending" : "sort-descending";
+			const icon_name =
+				sort_order === "asc" ? "arrow-up-narrow-wide" : "arrow-down-wide-narrow";
 			$btn.attr("data-value", sort_order);
 			$btn.attr("title", title);
 			$icon.html(frappe.utils.icon(icon_name, "sm"));

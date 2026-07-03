@@ -41,7 +41,7 @@ frappe.doctype_settings.register("print-format", function (panel, doctype) {
 			"Configure print formats for {0}. You can choose a format when printing or emailing a document.",
 			[doctype]
 		),
-		actions: [{ label: __("New"), icon: "add", click: create }],
+		actions: [{ label: __("New"), icon: "plus", click: create }],
 		render: () => load(),
 	});
 
@@ -117,12 +117,13 @@ frappe.doctype_settings.register("print-format", function (panel, doctype) {
 		const is_default = f.name === default_pf;
 		const is_custom = f.standard !== "Yes";
 
-		const star_icon = is_default ? "es-solid-star" : "es-line-star";
 		const $card = $(`
 			<div class="dts-pf-card">
 				<div class="dts-pf-preview">
 					<span class="es-badge dts-pf-badge hide" data-theme="blue">${__("Custom")}</span>
-					<button type="button" class="dts-pf-star">${frappe.utils.icon(star_icon, "sm")}</button>
+					<button type="button" class="dts-pf-star" data-selected="${
+						is_default ? "true" : "false"
+					}">${frappe.utils.icon("star", "sm")}</button>
 					<div class="dts-pf-thumb">
 						<span class="dts-pf-placeholder">${frappe.utils.icon("printer", "lg")}</span>
 					</div>

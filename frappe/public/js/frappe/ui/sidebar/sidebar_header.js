@@ -48,7 +48,7 @@ frappe.ui.SidebarHeader = class SidebarHeader {
 		return {
 			name: "apps",
 			label: __("Apps"),
-			icon: "grid",
+			icon: "layout-grid",
 			items,
 		};
 	}

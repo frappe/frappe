@@ -9,8 +9,8 @@ frappe.data_import.ImportTreePreview = class ImportTreePreview {
 		this.on_row_click = on_row_click;
 		this.icon_set = {
 			open: frappe.utils.icon("folder-open", "md"),
-			closed: frappe.utils.icon("folder-normal", "md"),
-			leaf: frappe.utils.icon("primitive-dot", "xs"),
+			closed: frappe.utils.icon("folder", "md"),
+			leaf: frappe.utils.icon("dot", "xs"),
 		};
 		this.refresh();
 	}
@@ -179,7 +179,7 @@ frappe.data_import.ImportTreePreview = class ImportTreePreview {
 				node.warnings.map((warning) => strip_html(warning)).join(" ")
 			);
 			label += ` <span class="text-warning" title="${title}">${frappe.utils.icon(
-				"warning-sign",
+				"triangle-alert",
 				"sm"
 			)}</span>`;
 		}

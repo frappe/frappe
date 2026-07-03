@@ -15,7 +15,7 @@
  "label": "System",
  "link_type": "DocType",
  "links": [],
- "modified": "2026-06-11 11:51:23.267764",
+ "modified": "2026-07-03 11:51:23.267764",
  "modified_by": "Administrator",
  "module": "Core",
  "name": "System",
@@ -151,7 +151,7 @@
   {
    "child": 0,
    "collapsible": 1,
-   "icon": "tool",
+   "icon": "wrench",
    "indent": 1,
    "keep_closed": 0,
    "label": "Tools",
