@@ -106,6 +106,9 @@ def get_docinfo(
 	communications_except_auto_messages = [
 		msg for msg in all_communications if msg["communication_type"] != "Automated Message"
 	]
+	assert len(automated_messages) + len(communications_except_auto_messages) == len(all_communications), (
+		"every communication must be classified into exactly one message group"
+	)
 
 	docinfo = frappe._dict(user_info={})
 

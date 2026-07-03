@@ -268,3 +268,4 @@ def safe_render_flags():
 	finally:
 		# Always ensure that the flag is decremented
 		frappe.flags.in_render_safe_exec -= 1
+		assert frappe.flags.in_render_safe_exec >= 0, "in_render_safe_exec flag must never go negative"

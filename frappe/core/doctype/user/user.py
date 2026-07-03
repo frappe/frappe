@@ -280,6 +280,9 @@ class User(Document):
 		# Remove invalid roles and add new ones
 		self.roles = [r for r in self.roles if r.role in new_roles]
 		self.append_roles(*new_roles)
+		assert all(r.role in new_roles for r in self.roles), (
+			"roles synced from role profiles must all belong to those profiles"
+		)
 
 	def move_role_profile_name_to_role_profiles(self):
 		"""This handles old role_profile_name field if programatically set.

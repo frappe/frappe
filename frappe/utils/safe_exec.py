@@ -146,6 +146,8 @@ def safe_eval(code, eval_globals=None, eval_locals=None):
 	eval_globals["__builtins__"] = {}
 	eval_globals.update(WHITELISTED_SAFE_EVAL_GLOBALS)
 
+	assert eval_globals["__builtins__"] == {}, "safe_eval must run with empty __builtins__"
+
 	return eval(_compile_code(code, filename="<safe_eval>", mode="eval"), eval_globals, eval_locals)
 
 
@@ -170,6 +172,7 @@ def safe_exec_flags():
 	finally:
 		# Always ensure that the flag is decremented
 		frappe.flags.in_safe_exec -= 1
+		assert frappe.flags.in_safe_exec >= 0, "in_safe_exec flag must never go negative"
 
 
 class SafeDoc(frappe._dict):

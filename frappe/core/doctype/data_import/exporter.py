@@ -237,6 +237,7 @@ class Exporter:
 
 			header.append(label)
 
+		assert len(header) == len(self.fields), "export header must have one label per exportable field"
 		self.csv_array.append(header)
 
 	def add_data(self):

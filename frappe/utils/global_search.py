@@ -166,6 +166,7 @@ def get_selected_fields(meta, global_search_fields):
 	if meta.has_field("is_website_published"):
 		fieldnames.append("is_website_published")
 
+	assert fieldnames, "selected fields must always include an identifier column"
 	return fieldnames
 
 
@@ -397,6 +398,7 @@ def _get_deduped_search_item_values(items):
 		key = (item_dict["doctype"], item_dict["name"])
 		values_dict[key] = tuple(item_dict.values())
 
+	assert len(values_dict) <= len(items), "dedup must not produce more values than input items"
 	return values_dict.values()
 
 
