@@ -1060,10 +1060,14 @@ watch(
 	color: var(--text-color);
 }
 
-/* Repeater rows are tight by default — spacing is opt-in via the section */
+/* Repeater rows follow the same vertical rhythm as fields in a column */
 .field-preview-repeater .preview-table td {
 	padding: 0;
 	border: none;
+}
+
+.field-preview-repeater .preview-table tr + tr td {
+	padding-top: 0.4rem;
 }
 
 /* lined (default): no alternating rows */

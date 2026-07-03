@@ -197,6 +197,10 @@ body {
 	vertical-align: top;
 }
 
+.pfb-repeater-table tr + tr .pfb-repeater-cell {
+	padding-top: 0.5rem;
+}
+
 /* Child table */
 .child-table {
 	margin-top: 0.5rem;
