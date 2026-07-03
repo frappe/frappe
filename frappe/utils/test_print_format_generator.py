@@ -420,8 +420,8 @@ class TestPrintFormatGenerator(IntegrationTestCase):
 		with self.assertRaises(frappe.ValidationError):
 			self._make_print_format(label_color="red; } * { display: none")
 
-	def test_repeater_column_unknown_style_ignored(self):
-		"""A repeater column style outside the whitelist renders no style class."""
+	def test_repeater_column_invalid_color_and_align_ignored(self):
+		"""Repeater column color/align values outside the whitelist render nothing."""
 		from frappe.utils.print_format_generator import get_html
 
 		contact = self._make_contact_with_email()
@@ -430,13 +430,13 @@ class TestPrintFormatGenerator(IntegrationTestCase):
 				{
 					"template": [{"t": "f", "v": "email_id"}],
 					"align": "up; position:fixed",
-					"style": "primary muted-sm",
+					"color": "red; } * { display: none",
 				}
 			]
 		)
 		html = get_html("Contact", contact.name, pf.name)
-		self.assertNotIn("primary muted-sm", html)
 		self.assertNotIn("position:fixed", html)
+		self.assertNotIn("display: none", html)
 		self.assertIn('class="pfb-repeater-cell" style="text-align: left"', html)
 
 	def test_blank_table_column_header_falls_back_to_fieldname(self):
@@ -616,19 +616,19 @@ class TestPrintFormatGenerator(IntegrationTestCase):
 		self.assertIn("<colgroup>", html)
 		self.assertIn("width: 40%", html)
 
-	def test_repeater_column_style_rendered(self):
-		"""A repeater column style emits the matching cell-line--* class on the cell."""
+	def test_repeater_column_color_rendered(self):
+		"""A repeater column color is rendered as an inline color on the cell."""
 		from frappe.utils.print_format_generator import get_html
 
 		contact = self._make_contact_with_email()
 		pf = self._make_repeater_format(
-			columns=[{"template": [{"t": "f", "v": "email_id"}], "align": "left", "style": "primary"}]
+			columns=[{"template": [{"t": "f", "v": "email_id"}], "align": "left", "color": "#C0392B"}]
 		)
 		html = get_html("Contact", contact.name, pf.name)
-		self.assertIn('class="pfb-repeater-cell cell-line--primary"', html)
+		self.assertIn('style="text-align: left; color: #C0392B"', html)
 
-	def test_repeater_column_no_style_class_when_unset(self):
-		"""A repeater column without a style emits no cell-line--* class on the cell."""
+	def test_repeater_column_no_color_when_unset(self):
+		"""A repeater column without a color emits no inline color on the cell."""
 		from frappe.utils.print_format_generator import get_html
 
 		contact = self._make_contact_with_email()
@@ -636,7 +636,7 @@ class TestPrintFormatGenerator(IntegrationTestCase):
 			columns=[{"template": [{"t": "f", "v": "email_id"}], "align": "left"}]
 		)
 		html = get_html("Contact", contact.name, pf.name)
-		self.assertNotIn('class="pfb-repeater-cell cell-line--', html)
+		self.assertIn('class="pfb-repeater-cell" style="text-align: left"', html)
 
 	# ------------------------------------------------------------------ #
 	# Field orientation / spacing

@@ -289,8 +289,8 @@ context("Print Format Builder — create flow", () => {
 		});
 	});
 
-	// 9. Selecting a repeater field exposes per-column width and style controls
-	it("repeater inspector shows column width and style controls", () => {
+	// 9. Selecting a repeater field exposes per-column width and color controls
+	it("repeater inspector shows column width and color controls", () => {
 		cy.visit("/app");
 
 		insert_builder_format(PF_NAME, [
@@ -322,7 +322,8 @@ context("Print Format Builder — create flow", () => {
 
 		cy.get(".pfb-inspector").should("contain", "Repeater");
 		cy.get(".pfb-inspector").should("contain", "Columns");
-		cy.get(".pfb-inspector").should("contain", "Style");
+		cy.get(".pfb-inspector").should("contain", "Color");
+		cy.get(".pfb-inspector .pfb-rep-col-color .selected-color").should("exist");
 		cy.get(".pfb-inspector .pfb-col-width-input").should("exist");
 	});
 });

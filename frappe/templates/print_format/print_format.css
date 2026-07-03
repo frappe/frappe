@@ -328,26 +328,20 @@ body {
 }
 
 .child-table .cell-line--primary,
-.child-table .cell-line--secondary,
-.pfb-repeater-cell.cell-line--primary,
-.pfb-repeater-cell.cell-line--secondary {
+.child-table .cell-line--secondary {
 	color: #111827;
 }
 
-.child-table .cell-line--primary,
-.pfb-repeater-cell.cell-line--primary {
+.child-table .cell-line--primary {
 	font-weight: 600;
 }
 
-.child-table .cell-line--mono-sm,
-.pfb-repeater-cell.cell-line--mono-sm {
+.child-table .cell-line--mono-sm {
 	font-family: var(--monospace-font-family, monospace);
 }
 
 .child-table .cell-line--mono-sm,
-.child-table .cell-line--muted-sm,
-.pfb-repeater-cell.cell-line--mono-sm,
-.pfb-repeater-cell.cell-line--muted-sm {
+.child-table .cell-line--muted-sm {
 	font-size: 0.85em;
 	color: #6b7280;
 }

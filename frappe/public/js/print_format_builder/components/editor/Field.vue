@@ -181,8 +181,10 @@
 								<td
 									v-for="(col, ci) in df.repeater_columns || []"
 									:key="ci"
-									:class="col.style ? `cell-line--${col.style}` : ''"
-									:style="{ textAlign: col.align || 'left' }"
+									:style="{
+										textAlign: col.align || 'left',
+										...(col.color ? { color: col.color } : {}),
+									}"
 								>
 									{{ repeater_cell(col, row) }}
 								</td>
@@ -1055,24 +1057,6 @@ watch(
 .field-preview-repeater .preview-table td {
 	padding: 0;
 	border: none;
-}
-
-/* Repeater column styles — same palette as child-table cells (.pf-merge--*),
-   driven by theme tokens; scoped to td to out-specify the .preview-table td color */
-.field-preview-repeater td.cell-line--primary,
-.field-preview-repeater td.cell-line--secondary {
-	color: var(--text-color);
-}
-.field-preview-repeater td.cell-line--primary {
-	font-weight: var(--weight-semibold);
-}
-.field-preview-repeater td.cell-line--mono-sm {
-	font-family: var(--monospace-font-family, monospace);
-}
-.field-preview-repeater td.cell-line--mono-sm,
-.field-preview-repeater td.cell-line--muted-sm {
-	font-size: 0.85em;
-	color: var(--text-muted);
 }
 
 /* lined (default): no alternating rows */
