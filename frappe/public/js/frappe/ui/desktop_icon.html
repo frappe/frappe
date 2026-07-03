@@ -1,0 +1,12 @@
+<a href="#" class="desktop-icon" style="text-decoration:none">
+    {% if (icon.logo_url) { %}
+        <div class="icon-container">
+            <img class="app-icon" src="{{ frappe.utils.escape_html(icon.logo_url) }}" alt="{{ frappe.utils.escape_html(icon.label) }}" />
+        </div>
+    {% } else { %}
+        {%= frappe.utils.desktop_icon(icon.label, "gray", "md", "Solid") %}
+    {% } %}
+    <div class="icon-caption">
+        <div class="icon-title" data-toggle="tooltip" data-original-title="{{ frappe.utils.escape_html(__(icon.label)) }}">{{ frappe.utils.escape_html(__(icon.label)) }}</div>
+    </div>
+</a>
