@@ -57,10 +57,12 @@ function button_html(opts = {}) {
 		if (icon_only) attrs.push(`aria-label="${escape(opts.title)}"`);
 	}
 	for (const [key, value] of Object.entries(opts.attrs || {})) {
-		// on* values execute as JS after HTML entity decoding, so escaping
-		// cannot protect user data in them — bind handlers via onclick instead
-		if (/^on/i.test(key)) {
-			console.warn(`frappe.ui.button: refusing event-handler attribute "${key}"`);
+		// attribute names become markup (computed keys can carry user data,
+		// e.g. fieldnames), so enforce a safe charset; refuse on* handlers —
+		// their values execute as JS after HTML entity decoding, so escaping
+		// cannot protect user data in them. Bind handlers via onclick instead.
+		if (!/^[a-zA-Z][\w.:-]*$/.test(key) || /^on/i.test(key)) {
+			console.warn(`frappe.ui.button: refusing unsafe attribute "${key}"`);
 			continue;
 		}
 		attrs.push(value === true ? key : `${key}="${escape(value)}"`);
