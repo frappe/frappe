@@ -46,6 +46,7 @@ import "./frappe/form/link_selector.js";
 import "./frappe/form/multi_select_dialog.js";
 import "./frappe/ui/dialog.js";
 import "./frappe/ui/settings_dialog.js";
+import "./frappe/ui/user_settings_dialog.js";
 import "./frappe/ui/menu.js";
 import "./frappe/ui/capture.js";
 import "./frappe/ui/embedded_list.js";
