@@ -82,7 +82,7 @@ jobs:
       - uses: ./.github/actions/setup
         name: Environment Setup
         with:
-          python-version: '3.14'
+          python-version: '3.14t'
           node-version: 24
           disable-socketio: true
           db-root-password: ${{ env.DB_ROOT_PASSWORD }}
@@ -143,7 +143,7 @@ jobs:
       - uses: ./.github/actions/setup
         name: Environment Setup
         with:
-          python-version: '3.14'
+          python-version: '3.14t'
           node-version: 24
           disable-socketio: true
           disable-web: true
@@ -154,7 +154,7 @@ jobs:
         with:
           python-version: |
             3.13
-            3.14
+            3.14t
 
       - name: Download database artifact
         env:
