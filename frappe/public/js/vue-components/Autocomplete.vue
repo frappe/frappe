@@ -10,7 +10,8 @@
 
   Events:
     @select(opt)   Fired when user picks an option. `opt` is the full option object.
-                   Input clears automatically; dropdown stays open for the next pick.
+                   Input clears automatically; dropdown stays open for the next pick
+                   in add-more mode, and closes in single-select mode.
 
   Exposes:
     focus()   Programmatically focus the input
@@ -119,6 +120,10 @@ function select(opt) {
 	emit("select", opt);
 	query.value = "";
 	highlight.value = 0;
+	if (props.modelValue != null) {
+		focused.value = false;
+		input_el.value?.blur();
+	}
 }
 
 function confirm_highlight() {
