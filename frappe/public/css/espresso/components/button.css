@@ -14,7 +14,7 @@
  *   data-size      xs | sm | md | lg                         (default: sm)
  *   data-theme     gray | red                                (default: gray)
  *   data-icon-button="true"   square, no inline padding
- *   data-loading              blocks interaction without the disabled dimming
+ *   aria-busy="true"          loading: blocks interaction without the disabled dimming
  *   aria-invalid="true"       red focus ring + red border (matches Raven)
  *
  * DEFAULTS live on the base `.es-button` rule (variant=subtle, size=sm,
@@ -214,12 +214,13 @@
     background: transparent;
 }
 
-/* ---- loading: block interaction without the disabled dimming ---- */
-.es-button[data-loading] {
+/* ---- loading: block interaction without the disabled dimming. Styled off
+       aria-busy so the visual and accessibility states cannot drift. ---- */
+.es-button[aria-busy="true"] {
     pointer-events: none;
 }
 
-.es-button:not([data-loading]) .es-button__spinner {
+.es-button:not([aria-busy="true"]) .es-button__spinner {
     display: none;
 }
 
