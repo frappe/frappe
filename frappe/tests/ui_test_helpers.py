@@ -479,6 +479,13 @@ def setup_tree_doctype():
 				{"doctype": "Custom Tree", "tree": child, "parent_custom_tree": parent, "is_group": is_group}
 			).insert()
 
+	for i in range(40):
+		name = f"Scroll Node {i}"
+		if not frappe.db.exists("Custom Tree", name):
+			frappe.get_doc(
+				{"doctype": "Custom Tree", "tree": name, "parent_custom_tree": "All Trees", "is_group": 0}
+			).insert()
+
 
 @whitelist_for_tests()
 def setup_image_doctype():
