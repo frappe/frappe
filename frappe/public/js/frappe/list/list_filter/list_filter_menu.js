@@ -514,7 +514,7 @@ export const ListFilterMenu = {
 				<a class="dropdown-item d-flex justify-content-between align-items-center">
 					<span class="d-flex align-items-center">
 						<span class="filter-check mr-2 ${is_active ? "" : "invisible"}">
-							${frappe.utils.icon("tick", "xs")}
+							${frappe.utils.icon("check", "xs")}
 						</span>
 						<span class="filter-label">
 							${frappe.utils.escape_html(__(filter.filter_name))}

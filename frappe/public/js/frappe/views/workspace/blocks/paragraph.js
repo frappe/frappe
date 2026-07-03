@@ -130,7 +130,7 @@ export default class Paragraph extends Block {
 			this.add_settings_button();
 
 			frappe.utils.add_custom_button(
-				frappe.utils.icon("drag", "xs"),
+				frappe.utils.icon("grip", "xs"),
 				null,
 				"drag-handle",
 				__("Drag"),
@@ -218,7 +218,7 @@ export default class Paragraph extends Block {
 	static get toolbox() {
 		return {
 			title: "Text",
-			icon: frappe.utils.icon("text", "sm"),
+			icon: frappe.utils.icon("type", "sm"),
 		};
 	}
 }

@@ -14,7 +14,7 @@ frappe.doctype_settings.register("email-template", function (panel, doctype) {
 	frappe.doctype_settings.render_list(panel, {
 		title: __("Email Templates"),
 		description: __("Reuse email templates when emailing {0}.", [doctype]),
-		primary_action: { label: __("New"), icon: "add", onclick: create },
+		primary_action: { label: __("New"), icon: "plus", onclick: create },
 		load: () =>
 			Promise.all([
 				frappe.db.get_list("Email Template", {
@@ -48,7 +48,7 @@ frappe.doctype_settings.register("email-template", function (panel, doctype) {
 					onclick: (list) => set_default(doctype, r.name).then(() => list.reload()),
 				});
 			}
-			items.push({ label: __("Edit"), icon: "edit", onclick: () => open(r.name) });
+			items.push({ label: __("Edit"), icon: "pencil", onclick: () => open(r.name) });
 			items.push({
 				label: __("Delete"),
 				icon: "trash-2",

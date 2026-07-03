@@ -230,7 +230,7 @@ frappe.ui.GroupBy = class {
 			$(`<div class="group-by-selector">
 				<button class="btn btn-default btn-sm group-by-button ellipsis">
 					<span class="group-by-icon button-icon">
-						${frappe.utils.icon("es-line-folder-alt")}
+						${frappe.utils.icon("folder")}
 					</span>
 					<span class="button-label hidden-xs">
 						${__("Add Group")}

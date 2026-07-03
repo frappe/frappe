@@ -8,7 +8,7 @@
  "doctype": "Workspace",
  "for_user": "",
  "hide_custom": 0,
- "icon": "integration",
+ "icon": "plug",
  "idx": 0,
  "is_hidden": 0,
  "label": "Integrations",
@@ -167,7 +167,7 @@
    "type": "Link"
   }
  ],
- "modified": "2026-06-11 11:51:22.293749",
+ "modified": "2026-07-03 11:51:22.293749",
  "modified_by": "Administrator",
  "module": "Integrations",
  "name": "Integrations",
@@ -239,7 +239,7 @@
   {
    "child": 0,
    "collapsible": 1,
-   "icon": "integration",
+   "icon": "plug",
    "indent": 1,
    "keep_closed": 0,
    "label": "Google",

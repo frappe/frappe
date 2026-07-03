@@ -312,7 +312,7 @@ export default class WebForm extends frappe.ui.FieldGroup {
 		for (let i = 0; i <= this.page_breaks.length; i++) {
 			let $dot = $(`<div class="slide-step">
 				<div class="slide-step-indicator"></div>
-				<div class="slide-step-complete">${frappe.utils.icon("tick", "xs")}</div>
+				<div class="slide-step-complete">${frappe.utils.icon("check", "xs")}</div>
 			</div>`).attr({ "data-step-id": i });
 
 			if (i < this.current_section) {

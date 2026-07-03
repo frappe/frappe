@@ -144,7 +144,7 @@ export default class LayoutFieldSelector {
 					data-type="${field.type || ""}">
 					<div class="row flex-fill align-items-center">
 						<div class="col-1 flex align-items-center justify-content-center px-1">
-							${frappe.utils.icon("drag", "xs", "", "", "sortable-handle " + show_handle)}
+							${frappe.utils.icon("grip", "xs", "", "", "sortable-handle " + show_handle)}
 						</div>
 						<div class="col flex align-items-center px-0">
 							${frappe.utils.escape_html(__(field.label, null, this.doctype))}

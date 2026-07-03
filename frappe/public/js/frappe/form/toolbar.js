@@ -341,7 +341,7 @@ frappe.ui.form.Toolbar = class Toolbar {
 		// Navigate
 		if (!this.frm.is_new() && !this.frm.meta.issingle) {
 			this.page.add_action_icon(
-				frappe.utils.is_rtl() ? "es-line-right-chevron" : "es-line-left-chevron",
+				frappe.utils.is_rtl() ? "chevron-right" : "chevron-left",
 				() => {
 					this.frm.navigate_records(1);
 				},
@@ -349,7 +349,7 @@ frappe.ui.form.Toolbar = class Toolbar {
 				__("Previous Document")
 			);
 			this.page.add_action_icon(
-				frappe.utils.is_rtl() ? "es-line-left-chevron" : "es-line-right-chevron",
+				frappe.utils.is_rtl() ? "chevron-left" : "chevron-right",
 				() => {
 					this.frm.navigate_records(0);
 				},
@@ -816,7 +816,7 @@ frappe.ui.form.Toolbar = class Toolbar {
 				function () {
 					me.frm.page.set_view("main");
 				},
-				"edit"
+				"pencil"
 			);
 		} else if (status === "Cancel") {
 			let add_cancel_button = () => {
@@ -854,7 +854,7 @@ frappe.ui.form.Toolbar = class Toolbar {
 			}[status];
 
 			var icon = {
-				Update: "edit",
+				Update: "pencil",
 			}[status];
 
 			this.page.set_primary_action(__(status), click, icon);

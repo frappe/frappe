@@ -442,7 +442,7 @@ frappe.ui.Sidebar = class Sidebar {
 				{
 					name: "logout",
 					label: __("Logout"),
-					icon: "logout",
+					icon: "log-out",
 					onClick: function () {
 						frappe.app.logout();
 					},

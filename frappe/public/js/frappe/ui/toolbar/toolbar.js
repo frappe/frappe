@@ -200,7 +200,10 @@ $.extend(frappe.ui.toolbar, {
 		}
 
 		return $(
-			'<li class="custom-menu"><a><i class="fa-fw ' + icon + '"></i> ' + label + "</a></li>"
+			'<li class="custom-menu"><a>' +
+				(icon ? frappe.utils.icon(icon) + " " : "") +
+				label +
+				"</a></li>"
 		)
 			.insertBefore(menu.find(".divider"))
 			.find("a")

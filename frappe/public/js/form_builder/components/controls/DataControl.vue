@@ -73,13 +73,13 @@ if (props.df.fieldtype === "Icon") {
 		<div
 			v-if="df.fieldtype == 'Icon'"
 			class="selected-icon no-value"
-			v-html="frappe.utils.icon('folder-normal', 'md')"
+			v-html="frappe.utils.icon('folder', 'md')"
 		/>
 		<!-- phone selector icon -->
 		<div
 			v-if="df.fieldtype == 'Phone'"
 			class="selected-phone no-value"
-			v-html="frappe.utils.icon('down', 'sm')"
+			v-html="frappe.utils.icon('chevron-down', 'sm')"
 		/>
 	</div>
 </template>
