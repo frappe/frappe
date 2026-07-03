@@ -37,7 +37,7 @@ export interface MentionOption {
 /** Inline-image upload handler passed to the editor; returns the editor's file shape. */
 export type UploadFunction = (file: File) => Promise<EditorUploadedFile>;
 
-// --- Base composer (Composer.vue) -----------------------------------------
+// --- Editing core (ComposerEditor.vue, private) -----------------------------
 
 /** Built body + attachments, emitted on `submit`. */
 export interface CoreSubmitPayload {
@@ -45,26 +45,21 @@ export interface CoreSubmitPayload {
   attachments: UploadedFile[];
 }
 
-/** Fields shared by every composer surface. */
+/** Props shared by every composer surface. */
 interface BaseComposerProps {
   placeholder?: string;
-  label?: string;
+  /** Label on the submit button. */
+  submitLabel?: string;
   uploadFunction?: UploadFunction;
-  /** Wrap the composer in a ComposerWindow (collapsible trigger bar + pop-out/dock),
-   *  instead of always-visible content. Defaults to false. */
-  expandable?: boolean;
-  /** Trigger-bar avatar, used when `expandable` is true. */
-  avatar?: string;
-  avatarLabel?: string;
 }
 
-/** Props shared by every composer surface. */
-export interface ComposerProps extends BaseComposerProps {
-  /** @-mention options for the comment editor. */
-  mentionOptions?: MentionOption[];
+/** The shared editing core. */
+export interface ComposerEditorProps extends BaseComposerProps {
+  /** @-mention options for the editor. */
+  mentions?: MentionOption[];
 }
 
-// --- EmailComposer ---------------------------------------------------------
+// --- EmailComposer ----------------------------------------------------------
 
 /** Emitted on `submit`: the full email envelope. */
 export interface EmailPayload extends CoreSubmitPayload {
@@ -72,7 +67,7 @@ export interface EmailPayload extends CoreSubmitPayload {
   recipients: Recipients;
 }
 
-/** Window-agnostic email content. Recipients, subject and body are v-models. */
+/** Email content. Body (`v-model`), recipients, subject and quoted are models. */
 export interface EmailComposerProps extends BaseComposerProps {
   /** Rows beyond "To". Defaults to ["cc", "bcc"]. */
   fields?: Field[];
@@ -80,24 +75,9 @@ export interface EmailComposerProps extends BaseComposerProps {
   searchRecipients?: RecipientSearch;
 }
 
-// --- CommentComposer -------------------------------------------------------
+// --- CommentComposer ---------------------------------------------------------
 
 /** A comment carries just body + attachments. */
 export type CommentPayload = CoreSubmitPayload;
 
-export type CommentComposerProps = ComposerProps;
-
-// --- MultiComposer ---------------------------------------------------------
-
-/** The channel MultiComposer is showing; drive it with `v-model:channel`. */
-export type Channel = "email" | "comment";
-
-/** A wrapper over EmailComposer + CommentComposer with a channel switcher. */
-export interface MultiComposerProps extends BaseComposerProps {
-  // email channel
-  /** Rows beyond "To". Defaults to ["cc", "bcc"]. */
-  fields?: Field[];
-  searchRecipients?: RecipientSearch;
-  // comment channel
-  mentionOptions?: MentionOption[];
-}
+export type CommentComposerProps = ComposerEditorProps;

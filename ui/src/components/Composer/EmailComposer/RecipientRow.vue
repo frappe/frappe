@@ -1,8 +1,10 @@
 <template>
 	<div class="flex gap-2 py-1.5" :class="itemsCenter ? 'items-center' : 'items-start'">
-		<span class="text-p-sm text-ink-gray-4 shrink-0" :class="[labelClass, itemsCenter ? '' : 'mt-1 relative bottom-0.5']">{{
-			label
-		}}</span>
+		<span
+			class="text-p-sm text-ink-gray-4 shrink-0"
+			:class="[labelClass, itemsCenter ? '' : 'mt-1 relative bottom-0.5']"
+			>{{ label }}</span
+		>
 		<slot />
 	</div>
 </template>
