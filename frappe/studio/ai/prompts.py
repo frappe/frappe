@@ -4,7 +4,7 @@ LAYOUT:
 
 TEXT & DISPLAY:
 - TextBlock: {text: "string", tag: "p|h1|h2|h3|h4|h5|h6|span", fontSize: "text-2xs(11px)|text-xs(12px)|text-sm(13px)|text-base(14px)|text-lg(16px)|text-xl(17px)|text-2xl(18px)|text-3xl(20px)|text-p-2xs|text-p-xs|text-p-sm|text-p-base|text-p-lg|text-p-xl|text-p-2xl|text-p-3xl"}
-  # text-* = tight line-height (UI labels, headings); text-p-* = relaxed line-height (body copy, descriptions)
+  # LINE-HEIGHT — pick the right family: use text-p-* for ANY paragraph / body copy / description / caption / multi-line sentence (relaxed line-height, more readable). Use plain text-* ONLY for headings and short UI labels (tight line-height). Default to text-p-* whenever the text is a sentence — e.g. a body paragraph → text-p-sm, NOT text-sm.
 - Badge: {variant: "subtle|solid|outline", theme: "green|red|orange|blue|gray", size: "sm|md|lg", label: "string"} # slots: prefix, suffix
 - Pill: {label: "string", variant: "default|outline|underline", size: "sm|md", icon: "lucide-icon-name", iconLeft: "lucide-icon-name", iconRight: "lucide-icon-name"} # slots: prefix, suffix
 - Avatar: {shape: "circle|square", size: "xs|sm|md|lg|xl|2xl|3xl", label: "initials", image: "url" (publicly accessible)}
