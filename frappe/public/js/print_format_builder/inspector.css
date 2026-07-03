@@ -187,3 +187,72 @@
 	color: var(--text-muted);
 	flex-shrink: 0;
 }
+
+/* HTML split editor dialog — shared by field and letter-head editors.
+   Renders in the modal portal, so it must stay global. */
+.pfb-html-split {
+	display: flex;
+	height: 480px;
+	gap: 0;
+	overflow: hidden;
+	margin: -15px;
+}
+.pfb-html-split-pane {
+	display: flex;
+	flex-direction: column;
+	flex: 1;
+	min-width: 0;
+	overflow: hidden;
+}
+.pfb-html-split-divider {
+	width: 1px;
+	background: var(--border-color);
+	flex-shrink: 0;
+}
+.pfb-html-split-label {
+	font-size: var(--text-tiny);
+	font-weight: var(--weight-bold);
+	text-transform: uppercase;
+	letter-spacing: 0.08em;
+	color: var(--text-muted);
+	padding: 10px 12px 8px;
+	border-bottom: 1px solid var(--border-color);
+	background: var(--gray-50);
+	flex-shrink: 0;
+}
+.pfb-html-ctrl-host {
+	flex: 1;
+	overflow: hidden;
+	display: flex;
+	flex-direction: column;
+	padding: 0 12px 12px;
+}
+.pfb-html-ctrl-host .frappe-control {
+	flex: 1;
+	display: flex;
+	flex-direction: column;
+	height: 100%;
+}
+.pfb-html-ctrl-host .form-group {
+	flex: 1;
+	margin: 0;
+	display: flex;
+	flex-direction: column;
+}
+.pfb-html-ctrl-host .CodeMirror {
+	flex: 1;
+	height: 100%;
+	font-size: 13px;
+	font-family: var(--monospace-font-family, monospace);
+	border: 1px solid var(--border-color);
+	border-radius: var(--radius);
+}
+.pfb-html-ctrl-host .CodeMirror-scroll {
+	height: 100%;
+}
+.pfb-html-preview-content {
+	flex: 1;
+	overflow-y: auto;
+	padding: 16px 20px;
+	font-size: var(--text-sm);
+}
