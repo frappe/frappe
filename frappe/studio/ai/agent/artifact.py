@@ -19,6 +19,7 @@ import frappe
 from studio.ai import llm
 from studio.ai.agent.tools.introspect import describe_page_data
 from studio.ai.block_codec import BlockCodec
+from studio.ai.models import ModelRegistry
 from studio.ai.prompts import GENERATION
 from studio.ai.session import AISession
 
@@ -46,9 +47,7 @@ def generate_page_json(ctx, args: dict) -> list[dict]:
 	# turn unless told — hand it the page's data state so it binds to real, existing sources.
 	if data_note := _available_data_note(ctx):
 		messages.append({"role": "user", "content": data_note})
-	messages.append(
-		{"role": "user", "content": f"Build this page now:\n{brief}" if brief else "Build the page now."}
-	)
+	messages.append(_build_message(ctx, brief))
 
 	ctx.emit("progress", message="Building the page…")
 
@@ -82,6 +81,28 @@ def generate_page_json(ctx, args: dict) -> list[dict]:
 		return []
 
 	return [{"tool_name": "generate_page", "args": {"block": block}}]
+
+
+def _build_message(ctx, brief: str) -> dict:
+	"""The final 'build' turn. When a screenshot is attached and the model can see it, send the
+	image to the GENERATOR itself (not just the conversational model) so the block tree is produced
+	from the actual pixels — far higher fidelity than reproducing the model's textual brief."""
+	text = f"Build this page now:\n{brief}" if brief else "Build the page now."
+	image_url = getattr(ctx, "image_url", None)
+	if not image_url or not ModelRegistry.is_vision_capable(ctx.model):
+		return {"role": "user", "content": text}
+	text += (
+		"\n\nReproduce the ATTACHED design faithfully: match its layout structure, section order, "
+		"component choices, spacing, alignment, typography and colors (approximated with espresso tokens). "
+		"The brief above is a summary — the image is the source of truth."
+	)
+	return {
+		"role": "user",
+		"content": [
+			{"type": "text", "text": text},
+			{"type": "image_url", "image_url": {"url": image_url}},
+		],
+	}
 
 
 def _available_data_note(ctx) -> str:

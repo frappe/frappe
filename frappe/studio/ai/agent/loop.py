@@ -159,7 +159,7 @@ class AgentRunner:
 		user_text = self.prompt
 		if self.selected_block_ids:
 			user_text += f"\n\n(User has selected: {', '.join(self.selected_block_ids)})"
-		if self.image_url:
+		if self.image_url and ModelRegistry.is_vision_capable(self.model):
 			# Multimodal message: the model sees the attached screenshot alongside the prompt.
 			messages.append(
 				{
