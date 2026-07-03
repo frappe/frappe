@@ -386,7 +386,15 @@ frappe.ui.form.Layout = class Layout {
 	}
 
 	refresh(doc) {
+		const prev_docname = this.doc?.name;
 		if (doc) this.doc = doc;
+
+		// Reset user-toggled state when switching to a different document so
+		// sections start collapsed (their default) instead of inheriting the
+		// open/closed state left over from the previous document.
+		if (this.doc?.name && this.doc.name !== prev_docname) {
+			this.sections.forEach((s) => (s.user_toggled = false));
+		}
 
 		if (this.frm) {
 			this.wrapper.find(".empty-form-alert").remove();
