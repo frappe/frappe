@@ -3,7 +3,6 @@
 
 import os
 
-from bs4 import BeautifulSoup
 from whoosh.fields import ID, TEXT, Schema
 
 import frappe
@@ -62,6 +61,8 @@ class WebsiteSearch(FullTextSearch):
 		try:
 			set_request(method="GET", path=route)
 			content = get_response_content(route)
+
+			from bs4 import BeautifulSoup
 			soup = BeautifulSoup(content, "html.parser")
 			page_content = soup.find(class_="page_content")
 			text_content = page_content.text if page_content else ""
@@ -99,6 +100,7 @@ def slugs_with_web_view(_items_to_index):
 				docs = frappe.get_all(doctype.name, filters=filters, fields=[*fields, "title"])
 				for doc in docs:
 					content = frappe.utils.md_to_html(getattr(doc, doctype.website_search_field))
+					from bs4 import BeautifulSoup
 					soup = BeautifulSoup(content, "html.parser")
 					text_content = soup.text if soup else ""
 					_items_to_index += [frappe._dict(title=doc.title, content=text_content, path=doc.route)]

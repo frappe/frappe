@@ -5,7 +5,6 @@ from collections import Counter
 from email.utils import getaddresses
 from urllib.parse import unquote_plus
 
-from bs4 import BeautifulSoup
 
 import frappe
 from frappe import _
@@ -203,6 +202,8 @@ class Communication(Document, CommunicationEmailMixin):
 		if not self.content:
 			return
 
+
+		from bs4 import BeautifulSoup
 		soup = BeautifulSoup(self.content, "html.parser")
 		email_body = soup.find("div", {"class": "ql-editor read-mode"})
 
@@ -228,6 +229,7 @@ class Communication(Document, CommunicationEmailMixin):
 		if not signature:
 			return
 
+		from bs4 import BeautifulSoup
 		soup = BeautifulSoup(signature, "html.parser")
 		html_signature = soup.find("div", {"class": "ql-editor read-mode"})
 		_signature = None

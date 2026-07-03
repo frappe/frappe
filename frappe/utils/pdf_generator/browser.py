@@ -1,6 +1,5 @@
 from typing import ClassVar
 
-from bs4 import BeautifulSoup
 
 import frappe
 from frappe.utils.data import cint
@@ -85,6 +84,8 @@ class Browser:
 		self.browser_context_id = result["browserContextId"]
 
 	def set_html(self, html):
+
+		from bs4 import BeautifulSoup
 		self.soup = BeautifulSoup(html, "html5lib")
 
 	def set_options(self, options):

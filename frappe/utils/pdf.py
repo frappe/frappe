@@ -14,7 +14,6 @@ import pdfkit.api
 from pdfkit.pdfkit import PDFKit as OriginalPDFKit
 
 pdfkit.source.unicode = str  # NOTE: upstream bug; PYTHONOPTIMIZE=1 optimized this away
-from bs4 import BeautifulSoup
 from packaging.version import Version
 from pypdf import PdfReader, PdfWriter, errors
 
@@ -266,6 +265,8 @@ def get_cookie_options():
 
 def read_options_from_html(html):
 	options = {}
+
+	from bs4 import BeautifulSoup
 	soup = BeautifulSoup(html, "html5lib")
 
 	options.update(prepare_header_footer(soup))

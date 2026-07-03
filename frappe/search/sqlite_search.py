@@ -13,7 +13,6 @@ from dataclasses import dataclass
 from enum import Enum
 from typing import Any
 
-from bs4 import BeautifulSoup
 
 import frappe
 from frappe.model.document import Document
@@ -1588,6 +1587,7 @@ class SQLiteSearch(ABC):
 		# Convert to string in case it's a Mock object or other type
 		content = str(content)
 
+		from bs4 import BeautifulSoup
 		soup = BeautifulSoup(content, "html.parser")
 
 		# Extract text content from links before removing HTML tags

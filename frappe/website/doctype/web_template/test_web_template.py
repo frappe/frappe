@@ -1,6 +1,5 @@
 # Copyright (c) 2020, Frappe Technologies and Contributors
 # License: MIT. See LICENSE
-from bs4 import BeautifulSoup
 
 import frappe
 from frappe.tests import IntegrationTestCase
@@ -19,6 +18,7 @@ class TestWebTemplate(IntegrationTestCase):
 		}
 		html = doc.render(values)
 
+		from bs4 import BeautifulSoup
 		soup = BeautifulSoup(html, "html.parser")
 		heading = soup.find("h1")
 		self.assertTrue("Test Hero" in heading.text)

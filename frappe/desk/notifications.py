@@ -3,7 +3,6 @@
 
 from typing import Literal
 
-from bs4 import BeautifulSoup
 
 import frappe
 from frappe import _
@@ -421,6 +420,8 @@ def notify_mentions(ref_doctype, ref_name, content):
 
 def extract_mentions(txt):
 	"""Find all instances of @mentions in the html."""
+
+	from bs4 import BeautifulSoup
 	soup = BeautifulSoup(txt, "html.parser")
 	emails = []
 	for mention in soup.find_all(class_="mention"):
