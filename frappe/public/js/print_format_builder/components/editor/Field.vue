@@ -906,7 +906,6 @@ watch(
 
 .field-preview-label {
 	font-size: var(--text-sm);
-	font-weight: var(--weight-semibold);
 	color: var(--pfb-label-color, #6b7280);
 	margin-bottom: 1px;
 }
