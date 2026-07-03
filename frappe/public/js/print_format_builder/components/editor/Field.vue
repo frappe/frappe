@@ -514,7 +514,7 @@ function image_merge(col) {
 // Remaining fields render as stacked text lines.
 function text_merges(col) {
 	const img = image_merge(col);
-	return merged_fields(col).filter((mf) => mf !== img);
+	return merged_fields(col).filter((mf) => mf.fieldname !== img?.fieldname);
 }
 
 // Format a merged sub-field using its own child docfield definition.
