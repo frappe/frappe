@@ -50,8 +50,12 @@
 	{%- set ns = namespace(has_content=false) -%}
 	{%- for column in section.columns -%}
 		{%- for df in column.fields -%}
-			{%- if df.fieldtype in ('HTML', 'Divider', 'Spacer') -%}
+			{%- if df.fieldtype in ('HTML', 'Divider', 'Spacer', 'Field Template') -%}
 				{%- set ns.has_content = true -%}
+			{%- elif df.fieldtype == 'Repeater' -%}
+				{%- if df.source and doc.get(df.source) -%}
+					{%- set ns.has_content = true -%}
+				{%- endif -%}
 			{%- elif doc.get(df.fieldname) -%}
 				{%- set ns.has_content = true -%}
 			{%- endif -%}
