@@ -231,7 +231,16 @@ Page script (advanced) — for page logic that outgrows a single event handler: 
 STANDARD_PAGE_CODE = """# State & logic
 This app is EXPORTED — its frontend is a real TypeScript codebase on disk (page scripts, stores, composables, utils, components) that you edit as files and ship via a build. Prefer real code over Studio Page variables here.
 
-Reactive state & page logic — author the page's setup() MODULE with set_page_script: `export default function setup(context) { const count = context.ref(0); … return { count } }`. Only what you RETURN is usable in {{ }} and handlers; `context` exposes variables, resources, route, router. `import` from 'vue', 'frappe-ui', or the app's own files via '@app/*'. Declare page-local state as refs in the module — do NOT create Studio Page variables. set_page_script replaces the whole module (read it first with get_page_script) and rebuilds the app, so tell the user to wait for the build.
+Reactive state & page logic — author the page's setup() MODULE with set_page_script. It is a REAL ES module, so you MUST `import` framework APIs at the TOP — Vue reactivity `import { ref, computed, watch } from 'vue'`; and as needed `import { call, toast } from 'frappe-ui'`, `import { defineStore, storeToRefs } from 'pinia'`, and the app's own files via '@app/*'. `ref`/`computed`/`watch` are NOT on `context` — NEVER write `context.ref` or `const { ref } = context`; import them from 'vue'. The `context` PARAM carries the PAGE's own things: its data sources/resources, its variables, `route` and `router` (e.g. `context.notes`, `context.route`). Only what you RETURN becomes bindings usable in {{ }} and handlers. Declare page-local state as refs — do NOT create Studio Page variables. set_page_script replaces the whole module (read it first with get_page_script).
+Example:
+import { ref } from 'vue'
+export default function setup(context) {
+  const showCreateDialog = ref(false)
+  const newTitle = ref('')
+  const { notes } = context
+  const createNote = () => notes.insert.submit({ title: newTitle.value }).then(() => { newTitle.value = '' })
+  return { showCreateDialog, newTitle, createNote }
+}
 
 Shared code (stores, composables, utils) — for state or logic used across pages, write files with write_app_file (e.g. `stores/notes.ts`, `composables/useFilters.ts`) and import them into a page's setup() module via '@app/…'. list_app_files to see the tree, read_app_file before editing, delete_app_file to remove. After writing files, trigger_app_build so the running app picks them up."""
 

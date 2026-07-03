@@ -149,11 +149,13 @@ _CUSTOM_SET_DESCRIPTION = (
 
 _STANDARD_SET_DESCRIPTION = (
 	"Author the page's setup() module — a real ES module in the exported app. The default export MUST be "
-	"`export default function setup(context) { … return { … } }`. `import` from 'vue', 'frappe-ui', or "
-	"the app's own files via '@app/*' (stores, composables, utils). Only what you RETURN becomes bindings "
-	"usable in {{ }} and handlers; `context` exposes the page's variables, resources, route and router "
-	"(e.g. context.computed(...), context.route). Pass the ENTIRE module (it replaces the current one; "
-	"read it first with get_page_script). Saving rebuilds the app bundle — tell the user to wait for the build."
+	"`export default function setup(context) { … return { … } }`. It is a real module, so IMPORT framework "
+	"APIs at the top: `import { ref, computed, watch } from 'vue'` (also 'frappe-ui', 'pinia', 'vue-router', "
+	"and app files via '@app/*'). `ref`/`computed` are NOT on `context` — never write `context.ref` or "
+	"`const { ref } = context`; import them from 'vue'. The `context` param carries the PAGE's own things — "
+	"its data sources/resources, variables, `route` and `router` (e.g. `context.notes`, `context.route`). "
+	"Only what you RETURN becomes bindings usable in {{ }} and handlers. Pass the ENTIRE module (it replaces "
+	"the current one; read it first with get_page_script)."
 )
 
 
@@ -162,7 +164,7 @@ def build_tools(is_standard: bool) -> list[Tool]:
 	example) match the app's script form so the model writes bare vs. setup() correctly."""
 	if is_standard:
 		description = _STANDARD_SET_DESCRIPTION
-		example = "export default function setup(context) { const total = context.computed(() => items.value.length); return { total } }"
+		example = 'import { ref, computed } from "vue"\\nexport default function setup(context) { const { items } = context; const total = computed(() => items.data.length); return { total } }'
 	else:
 		description = _CUSTOM_SET_DESCRIPTION
 		example = "const total = computed(() => items.value.length)  // auto-exposed as {{ total }}"
