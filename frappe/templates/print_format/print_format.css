@@ -93,12 +93,12 @@ body {
 .field .label {
 	font-size: 1em;
 	font-weight: 600;
-	color: var(--pfb-label-color, #6b7280);
+	color: #6b7280;
 	margin-bottom: 0.1rem;
 }
 
 .field .value {
-	color: var(--pfb-value-color, #111827);
+	color: #111827;
 }
 
 /* Left-right (section-level): label shrinks to content width, value takes the rest */
@@ -114,7 +114,7 @@ body {
 	flex-shrink: 0;
 	font-size: 1em;
 	font-weight: 600;
-	color: var(--pfb-label-color, #374151);
+	color: #374151;
 	text-transform: none;
 	letter-spacing: 0;
 	padding-top: 0.05rem;
@@ -132,13 +132,13 @@ body {
 }
 
 {%- if print_format.label_color %}
-.print-format {
-	--pfb-label-color: {{ print_format.label_color }};
+.print-format .field .label {
+	color: {{ print_format.label_color }};
 }
 {%- endif %}
 {%- if print_format.value_color %}
-.print-format {
-	--pfb-value-color: {{ print_format.value_color }};
+.print-format .field .value {
+	color: {{ print_format.value_color }};
 }
 {%- endif %}
 

@@ -388,32 +388,32 @@ class TestPrintFormatGenerator(IntegrationTestCase):
 	# ------------------------------------------------------------------ #
 
 	def test_label_color_rendered_in_css(self):
-		"""A label_color set on the print format emits the label color CSS variable."""
+		"""A label_color set on the print format emits a label color override rule."""
 		from frappe.utils.print_format_generator import get_html
 
 		pf = self._make_print_format(label_color="#c0392b")
 		todo = self._make_todo()
 		html = get_html("ToDo", todo.name, pf.name)
-		self.assertIn("--pfb-label-color: #c0392b", html)
+		self.assertIn(".print-format .field .label {\n\tcolor: #c0392b;\n}", html)
 
 	def test_value_color_rendered_in_css(self):
-		"""A value_color set on the print format emits the value color CSS variable."""
+		"""A value_color set on the print format emits a value color override rule."""
 		from frappe.utils.print_format_generator import get_html
 
 		pf = self._make_print_format(value_color="#1a5fb4")
 		todo = self._make_todo()
 		html = get_html("ToDo", todo.name, pf.name)
-		self.assertIn("--pfb-value-color: #1a5fb4", html)
+		self.assertIn(".print-format .field .value {\n\tcolor: #1a5fb4;\n}", html)
 
-	def test_no_color_variable_when_colors_unset(self):
-		"""Without label/value colors, no color variable is emitted."""
+	def test_no_color_override_when_colors_unset(self):
+		"""Without label/value colors, no color override rule is emitted."""
 		from frappe.utils.print_format_generator import get_html
 
 		pf = self._make_print_format()
 		todo = self._make_todo()
 		html = get_html("ToDo", todo.name, pf.name)
-		self.assertNotIn("--pfb-label-color:", html)
-		self.assertNotIn("--pfb-value-color:", html)
+		self.assertNotIn(".print-format .field .label {", html)
+		self.assertNotIn(".print-format .field .value {", html)
 
 	def test_blank_table_column_header_falls_back_to_fieldname(self):
 		"""A child-table column with an empty label should render its fieldname as the header."""
