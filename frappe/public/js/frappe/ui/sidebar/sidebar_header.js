@@ -114,9 +114,13 @@ frappe.ui.SidebarHeader = class SidebarHeader {
 		this.$drop_icon = this.wrapper.find(".drop-icon");
 		this.toggle_width(this.sidebar.sidebar_expanded);
 	}
-	// Private workspaces are stored as `${title}-${for_user}`; show just the title in the
-	// header. Module-generated sidebars have no Workspace entry, so fall back to the raw title.
+	// The header shows the app the current sidebar belongs to. Custom / app-less / module sidebars
+	// have no owning app, so fall back to the workspace title (private workspaces are stored as
+	// `${title}-${for_user}`; show just the title).
 	get_display_title() {
+		let app = this.sidebar.get_sidebar_app();
+		if (app) return app.app_title;
+
 		let workspace = frappe.workspaces[frappe.router.slug(this.sidebar.sidebar_title)];
 		if (workspace && !workspace.public && workspace.for_user) {
 			return workspace.title;
