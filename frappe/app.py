@@ -176,15 +176,15 @@ def run_after_request_hooks(request, response):
 
 def init_request(request):
 	site = _site or request.headers.get("X-Frappe-Site-Name") or get_site_name(request.host)
-	frappe.init(site, sites_path=_sites_path, force=True, is_request=True)
+	try:
+		frappe.init(site, sites_path=_sites_path, force=True, is_request=True)
+	finally:
+		frappe.local.request = request
+		request.after_response = CallbackManager()
 
-	frappe.local.request = request
-	frappe.local.is_ajax = frappe.get_request_header("X-Requested-With") == "XMLHttpRequest"
-	request.after_response = CallbackManager()
+	assert frappe.local.conf and frappe.local.conf.db_name, "config should be loaded"
 
-	if not (frappe.local.conf and frappe.local.conf.db_name):
-		# site does not exist
-		raise NotFound
+	frappe.local.is_ajax = request.headers.get("X-Requested-With") == "XMLHttpRequest"
 
 	frappe.connect(set_admin_as_user=False)
 	if frappe.local.conf.maintenance_mode:
