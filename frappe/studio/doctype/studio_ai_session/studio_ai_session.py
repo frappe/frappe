@@ -18,9 +18,7 @@ class StudioAISession(Document):
 		last_task_type: DF.Data | None
 		page: DF.Link
 		selected_model: DF.Data | None
-		status: DF.Literal["Active", "Archived"]
 		user: DF.Link
-
 	# end: auto-generated types
 
 	def on_trash(self):

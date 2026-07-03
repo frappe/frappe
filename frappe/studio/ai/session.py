@@ -20,7 +20,7 @@ class AISession:
 
 		session_name = frappe.db.get_value(
 			cls.DOCTYPE,
-			{"page": page_id, "user": user, "status": "Active"},
+			{"page": page_id, "user": user},
 			"name",
 		)
 		if session_name:
@@ -35,7 +35,6 @@ class AISession:
 				"doctype": cls.DOCTYPE,
 				"page": page_id,
 				"user": user,
-				"status": "Active",
 				"selected_model": model or "",
 				"last_interaction_on": frappe.utils.now_datetime(),
 			}
