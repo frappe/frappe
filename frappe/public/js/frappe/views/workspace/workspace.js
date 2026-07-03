@@ -187,7 +187,7 @@ frappe.views.Workspace = class Workspace {
 					menu_items: [
 						{
 							label: "Edit",
-							icon: "edit",
+							icon: "pencil",
 							onClick: async () => {
 								if (!this.editor || !this.editor.readOnly) return;
 								this.is_read_only = false;
@@ -221,7 +221,7 @@ frappe.views.Workspace = class Workspace {
 						},
 						{
 							label: "Reset to Standard",
-							icon: "refresh",
+							icon: "rotate-ccw",
 							onClick: () => this.reset_workspace_customization(current_page),
 							condition: () => {
 								return current_page.is_customized && this.has_access;
@@ -276,7 +276,7 @@ frappe.views.Workspace = class Workspace {
 			this.wrapper.find(".workspace-title").html(__(this._page.title));
 			this.wrapper
 				.find(".workspace-icon")
-				.html(frappe.utils.icon(this._page.icon || "folder-normal", "md"));
+				.html(frappe.utils.icon(this._page.icon || "folder", "md"));
 
 			localStorage.current_page = current_page.name;
 			localStorage.is_current_page_public = current_page.public ? "true" : "false";
@@ -415,7 +415,7 @@ frappe.views.Workspace = class Workspace {
 		return {
 			id: page.name,
 			label,
-			icon: page.icon || "grid",
+			icon: page.icon || "layout-grid",
 			render: (panel) => this.render_workspace_manager_panel(panel, page),
 		};
 	}

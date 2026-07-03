@@ -1713,7 +1713,7 @@ Object.assign(frappe.utils, {
 				</button>
 
 				<button type="button" class="btn ${btn_type} btn-sm dropdown-toggle dropdown-toggle-split" data-toggle="dropdown">
-					${frappe.utils.icon("down", "xs")}
+					${frappe.utils.icon("chevron-down", "xs")}
 				</button>
 
 				<ul class="dropdown-menu dropdown-menu-right" role="menu"></ul>

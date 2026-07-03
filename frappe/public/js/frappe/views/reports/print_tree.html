@@ -8,8 +8,6 @@
 		<meta name="author" content="">
 		<title>{{ title }}</title>
 		<link href="{{ base_url }}/assets/frappe/css/bootstrap.css" rel="stylesheet">
-		<link type="text/css" rel="stylesheet"
-			href="{{ base_url }}/assets/frappe/css/fonts/fontawesome/font-awesome.min.css">
 		<link rel="stylesheet" type="text/css" href="{{ base_url }}/assets/frappe/css/tree.css">
 		<link rel="stylesheet" type="text/css" href="{{ base_url }}{{ print_format_css_path }}">
 		<style>
@@ -35,7 +33,7 @@
 				z-index: 1;
 				background: none;
 			}
-			i.fa.fa-fw.fa-folder {
+			svg.icon {
 				z-index: 2;
 				position: relative;
 			}
@@ -45,16 +43,6 @@
 			.tree-node-toolbar {
 				display: none;
 			}
-			i.octicon.octicon-primitive-dot.text-extra-muted {
-				width: 7px;
-				height: 7px;
-				border-radius: 50%;
-				background: #d1d8dd;
-				display: inline-block;
-				position: relative;
-				z-index: 2;
-			}
-
 			@media (max-width: 767px) {
 				ul.tree-children {
 					padding-left: 20px;
@@ -64,7 +52,7 @@
   	</head>
 	<body>
 		<svg id="frappe-symbols" aria-hidden="true" style="position: absolute; width: 0; height: 0; overflow: hidden;" class="d-block" xmlns="http://www.w3.org/2000/svg">
-			<symbol viewBox="0 0 12 12" xmlns="http://www.w3.org/2000/svg" id="icon-primitive-dot">
+			<symbol viewBox="0 0 12 12" xmlns="http://www.w3.org/2000/svg" id="icon-dot">
 				<path d="M9.5 6a3.5 3.5 0 1 1-7 0 3.5 3.5 0 0 1 7 0z"></path>
 			</symbol>
 
@@ -73,7 +61,7 @@
 				<path d="M3.88 4.5v-1a.5.5 0 0 1 .5-.5h11.24a.5.5 0 0 1 .5.5V7" stroke="var(--icon-stroke)" stroke-miterlimit="10" stroke-linecap="round" stroke-linejoin="round"></path>
 			</symbol>
 
-			<symbol viewBox="0 0 20 20" xmlns="http://www.w3.org/2000/svg" id="icon-folder-normal">
+			<symbol viewBox="0 0 20 20" xmlns="http://www.w3.org/2000/svg" id="icon-folder">
 				<path d="M2.5 4v10a2 2 0 0 0 2 2h11a2 2 0 0 0 2-2V6.5a1 1 0 0 0-1-1h-6.283a.5.5 0 0 1-.417-.224L8.441 3.224A.5.5 0 0 0 8.024 3H3.5a1 1 0 0 0-1 1z" stroke="var(--icon-stroke)" stroke-miterlimit="10" stroke-linecap="square"></path>
 			</symbol>
 		</svg>

@@ -211,16 +211,12 @@ $.extend(frappe, {
 		}
 	},
 	show_message: function (text, icon) {
-		if (!icon) icon = "fa fa-refresh fa-spin";
+		let icon_html = icon
+			? '<i class="' + icon + ' text-muted"></i>'
+			: frappe.utils.icon("refresh-cw", "lg");
 		frappe.hide_message();
 		$('<div class="message-overlay"></div>')
-			.html(
-				'<div class="content"><i class="' +
-					icon +
-					' text-muted"></i><br>' +
-					text +
-					"</div>"
-			)
+			.html('<div class="content">' + icon_html + "<br>" + text + "</div>")
 			.appendTo(document.body);
 	},
 	has_permission: function (doctype, docname, perm_type, callback) {

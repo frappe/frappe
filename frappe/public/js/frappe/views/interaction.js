@@ -186,7 +186,12 @@ frappe.views.InteractionComposer = class InteractionComposer {
 							'<label><span><input type="checkbox" data-file-name="%(name)s"></input></span>' +
 							'<span class="small">%(file_name)s</span>' +
 							' <a href="%(file_url)s" target="_blank" class="text-muted small">' +
-							'<i class="fa fa-share" style="vertical-align: middle; margin-left: 3px;"></i>' +
+							frappe.utils.icon(
+								"external-link",
+								"xs",
+								"",
+								"vertical-align: middle; margin-left: 3px;"
+							) +
 							"</label></p>",
 						f
 					)

@@ -9,7 +9,7 @@ export class DropdownConsole {
 			fields: [
 				{
 					description: `
-					${frappe.utils.icon("solid-warning", "xs")}
+					${frappe.utils.icon("triangle-alert", "xs")}
 					WARNING: Executing random untested code here is dangerous, use with extreme caution. <br>
 					Usage: To execute press ctrl/cmd+enter.
 					To minimize this window press Escape.

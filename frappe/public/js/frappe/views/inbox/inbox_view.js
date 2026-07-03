@@ -99,7 +99,10 @@ frappe.views.InboxView = class InboxView extends frappe.views.ListView {
 
 	get_meta_html(email) {
 		const attachment = email.has_attachment
-			? `<span class="fa fa-paperclip fa-large" title="${__("Has Attachments")}"></span>`
+			? `<span title="${__("Has Attachments")}">${frappe.utils.icon(
+					"paperclip",
+					"sm"
+			  )}</span>`
 			: "";
 
 		let link = "";
@@ -107,16 +110,16 @@ frappe.views.InboxView = class InboxView extends frappe.views.ListView {
 			link = `<a class="text-muted grey"
 				href="${frappe.utils.get_form_link(email.reference_doctype, email.reference_name)}"
 				title="${__("Linked with {0}", [email.reference_doctype])}">
-				<i class="fa fa-link fa-large"></i>
+				${frappe.utils.icon("link", "sm")}
 			</a>`;
 		}
 
 		const communication_date = comment_when(email.communication_date, true);
 		const status =
 			email.status == "Closed"
-				? `<span class="fa fa-check fa-large" title="${__(email.status)}"></span>`
+				? `<span title="${__(email.status)}">${frappe.utils.icon("check", "sm")}</span>`
 				: email.status == "Replied"
-				? `<span class="fa fa-mail-reply fa-large" title="${__(email.status)}"></span>`
+				? `<span title="${__(email.status)}">${frappe.utils.icon("reply", "sm")}</span>`
 				: "";
 
 		return `
