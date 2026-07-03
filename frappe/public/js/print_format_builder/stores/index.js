@@ -52,6 +52,7 @@ export function getStore(print_format_name) {
 
 					load_lh.then(() => {
 						history = [];
+						redo_stack = [];
 						last_snap = JSON.stringify(layout.value);
 						nextTick(() => (dirty.value = false));
 						resolve();
@@ -246,23 +247,41 @@ export function getStore(print_format_name) {
 
 	// ── Undo history (Ctrl/Cmd+Z) ──────────────────────────
 	let history = [];
+	let redo_stack = [];
 	let restoring = false;
 	let last_snap = null;
-	const record_history = frappe.utils.debounce(() => {
+	function take_snapshot() {
 		const snap = JSON.stringify(layout.value);
 		if (snap === last_snap) return;
 		if (last_snap !== null) history.push(last_snap);
 		if (history.length > 50) history.shift();
 		last_snap = snap;
-	}, 400);
+		redo_stack = [];
+	}
+	const record_history = frappe.utils.debounce(take_snapshot, 400);
 
-	function undo() {
-		if (!history.length) return;
+	function restore(snap) {
 		restoring = true;
-		last_snap = history.pop();
-		layout.value = JSON.parse(last_snap);
+		last_snap = snap;
+		layout.value = JSON.parse(snap);
 		selected_field.value = null;
 		selected_section.value = null;
+	}
+
+	function undo() {
+		record_history.cancel();
+		take_snapshot();
+		if (!history.length) return;
+		redo_stack.push(last_snap);
+		restore(history.pop());
+	}
+
+	function redo() {
+		record_history.cancel();
+		take_snapshot();
+		if (!redo_stack.length) return;
+		history.push(last_snap);
+		restore(redo_stack.pop());
 	}
 
 	// watch
@@ -307,6 +326,7 @@ export function getStore(print_format_name) {
 		get_default_layout,
 		change_letterhead,
 		undo,
+		redo,
 	};
 }
 

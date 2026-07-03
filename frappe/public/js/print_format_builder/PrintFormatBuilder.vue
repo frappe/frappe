@@ -164,13 +164,13 @@ function on_start_blank() {
 function handle_keydown(e) {
 	// Zoom shortcuts: Ctrl+= / Ctrl+- / Ctrl+0
 	if (e.ctrlKey || e.metaKey) {
-		if (e.key === "z" || e.key === "Z") {
-			// let inputs keep their own undo
+		if (e.key === "z" || e.key === "Z" || e.key === "y") {
+			// rich text editors and dialogs keep their own undo
 			const el = document.activeElement;
-			if (el?.tagName === "INPUT" || el?.tagName === "TEXTAREA" || el?.isContentEditable)
-				return;
+			if (el?.isContentEditable || el?.closest(".modal")) return;
 			e.preventDefault();
-			$store.value.undo();
+			if (e.key === "y" || e.shiftKey) $store.value.redo();
+			else $store.value.undo();
 			return;
 		}
 		if (e.key === "=" || e.key === "+") {
