@@ -22,7 +22,6 @@
 			class="print-format-section"
 			:class="{
 				'section--selected': is_selected,
-				'label-uppercase': section.label_case === 'uppercase',
 				'section--grid': is_grid,
 			}"
 			:style="section_inline_style"
@@ -132,7 +131,7 @@
 import draggable from "vuedraggable";
 import Field from "./Field.vue";
 import { computed, inject } from "vue";
-import { evaluate_visible_if } from "../../utils";
+import { evaluate_visible_if, parse_inline_style } from "../../utils";
 
 const props = defineProps(["section", "is_header", "zone"]);
 
@@ -155,7 +154,7 @@ let has_visible_fields = computed(
 let section_inline_style = computed(() => {
 	const style = {};
 	if (props.section.background) style.backgroundColor = props.section.background;
-	if (props.section.padding && !is_grid.value) {
+	if (props.section.padding) {
 		const p = props.section.padding;
 		style.padding = `${p.top || 0}px ${p.right || 0}px ${p.bottom || 0}px ${p.left || 0}px`;
 	}
@@ -163,7 +162,7 @@ let section_inline_style = computed(() => {
 		const pad = props.section.cell_padding ?? 8;
 		style["--pfb-cell-pad"] = `${pad}px`;
 	}
-	return style;
+	return { ...style, ...parse_inline_style(props.section.custom_style) };
 });
 
 function select_section() {
@@ -486,41 +485,20 @@ function remove_column(index) {
 	color: var(--red-500);
 }
 
-/* ── Label case: uppercase (mirrors print_format.css rules for builder canvas) */
-
-/* section-title-display is in this same component — plain scoped selector */
-.print-format-section.label-uppercase .section-title-display {
-	text-transform: uppercase;
-	letter-spacing: 0.06em;
-}
-
-/* field-preview-* and preview-table are inside child Field.vue — need :deep() */
-.print-format-section.label-uppercase :deep(.field-preview-label) {
-	text-transform: uppercase;
-	letter-spacing: 0.04em;
-}
-
-.print-format-section.label-uppercase :deep(.field-preview-table > .field-preview-label) {
-	text-transform: uppercase;
-	letter-spacing: 0.03em;
-}
-
-.print-format-section.label-uppercase :deep(.preview-table th) {
-	text-transform: uppercase;
-	letter-spacing: 0.03em;
-}
-
 /* ── Table layout (field borders) ───────────────────────── */
 .section--grid {
-	border: 1px solid var(--border-color) !important;
-	border-radius: var(--border-radius-md, 8px) !important;
-	overflow: hidden !important;
-	padding: 0 !important;
+	border: 1px solid var(--border-color);
+	border-radius: var(--border-radius-md, 8px);
+	overflow: hidden;
+	padding: 0;
+}
+.section--grid.section--selected {
+	border-color: var(--gray-400);
 }
 .section--grid .section-title-display {
-	padding: var(--pfb-cell-pad, 8px) !important;
-	margin: 0 !important;
-	border-bottom: 1px solid var(--border-color) !important;
+	padding: var(--pfb-cell-pad, 8px);
+	margin: 0;
+	border-bottom: 1px solid var(--border-color);
 }
 .section--grid .section-columns {
 	padding: 0;
@@ -535,17 +513,17 @@ function remove_column(index) {
 	display: none;
 }
 .section--grid :deep(.drag-container) {
-	gap: 0 !important;
+	gap: 0;
 }
 .section--grid :deep(.field) {
-	padding: var(--pfb-cell-pad, 8px) !important;
-	border: none !important;
-	border-bottom: 1px solid var(--border-color) !important;
-	border-radius: 0 !important;
-	background: transparent !important;
+	padding: var(--pfb-cell-pad, 8px);
+	border: none;
+	border-bottom: 1px solid var(--border-color);
+	border-radius: 0;
+	background: transparent;
 }
 .section--grid :deep(.field:last-child) {
-	border-bottom: none !important;
+	border-bottom: none;
 }
 .section--grid :deep(.field:hover),
 .section--grid :deep(.field--selected) {

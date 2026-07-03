@@ -91,6 +91,10 @@
 							v-model="selected_field.label"
 							:label="__('Title')"
 							:placeholder="__('Table title')"
+							show-toggle
+							:show-label="__('Show title')"
+							:show="selected_field.show_label"
+							@update:show="(v) => (selected_field.show_label = v)"
 						/>
 						<!-- Style -->
 						<SegmentedRow
@@ -301,6 +305,21 @@
 					</div>
 				</div>
 
+				<!-- STYLE section -->
+				<div class="pfb-insp-section">
+					<div class="pfb-insp-section-head" @click="toggle('t_style')">
+						<span class="pfb-insp-section-label">{{ __("Style") }}</span>
+						<span
+							class="pfb-insp-chevron"
+							:class="{ collapsed: !open.t_style }"
+							v-html="frappe.utils.icon('chevron-down', 'xs')"
+						></span>
+					</div>
+					<div v-show="open.t_style">
+						<StyleSection v-model="selected_field.custom_style" />
+					</div>
+				</div>
+
 				<!-- VISIBILITY section -->
 				<div class="pfb-insp-section">
 					<div class="pfb-insp-section-head" @click="toggle('t_visibility')">
@@ -345,7 +364,8 @@
 							<span class="pfb-insp-label">{{ __("Source") }}</span>
 							<Autocomplete
 								:options="repeater_source_opts"
-								:placeholder="repeater_source_label || __('Select table…')"
+								:model-value="selected_field.source || ''"
+								:placeholder="__('Select table…')"
 								@select="(o) => (selected_field.source = o.value)"
 							/>
 						</div>
@@ -419,6 +439,20 @@
 							<span v-html="frappe.utils.icon('plus', 'xs')"></span>
 							{{ __("Add column") }}
 						</button>
+					</div>
+				</div>
+
+				<div class="pfb-insp-section">
+					<div class="pfb-insp-section-head" @click="toggle('r_style')">
+						<span class="pfb-insp-section-label">{{ __("Style") }}</span>
+						<span
+							class="pfb-insp-chevron"
+							:class="{ collapsed: !open.r_style }"
+							v-html="frappe.utils.icon('chevron-down', 'xs')"
+						></span>
+					</div>
+					<div v-show="open.r_style">
+						<StyleSection v-model="selected_field.custom_style" />
 					</div>
 				</div>
 
@@ -515,6 +549,20 @@
 				</div>
 
 				<div class="pfb-insp-section">
+					<div class="pfb-insp-section-head" @click="toggle('f_style')">
+						<span class="pfb-insp-section-label">{{ __("Style") }}</span>
+						<span
+							class="pfb-insp-chevron"
+							:class="{ collapsed: !open.f_style }"
+							v-html="frappe.utils.icon('chevron-down', 'xs')"
+						></span>
+					</div>
+					<div v-show="open.f_style">
+						<StyleSection v-model="selected_field.custom_style" />
+					</div>
+				</div>
+
+				<div class="pfb-insp-section">
 					<div class="pfb-insp-section-head" @click="toggle('f_visibility')">
 						<span class="pfb-insp-section-label">{{ __("Visibility") }}</span>
 						<span
@@ -599,19 +647,6 @@
 							unit="px"
 							@update:model-value="(v) => (selected_section.gap = v)"
 						/>
-
-						<!-- Label case -->
-						<SegmentedRow
-							:label="__('Label case')"
-							:model-value="
-								section_label_case === 'uppercase' ? 'uppercase' : 'normal'
-							"
-							:options="[
-								{ value: 'normal', label: __('Normal') },
-								{ value: 'uppercase', label: __('UPPER') },
-							]"
-							@update:model-value="(v) => (selected_section.label_case = v)"
-						/>
 					</div>
 				</div>
 
@@ -680,6 +715,21 @@
 					</div>
 				</div>
 
+				<!-- STYLE -->
+				<div class="pfb-insp-section">
+					<div class="pfb-insp-section-head" @click="toggle('s_style')">
+						<span class="pfb-insp-section-label">{{ __("Style") }}</span>
+						<span
+							class="pfb-insp-chevron"
+							:class="{ collapsed: !open.s_style }"
+							v-html="frappe.utils.icon('chevron-down', 'xs')"
+						></span>
+					</div>
+					<div v-show="open.s_style">
+						<StyleSection v-model="selected_section.custom_style" />
+					</div>
+				</div>
+
 				<!-- VISIBILITY -->
 				<div class="pfb-insp-section">
 					<div class="pfb-insp-section-head" @click="toggle('s_visibility')">
@@ -731,6 +781,7 @@ import { useStore } from "../../stores";
 import LetterHeadZoneInspector from "./LetterHeadZoneInspector.vue";
 import Autocomplete from "../../../vue-components/Autocomplete.vue";
 import VisibilitySection from "./VisibilitySection.vue";
+import StyleSection from "./StyleSection.vue";
 import TemplateInput from "./TemplateInput.vue";
 import LabelField from "./LabelField.vue";
 import SegmentedRow from "./SegmentedRow.vue";
@@ -749,17 +800,21 @@ let preview_doc = computed(() => store.preview_doc.value);
 
 const open = ref({
 	f_field: true,
+	f_style: false,
 	f_visibility: false,
 	s_section: true,
 	s_bg: true,
 	s_padding: true,
 	s_layout: false,
+	s_style: false,
 	s_visibility: false,
 	t_table: true,
 	t_columns: true,
+	t_style: false,
 	t_visibility: true,
 	r_repeater: true,
 	r_columns: true,
+	r_style: false,
 });
 
 function toggle(key) {
@@ -788,12 +843,6 @@ let repeater_field_opts = computed(() => {
 		.filter((f) => !frappe.model.no_value_type.includes(f.fieldtype) && f.fieldname !== "name")
 		.map((f) => ({ value: f.fieldname, label: f.label || f.fieldname }));
 });
-
-let repeater_source_label = computed(
-	() =>
-		repeater_source_opts.value.find((o) => o.value === selected_field.value?.source)?.label ||
-		""
-);
 
 function add_repeater_column() {
 	if (!selected_field.value.repeater_columns) selected_field.value.repeater_columns = [];
@@ -1133,7 +1182,6 @@ function set_image_size(col, value) {
 // ── Section helpers ────────────────────────────────────────
 let section_orientation = computed(() => selected_section.value?.field_orientation ?? "");
 let section_gap = computed(() => selected_section.value?.gap ?? 20);
-let section_label_case = computed(() => selected_section.value?.label_case ?? "normal");
 const bg_color_host = ref(null);
 
 function mount_bg_color_control() {

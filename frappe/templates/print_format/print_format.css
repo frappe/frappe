@@ -197,6 +197,10 @@ body {
 	vertical-align: top;
 }
 
+.pfb-repeater-table tr + tr .pfb-repeater-cell {
+	padding-top: 0.5rem;
+}
+
 /* Child table */
 .child-table {
 	margin-top: 0.5rem;
@@ -423,27 +427,6 @@ header img {
 
 .field[data-fieldtype="Check"] #icon-tick {
 	width: 1rem;
-}
-
-/* ── Label case: uppercase (opt-in per section) ──────────── */
-.label-uppercase .section-label {
-	text-transform: uppercase;
-	letter-spacing: 0.04em;
-}
-
-.label-uppercase .field .label {
-	text-transform: uppercase;
-	letter-spacing: 0.03em;
-}
-
-.label-uppercase .child-table > .label {
-	text-transform: uppercase;
-	letter-spacing: 0.03em;
-}
-
-.label-uppercase .child-table .table th {
-	text-transform: uppercase;
-	letter-spacing: 0.03em;
 }
 
 /* ── Table layout (field-borders mode) ───────────────────── */

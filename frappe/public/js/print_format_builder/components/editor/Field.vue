@@ -13,7 +13,7 @@
 	>
 		<!-- ── Preview mode: show actual doc values ─────────── -->
 		<template v-if="preview_doc">
-			<div class="field-preview-wrap">
+			<div class="field-preview-wrap" :style="custom_style">
 				<!-- Handle HTML fields: render Jinja2 server-side if needed -->
 				<div
 					v-if="df.fieldtype == 'HTML' && df.html"
@@ -53,7 +53,9 @@
 				</div>
 				<!-- Table field -->
 				<div v-else-if="df.fieldtype == 'Table'" class="field-preview-table">
-					<div v-if="df.label" class="field-preview-label">{{ df.label }}</div>
+					<div v-if="df.label && df.show_label !== 'hide'" class="field-preview-label">
+						{{ df.label }}
+					</div>
 					<table
 						class="preview-table"
 						:class="{
@@ -248,7 +250,7 @@
 		<template v-else>
 			<div
 				class="field-row"
-				:style="{ textAlign: df.align || 'left' }"
+				:style="{ textAlign: df.align || 'left', ...custom_style }"
 				:class="{ 'field-row--lr': field_orientation === 'left-right' }"
 			>
 				<div
@@ -333,7 +335,13 @@
 
 <script setup>
 import ConfigureColumnsVue from "../inspector/ConfigureColumns.vue";
-import { render_jinja_html, sanitize_html, evaluate_visible_if, thumb_hue } from "../../utils";
+import {
+	render_jinja_html,
+	sanitize_html,
+	evaluate_visible_if,
+	thumb_hue,
+	parse_inline_style,
+} from "../../utils";
 import { createApp, ref, nextTick, watch, computed, inject } from "vue";
 
 const props = defineProps(["df", "field_orientation"]);
@@ -359,6 +367,8 @@ let editing = ref(false);
 let label_input = ref(null);
 let rendered_html = ref(null);
 let rendered_template = ref(null);
+
+let custom_style = computed(() => parse_inline_style(props.df.custom_style));
 
 let is_selected = computed(() => store.selected_field.value === props.df);
 let preview_doc = computed(() => store.preview_doc.value);
@@ -449,8 +459,18 @@ function numeric_align_class(col) {
 
 function repeater_cell(col, row) {
 	return (col.template || [])
-		.map((tok) => (tok.t === "s" ? tok.v || "" : row?.[tok.v] ?? ""))
+		.map((tok) => {
+			if (tok.t === "s") return tok.v || "";
+			const child_df = repeater_child_df(tok.v);
+			return child_df ? format_cell(row || {}, child_df) : row?.[tok.v] ?? "";
+		})
 		.join("");
+}
+
+function repeater_child_df(fieldname) {
+	const source = store.meta.value?.fields?.find((f) => f.fieldname === props.df.source);
+	if (!source) return null;
+	return frappe.get_meta(source.options)?.fields?.find((f) => f.fieldname === fieldname) || null;
 }
 
 function multiselect_display(df) {
@@ -884,7 +904,6 @@ watch(
 
 .field--condition-hidden {
 	opacity: 0.35;
-	border: 1px dashed var(--gray-400) !important;
 	border-radius: var(--radius);
 }
 
@@ -1052,10 +1071,14 @@ watch(
 	color: var(--text-color);
 }
 
-/* Repeater rows are tight by default — spacing is opt-in via the section */
+/* Repeater rows follow the same vertical rhythm as fields in a column */
 .field-preview-repeater .preview-table td {
 	padding: 0;
 	border: none;
+}
+
+.field-preview-repeater .preview-table tr + tr td {
+	padding-top: 0.4rem;
 }
 
 /* lined (default): no alternating rows */

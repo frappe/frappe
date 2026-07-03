@@ -19,6 +19,7 @@
 					:style="i === display.length - 1 ? null : { width: tok.v.length + 'ch' }"
 					:placeholder="only_empty_text ? __('Type text…') : ''"
 					@input="commit"
+					@keydown="on_key($event, i)"
 				/>
 			</template>
 		</div>
@@ -100,6 +101,45 @@ function add_field(opt) {
 	}
 	adding.value = false;
 }
+function on_key(e, i) {
+	const inputs = [...row.value.querySelectorAll(".pfb-tpl-text")];
+	const pos = inputs.indexOf(e.target);
+	const collapsed = e.target.selectionStart === e.target.selectionEnd;
+	const at_start = collapsed && e.target.selectionStart === 0;
+	const at_end = collapsed && e.target.selectionStart === e.target.value.length;
+
+	if (e.key === "ArrowRight" && at_end && inputs[pos + 1]) {
+		e.preventDefault();
+		inputs[pos + 1].focus();
+		inputs[pos + 1].setSelectionRange(0, 0);
+	} else if (e.key === "ArrowLeft" && at_start && inputs[pos - 1]) {
+		e.preventDefault();
+		const prev = inputs[pos - 1];
+		prev.focus();
+		prev.setSelectionRange(prev.value.length, prev.value.length);
+	} else if (e.key === "Backspace" && at_start && display.value[i - 1]?.t === "f") {
+		e.preventDefault();
+		const caret = display.value[i - 2]?.v.length ?? 0;
+		remove(i - 1);
+		focus_slot(Math.max(pos - 1, 0), caret);
+	} else if (e.key === "Delete" && at_end && display.value[i + 1]?.t === "f") {
+		e.preventDefault();
+		const caret = e.target.value.length;
+		remove(i + 1);
+		focus_slot(pos, caret);
+	}
+}
+
+function focus_slot(pos, caret) {
+	nextTick(() => {
+		const input = row.value?.querySelectorAll(".pfb-tpl-text")[pos];
+		if (input) {
+			input.focus();
+			input.setSelectionRange(caret, caret);
+		}
+	});
+}
+
 function remove(i) {
 	display.value.splice(i, 1);
 	// merge text slots that became adjacent
