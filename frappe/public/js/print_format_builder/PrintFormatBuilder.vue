@@ -167,7 +167,12 @@ function handle_keydown(e) {
 		if (e.key === "z" || e.key === "Z" || e.key === "y") {
 			// rich text editors and dialogs keep their own undo
 			const el = document.activeElement;
-			if (el?.tagName === "TEXTAREA" || el?.isContentEditable || el?.closest(".modal"))
+			if (
+				el?.tagName === "INPUT" ||
+				el?.tagName === "TEXTAREA" ||
+				el?.isContentEditable ||
+				el?.closest(".modal")
+			)
 				return;
 			e.preventDefault();
 			if (e.key === "y" || e.shiftKey) $store.value.redo();
