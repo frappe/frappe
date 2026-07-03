@@ -71,24 +71,26 @@ async function refreshHistory() {
 	recentSessions.value = await api.loadHistory();
 }
 
-// Load the classification map for `agent`. Guarded against a stale response winning
-// after a quick agent switch; a code-agent session (no agent) falls back to empty.
-async function loadToolApproval(agent) {
+// Load the classification map for `agent`. The cache serves instantly and is
+// refreshed in the background, so an edited Flow Tool doesn't stay stale all
+// session. Guarded against a stale response winning after a quick agent switch.
+function loadToolApproval(agent) {
 	if (!agent) {
 		toolApproval.value = {};
-		return;
+		return Promise.resolve();
 	}
-	if (toolApprovalCache[agent]) {
-		toolApproval.value = toolApprovalCache[agent];
-		return;
-	}
-	try {
-		const map = await api.getAgentTools(agent);
-		toolApprovalCache[agent] = map;
-		if (selectedAgent.value === agent) toolApproval.value = map;
-	} catch {
-		if (selectedAgent.value === agent) toolApproval.value = {};
-	}
+	const cached = toolApprovalCache[agent];
+	if (cached) toolApproval.value = cached;
+	const refresh = api
+		.getAgentTools(agent)
+		.then((map) => {
+			toolApprovalCache[agent] = map;
+			if (selectedAgent.value === agent) toolApproval.value = map;
+		})
+		.catch(() => {
+			if (selectedAgent.value === agent && !cached) toolApproval.value = {};
+		});
+	return cached ? Promise.resolve() : refresh;
 }
 
 // ── selection ────────────────────────────────────────────────────────────────
