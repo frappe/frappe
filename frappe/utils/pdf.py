@@ -183,8 +183,7 @@ def get_chrome_pdf(print_format, html, options, output, pdf_generator=None):
 		# transforms and merges header, footer into body pdf and returns merged pdf
 		return transformer.transform_pdf(output=output)
 	finally:
-		if browser is not None:
-			generator.remove_browser(browser.browserID)
+		generator._close_browser()
 
 
 def get_file_data_from_writer(writer_obj):
