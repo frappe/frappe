@@ -1,4 +1,5 @@
 import { create_default_layout, serialize_layout } from "../utils";
+import { useLayoutHistory } from "./useLayoutHistory";
 import { watch, ref, inject, computed, nextTick } from "vue";
 
 export function getStore(print_format_name) {
@@ -51,9 +52,7 @@ export function getStore(print_format_name) {
 						: Promise.resolve((letterhead.value = null));
 
 					load_lh.then(() => {
-						history = [];
-						redo_stack = [];
-						last_snap = JSON.stringify(layout.value);
+						reset_history();
 						nextTick(() => (dirty.value = false));
 						resolve();
 					});
@@ -156,55 +155,19 @@ export function getStore(print_format_name) {
 		});
 	}
 
-	// ── Undo history (Ctrl/Cmd+Z) ──────────────────────────
-	let history = [];
-	let redo_stack = [];
-	let restoring = false;
-	let last_snap = null;
-	function take_snapshot() {
-		const snap = JSON.stringify(layout.value);
-		if (snap === last_snap) return;
-		if (last_snap !== null) history.push(last_snap);
-		if (history.length > 50) history.shift();
-		last_snap = snap;
-		redo_stack = [];
-	}
-	const record_history = frappe.utils.debounce(take_snapshot, 400);
-
-	function restore(snap) {
-		restoring = true;
-		last_snap = snap;
-		layout.value = JSON.parse(snap);
+	const {
+		undo,
+		redo,
+		reset: reset_history,
+	} = useLayoutHistory(layout, () => {
 		selected_field.value = null;
 		selected_section.value = null;
-	}
+	});
 
-	function undo() {
-		record_history.cancel();
-		take_snapshot();
-		if (!history.length) return;
-		redo_stack.push(last_snap);
-		restore(history.pop());
-	}
-
-	function redo() {
-		record_history.cancel();
-		take_snapshot();
-		if (!redo_stack.length) return;
-		history.push(last_snap);
-		restore(redo_stack.pop());
-	}
-
-	// watch
 	watch(
 		layout,
 		() => {
 			dirty.value = true;
-			if (restoring) {
-				restoring = false;
-				return;
-			}
-			record_history();
 		},
 		{ deep: true }
 	);
