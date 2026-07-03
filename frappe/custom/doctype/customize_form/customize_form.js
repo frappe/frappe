@@ -68,7 +68,6 @@ frappe.ui.form.on("Customize Form", {
 							frm.refresh();
 							frm.trigger("add_customize_child_table_button");
 							frm.trigger("setup_default_views");
-							frm.trigger("check_default_print_format");
 						}
 					}
 				},
@@ -84,29 +83,6 @@ frappe.ui.form.on("Customize Form", {
 
 	is_calendar_and_gantt: function (frm) {
 		frm.trigger("setup_default_views");
-	},
-
-	default_print_format: function (frm) {
-		frm.trigger("check_default_print_format");
-	},
-
-	check_default_print_format: function (frm) {
-		const print_format = frm.doc.default_print_format;
-		if (!print_format) return;
-
-		frappe.db.get_value("Print Format", print_format, "disabled", (r) => {
-			// return if the field has changed while the request was in flight
-			if (frm.doc.default_print_format !== print_format) return;
-
-			if (r && r.disabled) {
-				frappe.show_alert({
-					message: __("The selected default print format {0} is disabled.", [
-						print_format.bold(),
-					]),
-					indicator: "orange",
-				});
-			}
-		});
 	},
 
 	add_customize_child_table_button: function (frm) {
