@@ -9,6 +9,7 @@ frappe.ui.ThemeSwitcher = class ThemeSwitcher {
 	setup_dialog() {
 		this.dialog = new frappe.ui.Dialog({
 			title: __("Switch Theme"),
+			size: "large",
 		});
 		this.body = $(`<div class="theme-grid"></div>`).appendTo(this.dialog.$body);
 		this.bind_events();
@@ -55,19 +56,19 @@ frappe.ui.ThemeSwitcher = class ThemeSwitcher {
 		return new Promise((resolve) => {
 			this.themes = [
 				{
+					name: "automatic",
+					label: __("Automatic"),
+					info: __("Uses system's theme to switch between light and dark mode"),
+				},
+				{
 					name: "light",
-					label: __("Frappe Light"),
+					label: __("Light"),
 					info: __("Light Theme"),
 				},
 				{
 					name: "dark",
-					label: __("Timeless Night"),
+					label: __("Dark"),
 					info: __("Dark Theme"),
-				},
-				{
-					name: "automatic",
-					label: __("Automatic"),
-					info: __("Uses system's theme to switch between light and dark mode"),
 				},
 			];
 
@@ -84,44 +85,63 @@ frappe.ui.ThemeSwitcher = class ThemeSwitcher {
 	}
 
 	get_preview_html(theme) {
-		const is_auto_theme = theme.name === "automatic";
-		const preview = $(`<div class="${this.current_theme == theme.name ? "selected" : ""}">
-			<div data-theme=${is_auto_theme ? "light" : theme.name}
-				data-is-auto-theme="${is_auto_theme}" title="${theme.info}">
-				<div class="background">
-					<div>
-						<div class="preview-check" data-theme=${is_auto_theme ? "dark" : theme.name}>
-							${frappe.utils.icon("tick", "xs")}
+		const selected = this.current_theme === theme.name;
+		const is_auto = theme.name === "automatic";
+
+		const field = `<div class="theme-preview-field">
+			<div class="theme-preview-label"></div>
+			<div class="theme-preview-input"></div>
+		</div>`;
+
+		const window_html = (t) => `<div class="theme-preview-container" data-theme="${t}">
+			<div class="theme-preview-frame">
+				<div class="theme-preview-titlebar">
+					<span class="theme-preview-dot theme-preview-dot--red"></span>
+					<span class="theme-preview-dot theme-preview-dot--yellow"></span>
+					<span class="theme-preview-dot theme-preview-dot--green"></span>
+				</div>
+				<div class="theme-preview-content">
+					<div class="theme-preview-sidebar"></div>
+					<div class="theme-preview-main">
+						<div class="theme-preview-header">
+							<div class="theme-preview-header-title"></div>
+							<div class="theme-preview-header-action"></div>
 						</div>
-					</div>
-					<div class="navbar"></div>
-					<div class="p-2">
-						<div class="toolbar">
-							<span class="text"></span>
-							<span class="primary"></span>
+						<div class="theme-preview-body">
+							${field}${field}${field}${field}
 						</div>
-						<div class="foreground"></div>
-						<div class="foreground"></div>
 					</div>
 				</div>
 			</div>
-			<div class="mt-3 text-center">
-				<h5 class="theme-title">${theme.label}</h5>
+		</div>`;
+
+		const preview = is_auto
+			? `<div class="theme-card-preview">
+				${window_html("light")}
+				${window_html("dark")}
+			</div>`
+			: `<div class="theme-card-preview">${window_html(theme.name)}</div>`;
+
+		const $card = $(`
+			<div class="theme-card-wrapper${selected ? " selected" : ""}">
+				<button type="button" class="theme-card" title="${theme.info}">
+					${preview}
+					<div class="theme-card-footer">
+						<span class="theme-card-label">${theme.label}</span>
+						<span class="theme-card-radio"></span>
+					</div>
+				</button>
 			</div>
-		</div>`);
+		`);
 
-		preview.on("click", () => {
+		$card.on("click", () => {
 			if (this.current_theme === theme.name) return;
-
-			this.themes.forEach((th) => {
-				th.$html.removeClass("selected");
-			});
-
-			preview.addClass("selected");
+			this.themes.forEach((th) => th.$html.removeClass("selected"));
+			$card.addClass("selected");
 			this.toggle_theme(theme.name);
 		});
 
-		return preview;
+		return $card;
 	}
 
 	toggle_theme(theme) {

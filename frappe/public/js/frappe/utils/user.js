@@ -24,6 +24,44 @@ frappe.update_user_info = function (user_info) {
 	}
 };
 
+frappe.ui.show_change_password_dialog = function (user, on_success) {
+	const dialog = new frappe.ui.Dialog({
+		title: __("Change Password"),
+		fields: [
+			{
+				label: __("Set New Password"),
+				fieldtype: "Password",
+				fieldname: "new_password",
+				reqd: 1,
+			},
+			{
+				label: __("Logout From All Devices After Changing Password"),
+				fieldtype: "Check",
+				fieldname: "logout_all_sessions",
+				default: 1,
+			},
+		],
+		primary_action_label: __("Change Password"),
+		primary_action: (values) => {
+			return frappe
+				.call({
+					method: "frappe.core.doctype.user.user.change_password",
+					args: {
+						user: user,
+						new_password: values.new_password,
+						logout_all_sessions: values.logout_all_sessions,
+					},
+				})
+				.then(() => {
+					dialog.hide();
+					frappe.show_alert({ message: __("Password changed"), indicator: "green" });
+					on_success?.();
+				});
+		},
+	});
+	dialog.show();
+};
+
 frappe.provide("frappe.user");
 
 $.extend(frappe.user, {
