@@ -346,8 +346,9 @@ const color_settings = [
 	{ fieldname: "value_color", label: __("Value") },
 ];
 let color_hosts = ref({});
-let color_controls = {};
 
+// The Format tab is v-if, so its DOM is recreated on each visit — (re)mount the
+// Frappe color controls into the fresh host divs when the tab is shown.
 function mount_color_controls() {
 	for (const c of color_settings) {
 		const host = color_hosts.value[c.fieldname];
@@ -366,7 +367,6 @@ function mount_color_controls() {
 			render_input: true,
 		});
 		control.set_value(print_format.value[c.fieldname] || "");
-		color_controls[c.fieldname] = control;
 	}
 }
 

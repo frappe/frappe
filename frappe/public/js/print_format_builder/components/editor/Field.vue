@@ -30,12 +30,7 @@
 				<!-- Table MultiSelect field: render as a comma-separated value list -->
 				<div
 					v-else-if="df.fieldtype == 'Table MultiSelect'"
-					:style="{
-						...(field_orientation !== 'left-right'
-							? { textAlign: df.align || 'left' }
-							: {}),
-						...(df.label_gap != null ? { gap: df.label_gap + 'px' } : {}),
-					}"
+					:style="field_style(df, true)"
 					:class="[
 						'field-preview-lr',
 						field_orientation === 'left-right' && df.label_justify
@@ -206,15 +201,7 @@
 				<!-- Regular field -->
 				<div
 					v-else
-					:style="{
-						...(field_orientation !== 'left-right'
-							? { textAlign: df.align || 'left' }
-							: {}),
-						...((field_orientation === 'left-right' || df.show_label === 'inline') &&
-						df.label_gap != null
-							? { gap: df.label_gap + 'px' }
-							: {}),
-					}"
+					:style="field_style(df)"
 					:class="[
 						field_orientation === 'left-right' || df.show_label === 'inline'
 							? 'field-preview-lr'
@@ -348,6 +335,22 @@ import { render_jinja_html, sanitize_html, evaluate_visible_if, thumb_hue } from
 import { createApp, ref, nextTick, watch, computed, inject } from "vue";
 
 const props = defineProps(["df", "field_orientation"]);
+
+// Inline style for a preview field: text alignment (stacked only) plus an
+// optional label-to-value gap. `always_row` is for fields that are always a
+// flex row (e.g. Table MultiSelect) regardless of section orientation.
+function field_style(df, always_row = false) {
+	const style = {};
+	if (props.field_orientation !== "left-right") {
+		style.textAlign = df.align || "left";
+	}
+	const is_row =
+		always_row || props.field_orientation === "left-right" || df.show_label === "inline";
+	if (is_row && df.label_gap != null) {
+		style.gap = df.label_gap + "px";
+	}
+	return style;
+}
 
 let store = inject("$store");
 let editing = ref(false);
@@ -1054,21 +1057,22 @@ watch(
 	border: none;
 }
 
-/* Repeater column styles — mirror the child-table cell-line palette */
-.field-preview-repeater td.cell-line--primary {
-	font-weight: 600;
-	color: #111827;
-}
+/* Repeater column styles — same palette as child-table cells (.pf-merge--*),
+   driven by theme tokens; scoped to td to out-specify the .preview-table td color */
+.field-preview-repeater td.cell-line--primary,
 .field-preview-repeater td.cell-line--secondary {
-	color: #111827;
+	color: var(--text-color);
+}
+.field-preview-repeater td.cell-line--primary {
+	font-weight: var(--weight-semibold);
 }
 .field-preview-repeater td.cell-line--mono-sm {
 	font-family: var(--monospace-font-family, monospace);
 }
 .field-preview-repeater td.cell-line--mono-sm,
 .field-preview-repeater td.cell-line--muted-sm {
-	font-size: 0.9em;
-	color: #6b7280;
+	font-size: 0.85em;
+	color: var(--text-muted);
 }
 
 /* lined (default): no alternating rows */

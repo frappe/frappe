@@ -93,12 +93,12 @@ body {
 .field .label {
 	font-size: 1em;
 	font-weight: 600;
-	color: #6b7280;
+	color: var(--pfb-label-color, #6b7280);
 	margin-bottom: 0.1rem;
 }
 
 .field .value {
-	color: #111827;
+	color: var(--pfb-value-color, #111827);
 }
 
 /* Left-right (section-level): label shrinks to content width, value takes the rest */
@@ -114,7 +114,7 @@ body {
 	flex-shrink: 0;
 	font-size: 1em;
 	font-weight: 600;
-	color: #374151;
+	color: var(--pfb-label-color, #374151);
 	text-transform: none;
 	letter-spacing: 0;
 	padding-top: 0.05rem;
@@ -132,15 +132,13 @@ body {
 }
 
 {%- if print_format.label_color %}
-.print-format .field .label,
-.print-format .field.left-right .label,
-.print-format .field.field-inline .label {
-	color: {{ print_format.label_color }};
+.print-format {
+	--pfb-label-color: {{ print_format.label_color }};
 }
 {%- endif %}
 {%- if print_format.value_color %}
-.print-format .field .value {
-	color: {{ print_format.value_color }};
+.print-format {
+	--pfb-value-color: {{ print_format.value_color }};
 }
 {%- endif %}
 
@@ -199,23 +197,6 @@ body {
 .pfb-repeater-cell {
 	padding: 0;
 	vertical-align: top;
-}
-
-/* Repeater column styles — mirror the child-table cell-line palette */
-.pfb-repeater-cell.cell-line--primary,
-.pfb-repeater-cell.cell-line--secondary {
-	color: #111827;
-}
-.pfb-repeater-cell.cell-line--primary {
-	font-weight: 600;
-}
-.pfb-repeater-cell.cell-line--mono-sm {
-	font-family: var(--monospace-font-family, monospace);
-}
-.pfb-repeater-cell.cell-line--mono-sm,
-.pfb-repeater-cell.cell-line--muted-sm {
-	font-size: 0.9em;
-	color: #6b7280;
 }
 
 /* Child table */
@@ -347,20 +328,26 @@ body {
 }
 
 .child-table .cell-line--primary,
-.child-table .cell-line--secondary {
+.child-table .cell-line--secondary,
+.pfb-repeater-cell.cell-line--primary,
+.pfb-repeater-cell.cell-line--secondary {
 	color: #111827;
 }
 
-.child-table .cell-line--primary {
+.child-table .cell-line--primary,
+.pfb-repeater-cell.cell-line--primary {
 	font-weight: 600;
 }
 
-.child-table .cell-line--mono-sm {
+.child-table .cell-line--mono-sm,
+.pfb-repeater-cell.cell-line--mono-sm {
 	font-family: var(--monospace-font-family, monospace);
 }
 
 .child-table .cell-line--mono-sm,
-.child-table .cell-line--muted-sm {
+.child-table .cell-line--muted-sm,
+.pfb-repeater-cell.cell-line--mono-sm,
+.pfb-repeater-cell.cell-line--muted-sm {
 	font-size: 0.85em;
 	color: #6b7280;
 }

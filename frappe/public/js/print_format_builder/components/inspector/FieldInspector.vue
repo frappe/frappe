@@ -1066,11 +1066,12 @@ function clamp_width(col) {
 }
 
 function clamp_repeater_width(col) {
-	if (col.width === "" || col.width == null || isNaN(parseInt(col.width))) {
+	// Repeater widths are optional — a blank value means "auto"
+	if (isNaN(parseInt(col.width))) {
 		delete col.width;
 		return;
 	}
-	col.width = Math.max(5, Math.min(100, parseInt(col.width)));
+	clamp_width(col);
 }
 
 // ── Per-column merged fields ───────────────────────────────
