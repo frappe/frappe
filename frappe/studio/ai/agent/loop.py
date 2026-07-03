@@ -61,6 +61,7 @@ class AgentRunner:
 		page_id: str | None = None,
 		session_id: str | None = None,
 		selected_block_ids: list[str] | None = None,
+		image_url: str | None = None,
 	):
 		self.prompt = prompt
 		self.page_context_json = page_context_json
@@ -70,6 +71,9 @@ class AgentRunner:
 		self.page_id = page_id
 		self.session_id = session_id
 		self.selected_block_ids = selected_block_ids or []
+		# An optional screenshot/design (base64 data URL) to reproduce; attached to this turn's
+		# user message so the model can see it (see build_messages).
+		self.image_url = image_url
 		is_standard = self.is_standard()
 		self.registry = get_tool_registry_for_mode(is_standard)
 		self.system_prompt = get_system_prompt_for_mode(is_standard)
@@ -155,7 +159,19 @@ class AgentRunner:
 		user_text = self.prompt
 		if self.selected_block_ids:
 			user_text += f"\n\n(User has selected: {', '.join(self.selected_block_ids)})"
-		messages.append({"role": "user", "content": user_text})
+		if self.image_url:
+			# Multimodal message: the model sees the attached screenshot alongside the prompt.
+			messages.append(
+				{
+					"role": "user",
+					"content": [
+						{"type": "text", "text": user_text},
+						{"type": "image_url", "image_url": {"url": self.image_url}},
+					],
+				}
+			)
+		else:
+			messages.append({"role": "user", "content": user_text})
 		return messages
 
 	# --- LLM call ---------------------------------------------------------

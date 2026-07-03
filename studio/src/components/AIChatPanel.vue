@@ -30,8 +30,15 @@
 			</div>
 
 			<template v-for="msg in messages" :key="msg.id">
-				<div v-if="msg.role === 'user'" class="flex flex-col items-end">
+				<div v-if="msg.role === 'user'" class="flex flex-col items-end gap-1">
+					<img
+						v-if="msg.metadata?.attachedImageUrl"
+						:src="msg.metadata.attachedImageUrl"
+						class="max-h-40 max-w-[88%] rounded-md border border-outline-gray-2 object-contain"
+						alt="Attached design"
+					/>
 					<div
+						v-if="msg.content"
 						class="w-fit max-w-[88%] rounded-md border bg-surface-gray-1 px-3 py-2 text-p-xs text-ink-gray-8"
 					>
 						<div class="whitespace-pre-wrap break-words">{{ msg.content }}</div>
@@ -117,6 +124,24 @@
 				</Badge>
 			</div>
 
+			<div v-if="imagePreviewUrl" class="mb-2 flex items-center gap-2">
+				<div class="relative">
+					<img
+						:src="imagePreviewUrl"
+						class="h-12 w-12 rounded border border-outline-gray-2 object-cover"
+						alt="Attached design"
+					/>
+					<button
+						class="text-ink-white absolute -right-1.5 -top-1.5 rounded-full bg-surface-gray-7 p-0.5 hover:bg-surface-gray-6"
+						title="Remove image"
+						@click="controller.clearImage()"
+					>
+						<FeatherIcon name="x" class="h-3 w-3" />
+					</button>
+				</div>
+				<span class="truncate text-xs text-ink-gray-5">{{ imageFileName }}</span>
+			</div>
+
 			<div class="relative">
 				<textarea
 					v-model="prompt"
@@ -128,39 +153,54 @@
 					:disabled="loading"
 					@keydown.meta.enter="generate"
 					@keydown.ctrl.enter="generate"
+					@paste="onPaste"
+					@drop="onDropImage"
+					@dragover.prevent
 				/>
 			</div>
 
 			<div class="mt-2 flex items-center justify-between gap-2">
-				<Popover placement="top-start" :offset="6">
-					<template #target="{ togglePopover }">
-						<button
-							class="flex h-7 max-w-[9rem] items-center gap-1.5 rounded px-1.5 text-ink-gray-5 transition-colors hover:bg-surface-gray-2 hover:text-ink-gray-8"
-							@click="togglePopover"
-						>
-							<FeatherIcon name="cpu" class="h-3.5 w-3.5 shrink-0" />
-							<span class="truncate text-xs">{{ modelLabel }}</span>
-						</button>
-					</template>
-					<template #body="{ close }">
-						<div class="min-w-40 rounded-lg border border-outline-gray-2 bg-surface-base py-1 shadow-lg">
+				<div class="flex items-center gap-0.5">
+					<Popover placement="top-start" :offset="6">
+						<template #target="{ togglePopover }">
 							<button
-								v-for="option in modelOptions"
-								:key="option.value"
-								class="flex w-full items-center px-3 py-1.5 text-left text-sm text-ink-gray-7 hover:bg-surface-gray-2"
-								:class="{ 'font-medium text-ink-gray-9': option.value === selectedModel }"
-								@click="
-									() => {
-										selectedModel = option.value
-										close()
-									}
-								"
+								class="flex h-7 max-w-[9rem] items-center gap-1.5 rounded px-1.5 text-ink-gray-5 transition-colors hover:bg-surface-gray-2 hover:text-ink-gray-8"
+								@click="togglePopover"
 							>
-								{{ option.label }}
+								<FeatherIcon name="cpu" class="h-3.5 w-3.5 shrink-0" />
+								<span class="truncate text-xs">{{ modelLabel }}</span>
 							</button>
-						</div>
-					</template>
-				</Popover>
+						</template>
+						<template #body="{ close }">
+							<div class="min-w-40 rounded-lg border border-outline-gray-2 bg-surface-base py-1 shadow-lg">
+								<button
+									v-for="option in modelOptions"
+									:key="option.value"
+									class="flex w-full items-center px-3 py-1.5 text-left text-sm text-ink-gray-7 hover:bg-surface-gray-2"
+									:class="{ 'font-medium text-ink-gray-9': option.value === selectedModel }"
+									@click="
+										() => {
+											selectedModel = option.value
+											close()
+										}
+									"
+								>
+									{{ option.label }}
+								</button>
+							</div>
+						</template>
+					</Popover>
+
+					<button
+						class="flex h-7 items-center gap-1.5 rounded px-1.5 text-ink-gray-5 transition-colors hover:bg-surface-gray-2 hover:text-ink-gray-8 disabled:cursor-not-allowed disabled:opacity-50"
+						title="Attach a screenshot or design to reproduce"
+						:disabled="loading"
+						@click="imageInput?.click()"
+					>
+						<FeatherIcon name="image" class="h-3.5 w-3.5 shrink-0" />
+					</button>
+					<input ref="imageInput" type="file" accept="image/*" class="hidden" @change="onImageSelected" />
+				</div>
 
 				<Button v-if="loading" variant="subtle" label="Stop" icon="square" @click="stop" />
 				<Button
@@ -168,7 +208,7 @@
 					variant="solid"
 					:label="isModifyMode ? 'Edit' : 'Generate'"
 					icon="arrow-up"
-					:disabled="!prompt.trim()"
+					:disabled="!prompt.trim() && !imagePreviewUrl"
 					@click="generate"
 				/>
 			</div>
@@ -290,6 +330,36 @@ const controller = new AIChatController({
 	},
 })
 
+// Attached-image state + input (exposed so the template auto-unwraps the refs).
+const imagePreviewUrl = controller.imagePreviewUrl
+const imageFileName = controller.imageFileName
+const imageInput = ref<HTMLInputElement | null>(null)
+
+function onImageSelected(e: Event) {
+	const input = e.target as HTMLInputElement
+	const file = input.files?.[0]
+	if (file) controller.attachImageFile(file)
+	input.value = "" // let the same file be re-picked
+}
+
+function onPaste(e: ClipboardEvent) {
+	const file = Array.from(e.clipboardData?.items || [])
+		.find((item) => item.type.startsWith("image/"))
+		?.getAsFile()
+	if (file) {
+		e.preventDefault()
+		controller.attachImageFile(file)
+	}
+}
+
+function onDropImage(e: DragEvent) {
+	const file = e.dataTransfer?.files?.[0]
+	if (file?.type.startsWith("image/")) {
+		e.preventDefault()
+		controller.attachImageFile(file)
+	}
+}
+
 function setupListeners() {
 	if (!socket || !pageId.value) return
 	controller.attach(pageId.value)
@@ -313,10 +383,12 @@ watch(
 )
 
 async function generate() {
-	if (!prompt.value.trim()) return
 	const text = prompt.value.trim()
+	const hasImage = !!controller.imageData.value
+	if (!text && !hasImage) return
 	prompt.value = ""
-	await controller.submit(text, selectedModel.value)
+	// An attached design with no words is still a valid instruction: reproduce it.
+	await controller.submit(text || "Reproduce this attached design as a page.", selectedModel.value)
 }
 
 function stop() {

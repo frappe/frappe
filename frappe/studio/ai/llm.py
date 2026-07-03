@@ -96,13 +96,29 @@ def patch_messages_for_provider(model: str, messages: list[dict]) -> None:
 				]
 
 
+def _log_content(content) -> str:
+	"""Render a message's content for logs, collapsing image data URLs (multi-MB base64) to a
+	marker so an attached screenshot doesn't flood the log with its full encoding."""
+	if not isinstance(content, list):
+		return str(content)
+	parts = []
+	for part in content:
+		if not isinstance(part, dict):
+			parts.append(str(part))
+		elif part.get("type") == "image_url":
+			parts.append("[image]")
+		else:
+			parts.append(str(part.get("text", part)))
+	return " ".join(parts)
+
+
 def complete(model: str, messages: list, params: dict, *, stream: bool, api_key: str | None = None):
 	"""Plain completion. Returns the response iterator when streaming, else the
 	text content. litellm handles fallback + retry."""
 	patch_messages_for_provider(model, messages)
 	logger.info(
 		f"LLM | model={model} stream={stream} fallbacks={ModelRegistry.get_fallbacks(model)} params={params}\n"
-		+ "\n".join(f"[{m['role']}] {m['content']!s}" for m in messages)
+		+ "\n".join(f"[{m['role']}] {_log_content(m['content'])}" for m in messages)
 	)
 	resp = litellm.completion(
 		model=model,
@@ -140,7 +156,7 @@ def complete_with_tools(
 	patch_messages_for_provider(model, messages)
 	logger.info(
 		f"LLM tools | model={model} stream={stream} tools={[t['function']['name'] for t in tools]}\n"
-		+ "\n".join(f"[{m['role']}] {m['content']}" for m in messages)
+		+ "\n".join(f"[{m['role']}] {_log_content(m['content'])}" for m in messages)
 	)
 	return litellm.completion(
 		model=model,

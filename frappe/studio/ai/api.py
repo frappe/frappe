@@ -14,6 +14,7 @@ from frappe import _
 
 from studio.ai import llm
 from studio.ai.agent.loop import run_agent_job
+from studio.ai.block_codec import BlockCodec
 from studio.ai.models import ModelRegistry
 from studio.ai.session import AISession
 from studio.utils import has_page_write_perm
@@ -30,8 +31,10 @@ def run(
 	page_id: str,
 	model: str | None = None,
 	selected_block_ids: list | str | None = None,
+	image_data: str | None = None,
 ):
-	"""Single entry point: run the agent for one user turn."""
+	"""Single entry point: run the agent for one user turn. `image_data` is an optional base64
+	image data URL (a screenshot/design) the model should reproduce as a layout."""
 	logger.info(f"run: page_id={page_id}, model={model}")
 
 	try:
@@ -44,12 +47,16 @@ def run(
 	if not api_key:
 		frappe.throw(_("OpenRouter API key is not configured. Please set it in Studio Settings."))
 
+	image_url = BlockCodec.validate_image_data(image_data) if image_data else None
+
 	session = AISession.get_or_create(page_id, resolved_model)
 	if AISession.is_session_running(session.name):
 		frappe.local.response.http_status_code = 429
 		return {"status": "busy", "message": _("Another AI request is still processing. Please wait.")}
 
-	session.append_message("user", prompt, message_type="chat", task_type="agent")
+	# Store the image on the user message so the chat thread can show a thumbnail on reload.
+	msg_meta = {"attachedImageUrl": image_url} if image_url else None
+	session.append_message("user", prompt, message_type="chat", task_type="agent", metadata=msg_meta)
 
 	# Background queue (not now=True): a streaming turn can run for tens of seconds, and
 	# now=True would hold this web worker open for the whole stream — exhausting the worker
@@ -66,6 +73,7 @@ def run(
 		page_id=page_id,
 		session_id=session.name,
 		selected_block_ids=_parse_block_ids(selected_block_ids),
+		image_url=image_url,
 	)
 	frappe.local.response.http_status_code = 202
 	return {"status": "accepted", "session_id": session.name}

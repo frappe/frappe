@@ -1,5 +1,5 @@
 import { call } from "frappe-ui"
-import type { Ref } from "vue"
+import { ref, type Ref } from "vue"
 import { type AIChatHandlers, attachAIChatListeners, detachAIChatListeners } from "@/components/ai/realtime"
 import { ToolDispatcher } from "@/components/ai/toolDispatch"
 import type { BlockOptions } from "@/types"
@@ -33,6 +33,10 @@ export interface AIChatContext {
  */
 export class AIChatController {
 	sessionId = ""
+	// Optional screenshot/design attached to the next prompt (base64 data URL) — reproduced as a layout.
+	imageData = ref<string | null>(null)
+	imagePreviewUrl = ref<string | null>(null)
+	imageFileName = ref("")
 	private readonly dispatcher: ToolDispatcher
 	private pendingAssistantId: number | null = null
 	private summary = ""
@@ -75,7 +79,9 @@ export class AIChatController {
 		this.ctx.error.value = ""
 		this.ctx.loading.value = true
 		this.ctx.statusMessage.value = ""
-		this.pushMessage("user", promptText)
+		const image = this.imageData.value
+		this.pushMessage("user", promptText, image ? { attachedImageUrl: image } : undefined)
+		this.clearImage()
 		this.pendingAssistantId = this.pushMessage("assistant", "Thinking…")
 		this.ctx.scrollToBottom()
 		try {
@@ -85,6 +91,7 @@ export class AIChatController {
 				page_context: this.ctx.getPageContext(),
 				model,
 				selected_block_ids: this.ctx.getSelectedBlockIds(),
+				image_data: image ?? undefined,
 			})
 			if (res?.session_id) this.sessionId = res.session_id
 			if (res?.status === "busy") {
@@ -186,10 +193,35 @@ export class AIChatController {
 
 	// --- helpers ----------------------------------------------------------
 
-	private pushMessage(role: "user" | "assistant", content: string): number {
+	private pushMessage(
+		role: "user" | "assistant",
+		content: string,
+		metadata?: Record<string, any>,
+	): number {
 		const id = Date.now() + this.ctx.messages.value.length
-		this.ctx.messages.value = [...this.ctx.messages.value, { id, role, content }]
+		this.ctx.messages.value = [...this.ctx.messages.value, { id, role, content, ...(metadata ? { metadata } : {}) }]
 		return id
+	}
+
+	attachImageFile = (file: File) => {
+		if (!file.type.startsWith("image/")) return
+		if (file.size > 5 * 1024 * 1024) {
+			this.ctx.error.value = "Image is too large. Please use an image smaller than 5 MB."
+			return
+		}
+		this.imageFileName.value = file.name || "pasted-image.png"
+		const reader = new FileReader()
+		reader.onload = (e) => {
+			this.imageData.value = e.target?.result as string
+			this.imagePreviewUrl.value = this.imageData.value
+		}
+		reader.readAsDataURL(file)
+	}
+
+	clearImage = () => {
+		this.imageData.value = null
+		this.imagePreviewUrl.value = null
+		this.imageFileName.value = ""
 	}
 
 	private updatePending(content: string, metadata?: Record<string, any>) {

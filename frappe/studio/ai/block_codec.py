@@ -1,6 +1,8 @@
 import json
 import re
 
+import frappe
+from frappe import _
 from json_repair import repair_json
 
 
@@ -198,3 +200,15 @@ class BlockCodec:
 	def strip_fences(text: str) -> str:
 		text = re.sub(r"^```(?:json|yaml)?\s*\n?", "", text.strip())
 		return re.sub(r"\n?```\s*$", "", text).strip()
+
+	@staticmethod
+	def validate_image_data(image_data: str) -> str:
+		"""Validate a base64 image data URL sent with a prompt (a screenshot/design to reproduce).
+		Cap the encoded string at 7 MB — base64 inflates ~33%, so that's roughly a 5 MB source image."""
+		if not image_data.startswith("data:image/"):
+			frappe.throw(_("Invalid image data: must be a base64-encoded image data URL"))
+		if ";base64," not in image_data:
+			frappe.throw(_("Invalid image data: must be a base64-encoded data URL"))
+		if len(image_data) > 7 * 1024 * 1024:
+			frappe.throw(_("Image is too large. Please use an image smaller than 5 MB."))
+		return image_data
