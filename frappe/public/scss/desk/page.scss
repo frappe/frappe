@@ -61,6 +61,11 @@
 
 .page-actions {
 	align-items: center;
+
+	.filters:not(:empty) {
+		margin-left: var(--margin-sm, 8px);
+	}
+
 	.btn {
 		height: var(--btn-height);
 		margin-left: var(--margin-sm, 8px);
