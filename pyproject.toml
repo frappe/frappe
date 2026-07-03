@@ -17,7 +17,7 @@ dependencies = [
     "Jinja2~=3.1.6",
     "Pillow~=12.2.0",
     "PyJWT~=2.13.0",
-    "duckdb~=1.4.3",
+    # "duckdb~=1.4.3",
     # We depend on internal attributes,
     # do NOT add loose requirements on PyMySQL versions.
     "PyMySQL==1.1.2",
@@ -49,7 +49,7 @@ dependencies = [
     "oauthlib~=3.3.1",
     "openpyxl~=3.1.5",
     "xlsxwriter~=3.2.9",
-    "orjson~=3.11.5",
+    #"orjson~=3.11.5",
     "passlib~=1.7.4",
     "pdfkit~=1.0.0",
     "phonenumbers~=9.0.21",
@@ -63,7 +63,7 @@ dependencies = [
     "pytz==2026.2",
     "rauth~=0.7.3",
     "redis~=7.1.0",
-    "hiredis~=3.3.0",
+    # "hiredis~=3.3.0",
     "requests-oauthlib~=2.0.0",
     "requests~=2.34.2",
     # We depend on internal attributes of RQ.
@@ -92,12 +92,12 @@ dependencies = [
     # realtime (Python Socket.IO server) — speaks Socket.IO v5 / Engine.IO v4,
     # wire-compatible with the browser's socket.io-client ^4.7.1.
     # Pin exact versions after a manual handshake check (polling + websocket upgrade).
-    "python-socketio~=5.16.2",
-    "python-engineio~=4.13.2",
-    "gevent~=25.9.1",
+    # "python-socketio~=5.16.2",
+    # "python-engineio~=4.13.2",
+    # "gevent~=25.9.1",
     # gevent-websocket is effectively unmaintained but is the documented websocket
     # path for python-socketio's gevent WSGIServer. Pinned deliberately.
-    "gevent-websocket~=0.10.1",
+    # "gevent-websocket~=0.10.1",
 ]
 
 [project.urls]
