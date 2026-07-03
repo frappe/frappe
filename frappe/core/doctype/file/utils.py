@@ -126,8 +126,10 @@ def get_web_image(file_url: str) -> tuple["ImageFile", str, str]:
 	if not (file_url == site_url or file_url.startswith(site_url + "/")):
 		try:
 			validate_egress_url(file_url)
-		except ValueError as e:
-			frappe.throw(_("Cannot fetch image from {0}: {1}").format(file_url, str(e)))
+		except ValueError:
+			frappe.throw(
+				_("Cannot fetch image from {0}: the URL resolves to a restricted address").format(file_url)
+			)
 
 	r = requests.get(file_url, stream=True)
 	try:
