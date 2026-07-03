@@ -528,6 +528,15 @@ frappe.ui.form.Layout = class Layout {
 
 				if (df.collapsible_depends_on) {
 					collapse = !this.evaluate_depends_on_value(df.collapsible_depends_on);
+				} else if (section.user_toggled) {
+					// User manually toggled the section; preserve their choice
+					collapse = section.is_collapsed();
+				} else if (df.css_class) {
+					// No in-session toggle yet; respect state persisted in localStorage
+					const stored = localStorage.getItem(df.css_class + "-closed");
+					if (stored !== null) {
+						collapse = stored === "1";
+					}
 				}
 
 				if (collapse && section.has_missing_mandatory()) {

@@ -76,10 +76,12 @@ export default class Section {
 			this.head.addClass("collapsible");
 			// show / hide based on status
 			this.collapse_link = this.head.on("click", () => {
+				this.user_toggled = true;
 				this.collapse();
 			});
 			const me = this;
 			this.collapse_link.enterKey(function () {
+				me.user_toggled = true;
 				me.collapse();
 			});
 			this.set_icon();
