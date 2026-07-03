@@ -3,7 +3,7 @@ msgstr ""
 "Project-Id-Version: frappe\n"
 "Report-Msgid-Bugs-To: developers@frappe.io\n"
 "POT-Creation-Date: 2026-06-24 16:55+0000\n"
-"PO-Revision-Date: 2026-07-02 21:35\n"
+"PO-Revision-Date: 2026-07-03 21:36\n"
 "Last-Translator: developers@frappe.io\n"
 "Language-Team: Bosnian\n"
 "MIME-Version: 1.0\n"
@@ -32,7 +32,7 @@ msgstr "!="
 #. Settings'
 #: frappe/website/doctype/about_us_settings/about_us_settings.json
 msgid "\"Company History\""
-msgstr "\"Historija kompanije\""
+msgstr "\"Historija Poduzeća\""
 
 #: frappe/core/doctype/data_export/exporter.py:202
 msgid "\"Parent\" signifies the parent table in which this row must be added"
@@ -5480,7 +5480,7 @@ msgstr "Kompanija"
 #: frappe/website/doctype/company_history/company_history.json
 #: frappe/www/about.html:29
 msgid "Company History"
-msgstr "Istorija kompanije"
+msgstr "HIstorija Poduzeća"
 
 #. Label of a Text Editor field in DocType 'About Us Settings'
 #: frappe/website/doctype/about_us_settings/about_us_settings.json
@@ -18779,7 +18779,7 @@ msgstr "Redoslijed"
 #. Label of a Table field in DocType 'About Us Settings'
 #: frappe/website/doctype/about_us_settings/about_us_settings.json
 msgid "Org History"
-msgstr "Povijest organizacije"
+msgstr "Historija"
 
 #. Label of a Data field in DocType 'About Us Settings'
 #: frappe/website/doctype/about_us_settings/about_us_settings.json
@@ -22766,7 +22766,7 @@ msgstr "Ruta"
 #: frappe/core/doctype/user/user.json
 #: frappe/desk/doctype/route_history/route_history.json
 msgid "Route History"
-msgstr "Istorija Rute"
+msgstr "Historija Rute"
 
 #. Label of a Table field in DocType 'Website Settings'
 #: frappe/website/doctype/website_settings/website_settings.json
