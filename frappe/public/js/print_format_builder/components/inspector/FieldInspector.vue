@@ -646,19 +646,6 @@
 							unit="px"
 							@update:model-value="(v) => (selected_section.gap = v)"
 						/>
-
-						<!-- Label case -->
-						<SegmentedRow
-							:label="__('Label case')"
-							:model-value="
-								section_label_case === 'uppercase' ? 'uppercase' : 'normal'
-							"
-							:options="[
-								{ value: 'normal', label: __('Normal') },
-								{ value: 'uppercase', label: __('UPPER') },
-							]"
-							@update:model-value="(v) => (selected_section.label_case = v)"
-						/>
 					</div>
 				</div>
 
@@ -1200,7 +1187,6 @@ function set_image_size(col, value) {
 // ── Section helpers ────────────────────────────────────────
 let section_orientation = computed(() => selected_section.value?.field_orientation ?? "");
 let section_gap = computed(() => selected_section.value?.gap ?? 20);
-let section_label_case = computed(() => selected_section.value?.label_case ?? "normal");
 const bg_color_host = ref(null);
 
 function mount_bg_color_control() {

@@ -429,27 +429,6 @@ header img {
 	width: 1rem;
 }
 
-/* ── Label case: uppercase (opt-in per section) ──────────── */
-.label-uppercase .section-label {
-	text-transform: uppercase;
-	letter-spacing: 0.04em;
-}
-
-.label-uppercase .field .label {
-	text-transform: uppercase;
-	letter-spacing: 0.03em;
-}
-
-.label-uppercase .child-table > .label {
-	text-transform: uppercase;
-	letter-spacing: 0.03em;
-}
-
-.label-uppercase .child-table .table th {
-	text-transform: uppercase;
-	letter-spacing: 0.03em;
-}
-
 /* ── Table layout (field-borders mode) ───────────────────── */
 .section--grid {
 	border: 1px solid #e5e7eb;

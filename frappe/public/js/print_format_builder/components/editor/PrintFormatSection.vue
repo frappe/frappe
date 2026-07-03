@@ -22,7 +22,6 @@
 			class="print-format-section"
 			:class="{
 				'section--selected': is_selected,
-				'label-uppercase': section.label_case === 'uppercase',
 				'section--grid': is_grid,
 			}"
 			:style="section_inline_style"
@@ -484,30 +483,6 @@ function remove_column(index) {
 .section-preview-actions .btn-icon:hover {
 	background: var(--red-50);
 	color: var(--red-500);
-}
-
-/* ── Label case: uppercase (mirrors print_format.css rules for builder canvas) */
-
-/* section-title-display is in this same component — plain scoped selector */
-.print-format-section.label-uppercase .section-title-display {
-	text-transform: uppercase;
-	letter-spacing: 0.06em;
-}
-
-/* field-preview-* and preview-table are inside child Field.vue — need :deep() */
-.print-format-section.label-uppercase :deep(.field-preview-label) {
-	text-transform: uppercase;
-	letter-spacing: 0.04em;
-}
-
-.print-format-section.label-uppercase :deep(.field-preview-table > .field-preview-label) {
-	text-transform: uppercase;
-	letter-spacing: 0.03em;
-}
-
-.print-format-section.label-uppercase :deep(.preview-table th) {
-	text-transform: uppercase;
-	letter-spacing: 0.03em;
 }
 
 /* ── Table layout (field borders) ───────────────────────── */

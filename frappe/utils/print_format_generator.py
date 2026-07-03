@@ -225,8 +225,7 @@ class PrintFormatGenerator:
 {%- for col in section.columns -%}{%- for df in col.get('fields', []) -%}{%- set ns.has_fields = true -%}{%- endfor -%}{%- endfor -%}
 {%- if ns.has_fields -%}
 {%- set col_gap = (section.gap if section.gap is defined and section.gap is not none else 20)|string + 'px' -%}
-{%- set _lc = 'label-uppercase' if section.get('label_case') == 'uppercase' else '' -%}
-<div class="section {{ _lc }} section-columns row" style="gap:{{ col_gap }}">
+<div class="section section-columns row" style="gap:{{ col_gap }}">
 {%- for column in section.columns %}
 <div class="column col">
 {%- for df in column.get('fields', []) -%}
