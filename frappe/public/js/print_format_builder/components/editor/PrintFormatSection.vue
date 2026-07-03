@@ -517,6 +517,9 @@ function remove_column(index) {
 	overflow: hidden !important;
 	padding: 0 !important;
 }
+.section--grid.section--selected {
+	border-color: var(--gray-400) !important;
+}
 .section--grid .section-title-display {
 	padding: var(--pfb-cell-pad, 8px) !important;
 	margin: 0 !important;

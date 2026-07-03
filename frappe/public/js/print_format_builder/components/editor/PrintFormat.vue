@@ -271,11 +271,13 @@ watch(print_format, () => (store.dirty.value = true), { deep: true });
 }
 
 .pfb-clean-preview :deep(.print-format-section:hover) {
-	border: 1px dashed var(--gray-400);
+	outline: 1px dashed var(--gray-400);
+	outline-offset: 2px;
 }
 
 .pfb-clean-preview :deep(.print-format-section.section--selected) {
-	border: 1px solid var(--gray-400);
+	outline: 1px solid var(--gray-400);
+	outline-offset: 2px;
 }
 
 .pfb-clean-preview :deep(.print-format-section-container) {
