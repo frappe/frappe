@@ -1456,6 +1456,38 @@ def is_image(filepath: str) -> bool:
 	return (guess_type(filepath)[0] or "").startswith("image/")
 
 
+def validate_egress_url(url: str) -> None:
+	"""Raise ValueError if url resolves to a private/internal address.
+
+	Guards server-side HTTP fetches against SSRF by resolving the hostname and
+	blocking loopback, link-local (including 169.254.169.254), private, and
+	reserved ranges regardless of the URL's textual representation.
+	"""
+	import ipaddress
+	import socket
+
+	parsed = urlparse(url)
+	if parsed.scheme not in ("http", "https"):
+		raise ValueError(f"Disallowed scheme: {parsed.scheme!r}")
+
+	hostname = parsed.hostname
+	if not hostname:
+		raise ValueError("URL has no hostname")
+
+	try:
+		addr_info = socket.getaddrinfo(hostname, None)
+	except socket.gaierror as exc:
+		raise ValueError(f"Cannot resolve host {hostname!r}") from exc
+
+	for record in addr_info:
+		try:
+			ip = ipaddress.ip_address(record[4][0])
+		except (ValueError, IndexError):
+			continue
+		if ip.is_private or ip.is_loopback or ip.is_link_local or ip.is_reserved:
+			raise ValueError(f"Requests to internal address {ip} are not permitted")
+
+
 def get_thumbnail_base64_for_image(src):
 	from os.path import exists as file_exists
 
