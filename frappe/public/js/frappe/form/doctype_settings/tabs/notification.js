@@ -26,7 +26,7 @@ frappe.doctype_settings.register("notifications", function (panel, doctype) {
 		title: __("Notifications"),
 		description: __("Send automatic notifications for events on any {0}.", [doctype]),
 		show_header: true,
-		primary_action: { label: __("New"), icon: "add", onclick: create },
+		primary_action: { label: __("New"), icon: "plus", onclick: create },
 		load: () =>
 			frappe.db.get_list("Notification", {
 				filters: { document_type: doctype },
@@ -75,7 +75,7 @@ frappe.doctype_settings.register("notifications", function (panel, doctype) {
 			},
 			{ label: __("Preview"), icon: "eye", onclick: () => preview(r.name) },
 			{ label: __("Duplicate"), icon: "copy", onclick: () => duplicate(panel, r.name) },
-			{ label: __("Edit"), icon: "edit", onclick: () => open(r.name) },
+			{ label: __("Edit"), icon: "pencil", onclick: () => open(r.name) },
 			{
 				label: __("Delete"),
 				icon: "trash-2",

@@ -2,7 +2,7 @@
 	<div class="pfb-insp-body">
 		<!-- Zone label — footer only (matches original design; header has no zone label) -->
 		<div v-if="zone === 'footer'" class="pfb-lh-zone-label">
-			<span v-html="frappe.utils.icon('align-bottom', 'xs')"></span>
+			<span v-html="frappe.utils.icon('panel-bottom', 'xs')"></span>
 			{{ __("Letter Head Footer") }}
 		</div>
 
@@ -61,7 +61,7 @@
 						{{ __("No HTML content yet.") }}
 					</div>
 					<button class="btn btn-xs btn-default pfb-lh-edit-btn" @click="edit_html">
-						<span v-html="frappe.utils.icon('edit', 'xs')"></span>
+						<span v-html="frappe.utils.icon('pencil', 'xs')"></span>
 						{{ __("Edit HTML") }}
 					</button>
 				</template>

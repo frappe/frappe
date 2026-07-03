@@ -16,7 +16,7 @@ frappe.doctype_settings.register("permissions", function (panel, doctype) {
 		actions: [
 			{
 				label: __("Add role"),
-				icon: "add",
+				icon: "plus",
 				// Add mode of the shared editor (doctype-centric: doctype fixed, pick the role)
 				// — sets the role + all its rights in one dialog.
 				click: () => new frappe.ui.PermissionDialog(perm_tab(doctype, reload), {}).show(),
@@ -194,14 +194,14 @@ function perm_tab(doctype, reload) {
 // A granted right is shown as a green badge.
 function flag_badge() {
 	return `<span class="es-badge dts-perm-flag" data-theme="green">${frappe.utils.icon(
-		"tick",
+		"check",
 		"xs"
 	)}</span>`;
 }
 
 function customized_banner(panel, doctype, reload) {
 	const $banner = $('<div class="alert alert-warning dts-perm-banner" role="alert"></div>');
-	$banner.append(frappe.utils.icon("solid-warning", "sm"));
+	$banner.append(frappe.utils.icon("triangle-alert", "sm"));
 	$('<span class="dts-perm-banner-text"></span>')
 		.text(__("Permissions for this doctype have been customized."))
 		.appendTo($banner);

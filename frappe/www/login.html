@@ -8,9 +8,11 @@
 {% if not disable_user_pass_login or (ldap_settings and ldap_settings.enabled) %}
 <div class="page-card-body">
 	<div class="login-error-banner">
-		<svg width="16" height="16" viewBox="0 0 16 16" fill="none" xmlns="http://www.w3.org/2000/svg">
-			<use href="#es-line-alert-triangle"></use>
-		</svg>
+		<div class="flex align-items-center justify-content-center">
+			<svg class="icon icon-sm" xmlns="http://www.w3.org/2000/svg">
+				<use href="#icon-triangle-alert"></use>
+			</svg>
+		</div>
 		<span></span>
 	</div>
 	<div class="form-group">
@@ -19,10 +21,8 @@
 			<input type="text" id="login_email" class="form-control"
 				placeholder="{% if login_name_placeholder %}{{ login_name_placeholder  }}{% else %}{{ _('jane@example.com') }}{% endif %}"
 				required autofocus autocomplete="username">
-
-			<svg class="field-icon email-icon" width="16" height="16" viewBox="0 0 16 16" fill="none"
-				xmlns="http://www.w3.org/2000/svg">
-				<use class="es-lock" href="#es-line-email"></use>
+			<svg class="icon icon-sm field-icon email-icon" xmlns="http://www.w3.org/2000/svg">
+				<use href="#icon-mail"></use>
 			</svg>
 		</div>
 		<p class="field-error"></p>
@@ -34,12 +34,12 @@
 			<input type="password" id="login_password" class="form-control" placeholder="•••••"
 				autocomplete="current-password" required>
 
-			<svg class="field-icon password-icon" width="16" height="16" viewBox="0 0 16 16" fill="none"
+			<svg class="icon icon-sm field-icon password-icon"
 				xmlns="http://www.w3.org/2000/svg">
-					<use class="es-lock" href="#es-line-lock"></use>
+					<use href="#icon-lock"></use>
 			</svg>
-			<svg toggle="#login_password" class="toggle-password" width="16" height="16" viewBox="0 0 16 16" fill="none" xmlns="http://www.w3.org/2000/svg">
-					<use href="#es-line-preview"></use>
+			<svg toggle="#login_password" class="icon icon-sm toggle-password" xmlns="http://www.w3.org/2000/svg">
+					<use href="#icon-eye"></use>
 				</svg>
 		</div>
 		<p class="field-error"></p>
@@ -171,9 +171,9 @@
 						<div class="email-field">
 							<input type="email" id="forgot_email" class="form-control"
 								placeholder="{{ _('jane@example.com') }}" required autofocus autocomplete="username">
-							<svg class="field-icon email-icon" width="16" height="16" viewBox="0 0 16 16" fill="none"
+							<svg class="icon icon-sm field-icon email-icon"
 								xmlns="http://www.w3.org/2000/svg">
-								<use class="es-lock" href="#es-line-email"></use>
+								<use href="#icon-mail"></use>
 							</svg>
 						</div>
 						<p class="field-error"></p>
@@ -196,8 +196,8 @@
 			<form class="form-signin form-login-with-email-link hide" role="form" novalidate>
 				<div class="page-card-body">
 					<div class="login-success-banner">
-						<svg width="16" height="16" viewBox="0 0 16 16" fill="none" xmlns="http://www.w3.org/2000/svg">
-							<use href="#es-line-alert-circle"></use>
+						<svg xmlns="http://www.w3.org/2000/svg" class="icon icon-sm">
+							<use href="#icon-circle-alert"></use>
 						</svg>
 						<span>{{ _("Please check your email.") }}</span>
 					</div>
@@ -206,9 +206,9 @@
 						<div class="email-field">
 							<input type="email" id="login_with_email_link_email" class="form-control"
 								placeholder="{{ _('jane@example.com') }}" required autofocus autocomplete="username">
-							<svg class="field-icon email-icon" width="16" height="16" viewBox="0 0 16 16" fill="none"
+							<svg class="icon icon-sm field-icon email-icon"
 								xmlns="http://www.w3.org/2000/svg">
-								<use class="es-lock" href="#es-line-email"></use>
+								<use href="#icon-mail"></use>
 							</svg>
 						</div>
 						<p class="field-error"></p>

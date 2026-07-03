@@ -339,7 +339,7 @@ export default class GridRow {
 					const edit_msg = __("Edit", "", "Edit grid row");
 					this.open_form_button = $(`
 						<div class="btn-open-row" data-toggle="tooltip" data-placement="right" title="${edit_msg}">
-							<a>${frappe.utils.icon("edit", "xs")}</a>
+							<a>${frappe.utils.icon("pencil", "xs")}</a>
 						</div>
 					`).appendTo(this.open_form_button);
 
@@ -581,7 +581,7 @@ export default class GridRow {
 
 						<div class='row'>
 							<div class='col-1' style='padding-top: 4px;'>
-								<a style='cursor: grabbing;'>${frappe.utils.icon("drag", "xs")}</a>
+								<a style='cursor: grabbing;'>${frappe.utils.icon("grip", "xs")}</a>
 							</div>
 							<div class='col-5' style='padding-top: 5px;'>
 								${__(docfield.label, null, docfield.parent)}

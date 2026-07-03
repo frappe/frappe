@@ -187,7 +187,7 @@ frappe.views.ListView = class ListView extends frappe.views.BaseList {
 		if (match_rules_list.length) {
 			this.restricted_list = $(
 				`<button class="btn btn-xs restricted-button flex align-center">
-					${frappe.utils.icon("restriction", "xs")}
+					${frappe.utils.icon("ban", "xs")}
 				</button>`
 			)
 				.click(() => this.show_restrictions(match_rules_list))
@@ -299,7 +299,7 @@ frappe.views.ListView = class ListView extends frappe.views.BaseList {
 						this.make_new_doc();
 					}
 				},
-				"add"
+				"plus"
 			);
 			frappe.ui.keys.add_shortcut({
 				shortcut: "ctrl+b",
@@ -617,7 +617,7 @@ frappe.views.ListView = class ListView extends frappe.views.BaseList {
 		return `<div class="msg-box no-border">
 			<div class="mb-4">
 			  	<svg class="icon icon-xl" style="stroke: var(--text-light);">
-					<use href="#icon-small-file"></use>
+					<use href="#icon-file"></use>
 				</svg>
 			</div>
 			<p>${no_result_message}</p>
@@ -1204,7 +1204,7 @@ frappe.views.ListView = class ListView extends frappe.views.BaseList {
 					? `<img src="${frappe.utils.escape_html(doc[df.options])}"
 					style="max-height: 30px; max-width: 100%;">`
 					: `<div class="missing-image small">
-						${frappe.utils.icon("restriction")}
+						${frappe.utils.icon("ban")}
 					</div>`;
 			} else if (df.fieldtype === "Select") {
 				html = `<span class="${filterable} es-badge ellipsis" data-theme="${frappe.utils.guess_colour(
@@ -1365,7 +1365,7 @@ frappe.views.ListView = class ListView extends frappe.views.BaseList {
 		let comment_count = null;
 		if (this.list_view_settings && !this.list_view_settings.disable_comment_count) {
 			comment_count = `<span class="comment-count d-flex align-items-center">
-				${frappe.utils.icon("es-line-chat-alt")}
+				${frappe.utils.icon("message-circle")}
 				${doc._comment_count > 99 ? "99+" : doc._comment_count || 0}
 			</span>`;
 		}
@@ -1431,7 +1431,7 @@ frappe.views.ListView = class ListView extends frappe.views.BaseList {
 				dropdown_buttons = `
 					<button type="button" class="btn btn-xs btn-default ellipsis" data-toggle="dropdown" aria-haspopup="true" aria-expanded="false">
 						${this.settings.dropdown_button.get_label}
-						${frappe.utils.icon("select", "xs")}
+						${frappe.utils.icon("chevrons-up-down", "xs")}
 					</button>
 					<div role="menu" class="dropdown-menu">${button_actions}</div>
 				`;

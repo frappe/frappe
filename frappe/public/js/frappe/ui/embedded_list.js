@@ -240,7 +240,7 @@ frappe.ui.EmbeddedList = class EmbeddedList {
 
 		if (col.type === "check") {
 			return `<td class="text-center"${col_attr}>${
-				raw ? frappe.utils.icon("tick", "xs") : ""
+				raw ? frappe.utils.icon("check", "xs") : ""
 			}</td>`;
 		}
 

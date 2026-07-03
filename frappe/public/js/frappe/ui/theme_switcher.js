@@ -91,7 +91,7 @@ frappe.ui.ThemeSwitcher = class ThemeSwitcher {
 				<div class="background">
 					<div>
 						<div class="preview-check" data-theme=${is_auto_theme ? "dark" : theme.name}>
-							${frappe.utils.icon("tick", "xs")}
+							${frappe.utils.icon("check", "xs")}
 						</div>
 					</div>
 					<div class="navbar"></div>

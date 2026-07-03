@@ -33,7 +33,7 @@
 			/>
 		</div>
 		<button v-else type="button" class="pfb-add-btn" @click="open_picker">
-			<span v-html="frappe.utils.icon('add', 'xs')"></span>
+			<span v-html="frappe.utils.icon('plus', 'xs')"></span>
 			{{ __("Add field") }}
 		</button>
 	</div>

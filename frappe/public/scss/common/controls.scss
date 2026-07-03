@@ -287,10 +287,6 @@ select.form-control {
 		border-radius: var(--radius);
 		@include get_textstyle("base", "regular");
 
-		.es-icon {
-			margin-right: 8px;
-		}
-
 		.btn {
 			padding: 0px 8px;
 		}

@@ -1419,21 +1419,14 @@ Object.assign(frappe.utils, {
 			return `<span>${icon_name}</span>`;
 		}
 		let size_class = "";
-		let is_espresso = icon_name.startsWith("es-");
 
-		icon_name = is_espresso ? `${"#" + icon_name}` : `${"#icon-" + icon_name}`;
+		icon_name = `${"#icon-" + icon_name}`;
 		if (typeof size == "object") {
 			icon_style += ` width: ${size.width}; height: ${size.height}`;
 		} else {
 			size_class = `icon-${size}`;
 		}
-		let $svg = `<svg class="${
-			is_espresso
-				? icon_name.startsWith("es-solid")
-					? "es-icon es-solid"
-					: "es-icon es-line"
-				: "icon"
-		} ${svg_class} ${size_class}"
+		let $svg = `<svg class="icon ${svg_class} ${size_class}"
 			${current_color ? 'stroke="currentColor"' : ""}
 			${stroke_color ? `stroke="${stroke_color}"` : ""}
 			style="${icon_style}" aria-hidden="true">
@@ -1746,7 +1739,7 @@ Object.assign(frappe.utils, {
 				</button>
 
 				<button type="button" class="btn ${btn_type} btn-sm dropdown-toggle dropdown-toggle-split" data-toggle="dropdown">
-					${frappe.utils.icon("down", "xs")}
+					${frappe.utils.icon("chevron-down", "xs")}
 				</button>
 
 				<ul class="dropdown-menu dropdown-menu-right" role="menu"></ul>

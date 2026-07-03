@@ -231,7 +231,7 @@ export default class Grid {
 		let $help = $(this.parent).find("span.help");
 		$help.empty();
 		$(`<a href="${this.df.documentation_url}" target="_blank">
-			${frappe.utils.icon("help", "sm")}
+			${frappe.utils.icon("circle-question-mark", "sm")}
 		</a>`).appendTo($help);
 	}
 
