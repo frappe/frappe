@@ -512,18 +512,18 @@ function remove_column(index) {
 
 /* ── Table layout (field borders) ───────────────────────── */
 .section--grid {
-	border: 1px solid var(--border-color) !important;
-	border-radius: var(--border-radius-md, 8px) !important;
-	overflow: hidden !important;
-	padding: 0 !important;
+	border: 1px solid var(--border-color);
+	border-radius: var(--border-radius-md, 8px);
+	overflow: hidden;
+	padding: 0;
 }
 .section--grid.section--selected {
-	border-color: var(--gray-400) !important;
+	border-color: var(--gray-400);
 }
 .section--grid .section-title-display {
-	padding: var(--pfb-cell-pad, 8px) !important;
-	margin: 0 !important;
-	border-bottom: 1px solid var(--border-color) !important;
+	padding: var(--pfb-cell-pad, 8px);
+	margin: 0;
+	border-bottom: 1px solid var(--border-color);
 }
 .section--grid .section-columns {
 	padding: 0;
@@ -538,17 +538,17 @@ function remove_column(index) {
 	display: none;
 }
 .section--grid :deep(.drag-container) {
-	gap: 0 !important;
+	gap: 0;
 }
 .section--grid :deep(.field) {
-	padding: var(--pfb-cell-pad, 8px) !important;
-	border: none !important;
-	border-bottom: 1px solid var(--border-color) !important;
-	border-radius: 0 !important;
-	background: transparent !important;
+	padding: var(--pfb-cell-pad, 8px);
+	border: none;
+	border-bottom: 1px solid var(--border-color);
+	border-radius: 0;
+	background: transparent;
 }
 .section--grid :deep(.field:last-child) {
-	border-bottom: none !important;
+	border-bottom: none;
 }
 .section--grid :deep(.field:hover),
 .section--grid :deep(.field--selected) {

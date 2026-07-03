@@ -904,7 +904,6 @@ watch(
 
 .field--condition-hidden {
 	opacity: 0.35;
-	border: 1px dashed var(--gray-400) !important;
 	border-radius: var(--radius);
 }
 
