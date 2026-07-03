@@ -154,7 +154,7 @@ let has_visible_fields = computed(
 let section_inline_style = computed(() => {
 	const style = {};
 	if (props.section.background) style.backgroundColor = props.section.background;
-	if (props.section.padding && !is_grid.value) {
+	if (props.section.padding) {
 		const p = props.section.padding;
 		style.padding = `${p.top || 0}px ${p.right || 0}px ${p.bottom || 0}px ${p.left || 0}px`;
 	}
