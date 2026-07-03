@@ -23,11 +23,11 @@ import time
 import frappe
 
 from studio.ai import llm
-from studio.ai.agent.registry import ToolRegistry, build_default_registry
+from studio.ai.agent.registry import get_tool_registry_for_mode
 from studio.ai.agent.tree import WorkingTree
 from studio.ai.block_codec import BlockCodec
 from studio.ai.models import ModelRegistry
-from studio.ai.prompts import AGENT_SYSTEM
+from studio.ai.prompts import get_system_prompt_for_mode
 from studio.ai.session import AISession
 
 logger = frappe.logger("studio.ai.agent.loop")
@@ -61,8 +61,6 @@ class AgentRunner:
 		page_id: str | None = None,
 		session_id: str | None = None,
 		selected_block_ids: list[str] | None = None,
-		registry: ToolRegistry | None = None,
-		system_prompt: str | None = None,
 	):
 		self.prompt = prompt
 		self.page_context_json = page_context_json
@@ -72,9 +70,15 @@ class AgentRunner:
 		self.page_id = page_id
 		self.session_id = session_id
 		self.selected_block_ids = selected_block_ids or []
-		self.registry = registry or build_default_registry()
-		self.system_prompt = system_prompt or AGENT_SYSTEM
+		is_standard = self.is_standard()
+		self.registry = get_tool_registry_for_mode(is_standard)
+		self.system_prompt = get_system_prompt_for_mode(is_standard)
 		self.tree: WorkingTree | None = None
+
+	def is_standard(self) -> bool:
+		if not self.page_id:
+			return False
+		return bool(frappe.db.get_value("Studio Page", self.page_id, "is_standard"))
 
 	# --- cancellation -----------------------------------------------------
 

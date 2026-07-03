@@ -1,11 +1,17 @@
-"""Page-script tools — read and author the page-level setup() module.
+"""Page-script tools — read and author a page's client script.
 
-A Studio page has ONE script: a module whose default export is a `setup(context)`
-function (like a Vue `<script setup>`) that returns the page's top-level bindings
-— refs, computed, functions — usable in `{{ }}` expressions and event handlers.
-`context` carries the page's variables, resources, `route` and `router`.
+A page's script exposes top-level bindings — refs, computed, functions — usable in
+`{{ }}` expressions and event handlers. It has TWO forms depending on whether the
+app is exported, and set_page_script serves both (build_tools picks the description):
 
-Where that script LIVES depends on the page, and the two paths differ:
+  - Non-exported page → a bare `<script setup>` body (no `export`/`import`/`setup()`),
+    interpreted live. Top-level declarations are auto-exposed; Vue APIs, variables,
+    resources, route and router are ambient (write `ref(0)`, not `context.ref`).
+  - Standard (exported) page → a real ES module whose default export is a
+    `setup(context)` function returning its bindings; it may `import`, and reads
+    variables/resources/route/router off `context`.
+
+Where that script LIVES also differs, and the two write paths differ:
   - Non-standard page → the DB `script` field. Editing it is live: the canvas
     re-runs setup() as soon as the change is saved (reload event).
   - Standard page in developer mode → a companion `<page>.ts` code file on disk
@@ -18,6 +24,7 @@ reload (DB path) or enqueues a build (file path).
 """
 
 import os
+import re
 
 import frappe
 
@@ -40,12 +47,24 @@ def run_get_page_script(ctx, args: dict) -> str:
 def run_set_page_script(ctx, args: dict) -> str:
 	source = args.get("script")
 	if not isinstance(source, str) or not source.strip():
-		return "FAILED: script is required — pass the FULL setup() module source, not a fragment."
+		return "FAILED: script is required — pass the FULL script, not a fragment."
 	page = load_page(ctx)
 	if page is None:
 		return "FAILED: no page in context."
 	if page.is_standard:
+		if "export default" not in source:
+			return (
+				"FAILED: a standard (exported) page's script is an ES module — its default export must be "
+				"`export default function setup(context) { … return { … } }`. Only what you return becomes "
+				"a binding."
+			)
 		return _write_file_script(ctx, page, source)
+	if _is_module_source(source):
+		return (
+			"FAILED: a custom (non-exported) page's script is a bare <script setup> body — remove "
+			"`export`/`import`/the `setup()` wrapper. Declare state at the top level (every top-level "
+			"const/function is auto-exposed to {{ }}); use ref/computed/route directly, not context.x."
+		)
 	return _write_db_script(ctx, page, source)
 
 
@@ -93,40 +112,76 @@ def _read_script(page) -> str:
 	return page.script or ""
 
 
+def _is_module_source(source: str) -> bool:
+	"""True if the source uses ES-module syntax (a top-level `export`/`import`) — the standard-page
+	form. A custom page's script is interpreted with `new Function` + `with`, where that syntax throws,
+	so it must be a bare `<script setup>` body instead."""
+	return bool(re.search(r"(?m)^\s*(export|import)\b", source))
+
+
 # --- tool definitions -----------------------------------------------------
+#
+# The page script has two authoring forms that differ by whether the app is exported (see the module
+# docstring). Both share the handlers above — the handler routes by `page.is_standard` — but the tool
+# DESCRIPTION differs so the model writes the right form for the app it's in. build_tools() picks the
+# form; the registry passes is_standard for the agent it's assembling.
 
 get_page_script = Tool(
 	name="get_page_script",
 	side="server",
 	handler=run_get_page_script,
 	description=(
-		"Read the page's current setup() script. Call this before set_page_script so you EXTEND the "
-		"existing module instead of overwriting it — set_page_script replaces the whole script."
+		"Read the page's current script. Call this before set_page_script so you EXTEND the existing "
+		"script instead of overwriting it — set_page_script replaces the whole thing."
 	),
 	parameters={"type": "object", "properties": {}},
 )
 
-set_page_script = Tool(
-	name="set_page_script",
-	side="server",
-	handler=run_set_page_script,
-	description=(
-		"Author the page's setup() module — for logic that doesn't fit a single event handler: shared "
-		"helper functions, watchers, computed values, or data fetched on mount. Pass the ENTIRE module "
-		"source (it replaces the current script, so read it first with get_page_script). The default "
-		"export must be `setup(context)`; whatever it returns becomes bindings usable in {{ }} and "
-		"handlers, and context exposes the page's variables, resources, route and router."
-	),
-	parameters={
-		"type": "object",
-		"properties": {
-			"script": {
-				"type": "string",
-				"description": "The full setup() module source, e.g. 'export default function setup(context) { const total = context.computed(() => ...); return { total } }'.",
-			}
-		},
-		"required": ["script"],
-	},
+_CUSTOM_SET_DESCRIPTION = (
+	"Author the page's client script — a bare `<script setup>` body (NO `export`, NO `import`, NO "
+	"`setup()` wrapper). For page logic that outgrows a single event handler: shared helpers, watchers, "
+	"computed values, data fetched on mount. Declare state and helpers at the TOP LEVEL and every "
+	"top-level const/function is auto-exposed to {{ }} and handlers — do NOT write a return. Vue "
+	"reactivity APIs (ref/computed/watch), the page's variables, resources, route and router are all "
+	"directly in scope — write `ref(0)` and `route.params`, never `context.ref`. Pass the ENTIRE script "
+	"(it replaces the current one; read it first with get_page_script). It runs live on the canvas once saved."
 )
 
-TOOLS = [get_page_script, set_page_script]
+_STANDARD_SET_DESCRIPTION = (
+	"Author the page's setup() module — a real ES module in the exported app. The default export MUST be "
+	"`export default function setup(context) { … return { … } }`. `import` from 'vue', 'frappe-ui', or "
+	"the app's own files via '@app/*' (stores, composables, utils). Only what you RETURN becomes bindings "
+	"usable in {{ }} and handlers; `context` exposes the page's variables, resources, route and router "
+	"(e.g. context.computed(...), context.route). Pass the ENTIRE module (it replaces the current one; "
+	"read it first with get_page_script). Saving rebuilds the app bundle — tell the user to wait for the build."
+)
+
+
+def build_tools(is_standard: bool) -> list[Tool]:
+	"""Page-script tools for one agent. get_page_script is shared; set_page_script's description (and
+	example) match the app's script form so the model writes bare vs. setup() correctly."""
+	if is_standard:
+		description = _STANDARD_SET_DESCRIPTION
+		example = "export default function setup(context) { const total = context.computed(() => items.value.length); return { total } }"
+	else:
+		description = _CUSTOM_SET_DESCRIPTION
+		example = "const total = computed(() => items.value.length)  // auto-exposed as {{ total }}"
+
+	set_page_script = Tool(
+		name="set_page_script",
+		side="server",
+		handler=run_set_page_script,
+		description=description,
+		parameters={
+			"type": "object",
+			"properties": {
+				"script": {"type": "string", "description": f"The FULL script source, e.g. '{example}'."}
+			},
+			"required": ["script"],
+		},
+	)
+	return [get_page_script, set_page_script]
+
+
+# Default (custom/non-exported) tools for callers that don't specify a mode.
+TOOLS = build_tools(is_standard=False)
