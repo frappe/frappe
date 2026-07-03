@@ -214,7 +214,7 @@
 			<Composer>
 				<ComposerTrigger v-slot="{ preview }">
 					<Avatar size="sm" label="Ada Lovelace" class="shrink-0" />
-					<span class="text-base text-ink-gray-5">
+					<span class="min-w-0 max-w-[30%] truncate text-base text-ink-gray-5">
 						{{ preview || "Reply as Ada…" }}
 					</span>
 				</ComposerTrigger>
@@ -446,7 +446,7 @@ const headerActionsCode = `<Composer>
 const customTriggerCode = `<Composer>
   <ComposerTrigger v-slot="{ preview }">
     <Avatar size="sm" label="Ada Lovelace" />
-    <span>{{ preview || 'Reply as Ada…' }}</span>
+    <span class="min-w-0 max-w-[30%] truncate">{{ preview || 'Reply as Ada…' }}</span>
   </ComposerTrigger>
   <ComposerContent>
     <ComposerChannel value="comment" label="Comment">

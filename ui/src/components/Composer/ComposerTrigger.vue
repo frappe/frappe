@@ -1,9 +1,6 @@
 <template>
-	<!-- The collapsed bar that opens the window. Default content is the signed-in
-		 user's avatar (from `frappe.boot`) plus the active channel's draft preview.
-		 Hosts without a populated `frappe.boot` (e.g. a standalone SPA) can override
-		 the slot with their own avatar; it's scoped with `preview` so the draft-text
-		 behavior isn't lost. -->
+	<!-- The collapsed bar that opens the window. Default content is just the
+		 active channel's draft preview (or the placeholder) -->
 	<button
 		v-show="!composer.open.value"
 		type="button"
@@ -11,21 +8,15 @@
 		@click="onClick"
 	>
 		<slot :preview="preview">
-			<Avatar
-				:image="currentUser.image || ''"
-				:label="currentUser.fullname || ''"
-				size="sm"
-				class="shrink-0"
-			/>
-			<span class="text-base text-ink-gray-5">{{ preview || placeholder }}</span>
+			<span class="min-w-0 max-w-[30%] truncate text-base text-ink-gray-5">{{
+				preview || placeholder
+			}}</span>
 		</slot>
 	</button>
 </template>
 
 <script setup lang="ts">
 import { computed } from "vue";
-import { Avatar } from "frappe-ui";
-import { currentUserInfo } from "./currentUser";
 import { requireComposer } from "./composerContext";
 
 withDefaults(defineProps<{ placeholder?: string }>(), {
@@ -33,7 +24,6 @@ withDefaults(defineProps<{ placeholder?: string }>(), {
 });
 
 const composer = requireComposer("ComposerTrigger");
-const currentUser = computed(() => currentUserInfo());
 
 const preview = computed(() => {
 	const active = composer.channels.value.find((c) => c.value === composer.channel.value);
