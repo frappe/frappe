@@ -788,6 +788,7 @@ import SegmentedRow from "./SegmentedRow.vue";
 import StepperRow from "./StepperRow.vue";
 import PaddingGrid from "./PaddingGrid.vue";
 import Stepper from "./Stepper.vue";
+import { mountColorControl } from "./useColorControl";
 
 let store = inject("$store");
 let { letterhead, layout, meta } = useStore();
@@ -1185,26 +1186,16 @@ let section_gap = computed(() => selected_section.value?.gap ?? 20);
 const bg_color_host = ref(null);
 
 function mount_bg_color_control() {
-	const host = bg_color_host.value;
-	if (!host) return;
-	host.innerHTML = "";
-	const control = frappe.ui.form.make_control({
-		parent: host,
-		df: {
-			fieldtype: "Color",
-			fieldname: "section_background",
-			placeholder: __("Transparent"),
-			change() {
-				const value = control.get_value() || "";
-				if ((selected_section.value?.background ?? "") !== value) {
-					selected_section.value.background = value;
-				}
-			},
+	mountColorControl(bg_color_host.value, {
+		value: selected_section.value?.background || "",
+		placeholder: __("Transparent"),
+		fieldname: "section_background",
+		onChange(value) {
+			if ((selected_section.value?.background ?? "") !== value) {
+				selected_section.value.background = value;
+			}
 		},
-		render_input: true,
-		only_input: true,
 	});
-	control.set_value(selected_section.value?.background || "");
 }
 
 watch(selected_section, () => nextTick(mount_bg_color_control), { immediate: true });
@@ -1213,26 +1204,16 @@ const rep_color_hosts = ref({});
 
 function mount_repeater_color_controls() {
 	(selected_field.value?.repeater_columns || []).forEach((col, ci) => {
-		const host = rep_color_hosts.value[ci];
-		if (!host) return;
-		host.innerHTML = "";
-		const control = frappe.ui.form.make_control({
-			parent: host,
-			df: {
-				fieldtype: "Color",
-				fieldname: `repeater_col_color_${ci}`,
-				placeholder: __("Default"),
-				change() {
-					const value = control.get_value() || "";
-					if ((col.color ?? "") !== value) {
-						col.color = value;
-					}
-				},
+		mountColorControl(rep_color_hosts.value[ci], {
+			value: col.color || "",
+			placeholder: __("Default"),
+			fieldname: `repeater_col_color_${ci}`,
+			onChange(value) {
+				if ((col.color ?? "") !== value) {
+					col.color = value;
+				}
 			},
-			render_input: true,
-			only_input: true,
 		});
-		control.set_value(col.color || "");
 	});
 }
 
