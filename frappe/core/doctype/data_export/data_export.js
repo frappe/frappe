@@ -152,6 +152,7 @@ const make_multiselect_buttons = (frm, parent_wrapper) => {
 const select_columns_with_data = (frm) => {
 	frappe.call({
 		method: "frappe.desk.reportview.get_columns_with_data",
+		error: () => frappe.msgprint(__("Could not determine which columns contain data")),
 		args: {
 			doctype: frm.doc.reference_doctype,
 			filters: frm.filter_list.get_filters().map((filter) => filter.slice(0, 4)),

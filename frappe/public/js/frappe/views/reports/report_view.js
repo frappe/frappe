@@ -1720,6 +1720,10 @@ frappe.views.ReportView = class ReportView extends frappe.views.ListView {
 					$bulk.on("click", "[data-action=select_columns_with_data]", (e) => {
 						frappe.call({
 							method: "frappe.desk.reportview.get_columns_with_data",
+							error: () =>
+								frappe.msgprint(
+									__("Could not determine which columns contain data")
+								),
 							args: {
 								doctype: this.doctype,
 								filters: this.get_filters_for_args(),
