@@ -447,6 +447,18 @@ class TestPrintFormatGenerator(IntegrationTestCase):
 		self.assertIn("color:red", html)
 		self.assertNotIn('"><b>PWN</b>', html)
 
+	def test_section_custom_style_is_escaped(self):
+		"""A crafted section custom_style must not break out of the style attribute."""
+		from frappe.utils.print_format_generator import get_html
+
+		pf = self._make_print_format(
+			format_data=self._custom_style_format_data(section_style='border:1px;"><b>PWN</b>')
+		)
+		todo = self._make_todo()
+		html = get_html("ToDo", todo.name, pf.name)
+		self.assertIn("border:1px", html)
+		self.assertNotIn('"><b>PWN</b>', html)
+
 	# ------------------------------------------------------------------ #
 	# Label / value colors (Format settings)
 	# ------------------------------------------------------------------ #

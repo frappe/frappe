@@ -248,7 +248,7 @@
 		<template v-else>
 			<div
 				class="field-row"
-				:style="{ textAlign: df.align || 'left' }"
+				:style="{ textAlign: df.align || 'left', ...custom_style }"
 				:class="{ 'field-row--lr': field_orientation === 'left-right' }"
 			>
 				<div

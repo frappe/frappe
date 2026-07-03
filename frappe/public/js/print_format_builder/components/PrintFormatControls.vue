@@ -229,7 +229,8 @@
 				<label class="control-label">{{ __("Google Font") }}</label>
 				<Autocomplete
 					:options="font_options"
-					:placeholder="print_format.font || __('Default')"
+					:model-value="print_format.font || ''"
+					:placeholder="__('Default')"
 					@select="(o) => (print_format.font = o.value)"
 				/>
 			</div>
