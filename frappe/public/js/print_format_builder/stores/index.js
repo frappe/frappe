@@ -1,4 +1,4 @@
-import { create_default_layout, pluck } from "../utils";
+import { create_default_layout, serialize_layout } from "../utils";
 import { watch, ref, inject, computed, nextTick } from "vue";
 
 export function getStore(print_format_name) {
@@ -88,96 +88,7 @@ export function getStore(print_format_name) {
 	function save_changes() {
 		frappe.dom.freeze(__("Saving..."));
 
-		layout.value.sections = layout.value.sections
-			.filter((section) => !section.remove)
-			.map((section) => {
-				section.columns = section.columns.map((column) => {
-					column.fields = column.fields
-						.filter((df) => !df.remove)
-						.map((df) => {
-							if (df.table_columns) {
-								df.table_columns = df.table_columns.map((tf) => {
-									// An empty merge list is just a plain column — drop it
-									if (
-										Array.isArray(tf.merged_fields) &&
-										!tf.merged_fields.length
-									) {
-										delete tf.merged_fields;
-									}
-									return pluck(tf, [
-										"label",
-										"fieldname",
-										"fieldtype",
-										"options",
-										"width",
-										"field_template",
-										"merged_fields",
-										"image_size",
-									]);
-								});
-							}
-							return pluck(df, [
-								"label",
-								"fieldname",
-								"fieldtype",
-								"options",
-								"table_columns",
-								"table_style",
-								"table_bordered",
-								"table_header",
-								"table_cell_padding",
-								"table_radius",
-								"html",
-								"field_template",
-								"source",
-								"repeater_columns",
-								"show_label",
-								"align",
-								"label_justify",
-								"label_gap",
-								"visible_if",
-								"custom_style",
-							]);
-						});
-					return column;
-				});
-				return section;
-			});
-
-		// Clean up header/footer section fields
-		const zone_pluck_keys = [
-			"label",
-			"fieldname",
-			"fieldtype",
-			"options",
-			"table_columns",
-			"table_style",
-			"table_bordered",
-			"table_header",
-			"html",
-			"field_template",
-			"source",
-			"repeater_columns",
-			"show_label",
-			"align",
-			"label_justify",
-			"label_gap",
-			"visible_if",
-			"custom_style",
-		];
-		function clean_zone(zone) {
-			if (!zone || !zone.columns) return zone;
-			zone.columns = zone.columns.map((column) => {
-				column.fields = column.fields
-					.filter((df) => !df.remove)
-					.map((df) => pluck(df, zone_pluck_keys));
-				return column;
-			});
-			return zone;
-		}
-		layout.value.header = clean_zone(layout.value.header);
-		layout.value.footer = clean_zone(layout.value.footer);
-
+		serialize_layout(layout.value);
 		print_format.value.format_data = JSON.stringify(layout.value);
 
 		frappe
