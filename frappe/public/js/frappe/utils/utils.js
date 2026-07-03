@@ -262,7 +262,7 @@ Object.assign(frappe.utils, {
 	},
 
 	escape_html: function (txt) {
-		if (!txt) return "";
+		if (txt == null) return ""; // null or undefined, but keep 0 / false
 		let escape_html_mapping = {
 			"&": "&amp;",
 			"<": "&lt;",
@@ -1379,7 +1379,7 @@ Object.assign(frappe.utils, {
 		image_path: "/assets/frappe/images/leaflet/",
 	},
 	desktop_icon(label, color, size, style) {
-		let letter = label.charAt(0).toUpperCase();
+		let letter = frappe.utils.escape_html(label.charAt(0).toUpperCase());
 		let icon_size = size ? size : "md";
 		let opacity_hex = "1A";
 		let icon_html = $(`
