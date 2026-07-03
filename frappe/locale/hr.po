@@ -3,7 +3,7 @@ msgstr ""
 "Project-Id-Version: frappe\n"
 "Report-Msgid-Bugs-To: developers@frappe.io\n"
 "POT-Creation-Date: 2026-06-24 16:55+0000\n"
-"PO-Revision-Date: 2026-06-30 21:08\n"
+"PO-Revision-Date: 2026-07-02 21:35\n"
 "Last-Translator: developers@frappe.io\n"
 "Language-Team: Croatian\n"
 "MIME-Version: 1.0\n"
@@ -5480,7 +5480,7 @@ msgstr "Tvrtka"
 #: frappe/website/doctype/company_history/company_history.json
 #: frappe/www/about.html:29
 msgid "Company History"
-msgstr "Istorija kompanije"
+msgstr "Povijest Tvrtke"
 
 #. Label of a Text Editor field in DocType 'About Us Settings'
 #: frappe/website/doctype/about_us_settings/about_us_settings.json
@@ -18779,12 +18779,12 @@ msgstr "Redoslijed"
 #. Label of a Table field in DocType 'About Us Settings'
 #: frappe/website/doctype/about_us_settings/about_us_settings.json
 msgid "Org History"
-msgstr "Povijest organizacije"
+msgstr "Povijest"
 
 #. Label of a Data field in DocType 'About Us Settings'
 #: frappe/website/doctype/about_us_settings/about_us_settings.json
 msgid "Org History Heading"
-msgstr "Naslov povijesti organizacije"
+msgstr "Naslov Povijesti Organizacije"
 
 #: frappe/public/js/frappe/form/print_utils.js:21
 msgid "Orientation"
@@ -22766,7 +22766,7 @@ msgstr "Ruta"
 #: frappe/core/doctype/user/user.json
 #: frappe/desk/doctype/route_history/route_history.json
 msgid "Route History"
-msgstr "Istorija rute"
+msgstr "Povijest Rute"
 
 #. Label of a Table field in DocType 'Website Settings'
 #: frappe/website/doctype/website_settings/website_settings.json

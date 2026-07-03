@@ -3,7 +3,7 @@ msgstr ""
 "Project-Id-Version: frappe\n"
 "Report-Msgid-Bugs-To: developers@frappe.io\n"
 "POT-Creation-Date: 2026-06-24 16:55+0000\n"
-"PO-Revision-Date: 2026-06-25 20:55\n"
+"PO-Revision-Date: 2026-07-02 21:35\n"
 "Last-Translator: developers@frappe.io\n"
 "Language-Team: Bosnian\n"
 "MIME-Version: 1.0\n"
@@ -11332,7 +11332,7 @@ msgstr "Frappe Light"
 #. Type: Route
 #: frappe/hooks.py
 msgid "Frappe Support"
-msgstr "Frappe podrška"
+msgstr "Podrška"
 
 #: frappe/public/js/frappe/legacy_gravatar_cleanup.js:18
 msgid "Frappe no longer uses Gravatar because it can disclose hashed email addresses to a third-party service. To fully stop this behavior, existing Gravatar image URLs must be deleted."
@@ -16266,7 +16266,7 @@ msgstr "Meta slika"
 #: frappe/website/doctype/web_page/web_page.json
 #: frappe/website/doctype/website_route_meta/website_route_meta.json
 msgid "Meta Tags"
-msgstr "Meta tagovi"
+msgstr "Meta Oznake"
 
 #. Label of a Data field in DocType 'Blog Post'
 #: frappe/website/doctype/blog_post/blog_post.json
@@ -16800,7 +16800,7 @@ msgstr "Moj Uređaj"
 #. Type: Route
 #: frappe/hooks.py
 msgid "My Profile"
-msgstr "Moj profil"
+msgstr "Moj Profil"
 
 #. Label of a standard navbar item
 #. Type: Action
@@ -19045,7 +19045,7 @@ msgstr "Broj stranice"
 #. Label of a Small Text field in DocType 'Form Tour'
 #: frappe/desk/doctype/form_tour/form_tour.json
 msgid "Page Route"
-msgstr "Ruta stranice"
+msgstr "Ruta Stranice"
 
 #: frappe/public/js/frappe/views/workspace/workspace.js:1544
 msgid "Page Saved Successfully"
@@ -22766,12 +22766,12 @@ msgstr "Ruta"
 #: frappe/core/doctype/user/user.json
 #: frappe/desk/doctype/route_history/route_history.json
 msgid "Route History"
-msgstr "Istorija rute"
+msgstr "Istorija Rute"
 
 #. Label of a Table field in DocType 'Website Settings'
 #: frappe/website/doctype/website_settings/website_settings.json
 msgid "Route Redirects"
-msgstr "Preusmjeravanja rute"
+msgstr "Preusmjeravanja Rute"
 
 #. Description of the 'Home Page' (Data) field in DocType 'Role'
 #: frappe/core/doctype/role/role.json
