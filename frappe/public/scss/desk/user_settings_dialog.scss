@@ -1,0 +1,131 @@
+.settings-dialog-wrapper {
+	.user-settings-profile-header {
+		display: flex;
+		align-items: center;
+		gap: var(--padding-lg);
+		padding: var(--padding-md) 0 var(--padding-lg);
+
+		.profile-avatar-upload {
+			position: relative;
+			flex-shrink: 0;
+			border-radius: 50%;
+			overflow: hidden;
+			cursor: pointer;
+		}
+
+		.profile-avatar-overlay {
+			position: absolute;
+			inset: 0;
+			display: flex;
+			align-items: center;
+			justify-content: center;
+			background-color: var(--surface-alpha-gray-7);
+			color: var(--white);
+			opacity: 0;
+			transition: opacity 0.2s ease-in-out;
+
+			.icon use {
+				stroke: var(--white);
+			}
+		}
+
+		.profile-avatar-upload:hover .profile-avatar-overlay {
+			opacity: 1;
+		}
+
+		.avatar {
+			flex-shrink: 0;
+		}
+
+		.profile-user-info {
+			display: flex;
+			flex-direction: column;
+			gap: 2px;
+		}
+
+		.profile-full-name {
+			font-size: var(--text-lg);
+			font-weight: var(--weight-semibold);
+			color: var(--text-color);
+		}
+
+		.profile-email {
+			font-size: var(--text-sm);
+			color: var(--text-muted);
+		}
+
+		.change-password-btn {
+			margin-left: auto;
+		}
+	}
+
+	.settings-shortcuts-table {
+		font-size: var(--text-sm);
+		margin-top: 0;
+		margin-bottom: var(--margin-lg);
+
+		kbd {
+			font-size: var(--text-xs);
+		}
+	}
+
+	.layout-grid {
+		display: flex;
+		gap: 12px;
+		max-width: 484px;
+		margin-bottom: var(--margin-md);
+	}
+
+	.layout-preview-frame {
+		flex: 1;
+		display: flex;
+		padding-left: 20px;
+		padding-top: 14px;
+		background-color: var(--surface-base);
+		border-top-left-radius: var(--radius-sm);
+	}
+
+	.layout-preview-window {
+		width: 100%;
+		display: flex;
+		flex-direction: column;
+		overflow: hidden;
+		border: 1px solid var(--outline-gray-2);
+		border-bottom: none;
+		border-right: none;
+		border-top-left-radius: var(--radius-sm);
+		background-color: var(--surface-base);
+	}
+
+	.layout-preview-body--compact {
+		padding-left: 30px;
+		padding-right: 30px;
+	}
+
+	.preference-row {
+		display: flex;
+		justify-content: space-between;
+		align-items: center;
+		gap: 2rem;
+		padding: var(--padding-sm) 0;
+
+		> :first-child {
+			display: flex;
+			flex-direction: column;
+			gap: 2px;
+			min-width: 0;
+		}
+	}
+
+	.preference-label {
+		font-size: var(--text-sm);
+		font-weight: var(--weight-regular);
+		color: var(--text-muted);
+	}
+
+	.preference-value {
+		font-size: var(--text-base);
+		font-weight: var(--weight-regular);
+		color: var(--text-color);
+	}
+}
