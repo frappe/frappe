@@ -220,30 +220,23 @@
     pointer-events: none;
 }
 
-.es-button:not([aria-busy="true"]) .es-button__spinner {
+.es-button:not([aria-busy="true"]) > .es-spinner,
+.es-button:not([aria-busy="true"]) > .es-button__loading-label {
     display: none;
 }
 
-/* ---- icons + spinner: size follows the button size ---- */
-.es-button>svg {
+/* while busy, a loading label replaces the normal label + icon */
+.es-button[aria-busy="true"]:has(> .es-button__loading-label) > .es-button__label,
+.es-button[aria-busy="true"]:has(> .es-button__loading-label) > svg {
+    display: none;
+}
+
+/* ---- icons + spinner (painted by components/spinner.css): size follows
+       the button size ---- */
+.es-button > svg,
+.es-button > .es-spinner {
     pointer-events: none;
     flex-shrink: 0;
     width: var(--es-bt-icon);
     height: var(--es-bt-icon);
-}
-
-.es-button__spinner {
-    flex-shrink: 0;
-    width: var(--es-bt-icon);
-    height: var(--es-bt-icon);
-    border-radius: 9999px;
-    border: 2px solid currentColor;
-    border-top-color: transparent;
-    animation: es-button-spin 600ms linear infinite;
-}
-
-@keyframes es-button-spin {
-    to {
-        transform: rotate(360deg);
-    }
 }

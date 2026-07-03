@@ -160,7 +160,7 @@ function _profile_tab(user_data) {
 						last_name: values.last_name || "",
 						username: values.username || "",
 					};
-					_save_user(payload).then(() => {
+					return _save_user(payload).then(() => {
 						Object.assign(user_data, payload);
 						const fn = [payload.first_name, payload.middle_name, payload.last_name]
 							.filter(Boolean)
@@ -294,7 +294,7 @@ function _email_tab(user_data) {
 				label: __("Save"),
 				variant: "solid",
 				click(panel) {
-					_save_user("email_signature", panel.get_value("email_signature"));
+					return _save_user("email_signature", panel.get_value("email_signature"));
 				},
 			},
 		],
@@ -671,7 +671,7 @@ function _session_defaults_tab() {
 				fields.forEach((f) => {
 					if (!values[f.fieldname]) values[f.fieldname] = "";
 				});
-				frappe.call({
+				return frappe.call({
 					method: "frappe.core.doctype.session_default_settings.session_default_settings.set_session_default_values",
 					args: { default_values: values },
 					callback(data) {

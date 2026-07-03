@@ -3,6 +3,7 @@ frappe.provide("frappe.ui");
 /**
  * @typedef {Object} ButtonOpts
  * @property {string} [label] Button text (pre-translated). HTML-escaped.
+ * @property {string} [loading_label] Text shown while busy. Defaults for common labels (Save → Saving..., Delete → Deleting..., Submit → Submitting...); pass "" to opt out.
  * @property {"solid"|"subtle"|"outline"|"ghost"} [variant="subtle"]
  * @property {"xs"|"sm"|"md"|"lg"} [size="sm"]
  * @property {"gray"|"red"} [theme="gray"]
@@ -19,6 +20,17 @@ frappe.provide("frappe.ui");
 const VARIANTS = ["solid", "subtle", "outline", "ghost"];
 const SIZES = ["xs", "sm", "md", "lg"];
 const THEMES = ["gray", "red"];
+
+function default_loading_label(label) {
+	if (!label) return null;
+	// keyed by translated label so it matches whenever the caller used __()
+	const map = {
+		[__("Save")]: __("Saving..."),
+		[__("Delete")]: __("Deleting..."),
+		[__("Submit")]: __("Submitting..."),
+	};
+	return map[label] || null;
+}
 
 function validated(value, allowed, option) {
 	if (value == null) return null;
@@ -79,9 +91,18 @@ function button_html(opts = {}) {
 	// currentColor keeps the stroke in sync with the button's text color
 	const icon = opts.icon ? frappe.utils.icon(opts.icon, "sm", "", "", "", true) : "";
 	const label = opts.label ? `<span class="es-button__label">${escape(opts.label)}</span>` : "";
+	const loading_label_text =
+		"loading_label" in opts ? opts.loading_label : default_loading_label(opts.label);
+	// aria-live: best-effort announcement of the busy text when it appears;
+	// screen readers do not reliably announce a focused button's name change
+	const loading_label = loading_label_text
+		? `<span class="es-button__loading-label" aria-live="polite">${escape(
+				loading_label_text
+		  )}</span>`
+		: "";
 
 	return `<button class="${classes}" ${attrs.join(" ")}>
-		<span class="es-button__spinner" aria-hidden="true"></span>${icon}${label}
+		<span class="es-spinner" aria-hidden="true"></span>${loading_label}${icon}${label}
 	</button>`;
 }
 
@@ -98,6 +119,9 @@ frappe.ui.button = function (opts = {}) {
 	const $btn = $(button_html(opts));
 	if (opts.onclick) {
 		$btn.on("click", function (e) {
+			// pointer-events:none only blocks the mouse — keyboard activation
+			// (Enter/Space) still fires, so guard re-entry while busy
+			if ($btn.attr("aria-busy") === "true") return;
 			const result = opts.onclick.call(this, e);
 			if (result && typeof result.then === "function") {
 				$btn.attr("aria-busy", "true");
