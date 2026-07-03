@@ -209,22 +209,22 @@
 		</div>
 
 		<!-- ── Format ─────────────────────────────────────────── -->
-		<div v-else-if="activeTab === 'format'" class="pfb-tab-body">
-			<div class="pfb-group-label">{{ __("Page margins (mm)") }}</div>
-			<div class="pfb-margin-grid">
-				<div class="pfb-margin-cell" v-for="df in margins" :key="df.fieldname">
-					<label class="pfb-margin-label control-label">{{ df.label }}</label>
-					<input
-						type="number"
-						class="form-control form-control-sm"
-						:value="print_format[df.fieldname]"
-						min="0"
-						@change="(e) => update_margin(df.fieldname, e.target.value)"
-					/>
+		<div v-else-if="activeTab === 'format'" class="pfb-tab-body pfb-format-tab">
+			<div class="form-group">
+				<label class="control-label">{{ __("Page Margins (mm)") }}</label>
+				<div class="pfb-margin-grid">
+					<div class="pfb-margin-cell" v-for="df in margins" :key="df.fieldname">
+						<label class="pfb-margin-label control-label">{{ df.label }}</label>
+						<input
+							type="number"
+							class="form-control form-control-sm"
+							:value="print_format[df.fieldname]"
+							min="0"
+							@change="(e) => update_margin(df.fieldname, e.target.value)"
+						/>
+					</div>
 				</div>
 			</div>
-
-			<div class="pfb-group-label mt-3">{{ __("Font") }}</div>
 			<div class="form-group">
 				<label class="control-label">{{ __("Google Font") }}</label>
 				<select class="form-control form-control-sm" v-model="print_format.font">
@@ -241,15 +241,12 @@
 					@change="(e) => (print_format.font_size = parseFloat(e.target.value))"
 				/>
 			</div>
-
-			<div class="pfb-group-label mt-3">{{ __("Colors") }}</div>
 			<div class="form-group" v-for="c in color_settings" :key="c.fieldname">
 				<label class="control-label">{{ c.label }}</label>
 				<div :ref="(el) => (color_hosts[c.fieldname] = el)"></div>
 			</div>
-
-			<div class="pfb-group-label mt-3">{{ __("Page number") }}</div>
 			<div class="form-group">
+				<label class="control-label">{{ __("Page Number") }}</label>
 				<select class="form-control form-control-sm" v-model="print_format.page_number">
 					<option v-for="p in page_number_positions" :value="p.value">
 						{{ p.label }}
@@ -342,8 +339,8 @@ const draggable_blocks = [
 ];
 
 const color_settings = [
-	{ fieldname: "label_color", label: __("Label") },
-	{ fieldname: "value_color", label: __("Value") },
+	{ fieldname: "label_color", label: __("Label Color") },
+	{ fieldname: "value_color", label: __("Value Color") },
 ];
 let color_hosts = ref({});
 
@@ -365,6 +362,7 @@ function mount_color_controls() {
 				},
 			},
 			render_input: true,
+			only_input: true,
 		});
 		control.set_value(print_format.value[c.fieldname] || "");
 	}
@@ -968,11 +966,22 @@ watch(print_format, () => (store.dirty.value = true), { deep: true });
 }
 
 /* ── Format tab ──────────────────────────────────────────── */
+.pfb-format-tab .form-group {
+	margin-bottom: 10px;
+}
+
+.pfb-format-tab .form-group:last-child {
+	margin-bottom: 0;
+}
+
+.pfb-format-tab :deep(.frappe-control) {
+	margin-bottom: 0;
+}
+
 .pfb-margin-grid {
 	display: grid;
 	grid-template-columns: 1fr 1fr;
 	gap: 6px;
-	margin-bottom: 6px;
 }
 
 .pfb-margin-cell {
