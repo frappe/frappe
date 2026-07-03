@@ -182,8 +182,6 @@ def get_chrome_pdf(print_format, html, options, output, pdf_generator=None):
 		transformer = PDFTransformer(browser)
 		# transforms and merges header, footer into body pdf and returns merged pdf
 		return transformer.transform_pdf(output=output)
-	except Exception:
-		raise
 	finally:
 		generator._close_browser()
 
