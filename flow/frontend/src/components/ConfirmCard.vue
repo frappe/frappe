@@ -2,7 +2,7 @@
 import { ref, computed, nextTick } from "vue";
 import { Button, FeatherIcon } from "@/lib/ui";
 import ArgsView from "./ArgsView.vue";
-import { toolLabel, argEntries } from "@/lib/toolMeta";
+import { confirmTitle, hasArgs } from "@/lib/toolMeta";
 import { __ } from "@/lib/translate";
 
 const props = defineProps({
@@ -13,14 +13,18 @@ const emit = defineEmits(["answer"]);
 
 const otherEl = ref(null);
 
-// Tool confirmation: name the action, show its inputs. Free-text ask: show the prompt.
-const title = computed(() =>
-	props.tool ? toolLabel(props.tool.name) : props.question.prompt.split("\n\n")[0].trim()
+// Tool confirmation: name the specific action; free-text ask: show the prompt.
+const confirm = computed(() =>
+	props.tool ? confirmTitle(props.tool.name, props.tool.arguments) : null
 );
+const title = computed(() =>
+	confirm.value ? confirm.value.title : props.question.prompt.split("\n\n")[0].trim()
+);
+const danger = computed(() => Boolean(confirm.value?.danger));
 const body = computed(() =>
 	props.tool ? "" : props.question.prompt.split("\n\n").slice(1).join("\n\n").trim()
 );
-const hasArgs = computed(() => props.tool && argEntries(props.tool.arguments).length > 0);
+const showArgs = computed(() => Boolean(props.tool) && hasArgs(props.tool.arguments));
 const answered = computed(() => props.question._answer !== undefined);
 
 function pick(option) {
@@ -47,16 +51,17 @@ function sendOther() {
 	>
 		<div class="flex items-center gap-2">
 			<span
-				class="flex h-5 w-5 shrink-0 items-center justify-center rounded-md bg-surface-gray-2 text-ink-gray-7"
+				class="flex h-5 w-5 shrink-0 items-center justify-center rounded-md bg-surface-gray-2"
+				:class="danger ? 'text-ink-red-3' : 'text-ink-gray-7'"
 			>
-				<FeatherIcon name="shield" class="h-3.5 w-3.5" />
+				<FeatherIcon :name="danger ? 'alert-triangle' : 'shield'" class="h-3.5 w-3.5" />
 			</span>
 			<div class="break-words text-sm font-medium leading-snug text-ink-gray-9">
 				{{ title }}
 			</div>
 		</div>
 
-		<div v-if="hasArgs" class="mt-2.5">
+		<div v-if="showArgs" class="mt-2.5">
 			<ArgsView :arguments="tool.arguments" />
 		</div>
 		<pre v-else-if="body" class="flow-confirm-body">{{ body }}</pre>
@@ -75,7 +80,7 @@ function sendOther() {
 					v-for="opt in question.options"
 					:key="opt"
 					:variant="opt === 'Approve' ? 'solid' : 'outline'"
-					theme="gray"
+					:theme="opt === 'Approve' && danger ? 'red' : 'gray'"
 					:label="opt"
 					@click="pick(opt)"
 				/>

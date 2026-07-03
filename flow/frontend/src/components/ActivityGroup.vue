@@ -4,7 +4,7 @@ import { FeatherIcon } from "@/lib/ui";
 import ActivityLabel from "./ActivityLabel.vue";
 import ActivityStep from "./ActivityStep.vue";
 import ArgsView from "./ArgsView.vue";
-import { toolLabel, argEntries } from "@/lib/toolMeta";
+import { toolLabel, hasArgs } from "@/lib/toolMeta";
 import { __ } from "@/lib/translate";
 
 // Tool calls as one collapsible line: running → active step's label; done → latest
@@ -36,9 +36,7 @@ const status = computed(() => {
 });
 
 // A lone step with no inputs has nothing to reveal.
-const expandable = computed(
-	() => !single.value || argEntries(props.parts[0].arguments).length > 0
-);
+const expandable = computed(() => !single.value || hasArgs(props.parts[0].arguments));
 const open = ref(false);
 function toggle() {
 	if (expandable.value) open.value = !open.value;
@@ -48,9 +46,10 @@ function toggle() {
 <template>
 	<div class="my-0.5">
 		<button
-			class="flex items-center gap-1.5 text-sm text-ink-gray-5 transition-colors"
+			class="flex items-center gap-1.5 text-sm transition-colors"
 			:class="[
-				expandable && !running ? 'hover:text-ink-gray-7' : '',
+				open ? 'font-medium text-ink-gray-8' : 'text-ink-gray-5',
+				expandable && !running && !open ? 'hover:text-ink-gray-7' : '',
 				expandable ? '' : 'cursor-default',
 			]"
 			@click="toggle"
@@ -66,18 +65,20 @@ function toggle() {
 		</button>
 
 		<Transition name="flow-reveal">
-			<div v-if="open">
-				<!-- Single step: its inputs directly. Multiple: a connected timeline. -->
-				<ArgsView v-if="single" :arguments="parts[0].arguments" class="mt-2" />
-				<div v-else class="relative mt-1.5">
-					<span
-						class="absolute bottom-2.5 left-[7px] top-2.5 w-px bg-surface-gray-3"
-						aria-hidden="true"
-					></span>
+			<!-- The open call's content sits in a bordered card so it can't bleed into
+			     the next block. Single: inputs directly; multiple: a connected timeline. -->
+			<div
+				v-if="open"
+				class="mb-2 mt-1.5 rounded-lg border border-outline-gray-1 px-3 py-2.5"
+			>
+				<ArgsView v-if="single" :arguments="parts[0].arguments" />
+				<div v-else>
 					<ActivityStep
 						v-for="(part, i) in parts"
 						:key="part.id ?? i"
 						:part="part"
+						:number="i + 1"
+						:last="i === parts.length - 1"
 						:live="live"
 					/>
 				</div>

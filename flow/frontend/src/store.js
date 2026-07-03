@@ -1,6 +1,7 @@
 import { ref, computed } from "vue";
 import * as api from "@/api/client";
 import { startRun, resumeRun } from "@/api/stream";
+import { normalizeToolName } from "@/lib/toolMeta";
 
 // Module-singleton store: one panel instance, one source of truth. Components
 // import this and read/act on shared reactive state — no prop drilling.
@@ -198,7 +199,7 @@ async function switchSession(name) {
 				current.parts.push({
 					id: t.id,
 					type: "tool",
-					name: t.function.name,
+					name: normalizeToolName(t.function.name),
 					arguments: t.function.arguments,
 					result: null,
 					approval: null,
@@ -329,7 +330,7 @@ function handleEvent(event, msg) {
 			msg.parts.push({
 				id: event.id,
 				type: "tool",
-				name: event.name,
+				name: normalizeToolName(event.name),
 				arguments: event.arguments,
 				result: null,
 				approval: null,
