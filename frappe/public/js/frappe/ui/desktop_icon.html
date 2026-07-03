@@ -1,7 +1,6 @@
 <a class="desktop-icon" data-id="{{ icon.label}}"  data-logo="{{ icon.logo_url }}" data-icon="{{ icon.icon }}" data-type="{{ icon.type }}" style="text-decoration:none">
     {% if(frappe.utils.get_desktop_icon(icon.label, frappe.boot.desktop_icon_style ) && icon.icon_type != "Folder") %}
         <div class="icon-container">
-<<<<<<< HEAD
             <img class="app-icon" src="{{ frappe.utils.get_desktop_icon(icon.label, frappe.boot.desktop_icon_style) }}" alt="{{ icon.label }}" />
         </div>
     {% else if (icon.logo_url || icon.icon_image) { %}
@@ -11,21 +10,14 @@
     {% } else if (icon.icon_type == "Folder") { %}
         <div class="icon-container folder-icon">
 
-=======
-            <img class="app-icon" src="{{ frappe.utils.escape_html(icon.logo_url) }}" alt="{{ frappe.utils.escape_html(icon.label) }}" />
->>>>>>> ff276a7621 (fix(desktop): escape Desktop Icon label when rendering)
         </div>
     {% } else { %}
             {%= frappe.utils.desktop_icon(icon.label, icon.bg_color || "gray") %}
     {% } %}
     {% if (!in_folder) { %}
     <div class="icon-caption">
-<<<<<<< HEAD
-        <div class="icon-title" data-toggle="tooltip" data-original-title="{{ __(icon.label) }}">{{ __(icon.label) }}</div>
-        <!-- <div class="icon-subtitle"></div> -->
-=======
         <div class="icon-title" data-toggle="tooltip" data-original-title="{{ frappe.utils.escape_html(__(icon.label)) }}">{{ frappe.utils.escape_html(__(icon.label)) }}</div>
->>>>>>> ff276a7621 (fix(desktop): escape Desktop Icon label when rendering)
+        <!-- <div class="icon-subtitle"></div> -->
     </div>
     {% } %}
     {% if(!icon.in_folder && !icon.restrict_removal) { %}
