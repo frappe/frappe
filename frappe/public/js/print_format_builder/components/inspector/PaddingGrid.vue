@@ -3,7 +3,6 @@
 		<div v-for="side in sides" :key="side" class="pfb-padding-cell">
 			<div class="pfb-padding-label">{{ side_labels[side] }}</div>
 			<Stepper
-				sm
 				:value="modelValue?.[side] ?? 0"
 				@decrement="adjust(side, -step)"
 				@increment="adjust(side, step)"
