@@ -72,7 +72,8 @@ export async function uploadFile(file) {
 // metadata; throws (unsupported type, unreadable, …) which surfaces on the chip.
 export const attachFile = (file) => frappe.xcall("flow.api.attach_file", { file });
 
-function serverMessage(data) {
+// Extract the human-readable message from a frappe error body.
+export function serverMessage(data) {
 	try {
 		const msgs = JSON.parse(data._server_messages || "[]");
 		if (msgs.length) return JSON.parse(msgs[0]).message;
