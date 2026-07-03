@@ -17,11 +17,13 @@ context("Tree View", () => {
 		cy.get('.tree-link[data-label="Parent Node"]').click();
 		cy.get('.tree-link[data-label="Child Node"]').should("be.visible");
 
-		// navigate away and back within the desk (no page reload)
+		// navigate away; wait until the tree page is actually hidden before returning,
+		// otherwise the two route changes race and the tree may never settle back
 		cy.window().then((win) => win.frappe.set_route("List", "ToDo"));
-		cy.window().then((win) => win.frappe.set_route(tree_route));
+		cy.get('[data-page-route="Tree/Custom Tree"]').should("not.be.visible");
 
-		// the tree comes back exactly as it was left, without rebuilding
+		cy.window().then((win) => win.frappe.set_route(tree_route));
+		cy.get('[data-page-route="Tree/Custom Tree"]').should("be.visible");
 		cy.get('.tree-link[data-label="Child Node"]').should("be.visible");
 		cy.window()
 			.its("cur_tree")
