@@ -52,6 +52,11 @@ STANDARD_DATA_COLUMNS = {
 	"_liked_by": "Data",
 }
 
+# Cap the number of matching records scanned so a huge, unfiltered table can't turn this into an
+# unbounded scan. A populated column is virtually certain to reveal a value within this many rows,
+# so "has data" stays exact for any filtered view.
+MAX_RECORDS_TO_SCAN = 50_000
+
 
 @frappe.whitelist()
 @frappe.read_only()
@@ -150,37 +155,40 @@ def get_columns_with_data(doctype: str, filters: str | list | None = None) -> di
 	if isinstance(filters, str):
 		filters = json.loads(filters)
 
-	# A permission- and filter-aware subquery of the matching parent names, reused to scope every
-	# count to exactly the rows the report itself would show (same approach as get_count).
-	name_query = execute(
+	# The permitted, filtered parent names, capped so a huge unfiltered table can't turn this into
+	# an unbounded scan. Going through DatabaseQuery keeps the doctype out of any hand-built SQL and
+	# applies the same permissions and filters the report itself would (like get_count above).
+	names = execute(
 		doctype,
-		fields=[f"`tab{doctype}`.name"],
 		filters=filters,
+		pluck="name",
 		order_by=None,
-		run=0,
+		limit=MAX_RECORDS_TO_SCAN,
 	)
+	if not names:
+		return {}
 
 	columns_with_data = {}
 
-	parent_columns = _columns_with_data(doctype, name_query)
+	parent_columns = _columns_with_data(doctype, names)
 	if parent_columns:
 		columns_with_data[doctype] = parent_columns
 
 	# A child doctype may back more than one table field; check each only once.
 	child_doctypes = {df.options for df in frappe.get_meta(doctype).get_table_fields()}
 	for child_doctype in child_doctypes:
-		child_columns = _columns_with_data(child_doctype, name_query, parent_doctype=doctype)
+		child_columns = _columns_with_data(child_doctype, names, parent_doctype=doctype)
 		if child_columns:
 			columns_with_data[child_doctype] = child_columns
 
 	return columns_with_data
 
 
-def _columns_with_data(doctype: str, name_query, parent_doctype: str | None = None) -> list[str]:
+def _columns_with_data(doctype: str, names: list[str], parent_doctype: str | None = None) -> list[str]:
 	"""Return the fieldnames of ``doctype`` whose column holds at least one non-empty value among
-	the rows selected by ``name_query`` (a subquery of the permitted parent names). Both the
-	doctype's own fields and the standard columns the picker offers (Created On, owner, ...) are
-	checked; fields the user is not permitted to read (e.g. a higher permlevel) are skipped."""
+	the rows belonging to ``names`` (the permitted parent names). Both the doctype's own fields and
+	the standard columns the picker offers (Created On, owner, ...) are checked; fields the user is
+	not permitted to read (e.g. a higher permlevel) are skipped."""
 	table_columns = set(frappe.db.get_table_columns(doctype))
 	permitted_fields = set(get_permitted_fields(doctype, parenttype=parent_doctype))
 
@@ -198,9 +206,9 @@ def _columns_with_data(doctype: str, name_query, parent_doctype: str | None = No
 
 	table = frappe.qb.DocType(doctype)
 	if parent_doctype:
-		scope = (table["parenttype"] == parent_doctype) & table["parent"].isin(name_query)
+		scope = (table["parenttype"] == parent_doctype) & table["parent"].isin(names)
 	else:
-		scope = table["name"].isin(name_query)
+		scope = table["name"].isin(names)
 
 	query = frappe.qb.from_(table).where(scope)
 	for fieldname, fieldtype in fields:
