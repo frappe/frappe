@@ -227,9 +227,11 @@
 			</div>
 			<div class="form-group">
 				<label class="control-label">{{ __("Google Font") }}</label>
-				<select class="form-control form-control-sm" v-model="print_format.font">
-					<option v-for="font in google_fonts" :value="font">{{ font }}</option>
-				</select>
+				<Autocomplete
+					:options="font_options"
+					:placeholder="print_format.font || __('Default')"
+					@select="(o) => (print_format.font = o.value)"
+				/>
 			</div>
 			<div class="form-group">
 				<label class="control-label">{{ __("Font Size (pt)") }}</label>
@@ -259,6 +261,7 @@
 
 <script setup>
 import draggable from "vuedraggable";
+import Autocomplete from "../../vue-components/Autocomplete.vue";
 import { get_table_columns, pluck } from "../utils";
 import { useStore } from "../stores";
 import { computed, onMounted, onUnmounted, nextTick, ref, watch, inject } from "vue";
@@ -266,6 +269,10 @@ import { computed, onMounted, onUnmounted, nextTick, ref, watch, inject } from "
 // state
 let search_text = ref("");
 let google_fonts = ref([]);
+let font_options = computed(() => [
+	{ label: __("Default"), value: "" },
+	...google_fonts.value.map((f) => ({ label: f, value: f })),
+]);
 let activeTab = ref("fields");
 let search_input = ref(null);
 let raw_templates = ref([]);
@@ -594,7 +601,7 @@ onMounted(() => {
 	let method = "frappe.printing.page.print_format_builder.print_format_builder.get_google_fonts";
 	frappe.call(method).then((r) => {
 		google_fonts.value = r.message || [];
-		if (!google_fonts.value.includes(print_format.value.font)) {
+		if (print_format.value.font && !google_fonts.value.includes(print_format.value.font)) {
 			google_fonts.value.push(print_format.value.font);
 		}
 	});
