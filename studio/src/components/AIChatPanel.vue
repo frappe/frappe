@@ -83,7 +83,8 @@
 							Palette: {{ msg.metadata.palette }}
 						</div>
 						<Button
-							variant="solid"
+							v-if="msg.id === lastMessageId"
+							variant="subtle"
 							size="sm"
 							label="Approve & build"
 							:disabled="loading"
@@ -93,7 +94,11 @@
 
 					<!-- Clarification: tappable answer options -->
 					<div
-						v-else-if="msg.metadata?.status === 'clarification' && msg.metadata.options?.length"
+						v-else-if="
+							msg.metadata?.status === 'clarification' &&
+							msg.metadata.options?.length &&
+							msg.id === lastMessageId
+						"
 						class="flex flex-wrap gap-1.5"
 					>
 						<Button
@@ -243,6 +248,10 @@ const statusMessage = ref("")
 const selectedModel = ref("")
 const messages = ref<any[]>([])
 const messagesEl = ref<HTMLElement | null>(null)
+
+// A plan's "Approve & build" and a clarification's options only make sense for the CURRENT turn —
+// the last message. On older ones they're stale (already answered), so gate the buttons on this.
+const lastMessageId = computed(() => messages.value[messages.value.length - 1]?.id)
 
 const pageId = computed(() => store.activePage?.name ?? "")
 
