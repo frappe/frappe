@@ -789,6 +789,7 @@ import StepperRow from "./StepperRow.vue";
 import PaddingGrid from "./PaddingGrid.vue";
 import Stepper from "./Stepper.vue";
 import { mountColorControl } from "./useColorControl";
+import { align_opts } from "./align_opts";
 
 let store = inject("$store");
 let { letterhead, layout, meta } = useStore();
@@ -924,18 +925,6 @@ let current_align = computed(() => selected_field.value?.align ?? "left");
 let current_label_justify = computed(() => selected_field.value?.label_justify ?? "");
 // Spacing only applies when the field is inline (section "Label side: Left")
 let field_is_inline = computed(() => parent_section.value?.field_orientation === "left-right");
-
-const align_icons = {
-	left: `<svg xmlns="http://www.w3.org/2000/svg" width="14" height="12" viewBox="0 0 14 12" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"><line x1="0" y1="1" x2="14" y2="1"/><line x1="0" y1="5" x2="9" y2="5"/><line x1="0" y1="9" x2="11" y2="9"/></svg>`,
-	center: `<svg xmlns="http://www.w3.org/2000/svg" width="14" height="12" viewBox="0 0 14 12" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"><line x1="0" y1="1" x2="14" y2="1"/><line x1="2.5" y1="5" x2="11.5" y2="5"/><line x1="1.5" y1="9" x2="12.5" y2="9"/></svg>`,
-	right: `<svg xmlns="http://www.w3.org/2000/svg" width="14" height="12" viewBox="0 0 14 12" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"><line x1="0" y1="1" x2="14" y2="1"/><line x1="5" y1="5" x2="14" y2="5"/><line x1="3" y1="9" x2="14" y2="9"/></svg>`,
-};
-
-const align_opts = [
-	{ value: "left", title: __("Align left"), icon: align_icons.left },
-	{ value: "center", title: __("Align center"), icon: align_icons.center },
-	{ value: "right", title: __("Align right"), icon: align_icons.right },
-];
 
 function remove_field() {
 	if (selected_field.value) {
