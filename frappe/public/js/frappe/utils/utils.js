@@ -1311,6 +1311,7 @@ Object.assign(frappe.utils, {
 		},
 		image_path: "/assets/frappe/images/leaflet/",
 	},
+<<<<<<< HEAD
 	get_route_for_icon(desktop_icon) {
 		let route;
 		if (!desktop_icon) return;
@@ -1371,6 +1372,10 @@ Object.assign(frappe.utils, {
 	},
 	desktop_icon(label, color, size) {
 		let letter = label.charAt(0).toUpperCase();
+=======
+	desktop_icon(label, color, size, style) {
+		let letter = frappe.utils.escape_html(label.charAt(0).toUpperCase());
+>>>>>>> ff276a7621 (fix(desktop): escape Desktop Icon label when rendering)
 		let icon_size = size ? size : "md";
 		let opacity_hex = "1A";
 		let icon_html = $(`
