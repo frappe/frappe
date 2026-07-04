@@ -1,93 +1,92 @@
 <script setup>
 import { computed } from "vue";
-import { FeatherIcon } from "@/lib/ui";
 import CodeBlock from "./CodeBlock.vue";
 import ChipList from "./ChipList.vue";
 import ClampText from "./ClampText.vue";
-import ConditionChip from "./ConditionChip.vue";
 import RecordsList from "./RecordsList.vue";
-import { humanize, argKind, formatScalar, isConditionObject, isLongText } from "@/lib/toolMeta";
+import { humanize, argKind, formatScalar, isLongText } from "@/lib/toolMeta";
 
-// Renders an args object: compact values as one wrapping chip row, block values
-// (long text, lists, filters, records, code) as labeled sections below it.
-// `blockKeys` forces given keys to the "text" block form so a field renders the
-// same way across sibling records (passed by RecordsList).
+// Fields render in one bordered table: single values as two-column rows, code and
+// long text as full-width rows (label on top, block below) so they keep their
+// place in the field order. Collections (lists, records, nested objects) render
+// as full-width sections beneath. `blockKeys` forces a key to the text form so a
+// field looks the same across sibling records.
 const props = defineProps({
 	value: { type: Object, required: true },
 	blockKeys: { type: Object, default: () => new Set() },
 });
 
 const kindFor = (k, v) => {
-	// A `code` key or any multi-line string is code, whatever its length.
 	const base = k === "code" && typeof v === "string" && v ? "code" : argKind(v);
 	if (base === "code") return "code";
 	if (typeof v === "string" && v && (props.blockKeys.has(k) || isLongText(v))) return "text";
 	return base;
 };
-const INLINE = new Set(["scalar", "empty", "tuple"]);
 
-const entries = computed(() => Object.entries(props.value));
-const chips = computed(() => entries.value.filter(([k, v]) => INLINE.has(kindFor(k, v))));
-const sections = computed(() =>
-	entries.value
-		.filter(([k, v]) => !INLINE.has(kindFor(k, v)))
-		.map(([k, v]) => ({ key: k, value: v, kind: kindFor(k, v) }))
+// In the table: two-column single values + full-span code/text. Below: collections.
+const TABLE = new Set(["scalar", "empty", "tuple", "code", "text"]);
+const isFull = (kind) => kind === "code" || kind === "text";
+
+const entries = computed(() =>
+	Object.entries(props.value).map(([key, value]) => ({ key, value, kind: kindFor(key, value) }))
 );
+const tableRows = computed(() => entries.value.filter((e) => TABLE.has(e.kind)));
+const blocks = computed(() => entries.value.filter((e) => !TABLE.has(e.kind)));
+
+const tupleValues = (v) => (Array.isArray(v[1]) ? v[1] : [v[1]]).map(formatScalar).join(", ");
 </script>
 
 <template>
-	<div class="flex flex-col gap-3">
-		<div v-if="chips.length" class="flex flex-col items-start gap-1.5">
-			<template v-for="[k, v] in chips" :key="k">
-				<ConditionChip v-if="argKind(v) === 'tuple'" :field="humanize(k)" :value="v" />
-				<span
-					v-else-if="typeof v === 'boolean'"
-					class="inline-flex items-center gap-1 rounded-lg border border-outline-gray-1 py-1 pl-2 pr-2.5"
+	<div class="flex flex-col gap-4">
+		<div
+			v-if="tableRows.length"
+			class="grid w-fit max-w-full self-start grid-cols-[max-content_1fr] overflow-hidden rounded-lg border border-outline-gray-1 text-sm"
+		>
+			<template v-for="(row, i) in tableRows" :key="row.key">
+				<div
+					v-if="isFull(row.kind)"
+					class="col-span-2 min-w-0 px-3 py-2"
+					:class="{ 'border-t border-outline-gray-1': i }"
 				>
-					<FeatherIcon
-						:name="v ? 'check' : 'minus'"
-						class="h-3 w-3 shrink-0"
-						:class="v ? 'text-ink-green-3' : 'text-ink-gray-4'"
-					/>
-					<span class="text-xs text-ink-gray-7">{{ humanize(k) }}</span>
-				</span>
-				<span
-					v-else
-					class="inline-flex items-baseline gap-2 rounded-lg border border-outline-gray-1 py-1 pl-2.5 pr-3"
-				>
-					<span class="text-xs text-ink-gray-5">{{ humanize(k) }}</span>
-					<span class="break-words text-[13px] font-medium text-ink-gray-9">
-						{{ formatScalar(v) }}
-					</span>
-				</span>
+					<div
+						class="mb-2 pb-0 text-[11px] font-semibold uppercase leading-none tracking-wide text-ink-gray-4"
+					>
+						{{ humanize(row.key) }}
+					</div>
+					<CodeBlock v-if="row.kind === 'code'" :code="String(row.value)" />
+					<ClampText v-else :text="String(row.value)" />
+				</div>
+				<template v-else>
+					<div
+						class="border-r border-outline-gray-1 px-3 py-1.5 text-ink-gray-5"
+						:class="{ 'border-t': i }"
+					>
+						{{ humanize(row.key) }}
+					</div>
+					<div
+						class="min-w-0 break-words px-3 py-1.5 text-ink-gray-9"
+						:class="{ 'border-t border-outline-gray-1': i }"
+					>
+						<template v-if="row.kind === 'tuple'">
+							<span class="text-ink-gray-4">{{ row.value[0] }}</span>
+							{{ tupleValues(row.value) }}
+						</template>
+						<template v-else-if="row.kind === 'empty'">—</template>
+						<template v-else>{{ formatScalar(row.value) }}</template>
+					</div>
+				</template>
 			</template>
 		</div>
 
-		<div v-for="s in sections" :key="s.key">
-			<div class="mb-1.5 text-[11px] font-semibold uppercase tracking-wide text-ink-gray-4">
+		<div v-for="s in blocks" :key="s.key">
+			<div
+				class="mb-2 pb-0 text-[11px] font-semibold uppercase leading-none tracking-wide text-ink-gray-4"
+			>
 				{{ humanize(s.key) }}
 			</div>
-
-			<CodeBlock v-if="s.kind === 'code'" :code="String(s.value)" />
-
-			<ClampText v-else-if="s.kind === 'text'" :text="String(s.value)" />
-
-			<ChipList v-else-if="s.kind === 'list'" :items="s.value" />
-
+			<ChipList v-if="s.kind === 'list'" :items="s.value" />
 			<RecordsList v-else-if="s.kind === 'records'" :records="s.value" />
-
-			<div v-else-if="isConditionObject(s.value)" class="flex flex-col items-start gap-1.5">
-				<ConditionChip
-					v-for="[field, v] in Object.entries(s.value)"
-					:key="field"
-					:field="field"
-					:value="v"
-				/>
-			</div>
-
-			<div v-else class="pl-3">
-				<ArgValue :value="s.value" />
-			</div>
+			<ArgValue v-else :value="s.value" />
 		</div>
 	</div>
 </template>

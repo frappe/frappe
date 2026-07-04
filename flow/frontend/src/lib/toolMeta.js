@@ -95,13 +95,6 @@ export function argKind(v) {
 	return "scalar";
 }
 
-// An object whose every value fits a condition chip (filters, update values, …).
-export function isConditionObject(obj) {
-	return Object.values(obj).every((v) =>
-		["scalar", "empty", "tuple", "list"].includes(argKind(v))
-	);
-}
-
 const TITLE_KEYS = ["title", "name", "subject", "label", "slug"];
 
 // The key used as a record list's title column: a title-ish key on the first

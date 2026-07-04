@@ -59,12 +59,8 @@ const rows = computed(() => {
 </script>
 
 <template>
-	<div class="overflow-hidden rounded-lg border border-outline-gray-1">
-		<div
-			v-for="(row, i) in rows"
-			:key="i"
-			class="border-b border-outline-gray-1 px-3 py-3 last:border-b-0"
-		>
+	<div class="divide-y divide-outline-gray-1">
+		<div v-for="(row, i) in rows" :key="i" class="py-3 first:pt-0 last:pb-0">
 			<div class="flex items-center gap-2.5" :class="{ 'mb-2.5': row.rest }">
 				<span class="text-xs leading-5 tabular-nums text-ink-gray-4">{{ i + 1 }}</span>
 				<span class="min-w-0 flex-1 truncate text-sm font-medium text-ink-gray-9">
@@ -76,7 +72,7 @@ const rows = computed(() => {
 
 		<button
 			v-if="records.length > ROW_LIMIT"
-			class="w-full px-3 py-2 text-left text-xs text-ink-gray-5 hover:text-ink-gray-7"
+			class="w-full py-2 text-left text-xs text-ink-gray-5 hover:text-ink-gray-7"
 			@click="showAll = !showAll"
 		>
 			{{ showAll ? __("Show less") : __("Show {0} more", [records.length - ROW_LIMIT]) }}
