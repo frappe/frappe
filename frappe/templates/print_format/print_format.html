@@ -66,10 +66,12 @@
 	{%- if section.background -%}
 		{%- set ns3.section_style = ns3.section_style + 'background:' + section.background + ';' -%}
 	{%- endif -%}
-	{%- if section.padding -%}
-		{%- set p = section.padding -%}
-		{%- set ns3.section_style = ns3.section_style + 'padding:' + (p.top or 0)|string + 'px ' + (p.right or 0)|string + 'px ' + (p.bottom or 0)|string + 'px ' + (p.left or 0)|string + 'px;' -%}
-	{%- endif -%}
+	{%- for prop in ['padding', 'margin'] -%}
+		{%- set box = section.get(prop) -%}
+		{%- if box -%}
+			{%- set ns3.section_style = ns3.section_style + prop + ':' + (box.top or 0)|string + 'px ' + (box.right or 0)|string + 'px ' + (box.bottom or 0)|string + 'px ' + (box.left or 0)|string + 'px;' -%}
+		{%- endif -%}
+	{%- endfor -%}
 	{%- if section.field_borders -%}
 		{%- set _cp = (section.cell_padding if section.cell_padding is defined and section.cell_padding is not none else 8) -%}
 		{%- set ns3.section_style = ns3.section_style + '--pfb-cell-pad:' + _cp|string + 'px;' -%}

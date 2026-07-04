@@ -170,9 +170,13 @@ let has_visible_fields = computed(
 let section_inline_style = computed(() => {
 	const style = {};
 	if (props.section.background) style.backgroundColor = props.section.background;
-	if (props.section.padding) {
-		const p = props.section.padding;
-		style.padding = `${p.top || 0}px ${p.right || 0}px ${p.bottom || 0}px ${p.left || 0}px`;
+	for (const prop of ["padding", "margin"]) {
+		const box = props.section[prop];
+		if (box) {
+			style[prop] = `${box.top || 0}px ${box.right || 0}px ${box.bottom || 0}px ${
+				box.left || 0
+			}px`;
+		}
 	}
 	if (is_grid.value) {
 		const pad = props.section.cell_padding ?? 8;

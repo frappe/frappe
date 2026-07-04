@@ -52,11 +52,14 @@
 			<div ref="bg_color_host"></div>
 		</InspectorSection>
 
-		<!-- PADDING -->
-		<InspectorSection :label="__('Padding')">
-			<PaddingGrid
-				:model-value="selected_section.padding"
-				@update:model-value="(v) => (selected_section.padding = v)"
+		<!-- SPACING -->
+		<InspectorSection :label="__('Spacing')">
+			<SpacingRow
+				v-for="prop in spacing_props"
+				:key="prop.key"
+				:label="prop.label"
+				:model-value="selected_section[prop.key]"
+				@update:model-value="(v) => (selected_section[prop.key] = v)"
 			/>
 		</InspectorSection>
 
@@ -100,7 +103,7 @@ import LabelField from "./LabelField.vue";
 import SegmentedRow from "./SegmentedRow.vue";
 import InspectorSection from "./InspectorSection.vue";
 import StepperRow from "./StepperRow.vue";
-import PaddingGrid from "./PaddingGrid.vue";
+import SpacingRow from "./SpacingRow.vue";
 import StyleSection from "./StyleSection.vue";
 import VisibilitySection from "./VisibilitySection.vue";
 import { mountColorControl } from "./useColorControl";
@@ -108,6 +111,11 @@ import { mountColorControl } from "./useColorControl";
 let store = inject("$store");
 
 let selected_section = computed(() => store.selected_section.value);
+
+const spacing_props = [
+	{ key: "padding", label: __("Padding") },
+	{ key: "margin", label: __("Margin") },
+];
 let preview_doc = computed(() => store.preview_doc.value);
 
 let section_orientation = computed(() => selected_section.value?.field_orientation ?? "");
