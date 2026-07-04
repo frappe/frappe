@@ -1,3 +1,16 @@
+<script setup>
+import { computed, inject } from "vue";
+import { usePanelHeader } from "../panel";
+
+const store = inject("store");
+usePanelHeader(__("Advanced"), __("Deeper controls for your server."));
+const context = computed(() => store.state.context);
+
+function open(url) {
+	if (url) window.open(url, "_blank", "noopener");
+}
+</script>
+
 <template>
 	<div>
 		<div>
@@ -7,7 +20,7 @@
 					<p>
 						{{
 							__(
-								"Deploys, scaling, SSH, backups, and adding or changing sites — the full controls live on your server."
+								"Deploys, scaling, SSH, backups, and adding or changing sites - the full controls live on your server."
 							)
 						}}
 					</p>
@@ -28,7 +41,7 @@
 					<p>
 						{{
 							__(
-								"Payment methods, invoices, billing email and your account settings — manage it all in one place."
+								"Payment methods, invoices, billing email and your account settings - manage it all in one place."
 							)
 						}}
 					</p>
@@ -46,15 +59,3 @@
 	</div>
 </template>
 
-<script setup>
-import { computed, inject } from "vue";
-import { usePanelHeader } from "../panel";
-
-const store = inject("store");
-usePanelHeader(__("Advanced"), __("Deeper controls for your server."));
-const context = computed(() => store.state.context);
-
-function open(url) {
-	if (url) window.open(url, "_blank", "noopener");
-}
-</script>
