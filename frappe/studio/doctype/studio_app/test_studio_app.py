@@ -260,7 +260,7 @@ def mock_studio_app_files(app_name, pages=None, components=None):
 	tmpdir = tempfile.mkdtemp()
 	try:
 		studio_folder = os.path.join(tmpdir, "studio")
-		app_folder = os.path.join(studio_folder, app_name)
+		app_folder = os.path.join(studio_folder, frappe.scrub(app_name))
 		page_folder = os.path.join(app_folder, "studio_page")
 		os.makedirs(page_folder)
 
