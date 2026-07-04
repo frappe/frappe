@@ -8,13 +8,15 @@
 
 <script setup>
 import { serialize_layout } from "../../utils";
-import { ref, inject, watch, onActivated } from "vue";
+import { ref, inject, watch, onActivated, onDeactivated } from "vue";
 
 let store = inject("$store");
 let frame = ref(null);
 let loaded = ref(false);
 let error = ref(null);
 let render_seq = 0;
+let is_active = false;
+let last_payload = null;
 
 const INTERACTION_CSS = `
 	[data-pfb-path] { cursor: pointer; }
@@ -38,7 +40,24 @@ const INTERACTION_CSS = `
 		cursor: text;
 		border-radius: 2px;
 	}
+	body { position: relative; }
+	.pfb-page-guides { position: absolute; inset: 0; pointer-events: none; z-index: 9998; }
+	.pfb-page-line { position: absolute; left: 0; right: 0; border-top: 1px dashed #94a3b8; }
+	.pfb-page-chip {
+		position: absolute;
+		right: 6px;
+		transform: translateY(-50%);
+		font: 500 10px/1.6 -apple-system, sans-serif;
+		color: #475569;
+		background: #e2e8f0;
+		padding: 0 7px;
+		border-radius: 8px;
+		white-space: nowrap;
+	}
+	.pfb-margin-guide { position: absolute; top: 0; bottom: 0; border-left: 1px dashed #dbeafe; }
 `;
+
+const PAGE_HEIGHTS_MM = { A4: 297, Letter: 279.4 };
 
 function serialized_format_data() {
 	const clone = JSON.parse(JSON.stringify(store.layout.value));
@@ -67,20 +86,24 @@ function preview_settings() {
 }
 
 function render() {
-	if (!store.preview_doc_name.value) return;
+	if (!is_active || !store.preview_doc_name.value) return;
+	const args = {
+		doctype: store.print_format.value.doc_type,
+		name: store.preview_doc_name.value,
+		print_format: store.print_format.value.name,
+		format_data: serialized_format_data(),
+		letterhead: store.letterhead.value?.name || null,
+		settings: JSON.stringify(preview_settings()),
+	};
+	const payload = JSON.stringify(args);
+	if (payload === last_payload && loaded.value) return;
 	const seq = ++render_seq;
 	frappe
-		.call("frappe.utils.print_format_generator.render_preview", {
-			doctype: store.print_format.value.doc_type,
-			name: store.preview_doc_name.value,
-			print_format: store.print_format.value.name,
-			format_data: serialized_format_data(),
-			letterhead: store.letterhead.value?.name || null,
-			settings: JSON.stringify(preview_settings()),
-		})
+		.call("frappe.utils.print_format_generator.render_preview", args)
 		.then((r) => {
 			if (seq !== render_seq) return;
 			error.value = null;
+			last_payload = payload;
 			write_document(r.message);
 		})
 		.catch((e) => {
@@ -102,9 +125,79 @@ function write_document(html) {
 	doc.addEventListener("keydown", forward_keydown);
 	doc.addEventListener("pointerdown", on_pointer_down);
 	doc.addEventListener("dblclick", on_dblclick);
+	draw_page_guides();
+	frame.value.contentWindow?.addEventListener("load", draw_page_guides);
 	frame.value.contentWindow?.scrollTo(0, scroll_y);
 	loaded.value = true;
 	update_highlight();
+}
+
+// ── Page boundary guides ────────────────────────────────────
+function draw_page_guides() {
+	const doc = frame.value?.contentDocument;
+	const body = doc?.body;
+	if (!body) return;
+	doc.querySelector(".pfb-page-guides")?.remove();
+
+	const probe = doc.createElement("div");
+	probe.style.cssText = "position:absolute;height:100mm;width:0;visibility:hidden";
+	body.appendChild(probe);
+	const px_per_mm = probe.getBoundingClientRect().height / 100;
+	probe.remove();
+	if (!px_per_mm) return;
+
+	const page_px = (PAGE_HEIGHTS_MM[body.dataset.pageSize] || 297) * px_per_mm;
+	const margin_top = (parseFloat(body.dataset.marginTop) || 0) * px_per_mm;
+	const margin_bottom = (parseFloat(body.dataset.marginBottom) || 0) * px_per_mm;
+	const margin_left = (parseFloat(body.dataset.marginLeft) || 0) * px_per_mm;
+	const margin_right = (parseFloat(body.dataset.marginRight) || 0) * px_per_mm;
+	const usable = page_px - margin_top - margin_bottom;
+	if (usable <= 0) return;
+
+	const layer = doc.createElement("div");
+	layer.className = "pfb-page-guides";
+
+	for (const x of [margin_left, body.clientWidth - margin_right]) {
+		const guide = doc.createElement("div");
+		guide.className = "pfb-margin-guide";
+		guide.style.left = `${x}px`;
+		layer.appendChild(guide);
+	}
+
+	const content_bottom = body.scrollHeight - margin_bottom;
+	const forced = [...doc.querySelectorAll(".page-break")]
+		.map((el) => {
+			const rect = el.getBoundingClientRect();
+			return rect.bottom + frame.value.contentWindow.scrollY;
+		})
+		.sort((a, b) => a - b);
+
+	let cursor = margin_top;
+	let page = 1;
+	const add_boundary = (y, label) => {
+		const line = doc.createElement("div");
+		line.className = "pfb-page-line";
+		line.style.top = `${y}px`;
+		const chip = doc.createElement("div");
+		chip.className = "pfb-page-chip";
+		chip.style.top = `${y}px`;
+		chip.textContent = label;
+		layer.appendChild(line);
+		layer.appendChild(chip);
+	};
+
+	while (cursor + usable < content_bottom) {
+		const next_forced = forced.find((y) => y > cursor && y <= cursor + usable);
+		const boundary = next_forced ?? cursor + usable;
+		page += 1;
+		add_boundary(
+			boundary,
+			next_forced ? __("Page {0} · break", [page]) : __("Page {0}", [page])
+		);
+		cursor = boundary;
+	}
+
+	body.appendChild(layer);
 }
 
 function live_sections() {
@@ -400,8 +493,15 @@ watch(() => store.letterhead.value?.name, render);
 watch([() => store.selected_field.value, () => store.selected_section.value], update_highlight);
 
 onActivated(() => {
+	is_active = true;
 	loaded.value = false;
+	last_payload = null;
 	render();
+});
+
+onDeactivated(() => {
+	is_active = false;
+	render_seq++;
 });
 </script>
 
