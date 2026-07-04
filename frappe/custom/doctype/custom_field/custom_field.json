@@ -37,6 +37,8 @@
   "read_only_depends_on",
   "properties",
   "non_negative",
+  "min_value",
+  "max_value",
   "reqd",
   "unique",
   "is_virtual",
@@ -450,6 +452,18 @@
    "fieldname": "non_negative",
    "fieldtype": "Check",
    "label": "Non Negative"
+  },
+  {
+   "depends_on": "eval:in_list([\"Int\", \"Float\", \"Currency\", \"Percent\"], doc.fieldtype)",
+   "fieldname": "min_value",
+   "fieldtype": "Float",
+   "label": "Min Value"
+  },
+  {
+   "depends_on": "eval:in_list([\"Int\", \"Float\", \"Currency\", \"Percent\"], doc.fieldtype)",
+   "fieldname": "max_value",
+   "fieldtype": "Float",
+   "label": "Max Value"
   },
   {
    "fieldname": "module",

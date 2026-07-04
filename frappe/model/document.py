@@ -30,7 +30,7 @@ from frappe.model.utils import is_virtual_doctype, simple_singledispatch
 from frappe.model.workflow import set_workflow_state_on_action, validate_workflow
 from frappe.types import DF
 from frappe.types.filter import FilterSignature
-from frappe.utils import compare, cstr, date_diff, file_lock, flt, get_table_name, now
+from frappe.utils import cint, compare, cstr, date_diff, file_lock, flt, get_table_name, now
 from frappe.utils.data import get_absolute_url, get_datetime, get_timedelta, getdate
 from frappe.utils.global_search import update_global_search
 
@@ -1077,6 +1077,7 @@ class Document(BaseDocument):
 		self._validate_data_fields()
 		self._validate_selects()
 		self._validate_non_negative()
+		self._validate_min_max_value()
 		self._validate_length()
 		self._fix_rating_value()
 		self._validate_code_fields()
@@ -1090,6 +1091,7 @@ class Document(BaseDocument):
 			d._validate_data_fields()
 			d._validate_selects()
 			d._validate_non_negative()
+			d._validate_min_max_value()
 			d._validate_length()
 			d._fix_rating_value()
 			d._validate_code_fields()
@@ -1125,6 +1127,41 @@ class Document(BaseDocument):
 			if flt(self.get(df.fieldname)) < 0:
 				msg = get_msg(df)
 				frappe.throw(msg, frappe.NonNegativeError, title=_("Negative Value"))
+
+	def _validate_min_max_value(self):
+		def get_msg(df, constraint):
+			if self.get("parentfield"):
+				return "{} {} #{}: {} {}".format(
+					frappe.bold(_(self.doctype)),
+					_("Row"),
+					self.idx,
+					constraint,
+					frappe.bold(_(df.label, context=df.parent)),
+				)
+			else:
+				return "{} {}: {}".format(
+					constraint, _(df.parent), frappe.bold(_(df.label, context=df.parent))
+				)
+
+		for df in self.meta.get("fields", {"fieldtype": ("in", ["Int", "Float", "Currency", "Percent"])}):
+			min_value = flt(df.get("min_value"))
+			max_value = flt(df.get("max_value"))
+
+			if df.fieldtype == "Int":
+				min_value, max_value = cint(min_value), cint(max_value)
+
+			if not (min_value or max_value):
+				continue
+
+			value = flt(self.get(df.fieldname))
+
+			if min_value and value < min_value:
+				msg = get_msg(df, _("Value cannot be less than {0} for").format(frappe.bold(min_value)))
+				frappe.throw(msg, title=_("Value Too Small"))
+
+			if max_value and value > max_value:
+				msg = get_msg(df, _("Value cannot be more than {0} for").format(frappe.bold(max_value)))
+				frappe.throw(msg, title=_("Value Too Large"))
 
 	def _fix_rating_value(self):
 		for field in self.meta.get("fields", {"fieldtype": "Rating"}):

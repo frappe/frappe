@@ -103,6 +103,8 @@ class CustomField(Document):
 		link_filters: DF.JSON | None
 		mandatory_depends_on: DF.Code | None
 		mask: DF.Check
+		max_value: DF.Float
+		min_value: DF.Float
 		module: DF.Link | None
 		no_copy: DF.Check
 		non_negative: DF.Check

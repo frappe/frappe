@@ -14,6 +14,8 @@
   "length",
   "precision",
   "non_negative",
+  "min_value",
+  "max_value",
   "hide_days",
   "hide_seconds",
   "reqd",
@@ -516,6 +518,18 @@
    "fieldname": "non_negative",
    "fieldtype": "Check",
    "label": "Non Negative"
+  },
+  {
+   "depends_on": "eval:in_list([\"Int\", \"Float\", \"Currency\", \"Percent\"], doc.fieldtype)",
+   "fieldname": "min_value",
+   "fieldtype": "Float",
+   "label": "Min Value"
+  },
+  {
+   "depends_on": "eval:in_list([\"Int\", \"Float\", \"Currency\", \"Percent\"], doc.fieldtype)",
+   "fieldname": "max_value",
+   "fieldtype": "Float",
+   "label": "Max Value"
   },
   {
    "fieldname": "column_break_18",
