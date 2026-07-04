@@ -257,11 +257,13 @@ def confirm_payment_method(**payload) -> dict:
 
 
 @frappe.whitelist(methods=["POST"])
-def create_payment_method_checkout(redirect_url: str, gateway: str | None = None) -> dict:
+def create_payment_method_checkout(gateway: str | None = None) -> dict:
 	_assert_access()
 	from frappe.integrations.frappe_providers import cloud_billing
 
-	return cloud_billing.create_payment_method_checkout(PilotClient(), redirect_url, gateway)
+	# The gateway returns the browser here after setup — always this site, never a
+	# caller-supplied URL (which would be an open redirect).
+	return cloud_billing.create_payment_method_checkout(PilotClient(), _return_url(), gateway)
 
 
 @frappe.whitelist(methods=["POST"])
@@ -289,11 +291,12 @@ def reconcile_payment_setup() -> dict:
 
 
 @frappe.whitelist(methods=["POST"])
-def create_topup_checkout(amount: float, redirect_url: str) -> dict:
+def create_topup_checkout(amount: float) -> dict:
 	_assert_access()
 	from frappe.integrations.frappe_providers import cloud_billing
 
-	return cloud_billing.create_topup_checkout(PilotClient(), amount, redirect_url)
+	# Return URL is this site's own — never caller-supplied (open-redirect defence).
+	return cloud_billing.create_topup_checkout(PilotClient(), amount, _return_url())
 
 
 @frappe.whitelist(methods=["POST"])
@@ -305,6 +308,12 @@ def get_checkout_status(reference: str) -> dict:
 
 
 # --- helpers --------------------------------------------------------------
+
+
+def _return_url() -> str:
+	"""This site's own desk URL — the fixed post-checkout return target. Built here so
+	a caller can never point the gateway's redirect at an external page."""
+	return frappe.utils.get_url("/app")
 
 
 def _clean_domain(domain: str) -> str:

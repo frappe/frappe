@@ -70,7 +70,7 @@ function start() {
 
 async function startStripe() {
 	await run(async () => {
-		checkout.value = await store.api.createPaymentMethodCheckout(window.location.href, selected.value);
+		checkout.value = await store.api.createPaymentMethodCheckout(selected.value);
 		message.value = __("Checkout opened in a new tab. Add your card there, then check its status.");
 		window.open(checkout.value.checkout_url, "_blank", "noopener");
 	});

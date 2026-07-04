@@ -22,7 +22,7 @@ const canStart = computed(() => Number(amount.value) > 0 && !working.value);
 async function start() {
 	if (!canStart.value) return;
 	await run(async () => {
-		checkout.value = await store.api.createTopupCheckout(Number(amount.value), window.location.href);
+		checkout.value = await store.api.createTopupCheckout(Number(amount.value));
 		message.value = __("Checkout opened in a new tab. Complete the payment there, then check its status.");
 		window.open(checkout.value.checkout_url, "_blank", "noopener");
 	});

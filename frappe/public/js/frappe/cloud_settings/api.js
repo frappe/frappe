@@ -66,8 +66,8 @@ export function confirmPaymentMethod(payload) {
 	return call("confirm_payment_method", payload);
 }
 
-export function createPaymentMethodCheckout(redirectUrl, gateway) {
-	return call("create_payment_method_checkout", { redirect_url: redirectUrl, gateway });
+export function createPaymentMethodCheckout(gateway) {
+	return call("create_payment_method_checkout", { gateway });
 }
 
 export function confirmPaymentMethodCheckout(reference) {
@@ -78,8 +78,8 @@ export function reconcilePaymentSetup() {
 	return call("reconcile_payment_setup", {});
 }
 
-export function createTopupCheckout(amount, redirectUrl) {
-	return call("create_topup_checkout", { amount, redirect_url: redirectUrl });
+export function createTopupCheckout(amount) {
+	return call("create_topup_checkout", { amount });
 }
 
 export function getCheckoutStatus(reference) {

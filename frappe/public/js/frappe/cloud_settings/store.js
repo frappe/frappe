@@ -21,13 +21,17 @@ export async function waitForTask(taskId, isCancelled = () => false) {
 		}
 		const status = task && task.status;
 		if (!status) return "gone";
-		if (status === "running") {
+		// Only these are terminal; anything else (running, or a queued/pending pre-run
+		// state) is still in flight → keep polling until the deadline.
+		if (!["success", "failed", "killed"].includes(status)) {
 			if (Date.now() > deadline) return "timeout";
 			await sleep(POLL_INTERVAL);
 			continue;
 		}
-		if (status === "success" || task.exit_code === 0) return "success";
-		return "failed";
+		// Trust a non-zero exit code over the status; a null exit code (not reported)
+		// falls back to the status.
+		const succeeded = status === "success" && (task.exit_code === 0 || task.exit_code == null);
+		return succeeded ? "success" : "failed";
 	}
 	return "cancelled";
 }
