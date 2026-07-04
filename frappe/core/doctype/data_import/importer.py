@@ -262,10 +262,6 @@ class Importer:
 					frappe.db.commit()
 
 				except Exception:
-					frappe.logger("data_import").error(
-						f"Data Import {self.data_import.name}: row(s) {row_indexes} failed to import",
-						exc_info=True,
-					)
 					messages = frappe.local.message_log
 					frappe.clear_messages()
 
@@ -284,6 +280,11 @@ class Importer:
 					)
 
 					log_index += 1
+
+					frappe.logger("data_import").error(
+						f"Data Import {self.data_import.name}: row(s) {row_indexes} failed to import",
+						exc_info=True,
+					)
 
 		# Logs are db inserted directly so will have to be fetched again
 		import_log = (
