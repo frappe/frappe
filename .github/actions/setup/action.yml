@@ -142,6 +142,13 @@ runs:
       echo -e "\033[33mInstall System Dependencies + bench tool: $((end_time - start_time)) seconds\033[0m"
 
   - shell: bash -e {0}
+    if: inputs.containerized == 'true'
+    run: |
+      # bench exits when run as root unless frappe_user is set; job containers run as root
+      mkdir -p "${GITHUB_WORKSPACE}/sites"
+      echo '{"frappe_user": "root"}' > "${GITHUB_WORKSPACE}/sites/common_site_config.json"
+
+  - shell: bash -e {0}
     run: |
       # Init Bench
       start_time=$(date +%s)

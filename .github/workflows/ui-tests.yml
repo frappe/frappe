@@ -50,6 +50,11 @@ jobs:
       # noisy 3rd party library warnings
       PYTHONWARNINGS: "ignore"
       DB_ROOT_PASSWORD: db_root
+      # bench runs its children with HOME=/root (frappe_user), keep caches at the runner home
+      CYPRESS_CACHE_FOLDER: /github/home/.cache/Cypress
+      YARN_CACHE_FOLDER: /github/home/.cache/yarn
+      PIP_CACHE_DIR: /github/home/.cache/pip
+      UV_CACHE_DIR: /github/home/.cache/uv
 
     strategy:
       fail-fast: false
