@@ -277,6 +277,7 @@ function write_document(html) {
 
 // ── Pagination: mirror the Chrome PDF page model ────────────
 let master = null;
+let master_doc = null;
 
 // PDF (repeat_header_footer on) puts letterhead + header/footer zones in
 // per-page overlays outside the content flow — pull the same elements out
@@ -345,13 +346,20 @@ function push_across_boundaries(doc, flow, usable) {
 function paginate() {
 	const doc = frame.value?.contentDocument;
 	const body = doc?.body;
-	if (!body) return;
+	if (!body || !body.dataset.pageSize) return;
+	if (doc.readyState === "loading") {
+		doc.addEventListener("DOMContentLoaded", paginate, { once: true });
+		return;
+	}
 
+	doc.querySelector(".pfb-pages")?.remove();
+	doc.querySelector(".pfb-del-chip")?.remove();
+	if (master && master_doc !== doc) master = null;
 	if (!master) {
 		master = doc.createElement("div");
+		master_doc = doc;
 		while (body.firstChild) master.appendChild(body.firstChild);
 	}
-	doc.querySelector(".pfb-pages")?.remove();
 
 	const probe = doc.createElement("div");
 	probe.style.cssText = "position:absolute;height:100mm;width:0;visibility:hidden";
