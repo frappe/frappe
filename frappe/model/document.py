@@ -1829,7 +1829,7 @@ class Document(BaseDocument):
 			return frappe.clear_last_message()
 
 		for fieldname in self._non_computed_table_fieldnames:
-			for row in self.get(fieldname):
+			for row in self.get(fieldname) or []:
 				row._doc_before_save = next(
 					(d for d in (self._doc_before_save.get(fieldname) or []) if d.name == row.name), None
 				)
