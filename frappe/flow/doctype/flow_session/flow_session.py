@@ -131,7 +131,11 @@ class FlowSession(Document):
 		stream: bool = False,
 	) -> FlowRun | Generator[Event]:
 		"""Run one turn and persist it as a Flow Run. `attachments` are File names whose text
-		is injected into this turn's prompt. With `stream=True`, returns an event generator."""
+		is injected into this turn's prompt. With `stream=True`, returns an event generator.
+
+		Commits the current transaction before the model call (to release row locks). Do not
+		call with pending writes you may want to roll back on failure; commit-and-compensate
+		around it instead."""
 		from flow.flow.doctype.flow_run.flow_run import create_run, stream_with_persistence
 
 		self.reload()
