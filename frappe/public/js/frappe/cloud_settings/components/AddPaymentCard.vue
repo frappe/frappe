@@ -17,8 +17,18 @@ const RAZORPAY_SDK = "https://checkout.razorpay.com/v1/checkout.js";
 
 const methods = [
 	// Card uses the Lucide card glyph; UPI uses the brand wordmark.
-	{ value: "Card", label: __("Card"), hint: __("Visa, Mastercard, RuPay, Amex"), lucide: "credit-card" },
-	{ value: "UPI Autopay", label: __("UPI"), hint: __("Pay from any UPI app"), image: "UPI-1.svg" },
+	{
+		value: "Card",
+		label: __("Card"),
+		hint: __("Visa, Mastercard, RuPay, Amex"),
+		lucide: "credit-card",
+	},
+	{
+		value: "UPI Autopay",
+		label: __("UPI"),
+		hint: __("Pay from any UPI app"),
+		image: "UPI-1.svg",
+	},
 ];
 
 const gateways = ref(null);
@@ -34,9 +44,13 @@ onMounted(load);
 
 // UPI is Razorpay-only; Card can go through any gateway serving the currency.
 const visibleGateways = computed(() =>
-	(gateways.value || []).filter((g) => method.value !== "UPI Autopay" || g.adapter_key === "Razorpay")
+	(gateways.value || []).filter(
+		(g) => method.value !== "UPI Autopay" || g.adapter_key === "Razorpay"
+	)
 );
-const selectedGateway = computed(() => visibleGateways.value.find((g) => g.name === selected.value));
+const selectedGateway = computed(() =>
+	visibleGateways.value.find((g) => g.name === selected.value)
+);
 const continueLabel = computed(() =>
 	selectedGateway.value ? __("Continue with {0}", [selectedGateway.value.label]) : __("Continue")
 );
@@ -47,9 +61,13 @@ const needsContact = computed(
 );
 
 // Keep a valid gateway selected as the visible set changes (e.g. switching to UPI).
-watch(visibleGateways, (list) => {
-	if (!list.some((g) => g.name === selected.value)) selected.value = list[0]?.name || "";
-}, { immediate: true });
+watch(
+	visibleGateways,
+	(list) => {
+		if (!list.some((g) => g.name === selected.value)) selected.value = list[0]?.name || "";
+	},
+	{ immediate: true }
+);
 
 async function load() {
 	error.value = "";
@@ -71,7 +89,9 @@ function start() {
 async function startStripe() {
 	await run(async () => {
 		checkout.value = await store.api.createPaymentMethodCheckout(selected.value);
-		message.value = __("Checkout opened in a new tab. Add your card there, then check its status.");
+		message.value = __(
+			"Checkout opened in a new tab. Add your card there, then check its status."
+		);
 		window.open(checkout.value.checkout_url, "_blank", "noopener");
 	});
 }
@@ -81,7 +101,11 @@ async function startRazorpay() {
 	error.value = "";
 	message.value = "";
 	try {
-		const handles = await store.api.addPaymentMethod(method.value, selected.value, contact.value.trim() || null);
+		const handles = await store.api.addPaymentMethod(
+			method.value,
+			selected.value,
+			contact.value.trim() || null
+		);
 		await loadRazorpay();
 		openRazorpayCheckout(handles);
 		// `working` stays true while the modal is open; dismiss/fail/success reset it.
@@ -98,7 +122,10 @@ function openRazorpayCheckout(handles) {
 		customer_id: handles.customer_id,
 		recurring: handles.recurring ? 1 : undefined,
 		name: __("Frappe Cloud"),
-		description: method.value === "UPI Autopay" ? __("Set up UPI Autopay") : __("Save card for billing"),
+		description:
+			method.value === "UPI Autopay"
+				? __("Set up UPI Autopay")
+				: __("Save card for billing"),
 		prefill: handles.prefill || {},
 		handler: (response) => confirmRazorpay(handles.payment_method, response),
 		modal: {
@@ -151,7 +178,8 @@ async function check() {
 			emit("close");
 			return;
 		}
-		message.value = result.message || __("Not confirmed yet — finish adding the card, then check again.");
+		message.value =
+			result.message || __("Not confirmed yet — finish adding the card, then check again.");
 	});
 }
 
@@ -191,7 +219,9 @@ async function run(action) {
 				@click="method = option.value"
 			>
 				<span class="cloud-settings-logo-box">
-					<svg v-if="option.lucide" class="icon"><use :href="`#icon-${option.lucide}`"></use></svg>
+					<svg v-if="option.lucide" class="icon">
+						<use :href="`#icon-${option.lucide}`"></use>
+					</svg>
 					<img v-else :src="ASSETS + option.image" :alt="option.label" />
 				</span>
 				<span class="cloud-settings-pay-body">
@@ -221,7 +251,9 @@ async function run(action) {
 				<span v-if="GATEWAY_LOGO[gateway.adapter_key]" class="cloud-settings-logo-box">
 					<img :src="ASSETS + GATEWAY_LOGO[gateway.adapter_key]" :alt="gateway.label" />
 				</span>
-				<span v-else class="cloud-settings-gateway-avatar">{{ gateway.label.charAt(0) }}</span>
+				<span v-else class="cloud-settings-gateway-avatar">{{
+					gateway.label.charAt(0)
+				}}</span>
 				<span class="cloud-settings-gateway-body">
 					<span class="cloud-settings-gateway-name">{{ gateway.label }}</span>
 					<span class="cloud-settings-sub">{{ gateway.subtitle }}</span>
@@ -231,15 +263,20 @@ async function run(action) {
 
 		<div v-if="needsContact" class="cloud-settings-field">
 			<label>{{ __("Phone") }}</label>
-			<input v-model="contact" class="cloud-settings-input" placeholder="+91 98765 43210" :disabled="working" />
+			<input
+				v-model="contact"
+				class="cloud-settings-input"
+				placeholder="+91 98765 43210"
+				:disabled="working"
+			/>
 		</div>
 
 		<div class="cloud-settings-help-container">
-		<p v-if="message" class="cloud-settings-help">{{ message }}</p>
-		<p v-else class="cloud-settings-help">
-			<svg class="icon icon-xs"><use href="#icon-lock"></use></svg>
-			{{ __("The gateway collects your card securely - this site never sees it.") }}
-		</p>
+			<p v-if="message" class="cloud-settings-help">{{ message }}</p>
+			<p v-else class="cloud-settings-help">
+				<svg class="icon icon-xs"><use href="#icon-lock"></use></svg>
+				{{ __("The gateway collects your card securely - this site never sees it.") }}
+			</p>
 		</div>
 
 		<div class="cloud-settings-actions" style="justify-content: flex-end">
@@ -255,7 +292,12 @@ async function run(action) {
 			>
 				{{ __("Reopen checkout") }}
 			</a>
-			<button v-if="checkout" class="btn btn-sm btn-primary" :disabled="working" @click="check">
+			<button
+				v-if="checkout"
+				class="btn btn-sm btn-primary"
+				:disabled="working"
+				@click="check"
+			>
 				{{ __("Check status") }}
 			</button>
 			<button v-else class="btn btn-sm btn-primary" :disabled="!canContinue" @click="start">

@@ -238,8 +238,9 @@ def get_payment_gateways() -> list:
 
 
 @frappe.whitelist(methods=["POST"])
-def add_payment_method(method_type: str = "Card", contact: str | None = None,
-					   gateway: str | None = None) -> dict:
+def add_payment_method(
+	method_type: str = "Card", contact: str | None = None, gateway: str | None = None
+) -> dict:
 	_assert_access()
 	from frappe.integrations.frappe_providers import cloud_billing
 

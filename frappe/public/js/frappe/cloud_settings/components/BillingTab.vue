@@ -91,7 +91,11 @@ function clamp(percent) {
 						{{ __("Billing isn't available for this site yet") }}
 					</div>
 					<p class="cloud-settings-sub">
-						{{ __("This site isn't connected to a billing account, or the connection isn't ready.") }}
+						{{
+							__(
+								"This site isn't connected to a billing account, or the connection isn't ready."
+							)
+						}}
 					</p>
 				</div>
 			</div>
@@ -140,15 +144,23 @@ function clamp(percent) {
 						</svg>
 						{{ billing.credit.note }}
 					</div>
-					<button class="btn btn-sm btn-default" style="margin-top: 12px" :disabled="flow === 'topup'"
-						@click="startTopup">
+					<button
+						class="btn btn-sm btn-default"
+						style="margin-top: 12px"
+						:disabled="flow === 'topup'"
+						@click="startTopup"
+					>
 						<svg class="icon icon-xs"><use href="#icon-plus"></use></svg>
 						{{ __("Add credit") }}
 					</button>
 				</div>
 			</div>
 
-			<BillingProfileCard v-if="flow === 'profile'" @close="flow = ''" @saved="afterProfile" />
+			<BillingProfileCard
+				v-if="flow === 'profile'"
+				@close="flow = ''"
+				@saved="afterProfile"
+			/>
 			<AddPaymentCard v-else-if="flow === 'payment'" :billing="billing" @close="flow = ''" />
 			<TopUpCard v-else-if="flow === 'topup'" @close="flow = ''" />
 
@@ -163,8 +175,12 @@ function clamp(percent) {
 					</div>
 				</div>
 				<div class="cloud-settings-actions">
-					<button v-if="billing.payment_method" class="btn btn-sm btn-default" :disabled="removing"
-						@click="removeCard">
+					<button
+						v-if="billing.payment_method"
+						class="btn btn-sm btn-default"
+						:disabled="removing"
+						@click="removeCard"
+					>
 						{{ __("Remove") }}
 					</button>
 					<button v-else class="btn btn-sm btn-primary" @click="startPayment">

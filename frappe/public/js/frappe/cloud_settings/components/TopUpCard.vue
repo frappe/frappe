@@ -23,7 +23,9 @@ async function start() {
 	if (!canStart.value) return;
 	await run(async () => {
 		checkout.value = await store.api.createTopupCheckout(Number(amount.value));
-		message.value = __("Checkout opened in a new tab. Complete the payment there, then check its status.");
+		message.value = __(
+			"Checkout opened in a new tab. Complete the payment there, then check its status."
+		);
 		window.open(checkout.value.checkout_url, "_blank", "noopener");
 	});
 }
@@ -62,7 +64,13 @@ async function run(action) {
 
 		<div class="cloud-settings-field" style="max-width: 220px">
 			<label>{{ __("Amount ({0})", [billingCurrency]) }}</label>
-			<input v-model="amount" type="number" min="1" class="cloud-settings-input" :disabled="working || !!checkout" />
+			<input
+				v-model="amount"
+				type="number"
+				min="1"
+				class="cloud-settings-input"
+				:disabled="working || !!checkout"
+			/>
 		</div>
 
 		<p v-if="message" class="cloud-settings-help">{{ message }}</p>
@@ -80,7 +88,12 @@ async function run(action) {
 			>
 				{{ __("Reopen checkout") }}
 			</a>
-			<button v-if="checkout" class="btn btn-sm btn-primary" :disabled="working" @click="check">
+			<button
+				v-if="checkout"
+				class="btn btn-sm btn-primary"
+				:disabled="working"
+				@click="check"
+			>
 				{{ __("Check payment") }}
 			</button>
 			<button v-else class="btn btn-sm btn-primary" :disabled="!canStart" @click="start">

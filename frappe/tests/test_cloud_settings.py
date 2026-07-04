@@ -180,9 +180,7 @@ class TestCloudMarketplace(TestCase):
 
 		client = FakeClient({})
 		cloud_marketplace.update(client, '["hrms", "erpnext"]')
-		self.assertEqual(
-			client.posts[0], ("tasks/run", {"command": "update", "apps": ["hrms", "erpnext"]})
-		)
+		self.assertEqual(client.posts[0], ("tasks/run", {"command": "update", "apps": ["hrms", "erpnext"]}))
 
 
 class TestCloudTask(TestCase):

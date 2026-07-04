@@ -58,4 +58,3 @@ function open(url) {
 		</div>
 	</div>
 </template>
-
