@@ -109,7 +109,11 @@
 }
 
 .cloud-settings-note.warning {
-	color: var(--ink-amber-3);
+	color: var(--ink-amber-8);
+}
+
+.cloud-settings-note.warning .icon {
+	margin: 0px;
 }
 
 // --- payment method ------------------------------------------------------
@@ -175,6 +179,15 @@
 	align-items: center;
 	gap: 6px;
 	height: 32px;
+}
+
+.cloud-settings-actions .btn {
+	// disable buttons in actions if they are disabled
+	&:disabled {
+		opacity: 0.6;
+		cursor: not-allowed;
+		pointer-events: none;
+	}
 }
 
 // Plain text input (e.g. the Domains "add domain" field). The Marketplace
@@ -387,6 +400,12 @@
 	gap: 8px;
 }
 
+.cloud-settings-help-container {
+	display: flex;
+	align-items: center;
+	gap: 4px;
+}
+
 .cloud-settings-help {
 	margin: 4px 0 0;
 	color: var(--ink-gray-5);
@@ -442,11 +461,220 @@
 	font-size: var(--text-sm);
 }
 
+// --- billing: plan options, segmented toggle, form fields ----------------
+
+.cloud-settings-option {
+	display: flex;
+	align-items: center;
+	gap: 12px;
+	padding: 14px 16px;
+	border: 1px solid var(--outline-gray-2);
+	border-radius: var(--radius);
+	cursor: pointer;
+}
+
+.cloud-settings-option.selected {
+	border-color: var(--ink-gray-9);
+}
+
+.cloud-settings-option-body {
+	flex: 1;
+	min-width: 0;
+}
+
+.cloud-settings-option-title {
+	display: flex;
+	align-items: center;
+	gap: 8px;
+	color: var(--ink-gray-9);
+	font-size: var(--text-base);
+	font-weight: var(--weight-semibold);
+}
+
+.cloud-settings-option-price {
+	flex-shrink: 0;
+	color: var(--ink-gray-9);
+	font-size: var(--text-base);
+	font-weight: var(--weight-semibold);
+}
+
+.cloud-settings-segment {
+	display: grid;
+	grid-template-columns: repeat(2, minmax(0, 1fr));
+	gap: 12px;
+}
+
+.cloud-settings-segment-item {
+	display: flex;
+	align-items: self-start;
+	gap: 12px;
+	padding: 14px 16px;
+	border: 1px solid var(--outline-gray-2);
+	border-radius: var(--radius);
+	background: var(--surface-white);
+	text-align: left;
+	cursor: pointer;
+}
+
+.cloud-settings-segment-item.selected {
+	border-color: var(--ink-gray-9);
+}
+
+.cloud-settings-segment-title {
+	color: var(--ink-gray-9);
+	font-size: var(--text-base);
+	font-weight: var(--weight-semibold);
+}
+
+// Card/UPI tile: a leading icon (larger Lucide glyph for Card, brand wordmark for
+// UPI) beside a two-line title + subtitle column.
+.cloud-settings-pay-body {
+	display: flex;
+	flex-direction: column;
+	min-width: 0;
+}
+
+// A 24×24 slot for a payment logo/glyph, nudged down so it lines up with the
+// tile's title (the Card/UPI and Stripe/Razorpay tiles top-align their content).
+.cloud-settings-logo-box {
+	flex: 0 0 auto;
+	display: flex;
+	align-items: center;
+	justify-content: center;
+	width: 24px;
+	height: 24px;
+	margin-top: 2px;
+}
+
+.cloud-settings-logo-box img {
+	max-width: 100%;
+	max-height: 100%;
+	object-fit: contain;
+}
+
+// Stripe's mark is a solid square — round its corners to sit like the card tile.
+// (Scoped to Stripe so the transparent Razorpay/UPI marks aren't clipped.)
+.cloud-settings-logo-box img[src$="Stripe.svg"] {
+	border-radius: var(--radius);
+}
+
+.cloud-settings-logo-box .icon {
+	width: 100%;
+	height: 100%;
+	color: var(--ink-gray-7);
+}
+
+// Payment box laid out as a row (card info left, actions right) once there's
+// something to act on — overrides the base column layout.
+.cloud-settings-payment--row {
+	flex-direction: row;
+	align-items: center;
+	justify-content: space-between;
+}
+
+// "Pay through" gateway choices side by side (collapses to one column when narrow).
+.cloud-settings-gateway-grid {
+	display: grid;
+	grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
+	gap: 12px;
+}
+
+.cloud-settings-gateway {
+	display: flex;
+	align-items: flex-start;
+	gap: 12px;
+	width: 100%;
+	padding: 12px 14px;
+	border: 1px solid var(--outline-gray-2);
+	border-radius: var(--radius);
+	background: var(--surface-white);
+	text-align: left;
+	cursor: pointer;
+}
+
+.cloud-settings-gateway.selected {
+	border-color: var(--ink-gray-9);
+}
+
+.cloud-settings-gateway-avatar {
+	flex: 0 0 auto;
+	display: flex;
+	align-items: center;
+	justify-content: center;
+	width: 32px;
+	height: 32px;
+	border-radius: var(--radius-md);
+	background: var(--surface-gray-3);
+	color: var(--ink-gray-8);
+	font-size: var(--text-sm);
+	font-weight: var(--weight-bold);
+}
+
+.cloud-settings-gateway-body {
+	flex: 1;
+	min-width: 0;
+	display: flex;
+	flex-direction: column;
+}
+
+.cloud-settings-gateway-name {
+	color: var(--ink-gray-9);
+	font-size: var(--text-base);
+	font-weight: var(--weight-medium);
+}
+
+.cloud-settings-gateway-check {
+	flex-shrink: 0;
+	align-self: center;
+	color: var(--ink-gray-9);
+}
+
+.cloud-settings-form {
+	display: flex;
+	flex-direction: column;
+	gap: 14px;
+}
+
+.cloud-settings-form-grid {
+	display: grid;
+	grid-template-columns: repeat(2, minmax(0, 1fr));
+	gap: 14px;
+}
+
+.cloud-settings-field {
+	display: flex;
+	flex-direction: column;
+	gap: 6px;
+	min-width: 0;
+}
+
+.cloud-settings-field > label {
+	color: var(--ink-gray-7);
+	font-size: var(--text-sm);
+	font-weight: var(--weight-medium);
+}
+
+.cloud-settings-req {
+	color: var(--ink-red-4);
+}
+
+@media (max-width: 760px) {
+	.cloud-settings-form-grid {
+		grid-template-columns: 1fr;
+	}
+}
+
+.cloud-settings-alert.warning {
+	border: 1px solid var(--outline-amber-2);
+	background: var(--surface-amber-2);
+	color: var(--ink-amber-8);
+}
+
 // --- states --------------------------------------------------------------
 
 .cloud-settings-alert {
 	display: flex;
-	align-items: flex-start;
+	align-items: center;
 	gap: 8px;
 	padding: 10px 14px;
 	border-radius: var(--radius-md);
@@ -455,7 +683,7 @@
 
 .cloud-settings-alert .icon {
 	flex-shrink: 0;
-	margin: 1px 0 0 0;
+	margin: 0px;
 }
 
 .cloud-settings-alert.error {

@@ -210,7 +210,98 @@ def get_billing() -> dict:
 	_assert_access()
 	from frappe.integrations.frappe_providers import cloud_billing
 
-	return cloud_billing.summary()
+	return cloud_billing.summary(PilotClient())
+
+
+@frappe.whitelist(methods=["GET"])
+def get_billing_profile() -> dict:
+	_assert_access()
+	from frappe.integrations.frappe_providers import cloud_billing
+
+	return cloud_billing.get_profile(PilotClient())
+
+
+@frappe.whitelist(methods=["POST"])
+def save_billing_profile(**fields) -> dict:
+	_assert_access()
+	from frappe.integrations.frappe_providers import cloud_billing
+
+	return cloud_billing.save_profile(PilotClient(), fields)
+
+
+@frappe.whitelist(methods=["GET"])
+def get_payment_gateways() -> list:
+	_assert_access()
+	from frappe.integrations.frappe_providers import cloud_billing
+
+	return cloud_billing.get_gateways(PilotClient())
+
+
+@frappe.whitelist(methods=["POST"])
+def add_payment_method(method_type: str = "Card", contact: str | None = None,
+					   gateway: str | None = None) -> dict:
+	_assert_access()
+	from frappe.integrations.frappe_providers import cloud_billing
+
+	return cloud_billing.add_payment_method(PilotClient(), method_type, contact, gateway)
+
+
+@frappe.whitelist(methods=["POST"])
+def confirm_payment_method(**payload) -> dict:
+	"""Finalize a payment method the gateway SDK tokenised (e.g. the Razorpay
+	Checkout callback: payment_method + razorpay_payment_id/order_id/signature)."""
+	_assert_access()
+	from frappe.integrations.frappe_providers import cloud_billing
+
+	return cloud_billing.confirm_payment_method(PilotClient(), payload)
+
+
+@frappe.whitelist(methods=["POST"])
+def create_payment_method_checkout(redirect_url: str, gateway: str | None = None) -> dict:
+	_assert_access()
+	from frappe.integrations.frappe_providers import cloud_billing
+
+	return cloud_billing.create_payment_method_checkout(PilotClient(), redirect_url, gateway)
+
+
+@frappe.whitelist(methods=["POST"])
+def confirm_payment_method_checkout(reference: str) -> dict:
+	_assert_access()
+	from frappe.integrations.frappe_providers import cloud_billing
+
+	return cloud_billing.confirm_payment_method_checkout(PilotClient(), reference)
+
+
+@frappe.whitelist(methods=["POST"])
+def remove_payment_method(payment_method: str) -> dict:
+	_assert_access()
+	from frappe.integrations.frappe_providers import cloud_billing
+
+	return cloud_billing.remove_payment_method(PilotClient(), payment_method)
+
+
+@frappe.whitelist(methods=["POST"])
+def reconcile_payment_setup() -> dict:
+	_assert_access()
+	from frappe.integrations.frappe_providers import cloud_billing
+
+	return cloud_billing.reconcile_payment_setup(PilotClient())
+
+
+@frappe.whitelist(methods=["POST"])
+def create_topup_checkout(amount: float, redirect_url: str) -> dict:
+	_assert_access()
+	from frappe.integrations.frappe_providers import cloud_billing
+
+	return cloud_billing.create_topup_checkout(PilotClient(), amount, redirect_url)
+
+
+@frappe.whitelist(methods=["POST"])
+def get_checkout_status(reference: str) -> dict:
+	_assert_access()
+	from frappe.integrations.frappe_providers import cloud_billing
+
+	return cloud_billing.checkout_status(PilotClient(), reference)
 
 
 # --- helpers --------------------------------------------------------------

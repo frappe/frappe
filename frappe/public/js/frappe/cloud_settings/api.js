@@ -42,6 +42,50 @@ export function getBilling() {
 	return call("get_billing", {}, "GET");
 }
 
+export function getBillingProfile() {
+	return call("get_billing_profile", {}, "GET");
+}
+
+export function saveBillingProfile(fields) {
+	return call("save_billing_profile", fields);
+}
+
+export function removePaymentMethod(name) {
+	return call("remove_payment_method", { payment_method: name });
+}
+
+export function getPaymentGateways() {
+	return call("get_payment_gateways", {}, "GET");
+}
+
+export function addPaymentMethod(methodType, gateway, contact) {
+	return call("add_payment_method", { method_type: methodType, gateway, contact });
+}
+
+export function confirmPaymentMethod(payload) {
+	return call("confirm_payment_method", payload);
+}
+
+export function createPaymentMethodCheckout(redirectUrl, gateway) {
+	return call("create_payment_method_checkout", { redirect_url: redirectUrl, gateway });
+}
+
+export function confirmPaymentMethodCheckout(reference) {
+	return call("confirm_payment_method_checkout", { reference });
+}
+
+export function reconcilePaymentSetup() {
+	return call("reconcile_payment_setup", {});
+}
+
+export function createTopupCheckout(amount, redirectUrl) {
+	return call("create_topup_checkout", { amount, redirect_url: redirectUrl });
+}
+
+export function getCheckoutStatus(reference) {
+	return call("get_checkout_status", { reference });
+}
+
 export function getMarketplaceApps() {
 	return call("get_marketplace_apps", {}, "GET");
 }

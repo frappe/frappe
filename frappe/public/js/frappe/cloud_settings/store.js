@@ -45,8 +45,10 @@ export function createStore() {
 		domainsError: "",
 	});
 
-	async function loadBilling() {
-		if (state.billing) return;
+	async function loadBilling(force = false) {
+		if (state.billing && !force) return;
+		// clear any previous error
+		state.billingError = "";
 		try {
 			state.billing = await api.getBilling();
 		} catch (exception) {
