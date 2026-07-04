@@ -46,11 +46,13 @@ class StudioAppBuilder:
 			self.get_app_components()
 		self._run_vite_build()
 
+	def get_app_folder(self) -> str:
+		return os.path.join(get_studio_folder(self.frappe_app), frappe.scrub(self.app_name))
+
 	def get_page_scripts_from_files(self):
 		"""Collect the <page>.ts code files for the app's published pages, so the build bundles a
 		`setup()` module per page (code mode)."""
-		studio_folder = get_studio_folder(self.frappe_app)
-		page_folder = os.path.join(studio_folder, self.app_name, "studio_page")
+		page_folder = os.path.join(self.get_app_folder(), "studio_page")
 		if not page_folder or not os.path.isdir(page_folder):
 			return
 
@@ -125,8 +127,7 @@ class StudioAppBuilder:
 		"""Extract component names from exported JSON files on disk instead of DB records,
 		used during `bench build` when there's no DB access.
 		"""
-		studio_folder = get_studio_folder(self.frappe_app)
-		app_folder = os.path.join(studio_folder, self.app_name)
+		app_folder = self.get_app_folder()
 		page_folder = os.path.join(app_folder, "studio_page")
 		if not os.path.exists(page_folder):
 			return self.components
@@ -225,11 +226,7 @@ class StudioAppBuilder:
 		if not componentName or not self.frappe_app:
 			return
 
-		studio_folder = get_studio_folder(self.frappe_app)
-		if not studio_folder:
-			return
-
-		app_dir = os.path.join(studio_folder, self.app_name)
+		app_dir = self.get_app_folder()
 		for dirpath, _dirnames, filenames in os.walk(app_dir):
 			if f"{componentName}.vue" in filenames:
 				self.custom_vue_components[componentName] = os.path.join(dirpath, f"{componentName}.vue")
