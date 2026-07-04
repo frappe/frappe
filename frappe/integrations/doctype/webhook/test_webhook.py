@@ -9,6 +9,7 @@ from responses.matchers import json_params_matcher
 import frappe
 from frappe.integrations.doctype.webhook import flush_webhook_execution_queue
 from frappe.integrations.doctype.webhook.webhook import (
+	WEBHOOK_SECRET_HEADER,
 	enqueue_webhook,
 	get_webhook_data,
 	get_webhook_headers,
@@ -443,3 +444,62 @@ class TestWebhook(IntegrationTestCase):
 			log = frappe.get_last_doc("Webhook Request Log", filters={"webhook": wh.name})
 			self.assertEqual(log.status, "Exhausted")
 			self.assertIsNone(log.next_retry)
+
+	@timeout(5, "Test webhooks should never wait, check mocked responses.")
+	def test_sweeper_reschedules_when_retries_remain(self):
+		"""A retry that fails with attempts left stays Failed and is scheduled again"""
+		url = "https://httpbin.org/sweeper-reschedule"
+		self.responses.add(responses.POST, url, status=500)
+		self.responses.add(responses.POST, url, status=500)
+
+		with get_test_webhook(self.retry_webhook_config(url, max_retries=2)) as wh:
+			doc = frappe.new_doc("Note")
+			doc.title = "Reschedule Note"
+			enqueue_webhook(doc, wh)
+
+			log = frappe.get_last_doc("Webhook Request Log", filters={"webhook": wh.name})
+			frappe.db.set_value(
+				"Webhook Request Log", log.name, "next_retry", add_to_date(now_datetime(), seconds=-1)
+			)
+			retry_failed_webhooks()
+
+			log.reload()
+			self.assertEqual(log.status, "Failed")
+			self.assertEqual(log.attempt, 2)
+			self.assertIsNotNone(log.next_retry)
+
+	@timeout(5, "Test webhooks should never wait, check mocked responses.")
+	def test_retry_stops_when_webhook_disabled(self):
+		"""A retry is exhausted without resending when the webhook is disabled"""
+		url = "https://httpbin.org/sweeper-disabled"
+		self.responses.add(responses.POST, url, status=500)
+
+		with get_test_webhook(self.retry_webhook_config(url, max_retries=3)) as wh:
+			doc = frappe.new_doc("Note")
+			doc.title = "Disabled Note"
+			enqueue_webhook(doc, wh)
+
+			log = frappe.get_last_doc("Webhook Request Log", filters={"webhook": wh.name})
+			frappe.db.set_value("Webhook", wh.name, "enabled", 0)
+			frappe.db.set_value(
+				"Webhook Request Log", log.name, "next_retry", add_to_date(now_datetime(), seconds=-1)
+			)
+			retry_failed_webhooks()
+
+			log.reload()
+			self.assertEqual(log.status, "Exhausted")
+			self.assertIsNone(log.next_retry)
+
+	def test_secured_webhook_signs_payload_with_string_header(self):
+		"""A secured webhook stores its signature as a string so it survives serialization and replay"""
+		config = self.retry_webhook_config("https://httpbin.org/secured")
+		config["enable_security"] = 1
+		config["webhook_secret"] = "super-secret"
+
+		with get_test_webhook(config) as wh:
+			doc = frappe.new_doc("Note")
+			doc.title = "Secured Note"
+			headers = get_webhook_headers(doc, wh, data=get_webhook_data(doc, wh))
+
+			self.assertIn(WEBHOOK_SECRET_HEADER, headers)
+			self.assertIsInstance(headers[WEBHOOK_SECRET_HEADER], str)
