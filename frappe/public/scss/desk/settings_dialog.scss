@@ -191,9 +191,6 @@
 .settings-dialog-panel-body {
 	flex: 1;
 	// Without this a flex child won't shrink below its content height, so a long tab
-	// (e.g. General with many settings) overflows the panel instead of scrolling here —
-	// and focusing a control below the fold then scrolls the overflow-hidden modal
-	// shell, which the user cannot scroll back.
 	min-height: 0;
 	display: flex;
 	flex-direction: column;
