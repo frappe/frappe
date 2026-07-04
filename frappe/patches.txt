@@ -266,3 +266,4 @@ execute:frappe.db.create_sequence_table()  # backfill SQLite sequence emulation 
 frappe.patches.v16_0.migrate_workspace_sidebar_to_workspace
 frappe.patches.v16_0.populate_workspace_sidebar_from_shortcuts
 frappe.desk.doctype.workspace.patches.set_standard_flag
+frappe.patches.v16_0.create_bot_user_type

@@ -66,7 +66,7 @@ def after_install():
 
 
 def create_user_type():
-	for user_type in ["System User", "Website User"]:
+	for user_type in ["System User", "Website User", "Bot"]:
 		if not frappe.db.exists("User Type", user_type):
 			frappe.get_doc({"doctype": "User Type", "name": user_type, "is_standard": 1}).insert(
 				ignore_permissions=True

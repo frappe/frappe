@@ -454,6 +454,87 @@ class TestUser(IntegrationTestCase):
 		self.assertIsNone(reset_password(user="random"))
 		self.assertEqual(frappe.message_log[0].get("message"), _GENERIC_MSG)
 
+	def test_bot_user_type_is_seeded(self):
+		self.assertTrue(frappe.db.exists("User Type", "Bot"))
+		self.assertTrue(frappe.db.get_value("User Type", "Bot", "is_standard"))
+
+	def test_bot_user_type_is_not_overridden_by_roles(self):
+		frappe.set_user("Administrator")
+		bot = frappe.get_doc(
+			{
+				"doctype": "User",
+				"email": "test_bot@example.com",
+				"first_name": "Test Bot",
+				"user_type": "Bot",
+				# System Manager has desk_access; a non-bot user would be relabelled
+				# to "System User", a Bot must retain its type.
+				"roles": [{"role": "System Manager"}],
+			}
+		)
+		bot.insert()
+		self.addCleanup(frappe.delete_doc, "User", bot.name, force=True)
+
+		self.assertEqual(bot.user_type, "Bot")
+		bot.reload()
+		self.assertEqual(bot.user_type, "Bot")
+
+		# Bots don't use passwords, so no welcome/reset email should be triggered.
+		self.assertFalse(bot.send_welcome_email)
+
+	def test_only_system_manager_can_create_bot_user(self):
+		frappe.set_user("Administrator")
+		actor = frappe.get_doc(
+			{
+				"doctype": "User",
+				"email": "bot_actor@example.com",
+				"first_name": "Bot Actor",
+				"roles": [{"role": "Blogger"}],  # a non-System-Manager desk role
+			}
+		)
+		actor.insert()
+		self.addCleanup(frappe.delete_doc, "User", actor.name, force=True)
+		self.assertNotIn("System Manager", [r.role for r in actor.roles])
+
+		frappe.set_user(actor.name)
+		self.addCleanup(frappe.set_user, "Administrator")
+
+		bot = frappe.get_doc(
+			{
+				"doctype": "User",
+				"email": "unauthorized_bot@example.com",
+				"first_name": "Unauthorized Bot",
+				"user_type": "Bot",
+			}
+		)
+		bot.flags.ignore_permissions = True  # isolate the check to user_type, not doc-level perms
+		self.assertRaises(frappe.PermissionError, bot.insert)
+
+	def test_bot_user_cannot_login_interactively(self):
+		from frappe.auth import CookieManager, LoginManager
+		from frappe.utils import set_request
+
+		frappe.set_user("Administrator")
+		bot = frappe.get_doc(
+			{
+				"doctype": "User",
+				"email": "login_bot@example.com",
+				"first_name": "Login Bot",
+				"user_type": "Bot",
+				"roles": [{"role": "System Manager"}],
+			}
+		)
+		bot.insert()
+		self.addCleanup(frappe.delete_doc, "User", bot.name, force=True)
+
+		set_request(path="/random")
+		frappe.local.cookie_manager = CookieManager()
+		frappe.local.login_manager = LoginManager()
+
+		# programmatic / SSO / password-reset login path is blocked for bots
+		self.assertRaises(
+			frappe.exceptions.AuthenticationError, frappe.local.login_manager.login_as, bot.name
+		)
+
 	def test_user_onload_modules(self):
 		from frappe.desk.form.load import getdoc
 		from frappe.utils.modules import get_modules_from_all_apps

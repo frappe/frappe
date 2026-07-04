@@ -284,6 +284,10 @@ class LoginManager:
 			ip_tracker and ip_tracker.add_failure_attempt()
 			self.fail("Invalid login credentials", user=_raw_user_name)
 
+		if frappe.get_cached_value("User", user.name, "user_type") == "Bot":
+			ip_tracker and ip_tracker.add_failure_attempt()
+			self.fail(_("Bot users can only authenticate using an API key and secret."), user=user.name)
+
 		# Current login flow uses cached credentials for authentication while checking OTP.
 		# Incase of OTP check, tracker for auth needs to be disabled(If not, it can remove tracker history as it is going to succeed anyway)
 		# Tracker is activated for 2FA incase of OTP.
@@ -366,6 +370,8 @@ class LoginManager:
 		self.login_as("Guest")
 
 	def login_as(self, user: str, session_end: str | None = None, audit_user: str | None = None):
+		if user and frappe.get_cached_value("User", user, "user_type") == "Bot":
+			self.fail(_("Bot users can only authenticate using an API key and secret."), user=user)
 		self.user = user
 		self.post_login(session_end, audit_user)
 
@@ -693,6 +699,11 @@ def validate_oauth(authorization_header):
 			user = frappe.db.get_value("OAuth Bearer Token", token, "user")
 			if not frappe.db.get_value("User", user, "enabled"):
 				frappe.throw(_("User {0} is disabled").format(user), frappe.AuthenticationError)
+			if frappe.get_cached_value("User", user, "user_type") == "Bot":
+				frappe.throw(
+					_("Bot users can only authenticate using an API key and secret."),
+					frappe.AuthenticationError,
+				)
 			frappe.set_user(user)
 			frappe.local.form_dict = form_dict
 	except AttributeError:

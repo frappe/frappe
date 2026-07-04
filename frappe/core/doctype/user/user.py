@@ -230,6 +230,7 @@ class User(Document):
 		self.populate_role_profile_roles()
 		self.check_roles_added()
 		self.set_system_user()
+		self.validate_bot_user()
 		self.clean_name()
 		self.set_full_name()
 		self.check_enable_disable()
@@ -409,6 +410,11 @@ class User(Document):
 		"""For the standard users like admin and guest, the user type is fixed."""
 		user_type_mapper = {"Administrator": "System User", "Guest": "Website User"}
 
+		# Bot users authenticate only via API key & secret. Keep the type as-is instead
+		# of relabelling it to System/Website User based on the assigned roles.
+		if self.user_type == "Bot" and self.name not in user_type_mapper:
+			return
+
 		if self.user_type and not frappe.get_cached_value("User Type", self.user_type, "is_standard"):
 			if user_type_mapper.get(self.name):
 				self.user_type = user_type_mapper.get(self.name)
@@ -417,6 +423,24 @@ class User(Document):
 		else:
 			"""Set as System User if any of the given roles has desk_access"""
 			self.user_type = "System User" if self.has_desk_access() else "Website User"
+
+	def validate_bot_user(self):
+		"""A Bot is a non-human user that can authenticate only via API key & secret.
+
+		Password/interactive login is blocked for bots (see `frappe.auth`), so there is
+		no password to set and no welcome/reset email to send.
+		"""
+		if self.user_type != "Bot":
+			return
+
+		# Only System Managers are allowed to designate a user as a Bot.
+		if self.has_value_changed("user_type"):
+			frappe.only_for("System Manager")
+
+		# Bots don't use passwords; drop any password and skip the welcome email flow.
+		self.__new_password = None
+		self.new_password = ""
+		self.send_welcome_email = 0
 
 	def set_roles_and_modules_based_on_user_type(self):
 		user_type_doc = frappe.get_cached_doc("User Type", self.user_type)
