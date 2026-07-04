@@ -1,0 +1,39 @@
+name: CI Image
+
+on:
+  push:
+    branches:
+      - develop
+    paths:
+      - .github/ci-image/**
+      - .github/workflows/ci-image.yml
+  workflow_dispatch:
+  schedule:
+    # Weekly rebuild keeps Chrome, MariaDB client and frappe-bench current
+    - cron: "0 22 * * 0"
+
+permissions:
+  contents: read
+  packages: write
+
+jobs:
+  build:
+    name: Build & Push
+    runs-on: ubuntu-latest
+    timeout-minutes: 30
+    steps:
+      - uses: actions/checkout@v7
+
+      - uses: docker/login-action@v3
+        with:
+          registry: ghcr.io
+          username: ${{ github.actor }}
+          password: ${{ secrets.GITHUB_TOKEN }}
+
+      - uses: docker/build-push-action@v6
+        with:
+          context: .github/ci-image
+          push: true
+          tags: |
+            ghcr.io/${{ github.repository }}/ci:latest
+            ghcr.io/${{ github.repository }}/ci:${{ github.run_id }}

@@ -40,6 +40,8 @@ jobs:
     if: ${{ needs.checkrun.outputs.build == 'strawberry' }}
     runs-on: ubuntu-latest
     timeout-minutes: 30
+    container:
+      image: ghcr.io/${{ github.repository }}/ci:latest
     env:
       NODE_ENV: "production"
       # noisy 3rd party library warnings
@@ -64,11 +66,11 @@ jobs:
       - uses: ./.github/actions/setup
         name: Environment Setup
         with:
-          python-version: '3.14'
-          node-version: 24
           build-assets: true
           db-root-password: ${{ env.DB_ROOT_PASSWORD }}
           db: ${{ matrix.db }}
+          db-host: mariadb
+          containerized: true
 
       - name: Verify yarn.lock
         run: |
@@ -94,10 +96,6 @@ jobs:
           bench --site test_site execute frappe.utils.install.complete_setup_wizard
           bench --site test_site execute frappe.tests.ui_test_helpers.create_test_user
 
-      - uses: browser-actions/setup-chrome@latest
-      - run: |
-          echo "BROWSER_PATH=$(which chrome)" >> $GITHUB_ENV
-
       - name: Run Tests
         id: ui-tests
         run: |
@@ -105,7 +103,7 @@ jobs:
             run-ui-tests ${{ github.event.repository.name }} \
               --with-coverage \
               --headless \
-              --browser ${{ env.BROWSER_PATH }} \
+              --browser "$BROWSER_PATH" \
               --ci-build-id $GITHUB_RUN_ID-$GITHUB_RUN_ATTEMPT \
               --group ui-shard-${{ matrix.index }}
         env:

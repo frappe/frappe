@@ -25,8 +25,15 @@ inputs:
   db:
     required: false
     default: mariadb
+  db-host:
+    required: false
+    default: 127.0.0.1
   db-root-password:
     required: true
+  containerized:
+    description: 'Set when the job runs inside the prebuilt CI image (ghcr.io/<repo>/ci) which already ships Python, Node, uv, bench and system packages'
+    required: false
+    default: false
 
 runs:
   using: "composite"
@@ -34,7 +41,9 @@ runs:
   - shell: bash -e {0}
     run: |
       # Add 'test_site' to /etc/hosts & setup git config
-      echo "127.0.0.1 test_site" | sudo tee -a /etc/hosts
+      SUDO=""
+      command -v sudo >/dev/null && SUDO=sudo
+      echo "127.0.0.1 test_site" | $SUDO tee -a /etc/hosts
       git config --global init.defaultBranch main
       git config --global advice.detachedHead false
 
@@ -44,6 +53,7 @@ runs:
       path: frappe-src
 
   - name: Setup Python
+    if: inputs.containerized != 'true'
     uses: actions/setup-python@v6
     with:
       python-version: ${{ inputs.python-version }}
@@ -58,25 +68,40 @@ runs:
       fi
 
   - uses: actions/setup-node@v6
+    if: inputs.containerized != 'true'
     with:
       node-version: ${{ inputs.node-version }}
       cache: yarn
       cache-dependency-path: frappe-src/yarn.lock
 
   - uses: astral-sh/setup-uv@v6
+    if: inputs.containerized != 'true'
     with:
       enable-cache: true
       cache-dependency-glob: |
         **/pyproject.toml
         **/requirements*.txt
 
+  - name: Cache dependency downloads
+    if: inputs.containerized == 'true'
+    uses: actions/cache@v4
+    with:
+      path: |
+        ~/.cache/yarn
+        ~/.cache/uv
+        ~/.cache/pip
+      key: ${{ runner.os }}-container-deps-${{ hashFiles('frappe-src/yarn.lock', 'frappe-src/pyproject.toml') }}
+      restore-keys: ${{ runner.os }}-container-deps-
+
   - name: Cache wkhtmltopdf
+    if: inputs.containerized != 'true'
     uses: actions/cache@v4
     with:
       path: /tmp/wkhtmltox.deb
       key: wkhtmltox-0.12.6.1-2-jammy-amd64
 
   - shell: bash -e {0}
+    if: inputs.containerized != 'true'
     run: |
       # Install System Dependencies (apt) in the background while installing the
       # frappe-bench tool via uv — the two share no inputs.
@@ -171,6 +196,7 @@ runs:
   - shell: bash -e {0}
     env:
       DB: ${{ inputs.db }}
+      DB_HOST: ${{ inputs.db-host }}
       BUILD_ASSETS: ${{ inputs.build-assets }}
     run: |
       # Create Site (asset build is CPU-bound and independent of the DB, so
@@ -195,7 +221,7 @@ runs:
       # safety for fewer fsyncs is free. innodb_flush_log_at_trx_commit=0 flushes
       # the redo log once per second instead of on every commit.
       if [ "$DB" == "mariadb" ]; then
-        mariadb -h 127.0.0.1 -u "$DB_ROOT_USER" -p"$DB_ROOT_PWD" -e "
+        mariadb -h "$DB_HOST" -u "$DB_ROOT_USER" -p"$DB_ROOT_PWD" -e "
           SET GLOBAL innodb_flush_log_at_trx_commit = 0;
           SET GLOBAL sync_binlog = 0;"
       fi
@@ -206,7 +232,7 @@ runs:
 
       bench new-site test_site \
         --db-type "$DB" \
-        --db-host 127.0.0.1 \
+        --db-host "$DB_HOST" \
         --db-name test_frappe \
         --db-password test_frappe \
         --verbose
