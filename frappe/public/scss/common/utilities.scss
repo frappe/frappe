@@ -1,0 +1,204 @@
+/* Utility classes — a small, on-demand subset of Tailwind's utilities for
+ * desk/website bundles. (The Vue apps use real Tailwind; this file is
+ * for classic Frappe markup only.)
+ *
+ * RULES (read before adding):
+ * 1. Tailwind names and scale, exactly — no invented names. Agents and
+ *    humans should be able to guess every class here on the first try.
+ * 2. Add a class only when a call site needs it. This file is the
+ *    allowlist, not a framework: resist completing a "set".
+ * 3. Layout and spacing only. Color belongs to the tokens, type to
+ *    typography.css, component looks to components/*.css.
+ * 4. Prefer `gap` on the flex parent over margin utilities on children —
+ *    that is how the old per-child margin soup happened.
+ *
+ * Spacing binds to the espresso scale: 1 step = var(--spacing) = 0.25rem.
+ *
+ * Breakpoints use Tailwind semantics (min-width prefixes, max-* variants)
+ * on Frappe's existing grid values, NOT Tailwind's defaults:
+ *   sm 576px · md 768px · lg 992px · xl 1200px
+ *
+ * Legacy overlap: common/flex.scss defines .flex/.justify-center/
+ * .justify-between identically (fine) plus bespoke names (.align-center,
+ * .flex-column, .level-*) that should migrate to the names here; .hidden
+ * and .hide in common/global.scss are display:none !important and remain
+ * the stronger form until retired.
+ *
+ * Imported LAST in the bundles (as an SCSS partial so Sass inlines it in
+ * place — plain-CSS imports get hoisted above the SCSS output and would
+ * lose every source-order tie): Frappe CSS is unlayered, so being last is
+ * what lets a utility override component and legacy defaults. */
+
+/* ---- display ---- */
+.flex {
+	display: flex;
+}
+
+.inline-flex {
+	display: inline-flex;
+}
+
+.hidden {
+	display: none;
+}
+
+/* ---- flex direction / wrap ---- */
+.flex-col {
+	flex-direction: column;
+}
+
+/* ---- alignment ---- */
+.items-start {
+	align-items: flex-start;
+}
+
+.items-center {
+	align-items: center;
+}
+
+.items-end {
+	align-items: flex-end;
+}
+
+.items-baseline {
+	align-items: baseline;
+}
+
+.justify-start {
+	justify-content: flex-start;
+}
+
+.justify-center {
+	justify-content: center;
+}
+
+.justify-between {
+	justify-content: space-between;
+}
+
+.justify-end {
+	justify-content: flex-end;
+}
+
+/* ---- flex sizing ---- */
+.flex-1 {
+	flex: 1 1 0%;
+}
+
+.grow {
+	flex-grow: 1;
+}
+
+.shrink-0 {
+	flex-shrink: 0;
+}
+
+/* ---- spacing (espresso scale: 1 step = var(--spacing) = 0.25rem) ----
+   Generates gap-*, p-/px-/py-/ps-/pe-/pt-/pb- and the margin
+   equivalents for steps 0.5, 1, 2, 3, 4. Start/end/x/y use logical
+   properties (inline/block), so the RTL build needs no flipping.
+   Margins are the exception tool — prefer gap on the parent. */
+
+$spacing-steps: (
+	"0\\.5": 0.5,
+	"1": 1,
+	"2": 2,
+	"3": 3,
+	"4": 4,
+);
+
+@function spacing-step($n) {
+	@if $n ==1 {
+		@return var(--spacing);
+	}
+
+	@return calc(var(--spacing) * #{$n});
+}
+
+@each $name, $n in $spacing-steps {
+	.gap-#{$name} {
+		gap: spacing-step($n);
+	}
+}
+
+/* RESERVED, TODO: do not add yet: p-, px-, py-, pt-, pb-, m-, mx-, my-, mt-, mb-
+   (and the pl/pr/ml/mr physical names). Bootstrap 4 defines all of them
+   with !important on its own 7px-based scale, so same-named classes here
+   can never apply. They become available when the bootstrap spacers are
+   retired (migrate ~100 call sites, then drop them) — a separate PR.
+   Until then: logical start/end below, or a ps-*+pe-* pair for both sides. */
+
+@each $name, $n in $spacing-steps {
+	.ps-#{$name} {
+		padding-inline-start: spacing-step($n);
+	}
+
+	.pe-#{$name} {
+		padding-inline-end: spacing-step($n);
+	}
+}
+
+@each $name, $n in $spacing-steps {
+	.ms-#{$name} {
+		margin-inline-start: spacing-step($n);
+	}
+
+	.me-#{$name} {
+		margin-inline-end: spacing-step($n);
+	}
+}
+
+/* auto margins push siblings apart in a flex row */
+.ms-auto {
+	margin-inline-start: auto;
+}
+
+.me-auto {
+	margin-inline-end: auto;
+}
+
+/* ---- sizing / overflow ---- */
+.w-full {
+	width: 100%;
+}
+
+.min-w-0 {
+	min-width: 0;
+}
+
+.truncate {
+	overflow: hidden;
+	text-overflow: ellipsis;
+	white-space: nowrap;
+}
+
+.overflow-hidden {
+	overflow: hidden;
+}
+
+.whitespace-nowrap {
+	white-space: nowrap;
+}
+
+/* ---- responsive variants (add per breakpoint as call sites need them) ---- */
+
+/* below sm (phones) */
+@media (max-width: 575.98px) {
+	.max-sm\:hidden {
+		display: none;
+	}
+}
+
+/* sm and up */
+@media (min-width: 576px) {
+	.sm\:flex {
+		display: flex;
+	}
+}
+
+/* below lg (phones + tablets) */
+@media (max-width: 991.98px) {
+	.max-lg\:hidden {
+		display: none;
+	}
+}
