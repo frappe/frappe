@@ -11,13 +11,11 @@
 			/>
 			<div v-if="modelValue && modelValue.trim()" class="pfb-vis-status-row">
 				<template v-if="previewDoc">
-					<span
-						:class="[
-							'pfb-vis-badge',
-							is_visible ? 'pfb-vis-badge--show' : 'pfb-vis-badge--hide',
-						]"
-					>
-						<span class="pfb-vis-dot"></span>
+					<span class="es-badge" :data-theme="is_visible ? 'green' : 'gray'">
+						<span
+							class="pfb-vis-dot"
+							:class="is_visible ? 'pfb-vis-dot--show' : 'pfb-vis-dot--hide'"
+						></span>
 						{{ is_visible ? __("Currently visible") : __("Currently hidden") }}
 					</span>
 				</template>
@@ -54,26 +52,6 @@ let is_visible = computed(() => evaluate_visible_if(props.modelValue, props.prev
 	gap: 6px;
 }
 
-.pfb-vis-badge {
-	display: inline-flex;
-	align-items: center;
-	gap: 5px;
-	font-size: var(--text-xs);
-	font-weight: var(--weight-medium);
-	padding: 2px 8px;
-	border-radius: var(--radius-full);
-}
-
-.pfb-vis-badge--show {
-	background: var(--green-100);
-	color: var(--green-700);
-}
-
-.pfb-vis-badge--hide {
-	background: var(--gray-100);
-	color: var(--gray-500);
-}
-
 .pfb-vis-dot {
 	width: 6px;
 	height: 6px;
@@ -81,11 +59,11 @@ let is_visible = computed(() => evaluate_visible_if(props.modelValue, props.prev
 	flex-shrink: 0;
 }
 
-.pfb-vis-badge--show .pfb-vis-dot {
+.pfb-vis-dot--show {
 	background: var(--green-500);
 }
 
-.pfb-vis-badge--hide .pfb-vis-dot {
+.pfb-vis-dot--hide {
 	background: var(--gray-400);
 }
 

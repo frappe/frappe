@@ -21,7 +21,7 @@
 				<!-- Letter head selection buttons — always visible for header zone -->
 				<template v-if="zone === 'header'">
 					<div v-if="letterhead" class="pfb-lh-actions" style="margin-top: 4px">
-						<button class="btn btn-xs btn-default" @click="lh_change_letterhead">
+						<button class="es-button" data-size="xs" @click="lh_change_letterhead">
 							{{ __("Change Letter Head") }}
 						</button>
 					</div>
@@ -29,10 +29,10 @@
 						<p class="pfb-insp-hint text-muted">
 							{{ __("No letter head selected.") }}
 						</p>
-						<button class="btn btn-xs btn-default" @click="lh_create_letterhead">
+						<button class="es-button" data-size="xs" @click="lh_create_letterhead">
 							{{ __("Create Letter Head") }}
 						</button>
-						<button class="btn btn-xs btn-default" @click="lh_change_letterhead">
+						<button class="es-button" data-size="xs" @click="lh_change_letterhead">
 							{{ __("Select Letter Head") }}
 						</button>
 					</div>
@@ -92,7 +92,7 @@
 				</div>
 				<!-- Actions -->
 				<div class="pfb-lh-actions">
-					<button class="btn btn-xs btn-default" @click="upload_image">
+					<button class="es-button" data-size="xs" @click="upload_image">
 						<span v-html="frappe.utils.icon('upload', 'xs')"></span>
 						{{ letterhead[image_field] ? __("Change Image") : __("Upload Image") }}
 					</button>

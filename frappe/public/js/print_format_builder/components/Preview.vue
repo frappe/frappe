@@ -8,19 +8,10 @@
 				<div class="preview-control" ref="preview_type_ref"></div>
 			</div>
 			<div class="col d-flex">
-				<a
-					v-if="url"
-					class="btn btn-default btn-sm btn-new-tab"
-					target="_blank"
-					:href="url"
-				>
+				<a v-if="url" class="es-button btn-new-tab" target="_blank" :href="url">
 					{{ __("Open in a new tab") }}
 				</a>
-				<button
-					v-if="url"
-					class="ml-3 btn btn-default btn-sm btn-new-tab"
-					@click="refresh"
-				>
+				<button v-if="url" class="ml-3 es-button btn-new-tab" @click="refresh">
 					{{ __("Refresh") }}
 				</button>
 			</div>

@@ -12,7 +12,11 @@
 				v-html="frappe.utils.icon('grip', 'xs')"
 			></div>
 			<button
-				class="btn btn-xs btn-icon"
+				class="es-button"
+				data-size="xs"
+				data-variant="ghost"
+				data-theme="red"
+				data-icon-button="true"
 				:title="__('Remove section')"
 				@click.stop="remove_section"
 				v-html="frappe.utils.icon('x', 'xs')"
@@ -35,7 +39,7 @@
 						title="Drag to reorder"
 						v-html="frappe.utils.icon('grip', 'sm')"
 					></div>
-					<span v-if="zone" class="zone-badge">{{
+					<span v-if="zone" class="es-badge">{{
 						zone === "header" ? __("Header") : __("Footer")
 					}}</span>
 					<input
@@ -48,7 +52,11 @@
 				<div class="section-toolbar-right">
 					<button
 						v-if="!is_header"
-						class="btn btn-xs btn-icon toolbar-btn toolbar-btn-danger"
+						class="es-button"
+						data-size="xs"
+						data-variant="ghost"
+						data-theme="red"
+						data-icon-button="true"
 						:title="__('Remove section')"
 						@click.stop="remove_section"
 					>
@@ -102,7 +110,11 @@
 						>
 							<button
 								v-if="section.columns.length > 1"
-								class="btn btn-xs btn-icon empty-col-remove"
+								class="es-button empty-col-remove"
+								data-size="xs"
+								data-variant="ghost"
+								data-theme="red"
+								data-icon-button="true"
 								:title="__('Remove column')"
 								@click.stop="remove_column(i)"
 								v-html="frappe.utils.icon('x', 'xs')"
@@ -118,7 +130,11 @@
 		<div class="page-break-indicator" v-if="section.page_break">
 			<span>— {{ __("Page Break") }} —</span>
 			<button
-				class="btn btn-xs page-break-remove"
+				class="es-button"
+				data-size="xs"
+				data-variant="ghost"
+				data-theme="red"
+				data-icon-button="true"
 				:title="__('Remove page break')"
 				@click.stop="section.page_break = false"
 				v-html="frappe.utils.icon('x', 'xs')"
@@ -259,20 +275,6 @@ function remove_column(index) {
 	color: var(--gray-600);
 }
 
-.zone-badge {
-	font-size: var(--text-tiny);
-	font-weight: var(--weight-bold);
-	text-transform: uppercase;
-	letter-spacing: 0.07em;
-	color: var(--text-muted);
-	background: var(--gray-100);
-	border: 1px solid var(--gray-300);
-	border-radius: var(--radius);
-	padding: 1px 6px;
-	white-space: nowrap;
-	flex-shrink: 0;
-}
-
 .input-section-label {
 	border: 1px solid transparent;
 	border-radius: var(--radius);
@@ -298,28 +300,6 @@ function remove_column(index) {
 	font-style: italic;
 	font-weight: normal;
 	color: var(--gray-400);
-}
-
-.toolbar-btn {
-	padding: 3px;
-	box-shadow: none;
-	color: var(--text-muted);
-	border-radius: var(--radius);
-}
-
-.toolbar-btn:hover {
-	background: var(--gray-200);
-	color: var(--text-color);
-}
-
-.toolbar-btn.active {
-	background: var(--gray-200);
-	color: var(--text-color);
-}
-
-.toolbar-btn-danger:hover {
-	background: var(--red-50);
-	color: var(--red-500);
 }
 
 /* Section title — hidden in editor (toolbar shows it), revealed via parent :deep() */
@@ -401,9 +381,6 @@ function remove_column(index) {
 	position: absolute;
 	top: 4px;
 	right: 4px;
-	padding: 2px;
-	box-shadow: none;
-	color: var(--gray-500);
 	opacity: 0;
 	transition: opacity 0.1s;
 	pointer-events: auto;
@@ -411,11 +388,6 @@ function remove_column(index) {
 
 .empty-drop-zone:hover .empty-col-remove {
 	opacity: 1;
-}
-
-.empty-col-remove:hover {
-	background: var(--red-50);
-	color: var(--red-500);
 }
 
 .page-break-indicator {
@@ -430,18 +402,6 @@ function remove_column(index) {
 	border-top: 1px dashed var(--gray-300);
 	border-bottom: 1px dashed var(--gray-300);
 	margin: 0.25rem 0;
-}
-
-.page-break-remove {
-	padding: 1px 3px;
-	box-shadow: none;
-	color: var(--gray-500);
-	line-height: 1;
-}
-
-.page-break-remove:hover {
-	background: var(--red-50);
-	color: var(--red-500);
 }
 
 /* ── Section preview actions pill (only visible in clean-preview, hidden in edit) ── */
@@ -460,29 +420,6 @@ function remove_column(index) {
 	align-items: center;
 	opacity: 0;
 	transition: opacity 0.12s;
-}
-
-.section-preview-actions .section-drag-handle {
-	cursor: grab;
-	color: var(--gray-400);
-	display: flex;
-	align-items: center;
-	padding: 2px;
-}
-
-.section-preview-actions .section-drag-handle:hover {
-	color: var(--gray-600);
-}
-
-.section-preview-actions .btn-icon {
-	box-shadow: none;
-	padding: 2px;
-	color: var(--text-muted);
-}
-
-.section-preview-actions .btn-icon:hover {
-	background: var(--red-50);
-	color: var(--red-500);
 }
 
 /* ── Table layout (field borders) ───────────────────────── */

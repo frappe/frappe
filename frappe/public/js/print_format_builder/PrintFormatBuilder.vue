@@ -36,7 +36,7 @@
 						@click="clear_preview_doc"
 						v-html="frappe.utils.icon('x', 'xs')"
 					></button>
-					<span v-if="$store.preview_doc.value" class="canvas-preview-badge">{{
+					<span v-if="$store.preview_doc.value" class="es-badge" data-theme="green">{{
 						__("Live")
 					}}</span>
 
@@ -455,17 +455,6 @@ defineExpose({ toggle_preview, show_preview, $store });
 .canvas-clear-btn:hover {
 	background: var(--gray-100);
 	color: var(--gray-600);
-}
-
-.canvas-preview-badge {
-	font-size: 10px;
-	font-weight: 600;
-	color: var(--green-600);
-	background: var(--green-50);
-	border: 1px solid var(--green-200);
-	border-radius: var(--radius);
-	padding: 2px 6px;
-	line-height: 1.4;
 }
 
 /* ── Zoom control ────────────────────────────────────────── */
