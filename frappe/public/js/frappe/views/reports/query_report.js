@@ -903,7 +903,7 @@ frappe.views.QueryReport = class QueryReport extends frappe.views.BaseList {
 	}
 
 	add_prepared_report_buttons(doc) {
-		if (doc) {
+		if (doc && frappe.model.can_read("Prepared Report")) {
 			let is_csv =
 				doc.attachments &&
 				doc.attachments.some((attachment) => attachment.file_name.endsWith(".csv"));
