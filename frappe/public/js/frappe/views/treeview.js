@@ -27,15 +27,19 @@ frappe.views.TreeFactory = class TreeFactory extends frappe.views.Factory {
 
 	on_show() {
 		/**
-		 * When the the treeview is visited using the previous button,
-		 * the framework just show the treeview element that is hidden.
-		 * Due to this, the data of the tree can be old.
-		 * To deal with this, the tree will be refreshed whenever the
-		 * treeview is visible.
+		 * On back-navigation the framework re-shows the existing treeview
+		 * element instead of rebuilding it, so the expanded nodes are kept
+		 * as the user left them. Point cur_tree back at this tree; use the
+		 * Refresh menu item to reload data when it may have changed.
 		 */
 		let route = frappe.get_route();
 		let treeview = frappe.views.trees[route[1]];
-		treeview && treeview.make_tree();
+		if (treeview && treeview.tree) {
+			cur_tree = treeview.tree;
+			if (treeview.scroll_position) {
+				frappe.utils.scroll_to(treeview.scroll_position, false, 0, $(".main-section"));
+			}
+		}
 	}
 
 	get view_name() {
@@ -86,6 +90,11 @@ frappe.views.TreeView = class TreeView {
 		if (!this.opts || !this.opts.do_not_make_page) {
 			this.parent = frappe.container.add_page(this.page_name);
 			$(this.parent).addClass("treeview");
+			$(".main-section").on("scroll.treeview_" + this.page_name, () => {
+				if (frappe.get_route_str() === me.page_name) {
+					me.scroll_position = $(".main-section").scrollTop();
+				}
+			});
 			frappe.ui.make_app_page({ parent: this.parent, single_column: true });
 			this.page = this.parent.page;
 			frappe.container.change_to(this.page_name);
