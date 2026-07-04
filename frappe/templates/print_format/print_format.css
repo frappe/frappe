@@ -63,10 +63,6 @@ body {
 	}
 }
 
-.section:not(:first-child) {
-	margin-top: 1.5rem;
-}
-
 .section-label {
 	font-size: 1.1rem;
 	font-weight: 700;
