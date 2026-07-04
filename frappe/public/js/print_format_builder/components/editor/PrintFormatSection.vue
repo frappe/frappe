@@ -419,7 +419,7 @@ function remove_column(index) {
 	box-shadow: var(--shadow-xs);
 	align-items: center;
 	opacity: 0;
-	transition: opacity 0.12s;
+	transition: opacity 0.12s, transform 0.12s;
 }
 
 /* ── Table layout (field borders) ───────────────────────── */
