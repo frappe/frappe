@@ -5,7 +5,6 @@ import base64
 import hashlib
 import hmac
 import json
-from time import sleep
 from urllib.parse import urlparse
 
 import requests
@@ -13,11 +12,14 @@ import requests
 import frappe
 from frappe import _
 from frappe.model.document import Document
+from frappe.utils import add_to_date, cint, now_datetime
 from frappe.utils.background_jobs import get_queues_timeout
 from frappe.utils.jinja import validate_template
 from frappe.utils.safe_exec import get_safe_globals
 
 WEBHOOK_SECRET_HEADER = "X-Frappe-Webhook-Signature"
+
+RETRY_SCHEDULE = [5 * 60, 30 * 60, 2 * 3600, 5 * 3600, 10 * 3600, 10 * 3600]
 
 
 class Webhook(Document):
@@ -38,6 +40,7 @@ class Webhook(Document):
 		enable_security: DF.Check
 		enabled: DF.Check
 		is_dynamic_url: DF.Check
+		max_retries: DF.Int
 		request_method: DF.Literal["POST", "PUT", "DELETE"]
 		request_structure: DF.Literal["", "Form URL-Encoded", "JSON"]
 		request_url: DF.SmallText
@@ -148,7 +151,7 @@ def get_context(doc):
 
 
 def enqueue_webhook(doc, webhook) -> None:
-	request_url = headers = data = r = None
+	request_url = headers = data = None
 	try:
 		if not isinstance(webhook, Document):
 			webhook: Webhook = frappe.get_doc("Webhook", webhook.get("name"))
@@ -160,35 +163,124 @@ def enqueue_webhook(doc, webhook) -> None:
 
 	except Exception as e:
 		frappe.logger().debug({"enqueue_webhook_error": e})
-		log_request(webhook.name, doc.doctype, doc.name, request_url, headers, data)
+		log_request(webhook.name, doc.doctype, doc.name, request_url, headers, data, status="Exhausted")
 		return
 
-	for i in range(3):
-		try:
-			r = requests.request(
-				method=webhook.request_method,
-				url=request_url,
-				data=frappe.as_json(data),
-				headers=headers,
-				timeout=webhook.timeout or 5,
+	res = None
+	try:
+		res = send_webhook_request(webhook.request_method, request_url, headers, data, webhook.timeout)
+		res.raise_for_status()
+		frappe.logger().debug({"webhook_success": res.text})
+		log_request(webhook.name, doc.doctype, doc.name, request_url, headers, data, res, status="Delivered")
+
+	except Exception as e:
+		frappe.logger().debug({"webhook_error": e, "try": 1})
+
+		# A workflow transition needs the webhook result now, so fail it instead of deferring a retry.
+		if webhook.webhook_docevent == "workflow_transition":
+			log_request(
+				webhook.name, doc.doctype, doc.name, request_url, headers, data, res, status="Exhausted"
 			)
-			r.raise_for_status()
-			frappe.logger().debug({"webhook_success": r.text})
-			log_request(webhook.name, doc.doctype, doc.name, request_url, headers, data, r)
-			break
+			raise
 
-		except requests.exceptions.ReadTimeout as e:
-			frappe.logger().debug({"webhook_error": e, "try": i + 1})
-			log_request(webhook.name, doc.doctype, doc.name, request_url, headers, data)
+		if cint(webhook.max_retries) >= 1:
+			log_request(
+				webhook.name,
+				doc.doctype,
+				doc.name,
+				request_url,
+				headers,
+				data,
+				res,
+				status="Failed",
+				next_retry=get_next_retry(1),
+			)
+		else:
+			log_request(
+				webhook.name, doc.doctype, doc.name, request_url, headers, data, res, status="Exhausted"
+			)
 
-		except Exception as e:
-			frappe.logger().debug({"webhook_error": e, "try": i + 1})
-			log_request(webhook.name, doc.doctype, doc.name, request_url, headers, data, r)
-			if i < 2:
-				sleep(3 * i + 1)
-				continue
-			if webhook.webhook_docevent == "workflow_transition":
-				raise e
+
+def send_webhook_request(method, url, headers, data, timeout):
+	return requests.request(
+		method=method,
+		url=url,
+		data=frappe.as_json(data),
+		headers=headers,
+		timeout=timeout or 5,
+	)
+
+
+def get_next_retry(attempt: int):
+	delay = RETRY_SCHEDULE[min(attempt - 1, len(RETRY_SCHEDULE) - 1)]
+	return add_to_date(now_datetime(), seconds=delay)
+
+
+def retry_failed_webhooks():
+	"""Re-send webhook deliveries whose scheduled retry time has passed."""
+	due_logs = frappe.get_all(
+		"Webhook Request Log",
+		filters={"status": "Failed", "next_retry": ["<=", now_datetime()]},
+		order_by="next_retry asc",
+		pluck="name",
+	)
+	for log_name in due_logs:
+		retry_webhook_delivery(log_name)
+
+
+def retry_webhook_delivery(log_name: str):
+	log = frappe.get_doc("Webhook Request Log", log_name)
+	webhook = frappe.db.get_value(
+		"Webhook",
+		log.webhook,
+		["request_method", "timeout", "max_retries", "enabled"],
+		as_dict=True,
+	)
+	if not webhook or not webhook.enabled:
+		log.db_set({"status": "Exhausted", "next_retry": None})
+		return
+
+	attempt = cint(log.attempt) + 1
+	headers = json.loads(log.headers) if log.headers else {}
+	data = json.loads(log.data) if log.data else {}
+	res = None
+	try:
+		res = send_webhook_request(webhook.request_method, log.url, headers, data, webhook.timeout)
+		res.raise_for_status()
+		frappe.logger().debug({"webhook_success": res.text})
+		log.db_set(
+			{
+				"status": "Delivered",
+				"attempt": attempt,
+				"next_retry": None,
+				"response": res.text,
+				"error": None,
+			}
+		)
+
+	except Exception as e:
+		frappe.logger().debug({"webhook_retry_error": e, "attempt": attempt})
+		response = res.text if res is not None else None
+		if attempt - 1 < cint(webhook.max_retries):
+			log.db_set(
+				{
+					"status": "Failed",
+					"attempt": attempt,
+					"next_retry": get_next_retry(attempt),
+					"response": response,
+					"error": frappe.get_traceback(),
+				}
+			)
+		else:
+			log.db_set(
+				{
+					"status": "Exhausted",
+					"attempt": attempt,
+					"next_retry": None,
+					"response": response,
+					"error": frappe.get_traceback(),
+				}
+			)
 
 
 def log_request(
@@ -199,6 +291,9 @@ def log_request(
 	headers: dict,
 	data: dict,
 	res: requests.Response | None = None,
+	status: str | None = None,
+	attempt: int = 1,
+	next_retry=None,
 ):
 	request_log = frappe.get_doc(
 		{
@@ -212,6 +307,9 @@ def log_request(
 			"data": frappe.as_json(data) if data else None,
 			"response": res.text if res is not None else None,
 			"error": frappe.get_traceback(),
+			"status": status,
+			"attempt": attempt,
+			"next_retry": next_retry,
 		}
 	)
 
@@ -230,7 +328,7 @@ def get_webhook_headers(doc, webhook, data=None):
 				frappe.as_json(data).encode("utf8"),
 				hashlib.sha256,
 			).digest()
-		)
+		).decode()
 		headers[WEBHOOK_SECRET_HEADER] = signature
 
 	if webhook.webhook_headers:
