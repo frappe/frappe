@@ -879,7 +879,16 @@ frappe.views.QueryReport = class QueryReport extends frappe.views.BaseList {
 	}
 
 	add_prepared_report_buttons(doc) {
+<<<<<<< HEAD
 		if (doc) {
+=======
+		if (doc && frappe.model.can_read("Prepared Report")) {
+			let is_csv =
+				doc.attachments &&
+				doc.attachments.some((attachment) => attachment.file_name.endsWith(".csv"));
+			let label = is_csv ? __("Download Report as CSV") : __("Download Report");
+			let format = is_csv ? "csv" : "json";
+>>>>>>> fc1b16fc8c (fix(query-report): hide Download Report button without read permission)
 			this.page.add_inner_button(
 				__("Download Report"),
 				function () {
