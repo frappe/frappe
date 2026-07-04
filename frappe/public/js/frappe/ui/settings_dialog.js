@@ -64,14 +64,14 @@ frappe.ui.SettingsDialogPanel = class SettingsDialogPanel {
 	}
 
 	make_action(action) {
-		const $btn = $(`<button type="button" class="es-button" data-size="sm"></button>`)
-			.attr("data-variant", action.variant || "subtle")
-			.addClass(action.class || "");
-		if (action.icon) $btn.append(frappe.utils.icon(action.icon, "sm"));
-		$btn.append($("<span></span>").text(action.label || ""));
-		// `this` and the first argument are both the panel, so actions can mutate it.
-		action.click && $btn.on("click", () => action.click.call(this, this));
-		return $btn;
+		return frappe.ui.button({
+			label: action.label || "",
+			icon: action.icon,
+			variant: action.variant,
+			css_class: action.class,
+			// `this` and the first argument are both the panel, so actions can mutate it.
+			onclick: action.click && (() => action.click.call(this, this)),
+		});
 	}
 
 	add_fields(fields) {

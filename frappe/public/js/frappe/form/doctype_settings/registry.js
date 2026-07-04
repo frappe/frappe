@@ -38,11 +38,20 @@ frappe.doctype_settings.overflow_menu = function (items) {
 	if (!items.length) return $cell;
 
 	const $wrap = $('<div class="dropdown dts-actions"></div>').appendTo($cell);
-	$(
-		`<button type="button" class="es-button dts-actions-btn" data-size="xs" data-variant="ghost" data-icon-button="true" data-toggle="dropdown" aria-haspopup="menu" aria-expanded="false" aria-label="${__(
-			"More actions"
-		)}"><span aria-hidden="true">⋯</span></button>`
-	).appendTo($wrap);
+	frappe.ui
+		.button({
+			icon: "ellipsis",
+			size: "xs",
+			variant: "ghost",
+			title: __("More actions"),
+			css_class: "dts-actions-btn",
+			attrs: {
+				"data-toggle": "dropdown",
+				"aria-haspopup": "menu",
+				"aria-expanded": "false",
+			},
+		})
+		.appendTo($wrap);
 	const $menu = $('<div class="dropdown-menu dropdown-menu-right" role="menu"></div>').appendTo(
 		$wrap
 	);
@@ -79,10 +88,13 @@ frappe.doctype_settings.empty_state = function ($container, opts) {
 		$('<div class="dts-empty-description"></div>').text(opts.description).appendTo($empty);
 	}
 	if (opts.action) {
-		$(`<button type="button" class="es-button dts-empty-action" data-size="sm"></button>`)
-			.text(opts.action.label)
-			.appendTo($empty)
-			.on("click", () => opts.action.onclick());
+		frappe.ui
+			.button({
+				label: opts.action.label,
+				css_class: "dts-empty-action",
+				onclick: () => opts.action.onclick(),
+			})
+			.appendTo($empty);
 	}
 	return $empty;
 };
@@ -90,9 +102,7 @@ frappe.doctype_settings.empty_state = function ($container, opts) {
 frappe.doctype_settings.render_error = function (panel, retry_fn) {
 	const $err = panel.body.empty();
 	$('<div class="text-muted small"></div>').text(__("Could not load this tab.")).appendTo($err);
-	$(`<button type="button" class="es-button" data-size="xs">${__("Retry")}</button>`)
-		.appendTo($err)
-		.on("click", () => retry_fn());
+	frappe.ui.button({ label: __("Retry"), size: "xs", onclick: () => retry_fn() }).appendTo($err);
 };
 
 // Shared helper: write a DocType-level Property Setter (same mechanism Customize Form uses).
