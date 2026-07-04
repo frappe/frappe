@@ -587,6 +587,7 @@
   },
   {
    "collapsible": 1,
+   "collapsible_depends_on": "eval:doc.user_type == \"Bot\"",
    "fieldname": "api_access",
    "fieldtype": "Section Break",
    "label": "API Access"
@@ -915,7 +916,7 @@
   }
  ],
  "make_attachments_public": 1,
- "modified": "2026-06-17 16:47:51.772694",
+ "modified": "2026-07-04 12:31:48.549267",
  "modified_by": "Administrator",
  "module": "Core",
  "name": "User",
