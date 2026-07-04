@@ -1153,7 +1153,11 @@ class Document(BaseDocument):
 			if not (min_value or max_value):
 				continue
 
-			value = flt(self.get(df.fieldname))
+			value = self.get(df.fieldname)
+			if value in (None, ""):
+				continue
+
+			value = flt(value)
 
 			if min_value and value < min_value:
 				msg = get_msg(df, _("Value cannot be less than {0} for").format(frappe.bold(min_value)))
