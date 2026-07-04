@@ -68,7 +68,7 @@
   },
   {
    "depends_on": "eval:doc.standard",
-   "description": "Path to the template file inside the app, e.g. my_app/templates/print_formats/my_template.html",
+   "description": "Path to the template file inside the app, e.g. templates/print_formats/my_template.html",
    "fieldname": "template_file",
    "fieldtype": "Data",
    "label": "Template File",
