@@ -83,7 +83,7 @@ frappe.ui.form.on("User", {
 		if (
 			frm.can_edit_roles &&
 			!frm.is_new() &&
-			["System User", "Website User"].includes(frm.doc.user_type)
+			["System User", "Website User", "Bot"].includes(frm.doc.user_type)
 		) {
 			if (!frm.roles_editor) {
 				const role_area = $('<div class="role-editor">').appendTo(
@@ -122,7 +122,7 @@ frappe.ui.form.on("User", {
 		}
 
 		if (
-			["System User", "Website User"].includes(frm.doc.user_type) &&
+			["System User", "Website User", "Bot"].includes(frm.doc.user_type) &&
 			!frm.is_new() &&
 			!frm.roles_editor &&
 			frm.can_edit_roles
@@ -130,6 +130,8 @@ frappe.ui.form.on("User", {
 			frm.reload_doc();
 			return;
 		}
+
+		frm.trigger("toggle_bot_fields");
 
 		frm.toggle_display(["sb1", "sb3", "modules_access"], false);
 		if (frm.is_new() && has_access_to_edit_user()) {
@@ -171,7 +173,9 @@ frappe.ui.form.on("User", {
 				frm.toggle_display(["sb1", "sb3", "modules_access"], true);
 			}
 
-			if (cint(frm.doc.enabled) && frm.has_perm("write")) {
+			const is_bot = frm.doc.user_type === "Bot";
+
+			if (!is_bot && cint(frm.doc.enabled) && frm.has_perm("write")) {
 				frm.add_custom_button(
 					__("Change Password"),
 					() =>
@@ -182,20 +186,22 @@ frappe.ui.form.on("User", {
 				);
 			}
 
-			frm.add_custom_button(
-				__("Reset Password"),
-				function () {
-					frappe.call({
-						method: "frappe.core.doctype.user.user.reset_password",
-						args: {
-							user: frm.doc.name,
-						},
-					});
-				},
-				__("Password")
-			);
+			if (!is_bot) {
+				frm.add_custom_button(
+					__("Reset Password"),
+					function () {
+						frappe.call({
+							method: "frappe.core.doctype.user.user.reset_password",
+							args: {
+								user: frm.doc.name,
+							},
+						});
+					},
+					__("Password")
+				);
+			}
 
-			if (frappe.user.has_role("System Manager")) {
+			if (!is_bot && frappe.user.has_role("System Manager")) {
 				frappe.db.get_single_value("LDAP Settings", "enabled").then((value) => {
 					if (value === 1 && frm.doc.name != "Administrator") {
 						frm.add_custom_button(
@@ -247,6 +253,7 @@ frappe.ui.form.on("User", {
 			}
 
 			if (
+				!is_bot &&
 				cint(frappe.boot.sysdefaults.enable_two_factor_auth) &&
 				(frappe.session.user == doc.name || frappe.user.has_role("System Manager"))
 			) {
@@ -286,7 +293,11 @@ frappe.ui.form.on("User", {
 				}
 			}
 		}
-		if (frm.doc.user_emails && frappe.model.can_create("Email Account")) {
+		if (
+			frm.doc.user_type !== "Bot" &&
+			frm.doc.user_emails &&
+			frappe.model.can_create("Email Account")
+		) {
 			var found = 0;
 			for (var i = 0; i < frm.doc.user_emails.length; i++) {
 				if (frm.doc.email == frm.doc.user_emails[i].email_id) {
@@ -317,6 +328,30 @@ frappe.ui.form.on("User", {
 		if (frm.roles_editor) {
 			frm.roles_editor.set_roles_in_table();
 		}
+	},
+	user_type: function (frm) {
+		frm.trigger("toggle_bot_fields");
+	},
+	toggle_bot_fields: function (frm) {
+		// A Bot authenticates only via API key & secret, so password, session,
+		// email and SSO related fields don't apply to it.
+		const is_bot = frm.doc.user_type === "Bot";
+		frm.toggle_display(
+			[
+				"change_password",
+				"email_settings",
+				"document_follow_notifications_section",
+				"third_party_authentication",
+				"send_welcome_email",
+				"simultaneous_sessions",
+				"login_after",
+				"login_before",
+				"active_sessions",
+				"form_navigation_buttons",
+				"workspaces",
+			],
+			!is_bot
+		);
 	},
 	enabled: function (frm) {
 		var doc = frm.doc;
@@ -398,6 +433,7 @@ frappe.ui.form.on("User", {
 	},
 	setup_impersonation: function (frm) {
 		if (
+			frm.doc.user_type !== "Bot" &&
 			(frappe.session.user === "Administrator" || frm.has_perm("impersonate")) &&
 			frm.doc.name !== frappe.session.user &&
 			!frm.is_new()

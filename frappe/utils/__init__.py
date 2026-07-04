@@ -1080,6 +1080,7 @@ class _UserInfo(TypedDict):
 	name: str
 	email: str
 	time_zone: str
+	user_type: str
 
 
 def add_user_info(user: str | list[str] | set[str], user_info: dict[str, _UserInfo]) -> None:
@@ -1096,7 +1097,7 @@ def add_user_info(user: str | list[str] | set[str], user_info: dict[str, _UserIn
 	missing_info = frappe.get_all(
 		"User",
 		{"name": ("in", missing_users)},
-		["full_name", "user_image", "name", "email", "time_zone"],
+		["full_name", "user_image", "name", "email", "time_zone", "user_type"],
 	)
 
 	for info in missing_info:
@@ -1106,6 +1107,7 @@ def add_user_info(user: str | list[str] | set[str], user_info: dict[str, _UserIn
 			name=info.name,
 			email=info.email,
 			time_zone=info.time_zone,
+			user_type=info.user_type,
 		)
 
 
