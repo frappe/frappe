@@ -95,7 +95,7 @@
 							group="fields"
 							:animation="150"
 							item-key="id"
-							filter="a, input, textarea, select, button, [contenteditable], [role='button'], [tabindex]"
+							filter="a, input, textarea, select, button, label, summary, [contenteditable], [role='button'], [tabindex]"
 							:preventOnFilter="false"
 							:emptyInsertThreshold="100"
 							@add="select_section"
