@@ -1,35 +1,43 @@
 <script setup>
 import { ref, computed, nextTick } from "vue";
 import { Button, FeatherIcon } from "@/lib/ui";
+import ArgsView from "./ArgsView.vue";
+import { confirmTitle, hasArgs } from "@/lib/toolMeta";
 import { __ } from "@/lib/translate";
 
-const props = defineProps({ question: { type: Object, required: true } });
+const props = defineProps({
+	question: { type: Object, required: true },
+	tool: { type: Object, default: null },
+});
 const emit = defineEmits(["answer"]);
 
 const otherEl = ref(null);
 
-// Prompt is "<header>\n\n<body>": show the header as a title and the body
-// (summary / code) in its own readable, scrollable block.
-const header = computed(() =>
-	(props.question.prompt.split("\n\n")[0] || "").replace(/`/g, "").trim()
+// Tool confirmation: name the specific action; free-text ask: show the prompt.
+const confirm = computed(() =>
+	props.tool ? confirmTitle(props.tool.name, props.tool.arguments) : null
 );
-const body = computed(() => props.question.prompt.split("\n\n").slice(1).join("\n\n").trim());
+const title = computed(() =>
+	confirm.value ? confirm.value.title : props.question.prompt.split("\n\n")[0].trim()
+);
+const danger = computed(() => Boolean(confirm.value?.danger));
+const body = computed(() =>
+	props.tool ? "" : props.question.prompt.split("\n\n").slice(1).join("\n\n").trim()
+);
+const showArgs = computed(() => Boolean(props.tool) && hasArgs(props.tool.arguments));
 const answered = computed(() => props.question._answer !== undefined);
 
 function pick(option) {
 	emit("answer", option);
 }
-
 function showOther() {
 	props.question._showOther = true;
 	nextTick(() => otherEl.value?.focus());
 }
-
 function cancelOther() {
 	props.question._showOther = false;
 	props.question._otherText = "";
 }
-
 function sendOther() {
 	const text = props.question._otherText?.trim();
 	if (text) emit("answer", text);
@@ -45,14 +53,17 @@ function sendOther() {
 			<span
 				class="flex h-5 w-5 shrink-0 items-center justify-center rounded-md bg-surface-gray-2 text-ink-gray-7"
 			>
-				<FeatherIcon name="shield" class="h-3.5 w-3.5" />
+				<FeatherIcon :name="danger ? 'alert-triangle' : 'shield'" class="h-3.5 w-3.5" />
 			</span>
 			<div class="break-words text-sm font-medium leading-snug text-ink-gray-9">
-				{{ header }}
+				{{ title }}
 			</div>
 		</div>
 
-		<pre v-if="body" class="flow-confirm-body">{{ body }}</pre>
+		<div v-if="showArgs" class="mt-2.5">
+			<ArgsView :arguments="tool.arguments" />
+		</div>
+		<pre v-else-if="body" class="flow-confirm-body">{{ body }}</pre>
 
 		<div
 			v-if="answered"

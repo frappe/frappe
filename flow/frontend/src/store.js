@@ -1,6 +1,8 @@
 import { ref, computed } from "vue";
 import * as api from "@/api/client";
 import { startRun, resumeRun } from "@/api/stream";
+import { normalizeToolName } from "@/lib/toolMeta";
+import { __ } from "@/lib/translate";
 
 // Module-singleton store: one panel instance, one source of truth. Components
 // import this and read/act on shared reactive state — no prop drilling.
@@ -14,6 +16,10 @@ const nextAttachmentId = () => `a${++auid}`;
 const agents = ref([]);
 const models = ref([]);
 const recentSessions = ref([]);
+
+// Active agent's tool slug → requires_confirmation; the cache keeps agent switches instant.
+const toolApproval = ref({});
+const toolApprovalCache = {};
 
 const selectedAgent = ref(null);
 const selectedModel = ref(null);
@@ -52,23 +58,55 @@ function modelLabel(name) {
 
 // ── lifecycle / data loading ────────────────────────────────────────────────
 async function loadInitial() {
-	const [a, m] = await Promise.all([api.loadAgents(), api.loadModels(), refreshHistory()]);
-	agents.value = a;
-	models.value = m;
-	const assistant = a.find((x) => x.name === "Flow");
-	selectedAgent.value = assistant ? assistant.name : a[0]?.name ?? null;
-	loaded.value = true;
-	focusTick.value++;
+	try {
+		const [a, m] = await Promise.all([api.loadAgents(), api.loadModels(), refreshHistory()]);
+		agents.value = a;
+		models.value = m;
+		const assistant = a.find((x) => x.name === "Flow");
+		selectedAgent.value = assistant ? assistant.name : a[0]?.name ?? null;
+		loadToolApproval(selectedAgent.value);
+		loaded.value = true;
+		focusTick.value++;
+	} catch {
+		// `loaded` stays false, keeping the composer disabled on "Loading…".
+		frappe.show_alert({
+			message: __("Flow failed to load. Refresh the page to retry."),
+			indicator: "red",
+		});
+	}
 }
 
 async function refreshHistory() {
 	recentSessions.value = await api.loadHistory();
 }
 
+// Load the classification map for `agent`. The cache serves instantly and is
+// refreshed in the background, so an edited Flow Tool doesn't stay stale all
+// session. Guarded against a stale response winning after a quick agent switch.
+function loadToolApproval(agent) {
+	if (!agent) {
+		toolApproval.value = {};
+		return Promise.resolve();
+	}
+	const cached = toolApprovalCache[agent];
+	if (cached) toolApproval.value = cached;
+	const refresh = api
+		.getAgentTools(agent)
+		.then((map) => {
+			toolApprovalCache[agent] = map;
+			if (selectedAgent.value === agent) toolApproval.value = map;
+		})
+		.catch(() => {
+			if (selectedAgent.value === agent && !cached) toolApproval.value = {};
+		});
+	return cached ? Promise.resolve() : refresh;
+}
+
 // ── selection ────────────────────────────────────────────────────────────────
 function setAgent(name) {
 	if (locked.value) return;
 	selectedAgent.value = name;
+	loadToolApproval(name);
 }
 function setModel(name) {
 	selectedModel.value = name;
@@ -119,8 +157,13 @@ function removeAttachment(uid) {
 	attachments.value = attachments.value.filter((a) => a.uid !== uid);
 }
 
+// Bumped per switch so a slow load can't write into a newer session's view.
+let switchSeq = 0;
+
 async function switchSession(name) {
-	if (sending.value || paused.value) return;
+	// A paused run is restored on return (restorePausedRun); only block mid-stream.
+	if (sending.value) return;
+	const seq = ++switchSeq;
 	sessionName.value = name;
 	runName.value = null;
 	messages.value = [];
@@ -131,8 +174,11 @@ async function switchSession(name) {
 	await api.recoverSession(name).catch(() => {});
 
 	const doc = await api.getSession(name);
+	if (seq !== switchSeq) return;
 	selectedAgent.value = doc.agent;
 	selectedModel.value = doc.model || null;
+	await loadToolApproval(doc.agent);
+	if (seq !== switchSeq) return;
 
 	// Attachments are linked to their turn by run; group so each user message
 	// can render its own chips.
@@ -141,9 +187,12 @@ async function switchSession(name) {
 		(attachmentsByRun[a.run] ||= []).push({ file_name: a.file_name, file_size: a.file_size });
 	}
 
+	// Merge consecutive assistant rows (one per iteration in the doc) into one
+	// message, as live does — otherwise the tool grouping fragments per iteration.
 	let current = null;
 	for (const m of doc.messages || []) {
 		if (m.role === "user") {
+			current = null;
 			messages.value.push({
 				id: nextId(),
 				role: "user",
@@ -151,31 +200,13 @@ async function switchSession(name) {
 				attachments: attachmentsByRun[m.run] || [],
 			});
 		} else if (m.role === "assistant") {
-			const parts = [];
-			if (m.content) parts.push({ id: nextId(), type: "text", text: m.content });
+			if (!current) current = pushAssistant(false);
+			if (m.content) current.parts.push(makeTextPart(m.content));
 			for (const t of parseToolCalls(m.tool_calls)) {
-				parts.push({
-					id: t.id,
-					type: "tool",
-					name: t.function.name,
-					arguments: t.function.arguments,
-					result: null,
-					expanded: false,
-					approval: null,
-				});
+				current.parts.push(makeToolPart(t.id, t.function.name, t.function.arguments));
 			}
-			current = {
-				id: nextId(),
-				role: "assistant",
-				parts,
-				pending: false,
-				questions: [],
-				runName: null,
-			};
-			messages.value.push(current);
 		} else if (m.role === "tool" && current) {
-			const part = current.parts.find((p) => p.type === "tool" && p.id === m.tool_call_id);
-			if (part) part.result = m.content;
+			setToolResult(current, m.tool_call_id, m.content);
 		}
 	}
 
@@ -194,7 +225,7 @@ async function switchSession(name) {
 
 async function restorePausedRun(session) {
 	const runs = await api.getPausedRun(session);
-	if (!runs.length || !runs[0].questions) return;
+	if (sessionName.value !== session || !runs.length || !runs[0].questions) return;
 	const questions = JSON.parse(runs[0].questions);
 	if (!questions.length) return;
 
@@ -245,15 +276,17 @@ async function resume(answers, pausedMsg) {
 	const rn = pausedMsg?.runName || runName.value;
 	if (!rn) return;
 
+	// Stream the resumed turn into the same message so the whole run stays one block
+	// (matches how a reload reconstructs it) instead of splitting at each approval.
 	pausedMsg.questions = [];
-	const assistant = pushAssistant();
+	pausedMsg.pending = true;
 	sending.value = true;
 	requestScroll(true);
 
 	try {
-		await resumeRun({ run_name: rn, answers }, (event) => handleEvent(event, assistant));
+		await resumeRun({ run_name: rn, answers }, (event) => handleEvent(event, pausedMsg));
 	} catch (e) {
-		failMessage(assistant, e);
+		failMessage(pausedMsg, e);
 	} finally {
 		sending.value = false;
 		requestScroll();
@@ -263,23 +296,20 @@ async function resume(answers, pausedMsg) {
 
 // Records one answer and stamps the tool's approval state; once every question
 // on the paused message is answered, resumes the run with all answers at once.
-function answerQuestion(question, answer) {
+function answerQuestion(msg, question, answer) {
 	const a = (answer || "").trim();
-	if (!a) return;
-
-	const pausedMsg = messages.value[messages.value.length - 1];
-	if (!pausedMsg) return;
+	if (!a || !msg) return;
 
 	question._answer = a;
-	const tool = pausedMsg.parts.find((p) => p.type === "tool" && p.id === question.key);
+	const tool = msg.parts.find((p) => p.type === "tool" && p.id === question.key);
 	if (tool)
 		tool.approval = a === "Approve" ? "approved" : a === "Deny" ? "denied" : "redirected";
 
-	if (pausedMsg.questions.some((q) => q._answer === undefined)) return;
+	if (msg.questions.some((q) => q._answer === undefined)) return;
 
 	const answers = {};
-	pausedMsg.questions.forEach((q) => (answers[q.key] = q._answer));
-	resume(answers, pausedMsg);
+	msg.questions.forEach((q) => (answers[q.key] = q._answer));
+	resume(answers, msg);
 }
 
 function handleEvent(event, msg) {
@@ -293,25 +323,13 @@ function handleEvent(event, msg) {
 			requestScroll();
 			break;
 		case "tool_started":
-			msg.parts.push({
-				id: event.id,
-				type: "tool",
-				name: event.name,
-				arguments: event.arguments,
-				result: null,
-				expanded: false,
-				approval: null,
-			});
+			msg.parts.push(makeToolPart(event.id, event.name, event.arguments));
 			requestScroll();
 			break;
-		case "tool_ended": {
-			// A resumed confirmation tool's card lives in the earlier paused message,
-			// not the new one being streamed into — so search all messages.
-			const part = findToolPart(event.id);
-			if (part) part.result = event.result;
+		case "tool_ended":
+			setToolResult(msg, event.id, event.result);
 			requestScroll();
 			break;
-		}
 		case "done":
 			msg.pending = false;
 			if (event.status === "Paused") {
@@ -329,12 +347,29 @@ function handleEvent(event, msg) {
 }
 
 // ── helpers ──────────────────────────────────────────────────────────────────
-function pushAssistant() {
+// Single source of the part shapes, shared by the live stream and the session
+// reload so the two paths can't drift apart.
+const makeTextPart = (text) => ({ id: nextId(), type: "text", text });
+const makeToolPart = (id, name, args) => ({
+	id,
+	type: "tool",
+	name: normalizeToolName(name),
+	arguments: args,
+	result: null,
+	approval: null,
+});
+
+function setToolResult(msg, id, result) {
+	const part = msg.parts.find((p) => p.type === "tool" && p.id === id);
+	if (part) part.result = result;
+}
+
+function pushAssistant(pending = true) {
 	const msg = {
 		id: nextId(),
 		role: "assistant",
 		parts: [],
-		pending: true,
+		pending,
 		questions: [],
 		runName: null,
 	};
@@ -347,15 +382,7 @@ function pushAssistant() {
 function appendText(msg, delta) {
 	const last = msg.parts[msg.parts.length - 1];
 	if (last && last.type === "text") last.text += delta;
-	else msg.parts.push({ id: nextId(), type: "text", text: delta });
-}
-
-function findToolPart(id) {
-	for (const m of messages.value) {
-		const tc = (m.parts || []).find((p) => p.type === "tool" && p.id === id);
-		if (tc) return tc;
-	}
-	return null;
+	else msg.parts.push(makeTextPart(delta));
 }
 
 function failMessage(msg, error) {
@@ -402,6 +429,7 @@ export function useStore() {
 		sending,
 		loaded,
 		fullscreen,
+		toolApproval,
 		scrollTick,
 		forceScroll,
 		focusTick,

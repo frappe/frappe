@@ -22,24 +22,44 @@
 }
 /* a text blob followed by a tool/confirm card — extra breathing room below the text */
 .flow-parts > .md + * {
-	margin-top: calc(16px - 0.36em);
+	margin-top: calc(22px - 0.36em);
 }
 /* a card/element followed by a text blob */
 .flow-parts > * + .md {
 	margin-top: calc(10px - 0.36em);
 }
 .flow-parts > .md + .md {
-	margin-top: calc(10px - 0.72em);
+	margin-top: calc(16px - 0.72em);
 }
 
-/* Composer focus: subtle gray, not the @tailwindcss/forms blue ring. */
-.flow-composer {
-	transition: border-color 0.15s ease, box-shadow 0.15s ease;
+/* Sweeps a highlight across a label while its activity is live. */
+.flow-shimmer-text {
+	background: linear-gradient(
+		90deg,
+		var(--ink-gray-4) 0%,
+		var(--ink-gray-4) 35%,
+		var(--ink-gray-8) 50%,
+		var(--ink-gray-4) 65%,
+		var(--ink-gray-4) 100%
+	);
+	background-size: 200% 100%;
+	-webkit-background-clip: text;
+	background-clip: text;
+	color: transparent;
+	animation: flow-shimmer-text 1.6s linear infinite;
 }
-.flow-composer:focus-within {
-	border-color: var(--outline-gray-3);
-	box-shadow: 0 0 0 2px var(--outline-gray-2);
+@keyframes flow-shimmer-text {
+	to {
+		background-position: -200% 0;
+	}
 }
+@media (prefers-reduced-motion: reduce) {
+	.flow-shimmer-text {
+		animation: none;
+	}
+}
+
+/* Suppress the @tailwindcss/forms blue focus ring; the composer draws its own. */
 .flow-composer textarea:focus {
 	outline: none;
 	box-shadow: none;

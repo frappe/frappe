@@ -86,6 +86,25 @@ def recover_session(session: str) -> dict[str, int]:
 
 
 @frappe.whitelist()
+def get_agent_tools(agent: str) -> dict[str, bool]:
+	"""Map an agent's tool slugs to whether each needs confirmation, so the panel can
+	classify tool calls (approval vs. inline)"""
+	if not isinstance(agent, str) or not agent.strip():
+		return {}
+
+	doc = frappe.get_doc("Flow Agent", agent.strip())
+	frappe.has_permission("Flow Agent", "read", doc.name, throw=True)
+
+	tool_names = [row.tool for row in doc.tools]
+	if not tool_names:
+		return {}
+	rows = frappe.get_all(
+		"Flow Tool", filters={"name": ["in", tool_names]}, fields=["slug", "requires_confirmation"]
+	)
+	return {row.slug: bool(row.requires_confirmation) for row in rows}
+
+
+@frappe.whitelist()
 def attach_file(file: str) -> dict[str, Any]:
 	"""Validate and extract an uploaded File for use as a chat attachment. Errors
 	(unsupported type, unreadable, not owned) surface here, at upload time. The

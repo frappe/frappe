@@ -47,6 +47,10 @@ export const getPausedRun = (session) =>
 // so a reloaded session isn't blocked from starting the next turn.
 export const recoverSession = (session) => frappe.xcall("flow.api.recover_session", { session });
 
+// Map of the agent's tool slugs → requires_confirmation, so the panel can tell an
+// approval tool call from an inline one.
+export const getAgentTools = (agent) => frappe.xcall("flow.api.get_agent_tools", { agent });
+
 // Upload a file as private, returning the created File doc. The chat attachment
 // flow needs the File name to stage it via attachFile.
 export async function uploadFile(file) {
@@ -68,7 +72,8 @@ export async function uploadFile(file) {
 // metadata; throws (unsupported type, unreadable, …) which surfaces on the chip.
 export const attachFile = (file) => frappe.xcall("flow.api.attach_file", { file });
 
-function serverMessage(data) {
+// Extract the human-readable message from a frappe error body.
+export function serverMessage(data) {
 	try {
 		const msgs = JSON.parse(data._server_messages || "[]");
 		if (msgs.length) return JSON.parse(msgs[0]).message;

@@ -1,3 +1,5 @@
+import { serverMessage } from "./client";
+
 // Consumes the run SSE stream: POSTs the request, then parses `data:` blocks
 // and hands each decoded event to `onEvent`.
 async function postStream(method, body, onEvent) {
@@ -9,7 +11,11 @@ async function postStream(method, body, onEvent) {
 		},
 		body: JSON.stringify({ ...body, stream: true }),
 	});
-	if (!resp.ok || !resp.body) {
+	if (!resp.ok) {
+		const data = await resp.json().catch(() => ({}));
+		throw new Error(serverMessage(data) || `Request failed (${resp.status})`);
+	}
+	if (!resp.body) {
 		throw new Error(`Request failed (${resp.status})`);
 	}
 
