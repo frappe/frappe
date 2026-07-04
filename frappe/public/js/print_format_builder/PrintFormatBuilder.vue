@@ -40,24 +40,6 @@
 						__("Live")
 					}}</span>
 
-					<div class="canvas-view-toggle" role="group" :aria-label="__('Canvas mode')">
-						<button
-							class="canvas-view-btn"
-							:class="{ 'canvas-view-btn--active': view_mode === 'design' }"
-							@click="view_mode = 'design'"
-						>
-							{{ __("Design") }}
-						</button>
-						<button
-							class="canvas-view-btn"
-							:class="{ 'canvas-view-btn--active': view_mode === 'print' }"
-							:title="__('Exact print output, rendered by the server')"
-							@click="set_print_mode"
-						>
-							{{ __("Print") }}
-						</button>
-					</div>
-
 					<div class="canvas-zoom-control" role="group" :aria-label="__('Zoom')">
 						<button
 							class="canvas-zoom-btn"
@@ -95,8 +77,7 @@
 				/>
 				<KeepAlive v-else>
 					<component :is="Preview" v-if="show_preview" />
-					<component :is="LiveCanvas" v-else-if="view_mode === 'print'" />
-					<component :is="PrintFormat" v-else />
+					<component :is="LiveCanvas" v-else />
 				</KeepAlive>
 			</div>
 		</div>
@@ -105,7 +86,6 @@
 </template>
 
 <script setup>
-import PrintFormat from "./components/editor/PrintFormat.vue";
 import LiveCanvas from "./components/editor/LiveCanvas.vue";
 import PrintFormatSetup from "./components/editor/PrintFormatSetup.vue";
 import Preview from "./components/Preview.vue";
@@ -123,11 +103,8 @@ const ZOOM_STEP = 10;
 const ZOOM_MIN = 50;
 const ZOOM_MAX = 150;
 
-const VIEW_MODE_KEY = "pfb_view_mode";
-
 // variables
 let show_preview = ref(false);
-let view_mode = ref(localStorage.getItem(VIEW_MODE_KEY) === "print" ? "print" : "design");
 let doc_picker_ref = ref(null);
 let doc_picker_ctrl = ref(null);
 let sidebar_open = ref(false);
@@ -172,28 +149,6 @@ function clear_selection() {
 	$store.value.selected_field.value = null;
 	$store.value.selected_section.value = null;
 }
-
-function set_print_mode() {
-	if (!$store.value.preview_doc_name.value) {
-		frappe.show_alert({
-			message: __("Pick a record to preview first"),
-			indicator: "orange",
-		});
-		return;
-	}
-	view_mode.value = "print";
-}
-
-watch(view_mode, (mode) => localStorage.setItem(VIEW_MODE_KEY, mode));
-
-watch(
-	() => $store.value.preview_doc_name.value,
-	(name) => {
-		if (!name && view_mode.value === "print") {
-			view_mode.value = "design";
-		}
-	}
-);
 
 function on_start_default() {
 	const src = $store.value.layout.value;
@@ -516,36 +471,6 @@ defineExpose({ toggle_preview, show_preview, $store });
 .canvas-clear-btn:hover {
 	background: var(--gray-100);
 	color: var(--gray-600);
-}
-
-/* ── View mode toggle ────────────────────────────────────── */
-.canvas-view-toggle {
-	display: flex;
-	align-items: center;
-	border: 1px solid var(--border-color);
-	border-radius: var(--radius);
-	overflow: hidden;
-}
-
-.canvas-view-btn {
-	font-size: 11px;
-	font-weight: 500;
-	color: var(--text-muted);
-	background: transparent;
-	border: none;
-	padding: 0 10px;
-	height: 24px;
-	cursor: pointer;
-	white-space: nowrap;
-}
-
-.canvas-view-btn--active {
-	background: var(--gray-100);
-	color: var(--text-color);
-}
-
-.canvas-view-btn:hover:not(.canvas-view-btn--active) {
-	background: var(--gray-50);
 }
 
 /* ── Zoom control ────────────────────────────────────────── */

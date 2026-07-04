@@ -19,6 +19,7 @@ export function getStore(print_format_name) {
 	let selected_lh_footer = ref(false);
 	let preview_doc = ref(null);
 	let preview_doc_name = ref(null);
+	let drag_payload = ref(null);
 
 	// methods
 	function fetch() {
@@ -191,6 +192,7 @@ export function getStore(print_format_name) {
 		selected_lh_footer,
 		preview_doc,
 		preview_doc_name,
+		drag_payload,
 		load_preview_doc,
 		fetch,
 		update,

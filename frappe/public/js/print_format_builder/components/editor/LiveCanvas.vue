@@ -1,6 +1,9 @@
 <template>
 	<div class="live-canvas">
-		<div v-if="error" class="live-canvas-error">{{ error }}</div>
+		<div v-if="!store.preview_doc_name.value" class="live-canvas-empty">
+			{{ __("Pick a {0} above to start designing with real data", [__(doctype_label)]) }}
+		</div>
+		<div v-else-if="error" class="live-canvas-error">{{ error }}</div>
 		<div v-else-if="!loaded" class="live-canvas-loading">{{ __("Rendering...") }}</div>
 		<iframe v-show="loaded && !error" ref="frame" class="live-canvas-frame"></iframe>
 	</div>
@@ -10,6 +13,8 @@
 import { serialize_layout } from "../../utils";
 import { ref, inject, watch, onActivated, onDeactivated } from "vue";
 
+import { computed } from "vue";
+
 let store = inject("$store");
 let frame = ref(null);
 let loaded = ref(false);
@@ -17,6 +22,8 @@ let error = ref(null);
 let render_seq = 0;
 let is_active = false;
 let last_payload = null;
+
+let doctype_label = computed(() => store.print_format.value?.doc_type || "document");
 
 const INTERACTION_CSS = `
 	[data-pfb-path] { cursor: pointer; }
@@ -81,6 +88,36 @@ const INTERACTION_CSS = `
 	}
 	.pfb-clip { overflow: hidden; }
 	.pfb-flow { position: relative; }
+	.pfb-del-chip {
+		position: absolute;
+		z-index: 10000;
+		width: 18px;
+		height: 18px;
+		padding: 0;
+		border: none;
+		border-radius: 50%;
+		background: #dc2626;
+		color: #fff;
+		font: 700 12px/17px -apple-system, sans-serif;
+		text-align: center;
+		cursor: pointer;
+		box-shadow: 0 1px 3px rgba(0, 0, 0, 0.3);
+	}
+	.pfb-add-section {
+		display: block;
+		margin: 0 auto 24px;
+		padding: 5px 14px;
+		border: 1px dashed #94a3b8;
+		border-radius: 6px;
+		background: transparent;
+		color: #475569;
+		font: 500 12px/1.5 -apple-system, sans-serif;
+		cursor: pointer;
+	}
+	.pfb-add-section:hover {
+		border-color: #4d7cfe;
+		color: #4d7cfe;
+	}
 `;
 
 const PAGE_SIZES_MM = { A4: [210, 297], Letter: [216, 279.4] };
@@ -209,6 +246,8 @@ function write_document(html) {
 	doc.addEventListener("keydown", forward_keydown);
 	doc.addEventListener("pointerdown", on_pointer_down);
 	doc.addEventListener("dblclick", on_dblclick);
+	doc.addEventListener("dragover", on_palette_drag_over);
+	doc.addEventListener("drop", on_palette_drop);
 	master = null;
 	paginate();
 	frame.value.contentWindow?.addEventListener("load", paginate);
@@ -400,6 +439,16 @@ function paginate() {
 		num.textContent = __("Page {0} of {1}", [k + 1, page_count]);
 		page.appendChild(num);
 	}
+
+	const add_btn = doc.createElement("button");
+	add_btn.className = "pfb-add-section";
+	add_btn.textContent = `+ ${__("Add Section")}`;
+	add_btn.addEventListener("click", (e) => {
+		e.stopPropagation();
+		add_section();
+	});
+	pages_el.appendChild(add_btn);
+
 	update_highlight();
 }
 
@@ -472,11 +521,148 @@ function handle_click(e) {
 			zone_el.dataset.pfbZone === "header"
 				? store.layout.value.header
 				: store.layout.value.footer;
+	} else if (e.target.closest("header")) {
+		store.selected_field.value = null;
+		store.selected_section.value = null;
+		store.selected_letterhead.value = true;
+	} else if (e.target.closest("footer")) {
+		store.selected_field.value = null;
+		store.selected_section.value = null;
+		store.selected_lh_footer.value = true;
 	} else {
 		store.selected_field.value = null;
 		store.selected_section.value = null;
 	}
 	update_highlight();
+}
+
+function remove_selected() {
+	const lv = store.layout.value;
+	const field = store.selected_field.value;
+	if (field) {
+		const zones = [lv.header, lv.footer, ...(lv.sections || [])].filter(Boolean);
+		for (const zone of zones) {
+			for (const col of zone.columns || []) {
+				const idx = col.fields.indexOf(field);
+				if (idx !== -1) {
+					col.fields.splice(idx, 1);
+					store.selected_field.value = null;
+					return;
+				}
+			}
+		}
+		return;
+	}
+	const section = store.selected_section.value;
+	if (section && lv.sections?.includes(section)) {
+		lv.sections.splice(lv.sections.indexOf(section), 1);
+		store.selected_section.value = null;
+	}
+}
+
+function add_section() {
+	const section = { label: "", columns: [{ label: "", fields: [] }] };
+	store.layout.value.sections.push(section);
+	store.selected_field.value = null;
+	store.selected_section.value = section;
+}
+
+// ── Drop new fields/sections dragged from the left panel ────
+// The panel uses SortableJS (native HTML5 drag), which can't drop across the
+// iframe boundary on its own — so the panel exposes the dragged payload via
+// the store and the iframe accepts it with plain dragover/drop handlers.
+let palette_indicator = null;
+let palette_target = null;
+
+function on_palette_drag_over(e) {
+	const payload = store.drag_payload.value;
+	if (!payload) return;
+	e.preventDefault();
+	e.dataTransfer.dropEffect = "copy";
+	const doc = frame.value.contentDocument;
+	if (!palette_indicator) {
+		palette_indicator = doc.createElement("div");
+		palette_indicator.className = "pfb-drop-indicator";
+		doc.body.appendChild(palette_indicator);
+	}
+	const under = doc.elementFromPoint(e.clientX, e.clientY);
+	const win = frame.value.contentWindow;
+
+	if (payload.kind === "section") {
+		const section_el = under?.closest("[data-pfb-section]");
+		palette_target = { section_idx: section_el ? +section_el.dataset.pfbSection : null };
+		const rect = (section_el || doc.querySelector(".pfb-pages"))?.getBoundingClientRect();
+		if (rect) {
+			Object.assign(palette_indicator.style, {
+				display: "block",
+				top: `${rect.bottom + win.scrollY - 1}px`,
+				left: `${rect.left + win.scrollX}px`,
+				width: `${rect.width}px`,
+			});
+		}
+		return;
+	}
+
+	const field_el = under?.closest("[data-pfb-path]");
+	const col_el = under?.closest("[data-pfb-col]");
+	if (field_el) {
+		const rect = field_el.getBoundingClientRect();
+		const before = e.clientY < rect.top + rect.height / 2;
+		palette_target = {
+			col_path: field_el.dataset.pfbPath.split(".").slice(0, -1).join("."),
+			field_path: field_el.dataset.pfbPath,
+			before,
+		};
+		Object.assign(palette_indicator.style, {
+			display: "block",
+			top: `${(before ? rect.top : rect.bottom) + win.scrollY - 1}px`,
+			left: `${rect.left + win.scrollX}px`,
+			width: `${rect.width}px`,
+		});
+	} else if (col_el) {
+		palette_target = { col_path: col_el.dataset.pfbCol, append: true };
+		const rect = col_el.getBoundingClientRect();
+		Object.assign(palette_indicator.style, {
+			display: "block",
+			top: `${rect.bottom + win.scrollY - 1}px`,
+			left: `${rect.left + win.scrollX}px`,
+			width: `${rect.width}px`,
+		});
+	} else {
+		palette_target = null;
+		palette_indicator.style.display = "none";
+	}
+}
+
+function on_palette_drop(e) {
+	const payload = store.drag_payload.value;
+	if (!payload) return;
+	e.preventDefault();
+	palette_indicator?.remove();
+	palette_indicator = null;
+	const target = palette_target;
+	palette_target = null;
+	store.drag_payload.value = null;
+
+	if (payload.kind === "section") {
+		const sections = store.layout.value.sections;
+		const idx = target?.section_idx != null ? target.section_idx + 1 : sections.length;
+		sections.splice(idx, 0, payload.section);
+		return;
+	}
+	if (!target) return;
+	const col = column_of(target.col_path);
+	if (!col) return;
+	if (target.append || !target.field_path) {
+		col.fields.push(payload.df);
+	} else {
+		const filtered = col.fields.filter((f) => !f.remove);
+		const anchor = filtered[+target.field_path.split(".").at(-1)];
+		let idx = anchor ? col.fields.indexOf(anchor) : col.fields.length;
+		if (!target.before) idx += 1;
+		col.fields.splice(idx, 0, payload.df);
+	}
+	store.selected_field.value = payload.df;
 }
 
 // ── Drag to reorder ─────────────────────────────────────────
@@ -648,6 +834,11 @@ function on_dblclick(e) {
 }
 
 function forward_keydown(e) {
+	if ((e.key === "Delete" || e.key === "Backspace") && !e.target.isContentEditable) {
+		e.preventDefault();
+		remove_selected();
+		return;
+	}
 	document.dispatchEvent(
 		new KeyboardEvent("keydown", {
 			key: e.key,
@@ -658,19 +849,39 @@ function forward_keydown(e) {
 	);
 }
 
+function place_delete_chip(doc, el, title) {
+	const chip = doc.createElement("button");
+	chip.className = "pfb-del-chip";
+	chip.title = title;
+	chip.textContent = "×";
+	chip.addEventListener("click", (e) => {
+		e.stopPropagation();
+		remove_selected();
+	});
+	const rect = el.getBoundingClientRect();
+	const win = doc.defaultView;
+	chip.style.top = `${rect.top + win.scrollY - 9}px`;
+	chip.style.left = `${rect.right + win.scrollX - 9}px`;
+	doc.body.appendChild(chip);
+}
+
 function update_highlight() {
 	const doc = frame.value?.contentDocument;
 	if (!doc) return;
 	for (const el of doc.querySelectorAll(".pfb-live-selected, .pfb-live-selected-section")) {
 		el.classList.remove("pfb-live-selected", "pfb-live-selected-section");
 	}
+	for (const chip of doc.querySelectorAll(".pfb-del-chip")) chip.remove();
 	const mark = (selector, cls) => {
-		for (const el of doc.querySelectorAll(selector)) el.classList.add(cls);
+		const els = [...doc.querySelectorAll(selector)];
+		for (const el of els) el.classList.add(cls);
+		return els[0];
 	};
 	const field = store.selected_field.value;
 	if (field) {
 		const path = path_of(field);
-		if (path) mark(`[data-pfb-path="${path}"]`, "pfb-live-selected");
+		const el = path && mark(`[data-pfb-path="${path}"]`, "pfb-live-selected");
+		if (el) place_delete_chip(doc, el, __("Remove field"));
 		return;
 	}
 	const section = store.selected_section.value;
@@ -682,7 +893,8 @@ function update_highlight() {
 		}
 		const idx = live_sections().indexOf(section);
 		if (idx !== -1) {
-			mark(`[data-pfb-section="${idx}"]`, "pfb-live-selected-section");
+			const el = mark(`[data-pfb-section="${idx}"]`, "pfb-live-selected-section");
+			if (el) place_delete_chip(doc, el, __("Remove section"));
 		}
 	}
 }
@@ -721,7 +933,8 @@ onDeactivated(() => {
 }
 
 .live-canvas-loading,
-.live-canvas-error {
+.live-canvas-error,
+.live-canvas-empty {
 	padding: 2rem;
 	text-align: center;
 	color: var(--text-muted);

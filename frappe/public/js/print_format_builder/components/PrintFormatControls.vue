@@ -53,6 +53,8 @@
 					:sort="false"
 					:clone="clone_field"
 					item-key="fieldname"
+					@start="on_palette_drag_start(group.fields, $event)"
+					@end="on_palette_drag_end"
 				>
 					<template #item="{ element }">
 						<div
@@ -85,6 +87,8 @@
 				:sort="false"
 				:clone="clone_field"
 				item-key="fieldname"
+				@start="on_palette_drag_start(draggable_blocks, $event)"
+				@end="on_palette_drag_end"
 			>
 				<template #item="{ element }">
 					<div
@@ -111,6 +115,10 @@
 				:sort="false"
 				:clone="clone_as_section"
 				item-key="fieldname"
+				@start="
+					store.drag_payload.value = { kind: 'section', section: clone_as_section() }
+				"
+				@end="on_palette_drag_end"
 			>
 				<template #item="{ element }">
 					<div class="pfb-block-card" :title="element.desc" @click="add_page_break">
@@ -404,6 +412,14 @@ function clone_field(df) {
 	// Repeater has no title by default — the palette label is only for the palette.
 	if (cloned.fieldtype === "Repeater") cloned.label = "";
 	return cloned;
+}
+
+function on_palette_drag_start(list, evt) {
+	store.drag_payload.value = { kind: "field", df: clone_field(list[evt.oldIndex]) };
+}
+
+function on_palette_drag_end() {
+	store.drag_payload.value = null;
 }
 
 function add_to_layout(df) {
