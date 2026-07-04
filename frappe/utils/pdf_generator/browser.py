@@ -9,7 +9,7 @@ from frappe.utils.print_utils import convert_uom, parse_float_and_unit
 
 
 class Browser:
-	def __init__(self, generator, print_format, html, options):
+	def __init__(self, generator, print_format, html, options, measure_only=False):
 		self.is_print_designer = frappe.get_cached_value("Print Format", print_format, "print_designer")
 		self.debug_mode = frappe.conf.developer_mode and bool(frappe.form_dict.get("pdf_debug"))
 		self.browserID = frappe.utils.random_string(10)
@@ -23,6 +23,9 @@ class Browser:
 			self.open(generator)
 			# opens header and footer pages and sets content ( not waiting for it to load)
 			self.prepare_header_footer()
+			if measure_only:
+				# caller only needs header_height / footer_height
+				return
 			# opens body page and sets content and waits for it to finshing load
 			self.setup_body_page()
 			# prepare options as per chrome for pdf

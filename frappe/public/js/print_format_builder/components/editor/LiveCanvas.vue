@@ -135,6 +135,35 @@ function preview_settings() {
 	return out;
 }
 
+// Chrome-measured heights of the repeating header/footer. The PDF pipeline
+// shrinks the body page by these exact values, so sheet boundaries only match
+// the PDF when we use Chrome's numbers, not our own on-screen measurement.
+// Re-measured only when the letterhead / header / footer / settings change.
+let measured = { key: null, pending: null, has: false, header: 0, footer: 0 };
+
+function measure(args) {
+	const lay = store.layout.value;
+	const key = JSON.stringify([args.letterhead, lay.header, lay.footer, args.settings]);
+	if (measured.key === key || measured.pending === key) return;
+	measured.pending = key;
+	frappe
+		.call("frappe.utils.print_format_generator.measure_preview", args)
+		.then((r) => {
+			if (measured.pending !== key) return;
+			measured = {
+				key,
+				pending: null,
+				has: true,
+				header: r.message.header_height || 0,
+				footer: r.message.footer_height || 0,
+			};
+			paginate();
+		})
+		.catch(() => {
+			if (measured.pending === key) measured.pending = null;
+		});
+}
+
 function render() {
 	if (!is_active || !store.preview_doc_name.value) return;
 	const args = {
@@ -145,6 +174,7 @@ function render() {
 		letterhead: store.letterhead.value?.name || null,
 		settings: JSON.stringify(preview_settings()),
 	};
+	measure(args);
 	const payload = JSON.stringify(args);
 	if (payload === last_payload && loaded.value) return;
 	const seq = ++render_seq;
@@ -290,6 +320,10 @@ function paginate() {
 			const head = doc.createElement("div");
 			head.className = "pfb-page-head";
 			head.appendChild(head_master.cloneNode(true));
+			if (measured.has) {
+				head.style.height = `${measured.header}px`;
+				head.style.overflow = "hidden";
+			}
 			page.appendChild(head);
 		}
 		const clip = doc.createElement("div");
@@ -302,18 +336,27 @@ function paginate() {
 			const foot = doc.createElement("div");
 			foot.className = "pfb-page-foot";
 			foot.appendChild(foot_master.cloneNode(true));
+			if (measured.has) {
+				foot.style.height = `${measured.footer}px`;
+				foot.style.overflow = "hidden";
+			}
 			page.appendChild(foot);
 		}
 		pages_el.appendChild(page);
 		return { page, flow, clip };
 	};
 
-	// Build page 1 first to measure repeating header/footer heights,
-	// then derive the usable content height per sheet — same as the PDF,
-	// where overlay heights shrink the printable area.
+	// Build page 1 first to establish repeating header/footer heights, then
+	// derive the usable content height per sheet — same formula as the PDF
+	// pipeline, where overlay heights shrink the body page. Chrome-measured
+	// heights (exact PDF parity) take precedence over our own measurement.
 	const first = make_page();
-	const head_h = first.page.querySelector(".pfb-page-head")?.offsetHeight || 0;
-	const foot_h = first.page.querySelector(".pfb-page-foot")?.offsetHeight || 0;
+	const head_h = measured.has
+		? measured.header
+		: first.page.querySelector(".pfb-page-head")?.offsetHeight || 0;
+	const foot_h = measured.has
+		? measured.footer
+		: first.page.querySelector(".pfb-page-foot")?.offsetHeight || 0;
 	const usable = (page_h_mm - mt - mb) * px_per_mm - head_h - foot_h;
 	if (usable <= 0) {
 		pages_el.remove();

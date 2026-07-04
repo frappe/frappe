@@ -73,6 +73,48 @@ def render_preview(
 	return generator.get_html_preview()
 
 
+@frappe.whitelist()
+def measure_preview(
+	doctype: str,
+	name: str | int,
+	print_format: str,
+	format_data: str | None = None,
+	letterhead: str | None = None,
+	settings: str | dict | None = None,
+):
+	"""Measure the Chrome-rendered repeating header/footer heights (px).
+
+	The PDF pipeline reduces the body page height by these measured heights;
+	the builder's live canvas uses the same numbers so its sheet boundaries
+	match the PDF by construction. Called only when the letterhead or the
+	header/footer zones change, not per edit.
+	"""
+	from frappe.utils.chromium import ChromiumManager
+	from frappe.utils.pdf_generator.browser import Browser
+
+	doc = frappe.get_doc(doctype, name)
+	doc.check_permission("print")
+	generator = PrintFormatGenerator(
+		print_format, doc, letterhead, format_data=format_data, settings=frappe.parse_json(settings)
+	)
+	pf = generator.print_format
+	options = {
+		"margin-top": f"{pf.margin_top}mm",
+		"margin-bottom": f"{pf.margin_bottom}mm",
+		"margin-left": f"{pf.margin_left}mm",
+		"margin-right": f"{pf.margin_right}mm",
+	}
+	manager = ChromiumManager()
+	try:
+		browser = Browser(manager, pf.name, generator._build_html_for_chrome(), options, measure_only=True)
+		return {
+			"header_height": getattr(browser, "header_height", 0) or 0,
+			"footer_height": getattr(browser, "footer_height", 0) or 0,
+		}
+	finally:
+		manager._close_browser()
+
+
 class PrintFormatGenerator:
 	"""Generate a PDF of a Document using Chromium-based rendering."""
 
