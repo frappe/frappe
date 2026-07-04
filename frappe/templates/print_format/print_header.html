@@ -15,6 +15,6 @@
 </style>
 <header>
 	{%- if letterhead -%}
-	{{ frappe.render_template(letterhead.content, {'doc': doc}) }}
+	<div class="letter-head">{{ frappe.render_template(letterhead.content, {'doc': doc}) }}</div>
 	{%- endif -%}
 </header>

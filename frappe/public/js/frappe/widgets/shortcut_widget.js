@@ -69,9 +69,9 @@ export default class ShortcutWidget extends Widget {
 
 	set_actions() {
 		if (this.in_customize_mode) return;
-		let icon_to_append = frappe.utils.icon("es-line-arrow-up-right", "xs", "", "", "ml-2");
+		let icon_to_append = frappe.utils.icon("arrow-up-right", "xs", "", "", "ml-2");
 		if (frappe.utils.is_rtl(frappe.boot.lang)) {
-			icon_to_append = frappe.utils.icon("es-line-arrow-up-left", "xs", "", "", "ml-2");
+			icon_to_append = frappe.utils.icon("arrow-up-left", "xs", "", "", "ml-2");
 		}
 		$(icon_to_append).appendTo(this.action_area);
 

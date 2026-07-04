@@ -122,9 +122,9 @@ export default class GridPagination {
 		return $(`<button class="btn btn-secondary btn-xs first-page"">
 				<span>${__("First")}</span>
 			</button>
-			<button class="btn btn-secondary btn-xs prev-page">${frappe.utils.icon("left", "xs")}</button>
+			<button class="btn btn-secondary btn-xs prev-page">${frappe.utils.icon("chevron-left")}</button>
 			${page_text_html}
-			<button class="btn btn-secondary btn-xs next-page">${frappe.utils.icon("right", "xs")}</button>
+			<button class="btn btn-secondary btn-xs next-page">${frappe.utils.icon("chevron-right")}</button>
 			<button class="btn btn-secondary btn-xs last-page">
 				<span>${__("Last")}</span>
 			</button>`);

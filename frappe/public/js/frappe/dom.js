@@ -349,7 +349,7 @@ frappe.get_modal = function (title, content) {
 					</div>
 					<div class="modal-actions d-flex">
 						<button class="btn btn-ghost btn-modal-minimize icon-btn hide">
-							${frappe.utils.icon("collapse")}
+							${frappe.utils.icon("minimize-2")}
 						</button>
 						<button class="btn btn-ghost btn-modal-close icon-btn" data-dismiss="modal">
 							${frappe.utils.icon("x", "sm")}

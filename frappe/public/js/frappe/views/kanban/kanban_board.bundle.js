@@ -779,7 +779,7 @@ frappe.provide("frappe.views");
 
 			if (card.comment_count > 0)
 				html += `<span class="list-comment-count small text-muted ">
-					${frappe.utils.icon("es-line-chat-alt")}
+					${frappe.utils.icon("message-circle")}
 					${card.comment_count}
 				</span>`;
 
@@ -816,7 +816,7 @@ frappe.provide("frappe.views");
 		function get_assignees_group() {
 			return frappe.avatar_group(card.assigned_list, 3, {
 				css_class: "avatar avatar-small",
-				action_icon: "add",
+				action_icon: "plus",
 				action: show_assign_to_dialog,
 			});
 		}

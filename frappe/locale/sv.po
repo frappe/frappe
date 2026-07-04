@@ -3,7 +3,7 @@ msgstr ""
 "Project-Id-Version: frappe\n"
 "Report-Msgid-Bugs-To: developers@frappe.io\n"
 "POT-Creation-Date: 2026-06-28 10:17+0000\n"
-"PO-Revision-Date: 2026-06-29 21:07\n"
+"PO-Revision-Date: 2026-07-02 21:35\n"
 "Last-Translator: developers@frappe.io\n"
 "Language-Team: Swedish\n"
 "MIME-Version: 1.0\n"
@@ -4990,7 +4990,7 @@ msgstr "Ändring av någon inställning återspeglas på alla E-post Konton som 
 
 #: frappe/core/doctype/system_settings/system_settings.js:67
 msgid "Changing rounding method on site with data can result in unexpected behaviour."
-msgstr "Ändring av avrundningsätt på webbplats med data kan resultera i oväntad beteende."
+msgstr "Ändring av avrundning sätt med befintlig data kan resultera i oväntad resultat."
 
 #. Label of the channel (Select) field in DocType 'Notification'
 #: frappe/email/doctype/notification/notification.json
@@ -23190,7 +23190,7 @@ msgstr "HTML kan endast användas med E-post Mallar där \"Använd HTML\" är va
 #. Description of the 'Send As Raw HTML' (Check) field in DocType 'Email Queue'
 #: frappe/email/doctype/email_queue/email_queue.json
 msgid "Raw HTML emails are rendered as complete Jinja templates. Otherwise, emails are wrapped in the standard.html email template, which inserts brand_logo, header and footer."
-msgstr "HTML E-post meddelanden renderas som kompletta Jinja mallar. Annars paketeras e-post meddelanden i e-post mall standard.html, som infogar brand_logo, sidhuvud och sidfot."
+msgstr "HTML E-post meddelande renderas som kompletta Jinja mallar. Annars paketeras e-post meddelande i e-post mall standard.html, som infogar brand_logo, sidhuvud och sidfot."
 
 #: frappe/public/js/print_format_builder/components/PrintFormatControls.vue:306
 msgid "Raw HTML or Jinja template"

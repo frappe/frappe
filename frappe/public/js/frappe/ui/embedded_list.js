@@ -61,9 +61,10 @@ frappe.ui.EmbeddedList = class EmbeddedList {
 			? `<div class="embedded-list-description">${this.description}</div>`
 			: "";
 		const add = this.add_button
-			? `<button class="btn btn-xs btn-default" data-action="add-row">${
-					this.add_button.label || __("+ Add")
-			  }</button>`
+			? frappe.ui.button.html({
+					label: this.add_button.label || __("Add"),
+					attrs: { "data-action": "add-row" },
+			  })
 			: "";
 		const search = `<input type="text" class="form-control form-control-sm embedded-list-search" data-action="search" placeholder="${__(
 			"Search"
@@ -186,9 +187,7 @@ frappe.ui.EmbeddedList = class EmbeddedList {
 					this.rendered_count,
 					this.data.length,
 				])}</span>
-				<button class="btn btn-xs btn-default" data-action="load-more">
-					${__("Load More")}
-				</button>
+				${frappe.ui.button.html({ label: __("Load More"), attrs: { "data-action": "load-more" } })}
 			</div>`
 		).appendTo(this.$result);
 	}
@@ -240,14 +239,14 @@ frappe.ui.EmbeddedList = class EmbeddedList {
 
 		if (col.type === "check") {
 			return `<td class="text-center"${col_attr}>${
-				raw ? frappe.utils.icon("tick", "xs") : ""
+				raw ? frappe.utils.icon("check", "xs") : ""
 			}</td>`;
 		}
 
 		if (col.type === "badge") {
 			if (raw == null || raw === "") return `<td${align}${col_attr}></td>`;
 			const color = typeof col.color === "function" ? col.color(row) : col.color || "gray";
-			return `<td${align}${col_attr}><span class="indicator-pill ${color}">${frappe.utils.escape_html(
+			return `<td${align}${col_attr}><span class="es-badge" data-theme="${color}">${frappe.utils.escape_html(
 				raw
 			)}</span></td>`;
 		}
@@ -273,18 +272,18 @@ frappe.ui.EmbeddedList = class EmbeddedList {
 
 	build_actions_html(col) {
 		return (col.actions || [])
-			.map((action, action_idx) => {
-				const danger = action.danger ? " text-danger" : "";
-				const title = action.label
-					? ` title="${frappe.utils.escape_html(action.label)}"`
-					: "";
-				// `xs` + currentColor matches Frappe's inline row actions (grid_row.js)
-				// so danger actions inherit the button's red instead of the muted stroke.
-				const inner = action.icon
-					? frappe.utils.icon(action.icon, "xs", "", "", "", true)
-					: frappe.utils.escape_html(action.label || "");
-				return `<button class="btn btn-xs btn-link${danger}" data-action-idx="${action_idx}"${title}>${inner}</button>`;
-			})
+			.map((action, action_idx) =>
+				// only danger actions take the red theme, others stay neutral gray
+				frappe.ui.button.html({
+					label: action.icon ? "" : action.label || "",
+					icon: action.icon,
+					size: "xs",
+					variant: "ghost",
+					theme: action.danger ? "red" : null,
+					title: action.label,
+					attrs: { "data-action-idx": String(action_idx) },
+				})
+			)
 			.join("");
 	}
 

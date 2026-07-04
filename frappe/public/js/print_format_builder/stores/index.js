@@ -1,4 +1,5 @@
-import { create_default_layout, pluck } from "../utils";
+import { create_default_layout, serialize_layout } from "../utils";
+import { useLayoutHistory } from "./useLayoutHistory";
 import { watch, ref, inject, computed, nextTick } from "vue";
 
 export function getStore(print_format_name) {
@@ -51,6 +52,7 @@ export function getStore(print_format_name) {
 						: Promise.resolve((letterhead.value = null));
 
 					load_lh.then(() => {
+						reset_history();
 						nextTick(() => (dirty.value = false));
 						resolve();
 					});
@@ -85,73 +87,7 @@ export function getStore(print_format_name) {
 	function save_changes() {
 		frappe.dom.freeze(__("Saving..."));
 
-		layout.value.sections = layout.value.sections
-			.filter((section) => !section.remove)
-			.map((section) => {
-				section.columns = section.columns.map((column) => {
-					column.fields = column.fields
-						.filter((df) => !df.remove)
-						.map((df) => {
-							if (df.table_columns) {
-								df.table_columns = df.table_columns.map((tf) => {
-									return pluck(tf, [
-										"label",
-										"fieldname",
-										"fieldtype",
-										"options",
-										"width",
-										"field_template",
-									]);
-								});
-							}
-							return pluck(df, [
-								"label",
-								"fieldname",
-								"fieldtype",
-								"options",
-								"table_columns",
-								"table_style",
-								"table_bordered",
-								"table_header",
-								"html",
-								"field_template",
-								"show_label",
-								"align",
-							]);
-						});
-					return column;
-				});
-				return section;
-			});
-
-		// Clean up header/footer section fields
-		const zone_pluck_keys = [
-			"label",
-			"fieldname",
-			"fieldtype",
-			"options",
-			"table_columns",
-			"table_style",
-			"table_bordered",
-			"table_header",
-			"html",
-			"field_template",
-			"show_label",
-			"align",
-		];
-		function clean_zone(zone) {
-			if (!zone || !zone.columns) return zone;
-			zone.columns = zone.columns.map((column) => {
-				column.fields = column.fields
-					.filter((df) => !df.remove)
-					.map((df) => pluck(df, zone_pluck_keys));
-				return column;
-			});
-			return zone;
-		}
-		layout.value.header = clean_zone(layout.value.header);
-		layout.value.footer = clean_zone(layout.value.footer);
-
+		serialize_layout(layout.value);
 		print_format.value.format_data = JSON.stringify(layout.value);
 
 		frappe
@@ -205,21 +141,36 @@ export function getStore(print_format_name) {
 	function get_default_layout() {
 		return create_default_layout(meta.value, print_format.value);
 	}
-	function change_letterhead(_letterhead) {
+	function change_letterhead(_letterhead, { keep_clean = false } = {}) {
 		return frappe.db.get_doc("Letter Head", _letterhead).then((doc) => {
 			letterhead.value = doc;
 			// persist the letter head name inside format_data (layout) so it
 			// survives save → reload without needing a separate doctype field
 			if (layout.value) {
 				layout.value.letter_head = _letterhead;
+				if (keep_clean) {
+					nextTick(() => (dirty.value = false));
+				}
 			}
 		});
 	}
 
-	// watch
-	watch(layout, () => {
-		dirty.value = true;
+	const {
+		undo,
+		redo,
+		reset: reset_history,
+	} = useLayoutHistory(layout, () => {
+		selected_field.value = null;
+		selected_section.value = null;
 	});
+
+	watch(
+		layout,
+		() => {
+			dirty.value = true;
+		},
+		{ deep: true }
+	);
 	watch(print_format, () => {
 		dirty.value = true;
 	});
@@ -248,6 +199,8 @@ export function getStore(print_format_name) {
 		get_layout,
 		get_default_layout,
 		change_letterhead,
+		undo,
+		redo,
 	};
 }
 

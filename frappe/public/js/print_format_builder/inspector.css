@@ -1,0 +1,228 @@
+/* Shared inspector-shell styles used by FieldInspector, LetterHeadZoneInspector
+   and VisibilitySection. Kept in one place so the classes don't drift between
+   the inspector panels. All selectors are .pfb- prefixed (builder-only). */
+
+.pfb-insp-body {
+	flex: 1;
+	overflow-y: auto;
+	display: flex;
+	flex-direction: column;
+}
+.pfb-insp-section {
+	border-bottom: 1px solid var(--border-color);
+}
+.pfb-insp-section-head {
+	display: flex;
+	align-items: center;
+	justify-content: space-between;
+	padding: 10px 14px;
+	cursor: pointer;
+	user-select: none;
+}
+.pfb-insp-section-head:hover {
+	background: var(--subtle-accent);
+}
+.pfb-insp-section-label {
+	font-size: var(--text-tiny);
+	font-weight: var(--weight-bold);
+	text-transform: uppercase;
+	letter-spacing: 0.08em;
+	color: var(--text-muted);
+}
+.pfb-insp-chevron {
+	display: flex;
+	align-items: center;
+	color: var(--gray-400);
+	transition: transform 0.15s;
+}
+.pfb-insp-chevron.collapsed {
+	transform: rotate(-90deg);
+}
+.pfb-insp-section-body {
+	padding: 4px 14px 12px;
+	display: flex;
+	flex-direction: column;
+	gap: 10px;
+}
+.pfb-insp-row {
+	display: grid;
+	grid-template-columns: 80px 1fr;
+	align-items: center;
+	gap: 8px;
+}
+.pfb-insp-row > * {
+	min-width: 0;
+}
+.pfb-insp-row--col {
+	grid-template-columns: 1fr;
+	gap: 4px;
+}
+.pfb-insp-label {
+	font-size: var(--text-sm);
+	color: var(--text-muted);
+}
+.pfb-insp-input {
+	width: 100%;
+	padding: 6px 8px;
+	font-size: var(--text-sm);
+	border: 1px solid var(--border-color);
+	border-radius: var(--radius);
+	background: var(--fg-color);
+	color: var(--text-color);
+	outline: none;
+	box-sizing: border-box;
+}
+.pfb-insp-input:focus {
+	border-color: var(--gray-500);
+}
+.pfb-insp-select {
+	width: 100%;
+	padding: 5px 8px;
+	font-size: var(--text-sm);
+	border: 1px solid var(--border-color);
+	border-radius: var(--radius);
+	background: var(--fg-color);
+	color: var(--text-color);
+	outline: none;
+	cursor: pointer;
+}
+.pfb-insp-select:focus {
+	border-color: var(--gray-500);
+}
+.pfb-insp-hint {
+	font-size: var(--text-sm);
+	line-height: 1.5;
+}
+.pfb-insp-col-count {
+	font-size: var(--text-tiny);
+}
+.pfb-add-btn {
+	display: inline-flex;
+	align-items: center;
+	gap: 4px;
+	font-size: var(--text-sm);
+	padding: 4px 8px;
+	border: 1px dashed var(--border-color);
+	border-radius: var(--radius);
+	background: transparent;
+	color: var(--text-muted);
+	cursor: pointer;
+	width: 100%;
+	justify-content: center;
+}
+.pfb-add-btn:hover {
+	background: var(--subtle-accent);
+	color: var(--text-color);
+}
+.pfb-source-display {
+	padding: 5px 8px;
+	border: 1px solid var(--border-color);
+	border-radius: var(--radius);
+	background: var(--control-bg);
+	gap: 6px;
+	min-width: 0;
+	overflow: hidden;
+}
+.pfb-html-preview {
+	font-size: var(--text-sm);
+	color: var(--text-muted);
+	padding: 6px 8px;
+	border: 1px solid var(--border-color);
+	border-radius: var(--radius);
+	background: var(--gray-50);
+	max-height: 100px;
+	overflow: hidden;
+	margin-bottom: 2px;
+}
+.pfb-col-width-input {
+	width: 40px;
+	padding: 2px 4px;
+	font-size: var(--text-tiny);
+	text-align: right;
+	border: 1px solid var(--border-color);
+	border-radius: var(--radius);
+	background: var(--fg-color);
+	flex-shrink: 0;
+}
+.pfb-col-width-input:focus {
+	outline: none;
+	border-color: var(--gray-500);
+}
+.pfb-col-width-input::-webkit-inner-spin-button,
+.pfb-col-width-input::-webkit-outer-spin-button {
+	-webkit-appearance: none;
+}
+.pfb-col-width-unit {
+	font-size: var(--text-tiny);
+	color: var(--text-muted);
+	flex-shrink: 0;
+}
+
+/* HTML split editor dialog — shared by field and letter-head editors.
+   Renders in the modal portal, so it must stay global. */
+.pfb-html-split {
+	display: flex;
+	height: 480px;
+	gap: 0;
+	overflow: hidden;
+	margin: -15px;
+}
+.pfb-html-split-pane {
+	display: flex;
+	flex-direction: column;
+	flex: 1;
+	min-width: 0;
+	overflow: hidden;
+}
+.pfb-html-split-divider {
+	width: 1px;
+	background: var(--border-color);
+	flex-shrink: 0;
+}
+.pfb-html-split-label {
+	font-size: var(--text-tiny);
+	font-weight: var(--weight-bold);
+	text-transform: uppercase;
+	letter-spacing: 0.08em;
+	color: var(--text-muted);
+	padding: 10px 12px 8px;
+	border-bottom: 1px solid var(--border-color);
+	background: var(--gray-50);
+	flex-shrink: 0;
+}
+.pfb-html-ctrl-host {
+	flex: 1;
+	overflow: hidden;
+	display: flex;
+	flex-direction: column;
+	padding: 0 12px 12px;
+}
+.pfb-html-ctrl-host .frappe-control {
+	flex: 1;
+	display: flex;
+	flex-direction: column;
+	height: 100%;
+}
+.pfb-html-ctrl-host .form-group {
+	flex: 1;
+	margin: 0;
+	display: flex;
+	flex-direction: column;
+}
+.pfb-html-ctrl-host .CodeMirror {
+	flex: 1;
+	height: 100%;
+	font-size: 13px;
+	font-family: var(--monospace-font-family, monospace);
+	border: 1px solid var(--border-color);
+	border-radius: var(--radius);
+}
+.pfb-html-ctrl-host .CodeMirror-scroll {
+	height: 100%;
+}
+.pfb-html-preview-content {
+	flex: 1;
+	overflow-y: auto;
+	padding: 16px 20px;
+	font-size: var(--text-sm);
+}

@@ -33,7 +33,7 @@ from frappe.modules import get_doc_path, make_boilerplate
 from frappe.modules.import_file import get_file_path
 from frappe.permissions import ALL_USER_ROLE, AUTOMATIC_ROLES, SYSTEM_USER_ROLE
 from frappe.query_builder.functions import Concat
-from frappe.utils import cint, flt, get_datetime, is_a_property, random_string
+from frappe.utils import cint, cstr, flt, get_datetime, is_a_property, random_string
 from frappe.website.utils import clear_cache
 
 if TYPE_CHECKING:
@@ -565,6 +565,7 @@ class DocType(Document):
 				self.run_module_method("after_doctype_insert")
 
 		if allow_doctype_export:
+			self.warn_on_module_change()
 
 			def export_doctype_files():
 				self.export_doc()
@@ -889,6 +890,24 @@ class DocType(Document):
 
 		if "field_order" in docdict:
 			del docdict["field_order"]
+
+	def warn_on_module_change(self):
+		"""Warn that the old module folder is left behind after a module change, since export only writes to the new one."""
+		previous = self.get_doc_before_save()
+		if not previous or previous.module == self.module:
+			return
+
+		try:
+			old_path = get_doc_path(previous.module, "doctype", self.name)
+		except Exception:
+			return
+
+		frappe.msgprint(
+			_(
+				"Module changed to {0}. Files in the previous module were not moved and remain at {1}, remove or relocate them manually."
+			).format(frappe.bold(self.module), frappe.bold(str(old_path))),
+			alert=True,
+		)
 
 	def export_doc(self):
 		"""Export to standard folder `[module]/doctype/[name]/[name].json`."""
@@ -1461,12 +1480,15 @@ def validate_fields(meta: Meta):
 	def check_illegal_default(d):
 		if d.fieldtype == "Check" and not d.default:
 			d.default = "0"
-		if d.fieldtype == "Check" and cint(d.default) not in (0, 1):
-			frappe.throw(
-				_("Default for 'Check' type of field {0} must be either '0' or '1'").format(
-					frappe.bold(d.fieldname)
+		if d.fieldtype == "Check":
+			default_value = cstr(d.default).strip()
+			if default_value not in ("0", "1"):
+				frappe.throw(
+					_("The default value for the Check field {0} must be either '0' or '1'").format(
+						frappe.bold(d.label or d.fieldname)
+					)
 				)
-			)
+			d.default = default_value
 		if d.fieldtype == "Select" and d.default:
 			if not d.options:
 				frappe.throw(

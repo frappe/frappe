@@ -241,7 +241,7 @@ frappe.views.BaseList = class BaseList {
 			}
 		} else {
 			this.refresh_button = this.page.add_action_icon(
-				"es-line-reload",
+				"refresh-cw",
 				() => {
 					this.refresh();
 				},
@@ -844,7 +844,7 @@ class FilterArea {
 						data-label="${label}" data-fieldname="${fieldname}" data-fieldtype="${fieldtype}"
 						href="#" onclick="return false;">
 							<span class="ellipsis">${__(label)}</span>
-							<span>${frappe.utils.icon("select", "xs")}</span>
+							<span>${frappe.utils.icon("chevrons-up-down", "xs")}</span>
 						</a>
 					<ul class="dropdown-menu group-by-dropdown" role="menu">
 					</ul>
@@ -979,7 +979,7 @@ class FilterArea {
 		}
 		let value = field.name == null ? "" : encodeURIComponent(field.name);
 		let applied_html = applied
-			? `<span class="applied"> ${frappe.utils.icon("tick", "xs")} </span>`
+			? `<span class="applied"> ${frappe.utils.icon("check", "xs")} </span>`
 			: "";
 		return `<div class="group-by-item ${applied ? "selected" : ""}" data-value="${value}">
 			<a class="dropdown-item flex justify-between" href="#" onclick="return false;">
@@ -1402,7 +1402,7 @@ class FilterArea {
 			<div class="btn-group">
 				<button class="btn btn-default btn-sm filter-button">
 					<span class="filter-icon button-icon">
-						${frappe.utils.icon("es-line-filter")}
+						${frappe.utils.icon("funnel")}
 					</span>
 					<span class="button-label hidden-xs">
 					${__("Filter")}
@@ -1410,7 +1410,7 @@ class FilterArea {
 				</button>
 				<button class="btn btn-default btn-sm filter-x-button" title="${__("Clear all filters")}">
 					<span class="filter-icon button-icon">
-						${frappe.utils.icon("es-small-close")}
+						${frappe.utils.icon("x")}
 					</span>
 				</button>
 			</div>

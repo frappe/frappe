@@ -110,6 +110,25 @@ class TestDashboardChart(IntegrationTestCase):
 			self.assertEqual(result.get("labels")[idx], get_period(month))
 			cur_date += relativedelta(months=1)
 
+	def test_dashboard_chart_with_dict_filters_json(self):
+		if frappe.db.exists("Dashboard Chart", "Test Dict Filters Dashboard Chart"):
+			frappe.delete_doc("Dashboard Chart", "Test Dict Filters Dashboard Chart")
+
+		frappe.get_doc(
+			doctype="Dashboard Chart",
+			chart_name="Test Dict Filters Dashboard Chart",
+			chart_type="Count",
+			document_type="Error Log",
+			based_on="creation",
+			timespan="Last Year",
+			time_interval="Monthly",
+			filters_json='{"charts_based_on": "Status"}',
+			timeseries=1,
+		).insert()
+
+		result = get(chart_name="Test Dict Filters Dashboard Chart", refresh=1)
+		self.assertIn("labels", result)
+
 	def test_chart_wih_one_value(self):
 		if frappe.db.exists("Dashboard Chart", "Test Empty Dashboard Chart 2"):
 			frappe.delete_doc("Dashboard Chart", "Test Empty Dashboard Chart 2")

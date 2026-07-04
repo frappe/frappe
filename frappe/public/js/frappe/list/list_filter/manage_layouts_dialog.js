@@ -62,11 +62,11 @@ export default class ManageLayoutsDialog {
 				<div class="layout-manage-row-actions d-flex flex-shrink-0" style="gap: 4px;">
 					<button type="button" class="btn btn-default btn-xs btn-icon layout-action-edit"
 						${edit_disabled} title="${esc(__("Edit"))}" aria-label="${esc(__("Edit"))}">
-						${frappe.utils.icon("edit", "xs")}
+						${frappe.utils.icon("pencil", "xs")}
 					</button>
 					<button type="button" class="btn btn-default btn-xs btn-icon layout-action-duplicate"
 						title="${esc(__("Duplicate"))}" aria-label="${esc(__("Duplicate"))}">
-						${frappe.utils.icon("duplicate", "xs")}
+						${frappe.utils.icon("copy", "xs")}
 					</button>
 					<button type="button" class="btn btn-default btn-xs btn-icon layout-action-delete"
 						${delete_disabled} title="${esc(__("Delete"))}" aria-label="${esc(__("Delete"))}">

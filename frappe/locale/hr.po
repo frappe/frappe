@@ -3,7 +3,7 @@ msgstr ""
 "Project-Id-Version: frappe\n"
 "Report-Msgid-Bugs-To: developers@frappe.io\n"
 "POT-Creation-Date: 2026-06-28 10:17+0000\n"
-"PO-Revision-Date: 2026-06-28 21:05\n"
+"PO-Revision-Date: 2026-07-02 21:35\n"
 "Last-Translator: developers@frappe.io\n"
 "Language-Team: Croatian\n"
 "MIME-Version: 1.0\n"
@@ -2734,7 +2734,7 @@ msgstr "Aplikacija nije pronađena za modul: {0}"
 #. Description of the 'App' (Select) field in DocType 'Notification Log'
 #: frappe/desk/doctype/notification_log/notification_log.json
 msgid "App that produced this notification; used to scope app-specific panels. Derived from the reference document when not set explicitly."
-msgstr ""
+msgstr "Aplikacija koja je generirala ovu obavijest; koristi se za određivanje opsega panela specifičnih za aplikaciju. Izvedeno iz referentnog dokumenta kada nije izričito postavljeno."
 
 #: frappe/utils/__init__.py:1250
 msgid "App {0} is not installed"
@@ -4668,7 +4668,7 @@ msgstr "Nije moguće promijeniti status dokumenta za tip dokumenta koji se ne mo
 
 #: frappe/database/mariadb/schema.py:177
 msgid "Cannot change field type in {0}: some existing values cannot be converted to the new type"
-msgstr ""
+msgstr "Ne može se promijeniti tip polja u {0}u: neke postojeće vrijednosti se ne mogu pretvoriti u novi tip"
 
 #: frappe/public/js/workflow_builder/utils.js:170
 msgid "Cannot change state of Cancelled Document <b>({0} State)</b>"
@@ -4906,7 +4906,7 @@ msgstr "Naziv Kategorije"
 #. 'Notification'
 #: frappe/email/doctype/notification/notification.json
 msgid "Category for the in-app notification. Used for filtering and per-user email preferences."
-msgstr ""
+msgstr "Kategorija za obavijesti u aplikaciji. Koristi se za filtriranje i postavke e-pošte za svakog korisnika."
 
 #. Option for the 'Alignment' (Select) field in DocType 'DocField'
 #. Option for the 'Alignment' (Select) field in DocType 'Custom Field'
@@ -5201,7 +5201,7 @@ msgstr "Odaberite zadani redoslijed prikazivanja zapisa."
 
 #: frappe/desk/doctype/notification_settings/notification_settings.js:45
 msgid "Choose which notification types are emailed to you. Unchecked types still show as in-app notifications."
-msgstr ""
+msgstr "Odaberite koje tipove obavijesti želite primati e-poštom. Neodabrani tipovi i dalje se prikazuju kao obavijesti u aplikaciji."
 
 #: frappe/core/doctype/data_import/importer.py:1093
 msgid "Circular parent reference for {0}"
@@ -7043,7 +7043,7 @@ msgstr "Cijan"
 #. Label of the db_tables (Table) field in DocType 'DuckDB Sync'
 #: frappe/core/doctype/duckdb_sync/duckdb_sync.json
 msgid "DB Tables"
-msgstr ""
+msgstr "DuckDB Tablice"
 
 #. Option for the 'Delivery Status Notification Type' (Select) field in DocType
 #. 'Email Account'
@@ -8473,7 +8473,7 @@ msgstr "Resetiranje Statusa Dokumenta"
 #: frappe/website/doctype/web_form_request/web_form_request.json
 #: frappe/website/doctype/web_form_request/web_form_request.py:104
 msgid "Doc Values"
-msgstr ""
+msgstr "Vrijednosti Dokumenta"
 
 #. Name of a DocType
 #. Option for the 'Applied On' (Select) field in DocType 'Property Setter'
@@ -8690,7 +8690,7 @@ msgstr "DocType"
 #: frappe/core/doctype/doctype_to_sync/doctype_to_sync.json
 #: frappe/core/doctype/report/report.json
 msgid "Doctype To Sync"
-msgstr ""
+msgstr "Doctype za Sinkronizaciju"
 
 #: frappe/core/doctype/doctype/doctype.py:1077
 msgid "Doctype name is limited to {0} characters ({1})"
@@ -9268,12 +9268,12 @@ msgstr "Padajući Meniji"
 #. Name of a DocType
 #: frappe/core/doctype/duckdb_sync/duckdb_sync.json
 msgid "DuckDB Sync"
-msgstr ""
+msgstr "DuckDB Sinkronizacija"
 
 #. Name of a DocType
 #: frappe/core/doctype/duckdb_sync_item/duckdb_sync_item.json
 msgid "DuckDB Sync Item"
-msgstr ""
+msgstr "Stavka Sinkronizacije DuckDB-a"
 
 #. Label of the date (Date) field in DocType 'ToDo'
 #: frappe/desk/doctype/todo/todo.json
@@ -9928,7 +9928,7 @@ msgstr "Otkaži Pretplatu na e-poštu"
 
 #: frappe/desk/doctype/notification_type/notification_type.js:16
 msgid "Email everyone for <b>{0}</b> notifications? This adds it to every user's email preferences. Users can still opt out individually afterwards."
-msgstr ""
+msgstr "Slanje e-pošte svima za <b>{0}</b> obavijesti? Ovim se to dodaje u postavke e-pošte svakog korisnika. Korisnici se i dalje mogu pojedinačno isključiti nakon toga."
 
 #: frappe/core/doctype/communication/communication.js:345
 msgid "Email has been marked as spam"
@@ -9952,7 +9952,7 @@ msgstr "E-pošta je obavezna."
 #. 'Notification Settings'
 #: frappe/desk/doctype/notification_settings/notification_settings.json
 msgid "Email me for these notification types"
-msgstr ""
+msgstr "Pošaljite mi e-poštu za ove tipove obavijesti"
 
 #: frappe/public/js/frappe/views/communication.js:912
 msgid "Email not sent to {0} (unsubscribed / disabled)"
@@ -10075,7 +10075,7 @@ msgstr "Omogući Obavještenja e-poštom"
 
 #: frappe/desk/doctype/notification_type/notification_type.js:13
 msgid "Enable Email Notifications for All Users"
-msgstr ""
+msgstr "Omogući obavijesti e-poštom za sve korisnike"
 
 #: frappe/integrations/doctype/google_calendar/google_calendar.py:108
 #: frappe/integrations/doctype/google_contacts/google_contacts.py:38
@@ -10168,7 +10168,7 @@ msgstr "Omogući Prijavu preko Društvenih Mreža"
 #. Settings'
 #: frappe/core/doctype/synced_report_settings/synced_report_settings.json
 msgid "Enable Synced Reports"
-msgstr ""
+msgstr "Omogući Sinkronizirana Izvješća"
 
 #. Label of the enabled (Check) field in DocType 'Notification Settings'
 #: frappe/desk/doctype/notification_settings/notification_settings.json
@@ -10220,7 +10220,7 @@ msgstr "Omogućite praćenje web stranice u aplikaciji"
 
 #: frappe/desk/doctype/notification_type/notification_type.py:92
 msgid "Enable the notification type before emailing it to users."
-msgstr ""
+msgstr "Omogućite tip obavijesti prije nego što je pošaljete korisnicima e-poštom."
 
 #. Description of the 'Include in Import Template' (Check) field in DocType
 #. 'DocField'
@@ -10281,7 +10281,7 @@ msgstr "Omogućavanje automatskog odgovora na računu dolazne e-pošte će posla
 
 #: frappe/desk/doctype/notification_type/notification_type.py:103
 msgid "Enabling email for {0} across all users in the background."
-msgstr ""
+msgstr "Omogućavanje e-pošte za {0} za sve korisnike u pozadini."
 
 #. Description of a DocType
 #. Description of the 'Relay Settings' (Section Break) field in DocType 'Push
@@ -11816,7 +11816,7 @@ msgstr "Prva Poruka Uspjeha"
 #. Label of the first_used_on (Datetime) field in DocType 'Web Form Request'
 #: frappe/website/doctype/web_form_request/web_form_request.json
 msgid "First Used On"
-msgstr ""
+msgstr "Prvi put korišteno"
 
 #: frappe/core/doctype/data_export/exporter.py:186
 msgid "First data column must be blank."
@@ -12716,7 +12716,7 @@ msgstr "Idi Nazad"
 #: frappe/website/doctype/web_form/web_form.js:501
 #: frappe/website/doctype/web_form/web_form.js:505
 msgid "Go to Access Control section"
-msgstr ""
+msgstr "Idite na odjeljak Kontrola Pristupa"
 
 #: frappe/desk/doctype/notification_settings/notification_settings.js:17
 msgid "Go to Notification Settings List"
@@ -13277,7 +13277,7 @@ msgstr "Naslov"
 #. 'Notification'
 #: frappe/email/doctype/notification/notification.json
 msgid "Headline of the in-app notification. Falls back to Subject if left blank. Supports Jinja."
-msgstr ""
+msgstr "Naslov obavijesti u aplikaciji. Ako se ostavi prazno, vraća se na Predmet. Podržava Jinju."
 
 #. Label of a Workspace Sidebar Item
 #: frappe/workspace_sidebar/system.json
@@ -13911,7 +13911,7 @@ msgstr "Ako je omogućeno, snaga lozinke bit će nametnuta na temelju minimalne 
 #. Description of the 'Key required' (Check) field in DocType 'Web Form'
 #: frappe/website/doctype/web_form/web_form.json
 msgid "If enabled, the web form can only be used with a <i>Key</i> from a corresponding <b>Web Form Request</b>."
-msgstr ""
+msgstr "Ako je omogućeno, web obrazac se može koristiti samo s  <i>Ključem</i> iz odgovarajućeg  <b>Web Obrazac Zahtjeva</b>."
 
 #. Description of the 'Bypass Two Factor Auth for users who login from
 #. restricted IP Address' (Check) field in DocType 'System Settings'
@@ -14527,7 +14527,7 @@ msgstr "Račun dolazne e-pošte nije ispravan"
 
 #: frappe/database/mariadb/schema.py:180
 msgid "Incompatible Values"
-msgstr ""
+msgstr "Nespojive vrijednosti"
 
 #: frappe/model/virtual_doctype.py:79 frappe/model/virtual_doctype.py:92
 msgid "Incomplete Virtual Doctype Implementation"
@@ -14952,7 +14952,7 @@ msgstr "Nevažeća Početna Stranica"
 
 #: frappe/website/doctype/web_form_request/web_form_request.py:84
 msgid "Invalid JSON"
-msgstr ""
+msgstr "Nevažeći JSON"
 
 #: frappe/utils/verified_command.py:48 frappe/www/update-password.html:185
 msgid "Invalid Link"
@@ -15046,7 +15046,7 @@ msgstr "Nevažeće Vrijednosti"
 #: frappe/website/doctype/web_form/web_form.py:980
 #: frappe/website/doctype/web_form_request/web_form_request.py:142
 msgid "Invalid Web Form Request"
-msgstr ""
+msgstr "Nevažeći Web Obrazac Zahtjev"
 
 #: frappe/integrations/doctype/webhook/webhook.py:122
 msgid "Invalid Webhook Secret"
@@ -15631,7 +15631,7 @@ msgstr "JSON Tijelo Zahtjeva"
 
 #: frappe/website/doctype/web_form_request/web_form_request.py:87
 msgid "JSON value must be an object"
-msgstr ""
+msgstr "JSON vrijednost mora biti objekt"
 
 #: frappe/templates/signup.html:5
 msgid "Jane Doe"
@@ -15812,12 +15812,12 @@ msgstr "Ključ"
 
 #: frappe/website/doctype/web_form/web_form.js:506
 msgid "Key Required"
-msgstr ""
+msgstr "Ključ je Obavezan"
 
 #. Label of the key_required (Check) field in DocType 'Web Form'
 #: frappe/website/doctype/web_form/web_form.json
 msgid "Key required"
-msgstr ""
+msgstr "Ključ je Obavezan"
 
 #: frappe/public/js/frappe/ui/keyboard.js:144
 #: frappe/public/js/frappe/ui/sidebar/sidebar.js:432
@@ -17039,7 +17039,7 @@ msgstr "Stranica Prijave"
 
 #: frappe/website/doctype/web_form/web_form.js:502
 msgid "Login Required"
-msgstr ""
+msgstr "Prijava je obavezna"
 
 #: frappe/www/login.py:150
 msgid "Login To {0}"
@@ -17059,7 +17059,7 @@ msgstr "Prijava trenutno nije dozvoljena"
 
 #: frappe/website/doctype/web_form/web_form.js:509
 msgid "Login or a request key is required to see web form list view. Enable {0} to see list settings"
-msgstr ""
+msgstr "Za prikaz liste web obrasca potrebna je prijava ili ključ zahtjeva. Omogućite {0} da biste vidjeli postavke liste"
 
 #. Label of the login_required (Check) field in DocType 'Web Form'
 #: frappe/website/doctype/web_form/web_form.json
@@ -19551,7 +19551,7 @@ msgstr "Nije Postavljeno"
 
 #: frappe/website/doctype/web_form_request/web_form_request_list.js:13
 msgid "Not Used"
-msgstr ""
+msgstr "Nije Korišteno"
 
 #: frappe/utils/csvutils.py:105
 msgid "Not a valid Comma Separated Value (CSV File)"
@@ -19723,7 +19723,7 @@ msgstr "Zapisnik Obavještenja"
 #. 'Notification'
 #: frappe/email/doctype/notification/notification.json
 msgid "Notification Message"
-msgstr ""
+msgstr "Poruka Obavijesti"
 
 #. Name of a DocType
 #: frappe/email/doctype/notification_recipient/notification_recipient.json
@@ -19746,7 +19746,7 @@ msgstr "Obavijest Pretplaćeni Dokument"
 #. Label of the notification_title (Data) field in DocType 'Notification'
 #: frappe/email/doctype/notification/notification.json
 msgid "Notification Title"
-msgstr ""
+msgstr "Naslov Obavijesti"
 
 #. Name of a DocType
 #. Label of the notification_type (Link) field in DocType 'Notification Type
@@ -19756,12 +19756,12 @@ msgstr ""
 #: frappe/desk/doctype/notification_type_preference/notification_type_preference.json
 #: frappe/email/doctype/notification/notification.json
 msgid "Notification Type"
-msgstr ""
+msgstr "Tiop Obavijesti"
 
 #. Name of a DocType
 #: frappe/desk/doctype/notification_type_preference/notification_type_preference.json
 msgid "Notification Type Preference"
-msgstr ""
+msgstr "Preferencija Tipa Obavijesti"
 
 #: frappe/public/js/frappe/form/templates/timeline_message_box.html:9
 msgid "Notification sent to"
@@ -20537,7 +20537,7 @@ msgstr "Opcija {0} za polje {1} nije podređena tabela"
 #. 'Notification'
 #: frappe/email/doctype/notification/notification.json
 msgid "Optional body of the in-app notification. Supports Jinja."
-msgstr ""
+msgstr "Neobavezno tijelo obavijesti u aplikaciji. Podržava Jinju."
 
 #. Description of the 'CC' (Code) field in DocType 'Notification Recipient'
 #: frappe/email/doctype/notification_recipient/notification_recipient.json
@@ -20623,7 +20623,7 @@ msgstr "Sortiraj Po mora biti niz"
 #. Label of the company_history (Table) field in DocType 'About Us Settings'
 #: frappe/website/doctype/about_us_settings/about_us_settings.json
 msgid "Org History"
-msgstr "Istorija"
+msgstr "Povijest"
 
 #. Label of the company_history_heading (Data) field in DocType 'About Us
 #. Settings'
@@ -23340,7 +23340,7 @@ msgstr "Obnova Stabla nije podržana za {}"
 #. MultiSelect) field in DocType 'Notification Settings'
 #: frappe/desk/doctype/notification_settings/notification_settings.json
 msgid "Receive an email for notifications of these types. Remove a type to stop its emails (in-app notifications are unaffected)."
-msgstr ""
+msgstr "Primajte e-poštu za obavijesti ovih tipova. Uklonite tip da biste zaustavili njezinu e-poåtu (obavijesti u aplikaciji ostaju nepromijenjene)."
 
 #. Option for the 'Sent or Received' (Select) field in DocType 'Communication'
 #: frappe/core/doctype/communication/communication.json
@@ -23383,7 +23383,7 @@ msgstr "Primatelj"
 #. 'Notification Log'
 #: frappe/desk/doctype/notification_log/notification_log.json
 msgid "Recipient & Status"
-msgstr ""
+msgstr "Primatelj & Status"
 
 #. Label of the recipient_account_field (Data) field in DocType 'DocType'
 #. Label of the recipient_account_field (Data) field in DocType 'Customize
@@ -24979,7 +24979,7 @@ msgstr "Ruta"
 #. Name of a DocType
 #: frappe/desk/doctype/route_history/route_history.json
 msgid "Route History"
-msgstr "Istorija Rute"
+msgstr "Povijest Rute"
 
 #. Label of the route_options (Code) field in DocType 'Onboarding Step'
 #. Label of the route_options (Code) field in DocType 'Workspace Sidebar Item'
@@ -26626,7 +26626,7 @@ msgstr "Postavi"
 
 #: frappe/public/js/frappe/ui/filters/filter.js:450
 msgid "Set <strong>{0}</strong> = <em>?</em> to auto complete"
-msgstr ""
+msgstr "Postavi <strong>{0}</strong> = <em>?</em> za automatsko dovršavanje"
 
 #. Label of the set_banner_from_image (Button) field in DocType 'Website
 #. Settings'
@@ -28746,7 +28746,7 @@ msgstr "Sinhroniziraj Kontakte"
 
 #: frappe/core/doctype/duckdb_sync/duckdb_sync.js:23
 msgid "Sync Data"
-msgstr ""
+msgstr "Sinkroniziraj Podatke"
 
 #: frappe/core/doctype/doctype_layout/doctype_layout.js:81
 msgid "Sync Fields"
@@ -28787,12 +28787,12 @@ msgstr "Sinhronizovana Polja"
 #. Label of the synced_report (Check) field in DocType 'Report'
 #: frappe/core/doctype/report/report.json
 msgid "Synced Report"
-msgstr ""
+msgstr "Sinkronizirano Izvješće"
 
 #. Name of a DocType
 #: frappe/core/doctype/synced_report_settings/synced_report_settings.json
 msgid "Synced Report Settings"
-msgstr ""
+msgstr "Postavke Sinkroniziranog Izvješća"
 
 #: frappe/integrations/doctype/google_calendar/google_calendar.js:31
 #: frappe/integrations/doctype/google_contacts/google_contacts.js:31
@@ -29879,11 +29879,11 @@ msgstr "Ovo Tromjesečje"
 
 #: frappe/website/doctype/web_form_request/web_form_request.py:59
 msgid "This Web Form Request has already been used"
-msgstr ""
+msgstr "Ovaj Web Obrazac Zahtjev je već korišten"
 
 #: frappe/website/doctype/web_form_request/web_form_request.py:62
 msgid "This Web Form Request has expired"
-msgstr ""
+msgstr "Ovaj Web Obrazac Zahtjev je istekao"
 
 #: frappe/public/js/frappe/ui/filters/filter.js:778
 msgid "This Week"
@@ -30028,7 +30028,7 @@ msgstr "Ovo je pozadinski izvještaj. Molimo postavite odgovarajuće filtere, a 
 
 #: frappe/public/js/frappe/views/reports/query_report.js:807
 msgid "This is a synced report generated {0}."
-msgstr ""
+msgstr "Ovo je sinkronizirano izvješće generirano {0}."
 
 #: frappe/utils/password_strength.py:158
 msgid "This is a top-10 common password."
@@ -31076,7 +31076,7 @@ msgstr "Tip"
 #. Label of the type_name (Data) field in DocType 'Notification Type'
 #: frappe/desk/doctype/notification_type/notification_type.json
 msgid "Type Name"
-msgstr ""
+msgstr "Naziv Tipa"
 
 #: frappe/public/js/frappe/form/controls/comment.js:81
 msgid "Type a reply / comment"
@@ -31770,7 +31770,7 @@ msgstr "Koristi ako standard postavke ne očitavaju vaše podatke ispravno"
 
 #: frappe/www/update-password.html:63
 msgid "Use minimum of 8 characters (case sensitive) with at least one number or special character."
-msgstr ""
+msgstr "Koristite najmanje 8 znakova (osjetljivo na velika i mala slova) s barem jednim brojem ili posebnim znakom."
 
 #: frappe/model/db_query.py:516
 msgid "Use of sub-query or function is restricted"
@@ -32743,21 +32743,21 @@ msgstr "Kolona Liste Web Forme"
 #. Name of a DocType
 #: frappe/website/doctype/web_form_request/web_form_request.json
 msgid "Web Form Request"
-msgstr ""
+msgstr "Web Obrazac Zahtjev"
 
 #: frappe/website/doctype/web_form_request/web_form_request.py:129
 msgid "Web Form Request key is required"
-msgstr ""
+msgstr "Ključ Web Obrasca Zahtjeva je obavezan"
 
 #: frappe/website/doctype/web_form_request/web_form_request.js:15
 msgid "Web Form Request link copied"
-msgstr ""
+msgstr "Poveznica Web Obrasca Zahtjeva je kopirana"
 
 #. Label of the web_form_values (Code) field in DocType 'Web Form Request'
 #: frappe/website/doctype/web_form_request/web_form_request.json
 #: frappe/website/doctype/web_form_request/web_form_request.py:98
 msgid "Web Form Values"
-msgstr ""
+msgstr "Web Obrazac vrijednosti"
 
 #. Name of a DocType
 #. Label of a Workspace Sidebar Item
@@ -33137,7 +33137,7 @@ msgstr "Dobrodošli! Prijavite se za nastavak."
 #. Log'
 #: frappe/desk/doctype/notification_log/notification_log.json
 msgid "What the recipient receives by email when this notification fires. Mirrors Title/Description by default; set these to make the email differ from the in-app text."
-msgstr ""
+msgstr "Ono što primatelj dobije e-poštom kada se ova obavijest aktivira. Po zadanom odražava naslov i opis; prilagodite ih kako bi e-pošta bila različita od teksta unutar aplikacije."
 
 #: frappe/public/js/frappe/ui/notifications/notifications.js:74
 msgid "What's New"
@@ -34102,7 +34102,7 @@ msgstr "Morate biti prijavljeni da biste koristili ovaj obrazac."
 #: frappe/website/doctype/web_form/web_form.py:757
 #: frappe/website/doctype/web_form/web_form.py:970
 msgid "You must login to use this form"
-msgstr ""
+msgstr "Morate se prijaviti da biste koristili ovaj obrazac."
 
 #: frappe/model/document.py:675
 msgid "You need the '{0}' permission on {1} {2} to perform this action."
@@ -35379,7 +35379,7 @@ msgstr "{0} sadrži nevažeći izraz Preuzmi Iz, Preuzmi Iz ne može biti samore
 
 #: frappe/website/doctype/web_form_request/web_form_request.py:110
 msgid "{0} contains invalid field(s): {1}"
-msgstr ""
+msgstr "{0} sadrži nevažeća polja: {1}"
 
 #: frappe/public/js/frappe/form/controls/link.js:699
 msgid "{0} contains {1}"
@@ -35412,7 +35412,7 @@ msgstr "{0} ne sadrži {1}"
 
 #: frappe/desk/doctype/notification_type/notification_type.py:89
 msgid "{0} does not exist"
-msgstr ""
+msgstr "{0} ne postoji"
 
 #: frappe/website/doctype/website_settings/website_settings.py:98
 #: frappe/website/doctype/website_settings/website_settings.py:118
@@ -35478,7 +35478,7 @@ msgstr "{0} u redu {1} ne može imati i URL i podređene artikle"
 
 #: frappe/desk/doctype/notification_type/notification_type.py:42
 msgid "{0} is a built-in Notification Type and cannot be deleted. Disable it instead."
-msgstr ""
+msgstr "{0} je ugrađeni tip obavijesti i ne može se izbrisati. Umjesto toga, onemogućite je."
 
 #: frappe/public/js/frappe/form/controls/link.js:740
 msgid "{0} is a descendant of {1}"
@@ -35773,7 +35773,7 @@ msgstr "{0} mora početi i završavati slovom i može sadržavati samo slova, cr
 
 #: frappe/desk/doctype/notification_type/notification_type.py:95
 msgid "{0} never sends email, so it cannot be enabled for users."
-msgstr ""
+msgstr "{0} nikad ne šalje e-poštu, pa se ne može omogućiti korisnicima."
 
 #: frappe/workflow/doctype/workflow/workflow.py:94
 msgid "{0} not a valid State"
@@ -36052,7 +36052,7 @@ msgstr "{0}: Tip polja {1} za {2} ne može biti jedinstven"
 
 #: frappe/website/doctype/web_form/web_form.py:124
 msgid "{0}: Link field cannot reference DocType {1} without Guest read permission"
-msgstr ""
+msgstr "{0}: Polje poveznice ne može referencirati DocType {1} bez dopuštenja gosta za čitanje"
 
 #: frappe/core/doctype/doctype/doctype.py:1865
 msgid "{0}: No basic permissions set"
