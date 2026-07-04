@@ -59,14 +59,7 @@
 	}
 }
 
-/* Composer focus: subtle gray, not the @tailwindcss/forms blue ring. */
-.flow-composer {
-	transition: border-color 0.15s ease, box-shadow 0.15s ease;
-}
-.flow-composer:focus-within {
-	border-color: var(--outline-gray-3);
-	box-shadow: 0 0 0 2px var(--outline-gray-2);
-}
+/* Suppress the @tailwindcss/forms blue focus ring; the composer draws its own. */
 .flow-composer textarea:focus {
 	outline: none;
 	box-shadow: none;

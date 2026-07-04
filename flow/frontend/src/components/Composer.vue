@@ -110,7 +110,7 @@ watch(focusTick, () => nextTick(() => el.value?.focus()));
 
 <template>
 	<div
-		class="flow-composer absolute inset-x-4 bottom-3.5 mx-auto flex max-w-3xl flex-col gap-1.5 rounded-xl border bg-surface-white px-2.5 py-2 shadow-sm transition-colors"
+		class="flow-composer absolute inset-x-4 bottom-3.5 mx-auto flex max-w-3xl flex-col gap-1.5 rounded-xl border bg-surface-white px-2.5 py-2 shadow-sm transition-[border-color,background-color] focus-within:border-outline-gray-3"
 		:class="dragging ? 'border-outline-gray-4 bg-surface-gray-1' : 'border-outline-gray-2'"
 		@dragover="onDragOver"
 		@dragleave="onDragLeave"
