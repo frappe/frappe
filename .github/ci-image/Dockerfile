@@ -1,4 +1,4 @@
-FROM python:3.14-bookworm
+FROM python:3.14-slim-bookworm
 
 ENV DEBIAN_FRONTEND=noninteractive \
     UV_TOOL_BIN_DIR=/usr/local/bin \
@@ -7,7 +7,15 @@ ENV DEBIAN_FRONTEND=noninteractive \
 
 COPY --from=ghcr.io/astral-sh/uv:latest /uv /uvx /usr/local/bin/
 
-RUN curl -fsSL https://deb.nodesource.com/setup_24.x | bash - \
+RUN apt-get -qq update \
+    && apt-get -qq install -y --no-install-recommends \
+        ca-certificates \
+        curl \
+        git \
+        build-essential \
+        pkg-config \
+        procps \
+    && curl -fsSL https://deb.nodesource.com/setup_24.x | bash - \
     && curl -LsS https://r.mariadb.com/downloads/mariadb_repo_setup | bash -s -- --mariadb-server-version="mariadb-11.8.5" --skip-maxscale \
     && echo "deb http://apt.postgresql.org/pub/repos/apt bookworm-pgdg main" > /etc/apt/sources.list.d/pgdg.list \
     && curl -fsSL https://www.postgresql.org/media/keys/ACCC4CF8.asc -o /etc/apt/trusted.gpg.d/pgdg.asc \
