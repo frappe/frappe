@@ -44,7 +44,7 @@ function toggle() {
 </script>
 
 <template>
-	<div class="my-0.5">
+	<div>
 		<button
 			class="flex items-center gap-1.5 text-sm transition-colors"
 			:class="[
@@ -66,7 +66,7 @@ function toggle() {
 
 		<Transition name="flow-reveal">
 			<!-- The open call's content sits in a bordered card so it can't bleed into
-			     the next block. Single: inputs directly; multiple: a connected timeline. -->
+			the next block. Single: inputs directly; multiple: a connected timeline. -->
 			<div
 				v-if="open"
 				class="mb-2 mt-1.5 rounded-lg border border-outline-gray-1 px-3 py-2.5"

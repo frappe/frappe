@@ -5,9 +5,9 @@ import ActivityLabel from "./ActivityLabel.vue";
 import ArgsView from "./ArgsView.vue";
 import { toolLabel, toolContext, hasArgs } from "@/lib/toolMeta";
 
-// One timeline step. The circle sits in the same items-center row as the label,
-// so they stay vertically aligned whatever the label's height. Connector segments
-// meet the circle's edges; the last step draws none, so the line never overruns.
+// One timeline step. A fixed-width gutter holds the dot; connector lines are
+// flex-1 fillers above and below it, so they auto-centre on the dot and meet the
+// neighbouring steps whatever the label's height — no hardcoded offsets.
 const props = defineProps({
 	part: { type: Object, required: true },
 	number: { type: Number, required: true },
@@ -29,48 +29,52 @@ function toggle() {
 </script>
 
 <template>
-	<div class="relative">
-		<!-- Rail: segments run in the circle's centre column (x≈9.5px), meeting its
-		     top (8px) and bottom (28px) edges. -->
-		<span
-			v-if="number > 1"
-			class="absolute left-[9.5px] top-0 h-2 w-px bg-surface-gray-3"
-		></span>
-		<span
-			v-if="!last"
-			class="absolute bottom-0 left-[9.5px] top-7 w-px bg-surface-gray-3"
-		></span>
-
-		<button
-			class="flex w-full items-center gap-2.5 py-2 text-left"
-			:class="expandable ? '' : 'cursor-default'"
-			@click="toggle"
-		>
-			<span
-				class="relative z-[1] flex h-5 w-5 shrink-0 items-center justify-center rounded-full border border-outline-gray-1 bg-surface-white"
-			>
-				<Spinner v-if="active" class="h-3 w-3 text-ink-gray-5" />
-				<span v-else class="text-[10px] leading-none tabular-nums text-ink-gray-4">
-					{{ number }}
+	<div>
+		<div class="flex gap-2.5">
+			<!-- Gutter: filler line, dot, filler line — flex-1 fillers centre the dot
+			     and the visible ones connect to the steps above/below. -->
+			<div class="flex w-5 shrink-0 flex-col items-center">
+				<span class="w-px flex-1" :class="{ 'bg-surface-gray-3': number > 1 }"></span>
+				<span
+					class="z-[1] flex h-5 w-5 shrink-0 items-center justify-center rounded-full border border-outline-gray-1 bg-surface-white"
+				>
+					<Spinner v-if="active" class="h-3 w-3 text-ink-gray-5" />
+					<span v-else class="text-[10px] leading-none tabular-nums text-ink-gray-4">
+						{{ number }}
+					</span>
 				</span>
-			</span>
-			<ActivityLabel
-				:text="label"
-				:active="active"
-				class="text-sm font-medium text-ink-gray-8"
-			/>
-			<span v-if="context" class="truncate text-xs text-ink-gray-4">· {{ context }}</span>
-			<span class="flex-1"></span>
-			<FeatherIcon
-				v-if="expandable"
-				name="chevron-right"
-				class="h-3.5 w-3.5 shrink-0 text-ink-gray-4 transition-transform"
-				:class="{ 'rotate-90': open }"
-			/>
-		</button>
+				<span class="w-px flex-1" :class="{ 'bg-surface-gray-3': !last }"></span>
+			</div>
+			<button
+				class="flex min-w-0 flex-1 items-center gap-2.5 py-2 text-left"
+				:class="expandable ? '' : 'cursor-default'"
+				@click="toggle"
+			>
+				<ActivityLabel
+					:text="label"
+					:active="active"
+					class="text-sm font-medium text-ink-gray-8"
+				/>
+				<span v-if="context" class="truncate text-xs text-ink-gray-4"
+					>· {{ context }}</span
+				>
+				<span class="flex-1"></span>
+				<FeatherIcon
+					v-if="expandable"
+					name="chevron-right"
+					class="h-3.5 w-3.5 shrink-0 text-ink-gray-4 transition-transform"
+					:class="{ 'rotate-90': open }"
+				/>
+			</button>
+		</div>
 
-		<div v-if="open && expandable" class="mb-2 ml-[30px]">
-			<ArgsView :arguments="part.arguments" />
+		<div v-if="open && expandable" class="flex gap-2.5">
+			<div class="flex w-5 shrink-0 justify-center">
+				<span class="w-px" :class="{ 'bg-surface-gray-3': !last }"></span>
+			</div>
+			<div class="min-w-0 flex-1 pb-2">
+				<ArgsView :arguments="part.arguments" />
+			</div>
 		</div>
 	</div>
 </template>
