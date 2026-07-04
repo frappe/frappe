@@ -104,7 +104,7 @@ async function apply_print_media(html) {
 			css = to_print_media(await fetch(href).then((r) => (r.ok ? r.text() : "")));
 			css_cache.set(href, css);
 		}
-		html = html.replace(tag, `<style>${css}</style>`);
+		html = html.replace(tag, () => `<style>${css}</style>`);
 	}
 	return html;
 }
@@ -200,8 +200,11 @@ function write_document(html) {
 	if (!doc) return;
 	const scroll_y = frame.value.contentWindow?.scrollY || 0;
 	doc.open();
-	doc.write(html.replace("</head>", `<style>${INTERACTION_CSS}</style></head>`));
+	doc.write(html);
 	doc.close();
+	const style = doc.createElement("style");
+	style.textContent = INTERACTION_CSS;
+	(doc.head || doc.documentElement).appendChild(style);
 	doc.addEventListener("click", handle_click);
 	doc.addEventListener("keydown", forward_keydown);
 	doc.addEventListener("pointerdown", on_pointer_down);
@@ -209,6 +212,9 @@ function write_document(html) {
 	master = null;
 	paginate();
 	frame.value.contentWindow?.addEventListener("load", paginate);
+	doc.fonts?.ready?.then(() => {
+		if (frame.value?.contentDocument === doc) paginate();
+	});
 	frame.value.contentWindow?.scrollTo(0, scroll_y);
 	loaded.value = true;
 	update_highlight();
