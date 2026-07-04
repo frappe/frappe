@@ -262,6 +262,10 @@ class Importer:
 					frappe.db.commit()
 
 				except Exception:
+					frappe.logger("data_import").error(
+						f"Data Import {self.data_import.name}: row(s) {row_indexes} failed to import",
+						exc_info=True,
+					)
 					messages = frappe.local.message_log
 					frappe.clear_messages()
 
@@ -307,6 +311,9 @@ class Importer:
 			status = "Error"
 		elif len(failures) > 0 and len(successes) > 0:
 			status = "Partial Success"
+			frappe.logger("data_import").warning(
+				f"Data Import {self.data_import.name}: {len(failures)} of {attempted_payload_count} rows failed"
+			)
 		else:
 			status = "Pending"
 
