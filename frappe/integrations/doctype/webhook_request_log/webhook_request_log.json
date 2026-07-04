@@ -15,7 +15,10 @@
   "user",
   "url",
   "response",
-  "error"
+  "error",
+  "status",
+  "attempt",
+  "next_retry"
  ],
  "fields": [
   {
@@ -84,6 +87,28 @@
    "in_standard_filter": 1,
    "label": "Reference Doctype",
    "read_only": 1
+  },
+  {
+   "fieldname": "status",
+   "fieldtype": "Select",
+   "in_list_view": 1,
+   "in_standard_filter": 1,
+   "label": "Status",
+   "options": "\nDelivered\nFailed\nExhausted",
+   "read_only": 1
+  },
+  {
+   "fieldname": "attempt",
+   "fieldtype": "Int",
+   "label": "Attempt",
+   "read_only": 1
+  },
+  {
+   "fieldname": "next_retry",
+   "fieldtype": "Datetime",
+   "label": "Next Retry",
+   "read_only": 1,
+   "search_index": 1
   }
  ],
  "in_create": 1,

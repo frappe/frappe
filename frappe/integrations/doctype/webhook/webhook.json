@@ -19,6 +19,7 @@
   "request_url",
   "is_dynamic_url",
   "timeout",
+  "max_retries",
   "background_jobs_queue",
   "cb_webhook",
   "request_method",
@@ -176,6 +177,14 @@
    "fieldname": "timeout",
    "fieldtype": "Int",
    "label": "Request Timeout"
+  },
+  {
+   "default": "3",
+   "description": "Number of retry attempts for failed requests. Set to 0 for no retries.",
+   "fieldname": "max_retries",
+   "fieldtype": "Int",
+   "label": "Max Retries",
+   "non_negative": 1
   },
   {
    "fieldname": "background_jobs_queue",
