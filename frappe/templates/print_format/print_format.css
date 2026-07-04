@@ -250,6 +250,11 @@ body {
 }
 
 /* plain: no borders, bottom dividers only */
+.child-table--plain .table {
+	border: none;
+}
+
+/* !important needed: bootstrap print styles set table-bordered cell borders with !important */
 .child-table--plain .table th,
 .child-table--plain .table td {
 	border: none !important;
@@ -258,7 +263,6 @@ body {
 
 .child-table--plain .table th {
 	background-color: transparent !important;
-	border-bottom: 2px solid #d1d5db !important;
 }
 
 .child-table--plain .table .odd td,
@@ -276,7 +280,6 @@ body {
 /* plain header variant */
 .child-table--plain-header .table th {
 	background-color: transparent !important;
-	border-bottom: 2px solid #d1d5db !important;
 }
 
 .child-table [data-fieldtype="Currency"],
