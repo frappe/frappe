@@ -40,24 +40,38 @@ const INTERACTION_CSS = `
 		cursor: text;
 		border-radius: 2px;
 	}
-	body { position: relative; }
-	.pfb-page-guides { position: absolute; inset: 0; pointer-events: none; z-index: 9998; }
-	.pfb-page-line { position: absolute; left: 0; right: 0; border-top: 1px dashed #94a3b8; }
-	.pfb-page-chip {
-		position: absolute;
-		right: 6px;
-		transform: translateY(-50%);
-		font: 500 10px/1.6 -apple-system, sans-serif;
-		color: #475569;
-		background: #e2e8f0;
-		padding: 0 7px;
-		border-radius: 8px;
-		white-space: nowrap;
+	body {
+		position: relative;
+		padding: 0 !important;
+		margin: 0 !important;
+		min-width: 0 !important;
+		max-width: none !important;
+		min-height: 0 !important;
+		background: #e8eaed !important;
+		box-shadow: none !important;
 	}
-	.pfb-margin-guide { position: absolute; top: 0; bottom: 0; border-left: 1px dashed #dbeafe; }
+	.pfb-pages { padding: 24px 16px 16px; }
+	.pfb-page {
+		position: relative;
+		background: #fff;
+		box-shadow: 0 1px 4px rgba(0, 0, 0, 0.2);
+		margin: 0 auto 34px;
+		box-sizing: border-box;
+	}
+	.pfb-page-num {
+		position: absolute;
+		bottom: -23px;
+		left: 0;
+		right: 0;
+		text-align: center;
+		font: 11px/1.5 -apple-system, sans-serif;
+		color: #6b7280;
+	}
+	.pfb-clip { overflow: hidden; }
+	.pfb-flow { position: relative; }
 `;
 
-const PAGE_HEIGHTS_MM = { A4: 297, Letter: 279.4 };
+const PAGE_SIZES_MM = { A4: [210, 297], Letter: [216, 279.4] };
 
 function serialized_format_data() {
 	const clone = JSON.parse(JSON.stringify(store.layout.value));
@@ -125,19 +139,27 @@ function write_document(html) {
 	doc.addEventListener("keydown", forward_keydown);
 	doc.addEventListener("pointerdown", on_pointer_down);
 	doc.addEventListener("dblclick", on_dblclick);
-	draw_page_guides();
-	frame.value.contentWindow?.addEventListener("load", draw_page_guides);
+	master = null;
+	paginate();
+	frame.value.contentWindow?.addEventListener("load", paginate);
 	frame.value.contentWindow?.scrollTo(0, scroll_y);
 	loaded.value = true;
 	update_highlight();
 }
 
 // ── Page boundary guides ────────────────────────────────────
-function draw_page_guides() {
+let master = null;
+
+function paginate() {
 	const doc = frame.value?.contentDocument;
 	const body = doc?.body;
 	if (!body) return;
-	doc.querySelector(".pfb-page-guides")?.remove();
+
+	if (!master) {
+		master = doc.createElement("div");
+		while (body.firstChild) master.appendChild(body.firstChild);
+	}
+	doc.querySelector(".pfb-pages")?.remove();
 
 	const probe = doc.createElement("div");
 	probe.style.cssText = "position:absolute;height:100mm;width:0;visibility:hidden";
@@ -146,58 +168,62 @@ function draw_page_guides() {
 	probe.remove();
 	if (!px_per_mm) return;
 
-	const page_px = (PAGE_HEIGHTS_MM[body.dataset.pageSize] || 297) * px_per_mm;
-	const margin_top = (parseFloat(body.dataset.marginTop) || 0) * px_per_mm;
-	const margin_bottom = (parseFloat(body.dataset.marginBottom) || 0) * px_per_mm;
-	const margin_left = (parseFloat(body.dataset.marginLeft) || 0) * px_per_mm;
-	const margin_right = (parseFloat(body.dataset.marginRight) || 0) * px_per_mm;
-	const usable = page_px - margin_top - margin_bottom;
+	const [page_w_mm, page_h_mm] = PAGE_SIZES_MM[body.dataset.pageSize] || PAGE_SIZES_MM.A4;
+	const mt = parseFloat(body.dataset.marginTop) || 0;
+	const mb = parseFloat(body.dataset.marginBottom) || 0;
+	const ml = parseFloat(body.dataset.marginLeft) || 0;
+	const mr = parseFloat(body.dataset.marginRight) || 0;
+	const usable = (page_h_mm - mt - mb) * px_per_mm;
 	if (usable <= 0) return;
 
-	const layer = doc.createElement("div");
-	layer.className = "pfb-page-guides";
+	const pages_el = doc.createElement("div");
+	pages_el.className = "pfb-pages";
+	body.appendChild(pages_el);
 
-	for (const x of [margin_left, body.clientWidth - margin_right]) {
-		const guide = doc.createElement("div");
-		guide.className = "pfb-margin-guide";
-		guide.style.left = `${x}px`;
-		layer.appendChild(guide);
-	}
-
-	const content_bottom = body.scrollHeight - margin_bottom;
-	const forced = [...doc.querySelectorAll(".page-break")]
-		.map((el) => {
-			const rect = el.getBoundingClientRect();
-			return rect.bottom + frame.value.contentWindow.scrollY;
-		})
-		.sort((a, b) => a - b);
-
-	let cursor = margin_top;
-	let page = 1;
-	const add_boundary = (y, label) => {
-		const line = doc.createElement("div");
-		line.className = "pfb-page-line";
-		line.style.top = `${y}px`;
-		const chip = doc.createElement("div");
-		chip.className = "pfb-page-chip";
-		chip.style.top = `${y}px`;
-		chip.textContent = label;
-		layer.appendChild(line);
-		layer.appendChild(chip);
+	const make_page = (k) => {
+		const page = doc.createElement("div");
+		page.className = "pfb-page";
+		page.style.cssText = `width:${page_w_mm}mm;height:${page_h_mm}mm;padding:${mt}mm ${mr}mm ${mb}mm ${ml}mm;`;
+		const clip = doc.createElement("div");
+		clip.className = "pfb-clip";
+		clip.style.height = `${usable}px`;
+		const flow = doc.createElement("div");
+		flow.className = "pfb-flow";
+		if (k) flow.style.transform = `translateY(-${k * usable}px)`;
+		clip.appendChild(flow);
+		page.appendChild(clip);
+		pages_el.appendChild(page);
+		return { page, flow };
 	};
 
-	while (cursor + usable < content_bottom) {
-		const next_forced = forced.find((y) => y > cursor && y <= cursor + usable);
-		const boundary = next_forced ?? cursor + usable;
-		page += 1;
-		add_boundary(
-			boundary,
-			next_forced ? __("Page {0} · break", [page]) : __("Page {0}", [page])
-		);
-		cursor = boundary;
+	const first = make_page(0);
+	first.flow.appendChild(master.cloneNode(true));
+
+	// Pad after explicit page breaks so following content starts on a fresh sheet
+	for (const brk of first.flow.querySelectorAll(".page-break")) {
+		const y = brk.getBoundingClientRect().bottom - first.flow.getBoundingClientRect().top;
+		const pad = (usable - (y % usable)) % usable;
+		if (pad > 0.5) {
+			const spacer = doc.createElement("div");
+			spacer.className = "pfb-break-spacer";
+			spacer.style.height = `${pad}px`;
+			brk.after(spacer);
+		}
 	}
 
-	body.appendChild(layer);
+	const total = first.flow.scrollHeight;
+	const page_count = Math.max(1, Math.ceil((total - 1) / usable));
+	const sliced = first.flow.firstChild;
+	for (let k = 1; k < page_count; k++) {
+		make_page(k).flow.appendChild(sliced.cloneNode(true));
+	}
+	for (const [k, page] of [...pages_el.querySelectorAll(".pfb-page")].entries()) {
+		const num = doc.createElement("div");
+		num.className = "pfb-page-num";
+		num.textContent = __("Page {0} of {1}", [k + 1, page_count]);
+		page.appendChild(num);
+	}
+	update_highlight();
 }
 
 function live_sections() {
@@ -461,27 +487,25 @@ function update_highlight() {
 	for (const el of doc.querySelectorAll(".pfb-live-selected, .pfb-live-selected-section")) {
 		el.classList.remove("pfb-live-selected", "pfb-live-selected-section");
 	}
+	const mark = (selector, cls) => {
+		for (const el of doc.querySelectorAll(selector)) el.classList.add(cls);
+	};
 	const field = store.selected_field.value;
 	if (field) {
 		const path = path_of(field);
-		const el = path && doc.querySelector(`[data-pfb-path="${path}"]`);
-		el?.classList.add("pfb-live-selected");
+		if (path) mark(`[data-pfb-path="${path}"]`, "pfb-live-selected");
 		return;
 	}
 	const section = store.selected_section.value;
 	if (section) {
 		if (section === store.layout.value.header || section === store.layout.value.footer) {
 			const zone = section === store.layout.value.header ? "header" : "footer";
-			doc.querySelector(`[data-pfb-zone="${zone}"]`)?.classList.add(
-				"pfb-live-selected-section"
-			);
+			mark(`[data-pfb-zone="${zone}"]`, "pfb-live-selected-section");
 			return;
 		}
 		const idx = live_sections().indexOf(section);
 		if (idx !== -1) {
-			doc.querySelector(`[data-pfb-section="${idx}"]`)?.classList.add(
-				"pfb-live-selected-section"
-			);
+			mark(`[data-pfb-section="${idx}"]`, "pfb-live-selected-section");
 		}
 	}
 }
