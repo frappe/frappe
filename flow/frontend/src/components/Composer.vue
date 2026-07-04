@@ -15,6 +15,7 @@ const {
 	sending,
 	paused,
 	locked,
+	loaded,
 	needsSetup,
 	uploading,
 	focusTick,
@@ -37,7 +38,9 @@ const el = ref(null);
 const fileInput = ref(null);
 const dragging = ref(false);
 
-const inputDisabled = computed(() => sending.value || paused.value || needsSetup.value);
+const inputDisabled = computed(
+	() => !loaded.value || sending.value || paused.value || needsSetup.value
+);
 
 const agentItems = computed(() => agents.value.map((a) => ({ value: a.name, label: a.title })));
 const modelItems = computed(() => [
@@ -45,17 +48,12 @@ const modelItems = computed(() => [
 	...models.value.map((m) => ({ value: m.name, label: m.title })),
 ]);
 
-const canSend = computed(
-	() =>
-		text.value.trim() &&
-		!sending.value &&
-		!paused.value &&
-		!needsSetup.value &&
-		!uploading.value
-);
-const placeholder = computed(() =>
-	needsSetup.value ? __("Setup required…") : __("Ask {0}…", [agentLabel(selectedAgent.value)])
-);
+const canSend = computed(() => text.value.trim() && !inputDisabled.value && !uploading.value);
+const placeholder = computed(() => {
+	if (!loaded.value) return __("Loading…");
+	if (needsSetup.value) return __("Setup required…");
+	return __("Ask {0}…", [agentLabel(selectedAgent.value)]);
+});
 
 function submit() {
 	if (!canSend.value) return;
@@ -134,7 +132,7 @@ watch(focusTick, () => nextTick(() => el.value?.focus()));
 			v-model="text"
 			rows="1"
 			:placeholder="placeholder"
-			:disabled="sending || paused || needsSetup"
+			:disabled="inputDisabled"
 			class="max-h-40 min-h-[50px] w-full resize-none border-0 bg-transparent text-base font-normal leading-relaxed text-ink-gray-9 outline-none placeholder:text-ink-gray-4"
 			@keydown="onKeydown"
 			@input="resize"

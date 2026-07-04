@@ -2,6 +2,7 @@ import { ref, computed } from "vue";
 import * as api from "@/api/client";
 import { startRun, resumeRun } from "@/api/stream";
 import { normalizeToolName } from "@/lib/toolMeta";
+import { __ } from "@/lib/translate";
 
 // Module-singleton store: one panel instance, one source of truth. Components
 // import this and read/act on shared reactive state — no prop drilling.
@@ -57,14 +58,22 @@ function modelLabel(name) {
 
 // ── lifecycle / data loading ────────────────────────────────────────────────
 async function loadInitial() {
-	const [a, m] = await Promise.all([api.loadAgents(), api.loadModels(), refreshHistory()]);
-	agents.value = a;
-	models.value = m;
-	const assistant = a.find((x) => x.name === "Flow");
-	selectedAgent.value = assistant ? assistant.name : a[0]?.name ?? null;
-	loadToolApproval(selectedAgent.value);
-	loaded.value = true;
-	focusTick.value++;
+	try {
+		const [a, m] = await Promise.all([api.loadAgents(), api.loadModels(), refreshHistory()]);
+		agents.value = a;
+		models.value = m;
+		const assistant = a.find((x) => x.name === "Flow");
+		selectedAgent.value = assistant ? assistant.name : a[0]?.name ?? null;
+		loadToolApproval(selectedAgent.value);
+		loaded.value = true;
+		focusTick.value++;
+	} catch {
+		// `loaded` stays false, keeping the composer disabled on "Loading…".
+		frappe.show_alert({
+			message: __("Flow failed to load. Refresh the page to retry."),
+			indicator: "red",
+		});
+	}
 }
 
 async function refreshHistory() {
@@ -148,9 +157,13 @@ function removeAttachment(uid) {
 	attachments.value = attachments.value.filter((a) => a.uid !== uid);
 }
 
+// Bumped per switch so a slow load can't write into a newer session's view.
+let switchSeq = 0;
+
 async function switchSession(name) {
 	// A paused run is restored on return (restorePausedRun); only block mid-stream.
 	if (sending.value) return;
+	const seq = ++switchSeq;
 	sessionName.value = name;
 	runName.value = null;
 	messages.value = [];
@@ -161,9 +174,11 @@ async function switchSession(name) {
 	await api.recoverSession(name).catch(() => {});
 
 	const doc = await api.getSession(name);
+	if (seq !== switchSeq) return;
 	selectedAgent.value = doc.agent;
 	selectedModel.value = doc.model || null;
 	await loadToolApproval(doc.agent);
+	if (seq !== switchSeq) return;
 
 	// Attachments are linked to their turn by run; group so each user message
 	// can render its own chips.
@@ -185,31 +200,13 @@ async function switchSession(name) {
 				attachments: attachmentsByRun[m.run] || [],
 			});
 		} else if (m.role === "assistant") {
-			if (!current) {
-				current = {
-					id: nextId(),
-					role: "assistant",
-					parts: [],
-					pending: false,
-					questions: [],
-					runName: null,
-				};
-				messages.value.push(current);
-			}
-			if (m.content) current.parts.push({ id: nextId(), type: "text", text: m.content });
+			if (!current) current = pushAssistant(false);
+			if (m.content) current.parts.push(makeTextPart(m.content));
 			for (const t of parseToolCalls(m.tool_calls)) {
-				current.parts.push({
-					id: t.id,
-					type: "tool",
-					name: normalizeToolName(t.function.name),
-					arguments: t.function.arguments,
-					result: null,
-					approval: null,
-				});
+				current.parts.push(makeToolPart(t.id, t.function.name, t.function.arguments));
 			}
 		} else if (m.role === "tool" && current) {
-			const part = current.parts.find((p) => p.type === "tool" && p.id === m.tool_call_id);
-			if (part) part.result = m.content;
+			setToolResult(current, m.tool_call_id, m.content);
 		}
 	}
 
@@ -228,7 +225,7 @@ async function switchSession(name) {
 
 async function restorePausedRun(session) {
 	const runs = await api.getPausedRun(session);
-	if (!runs.length || !runs[0].questions) return;
+	if (sessionName.value !== session || !runs.length || !runs[0].questions) return;
 	const questions = JSON.parse(runs[0].questions);
 	if (!questions.length) return;
 
@@ -326,22 +323,13 @@ function handleEvent(event, msg) {
 			requestScroll();
 			break;
 		case "tool_started":
-			msg.parts.push({
-				id: event.id,
-				type: "tool",
-				name: normalizeToolName(event.name),
-				arguments: event.arguments,
-				result: null,
-				approval: null,
-			});
+			msg.parts.push(makeToolPart(event.id, event.name, event.arguments));
 			requestScroll();
 			break;
-		case "tool_ended": {
-			const part = msg.parts.find((p) => p.type === "tool" && p.id === event.id);
-			if (part) part.result = event.result;
+		case "tool_ended":
+			setToolResult(msg, event.id, event.result);
 			requestScroll();
 			break;
-		}
 		case "done":
 			msg.pending = false;
 			if (event.status === "Paused") {
@@ -359,12 +347,29 @@ function handleEvent(event, msg) {
 }
 
 // ── helpers ──────────────────────────────────────────────────────────────────
-function pushAssistant() {
+// Single source of the part shapes, shared by the live stream and the session
+// reload so the two paths can't drift apart.
+const makeTextPart = (text) => ({ id: nextId(), type: "text", text });
+const makeToolPart = (id, name, args) => ({
+	id,
+	type: "tool",
+	name: normalizeToolName(name),
+	arguments: args,
+	result: null,
+	approval: null,
+});
+
+function setToolResult(msg, id, result) {
+	const part = msg.parts.find((p) => p.type === "tool" && p.id === id);
+	if (part) part.result = result;
+}
+
+function pushAssistant(pending = true) {
 	const msg = {
 		id: nextId(),
 		role: "assistant",
 		parts: [],
-		pending: true,
+		pending,
 		questions: [],
 		runName: null,
 	};
@@ -377,7 +382,7 @@ function pushAssistant() {
 function appendText(msg, delta) {
 	const last = msg.parts[msg.parts.length - 1];
 	if (last && last.type === "text") last.text += delta;
-	else msg.parts.push({ id: nextId(), type: "text", text: delta });
+	else msg.parts.push(makeTextPart(delta));
 }
 
 function failMessage(msg, error) {
