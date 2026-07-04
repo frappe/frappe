@@ -122,7 +122,23 @@ def bind_search_knowledge(kbs: list[str]) -> Tool:
 
 		return retrieve(query, kbs=kbs)
 
-	return tool(search_knowledge, description=_KNOWLEDGE_SEARCH_DESCRIPTION)
+	return tool(search_knowledge, description=_knowledge_search_description(kbs))
+
+
+def _knowledge_search_description(kbs: list[str]) -> str:
+	"""Append the bound knowledge bases' descriptions so the model knows what's searchable
+	and when to call the tool."""
+	if not kbs:
+		return _KNOWLEDGE_SEARCH_DESCRIPTION
+	rows = frappe.get_all(
+		"Flow Knowledge Base",
+		filters={"name": ["in", kbs], "enabled": 1},
+		fields=["title", "description"],
+	)
+	listed = "\n".join(f"- {r.title}: {r.description}" for r in rows if r.description)
+	if not listed:
+		return _KNOWLEDGE_SEARCH_DESCRIPTION
+	return f"{_KNOWLEDGE_SEARCH_DESCRIPTION}\n\nThis agent's knowledge bases:\n{listed}"
 
 
 search_knowledge = bind_search_knowledge([])

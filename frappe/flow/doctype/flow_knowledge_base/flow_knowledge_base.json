@@ -33,7 +33,7 @@
    "fieldtype": "Section Break"
   },
   {
-   "description": "What this knowledge base contains and when an agent should search it.",
+   "description": "Shown to the agent: what this knowledge base contains and when to search it. Helps the agent decide whether to use it.",
    "fieldname": "description",
    "fieldtype": "Small Text",
    "label": "Description"
@@ -46,7 +46,7 @@
    "link_fieldname": "knowledge_base"
   }
  ],
- "modified": "2026-06-11 00:00:00",
+ "modified": "2026-07-04 00:00:02.000000",
  "modified_by": "Administrator",
  "module": "Flow",
  "name": "Flow Knowledge Base",

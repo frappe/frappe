@@ -1133,6 +1133,16 @@ class TestAgentKnowledge(IntegrationTestCase):
 			search(query="hi")
 		mock.assert_called_once_with("hi", kbs=[first.name, second.name])
 
+	def test_kb_descriptions_appear_in_tool_description(self):
+		kb = Knowledge("Travel KB", description="Company travel and reimbursement policy.")
+		search = self._agent([kb])
+		self.assertIn("Travel KB", search.description)
+		self.assertIn("Company travel and reimbursement policy.", search.description)
+
+	def test_kb_without_description_leaves_base_description(self):
+		search = self._agent([Knowledge("Plain KB")])
+		self.assertNotIn("This agent's knowledge bases:", search.description)
+
 
 class TestAttachmentStore(IntegrationTestCase):
 	def setUp(self):
