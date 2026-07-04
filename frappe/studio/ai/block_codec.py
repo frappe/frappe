@@ -177,21 +177,6 @@ class BlockCodec:
 		return BlockCodec.expand(block)
 
 	@staticmethod
-	def strip_context(block_json: str) -> str:
-		"""Compress a block to compact JSON for LLM context, extracting relevant subset."""
-		try:
-			data = json.loads(block_json)
-		except (json.JSONDecodeError, TypeError):
-			return block_json
-
-		if isinstance(data, list):
-			data = data[0] if data else {}
-		if not isinstance(data, dict):
-			return block_json
-
-		return BlockCodec.to_json(BlockCodec.compress(data))
-
-	@staticmethod
 	def to_json(data) -> str:
 		"""Compact, token-efficient JSON: no whitespace, unicode kept as-is."""
 		return json.dumps(data, separators=(",", ":"), ensure_ascii=False)

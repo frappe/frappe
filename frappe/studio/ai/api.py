@@ -42,7 +42,7 @@ def run(
 	except (json.JSONDecodeError, TypeError):
 		frappe.throw(_("Invalid page context JSON"))
 
-	resolved_model = model or ModelRegistry.get_default()
+	resolved_model = model or ModelRegistry.DEFAULT
 	api_key = llm.get_api_key()
 	if not api_key:
 		frappe.throw(_("OpenRouter API key is not configured. Please set it in Studio Settings."))

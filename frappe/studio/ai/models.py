@@ -24,14 +24,6 @@ class ModelRegistry:
 	SIMPLE = "openrouter/google/gemini-3-flash-preview"
 
 	@classmethod
-	def get_default(cls) -> str:
-		return cls.DEFAULT
-
-	@classmethod
-	def get_simple(cls) -> str:
-		return cls.SIMPLE
-
-	@classmethod
 	def get_label(cls, model_id: str) -> str:
 		for m in cls.AVAILABLE:
 			if m["id"] == model_id:

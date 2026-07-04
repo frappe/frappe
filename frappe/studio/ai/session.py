@@ -274,27 +274,6 @@ class AISession:
 
 	# --- lifecycle --------------------------------------------------------
 
-	def truncate_from_turn(self, message_id: str):
-		"""Delete the turn that produced `message_id` and everything after it: the
-		assistant message, its triggering user prompt, and all later messages. Used by
-		the chat "revert" action to rewind the conversation alongside the page."""
-		target = frappe.db.get_value(
-			self.MESSAGE_DOCTYPE, {"name": message_id, "session": self._doc.name}, "creation"
-		)
-		if not target:
-			return
-		# The prompt that started this turn is the most recent user message at/before
-		# the assistant reply; deleting from there removes the whole exchange.
-		user_creation = frappe.db.get_value(
-			self.MESSAGE_DOCTYPE,
-			{"session": self._doc.name, "role": "user", "creation": ["<=", target]},
-			"creation",
-			order_by="creation desc",
-		)
-		cutoff = user_creation or target
-		frappe.db.delete(self.MESSAGE_DOCTYPE, {"session": self._doc.name, "creation": [">=", cutoff]})
-		frappe.db.set_value(self.DOCTYPE, self._doc.name, "is_running", 0, update_modified=False)
-
 	def clear(self):
 		"""Wipe all messages for this session and reset transient state."""
 		frappe.db.delete(self.MESSAGE_DOCTYPE, {"session": self._doc.name})
