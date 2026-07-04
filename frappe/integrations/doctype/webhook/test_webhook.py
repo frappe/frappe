@@ -503,3 +503,18 @@ class TestWebhook(IntegrationTestCase):
 
 			self.assertIn(WEBHOOK_SECRET_HEADER, headers)
 			self.assertIsInstance(headers[WEBHOOK_SECRET_HEADER], str)
+
+	@timeout(5, "Test webhooks should never wait, check mocked responses.")
+	def test_unbuildable_request_is_exhausted(self):
+		"""A webhook whose dynamic URL fails to render is exhausted without a retry"""
+		config = self.retry_webhook_config("http://example.com/{{ doc.missing.attr }}")
+		config["is_dynamic_url"] = 1
+
+		with get_test_webhook(config) as wh:
+			doc = frappe.new_doc("Note")
+			doc.title = "Unbuildable Note"
+			enqueue_webhook(doc, wh)
+
+			log = frappe.get_last_doc("Webhook Request Log", filters={"webhook": wh.name})
+			self.assertEqual(log.status, "Exhausted")
+			self.assertIsNone(log.next_retry)
