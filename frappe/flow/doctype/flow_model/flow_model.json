@@ -37,7 +37,6 @@
    "fieldtype": "Section Break"
   },
   {
-   "description": "Optional. Pick a provider to skip typing the <code>provider/</code> prefix in Model ID. Leave empty if Model ID already includes the provider.",
    "fieldname": "provider",
    "fieldtype": "Link",
    "label": "Provider",
@@ -60,13 +59,15 @@
    "read_only": 1
   },
   {
-   "description": "API key for the provider named in the Model ID. Leave empty for local servers (Ollama, LM Studio) that don't require authentication.",
+   "depends_on": "eval:!doc.provider",
+   "description": "API key to authenticate with this model's endpoint. Needed when no Provider is linked.",
    "fieldname": "api_key",
    "fieldtype": "Password",
    "label": "API Key"
   },
   {
-   "description": "Optional. Override the provider's default endpoint, e.g. for a self-hosted Ollama (<code>http://localhost:11434</code>) or a proxy.",
+   "depends_on": "eval:!doc.provider",
+   "description": "Endpoint for this model, e.g. a self-hosted Ollama (<code>http://localhost:11434</code>) or a proxy. Needed when no Provider is linked.",
    "fieldname": "base_url",
    "fieldtype": "Data",
    "label": "Base URL"
@@ -85,7 +86,7 @@
   }
  ],
  "links": [],
- "modified": "2026-05-20 18:49:51.182512",
+ "modified": "2026-07-04 00:00:00.000000",
  "modified_by": "Administrator",
  "module": "Flow",
  "name": "Flow Model",
