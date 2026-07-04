@@ -48,12 +48,12 @@
 		</InspectorSection>
 
 		<!-- BACKGROUND -->
-		<InspectorSection :label="__('Background')">
+		<InspectorSection :label="__('Background')" :init-open="false">
 			<div ref="bg_color_host"></div>
 		</InspectorSection>
 
 		<!-- SPACING -->
-		<InspectorSection :label="__('Spacing')">
+		<InspectorSection :label="__('Spacing')" :init-open="false">
 			<SpacingRow
 				v-for="prop in spacing_props"
 				:key="prop.key"
