@@ -1,104 +1,84 @@
 <template>
 	<div class="pfb-insp-body">
 		<!-- TABLE section -->
-		<div class="pfb-insp-section">
-			<div class="pfb-insp-section-head" @click="toggle('t_table')">
-				<span class="pfb-insp-section-label">{{ __("Table") }}</span>
-				<span
-					class="pfb-insp-chevron"
-					:class="{ collapsed: !open.t_table }"
-					v-html="frappe.utils.icon('chevron-down', 'xs')"
-				></span>
-			</div>
-			<div v-show="open.t_table" class="pfb-insp-section-body">
-				<!-- Source -->
-				<div class="pfb-insp-row">
-					<span class="pfb-insp-label">{{ __("Source") }}</span>
-					<div
-						class="pfb-source-display d-flex align-items-center justify-content-between"
-					>
-						<span class="ellipsis" style="min-width: 0">{{
-							selected_field.label || selected_field.fieldname
-						}}</span>
-						<span class="badge badge-light flex-shrink-0">{{ __("Table") }}</span>
-					</div>
+		<InspectorSection :label="__('Table')">
+			<!-- Source -->
+			<div class="pfb-insp-row">
+				<span class="pfb-insp-label">{{ __("Source") }}</span>
+				<div class="pfb-source-display d-flex align-items-center justify-content-between">
+					<span class="ellipsis" style="min-width: 0">{{
+						selected_field.label || selected_field.fieldname
+					}}</span>
+					<span class="badge badge-light flex-shrink-0">{{ __("Table") }}</span>
 				</div>
-				<!-- Title -->
-				<LabelField
-					v-model="selected_field.label"
-					:label="__('Title')"
-					:placeholder="__('Table title')"
-					show-toggle
-					:show-label="__('Show title')"
-					:show="selected_field.show_label"
-					@update:show="(v) => (selected_field.show_label = v)"
-				/>
-				<!-- Style -->
-				<SegmentedRow
-					:label="__('Style')"
-					:model-value="table_style"
-					:options="table_style_opts"
-					@update:model-value="(v) => (selected_field.table_style = v)"
-				/>
-				<!-- Bordered -->
-				<SegmentedRow
-					:label="__('Bordered')"
-					:model-value="table_bordered !== false"
-					:options="[
-						{ value: true, label: __('Yes') },
-						{ value: false, label: __('No') },
-					]"
-					@update:model-value="(v) => (selected_field.table_bordered = v)"
-				/>
-				<!-- Cell padding -->
-				<StepperRow
-					:label="__('Cell padding')"
-					:model-value="table_cell_padding"
-					:base="7"
-					unit="px"
-					:placeholder="__('auto')"
-					allow-empty
-					@update:model-value="set_cell_padding"
-				/>
-				<!-- Header -->
-				<SegmentedRow
-					:label="__('Header')"
-					:model-value="table_header"
-					:options="[
-						{ value: 'styled', label: __('Styled') },
-						{ value: 'plain', label: __('Plain') },
-						{ value: 'none', label: __('None') },
-					]"
-					@update:model-value="(v) => (selected_field.table_header = v)"
-				/>
-				<!-- Corner radius -->
-				<StepperRow
-					:label="__('Radius')"
-					:model-value="table_radius"
-					unit="px"
-					:placeholder="__('none')"
-					allow-empty
-					@update:model-value="set_table_radius"
-				/>
 			</div>
-		</div>
+			<!-- Title -->
+			<LabelField
+				v-model="selected_field.label"
+				:label="__('Title')"
+				:placeholder="__('Table title')"
+				show-toggle
+				:show-label="__('Show title')"
+				:show="selected_field.show_label"
+				@update:show="(v) => (selected_field.show_label = v)"
+			/>
+			<!-- Style -->
+			<SegmentedRow
+				:label="__('Style')"
+				:model-value="table_style"
+				:options="table_style_opts"
+				@update:model-value="(v) => (selected_field.table_style = v)"
+			/>
+			<!-- Bordered -->
+			<SegmentedRow
+				:label="__('Bordered')"
+				:model-value="table_bordered !== false"
+				:options="[
+					{ value: true, label: __('Yes') },
+					{ value: false, label: __('No') },
+				]"
+				@update:model-value="(v) => (selected_field.table_bordered = v)"
+			/>
+			<!-- Cell padding -->
+			<StepperRow
+				:label="__('Cell padding')"
+				:model-value="table_cell_padding"
+				:base="7"
+				unit="px"
+				:placeholder="__('auto')"
+				allow-empty
+				@update:model-value="set_cell_padding"
+			/>
+			<!-- Header -->
+			<SegmentedRow
+				:label="__('Header')"
+				:model-value="table_header"
+				:options="[
+					{ value: 'styled', label: __('Styled') },
+					{ value: 'plain', label: __('Plain') },
+					{ value: 'none', label: __('None') },
+				]"
+				@update:model-value="(v) => (selected_field.table_header = v)"
+			/>
+			<!-- Corner radius -->
+			<StepperRow
+				:label="__('Radius')"
+				:model-value="table_radius"
+				unit="px"
+				:placeholder="__('none')"
+				allow-empty
+				@update:model-value="set_table_radius"
+			/>
+		</InspectorSection>
 
 		<!-- COLUMNS section -->
-		<div class="pfb-insp-section">
-			<div class="pfb-insp-section-head" @click="toggle('t_columns')">
-				<span class="pfb-insp-section-label">{{ __("Columns") }}</span>
-				<div style="display: flex; align-items: center; gap: 8px">
-					<span class="pfb-insp-col-count text-muted">{{
-						(selected_field.table_columns || []).length
-					}}</span>
-					<span
-						class="pfb-insp-chevron"
-						:class="{ collapsed: !open.t_columns }"
-						v-html="frappe.utils.icon('chevron-down', 'xs')"
-					></span>
-				</div>
-			</div>
-			<div v-show="open.t_columns">
+		<InspectorSection :label="__('Columns')" :padded="false">
+			<template #head>
+				<span class="pfb-insp-col-count text-muted">{{
+					(selected_field.table_columns || []).length
+				}}</span>
+			</template>
+			<div>
 				<!-- Column list -->
 				<draggable
 					:list="selected_field.table_columns"
@@ -231,37 +211,17 @@
 					{{ __("All available columns added.") }}
 				</div>
 			</div>
-		</div>
+		</InspectorSection>
 
 		<!-- STYLE section -->
-		<div class="pfb-insp-section">
-			<div class="pfb-insp-section-head" @click="toggle('t_style')">
-				<span class="pfb-insp-section-label">{{ __("Style") }}</span>
-				<span
-					class="pfb-insp-chevron"
-					:class="{ collapsed: !open.t_style }"
-					v-html="frappe.utils.icon('chevron-down', 'xs')"
-				></span>
-			</div>
-			<div v-show="open.t_style">
-				<StyleSection v-model="selected_field.custom_style" />
-			</div>
-		</div>
+		<InspectorSection :label="__('Style')" :init-open="false" :padded="false">
+			<StyleSection v-model="selected_field.custom_style" />
+		</InspectorSection>
 
 		<!-- VISIBILITY section -->
-		<div class="pfb-insp-section">
-			<div class="pfb-insp-section-head" @click="toggle('t_visibility')">
-				<span class="pfb-insp-section-label">{{ __("Visibility") }}</span>
-				<span
-					class="pfb-insp-chevron"
-					:class="{ collapsed: !open.t_visibility }"
-					v-html="frappe.utils.icon('chevron-down', 'xs')"
-				></span>
-			</div>
-			<div v-show="open.t_visibility">
-				<VisibilitySection v-model="selected_field.visible_if" :previewDoc="preview_doc" />
-			</div>
-		</div>
+		<InspectorSection :label="__('Visibility')" :padded="false">
+			<VisibilitySection v-model="selected_field.visible_if" :previewDoc="preview_doc" />
+		</InspectorSection>
 
 		<div class="pfb-insp-actions">
 			<button class="btn btn-xs text-danger" @click="remove_field">
@@ -273,38 +233,19 @@
 </template>
 
 <script setup>
-import { computed, inject, ref, watch } from "vue";
+import { computed, ref, watch } from "vue";
 import draggable from "vuedraggable";
 import Autocomplete from "../../../vue-components/Autocomplete.vue";
 import LabelField from "./LabelField.vue";
 import SegmentedRow from "./SegmentedRow.vue";
+import InspectorSection from "./InspectorSection.vue";
 import StepperRow from "./StepperRow.vue";
 import Stepper from "./Stepper.vue";
 import StyleSection from "./StyleSection.vue";
 import VisibilitySection from "./VisibilitySection.vue";
+import { useSelectedField } from "./useSelectedField";
 
-let store = inject("$store");
-
-let selected_field = computed(() => store.selected_field.value);
-let preview_doc = computed(() => store.preview_doc.value);
-
-const open = ref({
-	t_table: true,
-	t_columns: true,
-	t_style: false,
-	t_visibility: true,
-});
-
-function toggle(key) {
-	open.value[key] = !open.value[key];
-}
-
-function remove_field() {
-	if (selected_field.value) {
-		selected_field.value.remove = true;
-		store.selected_field.value = null;
-	}
-}
+const { selected_field, preview_doc, remove_field } = useSelectedField();
 
 let table_style = computed(() => selected_field.value?.table_style ?? "lined");
 let table_bordered = computed(() => selected_field.value?.table_bordered ?? true);

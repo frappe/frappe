@@ -1,114 +1,82 @@
 <template>
 	<div class="pfb-insp-body">
-		<div class="pfb-insp-section">
-			<div class="pfb-insp-section-head" @click="toggle('f_field')">
-				<span class="pfb-insp-section-label">{{ __("Field") }}</span>
-				<span
-					class="pfb-insp-chevron"
-					:class="{ collapsed: !open.f_field }"
-					v-html="frappe.utils.icon('chevron-down', 'xs')"
-				></span>
-			</div>
-			<div v-show="open.f_field" class="pfb-insp-section-body">
-				<div class="pfb-insp-row">
-					<span class="pfb-insp-label">{{ __("Source") }}</span>
-					<div
-						class="pfb-source-display d-flex align-items-center justify-content-between"
-					>
-						<span class="ellipsis" style="min-width: 0">{{
-							selected_field.label || selected_field.fieldname
-						}}</span>
-						<span class="badge badge-light flex-shrink-0">{{ short_fieldtype }}</span>
-					</div>
+		<InspectorSection :label="__('Field')">
+			<div class="pfb-insp-row">
+				<span class="pfb-insp-label">{{ __("Source") }}</span>
+				<div class="pfb-source-display d-flex align-items-center justify-content-between">
+					<span class="ellipsis" style="min-width: 0">{{
+						selected_field.label || selected_field.fieldname
+					}}</span>
+					<span class="badge badge-light flex-shrink-0">{{ short_fieldtype }}</span>
 				</div>
-				<template v-if="is_html_field">
-					<div
-						class="pfb-html-preview"
-						v-if="selected_field.html"
-						v-html="selected_field.html"
-					></div>
-					<div v-else class="pfb-insp-hint text-muted">
-						{{ __("No HTML content yet.") }}
-					</div>
-					<button
-						class="btn btn-xs btn-default d-inline-flex align-items-center"
-						@click="edit_html_field"
+			</div>
+			<template v-if="is_html_field">
+				<div
+					class="pfb-html-preview"
+					v-if="selected_field.html"
+					v-html="selected_field.html"
+				></div>
+				<div v-else class="pfb-insp-hint text-muted">
+					{{ __("No HTML content yet.") }}
+				</div>
+				<button
+					class="btn btn-xs btn-default d-inline-flex align-items-center"
+					@click="edit_html_field"
+				>
+					<span v-html="frappe.utils.icon('pencil', 'xs')"></span>
+					{{ __("Edit HTML") }}
+				</button>
+			</template>
+			<template v-else>
+				<LabelField
+					v-model="selected_field.label"
+					:label="__('Label')"
+					:placeholder="__('Field label')"
+					show-toggle
+					:show="selected_field.show_label"
+					@update:show="(v) => (selected_field.show_label = v)"
+				/>
+				<SegmentedRow
+					:label="__('Align')"
+					:model-value="current_align"
+					:options="align_opts"
+					@update:model-value="(v) => (selected_field.align = v)"
+				/>
+				<div class="pfb-insp-row" v-if="fieldIsInline">
+					<span class="pfb-insp-label">{{ __("Spacing") }}</span>
+					<select
+						class="pfb-insp-select"
+						:value="current_label_justify"
+						@change="selected_field.label_justify = $event.target.value"
 					>
-						<span v-html="frappe.utils.icon('pencil', 'xs')"></span>
-						{{ __("Edit HTML") }}
-					</button>
-				</template>
-				<template v-else>
-					<LabelField
-						v-model="selected_field.label"
-						:label="__('Label')"
-						:placeholder="__('Field label')"
-						show-toggle
-						:show="selected_field.show_label"
-						@update:show="(v) => (selected_field.show_label = v)"
-					/>
-					<SegmentedRow
-						:label="__('Align')"
-						:model-value="current_align"
-						:options="align_opts"
-						@update:model-value="(v) => (selected_field.align = v)"
-					/>
-					<div class="pfb-insp-row" v-if="fieldIsInline">
-						<span class="pfb-insp-label">{{ __("Spacing") }}</span>
-						<select
-							class="pfb-insp-select"
-							:value="current_label_justify"
-							@change="selected_field.label_justify = $event.target.value"
-						>
-							<option value="">{{ __("Normal") }}</option>
-							<option value="space-between">
-								{{ __("Space Between") }}
-							</option>
-							<option value="space-evenly">{{ __("Space Evenly") }}</option>
-						</select>
-					</div>
-					<StepperRow
-						v-if="fieldIsInline"
-						:label="__('Label gap')"
-						:model-value="selected_field.label_gap"
-						:base="8"
-						:step="2"
-						unit="px"
-						:placeholder="__('auto')"
-						allow-empty
-						@update:model-value="(v) => (selected_field.label_gap = v)"
-					/>
-				</template>
-			</div>
-		</div>
+						<option value="">{{ __("Normal") }}</option>
+						<option value="space-between">
+							{{ __("Space Between") }}
+						</option>
+						<option value="space-evenly">{{ __("Space Evenly") }}</option>
+					</select>
+				</div>
+				<StepperRow
+					v-if="fieldIsInline"
+					:label="__('Label gap')"
+					:model-value="selected_field.label_gap"
+					:base="8"
+					:step="2"
+					unit="px"
+					:placeholder="__('auto')"
+					allow-empty
+					@update:model-value="(v) => (selected_field.label_gap = v)"
+				/>
+			</template>
+		</InspectorSection>
 
-		<div class="pfb-insp-section">
-			<div class="pfb-insp-section-head" @click="toggle('f_style')">
-				<span class="pfb-insp-section-label">{{ __("Style") }}</span>
-				<span
-					class="pfb-insp-chevron"
-					:class="{ collapsed: !open.f_style }"
-					v-html="frappe.utils.icon('chevron-down', 'xs')"
-				></span>
-			</div>
-			<div v-show="open.f_style">
-				<StyleSection v-model="selected_field.custom_style" />
-			</div>
-		</div>
+		<InspectorSection :label="__('Style')" :init-open="false" :padded="false">
+			<StyleSection v-model="selected_field.custom_style" />
+		</InspectorSection>
 
-		<div class="pfb-insp-section">
-			<div class="pfb-insp-section-head" @click="toggle('f_visibility')">
-				<span class="pfb-insp-section-label">{{ __("Visibility") }}</span>
-				<span
-					class="pfb-insp-chevron"
-					:class="{ collapsed: !open.f_visibility }"
-					v-html="frappe.utils.icon('chevron-down', 'xs')"
-				></span>
-			</div>
-			<div v-show="open.f_visibility">
-				<VisibilitySection v-model="selected_field.visible_if" :previewDoc="preview_doc" />
-			</div>
-		</div>
+		<InspectorSection :label="__('Visibility')" :init-open="false" :padded="false">
+			<VisibilitySection v-model="selected_field.visible_if" :previewDoc="preview_doc" />
+		</InspectorSection>
 
 		<div class="pfb-insp-actions">
 			<button class="btn btn-xs text-danger" @click="remove_field">
@@ -120,30 +88,19 @@
 </template>
 
 <script setup>
-import { computed, inject, ref } from "vue";
+import { computed } from "vue";
 import LabelField from "./LabelField.vue";
 import SegmentedRow from "./SegmentedRow.vue";
+import InspectorSection from "./InspectorSection.vue";
 import StepperRow from "./StepperRow.vue";
 import StyleSection from "./StyleSection.vue";
 import VisibilitySection from "./VisibilitySection.vue";
 import { align_opts } from "./align_opts";
+import { useSelectedField } from "./useSelectedField";
 
 defineProps(["fieldIsInline"]);
 
-let store = inject("$store");
-
-let selected_field = computed(() => store.selected_field.value);
-let preview_doc = computed(() => store.preview_doc.value);
-
-const open = ref({
-	f_field: true,
-	f_style: false,
-	f_visibility: false,
-});
-
-function toggle(key) {
-	open.value[key] = !open.value[key];
-}
+const { selected_field, preview_doc, remove_field } = useSelectedField();
 
 let is_html_field = computed(() => selected_field.value?.fieldtype === "HTML");
 
@@ -172,13 +129,6 @@ let short_fieldtype = computed(() => {
 
 let current_align = computed(() => selected_field.value?.align ?? "left");
 let current_label_justify = computed(() => selected_field.value?.label_justify ?? "");
-
-function remove_field() {
-	if (selected_field.value) {
-		selected_field.value.remove = true;
-		store.selected_field.value = null;
-	}
-}
 
 function open_html_split_dialog({ title, initial_html, on_save }) {
 	let d = new frappe.ui.Dialog({

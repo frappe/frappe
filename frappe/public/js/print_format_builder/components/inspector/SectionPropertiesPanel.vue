@@ -1,159 +1,96 @@
 <template>
 	<div class="pfb-insp-body">
 		<!-- SECTION properties -->
-		<div class="pfb-insp-section">
-			<div class="pfb-insp-section-head" @click="toggle('s_section')">
-				<span class="pfb-insp-section-label">{{ __("Section") }}</span>
-				<span
-					class="pfb-insp-chevron"
-					:class="{ collapsed: !open.s_section }"
-					v-html="frappe.utils.icon('chevron-down', 'xs')"
-				></span>
-			</div>
-			<div v-show="open.s_section" class="pfb-insp-section-body">
-				<!-- Title -->
-				<LabelField
-					v-model="selected_section.label"
-					:label="__('Title')"
-					:placeholder="__('Untitled section')"
-					show-toggle
-					:show-label="__('Show title')"
-					:show="selected_section.show_label"
-					@update:show="(v) => (selected_section.show_label = v)"
-				/>
+		<InspectorSection :label="__('Section')">
+			<!-- Title -->
+			<LabelField
+				v-model="selected_section.label"
+				:label="__('Title')"
+				:placeholder="__('Untitled section')"
+				show-toggle
+				:show-label="__('Show title')"
+				:show="selected_section.show_label"
+				@update:show="(v) => (selected_section.show_label = v)"
+			/>
 
-				<!-- Columns -->
-				<SegmentedRow
-					:label="__('Columns')"
-					:model-value="selected_section.columns.length"
-					:options="[1, 2, 3, 4].map((n) => ({ value: n, label: n }))"
-					@update:model-value="set_columns"
-				/>
+			<!-- Columns -->
+			<SegmentedRow
+				:label="__('Columns')"
+				:model-value="selected_section.columns.length"
+				:options="[1, 2, 3, 4].map((n) => ({ value: n, label: n }))"
+				@update:model-value="set_columns"
+			/>
 
-				<!-- Orientation -->
-				<SegmentedRow
-					:label="__('Label side')"
-					:model-value="section_orientation === 'left-right' ? 'left-right' : 'top'"
-					:options="[
-						{ value: 'top', label: __('Top') },
-						{ value: 'left-right', label: __('Left') },
-					]"
-					@update:model-value="
-						(v) =>
-							(selected_section.field_orientation =
-								v === 'left-right' ? 'left-right' : '')
-					"
-				/>
+			<!-- Orientation -->
+			<SegmentedRow
+				:label="__('Label side')"
+				:model-value="section_orientation === 'left-right' ? 'left-right' : 'top'"
+				:options="[
+					{ value: 'top', label: __('Top') },
+					{ value: 'left-right', label: __('Left') },
+				]"
+				@update:model-value="
+					(v) =>
+						(selected_section.field_orientation =
+							v === 'left-right' ? 'left-right' : '')
+				"
+			/>
 
-				<!-- Gap -->
-				<StepperRow
-					:label="__('Gap')"
-					:model-value="section_gap"
-					:step="4"
-					:base="20"
-					unit="px"
-					@update:model-value="(v) => (selected_section.gap = v)"
-				/>
-			</div>
-		</div>
+			<!-- Gap -->
+			<StepperRow
+				:label="__('Gap')"
+				:model-value="section_gap"
+				:step="4"
+				:base="20"
+				unit="px"
+				@update:model-value="(v) => (selected_section.gap = v)"
+			/>
+		</InspectorSection>
 
 		<!-- BACKGROUND -->
-		<div class="pfb-insp-section">
-			<div class="pfb-insp-section-head" @click="toggle('s_bg')">
-				<span class="pfb-insp-section-label">{{ __("Background") }}</span>
-				<span
-					class="pfb-insp-chevron"
-					:class="{ collapsed: !open.s_bg }"
-					v-html="frappe.utils.icon('chevron-down', 'xs')"
-				></span>
-			</div>
-			<div v-show="open.s_bg" class="pfb-insp-section-body">
-				<div ref="bg_color_host"></div>
-			</div>
-		</div>
+		<InspectorSection :label="__('Background')">
+			<div ref="bg_color_host"></div>
+		</InspectorSection>
 
 		<!-- PADDING -->
-		<div class="pfb-insp-section">
-			<div class="pfb-insp-section-head" @click="toggle('s_padding')">
-				<span class="pfb-insp-section-label">{{ __("Padding") }}</span>
-				<span
-					class="pfb-insp-chevron"
-					:class="{ collapsed: !open.s_padding }"
-					v-html="frappe.utils.icon('chevron-down', 'xs')"
-				></span>
-			</div>
-			<div v-show="open.s_padding" class="pfb-insp-section-body">
-				<PaddingGrid
-					:model-value="selected_section.padding"
-					@update:model-value="(v) => (selected_section.padding = v)"
-				/>
-			</div>
-		</div>
+		<InspectorSection :label="__('Padding')">
+			<PaddingGrid
+				:model-value="selected_section.padding"
+				@update:model-value="(v) => (selected_section.padding = v)"
+			/>
+		</InspectorSection>
 
 		<!-- LAYOUT -->
-		<div class="pfb-insp-section">
-			<div class="pfb-insp-section-head" @click="toggle('s_layout')">
-				<span class="pfb-insp-section-label">{{ __("Layout") }}</span>
-				<span
-					class="pfb-insp-chevron"
-					:class="{ collapsed: !open.s_layout }"
-					v-html="frappe.utils.icon('chevron-down', 'xs')"
-				></span>
-			</div>
-			<div v-show="open.s_layout" class="pfb-insp-section-body">
-				<!-- Layout mode -->
-				<SegmentedRow
-					:label="__('Mode')"
-					:model-value="section_field_borders"
-					:options="[
-						{ value: false, label: __('Normal') },
-						{ value: true, label: __('Table') },
-					]"
-					@update:model-value="toggle_field_borders"
-				/>
-				<!-- Cell padding -->
-				<StepperRow
-					:label="__('Cell padding')"
-					:model-value="section_cell_padding"
-					:base="8"
-					unit="px"
-					@update:model-value="(v) => (selected_section.cell_padding = v)"
-				/>
-			</div>
-		</div>
+		<InspectorSection :label="__('Layout')" :init-open="false">
+			<!-- Layout mode -->
+			<SegmentedRow
+				:label="__('Mode')"
+				:model-value="section_field_borders"
+				:options="[
+					{ value: false, label: __('Normal') },
+					{ value: true, label: __('Table') },
+				]"
+				@update:model-value="toggle_field_borders"
+			/>
+			<!-- Cell padding -->
+			<StepperRow
+				:label="__('Cell padding')"
+				:model-value="section_cell_padding"
+				:base="8"
+				unit="px"
+				@update:model-value="(v) => (selected_section.cell_padding = v)"
+			/>
+		</InspectorSection>
 
 		<!-- STYLE -->
-		<div class="pfb-insp-section">
-			<div class="pfb-insp-section-head" @click="toggle('s_style')">
-				<span class="pfb-insp-section-label">{{ __("Style") }}</span>
-				<span
-					class="pfb-insp-chevron"
-					:class="{ collapsed: !open.s_style }"
-					v-html="frappe.utils.icon('chevron-down', 'xs')"
-				></span>
-			</div>
-			<div v-show="open.s_style">
-				<StyleSection v-model="selected_section.custom_style" />
-			</div>
-		</div>
+		<InspectorSection :label="__('Style')" :init-open="false" :padded="false">
+			<StyleSection v-model="selected_section.custom_style" />
+		</InspectorSection>
 
 		<!-- VISIBILITY -->
-		<div class="pfb-insp-section">
-			<div class="pfb-insp-section-head" @click="toggle('s_visibility')">
-				<span class="pfb-insp-section-label">{{ __("Visibility") }}</span>
-				<span
-					class="pfb-insp-chevron"
-					:class="{ collapsed: !open.s_visibility }"
-					v-html="frappe.utils.icon('chevron-down', 'xs')"
-				></span>
-			</div>
-			<div v-show="open.s_visibility">
-				<VisibilitySection
-					v-model="selected_section.visible_if"
-					:previewDoc="preview_doc"
-				/>
-			</div>
-		</div>
+		<InspectorSection :label="__('Visibility')" :init-open="false" :padded="false">
+			<VisibilitySection v-model="selected_section.visible_if" :previewDoc="preview_doc" />
+		</InspectorSection>
 
 		<div class="pfb-insp-actions">
 			<button class="btn btn-xs text-danger" @click="remove_section">
@@ -169,6 +106,7 @@ import { computed, inject, nextTick, ref, watch } from "vue";
 import { useStore } from "../../stores";
 import LabelField from "./LabelField.vue";
 import SegmentedRow from "./SegmentedRow.vue";
+import InspectorSection from "./InspectorSection.vue";
 import StepperRow from "./StepperRow.vue";
 import PaddingGrid from "./PaddingGrid.vue";
 import StyleSection from "./StyleSection.vue";
@@ -180,19 +118,6 @@ let { layout } = useStore();
 
 let selected_section = computed(() => store.selected_section.value);
 let preview_doc = computed(() => store.preview_doc.value);
-
-const open = ref({
-	s_section: true,
-	s_bg: true,
-	s_padding: true,
-	s_layout: false,
-	s_style: false,
-	s_visibility: false,
-});
-
-function toggle(key) {
-	open.value[key] = !open.value[key];
-}
 
 let section_orientation = computed(() => selected_section.value?.field_orientation ?? "");
 let section_gap = computed(() => selected_section.value?.gap ?? 20);
