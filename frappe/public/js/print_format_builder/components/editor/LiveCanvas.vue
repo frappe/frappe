@@ -8,7 +8,7 @@
 
 <script setup>
 import { serialize_layout } from "../../utils";
-import { ref, inject, watch, onMounted } from "vue";
+import { ref, inject, watch, onActivated } from "vue";
 
 let store = inject("$store");
 let frame = ref(null);
@@ -22,6 +22,22 @@ const INTERACTION_CSS = `
 	[data-pfb-section]:hover, [data-pfb-zone]:hover { outline: 1px dashed #c7d7fe; outline-offset: 3px; }
 	.pfb-live-selected { outline: 2px solid #4d7cfe !important; outline-offset: 1px; }
 	.pfb-live-selected-section { outline: 2px solid #94b8ff !important; outline-offset: 3px; }
+	.pfb-dragging { opacity: 0.4; }
+	.pfb-drop-indicator {
+		position: absolute;
+		height: 2px;
+		background: #4d7cfe;
+		border-radius: 1px;
+		pointer-events: none;
+		z-index: 9999;
+		display: none;
+	}
+	.label[contenteditable], .section-label[contenteditable] {
+		outline: 1px solid #4d7cfe;
+		outline-offset: 1px;
+		cursor: text;
+		border-radius: 2px;
+	}
 `;
 
 function serialized_format_data() {
@@ -84,6 +100,8 @@ function write_document(html) {
 	doc.close();
 	doc.addEventListener("click", handle_click);
 	doc.addEventListener("keydown", forward_keydown);
+	doc.addEventListener("pointerdown", on_pointer_down);
+	doc.addEventListener("dblclick", on_dblclick);
 	frame.value.contentWindow?.scrollTo(0, scroll_y);
 	loaded.value = true;
 	update_highlight();
@@ -132,6 +150,10 @@ function path_of(field) {
 
 function handle_click(e) {
 	e.preventDefault();
+	if (suppress_click) {
+		suppress_click = false;
+		return;
+	}
 	const field_el = e.target.closest("[data-pfb-path]");
 	const section_el = e.target.closest("[data-pfb-section]");
 	const zone_el = e.target.closest("[data-pfb-zone]");
@@ -159,6 +181,174 @@ function handle_click(e) {
 		store.selected_section.value = null;
 	}
 	update_highlight();
+}
+
+// ── Drag to reorder ─────────────────────────────────────────
+let drag = null;
+let suppress_click = false;
+
+function column_of(col_path) {
+	const parts = col_path.split(".");
+	if (parts[0] === "s") return live_sections()[+parts[1]]?.columns?.[+parts[2]];
+	const zone = parts[0] === "h" ? store.layout.value.header : store.layout.value.footer;
+	return zone?.columns?.[+parts[1]];
+}
+
+function on_pointer_down(e) {
+	if (e.button !== 0 || e.target.isContentEditable) return;
+	const el = e.target.closest("[data-pfb-path]");
+	if (!el) return;
+	const doc = frame.value.contentDocument;
+	drag = {
+		el,
+		path: el.dataset.pfbPath,
+		start_x: e.clientX,
+		start_y: e.clientY,
+		active: false,
+		indicator: null,
+		target: null,
+	};
+	doc.addEventListener("pointermove", on_pointer_move);
+	doc.addEventListener("pointerup", on_pointer_up, { once: true });
+}
+
+function on_pointer_move(e) {
+	if (!drag) return;
+	const doc = frame.value.contentDocument;
+	if (!drag.active) {
+		if (Math.hypot(e.clientX - drag.start_x, e.clientY - drag.start_y) < 5) return;
+		drag.active = true;
+		drag.el.classList.add("pfb-dragging");
+		doc.body.style.userSelect = "none";
+		drag.indicator = doc.createElement("div");
+		drag.indicator.className = "pfb-drop-indicator";
+		doc.body.appendChild(drag.indicator);
+	}
+	e.preventDefault();
+	const under = doc.elementFromPoint(e.clientX, e.clientY);
+	const field_el = under?.closest("[data-pfb-path]");
+	const col_el = under?.closest("[data-pfb-col]");
+	if (field_el && field_el !== drag.el) {
+		const rect = field_el.getBoundingClientRect();
+		const before = e.clientY < rect.top + rect.height / 2;
+		drag.target = {
+			col_path: field_el.dataset.pfbPath.split(".").slice(0, -1).join("."),
+			field_path: field_el.dataset.pfbPath,
+			before,
+		};
+		position_indicator(rect, before);
+	} else if (col_el) {
+		drag.target = { col_path: col_el.dataset.pfbCol, append: true };
+		const rect = col_el.getBoundingClientRect();
+		position_indicator(rect, !col_el.querySelector("[data-pfb-path]"));
+	} else {
+		drag.target = null;
+		if (drag.indicator) drag.indicator.style.display = "none";
+	}
+}
+
+function position_indicator(rect, at_top) {
+	const win = frame.value.contentWindow;
+	Object.assign(drag.indicator.style, {
+		display: "block",
+		top: (at_top ? rect.top : rect.bottom) + win.scrollY - 1 + "px",
+		left: rect.left + win.scrollX + "px",
+		width: rect.width + "px",
+	});
+}
+
+function on_pointer_up() {
+	const doc = frame.value.contentDocument;
+	doc?.removeEventListener("pointermove", on_pointer_move);
+	if (!drag) return;
+	const d = drag;
+	drag = null;
+	if (!d.active) return;
+	suppress_click = true;
+	d.el.classList.remove("pfb-dragging");
+	doc.body.style.userSelect = "";
+	d.indicator?.remove();
+	if (d.target) move_field(d.path, d.target);
+}
+
+function move_field(src_path, target) {
+	const src_parts = src_path.split(".");
+	const src_col = column_of(src_parts.slice(0, -1).join("."));
+	const dst_col = column_of(target.col_path);
+	if (!src_col || !dst_col) return;
+
+	const field = src_col.fields.filter((f) => !f.remove)[+src_parts.at(-1)];
+	if (!field) return;
+
+	const anchor = target.field_path
+		? dst_col.fields.filter((f) => !f.remove)[+target.field_path.split(".").at(-1)]
+		: null;
+
+	src_col.fields.splice(src_col.fields.indexOf(field), 1);
+
+	if (anchor) {
+		let idx = dst_col.fields.indexOf(anchor);
+		if (!target.before) idx += 1;
+		dst_col.fields.splice(idx, 0, field);
+	} else {
+		dst_col.fields.push(field);
+	}
+	store.selected_field.value = field;
+}
+
+// ── Inline label editing ────────────────────────────────────
+function on_dblclick(e) {
+	const doc = frame.value.contentDocument;
+	const field_el = e.target.closest("[data-pfb-path]");
+	const field_label = field_el?.querySelector(".label");
+	const section_el = e.target.closest("[data-pfb-section]");
+	const section_label = e.target.closest(".section-label");
+
+	let el, commit;
+	if (field_label && field_label.contains(e.target)) {
+		const { field } = resolve_path(field_el.dataset.pfbPath);
+		if (!field) return;
+		el = field_label;
+		commit = (text) => {
+			if (text !== field.label) field.label = text;
+		};
+	} else if (section_label && section_el) {
+		const section = live_sections()[+section_el.dataset.pfbSection];
+		if (!section) return;
+		el = section_label;
+		commit = (text) => {
+			if (text !== section.label) section.label = text;
+		};
+	} else {
+		return;
+	}
+
+	e.preventDefault();
+	const original = el.textContent;
+	el.setAttribute("contenteditable", "plaintext-only");
+	el.focus();
+	doc.getSelection()?.selectAllChildren(el);
+
+	const on_key = (ke) => {
+		ke.stopPropagation();
+		if (ke.key === "Enter") {
+			ke.preventDefault();
+			el.blur();
+		} else if (ke.key === "Escape") {
+			el.textContent = original;
+			el.blur();
+		}
+	};
+	el.addEventListener("keydown", on_key);
+	el.addEventListener(
+		"blur",
+		() => {
+			el.removeEventListener("keydown", on_key);
+			el.removeAttribute("contenteditable");
+			commit(el.textContent.trim());
+		},
+		{ once: true }
+	);
 }
 
 function forward_keydown(e) {
@@ -209,7 +399,10 @@ watch(() => store.preview_doc_name.value, render);
 watch(() => store.letterhead.value?.name, render);
 watch([() => store.selected_field.value, () => store.selected_section.value], update_highlight);
 
-onMounted(render);
+onActivated(() => {
+	loaded.value = false;
+	render();
+});
 </script>
 
 <style scoped>

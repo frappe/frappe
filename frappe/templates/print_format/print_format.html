@@ -35,7 +35,7 @@
 	<div class="section document-header-content" data-pfb-zone="header">
 	<div class="section-columns row" style="gap:{{ col_gap }}">
 	{%- for column in layout.header.columns %}
-	<div class="column col">
+	<div class="column col" data-pfb-col="h.{{ loop.index0 }}">
 	{%- for df in column.fields %}{{ macros.render_field(df, doc) }}{%- endfor %}
 	</div>
 	{%- endfor %}
@@ -95,9 +95,10 @@
 			{%- set row_layout = '' -%}
 		{%- endif -%}
 		{%- set col_gap = ('0' if section.field_borders else (section.gap if section.gap is defined and section.gap != None else 20)|string + 'px') -%}
+		{%- set sidx = loop.index0 -%}
 		<div class="section-columns row {{ row_layout }}" style="gap:{{ col_gap }}">
 			{% for column in section.columns %}
-			<div class="column col">
+			<div class="column col" data-pfb-col="s.{{ sidx }}.{{ loop.index0 }}">
 				{% for df in column.fields %}
 				{{ macros.render_field(df, doc) }}
 				{% endfor %}
@@ -122,7 +123,7 @@
 	<div class="section document-footer-content" data-pfb-zone="footer">
 	<div class="section-columns row" style="gap:{{ col_gap_f }}">
 	{%- for column in layout.footer.columns %}
-	<div class="column col">
+	<div class="column col" data-pfb-col="f.{{ loop.index0 }}">
 	{%- for df in column.fields %}{{ macros.render_field(df, doc) }}{%- endfor %}
 	</div>
 	{%- endfor %}
