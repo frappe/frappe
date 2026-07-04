@@ -12,8 +12,10 @@ concurrency:
   cancel-in-progress: true
 
 permissions:
-  # Do not change this as GITHUB_TOKEN is being used by roulette
+  # Do not change contents as GITHUB_TOKEN is being used by roulette
   contents: read
+  # allows the ghcr ci image pull to authenticate even if the package is made private
+  packages: read
 
 jobs:
   checkrun:
