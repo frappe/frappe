@@ -61,9 +61,10 @@ frappe.ui.EmbeddedList = class EmbeddedList {
 			? `<div class="embedded-list-description">${this.description}</div>`
 			: "";
 		const add = this.add_button
-			? `<button class="es-button" data-action="add-row">${
-					this.add_button.label || __("Add")
-			  }</button>`
+			? frappe.ui.button.html({
+					label: this.add_button.label || __("Add"),
+					attrs: { "data-action": "add-row" },
+			  })
 			: "";
 		const search = `<input type="text" class="form-control form-control-sm embedded-list-search" data-action="search" placeholder="${__(
 			"Search"
@@ -186,9 +187,7 @@ frappe.ui.EmbeddedList = class EmbeddedList {
 					this.rendered_count,
 					this.data.length,
 				])}</span>
-				<button class="es-button" data-action="load-more">
-					${__("Load More")}
-				</button>
+				${frappe.ui.button.html({ label: __("Load More"), attrs: { "data-action": "load-more" } })}
 			</div>`
 		).appendTo(this.$result);
 	}
@@ -273,19 +272,18 @@ frappe.ui.EmbeddedList = class EmbeddedList {
 
 	build_actions_html(col) {
 		return (col.actions || [])
-			.map((action, action_idx) => {
-				const title = action.label
-					? ` title="${frappe.utils.escape_html(action.label)}"`
-					: "";
-				// `xs` + currentColor matches Frappe's inline row actions (grid_row.js);
-				// only danger actions take the red theme, others stay neutral gray.
-				const theme = action.danger ? "red" : "gray";
-				const icon_button = action.icon ? "true" : "false";
-				const inner = action.icon
-					? frappe.utils.icon(action.icon, "xs", "", "", "", true)
-					: frappe.utils.escape_html(action.label || "");
-				return `<button class="es-button" data-icon-button="${icon_button}" data-size="xs" data-theme="${theme}" data-variant="ghost" data-action-idx="${action_idx}"${title}>${inner}</button>`;
-			})
+			.map((action, action_idx) =>
+				// only danger actions take the red theme, others stay neutral gray
+				frappe.ui.button.html({
+					label: action.icon ? "" : action.label || "",
+					icon: action.icon,
+					size: "xs",
+					variant: "ghost",
+					theme: action.danger ? "red" : null,
+					title: action.label,
+					attrs: { "data-action-idx": String(action_idx) },
+				})
+			)
 			.join("");
 	}
 

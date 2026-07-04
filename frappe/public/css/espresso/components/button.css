@@ -14,7 +14,7 @@
  *   data-size      xs | sm | md | lg                         (default: sm)
  *   data-theme     gray | red                                (default: gray)
  *   data-icon-button="true"   square, no inline padding
- *   data-loading              blocks interaction without the disabled dimming
+ *   aria-busy="true"          loading: blocks interaction without the disabled dimming
  *   aria-invalid="true"       red focus ring + red border (matches Raven)
  *
  * DEFAULTS live on the base `.es-button` rule (variant=subtle, size=sm,
@@ -214,35 +214,29 @@
     background: transparent;
 }
 
-/* ---- loading: block interaction without the disabled dimming ---- */
-.es-button[data-loading] {
+/* ---- loading: block interaction without the disabled dimming. Styled off
+       aria-busy so the visual and accessibility states cannot drift. ---- */
+.es-button[aria-busy="true"] {
     pointer-events: none;
 }
 
-.es-button:not([data-loading]) .es-button__spinner {
+.es-button:not([aria-busy="true"]) > .es-spinner,
+.es-button:not([aria-busy="true"]) > .es-button__loading-label {
     display: none;
 }
 
-/* ---- icons + spinner: size follows the button size ---- */
-.es-button>svg {
+/* while busy, a loading label replaces the normal label + icon */
+.es-button[aria-busy="true"]:has(> .es-button__loading-label) > .es-button__label,
+.es-button[aria-busy="true"]:has(> .es-button__loading-label) > svg {
+    display: none;
+}
+
+/* ---- icons + spinner (painted by components/spinner.css): size follows
+       the button size ---- */
+.es-button > svg,
+.es-button > .es-spinner {
     pointer-events: none;
     flex-shrink: 0;
     width: var(--es-bt-icon);
     height: var(--es-bt-icon);
-}
-
-.es-button__spinner {
-    flex-shrink: 0;
-    width: var(--es-bt-icon);
-    height: var(--es-bt-icon);
-    border-radius: 9999px;
-    border: 2px solid currentColor;
-    border-top-color: transparent;
-    animation: es-button-spin 600ms linear infinite;
-}
-
-@keyframes es-button-spin {
-    to {
-        transform: rotate(360deg);
-    }
 }

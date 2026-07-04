@@ -276,8 +276,8 @@ class ListPanel {
 		$('<div class="text-muted small"></div>')
 			.text(__("Could not load this tab."))
 			.appendTo($err);
-		$(`<button type="button" class="es-button" data-size="xs">${__("Retry")}</button>`)
-			.appendTo($err)
-			.on("click", () => this.load());
+		frappe.ui
+			.button({ label: __("Retry"), size: "xs", onclick: () => this.load() })
+			.appendTo($err);
 	}
 }

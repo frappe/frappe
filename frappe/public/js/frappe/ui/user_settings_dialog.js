@@ -160,7 +160,7 @@ function _profile_tab(user_data) {
 						last_name: values.last_name || "",
 						username: values.username || "",
 					};
-					_save_user(payload).then(() => {
+					return _save_user(payload).then(() => {
 						Object.assign(user_data, payload);
 						const fn = [payload.first_name, payload.middle_name, payload.last_name]
 							.filter(Boolean)
@@ -189,9 +189,11 @@ function _profile_tab(user_data) {
 						<div class="profile-full-name">${frappe.utils.escape_html(full_name)}</div>
 						<div class="profile-email">${frappe.utils.escape_html(email)}</div>
 					</div>
-					<button class="es-button change-password-btn">
-						${frappe.utils.icon("rotate-ccw-key")} ${__("Change Password")}
-					</button>
+					${frappe.ui.button.html({
+						label: __("Change Password"),
+						icon: "rotate-ccw-key",
+						css_class: "change-password-btn",
+					})}
 				</div>
 			`);
 
@@ -292,7 +294,7 @@ function _email_tab(user_data) {
 				label: __("Save"),
 				variant: "solid",
 				click(panel) {
-					_save_user("email_signature", panel.get_value("email_signature"));
+					return _save_user("email_signature", panel.get_value("email_signature"));
 				},
 			},
 		],
@@ -498,7 +500,7 @@ function _add_preference_row(parent, { label, value, button_label, onClick }) {
 				<div class="preference-label">${label}</div>
 				<div class="preference-value">${frappe.utils.escape_html(value || "")}</div>
 			</div>
-			<button class="es-button">${button_label}</button>
+			${frappe.ui.button.html({ label: button_label })}
 		</div>
 	`);
 	$row.find("button").on("click", onClick);
@@ -669,7 +671,7 @@ function _session_defaults_tab() {
 				fields.forEach((f) => {
 					if (!values[f.fieldname]) values[f.fieldname] = "";
 				});
-				frappe.call({
+				return frappe.call({
 					method: "frappe.core.doctype.session_default_settings.session_default_settings.set_session_default_values",
 					args: { default_values: values },
 					callback(data) {
