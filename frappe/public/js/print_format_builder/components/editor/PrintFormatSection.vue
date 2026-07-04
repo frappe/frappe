@@ -95,7 +95,8 @@
 							group="fields"
 							:animation="150"
 							item-key="id"
-							handle=".drag-handle"
+							filter="input, textarea, select, button, [contenteditable]"
+							:preventOnFilter="false"
 							:emptyInsertThreshold="100"
 							@add="select_section"
 						>
