@@ -30,7 +30,8 @@ const DROPPED = new Set([
 	"META",
 	"BASE",
 ]);
-const SAFE_URL = /^(https?:|mailto:|#|\/)/i;
+// Leading "/" allows same-origin paths but not "//host" (protocol-relative → external).
+const SAFE_URL = /^(https?:|mailto:|#|\/(?!\/))/i;
 
 function sanitize(node) {
 	for (const el of [...node.children]) {
