@@ -16,22 +16,41 @@ PILOT_CONF = {
 }
 
 
-class TestCloudSettings(TestCase):
+_UNSET = object()
+
+
+class _PilotTestCase(TestCase):
+	"""Base for the pilot-scoped tests. Overrides frappe.local.site for each test and
+	restores it afterwards: the parallel runner shares one frappe context across every
+	test module, and some modules read frappe.local.site at import time, so a leaked or
+	unset site breaks the whole run. Pilot credentials are supplied per-test via
+	patch.dict(frappe.conf) — we never replace frappe.local.conf, which would wipe the
+	DB config the rest of the suite depends on. frappe.local is a bound proxy, so we
+	set it by plain assignment (mock.patch.object corrupts it)."""
+
+	# The site name IS the scope of the pilot token and the bench routes.
+	SITE = "ravibakes.frappe.cloud"
+
 	def setUp(self):
-		# Snapshot the request-locals we override so other test modules that run after
-		# this one don't inherit an empty conf / fake session (which breaks their setup).
-		self._local = (frappe.local.conf, frappe.local.session, frappe.local.site)
-		frappe.local.conf = frappe._dict()
-		frappe.local.session = frappe._dict(user="Administrator")
-		# The site name IS the scope of the pilot token and the bench routes.
-		frappe.local.site = "ravibakes.frappe.cloud"
+		self._original_site = getattr(frappe.local, "site", _UNSET)
+		frappe.local.site = self.SITE
+		self.addCleanup(self._restore_site)
 
-	def tearDown(self):
-		frappe.local.conf, frappe.local.session, frappe.local.site = self._local
+	def _restore_site(self):
+		if self._original_site is not _UNSET:
+			frappe.local.site = self._original_site
+		# If it wasn't set before (the runner always sets it, so this is unexpected),
+		# leave ours in place rather than unbinding it — modules that read
+		# frappe.local.site at import would crash on an unset value.
 
+
+class TestCloudSettings(_PilotTestCase):
 	def test_disabled_for_self_hosted_site(self):
 		"""A self-hosted site has no pilot credentials, so the modal stays hidden."""
-		with patch("frappe.get_roles", return_value=["System Manager"]):
+		with (
+			patch.dict(frappe.conf, {"pilot_endpoint": "", "pilot_auth_token": ""}),
+			patch("frappe.get_roles", return_value=["System Manager"]),
+		):
 			self.assertFalse(is_cloud_settings_enabled())
 			self.assertEqual(get_boot_context(), {"enabled": False})
 
@@ -56,7 +75,8 @@ class TestCloudSettings(TestCase):
 			self.assertFalse(is_cloud_settings_enabled())
 
 	def test_disabled_for_guest(self):
-		frappe.local.session = frappe._dict(user="Guest")
+		frappe.set_user("Guest")
+		self.addCleanup(frappe.set_user, "Administrator")
 		with (
 			patch.dict(frappe.conf, PILOT_CONF),
 			patch("frappe.get_roles", return_value=["System Manager"]),
@@ -102,7 +122,10 @@ class TestCloudSettings(TestCase):
 		self.assertEqual(request.call_args.kwargs["json"], {"domain": "shop.example.com"})
 
 
-class TestCloudMarketplace(TestCase):
+class TestCloudMarketplace(_PilotTestCase):
+	# Marketplace calls go through a FakeClient scoped to test.localhost.
+	SITE = "test.localhost"
+
 	CATALOG: ClassVar[list[dict[str, Any]]] = [
 		{
 			"name": "erpnext",
@@ -129,13 +152,6 @@ class TestCloudMarketplace(TestCase):
 			"required_version": "16",
 		},
 	]
-
-	def setUp(self):
-		self._site = frappe.local.site
-		frappe.local.site = "test.localhost"
-
-	def tearDown(self):
-		frappe.local.site = self._site
 
 	def _list(self):
 		from frappe.integrations.frappe_providers import cloud_marketplace
@@ -194,15 +210,7 @@ class TestCloudMarketplace(TestCase):
 		self.assertEqual(client.posts[0], ("tasks/run", {"command": "update", "apps": ["hrms", "erpnext"]}))
 
 
-class TestCloudTask(TestCase):
-	def setUp(self):
-		self._local = (frappe.local.session, frappe.local.site)
-		frappe.local.session = frappe._dict(user="Administrator")
-		frappe.local.site = "ravibakes.frappe.cloud"
-
-	def tearDown(self):
-		frappe.local.session, frappe.local.site = self._local
-
+class TestCloudTask(_PilotTestCase):
 	def test_get_task_proxies_to_bench(self):
 		from frappe.integrations.frappe_providers.cloud_settings import get_task
 
