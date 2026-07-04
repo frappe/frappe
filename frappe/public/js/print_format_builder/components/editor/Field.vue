@@ -1124,7 +1124,7 @@ watch(
 /* ── Plain header variant ───────────────────────────── */
 .preview-table--plain-header th {
 	background-color: transparent;
-	border-bottom: 2px solid var(--gray-300);
+	border-bottom-width: 1px;
 }
 
 .preview-table-img {

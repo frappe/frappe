@@ -280,7 +280,7 @@ body {
 /* plain header variant */
 .child-table--plain-header .table th {
 	background-color: transparent !important;
-	border-bottom: 2px solid #d1d5db !important;
+	border-bottom-width: 1px !important;
 }
 
 .child-table [data-fieldtype="Currency"],
