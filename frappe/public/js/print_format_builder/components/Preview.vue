@@ -36,7 +36,7 @@ import { ref, computed, onMounted } from "vue";
 let { print_format, store } = useStore();
 
 // variables
-let type = ref("PDF");
+let type = ref("HTML");
 let docname = ref(null);
 let preview_loaded = ref(false);
 let iframe = ref(null);
@@ -96,7 +96,7 @@ onMounted(() => {
 			label: __("Preview type"),
 			fieldname: "docname",
 			fieldtype: "Select",
-			options: ["PDF", "HTML"],
+			options: ["HTML", "PDF"],
 			change: () => {
 				type.value = preview_type.value.get_value();
 			},
