@@ -27,6 +27,8 @@
 			:class="{
 				'section--selected': is_selected,
 				'section--grid': is_grid,
+				'section--grid-rows': is_grid && section.grid_borders === 'rows',
+				'section--grid-columns': is_grid && section.grid_borders === 'columns',
 			}"
 			:style="section_inline_style"
 			@click.stop="select_section"
@@ -464,6 +466,12 @@ function remove_column(index) {
 	background: transparent;
 }
 .section--grid :deep(.field:last-child) {
+	border-bottom: none;
+}
+.section--grid-rows .column:not(:last-child) {
+	border-right: none;
+}
+.section--grid-columns :deep(.field) {
 	border-bottom: none;
 }
 .section--grid :deep(.field:hover),

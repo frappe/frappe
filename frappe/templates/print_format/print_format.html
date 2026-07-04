@@ -79,7 +79,7 @@
 	{%- if section.custom_style -%}
 		{%- set ns3.section_style = ns3.section_style + section.custom_style|string -%}
 	{%- endif -%}
-	<div class="section {{ resolve_class({'page-break': section.page_break}) }}{{ ' section--grid' if section.field_borders else '' }}"{% if ns3.section_style %} style="{{ ns3.section_style|e }}"{% endif %}>
+	<div class="section {{ resolve_class({'page-break': section.page_break}) }}{{ ' section--grid' if section.field_borders else '' }}{{ ' section--grid-' + section.grid_borders if section.field_borders and section.grid_borders else '' }}"{% if ns3.section_style %} style="{{ ns3.section_style|e }}"{% endif %}>
 		{% if section.label and section.show_label != 'hide' %}
 		<div class="section-label">{{ _(section.label) }}</div>
 		{% endif %}

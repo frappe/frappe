@@ -75,6 +75,18 @@
 				]"
 				@update:model-value="toggle_field_borders"
 			/>
+			<!-- Grid borders -->
+			<SegmentedRow
+				v-if="section_field_borders"
+				:label="__('Borders')"
+				:model-value="selected_section.grid_borders || 'all'"
+				:options="[
+					{ value: 'all', label: __('All') },
+					{ value: 'rows', label: __('Rows') },
+					{ value: 'columns', label: __('Columns') },
+				]"
+				@update:model-value="set_grid_borders"
+			/>
 			<!-- Cell padding -->
 			<StepperRow
 				:label="__('Cell padding')"
@@ -155,6 +167,15 @@ function toggle_field_borders(on) {
 		selected_section.value.field_borders = true;
 	} else {
 		delete selected_section.value.field_borders;
+		delete selected_section.value.grid_borders;
+	}
+}
+
+function set_grid_borders(v) {
+	if (v === "all") {
+		delete selected_section.value.grid_borders;
+	} else {
+		selected_section.value.grid_borders = v;
 	}
 }
 </script>

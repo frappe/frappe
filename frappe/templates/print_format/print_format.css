@@ -462,3 +462,9 @@ header img {
 .section--grid .field:last-child {
 	border-bottom: none;
 }
+.section--grid-rows .col:not(:last-child) {
+	border-right: none;
+}
+.section--grid-columns .field {
+	border-bottom: none;
+}
