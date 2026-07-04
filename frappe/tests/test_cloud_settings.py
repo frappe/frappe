@@ -18,10 +18,16 @@ PILOT_CONF = {
 
 class TestCloudSettings(TestCase):
 	def setUp(self):
+		# Snapshot the request-locals we override so other test modules that run after
+		# this one don't inherit an empty conf / fake session (which breaks their setup).
+		self._local = (frappe.local.conf, frappe.local.session, frappe.local.site)
 		frappe.local.conf = frappe._dict()
 		frappe.local.session = frappe._dict(user="Administrator")
 		# The site name IS the scope of the pilot token and the bench routes.
 		frappe.local.site = "ravibakes.frappe.cloud"
+
+	def tearDown(self):
+		frappe.local.conf, frappe.local.session, frappe.local.site = self._local
 
 	def test_disabled_for_self_hosted_site(self):
 		"""A self-hosted site has no pilot credentials, so the modal stays hidden."""
@@ -125,7 +131,11 @@ class TestCloudMarketplace(TestCase):
 	]
 
 	def setUp(self):
+		self._site = frappe.local.site
 		frappe.local.site = "test.localhost"
+
+	def tearDown(self):
+		frappe.local.site = self._site
 
 	def _list(self):
 		from frappe.integrations.frappe_providers import cloud_marketplace
@@ -186,8 +196,12 @@ class TestCloudMarketplace(TestCase):
 
 class TestCloudTask(TestCase):
 	def setUp(self):
+		self._local = (frappe.local.session, frappe.local.site)
 		frappe.local.session = frappe._dict(user="Administrator")
 		frappe.local.site = "ravibakes.frappe.cloud"
+
+	def tearDown(self):
+		frappe.local.session, frappe.local.site = self._local
 
 	def test_get_task_proxies_to_bench(self):
 		from frappe.integrations.frappe_providers.cloud_settings import get_task
