@@ -43,7 +43,8 @@ jobs:
     runs-on: ubuntu-latest
     timeout-minutes: 30
     container:
-      image: ghcr.io/${{ github.repository }}/ci:latest
+      # pinned to the canonical repo so forks pull a published image
+      image: ghcr.io/frappe/frappe/ci:latest
       credentials:
         username: ${{ github.actor }}
         password: ${{ secrets.GITHUB_TOKEN }}
