@@ -31,31 +31,32 @@ function desk_token(name, fallback) {
 }
 
 function interaction_css() {
-	const primary = desk_token("--border-primary", "#171717");
-	const hover = desk_token("--gray-400", "#c7c7c7");
-	const section_hover = desk_token("--gray-300", "#e2e2e2");
+	const hover_line = desk_token("--gray-200", "#ededed");
+	const hover_fill = desk_token("--gray-50", "#f8f8f8");
+	const selected = desk_token("--gray-500", "#999999");
+	const section_line = desk_token("--gray-400", "#c7c7c7");
 	const danger = desk_token("--red-500", "#e03434");
 	const muted = desk_token("--text-muted", "#525252");
 	const backdrop = desk_token("--bg-gray", "#f3f3f3");
 	const sheet = desk_token("--card-bg", "#fff");
 	return `
 	[data-pfb-path] { cursor: pointer; }
-	[data-pfb-path]:hover { outline: 1px dashed ${hover}; outline-offset: 1px; }
-	[data-pfb-section]:hover, [data-pfb-zone]:hover { outline: 1px dashed ${section_hover}; outline-offset: 3px; }
-	.pfb-live-selected { outline: 1.5px solid ${primary} !important; outline-offset: 1px; }
-	.pfb-live-selected-section { outline: 1.5px solid ${hover} !important; outline-offset: 3px; }
+	[data-pfb-path]:hover { outline: 1px solid ${hover_line}; outline-offset: 1px; background: ${hover_fill}; }
+	[data-pfb-section]:hover, [data-pfb-zone]:hover { outline: 1px dashed ${hover_line}; outline-offset: 3px; }
+	.pfb-live-selected { outline: 1px solid ${selected}; outline-offset: 1px; }
+	.pfb-live-selected-section { outline: 2px dashed ${section_line}; outline-offset: 3px; }
 	.pfb-dragging { opacity: 0.4; }
 	.pfb-drop-indicator {
 		position: absolute;
 		height: 2px;
-		background: ${primary};
+		background: ${selected};
 		border-radius: 1px;
 		pointer-events: none;
 		z-index: 9999;
 		display: none;
 	}
 	.label[contenteditable], .section-label[contenteditable] {
-		outline: 1px solid ${primary};
+		outline: 1px solid ${selected};
 		outline-offset: 1px;
 		cursor: text;
 		border-radius: 2px;
@@ -120,7 +121,7 @@ function interaction_css() {
 		display: block;
 		margin: 0 auto 24px;
 		padding: 5px 14px;
-		border: 1px dashed ${hover};
+		border: 1px dashed ${section_line};
 		border-radius: ${desk_token("--radius", "8px")};
 		background: transparent;
 		color: ${muted};
@@ -128,8 +129,9 @@ function interaction_css() {
 		cursor: pointer;
 	}
 	.pfb-add-section:hover {
-		border-color: ${primary};
-		color: ${primary};
+		border-color: ${selected};
+		color: ${desk_token("--text-color", "#171717")};
+		background: ${hover_fill};
 	}
 `;
 }
