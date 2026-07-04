@@ -38,6 +38,41 @@ def get_html(doctype, name, print_format, letterhead=None):
 	return generator.get_html_preview()
 
 
+PREVIEW_SETTINGS_KEYS = (
+	"font",
+	"font_size",
+	"label_color",
+	"value_color",
+	"margin_top",
+	"margin_bottom",
+	"margin_left",
+	"margin_right",
+	"page_number",
+)
+
+
+@frappe.whitelist()
+def render_preview(
+	doctype: str,
+	name: str | int,
+	print_format: str,
+	format_data: str | None = None,
+	letterhead: str | None = None,
+	settings: str | dict | None = None,
+):
+	"""Render a possibly unsaved builder layout through the real print renderer.
+
+	Used by the print format builder's live canvas so the editing surface and the
+	final print/PDF output come from the same code path. Nothing is saved.
+	"""
+	doc = frappe.get_doc(doctype, name)
+	doc.check_permission("print")
+	generator = PrintFormatGenerator(
+		print_format, doc, letterhead, format_data=format_data, settings=frappe.parse_json(settings)
+	)
+	return generator.get_html_preview()
+
+
 class PrintFormatGenerator:
 	"""Generate a PDF of a Document using Chromium-based rendering."""
 
@@ -52,8 +87,13 @@ class PrintFormatGenerator:
 		"bottom_right": "right",
 	}
 
-	def __init__(self, print_format, doc, letterhead=None):
+	def __init__(self, print_format, doc, letterhead=None, format_data=None, settings=None):
 		self.print_format = frappe.get_doc("Print Format", print_format)
+		if format_data:
+			self.print_format.format_data = format_data
+		for key in PREVIEW_SETTINGS_KEYS:
+			if settings and settings.get(key) is not None:
+				setattr(self.print_format, key, settings[key])
 		self.doc = doc
 
 		if letterhead == _("No Letterhead"):
@@ -285,14 +325,14 @@ class PrintFormatGenerator:
 	def set_field_renderers(self, layout):
 		renderers = {"HTML Editor": "HTML", "Markdown Editor": "Markdown"}
 		eval_locals = {"doc": self.doc}
-		for section in layout["sections"]:
+		for si, section in enumerate(layout["sections"]):
 			if section.get("visible_if"):
 				try:
 					section["_hidden"] = not frappe.safe_eval(section["visible_if"], eval_locals)
 				except Exception:
 					section["_hidden"] = False
-			for column in section["columns"]:
-				for df in column["fields"]:
+			for ci, column in enumerate(section["columns"]):
+				for fi, df in enumerate(column["fields"]):
 					if df.get("visible_if"):
 						try:
 							df["_hidden"] = not frappe.safe_eval(df["visible_if"], eval_locals)
@@ -301,13 +341,14 @@ class PrintFormatGenerator:
 					fieldtype = df["fieldtype"]
 					df["renderer"] = renderers.get(fieldtype) or fieldtype.replace(" ", "")
 					df["section"] = section
+					df["_pfb_path"] = f"s.{si}.{ci}.{fi}"
 
 		# Also process header/footer zones if they are section objects
 		for zone_key in ("header", "footer"):
 			zone = layout.get(zone_key)
 			if isinstance(zone, dict) and "columns" in zone:
-				for column in zone.get("columns", []):
-					for df in column.get("fields", []):
+				for ci, column in enumerate(zone.get("columns", [])):
+					for fi, df in enumerate(column.get("fields", [])):
 						if df.get("visible_if"):
 							try:
 								df["_hidden"] = not frappe.safe_eval(df["visible_if"], eval_locals)
@@ -316,6 +357,7 @@ class PrintFormatGenerator:
 						fieldtype = df.get("fieldtype", "Data")
 						df["renderer"] = renderers.get(fieldtype) or fieldtype.replace(" ", "")
 						df["section"] = zone
+						df["_pfb_path"] = f"{zone_key[0]}.{ci}.{fi}"
 
 		return layout
 

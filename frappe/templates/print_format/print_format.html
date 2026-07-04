@@ -32,7 +32,7 @@
 	{%- for col in layout.header.columns -%}{%- for df in col.get('fields', []) -%}{%- set ns_h.has_fields = true -%}{%- endfor -%}{%- endfor -%}
 	{%- if ns_h.has_fields -%}
 	{%- set col_gap = (layout.header.gap if layout.header.gap is defined and layout.header.gap != None else 20)|string + 'px' -%}
-	<div class="section document-header-content">
+	<div class="section document-header-content" data-pfb-zone="header">
 	<div class="section-columns row" style="gap:{{ col_gap }}">
 	{%- for column in layout.header.columns %}
 	<div class="column col">
@@ -79,7 +79,7 @@
 	{%- if section.custom_style -%}
 		{%- set ns3.section_style = ns3.section_style + section.custom_style|string -%}
 	{%- endif -%}
-	<div class="section {{ resolve_class({'page-break': section.page_break}) }}{{ ' section--grid' if section.field_borders else '' }}{{ ' section--grid-' + section.grid_borders if section.field_borders and section.grid_borders else '' }}"{% if ns3.section_style %} style="{{ ns3.section_style|e }}"{% endif %}>
+	<div class="section {{ resolve_class({'page-break': section.page_break}) }}{{ ' section--grid' if section.field_borders else '' }}{{ ' section--grid-' + section.grid_borders if section.field_borders and section.grid_borders else '' }}" data-pfb-section="{{ loop.index0 }}"{% if ns3.section_style %} style="{{ ns3.section_style|e }}"{% endif %}>
 		{% if section.label and section.show_label != 'hide' %}
 		<div class="section-label">{{ _(section.label) }}</div>
 		{% endif %}
@@ -119,7 +119,7 @@
 	{%- for col in layout.footer.columns -%}{%- for df in col.get('fields', []) -%}{%- set ns_f.has_fields = true -%}{%- endfor -%}{%- endfor -%}
 	{%- if ns_f.has_fields -%}
 	{%- set col_gap_f = (layout.footer.gap if layout.footer.gap is defined and layout.footer.gap != None else 20)|string + 'px' -%}
-	<div class="section document-footer-content">
+	<div class="section document-footer-content" data-pfb-zone="footer">
 	<div class="section-columns row" style="gap:{{ col_gap_f }}">
 	{%- for column in layout.footer.columns %}
 	<div class="column col">

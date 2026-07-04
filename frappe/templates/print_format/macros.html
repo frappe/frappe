@@ -11,5 +11,8 @@ data-fieldname="{{ df.fieldname }}"
 {%- endif %}
 {% if df.fieldtype -%}
 data-fieldtype="{{ df.fieldtype }}"
+{%- endif %}
+{% if df._pfb_path -%}
+data-pfb-path="{{ df._pfb_path }}"
 {%- endif -%}
 {% endmacro %}
