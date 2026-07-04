@@ -53,10 +53,22 @@ const INTERACTION_CSS = `
 	.pfb-pages { padding: 24px 16px 16px; }
 	.pfb-page {
 		position: relative;
+		display: flex;
+		flex-direction: column;
 		background: #fff;
 		box-shadow: 0 1px 4px rgba(0, 0, 0, 0.2);
 		margin: 0 auto 34px;
 		box-sizing: border-box;
+	}
+	.pfb-page-head, .pfb-clip { flex: none; }
+	.pfb-page-foot { flex: none; margin-top: auto; }
+	.pfb-page-head header, .pfb-page-foot footer {
+		position: static !important;
+		width: auto !important;
+		padding-left: 0 !important;
+		padding-right: 0 !important;
+		padding-top: 0 !important;
+		padding-bottom: 0 !important;
 	}
 	.pfb-page-num {
 		position: absolute;
@@ -72,6 +84,30 @@ const INTERACTION_CSS = `
 `;
 
 const PAGE_SIZES_MM = { A4: [210, 297], Letter: [216, 279.4] };
+
+// Chrome renders PDFs under print media. Make the canvas lay out identically:
+// activate @media print blocks and disable @media screen blocks, inlining
+// linked stylesheets so their media blocks get the same treatment.
+const css_cache = new Map();
+
+function to_print_media(css) {
+	return css
+		.replace(/@media\s+print/g, "@media all")
+		.replace(/@media\s+screen/g, "@media not all");
+}
+
+async function apply_print_media(html) {
+	html = to_print_media(html);
+	for (const [tag, href] of [...html.matchAll(/<link[^>]+href="([^"]+\.css)"[^>]*>/g)]) {
+		let css = css_cache.get(href);
+		if (css == null) {
+			css = to_print_media(await fetch(href).then((r) => (r.ok ? r.text() : "")));
+			css_cache.set(href, css);
+		}
+		html = html.replace(tag, `<style>${css}</style>`);
+	}
+	return html;
+}
 
 function serialized_format_data() {
 	const clone = JSON.parse(JSON.stringify(store.layout.value));
@@ -114,11 +150,12 @@ function render() {
 	const seq = ++render_seq;
 	frappe
 		.call("frappe.utils.print_format_generator.render_preview", args)
-		.then((r) => {
+		.then(async (r) => {
+			const html = await apply_print_media(r.message);
 			if (seq !== render_seq) return;
 			error.value = null;
 			last_payload = payload;
-			write_document(r.message);
+			write_document(html);
 		})
 		.catch((e) => {
 			if (seq !== render_seq) return;
@@ -147,8 +184,72 @@ function write_document(html) {
 	update_highlight();
 }
 
-// ── Page boundary guides ────────────────────────────────────
+// ── Pagination: mirror the Chrome PDF page model ────────────
 let master = null;
+
+// PDF (repeat_header_footer on) puts letterhead + header/footer zones in
+// per-page overlays outside the content flow — pull the same elements out
+// so the canvas paginates the same content the PDF paginates.
+function split_master(doc, repeat) {
+	const flow_master = master.cloneNode(true);
+	if (!repeat) return { flow_master, head_master: null, foot_master: null };
+
+	const pick = (selectors) => {
+		const wrap = doc.createElement("div");
+		for (const sel of selectors) {
+			for (const el of flow_master.querySelectorAll(sel)) wrap.appendChild(el);
+		}
+		return wrap.childNodes.length ? wrap : null;
+	};
+	const head_master = pick(["header", '[data-pfb-zone="header"]']);
+	const foot_master = pick(['[data-pfb-zone="footer"]', "footer"]);
+	return { flow_master, head_master, foot_master };
+}
+
+// Emulate the PDF engine's break rules: an unsplittable block (field, table
+// row) that straddles a sheet boundary is pushed to the next sheet; pushed
+// table rows get a cloned header row, like thead repetition in print.
+function push_across_boundaries(doc, flow, usable) {
+	const flow_top = () => flow.getBoundingClientRect().top;
+	for (const el of [...flow.querySelectorAll(".field, .section-label, tr")]) {
+		if (el.closest("thead")) continue;
+		const rect = el.getBoundingClientRect();
+		const top = rect.top - flow_top();
+		const height = rect.height;
+		if (height <= 0 || height > usable) continue;
+		const page_end = (Math.floor(top / usable + 1e-4) + 1) * usable;
+		if (top + height <= page_end + 0.5) continue;
+		const gap = page_end - top;
+		if (el.tagName === "TR") {
+			const pad = doc.createElement("tr");
+			pad.className = "pfb-break-pad";
+			const td = doc.createElement("td");
+			td.colSpan = el.children.length || 1;
+			td.style.cssText = `height:${gap}px;padding:0;border:none;background:transparent;`;
+			pad.appendChild(td);
+			el.before(pad);
+			const thead_row = el.closest("table")?.querySelector("thead tr");
+			if (thead_row) el.before(thead_row.cloneNode(true));
+		} else {
+			// break-after: avoid — a section label stays with its first field
+			let anchor = el;
+			let push_gap = gap;
+			const section = el.closest("[data-pfb-section], [data-pfb-zone]");
+			const label = section?.querySelector(".section-label");
+			if (label && el === section.querySelector(".field")) {
+				const label_top = label.getBoundingClientRect().top - flow_top();
+				if (label_top > page_end - usable) {
+					anchor = label;
+					push_gap = page_end - label_top;
+				}
+			}
+			const spacer = doc.createElement("div");
+			spacer.className = "pfb-break-spacer";
+			spacer.style.height = `${push_gap}px`;
+			anchor.before(spacer);
+		}
+	}
+}
 
 function paginate() {
 	const doc = frame.value?.contentDocument;
@@ -173,33 +274,55 @@ function paginate() {
 	const mb = parseFloat(body.dataset.marginBottom) || 0;
 	const ml = parseFloat(body.dataset.marginLeft) || 0;
 	const mr = parseFloat(body.dataset.marginRight) || 0;
-	const usable = (page_h_mm - mt - mb) * px_per_mm;
-	if (usable <= 0) return;
+	const repeat = body.dataset.repeatHf === "1";
+
+	const { flow_master, head_master, foot_master } = split_master(doc, repeat);
 
 	const pages_el = doc.createElement("div");
 	pages_el.className = "pfb-pages";
 	body.appendChild(pages_el);
 
-	const make_page = (k) => {
+	const make_page = () => {
 		const page = doc.createElement("div");
 		page.className = "pfb-page";
 		page.style.cssText = `width:${page_w_mm}mm;height:${page_h_mm}mm;padding:${mt}mm ${mr}mm ${mb}mm ${ml}mm;`;
+		if (head_master) {
+			const head = doc.createElement("div");
+			head.className = "pfb-page-head";
+			head.appendChild(head_master.cloneNode(true));
+			page.appendChild(head);
+		}
 		const clip = doc.createElement("div");
 		clip.className = "pfb-clip";
-		clip.style.height = `${usable}px`;
 		const flow = doc.createElement("div");
 		flow.className = "pfb-flow";
-		if (k) flow.style.transform = `translateY(-${k * usable}px)`;
 		clip.appendChild(flow);
 		page.appendChild(clip);
+		if (foot_master) {
+			const foot = doc.createElement("div");
+			foot.className = "pfb-page-foot";
+			foot.appendChild(foot_master.cloneNode(true));
+			page.appendChild(foot);
+		}
 		pages_el.appendChild(page);
-		return { page, flow };
+		return { page, flow, clip };
 	};
 
-	const first = make_page(0);
-	first.flow.appendChild(master.cloneNode(true));
+	// Build page 1 first to measure repeating header/footer heights,
+	// then derive the usable content height per sheet — same as the PDF,
+	// where overlay heights shrink the printable area.
+	const first = make_page();
+	const head_h = first.page.querySelector(".pfb-page-head")?.offsetHeight || 0;
+	const foot_h = first.page.querySelector(".pfb-page-foot")?.offsetHeight || 0;
+	const usable = (page_h_mm - mt - mb) * px_per_mm - head_h - foot_h;
+	if (usable <= 0) {
+		pages_el.remove();
+		return;
+	}
+	first.clip.style.height = `${usable}px`;
+	first.flow.appendChild(flow_master);
 
-	// Pad after explicit page breaks so following content starts on a fresh sheet
+	// Explicit page breaks: pad so following content starts on a fresh sheet
 	for (const brk of first.flow.querySelectorAll(".page-break")) {
 		const y = brk.getBoundingClientRect().bottom - first.flow.getBoundingClientRect().top;
 		const pad = (usable - (y % usable)) % usable;
@@ -211,11 +334,16 @@ function paginate() {
 		}
 	}
 
+	push_across_boundaries(doc, first.flow, usable);
+
 	const total = first.flow.scrollHeight;
 	const page_count = Math.max(1, Math.ceil((total - 1) / usable));
 	const sliced = first.flow.firstChild;
 	for (let k = 1; k < page_count; k++) {
-		make_page(k).flow.appendChild(sliced.cloneNode(true));
+		const pg = make_page();
+		pg.clip.style.height = `${usable}px`;
+		pg.flow.style.transform = `translateY(-${k * usable}px)`;
+		pg.flow.appendChild(sliced.cloneNode(true));
 	}
 	for (const [k, page] of [...pages_el.querySelectorAll(".pfb-page")].entries()) {
 		const num = doc.createElement("div");
