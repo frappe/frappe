@@ -408,7 +408,7 @@ function remove_column(index) {
 .section-preview-actions {
 	display: none; /* shown via .pfb-clean-preview :deep() override */
 	position: absolute;
-	top: -12px;
+	bottom: calc(100% + 2px);
 	right: 4px;
 	z-index: 2;
 	gap: 2px;
@@ -419,7 +419,7 @@ function remove_column(index) {
 	box-shadow: var(--shadow-xs);
 	align-items: center;
 	opacity: 0;
-	transition: opacity 0.12s, transform 0.12s;
+	transition: opacity 0.12s;
 }
 
 /* ── Table layout (field borders) ───────────────────────── */

@@ -333,18 +333,6 @@ watch(print_format, () => (store.dirty.value = true), { deep: true });
 	opacity: 1;
 }
 
-/* Lift the section pill above the field's own top-right pill while a field
-   inside is hovered/selected so the two never overlap; only for titled
-   sections — untitled ones have no collision and the shift reads as a jump */
-.pfb-clean-preview
-	:deep(.print-format-section-container:has(.section-title-display):has(.field--preview:hover)
-		.section-preview-actions),
-.pfb-clean-preview
-	:deep(.print-format-section-container:has(.section-title-display):has(.field--preview.field--selected)
-		.section-preview-actions) {
-	transform: translateY(-18px);
-}
-
 /* Section title: match PDF's .section-label look; grid sections keep their own box */
 .pfb-clean-preview :deep(.section-title-display) {
 	display: block;
