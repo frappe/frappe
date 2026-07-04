@@ -140,7 +140,7 @@
 						)
 					}}
 				</p>
-				<a :href="new_template_link" target="_blank" class="btn btn-xs btn-secondary mt-2">
+				<a :href="new_template_link" target="_blank" class="es-button mt-2" data-size="xs">
 					{{ __("Create Field Template") }}
 				</a>
 			</div>

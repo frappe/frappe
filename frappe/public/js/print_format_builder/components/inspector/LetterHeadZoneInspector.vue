@@ -21,7 +21,7 @@
 				<!-- Letter head selection buttons — always visible for header zone -->
 				<template v-if="zone === 'header'">
 					<div v-if="letterhead" class="pfb-lh-actions" style="margin-top: 4px">
-						<button class="btn btn-xs btn-default" @click="lh_change_letterhead">
+						<button class="es-button" data-size="xs" @click="lh_change_letterhead">
 							{{ __("Change Letter Head") }}
 						</button>
 					</div>
@@ -29,10 +29,10 @@
 						<p class="pfb-insp-hint text-muted">
 							{{ __("No letter head selected.") }}
 						</p>
-						<button class="btn btn-xs btn-default" @click="lh_create_letterhead">
+						<button class="es-button" data-size="xs" @click="lh_create_letterhead">
 							{{ __("Create Letter Head") }}
 						</button>
-						<button class="btn btn-xs btn-default" @click="lh_change_letterhead">
+						<button class="es-button" data-size="xs" @click="lh_change_letterhead">
 							{{ __("Select Letter Head") }}
 						</button>
 					</div>
@@ -41,89 +41,69 @@
 		</div>
 
 		<!-- HTML section -->
-		<div class="pfb-insp-section" v-if="zone_source === 'HTML'">
-			<div class="pfb-insp-section-head" @click="open.html = !open.html">
-				<span class="pfb-insp-section-label">{{ __("HTML") }}</span>
-				<span
-					class="pfb-insp-chevron"
-					:class="{ collapsed: !open.html }"
-					v-html="frappe.utils.icon('chevron-down', 'xs')"
-				></span>
-			</div>
-			<div v-show="open.html" class="pfb-insp-section-body">
-				<template v-if="letterhead">
-					<div
-						class="pfb-html-preview"
-						v-if="letterhead[html_content_field]"
-						v-html="letterhead[html_content_field]"
-					></div>
-					<div v-else class="pfb-insp-hint text-muted">
-						{{ __("No HTML content yet.") }}
-					</div>
-					<button class="btn btn-xs btn-default pfb-lh-edit-btn" @click="edit_html">
-						<span v-html="frappe.utils.icon('pencil', 'xs')"></span>
-						{{ __("Edit HTML") }}
-					</button>
-				</template>
-				<template v-else>
-					<p class="pfb-insp-hint text-muted">
-						{{ __("No letter head selected.") }}
-					</p>
-				</template>
-			</div>
-		</div>
+		<InspectorSection v-if="zone_source === 'HTML'" :label="__('HTML')">
+			<template v-if="letterhead">
+				<div
+					class="pfb-html-preview"
+					v-if="letterhead[html_content_field]"
+					v-html="letterhead[html_content_field]"
+				></div>
+				<div v-else class="pfb-insp-hint text-muted">
+					{{ __("No HTML content yet.") }}
+				</div>
+				<button class="es-button" data-size="xs" @click="edit_html">
+					<span v-html="frappe.utils.icon('pencil', 'xs')"></span>
+					{{ __("Edit HTML") }}
+				</button>
+			</template>
+			<template v-else>
+				<p class="pfb-insp-hint text-muted">
+					{{ __("No letter head selected.") }}
+				</p>
+			</template>
+		</InspectorSection>
 
 		<!-- Image section -->
-		<div class="pfb-insp-section" v-if="zone_source === 'Image'">
-			<div class="pfb-insp-section-head" @click="open.image = !open.image">
-				<span class="pfb-insp-section-label">{{ __("Image") }}</span>
-				<span
-					class="pfb-insp-chevron"
-					:class="{ collapsed: !open.image }"
-					v-html="frappe.utils.icon('chevron-down', 'xs')"
-				></span>
-			</div>
-			<div v-show="open.image" class="pfb-insp-section-body">
-				<template v-if="letterhead">
-					<!-- Alignment -->
-					<SegmentedRow
-						:label="__('Align')"
-						:model-value="zone_align"
-						:options="
-							['Left', 'Center', 'Right'].map((d) => ({
-								value: d,
-								label: __(d),
-							}))
-						"
-						@update:model-value="set_align"
+		<InspectorSection v-if="zone_source === 'Image'" :label="__('Image')">
+			<template v-if="letterhead">
+				<!-- Alignment -->
+				<SegmentedRow
+					:label="__('Align')"
+					:model-value="zone_align"
+					:options="
+						['Left', 'Center', 'Right'].map((d) => ({
+							value: d,
+							label: __(d),
+						}))
+					"
+					@update:model-value="set_align"
+				/>
+				<!-- Size slider -->
+				<div v-if="letterhead[image_field]" class="pfb-insp-row pfb-insp-row--col">
+					<span class="pfb-insp-label">{{ __("Size") }}</span>
+					<input
+						class="pfb-lh-slider"
+						type="range"
+						min="20"
+						:max="zone_size_max"
+						:value="zone_size"
+						@input="(e) => set_size(e.target.value)"
 					/>
-					<!-- Size slider -->
-					<div v-if="letterhead[image_field]" class="pfb-insp-row pfb-insp-row--col">
-						<span class="pfb-insp-label">{{ __("Size") }}</span>
-						<input
-							class="pfb-lh-slider"
-							type="range"
-							min="20"
-							:max="zone_size_max"
-							:value="zone_size"
-							@input="(e) => set_size(e.target.value)"
-						/>
-					</div>
-					<!-- Actions -->
-					<div class="pfb-lh-actions">
-						<button class="btn btn-xs btn-default" @click="upload_image">
-							<span v-html="frappe.utils.icon('upload', 'xs')"></span>
-							{{ letterhead[image_field] ? __("Change Image") : __("Upload Image") }}
-						</button>
-					</div>
-				</template>
-				<template v-else>
-					<p class="pfb-insp-hint text-muted">
-						{{ __("No letter head selected.") }}
-					</p>
-				</template>
-			</div>
-		</div>
+				</div>
+				<!-- Actions -->
+				<div class="pfb-lh-actions">
+					<button class="es-button" data-size="xs" @click="upload_image">
+						<span v-html="frappe.utils.icon('upload', 'xs')"></span>
+						{{ letterhead[image_field] ? __("Change Image") : __("Upload Image") }}
+					</button>
+				</div>
+			</template>
+			<template v-else>
+				<p class="pfb-insp-hint text-muted">
+					{{ __("No letter head selected.") }}
+				</p>
+			</template>
+		</InspectorSection>
 	</div>
 </template>
 
@@ -132,6 +112,7 @@ import { computed, inject, onMounted, ref } from "vue";
 import { useStore } from "../../stores";
 import { get_image_dimensions, render_jinja_html } from "../../utils";
 import SegmentedRow from "./SegmentedRow.vue";
+import InspectorSection from "./InspectorSection.vue";
 
 const props = defineProps({
 	zone: { type: String, required: true },
@@ -153,8 +134,6 @@ const height_field = computed(() =>
 
 const zone_source = computed(() => letterhead.value?.[source_field.value] || "Image");
 const zone_align = computed(() => letterhead.value?.[align_field.value] ?? "Left");
-
-const open = ref({ html: true, image: true });
 
 const aspect_ratio = ref(null);
 const range_field = ref(null);
@@ -402,23 +381,5 @@ function lh_create_letterhead() {
 	display: flex;
 	flex-direction: column;
 	gap: 6px;
-}
-
-.pfb-lh-edit-btn {
-	display: inline-flex;
-	align-items: center;
-	gap: 4px;
-}
-
-.pfb-html-preview {
-	font-size: var(--text-sm);
-	color: var(--text-muted);
-	padding: 6px 8px;
-	border: 1px solid var(--border-color);
-	border-radius: var(--radius);
-	background: var(--gray-50);
-	max-height: 100px;
-	overflow: hidden;
-	margin-bottom: 2px;
 }
 </style>

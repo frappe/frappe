@@ -239,7 +239,11 @@
 					v-html="frappe.utils.icon('grip', 'xs')"
 				></div>
 				<button
-					class="btn btn-xs btn-icon field-remove-btn"
+					class="es-button"
+					data-size="xs"
+					data-variant="ghost"
+					data-theme="red"
+					data-icon-button="true"
 					@click.stop="df['remove'] = true"
 					v-html="frappe.utils.icon('x', 'xs')"
 				></button>
@@ -281,16 +285,23 @@
 						<i class="text-muted" v-else>{{ __("No Label") }} ({{ df.fieldname }})</i>
 					</div>
 					<div class="field-meta">
-						<span class="fieldtype-badge">{{ short_fieldtype }}</span>
+						<span class="es-badge">{{ short_fieldtype }}</span>
 						<div class="field-actions">
 							<button
 								v-if="df.fieldtype == 'HTML'"
-								class="btn btn-xs btn-icon"
+								class="es-button"
+								data-size="xs"
+								data-variant="ghost"
+								data-icon-button="true"
 								@click.stop="edit_html"
 								v-html="frappe.utils.icon('pencil', 'sm')"
 							></button>
 							<button
-								class="btn btn-xs btn-icon"
+								class="es-button"
+								data-size="xs"
+								data-variant="ghost"
+								data-theme="red"
+								data-icon-button="true"
 								@click.stop="df['remove'] = true"
 								v-html="frappe.utils.icon('x', 'sm')"
 							></button>
@@ -778,29 +789,10 @@ watch(
 	flex-shrink: 0;
 }
 
-.fieldtype-badge {
-	font-size: var(--text-tiny);
-	color: var(--text-muted);
-	background: var(--control-bg);
-	border: 1px solid var(--gray-300);
-	border-radius: var(--radius);
-	padding: 1px 4px;
-	white-space: nowrap;
-}
-
 .field-actions {
 	display: flex;
 	align-items: center;
 	gap: 2px;
-}
-
-.field-actions .btn-icon {
-	box-shadow: none;
-	padding: 2px;
-}
-
-.field-actions .btn-icon:hover {
-	background-color: var(--fg-color);
 }
 
 .custom-html {
@@ -1014,11 +1006,6 @@ watch(
 .field--preview:hover .field-preview-actions,
 .field--preview.field--selected .field-preview-actions {
 	display: flex;
-}
-
-.field-preview-actions .btn-icon {
-	box-shadow: none;
-	padding: 2px;
 }
 
 .field-preview-actions .field-drag-handle {

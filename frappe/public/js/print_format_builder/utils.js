@@ -138,6 +138,100 @@ export function pluck(object, keys) {
 	return out;
 }
 
+export const TABLE_COLUMN_PLUCK_KEYS = [
+	"label",
+	"fieldname",
+	"fieldtype",
+	"options",
+	"width",
+	"field_template",
+	"merged_fields",
+	"image_size",
+];
+
+export const FIELD_PLUCK_KEYS = [
+	"label",
+	"fieldname",
+	"fieldtype",
+	"options",
+	"table_columns",
+	"table_style",
+	"table_bordered",
+	"table_header",
+	"table_cell_padding",
+	"table_radius",
+	"html",
+	"field_template",
+	"source",
+	"repeater_columns",
+	"show_label",
+	"align",
+	"label_justify",
+	"label_gap",
+	"visible_if",
+	"custom_style",
+];
+
+export const ZONE_FIELD_PLUCK_KEYS = [
+	"label",
+	"fieldname",
+	"fieldtype",
+	"options",
+	"table_columns",
+	"table_style",
+	"table_bordered",
+	"table_header",
+	"html",
+	"field_template",
+	"source",
+	"repeater_columns",
+	"show_label",
+	"align",
+	"label_justify",
+	"label_gap",
+	"visible_if",
+	"custom_style",
+];
+
+export function serialize_layout(layout) {
+	layout.sections = layout.sections
+		.filter((section) => !section.remove)
+		.map((section) => {
+			section.columns = section.columns.map((column) => {
+				column.fields = column.fields
+					.filter((df) => !df.remove)
+					.map((df) => {
+						if (df.table_columns) {
+							df.table_columns = df.table_columns.map((tf) => {
+								if (Array.isArray(tf.merged_fields) && !tf.merged_fields.length) {
+									delete tf.merged_fields;
+								}
+								return pluck(tf, TABLE_COLUMN_PLUCK_KEYS);
+							});
+						}
+						return pluck(df, FIELD_PLUCK_KEYS);
+					});
+				return column;
+			});
+			return section;
+		});
+
+	function clean_zone(zone) {
+		if (!zone || !zone.columns) return zone;
+		zone.columns = zone.columns.map((column) => {
+			column.fields = column.fields
+				.filter((df) => !df.remove)
+				.map((df) => pluck(df, ZONE_FIELD_PLUCK_KEYS));
+			return column;
+		});
+		return zone;
+	}
+	layout.header = clean_zone(layout.header);
+	layout.footer = clean_zone(layout.footer);
+
+	return layout;
+}
+
 // Parse "border: 1px solid; padding: 4px" into a Vue style-binding object.
 // Splits on the first ":" per declaration so values like url(http://…) survive.
 export function parse_inline_style(css) {
