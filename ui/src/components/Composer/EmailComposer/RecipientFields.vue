@@ -61,7 +61,7 @@ const subject = defineModel<string>("subject", { default: "" });
 // The optional recipient rows, in fixed order. `subject` is handled separately
 // (it's a plain text field, not a recipient list).
 const OPTIONAL = ["cc", "bcc"] as const;
-type OptionalField = (typeof OPTIONAL)[number];
+type OptionalField = typeof OPTIONAL[number];
 
 const showSubject = computed(() => props.fields.includes("subject"));
 // Which optional rows this composer offers — each gets a toggle button + a row.
