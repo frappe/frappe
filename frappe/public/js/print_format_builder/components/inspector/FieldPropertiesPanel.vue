@@ -7,7 +7,7 @@
 					<span class="ellipsis" style="min-width: 0">{{
 						selected_field.label || selected_field.fieldname
 					}}</span>
-					<span class="badge badge-light flex-shrink-0">{{ short_fieldtype }}</span>
+					<span class="es-badge">{{ short_fieldtype }}</span>
 				</div>
 			</div>
 			<template v-if="is_html_field">
@@ -19,10 +19,7 @@
 				<div v-else class="pfb-insp-hint text-muted">
 					{{ __("No HTML content yet.") }}
 				</div>
-				<button
-					class="btn btn-xs btn-default d-inline-flex align-items-center"
-					@click="edit_html_field"
-				>
+				<button class="es-button" data-size="xs" @click="edit_html_field">
 					<span v-html="frappe.utils.icon('pencil', 'xs')"></span>
 					{{ __("Edit HTML") }}
 				</button>
@@ -79,7 +76,13 @@
 		</InspectorSection>
 
 		<div class="pfb-insp-actions">
-			<button class="btn btn-xs text-danger" @click="remove_field">
+			<button
+				class="es-button"
+				data-size="xs"
+				data-variant="ghost"
+				data-theme="red"
+				@click="remove_field"
+			>
 				<span v-html="frappe.utils.icon('x', 'xs')"></span>
 				{{ __("Remove field") }}
 			</button>

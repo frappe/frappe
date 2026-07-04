@@ -42,7 +42,10 @@
 						/>
 						<span class="pfb-col-width-unit">%</span>
 						<button
-							class="btn btn-xs btn-icon"
+							class="es-button"
+							data-size="xs"
+							data-variant="ghost"
+							data-icon-button="true"
 							:title="__('Remove column')"
 							@click="remove_repeater_column(ci)"
 							v-html="frappe.utils.icon('x', 'xs')"
@@ -72,7 +75,13 @@
 		</InspectorSection>
 
 		<div class="pfb-insp-actions">
-			<button class="btn btn-xs text-danger" @click="remove_field">
+			<button
+				class="es-button"
+				data-size="xs"
+				data-variant="ghost"
+				data-theme="red"
+				@click="remove_field"
+			>
 				<span v-html="frappe.utils.icon('x', 'xs')"></span>
 				{{ __("Remove repeater") }}
 			</button>

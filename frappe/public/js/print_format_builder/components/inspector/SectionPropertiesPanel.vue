@@ -93,7 +93,13 @@
 		</InspectorSection>
 
 		<div class="pfb-insp-actions">
-			<button class="btn btn-xs text-danger" @click="remove_section">
+			<button
+				class="es-button"
+				data-size="xs"
+				data-variant="ghost"
+				data-theme="red"
+				@click="remove_section"
+			>
 				<span v-html="frappe.utils.icon('x', 'xs')"></span>
 				{{ __("Remove section") }}
 			</button>

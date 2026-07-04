@@ -9,7 +9,7 @@
 					<span class="ellipsis" style="min-width: 0">{{
 						selected_field.label || selected_field.fieldname
 					}}</span>
-					<span class="badge badge-light flex-shrink-0">{{ __("Table") }}</span>
+					<span class="es-badge">{{ __("Table") }}</span>
 				</div>
 			</div>
 			<!-- Title -->
@@ -224,7 +224,13 @@
 		</InspectorSection>
 
 		<div class="pfb-insp-actions">
-			<button class="btn btn-xs text-danger" @click="remove_field">
+			<button
+				class="es-button"
+				data-size="xs"
+				data-variant="ghost"
+				data-theme="red"
+				@click="remove_field"
+			>
 				<span v-html="frappe.utils.icon('x', 'xs')"></span>
 				{{ __("Remove table") }}
 			</button>

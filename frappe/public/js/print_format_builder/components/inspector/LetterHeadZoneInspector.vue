@@ -51,10 +51,7 @@
 				<div v-else class="pfb-insp-hint text-muted">
 					{{ __("No HTML content yet.") }}
 				</div>
-				<button
-					class="btn btn-xs btn-default d-inline-flex align-items-center"
-					@click="edit_html"
-				>
+				<button class="es-button" data-size="xs" @click="edit_html">
 					<span v-html="frappe.utils.icon('pencil', 'xs')"></span>
 					{{ __("Edit HTML") }}
 				</button>
