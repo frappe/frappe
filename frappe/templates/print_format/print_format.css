@@ -250,6 +250,10 @@ body {
 }
 
 /* plain: no borders, bottom dividers only */
+.child-table--plain .table {
+	border: none !important;
+}
+
 .child-table--plain .table th,
 .child-table--plain .table td {
 	border: none !important;
