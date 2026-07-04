@@ -11,6 +11,18 @@ export function parseArgs(args) {
 	}
 }
 
+// The raw argument string when it can't be parsed into fields, so a malformed or
+// truncated payload is shown verbatim rather than silently dropped. "" otherwise.
+export function rawArgs(args) {
+	if (typeof args !== "string" || !args.trim()) return "";
+	try {
+		JSON.parse(args);
+		return "";
+	} catch {
+		return args;
+	}
+}
+
 // snake_case / a name → "Snake case".
 export function humanize(name) {
 	return String(name || "")
@@ -44,7 +56,7 @@ export function normalizeToolName(name) {
 	return clean || String(name || "").trim();
 }
 
-export const hasArgs = (args) => Object.keys(parseArgs(args)).length > 0;
+export const hasArgs = (args) => Object.keys(parseArgs(args)).length > 0 || Boolean(rawArgs(args));
 
 export const isScalar = (v) => v === null || typeof v !== "object";
 
