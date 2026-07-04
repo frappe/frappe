@@ -123,7 +123,7 @@
    "label": "Condition"
   },
   {
-   "description": "Optional Python expression. For DocType events, `doc` is in scope. Trigger only fires if expression is truthy.",
+   "description": "Optional Python expression. For DocType events, <code>doc</code> is in scope. Trigger only fires if the expression is truthy, e.g. <code>doc.status == \"Open\" and doc.priority == \"High\"</code>",
    "fieldname": "condition",
    "fieldtype": "Code",
    "label": "Condition",
@@ -135,7 +135,7 @@
    "label": "Prompt"
   },
   {
-   "description": "Jinja template rendered into the agent input. `doc` and `now` are in scope.",
+   "description": "Jinja template rendered into the agent input. <code>doc</code> and <code>now</code> are in scope, e.g. <code>Summarize {{ doc.doctype }} {{ doc.name }} and suggest next steps: {{ doc.description }}</code>",
    "fieldname": "prompt_template",
    "fieldtype": "Code",
    "label": "Prompt Template",
@@ -150,7 +150,7 @@
    "link_fieldname": "trigger"
   }
  ],
- "modified": "2026-05-24 00:00:00",
+ "modified": "2026-07-04 00:00:01.000000",
  "modified_by": "Administrator",
  "module": "Flow",
  "name": "Flow Trigger",
