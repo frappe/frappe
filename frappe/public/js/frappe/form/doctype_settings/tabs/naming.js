@@ -47,10 +47,12 @@ function make_section($parent, { title, description, add_label, on_add }, list_o
 	list.refresh();
 
 	if (add_label) {
-		$(`<button type="button" class="es-button" data-size="sm" data-variant="subtle"></button>`)
-			.append(frappe.utils.icon("plus", "sm"))
-			.append($("<span></span>").text(add_label))
-			.on("click", () => on_add(() => list.refresh()))
+		frappe.ui
+			.button({
+				label: add_label,
+				icon: "plus",
+				onclick: () => on_add(() => list.refresh()),
+			})
 			.appendTo($header.find(".settings-dialog-panel-actions"));
 	}
 	return list;
