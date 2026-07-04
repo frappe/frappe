@@ -181,7 +181,7 @@
 								<button
 									v-for="option in modelOptions"
 									:key="option.value"
-									class="flex w-full items-center px-3 py-1.5 text-left text-sm text-ink-gray-7 hover:bg-surface-gray-2"
+									class="flex w-full items-center justify-between gap-2 px-3 py-1.5 text-left text-sm text-ink-gray-7 hover:bg-surface-gray-2"
 									:class="{ 'font-medium text-ink-gray-9': option.value === selectedModel }"
 									@click="
 										() => {
@@ -190,13 +190,20 @@
 										}
 									"
 								>
-									{{ option.label }}
+									<span>{{ option.label }}</span>
+									<FeatherIcon
+										v-if="option.vision"
+										name="image"
+										class="h-3.5 w-3.5 shrink-0 text-ink-gray-4"
+										title="Supports image attachments"
+									/>
 								</button>
 							</div>
 						</template>
 					</Popover>
 
 					<button
+						v-if="isVisionModel"
 						class="flex h-7 items-center gap-1.5 rounded px-1.5 text-ink-gray-5 transition-colors hover:bg-surface-gray-2 hover:text-ink-gray-8 disabled:cursor-not-allowed disabled:opacity-50"
 						title="Attach a screenshot or design to reproduce"
 						:disabled="loading"
@@ -223,7 +230,7 @@
 
 <script lang="ts" setup>
 import { ref, computed, inject, watch, nextTick } from "vue"
-import { ErrorMessage, Button, Badge, FeatherIcon, call, createResource, Popover } from "frappe-ui"
+import { ErrorMessage, Button, Badge, FeatherIcon, call, createResource, Popover, toast } from "frappe-ui"
 import { marked } from "marked"
 import useStudioStore from "@/stores/studioStore"
 import useCanvasStore from "@/stores/canvasStore"
@@ -268,11 +275,18 @@ const aiModels = createResource({
 	auto: true,
 })
 
-const modelOptions = computed(() => (aiModels.data ?? []).map((m: any) => ({ label: m.label, value: m.id })))
+const modelOptions = computed(() =>
+	(aiModels.data ?? []).map((m: any) => ({ label: m.label, value: m.id, vision: !!m.vision_capable })),
+)
 
 const modelLabel = computed(() => {
 	const selected = modelOptions.value.find((m: any) => m.value === selectedModel.value)
 	return selected ? selected.label : "Model"
+})
+
+const isVisionModel = computed(() => {
+	const selected = modelOptions.value.find((m: any) => m.value === selectedModel.value)
+	return selected ? selected.vision : true
 })
 
 const sessionResource = createResource({
@@ -339,6 +353,10 @@ const controller = new AIChatController({
 	},
 })
 
+watch(isVisionModel, (vision) => {
+	if (!vision) controller.clearImage()
+})
+
 // Attached-image state + input (exposed so the template auto-unwraps the refs).
 const imagePreviewUrl = controller.imagePreviewUrl
 const imageFileName = controller.imageFileName
@@ -355,18 +373,24 @@ function onPaste(e: ClipboardEvent) {
 	const file = Array.from(e.clipboardData?.items || [])
 		.find((item) => item.type.startsWith("image/"))
 		?.getAsFile()
-	if (file) {
-		e.preventDefault()
-		controller.attachImageFile(file)
-	}
+	if (!file) return
+	e.preventDefault()
+	if (!warnIfNoVision()) return
+	controller.attachImageFile(file)
 }
 
 function onDropImage(e: DragEvent) {
 	const file = e.dataTransfer?.files?.[0]
-	if (file?.type.startsWith("image/")) {
-		e.preventDefault()
-		controller.attachImageFile(file)
-	}
+	if (!file?.type.startsWith("image/")) return
+	e.preventDefault()
+	if (!warnIfNoVision()) return
+	controller.attachImageFile(file)
+}
+
+function warnIfNoVision(): boolean {
+	if (isVisionModel.value) return true
+	toast.error(`${modelLabel.value} can't read images. Pick a vision-capable model to attach a design.`)
+	return false
 }
 
 function setupListeners() {
