@@ -347,6 +347,27 @@ class TestDocument(IntegrationTestCase):
 
 		frappe.delete_doc_if_exists("Currency", "Frappe Coin", 1)
 
+	def test_min_max_value_check(self):
+		doctype = new_doctype(
+			fields=[
+				{
+					"fieldname": "qty",
+					"fieldtype": "Int",
+					"label": "Qty",
+					"min_value": 5,
+					"max_value": 10,
+				}
+			]
+		).insert()
+
+		try:
+			self.assertRaises(frappe.ValidationError, frappe.get_doc(doctype=doctype.name, qty=3).insert)
+			self.assertRaises(frappe.ValidationError, frappe.get_doc(doctype=doctype.name, qty=12).insert)
+			frappe.get_doc(doctype=doctype.name, qty=7).insert()
+		finally:
+			doctype.delete(force=True)
+			frappe.db.commit()
+
 	def test_get_formatted(self):
 		frappe.get_doc(
 			{
