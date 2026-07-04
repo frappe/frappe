@@ -366,7 +366,6 @@ class TestDocument(IntegrationTestCase):
 			frappe.get_doc(doctype=doctype.name, qty=7).insert()
 		finally:
 			doctype.delete(force=True)
-			frappe.db.commit()
 
 	def test_get_formatted(self):
 		frappe.get_doc(
