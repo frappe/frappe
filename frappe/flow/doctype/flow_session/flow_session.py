@@ -153,6 +153,11 @@ class FlowSession(Document):
 		self._index_retrieval_attachments(run.name)
 		run_input = self._build_prompt_messages()
 
+		# Release row locks and publish the Running run before the long model call, so a
+		# concurrent turn doesn't block on the Flow Session row until lock timeout (1205).
+		if not frappe.flags.in_test:
+			frappe.db.commit()
+
 		# Opt-in (set on the Flow Trigger): run confirmation tools without approval so unattended
 		# trigger runs don't park in Paused waiting for a confirmation no one can give.
 		self._runtime.auto_approve = auto_approve
@@ -164,6 +169,9 @@ class FlowSession(Document):
 			result = self._runtime.run(run_input)
 		except Exception as e:
 			run.mark_failed(str(e))
+			# Persist Failed too; the Running run is already committed.
+			if not frappe.flags.in_test:
+				frappe.db.commit()
 			raise
 		run.apply_result(result)
 		return run
