@@ -51,8 +51,7 @@ function sendOther() {
 	>
 		<div class="flex items-center gap-2">
 			<span
-				class="flex h-5 w-5 shrink-0 items-center justify-center rounded-md bg-surface-gray-2"
-				:class="danger ? 'text-ink-red-3' : 'text-ink-gray-7'"
+				class="flex h-5 w-5 shrink-0 items-center justify-center rounded-md bg-surface-gray-2 text-ink-gray-7"
 			>
 				<FeatherIcon :name="danger ? 'alert-triangle' : 'shield'" class="h-3.5 w-3.5" />
 			</span>
@@ -80,7 +79,7 @@ function sendOther() {
 					v-for="opt in question.options"
 					:key="opt"
 					:variant="opt === 'Approve' ? 'solid' : 'outline'"
-					:theme="opt === 'Approve' && danger ? 'red' : 'gray'"
+					theme="gray"
 					:label="opt"
 					@click="pick(opt)"
 				/>

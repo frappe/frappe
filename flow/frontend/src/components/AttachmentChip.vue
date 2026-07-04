@@ -27,7 +27,7 @@ const title = computed(() =>
 <template>
 	<div
 		class="flex max-w-[200px] items-center gap-1.5 rounded-lg border bg-surface-gray-1 py-1 pl-2 pr-1.5"
-		:class="status === 'error' ? 'border-outline-red-2' : 'border-outline-gray-2'"
+		:class="status === 'error' ? 'border-outline-gray-4' : 'border-outline-gray-2'"
 		:title="title"
 	>
 		<FeatherIcon name="file-text" class="h-3.5 w-3.5 shrink-0 text-ink-gray-5" />
@@ -36,7 +36,9 @@ const title = computed(() =>
 				{{ fileName }}
 			</div>
 			<div class="text-[10.5px] leading-tight text-ink-gray-5">
-				<span v-if="status === 'error'" class="text-ink-red-3">{{ __("Failed") }}</span>
+				<span v-if="status === 'error'" class="font-medium text-ink-gray-7">{{
+					__("Failed")
+				}}</span>
 				<span v-else-if="status === 'uploading'">{{ __("Uploading…") }}</span>
 				<span v-else>{{ sizeLabel }}</span>
 			</div>
