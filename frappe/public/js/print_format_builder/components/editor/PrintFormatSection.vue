@@ -95,7 +95,7 @@
 							group="fields"
 							:animation="150"
 							item-key="id"
-							filter="input, textarea, select, button, [contenteditable]"
+							filter="a, input, textarea, select, button, [contenteditable]"
 							:preventOnFilter="false"
 							:emptyInsertThreshold="100"
 							@add="select_section"
