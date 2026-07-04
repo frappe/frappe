@@ -57,6 +57,7 @@ class FlowSession(Document):
 		self._validate_model_enabled()
 
 	def on_trash(self):
+		frappe.db.delete("Flow Run", {"session": self.name})
 		_purge_attachment_chunks(self.name)
 
 	def _validate_model_enabled(self):
