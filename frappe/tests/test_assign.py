@@ -100,6 +100,22 @@ class TestAssign(IntegrationTestCase):
 
 		self.assertFalse(get_assignments("ToDo", todo.name))
 
+	def test_assign_filter_with_equals_operator(self):
+		from frappe.model.db_query import DatabaseQuery
+
+		todo = frappe.get_doc({"doctype": "ToDo", "description": "assign filter test"}).insert()
+		frappe.db.set_value("ToDo", todo.name, "_assign", frappe.as_json(["test@example.com"]))
+
+		# _assign stores a JSON array of users, so `=` / `!=` must match like `like` / `not like`
+		for run_filter in (
+			lambda op: frappe.get_all("ToDo", filters=[["_assign", op, "test@example.com"]], pluck="name"),
+			lambda op: DatabaseQuery("ToDo").execute(
+				filters=[["_assign", op, "test@example.com"]], pluck="name"
+			),
+		):
+			self.assertIn(todo.name, run_filter("="))
+			self.assertNotIn(todo.name, run_filter("!="))
+
 
 def assign(doc, user):
 	return frappe.desk.form.assign_to.add(
