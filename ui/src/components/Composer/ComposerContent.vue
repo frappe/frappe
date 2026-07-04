@@ -63,7 +63,7 @@
 </template>
 
 <script setup lang="ts">
-import { computed, ref, watch } from "vue";
+import { computed, onBeforeUnmount, ref, watch } from "vue";
 import { TabButtons } from "frappe-ui";
 import { FloatingWindow } from "frappe-ui/experimental";
 import ComposerHeader from "./ComposerHeader.vue";
@@ -95,6 +95,11 @@ const headerTitle = computed(() => props.title || activeChannel.value?.label || 
 const COLLAPSE_THRESHOLD = 230;
 
 const dockedHeight = ref<number | null>(null);
+
+// Cleanup for an in-flight resize drag; also run on unmount so a mid-drag
+// teardown can't orphan the window listeners.
+let stopDockedResize: (() => void) | null = null;
+onBeforeUnmount(() => stopDockedResize?.());
 
 // Reopen with auto height, however the resize drag left the window.
 watch(open, (isOpen) => {
@@ -169,9 +174,11 @@ function startDockedResize(event: PointerEvent) {
 		window.removeEventListener("pointermove", onMove);
 		window.removeEventListener("pointerup", onUp);
 		window.removeEventListener("pointercancel", onUp);
+		stopDockedResize = null;
 	}
 	window.addEventListener("pointermove", onMove);
 	window.addEventListener("pointerup", onUp);
 	window.addEventListener("pointercancel", onUp);
+	stopDockedResize = onUp;
 }
 </script>
