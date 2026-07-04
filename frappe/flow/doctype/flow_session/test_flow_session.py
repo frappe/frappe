@@ -392,6 +392,15 @@ class TestAttachmentCleanup(IntegrationTestCase):
 			frappe.delete_doc("Flow Session", s.name, ignore_permissions=True)
 		self.assertFalse(frappe.db.exists("Flow Session", s.name))
 
+	def test_on_trash_deletes_linked_runs(self):
+		s = frappe.get_doc({"doctype": "Flow Session"}).insert(ignore_permissions=True)
+		run = frappe.get_doc(
+			{"doctype": "Flow Run", "session": s.name, "source": "Manual", "status": "Completed"}
+		).insert(ignore_permissions=True)
+		with patch("flow.knowledge.attachment_store.delete"):
+			frappe.delete_doc("Flow Session", s.name, ignore_permissions=True)
+		self.assertFalse(frappe.db.exists("Flow Run", run.name))
+
 	def test_clear_old_logs_purges_chunks_for_batch(self):
 		s = frappe.get_doc({"doctype": "Flow Session", "title": "old"}).insert(ignore_permissions=True)
 		old = frappe.utils.add_days(frappe.utils.now(), -100)
