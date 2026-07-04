@@ -364,6 +364,7 @@ class TestDocument(IntegrationTestCase):
 			self.assertRaises(frappe.ValidationError, frappe.get_doc(doctype=doctype.name, qty=3).insert)
 			self.assertRaises(frappe.ValidationError, frappe.get_doc(doctype=doctype.name, qty=12).insert)
 			frappe.get_doc(doctype=doctype.name, qty=7).insert()
+			frappe.get_doc(doctype=doctype.name).insert()
 		finally:
 			doctype.delete(force=True)
 
