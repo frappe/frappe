@@ -48,15 +48,18 @@
 		</InspectorSection>
 
 		<!-- BACKGROUND -->
-		<InspectorSection :label="__('Background')">
+		<InspectorSection :label="__('Background')" :init-open="false">
 			<div ref="bg_color_host"></div>
 		</InspectorSection>
 
-		<!-- PADDING -->
-		<InspectorSection :label="__('Padding')">
-			<PaddingGrid
-				:model-value="selected_section.padding"
-				@update:model-value="(v) => (selected_section.padding = v)"
+		<!-- SPACING -->
+		<InspectorSection :label="__('Spacing')" :init-open="false">
+			<SpacingRow
+				v-for="prop in spacing_props"
+				:key="prop.key"
+				:label="prop.label"
+				:model-value="selected_section[prop.key]"
+				@update:model-value="(v) => (selected_section[prop.key] = v)"
 			/>
 		</InspectorSection>
 
@@ -71,6 +74,18 @@
 					{ value: true, label: __('Table') },
 				]"
 				@update:model-value="toggle_field_borders"
+			/>
+			<!-- Grid borders -->
+			<SegmentedRow
+				v-if="section_field_borders"
+				:label="__('Borders')"
+				:model-value="selected_section.grid_borders || 'all'"
+				:options="[
+					{ value: 'all', label: __('All') },
+					{ value: 'rows', label: __('Rows') },
+					{ value: 'columns', label: __('Columns') },
+				]"
+				@update:model-value="set_grid_borders"
 			/>
 			<!-- Cell padding -->
 			<StepperRow
@@ -100,7 +115,7 @@ import LabelField from "./LabelField.vue";
 import SegmentedRow from "./SegmentedRow.vue";
 import InspectorSection from "./InspectorSection.vue";
 import StepperRow from "./StepperRow.vue";
-import PaddingGrid from "./PaddingGrid.vue";
+import SpacingRow from "./SpacingRow.vue";
 import StyleSection from "./StyleSection.vue";
 import VisibilitySection from "./VisibilitySection.vue";
 import { mountColorControl } from "./useColorControl";
@@ -108,6 +123,11 @@ import { mountColorControl } from "./useColorControl";
 let store = inject("$store");
 
 let selected_section = computed(() => store.selected_section.value);
+
+const spacing_props = [
+	{ key: "padding", label: __("Padding") },
+	{ key: "margin", label: __("Margin") },
+];
 let preview_doc = computed(() => store.preview_doc.value);
 
 let section_orientation = computed(() => selected_section.value?.field_orientation ?? "");
@@ -147,6 +167,15 @@ function toggle_field_borders(on) {
 		selected_section.value.field_borders = true;
 	} else {
 		delete selected_section.value.field_borders;
+		delete selected_section.value.grid_borders;
+	}
+}
+
+function set_grid_borders(v) {
+	if (v === "all") {
+		delete selected_section.value.grid_borders;
+	} else {
+		selected_section.value.grid_borders = v;
 	}
 }
 </script>
