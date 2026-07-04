@@ -12,11 +12,13 @@
 			<div v-show="open.f_field" class="pfb-insp-section-body">
 				<div class="pfb-insp-row">
 					<span class="pfb-insp-label">{{ __("Source") }}</span>
-					<div class="pfb-source-display">
-						<span class="pfb-source-name">{{
+					<div
+						class="pfb-source-display d-flex align-items-center justify-content-between"
+					>
+						<span class="ellipsis" style="min-width: 0">{{
 							selected_field.label || selected_field.fieldname
 						}}</span>
-						<span class="pfb-type-badge">{{ short_fieldtype }}</span>
+						<span class="badge badge-light flex-shrink-0">{{ short_fieldtype }}</span>
 					</div>
 				</div>
 				<template v-if="is_html_field">
@@ -29,7 +31,7 @@
 						{{ __("No HTML content yet.") }}
 					</div>
 					<button
-						class="btn btn-xs btn-default pfb-lh-edit-btn"
+						class="btn btn-xs btn-default d-inline-flex align-items-center"
 						@click="edit_html_field"
 					>
 						<span v-html="frappe.utils.icon('pencil', 'xs')"></span>
@@ -109,7 +111,7 @@
 		</div>
 
 		<div class="pfb-insp-actions">
-			<button class="btn btn-xs btn-danger-subtle" @click="remove_field">
+			<button class="btn btn-xs text-danger" @click="remove_field">
 				<span v-html="frappe.utils.icon('x', 'xs')"></span>
 				{{ __("Remove field") }}
 			</button>
@@ -252,23 +254,3 @@ function edit_html_field() {
 	});
 }
 </script>
-
-<style scoped>
-.pfb-lh-edit-btn {
-	display: inline-flex;
-	align-items: center;
-	gap: 4px;
-}
-
-.pfb-html-preview {
-	font-size: var(--text-sm);
-	color: var(--text-muted);
-	padding: 6px 8px;
-	border: 1px solid var(--border-color);
-	border-radius: var(--radius);
-	background: var(--gray-50);
-	max-height: 100px;
-	overflow: hidden;
-	margin-bottom: 2px;
-}
-</style>

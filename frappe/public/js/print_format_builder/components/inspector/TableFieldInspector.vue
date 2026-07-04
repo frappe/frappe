@@ -14,11 +14,13 @@
 				<!-- Source -->
 				<div class="pfb-insp-row">
 					<span class="pfb-insp-label">{{ __("Source") }}</span>
-					<div class="pfb-source-display">
-						<span class="pfb-source-name">{{
+					<div
+						class="pfb-source-display d-flex align-items-center justify-content-between"
+					>
+						<span class="ellipsis" style="min-width: 0">{{
 							selected_field.label || selected_field.fieldname
 						}}</span>
-						<span class="pfb-type-badge">{{ __("Table") }}</span>
+						<span class="badge badge-light flex-shrink-0">{{ __("Table") }}</span>
 					</div>
 				</div>
 				<!-- Title -->
@@ -262,7 +264,7 @@
 		</div>
 
 		<div class="pfb-insp-actions">
-			<button class="btn btn-xs btn-danger-subtle" @click="remove_field">
+			<button class="btn btn-xs text-danger" @click="remove_field">
 				<span v-html="frappe.utils.icon('x', 'xs')"></span>
 				{{ __("Remove table") }}
 			</button>

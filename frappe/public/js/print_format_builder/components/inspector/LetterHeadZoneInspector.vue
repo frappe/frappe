@@ -60,7 +60,10 @@
 					<div v-else class="pfb-insp-hint text-muted">
 						{{ __("No HTML content yet.") }}
 					</div>
-					<button class="btn btn-xs btn-default pfb-lh-edit-btn" @click="edit_html">
+					<button
+						class="btn btn-xs btn-default d-inline-flex align-items-center"
+						@click="edit_html"
+					>
 						<span v-html="frappe.utils.icon('pencil', 'xs')"></span>
 						{{ __("Edit HTML") }}
 					</button>
@@ -402,23 +405,5 @@ function lh_create_letterhead() {
 	display: flex;
 	flex-direction: column;
 	gap: 6px;
-}
-
-.pfb-lh-edit-btn {
-	display: inline-flex;
-	align-items: center;
-	gap: 4px;
-}
-
-.pfb-html-preview {
-	font-size: var(--text-sm);
-	color: var(--text-muted);
-	padding: 6px 8px;
-	border: 1px solid var(--border-color);
-	border-radius: var(--radius);
-	background: var(--gray-50);
-	max-height: 100px;
-	overflow: hidden;
-	margin-bottom: 2px;
 }
 </style>
