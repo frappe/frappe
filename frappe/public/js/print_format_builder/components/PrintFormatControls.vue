@@ -973,8 +973,8 @@ watch(print_format, () => (store.dirty.value = true), { deep: true });
 }
 
 .pfb-outline-item.active {
-	background: var(--blue-50);
-	color: var(--primary);
+	background: var(--gray-200);
+	color: var(--text-color);
 	font-weight: 500;
 }
 

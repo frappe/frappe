@@ -365,9 +365,9 @@ function lh_create_letterhead() {
 	font-weight: var(--weight-semibold);
 	text-transform: uppercase;
 	letter-spacing: 0.06em;
-	color: var(--blue-500);
-	background: var(--blue-50);
-	border-bottom: 1px solid var(--blue-200);
+	color: var(--text-muted);
+	background: var(--bg-gray);
+	border-bottom: 1px solid var(--border-color);
 	padding: 7px 14px;
 	flex-shrink: 0;
 }

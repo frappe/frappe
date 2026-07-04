@@ -362,10 +362,10 @@ defineExpose({ toggle_preview, show_preview, $store });
 	align-items: center;
 	gap: 6px;
 	padding: 4px 12px;
-	background: var(--blue-50);
-	border-bottom: 1px solid var(--blue-100);
+	background: var(--bg-gray);
+	border-bottom: 1px solid var(--border-color);
 	font-size: var(--text-xs);
-	color: var(--blue-700);
+	color: var(--text-muted);
 }
 
 .pfb-hint-icon {
@@ -385,7 +385,7 @@ defineExpose({ toggle_preview, show_preview, $store });
 	border: none;
 	background: transparent;
 	cursor: pointer;
-	color: var(--blue-400);
+	color: var(--text-muted);
 	border-radius: var(--radius);
 	line-height: 1;
 	opacity: 0.7;
@@ -393,7 +393,7 @@ defineExpose({ toggle_preview, show_preview, $store });
 
 .pfb-hint-dismiss:hover {
 	opacity: 1;
-	background: var(--blue-100);
+	background: var(--gray-200);
 }
 
 /* ── Canvas toolbar ──────────────────────────────────────── */
