@@ -45,7 +45,7 @@ class PilotClient:
 				timeout=cint(frappe.conf.get("cloud_settings_timeout")) or 30,
 			)
 		except requests.RequestException as exc:
-			frappe.throw(_("Could not reach your server: {0}").format(exc), frappe.ValidationError)
+			frappe.throw(_("Could not reach your server: {0}").format(str(exc)), frappe.ValidationError)
 
 		payload = self._parse(response)
 		# Some endpoints (e.g. the app registry) return a bare JSON list.
