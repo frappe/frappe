@@ -1594,7 +1594,12 @@ class TestPostgresSchemaQueryIndependence(ExtIntegrationTestCase):
 
 
 class TestDbConnectWithEnvCredentials(IntegrationTestCase):
-	current_site = frappe.local.site
+	@classmethod
+	def setUpClass(cls):
+		# resolved here instead of the class body: at import time there may be
+		# no site context (depends on which test modules ran before this one)
+		super().setUpClass()
+		cls.current_site = frappe.local.site
 
 	def tearDown(self):
 		frappe.init(self.current_site, force=True)
