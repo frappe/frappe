@@ -333,17 +333,6 @@ watch(print_format, () => (store.dirty.value = true), { deep: true });
 	opacity: 1;
 }
 
-/* Hide the section pill while a field inside is hovered/selected so it doesn't
-   collide with the field's own top-right pill */
-.pfb-clean-preview
-	:deep(.print-format-section-container:has(.field--preview:hover) .section-preview-actions),
-.pfb-clean-preview
-	:deep(.print-format-section-container:has(.field--preview.field--selected)
-		.section-preview-actions) {
-	opacity: 0;
-	pointer-events: none;
-}
-
 /* Section title: match PDF's .section-label look; grid sections keep their own box */
 .pfb-clean-preview :deep(.section-title-display) {
 	display: block;
