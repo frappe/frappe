@@ -63,10 +63,6 @@ body {
 	}
 }
 
-.section:not(:first-child) {
-	margin-top: 1.5rem;
-}
-
 .section-label {
 	font-size: 1.1rem;
 	font-weight: 700;
@@ -130,12 +126,16 @@ body {
 }
 
 {%- if print_format.label_color %}
-.print-format .field .label {
+.field .label,
+.field.left-right .label,
+.field.field-inline .label {
 	color: {{ print_format.label_color }};
 }
 {%- endif %}
 {%- if print_format.value_color %}
-.print-format .field .value {
+.field .value,
+.field.left-right .value,
+.field.field-inline .value {
 	color: {{ print_format.value_color }};
 }
 {%- endif %}

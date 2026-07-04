@@ -92,7 +92,7 @@ import Preview from "./components/Preview.vue";
 import PrintFormatControls from "./components/PrintFormatControls.vue";
 import FieldInspector from "./components/inspector/FieldInspector.vue";
 import { getStore } from "./stores";
-import { computed, ref, onMounted, onUnmounted, provide, nextTick } from "vue";
+import { computed, ref, onMounted, onUnmounted, provide, nextTick, watch } from "vue";
 
 // props
 const props = defineProps(["print_format_name"]);
@@ -129,6 +129,20 @@ provide("$store", $store.value);
 // methods
 function toggle_preview() {
 	show_preview.value = !show_preview.value;
+}
+
+watch(show_preview, (on) => {
+	if (on) {
+		history.pushState({ ...history.state, pfb_preview: true }, "");
+	} else if (history.state?.pfb_preview) {
+		history.back();
+	}
+});
+
+function handle_popstate() {
+	if (show_preview.value) {
+		show_preview.value = false;
+	}
 }
 
 function clear_selection() {
@@ -295,6 +309,7 @@ function init_doc_picker() {
 // mounted
 onMounted(() => {
 	document.addEventListener("keydown", handle_keydown);
+	window.addEventListener("popstate", handle_popstate);
 
 	// Detect desk sidebar open/close via MutationObserver on the wrapper's style attribute
 	check_sidebar();
@@ -314,6 +329,7 @@ onMounted(() => {
 
 onUnmounted(() => {
 	document.removeEventListener("keydown", handle_keydown);
+	window.removeEventListener("popstate", handle_popstate);
 	sidebar_observer_ref?.disconnect();
 });
 

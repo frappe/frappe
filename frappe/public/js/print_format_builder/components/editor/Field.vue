@@ -731,8 +731,17 @@ watch(
 	border: 1px dashed var(--gray-400);
 	padding: 0.4rem 0.5rem;
 	font-size: var(--text-sm);
-	cursor: default;
+	cursor: grab;
 	overflow: hidden;
+}
+
+.field:active {
+	cursor: grabbing;
+}
+
+.field.sortable-chosen,
+.field.sortable-ghost {
+	cursor: grabbing;
 }
 
 .field:focus-within {

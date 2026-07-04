@@ -4,7 +4,7 @@
 {%- set _orientation = df.section.field_orientation or '' -%}
 {%- set _inline = (_show_label == 'inline') or (_orientation == 'left-right') -%}
 {%- set _justify = df.label_justify if df.label_justify else '' -%}
-{%- set _fstyle = (('gap: ' + df.label_gap|int|string + 'px;') if (_inline and df.label_gap is not none) else '') + (df.custom_style or '') -%}
+{%- set _fstyle = (('gap: ' + df.label_gap|int|string + 'px;') if (_inline and df.label_gap is defined and df.label_gap is not none) else '') + (df.custom_style or '') -%}
 <div class="field {{ _orientation }}{% if _inline and _orientation != 'left-right' %} field-inline{% endif %}{% if _align %} field-align-{{ _align }}{% endif %}{% if _justify and _orientation == 'left-right' %} field-justify-{{ _justify }}{% endif %}" {% if _fstyle %}style="{{ _fstyle|e }}"{% endif %} {{ field_attributes(df) }}>
 	{%- block label -%}
 	{%- if _show_label != 'hide' -%}

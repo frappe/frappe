@@ -565,7 +565,10 @@ class TestPrintFormatGenerator(IntegrationTestCase):
 		pf = self._make_print_format(label_color="#c0392b")
 		todo = self._make_todo()
 		html = get_html("ToDo", todo.name, pf.name)
-		self.assertIn(".print-format .field .label {\n\tcolor: #c0392b;\n}", html)
+		self.assertIn(
+			".field .label,\n.field.left-right .label,\n.field.field-inline .label {\n\tcolor: #c0392b;\n}",
+			html,
+		)
 
 	def test_value_color_rendered_in_css(self):
 		"""A value_color set on the print format emits a value color override rule."""
@@ -574,7 +577,10 @@ class TestPrintFormatGenerator(IntegrationTestCase):
 		pf = self._make_print_format(value_color="#1a5fb4")
 		todo = self._make_todo()
 		html = get_html("ToDo", todo.name, pf.name)
-		self.assertIn(".print-format .field .value {\n\tcolor: #1a5fb4;\n}", html)
+		self.assertIn(
+			".field .value,\n.field.left-right .value,\n.field.field-inline .value {\n\tcolor: #1a5fb4;\n}",
+			html,
+		)
 
 	def test_no_color_override_when_colors_unset(self):
 		"""Without label/value colors, no color override rule is emitted."""
@@ -583,8 +589,8 @@ class TestPrintFormatGenerator(IntegrationTestCase):
 		pf = self._make_print_format()
 		todo = self._make_todo()
 		html = get_html("ToDo", todo.name, pf.name)
-		self.assertNotIn(".print-format .field .label {", html)
-		self.assertNotIn(".print-format .field .value {", html)
+		self.assertNotIn(".field .label,\n.field.left-right .label", html)
+		self.assertNotIn(".field .value,\n.field.left-right .value", html)
 
 	def test_non_hex_color_rejected(self):
 		"""Colors that are not #RRGGBB hex codes are rejected on save."""
