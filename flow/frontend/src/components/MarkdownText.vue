@@ -53,6 +53,11 @@ function sanitize(node) {
 				(tag === "IMG" && name === "src" && SAFE_URL.test(attr.value));
 			if (!keep) el.removeAttribute(attr.name);
 		}
+		// The panel overlays the desk; links must not navigate the page away.
+		if (tag === "A") {
+			el.setAttribute("target", "_blank");
+			el.setAttribute("rel", "noopener noreferrer");
+		}
 	}
 }
 

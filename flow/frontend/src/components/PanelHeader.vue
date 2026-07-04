@@ -35,7 +35,7 @@ const { recentSessions, switchSession, newChat, fullscreen } = useStore();
 					class="h-3.5 w-3.5"
 			/></template>
 		</Button>
-		<Button variant="ghost" :title="__('Close (Ctrl+M)')" @click="emit('close')">
+		<Button variant="ghost" :title="__('Close (Ctrl+I)')" @click="emit('close')">
 			<template #icon
 				><FeatherIcon name="x" :stroke-width="2" class="h-3.5 w-3.5"
 			/></template>
