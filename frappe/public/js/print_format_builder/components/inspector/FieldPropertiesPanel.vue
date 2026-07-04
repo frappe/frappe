@@ -74,19 +74,6 @@
 		<InspectorSection :label="__('Visibility')" :init-open="false" :padded="false">
 			<VisibilitySection v-model="selected_field.visible_if" :previewDoc="preview_doc" />
 		</InspectorSection>
-
-		<div class="pfb-insp-actions">
-			<button
-				class="es-button"
-				data-size="xs"
-				data-variant="ghost"
-				data-theme="red"
-				@click="remove_field"
-			>
-				<span v-html="frappe.utils.icon('x', 'xs')"></span>
-				{{ __("Remove field") }}
-			</button>
-		</div>
 	</div>
 </template>
 
@@ -103,7 +90,7 @@ import { useSelectedField } from "./useSelectedField";
 
 defineProps(["fieldIsInline"]);
 
-const { selected_field, preview_doc, remove_field } = useSelectedField();
+const { selected_field, preview_doc } = useSelectedField();
 
 let is_html_field = computed(() => selected_field.value?.fieldtype === "HTML");
 

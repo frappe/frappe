@@ -93,11 +93,6 @@
 	font-size: var(--text-sm);
 	line-height: 1.5;
 }
-.pfb-insp-actions {
-	padding: 12px 14px;
-	margin-top: auto;
-	border-top: 1px solid var(--border-color);
-}
 .pfb-insp-col-count {
 	font-size: var(--text-tiny);
 }

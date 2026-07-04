@@ -222,19 +222,6 @@
 		<InspectorSection :label="__('Visibility')" :padded="false">
 			<VisibilitySection v-model="selected_field.visible_if" :previewDoc="preview_doc" />
 		</InspectorSection>
-
-		<div class="pfb-insp-actions">
-			<button
-				class="es-button"
-				data-size="xs"
-				data-variant="ghost"
-				data-theme="red"
-				@click="remove_field"
-			>
-				<span v-html="frappe.utils.icon('x', 'xs')"></span>
-				{{ __("Remove table") }}
-			</button>
-		</div>
 	</div>
 </template>
 
@@ -251,7 +238,7 @@ import StyleSection from "./StyleSection.vue";
 import VisibilitySection from "./VisibilitySection.vue";
 import { useSelectedField } from "./useSelectedField";
 
-const { selected_field, preview_doc, remove_field } = useSelectedField();
+const { selected_field, preview_doc } = useSelectedField();
 
 let table_style = computed(() => selected_field.value?.table_style ?? "lined");
 let table_bordered = computed(() => selected_field.value?.table_bordered ?? true);

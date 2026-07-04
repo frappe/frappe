@@ -91,25 +91,11 @@
 		<InspectorSection :label="__('Visibility')" :init-open="false" :padded="false">
 			<VisibilitySection v-model="selected_section.visible_if" :previewDoc="preview_doc" />
 		</InspectorSection>
-
-		<div class="pfb-insp-actions">
-			<button
-				class="es-button"
-				data-size="xs"
-				data-variant="ghost"
-				data-theme="red"
-				@click="remove_section"
-			>
-				<span v-html="frappe.utils.icon('x', 'xs')"></span>
-				{{ __("Remove section") }}
-			</button>
-		</div>
 	</div>
 </template>
 
 <script setup>
 import { computed, inject, nextTick, ref, watch } from "vue";
-import { useStore } from "../../stores";
 import LabelField from "./LabelField.vue";
 import SegmentedRow from "./SegmentedRow.vue";
 import InspectorSection from "./InspectorSection.vue";
@@ -120,7 +106,6 @@ import VisibilitySection from "./VisibilitySection.vue";
 import { mountColorControl } from "./useColorControl";
 
 let store = inject("$store");
-let { layout } = useStore();
 
 let selected_section = computed(() => store.selected_section.value);
 let preview_doc = computed(() => store.preview_doc.value);
@@ -163,14 +148,5 @@ function toggle_field_borders(on) {
 	} else {
 		delete selected_section.value.field_borders;
 	}
-}
-
-function remove_section() {
-	const section = store.selected_section.value;
-	const idx = layout.value.sections.indexOf(section);
-	if (idx !== -1) layout.value.sections.splice(idx, 1);
-	store.selected_section.value = null;
-	if (section && section.columns.some((c) => c.fields.includes(store.selected_field.value)))
-		store.selected_field.value = null;
 }
 </script>

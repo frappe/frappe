@@ -73,19 +73,6 @@
 		<InspectorSection :label="__('Style')" :init-open="false" :padded="false">
 			<StyleSection v-model="selected_field.custom_style" />
 		</InspectorSection>
-
-		<div class="pfb-insp-actions">
-			<button
-				class="es-button"
-				data-size="xs"
-				data-variant="ghost"
-				data-theme="red"
-				@click="remove_field"
-			>
-				<span v-html="frappe.utils.icon('x', 'xs')"></span>
-				{{ __("Remove repeater") }}
-			</button>
-		</div>
 	</div>
 </template>
 
@@ -103,7 +90,7 @@ import { align_opts } from "./align_opts";
 import { useSelectedField } from "./useSelectedField";
 
 let { meta } = useStore();
-const { selected_field, remove_field } = useSelectedField();
+const { selected_field } = useSelectedField();
 
 let repeater_source_opts = computed(() =>
 	(meta.value?.fields || [])
