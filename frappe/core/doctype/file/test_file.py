@@ -83,6 +83,29 @@ class TestSimpleFile(IntegrationTestCase):
 		self.assertEqual(content, self.test_content)
 
 
+class TestBinaryFileContent(IntegrationTestCase):
+	def test_ole_xls_content_not_decoded(self):
+		from frappe.core.doctype.file.file import OLE_FILE_SIGNATURE
+
+		attached_to_doctype, attached_to_docname = make_test_doc()
+		xls_content = OLE_FILE_SIGNATURE + b"\x00\x01Sheet1\x00Amount\x00" + b"\x20" * 64
+		_file = frappe.get_doc(
+			{
+				"doctype": "File",
+				"file_name": f"statement-{frappe.generate_hash(length=8)}.xls",
+				"attached_to_doctype": attached_to_doctype,
+				"attached_to_name": attached_to_docname,
+				"content": xls_content,
+			}
+		)
+		_file.save()
+
+		saved_file = frappe.get_doc("File", _file.name)
+		content = saved_file.get_content()
+		self.assertIsInstance(content, bytes)
+		self.assertTrue(content.startswith(OLE_FILE_SIGNATURE))
+
+
 class TestFSRollbacks(IntegrationTestCase):
 	def test_rollback_from_file_system(self):
 		file_name = content = frappe.generate_hash()
