@@ -1,5 +1,6 @@
 import typing
 from random import choice
+from unittest.mock import patch
 
 import requests
 
@@ -659,10 +660,11 @@ class TestDiscoveryAPIV2(FrappeAPITestCase):
 
 	def test_cold_cache_returns_retryable_response_v2(self):
 		discovery.clear_cache()
-		with suppress_stdout():
+		with suppress_stdout(), patch("frappe.utils.error.log_error") as log_error:
 			response = self.get(self.discovery_path(), {"sid": self.sid})
 		self.assertEqual(response.status_code, 503)
 		self.assertNotIn("Retry-After", response.headers)
+		log_error.assert_not_called()
 
 	def test_discovery_requires_developer_role_v2(self):
 		sid = self.non_developer_sid()
