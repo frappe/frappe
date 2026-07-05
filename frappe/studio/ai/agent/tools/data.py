@@ -167,7 +167,9 @@ _TRANSFORM_PARAM = {
 	"description": (
 		"JavaScript that reshapes the fetched result before it becomes {{ <name>.data }}. MUST declare a "
 		"function named exactly `transform` taking the raw result — the records array (Document List / "
-		"API) or the doc (Document) — and RETURNING the new value. e.g. 'function transform(data) { return "
+		"API) or the doc (Document) — and RETURNING the new value. This is where you clean a field for "
+		"display (strip HTML from rich text, format a datetime/currency, derive a label), returning records "
+		"with the cleaned fields so the layout binds {{ dataItem.<field> }} directly. e.g. 'function transform(data) { return "
 		'data.map(d => ({ ...d, label: d.first_name + " " + d.last_name })) }\'.'
 	),
 }
