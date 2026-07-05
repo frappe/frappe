@@ -94,7 +94,13 @@ def cancel(session_id: str):
 @has_page_write_perm()
 def get_ai_session(page_id: str, model: str | None = None) -> dict:
 	session = AISession.get_or_create(page_id, model)
-	return {"messages": session.get_messages(), "selected_model": session.selected_model or ""}
+	# Return the session id so the client can cancel a turn it didn't start itself — e.g. when a
+	# page is opened while a previously-launched turn is still running in the background.
+	return {
+		"session_id": session.name,
+		"messages": session.get_messages(),
+		"selected_model": session.selected_model or "",
+	}
 
 
 @frappe.whitelist()

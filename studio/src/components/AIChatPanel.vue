@@ -294,6 +294,7 @@ const sessionResource = createResource({
 	url: "studio.ai.api.get_ai_session",
 	onSuccess(data: any) {
 		messages.value = data.messages ?? []
+		controller.sessionId = data.session_id ?? ""
 		if (data.selected_model) {
 			selectedModel.value = data.selected_model
 		} else if (modelOptions.value.length) {
