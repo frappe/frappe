@@ -104,6 +104,9 @@ async function act({ action }) {
 	if (lifecycle[action]) {
 		await frm.save(lifecycle[action]);
 	} else {
+		// A workflow transition saves the doc server-side; refuse on a dirty form so unsaved
+		// edits aren't persisted implicitly — the agent must save (a separate, confirmed act) first.
+		if (frm.is_dirty()) throw new Error("save the form before applying a workflow action");
 		const doc = await frappe.xcall("frappe.model.workflow.apply_workflow", {
 			doc: frm.doc,
 			action,
