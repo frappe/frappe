@@ -189,6 +189,19 @@ class Block implements BlockOptions {
 		return this.children.findIndex((block) => block.componentId === child.componentId)
 	}
 
+	// Find a direct child by id, searching the regular children AND every named slot's content.
+	getChildById(componentId: string): Block | null {
+		const child = this.children.find((block) => block.componentId === componentId)
+		if (child) return child
+		for (const slot of Object.values(this.componentSlots)) {
+			if (Array.isArray(slot.slotContent)) {
+				const found = slot.slotContent.find((block) => block.componentId === componentId)
+				if (found) return found
+			}
+		}
+		return null
+	}
+
 	getValidIndex(index: number | null | undefined, arrayLength: number): number {
 		if (index === undefined || index === null) {
 			return arrayLength
