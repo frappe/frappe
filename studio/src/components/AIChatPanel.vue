@@ -53,7 +53,7 @@
 					<!-- Proposed plan: data plan + layout plan + palette + approve -->
 					<div
 						v-if="msg.metadata?.status === 'plan_summary'"
-						class="flex w-full flex-col gap-3 rounded-md border border-outline-gray-1 bg-surface-gray-1 p-3"
+						class="flex w-full min-w-0 flex-col gap-3 rounded-md border border-outline-gray-1 bg-surface-gray-1 p-3"
 					>
 						<div v-if="msg.metadata.data_plan?.length" class="flex flex-col gap-1">
 							<div class="text-[10px] font-semibold uppercase tracking-wide text-ink-gray-5">Data</div>
@@ -61,7 +61,7 @@
 								<li
 									v-for="(item, i) in msg.metadata.data_plan"
 									:key="'d' + i"
-									class="text-p-xs text-ink-gray-7"
+									class="break-words text-p-xs text-ink-gray-7"
 								>
 									• {{ item }}
 								</li>
@@ -73,13 +73,13 @@
 								<li
 									v-for="(item, i) in msg.metadata.layout_plan"
 									:key="'l' + i"
-									class="text-p-xs text-ink-gray-7"
+									class="break-words text-p-xs text-ink-gray-7"
 								>
 									• {{ item }}
 								</li>
 							</ul>
 						</div>
-						<div v-if="msg.metadata.palette" class="text-[11px] text-ink-gray-5">
+						<div v-if="msg.metadata.palette" class="break-words text-[11px] text-ink-gray-5">
 							Palette: {{ msg.metadata.palette }}
 						</div>
 						<Button
