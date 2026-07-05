@@ -1236,6 +1236,17 @@ class TestTransactionManagement(IntegrationTestCase):
 		frappe.db.commit()
 		self.assertEqual(_get_transaction_id(), _get_transaction_id())
 
+	def test_transaction_advisory_lock(self):
+		def advisory_count():
+			return frappe.db.sql("SELECT count(*) FROM pg_locks WHERE locktype = 'advisory'")[0][0]
+
+		before = advisory_count()
+		frappe.db.transaction_advisory_lock("frappe-test-xact-lock")
+		self.assertEqual(advisory_count(), before + 1)
+		frappe.db.transaction_advisory_lock("frappe-test-xact-lock")  # re-entrant
+		frappe.db.rollback()
+		self.assertEqual(advisory_count(), before)
+
 
 # Treat same DB as replica for tests, a separate connection will be opened
 class TestReplicaConnections(IntegrationTestCase):
