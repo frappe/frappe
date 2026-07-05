@@ -526,28 +526,25 @@ const useCodeStore = defineStore("codeStore", () => {
 	}
 
 	const getTransforms = (resource: Resource) => {
-		/**
-		 * Create a function that includes the user's transform function
-		 * Invoke the transform function with data/doc
-		 */
-		if (resource.transform) {
-			if (resource.resource_type === "Document") {
-				return {
-					transform: (doc: any) => {
-						const transformFn = new Function(resource.transform + "\nreturn transform")()
-						return transformFn.call(null, doc);
-					}
+		if (!resource.transform) return {}
+		return {
+			transform: (data: any) => {
+				try {
+					const context = { ...scriptContext.value, data }
+					const transformFn = new Function(
+						"ctx",
+						`with(ctx) {
+							${resource.transform}
+							return transform(data);
+						}`,
+					)
+					return transformFn(context)
+				} catch (error) {
+					console.error(`Error executing transform: ${resource.transform}`, error)
+					return data
 				}
-			} else {
-				return {
-					transform: (data: any) => {
-						const transformFn = new Function(resource.transform + "\nreturn transform")()
-						return transformFn.call(null, data);
-					}
-				}
-			}
+			},
 		}
-		return {}
 	}
 
 	const getSuccessErrorHandlers = (resource: Resource) => {
