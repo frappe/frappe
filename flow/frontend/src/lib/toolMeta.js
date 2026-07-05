@@ -43,6 +43,7 @@ const LABELS = {
 	run_action: "Running Document Actions",
 	read_screen: "Reading the screen",
 	navigate: "Navigating",
+	fill: "Filling the form",
 };
 
 export function toolLabel(name) {

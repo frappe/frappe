@@ -1,6 +1,6 @@
 // Client tools run in the Desk window (the Flow panel is injected there) and return a
-// JSON-serializable digest that flows back to the agent as the tool's result. The agent
-// supplies only the tool name and arguments — it can never execute arbitrary browser code.
+// JSON-serializable result that flows back to the agent. The agent supplies only the tool
+// name and arguments — it can never execute arbitrary browser code.
 
 const LAYOUT_FIELDTYPES = new Set([
 	"Section Break",
@@ -15,6 +15,7 @@ const LAYOUT_FIELDTYPES = new Set([
 const registry = {
 	read_screen: readScreen,
 	navigate: navigate,
+	fill: fill,
 };
 
 export async function runClientTool(name, args = {}) {
@@ -26,8 +27,8 @@ export async function runClientTool(name, args = {}) {
 async function navigate({ view, doctype, name, report, workspace, filters }) {
 	if (view === "new") {
 		if (!doctype) throw new Error("view 'new' needs a doctype");
-		await frappe.new_doc(doctype);
-		return { navigated: true, route: frappe.get_route() };
+		const newName = await openNewForm(doctype);
+		return { navigated: true, route: ["Form", doctype, newName] };
 	}
 
 	let route;
@@ -52,39 +53,80 @@ async function navigate({ view, doctype, name, report, workspace, filters }) {
 	return { navigated: true, route };
 }
 
+// Open a blank *full* form, bypassing the Quick Entry modal that frappe.new_doc opens for some
+// doctypes
+function openNewForm(doctype) {
+	return new Promise((resolve, reject) => {
+		frappe.model.with_doctype(doctype, () => {
+			try {
+				const doc = frappe.model.get_new_doc(doctype);
+				frappe.set_route("Form", doctype, doc.name).then(() => resolve(doc.name));
+			} catch (e) {
+				reject(e);
+			}
+		});
+	});
+}
+
+async function fill({ values }) {
+	const frm = window.cur_frm;
+	if (!frm?.doc) throw new Error("no form is open to fill");
+	if (!values || typeof values !== "object") {
+		throw new Error("values must be an object of {fieldname: value}");
+	}
+
+	const known = new Set(frm.meta.fields.map((df) => df.fieldname));
+	const toSet = {};
+	const errors = {};
+	for (const [field, value] of Object.entries(values)) {
+		if (known.has(field)) toSet[field] = value;
+		else errors[field] = "no such field on this doctype";
+	}
+
+	const fields = Object.keys(toSet);
+	if (fields.length) {
+		await frm.set_value(toSet);
+		if (typeof frm.scroll_to_field === "function") frm.scroll_to_field(fields[0]);
+	}
+
+	const state = formState(frm);
+	if (Object.keys(errors).length) state.errors = errors;
+	return state;
+}
+
 function readScreen() {
 	const route = typeof frappe?.get_route === "function" ? frappe.get_route() : [];
 	const view = route[0] || "";
-	const digest = { view, route };
+	const screen = { view, route };
 
 	const frm = window.cur_frm;
-	if (view === "Form" && frm?.doc) return { ...digest, ...formDigest(frm) };
+	if (view === "Form" && frm?.doc) return { ...screen, ...formState(frm) };
 
 	const list = window.cur_list;
 	if (view === "List" && list) {
-		digest.doctype = list.doctype;
-		digest.list_view = route[2] || "List";
-		digest.filters =
+		screen.doctype = list.doctype;
+		screen.list_view = route[2] || "List";
+		screen.filters =
 			typeof list.get_filters_for_args === "function" ? list.get_filters_for_args() : [];
 		const selected =
 			typeof list.get_checked_items === "function" ? list.get_checked_items(true) : [];
-		if (selected.length) digest.selected = selected;
-		return digest;
+		if (selected.length) screen.selected = selected;
+		return screen;
 	}
 
 	const report = frappe?.query_report;
 	if (view === "query-report" && report) {
-		digest.report = report.report_name;
-		digest.filters =
+		screen.report = report.report_name;
+		screen.filters =
 			typeof report.get_filter_values === "function" ? report.get_filter_values() : {};
-		return digest;
+		return screen;
 	}
 
-	if (route[1]) digest.doctype = route[1];
-	return digest;
+	if (route[1]) screen.doctype = route[1];
+	return screen;
 }
 
-function formDigest(frm) {
+function formState(frm) {
 	const values = {};
 	const missingMandatory = [];
 	for (const df of frm.meta.fields) {
