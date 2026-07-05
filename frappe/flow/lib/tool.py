@@ -30,6 +30,7 @@ class Tool:
 	func: Callable[..., Any]
 	requires_confirmation: bool = False
 	confirm_prompt: Callable[[dict[str, Any]], str] | None = None
+	client_tool: bool = False
 
 	def __post_init__(self) -> None:
 		self._validated = validate_call(config=ConfigDict(arbitrary_types_allowed=True))(self.func)
@@ -55,6 +56,7 @@ def tool(
 	description: str | None = None,
 	requires_confirmation: bool = False,
 	confirm_prompt: Callable[[dict[str, Any]], str] | None = None,
+	client_tool: bool = False,
 ) -> Tool | Callable[[Callable[..., Any]], Tool]:
 	def wrap(f: Callable[..., Any]) -> Tool:
 		if not callable(f):
@@ -66,6 +68,7 @@ def tool(
 			func=f,
 			requires_confirmation=requires_confirmation,
 			confirm_prompt=confirm_prompt,
+			client_tool=client_tool,
 		)
 
 	return wrap(func) if func is not None else wrap
