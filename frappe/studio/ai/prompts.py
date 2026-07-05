@@ -1,3 +1,5 @@
+from studio.ai.prompt_fragments import ON_ERROR_RULE, ON_SUCCESS_RULE, TRANSFORM_RULE
+
 COMPONENT_CATALOG = """AVAILABLE COMPONENTS:
 LAYOUT:
 - container: layout wrapper (renders as a div). No componentProps. Use baseStyles: display, flexDirection, gap, padding, width, height, flexWrap, alignItems, justifyContent, flexShrink, flex, etc.
@@ -192,9 +194,11 @@ EXAMPLE — "A login form with email, password and a submit button":
 """
 
 
-# A plain string (NOT an f-string) so the `{{ }}` binding tokens survive verbatim;
-# interpolated into AGENT_SYSTEM like the other rule blocks.
-DATA_WIRING = """# Wiring live data & variables
+# Plain strings (NOT f-strings) so the `{{ }}` binding tokens survive verbatim. The lifecycle-hook
+# rules are pulled from prompt_fragments so the agent reads the SAME text here and at the
+# add_data_source call site; the string is built by concatenation for that reason.
+DATA_WIRING = (
+	"""# Wiring live data & variables
 A binding is a `{{ }}` expression sitting in a block prop. Its context: data sources (`{{ <source>.data }}` for a Document-List/API result, `{{ <source>.doc }}` for a single Document), variables (`{{ counter }}`), page-script bindings, and `route`/`router`.
 
 THE ONE RULE — bake bindings in at creation. A block you add gets its id on the CANVAS, so you cannot reference it later this turn. Put every binding straight into the block's props in the SAME add_block / generate_page call — never add a block and then bind it, and never ask the user to paste the page. bind_prop / set_repeater_data are ONLY for blocks that ALREADY EXIST in the page structure.
@@ -208,7 +212,17 @@ Build a data-driven view — BACKEND FIRST, then layout:
      - single value / count → a block prop bound to {{ <source>.doc.<field> }} or {{ <source>.data.length }}.
      - a variable → the display block's prop bound to {{ <variable> }} (e.g. a TextBlock with props {"text":"{{ counter }}"}).
 
-Data-source lifecycle hooks (optional, on add_data_source / update_data_source) — reach for these instead of a page script when the logic belongs to ONE source: transform reshapes the fetched result before it becomes {{ <name>.data }} (declare `function transform(data)`, return the new value) — this is where you clean a field for display (strip HTML from rich text, format a datetime/currency, derive a label), returning records with the cleaned fields so the layout binds {{ dataItem.<field> }} directly; on_success / on_error run after a fetch (declare `function onSuccess(data)` / `function onError(error)`, page context in scope — variables are refs, write via .value); auto=false makes the source fetch on demand instead of on load. Each hook is JS that MUST declare a function with that exact name.
+Data-source lifecycle hooks (optional, on add_data_source / update_data_source) — reach for these instead of a page script when the logic belongs to ONE source:
+- transform — """
+	+ TRANSFORM_RULE
+	+ """
+- on_success — """
+	+ ON_SUCCESS_RULE
+	+ """
+- on_error — """
+	+ ON_ERROR_RULE
+	+ """
+- auto=false makes the source fetch on demand instead of on load.
 
 Editing an EXISTING block's binding (it's already in the page structure): bind_prop(component_id, prop, expression) — expression WITHOUT braces — or set_repeater_data for an existing Repeater.
 
@@ -218,6 +232,7 @@ Interactivity (events & visibility) — same new-vs-existing rule as bindings:
 - Make a block DO something on interaction with an event handler. New block → put it in the block's `events` field at creation, e.g. a button with {"events":{"click":"counter.value++"}}. Existing block → set_event_handler(component_id, event, script). The script is JS with the page context in scope; reactive state is refs, so write them via .value (increment a counter: counter.value++; reset: counter.value = 0).
 - Show/hide a block conditionally: new block → its `visibility` field, e.g. "{{ todos.data.length > 0 }}". Existing block → set_visibility(component_id, expression) with the expression WITHOUT braces.
 """
+)
 
 
 # Mode-specific "State & logic" sections appended to DATA_WIRING. Plain strings (NOT f-strings) so the

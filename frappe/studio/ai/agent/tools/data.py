@@ -15,6 +15,7 @@ keeps the canvas block edits from racing this save.
 from studio.ai.agent.registry import Tool
 from studio.ai.agent.tools.page import dangling_binding_warning, load_page, save_page, text_arg
 from studio.ai.block_codec import BlockCodec
+from studio.ai.prompt_fragments import FILTER_FORMAT_RULE, ON_ERROR_RULE, ON_SUCCESS_RULE, TRANSFORM_RULE
 
 RESOURCE_TYPES = ("Document List", "Document", "API Resource")
 
@@ -159,35 +160,12 @@ def _describe_resource(r) -> dict:
 
 # --- tool definitions -----------------------------------------------------
 
-# The three JS lifecycle hooks. Each is a Code field whose source must DECLARE a function
-# with an exact name (Studio invokes it by that name); shared by add + update so the
-# contract can't drift. transform reshapes the result; on_success/on_error react to a fetch.
-_TRANSFORM_PARAM = {
-	"type": "string",
-	"description": (
-		"JavaScript that reshapes the fetched result before it becomes {{ <name>.data }}. MUST declare a "
-		"function named exactly `transform` taking the raw result — the records array (Document List / "
-		"API) or the doc (Document) — and RETURNING the new value. This is where you clean a field for "
-		"display (strip HTML from rich text, format a datetime/currency, derive a label), returning records "
-		"with the cleaned fields so the layout binds {{ dataItem.<field> }} directly. e.g. 'function transform(data) { return "
-		'data.map(d => ({ ...d, label: d.first_name + " " + d.last_name })) }\'.'
-	),
-}
-_ON_SUCCESS_PARAM = {
-	"type": "string",
-	"description": (
-		"JavaScript run after a successful fetch. MUST declare a function named exactly `onSuccess` taking "
-		"(data). The page context is in scope — variables are refs (write via .value), plus the other "
-		"resources and route/router. e.g. 'function onSuccess(data) { rowCount.value = data.length }'."
-	),
-}
-_ON_ERROR_PARAM = {
-	"type": "string",
-	"description": (
-		"JavaScript run when the fetch fails. MUST declare a function named exactly `onError` taking "
-		"(error). Same page context in scope. e.g. 'function onError(error) { loadFailed.value = true }'."
-	),
-}
+# The three JS lifecycle hooks and the filter format live in prompt_fragments so the same rule
+# the agent reads in the data-wiring prompt is the one it reads here at the call site. Shared by
+# add + update so the two can't drift.
+_TRANSFORM_PARAM = {"type": "string", "description": TRANSFORM_RULE}
+_ON_SUCCESS_PARAM = {"type": "string", "description": ON_SUCCESS_RULE}
+_ON_ERROR_PARAM = {"type": "string", "description": ON_ERROR_RULE}
 _AUTO_PARAM = {
 	"type": "boolean",
 	"description": "Fetch automatically on page load (default true). Set false for on-demand sources.",
@@ -230,7 +208,7 @@ add_data_source = Tool(
 			},
 			"filters": {
 				"type": "object",
-				"description": 'Filters as a map, e.g. {"status":"Open"} or {"status":["!=","Closed"]}.',
+				"description": FILTER_FORMAT_RULE,
 			},
 			"limit": {"type": "integer", "description": "Document List: max rows to fetch."},
 			"sort_field": {"type": "string", "description": "Document List: field to sort by."},
@@ -283,7 +261,7 @@ update_data_source = Tool(
 			"data_source_name": {"type": "string", "description": "The data source to update."},
 			"document_type": {"type": "string"},
 			"fields": {"type": "array", "items": {"type": "string"}},
-			"filters": {"type": "object"},
+			"filters": {"type": "object", "description": FILTER_FORMAT_RULE},
 			"limit": {"type": "integer"},
 			"sort_field": {"type": "string"},
 			"sort_order": {"type": "string", "enum": ["ASC", "DESC"]},
