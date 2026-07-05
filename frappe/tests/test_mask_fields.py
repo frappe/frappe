@@ -219,6 +219,17 @@ class TestMaskFieldsBehaviour(IntegrationTestCase):
 		)
 		self.assertEqual(rows[0]["secret_data"], "top_secret_value")
 
+	def test_legacy_db_query_does_not_mask_when_permissions_are_ignored(self):
+		frappe.set_user(self.TEST_USER)
+		from frappe.model.db_query import DatabaseQuery
+
+		rows = DatabaseQuery(self.dt).execute(
+			fields=["secret_data"],
+			filters={"name": self.docname},
+			ignore_permissions=True,
+		)
+		self.assertEqual(rows[0]["secret_data"], "top_secret_value")
+
 	# ------------------------------------------------------------------
 	# Save: server hooks and permission checks see real values
 	# ------------------------------------------------------------------

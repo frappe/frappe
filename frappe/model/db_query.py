@@ -240,7 +240,7 @@ class DatabaseQuery:
 		if pluck:
 			return [d[pluck] for d in result]
 
-		if self.doctype and result:
+		if self.doctype and result and not self.flags.ignore_permissions:
 			result = self.mask_fields(result)
 
 		return result
