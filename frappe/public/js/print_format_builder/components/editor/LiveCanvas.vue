@@ -40,12 +40,31 @@ function interaction_css() {
 	const backdrop = desk_token("--bg-gray", "#f3f3f3");
 	const sheet = desk_token("--card-bg", "#fff");
 	return `
-	[data-pfb-path] { cursor: pointer; }
-	[data-pfb-path]:hover { outline: 1px solid ${hover_line}; outline-offset: 1px; background: ${hover_fill}; position: relative; z-index: 2; }
+	[data-pfb-path] { cursor: grab; }
+	[data-pfb-path]:hover { outline: 1px solid ${hover_line}; outline-offset: -1px; background: ${hover_fill}; position: relative; z-index: 2; }
 	[data-pfb-section]:hover, [data-pfb-zone]:hover { outline: 1px dashed ${hover_line}; outline-offset: 3px; position: relative; z-index: 1; }
-	.pfb-live-selected { outline: 1px solid ${selected}; outline-offset: 1px; position: relative; z-index: 2; }
+	.pfb-live-selected { outline: 1px solid ${selected}; outline-offset: -1px; position: relative; z-index: 3; }
 	.pfb-live-selected-section { outline: 2px dashed ${section_line}; outline-offset: 3px; position: relative; z-index: 1; }
 	.pfb-dragging { opacity: 0.4; }
+	body.pfb-grabbing, body.pfb-grabbing [data-pfb-path] { cursor: grabbing; }
+	.pfb-drag-ghost {
+		position: fixed;
+		top: 0;
+		left: 0;
+		z-index: 10001;
+		padding: 4px 10px;
+		background: ${sheet};
+		border: 1px solid ${desk_token("--border-color", "#ededed")};
+		border-radius: ${desk_token("--radius", "6px")};
+		box-shadow: 0 2px 6px rgba(0, 0, 0, 0.12) !important;
+		font: 500 12px/1.5 -apple-system, sans-serif;
+		color: ${desk_token("--text-color", "#171717")};
+		pointer-events: none;
+		white-space: nowrap;
+		max-width: 240px;
+		overflow: hidden;
+		text-overflow: ellipsis;
+	}
 	.pfb-drop-indicator {
 		position: absolute;
 		height: 2px;
@@ -814,11 +833,19 @@ function on_pointer_move(e) {
 		if (Math.hypot(e.clientX - drag.start_x, e.clientY - drag.start_y) < 5) return;
 		drag.active = true;
 		drag.el.classList.add("pfb-dragging");
+		doc.body.classList.add("pfb-grabbing");
 		doc.body.style.userSelect = "none";
 		drag.indicator = doc.createElement("div");
 		drag.indicator.className = "pfb-drop-indicator";
 		doc.body.appendChild(drag.indicator);
+		const { field } = resolve_path(drag.path) || {};
+		drag.ghost = doc.createElement("div");
+		drag.ghost.className = "pfb-drag-ghost";
+		drag.ghost.textContent =
+			field?.label || field?.fieldname || drag.el.textContent.trim().slice(0, 40);
+		doc.body.appendChild(drag.ghost);
 	}
+	drag.ghost.style.transform = `translate(${e.clientX + 14}px, ${e.clientY + 10}px)`;
 	e.preventDefault();
 	const under = doc.elementFromPoint(e.clientX, e.clientY);
 	const field_el = under?.closest("[data-pfb-path]");
@@ -861,8 +888,10 @@ function on_pointer_up() {
 	if (!d.active) return;
 	suppress_click = true;
 	d.el.classList.remove("pfb-dragging");
+	doc.body.classList.remove("pfb-grabbing");
 	doc.body.style.userSelect = "";
 	d.indicator?.remove();
+	d.ghost?.remove();
 	if (d.target) move_field(d.path, d.target);
 }
 
