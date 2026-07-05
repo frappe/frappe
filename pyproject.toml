@@ -39,12 +39,7 @@ dependencies = [
     "cssutils~=2.11.1",
     "distro~=1.9.0",
     "email-reply-parser~=0.5.12",
-<<<<<<< HEAD
-    "gunicorn @ git+https://github.com/frappe/gunicorn@bb554053bb87218120d76ab6676af7015680e8b6",
-=======
-    "Faker~=18.10.1",
     "gunicorn @ git+https://github.com/frappe/gunicorn@54b59ca884c79dcf04d4882658a32bbaf17e999f",
->>>>>>> e62eb5dc27 (build: Bump  gunicorn for adaptive queueing (#39595))
     "html5lib~=1.1",
     "ipython~=8.37.0",
     "ldap3~=2.9.1",
