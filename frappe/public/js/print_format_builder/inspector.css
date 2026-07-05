@@ -226,3 +226,35 @@
 	padding: 16px 20px;
 	font-size: var(--text-sm);
 }
+
+/* ── Image / Barcode element rows ───────────────────────── */
+.pfb-image-source {
+	display: flex;
+	align-items: center;
+	gap: 8px;
+}
+
+.pfb-image-thumb {
+	max-height: 36px;
+	max-width: 72px;
+	object-fit: contain;
+	border: 1px solid var(--border-color);
+	border-radius: var(--radius);
+	background: var(--fg-color);
+}
+
+.pfb-image-actions {
+	display: flex;
+	align-items: center;
+	gap: 4px;
+}
+
+.pfb-insp-check {
+	display: flex;
+	align-items: center;
+	gap: 6px;
+	font-size: var(--text-sm);
+	color: var(--text-color);
+	cursor: pointer;
+	margin: 0;
+}

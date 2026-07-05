@@ -23,6 +23,41 @@
 				<div v-else-if="df.fieldtype == 'Spacer'" class="field-preview-spacer"></div>
 				<div v-else-if="df.fieldtype == 'Divider'" class="field-preview-divider"></div>
 				<div
+					v-else-if="df.fieldtype == 'Image' && df.custom"
+					:style="{ textAlign: df.align || 'left' }"
+				>
+					<img
+						v-if="df.image_url"
+						:src="df.image_url"
+						class="pf-element-img"
+						:style="df.width ? { width: df.width } : {}"
+						:alt="df.label || ''"
+					/>
+					<span v-else class="text-muted">{{
+						__("No image — set one in the panel")
+					}}</span>
+				</div>
+				<div
+					v-else-if="df.fieldtype == 'Barcode' && df.custom"
+					:style="{ textAlign: df.align || 'left' }"
+				>
+					<img
+						v-if="df.barcode_format == 'QR' && qr_src"
+						:src="qr_src"
+						class="pf-element-img"
+						:style="{ width: df.width || '35mm' }"
+					/>
+					<div
+						v-else-if="barcode_svg"
+						class="pf-barcode-svg"
+						:style="df.width ? { width: df.width } : {}"
+						v-html="barcode_svg"
+					></div>
+					<span v-else class="text-muted">{{
+						__("No barcode value — set one in the panel")
+					}}</span>
+				</div>
+				<div
 					v-else-if="df.fieldtype == 'Field Template'"
 					class="custom-html"
 					v-html="rendered_template || ''"
@@ -271,6 +306,12 @@
 						<div class="custom-html" v-else-if="df.fieldtype == 'Field Template'">
 							{{ df.label }}
 						</div>
+						<img
+							v-else-if="df.fieldtype == 'Image' && df.custom && df.image_url"
+							:src="df.image_url"
+							class="pf-builder-thumb"
+							:alt="df.label || ''"
+						/>
 						<input
 							v-else-if="editing && df.fieldtype != 'HTML'"
 							ref="label_input"
@@ -354,6 +395,7 @@ import {
 	parse_inline_style,
 } from "../../utils";
 import { createApp, ref, nextTick, watch, computed, inject } from "vue";
+import JsBarcode from "jsbarcode";
 
 const props = defineProps(["df", "field_orientation"]);
 
@@ -427,6 +469,56 @@ watch(
 			rendered_template.value = null;
 		}
 	},
+	{ immediate: true }
+);
+
+// ── Barcode element (custom layout block) ─────────────────
+let qr_src = ref(null);
+
+let barcode_raw_value = computed(() => {
+	if (props.df.fieldtype !== "Barcode" || !props.df.custom) return null;
+	if (props.df.barcode_field) {
+		return preview_doc.value?.[props.df.barcode_field] ?? null;
+	}
+	return props.df.barcode_value || null;
+});
+
+let barcode_svg = computed(() => {
+	const value = barcode_raw_value.value;
+	if (!value || props.df.barcode_format === "QR") return null;
+	const str = String(value);
+	if (str.startsWith("<svg")) return sanitize_html(str);
+	const svg = document.createElementNS("http://www.w3.org/2000/svg", "svg");
+	try {
+		JsBarcode(svg, str, {
+			format: props.df.barcode_format || "CODE128",
+			displayValue: props.df.show_text !== false,
+			height: 40,
+			margin: 0,
+		});
+		svg.setAttribute("width", "100%");
+		return svg.outerHTML;
+	} catch {
+		return null;
+	}
+});
+
+watch(
+	[barcode_raw_value, () => props.df.barcode_format],
+	frappe.utils.debounce(async ([value, format]) => {
+		if (format !== "QR" || !value) {
+			qr_src.value = null;
+			return;
+		}
+		try {
+			const r = await frappe.call("frappe.utils.print_format_generator.get_qr_code", {
+				value: String(value),
+			});
+			qr_src.value = r.message || null;
+		} catch {
+			qr_src.value = null;
+		}
+	}, 300),
 	{ immediate: true }
 );
 
@@ -622,6 +714,8 @@ let short_fieldtype = computed(() => {
 		HTML: "HTML",
 		Spacer: "Space",
 		Divider: "Line",
+		Image: "Img",
+		Barcode: "Code",
 		"Field Template": "Tmpl",
 		Repeater: "Repeat",
 	};
@@ -1189,6 +1283,25 @@ watch(
 .preview-table-html {
 	word-break: break-word;
 	white-space: normal;
+}
+
+.pf-element-img {
+	max-width: 100%;
+	display: inline-block;
+	vertical-align: top;
+}
+
+.pf-barcode-svg {
+	display: inline-block;
+	max-width: 100%;
+}
+
+.pf-builder-thumb {
+	max-height: 32px;
+	max-width: 120px;
+	object-fit: contain;
+	border-radius: var(--radius);
+	vertical-align: middle;
 }
 
 .preview-field-img {
