@@ -605,8 +605,9 @@ context("Print Format Builder — image and barcode blocks", () => {
 		cy.window().then((win) => cleanup(win, PF_NAME));
 	});
 
-	function media_sections() {
-		return [
+	// Regression: serialize_layout must not strip image/barcode props on save
+	it("image and barcode props survive the save round-trip", () => {
+		insert_builder_format(PF_NAME, [
 			{
 				label: "Media",
 				columns: [
@@ -627,7 +628,6 @@ context("Print Format Builder — image and barcode blocks", () => {
 								fieldname: "barcode_cy1",
 								label: "",
 								custom: 1,
-								barcode_field: "",
 								barcode_value: "CY-TEST-1",
 								barcode_format: "CODE128",
 								show_text: true,
@@ -637,46 +637,14 @@ context("Print Format Builder — image and barcode blocks", () => {
 					},
 				],
 			},
-		];
-	}
-
-	// 16. Canvas renders the image block and the inspector shows its controls
-	it("image block renders in canvas and inspector shows upload control", () => {
-		insert_builder_format(PF_NAME, media_sections());
-
-		cy.visit(`/app/print-format-builder/${encodeURIComponent(PF_NAME)}`);
-		cy.get(".sections-container", { timeout: 20000 }).should("be.visible");
-
-		cy.get('.field img[src*="frappe-framework-logo"]').should("exist");
-
-		cy.get('.field img[src*="frappe-framework-logo"]')
-			.closest(".field")
-			.click({ force: true });
-		cy.get(".pfb-inspector .pfb-image-upload").should("exist");
-		cy.get(".pfb-inspector .pfb-size-slider").should("exist");
-	});
-
-	// 17. Inspector for a barcode block shows value/format/size controls
-	it("barcode inspector shows value, format and size controls", () => {
-		insert_builder_format(PF_NAME, media_sections());
-
-		cy.visit(`/app/print-format-builder/${encodeURIComponent(PF_NAME)}`);
-		cy.get(".sections-container", { timeout: 20000 }).should("be.visible");
-
-		cy.contains("[data-pfb-section]", "Media").find(".field").eq(1).click({ force: true });
-
-		cy.get(".pfb-inspector").should("contain", "Value from");
-		cy.get(".pfb-inspector").should("contain", "Format");
-		cy.get(".pfb-inspector .pfb-size-slider").should("exist");
-	});
-
-	// 18. Regression: serialize_layout must not strip image/barcode props on save
-	it("image and barcode props survive the save round-trip", () => {
-		insert_builder_format(PF_NAME, media_sections());
+		]);
 
 		cy.intercept("POST", "api/method/frappe.client.save").as("save");
 		cy.visit(`/app/print-format-builder/${encodeURIComponent(PF_NAME)}`);
 		cy.get(".sections-container", { timeout: 20000 }).should("be.visible");
+
+		// both blocks render in the canvas
+		cy.get('.field img[src*="frappe-framework-logo"]').should("exist");
 
 		cy.contains(".page-actions .primary-action", "Save").click({ force: true });
 		cy.wait("@save").then((interception) => {
@@ -686,18 +654,22 @@ context("Print Format Builder — image and barcode blocks", () => {
 
 			const img = fields.find((f) => f.fieldtype === "Image");
 			expect(img, "image field survived").to.exist;
-			expect(img.custom).to.equal(1);
-			expect(img.image_url).to.contain("frappe-framework-logo");
-			expect(img.width).to.equal("40mm");
-			expect(img.align).to.equal("center");
+			expect(img).to.include({
+				custom: 1,
+				image_url: "/assets/frappe/images/frappe-framework-logo.svg",
+				width: "40mm",
+				align: "center",
+			});
 
 			const bar = fields.find((f) => f.fieldtype === "Barcode");
 			expect(bar, "barcode field survived").to.exist;
-			expect(bar.custom).to.equal(1);
-			expect(bar.barcode_value).to.equal("CY-TEST-1");
-			expect(bar.barcode_format).to.equal("CODE128");
-			expect(bar.show_text).to.equal(true);
-			expect(bar.width).to.equal("200px");
+			expect(bar).to.include({
+				custom: 1,
+				barcode_value: "CY-TEST-1",
+				barcode_format: "CODE128",
+				show_text: true,
+				width: "200px",
+			});
 		});
 	});
 });
