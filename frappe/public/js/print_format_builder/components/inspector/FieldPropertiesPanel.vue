@@ -191,7 +191,7 @@ let is_barcode_element = computed(
 	() => selected_field.value?.fieldtype === "Barcode" && selected_field.value?.custom
 );
 
-const barcode_formats = ["CODE128", "CODE39", "EAN13", "EAN8", "UPC", "ITF14", "MSI", "QR"];
+const barcode_formats = ["CODE128", "CODE39", "QR"];
 
 let store = inject("$store");
 

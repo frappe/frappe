@@ -53,6 +53,11 @@
 						:style="df.width ? { width: df.width } : {}"
 						v-html="barcode_svg"
 					></div>
+					<span
+						v-else-if="barcode_raw_value && df.barcode_format !== 'QR'"
+						class="text-muted"
+						>{{ __("Invalid value for {0}", [df.barcode_format || "CODE128"]) }}</span
+					>
 					<span v-else class="text-muted">{{
 						__("No barcode value — set one in the panel")
 					}}</span>
