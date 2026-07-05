@@ -90,13 +90,11 @@
 						@input="(e) => set_size(e.target.value)"
 					/>
 				</div>
-				<!-- Actions -->
-				<div class="pfb-lh-actions">
-					<button class="es-button" data-size="xs" @click="upload_image">
-						<span v-html="frappe.utils.icon('upload', 'xs')"></span>
-						{{ letterhead[image_field] ? __("Change Image") : __("Upload Image") }}
-					</button>
-				</div>
+				<!-- Image source -->
+				<ImageUploadControl
+					:model-value="letterhead[image_field] || ''"
+					@update:model-value="set_image"
+				/>
 			</template>
 			<template v-else>
 				<p class="pfb-insp-hint text-muted">
@@ -113,6 +111,7 @@ import { useStore } from "../../stores";
 import { get_image_dimensions, render_jinja_html } from "../../utils";
 import SegmentedRow from "./SegmentedRow.vue";
 import InspectorSection from "./InspectorSection.vue";
+import ImageUploadControl from "./ImageUploadControl.vue";
 
 const props = defineProps({
 	zone: { type: String, required: true },
@@ -184,29 +183,29 @@ function set_size(val) {
 	letterhead.value._dirty = true;
 }
 
-function upload_image() {
-	new frappe.ui.FileUploader({
-		folder: "Home/Attachments",
-		on_success: (file_doc) => {
-			get_image_dimensions(file_doc.file_url).then(({ width, height }) => {
-				aspect_ratio.value = width / height;
-				range_field.value =
-					aspect_ratio.value > 1 ? width_field.value : height_field.value;
-				let new_width = width > 200 ? 200 : width;
-				let new_height = new_width / aspect_ratio.value;
-				if (new_height > 80) {
-					new_height = 80;
-					new_width = aspect_ratio.value * new_height;
-				}
-				letterhead.value[image_field.value] = file_doc.file_url;
-				letterhead.value[width_field.value] = new_width;
-				letterhead.value[height_field.value] = new_height;
-				if (props.zone === "footer") {
-					letterhead.value[source_field.value] = "Image";
-				}
-				letterhead.value._dirty = true;
-			});
-		},
+function set_image(url) {
+	if (!letterhead.value) return;
+	if (!url) {
+		letterhead.value[image_field.value] = "";
+		letterhead.value._dirty = true;
+		return;
+	}
+	get_image_dimensions(url).then(({ width, height }) => {
+		aspect_ratio.value = width / height;
+		range_field.value = aspect_ratio.value > 1 ? width_field.value : height_field.value;
+		let new_width = width > 200 ? 200 : width;
+		let new_height = new_width / aspect_ratio.value;
+		if (new_height > 80) {
+			new_height = 80;
+			new_width = aspect_ratio.value * new_height;
+		}
+		letterhead.value[image_field.value] = url;
+		letterhead.value[width_field.value] = new_width;
+		letterhead.value[height_field.value] = new_height;
+		if (props.zone === "footer") {
+			letterhead.value[source_field.value] = "Image";
+		}
+		letterhead.value._dirty = true;
 	});
 }
 

@@ -25,50 +25,20 @@
 				</button>
 			</template>
 			<template v-else-if="is_image_element">
-				<div class="pfb-insp-row">
-					<span class="pfb-insp-label">{{ __("Image") }}</span>
-					<div class="pfb-image-source">
-						<img
-							v-if="selected_field.image_url"
-							:src="selected_field.image_url"
-							class="pfb-image-thumb"
-						/>
-						<div class="pfb-image-actions">
-							<button class="es-button" data-size="xs" @click="upload_image">
-								<span v-html="frappe.utils.icon('upload', 'xs')"></span>
-								{{ __("Upload") }}
-							</button>
-							<button
-								v-if="selected_field.image_url"
-								class="es-button"
-								data-size="xs"
-								data-theme="red"
-								data-variant="ghost"
-								@click="selected_field.image_url = ''"
-							>
-								{{ __("Clear") }}
-							</button>
-						</div>
-					</div>
-				</div>
-				<div class="pfb-insp-row">
-					<span class="pfb-insp-label">{{ __("or URL") }}</span>
+				<ImageUploadControl
+					:model-value="selected_field.image_url"
+					:alt="selected_field.label"
+					@update:model-value="set_image_url"
+				/>
+				<div v-if="selected_field.image_url" class="pfb-insp-row pfb-insp-row--col">
+					<span class="pfb-insp-label">{{ __("Size") }}</span>
 					<input
-						type="text"
-						class="pfb-insp-input"
-						:placeholder="__('https://… or /files/…')"
-						:value="selected_field.image_url"
-						@change="selected_field.image_url = $event.target.value.trim()"
-					/>
-				</div>
-				<div class="pfb-insp-row">
-					<span class="pfb-insp-label">{{ __("Width") }}</span>
-					<input
-						type="text"
-						class="pfb-insp-input"
-						:placeholder="__('auto — e.g. 40mm, 200px, 50%')"
-						:value="selected_field.width"
-						@change="selected_field.width = $event.target.value.trim()"
+						class="pfb-size-slider"
+						type="range"
+						min="20"
+						max="700"
+						:value="image_size"
+						@input="selected_field.width = $event.target.value + 'px'"
 					/>
 				</div>
 				<SegmentedRow
@@ -114,24 +84,26 @@
 						</option>
 					</select>
 				</div>
-				<div class="pfb-insp-row">
-					<span class="pfb-insp-label">{{ __("Width") }}</span>
+				<div class="pfb-insp-row pfb-insp-row--col">
+					<span class="pfb-insp-label">{{ __("Size") }}</span>
 					<input
-						type="text"
-						class="pfb-insp-input"
-						:placeholder="__('auto — e.g. 40mm, 200px, 50%')"
-						:value="selected_field.width"
-						@change="selected_field.width = $event.target.value.trim()"
+						class="pfb-size-slider"
+						type="range"
+						min="40"
+						max="500"
+						:value="barcode_size"
+						@input="selected_field.width = $event.target.value + 'px'"
 					/>
 				</div>
 				<div class="pfb-insp-row" v-if="selected_field.barcode_format !== 'QR'">
+					<span class="pfb-insp-label">{{ __("Value text") }}</span>
 					<label class="pfb-insp-check">
 						<input
 							type="checkbox"
 							:checked="selected_field.show_text !== false"
 							@change="selected_field.show_text = $event.target.checked"
 						/>
-						{{ __("Show value text") }}
+						{{ __("Show") }}
 					</label>
 				</div>
 				<SegmentedRow
@@ -202,6 +174,8 @@ import InspectorSection from "./InspectorSection.vue";
 import StepperRow from "./StepperRow.vue";
 import StyleSection from "./StyleSection.vue";
 import VisibilitySection from "./VisibilitySection.vue";
+import ImageUploadControl from "./ImageUploadControl.vue";
+import { get_image_dimensions } from "../../utils";
 import { align_opts } from "./align_opts";
 import { useSelectedField } from "./useSelectedField";
 
@@ -231,13 +205,23 @@ let barcode_field_options = computed(() => {
 	];
 });
 
-function upload_image() {
-	new frappe.ui.FileUploader({
-		folder: "Home/Attachments",
-		restrictions: { allowed_file_types: ["image/*"] },
-		on_success: (file_doc) => {
-			selected_field.value.image_url = file_doc.file_url;
-		},
+let image_size = computed(() => parseFloat(selected_field.value?.width) || 200);
+let barcode_size = computed(
+	() =>
+		parseFloat(selected_field.value?.width) ||
+		(selected_field.value?.barcode_format === "QR" ? 130 : 200)
+);
+
+function set_image_url(url) {
+	selected_field.value.image_url = url;
+	if (!url) {
+		selected_field.value.width = "";
+		return;
+	}
+	get_image_dimensions(url).then(({ width }) => {
+		if (!parseFloat(selected_field.value.width)) {
+			selected_field.value.width = Math.min(width, 300) + "px";
+		}
 	});
 }
 

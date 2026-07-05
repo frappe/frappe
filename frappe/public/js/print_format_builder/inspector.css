@@ -228,25 +228,43 @@
 }
 
 /* ── Image / Barcode element rows ───────────────────────── */
-.pfb-image-source {
+.pfb-image-upload {
+	display: flex;
+	flex-direction: column;
+	gap: 6px;
+	min-width: 0;
+}
+
+.pfb-image-upload-preview {
 	display: flex;
 	align-items: center;
-	gap: 8px;
-}
-
-.pfb-image-thumb {
-	max-height: 36px;
-	max-width: 72px;
-	object-fit: contain;
+	justify-content: center;
+	width: 100%;
+	max-height: 120px;
+	padding: 4px;
+	overflow: hidden;
 	border: 1px solid var(--border-color);
 	border-radius: var(--radius);
-	background: var(--fg-color);
+	background: var(--gray-50);
+	box-sizing: border-box;
 }
 
-.pfb-image-actions {
+.pfb-image-upload-preview img {
+	display: block;
+	max-width: 100%;
+	max-height: 110px;
+	object-fit: contain;
+}
+
+.pfb-image-upload-actions {
 	display: flex;
 	align-items: center;
 	gap: 4px;
+}
+
+.pfb-size-slider {
+	width: 100%;
+	accent-color: var(--primary);
 }
 
 .pfb-insp-check {

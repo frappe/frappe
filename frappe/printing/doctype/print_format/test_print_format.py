@@ -62,3 +62,151 @@ class TestPrintFormat(IntegrationTestCase):
 					self.assertEqual(value, doc_dict[key])
 
 		self.addCleanup(os.remove, exported_doc_path)
+
+
+class TestPrintFormatBuilderElements(IntegrationTestCase):
+	"""Image and Barcode layout elements of the beta print format builder."""
+
+	FORMAT_NAME = "_Test Builder Elements"
+
+	def make_format(self, fields):
+		frappe.delete_doc("Print Format", self.FORMAT_NAME, force=True, ignore_missing=True)
+		format_data = {
+			"sections": [{"label": "", "columns": [{"label": "", "fields": fields}]}],
+			"header": {"columns": []},
+			"footer": {"columns": []},
+		}
+		pf = frappe.get_doc(
+			{
+				"doctype": "Print Format",
+				"name": self.FORMAT_NAME,
+				"doc_type": "User",
+				"standard": "No",
+				"print_format_builder_beta": 1,
+				"format_data": frappe.as_json(format_data),
+			}
+		).insert()
+		self.addCleanup(frappe.delete_doc, "Print Format", self.FORMAT_NAME, force=True)
+		return pf
+
+	def get_rendered_html(self):
+		from frappe.utils.print_format_generator import get_html
+
+		return get_html("User", "Administrator", self.FORMAT_NAME)
+
+	def test_image_element(self):
+		self.make_format(
+			[
+				{
+					"label": "Logo",
+					"fieldname": "image_test",
+					"fieldtype": "Image",
+					"custom": 1,
+					"image_url": "/assets/frappe/images/frappe-framework-logo.svg",
+					"width": "40mm",
+					"align": "center",
+				}
+			]
+		)
+		html = self.get_rendered_html()
+		self.assertIn('src="/assets/frappe/images/frappe-framework-logo.svg"', html)
+		self.assertIn("width: 40mm", html)
+		self.assertIn("field-align-center", html)
+
+	def test_image_element_without_source_renders_nothing(self):
+		self.make_format(
+			[{"label": "", "fieldname": "image_test", "fieldtype": "Image", "custom": 1, "image_url": ""}]
+		)
+		html = self.get_rendered_html()
+		self.assertNotIn("print-image", html)
+
+	def test_barcode_element_static_value(self):
+		self.make_format(
+			[
+				{
+					"label": "",
+					"fieldname": "barcode_test",
+					"fieldtype": "Barcode",
+					"custom": 1,
+					"barcode_field": "",
+					"barcode_value": "TEST-123",
+					"barcode_format": "CODE39",
+					"show_text": False,
+					"width": "50mm",
+				}
+			]
+		)
+		html = self.get_rendered_html()
+		self.assertIn('data-barcode-value="TEST-123"', html)
+		self.assertIn('"format": "CODE39"', html)
+		self.assertIn('"displayValue": false', html)
+		self.assertIn("width: 50mm", html)
+		# the client-side renderer must be shipped with the document
+		self.assertIn("print.bundle", html)
+		self.assertIn("render_barcode", html)
+
+	def test_barcode_element_field_value(self):
+		self.make_format(
+			[
+				{
+					"label": "",
+					"fieldname": "barcode_test",
+					"fieldtype": "Barcode",
+					"custom": 1,
+					"barcode_field": "name",
+					"barcode_value": "",
+					"barcode_format": "CODE128",
+				}
+			]
+		)
+		html = self.get_rendered_html()
+		self.assertIn('data-barcode-value="Administrator"', html)
+
+	def test_qr_element_renders_server_side(self):
+		self.make_format(
+			[
+				{
+					"label": "",
+					"fieldname": "barcode_test",
+					"fieldtype": "Barcode",
+					"custom": 1,
+					"barcode_field": "name",
+					"barcode_value": "",
+					"barcode_format": "QR",
+					"width": "30mm",
+					"align": "right",
+				}
+			]
+		)
+		html = self.get_rendered_html()
+		self.assertIn('src="data:image/png;base64,', html)
+		self.assertIn("field-align-right", html)
+		self.assertNotIn("<svg data-barcode-value", html)
+
+	def test_barcode_element_without_value_renders_nothing(self):
+		self.make_format(
+			[
+				{
+					"label": "",
+					"fieldname": "barcode_test",
+					"fieldtype": "Barcode",
+					"custom": 1,
+					"barcode_field": "",
+					"barcode_value": "",
+					"barcode_format": "CODE128",
+				}
+			]
+		)
+		html = self.get_rendered_html()
+		self.assertNotIn("print-barcode", html)
+
+	def test_get_qr_code(self):
+		import base64
+
+		from frappe.utils.print_format_generator import get_qr_code
+
+		data_uri = get_qr_code("hello world")
+		prefix = "data:image/png;base64,"
+		self.assertTrue(data_uri.startswith(prefix))
+		png = base64.b64decode(data_uri[len(prefix) :])
+		self.assertEqual(png[:8], b"\x89PNG\r\n\x1a\n")
