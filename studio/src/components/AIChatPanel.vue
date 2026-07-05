@@ -84,7 +84,7 @@
 						</div>
 						<Button
 							v-if="msg.id === lastMessageId"
-							variant="subtle"
+							variant="outline"
 							size="sm"
 							label="Approve & build"
 							:disabled="loading"
