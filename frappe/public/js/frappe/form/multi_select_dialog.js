@@ -547,7 +547,7 @@ frappe.ui.form.MultiSelectDialog = class MultiSelectDialog {
 
 	get_filters_from_setters() {
 		let me = this;
-		let filters = (this.get_query ? this.get_query().filters : {}) || {};
+		let filters = Object.assign({}, (this.get_query ? this.get_query().filters : {}) || {});
 		let filter_fields = [];
 
 		if ($.isArray(this.setters)) {
