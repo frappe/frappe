@@ -94,7 +94,7 @@ STYLE PROPERTY ROUTING — use the correct key:
 CSS VARIABLE RULES:
 - Always use CSS variables. Avoid raw hex colors/values.
   - backgroundColor: var(--surface-base) | var(--surface-gray-1..10) | var(--surface-elevation-1) (raised/cards) | var(--surface-red-1) | var(--surface-green-1) | var(--surface-amber-1) | var(--surface-blue-1)
-  - color (text): var(--ink-gray-1..9)
+  - color (text): var(--ink-gray-1..9) — the gray scale runs LIGHT→DARK (on the default light theme ink-gray-1 ≈ near-white, ink-gray-9 ≈ near-black). Text needs the DARK end: headings, body → var(--ink-gray-8) or var(--ink-gray-9), secondary → var(--ink-gray-7), tertiary/placeholder text -> var(--ink-gray-5) var(--ink-gray-6). (Same direction for every gray scale: surface-gray-1 / outline-gray-1 are the lightest.)
   - borderColor: var(--outline-base) | var(--outline-gray-1..9) | var(--outline-red-1..3) | var(--outline-green-1..2) | var(--outline-amber-1..2) | var(--outline-blue-1) | var(--outline-orange-1)
   - borderRadius: "0px" (none) | "0.25rem" (sm) | "0.5rem" (DEFAULT) | "0.625rem" (md) | "0.75rem" (lg) | "1rem" (xl) | "1.25rem" (2xl) | "9999px" (full)
 - borderRadius — apply borderRadius (0.5rem by default) on cards, panels, containers by default, but NOT on full-width sections that span the entire viewport width.
