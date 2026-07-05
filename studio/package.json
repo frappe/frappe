@@ -28,6 +28,7 @@
 		"ace-builds": "^1.36.2",
 		"autoprefixer": "^10.4.2",
 		"codemirror": "^6.0.1",
+		"dompurify": "^3.4.0",
 		"frappe-ui": "1.0.0-beta.12",
 		"json5": "^2.2.3",
 		"marked": "^15.0.6",

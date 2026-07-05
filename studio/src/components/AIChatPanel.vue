@@ -232,6 +232,7 @@
 import { ref, computed, inject, watch, nextTick } from "vue"
 import { ErrorMessage, Button, Badge, FeatherIcon, call, createResource, Popover, toast } from "frappe-ui"
 import { marked } from "marked"
+import DOMPurify from "dompurify"
 import useStudioStore from "@/stores/studioStore"
 import useCanvasStore from "@/stores/canvasStore"
 import useCodeStore from "@/stores/codeStore"
@@ -320,7 +321,8 @@ function reloadSession() {
 }
 
 function renderMarkdown(content: string): string {
-	return content ? (marked.parse(content, { gfm: true, breaks: true }) as string) : ""
+	if (!content) return ""
+	return DOMPurify.sanitize(marked.parse(content, { gfm: true, breaks: true }) as string)
 }
 
 const controller = new AIChatController({
