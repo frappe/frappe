@@ -19,6 +19,7 @@ DISCOVERY_BUILD_JOB_ID = "api-v2-discovery-build"
 
 class DiscoveryCacheUnavailable(frappe.ValidationError):
 	http_status_code = 503
+	skip_error_log = True
 
 
 def root() -> dict[str, Any]:
