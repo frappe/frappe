@@ -14,10 +14,10 @@
 						<div class="w-13 flex-shrink-0 pl-2 text-end text-base text-ink-gray-5">
 							{{ i == 0 ? "Where" : "And" }}
 						</div>
-						<div id="fieldname" class="!min-w-[120px] flex-1">
+						<div id="fieldname" class="!min-w-[120px]">
 							<Combobox :options="fields" v-model="filter.fieldname" placeholder="Filter by..." />
 						</div>
-						<div id="operator" class="!min-w-[120px] flex-shrink-0">
+						<div id="operator" class="flex-shrink-0">
 							<FormControl
 								type="select"
 								:modelValue="filter.operator"
