@@ -75,6 +75,14 @@ function interaction_css() {
 		box-shadow: none !important;
 	}
 	.pfb-pages { padding: 24px 16px 16px; }
+	.pfb-pages-measuring {
+		position: absolute;
+		top: 0;
+		left: 0;
+		right: 0;
+		visibility: hidden;
+		pointer-events: none;
+	}
 	.pfb-page {
 		position: relative;
 		display: flex;
@@ -254,7 +262,12 @@ function render() {
 			if (seq !== render_seq) return;
 			error.value = null;
 			last_payload = payload;
-			write_document(html);
+			const doc = frame.value?.contentDocument;
+			if (loaded.value && doc?.body?.dataset.pageSize && master_doc === doc) {
+				update_document(html);
+			} else {
+				write_document(html);
+			}
 		})
 		.catch((e) => {
 			if (seq !== render_seq) return;
@@ -264,16 +277,65 @@ function render() {
 
 const debounced_render = frappe.utils.debounce(render, 400);
 
+function head_styles_key(head) {
+	return [...head.querySelectorAll("style:not([data-pfb-interaction])")]
+		.map((s) => s.textContent)
+		.join(" ");
+}
+
+let server_styles_key = "";
+
+function sync_head_styles(doc, next_head) {
+	const key = head_styles_key(next_head);
+	if (key === server_styles_key) return;
+	server_styles_key = key;
+	const marker = doc.head.querySelector("style[data-pfb-interaction]");
+	for (const el of doc.head.querySelectorAll(
+		"style:not([data-pfb-interaction]), link[rel=stylesheet]"
+	)) {
+		el.remove();
+	}
+	for (const el of [...next_head.querySelectorAll("style")]) {
+		doc.head.insertBefore(doc.adoptNode(el), marker);
+	}
+}
+
+// Re-render without doc.write: the document, its listeners, and the scroll
+// position all survive — only the master content and changed styles are
+// replaced, then pagination swaps in atomically.
+function update_document(html) {
+	const doc = frame.value?.contentDocument;
+	if (!doc?.body?.dataset.pageSize || master_doc !== doc) return write_document(html);
+	const next = new DOMParser().parseFromString(html, "text/html");
+
+	for (const attr of [...doc.body.attributes]) {
+		if (attr.name.startsWith("data-") && !next.body.hasAttribute(attr.name)) {
+			doc.body.removeAttribute(attr.name);
+		}
+	}
+	for (const attr of [...next.body.attributes]) doc.body.setAttribute(attr.name, attr.value);
+
+	sync_head_styles(doc, next.head);
+
+	master = doc.createElement("div");
+	for (const node of [...next.body.childNodes]) master.appendChild(doc.adoptNode(node));
+
+	paginate();
+}
+
 function write_document(html) {
 	const doc = frame.value?.contentDocument;
 	if (!doc) return;
-	const scroll_y = frame.value.contentWindow?.scrollY || 0;
+	const win = frame.value.contentWindow;
+	const scroll_y = win?.scrollY || 0;
 	doc.open();
 	doc.write(html);
 	doc.close();
 	const style = doc.createElement("style");
 	style.textContent = interaction_css();
+	style.dataset.pfbInteraction = "1";
 	(doc.head || doc.documentElement).appendChild(style);
+	server_styles_key = doc.head ? head_styles_key(doc.head) : "";
 	doc.addEventListener("click", handle_click);
 	doc.addEventListener("keydown", forward_keydown);
 	doc.addEventListener("pointerdown", on_pointer_down);
@@ -282,12 +344,15 @@ function write_document(html) {
 	doc.addEventListener("drop", on_palette_drop);
 	master = null;
 	paginate();
-	frame.value.contentWindow?.addEventListener("load", paginate);
-	frame.value.contentWindow?.addEventListener("resize", update_highlight);
+	if (win && !win._pfb_bound) {
+		win._pfb_bound = true;
+		win.addEventListener("load", paginate);
+		win.addEventListener("resize", update_highlight);
+	}
 	doc.fonts?.ready?.then(() => {
 		if (frame.value?.contentDocument === doc) paginate();
 	});
-	frame.value.contentWindow?.scrollTo(0, scroll_y);
+	win?.scrollTo(0, scroll_y);
 	loaded.value = true;
 	update_highlight();
 }
@@ -369,10 +434,11 @@ function paginate() {
 		return;
 	}
 
-	doc.querySelector(".pfb-pages")?.remove();
-	doc.querySelector(".pfb-del-chip")?.remove();
+	doc.querySelector(".pfb-pages-measuring")?.remove();
 	if (master && master_doc !== doc) master = null;
 	if (!master) {
+		doc.querySelector(".pfb-pages")?.remove();
+		doc.querySelector(".pfb-del-chip")?.remove();
 		master = doc.createElement("div");
 		master_doc = doc;
 		while (body.firstChild) master.appendChild(body.firstChild);
@@ -395,7 +461,7 @@ function paginate() {
 	const { flow_master, head_master, foot_master } = split_master(doc, repeat);
 
 	const pages_el = doc.createElement("div");
-	pages_el.className = "pfb-pages";
+	pages_el.className = "pfb-pages pfb-pages-measuring";
 	body.appendChild(pages_el);
 
 	const make_page = () => {
@@ -489,6 +555,12 @@ function paginate() {
 		add_section();
 	});
 	pages_el.appendChild(add_btn);
+
+	for (const stale of doc.querySelectorAll(".pfb-pages")) {
+		if (stale !== pages_el) stale.remove();
+	}
+	doc.querySelector(".pfb-del-chip")?.remove();
+	pages_el.classList.remove("pfb-pages-measuring");
 
 	update_highlight();
 }
