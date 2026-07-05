@@ -23,6 +23,16 @@ frappe.ui.form.FormPresence = class FormPresence {
 		this.users_by_doc[this.docname] = users;
 	}
 
+	get viewer_users() {
+		return this.viewers_by_doc?.[this.docname] || [];
+	}
+
+	set viewer_users(users) {
+		if (!this.docname) return;
+		this.viewers_by_doc ??= {};
+		this.viewers_by_doc[this.docname] = users;
+	}
+
 	setup_events() {
 		this.frm.$wrapper
 			.on("focusin.form-presence", ".frappe-control", (event) => {
@@ -49,6 +59,10 @@ frappe.ui.form.FormPresence = class FormPresence {
 		this.on_doc_presence = (data) => this.update_users(data);
 		frappe.realtime.off("doc_presence", this.on_doc_presence);
 		frappe.realtime.on("doc_presence", this.on_doc_presence);
+
+		this.on_doc_viewers = (data) => this.update_viewers(data);
+		frappe.realtime.off("doc_viewers", this.on_doc_viewers);
+		frappe.realtime.on("doc_viewers", this.on_doc_viewers);
 	}
 
 	get_field_target(field) {
@@ -132,6 +146,16 @@ frappe.ui.form.FormPresence = class FormPresence {
 		this.refresh();
 	}
 
+	async update_viewers({ doctype, docname, users = [] }) {
+		if (this.frm?.doc?.doctype !== doctype || this.frm?.doc?.name !== docname) return;
+
+		users = users.filter((user) => user !== frappe.session.user);
+		await this.fetch_user_info(users);
+
+		this.viewer_users = users;
+		this.refresh();
+	}
+
 	async fetch_user_info(users) {
 		const unknown_users = users.filter((user) => !frappe.boot.user_info[user]);
 		if (!unknown_users.length) return;
@@ -145,11 +169,11 @@ frappe.ui.form.FormPresence = class FormPresence {
 	refresh() {
 		this.clear_indicators();
 
-		if (!this.active_users.length) return;
-
 		const field_users = {};
 		const tab_users = {};
-		const document_users = [];
+		const document_users = this.viewer_users.filter(
+			(user) => !this.active_users.some((active_user) => active_user.user === user)
+		);
 		for (const { user, target } of this.active_users) {
 			if (target?.type === "field" && this.should_show_on_field(target)) {
 				const key = this.get_field_key(target);
@@ -238,7 +262,7 @@ frappe.ui.form.FormPresence = class FormPresence {
 	}
 
 	render_document_users(users) {
-		if (!this.frm.layout?.is_tabbed_layout() || !users.length) return;
+		if (!users.length) return;
 		this.parent.append(this.make_avatar_group(users));
 	}
 

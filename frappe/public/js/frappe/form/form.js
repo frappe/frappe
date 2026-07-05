@@ -107,11 +107,6 @@ frappe.ui.form.Form = class FrappeForm {
 			page: this.page,
 		});
 
-		this.viewers = new frappe.ui.form.FormViewers({
-			frm: this,
-			parent: $('<div class="form-viewers d-flex"></div>').prependTo(this.page.page_actions),
-		});
-
 		// navigate records keyboard shortcuts
 		this.add_form_keyboard_shortcuts();
 
@@ -548,7 +543,6 @@ frappe.ui.form.Form = class FrappeForm {
 			grid_obj.grid.grid_pagination.go_to_page(1, true);
 		});
 		frappe.ui.form.close_grid_form();
-		this.viewers && this.viewers.parent.empty();
 		this.presence && this.presence.clear_indicators();
 		this.docname = docname;
 		this.setup_docinfo_change_listener();
@@ -891,7 +885,6 @@ frappe.ui.form.Form = class FrappeForm {
 			}
 			this.toolbar.refresh();
 		}
-		this.viewers.refresh();
 		this.presence.refresh();
 
 		this.dashboard.refresh();

@@ -1,7 +1,6 @@
 // Copyright (c) 2015, Frappe Technologies Pvt. Ltd. and Contributors
 // MIT License. See license.txt
 import "./linked_with";
-import "./form_viewers";
 import "./template_manager";
 import { ReminderManager } from "./reminders";
 
