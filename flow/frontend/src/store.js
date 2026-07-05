@@ -1,7 +1,8 @@
 import { ref, computed } from "vue";
 import * as api from "@/api/client";
 import { startRun, resumeRun } from "@/api/stream";
-import { normalizeToolName } from "@/lib/toolMeta";
+import { runClientTool } from "@/lib/clientTools";
+import { normalizeToolName, parseArgs } from "@/lib/toolMeta";
 import { __ } from "@/lib/translate";
 
 // Module-singleton store: one panel instance, one source of truth. Components
@@ -235,6 +236,21 @@ async function restorePausedRun(session) {
 	last.runName = runs[0].name;
 	runName.value = runs[0].name;
 	requestScroll();
+
+	// A reload landing mid client-pause leaves pending client directives; run them so the
+	// turn isn't stuck. Human questions restore as cards (answered via answerQuestion).
+	if (last.questions.some((q) => q.client_tool)) {
+		sending.value = true;
+		try {
+			await settleClientCalls(last);
+		} catch (e) {
+			failMessage(last, e);
+		} finally {
+			sending.value = false;
+			requestScroll();
+			focusTick.value++;
+		}
+	}
 }
 
 // ── sending / streaming ────────────────────────────────────────────────────────
@@ -263,6 +279,7 @@ async function send(text) {
 			},
 			(event) => handleEvent(event, assistant)
 		);
+		await settleClientCalls(assistant);
 	} catch (e) {
 		failMessage(assistant, e);
 	} finally {
@@ -285,12 +302,46 @@ async function resume(answers, pausedMsg) {
 
 	try {
 		await resumeRun({ run_name: rn, answers }, (event) => handleEvent(event, pausedMsg));
+		await settleClientCalls(pausedMsg);
 	} catch (e) {
 		failMessage(pausedMsg, e);
 	} finally {
 		sending.value = false;
 		requestScroll();
 		focusTick.value++;
+	}
+}
+
+// A run pauses on a client directive (a client tool the agent called). The panel runs it in
+// the Desk window and resumes with the result. Loops so chained client calls settle within
+// one turn; returns early when a human question remains — the user answers it (answerQuestion),
+// which resumes the run. Runs inside the caller's `sending` envelope, so no re-entrancy.
+async function settleClientCalls(msg) {
+	for (;;) {
+		const pending = msg.questions.filter((q) => q.client_tool && q._answer === undefined);
+		if (!pending.length) return;
+
+		for (const q of pending) {
+			const part = msg.parts.find((p) => p.type === "tool" && p.id === q.key);
+			q._answer = await runClientDirective(part);
+		}
+		if (msg.questions.some((q) => q._answer === undefined)) return;
+
+		const answers = {};
+		msg.questions.forEach((q) => (answers[q.key] = q._answer));
+		msg.questions = [];
+		msg.pending = true;
+		await resumeRun({ run_name: msg.runName || runName.value, answers }, (event) =>
+			handleEvent(event, msg)
+		);
+	}
+}
+
+async function runClientDirective(part) {
+	try {
+		return await runClientTool(part?.name, parseArgs(part?.arguments));
+	} catch (e) {
+		return { error: e?.message || String(e) };
 	}
 }
 
