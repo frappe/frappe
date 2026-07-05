@@ -1,6 +1,9 @@
 frappe.ui.form.FormPresence = class FormPresence {
 	constructor({ frm }) {
 		this.frm = frm;
+		this.parent = $('<div class="form-presence-viewers d-flex"></div>').prependTo(
+			this.frm.page.page_actions
+		);
 		this.users_by_doc = {};
 		this.last_published_target = {};
 		this.publish_presence = frappe.utils.debounce((target) => this.publish(target), 150);
@@ -111,6 +114,7 @@ frappe.ui.form.FormPresence = class FormPresence {
 
 	clear_indicators() {
 		this.frm.$wrapper.find(".form-presence-users").remove();
+		this.parent.empty();
 	}
 
 	async update_users({ doctype, docname, users = [] }) {
@@ -145,16 +149,19 @@ frappe.ui.form.FormPresence = class FormPresence {
 
 		const field_users = {};
 		const tab_users = {};
+		const document_users = [];
 		for (const { user, target } of this.active_users) {
 			if (target?.type === "field" && this.should_show_on_field(target)) {
 				const key = this.get_field_key(target);
 				field_users[key] ??= [];
 				field_users[key].push(user);
-			} else {
+			} else if (this.should_show_on_tab(target)) {
 				const key =
 					target?.tab_fieldname || this.frm.layout?.tabs?.[0]?.df?.fieldname || "";
 				tab_users[key] ??= [];
 				tab_users[key].push(user);
+			} else {
+				document_users.push(user);
 			}
 		}
 
@@ -164,6 +171,7 @@ frappe.ui.form.FormPresence = class FormPresence {
 		for (const [tab_fieldname, users] of Object.entries(tab_users)) {
 			this.render_tab_users(tab_fieldname, users);
 		}
+		this.render_document_users(document_users);
 	}
 
 	should_show_on_field(target) {
@@ -174,6 +182,17 @@ frappe.ui.form.FormPresence = class FormPresence {
 			return false;
 		}
 		return Boolean(this.get_field_wrapper(target)?.is(":visible"));
+	}
+
+	should_show_on_tab(target) {
+		const tab_fieldname = target?.tab_fieldname || this.frm.layout?.tabs?.[0]?.df?.fieldname;
+		const tab = this.get_tab(tab_fieldname);
+		return Boolean(tab && !tab.is_hidden());
+	}
+
+	get_tab(tab_fieldname) {
+		if (!tab_fieldname) return null;
+		return this.frm.layout?.tabs?.find((tab) => tab.df.fieldname === tab_fieldname);
 	}
 
 	get_field_key(target) {
@@ -209,13 +228,18 @@ frappe.ui.form.FormPresence = class FormPresence {
 	render_tab_users(tab_fieldname, users) {
 		if (!tab_fieldname) return;
 
-		const tab = this.frm.layout?.tabs?.find((tab) => tab.df.fieldname === tab_fieldname);
+		const tab = this.get_tab(tab_fieldname);
 		if (!tab) return;
 
 		const $indicator = $('<span class="form-presence-users"></span>').appendTo(
 			tab.tab_link.find(".nav-link")
 		);
 		$indicator.append(this.make_avatar_group(users));
+	}
+
+	render_document_users(users) {
+		if (!this.frm.layout?.is_tabbed_layout() || !users.length) return;
+		this.parent.append(this.make_avatar_group(users));
 	}
 
 	make_avatar_group(users) {

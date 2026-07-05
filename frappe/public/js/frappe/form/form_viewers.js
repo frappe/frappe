@@ -32,7 +32,7 @@ frappe.ui.form.FormViewers = class FormViewers {
 	}
 
 	refresh() {
-		if (!this.active_users.length) {
+		if (this.frm?.layout?.is_tabbed_layout() || !this.active_users.length) {
 			this.parent.empty();
 			return;
 		}
