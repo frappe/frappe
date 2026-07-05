@@ -410,6 +410,24 @@ def navigate(
 navigate = tool(navigate, description=_NAVIGATE_DESCRIPTION, client_tool=True)
 
 
+_FILL_DESCRIPTION = """Fill the form the user currently has open: set field values on the record in \
+front of them. Operates on the open form only and never saves — the user reviews and commits. \
+Confirm the doctype and exact field names first (read_screen / describe).
+
+values maps {fieldname: value} for the main record — links, selects, dates, numbers, text. A child \
+table is a fieldname whose value is a list of row objects, e.g. {"items": [{"item_code": "A", \
+"qty": 2}]}; setting a table replaces its rows. Dependent fields and fetch_from fire automatically.
+
+Returns the resulting form state, including any field names that don't exist on the doctype."""
+
+
+def fill(values: dict[str, Any]) -> dict[str, Any]:
+	raise RuntimeError("fill runs in the browser, not on the server")
+
+
+fill = tool(fill, description=_FILL_DESCRIPTION, client_tool=True)
+
+
 BUILTIN_TOOLS: list[Tool] = [
 	find_doctypes,
 	describe,
@@ -422,6 +440,7 @@ BUILTIN_TOOLS: list[Tool] = [
 	execute,
 	read_screen,
 	navigate,
+	fill,
 ]
 
 
