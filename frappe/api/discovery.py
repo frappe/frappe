@@ -25,6 +25,7 @@ class DiscoveryCacheUnavailable(frappe.ValidationError):
 
 
 def root() -> dict[str, Any]:
+	frappe.only_for("Developer")
 	method_index = _method_index()
 	return {
 		"type": "discovery",
@@ -39,6 +40,7 @@ def root() -> dict[str, Any]:
 
 
 def search(q: str | None = None) -> dict[str, Any]:
+	frappe.only_for("Developer")
 	query = (q or "").strip().lower()
 	index = _search_index()
 	entries = [entry for entry, _haystack in index]
@@ -55,10 +57,12 @@ def search(q: str | None = None) -> dict[str, Any]:
 
 
 def methods() -> dict[str, Any]:
+	frappe.only_for("Developer")
 	return {"type": "method_index", "methods": _method_index()}
 
 
 def method(method: str) -> dict[str, Any]:
+	frappe.only_for("Developer")
 	method = frappe.override_whitelisted_method(method)
 	server_script = _api_server_scripts().get(method)
 	if server_script:
