@@ -3,7 +3,7 @@ msgstr ""
 "Project-Id-Version: frappe\n"
 "Report-Msgid-Bugs-To: developers@frappe.io\n"
 "POT-Creation-Date: 2026-06-24 16:55+0000\n"
-"PO-Revision-Date: 2026-06-28 21:07\n"
+"PO-Revision-Date: 2026-07-05 21:52\n"
 "Last-Translator: developers@frappe.io\n"
 "Language-Team: Indonesian\n"
 "MIME-Version: 1.0\n"
@@ -11282,7 +11282,7 @@ msgstr "Frappe Kerangka"
 
 #: frappe/public/js/frappe/ui/theme_switcher.js:59
 msgid "Frappe Light"
-msgstr "Frappe Terang"
+msgstr ""
 
 #. Label of a standard help item
 #. Type: Route
@@ -20117,7 +20117,7 @@ msgstr "Kode Pos"
 #. Label of a Datetime field in DocType 'Changelog Feed'
 #: frappe/desk/doctype/changelog_feed/changelog_feed.json
 msgid "Posting Timestamp"
-msgstr "Stempel Waktu Posting"
+msgstr ""
 
 #. Group in Blog Category's connections
 #: frappe/website/doctype/blog_category/blog_category.json
