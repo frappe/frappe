@@ -397,7 +397,7 @@ body {
 }
 
 /* Keep letterhead images from overflowing the page when no explicit width is set */
-header img {
+.letter-head img {
 	max-width: 100%;
 	height: auto;
 }
