@@ -81,6 +81,7 @@ class DatabaseQuery:
 		self.conditions = []
 		self.or_conditions = []
 		self.fields = None
+		self.join = "left join"
 		self.user = user or frappe.session.user
 		self.ignore_ifnull = False
 		self.flags = frappe._dict()
@@ -88,6 +89,7 @@ class DatabaseQuery:
 		self.permission_map = {}
 		self.shared = []
 		self._fetch_shared_documents = False
+		self._child_filters_via_exists = False
 		self._metas = {}
 
 	@cached_property
@@ -321,6 +323,8 @@ from {tables}
 		self.extract_tables()
 		self.set_optional_columns()
 		self.build_conditions()
+		# decided before cast_name_fields wraps name columns in cast() on postgres
+		drop_dedup_group_by = self._is_redundant_dedup_group_by()
 		self.apply_fieldlevel_read_permissions()
 
 		args = frappe._dict()
@@ -384,10 +388,26 @@ from {tables}
 		self.validate_order_by_and_group_by(args.order_by)
 		args.order_by = (args.order_by and (" order by " + args.order_by)) or ""
 
+		if drop_dedup_group_by:
+			# list views send group_by=parent primary key to dedup child-table join
+			# rows; once child filters use exists() nothing multiplies rows, and
+			# keeping it breaks postgres when fields include columns from joined
+			# link tables (show_title_field_in_link)
+			self.group_by = None
+
 		self.validate_order_by_and_group_by(self.group_by)
 		args.group_by = (self.group_by and (" group by " + self.group_by)) or ""
 
 		return args
+
+	def _is_redundant_dedup_group_by(self) -> bool:
+		if not (self.group_by and self._child_filters_via_exists and len(self.tables) == 1):
+			return False
+		if any("(" in (field or "") for field in self.fields):
+			# aggregates change meaning without group by, keep it
+			return False
+		group_by = self.group_by.replace("`", "").replace('"', "").strip()
+		return group_by in (f"tab{self.doctype}.name", "name")
 
 	def prepare_select_args(self, args):
 		order_field = ORDER_BY_PATTERN.sub("", args.order_by)
@@ -668,14 +688,79 @@ from {tables}
 	def build_conditions(self):
 		self.conditions = []
 		self.grouped_or_conditions = []
-		self.build_filter_conditions(self.filters, self.conditions)
-		self.build_filter_conditions(self.or_filters, self.grouped_or_conditions)
+
+		filters, exists_groups = self._split_child_table_filters(self.filters)
+		or_filters, or_exists_groups = self._split_child_table_filters(self.or_filters)
+
+		# a child table filtered in both filters and or_filters keeps the legacy
+		# join: both groups must test the same joined child row
+		for doctype in exists_groups.keys() & or_exists_groups.keys():
+			filters.extend(exists_groups.pop(doctype))
+			or_filters.extend(or_exists_groups.pop(doctype))
+
+		self._child_filters_via_exists = bool(exists_groups or or_exists_groups)
+
+		self.build_filter_conditions(filters, self.conditions)
+		for doctype, group in exists_groups.items():
+			self.conditions.append(self.prepare_exists_condition(doctype, group))
+
+		self.build_filter_conditions(or_filters, self.grouped_or_conditions)
+		for doctype, group in or_exists_groups.items():
+			self.grouped_or_conditions.append(self.prepare_exists_condition(doctype, group, any_match=True))
 
 		# match conditions
 		if not self.flags.ignore_permissions:
 			match_conditions = self.build_match_conditions()
 			if match_conditions:
 				self.conditions.append(f"({match_conditions})")
+
+	def _split_child_table_filters(self, filters: Filters) -> tuple[list, dict[str, list]]:
+		"""Separate filters on child tables that are not part of the query itself.
+
+		These filter through an exists() subquery instead of a join, so the outer
+		query needs no `group by` to deduplicate parents. Return the remaining
+		filters and the exists candidates grouped by child doctype.
+		"""
+		from frappe.boot import get_additional_filters_from_hooks
+
+		joined: list = []
+		exists_groups: dict[str, list] = {}
+		if not filters:
+			return joined, exists_groups
+
+		additional_filters_config = get_additional_filters_from_hooks()
+		for ft in filters:
+			f = get_filter(self.doctype, ft, additional_filters_config)
+			if (
+				self.join == "left join"
+				and f.doctype
+				and f.doctype != self.doctype
+				and f"`tab{f.doctype}`" not in self.tables
+				and self.get_meta(f.doctype).istable
+			):
+				exists_groups.setdefault(f.doctype, []).append(ft)
+			else:
+				joined.append(ft)
+		return joined, exists_groups
+
+	def prepare_exists_condition(self, child_doctype: str, filters: list, any_match=False) -> str:
+		"""Return an exists() condition that filters by a child table without joining it.
+
+		The child table is left joined to a one-row derived table, so a parent with
+		no child rows is tested against a single all-NULL child row — exactly like
+		the outer left join this replaces (filters like "is not set" must match
+		parents without child rows).
+		"""
+		self.check_read_permission(child_doctype, parent_doctype=self.doctype)
+		child_table = f"`tab{child_doctype}`"
+		joiner = " or " if any_match else " and "
+		conditions = joiner.join(self.prepare_filter_condition(f, skip_join=True) for f in filters)
+		parent_name = cast_name(f"{self.tables[0]}.name")
+		return (
+			f"exists (select 1 from (select 1) as `_one_row` "
+			f"left join {child_table} on ({child_table}.parenttype = {frappe.db.escape(self.doctype)} "
+			f"and {child_table}.parent = {parent_name}) where {conditions})"
+		)
 
 	def build_filter_conditions(self, filters: Filters, conditions: list, ignore_permissions=None):
 		"""build conditions from user filters"""
@@ -791,7 +876,7 @@ from {tables}
 			else:
 				self.remove_field(i)
 
-	def prepare_filter_condition(self, ft: FilterTuple) -> str:
+	def prepare_filter_condition(self, ft: FilterTuple, *, skip_join: bool = False) -> str:
 		"""Return a filter condition in the format:
 
 		ifnull(`tabDocType`.`fieldname`, fallback) operator "value"
@@ -805,7 +890,7 @@ from {tables}
 		f: FilterTuple = get_filter(self.doctype, ft, additional_filters_config)
 
 		tname = "`tab" + f.doctype + "`"
-		if tname not in self.tables:
+		if not skip_join and tname not in self.tables:
 			self.append_table(tname)
 
 		column_name = cast_name(f.fieldname if "ifnull(" in f.fieldname else f"{tname}.`{f.fieldname}`")

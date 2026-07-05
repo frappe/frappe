@@ -1271,10 +1271,47 @@ class Engine:
 
 	def apply_group_by(self, group_by: str | None = None):
 		parsed_group_by_fields = self._validate_group_by(group_by)
+		if self._is_main_table_pk_group_by(parsed_group_by_fields):
+			parsed_group_by_fields += self._joined_link_table_pks()
 		self._grouped_queries = {
 			f.get_sql() if hasattr(f, "get_sql") else str(f) for f in parsed_group_by_fields
 		}
 		self.query = self.query.groupby(*parsed_group_by_fields)
+
+	def _is_main_table_pk_group_by(self, parsed_fields: list) -> bool:
+		"""Group by on just the parent primary key — the dedup form list views send
+		along with child-table filters."""
+		if len(parsed_fields) != 1:
+			return False
+		field = parsed_fields[0]
+		return (
+			isinstance(field, Field)
+			and field.name == "name"
+			and (field.table is None or field.table == self.table)
+		)
+
+	def _joined_link_table_pks(self) -> list[Field]:
+		"""Primary keys of 1:1 joined link tables.
+
+		When deduping by the parent primary key, grouping additionally by each link
+		table's primary key cannot change the result (at most one link row per
+		parent) but satisfies postgres' functional-dependency rule for the link
+		table's selected columns, e.g. title fields fetched for
+		`show_title_field_in_link` (GH-39851). Child tables (istable) are excluded:
+		grouping by their primary key would undo the dedup.
+		"""
+		pks = []
+		for join in self.query._joins:
+			table = join.item
+			if not isinstance(table, Table):
+				continue
+			try:
+				meta = frappe.get_meta(get_doctype_name(table.get_sql()))
+			except frappe.DoesNotExistError:
+				continue
+			if not meta.istable:
+				pks.append(table["name"])
+		return pks
 
 	def apply_order_by(self, order_by: str | None):
 		if not order_by or order_by == DefaultOrderBy:
