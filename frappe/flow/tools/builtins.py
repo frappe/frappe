@@ -4,7 +4,7 @@
 from __future__ import annotations
 
 import json
-from typing import Any
+from typing import Any, Literal
 
 import frappe
 from frappe import _
@@ -383,6 +383,33 @@ def read_screen() -> dict[str, Any]:
 read_screen = tool(read_screen, description=_READ_SCREEN_DESCRIPTION, client_tool=True)
 
 
+_NAVIGATE_DESCRIPTION = """Take the user to a screen in the Desk. Navigation only — never creates \
+or changes data.
+
+- view="form": open an existing record (needs doctype and name).
+- view="new": open a blank new-record form (needs doctype).
+- view="list": open a doctype's list (needs doctype); pass filters to narrow it, e.g. \
+{"status": "Open"} or {"grand_total": [">", 1000]}.
+- view="report": open a query report (needs report); pass filters as its filter values.
+- view="workspace": open a workspace (needs workspace).
+
+Resolve exact doctype/report names with find_doctypes first. Returns the route navigated to."""
+
+
+def navigate(
+	view: Literal["form", "new", "list", "report", "workspace"],
+	doctype: str | None = None,
+	name: str | None = None,
+	report: str | None = None,
+	workspace: str | None = None,
+	filters: dict[str, Any] | None = None,
+) -> dict[str, Any]:
+	raise RuntimeError("navigate runs in the browser, not on the server")
+
+
+navigate = tool(navigate, description=_NAVIGATE_DESCRIPTION, client_tool=True)
+
+
 BUILTIN_TOOLS: list[Tool] = [
 	find_doctypes,
 	describe,
@@ -394,6 +421,7 @@ BUILTIN_TOOLS: list[Tool] = [
 	run_action,
 	execute,
 	read_screen,
+	navigate,
 ]
 
 
