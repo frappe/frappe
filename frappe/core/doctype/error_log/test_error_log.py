@@ -6,7 +6,7 @@ from ldap3.core.exceptions import LDAPException, LDAPInappropriateAuthentication
 
 import frappe
 from frappe.tests import IntegrationTestCase
-from frappe.utils.error import _is_ldap_exception, guess_exception_source
+from frappe.utils.error import _is_ldap_exception, guess_exception_source, log_error_snapshot
 
 
 class TestErrorLog(IntegrationTestCase):
@@ -44,6 +44,15 @@ class TestErrorLog(IntegrationTestCase):
 
 		for e in exc:
 			self.assertTrue(_is_ldap_exception(e()))
+
+	def test_log_error_snapshot_can_be_skipped_by_exception_flag(self):
+		class ExpectedException(Exception):
+			skip_error_log = True
+
+		with patch("frappe.utils.error.log_error") as log_error:
+			log_error_snapshot(ExpectedException("expected"))
+
+		log_error.assert_not_called()
 
 
 _RAW_EXC = """

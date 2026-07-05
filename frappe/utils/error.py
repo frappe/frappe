@@ -166,7 +166,11 @@ def get_error_metadata() -> str:
 
 
 def log_error_snapshot(exception: Exception):
-	if isinstance(exception, EXCLUDE_EXCEPTIONS) or _is_ldap_exception(exception):
+	if (
+		isinstance(exception, EXCLUDE_EXCEPTIONS)
+		or _is_ldap_exception(exception)
+		or getattr(exception, "skip_error_log", False)
+	):
 		return
 
 	logger = frappe.logger(with_more_info=True)
