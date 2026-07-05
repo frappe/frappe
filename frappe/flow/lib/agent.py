@@ -27,6 +27,9 @@ class Question:
 	multi-select. When `allow_other` is true the picker always offers an "Other"
 	choice that opens a textbox for the user to reiterate or redirect.
 	`key` routes the answer back (e.g. the tool_call_id it belongs to).
+
+	When `client_tool` is true the pause is resolved by the browser executing the named
+	client tool, not by a human — the panel runs it and resumes with the result.
 	"""
 
 	prompt: str
@@ -34,6 +37,7 @@ class Question:
 	multi_select: bool = False
 	allow_other: bool = True
 	key: str | None = None
+	client_tool: bool = False
 
 
 @dataclass
@@ -359,6 +363,10 @@ class Agent:
 			return json.dumps({"error": f"Unknown tool: {call.name!r}"})
 		if tool.requires_confirmation and not self.auto_approve:
 			return _confirmation_question(call, tool)
+		if tool.client_tool:
+			if self.auto_approve:
+				return json.dumps({"error": f"{call.name} needs a browser and can't run unattended."})
+			return Question(prompt=f"Running {call.name} in the browser…", client_tool=True)
 		return self._run_tool(call)
 
 	def _run_tool(self, call: ToolCall) -> Any:

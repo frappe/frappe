@@ -721,6 +721,76 @@ class TestAgentConfirmation(UnitTestCase):
 		self.assertEqual([c.name for c in resumed.tool_calls], ["read_file", "write_file"])
 
 
+class TestAgentClientTools(UnitTestCase):
+	def _screen_tool(self):
+		calls: list[int] = []
+
+		@tool(client_tool=True)
+		def read_screen() -> dict:
+			"""Read the user's screen."""
+			calls.append(1)
+			raise AssertionError("client tool must never run on the server")
+
+		return read_screen, calls
+
+	def test_client_tool_pauses_without_executing(self):
+		read_screen, calls = self._screen_tool()
+		model = FakeModel([_tool_call("read_screen", {}, call_id="c1")])
+		agent = Agent(model=model, tools=[read_screen])
+
+		result = agent.run("what am I looking at?")
+
+		self.assertTrue(result.paused)
+		self.assertEqual(len(result.questions), 1)
+		self.assertTrue(result.questions[0].client_tool)
+		self.assertEqual(result.questions[0].key, "c1")
+		self.assertEqual(calls, [])  # never ran server-side
+		self.assertFalse([m for m in result.messages if m["role"] == "tool"])
+
+	def test_resume_feeds_browser_result_back_to_llm(self):
+		read_screen, _ = self._screen_tool()
+		agent = Agent(
+			model=FakeModel([_tool_call("read_screen", {}, call_id="c1")]),
+			tools=[read_screen],
+		)
+		paused = agent.run("what am I looking at?")
+
+		digest = {"view": "Form", "doctype": "Lead", "name": "CRM-LEAD-0001"}
+		agent.model = FakeModel([_final("You're on a Lead form.")])
+		result = agent.resume(paused.messages, {"c1": digest})
+
+		self.assertFalse(result.paused)
+		self.assertEqual(result.output, "You're on a Lead form.")
+		tool_msg = next(m for m in result.messages if m["role"] == "tool")
+		self.assertEqual(tool_msg["tool_call_id"], "c1")
+		self.assertEqual(json.loads(tool_msg["content"]), digest)
+
+	def test_unattended_run_cannot_call_client_tool(self):
+		read_screen, calls = self._screen_tool()
+		model = FakeModel([_tool_call("read_screen", {}, call_id="c1"), _final("done")])
+		agent = Agent(model=model, tools=[read_screen], auto_approve=True)
+
+		result = agent.run("what am I looking at?")
+
+		self.assertFalse(result.paused)
+		self.assertEqual(calls, [])
+		tool_msg = next(m for m in result.messages if m["role"] == "tool")
+		self.assertIn("error", json.loads(tool_msg["content"]))
+		self.assertEqual(result.output, "done")
+
+	def test_client_tool_pauses_in_streaming_run(self):
+		read_screen, _ = self._screen_tool()
+		model = FakeModel([_tool_call("read_screen", {}, call_id="c1")])
+		agent = Agent(model=model, tools=[read_screen])
+
+		done = list(agent.run("what am I looking at?", stream=True))[-1]
+
+		self.assertIsInstance(done, Done)
+		self.assertTrue(done.result.paused)
+		self.assertTrue(done.result.questions[0].client_tool)
+		self.assertEqual(done.result.questions[0].key, "c1")
+
+
 class TestQuestion(UnitTestCase):
 	def test_defaults_are_open_text_with_other(self):
 		q = Question(prompt="What subject line?")

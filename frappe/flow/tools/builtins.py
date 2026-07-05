@@ -366,6 +366,23 @@ def run_action(
 	return result
 
 
+_READ_SCREEN_DESCRIPTION = """See what the user is currently looking at in the Desk: the active \
+route/view and, for an open form, its doctype, record name, unsaved-changes and submission state, \
+the filled field values, and any still-empty mandatory fields.
+
+Use it to ground yourself whenever the user refers to what is on their screen ("this record", \
+"this form", "why can't I submit this"). Runs in the user's browser and returns a JSON digest."""
+
+
+def read_screen() -> dict[str, Any]:
+	# Client tool: executed in the browser (see frontend/src/lib/clientTools.js), never on the
+	# server. The signature only defines the (empty) argument schema the model sees.
+	raise RuntimeError("read_screen runs in the browser, not on the server")
+
+
+read_screen = tool(read_screen, description=_READ_SCREEN_DESCRIPTION, client_tool=True)
+
+
 BUILTIN_TOOLS: list[Tool] = [
 	find_doctypes,
 	describe,
@@ -376,6 +393,7 @@ BUILTIN_TOOLS: list[Tool] = [
 	delete,
 	run_action,
 	execute,
+	read_screen,
 ]
 
 
@@ -392,6 +410,7 @@ def sync_builtin_tools() -> None:
 					"import_path": import_path,
 					"description": builtin.description,
 					"requires_confirmation": int(builtin.requires_confirmation),
+					"client_tool": int(builtin.client_tool),
 					"is_system_generated": 1,
 				},
 			)
@@ -406,5 +425,6 @@ def sync_builtin_tools() -> None:
 					"description": builtin.description,
 					"is_system_generated": 1,
 					"requires_confirmation": int(builtin.requires_confirmation),
+					"client_tool": int(builtin.client_tool),
 				}
 			).insert(ignore_permissions=True)

@@ -75,6 +75,7 @@ def _build_tool(doc: FlowTool, parameters: dict[str, Any], func: Any, *, confirm
 		func=func,
 		requires_confirmation=bool(doc.requires_confirmation),
 		confirm_prompt=confirm_prompt,
+		client_tool=bool(doc.client_tool),
 	)
 
 

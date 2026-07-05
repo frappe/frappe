@@ -12,6 +12,7 @@
   "type",
   "enabled",
   "requires_confirmation",
+  "client_tool",
   "is_system_generated",
   "section_break_description",
   "description",
@@ -64,6 +65,13 @@
    "fieldname": "requires_confirmation",
    "fieldtype": "Check",
    "label": "Requires Confirmation"
+  },
+  {
+   "default": "0",
+   "description": "Runs in the user's browser (the Flow panel), not on the server. The run pauses, the panel executes the tool against the live Desk, and its result is fed back to the agent. Imported client tools supply only the LLM-facing schema and description.",
+   "fieldname": "client_tool",
+   "fieldtype": "Check",
+   "label": "Client Tool"
   },
   {
    "description": "Tools created by Frappe and protected from deletion.",
