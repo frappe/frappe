@@ -122,6 +122,7 @@ frappe.ui.form.FormPresence = class FormPresence {
 
 	clear_presence() {
 		if (!this.frm.doc || this.frm.is_new()) return;
+		this.publish_presence.cancel();
 		delete this.last_published_target[this.docname];
 		frappe.realtime.doc_presence_clear(this.frm.doctype, this.frm.docname);
 	}
