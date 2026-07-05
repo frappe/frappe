@@ -121,13 +121,9 @@ export class ToolDispatcher {
 		const newParent = canvas?.findBlock(args.new_parent_component_id)
 		if (!block || !newParent) return
 		const options = getBlockCopyWithoutParent(block)
-		// Slot membership only makes sense under the block's own parent. Keep it when reordering
-		// within the SAME parent (so a slot child stays in its slot), but drop it when moving to a
-		// DIFFERENT parent — there the old slot name is stale, so the block inserts as a regular child.
-		const sameParent = block.getParentBlock()?.componentId === args.new_parent_component_id
-		if (!sameParent) delete options.parentSlotName
 		block.getParentBlock()?.removeChild(block)
 		const sibling = args.after_component_id ? newParent.getChildById(args.after_component_id) : null
+		options.parentSlotName = sibling?.parentSlotName
 		if (sibling) {
 			newParent.addChildAfter(options, sibling)
 			return
