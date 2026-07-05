@@ -141,6 +141,7 @@ BUILD_RULES = """BUILDING BLOCKS RULES:
 - style keys are camelCase CSS property names (backgroundColor, borderRadius, …).
 - Do NOT include "id" or "parentBlock" — Studio assigns ids automatically.
 - Keep props to only what the request needs.
+- WRAP SIBLINGS IN A SPACING CONTAINER. Whenever a parent holds MORE THAN ONE block — a Dialog body, a slot, a card, a form — put them inside a single `container` with {"display":"flex","flexDirection":"column","gap":"..."} (e.g. gap 12–16px for a form, 8px for tight groups) rather than dropping the blocks in as bare siblings. Bare siblings have no gap and render cramped. A row of items → the same but flexDirection "row".
 """
 
 
