@@ -10,18 +10,6 @@ from typing import Any
 
 import frappe
 from frappe import _
-from frappe.api.discovery_models import (
-	DiscoveryLinks,
-	DiscoveryModel,
-	MethodDiscovery,
-	MethodIndexDiscovery,
-	MethodParameter,
-	MethodSummary,
-	ResourceCounts,
-	RootDiscovery,
-	SearchDiscovery,
-	SearchEntry,
-)
 from frappe.core.doctype.server_script.server_script_utils import get_server_script_map
 
 CACHE_TTL = 5 * 60
@@ -37,27 +25,37 @@ class DiscoveryCacheUnavailable(frappe.ValidationError):
 
 
 def root() -> dict[str, Any]:
-	return _dump(_root())
+	method_index = _method_index()
+	return {
+		"type": "discovery",
+		"resources": {"methods": len(method_index)},
+		"links": {
+			"self": "/api/v2/discovery",
+			"search": "/api/v2/discovery/search?q={query}",
+			"methods": "/api/v2/discovery/method",
+			"method": "/api/v2/discovery/method/{method}",
+		},
+	}
 
 
 def search(q: str | None = None) -> dict[str, Any]:
 	query = (q or "").strip().lower()
 	index = _search_index()
-	entries = [_dump(entry) for entry, _haystack in index]
+	entries = [entry for entry, _haystack in index]
 	if not query:
-		return _dump(SearchDiscovery(query=q or "", results=entries[:50]))
+		return {"query": q or "", "results": entries[:50]}
 
 	tokens = [token for token in query.split() if token]
 	matches = []
 	for entry, haystack in index:
 		if all(token in haystack for token in tokens):
-			matches.append(_dump(entry))
+			matches.append(entry)
 
-	return _dump(SearchDiscovery(query=q or "", results=matches[:50]))
+	return {"query": q or "", "results": matches[:50]}
 
 
 def methods() -> dict[str, Any]:
-	return _dump(MethodIndexDiscovery(type="method_index", methods=_method_index()))
+	return {"type": "method_index", "methods": _method_index()}
 
 
 def method(method: str) -> dict[str, Any]:
@@ -68,13 +66,13 @@ def method(method: str) -> dict[str, Any]:
 			frappe.throw(
 				_("Method {0} is not available for discovery").format(method), frappe.PermissionError
 			)
-		return _dump(_server_script_method_document(method, server_script))
+		return _server_script_method_document(method, server_script)
 
 	fn = _get_whitelisted_method(method)
 	if not fn:
 		frappe.throw(_("Method {0} is not available for discovery").format(method), frappe.DoesNotExistError)
 
-	return _dump(_method_document(method, fn))
+	return _method_document(method, fn)
 
 
 def clear_cache(user: str | None = None):
@@ -87,52 +85,33 @@ def build_cache() -> None:
 	_build_api_server_scripts_cache()
 
 
-def _root() -> RootDiscovery:
-	method_index = _method_index()
-	return RootDiscovery(
-		type="discovery",
-		resources=ResourceCounts(methods=len(method_index)),
-		links=DiscoveryLinks(
-			self="/api/v2/discovery",
-			search="/api/v2/discovery/search?q={query}",
-			methods="/api/v2/discovery/method",
-			method="/api/v2/discovery/method/{method}",
-		),
-	)
-
-
-def _search_index() -> list[tuple[SearchEntry, str]]:
-	entries: list[tuple[SearchEntry, str]] = []
+def _search_index() -> list[tuple[dict[str, Any], str]]:
+	entries: list[tuple[dict[str, Any], str]] = []
 	for item in _get_cached_python_search_entries():
-		method = MethodSummary(**item["method"])
+		method = item["method"]
 		if not _method_summary_visible_to_user(method):
 			continue
-		entry = SearchEntry(type="method", **_dump(method))
+		entry = _without_none({"type": "method", **method})
 		entries.append((entry, item["haystack"]))
 
-	for path, script in _visible_server_scripts():
-		method = _server_script_method_summary(path, script)
-		entry = SearchEntry(type="method", **_dump(method))
+	for path, _script in _visible_server_scripts():
+		entry = {"type": "method", "path": path}
 		entries.append((entry, _method_search_text(entry)))
 
-	return sorted(entries, key=lambda item: item[0].path or "")
+	return sorted(entries, key=lambda item: item[0].get("path") or "")
 
 
-def _method_search_text(entry: SearchEntry, docstring: str | None = None) -> str:
+def _method_search_text(entry: dict[str, Any], docstring: str | None = None) -> str:
 	return " ".join(
-		str(value or "") for value in (entry.type, entry.path, entry.description, docstring)
+		str(value or "")
+		for value in (entry.get("type"), entry.get("path"), entry.get("description"), docstring)
 	).lower()
 
 
-def _method_index() -> list[MethodSummary]:
-	items = [method for method in _python_method_index() if _method_summary_visible_to_user(method)]
-	items.extend(_server_script_method_summary(path, script) for path, script in _visible_server_scripts())
-	return sorted(items, key=lambda item: item.path)
-
-
-def _python_method_index() -> list[MethodSummary]:
-	items = _get_cached_python_methods()
-	return [MethodSummary(**item) for item in items]
+def _method_index() -> list[dict[str, Any]]:
+	items = [method for method in _get_cached_python_methods() if _method_summary_visible_to_user(method)]
+	items.extend({"path": path} for path, _script in _visible_server_scripts())
+	return sorted(items, key=lambda item: item["path"])
 
 
 def _get_cached_python_methods() -> list[dict[str, Any]]:
@@ -174,11 +153,10 @@ def _build_python_method_cache() -> list[dict[str, Any]]:
 	for path in _discover_whitelisted_method_paths():
 		if fn := _get_whitelisted_method(path, ignore_cache=True):
 			method = _method_summary(fn)
-			item = _dump(method)
-			items.append(item)
-			entry = SearchEntry(type="method", **item)
+			items.append(method)
+			entry = {"type": "method", **method}
 			search_entries.append(
-				{"method": item, "haystack": _method_search_text(entry, inspect.getdoc(fn))}
+				{"method": method, "haystack": _method_search_text(entry, inspect.getdoc(fn))}
 			)
 
 	frappe.cache.set_value(PYTHON_METHOD_CACHE_KEY, items, expires_in_sec=CACHE_TTL)
@@ -186,48 +164,44 @@ def _build_python_method_cache() -> list[dict[str, Any]]:
 	return items
 
 
-def _method_summary_visible_to_user(method: MethodSummary) -> bool:
-	return frappe.session.user != "Guest" or bool(method.allow_guest)
+def _method_summary_visible_to_user(method: dict[str, Any]) -> bool:
+	return frappe.session.user != "Guest" or bool(method.get("allow_guest"))
 
 
-def _method_summary(fn: Callable) -> MethodSummary:
-	path = _method_path(fn)
-	return MethodSummary(
-		path=path,
-		allow_guest=fn in frappe.guest_methods,
-		description=_first_docstring_line(fn),
+def _method_summary(fn: Callable) -> dict[str, Any]:
+	return _without_none(
+		{
+			"path": f"{fn.__module__}.{fn.__name__}",
+			"allow_guest": fn in frappe.guest_methods,
+			"description": _first_docstring_line(fn),
+		}
 	)
 
 
-def _method_document(path: str, fn: Callable) -> MethodDiscovery:
-	return MethodDiscovery(
-		type="method",
-		path=path,
-		name=fn.__name__,
-		http_methods=frappe.allowed_http_methods_for_whitelisted_func.get(fn, []),
-		allow_guest=fn in frappe.guest_methods,
-		params=_method_params(fn),
-		endpoint=f"/api/v2/method/{path}",
-		docstring=inspect.getdoc(fn),
+def _method_document(path: str, fn: Callable) -> dict[str, Any]:
+	return _without_none(
+		{
+			"type": "method",
+			"path": path,
+			"name": fn.__name__,
+			"http_methods": frappe.allowed_http_methods_for_whitelisted_func.get(fn, []),
+			"allow_guest": fn in frappe.guest_methods,
+			"params": _method_params(fn),
+			"endpoint": f"/api/v2/method/{path}",
+			"docstring": inspect.getdoc(fn),
+		}
 	)
 
 
-def _server_script_method_summary(path: str, script: str) -> MethodSummary:
-	return MethodSummary(
-		path=path,
-		allow_guest=None,
-	)
-
-
-def _server_script_method_document(path: str, script: str) -> MethodDiscovery:
-	return MethodDiscovery(
-		type="method",
-		path=path,
-		name=script,
-		http_methods=["GET", "POST", "PUT", "DELETE"],
-		params=[],
-		endpoint=f"/api/v2/method/{path}",
-	)
+def _server_script_method_document(path: str, script: str) -> dict[str, Any]:
+	return {
+		"type": "method",
+		"path": path,
+		"name": script,
+		"http_methods": ["GET", "POST", "PUT", "DELETE"],
+		"params": [],
+		"endpoint": f"/api/v2/method/{path}",
+	}
 
 
 def _visible_server_scripts() -> list[tuple[str, str]]:
@@ -251,7 +225,7 @@ def _build_api_server_scripts_cache() -> dict[str, str]:
 
 
 def _get_whitelisted_method(path: str, ignore_cache: bool = False) -> Callable | None:
-	if not ignore_cache and path not in {method.path for method in _python_method_index()}:
+	if not ignore_cache and path not in {method["path"] for method in _get_cached_python_methods()}:
 		return None
 
 	try:
@@ -271,17 +245,6 @@ def _method_visible_to_user(fn: Callable) -> bool:
 	if frappe.session.user == "Guest" and fn not in frappe.guest_methods:
 		return False
 	return True
-
-
-def _method_path(fn: Callable) -> str:
-	return f"{fn.__module__}.{fn.__name__}"
-
-
-def _framework_module(path: str | None) -> str | None:
-	parts = (path or "").split(".")
-	if len(parts) < 2 or parts[0] != "frappe":
-		return None
-	return parts[1]
 
 
 def _first_docstring_line(fn: Callable) -> str | None:
@@ -355,7 +318,7 @@ def _is_whitelist_decorator(decorator: ast.expr) -> bool:
 	return isinstance(decorator, ast.Name) and decorator.id in {"whitelist", "whitelist_for_tests"}
 
 
-def _method_params(fn: Callable) -> list[MethodParameter]:
+def _method_params(fn: Callable) -> list[dict[str, Any]]:
 	try:
 		signature = inspect.signature(fn)
 	except (TypeError, ValueError):
@@ -366,11 +329,13 @@ def _method_params(fn: Callable) -> list[MethodParameter]:
 		if name in {"self", "cls"}:
 			continue
 		params.append(
-			MethodParameter(
-				name=name,
-				required=parameter.default is inspect.Parameter.empty,
-				default=_jsonable_default(parameter.default),
-				type=_annotation_name(parameter.annotation),
+			_without_none(
+				{
+					"name": name,
+					"required": parameter.default is inspect.Parameter.empty,
+					"default": _jsonable_default(parameter.default),
+					"type": _annotation_name(parameter.annotation),
+				}
 			)
 		)
 	return params
@@ -392,5 +357,5 @@ def _jsonable_default(default: Any) -> Any:
 	return repr(default)
 
 
-def _dump(model: DiscoveryModel) -> dict[str, Any]:
-	return model.model_dump(mode="json", exclude_none=True)
+def _without_none(data: dict[str, Any]) -> dict[str, Any]:
+	return {key: value for key, value in data.items() if value is not None}
