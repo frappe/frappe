@@ -584,6 +584,110 @@ function paginate() {
 	update_highlight();
 }
 
+// ── Optimistic edits ────────────────────────────────────────
+// Structural edits mirror the store mutation onto the master DOM and
+// repaginate locally, so the canvas responds in the same frame; the
+// immediate background render then swaps in exact server markup.
+function master_el(selector) {
+	return master?.querySelector(selector);
+}
+
+function renumber_master() {
+	if (!master) return;
+	master.querySelectorAll("[data-pfb-section]").forEach((sec, si) => {
+		sec.dataset.pfbSection = si;
+		sec.querySelectorAll("[data-pfb-col]").forEach((col, ci) => {
+			col.dataset.pfbCol = `s.${si}.${ci}`;
+			col.querySelectorAll("[data-pfb-path]").forEach((f, fi) => {
+				f.dataset.pfbPath = `s.${si}.${ci}.${fi}`;
+			});
+		});
+	});
+	for (const [prefix, zone] of [
+		["h", "header"],
+		["f", "footer"],
+	]) {
+		master.querySelectorAll(`[data-pfb-zone="${zone}"] [data-pfb-col]`).forEach((col, ci) => {
+			col.dataset.pfbCol = `${prefix}.${ci}`;
+			col.querySelectorAll("[data-pfb-path]").forEach((f, fi) => {
+				f.dataset.pfbPath = `${prefix}.${ci}.${fi}`;
+			});
+		});
+	}
+}
+
+function optimistic(mutate) {
+	const doc = frame.value?.contentDocument;
+	if (master && master_doc === doc) {
+		mutate(doc);
+		renumber_master();
+		paginate();
+	}
+	render();
+}
+
+function synthetic_field_el(doc, df, col_el) {
+	const sample = col_el.querySelector("[data-pfb-path]") || master_el("[data-pfb-path]");
+	if (!sample) {
+		const el = doc.createElement("div");
+		el.className = "field";
+		el.textContent = df.label || df.fieldname || "";
+		return el;
+	}
+	const el = sample.cloneNode(true);
+	el.classList.remove("pfb-live-selected");
+	const label = el.querySelector(".label");
+	if (label) label.textContent = df.label || df.fieldname || "";
+	const value = el.querySelector(".value");
+	if (value) {
+		const v = store.preview_doc.value?.[df.fieldname];
+		if (v != null && v !== "") {
+			value.textContent = String(v);
+			value.classList.remove("pfb-empty-value");
+		} else {
+			value.textContent = "—";
+			value.classList.add("pfb-empty-value");
+		}
+	}
+	return el;
+}
+
+function synthetic_section_el(doc, section) {
+	const sample = [...master.querySelectorAll("[data-pfb-section]")].at(-1);
+	let el;
+	if (sample) {
+		el = sample.cloneNode(true);
+		el.classList.remove("pfb-live-selected-section");
+		for (const n of el.querySelectorAll("[data-pfb-path], .section-label, .page-break")) {
+			n.remove();
+		}
+	} else {
+		el = doc.createElement("div");
+		el.className = "section";
+		el.dataset.pfbSection = "0";
+		const col = doc.createElement("div");
+		col.dataset.pfbCol = "s.0.0";
+		el.appendChild(col);
+	}
+	if (section?.page_break) {
+		const brk = doc.createElement("div");
+		brk.className = "page-break";
+		el.prepend(brk);
+	}
+	return el;
+}
+
+function append_section_el(el) {
+	const last = [...master.querySelectorAll("[data-pfb-section]")].at(-1);
+	if (last) {
+		last.after(el);
+	} else {
+		const foot =
+			master.querySelector('[data-pfb-zone="footer"]') || master.querySelector("footer");
+		foot ? foot.before(el) : master.appendChild(el);
+	}
+}
+
 function live_sections() {
 	return (store.layout.value.sections || []).filter((s) => !s.remove);
 }
@@ -672,6 +776,7 @@ function remove_selected() {
 	const lv = store.layout.value;
 	const field = store.selected_field.value;
 	if (field) {
+		const path = path_of(field);
 		const zones = [lv.header, lv.footer, ...(lv.sections || [])].filter(Boolean);
 		for (const zone of zones) {
 			for (const col of zone.columns || []) {
@@ -679,6 +784,7 @@ function remove_selected() {
 				if (idx !== -1) {
 					col.fields.splice(idx, 1);
 					store.selected_field.value = null;
+					optimistic(() => master_el(`[data-pfb-path="${path}"]`)?.remove());
 					return;
 				}
 			}
@@ -687,8 +793,10 @@ function remove_selected() {
 	}
 	const section = store.selected_section.value;
 	if (section && lv.sections?.includes(section)) {
+		const idx = live_sections().indexOf(section);
 		lv.sections.splice(lv.sections.indexOf(section), 1);
 		store.selected_section.value = null;
+		optimistic(() => master_el(`[data-pfb-section="${idx}"]`)?.remove());
 	}
 }
 
@@ -697,6 +805,7 @@ function add_section() {
 	store.layout.value.sections.push(section);
 	store.selected_field.value = null;
 	store.selected_section.value = section;
+	optimistic((doc) => append_section_el(synthetic_section_el(doc, section)));
 }
 
 // ── Drop new fields/sections dragged from the left panel ────
@@ -780,6 +889,13 @@ function on_palette_drop(e) {
 		const sections = store.layout.value.sections;
 		const idx = target?.section_idx != null ? target.section_idx + 1 : sections.length;
 		sections.splice(idx, 0, payload.section);
+		optimistic((doc) => {
+			const el = synthetic_section_el(doc, payload.section);
+			const anchor =
+				target?.section_idx != null &&
+				master_el(`[data-pfb-section="${target.section_idx}"]`);
+			anchor ? anchor.after(el) : append_section_el(el);
+		});
 		return;
 	}
 	if (!target) return;
@@ -795,6 +911,21 @@ function on_palette_drop(e) {
 		col.fields.splice(idx, 0, payload.df);
 	}
 	store.selected_field.value = payload.df;
+
+	optimistic((doc) => {
+		const col_el = master_el(`[data-pfb-col="${target.col_path}"]`);
+		if (!col_el) return;
+		const el = synthetic_field_el(doc, payload.df, col_el);
+		const anchor_el =
+			!target.append &&
+			target.field_path &&
+			master_el(`[data-pfb-path="${target.field_path}"]`);
+		if (anchor_el) {
+			target.before ? anchor_el.before(el) : anchor_el.after(el);
+		} else {
+			col_el.appendChild(el);
+		}
+	});
 }
 
 // ── Drag to reorder ─────────────────────────────────────────
@@ -918,6 +1049,17 @@ function move_field(src_path, target) {
 		dst_col.fields.push(field);
 	}
 	store.selected_field.value = field;
+
+	optimistic(() => {
+		const el = master_el(`[data-pfb-path="${src_path}"]`);
+		if (!el) return;
+		const anchor_el = target.field_path && master_el(`[data-pfb-path="${target.field_path}"]`);
+		if (anchor_el && anchor_el !== el) {
+			target.before ? anchor_el.before(el) : anchor_el.after(el);
+		} else {
+			master_el(`[data-pfb-col="${target.col_path}"]`)?.appendChild(el);
+		}
+	});
 }
 
 // ── Inline label editing ────────────────────────────────────
@@ -933,15 +1075,25 @@ function on_dblclick(e) {
 		const { field } = resolve_path(field_el.dataset.pfbPath);
 		if (!field) return;
 		el = field_label;
+		const path = field_el.dataset.pfbPath;
 		commit = (text) => {
-			if (text !== field.label) field.label = text;
+			if (text === field.label) return;
+			field.label = text;
+			const m = master_el(`[data-pfb-path="${path}"]`)?.querySelector(".label");
+			if (m) m.textContent = text;
+			paginate();
 		};
 	} else if (section_label && section_el) {
 		const section = live_sections()[+section_el.dataset.pfbSection];
 		if (!section) return;
 		el = section_label;
+		const idx = section_el.dataset.pfbSection;
 		commit = (text) => {
-			if (text !== section.label) section.label = text;
+			if (text === section.label) return;
+			section.label = text;
+			const m = master_el(`[data-pfb-section="${idx}"]`)?.querySelector(".section-label");
+			if (m) m.textContent = text;
+			paginate();
 		};
 	} else {
 		return;

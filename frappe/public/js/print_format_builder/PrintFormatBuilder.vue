@@ -76,8 +76,7 @@
 					@start-blank="on_start_blank"
 				/>
 				<KeepAlive v-else>
-					<component :is="LiveCanvas" v-if="show_preview" />
-					<component :is="PrintFormat" v-else />
+					<component :is="LiveCanvas" />
 				</KeepAlive>
 			</div>
 		</div>
@@ -86,7 +85,6 @@
 </template>
 
 <script setup>
-import PrintFormat from "./components/editor/PrintFormat.vue";
 import LiveCanvas from "./components/editor/LiveCanvas.vue";
 import PrintFormatSetup from "./components/editor/PrintFormatSetup.vue";
 import PrintFormatControls from "./components/PrintFormatControls.vue";
