@@ -41,6 +41,7 @@ class UserPermissions:
 		self.can_get_report = []
 		self.can_import = []
 		self.can_export = []
+		self.can_export_owner_only = []
 		self.can_print = []
 		self.can_email = []
 		self.allow_modules = []
@@ -112,6 +113,8 @@ class UserPermissions:
 			for k in rights:
 				if not self.perm_map[dt].get(k):
 					self.perm_map[dt][k] = r.get(k)
+			if r.get("export") and not r.get("if_owner"):
+				self.perm_map[dt]["export_non_owner"] = True
 
 	def build_permissions(self):
 		"""build lists of what the user can read / write / create
@@ -164,7 +167,7 @@ class UserPermissions:
 			if p.get("read") or p.get("write") or p.get("create"):
 				if p.get("report"):
 					self.can_get_report.append(dt)
-				for key in ("import", "export", "print", "email"):
+				for key in ("import", "print", "email"):
 					if p.get(key):
 						getattr(self, "can_" + key).append(dt)
 
@@ -178,6 +181,12 @@ class UserPermissions:
 							pass
 						else:
 							self.allow_modules.append(dtp.get("module"))
+
+				if p.get("export"):
+					if p.get("export_non_owner"):
+						self.can_export.append(dt)
+					else:
+						self.can_export_owner_only.append(dt)
 
 		self.can_write += self.can_create
 		self.can_write += self.in_create
@@ -298,6 +307,7 @@ class UserPermissions:
 			"can_search",
 			"in_create",
 			"can_export",
+			"can_export_owner_only",
 			"can_import",
 			"can_print",
 			"can_email",
