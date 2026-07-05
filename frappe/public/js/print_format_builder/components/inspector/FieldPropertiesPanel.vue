@@ -24,6 +24,95 @@
 					{{ __("Edit HTML") }}
 				</button>
 			</template>
+			<template v-else-if="is_image_element">
+				<ImageUploadControl
+					:model-value="selected_field.image_url"
+					:alt="selected_field.label"
+					@update:model-value="set_image_url"
+				/>
+				<div v-if="selected_field.image_url" class="pfb-insp-row pfb-insp-row--col">
+					<span class="pfb-insp-label">{{ __("Size") }}</span>
+					<input
+						class="pfb-size-slider"
+						type="range"
+						min="20"
+						max="700"
+						:value="image_size"
+						@input="selected_field.width = $event.target.value + 'px'"
+					/>
+				</div>
+				<SegmentedRow
+					:label="__('Align')"
+					:model-value="current_align"
+					:options="align_opts"
+					@update:model-value="(v) => (selected_field.align = v)"
+				/>
+			</template>
+			<template v-else-if="is_barcode_element">
+				<div class="pfb-insp-row">
+					<span class="pfb-insp-label">{{ __("Value from") }}</span>
+					<select
+						class="pfb-insp-select"
+						:value="selected_field.barcode_field || ''"
+						@change="selected_field.barcode_field = $event.target.value"
+					>
+						<option value="">{{ __("Static value") }}</option>
+						<option v-for="f in barcode_field_options" :key="f.value" :value="f.value">
+							{{ f.label }}
+						</option>
+					</select>
+				</div>
+				<div class="pfb-insp-row" v-if="!selected_field.barcode_field">
+					<span class="pfb-insp-label">{{ __("Value") }}</span>
+					<input
+						type="text"
+						class="pfb-insp-input"
+						:placeholder="__('Static value')"
+						:value="selected_field.barcode_value"
+						@change="selected_field.barcode_value = $event.target.value"
+					/>
+				</div>
+				<div class="pfb-insp-row">
+					<span class="pfb-insp-label">{{ __("Format") }}</span>
+					<select
+						class="pfb-insp-select"
+						:value="selected_field.barcode_format || 'CODE128'"
+						@change="selected_field.barcode_format = $event.target.value"
+					>
+						<option v-for="fmt in barcode_formats" :key="fmt" :value="fmt">
+							{{ fmt }}
+						</option>
+					</select>
+				</div>
+				<div class="pfb-insp-row pfb-insp-row--col">
+					<span class="pfb-insp-label">{{ __("Size") }}</span>
+					<input
+						class="pfb-size-slider"
+						type="range"
+						min="40"
+						max="500"
+						:value="barcode_size"
+						@input="selected_field.width = $event.target.value + 'px'"
+					/>
+				</div>
+				<div class="pfb-insp-row" v-if="selected_field.barcode_format !== 'QR'">
+					<span class="pfb-insp-label">{{ __("Value text") }}</span>
+					<label class="pfb-insp-check">
+						<input
+							type="checkbox"
+							:checked="selected_field.show_text !== false"
+							@change="selected_field.show_text = $event.target.checked"
+						/>
+						{{ __("Show") }}
+					</label>
+				</div>
+				<SegmentedRow
+					:label="__('Align')"
+					:model-value="current_align"
+					:options="align_opts"
+					@update:model-value="(v) => (selected_field.align = v)"
+				/>
+			</template>
 			<template v-else>
 				<LabelField
 					v-model="selected_field.label"
@@ -78,13 +167,15 @@
 </template>
 
 <script setup>
-import { computed } from "vue";
+import { computed, inject } from "vue";
 import LabelField from "./LabelField.vue";
 import SegmentedRow from "./SegmentedRow.vue";
 import InspectorSection from "./InspectorSection.vue";
 import StepperRow from "./StepperRow.vue";
 import StyleSection from "./StyleSection.vue";
 import VisibilitySection from "./VisibilitySection.vue";
+import ImageUploadControl from "./ImageUploadControl.vue";
+import { get_image_dimensions } from "../../utils";
 import { align_opts } from "./align_opts";
 import { useSelectedField } from "./useSelectedField";
 
@@ -93,6 +184,46 @@ defineProps(["fieldIsInline"]);
 const { selected_field, preview_doc } = useSelectedField();
 
 let is_html_field = computed(() => selected_field.value?.fieldtype === "HTML");
+let is_image_element = computed(
+	() => selected_field.value?.fieldtype === "Image" && selected_field.value?.custom
+);
+let is_barcode_element = computed(
+	() => selected_field.value?.fieldtype === "Barcode" && selected_field.value?.custom
+);
+
+const barcode_formats = ["CODE128", "CODE39", "QR"];
+
+let store = inject("$store");
+
+let barcode_field_options = computed(() => {
+	const fields = store.meta.value?.fields || [];
+	return [
+		{ label: __("ID (name)"), value: "name" },
+		...fields
+			.filter((f) => !frappe.model.no_value_type.includes(f.fieldtype))
+			.map((f) => ({ label: f.label || f.fieldname, value: f.fieldname })),
+	];
+});
+
+let image_size = computed(() => parseFloat(selected_field.value?.width) || 200);
+let barcode_size = computed(
+	() =>
+		parseFloat(selected_field.value?.width) ||
+		(selected_field.value?.barcode_format === "QR" ? 130 : 200)
+);
+
+function set_image_url(url) {
+	selected_field.value.image_url = url;
+	if (!url) {
+		selected_field.value.width = "";
+		return;
+	}
+	get_image_dimensions(url).then(({ width }) => {
+		if (!parseFloat(selected_field.value.width)) {
+			selected_field.value.width = Math.min(width, 300) + "px";
+		}
+	});
+}
 
 let short_fieldtype = computed(() => {
 	if (!selected_field.value) return "";

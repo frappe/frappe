@@ -586,3 +586,90 @@ context("Print Format Builder — section insert", () => {
 		cy.get(".section-insert").first().should("not.have.css", "display", "none");
 	});
 });
+
+// ─── Image and Barcode blocks ─────────────────────────────────────────────────
+
+context("Print Format Builder — image and barcode blocks", () => {
+	let PF_NAME;
+
+	before(() => {
+		cy.login();
+		cy.visit("/app");
+	});
+
+	beforeEach(() => {
+		PF_NAME = pf_name();
+	});
+
+	afterEach(() => {
+		cy.window().then((win) => cleanup(win, PF_NAME));
+	});
+
+	// Regression: serialize_layout must not strip image/barcode props on save
+	it("image and barcode props survive the save round-trip", () => {
+		insert_builder_format(PF_NAME, [
+			{
+				label: "Media",
+				columns: [
+					{
+						label: "",
+						fields: [
+							{
+								fieldtype: "Image",
+								fieldname: "image_cy1",
+								label: "Logo",
+								custom: 1,
+								image_url: "/assets/frappe/images/frappe-framework-logo.svg",
+								width: "40mm",
+								align: "center",
+							},
+							{
+								fieldtype: "Barcode",
+								fieldname: "barcode_cy1",
+								label: "",
+								custom: 1,
+								barcode_value: "CY-TEST-1",
+								barcode_format: "CODE128",
+								show_text: true,
+								width: "200px",
+							},
+						],
+					},
+				],
+			},
+		]);
+
+		cy.intercept("POST", "api/method/frappe.client.save").as("save");
+		cy.visit(`/app/print-format-builder/${encodeURIComponent(PF_NAME)}`);
+		cy.get(".sections-container", { timeout: 20000 }).should("be.visible");
+
+		// both blocks render in the canvas
+		cy.get('.field img[src*="frappe-framework-logo"]').should("exist");
+
+		cy.contains(".page-actions .primary-action", "Save").click({ force: true });
+		cy.wait("@save").then((interception) => {
+			expect(interception.response.statusCode).to.equal(200);
+			const layout = JSON.parse(interception.response.body.message.format_data);
+			const fields = layout.sections.flatMap((s) => s.columns).flatMap((c) => c.fields);
+
+			const img = fields.find((f) => f.fieldtype === "Image");
+			expect(img, "image field survived").to.exist;
+			expect(img).to.include({
+				custom: 1,
+				image_url: "/assets/frappe/images/frappe-framework-logo.svg",
+				width: "40mm",
+				align: "center",
+			});
+
+			const bar = fields.find((f) => f.fieldtype === "Barcode");
+			expect(bar, "barcode field survived").to.exist;
+			expect(bar).to.include({
+				custom: 1,
+				barcode_value: "CY-TEST-1",
+				barcode_format: "CODE128",
+				show_text: true,
+				width: "200px",
+			});
+		});
+	});
+});

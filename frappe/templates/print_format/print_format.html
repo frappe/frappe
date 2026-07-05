@@ -50,7 +50,7 @@
 	{%- set ns = namespace(has_content=false) -%}
 	{%- for column in section.columns -%}
 		{%- for df in column.fields -%}
-			{%- if df.fieldtype in ('HTML', 'Divider', 'Spacer', 'Field Template') -%}
+			{%- if df.fieldtype in ('HTML', 'Divider', 'Spacer', 'Field Template', 'Image', 'Barcode') -%}
 				{%- set ns.has_content = true -%}
 			{%- elif df.fieldtype == 'Repeater' -%}
 				{%- if df.source and doc.get(df.source) -%}
@@ -132,5 +132,7 @@
 	{%- endif -%}
 	{%- endif -%}
 	{{ footer or '' }}
+	{{ include_script('print.bundle.js') }}
+	<script>document.querySelectorAll("svg[data-barcode-value]").forEach(render_barcode);</script>
 </body>
 </html>

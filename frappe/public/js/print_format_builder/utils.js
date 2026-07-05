@@ -170,6 +170,13 @@ export const FIELD_PLUCK_KEYS = [
 	"label_gap",
 	"visible_if",
 	"custom_style",
+	"custom",
+	"image_url",
+	"width",
+	"barcode_field",
+	"barcode_value",
+	"barcode_format",
+	"show_text",
 ];
 
 export const ZONE_FIELD_PLUCK_KEYS = [
@@ -191,6 +198,13 @@ export const ZONE_FIELD_PLUCK_KEYS = [
 	"label_gap",
 	"visible_if",
 	"custom_style",
+	"custom",
+	"image_url",
+	"width",
+	"barcode_field",
+	"barcode_value",
+	"barcode_format",
+	"show_text",
 ];
 
 export function serialize_layout(layout) {

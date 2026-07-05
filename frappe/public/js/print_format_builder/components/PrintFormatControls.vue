@@ -332,6 +332,29 @@ const draggable_blocks = [
 		desc: __("Horizontal rule"),
 	},
 	{
+		label: __("Image"),
+		fieldname: "image",
+		fieldtype: "Image",
+		custom: 1,
+		icon: "image",
+		desc: __("Upload an image or use a URL"),
+		image_url: "",
+		width: "",
+	},
+	{
+		label: __("Barcode"),
+		fieldname: "barcode",
+		fieldtype: "Barcode",
+		custom: 1,
+		icon: "barcode",
+		desc: __("Barcode or QR code from a field or static value"),
+		barcode_field: "",
+		barcode_value: "",
+		barcode_format: "CODE128",
+		show_text: true,
+		width: "",
+	},
+	{
 		label: __("Repeater"),
 		fieldname: "repeater",
 		fieldtype: "Repeater",
@@ -397,6 +420,13 @@ function clone_field(df) {
 		"field_template",
 		"source",
 		"repeater_columns",
+		"custom",
+		"image_url",
+		"width",
+		"barcode_field",
+		"barcode_value",
+		"barcode_format",
+		"show_text",
 	]);
 	if (cloned.custom) {
 		cloned.fieldname += "_" + frappe.utils.get_random(8);
