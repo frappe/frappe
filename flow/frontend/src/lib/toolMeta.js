@@ -42,6 +42,7 @@ const LABELS = {
 	delete: "Deleting Records",
 	run_action: "Running Document Actions",
 	read_screen: "Reading the screen",
+	navigate: "Navigating",
 };
 
 export function toolLabel(name) {
