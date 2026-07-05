@@ -121,6 +121,7 @@ export class ToolDispatcher {
 		const newParent = canvas?.findBlock(args.new_parent_component_id)
 		if (!block || !newParent) return
 		const options = getBlockCopyWithoutParent(block)
+		delete options.parentSlotName
 		block.getParentBlock()?.removeChild(block)
 		const sibling = args.after_component_id
 			? newParent.children?.find((c) => c.componentId === args.after_component_id)
