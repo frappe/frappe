@@ -112,6 +112,7 @@ def doc_close(socket: Socket, doctype: str, docname: str) -> None:
 @realtime.on("disconnect", allow_guest=True)
 def on_disconnect(socket: Socket) -> None:
 	for doctype, docname in socket.get("subscribed_documents", []):
+		clear_doc_presence(socket, doctype, docname)
 		notify_doc_viewers(socket, doctype, docname)
 		notify_doc_presence(socket, doctype, docname)
 

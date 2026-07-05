@@ -127,6 +127,7 @@ function frappe_handlers(socket) {
 function notify_disconnected_documents(socket) {
 	if (socket.subscribed_documents) {
 		socket.subscribed_documents.forEach(([doctype, docname]) => {
+			clear_doc_presence(socket, doctype, docname);
 			notify_subscribed_doc_users({ socket, doctype, docname });
 			notify_doc_presence({ socket, doctype, docname });
 		});

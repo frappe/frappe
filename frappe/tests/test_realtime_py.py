@@ -570,6 +570,26 @@ class TestCoreHandlers(unittest.TestCase):
 		self.assertIsNone(sio.sessions["sid1"].data[handlers_mod.DOC_PRESENCE_KEY])
 		self.assertEqual(sio.emits[-1]["data"], {"doctype": "ToDo", "docname": "n1", "users": []})
 
+	def test_disconnect_clears_doc_presence_before_notifying(self):
+		sio = FakeSio()
+		target = {"type": "field", "fieldname": "description"}
+		data = {
+			"subscribed_documents": [["ToDo", "n1"]],
+			handlers_mod.DOC_PRESENCE_KEY: {
+				"doctype": "ToDo",
+				"docname": "n1",
+				"target": target,
+			},
+		}
+		s = self._socket(sio, data=data)
+		sio.enter_room("sid1", handlers_mod.open_doc_room("ToDo", "n1"))
+
+		handlers_mod.on_disconnect(s)
+
+		self.assertIsNone(sio.sessions["sid1"].data[handlers_mod.DOC_PRESENCE_KEY])
+		self.assertEqual(sio.emits[-1]["event"], "doc_presence")
+		self.assertEqual(sio.emits[-1]["data"], {"doctype": "ToDo", "docname": "n1", "users": []})
+
 
 class TestPublisherHelpers(unittest.TestCase):
 	def _patch(self):
