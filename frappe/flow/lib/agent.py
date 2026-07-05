@@ -185,7 +185,9 @@ class Agent:
 		for call in pending:
 			answer = answers.get(call.id)
 			tool = self._tools_by_name.get(call.name)
-			if tool is not None and tool.requires_confirmation:
+			if tool is not None and tool.client_tool:
+				content = _serialize_tool_result(answer)
+			elif tool is not None and tool.requires_confirmation:
 				content = self._resolve_confirmation(call, answer)
 			else:
 				content = _serialize_tool_result(answer)
@@ -361,12 +363,16 @@ class Agent:
 		tool = self._tools_by_name.get(call.name)
 		if tool is None:
 			return json.dumps({"error": f"Unknown tool: {call.name!r}"})
-		if tool.requires_confirmation and not self.auto_approve:
-			return _confirmation_question(call, tool)
 		if tool.client_tool:
 			if self.auto_approve:
 				return json.dumps({"error": f"{call.name} needs a browser and can't run unattended."})
+			if tool.requires_confirmation:
+				question = _confirmation_question(call, tool)
+				question.client_tool = True
+				return question
 			return Question(prompt=f"Running {call.name} in the browser…", client_tool=True)
+		if tool.requires_confirmation and not self.auto_approve:
+			return _confirmation_question(call, tool)
 		return self._run_tool(call)
 
 	def _run_tool(self, call: ToolCall) -> Any:

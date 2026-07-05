@@ -428,6 +428,31 @@ def fill(values: dict[str, Any]) -> dict[str, Any]:
 fill = tool(fill, description=_FILL_DESCRIPTION, client_tool=True)
 
 
+_ACT_DESCRIPTION = """Act on the form the user currently has open. Operates on the open form only.
+
+action is one of:
+- "save": save the current changes (creates the record if it is new).
+- "submit": submit the document.
+- "cancel": cancel a submitted document.
+- a workflow transition name (e.g. "Approve", "Reject") — get valid ones from describe(doctype, name).
+
+The user confirms before it runs. Returns the resulting form state (record name, docstatus, whether \
+it still has unsaved changes)."""
+
+
+def act(action: str) -> dict[str, Any]:
+	raise RuntimeError("act runs in the browser, not on the server")
+
+
+act = tool(
+	act,
+	description=_ACT_DESCRIPTION,
+	client_tool=True,
+	requires_confirmation=True,
+	confirm_prompt=lambda args: f"{str(args.get('action', 'act')).title()} the open record?",
+)
+
+
 BUILTIN_TOOLS: list[Tool] = [
 	find_doctypes,
 	describe,
@@ -441,6 +466,7 @@ BUILTIN_TOOLS: list[Tool] = [
 	read_screen,
 	navigate,
 	fill,
+	act,
 ]
 
 

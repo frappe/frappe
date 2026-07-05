@@ -778,6 +778,42 @@ class TestAgentClientTools(UnitTestCase):
 		self.assertIn("error", json.loads(tool_msg["content"]))
 		self.assertEqual(result.output, "done")
 
+	def test_client_confirm_tool_pauses_with_options(self):
+		@tool(client_tool=True, requires_confirmation=True)
+		def act(action: str) -> dict:
+			"""Act on the open form."""
+			raise AssertionError("client tool must never run on the server")
+
+		model = FakeModel([_tool_call("act", {"action": "submit"}, call_id="c1")])
+		agent = Agent(model=model, tools=[act])
+
+		result = agent.run("submit this")
+
+		self.assertTrue(result.paused)
+		question = result.questions[0]
+		self.assertTrue(question.client_tool)
+		self.assertEqual(question.options, ["Approve", "Deny"])
+
+	def test_resume_feeds_client_confirm_result_not_server_run(self):
+		@tool(client_tool=True, requires_confirmation=True)
+		def act(action: str) -> dict:
+			"""Act on the open form."""
+			raise AssertionError("client tool must never run on the server")
+
+		agent = Agent(
+			model=FakeModel([_tool_call("act", {"action": "submit"}, call_id="c1")]),
+			tools=[act],
+		)
+		paused = agent.run("submit this")
+
+		outcome = {"docstatus": 1, "name": "SO-0001"}
+		agent.model = FakeModel([_final("Submitted SO-0001.")])
+		result = agent.resume(paused.messages, {"c1": outcome})
+
+		self.assertFalse(result.paused)
+		tool_msg = next(m for m in result.messages if m["role"] == "tool")
+		self.assertEqual(json.loads(tool_msg["content"]), outcome)
+
 	def test_client_tool_pauses_in_streaming_run(self):
 		read_screen, _ = self._screen_tool()
 		model = FakeModel([_tool_call("read_screen", {}, call_id="c1")])
