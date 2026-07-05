@@ -131,6 +131,14 @@ frappe.ui.form.FormPresence = class FormPresence {
 		this.parent.empty();
 	}
 
+	clear_doc_state(docname = this.docname) {
+		this.clear_presence();
+		this.clear_indicators();
+		delete this.users_by_doc[docname];
+		delete this.viewers_by_doc?.[docname];
+		delete this.last_published_target[docname];
+	}
+
 	async update_users({ doctype, docname, users = [] }) {
 		if (this.frm?.doc?.doctype !== doctype || this.frm?.doc?.name !== docname) return;
 
