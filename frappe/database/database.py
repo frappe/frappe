@@ -1358,7 +1358,7 @@ class Database:
 			)
 
 			if columns:
-				frappe.cache.set_value(key, columns)
+				frappe.client_cache.set_value(key, columns)
 
 		return columns
 
