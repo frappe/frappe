@@ -4,6 +4,7 @@ from random import choice
 import requests
 
 import frappe
+from frappe.api import discovery
 from frappe.installer import update_site_config
 from frappe.tests.test_api import FrappeAPITestCase, suppress_stdout
 from frappe.tests.utils import toggle_test_mode, whitelist_for_tests
@@ -560,6 +561,101 @@ class TestDocTypeAPIV2(FrappeAPITestCase):
 	def test_count_v2(self):
 		response = self.get(self.doctype_path("ToDo", "count"))
 		self.assertIsInstance(response.json["data"], int)
+
+
+class TestDiscoveryAPIV2(FrappeAPITestCase):
+	version = "v2"
+
+	def setUp(self) -> None:
+		self.post(self.method("login"), {"sid": self.sid})
+		discovery.clear_cache()
+		discovery.build_cache()
+		return super().setUp()
+
+	def discovery_path(self, *parts):
+		return self.get_path("discovery", *parts)
+
+	def test_root_v2(self):
+		response = self.get(self.discovery_path(), {"sid": self.sid})
+		self.assertEqual(response.status_code, 200)
+		data = response.json["data"]
+		self.assertEqual(data["type"], "discovery")
+		self.assertIn("methods", data["resources"])
+		self.assertNotIn("doctypes", data["resources"])
+		self.assertNotIn("reports", data["resources"])
+		self.assertIn("search", data["links"])
+		self.assertEqual(data["links"]["methods"], "/api/v2/discovery/method")
+		self.assertEqual(data["links"]["method"], "/api/v2/discovery/method/{method}")
+		self.assertNotIn("doctypes", data)
+		self.assertNotIn("reports", data)
+
+	def test_search_v2(self):
+		response = self.get(
+			self.discovery_path("search"),
+			{"sid": self.sid, "q": "test_api test"},
+		)
+		self.assertEqual(response.status_code, 200)
+		results = response.json["data"]["results"]
+		self.assertTrue(any(item.get("path") == "frappe.tests.test_api.test" for item in results))
+		self.assertTrue(all("docstring" not in item for item in results))
+
+		docstring_response = self.get(
+			self.discovery_path("search"),
+			{"sid": self.sid, "q": "parameter metadata"},
+		)
+		self.assertEqual(docstring_response.status_code, 200)
+		self.assertTrue(
+			any(
+				item.get("path") == "frappe.tests.test_api.test"
+				for item in docstring_response.json["data"]["results"]
+			)
+		)
+
+	def test_methods_v2(self):
+		index_response = self.get(self.discovery_path("method"), {"sid": self.sid})
+		self.assertEqual(index_response.status_code, 200)
+		method = next(
+			item
+			for item in index_response.json["data"]["methods"]
+			if item["path"] == "frappe.tests.test_api.test"
+		)
+		self.assertEqual(method["description"], "Exercise RPC success and failure responses.")
+		self.assertNotIn("docstring", method)
+		self.assertNotIn("module", method)
+		self.assertNotIn("name", method)
+		self.assertNotIn("http_methods", method)
+		self.assertNotIn("confidence", method)
+
+		method_response = self.get(
+			self.discovery_path("method", "frappe.tests.test_api.test"), {"sid": self.sid}
+		)
+		self.assertEqual(method_response.status_code, 200)
+		data = method_response.json["data"]
+		self.assertEqual(data["path"], "frappe.tests.test_api.test")
+		self.assertNotIn("confidence", data)
+		self.assertNotIn("resolved_path", data)
+		self.assertNotIn("source", data)
+		self.assertNotIn("module", data)
+		self.assertEqual(
+			data["docstring"],
+			"Exercise RPC success and failure responses.\n\n"
+			"Used by API discovery tests to verify parameter metadata.",
+		)
+		self.assertTrue(any(param["name"] == "message" for param in data["params"]))
+		self.assertTrue(all("kind" not in param for param in data["params"]))
+		self.assertTrue(
+			any(
+				param["name"] == "optional_message" and param["type"] == "str | None"
+				for param in data["params"]
+			)
+		)
+
+	def test_cold_cache_returns_retryable_response_v2(self):
+		discovery.clear_cache()
+		with suppress_stdout():
+			response = self.get(self.discovery_path(), {"sid": self.sid})
+		self.assertEqual(response.status_code, 503)
+		self.assertNotIn("Retry-After", response.headers)
 
 
 class TestReadOnlyMode(FrappeAPITestCase):

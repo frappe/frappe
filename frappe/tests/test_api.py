@@ -526,10 +526,20 @@ def generate_admin_keys():
 
 
 @whitelist_for_tests()
-def test(*, fail: int | bool = False, handled: int | bool = True, message: str = "Failed"):
+def test(
+	*,
+	fail: int | bool = False,
+	handled: int | bool = True,
+	message: str = "Failed",
+	optional_message: typing.Union[str, None] = None,  # noqa: UP007
+):
+	"""Exercise RPC success and failure responses.
+
+	Used by API discovery tests to verify parameter metadata.
+	"""
 	if fail:
 		if handled:
-			frappe.throw(message)
+			frappe.throw(optional_message or message)
 		else:
 			1 / 0
 	else:
