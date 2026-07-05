@@ -392,10 +392,9 @@ function clone_field(df) {
 	return cloned;
 }
 
-// Palette → canvas drag. Native HTML5 drag can't be trusted across the canvas
-// iframe, so the palette tracks the pointer itself (pointer capture keeps
-// events flowing to the origin row even over the iframe) and forwards
-// dragover/drop to the iframe document in its own coordinate space.
+// Palette → canvas drag. The palette tracks the pointer itself (pointer
+// capture keeps events flowing to the origin row) and forwards dragover/drop
+// to the element under the pointer inside the canvas shadow root.
 let palette_dragging = false;
 
 function start_palette_drag(e, make_payload) {
@@ -407,23 +406,24 @@ function start_palette_drag(e, make_payload) {
 	let ghost = null;
 
 	const forward = (type, ev) => {
-		const fr = document.querySelector("iframe.live-canvas-frame");
-		const doc = fr?.contentDocument;
-		if (!doc) return;
-		const rect = fr.getBoundingClientRect();
-		const zoom = parseFloat(getComputedStyle(fr).zoom) || 1;
+		const canvas = document.querySelector(".live-canvas-host");
+		const sh = canvas?.shadowRoot;
+		if (!sh) return;
+		const rect = canvas.getBoundingClientRect();
 		const inside =
 			ev.clientX >= rect.left &&
 			ev.clientX <= rect.right &&
 			ev.clientY >= rect.top &&
 			ev.clientY <= rect.bottom;
-		doc.dispatchEvent(
+		const target = (inside && sh.elementFromPoint(ev.clientX, ev.clientY)) || sh;
+		target.dispatchEvent(
 			new DragEvent(type, {
 				bubbles: true,
 				cancelable: true,
+				composed: true,
 				dataTransfer: new DataTransfer(),
-				clientX: inside ? (ev.clientX - rect.left) / zoom : -10000,
-				clientY: inside ? (ev.clientY - rect.top) / zoom : -10000,
+				clientX: inside ? ev.clientX : -10000,
+				clientY: inside ? ev.clientY : -10000,
 			})
 		);
 	};
