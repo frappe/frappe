@@ -16,6 +16,7 @@ const registry = {
 	read_screen: readScreen,
 	navigate: navigate,
 	fill: fill,
+	act: act,
 };
 
 export async function runClientTool(name, args = {}) {
@@ -94,6 +95,25 @@ async function fill({ values }) {
 	return state;
 }
 
+async function act({ action }) {
+	const frm = window.cur_frm;
+	if (!frm?.doc) throw new Error("no form is open to act on");
+	if (!action) throw new Error("action is required");
+
+	const lifecycle = { save: "Save", submit: "Submit", cancel: "Cancel" };
+	if (lifecycle[action]) {
+		await frm.save(lifecycle[action]);
+	} else {
+		const doc = await frappe.xcall("frappe.model.workflow.apply_workflow", {
+			doc: frm.doc,
+			action,
+		});
+		frappe.model.sync(doc);
+		await frm.refresh();
+	}
+	return formState(frm);
+}
+
 function readScreen() {
 	const route = typeof frappe?.get_route === "function" ? frappe.get_route() : [];
 	const view = route[0] || "";
@@ -141,6 +161,7 @@ function formState(frm) {
 		name: frm.doc.name,
 		is_new: Boolean(frm.is_new()),
 		is_dirty: Boolean(frm.is_dirty()),
+		is_submittable: Boolean(frm.meta.is_submittable),
 		docstatus: frm.doc.docstatus,
 		values,
 		missing_mandatory: missingMandatory,

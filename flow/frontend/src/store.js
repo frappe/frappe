@@ -314,11 +314,14 @@ async function resume(answers, pausedMsg) {
 
 // A run pauses on a client directive (a client tool the agent called). The panel runs it in
 // the Desk window and resumes with the result. Loops so chained client calls settle within
-// one turn; returns early when a human question remains — the user answers it (answerQuestion),
-// which resumes the run. Runs inside the caller's `sending` envelope, so no re-entrancy.
+// one turn; returns early when a question needing the user remains — a human question or a
+// client directive that requires confirmation (it carries options and renders as a card, then
+// answerQuestion runs it). Runs inside the caller's `sending` envelope, so no re-entrancy.
 async function settleClientCalls(msg) {
 	for (;;) {
-		const pending = msg.questions.filter((q) => q.client_tool && q._answer === undefined);
+		const pending = msg.questions.filter(
+			(q) => q.client_tool && q._answer === undefined && !q.options?.length
+		);
 		if (!pending.length) return;
 
 		for (const q of pending) {
@@ -345,16 +348,25 @@ async function runClientDirective(part) {
 	}
 }
 
-// Records one answer and stamps the tool's approval state; once every question
-// on the paused message is answered, resumes the run with all answers at once.
-function answerQuestion(msg, question, answer) {
+// Records one answer and stamps the tool's approval state; once every question on the paused
+// message is answered, resumes the run with all answers at once. For a client tool the answer
+// is the browser result: approving runs it in the Desk, denying/redirecting feed that back.
+async function answerQuestion(msg, question, answer) {
 	const a = (answer || "").trim();
 	if (!a || !msg) return;
 
-	question._answer = a;
 	const tool = msg.parts.find((p) => p.type === "tool" && p.id === question.key);
 	if (tool)
 		tool.approval = a === "Approve" ? "approved" : a === "Deny" ? "denied" : "redirected";
+
+	if (question.client_tool) {
+		if (a === "Approve") question._answer = await runClientDirective(tool);
+		else if (a === "Deny")
+			question._answer = { denied: true, message: "User denied this action." };
+		else question._answer = { redirect: true, user_feedback: a };
+	} else {
+		question._answer = a;
+	}
 
 	if (msg.questions.some((q) => q._answer === undefined)) return;
 

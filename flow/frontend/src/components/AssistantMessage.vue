@@ -9,10 +9,16 @@ import { useStore } from "@/store";
 const props = defineProps({ message: { type: Object, required: true } });
 const { answerQuestion, toolApproval } = useStore();
 
-// Client directives resolve automatically in the browser — they render as normal tool
-// activity, never as a confirmation card, so they're excluded from the question map.
+// Auto-running client directives (no options) resolve in the browser and render as normal tool
+// activity, so they're excluded from the question map. Client directives that need confirmation
+// carry Approve/Deny options and render as a card, like the server-side write tools.
 const questionByKey = computed(
-	() => new Map(props.message.questions.filter((q) => !q.client_tool).map((q) => [q.key, q]))
+	() =>
+		new Map(
+			props.message.questions
+				.filter((q) => !q.client_tool || q.options?.length)
+				.map((q) => [q.key, q])
+		)
 );
 
 // A confirmation tool (per the agent's tool map), or one that has/had a question.
