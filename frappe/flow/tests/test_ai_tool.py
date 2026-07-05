@@ -228,3 +228,29 @@ class TestSchemaPrimitives(UnitTestCase):
 		self.assertEqual(schema["properties"], {})
 		self.assertNotIn("required", schema)
 		self.assertFalse(schema["additionalProperties"])
+
+
+class TestBuildTool(UnitTestCase):
+	def _doc(self, **overrides):
+		from types import SimpleNamespace
+
+		fields = {"slug": "x", "description": "d", "requires_confirmation": 0, "client_tool": 0}
+		return SimpleNamespace(**{**fields, **overrides})
+
+	def test_imported_code_client_flag_wins_when_row_lags(self):
+		from flow.lib.resolver import _build_tool
+
+		built = _build_tool(self._doc(client_tool=0), {}, lambda: None, code_client_tool=True)
+		self.assertTrue(built.client_tool)
+
+	def test_row_client_flag_used_without_code_flag(self):
+		from flow.lib.resolver import _build_tool
+
+		built = _build_tool(self._doc(client_tool=1), {}, lambda: None)
+		self.assertTrue(built.client_tool)
+
+	def test_server_tool_stays_server(self):
+		from flow.lib.resolver import _build_tool
+
+		built = _build_tool(self._doc(client_tool=0), {}, lambda: None)
+		self.assertFalse(built.client_tool)
