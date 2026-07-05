@@ -76,8 +76,8 @@
 					@start-blank="on_start_blank"
 				/>
 				<KeepAlive v-else>
-					<component :is="Preview" v-if="show_preview" />
-					<component :is="LiveCanvas" v-else />
+					<component :is="LiveCanvas" v-if="show_preview" />
+					<component :is="PrintFormat" v-else />
 				</KeepAlive>
 			</div>
 		</div>
@@ -86,9 +86,9 @@
 </template>
 
 <script setup>
+import PrintFormat from "./components/editor/PrintFormat.vue";
 import LiveCanvas from "./components/editor/LiveCanvas.vue";
 import PrintFormatSetup from "./components/editor/PrintFormatSetup.vue";
-import Preview from "./components/Preview.vue";
 import PrintFormatControls from "./components/PrintFormatControls.vue";
 import FieldInspector from "./components/inspector/FieldInspector.vue";
 import { getStore } from "./stores";
