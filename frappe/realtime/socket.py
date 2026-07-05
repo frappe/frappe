@@ -94,6 +94,13 @@ class Socket:
 		except KeyError:
 			return None
 
+	def data_of(self, sid: str, key: str, default: object = None) -> object:
+		"""Transient session data for another socket, or default if it has none."""
+		try:
+			return self._sio.get_session(sid, namespace=self.namespace).data.get(key, default)
+		except KeyError:
+			return default
+
 	def has_permission(self, doctype: str, name: str | None = None) -> bool:
 		"""HTTP permission check via the web process (no DB in realtime).
 

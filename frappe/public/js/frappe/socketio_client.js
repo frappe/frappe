@@ -177,6 +177,12 @@ class RealTimeClient {
 	doc_close(doctype, docname) {
 		this.emit("doc_close", doctype, docname);
 	}
+	doc_presence_update(doctype, docname, target) {
+		this.emit("doc_presence_update", doctype, docname, target);
+	}
+	doc_presence_clear(doctype, docname) {
+		this.emit("doc_presence_clear", doctype, docname);
+	}
 	setup_listeners() {
 		this.socket.on("task_status_change", function (data) {
 			this.process_response(data, data.status.toLowerCase());

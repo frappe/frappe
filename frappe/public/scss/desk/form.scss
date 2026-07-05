@@ -166,6 +166,25 @@ body.full-width {
 	margin-bottom: 6px;
 }
 
+.form-presence-users {
+	display: inline-flex;
+	margin-left: var(--margin-xs);
+	vertical-align: middle;
+
+	.avatar-group {
+		margin: 0;
+	}
+
+	.form-presence-avatar {
+		width: 18px;
+		height: 18px;
+
+		.standard-image {
+			font-size: 9px;
+		}
+	}
+}
+
 .form-inner-toolbar {
 	padding-top: var(--padding-md);
 	text-align: right;

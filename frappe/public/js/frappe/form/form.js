@@ -13,6 +13,7 @@ import "./script_helpers";
 import "./sidebar/form_sidebar";
 import "./footer/footer";
 import "./form_tour";
+import "./form_presence";
 import { UndoManager } from "./undo_manager";
 
 frappe.ui.form.Controller = class FormController {
@@ -116,6 +117,7 @@ frappe.ui.form.Form = class FrappeForm {
 
 		// 2 column layout
 		this.setup_std_layout();
+		this.presence = new frappe.ui.form.FormPresence({ frm: this });
 
 		// client script must be called after "setup" - there are no fields_dict attached to the frm otherwise
 		this.script_manager = new frappe.ui.form.ScriptManager({
@@ -547,6 +549,7 @@ frappe.ui.form.Form = class FrappeForm {
 		});
 		frappe.ui.form.close_grid_form();
 		this.viewers && this.viewers.parent.empty();
+		this.presence && this.presence.clear_indicators();
 		this.docname = docname;
 		this.setup_docinfo_change_listener();
 	}
@@ -889,6 +892,7 @@ frappe.ui.form.Form = class FrappeForm {
 			this.toolbar.refresh();
 		}
 		this.viewers.refresh();
+		this.presence.refresh();
 
 		this.dashboard.refresh();
 		const _route_key = frappe.breadcrumbs.current_page();
@@ -2378,6 +2382,7 @@ frappe.ui.form.Form = class FrappeForm {
 		}
 
 		this.script_manager.trigger("on_tab_change");
+		this.presence?.set_current_tab(tab);
 
 		// When switching tabs, we should tell fields to update their display if needed (e.g. Geolocation and Signature fields).
 		// This is done using the already existing on_section_collapse optional method.

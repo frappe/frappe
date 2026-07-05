@@ -8,6 +8,7 @@ from frappe.realtime.config import get_config
 
 WEBSITE_ROOM = "website"
 SITE_ROOM = "all"
+DOC_PRESENCE_KEY = "doc_presence"
 
 
 def user_room(user: str) -> str:
@@ -92,6 +93,7 @@ def doc_open(socket: Socket, doctype: str, docname: str) -> None:
 		tracked.append(pair)
 		socket.set("subscribed_documents", tracked)
 	notify_doc_viewers(socket, doctype, docname)
+	notify_doc_presence(socket, doctype, docname)
 
 
 @realtime.on("doc_close", allow_guest=True)
@@ -102,13 +104,35 @@ def doc_close(socket: Socket, doctype: str, docname: str) -> None:
 	tracked = socket.get("subscribed_documents", [])
 	tracked = [pair for pair in tracked if not (pair[0] == doctype and pair[1] == docname)]
 	socket.set("subscribed_documents", tracked)
+	clear_doc_presence(socket, doctype, docname)
 	notify_doc_viewers(socket, doctype, docname)
+	notify_doc_presence(socket, doctype, docname)
 
 
 @realtime.on("disconnect", allow_guest=True)
 def on_disconnect(socket: Socket) -> None:
 	for doctype, docname in socket.get("subscribed_documents", []):
 		notify_doc_viewers(socket, doctype, docname)
+		notify_doc_presence(socket, doctype, docname)
+
+
+@realtime.on("doc_presence_update", allow_guest=True)
+def doc_presence_update(socket: Socket, doctype: str, docname: str, target: dict | None = None) -> None:
+	if not socket.has_permission(doctype, docname):
+		return
+
+	if target:
+		socket.set(DOC_PRESENCE_KEY, {"doctype": doctype, "docname": docname, "target": target})
+	else:
+		clear_doc_presence(socket, doctype, docname)
+
+	notify_doc_presence(socket, doctype, docname)
+
+
+@realtime.on("doc_presence_clear", allow_guest=True)
+def doc_presence_clear(socket: Socket, doctype: str, docname: str) -> None:
+	clear_doc_presence(socket, doctype, docname)
+	notify_doc_presence(socket, doctype, docname)
 
 
 def notify_doc_viewers(socket: Socket, doctype: str, docname: str) -> None:
@@ -123,6 +147,35 @@ def notify_doc_viewers(socket: Socket, doctype: str, docname: str) -> None:
 	socket.emit(
 		"doc_viewers",
 		{"doctype": doctype, "docname": docname, "users": list(dict.fromkeys(users))},
+		room=room,
+	)
+
+
+def clear_doc_presence(socket: Socket, doctype: str, docname: str) -> None:
+	presence = socket.get(DOC_PRESENCE_KEY)
+	if presence and presence.get("doctype") == doctype and presence.get("docname") == docname:
+		socket.set(DOC_PRESENCE_KEY, None)
+
+
+def notify_doc_presence(socket: Socket, doctype: str, docname: str) -> None:
+	if not (doctype and docname):
+		return
+
+	room = open_doc_room(doctype, docname)
+	users = {}
+	for sid in socket.participants(room):
+		user = socket.user_of(sid)
+		presence = socket.data_of(sid, DOC_PRESENCE_KEY)
+		if not user or not presence:
+			continue
+		if presence.get("doctype") != doctype or presence.get("docname") != docname:
+			continue
+
+		users[sid] = {"sid": sid, "user": user, "target": presence.get("target")}
+
+	socket.emit(
+		"doc_presence",
+		{"doctype": doctype, "docname": docname, "users": list(users.values())},
 		room=room,
 	)
 

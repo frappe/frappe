@@ -301,6 +301,13 @@ class TestSocket(unittest.TestCase):
 		s.set("subscribed_documents", [["DT", "n1"]])
 		self.assertEqual(sio.sessions["sid1"].data["subscribed_documents"], [["DT", "n1"]])
 
+	def test_data_of_reads_other_socket_session(self):
+		sio = FakeSio()
+		s = self._socket(sio=sio)
+		sio.sessions["sid2"] = make_session(data={"presence": {"fieldname": "title"}})
+		self.assertEqual(s.data_of("sid2", "presence"), {"fieldname": "title"})
+		self.assertEqual(s.data_of("missing", "presence", {}), {})
+
 	def test_has_permission_http(self):
 		s = self._socket(request=lambda path, method="GET", params=None, body=None: {"message": 1})
 		self.assertTrue(s.has_permission("DT", "n1"))
@@ -482,6 +489,86 @@ class TestCoreHandlers(unittest.TestCase):
 		s = Socket(sio, "sid1", "/s1", session_a)
 		handlers_mod.notify_doc_viewers(s, "ToDo", "n1")
 		self.assertEqual(sio.emits, [])
+
+	def test_doc_open_sends_current_doc_presence(self):
+		sio = FakeSio()
+		target = {"type": "field", "fieldname": "description", "tab_fieldname": "__details"}
+		sio.sessions["sid1"] = make_session(user="a@b.com")
+		sio.sessions["sid2"] = make_session(
+			user="b@b.com",
+			data={
+				handlers_mod.DOC_PRESENCE_KEY: {
+					"doctype": "ToDo",
+					"docname": "n1",
+					"target": target,
+				}
+			},
+		)
+		sio.enter_room("sid2", handlers_mod.open_doc_room("ToDo", "n1"))
+		s = Socket(sio, "sid1", "/s1", sio.sessions["sid1"])
+
+		handlers_mod.doc_open(s, "ToDo", "n1")
+
+		self.assertEqual(sio.emits[-1]["event"], "doc_presence")
+		self.assertEqual(
+			sio.emits[-1]["data"],
+			{
+				"doctype": "ToDo",
+				"docname": "n1",
+				"users": [{"sid": "sid2", "user": "b@b.com", "target": target}],
+			},
+		)
+
+	def test_doc_presence_update_is_permission_gated(self):
+		sio = FakeSio()
+		deny = self._socket(sio, request=lambda path, method="GET", params=None, body=None: {"message": 0})
+		handlers_mod.doc_presence_update(deny, "ToDo", "n1", {"type": "field", "fieldname": "description"})
+		self.assertIsNone(sio.sessions["sid1"].data.get(handlers_mod.DOC_PRESENCE_KEY))
+		self.assertEqual(sio.emits, [])
+
+	def test_doc_presence_update_emits_room_targets(self):
+		sio = FakeSio()
+		session_a = make_session(user="a@b.com")
+		session_b = make_session(user="b@b.com")
+		sio.sessions["sid1"] = session_a
+		sio.sessions["sid2"] = session_b
+		room = handlers_mod.open_doc_room("ToDo", "n1")
+		sio.enter_room("sid1", room)
+		sio.enter_room("sid2", room)
+		s = Socket(sio, "sid2", "/s1", session_b)
+
+		target = {"type": "field", "fieldname": "description", "tab_fieldname": "__details"}
+		handlers_mod.doc_presence_update(s, "ToDo", "n1", target)
+
+		self.assertEqual(session_b.data[handlers_mod.DOC_PRESENCE_KEY]["target"], target)
+		emit = sio.emits[-1]
+		self.assertEqual(emit["event"], "doc_presence")
+		self.assertEqual(emit["to"], room)
+		self.assertEqual(
+			emit["data"],
+			{
+				"doctype": "ToDo",
+				"docname": "n1",
+				"users": [{"sid": "sid2", "user": "b@b.com", "target": target}],
+			},
+		)
+
+	def test_doc_presence_clear_removes_target(self):
+		sio = FakeSio()
+		data = {
+			handlers_mod.DOC_PRESENCE_KEY: {
+				"doctype": "ToDo",
+				"docname": "n1",
+				"target": {"type": "field", "fieldname": "description"},
+			}
+		}
+		s = self._socket(sio, data=data)
+		sio.enter_room("sid1", handlers_mod.open_doc_room("ToDo", "n1"))
+
+		handlers_mod.doc_presence_clear(s, "ToDo", "n1")
+
+		self.assertIsNone(sio.sessions["sid1"].data[handlers_mod.DOC_PRESENCE_KEY])
+		self.assertEqual(sio.emits[-1]["data"], {"doctype": "ToDo", "docname": "n1", "users": []})
 
 
 class TestPublisherHelpers(unittest.TestCase):

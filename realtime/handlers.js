@@ -79,6 +79,7 @@ function frappe_handlers(socket) {
 				doctype: doctype,
 				docname: docname,
 			});
+			notify_doc_presence({ socket, doctype, docname });
 		});
 	});
 
@@ -89,15 +90,33 @@ function frappe_handlers(socket) {
 
 		if (socket.subscribed_documents) {
 			socket.subscribed_documents = socket.subscribed_documents.filter(([dt, dn]) => {
-				!(dt == doctype && dn == docname);
+				return !(dt == doctype && dn == docname);
 			});
 		}
+		clear_doc_presence(socket, doctype, docname);
 
 		notify_subscribed_doc_users({
 			socket: socket,
 			doctype: doctype,
 			docname: docname,
 		});
+		notify_doc_presence({ socket, doctype, docname });
+	});
+
+	socket.on("doc_presence_update", function (doctype, docname, target) {
+		socket.has_permission(doctype, docname).then(() => {
+			if (target) {
+				socket.doc_presence = { doctype, docname, target };
+			} else {
+				clear_doc_presence(socket, doctype, docname);
+			}
+			notify_doc_presence({ socket, doctype, docname });
+		});
+	});
+
+	socket.on("doc_presence_clear", function (doctype, docname) {
+		clear_doc_presence(socket, doctype, docname);
+		notify_doc_presence({ socket, doctype, docname });
 	});
 
 	socket.on("disconnect", () => {
@@ -109,6 +128,7 @@ function notify_disconnected_documents(socket) {
 	if (socket.subscribed_documents) {
 		socket.subscribed_documents.forEach(([doctype, docname]) => {
 			notify_subscribed_doc_users({ socket, doctype, docname });
+			notify_doc_presence({ socket, doctype, docname });
 		});
 	}
 }
@@ -138,6 +158,46 @@ function notify_subscribed_doc_users(args) {
 		doctype: args.doctype,
 		docname: args.docname,
 		users: Array.from(new Set(users)),
+	});
+}
+
+function clear_doc_presence(socket, doctype, docname) {
+	if (socket.doc_presence?.doctype == doctype && socket.doc_presence?.docname == docname) {
+		socket.doc_presence = null;
+	}
+}
+
+function notify_doc_presence(args) {
+	if (!(args && args.doctype && args.docname)) {
+		return;
+	}
+	const socket = args.socket;
+	const room = open_doc_room(args.doctype, args.docname);
+	const clients = Array.from(socket.nsp.adapter.rooms.get(room) || []);
+
+	const users = {};
+	socket.nsp.sockets.forEach((sock) => {
+		const presence = sock.doc_presence;
+		if (
+			!clients.includes(sock.id) ||
+			!presence ||
+			presence.doctype != args.doctype ||
+			presence.docname != args.docname
+		) {
+			return;
+		}
+
+		users[sock.id] = {
+			sid: sock.id,
+			user: sock.user,
+			target: presence.target,
+		};
+	});
+
+	socket.nsp.to(room).emit("doc_presence", {
+		doctype: args.doctype,
+		docname: args.docname,
+		users: Object.values(users),
 	});
 }
 
