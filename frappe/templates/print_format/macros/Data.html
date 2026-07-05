@@ -1,4 +1,4 @@
-{% if value %}
+{% if value or df._pfb_path %}
 {%- set _show_label = df.show_label if df.show_label else 'show' -%}
 {%- set _align = df.align if df.align else '' -%}
 {%- set _orientation = df.section.field_orientation or '' -%}
@@ -12,7 +12,11 @@
 	{%- endif -%}
 	{%- endblock -%}
 	{%- block value -%}
+	{%- if value -%}
 	<div class="value">{{ doc.get_formatted(df.fieldname) }}</div>
+	{%- else -%}
+	<div class="value pfb-empty-value">&mdash;</div>
+	{%- endif -%}
 	{%- endblock -%}
 </div>
 {% endif %}

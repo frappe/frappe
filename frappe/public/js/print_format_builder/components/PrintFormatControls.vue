@@ -47,30 +47,23 @@
 				class="pfb-field-group"
 			>
 				<div v-if="group.label" class="pfb-group-label">{{ group.label }}</div>
-				<draggable
-					:list="group.fields"
-					:group="{ name: 'fields', pull: 'clone', put: false }"
-					:sort="false"
-					:clone="clone_field"
-					item-key="fieldname"
-					@start="on_palette_drag_start(group.fields, $event)"
-					@end="on_palette_drag_end"
+				<div
+					v-for="element in group.fields"
+					:key="element.fieldname"
+					class="pfb-field-row"
+					:title="element.fieldname"
+					@click="add_to_layout(element)"
+					@pointerdown="
+						start_palette_drag($event, () => ({
+							kind: 'field',
+							df: clone_field(element),
+						}))
+					"
 				>
-					<template #item="{ element }">
-						<div
-							class="pfb-field-row"
-							:title="element.fieldname"
-							@click="add_to_layout(element)"
-						>
-							<span
-								class="pfb-field-drag"
-								v-html="frappe.utils.icon('grip', 'xs')"
-							></span>
-							<span class="pfb-field-label">{{ element.label }}</span>
-							<span class="pfb-field-type">{{ element.fieldtype }}</span>
-						</div>
-					</template>
-				</draggable>
+					<span class="pfb-field-drag" v-html="frappe.utils.icon('grip', 'xs')"></span>
+					<span class="pfb-field-label">{{ element.label }}</span>
+					<span class="pfb-field-type">{{ element.fieldtype }}</span>
+				</div>
 			</div>
 
 			<div v-if="!field_groups.length" class="pfb-empty">
@@ -81,58 +74,46 @@
 		<!-- ── Blocks ─────────────────────────────────────────── -->
 		<div v-else-if="activeTab === 'blocks'" class="pfb-tab-body">
 			<div class="pfb-group-label">{{ __("Content") }}</div>
-			<draggable
-				:list="draggable_blocks"
-				:group="{ name: 'fields', pull: 'clone', put: false }"
-				:sort="false"
-				:clone="clone_field"
-				item-key="fieldname"
-				@start="on_palette_drag_start(draggable_blocks, $event)"
-				@end="on_palette_drag_end"
+			<div
+				v-for="element in draggable_blocks"
+				:key="element.fieldname"
+				class="pfb-block-card"
+				:title="element.desc"
+				@click="add_to_layout(element)"
+				@pointerdown="
+					start_palette_drag($event, () => ({ kind: 'field', df: clone_field(element) }))
+				"
 			>
-				<template #item="{ element }">
-					<div
-						class="pfb-block-card"
-						:title="element.desc"
-						@click="add_to_layout(element)"
-					>
-						<span
-							class="pfb-block-icon"
-							v-html="frappe.utils.icon(element.icon, 'sm')"
-						></span>
-						<div class="pfb-block-info">
-							<div class="pfb-block-name">{{ element.label }}</div>
-							<div class="pfb-block-desc text-muted">{{ element.desc }}</div>
-						</div>
-					</div>
-				</template>
-			</draggable>
+				<span class="pfb-block-icon" v-html="frappe.utils.icon(element.icon, 'sm')"></span>
+				<div class="pfb-block-info">
+					<div class="pfb-block-name">{{ element.label }}</div>
+					<div class="pfb-block-desc text-muted">{{ element.desc }}</div>
+				</div>
+			</div>
 
 			<div class="pfb-group-label mt-3">{{ __("Page") }}</div>
-			<draggable
-				:list="page_break_block"
-				:group="{ name: 'sections', pull: 'clone', put: false }"
-				:sort="false"
-				:clone="clone_as_section"
-				item-key="fieldname"
-				@start="
-					store.drag_payload.value = { kind: 'section', section: clone_as_section() }
+			<div
+				v-for="element in page_break_block"
+				:key="element.fieldname"
+				class="pfb-block-card"
+				:title="element.desc"
+				@click="add_page_break"
+				@pointerdown="
+					start_palette_drag($event, () => ({
+						kind: 'section',
+						section: clone_as_section(),
+					}))
 				"
-				@end="on_palette_drag_end"
 			>
-				<template #item="{ element }">
-					<div class="pfb-block-card" :title="element.desc" @click="add_page_break">
-						<span
-							class="pfb-block-icon"
-							v-html="frappe.utils.icon('scissors-line-dashed', 'sm')"
-						></span>
-						<div class="pfb-block-info">
-							<div class="pfb-block-name">{{ element.label }}</div>
-							<div class="pfb-block-desc text-muted">{{ element.desc }}</div>
-						</div>
-					</div>
-				</template>
-			</draggable>
+				<span
+					class="pfb-block-icon"
+					v-html="frappe.utils.icon('scissors-line-dashed', 'sm')"
+				></span>
+				<div class="pfb-block-info">
+					<div class="pfb-block-name">{{ element.label }}</div>
+					<div class="pfb-block-desc text-muted">{{ element.desc }}</div>
+				</div>
+			</div>
 		</div>
 
 		<!-- ── Templates ─────────────────────────────────────── -->
@@ -164,33 +145,31 @@
 						{{ __("Manage") }}
 					</a>
 				</div>
-				<draggable
-					:list="print_templates_list"
-					:group="{ name: 'fields', pull: 'clone', put: false }"
-					:sort="false"
-					:clone="clone_field"
-					item-key="fieldname"
+				<div
+					v-for="element in print_templates_list"
+					:key="element.fieldname"
+					class="pfb-template-card"
+					:title="element.fieldname"
+					@click="add_to_layout(element)"
+					@pointerdown="
+						start_palette_drag($event, () => ({
+							kind: 'field',
+							df: clone_field(element),
+						}))
+					"
 				>
-					<template #item="{ element }">
-						<div
-							class="pfb-template-card"
-							:title="element.fieldname"
-							@click="add_to_layout(element)"
-						>
-							<div class="pfb-template-thumb">
-								<svg class="icon icon-sm text-muted">
-									<use href="#icon-table"></use>
-								</svg>
-							</div>
-							<div class="pfb-template-info">
-								<div class="pfb-template-name">{{ element.display_label }}</div>
-								<div class="pfb-template-field text-muted">
-									{{ element.field_label || __("Custom block") }}
-								</div>
-							</div>
+					<div class="pfb-template-thumb">
+						<svg class="icon icon-sm text-muted">
+							<use href="#icon-table"></use>
+						</svg>
+					</div>
+					<div class="pfb-template-info">
+						<div class="pfb-template-name">{{ element.display_label }}</div>
+						<div class="pfb-template-field text-muted">
+							{{ element.field_label || __("Custom block") }}
 						</div>
-					</template>
-				</draggable>
+					</div>
+				</div>
 				<div class="pfb-templates-hint text-muted mt-2">
 					{{ __("Drag or click to add a field template to the last section.") }}
 				</div>
@@ -269,7 +248,6 @@
 </template>
 
 <script setup>
-import draggable from "vuedraggable";
 import Autocomplete from "../../vue-components/Autocomplete.vue";
 import { get_table_columns, pluck } from "../utils";
 import { useStore } from "../stores";
@@ -414,15 +392,79 @@ function clone_field(df) {
 	return cloned;
 }
 
-function on_palette_drag_start(list, evt) {
-	store.drag_payload.value = { kind: "field", df: clone_field(list[evt.oldIndex]) };
-}
+// Palette → canvas drag. Native HTML5 drag can't be trusted across the canvas
+// iframe, so the palette tracks the pointer itself (pointer capture keeps
+// events flowing to the origin row even over the iframe) and forwards
+// dragover/drop to the iframe document in its own coordinate space.
+let palette_dragging = false;
 
-function on_palette_drag_end() {
-	store.drag_payload.value = null;
+function start_palette_drag(e, make_payload) {
+	if (e.button !== 0) return;
+	e.preventDefault();
+	const origin = e.currentTarget;
+	const start_x = e.clientX;
+	const start_y = e.clientY;
+	let ghost = null;
+
+	const forward = (type, ev) => {
+		const fr = document.querySelector("iframe.live-canvas-frame");
+		const doc = fr?.contentDocument;
+		if (!doc) return;
+		const rect = fr.getBoundingClientRect();
+		const zoom = parseFloat(getComputedStyle(fr).zoom) || 1;
+		const inside =
+			ev.clientX >= rect.left &&
+			ev.clientX <= rect.right &&
+			ev.clientY >= rect.top &&
+			ev.clientY <= rect.bottom;
+		doc.dispatchEvent(
+			new DragEvent(type, {
+				bubbles: true,
+				cancelable: true,
+				dataTransfer: new DataTransfer(),
+				clientX: inside ? (ev.clientX - rect.left) / zoom : -10000,
+				clientY: inside ? (ev.clientY - rect.top) / zoom : -10000,
+			})
+		);
+	};
+
+	const on_move = (ev) => {
+		if (!palette_dragging) {
+			if (Math.hypot(ev.clientX - start_x, ev.clientY - start_y) < 5) return;
+			palette_dragging = true;
+			const payload = make_payload();
+			store.drag_payload.value = payload;
+			ghost = document.createElement("div");
+			ghost.className = "pfb-palette-ghost";
+			ghost.textContent = payload.df?.label || payload.df?.fieldname || __("Page Break");
+			document.body.appendChild(ghost);
+		}
+		ghost.style.transform = `translate(${ev.clientX + 14}px, ${ev.clientY + 10}px)`;
+		forward("dragover", ev);
+	};
+
+	const finish = (ev, dropped) => {
+		origin.removeEventListener("pointermove", on_move);
+		origin.removeEventListener("pointerup", on_up);
+		origin.removeEventListener("pointercancel", on_cancel);
+		ghost?.remove();
+		if (!palette_dragging) return;
+		if (dropped) forward("drop", ev);
+		store.drag_payload.value = null;
+		setTimeout(() => (palette_dragging = false));
+	};
+
+	const on_up = (ev) => finish(ev, true);
+	const on_cancel = (ev) => finish(ev, false);
+
+	origin.setPointerCapture(e.pointerId);
+	origin.addEventListener("pointermove", on_move);
+	origin.addEventListener("pointerup", on_up);
+	origin.addEventListener("pointercancel", on_cancel);
 }
 
 function add_to_layout(df) {
+	if (palette_dragging) return;
 	const lv = layout.value;
 	const sections = lv?.sections;
 	if (!sections || !sections.length) return;
@@ -483,7 +525,7 @@ function clone_as_section() {
 }
 
 function add_page_break() {
-	if (!layout.value) return;
+	if (palette_dragging || !layout.value) return;
 	layout.value.sections.push(clone_as_section());
 }
 
@@ -1039,5 +1081,24 @@ watch(print_format, () => (store.dirty.value = true), { deep: true });
 
 .pfb-field-group:last-child {
 	border-bottom: none;
+}
+</style>
+
+<style>
+/* Ghost follows the pointer in document.body — outside this component's scope */
+.pfb-palette-ghost {
+	position: fixed;
+	top: 0;
+	left: 0;
+	z-index: 1030;
+	padding: 4px 10px;
+	background: var(--fg-color);
+	border: 1px solid var(--border-color);
+	border-radius: var(--radius);
+	box-shadow: var(--shadow-sm);
+	font-size: var(--text-sm);
+	color: var(--text-color);
+	pointer-events: none;
+	white-space: nowrap;
 }
 </style>

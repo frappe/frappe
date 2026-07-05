@@ -402,6 +402,11 @@ body {
 	height: auto;
 }
 
+/* Builder-only placeholder for fields with no value on the preview document */
+.pfb-empty-value {
+	color: #b7b7b7;
+}
+
 .document-header {
 	border-bottom-width: 1px;
 	border-bottom-style: solid;

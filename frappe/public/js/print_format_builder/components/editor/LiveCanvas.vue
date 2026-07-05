@@ -41,10 +41,10 @@ function interaction_css() {
 	const sheet = desk_token("--card-bg", "#fff");
 	return `
 	[data-pfb-path] { cursor: pointer; }
-	[data-pfb-path]:hover { outline: 1px solid ${hover_line}; outline-offset: 1px; background: ${hover_fill}; }
-	[data-pfb-section]:hover, [data-pfb-zone]:hover { outline: 1px dashed ${hover_line}; outline-offset: 3px; }
-	.pfb-live-selected { outline: 1px solid ${selected}; outline-offset: 1px; }
-	.pfb-live-selected-section { outline: 2px dashed ${section_line}; outline-offset: 3px; }
+	[data-pfb-path]:hover { outline: 1px solid ${hover_line}; outline-offset: 1px; background: ${hover_fill}; position: relative; z-index: 2; }
+	[data-pfb-section]:hover, [data-pfb-zone]:hover { outline: 1px dashed ${hover_line}; outline-offset: 3px; position: relative; z-index: 1; }
+	.pfb-live-selected { outline: 1px solid ${selected}; outline-offset: 1px; position: relative; z-index: 2; }
+	.pfb-live-selected-section { outline: 2px dashed ${section_line}; outline-offset: 3px; position: relative; z-index: 1; }
 	.pfb-dragging { opacity: 0.4; }
 	.pfb-drop-indicator {
 		position: absolute;
@@ -609,9 +609,9 @@ function add_section() {
 }
 
 // ── Drop new fields/sections dragged from the left panel ────
-// The panel uses SortableJS (native HTML5 drag), which can't drop across the
-// iframe boundary on its own — so the panel exposes the dragged payload via
-// the store and the iframe accepts it with plain dragover/drop handlers.
+// The panel tracks the pointer itself and forwards synthetic dragover/drop
+// events into this document (iframe-local coordinates), with the dragged
+// payload exposed via the store.
 let palette_indicator = null;
 let palette_target = null;
 

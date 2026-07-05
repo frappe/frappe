@@ -68,7 +68,12 @@ def render_preview(
 	doc = frappe.get_doc(doctype, name)
 	doc.check_permission("print")
 	generator = PrintFormatGenerator(
-		print_format, doc, letterhead, format_data=format_data, settings=frappe.parse_json(settings)
+		print_format,
+		doc,
+		letterhead,
+		format_data=format_data,
+		settings=frappe.parse_json(settings),
+		builder=True,
 	)
 	return generator.get_html_preview()
 
@@ -95,7 +100,12 @@ def measure_preview(
 	doc = frappe.get_doc(doctype, name)
 	doc.check_permission("print")
 	generator = PrintFormatGenerator(
-		print_format, doc, letterhead, format_data=format_data, settings=frappe.parse_json(settings)
+		print_format,
+		doc,
+		letterhead,
+		format_data=format_data,
+		settings=frappe.parse_json(settings),
+		builder=True,
 	)
 	pf = generator.print_format
 	options = {
@@ -129,7 +139,8 @@ class PrintFormatGenerator:
 		"bottom_right": "right",
 	}
 
-	def __init__(self, print_format, doc, letterhead=None, format_data=None, settings=None):
+	def __init__(self, print_format, doc, letterhead=None, format_data=None, settings=None, builder=False):
+		self.builder = builder
 		self.print_format = frappe.get_doc("Print Format", print_format)
 		if format_data:
 			self.print_format.format_data = format_data
@@ -383,7 +394,8 @@ class PrintFormatGenerator:
 					fieldtype = df["fieldtype"]
 					df["renderer"] = renderers.get(fieldtype) or fieldtype.replace(" ", "")
 					df["section"] = section
-					df["_pfb_path"] = f"s.{si}.{ci}.{fi}"
+					if self.builder:
+						df["_pfb_path"] = f"s.{si}.{ci}.{fi}"
 
 		# Also process header/footer zones if they are section objects
 		for zone_key in ("header", "footer"):
@@ -399,7 +411,8 @@ class PrintFormatGenerator:
 						fieldtype = df.get("fieldtype", "Data")
 						df["renderer"] = renderers.get(fieldtype) or fieldtype.replace(" ", "")
 						df["section"] = zone
-						df["_pfb_path"] = f"{zone_key[0]}.{ci}.{fi}"
+						if self.builder:
+							df["_pfb_path"] = f"{zone_key[0]}.{ci}.{fi}"
 
 		return layout
 
