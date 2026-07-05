@@ -33,15 +33,15 @@ def download_pdf(doctype: str, name: str | int, print_format: str, letterhead: s
 
 @frappe.whitelist()
 def get_qr_code(value: str) -> str:
-	"""Return a QR code for `value` as a PNG data URI (used by Barcode print elements)."""
+	"""Return a QR code for `value` as an SVG data URI (used by Barcode print elements)."""
 	import base64
 	import io
 
 	from pyqrcode import create as qrcreate
 
 	stream = io.BytesIO()
-	qrcreate(value).png(stream, scale=5, quiet_zone=1)
-	return "data:image/png;base64," + base64.b64encode(stream.getvalue()).decode()
+	qrcreate(value).svg(stream, scale=5, quiet_zone=1)
+	return "data:image/svg+xml;base64," + base64.b64encode(stream.getvalue()).decode()
 
 
 def get_html(doctype, name, print_format, letterhead=None):

@@ -144,12 +144,12 @@ class TestPrintFormatBuilderElements(IntegrationTestCase):
 				"align": "right",
 			}
 		)
-		# QR renders server-side as an embedded PNG, no client-side svg
-		self.assertIn('src="data:image/png;base64,', html)
+		# QR renders server-side as an embedded SVG image, no client-side JsBarcode svg
+		self.assertIn('src="data:image/svg+xml;base64,', html)
 		self.assertIn("field-align-right", html)
 		self.assertNotIn("<svg data-barcode-value", html)
 
 		data_uri = get_qr_code("hello world")
-		prefix = "data:image/png;base64,"
+		prefix = "data:image/svg+xml;base64,"
 		self.assertTrue(data_uri.startswith(prefix))
-		self.assertEqual(base64.b64decode(data_uri[len(prefix) :])[:8], b"\x89PNG\r\n\x1a\n")
+		self.assertIn(b"<svg", base64.b64decode(data_uri[len(prefix) :]))
