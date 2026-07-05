@@ -122,6 +122,40 @@ class TestDashboardConnections(IntegrationTestCase):
 				expected_open_count,
 			)
 
+	def test_internal_link_without_external_field_reports_zero(self):
+		venus = frappe.get_doc(
+			{
+				"doctype": "Test Doctype A With Child Table With Link To Doctype B",
+				"title": "Venus",
+			}
+		)
+		venus.append("child_table", {"title": "Venus"})
+		venus.insert()
+
+		# internal link with no rows falls back to an external-link probe; the
+		# fieldname doesn't exist on the target doctype, so no query should run
+		dashboard = get_dashboard_for_test_doctype_a_with_test_child_table_with_link_to_doctype_b()
+		dashboard.fieldname = "nonexistent_column"
+
+		expected_open_count = {
+			"count": {
+				"external_links_found": [
+					{
+						"doctype": "Test Doctype B With Child Table With Link To Doctype A",
+						"open_count": 0,
+						"count": 0,
+					}
+				],
+				"internal_links_found": [],
+			}
+		}
+
+		with patch.object(venus.meta, "get_dashboard_data", return_value=dashboard):
+			self.assertEqual(
+				get_open_count("Test Doctype A With Child Table With Link To Doctype B", "Venus"),
+				expected_open_count,
+			)
+
 	def test_external_doctype_link_with_dashboard_override(self):
 		# add a custom links
 		todo = TestCustomizeForm().get_customize_form("ToDo")
