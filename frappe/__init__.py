@@ -563,7 +563,7 @@ def get_request_header(key, default=None):
 whitelisted: set[Callable] = set()
 guest_methods: set[Callable] = set()
 xss_safe_methods: set[Callable] = set()
-allowed_http_methods_for_whitelisted_func: dict[Callable, list[str]] = {}
+allowed_http_methods_for_whitelisted_func: dict[Callable, tuple[str, ...]] = {}
 
 
 def _in_request_or_test():
@@ -594,7 +594,11 @@ def whitelist(allow_guest=False, xss_safe=False, methods=None, force_types=None)
 	"""
 
 	if not methods:
-		methods = ["GET", "POST", "PUT", "DELETE"]
+		methods = ("GET", "POST", "PUT", "DELETE")
+	elif isinstance(methods, str):
+		methods = (methods,)
+	else:
+		methods = tuple(methods)
 
 	def innerfn(fn):
 		from frappe.utils.typing_validations import validate_argument_types
