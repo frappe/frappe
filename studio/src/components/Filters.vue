@@ -146,11 +146,12 @@ watch(
 function makeFiltersList(filtersDict: Filters) {
 	if (!fields.value.length || isObjectEmpty(filtersDict)) return []
 
-	return Object.entries(filtersDict).map(([fieldname, [operator, value]]) => {
+	return Object.entries(filtersDict).map(([fieldname, rawFilter]) => {
 		const field = getField(fieldname)
 		if (!field) {
 			throw new Error(`Field not found: ${fieldname}`)
 		}
+		const [operator, value] = Array.isArray(rawFilter) ? rawFilter : ["=" as Operators, rawFilter]
 		return {
 			fieldname,
 			operator,

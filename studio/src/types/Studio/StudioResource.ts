@@ -1,6 +1,6 @@
 import type { Operators } from "@/types"
 export type ResourceType = "API Resource" | "Document List" | "Document"
-export type Filters = Record<string, [Operators, any]>
+export type Filters = Record<string, [Operators, any] | string | number | boolean | null>
 
 interface BaseResource {
 	/**	Child Table record name = Resource ID */
