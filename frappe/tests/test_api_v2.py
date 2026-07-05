@@ -565,6 +565,13 @@ class TestDocTypeAPIV2(FrappeAPITestCase):
 
 class TestDiscoveryAPIV2(FrappeAPITestCase):
 	version = "v2"
+	TEST_USER = "api-discovery-user@example.com"
+
+	@classmethod
+	def tearDownClass(cls):
+		frappe.delete_doc_if_exists("User", cls.TEST_USER, force=True)
+		frappe.db.commit()
+		super().tearDownClass()
 
 	def setUp(self) -> None:
 		self.post(self.method("login"), {"sid": self.sid})
@@ -574,6 +581,29 @@ class TestDiscoveryAPIV2(FrappeAPITestCase):
 
 	def discovery_path(self, *parts):
 		return self.get_path("discovery", *parts)
+
+	def non_developer_sid(self) -> str:
+		from frappe.auth import CookieManager, LoginManager
+		from frappe.utils import set_request
+
+		if not frappe.db.exists("User", self.TEST_USER):
+			user = frappe.get_doc(
+				{
+					"doctype": "User",
+					"email": self.TEST_USER,
+					"first_name": "API Discovery User",
+					"send_welcome_email": 0,
+				}
+			)
+			user.append_roles("Website Manager")
+			user.insert(ignore_permissions=True)
+			frappe.db.commit()
+
+		set_request(path="/")
+		frappe.local.cookie_manager = CookieManager()
+		frappe.local.login_manager = LoginManager()
+		frappe.local.login_manager.login_as(self.TEST_USER)
+		return frappe.session.sid
 
 	def test_root_v2(self):
 		response = self.get(self.discovery_path(), {"sid": self.sid})
@@ -656,6 +686,20 @@ class TestDiscoveryAPIV2(FrappeAPITestCase):
 			response = self.get(self.discovery_path(), {"sid": self.sid})
 		self.assertEqual(response.status_code, 503)
 		self.assertNotIn("Retry-After", response.headers)
+
+	def test_discovery_requires_developer_role_v2(self):
+		sid = self.non_developer_sid()
+		paths = (
+			self.discovery_path(),
+			self.discovery_path("search"),
+			self.discovery_path("method"),
+			self.discovery_path("method", "frappe.tests.test_api.test"),
+		)
+		for path in paths:
+			with self.subTest(path=path):
+				with suppress_stdout():
+					response = self.get(path, {"sid": sid})
+				self.assertEqual(response.status_code, 403)
 
 
 class TestReadOnlyMode(FrappeAPITestCase):
