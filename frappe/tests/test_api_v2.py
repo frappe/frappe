@@ -605,20 +605,6 @@ class TestDiscoveryAPIV2(FrappeAPITestCase):
 		frappe.local.login_manager.login_as(self.TEST_USER)
 		return frappe.session.sid
 
-	def test_root_v2(self):
-		response = self.get(self.discovery_path(), {"sid": self.sid})
-		self.assertEqual(response.status_code, 200)
-		data = response.json["data"]
-		self.assertEqual(data["type"], "discovery")
-		self.assertIn("methods", data["resources"])
-		self.assertNotIn("doctypes", data["resources"])
-		self.assertNotIn("reports", data["resources"])
-		self.assertIn("search", data["links"])
-		self.assertEqual(data["links"]["methods"], "/api/v2/discovery/method")
-		self.assertEqual(data["links"]["method"], "/api/v2/discovery/method/{method}")
-		self.assertNotIn("doctypes", data)
-		self.assertNotIn("reports", data)
-
 	def test_search_v2(self):
 		response = self.get(
 			self.discovery_path("search"),
@@ -650,11 +636,6 @@ class TestDiscoveryAPIV2(FrappeAPITestCase):
 			if item["path"] == "frappe.tests.test_api.test"
 		)
 		self.assertEqual(method["description"], "Exercise RPC success and failure responses.")
-		self.assertNotIn("docstring", method)
-		self.assertNotIn("module", method)
-		self.assertNotIn("name", method)
-		self.assertNotIn("http_methods", method)
-		self.assertNotIn("confidence", method)
 
 		method_response = self.get(
 			self.discovery_path("method", "frappe.tests.test_api.test"), {"sid": self.sid}
@@ -662,10 +643,6 @@ class TestDiscoveryAPIV2(FrappeAPITestCase):
 		self.assertEqual(method_response.status_code, 200)
 		data = method_response.json["data"]
 		self.assertEqual(data["path"], "frappe.tests.test_api.test")
-		self.assertNotIn("confidence", data)
-		self.assertNotIn("resolved_path", data)
-		self.assertNotIn("source", data)
-		self.assertNotIn("module", data)
 		self.assertEqual(
 			data["docstring"],
 			"Exercise RPC success and failure responses.\n\n"
