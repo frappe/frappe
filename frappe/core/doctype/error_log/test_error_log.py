@@ -54,6 +54,18 @@ class TestErrorLog(IntegrationTestCase):
 
 		log_error.assert_not_called()
 
+	def test_builtin_excluded_exceptions_use_skip_error_log_flag(self):
+		exceptions = [
+			frappe.AuthenticationError,
+			frappe.CSRFTokenError,
+			frappe.SecurityException,
+			frappe.InReadOnlyMode,
+		]
+
+		for exception in exceptions:
+			with self.subTest(exception=exception.__name__):
+				self.assertTrue(exception.skip_error_log)
+
 
 _RAW_EXC = """
    File "apps/frappe/frappe/model/document.py", line 1284, in runner

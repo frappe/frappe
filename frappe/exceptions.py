@@ -31,6 +31,7 @@ class FrappeTypeError(TypeError):
 
 class AuthenticationError(Exception):
 	http_status_code = 401
+	skip_error_log = True
 
 
 class SessionExpired(Exception):
@@ -80,6 +81,7 @@ class Redirect(Exception):
 
 class CSRFTokenError(Exception):
 	http_status_code = 400
+	skip_error_log = True
 
 
 class TooManyRequestsError(Exception):
@@ -220,7 +222,7 @@ class CircularLinkingError(ValidationError):
 
 
 class SecurityException(Exception):
-	pass
+	skip_error_log = True
 
 
 class InvalidColumnName(ValidationError):
@@ -261,6 +263,7 @@ class QueryDeadlockError(Exception):
 
 class InReadOnlyMode(ValidationError):
 	http_status_code = 503  # temporarily not available
+	skip_error_log = True
 
 
 class SessionBootFailed(ValidationError):
