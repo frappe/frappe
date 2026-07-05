@@ -61,6 +61,9 @@ function interaction_css() {
 		cursor: text;
 		border-radius: 2px;
 	}
+	.label[contenteditable]::selection, .section-label[contenteditable]::selection {
+		background: ${desk_token("--gray-300", "#e2e2e2")};
+	}
 	body {
 		position: relative;
 		padding: 0 !important;
@@ -77,7 +80,7 @@ function interaction_css() {
 		display: flex;
 		flex-direction: column;
 		background: ${sheet};
-		box-shadow: 0 1px 4px rgba(0, 0, 0, 0.15);
+		box-shadow: 0 1px 4px rgba(0, 0, 0, 0.15) !important;
 		margin: 0 auto 34px;
 		box-sizing: border-box;
 	}
@@ -105,17 +108,30 @@ function interaction_css() {
 	.pfb-del-chip {
 		position: absolute;
 		z-index: 10000;
-		width: 18px;
-		height: 18px;
+		display: flex;
+		align-items: center;
+		justify-content: center;
+		width: 22px;
+		height: 22px;
 		padding: 0;
-		border: none;
-		border-radius: 50%;
-		background: ${danger};
-		color: #fff;
-		font: 700 12px/17px -apple-system, sans-serif;
-		text-align: center;
+		border: 1px solid ${desk_token("--border-color", "#ededed")};
+		border-radius: ${desk_token("--radius", "6px")};
+		background: ${sheet};
+		color: ${danger};
 		cursor: pointer;
-		box-shadow: 0 1px 3px rgba(0, 0, 0, 0.25);
+		box-shadow: 0 1px 2px rgba(0, 0, 0, 0.08) !important;
+	}
+	.pfb-del-chip:hover {
+		background: ${desk_token("--red-50", "#fff5f5")};
+	}
+	.pfb-del-chip svg {
+		width: 12px;
+		height: 12px;
+		fill: none;
+		stroke: currentColor;
+		stroke-width: 1.5;
+		stroke-linecap: round;
+		stroke-linejoin: round;
 	}
 	.pfb-add-section {
 		display: block;
@@ -267,6 +283,7 @@ function write_document(html) {
 	master = null;
 	paginate();
 	frame.value.contentWindow?.addEventListener("load", paginate);
+	frame.value.contentWindow?.addEventListener("resize", update_highlight);
 	doc.fonts?.ready?.then(() => {
 		if (frame.value?.contentDocument === doc) paginate();
 	});
@@ -877,15 +894,23 @@ function place_delete_chip(doc, el, title) {
 	const chip = doc.createElement("button");
 	chip.className = "pfb-del-chip";
 	chip.title = title;
-	chip.textContent = "×";
+	const symbol = document.getElementById("icon-x");
+	if (symbol) {
+		const svg = doc.createElementNS("http://www.w3.org/2000/svg", "svg");
+		svg.setAttribute("viewBox", symbol.getAttribute("viewBox") || "0 0 24 24");
+		svg.innerHTML = symbol.innerHTML;
+		chip.appendChild(svg);
+	} else {
+		chip.textContent = "×";
+	}
 	chip.addEventListener("click", (e) => {
 		e.stopPropagation();
 		remove_selected();
 	});
 	const rect = el.getBoundingClientRect();
 	const win = doc.defaultView;
-	chip.style.top = `${rect.top + win.scrollY - 9}px`;
-	chip.style.left = `${rect.right + win.scrollX - 9}px`;
+	chip.style.top = `${rect.top + win.scrollY + 2}px`;
+	chip.style.left = `${rect.right + win.scrollX - 24}px`;
 	doc.body.appendChild(chip);
 }
 
