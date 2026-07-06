@@ -18,6 +18,9 @@ class ToolCall:
 	id: str
 	name: str
 	arguments: dict[str, Any]
+	# Set when the model emitted unparseable arguments; the agent feeds this back so it can retry
+	# instead of the whole run failing.
+	error: str | None = None
 
 
 @dataclass
@@ -184,15 +187,33 @@ def _finalize_tool_calls(acc: dict[int, dict[str, str]]) -> list[ToolCall]:
 		slot = acc[index]
 		if not slot["id"] and not slot["name"]:
 			continue
-		raw_args = slot["arguments"] or ""
-		try:
-			arguments = json.loads(raw_args) if raw_args else {}
-		except (TypeError, ValueError) as e:
-			raise ValueError(f"Tool call {slot['name']!r} returned invalid JSON arguments") from e
-		if not isinstance(arguments, dict):
-			raise ValueError(f"Tool call {slot['name']!r} arguments must be a JSON object")
-		calls.append(ToolCall(id=slot["id"], name=slot["name"], arguments=arguments))
+		calls.append(_build_tool_call(slot["id"], slot["name"], slot["arguments"]))
 	return calls
+
+
+def _build_tool_call(call_id: str, name: str, raw_args: str) -> ToolCall:
+	"""Parse a tool call's raw arguments. Malformed arguments become a `ToolCall.error` the agent
+	feeds back to the model to retry, rather than an exception that fails the whole run."""
+	raw_args = raw_args or ""
+	if not raw_args:
+		return ToolCall(id=call_id, name=name, arguments={})
+	try:
+		arguments = json.loads(raw_args)
+	except (TypeError, ValueError):
+		return ToolCall(
+			id=call_id,
+			name=name,
+			arguments={},
+			error=f"Invalid JSON in arguments for {name!r}: {raw_args[:200]}. Resend the call with valid JSON.",
+		)
+	if not isinstance(arguments, dict):
+		return ToolCall(
+			id=call_id,
+			name=name,
+			arguments={},
+			error=f"Arguments for {name!r} must be a JSON object, got: {raw_args[:200]}.",
+		)
+	return ToolCall(id=call_id, name=name, arguments=arguments)
 
 
 def _normalize(response: Any) -> ChatResponse:
@@ -204,13 +225,7 @@ def _normalize(response: Any) -> ChatResponse:
 		function = getattr(raw_call, "function", None) or {}
 		name = _attr(function, "name", "")
 		raw_args = _attr(function, "arguments", "") or ""
-		try:
-			arguments = json.loads(raw_args) if raw_args else {}
-		except (TypeError, ValueError) as e:
-			raise ValueError(f"Tool call {name!r} returned invalid JSON arguments") from e
-		if not isinstance(arguments, dict):
-			raise ValueError(f"Tool call {name!r} arguments must be a JSON object")
-		tool_calls.append(ToolCall(id=_attr(raw_call, "id", ""), name=name, arguments=arguments))
+		tool_calls.append(_build_tool_call(_attr(raw_call, "id", ""), name, raw_args))
 
 	usage_obj = getattr(response, "usage", None)
 	usage = {

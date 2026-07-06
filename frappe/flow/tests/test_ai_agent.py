@@ -844,3 +844,44 @@ class TestQuestion(UnitTestCase):
 		self.assertEqual(q.options, ["Go ahead", "Only the 2 oldest"])
 		self.assertTrue(q.allow_other)
 		self.assertEqual(q.key, "c1")
+
+
+class TestToolCallParsing(UnitTestCase):
+	def test_invalid_json_becomes_error_not_raise(self):
+		from flow.lib.model import _build_tool_call
+
+		call = _build_tool_call("c1", "read", "{not json")
+		self.assertEqual(call.arguments, {})
+		self.assertIn("Invalid JSON", call.error)
+
+	def test_non_object_json_is_error(self):
+		from flow.lib.model import _build_tool_call
+
+		call = _build_tool_call("c1", "read", "[1, 2]")
+		self.assertIn("must be a JSON object", call.error)
+
+	def test_valid_json_parses_without_error(self):
+		from flow.lib.model import _build_tool_call
+
+		call = _build_tool_call("c1", "read", '{"doctype": "User"}')
+		self.assertIsNone(call.error)
+		self.assertEqual(call.arguments, {"doctype": "User"})
+
+
+class TestAgentMalformedToolCall(UnitTestCase):
+	def test_parse_error_feeds_back_and_run_continues(self):
+		bad = ChatResponse(
+			content=None,
+			tool_calls=[
+				ToolCall(id="c1", name="read", arguments={}, error="Invalid JSON in arguments for 'read'.")
+			],
+		)
+		model = FakeModel([bad, _final("recovered")])
+		agent = Agent(model=model)
+
+		result = agent.run("read something")
+
+		self.assertFalse(result.paused)
+		self.assertEqual(result.output, "recovered")
+		tool_msg = next(m for m in result.messages if m["role"] == "tool")
+		self.assertIn("Invalid JSON", json.loads(tool_msg["content"])["error"])
