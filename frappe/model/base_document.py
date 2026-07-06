@@ -554,6 +554,19 @@ class BaseDocument:
 		elif options := getattr(df, "options", None):
 			return self._evaluate_virtual_field_options(options)
 
+	def resolve_virtual_fields(self):
+		for df in self.meta.get("fields", {"is_virtual": 1}):
+			if df.fieldname not in self.permitted_fieldnames:
+				continue
+			if self.get(df.fieldname) is None:
+				value = self.get_virtual_field_value(df)
+				if value is not None:
+					self.set(df.fieldname, value)
+
+		for table_df in self.meta.get_table_fields():
+			for row in self.get(table_df.fieldname) or []:
+				row.resolve_virtual_fields()
+
 	def get_valid_dict(
 		self, sanitize=True, convert_dates_to_str=False, ignore_nulls=False, ignore_virtual=False
 	) -> _dict:

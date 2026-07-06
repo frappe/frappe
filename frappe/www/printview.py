@@ -252,6 +252,7 @@ def get_rendered_template(
 				</script>
 			"""
 
+	doc.resolve_virtual_fields()
 	convert_markdown(doc)
 
 	args = {}

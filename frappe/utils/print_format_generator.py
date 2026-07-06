@@ -68,6 +68,7 @@ class PrintFormatGenerator:
 	def __init__(self, print_format, doc, letterhead=None):
 		self.print_format = frappe.get_doc("Print Format", print_format)
 		self.doc = doc
+		self.doc.resolve_virtual_fields()
 
 		if letterhead == _("No Letterhead"):
 			letterhead = None
