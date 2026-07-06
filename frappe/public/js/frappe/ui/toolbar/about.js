@@ -73,13 +73,6 @@ frappe.ui.misc.about = function () {
 				</div>
 
 				<div id='about-app-versions'>${__("Loading versions...")}</div>
-				<p>
-					<b>
-						<a href="/attribution" target="_blank" class="text-muted">
-							${__("Dependencies & Licenses")}
-						</a>
-					</b>
-				</p>
 
 				<hr>
 
