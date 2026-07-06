@@ -7,6 +7,8 @@ frappe.provide("frappe.views");
 (function () {
 	var method_prefix = "frappe.desk.doctype.kanban_board.kanban_board.";
 
+	let active_board = null;
+
 	var store = createStore({
 		state: {
 			doctype: "",
@@ -309,10 +311,19 @@ frappe.provide("frappe.views");
 			}
 		};
 
-		function init() {
-			store.dispatch("init", opts);
+		self.teardown = function () {
 			self.unwatchers.forEach((unwatch) => unwatch());
 			self.unwatchers = [];
+			self.columns.forEach((column) => column.unwatch && column.unwatch());
+			self.columns = [];
+		};
+
+		function init() {
+			// store is a shared singleton: release the previously active board's watchers
+			// (this instance on re-render, or an abandoned one after switching boards)
+			active_board && active_board.teardown();
+			active_board = self;
+			store.dispatch("init", opts);
 			self.unwatchers.push(
 				store.watch((state, getters) => {
 					return state.columns;
