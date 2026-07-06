@@ -69,6 +69,12 @@ class PrintVirtualFieldTest(IntegrationTestCase):
 					"options": "'PARENTVIRT_' + (doc.title or '')",
 				},
 				{
+					"label": "Prop Virtual",
+					"fieldname": "pprop",
+					"fieldtype": "Data",
+					"is_virtual": 1,
+				},
+				{
 					"label": "Items",
 					"fieldname": "items",
 					"fieldtype": "Table",
@@ -137,19 +143,6 @@ class PrintVirtualFieldTest(IntegrationTestCase):
 		self.addCleanup(pf.delete, ignore_permissions=True)
 		return pf
 
-	def test_resolve_virtual_fields_materializes_parent_and_children(self):
-		doc = self._make_doc()
-		fresh = frappe.get_doc(self.parent_dt.name, doc.name)
-
-		# Fresh DB load: virtual fields are not materialized on parent or child.
-		self.assertIsNone(fresh.get("pvirt"))
-		self.assertIsNone(fresh.items[0].get("cvirt"))
-
-		fresh.resolve_virtual_fields()
-
-		self.assertEqual(fresh.get("pvirt"), _PARENT_MARKER)
-		self.assertEqual(fresh.items[0].get("cvirt"), _CHILD_MARKER)
-
 	def test_standard_print_renders_virtual_fields(self):
 		doc = self._make_doc()
 		# Passing doctype+name strings forces get_lazy_doc (the fresh-load path), NOT
@@ -170,13 +163,21 @@ class PrintVirtualFieldTest(IntegrationTestCase):
 		self.assertIn(_PARENT_MARKER, html)
 		self.assertIn(_CHILD_MARKER, html)
 
-	def test_resolve_virtual_fields_is_idempotent(self):
+	def test_property_based_virtual_field_resolves(self):
+		"""A virtual field backed by a controller @property (not an `options` string)
+		resolves via the `is_a_property` branch of get_virtual_field_value."""
 		doc = self._make_doc()
-		doc.pvirt = "PRESET_PARENT"
-		doc.items[0].cvirt = "PRESET_CHILD"
+		fresh = frappe.get_doc(self.parent_dt.name, doc.name)
 
-		doc.resolve_virtual_fields()
+		# Attach the property on an isolated per-instance subclass so no shared
+		# controller class is polluted. `pprop` is declared is_virtual with no options,
+		# so only this property supplies its value.
+		class _WithProp(type(fresh)):
+			@property
+			def pprop(self):
+				return "PROPVIRT_" + (self.title or "")
 
-		# Only None fields are touched; already-present values survive.
-		self.assertEqual(doc.get("pvirt"), "PRESET_PARENT")
-		self.assertEqual(doc.items[0].get("cvirt"), "PRESET_CHILD")
+		fresh.__class__ = _WithProp
+		fresh.resolve_virtual_fields()
+
+		self.assertEqual(fresh.get("pprop"), "PROPVIRT_hello")

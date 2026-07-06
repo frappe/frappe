@@ -555,13 +555,18 @@ class BaseDocument:
 			return self._evaluate_virtual_field_options(options)
 
 	def resolve_virtual_fields(self):
+		"""Set virtual fields on the instance dict.
+
+		`doc.get()` reads the instance dict directly — it does not trigger the controller
+		property or `options` evaluation — so virtual fields are blank unless materialized.
+		mirroring `get_valid_dict`so print stays consistent with `as_dict`/the desk form.
+		"""
 		for df in self.meta.get("fields", {"is_virtual": 1}):
 			if df.fieldname not in self.permitted_fieldnames:
 				continue
-			if self.get(df.fieldname) is None:
-				value = self.get_virtual_field_value(df)
-				if value is not None:
-					self.set(df.fieldname, value)
+			value = self.get_virtual_field_value(df)
+			if value is not None:
+				self.set(df.fieldname, value)
 
 		for table_df in self.meta.get_table_fields():
 			for row in self.get(table_df.fieldname) or []:
