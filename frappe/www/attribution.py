@@ -94,9 +94,7 @@ def get_js_deps(app: str) -> list[dict]:
 	seen = set()
 
 	for package_json, node_modules_path in sources:
-		with open(package_json) as f:
-			package = json.load(f)
-
+		package = json.loads(package_json.read_text())
 		packages = package.get("dependencies", {}).keys()
 
 		for name in packages:
@@ -145,8 +143,7 @@ def get_pyproject_info(app: str) -> dict:
 	if not pyproject_toml.exists():
 		return {}
 
-	with open(pyproject_toml, "rb") as f:
-		pyproject = tomllib.load(f)
+	pyproject = tomllib.loads(pyproject_toml.read_text())
 
 	return pyproject.get("project", {})
 
