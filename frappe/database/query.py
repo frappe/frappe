@@ -266,6 +266,8 @@ class Engine:
 		self.is_aggregate_query = False
 		self._grouped_queries = set()
 		self._joined_link_tables = []
+		self.link_table_aliases = {}
+		self.link_table_counts = {}
 
 		assert db_type in ("mariadb", "postgres", "sqlite"), f"unexpected db_type: {db_type}"
 
@@ -1701,6 +1703,21 @@ class Engine:
 		if condition := self.get_permission_conditions(self.permission_doctype, self.permission_table):
 			self.query = self.query.where(condition)
 
+	def get_link_table_alias(self, doctype: str, link_fieldname: str) -> str:
+		"""A stable, unique alias for a linked table joined via a specific link field.
+
+		Keyed by (doctype, link_fieldname) so the select and filter passes of the same
+		field share one join, and counted per target doctype so two link fields to the
+		same doctype get separate joins. A counter is used instead of the field name so
+		the alias can't collide when doctype names contain underscores.
+		"""
+		key = (doctype, link_fieldname)
+		if key not in self.link_table_aliases:
+			count = self.link_table_counts.get(doctype, 0) + 1
+			self.link_table_counts[doctype] = count
+			self.link_table_aliases[key] = f"tab{doctype}_{count}"
+		return self.link_table_aliases[key]
+
 	def get_permission_conditions(self, doctype: str, table: Table) -> Criterion | None:
 		role_permissions = frappe.permissions.get_role_permissions(doctype, user=self.user)
 		has_role_permission = role_permissions.get("read") or role_permissions.get("select")
@@ -1765,11 +1782,12 @@ class Engine:
 		# base `tabDoctype`, which is not in scope. Rewrite them to the aliased table.
 		def alias_raw_condition(condition: str) -> str:
 			alias = getattr(table, "alias", None)
-			if not alias or alias == f"tab{doctype}":
+			if not alias:
 				return condition
-			if frappe.db.db_type == "postgres":
-				return condition.replace(f'"tab{doctype}"', f'"{alias}"')
-			return condition.replace(f"`tab{doctype}`", f"`{alias}`")
+			quote = '"' if frappe.db.db_type == "postgres" else "`"
+			return condition.replace(f"`tab{doctype}`", f"{quote}{alias}{quote}").replace(
+				f'"tab{doctype}"', f"{quote}{alias}{quote}"
+			)
 
 		for method in condition_methods:
 			if c := frappe.call(frappe.get_attr(method), self.user, doctype=doctype):
@@ -2195,7 +2213,19 @@ class LinkTableField(DynamicTableField):
 	) -> None:
 		super().__init__(doctype, fieldname, parent_doctype, alias=alias)
 		self.link_fieldname = link_fieldname
-		self.table = frappe.qb.DocType(self.doctype).as_(f"tab{self.doctype}_{self.link_fieldname}")
+		self.table = frappe.qb.DocType(self.doctype)
+		self.field = self.table[self.fieldname]
+
+	def _resolve_alias(self, engine: "Engine" = None) -> None:
+		"""Bind the joined table to a unique alias so multiple link fields pointing at
+		the same doctype don't share a join. Resolved via the engine registry when
+		available so the select and filter passes agree on the alias."""
+		alias = (
+			engine.get_link_table_alias(self.doctype, self.link_fieldname)
+			if engine is not None
+			else f"tab{self.doctype}_{self.link_fieldname}"
+		)
+		self.table = frappe.qb.DocType(self.doctype).as_(alias)
 		self.field = self.table[self.fieldname]
 
 	def apply_select(self, query: QueryBuilder, engine: "Engine" = None) -> QueryBuilder:
@@ -2203,6 +2233,7 @@ class LinkTableField(DynamicTableField):
 		return query.select(self.field.as_(self.alias or None))
 
 	def apply_join(self, query: QueryBuilder, engine: "Engine" = None) -> QueryBuilder:
+		self._resolve_alias(engine)
 		main_table = frappe.qb.DocType(self.parent_doctype)
 		if not query.is_joined(self.table):
 			clause = self.table.name == getattr(main_table, self.link_fieldname)
