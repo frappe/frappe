@@ -385,16 +385,14 @@ frappe.ui.Sidebar = class Sidebar {
 		return app_name ? frappe.boot.app_data.find((a) => a.app_name === app_name) : null;
 	}
 
-	// The workspace dock is opt-in per app via the `show_workspace_dock` flag on the
-	// add_to_apps_screen hook (surfaced on app_data). Keyed off the shown sidebar's app so the dock
-	// matches the body sidebar on screen.
+	// The workspace dock is always on. Apps can no longer opt out; only page-level opt-outs
+	// (page_hides_dock, e.g. the desktop/apps screen) still suppress it.
 	workspace_dock_enabled() {
-		const app = this.get_sidebar_app();
-		return !!(app && app.show_workspace_dock);
+		return true;
 	}
 
-	// (Re)render the workspace dock to match the current app context. Created lazily so it only
-	// exists once an app opts in; refresh() itself hides the rail again when the app doesn't.
+	// (Re)render the workspace dock to match the current app context. Created lazily on first
+	// refresh; the dock hides itself on page-level opt-outs (see page_hides_dock).
 	refresh_dock() {
 		if (!this.workspace_dock) {
 			this.workspace_dock = new frappe.ui.WorkspaceDock(this);

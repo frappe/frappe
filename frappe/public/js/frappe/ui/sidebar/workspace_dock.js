@@ -1,8 +1,7 @@
 // Workspace dock: a slim vertical rail rendered to the left of the body sidebar that lists the
-// current app's workspaces as icons, with the app logo pinned to the corner. It's opt-in per app
-// via the `show_workspace_dock` flag on the add_to_apps_screen hook (see Sidebar.workspace_dock_enabled).
-// When active it replaces the header dropdown as the workspace switcher; when the current app
-// doesn't opt in, the rail hides itself and the header dropdown takes over again.
+// current app's workspaces as icons, with the app logo pinned to the corner. It's always on
+// (see Sidebar.workspace_dock_enabled); only page-level opt-outs (page_hides_dock, e.g. the
+// desktop/apps screen) hide it. When shown it replaces the header dropdown as the workspace switcher.
 frappe.ui.WorkspaceDock = class WorkspaceDock {
 	constructor(sidebar) {
 		this.sidebar = sidebar;

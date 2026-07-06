@@ -427,8 +427,6 @@ use_json_request_body = True
 # 		"title": "{app_title}",
 # 		"route": "/{app_name}",
 # 		"has_permission": "{app_name}.api.permission.has_app_permission",
-# 		# show the app's workspaces in a slim dock left of the sidebar instead of the header dropdown
-# 		"show_workspace_dock": True
 # 	}}
 # ]
 

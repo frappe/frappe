@@ -242,9 +242,6 @@ def load_desktop_data(bootinfo):
 			dict(
 				# whether the app opts into the apps screen via the add_to_apps_screen hook
 				on_apps_screen=bool(apps),
-				# opt-in (via add_to_apps_screen) to the workspace dock: a slim rail left of the
-				# sidebar that lists the app's workspaces instead of the header dropdown selector
-				show_workspace_dock=bool(app_info.get("show_workspace_dock")),
 				app_name=app_info.get("name") or app_name,
 				app_title=app_info.get("title")
 				or (
