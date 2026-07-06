@@ -113,7 +113,8 @@
 }
 
 .print-format-builder-sidebar .sidebar-custom-field {
-	background-color: var(--gray-300);
+	background-color: var(--bg-gray);
+	color: var(--text-on-gray);
 }
 
 .print-format-builder-sidebar {
