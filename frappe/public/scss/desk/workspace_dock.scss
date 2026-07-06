@@ -1,19 +1,24 @@
 // Slim vertical rail left of the body sidebar listing the current app's workspaces as icons, with
 // the app logo pinned to the top corner. Rendered by frappe.ui.WorkspaceDock and opt-in per app.
+//
+// Styles mirror the frappe-ui <Rail> / <RailItem> component so the dock renders identically to the
+// Vue rail. Values map straight across: 50px column on --surface-sidebar; 28px items; workspace
+// icons use the `tile` treatment (filled cell + left indicator bar when active) and the bell uses
+// the `ghost` treatment (transparent until hovered).
 .workspace-dock {
-	flex: 0 0 48px;
-	width: 48px;
+	flex: 0 0 50px;
+	width: 50px;
 	height: 100vh;
 	z-index: 1020;
 
 	display: flex;
 	flex-direction: column;
 	align-items: center;
-	// no top padding: the logo occupies a full navbar-height band so it aligns with the navbar
-	padding: 0 0 8px 0;
+	// items (28px) centre in the 50px column, so the rail's 11px side gutter falls out of centring
+	// with no explicit padding; no top padding keeps the logo aligned with the navbar band.
+	padding: 0 0 12px 0;
 
-	background: var(--surface-gray-1);
-	border-right: 1px solid var(--sidebar-border-color);
+	background: var(--surface-sidebar);
 
 	&.hidden {
 		display: none;
@@ -31,9 +36,10 @@
 			display: flex;
 			align-items: center;
 			justify-content: center;
-			width: 32px;
-			height: 32px;
-			border-radius: var(--radius-3, 8px);
+			// sized like an item cell so the logo reads as part of the rail
+			width: 28px;
+			height: 28px;
+			border-radius: 7px;
 			overflow: hidden;
 		}
 
@@ -49,12 +55,29 @@
 		width: 24px;
 		height: 1px;
 		margin: 8px 0;
-		background: var(--sidebar-border-color);
+		background: var(--outline-gray-1);
 	}
 
 	// the divider right below the logo hugs the navbar-height band, no extra top gap
 	.workspace-dock-logo + .workspace-dock-divider {
 		margin-top: 0;
+	}
+
+	.workspace-dock-items {
+		flex: 1 1 auto;
+		width: 100%;
+
+		display: flex;
+		flex-direction: column;
+		align-items: center;
+		gap: 12px;
+
+		overflow-y: auto;
+		// hide the scrollbar -- the rail is too narrow to spare the width
+		scrollbar-width: none;
+		&::-webkit-scrollbar {
+			display: none;
+		}
 	}
 
 	.workspace-dock-actions {
@@ -63,7 +86,7 @@
 		display: flex;
 		flex-direction: column;
 		align-items: center;
-		gap: 4px;
+		gap: 12px;
 
 		&.hidden {
 			display: none;
@@ -72,10 +95,10 @@
 
 	.workspace-dock-user {
 		flex: 0 0 auto;
+		margin-top: 4px;
 		padding: 0;
 		border: none;
 		background: transparent;
-		border-radius: 50%;
 		cursor: pointer;
 		display: flex;
 		align-items: center;
@@ -86,32 +109,17 @@
 		}
 
 		&.user-menu-active {
-			box-shadow: 0 0 0 2px var(--sidebar-active-color);
+			box-shadow: 0 0 0 2px var(--surface-gray-4);
 		}
 	}
 
-	.workspace-dock-items {
-		flex: 1 1 auto;
-		width: 100%;
-
-		display: flex;
-		flex-direction: column;
-		align-items: center;
-		gap: 4px;
-
-		overflow-y: auto;
-		// hide the scrollbar -- the rail is too narrow to spare the width
-		scrollbar-width: none;
-		&::-webkit-scrollbar {
-			display: none;
-		}
-	}
-
+	// Workspace icon — mirrors <RailItem variant="tile">: a filled 28px cell (7px radius) that darkens
+	// on active, with a left indicator bar sitting flush against the rail's edge.
 	.workspace-dock-item {
 		position: relative;
 		flex: 0 0 auto;
-		width: 36px;
-		height: 36px;
+		width: 28px;
+		height: 28px;
 		padding: 0;
 
 		display: flex;
@@ -119,56 +127,77 @@
 		justify-content: center;
 
 		border: none;
-		border-radius: 8px;
-		background: transparent;
-		color: var(--ink-gray-6);
+		border-radius: 7px;
+		background: var(--surface-gray-3);
+		color: var(--ink-gray-8);
 		cursor: pointer;
+		transition: background-color 0.15s ease;
 
 		svg,
 		img {
-			width: 20px;
-			height: 20px;
-		}
-
-		&:hover {
-			background: var(--sidebar-hover-color);
+			width: 16px;
+			height: 16px;
 		}
 
 		&.active {
-			background: var(--sidebar-active-color);
-			box-shadow: var(--sidebar-active-shadow);
-			color: var(--ink-gray-8);
+			background: var(--surface-gray-4);
+
+			// left indicator bar — the tile variant's active affordance
+			&::before {
+				content: "";
+				position: absolute;
+				left: -11px;
+				top: 50%;
+				transform: translateY(-50%);
+				width: 4px;
+				height: 28px;
+				border-top-right-radius: 4px;
+				border-bottom-right-radius: 4px;
+				background: var(--surface-gray-8);
+			}
 		}
 
-		// unread badge on the notification bell
+		// unread count — mirrors <RailItemBadge>: a solid-red pill ringed in the surface colour
 		.sidebar-notification-count {
 			position: absolute;
-			top: 2px;
-			right: 2px;
-			min-width: 15px;
-			height: 15px;
-			padding: 0 4px;
-			border-radius: 999px;
-			// match the blue notification indicator dot (surface-red-4 read as pink)
-			background: var(--indicator-dot-blue);
-			color: white;
-			font-size: 10px;
-			line-height: 15px;
-			text-align: center;
+			top: -6px;
+			right: -6px;
+			height: 16px;
+			min-width: 16px;
+			padding: 0 6px;
+			display: inline-flex;
+			align-items: center;
+			justify-content: center;
+			border-radius: 9999px;
+			border: 1px solid var(--surface-base);
+			background: var(--surface-red-7);
+			color: var(--ink-red-1);
+			font-size: 12px;
+			line-height: 1;
 
 			&.hidden {
 				display: none;
 			}
 		}
 
-		// The shared notification.scss positions the unseen dot for the sidebar's padded 28px icon;
-		// re-place it for the dock's centered 20px icon so it sits on the bell's top-right corner.
+		// re-place the shared unseen dot on the bell's top-right corner for the 16px icon
 		.sidebar-item-icon.indicator::before {
 			top: -1px;
 			right: -1px;
 			height: 8px;
 			width: 8px;
 			border-radius: 50%;
+		}
+	}
+
+	// The notification bell is a shortcut, not a workspace — mirror <RailItem variant="ghost">:
+	// transparent until hovered, 8px radius.
+	.workspace-dock-actions .workspace-dock-item {
+		background: transparent;
+		border-radius: 8px;
+
+		&:hover {
+			background: var(--surface-gray-3);
 		}
 	}
 }
