@@ -1723,7 +1723,7 @@ class Engine:
 		elif user_perm_conditions := self.get_user_permission_conditions(doctype, table):
 			conditions.extend(user_perm_conditions)
 
-		conditions.extend(self.get_permission_query_conditions(doctype))
+		conditions.extend(self.get_permission_query_conditions(doctype, table))
 
 		if not conditions:
 			# no conditions to apply, all documents are accessible
@@ -1749,7 +1749,9 @@ class Engine:
 			tables.append(join.item.get_sql())
 		return list(set(tables))
 
-	def get_permission_query_conditions(self, doctype: str | None = None) -> list["Criterion"]:
+	def get_permission_query_conditions(
+		self, doctype: str | None = None, table: Table | None = None
+	) -> list["Criterion"]:
 		"""Add permission query conditions from hooks and server scripts"""
 		from frappe.core.doctype.server_script.server_script_utils import get_server_script_map
 
@@ -1758,11 +1760,22 @@ class Engine:
 		hooks = frappe.get_hooks("permission_query_conditions", {})
 		condition_methods = hooks.get(doctype, []) + hooks.get("*", [])
 
+		# When the doctype is joined under an alias (e.g. a link field fetched via
+		# dot-notation), raw SQL strings from hooks/server scripts still reference the
+		# base `tabDoctype`, which is not in scope. Rewrite them to the aliased table.
+		def alias_raw_condition(condition: str) -> str:
+			alias = getattr(table, "alias", None)
+			if not alias or alias == f"tab{doctype}":
+				return condition
+			if frappe.db.db_type == "postgres":
+				return condition.replace(f'"tab{doctype}"', f'"{alias}"')
+			return condition.replace(f"`tab{doctype}`", f"`{alias}`")
+
 		for method in condition_methods:
 			if c := frappe.call(frappe.get_attr(method), self.user, doctype=doctype):
 				# Hooks may return a raw SQL string or a pypika term. A term already
 				# participates in `Criterion.all`/`get_sql`, so only strings need wrapping.
-				conditions.append(RawCriterion(f"({c})") if isinstance(c, str) else c)
+				conditions.append(RawCriterion(f"({alias_raw_condition(c)})") if isinstance(c, str) else c)
 
 		active_child_tables = []
 		current_tables = self.get_queried_tables()
@@ -1778,7 +1791,7 @@ class Engine:
 			if condition := script.get_permission_query_conditions(
 				self.user, active_child_tables=active_child_tables
 			):
-				conditions.append(RawCriterion(f"({condition})"))
+				conditions.append(RawCriterion(f"({alias_raw_condition(condition)})"))
 		return conditions
 
 	def get_permission_type(
@@ -2182,27 +2195,25 @@ class LinkTableField(DynamicTableField):
 	) -> None:
 		super().__init__(doctype, fieldname, parent_doctype, alias=alias)
 		self.link_fieldname = link_fieldname
-		self.table = frappe.qb.DocType(self.doctype)
+		self.table = frappe.qb.DocType(self.doctype).as_(f"tab{self.doctype}_{self.link_fieldname}")
 		self.field = self.table[self.fieldname]
 
 	def apply_select(self, query: QueryBuilder, engine: "Engine" = None) -> QueryBuilder:
-		table = frappe.qb.DocType(self.doctype)
 		query = self.apply_join(query, engine=engine)
-		return query.select(getattr(table, self.fieldname).as_(self.alias or None))
+		return query.select(self.field.as_(self.alias or None))
 
 	def apply_join(self, query: QueryBuilder, engine: "Engine" = None) -> QueryBuilder:
-		table = frappe.qb.DocType(self.doctype)
 		main_table = frappe.qb.DocType(self.parent_doctype)
-		if not query.is_joined(table):
-			clause = table.name == getattr(main_table, self.link_fieldname)
+		if not query.is_joined(self.table):
+			clause = self.table.name == getattr(main_table, self.link_fieldname)
 
 			if engine and engine.apply_permissions:
-				if condition := engine.get_permission_conditions(self.doctype, table):
+				if condition := engine.get_permission_conditions(self.doctype, self.table):
 					clause &= condition
 
-			query = query.left_join(table).on(clause)
+			query = query.left_join(self.table).on(clause)
 			if engine is not None:
-				engine._joined_link_tables.append(table)
+				engine._joined_link_tables.append(self.table)
 
 		return query
 
