@@ -3,7 +3,7 @@ msgstr ""
 "Project-Id-Version: frappe\n"
 "Report-Msgid-Bugs-To: developers@frappe.io\n"
 "POT-Creation-Date: 2026-06-24 16:55+0000\n"
-"PO-Revision-Date: 2026-06-25 20:54\n"
+"PO-Revision-Date: 2026-07-05 21:52\n"
 "Last-Translator: developers@frappe.io\n"
 "Language-Team: German\n"
 "MIME-Version: 1.0\n"
@@ -4723,7 +4723,7 @@ msgstr "Ändern Sie die initiale bzw. aktuelle Sequenznummer eines bestehenden N
 #. Name of a DocType
 #: frappe/desk/doctype/changelog_feed/changelog_feed.json
 msgid "Changelog Feed"
-msgstr "Änderungsprotokoll-Feed"
+msgstr ""
 
 #: frappe/email/doctype/email_domain/email_domain.js:5
 msgid "Changing any setting will reflect on all the email accounts associated with this domain."

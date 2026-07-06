@@ -3,7 +3,7 @@ msgstr ""
 "Project-Id-Version: frappe\n"
 "Report-Msgid-Bugs-To: developers@frappe.io\n"
 "POT-Creation-Date: 2026-06-24 16:55+0000\n"
-"PO-Revision-Date: 2026-06-24 20:33\n"
+"PO-Revision-Date: 2026-07-05 21:52\n"
 "Last-Translator: developers@frappe.io\n"
 "Language-Team: Polish\n"
 "MIME-Version: 1.0\n"
@@ -13435,7 +13435,7 @@ msgstr "Instagram"
 #: frappe/public/js/frappe/ui/toolbar/search_utils.js:694
 #: frappe/public/js/frappe/ui/toolbar/search_utils.js:695
 msgid "Install {0} from Marketplace"
-msgstr "Zainstaluj {0} z Marketplace"
+msgstr ""
 
 #. Name of a DocType
 #: frappe/core/doctype/installed_application/installed_application.json
