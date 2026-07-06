@@ -93,7 +93,9 @@ class FlowRun(Document):
 		self.status = _status_from_result(result)
 		self.iterations = (self.iterations or 0) + result.iterations
 		self.output = result.output
-		self.tool_calls = _dump_json([asdict(call) for call in result.tool_calls])
+		self.tool_calls = _dump_json(
+			[{"id": c.id, "name": c.name, "arguments": c.arguments} for c in result.tool_calls]
+		)
 		self.questions = _dump_json([asdict(q) for q in result.questions]) if result.paused else None
 		self.usage = _dump_json(_merge_usage(self.usage, result.usage))
 		if self.status != "Failed":
