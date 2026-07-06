@@ -146,7 +146,7 @@ search_knowledge = bind_search_knowledge([])
 
 @tool(
 	requires_confirmation=True,
-	confirm_prompt=lambda args: f"Run this Python:\n\n{args.get('code', '')}",
+	confirm_prompt=lambda args: _("Run this Python:\n\n{0}").format(args.get("code", "")),
 )
 def execute(code: str) -> Any:
 	"""Run Python in the Frappe sandbox (RestrictedPython) for computation, emails, or multi-record work.
@@ -264,8 +264,11 @@ def _apply_action(doctype: str, name: str, action: str, args: dict[str, Any]) ->
 @tool(
 	requires_confirmation=True,
 	confirm_prompt=lambda args: (
-		f"Create {len(args.get('records') or [])} {args.get('doctype', '?')} record(s):\n\n"
-		f"{_summarize_values((args.get('records') or [{}])[0])}"
+		_("Create {0} {1} record(s):\n\n{2}").format(
+			len(args.get("records") or []),
+			args.get("doctype", "?"),
+			_summarize_values((args.get("records") or [{}])[0]),
+		)
 	),
 )
 def create(doctype: str, records: list[dict[str, Any]]) -> dict[str, Any]:
@@ -293,8 +296,12 @@ def create(doctype: str, records: list[dict[str, Any]]) -> dict[str, Any]:
 @tool(
 	requires_confirmation=True,
 	confirm_prompt=lambda args: (
-		f"Update {len(args.get('names') or [])} {args.get('doctype', '?')} "
-		f"({_summarize_names(args.get('names'))}):\n\n{_summarize_values(args.get('values'))}"
+		_("Update {0} {1} ({2}):\n\n{3}").format(
+			len(args.get("names") or []),
+			args.get("doctype", "?"),
+			_summarize_names(args.get("names")),
+			_summarize_values(args.get("values")),
+		)
 	),
 )
 def update(doctype: str, names: list[str], values: dict[str, Any]) -> dict[str, Any]:
@@ -321,8 +328,11 @@ def update(doctype: str, names: list[str], values: dict[str, Any]) -> dict[str, 
 @tool(
 	requires_confirmation=True,
 	confirm_prompt=lambda args: (
-		f"Delete {len(args.get('names') or [])} {args.get('doctype', '?')}: "
-		f"{_summarize_names(args.get('names'))}"
+		_("Delete {0} {1}: {2}").format(
+			len(args.get("names") or []),
+			args.get("doctype", "?"),
+			_summarize_names(args.get("names")),
+		)
 	),
 )
 def delete(doctype: str, names: list[str]) -> dict[str, Any]:
@@ -347,8 +357,12 @@ def delete(doctype: str, names: list[str]) -> dict[str, Any]:
 @tool(
 	requires_confirmation=True,
 	confirm_prompt=lambda args: (
-		f"Run '{args.get('action')}' on {len(args.get('names') or [])} "
-		f"{args.get('doctype', '?')}: {_summarize_names(args.get('names'))}"
+		_("Run '{0}' on {1} {2}: {3}").format(
+			args.get("action"),
+			len(args.get("names") or []),
+			args.get("doctype", "?"),
+			_summarize_names(args.get("names")),
+		)
 	),
 )
 def run_action(
@@ -467,7 +481,7 @@ act = tool(
 	description=_ACT_DESCRIPTION,
 	client_tool=True,
 	requires_confirmation=True,
-	confirm_prompt=lambda args: f"{str(args.get('action', 'act')).title()} the open record?",
+	confirm_prompt=lambda args: _("{0} the open record?").format(str(args.get("action", "act")).title()),
 )
 
 

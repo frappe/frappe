@@ -8,6 +8,8 @@ from collections.abc import Generator
 from dataclasses import dataclass, field
 from typing import TYPE_CHECKING, Any
 
+from frappe import _
+
 from flow.lib.model import ChatResponse, Model, ToolCall
 from flow.lib.tool import Tool
 
@@ -372,7 +374,7 @@ class Agent:
 				question = _confirmation_question(call, tool)
 				question.client_tool = True
 				return question
-			return Question(prompt=f"Running {call.name} in the browser…", client_tool=True)
+			return Question(prompt=_("Running {0} in the browser…").format(call.name), client_tool=True)
 		if tool.requires_confirmation and not self.auto_approve:
 			return _confirmation_question(call, tool)
 		return self._run_tool(call)
@@ -426,8 +428,8 @@ def _confirmation_question(call: ToolCall, tool: Tool) -> Question:
 	else:
 		body = json.dumps(call.arguments, indent=2, default=str)
 	return Question(
-		prompt=f"Approve `{call.name}`?\n\n{body}",
-		options=["Approve", "Deny"],
+		prompt=_("Approve `{0}`?\n\n{1}").format(call.name, body),
+		options=[_("Approve"), _("Deny")],
 		allow_other=True,
 	)
 

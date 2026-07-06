@@ -206,7 +206,7 @@ def stream_with_persistence(
 		# we persisted — record the run as failed so it doesn't sit in "Running".
 		if not persisted:
 			try:
-				run.mark_failed("Stream interrupted")
+				run.mark_failed(_("Stream interrupted"))
 				if not frappe.flags.in_test:
 					frappe.db.commit()
 			except Exception:

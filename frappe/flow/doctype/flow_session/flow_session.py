@@ -372,7 +372,7 @@ class FlowSession(Document):
 			frappe.db.set_value(
 				"Flow Run",
 				blocking.name,
-				{"status": "Failed", "error": "Run abandoned: stream ended without completing."},
+				{"status": "Failed", "error": _("Run abandoned: stream ended without completing.")},
 			)
 			return
 		frappe.throw(
