@@ -126,7 +126,7 @@ class TestModel(UnitTestCase):
 		self.assertEqual(resp.finish_reason, "tool_calls")
 
 	@patch("litellm.completion")
-	def test_chat_rejects_invalid_tool_arguments(self, mock_completion):
+	def test_chat_returns_error_for_invalid_tool_arguments(self, mock_completion):
 		raw_call = SimpleNamespace(
 			id="call_bad",
 			function=SimpleNamespace(name="broken", arguments="{not json"),
@@ -134,8 +134,11 @@ class TestModel(UnitTestCase):
 		mock_completion.return_value = _fake_response(tool_calls=[raw_call])
 
 		m = Model(model_id="openai/gpt-4.1", api_key="sk-test")
-		with self.assertRaises(ValueError):
-			m.chat([{"role": "user", "content": "hi"}])
+		resp = m.chat([{"role": "user", "content": "hi"}])
+
+		call = resp.tool_calls[0]
+		self.assertEqual(call.arguments, {})
+		self.assertIn("Invalid JSON", call.error)
 
 	@patch("litellm.completion")
 	def test_chat_stream_yields_text_deltas_and_assembles_response(self, mock_completion):
@@ -197,7 +200,7 @@ class TestModel(UnitTestCase):
 		self.assertEqual(kwargs["stream_options"], {"include_usage": True})
 
 	@patch("litellm.completion")
-	def test_chat_stream_rejects_invalid_tool_arguments(self, mock_completion):
+	def test_chat_stream_returns_error_for_invalid_tool_arguments(self, mock_completion):
 		mock_completion.return_value = iter(
 			[
 				_stream_chunk(tool_calls=[_tc_delta(id="c1", name="boom", arguments="{not json")]),
@@ -206,8 +209,11 @@ class TestModel(UnitTestCase):
 		)
 
 		m = Model(model_id="openai/gpt-4.1", api_key="sk-test")
-		with self.assertRaises(ValueError):
-			_drain(m.chat([{"role": "user", "content": "hi"}], stream=True))
+		_yielded, response = _drain(m.chat([{"role": "user", "content": "hi"}], stream=True))
+
+		call = response.tool_calls[0]
+		self.assertEqual(call.arguments, {})
+		self.assertIn("Invalid JSON", call.error)
 
 	@patch("litellm.completion")
 	def test_chat_forwards_params_tools_and_base_url(self, mock_completion):
