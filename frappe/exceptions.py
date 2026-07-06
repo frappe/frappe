@@ -222,6 +222,8 @@ class CircularLinkingError(ValidationError):
 
 
 class SecurityException(Exception):
+	# raised when login attempts are locked temporarily, hence 429
+	http_status_code = 429
 	skip_error_log = True
 
 
@@ -254,11 +256,12 @@ class AttachmentLimitReached(ValidationError):
 
 
 class QueryTimeoutError(Exception):
-	pass
+	# frappe convention: 508 means a concurrent transaction is blocking this one, retry later
+	http_status_code = 508
 
 
 class QueryDeadlockError(Exception):
-	pass
+	http_status_code = 508
 
 
 class InReadOnlyMode(ValidationError):
