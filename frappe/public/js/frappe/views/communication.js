@@ -90,8 +90,13 @@ frappe.views.CommunicationComposer = class {
 				<div class="gmail-row">
 					<div class="gmail-slot" data-slot="subject"></div>
 				</div>
+				<div class="gmail-html-toggles" hidden>
+					<div class="gmail-slot" data-slot="use_html"></div>
+					<div class="gmail-slot" data-slot="add_css"></div>
+				</div>
 				<div class="gmail-message-area">
 					<div class="gmail-slot" data-slot="content"></div>
+					<div class="gmail-slot" data-slot="html_content"></div>
 				</div>
 				<div class="gmail-attachments" data-slot="select_attachments"></div>
 				<div class="gmail-footer">
@@ -138,8 +143,11 @@ frappe.views.CommunicationComposer = class {
 			"cc",
 			"bcc",
 			"email_template",
+			"use_html",
+			"add_css",
 			"subject",
 			"content",
+			"html_content",
 			"select_attachments",
 		].forEach((fieldname) => {
 			const $field = $body.find(`.frappe-control[data-fieldname="${fieldname}"]`);
@@ -163,17 +171,29 @@ frappe.views.CommunicationComposer = class {
 		const syncTemplateClear = () => {
 			$templateClear.prop("hidden", !templateField.get_value());
 		};
+
+		// Reveal the .gmail-html-toggles bar when use_html becomes visible (i.e. when
+		// the selected Email Template has use_html=1, via check_email_template_html).
+		const $htmlToggles = $skeleton.find(".gmail-html-toggles");
+		const syncHtmlToggles = () => {
+			$htmlToggles.prop("hidden", !!this.dialog.fields_dict.use_html.df.hidden);
+		};
+
 		$templateClear.on("click", () => {
 			templateField.set_value("");
 			this.get_content_field().set_value("");
 			this.dialog.fields_dict.subject.set_value("");
 			this._last_applied_template = null;
+			syncHtmlToggles();
 		});
 		syncTemplateClear();
+		syncHtmlToggles();
+
 		const originalOnchange = templateField.df.onchange;
 		templateField.df.onchange = async function () {
 			if (originalOnchange) await originalOnchange.call(this);
 			syncTemplateClear();
+			syncHtmlToggles();
 		};
 
 		// Move Frappe's existing Send button (.btn-modal-primary) from the hidden footer into our
