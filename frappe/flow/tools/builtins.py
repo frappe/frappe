@@ -384,10 +384,12 @@ def run_action(
 
 _READ_SCREEN_DESCRIPTION = """See what the user is currently looking at in the Desk: the active \
 route/view and, for an open form, its doctype, record name, unsaved-changes and submission state, \
-the filled field values, and any still-empty mandatory fields.
+the filled field values, and any still-empty mandatory fields (including ones made mandatory \
+dynamically).
 
 Use it to ground yourself whenever the user refers to what is on their screen ("this record", \
-"this form", "why can't I submit this"). Runs in the user's browser and returns a JSON digest."""
+"this form", "why can't I submit this"), and after filling to confirm no mandatory field is left \
+blank. Runs in the user's browser and returns a JSON digest."""
 
 
 def read_screen() -> dict[str, Any]:
