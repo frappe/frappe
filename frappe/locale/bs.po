@@ -3,7 +3,7 @@ msgstr ""
 "Project-Id-Version: frappe\n"
 "Report-Msgid-Bugs-To: developers@frappe.io\n"
 "POT-Creation-Date: 2026-07-05 10:14+0000\n"
-"PO-Revision-Date: 2026-07-05 21:51\n"
+"PO-Revision-Date: 2026-07-06 22:05\n"
 "Last-Translator: developers@frappe.io\n"
 "Language-Team: Bosnian\n"
 "MIME-Version: 1.0\n"
@@ -848,7 +848,7 @@ msgstr "Instanca Sistema može funkcionirati kao OAuth klijent, resurs ili serve
 #. Settings Map Item'
 #: frappe/core/doctype/doctype_settings_map_item/doctype_settings_map_item.json
 msgid "A Single (Settings) doctype."
-msgstr ""
+msgstr "Pojedinačan (Postavke) doctype."
 
 #. Success message of the request-data Web Form
 #: frappe/website/web_form/request_data/request_data.json
@@ -890,7 +890,7 @@ msgstr "Ponavljajući {0} {1} je kreiran za vas putem automatskog ponavljanja {2
 
 #: frappe/public/js/frappe/views/workspace/workspace.js:453
 msgid "A standard workspace is shipped by the app; changes are saved as customizations."
-msgstr ""
+msgstr "Standardni radni prostor isporučuje applikacija; promjene se spremaju kao prilagodbe."
 
 #. Description of the 'Symbol' (Data) field in DocType 'Currency'
 #: frappe/geo/doctype/currency/currency.json
@@ -916,7 +916,7 @@ msgstr "Riječ samu po sebi lako je pogoditi."
 
 #: frappe/core/doctype/doctype_settings_map/doctype_settings_map.py:88
 msgid "A {0} settings map already exists for {1}."
-msgstr ""
+msgstr "{0} mapa postavki već postoji za {1}."
 
 #. Option for the 'PDF Page Size' (Select) field in DocType 'Print Settings'
 #: frappe/printing/doctype/print_settings/print_settings.json
@@ -1495,7 +1495,7 @@ msgstr "Dodaj Sekciju"
 
 #: frappe/public/js/frappe/form/doctype_settings/tabs/naming.js:72
 msgid "Add Series"
-msgstr ""
+msgstr "Dodaj Seriju Imenovanja"
 
 #: frappe/public/js/frappe/ui/naming_series.js:26
 msgid "Add Series Prefix"
@@ -1652,7 +1652,7 @@ msgstr "Dodajte brojeve ili posebne znakove."
 
 #: frappe/public/js/frappe/form/doctype_settings/tabs/permissions.js:18
 msgid "Add role"
-msgstr ""
+msgstr "Dodaj ulogu"
 
 #: frappe/public/js/frappe/form/grid.js:134
 msgid "Add row"
@@ -1668,7 +1668,7 @@ msgstr "Dodajte sekciju ispod"
 
 #: frappe/public/js/frappe/form/doctype_settings/tabs/naming.js:159
 msgid "Add series"
-msgstr ""
+msgstr "Dodaj Seriju Imenovanja"
 
 #: frappe/public/js/form_builder/components/Sidebar.vue:54
 #: frappe/public/js/form_builder/components/Tabs.vue:158
@@ -6753,7 +6753,7 @@ msgstr ""
 
 #: frappe/public/js/frappe/list/list_filter/layout_dialog.js:75
 msgid "Create layout"
-msgstr ""
+msgstr "Izradi raspored"
 
 #: frappe/printing/page/print_format_builder/print_format_builder.js:57
 msgid "Create or Edit Print Format"
@@ -9681,7 +9681,7 @@ msgstr "ESC"
 #. Map'
 #: frappe/core/doctype/doctype_settings_map/doctype_settings_map.json
 msgid "Each row maps a field on a Single (Settings) doctype to surface for this doctype."
-msgstr ""
+msgstr "Svaki red mapira polje na Pojedinačan (Postavke) doctype kako bi se prikazao za taj doctype."
 
 #. Option for the 'Comment Type' (Select) field in DocType 'Comment'
 #: frappe/core/doctype/comment/comment.json
@@ -9853,7 +9853,7 @@ msgstr "Uredi Vrijednosti"
 
 #: frappe/public/js/frappe/list/list_filter/layout_dialog.js:75
 msgid "Edit layout"
-msgstr ""
+msgstr "Uredi Raspored"
 
 #: frappe/desk/doctype/note/note.js:11
 msgid "Edit mode"
@@ -15814,7 +15814,7 @@ msgstr "Je li Podešavanje Završeno?"
 #: frappe/core/doctype/doctype/doctype_list.js:65
 #: frappe/desk/doctype/onboarding_step/onboarding_step.json
 msgid "Is Single"
-msgstr "Je Sam"
+msgstr "Je Pojedinačan"
 
 #. Label of the is_skipped (Check) field in DocType 'Onboarding Step'
 #: frappe/desk/doctype/onboarding_step/onboarding_step.json
@@ -16661,11 +16661,11 @@ msgstr "Poništi Izgled"
 
 #: frappe/public/js/frappe/list/list_filter/layout_dialog.js:25
 msgid "Layout name"
-msgstr ""
+msgstr "Naziv rasporeda"
 
 #: frappe/public/js/frappe/list/list_filter/layout_dialog.js:240
 msgid "Layout name is required"
-msgstr ""
+msgstr "Naziv Rasporeda je obavezan"
 
 #: frappe/custom/doctype/customize_form/customize_form.js:199
 msgid "Layout will be reset to standard layout, are you sure you want to do this?"
@@ -27625,7 +27625,7 @@ msgstr "Postavke za O nama Stranicu"
 #. Description of a DocType
 #: frappe/core/doctype/doctype_settings_map/doctype_settings_map.json
 msgid "Settings from Single (Settings) doctypes that apply to a given doctype. Up to one standard (shipped) and one custom (user) record per doctype; the active record's grid surfaces in the target doctype's DocType Settings → General tab."
-msgstr ""
+msgstr "Postavke iz Pojedinačnih (Postavke) tipova dokumenata koji se primjenjuju na dati tip dokumenta. Do jedan standardni (isporučeni) i jedan prilagođeni (korisnički) zapis po tipu dokumenta; mreža aktivnog zapisa se pojavljuje na kartici Postavke tipa dokumenta → Općenito ciljnog tipa dokumenta."
 
 #: frappe/public/js/frappe/form/doctype_settings/tabs/settings_map.js:15
 msgid "Settings from across the system that apply to {0}."
@@ -30586,7 +30586,7 @@ msgstr "URL Teme"
 
 #: frappe/public/js/frappe/ui/user_settings_dialog.js:315
 msgid "Theme and layout preferences."
-msgstr ""
+msgstr "Postavke Teme & Rasporeda."
 
 #: frappe/workflow/doctype/workflow/workflow.js:157
 msgid "There are documents which have workflow states that do not exist in this Workflow. It is recommended that you add these states to the Workflow and change their states before removing these states."
