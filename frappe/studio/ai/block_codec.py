@@ -1,6 +1,8 @@
 import json
 import re
 
+import frappe
+from frappe import _
 from json_repair import repair_json
 
 
@@ -41,9 +43,14 @@ class BlockCodec:
 		if tab and depth <= 1:
 			out["tstyle"] = tab
 
-		slots = block.get("componentSlots") or {}
-		if slots:
-			out["slots"] = slots
+		if compact_slots := BlockCodec._compress_slots(block.get("componentSlots") or {}, depth):
+			out["slots"] = compact_slots
+
+		events = block.get("componentEvents") or {}
+		if events:
+			out["events"] = BlockCodec._compress_events(events)
+		if vis := block.get("visibilityCondition"):
+			out["visibility"] = vis
 
 		children = [
 			BlockCodec.compress(c, depth + 1) for c in block.get("children", []) if isinstance(c, dict)
@@ -51,6 +58,53 @@ class BlockCodec:
 		if children:
 			out["c"] = children
 
+		return out
+
+	@staticmethod
+	def _compress_slots(slots: dict, depth: int) -> dict:
+		"""Compact componentSlots to {slotName: [compact blocks] | "html string"}. Slot
+		children use the SAME compact shape as `c` (recurse), and the derived slotId/
+		parentBlockId are dropped (the client regenerates them). Empty slots are omitted."""
+		out = {}
+		for name, slot in slots.items():
+			if not isinstance(slot, dict):
+				continue
+			content = slot.get("slotContent")
+			if isinstance(content, list):
+				blocks = [BlockCodec.compress(b, depth + 1) for b in content if isinstance(b, dict)]
+				if blocks:
+					out[name] = blocks
+			elif isinstance(content, str) and content.strip():
+				out[name] = content
+		return out
+
+	@staticmethod
+	def _expand_slots(slots: dict) -> dict:
+		"""Expand compact slots ({slotName: [blocks] | "html"}) into componentSlots. slotId/
+		parentBlockId are backfilled by the frontend Block constructor (initializeSlots)."""
+		out = {}
+		if not isinstance(slots, dict):
+			return out
+		for name, content in slots.items():
+			if isinstance(content, list):
+				slot_content = [BlockCodec.expand(b) for b in content if isinstance(b, dict)]
+			elif isinstance(content, str):
+				slot_content = content
+			else:
+				continue
+			out[name] = {"slotName": name, "slotContent": slot_content}
+		return out
+
+	@staticmethod
+	def _compress_events(events: dict) -> dict:
+		"""Compact componentEvents for the page context. A 'Run Script' handler collapses to
+		just its script string (the common case); other action shapes pass through verbatim."""
+		out = {}
+		for name, ev in events.items():
+			if isinstance(ev, dict) and ev.get("action") == "Run Script":
+				out[name] = ev.get("script") or ""
+			else:
+				out[name] = ev
 		return out
 
 	@staticmethod
@@ -63,7 +117,7 @@ class BlockCodec:
 			"baseStyles": node.get("style") or {},
 			"rawStyles": node.get("rstyle") or {},
 			"componentProps": node.get("props") or {},
-			"componentSlots": node.get("slots") or {},
+			"componentSlots": BlockCodec._expand_slots(node.get("slots") or {}),
 			"mobileStyles": node.get("mstyle") or {},
 			"tabletStyles": node.get("tstyle") or {},
 			"children": [BlockCodec.expand(c) for c in node.get("c", []) if isinstance(c, dict)],
@@ -75,8 +129,29 @@ class BlockCodec:
 			block["originalElement"] = orig
 		if label := node.get("label"):
 			block["blockName"] = label
+		if events := node.get("events"):
+			block["componentEvents"] = BlockCodec._expand_events(events)
+		if vis := node.get("visibility"):
+			block["visibilityCondition"] = vis
 
 		return block
+
+	@staticmethod
+	def _expand_events(events: dict) -> dict:
+		"""Expand the compact `events` map (eventName → script, or → full object) into Studio
+		componentEvents. A bare string is a 'Run Script' handler."""
+		out = {}
+		if not isinstance(events, dict):
+			return out
+		for name, val in events.items():
+			if isinstance(val, str):
+				out[name] = {"event": name, "action": "Run Script", "script": val}
+			elif isinstance(val, dict):
+				ev = dict(val)
+				ev.setdefault("event", name)
+				ev.setdefault("action", "Run Script")
+				out[name] = ev
+		return out
 
 	@staticmethod
 	def parse_blocks(content: str) -> dict:
@@ -102,21 +177,6 @@ class BlockCodec:
 		return BlockCodec.expand(block)
 
 	@staticmethod
-	def strip_context(block_json: str) -> str:
-		"""Compress a block to compact JSON for LLM context, extracting relevant subset."""
-		try:
-			data = json.loads(block_json)
-		except (json.JSONDecodeError, TypeError):
-			return block_json
-
-		if isinstance(data, list):
-			data = data[0] if data else {}
-		if not isinstance(data, dict):
-			return block_json
-
-		return BlockCodec.to_json(BlockCodec.compress(data))
-
-	@staticmethod
 	def to_json(data) -> str:
 		"""Compact, token-efficient JSON: no whitespace, unicode kept as-is."""
 		return json.dumps(data, separators=(",", ":"), ensure_ascii=False)
@@ -125,3 +185,15 @@ class BlockCodec:
 	def strip_fences(text: str) -> str:
 		text = re.sub(r"^```(?:json|yaml)?\s*\n?", "", text.strip())
 		return re.sub(r"\n?```\s*$", "", text).strip()
+
+	@staticmethod
+	def validate_image_data(image_data: str) -> str:
+		"""Validate a base64 image data URL sent with a prompt (a screenshot/design to reproduce).
+		Cap the encoded string at 7 MB — base64 inflates ~33%, so that's roughly a 5 MB source image."""
+		if not image_data.startswith("data:image/"):
+			frappe.throw(_("Invalid image data: must be a base64-encoded image data URL"))
+		if ";base64," not in image_data:
+			frappe.throw(_("Invalid image data: must be a base64-encoded data URL"))
+		if len(image_data) > 7 * 1024 * 1024:
+			frappe.throw(_("Image is too large. Please use an image smaller than 5 MB."))
+		return image_data

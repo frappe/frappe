@@ -1,14 +1,18 @@
 import json
 
 import frappe
+from frappe import _
 
 
 class AISession:
 	DOCTYPE = "Studio AI Session"
-	MAX_MESSAGES = 24
+	MESSAGE_DOCTYPE = "Studio AI Message"
+	CONTEXT_WINDOW = 10  # how many prior turns to feed back to the model
 
 	def __init__(self, doc):
 		self._doc = doc
+
+	# --- factories --------------------------------------------------------
 
 	@classmethod
 	def get_or_create(cls, page_id: str, model: str | None = None, user: str | None = None):
@@ -32,29 +36,163 @@ class AISession:
 				"page": page_id,
 				"user": user,
 				"selected_model": model or "",
-				"messages_json": "[]",
 				"last_interaction_on": frappe.utils.now_datetime(),
 			}
 		)
 		doc.insert(ignore_permissions=True)
 		return cls(doc)
 
-	def get_messages(self) -> list[dict]:
-		try:
-			messages = json.loads(self._doc.messages_json or "[]")
-		except json.JSONDecodeError:
+	@classmethod
+	def get(cls, session_id: str, page_id: str | None = None, user: str | None = None):
+		user = user or frappe.session.user
+		if not frappe.db.exists(cls.DOCTYPE, session_id):
+			frappe.throw(_("AI session not found"))
+		doc = frappe.get_doc(cls.DOCTYPE, session_id)
+		if doc.user != user:
+			frappe.throw(_("You do not have access to this AI session"))
+		if page_id and doc.page != page_id:
+			frappe.throw(_("AI session does not belong to this page"))
+		return cls(doc)
+
+	@classmethod
+	def try_append_message(cls, session_id: str | None, role: str, content: str, **kwargs):
+		if session_id and frappe.db.exists(cls.DOCTYPE, session_id):
+			cls(frappe.get_doc(cls.DOCTYPE, session_id)).append_message(role, content, **kwargs)
+
+	@classmethod
+	def build_context_messages_from_id(cls, session_id: str | None) -> list[dict]:
+		if not session_id or not frappe.db.exists(cls.DOCTYPE, session_id):
 			return []
-		return messages if isinstance(messages, list) else []
+		return cls(frappe.get_doc(cls.DOCTYPE, session_id)).build_context_messages()
 
-	def _save_messages(self, messages: list[dict], task_type: str | None = None):
-		trimmed = messages[-self.MAX_MESSAGES :]
-		self._doc.messages_json = json.dumps(trimmed, separators=(",", ":"))
-		self._doc.last_interaction_on = frappe.utils.now_datetime()
-		if task_type:
-			self._doc.last_task_type = task_type
-		self._doc.save(ignore_permissions=True)
+	# --- properties -------------------------------------------------------
 
-	def add_message(
+	@property
+	def name(self):
+		return self._doc.name
+
+	@property
+	def page(self):
+		return self._doc.page
+
+	@property
+	def selected_model(self):
+		return self._doc.selected_model
+
+	@property
+	def last_task_type(self):
+		return self._doc.last_task_type
+
+	# --- message read -----------------------------------------------------
+
+	@staticmethod
+	def _row_to_message(row: dict) -> dict:
+		"""Reshape a Studio AI Message DB row into the ChatMessage dict shape the
+		frontend renders."""
+		try:
+			metadata = json.loads(row.get("metadata_json") or "{}") or {}
+		except (json.JSONDecodeError, TypeError):
+			metadata = {}
+		# `status` lives in its own column for queryability; surface it in the
+		# returned metadata dict so callers see the same shape as before.
+		if row.get("status"):
+			metadata["status"] = row["status"]
+		return {
+			"id": row.get("name"),
+			"role": row.get("role"),
+			"content": row.get("content") or "",
+			"message_type": row.get("message_type"),
+			"task_type": row.get("task_type") or None,
+			"component_id": row.get("component_id") or None,
+			"created_at": str(row.get("creation")) if row.get("creation") else None,
+			"metadata": metadata,
+		}
+
+	_FIELDS = (
+		"name",
+		"role",
+		"content",
+		"message_type",
+		"task_type",
+		"component_id",
+		"status",
+		"metadata_json",
+		"creation",
+	)
+
+	def get_messages(self) -> list[dict]:
+		"""Return ALL messages for this session in chronological order, shaped for
+		the frontend's ChatMessage interface."""
+		rows = frappe.db.get_all(
+			self.MESSAGE_DOCTYPE,
+			filters={"session": self._doc.name},
+			fields=list(self._FIELDS),
+			order_by="creation asc",
+			limit_page_length=0,
+		)
+		return [self._row_to_message(r) for r in rows]
+
+	def build_context_messages(self) -> list[dict]:
+		"""Return the last N prior turns as proper role-tagged messages.
+
+		Excludes the current-turn user message (the caller appends a fresh one),
+		and filters out transient status/error/cancelled chatter."""
+		# Fetch one extra (the current user message) and drop it.
+		rows = frappe.db.get_all(
+			self.MESSAGE_DOCTYPE,
+			filters={"session": self._doc.name},
+			fields=["role", "content", "message_type", "status", "metadata_json"],
+			order_by="creation desc",
+			limit_page_length=self.CONTEXT_WINDOW + 1,
+		)
+		# Skip the most recent row (current user msg) and reverse to chrono order.
+		history = list(reversed(rows[1:])) if rows else []
+		out: list[dict] = []
+		for r in history:
+			content = (r.get("content") or "").strip()
+			role = r.get("role")
+			if not content or role not in ("user", "assistant"):
+				continue
+			if r.get("message_type") == "status":
+				continue
+			if r.get("status") in ("running", "error", "cancelled"):
+				continue
+			# A proposed plan is persisted as just its headline (its sections and palette live
+			# in metadata, rendered separately by the chat UI). Without them here, the model sees
+			# only a one-line headline and can't tell it already proposed a full plan — so on
+			# approval it re-proposes instead of building. Restore the full plan into context.
+			if role == "assistant" and r.get("status") == "plan_summary":
+				content = self._plan_context_content(content, r.get("metadata_json"))
+			out.append({"role": role, "content": content})
+		return out
+
+	@staticmethod
+	def _plan_context_content(headline: str, metadata_json: str | None) -> str:
+		"""Reconstruct a proposed plan's full text (headline + sections + palette) from its
+		stored metadata, for replay into the model's context."""
+		try:
+			meta = json.loads(metadata_json) if metadata_json else {}
+		except (json.JSONDecodeError, TypeError):
+			meta = {}
+		if not isinstance(meta, dict):
+			return headline
+		data_plan = [str(s).strip() for s in (meta.get("data_plan") or []) if str(s).strip()]
+		layout_plan = [str(s).strip() for s in (meta.get("layout_plan") or []) if str(s).strip()]
+		palette = (meta.get("palette") or "").strip()
+		lines = [headline]
+		if data_plan:
+			lines.append("Data plan:")
+			lines.extend(f"- {s}" for s in data_plan)
+		if layout_plan:
+			lines.append("Layout plan:")
+			lines.extend(f"- {s}" for s in layout_plan)
+		if palette:
+			lines.append(f"Palette: {palette}")
+		return "\n".join(lines)
+
+	# --- message write ----------------------------------------------------
+
+	def append_message(
 		self,
 		role: str,
 		content: str,
@@ -64,37 +202,88 @@ class AISession:
 		component_id: str | None = None,
 		metadata: dict | None = None,
 	):
-		messages = self.get_messages()
-		messages.append(
+		metadata = metadata or {}
+		# Hoist status to its own column for cheap filtered queries; keep
+		# everything else in metadata_json.
+		status = ""
+		meta_clean: dict = {}
+		if isinstance(metadata, dict):
+			status = (metadata.get("status") or "").strip()
+			meta_clean = {k: v for k, v in metadata.items() if k != "status"}
+
+		frappe.get_doc(
 			{
-				"id": frappe.generate_hash(length=10),
+				"doctype": self.MESSAGE_DOCTYPE,
+				"session": self._doc.name,
 				"role": role,
 				"content": content,
 				"message_type": message_type,
-				"task_type": task_type,
-				"component_id": component_id,
-				"created_at": str(frappe.utils.now_datetime()),
-				"metadata": metadata or {},
+				"status": status,
+				"task_type": task_type or "",
+				"component_id": component_id or "",
+				"metadata_json": json.dumps(meta_clean, separators=(",", ":")) if meta_clean else "",
 			}
+		).insert(ignore_permissions=True)
+
+		# Touch the parent's bookkeeping fields atomically (no full re-save).
+		updates: dict = {"last_interaction_on": frappe.utils.now_datetime()}
+		if task_type:
+			updates["last_task_type"] = task_type
+		frappe.db.set_value(self.DOCTYPE, self._doc.name, updates, update_modified=False)
+
+	def update_last_assistant_metadata(self, extra_metadata: dict):
+		"""Merge extra_metadata into the most recent assistant message's
+		metadata_json. One-row UPDATE — no read-modify-write of a giant blob."""
+		row = frappe.db.get_value(
+			self.MESSAGE_DOCTYPE,
+			{"session": self._doc.name, "role": "assistant"},
+			["name", "metadata_json"],
+			order_by="creation desc",
+			as_dict=True,
 		)
-		self._save_messages(messages, task_type=task_type)
+		if not row:
+			return
+		try:
+			meta = json.loads(row.metadata_json) if row.metadata_json else {}
+		except (json.JSONDecodeError, TypeError):
+			meta = {}
+		if not isinstance(meta, dict):
+			meta = {}
+		meta.update(extra_metadata or {})
+		frappe.db.set_value(
+			self.MESSAGE_DOCTYPE,
+			row.name,
+			"metadata_json",
+			json.dumps(meta, separators=(",", ":")),
+			update_modified=False,
+		)
 
-	def build_context_string(self) -> str:
-		history_lines = []
-		for message in self.get_messages()[-10:]:
-			role = message.get("role") or "user"
-			content = (message.get("content") or "").strip()
-			if not content:
-				continue
-			prefix = "User" if role == "user" else "Assistant"
-			history_lines.append(f"{prefix}: {content}")
+	# --- running flag (concurrency guard) --------------------------------
 
-		if not history_lines:
-			return ""
-		return "Conversation history for this page:\n" + "\n".join(history_lines)
+	def set_running(self):
+		frappe.db.set_value(self.DOCTYPE, self._doc.name, "is_running", 1, update_modified=False)
+
+	def clear_running(self):
+		frappe.db.set_value(self.DOCTYPE, self._doc.name, "is_running", 0, update_modified=False)
+
+	@classmethod
+	def is_session_running(cls, session_id: str) -> bool:
+		if not session_id or not frappe.db.exists(cls.DOCTYPE, session_id):
+			return False
+		return bool(frappe.db.get_value(cls.DOCTYPE, session_id, "is_running"))
+
+	# --- lifecycle --------------------------------------------------------
 
 	def clear(self):
-		self._doc.messages_json = "[]"
-		self._doc.last_task_type = None
-		self._doc.last_interaction_on = frappe.utils.now_datetime()
-		self._doc.save(ignore_permissions=True)
+		"""Wipe all messages for this session and reset transient state."""
+		frappe.db.delete(self.MESSAGE_DOCTYPE, {"session": self._doc.name})
+		frappe.db.set_value(
+			self.DOCTYPE,
+			self._doc.name,
+			{
+				"is_running": 0,
+				"last_task_type": None,
+				"last_interaction_on": frappe.utils.now_datetime(),
+			},
+			update_modified=False,
+		)

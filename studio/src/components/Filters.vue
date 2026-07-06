@@ -14,10 +14,10 @@
 						<div class="w-13 flex-shrink-0 pl-2 text-end text-base text-ink-gray-5">
 							{{ i == 0 ? "Where" : "And" }}
 						</div>
-						<div id="fieldname" class="!min-w-[120px] flex-1">
+						<div id="fieldname" class="!min-w-[120px]">
 							<Combobox :options="fields" v-model="filter.fieldname" placeholder="Filter by..." />
 						</div>
-						<div id="operator" class="!min-w-[120px] flex-shrink-0">
+						<div id="operator" class="flex-shrink-0">
 							<FormControl
 								type="select"
 								:modelValue="filter.operator"
@@ -146,11 +146,12 @@ watch(
 function makeFiltersList(filtersDict: Filters) {
 	if (!fields.value.length || isObjectEmpty(filtersDict)) return []
 
-	return Object.entries(filtersDict).map(([fieldname, [operator, value]]) => {
+	return Object.entries(filtersDict).map(([fieldname, rawFilter]) => {
 		const field = getField(fieldname)
 		if (!field) {
 			throw new Error(`Field not found: ${fieldname}`)
 		}
+		const [operator, value] = Array.isArray(rawFilter) ? rawFilter : ["=" as Operators, rawFilter]
 		return {
 			fieldname,
 			operator,

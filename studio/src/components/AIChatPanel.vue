@@ -30,21 +30,91 @@
 			</div>
 
 			<template v-for="msg in messages" :key="msg.id">
-				<div v-if="msg.role === 'user'" class="flex flex-col items-end">
+				<div v-if="msg.role === 'user'" class="flex flex-col items-end gap-1">
+					<img
+						v-if="msg.metadata?.attachedImageUrl"
+						:src="msg.metadata.attachedImageUrl"
+						class="max-h-40 max-w-[88%] rounded-md border border-outline-gray-2 object-contain"
+						alt="Attached design"
+					/>
 					<div
+						v-if="msg.content"
 						class="w-fit max-w-[88%] rounded-md border bg-surface-gray-1 px-3 py-2 text-p-xs text-ink-gray-8"
 					>
 						<div class="whitespace-pre-wrap break-words">{{ msg.content }}</div>
 					</div>
 				</div>
-				<div v-else class="flex flex-col items-start">
-					<div class="w-fit max-w-full text-p-xs text-ink-gray-8">
-						<div class="whitespace-pre-wrap break-words">{{ msg.content }}</div>
+				<div v-else class="flex w-full flex-col items-start gap-2">
+					<div
+						class="w-fit max-w-full break-words text-p-xs text-ink-gray-8 [&_a]:text-ink-blue-3 [&_a]:underline [&_code]:rounded [&_code]:bg-surface-gray-2 [&_code]:px-1 [&_code]:py-0.5 [&_h1]:my-1.5 [&_h1]:text-sm [&_h1]:font-semibold [&_h2]:my-1.5 [&_h2]:text-sm [&_h2]:font-semibold [&_h3]:font-semibold [&_li]:my-0.5 [&_ol]:my-1 [&_ol]:list-decimal [&_ol]:pl-5 [&_p]:my-1 [&_pre]:my-1 [&_pre]:overflow-x-auto [&_pre]:rounded [&_pre]:bg-surface-gray-2 [&_pre]:p-2 [&_strong]:font-semibold [&_ul]:my-1 [&_ul]:list-disc [&_ul]:pl-5"
+						v-html="renderMarkdown(msg.content)"
+					/>
+
+					<!-- Proposed plan: data plan + layout plan + palette + approve -->
+					<div
+						v-if="msg.metadata?.status === 'plan_summary'"
+						class="flex w-full min-w-0 flex-col gap-3 rounded-md border border-outline-gray-1 bg-surface-gray-1 p-3"
+					>
+						<div v-if="msg.metadata.data_plan?.length" class="flex flex-col gap-1">
+							<div class="text-[10px] font-semibold uppercase tracking-wide text-ink-gray-5">Data</div>
+							<ul class="flex flex-col gap-1">
+								<li
+									v-for="(item, i) in msg.metadata.data_plan"
+									:key="'d' + i"
+									class="break-words text-p-xs text-ink-gray-7"
+								>
+									• {{ item }}
+								</li>
+							</ul>
+						</div>
+						<div v-if="msg.metadata.layout_plan?.length" class="flex flex-col gap-1">
+							<div class="text-[10px] font-semibold uppercase tracking-wide text-ink-gray-5">Layout</div>
+							<ul class="flex flex-col gap-1">
+								<li
+									v-for="(item, i) in msg.metadata.layout_plan"
+									:key="'l' + i"
+									class="break-words text-p-xs text-ink-gray-7"
+								>
+									• {{ item }}
+								</li>
+							</ul>
+						</div>
+						<div v-if="msg.metadata.palette" class="break-words text-[11px] text-ink-gray-5">
+							Palette: {{ msg.metadata.palette }}
+						</div>
+						<Button
+							v-if="msg.id === lastMessageId"
+							variant="outline"
+							size="sm"
+							label="Approve & build"
+							:disabled="loading"
+							@click="sendPrompt('Yes, that looks good - go ahead and build it.')"
+						/>
+					</div>
+
+					<!-- Clarification: tappable answer options -->
+					<div
+						v-else-if="
+							msg.metadata?.status === 'clarification' &&
+							msg.metadata.options?.length &&
+							msg.id === lastMessageId
+						"
+						class="flex flex-wrap gap-1.5"
+					>
+						<Button
+							v-for="(option, i) in msg.metadata.options"
+							:key="i"
+							variant="outline"
+							size="sm"
+							:label="option"
+							:disabled="loading"
+							@click="sendPrompt(option)"
+						/>
 					</div>
 				</div>
 			</template>
 
-			<p v-if="loading" class="text-xs text-ink-gray-5">
+			<p v-if="loading" class="text-p-xs text-ink-gray-5">
 				{{ statusMessage || "Generating…" }}
 			</p>
 		</div>
@@ -59,6 +129,24 @@
 				</Badge>
 			</div>
 
+			<div v-if="imagePreviewUrl" class="mb-2 flex items-center gap-2">
+				<div class="relative">
+					<img
+						:src="imagePreviewUrl"
+						class="h-12 w-12 rounded border border-outline-gray-2 object-cover"
+						alt="Attached design"
+					/>
+					<button
+						class="text-ink-white absolute -right-1.5 -top-1.5 rounded-full bg-surface-gray-7 p-0.5 hover:bg-surface-gray-6"
+						title="Remove image"
+						@click="controller.clearImage()"
+					>
+						<FeatherIcon name="x" class="h-3 w-3" />
+					</button>
+				</div>
+				<span class="truncate text-xs text-ink-gray-5">{{ imageFileName }}</span>
+			</div>
+
 			<div class="relative">
 				<textarea
 					v-model="prompt"
@@ -70,46 +158,69 @@
 					:disabled="loading"
 					@keydown.meta.enter="generate"
 					@keydown.ctrl.enter="generate"
+					@paste="onPaste"
+					@drop="onDropImage"
+					@dragover.prevent
 				/>
 			</div>
 
 			<div class="mt-2 flex items-center justify-between gap-2">
-				<Popover placement="top-start" :offset="6">
-					<template #target="{ togglePopover }">
-						<button
-							class="flex h-7 max-w-[9rem] items-center gap-1.5 rounded px-1.5 text-ink-gray-5 transition-colors hover:bg-surface-gray-2 hover:text-ink-gray-8"
-							@click="togglePopover"
-						>
-							<FeatherIcon name="cpu" class="h-3.5 w-3.5 shrink-0" />
-							<span class="truncate text-xs">{{ modelLabel }}</span>
-						</button>
-					</template>
-					<template #body="{ close }">
-						<div class="min-w-40 rounded-lg border border-outline-gray-2 bg-surface-base py-1 shadow-lg">
+				<div class="flex items-center gap-0.5">
+					<Popover placement="top-start" :offset="6">
+						<template #target="{ togglePopover }">
 							<button
-								v-for="option in modelOptions"
-								:key="option.value"
-								class="flex w-full items-center px-3 py-1.5 text-left text-sm text-ink-gray-7 hover:bg-surface-gray-2"
-								:class="{ 'font-medium text-ink-gray-9': option.value === selectedModel }"
-								@click="
-									() => {
-										selectedModel = option.value
-										close()
-									}
-								"
+								class="flex h-7 max-w-[9rem] items-center gap-1.5 rounded px-1.5 text-ink-gray-5 transition-colors hover:bg-surface-gray-2 hover:text-ink-gray-8"
+								@click="togglePopover"
 							>
-								{{ option.label }}
+								<FeatherIcon name="cpu" class="h-3.5 w-3.5 shrink-0" />
+								<span class="truncate text-xs">{{ modelLabel }}</span>
 							</button>
-						</div>
-					</template>
-				</Popover>
+						</template>
+						<template #body="{ close }">
+							<div class="min-w-40 rounded-lg border border-outline-gray-2 bg-surface-base py-1 shadow-lg">
+								<button
+									v-for="option in modelOptions"
+									:key="option.value"
+									class="flex w-full items-center justify-between gap-2 px-3 py-1.5 text-left text-sm text-ink-gray-7 hover:bg-surface-gray-2"
+									:class="{ 'font-medium text-ink-gray-9': option.value === selectedModel }"
+									@click="
+										() => {
+											selectedModel = option.value
+											close()
+										}
+									"
+								>
+									<span>{{ option.label }}</span>
+									<FeatherIcon
+										v-if="option.vision"
+										name="image"
+										class="h-3.5 w-3.5 shrink-0 text-ink-gray-4"
+										title="Supports image attachments"
+									/>
+								</button>
+							</div>
+						</template>
+					</Popover>
 
+					<button
+						v-if="isVisionModel"
+						class="flex h-7 items-center gap-1.5 rounded px-1.5 text-ink-gray-5 transition-colors hover:bg-surface-gray-2 hover:text-ink-gray-8 disabled:cursor-not-allowed disabled:opacity-50"
+						title="Attach a screenshot or design to reproduce"
+						:disabled="loading"
+						@click="imageInput?.click()"
+					>
+						<FeatherIcon name="image" class="h-3.5 w-3.5 shrink-0" />
+					</button>
+					<input ref="imageInput" type="file" accept="image/*" class="hidden" @change="onImageSelected" />
+				</div>
+
+				<Button v-if="loading" variant="subtle" label="Stop" icon="square" @click="stop" />
 				<Button
+					v-else
 					variant="solid"
 					:label="isModifyMode ? 'Edit' : 'Generate'"
 					icon="arrow-up"
-					:loading="loading"
-					:disabled="!prompt.trim()"
+					:disabled="!prompt.trim() && !imagePreviewUrl"
 					@click="generate"
 				/>
 			</div>
@@ -119,20 +230,21 @@
 
 <script lang="ts" setup>
 import { ref, computed, inject, watch, nextTick } from "vue"
-import { ErrorMessage, Button, Badge, FeatherIcon, call, createResource, Popover } from "frappe-ui"
-import { toast } from "frappe-ui"
+import { ErrorMessage, Button, Badge, FeatherIcon, call, createResource, Popover, toast } from "frappe-ui"
+import { marked } from "marked"
+import DOMPurify from "dompurify"
 import useStudioStore from "@/stores/studioStore"
 import useCanvasStore from "@/stores/canvasStore"
+import useCodeStore from "@/stores/codeStore"
+import { AIChatController } from "@/components/AIChatController"
 import { getBlockInstance, getBlockString } from "@/utils/serializer"
-import { tryParseJsonBlock } from "@/utils/blockCodec"
-import { throttle } from "@/utils/helpers"
-import type Block from "@/utils/block"
-import type { PauseId } from "@/utils/useCanvasHistory"
+import type { BlockOptions } from "@/types"
 import { studioSettings } from "@/data/studioSettings"
 import LucideSparkle from "~icons/lucide/sparkle"
 
 const store = useStudioStore()
 const canvasStore = useCanvasStore()
+const codeStore = useCodeStore()
 const socket = inject<any>("socket")
 
 const isAIEnabled = computed(() => !!studioSettings.doc?.ai_api_key)
@@ -142,11 +254,12 @@ const loading = ref(false)
 const error = ref("")
 const statusMessage = ref("")
 const selectedModel = ref("")
-const streamBuffer = ref("")
-const modifyStreamBuffer = ref("")
-let historyPauseId: PauseId | undefined
 const messages = ref<any[]>([])
 const messagesEl = ref<HTMLElement | null>(null)
+
+// A plan's "Approve & build" and a clarification's options only make sense for the CURRENT turn —
+// the last message. On older ones they're stale (already answered), so gate the buttons on this.
+const lastMessageId = computed(() => messages.value[messages.value.length - 1]?.id)
 
 const pageId = computed(() => store.activePage?.name ?? "")
 
@@ -163,17 +276,25 @@ const aiModels = createResource({
 	auto: true,
 })
 
-const modelOptions = computed(() => (aiModels.data ?? []).map((m: any) => ({ label: m.label, value: m.id })))
+const modelOptions = computed(() =>
+	(aiModels.data ?? []).map((m: any) => ({ label: m.label, value: m.id, vision: !!m.vision_capable })),
+)
 
 const modelLabel = computed(() => {
 	const selected = modelOptions.value.find((m: any) => m.value === selectedModel.value)
 	return selected ? selected.label : "Model"
 })
 
+const isVisionModel = computed(() => {
+	const selected = modelOptions.value.find((m: any) => m.value === selectedModel.value)
+	return selected ? selected.vision : true
+})
+
 const sessionResource = createResource({
-	url: "studio.ai.page_generator.get_ai_session",
+	url: "studio.ai.api.get_ai_session",
 	onSuccess(data: any) {
 		messages.value = data.messages ?? []
+		controller.sessionId = data.session_id ?? ""
 		if (data.selected_model) {
 			selectedModel.value = data.selected_model
 		} else if (modelOptions.value.length) {
@@ -200,134 +321,89 @@ function reloadSession() {
 	}
 }
 
-function onProgress(data: any) {
-	statusMessage.value = data.message || "Generating…"
+function renderMarkdown(content: string): string {
+	if (!content) return ""
+	return DOMPurify.sanitize(marked.parse(content, { gfm: true, breaks: true }) as string)
 }
 
-function onStream(data: any) {
-	canvasStore.isAIStreaming = true
-	streamBuffer.value += data.chunk || ""
-	renderStreamedBlock()
-}
-
-const renderStreamedBlock = throttle(() => {
-	const block = tryParseJsonBlock(streamBuffer.value)
-	if (block) {
+const controller = new AIChatController({
+	socket,
+	messages,
+	loading,
+	statusMessage,
+	error,
+	pageId: () => pageId.value,
+	getCanvas: () => canvasStore.activeCanvas,
+	getPageContext: () => {
+		const root = store.pageBlocks?.[0] ?? canvasStore.activeCanvas?.getRootBlock()
+		return root ? getBlockString(root) : "[]"
+	},
+	getSelectedBlockIds: () => (selectedBlock.value ? [selectedBlock.value.componentId] : []),
+	setRootBlock: (block: BlockOptions) => {
 		const rootBlock = getBlockInstance(block)
 		store.pageBlocks = [rootBlock]
 		canvasStore.activeCanvas?.setRootBlock(rootBlock, false)
-	}
-}, 250)
+	},
+	savePage: () => store.savePage(),
+	reloadSession,
+	scrollToBottom,
+	reloadPageData: ({ resources, variables, script }) => {
+		const page = store.activePage
+		if (!page) return
+		if (resources) codeStore.setPageResources(page)
+		if (variables) codeStore.setPageVariables(page)
+		if (script) store.reloadActivePageScript()
+	},
+})
 
-async function onComplete(data: any) {
-	canvasStore.isAIStreaming = false
-	loading.value = false
-	statusMessage.value = ""
-	streamBuffer.value = ""
+watch(isVisionModel, (vision) => {
+	if (!vision) controller.clearImage()
+})
 
-	const block: Block = data.block
-	if (!block) {
-		error.value = "No block was generated. Try a more descriptive prompt."
-		return
-	}
+// Attached-image state + input (exposed so the template auto-unwraps the refs).
+const imagePreviewUrl = controller.imagePreviewUrl
+const imageFileName = controller.imageFileName
+const imageInput = ref<HTMLInputElement | null>(null)
 
-	const rootBlock = getBlockInstance(block)
-	store.pageBlocks = [rootBlock]
-	canvasStore.activeCanvas?.setRootBlock(rootBlock, false)
-	historyPauseId = undefined
-
-	toast.success("Page generated successfully")
-	prompt.value = ""
-	reloadSession()
+function onImageSelected(e: Event) {
+	const input = e.target as HTMLInputElement
+	const file = input.files?.[0]
+	if (file) controller.attachImageFile(file)
+	input.value = "" // let the same file be re-picked
 }
 
-function onError(data: any) {
-	canvasStore.isAIStreaming = false
-	canvasStore.activeCanvas?.history?.resume(historyPauseId)
-	historyPauseId = undefined
-	loading.value = false
-	statusMessage.value = ""
-	streamBuffer.value = ""
-	error.value = data.message || "Generation failed. Please check your Studio Settings and try again."
+function onPaste(e: ClipboardEvent) {
+	const file = Array.from(e.clipboardData?.items || [])
+		.find((item) => item.type.startsWith("image/"))
+		?.getAsFile()
+	if (!file) return
+	e.preventDefault()
+	if (!warnIfNoVision()) return
+	controller.attachImageFile(file)
 }
 
-function onModifyProgress(data: any) {
-	statusMessage.value = data.message || "Updating…"
+function onDropImage(e: DragEvent) {
+	const file = e.dataTransfer?.files?.[0]
+	if (!file?.type.startsWith("image/")) return
+	e.preventDefault()
+	if (!warnIfNoVision()) return
+	controller.attachImageFile(file)
 }
 
-function onModifyStream(data: any) {
-	canvasStore.isAIStreaming = true
-	modifyStreamBuffer.value += data.chunk || ""
-	const block = tryParseJsonBlock(modifyStreamBuffer.value)
-	if (block) {
-		replaceBlockInTree(data.component_id, getBlockInstance(block))
-	}
-}
-
-async function onModifyComplete(data: any) {
-	canvasStore.isAIStreaming = false
-	loading.value = false
-	statusMessage.value = ""
-	modifyStreamBuffer.value = ""
-
-	const block: Block = data.block
-	if (!block) {
-		error.value = "No block was returned. Try a more specific request."
-		return
-	}
-
-	replaceBlockInTree(data.component_id, getBlockInstance(block))
-	canvasStore.activeCanvas?.history?.resume(historyPauseId, true)
-	historyPauseId = undefined
-	toast.success("Block updated")
-	prompt.value = ""
-	reloadSession()
-}
-
-function onModifyError(data: any) {
-	canvasStore.isAIStreaming = false
-	canvasStore.activeCanvas?.history?.resume(historyPauseId)
-	historyPauseId = undefined
-	loading.value = false
-	statusMessage.value = ""
-	modifyStreamBuffer.value = ""
-	error.value = data.message || "Update failed. Please try again."
-}
-
-function replaceBlockInTree(componentId: string, newBlock: Block) {
-	const canvas = canvasStore.activeCanvas
-	if (!canvas) return
-	const oldBlock = canvas.findBlock(componentId)
-	if (!oldBlock) return
-	const parent = oldBlock.getParentBlock()
-	if (!parent) return
-	parent.replaceChild(oldBlock, newBlock)
+function warnIfNoVision(): boolean {
+	if (isVisionModel.value) return true
+	toast.error(`${modelLabel.value} can't read images. Pick a vision-capable model to attach a design.`)
+	return false
 }
 
 function setupListeners() {
 	if (!socket || !pageId.value) return
-	const id = pageId.value
-	socket.on(`ai_generation_progress_${id}`, onProgress)
-	socket.on(`ai_generation_stream_${id}`, onStream)
-	socket.on(`ai_generation_complete_${id}`, onComplete)
-	socket.on(`ai_generation_error_${id}`, onError)
-	socket.on(`ai_modify_progress_${id}`, onModifyProgress)
-	socket.on(`ai_modify_stream_${id}`, onModifyStream)
-	socket.on(`ai_modify_complete_${id}`, onModifyComplete)
-	socket.on(`ai_modify_error_${id}`, onModifyError)
+	controller.attach(pageId.value)
 }
 
 function detachListeners() {
 	if (!socket || !pageId.value) return
-	const id = pageId.value
-	socket.off(`ai_generation_progress_${id}`, onProgress)
-	socket.off(`ai_generation_stream_${id}`, onStream)
-	socket.off(`ai_generation_complete_${id}`, onComplete)
-	socket.off(`ai_generation_error_${id}`, onError)
-	socket.off(`ai_modify_progress_${id}`, onModifyProgress)
-	socket.off(`ai_modify_stream_${id}`, onModifyStream)
-	socket.off(`ai_modify_complete_${id}`, onModifyComplete)
-	socket.off(`ai_modify_error_${id}`, onModifyError)
+	controller.detach(pageId.value)
 }
 
 watch(
@@ -343,42 +419,26 @@ watch(
 )
 
 async function generate() {
-	if (!prompt.value.trim()) return
-	loading.value = true
-	error.value = ""
-	statusMessage.value = ""
+	const text = prompt.value.trim()
+	const hasImage = !!controller.imageData.value
+	if (!text && !hasImage) return
+	prompt.value = ""
+	// An attached design with no words is still a valid instruction: reproduce it.
+	await controller.submit(text || "Reproduce this attached design as a page.", selectedModel.value)
+}
 
-	messages.value = [...messages.value, { id: Date.now(), role: "user", content: prompt.value }]
-	scrollToBottom()
+function stop() {
+	controller.cancel()
+}
 
-	historyPauseId = canvasStore.activeCanvas?.history?.pause()
-	try {
-		if (isModifyMode.value && selectedBlock.value) {
-			await call("studio.ai.page_generator.modify_block_from_prompt", {
-				prompt: prompt.value,
-				block_context: getBlockString(selectedBlock.value),
-				model: selectedModel.value,
-				page_id: pageId.value,
-				component_id: selectedBlock.value.componentId,
-			})
-		} else {
-			await call("studio.ai.page_generator.generate_page_from_prompt", {
-				prompt: prompt.value,
-				model: selectedModel.value,
-				page_id: pageId.value,
-			})
-		}
-	} catch (e: any) {
-		canvasStore.activeCanvas?.history?.resume(historyPauseId)
-		historyPauseId = undefined
-		loading.value = false
-		statusMessage.value = ""
-		error.value = e?.message || "Failed to start. Please try again."
-	}
+// A clarification option or plan approval is just the user's next message.
+function sendPrompt(text: string) {
+	if (loading.value) return
+	controller.submit(text, selectedModel.value)
 }
 
 async function clearSession() {
-	await call("studio.ai.page_generator.clear_ai_session", { page_id: pageId.value })
+	await call("studio.ai.api.clear_ai_session", { page_id: pageId.value })
 	messages.value = []
 }
 </script>

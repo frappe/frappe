@@ -15,6 +15,7 @@ class ModelRegistry:
 		{"id": "openrouter/google/gemini-3.1-pro-preview", "label": "Gemini 3.1 Pro", "vision_capable": True},
 		{"id": "openrouter/google/gemini-3-flash-preview", "label": "Gemini 3 Flash", "vision_capable": True},
 		{"id": "openrouter/openai/gpt-5-mini", "label": "GPT-5 Mini", "vision_capable": True},
+		{"id": "openrouter/z-ai/glm-5.2", "label": "GLM 5.2", "vision_capable": False},
 		{"id": "openrouter/qwen/qwen3.7-max", "label": "Qwen 3.7 Max", "vision_capable": False},
 		{"id": "openrouter/moonshotai/kimi-k2.6", "label": "Kimi K2.6", "vision_capable": True},
 	]
@@ -23,19 +24,29 @@ class ModelRegistry:
 	SIMPLE = "openrouter/google/gemini-3-flash-preview"
 
 	@classmethod
-	def get_default(cls) -> str:
-		return cls.DEFAULT
-
-	@classmethod
-	def get_simple(cls) -> str:
-		return cls.SIMPLE
-
-	@classmethod
 	def get_label(cls, model_id: str) -> str:
 		for m in cls.AVAILABLE:
 			if m["id"] == model_id:
 				return m["label"]
 		return model_id
+
+	@classmethod
+	def is_vision_capable(cls, model_id: str) -> bool:
+		"""Whether the model can read images — used to decide if an attached screenshot is
+		sent to it. Unknown models are treated as vision-capable (most are)."""
+		for m in cls.AVAILABLE:
+			if m["id"] == model_id:
+				return bool(m.get("vision_capable"))
+		return True
+
+	@classmethod
+	def get_fallbacks(cls, model_id: str) -> list[str]:
+		"""Safety net when the chosen model is unavailable: fall back to the cheap,
+		widely-available SIMPLE model. Driven by the registry so the LLM adapter
+		carries no hardcoded model strings."""
+		if not model_id or cls.SIMPLE in model_id:
+			return []
+		return [cls.SIMPLE]
 
 	@classmethod
 	def list_all(cls) -> list:

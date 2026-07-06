@@ -253,6 +253,16 @@ const useStudioStore = defineStore("store", () => {
 			})
 	}
 
+	// A server tool (AI) wrote the page script straight to the DB / code file, so re-fetch the
+	// page and re-run setup() on the canvas. (Standard pages update only after their app rebuilds.)
+	async function reloadActivePageScript() {
+		if (!activePage.value) return
+		const page = await fetchPage(activePage.value.name)
+		if (!page) return
+		activePage.value = page
+		await codeStore.setPageScript(page, Boolean(page.is_standard))
+	}
+
 	async function publishPage() {
 		if (!selectedPage.value) return
 
@@ -551,6 +561,7 @@ const useStudioStore = defineStore("store", () => {
 		savePage,
 		updateActivePage,
 		setActivePageScript,
+		reloadActivePageScript,
 		publishPage,
 		unpublishPage,
 		publishApp,

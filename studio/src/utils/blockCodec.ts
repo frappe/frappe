@@ -11,7 +11,7 @@ export function expandBlock(node: Record<string, any>): BlockOptions {
 		baseStyles: node.style ?? {},
 		rawStyles: node.rstyle ?? {},
 		componentProps: node.props ?? {},
-		componentSlots: node.slots ?? {},
+		componentSlots: expandSlots(node.slots),
 		mobileStyles: node.mstyle ?? {},
 		tabletStyles: node.tstyle ?? {},
 		children: Array.isArray(node.c) ? node.c.map(expandBlock) : [],
@@ -20,8 +20,40 @@ export function expandBlock(node: Record<string, any>): BlockOptions {
 	if (node.id) block.componentId = node.id
 	if (node.originalElement) block.originalElement = node.originalElement
 	if (node.label) block.blockName = node.label
+	if (node.events) block.componentEvents = expandEvents(node.events)
+	if (node.visibility) block.visibilityCondition = node.visibility
 
 	return block
+}
+
+/** Expand the compact `slots` map ({slotName: [compact blocks] | "html string"}) into Studio
+ * componentSlots. slotId/parentBlockId are backfilled by the Block constructor (initializeSlots).
+ * Mirrors BlockCodec._expand_slots. */
+function expandSlots(slots: Record<string, any> | undefined): Record<string, any> {
+	const out: Record<string, any> = {}
+	if (!slots || typeof slots !== "object") return out
+	for (const [name, content] of Object.entries(slots)) {
+		if (Array.isArray(content)) {
+			out[name] = { slotName: name, slotContent: content.map(expandBlock) }
+		} else if (typeof content === "string") {
+			out[name] = { slotName: name, slotContent: content }
+		}
+	}
+	return out
+}
+
+/** Expand the compact `events` map (eventName → script, or → full object) into Studio
+ * componentEvents. A bare string is a 'Run Script' handler. Mirrors BlockCodec._expand_events. */
+function expandEvents(events: Record<string, any>): Record<string, any> {
+	const out: Record<string, any> = {}
+	for (const [name, val] of Object.entries(events || {})) {
+		if (typeof val === "string") {
+			out[name] = { event: name, action: "Run Script", script: val }
+		} else if (val && typeof val === "object") {
+			out[name] = { event: name, action: "Run Script", ...val }
+		}
+	}
+	return out
 }
 
 /**

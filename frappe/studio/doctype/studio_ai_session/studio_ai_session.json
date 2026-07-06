@@ -1,6 +1,6 @@
 {
  "actions": [],
- "creation": "2026-05-26 12:00:00.000000",
+ "creation": "2026-05-26 12:00:00",
  "default_view": "List",
  "doctype": "DocType",
  "engine": "InnoDB",
@@ -10,8 +10,7 @@
   "selected_model",
   "last_task_type",
   "is_running",
-  "last_interaction_on",
-  "messages_json"
+  "last_interaction_on"
  ],
  "fields": [
   {
@@ -52,17 +51,12 @@
    "in_list_view": 1,
    "label": "Last Interaction On",
    "read_only": 1
-  },
-  {
-   "fieldname": "messages_json",
-   "fieldtype": "Long Text",
-   "label": "Messages JSON"
   }
  ],
  "hide_toolbar": 1,
  "index_web_pages_for_search": 1,
  "links": [],
- "modified": "2026-05-26 12:00:00.000000",
+ "modified": "2026-07-03 12:21:48.377553",
  "modified_by": "Administrator",
  "module": "Studio",
  "name": "Studio AI Session",

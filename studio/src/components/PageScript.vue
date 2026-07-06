@@ -78,7 +78,7 @@ const dirty = computed(() => script.value !== savedScript.value)
 
 // Reset when switching pages.
 watch(
-	() => activePage.value?.name,
+	() => [activePage.value?.name, activePage.value?.script],
 	() => {
 		script.value = activePage.value?.script || ""
 		savedScript.value = activePage.value?.script || ""
