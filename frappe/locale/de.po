@@ -3,7 +3,7 @@ msgstr ""
 "Project-Id-Version: frappe\n"
 "Report-Msgid-Bugs-To: developers@frappe.io\n"
 "POT-Creation-Date: 2026-07-05 10:14+0000\n"
-"PO-Revision-Date: 2026-07-05 21:50\n"
+"PO-Revision-Date: 2026-07-06 22:04\n"
 "Last-Translator: developers@frappe.io\n"
 "Language-Team: German\n"
 "MIME-Version: 1.0\n"
@@ -36239,7 +36239,7 @@ msgstr "{0} Google-Kontakte synchronisiert"
 
 #: frappe/public/js/frappe/form/footer/form_timeline.js:469
 msgid "{0} Liked"
-msgstr "{0} Gefällt mir"
+msgstr "Gefällt {0}"
 
 #: frappe/public/js/frappe/ui/toolbar/search_utils.js:278
 #: frappe/public/js/frappe/ui/toolbar/search_utils.js:279
@@ -36741,7 +36741,7 @@ msgstr "Zuletzt von {0} bearbeitet"
 
 #: frappe/desk/form/activity.py:164
 msgid "{0} liked"
-msgstr "{0} gefällt mir"
+msgstr "Gefällt {0}"
 
 #: frappe/core/doctype/activity_log/feed.py:13
 msgid "{0} logged in"
