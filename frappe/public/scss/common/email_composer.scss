@@ -179,6 +179,51 @@
 		}
 	}
 
+	// Use HTML / Add CSS toggles — thin bar shown only when the selected Email Template
+	// has use_html=1. Hidden by default via the `hidden` attribute set from JS.
+	// Overrides Frappe's `.checkbox label { padding-top: 2.5px; align-items: start }` from
+	// global.scss and hides the empty .disp-area/.help spans so the two checkboxes align.
+	.gmail-html-toggles {
+		display: flex;
+		align-items: center;
+		gap: var(--padding-md);
+		padding: var(--padding-xs) var(--padding-md);
+		border-bottom: 1px solid var(--border-color);
+		font-size: var(--text-sm);
+
+		&[hidden] {
+			display: none;
+		}
+
+		.frappe-control,
+		.checkbox {
+			margin: 0;
+		}
+
+		label {
+			display: flex;
+			align-items: center;
+			gap: var(--padding-xs);
+			margin: 0;
+			padding: 0;
+		}
+
+		.disp-area,
+		.help {
+			display: none;
+		}
+
+		.help-box {
+			display: none;
+		}
+	}
+
+	// Hide the Code editor's Expand button (no unique class, see code.js:68) — full-screen
+	// expand doesn't fit inside the floating compose.
+	.gmail-message-area .frappe-control[data-fieldname="html_content"] .btn {
+		display: none;
+	}
+
 	// Message body — fill remaining vertical space; Quill's toolbar is hidden by default
 	// and shown when the Aa icon is active (.show-toolbar class on the message area).
 	.gmail-message-area {
