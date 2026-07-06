@@ -354,6 +354,8 @@ class Agent:
 	def _invoke(self, call: ToolCall) -> Any:
 		"""Run a tool and return its raw result. A Question (returned or synthesized for
 		`requires_confirmation` tools) signals a pause."""
+		if call.error:
+			return json.dumps({"error": call.error})
 		tool = self._tools_by_name.get(call.name)
 		if tool is None:
 			return json.dumps({"error": f"Unknown tool: {call.name!r}"})
