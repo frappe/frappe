@@ -7,8 +7,6 @@ frappe.provide("frappe.views");
 (function () {
 	var method_prefix = "frappe.desk.doctype.kanban_board.kanban_board.";
 
-	let columns_unwatcher = null;
-
 	var store = createStore({
 		state: {
 			doctype: "",
@@ -297,6 +295,8 @@ frappe.provide("frappe.views");
 		self.cur_list = opts.cur_list;
 		self.board_name = opts.board_name;
 		self.board_perms = self.cur_list.board_perms;
+		self.unwatchers = [];
+		self.columns = [];
 
 		self.update = function (cards) {
 			// update cards internally
@@ -311,21 +311,30 @@ frappe.provide("frappe.views");
 
 		function init() {
 			store.dispatch("init", opts);
-			columns_unwatcher && columns_unwatcher();
-			store.watch((state, getters) => {
-				return state.columns;
-			}, make_columns);
+			self.unwatchers.forEach((unwatch) => unwatch());
+			self.unwatchers = [];
+			self.unwatchers.push(
+				store.watch((state, getters) => {
+					return state.columns;
+				}, make_columns)
+			);
 			prepare();
 			make_columns();
-			store.watch((state, getters) => {
-				return state.cur_list;
-			}, setup_restore_columns);
-			columns_unwatcher = store.watch((state, getters) => {
-				return state.columns;
-			}, setup_restore_columns);
-			store.watch((state, getters) => {
-				return state.empty_state;
-			}, show_empty_state);
+			self.unwatchers.push(
+				store.watch((state, getters) => {
+					return state.cur_list;
+				}, setup_restore_columns)
+			);
+			self.unwatchers.push(
+				store.watch((state, getters) => {
+					return state.columns;
+				}, setup_restore_columns)
+			);
+			self.unwatchers.push(
+				store.watch((state, getters) => {
+					return state.empty_state;
+				}, show_empty_state)
+			);
 
 			store.dispatch("update_order");
 		}
@@ -344,11 +353,13 @@ frappe.provide("frappe.views");
 		}
 
 		function make_columns() {
+			self.columns.forEach((column) => column.unwatch && column.unwatch());
+			self.columns = [];
 			self.$kanban_board.find(".kanban-column").not(".add-new-column").remove();
 			var columns = store.state.columns;
 
-			columns.filter(is_active_column).map(function (col) {
-				frappe.views.KanbanBoardColumn(col, self.$kanban_board, self.board_perms);
+			self.columns = columns.filter(is_active_column).map(function (col) {
+				return frappe.views.KanbanBoardColumn(col, self.$kanban_board, self.board_perms);
 			});
 		}
 
@@ -531,7 +542,7 @@ frappe.provide("frappe.views");
 			make_dom();
 			setup_sortable();
 			make_cards();
-			store.watch((state, getters) => {
+			self.unwatch = store.watch((state, getters) => {
 				return state.cards;
 			}, make_cards);
 			bind_add_card();
@@ -695,6 +706,8 @@ frappe.provide("frappe.views");
 		}
 
 		init();
+
+		return self;
 	};
 
 	frappe.views.KanbanBoardCard = function (card, wrapper) {
