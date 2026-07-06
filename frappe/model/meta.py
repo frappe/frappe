@@ -153,7 +153,7 @@ class Meta(Document):
 
 	def as_dict(self, no_nulls=False):
 		def serialize(doc):
-			out = {}
+			out = frappe._dict()
 			for key, value in doc.__dict__.items():
 				if isinstance(value, list | tuple):
 					if not value or not isinstance(value[0], BaseDocument):

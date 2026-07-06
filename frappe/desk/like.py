@@ -33,6 +33,8 @@ def _toggle_like(doctype, name, add, user=None):
 	if not user:
 		user = frappe.session.user
 
+	frappe.has_permission(doctype, "read", doc=name, throw=True)
+
 	try:
 		liked_by = frappe.db.get_value(doctype, name, "_liked_by")
 

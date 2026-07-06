@@ -179,7 +179,6 @@ frappe.ui.FieldSelect = class FieldSelect {
 
 		if (
 			frappe.model.no_value_type.indexOf(df.fieldtype) == -1 &&
-			!df.hidden &&
 			!(me.fields_by_name[df.parent] && me.fields_by_name[df.parent][df.fieldname])
 		) {
 			this.options.push({

@@ -18,7 +18,13 @@ EMAIL_PATTERN = re.compile(r"(^[a-zA-Z0-9_.+-]+@[a-zA-Z0-9-]+\.[a-zA-Z0-9-.]+$)"
 @frappe.whitelist(allow_guest=True)
 @rate_limit(key="reference_name", limit=get_comment_limit, seconds=60 * 60)
 def add_comment(
-	comment: str, comment_email: str, comment_by: str, reference_doctype: str, reference_name: str, route: str
+	comment: str,
+	comment_email: str,
+	comment_by: str,
+	reference_doctype: str,
+	reference_name: str,
+	route: str,
+	web_form: str | None = None,
 ):
 	if frappe.session.user == "Guest":
 		if reference_doctype not in ("Blog Post", "Web Page"):
@@ -30,7 +36,7 @@ def add_comment(
 			return
 
 		if frappe.db.exists("User", comment_email):
-			frappe.throw(_("Please login to post a comment."))
+			frappe.throw(_("Please login to post a comment."), exc=frappe.AuthenticationError)
 
 	if not comment.strip():
 		frappe.msgprint(_("The comment cannot be empty"))
@@ -42,7 +48,22 @@ def add_comment(
 
 	comment_email = frappe.session.user
 	comment_by = frappe.get_value("User", frappe.session.user, "full_name")
+
+	perm_flag = True
 	doc = frappe.get_doc(reference_doctype, reference_name)
+	if web_form:
+		web_form = frappe.get_lazy_doc("Web Form", web_form)
+		perm_flag = web_form.doc_type == reference_doctype and web_form.has_web_form_permission(
+			reference_doctype, reference_name
+		)
+	elif not (frappe.session.user == "Guest" and reference_doctype in ("Blog Post", "Web Page")):
+		perm_flag = doc.has_permission()
+
+	if not perm_flag:
+		if frappe.session.user == "Guest":
+			raise frappe.AuthenticationError
+		raise frappe.PermissionError
+
 	comment = doc.add_comment(text=clean_html(comment), comment_email=comment_email, comment_by=comment_by)
 
 	comment.db_set("published", 1)

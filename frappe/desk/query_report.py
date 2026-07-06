@@ -193,13 +193,35 @@ def get_reference_report(report):
 def run(
 	report_name,
 	filters=None,
+	user=None,  # Kept for backward compatibility
+	ignore_prepared_report=False,
+	custom_columns=None,
+	is_tree=False,
+	parent_field=None,
+	are_default_filters=True,
+) -> dict:
+	return _run(
+		report_name=report_name,
+		filters=filters,
+		ignore_prepared_report=ignore_prepared_report,
+		custom_columns=custom_columns,
+		is_tree=is_tree,
+		parent_field=parent_field,
+		are_default_filters=are_default_filters,
+	)
+
+
+def _run(
+	*,
+	report_name: str,
+	filters=None,
 	user=None,
 	ignore_prepared_report=False,
 	custom_columns=None,
 	is_tree=False,
 	parent_field=None,
 	are_default_filters=True,
-):
+) -> dict:
 	if not user:
 		user = frappe.session.user
 	validate_filters_permissions(report_name, filters, user)

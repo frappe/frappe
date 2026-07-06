@@ -107,11 +107,11 @@ def patch_query_execute():
 	def prepare_query(query):
 		import inspect
 
+		from frappe.utils.safe_exec import SERVER_SCRIPT_FILE_PREFIX, check_safe_sql_query
+
 		param_collector = NamedParameterWrapper()
 		query = query.get_sql(param_wrapper=param_collector)
 		if frappe.flags.in_safe_exec:
-			from frappe.utils.safe_exec import SERVER_SCRIPT_FILE_PREFIX, check_safe_sql_query
-
 			if not check_safe_sql_query(query, throw=False):
 				callstack = inspect.stack()
 
@@ -127,6 +127,9 @@ def patch_query_execute():
 				# if frame2 is server script <serverscript> is set as the filename it shouldn't be allowed.
 				if len(callstack) >= 3 and SERVER_SCRIPT_FILE_PREFIX in callstack[2].filename:
 					raise frappe.PermissionError("Only SELECT SQL allowed in scripting")
+
+		if frappe.local.flags.get("in_render_safe_exec", False):
+			check_safe_sql_query(query, throw=True)
 
 		return query, param_collector.get_parameters()
 

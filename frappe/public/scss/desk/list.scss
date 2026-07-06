@@ -439,6 +439,18 @@ input.list-check-all {
 		.btn-group {
 			margin: var(--margin-xs) 0 var(--margin-xs) var(--margin-xs);
 		}
+
+		.dropdown-menu {
+			// Keep the menu above the sticky navbar (z-index 1020). When the
+			// browser is zoomed in, the shorter viewport makes the menu flip
+			// upward and overlap the navbar; without this the top items end up
+			// behind the header and become inaccessible.
+			z-index: 1030;
+			// Cap the height so the menu scrolls instead of overflowing past the
+			// viewport edge when there is little vertical room (e.g. on zoom).
+			max-height: 60vh;
+			overflow-y: auto;
+		}
 	}
 }
 

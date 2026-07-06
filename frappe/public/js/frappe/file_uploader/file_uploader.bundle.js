@@ -28,7 +28,7 @@ class FileUploader {
 		allow_toggle_optimize,
 		allow_google_drive,
 	} = {}) {
-		frm && frm.attachments.max_reached(true);
+		frm?.attachments?.max_reached?.(true);
 
 		if (!wrapper) {
 			this.make_dialog(dialog_title);

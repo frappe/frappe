@@ -462,7 +462,7 @@ class BaseDocument:
 		return frappe.local.valid_columns[self.doctype]
 
 	def is_new(self) -> bool:
-		return self.get("__islocal")
+		return bool(self.get("__islocal"))
 
 	@property
 	def docstatus(self) -> DocStatus:
