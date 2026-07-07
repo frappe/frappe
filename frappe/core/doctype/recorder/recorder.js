@@ -7,6 +7,21 @@ frappe.ui.form.on("Recorder", {
 	},
 	refresh: function (frm) {
 		frm.disable_save();
+
+		const capture = frm.doc.memray_capture;
+		if (capture) {
+			const url = `/api/method/frappe.core.doctype.recorder.recorder.view_memray_flamegraph?recorder_id=${encodeURIComponent(
+				frm.doc.name
+			)}`;
+			const html = `
+			<div style="padding: 8px 0;">
+				<div class="text-muted" style="margin-bottom: 8px;">${__("Memray Flamegraph")}</div>
+			</div>
+	<iframe src="${url}" width="100%" height="700" style="border:0; border-radius: 10px;"></iframe>`;
+			frm.set_df_property("memray_flamegraph", "options", html);
+			refresh_field("memray_flamegraph");
+		}
+
 		frm._sort_order = {};
 		frm.trigger("setup_sort");
 		frm.fields_dict.sql_queries.grid.grid_pagination.page_length = 500;

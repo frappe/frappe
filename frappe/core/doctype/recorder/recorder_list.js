@@ -155,6 +155,11 @@ frappe.listview_settings["Recorder"] = {
 				},
 				{
 					fieldtype: "Section Break",
+					fieldname: "python_section",
+					label: "Python",
+				},
+				{
+					fieldtype: "Column Break",
 					fieldname: "sql_section",
 					label: "SQL",
 				},
@@ -175,6 +180,23 @@ frappe.listview_settings["Recorder"] = {
 					fieldtype: "Check",
 					label: "Capture callstack of SQL queries",
 					default: 1,
+				},
+				{
+					fieldtype: "Column Break",
+					fieldname: "memray_section",
+					label: "Memray",
+				},
+				{
+					fieldname: "memray_profile",
+					fieldtype: "Check",
+					label: "Enable memray",
+					default: 0,
+				},
+				{
+					fieldname: "memray_modules",
+					fieldtype: "Data",
+					label: "Tracked modules",
+					placeholder: "api, website, rpc, background_jobs, scheduler, cli",
 				},
 				{
 					fieldtype: "Section Break",

@@ -1,7 +1,7 @@
 # Copyright (c) 2015, Frappe Technologies Pvt. Ltd. and Contributors
 # License: MIT. See LICENSE
 from contextlib import suppress
-from enum import Enum, StrEnum
+from enum import Enum
 
 from werkzeug.exceptions import NotFound
 from werkzeug.routing import Map, Submount
@@ -15,11 +15,15 @@ from frappe.utils.response import build_response
 from frappe.utils.telemetry.pulse.app_heartbeat_event import capture_app_heartbeat
 
 
-class ApiVersion(StrEnum):
+class ApiVersion(str, Enum):
 	V1 = "v1"
 	V2 = "v2"
 
 
+from frappe.utils.memray import MemrayModule, memray_profile
+
+
+@memray_profile(MemrayModule.API)
 def handle(request: Request):
 	"""
 	Entry point for `/api` methods.
@@ -60,7 +64,6 @@ def handle(request: Request):
 	except NotFound:  # Wrap 404 - backward compatiblity
 		raise frappe.DoesNotExistError
 
-	assert callable(endpoint), "URL map must resolve to a callable endpoint"
 	data = endpoint(**arguments)
 	if isinstance(data, Response):
 		return data

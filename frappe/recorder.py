@@ -42,6 +42,8 @@ class RecorderConfig:
 	explain: bool = True  # Provide explain output of SQL queries
 	request_filter: str = "/"  # Filter request paths
 	jobs_filter: str = ""  # Filter background jobs
+	memray_profile: bool = False
+	memray_modules: str = ""
 
 	def __post_init__(self):
 		if not (self.record_jobs or self.record_requests):
@@ -279,6 +281,10 @@ class Recorder:
 		request_data["headers"] = self.headers
 		request_data["form_dict"] = self.form_dict
 		request_data["profile"] = profiler_output
+
+		if getattr(frappe.local, "memray_capture", None):
+			request_data["memray_capture"] = frappe.local.memray_capture
+
 		frappe.cache.hset(RECORDER_REQUEST_HASH, self.uuid, request_data)
 
 		self._unpatch_sql()
@@ -336,6 +342,8 @@ def start(
 	explain: bool = True,
 	request_filter: str = "/",
 	jobs_filter: str = "",
+	memray_profile: bool = False,
+	memray_modules: str = "",
 	*args,
 	**kwargs,
 ):
@@ -348,6 +356,8 @@ def start(
 		explain=int(explain),
 		request_filter=request_filter,
 		jobs_filter=jobs_filter,
+		memray_profile=memray_profile,
+		memray_modules=memray_modules,
 	).store()
 	frappe.client_cache.set_value(RECORDER_INTERCEPT_FLAG, True)
 	frappe.cache.expire_key(RECORDER_INTERCEPT_FLAG, RECORDER_AUTO_DISABLE)
@@ -359,6 +369,10 @@ def start(
 def stop(*args, **kwargs):
 	frappe.client_cache.set_value(RECORDER_INTERCEPT_FLAG, False)
 	frappe.enqueue(post_process, now=frappe.in_test)
+
+	config = RecorderConfig.retrieve()
+	config.memray_profile = False
+	config.store()
 
 
 @frappe.whitelist()

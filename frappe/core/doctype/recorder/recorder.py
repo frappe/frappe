@@ -1,7 +1,11 @@
 # Copyright (c) 2023, Frappe Technologies and contributors
 # For license information, please see license.txt
 
+import json
+import os
 from collections import Counter, defaultdict
+
+from werkzeug.wrappers import Response
 
 import frappe
 from frappe import _
@@ -15,8 +19,6 @@ from frappe.utils.caching import redis_cache
 
 
 class Recorder(Document):
-	_DOCTYPE_NAME = "Recorder"
-
 	# begin: auto-generated types
 	# This code is auto-generated. Do not modify anything in this block.
 
@@ -101,6 +103,7 @@ def serialize_request(request):
 		for i in request.calls:
 			i["stack"] = frappe.as_json(i["stack"])
 			i["explain_result"] = frappe.as_json(i["explain_result"])
+
 	request.update(
 		name=request.get("uuid"),
 		number_of_queries=request.get("queries"),
@@ -111,15 +114,41 @@ def serialize_request(request):
 		suggested_indexes=request.get("suggested_indexes"),
 		modified=request.get("time"),
 		creation=request.get("time"),
+		memray_capture=request.get("memray_capture"),
+		memray_flamegraph="",
 	)
 
 	return request
 
 
 @frappe.whitelist()
-def add_indexes(indexes: str | list[dict]):
+def view_memray_flamegraph(recorder_id: str):
 	frappe.only_for("Administrator")
-	indexes = frappe.parse_json(indexes)
+
+	request = frappe.cache.hget(RECORDER_REQUEST_HASH, recorder_id)
+	if not request:
+		raise frappe.DoesNotExistError
+
+	memray_capture = request.get("memray_capture")
+	if not memray_capture:
+		raise frappe.DoesNotExistError("Memray flamegraph not found")
+
+	memray_path = os.path.abspath(memray_capture)
+	allowed_root = os.path.abspath(frappe.get_site_path("profiler", "memray"))
+	if os.path.commonpath([memray_path, allowed_root]) != allowed_root:
+		raise frappe.PermissionError
+
+	if not os.path.exists(memray_path):
+		raise frappe.DoesNotExistError("Memray flamegraph file not found")
+
+	with open(memray_path, encoding="utf-8", errors="replace") as flamegraph_file:
+		return Response(flamegraph_file.read(), mimetype="text/html")
+
+
+@frappe.whitelist()
+def add_indexes(indexes: str):
+	frappe.only_for("Administrator")
+	indexes = json.loads(indexes)
 
 	for index in indexes:
 		frappe.enqueue(_add_index, table=index["table"], column=index["column"])

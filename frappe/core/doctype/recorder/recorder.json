@@ -23,7 +23,9 @@
   "suggested_indexes",
   "sql_queries",
   "section_break_optn",
-  "profile"
+  "profile",
+  "memray_capture",
+  "memray_flamegraph"
  ],
  "fields": [
   {
@@ -127,6 +129,16 @@
    "fieldtype": "Table",
    "label": "Suggested Indexes",
    "options": "Recorder Suggested Index"
+  },
+  {
+    "fieldname": "memray_flamegraph",
+    "fieldtype": "HTML"
+  },
+  {
+   "fieldname": "memray_capture",
+   "fieldtype": "Data",
+   "hidden": 1,
+   "read_only": 1
   }
  ],
  "hide_toolbar": 1,
