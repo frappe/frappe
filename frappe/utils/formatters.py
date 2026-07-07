@@ -95,7 +95,7 @@ def format_value(value, df=None, doc=None, currency=None, translated=False, form
 		return fmt_money(value, precision=precision, currency=currency)
 
 	elif df.get("fieldtype") == "Int":
-		return "" if value == "" else cint(value)
+		return "" if value == "" else cstr(cint(value))
 
 	elif df.get("fieldtype") == "Percent":
 		return f"{flt(value, 2)}%"
