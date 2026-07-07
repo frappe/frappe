@@ -111,4 +111,31 @@ context("Grid", () => {
 				cy.get("@table-form").find(".grid-footer-toolbar").click();
 			});
 	});
+	it("keeps child table in sync after backend removes a reordered row", () => {
+		cy.visit("/app/log-settings");
+		cy.window()
+			.its("cur_frm")
+			.then((frm) => {
+				// add an unsupported doctype and move it off the last position
+				frm.add_child("logs_to_clear", { ref_doctype: "User", days: 30 });
+				const rows = frm.doc.logs_to_clear;
+				rows.splice(1, 0, rows.pop());
+				rows.forEach((row, i) => (row.idx = i + 1));
+				frm.refresh_field("logs_to_clear");
+			});
+		cy.save();
+		cy.get(".modal-dialog").contains("not supported").should("be.visible");
+		cy.get(".modal-header .btn-modal-close").click({ force: true });
+		cy.window()
+			.its("cur_frm")
+			.then((frm) => {
+				const rows = frm.doc.logs_to_clear;
+				// the unsupported row is gone and no empty/ghost rows remain
+				expect(rows.find((row) => row.ref_doctype === "User")).to.be.undefined;
+				expect(rows.every((row) => row.ref_doctype)).to.be.true;
+				cy.get(
+					'.frappe-control[data-fieldname="logs_to_clear"] .grid-body .grid-row'
+				).should("have.length", rows.length);
+			});
+	});
 });
