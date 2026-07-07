@@ -141,6 +141,7 @@ Object.assign(frappe.model, {
 
 				const reconciled = [];
 				for (const d of doc[fieldname]) {
+					if (!d.name) d.name = frappe.model.get_new_name(doc.doctype);
 					let local_d = local_by_name[d.name];
 
 					if (!local_d && unmatched_new_rows.length) {
