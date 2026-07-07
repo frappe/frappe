@@ -112,10 +112,12 @@ context("Grid", () => {
 			});
 	});
 	it("keeps child table in sync after backend removes a reordered row", () => {
+		let original_order;
 		cy.visit("/app/log-settings");
 		cy.window()
 			.its("cur_frm")
 			.then((frm) => {
+				original_order = frm.doc.logs_to_clear.map((row) => row.ref_doctype);
 				// add an unsupported doctype and move it off the last position
 				frm.add_child("logs_to_clear", { ref_doctype: "User", days: 30 });
 				const rows = frm.doc.logs_to_clear;
@@ -136,6 +138,15 @@ context("Grid", () => {
 				cy.get(
 					'.frappe-control[data-fieldname="logs_to_clear"] .grid-body .grid-row'
 				).should("have.length", rows.length);
+				// restore the original order so the global singleton is left untouched
+				rows.sort(
+					(a, b) =>
+						original_order.indexOf(a.ref_doctype) -
+						original_order.indexOf(b.ref_doctype)
+				);
+				rows.forEach((row, i) => (row.idx = i + 1));
+				frm.refresh_field("logs_to_clear");
 			});
+		cy.save();
 	});
 });
