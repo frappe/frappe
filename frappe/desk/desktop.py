@@ -466,6 +466,7 @@ def get_workspaces():
 	fields = [
 		"name",
 		"title",
+		"description",
 		"for_user",
 		"parent_page",
 		"content",

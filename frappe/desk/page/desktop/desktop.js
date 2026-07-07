@@ -55,10 +55,22 @@ class DesktopPage {
 				logo_url: app.app_logo_url,
 			};
 			const $icon = $(frappe.render_template("desktop_icon", { icon: icon_data }));
-			if (app.app_route.startsWith("http")) {
-				$icon.attr("target", "_blank");
+
+			const is_external = app.app_route && app.app_route.startsWith("http");
+			const has_workspaces = (app.workspaces || []).length > 0;
+
+			if (is_external || !has_workspaces) {
+				// external apps (and internal apps with nothing to browse) open directly
+				if (is_external) $icon.attr("target", "_blank");
+				$icon.attr("href", app.app_route);
+			} else {
+				// clicking an app lands on its workspaces in the explorer instead of jumping straight in
+				$icon.attr("href", `/desk/workspace-explorer/${encodeURIComponent(app.app_name)}`);
+				$icon.on("click", (e) => {
+					e.preventDefault();
+					frappe.set_route("workspace-explorer", app.app_name);
+				});
 			}
-			$icon.attr("href", app.app_route);
 			$grid.append($icon);
 		});
 
