@@ -42,9 +42,9 @@ bench --site bench.localhost run-microbenchmarks --filter database -o /tmp/datab
 After enabling the Rust-backed implementation, run the same filters into changed result files:
 
 ```bash
-bench --site bench.localhost run-microbenchmarks --filter qb -o /tmp/qb-rust.json
-bench --site bench.localhost run-microbenchmarks --filter orm -o /tmp/orm-rust.json
-bench --site bench.localhost run-microbenchmarks --filter database -o /tmp/database-rust.json
+FRAPPE_QUERY_BUILDER_RUST=1 bench --site bench.localhost run-microbenchmarks --filter qb --inherit-environ FRAPPE_QUERY_BUILDER_RUST -o /tmp/qb-rust.json
+FRAPPE_QUERY_BUILDER_RUST=1 bench --site bench.localhost run-microbenchmarks --filter orm --inherit-environ FRAPPE_QUERY_BUILDER_RUST -o /tmp/orm-rust.json
+FRAPPE_QUERY_BUILDER_RUST=1 bench --site bench.localhost run-microbenchmarks --filter database --inherit-environ FRAPPE_QUERY_BUILDER_RUST -o /tmp/database-rust.json
 ```
 
 Compare the results:
@@ -55,10 +55,18 @@ pyperf compare_to /tmp/orm-python.json /tmp/orm-rust.json
 pyperf compare_to /tmp/database-python.json /tmp/database-rust.json
 ```
 
-The target is at least 4x faster for direct `qb_*` construction/rendering benchmarks and at least
-30% faster for ORM benchmarks where query generation is a meaningful part of the path. Database
-benchmarks are tracked for regressions and downstream wins, but DB-I/O dominated cases are not
-expected to hit the direct QB target.
+For repeated local checks, the paired runner captures both files and runs `pyperf compare_to`:
+
+```bash
+bench --site bench.localhost compare-rust-microbenchmarks --filter qb --fast -p1 -n1
+bench --site bench.localhost compare-rust-microbenchmarks --filter orm --fast -p1 -n1
+```
+
+The current target is to be substantially faster for direct `qb_*` construction/rendering
+benchmarks and at least 30% faster for ORM benchmarks where query generation is a meaningful part of
+the path. Treat 4x faster direct QB rendering as a useful stretch target, not a hard compatibility
+gate. Database benchmarks are tracked for regressions and downstream wins, but DB-I/O dominated cases
+are not expected to hit the direct QB target.
 
 ## Getting Reliable Results
 
