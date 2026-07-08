@@ -76,3 +76,50 @@ class TestRustQueryBuilderProxy(unittest.TestCase):
 			frappe.qb.from_(role).select(role.name).join(has_role).on(role.name == has_role.role).get_sql(),
 			"SELECT `tabRole`.`name` FROM `tabRole` JOIN `tabHas Role` ON `tabRole`.`name`=`tabHas Role`.`role`",
 		)
+
+	def test_insert_sql(self):
+		singles = frappe.qb.DocType("Singles")
+
+		self.assertEqual(
+			frappe.qb.into(singles)
+			.columns("doctype", "field", "value")
+			.insert("User", "language", "en")
+			.get_sql(),
+			"INSERT INTO `tabSingles` (`doctype`,`field`,`value`) VALUES ('User','language','en')",
+		)
+
+	def test_update_sql(self):
+		role = frappe.qb.DocType("Role")
+
+		self.assertEqual(
+			frappe.qb.update(role)
+			.set(role.disabled, 0)
+			.where((role.name == "Guest") & (role.modified >= "2020-01-01 00:00:00"))
+			.get_sql(),
+			"UPDATE `tabRole` SET `disabled`=0 WHERE `name`='Guest' AND `modified`>='2020-01-01 00:00:00'",
+		)
+
+	def test_delete_sql(self):
+		role = frappe.qb.DocType("Role")
+
+		self.assertEqual(
+			frappe.qb.from_(role)
+			.delete()
+			.where((role.name == "Not_GUEST") | role.modified.isnull())
+			.get_sql(),
+			"DELETE FROM `tabRole` WHERE `name`='Not_GUEST' OR `modified` IS NULL",
+		)
+
+	def test_write_parameter_wrapper_is_preserved(self):
+		role = frappe.qb.DocType("Role")
+		params = NamedParameterWrapper()
+
+		sql = (
+			frappe.qb.update(role)
+			.set(role.role_name, "Guest' --")
+			.where(role.name == "Guest")
+			.get_sql(param_wrapper=params)
+		)
+
+		self.assertEqual(sql, "UPDATE `tabRole` SET `role_name`=%(param1)s WHERE `name`=%(param2)s")
+		self.assertEqual(params.parameters, {"param1": "Guest' --", "param2": "Guest"})

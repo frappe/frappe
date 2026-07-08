@@ -12,6 +12,8 @@ ENV_ENABLE_RUST_QB = "FRAPPE_QUERY_BUILDER_RUST"
 
 _ORIGINAL_GET_SQL_ATTR = "_frappe_python_get_sql"
 _ORIGINAL_FROM_ATTR = "_frappe_python_from"
+_ORIGINAL_INTO_ATTR = "_frappe_python_into"
+_ORIGINAL_UPDATE_ATTR = "_frappe_python_update"
 
 
 def is_enabled() -> bool:
@@ -86,6 +88,41 @@ def render_select_query(
 	)
 
 
+def render_insert(
+	table: str,
+	columns: list[str],
+	rows: list[list[str]],
+	quote_char: str | None = "`",
+) -> str:
+	backend = load_backend()
+	if backend is None or backend.render_insert is None:
+		raise RuntimeError("frappe-pypika-rs is not available")
+	return backend.render_insert(table, columns, rows, quote_char=quote_char)
+
+
+def render_update(
+	table: str,
+	assignments: list[str],
+	quote_char: str | None = "`",
+	where_sql: str | None = None,
+) -> str:
+	backend = load_backend()
+	if backend is None or backend.render_update is None:
+		raise RuntimeError("frappe-pypika-rs is not available")
+	return backend.render_update(table, assignments, quote_char=quote_char, where_sql=where_sql)
+
+
+def render_delete(
+	table: str,
+	quote_char: str | None = "`",
+	where_sql: str | None = None,
+) -> str:
+	backend = load_backend()
+	if backend is None or backend.render_delete is None:
+		raise RuntimeError("frappe-pypika-rs is not available")
+	return backend.render_delete(table, quote_char=quote_char, where_sql=where_sql)
+
+
 def patch_querybuilder_get_sql() -> None:
 	if not is_enabled() or hasattr(QueryBuilder, _ORIGINAL_GET_SQL_ATTR):
 		return
@@ -106,11 +143,12 @@ def patch_query_classes_from() -> None:
 	from frappe.query_builder.builder import MariaDB, Postgres, SQLite
 
 	for query_cls in (MariaDB, Postgres, SQLite):
-		if hasattr(query_cls, _ORIGINAL_FROM_ATTR):
-			continue
-
-		original_from = query_cls.from_
+		original_from = getattr(query_cls, _ORIGINAL_FROM_ATTR, query_cls.from_)
+		original_into = getattr(query_cls, _ORIGINAL_INTO_ATTR, query_cls.into)
+		original_update = getattr(query_cls, _ORIGINAL_UPDATE_ATTR, query_cls.update)
 		setattr(query_cls, _ORIGINAL_FROM_ATTR, original_from)
+		setattr(query_cls, _ORIGINAL_INTO_ATTR, original_into)
+		setattr(query_cls, _ORIGINAL_UPDATE_ATTR, original_update)
 
 		def from_(cls, table, *args: Any, _original_from=original_from, **kwargs: Any):
 			if args or set(kwargs) - {"immutable"}:
@@ -119,7 +157,23 @@ def patch_query_classes_from() -> None:
 				return _original_from(table, *args, **kwargs)
 			return RustSelectQuery(cls, table, _original_from, immutable=kwargs.get("immutable", True))
 
+		def into(cls, table, *args: Any, _original_into=original_into, **kwargs: Any):
+			if args or set(kwargs) - {"immutable"}:
+				return _original_into(table, *args, **kwargs)
+			if isinstance(table, Table) and table._schema is not None:
+				return _original_into(table, *args, **kwargs)
+			return RustInsertQuery(cls, table, _original_into, immutable=kwargs.get("immutable", True))
+
+		def update(cls, table, *args: Any, _original_update=original_update, **kwargs: Any):
+			if args or set(kwargs) - {"immutable"}:
+				return _original_update(table, *args, **kwargs)
+			if isinstance(table, Table) and table._schema is not None:
+				return _original_update(table, *args, **kwargs)
+			return RustUpdateQuery(cls, table, _original_update, immutable=kwargs.get("immutable", True))
+
 		query_cls.from_ = classmethod(from_)
+		query_cls.into = classmethod(into)
+		query_cls.update = classmethod(update)
 
 
 class RustSelectQuery:
@@ -189,6 +243,13 @@ class RustSelectQuery:
 		builder._orderbys.extend(orderbys)
 		return builder
 
+	def delete(self):
+		if self._fallback_query is not None:
+			return self._fallback_query.delete()
+		if self._select_terms or self._where or self._orderbys or self._limit is not None:
+			return self._to_fallback().delete()
+		return RustDeleteQuery(self.query_cls, self.table, self.original_from, immutable=self.immutable)
+
 	def limit(self, limit: int):
 		if self._fallback_query is not None:
 			return self._fallback_query.limit(limit)
@@ -246,6 +307,243 @@ class RustSelectQuery:
 				query = query.orderby(field, order=order)
 			if self._limit is not None:
 				query = query.limit(self._limit)
+			self._fallback_query = query
+		return self._fallback_query
+
+	def __getattr__(self, name: str):
+		return getattr(self._to_fallback(), name)
+
+
+class RustDeleteQuery:
+	def __init__(self, query_cls: type, table: Table, original_from: Any, immutable: bool = True):
+		self.query_cls = query_cls
+		self.table = table
+		self.original_from = original_from
+		self.immutable = immutable
+		self.quote_char = _quote_char_for_query_cls(query_cls)
+		self._where: Term | None = None
+		self._fallback_query: QueryBuilder | None = None
+
+	def __copy__(self):
+		new = type(self).__new__(type(self))
+		new.__dict__.update(self.__dict__)
+		return new
+
+	def _builder(self):
+		return self.__copy__() if self.immutable else self
+
+	def where(self, criterion: Term | EmptyCriterion):
+		if self._fallback_query is not None:
+			return self._fallback_query.where(criterion)
+		if isinstance(criterion, EmptyCriterion):
+			return self._builder()
+
+		builder = self._builder()
+		builder._where = criterion if builder._where is None else builder._where & criterion
+		return builder
+
+	def get_sql(self, **kwargs: Any) -> str:
+		if self._fallback_query is not None:
+			return self._fallback_query.get_sql(**kwargs)
+
+		quote_char = kwargs.get("quote_char", self.quote_char)
+		where_sql = self._where.get_sql(quote_char=quote_char, **kwargs) if self._where is not None else None
+		return render_delete(self.table._table_name, quote_char=quote_char, where_sql=where_sql)
+
+	def run(self, *args: Any, **kwargs: Any):
+		from frappe.query_builder.utils import execute_query
+
+		return execute_query(self, *args, **kwargs)
+
+	def walk(self):
+		from frappe.query_builder.utils import prepare_query
+
+		return prepare_query(self)
+
+	def _to_fallback(self) -> QueryBuilder:
+		if self._fallback_query is None:
+			query = self.original_from(self.table, immutable=self.immutable).delete()
+			if self._where is not None:
+				query = query.where(self._where)
+			self._fallback_query = query
+		return self._fallback_query
+
+	def __getattr__(self, name: str):
+		return getattr(self._to_fallback(), name)
+
+
+class RustInsertQuery:
+	def __init__(self, query_cls: type, table: str | Table, original_into: Any, immutable: bool = True):
+		self.query_cls = query_cls
+		self.table = query_cls.DocType(table) if isinstance(table, str) else table
+		self.original_into = original_into
+		self.immutable = immutable
+		self.quote_char = _quote_char_for_query_cls(query_cls)
+		self._columns: list[Field] = []
+		self._rows: list[list[Term]] = []
+		self._fallback_query: QueryBuilder | None = None
+
+	def __copy__(self):
+		new = type(self).__new__(type(self))
+		new.__dict__.update(self.__dict__)
+		new._columns = self._columns.copy()
+		new._rows = [row.copy() for row in self._rows]
+		return new
+
+	def _builder(self):
+		return self.__copy__() if self.immutable else self
+
+	def columns(self, *terms: Any):
+		if self._fallback_query is not None:
+			return self._fallback_query.columns(*terms)
+		if terms and isinstance(terms[0], (list, tuple)):
+			terms = terms[0]
+
+		columns = []
+		for term in terms:
+			if isinstance(term, str):
+				columns.append(Field(term, table=self.table))
+			elif isinstance(term, Field) and term.table in (None, self.table):
+				columns.append(term)
+			else:
+				return self._to_fallback().columns(*terms)
+
+		builder = self._builder()
+		builder._columns.extend(columns)
+		return builder
+
+	def insert(self, *terms: Any):
+		if self._fallback_query is not None:
+			return self._fallback_query.insert(*terms)
+		if not terms:
+			return self._builder()
+		if not isinstance(terms[0], (list, tuple, set)):
+			terms = [terms]
+
+		rows = []
+		for values in terms:
+			rows.append(
+				[
+					value if isinstance(value, Term) else self.query_cls._builder().wrap_constant(value)
+					for value in values
+				]
+			)
+
+		builder = self._builder()
+		builder._rows.extend(rows)
+		return builder
+
+	def get_sql(self, **kwargs: Any) -> str:
+		if self._fallback_query is not None:
+			return self._fallback_query.get_sql(**kwargs)
+		if not self._columns or not self._rows:
+			return ""
+
+		quote_char = kwargs.get("quote_char", self.quote_char)
+		columns = [column.name for column in self._columns]
+		rows = [
+			[value.get_sql(with_alias=True, subquery=True, quote_char=quote_char, **kwargs) for value in row]
+			for row in self._rows
+		]
+		return render_insert(self.table._table_name, columns, rows, quote_char=quote_char)
+
+	def run(self, *args: Any, **kwargs: Any):
+		from frappe.query_builder.utils import execute_query
+
+		return execute_query(self, *args, **kwargs)
+
+	def walk(self):
+		from frappe.query_builder.utils import prepare_query
+
+		return prepare_query(self)
+
+	def _to_fallback(self) -> QueryBuilder:
+		if self._fallback_query is None:
+			query = self.original_into(self.table, immutable=self.immutable)
+			if self._columns:
+				query = query.columns(*self._columns)
+			for row in self._rows:
+				query = query.insert(row)
+			self._fallback_query = query
+		return self._fallback_query
+
+	def __getattr__(self, name: str):
+		return getattr(self._to_fallback(), name)
+
+
+class RustUpdateQuery:
+	def __init__(self, query_cls: type, table: str | Table, original_update: Any, immutable: bool = True):
+		self.query_cls = query_cls
+		self.table = query_cls.DocType(table) if isinstance(table, str) else table
+		self.original_update = original_update
+		self.immutable = immutable
+		self.quote_char = _quote_char_for_query_cls(query_cls)
+		self._updates: list[tuple[Field, Term]] = []
+		self._where: Term | None = None
+		self._fallback_query: QueryBuilder | None = None
+
+	def __copy__(self):
+		new = type(self).__new__(type(self))
+		new.__dict__.update(self.__dict__)
+		new._updates = self._updates.copy()
+		return new
+
+	def _builder(self):
+		return self.__copy__() if self.immutable else self
+
+	def set(self, field: Field | str, value: Any):
+		if self._fallback_query is not None:
+			return self._fallback_query.set(field, value)
+		field = Field(field, table=self.table) if isinstance(field, str) else field
+		if not isinstance(field, Field) or field.table not in (None, self.table):
+			return self._to_fallback().set(field, value)
+		value = value if isinstance(value, Term) else self.query_cls._builder().wrap_constant(value)
+
+		builder = self._builder()
+		builder._updates.append((field, value))
+		return builder
+
+	def where(self, criterion: Term | EmptyCriterion):
+		if self._fallback_query is not None:
+			return self._fallback_query.where(criterion)
+		if isinstance(criterion, EmptyCriterion):
+			return self._builder()
+
+		builder = self._builder()
+		builder._where = criterion if builder._where is None else builder._where & criterion
+		return builder
+
+	def get_sql(self, **kwargs: Any) -> str:
+		if self._fallback_query is not None:
+			return self._fallback_query.get_sql(**kwargs)
+		if not self._updates:
+			return ""
+
+		quote_char = kwargs.get("quote_char", self.quote_char)
+		assignments = [
+			f"{field.get_sql(quote_char=quote_char, with_namespace=False, **kwargs)}={value.get_sql(quote_char=quote_char, **kwargs)}"
+			for field, value in self._updates
+		]
+		where_sql = self._where.get_sql(quote_char=quote_char, **kwargs) if self._where is not None else None
+		return render_update(self.table._table_name, assignments, quote_char=quote_char, where_sql=where_sql)
+
+	def run(self, *args: Any, **kwargs: Any):
+		from frappe.query_builder.utils import execute_query
+
+		return execute_query(self, *args, **kwargs)
+
+	def walk(self):
+		from frappe.query_builder.utils import prepare_query
+
+		return prepare_query(self)
+
+	def _to_fallback(self) -> QueryBuilder:
+		if self._fallback_query is None:
+			query = self.original_update(self.table, immutable=self.immutable)
+			for field, value in self._updates:
+				query = query.set(field, value)
+			if self._where is not None:
+				query = query.where(self._where)
 			self._fallback_query = query
 		return self._fallback_query
 
