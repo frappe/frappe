@@ -9,11 +9,16 @@ def _(msg: str, lang: str | None = None, context: str | None = None) -> str:
 	"""
 	from frappe.translate import get_all_translations
 
+	explicit_lang = lang is not None
+
 	if not hasattr(frappe.local, "lang"):
 		frappe.local.lang = lang or "en"
 
 	if not lang:
 		lang = frappe.local.lang
+
+	if explicit_lang and lang == "en" and not context:
+		return msg
 
 	all_translations = get_all_translations(lang)
 
@@ -22,21 +27,17 @@ def _(msg: str, lang: str | None = None, context: str | None = None) -> str:
 	# msg should always be unicode
 	msg = frappe.as_unicode(msg).strip()
 
-	msg_with_html = frappe.as_unicode(non_translated_string).strip()
-	msg_list = [msg, msg_with_html]
+	translated_string = ""
 
-	for msg in msg_list:
-		translated_string = ""
+	if context:
+		string_key = f"{msg}:{context}"
+		translated_string = all_translations.get(string_key)
 
-		if context:
-			string_key = f"{msg}:{context}"
-			translated_string = all_translations.get(string_key)
+	if not translated_string:
+		translated_string = all_translations.get(msg)
 
-		if not translated_string:
-			translated_string = all_translations.get(msg)
-
-		if translated_string:
-			return translated_string
+	if translated_string:
+		return translated_string
 
 	return non_translated_string
 
