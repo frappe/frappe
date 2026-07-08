@@ -108,6 +108,7 @@ Documentation = "https://docs.frappe.io/framework"
 
 [project.optional-dependencies]
 dev = [
+    "maturin>=1.8,<2",
     "pyperf==2.8.1",
     "pyngrok~=8.1.2",
     "watchdog~=6.0.0",
@@ -156,6 +157,7 @@ skip_namespaces = [
 
 [tool.bench.dev-dependencies]
 coverage = "~=7.14.1"
+maturin = ">=1.8,<2"
 pyperf = "==2.8.1"
 pyngrok = "~=8.1.2"
 unittest-xml-reporting = "~=4.0.0"
