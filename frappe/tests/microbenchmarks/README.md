@@ -58,8 +58,8 @@ pyperf compare_to /tmp/database-python.json /tmp/database-rust.json
 For repeated local checks, the paired runner captures both files and runs `pyperf compare_to`:
 
 ```bash
-bench --site bench.localhost compare-rust-microbenchmarks --filter qb --fast -p1 -n1
-bench --site bench.localhost compare-rust-microbenchmarks --filter orm --fast -p1 -n1
+bench --site bench.localhost compare-rust-microbenchmarks --filter qb --force --fast -p1 -n1
+bench --site bench.localhost compare-rust-microbenchmarks --filter orm --force --fast -p1 -n1
 ```
 
 The current target is to be substantially faster for direct `qb_*` construction/rendering

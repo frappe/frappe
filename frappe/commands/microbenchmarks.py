@@ -50,9 +50,14 @@ def run_benchmarks(ctx, benchargs):
 	show_default=True,
 	help="Directory where baseline and Rust pyperf JSON files are written.",
 )
+@click.option(
+	"--force",
+	is_flag=True,
+	help="Overwrite existing paired pyperf JSON files in the output directory.",
+)
 @click.argument("benchargs", nargs=-1, type=click.UNPROCESSED)
 @pass_context
-def compare_rust_microbenchmarks(ctx, benchmark_filter, output_dir, benchargs):
+def compare_rust_microbenchmarks(ctx, benchmark_filter, output_dir, force, benchargs):
 	import frappe
 	from frappe.tests.microbenchmarks import run_benchmarks as benchmark_runner
 
@@ -67,6 +72,9 @@ def compare_rust_microbenchmarks(ctx, benchmark_filter, output_dir, benchargs):
 	file_prefix = benchmark_filter.replace("/", "_").replace(" ", "_")
 	baseline_path = output_path / f"{file_prefix}-python.json"
 	rust_path = output_path / f"{file_prefix}-rust.json"
+	if force:
+		baseline_path.unlink(missing_ok=True)
+		rust_path.unlink(missing_ok=True)
 
 	common_args = [
 		sys.executable,
