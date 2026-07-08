@@ -36,6 +36,14 @@ fn render_select_sql(
     sql
 }
 
+fn render_select_star_sql(table: &str, quote_char: Option<&str>, limit: Option<u64>) -> String {
+    let mut sql = format!("SELECT * FROM {}", quote_identifier(table, quote_char));
+    if let Some(limit) = limit {
+        sql.push_str(&format!(" LIMIT {limit}"));
+    }
+    sql
+}
+
 #[pyfunction]
 fn version() -> &'static str {
     env!("CARGO_PKG_VERSION")
@@ -49,6 +57,7 @@ fn capability_summary() -> Vec<&'static str> {
         "frappe-first",
         "dialects:mariadb,postgres,sqlite",
         "render-select",
+        "render-select-star",
     ]
 }
 
@@ -63,22 +72,33 @@ fn render_select(
     render_select_sql(table, &fields, quote_char, limit)
 }
 
+#[pyfunction]
+#[pyo3(signature = (table, quote_char=None, limit=None))]
+fn render_select_star(table: &str, quote_char: Option<&str>, limit: Option<u64>) -> String {
+    render_select_star_sql(table, quote_char, limit)
+}
+
 #[pymodule]
 fn _rust(module: &Bound<'_, PyModule>) -> PyResult<()> {
     module.add_function(wrap_pyfunction!(version, module)?)?;
     module.add_function(wrap_pyfunction!(capability_summary, module)?)?;
     module.add_function(wrap_pyfunction!(render_select, module)?)?;
+    module.add_function(wrap_pyfunction!(render_select_star, module)?)?;
     Ok(())
 }
 
 #[cfg(test)]
 mod tests {
-    use super::render_select_sql;
+    use super::{render_select_sql, render_select_star_sql};
 
     #[test]
     fn renders_star_select_with_limit() {
         assert_eq!(
             render_select_sql("tabRole", &["*".to_string()], Some("`"), Some(20)),
+            "SELECT * FROM `tabRole` LIMIT 20"
+        );
+        assert_eq!(
+            render_select_star_sql("tabRole", Some("`"), Some(20)),
             "SELECT * FROM `tabRole` LIMIT 20"
         );
     }
