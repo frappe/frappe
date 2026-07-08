@@ -97,6 +97,17 @@ bench_qb_render_insert = NanoBenchmark(
 )
 
 
+bench_qb_walk_insert = NanoBenchmark(
+	"""(
+	frappe.qb.into(table)
+	.columns("doctype", "field", "value")
+	.insert("User", "language", "en")
+	.walk()
+)""",
+	setup='table = frappe.qb.DocType("Singles")',
+)
+
+
 bench_qb_render_update = NanoBenchmark(
 	"""(
 	frappe.qb.update(table)
@@ -108,12 +119,32 @@ bench_qb_render_update = NanoBenchmark(
 )
 
 
+bench_qb_walk_update_no_where = NanoBenchmark(
+	"""(
+	frappe.qb.update(table)
+	.set(table.disabled, 0)
+	.walk()
+)""",
+	setup='table = frappe.qb.DocType("Role")',
+)
+
+
 bench_qb_render_delete = NanoBenchmark(
 	"""(
 	frappe.qb.from_(table)
 	.delete()
 	.where((table.name == "Not_GUEST") | table.modified.isnull())
 	.get_sql()
+)""",
+	setup='table = frappe.qb.DocType("Role")',
+)
+
+
+bench_qb_walk_delete_no_where = NanoBenchmark(
+	"""(
+	frappe.qb.from_(table)
+	.delete()
+	.walk()
 )""",
 	setup='table = frappe.qb.DocType("Role")',
 )

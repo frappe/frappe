@@ -251,6 +251,17 @@ class TestRustQueryBuilderProxy(unittest.TestCase):
 			"INSERT INTO `tabSingles` (`doctype`,`field`,`value`) VALUES ('User','quote','Admin''s'),('User','enabled',true),('User','empty',null)",
 		)
 
+	def test_insert_walk_without_parameters_uses_empty_params(self):
+		singles = frappe.qb.DocType("Singles")
+
+		self.assertEqual(
+			frappe.qb.into(singles)
+			.columns("doctype", "field", "value")
+			.insert("User", "language", "en")
+			.walk(),
+			("INSERT INTO `tabSingles` (`doctype`,`field`,`value`) VALUES ('User','language','en')", {}),
+		)
+
 	def test_update_sql(self):
 		role = frappe.qb.DocType("Role")
 
@@ -260,6 +271,14 @@ class TestRustQueryBuilderProxy(unittest.TestCase):
 			.where((role.name == "Guest") & (role.modified >= "2020-01-01 00:00:00"))
 			.get_sql(),
 			"UPDATE `tabRole` SET `disabled`=0 WHERE `name`='Guest' AND `modified`>='2020-01-01 00:00:00'",
+		)
+
+	def test_update_walk_without_where_uses_empty_params(self):
+		role = frappe.qb.DocType("Role")
+
+		self.assertEqual(
+			frappe.qb.update(role).set(role.disabled, 0).walk(),
+			("UPDATE `tabRole` SET `disabled`=0", {}),
 		)
 
 	def test_delete_sql(self):

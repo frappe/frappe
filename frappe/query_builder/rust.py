@@ -602,6 +602,11 @@ class RustDeleteQuery:
 
 		return prepare_query(self)
 
+	def _frappe_prepare_query(self) -> tuple[str, dict[str, Any]] | tuple[None, None]:
+		if self._fallback_query is not None or self._where is not None:
+			return None, None
+		return self.get_sql(), {}
+
 	def _to_fallback(self) -> QueryBuilder:
 		if self._fallback_query is None:
 			query = self.original_from(self.table, immutable=self.immutable).delete()
@@ -713,6 +718,11 @@ class RustInsertQuery:
 
 		return prepare_query(self)
 
+	def _frappe_prepare_query(self) -> tuple[str, dict[str, Any]] | tuple[None, None]:
+		if self._fallback_query is not None or self._raw_rows is None:
+			return None, None
+		return self.get_sql(), {}
+
 	def _to_fallback(self) -> QueryBuilder:
 		if self._fallback_query is None:
 			query = self.original_into(self.table, immutable=self.immutable)
@@ -794,6 +804,11 @@ class RustUpdateQuery:
 		from frappe.query_builder.utils import prepare_query
 
 		return prepare_query(self)
+
+	def _frappe_prepare_query(self) -> tuple[str, dict[str, Any]] | tuple[None, None]:
+		if self._fallback_query is not None or self._where is not None:
+			return None, None
+		return self.get_sql(), {}
 
 	def _to_fallback(self) -> QueryBuilder:
 		if self._fallback_query is None:
