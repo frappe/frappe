@@ -4,8 +4,10 @@
 frappe.pages["workspace-explorer"].on_page_load = function (wrapper) {
 	let page = frappe.ui.make_app_page({
 		parent: wrapper,
-		title: __("My Workspaces"),
+		title: __("Workspaces"),
 		single_column: true,
+		hide_sidebar: true,
+		workspace_dock: false,
 	});
 	wrapper.workspace_explorer = new WorkspaceExplorer(page);
 };
@@ -24,15 +26,15 @@ class WorkspaceExplorer {
 	show() {
 		// route is ["workspace-explorer", "<app_name>"]; the app segment is optional
 		this.app_name = frappe.get_route()[1];
+		this.app = (frappe.boot.app_data || []).find((a) => a.app_name === this.app_name);
 		this.render();
 	}
 
 	// Workspaces to list: the routed app's public workspaces when an app is given, otherwise every
 	// workspace the user can see. Mapped to their boot metadata and de-duplicated.
 	get_workspaces() {
-		let app = (frappe.boot.app_data || []).find((a) => a.app_name === this.app_name);
-		let names = app
-			? app.workspaces || []
+		let names = this.app
+			? this.app.workspaces || []
 			: Object.values(frappe.workspaces || {}).map((ws) => ws.name);
 
 		let seen = new Set();
@@ -43,9 +45,10 @@ class WorkspaceExplorer {
 
 	render() {
 		this.$container.empty();
+		let heading = (this.app && this.app.app_title) || __("My Workspaces");
 		$(`
 			<div class="we-header">
-				<h1 class="we-title">${__("My Workspaces")}</h1>
+				<h1 class="we-title">${frappe.utils.escape_html(heading)}</h1>
 				<p class="we-subtitle">${__("Switch between workspaces that you are a member of.")}</p>
 			</div>
 		`).appendTo(this.$container);
@@ -97,9 +100,9 @@ class WorkspaceExplorer {
 	icon_html(ws) {
 		if (ws.icon) {
 			// a coloured tile reads white; the default gray tile keeps the icon's ink colour
-			let style = ws.indicator_color ? ` style="background:${ws.indicator_color}"` : "";
-			let cls = ws.indicator_color ? "we-icon-tile has-color" : "we-icon-tile";
-			return `<span class="${cls}"${style}>${frappe.utils.icon(ws.icon, "md")}</span>`;
+
+			let cls = ws.indicator_color ? "we-icon-tile" : "we-icon-tile";
+			return `<span class="${cls}">${frappe.utils.icon(ws.icon, "md")}</span>`;
 		}
 		return frappe.utils.desktop_icon(ws.title || ws.name, "gray", "lg", "Solid");
 	}

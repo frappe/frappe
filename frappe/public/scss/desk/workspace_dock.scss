@@ -19,6 +19,7 @@
 	padding: 0 0 12px 0;
 
 	background: var(--surface-sidebar);
+	border-right: 1px solid var(--border-color);
 
 	&.hidden {
 		display: none;
