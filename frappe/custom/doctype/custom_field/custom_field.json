@@ -450,9 +450,9 @@
    "label": "Sort Options"
   },
   {
+   "depends_on": "eval:doc.fieldtype===\"Link\"",
    "fieldname": "link_filters",
    "fieldtype": "JSON",
-   "hidden": 1,
    "label": "Link Filters"
   },
   {
@@ -472,7 +472,11 @@
  "idx": 1,
  "index_web_pages_for_search": 1,
  "links": [],
+<<<<<<< HEAD
  "modified": "2025-10-10 11:10:23.862393",
+=======
+ "modified": "2026-07-08 13:37:37.503488",
+>>>>>>> dabfc6d686 (fix(Custom Field): show link filters if fieldtype is Link (#40663))
  "modified_by": "Administrator",
  "module": "Custom",
  "name": "Custom Field",
