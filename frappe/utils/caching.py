@@ -59,7 +59,10 @@ def request_cache(func: Callable) -> Callable:
 		if _cache is None:
 			return func(*args, **kwargs)
 		try:
-			args_key = __generate_request_cache_key(args, kwargs)
+			if kwargs:
+				args_key = (args, _KWD_MARK, frozenset(kwargs.items()))
+			else:
+				args_key = args
 		except Exception:
 			return func(*args, **kwargs)
 
