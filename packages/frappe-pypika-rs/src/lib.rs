@@ -77,6 +77,7 @@ fn render_select_fragments_sql(
     quote_char: Option<&str>,
     join_sqls: &[String],
     where_sql: Option<&str>,
+    groupbys: &[String],
     orderbys: &[String],
     limit: Option<u64>,
     offset: Option<u64>,
@@ -95,6 +96,10 @@ fn render_select_fragments_sql(
     if let Some(where_sql) = where_sql {
         sql.push_str(" WHERE ");
         sql.push_str(where_sql);
+    }
+    if !groupbys.is_empty() {
+        sql.push_str(" GROUP BY ");
+        sql.push_str(&groupbys.join(","));
     }
     if !orderbys.is_empty() {
         sql.push_str(" ORDER BY ");
@@ -175,6 +180,7 @@ fn capability_summary() -> Vec<&'static str> {
         "render-select-star",
         "render-select-query",
         "render-select-fragments",
+        "render-group-by",
         "render-insert",
         "render-update",
         "render-delete",
@@ -222,19 +228,21 @@ fn render_select_query(
 }
 
 #[pyfunction]
-#[pyo3(signature = (table, select_sqls, quote_char=None, join_sqls=None, where_sql=None, orderbys=None, limit=None, offset=None, distinct=false))]
+#[pyo3(signature = (table, select_sqls, quote_char=None, join_sqls=None, where_sql=None, groupbys=None, orderbys=None, limit=None, offset=None, distinct=false))]
 fn render_select_fragments(
     table: &str,
     select_sqls: Vec<String>,
     quote_char: Option<&str>,
     join_sqls: Option<Vec<String>>,
     where_sql: Option<&str>,
+    groupbys: Option<Vec<String>>,
     orderbys: Option<Vec<String>>,
     limit: Option<u64>,
     offset: Option<u64>,
     distinct: bool,
 ) -> String {
     let join_sqls = join_sqls.unwrap_or_default();
+    let groupbys = groupbys.unwrap_or_default();
     let orderbys = orderbys.unwrap_or_default();
     render_select_fragments_sql(
         table,
@@ -242,6 +250,7 @@ fn render_select_fragments(
         quote_char,
         &join_sqls,
         where_sql,
+        &groupbys,
         &orderbys,
         limit,
         offset,
@@ -445,12 +454,13 @@ mod tests {
                 Some("`"),
                 &["JOIN `tabHas Role` ON `tabHas Role`.`parent`=`tabUser`.`name`".to_string()],
                 Some("`tabUser`.`enabled`=1"),
+                &["`tabUser`.`role_profile_name`".to_string()],
                 &["`tabUser`.`creation` ASC".to_string()],
                 Some(20),
                 Some(10),
                 false,
             ),
-            "SELECT `tabUser`.`name`,`tabHas Role`.`role` FROM `tabUser` JOIN `tabHas Role` ON `tabHas Role`.`parent`=`tabUser`.`name` WHERE `tabUser`.`enabled`=1 ORDER BY `tabUser`.`creation` ASC LIMIT 20 OFFSET 10"
+            "SELECT `tabUser`.`name`,`tabHas Role`.`role` FROM `tabUser` JOIN `tabHas Role` ON `tabHas Role`.`parent`=`tabUser`.`name` WHERE `tabUser`.`enabled`=1 GROUP BY `tabUser`.`role_profile_name` ORDER BY `tabUser`.`creation` ASC LIMIT 20 OFFSET 10"
         );
     }
 

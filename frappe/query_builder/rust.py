@@ -107,6 +107,7 @@ def render_select_fragments(
 	quote_char: str | None = "`",
 	join_sqls: list[str] | None = None,
 	where_sql: str | None = None,
+	groupbys: list[str] | None = None,
 	orderbys: list[str] | None = None,
 	limit: int | None = None,
 	offset: int | None = None,
@@ -121,6 +122,7 @@ def render_select_fragments(
 		quote_char=quote_char,
 		join_sqls=join_sqls,
 		where_sql=where_sql,
+		groupbys=groupbys,
 		orderbys=orderbys,
 		limit=limit,
 		offset=offset,
@@ -229,6 +231,7 @@ class RustSelectQuery:
 		self._field_names: list[str] = []
 		self._where: Term | None = None
 		self._orderbys: list[tuple[Any, Any]] = []
+		self._groupbys: list[Any] = []
 		self._joins: list[tuple[Table, JoinType, Criterion]] = []
 		self._limit: int | None = None
 		self._offset: int | None = None
@@ -241,6 +244,7 @@ class RustSelectQuery:
 		new._select_terms = self._select_terms.copy()
 		new._field_names = self._field_names.copy()
 		new._orderbys = self._orderbys.copy()
+		new._groupbys = self._groupbys.copy()
 		new._joins = self._joins.copy()
 		return new
 
@@ -252,12 +256,13 @@ class RustSelectQuery:
 			return self._fallback_query.select(*terms)
 
 		field_names = _plain_select_fields(terms, self.table)
-		if field_names is None:
+		if field_names is None and not all(isinstance(term, Term) for term in terms):
 			return self._to_fallback().select(*terms)
 
 		builder = self._builder()
 		builder._select_terms.extend(terms)
-		builder._field_names.extend(field_names)
+		if field_names is not None:
+			builder._field_names.extend(field_names)
 		return builder
 
 	def where(self, criterion: Term | EmptyCriterion):
@@ -285,6 +290,22 @@ class RustSelectQuery:
 
 		builder = self._builder()
 		builder._orderbys.extend(orderbys)
+		return builder
+
+	def groupby(self, *terms: Any):
+		if self._fallback_query is not None:
+			return self._fallback_query.groupby(*terms)
+
+		groupbys = []
+		for term in terms:
+			if isinstance(term, str):
+				term = Field(term, table=self.table)
+			elif not isinstance(term, Term):
+				return self._to_fallback().groupby(*terms)
+			groupbys.append(term)
+
+		builder = self._builder()
+		builder._groupbys.extend(groupbys)
 		return builder
 
 	def distinct(self):
@@ -330,6 +351,7 @@ class RustSelectQuery:
 			self._select_terms
 			or self._where
 			or self._orderbys
+			or self._groupbys
 			or self._joins
 			or self._limit is not None
 			or self._offset is not None
@@ -359,7 +381,7 @@ class RustSelectQuery:
 			return self._fallback_query.get_sql(with_alias=with_alias, subquery=subquery, **kwargs)
 		if with_alias or subquery or kwargs.get("with_namespace"):
 			return self._to_fallback().get_sql(with_alias=with_alias, subquery=subquery, **kwargs)
-		if not self._field_names:
+		if not self._select_terms:
 			return ""
 
 		quote_char = kwargs.get("quote_char", self.quote_char)
@@ -374,10 +396,17 @@ class RustSelectQuery:
 		orderbys = _render_orderbys(
 			self._orderbys, quote_char=quote_char, with_namespace=with_namespace, **render_kwargs
 		)
+		groupbys = _render_terms(
+			self._groupbys, quote_char=quote_char, with_namespace=with_namespace, **render_kwargs
+		)
 		if orderbys is None:
 			return self._to_fallback().get_sql(with_alias=with_alias, subquery=subquery, **kwargs)
-		if self._joins:
-			select_sqls = _render_select_fragments(self._select_terms, quote_char=quote_char, **render_kwargs)
+		if groupbys is None:
+			return self._to_fallback().get_sql(with_alias=with_alias, subquery=subquery, **kwargs)
+		if self._joins or self._groupbys or not self._field_names:
+			select_sqls = _render_select_fragments(
+				self._select_terms, quote_char=quote_char, with_namespace=with_namespace, **render_kwargs
+			)
 			join_sqls = _render_joins(self._joins, quote_char=quote_char, **render_kwargs)
 			if select_sqls is None or join_sqls is None:
 				return self._to_fallback().get_sql(with_alias=with_alias, subquery=subquery, **kwargs)
@@ -387,6 +416,7 @@ class RustSelectQuery:
 				quote_char=quote_char,
 				join_sqls=join_sqls,
 				where_sql=where_sql,
+				groupbys=groupbys,
 				orderbys=orderbys,
 				limit=self._limit,
 				offset=self._offset,
@@ -439,6 +469,8 @@ class RustSelectQuery:
 				query = query.where(self._where)
 			if self._distinct:
 				query = query.distinct()
+			if self._groupbys:
+				query = query.groupby(*self._groupbys)
 			for item, how, criterion in self._joins:
 				query = query.join(item, how).on(criterion)
 			for field, order in self._orderbys:
@@ -794,13 +826,38 @@ def _plain_select_fields(selects: Sequence[Any], table: Table) -> list[str] | No
 
 
 def _render_select_fragments(
-	selects: Sequence[Any], quote_char: str | None = "`", **kwargs: Any
+	selects: Sequence[Any],
+	quote_char: str | None = "`",
+	with_namespace: bool = False,
+	**kwargs: Any,
 ) -> list[str] | None:
 	rendered = []
 	for select in selects:
-		if not isinstance(select, (Field, Star)):
+		if not isinstance(select, Term):
 			return None
-		rendered.append(select.get_sql(quote_char=quote_char, with_namespace=True, **kwargs))
+		rendered.append(
+			select.get_sql(
+				with_alias=True,
+				subquery=True,
+				quote_char=quote_char,
+				with_namespace=with_namespace,
+				**kwargs,
+			)
+		)
+	return rendered
+
+
+def _render_terms(
+	terms: Sequence[Any],
+	quote_char: str | None = "`",
+	with_namespace: bool = False,
+	**kwargs: Any,
+) -> list[str] | None:
+	rendered = []
+	for term in terms:
+		if not isinstance(term, Term):
+			return None
+		rendered.append(term.get_sql(quote_char=quote_char, with_namespace=with_namespace, **kwargs))
 	return rendered
 
 

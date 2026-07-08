@@ -67,6 +67,32 @@ class TestRustQueryBuilderProxy(unittest.TestCase):
 			"SELECT DISTINCT * FROM `tabRole` LIMIT 2",
 		)
 
+	def test_groupby_sql(self):
+		table = frappe.qb.DocType("Role")
+
+		self.assertEqual(
+			frappe.qb.from_(table)
+			.select(table.disabled)
+			.groupby(table.disabled)
+			.orderby(table.disabled)
+			.get_sql(),
+			"SELECT `disabled` FROM `tabRole` GROUP BY `disabled` ORDER BY `disabled`",
+		)
+
+	def test_function_select_groupby_sql(self):
+		from frappe.query_builder.functions import Coalesce, Count, Max
+
+		table = frappe.qb.DocType("Role")
+
+		self.assertEqual(
+			frappe.qb.from_(table)
+			.select(Count(table.name), Coalesce(table.disabled, 0), Max(table.modified))
+			.where(table.name.isin(["Guest", "Administrator", "System Manager"]))
+			.groupby(table.disabled)
+			.get_sql(),
+			"SELECT COUNT(`name`),COALESCE(`disabled`,0),MAX(`modified`) FROM `tabRole` WHERE `name` IN ('Guest','Administrator','System Manager') GROUP BY `disabled`",
+		)
+
 	def test_parameter_wrapper_is_preserved(self):
 		table = frappe.qb.DocType("Role")
 		params = NamedParameterWrapper()
