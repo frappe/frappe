@@ -1242,11 +1242,13 @@ def sbool(x: str | Any) -> bool | str | Any:
 
 def rounded(num, precision=0, rounding_method=None):
 	"""Round according to method set in system setting, defaults to banker's rounding"""
-	precision = cint(precision)
+	if not isinstance(precision, int):
+		precision = cint(precision)
 
-	rounding_method = (
-		rounding_method or frappe.get_system_settings("rounding_method") or "Banker's Rounding (legacy)"
-	)
+	if rounding_method is None:
+		rounding_method = frappe.get_system_settings("rounding_method")
+		if not rounding_method or rounding_method == "Banker's Rounding (legacy)":
+			return _bankers_rounding_legacy(num, precision)
 
 	if rounding_method == "Banker's Rounding":
 		return _bankers_rounding(num, precision)
