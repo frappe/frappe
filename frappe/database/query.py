@@ -199,6 +199,10 @@ FUNCTION_MAPPING = {
 # Functions that accept '*' as an argument (e.g., COUNT(*))
 STAR_ALLOWED_FUNCTIONS = frozenset(("COUNT",))
 
+# Common aggregate dictionaries are used heavily by ORM callers and microbenchmarks.
+# Keep this path narrow so nested functions/operators continue through the full parser.
+SIMPLE_SINGLE_ARG_FUNCTIONS = frozenset(("COUNT", "SUM", "AVG", "MAX", "MIN"))
+
 # Mapping from operator names to pypika Arithmetic enum values
 # Operators use dict format: {"ADD": [left, right], "as": "alias"}
 # Supported: ADD (+), SUB (-), MUL (*), DIV (/)
@@ -2304,8 +2308,16 @@ class SQLFunctionParser:
 
 	def is_function_dict(self, field_dict: dict) -> bool:
 		"""Check if a dictionary represents a SQL function definition."""
-		function_keys = [k for k in field_dict.keys() if k.lower() != "as"]
-		return len(function_keys) == 1 and function_keys[0] in FUNCTION_MAPPING
+		function_key = None
+
+		for key in field_dict:
+			if key.lower() == "as":
+				continue
+			if function_key is not None:
+				return False
+			function_key = key
+
+		return function_key in FUNCTION_MAPPING
 
 	def is_operator_dict(self, field_dict: dict) -> bool:
 		"""Check if a dictionary represents an arithmetic operator expression.
@@ -2341,6 +2353,9 @@ class SQLFunctionParser:
 
 	def parse_function(self, function_dict: dict) -> Field:
 		"""Parse a SQL function dictionary into a pypika function call."""
+		if (function_call := self._try_parse_simple_single_arg_function(function_dict)) is not None:
+			return function_call
+
 		function_name, alias, function_args = self._extract_dict_components(
 			function_dict, FUNCTION_MAPPING, "function or invalid field name"
 		)
@@ -2379,6 +2394,53 @@ class SQLFunctionParser:
 			return function_call.as_(alias)
 		else:
 			return function_call
+
+	def _try_parse_simple_single_arg_function(self, function_dict: dict):
+		function_name = None
+		alias = None
+		function_args = None
+
+		for key, value in function_dict.items():
+			if key.lower() == "as":
+				alias = value
+				continue
+			if function_name is not None:
+				return None
+			function_name = key
+			function_args = value
+
+		if function_name not in SIMPLE_SINGLE_ARG_FUNCTIONS:
+			return None
+
+		if alias:
+			self._validate_alias(alias)
+
+		if isinstance(function_args, str):
+			arg = function_args.strip()
+			if not arg:
+				return None
+			if arg == "*":
+				if function_name not in STAR_ALLOWED_FUNCTIONS:
+					return None
+				parsed_arg = Star()
+			elif arg.isdigit():
+				parsed_arg = int(arg)
+			elif self._is_valid_field_name(arg):
+				self._check_function_field_permission(arg)
+				parsed_arg = self.engine.table[arg]
+			else:
+				return None
+		elif isinstance(function_args, (int | float)):
+			parsed_arg = function_args
+		else:
+			return None
+
+		function_call = FUNCTION_MAPPING[function_name](parsed_arg)
+		if alias:
+			self.engine.function_aliases.add(alias)
+			return function_call.as_(alias)
+
+		return function_call
 
 	def parse_operator(self, operator_dict: dict) -> ArithmeticExpression:
 		"""Parse an arithmetic operator dictionary into a pypika ArithmeticExpression.
