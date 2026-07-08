@@ -761,6 +761,8 @@ class RustUpdateQuery:
 		self.immutable = immutable
 		self.quote_char = _quote_char_for_query_cls(query_cls)
 		self._updates: list[tuple[Field, Term]] = []
+		self._raw_updates: list[tuple[Field, Any]] | None = []
+		self._updates_materialized = True
 		self._where: Term | None = None
 		self._fallback_query: QueryBuilder | None = None
 
@@ -768,6 +770,7 @@ class RustUpdateQuery:
 		new = type(self).__new__(type(self))
 		new.__dict__.update(self.__dict__)
 		new._updates = self._updates.copy()
+		new._raw_updates = None if self._raw_updates is None else self._raw_updates.copy()
 		return new
 
 	def _builder(self):
@@ -779,10 +782,18 @@ class RustUpdateQuery:
 		field = Field(field, table=self.table) if isinstance(field, str) else field
 		if not isinstance(field, Field) or field.table not in (None, self.table):
 			return self._to_fallback().set(field, value)
-		value = value if isinstance(value, Term) else self.query_cls._builder().wrap_constant(value)
 
 		builder = self._builder()
-		builder._updates.append((field, value))
+		if builder._raw_updates is not None and _is_supported_literal(value):
+			builder._raw_updates.append((field, value))
+			builder._updates_materialized = False
+		else:
+			builder._materialize_updates()
+			builder._raw_updates = None
+			builder._updates.append(
+				(field, value if isinstance(value, Term) else _wrap_constant(self.query_cls, value))
+			)
+			builder._updates_materialized = True
 		return builder
 
 	def where(self, criterion: Term | EmptyCriterion):
@@ -798,14 +809,11 @@ class RustUpdateQuery:
 	def get_sql(self, **kwargs: Any) -> str:
 		if self._fallback_query is not None:
 			return self._fallback_query.get_sql(**kwargs)
-		if not self._updates:
+		if not self._updates and not self._raw_updates:
 			return ""
 
 		quote_char = kwargs.get("quote_char", self.quote_char)
-		assignments = [
-			f"{field.get_sql(quote_char=quote_char, with_namespace=False, **kwargs)}={value.get_sql(quote_char=quote_char, **kwargs)}"
-			for field, value in self._updates
-		]
+		assignments = self._render_assignments(quote_char=quote_char, **kwargs)
 		where_sql = None
 		if self._where is not None:
 			where_sql = _render_where(self._where, quote_char=quote_char, **kwargs)
@@ -826,8 +834,30 @@ class RustUpdateQuery:
 			return None, None
 		return self.get_sql(), {}
 
+	def _render_assignments(self, quote_char: str | None = "`", **kwargs: Any) -> list[str]:
+		if kwargs.get("param_wrapper") is None and self._raw_updates is not None:
+			return [
+				f"{field.get_sql(quote_char=quote_char, with_namespace=False, **kwargs)}={_render_literal(value)}"
+				for field, value in self._raw_updates
+			]
+
+		self._materialize_updates()
+		return [
+			f"{field.get_sql(quote_char=quote_char, with_namespace=False, **kwargs)}={value.get_sql(quote_char=quote_char, **kwargs)}"
+			for field, value in self._updates
+		]
+
+	def _materialize_updates(self) -> None:
+		if self._updates_materialized:
+			return
+		self._updates = [
+			(field, _wrap_constant(self.query_cls, value)) for field, value in self._raw_updates or []
+		]
+		self._updates_materialized = True
+
 	def _to_fallback(self) -> QueryBuilder:
 		if self._fallback_query is None:
+			self._materialize_updates()
 			query = self.original_update(self.table, immutable=self.immutable)
 			for field, value in self._updates:
 				query = query.set(field, value)
