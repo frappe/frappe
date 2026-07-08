@@ -16,6 +16,7 @@ from frappe.exceptions import FrappeTypeError
 SLACK_DICT = {
 	bool: (int, bool, float),
 }
+FAST_VALIDATION_TYPES = {int, float, str, bytes}
 T = TypeVar("T")
 ForwardRefOrStr = ForwardRef | str
 
@@ -178,6 +179,9 @@ def transform_parameter_types(func: Callable, args: tuple, kwargs: dict, force_t
 				current_arg_type = Union[current_arg_type, type(param_def.default)]  # noqa: UP007
 		elif isinstance(current_arg_type, tuple):
 			current_arg_type = Union[current_arg_type]  # noqa: UP007
+
+		if current_arg_type in FAST_VALIDATION_TYPES and type(current_arg_value) is current_arg_type:
+			continue
 
 		# validate the type set using pydantic - raise a TypeError if Validation is raised or Ellipsis is returned
 		try:
