@@ -5,6 +5,7 @@ from werkzeug.routing import Rule
 import frappe
 import frappe.client
 from frappe import _
+from frappe.database.utils import DefaultOrderBy
 from frappe.utils import attach_expanded_links
 from frappe.utils.data import sbool
 
@@ -21,6 +22,9 @@ def document_list(doctype: str):
 		"limit_page_length",
 		frappe.form_dict.limit or frappe.form_dict.limit_page_length or 20,
 	)
+
+	# default to the doctype's configured sort order
+	frappe.form_dict.setdefault("order_by", DefaultOrderBy)
 
 	# convert strings to native types - only as_dict and debug accept bool
 	for param in ["as_dict", "debug"]:
