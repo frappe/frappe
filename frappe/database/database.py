@@ -712,6 +712,41 @@ class Database:
 					debug=debug,
 				)
 
+		if (
+			isinstance(filters, list)
+			and len(filters) == 3
+			and isinstance(fieldname, str)
+			and (fieldname == "*" or SIMPLE_FIELD_PATTERN.match(fieldname))
+			and not ignore
+			and not update
+			and not cache
+			and not for_update
+			and not distinct
+			and not pluck
+			and run
+			and order_by == DefaultOrderBy
+		):
+			filter_field, operator, filter_value = filters
+			if (
+				isinstance(filter_field, str)
+				and SIMPLE_FIELD_PATTERN.match(filter_field)
+				and filter_value is not None
+				and operator in ("=", "!=", ">", "<", ">=", "<=", "like", "not like")
+			):
+				selected_field = "*" if fieldname == "*" else f"`{fieldname}`"
+				return self.sql(
+					"SELECT {selected_field} FROM {table_name} WHERE `{filter_field}` {operator} %s "
+					"ORDER BY `creation` DESC LIMIT 1".format(
+						selected_field=selected_field,
+						table_name=get_table_name(doctype, wrap_in_backticks=True),
+						filter_field=filter_field,
+						operator=operator,
+					),
+					filter_value,
+					as_dict=True if fieldname == "*" else as_dict,
+					debug=debug,
+				)
+
 		if isinstance(filters, list):
 			if filters := list(f for f in filters if f is not None):
 				out = frappe.qb.get_query(
