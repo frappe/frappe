@@ -7,7 +7,19 @@ from typing import Any, ClassVar
 
 from pypika.enums import JoinType
 from pypika.queries import QueryBuilder, Table
-from pypika.terms import AggregateFunction, Criterion, EmptyCriterion, Field, Star, Term
+from pypika.terms import (
+	AggregateFunction,
+	BasicCriterion,
+	ComplexCriterion,
+	ContainsCriterion,
+	Criterion,
+	EmptyCriterion,
+	Field,
+	NullCriterion,
+	Star,
+	Term,
+	Tuple,
+)
 
 ENV_ENABLE_RUST_QB = "FRAPPE_QUERY_BUILDER_RUST"
 
@@ -405,16 +417,11 @@ class RustSelectQuery:
 		render_kwargs.pop("quote_char", None)
 		render_kwargs.pop("with_namespace", None)
 		with_namespace = bool(self._joins)
-		where_sql = (
-			self._where.get_sql(
-				quote_char=quote_char,
-				subquery=True,
-				with_namespace=with_namespace,
-				**render_kwargs,
+		where_sql = None
+		if self._where is not None:
+			where_sql = _render_where(
+				self._where, quote_char=quote_char, with_namespace=with_namespace, **render_kwargs
 			)
-			if self._where is not None
-			else None
-		)
 		orderbys = _render_orderbys(
 			self._orderbys, quote_char=quote_char, with_namespace=with_namespace, **render_kwargs
 		)
@@ -572,7 +579,9 @@ class RustDeleteQuery:
 			return self._fallback_query.get_sql(**kwargs)
 
 		quote_char = kwargs.get("quote_char", self.quote_char)
-		where_sql = self._where.get_sql(quote_char=quote_char, **kwargs) if self._where is not None else None
+		where_sql = None
+		if self._where is not None:
+			where_sql = _render_where(self._where, quote_char=quote_char, **kwargs)
 		return render_delete(self.table._table_name, quote_char=quote_char, where_sql=where_sql)
 
 	def run(self, *args: Any, **kwargs: Any):
@@ -763,7 +772,9 @@ class RustUpdateQuery:
 			f"{field.get_sql(quote_char=quote_char, with_namespace=False, **kwargs)}={value.get_sql(quote_char=quote_char, **kwargs)}"
 			for field, value in self._updates
 		]
-		where_sql = self._where.get_sql(quote_char=quote_char, **kwargs) if self._where is not None else None
+		where_sql = None
+		if self._where is not None:
+			where_sql = _render_where(self._where, quote_char=quote_char, **kwargs)
 		return render_update(self.table._table_name, assignments, quote_char=quote_char, where_sql=where_sql)
 
 	def run(self, *args: Any, **kwargs: Any):
@@ -919,6 +930,103 @@ def _is_simple_aggregate(term: AggregateFunction) -> bool:
 		and not getattr(term, "_include_filter", False)
 		and all(isinstance(arg, Field | Star) for arg in term.args)
 	)
+
+
+def _render_where(
+	criterion: Term,
+	quote_char: str | None = "`",
+	with_namespace: bool = False,
+	**kwargs: Any,
+) -> str:
+	if kwargs.get("param_wrapper") is not None:
+		return criterion.get_sql(
+			quote_char=quote_char, subquery=True, with_namespace=with_namespace, **kwargs
+		)
+	return _try_render_simple_criterion(
+		criterion, quote_char=quote_char, with_namespace=with_namespace, **kwargs
+	) or criterion.get_sql(quote_char=quote_char, subquery=True, with_namespace=with_namespace, **kwargs)
+
+
+def _try_render_simple_criterion(
+	criterion: Term,
+	quote_char: str | None = "`",
+	with_namespace: bool = False,
+	**kwargs: Any,
+) -> str | None:
+	if isinstance(criterion, ComplexCriterion):
+		left = _try_render_simple_criterion(
+			criterion.left, quote_char=quote_char, with_namespace=with_namespace, **kwargs
+		)
+		right = _try_render_simple_criterion(
+			criterion.right, quote_char=quote_char, with_namespace=with_namespace, **kwargs
+		)
+		if left is None or right is None:
+			return None
+		return f"{left} {criterion.comparator.value} {right}"
+
+	if isinstance(criterion, BasicCriterion):
+		left = _try_render_simple_term(criterion.left, quote_char=quote_char, with_namespace=with_namespace)
+		right = _try_render_simple_value(criterion.right, quote_char=quote_char, **kwargs)
+		if left is None or right is None:
+			return None
+		return f"{left}{criterion.comparator.value}{right}"
+
+	if isinstance(criterion, ContainsCriterion):
+		term = _try_render_simple_term(criterion.term, quote_char=quote_char, with_namespace=with_namespace)
+		container = _try_render_simple_tuple(criterion.container, quote_char=quote_char, **kwargs)
+		if term is None or container is None:
+			return None
+		operator = "NOT IN" if criterion._is_negated else "IN"
+		return f"{term} {operator} {container}"
+
+	if isinstance(criterion, NullCriterion):
+		term = _try_render_simple_term(criterion.term, quote_char=quote_char, with_namespace=with_namespace)
+		if term is None:
+			return None
+		return f"{term} IS NULL"
+
+	return None
+
+
+def _try_render_simple_tuple(
+	term: Term,
+	quote_char: str | None = "`",
+	**kwargs: Any,
+) -> str | None:
+	if not isinstance(term, Tuple):
+		return None
+	values = [_try_render_simple_value(value, quote_char=quote_char, **kwargs) for value in term.values]
+	if any(value is None for value in values):
+		return None
+	return f"({','.join(values)})"
+
+
+def _try_render_simple_value(
+	term: Term,
+	quote_char: str | None = "`",
+	**kwargs: Any,
+) -> str | None:
+	if hasattr(term, "value") and getattr(term, "alias", None) is None:
+		value = term.value
+		if kwargs.get("param_wrapper") is None and _is_supported_literal(value):
+			return _render_literal(value)
+
+	if isinstance(term, Field):
+		return _try_render_simple_term(term, quote_char=quote_char)
+
+	return term.get_sql(quote_char=quote_char, **kwargs)
+
+
+def _render_literal(value: Any) -> str:
+	if value is None:
+		return "NULL"
+	if isinstance(value, bool):
+		return "true" if value else "false"
+	if isinstance(value, int | float):
+		return str(value)
+	if isinstance(value, str):
+		return _quote_identifier(value, "'")
+	raise TypeError(f"unsupported literal value: {type(value).__name__}")
 
 
 def _render_select_fragments(

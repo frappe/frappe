@@ -45,6 +45,21 @@ class TestRustQueryBuilderProxy(unittest.TestCase):
 			"SELECT `name` FROM `tabRole` WHERE `name`='Guest' ORDER BY `creation` ASC LIMIT 1",
 		)
 
+	def test_simple_where_renderer_sql(self):
+		table = frappe.qb.DocType("Role")
+
+		self.assertEqual(
+			frappe.qb.from_(table)
+			.select(table.name)
+			.where(
+				(table.name.isin(["Guest", "Administrator"]))
+				& (table.disabled == 0)
+				& ((table.role_name.like("%Admin%")) | table.modified.isnull())
+			)
+			.get_sql(),
+			"SELECT `name` FROM `tabRole` WHERE `name` IN ('Guest','Administrator') AND `disabled`=0 AND `role_name` LIKE '%Admin%' OR `modified` IS NULL",
+		)
+
 	def test_offset_sql(self):
 		table = frappe.qb.DocType("Role")
 
