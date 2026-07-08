@@ -203,6 +203,19 @@ class TestRustQueryBuilderProxy(unittest.TestCase):
 			"INSERT INTO `tabSingles` (`doctype`,`field`,`value`) VALUES ('User','language','en')",
 		)
 
+	def test_insert_literal_sql(self):
+		singles = frappe.qb.DocType("Singles")
+
+		self.assertEqual(
+			frappe.qb.into(singles)
+			.columns("doctype", "field", "value")
+			.insert("User", "quote", "Admin's")
+			.insert("User", "enabled", True)
+			.insert("User", "empty", None)
+			.get_sql(),
+			"INSERT INTO `tabSingles` (`doctype`,`field`,`value`) VALUES ('User','quote','Admin''s'),('User','enabled',true),('User','empty',null)",
+		)
+
 	def test_update_sql(self):
 		role = frappe.qb.DocType("Role")
 

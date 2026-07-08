@@ -142,6 +142,18 @@ def render_insert(
 	return backend.render_insert(table, columns, rows, quote_char=quote_char)
 
 
+def render_insert_literals(
+	table: str,
+	columns: list[str],
+	rows: list[list[Any]],
+	quote_char: str | None = "`",
+) -> str:
+	backend = load_backend()
+	if backend is None or backend.render_insert_literals is None:
+		raise RuntimeError("frappe-pypika-rs is not available")
+	return backend.render_insert_literals(table, columns, rows, quote_char=quote_char)
+
+
 def render_update(
 	table: str,
 	assignments: list[str],
@@ -594,6 +606,7 @@ class RustInsertQuery:
 		self.quote_char = _quote_char_for_query_cls(query_cls)
 		self._columns: list[Field] = []
 		self._rows: list[list[Term]] = []
+		self._raw_rows: list[list[Any]] | None = []
 		self._fallback_query: QueryBuilder | None = None
 
 	def __copy__(self):
@@ -601,6 +614,7 @@ class RustInsertQuery:
 		new.__dict__.update(self.__dict__)
 		new._columns = self._columns.copy()
 		new._rows = [row.copy() for row in self._rows]
+		new._raw_rows = None if self._raw_rows is None else [row.copy() for row in self._raw_rows]
 		return new
 
 	def _builder(self):
@@ -634,7 +648,13 @@ class RustInsertQuery:
 			terms = [terms]
 
 		rows = []
+		raw_rows = None if self._raw_rows is None else [row.copy() for row in self._raw_rows]
 		for values in terms:
+			if raw_rows is not None:
+				if all(_is_supported_literal(value) for value in values):
+					raw_rows.append(list(values))
+				else:
+					raw_rows = None
 			rows.append(
 				[
 					value if isinstance(value, Term) else self.query_cls._builder().wrap_constant(value)
@@ -644,6 +664,8 @@ class RustInsertQuery:
 
 		builder = self._builder()
 		builder._rows.extend(rows)
+		if builder._raw_rows is not None:
+			builder._raw_rows = raw_rows
 		return builder
 
 	def get_sql(self, **kwargs: Any) -> str:
@@ -654,6 +676,10 @@ class RustInsertQuery:
 
 		quote_char = kwargs.get("quote_char", self.quote_char)
 		columns = [column.name for column in self._columns]
+		if kwargs.get("param_wrapper") is None and self._raw_rows is not None:
+			return render_insert_literals(
+				self.table._table_name, columns, self._raw_rows, quote_char=quote_char
+			)
 		rows = [
 			[value.get_sql(with_alias=True, subquery=True, quote_char=quote_char, **kwargs) for value in row]
 			for row in self._rows
@@ -840,6 +866,10 @@ def _plain_select_fields(selects: Sequence[Any], table: Table) -> list[str] | No
 		else:
 			return None
 	return fields
+
+
+def _is_supported_literal(value: Any) -> bool:
+	return value is None or isinstance(value, str | bool | int | float)
 
 
 def _render_select_fragments(

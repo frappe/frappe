@@ -5,6 +5,7 @@ try:
 		capability_summary,
 		render_delete,
 		render_insert,
+		render_insert_literals,
 		render_select,
 		render_select_fragments,
 		render_select_query,
@@ -16,6 +17,7 @@ except ImportError:
 	capability_summary = None
 	render_delete = None
 	render_insert = None
+	render_insert_literals = None
 	render_select = None
 	render_select_fragments = None
 	render_select_query = None
@@ -33,6 +35,7 @@ __all__ = (
 	"is_available",
 	"render_delete",
 	"render_insert",
+	"render_insert_literals",
 	"render_select",
 	"render_select_fragments",
 	"render_select_query",

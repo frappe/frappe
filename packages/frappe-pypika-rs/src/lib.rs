@@ -1,4 +1,5 @@
 use pyo3::prelude::*;
+use pyo3::types::{PyBool, PyFloat, PyInt, PyString};
 
 fn quote_identifier(value: &str, quote_char: Option<&str>) -> String {
     match quote_char {
@@ -137,6 +138,48 @@ fn render_insert_sql(
     )
 }
 
+fn render_literal(value: &Bound<'_, PyAny>) -> PyResult<String> {
+    if value.is_none() {
+        Ok("null".to_string())
+    } else if let Ok(value) = value.cast::<PyBool>() {
+        Ok(if value.is_true() { "true" } else { "false" }.to_string())
+    } else if let Ok(value) = value.cast::<PyInt>() {
+        Ok(value.to_string())
+    } else if let Ok(value) = value.cast::<PyFloat>() {
+        Ok(value.to_string())
+    } else if let Ok(value) = value.cast::<PyString>() {
+        let value = value.to_str()?;
+        Ok(quote_identifier(value, Some("'")))
+    } else {
+        Err(pyo3::exceptions::PyTypeError::new_err(
+            "unsupported literal value",
+        ))
+    }
+}
+
+fn render_insert_literals_sql(
+    table: &str,
+    columns: &[String],
+    rows: Vec<Vec<Bound<'_, PyAny>>>,
+    quote_char: Option<&str>,
+) -> PyResult<String> {
+    let rendered_rows = rows
+        .iter()
+        .map(|row| {
+            row.iter()
+                .map(render_literal)
+                .collect::<PyResult<Vec<String>>>()
+        })
+        .collect::<PyResult<Vec<Vec<String>>>>()?;
+
+    Ok(render_insert_sql(
+        table,
+        columns,
+        &rendered_rows,
+        quote_char,
+    ))
+}
+
 fn render_update_sql(
     table: &str,
     assignments: &[String],
@@ -182,6 +225,7 @@ fn capability_summary() -> Vec<&'static str> {
         "render-select-fragments",
         "render-group-by",
         "render-insert",
+        "render-insert-literals",
         "render-update",
         "render-delete",
     ]
@@ -282,6 +326,17 @@ fn render_insert(
 }
 
 #[pyfunction]
+#[pyo3(signature = (table, columns, rows, quote_char=None))]
+fn render_insert_literals(
+    table: &str,
+    columns: Vec<String>,
+    rows: Vec<Vec<Bound<'_, PyAny>>>,
+    quote_char: Option<&str>,
+) -> PyResult<String> {
+    render_insert_literals_sql(table, &columns, rows, quote_char)
+}
+
+#[pyfunction]
 #[pyo3(signature = (table, assignments, quote_char=None, where_sql=None))]
 fn render_update(
     table: &str,
@@ -304,6 +359,7 @@ fn _rust(module: &Bound<'_, PyModule>) -> PyResult<()> {
     module.add_function(wrap_pyfunction!(capability_summary, module)?)?;
     module.add_function(wrap_pyfunction!(render_delete, module)?)?;
     module.add_function(wrap_pyfunction!(render_insert, module)?)?;
+    module.add_function(wrap_pyfunction!(render_insert_literals, module)?)?;
     module.add_function(wrap_pyfunction!(render_select, module)?)?;
     module.add_function(wrap_pyfunction!(render_select_fragments, module)?)?;
     module.add_function(wrap_pyfunction!(render_select_query, module)?)?;
