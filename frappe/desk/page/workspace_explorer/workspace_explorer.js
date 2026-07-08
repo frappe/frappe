@@ -46,10 +46,13 @@ class WorkspaceExplorer {
 	render() {
 		this.$container.empty();
 		let heading = (this.app && this.app.app_title) || __("My Workspaces");
+		let subtitle =
+			(this.app && this.app.app_description) ||
+			__("Switch between workspaces that you are a member of.");
 		$(`
 			<div class="we-header">
 				<h1 class="we-title">${frappe.utils.escape_html(heading)}</h1>
-				<p class="we-subtitle">${__("Switch between workspaces that you are a member of.")}</p>
+				<p class="we-subtitle">${frappe.utils.escape_html(subtitle)}</p>
 			</div>
 		`).appendTo(this.$container);
 
@@ -72,7 +75,6 @@ class WorkspaceExplorer {
 				<span class="we-card-icon">${this.icon_html(ws)}</span>
 				<span class="we-card-body">
 					<span class="we-card-title">${frappe.utils.escape_html(title)}</span>
-					<span class="we-card-visibility">${ws.public ? __("Public") : __("Private")}</span>
 					${
 						ws.description
 							? `<span class="we-card-desc">${frappe.utils.escape_html(
