@@ -390,10 +390,16 @@ class RustSelectQuery:
 
 		quote_char = kwargs.get("quote_char", self.quote_char)
 		render_kwargs = kwargs.copy()
+		render_kwargs.pop("quote_char", None)
 		render_kwargs.pop("with_namespace", None)
 		with_namespace = bool(self._joins)
 		where_sql = (
-			self._where.get_sql(quote_char=quote_char, with_namespace=with_namespace, **render_kwargs)
+			self._where.get_sql(
+				quote_char=quote_char,
+				subquery=True,
+				with_namespace=with_namespace,
+				**render_kwargs,
+			)
 			if self._where is not None
 			else None
 		)

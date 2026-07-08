@@ -1,6 +1,8 @@
 import os
 import unittest
 
+from pypika.terms import ExistsCriterion
+
 import frappe
 from frappe.query_builder.terms import NamedParameterWrapper
 
@@ -146,6 +148,29 @@ class TestRustQueryBuilderProxy(unittest.TestCase):
 		self.assertIsNone(query.__dict__.get("_fallback_query"))
 		self.assertEqual(query._from, [frappe.qb.DocType("Role")])
 		self.assertIn("FROM `tabRole`", query.get_sql())
+
+	def test_exists_subquery_preserves_parameter_wrapper(self):
+		user = frappe.qb.DocType("User")
+		has_role = frappe.qb.DocType("Has Role")
+		params = NamedParameterWrapper()
+		child_query = (
+			frappe.qb.from_(has_role)
+			.select(has_role.name)
+			.where((has_role.parent == user.name) & (has_role.role == "System Manager"))
+		)
+
+		sql = (
+			frappe.qb.from_(user)
+			.select(user.name)
+			.where(ExistsCriterion(child_query))
+			.get_sql(param_wrapper=params)
+		)
+
+		self.assertEqual(
+			sql,
+			"SELECT `name` FROM `tabUser` WHERE EXISTS (SELECT `tabHas Role`.`name` FROM `tabHas Role` WHERE `tabHas Role`.`parent`=`tabUser`.`name` AND `tabHas Role`.`role`=%(param1)s)",
+		)
+		self.assertEqual(params.parameters, {"param1": "System Manager"})
 
 	def test_join_parameter_wrapper_is_preserved(self):
 		user = frappe.qb.DocType("User")
