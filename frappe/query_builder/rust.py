@@ -7,7 +7,7 @@ from typing import Any, ClassVar
 
 from pypika.enums import JoinType
 from pypika.queries import QueryBuilder, Table
-from pypika.terms import Criterion, EmptyCriterion, Field, Star, Term
+from pypika.terms import AggregateFunction, Criterion, EmptyCriterion, Field, Star, Term
 
 ENV_ENABLE_RUST_QB = "FRAPPE_QUERY_BUILDER_RUST"
 
@@ -872,6 +872,55 @@ def _is_supported_literal(value: Any) -> bool:
 	return value is None or isinstance(value, str | bool | int | float)
 
 
+def _quote_identifier(value: str, quote_char: str | None = "`") -> str:
+	if not quote_char:
+		return value
+	return f"{quote_char}{value.replace(quote_char, quote_char * 2)}{quote_char}"
+
+
+def _format_alias(sql: str, alias: str | None, quote_char: str | None = "`") -> str:
+	if alias is None:
+		return sql
+	return f"{sql} {_quote_identifier(alias, quote_char)}"
+
+
+def _try_render_simple_term(
+	term: Term,
+	quote_char: str | None = "`",
+	with_alias: bool = False,
+	with_namespace: bool = False,
+) -> str | None:
+	if isinstance(term, Star):
+		sql = term.get_sql(quote_char=quote_char, with_namespace=with_namespace)
+		return _format_alias(sql, term.alias, quote_char) if with_alias else sql
+	if isinstance(term, Field):
+		sql = _quote_identifier(term.name, quote_char)
+		if term.table and (with_namespace or term.table.alias):
+			sql = f"{_quote_identifier(term.table.get_table_name(), quote_char)}.{sql}"
+		return _format_alias(sql, term.alias, quote_char) if with_alias else sql
+	if isinstance(term, AggregateFunction) and _is_simple_aggregate(term):
+		args = [
+			_try_render_simple_term(arg, quote_char=quote_char, with_namespace=with_namespace)
+			for arg in term.args
+		]
+		if any(arg is None for arg in args):
+			return None
+		if getattr(term, "_distinct", False):
+			args[0] = f"DISTINCT {args[0]}"
+		sql = f"{term.name}({','.join(args)})"
+		return _format_alias(sql, term.alias, quote_char) if with_alias else sql
+	return None
+
+
+def _is_simple_aggregate(term: AggregateFunction) -> bool:
+	return (
+		getattr(term, "schema", None) is None
+		and not getattr(term, "_filters", None)
+		and not getattr(term, "_include_filter", False)
+		and all(isinstance(arg, Field | Star) for arg in term.args)
+	)
+
+
 def _render_select_fragments(
 	selects: Sequence[Any],
 	quote_char: str | None = "`",
@@ -882,6 +931,11 @@ def _render_select_fragments(
 	for select in selects:
 		if not isinstance(select, Term):
 			return None
+		if sql := _try_render_simple_term(
+			select, quote_char=quote_char, with_alias=True, with_namespace=with_namespace
+		):
+			rendered.append(sql)
+			continue
 		rendered.append(
 			select.get_sql(
 				with_alias=True,
@@ -904,7 +958,10 @@ def _render_terms(
 	for term in terms:
 		if not isinstance(term, Term):
 			return None
-		rendered.append(term.get_sql(quote_char=quote_char, with_namespace=with_namespace, **kwargs))
+		rendered.append(
+			_try_render_simple_term(term, quote_char=quote_char, with_namespace=with_namespace)
+			or term.get_sql(quote_char=quote_char, with_namespace=with_namespace, **kwargs)
+		)
 	return rendered
 
 
@@ -937,7 +994,9 @@ def _render_orderbys(
 	for field, order in orderbys:
 		if not isinstance(field, (Field, Criterion)):
 			return None
-		field_sql = field.get_sql(quote_char=quote_char, with_namespace=with_namespace, **kwargs)
+		field_sql = _try_render_simple_term(field, quote_char=quote_char, with_namespace=with_namespace)
+		if field_sql is None:
+			field_sql = field.get_sql(quote_char=quote_char, with_namespace=with_namespace, **kwargs)
 		if order is not None:
 			field_sql = f"{field_sql} {order.value}"
 		rendered.append(field_sql)

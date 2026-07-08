@@ -133,6 +133,21 @@ roles = ["Guest", "Administrator", "System Manager"]""",
 )
 
 
+bench_qb_render_grouped_count_alias_order = NanoBenchmark(
+	"""(
+	frappe.qb.from_(table)
+	.select(table.fieldtype, Count(table.name).as_("field_count"))
+	.groupby(table.fieldtype)
+	.orderby(Field("field_count"), order=frappe.qb.desc)
+	.limit(20)
+	.get_sql()
+)""",
+	setup="""from pypika.terms import Field
+from frappe.query_builder.functions import Count
+table = frappe.qb.DocType("DocField")""",
+)
+
+
 bench_qb_walk_parameterized = NanoBenchmark(
 	"""(
 	frappe.qb.from_(table)
