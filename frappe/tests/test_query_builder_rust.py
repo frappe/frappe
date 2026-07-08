@@ -43,6 +43,18 @@ class TestRustQueryBuilderProxy(unittest.TestCase):
 			"SELECT `name` FROM `tabRole` WHERE `name`='Guest' ORDER BY `creation` ASC LIMIT 1",
 		)
 
+	def test_offset_sql(self):
+		table = frappe.qb.DocType("Role")
+
+		self.assertEqual(
+			frappe.qb.from_(table).select(table.name).limit(10).offset(5).get_sql(),
+			"SELECT `name` FROM `tabRole` LIMIT 10 OFFSET 5",
+		)
+		self.assertEqual(
+			frappe.qb.from_(table).select(table.name).offset(5).get_sql(),
+			"SELECT `name` FROM `tabRole` OFFSET 5",
+		)
+
 	def test_parameter_wrapper_is_preserved(self):
 		table = frappe.qb.DocType("Role")
 		params = NamedParameterWrapper()

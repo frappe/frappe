@@ -25,6 +25,12 @@ bench_qb_render_select_multiple_fields = NanoBenchmark(
 )
 
 
+bench_qb_render_select_offset = NanoBenchmark(
+	"frappe.qb.from_(table).select(table.name).limit(20).offset(10).get_sql()",
+	setup='table = frappe.qb.DocType("Role")',
+)
+
+
 bench_qb_get_query = NanoBenchmark(
 	"""frappe.qb.get_query(
 		"Role",

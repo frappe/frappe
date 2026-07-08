@@ -49,22 +49,24 @@ def render_select(
 	fields: list[str],
 	quote_char: str | None = "`",
 	limit: int | None = None,
+	offset: int | None = None,
 ) -> str:
 	backend = load_backend()
 	if backend is None or backend.render_select is None:
 		raise RuntimeError("frappe-pypika-rs is not available")
-	return backend.render_select(table, fields, quote_char=quote_char, limit=limit)
+	return backend.render_select(table, fields, quote_char=quote_char, limit=limit, offset=offset)
 
 
 def render_select_star(
 	table: str,
 	quote_char: str | None = "`",
 	limit: int | None = None,
+	offset: int | None = None,
 ) -> str:
 	backend = load_backend()
 	if backend is None or backend.render_select_star is None:
 		raise RuntimeError("frappe-pypika-rs is not available")
-	return backend.render_select_star(table, quote_char=quote_char, limit=limit)
+	return backend.render_select_star(table, quote_char=quote_char, limit=limit, offset=offset)
 
 
 def render_select_query(
@@ -74,6 +76,7 @@ def render_select_query(
 	where_sql: str | None = None,
 	orderbys: list[str] | None = None,
 	limit: int | None = None,
+	offset: int | None = None,
 ) -> str:
 	backend = load_backend()
 	if backend is None or backend.render_select_query is None:
@@ -85,6 +88,7 @@ def render_select_query(
 		where_sql=where_sql,
 		orderbys=orderbys,
 		limit=limit,
+		offset=offset,
 	)
 
 
@@ -190,6 +194,7 @@ class RustSelectQuery:
 		self._where: Term | None = None
 		self._orderbys: list[tuple[Any, Any]] = []
 		self._limit: int | None = None
+		self._offset: int | None = None
 		self._fallback_query: QueryBuilder | None = None
 
 	def __copy__(self):
@@ -246,7 +251,13 @@ class RustSelectQuery:
 	def delete(self):
 		if self._fallback_query is not None:
 			return self._fallback_query.delete()
-		if self._select_terms or self._where or self._orderbys or self._limit is not None:
+		if (
+			self._select_terms
+			or self._where
+			or self._orderbys
+			or self._limit is not None
+			or self._offset is not None
+		):
 			return self._to_fallback().delete()
 		return RustDeleteQuery(self.query_cls, self.table, self.original_from, immutable=self.immutable)
 
@@ -256,6 +267,14 @@ class RustSelectQuery:
 
 		builder = self._builder()
 		builder._limit = limit
+		return builder
+
+	def offset(self, offset: int):
+		if self._fallback_query is not None:
+			return self._fallback_query.offset(offset)
+
+		builder = self._builder()
+		builder._offset = offset
 		return builder
 
 	def get_sql(self, with_alias: bool = False, subquery: bool = False, **kwargs: Any) -> str:
@@ -279,11 +298,21 @@ class RustSelectQuery:
 				where_sql=where_sql,
 				orderbys=orderbys,
 				limit=self._limit,
+				offset=self._offset,
 			)
 		if self._field_names == ["*"]:
-			return render_select_star(self.table._table_name, quote_char=quote_char, limit=self._limit)
+			return render_select_star(
+				self.table._table_name,
+				quote_char=quote_char,
+				limit=self._limit,
+				offset=self._offset,
+			)
 		return render_select(
-			self.table._table_name, self._field_names, quote_char=quote_char, limit=self._limit
+			self.table._table_name,
+			self._field_names,
+			quote_char=quote_char,
+			limit=self._limit,
+			offset=self._offset,
 		)
 
 	def walk(self):
@@ -307,6 +336,8 @@ class RustSelectQuery:
 				query = query.orderby(field, order=order)
 			if self._limit is not None:
 				query = query.limit(self._limit)
+			if self._offset is not None:
+				query = query.offset(self._offset)
 			self._fallback_query = query
 		return self._fallback_query
 

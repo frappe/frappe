@@ -17,6 +17,7 @@ fn render_select_sql(
     where_sql: Option<&str>,
     orderbys: &[String],
     limit: Option<u64>,
+    offset: Option<u64>,
 ) -> String {
     let select_sql = if fields == ["*"] {
         "*".to_string()
@@ -43,11 +44,27 @@ fn render_select_sql(
     if let Some(limit) = limit {
         sql.push_str(&format!(" LIMIT {limit}"));
     }
+    if let Some(offset) = offset {
+        sql.push_str(&format!(" OFFSET {offset}"));
+    }
     sql
 }
 
-fn render_select_star_sql(table: &str, quote_char: Option<&str>, limit: Option<u64>) -> String {
-    render_select_sql(table, &["*".to_string()], quote_char, None, &[], limit)
+fn render_select_star_sql(
+    table: &str,
+    quote_char: Option<&str>,
+    limit: Option<u64>,
+    offset: Option<u64>,
+) -> String {
+    render_select_sql(
+        table,
+        &["*".to_string()],
+        quote_char,
+        None,
+        &[],
+        limit,
+        offset,
+    )
 }
 
 fn render_insert_sql(
@@ -122,18 +139,19 @@ fn capability_summary() -> Vec<&'static str> {
 }
 
 #[pyfunction]
-#[pyo3(signature = (table, fields, quote_char=None, limit=None))]
+#[pyo3(signature = (table, fields, quote_char=None, limit=None, offset=None))]
 fn render_select(
     table: &str,
     fields: Vec<String>,
     quote_char: Option<&str>,
     limit: Option<u64>,
+    offset: Option<u64>,
 ) -> String {
-    render_select_sql(table, &fields, quote_char, None, &[], limit)
+    render_select_sql(table, &fields, quote_char, None, &[], limit, offset)
 }
 
 #[pyfunction]
-#[pyo3(signature = (table, fields, quote_char=None, where_sql=None, orderbys=None, limit=None))]
+#[pyo3(signature = (table, fields, quote_char=None, where_sql=None, orderbys=None, limit=None, offset=None))]
 fn render_select_query(
     table: &str,
     fields: Vec<String>,
@@ -141,15 +159,23 @@ fn render_select_query(
     where_sql: Option<&str>,
     orderbys: Option<Vec<String>>,
     limit: Option<u64>,
+    offset: Option<u64>,
 ) -> String {
     let orderbys = orderbys.unwrap_or_default();
-    render_select_sql(table, &fields, quote_char, where_sql, &orderbys, limit)
+    render_select_sql(
+        table, &fields, quote_char, where_sql, &orderbys, limit, offset,
+    )
 }
 
 #[pyfunction]
-#[pyo3(signature = (table, quote_char=None, limit=None))]
-fn render_select_star(table: &str, quote_char: Option<&str>, limit: Option<u64>) -> String {
-    render_select_star_sql(table, quote_char, limit)
+#[pyo3(signature = (table, quote_char=None, limit=None, offset=None))]
+fn render_select_star(
+    table: &str,
+    quote_char: Option<&str>,
+    limit: Option<u64>,
+    offset: Option<u64>,
+) -> String {
+    render_select_star_sql(table, quote_char, limit, offset)
 }
 
 #[pyfunction]
@@ -209,12 +235,13 @@ mod tests {
                 Some("`"),
                 None,
                 &[],
-                Some(20)
+                Some(20),
+                None,
             ),
             "SELECT * FROM `tabRole` LIMIT 20"
         );
         assert_eq!(
-            render_select_star_sql("tabRole", Some("`"), Some(20)),
+            render_select_star_sql("tabRole", Some("`"), Some(20), None),
             "SELECT * FROM `tabRole` LIMIT 20"
         );
     }
@@ -228,6 +255,7 @@ mod tests {
                 Some("\""),
                 None,
                 &[],
+                None,
                 None,
             ),
             "SELECT \"name\",\"email\" FROM \"tabUser\""
@@ -243,7 +271,8 @@ mod tests {
                 Some("`"),
                 None,
                 &[],
-                None
+                None,
+                None,
             ),
             "SELECT `na``me` FROM `tab``Role`"
         );
@@ -259,8 +288,37 @@ mod tests {
                 Some("`name`='Guest'"),
                 &["`creation` ASC".to_string()],
                 Some(1),
+                None,
             ),
             "SELECT `name` FROM `tabRole` WHERE `name`='Guest' ORDER BY `creation` ASC LIMIT 1"
+        );
+    }
+
+    #[test]
+    fn renders_offset() {
+        assert_eq!(
+            render_select_sql(
+                "tabRole",
+                &["name".to_string()],
+                Some("`"),
+                None,
+                &[],
+                Some(10),
+                Some(5),
+            ),
+            "SELECT `name` FROM `tabRole` LIMIT 10 OFFSET 5"
+        );
+        assert_eq!(
+            render_select_sql(
+                "tabRole",
+                &["name".to_string()],
+                Some("`"),
+                None,
+                &[],
+                None,
+                Some(5),
+            ),
+            "SELECT `name` FROM `tabRole` OFFSET 5"
         );
     }
 
