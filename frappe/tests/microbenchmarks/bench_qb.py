@@ -7,8 +7,20 @@ bench_qb_select_star = NanoBenchmark(
 )
 
 
+bench_qb_render_select_star = NanoBenchmark(
+	'frappe.qb.from_(table).select("*").limit(20).get_sql()',
+	setup='table = frappe.qb.DocType("Role")',
+)
+
+
 bench_qb_select_multiple_fields = NanoBenchmark(
 	"frappe.qb.from_(table).select(table.name, table.creation, table.modified).limit(20).run(run=0)",
+	setup='table = frappe.qb.DocType("Role")',
+)
+
+
+bench_qb_render_select_multiple_fields = NanoBenchmark(
+	"frappe.qb.from_(table).select(table.name, table.creation, table.modified).limit(20).get_sql()",
 	setup='table = frappe.qb.DocType("Role")',
 )
 
@@ -42,6 +54,81 @@ bench_qb_simple_get_query = NanoBenchmark(
 									limit=1,
 									order_by="creation asc",
 								).run(run=0)"""
+)
+
+
+bench_qb_render_join_filters = NanoBenchmark(
+	"""(
+	frappe.qb.from_(user)
+	.join(has_role)
+	.on(has_role.parent == user.name)
+	.select(user.name, user.email, has_role.role)
+	.where((user.enabled == 1) & (has_role.role.isin(roles)) & user.email.like("%@example.com"))
+	.orderby(user.creation)
+	.limit(20)
+	.get_sql()
+)""",
+	setup="""user = frappe.qb.DocType("User")
+has_role = frappe.qb.DocType("Has Role")
+roles = ["System Manager", "Administrator", "Guest"]""",
+)
+
+
+bench_qb_render_insert = NanoBenchmark(
+	"""(
+	frappe.qb.into(table)
+	.columns("doctype", "field", "value")
+	.insert("User", "language", "en")
+	.get_sql()
+)""",
+	setup='table = frappe.qb.DocType("Singles")',
+)
+
+
+bench_qb_render_update = NanoBenchmark(
+	"""(
+	frappe.qb.update(table)
+	.set(table.disabled, 0)
+	.where((table.name == "Guest") & (table.modified >= "2020-01-01 00:00:00"))
+	.get_sql()
+)""",
+	setup='table = frappe.qb.DocType("Role")',
+)
+
+
+bench_qb_render_delete = NanoBenchmark(
+	"""(
+	frappe.qb.from_(table)
+	.delete()
+	.where((table.name == "Not_GUEST") | table.modified.isnull())
+	.get_sql()
+)""",
+	setup='table = frappe.qb.DocType("Role")',
+)
+
+
+bench_qb_render_functions = NanoBenchmark(
+	"""(
+	frappe.qb.from_(table)
+	.select(Count(table.name), Coalesce(table.disabled, 0), Max(table.modified))
+	.where(table.name.isin(roles))
+	.groupby(table.disabled)
+	.get_sql()
+)""",
+	setup="""from frappe.query_builder.functions import Coalesce, Count, Max
+table = frappe.qb.DocType("Role")
+roles = ["Guest", "Administrator", "System Manager"]""",
+)
+
+
+bench_qb_walk_parameterized = NanoBenchmark(
+	"""(
+	frappe.qb.from_(table)
+	.select(table.name)
+	.where((table.name == "Administrator' --") & table.modified.notnull())
+	.walk()
+)""",
+	setup='table = frappe.qb.DocType("User")',
 )
 
 

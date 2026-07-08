@@ -1,0 +1,12 @@
+[package]
+name = "frappe-pypika-rs"
+version = "0.1.0"
+edition = "2021"
+publish = false
+
+[lib]
+name = "frappe_pypika_rs"
+crate-type = ["cdylib"]
+
+[dependencies]
+pyo3 = "0.23"

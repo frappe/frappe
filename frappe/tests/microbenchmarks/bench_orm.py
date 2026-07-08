@@ -57,6 +57,30 @@ bench_get_all = NanoBenchmark('frappe.get_all("DocField", "*", limit=1, run=0)')
 bench_get_list = NanoBenchmark('frappe.get_list("Role", "*", limit=20, run=0)')
 
 
+bench_get_list_many_fields = NanoBenchmark(
+	"""frappe.get_list(
+		"User",
+		fields=["name", "email", "enabled", "user_type", "creation", "modified"],
+		filters={"enabled": 1},
+		order_by="creation desc",
+		limit=20,
+		run=0,
+	)"""
+)
+
+
+bench_get_list_or_filters = NanoBenchmark(
+	"""frappe.get_list(
+		"User",
+		fields=["name", "email", "enabled"],
+		filters=[["enabled", "=", 1]],
+		or_filters=[["email", "like", "%@example.com"], ["name", "=", "Administrator"]],
+		limit=20,
+		run=0,
+	)"""
+)
+
+
 bench_get_all_with_filters = NanoBenchmark(
 	'frappe.get_all("Role", {"creation": (">", "2020-01-01 00:00:00")}, "disabled", limit=10, run=0)'
 )
@@ -68,6 +92,30 @@ bench_get_all_with_many_fields = NanoBenchmark(
 		["disabled", "name", "creation", "modified"],
 		limit=10,
 		run=0)"""
+)
+
+
+bench_get_all_with_ordering = NanoBenchmark(
+	"""frappe.get_all(
+		"DocField",
+		filters={"fieldtype": ("in", ["Data", "Link", "Select"])},
+		fields=["parent", "fieldname", "fieldtype", "idx"],
+		order_by="parent asc, idx asc",
+		limit=50,
+		run=0,
+	)"""
+)
+
+
+bench_get_all_grouped_count = NanoBenchmark(
+	"""frappe.get_all(
+		"DocField",
+		fields=["fieldtype", {"COUNT": "name", "as": "field_count"}],
+		group_by="fieldtype",
+		order_by="field_count desc",
+		limit=20,
+		run=0,
+	)"""
 )
 
 

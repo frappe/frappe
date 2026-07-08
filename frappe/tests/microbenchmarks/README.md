@@ -28,6 +28,38 @@ Useful pyperf commands:
   significance tests.
 - `pyperf timeit` is useful for measuring tiny operations such as setting an attribute on an object.
 
+## Query Builder Rewrite Tracking
+
+The Rust-backed query-builder rewrite is tracked with local baseline-vs-changed runs. Capture the
+current Python PyPika baseline before enabling the Rust-backed implementation:
+
+```bash
+bench --site bench.localhost run-microbenchmarks --filter qb -o /tmp/qb-python.json
+bench --site bench.localhost run-microbenchmarks --filter orm -o /tmp/orm-python.json
+bench --site bench.localhost run-microbenchmarks --filter database -o /tmp/database-python.json
+```
+
+After enabling the Rust-backed implementation, run the same filters into changed result files:
+
+```bash
+bench --site bench.localhost run-microbenchmarks --filter qb -o /tmp/qb-rust.json
+bench --site bench.localhost run-microbenchmarks --filter orm -o /tmp/orm-rust.json
+bench --site bench.localhost run-microbenchmarks --filter database -o /tmp/database-rust.json
+```
+
+Compare the results:
+
+```bash
+pyperf compare_to /tmp/qb-python.json /tmp/qb-rust.json
+pyperf compare_to /tmp/orm-python.json /tmp/orm-rust.json
+pyperf compare_to /tmp/database-python.json /tmp/database-rust.json
+```
+
+The target is at least 4x faster for direct `qb_*` construction/rendering benchmarks and at least
+30% faster for ORM benchmarks where query generation is a meaningful part of the path. Database
+benchmarks are tracked for regressions and downstream wins, but DB-I/O dominated cases are not
+expected to hit the direct QB target.
+
 ## Getting Reliable Results
 
 Local development machines are often noisy benchmarking environments. For more stable results:

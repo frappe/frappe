@@ -1,0 +1,20 @@
+[build-system]
+requires = ["maturin>=1.8,<2"]
+build-backend = "maturin"
+
+[project]
+name = "frappe-pypika-rs"
+version = "0.1.0"
+description = "Rust-backed PyPika compatibility layer for Frappe"
+requires-python = ">=3.14,<3.15"
+readme = "README.md"
+license = { text = "MIT" }
+classifiers = [
+    "Programming Language :: Python :: 3",
+    "Programming Language :: Rust",
+]
+
+[tool.maturin]
+module-name = "frappe_pypika_rs._rust"
+python-source = "python"
+features = ["pyo3/extension-module"]
