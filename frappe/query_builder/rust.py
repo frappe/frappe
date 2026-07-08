@@ -629,6 +629,7 @@ class RustInsertQuery:
 		self._columns: list[Field] = []
 		self._rows: list[list[Term]] = []
 		self._raw_rows: list[list[Any]] | None = []
+		self._rows_materialized = True
 		self._fallback_query: QueryBuilder | None = None
 
 	def __copy__(self):
@@ -671,29 +672,34 @@ class RustInsertQuery:
 
 		rows = []
 		raw_rows = None if self._raw_rows is None else [row.copy() for row in self._raw_rows]
+		rows_materialized = self._rows_materialized
 		for values in terms:
-			if raw_rows is not None:
-				if all(_is_supported_literal(value) for value in values):
-					raw_rows.append(list(values))
-				else:
-					raw_rows = None
+			if raw_rows is not None and all(_is_supported_literal(value) for value in values):
+				raw_rows.append(list(values))
+				rows_materialized = False
+				continue
+
+			if raw_rows is not None and not rows_materialized:
+				rows.extend([[_wrap_constant(self.query_cls, value) for value in row] for row in raw_rows])
+			raw_rows = None
+			rows_materialized = True
 			rows.append(
 				[
-					value if isinstance(value, Term) else self.query_cls._builder().wrap_constant(value)
+					value if isinstance(value, Term) else _wrap_constant(self.query_cls, value)
 					for value in values
 				]
 			)
 
 		builder = self._builder()
 		builder._rows.extend(rows)
-		if builder._raw_rows is not None:
-			builder._raw_rows = raw_rows
+		builder._raw_rows = raw_rows
+		builder._rows_materialized = rows_materialized
 		return builder
 
 	def get_sql(self, **kwargs: Any) -> str:
 		if self._fallback_query is not None:
 			return self._fallback_query.get_sql(**kwargs)
-		if not self._columns or not self._rows:
+		if not self._columns or (not self._rows and not self._raw_rows):
 			return ""
 
 		quote_char = kwargs.get("quote_char", self.quote_char)
@@ -702,6 +708,7 @@ class RustInsertQuery:
 			return render_insert_literals(
 				self.table._table_name, columns, self._raw_rows, quote_char=quote_char
 			)
+		self._materialize_rows()
 		rows = [
 			[value.get_sql(with_alias=True, subquery=True, quote_char=quote_char, **kwargs) for value in row]
 			for row in self._rows
@@ -723,8 +730,17 @@ class RustInsertQuery:
 			return None, None
 		return self.get_sql(), {}
 
+	def _materialize_rows(self) -> None:
+		if self._rows_materialized:
+			return
+		self._rows = [
+			[_wrap_constant(self.query_cls, value) for value in row] for row in self._raw_rows or []
+		]
+		self._rows_materialized = True
+
 	def _to_fallback(self) -> QueryBuilder:
 		if self._fallback_query is None:
+			self._materialize_rows()
 			query = self.original_into(self.table, immutable=self.immutable)
 			if self._columns:
 				query = query.columns(*self._columns)
@@ -904,6 +920,10 @@ def _plain_select_fields(selects: Sequence[Any], table: Table) -> list[str] | No
 
 def _is_supported_literal(value: Any) -> bool:
 	return value is None or isinstance(value, str | bool | int | float)
+
+
+def _wrap_constant(query_cls: type, value: Any) -> Term:
+	return query_cls._builder().wrap_constant(value)
 
 
 def _quote_identifier(value: str, quote_char: str | None = "`") -> str:

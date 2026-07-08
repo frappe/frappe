@@ -262,6 +262,23 @@ class TestRustQueryBuilderProxy(unittest.TestCase):
 			("INSERT INTO `tabSingles` (`doctype`,`field`,`value`) VALUES ('User','language','en')", {}),
 		)
 
+	def test_insert_parameter_wrapper_is_preserved(self):
+		singles = frappe.qb.DocType("Singles")
+		params = NamedParameterWrapper()
+
+		sql = (
+			frappe.qb.into(singles)
+			.columns("doctype", "field", "value")
+			.insert("User", "language", "en")
+			.get_sql(param_wrapper=params)
+		)
+
+		self.assertEqual(
+			sql,
+			"INSERT INTO `tabSingles` (`doctype`,`field`,`value`) VALUES (%(param1)s,%(param2)s,%(param3)s)",
+		)
+		self.assertEqual(params.parameters, {"param1": "User", "param2": "language", "param3": "en"})
+
 	def test_update_sql(self):
 		role = frappe.qb.DocType("Role")
 
