@@ -154,12 +154,9 @@ function formState(frm) {
 	const missingMandatory = [];
 	for (const df of frm.meta.fields) {
 		if (LAYOUT_FIELDTYPES.has(df.fieldtype)) continue;
-		// Live docfield reflects dynamic mandatory (toggle_reqd / mandatory_depends_on); the
-		// static meta field does not.
-		const live = frappe.meta.get_docfield(frm.doctype, df.fieldname, frm.doc.name) || df;
 		const value = frm.doc[df.fieldname];
 		const empty = value === undefined || value === null || value === "";
-		if (live.reqd && empty) missingMandatory.push(df.fieldname);
+		if (df.reqd && empty) missingMandatory.push(df.fieldname);
 		if (!empty && typeof value !== "object") values[df.fieldname] = value;
 	}
 	return {
