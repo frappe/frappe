@@ -131,7 +131,12 @@ def site_cache(ttl: int | None = None, maxsize: int | None = None) -> Callable:
 			if not site:
 				return func(*args, **kwargs)
 
-			arguments_key = (site, __generate_request_cache_key(args, kwargs))
+			if kwargs:
+				arguments_key = (site, (args, _KWD_MARK, frozenset(kwargs.items())))
+			elif args:
+				arguments_key = (site, args)
+			else:
+				arguments_key = site
 
 			if hasattr(func, "ttl") and time.monotonic() >= func.expiration:
 				func.clear_cache()
