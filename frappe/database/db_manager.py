@@ -75,10 +75,14 @@ class DbManager:
 		# when available. Falls back to plain `cat` when `pv` is not installed,
 		# stderr is not a TTY (avoids \r garbage in CI/nohup logs), or the user
 		# chose --verbose (subprocess output would interleave with pv's line).
-		# Both branches leave the file's bytes on stdout for the next stage.
+		# `2>/dev/tty` on the pv invocation is required because execute_in_shell
+		# (frappe/utils/__init__.py) captures the subprocess's stderr into a
+		# tempfile — without the /dev/tty redirect the progress bar would land
+		# there instead of reaching the operator's terminal. Both branches
+		# leave the file's bytes on stdout for the next stage.
 		pv = which("pv")
 		if pv and sys.stderr.isatty() and not verbose:
-			command.extend([pv, "-s", str(os.path.getsize(source)), source, "|"])
+			command.extend([pv, "-s", str(os.path.getsize(source)), source, "2>/dev/tty", "|"])
 		else:
 			command.extend(["cat", source, "|"])
 
