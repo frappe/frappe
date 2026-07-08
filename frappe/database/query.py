@@ -409,10 +409,8 @@ class Engine:
 
 			# 1. Check for single simple filter [field, op, value] or [doctype, field, op, value]
 			if len(filters) in (3, 4) and isinstance(filters[1], str):
-				if (
-					filters[1].lower() in OPERATOR_MAP
-					or filters[1].lower() in get_additional_filters_from_hooks()
-				):
+				operator = filters[1].lower()
+				if operator in OPERATOR_MAP or operator in get_additional_filters_from_hooks():
 					self.apply_list_filters(filters, collect=collect)
 					return
 
@@ -567,15 +565,21 @@ class Engine:
 		"""Builds a pypika Criterion object for a simple filter condition."""
 		import operator as builtin_operator
 
+		operator_key = operator.lower()
+
 		"""Check hooks for custom_operator definitions"""
-		additional_filters_config = get_additional_filters_from_hooks()
-		if operator.lower() in additional_filters_config:
+		if operator_key not in OPERATOR_MAP:
+			additional_filters_config = get_additional_filters_from_hooks()
+		else:
+			additional_filters_config = None
+		if additional_filters_config and operator_key in additional_filters_config:
 			f = frappe._dict(doctype=doctype or self.doctype, fieldname=field, operator=operator, value=value)
 			from frappe.model.db_query import get_additional_filter_field
 
 			resolved = get_additional_filter_field(additional_filters_config, f, value)
 			operator = resolved.get("operator")
 			value = resolved.get("value", value)
+			operator_key = operator.lower()
 
 		_field = self._validate_and_prepare_filter_field(field, doctype)
 
@@ -837,13 +841,13 @@ class Engine:
 		else:
 			# Assume it's a simple filter [field, op, value] etc.
 			field, value, operator, doctype = None, None, None, None
-			additional_filters_config = get_additional_filters_from_hooks()
 			# Determine structure based on length and types
 			if (
 				len(condition) == 3
 				and isinstance(condition[1], str)
 				and (
-					condition[1].lower() in OPERATOR_MAP or condition[1].lower() in additional_filters_config
+					(operator_key := condition[1].lower()) in OPERATOR_MAP
+					or operator_key in get_additional_filters_from_hooks()
 				)
 			):
 				# [field, operator, value]
@@ -852,7 +856,8 @@ class Engine:
 				len(condition) == 4
 				and isinstance(condition[2], str)
 				and (
-					condition[2].lower() in OPERATOR_MAP or condition[2].lower() in additional_filters_config
+					(operator_key := condition[2].lower()) in OPERATOR_MAP
+					or operator_key in get_additional_filters_from_hooks()
 				)
 			):
 				# [doctype, field, operator, value]
