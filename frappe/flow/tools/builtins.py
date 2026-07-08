@@ -4,7 +4,7 @@
 from __future__ import annotations
 
 import json
-from typing import Any, Literal
+from typing import Any
 
 import frappe
 from frappe import _
@@ -382,95 +382,6 @@ def run_action(
 	return result
 
 
-_READ_SCREEN_DESCRIPTION = """See what the user is currently looking at in the Desk: the active \
-route/view and, for an open form, its doctype, record name, unsaved-changes and submission state, \
-the filled field values, and any still-empty mandatory fields (including ones made mandatory \
-dynamically).
-
-Use it to ground yourself whenever the user refers to what is on their screen ("this record", \
-"this form", "why can't I submit this"), and after filling to confirm no mandatory field is left \
-blank. Runs in the user's browser and returns a JSON digest."""
-
-
-def read_screen() -> dict[str, Any]:
-	# Client tool: executed in the browser (see frontend/src/lib/clientTools.js), never on the
-	# server. The signature only defines the (empty) argument schema the model sees.
-	raise RuntimeError("read_screen runs in the browser, not on the server")
-
-
-read_screen = tool(read_screen, description=_READ_SCREEN_DESCRIPTION, client_tool=True)
-
-
-_NAVIGATE_DESCRIPTION = """Take the user to a screen in the Desk. Navigation only — never creates \
-or changes data.
-
-- view="form": open an existing record (needs doctype and name).
-- view="new": open a blank new-record form (needs doctype).
-- view="list": open a doctype's list (needs doctype); pass filters to narrow it, e.g. \
-{"status": "Open"} or {"grand_total": [">", 1000]}.
-- view="report": open a query report (needs report); pass filters as its filter values.
-- view="workspace": open a workspace (needs workspace).
-
-Resolve exact doctype/report names with find_doctypes first. Returns the route navigated to."""
-
-
-def navigate(
-	view: Literal["form", "new", "list", "report", "workspace"],
-	doctype: str | None = None,
-	name: str | None = None,
-	report: str | None = None,
-	workspace: str | None = None,
-	filters: dict[str, Any] | None = None,
-) -> dict[str, Any]:
-	raise RuntimeError("navigate runs in the browser, not on the server")
-
-
-navigate = tool(navigate, description=_NAVIGATE_DESCRIPTION, client_tool=True)
-
-
-_FILL_DESCRIPTION = """Fill the form the user currently has open: set field values on the record in \
-front of them. Operates on the open form only and never saves — the user reviews and commits. \
-Confirm the doctype and exact field names first (read_screen / describe).
-
-values maps {fieldname: value} for the main record — links, selects, dates, numbers, text. A child \
-table is a fieldname whose value is a list of row objects, e.g. {"items": [{"item_code": "A", \
-"qty": 2}]}; setting a table replaces its rows. Dependent fields and fetch_from fire automatically.
-
-Returns the resulting form state, including any field names that don't exist on the doctype."""
-
-
-def fill(values: dict[str, Any]) -> dict[str, Any]:
-	raise RuntimeError("fill runs in the browser, not on the server")
-
-
-fill = tool(fill, description=_FILL_DESCRIPTION, client_tool=True)
-
-
-_ACT_DESCRIPTION = """Act on the form the user currently has open. Operates on the open form only.
-
-action is one of:
-- "save": save the current changes (creates the record if it is new).
-- "submit": submit the document.
-- "cancel": cancel a submitted document.
-- a workflow transition name (e.g. "Approve", "Reject") — get valid ones from describe(doctype, name).
-
-The user confirms before it runs. Returns the resulting form state (record name, docstatus, whether \
-it still has unsaved changes)."""
-
-
-def act(action: str) -> dict[str, Any]:
-	raise RuntimeError("act runs in the browser, not on the server")
-
-
-act = tool(
-	act,
-	description=_ACT_DESCRIPTION,
-	client_tool=True,
-	requires_confirmation=True,
-	confirm_prompt=lambda args: f"{str(args.get('action', 'act')).title()} the open record?",
-)
-
-
 BUILTIN_TOOLS: list[Tool] = [
 	find_doctypes,
 	describe,
@@ -481,10 +392,6 @@ BUILTIN_TOOLS: list[Tool] = [
 	delete,
 	run_action,
 	execute,
-	read_screen,
-	navigate,
-	fill,
-	act,
 ]
 
 
@@ -501,7 +408,6 @@ def sync_builtin_tools() -> None:
 					"import_path": import_path,
 					"description": builtin.description,
 					"requires_confirmation": int(builtin.requires_confirmation),
-					"client_tool": int(builtin.client_tool),
 					"is_system_generated": 1,
 				},
 			)
@@ -516,6 +422,5 @@ def sync_builtin_tools() -> None:
 					"description": builtin.description,
 					"is_system_generated": 1,
 					"requires_confirmation": int(builtin.requires_confirmation),
-					"client_tool": int(builtin.client_tool),
 				}
 			).insert(ignore_permissions=True)

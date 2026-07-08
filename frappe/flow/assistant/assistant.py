@@ -18,9 +18,6 @@ ASSISTANT_INSTRUCTIONS = (
 	"- describe(doctype, name=None): inspect fields and your permissions; pass a record name to also "
 	"list its actions (submit/cancel/amend/rename, workflow transitions, whitelisted methods).\n"
 	"- read(doctype, filters, fields, ...): load records before changing them.\n"
-	"- read_screen(): see the user's current Desk screen — the route and, for an open form, "
-	"its doctype, record, unsaved/mandatory state and values. Use it whenever the user refers "
-	'to what they are looking at ("this record", "this form", "why can\'t I submit this").\n'
 	"Discover → verify → act. Never invent a DocType, field, or record name.\n\n"
 	"ACTING — use the direct tool; reach for execute only when nothing else fits:\n"
 	"- create / update / delete: standard record writes.\n"

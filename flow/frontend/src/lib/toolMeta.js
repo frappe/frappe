@@ -41,10 +41,6 @@ const LABELS = {
 	update: "Updating Records",
 	delete: "Deleting Records",
 	run_action: "Running Document Actions",
-	read_screen: "Reading the screen",
-	navigate: "Navigating",
-	fill: "Filling the form",
-	act: "Acting on the record",
 };
 
 export function toolLabel(name) {
@@ -155,10 +151,5 @@ export function confirmTitle(name, args) {
 			doctype ? `${count(a.names)} ${doctype}` : __("records"),
 		]);
 	else if (name === "execute") title = __("Run Python code");
-	else if (name === "act" && typeof a.action === "string" && a.action)
-		title = __("{0} the open record", [humanize(a.action)]);
-	return {
-		title: title || toolLabel(name),
-		danger: name === "delete" || (name === "act" && a.action === "cancel"),
-	};
+	return { title: title || toolLabel(name), danger: name === "delete" };
 }
