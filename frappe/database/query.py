@@ -347,9 +347,10 @@ class Engine:
 
 		self.add_permission_conditions()
 
-		# Store metadata for masked field processing during execution
-		self.query._doctype = self.doctype
-		self.query._fields_list = getattr(self, "fields", [])
+		if self.apply_permissions:
+			# Store metadata for masked field processing during execution.
+			self.query._doctype = self.doctype
+			self.query._fields_list = getattr(self, "fields", [])
 
 		self.query.immutable = True
 		return self.query
@@ -587,6 +588,13 @@ class Engine:
 		if isinstance(value, Document):
 			frappe.throw(_("Document cannot be used as a filter value"))
 		_operator = operator
+
+		# _assign and _liked_by store a JSON array of user ids, so `=`/`!=` never match a
+		# single member; treat them as `like`/`not like` against the serialized value.
+		if isinstance(field, str) and field in ("_assign", "_liked_by") and _operator in ("=", "!="):
+			_operator = "like" if _operator == "=" else "not like"
+			if isinstance(_value, str) and _value:
+				_value = f"%{_value}%"
 
 		if _operator.lower() in ("timespan", "previous", "next"):
 			from frappe.model.db_query import get_date_range
@@ -1699,7 +1707,7 @@ class Engine:
 			tables.append(join.item.get_sql())
 		return list(set(tables))
 
-	def get_permission_query_conditions(self, doctype: str | None = None) -> list["RawCriterion"]:
+	def get_permission_query_conditions(self, doctype: str | None = None) -> list["Criterion"]:
 		"""Add permission query conditions from hooks and server scripts"""
 		from frappe.core.doctype.server_script.server_script_utils import get_server_script_map
 
@@ -1710,7 +1718,9 @@ class Engine:
 
 		for method in condition_methods:
 			if c := frappe.call(frappe.get_attr(method), self.user, doctype=doctype):
-				conditions.append(RawCriterion(f"({c})"))
+				# Hooks may return a raw SQL string or a pypika term. A term already
+				# participates in `Criterion.all`/`get_sql`, so only strings need wrapping.
+				conditions.append(RawCriterion(f"({c})") if isinstance(c, str) else c)
 
 		active_child_tables = []
 		current_tables = self.get_queried_tables()
@@ -2142,10 +2152,13 @@ class LinkTableField(DynamicTableField):
 		table = frappe.qb.DocType(self.doctype)
 		main_table = frappe.qb.DocType(self.parent_doctype)
 		if not query.is_joined(table):
-			query = query.left_join(table).on(table.name == getattr(main_table, self.link_fieldname))
+			clause = table.name == getattr(main_table, self.link_fieldname)
+
 			if engine and engine.apply_permissions:
 				if condition := engine.get_permission_conditions(self.doctype, table):
-					query = query.where(condition)
+					clause &= condition
+
+			query = query.left_join(table).on(clause)
 
 		return query
 

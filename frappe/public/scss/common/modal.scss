@@ -152,10 +152,6 @@ body.modal-open[style^="padding-right"] {
 		.section-head {
 			padding: 0;
 			font-size: var(--text-md);
-
-			&:not(.collapsed) {
-				padding-bottom: var(--padding-sm);
-			}
 		}
 	}
 

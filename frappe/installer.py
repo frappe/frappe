@@ -178,6 +178,7 @@ def install_db(
 	frappe.db.create_auth_table()
 	frappe.db.create_global_search_table()
 	frappe.db.create_user_settings_table()
+	frappe.db.create_sequence_table()
 
 	frappe.flags.in_install_db = False
 

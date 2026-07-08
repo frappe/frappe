@@ -71,6 +71,7 @@ class User(Document):
 		from frappe.core.doctype.user_role_profile.user_role_profile import UserRoleProfile
 		from frappe.core.doctype.user_session_display.user_session_display import UserSessionDisplay
 		from frappe.core.doctype.user_social_login.user_social_login import UserSocialLogin
+		from frappe.core.doctype.user_workspaces.user_workspaces import UserWorkspaces
 		from frappe.types import DF
 
 		active_sessions: DF.Table[UserSessionDisplay]
@@ -147,6 +148,7 @@ class User(Document):
 		user_type: DF.Link | None
 		username: DF.Data | None
 		view_switcher: DF.Check
+		workspaces: DF.Table[UserWorkspaces]
 	# end: auto-generated types
 
 	__new_password = None
@@ -649,8 +651,8 @@ class User(Document):
 		# Remove user link from Workflow Action
 		frappe.db.set_value("Workflow Action", {"user": self.name}, "user", None)
 
-		# Delete user's List Layouts
-		frappe.db.delete("List Layout", {"for_user": self.name})
+		# Delete user's List Filters
+		frappe.db.delete("List Filter", {"for_user": self.name})
 
 		# Remove user from Note's Seen By table
 		seen_notes = frappe.get_docs("Note", filters=[["Note Seen By", "user", "=", self.name]])

@@ -135,7 +135,7 @@ export default class Section {
 	}
 
 	set_icon(hide) {
-		let indicator_icon = hide ? "chevron-right" : "es-line-down";
+		let indicator_icon = hide ? "chevron-right" : "chevron-down";
 		this.indicator && this.indicator.html(frappe.utils.icon(indicator_icon, "sm", "mb-1"));
 	}
 

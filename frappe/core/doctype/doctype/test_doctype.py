@@ -123,6 +123,21 @@ class TestDocType(IntegrationTestCase):
 		doc1.delete()
 		doc2.delete()
 
+	def test_change_field_type_with_incompatible_values(self):
+		if frappe.db.exists("DocType", "Test Field Type Change"):
+			frappe.delete_doc("DocType", "Test Field Type Change")
+
+		dt = new_doctype("Test Field Type Change")
+		dt.insert()
+
+		doc = frappe.new_doc("Test Field Type Change")
+		doc.some_fieldname = "not a number"
+		doc.insert()
+
+		dt.fields[0].fieldtype = "Int"
+		self.assertRaises(frappe.ValidationError, dt.save)
+		frappe.db.rollback()
+
 	def test_validate_search_fields(self):
 		doc = new_doctype("Test Search Fields")
 		doc.search_fields = "some_fieldname"
@@ -711,6 +726,28 @@ class TestDocType(IntegrationTestCase):
 				if controller_folder:
 					shutil.rmtree(controller_folder, ignore_errors=True)
 				frappe.local.request = previous_request
+
+	def test_warn_on_module_change(self):
+		doc = frappe.new_doc("DocType")
+		doc.name = "Test Module Change Warning"
+		doc.module = "Custom"
+
+		messages = []
+		with patch.object(frappe, "msgprint", side_effect=lambda msg, **kwargs: messages.append(msg)):
+			doc.get_doc_before_save = lambda: frappe._dict(module="Core")
+			doc.warn_on_module_change()
+			self.assertEqual(len(messages), 1)
+			self.assertIn("Custom", messages[0])
+
+			messages.clear()
+			doc.get_doc_before_save = lambda: frappe._dict(module="Custom")
+			doc.warn_on_module_change()
+			self.assertEqual(messages, [])
+
+			messages.clear()
+			doc.get_doc_before_save = lambda: frappe._dict(module="Does Not Exist")
+			doc.warn_on_module_change()
+			self.assertEqual(messages, [])
 
 	@unittest.skipUnless(
 		os.access(frappe.get_app_path("frappe"), os.W_OK), "Only run if frappe app paths is writable"

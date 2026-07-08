@@ -105,8 +105,9 @@ def build(
 			apps = frappe.get_all_apps()
 
 		for app in apps:
-			print("Compiling translations for", app)
-			compile_translations(app, force=force)
+			if verbose:
+				print("Compiling translations for", app)
+			compile_translations(app, force=force, verbose=verbose)
 
 		run_after_build_hook(apps)
 
@@ -275,7 +276,10 @@ def execute(context: CliCtxObj, method, args=None, kwargs=None, profile=False, e
 
 
 @click.command("add-to-email-queue")
-@click.argument("email-path")
+@click.argument(
+	"email-path",
+	type=click.Path(exists=True, dir_okay=True, file_okay=False, resolve_path=True),
+)
 @pass_context
 def add_to_email_queue(context: CliCtxObj, email_path):
 	"Add an email to the Email Queue"
@@ -313,7 +317,10 @@ def export_doc(context: CliCtxObj, doctype, docname):
 
 @click.command("export-json")
 @click.argument("doctype")
-@click.argument("path")
+@click.argument(
+	"path",
+	type=click.Path(dir_okay=False, file_okay=True),
+)
 @click.option("--name", help="Export only one document")
 @pass_context
 def export_json(context: CliCtxObj, doctype, path, name=None):
@@ -333,7 +340,10 @@ def export_json(context: CliCtxObj, doctype, path, name=None):
 
 @click.command("export-csv")
 @click.argument("doctype")
-@click.argument("path")
+@click.argument(
+	"path",
+	type=click.Path(dir_okay=False, file_okay=True, resolve_path=True),
+)
 @pass_context
 def export_csv(context: CliCtxObj, doctype, path):
 	"Export data import template with data for DocType"
@@ -369,7 +379,10 @@ def export_fixtures(context: CliCtxObj, app=None):
 
 
 @click.command("import-doc")
-@click.argument("path")
+@click.argument(
+	"path",
+	type=click.Path(dir_okay=True, file_okay=True),
+)
 @pass_context
 def import_doc(context: CliCtxObj, path, force=False):
 	"Import (insert/update) doclist. If the argument is a directory, all files ending with .json are imported"
@@ -429,7 +442,10 @@ def data_import(
 
 @click.command("bulk-rename")
 @click.argument("doctype")
-@click.argument("path")
+@click.argument(
+	"path",
+	type=click.Path(exists=True, dir_okay=False, resolve_path=True),
+)
 @pass_context
 def bulk_rename(context: CliCtxObj, doctype, path):
 	"Rename multiple records via CSV file"
@@ -778,7 +794,11 @@ def serve(
 
 @click.command("request")
 @click.option("--args", help="arguments like `?cmd=test&key=value` or `/api/request/method?..`")
-@click.option("--path", help="path to request JSON")
+@click.option(
+	"--path",
+	type=click.Path(dir_okay=False, file_okay=True),
+	help="path to request JSON",
+)
 @pass_context
 def request(context: CliCtxObj, args=None, path=None):
 	"Run a request as an admin"
@@ -815,7 +835,10 @@ def request(context: CliCtxObj, args=None, path=None):
 
 
 @click.command("make-app")
-@click.argument("destination")
+@click.argument(
+	"destination",
+	type=click.Path(exists=True, dir_okay=True, file_okay=False, resolve_path=True),
+)
 @click.argument("app_name")
 @click.option("--no-git", is_flag=True, default=False, help="Do not initialize git repository for the app")
 def make_app(destination, app_name, no_git=False):

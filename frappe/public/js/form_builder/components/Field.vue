@@ -223,7 +223,7 @@ onMounted(() => selected.value && label_input.value.focus_on_label());
 						:class="is_filter_applied()"
 						@click="edit_filters"
 					>
-						<div v-html="frappe.utils.icon('filter', 'sm')" />
+						<div v-html="frappe.utils.icon('funnel', 'sm')" />
 					</button>
 					<AddFieldButton
 						v-if="!store.is_layout_form"
@@ -239,7 +239,7 @@ onMounted(() => selected.value && label_input.value.focus_on_label());
 						:title="__('Duplicate field')"
 						@click.stop="duplicate_field"
 					>
-						<div v-html="frappe.utils.icon('duplicate', 'sm')" />
+						<div v-html="frappe.utils.icon('copy', 'sm')" />
 					</button>
 					<button
 						v-if="field.df.fieldtype === 'Table' && field.df.options"

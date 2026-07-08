@@ -8,12 +8,12 @@
 		<div class="canvas-area">
 			<!-- Sidebar-open hint -->
 			<div v-if="sidebar_open && !hint_dismissed" class="pfb-sidebar-hint">
-				<span v-html="frappe.utils.icon('solid-info', 'sm', 'pfb-hint-icon')"></span>
+				<span v-html="frappe.utils.icon('info', 'sm', 'pfb-hint-icon')"></span>
 				<span class="pfb-hint-text">{{
 					__("Tip: Close the left sidebar for more editing space.")
 				}}</span>
 				<button class="pfb-hint-dismiss" @click="dismiss_hint" :aria-label="__('Dismiss')">
-					<span v-html="frappe.utils.icon('close', 'xs')"></span>
+					<span v-html="frappe.utils.icon('x', 'xs')"></span>
 				</button>
 			</div>
 
@@ -36,7 +36,7 @@
 						@click="clear_preview_doc"
 						v-html="frappe.utils.icon('x', 'xs')"
 					></button>
-					<span v-if="$store.preview_doc.value" class="canvas-preview-badge">{{
+					<span v-if="$store.preview_doc.value" class="es-badge" data-theme="green">{{
 						__("Live")
 					}}</span>
 
@@ -60,7 +60,7 @@
 							:title="__('Zoom in')"
 							:disabled="canvas_zoom >= ZOOM_MAX"
 							@click="zoom_in"
-							v-html="frappe.utils.icon('add', 'xs')"
+							v-html="frappe.utils.icon('plus', 'xs')"
 						></button>
 					</div>
 				</div>
@@ -92,7 +92,7 @@ import Preview from "./components/Preview.vue";
 import PrintFormatControls from "./components/PrintFormatControls.vue";
 import FieldInspector from "./components/inspector/FieldInspector.vue";
 import { getStore } from "./stores";
-import { computed, ref, onMounted, onUnmounted, provide, nextTick } from "vue";
+import { computed, ref, onMounted, onUnmounted, provide, nextTick, watch } from "vue";
 
 // props
 const props = defineProps(["print_format_name"]);
@@ -131,6 +131,20 @@ function toggle_preview() {
 	show_preview.value = !show_preview.value;
 }
 
+watch(show_preview, (on) => {
+	if (on) {
+		history.pushState({ ...history.state, pfb_preview: true }, "");
+	} else if (history.state?.pfb_preview) {
+		history.back();
+	}
+});
+
+function handle_popstate() {
+	if (show_preview.value) {
+		show_preview.value = false;
+	}
+}
+
 function clear_selection() {
 	$store.value.selected_field.value = null;
 	$store.value.selected_section.value = null;
@@ -164,6 +178,21 @@ function on_start_blank() {
 function handle_keydown(e) {
 	// Zoom shortcuts: Ctrl+= / Ctrl+- / Ctrl+0
 	if (e.ctrlKey || e.metaKey) {
+		if (e.key === "z" || e.key === "Z" || e.key === "y") {
+			// rich text editors and dialogs keep their own undo
+			const el = document.activeElement;
+			if (
+				el?.tagName === "INPUT" ||
+				el?.tagName === "TEXTAREA" ||
+				el?.isContentEditable ||
+				el?.closest(".modal")
+			)
+				return;
+			e.preventDefault();
+			if (e.key === "y" || e.shiftKey) $store.value.redo();
+			else $store.value.undo();
+			return;
+		}
 		if (e.key === "=" || e.key === "+") {
 			e.preventDefault();
 			zoom_in();
@@ -183,7 +212,11 @@ function handle_keydown(e) {
 
 	if (e.key !== "Escape") return;
 	// Don't intercept if a modal/dialog is open
-	if (document.querySelector(".modal.show, .frappe-dialog:visible")) return;
+	if (document.querySelector(".modal.show")) return;
+	const dialog_open = Array.from(document.querySelectorAll(".frappe-dialog")).some(
+		(el) => el.offsetParent !== null
+	);
+	if (dialog_open) return;
 
 	const sf = $store.value.selected_field.value;
 	const ss = $store.value.selected_section.value;
@@ -276,6 +309,7 @@ function init_doc_picker() {
 // mounted
 onMounted(() => {
 	document.addEventListener("keydown", handle_keydown);
+	window.addEventListener("popstate", handle_popstate);
 
 	// Detect desk sidebar open/close via MutationObserver on the wrapper's style attribute
 	check_sidebar();
@@ -295,6 +329,7 @@ onMounted(() => {
 
 onUnmounted(() => {
 	document.removeEventListener("keydown", handle_keydown);
+	window.removeEventListener("popstate", handle_popstate);
 	sidebar_observer_ref?.disconnect();
 });
 
@@ -436,17 +471,6 @@ defineExpose({ toggle_preview, show_preview, $store });
 .canvas-clear-btn:hover {
 	background: var(--gray-100);
 	color: var(--gray-600);
-}
-
-.canvas-preview-badge {
-	font-size: 10px;
-	font-weight: 600;
-	color: var(--green-600);
-	background: var(--green-50);
-	border: 1px solid var(--green-200);
-	border-radius: var(--radius);
-	padding: 2px 6px;
-	line-height: 1.4;
 }
 
 /* ── Zoom control ────────────────────────────────────────── */

@@ -1,0 +1,138 @@
+.workspace-picker {
+	display: flex;
+	gap: var(--margin-lg);
+
+	.ws-pane {
+		flex: 1;
+		display: flex;
+		flex-direction: column;
+		gap: var(--margin-sm);
+		min-width: 0;
+	}
+
+	.ws-pane-head {
+		display: flex;
+		align-items: center;
+		justify-content: space-between;
+		min-height: 28px;
+		font-size: var(--text-md);
+		font-weight: 600;
+	}
+
+	.ws-clear-all {
+		padding: 0;
+		font-size: var(--text-sm);
+		font-weight: normal;
+		color: var(--text-muted);
+
+		&:hover {
+			color: var(--text-color);
+		}
+	}
+
+	.ws-pane-sub {
+		font-size: var(--text-sm);
+		color: var(--text-muted);
+		margin-top: calc(-1 * var(--margin-xs));
+	}
+
+	.ws-app-picker .form-control {
+		width: 100%;
+	}
+
+	.ws-list {
+		flex: 1;
+		display: flex;
+		flex-direction: column;
+		gap: var(--margin-xs);
+		min-height: 220px;
+		max-height: 360px;
+		overflow-y: auto;
+		padding: var(--padding-sm);
+		border: 1px solid var(--border-color);
+		border-radius: var(--border-radius-md);
+		background-color: var(--subtle-fg);
+	}
+
+	// left pane reads like the sidebar selector preview
+	.ws-selection {
+		background-color: var(--card-bg);
+	}
+
+	.ws-empty {
+		margin: auto;
+		font-size: var(--text-sm);
+	}
+
+	.ws-item {
+		display: flex;
+		align-items: center;
+		gap: var(--margin-sm);
+		padding: var(--padding-xs) var(--padding-sm);
+		background-color: var(--card-bg);
+		border: 1px solid var(--border-color);
+		border-radius: var(--border-radius-md);
+
+		.ws-item-handle {
+			display: inline-flex;
+			color: var(--text-muted);
+			cursor: grab;
+
+			&:active {
+				cursor: grabbing;
+			}
+		}
+
+		.ws-item-icon {
+			display: inline-flex;
+			align-items: center;
+
+			svg,
+			img {
+				width: 18px;
+				height: 18px;
+				border-radius: var(--border-radius-sm);
+			}
+		}
+
+		.ws-item-label {
+			flex: 1;
+			font-size: var(--text-md);
+			white-space: nowrap;
+			overflow: hidden;
+			text-overflow: ellipsis;
+		}
+
+		.ws-item-remove {
+			display: inline-flex;
+			align-items: center;
+			padding: 0;
+			border: none;
+			background: none;
+			color: var(--text-muted);
+			cursor: pointer;
+
+			&:hover {
+				color: var(--text-color);
+			}
+		}
+	}
+
+	// pool items are grab-draggable into the selection
+	.ws-pool-item {
+		cursor: grab;
+
+		&:active {
+			cursor: grabbing;
+		}
+
+		&.is-selected {
+			opacity: 0.45;
+			cursor: not-allowed;
+		}
+	}
+
+	.ws-item-ghost {
+		opacity: 0.4;
+	}
+}

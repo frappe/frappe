@@ -11,6 +11,10 @@ frappe.views.ReportView = class ReportView extends frappe.views.ListView {
 		return "Report";
 	}
 
+	get show_saved_layout_menu() {
+		return false;
+	}
+
 	render_header() {
 		// Override List View Header
 	}

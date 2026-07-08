@@ -1,0 +1,242 @@
+/* Espresso Button — framework-neutral component styles.
+ *
+ * Pure CSS. No SCSS, no Tailwind utilities. Styled entirely through the
+ * `.es-button` class + data-attributes, binding only to the semantic token
+ * custom properties in tokens/espresso-*.css. Consumed verbatim by the plain
+ * HTML page, the React app, and the Vue app — each framework's only job is to
+ * render <button class="es-button"> and set the data-attributes.
+ *
+ * Scope per the design-system decision: themes gray + red, variants
+ * solid | subtle | outline | ghost, sizes xs | sm | md | lg.
+ *
+ * Attributes (all optional):
+ *   data-variant   solid | subtle | outline | ghost   (default: subtle)
+ *   data-size      xs | sm | md | lg                         (default: sm)
+ *   data-theme     gray | red                                (default: gray)
+ *   data-icon-button="true"   square, no inline padding
+ *   aria-busy="true"          loading: blocks interaction without the disabled dimming
+ *   aria-invalid="true"       red focus ring + red border (matches Raven)
+ *
+ * DEFAULTS live on the base `.es-button` rule (variant=subtle, size=sm,
+ * theme=gray) so a bare <button class="es-button"> renders correctly; the
+ * data-* selectors only OVERRIDE when present.
+ *
+ * Lives in @layer components so a consumer's Tailwind utility (later `utilities`
+ * layer) overrides without !important.
+ *
+ * Dimensions use spacing-scale steps via `--spacing` (the 0.25rem unit h-7 / px-2
+ * derive from); `--es-sp` carries a 0.25rem fallback for the plain-HTML page.
+ */
+
+.es-button {
+    --es-sp: var(--spacing, 0.25rem);
+
+    /* default theme = gray. Local vars are the "unrolled @each": the theme
+         selector remaps them, every variant rule reads only these. */
+    --bt-solid-bg: var(--surface-gray-10);
+    --bt-solid-bg-hover: var(--surface-gray-9);
+    --bt-solid-bg-active: var(--surface-gray-8);
+    --bt-solid-fg: var(--ink-base);
+    --bt-fill-bg: var(--surface-gray-2);
+    --bt-fill-bg-hover: var(--surface-gray-3);
+    --bt-fill-bg-active: var(--surface-gray-4);
+    --bt-fg: var(--ink-gray-8);
+    --bt-border: var(--outline-gray-2);
+    --bt-border-hover: var(--outline-gray-3);
+    --bt-outline-bg-active: var(--surface-gray-4);
+    --bt-disabled-bg: var(--surface-gray-2);
+    --bt-disabled-fg: var(--ink-gray-4);
+    --bt-disabled-border: var(--outline-gray-2);
+    --bt-focus: var(--focus-outline-default);
+
+    /* default size = sm */
+    --es-bt-h: calc(var(--es-sp) * 7);
+    --es-bt-icon: calc(var(--es-sp) * 4);
+
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    gap: calc(var(--es-sp) * 2);
+    flex-shrink: 0;
+    white-space: nowrap;
+    user-select: none;
+    cursor: pointer;
+    height: var(--es-bt-h);
+    padding-inline: calc(var(--es-sp) * 2);
+    border: 1px solid transparent;
+    border-radius: var(--radius);
+    font-size: var(--text-base);
+    font-weight: var(--font-weight-regular);
+    line-height: 1;
+    outline: none;
+    transition: background-color 120ms, border-color 120ms, color 120ms;
+
+    /* default variant = subtle */
+    background: var(--bt-fill-bg);
+    color: var(--bt-fg);
+}
+
+/* subtle is the default; scope hover/active to default-or-explicit subtle so
+       they don't leak onto the other variants. */
+.es-button:not([data-variant]):hover,
+.es-button[data-variant="subtle"]:hover {
+    background: var(--bt-fill-bg-hover);
+}
+
+.es-button:not([data-variant]):active,
+.es-button[data-variant="subtle"]:active {
+    background: var(--bt-fill-bg-active);
+}
+
+/* ---- theme: red (overrides the gray default) ---- */
+.es-button[data-theme="red"] {
+    --bt-solid-bg: var(--surface-red-7);
+    --bt-solid-bg-hover: var(--surface-red-8);
+    --bt-solid-bg-active: var(--surface-red-9);
+    --bt-solid-fg: var(--ink-red-1);
+    --bt-fill-bg: var(--surface-red-2);
+    --bt-fill-bg-hover: var(--surface-red-3);
+    --bt-fill-bg-active: var(--surface-red-4);
+    --bt-fg: var(--ink-red-8);
+    --bt-border: var(--outline-red-1);
+    --bt-border-hover: var(--outline-red-3);
+    --bt-outline-bg-active: var(--surface-red-3);
+    --bt-disabled-bg: var(--surface-red-2);
+    --bt-disabled-fg: var(--ink-red-5);
+    --bt-disabled-border: var(--outline-red-1);
+    --bt-focus: var(--focus-outline-red);
+}
+
+/* ---- sizes (override the sm default) ---- */
+.es-button[data-size="xs"] {
+    --es-bt-h: calc(var(--es-sp) * 6);
+    --es-bt-icon: calc(var(--es-sp) * 3.5);
+    padding-inline: calc(var(--es-sp) * 1.5);
+    font-size: var(--text-xs);
+    border-radius: var(--radius-3);
+}
+
+.es-button[data-size="md"] {
+    --es-bt-h: calc(var(--es-sp) * 8);
+    --es-bt-icon: calc(var(--es-sp) * 4.5);
+    padding-inline: calc(var(--es-sp) * 2.5);
+    font-weight: var(--font-weight-medium);
+}
+
+.es-button[data-size="lg"] {
+    --es-bt-h: calc(var(--es-sp) * 10);
+    --es-bt-icon: calc(var(--es-sp) * 5);
+    padding-inline: calc(var(--es-sp) * 3);
+    font-size: var(--text-xl);
+    font-weight: var(--font-weight-medium);
+    border-radius: var(--radius-md);
+}
+
+/* ---- variants (override the subtle default) ---- */
+.es-button[data-variant="solid"] {
+    background: var(--bt-solid-bg);
+    color: var(--bt-solid-fg);
+}
+
+.es-button[data-variant="solid"]:hover {
+    background: var(--bt-solid-bg-hover);
+}
+
+.es-button[data-variant="solid"]:active {
+    background: var(--bt-solid-bg-active);
+}
+
+.es-button[data-variant="outline"] {
+    background: var(--surface-base);
+    color: var(--bt-fg);
+    border-color: var(--bt-border);
+}
+
+.es-button[data-variant="outline"]:hover {
+    border-color: var(--bt-border-hover);
+}
+
+.es-button[data-variant="outline"]:active {
+    border-color: var(--bt-border-hover);
+    background: var(--bt-outline-bg-active);
+}
+
+.es-button[data-variant="ghost"] {
+    background: transparent;
+    color: var(--bt-fg);
+}
+
+.es-button[data-variant="ghost"]:hover {
+    background: var(--bt-fill-bg-hover);
+}
+
+.es-button[data-variant="ghost"]:active {
+    background: var(--bt-fill-bg-active);
+}
+
+/* ---- icon button (square, no inline padding) ---- */
+.es-button[data-icon-button="true"] {
+    padding-inline: 0;
+    width: var(--es-bt-h);
+}
+
+/* ---- focus ring (neutral --focus-outline-* tokens) ---- */
+.es-button:focus-visible {
+    outline: var(--bt-focus);
+    outline-offset: 0;
+}
+
+/* ---- aria-invalid: red border + red focus ring (matches Raven) ---- */
+.es-button[aria-invalid="true"] {
+    border-color: var(--outline-red-3);
+}
+
+.es-button[aria-invalid="true"]:focus-visible {
+    outline: var(--focus-outline-red);
+}
+
+/* ---- disabled (after variants so it wins; pointer-events:none blocks hover).
+       Default covers solid + subtle; ghost clear the bg; outline keeps a
+       border. ---- */
+.es-button:disabled {
+    cursor: not-allowed;
+    pointer-events: none;
+    background: var(--bt-disabled-bg);
+    color: var(--bt-disabled-fg);
+    border-color: transparent;
+}
+
+.es-button[data-variant="outline"]:disabled {
+    border-color: var(--bt-disabled-border);
+}
+
+.es-button[data-variant="ghost"]:disabled {
+    background: transparent;
+}
+
+/* ---- loading: block interaction without the disabled dimming. Styled off
+       aria-busy so the visual and accessibility states cannot drift. ---- */
+.es-button[aria-busy="true"] {
+    pointer-events: none;
+}
+
+.es-button:not([aria-busy="true"]) > .es-spinner,
+.es-button:not([aria-busy="true"]) > .es-button__loading-label {
+    display: none;
+}
+
+/* while busy, a loading label replaces the normal label + icon */
+.es-button[aria-busy="true"]:has(> .es-button__loading-label) > .es-button__label,
+.es-button[aria-busy="true"]:has(> .es-button__loading-label) > svg {
+    display: none;
+}
+
+/* ---- icons + spinner (painted by components/spinner.css): size follows
+       the button size ---- */
+.es-button > svg,
+.es-button > .es-spinner {
+    pointer-events: none;
+    flex-shrink: 0;
+    width: var(--es-bt-icon);
+    height: var(--es-bt-icon);
+}

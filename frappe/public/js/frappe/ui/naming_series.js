@@ -81,7 +81,15 @@ frappe.ui.NamingSeriesDialog = class NamingSeriesDialog {
 	}
 
 	render_help() {
-		this.dialog.get_field("naming_series_description").$wrapper.html(`
+		this.dialog
+			.get_field("naming_series_description")
+			.$wrapper.html(frappe.ui.NamingSeriesDialog.help_html());
+	}
+
+	// Reusable "Rules for configuring series" help, shared with the per-series editor in the
+	// DocType Settings → Naming tab so the documentation lives in one place.
+	static help_html() {
+		return `
    			 <ul>
 				<li>${__("Allowed special characters are '/' and '-'")}</li>
 				<li>
@@ -116,7 +124,7 @@ frappe.ui.NamingSeriesDialog = class NamingSeriesDialog {
         <li>INVK-</li>
         <li>INV-.YYYY.-._{branch}.-.MM.-.####</li>
     </ul>
-	<br>`);
+	<br>`;
 	}
 
 	get_series_preview(series) {
@@ -340,7 +348,7 @@ frappe.ui.NamingSeriesTable = class NamingSeriesTable {
                     data-doctype="${frappe.utils.escape_html(t.doctype)}"
                     data-label="${frappe.utils.escape_html(t.label)}"
                     style="cursor: pointer; color: var(--text-muted);">
-                    ${frappe.utils.icon("edit", "sm")}
+                    ${frappe.utils.icon("pencil", "sm")}
                 </a>
             </td>
         </tr>

@@ -31,6 +31,19 @@ def download_pdf(doctype: str, name: str | int, print_format: str, letterhead: s
 	frappe.local.response.type = "pdf"
 
 
+@frappe.whitelist()
+def get_qr_code(value: str) -> str:
+	"""Return a QR code for `value` as an SVG data URI (used by Barcode print elements)."""
+	import base64
+	import io
+
+	from pyqrcode import create as qrcreate
+
+	stream = io.BytesIO()
+	qrcreate(value).svg(stream, scale=5, quiet_zone=1)
+	return "data:image/svg+xml;base64," + base64.b64encode(stream.getvalue()).decode()
+
+
 def get_html(doctype, name, print_format, letterhead=None):
 	doc = frappe.get_doc(doctype, name)
 	doc.check_permission("print")
@@ -202,7 +215,9 @@ class PrintFormatGenerator:
 		if is_header and page_no_html:
 			parts.append(page_no_html)
 		if letterhead_html:
-			parts.append(frappe.render_template(letterhead_html, ctx))
+			parts.append(
+				'<div class="letter-head">' + frappe.render_template(letterhead_html, ctx) + "</div>"
+			)
 		if layout_template:
 			if isinstance(layout_template, str):
 				# layout_template is persisted header/footer HTML from the stored Print Format document.
@@ -223,17 +238,30 @@ class PrintFormatGenerator:
 {%- for col in section.columns -%}{%- for df in col.get('fields', []) -%}{%- set ns.has_fields = true -%}{%- endfor -%}{%- endfor -%}
 {%- if ns.has_fields -%}
 {%- set col_gap = (section.gap if section.gap is defined and section.gap is not none else 20)|string + 'px' -%}
-{%- set _lc = 'label-uppercase' if section.get('label_case') == 'uppercase' else '' -%}
-<div class="section {{ _lc }} section-columns row" style="gap:{{ col_gap }}">
+<div class="section section-columns row" style="gap:{{ col_gap }}">
 {%- for column in section.columns %}
 <div class="column col">
 {%- for df in column.get('fields', []) -%}
+{%- if not df.get('_hidden') -%}
 {%- if df.fieldtype == 'HTML' and df.html -%}
 <div class="custom-html">{{ frappe.render_template(df.html, {'doc': doc}) }}</div>
 {%- elif df.fieldtype == 'Spacer' -%}
 <div style="height:12px"></div>
 {%- elif df.fieldtype == 'Divider' -%}
 <hr style="border-top:1px solid #e5e7eb;margin:4px 0"/>
+{%- elif df.fieldtype == 'Image' -%}
+{%- set _src = df.image_url or doc.get(df.fieldname) -%}
+{%- if _src -%}
+<div{% if df.align and df.align != 'left' %} style="text-align:{{ df.align }}"{% endif %}>
+<img src="{{ _src }}" style="max-width:100%;{% if df.width %}width:{{ df.width|e }};{% endif %}">
+</div>
+{%- endif -%}
+{%- elif df.fieldtype == 'Barcode' -%}
+{%- if df.get('_qr_data_uri') -%}
+<div{% if df.align and df.align != 'left' %} style="text-align:{{ df.align }}"{% endif %}>
+<img src="{{ df._qr_data_uri }}" style="{% if df.width %}width:{{ df.width|e }};{% else %}width:35mm;{% endif %}">
+</div>
+{%- endif -%}
 {%- else -%}
 {%- set _raw = doc.get(df.fieldname) -%}
 {%- if _raw is not none and _raw != '' -%}
@@ -241,6 +269,7 @@ class PrintFormatGenerator:
 {%- if df.show_label != 'hide' %}<div class="label">{{ _(df.label or df.fieldname) }}</div>{%- endif -%}
 <div class="value">{{ doc.get_formatted(df.fieldname) }}</div>
 </div>
+{%- endif -%}
 {%- endif -%}
 {%- endif -%}
 {%- endfor -%}
@@ -281,12 +310,24 @@ class PrintFormatGenerator:
 
 	def set_field_renderers(self, layout):
 		renderers = {"HTML Editor": "HTML", "Markdown Editor": "Markdown"}
+		eval_locals = {"doc": self.doc}
 		for section in layout["sections"]:
+			if section.get("visible_if"):
+				try:
+					section["_hidden"] = not frappe.safe_eval(section["visible_if"], eval_locals)
+				except Exception:
+					section["_hidden"] = False
 			for column in section["columns"]:
 				for df in column["fields"]:
+					if df.get("visible_if"):
+						try:
+							df["_hidden"] = not frappe.safe_eval(df["visible_if"], eval_locals)
+						except Exception:
+							df["_hidden"] = False
 					fieldtype = df["fieldtype"]
 					df["renderer"] = renderers.get(fieldtype) or fieldtype.replace(" ", "")
 					df["section"] = section
+					self.prepare_barcode(df)
 
 		# Also process header/footer zones if they are section objects
 		for zone_key in ("header", "footer"):
@@ -294,11 +335,38 @@ class PrintFormatGenerator:
 			if isinstance(zone, dict) and "columns" in zone:
 				for column in zone.get("columns", []):
 					for df in column.get("fields", []):
+						if df.get("visible_if"):
+							try:
+								df["_hidden"] = not frappe.safe_eval(df["visible_if"], eval_locals)
+							except Exception:
+								df["_hidden"] = False
 						fieldtype = df.get("fieldtype", "Data")
 						df["renderer"] = renderers.get(fieldtype) or fieldtype.replace(" ", "")
 						df["section"] = zone
+						self.prepare_barcode(df)
 
 		return layout
+
+	def prepare_barcode(self, df):
+		"""Resolve JsBarcode options / QR data URI for Barcode layout elements."""
+		if df.get("fieldtype") != "Barcode" or not df.get("custom"):
+			return
+		if df.get("barcode_format") == "QR":
+			value = (
+				self.doc.get(df.get("barcode_field")) if df.get("barcode_field") else df.get("barcode_value")
+			)
+			if value:
+				df["_qr_data_uri"] = get_qr_code(str(value))
+		else:
+			df["_barcode_options"] = frappe.as_json(
+				{
+					"format": df.get("barcode_format") or "CODE128",
+					"displayValue": bool(df.get("show_text", True)),
+					"height": 40,
+					"margin": 0,
+				},
+				indent=None,
+			)
 
 	def process_margin_texts(self, layout):
 		for key in (*self._TOP_POSITIONS, *self._BOTTOM_POSITIONS):

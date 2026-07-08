@@ -7,9 +7,12 @@ import psycopg2.extensions
 from psycopg2 import sql
 from psycopg2.errorcodes import (
 	CLASS_INTEGRITY_CONSTRAINT_VIOLATION,
+	DATATYPE_MISMATCH,
 	DEADLOCK_DETECTED,
 	DUPLICATE_COLUMN,
 	INSUFFICIENT_PRIVILEGE,
+	INVALID_TEXT_REPRESENTATION,
+	NUMERIC_VALUE_OUT_OF_RANGE,
 	SERIALIZATION_FAILURE,
 	STRING_DATA_RIGHT_TRUNCATION,
 	UNDEFINED_COLUMN,
@@ -23,10 +26,10 @@ from psycopg2.errors import (
 	SequenceGeneratorLimitExceeded,
 	SyntaxError,
 )
-from psycopg2.extensions import ISOLATION_LEVEL_REPEATABLE_READ
+from psycopg2.extensions import ISOLATION_LEVEL_READ_COMMITTED
 
 import frappe
-from frappe.database.database import Database
+from frappe.database.database import CREATE_OR_DROP, Database
 from frappe.database.postgres.schema import PostgresTable
 from frappe.database.utils import EmptyQueryValues, LazyDecode
 from frappe.utils import cstr, get_table_name
@@ -75,6 +78,10 @@ FROM_TAB_PATTERN = re.compile(r"from tab([\w-]*)", flags=re.IGNORECASE)
 # MySQL's REGEXP operator -> postgres `~*` (case-insensitive, matching MySQL's default collation)
 REGEXP_PATTERN = re.compile(r"\sREGEXP\s", flags=re.IGNORECASE)
 
+# Index methods accepted by add_index(using=...): the two custom GIN modes plus postgres'
+# native access methods. Anything else is rejected before it reaches the DDL string.
+INDEX_METHODS = frozenset({"gin_trgm", "gin_fulltext", "btree", "hash", "gist", "gin", "brin", "spgist"})
+
 
 class PostgresExceptionUtil:
 	ProgrammingError = psycopg2.ProgrammingError
@@ -89,10 +96,10 @@ class PostgresExceptionUtil:
 	@staticmethod
 	def is_deadlocked(e):
 		# Treat serialization failures like deadlocks: both are retriable transaction-rollback
-		# (class 40) errors. Under REPEATABLE READ, a write-write conflict makes MariaDB lock and
-		# wait, but postgres aborts the loser with SERIALIZATION_FAILURE ("could not serialize
-		# access due to concurrent update"). Classifying it here routes it through frappe's deadlock
-		# retry instead of surfacing as an unhandled query error.
+		# (class 40) errors. READ COMMITTED (the default now) doesn't raise SERIALIZATION_FAILURE
+		# on plain write conflicts, but transactions explicitly run at a stricter level still can;
+		# keep classifying it here so those route through frappe's deadlock retry instead of
+		# surfacing as an unhandled query error.
 		return getattr(e, "pgcode", None) in (DEADLOCK_DETECTED, SERIALIZATION_FAILURE)
 
 	@staticmethod
@@ -157,6 +164,18 @@ class PostgresExceptionUtil:
 	@staticmethod
 	def is_data_too_long(e):
 		return getattr(e, "pgcode", None) == STRING_DATA_RIGHT_TRUNCATION
+
+	@staticmethod
+	def is_data_truncated(e):
+		# a value cannot be cast to the column's new type -- e.g. changing a field holding
+		# "not a number" to Int. MariaDB reports TRUNCATED_WRONG_VALUE; postgres is stricter and
+		# aborts the ALTER: it refuses to auto-cast the column (datatype mismatch) or a value fails
+		# the cast (invalid representation / numeric out of range).
+		return getattr(e, "pgcode", None) in (
+			DATATYPE_MISMATCH,
+			INVALID_TEXT_REPRESENTATION,
+			NUMERIC_VALUE_OUT_OF_RANGE,
+		)
 
 	@staticmethod
 	def is_db_table_size_limit(e) -> bool:
@@ -230,13 +249,22 @@ class PostgresDatabase(PostgresExceptionUtil, Database):
 			# libpg defaults to default socket if not specified
 			"host": self.host or self.socket,
 		}
+		# libpq's GSSAPI (krb5) path is not fork-safe; with the default gssencmode=prefer RQ work
+		# horses segfault on fork ("work-horse terminated unexpectedly"). The option exists from
+		# libpq 12, so guard on the runtime version (an older client lib would reject it); validate
+		# any site-config override against libpq's modes so a bad value can't break every connection.
+		if psycopg2.extensions.libpq_version() >= 120000:
+			gssencmode = str(frappe.conf.get("db_gssencmode") or "disable")
+			if gssencmode not in ("disable", "allow", "prefer", "require"):
+				gssencmode = "disable"
+			conn_settings["gssencmode"] = gssencmode
 		if self.password:
 			conn_settings["password"] = self.password
 		if not self.socket and self.port:
 			conn_settings["port"] = self.port
 
 		conn = psycopg2.connect(**conn_settings)
-		conn.set_isolation_level(ISOLATION_LEVEL_REPEATABLE_READ)
+		conn.set_isolation_level(ISOLATION_LEVEL_READ_COMMITTED)
 
 		return conn
 
@@ -280,17 +308,34 @@ class PostgresDatabase(PostgresExceptionUtil, Database):
 		return self.last_query
 
 	def get_tables(self, cached=True):
-		return [
-			d[0]
-			for d in self.sql(
-				"""select table_name
-			from information_schema.tables
-			where table_catalog=%s
-				and table_type = 'BASE TABLE'
-				and table_schema=%s""",
-				(self.cur_db_name, self.db_schema),
-			)
-		]
+		"""Return list of tables."""
+		cache_key = f"db_tables::{self.db_schema}"
+		to_query = not cached
+
+		if cached:
+			tables = frappe.client_cache.get_value(cache_key)
+			to_query = not tables
+
+		if to_query:
+			tables = [
+				d[0]
+				for d in self.sql(
+					"""select table_name
+				from information_schema.tables
+				where table_catalog=%s
+					and table_type = 'BASE TABLE'
+					and table_schema=%s""",
+					(self.cur_db_name, self.db_schema),
+				)
+			]
+			frappe.client_cache.set_value(cache_key, tables)
+
+		return tables
+
+	@staticmethod
+	def clear_db_table_cache(query_type: str):
+		if query_type in CREATE_OR_DROP:
+			frappe.client_cache.delete_keys("db_tables::*")
 
 	def get_db_table_columns(self, table) -> list[str]:
 		"""Returns list of column names from given table."""
@@ -389,6 +434,14 @@ class PostgresDatabase(PostgresExceptionUtil, Database):
 				published int not null default 0,
 				unique (doctype, name))"""
 			)
+		# GIN index over the full-text vector so search()/web_search() do an index scan instead of
+		# recomputing to_tsvector for every row. Runs unconditionally (CREATE INDEX IF NOT EXISTS is
+		# idempotent) so an existing deployment that already has the table still gets it on upgrade.
+		# Expression must match the query's to_tsvector('english', content).
+		self.sql_ddl(
+			"""CREATE INDEX IF NOT EXISTS "__global_search_fts"
+			ON "__global_search" USING gin (to_tsvector('english', content))"""
+		)
 
 	def create_user_settings_table(self):
 		self.sql_ddl(
@@ -462,23 +515,68 @@ class PostgresDatabase(PostgresExceptionUtil, Database):
 		)
 		return result[0] if result else None
 
-	def add_index(self, doctype: str, fields: list, index_name: str | None = None):
+	def add_index(
+		self, doctype: str, fields: list, index_name: str | None = None, using=None, where=None, include=None
+	):
 		"""Creates an index with given fields if not already created.
+
 		Default index name is `<table>_<field1>_<field2>_index` (table-qualified so it is unique
-		per *schema*, as postgres requires)."""
+		per *schema*, as postgres requires).
+
+		using: index kind beyond the default btree --
+			"gin_trgm"     GIN + gin_trgm_ops for fast LIKE/ILIKE substring search (needs pg_trgm)
+			"gin_fulltext" GIN over to_tsvector(...) for full-text search on text columns
+			or a bare access method ("btree", "hash", "gist", "gin", "brin", "spgist").
+		where: predicate for a partial index, e.g. "docstatus < 2". A trusted DDL fragment
+			interpolated verbatim -- callers MUST NOT pass user-supplied input.
+		include: non-key columns to carry in a covering (INCLUDE) btree index, so an index-only
+			scan answers the query without touching the heap.
+		"""
 		from frappe.database.postgres.schema import get_qualified_index_name
+
+		# `using` is interpolated into DDL, so reject anything outside the known-safe set.
+		if using and using not in INDEX_METHODS:
+			frappe.throw(f"Unsupported index method: {using}")
 
 		table_name = get_table_name(doctype)
 		clean_fields = [re.sub(r"\(.*\)", "", field) for field in fields]
+		# Column identifiers are interpolated into the DDL string, so reject anything that isn't a
+		# plain name -- a value like `id") ...; DROP TABLE ...` would otherwise inject into it.
+		for column in (*clean_fields, *(include or ())):
+			if not re.fullmatch(r"\w+", column):
+				frappe.throw(f"Invalid index column: {column}")
 		# postgres index names are per-schema, not per-table: an unqualified default name collides
 		# across tables sharing these fields and `CREATE INDEX IF NOT EXISTS` then silently skips
-		# all but the first, leaving the index missing. Qualify with the table so each one is made.
-		index_name = index_name or get_qualified_index_name(table_name, clean_fields)
-		fields_str = '", "'.join(clean_fields)
+		# all but the first, leaving the index missing. Qualify with the table (and `using`, so a
+		# trigram index never clashes with the plain one on the same column).
+		index_name = index_name or get_qualified_index_name(table_name, clean_fields, using)
 
+		if using == "gin_trgm":
+			self.sql_ddl("CREATE EXTENSION IF NOT EXISTS pg_trgm")
+
+		method = f" USING {'gin' if using in ('gin_trgm', 'gin_fulltext') else using}" if using else ""
+		include_clause = f""" INCLUDE ("{'", "'.join(include)}")""" if include else ""
+		condition = f" WHERE {where}" if where else ""
 		self.sql_ddl(
-			f'CREATE INDEX IF NOT EXISTS "{index_name}" ON "{self.db_schema}"."{table_name}" ("{fields_str}")'
+			f'CREATE INDEX IF NOT EXISTS "{index_name}" ON "{self.db_schema}"."{table_name}"'
+			f"{method} ({self._index_target(clean_fields, using)}){include_clause}{condition}"
 		)
+
+	def _index_target(self, fields: list[str], using: str | None) -> str:
+		"""The column list (or functional expression) an index is built over, per `using` mode."""
+		if using == "gin_trgm":
+			return ", ".join(f'"{field}" gin_trgm_ops' for field in fields)
+		if using == "gin_fulltext":
+			# 'english' regconfig keeps to_tsvector immutable so it can be indexed; the search query
+			# must use the same config. ponytail: hardcoded -- add a `config` arg if multilingual
+			# full-text is ever needed.
+			document = (
+				f'"{fields[0]}"'
+				if len(fields) == 1
+				else " || ' ' || ".join(f"coalesce(\"{field}\", '')" for field in fields)
+			)
+			return f"to_tsvector('english', {document})"
+		return '"' + '", "'.join(fields) + '"'
 
 	def add_unique(self, doctype, fields, constraint_name=None):
 		if isinstance(fields, str):
@@ -598,6 +696,122 @@ class PostgresDatabase(PostgresExceptionUtil, Database):
 		finally:
 			self._cursor = original_cursor
 			new_cursor.close()
+
+	@staticmethod
+	def _advisory_lock_key(key) -> int:
+		import hashlib
+
+		return int.from_bytes(hashlib.sha256(str(key).encode()).digest()[:8], "big", signed=True)
+
+	def _poll_advisory_lock(self, try_function, key, timeout):
+		import time
+
+		from frappe.exceptions import QueryTimeoutError
+
+		lock_key = self._advisory_lock_key(key)
+		deadline = time.monotonic() + timeout
+		while not self.sql(f"SELECT {try_function}(%s)", (lock_key,))[0][0]:
+			if time.monotonic() >= deadline:
+				raise QueryTimeoutError(f"Could not acquire advisory lock {key!r} within {timeout}s")
+			time.sleep(0.1)
+		return lock_key
+
+	def transaction_advisory_lock(self, key, *, timeout=10):
+		"""Take an advisory lock that Postgres releases automatically when the current transaction
+		commits or rolls back (pg_advisory_xact_lock) -- no explicit unlock, participates in
+		deadlock detection alongside row locks, re-entrant within a transaction. Polls up to
+		`timeout` seconds, then raises QueryTimeoutError."""
+		self._poll_advisory_lock("pg_try_advisory_xact_lock", key, timeout)
+
+	@contextmanager
+	def advisory_lock(self, key, *, timeout=10):
+		"""Hold a session-level advisory lock for the duration of the `with` block. Session-scoped
+		(pg_advisory_lock) so it survives any intermediate commits the caller makes -- a txn-scoped
+		lock would release at the first commit. Polls pg_try_advisory_lock up to `timeout` seconds,
+		then raises QueryTimeoutError. `key` is hashed to the bigint the lock functions expect."""
+		lock_key = self._poll_advisory_lock("pg_try_advisory_lock", key, timeout)
+		try:
+			yield
+		finally:
+			try:
+				self.sql("SELECT pg_advisory_unlock(%s)", (lock_key,))
+			except Exception:
+				# A DB error inside the block leaves the transaction aborted, so the unlock above
+				# fails and the session-scoped lock would leak (ROLLBACK does not release it). Clear
+				# the aborted state and release. Guarded so a failed cleanup never masks the original
+				# error -- a dropped session releases the lock anyway.
+				try:
+					self.rollback()
+					self.sql("SELECT pg_advisory_unlock(%s)", (lock_key,))
+				except Exception:
+					pass
+
+	def bulk_insert(self, doctype, fields, values, ignore_duplicates=False, *, chunk_size=10_000):
+		"""Stream rows into the table with COPY -- far faster than multi-row INSERT. Falls back to
+		the parameterized INSERT path when `ignore_duplicates` is set (COPY has no ON CONFLICT).
+		Runs in the current transaction; the caller commits."""
+		if ignore_duplicates:
+			return super().bulk_insert(doctype, fields, values, ignore_duplicates=True, chunk_size=chunk_size)
+
+		import io
+
+		table_name = get_table_name(doctype)
+		# Compose identifiers with psycopg2.sql so a field/table name is always correctly quoted.
+		copy_statement = sql.SQL("COPY {}.{} ({}) FROM STDIN").format(
+			sql.Identifier(self.db_schema),
+			sql.Identifier(table_name),
+			sql.SQL(", ").join(sql.Identifier(field) for field in fields),
+		)
+		if not self._conn:
+			self.connect()
+		cursor = self._conn.cursor()
+		copy_sql = copy_statement.as_string(cursor)
+		buffer = io.StringIO()
+		try:
+			row_count = flushed = 0
+			for value in values:
+				buffer.write("\t".join(_copy_encode(column) for column in value) + "\n")
+				row_count += 1
+				if row_count % chunk_size == 0:
+					_copy_flush(cursor, copy_sql, buffer)
+					# COPY bypasses Database.execute, so keep transaction_writes in step with the
+					# rows sent -- else auto_commit_on_many_writes never sees a large load.
+					self.transaction_writes += row_count - flushed
+					flushed = row_count
+			_copy_flush(cursor, copy_sql, buffer)
+			self.transaction_writes += row_count - flushed
+		finally:
+			cursor.close()
+
+
+def _copy_encode(value):
+	"""Encode one value for postgres COPY text format (tab-delimited, ``\\N`` = NULL)."""
+	if value is None:
+		return r"\N"
+	if value is True:
+		# Frappe Check fields are smallint, not boolean; smallint_in("true") errors under COPY.
+		# "1"/"0" is accepted by both smallint and boolean input functions, matching INSERT.
+		return "1"
+	if value is False:
+		return "0"
+	if isinstance(value, datetime.timedelta):
+		# Frappe Time fields are timedelta; str() on a >=1 day delta is "1 day, H:MM:SS", which
+		# postgres cannot parse as time. Emit HH:MM:SS[.ffffff] so the COPY text is always valid.
+		total = int(value.total_seconds())
+		hours, remainder = divmod(total, 3600)
+		minutes, seconds = divmod(remainder, 60)
+		encoded = f"{hours:02d}:{minutes:02d}:{seconds:02d}"
+		return f"{encoded}.{value.microseconds:06d}" if value.microseconds else encoded
+	return str(value).replace("\\", "\\\\").replace("\t", "\\t").replace("\n", "\\n").replace("\r", "\\r")
+
+
+def _copy_flush(cursor, copy_sql, buffer):
+	if not buffer.tell():
+		return
+	buffer.seek(0)
+	cursor.copy_expert(copy_sql, buffer)
+	buffer.seek(0)
+	buffer.truncate(0)
 
 
 def modify_query(query):

@@ -1,0 +1,460 @@
+// Tab-specific layout for the DocType Settings dialog. The dialog shell itself
+// is styled in settings_dialog.scss; these `dts-` classes cover the bits the
+// tabs render into panel bodies: the shared list panel, the global-search field
+// grid, the print-format card grid, and the shared empty state.
+
+// ── Global Search tab: inclusion toggle + searchable-field checkbox grid ──
+// Selector carries `.switch-control` too, to beat `label.switch-control`'s padding /
+// margin-bottom from controls.scss (otherwise the divider hugs the search bar).
+.switch-control.dts-gs-switch {
+	padding-bottom: var(--padding-md);
+	margin-bottom: var(--padding-md);
+	border-bottom: 1px solid var(--border-color);
+}
+
+.dts-gs-search {
+	max-width: 320px;
+	margin-bottom: var(--margin-md);
+}
+
+.dts-gs-grid {
+	display: grid;
+	grid-template-columns: repeat(auto-fill, minmax(220px, 1fr));
+	gap: var(--padding-xs) var(--margin-md);
+}
+
+// Checkbox row (label + native checkbox), reused for the doctype-name option too.
+.dts-check {
+	display: flex;
+	align-items: center;
+	gap: var(--padding-sm);
+	margin: 0;
+	padding: var(--padding-xs) 0;
+	font-weight: var(--weight-regular);
+	cursor: pointer;
+
+	input {
+		margin: 0;
+		cursor: pointer;
+	}
+
+	// Truncation comes from the shared `.ellipsis` utility on the element.
+	.dts-check-label {
+		color: var(--ink-gray-7);
+		min-width: 0;
+	}
+}
+
+// ── Stacked sections within a tab (e.g. Naming's Series + Rules) ──
+.dts-section {
+	// Space between the section header and its content (table / controls). The header
+	// reuses .settings-dialog-panel-header, whose 0.5rem inline padding would double up
+	// with the panel body's own padding and push the title in — zero it here.
+	.settings-dialog-panel-header {
+		margin-bottom: var(--margin-md);
+		padding: 0;
+	}
+
+	& + & {
+		margin-top: var(--margin-xl);
+	}
+}
+
+// Related Settings: a uniform settings row — label + description on the left, a compact
+// control on the right — so toggles, selects and inputs all read the same way.
+.dts-setting {
+	display: flex;
+	align-items: center;
+	justify-content: space-between;
+	gap: var(--margin-lg);
+	padding: var(--padding-md) 0;
+
+	& + & {
+		border-top: 1px solid var(--border-color);
+	}
+}
+
+.dts-setting-text {
+	min-width: 0;
+}
+
+.dts-setting-label {
+	font-size: var(--text-base);
+	color: var(--ink-gray-8);
+}
+
+.dts-setting-description {
+	margin-top: 2px;
+	font-size: var(--text-sm);
+	line-height: 1.4;
+	color: var(--ink-gray-5);
+}
+
+// Right column: the control. Inputs/selects get a fixed width so they line up; the
+// toggle sizes to itself.
+.dts-setting-control {
+	flex: 0 0 auto;
+	display: flex;
+	justify-content: flex-end;
+
+	.frappe-control {
+		margin: 0;
+		width: 200px;
+	}
+}
+
+// Bare toggle (no label-area): neutralise label.switch-control's full-width/padding so
+// it hugs the control column.
+.dts-setting-toggle.switch-control {
+	width: auto;
+	padding: 0;
+}
+
+// ── Shared list panel (CRM-style: header + table + inline switch + overflow) ──
+.dts-list {
+	display: flex;
+	flex-direction: column;
+}
+
+.dts-list-row {
+	display: flex;
+	align-items: center;
+	gap: var(--margin-md);
+	padding: var(--padding-md) 0;
+	border-bottom: 1px solid var(--border-color);
+}
+
+.dts-list-head {
+	padding: 0 0 var(--padding-sm);
+	color: var(--ink-gray-5);
+	font-size: var(--text-sm);
+	font-weight: var(--weight-medium);
+	border-bottom: 1px solid var(--border-color);
+}
+
+.dts-list-cell {
+	flex: 1;
+	min-width: 0;
+
+	// Badge icon (e.g. the notification channel glyph) — badge.css's default ~10px
+	// reads too small next to the label; bump it up a notch.
+	.es-badge > svg {
+		width: 14px;
+		height: 14px;
+	}
+}
+
+.dts-list-cell-title {
+	flex: 2;
+	display: flex;
+	align-items: center;
+	gap: var(--margin-md);
+}
+
+// Text block (primary + secondary) sitting next to the optional leading media.
+.dts-list-text {
+	min-width: 0;
+}
+
+.dts-list-cell-toggle {
+	flex: 0 0 6rem;
+	display: flex;
+	align-items: center;
+	justify-content: flex-start;
+}
+
+.dts-list-cell-actions {
+	flex: 0 0 2.5rem;
+	display: flex;
+	justify-content: flex-end;
+}
+
+// Primary line: name + inline tags.
+.dts-list-primary-row {
+	display: flex;
+	align-items: center;
+	gap: var(--padding-sm);
+	min-width: 0;
+}
+
+// Truncation comes from the shared `.ellipsis` utility on the element.
+.dts-list-primary {
+	color: var(--ink-gray-8);
+	font-weight: var(--weight-medium);
+	min-width: 0;
+
+	&.dts-list-link {
+		cursor: pointer;
+
+		&:hover {
+			color: var(--ink-gray-9);
+			text-decoration: underline;
+		}
+	}
+}
+
+.dts-list-secondary {
+	margin-top: 2px;
+	color: var(--ink-gray-5);
+	font-size: var(--text-sm);
+}
+
+.dts-list-state {
+	display: flex;
+	align-items: center;
+	gap: var(--margin-sm);
+	padding: var(--padding-lg) 0;
+}
+
+// Inline switch reuses ControlSwitch markup (.switch-control / .input-area /
+// .switch-visual) from controls.scss; nothing extra needed beyond a margin reset.
+.dts-switch {
+	margin: 0;
+	cursor: pointer;
+}
+
+// Overflow "…" menu trigger — open/close + positioning handled by Bootstrap's dropdown.
+.dts-actions .dts-actions-btn {
+	line-height: 1;
+	font-weight: var(--weight-bold);
+}
+
+// Overflow menu item: icon + label grouped left (zero any inherited margins that
+// otherwise push the label to the right edge).
+.dts-action-item.dropdown-item {
+	display: flex;
+	align-items: center;
+	justify-content: flex-start;
+	gap: var(--padding-sm);
+	text-align: left;
+
+	.icon {
+		flex-shrink: 0;
+		margin: 0;
+	}
+
+	> span {
+		margin: 0;
+	}
+}
+
+// ── Permissions tab: EmbeddedList of roles with rights badges + customized banner
+// + footer link ──
+// "Customized" notice with a reset action. Color/padding/radius come from the
+// framework's `.alert.alert-warning`; only the inline row layout is local.
+.dts-perm-banner {
+	display: flex;
+	align-items: center;
+	gap: var(--padding-sm);
+	margin-bottom: var(--margin-sm);
+	font-size: var(--text-sm);
+
+	// Keep the warning glyph small and from shrinking.
+	.icon {
+		flex: 0 0 auto;
+		width: 14px;
+		height: 14px;
+	}
+
+	// Text fills the space and stays left-aligned beside the icon.
+	.dts-perm-banner-text {
+		flex: 1;
+		min-width: 0;
+	}
+
+	.dts-perm-banner-action {
+		flex: 0 0 auto;
+		color: inherit;
+		font-weight: var(--weight-medium);
+		text-decoration: underline;
+		white-space: nowrap;
+	}
+}
+
+// Granted-right badge: a compact green pill holding just the check icon.
+.dts-perm-flag {
+	padding: 2px 6px;
+
+	.icon {
+		margin: 0;
+	}
+}
+
+.dts-perm-footer {
+	display: flex;
+	align-items: center;
+	justify-content: space-between;
+	gap: var(--margin-md);
+	margin-top: var(--margin-sm);
+	padding-top: var(--padding-md);
+	border-top: 1px solid var(--border-color);
+
+	.dts-perm-footer-note {
+		display: flex;
+		align-items: center;
+		gap: var(--padding-xs);
+		color: var(--ink-gray-5);
+		font-size: var(--text-sm);
+	}
+
+	.dts-perm-footer-link {
+		display: inline-flex;
+		align-items: center;
+		gap: var(--padding-xs);
+		color: var(--ink-gray-7);
+		font-weight: var(--weight-medium);
+		white-space: nowrap;
+	}
+}
+
+// ── Print Format tab: card grid (gray preview region + white name footer) ──
+.dts-pf-grid {
+	display: grid;
+	grid-template-columns: repeat(auto-fill, minmax(200px, 1fr));
+	gap: var(--margin-md);
+}
+
+.dts-pf-card {
+	overflow: hidden;
+	border: 1px solid var(--border-color);
+	border-radius: var(--radius-lg);
+	background-color: var(--surface-base);
+}
+
+// Top region: tinted, holds the badge, the star, and the "page" thumbnail. Fixed
+// height so the card width can vary without the preview growing tall.
+.dts-pf-preview {
+	position: relative;
+	height: 220px;
+	padding: var(--padding-lg) var(--padding-lg) 0;
+	overflow: hidden;
+	background-color: var(--surface-gray-2);
+}
+
+// The page peeking up from the bottom of the preview region.
+.dts-pf-thumb {
+	display: flex;
+	align-items: flex-start;
+	justify-content: center;
+	height: 100%;
+	overflow: hidden;
+	border-radius: var(--radius) var(--radius) 0 0;
+	background-color: var(--surface-base);
+	box-shadow: var(--shadow-sm);
+	cursor: pointer;
+}
+
+.dts-pf-img {
+	width: 100%;
+	height: 100%;
+	object-fit: cover;
+	object-position: top center;
+}
+
+.dts-pf-placeholder {
+	align-self: center;
+	color: var(--ink-gray-4);
+}
+
+// "Custom" badge uses the standard `.es-badge` component; only the overlay position is local.
+.dts-pf-badge {
+	position: absolute;
+	top: 10px;
+	left: 10px;
+	z-index: 1;
+}
+
+.dts-pf-star {
+	position: absolute;
+	top: 10px;
+	right: 10px;
+	z-index: 1;
+	display: inline-flex;
+	padding: 6px;
+	border: none;
+	// Half the card's own corner radius, so the overlay reads as cut from the same shape.
+	border-radius: calc(var(--radius-lg) / 2);
+	background-color: var(--surface-base);
+	box-shadow: var(--shadow-sm);
+	color: var(--ink-gray-4);
+	opacity: 0; // hidden until hover for non-default cards
+
+	// es-solid-star fills with its own color; force it to follow the button's `color`.
+	.icon use {
+		stroke: currentColor;
+	}
+
+	&[data-selected="true"] .icon use {
+		fill: currentColor;
+	}
+}
+
+// Show the star on hover, and always (yellow) for the current default.
+.dts-pf-card:hover .dts-pf-star {
+	opacity: 1;
+}
+
+.dts-pf-card.is-default .dts-pf-star {
+	opacity: 1;
+	color: var(--yellow-500);
+}
+
+.dts-pf-footer {
+	padding: var(--padding-md) var(--padding-lg);
+}
+
+// Truncation comes from the shared `.ellipsis` utility on the element.
+.dts-pf-name {
+	display: block;
+	font-weight: var(--weight-regular);
+	color: var(--ink-gray-8);
+	cursor: pointer;
+
+	&:hover {
+		text-decoration: underline;
+	}
+}
+
+// Print format full-size preview iframe (style-isolated render).
+.dts-preview-frame {
+	width: 100%;
+	height: 65vh;
+	border: 1px solid var(--border-color);
+	border-radius: var(--radius);
+	background-color: var(--surface-base);
+}
+
+// Empty state muted icon ▸ bold title ▸ muted description ▸ subtle action.
+.dts-empty {
+	display: flex;
+	flex-direction: column;
+	align-items: center;
+	text-align: center;
+	padding: var(--padding-2xl) var(--padding-lg);
+	gap: calc(var(--spacing) * 2);
+
+	.dts-empty-icon {
+		color: var(--ink-gray-5);
+
+		.icon {
+			width: 32px;
+			height: 32px;
+		}
+	}
+
+	.dts-empty-title {
+		color: var(--ink-gray-8);
+		font-size: var(--text-2xl);
+		font-weight: var(--weight-medium);
+	}
+
+	.dts-empty-description {
+		color: var(--ink-gray-5);
+		font-size: var(--text-base);
+	}
+
+	// Spacing only — the button's look comes from `.es-button` (subtle gray variant).
+	.dts-empty-action {
+		margin-top: var(--spacing);
+	}
+}

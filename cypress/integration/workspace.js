@@ -2,12 +2,6 @@ context("Workspace 2.0", () => {
 	before(() => {
 		cy.visit("/login");
 		cy.login();
-		return cy
-			.window()
-			.its("frappe")
-			.then((frappe) => {
-				return frappe.xcall("frappe.tests.ui_test_helpers.empty_my_workspaces");
-			});
 	});
 
 	it("Navigate to page from sidebar", () => {

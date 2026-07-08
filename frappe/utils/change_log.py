@@ -19,6 +19,9 @@ def get_change_log(user=None):
 	if not user:
 		user = frappe.session.user
 
+	if not frappe.is_setup_complete():
+		return []
+
 	last_known_versions = frappe._dict(
 		json.loads(frappe.db.get_value("User", user, "last_known_versions") or "{}")
 	)
@@ -88,13 +91,14 @@ def get_change_log_for_app(app, from_version, to_version):
 
 @frappe.whitelist()
 def update_last_known_versions():
-	frappe.db.set_value(
-		"User",
-		frappe.session.user,
-		"last_known_versions",
-		json.dumps(get_versions()),
-		update_modified=False,
-	)
+	with suppress(frappe.QueryDeadlockError):
+		frappe.db.set_value(
+			"User",
+			frappe.session.user,
+			"last_known_versions",
+			json.dumps(get_versions()),
+			update_modified=False,
+		)
 
 
 @frappe.whitelist()

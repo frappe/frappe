@@ -119,7 +119,7 @@ def sync_for(app_name, force=0, reset_permissions=False):
 		folder = os.path.dirname(frappe.get_module(app_name + "." + module_name).__file__)
 		files = get_doc_files(files=files, start_path=folder)
 
-	app_level_folders = ["desktop_icon", "workspace_sidebar", "sidebar_item_group"]
+	app_level_folders = ["desktop_icon", "workspace_sidebar"]
 	for folder_name in app_level_folders:
 		directory_path = get_app_level_directory_path(folder_name, app_name)
 		if os.path.exists(directory_path):

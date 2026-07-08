@@ -63,10 +63,6 @@ body {
 	}
 }
 
-.section:not(:first-child) {
-	margin-top: 1.5rem;
-}
-
 .section-label {
 	font-size: 1.1rem;
 	font-weight: 700;
@@ -91,8 +87,7 @@ body {
 
 /* Stacked (default): muted label above value */
 .field .label {
-	font-size: 0.75em;
-	font-weight: 600;
+	font-size: 1em;
 	color: #6b7280;
 	margin-bottom: 0.1rem;
 }
@@ -101,7 +96,7 @@ body {
 	color: #111827;
 }
 
-/* Left-right (section-level): label takes 40%, value takes 60% */
+/* Left-right (section-level): label shrinks to content width, value takes the rest */
 .field.left-right,
 .field.field-inline {
 	display: flex;
@@ -112,34 +107,38 @@ body {
 .field.left-right .label,
 .field.field-inline .label {
 	flex-shrink: 0;
-	font-size: 0.8em;
-	font-weight: 600;
+	font-size: 1em;
 	color: #374151;
 	text-transform: none;
 	letter-spacing: 0;
 	padding-top: 0.05rem;
-}
-
-.field.left-right .label {
-	width: 40%;
-}
-
-.field.field-inline .label {
-	width: auto;
+	white-space: nowrap;
 }
 
 .field.field-inline .label::after {
 	content: ":";
 }
 
-.field.left-right .value {
-	width: 60%;
-	flex: 1;
-}
-
+.field.left-right .value,
 .field.field-inline .value {
 	flex: 1;
+	min-width: 0;
 }
+
+{%- if print_format.label_color %}
+.field .label,
+.field.left-right .label,
+.field.field-inline .label {
+	color: {{ print_format.label_color }};
+}
+{%- endif %}
+{%- if print_format.value_color %}
+.field .value,
+.field.left-right .value,
+.field.field-inline .value {
+	color: {{ print_format.value_color }};
+}
+{%- endif %}
 
 /* Field-level alignment */
 .field.field-align-center {
@@ -158,13 +157,48 @@ body {
 	text-align: right;
 }
 
-/* In left-right orientation, alignment applies to the whole flex row */
-.field.left-right.field-align-right {
-	justify-content: flex-end;
+/* Spacing/alignment variants for left-right orientation.
+   Right/center align: both label and value need flex:none so the pair moves as a unit.
+   Space-between/evenly: only value needs flex:none (label already has flex-shrink:0). */
+.field.left-right.field-align-right .label,
+.field.left-right.field-align-right .value,
+.field.left-right.field-align-center .label,
+.field.left-right.field-align-center .value,
+.field.left-right.field-justify-space-between .value,
+.field.left-right.field-justify-space-evenly .value {
+	flex: none;
 }
 
-.field.left-right.field-align-center {
-	justify-content: center;
+.field.left-right.field-align-right { justify-content: flex-end; }
+.field.left-right.field-align-center { justify-content: center; }
+.field.left-right.field-justify-space-between { justify-content: space-between; }
+.field.left-right.field-justify-space-between .value { text-align: right; }
+.field.left-right.field-justify-space-evenly { justify-content: space-evenly; }
+
+/* Repeater */
+.pfb-repeater {
+	margin-top: 0.5rem;
+}
+
+.pfb-repeater > .label {
+	font-size: 0.8em;
+	font-weight: 600;
+	color: #6b7280;
+	margin-bottom: 0.4rem;
+}
+
+.pfb-repeater-table {
+	width: 100%;
+	border-collapse: collapse;
+}
+
+.pfb-repeater-cell {
+	padding: 0;
+	vertical-align: top;
+}
+
+.pfb-repeater-table tr + tr .pfb-repeater-cell {
+	padding-top: 0.5rem;
 }
 
 /* Child table */
@@ -216,6 +250,11 @@ body {
 }
 
 /* plain: no borders, bottom dividers only */
+.child-table--plain .table {
+	border: none;
+}
+
+/* !important needed: bootstrap print styles set table-bordered cell borders with !important */
 .child-table--plain .table th,
 .child-table--plain .table td {
 	border: none !important;
@@ -224,7 +263,6 @@ body {
 
 .child-table--plain .table th {
 	background-color: transparent !important;
-	border-bottom: 2px solid #d1d5db !important;
 }
 
 .child-table--plain .table .odd td,
@@ -242,13 +280,75 @@ body {
 /* plain header variant */
 .child-table--plain-header .table th {
 	background-color: transparent !important;
-	border-bottom: 2px solid #d1d5db !important;
 }
 
 .child-table [data-fieldtype="Currency"],
 .child-table [data-fieldtype="Float"],
 .child-table [data-fieldtype="Int"] {
 	text-align: right;
+}
+
+/* ── Merged cells (multiple fields, optional left image) ─── */
+/* Same specificity as the numeric-align rule above but declared later, so
+   this wins the cascade without needing !important. */
+.child-table .column-value--merged {
+	text-align: left;
+}
+
+.child-table .cell-merged {
+	display: flex;
+	align-items: flex-start;
+	gap: 0.5rem;
+}
+
+/* size comes from an inline style (column.image_size) */
+.child-table .cell-thumb-img,
+.child-table .cell-thumb {
+	border-radius: 6px;
+	flex-shrink: 0;
+}
+
+.child-table .cell-thumb-img {
+	object-fit: cover;
+}
+
+.child-table .cell-thumb {
+	display: flex;
+	align-items: center;
+	justify-content: center;
+	font-weight: 600;
+	text-transform: uppercase;
+	line-height: 1;
+}
+
+.child-table .cell-lines {
+	display: flex;
+	flex-direction: column;
+	gap: 0.1rem;
+	min-width: 0;
+}
+
+.child-table .cell-line {
+	word-break: break-word;
+}
+
+.child-table .cell-line--primary,
+.child-table .cell-line--secondary {
+	color: #111827;
+}
+
+.child-table .cell-line--primary {
+	font-weight: 600;
+}
+
+.child-table .cell-line--mono-sm {
+	font-family: var(--monospace-font-family, monospace);
+}
+
+.child-table .cell-line--mono-sm,
+.child-table .cell-line--muted-sm {
+	font-size: 0.85em;
+	color: #6b7280;
 }
 
 .page-break {
@@ -332,23 +432,42 @@ header img {
 	width: 1rem;
 }
 
-/* ── Label case: uppercase (opt-in per section) ──────────── */
-.label-uppercase .section-label {
-	text-transform: uppercase;
-	letter-spacing: 0.04em;
+/* ── Table layout (field-borders mode) ───────────────────── */
+.section--grid {
+	border: 1px solid #e5e7eb;
+	border-radius: var(--border-radius-md, 8px);
+	overflow: hidden;
+	padding: 0;
 }
-
-.label-uppercase .field .label {
-	text-transform: uppercase;
-	letter-spacing: 0.03em;
+.section--grid .section-label {
+	padding: var(--pfb-cell-pad, 8px);
+	margin: 0;
+	border-bottom: 1px solid #e5e7eb;
 }
-
-.label-uppercase .child-table > .label {
-	text-transform: uppercase;
-	letter-spacing: 0.03em;
+.section--grid .section-columns {
+	padding: 0;
+	margin-left: 0;
+	margin-right: 0;
 }
-
-.label-uppercase .child-table .table th {
-	text-transform: uppercase;
-	letter-spacing: 0.03em;
+.section--grid .col {
+	padding: 0;
+}
+.section--grid .col:not(:last-child) {
+	border-right: 1px solid #e5e7eb;
+}
+.section--grid .field {
+	padding: var(--pfb-cell-pad, 8px);
+	border-bottom: 1px solid #e5e7eb;
+}
+.section--grid .field + .field {
+	margin-top: 0;
+}
+.section--grid .field:last-child {
+	border-bottom: none;
+}
+.section--grid-rows .col:not(:last-child) {
+	border-right: none;
+}
+.section--grid-columns .field {
+	border-bottom: none;
 }

@@ -3,6 +3,8 @@
 """Small helpers for the realtime connect path: header reads, hostnames, URLs,
 and site resolution. Kept separate so auth.py stays focused on the pipeline."""
 
+from urllib.parse import urlsplit
+
 from frappe.realtime.config import RealtimeConfig
 
 
@@ -37,6 +39,16 @@ def resolve_site_name(environ: dict, config: RealtimeConfig) -> str | None:
 
 def get_url(origin: str | None, path: str, config: RealtimeConfig) -> str:
 	"""Build the web-process URL for a request. Port of realtime/utils.js get_url."""
+	if config.webserver_host and config.webserver_port:
+		base = config.webserver_host
+		if "://" not in base:
+			base = f"http://{base}"
+		parts = urlsplit(base)
+		if parts.port is None:
+			base = f"{parts.scheme}://{parts.netloc}:{config.webserver_port}"
+		else:
+			base = f"{parts.scheme}://{parts.netloc}"
+		return base + (path or "")
 	url = origin or ""
 	if config.developer_mode and config.webserver_port:
 		parts = url.split(":")

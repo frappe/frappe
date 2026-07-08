@@ -103,7 +103,7 @@ def archive_restore_column(board_name: str, column_title: str, status: str):
 
 
 @frappe.whitelist()
-def update_order(board_name: str, order: str):
+def update_order(board_name: str, order: str | dict):
 	"""Save the order of cards in columns"""
 	board = frappe.get_doc("Kanban Board", board_name)
 	doctype = board.reference_doctype
@@ -114,7 +114,7 @@ def update_order(board_name: str, order: str):
 		return board, updated_cards
 
 	fieldname = board.field_name
-	order_dict = json.loads(order)
+	order_dict = frappe.parse_json(order)
 
 	for col_name, cards in order_dict.items():
 		for card in cards:
@@ -237,10 +237,10 @@ def get_order_for_column(board, colname):
 
 
 @frappe.whitelist()
-def update_column_order(board_name: str, order: str):
+def update_column_order(board_name: str, order: str | list):
 	"""Set the order of columns in Kanban Board"""
 	board = frappe.get_doc("Kanban Board", board_name)
-	order = json.loads(order)
+	order = frappe.parse_json(order)
 	old_columns = board.columns
 	new_columns = []
 
@@ -282,8 +282,8 @@ def set_indicator(board_name: str, column_name: str, indicator: str):
 
 
 @frappe.whitelist()
-def save_settings(board_name: str, settings: str) -> Document:
-	settings = json.loads(settings)
+def save_settings(board_name: str, settings: str | dict) -> Document:
+	settings = frappe.parse_json(settings)
 	doc = frappe.get_doc("Kanban Board", board_name)
 
 	fields = settings["fields"]

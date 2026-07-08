@@ -1,7 +1,6 @@
 # Copyright (c) 2015, Frappe Technologies Pvt. Ltd. and Contributors
 # License: MIT. See LICENSE
 import csv
-import json
 from csv import Sniffer
 from io import StringIO
 from typing import Any
@@ -109,10 +108,7 @@ def read_csv_content(fcontent, use_sniffer: bool = False, delimiter: str | None 
 
 @frappe.whitelist()
 def send_csv_to_client(args: str | dict[str, Any]):
-	if isinstance(args, str):
-		args = json.loads(args)
-
-	args = frappe._dict(args)
+	args = frappe._dict(frappe.parse_json(args))
 
 	frappe.response["result"] = cstr(to_csv(args.data))
 	frappe.response["doctype"] = args.filename

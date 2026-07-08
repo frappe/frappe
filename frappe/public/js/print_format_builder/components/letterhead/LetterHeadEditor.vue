@@ -173,4 +173,9 @@ defineExpose({ aspect_ratio, range_input_field });
 	font-size: var(--text-sm);
 	padding: 0.5rem 0;
 }
+
+.letterhead :deep(img) {
+	max-width: 100%;
+	height: auto;
+}
 </style>

@@ -41,6 +41,7 @@
   "unique",
   "is_virtual",
   "read_only",
+  "mask",
   "ignore_user_permissions",
   "hidden",
   "print_hide",
@@ -499,6 +500,13 @@
    "fieldname": "set_only_once",
    "fieldtype": "Check",
    "label": "Set only once"
+  },
+  {
+   "default": "0",
+   "depends_on": "eval:[\"Select\", \"Read Only\", \"Phone\", \"Percent\", \"Password\", \"Link\", \"Int\", \"Float\", \"Dynamic Link\", \"Duration\", \"Datetime\", \"Currency\", \"Data\", \"Date\"].includes(doc.fieldtype)",
+   "fieldname": "mask",
+   "fieldtype": "Check",
+   "label": "Mask"
   }
  ],
  "grid_page_length": 50,
@@ -506,7 +514,7 @@
  "idx": 1,
  "index_web_pages_for_search": 1,
  "links": [],
- "modified": "2026-06-12 10:00:00.000000",
+ "modified": "2026-06-28 17:40:35.172946",
  "modified_by": "Administrator",
  "module": "Custom",
  "name": "Custom Field",

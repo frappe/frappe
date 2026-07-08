@@ -17,6 +17,15 @@ _PARAM_COMP = re.compile(r"%\([\w]*\)s")
 IMPLICIT_COMMIT_QUERY_TYPES = frozenset(("start", "alter", "drop", "create", "truncate"))
 
 
+class SequenceGeneratorLimitExceeded(sqlite3.Error):
+	"""Raised when an emulated sequence with a max_value (and no cycle) is exhausted.
+
+	SQLite has no native sequences (frappe emulates them, see
+	``frappe.database.sequence``), so unlike MariaDB/Postgres there is no driver
+	exception to reuse for this case.
+	"""
+
+
 class SQLiteExceptionUtil:
 	ProgrammingError = sqlite3.ProgrammingError
 	TableMissingError = sqlite3.OperationalError
@@ -102,6 +111,7 @@ class SQLiteDatabase(SQLiteExceptionUtil, Database):
 	REGEX_CHARACTER = "regexp"
 	default_port = None
 	MAX_ROW_SIZE_LIMIT = None
+	SequenceGeneratorLimitExceeded = SequenceGeneratorLimitExceeded
 
 	def get_connection(self, read_only: bool = False):
 		conn = self.create_connection(read_only)
@@ -324,6 +334,26 @@ class SQLiteDatabase(SQLiteExceptionUtil, Database):
 			)"""
 		)
 
+	def create_sequence_table(self):
+		# SQLite has no native sequences; this table emulates them for
+		# autoname:autoincrement doctypes. See frappe.database.sequence.
+		from frappe.database.sequence import SQLITE_SEQUENCE_TABLE
+
+		# `declared` is 1 for sequences defined via create_sequence and 0 for rows
+		# auto-created by naming/set_next_val; it lets create_sequence adopt an
+		# implicit row without ever overwriting an explicit definition.
+		self.sql_ddl(
+			f"""CREATE TABLE IF NOT EXISTS `{SQLITE_SEQUENCE_TABLE}` (
+			`name` TEXT PRIMARY KEY,
+			`current` INTEGER NOT NULL,
+			`increment` INTEGER NOT NULL DEFAULT 1,
+			`min_value` INTEGER NOT NULL DEFAULT 1,
+			`max_value` INTEGER,
+			`cycle` INTEGER NOT NULL DEFAULT 0,
+			`declared` INTEGER NOT NULL DEFAULT 0
+			)"""
+		)
+
 	@staticmethod
 	def get_on_duplicate_update():
 		return "ON CONFLICT DO UPDATE SET "
@@ -352,13 +382,20 @@ class SQLiteDatabase(SQLiteExceptionUtil, Database):
 			if index_info and index_info[0]["name"] == fieldname:
 				return index
 
-	def add_index(self, doctype: str, fields: list, index_name: str | None = None):
-		"""Creates an index with given fields if not already created."""
+	def add_index(
+		self, doctype: str, fields: list, index_name: str | None = None, using=None, where=None, include=None
+	):
+		"""Creates an index with given fields if not already created.
+		`using`/`where`/`include` are postgres-only (trigram/partial/covering); a `using` kind
+		has no SQLite equivalent so it is skipped, and a plain index covers all rows regardless of
+		`where`/`include`."""
 
 		from frappe.custom.doctype.property_setter.property_setter import (
 			make_property_setter,
 		)
 
+		if using:
+			return
 		# We can't specify the length of the index in SQLite
 		fields = [re.sub(r"\(.*?\)", "", field) for field in fields]
 

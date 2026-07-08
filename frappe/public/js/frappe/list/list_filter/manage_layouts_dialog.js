@@ -23,7 +23,7 @@ export default class ManageLayoutsDialog {
 
 	get_layouts() {
 		return [...(this.list_filter.filters || [])].sort((a, b) =>
-			(a.layout_name || "").localeCompare(b.layout_name || "")
+			(a.filter_name || "").localeCompare(b.filter_name || "")
 		);
 	}
 
@@ -54,19 +54,19 @@ export default class ManageLayoutsDialog {
 			<div class="layout-manage-row d-flex justify-content-between align-items-center py-2 border-bottom"
 				data-name="${esc(layout.name)}">
 				<div class="layout-manage-row-label min-width-0 pr-2">
-					<div class="ellipsis font-weight-bold text-sm" title="${esc(layout.layout_name)}">
-						${esc(__(layout.layout_name))}
+					<div class="ellipsis font-weight-bold text-sm" title="${esc(layout.filter_name)}">
+						${esc(__(layout.filter_name))}
 					</div>
 					<div class="text-muted" style="font-size: var(--text-xs)">${esc(scope_label)}</div>
 				</div>
 				<div class="layout-manage-row-actions d-flex flex-shrink-0" style="gap: 4px;">
 					<button type="button" class="btn btn-default btn-xs btn-icon layout-action-edit"
 						${edit_disabled} title="${esc(__("Edit"))}" aria-label="${esc(__("Edit"))}">
-						${frappe.utils.icon("edit", "xs")}
+						${frappe.utils.icon("pencil", "xs")}
 					</button>
 					<button type="button" class="btn btn-default btn-xs btn-icon layout-action-duplicate"
 						title="${esc(__("Duplicate"))}" aria-label="${esc(__("Duplicate"))}">
-						${frappe.utils.icon("duplicate", "xs")}
+						${frappe.utils.icon("copy", "xs")}
 					</button>
 					<button type="button" class="btn btn-default btn-xs btn-icon layout-action-delete"
 						${delete_disabled} title="${esc(__("Delete"))}" aria-label="${esc(__("Delete"))}">
@@ -112,13 +112,13 @@ export default class ManageLayoutsDialog {
 	confirm_delete(layout) {
 		frappe.confirm(
 			__("Delete layout <strong>{0}</strong>?", [
-				frappe.utils.escape_html(layout.layout_name),
+				frappe.utils.escape_html(layout.filter_name),
 			]),
 			() => {
 				this.list_filter.delete_layout(layout).then(() => {
 					frappe.show_alert({
 						message: __("Layout <b>{0}</b> deleted", [
-							frappe.utils.escape_html(layout.layout_name),
+							frappe.utils.escape_html(layout.filter_name),
 						]),
 						indicator: "green",
 					});

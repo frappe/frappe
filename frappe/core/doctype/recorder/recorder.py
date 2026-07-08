@@ -1,7 +1,6 @@
 # Copyright (c) 2023, Frappe Technologies and contributors
 # For license information, please see license.txt
 
-import json
 from collections import Counter, defaultdict
 
 import frappe
@@ -118,9 +117,9 @@ def serialize_request(request):
 
 
 @frappe.whitelist()
-def add_indexes(indexes: str):
+def add_indexes(indexes: str | list[dict]):
 	frappe.only_for("Administrator")
-	indexes = json.loads(indexes)
+	indexes = frappe.parse_json(indexes)
 
 	for index in indexes:
 		frappe.enqueue(_add_index, table=index["table"], column=index["column"])

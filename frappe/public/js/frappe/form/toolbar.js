@@ -139,17 +139,23 @@ frappe.ui.form.Toolbar = class Toolbar {
 		let rename_document = () => {
 			if (input_name != docname) frappe.realtime.doctype_subscribe(doctype, input_name);
 			return frappe
-				.xcall("frappe.model.rename_doc.update_document_title", {
-					doctype,
-					docname,
-					name: input_name,
-					title: input_title,
-					enqueue: true,
-					merge,
-					freeze: true,
-					freeze_message: __("Updating related fields..."),
-					queue,
-				})
+				.xcall(
+					"frappe.model.rename_doc.update_document_title",
+					{
+						doctype,
+						docname,
+						name: input_name,
+						title: input_title,
+						enqueue: true,
+						merge,
+						queue,
+					},
+					"POST",
+					{
+						freeze: true,
+						freeze_message: __("Updating related fields..."),
+					}
+				)
 				.then((new_docname) => {
 					const reload_form = (input_name) => {
 						$(document).trigger("rename", [doctype, docname, input_name]);
@@ -225,7 +231,7 @@ frappe.ui.form.Toolbar = class Toolbar {
 
 	setup_editable_title_click_event(element) {
 		let me = this;
-		element.on("click", () => {
+		element.off("click").on("click", () => {
 			let fields = [];
 			let docname = me.frm.doc.name;
 			let title_field = me.frm.meta.title_field || "";
@@ -345,7 +351,7 @@ frappe.ui.form.Toolbar = class Toolbar {
 		// Navigate
 		if (!this.frm.is_new() && !this.frm.meta.issingle) {
 			this.page.add_action_icon(
-				frappe.utils.is_rtl() ? "es-line-right-chevron" : "es-line-left-chevron",
+				frappe.utils.is_rtl() ? "chevron-right" : "chevron-left",
 				() => {
 					this.frm.navigate_records(1);
 				},
@@ -353,7 +359,7 @@ frappe.ui.form.Toolbar = class Toolbar {
 				__("Previous Document")
 			);
 			this.page.add_action_icon(
-				frappe.utils.is_rtl() ? "es-line-left-chevron" : "es-line-right-chevron",
+				frappe.utils.is_rtl() ? "chevron-left" : "chevron-right",
 				() => {
 					this.frm.navigate_records(0);
 				},
@@ -635,10 +641,20 @@ frappe.ui.form.Toolbar = class Toolbar {
 			frappe.model.can_create("Property Setter")
 		) {
 			let doctype = is_doctype_form ? this.frm.docname : this.frm.doctype;
-			let is_doctype_custom = is_doctype_form ? this.frm.doc.custom : false;
 			let is_core_doctype = frappe.model.core_doctypes_list.includes(doctype);
 
-			if (!is_core_doctype && !is_doctype_custom && this.frm.meta.issingle === 0) {
+			if (!is_core_doctype && this.frm.meta.issingle === 0) {
+				this.page.add_menu_item(
+					__("Settings"),
+					() => {
+						// The DocType Settings feature ships as its own on-demand bundle
+						// (kept out of desk.bundle.js), so load it before opening.
+						frappe.require("doctype_settings.bundle.js", () => {
+							frappe.doctype_settings.open(doctype);
+						});
+					},
+					true
+				);
 				this.page.add_menu_item(
 					__("Customize"),
 					() => {
@@ -799,7 +815,7 @@ frappe.ui.form.Toolbar = class Toolbar {
 				function () {
 					me.frm.page.set_view("main");
 				},
-				"edit"
+				"pencil"
 			);
 		} else if (status === "Cancel") {
 			let add_cancel_button = () => {
@@ -837,7 +853,7 @@ frappe.ui.form.Toolbar = class Toolbar {
 			}[status];
 
 			var icon = {
-				Update: "edit",
+				Update: "pencil",
 			}[status];
 
 			this.page.set_primary_action(__(status), click, icon);
