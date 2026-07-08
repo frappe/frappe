@@ -15,6 +15,7 @@ from pypika.terms import (
 	Criterion,
 	EmptyCriterion,
 	Field,
+	Function,
 	NullCriterion,
 	Star,
 	Term,
@@ -27,6 +28,8 @@ _ORIGINAL_GET_SQL_ATTR = "_frappe_python_get_sql"
 _ORIGINAL_FROM_ATTR = "_frappe_python_from"
 _ORIGINAL_INTO_ATTR = "_frappe_python_into"
 _ORIGINAL_UPDATE_ATTR = "_frappe_python_update"
+
+SIMPLE_FUNCTIONS = frozenset(("COALESCE", "IFNULL", "CONCAT", "NULLIF"))
 
 
 def is_enabled() -> bool:
@@ -920,6 +923,12 @@ def _try_render_simple_term(
 			args[0] = f"DISTINCT {args[0]}"
 		sql = f"{term.name}({','.join(args)})"
 		return _format_alias(sql, term.alias, quote_char) if with_alias else sql
+	if isinstance(term, Function) and _is_simple_function(term):
+		args = [_try_render_simple_value(arg, quote_char=quote_char) for arg in term.args]
+		if any(arg is None for arg in args):
+			return None
+		sql = f"{term.name}({','.join(args)})"
+		return _format_alias(sql, term.alias, quote_char) if with_alias else sql
 	return None
 
 
@@ -930,6 +939,18 @@ def _is_simple_aggregate(term: AggregateFunction) -> bool:
 		and not getattr(term, "_include_filter", False)
 		and all(isinstance(arg, Field | Star) for arg in term.args)
 	)
+
+
+def _is_simple_function(term: Function) -> bool:
+	return (
+		getattr(term, "schema", None) is None
+		and term.name in SIMPLE_FUNCTIONS
+		and all(_is_simple_function_arg(arg) for arg in term.args)
+	)
+
+
+def _is_simple_function_arg(arg: Any) -> bool:
+	return isinstance(arg, Field) or (hasattr(arg, "value") and _is_supported_literal(arg.value))
 
 
 def _render_where(
@@ -1006,13 +1027,13 @@ def _try_render_simple_value(
 	quote_char: str | None = "`",
 	**kwargs: Any,
 ) -> str | None:
+	if isinstance(term, Field):
+		return _try_render_simple_term(term, quote_char=quote_char)
+
 	if hasattr(term, "value") and getattr(term, "alias", None) is None:
 		value = term.value
 		if kwargs.get("param_wrapper") is None and _is_supported_literal(value):
 			return _render_literal(value)
-
-	if isinstance(term, Field):
-		return _try_render_simple_term(term, quote_char=quote_char)
 
 	return term.get_sql(quote_char=quote_char, **kwargs)
 
