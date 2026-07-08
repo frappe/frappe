@@ -51,11 +51,14 @@ def render_select(
 	quote_char: str | None = "`",
 	limit: int | None = None,
 	offset: int | None = None,
+	distinct: bool = False,
 ) -> str:
 	backend = load_backend()
 	if backend is None or backend.render_select is None:
 		raise RuntimeError("frappe-pypika-rs is not available")
-	return backend.render_select(table, fields, quote_char=quote_char, limit=limit, offset=offset)
+	return backend.render_select(
+		table, fields, quote_char=quote_char, limit=limit, offset=offset, distinct=distinct
+	)
 
 
 def render_select_star(
@@ -63,11 +66,14 @@ def render_select_star(
 	quote_char: str | None = "`",
 	limit: int | None = None,
 	offset: int | None = None,
+	distinct: bool = False,
 ) -> str:
 	backend = load_backend()
 	if backend is None or backend.render_select_star is None:
 		raise RuntimeError("frappe-pypika-rs is not available")
-	return backend.render_select_star(table, quote_char=quote_char, limit=limit, offset=offset)
+	return backend.render_select_star(
+		table, quote_char=quote_char, limit=limit, offset=offset, distinct=distinct
+	)
 
 
 def render_select_query(
@@ -78,6 +84,7 @@ def render_select_query(
 	orderbys: list[str] | None = None,
 	limit: int | None = None,
 	offset: int | None = None,
+	distinct: bool = False,
 ) -> str:
 	backend = load_backend()
 	if backend is None or backend.render_select_query is None:
@@ -90,6 +97,7 @@ def render_select_query(
 		orderbys=orderbys,
 		limit=limit,
 		offset=offset,
+		distinct=distinct,
 	)
 
 
@@ -102,6 +110,7 @@ def render_select_fragments(
 	orderbys: list[str] | None = None,
 	limit: int | None = None,
 	offset: int | None = None,
+	distinct: bool = False,
 ) -> str:
 	backend = load_backend()
 	if backend is None or backend.render_select_fragments is None:
@@ -115,6 +124,7 @@ def render_select_fragments(
 		orderbys=orderbys,
 		limit=limit,
 		offset=offset,
+		distinct=distinct,
 	)
 
 
@@ -222,6 +232,7 @@ class RustSelectQuery:
 		self._joins: list[tuple[Table, JoinType, Criterion]] = []
 		self._limit: int | None = None
 		self._offset: int | None = None
+		self._distinct = False
 		self._fallback_query: QueryBuilder | None = None
 
 	def __copy__(self):
@@ -276,6 +287,14 @@ class RustSelectQuery:
 		builder._orderbys.extend(orderbys)
 		return builder
 
+	def distinct(self):
+		if self._fallback_query is not None:
+			return self._fallback_query.distinct()
+
+		builder = self._builder()
+		builder._distinct = True
+		return builder
+
 	def join(self, item: Any, how: JoinType = JoinType.inner):
 		if self._fallback_query is not None:
 			return self._fallback_query.join(item, how)
@@ -314,6 +333,7 @@ class RustSelectQuery:
 			or self._joins
 			or self._limit is not None
 			or self._offset is not None
+			or self._distinct
 		):
 			return self._to_fallback().delete()
 		return RustDeleteQuery(self.query_cls, self.table, self.original_from, immutable=self.immutable)
@@ -370,6 +390,7 @@ class RustSelectQuery:
 				orderbys=orderbys,
 				limit=self._limit,
 				offset=self._offset,
+				distinct=self._distinct,
 			)
 		if where_sql or orderbys:
 			return render_select_query(
@@ -380,6 +401,7 @@ class RustSelectQuery:
 				orderbys=orderbys,
 				limit=self._limit,
 				offset=self._offset,
+				distinct=self._distinct,
 			)
 		if self._field_names == ["*"]:
 			return render_select_star(
@@ -387,6 +409,7 @@ class RustSelectQuery:
 				quote_char=quote_char,
 				limit=self._limit,
 				offset=self._offset,
+				distinct=self._distinct,
 			)
 		return render_select(
 			self.table._table_name,
@@ -394,6 +417,7 @@ class RustSelectQuery:
 			quote_char=quote_char,
 			limit=self._limit,
 			offset=self._offset,
+			distinct=self._distinct,
 		)
 
 	def walk(self):
@@ -413,6 +437,8 @@ class RustSelectQuery:
 				query = query.select(*self._select_terms)
 			if self._where is not None:
 				query = query.where(self._where)
+			if self._distinct:
+				query = query.distinct()
 			for item, how, criterion in self._joins:
 				query = query.join(item, how).on(criterion)
 			for field, order in self._orderbys:

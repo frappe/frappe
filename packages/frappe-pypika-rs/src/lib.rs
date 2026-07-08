@@ -18,7 +18,9 @@ fn render_select_sql(
     orderbys: &[String],
     limit: Option<u64>,
     offset: Option<u64>,
+    distinct: bool,
 ) -> String {
+    let distinct_sql = if distinct { "DISTINCT " } else { "" };
     let select_sql = if fields == ["*"] {
         "*".to_string()
     } else {
@@ -30,7 +32,7 @@ fn render_select_sql(
     };
 
     let mut sql = format!(
-        "SELECT {select_sql} FROM {}",
+        "SELECT {distinct_sql}{select_sql} FROM {}",
         quote_identifier(table, quote_char)
     );
     if let Some(where_sql) = where_sql {
@@ -55,6 +57,7 @@ fn render_select_star_sql(
     quote_char: Option<&str>,
     limit: Option<u64>,
     offset: Option<u64>,
+    distinct: bool,
 ) -> String {
     render_select_sql(
         table,
@@ -64,6 +67,7 @@ fn render_select_star_sql(
         &[],
         limit,
         offset,
+        distinct,
     )
 }
 
@@ -76,9 +80,11 @@ fn render_select_fragments_sql(
     orderbys: &[String],
     limit: Option<u64>,
     offset: Option<u64>,
+    distinct: bool,
 ) -> String {
+    let distinct_sql = if distinct { "DISTINCT " } else { "" };
     let mut sql = format!(
-        "SELECT {} FROM {}",
+        "SELECT {distinct_sql}{} FROM {}",
         select_sqls.join(","),
         quote_identifier(table, quote_char)
     );
@@ -176,19 +182,29 @@ fn capability_summary() -> Vec<&'static str> {
 }
 
 #[pyfunction]
-#[pyo3(signature = (table, fields, quote_char=None, limit=None, offset=None))]
+#[pyo3(signature = (table, fields, quote_char=None, limit=None, offset=None, distinct=false))]
 fn render_select(
     table: &str,
     fields: Vec<String>,
     quote_char: Option<&str>,
     limit: Option<u64>,
     offset: Option<u64>,
+    distinct: bool,
 ) -> String {
-    render_select_sql(table, &fields, quote_char, None, &[], limit, offset)
+    render_select_sql(
+        table,
+        &fields,
+        quote_char,
+        None,
+        &[],
+        limit,
+        offset,
+        distinct,
+    )
 }
 
 #[pyfunction]
-#[pyo3(signature = (table, fields, quote_char=None, where_sql=None, orderbys=None, limit=None, offset=None))]
+#[pyo3(signature = (table, fields, quote_char=None, where_sql=None, orderbys=None, limit=None, offset=None, distinct=false))]
 fn render_select_query(
     table: &str,
     fields: Vec<String>,
@@ -197,15 +213,16 @@ fn render_select_query(
     orderbys: Option<Vec<String>>,
     limit: Option<u64>,
     offset: Option<u64>,
+    distinct: bool,
 ) -> String {
     let orderbys = orderbys.unwrap_or_default();
     render_select_sql(
-        table, &fields, quote_char, where_sql, &orderbys, limit, offset,
+        table, &fields, quote_char, where_sql, &orderbys, limit, offset, distinct,
     )
 }
 
 #[pyfunction]
-#[pyo3(signature = (table, select_sqls, quote_char=None, join_sqls=None, where_sql=None, orderbys=None, limit=None, offset=None))]
+#[pyo3(signature = (table, select_sqls, quote_char=None, join_sqls=None, where_sql=None, orderbys=None, limit=None, offset=None, distinct=false))]
 fn render_select_fragments(
     table: &str,
     select_sqls: Vec<String>,
@@ -215,6 +232,7 @@ fn render_select_fragments(
     orderbys: Option<Vec<String>>,
     limit: Option<u64>,
     offset: Option<u64>,
+    distinct: bool,
 ) -> String {
     let join_sqls = join_sqls.unwrap_or_default();
     let orderbys = orderbys.unwrap_or_default();
@@ -227,18 +245,20 @@ fn render_select_fragments(
         &orderbys,
         limit,
         offset,
+        distinct,
     )
 }
 
 #[pyfunction]
-#[pyo3(signature = (table, quote_char=None, limit=None, offset=None))]
+#[pyo3(signature = (table, quote_char=None, limit=None, offset=None, distinct=false))]
 fn render_select_star(
     table: &str,
     quote_char: Option<&str>,
     limit: Option<u64>,
     offset: Option<u64>,
+    distinct: bool,
 ) -> String {
-    render_select_star_sql(table, quote_char, limit, offset)
+    render_select_star_sql(table, quote_char, limit, offset, distinct)
 }
 
 #[pyfunction]
@@ -301,11 +321,12 @@ mod tests {
                 &[],
                 Some(20),
                 None,
+                false,
             ),
             "SELECT * FROM `tabRole` LIMIT 20"
         );
         assert_eq!(
-            render_select_star_sql("tabRole", Some("`"), Some(20), None),
+            render_select_star_sql("tabRole", Some("`"), Some(20), None, false),
             "SELECT * FROM `tabRole` LIMIT 20"
         );
     }
@@ -321,6 +342,7 @@ mod tests {
                 &[],
                 None,
                 None,
+                false,
             ),
             "SELECT \"name\",\"email\" FROM \"tabUser\""
         );
@@ -337,6 +359,7 @@ mod tests {
                 &[],
                 None,
                 None,
+                false,
             ),
             "SELECT `na``me` FROM `tab``Role`"
         );
@@ -353,6 +376,7 @@ mod tests {
                 &["`creation` ASC".to_string()],
                 Some(1),
                 None,
+                false,
             ),
             "SELECT `name` FROM `tabRole` WHERE `name`='Guest' ORDER BY `creation` ASC LIMIT 1"
         );
@@ -369,6 +393,7 @@ mod tests {
                 &[],
                 Some(10),
                 Some(5),
+                false,
             ),
             "SELECT `name` FROM `tabRole` LIMIT 10 OFFSET 5"
         );
@@ -381,8 +406,30 @@ mod tests {
                 &[],
                 None,
                 Some(5),
+                false,
             ),
             "SELECT `name` FROM `tabRole` OFFSET 5"
+        );
+    }
+
+    #[test]
+    fn renders_distinct_select() {
+        assert_eq!(
+            render_select_sql(
+                "tabRole",
+                &["name".to_string()],
+                Some("`"),
+                None,
+                &[],
+                Some(20),
+                None,
+                true,
+            ),
+            "SELECT DISTINCT `name` FROM `tabRole` LIMIT 20"
+        );
+        assert_eq!(
+            render_select_star_sql("tabRole", Some("`"), Some(2), None, true),
+            "SELECT DISTINCT * FROM `tabRole` LIMIT 2"
         );
     }
 
@@ -401,6 +448,7 @@ mod tests {
                 &["`tabUser`.`creation` ASC".to_string()],
                 Some(20),
                 Some(10),
+                false,
             ),
             "SELECT `tabUser`.`name`,`tabHas Role`.`role` FROM `tabUser` JOIN `tabHas Role` ON `tabHas Role`.`parent`=`tabUser`.`name` WHERE `tabUser`.`enabled`=1 ORDER BY `tabUser`.`creation` ASC LIMIT 20 OFFSET 10"
         );

@@ -55,6 +55,18 @@ class TestRustQueryBuilderProxy(unittest.TestCase):
 			"SELECT `name` FROM `tabRole` OFFSET 5",
 		)
 
+	def test_distinct_sql(self):
+		table = frappe.qb.DocType("Role")
+
+		self.assertEqual(
+			frappe.qb.from_(table).select(table.name).distinct().limit(20).get_sql(),
+			"SELECT DISTINCT `name` FROM `tabRole` LIMIT 20",
+		)
+		self.assertEqual(
+			frappe.qb.from_(table).select("*").distinct().limit(2).get_sql(),
+			"SELECT DISTINCT * FROM `tabRole` LIMIT 2",
+		)
+
 	def test_parameter_wrapper_is_preserved(self):
 		table = frappe.qb.DocType("Role")
 		params = NamedParameterWrapper()
