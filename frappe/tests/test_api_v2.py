@@ -73,6 +73,17 @@ class TestResourceAPIV2(FrappeAPITestCase):
 		self.assertIsInstance(json.data, list)
 		self.assertIsInstance(json.data[0], list)
 
+	def test_get_list_default_order_by_v2(self):
+		# without an explicit order_by, results should fall back to the
+		# doctype's configured sort order (ToDo => creation desc)
+		response = self.get(
+			self.resource(self.DOCTYPE),
+			{"sid": self.sid, "fields": '["creation"]', "limit": 5},
+		)
+		self.assertEqual(response.status_code, 200)
+		creations = [row["creation"] for row in response.json["data"]]
+		self.assertEqual(creations, sorted(creations, reverse=True))
+
 	def test_get_list_fields_v2(self):
 		# test 6: fetch response with fields
 		response = self.get(self.resource(self.DOCTYPE), {"sid": self.sid, "fields": '["description"]'})
