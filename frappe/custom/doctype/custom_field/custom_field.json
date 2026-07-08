@@ -464,9 +464,9 @@
    "label": "Sort Options"
   },
   {
+   "depends_on": "eval:doc.fieldtype===\"Link\"",
    "fieldname": "link_filters",
    "fieldtype": "JSON",
-   "hidden": 1,
    "label": "Link Filters"
   },
   {
@@ -506,7 +506,7 @@
  "idx": 1,
  "index_web_pages_for_search": 1,
  "links": [],
- "modified": "2026-06-28 17:40:35.172946",
+ "modified": "2026-07-08 13:37:37.503488",
  "modified_by": "Administrator",
  "module": "Custom",
  "name": "Custom Field",
