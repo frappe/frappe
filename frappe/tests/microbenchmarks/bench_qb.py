@@ -43,3 +43,91 @@ bench_qb_simple_get_query = NanoBenchmark(
 									order_by="creation asc",
 								).run(run=0)"""
 )
+
+
+bench_qb_complex_report = NanoBenchmark(
+	"""query = (
+		frappe.qb.from_(sle)
+		.select(
+			sle.item_code,
+			sle.posting_datetime.as_("date"),
+			sle.warehouse,
+			sle.posting_date,
+			sle.posting_time,
+			sle.actual_qty,
+			sle.incoming_rate,
+			sle.valuation_rate,
+			sle.company,
+			sle.voucher_type,
+			sle.qty_after_transaction,
+			sle.stock_value_difference,
+			sle.serial_and_batch_bundle,
+			sle.voucher_no,
+			sle.stock_value,
+			sle.batch_no,
+			sle.serial_no,
+			sle.project,
+		)
+		.where(
+			(sle.docstatus < 2)
+			& (sle.is_cancelled == 0)
+			& (sle.posting_datetime[from_date:to_date])
+		)
+		.orderby(sle.posting_datetime)
+		.orderby(sle.creation)
+	)
+
+for fieldname in inventory_dimension_fields:
+	query = query.select(sle[fieldname])
+	if filters.get(fieldname):
+		query = query.where(sle[fieldname].isin(filters[fieldname]))
+
+if items:
+	query = query.where(sle.item_code.isin(items))
+
+for field in ("voucher_no", "project", "company"):
+	if filters.get(field) and field not in inventory_dimension_fields:
+		query = query.where(sle[field] == filters[field])
+
+if filters.get("batch_no"):
+	if bundles:
+		query = query.where(
+			(sle.serial_and_batch_bundle.isin(bundles)) | (sle.batch_no == filters["batch_no"])
+		)
+	else:
+		query = query.where(sle.batch_no == filters["batch_no"])
+
+if filters.get("warehouse"):
+	child_query = frappe.qb.from_(warehouse).select(warehouse.name)
+	range_conditions = [
+		(warehouse.lft >= lft) & (warehouse.rgt <= rgt) for lft, rgt in warehouse_ranges
+	]
+	combined_condition = range_conditions[0]
+	for condition in range_conditions[1:]:
+		combined_condition = combined_condition | condition
+
+	child_query = child_query.where(combined_condition).where(warehouse.name == sle.warehouse)
+	query = query.where(ExistsCriterion(child_query))
+
+query.run(run=0)""",
+	setup="""from pypika.terms import ExistsCriterion
+
+sle = frappe.qb.DocType("Stock Ledger Entry")
+warehouse = frappe.qb.DocType("Warehouse")
+from_date = "2024-01-01 00:00:00"
+to_date = "2024-12-31 23:59:59"
+items = [f"ITEM-{idx:05d}" for idx in range(100)]
+bundles = [f"SABB-{idx:05d}" for idx in range(25)]
+warehouse_ranges = [(1, 500), (1001, 1500), (2001, 2500)]
+inventory_dimension_fields = ["inventory_dimension_1", "inventory_dimension_2", "inventory_dimension_3"]
+filters = {
+	"warehouse": ["Stores - ACME", "Finished Goods - ACME", "Work In Progress - ACME"],
+	"voucher_no": "MAT-STE-2024-00001",
+	"project": "PROJ-0001",
+	"company": "ACME Manufacturing",
+	"batch_no": "BATCH-2024-0001",
+	"inventory_dimension_1": ["Plant A", "Plant B", "Plant C"],
+	"inventory_dimension_2": ["Retail", "Wholesale"],
+	"inventory_dimension_3": ["North", "South", "West"],
+}""",
+)
