@@ -9,4 +9,4 @@ name = "frappe_pypika_rs"
 crate-type = ["cdylib"]
 
 [dependencies]
-pyo3 = "0.23"
+pyo3 = "0.29"

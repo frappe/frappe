@@ -33,3 +33,15 @@ def capability_summary() -> list[str]:
 	if backend is None or backend.capability_summary is None:
 		return []
 	return list(backend.capability_summary())
+
+
+def render_select(
+	table: str,
+	fields: list[str],
+	quote_char: str | None = "`",
+	limit: int | None = None,
+) -> str:
+	backend = load_backend()
+	if backend is None or backend.render_select is None:
+		raise RuntimeError("frappe-pypika-rs is not available")
+	return backend.render_select(table, fields, quote_char=quote_char, limit=limit)
