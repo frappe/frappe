@@ -62,6 +62,7 @@ ALLOWED_TYPES_FOR_VALUES = tuple | list | dict
 
 IFNULL_PATTERN = re.compile(r"ifnull\(", flags=re.IGNORECASE)
 INDEX_PATTERN = re.compile(r"\s*\([^)]+\)\s*")
+SIMPLE_FIELD_PATTERN = re.compile(r"^\w+$")
 SINGLE_WORD_PATTERN = re.compile(r'([`"]?)(tab([A-Z]\w+))\1')
 MULTI_WORD_PATTERN = re.compile(r'([`"])(tab([A-Z]\w+)( [A-Z]\w+)+)\1')
 
@@ -646,6 +647,29 @@ class Database:
 
 		if distinct:
 			order_by = None
+
+		if (
+			isinstance(filters, str)
+			and (filters != doctype or doctype == "DocType")
+			and isinstance(fieldname, str)
+			and SIMPLE_FIELD_PATTERN.match(fieldname)
+			and not ignore
+			and not cache
+			and not for_update
+			and not distinct
+			and not pluck
+			and run
+			and order_by == DefaultOrderBy
+		):
+			return self.sql(
+				"SELECT `{fieldname}` FROM {table_name} WHERE `name` = %s LIMIT 1".format(
+					fieldname=fieldname,
+					table_name=get_table_name(doctype, wrap_in_backticks=True),
+				),
+				filters,
+				as_dict=as_dict,
+				debug=debug,
+			)
 
 		if isinstance(filters, list):
 			if filters := list(f for f in filters if f is not None):
