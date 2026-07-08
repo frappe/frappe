@@ -60,7 +60,9 @@ class DbManager:
 		:return: Nothing
 		"""
 
+		import os
 		import shlex
+		import sys
 		from shutil import which
 
 		from frappe.database import get_command
@@ -69,14 +71,23 @@ class DbManager:
 		# Ensure that the entire process fails if any part of the pipeline fails
 		command: list[str] = ["set -o pipefail;"]
 
-		# Handle gzipped backups
-		if source.endswith(".gz"):
-			if gzip := which("gzip"):
-				command.extend([gzip, "-cd", source, "|"])
-			else:
-				raise Exception("`gzip` not installed")
+		# Source stage: `pv` (pipe viewer) shows a live byte-level progress bar
+		# when available. Falls back to plain `cat` when `pv` is not installed,
+		# stderr is not a TTY (avoids \r garbage in CI/nohup logs), or the user
+		# chose --verbose (subprocess output would interleave with pv's line).
+		# Both branches leave the file's bytes on stdout for the next stage.
+		pv = which("pv")
+		if pv and sys.stderr.isatty() and not verbose:
+			command.extend([pv, "-s", str(os.path.getsize(source)), source, "|"])
 		else:
 			command.extend(["cat", source, "|"])
+
+		# Decompression stage: if the backup is gzipped, pipe through gunzip.
+		if source.endswith(".gz"):
+			if gzip := which("gzip"):
+				command.extend([gzip, "-cd", "|"])
+			else:
+				raise Exception("`gzip` not installed")
 
 		if frappe.conf.db_type == "mariadb":
 			# Newer versions of MariaDB add in a line that'll break on older versions, so remove it
