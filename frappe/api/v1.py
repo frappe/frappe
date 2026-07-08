@@ -3,6 +3,7 @@ import json
 from werkzeug.routing import Rule
 
 import frappe
+import frappe.client
 from frappe import _
 from frappe.utils import attach_expanded_links
 from frappe.utils.data import sbool
