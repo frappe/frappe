@@ -671,6 +671,47 @@ class Database:
 				debug=debug,
 			)
 
+		if (
+			isinstance(filters, dict)
+			and len(filters) == 1
+			and isinstance(fieldname, str)
+			and SIMPLE_FIELD_PATTERN.match(fieldname)
+			and not ignore
+			and not update
+			and not cache
+			and not for_update
+			and not distinct
+			and not pluck
+			and run
+			and order_by == DefaultOrderBy
+		):
+			filter_field, filter_value = next(iter(filters.items()))
+			operator = "="
+			if isinstance(filter_value, tuple | list):
+				if len(filter_value) != 2:
+					filter_field = None
+				else:
+					operator, filter_value = filter_value
+
+			if (
+				isinstance(filter_field, str)
+				and SIMPLE_FIELD_PATTERN.match(filter_field)
+				and filter_value is not None
+				and operator in ("=", "!=", ">", "<", ">=", "<=", "like", "not like")
+			):
+				return self.sql(
+					"SELECT `{fieldname}` FROM {table_name} WHERE `{filter_field}` {operator} %s "
+					"ORDER BY `creation` DESC LIMIT 1".format(
+						fieldname=fieldname,
+						table_name=get_table_name(doctype, wrap_in_backticks=True),
+						filter_field=filter_field,
+						operator=operator,
+					),
+					filter_value,
+					as_dict=as_dict,
+					debug=debug,
+				)
+
 		if isinstance(filters, list):
 			if filters := list(f for f in filters if f is not None):
 				out = frappe.qb.get_query(
