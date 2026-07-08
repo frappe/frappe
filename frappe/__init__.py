@@ -1167,6 +1167,8 @@ def get_newargs(fn: Callable, kwargs: dict[str, Any]) -> dict[str, Any]:
 	        >>> get_newargs(fn, {"a": 2, "c": 1})
 	                {"a": 2}
 	"""
+	if not kwargs:
+		return {}
 
 	parameters, variable_kwargs_exist = _get_cached_signature_params(fn)
 	newargs = (
