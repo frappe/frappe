@@ -92,6 +92,12 @@ class FlowAgent(Document):
 			frappe.throw(_("Flow Agent {0} is disabled.").format(self.name), title=_("Disabled Agent"))
 
 		model_name = model or self.model
+		if not frappe.has_permission("Flow Model", "read", model_name):
+			frappe.throw(
+				_("You are not permitted to use Flow Model {0}.").format(model_name),
+				frappe.PermissionError,
+				title=_("Model Not Permitted"),
+			)
 		if not frappe.db.get_value("Flow Model", model_name, "enabled"):
 			frappe.throw(_("Flow Model {0} is disabled.").format(model_name), title=_("Disabled Model"))
 
