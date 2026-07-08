@@ -80,7 +80,7 @@ class TestRustQueryBuilderProxy(unittest.TestCase):
 			"SELECT `column_name` FROM `information_schema`.`columns` WHERE `table_name`='tabDocField'",
 		)
 
-	def test_join_falls_back_to_pypika(self):
+	def test_simple_join_sql(self):
 		role = frappe.qb.DocType("Role")
 		has_role = frappe.qb.DocType("Has Role")
 
@@ -88,6 +88,39 @@ class TestRustQueryBuilderProxy(unittest.TestCase):
 			frappe.qb.from_(role).select(role.name).join(has_role).on(role.name == has_role.role).get_sql(),
 			"SELECT `tabRole`.`name` FROM `tabRole` JOIN `tabHas Role` ON `tabRole`.`name`=`tabHas Role`.`role`",
 		)
+
+	def test_simple_left_join_sql(self):
+		user = frappe.qb.DocType("User")
+		has_role = frappe.qb.DocType("Has Role")
+
+		self.assertEqual(
+			frappe.qb.from_(user)
+			.left_join(has_role)
+			.on(has_role.parent == user.name)
+			.select(user.name)
+			.get_sql(),
+			"SELECT `tabUser`.`name` FROM `tabUser` LEFT JOIN `tabHas Role` ON `tabHas Role`.`parent`=`tabUser`.`name`",
+		)
+
+	def test_join_parameter_wrapper_is_preserved(self):
+		user = frappe.qb.DocType("User")
+		has_role = frappe.qb.DocType("Has Role")
+		params = NamedParameterWrapper()
+
+		sql = (
+			frappe.qb.from_(user)
+			.join(has_role)
+			.on(has_role.parent == user.name)
+			.select(user.name, has_role.role)
+			.where(has_role.role == "System Manager")
+			.get_sql(param_wrapper=params)
+		)
+
+		self.assertEqual(
+			sql,
+			"SELECT `tabUser`.`name`,`tabHas Role`.`role` FROM `tabUser` JOIN `tabHas Role` ON `tabHas Role`.`parent`=`tabUser`.`name` WHERE `tabHas Role`.`role`=%(param1)s",
+		)
+		self.assertEqual(params.parameters, {"param1": "System Manager"})
 
 	def test_insert_sql(self):
 		singles = frappe.qb.DocType("Singles")

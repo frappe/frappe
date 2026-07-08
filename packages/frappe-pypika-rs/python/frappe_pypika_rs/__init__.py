@@ -6,6 +6,7 @@ try:
 		render_delete,
 		render_insert,
 		render_select,
+		render_select_fragments,
 		render_select_query,
 		render_select_star,
 		render_update,
@@ -16,6 +17,7 @@ except ImportError:
 	render_delete = None
 	render_insert = None
 	render_select = None
+	render_select_fragments = None
 	render_select_query = None
 	render_select_star = None
 	render_update = None
@@ -32,6 +34,7 @@ __all__ = (
 	"render_delete",
 	"render_insert",
 	"render_select",
+	"render_select_fragments",
 	"render_select_query",
 	"render_select_star",
 	"render_update",

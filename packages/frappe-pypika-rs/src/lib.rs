@@ -67,6 +67,42 @@ fn render_select_star_sql(
     )
 }
 
+fn render_select_fragments_sql(
+    table: &str,
+    select_sqls: &[String],
+    quote_char: Option<&str>,
+    join_sqls: &[String],
+    where_sql: Option<&str>,
+    orderbys: &[String],
+    limit: Option<u64>,
+    offset: Option<u64>,
+) -> String {
+    let mut sql = format!(
+        "SELECT {} FROM {}",
+        select_sqls.join(","),
+        quote_identifier(table, quote_char)
+    );
+    if !join_sqls.is_empty() {
+        sql.push(' ');
+        sql.push_str(&join_sqls.join(" "));
+    }
+    if let Some(where_sql) = where_sql {
+        sql.push_str(" WHERE ");
+        sql.push_str(where_sql);
+    }
+    if !orderbys.is_empty() {
+        sql.push_str(" ORDER BY ");
+        sql.push_str(&orderbys.join(","));
+    }
+    if let Some(limit) = limit {
+        sql.push_str(&format!(" LIMIT {limit}"));
+    }
+    if let Some(offset) = offset {
+        sql.push_str(&format!(" OFFSET {offset}"));
+    }
+    sql
+}
+
 fn render_insert_sql(
     table: &str,
     columns: &[String],
@@ -132,6 +168,7 @@ fn capability_summary() -> Vec<&'static str> {
         "render-select",
         "render-select-star",
         "render-select-query",
+        "render-select-fragments",
         "render-insert",
         "render-update",
         "render-delete",
@@ -164,6 +201,32 @@ fn render_select_query(
     let orderbys = orderbys.unwrap_or_default();
     render_select_sql(
         table, &fields, quote_char, where_sql, &orderbys, limit, offset,
+    )
+}
+
+#[pyfunction]
+#[pyo3(signature = (table, select_sqls, quote_char=None, join_sqls=None, where_sql=None, orderbys=None, limit=None, offset=None))]
+fn render_select_fragments(
+    table: &str,
+    select_sqls: Vec<String>,
+    quote_char: Option<&str>,
+    join_sqls: Option<Vec<String>>,
+    where_sql: Option<&str>,
+    orderbys: Option<Vec<String>>,
+    limit: Option<u64>,
+    offset: Option<u64>,
+) -> String {
+    let join_sqls = join_sqls.unwrap_or_default();
+    let orderbys = orderbys.unwrap_or_default();
+    render_select_fragments_sql(
+        table,
+        &select_sqls,
+        quote_char,
+        &join_sqls,
+        where_sql,
+        &orderbys,
+        limit,
+        offset,
     )
 }
 
@@ -213,6 +276,7 @@ fn _rust(module: &Bound<'_, PyModule>) -> PyResult<()> {
     module.add_function(wrap_pyfunction!(render_delete, module)?)?;
     module.add_function(wrap_pyfunction!(render_insert, module)?)?;
     module.add_function(wrap_pyfunction!(render_select, module)?)?;
+    module.add_function(wrap_pyfunction!(render_select_fragments, module)?)?;
     module.add_function(wrap_pyfunction!(render_select_query, module)?)?;
     module.add_function(wrap_pyfunction!(render_select_star, module)?)?;
     module.add_function(wrap_pyfunction!(render_update, module)?)?;
@@ -222,8 +286,8 @@ fn _rust(module: &Bound<'_, PyModule>) -> PyResult<()> {
 #[cfg(test)]
 mod tests {
     use super::{
-        render_delete_sql, render_insert_sql, render_select_sql, render_select_star_sql,
-        render_update_sql,
+        render_delete_sql, render_insert_sql, render_select_fragments_sql, render_select_sql,
+        render_select_star_sql, render_update_sql,
     };
 
     #[test]
@@ -319,6 +383,26 @@ mod tests {
                 Some(5),
             ),
             "SELECT `name` FROM `tabRole` OFFSET 5"
+        );
+    }
+
+    #[test]
+    fn renders_fragment_select_with_join() {
+        assert_eq!(
+            render_select_fragments_sql(
+                "tabUser",
+                &[
+                    "`tabUser`.`name`".to_string(),
+                    "`tabHas Role`.`role`".to_string()
+                ],
+                Some("`"),
+                &["JOIN `tabHas Role` ON `tabHas Role`.`parent`=`tabUser`.`name`".to_string()],
+                Some("`tabUser`.`enabled`=1"),
+                &["`tabUser`.`creation` ASC".to_string()],
+                Some(20),
+                Some(10),
+            ),
+            "SELECT `tabUser`.`name`,`tabHas Role`.`role` FROM `tabUser` JOIN `tabHas Role` ON `tabHas Role`.`parent`=`tabUser`.`name` WHERE `tabUser`.`enabled`=1 ORDER BY `tabUser`.`creation` ASC LIMIT 20 OFFSET 10"
         );
     }
 

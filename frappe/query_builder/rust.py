@@ -5,6 +5,7 @@ from collections.abc import Sequence
 from functools import lru_cache
 from typing import Any, ClassVar
 
+from pypika.enums import JoinType
 from pypika.queries import QueryBuilder, Table
 from pypika.terms import Criterion, EmptyCriterion, Field, Star, Term
 
@@ -85,6 +86,31 @@ def render_select_query(
 		table,
 		fields,
 		quote_char=quote_char,
+		where_sql=where_sql,
+		orderbys=orderbys,
+		limit=limit,
+		offset=offset,
+	)
+
+
+def render_select_fragments(
+	table: str,
+	select_sqls: list[str],
+	quote_char: str | None = "`",
+	join_sqls: list[str] | None = None,
+	where_sql: str | None = None,
+	orderbys: list[str] | None = None,
+	limit: int | None = None,
+	offset: int | None = None,
+) -> str:
+	backend = load_backend()
+	if backend is None or backend.render_select_fragments is None:
+		raise RuntimeError("frappe-pypika-rs is not available")
+	return backend.render_select_fragments(
+		table,
+		select_sqls,
+		quote_char=quote_char,
+		join_sqls=join_sqls,
 		where_sql=where_sql,
 		orderbys=orderbys,
 		limit=limit,
@@ -193,6 +219,7 @@ class RustSelectQuery:
 		self._field_names: list[str] = []
 		self._where: Term | None = None
 		self._orderbys: list[tuple[Any, Any]] = []
+		self._joins: list[tuple[Table, JoinType, Criterion]] = []
 		self._limit: int | None = None
 		self._offset: int | None = None
 		self._fallback_query: QueryBuilder | None = None
@@ -203,6 +230,7 @@ class RustSelectQuery:
 		new._select_terms = self._select_terms.copy()
 		new._field_names = self._field_names.copy()
 		new._orderbys = self._orderbys.copy()
+		new._joins = self._joins.copy()
 		return new
 
 	def _builder(self):
@@ -248,6 +276,34 @@ class RustSelectQuery:
 		builder._orderbys.extend(orderbys)
 		return builder
 
+	def join(self, item: Any, how: JoinType = JoinType.inner):
+		if self._fallback_query is not None:
+			return self._fallback_query.join(item, how)
+		if not isinstance(item, Table) or item._schema is not None or item.alias is not None:
+			return self._to_fallback().join(item, how)
+		return RustJoiner(self, item, how)
+
+	def inner_join(self, item: Any):
+		return self.join(item, JoinType.inner)
+
+	def left_join(self, item: Any):
+		return self.join(item, JoinType.left)
+
+	def left_outer_join(self, item: Any):
+		return self.join(item, JoinType.left_outer)
+
+	def right_join(self, item: Any):
+		return self.join(item, JoinType.right)
+
+	def right_outer_join(self, item: Any):
+		return self.join(item, JoinType.right_outer)
+
+	def outer_join(self, item: Any):
+		return self.join(item, JoinType.outer)
+
+	def full_outer_join(self, item: Any):
+		return self.join(item, JoinType.full_outer)
+
 	def delete(self):
 		if self._fallback_query is not None:
 			return self._fallback_query.delete()
@@ -255,6 +311,7 @@ class RustSelectQuery:
 			self._select_terms
 			or self._where
 			or self._orderbys
+			or self._joins
 			or self._limit is not None
 			or self._offset is not None
 		):
@@ -286,10 +343,34 @@ class RustSelectQuery:
 			return ""
 
 		quote_char = kwargs.get("quote_char", self.quote_char)
-		where_sql = self._where.get_sql(quote_char=quote_char, **kwargs) if self._where is not None else None
-		orderbys = _render_orderbys(self._orderbys, quote_char=quote_char, **kwargs)
+		render_kwargs = kwargs.copy()
+		render_kwargs.pop("with_namespace", None)
+		with_namespace = bool(self._joins)
+		where_sql = (
+			self._where.get_sql(quote_char=quote_char, with_namespace=with_namespace, **render_kwargs)
+			if self._where is not None
+			else None
+		)
+		orderbys = _render_orderbys(
+			self._orderbys, quote_char=quote_char, with_namespace=with_namespace, **render_kwargs
+		)
 		if orderbys is None:
 			return self._to_fallback().get_sql(with_alias=with_alias, subquery=subquery, **kwargs)
+		if self._joins:
+			select_sqls = _render_select_fragments(self._select_terms, quote_char=quote_char, **render_kwargs)
+			join_sqls = _render_joins(self._joins, quote_char=quote_char, **render_kwargs)
+			if select_sqls is None or join_sqls is None:
+				return self._to_fallback().get_sql(with_alias=with_alias, subquery=subquery, **kwargs)
+			return render_select_fragments(
+				self.table._table_name,
+				select_sqls,
+				quote_char=quote_char,
+				join_sqls=join_sqls,
+				where_sql=where_sql,
+				orderbys=orderbys,
+				limit=self._limit,
+				offset=self._offset,
+			)
 		if where_sql or orderbys:
 			return render_select_query(
 				self.table._table_name,
@@ -332,6 +413,8 @@ class RustSelectQuery:
 				query = query.select(*self._select_terms)
 			if self._where is not None:
 				query = query.where(self._where)
+			for item, how, criterion in self._joins:
+				query = query.join(item, how).on(criterion)
 			for field, order in self._orderbys:
 				query = query.orderby(field, order=order)
 			if self._limit is not None:
@@ -343,6 +426,30 @@ class RustSelectQuery:
 
 	def __getattr__(self, name: str):
 		return getattr(self._to_fallback(), name)
+
+
+class RustJoiner:
+	def __init__(self, query: RustSelectQuery, item: Table, how: JoinType):
+		self.query = query
+		self.item = item
+		self.how = how
+
+	def on(self, criterion: Criterion | None, collate: str | None = None):
+		if collate is not None or criterion is None:
+			return self.query._to_fallback().join(self.item, self.how).on(criterion, collate=collate)
+
+		builder = self.query._builder()
+		builder._joins.append((self.item, self.how, criterion))
+		return builder
+
+	def on_field(self, *fields: Any):
+		return self.query._to_fallback().join(self.item, self.how).on_field(*fields)
+
+	def using(self, *fields: Any):
+		return self.query._to_fallback().join(self.item, self.how).using(*fields)
+
+	def cross(self):
+		return self.query._to_fallback().join(self.item, self.how).cross()
 
 
 class RustDeleteQuery:
@@ -660,14 +767,45 @@ def _plain_select_fields(selects: Sequence[Any], table: Table) -> list[str] | No
 	return fields
 
 
+def _render_select_fragments(
+	selects: Sequence[Any], quote_char: str | None = "`", **kwargs: Any
+) -> list[str] | None:
+	rendered = []
+	for select in selects:
+		if not isinstance(select, (Field, Star)):
+			return None
+		rendered.append(select.get_sql(quote_char=quote_char, with_namespace=True, **kwargs))
+	return rendered
+
+
+def _render_joins(
+	joins: list[tuple[Table, JoinType, Criterion]], quote_char: str | None = "`", **kwargs: Any
+) -> list[str] | None:
+	rendered = []
+	for table, how, criterion in joins:
+		if not isinstance(criterion, Criterion):
+			return None
+
+		table_sql = table.get_sql(subquery=True, with_alias=True, quote_char=quote_char, **kwargs)
+		join_sql = f"JOIN {table_sql}"
+		if how.value:
+			join_sql = f"{how.value} {join_sql}"
+		criterion_sql = criterion.get_sql(subquery=True, quote_char=quote_char, with_namespace=True, **kwargs)
+		rendered.append(f"{join_sql} ON {criterion_sql}")
+	return rendered
+
+
 def _render_orderbys(
-	orderbys: list[tuple[Any, Any]], quote_char: str | None = "`", **kwargs: Any
+	orderbys: list[tuple[Any, Any]],
+	quote_char: str | None = "`",
+	with_namespace: bool = False,
+	**kwargs: Any,
 ) -> list[str] | None:
 	rendered = []
 	for field, order in orderbys:
 		if not isinstance(field, (Field, Criterion)):
 			return None
-		field_sql = field.get_sql(quote_char=quote_char, **kwargs)
+		field_sql = field.get_sql(quote_char=quote_char, with_namespace=with_namespace, **kwargs)
 		if order is not None:
 			field_sql = f"{field_sql} {order.value}"
 		rendered.append(field_sql)
