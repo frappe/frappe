@@ -487,6 +487,11 @@ class RustSelectQuery:
 
 		return prepare_query(self)
 
+	def _frappe_prepare_query(self) -> tuple[str, dict[str, Any]] | tuple[None, None]:
+		if self._fallback_query is not None or self._where is not None or self._joins:
+			return None, None
+		return self.get_sql(), {}
+
 	def run(self, *args: Any, **kwargs: Any):
 		from frappe.query_builder.utils import execute_query
 

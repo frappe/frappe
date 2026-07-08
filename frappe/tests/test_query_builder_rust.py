@@ -136,6 +136,14 @@ class TestRustQueryBuilderProxy(unittest.TestCase):
 		self.assertEqual(sql, "SELECT `name` FROM `tabRole` WHERE `name`=%(param1)s")
 		self.assertEqual(params.parameters, {"param1": "Administrator' --"})
 
+	def test_walk_without_parameters_uses_empty_params(self):
+		table = frappe.qb.DocType("Role")
+
+		self.assertEqual(
+			frappe.qb.from_(table).select(table.name, table.creation).limit(20).walk(),
+			("SELECT `name`,`creation` FROM `tabRole` LIMIT 20", {}),
+		)
+
 	def test_schema_tables_fall_back_to_pypika(self):
 		information_schema = frappe.qb.Schema("information_schema")
 

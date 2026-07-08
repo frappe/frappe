@@ -160,8 +160,22 @@ def execute_child_queries(queries, result):
 def prepare_query(query):
 	from frappe.utils.safe_exec import SERVER_SCRIPT_FILE_PREFIX, check_safe_sql_query
 
-	param_collector = NamedParameterWrapper()
-	query = query.get_sql(param_wrapper=param_collector)
+	params = None
+	try:
+		custom_prepare = object.__getattribute__(query, "_frappe_prepare_query")
+	except AttributeError:
+		custom_prepare = None
+
+	if custom_prepare:
+		prepared_query, params = custom_prepare()
+		if params is not None:
+			query = prepared_query
+
+	if params is None:
+		param_collector = NamedParameterWrapper()
+		query = query.get_sql(param_wrapper=param_collector)
+		params = param_collector.parameters
+
 	if frappe.local.flags.get("in_safe_exec", False):
 		if not check_safe_sql_query(query, throw=False):
 			callstack = inspect.stack()
@@ -183,7 +197,7 @@ def prepare_query(query):
 		check_safe_sql_query(query, throw=True)
 
 	assert isinstance(query, str), "prepared query must be a SQL string"
-	return query, param_collector.parameters
+	return query, params
 
 
 def patch_query_execute():
