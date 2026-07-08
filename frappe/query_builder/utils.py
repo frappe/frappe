@@ -249,3 +249,6 @@ def patch_all():
 	patch_query_aggregation()
 	patch_get_query()
 	patch_like_operators()
+	from frappe.query_builder.rust import patch_querybuilder_get_sql
+
+	patch_querybuilder_get_sql()
