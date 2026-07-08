@@ -1,8 +1,7 @@
 import { ref, computed } from "vue";
 import * as api from "@/api/client";
 import { startRun, resumeRun } from "@/api/stream";
-import { runClientTool } from "@/lib/clientTools";
-import { normalizeToolName, parseArgs } from "@/lib/toolMeta";
+import { normalizeToolName } from "@/lib/toolMeta";
 import { __ } from "@/lib/translate";
 
 // Module-singleton store: one panel instance, one source of truth. Components
@@ -236,21 +235,6 @@ async function restorePausedRun(session) {
 	last.runName = runs[0].name;
 	runName.value = runs[0].name;
 	requestScroll();
-
-	// A reload landing mid client-pause leaves pending client directives; run them so the
-	// turn isn't stuck. Human questions restore as cards (answered via answerQuestion).
-	if (last.questions.some((q) => q.client_tool)) {
-		sending.value = true;
-		try {
-			await settleClientCalls(last);
-		} catch (e) {
-			failMessage(last, e);
-		} finally {
-			sending.value = false;
-			requestScroll();
-			focusTick.value++;
-		}
-	}
 }
 
 // ── sending / streaming ────────────────────────────────────────────────────────
@@ -279,7 +263,6 @@ async function send(text) {
 			},
 			(event) => handleEvent(event, assistant)
 		);
-		await settleClientCalls(assistant);
 	} catch (e) {
 		failMessage(assistant, e);
 	} finally {
@@ -302,7 +285,6 @@ async function resume(answers, pausedMsg) {
 
 	try {
 		await resumeRun({ run_name: rn, answers }, (event) => handleEvent(event, pausedMsg));
-		await settleClientCalls(pausedMsg);
 	} catch (e) {
 		failMessage(pausedMsg, e);
 	} finally {
@@ -312,61 +294,16 @@ async function resume(answers, pausedMsg) {
 	}
 }
 
-// A run pauses on a client directive (a client tool the agent called). The panel runs it in
-// the Desk window and resumes with the result. Loops so chained client calls settle within
-// one turn; returns early when a question needing the user remains — a human question or a
-// client directive that requires confirmation (it carries options and renders as a card, then
-// answerQuestion runs it). Runs inside the caller's `sending` envelope, so no re-entrancy.
-async function settleClientCalls(msg) {
-	for (;;) {
-		const pending = msg.questions.filter(
-			(q) => q.client_tool && q._answer === undefined && !q.options?.length
-		);
-		if (!pending.length) return;
-
-		for (const q of pending) {
-			const part = msg.parts.find((p) => p.type === "tool" && p.id === q.key);
-			q._answer = await runClientDirective(part);
-		}
-		if (msg.questions.some((q) => q._answer === undefined)) return;
-
-		const answers = {};
-		msg.questions.forEach((q) => (answers[q.key] = q._answer));
-		msg.questions = [];
-		msg.pending = true;
-		await resumeRun({ run_name: msg.runName || runName.value, answers }, (event) =>
-			handleEvent(event, msg)
-		);
-	}
-}
-
-async function runClientDirective(part) {
-	try {
-		return await runClientTool(part?.name, parseArgs(part?.arguments));
-	} catch (e) {
-		return { error: e?.message || String(e) };
-	}
-}
-
-// Records one answer and stamps the tool's approval state; once every question on the paused
-// message is answered, resumes the run with all answers at once. For a client tool the answer
-// is the browser result: approving runs it in the Desk, denying/redirecting feed that back.
-async function answerQuestion(msg, question, answer) {
+// Records one answer and stamps the tool's approval state; once every question
+// on the paused message is answered, resumes the run with all answers at once.
+function answerQuestion(msg, question, answer) {
 	const a = (answer || "").trim();
 	if (!a || !msg) return;
 
+	question._answer = a;
 	const tool = msg.parts.find((p) => p.type === "tool" && p.id === question.key);
 	if (tool)
 		tool.approval = a === "Approve" ? "approved" : a === "Deny" ? "denied" : "redirected";
-
-	if (question.client_tool) {
-		if (a === "Approve") question._answer = await runClientDirective(tool);
-		else if (a === "Deny")
-			question._answer = { denied: true, message: "User denied this action." };
-		else question._answer = { redirect: true, user_feedback: a };
-	} else {
-		question._answer = a;
-	}
 
 	if (msg.questions.some((q) => q._answer === undefined)) return;
 
