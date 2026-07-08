@@ -6,7 +6,7 @@ from functools import lru_cache
 from typing import Any, ClassVar
 
 from pypika.queries import QueryBuilder, Table
-from pypika.terms import Field, Star
+from pypika.terms import Criterion, EmptyCriterion, Field, Star, Term
 
 ENV_ENABLE_RUST_QB = "FRAPPE_QUERY_BUILDER_RUST"
 
@@ -65,6 +65,27 @@ def render_select_star(
 	return backend.render_select_star(table, quote_char=quote_char, limit=limit)
 
 
+def render_select_query(
+	table: str,
+	fields: list[str],
+	quote_char: str | None = "`",
+	where_sql: str | None = None,
+	orderbys: list[str] | None = None,
+	limit: int | None = None,
+) -> str:
+	backend = load_backend()
+	if backend is None or backend.render_select_query is None:
+		raise RuntimeError("frappe-pypika-rs is not available")
+	return backend.render_select_query(
+		table,
+		fields,
+		quote_char=quote_char,
+		where_sql=where_sql,
+		orderbys=orderbys,
+		limit=limit,
+	)
+
+
 def patch_querybuilder_get_sql() -> None:
 	if not is_enabled() or hasattr(QueryBuilder, _ORIGINAL_GET_SQL_ATTR):
 		return
@@ -94,6 +115,8 @@ def patch_query_classes_from() -> None:
 		def from_(cls, table, *args: Any, _original_from=original_from, **kwargs: Any):
 			if args or set(kwargs) - {"immutable"}:
 				return _original_from(table, *args, **kwargs)
+			if isinstance(table, Table) and table._schema is not None:
+				return _original_from(table, *args, **kwargs)
 			return RustSelectQuery(cls, table, _original_from, immutable=kwargs.get("immutable", True))
 
 		query_cls.from_ = classmethod(from_)
@@ -110,6 +133,8 @@ class RustSelectQuery:
 		self.quote_char = _quote_char_for_query_cls(query_cls)
 		self._select_terms: list[Any] = []
 		self._field_names: list[str] = []
+		self._where: Term | None = None
+		self._orderbys: list[tuple[Any, Any]] = []
 		self._limit: int | None = None
 		self._fallback_query: QueryBuilder | None = None
 
@@ -118,6 +143,7 @@ class RustSelectQuery:
 		new.__dict__.update(self.__dict__)
 		new._select_terms = self._select_terms.copy()
 		new._field_names = self._field_names.copy()
+		new._orderbys = self._orderbys.copy()
 		return new
 
 	def _builder(self):
@@ -134,6 +160,33 @@ class RustSelectQuery:
 		builder = self._builder()
 		builder._select_terms.extend(terms)
 		builder._field_names.extend(field_names)
+		return builder
+
+	def where(self, criterion: Term | EmptyCriterion):
+		if self._fallback_query is not None:
+			return self._fallback_query.where(criterion)
+		if isinstance(criterion, EmptyCriterion):
+			return self._builder()
+
+		builder = self._builder()
+		builder._where = criterion if builder._where is None else builder._where & criterion
+		return builder
+
+	def orderby(self, *fields: Any, **kwargs: Any):
+		if self._fallback_query is not None:
+			return self._fallback_query.orderby(*fields, **kwargs)
+		order = kwargs.get("order")
+
+		orderbys = []
+		for field in fields:
+			if isinstance(field, str):
+				field = Field(field, table=self.table)
+			elif not isinstance(field, Term):
+				return self._to_fallback().orderby(*fields, **kwargs)
+			orderbys.append((field, order))
+
+		builder = self._builder()
+		builder._orderbys.extend(orderbys)
 		return builder
 
 	def limit(self, limit: int):
@@ -153,6 +206,19 @@ class RustSelectQuery:
 			return ""
 
 		quote_char = kwargs.get("quote_char", self.quote_char)
+		where_sql = self._where.get_sql(quote_char=quote_char, **kwargs) if self._where is not None else None
+		orderbys = _render_orderbys(self._orderbys, quote_char=quote_char, **kwargs)
+		if orderbys is None:
+			return self._to_fallback().get_sql(with_alias=with_alias, subquery=subquery, **kwargs)
+		if where_sql or orderbys:
+			return render_select_query(
+				self.table._table_name,
+				self._field_names,
+				quote_char=quote_char,
+				where_sql=where_sql,
+				orderbys=orderbys,
+				limit=self._limit,
+			)
 		if self._field_names == ["*"]:
 			return render_select_star(self.table._table_name, quote_char=quote_char, limit=self._limit)
 		return render_select(
@@ -174,6 +240,10 @@ class RustSelectQuery:
 			query = self.original_from(self.table, immutable=self.immutable)
 			if self._select_terms:
 				query = query.select(*self._select_terms)
+			if self._where is not None:
+				query = query.where(self._where)
+			for field, order in self._orderbys:
+				query = query.orderby(field, order=order)
 			if self._limit is not None:
 				query = query.limit(self._limit)
 			self._fallback_query = query
@@ -197,6 +267,8 @@ def _try_render_simple_select(
 		return None
 
 	table = query._from[0]
+	if table._schema is not None:
+		return None
 	fields = _plain_select_fields(query._selects, table)
 	if fields is None:
 		return None
@@ -257,6 +329,20 @@ def _plain_select_fields(selects: Sequence[Any], table: Table) -> list[str] | No
 		else:
 			return None
 	return fields
+
+
+def _render_orderbys(
+	orderbys: list[tuple[Any, Any]], quote_char: str | None = "`", **kwargs: Any
+) -> list[str] | None:
+	rendered = []
+	for field, order in orderbys:
+		if not isinstance(field, (Field, Criterion)):
+			return None
+		field_sql = field.get_sql(quote_char=quote_char, **kwargs)
+		if order is not None:
+			field_sql = f"{field_sql} {order.value}"
+		rendered.append(field_sql)
+	return rendered
 
 
 def _quote_char_for_query_cls(query_cls: type) -> str | None:
