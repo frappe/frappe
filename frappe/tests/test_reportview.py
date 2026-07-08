@@ -3,7 +3,14 @@
 
 import frappe
 from frappe.core.doctype.doctype.test_doctype import new_doctype
-from frappe.desk.reportview import export_query, extract_fieldnames, get, get_filter_dashboard_data, get_stats, get_columns_with_data
+from frappe.desk.reportview import (
+	export_query,
+	extract_fieldnames,
+	get,
+	get_columns_with_data,
+	get_filter_dashboard_data,
+	get_stats,
+)
 from frappe.tests import IntegrationTestCase
 
 
