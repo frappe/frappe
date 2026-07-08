@@ -173,7 +173,11 @@ def get_datetime(
 	elif isinstance(datetime_str, datetime.date):
 		return datetime.datetime.combine(datetime_str, datetime.time())
 
-	elif is_invalid_date_string(datetime_str):
+	elif (
+		not isinstance(datetime_str, str)
+		or not datetime_str
+		or datetime_str.startswith(("0001-01-01", "0000-00-00"))
+	):
 		return None
 
 	try:
