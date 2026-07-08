@@ -267,6 +267,7 @@ class Engine:
 		self.field_aliases = set()
 		self.db_query_compat = db_query_compat
 		self.permitted_fields_cache = {}  # Cache for get_permitted_fields results
+		self.additional_filters_config = None
 		self.is_aggregate_query = False
 		self._grouped_queries = set()
 
@@ -413,10 +414,8 @@ class Engine:
 
 			# 1. Check for single simple filter [field, op, value] or [doctype, field, op, value]
 			if len(filters) in (3, 4) and isinstance(filters[1], str):
-				if (
-					filters[1].lower() in OPERATOR_MAP
-					or filters[1].lower() in get_additional_filters_from_hooks()
-				):
+				operator_name = filters[1].lower()
+				if operator_name in OPERATOR_MAP or operator_name in self._get_additional_filters_config():
 					self.apply_list_filters(filters, collect=collect)
 					return
 
@@ -572,7 +571,7 @@ class Engine:
 		import operator as builtin_operator
 
 		"""Check hooks for custom_operator definitions"""
-		additional_filters_config = get_additional_filters_from_hooks()
+		additional_filters_config = self._get_additional_filters_config()
 		if operator.lower() in additional_filters_config:
 			f = frappe._dict(doctype=doctype or self.doctype, fieldname=field, operator=operator, value=value)
 			from frappe.model.db_query import get_additional_filter_field
@@ -841,7 +840,7 @@ class Engine:
 		else:
 			# Assume it's a simple filter [field, op, value] etc.
 			field, value, operator, doctype = None, None, None, None
-			additional_filters_config = get_additional_filters_from_hooks()
+			additional_filters_config = self._get_additional_filters_config()
 			# Determine structure based on length and types
 			if (
 				len(condition) == 3
@@ -870,6 +869,11 @@ class Engine:
 
 			# Use the helper method to build the criterion for the simple filter
 			return self._build_criterion_for_simple_filter(field, value, operator, doctype)
+
+	def _get_additional_filters_config(self):
+		if self.additional_filters_config is None:
+			self.additional_filters_config = get_additional_filters_from_hooks()
+		return self.additional_filters_config
 
 	def _validate_and_prepare_filter_field(self, field: str | Field, doctype: str | None = None) -> Field:
 		"""Validate field name for filters and return a pypika Field object. Handles dynamic fields."""
