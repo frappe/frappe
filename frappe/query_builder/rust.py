@@ -224,6 +224,7 @@ class RustSelectQuery:
 	def __init__(self, query_cls: type, table: str | Table, original_from: Any, immutable: bool = True):
 		self.query_cls = query_cls
 		self.table = query_cls.DocType(table) if isinstance(table, str) else table
+		self._from = [self.table]
 		self.original_from = original_from
 		self.immutable = immutable
 		self.quote_char = _quote_char_for_query_cls(query_cls)
@@ -232,7 +233,7 @@ class RustSelectQuery:
 		self._where: Term | None = None
 		self._orderbys: list[tuple[Any, Any]] = []
 		self._groupbys: list[Any] = []
-		self._joins: list[tuple[Table, JoinType, Criterion]] = []
+		self._joins: list[RustStoredJoin] = []
 		self._limit: int | None = None
 		self._offset: int | None = None
 		self._distinct = False
@@ -322,6 +323,9 @@ class RustSelectQuery:
 		if not isinstance(item, Table) or item._schema is not None or item.alias is not None:
 			return self._to_fallback().join(item, how)
 		return RustJoiner(self, item, how)
+
+	def is_joined(self, table: Table) -> bool:
+		return any(table == join.item for join in self._joins)
 
 	def inner_join(self, item: Any):
 		return self.join(item, JoinType.inner)
@@ -471,8 +475,8 @@ class RustSelectQuery:
 				query = query.distinct()
 			if self._groupbys:
 				query = query.groupby(*self._groupbys)
-			for item, how, criterion in self._joins:
-				query = query.join(item, how).on(criterion)
+			for join in self._joins:
+				query = query.join(join.item, join.how).on(join.criterion)
 			for field, order in self._orderbys:
 				query = query.orderby(field, order=order)
 			if self._limit is not None:
@@ -497,7 +501,7 @@ class RustJoiner:
 			return self.query._to_fallback().join(self.item, self.how).on(criterion, collate=collate)
 
 		builder = self.query._builder()
-		builder._joins.append((self.item, self.how, criterion))
+		builder._joins.append(RustStoredJoin(self.item, self.how, criterion))
 		return builder
 
 	def on_field(self, *fields: Any):
@@ -508,6 +512,13 @@ class RustJoiner:
 
 	def cross(self):
 		return self.query._to_fallback().join(self.item, self.how).cross()
+
+
+class RustStoredJoin:
+	def __init__(self, item: Table, how: JoinType, criterion: Criterion):
+		self.item = item
+		self.how = how
+		self.criterion = criterion
 
 
 class RustDeleteQuery:
@@ -862,18 +873,20 @@ def _render_terms(
 
 
 def _render_joins(
-	joins: list[tuple[Table, JoinType, Criterion]], quote_char: str | None = "`", **kwargs: Any
+	joins: list[RustStoredJoin], quote_char: str | None = "`", **kwargs: Any
 ) -> list[str] | None:
 	rendered = []
-	for table, how, criterion in joins:
-		if not isinstance(criterion, Criterion):
+	for join in joins:
+		if not isinstance(join.criterion, Criterion):
 			return None
 
-		table_sql = table.get_sql(subquery=True, with_alias=True, quote_char=quote_char, **kwargs)
+		table_sql = join.item.get_sql(subquery=True, with_alias=True, quote_char=quote_char, **kwargs)
 		join_sql = f"JOIN {table_sql}"
-		if how.value:
-			join_sql = f"{how.value} {join_sql}"
-		criterion_sql = criterion.get_sql(subquery=True, quote_char=quote_char, with_namespace=True, **kwargs)
+		if join.how.value:
+			join_sql = f"{join.how.value} {join_sql}"
+		criterion_sql = join.criterion.get_sql(
+			subquery=True, quote_char=quote_char, with_namespace=True, **kwargs
+		)
 		rendered.append(f"{join_sql} ON {criterion_sql}")
 	return rendered
 

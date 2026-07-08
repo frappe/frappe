@@ -140,6 +140,13 @@ class TestRustQueryBuilderProxy(unittest.TestCase):
 			"SELECT `tabUser`.`name` FROM `tabUser` LEFT JOIN `tabHas Role` ON `tabHas Role`.`parent`=`tabUser`.`name`",
 		)
 
+	def test_get_list_permission_inspection_does_not_force_fallback(self):
+		query = frappe.get_list("Role", "*", limit=20, run=0)
+
+		self.assertIsNone(query.__dict__.get("_fallback_query"))
+		self.assertEqual(query._from, [frappe.qb.DocType("Role")])
+		self.assertIn("FROM `tabRole`", query.get_sql())
+
 	def test_join_parameter_wrapper_is_preserved(self):
 		user = frappe.qb.DocType("User")
 		has_role = frappe.qb.DocType("Has Role")
