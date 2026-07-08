@@ -639,6 +639,68 @@ class TestDocType(FrappeTestCase):
 
 		self.assertEqual(test_json.test_json_field["hello"], "world")
 
+	def test_link_filters_must_be_valid_json(self):
+		doctype = new_doctype(
+			fields=[
+				{
+					"label": "User",
+					"fieldname": "user",
+					"fieldtype": "Link",
+					"options": "User",
+					"link_filters": "not valid json",
+				}
+			]
+		)
+
+		self.assertRaises(frappe.ValidationError, doctype.insert)
+
+	def test_link_filters_must_be_list_of_filters(self):
+		doctype = new_doctype(
+			fields=[
+				{
+					"label": "User",
+					"fieldname": "user",
+					"fieldtype": "Link",
+					"options": "User",
+					"link_filters": '{"name": "Administrator"}',
+				}
+			]
+		)
+
+		self.assertRaises(frappe.ValidationError, doctype.insert)
+
+	def test_custom_field_validates_link_filters(self):
+		custom_field = frappe.get_doc(
+			{
+				"doctype": "Custom Field",
+				"dt": "ToDo",
+				"fieldname": "invalid_link_filters",
+				"label": "Invalid Link Filters",
+				"fieldtype": "Link",
+				"options": "User",
+				"link_filters": '[["User", "name", "="]]',
+			}
+		)
+
+		self.assertRaises(frappe.ValidationError, custom_field.insert)
+		frappe.db.rollback()
+		frappe.clear_cache(doctype="ToDo")
+
+	def test_property_setter_validates_link_filters(self):
+		self.assertRaises(
+			frappe.ValidationError,
+			frappe.make_property_setter,
+			{
+				"doctype": "ToDo",
+				"fieldname": "allocated_to",
+				"property": "link_filters",
+				"value": '["not a filter row"]',
+				"property_type": "JSON",
+			},
+		)
+		frappe.db.rollback()
+		frappe.clear_cache(doctype="ToDo")
+
 	def test_no_delete_doc(self):
 		self.assertRaises(frappe.ValidationError, frappe.delete_doc, "DocType", "Address")
 
