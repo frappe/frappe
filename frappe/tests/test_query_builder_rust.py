@@ -69,6 +69,18 @@ class TestRustQueryBuilderProxy(unittest.TestCase):
 			"SELECT DISTINCT * FROM `tabRole` LIMIT 2",
 		)
 
+	def test_original_querybuilder_fast_path_preserves_distinct_offset(self):
+		from frappe.query_builder.builder import MariaDB
+		from frappe.query_builder.rust import _ORIGINAL_FROM_ATTR
+
+		table = frappe.qb.DocType("Role")
+		original_from = getattr(MariaDB, _ORIGINAL_FROM_ATTR)
+
+		self.assertEqual(
+			original_from(table).select(table.name).distinct().limit(10).offset(5).get_sql(),
+			"SELECT DISTINCT `name` FROM `tabRole` LIMIT 10 OFFSET 5",
+		)
+
 	def test_groupby_sql(self):
 		table = frappe.qb.DocType("Role")
 

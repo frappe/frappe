@@ -816,6 +816,8 @@ def _try_render_simple_select(
 		fields,
 		quote_char=kwargs.get("quote_char"),
 		limit=query._limit,
+		offset=query._offset,
+		distinct=query._distinct,
 	)
 
 
@@ -831,7 +833,6 @@ def _is_plain_select(query: QueryBuilder) -> bool:
 			query._use_indexes,
 			query._columns,
 			query._values,
-			query._distinct,
 			query._ignore,
 			query._for_update,
 			query._wheres,
@@ -844,7 +845,6 @@ def _is_plain_select(query: QueryBuilder) -> bool:
 			query._joins,
 			query._unions,
 			query._using,
-			query._offset,
 			query._updates,
 			query._select_star_tables,
 			query._mysql_rollup,
