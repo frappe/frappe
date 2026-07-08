@@ -217,11 +217,11 @@ frappe.views.Workspace = class Workspace {
 					route: "#",
 				});
 				if (!this.add_workspace_controls) {
-					let workspace_actions_button = this.page.add_action_icon("ellipsis", "", "");
-					$(workspace_actions_button).removeAttr("data-original-title");
-					$(workspace_actions_button).removeClass("btn-default");
+					this.workspace_actions_button = this.page.add_action_icon("ellipsis", "", "");
+					$(this.workspace_actions_button).removeAttr("data-original-title");
+					$(this.workspace_actions_button).removeClass("btn-default");
 					frappe.ui.create_menu({
-						parent: $(workspace_actions_button),
+						parent: $(this.workspace_actions_button),
 						open_on_left: true,
 						size: "fit-content",
 						menu_items: [
@@ -411,6 +411,7 @@ frappe.views.Workspace = class Workspace {
 				frappe.set_route(`workspace/${page.name}`);
 			});
 		}
+		$(this.workspace_actions_button).remove();
 		this.add_workspace_controls = false;
 	}
 
