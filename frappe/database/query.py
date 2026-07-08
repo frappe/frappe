@@ -1176,6 +1176,12 @@ class Engine:
 		if isinstance(fields, Term):
 			return [fields]
 
+		if (
+			isinstance(fields, list | tuple)
+			and (parsed_fields := self._try_parse_simple_field_list(fields)) is not None
+		):
+			return parsed_fields
+
 		initial_field_list = []
 		if isinstance(fields, str):
 			# Split comma-separated fields passed as a single string
@@ -1214,6 +1220,15 @@ class Engine:
 					_fields.append(parsed)
 
 		return _fields
+
+	def _try_parse_simple_field_list(self, fields: list | tuple) -> list[Field] | None:
+		parsed_fields = []
+		for field in fields:
+			if not isinstance(field, str) or field.isdigit() or not SIMPLE_FIELD_PATTERN.match(field):
+				return None
+			parsed_fields.append(self.table[field])
+
+		return parsed_fields
 
 	def _parse_single_field_item(
 		self, field: str | Criterion | dict | Field | Term
