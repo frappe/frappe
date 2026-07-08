@@ -39,10 +39,14 @@ def run_benchmarks(ctx, benchargs):
 )
 @click.option(
 	"--filter",
-	"benchmark_filter",
-	default="qb",
+	"benchmark_filters",
+	default=("qb",),
+	multiple=True,
 	show_default=True,
-	help="Substring filter for benchmarks to compare, for example qb, orm, or qb_render_select_star.",
+	help=(
+		"Substring filter for benchmarks to compare, for example qb, orm, or "
+		"qb_render_select_star. Can be repeated."
+	),
 )
 @click.option(
 	"--output-dir",
@@ -57,7 +61,7 @@ def run_benchmarks(ctx, benchargs):
 )
 @click.argument("benchargs", nargs=-1, type=click.UNPROCESSED)
 @pass_context
-def compare_rust_microbenchmarks(ctx, benchmark_filter, output_dir, force, benchargs):
+def compare_rust_microbenchmarks(ctx, benchmark_filters, output_dir, force, benchargs):
 	import frappe
 	from frappe.tests.microbenchmarks import run_benchmarks as benchmark_runner
 
@@ -69,45 +73,49 @@ def compare_rust_microbenchmarks(ctx, benchmark_filter, output_dir, force, bench
 	site = ctx.sites[0]
 	output_path = Path(output_dir)
 	output_path.mkdir(parents=True, exist_ok=True)
-	file_prefix = benchmark_filter.replace("/", "_").replace(" ", "_")
-	baseline_path = output_path / f"{file_prefix}-python.json"
-	rust_path = output_path / f"{file_prefix}-rust.json"
-	if force:
-		baseline_path.unlink(missing_ok=True)
-		rust_path.unlink(missing_ok=True)
-
-	common_args = [
-		sys.executable,
-		benchmark_runner.__file__,
-		"--site",
-		site,
-		"--filter",
-		benchmark_filter,
-		*benchargs,
-	]
 
 	frappe.init(site)
-	frappe.cache.flushall()
-	click.echo(f"Running Python baseline: {baseline_path}")
-	subprocess.check_call([*common_args, "-o", str(baseline_path)])
+	for benchmark_filter in benchmark_filters:
+		file_prefix = benchmark_filter.replace("/", "_").replace(" ", "_")
+		baseline_path = output_path / f"{file_prefix}-python.json"
+		rust_path = output_path / f"{file_prefix}-rust.json"
+		if force:
+			baseline_path.unlink(missing_ok=True)
+			rust_path.unlink(missing_ok=True)
 
-	frappe.cache.flushall()
-	click.echo(f"Running Rust-enabled benchmark: {rust_path}")
-	rust_env = os.environ.copy()
-	rust_env["FRAPPE_QUERY_BUILDER_RUST"] = "1"
-	subprocess.check_call(
-		[
-			*common_args,
-			"--inherit-environ",
-			"FRAPPE_QUERY_BUILDER_RUST",
-			"-o",
-			str(rust_path),
-		],
-		env=rust_env,
-	)
+		common_args = [
+			sys.executable,
+			benchmark_runner.__file__,
+			"--site",
+			site,
+			"--filter",
+			benchmark_filter,
+			*benchargs,
+		]
 
-	click.echo("Comparing results:")
-	subprocess.check_call([sys.executable, "-m", "pyperf", "compare_to", str(baseline_path), str(rust_path)])
+		frappe.cache.flushall()
+		click.echo(f"Running Python baseline for filter {benchmark_filter!r}: {baseline_path}")
+		subprocess.check_call([*common_args, "-o", str(baseline_path)])
+
+		frappe.cache.flushall()
+		click.echo(f"Running Rust-enabled benchmark for filter {benchmark_filter!r}: {rust_path}")
+		rust_env = os.environ.copy()
+		rust_env["FRAPPE_QUERY_BUILDER_RUST"] = "1"
+		subprocess.check_call(
+			[
+				*common_args,
+				"--inherit-environ",
+				"FRAPPE_QUERY_BUILDER_RUST",
+				"-o",
+				str(rust_path),
+			],
+			env=rust_env,
+		)
+
+		click.echo(f"Comparing results for filter {benchmark_filter!r}:")
+		subprocess.check_call(
+			[sys.executable, "-m", "pyperf", "compare_to", str(baseline_path), str(rust_path)]
+		)
 
 
 commands = [run_benchmarks, compare_rust_microbenchmarks]
