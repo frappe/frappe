@@ -53,6 +53,9 @@ class RedisWrapper(redis.Redis):
 		if shared:
 			return key
 
+		if not user:
+			return f"{frappe.local.conf['db_name']}|{key}".encode()
+
 		if user:
 			if user is True:
 				user = frappe.local.session.get("user")
