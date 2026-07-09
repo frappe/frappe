@@ -1,5 +1,5 @@
 use pyo3::prelude::*;
-use pyo3::types::{PyBool, PyFloat, PyInt, PyString};
+use pyo3::types::{PyBool, PyDict, PyFloat, PyInt, PyString};
 
 fn quote_identifier(value: &str, quote_char: Option<&str>) -> String {
     match quote_char {
@@ -115,6 +115,65 @@ fn render_select_fragments_sql(
     sql
 }
 
+fn render_simple_select_query_sql(
+    py: Python<'_>,
+    table: &str,
+    fields: Vec<String>,
+    filters: Vec<(String, String, Py<PyAny>)>,
+    orderbys: Vec<(String, String)>,
+    quote_char: Option<&str>,
+    limit: Option<u64>,
+    offset: Option<u64>,
+    distinct: bool,
+) -> PyResult<(String, String, Py<PyDict>)> {
+    let params = PyDict::new(py);
+    let mut literal_where_parts = Vec::with_capacity(filters.len());
+    let mut prepared_where_parts = Vec::with_capacity(filters.len());
+
+    for (index, (field, operator, value)) in filters.iter().enumerate() {
+        let quoted_field = quote_identifier(field, quote_char);
+        let param_name = format!("param{}", index + 1);
+        literal_where_parts.push(format!(
+            "{quoted_field}{operator}{}",
+            render_literal(value.bind(py))?
+        ));
+        prepared_where_parts.push(format!("{quoted_field}{operator}%({param_name})s"));
+        params.set_item(&param_name, value.bind(py))?;
+    }
+
+    let rendered_orderbys = orderbys
+        .iter()
+        .map(|(field, direction)| format!("{} {direction}", quote_identifier(field, quote_char)))
+        .collect::<Vec<_>>();
+
+    let literal_where = (!literal_where_parts.is_empty()).then(|| literal_where_parts.join(" AND "));
+    let prepared_where =
+        (!prepared_where_parts.is_empty()).then(|| prepared_where_parts.join(" AND "));
+
+    let sql = render_select_sql(
+        table,
+        &fields,
+        quote_char,
+        literal_where.as_deref(),
+        &rendered_orderbys,
+        limit,
+        offset,
+        distinct,
+    );
+    let prepared_sql = render_select_sql(
+        table,
+        &fields,
+        quote_char,
+        prepared_where.as_deref(),
+        &rendered_orderbys,
+        limit,
+        offset,
+        distinct,
+    );
+
+    Ok((sql, prepared_sql, params.unbind()))
+}
+
 fn render_insert_sql(
     table: &str,
     columns: &[String],
@@ -223,6 +282,7 @@ fn capability_summary() -> Vec<&'static str> {
         "render-select-star",
         "render-select-query",
         "render-select-fragments",
+        "render-simple-select-query",
         "render-group-by",
         "render-insert",
         "render-insert-literals",
@@ -315,6 +375,32 @@ fn render_select_star(
 }
 
 #[pyfunction]
+#[pyo3(signature = (table, fields, filters, orderbys=None, quote_char=None, limit=None, offset=None, distinct=false))]
+fn render_simple_select_query(
+    py: Python<'_>,
+    table: &str,
+    fields: Vec<String>,
+    filters: Vec<(String, String, Py<PyAny>)>,
+    orderbys: Option<Vec<(String, String)>>,
+    quote_char: Option<&str>,
+    limit: Option<u64>,
+    offset: Option<u64>,
+    distinct: bool,
+) -> PyResult<(String, String, Py<PyDict>)> {
+    render_simple_select_query_sql(
+        py,
+        table,
+        fields,
+        filters,
+        orderbys.unwrap_or_default(),
+        quote_char,
+        limit,
+        offset,
+        distinct,
+    )
+}
+
+#[pyfunction]
 #[pyo3(signature = (table, columns, rows, quote_char=None))]
 fn render_insert(
     table: &str,
@@ -364,6 +450,7 @@ fn _rust(module: &Bound<'_, PyModule>) -> PyResult<()> {
     module.add_function(wrap_pyfunction!(render_select_fragments, module)?)?;
     module.add_function(wrap_pyfunction!(render_select_query, module)?)?;
     module.add_function(wrap_pyfunction!(render_select_star, module)?)?;
+    module.add_function(wrap_pyfunction!(render_simple_select_query, module)?)?;
     module.add_function(wrap_pyfunction!(render_update, module)?)?;
     Ok(())
 }

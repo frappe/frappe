@@ -116,6 +116,32 @@ def render_select_query(
 	)
 
 
+def render_simple_select_query(
+	table: str,
+	fields: list[str],
+	filters: list[tuple[str, str, Any]],
+	orderbys: list[tuple[str, str]] | None = None,
+	quote_char: str | None = "`",
+	limit: int | None = None,
+	offset: int | None = None,
+	distinct: bool = False,
+) -> tuple[str, str, dict[str, Any]]:
+	backend = load_backend()
+	if backend is None or backend.render_simple_select_query is None:
+		raise RuntimeError("frappe-pypika-rs is not available")
+	sql, prepared_sql, params = backend.render_simple_select_query(
+		table,
+		fields,
+		filters,
+		orderbys=orderbys,
+		quote_char=quote_char,
+		limit=limit,
+		offset=offset,
+		distinct=distinct,
+	)
+	return sql, prepared_sql, dict(params)
+
+
 def render_select_fragments(
 	table: str,
 	select_sqls: list[str],

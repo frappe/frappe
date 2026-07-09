@@ -10,6 +10,7 @@ try:
 		render_select_fragments,
 		render_select_query,
 		render_select_star,
+		render_simple_select_query,
 		render_update,
 		version,
 	)
@@ -22,6 +23,7 @@ except ImportError:
 	render_select_fragments = None
 	render_select_query = None
 	render_select_star = None
+	render_simple_select_query = None
 	render_update = None
 	version = None
 
@@ -40,6 +42,7 @@ __all__ = (
 	"render_select_fragments",
 	"render_select_query",
 	"render_select_star",
+	"render_simple_select_query",
 	"render_update",
 	"version",
 )

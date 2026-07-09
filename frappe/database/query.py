@@ -431,7 +431,7 @@ class Engine:
 			return None
 
 		try:
-			from frappe.query_builder.rust import RustRawSelectQuery, is_enabled, render_select_query
+			from frappe.query_builder.rust import RustRawSelectQuery, is_enabled, render_simple_select_query
 		except Exception:
 			return None
 
@@ -442,31 +442,20 @@ class Engine:
 		if field_names is None:
 			return None
 
-		rendered_filters = self._try_render_fast_select_filters(filters)
-		if rendered_filters is None:
-			return None
-		where_sql, prepared_where_sql, params = rendered_filters
-
-		orderbys = self._try_render_fast_order_by(order_by)
-		if orderbys is None:
+		filter_specs = self._try_parse_fast_select_filters(filters)
+		if filter_specs is None:
 			return None
 
-		sql = render_select_query(
+		orderby_specs = self._try_parse_fast_order_by(order_by)
+		if orderby_specs is None:
+			return None
+
+		sql, prepared_sql, params = render_simple_select_query(
 			self.table._table_name,
 			field_names,
+			filter_specs,
+			orderbys=orderby_specs,
 			quote_char=self.query_quote_char,
-			where_sql=where_sql,
-			orderbys=orderbys,
-			limit=limit,
-			offset=offset,
-			distinct=distinct,
-		)
-		prepared_sql = render_select_query(
-			self.table._table_name,
-			field_names,
-			quote_char=self.query_quote_char,
-			where_sql=prepared_where_sql,
-			orderbys=orderbys,
 			limit=limit,
 			offset=offset,
 			distinct=distinct,
@@ -498,17 +487,13 @@ class Engine:
 			field_names.append(field)
 		return field_names
 
-	def _try_render_fast_select_filters(
-		self, filters
-	) -> tuple[str | None, str | None, dict[str, Any]] | None:
+	def _try_parse_fast_select_filters(self, filters) -> list[tuple[str, str, Any]] | None:
 		if filters is None:
-			return None, None, {}
+			return []
 		if not isinstance(filters, dict):
 			return None
 
-		where_parts = []
-		prepared_parts = []
-		params = {}
+		filter_specs = []
 		for field, filter_value in filters.items():
 			if not isinstance(field, str) or not SIMPLE_FIELD_PATTERN.match(field):
 				return None
@@ -533,23 +518,17 @@ class Engine:
 			):
 				return None
 
-			param_name = f"param{len(params) + 1}"
-			params[param_name] = value
-			quoted_field = self._quote_fast_identifier(field)
-			where_parts.append(f"{quoted_field}{sql_operator}{self._render_fast_literal(value)}")
-			prepared_parts.append(f"{quoted_field}{sql_operator}%({param_name})s")
+			filter_specs.append((field, sql_operator, value))
 
-		if not where_parts:
-			return None, None, {}
-		return " AND ".join(where_parts), " AND ".join(prepared_parts), params
+		return filter_specs
 
-	def _try_render_fast_order_by(self, order_by: str | None) -> list[str] | None:
+	def _try_parse_fast_order_by(self, order_by: str | None) -> list[tuple[str, str]] | None:
 		if not order_by:
 			return []
 		if not isinstance(order_by, str) or "`" in order_by or "." in order_by:
 			return None
 
-		orderbys = []
+		orderby_specs = []
 		for declaration in order_by.split(","):
 			if not (_order_by := declaration.strip()):
 				continue
@@ -568,21 +547,8 @@ class Engine:
 				return None
 
 			order_direction = "ASC" if direction == "asc" else "DESC"
-			orderbys.append(f"{self._quote_fast_identifier(field_name)} {order_direction}")
-		return orderbys
-
-	def _quote_fast_identifier(self, value: str) -> str:
-		quote_char = self.query_quote_char
-		return f"{quote_char}{value.replace(quote_char, quote_char + quote_char)}{quote_char}"
-
-	def _render_fast_literal(self, value: Any) -> str:
-		if isinstance(value, bool):
-			return "true" if value else "false"
-		if isinstance(value, int | float):
-			return str(value)
-		if isinstance(value, str):
-			return "'" + value.replace("'", "''") + "'"
-		raise TypeError(f"unsupported literal value: {type(value).__name__}")
+			orderby_specs.append((field_name, order_direction))
+		return orderby_specs
 
 	def apply_fields(self, fields):
 		self.fields = self.parse_fields(fields)
