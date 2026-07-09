@@ -268,26 +268,22 @@ def auto_generate_sidebar_from_module():
 	"""Auto generate sidebar from module"""
 	sidebars = []
 	for module in frappe.get_all("Module Def", pluck="name"):
-		# Skip modules whose public workspace already carries authored sidebar items -- that
-		# workspace's sidebar is built from `Workspace.sidebar_items` (the source of truth), so a
-		# generated fallback would be redundant.
-		if not module_has_workspace_sidebar(module):
-			try:
-				module_info = get_module_info(module)
-				sidebar_items = create_sidebar_items(module_info)
-				sidebar = frappe.new_doc("Workspace Sidebar")
-				sidebar.title = module
-				sidebar.items = sidebar_items
-				sidebar.module = module
-				sidebar.header_icon = "hammer"
+		try:
+			module_info = get_module_info(module)
+			sidebar_items = create_sidebar_items(module_info)
+			sidebar = frappe.new_doc("Workspace Sidebar")
+			sidebar.title = module
+			sidebar.items = sidebar_items
+			sidebar.module = module
+			sidebar.header_icon = "hammer"
 
-				sidebar.app = frappe.modules.utils.get_module_app(module)
-				# in-memory marker (not a persisted field): flags sidebars built from a module so the
-				# desk can render a generated avatar instead of the default app-logo header icon.
-				sidebar.from_module = 1
-				sidebars.append(sidebar)
-			except frappe.DoesNotExistError:
-				pass
+			sidebar.app = frappe.modules.utils.get_module_app(module)
+			# in-memory marker (not a persisted field): flags sidebars built from a module so the
+			# desk can render a generated avatar instead of the default app-logo header icon.
+			sidebar.from_module = 1
+			sidebars.append(sidebar)
+		except frappe.DoesNotExistError:
+			pass
 	return sidebars
 
 
