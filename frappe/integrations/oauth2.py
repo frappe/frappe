@@ -94,9 +94,6 @@ def authorize(**kwargs):
 				frappe.flags.oauth_credentials["client_id"],
 				"skip_authorization",
 			)
-<<<<<<< HEAD
-			unrevoked_tokens = frappe.get_all("OAuth Bearer Token", filters={"status": "Active"})
-=======
 			unrevoked_tokens = frappe.db.exists(
 				"OAuth Bearer Token",
 				{
@@ -105,7 +102,6 @@ def authorize(**kwargs):
 					"client": frappe.flags.oauth_credentials["client_id"],
 				},
 			)
->>>>>>> 336c7d335d (fix: hardening oauth endpoints)
 
 			if skip_auth or (get_oauth_settings().skip_authorization == "Auto" and unrevoked_tokens):
 				headers, _body, _status = get_oauth_server().create_authorization_response(
