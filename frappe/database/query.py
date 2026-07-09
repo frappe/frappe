@@ -142,6 +142,11 @@ SIMPLE_FIELD_PATTERN = re.compile(r"^\w+$")
 FUNCTION_CALL_PATTERN = re.compile(r"^\s*[a-zA-Z_][a-zA-Z0-9_]*\s*\(", flags=re.ASCII)
 
 
+@lru_cache
+def _get_additional_filters_config_cached():
+	return get_additional_filters_from_hooks()
+
+
 # Pattern to validate field names in SELECT:
 # Allows: name, `name`, name as alias, `name` as alias, table.name, table.name as alias
 # Also allows backtick-qualified identifiers with spaces/hyphens:
@@ -872,7 +877,7 @@ class Engine:
 
 	def _get_additional_filters_config(self):
 		if self.additional_filters_config is None:
-			self.additional_filters_config = get_additional_filters_from_hooks()
+			self.additional_filters_config = _get_additional_filters_config_cached()
 		return self.additional_filters_config
 
 	def _validate_and_prepare_filter_field(self, field: str | Field, doctype: str | None = None) -> Field:
