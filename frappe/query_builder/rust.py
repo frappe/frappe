@@ -1409,7 +1409,7 @@ def _is_preparable_criterion_shape(criterion: Term) -> bool:
 
 
 def _is_preparable_tuple_shape(term: Term) -> bool:
-	return isinstance(term, Tuple) and all(_is_preparable_value_shape(value) for value in term.values)
+	return isinstance(term, Tuple)
 
 
 def _is_preparable_value_shape(term: Term) -> bool:
