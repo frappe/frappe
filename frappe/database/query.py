@@ -39,6 +39,8 @@ CORE_DOCTYPES = DOCTYPES_FOR_DOCTYPE | frozenset(
 	)
 )
 
+FAST_UNSUPPORTED_FILTER_VALUE_TYPES = (Document, datetime.date, datetime.datetime, list, tuple, set)
+
 SIMPLE_SQL_OPERATORS = {
 	"=": "=",
 	"!=": "<>",
@@ -637,23 +639,23 @@ class Engine:
 					return None
 				if not value:
 					return None
-				if any(
-					isinstance(v, Document | datetime.date | datetime.datetime | list | tuple | set)
-					for v in value
-				):
+				if self._has_unsupported_fast_filter_value(value):
 					return None
 				filter_specs.append((field, sql_operator, value))
 				continue
 
-			if (
-				isinstance(value, Document | datetime.date | datetime.datetime | list | tuple | set)
-				or value is None
-			):
+			if isinstance(value, FAST_UNSUPPORTED_FILTER_VALUE_TYPES) or value is None:
 				return None
 
 			filter_specs.append((field, sql_operator, value))
 
 		return filter_specs
+
+	def _has_unsupported_fast_filter_value(self, values) -> bool:
+		for value in values:
+			if isinstance(value, FAST_UNSUPPORTED_FILTER_VALUE_TYPES):
+				return True
+		return False
 
 	def _try_parse_fast_group_by(self, group_by: str | None) -> list[str] | None:
 		if not group_by:
