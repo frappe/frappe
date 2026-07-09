@@ -7,6 +7,7 @@ import sharedDependencyResolver from "./vite/sharedDependencyResolver"
 import studioFolderWatcher from "./vite/studioFolderWatcher"
 import studioRootAlias from "./vite/studioRootAlias"
 import frameworkUIAlias from "./vite/frameworkUIAlias"
+import frameworkUI from "@framework/ui/vite"
 
 const viteDevServerPort = getViteDevServerPort()
 const appsDir = path.resolve(__dirname, "../../")
@@ -45,6 +46,7 @@ export default defineConfig({
 			buildConfig: false,
 			jinjaBootData: false,
 		}),
+		frameworkUI(),
 		studioRootAlias(),
 		sharedDependencyResolver(path.resolve(__dirname, "..")),
 		studioFolderWatcher(appsDir),

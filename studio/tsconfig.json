@@ -22,17 +22,7 @@
 	  "paths": {
 		"@/*": ["src/*"],
 		"@framework/ui": ["../../frappe/ui/src/index.ts"],
-		"@framework/ui/FormLayout": ["../../frappe/ui/src/components/FormLayout"],
-		"@framework/ui/FileUpload": ["../../frappe/ui/src/components/FileUpload"],
-		"@framework/ui/InviteUser": ["../../frappe/ui/src/components/InviteUser"],
-		"@framework/ui/ListView": ["../../frappe/ui/src/components/ListView"],
-		"@framework/ui/SortBy": ["../../frappe/ui/src/components/SortBy"],
-		"@framework/ui/Filter": ["../../frappe/ui/src/components/Filter"],
-		"@framework/ui/QuickFilter": ["../../frappe/ui/src/components/QuickFilter"],
-		"@framework/ui/ColumnSettings": ["../../frappe/ui/src/components/ColumnSettings"],
-		"@framework/ui/fields": ["../../frappe/ui/src/components/Fields"],
-		"@framework/ui/utils": ["../../frappe/ui/src/utils"],
-		"@framework/ui/*": ["../../frappe/ui/src/*"]
+  		"@framework/ui/*": ["../../frappe/ui/src/*"]
 	  },
 	  "lib": [
 		"esnext",
