@@ -54,6 +54,17 @@
 	}
 }
 
+@include media-breakpoint-down(sm) {
+	.layout-main:has(> .print-preview-sidebar) {
+		flex-direction: column;
+
+		.layout-main-section-wrapper {
+			flex: 1 0 auto;
+			width: 100%;
+		}
+	}
+}
+
 .print-preview {
 	padding: 0;
 	max-width: 8.3in;
@@ -61,6 +72,11 @@
 	min-height: 11.69in;
 	background: white;
 	border-radius: var(--border-radius);
+	overflow-x: auto;
+
+	.print-format-container {
+		min-width: 8.3in;
+	}
 }
 
 .print-format-skeleton {
