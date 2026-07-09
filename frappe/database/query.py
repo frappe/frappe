@@ -433,7 +433,11 @@ class Engine:
 			return None
 
 		try:
-			from frappe.query_builder.rust import RustRawSelectQuery, is_enabled, render_simple_select_query
+			from frappe.query_builder.rust import (
+				RustRawSelectQuery,
+				is_enabled,
+				render_simple_select_query_prepared,
+			)
 		except Exception:
 			return None
 
@@ -457,19 +461,28 @@ class Engine:
 		if orderby_specs is None:
 			return None
 
-		sql, prepared_sql, params = render_simple_select_query(
+		render_args = (
 			self.table._table_name,
 			field_names,
 			filter_specs,
-			orderbys=orderby_specs,
-			quote_char=self.query_quote_char,
-			limit=limit,
-			offset=offset,
-			distinct=distinct,
-			groupbys=groupby_specs,
-			select_sqls=select_sqls,
 		)
-		return RustRawSelectQuery(sql, prepared_sql, params)
+		render_kwargs = {
+			"orderbys": orderby_specs,
+			"quote_char": self.query_quote_char,
+			"limit": limit,
+			"offset": offset,
+			"distinct": distinct,
+			"groupbys": groupby_specs,
+			"select_sqls": select_sqls,
+		}
+		prepared_sql, params = render_simple_select_query_prepared(*render_args, **render_kwargs)
+		return RustRawSelectQuery(
+			None,
+			prepared_sql,
+			params,
+			literal_render_args=render_args,
+			literal_render_kwargs=render_kwargs,
+		)
 
 	@property
 	def query_quote_char(self) -> str:

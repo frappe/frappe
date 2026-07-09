@@ -146,6 +146,36 @@ def render_simple_select_query(
 	return sql, prepared_sql, dict(params)
 
 
+def render_simple_select_query_prepared(
+	table: str,
+	fields: list[str],
+	filters: list[tuple[str, str, Any]],
+	orderbys: list[tuple[str, str]] | None = None,
+	quote_char: str | None = "`",
+	limit: int | None = None,
+	offset: int | None = None,
+	distinct: bool = False,
+	groupbys: list[str] | None = None,
+	select_sqls: list[str] | None = None,
+) -> tuple[str, dict[str, Any]]:
+	backend = load_backend()
+	if backend is None or backend.render_simple_select_query_prepared is None:
+		raise RuntimeError("frappe-pypika-rs is not available")
+	prepared_sql, params = backend.render_simple_select_query_prepared(
+		table,
+		fields,
+		filters,
+		orderbys=orderbys,
+		quote_char=quote_char,
+		limit=limit,
+		offset=offset,
+		distinct=distinct,
+		groupbys=groupbys,
+		select_sqls=select_sqls,
+	)
+	return prepared_sql, dict(params)
+
+
 def render_select_fragments(
 	table: str,
 	select_sqls: list[str],
@@ -556,10 +586,19 @@ class RustSelectQuery:
 class RustRawSelectQuery:
 	_child_queries: ClassVar[list[Any]] = []
 
-	def __init__(self, sql: str, prepared_sql: str, params: dict[str, Any] | None = None):
+	def __init__(
+		self,
+		sql: str | None,
+		prepared_sql: str,
+		params: dict[str, Any] | None = None,
+		literal_render_args: tuple[Any, ...] | None = None,
+		literal_render_kwargs: dict[str, Any] | None = None,
+	):
 		self.sql = sql
 		self.prepared_sql = prepared_sql
 		self.params = params or {}
+		self.literal_render_args = literal_render_args
+		self.literal_render_kwargs = literal_render_kwargs or {}
 		self.immutable = True
 
 	def get_sql(self, **kwargs: Any) -> str:
@@ -568,6 +607,11 @@ class RustRawSelectQuery:
 			for key, value in self.params.items():
 				query = query.replace(f"%({key})s", param_wrapper.get_sql(value), 1)
 			return query
+		if self.sql is None:
+			self.sql = render_simple_select_query(
+				*self.literal_render_args,
+				**self.literal_render_kwargs,
+			)[0]
 		return self.sql
 
 	def walk(self):
