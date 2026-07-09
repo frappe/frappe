@@ -96,6 +96,27 @@ class TestRustQueryBuilderProxy(unittest.TestCase):
 			"SELECT DISTINCT `name` FROM `tabRole` LIMIT 10 OFFSET 5",
 		)
 
+	def test_get_query_simple_select_uses_prepared_raw_query(self):
+		query = frappe.qb.get_query(
+			"Role",
+			fields=["disabled", "name"],
+			filters={"creation": (">", "2020-01-01 00:00:00")},
+			order_by="creation asc",
+			limit=10,
+		)
+
+		self.assertEqual(
+			query.get_sql(),
+			"SELECT `disabled`,`name` FROM `tabRole` WHERE `creation`>'2020-01-01 00:00:00' ORDER BY `creation` ASC LIMIT 10",
+		)
+		self.assertEqual(
+			query.walk(),
+			(
+				"SELECT `disabled`,`name` FROM `tabRole` WHERE `creation`>%(param1)s ORDER BY `creation` ASC LIMIT 10",
+				{"param1": "2020-01-01 00:00:00"},
+			),
+		)
+
 	def test_groupby_sql(self):
 		table = frappe.qb.DocType("Role")
 

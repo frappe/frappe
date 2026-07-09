@@ -523,6 +523,40 @@ class RustSelectQuery:
 		return getattr(self._to_fallback(), name)
 
 
+class RustRawSelectQuery:
+	_child_queries: ClassVar[list[Any]] = []
+
+	def __init__(self, sql: str, prepared_sql: str, params: dict[str, Any] | None = None):
+		self.sql = sql
+		self.prepared_sql = prepared_sql
+		self.params = params or {}
+		self.immutable = True
+
+	def get_sql(self, **kwargs: Any) -> str:
+		if param_wrapper := kwargs.get("param_wrapper"):
+			query = self.prepared_sql
+			for key, value in self.params.items():
+				query = query.replace(f"%({key})s", param_wrapper.get_sql(value), 1)
+			return query
+		return self.sql
+
+	def walk(self):
+		from frappe.query_builder.utils import prepare_query
+
+		return prepare_query(self)
+
+	def run(self, *args: Any, **kwargs: Any):
+		from frappe.query_builder.utils import execute_query
+
+		return execute_query(self, *args, **kwargs)
+
+	def _frappe_prepare_query(self) -> tuple[str, dict[str, Any]]:
+		return self.prepared_sql, self.params
+
+	def __str__(self) -> str:
+		return self.get_sql()
+
+
 class RustJoiner:
 	def __init__(self, query: RustSelectQuery, item: Table, how: JoinType):
 		self.query = query

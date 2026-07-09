@@ -39,6 +39,17 @@ CORE_DOCTYPES = DOCTYPES_FOR_DOCTYPE | frozenset(
 	)
 )
 
+SIMPLE_SQL_OPERATORS = {
+	"=": "=",
+	"!=": "<>",
+	">": ">",
+	"<": "<",
+	">=": ">=",
+	"<=": "<=",
+	"like": "LIKE",
+	"not like": "NOT LIKE",
+}
+
 
 def _apply_date_field_filter_conversion(value, operator: str, doctype: str, field):
 	"""Apply datetime to date conversion for Date fieldtype filters.
@@ -295,6 +306,23 @@ class Engine:
 				qb.DocType(self.permission_doctype) if self.permission_doctype != self.doctype else self.table
 			)
 
+		if fast_query := self._try_build_fast_rust_select_query(
+			fields=fields,
+			filters=filters,
+			order_by=order_by,
+			group_by=group_by,
+			limit=limit,
+			offset=offset,
+			distinct=distinct,
+			for_update=for_update,
+			update=update,
+			into=into,
+			delete=delete,
+			or_filters=or_filters,
+			db_query_compat=db_query_compat,
+		):
+			return fast_query
+
 		is_select = False
 		if update:
 			self.query = qb.update(self.table, immutable=False)
@@ -365,6 +393,196 @@ class Engine:
 
 		self.query.immutable = True
 		return self.query
+
+	def _try_build_fast_rust_select_query(
+		self,
+		*,
+		fields,
+		filters,
+		order_by,
+		group_by,
+		limit,
+		offset,
+		distinct,
+		for_update,
+		update,
+		into,
+		delete,
+		or_filters,
+		db_query_compat,
+	):
+		if (
+			self.apply_permissions
+			or for_update
+			or update
+			or into
+			or delete
+			or group_by
+			or or_filters
+			or db_query_compat
+		):
+			return None
+
+		if limit is not None and (not isinstance(limit, int) or limit < 0):
+			return None
+		if offset is not None and (not isinstance(offset, int) or offset < 0):
+			return None
+		if offset and not limit and not self.is_postgres:
+			return None
+
+		try:
+			from frappe.query_builder.rust import RustRawSelectQuery, is_enabled, render_select_query
+		except Exception:
+			return None
+
+		if not is_enabled():
+			return None
+
+		field_names = self._try_parse_fast_select_fields(fields)
+		if field_names is None:
+			return None
+
+		rendered_filters = self._try_render_fast_select_filters(filters)
+		if rendered_filters is None:
+			return None
+		where_sql, prepared_where_sql, params = rendered_filters
+
+		orderbys = self._try_render_fast_order_by(order_by)
+		if orderbys is None:
+			return None
+
+		sql = render_select_query(
+			self.table._table_name,
+			field_names,
+			quote_char=self.query_quote_char,
+			where_sql=where_sql,
+			orderbys=orderbys,
+			limit=limit,
+			offset=offset,
+			distinct=distinct,
+		)
+		prepared_sql = render_select_query(
+			self.table._table_name,
+			field_names,
+			quote_char=self.query_quote_char,
+			where_sql=prepared_where_sql,
+			orderbys=orderbys,
+			limit=limit,
+			offset=offset,
+			distinct=distinct,
+		)
+		return RustRawSelectQuery(sql, prepared_sql, params)
+
+	@property
+	def query_quote_char(self) -> str:
+		return '"' if self.is_postgres else "`"
+
+	def _try_parse_fast_select_fields(self, fields) -> list[str] | None:
+		if not fields:
+			return ["name"]
+
+		if isinstance(fields, str):
+			if fields == "*":
+				return ["*"]
+			if "," not in fields and not fields.isdigit() and SIMPLE_FIELD_PATTERN.match(fields):
+				return [fields]
+			return None
+
+		if not isinstance(fields, list | tuple):
+			return None
+
+		field_names = []
+		for field in fields:
+			if not isinstance(field, str) or field.isdigit() or not SIMPLE_FIELD_PATTERN.match(field):
+				return None
+			field_names.append(field)
+		return field_names
+
+	def _try_render_fast_select_filters(
+		self, filters
+	) -> tuple[str | None, str | None, dict[str, Any]] | None:
+		if filters is None:
+			return None, None, {}
+		if not isinstance(filters, dict):
+			return None
+
+		where_parts = []
+		prepared_parts = []
+		params = {}
+		for field, filter_value in filters.items():
+			if not isinstance(field, str) or not SIMPLE_FIELD_PATTERN.match(field):
+				return None
+
+			operator = "="
+			value = filter_value
+			if isinstance(filter_value, list | tuple):
+				if len(filter_value) != 2:
+					return None
+				operator, value = filter_value
+
+			if not isinstance(operator, str):
+				return None
+			sql_operator = SIMPLE_SQL_OPERATORS.get(operator.casefold())
+			if sql_operator is None:
+				return None
+
+			value = convert_to_value(value)
+			if (
+				isinstance(value, Document | datetime.date | datetime.datetime | list | tuple | set)
+				or value is None
+			):
+				return None
+
+			param_name = f"param{len(params) + 1}"
+			params[param_name] = value
+			quoted_field = self._quote_fast_identifier(field)
+			where_parts.append(f"{quoted_field}{sql_operator}{self._render_fast_literal(value)}")
+			prepared_parts.append(f"{quoted_field}{sql_operator}%({param_name})s")
+
+		if not where_parts:
+			return None, None, {}
+		return " AND ".join(where_parts), " AND ".join(prepared_parts), params
+
+	def _try_render_fast_order_by(self, order_by: str | None) -> list[str] | None:
+		if not order_by:
+			return []
+		if not isinstance(order_by, str) or "`" in order_by or "." in order_by:
+			return None
+
+		orderbys = []
+		for declaration in order_by.split(","):
+			if not (_order_by := declaration.strip()):
+				continue
+
+			parts = _order_by.split()
+			if len(parts) > 2:
+				return None
+
+			field_name = parts[0]
+			direction = parts[1].lower() if len(parts) == 2 else None
+			if (
+				field_name.isdigit()
+				or not SIMPLE_FIELD_PATTERN.match(field_name)
+				or (direction is not None and direction not in {"asc", "desc"})
+			):
+				return None
+
+			order_direction = "ASC" if direction == "asc" else "DESC"
+			orderbys.append(f"{self._quote_fast_identifier(field_name)} {order_direction}")
+		return orderbys
+
+	def _quote_fast_identifier(self, value: str) -> str:
+		quote_char = self.query_quote_char
+		return f"{quote_char}{value.replace(quote_char, quote_char + quote_char)}{quote_char}"
+
+	def _render_fast_literal(self, value: Any) -> str:
+		if isinstance(value, bool):
+			return "true" if value else "false"
+		if isinstance(value, int | float):
+			return str(value)
+		if isinstance(value, str):
+			return "'" + value.replace("'", "''") + "'"
+		raise TypeError(f"unsupported literal value: {type(value).__name__}")
 
 	def apply_fields(self, fields):
 		self.fields = self.parse_fields(fields)
