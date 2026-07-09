@@ -559,6 +559,14 @@ class Engine:
 		return field_names, select_sqls if needs_select_sqls else None
 
 	def _try_parse_fast_simple_field_string(self, fields: str) -> list[str] | None:
+		if "," not in fields:
+			field = fields.strip()
+			if field == "*":
+				return ["*"]
+			if field and not field.isdigit() and SIMPLE_FIELD_PATTERN.match(field):
+				return [field]
+			return None
+
 		field_names = []
 		for field in COMMA_PATTERN.split(fields):
 			field = field.strip()
