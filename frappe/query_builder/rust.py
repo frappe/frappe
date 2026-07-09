@@ -722,12 +722,21 @@ class RustDeleteQuery:
 		self._fallback_query: QueryBuilder | None = None
 
 	def __copy__(self):
+		return self._copy()
+
+	def _copy(self):
 		new = type(self).__new__(type(self))
-		new.__dict__.update(self.__dict__)
+		new.query_cls = self.query_cls
+		new.table = self.table
+		new.original_from = self.original_from
+		new.immutable = self.immutable
+		new.quote_char = self.quote_char
+		new._where = self._where
+		new._fallback_query = self._fallback_query
 		return new
 
 	def _builder(self):
-		return self.__copy__() if self.immutable else self
+		return self._copy() if self.immutable else self
 
 	def where(self, criterion: Term | EmptyCriterion):
 		if self._fallback_query is not None:
