@@ -183,7 +183,7 @@ class SafeDoc(frappe._dict):
 				for v in val:
 					if isinstance(v, dict):
 						child = SafeDoc(v)
-						child.parent_doc = self
+						object.__setattr__(child, "parent_doc", self)
 						children.append(child)
 					else:
 						children.append(v)
@@ -200,7 +200,7 @@ class SafeDoc(frappe._dict):
 	):
 		from frappe.utils.formatters import format_value
 
-		meta = frappe.get_meta(self.get("doctype"))
+		meta = frappe.get_meta(self.get("doctype")) if self.get("doctype") else None
 		df = meta.get_field(fieldname) if meta else None
 
 		if not df:
