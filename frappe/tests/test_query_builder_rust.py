@@ -136,6 +136,20 @@ class TestRustQueryBuilderProxy(unittest.TestCase):
 		self.assertEqual(sql, "SELECT `name` FROM `tabRole` WHERE `name`=%(param1)s")
 		self.assertEqual(params.parameters, {"param1": "Administrator' --"})
 
+	def test_parameter_wrapper_is_preserved_for_in_values(self):
+		table = frappe.qb.DocType("Role")
+		params = NamedParameterWrapper()
+
+		sql = (
+			frappe.qb.from_(table)
+			.select(table.name)
+			.where(table.name.isin(["Guest", "Administrator"]))
+			.get_sql(param_wrapper=params)
+		)
+
+		self.assertEqual(sql, "SELECT `name` FROM `tabRole` WHERE `name` IN (%(param1)s,%(param2)s)")
+		self.assertEqual(params.parameters, {"param1": "Guest", "param2": "Administrator"})
+
 	def test_walk_without_parameters_uses_empty_params(self):
 		table = frappe.qb.DocType("Role")
 

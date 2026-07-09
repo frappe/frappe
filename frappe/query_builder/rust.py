@@ -1040,10 +1040,6 @@ def _render_where(
 	with_namespace: bool = False,
 	**kwargs: Any,
 ) -> str:
-	if kwargs.get("param_wrapper") is not None:
-		return criterion.get_sql(
-			quote_char=quote_char, subquery=True, with_namespace=with_namespace, **kwargs
-		)
 	return _try_render_simple_criterion(
 		criterion, quote_char=quote_char, with_namespace=with_namespace, **kwargs
 	) or criterion.get_sql(quote_char=quote_char, subquery=True, with_namespace=with_namespace, **kwargs)
@@ -1124,6 +1120,8 @@ def _try_render_simple_value(
 
 	if hasattr(term, "value") and getattr(term, "alias", None) is None:
 		value = term.value
+		if kwargs.get("param_wrapper") is not None and isinstance(value, str):
+			return kwargs["param_wrapper"].get_sql(value)
 		if kwargs.get("param_wrapper") is None and _is_supported_literal(value):
 			return _render_literal(value)
 
