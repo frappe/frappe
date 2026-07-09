@@ -850,15 +850,22 @@ class Engine:
 
 		self.query._child_queries = []
 		has_select_field = False
+		select_terms = []
 		for field in self.fields:
 			if isinstance(field, DynamicTableField):
+				if select_terms:
+					self.query = self.query.select(*select_terms)
+					select_terms = []
 				self.query = field.apply_select(self.query, engine=self)
 				has_select_field = True
 			elif isinstance(field, ChildQuery):
 				self.query._child_queries.append(field)
 			else:
-				self.query = self.query.select(field)
+				select_terms.append(field)
 				has_select_field = True
+
+		if select_terms:
+			self.query = self.query.select(*select_terms)
 
 		if not has_select_field:
 			self.query = self.query.select(self.table.name)
