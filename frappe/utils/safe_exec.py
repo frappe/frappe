@@ -172,16 +172,75 @@ def safe_exec_flags():
 		frappe.flags.in_safe_exec -= 1
 
 
+class SafeDoc(frappe._dict):
+	"""An extension of frappe._dict that exposes safer subset of methods."""
+
+	def __init__(self, *args, **kwargs):
+		super().__init__(*args, **kwargs)
+		for key, val in self.items():
+			if isinstance(val, list):
+				children = []
+				for v in val:
+					if isinstance(v, dict):
+						child = SafeDoc(v)
+						child.parent_doc = self
+						children.append(child)
+					else:
+						children.append(v)
+				self[key] = children
+
+	def get_formatted(
+		self,
+		fieldname,
+		doc=None,
+		currency=None,
+		absolute_value=False,
+		translated=False,
+		format=None,
+	):
+		from frappe.utils.formatters import format_value
+
+		meta = frappe.get_meta(self.get("doctype"))
+		df = meta.get_field(fieldname) if meta else None
+
+		if not df:
+			from frappe.model.meta import get_default_df
+
+			df = get_default_df(fieldname)
+
+		if (
+			df
+			and df.fieldtype == "Currency"
+			and not currency
+			and (currency_field := df.get("options"))
+			and (currency_value := self.get(currency_field))
+		):
+			currency = frappe.db.get_value("Currency", currency_value, cache=True)
+
+		val = self.get(fieldname)
+
+		if translated:
+			val = _(val)
+
+		if not doc:
+			doc = getattr(self, "parent_doc", None) or self
+
+		if (absolute_value or doc.get("absolute_value")) and isinstance(val, int | float):
+			val = abs(val)
+
+		return format_value(val, df=df, doc=doc, currency=currency, format=format)
+
+
 def get_doc_as_dict(*args, **kwargs):
-	return frappe.get_doc(*args, **kwargs).as_dict()
+	return SafeDoc(frappe.get_doc(*args, **kwargs).as_dict())
 
 
 def safer_get_last_doc(*args, **kwargs):
-	return frappe.get_last_doc(*args, **kwargs).as_dict()
+	return SafeDoc(frappe.get_last_doc(*args, **kwargs).as_dict())
 
 
 def safer_get_cached_doc(*args, **kwargs):
-	return frappe.get_cached_doc(*args, **kwargs).as_dict()
+	return SafeDoc(frappe.get_cached_doc(*args, **kwargs).as_dict())
 
 
 def remove_unsafe_fields(fields):
