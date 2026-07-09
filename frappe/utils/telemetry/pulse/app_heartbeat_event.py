@@ -11,7 +11,6 @@ def capture_app_heartbeat(app):
 	if app and app != "frappe":
 		capture(
 			event_name="app_heartbeat",
-			site=frappe.local.site,
 			app=app,
 			properties={
 				"app_version": get_app_version(app),
