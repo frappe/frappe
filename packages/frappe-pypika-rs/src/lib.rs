@@ -121,6 +121,8 @@ fn render_simple_select_query_sql(
     fields: Vec<String>,
     filters: Vec<(String, String, Py<PyAny>)>,
     orderbys: Vec<(String, String)>,
+    groupbys: Vec<String>,
+    select_sqls: Option<Vec<String>>,
     quote_char: Option<&str>,
     limit: Option<u64>,
     offset: Option<u64>,
@@ -168,26 +170,44 @@ fn render_simple_select_query_sql(
         .iter()
         .map(|(field, direction)| format!("{} {direction}", quote_identifier(field, quote_char)))
         .collect::<Vec<_>>();
+    let rendered_groupbys = groupbys
+        .iter()
+        .map(|field| quote_identifier(field, quote_char))
+        .collect::<Vec<_>>();
+    let rendered_selects = select_sqls.unwrap_or_else(|| {
+        if fields == ["*"] {
+            vec!["*".to_string()]
+        } else {
+            fields
+                .iter()
+                .map(|field| quote_identifier(field, quote_char))
+                .collect()
+        }
+    });
 
     let literal_where = (!literal_where_parts.is_empty()).then(|| literal_where_parts.join(" AND "));
     let prepared_where =
         (!prepared_where_parts.is_empty()).then(|| prepared_where_parts.join(" AND "));
 
-    let sql = render_select_sql(
+    let sql = render_select_fragments_sql(
         table,
-        &fields,
+        &rendered_selects,
         quote_char,
+        &[],
         literal_where.as_deref(),
+        &rendered_groupbys,
         &rendered_orderbys,
         limit,
         offset,
         distinct,
     );
-    let prepared_sql = render_select_sql(
+    let prepared_sql = render_select_fragments_sql(
         table,
-        &fields,
+        &rendered_selects,
         quote_char,
+        &[],
         prepared_where.as_deref(),
+        &rendered_groupbys,
         &rendered_orderbys,
         limit,
         offset,
@@ -410,7 +430,7 @@ fn render_select_star(
 }
 
 #[pyfunction]
-#[pyo3(signature = (table, fields, filters, orderbys=None, quote_char=None, limit=None, offset=None, distinct=false))]
+#[pyo3(signature = (table, fields, filters, orderbys=None, quote_char=None, limit=None, offset=None, distinct=false, groupbys=None, select_sqls=None))]
 fn render_simple_select_query(
     py: Python<'_>,
     table: &str,
@@ -421,6 +441,8 @@ fn render_simple_select_query(
     limit: Option<u64>,
     offset: Option<u64>,
     distinct: bool,
+    groupbys: Option<Vec<String>>,
+    select_sqls: Option<Vec<String>>,
 ) -> PyResult<(String, String, Py<PyDict>)> {
     render_simple_select_query_sql(
         py,
@@ -428,6 +450,8 @@ fn render_simple_select_query(
         fields,
         filters,
         orderbys.unwrap_or_default(),
+        groupbys.unwrap_or_default(),
+        select_sqls,
         quote_char,
         limit,
         offset,

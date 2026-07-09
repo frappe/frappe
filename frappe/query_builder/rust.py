@@ -125,6 +125,8 @@ def render_simple_select_query(
 	limit: int | None = None,
 	offset: int | None = None,
 	distinct: bool = False,
+	groupbys: list[str] | None = None,
+	select_sqls: list[str] | None = None,
 ) -> tuple[str, str, dict[str, Any]]:
 	backend = load_backend()
 	if backend is None or backend.render_simple_select_query is None:
@@ -138,6 +140,8 @@ def render_simple_select_query(
 		limit=limit,
 		offset=offset,
 		distinct=distinct,
+		groupbys=groupbys,
+		select_sqls=select_sqls,
 	)
 	return sql, prepared_sql, dict(params)
 

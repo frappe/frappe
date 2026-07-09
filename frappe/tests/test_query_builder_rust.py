@@ -146,6 +146,27 @@ class TestRustQueryBuilderProxy(unittest.TestCase):
 			("SELECT `name` FROM `tabUser` WHERE `enabled`=%(param1)s LIMIT 1", {"param1": 1}),
 		)
 
+	def test_get_query_simple_grouped_count_uses_prepared_raw_query(self):
+		query = frappe.qb.get_query(
+			"DocField",
+			fields=["fieldtype", {"COUNT": "name", "as": "field_count"}],
+			group_by="fieldtype",
+			order_by="field_count desc",
+			limit=20,
+		)
+
+		self.assertEqual(
+			query.get_sql(),
+			"SELECT `fieldtype`,COUNT(`name`) `field_count` FROM `tabDocField` GROUP BY `fieldtype` ORDER BY `field_count` DESC LIMIT 20",
+		)
+		self.assertEqual(
+			query.walk(),
+			(
+				"SELECT `fieldtype`,COUNT(`name`) `field_count` FROM `tabDocField` GROUP BY `fieldtype` ORDER BY `field_count` DESC LIMIT 20",
+				{},
+			),
+		)
+
 	def test_groupby_sql(self):
 		table = frappe.qb.DocType("Role")
 

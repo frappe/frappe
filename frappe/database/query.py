@@ -419,9 +419,9 @@ class Engine:
 			or update
 			or into
 			or delete
-			or group_by
 			or or_filters
 			or db_query_compat
+			or (group_by and self.is_postgres)
 		):
 			return None
 
@@ -440,12 +440,17 @@ class Engine:
 		if not is_enabled():
 			return None
 
-		field_names = self._try_parse_fast_select_fields(fields)
-		if field_names is None:
+		select_spec = self._try_parse_fast_select_fields(fields)
+		if select_spec is None:
 			return None
+		field_names, select_sqls = select_spec
 
 		filter_specs = self._try_parse_fast_select_filters(filters)
 		if filter_specs is None:
+			return None
+
+		groupby_specs = self._try_parse_fast_group_by(group_by)
+		if groupby_specs is None:
 			return None
 
 		orderby_specs = self._try_parse_fast_order_by(order_by)
@@ -461,6 +466,8 @@ class Engine:
 			limit=limit,
 			offset=offset,
 			distinct=distinct,
+			groupbys=groupby_specs,
+			select_sqls=select_sqls,
 		)
 		return RustRawSelectQuery(sql, prepared_sql, params)
 
@@ -468,26 +475,81 @@ class Engine:
 	def query_quote_char(self) -> str:
 		return '"' if self.is_postgres else "`"
 
-	def _try_parse_fast_select_fields(self, fields) -> list[str] | None:
+	def _try_parse_fast_select_fields(self, fields) -> tuple[list[str], list[str] | None] | None:
 		if not fields:
-			return ["name"]
+			return ["name"], None
 
 		if isinstance(fields, str):
 			if fields == "*":
-				return ["*"]
+				return ["*"], None
 			if "," not in fields and not fields.isdigit() and SIMPLE_FIELD_PATTERN.match(fields):
-				return [fields]
+				return [fields], None
 			return None
 
 		if not isinstance(fields, list | tuple):
 			return None
 
 		field_names = []
+		select_sqls = []
+		needs_select_sqls = False
 		for field in fields:
-			if not isinstance(field, str) or field.isdigit() or not SIMPLE_FIELD_PATTERN.match(field):
+			if isinstance(field, str) and not field.isdigit() and SIMPLE_FIELD_PATTERN.match(field):
+				field_names.append(field)
+				select_sqls.append(self._quote_fast_identifier(field))
+				continue
+			if isinstance(field, dict) and (select_sql := self._try_render_fast_aggregate_select(field)):
+				field_names.append("")
+				select_sqls.append(select_sql)
+				needs_select_sqls = True
+				continue
+			return None
+
+		return field_names, select_sqls if needs_select_sqls else None
+
+	def _try_render_fast_aggregate_select(self, field: dict) -> str | None:
+		function_name = None
+		alias = None
+		function_args = None
+
+		for key, value in field.items():
+			if key.lower() == "as":
+				alias = value
+				continue
+			if function_name is not None:
 				return None
-			field_names.append(field)
-		return field_names
+			function_name = key
+			function_args = value
+
+		if function_name not in SIMPLE_SINGLE_ARG_FUNCTIONS:
+			return None
+
+		if alias:
+			try:
+				self._validate_simple_alias(alias)
+			except Exception:
+				return None
+
+		if isinstance(function_args, str):
+			arg = function_args.strip()
+			if not arg:
+				return None
+			if arg == "*":
+				if function_name not in STAR_ALLOWED_FUNCTIONS:
+					return None
+				arg_sql = "*"
+			elif SIMPLE_FIELD_PATTERN.match(arg):
+				arg_sql = self._quote_fast_identifier(arg)
+			else:
+				return None
+		elif isinstance(function_args, int | float):
+			arg_sql = str(function_args)
+		else:
+			return None
+
+		select_sql = f"{function_name}({arg_sql})"
+		if alias:
+			select_sql = f"{select_sql} {self._quote_fast_identifier(alias)}"
+		return select_sql
 
 	def _try_parse_fast_select_filters(self, filters) -> list[tuple[str, str, Any]] | None:
 		if filters is None:
@@ -552,6 +614,26 @@ class Engine:
 			filter_specs.append((field, sql_operator, value))
 
 		return filter_specs
+
+	def _try_parse_fast_group_by(self, group_by: str | None) -> list[str] | None:
+		if not group_by:
+			return []
+		if not isinstance(group_by, str) or "`" in group_by or "." in group_by:
+			return None
+
+		groupbys = []
+		for declaration in group_by.split(","):
+			field_name = declaration.strip()
+			if not field_name:
+				continue
+			if field_name.isdigit() or not SIMPLE_FIELD_PATTERN.match(field_name):
+				return None
+			groupbys.append(field_name)
+		return groupbys
+
+	def _quote_fast_identifier(self, value: str) -> str:
+		quote_char = self.query_quote_char
+		return f"{quote_char}{value.replace(quote_char, quote_char + quote_char)}{quote_char}"
 
 	def _normalize_fast_list_filter(self, filter_item) -> tuple[str, Any] | None:
 		match filter_item:
