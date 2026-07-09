@@ -670,6 +670,12 @@ frappe.views.ReportView = class ReportView extends frappe.views.ListView {
 								_data[field] = updated_doc[field];
 							}
 						}
+
+						const cell_at_index =
+							this.datatable.datamanager.rows[rowIndex]?.[colIndex];
+						if (cell_at_index?.name !== docname) {
+							this.datatable.refresh(this.get_data(this.data), this.columns);
+						}
 					})
 					.then(() => this.refresh_charts());
 			},
