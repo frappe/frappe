@@ -117,6 +117,19 @@ class TestRustQueryBuilderProxy(unittest.TestCase):
 			),
 		)
 
+	def test_get_query_comma_separated_fields_uses_prepared_raw_query(self):
+		query = frappe.qb.get_query(
+			"User",
+			fields="name, email",
+			filters={"enabled": 1},
+			limit=5,
+		)
+
+		self.assertEqual(
+			query.walk(),
+			("SELECT `name`,`email` FROM `tabUser` WHERE `enabled`=%(param1)s LIMIT 5", {"param1": 1}),
+		)
+
 	def test_get_query_simple_in_filter_uses_prepared_raw_query(self):
 		query = frappe.qb.get_query(
 			"DocField",

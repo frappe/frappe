@@ -58,6 +58,16 @@ bench_qb_get_query_multiple_fields = NanoBenchmark(
 )
 
 
+bench_qb_get_query_comma_fields = NanoBenchmark(
+	"""frappe.qb.get_query(
+		"User",
+		filters={"enabled": 1},
+		fields="name, email",
+		limit=20,
+	).run(run=0)"""
+)
+
+
 bench_qb_get_query_list_filter = NanoBenchmark(
 	"""frappe.qb.get_query(
 		"User",

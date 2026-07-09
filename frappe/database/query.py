@@ -480,11 +480,8 @@ class Engine:
 			return ["name"], None
 
 		if isinstance(fields, str):
-			if fields == "*":
-				return ["*"], None
-			if "," not in fields and not fields.isdigit() and SIMPLE_FIELD_PATTERN.match(fields):
-				return [fields], None
-			return None
+			field_names = self._try_parse_fast_simple_field_string(fields)
+			return (field_names, None) if field_names is not None else None
 
 		if not isinstance(fields, list | tuple):
 			return None
@@ -505,6 +502,21 @@ class Engine:
 			return None
 
 		return field_names, select_sqls if needs_select_sqls else None
+
+	def _try_parse_fast_simple_field_string(self, fields: str) -> list[str] | None:
+		field_names = []
+		for field in COMMA_PATTERN.split(fields):
+			field = field.strip()
+			if not field:
+				continue
+			if field == "*":
+				if field_names:
+					return None
+				return ["*"]
+			if field.isdigit() or not SIMPLE_FIELD_PATTERN.match(field):
+				return None
+			field_names.append(field)
+		return field_names or None
 
 	def _try_render_fast_aggregate_select(self, field: dict) -> str | None:
 		function_name = None
