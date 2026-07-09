@@ -1449,6 +1449,9 @@ class Engine:
 		if not isinstance(group_by, str):
 			frappe.throw(_("Group By must be a string"), TypeError)
 
+		if parsed_fields := self._try_validate_simple_group_by(group_by):
+			return parsed_fields
+
 		parsed_fields = []
 		for part in group_by.split(","):
 			field_name = part.strip()
@@ -1464,6 +1467,9 @@ class Engine:
 		"""Validate the order_by string argument, apply joins for dynamic fields, and return parsed Field objects with directions."""
 		if not isinstance(order_by, str):
 			frappe.throw(_("Order By must be a string"), TypeError)
+
+		if parsed_order_fields := self._try_validate_simple_order_by(order_by):
+			return parsed_order_fields
 
 		valid_directions = {"asc", "desc"}
 		parsed_order_fields = []
@@ -1496,6 +1502,59 @@ class Engine:
 						_("Invalid direction in Order By: {0}. Must be 'ASC' or 'DESC'.").format(direction),
 						ValueError,
 					)
+
+		return parsed_order_fields
+
+	def _try_validate_simple_group_by(self, group_by: str) -> list[Field] | None:
+		if self.apply_permissions or "`" in group_by or "." in group_by:
+			return None
+
+		parsed_fields = []
+		for declaration in group_by.split(","):
+			field_name = declaration.strip()
+			if not field_name:
+				continue
+			if field_name.isdigit() or not SIMPLE_FIELD_PATTERN.match(field_name):
+				return None
+			if field_name in self.function_aliases or field_name in self.field_aliases:
+				parsed_fields.append(Field(field_name))
+			else:
+				parsed_fields.append(self.table[field_name])
+		return parsed_fields
+
+	def _try_validate_simple_order_by(self, order_by: str) -> list[tuple[Field | str, Order]] | None:
+		if self.apply_permissions or "`" in order_by or "." in order_by:
+			return None
+
+		valid_directions = {"asc", "desc"}
+		parsed_order_fields = []
+		for declaration in order_by.split(","):
+			if not (_order_by := declaration.strip()):
+				continue
+
+			parts = _order_by.split()
+			if len(parts) > 2:
+				return None
+
+			field_name = parts[0]
+			direction = parts[1].lower() if len(parts) == 2 else None
+			if (
+				field_name.isdigit()
+				or not SIMPLE_FIELD_PATTERN.match(field_name)
+				or (direction is not None and direction not in valid_directions)
+			):
+				return None
+
+			if self.db_query_compat:
+				order_direction = Order.desc if direction == "desc" else Order.asc
+			else:
+				order_direction = Order.asc if direction == "asc" else Order.desc
+
+			if field_name in self.function_aliases or field_name in self.field_aliases:
+				parsed_field = Field(field_name)
+			else:
+				parsed_field = self.table[field_name]
+			parsed_order_fields.append((parsed_field, order_direction))
 
 		return parsed_order_fields
 
