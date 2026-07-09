@@ -2,6 +2,14 @@ import { ref, watch } from "vue"
 import Block from "@/utils/block"
 import { customVueComponentsRegistry } from "@/globals"
 
+async function resolveComponent(component: any) {
+	if (!component) return {}
+	if (typeof component.__asyncLoader !== "function") return component
+	if (typeof component.__asyncResolved === "object") return component.__asyncResolved
+	const resolved = await component.__asyncLoader()
+	return resolved.default || resolved
+}
+
 export default function useComponentInstance(blockGetter: () => Block | undefined) {
 	const componentInstance = ref<any>({})
 	watch(
@@ -15,16 +23,10 @@ export default function useComponentInstance(blockGetter: () => Block | undefine
 			if (block?.isCustomVueComponent) {
 				const asyncComponent = customVueComponentsRegistry.value[block.componentName]
 				if (!asyncComponent) return
-
-				const isResolved = typeof asyncComponent.__asyncResolved === "object"
-				if (isResolved) {
-					componentInstance.value = asyncComponent.__asyncResolved
-				} else {
-					const resolved = await asyncComponent.__asyncLoader()
-					componentInstance.value = resolved.default || resolved
-				}
+				componentInstance.value = await resolveComponent(asyncComponent)
 			} else {
-				componentInstance.value = window.__APP_COMPONENTS__?.[block.componentName] || {}
+				const component = window.__APP_COMPONENTS__?.[block.componentName]
+				componentInstance.value = await resolveComponent(component)
 			}
 		},
 		{ immediate: true },
