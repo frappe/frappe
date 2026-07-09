@@ -579,6 +579,17 @@ class Engine:
 
 		_field = self._validate_and_prepare_filter_field(field, doctype)
 
+		# Child/link table fields live in a different doctype than the parent; NULL-fallback
+		# typing must resolve against the field's own doctype, else a numeric child field gets
+		# an empty-string fallback and postgres rejects `COALESCE(col, '') < 200`.
+		filter_doctype = doctype or self.doctype
+		field_table = getattr(_field, "table", None)
+		if field_table is not None:
+			try:
+				filter_doctype = get_doctype_name(field_table.get_sql())
+			except Exception:
+				pass
+
 		if isinstance(value, Field):
 			_value = value
 		else:
@@ -688,7 +699,7 @@ class Engine:
 				if "." in is_field_name:
 					is_field_name = is_field_name.split(".")[-1]
 
-				fallback_sql = self._get_ifnull_fallback(doctype or self.doctype, is_field_name)
+				fallback_sql = self._get_ifnull_fallback(filter_doctype, is_field_name)
 				if fallback_sql == "''":
 					fallback_value = ""
 				elif fallback_sql.startswith("'") and fallback_sql.endswith("'"):
@@ -719,7 +730,7 @@ class Engine:
 				if "." in filter_field_name:
 					filter_field_name = filter_field_name.split(".")[-1]
 
-				target_doctype = doctype or self.doctype
+				target_doctype = filter_doctype
 				fallback_sql = self._get_ifnull_fallback(target_doctype, filter_field_name)
 
 				if fallback_sql == "''":
@@ -743,7 +754,7 @@ class Engine:
 			if "." in filter_field_name:
 				filter_field_name = filter_field_name.split(".")[-1]
 
-			target_doctype = doctype or self.doctype
+			target_doctype = filter_doctype
 
 			# Skip applying ifnull if field already has null-handling function
 			if isinstance(_field, functions.IfNull | functions.Coalesce):
