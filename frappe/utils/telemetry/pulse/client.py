@@ -64,13 +64,14 @@ def boot_config() -> dict:
 
 def capture(
 	event_name: str,
-	site: str | None = None,
 	app: str | None = None,
 	user: str | None = None,
 	team: str | None = None,
 	captured_at: str | None = None,
 	properties: dict[str, Any] | None = None,
 	interval: int | str | None = None,
+	*,
+	site: str | None = None,
 ):
 	if not is_enabled():
 		return
