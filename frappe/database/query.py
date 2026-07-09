@@ -272,6 +272,7 @@ class Engine:
 		self.field_aliases = set()
 		self.db_query_compat = db_query_compat
 		self.permitted_fields_cache = {}  # Cache for get_permitted_fields results
+		self.permission_type_cache = {}
 		self.additional_filters_config = None
 		self.is_aggregate_query = False
 		self._grouped_queries = set()
@@ -1919,9 +1920,11 @@ class Engine:
 		if parent_doctype:
 			return self.get_permission_type(parent_doctype)
 
-		if frappe.only_has_select_perm(doctype, user=self.user):
-			return "select"
-		return "read"
+		if doctype not in self.permission_type_cache:
+			self.permission_type_cache[doctype] = (
+				"select" if frappe.only_has_select_perm(doctype, user=self.user) else "read"
+			)
+		return self.permission_type_cache[doctype]
 
 	def requires_owner_constraint(self, role_permissions):
 		"""Return True if "select" or "read" isn't available without being creator."""
