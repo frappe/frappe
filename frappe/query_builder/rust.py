@@ -990,9 +990,8 @@ class RustInsertQuery:
 		quote_char = kwargs.get("quote_char", self.quote_char)
 		columns = self._column_names
 		if kwargs.get("param_wrapper") is None and self._raw_rows is not None:
-			return render_insert_literals(
-				self.table._table_name, columns, self._raw_rows, quote_char=quote_char
-			)
+			rows = [[_render_insert_literal(value) for value in row] for row in self._raw_rows]
+			return render_insert(self.table._table_name, columns, rows, quote_char=quote_char)
 		self._materialize_rows()
 		rows = [
 			[value.get_sql(with_alias=True, subquery=True, quote_char=quote_char, **kwargs) for value in row]
@@ -1675,6 +1674,12 @@ def _render_literal(value: Any) -> str:
 	if isinstance(value, str):
 		return _quote_identifier(value, "'")
 	raise TypeError(f"unsupported literal value: {type(value).__name__}")
+
+
+def _render_insert_literal(value: Any) -> str:
+	if value is None:
+		return "null"
+	return _render_literal(value)
 
 
 def _render_select_fragments(
