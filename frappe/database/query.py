@@ -1239,6 +1239,68 @@ class Engine:
 
 		return _fields
 
+	def _try_parse_simple_function_field(self, field: dict):
+		function_name = None
+		alias = None
+		function_args = None
+
+		for key, value in field.items():
+			if key.lower() == "as":
+				alias = value
+				continue
+			if function_name is not None:
+				return None
+			function_name = key
+			function_args = value
+
+		if function_name not in SIMPLE_SINGLE_ARG_FUNCTIONS:
+			return None
+
+		if alias:
+			self._validate_simple_alias(alias)
+
+		if isinstance(function_args, str):
+			arg = function_args.strip()
+			if not arg:
+				return None
+			if arg == "*":
+				if function_name not in STAR_ALLOWED_FUNCTIONS:
+					return None
+				parsed_arg = Star()
+			elif arg.isdigit():
+				parsed_arg = int(arg)
+			elif SIMPLE_FIELD_PATTERN.match(arg):
+				if self.apply_permissions:
+					self.check_select_field_permission(self.doctype, arg)
+				parsed_arg = self.table[arg]
+			else:
+				return None
+		elif isinstance(function_args, int | float):
+			parsed_arg = function_args
+		else:
+			return None
+
+		function_call = FUNCTION_MAPPING[function_name](parsed_arg)
+		if alias:
+			self.function_aliases.add(alias)
+			return function_call.as_(alias)
+
+		return function_call
+
+	def _validate_simple_alias(self, alias: str) -> None:
+		if not isinstance(alias, str):
+			frappe.throw(_("Alias must be a string"), frappe.ValidationError)
+
+		alias = alias.strip()
+		if not alias:
+			frappe.throw(_("Empty alias is not allowed"), frappe.ValidationError)
+
+		if not SIMPLE_FIELD_PATTERN.match(alias):
+			frappe.throw(
+				_("Invalid alias format: {0}. Alias must be a simple identifier.").format(alias),
+				frappe.ValidationError,
+			)
+
 	def _try_parse_simple_field_list(self, fields: list | tuple) -> list[Field] | None:
 		parsed_fields = []
 		for field in fields:
@@ -1256,6 +1318,9 @@ class Engine:
 			# Accept any pypika Term (Field, Criterion, ArithmeticExpression, AggregateFunction, etc.)
 			return field
 		elif isinstance(field, dict):
+			if parsed := self._try_parse_simple_function_field(field):
+				return parsed
+
 			# Check if it's a SQL function or operator dictionary
 			function_parser = SQLFunctionParser(engine=self)
 			if function_parser.is_function_dict(field):
@@ -2671,20 +2736,7 @@ class SQLFunctionParser:
 
 	def _validate_alias(self, alias: str):
 		"""Validate alias name for SQL injection."""
-		if not isinstance(alias, str):
-			frappe.throw(_("Alias must be a string"), frappe.ValidationError)
-
-		alias = alias.strip()
-		if not alias:
-			frappe.throw(_("Empty alias is not allowed"), frappe.ValidationError)
-
-		# Alias should be a simple identifier
-		# Note: pypika wraps aliases in backticks, so anything without backticks is safe
-		if not SIMPLE_FIELD_PATTERN.match(alias):
-			frappe.throw(
-				_("Invalid alias format: {0}. Alias must be a simple identifier.").format(alias),
-				frappe.ValidationError,
-			)
+		self.engine._validate_simple_alias(alias)
 
 	def _check_function_field_permission(self, field_name: str):
 		if self.engine.apply_permissions and self.engine.doctype:
