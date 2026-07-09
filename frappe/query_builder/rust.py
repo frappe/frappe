@@ -367,9 +367,22 @@ class RustSelectQuery:
 
 	def _copy_with(self, *list_attrs: str):
 		new = type(self).__new__(type(self))
-		new.__dict__.update(self.__dict__)
-		for attr in list_attrs:
-			setattr(new, attr, getattr(self, attr).copy())
+		new.query_cls = self.query_cls
+		new.table = self.table
+		new._from = self._from
+		new.original_from = self.original_from
+		new.immutable = self.immutable
+		new.quote_char = self.quote_char
+		new._select_terms = self._select_terms.copy() if "_select_terms" in list_attrs else self._select_terms
+		new._field_names = self._field_names.copy() if "_field_names" in list_attrs else self._field_names
+		new._where = self._where
+		new._orderbys = self._orderbys.copy() if "_orderbys" in list_attrs else self._orderbys
+		new._groupbys = self._groupbys.copy() if "_groupbys" in list_attrs else self._groupbys
+		new._joins = self._joins.copy() if "_joins" in list_attrs else self._joins
+		new._limit = self._limit
+		new._offset = self._offset
+		new._distinct = self._distinct
+		new._fallback_query = self._fallback_query
 		return new
 
 	def _builder(self, *list_attrs: str):
