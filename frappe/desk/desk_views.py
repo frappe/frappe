@@ -77,11 +77,15 @@ class DeskViews:
 		item_type = item_type.lower()
 
 		if item_type == "doctype":
-			return (
-				name in (self.can_read or [])
-				and name in (self.restricted_doctypes or [])
-				and frappe.has_permission(name)
-			)
+			try:
+				return (
+					name in (self.can_read or [])
+					and name in (self.restricted_doctypes or [])
+					and frappe.has_permission(name)
+				)
+			except frappe.DoesNotExistError:
+				frappe.clear_last_message()
+				return False
 		if item_type == "page":
 			return name in self.allowed_pages and name in self.restricted_pages
 		if item_type == "report":
