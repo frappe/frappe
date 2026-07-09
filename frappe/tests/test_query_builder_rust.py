@@ -283,6 +283,20 @@ class TestRustQueryBuilderProxy(unittest.TestCase):
 			),
 		)
 
+	def test_walk_with_between_uses_prepared_rust_query(self):
+		table = frappe.qb.DocType("Stock Ledger Entry")
+
+		self.assertEqual(
+			frappe.qb.from_(table)
+			.select(table.name)
+			.where(table.posting_datetime["2024-01-01 00:00:00":"2024-12-31 23:59:59"])
+			.walk(),
+			(
+				"SELECT `name` FROM `tabStock Ledger Entry` WHERE `posting_datetime` BETWEEN %(param1)s AND %(param2)s",
+				{"param1": "2024-01-01 00:00:00", "param2": "2024-12-31 23:59:59"},
+			),
+		)
+
 	def test_walk_without_parameters_uses_empty_params(self):
 		table = frappe.qb.DocType("Role")
 

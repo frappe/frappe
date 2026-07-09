@@ -10,10 +10,12 @@ from pypika.queries import QueryBuilder, Table
 from pypika.terms import (
 	AggregateFunction,
 	BasicCriterion,
+	BetweenCriterion,
 	ComplexCriterion,
 	ContainsCriterion,
 	Criterion,
 	EmptyCriterion,
+	ExistsCriterion,
 	Field,
 	Function,
 	Not,
@@ -354,6 +356,7 @@ class RustSelectQuery:
 		self._orderbys: list[tuple[Any, Any]] = []
 		self._groupbys: list[Any] = []
 		self._joins: list[RustStoredJoin] = []
+		self._where_can_prepare = True
 		self._limit: int | None = None
 		self._offset: int | None = None
 		self._distinct = False
@@ -382,6 +385,7 @@ class RustSelectQuery:
 		new._orderbys = self._orderbys.copy() if "_orderbys" in list_attrs else self._orderbys
 		new._groupbys = self._groupbys.copy() if "_groupbys" in list_attrs else self._groupbys
 		new._joins = self._joins.copy() if "_joins" in list_attrs else self._joins
+		new._where_can_prepare = self._where_can_prepare
 		new._limit = self._limit
 		new._offset = self._offset
 		new._distinct = self._distinct
@@ -413,6 +417,7 @@ class RustSelectQuery:
 
 		builder = self._builder()
 		builder._where = criterion if builder._where is None else builder._where & criterion
+		builder._where_can_prepare = builder._where_can_prepare and _is_preparable_criterion_shape(criterion)
 		return builder
 
 	def orderby(self, *fields: Any, **kwargs: Any):
@@ -603,6 +608,8 @@ class RustSelectQuery:
 		if self._fallback_query is not None or self._joins:
 			return None, None
 		if self._where is not None:
+			if not self._where_can_prepare:
+				return None, None
 			prepared_where, params = _try_render_prepared_where(self._where)
 			if prepared_where is None:
 				return None, None
@@ -1331,6 +1338,18 @@ def _try_render_simple_criterion(
 		operator = "NOT IN" if criterion._is_negated else "IN"
 		return f"{term} {operator} {container}"
 
+	if isinstance(criterion, BetweenCriterion):
+		term = _try_render_simple_term(criterion.term, quote_char=quote_char, with_namespace=with_namespace)
+		start = _try_render_simple_value(
+			criterion.start, quote_char=quote_char, with_namespace=with_namespace, **kwargs
+		)
+		end = _try_render_simple_value(
+			criterion.end, quote_char=quote_char, with_namespace=with_namespace, **kwargs
+		)
+		if term is None or start is None or end is None:
+			return None
+		return f"{term} BETWEEN {start} AND {end}"
+
 	if isinstance(criterion, NullCriterion):
 		term = _try_render_simple_term(criterion.term, quote_char=quote_char, with_namespace=with_namespace)
 		if term is None:
@@ -1365,6 +1384,40 @@ def _try_render_prepared_where(criterion: Term) -> tuple[str | None, dict[str, A
 	return sql, params
 
 
+def _is_preparable_criterion_shape(criterion: Term) -> bool:
+	if isinstance(criterion, ComplexCriterion):
+		return _is_preparable_criterion_shape(criterion.left) and _is_preparable_criterion_shape(
+			criterion.right
+		)
+	if isinstance(criterion, BasicCriterion):
+		return isinstance(criterion.left, Field) and _is_preparable_value_shape(criterion.right)
+	if isinstance(criterion, ContainsCriterion):
+		return isinstance(criterion.term, Field) and _is_preparable_tuple_shape(criterion.container)
+	if isinstance(criterion, BetweenCriterion):
+		return (
+			isinstance(criterion.term, Field)
+			and _is_preparable_value_shape(criterion.start)
+			and _is_preparable_value_shape(criterion.end)
+		)
+	if isinstance(criterion, NullCriterion):
+		return isinstance(criterion.term, Field)
+	if isinstance(criterion, Not):
+		return _is_preparable_criterion_shape(criterion.term)
+	if isinstance(criterion, ExistsCriterion):
+		return False
+	return False
+
+
+def _is_preparable_tuple_shape(term: Term) -> bool:
+	return isinstance(term, Tuple) and all(_is_preparable_value_shape(value) for value in term.values)
+
+
+def _is_preparable_value_shape(term: Term) -> bool:
+	return isinstance(term, Field) or (
+		isinstance(term, ValueWrapper) and term.alias is None and _is_supported_literal(term.value)
+	)
+
+
 def _try_render_prepared_criterion(criterion: Term, params: dict[str, Any]) -> str | None:
 	if isinstance(criterion, ComplexCriterion):
 		left = _try_render_prepared_criterion_part(criterion.left, params)
@@ -1387,6 +1440,14 @@ def _try_render_prepared_criterion(criterion: Term, params: dict[str, Any]) -> s
 			return None
 		operator = "NOT IN" if criterion._is_negated else "IN"
 		return f"{term} {operator} {container}"
+
+	if isinstance(criterion, BetweenCriterion):
+		term = _try_render_simple_term(criterion.term)
+		start = _try_render_prepared_value(criterion.start, params)
+		end = _try_render_prepared_value(criterion.end, params)
+		if term is None or start is None or end is None:
+			return None
+		return f"{term} BETWEEN {start} AND {end}"
 
 	if isinstance(criterion, NullCriterion):
 		term = _try_render_simple_term(criterion.term)
