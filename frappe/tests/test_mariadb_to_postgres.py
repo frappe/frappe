@@ -108,3 +108,25 @@ class TestMariaDBToPostgres(UnitTestCase):
 		# header write and pg_dump are &&-chained so a failed header aborts the dump
 		self.assertIn(" && ", run.call_args.args[0])
 		self.assertNotIn("; ", run.call_args.args[0])
+
+	def test_pg_dump_failure_removes_partial_output(self):
+		import tempfile as tf
+
+		target = {"host": "h", "port": "5432", "user": "u", "password": "pw", "db_name": "db"}
+		fd, output = tf.mkstemp(suffix=".sql.gz")
+		os.close(fd)
+		with (
+			patch.object(converter, "_frappe_metadata_header", return_value="-- hdr\n"),
+			patch.object(converter, "execute_in_shell", side_effect=Exception("pg_dump died")),
+		):
+			self.assertRaises(Exception, converter._pg_dump_to_file, target, output, "/src.sql.gz")
+		self.assertFalse(os.path.exists(output))
+
+	def test_pgloader_schema_literal_escapes_single_quote(self):
+		command = converter.build_pgloader_command(
+			"o'db",
+			{"host": "mh", "port": "3306", "user": "root", "password": ""},
+			{"host": "ph", "port": "5432", "user": "u", "password": "pw"},
+			"targetdb",
+		)
+		self.assertIn("ALTER SCHEMA 'o''db' RENAME TO 'public'", command)

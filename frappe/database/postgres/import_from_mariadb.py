@@ -17,6 +17,7 @@ import os
 import platform
 import shlex
 import tempfile
+from contextlib import suppress
 from shutil import which
 from urllib.parse import quote
 
@@ -92,6 +93,7 @@ def build_pgloader_command(source_db: str, mariadb: dict, postgres: dict, target
 	table, not as a secondary index, so it is unaffected.
 	"""
 	casts = ",\n      ".join(TYPE_CASTS)
+	schema = source_db.replace("'", "''")
 	return f"""LOAD DATABASE
      FROM      {_uri("mysql", mariadb, source_db)}
      INTO      {_uri("postgresql", postgres, target_db)}
@@ -107,7 +109,7 @@ def build_pgloader_command(source_db: str, mariadb: dict, postgres: dict, target
 
  CAST {casts}
 
- ALTER SCHEMA '{source_db}' RENAME TO 'public'
+ ALTER SCHEMA '{schema}' RENAME TO 'public'
 ;
 """
 
@@ -297,6 +299,11 @@ def _pg_dump_to_file(target: dict, output: str, source_dump: str):
 			f"{pg_env}pg_dump --no-owner --no-acl {shlex.quote(uri)} | gzip >> {shlex.quote(output)}",
 			check_exit_code=True,
 		)
+	except Exception:
+		# don't leave a partial (header-only / truncated) backup behind on failure
+		with suppress(OSError):
+			os.unlink(output)
+		raise
 	finally:
 		os.unlink(header_path)
 
