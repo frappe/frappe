@@ -58,6 +58,38 @@ bench_qb_get_query_multiple_fields = NanoBenchmark(
 )
 
 
+bench_qb_get_query_list_filter = NanoBenchmark(
+	"""frappe.qb.get_query(
+		"User",
+		filters=[["enabled", "=", 1]],
+		fields=["name", "email", "enabled"],
+		limit=20,
+	).run(run=0)"""
+)
+
+
+bench_qb_get_query_in_filter_ordered = NanoBenchmark(
+	"""frappe.qb.get_query(
+		"DocField",
+		filters={"fieldtype": ("in", ["Data", "Link", "Select"])},
+		fields=["parent", "fieldname", "fieldtype", "idx"],
+		order_by="parent asc, idx asc",
+		limit=50,
+	).run(run=0)"""
+)
+
+
+bench_qb_get_query_grouped_count = NanoBenchmark(
+	"""frappe.qb.get_query(
+		"DocField",
+		fields=["fieldtype", {"COUNT": "name", "as": "field_count"}],
+		group_by="fieldtype",
+		order_by="field_count desc",
+		limit=20,
+	).run(run=0)"""
+)
+
+
 bench_qb_simple_get_query = NanoBenchmark(
 	"""frappe.qb.get_query(
 									"Role",
