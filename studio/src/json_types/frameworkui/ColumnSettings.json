@@ -1,0 +1,24 @@
+{
+  "$schema": "http://json-schema.org/draft-07/schema#",
+  "definitions": {
+    "*": {
+      "type": "object",
+      "properties": {
+        "fieldname": {
+          "type": "string"
+        },
+        "label": {
+          "type": "string"
+        },
+        "width": {
+          "type": "string"
+        }
+      },
+      "required": [
+        "fieldname",
+        "label"
+      ],
+      "additionalProperties": false
+    }
+  }
+}

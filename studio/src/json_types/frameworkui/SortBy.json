@@ -1,16 +1,23 @@
 {
   "$schema": "http://json-schema.org/draft-07/schema#",
-  "$ref": "#/definitions/FilterProps",
   "definitions": {
-    "FilterProps": {
+    "*": {
       "type": "object",
       "properties": {
-        "doctype": {
+        "fieldname": {
           "type": "string"
+        },
+        "direction": {
+          "type": "string",
+          "enum": [
+            "asc",
+            "desc"
+          ]
         }
       },
       "required": [
-        "doctype"
+        "fieldname",
+        "direction"
       ],
       "additionalProperties": false
     }

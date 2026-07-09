@@ -1,0 +1,427 @@
+{
+  "$schema": "http://json-schema.org/draft-07/schema#",
+  "definitions": {
+    "*": {
+      "type": "object",
+      "properties": {
+        "fieldname": {
+          "type": "string"
+        },
+        "fieldtype": {
+          "type": "string"
+        },
+        "label": {
+          "type": "string"
+        },
+        "options": {
+          "type": "string"
+        },
+        "filters": {
+          "type": "object",
+          "additionalProperties": {}
+        },
+        "childFields": {
+          "type": "array",
+          "items": {
+            "type": "object",
+            "properties": {
+              "ui": {
+                "type": "object",
+                "properties": {
+                  "component": {
+                    "type": "string"
+                  },
+                  "props": {
+                    "type": "object",
+                    "additionalProperties": {}
+                  },
+                  "on": {
+                    "type": "object",
+                    "additionalProperties": {
+                      "anyOf": [
+                        {
+                          "type": "object"
+                        },
+                        {
+                          "type": "array",
+                          "items": {
+                            "type": "object"
+                          }
+                        }
+                      ]
+                    }
+                  }
+                },
+                "additionalProperties": false
+              }
+            }
+          }
+        },
+        "childLayout": {
+          "type": "array",
+          "items": {
+            "type": "object",
+            "properties": {
+              "name": {
+                "type": "string"
+              },
+              "label": {
+                "type": "string"
+              },
+              "hidden": {
+                "type": "boolean"
+              },
+              "dependsOn": {
+                "type": "string"
+              },
+              "sections": {
+                "type": "array",
+                "items": {
+                  "type": "object",
+                  "properties": {
+                    "name": {
+                      "type": "string"
+                    },
+                    "label": {
+                      "type": "string"
+                    },
+                    "hideLabel": {
+                      "type": "boolean"
+                    },
+                    "hideBorder": {
+                      "type": "boolean"
+                    },
+                    "opened": {
+                      "type": "boolean"
+                    },
+                    "collapsible": {
+                      "type": "boolean"
+                    },
+                    "hidden": {
+                      "type": "boolean"
+                    },
+                    "dependsOn": {
+                      "type": "string"
+                    },
+                    "columns": {
+                      "type": "array",
+                      "items": {
+                        "type": "object",
+                        "properties": {
+                          "name": {
+                            "type": "string"
+                          },
+                          "label": {
+                            "type": "string"
+                          },
+                          "hideLabel": {
+                            "type": "boolean"
+                          },
+                          "fields": {
+                            "type": "array",
+                            "items": {
+                              "type": "object",
+                              "properties": {
+                                "ui": {
+                                  "type": "object",
+                                  "properties": {
+                                    "component": {
+                                      "type": "string"
+                                    },
+                                    "props": {
+                                      "type": "object",
+                                      "additionalProperties": {}
+                                    },
+                                    "on": {
+                                      "type": "object",
+                                      "additionalProperties": {
+                                        "anyOf": [
+                                          {
+                                            "type": "object"
+                                          },
+                                          {
+                                            "type": "array",
+                                            "items": {
+                                              "type": "object"
+                                            }
+                                          }
+                                        ]
+                                      }
+                                    }
+                                  },
+                                  "additionalProperties": false
+                                }
+                              }
+                            }
+                          }
+                        },
+                        "required": [
+                          "fields"
+                        ],
+                        "additionalProperties": false
+                      }
+                    }
+                  },
+                  "required": [
+                    "columns"
+                  ],
+                  "additionalProperties": false
+                }
+              }
+            },
+            "required": [
+              "sections"
+            ],
+            "additionalProperties": false
+          }
+        },
+        "reqd": {
+          "type": "boolean"
+        },
+        "precision": {
+          "type": "number"
+        },
+        "width": {
+          "type": "number"
+        },
+        "description": {
+          "type": "string"
+        },
+        "placeholder": {
+          "type": "string"
+        },
+        "hidden": {
+          "type": "boolean"
+        },
+        "readOnly": {
+          "type": "boolean"
+        },
+        "dependsOn": {
+          "type": "string"
+        },
+        "mandatoryDependsOn": {
+          "type": "string"
+        },
+        "readOnlyDependsOn": {
+          "type": "string"
+        }
+      },
+      "required": [
+        "fieldname",
+        "fieldtype"
+      ],
+      "additionalProperties": false
+    },
+    "interface-1749241051-339-2237-1749241051-0-3742": {
+      "type": "object",
+      "properties": {
+        "fieldname": {
+          "type": "string"
+        },
+        "fieldtype": {
+          "type": "string"
+        },
+        "label": {
+          "type": "string"
+        },
+        "options": {
+          "type": "string"
+        },
+        "filters": {
+          "type": "object",
+          "additionalProperties": {}
+        },
+        "childFields": {
+          "type": "array",
+          "items": {
+            "type": "object",
+            "properties": {
+              "ui": {
+                "type": "object",
+                "properties": {
+                  "component": {
+                    "type": "string"
+                  },
+                  "props": {
+                    "type": "object",
+                    "additionalProperties": {}
+                  },
+                  "on": {
+                    "type": "object",
+                    "additionalProperties": {
+                      "anyOf": [
+                        {
+                          "type": "object"
+                        },
+                        {
+                          "type": "array",
+                          "items": {
+                            "type": "object"
+                          }
+                        }
+                      ]
+                    }
+                  }
+                },
+                "additionalProperties": false
+              }
+            }
+          }
+        },
+        "childLayout": {
+          "type": "array",
+          "items": {
+            "type": "object",
+            "properties": {
+              "name": {
+                "type": "string"
+              },
+              "label": {
+                "type": "string"
+              },
+              "hidden": {
+                "type": "boolean"
+              },
+              "dependsOn": {
+                "type": "string"
+              },
+              "sections": {
+                "type": "array",
+                "items": {
+                  "type": "object",
+                  "properties": {
+                    "name": {
+                      "type": "string"
+                    },
+                    "label": {
+                      "type": "string"
+                    },
+                    "hideLabel": {
+                      "type": "boolean"
+                    },
+                    "hideBorder": {
+                      "type": "boolean"
+                    },
+                    "opened": {
+                      "type": "boolean"
+                    },
+                    "collapsible": {
+                      "type": "boolean"
+                    },
+                    "hidden": {
+                      "type": "boolean"
+                    },
+                    "dependsOn": {
+                      "type": "string"
+                    },
+                    "columns": {
+                      "type": "array",
+                      "items": {
+                        "type": "object",
+                        "properties": {
+                          "name": {
+                            "type": "string"
+                          },
+                          "label": {
+                            "type": "string"
+                          },
+                          "hideLabel": {
+                            "type": "boolean"
+                          },
+                          "fields": {
+                            "type": "array",
+                            "items": {
+                              "type": "object",
+                              "properties": {
+                                "ui": {
+                                  "type": "object",
+                                  "properties": {
+                                    "component": {
+                                      "type": "string"
+                                    },
+                                    "props": {
+                                      "type": "object",
+                                      "additionalProperties": {}
+                                    },
+                                    "on": {
+                                      "type": "object",
+                                      "additionalProperties": {
+                                        "anyOf": [
+                                          {
+                                            "type": "object"
+                                          },
+                                          {
+                                            "type": "array",
+                                            "items": {
+                                              "type": "object"
+                                            }
+                                          }
+                                        ]
+                                      }
+                                    }
+                                  },
+                                  "additionalProperties": false
+                                }
+                              }
+                            }
+                          }
+                        },
+                        "required": [
+                          "fields"
+                        ],
+                        "additionalProperties": false
+                      }
+                    }
+                  },
+                  "required": [
+                    "columns"
+                  ],
+                  "additionalProperties": false
+                }
+              }
+            },
+            "required": [
+              "sections"
+            ],
+            "additionalProperties": false
+          }
+        },
+        "reqd": {
+          "type": "boolean"
+        },
+        "precision": {
+          "type": "number"
+        },
+        "width": {
+          "type": "number"
+        },
+        "description": {
+          "type": "string"
+        },
+        "placeholder": {
+          "type": "string"
+        },
+        "hidden": {
+          "type": "boolean"
+        },
+        "readOnly": {
+          "type": "boolean"
+        },
+        "dependsOn": {
+          "type": "string"
+        },
+        "mandatoryDependsOn": {
+          "type": "string"
+        },
+        "readOnlyDependsOn": {
+          "type": "string"
+        }
+      },
+      "required": [
+        "fieldname",
+        "fieldtype"
+      ],
+      "additionalProperties": false
+    }
+  }
+}

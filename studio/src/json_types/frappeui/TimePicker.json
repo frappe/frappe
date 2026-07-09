@@ -146,6 +146,9 @@
         "use12Hour": {
           "type": "boolean"
         },
+        "format": {
+          "type": "string"
+        },
         "disabled": {
           "type": "boolean"
         },

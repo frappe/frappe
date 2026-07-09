@@ -27,27 +27,18 @@
                 },
                 "stack": {
                   "type": "string"
-                },
-                "messages": {
-                  "type": "array",
-                  "items": {
-                    "type": "string"
-                  }
                 }
               },
-              "additionalProperties": false,
               "required": [
-                "message",
-                "name"
-              ]
+                "name",
+                "message"
+              ],
+              "additionalProperties": false
             }
           ]
         },
         "required": {
           "type": "boolean"
-        },
-        "id": {
-          "type": "string"
         },
         "doctype": {
           "type": "string"
@@ -57,6 +48,12 @@
           "additionalProperties": {}
         },
         "creatable": {
+          "type": "boolean"
+        },
+        "redirectable": {
+          "type": "boolean"
+        },
+        "editable": {
           "type": "boolean"
         },
         "disabled": {

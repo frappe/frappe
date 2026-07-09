@@ -76,6 +76,9 @@
               "const": 0
             }
           ]
+        },
+        "indeterminate": {
+          "type": "boolean"
         }
       },
       "additionalProperties": false

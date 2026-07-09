@@ -1,12 +1,16 @@
 import path from "path"
 
-const STUDIO_SHARED_DEPS = ["vue", "vue-router", "pinia", "frappe-ui"]
+// reka-ui and dompurify are the extra singletons @framework/ui declares (see its
+// `./vite` dedupe plugin): its source is compiled in place from apps/frappe/ui, so
+// these must resolve to Studio's single copy too, not the sibling app's node_modules.
+const STUDIO_SHARED_DEPS = ["vue", "vue-router", "pinia", "frappe-ui", "reka-ui", "dompurify"]
 /**
- * Vite plugin to redirect shared dependency imports from custom Vue components
- * (files outside the Studio project) to Studio's own installations.
+ * Vite plugin to redirect shared dependency imports from files outside the Studio
+ * project (custom Vue components and @framework/ui source) to Studio's own
+ * installations.
  *
- * These are singleton deps (vue, vue-router, frappe-ui) that must resolve from
- * Studio to avoid duplicate instances. App-specific deps
+ * These are singleton deps (vue, vue-router, frappe-ui, reka-ui, dompurify) that
+ * must resolve from Studio to avoid duplicate instances. App-specific deps
  * resolve normally from the app's own node_modules.
  */
 function sharedDependencyResolver(STUDIO_ROOT) {

@@ -3,14 +3,14 @@ import path from "path"
 import { CompletedConfig, createFormatter, createParser, createProgram, SchemaGenerator } from "ts-json-schema-generator"
 import { SVGElementParser, VueComponentParser, RouteLocationParser, HTMLElementParser, FunctionTypeParser, SlotsParser } from "./customParser.js"
 
-function tsToJSON(srcFolder: string, destFolder: string, skipFolders: string[] | null = null, tsconfig = "", isFrappeUI = false) {
+function tsToJSON(srcFolder: string, destFolder: string, skipFolders: string[] | null = null, tsconfig = "", folderScan = false) {
 	// Get project root (where package.json is)
 	const root = process.cwd()
 	const inputDirPath = path.resolve(root, srcFolder)
 	const outputDirPath = path.resolve(root, destFolder)
 	const tsconfigPath = tsconfig ? path.resolve(root, tsconfig) : ""
 
-	const typeFiles = findTypeFiles(inputDirPath, isFrappeUI, skipFolders)
+	const typeFiles = findTypeFiles(inputDirPath, folderScan, skipFolders)
 
 	let config = {
 		skipTypeCheck: true,
@@ -44,11 +44,11 @@ function tsToJSON(srcFolder: string, destFolder: string, skipFolders: string[] |
 	}
 }
 
-function findTypeFiles(dir: string, isFrappeUI: boolean, skipFolders: string[] | null = null): Array<{ filePath: string; componentName: string }> {
+function findTypeFiles(dir: string, folderScan: boolean, skipFolders: string[] | null = null): Array<{ filePath: string; componentName: string }> {
 	const typeFiles: Array<{ filePath: string; componentName: string }> = []
 
-	if (isFrappeUI) {
-		// frappe-ui structure: types.ts files in subdirectories of components
+	if (folderScan) {
+		// component-per-folder structure: types.ts files in subdirectories of components
 		function scanDirectory(currentDir: string) {
 			const items = fs.readdirSync(currentDir, { withFileTypes: true })
 			for (const item of items) {
@@ -58,7 +58,9 @@ function findTypeFiles(dir: string, isFrappeUI: boolean, skipFolders: string[] |
 						continue
 					}
 					scanDirectory(fullPath)
-				} else if (item.isFile() && item.name === "types.ts") {
+				} else if (item.isFile() && item.name === "types.ts" && currentDir !== dir) {
+					// skip a shared `types.ts` sitting directly in the components root
+					// (it is not a component, e.g. @framework/ui's cross-component types)
 					const componentName = path.basename(path.dirname(fullPath))
 					typeFiles.push({ filePath: fullPath, componentName })
 				}

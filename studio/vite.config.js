@@ -6,13 +6,13 @@ import { getViteDevServerPort } from "./vite/utils"
 import sharedDependencyResolver from "./vite/sharedDependencyResolver"
 import studioFolderWatcher from "./vite/studioFolderWatcher"
 import studioRootAlias from "./vite/studioRootAlias"
+import frameworkUIAlias from "./vite/frameworkUIAlias"
 
 const viteDevServerPort = getViteDevServerPort()
 const appsDir = path.resolve(__dirname, "../../")
 // Each exported studio app carries a tsconfig.json (for the @app/ alias). Ignore changes to these files to avoid unnecessary HMR reloads.
 const isStudioAppTsconfig = (file) =>
 	/^[^/]+\/studio\/[^/]+\/tsconfig\.json$/.test(path.relative(appsDir, file).replace(/\\/g, "/"))
-
 
 // https://vitejs.dev/config/
 export default defineConfig({
@@ -50,9 +50,7 @@ export default defineConfig({
 		studioFolderWatcher(appsDir),
 	],
 	resolve: {
-		alias: {
-			"@": path.resolve(__dirname, "src"),
-		},
+		alias: [...frameworkUIAlias(appsDir), { find: "@", replacement: path.resolve(__dirname, "src") }],
 	},
 	build: {
 		rolldownOptions: {

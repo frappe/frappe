@@ -10,7 +10,22 @@ const configMap: Record<string, any> = {
 		],
 		destFolder: "src/json_types/frappeui",
 		tsconfigPath: "../node_modules/frappe-ui/tsconfig.base.json",
-		skipFolders: ["drive"]
+		// Filter and Link now ship from @framework/ui (see the frameworkui config),
+		// so skip the frappe-ui/frappe versions to avoid duplicate json_types exports.
+		skipFolders: ["drive", "Filter", "Link"],
+		// component-per-folder layout: scan for `types.ts`, key by folder name
+		folderScan: true,
+	},
+	// @framework/ui (apps/frappe/ui). Same component-per-folder layout as frappe-ui.
+	// Coverage is partial: only components that export a `<Folder>Props` interface
+	// are extracted; those using inline `defineProps<{…}>` fall back to the runtime
+	// props Vue derives at compile time.
+	frameworkui: {
+		srcFolders: ["../../frappe/ui/src/components"],
+		destFolder: "src/json_types/frameworkui",
+		tsconfigPath: "../node_modules/frappe-ui/tsconfig.base.json",
+		skipFolders: ["stories"],
+		folderScan: true,
 	},
 	studio: {
 		srcFolders: ["src/types/studio_components"],
@@ -30,9 +45,9 @@ if (!moduleName || !configMap[moduleName]) {
 }
 
 /* 1. Generate JSON types */
-const { srcFolders, destFolder, tsconfigPath, skipFolders } = configMap[moduleName]
+const { srcFolders, destFolder, tsconfigPath, skipFolders, folderScan } = configMap[moduleName]
 srcFolders.forEach((srcFolder: string) => {
-	tsToJSON(srcFolder, destFolder, skipFolders, tsconfigPath, moduleName === "frappeui")
+	tsToJSON(srcFolder, destFolder, skipFolders, tsconfigPath, Boolean(folderScan))
 })
 
 /* 2. Update index file */

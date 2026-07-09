@@ -49,11 +49,33 @@ import {
 	DonutChart,
 	ContextMenu,
 	Duration,
-	Pill,
 	Spinner,
 } from "frappe-ui"
 import { CodeEditor } from "frappe-ui/code-editor"
-import { Filter, Link } from "frappe-ui/frappe"
+
+// @framework/ui (the in-house shared component library from apps/frappe/ui).
+// Filter and Link live here now, replacing the older frappe-ui/frappe versions.
+import {
+	FormLayout,
+	Link,
+	Grid,
+	Phone,
+	TableMultiSelect,
+	NotificationPanel,
+	NotificationItem,
+	ActivityTimeline,
+	EmailItem,
+	CommentItem,
+	LogItem,
+	VersionItem,
+	InviteUser,
+} from "@framework/ui"
+import { Filter } from "@framework/ui/Filter"
+import { SortBy } from "@framework/ui/SortBy"
+import { QuickFilter } from "@framework/ui/QuickFilter"
+import { ColumnSettings } from "@framework/ui/ColumnSettings"
+import { ListViewShell } from "@framework/ui/ListView"
+import { FileUploadDialog, AttachmentsList, UploadTray } from "@framework/ui/FileUpload"
 
 import Container from "@/components/AppLayout/Container.vue"
 import FitContainer from "@/components/AppLayout/FitContainer.vue"
@@ -91,11 +113,9 @@ export function registerGlobalComponents(app: App) {
 	app.component("ErrorMessage", ErrorMessage)
 	app.component("FeatherIcon", FeatherIcon)
 	app.component("FileUploader", FileUploader)
-	app.component("Filter", Filter)
 	app.component("FormControl", FormControl)
 	app.component("FormLabel", FormLabel)
 	app.component("Input", Input)
-	app.component("Link", Link)
 	app.component("ListItem", ListItem)
 	app.component("ListView", ListView)
 	app.component("LoadingIndicator", LoadingIndicator)
@@ -125,8 +145,30 @@ export function registerGlobalComponents(app: App) {
 	app.component("CodeEditor", CodeEditor)
 	app.component("ContextMenu", ContextMenu)
 	app.component("Duration", Duration)
-	app.component("Pill", Pill)
 	app.component("Spinner", Spinner)
+
+	// @framework/ui components
+	app.component("FormLayout", FormLayout)
+	app.component("Link", Link)
+	app.component("Grid", Grid)
+	app.component("Phone", Phone)
+	app.component("TableMultiSelect", TableMultiSelect)
+	app.component("NotificationPanel", NotificationPanel)
+	app.component("NotificationItem", NotificationItem)
+	app.component("ActivityTimeline", ActivityTimeline)
+	app.component("EmailItem", EmailItem)
+	app.component("CommentItem", CommentItem)
+	app.component("LogItem", LogItem)
+	app.component("VersionItem", VersionItem)
+	app.component("InviteUser", InviteUser)
+	app.component("Filter", Filter)
+	app.component("SortBy", SortBy)
+	app.component("QuickFilter", QuickFilter)
+	app.component("ColumnSettings", ColumnSettings)
+	app.component("ListViewShell", ListViewShell)
+	app.component("FileUploadDialog", FileUploadDialog)
+	app.component("AttachmentsList", AttachmentsList)
+	app.component("UploadTray", UploadTray)
 
 	// studio components
 	app.component("Container", Container)

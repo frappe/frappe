@@ -6,5 +6,5 @@
 // biome-ignore lint: disable
 export {}
 declare global {
-
+  const LucideGrid3x3: typeof import('~icons/lucide/grid3x3')['default']
 }
