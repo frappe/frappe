@@ -3,7 +3,7 @@ msgstr ""
 "Project-Id-Version: frappe\n"
 "Report-Msgid-Bugs-To: developers@frappe.io\n"
 "POT-Creation-Date: 2026-06-24 16:55+0000\n"
-"PO-Revision-Date: 2026-06-28 21:07\n"
+"PO-Revision-Date: 2026-07-05 21:52\n"
 "Last-Translator: developers@frappe.io\n"
 "Language-Team: Portuguese\n"
 "MIME-Version: 1.0\n"
@@ -4681,7 +4681,7 @@ msgstr ""
 #. Name of a DocType
 #: frappe/desk/doctype/changelog_feed/changelog_feed.json
 msgid "Changelog Feed"
-msgstr "Feed de Registo de Alterações"
+msgstr ""
 
 #: frappe/email/doctype/email_domain/email_domain.js:5
 msgid "Changing any setting will reflect on all the email accounts associated with this domain."
@@ -11284,7 +11284,7 @@ msgstr ""
 
 #: frappe/public/js/frappe/ui/theme_switcher.js:59
 msgid "Frappe Light"
-msgstr "Frappe Claro"
+msgstr ""
 
 #. Label of a standard help item
 #. Type: Route
@@ -13370,7 +13370,7 @@ msgstr "Cor do indicador"
 #: frappe/public/js/frappe/views/workspace/workspace.js:1012
 #: frappe/public/js/frappe/views/workspace/workspace.js:1256
 msgid "Indicator color"
-msgstr "Cor do indicador"
+msgstr ""
 
 #. Option for the 'Comment Type' (Select) field in DocType 'Comment'
 #. Option for the 'Comment Type' (Select) field in DocType 'Communication'
@@ -13447,7 +13447,7 @@ msgstr ""
 #: frappe/public/js/frappe/ui/toolbar/search_utils.js:694
 #: frappe/public/js/frappe/ui/toolbar/search_utils.js:695
 msgid "Install {0} from Marketplace"
-msgstr "Instalar {0} a partir do Marketplace"
+msgstr ""
 
 #. Name of a DocType
 #: frappe/core/doctype/installed_application/installed_application.json
@@ -15588,7 +15588,7 @@ msgstr "Entrar com link de e-mail"
 
 #: frappe/www/login.html:115
 msgid "Login with Frappe Cloud"
-msgstr "Entrar com Frappe Cloud"
+msgstr ""
 
 #: frappe/www/login.html:48
 msgid "Login with LDAP"
@@ -20119,7 +20119,7 @@ msgstr "Código postal"
 #. Label of a Datetime field in DocType 'Changelog Feed'
 #: frappe/desk/doctype/changelog_feed/changelog_feed.json
 msgid "Posting Timestamp"
-msgstr "Carimbo de data/hora da publicação"
+msgstr ""
 
 #. Group in Blog Category's connections
 #: frappe/website/doctype/blog_category/blog_category.json
@@ -27031,7 +27031,7 @@ msgstr "Não existem dados para exportar"
 
 #: frappe/public/js/frappe/ui/notifications/notifications.js:493
 msgid "There is nothing new to show you right now."
-msgstr "Não há nada de novo para lhe mostrar neste momento."
+msgstr ""
 
 #: frappe/core/doctype/file/file.py:648 frappe/utils/file_manager.py:375
 msgid "There is some problem with the file url: {0}"
@@ -27519,7 +27519,7 @@ msgstr "Tempo Esgotado"
 
 #: frappe/public/js/frappe/ui/theme_switcher.js:64
 msgid "Timeless Night"
-msgstr "Noite intemporal"
+msgstr ""
 
 #. Label of a Check field in DocType 'User'
 #: frappe/core/doctype/user/user.json
@@ -29727,7 +29727,7 @@ msgstr ""
 
 #: frappe/desk/doctype/workspace/workspace.js:36
 msgid "We do not allow editing of this document. Simply click the Edit button on the workspace page to make your workspace editable and customize it as you wish"
-msgstr "Não é permitida a edição deste documento. Basta clicar no botão Editar na página do espaço de trabalho para tornar o seu espaço de trabalho editável e personalizá-lo como desejar"
+msgstr ""
 
 #: frappe/templates/emails/delete_data_confirmation.html:2
 msgid "We have received a request for deletion of {0} data associated with: {1}"
@@ -30137,7 +30137,7 @@ msgstr "Bem-vindo a {0}"
 
 #: frappe/public/js/frappe/ui/notifications/notifications.js:62
 msgid "What's New"
-msgstr "Novidades"
+msgstr ""
 
 #. Description of the 'Allow Guests to Upload Files' (Check) field in DocType
 #. 'System Settings'

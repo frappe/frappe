@@ -3,7 +3,7 @@ msgstr ""
 "Project-Id-Version: frappe\n"
 "Report-Msgid-Bugs-To: developers@frappe.io\n"
 "POT-Creation-Date: 2026-06-24 16:55+0000\n"
-"PO-Revision-Date: 2026-06-28 21:07\n"
+"PO-Revision-Date: 2026-07-05 21:52\n"
 "Last-Translator: developers@frappe.io\n"
 "Language-Team: Persian\n"
 "MIME-Version: 1.0\n"
@@ -15589,7 +15589,7 @@ msgstr "با لینک ایمیل وارد شوید"
 
 #: frappe/www/login.html:115
 msgid "Login with Frappe Cloud"
-msgstr "ورود با Frappe Cloud"
+msgstr ""
 
 #: frappe/www/login.html:48
 msgid "Login with LDAP"

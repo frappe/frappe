@@ -3,7 +3,7 @@ msgstr ""
 "Project-Id-Version: frappe\n"
 "Report-Msgid-Bugs-To: developers@frappe.io\n"
 "POT-Creation-Date: 2026-06-24 16:55+0000\n"
-"PO-Revision-Date: 2026-06-28 21:06\n"
+"PO-Revision-Date: 2026-07-05 21:52\n"
 "Last-Translator: developers@frappe.io\n"
 "Language-Team: Spanish\n"
 "MIME-Version: 1.0\n"
@@ -4719,7 +4719,7 @@ msgstr "Cambiar el número de secuencia inicial/actual de una serie existente. <
 #. Name of a DocType
 #: frappe/desk/doctype/changelog_feed/changelog_feed.json
 msgid "Changelog Feed"
-msgstr "Fuente de registro de cambios"
+msgstr ""
 
 #: frappe/email/doctype/email_domain/email_domain.js:5
 msgid "Changing any setting will reflect on all the email accounts associated with this domain."
@@ -15628,7 +15628,7 @@ msgstr "Iniciar sesión con enlace de correo"
 
 #: frappe/www/login.html:115
 msgid "Login with Frappe Cloud"
-msgstr "Iniciar sesión con Frappe Cloud"
+msgstr ""
 
 #: frappe/www/login.html:48
 msgid "Login with LDAP"
@@ -24869,7 +24869,7 @@ msgstr "Mostrar lista de procesos"
 
 #: frappe/core/doctype/error_log/error_log.js:9
 msgid "Show Related Errors"
-msgstr "Mostrar errores relacionados"
+msgstr ""
 
 #. Label of a Button field in DocType 'Access Log'
 #: frappe/core/doctype/access_log/access_log.json
@@ -27074,7 +27074,7 @@ msgstr "No hay datos para exportar"
 
 #: frappe/public/js/frappe/ui/notifications/notifications.js:493
 msgid "There is nothing new to show you right now."
-msgstr "No hay nada nuevo que mostrarle en este momento."
+msgstr ""
 
 #: frappe/core/doctype/file/file.py:648 frappe/utils/file_manager.py:375
 msgid "There is some problem with the file url: {0}"

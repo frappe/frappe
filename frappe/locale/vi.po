@@ -3,7 +3,7 @@ msgstr ""
 "Project-Id-Version: frappe\n"
 "Report-Msgid-Bugs-To: developers@frappe.io\n"
 "POT-Creation-Date: 2026-06-24 16:55+0000\n"
-"PO-Revision-Date: 2026-06-28 21:07\n"
+"PO-Revision-Date: 2026-07-05 21:52\n"
 "Last-Translator: developers@frappe.io\n"
 "Language-Team: Vietnamese\n"
 "MIME-Version: 1.0\n"
@@ -13370,7 +13370,7 @@ msgstr "Màu chỉ thị"
 #: frappe/public/js/frappe/views/workspace/workspace.js:1012
 #: frappe/public/js/frappe/views/workspace/workspace.js:1256
 msgid "Indicator color"
-msgstr "Màu chỉ thị"
+msgstr ""
 
 #. Option for the 'Comment Type' (Select) field in DocType 'Comment'
 #. Option for the 'Comment Type' (Select) field in DocType 'Communication'
@@ -13447,7 +13447,7 @@ msgstr "Instagram"
 #: frappe/public/js/frappe/ui/toolbar/search_utils.js:694
 #: frappe/public/js/frappe/ui/toolbar/search_utils.js:695
 msgid "Install {0} from Marketplace"
-msgstr "Cài đặt {0} từ Marketplace"
+msgstr ""
 
 #. Name of a DocType
 #: frappe/core/doctype/installed_application/installed_application.json
@@ -15588,7 +15588,7 @@ msgstr "Đăng nhập bằng liên kết email"
 
 #: frappe/www/login.html:115
 msgid "Login with Frappe Cloud"
-msgstr "Đăng nhập bằng Frappe Cloud"
+msgstr ""
 
 #: frappe/www/login.html:48
 msgid "Login with LDAP"
@@ -20119,7 +20119,7 @@ msgstr "Mã Bưu Chính"
 #. Label of a Datetime field in DocType 'Changelog Feed'
 #: frappe/desk/doctype/changelog_feed/changelog_feed.json
 msgid "Posting Timestamp"
-msgstr "Dấu thời gian đăng bài"
+msgstr ""
 
 #. Group in Blog Category's connections
 #: frappe/website/doctype/blog_category/blog_category.json
@@ -24826,7 +24826,7 @@ msgstr "Hiển thị danh sách quá trình"
 
 #: frappe/core/doctype/error_log/error_log.js:9
 msgid "Show Related Errors"
-msgstr "Hiển thị các lỗi liên quan"
+msgstr ""
 
 #. Label of a Button field in DocType 'Access Log'
 #: frappe/core/doctype/access_log/access_log.json
@@ -27031,7 +27031,7 @@ msgstr "Không có dữ liệu nào được xuất"
 
 #: frappe/public/js/frappe/ui/notifications/notifications.js:493
 msgid "There is nothing new to show you right now."
-msgstr "Không có gì mới để cho bạn thấy ngay bây giờ."
+msgstr ""
 
 #: frappe/core/doctype/file/file.py:648 frappe/utils/file_manager.py:375
 msgid "There is some problem with the file url: {0}"
@@ -27519,7 +27519,7 @@ msgstr "Đã hết thời gian"
 
 #: frappe/public/js/frappe/ui/theme_switcher.js:64
 msgid "Timeless Night"
-msgstr "Đêm vượt thời gian"
+msgstr ""
 
 #. Label of a Check field in DocType 'User'
 #: frappe/core/doctype/user/user.json
@@ -29727,7 +29727,7 @@ msgstr ""
 
 #: frappe/desk/doctype/workspace/workspace.js:36
 msgid "We do not allow editing of this document. Simply click the Edit button on the workspace page to make your workspace editable and customize it as you wish"
-msgstr "Chúng tôi không cho phép chỉnh sửa tài liệu này. Chỉ cần nhấp nút Chỉnh sửa trên trang workspace để làm cho workspace của bạn có thể chỉnh sửa và tùy chỉnh theo ý muốn"
+msgstr ""
 
 #: frappe/templates/emails/delete_data_confirmation.html:2
 msgid "We have received a request for deletion of {0} data associated with: {1}"
@@ -30137,7 +30137,7 @@ msgstr "Chào mừng đến với {0}"
 
 #: frappe/public/js/frappe/ui/notifications/notifications.js:62
 msgid "What's New"
-msgstr "Có gì mới"
+msgstr ""
 
 #. Description of the 'Allow Guests to Upload Files' (Check) field in DocType
 #. 'System Settings'

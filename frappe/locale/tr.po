@@ -3,7 +3,7 @@ msgstr ""
 "Project-Id-Version: frappe\n"
 "Report-Msgid-Bugs-To: developers@frappe.io\n"
 "POT-Creation-Date: 2026-06-24 16:55+0000\n"
-"PO-Revision-Date: 2026-06-28 21:07\n"
+"PO-Revision-Date: 2026-07-05 21:52\n"
 "Last-Translator: developers@frappe.io\n"
 "Language-Team: Turkish\n"
 "MIME-Version: 1.0\n"
@@ -13485,7 +13485,7 @@ msgstr ""
 #: frappe/public/js/frappe/ui/toolbar/search_utils.js:694
 #: frappe/public/js/frappe/ui/toolbar/search_utils.js:695
 msgid "Install {0} from Marketplace"
-msgstr "{0} Uygulamasını Marketplace aracılığıyla Yükle"
+msgstr ""
 
 #. Name of a DocType
 #: frappe/core/doctype/installed_application/installed_application.json
@@ -27560,7 +27560,7 @@ msgstr "Zaman Aşımı"
 
 #: frappe/public/js/frappe/ui/theme_switcher.js:64
 msgid "Timeless Night"
-msgstr "Koyu Tema"
+msgstr ""
 
 #. Label of a Check field in DocType 'User'
 #: frappe/core/doctype/user/user.json
