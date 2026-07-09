@@ -1056,10 +1056,10 @@ def _try_render_simple_criterion(
 	**kwargs: Any,
 ) -> str | None:
 	if isinstance(criterion, ComplexCriterion):
-		left = _try_render_simple_criterion(
+		left = _render_criterion_part(
 			criterion.left, quote_char=quote_char, with_namespace=with_namespace, **kwargs
 		)
-		right = _try_render_simple_criterion(
+		right = _render_criterion_part(
 			criterion.right, quote_char=quote_char, with_namespace=with_namespace, **kwargs
 		)
 		if left is None or right is None:
@@ -1088,6 +1088,17 @@ def _try_render_simple_criterion(
 		return f"{term} IS NULL"
 
 	return None
+
+
+def _render_criterion_part(
+	criterion: Term,
+	quote_char: str | None = "`",
+	with_namespace: bool = False,
+	**kwargs: Any,
+) -> str | None:
+	return _try_render_simple_criterion(
+		criterion, quote_char=quote_char, with_namespace=with_namespace, **kwargs
+	) or criterion.get_sql(quote_char=quote_char, subquery=True, with_namespace=with_namespace, **kwargs)
 
 
 def _try_render_simple_tuple(

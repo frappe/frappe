@@ -207,6 +207,23 @@ class TestRustQueryBuilderProxy(unittest.TestCase):
 		)
 		self.assertEqual(params.parameters, {"param1": "System Manager"})
 
+	def test_mixed_simple_where_and_exists_sql(self):
+		user = frappe.qb.DocType("User")
+		has_role = frappe.qb.DocType("Has Role")
+		child_query = (
+			frappe.qb.from_(has_role)
+			.select(has_role.name)
+			.where((has_role.parent == user.name) & (has_role.role == "System Manager"))
+		)
+
+		self.assertEqual(
+			frappe.qb.from_(user)
+			.select(user.name)
+			.where((user.enabled == 1) & ExistsCriterion(child_query))
+			.get_sql(),
+			"SELECT `name` FROM `tabUser` WHERE `enabled`=1 AND EXISTS (SELECT `tabHas Role`.`name` FROM `tabHas Role` WHERE `tabHas Role`.`parent`=`tabUser`.`name` AND `tabHas Role`.`role`='System Manager')",
+		)
+
 	def test_join_parameter_wrapper_is_preserved(self):
 		user = frappe.qb.DocType("User")
 		has_role = frappe.qb.DocType("Has Role")
