@@ -18,12 +18,16 @@ export interface Tracker {
 	cleanup: () => void
 }
 
-function trackTarget(target: HTMLElement | SVGElement, host: HTMLElement, canvasProps: CanvasProps): Tracker {
-	const targetBounds = reactive(useElementBounding(target));
-	const container = target.closest(".canvas-container");
+type Target = HTMLElement | SVGElement
+
+function trackTarget(target: Target | Target[], host: HTMLElement, canvasProps: CanvasProps): Tracker {
+	const targets = Array.isArray(target) ? target : [target];
+	const boundsList = targets.map((el) => reactive(useElementBounding(el)));
+	const update = () => boundsList.forEach((bounds) => bounds.update());
+	const container = targets[0]?.closest(".canvas-container");
 	// TODO: too much? find a better way to track changes
-	updateList.push(targetBounds.update);
-	const stopWatch = watch(canvasProps, () => nextTick(targetBounds.update), { deep: true })
+	updateList.push(update);
+	const stopWatch = watch(canvasProps, () => nextTick(update), { deep: true })
 
 	if (!window.observer) {
 		let callback = () => {
@@ -43,14 +47,19 @@ function trackTarget(target: HTMLElement | SVGElement, host: HTMLElement, canvas
 	}
 
 	const stopEffect = watchEffect(() => {
-		host.style.width = numberToPx(targetBounds.width, false)
-		host.style.height = numberToPx(targetBounds.height, false)
-		host.style.top = numberToPx(targetBounds.top, false)
-		host.style.left = numberToPx(targetBounds.left, false)
+		// span the union bounding box so a slot with multiple top-level blocks is fully covered
+		const top = Math.min(...boundsList.map((bounds) => bounds.top))
+		const left = Math.min(...boundsList.map((bounds) => bounds.left))
+		const right = Math.max(...boundsList.map((bounds) => bounds.right))
+		const bottom = Math.max(...boundsList.map((bounds) => bounds.bottom))
+		host.style.width = numberToPx(right - left, false)
+		host.style.height = numberToPx(bottom - top, false)
+		host.style.top = numberToPx(top, false)
+		host.style.left = numberToPx(left, false)
 	});
 
 	const cleanup = () => {
-		const index = updateList.indexOf(targetBounds.update)
+		const index = updateList.indexOf(update)
 		if (index > -1) {
 			updateList.splice(index, 1)
 		}
@@ -59,7 +68,7 @@ function trackTarget(target: HTMLElement | SVGElement, host: HTMLElement, canvas
 	};
 
 	return {
-		update: targetBounds.update,
+		update,
 		cleanup,
 	}
 }

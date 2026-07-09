@@ -256,32 +256,30 @@ const setSlotOverlayRefs = (slotName: string, element: HTMLElement | null) => {
 const updateSlotOverlayRefs = () => {
 	if (!props.target) return
 
-	// Find all slot elements within the target
+	const slotIDs = new Set(Object.values(props.block.componentSlots).map((slot) => slot.slotId))
 	const slotElements = props.target.querySelectorAll("[data-slot-name]")
-	const handledSlots = new Set<string>()
+	const elementsBySlot: Record<string, HTMLElement[]> = {}
 
-	slotElements.forEach((element) => {
-		const slotName = (element as HTMLElement).dataset.slotName
-		if (!slotName || !slotOverlays.value[slotName]) return
+	slotElements.forEach((el) => {
+		const element = el as HTMLElement
+		const slotName = element.dataset.slotName
+		const slotId = element.dataset.slotId
+		if (!slotName || !slotId || !slotIDs.has(slotId) || !slotOverlays.value[slotName]) return
 
-		handledSlots.add(slotName)
+		if (!elementsBySlot[slotName]) elementsBySlot[slotName] = []
+		elementsBySlot[slotName].push(element)
+	})
 
+	Object.entries(elementsBySlot).forEach(([slotName, elements]) => {
 		// always clean up existing tracker and create a new one since underlying
 		// slot elements might completely change, unlike the main component editor
-		if (slotTrackers.value[slotName]) {
-			slotTrackers.value[slotName].cleanup()
-		}
-
-		slotTrackers.value[slotName] = trackTarget(
-			element as HTMLElement,
-			slotOverlays.value[slotName],
-			canvasProps,
-		)
+		slotTrackers.value[slotName]?.cleanup()
+		slotTrackers.value[slotName] = trackTarget(elements, slotOverlays.value[slotName], canvasProps)
 	})
 
 	// Clean up trackers for removed slots
 	Object.keys(slotTrackers.value).forEach((slotName) => {
-		if (!handledSlots.has(slotName)) {
+		if (!elementsBySlot[slotName]) {
 			slotTrackers.value[slotName].cleanup()
 			delete slotTrackers.value[slotName]
 		}
