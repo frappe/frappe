@@ -20,6 +20,7 @@ from pypika.terms import (
 	Star,
 	Term,
 	Tuple,
+	ValueWrapper,
 )
 
 ENV_ENABLE_RUST_QB = "FRAPPE_QUERY_BUILDER_RUST"
@@ -30,6 +31,7 @@ _ORIGINAL_INTO_ATTR = "_frappe_python_into"
 _ORIGINAL_UPDATE_ATTR = "_frappe_python_update"
 
 SIMPLE_FUNCTIONS = frozenset(("COALESCE", "IFNULL", "CONCAT", "NULLIF"))
+SUPPORTED_LITERAL_TYPES = (str, bool, int, float)
 
 
 def is_enabled() -> bool:
@@ -1161,7 +1163,7 @@ def _plain_select_fields(selects: Sequence[Any], table: Table) -> list[str] | No
 
 
 def _is_supported_literal(value: Any) -> bool:
-	return value is None or isinstance(value, str | bool | int | float)
+	return value is None or isinstance(value, SUPPORTED_LITERAL_TYPES)
 
 
 def _wrap_constant(query_cls: type, value: Any) -> Term:
@@ -1232,7 +1234,9 @@ def _is_simple_function(term: Function) -> bool:
 
 
 def _is_simple_function_arg(arg: Any) -> bool:
-	return isinstance(arg, Field) or (hasattr(arg, "value") and _is_supported_literal(arg.value))
+	return isinstance(arg, Field) or (
+		isinstance(arg, ValueWrapper) and arg.alias is None and _is_supported_literal(arg.value)
+	)
 
 
 def _render_where(
@@ -1319,7 +1323,7 @@ def _try_render_simple_tuple(
 def _try_render_literal_tuple(term: Tuple) -> str | None:
 	values = []
 	for value in term.values:
-		if not hasattr(value, "value") or getattr(value, "alias", None) is not None:
+		if not isinstance(value, ValueWrapper) or value.alias is not None:
 			return None
 		raw_value = value.value
 		if not _is_supported_literal(raw_value):
@@ -1338,7 +1342,7 @@ def _try_render_simple_value(
 			term, quote_char=quote_char, with_namespace=kwargs.get("with_namespace", False)
 		)
 
-	if hasattr(term, "value") and getattr(term, "alias", None) is None:
+	if isinstance(term, ValueWrapper) and term.alias is None:
 		value = term.value
 		if kwargs.get("param_wrapper") is not None and isinstance(value, str):
 			return kwargs["param_wrapper"].get_sql(value)
