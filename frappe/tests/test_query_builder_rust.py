@@ -117,6 +117,35 @@ class TestRustQueryBuilderProxy(unittest.TestCase):
 			),
 		)
 
+	def test_get_query_simple_in_filter_uses_prepared_raw_query(self):
+		query = frappe.qb.get_query(
+			"DocField",
+			fields=["parent", "fieldname", "fieldtype"],
+			filters={"fieldtype": ("in", ["Data", "Link", "Select"])},
+			order_by="parent asc, idx asc",
+			limit=50,
+		)
+
+		self.assertEqual(
+			query.get_sql(),
+			"SELECT `parent`,`fieldname`,`fieldtype` FROM `tabDocField` WHERE `fieldtype` IN ('Data','Link','Select') ORDER BY `parent` ASC,`idx` ASC LIMIT 50",
+		)
+		self.assertEqual(
+			query.walk(),
+			(
+				"SELECT `parent`,`fieldname`,`fieldtype` FROM `tabDocField` WHERE `fieldtype` IN (%(param1)s,%(param2)s,%(param3)s) ORDER BY `parent` ASC,`idx` ASC LIMIT 50",
+				{"param1": "Data", "param2": "Link", "param3": "Select"},
+			),
+		)
+
+	def test_get_query_simple_list_filter_uses_prepared_raw_query(self):
+		query = frappe.qb.get_query("User", fields=["name"], filters=[["enabled", "=", 1]], limit=1)
+
+		self.assertEqual(
+			query.walk(),
+			("SELECT `name` FROM `tabUser` WHERE `enabled`=%(param1)s LIMIT 1", {"param1": 1}),
+		)
+
 	def test_groupby_sql(self):
 		table = frappe.qb.DocType("Role")
 

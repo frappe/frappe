@@ -48,6 +48,8 @@ SIMPLE_SQL_OPERATORS = {
 	"<=": "<=",
 	"like": "LIKE",
 	"not like": "NOT LIKE",
+	"in": "IN",
+	"not in": "NOT IN",
 }
 
 
@@ -490,11 +492,27 @@ class Engine:
 	def _try_parse_fast_select_filters(self, filters) -> list[tuple[str, str, Any]] | None:
 		if filters is None:
 			return []
-		if not isinstance(filters, dict):
+
+		if isinstance(filters, FilterValue):
+			filters = {"name": convert_to_value(filters)}.items()
+		elif isinstance(filters, dict):
+			filters = filters.items()
+		elif isinstance(filters, list | tuple):
+			if not filters:
+				return []
+			if all(isinstance(d, FilterValue) for d in filters):
+				filters = [("name", ("in", tuple(convert_to_value(f) for f in filters)))]
+			elif all(isinstance(filter_item, list | tuple) for filter_item in filters):
+				filters = [self._normalize_fast_list_filter(filter_item) for filter_item in filters]
+				if any(filter_item is None for filter_item in filters):
+					return None
+			else:
+				return None
+		else:
 			return None
 
 		filter_specs = []
-		for field, filter_value in filters.items():
+		for field, filter_value in filters:
 			if not isinstance(field, str) or not SIMPLE_FIELD_PATTERN.match(field):
 				return None
 
@@ -512,6 +530,19 @@ class Engine:
 				return None
 
 			value = convert_to_value(value)
+			if sql_operator in ("IN", "NOT IN"):
+				if not isinstance(value, list | tuple):
+					return None
+				if not value:
+					return None
+				if any(
+					isinstance(v, Document | datetime.date | datetime.datetime | list | tuple | set)
+					for v in value
+				):
+					return None
+				filter_specs.append((field, sql_operator, value))
+				continue
+
 			if (
 				isinstance(value, Document | datetime.date | datetime.datetime | list | tuple | set)
 				or value is None
@@ -521,6 +552,19 @@ class Engine:
 			filter_specs.append((field, sql_operator, value))
 
 		return filter_specs
+
+	def _normalize_fast_list_filter(self, filter_item) -> tuple[str, Any] | None:
+		match filter_item:
+			case [field, value]:
+				return field, value
+			case [field, operator, value]:
+				return field, (operator, value)
+			case [doctype, field, operator, value] if doctype == self.doctype:
+				return field, (operator, value)
+			case [doctype, field, operator, value, _] if doctype == self.doctype:
+				return field, (operator, value)
+			case _:
+				return None
 
 	def _try_parse_fast_order_by(self, order_by: str | None) -> list[tuple[str, str]] | None:
 		if not order_by:

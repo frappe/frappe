@@ -1,5 +1,5 @@
 use pyo3::prelude::*;
-use pyo3::types::{PyBool, PyDict, PyFloat, PyInt, PyString};
+use pyo3::types::{PyBool, PyDict, PyFloat, PyInt, PyList, PyString, PyTuple};
 
 fn quote_identifier(value: &str, quote_char: Option<&str>) -> String {
     match quote_char {
@@ -130,15 +130,38 @@ fn render_simple_select_query_sql(
     let mut literal_where_parts = Vec::with_capacity(filters.len());
     let mut prepared_where_parts = Vec::with_capacity(filters.len());
 
-    for (index, (field, operator, value)) in filters.iter().enumerate() {
+    let mut next_param = 1;
+    for (field, operator, value) in filters.iter() {
         let quoted_field = quote_identifier(field, quote_char);
-        let param_name = format!("param{}", index + 1);
-        literal_where_parts.push(format!(
-            "{quoted_field}{operator}{}",
-            render_literal(value.bind(py))?
-        ));
-        prepared_where_parts.push(format!("{quoted_field}{operator}%({param_name})s"));
-        params.set_item(&param_name, value.bind(py))?;
+        if operator == "IN" || operator == "NOT IN" {
+            let values = extract_sequence(value.bind(py))?;
+            let mut literal_values = Vec::with_capacity(values.len());
+            let mut prepared_values = Vec::with_capacity(values.len());
+            for item in values {
+                let param_name = format!("param{next_param}");
+                next_param += 1;
+                literal_values.push(render_literal(&item)?);
+                prepared_values.push(format!("%({param_name})s"));
+                params.set_item(&param_name, item)?;
+            }
+            literal_where_parts.push(format!(
+                "{quoted_field} {operator} ({})",
+                literal_values.join(",")
+            ));
+            prepared_where_parts.push(format!(
+                "{quoted_field} {operator} ({})",
+                prepared_values.join(",")
+            ));
+        } else {
+            let param_name = format!("param{next_param}");
+            next_param += 1;
+            literal_where_parts.push(format!(
+                "{quoted_field}{operator}{}",
+                render_literal(value.bind(py))?
+            ));
+            prepared_where_parts.push(format!("{quoted_field}{operator}%({param_name})s"));
+            params.set_item(&param_name, value.bind(py))?;
+        }
     }
 
     let rendered_orderbys = orderbys
@@ -172,6 +195,18 @@ fn render_simple_select_query_sql(
     );
 
     Ok((sql, prepared_sql, params.unbind()))
+}
+
+fn extract_sequence<'py>(value: &Bound<'py, PyAny>) -> PyResult<Vec<Bound<'py, PyAny>>> {
+    if let Ok(values) = value.cast::<PyList>() {
+        Ok(values.iter().collect())
+    } else if let Ok(values) = value.cast::<PyTuple>() {
+        Ok(values.iter().collect())
+    } else {
+        Err(pyo3::exceptions::PyTypeError::new_err(
+            "expected list or tuple value for IN filter",
+        ))
+    }
 }
 
 fn render_insert_sql(
