@@ -2,6 +2,7 @@
 # License: MIT. See LICENSE
 import frappe
 from frappe.core.doctype.user.user import get_system_users
+from frappe.desk.doctype.notification_log.notification_log import get_title
 from frappe.desk.form.assign_to import add as assign_task
 from frappe.tests import IntegrationTestCase
 
@@ -32,6 +33,11 @@ class TestNotificationLog(IntegrationTestCase):
 		email = get_last_email_queue()
 		content = f"Subject: {frappe.utils.get_fullname(frappe.session.user)} shared a document ToDo"
 		self.assertTrue(content in email.message)
+
+	def test_get_title_falls_back_to_docname_when_title_is_empty(self):
+		note = frappe.get_doc({"doctype": "Note", "title": "Notification title"}).insert()
+		frappe.db.set_value("Note", note.name, "title", None, update_modified=False)
+		self.assertEqual(get_title("Note", note.name), note.name)
 
 
 def get_last_email_queue():
