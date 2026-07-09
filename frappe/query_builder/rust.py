@@ -950,14 +950,29 @@ class RustUpdateQuery:
 		self._fallback_query: QueryBuilder | None = None
 
 	def __copy__(self):
+		return self._copy_with("_updates", "_raw_updates")
+
+	def _copy_with(self, *list_attrs: str):
 		new = type(self).__new__(type(self))
-		new.__dict__.update(self.__dict__)
-		new._updates = self._updates.copy()
-		new._raw_updates = None if self._raw_updates is None else self._raw_updates.copy()
+		new.query_cls = self.query_cls
+		new.table = self.table
+		new.original_update = self.original_update
+		new.immutable = self.immutable
+		new.quote_char = self.quote_char
+		new._updates = self._updates.copy() if "_updates" in list_attrs else self._updates
+		if self._raw_updates is None:
+			new._raw_updates = None
+		elif "_raw_updates" in list_attrs:
+			new._raw_updates = self._raw_updates.copy()
+		else:
+			new._raw_updates = self._raw_updates
+		new._updates_materialized = self._updates_materialized
+		new._where = self._where
+		new._fallback_query = self._fallback_query
 		return new
 
-	def _builder(self):
-		return self.__copy__() if self.immutable else self
+	def _builder(self, *list_attrs: str):
+		return self._copy_with(*list_attrs) if self.immutable else self
 
 	def set(self, field: Field | str, value: Any):
 		if self._fallback_query is not None:
@@ -966,7 +981,7 @@ class RustUpdateQuery:
 		if not isinstance(field, Field) or field.table not in (None, self.table):
 			return self._to_fallback().set(field, value)
 
-		builder = self._builder()
+		builder = self._builder("_updates", "_raw_updates")
 		if builder._raw_updates is not None and _is_supported_literal(value):
 			builder._raw_updates.append((field, field.name, value))
 			builder._updates_materialized = False
