@@ -87,7 +87,10 @@ def sync_dashboards(app=None):
 	apps = [app] if app else frappe.get_installed_apps()
 
 	for app_name in apps:
-		print(f"Updating Dashboard for {app_name}")
+		try:
+			print(f"Updating Dashboard for {app_name}")
+		except BrokenPipeError:
+			pass
 		for module_name in frappe.local.app_modules.get(app_name) or []:
 			frappe.flags.in_import = True
 			make_records_in_module(app_name, module_name)
