@@ -62,7 +62,6 @@ export const FRAMEWORK_UI_COMPONENTS = [
 	"CommentItem",
 	"LogItem",
 	"VersionItem",
-	"InviteUser",
 	"Filter",
 	"SortBy",
 	"QuickFilter",

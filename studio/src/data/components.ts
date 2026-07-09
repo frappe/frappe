@@ -1151,18 +1151,6 @@ export const COMPONENTS: FrappeUIComponents = {
 			},
 		},
 	},
-	InviteUser: {
-		name: "InviteUser",
-		title: "Invite User",
-		icon: LucideUserPlus,
-		initialState: {
-			roles: [
-				{ label: "System Manager", value: "System Manager" },
-				{ label: "Sales User", value: "Sales User" },
-			],
-			users: [],
-		},
-	},
 	SortBy: {
 		name: "SortBy",
 		title: "Sort By",

@@ -136,7 +136,6 @@ export function registerGlobalComponents(app: App) {
 	app.component("CommentItem", defineAsyncComponent(() => import("@framework/ui/components/ActivityTimeline/CommentItem.vue")))
 	app.component("LogItem", defineAsyncComponent(() => import("@framework/ui/components/ActivityTimeline/LogItem.vue")))
 	app.component("VersionItem", defineAsyncComponent(() => import("@framework/ui/components/ActivityTimeline/VersionItem.vue")))
-	app.component("InviteUser", defineAsyncComponent(() => import("@framework/ui/components/InviteUser/InviteUser.vue")))
 	app.component("Filter", defineAsyncComponent(() => import("@framework/ui/components/Filter/Filter.vue")))
 	app.component("SortBy", defineAsyncComponent(() => import("@framework/ui/components/SortBy/SortBy.vue")))
 	app.component("QuickFilter", defineAsyncComponent(() => import("@framework/ui/components/QuickFilter/QuickFilter.vue")))

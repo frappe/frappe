@@ -17,7 +17,6 @@ import path from "path"
 const NAMED_SUBPATHS = {
 	FormLayout: "components/FormLayout",
 	FileUpload: "components/FileUpload",
-	InviteUser: "components/InviteUser",
 	ListView: "components/ListView",
 	SortBy: "components/SortBy",
 	Filter: "components/Filter",
