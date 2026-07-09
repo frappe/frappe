@@ -47,11 +47,15 @@ def is_item_allowed(name, item_type, ctx):
 	item_type = item_type.lower()
 
 	if item_type == "doctype":
-		return (
-			name in (ctx.can_read or [])
-			and name in (ctx.restricted_doctypes or [])
-			and frappe.has_permission(name)
-		)
+		try:
+			return (
+				name in (ctx.can_read or [])
+				and name in (ctx.restricted_doctypes or [])
+				and frappe.has_permission(name)
+			)
+		except frappe.DoesNotExistError:
+			frappe.clear_last_message()
+			return False
 	if item_type == "page":
 		return name in ctx.allowed_pages and name in ctx.restricted_pages
 	if item_type == "report":
