@@ -1,17 +1,20 @@
 import path from "path"
 
-// reka-ui and dompurify are the extra singletons @framework/ui declares (see its
-// `./vite` dedupe plugin): its source is compiled in place from apps/frappe/ui, so
-// these must resolve to Studio's single copy too, not the sibling app's node_modules.
-const STUDIO_SHARED_DEPS = ["vue", "vue-router", "pinia", "frappe-ui", "reka-ui", "dompurify"]
+// reka-ui is a peerDependency of @framework/ui (like vue/vue-router/frappe-ui): a
+// provide/inject singleton the host provides, not installed in the app's own
+// node_modules. So @framework/ui source must resolve it to Studio's single copy —
+// unlike the app's real deps (dompurify/vuedraggable/leaflet) which are installed
+// under apps/frappe/ui and resolve by realpath.
+const STUDIO_SHARED_DEPS = ["vue", "vue-router", "pinia", "frappe-ui", "reka-ui"]
 /**
  * Vite plugin to redirect shared dependency imports from files outside the Studio
  * project (custom Vue components and @framework/ui source) to Studio's own
  * installations.
  *
- * These are singleton deps (vue, vue-router, frappe-ui, reka-ui, dompurify) that
- * must resolve from Studio to avoid duplicate instances. App-specific deps
- * resolve normally from the app's own node_modules.
+ * These are singleton deps (vue, vue-router, frappe-ui, reka-ui) that must resolve
+ * from Studio to avoid duplicate instances. App-specific deps (including
+ * @framework/ui's own dompurify/vuedraggable/leaflet) resolve normally from the
+ * app's own node_modules.
  */
 function sharedDependencyResolver(STUDIO_ROOT) {
 	return {

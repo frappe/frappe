@@ -53,30 +53,6 @@ import {
 } from "frappe-ui"
 import { CodeEditor } from "frappe-ui/code-editor"
 
-// @framework/ui (the in-house shared component library from apps/frappe/ui).
-// Filter and Link live here now, replacing the older frappe-ui/frappe versions.
-import {
-	FormLayout,
-	Link,
-	Grid,
-	Phone,
-	TableMultiSelect,
-	NotificationPanel,
-	NotificationItem,
-	ActivityTimeline,
-	EmailItem,
-	CommentItem,
-	LogItem,
-	VersionItem,
-	InviteUser,
-} from "@framework/ui"
-import { Filter } from "@framework/ui/Filter"
-import { SortBy } from "@framework/ui/SortBy"
-import { QuickFilter } from "@framework/ui/QuickFilter"
-import { ColumnSettings } from "@framework/ui/ColumnSettings"
-import { ListViewShell } from "@framework/ui/ListView"
-import { FileUploadDialog, AttachmentsList, UploadTray } from "@framework/ui/FileUpload"
-
 import Container from "@/components/AppLayout/Container.vue"
 import FitContainer from "@/components/AppLayout/FitContainer.vue"
 import SplitView from "@/components/AppLayout/SplitView.vue"
@@ -148,27 +124,27 @@ export function registerGlobalComponents(app: App) {
 	app.component("Spinner", Spinner)
 
 	// @framework/ui components
-	app.component("FormLayout", FormLayout)
-	app.component("Link", Link)
-	app.component("Grid", Grid)
-	app.component("Phone", Phone)
-	app.component("TableMultiSelect", TableMultiSelect)
-	app.component("NotificationPanel", NotificationPanel)
-	app.component("NotificationItem", NotificationItem)
-	app.component("ActivityTimeline", ActivityTimeline)
-	app.component("EmailItem", EmailItem)
-	app.component("CommentItem", CommentItem)
-	app.component("LogItem", LogItem)
-	app.component("VersionItem", VersionItem)
-	app.component("InviteUser", InviteUser)
-	app.component("Filter", Filter)
-	app.component("SortBy", SortBy)
-	app.component("QuickFilter", QuickFilter)
-	app.component("ColumnSettings", ColumnSettings)
-	app.component("ListViewShell", ListViewShell)
-	app.component("FileUploadDialog", FileUploadDialog)
-	app.component("AttachmentsList", AttachmentsList)
-	app.component("UploadTray", UploadTray)
+	app.component("FormLayout", defineAsyncComponent(() => import("@framework/ui/components/FormLayout/FormLayout.vue")))
+	app.component("Link", defineAsyncComponent(() => import("@framework/ui/components/Link/Link.vue")))
+	app.component("Grid", defineAsyncComponent(() => import("@framework/ui/components/Grid/Grid.vue")))
+	app.component("Phone", defineAsyncComponent(() => import("@framework/ui/components/Phone/Phone.vue")))
+	app.component("TableMultiSelect", defineAsyncComponent(() => import("@framework/ui/components/TableMultiSelect/TableMultiSelect.vue")))
+	app.component("NotificationPanel", defineAsyncComponent(() => import("@framework/ui/components/Notifications/NotificationPanel.vue")))
+	app.component("NotificationItem", defineAsyncComponent(() => import("@framework/ui/components/Notifications/NotificationItem.vue")))
+	app.component("ActivityTimeline", defineAsyncComponent(() => import("@framework/ui/components/ActivityTimeline/ActivityTimeline.vue")))
+	app.component("EmailItem", defineAsyncComponent(() => import("@framework/ui/components/ActivityTimeline/EmailItem.vue")))
+	app.component("CommentItem", defineAsyncComponent(() => import("@framework/ui/components/ActivityTimeline/CommentItem.vue")))
+	app.component("LogItem", defineAsyncComponent(() => import("@framework/ui/components/ActivityTimeline/LogItem.vue")))
+	app.component("VersionItem", defineAsyncComponent(() => import("@framework/ui/components/ActivityTimeline/VersionItem.vue")))
+	app.component("InviteUser", defineAsyncComponent(() => import("@framework/ui/components/InviteUser/InviteUser.vue")))
+	app.component("Filter", defineAsyncComponent(() => import("@framework/ui/components/Filter/Filter.vue")))
+	app.component("SortBy", defineAsyncComponent(() => import("@framework/ui/components/SortBy/SortBy.vue")))
+	app.component("QuickFilter", defineAsyncComponent(() => import("@framework/ui/components/QuickFilter/QuickFilter.vue")))
+	app.component("ColumnSettings", defineAsyncComponent(() => import("@framework/ui/components/ColumnSettings/ColumnSettings.vue")))
+	app.component("ListViewShell", defineAsyncComponent(() => import("@framework/ui/components/ListView/ListViewShell.vue")))
+	app.component("FileUploadDialog", defineAsyncComponent(() => import("@framework/ui/components/FileUpload/FileUploadDialog.vue")))
+	app.component("AttachmentsList", defineAsyncComponent(() => import("@framework/ui/components/FileUpload/AttachmentsList.vue")))
+	app.component("UploadTray", defineAsyncComponent(() => import("@framework/ui/components/FileUpload/UploadTray.vue")))
 
 	// studio components
 	app.component("Container", Container)
