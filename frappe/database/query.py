@@ -20,7 +20,7 @@ from frappe.database.utils import (
 	get_doctype_sort_info,
 )
 from frappe.model import CORE_DOCTYPES as PERMITTED_CORE_DOCTYPES
-from frappe.model import OPTIONAL_FIELDS, get_permitted_fields
+from frappe.model import DEFAULT_FIELDS, OPTIONAL_FIELDS, get_permitted_fields
 from frappe.model.base_document import DOCTYPES_FOR_DOCTYPE
 from frappe.model.document import Document
 from frappe.query_builder import Criterion, Field, Order, functions
@@ -940,6 +940,9 @@ class Engine:
 					frappe.ValidationError,
 					title=_("Invalid Filter"),
 				)
+			if not self.apply_permissions and not doctype and field in DEFAULT_FIELDS:
+				return self.table[field]
+
 			# It's a simple, valid fieldname like 'name' or 'creation'
 			target_doctype = doctype or self.doctype
 			target_fieldname = field
@@ -1431,6 +1434,9 @@ class Engine:
 					).format(clause_name, field_name),
 					frappe.ValidationError,
 				)
+
+			if not self.apply_permissions and field_name in DEFAULT_FIELDS:
+				return self.table[field_name]
 
 			# Check permissions for simple field
 			self.check_filter_field_permission(self.doctype, field_name)
