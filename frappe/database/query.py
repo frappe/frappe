@@ -465,6 +465,7 @@ class Engine:
 				RustRawSelectQuery,
 				is_enabled,
 				render_simple_select_query_prepared,
+				render_simple_select_query_prepared_one_filter,
 			)
 		except Exception:
 			return None
@@ -503,7 +504,27 @@ class Engine:
 			"groupbys": groupby_specs,
 			"select_sqls": select_sqls,
 		}
-		prepared_sql, params = render_simple_select_query_prepared(*render_args, **render_kwargs)
+		if (
+			len(filter_specs) == 1
+			and not groupby_specs
+			and select_sqls is None
+			and filter_specs[0][1] not in ("IN", "NOT IN")
+		):
+			field, operator, value = filter_specs[0]
+			prepared_sql, params = render_simple_select_query_prepared_one_filter(
+				render_args[0],
+				field_names,
+				field,
+				operator,
+				value,
+				orderbys=orderby_specs,
+				quote_char=self.query_quote_char,
+				limit=limit,
+				offset=offset,
+				distinct=distinct,
+			)
+		else:
+			prepared_sql, params = render_simple_select_query_prepared(*render_args, **render_kwargs)
 		return RustRawSelectQuery(
 			None,
 			prepared_sql,
