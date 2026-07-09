@@ -791,16 +791,30 @@ class RustInsertQuery:
 		self._fallback_query: QueryBuilder | None = None
 
 	def __copy__(self):
+		return self._copy_with("_columns", "_column_names", "_rows", "_raw_rows")
+
+	def _copy_with(self, *list_attrs: str):
 		new = type(self).__new__(type(self))
-		new.__dict__.update(self.__dict__)
-		new._columns = self._columns.copy()
-		new._column_names = self._column_names.copy()
-		new._rows = [row.copy() for row in self._rows]
-		new._raw_rows = None if self._raw_rows is None else [row.copy() for row in self._raw_rows]
+		new.query_cls = self.query_cls
+		new.table = self.table
+		new.original_into = self.original_into
+		new.immutable = self.immutable
+		new.quote_char = self.quote_char
+		new._columns = self._columns.copy() if "_columns" in list_attrs else self._columns
+		new._column_names = self._column_names.copy() if "_column_names" in list_attrs else self._column_names
+		new._rows = [row.copy() for row in self._rows] if "_rows" in list_attrs else self._rows
+		if self._raw_rows is None:
+			new._raw_rows = None
+		elif "_raw_rows" in list_attrs:
+			new._raw_rows = [row.copy() for row in self._raw_rows]
+		else:
+			new._raw_rows = self._raw_rows
+		new._rows_materialized = self._rows_materialized
+		new._fallback_query = self._fallback_query
 		return new
 
-	def _builder(self):
-		return self.__copy__() if self.immutable else self
+	def _builder(self, *list_attrs: str):
+		return self._copy_with(*list_attrs) if self.immutable else self
 
 	def columns(self, *terms: Any):
 		if self._fallback_query is not None:
@@ -820,7 +834,7 @@ class RustInsertQuery:
 			else:
 				return self._to_fallback().columns(*terms)
 
-		builder = self._builder()
+		builder = self._builder("_columns", "_column_names")
 		builder._columns.extend(columns)
 		builder._column_names.extend(column_names)
 		return builder
@@ -853,7 +867,7 @@ class RustInsertQuery:
 				]
 			)
 
-		builder = self._builder()
+		builder = self._builder("_rows", "_raw_rows")
 		builder._rows.extend(rows)
 		builder._raw_rows = raw_rows
 		builder._rows_materialized = rows_materialized
