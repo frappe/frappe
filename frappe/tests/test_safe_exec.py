@@ -3,7 +3,7 @@ import types
 import frappe
 from frappe.tests.utils import FrappeTestCase
 from frappe.utils.jinja import get_jenv, render_template
-from frappe.utils.safe_exec import ServerScriptNotEnabled, get_safe_globals, safe_exec
+from frappe.utils.safe_exec import SafeDoc, ServerScriptNotEnabled, get_safe_globals, safe_exec
 
 
 class TestSafeExec(FrappeTestCase):
@@ -136,7 +136,127 @@ class TestSafeExec(FrappeTestCase):
 		self.assertEqual(frappe.local.debug_log[-1], test_str)
 
 
+<<<<<<< HEAD
 class TestNoSafeExec(FrappeTestCase):
+=======
+class TestSafeDoc(IntegrationTestCase):
+	@classmethod
+	def setUpClass(cls):
+		super().setUpClass()
+		if not frappe.db.exists("DocType", "Test SafeDoc Row"):
+			frappe.get_doc(
+				{
+					"doctype": "DocType",
+					"module": "Core",
+					"name": "Test SafeDoc Row",
+					"istable": 1,
+					"custom": 1,
+					"fields": [
+						{"fieldname": "description", "fieldtype": "Data", "label": "Description"},
+						{"fieldname": "rate", "fieldtype": "Float", "label": "Rate"},
+						{"fieldname": "amount", "fieldtype": "Currency", "label": "Amount"},
+					],
+				}
+			).insert(ignore_permissions=True)
+
+		if not frappe.db.exists("DocType", "Test SafeDoc Parent"):
+			frappe.get_doc(
+				{
+					"doctype": "DocType",
+					"module": "Core",
+					"name": "Test SafeDoc Parent",
+					"custom": 1,
+					"fields": [
+						{"fieldname": "absolute_value", "fieldtype": "Check", "label": "Absolute Value"},
+						{
+							"fieldname": "rows",
+							"fieldtype": "Table",
+							"label": "Rows",
+							"options": "Test SafeDoc Row",
+						},
+					],
+				}
+			).insert(ignore_permissions=True)
+
+		frappe.db.commit()
+
+	@classmethod
+	def tearDownClass(cls):
+		frappe.delete_doc("DocType", "Test SafeDoc Parent", ignore_missing=True, force=True)
+		frappe.delete_doc("DocType", "Test SafeDoc Row", ignore_missing=True, force=True)
+		frappe.db.commit()
+		super().tearDownClass()
+
+	def _make_parent(self, absolute_value=0):
+		return SafeDoc(
+			{
+				"doctype": "Test SafeDoc Parent",
+				"name": "TEST-001",
+				"absolute_value": absolute_value,
+				"rows": [
+					{
+						"doctype": "Test SafeDoc Row",
+						"description": "Test Row",
+						"rate": 18.0,
+						"amount": -90.0,
+					}
+				],
+			}
+		)
+
+	def test_safe_doc_instance(self):
+		from frappe.utils.safe_exec import get_doc_as_dict
+
+		doc = get_doc_as_dict("User", frappe.session.user)
+		self.assertIsInstance(doc, SafeDoc)
+
+		parent = self._make_parent()
+		row = parent.get("rows")[0]
+		self.assertIsInstance(row, SafeDoc)
+
+	def test_parent_doc_attr(self):
+		parent = self._make_parent()
+		row = parent.get("rows")[0]
+		self.assertIs(row.parent_doc, parent)
+
+	def test_safe_get_formatted(self):
+		from frappe.utils.safe_exec import get_doc_as_dict
+
+		doc = get_doc_as_dict("User", frappe.session.user)
+		# email is a Data field — formatted value equals the raw value
+		self.assertEqual(doc.get_formatted("email"), doc.get("email"))
+
+		parent = self._make_parent()
+		row = parent.get("rows")[0]
+		result = row.get_formatted("rate")
+		self.assertIn("18", result)
+
+		result = row.get_formatted("amount", currency="INR")
+		self.assertIn("₹", result)
+
+	def test_absolute_value_from_parent(self):
+		parent = self._make_parent(absolute_value=1)
+		row = parent.get("rows")[0]
+		result = row.get_formatted("amount")
+		self.assertNotIn("-", result)
+
+	def test_absolute_value_not_set(self):
+		parent = self._make_parent(absolute_value=0)
+		row = parent.get("rows")[0]
+		result = row.get_formatted("amount")
+		self.assertIn("-", result)
+
+	def test_jinja_get_formatted_in_template(self):
+		expected = frappe.db.get_value("User", frappe.session.user, "first_name")
+		result = render_template(
+			"{{ frappe.get_doc('User', frappe.session.user).get_formatted('first_name') }}",
+			restrict_globals=True,
+		)
+		self.assertEqual(result.strip(), expected)
+
+
+class TestNoSafeExec(IntegrationTestCase):
+>>>>>>> 87b163a9cf (test(safe_exec): add tests for SafeDoc instance and attrs.)
 	def test_safe_exec_disabled_by_default(self):
 		self.assertRaises(ServerScriptNotEnabled, safe_exec, "pass")
 
