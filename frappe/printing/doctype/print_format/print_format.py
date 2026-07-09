@@ -7,6 +7,7 @@ import re
 import frappe
 import frappe.utils
 from frappe import _
+from frappe.custom.doctype.property_setter.property_setter import delete_property_setter
 from frappe.model.document import Document
 from frappe.utils.jinja import validate_template
 from frappe.utils.print_format_generator import download_pdf, get_html
@@ -189,14 +190,7 @@ class PrintFormat(Document):
 		if meta.custom:
 			frappe.db.set_value("DocType", self.doc_type, "default_print_format", "")
 		else:
-			frappe.make_property_setter(
-				{
-					"doctype_or_field": "DocType",
-					"doctype": self.doc_type,
-					"property": "default_print_format",
-					"value": "",
-				}
-			)
+			delete_property_setter(self.doc_type, "default_print_format")
 
 		frappe.clear_cache(doctype=self.doc_type)
 		frappe.msgprint(
