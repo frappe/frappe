@@ -24,24 +24,33 @@
 
 		<template v-if="activeTab === 'Standard'">
 			<EmptyState v-if="!componentList.length" message="No matching components" />
-			<div v-else class="grid grid-cols-3 items-start gap-x-2 gap-y-4">
-				<div v-for="component in componentList" :key="component.name" class="flex flex-col">
-					<div
-						class="user-component group flex cursor-grab flex-col items-center justify-center gap-3 text-ink-gray-6 transition-all duration-200 hover:scale-105"
-						draggable="true"
-						:data-component-name="component.name"
-					>
-						<div
-							class="flex h-16 w-16 flex-col items-center justify-center rounded-lg border border-outline-gray-2 bg-surface-gray-1 p-3 transition-all duration-200 group-hover:border-outline-gray-3 group-hover:bg-surface-gray-2 group-hover:shadow-sm"
-						>
-							<component :is="component.icon" class="h-6 w-6" />
+			<template v-else>
+				<CollapsibleSection
+					v-for="componentGroup in standardComponentGroups"
+					:key="componentGroup.label"
+					:sectionName="componentGroup.label"
+					class="px-2"
+				>
+					<div class="grid grid-cols-3 items-start gap-x-2 gap-y-4">
+						<div v-for="component in componentGroup.components" :key="component.name" class="flex flex-col">
+							<div
+								class="user-component group flex cursor-grab flex-col items-center justify-center gap-3 text-ink-gray-6 transition-all duration-200 hover:scale-105"
+								draggable="true"
+								:data-component-name="component.name"
+							>
+								<div
+									class="flex h-16 w-16 flex-col items-center justify-center rounded-lg border border-outline-gray-2 bg-surface-gray-1 p-3 transition-all duration-200 group-hover:border-outline-gray-3 group-hover:bg-surface-gray-2 group-hover:shadow-sm"
+								>
+									<component :is="component.icon" class="h-6 w-6" />
+								</div>
+								<span class="wrap-normal w-full text-center text-xs">
+									{{ component.title }}
+								</span>
+							</div>
 						</div>
-						<span class="wrap-normal w-full text-center text-xs">
-							{{ component.title }}
-						</span>
 					</div>
-				</div>
-			</div>
+				</CollapsibleSection>
+			</template>
 		</template>
 
 		<template v-else>
@@ -183,6 +192,18 @@ const customVueComponents = computed(() => {
 	return store.customVueComponents.filter((comp) =>
 		comp.component_name.toLowerCase().includes(componentFilter.value.toLowerCase()),
 	)
+})
+
+const standardComponentGroups = computed(() => {
+	const list = (componentList.value as any[]) || []
+	const inFramework = (name: string) => components.isFrameworkUIComponent(name)
+	const inFrappe = (name: string) => components.isFrappeUIComponent(name)
+	const groups = [
+		{ label: "Core", components: list.filter((c) => !inFrappe(c.name) && !inFramework(c.name)) },
+		{ label: "Frappe UI", components: list.filter((c) => inFrappe(c.name)) },
+		{ label: "Framework UI", components: list.filter((c) => inFramework(c.name)) },
+	]
+	return groups.filter((group) => group.components.length)
 })
 
 const activeTab = computed(() => store.studioLayout.leftPanelComponentTab)
