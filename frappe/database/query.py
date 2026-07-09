@@ -1180,6 +1180,12 @@ class Engine:
 		if isinstance(fields, Term):
 			return [fields]
 
+		if isinstance(fields, str) and (
+			fields == "*"
+			or ("," not in fields and not fields.isdigit() and SIMPLE_FIELD_PATTERN.match(fields))
+		):
+			return [self.table.star if fields == "*" else self.table[fields]]
+
 		if (
 			isinstance(fields, list | tuple)
 			and (parsed_fields := self._try_parse_simple_field_list(fields)) is not None
