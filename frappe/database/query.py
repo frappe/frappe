@@ -1502,6 +1502,8 @@ class Engine:
 
 				self.check_filter_field_permission(target_doctype, target_fieldname, parent_doctype_for_perm)
 				# Convert string field name to pypika Field object for the specified/current doctype
+				if target_doctype == self.doctype:
+					return self.table[target_fieldname]
 				return frappe.qb.DocType(target_doctype)[target_fieldname]
 
 	def check_select_field_permission(self, doctype: str, fieldname: str, parent_doctype: str | None = None):
