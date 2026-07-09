@@ -10,6 +10,7 @@ from frappe import _
 @frappe.whitelist()
 def render_jinja_template(template: str, doctype: str, docname: str) -> str:
 	"""Render a raw Jinja2 template string with doc context (used by the print format builder preview)."""
+	frappe.only_for("System Manager")
 	doc = frappe.get_doc(doctype, docname)
 	doc.check_permission("print")
 	# template is rendered inside frappe's SandboxedEnvironment (Jinja2 sandbox).
