@@ -203,14 +203,6 @@ class SystemSettings(Document):
 		self.set_defaults()
 		clear_system_settings_cache()
 
-<<<<<<< HEAD
-		if not frappe.flags.in_setup_wizard and self.has_value_changed("enable_telemetry"):
-			from frappe.utils.telemetry.pulse.client import is_enabled as pulse_enabled
-
-			pulse_enabled.clear_cache()
-
-=======
->>>>>>> 182d162fbb (fix(telemetry): don't cache is_enabled)
 		if frappe.flags.update_last_reset_password_date:
 			update_last_reset_password_date()
 
