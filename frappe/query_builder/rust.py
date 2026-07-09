@@ -357,17 +357,23 @@ class RustSelectQuery:
 		self._fallback_query: QueryBuilder | None = None
 
 	def __copy__(self):
+		return self._copy_with(
+			"_select_terms",
+			"_field_names",
+			"_orderbys",
+			"_groupbys",
+			"_joins",
+		)
+
+	def _copy_with(self, *list_attrs: str):
 		new = type(self).__new__(type(self))
 		new.__dict__.update(self.__dict__)
-		new._select_terms = self._select_terms.copy()
-		new._field_names = self._field_names.copy()
-		new._orderbys = self._orderbys.copy()
-		new._groupbys = self._groupbys.copy()
-		new._joins = self._joins.copy()
+		for attr in list_attrs:
+			setattr(new, attr, getattr(self, attr).copy())
 		return new
 
-	def _builder(self):
-		return self.__copy__() if self.immutable else self
+	def _builder(self, *list_attrs: str):
+		return self._copy_with(*list_attrs) if self.immutable else self
 
 	def select(self, *terms: Any):
 		if self._fallback_query is not None:
@@ -377,7 +383,7 @@ class RustSelectQuery:
 		if field_names is None and not all(isinstance(term, Term) for term in terms):
 			return self._to_fallback().select(*terms)
 
-		builder = self._builder()
+		builder = self._builder("_select_terms", "_field_names")
 		builder._select_terms.extend(terms)
 		if field_names is not None:
 			builder._field_names.extend(field_names)
@@ -406,7 +412,7 @@ class RustSelectQuery:
 				return self._to_fallback().orderby(*fields, **kwargs)
 			orderbys.append((field, order))
 
-		builder = self._builder()
+		builder = self._builder("_orderbys")
 		builder._orderbys.extend(orderbys)
 		return builder
 
@@ -422,7 +428,7 @@ class RustSelectQuery:
 				return self._to_fallback().groupby(*terms)
 			groupbys.append(term)
 
-		builder = self._builder()
+		builder = self._builder("_groupbys")
 		builder._groupbys.extend(groupbys)
 		return builder
 
@@ -671,7 +677,7 @@ class RustJoiner:
 		if collate is not None or criterion is None:
 			return self.query._to_fallback().join(self.item, self.how).on(criterion, collate=collate)
 
-		builder = self.query._builder()
+		builder = self.query._builder("_joins")
 		builder._joins.append(RustStoredJoin(self.item, self.how, criterion))
 		return builder
 
