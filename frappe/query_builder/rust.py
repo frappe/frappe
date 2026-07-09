@@ -1171,6 +1171,17 @@ def _wrap_constant(query_cls: type, value: Any) -> Term:
 
 
 def _quote_identifier(value: str, quote_char: str | None = "`") -> str:
+	if quote_char != "'":
+		return _quote_identifier_cached(value, quote_char)
+	return _quote_identifier_uncached(value, quote_char)
+
+
+@lru_cache(maxsize=4096)
+def _quote_identifier_cached(value: str, quote_char: str | None = "`") -> str:
+	return _quote_identifier_uncached(value, quote_char)
+
+
+def _quote_identifier_uncached(value: str, quote_char: str | None = "`") -> str:
 	if not quote_char:
 		return value
 	return f"{quote_char}{value.replace(quote_char, quote_char * 2)}{quote_char}"
