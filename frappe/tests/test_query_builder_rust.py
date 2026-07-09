@@ -180,6 +180,41 @@ class TestRustQueryBuilderProxy(unittest.TestCase):
 			),
 		)
 
+	def test_get_query_db_query_compat_grouped_count_uses_prepared_raw_query(self):
+		from frappe.query_builder.rust import RustRawSelectQuery
+
+		query = frappe.qb.get_query(
+			"DocField",
+			fields=["fieldtype", {"COUNT": "name", "as": "field_count"}],
+			group_by="fieldtype",
+			order_by="field_count desc",
+			limit=20,
+			db_query_compat=True,
+		)
+
+		self.assertIsInstance(query, RustRawSelectQuery)
+		self.assertEqual(
+			query.walk(),
+			(
+				"SELECT `fieldtype`,COUNT(`name`) `field_count` FROM `tabDocField` GROUP BY `fieldtype` ORDER BY `field_count` DESC LIMIT 20",
+				{},
+			),
+		)
+
+	def test_get_query_db_query_compat_default_ordering_falls_back(self):
+		from frappe.database.utils import DefaultOrderBy
+		from frappe.query_builder.rust import RustRawSelectQuery
+
+		query = frappe.qb.get_query(
+			"Role",
+			fields=["name"],
+			order_by=DefaultOrderBy,
+			limit=2,
+			db_query_compat=True,
+		)
+
+		self.assertNotIsInstance(query, RustRawSelectQuery)
+
 	def test_groupby_sql(self):
 		table = frappe.qb.DocType("Role")
 

@@ -420,9 +420,10 @@ class Engine:
 			or into
 			or delete
 			or or_filters
-			or db_query_compat
 			or (group_by and self.is_postgres)
 		):
+			return None
+		if db_query_compat and not self._can_fast_path_db_query_compat_order_by(order_by):
 			return None
 
 		if limit is not None and (not isinstance(limit, int) or limit < 0):
@@ -483,6 +484,20 @@ class Engine:
 			literal_render_args=render_args,
 			literal_render_kwargs=render_kwargs,
 		)
+
+	def _can_fast_path_db_query_compat_order_by(self, order_by: str | None) -> bool:
+		if not order_by:
+			return True
+		if order_by == DefaultOrderBy or not isinstance(order_by, str):
+			return False
+
+		for declaration in order_by.split(","):
+			parts = declaration.strip().split()
+			if not parts:
+				continue
+			if len(parts) != 2 or parts[1].lower() not in {"asc", "desc"}:
+				return False
+		return True
 
 	@property
 	def query_quote_char(self) -> str:
@@ -676,6 +691,8 @@ class Engine:
 	def _try_parse_fast_order_by(self, order_by: str | None) -> list[tuple[str, str]] | None:
 		if not order_by:
 			return []
+		if order_by == DefaultOrderBy:
+			return None
 		if not isinstance(order_by, str) or "`" in order_by or "." in order_by:
 			return None
 
@@ -697,7 +714,10 @@ class Engine:
 			):
 				return None
 
-			order_direction = "ASC" if direction == "asc" else "DESC"
+			if self.db_query_compat:
+				order_direction = "DESC" if direction == "desc" else "ASC"
+			else:
+				order_direction = "ASC" if direction == "asc" else "DESC"
 			orderby_specs.append((field_name, order_direction))
 		return orderby_specs
 
