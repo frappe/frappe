@@ -1196,47 +1196,41 @@ def _try_render_simple_term(
 		if term.table and (with_namespace or term.table.alias):
 			sql = f"{_quote_identifier(term.table.get_table_name(), quote_char)}.{sql}"
 		return _format_alias(sql, term.alias, quote_char) if with_alias else sql
-	if isinstance(term, AggregateFunction) and _is_simple_aggregate(term):
-		args = [
-			_try_render_simple_term(arg, quote_char=quote_char, with_namespace=with_namespace)
-			for arg in term.args
-		]
-		if any(arg is None for arg in args):
+	if isinstance(term, AggregateFunction):
+		if (
+			getattr(term, "schema", None) is not None
+			or getattr(term, "_filters", None)
+			or getattr(term, "_include_filter", False)
+		):
 			return None
-		if getattr(term, "_distinct", False):
+		args = []
+		for arg in term.args:
+			if not isinstance(arg, Field | Star):
+				return None
+			sql = _try_render_simple_term(arg, quote_char=quote_char, with_namespace=with_namespace)
+			if sql is None:
+				return None
+			args.append(sql)
+		if getattr(term, "_distinct", False) and args:
 			args[0] = f"DISTINCT {args[0]}"
 		sql = f"{term.name}({','.join(args)})"
 		return _format_alias(sql, term.alias, quote_char) if with_alias else sql
-	if isinstance(term, Function) and _is_simple_function(term):
-		args = [_try_render_simple_value(arg, quote_char=quote_char) for arg in term.args]
-		if any(arg is None for arg in args):
+	if isinstance(term, Function):
+		if getattr(term, "schema", None) is not None or term.name not in SIMPLE_FUNCTIONS:
 			return None
+		args = []
+		for arg in term.args:
+			if not isinstance(arg, Field) and not (
+				isinstance(arg, ValueWrapper) and arg.alias is None and _is_supported_literal(arg.value)
+			):
+				return None
+			sql = _try_render_simple_value(arg, quote_char=quote_char, with_namespace=with_namespace)
+			if sql is None:
+				return None
+			args.append(sql)
 		sql = f"{term.name}({','.join(args)})"
 		return _format_alias(sql, term.alias, quote_char) if with_alias else sql
 	return None
-
-
-def _is_simple_aggregate(term: AggregateFunction) -> bool:
-	return (
-		getattr(term, "schema", None) is None
-		and not getattr(term, "_filters", None)
-		and not getattr(term, "_include_filter", False)
-		and all(isinstance(arg, Field | Star) for arg in term.args)
-	)
-
-
-def _is_simple_function(term: Function) -> bool:
-	return (
-		getattr(term, "schema", None) is None
-		and term.name in SIMPLE_FUNCTIONS
-		and all(_is_simple_function_arg(arg) for arg in term.args)
-	)
-
-
-def _is_simple_function_arg(arg: Any) -> bool:
-	return isinstance(arg, Field) or (
-		isinstance(arg, ValueWrapper) and arg.alias is None and _is_supported_literal(arg.value)
-	)
 
 
 def _render_where(
