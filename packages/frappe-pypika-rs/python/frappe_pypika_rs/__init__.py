@@ -11,6 +11,7 @@ try:
 		render_select_query,
 		render_select_star,
 		render_simple_select_query,
+		render_simple_select_query_literal,
 		render_simple_select_query_prepared,
 		render_simple_select_query_prepared_one_filter,
 		render_update,
@@ -26,6 +27,7 @@ except ImportError:
 	render_select_query = None
 	render_select_star = None
 	render_simple_select_query = None
+	render_simple_select_query_literal = None
 	render_simple_select_query_prepared = None
 	render_simple_select_query_prepared_one_filter = None
 	render_update = None
@@ -47,6 +49,7 @@ __all__ = (
 	"render_select_query",
 	"render_select_star",
 	"render_simple_select_query",
+	"render_simple_select_query_literal",
 	"render_simple_select_query_prepared",
 	"render_simple_select_query_prepared_one_filter",
 	"render_update",

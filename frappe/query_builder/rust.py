@@ -151,6 +151,31 @@ def render_simple_select_query(
 	return sql, prepared_sql, dict(params)
 
 
+def render_simple_select_query_literal(
+	table: str,
+	fields: list[str],
+	filters: list[tuple[str, str, Any]],
+	orderbys: list[tuple[str, str]] | None = None,
+	quote_char: str | None = "`",
+	limit: int | None = None,
+	offset: int | None = None,
+	distinct: bool = False,
+) -> str:
+	backend = load_backend()
+	if backend is None or backend.render_simple_select_query_literal is None:
+		raise RuntimeError("frappe-pypika-rs is not available")
+	return backend.render_simple_select_query_literal(
+		table,
+		fields,
+		filters,
+		orderbys=orderbys,
+		quote_char=quote_char,
+		limit=limit,
+		offset=offset,
+		distinct=distinct,
+	)
+
+
 def render_simple_select_query_prepared(
 	table: str,
 	fields: list[str],
@@ -537,6 +562,29 @@ class RustSelectQuery:
 		render_kwargs.pop("quote_char", None)
 		render_kwargs.pop("with_namespace", None)
 		with_namespace = bool(self._joins)
+
+		if (
+			self._where is not None
+			and self._where_can_prepare
+			and not self._joins
+			and not self._groupbys
+			and self._field_names
+			and not render_kwargs
+		):
+			filter_specs = _try_extract_simple_filter_specs(self._where)
+			orderby_specs = _try_extract_simple_orderby_specs(self._orderbys)
+			if filter_specs is not None and orderby_specs is not None:
+				return render_simple_select_query_literal(
+					self.table._table_name,
+					self._field_names,
+					filter_specs,
+					orderbys=orderby_specs,
+					quote_char=quote_char,
+					limit=self._limit,
+					offset=self._offset,
+					distinct=self._distinct,
+				)
+
 		where_sql = None
 		if self._where is not None:
 			where_sql = _render_where(
@@ -1382,6 +1430,75 @@ def _try_render_prepared_where(criterion: Term) -> tuple[str | None, dict[str, A
 	params: dict[str, Any] = {}
 	sql = _try_render_prepared_criterion(criterion, params)
 	return sql, params
+
+
+def _try_extract_simple_filter_specs(criterion: Term) -> list[tuple[str, str, Any]] | None:
+	if isinstance(criterion, ComplexCriterion):
+		if criterion.comparator.value != "AND":
+			return None
+		left = _try_extract_simple_filter_specs(criterion.left)
+		right = _try_extract_simple_filter_specs(criterion.right)
+		if left is None or right is None:
+			return None
+		return left + right
+
+	if isinstance(criterion, BasicCriterion):
+		field = _try_extract_simple_filter_field(criterion.left)
+		value = _try_extract_simple_filter_value(criterion.right)
+		if field is None or value is _UNSUPPORTED:
+			return None
+		return [(field, criterion.comparator.value, value)]
+
+	if isinstance(criterion, ContainsCriterion):
+		field = _try_extract_simple_filter_field(criterion.term)
+		value = _try_extract_simple_filter_tuple(criterion.container)
+		if field is None or value is None:
+			return None
+		operator = "NOT IN" if criterion._is_negated else "IN"
+		return [(field, operator, value)]
+
+	return None
+
+
+def _try_extract_simple_orderby_specs(orderbys: list[tuple[Any, Any]]) -> list[tuple[str, str]] | None:
+	rendered = []
+	for field, order in orderbys:
+		if not isinstance(field, Field) or (field.table and field.table.alias):
+			return None
+		direction = getattr(order, "value", None)
+		if direction is None:
+			direction = "ASC"
+		rendered.append((field.name, direction))
+	return rendered
+
+
+def _try_extract_simple_filter_field(term: Term) -> str | None:
+	if not isinstance(term, Field) or term.alias is not None:
+		return None
+	if term.table and term.table.alias:
+		return None
+	return term.name
+
+
+_UNSUPPORTED = object()
+
+
+def _try_extract_simple_filter_value(term: Term) -> Any:
+	if isinstance(term, ValueWrapper) and term.alias is None and _is_supported_literal(term.value):
+		return term.value
+	return _UNSUPPORTED
+
+
+def _try_extract_simple_filter_tuple(term: Term) -> list[Any] | None:
+	if not isinstance(term, Tuple):
+		return None
+	values = []
+	for value in term.values:
+		raw_value = _try_extract_simple_filter_value(value)
+		if raw_value is _UNSUPPORTED:
+			return None
+		values.append(raw_value)
+	return values
 
 
 def _is_preparable_criterion_shape(criterion: Term) -> bool:

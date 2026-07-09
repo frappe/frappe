@@ -128,6 +128,18 @@ roles = ["System Manager", "Administrator", "Guest"]""",
 )
 
 
+bench_qb_render_large_in_filter = NanoBenchmark(
+	"""(
+	frappe.qb.from_(table)
+	.select(table.item_code, table.warehouse, table.posting_datetime)
+	.where(table.item_code.isin(items))
+	.get_sql()
+)""",
+	setup="""table = frappe.qb.DocType("Stock Ledger Entry")
+items = [f"ITEM-{idx:05d}" for idx in range(100)]""",
+)
+
+
 bench_qb_render_insert = NanoBenchmark(
 	"""(
 	frappe.qb.into(table)
