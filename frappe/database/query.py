@@ -299,9 +299,32 @@ class Engine:
 			self.doctype = get_doctype_name(table.get_sql())
 		else:
 			self.doctype = table
-			self.table = qb.DocType(table)
 
 		assert isinstance(self.doctype, str) and self.doctype, "doctype must be a non-empty string"
+
+		tried_fast_rust_select_query = False
+		if not isinstance(table, Table) and not self.apply_permissions:
+			tried_fast_rust_select_query = True
+			if fast_query := self._try_build_fast_rust_select_query(
+				table_name=frappe.utils.get_table_name(table),
+				fields=fields,
+				filters=filters,
+				order_by=order_by,
+				group_by=group_by,
+				limit=limit,
+				offset=offset,
+				distinct=distinct,
+				for_update=for_update,
+				update=update,
+				into=into,
+				delete=delete,
+				or_filters=or_filters,
+				db_query_compat=db_query_compat,
+			):
+				return fast_query
+
+		if not isinstance(table, Table):
+			self.table = qb.DocType(table)
 
 		if self.apply_permissions:
 			self.check_select_permission()
@@ -310,22 +333,23 @@ class Engine:
 				qb.DocType(self.permission_doctype) if self.permission_doctype != self.doctype else self.table
 			)
 
-		if fast_query := self._try_build_fast_rust_select_query(
-			fields=fields,
-			filters=filters,
-			order_by=order_by,
-			group_by=group_by,
-			limit=limit,
-			offset=offset,
-			distinct=distinct,
-			for_update=for_update,
-			update=update,
-			into=into,
-			delete=delete,
-			or_filters=or_filters,
-			db_query_compat=db_query_compat,
-		):
-			return fast_query
+		if not tried_fast_rust_select_query:
+			if fast_query := self._try_build_fast_rust_select_query(
+				fields=fields,
+				filters=filters,
+				order_by=order_by,
+				group_by=group_by,
+				limit=limit,
+				offset=offset,
+				distinct=distinct,
+				for_update=for_update,
+				update=update,
+				into=into,
+				delete=delete,
+				or_filters=or_filters,
+				db_query_compat=db_query_compat,
+			):
+				return fast_query
 
 		is_select = False
 		if update:
@@ -401,6 +425,7 @@ class Engine:
 	def _try_build_fast_rust_select_query(
 		self,
 		*,
+		table_name: str | None = None,
 		fields,
 		filters,
 		order_by,
@@ -465,7 +490,7 @@ class Engine:
 			return None
 
 		render_args = (
-			self.table._table_name,
+			table_name or self.table._table_name,
 			field_names,
 			filter_specs,
 		)
