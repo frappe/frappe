@@ -216,7 +216,7 @@
 	</div>
 </template>
 
-<script setup lang="ts">
+<script setup lang="ts" generic="T extends GridColumn">
 import { computed, nextTick, onBeforeUnmount, onMounted, ref, watch } from "vue";
 import { Button, Checkbox } from "frappe-ui";
 import {
@@ -233,7 +233,10 @@ import type { GridColumn, GridEmits, GridProps, GridSlots } from "./types";
 // render as stacked lines). Declared locally — the type isn't re-exported from
 // `frappe-ui/experimental` — and is structurally compatible with what the composable
 // expects.
-const props = defineProps<GridProps>();
+// `columns: T[]` (not `GridProps.columns`) so a caller passing `MyColumn[]` gets
+// `MyColumn` back in the `#cell` slot; the rest of the contract is the concrete,
+// schema-extractable `GridProps`.
+const props = defineProps<Omit<GridProps, "columns"> & { columns: T[] }>();
 
 const emit = defineEmits<GridEmits>();
 
@@ -255,7 +258,7 @@ const {
 // Rows array. The slot's `update` writes it live; `commit` also emits `change`.
 const rows = defineModel<Record<string, any>[]>({ default: () => [] });
 
-defineSlots<GridSlots>();
+defineSlots<GridSlots<T>>();
 
 // Per-column track widths: `null` = flexible (`1fr`), a number = fixed px. Seeded
 // from the column's `width`, overridden by a drag. Re-seeding on a columns change
@@ -412,11 +415,11 @@ function toggleAll(checked: boolean) {
 // vuedraggable from reconciling the row DOM and stealing focus on each keystroke.
 // The row is shared by reference with the parent, so the write is visible without a
 // model reassignment. Structural ops below build a new array — no focused cell there.
-function updateCell(index: number, col: GridColumn, value: any) {
+function updateCell(index: number, col: T, value: any) {
 	rows.value[index][col.fieldname] = value;
 }
 
-function commitCell(index: number, col: GridColumn, value: any) {
+function commitCell(index: number, col: T, value: any) {
 	rows.value[index][col.fieldname] = value;
 	emit("change", rows.value);
 }

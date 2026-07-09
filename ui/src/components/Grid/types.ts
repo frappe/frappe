@@ -72,7 +72,7 @@ export interface GridCellSlotProps<T extends GridColumn = GridColumn> {
   commit: (value: any) => void;
 }
 
-export interface GridSlots {
+export interface GridSlots<T extends GridColumn = GridColumn> {
   /** Render/edit one cell. Falls back to plain text when not provided. */
-  cell?: (props: GridCellSlotProps) => any;
+  cell?: (props: GridCellSlotProps<T>) => any;
 }
