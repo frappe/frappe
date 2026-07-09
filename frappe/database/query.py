@@ -162,6 +162,13 @@ def _get_additional_filters_config_cached():
 	return get_additional_filters_from_hooks()
 
 
+@frappe.request_cache
+def _get_permission_query_condition_methods(doctype: str):
+	hooks = frappe.get_hooks("permission_query_conditions", {})
+	condition_methods = hooks.get(doctype, []) + hooks.get("*", [])
+	return tuple(frappe.get_attr(method) for method in condition_methods)
+
+
 # Pattern to validate field names in SELECT:
 # Allows: name, `name`, name as alias, `name` as alias, table.name, table.name as alias
 # Also allows backtick-qualified identifiers with spaces/hyphens:
@@ -2355,11 +2362,9 @@ class Engine:
 
 		doctype = doctype or self.permission_doctype
 		conditions = []
-		hooks = frappe.get_hooks("permission_query_conditions", {})
-		condition_methods = hooks.get(doctype, []) + hooks.get("*", [])
 
-		for method in condition_methods:
-			if c := frappe.call(frappe.get_attr(method), self.user, doctype=doctype):
+		for method in _get_permission_query_condition_methods(doctype):
+			if c := frappe.call(method, self.user, doctype=doctype):
 				# Hooks may return a raw SQL string or a pypika term. A term already
 				# participates in `Criterion.all`/`get_sql`, so only strings need wrapping.
 				conditions.append(RawCriterion(f"({c})") if isinstance(c, str) else c)
