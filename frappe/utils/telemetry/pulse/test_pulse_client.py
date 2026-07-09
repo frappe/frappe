@@ -364,7 +364,7 @@ class TestCapture(TestPulseClient):
 		mock_enabled.return_value = False
 		eq = EventQueue()
 
-		capture("test_event", site="test.localhost")
+		capture("test_event")
 
 		self.assertEqual(eq.length, 0)
 
@@ -377,7 +377,6 @@ class TestCapture(TestPulseClient):
 
 		capture(
 			"test_event",
-			site="test.localhost",
 			app="frappe",
 			user="fc_priya",
 			team="team_test",
@@ -396,7 +395,7 @@ class TestCapture(TestPulseClient):
 		mock_enabled.return_value = True
 		eq = EventQueue()
 
-		capture("test_event", site="test.localhost", user="fc_priya", team="team_priya")
+		capture("test_event", user="fc_priya", team="team_priya")
 
 		events = eq.collect(batch_size=1)
 		# user is always anonymized (the privacy gate); team is the raw group id
@@ -411,7 +410,7 @@ class TestCapture(TestPulseClient):
 		mock_enabled.return_value = True
 		eq = EventQueue()
 
-		capture("test_event", site="test.localhost")
+		capture("test_event")
 
 		events = eq.collect(batch_size=1)
 		# user defaults to the (anonymized) session user
@@ -427,10 +426,23 @@ class TestCapture(TestPulseClient):
 		eq = EventQueue()
 
 		with patch.dict(frappe.conf, {"fc_team": "team_x"}):
-			capture("test_event", site="test.localhost")
+			capture("test_event")
 
 		events = eq.collect(batch_size=1)
 		self.assertEqual(events[0]["team"], "team_x")
+
+	@patch("frappe.utils.telemetry.pulse.client.is_enabled")
+	def test_capture_explicit_site_overrides_local(self, mock_enabled):
+		"""site defaults to frappe.local.site but an explicit site= wins (the simulator
+		emits for many sites from one process)."""
+		is_enabled.clear_cache()
+		mock_enabled.return_value = True
+		eq = EventQueue()
+
+		capture("test_event", site="other.localhost")
+
+		events = eq.collect(batch_size=1)
+		self.assertEqual(events[0]["site"], "other.localhost")
 
 
 class TestIdentify(TestPulseClient):
