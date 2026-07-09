@@ -626,7 +626,7 @@ class RustInsertQuery:
 		self.original_into = original_into
 		self.immutable = immutable
 		self.quote_char = _quote_char_for_query_cls(query_cls)
-		self._columns: list[Field] = []
+		self._columns: list[Field | None] = []
 		self._column_names: list[str] = []
 		self._rows: list[list[Term]] = []
 		self._raw_rows: list[list[Any]] | None = []
@@ -651,11 +651,11 @@ class RustInsertQuery:
 		if terms and isinstance(terms[0], (list, tuple)):
 			terms = terms[0]
 
-		columns = []
+		columns: list[Field | None] = []
 		column_names = []
 		for term in terms:
 			if isinstance(term, str):
-				columns.append(Field(term, table=self.table))
+				columns.append(None)
 				column_names.append(term)
 			elif isinstance(term, Field) and term.table in (None, self.table):
 				columns.append(term)
@@ -705,7 +705,7 @@ class RustInsertQuery:
 	def get_sql(self, **kwargs: Any) -> str:
 		if self._fallback_query is not None:
 			return self._fallback_query.get_sql(**kwargs)
-		if not self._columns or (not self._rows and not self._raw_rows):
+		if not self._column_names or (not self._rows and not self._raw_rows):
 			return ""
 
 		quote_char = kwargs.get("quote_char", self.quote_char)
@@ -744,12 +744,18 @@ class RustInsertQuery:
 		]
 		self._rows_materialized = True
 
+	def _materialized_columns(self) -> list[Field]:
+		return [
+			column if column is not None else Field(name, table=self.table)
+			for column, name in zip(self._columns, self._column_names, strict=True)
+		]
+
 	def _to_fallback(self) -> QueryBuilder:
 		if self._fallback_query is None:
 			self._materialize_rows()
 			query = self.original_into(self.table, immutable=self.immutable)
-			if self._columns:
-				query = query.columns(*self._columns)
+			if self._column_names:
+				query = query.columns(*self._materialized_columns())
 			for row in self._rows:
 				query = query.insert(row)
 			self._fallback_query = query
