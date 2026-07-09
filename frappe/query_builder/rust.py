@@ -1176,9 +1176,24 @@ def _try_render_simple_tuple(
 ) -> str | None:
 	if not isinstance(term, Tuple):
 		return None
+	if kwargs.get("param_wrapper") is None:
+		if sql := _try_render_literal_tuple(term):
+			return sql
 	values = [_try_render_simple_value(value, quote_char=quote_char, **kwargs) for value in term.values]
 	if any(value is None for value in values):
 		return None
+	return f"({','.join(values)})"
+
+
+def _try_render_literal_tuple(term: Tuple) -> str | None:
+	values = []
+	for value in term.values:
+		if not hasattr(value, "value") or getattr(value, "alias", None) is not None:
+			return None
+		raw_value = value.value
+		if not _is_supported_literal(raw_value):
+			return None
+		values.append(_render_literal(raw_value))
 	return f"({','.join(values)})"
 
 
