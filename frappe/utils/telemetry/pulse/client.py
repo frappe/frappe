@@ -1,15 +1,16 @@
 from typing import Any
 
 import frappe
-from frappe.utils.caching import site_cache
 
 from .queue import EventQueue
 from .transport import PulseHTTP
 from .utils import anonymize_user, pulse_host, utc_iso
 
 
-@site_cache(ttl=60 * 60)
 def is_enabled() -> bool:
+	# Not cached: the underlying reads are conf lookups (in-memory) and System Settings
+	# (already request- and redis-cached by frappe), so a local cache here buys nothing
+	# but staleness — notably during the setup wizard, where enable_telemetry flips on.
 	if not frappe.conf.get("pulse_api_key"):
 		return False
 

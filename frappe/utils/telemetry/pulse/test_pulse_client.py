@@ -300,8 +300,6 @@ class TestTelemetryGate(TestPulseClient):
 	def _conf(self, **overrides):
 		conf = {"pulse_api_key": "k", "developer_mode": 0, "pulse_force_enabled": 0}
 		conf.update(overrides)
-		is_enabled.clear_cache()
-		self.addCleanup(is_enabled.clear_cache)
 		return patch.dict(frappe.conf, conf)
 
 	def test_off_by_default_and_endpoint_leaks_nothing(self):
@@ -360,7 +358,6 @@ class TestCapture(TestPulseClient):
 	@patch("frappe.utils.telemetry.pulse.client.is_enabled")
 	def test_capture_when_disabled(self, mock_enabled):
 		"""Test that capture does nothing when disabled"""
-		is_enabled.clear_cache()
 		mock_enabled.return_value = False
 		eq = EventQueue()
 
@@ -371,7 +368,6 @@ class TestCapture(TestPulseClient):
 	@patch("frappe.utils.telemetry.pulse.client.is_enabled")
 	def test_capture_basic(self, mock_enabled):
 		"""Test basic event capture"""
-		is_enabled.clear_cache()
 		mock_enabled.return_value = True
 		eq = EventQueue()
 
@@ -391,7 +387,6 @@ class TestCapture(TestPulseClient):
 	@patch("frappe.utils.telemetry.pulse.client.is_enabled")
 	def test_capture_user_and_team_group(self, mock_enabled):
 		"""On events, team is the identity subject and user is a per-actor dimension"""
-		is_enabled.clear_cache()
 		mock_enabled.return_value = True
 		eq = EventQueue()
 
@@ -406,7 +401,6 @@ class TestCapture(TestPulseClient):
 	def test_capture_defaults_user_and_leaves_team_empty(self, mock_enabled):
 		"""user defaults to the anon site user; team is null when the site has no
 		fc_team configured (e.g. a marketing site)"""
-		is_enabled.clear_cache()
 		mock_enabled.return_value = True
 		eq = EventQueue()
 
@@ -421,7 +415,6 @@ class TestCapture(TestPulseClient):
 	@patch("frappe.utils.telemetry.pulse.client.is_enabled")
 	def test_capture_defaults_team_from_site_config(self, mock_enabled):
 		"""A site with fc_team set stamps it on events without the caller passing it."""
-		is_enabled.clear_cache()
 		mock_enabled.return_value = True
 		eq = EventQueue()
 
@@ -435,7 +428,6 @@ class TestCapture(TestPulseClient):
 	def test_capture_explicit_site_overrides_local(self, mock_enabled):
 		"""site defaults to frappe.local.site but an explicit site= wins (the simulator
 		emits for many sites from one process)."""
-		is_enabled.clear_cache()
 		mock_enabled.return_value = True
 		eq = EventQueue()
 
@@ -450,7 +442,6 @@ class TestIdentify(TestPulseClient):
 	@patch("frappe.utils.telemetry.pulse.client.is_enabled")
 	def test_identify_noop_when_disabled(self, mock_enabled, mock_session):
 		"""identify does nothing (and posts nothing) when telemetry is disabled"""
-		is_enabled.clear_cache()
 		mock_enabled.return_value = False
 
 		identify({"plan": "pro"})
@@ -461,7 +452,6 @@ class TestIdentify(TestPulseClient):
 	@patch("frappe.utils.telemetry.pulse.client.is_enabled")
 	def test_identify_swallows_bad_json(self, mock_enabled, mock_session):
 		"""A malformed properties string is logged, not raised — and nothing is posted."""
-		is_enabled.clear_cache()
 		mock_enabled.return_value = True
 
 		with patch.dict(frappe.conf, {"fc_team": "team_test"}):
@@ -473,7 +463,6 @@ class TestIdentify(TestPulseClient):
 	@patch("frappe.utils.telemetry.pulse.client.is_enabled")
 	def test_identify_posts_profile(self, mock_enabled, mock_session):
 		"""identify posts the team + properties to the identify endpoint"""
-		is_enabled.clear_cache()
 		mock_enabled.return_value = True
 
 		posted = {}
@@ -499,7 +488,6 @@ class TestIdentify(TestPulseClient):
 	@patch("frappe.utils.telemetry.pulse.client.is_enabled")
 	def test_alias_posts_mapping(self, mock_enabled, mock_session):
 		"""alias posts the previous_id → team mapping to the alias endpoint"""
-		is_enabled.clear_cache()
 		mock_enabled.return_value = True
 
 		posted = {}
