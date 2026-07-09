@@ -61,6 +61,11 @@
 	min-height: 11.69in;
 	background: white;
 	border-radius: var(--border-radius);
+	overflow-x: auto;
+
+	.print-format-container {
+		min-width: 8.3in;
+	}
 }
 
 .print-format-skeleton {
