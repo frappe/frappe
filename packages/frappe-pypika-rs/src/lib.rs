@@ -296,6 +296,190 @@ fn render_simple_select_query_prepared_sql(
     Ok((prepared_sql, params.unbind()))
 }
 
+fn render_select_filter_parts_prepared(
+    py: Python<'_>,
+    filters: &[(String, String, Py<PyAny>)],
+    quote_char: Option<&str>,
+    next_param: &mut usize,
+    params: &Bound<'_, PyDict>,
+) -> PyResult<Vec<String>> {
+    let mut prepared_where_parts = Vec::with_capacity(filters.len());
+
+    for (field, operator, value) in filters.iter() {
+        let quoted_field = quote_identifier(field, quote_char);
+        if operator == "IN" || operator == "NOT IN" {
+            let values = extract_sequence(value.bind(py))?;
+            let mut prepared_values = Vec::with_capacity(values.len());
+            for item in values {
+                let param_name = format!("param{next_param}");
+                *next_param += 1;
+                prepared_values.push(format!("%({param_name})s"));
+                params.set_item(&param_name, item)?;
+            }
+            prepared_where_parts.push(format!(
+                "{quoted_field} {operator} ({})",
+                prepared_values.join(",")
+            ));
+        } else {
+            let param_name = format!("param{next_param}");
+            *next_param += 1;
+            if operator.chars().any(|c| c.is_ascii_alphabetic()) {
+                prepared_where_parts.push(format!("{quoted_field} {operator} %({param_name})s"));
+            } else {
+                prepared_where_parts.push(format!("{quoted_field}{operator}%({param_name})s"));
+            }
+            params.set_item(&param_name, value.bind(py))?;
+        }
+    }
+
+    Ok(prepared_where_parts)
+}
+
+fn render_simple_select_query_prepared_with_or_sql(
+    py: Python<'_>,
+    table: &str,
+    fields: Vec<String>,
+    filters: Vec<(String, String, Py<PyAny>)>,
+    or_filters: Vec<(String, String, Py<PyAny>)>,
+    orderbys: Vec<(String, String)>,
+    quote_char: Option<&str>,
+    limit: Option<u64>,
+    offset: Option<u64>,
+    distinct: bool,
+) -> PyResult<(String, Py<PyDict>)> {
+    let params = PyDict::new(py);
+    let mut next_param = 1;
+    let mut prepared_where_parts =
+        render_select_filter_parts_prepared(py, &filters, quote_char, &mut next_param, &params)?;
+    let prepared_or_parts =
+        render_select_filter_parts_prepared(py, &or_filters, quote_char, &mut next_param, &params)?;
+
+    if !prepared_or_parts.is_empty() {
+        prepared_where_parts.push(prepared_or_parts.join(" OR "));
+    }
+
+    let rendered_orderbys = orderbys
+        .iter()
+        .map(|(field, direction)| format!("{} {direction}", quote_identifier(field, quote_char)))
+        .collect::<Vec<_>>();
+    let rendered_selects = if fields == ["*"] {
+        vec!["*".to_string()]
+    } else {
+        fields
+            .iter()
+            .map(|field| quote_identifier(field, quote_char))
+            .collect()
+    };
+
+    let prepared_where =
+        (!prepared_where_parts.is_empty()).then(|| prepared_where_parts.join(" AND "));
+
+    let prepared_sql = render_select_fragments_sql(
+        table,
+        &rendered_selects,
+        quote_char,
+        &[],
+        prepared_where.as_deref(),
+        &[],
+        &rendered_orderbys,
+        limit,
+        offset,
+        distinct,
+    );
+
+    Ok((prepared_sql, params.unbind()))
+}
+
+fn render_select_filter_parts_literal(
+    py: Python<'_>,
+    filters: &[(String, String, Py<PyAny>)],
+    quote_char: Option<&str>,
+) -> PyResult<Vec<String>> {
+    let mut literal_where_parts = Vec::with_capacity(filters.len());
+
+    for (field, operator, value) in filters.iter() {
+        let quoted_field = quote_identifier(field, quote_char);
+        if operator == "IN" || operator == "NOT IN" {
+            let values = extract_sequence(value.bind(py))?;
+            let mut literal_values = Vec::with_capacity(values.len());
+            for item in values {
+                literal_values.push(render_literal(&item)?);
+            }
+            literal_where_parts.push(format!(
+                "{quoted_field} {operator} ({})",
+                literal_values.join(",")
+            ));
+        } else {
+            if operator.chars().any(|c| c.is_ascii_alphabetic()) {
+                literal_where_parts.push(format!(
+                    "{quoted_field} {operator} {}",
+                    render_literal(value.bind(py))?
+                ));
+            } else {
+                literal_where_parts.push(format!(
+                    "{quoted_field}{operator}{}",
+                    render_literal(value.bind(py))?
+                ));
+            }
+        }
+    }
+
+    Ok(literal_where_parts)
+}
+
+fn render_simple_select_query_with_or_sql(
+    py: Python<'_>,
+    table: &str,
+    fields: Vec<String>,
+    filters: Vec<(String, String, Py<PyAny>)>,
+    or_filters: Vec<(String, String, Py<PyAny>)>,
+    orderbys: Vec<(String, String)>,
+    quote_char: Option<&str>,
+    limit: Option<u64>,
+    offset: Option<u64>,
+    distinct: bool,
+) -> PyResult<(String, String, Py<PyDict>)> {
+    let mut literal_where_parts = render_select_filter_parts_literal(py, &filters, quote_char)?;
+    let literal_or_parts = render_select_filter_parts_literal(py, &or_filters, quote_char)?;
+
+    if !literal_or_parts.is_empty() {
+        literal_where_parts.push(literal_or_parts.join(" OR "));
+    }
+
+    let rendered_orderbys = orderbys
+        .iter()
+        .map(|(field, direction)| format!("{} {direction}", quote_identifier(field, quote_char)))
+        .collect::<Vec<_>>();
+    let rendered_selects = if fields == ["*"] {
+        vec!["*".to_string()]
+    } else {
+        fields
+            .iter()
+            .map(|field| quote_identifier(field, quote_char))
+            .collect()
+    };
+    let literal_where =
+        (!literal_where_parts.is_empty()).then(|| literal_where_parts.join(" AND "));
+
+    let literal_sql = render_select_fragments_sql(
+        table,
+        &rendered_selects,
+        quote_char,
+        &[],
+        literal_where.as_deref(),
+        &[],
+        &rendered_orderbys,
+        limit,
+        offset,
+        distinct,
+    );
+    let (prepared_sql, params) = render_simple_select_query_prepared_with_or_sql(
+        py, table, fields, filters, or_filters, orderbys, quote_char, limit, offset, distinct,
+    )?;
+
+    Ok((literal_sql, prepared_sql, params))
+}
+
 fn render_simple_select_query_literal_sql(
     py: Python<'_>,
     table: &str,
@@ -709,6 +893,62 @@ fn render_simple_select_query_prepared(
 }
 
 #[pyfunction]
+#[pyo3(signature = (table, fields, filters, or_filters, orderbys=None, quote_char=None, limit=None, offset=None, distinct=false))]
+fn render_simple_select_query_with_or(
+    py: Python<'_>,
+    table: &str,
+    fields: Vec<String>,
+    filters: Vec<(String, String, Py<PyAny>)>,
+    or_filters: Vec<(String, String, Py<PyAny>)>,
+    orderbys: Option<Vec<(String, String)>>,
+    quote_char: Option<&str>,
+    limit: Option<u64>,
+    offset: Option<u64>,
+    distinct: bool,
+) -> PyResult<(String, String, Py<PyDict>)> {
+    render_simple_select_query_with_or_sql(
+        py,
+        table,
+        fields,
+        filters,
+        or_filters,
+        orderbys.unwrap_or_default(),
+        quote_char,
+        limit,
+        offset,
+        distinct,
+    )
+}
+
+#[pyfunction]
+#[pyo3(signature = (table, fields, filters, or_filters, orderbys=None, quote_char=None, limit=None, offset=None, distinct=false))]
+fn render_simple_select_query_prepared_with_or(
+    py: Python<'_>,
+    table: &str,
+    fields: Vec<String>,
+    filters: Vec<(String, String, Py<PyAny>)>,
+    or_filters: Vec<(String, String, Py<PyAny>)>,
+    orderbys: Option<Vec<(String, String)>>,
+    quote_char: Option<&str>,
+    limit: Option<u64>,
+    offset: Option<u64>,
+    distinct: bool,
+) -> PyResult<(String, Py<PyDict>)> {
+    render_simple_select_query_prepared_with_or_sql(
+        py,
+        table,
+        fields,
+        filters,
+        or_filters,
+        orderbys.unwrap_or_default(),
+        quote_char,
+        limit,
+        offset,
+        distinct,
+    )
+}
+
+#[pyfunction]
 #[pyo3(signature = (table, fields, field, operator, value, orderbys=None, quote_char=None, limit=None, offset=None, distinct=false))]
 fn render_simple_select_query_prepared_one_filter(
     py: Python<'_>,
@@ -790,11 +1030,19 @@ fn _rust(module: &Bound<'_, PyModule>) -> PyResult<()> {
     module.add_function(wrap_pyfunction!(render_select_star, module)?)?;
     module.add_function(wrap_pyfunction!(render_simple_select_query, module)?)?;
     module.add_function(wrap_pyfunction!(
+        render_simple_select_query_with_or,
+        module
+    )?)?;
+    module.add_function(wrap_pyfunction!(
         render_simple_select_query_literal,
         module
     )?)?;
     module.add_function(wrap_pyfunction!(
         render_simple_select_query_prepared,
+        module
+    )?)?;
+    module.add_function(wrap_pyfunction!(
+        render_simple_select_query_prepared_with_or,
         module
     )?)?;
     module.add_function(wrap_pyfunction!(

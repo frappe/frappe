@@ -159,6 +159,31 @@ class TestRustQueryBuilderProxy(unittest.TestCase):
 			("SELECT `name` FROM `tabUser` WHERE `enabled`=%(param1)s LIMIT 1", {"param1": 1}),
 		)
 
+	def test_get_list_simple_or_filters_use_prepared_raw_query(self):
+		from frappe.query_builder.rust import RustRawSelectQuery
+
+		query = frappe.get_list(
+			"User",
+			fields=["name", "email", "enabled"],
+			filters=[["enabled", "=", 1]],
+			or_filters=[["email", "like", "%@example.com"], ["name", "=", "Administrator"]],
+			limit=20,
+			run=0,
+		)
+
+		self.assertIsInstance(query, RustRawSelectQuery)
+		self.assertEqual(
+			query.get_sql(),
+			"SELECT `name`,`email`,`enabled` FROM `tabUser` WHERE `enabled`=1 AND `email` LIKE '%@example.com' OR `name`='Administrator' ORDER BY `creation` DESC LIMIT 20",
+		)
+		self.assertEqual(
+			query.walk(),
+			(
+				"SELECT `name`,`email`,`enabled` FROM `tabUser` WHERE `enabled`=%(param1)s AND `email` LIKE %(param2)s OR `name`=%(param3)s ORDER BY `creation` DESC LIMIT 20",
+				{"param1": 1, "param2": "%@example.com", "param3": "Administrator"},
+			),
+		)
+
 	def test_get_query_simple_grouped_count_uses_prepared_raw_query(self):
 		query = frappe.qb.get_query(
 			"DocField",

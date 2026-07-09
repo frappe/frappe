@@ -367,6 +367,19 @@ class Engine:
 			self.query = qb.from_(self.table, immutable=False).delete()
 		else:
 			self.query = qb.from_(self.table, immutable=False)
+			if self.apply_permissions:
+				if fast_query := self._try_build_fast_rust_permitted_select_query(
+					fields=fields,
+					filters=filters,
+					order_by=order_by,
+					group_by=group_by,
+					limit=limit,
+					offset=offset,
+					distinct=distinct,
+					for_update=for_update,
+					or_filters=or_filters,
+				):
+					return fast_query
 			self.apply_fields(fields)
 			is_select = True
 
@@ -541,6 +554,127 @@ class Engine:
 			literal_render_args=render_args,
 			literal_render_kwargs=render_kwargs,
 		)
+
+	def _try_build_fast_rust_permitted_select_query(
+		self,
+		*,
+		fields,
+		filters,
+		order_by,
+		group_by,
+		limit,
+		offset,
+		distinct,
+		for_update,
+		or_filters,
+	):
+		if (
+			not self.apply_permissions
+			or self.permission_doctype != self.doctype
+			or for_update
+			or group_by
+			or self.is_postgres
+		):
+			return None
+
+		if limit is not None and (not isinstance(limit, int) or limit < 0):
+			return None
+		if offset is not None and (not isinstance(offset, int) or offset < 0):
+			return None
+		if offset and not limit and not self.is_postgres:
+			return None
+
+		try:
+			from frappe.query_builder.rust import (
+				RustLazyRawSelectQuery,
+				is_enabled,
+			)
+		except Exception:
+			return None
+
+		if not is_enabled():
+			return None
+
+		select_spec = self._try_parse_fast_select_fields(fields)
+		if select_spec is None:
+			return None
+		field_names, select_sqls = select_spec
+		if select_sqls is not None or field_names == ["*"]:
+			return None
+
+		filter_specs = self._try_parse_fast_select_filters(filters)
+		if filter_specs is None:
+			return None
+		or_filter_specs = self._try_parse_fast_select_filters(or_filters)
+		if or_filter_specs is None:
+			return None
+
+		orderby_specs = self._try_parse_fast_effective_order_by(order_by)
+		if orderby_specs is None:
+			return None
+
+		permitted_field_names = self._filter_fast_permitted_select_fields(field_names)
+		if permitted_field_names is None:
+			return None
+
+		for filter_field, _operator, _value in (*filter_specs, *or_filter_specs):
+			self.check_filter_field_permission(self.doctype, filter_field)
+
+		if order_by and order_by != DefaultOrderBy:
+			for order_field, _ in orderby_specs:
+				self.check_filter_field_permission(self.doctype, order_field)
+
+		if self.get_permission_conditions(self.permission_doctype, self.permission_table):
+			return None
+
+		query = RustLazyRawSelectQuery(
+			self.table._table_name,
+			permitted_field_names,
+			filter_specs,
+			or_filter_specs,
+			orderbys=orderby_specs,
+			quote_char=self.query_quote_char,
+			limit=limit,
+			offset=offset or None,
+			distinct=distinct,
+		)
+		query._doctype = self.doctype
+		query._fields_list = [self.table[field] for field in permitted_field_names]
+		return query
+
+	def _filter_fast_permitted_select_fields(self, field_names: list[str]) -> list[str] | None:
+		permission_type = self.get_permission_type(self.doctype, self.parent_doctype)
+		permitted_fields = self._get_cached_permitted_fields(
+			self.doctype,
+			self.parent_doctype,
+			permission_type,
+		)
+		allowed_fields = [
+			field for field in field_names if field in OPTIONAL_FIELDS or field in permitted_fields
+		]
+		return allowed_fields or ["name"]
+
+	def _try_parse_fast_effective_order_by(self, order_by: str | None) -> list[tuple[str, str]] | None:
+		if order_by and order_by != DefaultOrderBy:
+			return self._try_parse_fast_order_by(order_by)
+
+		sort_field, sort_order = get_doctype_sort_info(self.doctype)
+		if "," in sort_field:
+			return None
+
+		field_name = sort_field.strip()
+		if not field_name or field_name.isdigit() or not SIMPLE_FIELD_PATTERN.match(field_name):
+			return None
+
+		spec_order = sort_order.lower()
+		if spec_order not in {"asc", "desc"}:
+			return None
+
+		if self.db_query_compat:
+			order_direction = "DESC" if spec_order == "desc" else "ASC"
+		else:
+			order_direction = "ASC" if spec_order == "asc" else "DESC"
+		return [(field_name, order_direction)]
 
 	def _can_fast_path_db_query_compat_order_by(self, order_by: str | None) -> bool:
 		if not order_by:

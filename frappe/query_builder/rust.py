@@ -176,6 +176,34 @@ def render_simple_select_query_literal(
 	)
 
 
+def render_simple_select_query_with_or(
+	table: str,
+	fields: list[str],
+	filters: list[tuple[str, str, Any]],
+	or_filters: list[tuple[str, str, Any]],
+	orderbys: list[tuple[str, str]] | None = None,
+	quote_char: str | None = "`",
+	limit: int | None = None,
+	offset: int | None = None,
+	distinct: bool = False,
+) -> tuple[str, str, dict[str, Any]]:
+	backend = load_backend()
+	if backend is None or backend.render_simple_select_query_with_or is None:
+		raise RuntimeError("frappe-pypika-rs is not available")
+	sql, prepared_sql, params = backend.render_simple_select_query_with_or(
+		table,
+		fields,
+		filters,
+		or_filters,
+		orderbys=orderbys,
+		quote_char=quote_char,
+		limit=limit,
+		offset=offset,
+		distinct=distinct,
+	)
+	return sql, prepared_sql, dict(params)
+
+
 def render_simple_select_query_prepared(
 	table: str,
 	fields: list[str],
@@ -202,6 +230,34 @@ def render_simple_select_query_prepared(
 		distinct=distinct,
 		groupbys=groupbys,
 		select_sqls=select_sqls,
+	)
+	return prepared_sql, dict(params)
+
+
+def render_simple_select_query_prepared_with_or(
+	table: str,
+	fields: list[str],
+	filters: list[tuple[str, str, Any]],
+	or_filters: list[tuple[str, str, Any]],
+	orderbys: list[tuple[str, str]] | None = None,
+	quote_char: str | None = "`",
+	limit: int | None = None,
+	offset: int | None = None,
+	distinct: bool = False,
+) -> tuple[str, dict[str, Any]]:
+	backend = load_backend()
+	if backend is None or backend.render_simple_select_query_prepared_with_or is None:
+		raise RuntimeError("frappe-pypika-rs is not available")
+	prepared_sql, params = backend.render_simple_select_query_prepared_with_or(
+		table,
+		fields,
+		filters,
+		or_filters,
+		orderbys=orderbys,
+		quote_char=quote_char,
+		limit=limit,
+		offset=offset,
+		distinct=distinct,
 	)
 	return prepared_sql, dict(params)
 
@@ -777,6 +833,50 @@ class RustRawSelectQuery:
 
 	def __str__(self) -> str:
 		return self.get_sql()
+
+
+class RustLazyRawSelectQuery(RustRawSelectQuery):
+	def __init__(
+		self,
+		table: str,
+		fields: list[str],
+		filters: list[tuple[str, str, Any]],
+		or_filters: list[tuple[str, str, Any]] | None = None,
+		**render_kwargs: Any,
+	):
+		super().__init__(None, "", {})
+		self.table = table
+		self.fields = fields
+		self.filters = filters
+		self.or_filters = or_filters or []
+		self.render_kwargs = render_kwargs
+
+	def _ensure_rendered(self) -> None:
+		if self.prepared_sql:
+			return
+		if self.or_filters:
+			self.sql, self.prepared_sql, self.params = render_simple_select_query_with_or(
+				self.table,
+				self.fields,
+				self.filters,
+				self.or_filters,
+				**self.render_kwargs,
+			)
+		else:
+			self.sql, self.prepared_sql, self.params = render_simple_select_query(
+				self.table,
+				self.fields,
+				self.filters,
+				**self.render_kwargs,
+			)
+
+	def get_sql(self, **kwargs: Any) -> str:
+		self._ensure_rendered()
+		return super().get_sql(**kwargs)
+
+	def _frappe_prepare_query(self) -> tuple[str, dict[str, Any]]:
+		self._ensure_rendered()
+		return self.prepared_sql, self.params
 
 
 class RustJoiner:
