@@ -304,21 +304,20 @@ def render_select_fragments(
 	offset: int | None = None,
 	distinct: bool = False,
 ) -> str:
-	backend = load_backend()
-	if backend is None or backend.render_select_fragments is None:
-		raise RuntimeError("frappe-pypika-rs is not available")
-	return backend.render_select_fragments(
-		table,
-		select_sqls,
-		quote_char=quote_char,
-		join_sqls=join_sqls,
-		where_sql=where_sql,
-		groupbys=groupbys,
-		orderbys=orderbys,
-		limit=limit,
-		offset=offset,
-		distinct=distinct,
-	)
+	sql = f"SELECT {'DISTINCT ' if distinct else ''}{','.join(select_sqls)} FROM {_quote_identifier(table, quote_char)}"
+	if join_sqls:
+		sql += f" {' '.join(join_sqls)}"
+	if where_sql:
+		sql += f" WHERE {where_sql}"
+	if groupbys:
+		sql += f" GROUP BY {','.join(groupbys)}"
+	if orderbys:
+		sql += f" ORDER BY {','.join(orderbys)}"
+	if limit is not None:
+		sql += f" LIMIT {limit}"
+	if offset is not None:
+		sql += f" OFFSET {offset}"
+	return sql
 
 
 def render_insert(
