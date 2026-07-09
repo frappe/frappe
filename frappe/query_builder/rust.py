@@ -1134,7 +1134,9 @@ def _try_render_simple_criterion(
 
 	if isinstance(criterion, BasicCriterion):
 		left = _try_render_simple_term(criterion.left, quote_char=quote_char, with_namespace=with_namespace)
-		right = _try_render_simple_value(criterion.right, quote_char=quote_char, **kwargs)
+		right = _try_render_simple_value(
+			criterion.right, quote_char=quote_char, with_namespace=with_namespace, **kwargs
+		)
 		if left is None or right is None:
 			return None
 		return f"{left}{criterion.comparator.value}{right}"
@@ -1186,7 +1188,9 @@ def _try_render_simple_value(
 	**kwargs: Any,
 ) -> str | None:
 	if isinstance(term, Field):
-		return _try_render_simple_term(term, quote_char=quote_char)
+		return _try_render_simple_term(
+			term, quote_char=quote_char, with_namespace=kwargs.get("with_namespace", False)
+		)
 
 	if hasattr(term, "value") and getattr(term, "alias", None) is None:
 		value = term.value
@@ -1262,15 +1266,28 @@ def _render_joins(
 		if not isinstance(join.criterion, Criterion):
 			return None
 
-		table_sql = join.item.get_sql(subquery=True, with_alias=True, quote_char=quote_char, **kwargs)
+		table_sql = _render_join_table(join.item, quote_char=quote_char)
+		if table_sql is None:
+			table_sql = join.item.get_sql(subquery=True, with_alias=True, quote_char=quote_char, **kwargs)
 		join_sql = f"JOIN {table_sql}"
 		if join.how.value:
 			join_sql = f"{join.how.value} {join_sql}"
-		criterion_sql = join.criterion.get_sql(
-			subquery=True, quote_char=quote_char, with_namespace=True, **kwargs
+		criterion_sql = _try_render_simple_criterion(
+			join.criterion, quote_char=quote_char, with_namespace=True, **kwargs
+		) or join.criterion.get_sql(
+			subquery=True,
+			quote_char=quote_char,
+			with_namespace=True,
+			**kwargs,
 		)
 		rendered.append(f"{join_sql} ON {criterion_sql}")
 	return rendered
+
+
+def _render_join_table(table: Table, quote_char: str | None = "`") -> str | None:
+	if table._schema is not None or table.alias is not None:
+		return None
+	return _quote_identifier(table._table_name, quote_char)
 
 
 def _render_orderbys(
