@@ -62,8 +62,6 @@ $.extend(frappe.perm, {
 	},
 
 	_get_perm: (doctype, doc) => {
-<<<<<<< HEAD
-=======
 		const user = frappe.session.user;
 		let meta = frappe.get_meta(doctype);
 
@@ -94,7 +92,6 @@ $.extend(frappe.perm, {
 			return admin_perm;
 		}
 
->>>>>>> 796bfd2ae3 (fix(perm): respect custom permission types client-side (#40251))
 		let perm = [{ read: 0, permlevel: 0 }];
 
 		let meta = frappe.get_meta(doctype);
