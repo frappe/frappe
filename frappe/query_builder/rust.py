@@ -1326,9 +1326,16 @@ def _try_render_literal_tuple(term: Tuple) -> str | None:
 		if not isinstance(value, ValueWrapper) or value.alias is not None:
 			return None
 		raw_value = value.value
-		if not _is_supported_literal(raw_value):
+		if raw_value is None:
+			values.append("NULL")
+		elif isinstance(raw_value, bool):
+			values.append("true" if raw_value else "false")
+		elif isinstance(raw_value, int | float):
+			values.append(str(raw_value))
+		elif isinstance(raw_value, str):
+			values.append(_quote_identifier(raw_value, "'"))
+		else:
 			return None
-		values.append(_render_literal(raw_value))
 	return f"({','.join(values)})"
 
 
