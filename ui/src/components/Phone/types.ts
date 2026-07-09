@@ -39,7 +39,3 @@ export interface PhoneSlots {
   suffix?: () => any;
 }
 
-/** @deprecated use {@link PhoneProps} */
-export type PhoneInputProps = PhoneProps;
-/** @deprecated use {@link PhoneSlots} */
-export type PhoneInputSlots = PhoneSlots;
