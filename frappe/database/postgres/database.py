@@ -625,6 +625,7 @@ class PostgresDatabase(PostgresExceptionUtil, Database):
 			CASE LOWER(a.data_type)
 				WHEN 'character varying' THEN CONCAT('varchar(', a.character_maximum_length ,')')
 				WHEN 'timestamp without time zone' THEN 'timestamp'
+				WHEN 'time without time zone' THEN CONCAT('time(', a.datetime_precision, ')')
 				WHEN 'integer' THEN 'int'
 				WHEN 'numeric' THEN CONCAT('decimal(', a.numeric_precision, ',', a.numeric_scale, ')')
 				ELSE a.data_type
@@ -646,7 +647,7 @@ class PostgresDatabase(PostgresExceptionUtil, Database):
 			) b ON b.column_name = a.column_name
 			WHERE a.table_name = '{table_name}'
 				AND a.table_schema = '{self.db_schema}'
-			GROUP BY a.column_name, a.data_type, a.column_default, a.character_maximum_length, a.is_nullable, a.numeric_precision, a.numeric_scale;
+			GROUP BY a.column_name, a.data_type, a.column_default, a.character_maximum_length, a.is_nullable, a.numeric_precision, a.numeric_scale, a.datetime_precision;
 		""",
 			as_dict=1,
 		)
