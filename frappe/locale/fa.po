@@ -3,7 +3,7 @@ msgstr ""
 "Project-Id-Version: frappe\n"
 "Report-Msgid-Bugs-To: developers@frappe.io\n"
 "POT-Creation-Date: 2026-06-24 16:55+0000\n"
-"PO-Revision-Date: 2026-07-05 21:52\n"
+"PO-Revision-Date: 2026-07-07 22:11\n"
 "Last-Translator: developers@frappe.io\n"
 "Language-Team: Persian\n"
 "MIME-Version: 1.0\n"
@@ -8771,7 +8771,7 @@ msgstr "ویرایش HTML"
 
 #: frappe/public/js/print_format_builder/PrintFormat.vue:9
 msgid "Edit Header"
-msgstr ""
+msgstr "ویرایش سربرگ"
 
 #: frappe/printing/page/print_format_builder/print_format_builder.js:604
 #: frappe/printing/page/print_format_builder/print_format_builder_layout.html:8
