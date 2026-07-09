@@ -478,10 +478,6 @@ class Engine:
 			return None
 		field_names, select_sqls = select_spec
 
-		filter_specs = self._try_parse_fast_select_filters(filters)
-		if filter_specs is None:
-			return None
-
 		groupby_specs = self._try_parse_fast_group_by(group_by)
 		if groupby_specs is None:
 			return None
@@ -489,6 +485,17 @@ class Engine:
 		orderby_specs = self._try_parse_fast_order_by(order_by)
 		if orderby_specs is None:
 			return None
+
+		single_filter_spec = None
+		if not groupby_specs and select_sqls is None:
+			single_filter_spec = self._try_parse_fast_single_filter(filters)
+
+		if single_filter_spec is None:
+			filter_specs = self._try_parse_fast_select_filters(filters)
+			if filter_specs is None:
+				return None
+		else:
+			filter_specs = [single_filter_spec]
 
 		render_args = (
 			table_name or self.table._table_name,
@@ -504,13 +511,8 @@ class Engine:
 			"groupbys": groupby_specs,
 			"select_sqls": select_sqls,
 		}
-		if (
-			len(filter_specs) == 1
-			and not groupby_specs
-			and select_sqls is None
-			and filter_specs[0][1] not in ("IN", "NOT IN")
-		):
-			field, operator, value = filter_specs[0]
+		if single_filter_spec is not None and single_filter_spec[1] not in ("IN", "NOT IN"):
+			field, operator, value = single_filter_spec
 			prepared_sql, params = render_simple_select_query_prepared_one_filter(
 				render_args[0],
 				field_names,
@@ -646,6 +648,61 @@ class Engine:
 		if alias:
 			select_sql = f"{select_sql} {self._quote_fast_identifier(alias)}"
 		return select_sql
+
+	def _try_parse_fast_single_filter(self, filters) -> tuple[str, str, Any] | None:
+		if isinstance(filters, FilterValue):
+			filter_item = ("name", filters)
+		elif isinstance(filters, dict):
+			if len(filters) != 1:
+				return None
+			filter_item = next(iter(filters.items()))
+		elif isinstance(filters, list | tuple):
+			if len(filters) != 1:
+				return None
+			filter_value = filters[0]
+			if not isinstance(filter_value, list | tuple):
+				return None
+			filter_item = self._normalize_fast_list_filter(filter_value)
+			if filter_item is None:
+				return None
+		else:
+			return None
+
+		return self._try_parse_fast_single_filter_item(filter_item)
+
+	def _try_parse_fast_single_filter_item(self, filter_item) -> tuple[str, str, Any] | None:
+		field, filter_value = filter_item
+		if not isinstance(field, str) or not SIMPLE_FIELD_PATTERN.match(field):
+			return None
+
+		operator = "="
+		value = filter_value
+		if isinstance(filter_value, list | tuple):
+			if len(filter_value) != 2:
+				return None
+			operator, value = filter_value
+
+		if not isinstance(operator, str):
+			return None
+
+		sql_operator = SIMPLE_SQL_OPERATORS.get(operator.casefold())
+		if sql_operator is None:
+			return None
+
+		value = convert_to_value(value)
+		if sql_operator in ("IN", "NOT IN"):
+			if not isinstance(value, list | tuple):
+				return None
+			if not value:
+				return None
+			if self._has_unsupported_fast_filter_value(value):
+				return None
+			return field, sql_operator, value
+
+		if isinstance(value, FAST_UNSUPPORTED_FILTER_VALUE_TYPES) or value is None:
+			return None
+
+		return field, sql_operator, value
 
 	def _try_parse_fast_select_filters(self, filters) -> list[tuple[str, str, Any]] | None:
 		if filters is None:
