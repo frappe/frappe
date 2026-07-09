@@ -158,8 +158,6 @@ def execute_child_queries(queries, result):
 
 
 def prepare_query(query):
-	from frappe.utils.safe_exec import SERVER_SCRIPT_FILE_PREFIX, check_safe_sql_query
-
 	params = None
 	try:
 		custom_prepare = object.__getattribute__(query, "_frappe_prepare_query")
@@ -177,6 +175,8 @@ def prepare_query(query):
 		params = param_collector.parameters
 
 	if frappe.local.flags.get("in_safe_exec", False):
+		from frappe.utils.safe_exec import SERVER_SCRIPT_FILE_PREFIX, check_safe_sql_query
+
 		if not check_safe_sql_query(query, throw=False):
 			callstack = inspect.stack()
 
@@ -194,6 +194,8 @@ def prepare_query(query):
 				raise frappe.PermissionError("Only SELECT SQL allowed in scripting")
 
 	if frappe.local.flags.get("in_render_safe_exec", False):
+		from frappe.utils.safe_exec import check_safe_sql_query
+
 		check_safe_sql_query(query, throw=True)
 
 	assert isinstance(query, str), "prepared query must be a SQL string"
