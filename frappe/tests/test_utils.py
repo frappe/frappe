@@ -689,6 +689,10 @@ class TestImage(IntegrationTestCase):
 		self.assertEqual(new_image._getexif(), None)
 		self.assertNotEqual(original_image._getexif(), new_image._getexif())
 
+		# Testing idempotency of strip_exif_data()
+		restripped_image_content = strip_exif_data(new_image_content, "image/jpeg")
+		self.assertEqual(restripped_image_content, new_image_content)
+
 	def test_optimize_image(self):
 		image_file_path = frappe.get_app_path("frappe", "tests", "data", "sample_image_for_optimization.jpg")
 		content_type = guess_type(image_file_path)[0]
@@ -1332,13 +1336,13 @@ class TestTypingValidations(IntegrationTestCase):
 class TestTBSanitization(IntegrationTestCase):
 	def test_traceback_sanitzation(self):
 		try:
-			password = "42"  # noqa: F841
-			args = {"password": "42", "pwd": "42", "safe": "safe_value"}
-			args = frappe._dict({"password": "42", "pwd": "42", "safe": "safe_value"})  # noqa: F841
+			password = "424242"  # noqa: F841
+			args = {"password": "424242", "pwd": "424242", "safe": "safe_value"}
+			args = frappe._dict({"password": "424242", "pwd": "424242", "safe": "safe_value"})  # noqa: F841
 			raise Exception
 		except Exception:
 			traceback = frappe.get_traceback(with_context=True)
-			self.assertNotIn("42", traceback)
+			self.assertNotIn("424242", traceback)
 			self.assertIn("********", traceback)
 			self.assertIn("password =", traceback)
 			self.assertIn("safe_value", traceback)

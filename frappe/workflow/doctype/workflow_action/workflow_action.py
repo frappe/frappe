@@ -146,24 +146,15 @@ def apply_action(action, doctype, docname, current_state, user=None, last_modifi
 		return_link_expired_page(doc, doc_workflow_state)
 
 
-@frappe.whitelist(allow_guest=True)
-def confirm_action(doctype, docname, user, action):
+@frappe.whitelist()
+def confirm_action(doctype: str, docname: str | int, user: str, action: str):
 	if not verify_request():
 		return
-
-	logged_in_user = frappe.session.user
-	if logged_in_user == "Guest" and user:
-		# to allow user to apply action without login
-		frappe.set_user(user)
 
 	doc = frappe.get_doc(doctype, docname)
 	newdoc = apply_workflow(doc, action)
 	frappe.db.commit()
 	return_success_page(newdoc)
-
-	# reset session user
-	if logged_in_user == "Guest":
-		frappe.set_user(logged_in_user)
 
 
 def return_success_page(doc):
@@ -184,6 +175,7 @@ def return_action_confirmation_page(doc, action, action_link, alert_doc_change=F
 		"action": action,
 		"action_link": action_link,
 		"alert_doc_change": alert_doc_change,
+		"is_guest": frappe.session.user == "Guest",
 	}
 
 	template_params["pdf_link"] = get_pdf_link(doc.get("doctype"), doc.get("name"))

@@ -350,7 +350,7 @@ frappe.views.FileView = class FileView extends frappe.views.ListView {
 
 		return folders
 			.map((folder, i) => {
-				const title = this.get_folder_title(folder);
+				const title = frappe.utils.escape_html(this.get_folder_title(folder));
 
 				if (i === folders.length - 1) {
 					return `<span>${title}</span>`;
@@ -362,7 +362,7 @@ frappe.views.FileView = class FileView extends frappe.views.ListView {
 					return acc;
 				}, "/desk/file/view");
 
-				return `<a href="${route}">${title}</a>`;
+				return `<a href="${frappe.utils.escape_html(route)}">${title}</a>`;
 			})
 			.join("&nbsp;/&nbsp;");
 	}

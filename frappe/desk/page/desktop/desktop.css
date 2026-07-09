@@ -158,6 +158,7 @@
     justify-content: space-between;
     height: 35px;
     flex-direction: column;
+      width: 100%;
 }
 .icon-title{
     font-weight: var(--weight-semibold);

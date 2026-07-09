@@ -181,6 +181,10 @@ frappe.ui.form.ControlCode = class ControlCode extends frappe.ui.form.ControlTex
 		this.editor.resize();
 	}
 
+	on_section_collapse(hide) {
+		!hide && this.editor?.resize();
+	}
+
 	toggle_label() {
 		this.$expand_button && this.$expand_button.text(this.get_button_label());
 	}

@@ -241,7 +241,7 @@ def execute_job(site, method, event, job_name, kwargs, user=None, is_async=True,
 	retval = None
 
 	if is_async:
-		frappe.init(site, force=True)
+		frappe.init(site, force=True, is_job=True)
 		frappe.connect()
 		if os.environ.get("CI"):
 			from frappe.tests.utils import toggle_test_mode
@@ -307,7 +307,7 @@ def execute_job(site, method, event, job_name, kwargs, user=None, is_async=True,
 
 	finally:
 		if not hasattr(frappe.local, "site"):
-			frappe.init(site, force=True)
+			frappe.init(site, force=True, is_job=True)
 			frappe.connect()
 		for after_job_task in frappe.get_hooks("after_job"):
 			frappe.call(after_job_task, method=method_name, kwargs=kwargs, result=retval)
@@ -332,13 +332,11 @@ def start_worker(
 
 	_start_sentry()
 
-	with frappe.init_site():
-		# empty init is required to get redis_queue from common_site_config.json
-		redis_connection = get_redis_conn(username=rq_username, password=rq_password)
+	redis_connection = get_redis_conn(username=rq_username, password=rq_password)
 
-		if queue:
-			queue = [q.strip() for q in queue.split(",")]
-		queues = get_queue_list(queue, build_queue_name=True)
+	if queue:
+		queue = [q.strip() for q in queue.split(",")]
+	queues = get_queue_list(queue, build_queue_name=True)
 
 	if os.environ.get("CI"):
 		setup_loghandlers("ERROR")
@@ -432,12 +430,11 @@ def start_worker_pool(
 	import frappe.website.path_resolver  # all the page types and resolver
 	# end: module pre-loading
 
-	with frappe.init_site():
-		redis_connection = get_redis_conn()
+	redis_connection = get_redis_conn()
 
-		if queue:
-			queue = [q.strip() for q in queue.split(",")]
-		queues = get_queue_list(queue, build_queue_name=True)
+	if queue:
+		queue = [q.strip() for q in queue.split(",")]
+	queues = get_queue_list(queue, build_queue_name=True)
 
 	if os.environ.get("CI"):
 		setup_loghandlers("ERROR")
@@ -569,10 +566,7 @@ def validate_queue(queue: str, default_queue_list: list | None = None) -> None:
 	reraise=True,
 )
 def get_redis_conn(username=None, password=None):
-	if not hasattr(frappe.local, "conf"):
-		raise Exception("You need to call frappe.init")
-
-	conf = frappe.get_site_config()
+	conf = frappe.get_conf()
 	if not conf.redis_queue:
 		raise Exception("redis_queue missing in common_site_config.json")
 
