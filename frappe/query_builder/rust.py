@@ -16,6 +16,7 @@ from pypika.terms import (
 	EmptyCriterion,
 	Field,
 	Function,
+	Not,
 	NullCriterion,
 	Star,
 	Term,
@@ -599,8 +600,49 @@ class RustSelectQuery:
 		return prepare_query(self)
 
 	def _frappe_prepare_query(self) -> tuple[str, dict[str, Any]] | tuple[None, None]:
-		if self._fallback_query is not None or self._where is not None or self._joins:
+		if self._fallback_query is not None or self._joins:
 			return None, None
+		if self._where is not None:
+			prepared_where, params = _try_render_prepared_where(self._where)
+			if prepared_where is None:
+				return None, None
+
+			quote_char = self.quote_char
+			orderbys = _render_orderbys(self._orderbys, quote_char=quote_char)
+			groupbys = _render_terms(self._groupbys, quote_char=quote_char)
+			if orderbys is None or groupbys is None:
+				return None, None
+			if self._joins or self._groupbys or not self._field_names:
+				select_sqls = _render_select_fragments(self._select_terms, quote_char=quote_char)
+				if select_sqls is None:
+					return None, None
+				return (
+					render_select_fragments(
+						self.table._table_name,
+						select_sqls,
+						quote_char=quote_char,
+						where_sql=prepared_where,
+						groupbys=groupbys,
+						orderbys=orderbys,
+						limit=self._limit,
+						offset=self._offset,
+						distinct=self._distinct,
+					),
+					params,
+				)
+			return (
+				render_select_query(
+					self.table._table_name,
+					self._field_names,
+					quote_char=quote_char,
+					where_sql=prepared_where,
+					orderbys=orderbys,
+					limit=self._limit,
+					offset=self._offset,
+					distinct=self._distinct,
+				),
+				params,
+			)
 		return self.get_sql(), {}
 
 	def run(self, *args: Any, **kwargs: Any):
@@ -1295,6 +1337,14 @@ def _try_render_simple_criterion(
 			return None
 		return f"{term} IS NULL"
 
+	if isinstance(criterion, Not):
+		term = _try_render_simple_criterion(
+			criterion.term, quote_char=quote_char, with_namespace=with_namespace, **kwargs
+		)
+		if term is None:
+			return None
+		return f"NOT {term}"
+
 	return None
 
 
@@ -1307,6 +1357,79 @@ def _render_criterion_part(
 	return _try_render_simple_criterion(
 		criterion, quote_char=quote_char, with_namespace=with_namespace, **kwargs
 	) or criterion.get_sql(quote_char=quote_char, subquery=True, with_namespace=with_namespace, **kwargs)
+
+
+def _try_render_prepared_where(criterion: Term) -> tuple[str | None, dict[str, Any]]:
+	params: dict[str, Any] = {}
+	sql = _try_render_prepared_criterion(criterion, params)
+	return sql, params
+
+
+def _try_render_prepared_criterion(criterion: Term, params: dict[str, Any]) -> str | None:
+	if isinstance(criterion, ComplexCriterion):
+		left = _try_render_prepared_criterion_part(criterion.left, params)
+		right = _try_render_prepared_criterion_part(criterion.right, params)
+		if left is None or right is None:
+			return None
+		return f"{left} {criterion.comparator.value} {right}"
+
+	if isinstance(criterion, BasicCriterion):
+		left = _try_render_simple_term(criterion.left)
+		right = _try_render_prepared_value(criterion.right, params)
+		if left is None or right is None:
+			return None
+		return f"{left}{criterion.comparator.value}{right}"
+
+	if isinstance(criterion, ContainsCriterion):
+		term = _try_render_simple_term(criterion.term)
+		container = _try_render_prepared_tuple(criterion.container, params)
+		if term is None or container is None:
+			return None
+		operator = "NOT IN" if criterion._is_negated else "IN"
+		return f"{term} {operator} {container}"
+
+	if isinstance(criterion, NullCriterion):
+		term = _try_render_simple_term(criterion.term)
+		if term is None:
+			return None
+		return f"{term} IS NULL"
+
+	if isinstance(criterion, Not):
+		term = _try_render_prepared_criterion(criterion.term, params)
+		if term is None:
+			return None
+		return f"NOT {term}"
+
+	return None
+
+
+def _try_render_prepared_criterion_part(criterion: Term, params: dict[str, Any]) -> str | None:
+	return _try_render_prepared_criterion(criterion, params)
+
+
+def _try_render_prepared_tuple(term: Term, params: dict[str, Any]) -> str | None:
+	if not isinstance(term, Tuple):
+		return None
+	values = [_try_render_prepared_value(value, params) for value in term.values]
+	if any(value is None for value in values):
+		return None
+	return f"({','.join(values)})"
+
+
+def _try_render_prepared_value(term: Term, params: dict[str, Any]) -> str | None:
+	if isinstance(term, Field):
+		return _try_render_simple_term(term)
+
+	if isinstance(term, ValueWrapper) and term.alias is None:
+		value = term.value
+		if isinstance(value, str):
+			param_name = f"param{len(params) + 1}"
+			params[param_name] = value
+			return f"%({param_name})s"
+		if _is_supported_literal(value):
+			return _render_literal(value)
+
+	return None
 
 
 def _try_render_simple_tuple(
