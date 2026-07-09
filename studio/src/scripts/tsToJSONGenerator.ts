@@ -16,16 +16,16 @@ const configMap: Record<string, any> = {
 		// component-per-folder layout: scan for `types.ts`, key by folder name
 		folderScan: true,
 	},
-	// @framework/ui (apps/frappe/ui). Same component-per-folder layout as frappe-ui.
-	// Coverage is partial: only components that export a `<Folder>Props` interface
-	// are extracted; those using inline `defineProps<{…}>` fall back to the runtime
-	// props Vue derives at compile time.
+	// @framework/ui (apps/frappe/ui). Extracted per-component (a folder can hold
+	// several components), keyed off the `.vue` files: each component that exports
+	// `<Component>Props` (and optionally `<Component>Slots`) in its folder's `types.ts`
+	// gets one `<Component>.json`.
 	frameworkui: {
 		srcFolders: ["../../frappe/ui/src/components"],
 		destFolder: "src/json_types/frameworkui",
 		tsconfigPath: "../node_modules/frappe-ui/tsconfig.base.json",
-		skipFolders: ["stories"],
-		folderScan: true,
+		skipFolders: ["stories", "tests"],
+		perComponent: true,
 	},
 	studio: {
 		srcFolders: ["src/types/studio_components"],
@@ -45,9 +45,18 @@ if (!moduleName || !configMap[moduleName]) {
 }
 
 /* 1. Generate JSON types */
-const { srcFolders, destFolder, tsconfigPath, skipFolders, folderScan } = configMap[moduleName]
+const { srcFolders, destFolder, tsconfigPath, skipFolders, folderScan, perComponent } = configMap[moduleName]
+
+// Clear stale JSON so renamed/removed components don't linger in the index (e.g. the
+// switch from folder-keyed to per-component frameworkui files).
+if (fs.existsSync(destFolder)) {
+	for (const file of fs.readdirSync(destFolder)) {
+		if (file.endsWith(".json")) fs.rmSync(path.join(destFolder, file))
+	}
+}
+
 srcFolders.forEach((srcFolder: string) => {
-	tsToJSON(srcFolder, destFolder, skipFolders, tsconfigPath, Boolean(folderScan))
+	tsToJSON(srcFolder, destFolder, skipFolders, tsconfigPath, Boolean(folderScan), Boolean(perComponent))
 })
 
 /* 2. Update index file */

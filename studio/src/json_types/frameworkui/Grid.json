@@ -1,33 +1,98 @@
 {
   "$schema": "http://json-schema.org/draft-07/schema#",
   "definitions": {
-    "*": {
+    "GridProps": {
       "type": "object",
       "properties": {
-        "fieldname": {
-          "type": "string"
+        "columns": {
+          "type": "array",
+          "items": {
+            "type": "object",
+            "properties": {
+              "fieldname": {
+                "type": "string"
+              },
+              "label": {
+                "type": "string"
+              },
+              "reqd": {
+                "type": "boolean"
+              },
+              "align": {
+                "type": "string",
+                "enum": [
+                  "left",
+                  "right",
+                  "center"
+                ]
+              },
+              "width": {
+                "type": "number"
+              }
+            },
+            "required": [
+              "fieldname"
+            ],
+            "additionalProperties": false
+          }
+        },
+        "disabled": {
+          "type": "boolean"
         },
         "label": {
           "type": "string"
         },
-        "reqd": {
-          "type": "boolean"
+        "description": {
+          "type": "string"
         },
-        "align": {
-          "type": "string",
-          "enum": [
-            "left",
-            "right",
-            "center"
+        "error": {
+          "anyOf": [
+            {
+              "type": "string"
+            },
+            {
+              "type": "object",
+              "properties": {
+                "name": {
+                  "type": "string"
+                },
+                "message": {
+                  "type": "string"
+                },
+                "stack": {
+                  "type": "string"
+                },
+                "messages": {
+                  "type": "array",
+                  "items": {
+                    "type": "string"
+                  }
+                }
+              },
+              "additionalProperties": false,
+              "required": [
+                "message",
+                "name"
+              ]
+            }
           ]
         },
-        "width": {
-          "type": "number"
+        "required": {
+          "type": "boolean"
         }
       },
       "required": [
-        "fieldname"
+        "columns"
       ],
+      "additionalProperties": false
+    },
+    "GridSlots": {
+      "type": "object",
+      "properties": {
+        "cell": {
+          "type": "object"
+        }
+      },
       "additionalProperties": false
     }
   }

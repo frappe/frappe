@@ -1,0 +1,92 @@
+{
+  "$schema": "http://json-schema.org/draft-07/schema#",
+  "definitions": {
+    "CommentItemProps": {
+      "type": "object",
+      "properties": {
+        "comment": {
+          "type": "object",
+          "properties": {
+            "type": {
+              "type": "string",
+              "const": "comment"
+            },
+            "key": {
+              "type": "string"
+            },
+            "timestamp": {
+              "type": "string"
+            },
+            "author": {
+              "type": "object",
+              "properties": {
+                "email": {
+                  "type": "string"
+                },
+                "fullname": {
+                  "type": "string"
+                },
+                "image": {
+                  "type": "string"
+                },
+                "name": {
+                  "type": "string"
+                }
+              },
+              "additionalProperties": false
+            },
+            "icon": {
+              "type": [
+                "string"
+              ]
+            },
+            "data": {
+              "type": "object",
+              "properties": {
+                "name": {
+                  "type": "string"
+                },
+                "content": {
+                  "type": "string"
+                }
+              },
+              "required": [
+                "name",
+                "content"
+              ],
+              "additionalProperties": false
+            }
+          },
+          "required": [
+            "type",
+            "key",
+            "data"
+          ],
+          "additionalProperties": false
+        },
+        "editable": {
+          "type": "boolean"
+        }
+      },
+      "required": [
+        "comment"
+      ],
+      "additionalProperties": false
+    },
+    "CommentItemSlots": {
+      "type": "object",
+      "properties": {
+        "header": {
+          "type": "object"
+        },
+        "actions": {
+          "type": "object"
+        },
+        "footer": {
+          "type": "object"
+        }
+      },
+      "additionalProperties": false
+    }
+  }
+}
