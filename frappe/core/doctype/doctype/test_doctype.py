@@ -18,6 +18,7 @@ from frappe.core.doctype.doctype.doctype import (
 	InvalidFieldNameError,
 	UniqueFieldnameError,
 	WrongOptionsDoctypeLinkError,
+	validate_fields,
 	validate_links_table_fieldnames,
 )
 from frappe.core.doctype.rq_job.test_rq_job import wait_for_completion
@@ -689,6 +690,12 @@ class TestDocType(IntegrationTestCase):
 		)
 
 		self.assertRaises(frappe.ValidationError, doctype.insert)
+
+	def test_missing_link_filters_field_is_allowed(self):
+		doctype = new_doctype()
+		doctype.fields[0].__dict__.pop("link_filters", None)
+
+		validate_fields(doctype)
 
 	def test_custom_field_validates_link_filters(self):
 		custom_field = frappe.get_doc(

@@ -1718,11 +1718,12 @@ def validate_fields(meta: Meta):
 				)
 
 	def validate_link_filters(docfield):
-		if not docfield.link_filters:
+		link_filters_value = docfield.get("link_filters")
+		if not link_filters_value:
 			return
 
 		try:
-			link_filters = json.loads(docfield.link_filters)
+			link_filters = json.loads(link_filters_value)
 		except (TypeError, ValueError):
 			frappe.throw(
 				_("Invalid Link Filters for field {0}. Link Filters must be valid JSON.").format(
