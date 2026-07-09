@@ -529,6 +529,7 @@ persistent_cache_keys = [
 	"rate-limit-counter-*",
 	"rl:*",
 	"concurrency:*",
+	"pulse-client:*",
 ]
 
 user_invitation = {
