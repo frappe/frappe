@@ -537,6 +537,7 @@ frappe.ui.form.Form = class FrappeForm {
 			// reset page number to 1
 			grid_obj.grid.grid_pagination.go_to_page(1, true);
 		});
+		this.layout?.sections.forEach((section) => (section.expanded_by_user = false));
 		frappe.ui.form.close_grid_form();
 		this.viewers && this.viewers.parent.empty();
 		this.docname = docname;
