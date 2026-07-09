@@ -216,7 +216,7 @@
 	</div>
 </template>
 
-<script setup lang="ts" generic="T extends GridColumn">
+<script setup lang="ts">
 import { computed, nextTick, onBeforeUnmount, onMounted, ref, watch } from "vue";
 import { Button, Checkbox } from "frappe-ui";
 import {
@@ -227,30 +227,13 @@ import {
 } from "frappe-ui/experimental";
 // @ts-ignore — vuedraggable ships no bundled types
 import Draggable from "vuedraggable";
-import type { GridCellSlotProps, GridColumn, GridEmits } from "./types";
+import type { GridColumn, GridEmits, GridProps, GridSlots } from "./types";
 
 // Mirrors frappe-ui's `FrappeUIError` (an `Error` whose `messages?: string[]`
 // render as stacked lines). Declared locally — the type isn't re-exported from
 // `frappe-ui/experimental` — and is structurally compatible with what the composable
 // expects.
-interface GridError extends Error {
-	messages?: string[];
-}
-
-const props = defineProps<{
-	/** Columns to render, in order. */
-	columns: T[];
-	/** Disable structural actions (add/delete/reorder/select) and render read-only. */
-	disabled?: boolean;
-	/** Optional heading shown above the grid. */
-	label?: string;
-	/** Helper text rendered below the grid. Hidden while an error is shown. */
-	description?: string;
-	/** Validation error below the grid: a string, or an `Error` with `messages[]`. */
-	error?: string | GridError;
-	/** Renders a `*` next to the label. */
-	required?: boolean;
-}>();
+const props = defineProps<GridProps>();
 
 const emit = defineEmits<GridEmits>();
 
@@ -272,10 +255,7 @@ const {
 // Rows array. The slot's `update` writes it live; `commit` also emits `change`.
 const rows = defineModel<Record<string, any>[]>({ default: () => [] });
 
-defineSlots<{
-	/** Render/edit one cell. Falls back to plain text when not provided. */
-	cell(props: GridCellSlotProps<T>): any;
-}>();
+defineSlots<GridSlots>();
 
 // Per-column track widths: `null` = flexible (`1fr`), a number = fixed px. Seeded
 // from the column's `width`, overridden by a drag. Re-seeding on a columns change
@@ -432,11 +412,11 @@ function toggleAll(checked: boolean) {
 // vuedraggable from reconciling the row DOM and stealing focus on each keystroke.
 // The row is shared by reference with the parent, so the write is visible without a
 // model reassignment. Structural ops below build a new array — no focused cell there.
-function updateCell(index: number, col: T, value: any) {
+function updateCell(index: number, col: GridColumn, value: any) {
 	rows.value[index][col.fieldname] = value;
 }
 
-function commitCell(index: number, col: T, value: any) {
+function commitCell(index: number, col: GridColumn, value: any) {
 	rows.value[index][col.fieldname] = value;
 	emit("change", rows.value);
 }

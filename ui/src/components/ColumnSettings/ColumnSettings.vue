@@ -140,23 +140,13 @@ import { Button, Combobox, Popover, TextInput } from "frappe-ui";
 import Draggable from "vuedraggable";
 import { useDoctypeMeta } from "../../composables/useDoctypeMeta";
 import { getColumnOptions } from "./getColumnOptions";
-import type { Column, ColumnOption, SyntheticColumn } from "./types";
+import type { Column, ColumnOption, ColumnSettingsProps } from "./types";
 
-const props = withDefaults(
-	defineProps<{
-		doctype: string;
-		hideLabel?: boolean;
-		canReset?: boolean;
-		// Host-declared synthetic columns (ADR-0033): the picker offers these in
-		// union with Meta fields, so a hidden synthetic column stays re-addable.
-		synthetic?: SyntheticColumn[];
-	}>(),
-	{
-		hideLabel: false,
-		canReset: false,
-		synthetic: () => [],
-	}
-);
+const props = withDefaults(defineProps<ColumnSettingsProps>(), {
+	hideLabel: false,
+	canReset: false,
+	synthetic: () => [],
+});
 
 // Reset is the host's job (ADR-0006): the controlled popover holds no defaults, so
 // it only signals intent and the host restores them.

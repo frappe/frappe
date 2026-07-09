@@ -127,3 +127,32 @@ export interface NotificationBodySlotProps {
   loadMore: () => void;
   hasNextPage: boolean;
 }
+
+export interface NotificationPanelSlots {
+  /** Replaces the panel header (title, tabs, mark-all-read). */
+  header?: (props: NotificationHeaderSlotProps) => any;
+  /** Replaces the whole tab body. */
+  default?: (props: NotificationBodySlotProps) => any;
+  /** Replaces a single notification row. */
+  item?: (props: { notification: NotificationLog }) => any;
+  /** Shown in place of the list when loading fails. */
+  error?: (props: { error: unknown }) => any;
+  /** Shown when there are no notifications. */
+  empty?: () => any;
+}
+
+export interface NotificationItemProps {
+  notification: NotificationLog;
+  class?: string;
+}
+
+export interface NotificationItemSlots {
+  /** Leading region (defaults to the sender avatar). */
+  prefix?: (props: { notification: NotificationLog }) => any;
+  /** Main content (defaults to the title). */
+  default?: (props: { notification: NotificationLog }) => any;
+  /** Secondary line under the title. */
+  description?: (props: { notification: NotificationLog }) => any;
+  /** Trailing region (defaults to the timestamp / unread dot). */
+  suffix?: (props: { notification: NotificationLog }) => any;
+}

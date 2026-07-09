@@ -38,8 +38,9 @@ import { getQuickFilterFields } from "./getQuickFilterFields";
 import QuickFilterInputs from "./QuickFilterInputs.vue";
 import QuickFilterCustomize from "./QuickFilterCustomize.vue";
 import type { Filter, FilterField } from "../Filter/types";
+import type { QuickFilterProps } from "./types";
 
-const props = defineProps<{ doctype: string }>();
+const props = defineProps<QuickFilterProps>();
 
 // `done` fires when the user leaves customize mode (the Done button). Edits already
 // flow live via `update:fields`, so this is NOT a save — it carries the final

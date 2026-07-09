@@ -68,12 +68,10 @@ import Attachment from "./Attachment.vue";
 import EmailContent from "./EmailContent.vue";
 import TimeAgo from "./TimeAgo.vue";
 import TimelineCard from "./TimelineCard.vue";
-import type { EmailActivity } from "./types";
+import type { EmailItemProps } from "./types";
 import { splitRecipients } from "./utils";
 
-const props = defineProps<{
-	email: EmailActivity;
-}>();
+const props = defineProps<EmailItemProps>();
 
 const status = computed(() => {
 	const deliveryStatus = props.email.data.deliveryStatus ?? "";

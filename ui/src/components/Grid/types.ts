@@ -23,6 +23,27 @@ export interface GridColumn {
   width?: number;
 }
 
+/** Validation error shown below the grid: a message string, or an `Error` with `messages[]`. */
+export interface GridError extends Error {
+  messages?: string[];
+}
+
+/** Props for `<Grid>`. The rows array is a separate `v-model`. */
+export interface GridProps {
+  /** Columns to render, in order. */
+  columns: GridColumn[];
+  /** Disable structural actions (add/delete/reorder/select) and render read-only. */
+  disabled?: boolean;
+  /** Optional heading shown above the grid. */
+  label?: string;
+  /** Helper text rendered below the grid. Hidden while an error is shown. */
+  description?: string;
+  /** Validation error below the grid: a string, or an `Error` with `messages[]`. */
+  error?: string | GridError;
+  /** Renders a `*` next to the label. */
+  required?: boolean;
+}
+
 export type GridEmits = {
   /**
    * A row was added, deleted, reordered, or a cell committed (via the slot's
@@ -49,4 +70,9 @@ export interface GridCellSlotProps<T extends GridColumn = GridColumn> {
   update: (value: any) => void;
   /** Commit the cell — writes the value and emits `change`. */
   commit: (value: any) => void;
+}
+
+export interface GridSlots {
+  /** Render/edit one cell. Falls back to plain text when not provided. */
+  cell?: (props: GridCellSlotProps) => any;
 }
