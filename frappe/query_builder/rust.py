@@ -73,11 +73,16 @@ def render_select(
 	offset: int | None = None,
 	distinct: bool = False,
 ) -> str:
-	backend = load_backend()
-	if backend is None or backend.render_select is None:
-		raise RuntimeError("frappe-pypika-rs is not available")
-	return backend.render_select(
-		table, fields, quote_char=quote_char, limit=limit, offset=offset, distinct=distinct
+	select_sql = (
+		"*" if fields == ["*"] else ",".join(_quote_identifier(field, quote_char) for field in fields)
+	)
+	return _assemble_select_sql(
+		table,
+		select_sql,
+		quote_char=quote_char,
+		limit=limit,
+		offset=offset,
+		distinct=distinct,
 	)
 
 
@@ -88,11 +93,13 @@ def render_select_star(
 	offset: int | None = None,
 	distinct: bool = False,
 ) -> str:
-	backend = load_backend()
-	if backend is None or backend.render_select_star is None:
-		raise RuntimeError("frappe-pypika-rs is not available")
-	return backend.render_select_star(
-		table, quote_char=quote_char, limit=limit, offset=offset, distinct=distinct
+	return _assemble_select_sql(
+		table,
+		"*",
+		quote_char=quote_char,
+		limit=limit,
+		offset=offset,
+		distinct=distinct,
 	)
 
 
@@ -106,12 +113,9 @@ def render_select_query(
 	offset: int | None = None,
 	distinct: bool = False,
 ) -> str:
-	backend = load_backend()
-	if backend is None or backend.render_select_query is None:
-		raise RuntimeError("frappe-pypika-rs is not available")
-	return backend.render_select_query(
+	return _assemble_select_sql(
 		table,
-		fields,
+		"*" if fields == ["*"] else ",".join(_quote_identifier(field, quote_char) for field in fields),
 		quote_char=quote_char,
 		where_sql=where_sql,
 		orderbys=orderbys,
@@ -304,7 +308,33 @@ def render_select_fragments(
 	offset: int | None = None,
 	distinct: bool = False,
 ) -> str:
-	sql = f"SELECT {'DISTINCT ' if distinct else ''}{','.join(select_sqls)} FROM {_quote_identifier(table, quote_char)}"
+	return _assemble_select_sql(
+		table,
+		",".join(select_sqls),
+		quote_char=quote_char,
+		join_sqls=join_sqls,
+		where_sql=where_sql,
+		groupbys=groupbys,
+		orderbys=orderbys,
+		limit=limit,
+		offset=offset,
+		distinct=distinct,
+	)
+
+
+def _assemble_select_sql(
+	table: str,
+	select_sql: str,
+	quote_char: str | None = "`",
+	join_sqls: list[str] | None = None,
+	where_sql: str | None = None,
+	groupbys: list[str] | None = None,
+	orderbys: list[str] | None = None,
+	limit: int | None = None,
+	offset: int | None = None,
+	distinct: bool = False,
+) -> str:
+	sql = f"SELECT {'DISTINCT ' if distinct else ''}{select_sql} FROM {_quote_identifier(table, quote_char)}"
 	if join_sqls:
 		sql += f" {' '.join(join_sqls)}"
 	if where_sql:
@@ -1350,11 +1380,24 @@ def _plain_select_fields(selects: Sequence[Any], table: Table) -> list[str] | No
 			fields.append("*" if select == "*" else select)
 		elif isinstance(select, Star):
 			fields.append("*")
-		elif isinstance(select, Field) and select.alias is None and select.table in (None, table):
+		elif isinstance(select, Field) and select.alias is None and _field_belongs_to_table(select, table):
 			fields.append(select.name)
 		else:
 			return None
 	return fields
+
+
+def _field_belongs_to_table(field: Field, table: Table) -> bool:
+	field_table = field.table
+	if field_table is None or field_table is table:
+		return True
+	if not isinstance(field_table, Table):
+		return False
+	return (
+		field_table._table_name == table._table_name
+		and field_table._schema == table._schema
+		and field_table.alias == table.alias
+	)
 
 
 def _is_supported_literal(value: Any) -> bool:
