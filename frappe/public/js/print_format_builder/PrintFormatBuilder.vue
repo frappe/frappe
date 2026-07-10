@@ -32,13 +32,6 @@
 					<span v-if="!$store.preview_doc.value" class="canvas-no-data-hint">
 						← {{ __("Pick a record to see real values") }}
 					</span>
-					<button
-						v-if="$store.preview_doc_name.value"
-						class="canvas-icon-btn"
-						:title="__('Clear preview data')"
-						@click="clear_preview_doc"
-						v-html="frappe.utils.icon('x', 'xs')"
-					></button>
 					<span v-if="$store.preview_doc.value" class="es-badge" data-theme="green">{{
 						__("Live")
 					}}</span>
@@ -295,11 +288,6 @@ function check_sidebar() {
 function dismiss_hint() {
 	hint_dismissed.value = true;
 	localStorage.setItem(HINT_KEY, "1");
-}
-
-function clear_preview_doc() {
-	$store.value.load_preview_doc(null);
-	doc_picker_ctrl.value?.set_value("");
 }
 
 function init_doc_picker() {
