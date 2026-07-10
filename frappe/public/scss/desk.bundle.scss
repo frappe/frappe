@@ -7,3 +7,6 @@
 @import "./espresso_components";
 
 @import "frappe/public/node_modules/highlight.js/styles/tomorrow.css";
+
+/* Utility classes — imported last so they win source-order ties (unlayered). */
+@import "./common/utilities";
