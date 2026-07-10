@@ -953,6 +953,9 @@ def on_doctype_update():
 def has_permission(doc, ptype=None, user=None, debug=False):
 	user = user or frappe.session.user
 
+	if any(frappe.get_hooks("ignore_file_permissions")):
+		return True
+
 	if user == "Administrator":
 		return True
 
@@ -992,6 +995,10 @@ def has_permission(doc, ptype=None, user=None, debug=False):
 
 def get_permission_query_conditions(user: str | None = None) -> str:
 	user = user or frappe.session.user
+
+	if any(frappe.get_hooks("ignore_file_permissions")):
+		return ""
+
 	if user == "Administrator":
 		return ""
 
