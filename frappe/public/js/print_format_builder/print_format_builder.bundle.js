@@ -40,6 +40,9 @@ class PrintFormatBuilder {
 		SetVueGlobals(app);
 		this.$component = app.mount(this.$wrapper.get(0));
 
+		// restore the desk chrome if the user navigates away while in fullscreen
+		this.page.wrapper.off("hide.pfb").on("hide.pfb", () => this.$component.exit_fullscreen());
+
 		watch(
 			() => this.$component.$store.dirty,
 			(dirty) => {

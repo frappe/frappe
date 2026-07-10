@@ -665,7 +665,7 @@ watch(print_format, () => (store.dirty.value = true), { deep: true });
 .pfb-sidebar {
 	width: 260px;
 	flex-shrink: 0;
-	height: calc(100vh - 95px);
+	height: calc(100vh - var(--pfb-chrome-offset, 95px));
 	display: flex;
 	flex-direction: column;
 	border-right: 1px solid var(--border-color);

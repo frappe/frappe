@@ -2,12 +2,15 @@
 	<div
 		v-if="shouldRender"
 		class="builder-root"
-		:class="{ 'builder-root--preview': show_preview }"
+		:class="{
+			'builder-root--preview': show_preview,
+			'builder-root--fullscreen': fullscreen,
+		}"
 	>
 		<PrintFormatControls v-if="!show_preview" />
 		<div class="canvas-area">
 			<!-- Sidebar-open hint -->
-			<div v-if="sidebar_open && !hint_dismissed" class="pfb-sidebar-hint">
+			<div v-if="sidebar_open && !hint_dismissed && !fullscreen" class="pfb-sidebar-hint">
 				<span v-html="frappe.utils.icon('info', 'sm', 'pfb-hint-icon')"></span>
 				<span class="pfb-hint-text">{{
 					__("Tip: Close the left sidebar for more editing space.")
@@ -31,7 +34,7 @@
 					</span>
 					<button
 						v-if="$store.preview_doc_name.value"
-						class="canvas-clear-btn"
+						class="canvas-icon-btn"
 						:title="__('Clear preview data')"
 						@click="clear_preview_doc"
 						v-html="frappe.utils.icon('x', 'xs')"
@@ -39,6 +42,13 @@
 					<span v-if="$store.preview_doc.value" class="es-badge" data-theme="green">{{
 						__("Live")
 					}}</span>
+
+					<button
+						class="canvas-icon-btn"
+						:title="fullscreen ? __('Exit full screen') : __('Full screen')"
+						@click="toggle_fullscreen"
+						v-html="frappe.utils.icon(fullscreen ? 'minimize-2' : 'maximize-2', 'xs')"
+					></button>
 
 					<div class="canvas-zoom-control" role="group" :aria-label="__('Zoom')">
 						<button
@@ -110,6 +120,7 @@ let doc_picker_ctrl = ref(null);
 let sidebar_open = ref(false);
 let hint_dismissed = ref(localStorage.getItem(HINT_KEY) === "1");
 let canvas_zoom = ref(parseInt(localStorage.getItem(ZOOM_KEY)) || 100);
+let fullscreen = ref(false);
 let sidebar_observer_ref = null;
 
 // computed
@@ -130,6 +141,20 @@ provide("$store", $store.value);
 function toggle_preview() {
 	show_preview.value = !show_preview.value;
 }
+
+function toggle_fullscreen() {
+	fullscreen.value = !fullscreen.value;
+}
+
+function exit_fullscreen() {
+	fullscreen.value = false;
+}
+
+// The desk chrome (navbar, page head, sidebar) lives outside this component,
+// so fullscreen is driven by a class on <body> (rules in inspector.css)
+watch(fullscreen, (on) => {
+	document.body.classList.toggle("pfb-fullscreen", on);
+});
 
 watch(show_preview, (on) => {
 	if (on) {
@@ -242,6 +267,9 @@ function handle_keydown(e) {
 		// Navigate up: section → canvas (clear all)
 		$store.value.selected_section.value = null;
 		e.stopPropagation();
+	} else if (fullscreen.value) {
+		exit_fullscreen();
+		e.stopPropagation();
 	}
 }
 
@@ -331,15 +359,22 @@ onUnmounted(() => {
 	document.removeEventListener("keydown", handle_keydown);
 	window.removeEventListener("popstate", handle_popstate);
 	sidebar_observer_ref?.disconnect();
+	document.body.classList.remove("pfb-fullscreen");
 });
 
-defineExpose({ toggle_preview, show_preview, $store });
+defineExpose({ toggle_preview, show_preview, exit_fullscreen, $store });
 </script>
 
 <style scoped>
 .builder-root {
+	/* navbar + page head height; goes to 0 when fullscreen hides them */
+	--pfb-chrome-offset: 95px;
 	display: flex;
 	width: 100%;
+}
+
+.builder-root--fullscreen {
+	--pfb-chrome-offset: 0px;
 }
 
 .canvas-area {
@@ -347,7 +382,7 @@ defineExpose({ toggle_preview, show_preview, $store });
 	min-width: 0;
 	display: flex;
 	flex-direction: column;
-	height: calc(100vh - 95px);
+	height: calc(100vh - var(--pfb-chrome-offset));
 }
 
 .builder-root--preview .canvas-area {
@@ -457,7 +492,7 @@ defineExpose({ toggle_preview, show_preview, $store });
 	padding: 3px 8px;
 }
 
-.canvas-clear-btn {
+.canvas-icon-btn {
 	display: flex;
 	align-items: center;
 	padding: 3px;
@@ -468,7 +503,7 @@ defineExpose({ toggle_preview, show_preview, $store });
 	border-radius: var(--radius);
 }
 
-.canvas-clear-btn:hover {
+.canvas-icon-btn:hover {
 	background: var(--gray-100);
 	color: var(--gray-600);
 }
