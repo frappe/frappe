@@ -176,17 +176,6 @@ body {
 .field.left-right.field-justify-space-evenly { justify-content: space-evenly; }
 
 /* Repeater */
-.pfb-repeater {
-	margin-top: 0.5rem;
-}
-
-.pfb-repeater > .label {
-	font-size: 0.8em;
-	font-weight: 600;
-	color: #6b7280;
-	margin-bottom: 0.4rem;
-}
-
 .pfb-repeater-table {
 	width: 100%;
 	border-collapse: collapse;
@@ -201,11 +190,13 @@ body {
 	padding-top: 0.5rem;
 }
 
-/* Child table */
+/* Child table + Repeater share the same block-label styling */
+.pfb-repeater,
 .child-table {
 	margin-top: 0.5rem;
 }
 
+.pfb-repeater > .label,
 .child-table > .label {
 	font-size: 0.8em;
 	font-weight: 600;
@@ -220,12 +211,17 @@ body {
 }
 
 .child-table .table th {
-	background-color: #f3f4f6 !important;
 	color: #374151;
 	font-weight: 600;
 	font-size: 0.85em;
 	padding: 0.45rem 0.6rem;
-	border: 1px solid #e5e7eb !important;
+	border: none;
+}
+
+/* header background lives on the row, not each cell, so a wrapper's border-radius
+   clips one continuous bar instead of fighting per-cell backgrounds at the seams */
+.child-table .table thead tr {
+	background-color: #f3f4f6 !important;
 }
 
 .child-table .table td {
@@ -261,7 +257,7 @@ body {
 	border-bottom: 1px solid #e5e7eb !important;
 }
 
-.child-table--plain .table th {
+.child-table--plain .table thead tr {
 	background-color: transparent !important;
 }
 
@@ -277,9 +273,14 @@ body {
 	border-bottom: 1px solid #e5e7eb !important;
 }
 
-/* plain header variant */
-.child-table--plain-header .table th {
+/* plain header variant: no fill, a single rule under the header row instead */
+.child-table--plain-header .table thead tr {
 	background-color: transparent !important;
+}
+
+.child-table--plain-header .table th {
+	border: none !important;
+	border-bottom: 1px solid #e5e7eb !important;
 }
 
 .child-table [data-fieldtype="Currency"],

@@ -14,7 +14,10 @@
 		{{ _(df.label) }}
 	</div>
 	{% endif %}
-	<table class="table{% if _bordered %} table-bordered{% endif %}"{% if _radius_style %} style="{{ _radius_style|e }}"{% endif %}>
+	{#- border-radius has no effect on a border-collapse:collapse table per spec, so the
+	   radius + clip live on a wrapper div around the table instead of on the table itself -#}
+	<div{% if _radius_style %} style="{{ _radius_style|e }}"{% endif %}>
+	<table class="table{% if _bordered %} table-bordered{% endif %}">
 		{% set columns = df.table_columns %}
 		{%- if not _no_header -%}
 		<thead>
@@ -82,5 +85,6 @@
 			{% endfor %}
 		</tbody>
 	</table>
+	</div>
 </div>
 {% endif %}
