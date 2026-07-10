@@ -203,6 +203,22 @@
 			</div>
 		</InspectorSection>
 
+		<!-- COLORS section -->
+		<InspectorSection :label="__('Colors')" :init-open="false">
+			<ColorField
+				:label="__('Header')"
+				:model-value="table_header_bg"
+				:placeholder="__('Default')"
+				@update:model-value="(v) => set_table_prop('table_header_bg', v)"
+			/>
+			<ColorField
+				:label="__('Border')"
+				:model-value="table_border_color"
+				:placeholder="__('Default')"
+				@update:model-value="(v) => set_table_prop('table_border_color', v)"
+			/>
+		</InspectorSection>
+
 		<!-- STYLE section -->
 		<InspectorSection :label="__('Style')" :init-open="false" :padded="false">
 			<StyleSection v-model="selected_field.custom_style" />
@@ -225,6 +241,7 @@ import InspectorSection from "./InspectorSection.vue";
 import StepperRow from "./StepperRow.vue";
 import Stepper from "./Stepper.vue";
 import StyleSection from "./StyleSection.vue";
+import ColorField from "./ColorField.vue";
 import VisibilitySection from "./VisibilitySection.vue";
 import { useSelectedField } from "./useSelectedField";
 
@@ -235,6 +252,13 @@ let table_bordered = computed(() => selected_field.value?.table_bordered ?? true
 let table_header = computed(() => selected_field.value?.table_header ?? "styled");
 let table_cell_padding = computed(() => selected_field.value?.table_cell_padding ?? null);
 let table_radius = computed(() => selected_field.value?.table_radius ?? null);
+let table_header_bg = computed(() => selected_field.value?.table_header_bg ?? "");
+let table_border_color = computed(() => selected_field.value?.table_border_color ?? "");
+
+function set_table_prop(key, value) {
+	if (value) selected_field.value[key] = value;
+	else delete selected_field.value[key];
+}
 
 function set_cell_padding(v) {
 	if (v === null) delete selected_field.value.table_cell_padding;
