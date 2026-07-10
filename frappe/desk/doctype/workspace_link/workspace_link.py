@@ -18,6 +18,7 @@ class WorkspaceLink(Document):
 
 		dependencies: DF.Data | None
 		description: DF.HTMLEditor | None
+		doctype_layout: DF.Link | None
 		hidden: DF.Check
 		icon: DF.Data | None
 		is_query_report: DF.Check
