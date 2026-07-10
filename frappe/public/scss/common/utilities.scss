@@ -1,33 +1,28 @@
-/* Utility classes — a small, on-demand subset of Tailwind's utilities for
- * desk/website bundles. (The Vue apps use real Tailwind; this file is
- * for classic Frappe markup only.)
+/* Utility classes for desk and website pages, using Tailwind's names.
+ * (The Vue apps use real Tailwind — this file is only for classic
+ * Frappe markup.)
  *
- * RULES (read before adding):
- * 1. Tailwind names and scale, exactly — no invented names. Agents and
- *    humans should be able to guess every class here on the first try.
- * 2. Add a class only when a call site needs it. This file is the
- *    allowlist, not a framework: resist completing a "set".
- * 3. Layout and spacing only. Color belongs to the tokens, type to
- *    typography.css, component looks to components/*.css.
- * 4. Prefer `gap` on the flex parent over margin utilities on children —
- *    that is how the old per-child margin soup happened.
+ * Before adding a class here:
+ * 1. Use the exact Tailwind name. If Tailwind doesn't have it, don't
+ *    invent it.
+ * 2. Only add a class when you actually need it somewhere.
+ * 3. Only layout, spacing, and token-based colors/shadows/radius here.
+ *    Never hardcoded colors like #333 or bg-red-500. Text styles live in
+ *    typography.css, component styles in components/.
+ * 4. Prefer gap on the parent over margins on children.
  *
- * Spacing binds to the espresso scale: 1 step = var(--spacing) = 0.25rem.
+ * Spacing: 1 step = var(--spacing) = 0.25rem.
+ * Breakpoints: sm 576px, md 768px, lg 992px, xl 1200px (Frappe's grid,
+ * not Tailwind's defaults).
  *
- * Breakpoints use Tailwind semantics (min-width prefixes, max-* variants)
- * on Frappe's existing grid values, NOT Tailwind's defaults:
- *   sm 576px · md 768px · lg 992px · xl 1200px
+ * Watch out: some class names here also exist in old Frappe or Bootstrap
+ * CSS. Always check how a name is used before adding or removing it.
+ * TODO: delete common/flex.scss once nothing uses its old names anymore
+ * (.align-center, .flex-column etc. — see the note in that file).
  *
- * Legacy overlap: common/flex.scss defines .flex/.justify-center/
- * .justify-between identically (fine) plus bespoke names (.align-center,
- * .flex-column, .level-*) that should migrate to the names here; .hidden
- * and .hide in common/global.scss are display:none !important and remain
- * the stronger form until retired.
- *
- * Imported LAST in the bundles (as an SCSS partial so Sass inlines it in
- * place — plain-CSS imports get hoisted above the SCSS output and would
- * lose every source-order tie): Frappe CSS is unlayered, so being last is
- * what lets a utility override component and legacy defaults. */
+ * Keep this file imported at the very end of the bundle. It has to load
+ * after all other CSS so that these classes win when two rules set the
+ * same thing. */
 
 /* ---- display ---- */
 .flex {
@@ -93,11 +88,10 @@
 	flex-shrink: 0;
 }
 
-/* ---- spacing (espresso scale: 1 step = var(--spacing) = 0.25rem) ----
-   Generates gap-*, p-/px-/py-/ps-/pe-/pt-/pb- and the margin
-   equivalents for steps 0.5, 1, 2, 3, 4. Start/end/x/y use logical
-   properties (inline/block), so the RTL build needs no flipping.
-   Margins are the exception tool — prefer gap on the parent. */
+/* ---- spacing (1 step = 0.25rem) ----
+   Makes gap-* plus padding/margin classes for steps 0.5 to 4.
+   ps/pe/ms/me mean start and end — they flip automatically in
+   right-to-left languages. Prefer gap on the parent over margins. */
 
 $spacing-steps: (
 	"0\\.5": 0.5,
@@ -121,12 +115,12 @@ $spacing-steps: (
 	}
 }
 
-/* RESERVED, TODO: do not add yet: p-, px-, py-, pt-, pb-, m-, mx-, my-, mt-, mb-
-   (and the pl/pr/ml/mr physical names). Bootstrap 4 defines all of them
-   with !important on its own 7px-based scale, so same-named classes here
-   can never apply. They become available when the bootstrap spacers are
-   retired (migrate ~100 call sites, then drop them) — a separate PR.
-   Until then: logical start/end below, or a ps-*+pe-* pair for both sides. */
+/* TODO: we can't add p-, px-, py-, pt-, pb- or the m- versions yet.
+   Bootstrap already has classes with these exact names that use
+   !important, so ours would never take effect. Once Bootstrap's spacing
+   classes are removed (about 100 places in markup still use them), these
+   names become free. Until then, use ps-* and pe-* together when you
+   need both sides. */
 
 @each $name, $n in $spacing-steps {
 	.ps-#{$name} {
@@ -180,7 +174,189 @@ $spacing-steps: (
 	white-space: nowrap;
 }
 
-/* ---- responsive variants (add per breakpoint as call sites need them) ---- */
+/* ---- borders (1px, outline-gray-2 by default; add a border-outline-*
+   class to change the color) ---- */
+/* .border and .border-0 need !important because Bootstrap has classes
+   with the same names that also use !important — without it, ours would
+   always lose.
+   TODO: remove the !important here and on border-outline-* further down
+   once Bootstrap's utility classes are gone. Remove both together. */
+.border {
+	border: 1px solid var(--outline-gray-2) !important;
+}
+
+.border-0 {
+	border: 0 !important;
+}
+
+.border-t {
+	border-top: 1px solid var(--outline-gray-2);
+}
+
+.border-b {
+	border-bottom: 1px solid var(--outline-gray-2);
+}
+
+.border-s {
+	border-inline-start: 1px solid var(--outline-gray-2);
+}
+
+.border-e {
+	border-inline-end: 1px solid var(--outline-gray-2);
+}
+
+/* ---- colors ----
+   One class per espresso color token: text-ink-*, bg-surface-*,
+   border-outline-*. Same names frappe-ui uses, so markup written here
+   also makes sense there. Only token colors — nothing hardcoded. */
+
+$color-families: (
+	"gray": 9,
+	"red": 10,
+	"blue": 10,
+	"green": 10,
+	"amber": 10,
+	"orange": 10,
+	"yellow": 10,
+	"teal": 10,
+	"cyan": 10,
+	"violet": 10,
+	"purple": 10,
+	"pink": 10,
+);
+
+@each $family, $steps in $color-families {
+	@for $i from 1 through $steps {
+		.text-ink-#{$family}-#{$i} {
+			color: var(--ink-#{$family}-#{$i});
+		}
+
+		.bg-surface-#{$family}-#{$i} {
+			background-color: var(--surface-#{$family}-#{$i});
+		}
+
+		/* !important so these can change the color of .border above.
+           TODO: remove together with .border's !important. */
+		.border-outline-#{$family}-#{$i} {
+			border-color: var(--outline-#{$family}-#{$i}) !important;
+		}
+	}
+}
+
+/* non-numbered semantic tokens */
+.text-ink-base {
+	color: var(--ink-base);
+}
+
+.text-ink-blue-link {
+	color: var(--ink-blue-link);
+}
+
+.bg-surface-base {
+	background-color: var(--surface-base);
+}
+
+@for $i from 1 through 3 {
+	.bg-surface-elevation-#{$i} {
+		background-color: var(--surface-elevation-#{$i});
+	}
+}
+
+.border-outline-base {
+	border-color: var(--outline-base) !important;
+}
+
+@for $i from 1 through 2 {
+	.border-outline-elevation-#{$i} {
+		border-color: var(--outline-elevation-#{$i}) !important;
+	}
+}
+
+/* ---- shadows (from the espresso elevation tokens) ---- */
+.shadow-sm {
+	box-shadow: var(--elevation-sm);
+}
+
+.shadow {
+	box-shadow: var(--elevation-base);
+}
+
+.shadow-md {
+	box-shadow: var(--elevation-md);
+}
+
+.shadow-lg {
+	box-shadow: var(--elevation-lg);
+}
+
+.shadow-xl {
+	box-shadow: var(--elevation-xl);
+}
+
+/* ---- focus rings ----
+   Only show when navigating with the keyboard. focus-* draws the ring as
+   a shadow; focus-outline-* draws it as an outline (doesn't move any
+   layout, follows rounded corners). */
+$focus-colors: "default", "red", "green", "amber", "blue", "violet";
+
+@each $color in $focus-colors {
+	.focus-#{$color}:focus-visible {
+		box-shadow: var(--focus-#{$color});
+		outline: none;
+	}
+
+	.focus-outline-#{$color}:focus-visible {
+		outline: var(--focus-outline-#{$color});
+		outline-offset: 0;
+	}
+}
+
+/* ---- rounded corners (from the espresso radius tokens) ---- */
+.rounded-none {
+	border-radius: var(--radius-none);
+}
+
+.rounded-sm {
+	border-radius: var(--radius-sm);
+}
+
+.rounded {
+	border-radius: var(--radius);
+}
+
+.rounded-md {
+	border-radius: var(--radius-md);
+}
+
+.rounded-lg {
+	border-radius: var(--radius-lg);
+}
+
+.rounded-xl {
+	border-radius: var(--radius-xl);
+}
+
+.rounded-2xl {
+	border-radius: var(--radius-2xl);
+}
+
+.rounded-full {
+	border-radius: var(--radius-full);
+}
+
+/* ---- responsive and dark-mode variants (add only when needed) ----
+   Dark mode example, used like class="bg-surface-gray-2 dark:bg-surface-gray-4":
+
+     [data-theme="dark"] .dark\:bg-surface-gray-4 { ... }
+
+   You'll rarely need this — the tokens themselves already change in dark
+   mode. If you keep reaching for it, the token choice is probably wrong.
+
+   Keep this section at the bottom of the file: max-sm:gap-1 only beats
+   gap-2 because it comes later in the CSS.
+
+   And if a value should change everywhere on mobile (like page padding),
+   change the token inside a media query instead of adding classes here. */
 
 /* below sm (phones) */
 @media (max-width: 575.98px) {
