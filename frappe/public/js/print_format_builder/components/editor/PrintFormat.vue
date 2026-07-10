@@ -4,6 +4,7 @@
 		:style="rootStyles"
 		:class="{
 			'pfb-clean-preview': !!store.preview_doc.value,
+			'print-format-doc': !!store.preview_doc.value,
 		}"
 	>
 		<div v-if="!page_number_hidden" class="pfb-page-num" :style="page_number_style">
@@ -317,8 +318,9 @@ watch(print_format, () => (store.dirty.value = true), { deep: true });
 	min-height: 0;
 }
 
+/* Field spacing comes from the shared .field + .field margin, like the PDF */
 .pfb-clean-preview :deep(.drag-container:not(.section--grid *)) {
-	gap: 0.15rem;
+	gap: 0;
 }
 
 /* Section drag handle in clean-preview: show on hover */
@@ -333,18 +335,9 @@ watch(print_format, () => (store.dirty.value = true), { deep: true });
 	opacity: 1;
 }
 
-/* Section title: match PDF's .section-label look; grid sections keep their own box */
+/* Section title: typography/border come from the shared .section-label rules */
 .pfb-clean-preview :deep(.section-title-display) {
 	display: block;
-	font-size: var(--text-lg);
-	font-weight: var(--weight-bold);
-	color: var(--text-color);
-}
-
-.pfb-clean-preview :deep(.section-title-display:not(.section--grid *)) {
-	padding: 0 0 0.3rem;
-	margin-bottom: 0.4rem;
-	border-bottom: 1.5px solid var(--border-color);
 }
 
 .pfb-body :deep(.field--preview) {
@@ -355,8 +348,5 @@ watch(print_format, () => (store.dirty.value = true), { deep: true });
 }
 .pfb-body :deep(.field--preview .field-preview-label) {
 	font-size: 1em;
-}
-.pfb-body :deep(.field--preview .preview-table) {
-	font-size: 0.9em;
 }
 </style>

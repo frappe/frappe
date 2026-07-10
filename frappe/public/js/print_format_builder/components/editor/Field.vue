@@ -97,8 +97,16 @@
 					</div>
 				</div>
 				<!-- Table field -->
-				<div v-else-if="df.fieldtype == 'Table'" class="field-preview-table">
-					<div v-if="df.label && df.show_label !== 'hide'" class="field-preview-label">
+				<div
+					v-else-if="df.fieldtype == 'Table'"
+					class="child-table"
+					:class="{
+						[`child-table--${df.table_style || 'lined'}`]: true,
+						'child-table--borderless': df.table_bordered === false,
+						'child-table--plain-header': df.table_header === 'plain',
+					}"
+				>
+					<div v-if="df.label && df.show_label !== 'hide'" class="label">
 						{{ df.label }}
 					</div>
 					<!-- radius lives on a wrapper: border-radius is a no-op on a
@@ -111,34 +119,30 @@
 						"
 					>
 						<table
-							class="preview-table"
-							:class="{
-								[`preview-table--${df.table_style || 'lined'}`]: true,
-								'preview-table--borderless': df.table_bordered === false,
-								'preview-table--plain-header': df.table_header === 'plain',
-							}"
+							class="table"
+							:class="{ 'table-bordered': df.table_bordered !== false }"
 						>
 							<thead v-if="df.table_header !== 'none'">
+								<!-- inline !important mirrors the server markup: the shared
+								     stylesheet's own !important rules must lose to these -->
 								<tr
 									:style="
 										df.table_header_bg
-											? { background: df.table_header_bg }
-											: {}
+											? `background-color: ${df.table_header_bg} !important`
+											: ''
 									"
 								>
 									<th
 										v-for="col in df.table_columns"
 										:key="col.fieldname"
-										:class="numeric_align_class(col)"
-										:style="{
-											...(col.width ? { width: col.width + '%' } : {}),
-											...(df.table_cell_padding != null
-												? { padding: df.table_cell_padding + 'px' }
-												: {}),
-											...(df.table_border_color
-												? { borderColor: df.table_border_color }
-												: {}),
-										}"
+										class="column-header"
+										:class="{ 'column-value--merged': has_merge(col) }"
+										:data-fieldtype="col.fieldtype"
+										:data-fieldname="col.fieldname"
+										:style="
+											(col.width ? `width: ${col.width}%; ` : '') +
+											cell_style(df)
+										"
 									>
 										{{ col.label || col.fieldname }}
 									</th>
@@ -156,39 +160,35 @@
 									<td
 										v-for="col in df.table_columns"
 										:key="col.fieldname"
-										:class="numeric_align_class(col)"
-										:style="{
-											...(df.table_cell_padding != null
-												? { padding: df.table_cell_padding + 'px' }
-												: {}),
-											...(df.table_border_color
-												? { borderColor: df.table_border_color }
-												: {}),
-										}"
+										class="column-value"
+										:class="{ 'column-value--merged': has_merge(col) }"
+										:data-fieldtype="col.fieldtype"
+										:data-fieldname="col.fieldname"
+										:style="cell_style(df)"
 									>
 										<!-- Merged cell: image (if any) floats left, text lines stack -->
-										<div v-if="has_merge(col)" class="pf-cell-merged">
+										<div v-if="has_merge(col)" class="cell-merged">
 											<template v-if="image_merge(col)">
 												<img
 													v-if="cell_image(col, row)"
 													:src="cell_image(col, row)"
-													class="pf-cell-thumb-img"
+													class="cell-thumb-img"
 													:style="thumb_box(col)"
 													:alt="col.label || col.fieldname"
 												/>
 												<span
 													v-else
-													class="pf-cell-thumb"
+													class="cell-thumb"
 													:style="thumb(col, row).style"
 													>{{ thumb(col, row).abbr }}</span
 												>
 											</template>
-											<div class="pf-cell-lines">
+											<div class="cell-lines">
 												<div
 													v-for="(mf, mi) in text_merges(col)"
 													:key="mi"
-													class="pf-merge-line"
-													:class="`pf-merge--${mf.style || 'primary'}`"
+													class="cell-line"
+													:class="`cell-line--${mf.style || 'primary'}`"
 												>
 													{{ format_merged(row, mf.fieldname) }}
 												</div>
@@ -242,8 +242,8 @@
 					</div>
 				</div>
 				<!-- Repeater field -->
-				<div v-else-if="df.fieldtype == 'Repeater'" class="field-preview-repeater">
-					<div v-if="df.label && df.show_label !== 'hide'" class="field-preview-label">
+				<div v-else-if="df.fieldtype == 'Repeater'" class="pfb-repeater">
+					<div v-if="df.label && df.show_label !== 'hide'" class="label">
 						{{ df.label }}
 					</div>
 					<table class="pfb-repeater-table">
@@ -645,14 +645,16 @@ function is_image_field(col, value) {
 	return false;
 }
 
-const NUMERIC_FIELDTYPES = new Set(["Currency", "Float", "Int", "Percent"]);
 const HTML_CONTENT_FIELDTYPES = new Set(["Text Editor", "Long Text"]);
 
-function numeric_align_class(col) {
-	// Serial-number column is centered (matches the PDF)
-	if (col?.fieldname === "idx") return "col-center";
-	// Merged cells are left-aligned (like the PDF), even on numeric columns
-	return !has_merge(col) && NUMERIC_FIELDTYPES.has(col?.fieldtype) ? "col-numeric" : "";
+// Cell padding + border colour as an inline style string; the border colour
+// needs !important to beat the shared stylesheet's own !important border
+// rules, exactly like the server markup (macros/Table.html) does.
+function cell_style(df) {
+	const parts = [];
+	if (df.table_cell_padding != null) parts.push(`padding: ${df.table_cell_padding}px`);
+	if (df.table_border_color) parts.push(`border-color: ${df.table_border_color} !important`);
+	return parts.join("; ");
 }
 
 function repeater_cell(col, row) {
@@ -1218,181 +1220,11 @@ watch(
 	color: var(--gray-600);
 }
 
-/* Preview table — exact PDF print_format.css child-table style */
-.field-preview-table {
-	width: 100%;
-	margin-top: 0.5rem;
-}
-
-.field-preview-table > .field-preview-label {
-	font-size: 0.8em;
-	font-weight: var(--weight-semibold);
-	color: var(--text-muted);
-	margin-bottom: 0.4rem;
-}
-
-.preview-table {
-	width: 100%;
-	border-collapse: collapse;
-	font-size: var(--text-sm);
-	table-layout: fixed;
-}
-
-/* ── Default: bordered + styled header (matches PDF) ─── */
-.preview-table th {
-	color: var(--text-color);
-	font-weight: var(--weight-semibold);
-	font-size: var(--text-tiny);
-	padding: 0.45rem 0.6rem;
-	border: none;
-	text-align: left;
-}
-
-/* header background lives on the row, not each cell, so the wrapper's
-   border-radius clips one continuous bar — same as the PDF css */
-.preview-table thead tr {
-	background-color: var(--gray-100);
-}
-
-.preview-table td {
-	padding: 0.45rem 0.6rem;
-	border: 1px solid var(--gray-200);
-	vertical-align: top;
-	color: var(--text-color);
-}
-
-/* Mirrors .pfb-repeater-* in print_format.css: no font-size of its own,
-   the repeater inherits the body font like the PDF output does */
-.pfb-repeater-table {
-	width: 100%;
-	border-collapse: collapse;
-}
-
-.pfb-repeater-cell {
-	padding: 0;
-	vertical-align: top;
-}
-
-.pfb-repeater-table tr + tr .pfb-repeater-cell {
-	padding-top: 0.5rem;
-}
-
-/* lined (default): no alternating rows */
-.preview-table--lined tr.odd td,
-.preview-table--lined tr.even td {
-	background-color: var(--fg-color);
-}
-
-/* striped: alternating row background */
-.preview-table--striped tr.odd td {
-	background-color: var(--fg-color);
-}
-
-.preview-table--striped tr.even td {
-	background-color: var(--gray-50);
-}
-
-/* plain: no borders, bottom divider only */
-.preview-table--plain th,
-.preview-table--plain td {
-	border: none;
-	border-bottom: 1px solid var(--gray-200);
-}
-
-.preview-table--plain thead tr {
-	background-color: transparent;
-}
-
-.preview-table--plain tr.odd td,
-.preview-table--plain tr.even td {
-	background-color: var(--fg-color);
-}
-
-/* Numeric columns right-aligned — same as PDF */
-.preview-table .col-numeric {
-	text-align: right;
-}
-
-/* Serial-number column centered — same as PDF */
-.preview-table .col-center {
-	text-align: center;
-}
-
-/* ── Borderless variant ──────────────────────────────── */
-.preview-table--borderless th,
-.preview-table--borderless td {
-	border: none;
-	border-bottom: 1px solid var(--gray-200);
-}
-
-/* ── Plain header variant: no fill, single rule under the header row ── */
-.preview-table--plain-header thead tr {
-	background-color: transparent;
-}
-
-.preview-table--plain-header th {
-	border-bottom: 1px solid var(--gray-200);
-}
-
+/* Table/repeater/merged-cell visuals come from the shared print stylesheet
+   (templates/print_format/print_format_doc.css) via the .print-format-doc scope */
 .preview-table-img {
-	width: auto;
-	height: 60px;
-	max-width: 80px;
-	object-fit: contain;
-	display: block;
-}
-
-/* ── Merged cells ────────────────────────────────────────── */
-.pf-cell-merged {
-	display: flex;
-	align-items: flex-start;
-	gap: 8px;
-}
-
-/* size comes from an inline style (col.image_size) */
-.pf-cell-thumb-img,
-.pf-cell-thumb {
-	border-radius: 6px;
-	flex-shrink: 0;
-}
-
-.pf-cell-thumb-img {
-	object-fit: cover;
-}
-
-.pf-cell-thumb {
-	display: flex;
-	align-items: center;
-	justify-content: center;
-	font-weight: var(--weight-semibold);
-	text-transform: uppercase;
-	line-height: 1;
-}
-
-.pf-cell-lines {
-	display: flex;
-	flex-direction: column;
-	gap: 2px;
-	min-width: 0;
-}
-
-.pf-merge-line {
-	word-break: break-word;
-}
-.pf-merge--primary,
-.pf-merge--secondary {
-	color: var(--text-color);
-}
-.pf-merge--primary {
-	font-weight: var(--weight-semibold);
-}
-.pf-merge--mono-sm,
-.pf-merge--muted-sm {
-	font-size: 0.85em;
-	color: var(--text-muted);
-}
-.pf-merge--mono-sm {
-	font-family: var(--monospace-font-family, monospace);
+	max-width: 100%;
+	max-height: 100px;
 }
 
 .preview-table-html {

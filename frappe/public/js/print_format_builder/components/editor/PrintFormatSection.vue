@@ -89,7 +89,7 @@
 
 			<div
 				v-if="section.label && section.show_label !== 'hide'"
-				class="section-title-display"
+				class="section-title-display section-label"
 			>
 				{{ section.label }}
 			</div>

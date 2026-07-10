@@ -1,6 +1,7 @@
 import { createApp, watch } from "vue";
 import PrintFormatBuilderComponent from "./PrintFormatBuilder.vue";
 import "./inspector.css";
+import "../../../templates/print_format/print_format_doc.css";
 
 class PrintFormatBuilder {
 	constructor({ wrapper, page, print_format }) {

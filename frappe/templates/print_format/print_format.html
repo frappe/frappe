@@ -19,7 +19,7 @@
 	<style>{{ letterhead.custom_css }}</style>
 	{%- endif -%}
 </head>
-<body>
+<body class="print-format-doc">
 	{{ header or '' }}
 	{#- Chrome PDF: layout.header rendered once as a body element (page 1 only, reliable height) -#}
 	{{ chrome_layout_header or '' }}
