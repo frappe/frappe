@@ -292,7 +292,7 @@ const handleMouseLeave = (e: MouseEvent) => {
 const getClickedComponent = (e: MouseEvent) => {
 	const targetElement = e.target as HTMLElement
 	const componentId = targetElement
-		.closest("[data-component-id]:not(.__studio_component_child__)")
+		?.closest?.("[data-component-id]:not(.__studio_component_child__)")
 		?.getAttribute("data-component-id")
 	if (componentId) {
 		return canvasStore.activeCanvas?.findBlock(componentId)
@@ -300,11 +300,15 @@ const getClickedComponent = (e: MouseEvent) => {
 }
 
 const handleClick = (e: MouseEvent) => {
-	const block = getClickedComponent(e) || props.block
-	canvasStore.activeCanvas?.selectBlock(block, e)
+	// A component can declare its own `click` emit and fire it with a non-DOM payload
+	const domEvent = e instanceof Event ? e : null
+	const block = (domEvent && getClickedComponent(domEvent)) || props.block
+	canvasStore.activeCanvas?.selectBlock(block, domEvent)
 	if (repeaterContext?.value) {
 		block.setRepeaterDataItem((repeaterContext.value as RepeaterContext).dataItem)
 	}
+
+	if (!domEvent) return
 
 	const slotName = (e.target as HTMLElement).dataset.slotName
 	if (slotName) {
