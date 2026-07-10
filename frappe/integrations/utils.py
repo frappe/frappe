@@ -233,7 +233,7 @@ def _is_secure_redirect_uri(uri: HttpUrl) -> bool:
 		return False
 
 	try:
-		return ipaddress.ip_address(uri.host.strip("[]")).is_loopback
+		return ipaddress.ip_address((uri.host or "").strip("[]")).is_loopback
 	except ValueError:
 		return False
 
