@@ -338,6 +338,15 @@
 					class="es-button"
 					data-size="xs"
 					data-variant="ghost"
+					data-icon-button="true"
+					:title="__('Copy')"
+					@click.stop="store.copy_field(df)"
+					v-html="frappe.utils.icon('copy', 'xs')"
+				></button>
+				<button
+					class="es-button"
+					data-size="xs"
+					data-variant="ghost"
 					data-theme="red"
 					data-icon-button="true"
 					@click.stop="df['remove'] = true"
@@ -397,6 +406,15 @@
 								data-icon-button="true"
 								@click.stop="edit_html"
 								v-html="frappe.utils.icon('pencil', 'sm')"
+							></button>
+							<button
+								class="es-button"
+								data-size="xs"
+								data-variant="ghost"
+								data-icon-button="true"
+								:title="__('Copy')"
+								@click.stop="store.copy_field(df)"
+								v-html="frappe.utils.icon('copy', 'sm')"
 							></button>
 							<button
 								class="es-button"
