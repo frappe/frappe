@@ -206,6 +206,20 @@
 										{{ __("No rows") }}
 									</td>
 								</tr>
+								<tr v-if="(preview_doc[df.fieldname] || []).length > 4">
+									<td
+										:colspan="df.table_columns?.length || 1"
+										class="text-muted"
+										style="text-align: center; font-size: 11px; padding: 6px"
+									>
+										{{
+											__(
+												"+ {0} more rows in this document — all print in the real output",
+												[preview_doc[df.fieldname].length - 4]
+											)
+										}}
+									</td>
+								</tr>
 							</tbody>
 						</table>
 					</div>
@@ -245,6 +259,20 @@
 									style="text-align: center; font-size: 11px; padding: 6px"
 								>
 									{{ df.source ? __("No rows") : __("Pick a source table") }}
+								</td>
+							</tr>
+							<tr v-if="(preview_doc[df.source] || []).length > 6">
+								<td
+									:colspan="df.repeater_columns?.length || 1"
+									class="text-muted"
+									style="text-align: center; font-size: 11px; padding: 6px"
+								>
+									{{
+										__(
+											"+ {0} more rows in this document — all print in the real output",
+											[preview_doc[df.source].length - 6]
+										)
+									}}
 								</td>
 							</tr>
 						</tbody>
