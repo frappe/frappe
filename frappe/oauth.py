@@ -9,6 +9,7 @@ from oauthlib.openid import RequestValidator
 
 import frappe
 from frappe.auth import LoginManager
+from frappe.integrations.doctype.oauth_bearer_token.oauth_bearer_token import get_oauth_token_hash
 from frappe.integrations.doctype.oauth_client.oauth_client import OAuthClient
 from frappe.utils.data import cstr, get_system_timezone, now_datetime
 
@@ -102,11 +103,12 @@ class OAuthWebRequestValidator(RequestValidator):
 		else:
 			# Extract token, instantiate OAuth Bearer Token and use clientid from there.
 			if "refresh_token" in frappe.form_dict:
-				token_filters = {"refresh_token": frappe.form_dict["refresh_token"]}
+				token_filters = {"refresh_token": get_oauth_token_hash(frappe.form_dict["refresh_token"])}
 			elif "token" in frappe.form_dict:
-				token_filters = {"name": frappe.form_dict["token"]}
+				token_filters = {"access_token": get_oauth_token_hash(frappe.form_dict["token"])}
 			else:
-				token_filters = {"name": frappe.get_request_header("Authorization").split(" ")[1]}
+				token = frappe.get_request_header("Authorization").split(" ")[1]
+				token_filters = {"access_token": get_oauth_token_hash(token)}
 
 			client_name = frappe.db.get_value("OAuth Bearer Token", filters=token_filters, fieldname="client")
 
@@ -199,7 +201,7 @@ class OAuthWebRequestValidator(RequestValidator):
 				if request.user
 				else frappe.db.get_value(
 					"OAuth Bearer Token",
-					{"refresh_token": request.body.get("refresh_token")},
+					{"refresh_token": get_oauth_token_hash(request.body.get("refresh_token"))},
 					"user",
 				)
 			)
@@ -226,7 +228,7 @@ class OAuthWebRequestValidator(RequestValidator):
 
 	def validate_bearer_token(self, token, scopes, request):
 		# Remember to check expiration and scope membership
-		otoken = frappe.get_doc("OAuth Bearer Token", token)
+		otoken = frappe.get_doc("OAuth Bearer Token", {"access_token": get_oauth_token_hash(token)})
 		is_token_valid = (now_datetime() < otoken.expiration_time) and otoken.status != "Revoked"
 		client_scopes = frappe.db.get_value("OAuth Client", otoken.client, "scopes").split(
 			get_url_delimiter()
@@ -241,7 +243,9 @@ class OAuthWebRequestValidator(RequestValidator):
 		# return its scopes, these will be passed on to the refreshed
 		# access token if the client did not specify a scope during the
 		# request.
-		obearer_token = frappe.get_doc("OAuth Bearer Token", {"refresh_token": refresh_token})
+		obearer_token = frappe.get_doc(
+			"OAuth Bearer Token", {"refresh_token": get_oauth_token_hash(refresh_token)}
+		)
 		return obearer_token.scopes
 
 	def revoke_token(self, token, token_type_hint, request, *args, **kwargs):
@@ -255,11 +259,26 @@ class OAuthWebRequestValidator(RequestValidator):
 		- Revocation Endpoint
 		"""
 		if token_type_hint == "access_token":
-			frappe.db.set_value("OAuth Bearer Token", token, "status", "Revoked")
+			frappe.db.set_value(
+				"OAuth Bearer Token",
+				{"access_token": get_oauth_token_hash(token)},
+				"status",
+				"Revoked",
+			)
 		elif token_type_hint == "refresh_token":
-			frappe.db.set_value("OAuth Bearer Token", {"refresh_token": token}, "status", "Revoked")
+			frappe.db.set_value(
+				"OAuth Bearer Token",
+				{"refresh_token": get_oauth_token_hash(token)},
+				"status",
+				"Revoked",
+			)
 		else:
-			frappe.db.set_value("OAuth Bearer Token", token, "status", "Revoked")
+			frappe.db.set_value(
+				"OAuth Bearer Token",
+				{"access_token": get_oauth_token_hash(token)},
+				"status",
+				"Revoked",
+			)
 		frappe.db.commit()
 
 	def validate_refresh_token(self, refresh_token, client, request, *args, **kwargs):
@@ -281,7 +300,7 @@ class OAuthWebRequestValidator(RequestValidator):
 
 		otoken = frappe.get_doc(
 			"OAuth Bearer Token",
-			{"refresh_token": refresh_token, "status": "Active"},
+			{"refresh_token": get_oauth_token_hash(refresh_token), "status": "Active"},
 		)
 
 		if not otoken:
@@ -354,7 +373,7 @@ class OAuthWebRequestValidator(RequestValidator):
 
 	def validate_id_token(self, token, scopes, request):
 		try:
-			id_token = frappe.get_doc("OAuth Bearer Token", token)
+			id_token = frappe.get_doc("OAuth Bearer Token", {"access_token": get_oauth_token_hash(token)})
 			if id_token.status == "Active":
 				return True
 		except Exception:
@@ -364,7 +383,7 @@ class OAuthWebRequestValidator(RequestValidator):
 
 	def validate_jwt_bearer_token(self, token, scopes, request):
 		try:
-			jwt = frappe.get_doc("OAuth Bearer Token", token)
+			jwt = frappe.get_doc("OAuth Bearer Token", {"access_token": get_oauth_token_hash(token)})
 			if jwt.status == "Active":
 				return True
 		except Exception:

@@ -12,6 +12,7 @@ from werkzeug.exceptions import NotFound
 import frappe
 import frappe.utils
 from frappe import oauth
+from frappe.integrations.doctype.oauth_bearer_token.oauth_bearer_token import get_oauth_token_hash
 from frappe.integrations.utils import (
 	OAuth2DynamicClientMetadata,
 	create_new_oauth_client,
@@ -245,9 +246,11 @@ def introspect_token(token: str, token_type_hint: str | None = None):
 	try:
 		bearer_token = None
 		if token_type_hint == "access_token":
-			bearer_token = frappe.get_doc("OAuth Bearer Token", {"access_token": token})
+			bearer_token = frappe.get_doc("OAuth Bearer Token", {"access_token": get_oauth_token_hash(token)})
 		elif token_type_hint == "refresh_token":
-			bearer_token = frappe.get_doc("OAuth Bearer Token", {"refresh_token": token})
+			bearer_token = frappe.get_doc(
+				"OAuth Bearer Token", {"refresh_token": get_oauth_token_hash(token)}
+			)
 
 		client = frappe.get_doc("OAuth Client", bearer_token.client)
 
