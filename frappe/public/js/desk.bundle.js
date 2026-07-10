@@ -15,6 +15,7 @@ import "./frappe/ui/components/divider.js";
 import "./frappe/ui/components/avatar.js";
 import "./frappe/ui/components/alert.js";
 import "./frappe/ui/components/breadcrumbs.js";
+import "./frappe/ui/components/toast.js";
 
 import "./frappe/ui/background_tasks/background_tasks.js";
 import "./frappe/ui/keyboard.js";
