@@ -7,6 +7,8 @@ frappe.provide("frappe.ui");
  * @property {string} [label] Badge text (pre-translated). HTML-escaped.
  * @property {"gray"|"blue"|"green"|"amber"|"red"|"violet"|"orange"} [theme="gray"] "orange" means amber (same as frappe-ui). Old indicator colors (yellow, cyan, purple, pink, grey, darkgrey, light-blue) still work through badge-legacy-colors.css.
  * @property {string} [icon] Lucide icon name, shown before the label.
+ * @property {string} [icon_left] Same as `icon`.
+ * @property {string} [title] Tooltip; doubles as aria-label when the badge has no visible label.
  * @property {"sm"|"md"|"lg"} [size="md"]
  * @property {"solid"|"subtle"|"outline"|"ghost"} [variant="subtle"]
  * @property {string} [css_class] Extra CSS classes.
@@ -37,16 +39,23 @@ function badge_html(opts = {}) {
 	const size = validated(opts.size, SIZES, "size", "badge");
 	const variant = validated(opts.variant, VARIANTS, "variant", "badge");
 
+	const icon_name = opts.icon_left || opts.icon;
+
 	const attrs = [];
 	// leave out attributes that match the CSS defaults (gray / md / subtle)
 	if (theme && theme !== "gray") attrs.push(`data-theme="${theme}"`);
 	if (size && size !== "md") attrs.push(`data-size="${size}"`);
 	if (variant && variant !== "subtle") attrs.push(`data-variant="${variant}"`);
+	if (opts.title) {
+		attrs.push(`title="${escape(opts.title)}"`);
+		// an icon-only badge has no text for screen readers — reuse the title
+		if (icon_name && !opts.label) attrs.push(`aria-label="${escape(opts.title)}"`);
+	}
 	attrs.push(...safe_attrs(opts.attrs, "badge"));
 
 	const classes = escape(["es-badge", opts.css_class].filter(Boolean).join(" "));
 	const attr_str = attrs.length ? " " + attrs.join(" ") : "";
-	const icon = opts.icon ? frappe.utils.icon(opts.icon, "sm", "", "", "", true) : "";
+	const icon = icon_name ? frappe.utils.icon(icon_name, "sm", "", "", "", true) : "";
 	return `<span class="${classes}"${attr_str}>${icon}${escape(opts.label || "")}</span>`;
 }
 

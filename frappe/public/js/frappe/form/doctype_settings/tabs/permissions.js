@@ -80,7 +80,7 @@ function render(panel, doctype, { roles, is_customized }) {
 				render: (row) =>
 					`${frappe.utils.escape_html(row.role)}${
 						cint(row.if_owner)
-							? ` <span class="es-badge" data-theme="blue">${__("Only own")}</span>`
+							? ` ${frappe.ui.badge.html({ label: __("Only own"), theme: "blue" })}`
 							: ""
 					}`,
 			},
@@ -89,7 +89,7 @@ function render(panel, doctype, { roles, is_customized }) {
 				align: "center",
 				render: (row) =>
 					cint(row.permlevel) > 0
-						? `<span class="es-badge" data-theme="gray">${cint(row.permlevel)}</span>`
+						? frappe.ui.badge.html({ label: String(cint(row.permlevel)) })
 						: "",
 			},
 			...rights.map((r) => ({
@@ -193,10 +193,12 @@ function perm_tab(doctype, reload) {
 
 // A granted right is shown as a green badge.
 function flag_badge() {
-	return `<span class="es-badge dts-perm-flag" data-theme="green">${frappe.utils.icon(
-		"check",
-		"xs"
-	)}</span>`;
+	return frappe.ui.badge.html({
+		theme: "green",
+		icon: "check",
+		css_class: "dts-perm-flag",
+		title: __("Granted"),
+	});
 }
 
 function customized_banner(panel, doctype, reload) {
