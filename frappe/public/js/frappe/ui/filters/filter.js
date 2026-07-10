@@ -192,7 +192,10 @@ frappe.ui.Filter = class {
 			let fieldtype = null;
 
 			if (["in", "like", "not in", "not like"].includes(condition)) {
-				fieldtype = "Data";
+				const is_user_array = ["_assign", "_liked_by"].includes(this.field.df.fieldname);
+				if (!(is_user_array && ["like", "not like"].includes(condition))) {
+					fieldtype = "Data";
+				}
 				this.add_condition_help(condition);
 			} else {
 				this.filter_edit_area.find(".filter-description").empty();
@@ -506,7 +509,7 @@ frappe.ui.Filter = class {
 			</button>
 			<button class="btn btn-default btn-xs remove-filter"
 				title="${__("Remove Filter")}">
-				${frappe.utils.icon("close")}
+				${frappe.utils.icon("x")}
 			</button>
 		</div>`);
 	}
@@ -648,7 +651,10 @@ frappe.ui.filter_utils = {
 		}
 
 		// scrub
-		if (df.fieldname == "docstatus") {
+		if (["_assign", "_liked_by"].includes(df.fieldname)) {
+			df.fieldtype = "Link";
+			df.options = "User";
+		} else if (df.fieldname == "docstatus") {
 			df.fieldtype = "Select";
 			df.options = [
 				{ value: 0, label: __("Draft") },

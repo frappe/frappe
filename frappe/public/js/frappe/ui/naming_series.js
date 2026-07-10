@@ -348,7 +348,7 @@ frappe.ui.NamingSeriesTable = class NamingSeriesTable {
                     data-doctype="${frappe.utils.escape_html(t.doctype)}"
                     data-label="${frappe.utils.escape_html(t.label)}"
                     style="cursor: pointer; color: var(--text-muted);">
-                    ${frappe.utils.icon("edit", "sm")}
+                    ${frappe.utils.icon("pencil", "sm")}
                 </a>
             </td>
         </tr>

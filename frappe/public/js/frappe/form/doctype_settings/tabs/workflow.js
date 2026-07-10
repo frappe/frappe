@@ -16,7 +16,7 @@ frappe.doctype_settings.register("workflow", function (panel, doctype) {
 		title: __("Workflow"),
 		description: __("Setup a multi-step workflow for {0}.", [doctype]),
 		show_header: true,
-		primary_action: { label: __("New"), icon: "add", onclick: create },
+		primary_action: { label: __("New"), icon: "plus", onclick: create },
 		load: () =>
 			frappe.db.get_list("Workflow", {
 				filters: { document_type: doctype },
@@ -47,7 +47,7 @@ frappe.doctype_settings.register("workflow", function (panel, doctype) {
 							list.reload();
 						}),
 			},
-			{ label: __("Edit"), icon: "edit", onclick: () => open(r.name) },
+			{ label: __("Edit"), icon: "pencil", onclick: () => open(r.name) },
 			{
 				label: __("Delete"),
 				icon: "trash-2",

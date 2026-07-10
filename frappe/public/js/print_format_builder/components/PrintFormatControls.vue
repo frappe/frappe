@@ -62,7 +62,7 @@
 						>
 							<span
 								class="pfb-field-drag"
-								v-html="frappe.utils.icon('drag', 'xs')"
+								v-html="frappe.utils.icon('grip', 'xs')"
 							></span>
 							<span class="pfb-field-label">{{ element.label }}</span>
 							<span class="pfb-field-type">{{ element.fieldtype }}</span>
@@ -140,7 +140,7 @@
 						)
 					}}
 				</p>
-				<a :href="new_template_link" target="_blank" class="btn btn-xs btn-secondary mt-2">
+				<a :href="new_template_link" target="_blank" class="es-button mt-2" data-size="xs">
 					{{ __("Create Field Template") }}
 				</a>
 			</div>
@@ -227,9 +227,12 @@
 			</div>
 			<div class="form-group">
 				<label class="control-label">{{ __("Google Font") }}</label>
-				<select class="form-control form-control-sm" v-model="print_format.font">
-					<option v-for="font in google_fonts" :value="font">{{ font }}</option>
-				</select>
+				<Autocomplete
+					:options="font_options"
+					:model-value="print_format.font || ''"
+					:placeholder="__('Default')"
+					@select="(o) => (print_format.font = o.value)"
+				/>
 			</div>
 			<div class="form-group">
 				<label class="control-label">{{ __("Font Size (pt)") }}</label>
@@ -259,6 +262,7 @@
 
 <script setup>
 import draggable from "vuedraggable";
+import Autocomplete from "../../vue-components/Autocomplete.vue";
 import { get_table_columns, pluck } from "../utils";
 import { useStore } from "../stores";
 import { computed, onMounted, onUnmounted, nextTick, ref, watch, inject } from "vue";
@@ -266,6 +270,10 @@ import { computed, onMounted, onUnmounted, nextTick, ref, watch, inject } from "
 // state
 let search_text = ref("");
 let google_fonts = ref([]);
+let font_options = computed(() => [
+	{ label: __("Default"), value: "" },
+	...google_fonts.value.map((f) => ({ label: f, value: f })),
+]);
 let activeTab = ref("fields");
 let search_input = ref(null);
 let raw_templates = ref([]);
@@ -322,6 +330,29 @@ const draggable_blocks = [
 		custom: 1,
 		icon: "minus",
 		desc: __("Horizontal rule"),
+	},
+	{
+		label: __("Image"),
+		fieldname: "image",
+		fieldtype: "Image",
+		custom: 1,
+		icon: "image",
+		desc: __("Upload an image or use a URL"),
+		image_url: "",
+		width: "",
+	},
+	{
+		label: __("Barcode"),
+		fieldname: "barcode",
+		fieldtype: "Barcode",
+		custom: 1,
+		icon: "barcode",
+		desc: __("Barcode or QR code from a field or static value"),
+		barcode_field: "",
+		barcode_value: "",
+		barcode_format: "CODE128",
+		show_text: true,
+		width: "",
 	},
 	{
 		label: __("Repeater"),
@@ -389,6 +420,13 @@ function clone_field(df) {
 		"field_template",
 		"source",
 		"repeater_columns",
+		"custom",
+		"image_url",
+		"width",
+		"barcode_field",
+		"barcode_value",
+		"barcode_format",
+		"show_text",
 	]);
 	if (cloned.custom) {
 		cloned.fieldname += "_" + frappe.utils.get_random(8);
@@ -594,7 +632,7 @@ onMounted(() => {
 	let method = "frappe.printing.page.print_format_builder.print_format_builder.get_google_fonts";
 	frappe.call(method).then((r) => {
 		google_fonts.value = r.message || [];
-		if (!google_fonts.value.includes(print_format.value.font)) {
+		if (print_format.value.font && !google_fonts.value.includes(print_format.value.font)) {
 			google_fonts.value.push(print_format.value.font);
 		}
 	});
@@ -627,7 +665,7 @@ watch(print_format, () => (store.dirty.value = true), { deep: true });
 .pfb-sidebar {
 	width: 260px;
 	flex-shrink: 0;
-	height: calc(100vh - 95px);
+	height: calc(100vh - var(--pfb-chrome-offset, 95px));
 	display: flex;
 	flex-direction: column;
 	border-right: 1px solid var(--border-color);

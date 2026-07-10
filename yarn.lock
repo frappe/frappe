@@ -829,6 +829,11 @@ cliui@^8.0.1:
     strip-ansi "^6.0.1"
     wrap-ansi "^7.0.0"
 
+clone@^2.1.1:
+  version "2.1.2"
+  resolved "https://registry.yarnpkg.com/clone/-/clone-2.1.2.tgz#1b7f4b9f591f1e8f83670401600345a02887435f"
+  integrity sha512-3Pe/CF1Nn94hyhIYpjtiLhdCoEoz0DqQ+988E9gmeEdQZlojxnOb74wctFyuwWQHzqyf9X7C7MG8juUpqBJT8w==
+
 cluster-key-slot@1.1.2:
   version "1.1.2"
   resolved "https://registry.yarnpkg.com/cluster-key-slot/-/cluster-key-slot-1.1.2.tgz#88ddaa46906e303b5de30d3153b7d9fe0a0c19ac"
@@ -1352,6 +1357,11 @@ estree-walker@^2.0.2:
   resolved "https://registry.yarnpkg.com/estree-walker/-/estree-walker-2.0.2.tgz#52f010178c2a4c117a7757cfe942adb7d2da4cac"
   integrity sha512-Rfkk/Mp/DL7JVje3u18FxFujQlTNR2q6QfMSMB7AvCBx91NGj/ba3kCfza0f6dVDbw7YlRf/nDrn7pQrCCyQ/w==
 
+eventemitter3@^2.0.3:
+  version "2.0.3"
+  resolved "https://registry.yarnpkg.com/eventemitter3/-/eventemitter3-2.0.3.tgz#b5e1079b59fb5e1ba2771c0a993be060a58c99ba"
+  integrity sha512-jLN68Dx5kyFHaePoXWPsCGW5qdyZQtLYHkxkg02/Mz6g0kYpDx4FyP6XfArhQdlOC4b8Mv+EMxPo/8La7Tzghg==
+
 eventemitter3@^5.0.1:
   version "5.0.1"
   resolved "https://registry.yarnpkg.com/eventemitter3/-/eventemitter3-5.0.1.tgz#53f5ffd0a492ac800721bb42c66b841de96423c4"
@@ -1467,13 +1477,13 @@ frappe-gantt@^1.2.1:
   resolved "https://registry.yarnpkg.com/frappe-gantt/-/frappe-gantt-1.2.1.tgz#3a240f20cadd866a63908c4d9e111e1dc3305c44"
   integrity sha512-jBd3ZfDuQnWl4+s01nHhn+w9RlX2OzXZjdZvbw/obZDhJNFpS2sGTYkS+ua2Y0+v6jVF2D1ei5OsSCnNV4ReoA==
 
-frappe-quill-image-resize@4.0.2:
-  version "4.0.2"
-  resolved "https://registry.yarnpkg.com/frappe-quill-image-resize/-/frappe-quill-image-resize-4.0.2.tgz#982b9c7932a2700c264ecbd9b2c4109c6a4bbebb"
-  integrity sha512-RXjXz2i5wP0KfbIMhHMZSv+krgFD4MYfsIDkTfbyvvO5t+dQuhE90l8wS/C+zBgLCMlv/R9QcOCM4k+0jBHrNQ==
+frappe-quill-image-resize@^3.0.9:
+  version "3.0.9"
+  resolved "https://registry.yarnpkg.com/frappe-quill-image-resize/-/frappe-quill-image-resize-3.0.9.tgz#35e1d94aca458328be0db03ac25b58171af8c194"
+  integrity sha512-2g38/Z/jbi3gbkCgHRgDe9MVskcjJrUioB3RXhQGhjpGKRgBznyVOLmHAZ1a8sBKAHBfuVz9BRdQulkJUrKg0g==
   dependencies:
     lodash "^4.17.4"
-    quill "^2.0.3"
+    quill "^1.2.2"
     raw-loader "^0.5.1"
 
 fs-exists-sync@^0.1.0:
@@ -2208,6 +2218,11 @@ os-homedir@^1.0.1:
   resolved "https://registry.yarnpkg.com/os-homedir/-/os-homedir-1.0.2.tgz#ffbc4988336e0e833de0c168c7ef152121aa7fb3"
   integrity sha512-B5JU3cabzk8c67mRRd3ECmROafjYMXbuzlwtqdM8IbS8ktlTix8aFGb2bAGKrSRIlnfKwovGUUr72JUPyOb6kQ==
 
+parchment@^1.1.4:
+  version "1.1.4"
+  resolved "https://registry.yarnpkg.com/parchment/-/parchment-1.1.4.tgz#aeded7ab938fe921d4c34bc339ce1168bc2ffde5"
+  integrity sha512-J5FBQt/pM2inLzg4hEWmzQx/8h8D0CiDxaG3vyp9rKrQRSDgBlhjdP5jQGgosEajXPSQouXGHOmVdgo7QmJuOg==
+
 parchment@^3.0.0:
   version "3.0.0"
   resolved "https://registry.yarnpkg.com/parchment/-/parchment-3.0.0.tgz#2e3a4ada454e1206ae76ea7afcb50e9fb517e7d6"
@@ -2764,7 +2779,7 @@ quill-magic-url@^3.0.0:
     normalize-url "^4.5.0"
     quill-delta "^3.6.2"
 
-quill@2.0.3, quill@^2.0.3:
+quill@2.0.3:
   version "2.0.3"
   resolved "https://registry.yarnpkg.com/quill/-/quill-2.0.3.tgz#752765a31d5a535cdc5717dc49d4e50099365eb1"
   integrity sha512-xEYQBqfYx/sfb33VJiKnSJp8ehloavImQ2A6564GAbqG55PGw1dAWUn1MUbQB62t0azawUS2CZZhWCjO8gRvTw==
@@ -2773,6 +2788,18 @@ quill@2.0.3, quill@^2.0.3:
     lodash-es "^4.17.21"
     parchment "^3.0.0"
     quill-delta "^5.1.0"
+
+quill@^1.2.2:
+  version "1.3.7"
+  resolved "https://registry.yarnpkg.com/quill/-/quill-1.3.7.tgz#da5b2f3a2c470e932340cdbf3668c9f21f9286e8"
+  integrity sha512-hG/DVzh/TiknWtE6QmWAF/pxoZKYxfe3J/d/+ShUWkDvvkZQVTPeVmUJVu1uE6DDooC4fWTiCLh84ul89oNz5g==
+  dependencies:
+    clone "^2.1.1"
+    deep-equal "^1.0.1"
+    eventemitter3 "^2.0.3"
+    extend "^3.0.2"
+    parchment "^1.1.4"
+    quill-delta "^3.6.2"
 
 qz-tray@^2.0.8:
   version "2.2.3"

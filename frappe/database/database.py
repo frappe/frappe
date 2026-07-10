@@ -1363,7 +1363,7 @@ class Database:
 			)
 
 			if columns:
-				frappe.cache.set_value(key, columns)
+				frappe.client_cache.set_value(key, columns)
 
 		return columns
 
@@ -1530,6 +1530,12 @@ class Database:
 		"""Hold a session-level advisory lock for the duration of the `with` block. Postgres uses
 		pg_advisory_lock, MariaDB uses GET_LOCK; engines without advisory locks raise."""
 		raise NotImplementedError(f"Advisory locks are not supported on {self.db_type}.")
+
+	def transaction_advisory_lock(self, key, *, timeout=10):
+		"""Take an advisory lock released automatically when the current transaction ends.
+		Postgres only (pg_advisory_xact_lock); other engines have no transaction-scoped
+		advisory locks and raise."""
+		raise NotImplementedError(f"Transaction-scoped advisory locks are not supported on {self.db_type}.")
 
 	def create_sequence_table(self):
 		# MariaDB/Postgres have native sequences and need no backing table;

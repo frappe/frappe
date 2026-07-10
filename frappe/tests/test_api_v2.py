@@ -1,9 +1,11 @@
 import typing
 from random import choice
+from unittest.mock import patch
 
 import requests
 
 import frappe
+from frappe.api import discovery
 from frappe.installer import update_site_config
 from frappe.tests.test_api import FrappeAPITestCase, suppress_stdout
 from frappe.tests.utils import toggle_test_mode, whitelist_for_tests
@@ -70,6 +72,17 @@ class TestResourceAPIV2(FrappeAPITestCase):
 		self.assertEqual(response.status_code, 200)
 		self.assertIsInstance(json.data, list)
 		self.assertIsInstance(json.data[0], list)
+
+	def test_get_list_default_order_by_v2(self):
+		# without an explicit order_by, results should fall back to the
+		# doctype's configured sort order (ToDo => creation desc)
+		response = self.get(
+			self.resource(self.DOCTYPE),
+			{"sid": self.sid, "fields": '["creation"]', "limit": 5},
+		)
+		self.assertEqual(response.status_code, 200)
+		creations = [row["creation"] for row in response.json["data"]]
+		self.assertEqual(creations, sorted(creations, reverse=True))
 
 	def test_get_list_fields_v2(self):
 		# test 6: fetch response with fields
@@ -560,6 +573,123 @@ class TestDocTypeAPIV2(FrappeAPITestCase):
 	def test_count_v2(self):
 		response = self.get(self.doctype_path("ToDo", "count"))
 		self.assertIsInstance(response.json["data"], int)
+
+
+class TestDiscoveryAPIV2(FrappeAPITestCase):
+	version = "v2"
+	TEST_USER = "api-discovery-user@example.com"
+
+	@classmethod
+	def tearDownClass(cls):
+		frappe.delete_doc_if_exists("User", cls.TEST_USER, force=True)
+		frappe.db.commit()
+		super().tearDownClass()
+
+	def setUp(self) -> None:
+		self.post(self.method("login"), {"sid": self.sid})
+		discovery.clear_cache()
+		discovery.build_cache()
+		return super().setUp()
+
+	def discovery_path(self, *parts):
+		return self.get_path("discovery", *parts)
+
+	def non_developer_sid(self) -> str:
+		from frappe.auth import CookieManager, LoginManager
+		from frappe.utils import set_request
+
+		if not frappe.db.exists("User", self.TEST_USER):
+			user = frappe.get_doc(
+				{
+					"doctype": "User",
+					"email": self.TEST_USER,
+					"first_name": "API Discovery User",
+					"send_welcome_email": 0,
+				}
+			)
+			user.append_roles("Website Manager")
+			user.insert(ignore_permissions=True)
+			frappe.db.commit()
+
+		set_request(path="/")
+		frappe.local.cookie_manager = CookieManager()
+		frappe.local.login_manager = LoginManager()
+		frappe.local.login_manager.login_as(self.TEST_USER)
+		return frappe.session.sid
+
+	def test_search_v2(self):
+		response = self.get(
+			self.discovery_path("search"),
+			{"sid": self.sid, "q": "test_api test"},
+		)
+		self.assertEqual(response.status_code, 200)
+		results = response.json["data"]["results"]
+		self.assertTrue(any(item.get("path") == "frappe.tests.test_api.test" for item in results))
+		self.assertTrue(all("docstring" not in item for item in results))
+
+		docstring_response = self.get(
+			self.discovery_path("search"),
+			{"sid": self.sid, "q": "parameter metadata"},
+		)
+		self.assertEqual(docstring_response.status_code, 200)
+		self.assertTrue(
+			any(
+				item.get("path") == "frappe.tests.test_api.test"
+				for item in docstring_response.json["data"]["results"]
+			)
+		)
+
+	def test_methods_v2(self):
+		index_response = self.get(self.discovery_path("method"), {"sid": self.sid})
+		self.assertEqual(index_response.status_code, 200)
+		method = next(
+			item
+			for item in index_response.json["data"]["methods"]
+			if item["path"] == "frappe.tests.test_api.test"
+		)
+		self.assertEqual(method["description"], "Exercise RPC success and failure responses.")
+
+		method_response = self.get(
+			self.discovery_path("method", "frappe.tests.test_api.test"), {"sid": self.sid}
+		)
+		self.assertEqual(method_response.status_code, 200)
+		data = method_response.json["data"]
+		self.assertEqual(data["path"], "frappe.tests.test_api.test")
+		self.assertEqual(
+			data["docstring"],
+			"Exercise RPC success and failure responses.\n\n"
+			"Used by API discovery tests to verify parameter metadata.",
+		)
+		self.assertTrue(any(param["name"] == "message" for param in data["params"]))
+		self.assertTrue(all("kind" not in param for param in data["params"]))
+		self.assertTrue(
+			any(
+				param["name"] == "optional_message" and param["type"] == "str | None"
+				for param in data["params"]
+			)
+		)
+
+	def test_cold_cache_returns_retryable_response_v2(self):
+		discovery.clear_cache()
+		with suppress_stdout(), patch("frappe.utils.error.log_error") as log_error:
+			response = self.get(self.discovery_path(), {"sid": self.sid})
+		self.assertEqual(response.status_code, 503)
+		self.assertNotIn("Retry-After", response.headers)
+		log_error.assert_not_called()
+
+	def test_discovery_requires_developer_role_v2(self):
+		sid = self.non_developer_sid()
+		paths = (
+			self.discovery_path(),
+			self.discovery_path("search"),
+			self.discovery_path("method"),
+			self.discovery_path("method", "frappe.tests.test_api.test"),
+		)
+		for path in paths:
+			with self.subTest(path=path):
+				with suppress_stdout():
+					response = self.get(path, {"sid": sid})
+				self.assertEqual(response.status_code, 403)
 
 
 class TestReadOnlyMode(FrappeAPITestCase):

@@ -32,7 +32,7 @@
 	{%- for col in layout.header.columns -%}{%- for df in col.get('fields', []) -%}{%- set ns_h.has_fields = true -%}{%- endfor -%}{%- endfor -%}
 	{%- if ns_h.has_fields -%}
 	{%- set col_gap = (layout.header.gap if layout.header.gap is defined and layout.header.gap != None else 20)|string + 'px' -%}
-	<div class="section document-header-content {{ 'label-uppercase' if layout.header.label_case == 'uppercase' else '' }}">
+	<div class="section document-header-content">
 	<div class="section-columns row" style="gap:{{ col_gap }}">
 	{%- for column in layout.header.columns %}
 	<div class="column col">
@@ -50,8 +50,12 @@
 	{%- set ns = namespace(has_content=false) -%}
 	{%- for column in section.columns -%}
 		{%- for df in column.fields -%}
-			{%- if df.fieldtype in ('HTML', 'Divider', 'Spacer') -%}
+			{%- if df.fieldtype in ('HTML', 'Divider', 'Spacer', 'Field Template', 'Image', 'Barcode') -%}
 				{%- set ns.has_content = true -%}
+			{%- elif df.fieldtype == 'Repeater' -%}
+				{%- if df.source and doc.get(df.source) -%}
+					{%- set ns.has_content = true -%}
+				{%- endif -%}
 			{%- elif doc.get(df.fieldname) -%}
 				{%- set ns.has_content = true -%}
 			{%- endif -%}
@@ -62,15 +66,20 @@
 	{%- if section.background -%}
 		{%- set ns3.section_style = ns3.section_style + 'background:' + section.background + ';' -%}
 	{%- endif -%}
-	{%- if section.padding and not section.field_borders -%}
-		{%- set p = section.padding -%}
-		{%- set ns3.section_style = ns3.section_style + 'padding:' + (p.top or 0)|string + 'px ' + (p.right or 0)|string + 'px ' + (p.bottom or 0)|string + 'px ' + (p.left or 0)|string + 'px;' -%}
-	{%- endif -%}
+	{%- for prop in ['padding', 'margin'] -%}
+		{%- set box = section.get(prop) -%}
+		{%- if box -%}
+			{%- set ns3.section_style = ns3.section_style + prop + ':' + (box.top or 0)|string + 'px ' + (box.right or 0)|string + 'px ' + (box.bottom or 0)|string + 'px ' + (box.left or 0)|string + 'px;' -%}
+		{%- endif -%}
+	{%- endfor -%}
 	{%- if section.field_borders -%}
 		{%- set _cp = (section.cell_padding if section.cell_padding is defined and section.cell_padding is not none else 8) -%}
 		{%- set ns3.section_style = ns3.section_style + '--pfb-cell-pad:' + _cp|string + 'px;' -%}
 	{%- endif -%}
-	<div class="section {{ resolve_class({'page-break': section.page_break}) }} {{ 'label-uppercase' if section.label_case == 'uppercase' else '' }}{{ ' section--grid' if section.field_borders else '' }}"{% if ns3.section_style %} style="{{ ns3.section_style|e }}"{% endif %}>
+	{%- if section.custom_style -%}
+		{%- set ns3.section_style = ns3.section_style + section.custom_style|string -%}
+	{%- endif -%}
+	<div class="section {{ resolve_class({'page-break': section.page_break}) }}{{ ' section--grid' if section.field_borders else '' }}{{ ' section--grid-' + section.grid_borders if section.field_borders and section.grid_borders else '' }}"{% if ns3.section_style %} style="{{ ns3.section_style|e }}"{% endif %}>
 		{% if section.label and section.show_label != 'hide' %}
 		<div class="section-label">{{ _(section.label) }}</div>
 		{% endif %}
@@ -110,7 +119,7 @@
 	{%- for col in layout.footer.columns -%}{%- for df in col.get('fields', []) -%}{%- set ns_f.has_fields = true -%}{%- endfor -%}{%- endfor -%}
 	{%- if ns_f.has_fields -%}
 	{%- set col_gap_f = (layout.footer.gap if layout.footer.gap is defined and layout.footer.gap != None else 20)|string + 'px' -%}
-	<div class="section document-footer-content {{ 'label-uppercase' if layout.footer.label_case == 'uppercase' else '' }}">
+	<div class="section document-footer-content">
 	<div class="section-columns row" style="gap:{{ col_gap_f }}">
 	{%- for column in layout.footer.columns %}
 	<div class="column col">
@@ -123,5 +132,7 @@
 	{%- endif -%}
 	{%- endif -%}
 	{{ footer or '' }}
+	{{ include_script('print.bundle.js') }}
+	<script>document.querySelectorAll("svg[data-barcode-value]").forEach(render_barcode);</script>
 </body>
 </html>

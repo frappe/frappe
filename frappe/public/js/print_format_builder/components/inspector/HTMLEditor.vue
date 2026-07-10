@@ -1,7 +1,7 @@
 <template>
 	<div class="html-editor">
 		<div class="d-flex justify-content-end">
-			<button class="btn btn-default btn-xs btn-edit" @click="toggle_edit">
+			<button class="es-button" data-size="xs" @click="toggle_edit">
 				{{ !editing ? buttonLabel : __("Done") }}
 			</button>
 		</div>

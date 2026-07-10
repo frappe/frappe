@@ -36,8 +36,6 @@ app_include_css = [
 ]
 app_include_icons = [
 	"/assets/frappe/icons/lucide/icons.svg",
-	"/assets/frappe/icons/timeless/icons.svg",
-	"/assets/frappe/icons/espresso/icons.svg",
 	"/assets/frappe/icons/desktop_icons/alphabets.svg",
 ]
 
@@ -50,8 +48,6 @@ web_include_js = ["website_script.js"]
 web_include_css = []
 web_include_icons = [
 	"/assets/frappe/icons/lucide/icons.svg",
-	"/assets/frappe/icons/timeless/icons.svg",
-	"/assets/frappe/icons/espresso/icons.svg",
 ]
 
 email_css = ["email.bundle.css"]
@@ -539,6 +535,7 @@ persistent_cache_keys = [
 	"rate-limit-counter-*",
 	"rl:*",
 	"concurrency:*",
+	"pulse-client:*",
 ]
 
 user_invitation = {

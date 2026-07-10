@@ -490,7 +490,6 @@ frappe.setup.slides_settings = [
 		// Profile slide
 		name: "user",
 		title: __("Let's set up your account"),
-		icon: "fa fa-user",
 		fields: [
 			{
 				fieldname: "full_name",

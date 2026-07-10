@@ -20,7 +20,7 @@ context("List View Settings", () => {
 	});
 	it("disable count and sidebar stats then verify", () => {
 		cy.get(".list-count").should("contain", "20 of");
-		cy.get(".frappe-list svg.es-icon.es-line").should("be.visible");
+		cy.get(".frappe-list .comment-count svg.icon").should("be.visible");
 		cy.get(".menu-btn-group button").click();
 		cy.get(".dropdown-menu li").filter(":visible").contains("List Settings").click();
 		cy.get(".modal-dialog").should("contain", "DocType List View Settings");
@@ -34,7 +34,7 @@ context("List View Settings", () => {
 
 		cy.get(".list-count").should("be.empty");
 		cy.get(".list-sidebar .list-tags").should("not.exist");
-		cy.get("[href='#es-line-chat-alt']").should("not.exist");
+		cy.get(".frappe-list .comment-count").should("not.exist");
 
 		cy.get(".menu-btn-group button").click({ force: true });
 		cy.get(".dropdown-menu li").filter(":visible").contains("List Settings").click();

@@ -12,5 +12,6 @@ export type {
   Filter as FilterCondition,
   FilterField,
   FilterOperator,
+  FilterProps,
   FilterValue,
 } from "./types";

@@ -413,11 +413,11 @@ frappe.hide_progress = function () {
 // Floating Message
 frappe.show_alert = frappe.toast = function (message, seconds = 7, actions = {}) {
 	let indicator_icon_map = {
-		orange: "solid-warning",
-		yellow: "solid-warning",
-		blue: "solid-info",
-		green: "solid-success",
-		red: "solid-error",
+		orange: "triangle-alert",
+		yellow: "triangle-alert",
+		blue: "info",
+		green: "circle-check",
+		red: "circle-x",
 	};
 
 	if (typeof message === "string") {
@@ -432,9 +432,9 @@ frappe.show_alert = frappe.toast = function (message, seconds = 7, actions = {})
 
 	let icon;
 	if (message.indicator) {
-		icon = indicator_icon_map[message.indicator.toLowerCase()] || "solid-" + message.indicator;
+		icon = indicator_icon_map[message.indicator.toLowerCase()] || "info";
 	} else {
-		icon = "solid-info";
+		icon = "info";
 	}
 
 	const indicator = message.indicator || "blue";

@@ -15,7 +15,8 @@ frappe.pages["print"].on_page_load = function (wrapper) {
 				frm.doc = frappe.get_doc(doctype, docname);
 				frappe.model.with_doctype(doctype, () => {
 					frm.meta = frappe.get_meta(route[1]);
-					frm.meta.module && frappe.app.sidebar.show_sidebar_for_module(frm.meta.module);
+					frm.meta.module &&
+						frappe.app.sidebar?.show_sidebar_for_module?.(frm.meta.module);
 					print_view.show(frm);
 				});
 			});
@@ -84,24 +85,21 @@ frappe.ui.form.PrintView = class {
 		this.page.set_primary_action(__("Print"), () => this.printit(), "printer");
 
 		this.page.add_button(__("Full Page"), () => this.render_page("/printview?"), {
-			icon: "full-page",
+			icon: "fullscreen",
 		});
 
-		this.page.add_button(__("PDF"), () => this.render_pdf(), { icon: "small-file" });
+		this.page.add_button(__("PDF"), () => this.render_pdf(), { icon: "file" });
 
 		this.page.add_button(__("Refresh"), () => this.refresh_print_format(), {
-			icon: "refresh",
+			icon: "refresh-cw",
 		});
 
 		if (frappe.is_mobile()) {
-			this.page.add_button(__("Form"), () => this.go_to_form_view(), { icon: "small-file" });
+			this.page.add_button(__("Form"), () => this.go_to_form_view(), {
+				icon: "file-spreadsheet",
+			});
 		} else {
-			this.page.add_action_icon(
-				"es-line-filetype",
-				() => this.go_to_form_view(),
-				"",
-				__("Form")
-			);
+			this.page.add_action_icon("file", () => this.go_to_form_view(), "", __("Form"));
 		}
 	}
 

@@ -13,3 +13,11 @@ export interface SortOption {
   value: string;
   fieldname: string;
 }
+
+/** Props for `<SortBy>`. The ordering rules are a separate `v-model` (`Sort[]`). */
+export interface SortByProps {
+  /** Doctype whose Meta drives the sortable field options. */
+  doctype: string;
+  /** Hide the "Sort" label/prefix. */
+  hideLabel?: boolean;
+}

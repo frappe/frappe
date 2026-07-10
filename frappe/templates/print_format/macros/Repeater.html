@@ -1,6 +1,6 @@
 {%- set _show_label = df.show_label if df.show_label else 'show' -%}
 {% if df.source and doc.get(df.source) %}
-<div class="pfb-repeater" {{ field_attributes(df) }}>
+<div class="pfb-repeater"{% if df.custom_style %} style="{{ df.custom_style|e }}"{% endif %} {{ field_attributes(df) }}>
 	{% if df.label and _show_label != 'hide' %}<div class="label">{{ _(df.label) }}</div>{% endif %}
 	<table class="pfb-repeater-table">
 		<colgroup>

@@ -42,3 +42,9 @@ export interface FilterField {
   fieldtype: string;
   options?: string;
 }
+
+/** Props for `<Filter>`. The conditions are a separate `v-model` (`Filter[]`). */
+export interface FilterProps {
+  /** Doctype whose Meta drives the filterable fields and per-fieldtype operators. */
+  doctype: string;
+}

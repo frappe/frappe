@@ -259,11 +259,11 @@ watch(print_format, () => (store.dirty.value = true), { deep: true });
 /* Hide all editor chrome */
 .pfb-clean-preview :deep(.section-toolbar),
 .pfb-clean-preview :deep(.configure-columns-btn) {
-	display: none !important;
+	display: none;
 }
 
-/* Section hover/selected states in clean-preview */
-.pfb-clean-preview :deep(.print-format-section) {
+/* Default section skin in clean-preview — grid sections style themselves */
+.pfb-clean-preview :deep(.print-format-section:not(.section--grid)) {
 	border: 1px solid transparent;
 	border-radius: var(--radius);
 	overflow: visible;
@@ -271,19 +271,21 @@ watch(print_format, () => (store.dirty.value = true), { deep: true });
 }
 
 .pfb-clean-preview :deep(.print-format-section:hover) {
-	border: 1px dashed var(--gray-400);
+	outline: 1px dashed var(--gray-400);
+	outline-offset: 2px;
 }
 
 .pfb-clean-preview :deep(.print-format-section.section--selected) {
-	border: 1px solid var(--gray-400);
+	outline: 1px solid var(--gray-400);
+	outline-offset: 2px;
 }
 
 .pfb-clean-preview :deep(.print-format-section-container) {
 	margin-bottom: 0;
 }
 
-/* Field hover/selected states in clean-preview */
-.pfb-clean-preview :deep(.field--preview) {
+/* Default field skin in clean-preview — grid cells style themselves */
+.pfb-clean-preview :deep(.field--preview:not(.section--grid *)) {
 	border: 1px solid transparent;
 	background: transparent;
 	padding: 0;
@@ -291,14 +293,18 @@ watch(print_format, () => (store.dirty.value = true), { deep: true });
 	transition: border-color 0.1s;
 }
 
-.pfb-clean-preview :deep(.field--preview:hover) {
+.pfb-clean-preview :deep(.field--preview:hover:not(.section--grid *)) {
 	border: 1px dashed var(--gray-400);
 	background: transparent;
 }
 
-.pfb-clean-preview :deep(.field--preview.field--selected) {
+.pfb-clean-preview :deep(.field--preview.field--selected:not(.section--grid *)) {
 	border: 1px solid var(--gray-400);
 	background: transparent;
+}
+
+.pfb-clean-preview :deep(.field--preview.field--condition-hidden:not(.section--grid *)) {
+	border: 1px dashed var(--gray-400);
 }
 
 /* Section columns: no vertical padding in preview (matches PDF) */
@@ -306,9 +312,12 @@ watch(print_format, () => (store.dirty.value = true), { deep: true });
 	padding: 0;
 }
 
-/* Remove drag container min-height gaps */
+/* Remove drag container min-height gaps; grid sections keep their own gap */
 .pfb-clean-preview :deep(.drag-container) {
 	min-height: 0;
+}
+
+.pfb-clean-preview :deep(.drag-container:not(.section--grid *)) {
 	gap: 0.15rem;
 }
 
@@ -324,26 +333,18 @@ watch(print_format, () => (store.dirty.value = true), { deep: true });
 	opacity: 1;
 }
 
-/* Hide the section pill while a field inside is hovered/selected so it doesn't
-   collide with the field's own top-right pill */
-.pfb-clean-preview
-	:deep(.print-format-section-container:has(.field--preview:hover) .section-preview-actions),
-.pfb-clean-preview
-	:deep(.print-format-section-container:has(.field--preview.field--selected)
-		.section-preview-actions) {
-	opacity: 0;
-	pointer-events: none;
-}
-
-/* Section title: match PDF's .section-label look */
+/* Section title: match PDF's .section-label look; grid sections keep their own box */
 .pfb-clean-preview :deep(.section-title-display) {
 	display: block;
-	padding: 0 0 0.3rem;
-	margin-bottom: 0.4rem;
-	border-bottom: 1.5px solid var(--border-color);
 	font-size: var(--text-lg);
 	font-weight: var(--weight-bold);
 	color: var(--text-color);
+}
+
+.pfb-clean-preview :deep(.section-title-display:not(.section--grid *)) {
+	padding: 0 0 0.3rem;
+	margin-bottom: 0.4rem;
+	border-bottom: 1.5px solid var(--border-color);
 }
 
 .pfb-body :deep(.field--preview) {

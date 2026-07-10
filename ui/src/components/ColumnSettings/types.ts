@@ -60,3 +60,15 @@ export interface WireColumn {
   type: string;
   options?: string;
 }
+
+/** Props for `<ColumnSettings>`. The ordered columns are a separate `v-model` (`Column[]`). */
+export interface ColumnSettingsProps {
+  /** Doctype whose Meta drives the addable column options. */
+  doctype: string;
+  /** Hide the "Columns" label/prefix. */
+  hideLabel?: boolean;
+  /** Show a reset-to-default action. */
+  canReset?: boolean;
+  /** Host-declared synthetic columns offered in union with Meta fields (ADR-0033). */
+  synthetic?: SyntheticColumn[];
+}

@@ -7,11 +7,17 @@
 {%- set _cell_style = ('padding:' + _cell_pad|string + 'px') if _cell_pad is not none else '' -%}
 {%- set _radius = df.table_radius if df.table_radius is defined and df.table_radius is not none else none -%}
 {%- set _radius_style = ('border-radius:' + _radius|string + 'px;overflow:hidden') if _radius is not none else '' -%}
-<div class="child-table child-table--{{ _style }}{% if not _bordered %} child-table--borderless{% endif %}{% if _plain_header %} child-table--plain-header{% endif %}" {{ field_attributes(df) }}>
+<div class="child-table child-table--{{ _style }}{% if not _bordered %} child-table--borderless{% endif %}{% if _plain_header %} child-table--plain-header{% endif %}"{% if df.custom_style %} style="{{ df.custom_style|e }}"{% endif %} {{ field_attributes(df) }}>
+	{%- set _show_label = df.show_label if df.show_label else 'show' -%}
+	{% if df.label and _show_label != 'hide' %}
 	<div class="label">
 		{{ _(df.label) }}
 	</div>
-	<table class="table{% if _bordered %} table-bordered{% endif %}"{% if _radius_style %} style="{{ _radius_style|e }}"{% endif %}>
+	{% endif %}
+	{#- border-radius has no effect on a border-collapse:collapse table per spec, so the
+	   radius + clip live on a wrapper div around the table instead of on the table itself -#}
+	<div{% if _radius_style %} style="{{ _radius_style|e }}"{% endif %}>
+	<table class="table{% if _bordered %} table-bordered{% endif %}">
 		{% set columns = df.table_columns %}
 		{%- if not _no_header -%}
 		<thead>
@@ -79,5 +85,6 @@
 			{% endfor %}
 		</tbody>
 	</table>
+	</div>
 </div>
 {% endif %}

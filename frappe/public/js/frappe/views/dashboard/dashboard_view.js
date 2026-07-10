@@ -201,7 +201,7 @@ frappe.views.DashboardView = class DashboardView extends frappe.views.ListView {
 		const empty_state_html = `<div class="msg-box no-border empty-dashboard">
 			<div>
 				<svg class="icon icon-xl" style="stroke: var(--text-light);">
-					<use href="#icon-small-file"></use>
+					<use href="#icon-file"></use>
 				</svg>
 			</div>
 			${no_result_message_html}

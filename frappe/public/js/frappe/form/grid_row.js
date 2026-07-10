@@ -339,7 +339,7 @@ export default class GridRow {
 					const edit_msg = __("Edit", "", "Edit grid row");
 					this.open_form_button = $(`
 						<div class="btn-open-row" data-toggle="tooltip" data-placement="right" title="${edit_msg}">
-							<a>${frappe.utils.icon("edit", "xs")}</a>
+							<a>${frappe.utils.icon("pencil", "xs")}</a>
 						</div>
 					`).appendTo(this.open_form_button);
 
@@ -581,7 +581,7 @@ export default class GridRow {
 
 						<div class='row'>
 							<div class='col-1' style='padding-top: 4px;'>
-								<a style='cursor: grabbing;'>${frappe.utils.icon("drag", "xs")}</a>
+								<a style='cursor: grabbing;'>${frappe.utils.icon("grip", "xs")}</a>
 							</div>
 							<div class='col-5' style='padding-top: 5px;'>
 								${__(docfield.label, null, docfield.parent)}
@@ -734,12 +734,7 @@ export default class GridRow {
 			let width = col[1];
 
 			let txt = this.doc
-				? frappe.format(
-						this._escape_for_format(this.doc[df.fieldname], df),
-						df,
-						null,
-						this.doc
-				  )
+				? this._format_static_value(this.doc[df.fieldname], df, this.doc)
 				: __(df.label, null, df.parent);
 
 			if (this.doc && df.fieldtype === "Select") {
@@ -1142,12 +1137,7 @@ export default class GridRow {
 					let df = this.grid.visible_columns[index][0];
 
 					let txt = this.doc
-						? frappe.format(
-								this._escape_for_format(this.doc[df.fieldname], df),
-								df,
-								null,
-								this.doc
-						  )
+						? this._format_static_value(this.doc[df.fieldname], df, this.doc)
 						: __(df.label, null, df.parent);
 
 					this.refresh_field(df.fieldname, txt);
@@ -1519,6 +1509,16 @@ export default class GridRow {
 		return value;
 	}
 
+	// Static cells clip to a single line, so building the full rich-text HTML per cell
+	// is wasted work — show stripped text instead, like the list view does.
+	_format_static_value(value, df, doc) {
+		const RICH_TEXT_FIELDTYPES = ["Text Editor", "HTML Editor", "Markdown Editor"];
+		if (df && RICH_TEXT_FIELDTYPES.includes(df.fieldtype)) {
+			return strip_html(cstr(value));
+		}
+		return frappe.format(this._escape_for_format(value, df), df, null, doc);
+	}
+
 	refresh_field(fieldname, txt) {
 		let fields =
 			this.grid.user_defined_columns && this.grid.user_defined_columns.length > 0
@@ -1531,21 +1531,11 @@ export default class GridRow {
 
 		// format values if no frm
 		if (df && this.doc) {
-			txt = frappe.format(
-				this._escape_for_format(this.doc[fieldname], df),
-				df,
-				null,
-				this.doc
-			);
+			txt = this._format_static_value(this.doc[fieldname], df, this.doc);
 		}
 
 		if (!txt && this.frm) {
-			txt = frappe.format(
-				this._escape_for_format(this.doc[fieldname], df),
-				df,
-				null,
-				this.frm.doc
-			);
+			txt = this._format_static_value(this.doc[fieldname], df, this.frm.doc);
 		}
 
 		// reset static value

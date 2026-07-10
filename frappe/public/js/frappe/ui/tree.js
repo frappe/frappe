@@ -31,9 +31,11 @@ frappe.ui.Tree = class {
 
 		if (!icon_set) {
 			this.icon_set = {
-				open: frappe.utils.icon("folder-open", "md"),
-				closed: frappe.utils.icon("folder-normal", "md"),
-				leaf: frappe.utils.icon("primitive-dot", "xs"),
+				open: frappe.utils.icon("chevron-down", "sm"),
+				closed: frappe.utils.is_rtl()
+					? frappe.utils.icon("chevron-left", "sm")
+					: frappe.utils.icon("chevron-right", "sm"),
+				leaf: frappe.utils.icon("circle-small", "xs"),
 			};
 		}
 

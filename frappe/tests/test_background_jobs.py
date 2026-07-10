@@ -95,12 +95,24 @@ def after_job(*args, **kwargs):
 def freeze_local():
 	locals = frappe.local
 	frappe.local = Local()
-	yield locals
-	frappe.local = locals
+	try:
+		yield locals
+	finally:
+		# without the restore, every test running after this one in the same
+		# process sees an unbound frappe.local and fails
+		frappe.local = locals
 
 
-def patch_job_hooks(event: str):
-	return {
+_real_get_hooks = frappe.get_hooks
+
+
+def patch_job_hooks(event: str, *args, **kwargs):
+	test_hooks = {
 		"before_job": ["frappe.tests.test_background_jobs.before_job"],
 		"after_job": ["frappe.tests.test_background_jobs.after_job"],
-	}[event]
+	}
+	if event in test_hooks:
+		return test_hooks[event]
+	# anything else the job execution looks up (e.g. typing_validations'
+	# require_type_annotated_api_methods) must behave as usual
+	return _real_get_hooks(event, *args, **kwargs)
