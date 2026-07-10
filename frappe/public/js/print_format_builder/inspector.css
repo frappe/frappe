@@ -108,15 +108,6 @@
 	background: var(--subtle-accent);
 	color: var(--text-color);
 }
-.pfb-source-display {
-	padding: 5px 8px;
-	border: 1px solid var(--border-color);
-	border-radius: var(--radius);
-	background: var(--control-bg);
-	gap: 6px;
-	min-width: 0;
-	overflow: hidden;
-}
 .pfb-html-preview {
 	font-size: var(--text-sm);
 	color: var(--text-muted);
