@@ -75,6 +75,8 @@ class TestDashboardChart(IntegrationTestCase):
 		cur_date = datetime.now() - relativedelta(years=1)
 
 		result = get(chart_name="Test Dashboard Chart", refresh=1)
+		uncached_result = get(chart_name="Test Dashboard Chart", no_cache=1)
+		self.assertEqual(uncached_result, result)
 
 		for idx in range(13):
 			month = get_last_day(cur_date)
