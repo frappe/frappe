@@ -229,7 +229,7 @@
 					<div v-if="df.label && df.show_label !== 'hide'" class="field-preview-label">
 						{{ df.label }}
 					</div>
-					<table class="preview-table preview-table--borderless">
+					<table class="pfb-repeater-table">
 						<colgroup>
 							<col
 								v-for="(col, ci) in df.repeater_columns || []"
@@ -245,6 +245,7 @@
 								<td
 									v-for="(col, ci) in df.repeater_columns || []"
 									:key="ci"
+									class="pfb-repeater-cell"
 									:style="{
 										textAlign: col.align || 'left',
 										...(col.color ? { color: col.color } : {}),
@@ -1207,14 +1208,20 @@ watch(
 	color: var(--text-color);
 }
 
-/* Repeater rows follow the same vertical rhythm as fields in a column */
-.field-preview-repeater .preview-table td {
-	padding: 0;
-	border: none;
+/* Mirrors .pfb-repeater-* in print_format.css: no font-size of its own,
+   the repeater inherits the body font like the PDF output does */
+.pfb-repeater-table {
+	width: 100%;
+	border-collapse: collapse;
 }
 
-.field-preview-repeater .preview-table tr + tr td {
-	padding-top: 0.4rem;
+.pfb-repeater-cell {
+	padding: 0;
+	vertical-align: top;
+}
+
+.pfb-repeater-table tr + tr .pfb-repeater-cell {
+	padding-top: 0.5rem;
 }
 
 /* lined (default): no alternating rows */
