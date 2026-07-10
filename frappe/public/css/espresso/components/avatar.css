@@ -18,10 +18,9 @@
  *   </span> */
 
 .es-avatar {
-    --es-sp: var(--spacing, 0.25rem);
 
     /* default size = md (24px) */
-    --es-av-size: calc(var(--es-sp) * 6);
+    --es-av-size: calc(var(--spacing) * 6);
     --es-av-text: var(--text-base);
     --es-av-radius: var(--radius-2);
 
@@ -54,7 +53,7 @@
 .es-avatar[data-size="xs"] {
     --es-av-ind: 8px;
     --es-av-dot: 4px;
-    --es-av-size: calc(var(--es-sp) * 4);
+    --es-av-size: calc(var(--spacing) * 4);
     --es-av-text: var(--text-2xs);
     --es-av-radius: 4px;
 }
@@ -62,7 +61,7 @@
 .es-avatar[data-size="sm"] {
     --es-av-ind: 9px;
     --es-av-dot: 5px;
-    --es-av-size: calc(var(--es-sp) * 5);
+    --es-av-size: calc(var(--spacing) * 5);
     --es-av-text: var(--text-sm);
     --es-av-radius: 5px;
 }
@@ -70,7 +69,7 @@
 .es-avatar[data-size="lg"] {
     --es-av-ind: 12px;
     --es-av-dot: 8px;
-    --es-av-size: calc(var(--es-sp) * 7);
+    --es-av-size: calc(var(--spacing) * 7);
     --es-av-text: var(--text-base);
     --es-av-radius: 6px;
 }
@@ -78,7 +77,7 @@
 .es-avatar[data-size="xl"] {
     --es-av-ind: 12px;
     --es-av-dot: 8px;
-    --es-av-size: calc(var(--es-sp) * 8);
+    --es-av-size: calc(var(--spacing) * 8);
     --es-av-text: var(--text-lg);
     --es-av-radius: 6px;
 }
@@ -86,7 +85,7 @@
 .es-avatar[data-size="2xl"] {
     --es-av-ind: 14px;
     --es-av-dot: 10px;
-    --es-av-size: calc(var(--es-sp) * 10);
+    --es-av-size: calc(var(--spacing) * 10);
     --es-av-text: var(--text-2xl);
     --es-av-radius: 8px;
 }
@@ -94,7 +93,7 @@
 .es-avatar[data-size="3xl"] {
     --es-av-ind: 16px;
     --es-av-dot: 12px;
-    --es-av-size: calc(var(--es-sp) * 11.5);
+    --es-av-size: calc(var(--spacing) * 11.5);
     --es-av-text: var(--text-3xl);
     --es-av-radius: 10px;
 }

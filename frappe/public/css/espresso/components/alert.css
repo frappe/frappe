@@ -18,7 +18,6 @@
  * "yellow" uses the amber tokens — the name comes from frappe-ui's Alert. */
 
 .es-alert {
-    --es-sp: var(--spacing, 0.25rem);
 
     /* default (no theme): plain gray */
     --es-al-bg: var(--surface-gray-2);
@@ -27,9 +26,9 @@
     display: grid;
     grid-template-columns: auto 1fr auto;
     align-items: start;
-    gap: calc(var(--es-sp) * 3);
-    padding-inline: calc(var(--es-sp) * 4);
-    padding-block: calc(var(--es-sp) * 3.5);
+    gap: calc(var(--spacing) * 3);
+    padding-inline: calc(var(--spacing) * 4);
+    padding-block: calc(var(--spacing) * 3.5);
     border-radius: var(--radius-md);
     font-size: var(--text-base);
     background: var(--es-al-bg);
@@ -64,8 +63,8 @@
 
 /* ---- children ---- */
 .es-alert > svg {
-    width: calc(var(--es-sp) * 4);
-    height: calc(var(--es-sp) * 4);
+    width: calc(var(--spacing) * 4);
+    height: calc(var(--spacing) * 4);
     margin-top: 2px;
     color: var(--es-al-icon);
     flex-shrink: 0;
@@ -73,7 +72,7 @@
 
 .es-alert__content {
     display: grid;
-    gap: calc(var(--es-sp) * 2);
+    gap: calc(var(--spacing) * 2);
 }
 
 /* no icon: let the content start in the first column */
@@ -107,15 +106,15 @@
 }
 
 .es-alert__dismiss > svg {
-    width: calc(var(--es-sp) * 4);
-    height: calc(var(--es-sp) * 4);
+    width: calc(var(--spacing) * 4);
+    height: calc(var(--spacing) * 4);
 }
 
 /* ---- footer (element form): sits under the content, e.g. action buttons ---- */
 .es-alert__footer {
     grid-column: 2;
     display: flex;
-    gap: calc(var(--es-sp) * 2);
+    gap: calc(var(--spacing) * 2);
 }
 
 /* no icon: line the footer up with the content, which starts in column 1 */

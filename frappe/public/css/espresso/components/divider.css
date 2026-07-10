@@ -33,24 +33,23 @@
 
 /* ---- action form: button over the line ---- */
 .es-divider-action {
-    --es-sp: var(--spacing, 0.25rem);
     position: relative;
     display: flex;
     align-items: center;
     justify-content: center;
     width: 100%;
-    min-height: calc(var(--es-sp) * 7);
+    min-height: calc(var(--spacing) * 7);
     white-space: nowrap;
 }
 
 .es-divider-action[data-position="start"] {
     justify-content: flex-start;
-    padding-inline-start: calc(var(--es-sp) * 4);
+    padding-inline-start: calc(var(--spacing) * 4);
 }
 
 .es-divider-action[data-position="end"] {
     justify-content: flex-end;
-    padding-inline-end: calc(var(--es-sp) * 4);
+    padding-inline-end: calc(var(--spacing) * 4);
 }
 
 .es-divider-action > .es-divider-line {

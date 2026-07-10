@@ -15,7 +15,6 @@
  * needs the Dropdown component. */
 
 .es-breadcrumbs {
-    --es-sp: var(--spacing, 0.25rem);
     display: flex;
     min-width: 0;
     align-items: center;
@@ -39,7 +38,7 @@
 /* the "/" between items; the empty alt text keeps screen readers quiet */
 .es-breadcrumbs li+li::before {
     content: "/" / "";
-    margin-inline: calc(var(--es-sp) * 0.5);
+    margin-inline: calc(var(--spacing) * 0.5);
     font-size: var(--text-base);
     color: var(--ink-gray-4);
 }
@@ -47,9 +46,9 @@
 .es-breadcrumbs__item {
     display: flex;
     align-items: center;
-    gap: var(--es-sp);
-    padding-inline: calc(var(--es-sp) * 0.5);
-    padding-block: var(--es-sp);
+    gap: var(--spacing);
+    padding-inline: calc(var(--spacing) * 0.5);
+    padding-block: var(--spacing);
     border-radius: var(--radius);
     font-size: var(--text-lg);
     font-weight: var(--font-weight-medium);
@@ -91,7 +90,7 @@
 /* prefix/suffix icons: text-sized, with their own margin toward the label
    (no gap on the item — a lone icon then needs no special casing) */
 .es-breadcrumbs__item>svg {
-    width: calc(var(--es-sp) * 4);
-    height: calc(var(--es-sp) * 4);
+    width: calc(var(--spacing) * 4);
+    height: calc(var(--spacing) * 4);
     flex-shrink: 0;
 }
