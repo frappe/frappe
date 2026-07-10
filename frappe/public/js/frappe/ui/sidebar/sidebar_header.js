@@ -48,7 +48,7 @@ frappe.ui.SidebarHeader = class SidebarHeader {
 		return {
 			name: "apps",
 			label: __("Apps"),
-			icon: "grid",
+			icon: "layout-grid",
 			items,
 		};
 	}
@@ -190,6 +190,7 @@ frappe.ui.SidebarHeader = class SidebarHeader {
 		this.wrapper = $(".sidebar-header");
 		this.$header_title = this.wrapper.find(".header-title");
 		this.$drop_icon = this.wrapper.find(".drop-icon");
+		this.toggle_width(this.sidebar.sidebar_expanded);
 	}
 	// Private workspaces are stored as `${title}-${for_user}`; show just the title in the
 	// header. Module-generated sidebars have no Workspace entry, so fall back to the raw title.

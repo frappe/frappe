@@ -218,6 +218,9 @@ export default class WebForm extends frappe.ui.FieldGroup {
 	validate_section() {
 		if (this.allow_incomplete) return true;
 
+		// submit attempted: allow mandatory fields to show the error highlight
+		this.primary_action_fulfilled = true;
+
 		let fields = $(`${this.get_page(this.current_section)} .form-control`);
 		let errors = [];
 		let invalid_values = [];
@@ -235,8 +238,10 @@ export default class WebForm extends frappe.ui.FieldGroup {
 				if (
 					field.df.reqd &&
 					is_null(typeof value === "string" ? strip_html(value) : value)
-				)
+				) {
 					errors.push(__(field.df.label));
+					field.refresh_input();
+				}
 
 				if (
 					field.df.reqd &&
@@ -307,7 +312,7 @@ export default class WebForm extends frappe.ui.FieldGroup {
 		for (let i = 0; i <= this.page_breaks.length; i++) {
 			let $dot = $(`<div class="slide-step">
 				<div class="slide-step-indicator"></div>
-				<div class="slide-step-complete">${frappe.utils.icon("tick", "xs")}</div>
+				<div class="slide-step-complete">${frappe.utils.icon("check", "xs")}</div>
 			</div>`).attr({ "data-step-id": i });
 
 			if (i < this.current_section) {
@@ -381,6 +386,8 @@ export default class WebForm extends frappe.ui.FieldGroup {
 
 	save() {
 		let is_new = this.is_new;
+		// submit attempted: allow mandatory fields to show the error highlight
+		this.primary_action_fulfilled = true;
 		let valid = this.validate && this.validate();
 		if (!valid && valid !== undefined) {
 			frappe.msgprint(

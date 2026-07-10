@@ -20,6 +20,7 @@ export { getDefaultColumns, foldSyntheticColumns } from "./getDefaultColumns";
 export type {
   Column,
   ColumnOption,
+  ColumnSettingsProps,
   SyntheticColumn,
   WireColumn,
 } from "./types";

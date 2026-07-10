@@ -244,6 +244,17 @@ class TestResourceAPI(FrappeAPITestCase):
 		json = frappe._dict(response.json)
 		self.assertIn("description", json.data[0])
 
+	def test_get_list_default_order_by_v1(self):
+		# without an explicit order_by, results should fall back to the
+		# doctype's configured sort order (ToDo => creation desc)
+		response = self.get(
+			self.resource(self.DOCTYPE),
+			{"sid": self.sid, "fields": '["creation"]', "limit": 5},
+		)
+		self.assertEqual(response.status_code, 200)
+		creations = [row["creation"] for row in response.json["data"]]
+		self.assertEqual(creations, sorted(creations, reverse=True))
+
 	def test_create_document_v1(self):
 		data = {"description": frappe.mock("paragraph"), "sid": self.sid}
 		response = self.post(self.resource(self.DOCTYPE), data)
@@ -526,10 +537,20 @@ def generate_admin_keys():
 
 
 @whitelist_for_tests()
-def test(*, fail: int | bool = False, handled: int | bool = True, message: str = "Failed"):
+def test(
+	*,
+	fail: int | bool = False,
+	handled: int | bool = True,
+	message: str = "Failed",
+	optional_message: typing.Union[str, None] = None,  # noqa: UP007
+):
+	"""Exercise RPC success and failure responses.
+
+	Used by API discovery tests to verify parameter metadata.
+	"""
 	if fail:
 		if handled:
-			frappe.throw(message)
+			frappe.throw(optional_message or message)
 		else:
 			1 / 0
 	else:

@@ -40,7 +40,7 @@ export default class Header extends Block {
 			this.add_new_block_button();
 
 			frappe.utils.add_custom_button(
-				frappe.utils.icon("drag", "xs"),
+				frappe.utils.icon("grip", "xs"),
 				null,
 				"drag-handle",
 				__("Drag"),
@@ -144,7 +144,7 @@ export default class Header extends Block {
 	static get toolbox() {
 		return {
 			title: "Heading",
-			icon: frappe.utils.icon("header", "sm"),
+			icon: frappe.utils.icon("heading", "sm"),
 		};
 	}
 }

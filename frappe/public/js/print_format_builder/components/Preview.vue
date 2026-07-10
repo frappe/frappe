@@ -8,19 +8,10 @@
 				<div class="preview-control" ref="preview_type_ref"></div>
 			</div>
 			<div class="col d-flex">
-				<a
-					v-if="url"
-					class="btn btn-default btn-sm btn-new-tab"
-					target="_blank"
-					:href="url"
-				>
+				<a v-if="url" class="es-button btn-new-tab" target="_blank" :href="url">
 					{{ __("Open in a new tab") }}
 				</a>
-				<button
-					v-if="url"
-					class="ml-3 btn btn-default btn-sm btn-new-tab"
-					@click="refresh"
-				>
+				<button v-if="url" class="ml-3 es-button btn-new-tab" @click="refresh">
 					{{ __("Refresh") }}
 				</button>
 			</div>
@@ -45,7 +36,7 @@ import { ref, computed, onMounted } from "vue";
 let { print_format, store } = useStore();
 
 // variables
-let type = ref("PDF");
+let type = ref("HTML");
 let docname = ref(null);
 let preview_loaded = ref(false);
 let iframe = ref(null);
@@ -105,7 +96,7 @@ onMounted(() => {
 			label: __("Preview type"),
 			fieldname: "docname",
 			fieldtype: "Select",
-			options: ["PDF", "HTML"],
+			options: ["HTML", "PDF"],
 			change: () => {
 				type.value = preview_type.value.get_value();
 			},

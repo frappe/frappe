@@ -63,10 +63,6 @@ body {
 	}
 }
 
-.section:not(:first-child) {
-	margin-top: 1.5rem;
-}
-
 .section-label {
 	font-size: 1.1rem;
 	font-weight: 700;
@@ -130,12 +126,16 @@ body {
 }
 
 {%- if print_format.label_color %}
-.print-format .field .label {
+.field .label,
+.field.left-right .label,
+.field.field-inline .label {
 	color: {{ print_format.label_color }};
 }
 {%- endif %}
 {%- if print_format.value_color %}
-.print-format .field .value {
+.field .value,
+.field.left-right .value,
+.field.field-inline .value {
 	color: {{ print_format.value_color }};
 }
 {%- endif %}
@@ -176,17 +176,6 @@ body {
 .field.left-right.field-justify-space-evenly { justify-content: space-evenly; }
 
 /* Repeater */
-.pfb-repeater {
-	margin-top: 0.5rem;
-}
-
-.pfb-repeater > .label {
-	font-size: 0.8em;
-	font-weight: 600;
-	color: #6b7280;
-	margin-bottom: 0.4rem;
-}
-
 .pfb-repeater-table {
 	width: 100%;
 	border-collapse: collapse;
@@ -197,11 +186,17 @@ body {
 	vertical-align: top;
 }
 
-/* Child table */
+.pfb-repeater-table tr + tr .pfb-repeater-cell {
+	padding-top: 0.5rem;
+}
+
+/* Child table + Repeater share the same block-label styling */
+.pfb-repeater,
 .child-table {
 	margin-top: 0.5rem;
 }
 
+.pfb-repeater > .label,
 .child-table > .label {
 	font-size: 0.8em;
 	font-weight: 600;
@@ -215,13 +210,19 @@ body {
 	width: 100%;
 }
 
+/* !important needed: bootstrap print styles set table-bordered cell borders with !important */
 .child-table .table th {
-	background-color: #f3f4f6 !important;
 	color: #374151;
 	font-weight: 600;
 	font-size: 0.85em;
 	padding: 0.45rem 0.6rem;
-	border: 1px solid #e5e7eb !important;
+	border: none !important;
+}
+
+/* header background lives on the row, not each cell, so a wrapper's border-radius
+   clips one continuous bar instead of fighting per-cell backgrounds at the seams */
+.child-table .table thead tr {
+	background-color: #f3f4f6 !important;
 }
 
 .child-table .table td {
@@ -246,15 +247,19 @@ body {
 }
 
 /* plain: no borders, bottom dividers only */
+.child-table--plain .table {
+	border: none;
+}
+
+/* !important needed: bootstrap print styles set table-bordered cell borders with !important */
 .child-table--plain .table th,
 .child-table--plain .table td {
 	border: none !important;
 	border-bottom: 1px solid #e5e7eb !important;
 }
 
-.child-table--plain .table th {
+.child-table--plain .table thead tr {
 	background-color: transparent !important;
-	border-bottom: 2px solid #d1d5db !important;
 }
 
 .child-table--plain .table .odd td,
@@ -269,10 +274,14 @@ body {
 	border-bottom: 1px solid #e5e7eb !important;
 }
 
-/* plain header variant */
-.child-table--plain-header .table th {
+/* plain header variant: no fill, a single rule under the header row instead */
+.child-table--plain-header .table thead tr {
 	background-color: transparent !important;
-	border-bottom: 2px solid #d1d5db !important;
+}
+
+.child-table--plain-header .table th {
+	border: none !important;
+	border-bottom: 1px solid #e5e7eb !important;
 }
 
 .child-table [data-fieldtype="Currency"],
@@ -389,8 +398,11 @@ body {
 	max-width: 50% !important;
 }
 
-/* Keep letterhead images from overflowing the page when no explicit width is set */
-header img {
+/* Keep letterhead images from overflowing their box. The .letter-head selector
+   must be here too: the Chrome PDF header/footer overlay renders the letterhead
+   in a bare div (no <header>), so a header-only rule never reaches the PDF. */
+header img,
+.letter-head img {
 	max-width: 100%;
 	height: auto;
 }
@@ -425,27 +437,6 @@ header img {
 	width: 1rem;
 }
 
-/* ── Label case: uppercase (opt-in per section) ──────────── */
-.label-uppercase .section-label {
-	text-transform: uppercase;
-	letter-spacing: 0.04em;
-}
-
-.label-uppercase .field .label {
-	text-transform: uppercase;
-	letter-spacing: 0.03em;
-}
-
-.label-uppercase .child-table > .label {
-	text-transform: uppercase;
-	letter-spacing: 0.03em;
-}
-
-.label-uppercase .child-table .table th {
-	text-transform: uppercase;
-	letter-spacing: 0.03em;
-}
-
 /* ── Table layout (field-borders mode) ───────────────────── */
 .section--grid {
 	border: 1px solid #e5e7eb;
@@ -477,5 +468,11 @@ header img {
 	margin-top: 0;
 }
 .section--grid .field:last-child {
+	border-bottom: none;
+}
+.section--grid-rows .col:not(:last-child) {
+	border-right: none;
+}
+.section--grid-columns .field {
 	border-bottom: none;
 }

@@ -123,7 +123,7 @@ def get(
 
 	timegrain = time_interval or chart.time_interval
 	filters = frappe.parse_json(filters) or frappe.parse_json(chart.filters_json)
-	if not filters:
+	if not isinstance(filters, list):
 		filters = []
 
 	# don't include cancelled documents

@@ -2,18 +2,21 @@
 	<div
 		v-if="shouldRender"
 		class="builder-root"
-		:class="{ 'builder-root--preview': show_preview }"
+		:class="{
+			'builder-root--preview': show_preview,
+			'builder-root--fullscreen': fullscreen,
+		}"
 	>
 		<PrintFormatControls v-if="!show_preview" />
 		<div class="canvas-area">
 			<!-- Sidebar-open hint -->
-			<div v-if="sidebar_open && !hint_dismissed" class="pfb-sidebar-hint">
-				<span v-html="frappe.utils.icon('solid-info', 'sm', 'pfb-hint-icon')"></span>
+			<div v-if="sidebar_open && !hint_dismissed && !fullscreen" class="pfb-sidebar-hint">
+				<span v-html="frappe.utils.icon('info', 'sm', 'pfb-hint-icon')"></span>
 				<span class="pfb-hint-text">{{
 					__("Tip: Close the left sidebar for more editing space.")
 				}}</span>
 				<button class="pfb-hint-dismiss" @click="dismiss_hint" :aria-label="__('Dismiss')">
-					<span v-html="frappe.utils.icon('close', 'xs')"></span>
+					<span v-html="frappe.utils.icon('x', 'xs')"></span>
 				</button>
 			</div>
 
@@ -29,16 +32,16 @@
 					<span v-if="!$store.preview_doc.value" class="canvas-no-data-hint">
 						← {{ __("Pick a record to see real values") }}
 					</span>
-					<button
-						v-if="$store.preview_doc_name.value"
-						class="canvas-clear-btn"
-						:title="__('Clear preview data')"
-						@click="clear_preview_doc"
-						v-html="frappe.utils.icon('x', 'xs')"
-					></button>
-					<span v-if="$store.preview_doc.value" class="canvas-preview-badge">{{
+					<span v-if="$store.preview_doc.value" class="es-badge" data-theme="green">{{
 						__("Live")
 					}}</span>
+
+					<button
+						class="canvas-icon-btn"
+						:title="fullscreen ? __('Exit full screen') : __('Full screen')"
+						@click="toggle_fullscreen"
+						v-html="frappe.utils.icon(fullscreen ? 'minimize-2' : 'maximize-2', 'xs')"
+					></button>
 
 					<div class="canvas-zoom-control" role="group" :aria-label="__('Zoom')">
 						<button
@@ -60,7 +63,7 @@
 							:title="__('Zoom in')"
 							:disabled="canvas_zoom >= ZOOM_MAX"
 							@click="zoom_in"
-							v-html="frappe.utils.icon('add', 'xs')"
+							v-html="frappe.utils.icon('plus', 'xs')"
 						></button>
 					</div>
 				</div>
@@ -92,7 +95,7 @@ import Preview from "./components/Preview.vue";
 import PrintFormatControls from "./components/PrintFormatControls.vue";
 import FieldInspector from "./components/inspector/FieldInspector.vue";
 import { getStore } from "./stores";
-import { computed, ref, onMounted, onUnmounted, provide, nextTick } from "vue";
+import { computed, ref, onMounted, onUnmounted, provide, nextTick, watch } from "vue";
 
 // props
 const props = defineProps(["print_format_name"]);
@@ -110,6 +113,7 @@ let doc_picker_ctrl = ref(null);
 let sidebar_open = ref(false);
 let hint_dismissed = ref(localStorage.getItem(HINT_KEY) === "1");
 let canvas_zoom = ref(parseInt(localStorage.getItem(ZOOM_KEY)) || 100);
+let fullscreen = ref(false);
 let sidebar_observer_ref = null;
 
 // computed
@@ -129,6 +133,34 @@ provide("$store", $store.value);
 // methods
 function toggle_preview() {
 	show_preview.value = !show_preview.value;
+}
+
+function toggle_fullscreen() {
+	fullscreen.value = !fullscreen.value;
+}
+
+function exit_fullscreen() {
+	fullscreen.value = false;
+}
+
+// The desk chrome (navbar, page head, sidebar) lives outside this component,
+// so fullscreen is driven by a class on <body> (rules in inspector.css)
+watch(fullscreen, (on) => {
+	document.body.classList.toggle("pfb-fullscreen", on);
+});
+
+watch(show_preview, (on) => {
+	if (on) {
+		history.pushState({ ...history.state, pfb_preview: true }, "");
+	} else if (history.state?.pfb_preview) {
+		history.back();
+	}
+});
+
+function handle_popstate() {
+	if (show_preview.value) {
+		show_preview.value = false;
+	}
 }
 
 function clear_selection() {
@@ -164,13 +196,19 @@ function on_start_blank() {
 function handle_keydown(e) {
 	// Zoom shortcuts: Ctrl+= / Ctrl+- / Ctrl+0
 	if (e.ctrlKey || e.metaKey) {
-		if (e.key === "z" || e.key === "Z") {
-			// let inputs keep their own undo
+		if (e.key === "z" || e.key === "Z" || e.key === "y") {
+			// rich text editors and dialogs keep their own undo
 			const el = document.activeElement;
-			if (el?.tagName === "INPUT" || el?.tagName === "TEXTAREA" || el?.isContentEditable)
+			if (
+				el?.tagName === "INPUT" ||
+				el?.tagName === "TEXTAREA" ||
+				el?.isContentEditable ||
+				el?.closest(".modal")
+			)
 				return;
 			e.preventDefault();
-			$store.value.undo();
+			if (e.key === "y" || e.shiftKey) $store.value.redo();
+			else $store.value.undo();
 			return;
 		}
 		if (e.key === "=" || e.key === "+") {
@@ -222,6 +260,9 @@ function handle_keydown(e) {
 		// Navigate up: section → canvas (clear all)
 		$store.value.selected_section.value = null;
 		e.stopPropagation();
+	} else if (fullscreen.value) {
+		exit_fullscreen();
+		e.stopPropagation();
 	}
 }
 
@@ -247,11 +288,6 @@ function check_sidebar() {
 function dismiss_hint() {
 	hint_dismissed.value = true;
 	localStorage.setItem(HINT_KEY, "1");
-}
-
-function clear_preview_doc() {
-	$store.value.load_preview_doc(null);
-	doc_picker_ctrl.value?.set_value("");
 }
 
 function init_doc_picker() {
@@ -289,6 +325,7 @@ function init_doc_picker() {
 // mounted
 onMounted(() => {
 	document.addEventListener("keydown", handle_keydown);
+	window.addEventListener("popstate", handle_popstate);
 
 	// Detect desk sidebar open/close via MutationObserver on the wrapper's style attribute
 	check_sidebar();
@@ -308,16 +345,24 @@ onMounted(() => {
 
 onUnmounted(() => {
 	document.removeEventListener("keydown", handle_keydown);
+	window.removeEventListener("popstate", handle_popstate);
 	sidebar_observer_ref?.disconnect();
+	document.body.classList.remove("pfb-fullscreen");
 });
 
-defineExpose({ toggle_preview, show_preview, $store });
+defineExpose({ toggle_preview, show_preview, exit_fullscreen, $store });
 </script>
 
 <style scoped>
 .builder-root {
+	/* navbar + page head height; goes to 0 when fullscreen hides them */
+	--pfb-chrome-offset: 95px;
 	display: flex;
 	width: 100%;
+}
+
+.builder-root--fullscreen {
+	--pfb-chrome-offset: 0px;
 }
 
 .canvas-area {
@@ -325,7 +370,7 @@ defineExpose({ toggle_preview, show_preview, $store });
 	min-width: 0;
 	display: flex;
 	flex-direction: column;
-	height: calc(100vh - 95px);
+	height: calc(100vh - var(--pfb-chrome-offset));
 }
 
 .builder-root--preview .canvas-area {
@@ -435,7 +480,7 @@ defineExpose({ toggle_preview, show_preview, $store });
 	padding: 3px 8px;
 }
 
-.canvas-clear-btn {
+.canvas-icon-btn {
 	display: flex;
 	align-items: center;
 	padding: 3px;
@@ -446,20 +491,9 @@ defineExpose({ toggle_preview, show_preview, $store });
 	border-radius: var(--radius);
 }
 
-.canvas-clear-btn:hover {
+.canvas-icon-btn:hover {
 	background: var(--gray-100);
 	color: var(--gray-600);
-}
-
-.canvas-preview-badge {
-	font-size: 10px;
-	font-weight: 600;
-	color: var(--green-600);
-	background: var(--green-50);
-	border: 1px solid var(--green-200);
-	border-radius: var(--radius);
-	padding: 2px 6px;
-	line-height: 1.4;
 }
 
 /* ── Zoom control ────────────────────────────────────────── */

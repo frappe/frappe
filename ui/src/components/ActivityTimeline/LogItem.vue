@@ -38,12 +38,10 @@
 import { h } from "vue";
 import LucideLock from "~icons/lucide/lock";
 import TimeAgo from "./TimeAgo.vue";
-import type { AttachmentLogActivity, LogActivity } from "./types";
+import type { LogActivity, LogItemProps } from "./types";
 import { splitBold } from "./utils";
 
-defineProps<{
-	activity: LogActivity | AttachmentLogActivity;
-}>();
+defineProps<LogItemProps>();
 
 // bolds actor + assignee (backend-supplied; no message-template parsing)
 const ActorText = ({ activity }: { activity: LogActivity }) => {

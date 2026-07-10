@@ -152,9 +152,9 @@ import { Button, Combobox, Popover } from "frappe-ui";
 import Draggable from "vuedraggable";
 import { useDoctypeMeta } from "../../composables/useDoctypeMeta";
 import { getSortOptions } from "./getSortOptions";
-import type { Sort, SortOption } from "./types";
+import type { Sort, SortByProps, SortOption } from "./types";
 
-const props = withDefaults(defineProps<{ doctype: string; hideLabel?: boolean }>(), {
+const props = withDefaults(defineProps<SortByProps>(), {
 	hideLabel: false,
 });
 
