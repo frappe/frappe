@@ -668,6 +668,24 @@ class TestDiscoveryAPIV2(FrappeAPITestCase):
 				for param in data["params"]
 			)
 		)
+		# frappe opts into source exposure via the `expose_discovery_source` hook
+		self.assertIn("source", data)
+		self.assertIn("def test(", data["source"])
+
+	def test_method_source_hidden_without_hook_v2(self):
+		real_get_hooks = frappe.get_hooks
+
+		def get_hooks(hook=None, *args, **kwargs):
+			if hook == "expose_discovery_source":
+				return []
+			return real_get_hooks(hook, *args, **kwargs)
+
+		with patch.object(frappe, "get_hooks", side_effect=get_hooks):
+			response = self.get(
+				self.discovery_path("method", "frappe.tests.test_api.test"), {"sid": self.sid}
+			)
+		self.assertEqual(response.status_code, 200)
+		self.assertNotIn("source", response.json["data"])
 
 	def test_cold_cache_returns_retryable_response_v2(self):
 		discovery.clear_cache()

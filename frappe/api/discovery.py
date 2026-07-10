@@ -186,8 +186,27 @@ def _method_document(path: str, fn: Callable) -> dict[str, Any]:
 			"params": _method_params(fn),
 			"endpoint": f"/api/v2/method/{path}",
 			"docstring": inspect.getdoc(fn),
+			"source": _method_source(fn),
 		}
 	)
+
+
+def _method_source(fn: Callable) -> str | None:
+	"""Return the method's source code, but only if its app opts in.
+
+	Exposing source is safe for open source apps and helps API clients (e.g. AI
+	agents) understand what a method does. Apps must explicitly opt in via the
+	`expose_discovery_source` hook, since a closed source app may not want its
+	implementation leaked over the API.
+	"""
+	app = fn.__module__.split(".", 1)[0]
+	if not any(frappe.get_hooks("expose_discovery_source", app_name=app)):
+		return None
+
+	try:
+		return inspect.getsource(fn)
+	except (OSError, TypeError):
+		return None
 
 
 def _visible_server_scripts() -> list[tuple[str, str]]:
