@@ -33,7 +33,8 @@
   height: calc(var(--es-sp) * 5);
   padding-inline: calc(var(--es-sp) * 1.5);
   font-size: 0.75rem;
-  line-height: 1;
+  /* was 1 — too tight, clipped text descenders like "g"/"p" inside the badge */
+  line-height: 1.3;
 
   /* default variant = subtle */
   background: var(--c-fill);
