@@ -544,6 +544,10 @@ user_invitation = {
 	},
 }
 
+# Expose method source code through the API discovery endpoints. Safe for open
+# source apps and helps API clients understand what a method does.
+expose_discovery_source = True
+
 
 add_to_apps_screen = [
 	{
