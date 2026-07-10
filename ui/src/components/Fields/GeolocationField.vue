@@ -79,16 +79,33 @@
 // `field.readOnly` toggles view-only mode, and a save/clear is treated as a
 // commit (emits both `update:modelValue` and `change`, like the picker fields).
 //
-// Every Leaflet import is DYNAMIC — including the marker-image `?url` assets —
-// so `fieldTypes.ts`'s static import graph stays Leaflet-free and Leaflet is
-// code-split into an async chunk that loads only when a map opens. The library
-// ships `leaflet`/`leaflet-draw`/`leaflet.locatecontrol` as DIRECT deps, so
-// every consuming app gets them automatically — no app is assumed to install
-// them, and apps that never render this field pay no runtime cost. A load
-// failure still surfaces as `loadError` rather than throwing silently.
+// Leaflet's CODE (JS + CSS) loads DYNAMICALLY, so it's code-split into an async
+// chunk fetched only when a map first opens — `fieldTypes.ts`'s static graph
+// carries no Leaflet code. The image `?url` assets below are the one exception:
+// they're STATIC imports because a dynamic `import("…?url")` can't be code-split
+// (rolldown/vite can't turn a static asset URL into a chunk), which breaks the
+// production build. They're just a handful of tiny URL strings — the image files
+// are still only fetched when the map actually renders, so an app that never
+// opens this field pays no meaningful cost. The library ships
+// `leaflet`/`leaflet-draw`/`leaflet.locatecontrol` as DIRECT deps, so every
+// consuming app gets them automatically. A load failure still surfaces as
+// `loadError` rather than throwing silently.
 import { computed, nextTick, onBeforeUnmount, ref, watch } from "vue";
 import { Button, Dialog, TextInput } from "frappe-ui";
 import type { FieldComponentEmits, FieldComponentProps } from "./types";
+
+// Marker icons (Leaflet's default icon paths break under bundlers) plus the
+// layers-control / draw-toolbar sprites that Leaflet CSS references via relative
+// `url()`. Resolved through the bundler and applied in loadLeaflet() and
+// injectMapIconCss().
+import markerIconUrl from "leaflet/dist/images/marker-icon.png?url";
+import markerIcon2xUrl from "leaflet/dist/images/marker-icon-2x.png?url";
+import markerShadowUrl from "leaflet/dist/images/marker-shadow.png?url";
+import layersIconUrl from "leaflet/dist/images/layers.png?url";
+import layersIcon2xUrl from "leaflet/dist/images/layers-2x.png?url";
+import drawSpriteUrl from "leaflet-draw/dist/images/spritesheet.png?url";
+import drawSprite2xUrl from "leaflet-draw/dist/images/spritesheet-2x.png?url";
+import drawSpriteSvgUrl from "leaflet-draw/dist/images/spritesheet.svg?url";
 
 const props = defineProps<FieldComponentProps>();
 const emit = defineEmits<FieldComponentEmits>();
@@ -188,17 +205,9 @@ function requestDeviceLocation() {
 // which many host dev servers 403. We mirror the marker-icon fix: resolve each
 // asset through Vite (`?url`) and inject overriding CSS so they load anywhere.
 // Runs once per process.
-async function injectMapIconCss() {
+function injectMapIconCss() {
 	if (iconCssInjected || typeof document === "undefined") return;
 	iconCssInjected = true;
-
-	const [layers, layers2x, sprite, sprite2x, spriteSvg] = await Promise.all([
-		import("leaflet/dist/images/layers.png?url"),
-		import("leaflet/dist/images/layers-2x.png?url"),
-		import("leaflet-draw/dist/images/spritesheet.png?url"),
-		import("leaflet-draw/dist/images/spritesheet-2x.png?url"),
-		import("leaflet-draw/dist/images/spritesheet.svg?url"),
-	]);
 
 	// Geometry must match the upstream CSS exactly: the draw sprite is 300×30
 	// (10 tools × 30px) and the per-tool background-position offsets are baked for
@@ -206,19 +215,19 @@ async function injectMapIconCss() {
 	// The retina layers icon is a 2x image scaled back to 26px.
 	const style = document.createElement("style");
 	style.textContent = `
-.leaflet-control-layers-toggle { background-image: url(${layers.default}); }
+.leaflet-control-layers-toggle { background-image: url(${layersIconUrl}); }
 .leaflet-retina .leaflet-control-layers-toggle {
-	background-image: url(${layers2x.default});
+	background-image: url(${layersIcon2xUrl});
 	background-size: 26px 26px;
 }
 .leaflet-draw-toolbar a {
-	background-image: url(${sprite.default});
-	background-image: linear-gradient(transparent, transparent), url(${spriteSvg.default});
+	background-image: url(${drawSpriteUrl});
+	background-image: linear-gradient(transparent, transparent), url(${drawSpriteSvgUrl});
 	background-size: 300px 30px;
 }
 .leaflet-retina .leaflet-draw-toolbar a {
-	background-image: url(${sprite2x.default});
-	background-image: linear-gradient(transparent, transparent), url(${spriteSvg.default});
+	background-image: url(${drawSprite2xUrl});
+	background-image: linear-gradient(transparent, transparent), url(${drawSpriteSvgUrl});
 	background-size: 300px 30px;
 }
 `;
@@ -236,23 +245,17 @@ async function loadLeaflet() {
 		L = leafletModule.default ?? leafletModule;
 		await import("leaflet-draw");
 
-		// Fix Vite marker image paths — delete the built-in resolver first, then
-		// supply the resolved `?url` strings. Imported dynamically (not at module
-		// top level) to keep Leaflet out of the static registry import graph.
-		const [iconUrl, iconRetinaUrl, shadowUrl] = await Promise.all([
-			import("leaflet/dist/images/marker-icon.png?url"),
-			import("leaflet/dist/images/marker-icon-2x.png?url"),
-			import("leaflet/dist/images/marker-shadow.png?url"),
-		]);
+		// Fix Leaflet's default marker image paths (they break under bundlers):
+		// delete the built-in resolver, then supply the statically-resolved URLs.
 		delete L.Icon.Default.prototype._getIconUrl;
 		L.Icon.Default.mergeOptions({
-			iconUrl: iconUrl.default,
-			iconRetinaUrl: iconRetinaUrl.default,
-			shadowUrl: shadowUrl.default,
+			iconUrl: markerIconUrl,
+			iconRetinaUrl: markerIcon2xUrl,
+			shadowUrl: markerShadowUrl,
 		});
 
 		// Same path problem for the CSS-referenced toolbar/layers icons.
-		await injectMapIconCss();
+		injectMapIconCss();
 
 		// Patch Circle/CircleMarker toGeoJSON to include radius in properties
 		// (same patch as Frappe's customize_draw_controls).
