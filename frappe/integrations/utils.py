@@ -2,6 +2,7 @@
 # License: MIT. See LICENSE
 
 import datetime
+import ipaddress
 import json
 from typing import Any, cast
 from urllib.parse import parse_qs
@@ -213,13 +214,28 @@ def validate_dynamic_client_metadata(client: OAuth2DynamicClientMetadata):
 	if client.response_types and not all(rt == "code" for rt in client.response_types):
 		invalidation_reasons.append("only 'code' response_type is supported")
 
-	if not frappe.conf.developer_mode and any(c.scheme != "https" for c in client.redirect_uris):
+	if not frappe.conf.developer_mode and any(
+		not _is_secure_redirect_uri(uri) for uri in client.redirect_uris
+	):
 		invalidation_reasons.append("redirect_uris must be https")
 
 	if invalidation_reasons:
 		return ",\n".join(invalidation_reasons)
 
 	return None
+
+
+def _is_secure_redirect_uri(uri: HttpUrl) -> bool:
+	if uri.scheme == "https":
+		return True
+
+	if uri.scheme != "http":
+		return False
+
+	try:
+		return ipaddress.ip_address((uri.host or "").strip("[]")).is_loopback
+	except ValueError:
+		return False
 
 
 def create_new_oauth_client(client: OAuth2DynamicClientMetadata):
