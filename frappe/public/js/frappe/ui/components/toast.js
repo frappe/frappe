@@ -56,10 +56,12 @@ function render_content($el, opts) {
 	const action = opts.action
 		? `<button class="es-toast__action" type="button">${escape(opts.action.label)}</button>`
 		: "";
+	// the extra "close" class is a legacy hook — old code dismisses the
+	// element show_alert returned via .find(".close").click()
 	const close =
 		opts.closable === false
 			? ""
-			: `<button class="es-toast__close" type="button" aria-label="${escape(
+			: `<button class="es-toast__close close" type="button" aria-label="${escape(
 					__("Close")
 			  )}">${frappe.utils.icon("x", "sm", "", "", "", true)}</button>`;
 

@@ -6,7 +6,7 @@ frappe.provide("frappe.ui");
  * @typedef {Object} BreadcrumbItem
  * @property {string} [label] Text of the crumb. HTML-escaped.
  * @property {string} [href] Renders the crumb as a link.
- * @property {function} [onclick] Click handler (element form only).
+ * @property {function} [onclick] Click handler (element form only). Renders the crumb as a button; with neither href nor onclick it's plain text.
  * @property {string} [prefix] Lucide icon name shown before the label.
  * @property {string} [suffix] Lucide icon name shown after the label.
  * @property {string} [title] Tooltip; becomes the aria-label when the crumb has no label (icon-only).
@@ -81,9 +81,13 @@ function breadcrumbs_html(opts = {}) {
 				}
 			}
 
+			// a crumb with nothing to do is plain text — a button that does
+			// nothing would still be announced as clickable by screen readers
 			const inner = href
 				? `<a class="es-breadcrumbs__item" href="${escape(href)}"${extra}>${content}</a>`
-				: `<button class="es-breadcrumbs__item" type="button"${extra}>${content}</button>`;
+				: item.onclick
+				? `<button class="es-breadcrumbs__item" type="button"${extra}>${content}</button>`
+				: `<span class="es-breadcrumbs__item"${extra}>${content}</span>`;
 			return `<li>${inner}</li>`;
 		})
 		.join("");

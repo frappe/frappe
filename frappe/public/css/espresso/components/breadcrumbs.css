@@ -5,12 +5,13 @@
  *     <ol>
  *       <li><a class="es-breadcrumbs__item" href="...">
  *         <span class="es-breadcrumbs__label">Home</span></a></li>
- *       <li><a class="es-breadcrumbs__item" aria-current="page" ...>...</a></li>
+ *       <li><span class="es-breadcrumbs__item" aria-current="page">...</span></li>
  *     </ol>
  *   </nav>
  *
- * Items can be links or buttons; the last one is the current page — darker,
- * and it truncates with a tooltip when space runs out. The "collapse extra
+ * Items are links (href), buttons (onclick), or plain spans (neither);
+ * the last one is the current page — darker, and it truncates with a
+ * tooltip when space runs out. The "collapse extra
  * crumbs into a dropdown" behavior from frappe-ui isn't ported yet — it
  * needs the Dropdown component. */
 
@@ -58,10 +59,17 @@
     /* button items: strip the native button look */
     border: 0;
     background: transparent;
+}
+
+/* only real links and buttons look and react clickable — a plain-text
+   crumb (no href, no onclick) renders as a span and stays put */
+a.es-breadcrumbs__item,
+button.es-breadcrumbs__item {
     cursor: pointer;
 }
 
-.es-breadcrumbs__item:hover {
+a.es-breadcrumbs__item:hover,
+button.es-breadcrumbs__item:hover {
     color: var(--ink-gray-7);
     text-decoration: none;
 }
