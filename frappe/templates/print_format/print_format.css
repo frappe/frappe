@@ -398,8 +398,11 @@ body {
 	max-width: 50% !important;
 }
 
-/* Keep letterhead images from overflowing the page when no explicit width is set */
-header img {
+/* Keep letterhead images from overflowing their box. The .letter-head selector
+   must be here too: the Chrome PDF header/footer overlay renders the letterhead
+   in a bare div (no <header>), so a header-only rule never reaches the PDF. */
+header img,
+.letter-head img {
 	max-width: 100%;
 	height: auto;
 }
