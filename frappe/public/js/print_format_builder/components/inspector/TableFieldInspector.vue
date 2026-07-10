@@ -2,16 +2,6 @@
 	<div class="pfb-insp-body">
 		<!-- TABLE section -->
 		<InspectorSection :label="__('Table')">
-			<!-- Source -->
-			<div class="pfb-insp-row">
-				<span class="pfb-insp-label">{{ __("Source") }}</span>
-				<div class="pfb-source-display d-flex align-items-center justify-content-between">
-					<span class="ellipsis" style="min-width: 0">{{
-						selected_field.label || selected_field.fieldname
-					}}</span>
-					<span class="es-badge">{{ __("Table") }}</span>
-				</div>
-			</div>
 			<!-- Title -->
 			<LabelField
 				v-model="selected_field.label"

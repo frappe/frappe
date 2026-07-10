@@ -61,7 +61,8 @@
 	font-size: var(--text-sm);
 	color: var(--text-muted);
 }
-.pfb-insp-input {
+.pfb-insp-input,
+.pfb-insp-select {
 	width: 100%;
 	padding: 6px 8px;
 	font-size: var(--text-sm);
@@ -70,22 +71,15 @@
 	background: var(--fg-color);
 	color: var(--text-color);
 	outline: none;
+}
+.pfb-insp-input {
 	box-sizing: border-box;
 }
-.pfb-insp-input:focus {
-	border-color: var(--gray-500);
-}
 .pfb-insp-select {
-	width: 100%;
 	padding: 5px 8px;
-	font-size: var(--text-sm);
-	border: 1px solid var(--border-color);
-	border-radius: var(--radius);
-	background: var(--fg-color);
-	color: var(--text-color);
-	outline: none;
 	cursor: pointer;
 }
+.pfb-insp-input:focus,
 .pfb-insp-select:focus {
 	border-color: var(--gray-500);
 }
@@ -113,15 +107,6 @@
 .pfb-add-btn:hover {
 	background: var(--subtle-accent);
 	color: var(--text-color);
-}
-.pfb-source-display {
-	padding: 5px 8px;
-	border: 1px solid var(--border-color);
-	border-radius: var(--radius);
-	background: var(--control-bg);
-	gap: 6px;
-	min-width: 0;
-	overflow: hidden;
 }
 .pfb-html-preview {
 	font-size: var(--text-sm);
@@ -267,6 +252,13 @@
 	accent-color: var(--primary);
 }
 
+/* bare toggle inside an inspector row: neutralise label.switch-control's
+   full-width/padding (it's built for full-row settings pages) */
+.pfb-insp-row .switch-control {
+	width: auto;
+	padding: 0;
+}
+
 .pfb-insp-check {
 	display: flex;
 	align-items: center;
@@ -275,4 +267,13 @@
 	color: var(--text-color);
 	cursor: pointer;
 	margin: 0;
+}
+
+/* ── Fullscreen mode ────────────────────────────────────── */
+/* Toggled on <body> by PrintFormatBuilder.vue: the desk chrome being hidden
+   lives outside the builder's mount point, so scoped styles can't reach it */
+body.pfb-fullscreen .body-sidebar-container,
+body.pfb-fullscreen .main-section > .sticky-top,
+body.pfb-fullscreen .page-head {
+	display: none;
 }

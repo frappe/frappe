@@ -1,15 +1,6 @@
 <template>
 	<div class="pfb-insp-body">
 		<InspectorSection :label="__('Field')">
-			<div class="pfb-insp-row">
-				<span class="pfb-insp-label">{{ __("Source") }}</span>
-				<div class="pfb-source-display d-flex align-items-center justify-content-between">
-					<span class="ellipsis" style="min-width: 0">{{
-						selected_field.label || selected_field.fieldname
-					}}</span>
-					<span class="es-badge">{{ short_fieldtype }}</span>
-				</div>
-			</div>
 			<template v-if="is_html_field">
 				<div
 					class="pfb-html-preview"
@@ -224,29 +215,6 @@ function set_image_url(url) {
 		}
 	});
 }
-
-let short_fieldtype = computed(() => {
-	if (!selected_field.value) return "";
-	const map = {
-		Data: "Data",
-		Currency: "Currency",
-		Int: "Int",
-		Float: "Float",
-		Date: "Date",
-		Datetime: "DateTime",
-		Check: "Check",
-		Select: "Select",
-		Table: "Table",
-		"Long Text": "Text",
-		Text: "Text",
-		Link: "Link",
-		HTML: "HTML",
-		Spacer: "Spacer",
-		Divider: "Divider",
-		"Field Template": "Template",
-	};
-	return map[selected_field.value.fieldtype] || selected_field.value.fieldtype || "";
-});
 
 let current_align = computed(() => selected_field.value?.align ?? "left");
 let current_label_justify = computed(() => selected_field.value?.label_justify ?? "");
