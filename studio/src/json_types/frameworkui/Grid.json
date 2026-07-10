@@ -85,15 +85,6 @@
         "columns"
       ],
       "additionalProperties": false
-    },
-    "GridSlots": {
-      "type": "object",
-      "properties": {
-        "cell": {
-          "type": "object"
-        }
-      },
-      "additionalProperties": false
     }
   }
 }

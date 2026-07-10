@@ -160,7 +160,7 @@ function generateComponentSchema(
 		config["type"] = `${componentName}Props`
 		Object.assign(definitions, buildSchema(config).definitions)
 	} catch (error) {
-		console.error(`Failed to generate Props schema for ${componentName}:`, error)
+		console.error(`Failed to generate Props schema for ${componentName}: ${errorMessage(error)}`)
 		return
 	}
 
@@ -169,12 +169,18 @@ function generateComponentSchema(
 			config["type"] = `${componentName}Slots`
 			Object.assign(definitions, buildSchema(config).definitions)
 		} catch (error) {
-			console.warn(`Failed to generate Slots schema for ${componentName}:`, error)
+			// e.g. a generic `<Component>Slots<T>` can't be resolved by bare name — the
+			// component keeps its Props schema and its slots are read from the template.
+			console.warn(`Skipped Slots schema for ${componentName}: ${errorMessage(error)}`)
 		}
 	}
 
 	writeSchema({ $schema: "http://json-schema.org/draft-07/schema#", definitions }, componentName, outputDirPath)
 	console.log(`Generated types for ${componentName} saved to ${componentName}.json`)
+}
+
+function errorMessage(error: unknown): string {
+	return error instanceof Error ? error.message : String(error)
 }
 
 function buildSchema(config: CompletedConfig) {
