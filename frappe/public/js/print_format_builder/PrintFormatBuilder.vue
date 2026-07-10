@@ -20,8 +20,9 @@
 				</button>
 			</div>
 
-			<!-- Canvas toolbar: sample data picker (hidden in preview mode) -->
-			<div v-if="!show_preview" class="canvas-toolbar">
+			<!-- Canvas toolbar: sample data picker (hidden in preview mode).
+			     v-show (not v-if) so the picker control survives a preview round-trip. -->
+			<div v-show="!show_preview" class="canvas-toolbar">
 				<div class="canvas-toolbar-left">
 					<span class="canvas-toolbar-eyebrow">{{ __("PREVIEW DATA") }}</span>
 				</div>
@@ -152,8 +153,15 @@ watch(fullscreen, (on) => {
 watch(show_preview, (on) => {
 	if (on) {
 		history.pushState({ ...history.state, pfb_preview: true }, "");
-	} else if (history.state?.pfb_preview) {
-		history.back();
+	} else {
+		// Reflect a document changed in preview mode back in the edit-mode picker
+		const name = $store.value.preview_doc_name.value;
+		if (name && doc_picker_ctrl.value?.get_value() !== name) {
+			doc_picker_ctrl.value?.set_value(name);
+		}
+		if (history.state?.pfb_preview) {
+			history.back();
+		}
 	}
 });
 
@@ -310,16 +318,24 @@ function init_doc_picker() {
 	doc_picker_ref.value.querySelector(".control-label")?.remove();
 	doc_picker_ref.value.querySelector(".form-group")?.style.setProperty("margin", "0");
 
-	// Auto-select the first available record so preview is ready immediately
-	frappe.db
-		.get_list(meta?.name, { limit: 1, fields: ["name"], order_by: "creation desc" })
-		.then((rows) => {
-			if (rows?.length) {
-				const first = rows[0].name;
-				doc_picker_ctrl.value?.set_value(first);
-				$store.value.load_preview_doc(first);
-			}
-		});
+	const select = (name) => {
+		doc_picker_ctrl.value?.set_value(name);
+		$store.value.load_preview_doc(name);
+	};
+	// Prefer the record chosen last time (persisted across refresh); otherwise
+	// auto-select the most recent record so the preview is ready immediately.
+	const saved = $store.value.persisted_preview_doc_name();
+	const auto_select = () =>
+		frappe.db
+			.get_list(meta?.name, { limit: 1, fields: ["name"], order_by: "creation desc" })
+			.then((rows) => rows?.length && select(rows[0].name));
+	if (saved) {
+		frappe.db
+			.get_value(meta?.name, saved, "name")
+			.then((r) => (r?.message?.name ? select(saved) : auto_select()));
+	} else {
+		auto_select();
+	}
 }
 
 // mounted

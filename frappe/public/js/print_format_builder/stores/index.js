@@ -114,13 +114,20 @@ export function getStore(print_format_name) {
 	function reset_changes() {
 		fetch();
 	}
+	// Persist the chosen preview record per print format so it survives a refresh
+	const preview_doc_ls_key = `pfb:preview_doc:${print_format_name}`;
+	function persisted_preview_doc_name() {
+		return localStorage.getItem(preview_doc_ls_key);
+	}
 	function load_preview_doc(name) {
 		if (!name) {
 			preview_doc.value = null;
 			preview_doc_name.value = null;
+			localStorage.removeItem(preview_doc_ls_key);
 			return;
 		}
 		preview_doc_name.value = name;
+		localStorage.setItem(preview_doc_ls_key, name);
 		frappe.db.get_doc(print_format.value.doc_type, name).then((doc) => {
 			preview_doc.value = doc;
 		});
@@ -192,6 +199,7 @@ export function getStore(print_format_name) {
 		preview_doc,
 		preview_doc_name,
 		load_preview_doc,
+		persisted_preview_doc_name,
 		fetch,
 		update,
 		save_changes,
