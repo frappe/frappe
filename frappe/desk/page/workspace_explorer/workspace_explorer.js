@@ -110,11 +110,12 @@ class WorkspaceExplorer {
 	}
 
 	open_workspace(name) {
-		// let the desk sidebar switch + remember the workspace when it's available; otherwise route
-		if (frappe.app && frappe.app.sidebar && frappe.app.sidebar.open_workspace) {
-			frappe.app.sidebar.open_workspace(name);
-		} else {
-			frappe.set_route("Workspaces", frappe.router.slug(name));
-		}
+		// Open the workspace's own desk page (e.g. /desk/gst-india) directly, rather than jumping to
+		// its first sidebar link or the legacy "Workspaces/<name>" route. Navigating to the /desk
+		// route lets the sidebar's route handler select + remember the workspace and resolve the app
+		// context on arrival.
+		let slug = frappe.router.slug(name);
+		let ws = frappe.workspaces[slug];
+		frappe.set_route(ws && !ws.public ? `/desk/private/${slug}` : `/desk/${slug}`);
 	}
 }

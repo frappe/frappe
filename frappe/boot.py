@@ -173,10 +173,68 @@ def load_conf_settings(bootinfo):
 			bootinfo[key] = frappe.conf.get(key)
 
 
+def get_app_rail_map():
+	"""Workspaces that companion apps pin into another app's workspace dock (the rail).
+
+	A companion app (e.g. India Compliance for ERPNext, India Payroll for HRMS) stays off the
+	apps screen and instead surfaces its workspaces inside a host app's rail via the
+	`add_app_to_rail` hook. Each entry names the host `app` and the `workspace` to pin, with an
+	optional `has_permission` path to gate it. Returns a map of host app name -> ordered list of
+	permitted workspace names."""
+	rail_map = {}
+	permission_cache = {}
+
+	for entry in frappe.get_hooks("add_app_to_rail") or []:
+		if not isinstance(entry, dict):
+			continue
+
+		host_app = entry.get("app")
+		workspace = entry.get("workspace")
+		if not host_app or not workspace:
+			continue
+
+		has_permission = entry.get("has_permission")
+		if has_permission:
+			if has_permission not in permission_cache:
+				try:
+					permission_cache[has_permission] = bool(frappe.get_attr(has_permission)())
+				except Exception:
+					frappe.log_error(f"Failed to call add_app_to_rail has_permission hook ({has_permission})")
+					permission_cache[has_permission] = False
+			if not permission_cache[has_permission]:
+				continue
+
+		rail_map.setdefault(host_app, []).append(workspace)
+
+	return rail_map
+
+
+def get_app_rail_host_map():
+	"""Map of companion app -> the host app it pins into via `add_app_to_rail`.
+
+	A companion app has no shell of its own; its workspaces live inside the host app's rail. This
+	map lets the desk resolve the app context (dock + header) of a companion app's workspaces to
+	the host app, so you stay "in" the host's rail while using the companion. When a companion pins
+	into more than one host, the first host wins."""
+	host_map = {}
+	for app_name in frappe.get_installed_apps():
+		for entry in frappe.get_hooks("add_app_to_rail", app_name=app_name) or []:
+			if isinstance(entry, dict) and entry.get("app") and entry.get("workspace"):
+				host_map[app_name] = entry["app"]
+				break
+	return host_map
+
+
 def load_desktop_data(bootinfo):
 	from frappe.desk.desktop import get_user_workspaces
 
 	allowed_pages = [d.name for d in bootinfo.workspaces.get("pages")]
+	# Companion apps pin their workspaces into a host app's dock (rail) via `add_app_to_rail`,
+	# instead of taking an apps-screen slot of their own. Resolved once, merged per host app below.
+	rail_map = get_app_rail_map()
+	# ...and their own workspaces resolve their app context (dock + header) to that host app, so a
+	# companion app appears to live inside the host's rail rather than flipping to a shell of its own.
+	bootinfo.app_rail_host = get_app_rail_host_map()
 	# The user's curated workspace selection (`User.workspaces`), ordered. Kept separate from
 	# `bootinfo.workspaces` (which holds every permitted workspace link) so the workspace selector
 	# can prefer it when set, without it affecting the full workspace listing.
@@ -237,6 +295,13 @@ def load_desktop_data(bootinfo):
 			)
 			if r[0] in allowed_pages
 		]
+
+		# Fold in workspaces that companion apps pinned to this app's rail (see get_app_rail_map).
+		# They are permission-filtered like the app's own workspaces and de-duplicated, so the dock
+		# lists them alongside the host app's without a companion app claiming an apps-screen icon.
+		for rail_workspace in rail_map.get(app_name, []):
+			if rail_workspace in allowed_pages and rail_workspace not in workspaces:
+				workspaces.append(rail_workspace)
 
 		bootinfo.app_data.append(
 			dict(

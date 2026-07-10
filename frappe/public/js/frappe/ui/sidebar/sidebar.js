@@ -58,7 +58,9 @@ frappe.ui.Sidebar = class Sidebar {
 				workspace && !workspace.standard
 					? null
 					: (workspace && workspace.app) || (sidebar && sidebar.app);
-			const app = app_name && frappe.boot.app_data.find((a) => a.app_name === app_name);
+			const app =
+				app_name &&
+				frappe.boot.app_data.find((a) => a.app_name === this.rail_host_app(app_name));
 			if (app) {
 				frappe.current_app = app;
 				this.header_subtitle = app.app_title;
@@ -77,7 +79,9 @@ frappe.ui.Sidebar = class Sidebar {
 		// doctype/report figure out the app. If it can't be resolved (meta not loaded yet), keep
 		// the current app context rather than clearing it.
 		const app_name = this.app_from_route(this.entity_from_route(route));
-		const app = app_name && frappe.boot.app_data.find((a) => a.app_name === app_name);
+		const app =
+			app_name &&
+			frappe.boot.app_data.find((a) => a.app_name === this.rail_host_app(app_name));
 		if (app) {
 			frappe.current_app = app;
 			this.header_subtitle = app.app_title;
@@ -92,6 +96,14 @@ frappe.ui.Sidebar = class Sidebar {
 		const meta = entity && frappe.get_meta(entity);
 		if (!meta?.module) return undefined;
 		return frappe.boot.module_app[frappe.scrub(meta.module)];
+	}
+
+	// Resolve a companion app to the host app it's pinned into (via the `add_app_to_rail` hook,
+	// surfaced as `frappe.boot.app_rail_host`). A companion app has no shell of its own -- its
+	// workspaces live inside the host app's rail -- so its app context (dock + header) is the host's.
+	// Non-companion apps (and unknown/null names) pass through unchanged.
+	rail_host_app(app_name) {
+		return (frappe.boot.app_rail_host && frappe.boot.app_rail_host[app_name]) || app_name;
 	}
 
 	setup_promotional_banners() {
@@ -382,7 +394,9 @@ frappe.ui.Sidebar = class Sidebar {
 			workspace && !workspace.standard
 				? null
 				: (workspace && workspace.app) || (sidebar && sidebar.app);
-		return app_name ? frappe.boot.app_data.find((a) => a.app_name === app_name) : null;
+		return app_name
+			? frappe.boot.app_data.find((a) => a.app_name === this.rail_host_app(app_name))
+			: null;
 	}
 
 	// The workspace dock is always on. Apps can no longer opt out; only page-level opt-outs
