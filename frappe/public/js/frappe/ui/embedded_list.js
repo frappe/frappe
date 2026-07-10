@@ -257,9 +257,8 @@ frappe.ui.EmbeddedList = class EmbeddedList {
 			const label = typeof col.text === "function" ? col.text(row) : raw;
 			const text = frappe.utils.escape_html(label ?? "");
 			if (col.url) {
-				return `<td${align}><a href="${col.url(
-					row
-				)}" onclick="event.stopPropagation();">${text}</a></td>`;
+				const href = frappe.utils.escape_html(col.url(row));
+				return `<td${align}><a href="${href}" onclick="event.stopPropagation();">${text}</a></td>`;
 			}
 			// Route-based link: the delegated handler navigates and stops
 			// propagation itself, so no inline onclick (which would prevent the
