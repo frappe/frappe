@@ -436,6 +436,7 @@ frappe.views.ListView = class ListView extends frappe.views.BaseList {
 			this.columns = this.build_columns_from_fields(fields_override);
 			this.columns = this.columns.slice(0, this.max_number_of_fields);
 			this.columns.splice(1, 0, { type: "Tag" });
+			this.ensure_column_fields_fetched();
 			return;
 		}
 
@@ -508,6 +509,23 @@ frappe.views.ListView = class ListView extends frappe.views.BaseList {
 				},
 			});
 		}
+		this.ensure_column_fields_fetched();
+	}
+
+	/** Ensure every displayed column's field is included in the server fetch set (`this.fields`).
+	 * Columns can come from a saved layout or the settings picker and may reference fields that
+	 * are not `in_list_view`; without this they render blank because no data is fetched. */
+	ensure_column_fields_fetched() {
+		if (!this.columns) return;
+		for (const col of this.columns) {
+			const fieldname = col.df?.fieldname;
+			if (!fieldname || ["Tag", "Status"].includes(col.type)) continue;
+			const present = (this.fields || []).some(
+				(f) => f[0] === fieldname && f[1] === this.doctype
+			);
+			if (!present) this._add_field(fieldname);
+		}
+		this.build_fields();
 	}
 
 	/** Build list columns directly from saved layout / settings field list (order preserved). */
