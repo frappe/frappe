@@ -1,12 +1,9 @@
 <script setup lang="ts">
 import { computed } from "vue";
 import { Avatar, dayjs } from "frappe-ui";
-import type { NotificationLog } from "./types";
+import type { NotificationItemProps, NotificationLog } from "./types";
 
-const props = defineProps<{
-	notification: NotificationLog;
-	class?: string;
-}>();
+const props = defineProps<NotificationItemProps>();
 
 const emit = defineEmits<{
 	click: [n: NotificationLog];

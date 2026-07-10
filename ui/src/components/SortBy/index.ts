@@ -5,4 +5,4 @@
 export { default as SortBy } from "./SortBy.vue";
 export { parseOrderBy, serializeOrderBy } from "./orderBy";
 export { getSortOptions } from "./getSortOptions";
-export type { Sort, SortOption } from "./types";
+export type { Sort, SortByProps, SortOption } from "./types";

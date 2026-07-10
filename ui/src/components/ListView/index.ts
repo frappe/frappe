@@ -8,3 +8,4 @@ export { useListView } from "./useListView";
 export type { UseListView, UseListViewOptions } from "./useListView";
 export { useListData } from "./useListData";
 export type { UseListData } from "./useListData";
+export type { ListViewShellProps, ListViewShellSlots } from "./types";

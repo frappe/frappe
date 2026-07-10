@@ -59,8 +59,10 @@
 import { computed } from "vue";
 import { useDoctypeMeta } from "../../composables/useDoctypeMeta";
 import type { RawMetaField } from "../FormLayout/types";
+import type { ListViewShellProps, ListViewShellSlots } from "./types";
 
-const props = defineProps<{ doctype: string }>();
+const props = defineProps<ListViewShellProps>();
+defineSlots<ListViewShellSlots>();
 
 const { meta, loading, error } = useDoctypeMeta(props.doctype);
 

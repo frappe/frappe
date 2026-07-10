@@ -103,6 +103,12 @@ export interface Tab {
 
 export type FormLayoutSchema = Tab[];
 
+/** Props for `<FormLayout>`. The rendered document is a separate `v-model:doc`. */
+export interface FormLayoutProps {
+  /** Tabs → sections → columns → fields describing the form to render. */
+  layout: FormLayoutSchema;
+}
+
 /** Resolves a fieldtype to its component (falls back to the text component). */
 export const ResolveFieldKey: InjectionKey<(fieldtype: string) => Component> =
   Symbol("FormLayoutResolveField");

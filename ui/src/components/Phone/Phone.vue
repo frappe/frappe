@@ -131,7 +131,7 @@
 import { Combobox, ItemListRow } from "frappe-ui";
 import { inputFontSizeClasses, useInputLabeling } from "frappe-ui/experimental";
 import { computed, nextTick, onMounted, reactive, ref, useAttrs, useSlots, watch } from "vue";
-import type { Country, PhoneInputProps, PhoneInputSlots } from "./types";
+import type { Country, PhoneProps, PhoneSlots } from "./types";
 import {
 	countries,
 	getCountryFromCode,
@@ -145,14 +145,14 @@ defineOptions({
 	inheritAttrs: false,
 });
 
-const props = withDefaults(defineProps<PhoneInputProps>(), {
+const props = withDefaults(defineProps<PhoneProps>(), {
 	size: "sm",
 	variant: "subtle",
 });
 
 const model = defineModel<string>({ default: "" });
 
-defineSlots<PhoneInputSlots>();
+defineSlots<PhoneSlots>();
 
 const attrs = useAttrs();
 const slots = useSlots();

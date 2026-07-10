@@ -13,3 +13,4 @@ export {
   quickOperator,
   applyQuick,
 } from "./quickFilters";
+export type { QuickFilterProps } from "./types";

@@ -27,4 +27,7 @@ export type {
   UploadItem,
   UploadResult,
   ProgressMode,
+  FileUploadDialogProps,
+  AttachmentsListProps,
+  UploadTrayProps,
 } from "./types";

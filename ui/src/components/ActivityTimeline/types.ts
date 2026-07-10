@@ -160,3 +160,38 @@ export type CustomActivity = Omit<BaseActivity<string, unknown>, "key"> & {
   /** Omit for static lists; reorderable rows need a key for stable v-for/scroll. */
   key?: string;
 };
+
+// —— Per-activity-row components (rendered by ActivityTimeline via its type slots) ——
+
+export interface EmailItemProps {
+  email: EmailActivity;
+}
+export interface EmailItemSlots {
+  /** Replaces the row header (sender, subject, timestamp). */
+  header?: (props: { email: EmailActivity }) => any;
+  /** Trailing actions in the header. */
+  actions?: () => any;
+  /** Replaces the row footer. */
+  footer?: (props: { email: EmailActivity }) => any;
+}
+
+export interface CommentItemProps {
+  comment: CommentActivity;
+  editable?: boolean;
+}
+export interface CommentItemSlots {
+  /** Replaces the row header (author, timestamp). */
+  header?: (props: { comment: CommentActivity }) => any;
+  /** Trailing actions in the header. */
+  actions?: () => any;
+  /** Replaces the row footer. */
+  footer?: (props: { comment: CommentActivity }) => any;
+}
+
+export interface LogItemProps {
+  activity: LogActivity | AttachmentLogActivity;
+}
+
+export interface VersionItemProps {
+  activity: VersionActivity;
+}
