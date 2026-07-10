@@ -5,3 +5,4 @@ flow.patches.rename_ai_to_flow
 
 [post_model_sync]
 # Patches added in this section will be executed after doctypes are migrated
+flow.patches.remove_frontend_tooling

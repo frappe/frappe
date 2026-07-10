@@ -233,3 +233,56 @@ class TestFlowAgentRun(IntegrationTestCase):
 
 		failed = frappe.get_last_doc("Flow Run", filters={"status": "Failed"})
 		self.assertIn("boom", failed.error)
+
+
+class TestFlowAgentModelPermission(IntegrationTestCase):
+	def setUp(self):
+		sync_builtin_tools()
+		self.allowed = frappe.get_doc(_model(title="Allowed Model")).insert()
+		self.restricted = frappe.get_doc(_model(title="Restricted Model")).insert()
+		self.agent_doc = frappe.get_doc(_agent(self.restricted.name)).insert()
+		self.user = frappe.get_doc(
+			{
+				"doctype": "User",
+				"email": "model-perm@example.com",
+				"first_name": "Model Perm",
+				"send_welcome_email": 0,
+			}
+		).insert(ignore_permissions=True)
+
+	def tearDown(self):
+		frappe.set_user("Administrator")
+		frappe.db.rollback()
+
+	def _restrict_to(self, model_name: str):
+		frappe.get_doc(
+			{
+				"doctype": "User Permission",
+				"user": self.user.name,
+				"allow": "Flow Model",
+				"for_value": model_name,
+			}
+		).insert(ignore_permissions=True)
+		frappe.clear_cache(user=self.user.name)
+
+	def test_user_restricted_to_other_model_is_blocked(self):
+		self._restrict_to(self.allowed.name)
+		frappe.set_user(self.user.name)
+
+		with self.assertRaises(frappe.PermissionError):
+			self.agent_doc.assemble()
+
+	def test_user_permitted_for_model_can_assemble(self):
+		self._restrict_to(self.restricted.name)
+		frappe.set_user(self.user.name)
+
+		self.assertIsInstance(self.agent_doc.assemble(), Agent)
+
+	def test_model_override_is_permission_checked(self):
+		self._restrict_to(self.allowed.name)
+		frappe.set_user(self.user.name)
+
+		# Overriding to a permitted model works; the agent's own restricted model stays blocked.
+		self.assertIsInstance(self.agent_doc.assemble(model=self.allowed.name), Agent)
+		with self.assertRaises(frappe.PermissionError):
+			self.agent_doc.assemble()

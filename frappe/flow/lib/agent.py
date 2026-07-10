@@ -29,9 +29,6 @@ class Question:
 	multi-select. When `allow_other` is true the picker always offers an "Other"
 	choice that opens a textbox for the user to reiterate or redirect.
 	`key` routes the answer back (e.g. the tool_call_id it belongs to).
-
-	When `client_tool` is true the pause is resolved by the browser executing the named
-	client tool, not by a human — the panel runs it and resumes with the result.
 	"""
 
 	prompt: str
@@ -39,7 +36,6 @@ class Question:
 	multi_select: bool = False
 	allow_other: bool = True
 	key: str | None = None
-	client_tool: bool = False
 
 
 @dataclass
@@ -187,9 +183,7 @@ class Agent:
 		for call in pending:
 			answer = answers.get(call.id)
 			tool = self._tools_by_name.get(call.name)
-			if tool is not None and tool.client_tool:
-				content = _serialize_tool_result(answer)
-			elif tool is not None and tool.requires_confirmation:
+			if tool is not None and tool.requires_confirmation:
 				content = self._resolve_confirmation(call, answer)
 			else:
 				content = _serialize_tool_result(answer)
@@ -367,14 +361,6 @@ class Agent:
 		tool = self._tools_by_name.get(call.name)
 		if tool is None:
 			return json.dumps({"error": f"Unknown tool: {call.name!r}"})
-		if tool.client_tool:
-			if self.auto_approve:
-				return json.dumps({"error": f"{call.name} needs a browser and can't run unattended."})
-			if tool.requires_confirmation:
-				question = _confirmation_question(call, tool)
-				question.client_tool = True
-				return question
-			return Question(prompt=_("Running {0} in the browser…").format(call.name), client_tool=True)
 		if tool.requires_confirmation and not self.auto_approve:
 			return _confirmation_question(call, tool)
 		return self._run_tool(call)
