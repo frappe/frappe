@@ -261,6 +261,13 @@
 	accent-color: var(--primary);
 }
 
+/* bare toggle inside an inspector row: neutralise label.switch-control's
+   full-width/padding (it's built for full-row settings pages) */
+.pfb-insp-row .switch-control {
+	width: auto;
+	padding: 0;
+}
+
 .pfb-insp-check {
 	display: flex;
 	align-items: center;
