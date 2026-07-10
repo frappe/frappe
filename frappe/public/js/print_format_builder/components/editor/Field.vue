@@ -96,111 +96,119 @@
 					<div v-if="df.label && df.show_label !== 'hide'" class="field-preview-label">
 						{{ df.label }}
 					</div>
-					<table
-						class="preview-table"
-						:class="{
-							[`preview-table--${df.table_style || 'lined'}`]: true,
-							'preview-table--borderless': df.table_bordered === false,
-							'preview-table--plain-header': df.table_header === 'plain',
-						}"
+					<!-- radius lives on a wrapper: border-radius is a no-op on a
+					     border-collapse:collapse table, same as the PDF markup -->
+					<div
 						:style="
 							df.table_radius != null
 								? { borderRadius: df.table_radius + 'px', overflow: 'hidden' }
 								: {}
 						"
 					>
-						<thead v-if="df.table_header !== 'none'">
-							<tr>
-								<th
-									v-for="col in df.table_columns"
-									:key="col.fieldname"
-									:class="numeric_align_class(col)"
-									:style="{
-										...(col.width ? { width: col.width + '%' } : {}),
-										...(df.table_cell_padding != null
-											? { padding: df.table_cell_padding + 'px' }
-											: {}),
-									}"
+						<table
+							class="preview-table"
+							:class="{
+								[`preview-table--${df.table_style || 'lined'}`]: true,
+								'preview-table--borderless': df.table_bordered === false,
+								'preview-table--plain-header': df.table_header === 'plain',
+							}"
+						>
+							<thead v-if="df.table_header !== 'none'">
+								<tr>
+									<th
+										v-for="col in df.table_columns"
+										:key="col.fieldname"
+										:class="numeric_align_class(col)"
+										:style="{
+											...(col.width ? { width: col.width + '%' } : {}),
+											...(df.table_cell_padding != null
+												? { padding: df.table_cell_padding + 'px' }
+												: {}),
+										}"
+									>
+										{{ col.label || col.fieldname }}
+									</th>
+								</tr>
+							</thead>
+							<tbody>
+								<tr
+									v-for="(row, i) in (preview_doc[df.fieldname] || []).slice(
+										0,
+										4
+									)"
+									:key="i"
+									:class="i % 2 === 0 ? 'odd' : 'even'"
 								>
-									{{ col.label || col.fieldname }}
-								</th>
-							</tr>
-						</thead>
-						<tbody>
-							<tr
-								v-for="(row, i) in (preview_doc[df.fieldname] || []).slice(0, 4)"
-								:key="i"
-								:class="i % 2 === 0 ? 'odd' : 'even'"
-							>
-								<td
-									v-for="col in df.table_columns"
-									:key="col.fieldname"
-									:class="numeric_align_class(col)"
-									:style="
-										df.table_cell_padding != null
-											? { padding: df.table_cell_padding + 'px' }
-											: {}
-									"
-								>
-									<!-- Merged cell: image (if any) floats left, text lines stack -->
-									<div v-if="has_merge(col)" class="pf-cell-merged">
-										<template v-if="image_merge(col)">
-											<img
-												v-if="cell_image(col, row)"
-												:src="cell_image(col, row)"
-												class="pf-cell-thumb-img"
-												:style="thumb_box(col)"
-												:alt="col.label || col.fieldname"
-											/>
-											<span
-												v-else
-												class="pf-cell-thumb"
-												:style="thumb(col, row).style"
-												>{{ thumb(col, row).abbr }}</span
-											>
-										</template>
-										<div class="pf-cell-lines">
-											<div
-												v-for="(mf, mi) in text_merges(col)"
-												:key="mi"
-												class="pf-merge-line"
-												:class="`pf-merge--${mf.style || 'primary'}`"
-											>
-												{{ format_merged(row, mf.fieldname) }}
+									<td
+										v-for="col in df.table_columns"
+										:key="col.fieldname"
+										:class="numeric_align_class(col)"
+										:style="
+											df.table_cell_padding != null
+												? { padding: df.table_cell_padding + 'px' }
+												: {}
+										"
+									>
+										<!-- Merged cell: image (if any) floats left, text lines stack -->
+										<div v-if="has_merge(col)" class="pf-cell-merged">
+											<template v-if="image_merge(col)">
+												<img
+													v-if="cell_image(col, row)"
+													:src="cell_image(col, row)"
+													class="pf-cell-thumb-img"
+													:style="thumb_box(col)"
+													:alt="col.label || col.fieldname"
+												/>
+												<span
+													v-else
+													class="pf-cell-thumb"
+													:style="thumb(col, row).style"
+													>{{ thumb(col, row).abbr }}</span
+												>
+											</template>
+											<div class="pf-cell-lines">
+												<div
+													v-for="(mf, mi) in text_merges(col)"
+													:key="mi"
+													class="pf-merge-line"
+													:class="`pf-merge--${mf.style || 'primary'}`"
+												>
+													{{ format_merged(row, mf.fieldname) }}
+												</div>
 											</div>
 										</div>
-									</div>
-									<!-- Single (default) -->
-									<template v-else>
-										<img
-											v-if="
-												is_image_field(col, row[col.fieldname]) &&
-												row[col.fieldname]
-											"
-											:src="row[col.fieldname]"
-											class="preview-table-img"
-											:alt="col.label || col.fieldname"
-										/>
-										<div
-											v-else-if="is_html_content_field(col)"
-											class="preview-table-html"
-											v-html="format_cell(row, col)"
-										></div>
-										<span v-else>{{ format_cell(row, col) }}</span>
-									</template>
-								</td>
-							</tr>
-							<tr v-if="!preview_doc[df.fieldname]?.length">
-								<td
-									:colspan="df.table_columns?.length || 1"
-									class="text-muted"
-									style="text-align: center; font-size: 11px; padding: 6px"
-								>
-									{{ __("No rows") }}
-								</td>
-							</tr>
-						</tbody>
-					</table>
+										<!-- Single (default) -->
+										<template v-else>
+											<img
+												v-if="
+													is_image_field(col, row[col.fieldname]) &&
+													row[col.fieldname]
+												"
+												:src="row[col.fieldname]"
+												class="preview-table-img"
+												:alt="col.label || col.fieldname"
+											/>
+											<div
+												v-else-if="is_html_content_field(col)"
+												class="preview-table-html"
+												v-html="format_cell(row, col)"
+											></div>
+											<span v-else>{{ format_cell(row, col) }}</span>
+										</template>
+									</td>
+								</tr>
+								<tr v-if="!preview_doc[df.fieldname]?.length">
+									<td
+										:colspan="df.table_columns?.length || 1"
+										class="text-muted"
+										style="text-align: center; font-size: 11px; padding: 6px"
+									>
+										{{ __("No rows") }}
+									</td>
+								</tr>
+							</tbody>
+						</table>
+					</div>
 				</div>
 				<!-- Repeater field -->
 				<div v-else-if="df.fieldtype == 'Repeater'" class="field-preview-repeater">
@@ -1150,13 +1158,18 @@ watch(
 
 /* ── Default: bordered + styled header (matches PDF) ─── */
 .preview-table th {
-	background-color: var(--gray-100);
 	color: var(--text-color);
 	font-weight: var(--weight-semibold);
 	font-size: var(--text-tiny);
 	padding: 0.45rem 0.6rem;
-	border: 1px solid var(--gray-200);
+	border: none;
 	text-align: left;
+}
+
+/* header background lives on the row, not each cell, so the wrapper's
+   border-radius clips one continuous bar — same as the PDF css */
+.preview-table thead tr {
+	background-color: var(--gray-100);
 }
 
 .preview-table td {
@@ -1198,7 +1211,7 @@ watch(
 	border-bottom: 1px solid var(--gray-200);
 }
 
-.preview-table--plain th {
+.preview-table--plain thead tr {
 	background-color: transparent;
 }
 
@@ -1219,9 +1232,13 @@ watch(
 	border-bottom: 1px solid var(--gray-200);
 }
 
-/* ── Plain header variant ───────────────────────────── */
-.preview-table--plain-header th {
+/* ── Plain header variant: no fill, single rule under the header row ── */
+.preview-table--plain-header thead tr {
 	background-color: transparent;
+}
+
+.preview-table--plain-header th {
+	border-bottom: 1px solid var(--gray-200);
 }
 
 .preview-table-img {
