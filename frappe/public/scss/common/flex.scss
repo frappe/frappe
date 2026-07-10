@@ -1,8 +1,10 @@
 /* TODO: old file — use common/utilities.scss instead. When migrating:
-   .flex-column becomes "flex flex-col", .align-center becomes
-   "items-center", .justify-flex-end becomes "justify-end". Careful:
-   .flex-column and .flex-nowrap also set display:flex, the new classes
-   don't — so add "flex" too. Delete this file once nothing uses it. */
+   .flex-column becomes "flex flex-col", .flex-nowrap becomes
+   "flex flex-nowrap", .align-center becomes "items-center",
+   .justify-flex-end becomes "justify-end". .flex-wrap keeps its name.
+   Careful: .flex-column and .flex-nowrap here also set display:flex, the
+   new classes don't — that's why you add "flex" too. Delete this file
+   once nothing uses it. */
 
 .flex {
 	display: flex;

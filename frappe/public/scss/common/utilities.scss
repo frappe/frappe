@@ -42,6 +42,17 @@
 	flex-direction: column;
 }
 
+/* Note: old CSS (Bootstrap and common/flex.scss) also defines these two
+   names, with the same effect — so nothing changes visually today. These
+   are here so markup keeps working after the old files are deleted. */
+.flex-wrap {
+	flex-wrap: wrap;
+}
+
+.flex-nowrap {
+	flex-wrap: nowrap;
+}
+
 /* ---- alignment ---- */
 .items-start {
 	align-items: flex-start;
