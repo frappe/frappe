@@ -50,6 +50,10 @@ class TestDocument(IntegrationTestCase):
 		self.assertEqual(d.doctype, "Website Settings")
 		self.assertTrue(d.disable_signup in (0, 1))
 
+		with patch.object(frappe.db, "get_singles_dict", return_value=frappe._dict({"disable_signup": 0})):
+			d = frappe.get_doc("Website Settings")
+			self.assertEqual(d.name, "Website Settings")
+
 	def test_insert(self):
 		d = frappe.get_doc(
 			{
