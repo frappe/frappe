@@ -32,6 +32,7 @@ export {
 } from "./formatDefaults";
 export type {
   FormLayoutSchema,
+  FormLayoutProps,
   Tab,
   Section,
   Column,
