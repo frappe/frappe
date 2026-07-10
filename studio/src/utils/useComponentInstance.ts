@@ -16,8 +16,8 @@ export default function useComponentInstance(blockGetter: () => Block | undefine
 		() => blockGetter()?.componentName,
 		async () => {
 			const block = blockGetter()
+			componentInstance.value = {}
 			if (!block?.componentName || block.isStudioComponent) {
-				componentInstance.value = {}
 				return
 			}
 			if (block?.isCustomVueComponent) {
