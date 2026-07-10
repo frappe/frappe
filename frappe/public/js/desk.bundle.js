@@ -10,6 +10,8 @@ import "./frappe/ui/messages.js";
 
 import "./frappe/ui/components/button.js";
 import "./frappe/ui/components/badge.js";
+import "./frappe/ui/components/skeleton.js";
+import "./frappe/ui/components/divider.js";
 
 import "./frappe/ui/background_tasks/background_tasks.js";
 import "./frappe/ui/keyboard.js";
