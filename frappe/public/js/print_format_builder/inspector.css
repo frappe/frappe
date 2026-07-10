@@ -61,7 +61,8 @@
 	font-size: var(--text-sm);
 	color: var(--text-muted);
 }
-.pfb-insp-input {
+.pfb-insp-input,
+.pfb-insp-select {
 	width: 100%;
 	padding: 6px 8px;
 	font-size: var(--text-sm);
@@ -70,22 +71,15 @@
 	background: var(--fg-color);
 	color: var(--text-color);
 	outline: none;
+}
+.pfb-insp-input {
 	box-sizing: border-box;
 }
-.pfb-insp-input:focus {
-	border-color: var(--gray-500);
-}
 .pfb-insp-select {
-	width: 100%;
 	padding: 5px 8px;
-	font-size: var(--text-sm);
-	border: 1px solid var(--border-color);
-	border-radius: var(--radius);
-	background: var(--fg-color);
-	color: var(--text-color);
-	outline: none;
 	cursor: pointer;
 }
+.pfb-insp-input:focus,
 .pfb-insp-select:focus {
 	border-color: var(--gray-500);
 }

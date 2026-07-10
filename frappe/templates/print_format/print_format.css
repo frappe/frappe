@@ -210,12 +210,13 @@ body {
 	width: 100%;
 }
 
+/* !important needed: bootstrap print styles set table-bordered cell borders with !important */
 .child-table .table th {
 	color: #374151;
 	font-weight: 600;
 	font-size: 0.85em;
 	padding: 0.45rem 0.6rem;
-	border: none;
+	border: none !important;
 }
 
 /* header background lives on the row, not each cell, so a wrapper's border-radius
