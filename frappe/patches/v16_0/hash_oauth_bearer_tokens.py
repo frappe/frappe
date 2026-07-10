@@ -3,28 +3,47 @@ from frappe.model.naming import make_autoname
 from frappe.utils import sha256_hash
 
 
+def is_sha256_hash(value: str) -> bool:
+	return len(value) == 64 and all(character in "0123456789abcdef" for character in value.lower())
+
+
+def hash_token(token: str | None) -> str | None:
+	if not token:
+		return None
+	if is_sha256_hash(token):
+		return token
+	return sha256_hash(token)
+
+
 def execute():
 	token_table = frappe.qb.DocType("OAuth Bearer Token")
 	tokens = frappe.get_all(
 		"OAuth Bearer Token",
 		fields=["name", "access_token", "refresh_token"],
+		order_by="creation asc",
 	)
+	seen_refresh_tokens = set()
 
 	for token in tokens:
-		new_name = make_autoname("hash", "OAuth Bearer Token")
-		while frappe.db.exists("OAuth Bearer Token", new_name):
+		refresh_token = hash_token(token.refresh_token)
+		if refresh_token and refresh_token in seen_refresh_tokens:
+			frappe.db.delete("OAuth Bearer Token", {"name": token.name})
+			continue
+		if refresh_token:
+			seen_refresh_tokens.add(refresh_token)
+
+		new_name = token.name
+		if token.name == token.access_token or sha256_hash(token.name) == token.access_token:
 			new_name = make_autoname("hash", "OAuth Bearer Token")
+			while frappe.db.exists("OAuth Bearer Token", new_name):
+				new_name = make_autoname("hash", "OAuth Bearer Token")
 
 		query = (
 			frappe.qb.update(token_table)
 			.set(token_table.name, new_name)
-			.set(
-				token_table.access_token,
-				sha256_hash(token.access_token) if token.access_token else token.access_token,
-			)
+			.set(token_table.access_token, hash_token(token.access_token))
+			.set(token_table.refresh_token, refresh_token)
 			.where(token_table.name == token.name)
 		)
-		if token.refresh_token:
-			query = query.set(token_table.refresh_token, sha256_hash(token.refresh_token))
 
 		query.run()

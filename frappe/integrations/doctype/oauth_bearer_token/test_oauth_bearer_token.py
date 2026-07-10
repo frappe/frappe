@@ -51,6 +51,51 @@ class TestOAuthBearerToken(IntegrationTestCase):
 		self.assertEqual(stored_token.refresh_token, sha256_hash(refresh_token))
 		self.assertFalse(frappe.db.exists("OAuth Bearer Token", access_token))
 
+		name_after_first_run = stored_token.name
+		hash_existing_tokens()
+		stored_token.reload()
+
+		self.assertEqual(stored_token.name, name_after_first_run)
+		self.assertEqual(stored_token.access_token, sha256_hash(access_token))
+		self.assertEqual(stored_token.refresh_token, sha256_hash(refresh_token))
+
+	def test_patch_removes_duplicate_refresh_tokens(self):
+		refresh_token = frappe.generate_hash()
+		first_token = make_bearer_token(frappe.generate_hash(), refresh_token)
+		duplicate_token = make_bearer_token(frappe.generate_hash(), frappe.generate_hash())
+
+		frappe.db.set_value(
+			"OAuth Bearer Token", duplicate_token.name, "refresh_token", first_token.refresh_token
+		)
+		hash_existing_tokens()
+
+		remaining_tokens = frappe.get_all(
+			"OAuth Bearer Token",
+			filters={"name": ["in", [first_token.name, duplicate_token.name]]},
+			pluck="name",
+		)
+		self.assertEqual(len(remaining_tokens), 1)
+
+	def test_patch_normalizes_missing_refresh_tokens_to_null(self):
+		null_token = make_bearer_token(frappe.generate_hash(), frappe.generate_hash())
+		empty_token = make_bearer_token(frappe.generate_hash(), frappe.generate_hash())
+		token_table = frappe.qb.DocType("OAuth Bearer Token")
+		(
+			frappe.qb.update(token_table)
+			.set(token_table.refresh_token, None)
+			.where(token_table.name == null_token.name)
+		).run()
+		(
+			frappe.qb.update(token_table)
+			.set(token_table.refresh_token, "")
+			.where(token_table.name == empty_token.name)
+		).run()
+
+		hash_existing_tokens()
+
+		self.assertIsNone(frappe.db.get_value("OAuth Bearer Token", null_token.name, "refresh_token"))
+		self.assertIsNone(frappe.db.get_value("OAuth Bearer Token", empty_token.name, "refresh_token"))
+
 
 def make_bearer_token(access_token: str, refresh_token: str):
 	return frappe.get_doc(

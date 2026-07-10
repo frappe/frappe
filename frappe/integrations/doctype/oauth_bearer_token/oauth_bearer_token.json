@@ -53,7 +53,7 @@
    "fieldtype": "Data",
    "label": "Refresh Token",
    "read_only": 1,
-   "search_index": 1
+   "unique": 1
   },
   {
    "fieldname": "expiration_time",
