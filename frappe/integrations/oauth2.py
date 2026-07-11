@@ -349,7 +349,7 @@ def _get_authorization_server_metadata():
 
 
 @frappe.whitelist(allow_guest=True, methods=["POST"])
-@rate_limit(limit=1, seconds=10 * 60)
+@rate_limit(limit=5, seconds=10 * 60)
 def register_client():
 	"""
 	Registers an OAuth client.

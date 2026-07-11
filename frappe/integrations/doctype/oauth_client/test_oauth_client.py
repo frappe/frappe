@@ -90,8 +90,9 @@ class TestOAuthClient(IntegrationTestCase):
 		frappe.cache.delete(rate_limit_key)
 
 		try:
-			response = register_client()
-			self.assertEqual(response.status_code, 201)
+			for _ in range(5):
+				response = register_client()
+				self.assertEqual(response.status_code, 201)
 			self.assertRaises(frappe.RateLimitExceededError, register_client)
 		finally:
 			frappe.cache.delete(rate_limit_key)
