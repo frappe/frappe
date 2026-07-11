@@ -566,7 +566,7 @@ class TestPrintFormatGenerator(IntegrationTestCase):
 		todo = self._make_todo()
 		html = get_html("ToDo", todo.name, pf.name)
 		self.assertIn(
-			".field .label,\n.field.left-right .label,\n.field.field-inline .label {\n\tcolor: #c0392b;\n}",
+			".print-format-doc .field .label,\n.print-format-doc .field.left-right .label,\n.print-format-doc .field.field-inline .label {\n\tcolor: #c0392b;\n}",
 			html,
 		)
 
@@ -578,7 +578,7 @@ class TestPrintFormatGenerator(IntegrationTestCase):
 		todo = self._make_todo()
 		html = get_html("ToDo", todo.name, pf.name)
 		self.assertIn(
-			".field .value,\n.field.left-right .value,\n.field.field-inline .value {\n\tcolor: #1a5fb4;\n}",
+			".print-format-doc .field .value,\n.print-format-doc .field.left-right .value,\n.print-format-doc .field.field-inline .value {\n\tcolor: #1a5fb4;\n}",
 			html,
 		)
 
@@ -589,8 +589,8 @@ class TestPrintFormatGenerator(IntegrationTestCase):
 		pf = self._make_print_format()
 		todo = self._make_todo()
 		html = get_html("ToDo", todo.name, pf.name)
-		self.assertNotIn(".field .label,\n.field.left-right .label", html)
-		self.assertNotIn(".field .value,\n.field.left-right .value", html)
+		self.assertNotIn(".field.left-right .label {\n\tcolor:", html)
+		self.assertNotIn(".field.left-right .value {\n\tcolor:", html)
 
 	def test_non_hex_color_rejected(self):
 		"""Colors that are not #RRGGBB hex codes are rejected on save."""
@@ -888,6 +888,6 @@ class TestPrintFormatGenerator(IntegrationTestCase):
 		pf = self._make_print_format()
 		todo = self._make_todo()
 		html = get_html("ToDo", todo.name, pf.name)
-		body = html.split("<body>", 1)[1]
+		body = html.split("<body", 1)[1]
 		self.assertNotIn("field-justify-", body)
 		self.assertNotIn("field left-right", body)
