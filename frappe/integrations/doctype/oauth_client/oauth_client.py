@@ -47,7 +47,7 @@ class OAuthClient(Document):
 	def validate(self):
 		self.client_id = self.name
 		if not self.client_secret:
-			self.client_secret = frappe.generate_hash(length=10)
+			self.client_secret = frappe.generate_hash()
 		self.validate_grant_and_response()
 		self.add_default_role()
 

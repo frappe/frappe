@@ -5,4 +5,9 @@ from frappe.tests import IntegrationTestCase
 
 
 class TestOAuthClient(IntegrationTestCase):
-	pass
+	def test_generates_strong_client_secret(self):
+		client = frappe.new_doc("OAuth Client")
+
+		client.validate()
+
+		self.assertGreaterEqual(len(client.client_secret), 56)
