@@ -66,7 +66,10 @@ def report_error(status_code):
 		frappe.local.response = frappe._dict(
 			{key: frappe.local.response[key] for key in error_keys if key in frappe.local.response}
 		)
-		response = build_response("json")
+		try:
+			response = build_response("json")
+		except TypeError:
+			response = Response(orjson.dumps({"exc_type": exc_type.__name__}), mimetype="application/json")
 
 	response.status_code = status_code
 
