@@ -77,6 +77,12 @@ def _rekick():
 	kick_drainer()
 
 
+def drain_due():
+	"""Scheduler safety net: kick the drainer if due rows are waiting with no save to ride on."""
+	if _has_due_pending():
+		_rekick()
+
+
 def purge_queue():
 	"""Sweep terminal-but-retained rows (Failed/Skipped) older than retention."""
 	retention_days = frappe.conf.get("automation_queue_retention_days") or 7
