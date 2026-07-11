@@ -24,7 +24,8 @@ frappe.provide("frappe.ui");
  * data-toggle="dropdown". Follows the menu-button pattern: ArrowDown/Enter/
  * Space open it (keyboard opens skip the animation and focus the first row),
  * arrows navigate, ArrowRight/Left walk submenus, typing jumps to a matching
- * row, Escape returns to the trigger.
+ * row, holding Alt underlines each row's letter (Alt+letter activates it),
+ * and Escape returns to the trigger.
  * @example
  * new frappe.ui.Dropdown({
  *     trigger: this.$el.find(".menu-btn"),

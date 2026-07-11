@@ -127,7 +127,30 @@ function shortcut_keys(shortcut) {
 		});
 }
 
-function build_item(item, { reserve_icon_space, component }) {
+// Underline the first free a-z letter of the label so Alt+letter can activate
+// the row (skipping letters earlier rows in the same panel already took).
+// Built from text nodes + a span, never innerHTML, so labels still can't
+// smuggle markup. Returns the chosen letter, or null when none is free.
+function assign_mnemonic(label_el, text, taken) {
+	for (let i = 0; i < text.length; i++) {
+		const letter = text[i].toLowerCase();
+		if (letter < "a" || letter > "z" || taken.has(letter)) continue;
+		taken.add(letter);
+		const mark = document.createElement("span");
+		mark.className = "es-menu__mnemonic";
+		mark.textContent = text[i];
+		label_el.append(
+			document.createTextNode(text.slice(0, i)),
+			mark,
+			document.createTextNode(text.slice(i + 1))
+		);
+		return letter;
+	}
+	label_el.textContent = text;
+	return null;
+}
+
+function build_item(item, { reserve_icon_space, component, taken }) {
 	// a disabled row is always a real disabled <button>, never a link — a
 	// disabled <a> keeps a working href that a screen reader's link list or
 	// a script click would still follow, right past the disabled state
@@ -160,7 +183,14 @@ function build_item(item, { reserve_icon_space, component }) {
 
 	const label = document.createElement("span");
 	label.className = "es-menu__label";
-	label.textContent = item.label || "";
+	const label_text = item.label || "";
+	// disabled rows can't be activated, so they get no mnemonic
+	let mnemonic = null;
+	if (taken && label_text && !item.disabled) {
+		mnemonic = assign_mnemonic(label, label_text, taken);
+	} else {
+		label.textContent = label_text;
+	}
 	if (item.description) {
 		const description = document.createElement("span");
 		description.className = "es-menu__description";
@@ -190,7 +220,7 @@ function build_item(item, { reserve_icon_space, component }) {
 		);
 	}
 
-	return el;
+	return { el, mnemonic };
 }
 
 function build_panel(groups, { empty_text, component }) {
@@ -199,7 +229,8 @@ function build_panel(groups, { empty_text, component }) {
 	panel.setAttribute("role", "menu");
 	panel.setAttribute("tabindex", "-1");
 
-	const rows = []; // [{ el, item }] in visual order
+	const rows = []; // [{ el, item, mnemonic }] in visual order
+	const taken = new Set(); // Alt-mnemonic letters, unique within a panel
 
 	if (!groups.length) {
 		const empty = document.createElement("div");
@@ -228,8 +259,12 @@ function build_panel(groups, { empty_text, component }) {
 		const reserve_icon_space = group.options.some((item) => item.icon);
 
 		for (const item of group.options) {
-			const el = build_item(item, { reserve_icon_space, component });
-			rows.push({ el, item });
+			const { el, mnemonic } = build_item(item, {
+				reserve_icon_space,
+				component,
+				taken,
+			});
+			rows.push({ el, item, mnemonic });
 			group_el.appendChild(el);
 		}
 		panel.appendChild(group_el);
@@ -314,6 +349,7 @@ export class MenuTree {
 		this.submenu_timer = null;
 		this.typeahead_buffer = "";
 		this.typeahead_timer = null;
+		this.mnemonics_visible = false; // Alt held → underlines showing
 	}
 
 	open({ side = "bottom", align = "start", offset = 4, motion = "animated", focus = null }) {
@@ -359,6 +395,20 @@ export class MenuTree {
 			window.addEventListener("touchmove", this.onwheel, { passive: false, capture: true });
 		}
 
+		// holding Alt underlines each row's mnemonic letter; Alt+letter then
+		// activates that row. Capture phase so the reveal still fires even
+		// though handle_keydown stops the bare Alt keydown from bubbling to
+		// frappe's global handler.
+		this.onaltkey = (e) => {
+			if (e.key === "Alt") this.show_mnemonics(e.type === "keydown");
+		};
+		document.addEventListener("keydown", this.onaltkey, true);
+		document.addEventListener("keyup", this.onaltkey, true);
+		// Alt+Tab away can swallow the keyup — clear on blur so the underlines
+		// don't get stuck on
+		this.onblur = () => this.show_mnemonics(false);
+		window.addEventListener("blur", this.onblur);
+
 		// keyboard opens land on a row right away (ArrowDown = first,
 		// ArrowUp = last); mouse opens just focus the panel so keys work
 		// without stealing the highlight from wherever the pointer is
@@ -390,6 +440,9 @@ export class MenuTree {
 			parent_row.setAttribute("aria-expanded", "true");
 		}
 		this.panels.push(entry);
+		// the reveal follows the deepest panel, so opening a submenu while
+		// Alt is held moves the underlines onto it
+		this.update_mnemonic_panels();
 		return entry;
 	}
 
@@ -490,6 +543,29 @@ export class MenuTree {
 				this.close("tab");
 				break;
 			default: {
+				// Alt+letter activates the row with that mnemonic (the letter
+				// underlined while Alt is held). Only plain Alt; Alt+Ctrl etc.
+				// falls through to the modifier trap below. e.code, not e.key,
+				// because Alt rewrites e.key to a special glyph on macOS.
+				// Always acts on the deepest open panel — that's the only one
+				// showing its mnemonics — no matter which panel has focus.
+				if (e.altKey && !e.ctrlKey && !e.metaKey) {
+					const match = e.code.match(/^Key([A-Z])$/);
+					const letter = match && match[1].toLowerCase();
+					const active = this.panels[this.panels.length - 1];
+					const row =
+						letter &&
+						active &&
+						active.rows.find((r) => r.mnemonic === letter && !r.item.disabled);
+					if (row) {
+						handled();
+						// a submenu row steps into its panel (keyboard-driven);
+						// a leaf acts and closes, same as a click
+						if (row.item.submenu) this.open_submenu(active, row, { focus: true });
+						else row.el.click();
+						break;
+					}
+				}
 				// a modifier combo (Ctrl+S, Ctrl+K, ...) would otherwise
 				// bubble to frappe's global keyboard handler and fire behind
 				// the open menu. Stop it reaching that handler, but leave the
@@ -624,6 +700,24 @@ export class MenuTree {
 			}
 			this.retire(entry.panel);
 		}
+		// reveal moves back onto whatever panel is deepest now
+		this.update_mnemonic_panels();
+	}
+
+	// show or hide the Alt mnemonic underlines
+	show_mnemonics(show) {
+		this.mnemonics_visible = show;
+		this.update_mnemonic_panels();
+	}
+
+	// only the deepest open panel reveals its mnemonics — with a submenu open,
+	// the parent's letters aren't live, so the same letter can't mean two
+	// different rows. Called whenever the panel stack or Alt state changes.
+	update_mnemonic_panels() {
+		const deepest = this.panels.length - 1;
+		this.panels.forEach((entry, i) => {
+			entry.panel.toggleAttribute("data-alt", this.mnemonics_visible && i === deepest);
+		});
 	}
 
 	// re-anchor every open panel; anchors are functions so each call reads
@@ -647,6 +741,9 @@ export class MenuTree {
 		this.closed = true;
 		clearTimeout(this.submenu_timer);
 		clearTimeout(this.typeahead_timer);
+		document.removeEventListener("keydown", this.onaltkey, true);
+		document.removeEventListener("keyup", this.onaltkey, true);
+		window.removeEventListener("blur", this.onblur);
 		document.removeEventListener("pointerdown", this.onpointerdown, true);
 		window.removeEventListener("resize", this.onreposition);
 		document.removeEventListener("scroll", this.onreposition, { capture: true });

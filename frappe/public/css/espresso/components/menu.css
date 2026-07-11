@@ -12,7 +12,7 @@
  *       <button class="es-menu__item" role="menuitem">
  *         <svg>...</svg>                        (icon, optional)
  *         <span class="es-menu__icon-space"></span>  (aligns iconless rows)
- *         <span class="es-menu__label">Label
+ *         <span class="es-menu__label">La<span class="es-menu__mnemonic">b</span>el
  *           <span class="es-menu__description">optional line</span>
  *         </span>
  *         <span class="es-menu__shortcut"><kbd>⌘</kbd><kbd>D</kbd></span>
@@ -179,6 +179,15 @@
     color: var(--ink-gray-5);
     overflow: hidden;
     text-overflow: ellipsis;
+}
+
+/* ---- Alt-key mnemonics ----
+   Each row has one letter of its label wrapped in .es-menu__mnemonic. It's
+   only underlined while Alt is held (the panel gets data-alt then), matching
+   frappe's Alt+letter menu shortcuts. Alt+that letter activates the row. */
+.es-menu[data-alt] .es-menu__mnemonic {
+    text-decoration: underline;
+    text-underline-offset: 2px;
 }
 
 /* ---- keyboard shortcut hint: one <kbd> per key ----
