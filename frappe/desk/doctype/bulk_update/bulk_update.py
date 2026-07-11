@@ -157,6 +157,8 @@ def bulk_assign_roles(docnames: str | list[str], roles: str | list[str]) -> list
 	if not frappe.get_cached_value("User", frappe.session.user, "bulk_actions"):
 		frappe.throw(_("You are not allowed to perform bulk actions."), frappe.PermissionError)
 
+	frappe.only_for("System Manager")
+
 	failed = []
 	for docname in docnames:
 		if not frappe.has_permission("User", "write", doc=docname):
