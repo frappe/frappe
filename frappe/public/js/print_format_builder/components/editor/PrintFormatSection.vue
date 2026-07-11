@@ -15,6 +15,15 @@
 				class="es-button"
 				data-size="xs"
 				data-variant="ghost"
+				data-icon-button="true"
+				:title="__('Copy section')"
+				@click.stop="store.copy_section(section)"
+				v-html="frappe.utils.icon('copy', 'xs')"
+			></button>
+			<button
+				class="es-button"
+				data-size="xs"
+				data-variant="ghost"
 				data-theme="red"
 				data-icon-button="true"
 				:title="__('Remove section')"
@@ -52,6 +61,17 @@
 					/>
 				</div>
 				<div class="section-toolbar-right">
+					<button
+						v-if="!is_header"
+						class="es-button"
+						data-size="xs"
+						data-variant="ghost"
+						data-icon-button="true"
+						:title="__('Copy section')"
+						@click.stop="store.copy_section(section)"
+					>
+						<span v-html="frappe.utils.icon('copy', 'sm')"></span>
+					</button>
 					<button
 						v-if="!is_header"
 						class="es-button"
