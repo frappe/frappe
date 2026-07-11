@@ -9,7 +9,7 @@ from frappe.utils.data import add_to_date, sha256_hash
 
 
 def get_oauth_token_hash(token: str | bytes | None) -> str | None:
-	if token is None:
+	if not token:
 		return None
 	return sha256_hash(token)
 

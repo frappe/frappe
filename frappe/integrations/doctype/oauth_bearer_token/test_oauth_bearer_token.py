@@ -1,6 +1,7 @@
 # Copyright (c) 2015, Frappe Technologies and Contributors
 # License: MIT. See LICENSE
 import frappe
+from frappe.integrations.doctype.oauth_bearer_token.oauth_bearer_token import get_oauth_token_hash
 from frappe.patches.v16_0.hash_oauth_bearer_tokens import execute as hash_existing_tokens
 from frappe.tests import IntegrationTestCase
 from frappe.utils import sha256_hash
@@ -16,6 +17,7 @@ class TestOAuthBearerToken(IntegrationTestCase):
 		self.assertNotIn(token.name, (access_token, sha256_hash(access_token)))
 		self.assertEqual(token.access_token, sha256_hash(access_token))
 		self.assertEqual(token.refresh_token, sha256_hash(refresh_token))
+		self.assertIsNone(get_oauth_token_hash(""))
 
 	def test_refresh_token_is_looked_up_by_hash(self):
 		from frappe.oauth import OAuthWebRequestValidator
@@ -75,6 +77,7 @@ class TestOAuthBearerToken(IntegrationTestCase):
 			pluck="name",
 		)
 		self.assertEqual(len(remaining_tokens), 1)
+		self.assertEqual(remaining_tokens[0], duplicate_token.name)
 
 	def test_patch_normalizes_missing_refresh_tokens_to_null(self):
 		null_token = make_bearer_token(frappe.generate_hash(), frappe.generate_hash())

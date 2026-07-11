@@ -1,5 +1,6 @@
 [pre_model_sync]
 frappe.patches.v16_0.enable_setup_complete #01-07-2025 re-run-patch
+frappe.patches.v16_0.hash_oauth_bearer_tokens
 frappe.patches.v15_0.remove_implicit_primary_key
 frappe.patches.v12_0.remove_deprecated_fields_from_doctype #3
 execute:frappe.utils.global_search.setup_global_search_table()
@@ -266,4 +267,3 @@ execute:frappe.db.create_sequence_table()  # backfill SQLite sequence emulation 
 frappe.patches.v16_0.migrate_workspace_sidebar_to_workspace
 frappe.patches.v16_0.populate_workspace_sidebar_from_shortcuts
 frappe.desk.doctype.workspace.patches.set_standard_flag
-frappe.patches.v16_0.hash_oauth_bearer_tokens
