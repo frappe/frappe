@@ -88,7 +88,7 @@ class DataImport(Document):
 
 	def clear_stale_template_warnings(self, doc_before_save) -> None:
 		"""Warnings snapshotted from a blocked import attempt go stale once the user updates
-		value mappings or skipped rows — clear them so the UI recomputes from a fresh preview."""
+		value mappings — clear them so the UI recomputes from a fresh preview."""
 		if not self.template_warnings or not doc_before_save:
 			return
 
