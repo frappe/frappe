@@ -19,6 +19,18 @@ export function validated(value, allowed, option, component) {
 }
 
 /**
+ * Refuse hrefs on schemes that run code — escaping can't make those safe.
+ */
+export function safe_href(href, component) {
+	if (!href) return null;
+	if (/^\s*(javascript|data|vbscript):/i.test(href)) {
+		console.warn(`frappe.ui.${component}: refusing unsafe href "${href}"`);
+		return null;
+	}
+	return href;
+}
+
+/**
  * Turn an attrs object into escaped `key="value"` strings.
  * Attribute names become markup, so only normal-looking names are allowed;
  * on* attributes run their value as JavaScript, so they are never allowed —

@@ -1,4 +1,4 @@
-import { safe_attrs } from "./utils.js";
+import { safe_attrs, safe_href } from "./utils.js";
 
 frappe.provide("frappe.ui");
 
@@ -18,16 +18,6 @@ frappe.provide("frappe.ui");
  * @property {string} [css_class] Extra CSS classes.
  * @property {Object<string, string|true>} [attrs] Extra attributes.
  */
-
-// javascript:/data: links run code — escaping can't help, so refuse them
-function safe_href(href) {
-	if (!href) return null;
-	if (/^\s*(javascript|data|vbscript):/i.test(href)) {
-		console.warn(`frappe.ui.breadcrumbs: refusing unsafe href "${href}"`);
-		return null;
-	}
-	return href;
-}
 
 /**
  * Espresso breadcrumbs (`.es-breadcrumbs`) as a markup string.
@@ -58,7 +48,7 @@ function breadcrumbs_html(opts = {}) {
 	const crumbs = items
 		.map((item, i) => {
 			const last = i === items.length - 1;
-			const href = safe_href(item.href);
+			const href = safe_href(item.href, "breadcrumbs");
 			// no label span when there is no label — an empty span is still a
 			// flex item and would get its own share of the gap
 			const label = item.label
