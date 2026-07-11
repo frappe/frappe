@@ -12,6 +12,7 @@ from werkzeug.exceptions import NotFound
 import frappe
 import frappe.utils
 from frappe import oauth
+from frappe.core.doctype.navbar_settings.navbar_settings import get_app_logo
 from frappe.integrations.doctype.oauth_bearer_token.oauth_bearer_token import get_oauth_token_hash
 from frappe.integrations.utils import (
 	OAuth2DynamicClientMetadata,
@@ -25,6 +26,7 @@ from frappe.oauth import (
 	get_server_url,
 	get_userinfo,
 )
+from frappe.rate_limiter import rate_limit
 from frappe.sessions import get_csrf_token
 
 ENDPOINTS = {
@@ -150,6 +152,7 @@ def authorize(**kwargs):
 						"csrf_token": get_csrf_token(),
 					}
 				)
+				response_html_params.logo = get_app_logo()
 				resp_html = frappe.render_template(
 					"templates/includes/oauth_confirmation.html", response_html_params
 				)
@@ -346,6 +349,7 @@ def _get_authorization_server_metadata():
 
 
 @frappe.whitelist(allow_guest=True, methods=["POST"])
+@rate_limit(limit=5, seconds=10 * 60)
 def register_client():
 	"""
 	Registers an OAuth client.
