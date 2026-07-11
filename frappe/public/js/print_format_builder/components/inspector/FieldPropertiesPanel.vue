@@ -148,19 +148,7 @@
 		</InspectorSection>
 
 		<InspectorSection :label="__('Style')" :init-open="false" :padded="false">
-			<div v-if="is_text_field" class="pfb-insp-section-body">
-				<ColorField
-					:label="__('Value color')"
-					:model-value="selected_field.value_color || ''"
-					@update:model-value="(v) => set_field_prop('value_color', v)"
-				/>
-				<ColorField
-					:label="__('Label color')"
-					:model-value="selected_field.label_color || ''"
-					@update:model-value="(v) => set_field_prop('label_color', v)"
-				/>
-			</div>
-			<StyleSection :label="__('Custom CSS')" v-model="selected_field.custom_style" />
+			<StyleSection v-model="selected_field.custom_style" />
 		</InspectorSection>
 
 		<InspectorSection :label="__('Visibility')" :init-open="false" :padded="false">
@@ -176,7 +164,6 @@ import SegmentedRow from "./SegmentedRow.vue";
 import InspectorSection from "./InspectorSection.vue";
 import StepperRow from "./StepperRow.vue";
 import StyleSection from "./StyleSection.vue";
-import ColorField from "./ColorField.vue";
 import VisibilitySection from "./VisibilitySection.vue";
 import ImageUploadControl from "./ImageUploadControl.vue";
 import { get_image_dimensions } from "../../utils";
@@ -186,22 +173,6 @@ import { useSelectedField } from "./useSelectedField";
 defineProps(["fieldIsInline"]);
 
 const { selected_field, preview_doc } = useSelectedField();
-
-// Fieldtypes rendered as a label/value pair that a text colour can target
-const NON_TEXT_FIELDTYPES = new Set([
-	"HTML",
-	"Image",
-	"Barcode",
-	"Spacer",
-	"Divider",
-	"Field Template",
-]);
-let is_text_field = computed(() => !NON_TEXT_FIELDTYPES.has(selected_field.value?.fieldtype));
-
-function set_field_prop(key, value) {
-	if (value) selected_field.value[key] = value;
-	else delete selected_field.value[key];
-}
 
 let is_html_field = computed(() => selected_field.value?.fieldtype === "HTML");
 let is_image_element = computed(

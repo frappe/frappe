@@ -2,22 +2,6 @@ import { create_default_layout, serialize_layout } from "../utils";
 import { useLayoutHistory } from "./useLayoutHistory";
 import { watch, ref, inject, computed, nextTick } from "vue";
 
-// Copy/paste clipboard — module-level so a field or section copied in one print
-// format can be pasted into another.
-const clipboard = ref(null);
-
-function clone_plain(obj) {
-	return JSON.parse(JSON.stringify(obj));
-}
-
-// A pasted custom element (HTML/Image/Barcode block) gets a fresh fieldname so
-// duplicates don't collide; real doctype fields keep theirs.
-function freshen_field(f) {
-	delete f.remove;
-	if (f.custom && f.fieldname) f.fieldname += "_" + frappe.utils.get_random(8);
-	return f;
-}
-
 export function getStore(print_format_name) {
 	// variables
 	let print_format = ref(null);
@@ -198,61 +182,6 @@ export function getStore(print_format_name) {
 		dirty.value = true;
 	});
 
-	function copy_field(df) {
-		if (!df) return;
-		clipboard.value = { type: "field", data: clone_plain(df) };
-	}
-	function copy_section(section) {
-		if (!section) return;
-		clipboard.value = { type: "section", data: clone_plain(section) };
-	}
-	function copy_selection() {
-		if (selected_field.value) copy_field(selected_field.value);
-		else if (selected_section.value) copy_section(selected_section.value);
-	}
-	function find_field_column(df) {
-		const lv = layout.value;
-		const zones = [lv?.header, lv?.footer, ...(lv?.sections || [])].filter(Boolean);
-		for (const section of zones) {
-			for (const column of section.columns || []) {
-				if (column.fields?.includes(df)) return column;
-			}
-		}
-		return null;
-	}
-	function paste_clipboard() {
-		const clip = clipboard.value;
-		if (!clip || !layout.value) return;
-
-		if (clip.type === "field") {
-			const clone = freshen_field(clone_plain(clip.data));
-			// Insert after the selected field in its column; else append to the
-			// selected section (or the last body section).
-			const col = selected_field.value && find_field_column(selected_field.value);
-			if (col) {
-				col.fields.splice(col.fields.indexOf(selected_field.value) + 1, 0, clone);
-			} else {
-				const sections = layout.value.sections || [];
-				const target = selected_section.value || sections[sections.length - 1];
-				const first_col = target?.columns?.[0];
-				if (!first_col) return;
-				first_col.fields.push(clone);
-			}
-			selected_section.value = null;
-			selected_field.value = clone;
-		} else if (clip.type === "section") {
-			const clone = clone_plain(clip.data);
-			delete clone.remove;
-			(clone.columns || []).forEach((c) => (c.fields || []).forEach(freshen_field));
-			const sections = layout.value.sections;
-			const idx = selected_section.value ? sections.indexOf(selected_section.value) : -1;
-			if (idx !== -1) sections.splice(idx + 1, 0, clone);
-			else sections.push(clone);
-			selected_field.value = null;
-			selected_section.value = clone;
-		}
-	}
-
 	return {
 		print_format,
 		letterhead,
@@ -278,11 +207,6 @@ export function getStore(print_format_name) {
 		get_layout,
 		get_default_layout,
 		change_letterhead,
-		clipboard,
-		copy_field,
-		copy_section,
-		copy_selection,
-		paste_clipboard,
 		undo,
 		redo,
 	};

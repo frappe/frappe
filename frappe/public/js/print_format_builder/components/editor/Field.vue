@@ -81,17 +81,12 @@
 							: '',
 					]"
 				>
-					<div
-						v-if="df.label && df.show_label !== 'hide'"
-						class="field-preview-label"
-						:style="label_text_style(df)"
-					>
+					<div v-if="df.label && df.show_label !== 'hide'" class="field-preview-label">
 						{{ df.label }}
 					</div>
 					<div
 						class="field-preview-value"
 						:class="{ 'text-muted': !(preview_doc[df.fieldname] || []).length }"
-						:style="value_text_style(df)"
 					>
 						{{ multiselect_display(df) }}
 					</div>
@@ -119,13 +114,7 @@
 							}"
 						>
 							<thead v-if="df.table_header !== 'none'">
-								<tr
-									:style="
-										df.table_header_bg
-											? { background: df.table_header_bg }
-											: {}
-									"
-								>
+								<tr>
 									<th
 										v-for="col in df.table_columns"
 										:key="col.fieldname"
@@ -134,9 +123,6 @@
 											...(col.width ? { width: col.width + '%' } : {}),
 											...(df.table_cell_padding != null
 												? { padding: df.table_cell_padding + 'px' }
-												: {}),
-											...(df.table_border_color
-												? { borderColor: df.table_border_color }
 												: {}),
 										}"
 									>
@@ -157,14 +143,11 @@
 										v-for="col in df.table_columns"
 										:key="col.fieldname"
 										:class="numeric_align_class(col)"
-										:style="{
-											...(df.table_cell_padding != null
+										:style="
+											df.table_cell_padding != null
 												? { padding: df.table_cell_padding + 'px' }
-												: {}),
-											...(df.table_border_color
-												? { borderColor: df.table_border_color }
-												: {}),
-										}"
+												: {}
+										"
 									>
 										<!-- Merged cell: image (if any) floats left, text lines stack -->
 										<div v-if="has_merge(col)" class="pf-cell-merged">
@@ -312,18 +295,10 @@
 							: '',
 					]"
 				>
-					<div
-						v-if="df.label && df.show_label !== 'hide'"
-						class="field-preview-label"
-						:style="label_text_style(df)"
-					>
+					<div v-if="df.label && df.show_label !== 'hide'" class="field-preview-label">
 						{{ df.label }}
 					</div>
-					<div
-						class="field-preview-value"
-						:class="{ 'text-muted': !preview_value }"
-						:style="value_text_style(df)"
-					>
+					<div class="field-preview-value" :class="{ 'text-muted': !preview_value }">
 						<img
 							v-if="is_image_field(df, preview_value) && preview_value"
 							:src="preview_value"
@@ -340,15 +315,6 @@
 					class="drag-handle field-drag-handle"
 					v-html="frappe.utils.icon('grip', 'xs')"
 				></div>
-				<button
-					class="es-button"
-					data-size="xs"
-					data-variant="ghost"
-					data-icon-button="true"
-					:title="__('Copy')"
-					@click.stop="store.copy_field(df)"
-					v-html="frappe.utils.icon('copy', 'xs')"
-				></button>
 				<button
 					class="es-button"
 					data-size="xs"
@@ -412,15 +378,6 @@
 								data-icon-button="true"
 								@click.stop="edit_html"
 								v-html="frappe.utils.icon('pencil', 'sm')"
-							></button>
-							<button
-								class="es-button"
-								data-size="xs"
-								data-variant="ghost"
-								data-icon-button="true"
-								:title="__('Copy')"
-								@click.stop="store.copy_field(df)"
-								v-html="frappe.utils.icon('copy', 'sm')"
 							></button>
 							<button
 								class="es-button"
@@ -498,14 +455,6 @@ function field_style(df, always_row = false) {
 		style.gap = df.label_gap + "px";
 	}
 	return style;
-}
-
-// Per-field text colour for the label and value lines.
-function label_text_style(df) {
-	return df.label_color ? { color: df.label_color } : {};
-}
-function value_text_style(df) {
-	return df.value_color ? { color: df.value_color } : {};
 }
 
 let store = inject("$store");

@@ -219,29 +219,6 @@ function handle_keydown(e) {
 			else $store.value.undo();
 			return;
 		}
-		if (e.key === "c" || e.key === "C" || e.key === "v" || e.key === "V") {
-			const el = document.activeElement;
-			if (
-				el?.tagName === "INPUT" ||
-				el?.tagName === "TEXTAREA" ||
-				el?.isContentEditable ||
-				el?.closest(".modal")
-			)
-				return;
-			const is_copy = e.key === "c" || e.key === "C";
-			if (is_copy) {
-				// Let native copy work when nothing in the canvas is selected
-				if (!$store.value.selected_field.value && !$store.value.selected_section.value)
-					return;
-				e.preventDefault();
-				$store.value.copy_selection();
-			} else {
-				if (!$store.value.clipboard.value) return;
-				e.preventDefault();
-				$store.value.paste_clipboard();
-			}
-			return;
-		}
 		if (e.key === "=" || e.key === "+") {
 			e.preventDefault();
 			zoom_in();
