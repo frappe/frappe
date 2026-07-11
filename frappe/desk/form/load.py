@@ -225,6 +225,7 @@ def get_filtered_attachments(dt: str, dn: str | int, filters: str):
 			["File", "attached_to_doctype", "=", dt],
 			*filters,
 		],
+		limit=0,
 	)
 
 
