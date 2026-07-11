@@ -14,12 +14,16 @@
 	}
 }
 
+/* Spacing uses em, not rem: the builder canvas lives inside the desk page, so
+   rem there resolves against the desk root, not the format's font size. Values
+   inside a scope that changes font-size are pre-divided by that multiplier so
+   the computed size is unchanged (e.g. td padding 0.5em × 0.9 = 0.45 body-em). */
 .print-format-doc .section-label {
-	font-size: 1.1rem;
+	font-size: 1.1em;
 	font-weight: 700;
 	color: #1a1a1a;
-	padding-bottom: 0.35rem;
-	margin-bottom: 0.75rem;
+	padding-bottom: 0.3182em;
+	margin-bottom: 0.6818em;
 	border-bottom: 1.5px solid #e2e2e2;
 	/* Don't let the section heading sit alone at the bottom of a page */
 	break-after: avoid;
@@ -27,7 +31,7 @@
 }
 
 .print-format-doc .field + .field {
-	margin-top: 0.5rem;
+	margin-top: 0.5em;
 }
 
 /* Keep field label and value on the same page */
@@ -40,7 +44,7 @@
 .print-format-doc .field .label {
 	font-size: 1em;
 	color: #6b7280;
-	margin-bottom: 0.1rem;
+	margin-bottom: 0.1em;
 }
 
 .print-format-doc .field .value {
@@ -52,7 +56,7 @@
 .print-format-doc .field.field-inline {
 	display: flex;
 	align-items: baseline;
-	gap: 0.5rem;
+	gap: 0.5em;
 }
 
 .print-format-doc .field.left-right .label,
@@ -62,7 +66,7 @@
 	color: #374151;
 	text-transform: none;
 	letter-spacing: 0;
-	padding-top: 0.05rem;
+	padding-top: 0.05em;
 	white-space: nowrap;
 }
 
@@ -123,13 +127,13 @@
 }
 
 .print-format-doc .pfb-repeater-table tr + tr .pfb-repeater-cell {
-	padding-top: 0.5rem;
+	padding-top: 0.5em;
 }
 
 /* Child table + Repeater share the same block-label styling */
 .print-format-doc .pfb-repeater,
 .print-format-doc .child-table {
-	margin-top: 0.5rem;
+	margin-top: 0.5em;
 }
 
 .print-format-doc .pfb-repeater > .label,
@@ -137,7 +141,7 @@
 	font-size: 0.8em;
 	font-weight: 600;
 	color: #6b7280;
-	margin-bottom: 0.4rem;
+	margin-bottom: 0.5em;
 }
 
 .print-format-doc .child-table .table {
@@ -151,7 +155,7 @@
 	color: #374151;
 	font-weight: 600;
 	font-size: 0.85em;
-	padding: 0.45rem 0.6rem;
+	padding: 0.5882em 0.7843em;
 	border: none !important;
 }
 
@@ -162,7 +166,7 @@
 }
 
 .print-format-doc .child-table .table td {
-	padding: 0.45rem 0.6rem;
+	padding: 0.5em 0.6667em;
 	border: 1px solid #e5e7eb !important;
 	vertical-align: top;
 }
@@ -241,7 +245,7 @@
 .print-format-doc .child-table .cell-merged {
 	display: flex;
 	align-items: flex-start;
-	gap: 0.5rem;
+	gap: 0.5556em;
 }
 
 /* size comes from an inline style (column.image_size) */
@@ -267,7 +271,7 @@
 .print-format-doc .child-table .cell-lines {
 	display: flex;
 	flex-direction: column;
-	gap: 0.1rem;
+	gap: 0.1111em;
 	min-width: 0;
 }
 
@@ -355,7 +359,7 @@
 }
 
 .print-format-doc .field[data-fieldtype="Rating"] .rating-star {
-	width: 1.5rem;
+	width: 1.5em;
 }
 
 .print-format-doc .field[data-fieldtype="Long Text"] .value, .print-format-doc .field[data-fieldtype="Text"] .value {
@@ -368,14 +372,14 @@
 }
 
 .print-format-doc .field[data-fieldtype="Color"] .color-square {
-	width: 1rem;
-	height: 1rem;
-	margin-right: 0.3rem;
+	width: 1em;
+	height: 1em;
+	margin-right: 0.3em;
 	border-radius: var(--radius);
 }
 
 .print-format-doc .field[data-fieldtype="Check"] #icon-tick {
-	width: 1rem;
+	width: 1em;
 }
 
 /* ── Table layout (field-borders mode) ───────────────────── */
