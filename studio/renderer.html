@@ -23,8 +23,9 @@
 		</script>
 		{% if is_developer_mode %}
 			<!-- workaround for HMR in renderer during development -->
-			<script type="module" src="{{ vite_dev_server_url }}/@vite/client"></script>
-			<script type="module" src="{{ vite_dev_server_url }}/src/renderer.ts"></script>
+			<!-- protocol-relative so the browser loads over the page's own scheme (avoids mixed-content over HTTPS) -->
+			<script type="module" src="//{{ vite_dev_server_host }}/@vite/client"></script>
+			<script type="module" src="//{{ vite_dev_server_host }}/src/renderer.ts"></script>
 		{% else %}
 			<script type="module" src="/src/renderer.ts"></script>
 		{% endif %}

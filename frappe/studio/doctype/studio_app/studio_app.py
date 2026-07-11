@@ -98,7 +98,7 @@ class StudioApp(WebsiteGenerator):
 			"Studio Page", dict(studio_app=self.name, published=1), ["name", "page_title", "route"]
 		)
 		context.is_developer_mode = frappe.utils.cint(frappe.conf.developer_mode)
-		context.vite_dev_server_url = get_vite_dev_server_url()
+		context.vite_dev_server_host = get_vite_dev_server_host()
 
 	def autoname(self):
 		if not self.name:
@@ -336,16 +336,5 @@ def get_vite_dev_server_port():
 	return 8080 + port_offset
 
 
-def get_vite_dev_server_url():
-	return f"{get_request_protocol()}://{frappe.local.site}:{get_vite_dev_server_port()}"
-
-
-def get_request_protocol():
-	if frappe.get_request_header("X-Forwarded-Proto") == "https":
-		return "https"
-
-	request = getattr(frappe.local, "request", None)
-	if request and request.scheme == "https":
-		return "https"
-
-	return "http"
+def get_vite_dev_server_host():
+	return f"{frappe.local.site}:{get_vite_dev_server_port()}"
