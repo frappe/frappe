@@ -230,7 +230,6 @@ scheduler_events = {
 		# 10 minutes
 		"0/10 * * * *": [
 			"frappe.email.doctype.email_account.email_account.pull",
-			"frappe.integrations.doctype.oauth_client.oauth_client.delete_unused_dynamic_clients",
 		],
 		# Hourly but offset by 30 minutes
 		"30 * * * *": [],
@@ -238,10 +237,6 @@ scheduler_events = {
 		"45 0 * * *": [],
 		"0 */3 * * *": [
 			"frappe.search.sqlite_search.build_index_if_not_exists",
-		],
-		# Daily at 6:00 AM.
-		"0 6 * * *": [
-			"frappe.core.doctype.security_settings.security_settings_alert.check_security_txt_expiry",
 		],
 	},
 	"all": [
@@ -280,6 +275,8 @@ scheduler_events = {
 		"frappe.core.doctype.log_settings.log_settings.run_log_clean_up",
 		"frappe.core.doctype.user_invitation.user_invitation.mark_expired_invitations",
 		"frappe.core.doctype.duckdb_sync.duckdb_sync.cleanup_old_syncs",
+		"frappe.integrations.doctype.oauth_client.oauth_client.delete_unused_dynamic_clients",
+		"frappe.core.doctype.security_settings.security_settings_alert.check_security_txt_expiry",
 	],
 	"weekly_long": [
 		"frappe.desk.form.document_follow.send_weekly_updates",
