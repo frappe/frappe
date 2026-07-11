@@ -16,7 +16,6 @@ frappe.pages["component-explorer"].on_page_load = function (wrapper) {
 					title: __("Basic actions"),
 					items: [
 						{
-							__code: 'frappe.ui.dropdown({ button: { label: "Options" }, options: [{ label: "Edit", icon: "pen", onclick: () => {} }, { label: "Duplicate", icon: "copy", onclick: () => {} }, { label: "Delete", icon: "trash-2", theme: "red", onclick: () => {} }] })',
 							button: { label: "Options" },
 							options: [
 								{
@@ -44,7 +43,6 @@ frappe.pages["component-explorer"].on_page_load = function (wrapper) {
 					title: __("Groups, shortcuts and disabled rows"),
 					items: [
 						{
-							__code: 'frappe.ui.dropdown({ button: { label: "File" }, options: [{ group: "Document", options: [{ label: "Rename", shortcut: "ctrl+r", onclick: () => {} }, { label: "Print", shortcut: "ctrl+p", onclick: () => {} }] }, { group: "Danger zone", options: [{ label: "Archive", disabled: true }, { label: "Delete permanently", theme: "red", onclick: () => {} }] }] })',
 							button: { label: "File" },
 							options: [
 								{
@@ -87,7 +85,6 @@ frappe.pages["component-explorer"].on_page_load = function (wrapper) {
 					title: __("Submenus"),
 					items: [
 						{
-							__code: 'frappe.ui.dropdown({ button: { label: "Actions" }, options: [{ label: "Open", icon: "external-link", onclick: () => {} }, { label: "Move to", icon: "folder", submenu: [{ label: "Inbox", onclick: () => {} }, { label: "Archive", onclick: () => {} }, { label: "More...", submenu: [{ label: "Folder A", onclick: () => {} }, { label: "Folder B", onclick: () => {} }] }] }] })',
 							button: { label: "Actions" },
 							options: [
 								{
@@ -138,7 +135,6 @@ frappe.pages["component-explorer"].on_page_load = function (wrapper) {
 					title: __("Selected row, descriptions and links"),
 					items: [
 						{
-							__code: 'frappe.ui.dropdown({ button: { label: "View" }, options: [{ label: "List", selected: true, onclick: () => {} }, { label: "Kanban", description: "Drag cards between columns", onclick: () => {} }, { label: "Documentation", icon: "book-open", href: "https://docs.frappe.io" }] })',
 							button: { label: "View" },
 							options: [
 								{
@@ -164,7 +160,6 @@ frappe.pages["component-explorer"].on_page_load = function (wrapper) {
 					title: __("Placement and empty state"),
 					items: [
 						{
-							__code: 'frappe.ui.dropdown({ button: { label: "Opens top-end" }, side: "top", align: "end", options: [{ label: "One", onclick: () => {} }, { label: "Two", onclick: () => {} }] })',
 							button: { label: "Opens top-end" },
 							side: "top",
 							align: "end",
@@ -180,7 +175,6 @@ frappe.pages["component-explorer"].on_page_load = function (wrapper) {
 							],
 						},
 						{
-							__code: 'frappe.ui.dropdown({ button: { label: "No items" }, options: [], empty_text: "Nothing here yet" })',
 							button: { label: "No items" },
 							options: [],
 							empty_text: "Nothing here yet",
@@ -191,6 +185,7 @@ frappe.pages["component-explorer"].on_page_load = function (wrapper) {
 		},
 		"Context Menu": {
 			helper: "new frappe.ui.ContextMenu",
+			code_lead: "target: row_el",
 			stacked: true,
 			make: (opts) => {
 				const $surface = $(
@@ -206,7 +201,6 @@ frappe.pages["component-explorer"].on_page_load = function (wrapper) {
 					title: __("Basic"),
 					items: [
 						{
-							__code: 'new frappe.ui.ContextMenu({ target: row_el, options: [{ label: "Cut", shortcut: "ctrl+x", onclick: () => {} }, { label: "Copy", shortcut: "ctrl+c", onclick: () => {} }, { label: "Paste", shortcut: "ctrl+v", onclick: () => {} }, { label: "Delete", theme: "red", onclick: () => {} }] })',
 							options: [
 								{
 									label: "Cut",
@@ -238,7 +232,6 @@ frappe.pages["component-explorer"].on_page_load = function (wrapper) {
 					items: [
 						{
 							__surface: __("Right-click this task card"),
-							__code: 'new frappe.ui.ContextMenu({ target: card_el, options: [{ group: "Task", options: [{ label: "Open", icon: "external-link", onclick: () => {} }, { label: "Assign to", icon: "user-plus", submenu: [{ label: "John Doe", onclick: () => {} }, { label: "Jane Smith", onclick: () => {} }] }] }, { group: "Board", options: [{ label: "Move to Done", icon: "circle-check", onclick: () => {} }] }] })',
 							options: [
 								{
 									group: "Task",
@@ -285,6 +278,74 @@ frappe.pages["component-explorer"].on_page_load = function (wrapper) {
 									],
 								},
 							],
+						},
+					],
+				},
+			],
+		},
+		Tooltip: {
+			helper: "frappe.ui.tooltip",
+			code_first: "button_el",
+			make: (opts) => {
+				const $btn = frappe.ui.button({ label: opts.__trigger || __("Hover me") });
+				frappe.ui.tooltip($btn, opts);
+				return $btn;
+			},
+			groups: [
+				{
+					title: __("Basic (hover, or focus with Tab)"),
+					items: [
+						{
+							__trigger: __("Hover me"),
+							text: "Adds a row below",
+						},
+					],
+				},
+				{
+					title: __("Sides"),
+					items: [
+						{
+							__trigger: __("Top"),
+							text: "Top is the default",
+						},
+						{
+							__trigger: __("Right"),
+							text: "Opens right",
+							side: "right",
+						},
+						{
+							__trigger: __("Bottom"),
+							text: "Opens bottom",
+							side: "bottom",
+						},
+						{
+							__trigger: __("Left"),
+							text: "Opens left",
+							side: "left",
+						},
+					],
+				},
+				{
+					title: __("Delay"),
+					items: [
+						{
+							__trigger: __("No delay"),
+							text: "Shows immediately",
+							delay: 0,
+						},
+						{
+							__trigger: __("Slow"),
+							text: "Shows after a second",
+							delay: 1000,
+						},
+					],
+				},
+				{
+					title: __("Long text (wraps)"),
+					items: [
+						{
+							__trigger: __("Long"),
+							text: "A longer explanation that wraps across a couple of lines instead of running off the screen",
 						},
 					],
 				},
@@ -557,6 +618,7 @@ frappe.pages["component-explorer"].on_page_load = function (wrapper) {
 						{ label: "Add", icon: "plus" },
 						{ label: "Next", icon_right: "chevron-right" },
 						{ icon: "settings", title: "Settings", variant: "ghost" },
+						{ icon: "bell", tooltip: "Notifications", variant: "ghost" },
 					],
 				},
 				{
@@ -791,13 +853,62 @@ frappe.pages["component-explorer"].on_page_load = function (wrapper) {
 		},
 	};
 
-	// one compact line per call, ready to paste; functions print as-is
-	function to_code(helper, opts) {
-		const parts = Object.entries(opts).map(([key, value]) => {
-			const printed = typeof value === "function" ? value.toString() : JSON.stringify(value);
-			return `${key}: ${printed}`;
-		});
-		return `${helper}({ ${parts.join(", ")} })`;
+	// ---- code column: turn an opts object into copy-paste-ready code ----
+	// Short values stay on one line; anything longer breaks into indented
+	// lines, the way a person would write it. Keys starting with "__" are
+	// explorer plumbing (labels, trigger text, canned code), not part of
+	// the call, so they never print.
+	const MAX_INLINE = 68;
+	const INDENT = "  ";
+
+	// join the parts on one line if the result is short enough, otherwise
+	// put one part per line, indented one level deeper than the parent
+	function wrap(parts, open, close, depth, spaced) {
+		if (!parts.length) return `${open}${close}`;
+		const one_line = spaced
+			? `${open} ${parts.join(", ")} ${close}`
+			: `${open}${parts.join(", ")}${close}`;
+		if (one_line.length <= MAX_INLINE && !one_line.includes("\n")) return one_line;
+		const pad = INDENT.repeat(depth + 1);
+		return `${open}\n${pad}${parts.join(`,\n${pad}`)}\n${INDENT.repeat(depth)}${close}`;
+	}
+
+	function format_value(value, depth) {
+		if (typeof value === "function") {
+			// print the real handler, collapsing the source file's own
+			// wrapping/indentation so it reads as one clean expression
+			return value.toString().replace(/\n\s*/g, " ");
+		}
+		if (Array.isArray(value)) {
+			return wrap(
+				value.map((entry) => format_value(entry, depth + 1)),
+				"[",
+				"]",
+				depth
+			);
+		}
+		if (value && typeof value === "object") {
+			const entries = Object.entries(value).filter(([key]) => !key.startsWith("__"));
+			return wrap(
+				entries.map(([key, entry]) => `${key}: ${format_value(entry, depth + 1)}`),
+				"{",
+				"}",
+				depth,
+				true
+			);
+		}
+		return JSON.stringify(value);
+	}
+
+	function to_code(component, opts) {
+		const entries = Object.entries(opts).filter(([key]) => !key.startsWith("__"));
+		const parts = entries.map(([key, entry]) => `${key}: ${format_value(entry, 1)}`);
+		// e.g. ContextMenu takes a target element we can't print for real
+		if (component.code_lead) parts.unshift(component.code_lead);
+		const object_code = wrap(parts, "{", "}", 0, true);
+		// e.g. tooltip's first argument is the trigger element
+		const first = component.code_first ? `${component.code_first}, ` : "";
+		return `${component.helper}(${first}${object_code})`;
 	}
 
 	// "frappe.ui.alert" -> the callable helper (element form, so handlers work)
@@ -830,7 +941,7 @@ frappe.pages["component-explorer"].on_page_load = function (wrapper) {
 				</div>
 			`);
 			const code = group.items
-				.map((opts) => opts.__code || to_code(component.helper, opts))
+				.map((opts) => opts.__code || to_code(component, opts))
 				.join("\n");
 			$group.find("code").text(code);
 			const $preview = $group.find(".explorer-preview");

@@ -3,3 +3,10 @@
 .explorer-preview [data-state="open"] {
 	background-color: var(--surface-gray-2);
 }
+
+/* Long snippets scroll inside the code column instead of stretching the
+   whole row (the preview panel next to it stays compact). */
+.explorer-group pre {
+	max-height: 260px;
+	overflow-y: auto;
+}

@@ -12,7 +12,8 @@ frappe.provide("frappe.ui");
  * @property {string} [icon] Lucide icon name, shown before the label. An icon without a label renders a square icon-button — pass `title`.
  * @property {string} [icon_left] Same as `icon`.
  * @property {string} [icon_right] Lucide icon name, shown after the label.
- * @property {string} [title] Tooltip; doubles as aria-label on icon-only buttons.
+ * @property {string} [title] Native browser tooltip; doubles as aria-label on icon-only buttons. Prefer `tooltip`.
+ * @property {string|Object} [tooltip] Espresso tooltip text (or full TooltipOpts) shown on hover/focus (element form only, like onclick). Doubles as aria-label on icon-only buttons.
  * @property {boolean} [disabled]
  * @property {boolean} [loading] Shows spinner, blocks clicks, sets aria-busy.
  * @property {"button"|"submit"|"reset"} [type="button"]
@@ -58,17 +59,22 @@ function button_html(opts = {}) {
 	if (icon_only) attrs.push('data-icon-button="true"');
 	if (opts.loading) attrs.push('aria-busy="true"');
 	if (opts.disabled) attrs.push("disabled");
-	if (opts.title) {
-		attrs.push(`title="${escape(opts.title)}"`);
-		if (icon_only) attrs.push(`aria-label="${escape(opts.title)}"`);
-	}
+	const tooltip_text =
+		typeof opts.tooltip === "string" ? opts.tooltip : opts.tooltip && opts.tooltip.text;
+	// native title only when there's no espresso tooltip — both at once
+	// would show two bubbles for the same button
+	if (opts.title && !tooltip_text) attrs.push(`title="${escape(opts.title)}"`);
+	// the name should match what the user can actually see, and the visible
+	// one is the espresso tooltip when both are given
+	const accessible_name = tooltip_text || opts.title;
+	if (icon_only && accessible_name) attrs.push(`aria-label="${escape(accessible_name)}"`);
 	attrs.push(...safe_attrs(opts.attrs, "button"));
 
-	if (icon_only && !opts.title && !(opts.attrs || {})["aria-label"]) {
+	if (icon_only && !accessible_name && !(opts.attrs || {})["aria-label"]) {
 		console.warn(
 			`frappe.ui.button: icon-only button ("${
 				icon_left_name || opts.icon_right
-			}") needs a title for accessibility`
+			}") needs a tooltip or title for accessibility`
 		);
 	}
 
@@ -105,6 +111,14 @@ function button_html(opts = {}) {
  */
 frappe.ui.button = function (opts = {}) {
 	const $btn = $(button_html(opts));
+	// runtime lookup, not an import: both live in the same bundles, and a
+	// bundle without the tooltip component should still get working buttons
+	if (opts.tooltip && frappe.ui.tooltip) {
+		frappe.ui.tooltip(
+			$btn,
+			typeof opts.tooltip === "string" ? { text: opts.tooltip } : opts.tooltip
+		);
+	}
 	if (opts.onclick) {
 		$btn.on("click", function (e) {
 			// pointer-events:none only blocks the mouse — keyboard activation

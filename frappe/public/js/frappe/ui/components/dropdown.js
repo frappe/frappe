@@ -1,4 +1,5 @@
-import { MenuTree, SIDES, ALIGNS } from "./menu.js";
+import { MenuTree } from "./menu.js";
+import { SIDES, ALIGNS } from "./position.js";
 import { validated } from "./utils.js";
 
 frappe.provide("frappe.ui");

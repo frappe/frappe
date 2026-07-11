@@ -20,6 +20,7 @@ import "./frappe/ui/components/breadcrumbs.js";
 import "./frappe/ui/components/toast.js";
 import "./frappe/ui/components/dropdown.js";
 import "./frappe/ui/components/context_menu.js";
+import "./frappe/ui/components/tooltip.js";
 
 import "./frappe/utils/common.js";
 import "./frappe/ui/messages.js";

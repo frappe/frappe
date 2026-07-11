@@ -1,4 +1,5 @@
 import { validated, safe_href } from "./utils.js";
+import { place } from "./position.js";
 
 /**
  * Internal engine shared by frappe.ui.Dropdown and frappe.ui.ContextMenu:
@@ -48,11 +49,7 @@ import { validated, safe_href } from "./utils.js";
  */
 
 const THEMES = ["gray", "red"];
-export const SIDES = ["top", "right", "bottom", "left"];
-export const ALIGNS = ["start", "center", "end"];
 
-// distance from the anchor, and the breathing room kept from the viewport edge
-const VIEWPORT_PAD = 8;
 const SUBMENU_OFFSET = 4;
 const SUBMENU_OPEN_DELAY = 150;
 const EXIT_MS = 140;
@@ -271,62 +268,6 @@ function build_panel(groups, { empty_text, component }) {
 	}
 
 	return { panel, rows };
-}
-
-// Decide where a panel goes, relative to the anchor rect (the trigger
-// button, a submenu row, or the right-click position). The panel must
-// already be in the DOM — we need its real size to make these calls.
-function place(panel, anchor, side, align, offset) {
-	let menu = panel.getBoundingClientRect();
-
-	// taller than the viewport: cap it and let the panel scroll
-	const max_height = window.innerHeight - 2 * VIEWPORT_PAD;
-	if (menu.height > max_height) {
-		panel.style.maxHeight = `${max_height}px`;
-		menu = panel.getBoundingClientRect();
-	}
-
-	// how much free space there is on each side of the anchor
-	const room = {
-		top: anchor.top - VIEWPORT_PAD,
-		bottom: window.innerHeight - anchor.bottom - VIEWPORT_PAD,
-		left: anchor.left - VIEWPORT_PAD,
-		right: window.innerWidth - anchor.right - VIEWPORT_PAD,
-	};
-
-	// if the menu doesn't fit on the asked-for side, and the opposite side
-	// is roomier, open there instead (a menu near the bottom of the screen
-	// opens upward)
-	const opposite = { top: "bottom", bottom: "top", left: "right", right: "left" };
-	const needed = side === "top" || side === "bottom" ? menu.height : menu.width;
-	if (room[side] < needed + offset && room[opposite[side]] > room[side]) {
-		side = opposite[side];
-	}
-
-	// side picks which edge of the anchor the menu hangs off; align slides
-	// it along that edge (start = the two left/top edges line up, end = the
-	// right/bottom edges, center = midpoints)
-	let top, left;
-	if (side === "top" || side === "bottom") {
-		top = side === "bottom" ? anchor.bottom + offset : anchor.top - offset - menu.height;
-		if (align === "start") left = anchor.left;
-		else if (align === "end") left = anchor.right - menu.width;
-		else left = anchor.left + anchor.width / 2 - menu.width / 2;
-	} else {
-		left = side === "right" ? anchor.right + offset : anchor.left - offset - menu.width;
-		if (align === "start") top = anchor.top;
-		else if (align === "end") top = anchor.bottom - menu.height;
-		else top = anchor.top + anchor.height / 2 - menu.height / 2;
-	}
-
-	// whatever side/align said, never hang past the edge of the screen
-	left = Math.min(Math.max(left, VIEWPORT_PAD), window.innerWidth - menu.width - VIEWPORT_PAD);
-	top = Math.min(Math.max(top, VIEWPORT_PAD), window.innerHeight - menu.height - VIEWPORT_PAD);
-
-	panel.style.top = `${Math.round(top)}px`;
-	panel.style.left = `${Math.round(left)}px`;
-	panel.setAttribute("data-side", side);
-	panel.setAttribute("data-align", align);
 }
 
 /**
