@@ -17,6 +17,7 @@ import FetchFromControl from "./components/controls/FetchFromControl.vue";
 export function registerGlobalComponents(app) {
 	app.component("AttachControl", AttachControl)
 		.component("AttachImageControl", AttachControl)
+		.component("AttachmentGalleryControl", DataControl)
 		.component("AutocompleteControl", DataControl)
 		.component("BarcodeControl", DataControl)
 		.component("ButtonControl", ButtonControl)

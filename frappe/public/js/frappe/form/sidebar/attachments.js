@@ -50,6 +50,7 @@ frappe.ui.form.Attachments = class Attachments {
 	refresh() {
 		if (this.frm.doc.__islocal) {
 			this.parent.toggle(false);
+			this.notify_change();
 			return;
 		}
 		this.parent.toggle(true);
@@ -62,6 +63,11 @@ frappe.ui.form.Attachments = class Attachments {
 		var attachments = this.get_attachments();
 		this.render_attachments(attachments);
 		this.setup_show_all_button(attachments);
+		this.notify_change();
+	}
+
+	notify_change() {
+		$(this.frm.wrapper).trigger("attachments_change");
 	}
 
 	setup_show_all_button(attachments) {
