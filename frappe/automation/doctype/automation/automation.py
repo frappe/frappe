@@ -58,8 +58,17 @@ class Automation(Document):
 	def validate(self):
 		self.validate_document_type()
 		self.validate_trigger_config()
+		self.validate_actions()
 		if self.enabled and not self.actions:
 			frappe.throw(_("Enable an Automation only after adding at least one action"))
+
+	def validate_actions(self):
+		from frappe.automation_engine.actions.base import get_action
+
+		for row in self.actions:
+			action = get_action(row.action_type)
+			if self.document_type:
+				action.validate(frappe.parse_json(row.params) if row.params else {}, self.document_type)
 
 	def validate_document_type(self):
 		if self.document_type and frappe.get_meta(self.document_type).istable:
