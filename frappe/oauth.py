@@ -18,12 +18,14 @@ class OAuthWebRequestValidator(RequestValidator):
 	# Pre- and post-authorization.
 	def validate_client_id(self, client_id, request, *args, **kwargs):
 		# Simple validity check, does client exist? Not banned?
-		cli_id = frappe.db.get_value("OAuth Client", {"name": client_id})
-		if cli_id:
-			client = frappe.get_doc("OAuth Client", client_id)
-			if client.user_has_allowed_role():
-				request.client = client.as_dict()
-				return True
+		try:
+			client = frappe.get_cached_doc("OAuth Client", client_id)
+		except frappe.DoesNotExistError:
+			return False
+
+		if client.user_has_allowed_role():
+			request.client = client.as_dict()
+			return True
 		return False
 
 	def validate_redirect_uri(self, client_id, redirect_uri, request, *args, **kwargs):
@@ -31,7 +33,7 @@ class OAuthWebRequestValidator(RequestValidator):
 		# the client previously registered this EXACT redirect uri.
 
 		redirect_uris = (
-			cstr(frappe.db.get_value("OAuth Client", client_id, "redirect_uris"))
+			cstr(frappe.get_cached_value("OAuth Client", client_id, "redirect_uris"))
 			.strip()
 			.split(get_url_delimiter())
 		)
@@ -45,7 +47,7 @@ class OAuthWebRequestValidator(RequestValidator):
 		# The redirect used if none has been supplied.
 		# Prefer your clients to pre register a redirect uri rather than
 		# supplying one on each authorization request.
-		return frappe.db.get_value("OAuth Client", client_id, "default_redirect_uri")
+		return frappe.get_cached_value("OAuth Client", client_id, "default_redirect_uri")
 
 	def validate_scopes(self, client_id, scopes, client, request, *args, **kwargs):
 		# Is the client allowed to access the requested scopes?
@@ -112,7 +114,7 @@ class OAuthWebRequestValidator(RequestValidator):
 
 			client_name = frappe.db.get_value("OAuth Bearer Token", filters=token_filters, fieldname="client")
 
-		oc: OAuthClient = frappe.get_doc("OAuth Client", client_name)
+		oc: OAuthClient = frappe.get_cached_doc("OAuth Client", client_name)
 		try:
 			request.client = request.client or oc.as_dict()
 		except Exception as e:
@@ -121,37 +123,35 @@ class OAuthWebRequestValidator(RequestValidator):
 		return True
 
 	def authenticate_client_id(self, client_id, request, *args, **kwargs):
-		cli_id = frappe.db.get_value("OAuth Client", client_id, "name")
-		if not cli_id:
+		try:
+			client = frappe.get_cached_doc("OAuth Client", client_id)
+		except frappe.DoesNotExistError:
 			# Don't allow public (non-authenticated) clients
 			return False
-		else:
-			request["client"] = frappe.get_doc("OAuth Client", cli_id)
-			return True
+
+		request["client"] = client
+		return True
 
 	def validate_code(self, client_id, code, client, request, *args, **kwargs):
 		# Validate the code belongs to the client. Add associated scopes,
 		# state and user to request.scopes and request.user.
 
-		validcodes = frappe.get_all(
+		code_details = frappe.db.get_value(
 			"OAuth Authorization Code",
-			filters={"client": client_id, "validity": "Valid"},
+			{"name": code, "client": client_id, "validity": "Valid"},
+			("scopes", "user", "code_challenge_method", "code_challenge"),
+			as_dict=True,
 		)
 
-		if code in [vcode["name"] for vcode in validcodes]:
-			request.scopes = frappe.db.get_value("OAuth Authorization Code", code, "scopes").split(
-				get_url_delimiter()
-			)
-			request.user = frappe.db.get_value("OAuth Authorization Code", code, "user")
-			code_challenge_method = frappe.db.get_value(
-				"OAuth Authorization Code", code, "code_challenge_method"
-			)
-			code_challenge = frappe.db.get_value("OAuth Authorization Code", code, "code_challenge")
+		if code_details:
+			request.scopes = code_details.scopes.split(get_url_delimiter())
+			request.user = code_details.user
+			code_challenge_method = code_details.code_challenge_method
+			code_challenge = code_details.code_challenge
 
 			if code_challenge and not request.code_verifier:
-				if frappe.db.exists("OAuth Authorization Code", code):
-					frappe.delete_doc("OAuth Authorization Code", code, ignore_permissions=True, force=True)
-					frappe.db.commit()
+				frappe.delete_doc("OAuth Authorization Code", code, ignore_permissions=True, force=True)
+				frappe.db.commit()
 				return False
 
 			if code_challenge_method == "s256":
@@ -171,9 +171,11 @@ class OAuthWebRequestValidator(RequestValidator):
 		return False
 
 	def confirm_redirect_uri(self, client_id, code, redirect_uri, client, *args, **kwargs):
-		saved_redirect_uri = frappe.db.get_value("OAuth Client", client_id, "default_redirect_uri")
-
-		redirect_uris = frappe.db.get_value("OAuth Client", client_id, "redirect_uris")
+		client_redirects = frappe.get_cached_value(
+			"OAuth Client", client_id, ("default_redirect_uri", "redirect_uris"), as_dict=True
+		)
+		saved_redirect_uri = client_redirects.default_redirect_uri
+		redirect_uris = client_redirects.redirect_uris
 
 		if redirect_uris:
 			redirect_uris = redirect_uris.split(get_url_delimiter())
@@ -215,7 +217,7 @@ class OAuthWebRequestValidator(RequestValidator):
 		otoken.save(ignore_permissions=True)
 		frappe.db.commit()
 
-		return frappe.db.get_value("OAuth Client", request.client["name"], "default_redirect_uri")
+		return frappe.get_cached_value("OAuth Client", request.client["name"], "default_redirect_uri")
 
 	def invalidate_authorization_code(self, client_id, code, request, *args, **kwargs):
 		# Authorization codes are use once, invalidate it when a Bearer token
@@ -230,7 +232,7 @@ class OAuthWebRequestValidator(RequestValidator):
 		# Remember to check expiration and scope membership
 		otoken = frappe.get_doc("OAuth Bearer Token", {"access_token": get_oauth_token_hash(token)})
 		is_token_valid = (now_datetime() < otoken.expiration_time) and otoken.status != "Revoked"
-		client_scopes = frappe.db.get_value("OAuth Client", otoken.client, "scopes").split(
+		client_scopes = frappe.get_cached_value("OAuth Client", otoken.client, "scopes").split(
 			get_url_delimiter()
 		)
 		are_scopes_valid = all(scope in client_scopes for scope in scopes)
@@ -541,7 +543,7 @@ def delete_oauth2_data():
 
 
 def get_client_scopes(client_id):
-	scopes_string = frappe.db.get_value("OAuth Client", client_id, "scopes")
+	scopes_string = frappe.get_cached_value("OAuth Client", client_id, "scopes")
 	return scopes_string.split()
 
 

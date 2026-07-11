@@ -108,21 +108,24 @@ def authorize(**kwargs):
 				frappe.flags.oauth_credentials,
 			) = get_oauth_server().validate_authorization_request(r.url, r.method, r.get_data(), r.headers)
 
-			skip_auth = frappe.db.get_value(
+			skip_auth = frappe.get_cached_value(
 				"OAuth Client",
 				frappe.flags.oauth_credentials["client_id"],
 				"skip_authorization",
 			)
-			unrevoked_tokens = frappe.db.exists(
-				"OAuth Bearer Token",
-				{
-					"status": "Active",
-					"user": frappe.session.user,
-					"client": frappe.flags.oauth_credentials["client_id"],
-				},
+			authorization_skipped = skip_auth or (
+				get_oauth_settings().skip_authorization == "Auto"
+				and frappe.db.exists(
+					"OAuth Bearer Token",
+					{
+						"status": "Active",
+						"user": frappe.session.user,
+						"client": frappe.flags.oauth_credentials["client_id"],
+					},
+				)
 			)
 
-			if skip_auth or (get_oauth_settings().skip_authorization == "Auto" and unrevoked_tokens):
+			if authorization_skipped:
 				headers, _body, _status = get_oauth_server().create_authorization_response(
 					uri=frappe.flags.oauth_credentials["redirect_uri"],
 					body=r.get_data(),
@@ -140,7 +143,7 @@ def authorize(**kwargs):
 				# Show Allow/Deny screen.
 				response_html_params = frappe._dict(
 					{
-						"client_id": frappe.db.get_value("OAuth Client", kwargs["client_id"], "app_name"),
+						"client_id": frappe.get_cached_value("OAuth Client", kwargs["client_id"], "app_name"),
 						"success_url": success_url,
 						"failure_url": failure_url,
 						"details": scopes,
@@ -252,7 +255,7 @@ def introspect_token(token: str, token_type_hint: str | None = None):
 				"OAuth Bearer Token", {"refresh_token": get_oauth_token_hash(token)}
 			)
 
-		client = frappe.get_doc("OAuth Client", bearer_token.client)
+		client = frappe.get_cached_doc("OAuth Client", bearer_token.client)
 
 		token_response = frappe._dict(
 			{
@@ -265,16 +268,9 @@ def introspect_token(token: str, token_type_hint: str | None = None):
 		)
 
 		if "openid" in bearer_token.scopes:
-			sub = frappe.get_value(
-				"User Social Login",
-				{"provider": "frappe", "parent": bearer_token.user},
-				"userid",
-			)
-
-			if sub:
-				token_response.update({"sub": sub})
-				user = frappe.get_doc("User", bearer_token.user)
-				userinfo = get_userinfo(user)
+			user = frappe.get_cached_doc("User", bearer_token.user)
+			userinfo = get_userinfo(user)
+			if userinfo.sub:
 				token_response.update(userinfo)
 
 		frappe.local.response = token_response
