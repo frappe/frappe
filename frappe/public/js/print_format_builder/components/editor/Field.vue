@@ -598,6 +598,8 @@ const NUMERIC_FIELDTYPES = new Set(["Currency", "Float", "Int", "Percent"]);
 const HTML_CONTENT_FIELDTYPES = new Set(["Text Editor", "Long Text"]);
 
 function numeric_align_class(col) {
+	// Serial-number column is centered (matches the PDF)
+	if (col?.fieldname === "idx") return "col-center";
 	// Merged cells are left-aligned (like the PDF), even on numeric columns
 	return !has_merge(col) && NUMERIC_FIELDTYPES.has(col?.fieldtype) ? "col-numeric" : "";
 }
@@ -1258,6 +1260,11 @@ watch(
 /* Numeric columns right-aligned — same as PDF */
 .preview-table .col-numeric {
 	text-align: right;
+}
+
+/* Serial-number column centered — same as PDF */
+.preview-table .col-center {
+	text-align: center;
 }
 
 /* ── Borderless variant ──────────────────────────────── */
