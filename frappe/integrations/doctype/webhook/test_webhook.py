@@ -2,6 +2,7 @@
 # License: MIT. See LICENSE
 import json
 from contextlib import contextmanager
+from unittest.mock import patch
 
 import responses
 from responses.matchers import json_params_matcher
@@ -467,6 +468,29 @@ class TestWebhook(IntegrationTestCase):
 			self.assertEqual(log.status, "Failed")
 			self.assertEqual(log.attempt, 2)
 			self.assertIsNotNone(log.next_retry)
+
+	@timeout(5, "Test webhooks should never wait, check mocked responses.")
+	def test_sweeper_skips_delivery_already_in_flight(self):
+		"""A due delivery whose retry job is still queued is not sent again"""
+		url = "https://httpbin.org/sweeper-in-flight"
+		self.responses.add(responses.POST, url, status=500)
+
+		with get_test_webhook(self.retry_webhook_config(url, max_retries=3)) as wh:
+			doc = frappe.new_doc("Note")
+			doc.title = "In Flight Note"
+			enqueue_webhook(doc, wh)
+
+			log = frappe.get_last_doc("Webhook Request Log", filters={"webhook": wh.name})
+			frappe.db.set_value(
+				"Webhook Request Log", log.name, "next_retry", add_to_date(now_datetime(), seconds=-1)
+			)
+
+			with patch("frappe.integrations.doctype.webhook.webhook.is_job_enqueued", return_value=True):
+				retry_failed_webhooks()
+
+			log.reload()
+			self.assertEqual(log.status, "Failed")
+			self.assertEqual(log.attempt, 1)
 
 	@timeout(5, "Test webhooks should never wait, check mocked responses.")
 	def test_retry_stops_when_webhook_disabled(self):
