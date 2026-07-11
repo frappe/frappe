@@ -12,7 +12,7 @@ def make_automation():
 	doc.title = "Outbox Rule"
 	doc.trigger_type = "Doc Created"
 	doc.document_type = "ToDo"
-	doc.append("actions", {"action_type": "SetFieldValue", "params": "{}"})
+	doc.append("actions", {"action_type": "SetFieldValue", "params": '{"field": "priority", "value": "Low"}'})
 	doc.enabled = 1
 	doc.insert()
 	return doc.name
