@@ -511,6 +511,10 @@ export default class BulkOperations {
 								indicator: "green",
 							});
 						}
+					})
+					.catch(() => {
+						done();
+						dialog.hide();
 					});
 			},
 		});
