@@ -271,14 +271,17 @@ watch(print_format, () => (store.dirty.value = true), { deep: true });
 	transition: border-color 0.1s;
 }
 
-.pfb-clean-preview :deep(.print-format-section:hover) {
+/* Outlines live on the container so they enclose the section's margin too */
+.pfb-clean-preview :deep(.print-format-section-container:hover) {
 	outline: 1px dashed var(--gray-400);
 	outline-offset: 2px;
+	border-radius: var(--radius);
 }
 
-.pfb-clean-preview :deep(.print-format-section.section--selected) {
+.pfb-clean-preview :deep(.print-format-section-container:has(.section--selected)) {
 	outline: 1px solid var(--gray-400);
 	outline-offset: 2px;
+	border-radius: var(--radius);
 }
 
 .pfb-clean-preview :deep(.print-format-section-container) {
