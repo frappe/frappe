@@ -14,7 +14,7 @@ def make_automation(trigger_type="Doc Created", **kwargs):
 	doc.document_type = "ToDo"
 	for key, value in kwargs.items():
 		doc.set(key, value)
-	doc.append("actions", {"action_type": "SetFieldValue", "params": "{}"})
+	doc.append("actions", {"action_type": "SetFieldValue", "params": '{"field": "priority", "value": "Low"}'})
 	doc.enabled = 1
 	doc.insert()
 	return doc

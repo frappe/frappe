@@ -10,7 +10,7 @@ def make_automation(**kwargs):
 	doc.title = kwargs.pop("title", "Test Automation")
 	doc.trigger_type = kwargs.pop("trigger_type", "Doc Created")
 	doc.document_type = kwargs.pop("document_type", "ToDo")
-	actions = kwargs.pop("actions", [{"action_type": "SetFieldValue", "params": "{}"}])
+	actions = kwargs.pop("actions", [{"action_type": "SetFieldValue", "params": '{"field": "priority", "value": "Low"}'}])
 	for key, value in kwargs.items():
 		doc.set(key, value)
 	for action in actions:

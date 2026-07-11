@@ -17,7 +17,7 @@ def make_rule(document_type="ToDo", enabled=1, trigger_type="Doc Created", **kwa
 	doc.document_type = document_type
 	for key, value in kwargs.items():
 		doc.set(key, value)
-	doc.append("actions", {"action_type": "SetFieldValue", "params": "{}"})
+	doc.append("actions", {"action_type": "SetFieldValue", "params": '{"field": "priority", "value": "Low"}'})
 	doc.enabled = enabled
 	doc.insert()
 	return doc

@@ -33,6 +33,15 @@ def make_automation(actions, stop_on_error=1):
 	return doc.name
 
 
+def make_broken_automation(stop_on_error=1):
+	"""A rule whose action_type no longer resolves (e.g. its action was removed post-save)."""
+	auto = make_automation([set_field("priority", "Low")], stop_on_error=stop_on_error)
+	child = frappe.db.get_value("Automation Action", {"parent": auto}, "name")
+	frappe.db.set_value("Automation Action", child, "action_type", "NopeAction", update_modified=False)
+	frappe.clear_document_cache("Automation", auto)
+	return auto
+
+
 class TestRunner(IntegrationTestCase):
 	def setUp(self):
 		frappe.set_user("Administrator")
@@ -81,7 +90,7 @@ class TestRunner(IntegrationTestCase):
 
 	def test_failed_action_stops_and_marks_failed(self):
 		todo = make_todo()
-		auto = make_automation([{"action_type": "NopeAction", "params": "{}"}], stop_on_error=1)
+		auto = make_broken_automation(stop_on_error=1)
 		name = self.queue_row(auto, todo.name)
 		execute_automation(name)
 		self.assertEqual(self.run_status(auto), "Failed")
@@ -90,9 +99,15 @@ class TestRunner(IntegrationTestCase):
 	def test_partial_failure_continues_when_not_stopping(self):
 		todo = make_todo()
 		auto = make_automation(
-			[{"action_type": "NopeAction", "params": "{}"}, set_field("priority", "High")],
-			stop_on_error=0,
+			[set_field("priority", "Low"), set_field("priority", "High")], stop_on_error=0
 		)
+		first_child = frappe.get_all(
+			"Automation Action", filters={"parent": auto}, order_by="idx", limit=1
+		)[0].name
+		frappe.db.set_value(
+			"Automation Action", first_child, "action_type", "NopeAction", update_modified=False
+		)
+		frappe.clear_document_cache("Automation", auto)
 		name = self.queue_row(auto, todo.name)
 		execute_automation(name)
 		self.assertEqual(self.run_status(auto), "Partially Failed")
@@ -119,7 +134,7 @@ class TestRunner(IntegrationTestCase):
 
 	def test_circuit_breaker_disables_after_threshold(self):
 		todo = make_todo()
-		auto = make_automation([{"action_type": "NopeAction", "params": "{}"}], stop_on_error=1)
+		auto = make_broken_automation(stop_on_error=1)
 		frappe.cache.delete(_failure_key(auto))
 		original = frappe.conf.get("automation_failure_threshold")
 		frappe.conf.automation_failure_threshold = 2
