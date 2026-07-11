@@ -39,3 +39,11 @@ watch(
 	}
 );
 </script>
+
+<style scoped>
+/* only_input wraps the colour input in a .form-group with a 1rem bottom margin,
+   which unbalances the row's vertical centering against the label */
+.pfb-insp-row :deep(.form-group) {
+	margin-bottom: 0;
+}
+</style>
