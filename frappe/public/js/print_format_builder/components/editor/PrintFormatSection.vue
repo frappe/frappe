@@ -96,19 +96,17 @@
 			</div>
 			<div
 				class="section-columns"
-				:style="
-					is_grid
-						? { gap: '0' }
-						: section.columns.length > 1 && section.gap
-						? { gap: section.gap + 'px' }
-						: {}
-				"
+				:class="preview_doc ? ['row', row_layout] : []"
+				:style="columns_gap_style"
 			>
 				<template v-for="(column, i) in section.columns" :key="i">
 					<div v-if="i > 0 && !preview_doc" class="column-divider"></div>
 					<div
 						class="column"
-						:class="{ 'column-align-right': column.align === 'right' }"
+						:class="{
+							'column-align-right': column.align === 'right',
+							col: !!preview_doc,
+						}"
 					>
 						<draggable
 							class="drag-container"
@@ -184,6 +182,25 @@ let is_section_visible = computed(() =>
 );
 
 let is_grid = computed(() => !!props.section.field_borders);
+
+// Mirrors the row layout class print_format.html picks for right-aligned columns
+let row_layout = computed(() => {
+	const cols = props.section.columns || [];
+	if (!cols.some((c) => c.align === "right")) return "";
+	return cols.length === 1 ? "row-col-right-end" : "row-col-space-between";
+});
+
+// In preview the gap mirrors the server default (20px unless set, 0 for grid)
+let columns_gap_style = computed(() => {
+	if (preview_doc.value) {
+		return { gap: is_grid.value ? "0" : `${props.section.gap ?? 20}px` };
+	}
+	return is_grid.value
+		? { gap: "0" }
+		: props.section.columns.length > 1 && props.section.gap
+		? { gap: props.section.gap + "px" }
+		: {};
+});
 
 let has_visible_fields = computed(
 	() =>
@@ -483,23 +500,24 @@ function remove_column(index) {
 .section--grid :deep(.drag-container) {
 	gap: 0;
 }
-.section--grid :deep(.field) {
+.section--grid :deep(.field--chip) {
 	padding: var(--pfb-cell-pad, 8px);
 	border: none;
 	border-bottom: 1px solid var(--border-color);
 	border-radius: 0;
 	background: transparent;
 }
-.section--grid :deep(.field:last-child) {
+.section--grid :deep(.field--chip:last-child) {
 	border-bottom: none;
 }
 .section--grid-rows .column:not(:last-child) {
 	border-right: none;
 }
-.section--grid-columns :deep(.field) {
+.section--grid-columns :deep(.field--chip) {
 	border-bottom: none;
 }
-.section--grid :deep(.field:hover),
+.section--grid :deep(.field--chip:hover),
+.section--grid :deep(.field--preview:hover),
 .section--grid :deep(.field--selected) {
 	outline: 1px dashed var(--gray-400);
 	outline-offset: -1px;

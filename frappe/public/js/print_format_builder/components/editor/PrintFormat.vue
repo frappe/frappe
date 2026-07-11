@@ -142,14 +142,46 @@ let rootStyles = computed(() => {
 });
 
 let bodyStyles = computed(() => {
-	const { font_size, font, label_color, value_color } = print_format.value;
+	const { font_size, font } = print_format.value;
 	const styles = {};
 	if (font_size) styles.fontSize = `${parseFloat(font_size)}px`;
 	if (font) styles.fontFamily = `'${font}', sans-serif`;
-	if (label_color) styles["--pfb-label-color"] = label_color;
-	if (value_color) styles["--pfb-value-color"] = value_color;
 	return styles;
 });
+
+// Format-level label/value colours: emit the same scoped rules the server
+// appends after the shared stylesheet (templates/print_format/print_format.css),
+// so the cascade on the canvas is identical to the printed page.
+const COLOR_CSS_ID = "pfb-format-color-css";
+watch(
+	() => [print_format.value.label_color, print_format.value.value_color],
+	([label_color, value_color]) => {
+		let el = document.getElementById(COLOR_CSS_ID);
+		if (!label_color && !value_color) {
+			el?.remove();
+			return;
+		}
+		if (!el) {
+			el = document.createElement("style");
+			el.id = COLOR_CSS_ID;
+			document.head.appendChild(el);
+		}
+		let css = "";
+		if (label_color) {
+			css += `.print-format-doc .field .label,
+.print-format-doc .field.left-right .label,
+.print-format-doc .field.field-inline .label { color: ${label_color}; }\n`;
+		}
+		if (value_color) {
+			css += `.print-format-doc .field .value,
+.print-format-doc .field.left-right .value,
+.print-format-doc .field.field-inline .value { color: ${value_color}; }\n`;
+		}
+		el.textContent = css;
+	},
+	{ immediate: true }
+);
+onUnmounted(() => document.getElementById(COLOR_CSS_ID)?.remove());
 
 let page_number_hidden = computed(() => print_format.value.page_number.includes("Hide"));
 
@@ -288,28 +320,7 @@ watch(print_format, () => (store.dirty.value = true), { deep: true });
 	margin-bottom: 0;
 }
 
-/* Default field skin in clean-preview — grid cells style themselves */
-.pfb-clean-preview :deep(.field--preview:not(.section--grid *)) {
-	border: 1px solid transparent;
-	background: transparent;
-	padding: 0;
-	border-radius: var(--radius);
-	transition: border-color 0.1s;
-}
-
-.pfb-clean-preview :deep(.field--preview:hover:not(.section--grid *)) {
-	border: 1px dashed var(--gray-400);
-	background: transparent;
-}
-
-.pfb-clean-preview :deep(.field--preview.field--selected:not(.section--grid *)) {
-	border: 1px solid var(--gray-400);
-	background: transparent;
-}
-
-.pfb-clean-preview :deep(.field--preview.field--condition-hidden:not(.section--grid *)) {
-	border: 1px dashed var(--gray-400);
-}
+/* Field selection chrome lives in Field.vue and is outline-only */
 
 /* Section columns: no vertical padding in preview (matches PDF) */
 .pfb-clean-preview :deep(.section-columns) {
@@ -341,15 +352,5 @@ watch(print_format, () => (store.dirty.value = true), { deep: true });
 /* Section title: typography/border come from the shared .section-label rules */
 .pfb-clean-preview :deep(.section-title-display) {
 	display: block;
-}
-
-.pfb-body :deep(.field--preview) {
-	font-size: inherit;
-}
-.pfb-body :deep(.field--preview .field-preview-value) {
-	font-size: 1em;
-}
-.pfb-body :deep(.field--preview .field-preview-label) {
-	font-size: 1em;
 }
 </style>
