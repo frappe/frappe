@@ -164,18 +164,19 @@ def bulk_assign_roles(docnames: str | list[str], roles: str | list[str]) -> list
 		if not frappe.has_permission("User", "write", doc=docname):
 			failed.append(docname)
 			continue
+		savepoint = "bulk_assign_roles"
 		try:
+			frappe.db.savepoint(savepoint)
 			user = frappe.get_doc("User", docname)
 			existing_roles = {r.role for r in user.roles}
 			for role in roles:
 				if role not in existing_roles:
 					user.append("roles", {"role": role})
 			user.save()
-			frappe.db.commit()
 		except Exception:
-			frappe.log_error("Bulk role assignment failed")
+			frappe.db.rollback(save_point=savepoint)
+			frappe.log_error("Bulk role assignment failed", frappe.get_traceback())
 			failed.append(docname)
-			frappe.db.rollback()
 
 	return failed
 
