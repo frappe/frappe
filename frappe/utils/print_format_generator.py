@@ -46,8 +46,11 @@ def get_qr_code(value: str) -> str:
 
 
 def get_html(doctype, name, print_format, letterhead=None, action_banner=None):
+	from frappe.www.printview import validate_print_permission
+
 	doc = frappe.get_doc(doctype, name)
-	doc.check_permission("print")
+	if not frappe.flags.ignore_print_permissions:
+		validate_print_permission(doc)
 	generator = PrintFormatGenerator(print_format, doc, letterhead)
 	return generator.get_html_preview(action_banner=action_banner)
 
