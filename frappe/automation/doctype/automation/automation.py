@@ -9,16 +9,8 @@
 
 import frappe
 from frappe import _
+from frappe.automation_engine.registry import DOC_TRIGGER_TYPES, clear_automation_cache
 from frappe.model.document import Document
-
-DOC_TRIGGERS = {
-	"Doc Created",
-	"Doc Updated",
-	"Field Value Changed",
-	"Doc Deleted",
-	"Doc Submitted",
-	"Doc Cancelled",
-}
 
 
 class Automation(Document):
@@ -74,7 +66,7 @@ class Automation(Document):
 			frappe.throw(_("Automation cannot target a child table: {0}").format(self.document_type))
 
 	def validate_trigger_config(self):
-		needs_doctype = self.trigger_type in DOC_TRIGGERS or self.trigger_type == "Date Based"
+		needs_doctype = self.trigger_type in DOC_TRIGGER_TYPES or self.trigger_type == "Date Based"
 		if needs_doctype and not self.document_type:
 			frappe.throw(_("{0} trigger requires a Document Type").format(self.trigger_type))
 		if self.trigger_type == "Field Value Changed" and not self.trigger_field:
@@ -94,5 +86,9 @@ class Automation(Document):
 		if not croniter.is_valid(self.cron_expression):
 			frappe.throw(_("Invalid cron expression: {0}").format(self.cron_expression))
 
+	def on_update(self):
+		clear_automation_cache(self.document_type)
+
 	def on_trash(self):
+		clear_automation_cache(self.document_type)
 		frappe.db.delete("Automation Trigger Queue", {"automation": self.name})
