@@ -1,0 +1,50 @@
+{
+ "actions": [],
+ "allow_rename": 0,
+ "creation": "2026-07-11 21:05:04.231189",
+ "doctype": "DocType",
+ "editable_grid": 1,
+ "engine": "InnoDB",
+ "field_order": [
+  "action_type",
+  "params",
+  "step_condition"
+ ],
+ "fields": [
+  {
+   "columns": 3,
+   "fieldname": "action_type",
+   "fieldtype": "Data",
+   "in_list_view": 1,
+   "label": "Action Type",
+   "reqd": 1
+  },
+  {
+   "columns": 5,
+   "fieldname": "params",
+   "fieldtype": "JSON",
+   "in_list_view": 1,
+   "label": "Parameters"
+  },
+  {
+   "description": "Optional per-step condition (safe_eval). Field ships in v1; evaluated in Phase 3.",
+   "fieldname": "step_condition",
+   "fieldtype": "Code",
+   "label": "Step Condition",
+   "options": "PythonExpression"
+  }
+ ],
+ "istable": 1,
+ "links": [],
+ "modified": "2026-07-11 21:05:04.231189",
+ "modified_by": "Administrator",
+ "module": "Automation",
+ "name": "Automation Action",
+ "owner": "Administrator",
+ "permissions": [],
+ "row_format": "Dynamic",
+ "sort_field": "creation",
+ "sort_order": "DESC",
+ "states": [],
+ "track_changes": 1
+}
