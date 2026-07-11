@@ -505,7 +505,12 @@ export default class BulkOperations {
 						}
 						done();
 						dialog.hide();
-						frappe.show_alert(__("Roles assigned successfully"));
+						if (!failed.length) {
+							frappe.show_alert({
+								message: __("Roles assigned successfully"),
+								indicator: "green",
+							});
+						}
 					});
 			},
 		});
