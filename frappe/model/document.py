@@ -1161,11 +1161,11 @@ class Document(BaseDocument):
 
 			if min_value and value < min_value:
 				msg = get_msg(df, _("Value cannot be less than {0} for").format(frappe.bold(min_value)))
-				frappe.throw(msg, title=_("Value Too Small"))
+				frappe.throw(msg, title=_("Value is too small"))
 
 			if max_value and value > max_value:
 				msg = get_msg(df, _("Value cannot be more than {0} for").format(frappe.bold(max_value)))
-				frappe.throw(msg, title=_("Value Too Large"))
+				frappe.throw(msg, title=_("Value is too large"))
 
 	def _fix_rating_value(self):
 		for field in self.meta.get("fields", {"fieldtype": "Rating"}):
