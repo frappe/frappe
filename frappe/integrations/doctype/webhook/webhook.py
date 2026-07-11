@@ -13,13 +13,15 @@ import frappe
 from frappe import _
 from frappe.model.document import Document
 from frappe.utils import add_to_date, cint, now_datetime
-from frappe.utils.background_jobs import get_queues_timeout
+from frappe.utils.background_jobs import get_queues_timeout, is_job_enqueued
 from frappe.utils.jinja import validate_template
 from frappe.utils.safe_exec import get_safe_globals
 
 WEBHOOK_SECRET_HEADER = "X-Frappe-Webhook-Signature"
 
 RETRY_SCHEDULE = [5 * 60, 30 * 60, 2 * 3600, 5 * 3600, 10 * 3600, 10 * 3600]
+
+RETRY_BATCH_SIZE = 100
 
 
 class Webhook(Document):
@@ -217,15 +219,33 @@ def get_next_retry(attempt: int):
 
 
 def retry_failed_webhooks():
-	"""Re-send webhook deliveries whose scheduled retry time has passed."""
+	"""Enqueue a delivery job for each webhook whose scheduled retry time has passed."""
 	due_logs = frappe.get_all(
 		"Webhook Request Log",
 		filters={"status": "Failed", "next_retry": ["<=", now_datetime()]},
+		fields=["name", "webhook"],
 		order_by="next_retry asc",
-		pluck="name",
+		limit=RETRY_BATCH_SIZE,
 	)
-	for log_name in due_logs:
-		retry_webhook_delivery(log_name)
+
+	queues = {}
+	for log in due_logs:
+		job_id = f"webhook_retry::{log.name}"
+		if is_job_enqueued(job_id):
+			continue
+
+		if log.webhook not in queues:
+			queues[log.webhook] = (
+				frappe.db.get_value("Webhook", log.webhook, "background_jobs_queue") or "default"
+			)
+
+		frappe.enqueue(
+			"frappe.integrations.doctype.webhook.webhook.retry_webhook_delivery",
+			log_name=log.name,
+			job_id=job_id,
+			queue=queues[log.webhook],
+			now=frappe.in_test,
+		)
 
 
 def retry_webhook_delivery(log_name: str):
