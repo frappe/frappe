@@ -1,6 +1,5 @@
 [pre_model_sync]
 frappe.patches.v16_0.enable_setup_complete #01-07-2025 re-run-patch
-frappe.patches.v16_0.hash_oauth_bearer_tokens
 frappe.patches.v15_0.remove_implicit_primary_key
 frappe.patches.v12_0.remove_deprecated_fields_from_doctype #3
 execute:frappe.utils.global_search.setup_global_search_table()
@@ -196,6 +195,7 @@ execute:frappe.reload_doc("desk", "doctype", "Form Tour")
 execute:frappe.delete_doc('Page', 'recorder', ignore_missing=True, force=True)
 frappe.patches.v14_0.modify_value_column_size_for_singles
 frappe.integrations.doctype.oauth_bearer_token.patches.clear_old_tokens
+frappe.patches.v16_0.hash_oauth_bearer_tokens
 execute:frappe.db.truncate("Desktop Icon")
 
 [post_model_sync]
