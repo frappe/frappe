@@ -1,7 +1,22 @@
 context("Grid", () => {
+	let original_log_settings_rows;
 	beforeEach(() => {
 		cy.login();
 		cy.visit("/app/website");
+	});
+	afterEach(() => {
+		if (!original_log_settings_rows) return;
+		const rows = original_log_settings_rows;
+		original_log_settings_rows = null;
+		cy.visit("/app/log-settings");
+		cy.window()
+			.its("cur_frm")
+			.then((frm) => {
+				frm.doc.logs_to_clear = [];
+				rows.forEach((row) => frm.add_child("logs_to_clear", row));
+				frm.refresh_field("logs_to_clear");
+			});
+		cy.save();
 	});
 	before(() => {
 		cy.login();
@@ -112,16 +127,14 @@ context("Grid", () => {
 			});
 	});
 	it("keeps child table in sync after backend removes a reordered row", () => {
-		let original_rows;
 		cy.visit("/app/log-settings");
 		cy.window()
 			.its("cur_frm")
 			.then((frm) => {
-				original_rows = frm.doc.logs_to_clear.map((row) => ({
+				original_log_settings_rows = frm.doc.logs_to_clear.map((row) => ({
 					ref_doctype: row.ref_doctype,
 					days: row.days,
 				}));
-				// add an unsupported doctype and move it off the last position
 				frm.add_child("logs_to_clear", { ref_doctype: "User", days: 30 });
 				const rows = frm.doc.logs_to_clear;
 				rows.splice(1, 0, rows.pop());
@@ -135,17 +148,11 @@ context("Grid", () => {
 			.its("cur_frm")
 			.then((frm) => {
 				const rows = frm.doc.logs_to_clear;
-				// the unsupported row is gone and no empty/ghost rows remain
 				expect(rows.find((row) => row.ref_doctype === "User")).to.be.undefined;
 				expect(rows.every((row) => row.ref_doctype)).to.be.true;
 				cy.get(
 					'.frappe-control[data-fieldname="logs_to_clear"] .grid-body .grid-row'
 				).should("have.length", rows.length);
-				// restore the full original table so the global singleton is left untouched
-				frm.doc.logs_to_clear = [];
-				original_rows.forEach((row) => frm.add_child("logs_to_clear", row));
-				frm.refresh_field("logs_to_clear");
 			});
-		cy.save();
 	});
 });
