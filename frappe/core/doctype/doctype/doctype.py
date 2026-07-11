@@ -2050,6 +2050,26 @@ def validate_permissions(doctype, for_remove=False, alert=False):
 					title=_("Permissions Error"),
 				)
 
+	# `if_owner` is only honoured at permlevel 0. Clear it at higher levels, where it is
+	# ignored, then drop any row that becomes an exact duplicate of another.
+	for d in permissions:
+		if cint(d.permlevel) > 0 and d.if_owner:
+			d.if_owner = 0
+
+	seen = []
+	deduped = []
+	for d in permissions:
+		comparable = d.as_dict(no_default_fields=True)
+		comparable.pop("name", None)
+		if comparable in seen:
+			continue
+		seen.append(comparable)
+		deduped.append(d)
+
+	if len(deduped) != len(permissions):
+		doctype.set("permissions", deduped)
+		permissions = doctype.get("permissions")
+
 	for d in permissions:
 		if not d.permlevel:
 			d.permlevel = 0

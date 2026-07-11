@@ -20,6 +20,7 @@ from frappe.core.doctype.doctype.doctype import (
 	WrongOptionsDoctypeLinkError,
 	validate_fields,
 	validate_links_table_fieldnames,
+	validate_permissions,
 )
 from frappe.core.doctype.rq_job.test_rq_job import wait_for_completion
 from frappe.custom.doctype.custom_field.custom_field import create_custom_fields
@@ -569,6 +570,40 @@ class TestDocType(IntegrationTestCase):
 		self.assertIn(("User", "email"), link_tuples)
 		self.assertIn(("User", "first_name"), link_tuples)
 		self.assertIn(("Role", "name"), link_tuples)
+
+	def test_if_owner_cleared_for_high_permlevel(self):
+		"""`if_owner` is only honoured at permlevel 0; it is cleared at higher levels."""
+		doc = new_doctype(
+			"Test If Owner Permlevel",
+			permissions=[
+				{"role": "All", "permlevel": 0, "read": 1, "write": 1, "if_owner": 1},
+				{"role": "All", "permlevel": 1, "read": 1, "write": 1, "if_owner": 1},
+			],
+		)
+
+		validate_permissions(doc)
+
+		perms = {p.permlevel: p for p in doc.permissions}
+		self.assertEqual(perms[0].if_owner, 1)
+		self.assertEqual(perms[1].if_owner, 0)
+
+	def test_if_owner_at_high_permlevel_does_not_duplicate(self):
+		"""Clearing if_owner must not leave a duplicate of an existing rule at the same level."""
+		doc = new_doctype(
+			"Test If Owner Duplicate",
+			permissions=[
+				{"role": "All", "permlevel": 0, "read": 1, "write": 1},
+				{"role": "All", "permlevel": 1, "read": 1, "write": 1},
+				{"role": "All", "permlevel": 1, "read": 1, "write": 1, "if_owner": 1},
+			],
+		)
+
+		validate_permissions(doc)
+
+		level1 = [p for p in doc.permissions if p.permlevel == 1]
+		self.assertEqual(len(level1), 1)
+		self.assertFalse(level1[0].if_owner)
+		self.assertEqual(level1[0].write, 1)
 
 	def test_create_virtual_doctype(self):
 		"""Test virtual DocType."""
