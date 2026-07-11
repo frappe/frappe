@@ -255,6 +255,7 @@ scheduler_events = {
 			"frappe.email.doctype.notification.notification.trigger_offset_alerts",
 			"frappe.search.sqlite_search.index_docs_in_queue",
 			"frappe.integrations.doctype.webhook.webhook.retry_failed_webhooks",
+			"frappe.automation_engine.drainer.drain_due",
 		],
 		# 15 minutes
 		"0/15 * * * *": [
@@ -311,6 +312,8 @@ scheduler_events = {
 		"frappe.website.doctype.personal_data_deletion_request.personal_data_deletion_request.remove_unverified_record",
 		"frappe.automation.doctype.auto_repeat.auto_repeat.make_auto_repeat_entry",
 		"frappe.core.doctype.log_settings.log_settings.run_log_clean_up",
+		"frappe.automation_engine.drainer.purge_queue",
+		"frappe.automation_engine.drainer.purge_runs",
 		"frappe.core.doctype.user_invitation.user_invitation.mark_expired_invitations",
 		"frappe.integrations.doctype.oauth_client.oauth_client.delete_unused_dynamic_clients",
 		"frappe.core.doctype.security_settings.security_settings_alert.check_security_txt_expiry",
@@ -566,6 +569,7 @@ default_log_clearing_doctypes = {
 	"API Request Log": 90,
 	"Email Queue Recipient": 30,  # this is added as a dummy placeholder and clearing is handled by Email Queue itself
 	"DuckDB Sync": 45,
+	"Automation Run": 30,
 }
 
 # These keys will not be erased when doing frappe.clear_cache()
