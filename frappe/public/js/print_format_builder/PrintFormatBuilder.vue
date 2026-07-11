@@ -207,7 +207,9 @@ function handle_keydown(e) {
 				return;
 			const is_copy = e.key === "c" || e.key === "C";
 			if (is_copy) {
-				// Let native copy work when nothing in the canvas is selected
+				// Let native copy work when text is highlighted or nothing in the
+				// canvas is selected
+				if (String(window.getSelection() || "")) return;
 				if (!$store.value.selected_field.value && !$store.value.selected_section.value)
 					return;
 				e.preventDefault();

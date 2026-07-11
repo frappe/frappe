@@ -226,6 +226,11 @@
 	text-align: right;
 }
 
+/* Serial-number column is centered */
+.print-format-doc .child-table [data-fieldname="idx"] {
+	text-align: center;
+}
+
 /* ── Merged cells (multiple fields, optional left image) ─── */
 /* Same specificity as the numeric-align rule above but declared later, so
    this wins the cascade without needing !important. */
