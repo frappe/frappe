@@ -850,6 +850,7 @@ frappe.ui.form.ControlLink = class ControlLink extends frappe.ui.form.ControlDat
 
 	apply_link_field_filters() {
 <<<<<<< HEAD
+<<<<<<< HEAD
 		let filters = this.parse_filters(JSON.parse(this.df.link_filters));
 		// take filters from the link field and add to the query
 		const query_filters = this.get_query?.()?.filters || {};
@@ -865,6 +866,14 @@ frappe.ui.form.ControlLink = class ControlLink extends frappe.ui.form.ControlDat
 =======
 		return this.parse_filters(JSON.parse(this.df.link_filters));
 >>>>>>> b6265efd57 (fix(Link): re-evaluate link_filters per search without breaking doc-based get_query)
+=======
+		try {
+			return this.parse_filters(JSON.parse(this.df.link_filters));
+		} catch (e) {
+			console.error("Invalid link_filters JSON:", this.df.link_filters, e);
+			return {};
+		}
+>>>>>>> b30f587900 (fix: add try catch block to validate json)
 	}
 
 	parse_filters(link_filters) {
