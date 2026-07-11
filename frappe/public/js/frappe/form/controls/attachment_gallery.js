@@ -151,10 +151,7 @@ frappe.ui.form.ControlAttachmentGallery = class ControlAttachmentGallery extends
 
 	delete_attachment(attachment) {
 		frappe.confirm(__("Are you sure you want to delete the attachment?"), () => {
-			this.frm.attachments
-				.get_attachments()
-				.filter((item) => item.file_name === attachment.file_name)
-				.forEach((item) => this.frm.attachments.remove_attachment(item.name));
+			this.frm.attachments.remove_attachment(attachment.name);
 		});
 	}
 
