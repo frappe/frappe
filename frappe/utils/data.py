@@ -1621,6 +1621,38 @@ def is_image(filepath: str) -> bool:
 	return (guess_type(filepath)[0] or "").startswith("image/")
 
 
+def validate_egress_url(url: str) -> None:
+	"""Raise ValueError if url resolves to a private/internal address.
+
+	Guards server-side HTTP fetches against SSRF by resolving the hostname and
+	blocking loopback, link-local (including 169.254.169.254), private, and
+	reserved ranges regardless of the URL's textual representation.
+	"""
+	import ipaddress
+	import socket
+
+	parsed = urlparse(url)
+	if parsed.scheme not in ("http", "https"):
+		raise ValueError(f"Disallowed scheme: {parsed.scheme!r}")
+
+	hostname = parsed.hostname
+	if not hostname:
+		raise ValueError("URL has no hostname")
+
+	try:
+		addr_info = socket.getaddrinfo(hostname, None)
+	except socket.gaierror as exc:
+		raise ValueError(f"Cannot resolve host {hostname!r}") from exc
+
+	for record in addr_info:
+		try:
+			ip = ipaddress.ip_address(record[4][0])
+		except (ValueError, IndexError):
+			continue
+		if ip.is_private or ip.is_loopback or ip.is_link_local or ip.is_reserved:
+			raise ValueError(f"Requests to internal address {ip} are not permitted")
+
+
 def get_image_thumbnail_uri(url: str, max_dim: int = 400, quality: int = 80) -> str:
 	"""Return a base64 data: URI thumbnail of `url`, or the original `url` on
 	any error. Used by print templates to keep generated PDFs small: Chrome's
@@ -1648,6 +1680,12 @@ def get_image_thumbnail_uri(url: str, max_dim: int = 400, quality: int = 80) -> 
 	if key in cache:
 		return cache[key]
 
+	if not url.startswith("/"):
+		try:
+			validate_egress_url(url)
+		except ValueError:
+			return url
+
 	try:
 		if url.startswith("/"):
 			path = None
@@ -1663,7 +1701,7 @@ def get_image_thumbnail_uri(url: str, max_dim: int = 400, quality: int = 80) -> 
 		else:
 			import requests
 
-			r = requests.get(url, timeout=5, stream=True)
+			r = requests.get(url, timeout=5, stream=True, allow_redirects=False)
 			r.raise_for_status()
 			chunks, total = [], 0
 			for chunk in r.iter_content(8192):
