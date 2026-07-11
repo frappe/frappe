@@ -8,7 +8,9 @@ frappe.ui.form.ControlAttachmentGallery = class ControlAttachmentGallery extends
 		}
 	}
 
-	refresh_input() {
+	async refresh_input() {
+		const refresh_id = (this.refresh_id || 0) + 1;
+		this.refresh_id = refresh_id;
 		this.$wrapper.empty();
 		this.image_thumbnails = new Map();
 
@@ -21,7 +23,11 @@ frappe.ui.form.ControlAttachmentGallery = class ControlAttachmentGallery extends
 			return;
 		}
 
-		const attachments = this.get_attachments();
+		const attachments = await this.get_attachments();
+		if (refresh_id !== this.refresh_id) {
+			return;
+		}
+		this.attachments = attachments;
 		const can_add = this.can_add_attachment();
 
 		if (!attachments.length && !can_add) {
@@ -45,13 +51,49 @@ frappe.ui.form.ControlAttachmentGallery = class ControlAttachmentGallery extends
 		$('<div class="attachment-gallery-empty"></div>').text(message).appendTo(this.$wrapper);
 	}
 
-	get_attachments() {
-		return this.frm.get_files().map((attachment) => ({
+	async get_attachments() {
+		let attachments = this.frm.get_files();
+		const filters = this.get_filters();
+		if (filters.length) {
+			const response = await frappe.call({
+				method: "frappe.desk.form.load.get_filtered_attachments",
+				args: {
+					dt: this.frm.doctype,
+					dn: this.frm.docname,
+					filters: JSON.stringify(filters),
+				},
+			});
+			attachments = response.message;
+		}
+
+		return frappe.utils.sort(attachments, "file_name", "string").map((attachment) => ({
 			...attachment,
 			file_name: attachment.file_name || attachment.file_url,
 			file_url: this.frm.attachments.get_file_url(attachment),
 			is_image: frappe.utils.is_image_file(attachment.file_url || attachment.file_name),
 		}));
+	}
+
+	get_filters() {
+		if (!this.df.link_filters) {
+			return [];
+		}
+
+		try {
+			return JSON.parse(this.df.link_filters).map((filter) => {
+				if (filter[3]?.startsWith?.("eval:")) {
+					filter[3] = frappe.utils.eval(filter[3].slice(5), {
+						doc: this.get_doc(),
+						parent: this.get_doc().parenttype ? this.frm.doc : null,
+						frappe,
+					});
+				}
+				return filter;
+			});
+		} catch (error) {
+			console.error("Invalid Attachment Gallery filters:", this.df.link_filters, error);
+			return [];
+		}
 	}
 
 	can_add_attachment() {
@@ -145,7 +187,7 @@ frappe.ui.form.ControlAttachmentGallery = class ControlAttachmentGallery extends
 
 		$button.on("click", () => {
 			$button.tooltip("hide");
-			this.frm.attachments.new_attachment();
+			this.frm.attachments.new_attachment(this.df.fieldname);
 		});
 	}
 
@@ -156,7 +198,7 @@ frappe.ui.form.ControlAttachmentGallery = class ControlAttachmentGallery extends
 	}
 
 	get_image_attachments() {
-		return this.get_attachments()
+		return this.attachments
 			.filter((attachment) => attachment.is_image)
 			.map((attachment) => ({
 				...attachment,

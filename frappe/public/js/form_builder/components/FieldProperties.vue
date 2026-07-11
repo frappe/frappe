@@ -93,8 +93,11 @@ let docfield_df = computed(() => {
 			df.description = FIELD_DESCRIPTIONS[fieldtype] || "";
 		}
 
-		// show link_filters docfield only when link field is selected
-		if (df.fieldname === "link_filters" && store.form.selected_field.fieldtype !== "Link") {
+		// show filters only for controls that support them
+		if (
+			df.fieldname === "link_filters" &&
+			!["Attachment Gallery", "Link"].includes(store.form.selected_field.fieldtype)
+		) {
 			return false;
 		}
 

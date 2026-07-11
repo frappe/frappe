@@ -661,6 +661,7 @@ frappe.ui.form.Attachments = class Attachments {
 		new frappe.ui.FileUploader({
 			doctype: this.frm.doctype,
 			docname: this.frm.docname,
+			fieldname,
 			frm: this.frm,
 			folder: "Home/Attachments",
 			on_success: (file_doc) => {

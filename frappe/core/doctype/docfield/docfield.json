@@ -599,9 +599,10 @@
    "label": "Sort Options"
   },
   {
+   "description": "Filters applied to Link queries and Attachment Gallery files.",
    "fieldname": "link_filters",
    "fieldtype": "JSON",
-   "label": "Link Filters"
+   "label": "Filters"
   },
   {
    "default": "0",
@@ -669,7 +670,7 @@
  "index_web_pages_for_search": 1,
  "istable": 1,
  "links": [],
- "modified": "2026-07-11 22:15:06.048541",
+ "modified": "2026-07-11 23:11:42.258326",
  "modified_by": "Administrator",
  "module": "Core",
  "name": "DocField",
