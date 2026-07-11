@@ -126,60 +126,67 @@ Object.assign(frappe.model, {
 					local_doc[fieldname] = [];
 				}
 
-				// reconcile child rows by identity (name), not index, so
-				// server-side reorders/removals don't corrupt locals
+				// child table, override each row and append new rows if required
 				const incoming_names = new Set(doc[fieldname].map((d) => d.name));
-				const local_rows = local_doc[fieldname];
-				const local_by_name = {};
-				for (const row of local_rows) local_by_name[row.name] = row;
-
-				// unsaved local rows receive real names from the server on save;
-				// pair them, in order, with incoming rows that match no local name
-				const unmatched_new_rows = local_rows.filter(
-					(row) => row.__islocal && !incoming_names.has(row.name)
-				);
-
-				const reconciled = [];
-				for (const d of doc[fieldname]) {
-					if (!d.name) d.name = frappe.model.get_new_name(doc.doctype);
-					let local_d = local_by_name[d.name];
-
-					if (!local_d && unmatched_new_rows.length) {
-						local_d = unmatched_new_rows.shift();
-						const old_name = local_d.name;
-						if (locals[d.doctype]) delete locals[d.doctype][old_name];
-
-						const dc = frappe.meta.docfield_copy[d.doctype];
-						if (dc?.[old_name]) {
-							dc[d.name] = dc[old_name];
-							delete dc[old_name];
-						}
-					}
-
+				for (let i = 0; i < doc[fieldname].length; i++) {
+					let d = doc[fieldname][i];
+					let local_d_in_parent = local_doc[fieldname][i];
+					const local_d = locals[d.doctype] ? locals[d.doctype][d.name] : null;
 					if (local_d) {
 						Object.assign(local_d, d);
 						clear_keys(d, local_d);
+						if (local_d_in_parent !== local_d) {
+							local_doc[fieldname][i] = local_d;
+						}
+						continue;
+					}
+					if (local_d_in_parent && !incoming_names.has(local_d_in_parent.name)) {
+						if (!locals[d.doctype]) locals[d.doctype] = {};
+
+						if (!d.name) {
+							// incoming row is new, find a new name
+							d.name = frappe.model.get_new_name(doc.doctype);
+						}
+
+						// if incoming row is not registered, register it
+						if (!locals[d.doctype][d.name]) {
+							const old_name = local_d_in_parent.name;
+
+							// detach old key
+							delete locals[d.doctype][old_name];
+
+							// re-attach with new name
+							locals[d.doctype][d.name] = local_d_in_parent;
+
+							// migrate per-row docfield overrides to new name
+							const dc = frappe.meta.docfield_copy[d.doctype];
+							if (dc?.[old_name]) {
+								dc[d.name] = dc[old_name];
+								delete dc[old_name];
+							}
+						}
+
+						// row exists, just copy the values
+						Object.assign(local_d_in_parent, d);
+						clear_keys(d, local_d_in_parent);
 					} else {
-						local_d = d;
-					}
-
-					if (!local_d.parent) local_d.parent = doc.name;
-					if (!locals[local_d.doctype]) locals[local_d.doctype] = {};
-					locals[local_d.doctype][local_d.name] = local_d;
-					reconciled.push(local_d);
-				}
-
-				// drop rows no longer present server-side
-				const kept_names = new Set(reconciled.map((d) => d.name));
-				for (const row of local_rows) {
-					if (!kept_names.has(row.name) && locals[row.doctype]?.[row.name] === row) {
-						delete locals[row.doctype][row.name];
+						local_doc[fieldname][i] = d;
+						if (!d.parent) d.parent = doc.name;
+						frappe.model.add_to_locals(d);
 					}
 				}
 
-				// rebuild in place so the array reference is preserved
-				local_doc[fieldname].length = 0;
-				local_doc[fieldname].push(...reconciled);
+				// remove extra rows
+				if (local_doc[fieldname].length > doc[fieldname].length) {
+					for (let i = doc[fieldname].length; i < local_doc[fieldname].length; i++) {
+						// clear from local
+						let d = local_doc[fieldname][i];
+						if (locals[d.doctype] && locals[d.doctype][d.name]) {
+							delete locals[d.doctype][d.name];
+						}
+					}
+					local_doc[fieldname].length = doc[fieldname].length;
+				}
 			} else {
 				// literal
 				local_doc[fieldname] = doc[fieldname];
