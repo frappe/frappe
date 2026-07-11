@@ -216,7 +216,7 @@ frappe.views.KanbanView = class KanbanView extends frappe.views.ListView {
 				this.freeze(false);
 			})
 			.catch((err) => {
-				console.error("Kanban refresh failed:", err);
+				console.error("Kanban refresh failed", err);
 				this.freeze(false);
 				frappe.show_alert({
 					message: __("Failed to load Kanban board"),
@@ -838,7 +838,7 @@ frappe.views.KanbanView = class KanbanView extends frappe.views.ListView {
 				});
 			})
 			.catch((err) => {
-				console.error("Kanban board refresh failed:", err);
+				console.error("Kanban board refresh failed", err);
 			});
 	}
 
@@ -935,6 +935,21 @@ frappe.views.KanbanView = class KanbanView extends frappe.views.ListView {
 		if (this.pending_kanban_board_refresh || this.pending_document_refreshes?.length) {
 			this.debounced_refresh();
 		}
+	}
+
+	begin_kanban_local_drag_sync() {
+		// Pause incoming realtime reconciliation while local drag save is in flight.
+		this._local_drag_sync_count = (this._local_drag_sync_count || 0) + 1;
+		this.skip_kanban_realtime = true;
+	}
+
+	end_kanban_local_drag_sync() {
+		// Resume realtime only after the last local drag request settles.
+		this._local_drag_sync_count = Math.max(0, (this._local_drag_sync_count || 0) - 1);
+		if (this._local_drag_sync_count > 0) return;
+		this.skip_kanban_realtime = false;
+		// Apply any board/card events queued while realtime was paused.
+		this.flush_deferred_kanban_realtime();
 	}
 
 	/** After a realtime update, load latest column order and refresh cards. */

@@ -98,7 +98,7 @@ def get_kanban_reportview_args():
 	kanban_page_length = cint(data.pop("kanban_page_length", 50)) or 50
 
 	if not board_name:
-		frappe.throw(_("Board name is required"))
+		frappe.throw(_("Board name is required"), title=_("Kanban Board"))
 
 	clean_params(data)
 	validate_args(data)
@@ -189,6 +189,10 @@ def get_kanban_column_counts(
 			if row.name in counts:
 				counts[row.name] = cint(row.get("_count", 0))
 	except Exception:
+		frappe.log_error(
+			title="Kanban column count group-by failed",
+			message=frappe.get_traceback(),
+		)
 		for column_name in column_names:
 			counts[column_name] = frappe.db.count(
 				doctype,
@@ -232,11 +236,11 @@ def get_kanban_column_page():
 	"""
 	board_name, column_name, kanban_start, kanban_page_length, reportview_args = get_kanban_reportview_args()
 	if not column_name:
-		frappe.throw(_("Column name is required"))
+		frappe.throw(_("Column name is required"), title=_("Kanban Board"))
 
 	board, column_names = get_kanban_board_context(board_name)
 	if column_name not in column_names:
-		frappe.throw(_("Invalid column"))
+		frappe.throw(_("Invalid column"), title=_("Kanban Board"))
 
 	doctype = board.reference_doctype
 	field_name = board.field_name

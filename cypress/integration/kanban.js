@@ -97,6 +97,49 @@ context("Kanban Board", () => {
 			.should("not.contain", "ID:");
 	});
 
+	it("Prefetches additional cards while scrolling a large Kanban column", () => {
+		cy.call("frappe.tests.ui_test_helpers.create_multiple_todo_records");
+		cy.intercept(
+			"POST",
+			"/api/method/frappe.desk.doctype.kanban_board.kanban_board.get_kanban_column_page"
+		).as("get-kanban-column-page");
+
+		cy.visit("/desk/todo/view/kanban/ToDo Kanban");
+		cy.get('.kanban-column[data-column-value="Open"] .kanban-cards').as("open-cards");
+
+		// Scroll repeatedly so the column requests additional pages.
+		cy.get("@open-cards").scrollTo("bottom", { ensureScrollable: false });
+		cy.wait("@get-kanban-column-page");
+		cy.get("@open-cards").scrollTo("bottom", { ensureScrollable: false });
+		cy.wait("@get-kanban-column-page");
+	});
+
+	it("Saves drag-and-drop order after loading additional column pages", () => {
+		cy.call("frappe.tests.ui_test_helpers.create_multiple_todo_records");
+		cy.intercept(
+			"POST",
+			"/api/method/frappe.desk.doctype.kanban_board.kanban_board.get_kanban_column_page"
+		).as("get-kanban-column-page");
+		cy.intercept(
+			"POST",
+			"/api/method/frappe.desk.doctype.kanban_board.kanban_board.update_order_for_single_card"
+		).as("single-card-order");
+
+		cy.visit("/desk/todo/view/kanban/ToDo Kanban");
+		cy.get('.kanban-column[data-column-value="Open"] .kanban-cards').as("open-cards");
+
+		// Load at least one extra page before dragging.
+		cy.get("@open-cards").scrollTo("bottom", { ensureScrollable: false });
+		cy.wait("@get-kanban-column-page");
+
+		cy.get("@open-cards .kanban-card-wrapper").first().as("card-to-move");
+		cy.get("@card-to-move").drag('.kanban-column[data-column-value="Closed"] .kanban-cards', {
+			force: true,
+		});
+
+		cy.wait("@single-card-order");
+	});
+
 	it.skip("Checks if Kanban Board edits are blocked for non-System Manager and non-owner of the Board", () => {
 		cy.switch_to_user("Administrator");
 

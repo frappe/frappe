@@ -272,6 +272,7 @@ frappe.provide("frappe.views");
 					});
 			},
 			update_order: function (context) {
+				// Skip expensive full-order sync on very large boards; drag saves still persist per-card order.
 				if (context.state.cards.length > LARGE_BOARD_ORDER_SYNC_LIMIT) {
 					return;
 				}
@@ -741,6 +742,8 @@ frappe.provide("frappe.views");
 			suppress_scroll_render: false,
 			ordered_names: [],
 			virtualization_disabled: false,
+			variable_height_threshold: 24,
+			has_variable_height_cards: false,
 			min_cards_to_virtualize: 30,
 		};
 
@@ -909,17 +912,37 @@ frappe.provide("frappe.views");
 		function should_virtualize() {
 			return (
 				!virt_state.virtualization_disabled &&
+				!virt_state.has_variable_height_cards &&
 				virt_state.total_cards >= virt_state.min_cards_to_virtualize
 			);
 		}
 
 		function measure_card_height() {
-			const measured = Math.round(
-				self.$kanban_cards.children(".kanban-card-wrapper").first().outerHeight(true) || 0
-			);
-			if (measured > 0) {
-				virt_state.card_height = measured;
-			}
+			const $cards = self.$kanban_cards.children(".kanban-card-wrapper");
+			if (!$cards.length) return;
+
+			const sample_size = Math.min(8, $cards.length);
+			let min_height = Infinity;
+			let max_height = 0;
+			let total_height = 0;
+			let measured_count = 0;
+
+			$cards.each(function (index) {
+				if (index >= sample_size) return false;
+				const height = Math.round($(this).outerHeight(true) || 0);
+				if (!height) return;
+				min_height = Math.min(min_height, height);
+				max_height = Math.max(max_height, height);
+				total_height += height;
+				measured_count++;
+			});
+
+			if (!measured_count) return;
+
+			virt_state.card_height = Math.max(1, Math.round(total_height / measured_count));
+			virt_state.has_variable_height_cards =
+				measured_count > 1 &&
+				max_height - min_height > virt_state.variable_height_threshold;
 		}
 
 		function append_kanban_card(name) {
@@ -928,7 +951,7 @@ frappe.provide("frappe.views");
 			try {
 				frappe.views.KanbanBoardCard(card, self.$kanban_cards);
 			} catch (e) {
-				console.error("Kanban card render failed:", name, e);
+				console.error("Kanban card render failed", e);
 			}
 		}
 
@@ -948,6 +971,7 @@ frappe.provide("frappe.views");
 			filtered_cards = cards_index?.by_column[current_column.title] || [];
 			virt_state.ordered_names = get_ordered_names(current_column, cards_index);
 			virt_state.total_cards = virt_state.ordered_names.length;
+			virt_state.has_variable_height_cards = false;
 			update_column_count(virt_state.total_cards);
 
 			// Force render when card data changes (not only on scroll).
@@ -1153,7 +1177,8 @@ frappe.provide("frappe.views");
 					suppress_cards_watch = true;
 					if (cur_list) {
 						cur_list.disable_list_update = true;
-						cur_list.skip_kanban_realtime = true;
+						// Scope realtime suppression to this drag request lifecycle.
+						cur_list.begin_kanban_local_drag_sync?.();
 					}
 
 					// Keep virtual scrolling off until drag is saved.
@@ -1169,12 +1194,8 @@ frappe.provide("frappe.views");
 						suppress_cards_watch = false;
 						if (cur_list) {
 							cur_list.disable_list_update = false;
-							cur_list.flush_deferred_kanban_realtime?.();
-							// Delay re-enabling so our own list_update / board events are ignored.
-							setTimeout(() => {
-								cur_list.skip_kanban_realtime = false;
-								cur_list.flush_deferred_kanban_realtime?.();
-							}, 1500);
+							// Re-enable realtime only when local drag save has fully settled.
+							cur_list.end_kanban_local_drag_sync?.();
 						}
 						enable_virtualization();
 					};
@@ -1948,29 +1969,6 @@ frappe.provide("frappe.views");
 	/** Ordered card names for a column using the pre-built index. */
 	function get_ordered_names(column, cards_index) {
 		return get_column_display_order(column, cards_index);
-	}
-
-	function get_cards_for_column(cards, column) {
-		const field_name = store.state.board?.field_name;
-		if (store.state.cards_index) {
-			return store.state.cards_index.by_column[column.title] || [];
-		}
-		return cards.filter(function (card) {
-			return get_card_column(card, field_name) === column.title;
-		});
-	}
-
-	/** Cards for a column in board order (new cards first, then saved column.order). */
-	function get_ordered_cards_for_column(cards, column) {
-		const cards_index = store.state.cards_index;
-		const names = get_ordered_names(column, cards_index);
-		return names.map((name) => cards_index?.by_name[name] || get_card(name)).filter(Boolean);
-	}
-
-	function get_card(name) {
-		return store.state.cards.find(function (c) {
-			return c.name === name;
-		});
 	}
 
 	function update_cards_column(updated_cards) {
