@@ -1,0 +1,5 @@
+/* The context menu sets data-state="open" on its target while open.
+   Highlighting that is the app's job — here's the demo doing it. */
+.explorer-preview [data-state="open"] {
+	background-color: var(--surface-gray-2);
+}

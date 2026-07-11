@@ -23,7 +23,11 @@ export function validated(value, allowed, option, component) {
  */
 export function safe_href(href, component) {
 	if (!href) return null;
-	if (/^\s*(javascript|data|vbscript):/i.test(href)) {
+	// browsers strip tabs and newlines out of a URL before working out its
+	// scheme, so "java\tscript:" runs as javascript:. Strip those same
+	// characters before the check, or the scheme could hide behind them.
+	const bare = String(href).replace(/[\t\n\r]/g, "");
+	if (/^\s*(javascript|data|vbscript):/i.test(bare)) {
 		console.warn(`frappe.ui.${component}: refusing unsafe href "${href}"`);
 		return null;
 	}

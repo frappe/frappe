@@ -9,6 +9,287 @@ frappe.pages["component-explorer"].on_page_load = function (wrapper) {
 	// Each item's opts object is both the displayed code and the real input
 	// for the live preview — what you see is exactly what runs.
 	const COMPONENTS = {
+		Dropdown: {
+			helper: "frappe.ui.dropdown",
+			groups: [
+				{
+					title: __("Basic actions"),
+					items: [
+						{
+							__code: 'frappe.ui.dropdown({ button: { label: "Options" }, options: [{ label: "Edit", icon: "pen", onclick: () => {} }, { label: "Duplicate", icon: "copy", onclick: () => {} }, { label: "Delete", icon: "trash-2", theme: "red", onclick: () => {} }] })',
+							button: { label: "Options" },
+							options: [
+								{
+									label: "Edit",
+									icon: "pen",
+									onclick: () => frappe.ui.toast({ message: "Edit clicked" }),
+								},
+								{
+									label: "Duplicate",
+									icon: "copy",
+									onclick: () => frappe.ui.toast({ message: "Duplicated" }),
+								},
+								{
+									label: "Delete",
+									icon: "trash-2",
+									theme: "red",
+									onclick: () =>
+										frappe.ui.toast({ message: "Deleted", type: "error" }),
+								},
+							],
+						},
+					],
+				},
+				{
+					title: __("Groups, shortcuts and disabled rows"),
+					items: [
+						{
+							__code: 'frappe.ui.dropdown({ button: { label: "File" }, options: [{ group: "Document", options: [{ label: "Rename", shortcut: "ctrl+r", onclick: () => {} }, { label: "Print", shortcut: "ctrl+p", onclick: () => {} }] }, { group: "Danger zone", options: [{ label: "Archive", disabled: true }, { label: "Delete permanently", theme: "red", onclick: () => {} }] }] })',
+							button: { label: "File" },
+							options: [
+								{
+									group: "Document",
+									options: [
+										{
+											label: "Rename",
+											shortcut: "ctrl+r",
+											onclick: () =>
+												frappe.ui.toast({ message: "Rename clicked" }),
+										},
+										{
+											label: "Print",
+											shortcut: "ctrl+p",
+											onclick: () =>
+												frappe.ui.toast({ message: "Print clicked" }),
+										},
+									],
+								},
+								{
+									group: "Danger zone",
+									options: [
+										{ label: "Archive", disabled: true },
+										{
+											label: "Delete permanently",
+											theme: "red",
+											onclick: () =>
+												frappe.ui.toast({
+													message: "Deleted",
+													type: "error",
+												}),
+										},
+									],
+								},
+							],
+						},
+					],
+				},
+				{
+					title: __("Submenus"),
+					items: [
+						{
+							__code: 'frappe.ui.dropdown({ button: { label: "Actions" }, options: [{ label: "Open", icon: "external-link", onclick: () => {} }, { label: "Move to", icon: "folder", submenu: [{ label: "Inbox", onclick: () => {} }, { label: "Archive", onclick: () => {} }, { label: "More...", submenu: [{ label: "Folder A", onclick: () => {} }, { label: "Folder B", onclick: () => {} }] }] }] })',
+							button: { label: "Actions" },
+							options: [
+								{
+									label: "Open",
+									icon: "external-link",
+									onclick: () => frappe.ui.toast({ message: "Opened" }),
+								},
+								{
+									label: "Move to",
+									icon: "folder",
+									submenu: [
+										{
+											label: "Inbox",
+											onclick: () =>
+												frappe.ui.toast({ message: "Moved to Inbox" }),
+										},
+										{
+											label: "Archive",
+											onclick: () =>
+												frappe.ui.toast({ message: "Moved to Archive" }),
+										},
+										{
+											label: "More...",
+											submenu: [
+												{
+													label: "Folder A",
+													onclick: () =>
+														frappe.ui.toast({
+															message: "Moved to Folder A",
+														}),
+												},
+												{
+													label: "Folder B",
+													onclick: () =>
+														frappe.ui.toast({
+															message: "Moved to Folder B",
+														}),
+												},
+											],
+										},
+									],
+								},
+							],
+						},
+					],
+				},
+				{
+					title: __("Selected row, descriptions and links"),
+					items: [
+						{
+							__code: 'frappe.ui.dropdown({ button: { label: "View" }, options: [{ label: "List", selected: true, onclick: () => {} }, { label: "Kanban", description: "Drag cards between columns", onclick: () => {} }, { label: "Documentation", icon: "book-open", href: "https://docs.frappe.io" }] })',
+							button: { label: "View" },
+							options: [
+								{
+									label: "List",
+									selected: true,
+									onclick: () => frappe.ui.toast({ message: "List view" }),
+								},
+								{
+									label: "Kanban",
+									description: "Drag cards between columns",
+									onclick: () => frappe.ui.toast({ message: "Kanban view" }),
+								},
+								{
+									label: "Documentation",
+									icon: "book-open",
+									href: "https://docs.frappe.io",
+								},
+							],
+						},
+					],
+				},
+				{
+					title: __("Placement and empty state"),
+					items: [
+						{
+							__code: 'frappe.ui.dropdown({ button: { label: "Opens top-end" }, side: "top", align: "end", options: [{ label: "One", onclick: () => {} }, { label: "Two", onclick: () => {} }] })',
+							button: { label: "Opens top-end" },
+							side: "top",
+							align: "end",
+							options: [
+								{
+									label: "One",
+									onclick: () => frappe.ui.toast({ message: "One" }),
+								},
+								{
+									label: "Two",
+									onclick: () => frappe.ui.toast({ message: "Two" }),
+								},
+							],
+						},
+						{
+							__code: 'frappe.ui.dropdown({ button: { label: "No items" }, options: [], empty_text: "Nothing here yet" })',
+							button: { label: "No items" },
+							options: [],
+							empty_text: "Nothing here yet",
+						},
+					],
+				},
+			],
+		},
+		"Context Menu": {
+			helper: "new frappe.ui.ContextMenu",
+			stacked: true,
+			make: (opts) => {
+				const $surface = $(
+					`<div class="rounded-md border px-4 py-4 text-base text-ink-gray-6" style="border-style: dashed">${frappe.utils.escape_html(
+						opts.__surface || __("Right-click here")
+					)}</div>`
+				);
+				new frappe.ui.ContextMenu({ target: $surface, ...opts });
+				return $surface;
+			},
+			groups: [
+				{
+					title: __("Basic"),
+					items: [
+						{
+							__code: 'new frappe.ui.ContextMenu({ target: row_el, options: [{ label: "Cut", shortcut: "ctrl+x", onclick: () => {} }, { label: "Copy", shortcut: "ctrl+c", onclick: () => {} }, { label: "Paste", shortcut: "ctrl+v", onclick: () => {} }, { label: "Delete", theme: "red", onclick: () => {} }] })',
+							options: [
+								{
+									label: "Cut",
+									shortcut: "ctrl+x",
+									onclick: () => frappe.ui.toast({ message: "Cut" }),
+								},
+								{
+									label: "Copy",
+									shortcut: "ctrl+c",
+									onclick: () => frappe.ui.toast({ message: "Copied" }),
+								},
+								{
+									label: "Paste",
+									shortcut: "ctrl+v",
+									onclick: () => frappe.ui.toast({ message: "Pasted" }),
+								},
+								{
+									label: "Delete",
+									theme: "red",
+									onclick: () =>
+										frappe.ui.toast({ message: "Deleted", type: "error" }),
+								},
+							],
+						},
+					],
+				},
+				{
+					title: __("Groups and submenus"),
+					items: [
+						{
+							__surface: __("Right-click this task card"),
+							__code: 'new frappe.ui.ContextMenu({ target: card_el, options: [{ group: "Task", options: [{ label: "Open", icon: "external-link", onclick: () => {} }, { label: "Assign to", icon: "user-plus", submenu: [{ label: "John Doe", onclick: () => {} }, { label: "Jane Smith", onclick: () => {} }] }] }, { group: "Board", options: [{ label: "Move to Done", icon: "circle-check", onclick: () => {} }] }] })',
+							options: [
+								{
+									group: "Task",
+									options: [
+										{
+											label: "Open",
+											icon: "external-link",
+											onclick: () => frappe.ui.toast({ message: "Opened" }),
+										},
+										{
+											label: "Assign to",
+											icon: "user-plus",
+											submenu: [
+												{
+													label: "John Doe",
+													onclick: () =>
+														frappe.ui.toast({
+															message: "Assigned to John",
+														}),
+												},
+												{
+													label: "Jane Smith",
+													onclick: () =>
+														frappe.ui.toast({
+															message: "Assigned to Jane",
+														}),
+												},
+											],
+										},
+									],
+								},
+								{
+									group: "Board",
+									options: [
+										{
+											label: "Move to Done",
+											icon: "circle-check",
+											onclick: () =>
+												frappe.ui.toast({
+													message: "Moved to Done",
+													type: "success",
+												}),
+										},
+									],
+								},
+							],
+						},
+					],
+				},
+			],
+		},
 		Toast: {
 			helper: "frappe.ui.toast",
 			html: (opts) => "",
@@ -553,7 +834,7 @@ frappe.pages["component-explorer"].on_page_load = function (wrapper) {
 				.join("\n");
 			$group.find("code").text(code);
 			const $preview = $group.find(".explorer-preview");
-			const make = helper_fn(component.helper);
+			const make = component.make || helper_fn(component.helper);
 			group.items.forEach((opts) => {
 				// some things (like toasts) show themselves elsewhere — those
 				// items carry their own code text and a Run trigger
