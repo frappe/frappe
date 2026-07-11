@@ -64,7 +64,7 @@
 	{%- if not section.label or ns.has_content -%}
 	{%- set ns3 = namespace(section_style='') -%}
 	{%- if section.background -%}
-		{%- set ns3.section_style = ns3.section_style + 'background:' + section.background + ';border-radius:8px;' -%}
+		{%- set ns3.section_style = ns3.section_style + 'background:' + section.background + ';' -%}
 	{%- endif -%}
 	{%- for prop in ['padding', 'margin'] -%}
 		{%- set box = section.get(prop) -%}
