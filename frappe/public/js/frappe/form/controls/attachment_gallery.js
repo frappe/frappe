@@ -11,22 +11,37 @@ frappe.ui.form.ControlAttachmentGallery = class ControlAttachmentGallery extends
 	async refresh_input() {
 		const refresh_id = (this.refresh_id || 0) + 1;
 		this.refresh_id = refresh_id;
-		this.$wrapper.empty();
-		this.image_thumbnails = new Map();
 
 		if (!this.frm) {
+			this.$wrapper.empty();
+			this.image_thumbnails = new Map();
 			return;
 		}
 
 		if (this.frm.doc.__islocal) {
+			this.$wrapper.empty();
+			this.image_thumbnails = new Map();
 			this.render_empty_state(__("Save the document to attach files."));
 			return;
 		}
 
-		const attachments = await this.get_attachments();
+		let attachments;
+		try {
+			attachments = await this.get_attachments();
+		} catch (error) {
+			if (refresh_id !== this.refresh_id) {
+				return;
+			}
+			this.$wrapper.empty();
+			this.image_thumbnails = new Map();
+			this.render_empty_state(__("Unable to load attachments."));
+			return;
+		}
 		if (refresh_id !== this.refresh_id) {
 			return;
 		}
+		this.$wrapper.empty();
+		this.image_thumbnails = new Map();
 		this.attachments = attachments;
 		const can_add = this.can_add_attachment();
 
@@ -63,6 +78,9 @@ frappe.ui.form.ControlAttachmentGallery = class ControlAttachmentGallery extends
 					filters: JSON.stringify(filters),
 				},
 			});
+			if (!Array.isArray(response.message)) {
+				throw new Error("Invalid filtered attachments response");
+			}
 			attachments = response.message;
 		}
 
