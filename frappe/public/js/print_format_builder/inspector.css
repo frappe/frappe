@@ -268,12 +268,3 @@
 	cursor: pointer;
 	margin: 0;
 }
-
-/* ── Fullscreen mode ────────────────────────────────────── */
-/* Toggled on <body> by PrintFormatBuilder.vue: the desk chrome being hidden
-   lives outside the builder's mount point, so scoped styles can't reach it */
-body.pfb-fullscreen .body-sidebar-container,
-body.pfb-fullscreen .main-section > .sticky-top,
-body.pfb-fullscreen .page-head {
-	display: none;
-}

@@ -4,6 +4,7 @@
 		data-pfb-section
 		v-show="!preview_doc || has_visible_fields"
 		:class="{ 'section-container--condition-hidden': preview_doc && !is_section_visible }"
+		@click.stop="select_section"
 	>
 		<!-- Top-right actions pill shown on hover in clean-preview (toolbar is hidden) -->
 		<div v-if="!is_header" class="section-preview-actions">
@@ -89,7 +90,7 @@
 
 			<div
 				v-if="section.label && section.show_label !== 'hide'"
-				class="section-title-display"
+				class="section-title-display section-label"
 			>
 				{{ section.label }}
 			</div>
@@ -240,6 +241,9 @@ function remove_column(index) {
 <style scoped>
 .print-format-section-container {
 	position: relative;
+	/* flow-root keeps the section's own margin inside this box, so selection
+	   outlines drawn on the container enclose the margin area */
+	display: flow-root;
 }
 
 .print-format-section-container:not(:last-child) {

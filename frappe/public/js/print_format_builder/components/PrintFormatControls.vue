@@ -852,9 +852,6 @@ watch(print_format, () => (store.dirty.value = true), { deep: true });
 .pfb-field-type {
 	font-size: var(--text-tiny);
 	color: var(--gray-500);
-	background: var(--gray-100);
-	border: 1px solid var(--gray-200);
-	border-radius: var(--radius);
 	padding: 2px 6px;
 	white-space: nowrap;
 	flex-shrink: 0;
