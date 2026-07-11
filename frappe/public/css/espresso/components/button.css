@@ -15,7 +15,7 @@
  *   data-theme     gray | red                                (default: gray)
  *   data-icon-button="true"   square, no inline padding
  *   aria-busy="true"          loading: blocks interaction without the disabled dimming
- *   aria-invalid="true"       red focus ring + red border (matches Raven)
+ *   aria-invalid="true"       red focus ring + red border
  *
  * DEFAULTS live on the base `.es-button` rule (variant=subtle, size=sm,
  * theme=gray) so a bare <button class="es-button"> renders correctly; the
@@ -184,7 +184,7 @@
     outline-offset: 0;
 }
 
-/* ---- aria-invalid: red border + red focus ring (matches Raven) ---- */
+/* ---- aria-invalid: red border + red focus ring ---- */
 .es-button[aria-invalid="true"] {
     border-color: var(--outline-red-3);
 }

@@ -283,6 +283,57 @@ frappe.pages["component-explorer"].on_page_load = function (wrapper) {
 				},
 			],
 		},
+		"Hover Card": {
+			helper: "frappe.ui.hover_card",
+			make: (opts) => {
+				const $trigger = $(
+					`<a href="#" onclick="return false" class="text-base">${frappe.utils.escape_html(
+						opts.__trigger || __("@jane")
+					)}</a>`
+				);
+				frappe.ui.hover_card($trigger, opts);
+				return $trigger;
+			},
+			groups: [
+				{
+					title: __("A user preview on a link (rest the pointer on it)"),
+					items: [
+						{
+							__code: "frappe.ui.hover_card(user_link_el, {\n  content: () => build_user_card(user),  // any element, built fresh per open\n})",
+							content: () => {
+								const wrap = $(`
+									<div>
+										<div class="flex gap-3 align-items-center">
+											${frappe.ui.avatar.html({ label: "Jane Smith", theme: "blue", size: "lg" })}
+											<div>
+												<div class="text-base-medium text-ink-gray-8">Jane Smith</div>
+												<div class="text-sm text-ink-gray-5">jane@example.com</div>
+											</div>
+										</div>
+										<p class="text-p-sm text-ink-gray-6 mt-3 mb-0">
+											${__("Product engineer. Writes the release notes nobody reads.")}
+										</p>
+									</div>
+								`);
+								return wrap;
+							},
+						},
+					],
+				},
+				{
+					title: __("Timing (quick preview: shorter delays)"),
+					items: [
+						{
+							__code: 'frappe.ui.hover_card(link_el, { content: "...", open_delay: 200, close_delay: 150 })',
+							__trigger: __("Fast card"),
+							content: "Opens after 200ms instead of the default 700ms.",
+							open_delay: 200,
+							close_delay: 150,
+						},
+					],
+				},
+			],
+		},
 		Tooltip: {
 			helper: "frappe.ui.tooltip",
 			code_first: "button_el",
@@ -346,6 +397,66 @@ frappe.pages["component-explorer"].on_page_load = function (wrapper) {
 						{
 							__trigger: __("Long"),
 							text: "A longer explanation that wraps across a couple of lines instead of running off the screen",
+						},
+					],
+				},
+			],
+		},
+		Popover: {
+			helper: "frappe.ui.popover",
+			groups: [
+				{
+					title: __("Interactive content (a filters panel)"),
+					items: [
+						{
+							__code: 'frappe.ui.popover({\n  button: { label: "Filter", icon: "list-filter" },\n  content: () => build_filter_form(),  // any element, built fresh per open\n  on_close: (reason) => apply_filters(),\n})',
+							button: { label: "Filter", icon: "list-filter" },
+							content: () => {
+								const wrap = $(`
+									<div>
+										<div class="es-popover__header">
+											<div class="es-popover__title">${__("Filters")}</div>
+											<p class="es-popover__description">${__("Narrow down the list.")}</p>
+										</div>
+										<div class="flex flex-col gap-2">
+											<input type="text" class="form-control" placeholder="${__("Status")}">
+											<input type="text" class="form-control" placeholder="${__("Owner")}">
+										</div>
+									</div>
+								`);
+								const apply = frappe.ui.button({
+									label: __("Apply"),
+									size: "sm",
+									variant: "solid",
+									css_class: "mt-3",
+									onclick: () =>
+										frappe.ui.toast({ message: __("Filters applied") }),
+								});
+								wrap.append(apply);
+								return wrap;
+							},
+						},
+					],
+				},
+				{
+					title: __("Plain text (strings render as text, never HTML)"),
+					items: [
+						{
+							__code: 'frappe.ui.popover({ button: { label: "About" }, content: "Version 16.0.0 — <b>tags stay text</b>" })',
+							button: { label: "About" },
+							content: "Version 16.0.0 — <b>tags stay text</b>",
+						},
+					],
+				},
+				{
+					title: __("Placement"),
+					items: [
+						{
+							__code: 'frappe.ui.popover({ button: { label: "Opens top-end" }, side: "top", align: "end", content: "..." })',
+							button: { label: "Opens top-end" },
+							side: "top",
+							align: "end",
+							content: "Hangs off the top edge, right ends lined up.",
 						},
 					],
 				},

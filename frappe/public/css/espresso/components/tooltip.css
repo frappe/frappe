@@ -91,7 +91,7 @@
     border-left-width: 0;
 }
 
-/* ---- motion (per the Raven/radix spec: enter = fade-in-0 zoom-in-95 +
+/* ---- motion (enter = fade-in-0 zoom-in-95 +
    slide-in-from-<trigger side>-2, i.e. the bubble starts near the trigger
    at 95% scale and settles out; exit = fade-out-0 zoom-out-95, no slide).
    The zoom grows out of the arrow, not the bubble's center — the arrow

@@ -112,7 +112,7 @@
 
 /* ---- icons ----
  * One rule covers both framework idioms: React passes icons as direct <svg>
- * children (like the Raven badge); Vue wraps prefix/suffix slots in
+ * children; Vue wraps prefix/suffix slots in
  * .es-badge__affix (like the frappe-ui badge). Sizing lives here, not per app.
  * Icon size follows the badge size; the md default applies when size is absent. */
 .es-badge>svg {

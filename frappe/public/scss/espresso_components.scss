@@ -30,3 +30,7 @@
 @import "frappe/public/css/espresso/components/menu.css";
 
 @import "frappe/public/css/espresso/components/tooltip.css";
+
+@import "frappe/public/css/espresso/components/popover.css";
+/* Modifier on .es-popover — must load after it. */
+@import "frappe/public/css/espresso/components/hover_card.css";

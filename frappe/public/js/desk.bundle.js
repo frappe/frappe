@@ -19,6 +19,8 @@ import "./frappe/ui/components/toast.js";
 import "./frappe/ui/components/dropdown.js";
 import "./frappe/ui/components/context_menu.js";
 import "./frappe/ui/components/tooltip.js";
+import "./frappe/ui/components/popover.js";
+import "./frappe/ui/components/hover_card.js";
 
 import "./frappe/ui/background_tasks/background_tasks.js";
 import "./frappe/ui/keyboard.js";
