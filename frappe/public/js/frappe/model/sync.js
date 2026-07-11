@@ -181,6 +181,7 @@ Object.assign(frappe.model, {
 					for (let i = doc[fieldname].length; i < local_doc[fieldname].length; i++) {
 						// clear from local
 						let d = local_doc[fieldname][i];
+						if (incoming_names.has(d.name)) continue;
 						if (locals[d.doctype] && locals[d.doctype][d.name]) {
 							delete locals[d.doctype][d.name];
 						}
