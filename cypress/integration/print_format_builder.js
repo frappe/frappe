@@ -20,12 +20,31 @@ function cleanup(win, name) {
 	});
 }
 
-function one_section_layout() {
-	return JSON.stringify({
-		sections: [{ label: "Alpha", columns: [{ label: "", fields: [] }] }],
+function builder_layout(sections = []) {
+	return {
+		sections,
 		header: { columns: [{ label: "", fields: [] }] },
 		footer: { columns: [{ label: "", fields: [] }] },
-	});
+	};
+}
+
+function one_section_layout() {
+	return JSON.stringify(
+		builder_layout([{ label: "Alpha", columns: [{ label: "", fields: [] }] }])
+	);
+}
+
+function insert_builder_format(name, sections = []) {
+	cy.insert_doc(
+		"Print Format",
+		{
+			name,
+			doc_type: "ToDo",
+			print_format_builder_beta: 1,
+			format_data: JSON.stringify(builder_layout(sections)),
+		},
+		true
+	);
 }
 
 // ─── Create flow ──────────────────────────────────────────────────────────────
@@ -133,23 +152,10 @@ context("Print Format Builder — create flow", () => {
 	it("outline tab selects a section on click", () => {
 		cy.visit("/app");
 
-		cy.insert_doc(
-			"Print Format",
-			{
-				name: PF_NAME,
-				doc_type: "ToDo",
-				print_format_builder_beta: 1,
-				format_data: JSON.stringify({
-					sections: [
-						{ label: "Alpha", columns: [{ label: "", fields: [] }] },
-						{ label: "Beta", columns: [{ label: "", fields: [] }] },
-					],
-					header: { columns: [{ label: "", fields: [] }] },
-					footer: { columns: [{ label: "", fields: [] }] },
-				}),
-			},
-			true
-		);
+		insert_builder_format(PF_NAME, [
+			{ label: "Alpha", columns: [{ label: "", fields: [] }] },
+			{ label: "Beta", columns: [{ label: "", fields: [] }] },
+		]);
 
 		cy.visit(`/app/print-format-builder/${encodeURIComponent(PF_NAME)}`);
 
@@ -165,36 +171,19 @@ context("Print Format Builder — create flow", () => {
 	it("field breadcrumb navigates to parent section", () => {
 		cy.visit("/app");
 
-		cy.insert_doc(
-			"Print Format",
+		insert_builder_format(PF_NAME, [
 			{
-				name: PF_NAME,
-				doc_type: "ToDo",
-				print_format_builder_beta: 1,
-				format_data: JSON.stringify({
-					sections: [
-						{
-							label: "Details",
-							columns: [
-								{
-									label: "",
-									fields: [
-										{
-											fieldtype: "Data",
-											fieldname: "description",
-											label: "Description",
-										},
-									],
-								},
-							],
-						},
-					],
-					header: { columns: [{ label: "", fields: [] }] },
-					footer: { columns: [{ label: "", fields: [] }] },
-				}),
+				label: "Details",
+				columns: [
+					{
+						label: "",
+						fields: [
+							{ fieldtype: "Data", fieldname: "description", label: "Description" },
+						],
+					},
+				],
 			},
-			true
-		);
+		]);
 
 		cy.visit(`/app/print-format-builder/${encodeURIComponent(PF_NAME)}`);
 
@@ -217,20 +206,7 @@ context("Print Format Builder — create flow", () => {
 	it("font size change applies to canvas preview", () => {
 		cy.visit("/app");
 
-		cy.insert_doc(
-			"Print Format",
-			{
-				name: PF_NAME,
-				doc_type: "ToDo",
-				print_format_builder_beta: 1,
-				format_data: JSON.stringify({
-					sections: [],
-					header: { columns: [{ label: "", fields: [] }] },
-					footer: { columns: [{ label: "", fields: [] }] },
-				}),
-			},
-			true
-		);
+		insert_builder_format(PF_NAME, []);
 
 		cy.intercept("POST", "api/method/frappe.client.save").as("save");
 		cy.visit(`/app/print-format-builder/${encodeURIComponent(PF_NAME)}`);
@@ -247,10 +223,108 @@ context("Print Format Builder — create flow", () => {
 			.blur();
 
 		cy.get(".pfb-body").should(($el) => {
-			const fs = $el.css("font-size");
-			// 18pt ≈ 24px
-			expect(parseInt(fs, 10)).to.be.greaterThan(20);
+			const fs = parseInt($el.css("font-size"), 10);
+			expect(fs).to.equal(18);
 		});
+	});
+
+	// 7. Table layout: field_borders renders a grid with a column divider
+	it("table layout renders grid borders in the canvas", () => {
+		cy.visit("/app");
+
+		insert_builder_format(PF_NAME, [
+			{
+				label: "Grid",
+				field_borders: true,
+				columns: [
+					{
+						fields: [
+							{ fieldtype: "Data", fieldname: "description", label: "Description" },
+						],
+					},
+					{ fields: [{ fieldtype: "Data", fieldname: "status", label: "Status" }] },
+				],
+			},
+		]);
+
+		cy.visit(`/app/print-format-builder/${encodeURIComponent(PF_NAME)}`);
+
+		cy.get(".section--grid", { timeout: 30000 }).should("be.visible");
+		cy.get(".section--grid .column")
+			.first()
+			.should(($el) => {
+				expect(parseInt($el.css("border-right-width"), 10)).to.be.greaterThan(0);
+			});
+	});
+
+	// 8. Format tab: label color uses the Frappe Color control and persists on save
+	it("Format tab: label color persists on save", () => {
+		cy.visit("/app");
+
+		insert_builder_format(PF_NAME, []);
+
+		cy.intercept("POST", "api/method/frappe.client.save").as("save");
+		cy.visit(`/app/print-format-builder/${encodeURIComponent(PF_NAME)}`);
+
+		cy.get(".pfb-tab[title='Format']", { timeout: 30000 }).click();
+		cy.get(".pfb-margin-grid").should("be.visible");
+
+		// The color field is rendered with Frappe's ControlColor (adds .selected-color swatch)
+		cy.get('[data-fieldname="label_color"] .selected-color').should("exist");
+
+		cy.get('[data-fieldname="label_color"] input:visible')
+			.clear()
+			.type("#c0392b")
+			.trigger("change")
+			.blur();
+
+		cy.get('[data-testid="page-status"]', { timeout: 5000 })
+			.should("be.visible")
+			.and("contain", "Not Saved");
+
+		cy.contains(".page-actions .primary-action", "Save").click({ force: true });
+		cy.wait("@save").then((interception) => {
+			expect(interception.response.statusCode).to.equal(200);
+			expect(interception.response.body.message.label_color).to.equal("#c0392b");
+		});
+	});
+
+	// 9. Selecting a repeater field exposes per-column width and color controls
+	it("repeater inspector shows column width and color controls", () => {
+		cy.visit("/app");
+
+		insert_builder_format(PF_NAME, [
+			{
+				label: "Rep Section",
+				columns: [
+					{
+						label: "",
+						fields: [
+							{
+								fieldtype: "Repeater",
+								fieldname: "rep1",
+								label: "Rep",
+								repeater_columns: [{ template: [], align: "left" }],
+							},
+						],
+					},
+				],
+			},
+		]);
+
+		cy.visit(`/app/print-format-builder/${encodeURIComponent(PF_NAME)}`);
+
+		cy.get("[data-pfb-section]", { timeout: 30000 }).should("be.visible");
+		cy.contains("[data-pfb-section]", "Rep Section")
+			.find(".field")
+			.first()
+			.click({ force: true });
+
+		cy.get(".pfb-inspector").should("contain", "Repeater");
+		cy.get(".pfb-inspector").should("contain", "Columns");
+		cy.get(".pfb-inspector").should("contain", "Color");
+		cy.get(".pfb-inspector .pfb-rep-col-color .selected-color").should("exist");
+		cy.get(".pfb-inspector .pfb-col-width-input").should("exist");
 	});
 });
 
@@ -425,7 +499,7 @@ context("Print Format Builder — section insert", () => {
 			1
 		);
 
-		cy.get(".section-with-insert .section-insert").first().click({ force: true });
+		cy.get(".section-with-insert .section-insert-btn").first().click({ force: true });
 
 		cy.get(".sections-container [data-pfb-section]").should("have.length", 2);
 	});
@@ -449,7 +523,7 @@ context("Print Format Builder — section insert", () => {
 			1
 		);
 
-		cy.get(".sections-container > .section-insert").click({ force: true });
+		cy.get(".sections-container > .section-insert .section-insert-btn").click({ force: true });
 
 		cy.get(".sections-container [data-pfb-section]").should("have.length", 2);
 	});
@@ -475,13 +549,13 @@ context("Print Format Builder — section insert", () => {
 		cy.get(".sections-container", { timeout: 20000 }).should("be.visible");
 		cy.get(".sections-container [data-pfb-section]").should("have.length", 0);
 
-		cy.get(".sections-container > .section-insert").click({ force: true });
+		cy.get(".sections-container > .section-insert .section-insert-btn").click({ force: true });
 		cy.get(".sections-container [data-pfb-section]").should("have.length", 1);
 
-		cy.get(".sections-container > .section-insert").click({ force: true });
+		cy.get(".sections-container > .section-insert .section-insert-btn").click({ force: true });
 		cy.get(".sections-container [data-pfb-section]").should("have.length", 2);
 
-		cy.get(".sections-container > .section-insert").click({ force: true });
+		cy.get(".sections-container > .section-insert .section-insert-btn").click({ force: true });
 		cy.get(".sections-container [data-pfb-section]").should("have.length", 3);
 	});
 
@@ -510,5 +584,92 @@ context("Print Format Builder — section insert", () => {
 		});
 
 		cy.get(".section-insert").first().should("not.have.css", "display", "none");
+	});
+});
+
+// ─── Image and Barcode blocks ─────────────────────────────────────────────────
+
+context("Print Format Builder — image and barcode blocks", () => {
+	let PF_NAME;
+
+	before(() => {
+		cy.login();
+		cy.visit("/app");
+	});
+
+	beforeEach(() => {
+		PF_NAME = pf_name();
+	});
+
+	afterEach(() => {
+		cy.window().then((win) => cleanup(win, PF_NAME));
+	});
+
+	// Regression: serialize_layout must not strip image/barcode props on save
+	it("image and barcode props survive the save round-trip", () => {
+		insert_builder_format(PF_NAME, [
+			{
+				label: "Media",
+				columns: [
+					{
+						label: "",
+						fields: [
+							{
+								fieldtype: "Image",
+								fieldname: "image_cy1",
+								label: "Logo",
+								custom: 1,
+								image_url: "/assets/frappe/images/frappe-framework-logo.svg",
+								width: "40mm",
+								align: "center",
+							},
+							{
+								fieldtype: "Barcode",
+								fieldname: "barcode_cy1",
+								label: "",
+								custom: 1,
+								barcode_value: "CY-TEST-1",
+								barcode_format: "CODE128",
+								show_text: true,
+								width: "200px",
+							},
+						],
+					},
+				],
+			},
+		]);
+
+		cy.intercept("POST", "api/method/frappe.client.save").as("save");
+		cy.visit(`/app/print-format-builder/${encodeURIComponent(PF_NAME)}`);
+		cy.get(".sections-container", { timeout: 20000 }).should("be.visible");
+
+		// both blocks render in the canvas
+		cy.get('.field img[src*="frappe-framework-logo"]').should("exist");
+
+		cy.contains(".page-actions .primary-action", "Save").click({ force: true });
+		cy.wait("@save").then((interception) => {
+			expect(interception.response.statusCode).to.equal(200);
+			const layout = JSON.parse(interception.response.body.message.format_data);
+			const fields = layout.sections.flatMap((s) => s.columns).flatMap((c) => c.fields);
+
+			const img = fields.find((f) => f.fieldtype === "Image");
+			expect(img, "image field survived").to.exist;
+			expect(img).to.include({
+				custom: 1,
+				image_url: "/assets/frappe/images/frappe-framework-logo.svg",
+				width: "40mm",
+				align: "center",
+			});
+
+			const bar = fields.find((f) => f.fieldtype === "Barcode");
+			expect(bar, "barcode field survived").to.exist;
+			expect(bar).to.include({
+				custom: 1,
+				barcode_value: "CY-TEST-1",
+				barcode_format: "CODE128",
+				show_text: true,
+				width: "200px",
+			});
+		});
 	});
 });

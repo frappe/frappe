@@ -112,7 +112,7 @@ watch(
 		<!-- select input -->
 		<div class="select-input">
 			<input class="form-control" readonly :value="display_value" />
-			<div class="select-icon" v-html="frappe.utils.icon('select', 'sm')"></div>
+			<div class="select-icon" v-html="frappe.utils.icon('chevrons-up-down', 'sm')"></div>
 		</div>
 
 		<!-- description -->

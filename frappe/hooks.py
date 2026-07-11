@@ -16,9 +16,6 @@ app_email = "developers@frappe.io"
 before_install = "frappe.utils.install.before_install"
 after_install = "frappe.utils.install.after_install"
 
-after_app_install = "frappe.utils.install.auto_generate_icons_and_sidebar"
-after_app_uninstall = "frappe.utils.install.delete_desktop_icon_and_sidebar"
-
 page_js = {"setup-wizard": "public/js/frappe/setup_wizard.js"}
 
 # website
@@ -39,8 +36,6 @@ app_include_css = [
 ]
 app_include_icons = [
 	"/assets/frappe/icons/lucide/icons.svg",
-	"/assets/frappe/icons/timeless/icons.svg",
-	"/assets/frappe/icons/espresso/icons.svg",
 	"/assets/frappe/icons/desktop_icons/alphabets.svg",
 ]
 
@@ -53,8 +48,6 @@ web_include_js = ["website_script.js"]
 web_include_css = []
 web_include_icons = [
 	"/assets/frappe/icons/lucide/icons.svg",
-	"/assets/frappe/icons/timeless/icons.svg",
-	"/assets/frappe/icons/espresso/icons.svg",
 ]
 
 email_css = ["email.bundle.css"]
@@ -110,6 +103,7 @@ pdf_generator = "frappe.utils.pdf.get_chrome_pdf"
 # permissions
 
 permission_query_conditions = {
+	"Report": "frappe.core.doctype.report.report.get_permission_query_conditions",
 	"Event": "frappe.desk.doctype.event.event.get_permission_query_conditions",
 	"ToDo": "frappe.desk.doctype.todo.todo.get_permission_query_conditions",
 	"User": "frappe.core.doctype.user.user.get_permission_query_conditions",
@@ -132,6 +126,7 @@ permission_query_conditions = {
 }
 
 has_permission = {
+	"Report": "frappe.core.doctype.report.report.has_permission",
 	"Event": "frappe.desk.doctype.event.event.has_permission",
 	"ToDo": "frappe.desk.doctype.todo.todo.has_permission",
 	"Note": "frappe.desk.doctype.note.note.has_permission",
@@ -288,7 +283,6 @@ scheduler_events = {
 	"weekly_long": [
 		"frappe.desk.form.document_follow.send_weekly_updates",
 		"frappe.utils.change_log.check_for_update",
-		"frappe.desk.doctype.changelog_feed.changelog_feed.fetch_changelog_feed",
 	],
 	"monthly": [
 		"frappe.email.doctype.auto_email_report.auto_email_report.send_monthly",
@@ -485,8 +479,6 @@ extend_bootinfo = [
 	"frappe.core.doctype.user_permission.user_permission.send_user_permissions",
 ]
 
-get_changelog_feed = "frappe.desk.doctype.changelog_feed.changelog_feed.get_feed"
-
 export_python_type_annotations = True
 
 # Send non-GET requests for this app's endpoints as native `application/json`
@@ -543,6 +535,7 @@ persistent_cache_keys = [
 	"rate-limit-counter-*",
 	"rl:*",
 	"concurrency:*",
+	"pulse-client:*",
 ]
 
 user_invitation = {
@@ -550,6 +543,10 @@ user_invitation = {
 		"System Manager": [],
 	},
 }
+
+# Expose method source code through the API discovery endpoints. Safe for open
+# source apps and helps API clients understand what a method does.
+expose_discovery_source = True
 
 
 add_to_apps_screen = [

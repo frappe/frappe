@@ -3,174 +3,132 @@ frappe.ui.SidebarHeader = class SidebarHeader {
 		this.sidebar = sidebar;
 		this.sidebar_wrapper = $(".body-sidebar");
 		this.drop_down_expanded = false;
-		this.title = this.sidebar.sidebar_title;
-		const me = this;
-		this.sibling_workspaces = this.fetch_related_icons();
-		this.dropdown_items = [
-			{
-				name: "desktop",
-				label: __("Desktop"),
-				icon: "home",
-				onClick: function (el) {
-					frappe.set_route("/desk");
-				},
-			},
-			{
-				name: "workspaces",
-				label: "Workspaces",
-				icon: "wallpaper",
-				condition: function () {
-					return me.sibling_workspaces && me.sibling_workspaces.length > 0;
-				},
-				items: this.sibling_workspaces,
-			},
-			{
-				name: "website",
-				label: __("Website"),
-				icon: "web",
-				onClick: function () {
-					window.open(window.location.origin);
-				},
-			},
-			{
-				is_divider: true,
-			},
-			{
-				name: "edit-sidebar",
-				label: __("Edit Sidebar"),
-				icon: "edit",
-				condition: function () {
-					return frappe.boot.developer_mode;
-				},
-				onClick: function () {
-					me.sidebar.editor.toggle();
-				},
-			},
-			{
-				is_divider: true,
-				condition: function () {
-					return frappe.boot.developer_mode;
-				},
-			},
-		];
-		if (frappe.boot.desk_settings.notifications) {
-			this.dropdown_items.push(
-				{
-					label: "Reload",
-					action: "frappe.ui.toolbar.clear_cache()",
-					is_standard: 1,
-					icon: "rotate-ccw",
-					shortcut: "Shift+Ctrl+R",
-				},
-				{
-					name: "help",
-					label: "Help",
-					icon: "info",
-					items: this.get_help_siblings(),
-				}
-			);
-		}
-		this.add_navbar_items();
+		this.title = this.get_display_title();
+		this.dropdown_items = this.build_dropdown_items();
 		this.make();
 		this.setup_app_switcher();
-		this.populate_dropdown_menu();
-		this.setup_select_options();
 	}
-	add_navbar_items() {
-		frappe.boot.navbar_settings.settings_dropdown.forEach((item) => {
-			item.label = item.item_label;
-			this.dropdown_items.push(item);
-		});
-	}
-	fetch_related_icons() {
-		let sibling_workspaces = [];
-		let workspaces_not_to_show = ["My Workspaces"];
-		if (frappe.current_app) {
-			let desktop_icons = [...frappe.boot.desktop_icons];
-			desktop_icons.splice(
-				desktop_icons.indexOf(frappe.utils.get_desktop_icon_by_label(this.title)),
-				1
-			);
-			let { folder_map, sibling_icons } = this.build_folder_map(desktop_icons);
-			sibling_icons.forEach((icon) => {
-				if (folder_map[icon.parent_icon]) return;
-				if (!workspaces_not_to_show.includes(icon.label)) {
-					let item = {
-						name: icon.label.toLowerCase(),
-						label: icon.label,
-						url: frappe.utils.get_route_for_icon(icon),
-					};
-					if (icon.icon_type == "Folder") {
-						let nested_items = folder_map[item.label];
-						nested_items.forEach((item) => {
-							this.get_icon_for_menu_item(item, item);
-						});
-						item.items = nested_items;
-					}
-					if (
-						frappe.utils.get_desktop_icon(icon.label, frappe.boot.desktop_icon_style)
-					) {
-						item.icon_url = frappe.utils.get_desktop_icon(
-							icon.label,
-							frappe.boot.desktop_icon_style
-						);
-					} else {
-						item.icon_html = frappe.utils.desktop_icon(icon.label, "gray", "sm");
-					}
-					sibling_workspaces.push(item);
-				}
-			});
-			return sibling_workspaces;
-		}
-	}
-	get_icon_for_menu_item(icon, item) {
-		if (frappe.utils.get_desktop_icon(icon.label, frappe.boot.desktop_icon_style)) {
-			item.icon_url = frappe.utils.get_desktop_icon(
-				icon.label,
-				frappe.boot.desktop_icon_style
-			);
-		} else {
-			item.icon_html = frappe.utils.desktop_icon(icon.label, "gray", "sm");
-		}
-	}
-	build_folder_map(desktop_icons) {
-		const folder_map = {};
-		const sibling_icons = [];
-		if (!frappe.current_app) return;
-		this.sort_icons(desktop_icons);
-		desktop_icons.forEach((icon) => {
-			if (
-				icon.link_type != "External" &&
-				icon.app == frappe.current_app.app_name &&
-				!icon.hidden
-			) {
-				if (icon.icon_type === "Folder" && !folder_map[icon.label]) {
-					folder_map[icon.label] = [];
-				}
+	// Workspaces shown flat under "Public" / "Private" headings, followed by the Apps section.
+	build_dropdown_items() {
+		let items = [];
 
-				if (icon.parent_icon) {
-					icon.url = frappe.utils.get_route_for_icon(icon);
-					if (folder_map[icon.parent_icon]) folder_map[icon.parent_icon].push(icon);
-				}
-				sibling_icons.push(icon);
-			}
+		let public_items = this.get_public_workspace_items();
+		if (public_items.length) {
+			items.push(...public_items);
+		}
+
+		let private_items = this.get_private_workspace_items();
+		if (private_items.length) {
+			items.push(...private_items);
+		}
+
+		let apps_section = this.fetch_apps();
+		if (apps_section) items.push(apps_section);
+
+		return items;
+	}
+	fetch_apps() {
+		let apps = (frappe.boot.app_data || []).filter((app) => app.on_apps_screen);
+		if (!apps.length) return null;
+
+		let items = apps.map((app) => {
+			let logo = Array.isArray(app.app_logo_url) ? app.app_logo_url[0] : app.app_logo_url;
+			return {
+				name: app.app_name,
+				label: app.app_title,
+				url: app.app_route,
+				icon_url: logo,
+				// no logo declared -> render an alphabet icon, matching the desktop apps screen
+				icon_html: logo
+					? undefined
+					: frappe.utils.desktop_icon(app.app_title, "gray", "sm", "Solid"),
+			};
 		});
 
 		return {
-			folder_map: folder_map,
-			sibling_icons: sibling_icons,
+			name: "apps",
+			label: __("Apps"),
+			icon: "layout-grid",
+			items,
 		};
 	}
-	sort_icons(desktop_icons) {
-		let write = 0;
-		for (let i = 0; i < desktop_icons.length; i++) {
-			if (desktop_icons[i].icon_type === "Folder") {
-				const item = desktop_icons.splice(i, 1)[0];
-				desktop_icons.splice(write, 0, item);
-				write++;
-			}
+	get_public_workspace_items() {
+		// `frappe.boot.user_workspaces` is the user's personal selector preference
+		// (`User.workspaces`). When set, it is authoritative for the selector and may include
+		// private workspaces too, so it drives both. Otherwise fall back to the current app's
+		// workspaces plus any public custom (user-created, non-standard) workspaces -- those
+		// don't belong to an app's list (a "true custom" workspace has no app), so they'd
+		// otherwise never appear. Private ones are auto-listed by `get_private_workspace_items`.
+		let user_workspaces = frappe.boot.user_workspaces || [];
+		let source;
+		if (user_workspaces.length) {
+			source = user_workspaces;
+		} else {
+			// App-associated workspaces (standard and custom) come from the current app's list,
+			// so they stay scoped to their app. `frappe.current_app` is set deterministically at
+			// routing time (Sidebar.set_current_app), so it reliably reflects the active
+			// workspace's app here. App-less custom workspaces belong to no app, so they're added
+			// separately here -- otherwise they'd never appear in any selector.
+			let app_workspaces = (frappe.current_app && frappe.current_app.workspaces) || [];
+			let appless_custom = Object.values(frappe.workspaces || {})
+				.filter((workspace) => workspace.public && !workspace.standard && !workspace.app)
+				.map((workspace) => workspace.name);
+			source = [...new Set([...app_workspaces, ...appless_custom])];
 		}
-		return desktop_icons;
+
+		return source
+			.map((name) => frappe.workspaces[frappe.router.slug(name)])
+			.filter((workspace) => workspace && !this.is_active_workspace(workspace))
+			.map((workspace) => this.workspace_to_item(workspace))
+			.filter(Boolean);
+	}
+	get_private_workspace_items() {
+		// when the user has curated a selection, any private workspaces they want are already
+		// part of it (rendered above) -- don't auto-append them again
+		if ((frappe.boot.user_workspaces || []).length) return [];
+
+		return Object.values(frappe.workspaces || {})
+			.filter(
+				(workspace) =>
+					!workspace.public &&
+					workspace.for_user === frappe.session.user &&
+					!this.is_active_workspace(workspace)
+			)
+			.map((workspace) => this.workspace_to_item(workspace))
+			.filter(Boolean);
+	}
+	// The currently shown workspace shouldn't be offered as a switch target.
+	is_active_workspace(workspace) {
+		if (!workspace) return false;
+		let active = frappe.router.slug(this.sidebar.sidebar_title || "");
+		return frappe.router.slug(workspace.name || workspace.title || "") === active;
+	}
+	workspace_to_item(workspace) {
+		if (!workspace) return null;
+		let label = workspace.title || workspace.label || workspace.name;
+		if (!label) return null;
+		let sidebar_name = workspace.name || label;
+		return {
+			name: label.toLowerCase(),
+			label: label,
+			// land on the workspace's first sidebar link, falling back to the workspace page
+			url: this.get_first_link_route(workspace) || this.workspace_route(workspace),
+			icon: workspace.icon,
+			// switch the sidebar to this workspace (and remember it) alongside navigating
+			onClick: () => {
+				if (frappe.boot.workspace_sidebar_item[sidebar_name.toLowerCase()]) {
+					frappe.app.sidebar.select_sidebar(sidebar_name);
+				}
+			},
+		};
+	}
+	get_first_link_route(workspace) {
+		return frappe.app.sidebar.get_first_sidebar_route(workspace.name || workspace.title);
+	}
+	// The workspace's own desk route -- used when it has no sidebar items to land on.
+	workspace_route(workspace) {
+		let slug = frappe.router.slug(workspace.name || workspace.title);
+		return `/desk/${workspace.public ? slug : "private/" + slug}`;
 	}
 	get_help_siblings() {
 		const navbar_settings = frappe.boot.navbar_settings;
@@ -221,7 +179,6 @@ frappe.ui.SidebarHeader = class SidebarHeader {
 
 	make() {
 		$(".sidebar-header").remove();
-		$(".sidebar-header-menu").remove();
 		this.set_header_icon();
 		$(
 			frappe.render_template("sidebar_header", {
@@ -231,43 +188,33 @@ frappe.ui.SidebarHeader = class SidebarHeader {
 			})
 		).prependTo(this.sidebar_wrapper);
 		this.wrapper = $(".sidebar-header");
-		this.dropdown_menu = this.wrapper.find(".sidebar-header-menu");
 		this.$header_title = this.wrapper.find(".header-title");
 		this.$drop_icon = this.wrapper.find(".drop-icon");
+		this.toggle_width(this.sidebar.sidebar_expanded);
+	}
+	// Private workspaces are stored as `${title}-${for_user}`; show just the title in the
+	// header. Module-generated sidebars have no Workspace entry, so fall back to the raw title.
+	get_display_title() {
+		let workspace = frappe.workspaces[frappe.router.slug(this.sidebar.sidebar_title)];
+		if (workspace && !workspace.public && workspace.for_user) {
+			return workspace.title;
+		}
+		return this.sidebar.sidebar_title;
 	}
 	set_header_icon() {
-		let desktop_icon = this.get_desktop_icon_by_label(this.sidebar.sidebar_title);
-		let desktop_icon_url =
-			desktop_icon && frappe.utils.get_desktop_icon(desktop_icon.label, "solid");
-		if (desktop_icon_url) {
-			this.header_icon = desktop_icon_url;
-			this.header_icon = `<img src=${this.header_icon}></img>`;
-		} else if (desktop_icon && desktop_icon.logo_url) {
-			this.header_icon = desktop_icon.logo_url;
-			this.header_icon = `<img src=${this.header_icon}></img>`;
-		} else if (this.sidebar.sidebar_data) {
-			this.header_icon = this.sidebar.sidebar_data.header_icon;
+		let workspace = frappe.workspaces[frappe.router.slug(this.sidebar.sidebar_title)];
+		if (this.sidebar.sidebar_data?.from_module) {
+			// auto-generated module sidebars have no real icon; render a letter icon from the
+			// title (matching the desktop apps screen) instead of the default app logo.
 			this.header_icon = frappe.utils.desktop_icon(this.sidebar.sidebar_title, "gray", "sm");
+		} else if (workspace?.icon) {
+			this.header_icon = frappe.utils.icon(workspace.icon, "md");
 		} else {
-			this.header_icon = this.get_default_icon();
-			this.header_icon = `<img src=${this.header_icon}></img>`;
+			this.header_icon = `<img src=${this.get_default_icon()}></img>`;
 		}
 	}
 	get_default_icon() {
 		return frappe.boot.app_data[0].app_logo_url;
-	}
-	get_desktop_icon_by_label(title, filters) {
-		if (!filters) {
-			return frappe.boot.desktop_icons.find((f) => f.label === title && f.hidden != 1);
-		} else {
-			return frappe.boot.desktop_icons.find((f) => {
-				return (
-					f.label === title &&
-					Object.keys(filters).every((key) => f[key] === filters[key]) &&
-					f.hidden != 1
-				);
-			});
-		}
 	}
 
 	setup_app_switcher() {
@@ -277,50 +224,6 @@ frappe.ui.SidebarHeader = class SidebarHeader {
 			onShow: this.toggle_active,
 			onHide: this.toggle_active,
 			onItemClick: this.toggle_active,
-		});
-	}
-
-	populate_dropdown_menu() {
-		const me = this;
-		this.dropdown_items.forEach((d) => {
-			me.add_app_item(d);
-		});
-	}
-
-	add_app_item(item) {
-		$(`<div class="dropdown-menu-item" data-name="${item.name}"
-			data-app-route="${item.route}">
-			<a ${item.href ? `href="${item.href}"` : ""}>
-				<div class="sidebar-item-icon">
-					${
-						item.icon
-							? frappe.utils.icon(item.icon)
-							: `<img
-							class="logo"
-							src="${item.icon_url}"
-						>`
-					}
-				</div>
-				<span class="menu-item-title">${item.label}</span>
-				${
-					item.shortcut
-						? `<span class="menu-item-shortcut">${frappe.ui.keys.get_shortcut_label(
-								item.shortcut
-						  )}</span>`
-						: ""
-				}
-			</a>
-		</div>`).appendTo(this.dropdown_menu);
-	}
-
-	setup_select_options() {
-		this.dropdown_menu.find(".dropdown-menu-item").on("click", (e) => {
-			let item = $(e.delegateTarget);
-			let name = item.attr("data-name");
-			let current_item = this.dropdown_items.find((f) => f.name == name);
-			this.dropdown_menu.toggleClass("hidden");
-			this.toggle_active();
-			current_item.onClick(item);
 		});
 	}
 

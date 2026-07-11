@@ -511,8 +511,8 @@ class Document(BaseDocument):
 			single_doc = frappe.db.get_singles_dict(self.doctype, for_update=self.flags.for_update)
 			if not single_doc:
 				single_doc = frappe.new_doc(self.doctype, as_dict=True)
-				single_doc["name"] = self.doctype
 				del single_doc["__islocal"]
+			single_doc["name"] = self.doctype
 
 			super().__init__(single_doc)
 			self.init_valid_columns()
@@ -2496,7 +2496,7 @@ def get_lazy_controller(doctype):
 		original_controller = get_controller(doctype)
 		if meta.is_virtual:  # not supported
 			lazy_controllers[doctype] = original_controller
-			warnings.warn("Virtual doctypes don't support lazy loading", stacklevel=2)
+			warnings.warn(f"Virtual doctypes don't support lazy loading: {doctype}", stacklevel=3)
 			return original_controller
 
 		# Dynamically construct a class that subclasses LazyDocument and original controller.

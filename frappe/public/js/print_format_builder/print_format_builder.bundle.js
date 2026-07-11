@@ -1,5 +1,6 @@
 import { createApp, watch } from "vue";
 import PrintFormatBuilderComponent from "./PrintFormatBuilder.vue";
+import "./inspector.css";
 
 class PrintFormatBuilder {
 	constructor({ wrapper, page, print_format }) {
@@ -11,7 +12,7 @@ class PrintFormatBuilder {
 		this.page.clear_icons();
 		this.page.clear_custom_actions();
 
-		this.page.set_title(__("Editing {0}", [this.print_format]));
+		this.page.set_title(this.print_format);
 		this.page.set_primary_action(__("Save"), () => {
 			this.$component.$store.save_changes();
 		});
@@ -38,6 +39,9 @@ class PrintFormatBuilder {
 		let app = createApp(PrintFormatBuilderComponent, { print_format_name: print_format });
 		SetVueGlobals(app);
 		this.$component = app.mount(this.$wrapper.get(0));
+
+		// restore the desk chrome if the user navigates away while in fullscreen
+		this.page.wrapper.off("hide.pfb").on("hide.pfb", () => this.$component.exit_fullscreen());
 
 		watch(
 			() => this.$component.$store.dirty,

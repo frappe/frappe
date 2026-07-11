@@ -142,7 +142,7 @@ function delete_tab(tab, with_children) {
 						@click.stop="remove_tab(element, $event)"
 						:hidden="store.read_only"
 					>
-						<div v-html="frappe.utils.icon('remove', 'xs')"></div>
+						<div v-html="frappe.utils.icon('x', 'xs')"></div>
 					</button>
 				</div>
 			</template>

@@ -18,6 +18,7 @@ from frappe.core.doctype.doctype.doctype import (
 	InvalidFieldNameError,
 	UniqueFieldnameError,
 	WrongOptionsDoctypeLinkError,
+	validate_fields,
 	validate_links_table_fieldnames,
 	validate_permissions,
 )
@@ -714,6 +715,74 @@ class TestDocType(IntegrationTestCase):
 
 		self.assertEqual(test_json.test_json_field["hello"], "world")
 
+	def test_link_filters_must_be_valid_json(self):
+		doctype = new_doctype(
+			fields=[
+				{
+					"label": "User",
+					"fieldname": "user",
+					"fieldtype": "Link",
+					"options": "User",
+					"link_filters": "not valid json",
+				}
+			]
+		)
+
+		self.assertRaises(frappe.ValidationError, doctype.insert)
+
+	def test_link_filters_must_be_list_of_filters(self):
+		doctype = new_doctype(
+			fields=[
+				{
+					"label": "User",
+					"fieldname": "user",
+					"fieldtype": "Link",
+					"options": "User",
+					"link_filters": '{"name": "Administrator"}',
+				}
+			]
+		)
+
+		self.assertRaises(frappe.ValidationError, doctype.insert)
+
+	def test_missing_link_filters_field_is_allowed(self):
+		doctype = new_doctype()
+		doctype.fields[0].__dict__.pop("link_filters", None)
+
+		validate_fields(doctype)
+
+	def test_custom_field_validates_link_filters(self):
+		custom_field = frappe.get_doc(
+			{
+				"doctype": "Custom Field",
+				"dt": "ToDo",
+				"fieldname": "invalid_link_filters",
+				"label": "Invalid Link Filters",
+				"fieldtype": "Link",
+				"options": "User",
+				"link_filters": '[["User", "name", "="]]',
+			}
+		)
+
+		self.assertRaises(frappe.ValidationError, custom_field.insert)
+		frappe.db.rollback()
+		frappe.clear_cache(doctype="ToDo")
+
+	def test_property_setter_validates_link_filters(self):
+		self.assertRaises(
+			frappe.ValidationError,
+			frappe.make_property_setter,
+			{
+				"doctype": "ToDo",
+				"fieldname": "allocated_to",
+				"property": "link_filters",
+				"value": '["not a filter row"]',
+				"property_type": "JSON",
+			},
+		)
+		frappe.db.rollback()
+		frappe.clear_cache(doctype="ToDo")
+
 	def test_no_delete_doc(self):
 		self.assertRaises(frappe.ValidationError, frappe.delete_doc, "DocType", "Address")
 
@@ -761,6 +830,28 @@ class TestDocType(IntegrationTestCase):
 				if controller_folder:
 					shutil.rmtree(controller_folder, ignore_errors=True)
 				frappe.local.request = previous_request
+
+	def test_warn_on_module_change(self):
+		doc = frappe.new_doc("DocType")
+		doc.name = "Test Module Change Warning"
+		doc.module = "Custom"
+
+		messages = []
+		with patch.object(frappe, "msgprint", side_effect=lambda msg, **kwargs: messages.append(msg)):
+			doc.get_doc_before_save = lambda: frappe._dict(module="Core")
+			doc.warn_on_module_change()
+			self.assertEqual(len(messages), 1)
+			self.assertIn("Custom", messages[0])
+
+			messages.clear()
+			doc.get_doc_before_save = lambda: frappe._dict(module="Custom")
+			doc.warn_on_module_change()
+			self.assertEqual(messages, [])
+
+			messages.clear()
+			doc.get_doc_before_save = lambda: frappe._dict(module="Does Not Exist")
+			doc.warn_on_module_change()
+			self.assertEqual(messages, [])
 
 	@unittest.skipUnless(
 		os.access(frappe.get_app_path("frappe"), os.W_OK), "Only run if frappe app paths is writable"

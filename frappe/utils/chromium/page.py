@@ -131,9 +131,9 @@ class Page:
 				data["request_id"] = params["requestId"]
 				url = params["request"]["url"]
 
-				if url.startswith(get_host_url()):
-					path = url.replace(get_host_url(), "").split("?v", 1)[0]
-					clean_path = urllib.parse.unquote(path)
+				if isinstance(url, str) and url.startswith(get_host_url()):
+					parsed = urllib.parse.urlparse(url)
+					clean_path = urllib.parse.unquote(parsed.path).lstrip("/")
 
 					if clean_path.startswith("assets/"):
 						final_system_path = os.path.abspath(os.path.join(bench_sites, clean_path))
@@ -149,7 +149,7 @@ class Page:
 						content = frappe.read_file(final_system_path, as_base64=True)
 						response_headers = []
 						# write logic to handle all file types as required
-						if path.endswith(".svg"):
+						if clean_path.endswith(".svg"):
 							response_headers.append({"name": "Content-Type", "value": "image/svg+xml"})
 						if content:
 							self.session.send(
@@ -163,7 +163,7 @@ class Page:
 								return_future=True,
 							)
 							return
-					elif path:
+					elif clean_path:
 						self.session.send(
 							"Fetch.failRequest",
 							{"requestId": data["request_id"], "errorReason": "AccessDenied"},
@@ -171,7 +171,7 @@ class Page:
 						)
 						frappe.log_error(
 							title="Attempted Unauthorized File Access in PDF Generator",
-							message=f"Blocked access to: {path} \nResolved Path to: {final_system_path}",
+							message=f"Blocked access to: {clean_path} \nResolved Path to: {final_system_path}",
 						)
 						return
 				self.session.send(

@@ -1,15 +1,16 @@
 from typing import Any
 
 import frappe
-from frappe.utils.caching import site_cache
 
 from .queue import EventQueue
 from .transport import PulseHTTP
 from .utils import anonymize_user, pulse_host, utc_iso
 
 
-@site_cache(ttl=60 * 60)
 def is_enabled() -> bool:
+	# Not cached: the underlying reads are conf lookups (in-memory) and System Settings
+	# (already request- and redis-cached by frappe), so a local cache here buys nothing
+	# but staleness — notably during the setup wizard, where enable_telemetry flips on.
 	if not frappe.conf.get("pulse_api_key"):
 		return False
 
@@ -38,6 +39,10 @@ def boot_config() -> dict:
 	if not is_enabled():
 		return {"enabled": False}
 
+	# Local import: telemetry/__init__ imports this module, so a top-level import
+	# would be a cycle (site_age is defined after that import runs).
+	from frappe.utils.telemetry import site_age
+
 	host = pulse_host()
 
 	session_user = frappe.session.user
@@ -54,18 +59,20 @@ def boot_config() -> dict:
 		"site": frappe.local.site,
 		"user": anonymize_user(session_user),
 		"team": frappe.conf.get("fc_team"),
+		"site_age": site_age(),
 	}
 
 
 def capture(
 	event_name: str,
-	site: str | None = None,
 	app: str | None = None,
 	user: str | None = None,
 	team: str | None = None,
 	captured_at: str | None = None,
 	properties: dict[str, Any] | None = None,
 	interval: int | str | None = None,
+	*,
+	site: str | None = None,
 ):
 	if not is_enabled():
 		return
@@ -91,15 +98,17 @@ def capture(
 		frappe.logger("pulse").error(f"pulse-client - capture failed: {e!s}")
 
 
-def identify(user: str, properties: str | dict[str, Any] | None = None):
-	"""Attach attributes to a user — upserts its Pulse Person profile.
+def identify(properties: str | dict[str, Any] | None = None):
+	"""Attach attributes to the account team — upserts its Pulse profile.
 
-	Server-side only (not whitelisted): press calls this in Python when a person's
-	attributes change (e.g. setting an FC user's persona at signup/payment). Posted
-	directly rather than queued: it's low-frequency, and a missed call self-heals on
-	the next change. Telemetry never raises to the caller.
+	The identity subject is always this site's Frappe Cloud team (`fc_team`): a site
+	belongs to exactly one team, so it's implicit and can't be mistyped — a setup
+	wizard just passes properties. Server-side only (not whitelisted): posted directly
+	rather than queued — it's low-frequency, and a missed call self-heals on the next
+	change. Telemetry never raises to the caller.
 	"""
-	if not is_enabled() or not user:
+	team = frappe.conf.get("fc_team")
+	if not is_enabled() or not team:
 		return
 
 	if isinstance(properties, str):
@@ -112,22 +121,23 @@ def identify(user: str, properties: str | dict[str, Any] | None = None):
 			return
 
 	endpoint = frappe.conf.get("pulse_identify_endpoint") or "/api/method/pulse.api.identify"
-	PulseHTTP().post(endpoint, {"user": user, "properties": properties or {}}, label="identify")
+	PulseHTTP().post(endpoint, {"team": team, "properties": properties or {}}, label="identify")
 
 
-def alias(previous_id: str, user: str):
-	"""Link a previous (anonymous) user id to a known user.
+def alias(previous_id: str):
+	"""Link a previous (anonymous) id to this site's account team (`fc_team`).
 
-	Server-side only (not whitelisted): identity merges must be press-controlled —
-	a browser-callable alias would let anyone re-point ids and poison the graph.
-	Press calls this in its signup handler to stitch the pre-signup anonymous
-	browser id to the FC user. Same delivery semantics as identify.
+	The alias target is always the site's team — implicit, single-tenant. Server-side
+	only (not whitelisted): identity merges must be press-controlled — a
+	browser-callable alias would let anyone re-point ids and poison the graph. Same
+	delivery semantics as identify.
 	"""
-	if not is_enabled() or not previous_id or not user:
+	team = frappe.conf.get("fc_team")
+	if not is_enabled() or not previous_id or not team:
 		return
 
 	endpoint = frappe.conf.get("pulse_alias_endpoint") or "/api/method/pulse.api.alias"
-	PulseHTTP().post(endpoint, {"previous_id": previous_id, "user": user}, label="alias")
+	PulseHTTP().post(endpoint, {"previous_id": previous_id, "team": team}, label="alias")
 
 
 def send_queued_events():
