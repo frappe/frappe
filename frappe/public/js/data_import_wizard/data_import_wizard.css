@@ -1900,7 +1900,7 @@
 	line-height: 0;
 }
 
-.diw-import-file-card-icon .es-icon {
+.diw-import-file-card-icon .icon {
 	width: 20px;
 	height: 20px;
 }
@@ -1986,7 +1986,7 @@
 	flex-shrink: 0;
 }
 
-.diw-google-sheet-card-icon .es-icon {
+.diw-google-sheet-card-icon .icon {
 	width: 12px;
 	height: 12px;
 }

@@ -47,6 +47,7 @@ const viewport_height = ref(window.innerHeight);
 const stats_tick = ref(0);
 const fix_issues_success_icon = frappe.utils.icon("check", "lg", "", "", "", true);
 let resize_raf = null;
+let sync_from_frm_token = 0;
 
 function on_document_form_refresh(_event, refreshed_frm) {
 	if (refreshed_frm !== props.frm) return;
@@ -183,6 +184,8 @@ const bootstrap_panel_step = computed(() => cint(current_step.value));
 provide("show_step_skeleton", show_step_skeleton);
 
 async function sync_from_frm() {
+	const token = ++sync_from_frm_token;
+
 	if (props.frm.doc.name !== docname.value) {
 		docname.value = props.frm.doc.name;
 		if (!props.frm._wizard_navigation_in_progress) {
@@ -210,6 +213,9 @@ async function sync_from_frm() {
 	}
 
 	await prepare_step_bootstrap(target_step);
+	if (token !== sync_from_frm_token) {
+		return;
+	}
 
 	if (is_first_sync) {
 		props.frm._wizard_step_initialized = true;
@@ -452,7 +458,7 @@ function set_preview_tab(tab) {
 									:docname="docname"
 								/>
 								<PreviewStep
-									v-else-if="index === 1"
+									v-else-if="index === 1 && index === current_step"
 									ref="preview_ref"
 									:key="`preview-${docname}`"
 								/>

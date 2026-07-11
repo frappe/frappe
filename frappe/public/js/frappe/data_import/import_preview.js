@@ -49,11 +49,6 @@ frappe.data_import.ImportPreview = class ImportPreview {
 			e.stopPropagation();
 			this.show_column_mapper(e, $(e.currentTarget));
 		});
-		this.wrapper.on("click.import_preview_actions", ".diw-preview-col-warning-btn", (e) => {
-			e.preventDefault();
-			e.stopPropagation();
-			this.show_column_warning(e, $(e.currentTarget));
-		});
 
 		this.$table_preview = $preview.find(".table-preview");
 	}
@@ -428,26 +423,6 @@ frappe.data_import.ImportPreview = class ImportPreview {
 			});
 
 		this.wrapper.find(".table-actions").html(html.join(""));
-	}
-
-	show_column_warning(_, $target) {
-		const scroll_to_warning = (attempt = 0) => {
-			let $warning = this.frm
-				.get_field("import_warnings")
-				.$wrapper.find(`[data-col=${$target.data("col")}]`);
-			if ($warning?.length) {
-				frappe.utils.scroll_to($warning, true, 30);
-				return;
-			}
-			if (attempt < 10) {
-				setTimeout(() => scroll_to_warning(attempt + 1), 100);
-				return;
-			}
-			frappe.show_alert({ message: __("Column warning not found"), indicator: "orange" });
-		};
-
-		this.frm.events.go_to_wizard_step?.(this.frm, 2);
-		setTimeout(() => scroll_to_warning(), 150);
 	}
 
 	show_column_mapper() {
