@@ -45,11 +45,11 @@ def get_qr_code(value: str) -> str:
 	return "data:image/svg+xml;base64," + base64.b64encode(stream.getvalue()).decode()
 
 
-def get_html(doctype, name, print_format, letterhead=None):
+def get_html(doctype, name, print_format, letterhead=None, action_banner=None):
 	doc = frappe.get_doc(doctype, name)
 	doc.check_permission("print")
 	generator = PrintFormatGenerator(print_format, doc, letterhead)
-	return generator.get_html_preview()
+	return generator.get_html_preview(action_banner=action_banner)
 
 
 class PrintFormatGenerator:
@@ -102,10 +102,11 @@ class PrintFormatGenerator:
 
 	# ----- HTML preview (browser printview) ------------------------------
 
-	def get_html_preview(self):
+	def get_html_preview(self, action_banner=None):
 		header_html, footer_html = self.get_header_footer_html()
 		self.context.header = header_html
 		self.context.footer = footer_html
+		self.context.action_banner = action_banner
 		return self.get_main_html()
 
 	def get_main_html(self):

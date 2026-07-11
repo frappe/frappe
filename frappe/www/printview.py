@@ -72,7 +72,16 @@ def get_context(context) -> PrintContext:
 
 	print_format = get_print_format_doc(None, meta=meta)
 
-	if print_format and print_format.get("print_format_builder_beta") and print_format.get("format_data"):
+	print_format_name = getattr(print_format, "name", "Standard")
+	pdf_generator = frappe.form_dict.get(
+		"pdf_generator", getattr(print_format, "pdf_generator", "wkhtmltopdf")
+	)
+
+	standalone = bool(
+		print_format and print_format.get("print_format_builder_beta") and print_format.get("format_data")
+	)
+
+	if standalone:
 		from frappe.utils.print_format_generator import get_html
 
 		body = get_html(
@@ -80,8 +89,22 @@ def get_context(context) -> PrintContext:
 			name=frappe.form_dict.name,
 			print_format=print_format.name,
 			letterhead=letterhead,
+			action_banner=frappe.render_template(
+				"templates/print_formats/print_action_banner.html",
+				{
+					"doctype": frappe.form_dict.doctype,
+					"name": frappe.form_dict.name,
+					"print_format": print_format_name,
+					"letterhead": letterhead,
+					"no_letterhead": frappe.form_dict.no_letterhead,
+					"lang": frappe.local.lang,
+					"key": frappe.form_dict.get("key"),
+					"pdf_generator": pdf_generator,
+				},
+			),
 		)
-		body += trigger_print_script
+		if cint(frappe.form_dict.trigger_print):
+			body += trigger_print_script
 	else:
 		body = get_rendered_template(
 			doc,
@@ -93,10 +116,6 @@ def get_context(context) -> PrintContext:
 			settings=settings,
 		)
 
-	# Include selected print format name in access log
-	print_format_name = getattr(print_format, "name", "Standard")
-	pdf_generator = getattr(print_format, "pdf_generator", "wkhtmltopdf")
-
 	make_access_log(
 		doctype=frappe.form_dict.doctype,
 		document=frappe.form_dict.name,
@@ -107,7 +126,8 @@ def get_context(context) -> PrintContext:
 
 	return {
 		"body": body,
-		"print_style": get_print_style(frappe.form_dict.style, print_format),
+		"standalone": standalone,
+		"print_style": "" if standalone else get_print_style(frappe.form_dict.style, print_format),
 		"comment": frappe.session.user,
 		"title": frappe.utils.strip_html(cstr(doc.get_title() or doc.name)),
 		"lang": frappe.local.lang,
@@ -118,7 +138,7 @@ def get_context(context) -> PrintContext:
 		"print_format": print_format_name,
 		"letterhead": letterhead,
 		"no_letterhead": frappe.form_dict.no_letterhead,
-		"pdf_generator": frappe.form_dict.get("pdf_generator", pdf_generator),
+		"pdf_generator": pdf_generator,
 	}
 
 

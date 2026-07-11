@@ -20,6 +20,7 @@
 	{%- endif -%}
 </head>
 <body class="print-format-doc">
+	{{ action_banner or '' }}
 	{{ header or '' }}
 	{#- Chrome PDF: layout.header rendered once as a body element (page 1 only, reliable height) -#}
 	{{ chrome_layout_header or '' }}
