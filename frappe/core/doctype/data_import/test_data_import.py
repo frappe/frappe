@@ -8,6 +8,7 @@ from frappe.tests import UnitTestCase
 # Keep in sync with depends_on on use_csv_sniffer / custom_delimiters in data_import.json
 CSV_IMPORT_SOURCE_DEPENDS_ON = "eval:doc.google_sheets_url || (doc.import_file && doc.import_file.split('.').pop().toLowerCase() === 'csv')"
 CSV_DELIMITER_OPTIONS_DEPENDS_ON = "eval:doc.custom_delimiters && (doc.google_sheets_url || (doc.import_file && doc.import_file.split('.').pop().toLowerCase() === 'csv'))"
+IMPORT_COMPLETED_READ_ONLY_DEPENDS_ON = "eval: ['Success', 'Partial Success'].includes(doc.status)"
 
 
 def is_csv_import_source(import_file: str | None = None, google_sheets_url: str | None = None) -> bool:
@@ -51,3 +52,15 @@ class TestDataImport(UnitTestCase):
 		self.assertEqual(meta.get_field("use_csv_sniffer").depends_on, CSV_IMPORT_SOURCE_DEPENDS_ON)
 		self.assertEqual(meta.get_field("custom_delimiters").depends_on, CSV_IMPORT_SOURCE_DEPENDS_ON)
 		self.assertEqual(meta.get_field("delimiter_options").depends_on, CSV_DELIMITER_OPTIONS_DEPENDS_ON)
+		self.assertEqual(
+			meta.get_field("use_csv_sniffer").read_only_depends_on,
+			IMPORT_COMPLETED_READ_ONLY_DEPENDS_ON,
+		)
+		self.assertEqual(
+			meta.get_field("custom_delimiters").read_only_depends_on,
+			IMPORT_COMPLETED_READ_ONLY_DEPENDS_ON,
+		)
+		self.assertEqual(
+			meta.get_field("delimiter_options").read_only_depends_on,
+			IMPORT_COMPLETED_READ_ONLY_DEPENDS_ON,
+		)

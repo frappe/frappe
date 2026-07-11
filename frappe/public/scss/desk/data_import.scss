@@ -62,20 +62,39 @@
 		line-height: 1.4;
 	}
 
+	.import-tree-box {
+		display: flex;
+		flex-direction: column;
+		border: 1px solid var(--border-color);
+		border-radius: var(--border-radius);
+		overflow: hidden;
+	}
+
 	.import-tree-body {
 		max-height: 380px;
 		overflow: auto;
+		border: none;
 
 		.tree {
 			padding: var(--padding-sm);
 		}
 	}
 
+	.diw-tree-row {
+		display: flex;
+		align-items: center;
+		width: 100%;
+	}
+
+	.diw-tree-row-meta {
+		margin-left: auto;
+	}
+
 	.import-tree-row-number {
 		font-weight: normal;
 	}
 
-	.import-tree-node-orphan > .tree-link .tree-label {
+	.import-tree-node-orphan .diw-tree-label {
 		color: var(--orange-600);
 	}
 }

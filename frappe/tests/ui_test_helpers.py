@@ -204,6 +204,18 @@ def create_multiple_todo_records():
 	frappe.db.bulk_insert("ToDo", fields=["name", "description"], values=set(values))
 
 
+@whitelist_for_tests()
+def db_set_values(doctype: str, name: str, values: str | dict):
+	"""Set fixture fields directly without running document validation hooks.
+
+	Intended for UI test setup over HTTP requests. Callers are responsible for
+	cleaning up or resetting mutated records explicitly.
+	"""
+	values = frappe.parse_json(values)
+	frappe.db.set_value(doctype, name, values, update_modified=False)
+	return frappe.get_doc(doctype, name).as_dict()
+
+
 def insert_contact(first_name, phone_number):
 	doc = frappe.get_doc({"doctype": "Contact", "first_name": first_name})
 	doc.append("phone_nos", {"phone": phone_number})
@@ -472,20 +484,7 @@ def setup_tree_doctype():
 	).insert()
 
 	if not frappe.db.exists("Custom Tree", "All Trees"):
-		frappe.get_doc({"doctype": "Custom Tree", "tree": "All Trees", "is_group": 1}).insert()
-
-	for parent, child, is_group in (("All Trees", "Parent Node", 1), ("Parent Node", "Child Node", 0)):
-		if not frappe.db.exists("Custom Tree", child):
-			frappe.get_doc(
-				{"doctype": "Custom Tree", "tree": child, "parent_custom_tree": parent, "is_group": is_group}
-			).insert()
-
-	for i in range(40):
-		name = f"Scroll Node {i}"
-		if not frappe.db.exists("Custom Tree", name):
-			frappe.get_doc(
-				{"doctype": "Custom Tree", "tree": name, "parent_custom_tree": "All Trees", "is_group": 0}
-			).insert()
+		frappe.get_doc({"doctype": "Custom Tree", "tree": "All Trees"}).insert()
 
 
 @whitelist_for_tests()
@@ -681,6 +680,13 @@ def slow_task(duration, title, doctype, docname):
 	for i in range(steps + 1):
 		frappe.publish_progress(i * 10, title=title, doctype=doctype, docname=docname)
 		time.sleep(int(duration) / steps)
+
+
+@whitelist_for_tests()
+def empty_my_workspaces():
+	my_workspaces = frappe.get_doc("Workspace Sidebar", "My Workspaces")
+	my_workspaces.items = []
+	my_workspaces.save()
 
 
 LIST_LAYOUT_TEST_PREFIX = "_cypress_layout_"
