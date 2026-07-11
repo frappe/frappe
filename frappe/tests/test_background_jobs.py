@@ -63,7 +63,7 @@ class TestBackgroundJobs(IntegrationTestCase):
 			return real_get_cached_value(doctype, name, fieldname, *args, **kwargs)
 
 		frappe.local.job = frappe._dict(user="Administrator")
-		self.addCleanup(setattr, frappe.local, "job", None)
+		self.addCleanup(delattr, frappe.local, "job")
 		original_lang = frappe.local.lang
 		self.addCleanup(setattr, frappe.local, "lang", original_lang)
 		frappe.local.lang = "en"
