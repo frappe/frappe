@@ -249,6 +249,7 @@ def create_new_oauth_client(client: OAuth2DynamicClientMetadata):
 	doc.response_type = "Code"
 	doc.grant_type = "Authorization Code"
 	doc.skip_authorization = False
+	doc.is_dynamic_client = True
 
 	if client.client_uri:
 		doc.client_uri = client.client_uri.encoded_string()

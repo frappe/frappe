@@ -230,6 +230,7 @@ scheduler_events = {
 		# 10 minutes
 		"0/10 * * * *": [
 			"frappe.email.doctype.email_account.email_account.pull",
+			"frappe.integrations.doctype.oauth_client.oauth_client.delete_unused_dynamic_clients",
 		],
 		# Hourly but offset by 30 minutes
 		"30 * * * *": [],

@@ -25,6 +25,7 @@ from frappe.oauth import (
 	get_server_url,
 	get_userinfo,
 )
+from frappe.rate_limiter import rate_limit
 from frappe.sessions import get_csrf_token
 
 ENDPOINTS = {
@@ -346,6 +347,7 @@ def _get_authorization_server_metadata():
 
 
 @frappe.whitelist(allow_guest=True, methods=["POST"])
+@rate_limit(limit=1, seconds=10 * 60)
 def register_client():
 	"""
 	Registers an OAuth client.
