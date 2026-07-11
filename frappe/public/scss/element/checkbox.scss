@@ -105,7 +105,7 @@ input[type="checkbox"] {
 }
 
 input:checked + .slider {
-	background-color: var(--invert-neutral);
+	background-color: var(--ink-gray-8);
 }
 
 input:focus + .slider {
