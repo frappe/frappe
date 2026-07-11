@@ -119,7 +119,13 @@
 							}"
 						>
 							<thead v-if="df.table_header !== 'none'">
-								<tr :style="df.table_header_bg ? { background: df.table_header_bg } : {}">
+								<tr
+									:style="
+										df.table_header_bg
+											? { background: df.table_header_bg }
+											: {}
+									"
+								>
 									<th
 										v-for="col in df.table_columns"
 										:key="col.fieldname"
