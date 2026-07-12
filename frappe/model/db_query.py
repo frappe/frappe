@@ -82,6 +82,9 @@ class DatabaseQuery:
 		self.or_conditions = []
 		self.fields = None
 		self.join = "left join"
+		self.order_by = None
+		self.group_by = None
+		self.with_childnames = False
 		self.user = user or frappe.session.user
 		self.ignore_ifnull = False
 		self.flags = frappe._dict()
@@ -340,8 +343,7 @@ from {tables}
 
 		# left join parent, child tables
 		for child in self.tables[1:]:
-			parent_name = cast_name(f"{self.tables[0]}.name")
-			args.tables += f" {self.join} {child} on ({child}.parenttype = {frappe.db.escape(self.doctype)} and {child}.parent = {parent_name})"
+			args.tables += f" {self.join} {child} on ({self._child_join_condition(child)})"
 
 		# left join link tables
 		for link in self.link_tables:
@@ -727,21 +729,35 @@ from {tables}
 		exists_groups: dict[str, list] = {}
 		if not filters:
 			return joined, exists_groups
+		if not self._can_filter_via_exists():
+			return list(filters), exists_groups
 
 		additional_filters_config = get_additional_filters_from_hooks()
 		for ft in filters:
 			f = get_filter(self.doctype, ft, additional_filters_config)
 			if (
-				self.join == "left join"
-				and f.doctype
+				f.doctype
 				and f.doctype != self.doctype
 				and f"`tab{f.doctype}`" not in self.tables
+				and f"`tab{f.doctype}`" not in (self.group_by or "")
+				and f"`tab{f.doctype}`" not in (self.order_by or "")
 				and self.get_meta(f.doctype).istable
 			):
 				exists_groups.setdefault(f.doctype, []).append(ft)
 			else:
 				joined.append(ft)
 		return joined, exists_groups
+
+	def _can_filter_via_exists(self) -> bool:
+		if self.join != "left join" or self.with_childnames:
+			return False
+		if any("(" in (field or "") for field in self.fields or []):
+			return False
+		if self.order_by and self.order_by != DefaultOrderBy and "(" in self.order_by:
+			return False
+		if self.flags.ignore_permissions:
+			return True
+		return not get_server_script_map().get("permission_query", {}).get(self.doctype)
 
 	def prepare_exists_condition(self, child_doctype: str, filters: list, any_match=False) -> str:
 		"""Return an exists() condition that filters by a child table without joining it.
@@ -755,12 +771,14 @@ from {tables}
 		child_table = f"`tab{child_doctype}`"
 		joiner = " or " if any_match else " and "
 		conditions = joiner.join(self.prepare_filter_condition(f, skip_join=True) for f in filters)
-		parent_name = cast_name(f"{self.tables[0]}.name")
 		return (
 			f"exists (select 1 from (select 1) as `_one_row` "
-			f"left join {child_table} on ({child_table}.parenttype = {frappe.db.escape(self.doctype)} "
-			f"and {child_table}.parent = {parent_name}) where {conditions})"
+			f"left join {child_table} on ({self._child_join_condition(child_table)}) where {conditions})"
 		)
+
+	def _child_join_condition(self, child_table: str) -> str:
+		parent_name = cast_name(f"`tab{self.doctype}`.name")
+		return f"{child_table}.parenttype = {frappe.db.escape(self.doctype)} and {child_table}.parent = {parent_name}"
 
 	def build_filter_conditions(self, filters: Filters, conditions: list, ignore_permissions=None):
 		"""build conditions from user filters"""

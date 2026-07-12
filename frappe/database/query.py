@@ -265,6 +265,7 @@ class Engine:
 		self.permitted_fields_cache = {}  # Cache for get_permitted_fields results
 		self.is_aggregate_query = False
 		self._grouped_queries = set()
+		self._joined_link_tables = []
 
 		assert db_type in ("mariadb", "postgres", "sqlite"), f"unexpected db_type: {db_type}"
 
@@ -1271,7 +1272,7 @@ class Engine:
 
 	def apply_group_by(self, group_by: str | None = None):
 		parsed_group_by_fields = self._validate_group_by(group_by)
-		if self._is_main_table_pk_group_by(parsed_group_by_fields):
+		if self.is_postgres and self._is_main_table_pk_group_by(parsed_group_by_fields):
 			parsed_group_by_fields += self._joined_link_table_pks()
 		self._grouped_queries = {
 			f.get_sql() if hasattr(f, "get_sql") else str(f) for f in parsed_group_by_fields
@@ -1291,27 +1292,16 @@ class Engine:
 		)
 
 	def _joined_link_table_pks(self) -> list[Field]:
-		"""Primary keys of 1:1 joined link tables.
+		"""Primary keys of 1:1 joined link tables, recorded by LinkTableField.apply_join.
 
 		When deduping by the parent primary key, grouping additionally by each link
 		table's primary key cannot change the result (at most one link row per
 		parent) but satisfies postgres' functional-dependency rule for the link
 		table's selected columns, e.g. title fields fetched for
-		`show_title_field_in_link` (GH-39851). Child tables (istable) are excluded:
+		`show_title_field_in_link` (GH-39851). Child table joins are not recorded:
 		grouping by their primary key would undo the dedup.
 		"""
-		pks = []
-		for join in self.query._joins:
-			table = join.item
-			if not isinstance(table, Table):
-				continue
-			try:
-				meta = frappe.get_meta(get_doctype_name(table.get_sql()))
-			except frappe.DoesNotExistError:
-				continue
-			if not meta.istable:
-				pks.append(table["name"])
-		return pks
+		return [table["name"] for table in self._joined_link_tables]
 
 	def apply_order_by(self, order_by: str | None):
 		if not order_by or order_by == DefaultOrderBy:
@@ -2195,6 +2185,8 @@ class LinkTableField(DynamicTableField):
 					clause &= condition
 
 			query = query.left_join(table).on(clause)
+			if engine is not None:
+				engine._joined_link_tables.append(table)
 
 		return query
 

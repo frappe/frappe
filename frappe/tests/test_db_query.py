@@ -192,6 +192,16 @@ class TestDBQuery(IntegrationTestCase):
 		self.addCleanup(note.delete)
 		return note
 
+	def assert_note_filter_results(self, filters, includes=(), excludes=(), or_filters=None):
+		for result in (
+			frappe.get_all("Note", filters=filters, or_filters=or_filters, pluck="name"),
+			DatabaseQuery("Note").execute(filters=filters, or_filters=or_filters, pluck="name"),
+		):
+			for name in includes:
+				self.assertIn(name, result)
+			for name in excludes:
+				self.assertNotIn(name, result)
+
 	def test_child_table_filter_uses_exists(self):
 		"""Filter-only child tables filter via exists() — no join, no group by needed."""
 		note = self.make_note(seen_by=["Administrator"])
@@ -248,27 +258,27 @@ class TestDBQuery(IntegrationTestCase):
 		childless = self.make_note()
 		seen = self.make_note(seen_by=["Administrator"])
 
-		result = frappe.get_all("Note", filters=[["Note Seen By", "user", "is", "not set"]], pluck="name")
-		self.assertIn(childless.name, result)
-		self.assertNotIn(seen.name, result)
-
-		result = frappe.get_all(
-			"Note", filters=[["Note Seen By", "user", "!=", "Administrator"]], pluck="name"
+		self.assert_note_filter_results(
+			[["Note Seen By", "user", "is", "not set"]], includes=[childless.name], excludes=[seen.name]
 		)
-		self.assertIn(childless.name, result)
-		self.assertNotIn(seen.name, result)
-
-		result = frappe.get_all(
-			"Note", filters=[["Note Seen By", "user", "=", "Administrator"]], pluck="name"
+		self.assert_note_filter_results(
+			[["Note Seen By", "user", "!=", "Administrator"]],
+			includes=[childless.name],
+			excludes=[seen.name],
 		)
-		self.assertIn(seen.name, result)
-		self.assertNotIn(childless.name, result)
+		self.assert_note_filter_results(
+			[["Note Seen By", "user", "=", "Administrator"]],
+			includes=[seen.name],
+			excludes=[childless.name],
+		)
 
 	def test_child_table_filters_match_same_child_row(self):
 		"""Multiple filters on one child table must all match the same child row,
 		like they did against a single joined table."""
 		note = self.make_note(seen_by=["Administrator", "Guest"])
 
+		# legacy engine not asserted here: Filters normalization coalesces the two
+		# `=` filters into one `in` filter before they reach the query
 		result = frappe.get_all(
 			"Note",
 			filters=[
@@ -279,15 +289,20 @@ class TestDBQuery(IntegrationTestCase):
 		)
 		self.assertNotIn(note.name, result)
 
-		result = frappe.get_all(
-			"Note",
-			filters=[
+		self.assert_note_filter_results(
+			[
 				["Note Seen By", "user", "=", "Administrator"],
 				["Note Seen By", "user", "like", "Admin%"],
 			],
-			pluck="name",
+			includes=[note.name],
 		)
-		self.assertIn(note.name, result)
+		self.assert_note_filter_results(
+			[
+				["Note Seen By", "user", "!=", "Guest"],
+				["Note Seen By", "user", "like", "Admin%"],
+			],
+			includes=[note.name],
+		)
 
 	def test_child_table_or_filters_via_exists(self):
 		note = self.make_note(seen_by=["Administrator"])
@@ -311,6 +326,16 @@ class TestDBQuery(IntegrationTestCase):
 			run=0,
 		)
 		self.assertEqual(query.tables, ["`tabNote`"])
+
+		result = DatabaseQuery("Note").execute(
+			filters={"name": note.name},
+			or_filters=[
+				["Note Seen By", "user", "=", "Administrator"],
+				["Note Seen By", "user", "=", "some-nonexistent-user"],
+			],
+			pluck="name",
+		)
+		self.assertEqual(result, [note.name])
 
 	def test_child_table_filter_in_both_filter_groups_uses_join(self):
 		"""A child table filtered in both filters and or_filters keeps the legacy
@@ -343,6 +368,71 @@ class TestDBQuery(IntegrationTestCase):
 			run=0,
 		)
 		self.assertIn("`tabNote Seen By`", query.tables)
+
+	def test_child_table_filter_with_aggregate_field_keeps_join(self):
+		note = self.make_note(seen_by=["Administrator", "Guest"])
+
+		query = DatabaseQuery("Note")
+		result = query.execute(
+			filters=[
+				["Note", "name", "=", note.name],
+				["Note Seen By", "user", "in", ["Administrator", "Guest"]],
+			],
+			fields=["count(`tabNote Seen By`.`name`) as seen_count"],
+		)
+		self.assertIn("`tabNote Seen By`", query.tables)
+		self.assertEqual(result[0].seen_count, 2)
+
+	def test_child_table_filter_with_child_order_by_keeps_join(self):
+		note = self.make_note(seen_by=["Administrator"])
+
+		query = DatabaseQuery("Note")
+		result = query.execute(
+			filters=[["Note", "name", "=", note.name], ["Note Seen By", "user", "=", "Administrator"]],
+			fields=["name"],
+			order_by="`tabNote Seen By`.`user` asc",
+			pluck="name",
+		)
+		self.assertIn("`tabNote Seen By`", query.tables)
+		self.assertEqual(result, [note.name])
+
+		query = DatabaseQuery("Note")
+		query.execute(
+			filters=[["Note Seen By", "user", "=", "Administrator"]],
+			fields=["name"],
+			group_by="`tabNote Seen By`.`user`",
+			run=0,
+		)
+		self.assertIn("`tabNote Seen By`", query.tables)
+
+	def test_child_table_filter_with_childnames_keeps_join(self):
+		query = DatabaseQuery("Note")
+		query.execute(
+			filters=[["Note Seen By", "user", "=", "Administrator"]],
+			fields=["name"],
+			with_childnames=True,
+			run=0,
+		)
+		self.assertIn("`tabNote Seen By`", query.tables)
+
+	def test_child_table_filter_with_permission_script_keeps_join(self):
+		import frappe.model.db_query as db_query_module
+
+		with (
+			patch.object(
+				db_query_module,
+				"get_server_script_map",
+				return_value={"permission_query": {"Note": "test-script"}},
+			),
+			patch.object(DatabaseQuery, "get_permission_query_conditions", return_value=""),
+		):
+			query = DatabaseQuery("Note")
+			sql = query.execute(
+				filters=[["Note Seen By", "user", "=", "Administrator"]], fields=["name"], run=0
+			)
+
+		self.assertIn("`tabNote Seen By`", query.tables)
+		self.assertNotIn("exists (", sql)
 
 	def test_link_field_syntax(self):
 		todo = frappe.get_doc(doctype="ToDo", description="Test ToDo", allocated_to="Administrator").insert()
