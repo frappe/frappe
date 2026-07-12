@@ -37,6 +37,19 @@
 	display: none;
 }
 
+/* ---- position ---- (Tailwind's names; bootstrap uses .position-* so no clash) */
+.relative {
+	position: relative;
+}
+
+.absolute {
+	position: absolute;
+}
+
+.inset-0 {
+	inset: 0;
+}
+
 /* ---- flex direction / wrap ---- */
 .flex-col {
 	flex-direction: column;
@@ -110,6 +123,9 @@ $spacing-steps: (
 	"2": 2,
 	"3": 3,
 	"4": 4,
+	"5": 5,
+	"6": 6,
+	"8": 8,
 );
 
 @function spacing-step($n) {
@@ -126,12 +142,14 @@ $spacing-steps: (
 	}
 }
 
-/* TODO: we can't add p-, px-, py-, pt-, pb- or the m- versions yet.
-   Bootstrap already has classes with these exact names that use
-   !important, so ours would never take effect. Once Bootstrap's spacing
-   classes are removed (about 100 places in markup still use them), these
-   names become free. Until then, use ps-* and pe-* together when you
-   need both sides. */
+/* p-*, px-, py-, pt-, pb- and the m- versions are NOT defined here — but you
+   can use them in markup anyway. Bootstrap owns those exact names (with
+   !important), and as of the $spacers remap in desk/variables.scss its scale
+   now matches ours: bootstrap .p-3 = 12px = our .gap-3, .p-4 = 16px, and so on
+   up the 4px grid. So reach for bootstrap's p-* and m-* for physical padding and
+   margin; use ps-*,pe-*,ms-*,me-* below when you need logical (RTL-flipping)
+   sides, or gap on the parent. When bootstrap's utilities are eventually
+   dropped, these names move here — same values, no markup change. */
 
 @each $name, $n in $spacing-steps {
 	.ps-#{$name} {
@@ -188,6 +206,10 @@ $size-steps: 4, 5, 6, 8, 9, 10, 11, 12, 14, 16;
 	max-width: 20rem;
 }
 
+.max-w-lg {
+	max-width: 32rem;
+}
+
 /* min-height steps (Tailwind's min-h-*, on the spacing scale) — e.g. giving
    an empty state room to breathe. Bootstrap has no min-h-*, so no collision. */
 $min-h-steps: 24, 32, 40, 48, 64, 80, 96;
@@ -214,6 +236,11 @@ $min-h-steps: 24, 32, 40, 48, 64, 80, 96;
 
 .whitespace-nowrap {
 	white-space: nowrap;
+}
+
+/* ---- cursor ---- */
+.cursor-pointer {
+	cursor: pointer;
 }
 
 /* ---- text alignment ---- */
@@ -389,6 +416,38 @@ $focus-colors: "default", "red", "green", "amber", "blue", "violet";
 
 .rounded-full {
 	border-radius: var(--radius-full);
+}
+
+/* per-corner radius — Tailwind's logical corner names, so a rounded corner
+   tucked against a border-s/border-t edge stays put when the layout flips:
+     ss = start-start (top-left in LTR)   se = start-end (top-right)
+     es = end-start   (bottom-left)       ee = end-end   (bottom-right)
+   The suffix picks the same radius tokens as the all-corner .rounded-* scale
+   above (unsuffixed = the base radius). rtlcss leaves logical properties alone,
+   so these flip for free. */
+$radius-corners: (
+	"ss": start-start,
+	"se": start-end,
+	"es": end-start,
+	"ee": end-end,
+);
+$radius-sizes: (
+	"-none": var(--radius-none),
+	"-sm": var(--radius-sm),
+	"": var(--radius),
+	"-md": var(--radius-md),
+	"-lg": var(--radius-lg),
+	"-xl": var(--radius-xl),
+	"-2xl": var(--radius-2xl),
+	"-full": var(--radius-full),
+);
+
+@each $corner, $edges in $radius-corners {
+	@each $suffix, $token in $radius-sizes {
+		.rounded-#{$corner}#{$suffix} {
+			border-#{$edges}-radius: $token;
+		}
+	}
 }
 
 /* ---- responsive and dark-mode variants (add only when needed) ----
