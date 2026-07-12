@@ -1,6 +1,5 @@
 <template>
 	<div
-		ref="root_el"
 		class="print-format-main"
 		:style="rootStyles"
 		:class="{
@@ -10,21 +9,13 @@
 	>
 		<component :is="'style'" v-if="color_css">{{ color_css }}</component>
 		<div v-if="!page_number_hidden" class="pfb-page-num" :style="page_number_style">
-			{{ __("1 of {0}", [page_count]) }}
-		</div>
-		<div
-			v-for="guide in page_guides"
-			:key="guide.page"
-			class="page-guide"
-			:style="{ top: guide.top + 'px' }"
-		>
-			<span class="page-guide-label">{{ __("Page {0}", [guide.page]) }}</span>
+			{{ __("1 of 2") }}
 		</div>
 
 		<LetterHeadZoneEditor zone="header" />
 
 		<!-- Body wrapper: font size/family applied here so letterhead zones are unaffected -->
-		<div ref="body_el" class="pfb-body" :style="bodyStyles">
+		<div class="pfb-body" :style="bodyStyles">
 			<div class="zone-divider">
 				<span class="zone-divider-label">{{ __("Header") }}</span>
 			</div>
@@ -75,57 +66,14 @@ import { computed, inject, watch, nextTick, onMounted, onUnmounted, ref } from "
 let { layout, letterhead, print_format } = useStore();
 let store = inject("$store");
 
-// Where the printed page boundaries fall on the canvas. Heights on the canvas
-// match print heights (shared stylesheet, em spacing), so the boundary is
-// page height minus margins minus the repeating letterhead zones, measured
-// from where the body content starts.
 const PAGE_SIZES_MM = { A4: [210, 297], Letter: [216, 279.4] };
-
-let root_el = ref(null);
-let body_el = ref(null);
 let page_size = ref("A4");
-let page_guides = ref([]);
-let page_count = computed(() => page_guides.value.length + 1);
-let resize_observer = null;
-
-function update_guides() {
-	const root = root_el.value;
-	const body = body_el.value;
-	if (!root || !body) return;
-	const rr = root.getBoundingClientRect();
-	const br = body.getBoundingClientRect();
-	if (!rr.width || !br.height) {
-		page_guides.value = [];
-		return;
-	}
-	const [page_w, page_h] = PAGE_SIZES_MM[page_size.value] || PAGE_SIZES_MM.A4;
-	const px_mm = rr.width / page_w;
-	const { margin_top = 0, margin_bottom = 0 } = print_format.value;
-	const zones = root.querySelectorAll(":scope > .lh-zone");
-	const lh_head = zones[0]?.offsetHeight || 0;
-	const lh_foot = zones.length > 1 ? zones[zones.length - 1].offsetHeight : 0;
-	const usable = (page_h - margin_top - margin_bottom) * px_mm - lh_head - lh_foot;
-	const guides = [];
-	if (usable > 0) {
-		const body_top = br.top - rr.top;
-		const content_end = br.bottom - rr.top;
-		for (let k = 1; body_top + k * usable < content_end - 1 && k <= 100; k++) {
-			guides.push({ page: k + 1, top: Math.round(body_top + k * usable) });
-		}
-	}
-	page_guides.value = guides;
-}
 
 onMounted(() => {
 	frappe.db.get_single_value("Print Settings", "pdf_page_size").then((v) => {
 		if (v && PAGE_SIZES_MM[v]) page_size.value = v;
-		nextTick(update_guides);
 	});
-	resize_observer = new ResizeObserver(update_guides);
-	if (root_el.value) resize_observer.observe(root_el.value);
-	if (body_el.value) resize_observer.observe(body_el.value);
 });
-onUnmounted(() => resize_observer?.disconnect());
 
 const CUSTOM_CSS_ID = "pfb-letterhead-custom-css";
 watch(
@@ -308,30 +256,6 @@ watch(print_format, () => (store.dirty.value = true), { deep: true });
 	color: var(--text-muted);
 	background: var(--gray-100);
 	border: 1px solid var(--gray-300);
-}
-
-.page-guide {
-	position: absolute;
-	left: 0;
-	right: 0;
-	border-top: 1px dashed var(--gray-400);
-	pointer-events: none;
-	z-index: 5;
-}
-
-.page-guide-label {
-	position: absolute;
-	left: 50%;
-	top: 0;
-	transform: translate(-50%, -50%);
-	font-size: var(--text-tiny);
-	font-weight: var(--weight-medium);
-	color: var(--text-muted);
-	background: var(--gray-100);
-	border: 1px solid var(--gray-300);
-	border-radius: var(--radius);
-	padding: 1px 6px;
-	white-space: nowrap;
 }
 
 .section-with-insert {
