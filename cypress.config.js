@@ -34,12 +34,14 @@ module.exports = defineConfig({
 				cypressSplit(on, config);
 			}
 
-			// Delete videos for specs where no test was retried
+			// Delete videos for specs where no test ultimately failed
 			// https://docs.cypress.io/guides/guides/screenshots-and-videos#Delete-videos-for-specs-without-failing-or-retried-tests
 			on("after:spec", (spec, results) => {
 				if (results && results.video) {
-					const hadRetries = results.tests.some((test) => test.attempts.length > 1);
-					if (!hadRetries) {
+					const anyFailed = results.tests.some(
+						(test) => test.attempts[test.attempts.length - 1].state === "failed"
+					);
+					if (!anyFailed) {
 						fs.unlinkSync(results.video);
 					}
 				}

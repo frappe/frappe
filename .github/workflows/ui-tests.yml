@@ -110,7 +110,7 @@ jobs:
               --ci-build-id $GITHUB_RUN_ID-$GITHUB_RUN_ATTEMPT \
               --group ui-shard-${{ matrix.index }}
         env:
-          CYPRESS_RECORD_KEY: 4a48f41c-11b3-425b-aa88-c58048fa69eb
+          CYPRESS_RECORD_KEY: ${{ secrets.CYPRESS_RECORD_KEY }}
           SPLIT: 4
           SPLIT_INDEX: ${{ strategy.job-index }}
 
@@ -132,7 +132,7 @@ jobs:
               --ci-build-id $GITHUB_RUN_ID-$GITHUB_RUN_ATTEMPT-retry \
               --spec "$FAILED_SPECS"
         env:
-          CYPRESS_RECORD_KEY: 4a48f41c-11b3-425b-aa88-c58048fa69eb
+          CYPRESS_RECORD_KEY: ${{ secrets.CYPRESS_RECORD_KEY }}
           CYPRESS_RECORD_VIDEO: "1"
 
       - name: Compress Cypress Videos
