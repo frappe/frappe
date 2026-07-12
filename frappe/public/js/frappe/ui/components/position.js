@@ -32,6 +32,16 @@ const VIEWPORT_PAD = 8;
  * @param {number} offset Gap between anchor and panel, in px.
  */
 export function place(panel, anchor, side, align, offset) {
+	// "start" and "end" follow the reading direction (same as radix): for
+	// panels above or below the anchor, start means the RIGHT edge in RTL.
+	// The math below stays physical — we just translate up front. Sides
+	// stay physical on purpose (callers that care, like submenus, pick
+	// their side per direction themselves).
+	if ((side === "top" || side === "bottom") && frappe.utils.is_rtl()) {
+		if (align === "start") align = "end";
+		else if (align === "end") align = "start";
+	}
+
 	let rect = panel.getBoundingClientRect();
 
 	// taller than the viewport: cap it and let the panel scroll

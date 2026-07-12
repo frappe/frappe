@@ -439,7 +439,16 @@ export class MenuTree {
 			e.stopPropagation();
 		};
 
-		switch (e.key) {
+		// in RTL, submenus open toward the left, so the "step in" and
+		// "step out" arrows swap with them (only these two — up/down and
+		// everything else are direction-free)
+		let key = e.key;
+		if (frappe.utils.is_rtl()) {
+			if (key === "ArrowRight") key = "ArrowLeft";
+			else if (key === "ArrowLeft") key = "ArrowRight";
+		}
+
+		switch (key) {
 			case "ArrowDown":
 				handled();
 				this.focus_step(entry, 1);
@@ -617,9 +626,10 @@ export class MenuTree {
 
 		const groups = normalize_options(row.item.submenu);
 		const entry = this.mount(groups, {
-			// the submenu hangs off its row and follows it around
+			// the submenu hangs off its row and follows it around, opening
+			// toward the reading direction (left in RTL)
 			anchor: () => row.el.getBoundingClientRect(),
-			side: "right",
+			side: frappe.utils.is_rtl() ? "left" : "right",
 			align: "start",
 			offset: SUBMENU_OFFSET,
 			motion: "animated",
