@@ -253,7 +253,7 @@ class PrintFormatGenerator:
 {%- set col_gap = (section.gap if section.gap is defined and section.gap is not none else 20)|string + 'px' -%}
 <div class="section section-columns row" style="gap:{{ col_gap }}">
 {%- for column in section.columns %}
-<div class="column col">
+<div class="column col"{% if column.get('width') %} style="flex: {{ column.get('width')|float }} 1 0%"{% endif %}>
 {%- for df in column.get('fields', []) -%}
 {%- if not df.get('_hidden') -%}
 {%- if df.fieldtype == 'HTML' and df.html -%}

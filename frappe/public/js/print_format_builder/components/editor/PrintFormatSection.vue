@@ -101,7 +101,18 @@
 			>
 				<template v-for="(column, i) in section.columns" :key="i">
 					<div v-if="i > 0 && !preview_doc" class="column-divider"></div>
-					<div class="column" :class="{ col: !!preview_doc }">
+					<div
+						class="column"
+						:class="{ col: !!preview_doc }"
+						:style="column.width ? { flex: `${column.width} 1 0%` } : {}"
+					>
+						<div
+							v-if="i < section.columns.length - 1"
+							class="col-width-handle"
+							:style="{ right: handle_offset }"
+							@mousedown.prevent.stop="start_col_width_resize($event, i)"
+							@click.stop
+						></div>
 						<draggable
 							class="drag-container"
 							v-model="column.fields"
@@ -197,6 +208,38 @@ let columns_gap_style = computed(() => {
 		? { gap: props.section.gap + "px" }
 		: {};
 });
+
+let handle_offset = computed(() => {
+	if (preview_doc.value) return `${-((props.section.gap ?? 20) / 2 + 4)}px`;
+	const gap = props.section.columns.length > 1 && props.section.gap ? props.section.gap : 0;
+	return `${-(gap + 12.5)}px`;
+});
+
+function start_col_width_resize(e, i) {
+	const cols = props.section.columns;
+	const handle = e.currentTarget;
+	const container = handle.closest(".section-columns");
+	const col_els = [...container.children].filter((el) => el.classList.contains("column"));
+	const total = container.getBoundingClientRect().width;
+	const widths = col_els.map((el) => (el.getBoundingClientRect().width / total) * 100);
+	const start_x = e.clientX;
+	handle.classList.add("col-width-handle--active");
+	document.body.classList.add("pfb-col-resizing");
+	const on_move = (ev) => {
+		let delta = ((ev.clientX - start_x) / total) * 100;
+		delta = Math.max(10 - widths[i], Math.min(widths[i + 1] - 10, delta));
+		cols.forEach((c, j) => (c.width = Math.round(widths[j])));
+		cols[i].width = Math.round(widths[i] + delta);
+		cols[i + 1].width = Math.round(widths[i + 1] - delta);
+	};
+	const on_up = () => {
+		document.removeEventListener("mousemove", on_move);
+		handle.classList.remove("col-width-handle--active");
+		document.body.classList.remove("pfb-col-resizing");
+	};
+	document.addEventListener("mousemove", on_move);
+	document.addEventListener("mouseup", on_up, { once: true });
+}
 
 let has_visible_fields = computed(
 	() =>
@@ -375,6 +418,37 @@ function remove_column(index) {
 	background: var(--border-color);
 	margin: 0 0.5rem;
 	flex-shrink: 0;
+}
+
+.col-width-handle {
+	position: absolute;
+	top: 0;
+	bottom: 0;
+	width: 8px;
+	cursor: col-resize;
+	z-index: 2;
+}
+
+.col-width-handle::after {
+	content: "";
+	position: absolute;
+	top: 2px;
+	bottom: 2px;
+	left: 3px;
+	width: 2px;
+	border-radius: 1px;
+	background: var(--gray-400);
+	opacity: 0;
+	transition: opacity 0.15s;
+}
+
+.section-columns:hover .col-width-handle::after {
+	opacity: 0.4;
+}
+
+.col-width-handle:hover::after,
+.col-width-handle--active::after {
+	opacity: 1;
 }
 
 .drag-container {
