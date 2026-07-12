@@ -102,7 +102,12 @@ class PrintFormatGenerator:
 		page_width = page_width_map.get(self.print_settings.pdf_page_size) or 210
 		body_width = page_width - self.print_format.margin_left - self.print_format.margin_right
 		style_name = self.style or self.print_settings.print_style
-		print_style = frappe.get_doc("Print Style", style_name) if style_name else None
+		# style_name may be a placeholder like "Standard" with no Print Style record
+		print_style = (
+			frappe.get_doc("Print Style", style_name)
+			if style_name and frappe.db.exists("Print Style", style_name)
+			else None
+		)
 		self.context = frappe._dict(
 			{
 				"doc": self.doc,
