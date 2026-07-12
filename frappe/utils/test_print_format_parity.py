@@ -37,9 +37,6 @@ CANVAS_SOURCES = sorted(BUILDER_DIR.rglob("*.vue"))
 SERVER_ONLY_CLASSES = {
 	# letterhead HTML is user-authored and rendered server-side only
 	"letter-head",
-	# star SVGs come from macros/Rating.html; the canvas previews the numeric value
-	"rating-star",
-	"active",
 	# Chrome PDF overlay wrapper (templates/print_formats/chrome_pdf_header_footer.html)
 	"document-header",
 }
@@ -131,6 +128,9 @@ class TestPrintSurfaceMarkupContract(UnitTestCase):
 
 	def test_repeater_macro_properties_mirrored_in_canvas(self):
 		self._assert_df_props_mirrored(APP_PATH / "templates" / "print_format" / "macros" / "Repeater.html")
+
+	def test_rating_macro_properties_mirrored_in_canvas(self):
+		self._assert_df_props_mirrored(APP_PATH / "templates" / "print_format" / "macros" / "Rating.html")
 
 	def _assert_df_props_mirrored(self, macro_path):
 		# properties that are server-render concerns, not canvas inputs
