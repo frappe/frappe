@@ -83,3 +83,11 @@ body {
 	color: {{ print_format.value_color }};
 }
 {%- endif %}
+
+.print-format-doc [document-status] {
+	text-align: center;
+	margin-bottom: 5mm;
+}
+.print-format-doc [document-status] h4 {
+	margin: 0;
+}

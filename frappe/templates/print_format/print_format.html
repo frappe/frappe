@@ -45,6 +45,11 @@
 	{%- endif -%}
 	{%- endif -%}
 	{%- endif -%}
+	{%- if doc.meta.is_submittable and doc.docstatus == 0 and (not print_settings or print_settings.add_draft_heading) -%}
+	<div document-status="draft"><h4>{{ _("DRAFT") }}</h4></div>
+	{%- elif doc.meta.is_submittable and doc.docstatus == 2 -%}
+	<div document-status="cancelled"><h4>{{ _("CANCELLED") }}</h4></div>
+	{%- endif -%}
 	{% for section in layout.sections %}
 	{%- if not section.get('_hidden') -%}
 	{#- Skip labelled sections where every data field is empty -#}

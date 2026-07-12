@@ -336,7 +336,29 @@ class PrintFormatGenerator:
 			if not print_format.page_number or print_format.page_number == "Hide":
 				print_format.page_number = "Bottom Center"
 		layout = self.set_field_renderers(layout)
+		layout = self.prune_empty_table_columns(layout)
 		layout = self.process_margin_texts(layout)
+		return layout
+
+	def prune_empty_table_columns(self, layout):
+		"""Drop child-table columns that are blank in every row of this document,
+		matching the classic renderer. Currency/Float columns are always kept."""
+		from frappe.www.printview import column_has_value
+
+		for section in layout.get("sections", []):
+			for column in section.get("columns", []):
+				for df in column.get("fields", []):
+					if df.get("fieldtype") != "Table" or not df.get("table_columns"):
+						continue
+					rows = self.doc.get(df.get("fieldname")) or []
+					if not rows:
+						continue
+					df["table_columns"] = [
+						col
+						for col in df["table_columns"]
+						if col.get("fieldname") == "idx"
+						or column_has_value(rows, col.get("fieldname"), frappe._dict(col))
+					]
 		return layout
 
 	def set_field_renderers(self, layout):
