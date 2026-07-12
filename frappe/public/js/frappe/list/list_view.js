@@ -1207,12 +1207,12 @@ frappe.views.ListView = class ListView extends frappe.views.BaseList {
 						${frappe.utils.icon("ban")}
 					</div>`;
 			} else if (df.fieldtype === "Select") {
-				html = `<span class="${filterable} es-badge ellipsis" data-theme="${frappe.utils.guess_colour(
-					_value
-				)}"
-					data-filter="${fieldname},=,${value}">
-					<span class="ellipsis"> ${__(_value)} </span>
-				</span>`;
+				html = frappe.ui.badge.html({
+					label: __(_value),
+					theme: frappe.utils.guess_colour(_value),
+					css_class: `${filterable} ellipsis`,
+					attrs: { "data-filter": `${fieldname},=,${value}` },
+				});
 			} else if (df.fieldtype === "Link") {
 				html = `<a class="${filterable} ellipsis "
 					data-filter="${fieldname},=,${value}">
@@ -1577,10 +1577,13 @@ frappe.views.ListView = class ListView extends frappe.views.BaseList {
 		];
 		const title = docstatus_description[doc.docstatus || 0];
 		if (indicator) {
-			return `<span class="es-badge filterable ellipsis" data-theme="${indicator[1]}"
-				data-filter='${indicator[2]}' title='${title}'>
-				<span class="ellipsis"> ${indicator[0]}</span>
-			</span>`;
+			return frappe.ui.badge.html({
+				label: indicator[0],
+				theme: indicator[1],
+				css_class: "filterable ellipsis",
+				title: title,
+				attrs: { "data-filter": indicator[2] },
+			});
 		}
 		return "";
 	}

@@ -7,7 +7,24 @@ import "./frappe/format.js";
 import "./frappe/form/formatters.js";
 import "./frappe/dom.js";
 import "./frappe/ui/messages.js";
+
 import "./frappe/ui/components/button.js";
+import "./frappe/ui/components/badge.js";
+import "./frappe/ui/components/skeleton.js";
+import "./frappe/ui/components/divider.js";
+import "./frappe/ui/components/avatar.js";
+import "./frappe/ui/components/alert.js";
+import "./frappe/ui/components/breadcrumbs.js";
+import "./frappe/ui/components/toast.js";
+import "./frappe/ui/components/dropdown.js";
+import "./frappe/ui/components/context_menu.js";
+import "./frappe/ui/components/tooltip.js";
+import "./frappe/ui/components/popover.js";
+import "./frappe/ui/components/hover_card.js";
+import "./frappe/ui/components/tabs.js";
+import "./frappe/ui/components/tab_buttons.js";
+import "./frappe/ui/components/progress.js";
+
 import "./frappe/ui/background_tasks/background_tasks.js";
 import "./frappe/ui/keyboard.js";
 import "./frappe/ui/colors.js";

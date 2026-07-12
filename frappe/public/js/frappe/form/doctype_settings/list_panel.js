@@ -15,8 +15,8 @@ frappe.provide("frappe.doctype_settings");
  *     primary_action: { label, icon, onclick(list) },
  *     load: () => Promise<rows[]>,            // or rows: [...]
  *     title_column: { label, primary(row), secondary(row), onclick(row, list),
- *                     tags: (row) => [{ label, color }] },  // inline es-badge tags after the name
- *     columns: [{ label, value(row), badge(row) -> {label,color,icon}|null, align, width }],  // es-badge
+ *                     tags: (row) => [{ label, color }] },  // inline frappe.ui.badge tags after the name
+ *     columns: [{ label, value(row), badge(row) -> {label,color,icon}|null, align, width }],  // frappe.ui.badge
  *     toggle: { label, value(row)->0|1, onchange(row, value, list)->Promise, disabled(row) },
  *     actions: (row) => [{ label, icon, danger, onclick(list) }],
  *     empty_state: { title, description, action: { label, onclick(list) } },
@@ -166,10 +166,7 @@ class ListPanel {
 		// like "green"/"gray").
 		const tags = tc.tags ? tc.tags(row) : [];
 		tags.forEach((t) =>
-			$('<span class="es-badge"></span>')
-				.text(t.label)
-				.attr("data-theme", t.color || "gray")
-				.appendTo($primaryRow)
+			frappe.ui.badge({ label: t.label, theme: t.color || "gray" }).appendTo($primaryRow)
 		);
 
 		if (tc.secondary && tc.secondary(row)) {
@@ -184,11 +181,9 @@ class ListPanel {
 
 			const badge = col.badge && col.badge(row);
 			if (badge) {
-				const $badge = $('<span class="es-badge"></span>')
-					.attr("data-theme", badge.color || "gray")
+				frappe.ui
+					.badge({ label: badge.label, theme: badge.color || "gray", icon: badge.icon })
 					.appendTo($cell);
-				if (badge.icon) $badge.append(frappe.utils.icon(badge.icon, "sm"));
-				$badge.append($("<span></span>").text(badge.label));
 			} else if (col.value) {
 				$cell.text(col.value(row) || "");
 			}

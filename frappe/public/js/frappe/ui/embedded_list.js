@@ -246,9 +246,10 @@ frappe.ui.EmbeddedList = class EmbeddedList {
 		if (col.type === "badge") {
 			if (raw == null || raw === "") return `<td${align}${col_attr}></td>`;
 			const color = typeof col.color === "function" ? col.color(row) : col.color || "gray";
-			return `<td${align}${col_attr}><span class="es-badge" data-theme="${color}">${frappe.utils.escape_html(
-				raw
-			)}</span></td>`;
+			return `<td${align}${col_attr}>${frappe.ui.badge.html({
+				label: raw,
+				theme: color,
+			})}</td>`;
 		}
 
 		if (col.type === "link") {
