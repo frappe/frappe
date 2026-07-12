@@ -19,7 +19,13 @@
 		<!-- ── Preview mode: show actual doc values ─────────── -->
 		<template v-if="preview_doc">
 			<!-- Handle HTML fields: render Jinja2 server-side if needed -->
-			<div v-if="df.fieldtype == 'HTML' && df.html" v-html="rendered_html ?? df.html"></div>
+			<span v-if="template_render_failed" class="text-muted">{{
+				__("Couldn't render this template for the previewed document")
+			}}</span>
+			<div
+				v-else-if="df.fieldtype == 'HTML' && df.html"
+				v-html="rendered_html ?? df.html"
+			></div>
 			<!-- Spacer/Divider: the root element itself is the rendered output -->
 			<i
 				v-else-if="df.fieldtype == 'Spacer' || df.fieldtype == 'Divider'"
@@ -482,6 +488,7 @@ let store = inject("$store");
 let editing = ref(false);
 let label_input = ref(null);
 let rendered_html = ref(null);
+let template_render_failed = ref(false);
 let rendered_template = ref(null);
 
 let custom_style = computed(() => parse_inline_style(props.df.custom_style));
@@ -562,6 +569,7 @@ watch(
 		const html = props.df.html;
 		if (!doc || !html || props.df.fieldtype !== "HTML") {
 			rendered_html.value = null;
+			template_render_failed.value = false;
 			return;
 		}
 		rendered_html.value = await render_jinja_html(
@@ -569,6 +577,7 @@ watch(
 			store.meta.value?.name,
 			store.preview_doc_name.value
 		);
+		template_render_failed.value = rendered_html.value === null;
 	},
 	{ immediate: true }
 );
@@ -579,6 +588,7 @@ watch(
 	async ([doc]) => {
 		if (!doc || props.df.fieldtype !== "Field Template" || !props.df.field_template) {
 			rendered_template.value = null;
+			template_render_failed.value = false;
 			return;
 		}
 		try {
@@ -593,8 +603,10 @@ watch(
 				store.meta.value?.name,
 				store.preview_doc_name.value
 			);
+			template_render_failed.value = rendered_template.value === null;
 		} catch {
 			rendered_template.value = null;
+			template_render_failed.value = true;
 		}
 	},
 	{ immediate: true }

@@ -16,9 +16,15 @@ def render_jinja_template(template: str, doctype: str, docname: str) -> str:
 	doc.check_permission("print")
 	# template is rendered inside frappe's SandboxedEnvironment (Jinja2 sandbox).
 	# The caller must hold the "print" permission on the document before reaching this line.
-	return frappe.render_template(
-		template, {"doc": doc}
-	)  # nosemgrep: frappe-semgrep-rules.rules.security.frappe-ssti
+	try:
+		return frappe.render_template(
+			template, {"doc": doc}
+		)  # nosemgrep: frappe-semgrep-rules.rules.security.frappe-ssti
+	except Exception as e:
+		# fail with 417 instead of 500 so the canvas can degrade inline
+		# rather than the client popping the error-report dialog
+		frappe.clear_last_message()
+		frappe.throw(_("Failed to render template: {0}").format(e), frappe.ValidationError)
 
 
 @frappe.whitelist()
