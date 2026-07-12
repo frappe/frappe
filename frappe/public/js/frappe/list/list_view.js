@@ -186,7 +186,9 @@ frappe.views.ListView = class ListView extends frappe.views.BaseList {
 		// Start loading the virtualization bundle as soon as user picks a large page size.
 		this.$paging_area?.on("click", ".btn-paging", (e) => {
 			if (cint($(e.currentTarget).data("value")) >= this.virtualization_threshold) {
-				ensure_list_virtualization_loaded();
+				ensure_list_virtualization_loaded().catch(() => {
+					this._virtualization_bundle_failed = true;
+				});
 			}
 		});
 	}
@@ -3194,6 +3196,11 @@ class ElementFactory {
 
 /** Lazy-load virtualization helpers only when a list has 2000+ rows. */
 let list_view_virtualization_load_promise = null;
+
+function reset_list_virtualization_load_promise() {
+	list_view_virtualization_load_promise = null;
+}
+
 function ensure_list_virtualization_loaded() {
 	if (frappe.views.ListView.prototype.render_virtual_rows) {
 		return Promise.resolve();
@@ -3207,9 +3214,13 @@ function ensure_list_virtualization_loaded() {
 					return;
 				}
 
-				list_view_virtualization_load_promise = null;
+				reset_list_virtualization_load_promise();
 				reject(new Error("Failed to load list view virtualization bundle"));
 			});
+		}).catch((err) => {
+			// Always clear the cached promise so a failed load does not block later renders.
+			reset_list_virtualization_load_promise();
+			throw err;
 		});
 	}
 

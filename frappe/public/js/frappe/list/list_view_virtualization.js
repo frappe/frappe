@@ -124,10 +124,18 @@ export const list_view_virtualization = {
 
 	get_virtual_row_height_fallback() {
 		if (frappe.is_mobile()) {
-			// Unmeasured mobile rows: use last measured card height instead of a fixed 72px guess.
-			return this.virtualization_state.measured_row_height || 72;
+			return this.get_mobile_unmeasured_row_height_estimate();
 		}
 		return this.virtualization_row_height;
+	},
+
+	/** Mobile: average measured card height for rows we have not rendered yet. */
+	get_mobile_unmeasured_row_height_estimate() {
+		const heights = Object.values(this.virtualization_state.row_heights);
+		if (heights.length) {
+			return heights.reduce((sum, height) => sum + height, 0) / heights.length;
+		}
+		return 72;
 	},
 
 	get_virtualization_row_buffer() {
@@ -252,11 +260,11 @@ export const list_view_virtualization = {
 		}
 
 		this.ensure_virtual_row_height_prefix_sums(total_rows);
-		// Prefix sums give O(1) range height; target matches desktop viewport + bottom buffer.
-		const target_offset =
-			this.get_virtual_prefix_sum(start) +
-			viewport_height +
-			row_buffer * this.get_virtual_row_height_fallback();
+		// Bottom buffer uses the same prefix sums as spacers, not a max-height guess.
+		const buffer_end = Math.min(total_rows, start + row_buffer);
+		const buffer_height =
+			this.get_virtual_prefix_sum(buffer_end) - this.get_virtual_prefix_sum(start);
+		const target_offset = this.get_virtual_prefix_sum(start) + viewport_height + buffer_height;
 
 		let low = start + 1;
 		let high = total_rows;
@@ -395,8 +403,8 @@ export const list_view_virtualization = {
 			);
 		}
 
-		// Step 7: measure; one retry if spacers were sized with a bad height guess
-		if (this.measure_virtual_row_height(start) && remeasure_attempt < 1) {
+		// Step 7: measure; retry once if spacers were sized with stale height estimates.
+		if (this.measure_virtual_row_height(start) && remeasure_attempt < 2) {
 			this.virtualization_state.start = -1;
 			this.virtualization_state.end = -1;
 			this.render_virtual_rows(true, remeasure_attempt + 1);
