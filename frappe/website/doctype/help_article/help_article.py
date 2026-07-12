@@ -72,7 +72,9 @@ class HelpArticle(WebsiteGenerator):
 def get_list_context(context=None):
 	filters = dict(published=1)
 
-	category = frappe.db.get_value("Help Category", {"route": frappe.form_dict.get("pathname")})
+	category = frappe.db.get_value(
+		"Help Category", {"route": (frappe.form_dict.get("pathname") or "").lstrip("/")}
+	)
 
 	if category:
 		filters["category"] = category
