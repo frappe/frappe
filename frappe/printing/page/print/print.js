@@ -300,28 +300,18 @@ frappe.ui.form.PrintView = class {
 					fieldtype: "Read Only",
 					default: print_format.name || "Standard",
 				},
-				{
-					label: __("Use the new Print Format Builder"),
-					fieldname: "beta",
-					fieldtype: "Check",
-					default: 1,
-				},
 			],
 			(data) => {
 				frappe.call({
-					method: "frappe.printing.page.print_format_builder_classic.print_format_builder_classic.create_custom_format",
+					method: "frappe.printing.doctype.print_format.print_format.create_custom_format",
 					args: {
 						doctype: this.frm.doctype,
 						name: data.print_format_name,
 						based_on: data.based_on,
-						beta: Boolean(data.beta),
 					},
 					callback: (r) => {
 						if (r.message) {
-							let route = r.message.print_format_builder_beta
-								? "print-format-builder"
-								: "print-format-builder-classic";
-							frappe.set_route(route, r.message.name);
+							frappe.set_route("print-format-builder", r.message.name);
 							this.print_format_selector.val(data.print_format_name);
 						}
 					},
@@ -391,28 +381,18 @@ frappe.ui.form.PrintView = class {
 						fieldtype: "Read Only",
 						default: print_format.name || "Standard",
 					},
-					{
-						label: __("Use the new Print Format Builder"),
-						fieldname: "beta",
-						fieldtype: "Check",
-						default: 1,
-					},
 				],
 				(data) => {
 					frappe.call({
-						method: "frappe.printing.page.print_format_builder_classic.print_format_builder_classic.create_custom_format",
+						method: "frappe.printing.doctype.print_format.print_format.create_custom_format",
 						args: {
 							doctype: this.frm.doctype,
 							name: data.print_format_name,
 							based_on: data.based_on,
-							beta: Boolean(data.beta),
 						},
 						callback: (r) => {
 							if (r.message) {
-								let route = r.message.print_format_builder_beta
-									? "print-format-builder"
-									: "print-format-builder-classic";
-								frappe.set_route(route, r.message.name);
+								frappe.set_route("print-format-builder", r.message.name);
 							}
 						},
 					});

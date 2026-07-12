@@ -14,3 +14,6 @@ def execute():
 				title=f"Print Format conversion dropped fields: {name}",
 				message=f"Fields no longer in the DocType, removed from the layout: {', '.join(dropped)}",
 			)
+
+	# The classic builder has been removed; drop its orphan Page doc.
+	frappe.delete_doc_if_exists("Page", "print-format-builder-classic", force=1)

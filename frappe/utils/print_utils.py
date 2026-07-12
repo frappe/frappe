@@ -42,17 +42,20 @@ def get_print(
 
 	local = frappe.local
 	if "pdf_generator" not in local.form_dict:
-		# if arg is passed, use that, else get setting from print format
-		if pdf_generator is None:
+		from frappe.printing.doctype.print_format.classic_converter import uses_beta_renderer
+
+		# Standard (default) prints and beta/converted-classic formats produce markup
+		# only the Chromium renderer can lay out, so force it regardless of the passed arg.
+		requires_chrome = not print_format or print_format == "Standard"
+		if not requires_chrome:
+			requires_chrome = uses_beta_renderer(frappe.get_cached_doc("Print Format", print_format))
+
+		if requires_chrome:
+			pdf_generator = "chrome"
+		elif pdf_generator is None:
 			pdf_generator = (
 				frappe.get_cached_value("Print Format", print_format, "pdf_generator") or "wkhtmltopdf"
 			)
-			if pdf_generator == "wkhtmltopdf" and print_format and print_format != "Standard":
-				from frappe.printing.doctype.print_format.classic_converter import uses_beta_renderer
-
-				# render-time converted classic formats produce markup only Chromium can lay out
-				if uses_beta_renderer(frappe.get_cached_doc("Print Format", print_format)):
-					pdf_generator = "chrome"
 		local.form_dict.pdf_generator = pdf_generator
 
 	original_form_dict = copy.deepcopy(local.form_dict)

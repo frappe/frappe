@@ -233,6 +233,72 @@ def convert_print_format(doc):
 	return dropped
 
 
+def create_default_layout(meta) -> dict:
+	"""Build the new builder's default layout for a doctype from its meta.
+
+	Mirrors `create_default_layout()` in the JS builder so the Standard (no custom
+	format) print of every doctype renders through the new renderer."""
+	layout = {
+		"header": {"columns": [{"label": "", "fields": []}]},
+		"footer": {"columns": [{"label": "", "fields": []}]},
+		"sections": [],
+	}
+	state = frappe._dict(section=None, column=None)
+
+	def new_section(df=None):
+		state.section = {"label": (df.label if df else "") or "", "columns": [], "has_fields": False}
+		state.column = None
+		layout["sections"].append(state.section)
+
+	def new_column(df=None):
+		if not state.section:
+			new_section()
+		state.column = {"label": (df.label if df else "") or "", "fields": []}
+		state.section["columns"].append(state.column)
+
+	for df in meta.fields:
+		if not df.fieldname:
+			continue
+		if df.fieldtype == "Section Break":
+			new_section(df)
+		elif df.fieldtype == "Column Break":
+			new_column(df)
+		elif df.label:
+			if not state.column:
+				new_column()
+			if cint(df.print_hide):
+				continue
+			field = {
+				"label": df.label,
+				"fieldname": df.fieldname,
+				"fieldtype": df.fieldtype,
+				"options": df.options,
+			}
+			if df.fieldtype == "Table":
+				field["show_label"] = "hide"
+				field["table_columns"] = convert_table_columns(frappe._dict(fieldname=df.fieldname), df, [])
+			state.column["fields"].append(field)
+			state.section["has_fields"] = True
+
+	layout["sections"] = [s for s in layout["sections"] if s.get("has_fields")]
+	for section in layout["sections"]:
+		section.pop("has_fields", None)
+	return layout
+
+
+def get_default_print_format(doctype: str):
+	"""Return an unsaved "Standard" beta Print Format for a doctype so the default
+	(no custom format) print renders through the new renderer."""
+	pf = frappe.new_doc("Print Format")
+	pf.name = "Standard"
+	pf.doc_type = doctype
+	pf.standard = "Yes"
+	pf.print_format_builder_beta = 1
+	pf.pdf_generator = "chrome"
+	pf.format_data = json.dumps(create_default_layout(frappe.get_meta(doctype)))
+	return pf
+
+
 @frappe.whitelist()
 def get_beta_layout(print_format: str) -> dict:
 	"""Convert a classic format's layout for the print format builder (read-only,

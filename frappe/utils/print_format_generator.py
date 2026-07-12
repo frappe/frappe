@@ -80,7 +80,11 @@ class PrintFormatGenerator:
 	}
 
 	def __init__(self, print_format, doc, letterhead=None, style=None):
-		self.print_format = frappe.get_doc("Print Format", print_format)
+		self.print_format = (
+			print_format
+			if not isinstance(print_format, str)
+			else frappe.get_doc("Print Format", print_format)
+		)
 		self.doc = doc
 		self.style = style
 
