@@ -989,3 +989,16 @@ class TestPrintFormatGenerator(IntegrationTestCase):
 		html = self._render_standard(doc)
 		self.assertIn("Col A", html)
 		self.assertNotIn("Col B", html)
+
+	def test_show_label_colon_setting(self):
+		"""Print Settings ▸ show_label_colon toggles the classic colon body class."""
+		from frappe.utils.print_format_generator import get_html
+
+		pf = self._make_print_format()
+		todo = self._make_todo()
+		with self.change_settings("Print Settings", show_label_colon=0):
+			body = get_html("ToDo", todo.name, pf.name).split("<body", 1)[1][:200]
+			self.assertNotIn("show-label-colon", body)
+		with self.change_settings("Print Settings", show_label_colon=1):
+			body = get_html("ToDo", todo.name, pf.name).split("<body", 1)[1][:200]
+			self.assertIn("show-label-colon", body)

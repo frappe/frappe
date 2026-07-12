@@ -72,6 +72,11 @@
 	content: ":";
 }
 
+/* Opt-in (Print Settings ▸ Show Colon After Field Labels): classic "Name:" style */
+.print-format-doc.show-label-colon .field .label::after {
+	content: ":";
+}
+
 .print-format-doc .field.left-right .value,
 .print-format-doc .field.field-inline .value {
 	flex: 1;
