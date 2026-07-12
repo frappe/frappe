@@ -462,6 +462,242 @@ frappe.pages["component-explorer"].on_page_load = function (wrapper) {
 				},
 			],
 		},
+		Tabs: {
+			helper: "frappe.ui.tabs",
+			stacked: true,
+			groups: [
+				{
+					title: __("Horizontal (arrows move between tabs, Home/End jump)"),
+					items: [
+						{
+							tabs: [
+								{
+									label: "Details",
+									content:
+										"The content function of a tab runs once, on first activation.",
+								},
+								{
+									label: "Activity",
+									content: "Rendered lazily when this tab was first opened.",
+								},
+								{ label: "Archived", disabled: true },
+								{
+									label: "Settings",
+									content:
+										"Use an element or a function returning one for real content.",
+								},
+							],
+							on_change: (i, tab) =>
+								frappe.ui.toast({ message: __("Switched to {0}", [tab.label]) }),
+						},
+					],
+				},
+				{
+					title: __("Horizontal, with icons"),
+					items: [
+						{
+							tabs: [
+								{
+									label: "Overview",
+									icon: "layout-dashboard",
+									content: "Overview panel",
+								},
+								{ label: "Activity", icon: "activity", content: "Activity panel" },
+								{ label: "Settings", icon: "settings", content: "Settings panel" },
+							],
+						},
+					],
+				},
+				{
+					title: __("Vertical"),
+					items: [
+						{
+							vertical: true,
+							tabs: [
+								{ label: "Profile", content: "Profile panel" },
+								{ label: "Sessions", content: "Sessions panel" },
+								{ label: "API Access", content: "API access panel" },
+							],
+						},
+					],
+				},
+				{
+					title: __("Vertical, with icons"),
+					items: [
+						{
+							vertical: true,
+							tabs: [
+								{
+									label: "Overview",
+									icon: "layout-dashboard",
+									content: "Overview panel",
+								},
+								{ label: "Activity", icon: "activity", content: "Activity panel" },
+								{ label: "Settings", icon: "settings", content: "Settings panel" },
+							],
+						},
+					],
+				},
+			],
+		},
+		"Tab Buttons": {
+			helper: "frappe.ui.tab_buttons",
+			// one group per line: the block wrapper keeps the inline-flex rail
+			// at its content width while the stacked column separates examples
+			stacked: true,
+			make: (opts) => $("<div>").append(frappe.ui.tab_buttons(opts)),
+			groups: [
+				{
+					title: __("Types (same options, four looks)"),
+					items: [
+						{
+							options: [
+								{ label: "Open" },
+								{ label: "In Progress" },
+								{ label: "Done" },
+							],
+						},
+						{
+							type: "ghost",
+							options: [
+								{ label: "Open" },
+								{ label: "In Progress" },
+								{ label: "Done" },
+							],
+						},
+						{
+							type: "underline",
+							options: [
+								{ label: "Open" },
+								{ label: "In Progress" },
+								{ label: "Done" },
+							],
+						},
+						{
+							type: "browser-tab",
+							options: [
+								{ label: "Open" },
+								{ label: "In Progress" },
+								{ label: "Done" },
+							],
+						},
+					],
+				},
+				{
+					title: __("Sizes, with icons (sm is the default)"),
+					items: [
+						{
+							options: [
+								{ label: "Day", icon_left: "sun" },
+								{ label: "Week", icon_left: "calendar-days" },
+								{ label: "Month", icon_left: "calendar-range" },
+							],
+							value: "Week",
+						},
+						{
+							size: "md",
+							options: [
+								{ label: "Day", icon_left: "sun" },
+								{ label: "Week", icon_left: "calendar-days" },
+								{ label: "Month", icon_left: "calendar-range" },
+							],
+							value: "Week",
+						},
+					],
+				},
+				{
+					title: __("Icon-only pills (label becomes the accessible name)"),
+					items: [
+						{
+							options: [
+								{ icon: "list", label: "List view", value: "list" },
+								{ icon: "kanban", label: "Kanban view", value: "kanban" },
+								{ icon: "calendar", label: "Calendar view", value: "calendar" },
+							],
+						},
+						{
+							type: "ghost",
+							size: "md",
+							options: [
+								{ icon: "list", label: "List view", value: "list" },
+								{ icon: "layout-grid", label: "Grid view", value: "grid" },
+							],
+						},
+					],
+				},
+				{
+					title: __("Disabled options (a page-size picker)"),
+					items: [
+						{
+							options: [
+								{ label: "20" },
+								{ label: "100" },
+								{ label: "500" },
+								{ label: "2500", disabled: true },
+							],
+							value: "100",
+							on_change: (value) =>
+								frappe.ui.toast({ message: __("Page size: {0}", [value]) }),
+						},
+					],
+				},
+				{
+					title: __("Vertical (subtle, underline, and right-attached browser-tab)"),
+					items: [
+						{
+							vertical: true,
+							options: [
+								{ label: "Inbox", icon_left: "inbox" },
+								{ label: "Sent", icon_left: "send" },
+								{ label: "Drafts", icon_left: "file" },
+							],
+						},
+						{
+							vertical: true,
+							type: "underline",
+							options: [
+								{ label: "General" },
+								{ label: "Members" },
+								{ label: "Webhooks" },
+							],
+						},
+						{
+							vertical: true,
+							type: "browser-tab",
+							direction: "right",
+							options: [
+								{ label: "invoice.py" },
+								{ label: "invoice.js" },
+								{ label: "invoice.json" },
+							],
+						},
+					],
+				},
+				{
+					title: __("Prefix and suffix (rich content per option)"),
+					items: [
+						{
+							__code: 'frappe.ui.tab_buttons({\n  options: [\n    { label: "Open", suffix: () => count_badge(24) },\n    { label: "Closed", suffix: () => count_badge(113) },\n  ],\n})',
+							options: [
+								{
+									label: "Open",
+									suffix: () =>
+										frappe.ui.badge({
+											label: "24",
+											size: "sm",
+											theme: "blue",
+										}),
+								},
+								{
+									label: "Closed",
+									suffix: () => frappe.ui.badge({ label: "113", size: "sm" }),
+								},
+							],
+						},
+					],
+				},
+			],
+		},
 		Toast: {
 			helper: "frappe.ui.toast",
 			html: (opts) => "",
