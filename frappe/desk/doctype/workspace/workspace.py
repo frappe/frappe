@@ -179,7 +179,14 @@ class Workspace(Document):
 		):
 			new_label = f"{workspace.title}-{new_name}"
 			if workspace.name != new_label:
-				rename_doc("Workspace", workspace.name, new_label, force=True, show_alert=False)
+				rename_doc(
+					"Workspace",
+					workspace.name,
+					new_label,
+					force=True,
+					show_alert=False,
+					ignore_permissions=True,
+				)
 			frappe.db.set_value("Workspace", new_label, {"for_user": new_name, "label": new_label})
 
 	@staticmethod

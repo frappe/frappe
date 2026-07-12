@@ -87,7 +87,14 @@ class WorkspaceSidebar(Document, DeskViews):
 			if not sidebar.name.endswith(suffix):
 				continue
 			new_title = sidebar.name.removesuffix(suffix) + f"-{new_user}"
-			rename_doc("Workspace Sidebar", sidebar.name, new_title, force=True, show_alert=False)
+			rename_doc(
+				"Workspace Sidebar",
+				sidebar.name,
+				new_title,
+				force=True,
+				show_alert=False,
+				ignore_permissions=True,
+			)
 			frappe.db.set_value("Workspace Sidebar", new_title, "title", new_title)
 
 	def get_cached(self, cache_key, fallback_fn):
