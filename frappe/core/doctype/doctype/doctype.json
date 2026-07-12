@@ -793,11 +793,7 @@
    "link_fieldname": "reference_doctype"
   }
  ],
-<<<<<<< HEAD
  "modified": "2025-09-23 06:48:13.555017",
-=======
- "modified": "2026-05-26 16:07:46.949040",
->>>>>>> 18cdadb6b6 (feat: duckdb package and checkbox in doctype master)
  "modified_by": "Administrator",
  "module": "Core",
  "name": "DocType",

@@ -1,7 +1,6 @@
 import frappe
 from frappe.database.schema import DbColumn, DBTable, get_definition
 from frappe.utils import cint, cstr, flt
-from frappe.utils.defaults import get_not_null_defaults
 
 NOT_NULL_TYPES = ("Check", "Int", "Currency", "Float", "Percent")
 
@@ -38,13 +37,6 @@ class DuckDBColumn(DbColumn):
 			and not cstr(self.default).startswith(":")
 		):
 			default = frappe.db.escape(self.default)
-
-		if self.not_nullable and null:
-			if default is None:
-				default = get_not_null_defaults(self.fieldtype)
-				if isinstance(default, str):
-					default = frappe.db.escape(default)
-			null = False
 
 		if self.unique and not for_modification and (column_def not in ("text", "longtext")):
 			unique = True

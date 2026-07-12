@@ -74,20 +74,7 @@ def get_report_result(report, filters):
 
 @frappe.read_only()
 def generate_report_result(
-<<<<<<< HEAD
 	report, filters=None, user=None, custom_columns=None, is_tree=False, parent_field=None
-=======
-	report,
-	filters=None,
-	user=None,
-	custom_columns=None,
-	is_tree=False,
-	parent_field=None,
-<<<<<<< HEAD
-	duckdb_sync_name=None,
->>>>>>> 465addc5fd (refactor: trigger script report on duckdb sync selection)
-=======
->>>>>>> d07533f621 (refactor: drop down related function parameters)
 ):
 	user = user or frappe.session.user
 	filters = filters or []
@@ -245,7 +232,6 @@ def run(
 def _run(
 	*,
 	report_name: str,
-<<<<<<< HEAD
 	filters=None,
 	user=None,
 	ignore_prepared_report=False,
@@ -253,20 +239,6 @@ def _run(
 	is_tree=False,
 	parent_field=None,
 	are_default_filters=True,
-=======
-	filters: str | dict | None = None,
-	user: str | None = None,
-	ignore_prepared_report: bool = False,
-	custom_columns: str | list | None = None,
-	is_tree: bool = False,
-	parent_field: str | None = None,
-	are_default_filters: bool = True,
-	js_filters: str | list | None = None,
-<<<<<<< HEAD
-	duckdb_sync_name: str | None = None,
->>>>>>> 465addc5fd (refactor: trigger script report on duckdb sync selection)
-=======
->>>>>>> d07533f621 (refactor: drop down related function parameters)
 ) -> dict:
 	if not user:
 		user = frappe.session.user

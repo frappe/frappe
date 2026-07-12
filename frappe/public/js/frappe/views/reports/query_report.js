@@ -666,14 +666,6 @@ frappe.views.QueryReport = class QueryReport extends frappe.views.BaseList {
 					is_tree: this.report_settings.tree,
 					parent_field: this.report_settings.parent_field,
 					are_default_filters: are_default_filters,
-<<<<<<< HEAD
-=======
-					js_filters: js_filters,
-<<<<<<< HEAD
-					duckdb_sync_name: this.duckdb_sync_name || null,
->>>>>>> 465addc5fd (refactor: trigger script report on duckdb sync selection)
-=======
->>>>>>> d07533f621 (refactor: drop down related function parameters)
 				},
 				callback: resolve,
 				always: () => this.page.btn_secondary.prop("disabled", false),
@@ -683,45 +675,11 @@ frappe.views.QueryReport = class QueryReport extends frappe.views.BaseList {
 				let data = r.message;
 				this.hide_status();
 				clearInterval(this.interval);
-<<<<<<< HEAD
 
 				this.execution_time = data.execution_time || 0.1;
 
-=======
-				clearInterval(this.stale_report_interval);
 				this.synced_report = data.synced_report;
 				this.synced_at = data.synced_at;
-				this.refreshed_at = frappe.datetime.now_datetime();
-				this.execution_time = data.execution_time || 0.1;
-
-				const check_if_report_is_stale = () => {
-					let generated_at =
-						this.prepared_report && this.prepared_report_document
-							? this.prepared_report_document.report_end_time
-							: this.refreshed_at;
-					let pretty_diff = frappe.datetime.comment_when(generated_at);
-					const days_old = frappe.datetime.get_day_diff(
-						frappe.datetime.now_datetime(),
-						generated_at
-					);
-					const minutes_old = frappe.datetime.get_minute_diff(
-						frappe.datetime.now_datetime(),
-						generated_at
-					);
-					if (days_old > 1) {
-						pretty_diff = `<span style="color:var(--red-600)">${pretty_diff}</span>`;
-					}
-					if (minutes_old >= 1) {
-						this.show_status(`
-						<div class="indicator orange pl-1">
-							<span>
-								${__("This report was generated {0}.", [pretty_diff])}
-							</span>
-						</div>
-					`);
-					}
-				};
-
 				if (this.synced_report) {
 					if (data.result.length > 0) {
 						let diff = frappe.datetime.comment_when(this.synced_at);
@@ -734,11 +692,8 @@ frappe.views.QueryReport = class QueryReport extends frappe.views.BaseList {
 						</div>
 					`);
 					}
-				} else {
-					this.stale_report_interval = setInterval(check_if_report_is_stale, 60000);
 				}
 
->>>>>>> b06e078c43 (refactor: banner for synced report)
 				if (data.custom_filters) {
 					this.set_filters(data.custom_filters);
 					this.previous_filters = data.custom_filters;
