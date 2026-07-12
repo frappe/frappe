@@ -88,7 +88,7 @@ export const kanban_pagination = {
 		);
 	},
 
-	sync_kanban_column_state_from_board(columns) {
+	sync_kanban_column_state_from_board(columns, extra_keep_names = []) {
 		const field_name = this.board?.field_name;
 		if (!field_name || !this.kanban_column_state) {
 			return Promise.resolve();
@@ -108,14 +108,28 @@ export const kanban_pagination = {
 			})
 			.then(({ message }) => {
 				const data_map = new Map((this.data || []).map((doc) => [doc.name, doc]));
+				const keep_names = new Set(board_names);
 
 				for (const [title, column_data] of Object.entries(message?.columns || {})) {
 					const rows = this.parse_kanban_cards(column_data.cards);
-					rows.forEach((row) => data_map.set(row.name, row));
+					rows.forEach((row) => {
+						data_map.set(row.name, row);
+						keep_names.add(row.name);
+					});
 				}
 
+				// Keep cards already in the column memory window (pagination beyond first page).
+				for (const col of columns) {
+					if (col.status === "Archived") continue;
+					const state = this.kanban_column_state[col.title];
+					state?.loaded_names?.forEach((name) => keep_names.add(name));
+				}
+
+				(extra_keep_names || []).forEach((name) => keep_names.add(name));
+
+				// Do not drop freshly fetched or in-memory cards that are not yet in saved column order.
 				this.data = Array.from(data_map.values()).filter((doc) =>
-					board_names.has(doc.name)
+					keep_names.has(doc.name)
 				);
 
 				for (const col of columns) {

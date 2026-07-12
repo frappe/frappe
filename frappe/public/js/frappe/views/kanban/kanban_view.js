@@ -393,9 +393,10 @@ frappe.views.KanbanView = class KanbanView extends frappe.views.ListView {
 				if (this.skip_kanban_realtime || !this.kanban) return;
 				this.apply_kanban_board_doc(board);
 				const columns = this.map_kanban_board_columns(board);
-				this.kanban.sync_from_realtime(this.data, columns, this._changed_card_names);
+				const changed_card_names = this._changed_card_names;
+				this.kanban.sync_from_realtime(this.data, columns, changed_card_names);
 				this._changed_card_names = null;
-				return this.sync_kanban_column_state_from_board(columns);
+				return this.sync_kanban_column_state_from_board(columns, changed_card_names);
 			})
 			.finally(() => {
 				this._kanban_sync_in_flight = false;
