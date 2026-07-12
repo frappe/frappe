@@ -761,6 +761,64 @@ frappe.pages["component-explorer"].on_page_load = function (wrapper) {
 				},
 			],
 		},
+		"Empty State": {
+			helper: "frappe.ui.empty_state",
+			stacked: true,
+			groups: [
+				{
+					title: __("Basic (icon + title + description)"),
+					items: [
+						{
+							icon: "inbox",
+							title: "No invoices yet",
+							description: "Invoices you create will show up here.",
+						},
+					],
+				},
+				{
+					title: __("With a create action"),
+					items: [
+						{
+							icon: "file-text",
+							title: "No sales orders",
+							description: "Create your first sales order to get started.",
+							actions: [
+								{
+									label: "New Sales Order",
+									variant: "solid",
+									icon: "plus",
+									onclick: () => frappe.ui.toast({ message: "New Sales Order" }),
+								},
+							],
+						},
+					],
+				},
+				{
+					title: __("Multiple actions (create button + docs link)"),
+					items: [
+						{
+							__code: 'frappe.ui.empty_state({\n  icon: "package",\n  title: "No items yet",\n  description: "Add an item, or read how stock works.",\n  actions: [\n    { label: "New Item", variant: "solid", icon: "plus", onclick: () => new_item() },\n    { label: "Documentation", href: "https://docs.erpnext.com/", icon: "external-link" },\n  ],\n})',
+							icon: "package",
+							title: "No items yet",
+							description: "Add an item, or read how stock works.",
+							actions: [
+								{
+									label: "New Item",
+									variant: "solid",
+									icon: "plus",
+									onclick: () => frappe.ui.toast({ message: "New Item" }),
+								},
+								{
+									label: "Documentation",
+									href: "https://docs.frappe.io/",
+									icon: "external-link",
+								},
+							],
+						},
+					],
+				},
+			],
+		},
 		Toast: {
 			helper: "frappe.ui.toast",
 			html: (opts) => "",
