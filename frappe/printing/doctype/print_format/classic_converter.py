@@ -218,7 +218,10 @@ def convert_print_format(doc):
 	source = doc.classic_format_data or doc.format_data
 	if not source:
 		return
-	format_data = json.loads(source)
+	try:
+		format_data = json.loads(source)
+	except ValueError:
+		return
 	if not isinstance(format_data, list):
 		return
 
@@ -306,9 +309,15 @@ def get_beta_layout(print_format: str) -> dict:
 	doc = frappe.get_doc("Print Format", print_format)
 	doc.check_permission("write")
 
-	format_data = json.loads(doc.format_data)
-	if doc.custom_format or doc.raw_printing or not isinstance(format_data, list):
-		frappe.throw(frappe._("{0} is not a classic print format").format(print_format))
+	not_classic = frappe._("{0} is not a classic print format").format(print_format)
+	if doc.custom_format or doc.raw_printing or not doc.format_data:
+		frappe.throw(not_classic)
+	try:
+		format_data = json.loads(doc.format_data)
+	except ValueError:
+		frappe.throw(not_classic)
+	if not isinstance(format_data, list):
+		frappe.throw(not_classic)
 
 	layout, dropped = convert_classic_to_beta(format_data, frappe.get_meta(doc.doc_type), doc)
 	return {"layout": layout, "dropped": dropped, "classic_format_data": doc.format_data}
@@ -328,10 +337,14 @@ def migrate_all_classic_formats():
 	)
 	report = {}
 	for name in names:
-		doc = frappe.get_doc("Print Format", name)
-		dropped = convert_print_format(doc)
-		if dropped is None:
-			continue
-		doc.save(ignore_permissions=True)
-		report[name] = dropped
+		try:
+			doc = frappe.get_doc("Print Format", name)
+			dropped = convert_print_format(doc)
+			if dropped is None:
+				continue
+			doc.save(ignore_permissions=True)
+			report[name] = dropped
+		except Exception:
+			# never let one broken format abort the whole migration
+			frappe.log_error(title=f"Print Format conversion failed: {name}")
 	return report

@@ -106,6 +106,16 @@ export function getStore(print_format_name) {
 					});
 				}
 				return r.message.layout;
+			})
+			.catch((e) => {
+				// never leave the builder stuck on a spinner if conversion fails
+				console.error("Classic print format conversion failed", e);
+				frappe.msgprint({
+					title: __("Could not convert this print format"),
+					indicator: "red",
+					message: __("Starting from the default layout instead."),
+				});
+				return null;
 			});
 	}
 	function migrate_to_section(value) {
