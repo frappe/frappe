@@ -22,7 +22,7 @@ TRIGGER_TYPES = [
 
 
 def _check_config_permission():
-	frappe.has_permission("Automation", "create", throw=True)
+	frappe.has_permission("Automation Flow", "create", throw=True)
 
 
 @frappe.whitelist()
@@ -73,8 +73,8 @@ def run_manually(automation: str, docname: str) -> dict:
 	"""Queue a one-off run of `automation` against `docname` (Manual trigger / test button)."""
 	from frappe.automation_engine.dispatch import kick_drainer, queue_trigger
 
-	rule = frappe.get_doc("Automation", automation)
-	frappe.has_permission("Automation", "write", doc=rule, throw=True)
+	rule = frappe.get_doc("Automation Flow", automation)
+	frappe.has_permission("Automation Flow", "write", doc=rule, throw=True)
 	frappe.has_permission(rule.document_type, "read", doc=docname, throw=True)
 
 	queue_trigger(automation, rule.document_type, docname, depth=1)

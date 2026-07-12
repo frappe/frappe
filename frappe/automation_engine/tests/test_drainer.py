@@ -9,7 +9,7 @@ QUEUE = "Automation Trigger Queue"
 
 
 def make_automation():
-	doc = frappe.new_doc("Automation")
+	doc = frappe.new_doc("Automation Flow")
 	doc.title = "Drainer Rule"
 	doc.trigger_type = "Doc Created"
 	doc.document_type = "ToDo"
@@ -25,13 +25,13 @@ class TestDrainer(IntegrationTestCase):
 
 	def setUp(self):
 		frappe.db.delete(QUEUE)
-		frappe.db.delete("Automation")
+		frappe.db.delete("Automation Flow")
 		self.automation = make_automation()
 		frappe.db.commit()
 
 	def tearDown(self):
 		frappe.db.delete(QUEUE)
-		frappe.db.delete("Automation")
+		frappe.db.delete("Automation Flow")
 		frappe.db.commit()
 
 	def add_row(self, ref_name, run_after=None):

@@ -11,7 +11,7 @@ from frappe.tests import IntegrationTestCase
 
 
 def make_rule(document_type="ToDo", enabled=1, trigger_type="Doc Created", **kwargs):
-	doc = frappe.new_doc("Automation")
+	doc = frappe.new_doc("Automation Flow")
 	doc.title = kwargs.pop("title", "Registry Rule")
 	doc.trigger_type = trigger_type
 	doc.document_type = document_type
@@ -25,7 +25,7 @@ def make_rule(document_type="ToDo", enabled=1, trigger_type="Doc Created", **kwa
 
 class TestRegistry(IntegrationTestCase):
 	def setUp(self):
-		frappe.db.delete("Automation")
+		frappe.db.delete("Automation Flow")
 		clear_automation_cache()
 
 	def tearDown(self):

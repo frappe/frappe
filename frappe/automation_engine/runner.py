@@ -2,7 +2,7 @@
 # License: MIT. See LICENSE
 
 """Executes a claimed outbox row: builds a run log, runs each action under its own
-savepoint, and records the outcome. Bookkeeping never saves the Automation doc — the
+savepoint, and records the outcome. Bookkeeping never saves the Automation Flow doc — the
 circuit breaker lives in Redis, and auto-disable uses db.set_value(update_modified=False).
 """
 
@@ -18,7 +18,7 @@ DEFAULT_FAILURE_THRESHOLD = 10
 
 def execute_automation(queue_name: str):
 	row = frappe.get_doc(QUEUE, queue_name)
-	rule = frappe.get_cached_doc("Automation", row.automation)
+	rule = frappe.get_cached_doc("Automation Flow", row.automation)
 	doc = _load_target(row)
 	run = _create_run(rule, row)
 
@@ -175,7 +175,7 @@ def _trip_breaker(rule, threshold):
 
 	reason = _("Auto-disabled after {0} consecutive failures").format(threshold)
 	frappe.db.set_value(
-		"Automation", rule.name, {"enabled": 0, "disabled_reason": reason}, update_modified=False
+		"Automation Flow", rule.name, {"enabled": 0, "disabled_reason": reason}, update_modified=False
 	)
 	# Drop the orphaned backlog in one UPDATE, the rule won't run again.
 	frappe.db.set_value(
@@ -187,7 +187,7 @@ def _trip_breaker(rule, threshold):
 
 
 def _notify_owner(rule, reason):
-	owner = frappe.db.get_value("Automation", rule.name, "owner")
+	owner = frappe.db.get_value("Automation Flow", rule.name, "owner")
 	if not owner:
 		return
 	frappe.get_doc(
@@ -195,9 +195,9 @@ def _notify_owner(rule, reason):
 			"doctype": "Notification Log",
 			"for_user": owner,
 			"type": "Alert",
-			"subject": _("Automation {0} was auto-disabled").format(rule.title),
+			"subject": _("Automation Flow {0} was auto-disabled").format(rule.title),
 			"email_content": reason,
-			"document_type": "Automation",
+			"document_type": "Automation Flow",
 			"document_name": rule.name,
 		}
 	).insert(ignore_permissions=True)
