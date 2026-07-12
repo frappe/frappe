@@ -196,20 +196,19 @@ class Meta(Document):
 	def get_dynamic_link_fields(self):
 		return self._dynamic_link_fields
 
-	def get_masked_fields(self):
+	def get_masked_fields(self, parenttype=None):
 		import copy
 
 		if frappe.session.user == "Administrator":
 			return []
-		cache_key = f"masked_fields::{self.name}::{frappe.session.user}"
+		cache_key = f"masked_fields::{self.name}::{parenttype or ''}::{frappe.session.user}"
 		masked_fields = frappe.cache.get_value(cache_key)
 
 		if masked_fields is None:
 			masked_fields = []
+			permlevel_access = set(self.get_permlevel_access("mask", parenttype))
 			for df in self.fields:
-				if df.get("mask") and not self.has_permlevel_access_to(
-					fieldname=df.fieldname, df=df, permission_type="mask"
-				):
+				if df.get("mask") and df.permlevel not in permlevel_access:
 					# work on a copy instead of original df
 					df_copy = copy.deepcopy(df)
 					df_copy.mask_readonly = 1

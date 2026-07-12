@@ -337,9 +337,17 @@ class Engine:
 
 		self.add_permission_conditions()
 
+<<<<<<< HEAD
 		# Store metadata for masked field processing during execution
 		self.query._doctype = self.doctype
 		self.query._fields_list = getattr(self, "fields", [])
+=======
+		if self.apply_permissions:
+			# Store metadata for masked field processing during execution.
+			self.query._doctype = self.doctype
+			self.query._parent_doctype = self.parent_doctype
+			self.query._fields_list = getattr(self, "fields", [])
+>>>>>>> 614ec5b (fix: evaluate mask permission for child table fields against parent doctype)
 
 		self.query.immutable = True
 		return self.query
