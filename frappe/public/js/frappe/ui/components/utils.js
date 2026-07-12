@@ -19,15 +19,30 @@ export function validated(value, allowed, option, component) {
 }
 
 /**
+ * True when a URL's scheme runs code (javascript:/vbscript:/data:) — even
+ * when it's hidden behind characters the browser drops before it reads the
+ * scheme. Per the URL spec the browser removes tab/newline/CR from anywhere
+ * in the URL, and any leading C0 control or space; so "java&#9;script:" and
+ * "\x01javascript:" both run as javascript:. A plain `^\s*` check misses
+ * both: `\s` doesn't match the C0 controls outside tab/newline/CR, and `^`
+ * doesn't see an interior tab. Normalize exactly the way the browser does,
+ * THEN test. Escaping can't make these safe — the caller must refuse them.
+ */
+export function has_unsafe_scheme(value) {
+	const bare = String(value)
+		// removed anywhere in the URL by the browser
+		.replace(/[\t\n\r]/g, "")
+		// any leading C0 control (U+0000-U+0020) or space, before the scheme
+		.replace(/^[\u0000-\u0020]+/, "");
+	return /^(javascript|vbscript|data):/i.test(bare);
+}
+
+/**
  * Refuse hrefs on schemes that run code — escaping can't make those safe.
  */
 export function safe_href(href, component) {
 	if (!href) return null;
-	// browsers strip tabs and newlines out of a URL before working out its
-	// scheme, so "java\tscript:" runs as javascript:. Strip those same
-	// characters before the check, or the scheme could hide behind them.
-	const bare = String(href).replace(/[\t\n\r]/g, "");
-	if (/^\s*(javascript|data|vbscript):/i.test(bare)) {
+	if (has_unsafe_scheme(href)) {
 		console.warn(`frappe.ui.${component}: refusing unsafe href "${href}"`);
 		return null;
 	}

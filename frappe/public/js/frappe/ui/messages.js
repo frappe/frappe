@@ -4,6 +4,7 @@
 frappe.provide("frappe.messages");
 
 import "./dialog";
+import { has_unsafe_scheme } from "./components/utils.js";
 
 frappe.messages.waiting = function (parent, msg) {
 	return $(frappe.messages.get_waiting_message(msg)).appendTo(parent);
@@ -434,14 +435,17 @@ frappe.show_alert = frappe.toast = function (message, seconds = 7, actions = {})
 	// tags, strip the script vectors
 	const sane = (html) => frappe.utils.xss_sanitise(String(html), { strategies: ["js"] });
 	// xss_sanitise doesn't remove on*-handler attributes or javascript: links
-	// (its own TODO says so) — strip those from the real DOM after inserting
+	// (its own TODO says so) — strip those from the real DOM after inserting.
+	// has_unsafe_scheme normalizes the value the way the browser does before
+	// checking, so a scheme hidden behind "java&#9;script:" or a leading
+	// control char can't slip past (see components/utils.js).
 	const harden = ($root) => {
 		$root.find("*").each(function () {
 			for (const attr of Array.from(this.attributes)) {
 				if (/^on/i.test(attr.name)) this.removeAttribute(attr.name);
 				else if (
 					["href", "src", "action", "formaction"].includes(attr.name) &&
-					/^\s*(javascript|vbscript|data):/i.test(attr.value)
+					has_unsafe_scheme(attr.value)
 				) {
 					this.removeAttribute(attr.name);
 				}
