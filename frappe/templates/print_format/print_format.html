@@ -36,7 +36,7 @@
 	<div class="section document-header-content">
 	<div class="section-columns row" style="gap:{{ col_gap }}">
 	{%- for column in layout.header.columns %}
-	<div class="column col">
+	<div class="column col"{% if column.width %} style="flex: {{ column.width|float }} 1 0%"{% endif %}>
 	{%- for df in column.fields %}{{ macros.render_field(df, doc) }}{%- endfor %}
 	</div>
 	{%- endfor %}
@@ -98,7 +98,7 @@
 		{%- set col_gap = ('0' if section.field_borders else (section.gap if section.gap is defined and section.gap != None else 20)|string + 'px') -%}
 		<div class="section-columns row {{ row_layout }}" style="gap:{{ col_gap }}">
 			{% for column in section.columns %}
-			<div class="column col">
+			<div class="column col"{% if column.width %} style="flex: {{ column.width|float }} 1 0%"{% endif %}>
 				{% for df in column.fields %}
 				{{ macros.render_field(df, doc) }}
 				{% endfor %}
@@ -123,7 +123,7 @@
 	<div class="section document-footer-content">
 	<div class="section-columns row" style="gap:{{ col_gap_f }}">
 	{%- for column in layout.footer.columns %}
-	<div class="column col">
+	<div class="column col"{% if column.width %} style="flex: {{ column.width|float }} 1 0%"{% endif %}>
 	{%- for df in column.fields %}{{ macros.render_field(df, doc) }}{%- endfor %}
 	</div>
 	{%- endfor %}
