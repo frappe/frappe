@@ -52,3 +52,26 @@ class TestOutbox(IntegrationTestCase):
 		self.assertEqual(len(rows(self.automation, ref_name="TODO-9")), 1)
 		frappe.db.rollback(save_point="outbox_sp")
 		self.assertEqual(len(rows(self.automation, ref_name="TODO-9")), 0)
+
+	def _raw_pending(self, ref_name, status="Pending"):
+		return frappe.get_doc(
+			{
+				"doctype": "Automation Trigger Queue",
+				"automation": self.automation,
+				"ref_doctype": "ToDo",
+				"ref_name": ref_name,
+				"status": status,
+				"triggered_at": frappe.utils.now(),
+			}
+		).insert(ignore_permissions=True)
+
+	def test_dedup_key_index_blocks_duplicate_pending(self):
+		self._raw_pending("TODO-DUP")
+		with self.assertRaises((frappe.UniqueValidationError, frappe.DuplicateEntryError)):
+			self._raw_pending("TODO-DUP")
+
+	def test_done_and_pending_rows_coexist(self):
+		# dedup_key is NULL for non-Pending rows, so a Done row never blocks a fresh Pending one.
+		self._raw_pending("TODO-COEXIST", status="Done")
+		self._raw_pending("TODO-COEXIST")
+		self.assertEqual(len(rows(self.automation, ref_name="TODO-COEXIST")), 2)
