@@ -132,6 +132,18 @@ class TestPrintSurfaceMarkupContract(UnitTestCase):
 	def test_rating_macro_properties_mirrored_in_canvas(self):
 		self._assert_df_props_mirrored(APP_PATH / "templates" / "print_format" / "macros" / "Rating.html")
 
+	def test_rating_star_svg_matches_on_both_surfaces(self):
+		"""The star SVG can't come from a shared helper (the desk sprite star is a
+		different shape and sprites don't exist in the PDF render), so Field.vue
+		hand-mirrors macros/Rating.html — this pins the path and colours together."""
+		macro = (APP_PATH / "templates" / "print_format" / "macros" / "Rating.html").read_text()
+		canvas = _field_vue_text()
+		path_d = re.search(r'd="(M11\.5[^"]+)"', macro).group(1)
+		self.assertIn(path_d, canvas)
+		for color in ("#f6c35e", "#dce0e3"):
+			self.assertIn(color, macro)
+			self.assertIn(color, canvas)
+
 	def _assert_df_props_mirrored(self, macro_path):
 		# properties that are server-render concerns, not canvas inputs
 		skip = {"get", "renderer", "section", "html"}
