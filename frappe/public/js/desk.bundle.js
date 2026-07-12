@@ -24,6 +24,7 @@ import "./frappe/ui/components/hover_card.js";
 import "./frappe/ui/components/tabs.js";
 import "./frappe/ui/components/tab_buttons.js";
 import "./frappe/ui/components/progress.js";
+import "./frappe/ui/components/empty_state.js";
 
 import "./frappe/ui/background_tasks/background_tasks.js";
 import "./frappe/ui/keyboard.js";
@@ -67,7 +68,6 @@ import "./frappe/ui/settings_dialog.js";
 import "./frappe/ui/user_settings_dialog.js";
 import "./frappe/ui/menu.js";
 import "./frappe/ui/capture.js";
-import "./frappe/ui/embedded_list.js";
 import "./frappe/ui/permission_dialog.js";
 import "./frappe/ui/app_icon.js";
 import "./frappe/ui/theme_switcher.js";

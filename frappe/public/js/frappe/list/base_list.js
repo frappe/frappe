@@ -193,9 +193,9 @@ frappe.views.BaseList = class BaseList {
 				List: "list",
 				Report: "sheet",
 				Calendar: "calendar",
-				Gantt: "gantt",
-				Kanban: "kanban",
-				Dashboard: "dashboard",
+				Gantt: "square-chart-gantt",
+				Kanban: "square-kanban",
+				Dashboard: "layout-dashboard",
 				Map: "map",
 			};
 
