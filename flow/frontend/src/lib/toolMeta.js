@@ -34,7 +34,7 @@ export function humanize(name) {
 const LABELS = {
 	find_doctypes: "Finding relevant DocTypes",
 	describe: "Reading DocType Meta",
-	read: "Reading Doctype Records",
+	read: "Reading DocType Records",
 	search_knowledge: "Searching Knowledge",
 	execute: "Executing",
 	create: "Creating Records",
