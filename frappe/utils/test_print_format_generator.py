@@ -891,3 +891,101 @@ class TestPrintFormatGenerator(IntegrationTestCase):
 		body = html.split("<body", 1)[1]
 		self.assertNotIn("field-justify-", body)
 		self.assertNotIn("field left-right", body)
+
+	# ------------------------------------------------------------------ #
+	# draft / cancelled heading + docstatus guard (new renderer)
+	# ------------------------------------------------------------------ #
+
+	def _make_submittable_doc(self, target_docstatus=0):
+		"""Create a submittable doctype + one document at the requested docstatus."""
+		from frappe.core.doctype.doctype.test_doctype import new_doctype
+
+		dt = new_doctype(
+			is_submittable=1,
+			fields=[{"label": "Title", "fieldname": "title", "fieldtype": "Data"}],
+		).insert(ignore_permissions=True)
+		self.addCleanup(frappe.delete_doc, "DocType", dt.name, force=1)
+
+		doc = frappe.new_doc(dt.name)
+		doc.title = "Doc Title"
+		doc.insert(ignore_permissions=True)
+		if target_docstatus >= 1:
+			doc.submit()
+		if target_docstatus == 2:
+			doc.cancel()
+		return doc
+
+	def _render_standard(self, doc):
+		from frappe.www.printview import get_html_and_style
+
+		return get_html_and_style(doc=doc.as_json(), print_format="Standard", no_letterhead=1)["html"] or ""
+
+	def test_draft_heading_rendered(self):
+		"""A draft submittable document prints the DRAFT heading."""
+		with self.change_settings("Print Settings", allow_print_for_draft=1, add_draft_heading=1):
+			html = self._render_standard(self._make_submittable_doc(0))
+		self.assertIn('document-status="draft"', html)
+
+	def test_draft_heading_suppressed_by_print_setting(self):
+		"""add_draft_heading=0 hides the DRAFT heading even for a draft document."""
+		with self.change_settings("Print Settings", allow_print_for_draft=1, add_draft_heading=0):
+			html = self._render_standard(self._make_submittable_doc(0))
+		# bare "document-status" also matches the CSS selector, so assert on the banner markup
+		self.assertNotIn('document-status="draft"', html)
+
+	def test_cancelled_heading_rendered(self):
+		"""A cancelled document prints the CANCELLED heading (not gated by a setting)."""
+		with self.change_settings("Print Settings", allow_print_for_cancelled=1):
+			html = self._render_standard(self._make_submittable_doc(2))
+		self.assertIn('document-status="cancelled"', html)
+
+	def test_submitted_doc_has_no_status_heading(self):
+		"""A submitted document has neither DRAFT nor CANCELLED heading."""
+		html = self._render_standard(self._make_submittable_doc(1))
+		self.assertNotIn('document-status="draft"', html)
+		self.assertNotIn('document-status="cancelled"', html)
+
+	def test_draft_print_blocked_when_not_allowed(self):
+		"""The new renderer enforces the draft-print guard on the beta path."""
+		with self.change_settings("Print Settings", allow_print_for_draft=0):
+			doc = self._make_submittable_doc(0)
+			self.assertRaises(frappe.PermissionError, self._render_standard, doc)
+
+	def test_download_pdf_blocked_for_draft(self):
+		"""download_pdf refuses to render a draft when printing drafts is disallowed."""
+		from frappe.utils.print_format_generator import download_pdf
+
+		with self.change_settings("Print Settings", allow_print_for_draft=0):
+			doc = self._make_submittable_doc(0)
+			self.assertRaises(frappe.PermissionError, download_pdf, doc.doctype, doc.name, "Standard")
+
+	# ------------------------------------------------------------------ #
+	# empty child-table column pruning (new renderer)
+	# ------------------------------------------------------------------ #
+
+	def test_empty_child_table_columns_pruned(self):
+		"""Columns blank in every row are dropped; populated columns are kept."""
+		from frappe.core.doctype.doctype.test_doctype import new_doctype
+
+		child = new_doctype(
+			istable=1,
+			fields=[
+				{"label": "Col A", "fieldname": "col_a", "fieldtype": "Data"},
+				{"label": "Col B", "fieldname": "col_b", "fieldtype": "Data"},
+			],
+		).insert(ignore_permissions=True)
+		self.addCleanup(frappe.delete_doc, "DocType", child.name, force=1)
+
+		parent = new_doctype(
+			fields=[{"label": "Items", "fieldname": "items", "fieldtype": "Table", "options": child.name}],
+		).insert(ignore_permissions=True)
+		self.addCleanup(frappe.delete_doc, "DocType", parent.name, force=1)
+
+		doc = frappe.new_doc(parent.name)
+		doc.append("items", {"col_a": "filled", "col_b": ""})
+		doc.append("items", {"col_a": "more", "col_b": ""})
+		doc.insert(ignore_permissions=True)
+
+		html = self._render_standard(doc)
+		self.assertIn("Col A", html)
+		self.assertNotIn("Col B", html)

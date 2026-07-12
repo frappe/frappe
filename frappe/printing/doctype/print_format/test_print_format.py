@@ -367,3 +367,46 @@ class TestClassicConverter(IntegrationTestCase):
 		self.assertIn('data-fieldname="roles"', html)
 		self.assertIn('data-fieldname="idx"', html)
 		self.assertIn("print-heading", html)
+
+	def test_migrate_all_classic_formats(self):
+		from frappe.printing.doctype.print_format.classic_converter import migrate_all_classic_formats
+
+		self.make_classic_format()
+		report = migrate_all_classic_formats()
+
+		self.assertIn(self.FORMAT_NAME, report)
+		doc = frappe.get_doc("Print Format", self.FORMAT_NAME)
+		self.assertEqual(doc.print_format_builder_beta, 1)
+		self.assertEqual(doc.print_format_builder, 0)
+		# original classic array is preserved as a backup for rollback
+		self.assertEqual(frappe.parse_json(doc.classic_format_data), self.CLASSIC_FORMAT_DATA)
+
+		# idempotent: re-running re-converts from the backup and stays beta
+		migrate_all_classic_formats()
+		doc.reload()
+		self.assertEqual(doc.print_format_builder_beta, 1)
+		self.assertEqual(frappe.parse_json(doc.classic_format_data), self.CLASSIC_FORMAT_DATA)
+
+	def test_migration_skips_corrupt_format(self):
+		"""A format with unparseable format_data is skipped, not fatal to the run."""
+		from frappe.printing.doctype.print_format.classic_converter import migrate_all_classic_formats
+
+		self.make_classic_format()
+		bad_name = "_Test Corrupt Classic"
+		frappe.delete_doc("Print Format", bad_name, force=True, ignore_missing=True)
+		bad = frappe.get_doc(
+			{
+				"doctype": "Print Format",
+				"name": bad_name,
+				"doc_type": "User",
+				"standard": "No",
+				"format_data": "[]",
+			}
+		).insert()
+		bad.db_set({"print_format_builder": 1, "print_format_builder_beta": 0, "format_data": "{ not json ]"})
+		self.addCleanup(frappe.delete_doc, "Print Format", bad_name, force=True)
+
+		report = migrate_all_classic_formats()
+
+		self.assertIn(self.FORMAT_NAME, report)
+		self.assertNotIn(bad_name, report)
