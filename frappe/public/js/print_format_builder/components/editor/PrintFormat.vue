@@ -7,6 +7,7 @@
 			'print-format-doc': !!store.preview_doc.value,
 		}"
 	>
+		<component :is="'style'" v-if="color_css">{{ color_css }}</component>
 		<div v-if="!page_number_hidden" class="pfb-page-num" :style="page_number_style">
 			{{ __("1 of 2") }}
 		</div>
@@ -15,11 +16,11 @@
 
 		<!-- Body wrapper: font size/family applied here so letterhead zones are unaffected -->
 		<div class="pfb-body" :style="bodyStyles">
-			<div class="zone-divider zone-divider--header">
+			<div class="zone-divider">
 				<span class="zone-divider-label">{{ __("Header") }}</span>
 			</div>
 			<PrintFormatSection :section="layout.header" :is_header="true" zone="header" />
-			<div class="zone-divider zone-divider--body">
+			<div class="zone-divider">
 				<span class="zone-divider-label">{{ __("Body") }}</span>
 			</div>
 
@@ -44,7 +45,7 @@
 				</template>
 			</draggable>
 
-			<div class="zone-divider zone-divider--footer">
+			<div class="zone-divider">
 				<span class="zone-divider-label">{{ __("Footer") }}</span>
 			</div>
 			<PrintFormatSection :section="layout.footer" :is_header="true" zone="footer" />
@@ -149,39 +150,23 @@ let bodyStyles = computed(() => {
 	return styles;
 });
 
-// Format-level label/value colours: emit the same scoped rules the server
-// appends after the shared stylesheet (templates/print_format/print_format.css),
-// so the cascade on the canvas is identical to the printed page.
-const COLOR_CSS_ID = "pfb-format-color-css";
-watch(
-	() => [print_format.value.label_color, print_format.value.value_color],
-	([label_color, value_color]) => {
-		let el = document.getElementById(COLOR_CSS_ID);
-		if (!label_color && !value_color) {
-			el?.remove();
-			return;
-		}
-		if (!el) {
-			el = document.createElement("style");
-			el.id = COLOR_CSS_ID;
-			document.head.appendChild(el);
-		}
-		let css = "";
-		if (label_color) {
-			css += `.print-format-doc .field .label,
+// Same scoped colour rules the server appends after the shared stylesheet;
+// rendered as a style element inside the component so it dies with the DOM
+let color_css = computed(() => {
+	const { label_color, value_color } = print_format.value;
+	let css = "";
+	if (label_color) {
+		css += `.print-format-doc .field .label,
 .print-format-doc .field.left-right .label,
 .print-format-doc .field.field-inline .label { color: ${label_color}; }\n`;
-		}
-		if (value_color) {
-			css += `.print-format-doc .field .value,
+	}
+	if (value_color) {
+		css += `.print-format-doc .field .value,
 .print-format-doc .field.left-right .value,
 .print-format-doc .field.field-inline .value { color: ${value_color}; }\n`;
-		}
-		el.textContent = css;
-	},
-	{ immediate: true }
-);
-onUnmounted(() => document.getElementById(COLOR_CSS_ID)?.remove());
+	}
+	return css;
+});
 
 let page_number_hidden = computed(() => print_format.value.page_number.includes("Hide"));
 
@@ -258,24 +243,9 @@ watch(print_format, () => (store.dirty.value = true), { deep: true });
 	white-space: nowrap;
 	padding: 2px 8px;
 	border-radius: var(--radius);
-}
-
-.zone-divider--header .zone-divider-label {
-	color: var(--blue-500);
-	background: var(--blue-50);
-	border: 1px solid var(--blue-200);
-}
-
-.zone-divider--body .zone-divider-label {
 	color: var(--text-muted);
 	background: var(--gray-100);
 	border: 1px solid var(--gray-300);
-}
-
-.zone-divider--footer .zone-divider-label {
-	color: var(--blue-500);
-	background: var(--blue-50);
-	border: 1px solid var(--blue-200);
 }
 
 .section-with-insert {
