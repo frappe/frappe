@@ -120,7 +120,8 @@
 									<span
 										v-if="ci < df.table_columns.length - 1"
 										class="col-resize-handle"
-										@mousedown.prevent.stop="start_col_resize($event, ci)"
+										@pointerdown.prevent.stop="start_col_resize($event, ci)"
+										@mousedown.prevent.stop
 										@click.stop
 									></span>
 								</th>
@@ -925,12 +926,12 @@ function start_col_resize(e, ci) {
 		right.width = start_right - delta;
 	};
 	const on_up = () => {
-		document.removeEventListener("mousemove", on_move);
+		document.removeEventListener("pointermove", on_move);
 		handle.classList.remove("col-resize-handle--active");
 		document.body.classList.remove("pfb-col-resizing");
 	};
-	document.addEventListener("mousemove", on_move);
-	document.addEventListener("mouseup", on_up, { once: true });
+	document.addEventListener("pointermove", on_move);
+	document.addEventListener("pointerup", on_up, { once: true });
 }
 
 function validate_table_columns() {

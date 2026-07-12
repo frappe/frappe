@@ -110,7 +110,8 @@
 							v-if="i < section.columns.length - 1"
 							class="col-width-handle"
 							:style="{ right: handle_offset }"
-							@mousedown.prevent.stop="start_col_width_resize($event, i)"
+							@pointerdown.prevent.stop="start_col_width_resize($event, i)"
+							@mousedown.prevent.stop
 							@click.stop
 						></div>
 						<draggable
@@ -233,12 +234,12 @@ function start_col_width_resize(e, i) {
 		cols[i + 1].width = Math.round(widths[i + 1] - delta);
 	};
 	const on_up = () => {
-		document.removeEventListener("mousemove", on_move);
+		document.removeEventListener("pointermove", on_move);
 		handle.classList.remove("col-width-handle--active");
 		document.body.classList.remove("pfb-col-resizing");
 	};
-	document.addEventListener("mousemove", on_move);
-	document.addEventListener("mouseup", on_up, { once: true });
+	document.addEventListener("pointermove", on_move);
+	document.addEventListener("pointerup", on_up, { once: true });
 }
 
 let has_visible_fields = computed(
