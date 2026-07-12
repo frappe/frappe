@@ -105,7 +105,7 @@
 								"
 							>
 								<th
-									v-for="col in df.table_columns"
+									v-for="(col, ci) in df.table_columns"
 									:key="col.fieldname"
 									class="column-header"
 									:class="{ 'column-value--merged': has_merge(col) }"
@@ -117,6 +117,12 @@
 									"
 								>
 									{{ col.label || col.fieldname }}
+									<span
+										v-if="ci < df.table_columns.length - 1"
+										class="col-resize-handle"
+										@mousedown.prevent.stop="start_col_resize($event, ci)"
+										@click.stop
+									></span>
 								</th>
 							</tr>
 						</thead>
@@ -900,6 +906,33 @@ function get_column_to_add(fieldname) {
 	return { ...frappe.meta.get_docfield(props.df.options, fieldname), width: 10 };
 }
 
+function start_col_resize(e, ci) {
+	const cols = props.df.table_columns;
+	const left = cols[ci];
+	const right = cols[ci + 1];
+	if (!right) return;
+	const table_width = e.target.closest("table").getBoundingClientRect().width;
+	const start_x = e.clientX;
+	const start_left = left.width || 10;
+	const start_right = right.width || 10;
+	const handle = e.target;
+	handle.classList.add("col-resize-handle--active");
+	document.body.classList.add("pfb-col-resizing");
+	const on_move = (ev) => {
+		let delta = Math.round(((ev.clientX - start_x) / table_width) * 100);
+		delta = Math.max(5 - start_left, Math.min(start_right - 5, delta));
+		left.width = start_left + delta;
+		right.width = start_right - delta;
+	};
+	const on_up = () => {
+		document.removeEventListener("mousemove", on_move);
+		handle.classList.remove("col-resize-handle--active");
+		document.body.classList.remove("pfb-col-resizing");
+	};
+	document.addEventListener("mousemove", on_move);
+	document.addEventListener("mouseup", on_up, { once: true });
+}
+
 function validate_table_columns() {
 	if (props.df.fieldtype != "Table") return;
 	let total = 0;
@@ -920,7 +953,45 @@ watch(
 );
 </script>
 
+<style>
+body.pfb-col-resizing,
+body.pfb-col-resizing * {
+	cursor: col-resize !important;
+	user-select: none;
+}
+</style>
+
 <style scoped>
+.column-header {
+	position: relative;
+}
+
+.col-resize-handle {
+	position: absolute;
+	top: 0;
+	bottom: 0;
+	right: -4px;
+	width: 8px;
+	cursor: col-resize;
+	z-index: 1;
+}
+
+.col-resize-handle::after {
+	content: "";
+	position: absolute;
+	top: 0;
+	bottom: 0;
+	left: 3px;
+	width: 2px;
+	background: var(--gray-400);
+	opacity: 0;
+}
+
+.col-resize-handle:hover::after,
+.col-resize-handle--active::after {
+	opacity: 1;
+}
+
 .field--chip {
 	display: flex;
 	flex-direction: column;
