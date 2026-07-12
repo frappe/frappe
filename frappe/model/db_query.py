@@ -398,18 +398,32 @@ from {tables}
 			self.group_by = None
 
 		self.validate_order_by_and_group_by(self.group_by)
-		args.group_by = (self.group_by and (" group by " + self.group_by)) or ""
+		args.group_by = (self.group_by and (" group by " + self._group_by_with_link_table_pks())) or ""
 
 		return args
 
 	def _is_redundant_dedup_group_by(self) -> bool:
-		if not (self.group_by and self._child_filters_via_exists and len(self.tables) == 1):
+		if not (self._child_filters_via_exists and len(self.tables) == 1):
 			return False
 		if any("(" in (field or "") for field in self.fields):
 			# aggregates change meaning without group by, keep it
 			return False
+		return self._is_dedup_group_by()
+
+	def _is_dedup_group_by(self) -> bool:
+		if not self.group_by:
+			return False
 		group_by = self.group_by.replace("`", "").replace('"', "").strip()
 		return group_by in (f"tab{self.doctype}.name", "name")
+
+	def _group_by_with_link_table_pks(self) -> str:
+		"""When a dedup group by survives (e.g. a child table stays joined), the
+		selected columns of 1:1 joined link tables are not functionally dependent
+		on the parent primary key for postgres; grouping additionally by each link
+		table's primary key covers them without changing partitions."""
+		if not (self.link_tables and frappe.db.db_type == "postgres" and self._is_dedup_group_by()):
+			return self.group_by
+		return ", ".join([self.group_by, *(f"{link.table_alias}.`name`" for link in self.link_tables)])
 
 	def prepare_select_args(self, args):
 		order_field = ORDER_BY_PATTERN.sub("", args.order_by)
@@ -702,11 +716,13 @@ from {tables}
 
 		self._child_filters_via_exists = bool(exists_groups or or_exists_groups)
 
-		self.build_filter_conditions(filters, self.conditions)
+		for ft, parsed in filters:
+			self.conditions.append(self.prepare_filter_condition(ft, parsed=parsed))
 		for doctype, group in exists_groups.items():
 			self.conditions.append(self.prepare_exists_condition(doctype, group))
 
-		self.build_filter_conditions(or_filters, self.grouped_or_conditions)
+		for ft, parsed in or_filters:
+			self.grouped_or_conditions.append(self.prepare_filter_condition(ft, parsed=parsed))
 		for doctype, group in or_exists_groups.items():
 			self.grouped_or_conditions.append(self.prepare_exists_condition(doctype, group, any_match=True))
 
@@ -721,7 +737,8 @@ from {tables}
 
 		These filter through an exists() subquery instead of a join, so the outer
 		query needs no `group by` to deduplicate parents. Return the remaining
-		filters and the exists candidates grouped by child doctype.
+		filters and the exists candidates grouped by child doctype, both as
+		(filter, parsed filter) pairs so no filter is parsed twice.
 		"""
 		from frappe.boot import get_additional_filters_from_hooks
 
@@ -730,7 +747,7 @@ from {tables}
 		if not filters:
 			return joined, exists_groups
 		if not self._can_filter_via_exists():
-			return list(filters), exists_groups
+			return [(ft, None) for ft in filters], exists_groups
 
 		additional_filters_config = get_additional_filters_from_hooks()
 		for ft in filters:
@@ -743,9 +760,9 @@ from {tables}
 				and f"`tab{f.doctype}`" not in (self.order_by or "")
 				and self.get_meta(f.doctype).istable
 			):
-				exists_groups.setdefault(f.doctype, []).append(ft)
+				exists_groups.setdefault(f.doctype, []).append((ft, f))
 			else:
-				joined.append(ft)
+				joined.append((ft, f))
 		return joined, exists_groups
 
 	def _can_filter_via_exists(self) -> bool:
@@ -770,7 +787,9 @@ from {tables}
 		self.check_read_permission(child_doctype, parent_doctype=self.doctype)
 		child_table = f"`tab{child_doctype}`"
 		joiner = " or " if any_match else " and "
-		conditions = joiner.join(self.prepare_filter_condition(f, skip_join=True) for f in filters)
+		conditions = joiner.join(
+			self.prepare_filter_condition(ft, skip_join=True, parsed=parsed) for ft, parsed in filters
+		)
 		return (
 			f"exists (select 1 from (select 1) as `_one_row` "
 			f"left join {child_table} on ({self._child_join_condition(child_table)}) where {conditions})"
@@ -894,7 +913,7 @@ from {tables}
 			else:
 				self.remove_field(i)
 
-	def prepare_filter_condition(self, ft: FilterTuple, *, skip_join: bool = False) -> str:
+	def prepare_filter_condition(self, ft: FilterTuple, *, skip_join: bool = False, parsed=None) -> str:
 		"""Return a filter condition in the format:
 
 		ifnull(`tabDocType`.`fieldname`, fallback) operator "value"
@@ -905,7 +924,9 @@ from {tables}
 		from frappe.boot import get_additional_filters_from_hooks
 
 		additional_filters_config = get_additional_filters_from_hooks()
-		f: FilterTuple = get_filter(self.doctype, ft, additional_filters_config)
+		f: FilterTuple = (
+			parsed if parsed is not None else get_filter(self.doctype, ft, additional_filters_config)
+		)
 
 		tname = "`tab" + f.doctype + "`"
 		if not skip_join and tname not in self.tables:

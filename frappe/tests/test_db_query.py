@@ -350,6 +350,17 @@ class TestDBQuery(IntegrationTestCase):
 		self.assertIn("`tabNote Seen By`", query.tables)
 		self.assertNotIn("exists (", sql)
 
+		# the surviving dedup group by must not break when link table columns are
+		# selected (GH-39851 with the join fallback)
+		result = DatabaseQuery("User").execute(
+			filters=[["Has Role", "role", "=", "System Manager"]],
+			or_filters=[["Has Role", "role", "=", "Guest"], ["User", "enabled", "=", 1]],
+			fields=["name", "modified", "language.language_name as language_title"],
+			group_by="`tabUser`.`name`",
+			order_by="modified desc",
+		)
+		self.assertIn("Administrator", [r.name for r in result])
+
 	def test_child_table_in_fields_still_uses_join(self):
 		"""A child table that is selected stays joined; its filters apply to the join."""
 		note = self.make_note(seen_by=["Administrator"])
