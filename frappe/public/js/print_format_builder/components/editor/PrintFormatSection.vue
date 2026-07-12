@@ -174,7 +174,7 @@
 <script setup>
 import draggable from "vuedraggable";
 import Field from "./Field.vue";
-import { computed, inject } from "vue";
+import { computed, inject, onUnmounted } from "vue";
 import { evaluate_visible_if, parse_inline_style } from "../../utils";
 
 const props = defineProps(["section", "is_header", "zone"]);
@@ -216,6 +216,8 @@ let handle_offset = computed(() => {
 	return `${-(gap + 12.5)}px`;
 });
 
+let end_col_width_resize = null;
+
 function start_col_width_resize(e, i) {
 	const cols = props.section.columns;
 	const handle = e.currentTarget;
@@ -235,12 +237,19 @@ function start_col_width_resize(e, i) {
 	};
 	const on_up = () => {
 		document.removeEventListener("pointermove", on_move);
+		document.removeEventListener("pointerup", on_up);
+		document.removeEventListener("pointercancel", on_up);
 		handle.classList.remove("col-width-handle--active");
 		document.body.classList.remove("pfb-col-resizing");
+		end_col_width_resize = null;
 	};
 	document.addEventListener("pointermove", on_move);
-	document.addEventListener("pointerup", on_up, { once: true });
+	document.addEventListener("pointerup", on_up);
+	document.addEventListener("pointercancel", on_up);
+	end_col_width_resize = on_up;
 }
+
+onUnmounted(() => end_col_width_resize?.());
 
 let has_visible_fields = computed(
 	() =>

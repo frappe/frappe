@@ -447,7 +447,7 @@ import {
 	thumb_hue,
 	parse_inline_style,
 } from "../../utils";
-import { createApp, ref, nextTick, watch, computed, inject } from "vue";
+import { createApp, ref, nextTick, watch, computed, inject, onUnmounted } from "vue";
 import JsBarcode from "jsbarcode";
 
 const props = defineProps(["df", "field_orientation"]);
@@ -907,6 +907,8 @@ function get_column_to_add(fieldname) {
 	return { ...frappe.meta.get_docfield(props.df.options, fieldname), width: 10 };
 }
 
+let end_col_resize = null;
+
 function start_col_resize(e, ci) {
 	const cols = props.df.table_columns;
 	const left = cols[ci];
@@ -927,12 +929,19 @@ function start_col_resize(e, ci) {
 	};
 	const on_up = () => {
 		document.removeEventListener("pointermove", on_move);
+		document.removeEventListener("pointerup", on_up);
+		document.removeEventListener("pointercancel", on_up);
 		handle.classList.remove("col-resize-handle--active");
 		document.body.classList.remove("pfb-col-resizing");
+		end_col_resize = null;
 	};
 	document.addEventListener("pointermove", on_move);
-	document.addEventListener("pointerup", on_up, { once: true });
+	document.addEventListener("pointerup", on_up);
+	document.addEventListener("pointercancel", on_up);
+	end_col_resize = on_up;
 }
+
+onUnmounted(() => end_col_resize?.());
 
 function validate_table_columns() {
 	if (props.df.fieldtype != "Table") return;
