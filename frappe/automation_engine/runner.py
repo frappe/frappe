@@ -91,19 +91,29 @@ def _run_steps(run, rule, doc) -> str:
 def _run_one(registry, action, doc, run, rule, idx):
 	started = time.monotonic()
 	savepoint = f"auto_step_{idx}"
-	frappe.db.savepoint(savepoint)
-	try:
-		handler = registry.get(action.action_type)
-		if not handler:
-			raise ValueError(f"Unknown action type: {action.action_type}")
-		params = frappe.parse_json(action.params) if action.params else {}
-		detail = handler.execute(doc, params or {}, {"run": run, "rule": rule})
-		return "Success", detail, _ms(started)
-	except StopAutomation:
-		raise
-	except Exception:
-		frappe.db.rollback(save_point=savepoint)
-		return "Failed", frappe.get_traceback(), _ms(started)
+	handler = registry.get(action.action_type)
+	params = frappe.parse_json(action.params) if action.params else {}
+	context = {"run": run, "rule": rule}
+
+	# A concurrent write between claim and save raises TimestampMismatch
+	# reload and retry once.
+	for last_attempt in (False, True):
+		frappe.db.savepoint(savepoint)
+		try:
+			if not handler:
+				raise ValueError(f"Unknown action type: {action.action_type}")
+			detail = handler.execute(doc, params or {}, context)
+			return "Success", detail, _ms(started)
+		except StopAutomation:
+			raise
+		except frappe.TimestampMismatchError:
+			frappe.db.rollback(save_point=savepoint)
+			if last_attempt:
+				return "Failed", frappe.get_traceback(), _ms(started)
+			doc.reload()
+		except Exception:
+			frappe.db.rollback(save_point=savepoint)
+			return "Failed", frappe.get_traceback(), _ms(started)
 
 
 def _ms(started) -> int:
@@ -166,6 +176,10 @@ def _trip_breaker(rule, threshold):
 	reason = _("Auto-disabled after {0} consecutive failures").format(threshold)
 	frappe.db.set_value(
 		"Automation", rule.name, {"enabled": 0, "disabled_reason": reason}, update_modified=False
+	)
+	# Drop the orphaned backlog in one UPDATE, the rule won't run again.
+	frappe.db.set_value(
+		QUEUE, {"automation": rule.name, "status": "Pending"}, "status", "Skipped", update_modified=False
 	)
 	clear_automation_cache(rule.document_type)
 	frappe.cache.delete(_failure_key(rule.name))
