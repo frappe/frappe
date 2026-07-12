@@ -6,6 +6,12 @@
 				width: auto;
 				display: table;
 
+				// Spacer rows reserve off-screen height in virtualized lists but should never intercept clicks.
+				.list-virtual-spacer {
+					width: 100%;
+					pointer-events: none;
+				}
+
 				.list-row-container {
 					width: fit-content;
 					min-width: 100%;
@@ -325,15 +331,6 @@ body.list-col-resizing {
 	& > [data-sort-by]:hover {
 		cursor: pointer;
 		text-decoration: underline;
-	}
-
-	.selected-color {
-		display: inline-block;
-		width: 12px;
-		height: 12px;
-		border-radius: 4px;
-		margin-right: 6px;
-		vertical-align: middle;
 	}
 }
 
