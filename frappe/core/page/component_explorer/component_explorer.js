@@ -1337,10 +1337,13 @@ frappe.pages["component-explorer"].on_page_load = function (wrapper) {
 		const component = COMPONENTS[name];
 		const $groups = $body.find(".explorer-groups").empty();
 		if (!component) return;
+		// marks which component is on screen — Cypress waits on this
+		// attribute after switching components (see cypress spec)
+		$groups.attr("data-component", name);
 
 		component.groups.forEach((group) => {
 			const $group = $(`
-				<div class="explorer-group flex flex-col gap-2">
+				<div class="explorer-group flex flex-col gap-2" data-testid="${frappe.scrub(group.title, "-")}">
 					<div class="text-base-semibold text-ink-gray-8">${frappe.utils.escape_html(group.title)}</div>
 					<div class="flex gap-3 items-stretch">
 						<pre dir="ltr" class="flex-1 rounded-md border m-0 px-4 py-3 text-ink-gray-8 text-p-sm overflow-x-auto"><code></code></pre>
@@ -1390,4 +1393,9 @@ frappe.pages["component-explorer"].on_page_load = function (wrapper) {
 
 	picker.set_value("Button");
 	render_component("Button");
+
+	// Deterministic entry point for Cypress: switch the shown component
+	// without driving the Autocomplete widget. Safe to expose — the
+	// explorer is a dev-only page. See cypress/integration/es_components.js.
+	frappe.pages["component-explorer"].render_component = render_component;
 };
