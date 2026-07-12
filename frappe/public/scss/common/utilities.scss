@@ -171,6 +171,33 @@ $spacing-steps: (
 	min-width: 0;
 }
 
+/* size-<n> sets width AND height together (Tailwind's size-*), reusing the
+   spacing scale (1 step = 0.25rem) — for square boxes like icon wells and
+   avatars. Add steps to the list as call sites need them. */
+$size-steps: 4, 5, 6, 8, 9, 10, 11, 12, 14, 16;
+
+@each $n in $size-steps {
+	.size-#{$n} {
+		width: spacing-step($n);
+		height: spacing-step($n);
+	}
+}
+
+/* max-width caps (Tailwind's named scale). Add more as call sites need them. */
+.max-w-xs {
+	max-width: 20rem;
+}
+
+/* min-height steps (Tailwind's min-h-*, on the spacing scale) — e.g. giving
+   an empty state room to breathe. Bootstrap has no min-h-*, so no collision. */
+$min-h-steps: 24, 32, 40, 48, 64, 80, 96;
+
+@each $n in $min-h-steps {
+	.min-h-#{$n} {
+		min-height: spacing-step($n);
+	}
+}
+
 .truncate {
 	overflow: hidden;
 	text-overflow: ellipsis;
@@ -187,6 +214,11 @@ $spacing-steps: (
 
 .whitespace-nowrap {
 	white-space: nowrap;
+}
+
+/* ---- text alignment ---- */
+.text-center {
+	text-align: center;
 }
 
 /* ---- borders (1px, outline-gray-2 by default; add a border-outline-*
