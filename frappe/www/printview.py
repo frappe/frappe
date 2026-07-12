@@ -1,6 +1,7 @@
 # Copyright (c) 2015, Frappe Technologies Pvt. Ltd. and Contributors
 # License: MIT. See LICENSE
 
+import copy
 import os
 import re
 from typing import TYPE_CHECKING, Optional, TypedDict
@@ -236,6 +237,9 @@ def get_rendered_template(
 	args = {
 		"doc": doc,
 		"meta": frappe.get_meta(doc.doctype),
+		# `layout` is the meta-driven page/section/column structure consumed by
+		# server-side print formats (e.g. the ERPNext *_standard formats iterate it).
+		"layout": make_layout(doc, meta),
 		"no_letterhead": no_letterhead,
 		"trigger_print": cint(trigger_print),
 		"letter_head": letter_head.content,
@@ -500,6 +504,117 @@ def is_visible(df: "DocField", doc: "Document") -> bool:
 		return False
 
 	return not doc.is_print_hide(df.fieldname, df)
+
+
+def make_layout(doc: "Document", meta: "Meta", format_data=None) -> list:
+	"""Build a hierarchical (pages → sections → columns → fields) layout from the
+	doctype fields, consumed by server-side print templates via the `layout` arg
+	and by `standard_macros.html`.
+
+	:param doc: Document to be rendered.
+	:param meta: Document meta object (doctype).
+	:param format_data: Fields sequence and properties defined by Print Format Builder."""
+	layout, page = [], []
+	layout.append(page)
+
+	def get_new_section():
+		return {"columns": [], "has_data": False}
+
+	def append_empty_field_dict_to_page_column(page):
+		"""append empty columns dict to page layout"""
+		if not page[-1]["columns"]:
+			page[-1]["columns"].append({"fields": []})
+
+	for df in format_data or meta.fields:
+		if format_data:
+			# embellish df with original properties
+			df = frappe._dict(df)
+			if df.fieldname:
+				original = meta.get_field(df.fieldname)
+				if original:
+					newdf = original.as_dict()
+					newdf.hide_in_print_layout = original.get("hide_in_print_layout")
+					newdf.update(df)
+					df = newdf
+
+			df.print_hide = 0
+
+		if df.fieldtype == "Section Break" or page == []:
+			if len(page) > 1:
+				if not page[-1]["has_data"]:
+					# truncate last section if empty
+					del page[-1]
+
+			section = get_new_section()
+			if df.fieldtype == "Section Break" and df.label:
+				section["label"] = df.label
+
+			page.append(section)
+
+		elif df.fieldtype == "Column Break":
+			# if last column break and last column is not empty
+			page[-1]["columns"].append({"fields": []})
+
+		else:
+			# add a column if not yet added
+			append_empty_field_dict_to_page_column(page)
+
+		if df.fieldtype == "HTML" and df.options:
+			doc.set(df.fieldname, True)  # show this field
+
+		if df.fieldtype == "Signature" and not doc.get(df.fieldname):
+			placeholder_image = "/assets/frappe/images/signature-placeholder.png"
+			doc.set(df.fieldname, placeholder_image)
+
+		if is_visible(df, doc) and has_value(df, doc):
+			append_empty_field_dict_to_page_column(page)
+
+			page[-1]["columns"][-1]["fields"].append(df)
+
+			# section has fields
+			page[-1]["has_data"] = True
+
+			# if table, add the row info in the field
+			# if a page break is found, create a new docfield
+			if df.fieldtype == "Table":
+				df.rows = []
+				df.start = 0
+				df.end = None
+				for i, row in enumerate(doc.get(df.fieldname)):
+					if row.get("page_break"):
+						# close the earlier row
+						df.end = i
+
+						# new page, with empty section and column
+						page = [get_new_section()]
+						layout.append(page)
+						append_empty_field_dict_to_page_column(page)
+
+						# continue the table in a new page
+						df = copy.copy(df)
+						df.start = i
+						df.end = None
+						page[-1]["columns"][-1]["fields"].append(df)
+
+	return layout
+
+
+def has_value(df: "DocField", doc: "Document") -> bool:
+	"""Return True if given docfield (`df`) has some value in the given document (`doc`)."""
+	value = doc.get(df.fieldname)
+	if value in (None, ""):
+		return False
+
+	elif isinstance(value, str) and not strip_html(value).strip():
+		if df.fieldtype in ["Text", "Text Editor"]:
+			return True
+
+		return False
+
+	elif isinstance(value, list) and not len(value):
+		return False
+
+	return True
 
 
 def get_print_style(
