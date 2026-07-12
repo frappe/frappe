@@ -83,12 +83,7 @@ frappe.ui.form.Sidebar = class {
 	}
 
 	setup_editable_title() {
-<<<<<<< HEAD
-		// setup editable title
-		let form_sidebar_text = $(this.sidebar).find(".form-stats-likes .form-title-text");
-=======
 		let form_sidebar_text = $(this.sidebar).find(".form-stats-likes .form-title-edit");
->>>>>>> 9ab040c48e (fix: rename dialog triggers spurious clipboard copy with undefined value)
 		this.toolbar.setup_editable_title(form_sidebar_text);
 	}
 
