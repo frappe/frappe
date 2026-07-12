@@ -29,16 +29,16 @@
    "fieldname": "automation",
    "fieldtype": "Link",
    "in_list_view": 1,
-   "label": "Automation",
-   "options": "Automation",
+   "label": "Automation Flow",
+   "options": "Automation Flow",
    "search_index": 1
   },
   {
-   "description": "Denormalized so the run survives deletion of its Automation.",
+   "description": "Denormalized so the run survives deletion of its Automation Flow.",
    "fieldname": "automation_title",
    "fieldtype": "Data",
    "in_list_view": 1,
-   "label": "Automation Title",
+   "label": "Automation Flow Title",
    "read_only": 1
   },
   {
@@ -129,7 +129,7 @@
  "in_create": 1,
  "index_web_pages_for_search": 0,
  "links": [],
- "modified": "2026-07-12 01:37:23.321144",
+ "modified": "2026-07-13 01:02:28.315098",
  "modified_by": "Administrator",
  "module": "Automation Engine",
  "name": "Automation Run",
@@ -146,7 +146,6 @@
    "share": 1
   }
  ],
- "read_only": 1,
  "row_format": "Dynamic",
  "sort_field": "creation",
  "sort_order": "DESC",
