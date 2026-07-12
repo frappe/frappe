@@ -29,10 +29,11 @@ def render_jinja_template(template: str, doctype: str, docname: str) -> str:
 
 @frappe.whitelist()
 def download_pdf(doctype: str, name: str | int, print_format: str, letterhead: str | None = None):
-	from frappe.www.printview import validate_print_permission
+	from frappe.www.printview import validate_print_for_docstatus, validate_print_permission
 
 	doc = frappe.get_doc(doctype, name)
 	validate_print_permission(doc)
+	validate_print_for_docstatus(doc)
 	generator = PrintFormatGenerator(print_format, doc, letterhead)
 	pdf = generator.render_pdf()
 
