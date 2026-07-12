@@ -1,236 +1,116 @@
 <template>
 	<div class="mx-auto max-w-4xl p-6">
 		<!-- ── Intro ────────────────────────────────────────────────────────── -->
-		<h3 class="mb-1 text-xl-semibold text-ink-gray-9">Composer</h3>
+		<h3 class="mb-1 text-xl-semibold text-ink-gray-9">Composers</h3>
 		<p class="mb-6 text-p-sm text-ink-gray-6">
-			A message composer assembled from compound parts that share state through an injected
-			context. <code>Composer</code> owns the state (<code>v-model:open</code>,
-			<code>v-model:channel</code>, <code>v-model:mode</code>);
-			<code>ComposerTrigger</code> is the collapsed bar; <code>ComposerContent</code> is the
-			floating/docked window; <code>ComposerChannel</code> associates content with a channel
-			value (and a tab when several are present). <code>EmailComposer</code> and
-			<code>CommentComposer</code> are ready-made channel content — they also render inline,
-			standalone, when used without a window. Everything is transport-agnostic:
-			<code>submit</code> hands back a payload and the host performs the send.
+			Two standalone, inline message composers. <code>EmailComposer</code> stacks recipient
+			(To/Cc/Bcc) and subject rows plus an optional quoted reply above the editor;
+			<code>CommentComposer</code> is the editor alone, with @-mentions, for internal notes.
+			Both are transport-agnostic — <code>submit</code> hands back a payload and the host
+			performs the send, then calls the exposed <code>reset()</code>. They render in normal
+			document flow: an Email/Comment tab switcher (§1) and a docked reply window (§2) are a
+			few host lines, not library surface.
 		</p>
 
-		<!-- ── Live controls (drive the flagship example in §1) ─────────────── -->
+		<!-- ── Live controls (drive the flagship in §1) ─────────────────────── -->
 		<section class="mb-6 rounded-lg border border-outline-gray-2 p-4">
 			<div class="mb-3 text-sm-medium text-ink-gray-7">Controls</div>
 
 			<div class="flex flex-wrap items-center gap-x-8 gap-y-4">
-				<!-- Window state + chrome -->
-				<div class="flex flex-wrap items-center gap-x-5 gap-y-2">
-					<Switch v-model="open" label="open" size="sm" />
-					<Switch v-model="minimizable" label="minimizable" size="sm" />
-					<Switch v-model="floatable" label="floatable" size="sm" />
-					<div class="flex items-center gap-2">
-						<span class="text-p-sm text-ink-gray-6">mode</span>
-						<Select v-model="mode" :options="modeOptions" />
-					</div>
-				</div>
-
-				<!-- Email rows offered -->
+				<!-- Which optional email rows are offered -->
 				<div class="flex items-center gap-3">
 					<span class="text-p-sm text-ink-gray-6">fields</span>
 					<Checkbox v-model="fieldSubject" label="subject" />
 					<Checkbox v-model="fieldCc" label="cc" />
 					<Checkbox v-model="fieldBcc" label="bcc" />
 				</div>
+				<Switch v-model="hideRecipients" label="hideRecipients" size="sm" />
 			</div>
 
-			<!-- Imperative handle (exposed focus / reset / submit) + reply seeding -->
+			<!-- Imperative handle (exposed focus / reset / submit) on the active tab -->
 			<div
 				class="mt-4 flex flex-wrap items-center gap-2 border-t border-outline-gray-1 pt-4"
 			>
 				<span class="mr-1 text-p-sm text-ink-gray-6">actions</span>
-				<Button label="Focus" @click="focusActive" />
-				<Button label="Reset" @click="resetActive" />
-				<Button label="Submit" @click="submitActive" />
+				<Button label="Focus" @click="activeComposer?.focus()" />
+				<Button label="Reset" @click="activeComposer?.reset()" />
+				<Button label="Submit" @click="activeComposer?.submit()" />
 				<Button label="Seed quoted reply" @click="seedReply" />
 				<span class="ml-auto text-p-sm text-ink-gray-5">
-					open: <b>{{ open }}</b> · channel: <b>{{ channel }}</b> · mode:
-					<b>{{ mode }}</b>
+					channel: <b>{{ channel }}</b>
 				</span>
 			</div>
 		</section>
 
-		<!-- ── §1 Flagship: configurable two-channel window ─────────────────── -->
+		<!-- ── §1 Flagship: switchable Email / Comment composer ─────────────── -->
 		<section class="mb-8">
 			<div class="mb-2 text-sm-medium text-ink-gray-7">
-				Two-channel window — recipients, subject, quoted reply, @-mentions, attachments,
-				and a custom From picker, all driven by the controls above
+				Switchable composer — Email and Comment share one area via
+				<code>TabButtons</code>; each draft survives a tab switch because both stay mounted
+				(<code>v-show</code>, not <code>v-if</code>)
 			</div>
-			<Composer
-				v-model:open="open"
-				v-model:channel="channel"
-				v-model:mode="mode"
-				:minimizable="minimizable"
-			>
-				<ComposerTrigger placeholder="Write a reply…" />
-				<ComposerContent :floatable="floatable">
-					<ComposerChannel value="email" label="Email">
-						<EmailComposer
-							ref="emailRef"
-							v-model="emailBody"
-							v-model:recipients="recipients"
-							v-model:subject="subject"
-							v-model:quoted="quoted"
-							:fields="fields"
-							:search-recipients="searchRecipients"
-							:upload-function="mockUpload"
-							submit-label="Send"
-							placeholder="Write a reply…"
-							@submit="(p) => log('email:submit', p)"
-							@remove-attachment="(f) => log('email:remove-attachment', f)"
-						>
-							<!-- Host-supplied sender picker, injected above the recipient rows. -->
-							<template #from>
-								<div class="flex items-center gap-2 py-1.5">
-									<span class="text-p-sm text-ink-gray-5">From</span>
-									<Select
-										class="relative !bottom-0.5"
-										v-model="fromEmail"
-										:options="identities"
-									/>
-								</div>
-							</template>
-						</EmailComposer>
-					</ComposerChannel>
+			<div class="rounded-md border border-outline-gray-2 bg-surface-base">
+				<div class="border-b border-outline-gray-2 p-2">
+					<TabButtons v-model="channel" :options="channelOptions" />
+				</div>
 
-					<ComposerChannel value="comment" label="Comment">
-						<CommentComposer
-							ref="commentRef"
-							v-model="commentBody"
-							:mentions="mentions"
-							:upload-function="mockUpload"
-							placeholder="Leave an internal note — type @ to mention…"
-							@submit="(p) => log('comment:submit', p)"
-							@remove-attachment="(f) => log('comment:remove-attachment', f)"
-						/>
-					</ComposerChannel>
-				</ComposerContent>
-			</Composer>
-			<pre
-				class="mt-3 overflow-auto rounded-lg bg-surface-gray-2 p-3 text-xs text-ink-gray-8"
-			><code>{{ flagshipCode }}</code></pre>
-		</section>
-
-		<!-- ── §2 Single channel — no switcher, header title falls back to label -->
-		<section class="mb-8">
-			<div class="mb-2 text-sm-medium text-ink-gray-7">
-				Single channel — with only one <code>ComposerChannel</code> the switcher tabs
-				disappear and the header shows the channel's label
-			</div>
-			<Composer>
-				<ComposerTrigger placeholder="Add an internal note…" />
-				<ComposerContent>
-					<ComposerChannel value="comment" label="Note">
-						<CommentComposer
-							:mentions="mentions"
-							:upload-function="mockUpload"
-							placeholder="Type @ to mention a teammate…"
-							@submit="(p) => log('note:submit', p)"
-						/>
-					</ComposerChannel>
-				</ComposerContent>
-			</Composer>
-			<pre
-				class="mt-3 overflow-auto rounded-lg bg-surface-gray-2 p-3 text-xs text-ink-gray-8"
-			><code>{{ singleChannelCode }}</code></pre>
-		</section>
-
-		<!-- ── §3 Inline — content without a window ──────────────────────────── -->
-		<section class="mb-8">
-			<div class="mb-2 text-sm-medium text-ink-gray-7">
-				Inline (no window) — <code>EmailComposer</code> / <code>CommentComposer</code>
-				render on their own, always visible, no trigger or chrome
-			</div>
-			<div class="grid gap-4 md:grid-cols-2">
-				<div class="rounded-md border border-outline-gray-2 bg-surface-base p-2">
+				<!-- Email tab -->
+				<div v-show="channel === 'email'" class="p-2">
 					<EmailComposer
-						v-model="inlineBody"
-						v-model:recipients="inlineRecipients"
-						:fields="['cc']"
+						ref="emailRef"
+						v-model="emailBody"
+						v-model:recipients="recipients"
+						v-model:subject="subject"
+						v-model:quoted="quoted"
+						:fields="fields"
+						:hide-recipients="hideRecipients"
 						:search-recipients="searchRecipients"
 						:upload-function="mockUpload"
-						placeholder="Compose an email…"
-						@submit="(p) => log('inline-email:submit', p)"
-					/>
+						placeholder="Write a reply…"
+						@submit="(payload) => log('email:submit', payload)"
+						@remove-attachment="(file) => log('email:remove-attachment', file)"
+					>
+						<!-- Host-supplied sender picker, injected above the recipient rows. -->
+						<template #from>
+							<div class="flex items-center gap-2 py-1.5">
+								<span class="text-p-sm text-ink-gray-5">From</span>
+								<Select
+									class="relative !bottom-0.5"
+									v-model="fromEmail"
+									:options="identities"
+								/>
+							</div>
+						</template>
+					</EmailComposer>
 				</div>
-				<div class="rounded-md border border-outline-gray-2 bg-surface-base p-2">
+
+				<!-- Comment tab -->
+				<div v-show="channel === 'comment'" class="p-2">
 					<CommentComposer
-						v-model="inlineComment"
+						ref="commentRef"
+						v-model="commentBody"
 						:mentions="mentions"
 						:upload-function="mockUpload"
-						placeholder="Write a comment…"
-						@submit="(p) => log('inline-comment:submit', p)"
+						placeholder="Leave an internal note — type @ to mention…"
+						@submit="(payload) => log('comment:submit', payload)"
+						@remove-attachment="(file) => log('comment:remove-attachment', file)"
 					/>
 				</div>
 			</div>
 			<pre
 				class="mt-3 overflow-auto rounded-lg bg-surface-gray-2 p-3 text-xs text-ink-gray-8"
-			><code>{{ inlineCode }}</code></pre>
+			><code>{{ tabbedCode }}</code></pre>
 		</section>
 
-		<!-- ── §4 Overridden window controls (#header-actions) ──────────────── -->
+		<!-- ── §2 Windowed (host recipe) ────────────────────────────────────── -->
 		<section class="mb-8">
 			<div class="mb-2 text-sm-medium text-ink-gray-7">
-				Custom window controls — the <code>#header-actions</code> slot replaces the default
-				expand/minimize buttons while still driving real window behavior
+				A docked reply window is the host's own <code>FloatingWindow</code> around an
+				inline composer — the library stays out of the window business (FP1)
 			</div>
-			<Composer>
-				<ComposerTrigger placeholder="Reply…" />
-				<ComposerContent>
-					<template #header-actions="{ expand, minimize, floating }">
-						<Button
-							variant="ghost"
-							:label="floating ? 'Dock' : 'Pop out'"
-							@click="expand"
-						/>
-						<Button variant="ghost" label="Done" @click="minimize" />
-					</template>
-					<ComposerChannel value="comment" label="Comment">
-						<CommentComposer
-							:mentions="mentions"
-							placeholder="Custom header controls…"
-							@submit="(p) => log('custom-header:submit', p)"
-						/>
-					</ComposerChannel>
-				</ComposerContent>
-			</Composer>
 			<pre
-				class="mt-3 overflow-auto rounded-lg bg-surface-gray-2 p-3 text-xs text-ink-gray-8"
-			><code>{{ headerActionsCode }}</code></pre>
-		</section>
-
-		<!-- ── §5 Custom trigger bar (default slot of ComposerTrigger) ──────── -->
-		<section class="mb-8">
-			<div class="mb-2 text-sm-medium text-ink-gray-7">
-				Custom collapsed bar — <code>ComposerTrigger</code>'s default slot is scoped with
-				the active channel's <code>preview</code>, so hosts can supply their own avatar and
-				copy
-			</div>
-			<Composer>
-				<ComposerTrigger v-slot="{ preview }">
-					<Avatar size="sm" label="Ada Lovelace" class="shrink-0" />
-					<span class="min-w-0 max-w-[30%] truncate text-base text-ink-gray-5">
-						{{ preview || "Reply as Ada…" }}
-					</span>
-				</ComposerTrigger>
-				<ComposerContent>
-					<ComposerChannel value="comment" label="Comment">
-						<CommentComposer
-							:mentions="mentions"
-							placeholder="Custom trigger avatar + preview…"
-							@submit="(p) => log('custom-trigger:submit', p)"
-						/>
-					</ComposerChannel>
-				</ComposerContent>
-			</Composer>
-			<pre
-				class="mt-3 overflow-auto rounded-lg bg-surface-gray-2 p-3 text-xs text-ink-gray-8"
-			><code>{{ customTriggerCode }}</code></pre>
+				class="overflow-auto rounded-lg bg-surface-gray-2 p-3 text-xs text-ink-gray-8"
+			><code>{{ windowRecipe }}</code></pre>
 		</section>
 
 		<!-- ── Event log ─────────────────────────────────────────────────────── -->
@@ -248,16 +128,8 @@
 
 <script setup lang="ts">
 import { computed, ref } from "vue";
-import { Avatar, Button, Checkbox, Select, Switch } from "frappe-ui";
-import { type WindowMode } from "frappe-ui/experimental";
-import {
-	CommentComposer,
-	Composer,
-	ComposerChannel,
-	ComposerContent,
-	ComposerTrigger,
-	EmailComposer,
-} from "../index";
+import { Button, Checkbox, Select, Switch, TabButtons } from "frappe-ui";
+import { CommentComposer, EmailComposer } from "../index";
 import type {
 	CommentPayload,
 	EmailPayload,
@@ -269,17 +141,18 @@ import type {
 	UploadFunction,
 } from "../types";
 
-// ── Window controls (bound to the flagship composer in §1) ─────────────────
-const open = ref(false);
-const minimizable = ref(true);
-const floatable = ref(true);
-const mode = ref<WindowMode>("docked");
-const modeOptions: WindowMode[] = ["docked", "floating", "minimized"];
+// ── Switcher: which composer the one area shows ────────────────────────────
+const channel = ref("email");
+const channelOptions = [
+	{ label: "Email", value: "email" },
+	{ label: "Comment", value: "comment" },
+];
 
-// ── Which optional email rows the flagship offers ──────────────────────────
+// ── Which optional email rows the composer offers ──────────────────────────
 const fieldSubject = ref(true);
 const fieldCc = ref(true);
 const fieldBcc = ref(false);
+const hideRecipients = ref(false);
 const fields = computed<Field[]>(() =>
 	(
 		[
@@ -292,8 +165,7 @@ const fields = computed<Field[]>(() =>
 		.map(([name]) => name)
 );
 
-// ── Flagship draft state (host-owned via v-model, survives channel switches) ─
-const channel = ref("email");
+// ── Draft state (host-owned via v-model, survives tab switches) ────────────
 const emailBody = ref("");
 const commentBody = ref("");
 const subject = ref("");
@@ -306,36 +178,22 @@ const recipients = ref<Recipients>({
 	bcc: [],
 });
 
-// Component refs expose { editor, focus, reset, submit } for imperative control.
+// Each composer exposes { editor, focus, reset, submit }; drive the active tab.
 const emailRef = ref<InstanceType<typeof EmailComposer> | null>(null);
 const commentRef = ref<InstanceType<typeof CommentComposer> | null>(null);
 const activeComposer = computed(() =>
 	channel.value === "comment" ? commentRef.value : emailRef.value
 );
-function focusActive() {
-	activeComposer.value?.focus();
-}
-function resetActive() {
-	activeComposer.value?.reset();
-}
-function submitActive() {
-	activeComposer.value?.submit();
-}
 // Drop a quoted message into the email channel to pre-fill a reply.
 function seedReply() {
 	channel.value = "email";
 	quoted.value = "<p>On Tue, Grace wrote:</p><p>Can we ship the composer this week?</p>";
-	open.value = true;
+	emailRef.value?.focus();
 }
 
 // ── Host-supplied sender picker for the #from slot ─────────────────────────
 const identities = ["support@example.com", "sales@example.com"];
 const fromEmail = ref(identities[0]);
-
-// ── Focused-example state ──────────────────────────────────────────────────
-const inlineBody = ref("");
-const inlineComment = ref("");
-const inlineRecipients = ref<Recipients>({ to: [], cc: [], bcc: [] });
 
 // ── Mocked transports (a real host wires these to its backend) ─────────────
 // Attachment upload: fake latency, then a File-shaped result the chip renders.
@@ -370,90 +228,31 @@ function searchRecipients(query: string): Promise<Recipient[]> {
 	return new Promise((resolve) => setTimeout(() => resolve(matches), 300));
 }
 
-// @-mention options for comment channels; the editor filters them on "@".
+// @-mention options for the comment composer; the editor filters them on "@".
 const mentions: MentionOption[] = [
 	{ label: "Grace Hopper", value: "grace@example.com" },
 	{ label: "Ada Lovelace", value: "ada@example.com" },
 	{ label: "Alan Turing", value: "alan@example.com" },
 ];
 
-// ── Code examples shown under each section ──────────────────────────────────
-// Representative usage, not a literal dump of this story's own wiring (which
-// carries story-only bits like the event log and live-controls binding).
-const flagshipCode = `<Composer v-model:open="open" v-model:channel="channel">
-  <ComposerTrigger placeholder="Write a reply…" />
-  <ComposerContent>
-    <ComposerChannel value="email" label="Email">
-      <EmailComposer
-        v-model="body"
-        v-model:recipients="recipients"
-        v-model:subject="subject"
-        v-model:quoted="quoted"
-        :fields="['subject', 'cc']"
-        :search-recipients="searchRecipients"
-        :upload-function="uploadFile"
-        @submit="onEmailSubmit"
-      >
-        <template #from>
-          <SenderPicker v-model="fromEmail" :options="identities" />
-        </template>
-      </EmailComposer>
-    </ComposerChannel>
+// ── Code samples shown under the sections ──────────────────────────────────
+const tabbedCode = `<TabButtons v-model="channel" :options="channelOptions" />
 
-    <ComposerChannel value="comment" label="Comment">
-      <CommentComposer
-        v-model="commentBody"
-        :mentions="mentions"
-        @submit="onCommentSubmit"
-      />
-    </ComposerChannel>
-  </ComposerContent>
-</Composer>`;
+<div v-show="channel === 'email'">
+  <EmailComposer
+    v-model="emailBody"
+    v-model:recipients="recipients"
+    :search-recipients="searchRecipients"
+    @submit="onSendEmail"
+  />
+</div>
+<div v-show="channel === 'comment'">
+  <CommentComposer v-model="commentBody" :mentions="mentions" @submit="onComment" />
+</div>`;
 
-const singleChannelCode = `<Composer>
-  <ComposerTrigger placeholder="Add an internal note…" />
-  <ComposerContent>
-    <ComposerChannel value="comment" label="Note">
-      <CommentComposer :mentions="mentions" @submit="onSubmit" />
-    </ComposerChannel>
-  </ComposerContent>
-</Composer>`;
-
-const inlineCode = `<!-- No Composer / ComposerContent — renders in normal document flow. -->
-<EmailComposer
-  v-model="body"
-  v-model:recipients="recipients"
-  :fields="['cc']"
-  :search-recipients="searchRecipients"
-  @submit="onSubmit"
-/>
-
-<CommentComposer v-model="commentBody" :mentions="mentions" @submit="onSubmit" />`;
-
-const headerActionsCode = `<Composer>
-  <ComposerTrigger placeholder="Reply…" />
-  <ComposerContent>
-    <template #header-actions="{ expand, minimize, floating }">
-      <Button :label="floating ? 'Dock' : 'Pop out'" @click="expand" />
-      <Button label="Done" @click="minimize" />
-    </template>
-    <ComposerChannel value="comment" label="Comment">
-      <CommentComposer :mentions="mentions" @submit="onSubmit" />
-    </ComposerChannel>
-  </ComposerContent>
-</Composer>`;
-
-const customTriggerCode = `<Composer>
-  <ComposerTrigger v-slot="{ preview }">
-    <Avatar size="sm" label="Ada Lovelace" />
-    <span class="min-w-0 max-w-[30%] truncate">{{ preview || 'Reply as Ada…' }}</span>
-  </ComposerTrigger>
-  <ComposerContent>
-    <ComposerChannel value="comment" label="Comment">
-      <CommentComposer :mentions="mentions" @submit="onSubmit" />
-    </ComposerChannel>
-  </ComposerContent>
-</Composer>`;
+const windowRecipe = `<FloatingWindow v-model:open="open">
+  <EmailComposer v-model="body" v-model:recipients="recipients" @submit="onSend" />
+</FloatingWindow>`;
 
 // ── Event log ──────────────────────────────────────────────────────────────
 const events = ref<string[]>([]);

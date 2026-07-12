@@ -1,10 +1,8 @@
 <template>
 	<!-- Shared editing core for EmailComposer and CommentComposer: editor body,
-		 attachments, Discard/Send toolbar. Window-agnostic content — the host owns
-		 the window chrome; channel bits arrive via slots. -->
+		 attachments, and the Discard/Send toolbar. Renders inline; a host that wants
+		 a floating reply window wraps the composer in frappe-ui's FloatingWindow. -->
 	<div class="flex h-full min-h-0 flex-col">
-		<slot name="header" />
-
 		<!-- frappe-ui's Editor is renderless: we render the layout in its slot. -->
 		<Editor
 			ref="editorRef"
@@ -31,9 +29,8 @@
 					<!-- Contextual table controls (shown while cursor is inside a table). -->
 					<EditorTableMenu />
 
-					<!-- Editor space: grows to a 50vh cap then scrolls, shrinks all the way to 0
-						 so a docked-resize drag never pushes the footer below into scroll — the
-						 footer (mt-auto, not flex-1) always keeps whatever it needs. -->
+					<!-- Editor space: grows to a 50vh cap then scrolls, and can shrink to 0
+						 so the footer (mt-auto, not flex-1) always keeps whatever it needs. -->
 
 					<div
 						class="flex max-h-[50vh] min-h-0 flex-1 flex-col overflow-y-auto px-2.5 pb-2.5"
@@ -196,7 +193,6 @@ import {
 	HorizontalRule,
 	InsertTable,
 } from "frappe-ui/editor";
-import { injectComposer } from "./composerContext";
 import type { ComposerEditorProps, CoreSubmitPayload, UploadedFile } from "./types";
 
 // Fixed formatting toolbar rendered in the footer (headings, bold, lists, …).
@@ -240,9 +236,6 @@ const emit = defineEmits<{
 
 const editorRef = ref<InstanceType<typeof Editor> | null>(null);
 const editor = computed(() => editorRef.value?.editor);
-
-// The enclosing Composer window, if any (null when rendered inline).
-const composer = injectComposer();
 
 // @-mention options mapped to the editor's { id, label } shape. Kept live via a
 // getter so a late-loading list works without recreating the editor.
@@ -459,12 +452,10 @@ function reset() {
 	focus();
 }
 
-// The Discard button clears the draft and collapses an enclosing Composer
-// window back to its trigger. Hosts observe the cleared body / closed window
-// through their v-models — there's no separate discard event.
+// The Discard button clears the draft. Hosts observe the cleared body through
+// their v-model — there's no separate discard event.
 function discard() {
 	reset();
-	composer?.close();
 }
 
 defineExpose({ editor, focus, reset, submit });

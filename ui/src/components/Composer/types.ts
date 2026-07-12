@@ -59,6 +59,20 @@ export interface ComposerEditorProps extends BaseComposerProps {
   mentions?: MentionOption[];
 }
 
+/** Helpers the footer `actions` slot receives to drive a custom uploader. */
+export interface ComposerActionsSlotProps {
+  addAttachment: (file: UploadedFile) => void;
+  setUploading: (value: boolean) => void;
+}
+
+/** Emitted by both composers. The host runs the send and resets when done. */
+interface BaseComposerEmits<Payload> {
+  /** Fires with the built payload; the host performs the send, then `reset()`. */
+  submit: [payload: Payload];
+  /** Only on explicit chip removal (so the host can delete server-side). */
+  "remove-attachment": [file: UploadedFile];
+}
+
 // --- EmailComposer ----------------------------------------------------------
 
 /** Emitted on `submit`: the full email envelope. */
@@ -73,6 +87,17 @@ export interface EmailComposerProps extends BaseComposerProps {
   fields?: Field[];
   /** Recipient lookup; omit for a plain creatable-email field. */
   searchRecipients?: RecipientSearch;
+  /** Hide the recipient (To/Cc/Bcc) row entirely — e.g. customer-portal replies. */
+  hideRecipients?: boolean;
+}
+
+export type EmailComposerEmits = BaseComposerEmits<EmailPayload>;
+
+export interface EmailComposerSlots {
+  /** Sender picker, rendered above the recipient rows. */
+  from?: () => any;
+  /** Extra footer actions, beside the built-in attach button. */
+  actions?: (props: ComposerActionsSlotProps) => any;
 }
 
 // --- CommentComposer ---------------------------------------------------------
@@ -81,3 +106,10 @@ export interface EmailComposerProps extends BaseComposerProps {
 export type CommentPayload = CoreSubmitPayload;
 
 export type CommentComposerProps = ComposerEditorProps;
+
+export type CommentComposerEmits = BaseComposerEmits<CommentPayload>;
+
+export interface CommentComposerSlots {
+  /** Extra footer actions, beside the built-in attach button. */
+  actions?: (props: ComposerActionsSlotProps) => any;
+}

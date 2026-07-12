@@ -1,7 +1,7 @@
 <template>
-	<!-- Internal comment: just the editing core, no recipients or subject. Renders
-		 inline on its own; wrap it in <ComposerChannel> inside a <Composer> to make
-		 it a windowed channel. -->
+	<!-- A standalone, inline comment composer: the shared editing core with
+		 @-mentions, for internal notes. Emits a CommentPayload on send — the host
+		 performs the send, then calls reset(). -->
 	<ComposerEditor
 		ref="core"
 		:placeholder="placeholder"
@@ -24,32 +24,20 @@
 <script setup lang="ts">
 import { computed, ref } from "vue";
 import ComposerEditor from "../ComposerEditor.vue";
-import { textPreview } from "../textPreview";
-import { useComposerSurface } from "../composerContext";
-import type { CommentComposerProps, CommentPayload, UploadedFile } from "../types";
+import type { CommentComposerEmits, CommentComposerProps, CommentComposerSlots } from "../types";
 
 withDefaults(defineProps<CommentComposerProps>(), {
 	placeholder: "This message is only visible to internal team.",
 	submitLabel: "Comment",
 });
 
-const emit = defineEmits<{
-	"remove-attachment": [file: UploadedFile];
-	/** Host runs the send, then calls `reset()` (and closes the window) itself. */
-	submit: [payload: CommentPayload];
-}>();
+const emit = defineEmits<CommentComposerEmits>();
+defineSlots<CommentComposerSlots>();
 
-// The comment draft; optional to bind — it survives channel switches and window
-// close (an enclosing Composer keeps channels mounted).
+// The comment draft; optional to bind — the host owns it via v-model.
 const body = defineModel<string>({ default: "" });
 
 const core = ref<InstanceType<typeof ComposerEditor> | null>(null);
-
-// Hand the draft preview + focus to an enclosing <ComposerChannel>, if any.
-useComposerSurface({
-	preview: () => textPreview(body.value),
-	focus: () => core.value?.focus(),
-});
 
 defineExpose({
 	editor: computed(() => core.value?.editor),

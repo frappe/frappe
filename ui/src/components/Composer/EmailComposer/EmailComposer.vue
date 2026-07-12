@@ -1,7 +1,7 @@
 <template>
-	<!-- Email content: a From slot + recipient/subject rows above the shared editing
-		 core. Renders inline on its own; wrap it in <ComposerChannel> inside a
-		 <Composer> to make it a windowed channel. -->
+	<!-- A standalone, inline email composer: a From slot plus recipient and subject
+		 rows above the shared editing core. Emits an EmailPayload on send — the host
+		 performs the actual send, then calls reset(). -->
 	<ComposerEditor
 		ref="core"
 		:placeholder="placeholder"
@@ -16,6 +16,7 @@
 		<template #top>
 			<slot name="from" />
 			<RecipientFields
+				v-if="!hideRecipients"
 				v-model="recipients"
 				v-model:subject="subject"
 				:fields="fields"
@@ -37,14 +38,12 @@ import { computed, ref } from "vue";
 import { toast } from "frappe-ui";
 import ComposerEditor from "../ComposerEditor.vue";
 import RecipientFields from "./RecipientFields.vue";
-import { textPreview } from "../textPreview";
-import { useComposerSurface } from "../composerContext";
 import type {
 	CoreSubmitPayload,
+	EmailComposerEmits,
 	EmailComposerProps,
-	EmailPayload,
+	EmailComposerSlots,
 	Recipients,
-	UploadedFile,
 } from "../types";
 
 withDefaults(defineProps<EmailComposerProps>(), {
@@ -52,14 +51,10 @@ withDefaults(defineProps<EmailComposerProps>(), {
 	submitLabel: "Send",
 });
 
-const emit = defineEmits<{
-	"remove-attachment": [file: UploadedFile];
-	/** Host runs the send, then calls `reset()` (and closes the window) itself. */
-	submit: [payload: EmailPayload];
-}>();
+const emit = defineEmits<EmailComposerEmits>();
+defineSlots<EmailComposerSlots>();
 
-// Two-way state, all optional to bind — drafts live here and survive channel
-// switches and window close (an enclosing Composer keeps channels mounted).
+// Two-way state, all optional to bind — the host owns each piece via v-model.
 const body = defineModel<string>({ default: "" });
 // Quoted reply HTML, shown as a collapsible block and appended back on send.
 // Seed it (and clear `v-model`) to pre-fill a reply.
@@ -70,12 +65,6 @@ const recipients = defineModel<Recipients>("recipients", {
 const subject = defineModel<string>("subject", { default: "" });
 
 const core = ref<InstanceType<typeof ComposerEditor> | null>(null);
-
-// Hand the draft preview + focus to an enclosing <ComposerChannel>, if any.
-useComposerSurface({
-	preview: () => textPreview(body.value),
-	focus: () => core.value?.focus(),
-});
 
 function hasRecipients() {
 	const { to, cc, bcc } = recipients.value;
