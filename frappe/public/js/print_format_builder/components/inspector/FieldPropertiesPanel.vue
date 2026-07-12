@@ -150,14 +150,14 @@
 		<InspectorSection :label="__('Style')" :init-open="false" :padded="false">
 			<div v-if="is_text_field" class="pfb-insp-section-body">
 				<ColorField
-					:label="__('Value color')"
-					:model-value="selected_field.value_color || ''"
-					@update:model-value="(v) => set_field_prop('value_color', v)"
-				/>
-				<ColorField
-					:label="__('Label color')"
+					:label="__('Label')"
 					:model-value="selected_field.label_color || ''"
 					@update:model-value="(v) => set_field_prop('label_color', v)"
+				/>
+				<ColorField
+					:label="__('Value')"
+					:model-value="selected_field.value_color || ''"
+					@update:model-value="(v) => set_field_prop('value_color', v)"
 				/>
 			</div>
 			<StyleSection :label="__('Custom CSS')" v-model="selected_field.custom_style" />

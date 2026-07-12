@@ -203,25 +203,23 @@
 			</div>
 		</InspectorSection>
 
-		<!-- COLORS section -->
-		<InspectorSection :label="__('Colors')" :init-open="false">
-			<ColorField
-				:label="__('Header')"
-				:model-value="table_header_bg"
-				:placeholder="__('Default')"
-				@update:model-value="(v) => set_table_prop('table_header_bg', v)"
-			/>
-			<ColorField
-				:label="__('Border')"
-				:model-value="table_border_color"
-				:placeholder="__('Default')"
-				@update:model-value="(v) => set_table_prop('table_border_color', v)"
-			/>
-		</InspectorSection>
-
 		<!-- STYLE section -->
 		<InspectorSection :label="__('Style')" :init-open="false" :padded="false">
-			<StyleSection v-model="selected_field.custom_style" />
+			<div class="pfb-insp-section-body">
+				<ColorField
+					:label="__('Header')"
+					:model-value="table_header_bg"
+					:placeholder="__('Default')"
+					@update:model-value="(v) => set_table_prop('table_header_bg', v)"
+				/>
+				<ColorField
+					:label="__('Border')"
+					:model-value="table_border_color"
+					:placeholder="__('Default')"
+					@update:model-value="(v) => set_table_prop('table_border_color', v)"
+				/>
+			</div>
+			<StyleSection :label="__('Custom CSS')" v-model="selected_field.custom_style" />
 		</InspectorSection>
 
 		<!-- VISIBILITY section -->
