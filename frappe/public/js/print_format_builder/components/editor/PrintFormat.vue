@@ -17,7 +17,12 @@
 		<!-- Body wrapper: font size/family applied here so letterhead zones are unaffected -->
 		<div class="pfb-body" :style="bodyStyles">
 			<div class="zone-divider">
-				<span class="zone-divider-label">{{ __("Header") }}</span>
+				<span class="zone-divider-label">
+					{{ __("Header") }}
+					<span v-if="repeat_header_footer" class="zone-divider-hint"
+						>· {{ __("repeats on all pages") }}</span
+					>
+				</span>
 			</div>
 			<PrintFormatSection :section="layout.header" :is_header="true" zone="header" />
 			<div class="zone-divider">
@@ -46,7 +51,12 @@
 			</draggable>
 
 			<div class="zone-divider">
-				<span class="zone-divider-label">{{ __("Footer") }}</span>
+				<span class="zone-divider-label">
+					{{ __("Footer") }}
+					<span v-if="repeat_header_footer" class="zone-divider-hint"
+						>· {{ __("repeats on all pages") }}</span
+					>
+				</span>
 			</div>
 			<PrintFormatSection :section="layout.footer" :is_header="true" zone="footer" />
 		</div>
@@ -178,6 +188,10 @@ let color_css = computed(() => {
 	return css;
 });
 
+let repeat_header_footer = computed(
+	() => !!frappe.model.get_doc(":Print Settings", "Print Settings")?.repeat_header_footer
+);
+
 let page_number_hidden = computed(() => print_format.value.page_number.includes("Hide"));
 
 let page_number_style = computed(() => {
@@ -233,7 +247,7 @@ watch(print_format, () => (store.dirty.value = true), { deep: true });
 .zone-divider {
 	display: flex;
 	align-items: center;
-	gap: 8px;
+	gap: 12px;
 	margin: 0.75rem 0 0.5rem;
 }
 
@@ -242,20 +256,22 @@ watch(print_format, () => (store.dirty.value = true), { deep: true });
 	content: "";
 	flex: 1;
 	height: 1px;
-	background: var(--gray-300);
+	background: var(--gray-200);
 }
 
 .zone-divider-label {
 	font-size: var(--text-tiny);
-	font-weight: var(--weight-bold);
+	font-weight: var(--weight-medium);
 	text-transform: uppercase;
-	letter-spacing: 0.08em;
+	letter-spacing: 0.12em;
 	white-space: nowrap;
-	padding: 2px 8px;
-	border-radius: var(--radius);
-	color: var(--text-muted);
-	background: var(--gray-100);
-	border: 1px solid var(--gray-300);
+	color: var(--gray-400);
+}
+
+.zone-divider-hint {
+	text-transform: none;
+	font-weight: var(--weight-regular);
+	letter-spacing: 0.02em;
 }
 
 .section-with-insert {
