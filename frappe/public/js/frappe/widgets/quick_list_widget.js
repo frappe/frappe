@@ -153,11 +153,13 @@ export default class QuickListWidget extends Widget {
 		`);
 
 		if (indicator) {
-			$(`
-				<div class="status es-badge ellipsis" data-theme="${indicator[1]}">
-					${indicator[0]}
-				</div>
-			`).appendTo($quick_list_item);
+			frappe.ui
+				.badge({
+					label: indicator[0],
+					theme: indicator[1],
+					css_class: "status ellipsis",
+				})
+				.appendTo($quick_list_item);
 		}
 		let icon_to_append = `<div class="right-arrow">${frappe.utils.icon(
 			"chevron-right",

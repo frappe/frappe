@@ -121,7 +121,7 @@ context("Global Search Settings — configure search fields", () => {
 			expect(response.body.message?.success).to.eq(true);
 		});
 
-		cy.get('[role="alert"].desk-alert .alert-message', { timeout: 25000 }).should(
+		cy.get(".es-toast .es-toast__message", { timeout: 25000 }).should(
 			"contain",
 			"Search fields updated."
 		);
