@@ -299,7 +299,9 @@ class DocumentsTab extends RoleTab {
 		return {
 			page_size: 50,
 			description: __("DocTypes this role can access."),
-			empty_message: __("No DocTypes are accessible to this role."),
+			empty_message: __("No documents added."),
+			empty_icon: "file-text",
+			no_match_message: __("No documents found."),
 			add_button: { label: __("Add Permission"), action: () => this.add() },
 			columns: this.columns(),
 			on_row_click: (row) => this.edit(row),
@@ -566,7 +568,9 @@ class ReportsTab extends RoleAccessTab {
 	list_config() {
 		return {
 			description: __("Reports this role can access."),
-			empty_message: __("This role has no Report access."),
+			empty_message: __("This role does not have access to any reports."),
+			empty_icon: "sheet",
+			no_match_message: __("No reports found."),
 			add_button: { label: __("Add Report"), action: () => this.add() },
 			columns: [
 				{
@@ -594,7 +598,9 @@ class PagesTab extends RoleAccessTab {
 	list_config() {
 		return {
 			description: __("Pages this role can access."),
-			empty_message: __("This role has no Page access."),
+			empty_message: __("This role does not have access to any pages."),
+			empty_icon: "file",
+			no_match_message: __("No pages found."),
 			add_button: { label: __("Add Page"), action: () => this.add() },
 			columns: [
 				{
@@ -623,7 +629,9 @@ class WorkspacesTab extends RoleAccessTab {
 	list_config() {
 		return {
 			description: __("Workspaces this role can access."),
-			empty_message: __("This role has no Workspace access."),
+			empty_message: __("This role does not have access to any workspaces."),
+			empty_icon: "table-2",
+			no_match_message: __("No workspaces found."),
 			add_button: { label: __("Add Workspace"), action: () => this.add() },
 			columns: [
 				{
