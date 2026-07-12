@@ -10,6 +10,10 @@ frappe.ui.EmbeddedList = class EmbeddedList {
 			{
 				page_size: 50,
 				empty_message: __("No records found."),
+				empty_icon: "list",
+				// shown when records exist but the search box matched none of them
+				no_match_message: __("No matching records."),
+				no_match_icon: "search-x",
 				loading_message: __("Loading..."),
 				error_message: __("Failed to load data."),
 				columns: [],
@@ -43,9 +47,8 @@ frappe.ui.EmbeddedList = class EmbeddedList {
 		this.$result = $(`<div class="embedded-list-result"></div>`)
 			.appendTo(this.$wrapper)
 			.hide();
-		this.$no_result = $(
-			`<div class="embedded-list-no-result text-muted">${this.empty_message}</div>`
-		)
+		this.$no_result = frappe.ui
+			.empty_state({ icon: this.empty_icon, title: this.empty_message })
 			.appendTo(this.$wrapper)
 			.hide();
 
@@ -377,7 +380,21 @@ frappe.ui.EmbeddedList = class EmbeddedList {
 	}
 
 	toggle_result_area() {
-		this.$result.toggle(this.data.length > 0);
-		this.$no_result.toggle(this.data.length === 0);
+		const has_rows = this.data.length > 0;
+		this.$result.toggle(has_rows);
+
+		if (!has_rows) {
+			// "no documents at all" vs "the search box filtered them all out"
+			// — records exist in _all_data only in the latter case
+			const searched = this._all_data && this._all_data.length > 0;
+			const $empty = frappe.ui.empty_state(
+				searched
+					? { icon: this.no_match_icon, title: this.no_match_message }
+					: { icon: this.empty_icon, title: this.empty_message }
+			);
+			this.$no_result.replaceWith($empty);
+			this.$no_result = $empty;
+		}
+		this.$no_result.toggle(!has_rows);
 	}
 };

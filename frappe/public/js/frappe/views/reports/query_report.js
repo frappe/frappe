@@ -103,12 +103,7 @@ frappe.views.QueryReport = class QueryReport extends frappe.views.BaseList {
 	}
 
 	get_no_result_message() {
-		return `<div class="msg-box no-border">
-			<svg class="icon icon-xl mb-4" style="stroke: var(--text-light);">
-				<use href="#icon-table"></use>
-			</svg>
-			<p>${__("Nothing to show")}</p>
-		</div>`;
+		return frappe.ui.empty_state({ icon: "sheet", title: __("Nothing to show") })[0].outerHTML;
 	}
 
 	setup_events() {
