@@ -423,38 +423,3 @@
 	border-radius: var(--radius);
 	background-color: var(--surface-base);
 }
-
-// Empty state muted icon ▸ bold title ▸ muted description ▸ subtle action.
-.dts-empty {
-	display: flex;
-	flex-direction: column;
-	align-items: center;
-	text-align: center;
-	padding: var(--padding-2xl) var(--padding-lg);
-	gap: calc(var(--spacing) * 2);
-
-	.dts-empty-icon {
-		color: var(--ink-gray-5);
-
-		.icon {
-			width: 32px;
-			height: 32px;
-		}
-	}
-
-	.dts-empty-title {
-		color: var(--ink-gray-8);
-		font-size: var(--text-2xl);
-		font-weight: var(--weight-medium);
-	}
-
-	.dts-empty-description {
-		color: var(--ink-gray-5);
-		font-size: var(--text-base);
-	}
-
-	// Spacing only — the button's look comes from `.es-button` (subtle gray variant).
-	.dts-empty-action {
-		margin-top: var(--spacing);
-	}
-}
