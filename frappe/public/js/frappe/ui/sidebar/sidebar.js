@@ -423,7 +423,23 @@ frappe.ui.Sidebar = class Sidebar {
 					label: __("Settings"),
 					icon: "settings",
 					onClick: function () {
-						frappe.ui.show_user_settings("profile");
+						// The Settings dialog is lazy (not in the desk bundle); pull it
+						// in on click, then open it.
+						frappe
+							.require("user_settings_dialog.bundle.js")
+							.then(() => frappe.ui.show_user_settings("profile"))
+							.catch((e) => {
+								console.error(
+									"Sidebar: failed to load user_settings_dialog.bundle.js",
+									e
+								);
+								frappe.ui.toast({
+									message: __(
+										"Could not open Settings. Please refresh the page."
+									),
+									type: "error",
+								});
+							});
 					},
 				},
 				{
