@@ -46,9 +46,9 @@ frappe.ui.show_user_settings = async function (default_tab) {
 			...response.message,
 		};
 	} catch (e) {
-		frappe.show_alert({
+		frappe.ui.toast({
 			message: __("Failed to load settings"),
-			indicator: "red",
+			type: "error",
 		});
 		console.error(e);
 		return;
@@ -87,9 +87,14 @@ function _save_user(fieldname_or_dict, value) {
 	return frappe.db
 		.set_value("User", frappe.session.user, fieldname_or_dict, value)
 		.then((res) => {
-			frappe.show_alert({
-				message: __("Saved. Refresh to see changes."),
-				indicator: "green",
+			frappe.ui.toast({
+				message: __("Saved"),
+				description: __("Refresh to see changes"),
+				type: "success",
+				action: {
+					label: __("Refresh"),
+					onclick: () => location.reload(),
+				},
 			});
 			if (frappe.boot.user) {
 				// Update the user data in the boot user object
@@ -110,7 +115,7 @@ function _save_user(fieldname_or_dict, value) {
 			return Promise.resolve(res);
 		})
 		.catch((e) => {
-			frappe.show_alert({ message: __("Failed to save"), indicator: "red" });
+			frappe.ui.toast({ message: __("Failed to save"), type: "error" });
 			console.error(e);
 			throw e;
 		});
@@ -180,19 +185,27 @@ function _profile_tab(user_data) {
 			const email = frappe.session.user_email || user;
 
 			panel.body.html(`
-				<div class="user-settings-profile-header">
-					<div class="profile-avatar-upload" title="${__("Upload Photo")}">
-						${frappe.avatar(user, "avatar-large")}
-						<div class="profile-avatar-overlay">${frappe.utils.icon("camera", "md")}</div>
+				<div class="flex items-center gap-3 pt-4 pb-5">
+					<div class="profile-avatar-upload relative flex shrink-0 rounded-full overflow-hidden cursor-pointer" title="${__(
+						"Upload Photo"
+					)}">
+						${frappe.ui.avatar.html({
+							image: frappe.user_info(user).image,
+							label: full_name,
+							size: "3xl",
+						})}
+						<div class="profile-avatar-overlay absolute inset-0 flex items-center justify-center">${frappe.utils.icon(
+							"camera",
+							"md"
+						)}</div>
 					</div>
-					<div class="profile-user-info">
-						<div class="profile-full-name">${frappe.utils.escape_html(full_name)}</div>
-						<div class="profile-email">${frappe.utils.escape_html(email)}</div>
+					<div class="flex flex-col gap-0.5">
+						<div class="text-lg-semibold text-ink-gray-8">${frappe.utils.escape_html(full_name)}</div>
+						<div class="text-sm text-ink-gray-6">${frappe.utils.escape_html(email)}</div>
 					</div>
 					${frappe.ui.button.html({
 						label: __("Change Password"),
-						icon: "rotate-ccw-key",
-						css_class: "change-password-btn",
+						css_class: "change-password-btn ms-auto",
 					})}
 				</div>
 			`);
@@ -343,7 +356,7 @@ function _render_layout_cards(panel) {
 		{ name: "full", label: __("Full Width"), full: true },
 	];
 
-	const $grid = $(`<div class="layout-grid"></div>`);
+	const $grid = $(`<div class="flex gap-3 mb-4 max-w-lg"></div>`);
 
 	options.forEach((opt) => {
 		const selected = opt.full === is_full;
@@ -379,8 +392,14 @@ function _layout_preview_window(type) {
 		<div class="theme-preview-input"></div>
 	</div>`;
 
-	return `<div class="layout-preview-frame">
-		<div class="layout-preview-window">
+	// The mock browser window: a "frame" tucked into the surface with the window
+	// inset from its top + start edges (ps-5/pt-4), and the window drawing only
+	// its top + start borders so the rest bleeds off. The compact variant insets
+	// its body (px-8) so the fields look narrower than full width.
+	const body_class = type === "compact" ? "px-8" : "";
+
+	return `<div class="flex flex-1 bg-surface-base ps-5 pt-4 rounded-ss-sm">
+		<div class="w-full flex flex-col overflow-hidden bg-surface-base border-t border-s rounded-ss-sm">
 			<div class="theme-preview-titlebar">
 				<span class="theme-preview-dot theme-preview-dot--red"></span>
 				<span class="theme-preview-dot theme-preview-dot--yellow"></span>
@@ -393,7 +412,7 @@ function _layout_preview_window(type) {
 						<div class="theme-preview-header-title"></div>
 						<div class="theme-preview-header-action"></div>
 					</div>
-					<div class="theme-preview-body layout-preview-body--${type}">
+					<div class="theme-preview-body ${body_class}">
 						${field}${field}${field}${field}
 					</div>
 				</div>
@@ -495,10 +514,12 @@ function _preferences_tab(user_data) {
 
 function _add_preference_row(parent, { label, value, button_label, onClick }) {
 	const $row = $(`
-		<div class="preference-row">
-			<div>
-				<div class="preference-label">${label}</div>
-				<div class="preference-value">${frappe.utils.escape_html(value || "")}</div>
+		<div class="flex justify-between items-center gap-8 py-2">
+			<div class="flex flex-col min-w-0 gap-0.5">
+				<div class="text-sm text-ink-gray-6">${label}</div>
+				<div class="preference-value text-base text-ink-gray-8">${frappe.utils.escape_html(
+					value || ""
+				)}</div>
 			</div>
 			${frappe.ui.button.html({ label: button_label })}
 		</div>
@@ -676,17 +697,17 @@ function _session_defaults_tab() {
 					args: { default_values: values },
 					callback(data) {
 						if (data.message === "success") {
-							frappe.show_alert({
+							frappe.ui.toast({
 								message: __("Saved"),
-								indicator: "green",
+								type: "success",
 							});
 							frappe.ui.toolbar.clear_cache();
 						} else {
-							frappe.show_alert({
+							frappe.ui.toast({
 								message: __(
 									"An error occurred while updating your session defaults."
 								),
-								indicator: "red",
+								type: "error",
 							});
 						}
 					},
@@ -709,7 +730,9 @@ function _session_defaults_tab() {
 			? undefined
 			: (panel) => {
 					panel.body.html(
-						`<div class="text-muted">${__("No session defaults configured.")}</div>`
+						`<div class="text-ink-gray-6">${__(
+							"No session defaults configured."
+						)}</div>`
 					);
 			  },
 	};
@@ -730,7 +753,7 @@ function _keyboard_shortcuts_tab() {
 				if (html) panel.body.append(html);
 			});
 			panel.body.append(
-				`<div class="text-muted mt-2">${__(
+				`<div class="text-ink-gray-6 mt-2">${__(
 					"Press Alt Key to trigger additional shortcuts in Menu and Sidebar"
 				)}</div>`
 			);
