@@ -721,6 +721,10 @@ context("Print Format Builder — column width resize", () => {
 	// 19. Dragging a table column header boundary transfers width between
 	// neighbours and persists via table_columns
 	it("dragging the table column handle resizes and persists widths", () => {
+		// table markup (and its resize handles) only renders in live preview
+		// mode, so the doctype needs at least one record to auto-preview
+		cy.insert_doc("ToDo", { description: "pfb column resize preview" }, true);
+
 		insert_builder_format(PF_NAME, [
 			{
 				label: "Tbl",
