@@ -1,0 +1,162 @@
+/* Espresso Popover — a small non-modal panel anchored to a trigger, for
+ * things like filter panels and quick forms. Unlike a menu it holds real
+ * interactive content (inputs, buttons), and unlike a dialog it doesn't
+ * block the rest of the page.
+ *
+ * Framework-neutral: the class + data-attribute contract below is
+ * everything. The attribute names (data-state, data-side, data-align) are
+ * the ones radix/reka emit, so React and Vue apps get this styling from
+ * their popover primitives as-is; classic frappe gets them from
+ * frappe.ui.Popover.
+ *
+ *   <div class="es-popover" role="dialog" tabindex="-1" data-state="open"
+ *        data-side="bottom" data-align="start">
+ *     <div class="es-popover__header">
+ *       <div class="es-popover__title">Title</div>
+ *       <p class="es-popover__description">Optional line under it.</p>
+ *     </div>
+ *     ... any content ...
+ *   </div>
+ *
+ * Panel attributes:
+ *   data-state="open|closed"    drives enter/exit animation
+ *   data-side / data-align      which side of the trigger it landed on
+ *
+ * The owner sets top/left inline (fixed viewport coordinates, panel
+ * appended to <body> — same rules as .es-menu, see position.js). */
+
+.es-popover {
+    /* the owner (frappe.ui.Popover / a portal) sets top/left inline */
+    position: fixed;
+    box-sizing: border-box;
+    /* same layer as menus; tooltips (1070) stay visible above it */
+    z-index: 1060;
+    width: calc(var(--spacing) * 72);
+    max-width: calc(100vw - calc(var(--spacing) * 4));
+    /* the owner sets max-height inline when the viewport is short */
+    overflow: auto;
+    padding: calc(var(--spacing) * 3);
+    background: var(--surface-elevation-2);
+    border: 1px solid var(--outline-elevation-2);
+    border-radius: var(--radius-lg);
+    box-shadow: var(--elevation-xl);
+    outline: none;
+}
+
+/* ---- optional header block (title + description) ---- */
+.es-popover__header {
+    display: flex;
+    flex-direction: column;
+    gap: calc(var(--spacing) * 1);
+    margin-bottom: calc(var(--spacing) * 2);
+}
+
+.es-popover__title {
+    font-size: var(--text-base);
+    font-weight: var(--font-weight-medium);
+    line-height: 1.4;
+    color: var(--ink-gray-8);
+}
+
+.es-popover__description {
+    margin: 0;
+    font-size: var(--text-p-sm, var(--text-sm));
+    line-height: 1.5;
+    color: var(--ink-gray-5);
+}
+
+/* ---- motion enter = fade-in-0 zoom-in-95 +
+   slide-in-from-<trigger side>-2, exit = fade-out-0 zoom-out-95) ---- */
+.es-popover[data-state="open"] {
+    animation: es-popover-in 150ms cubic-bezier(0.23, 1, 0.32, 1);
+}
+
+.es-popover[data-state="closed"] {
+    animation: es-popover-out 100ms cubic-bezier(0.23, 1, 0.32, 1) forwards;
+    pointer-events: none;
+}
+
+.es-popover[data-side="top"] {
+    --slide-from: translateY(8px);
+}
+
+.es-popover[data-side="bottom"] {
+    --slide-from: translateY(-8px);
+}
+
+.es-popover[data-side="left"] {
+    --slide-from: translateX(8px);
+}
+
+.es-popover[data-side="right"] {
+    --slide-from: translateX(-8px);
+}
+
+@keyframes es-popover-in {
+    from {
+        opacity: 0;
+        transform: var(--slide-from, none) scale(0.95);
+    }
+}
+
+@keyframes es-popover-out {
+    to {
+        opacity: 0;
+        transform: scale(0.95);
+    }
+}
+
+@media (prefers-reduced-motion: reduce) {
+    .es-popover {
+        animation-duration: 0ms !important;
+    }
+}
+
+/* scale origin = the edge touching the trigger */
+.es-popover[data-side="bottom"] {
+    transform-origin: top center;
+}
+
+.es-popover[data-side="bottom"][data-align="start"] {
+    transform-origin: top left;
+}
+
+.es-popover[data-side="bottom"][data-align="end"] {
+    transform-origin: top right;
+}
+
+.es-popover[data-side="top"] {
+    transform-origin: bottom center;
+}
+
+.es-popover[data-side="top"][data-align="start"] {
+    transform-origin: bottom left;
+}
+
+.es-popover[data-side="top"][data-align="end"] {
+    transform-origin: bottom right;
+}
+
+.es-popover[data-side="right"] {
+    transform-origin: left center;
+}
+
+.es-popover[data-side="right"][data-align="start"] {
+    transform-origin: left top;
+}
+
+.es-popover[data-side="right"][data-align="end"] {
+    transform-origin: left bottom;
+}
+
+.es-popover[data-side="left"] {
+    transform-origin: right center;
+}
+
+.es-popover[data-side="left"][data-align="start"] {
+    transform-origin: right top;
+}
+
+.es-popover[data-side="left"][data-align="end"] {
+    transform-origin: right bottom;
+}

@@ -36,7 +36,12 @@
 			</div>
 			{% if frm.meta.beta %}
 			<div class="pt-1">
-				<span class="es-badge" data-theme="amber" title="{{ __("This feature is brand new and still experimental") }}">{%= frappe.utils.icon("flask-conical") %}{{ __("Experimental") }}</span>
+				{%= frappe.ui.badge.html({
+					label: __("Experimental"),
+					theme: "amber",
+					icon: "flask-conical",
+					title: __("This feature is brand new and still experimental"),
+				}) %}
 			</div>
 			{% endif %}
 			{% if (title && title !== frm.doc.name) { %}

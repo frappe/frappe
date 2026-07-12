@@ -25,7 +25,10 @@ context("Form Builder", () => {
 
 		// Save without change
 		cy.click_doc_primary_button("Save");
-		cy.get(".desk-alert.orange .alert-message").should("have.text", "No changes in document");
+		cy.get('.es-toast[data-type="warning"] .es-toast__message').should(
+			"have.text",
+			"No changes in document"
+		);
 
 		// Check form dirty
 		cy.get(".tab-content.active .section-columns-container:first .column:first .field:first")

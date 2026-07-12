@@ -1,0 +1,12 @@
+/* The context menu sets data-state="open" on its target while open.
+   Highlighting that is the app's job — here's the demo doing it. */
+.explorer-preview [data-state="open"] {
+	background-color: var(--surface-gray-2);
+}
+
+/* Long snippets scroll inside the code column instead of stretching the
+   whole row (the preview panel next to it stays compact). */
+.explorer-group pre {
+	max-height: 260px;
+	overflow-y: auto;
+}

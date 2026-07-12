@@ -1,0 +1,25 @@
+/* Espresso Skeleton — pulsing placeholder block shown while content loads.
+ *
+ * An empty element the consumer sizes (width/height classes, inline style,
+ * or a parent layout). Color comes from the surface tokens, so it follows
+ * dark mode on its own. Add aria-hidden="true" — it is decoration. */
+
+.es-skeleton {
+    display: block;
+    background: var(--surface-gray-3);
+    border-radius: var(--radius);
+    animation: es-skeleton-pulse 2s cubic-bezier(0.4, 0, 0.6, 1) infinite;
+}
+
+@keyframes es-skeleton-pulse {
+    50% {
+        opacity: 0.5;
+    }
+}
+
+/* a still gray block reads fine without the pulse */
+@media (prefers-reduced-motion: reduce) {
+    .es-skeleton {
+        animation: none;
+    }
+}

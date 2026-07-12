@@ -124,9 +124,7 @@ export default class ShortcutWidget extends Widget {
 		};
 
 		const color = this.color && count ? COLOR_MAP[this.color] || "gray" : "gray";
-		$(`<div class="es-badge" data-theme="${color}">${__(label)}</div>`).appendTo(
-			this.action_area
-		);
+		frappe.ui.badge({ label: __(label), theme: color }).appendTo(this.action_area);
 
 		$(frappe.utils.icon("arrow-up-right", "xs", "", "", "ml-2")).appendTo(this.action_area);
 	}
