@@ -102,7 +102,6 @@ def get_context(context) -> PrintContext:
 
 	if standalone:
 		validate_print_permission(doc)
-		validate_print_for_docstatus(doc)
 
 		from frappe.utils.print_format_generator import get_html
 

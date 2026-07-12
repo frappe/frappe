@@ -165,8 +165,10 @@ def attach_print(
 					content = get_pdf(html, options={"password": password} if password else None)
 				elif is_beta_print_format:
 					from frappe.utils.print_format_generator import PrintFormatGenerator
+					from frappe.www.printview import validate_print_for_docstatus
 
 					doc_obj = doc or frappe.get_cached_doc(doctype, name)
+					validate_print_for_docstatus(doc_obj)
 					letterhead_name = letterhead if print_letterhead else None
 					generator = PrintFormatGenerator(print_format, doc_obj, letterhead_name)
 					content = generator.render_pdf()

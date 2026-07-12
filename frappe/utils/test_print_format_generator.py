@@ -959,6 +959,47 @@ class TestPrintFormatGenerator(IntegrationTestCase):
 			doc = self._make_submittable_doc(0)
 			self.assertRaises(frappe.PermissionError, download_pdf, doc.doctype, doc.name, "Standard")
 
+	def test_get_html_blocks_draft(self):
+		"""get_html (the printview / printpreview render path) enforces the draft guard."""
+		from frappe.utils.print_format_generator import get_html
+
+		with self.change_settings("Print Settings", allow_print_for_draft=0):
+			doc = self._make_submittable_doc(0)
+			self.assertRaises(frappe.PermissionError, get_html, doc.doctype, doc.name, "Standard")
+
+	def test_attach_print_beta_blocks_draft(self):
+		"""attach_print's beta branch enforces the draft guard before rendering."""
+		doc = self._make_submittable_doc(0)
+		pf = frappe.get_doc(
+			{
+				"doctype": "Print Format",
+				"name": f"_Test PFG Sub {frappe.generate_hash(length=6)}",
+				"doc_type": doc.doctype,
+				"print_format_builder_beta": 1,
+				"custom_format": 0,
+				"standard": "No",
+				"format_data": json.dumps(
+					{
+						"sections": [
+							{
+								"label": "",
+								"columns": [
+									{"label": "", "fields": [{"fieldtype": "Data", "fieldname": "title"}]}
+								],
+							}
+						],
+						"header": {"columns": [{"label": "", "fields": []}]},
+						"footer": {"columns": [{"label": "", "fields": []}]},
+					}
+				),
+			}
+		).insert(ignore_permissions=True)
+		self.addCleanup(pf.delete, ignore_permissions=True)
+		with self.change_settings("Print Settings", allow_print_for_draft=0, send_print_as_pdf=1):
+			self.assertRaises(
+				frappe.PermissionError, frappe.attach_print, doc.doctype, doc.name, print_format=pf.name
+			)
+
 	# ------------------------------------------------------------------ #
 	# empty child-table column pruning (new renderer)
 	# ------------------------------------------------------------------ #
