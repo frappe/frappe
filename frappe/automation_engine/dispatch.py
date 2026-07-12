@@ -10,6 +10,7 @@ job is kicked after commit.
 """
 
 import frappe
+from frappe.automation_engine import is_enabled
 from frappe.automation_engine.registry import get_automations_for
 from frappe.utils.data import evaluate_filters
 
@@ -54,9 +55,7 @@ def run_automations(doc, method):
 
 def _should_dispatch(doc) -> bool:
 	flags = frappe.flags
-	if flags.get("skip_automations") or flags.in_install or flags.in_patch or flags.in_migrate:
-		return False
-	if frappe.conf.get("automation_disabled"):
+	if not is_enabled() or flags.in_install or flags.in_patch or flags.in_migrate:
 		return False
 	max_depth = frappe.conf.get("automation_max_depth") or DEFAULT_MAX_DEPTH
 	return flags.get("automation_depth", 0) < max_depth
@@ -87,26 +86,10 @@ def _field_changed(rule, doc) -> bool:
 
 
 def queue_trigger(automation, doctype, docname, run_after=None, payload=None, depth=0):
-	"""Upsert a Pending outbox row inside the caller's transaction (dedup on rerun)."""
-	existing = frappe.db.get_value(
-		"Automation Trigger Queue",
-		{
-			"automation": automation,
-			"ref_doctype": doctype,
-			"ref_name": docname,
-			"status": "Pending",
-			"resume_run": ("is", "not set"),
-		},
-		"name",
-	)
+	"""Dedup is guaranteed at the DB level by the `dedup_key` unique index."""
+	existing = _pending_row(automation, doctype, docname)
 	if existing:
-		frappe.db.set_value(
-			"Automation Trigger Queue",
-			existing,
-			{"triggered_at": frappe.utils.now(), "run_after": run_after},
-			update_modified=False,
-		)
-		return existing
+		return _touch_row(existing, run_after)
 
 	row = frappe.new_doc("Automation Trigger Queue")
 	row.update(
@@ -121,8 +104,36 @@ def queue_trigger(automation, doctype, docname, run_after=None, payload=None, de
 			"depth": depth,
 		}
 	)
-	row.insert(ignore_permissions=True)
-	return row.name
+	try:
+		row.insert(ignore_permissions=True)
+		return row.name
+	except (frappe.UniqueValidationError, frappe.DuplicateEntryError):
+		existing = _pending_row(automation, doctype, docname)
+		return _touch_row(existing, run_after) if existing else None
+
+
+def _pending_row(automation, doctype, docname):
+	return frappe.db.get_value(
+		"Automation Trigger Queue",
+		{
+			"automation": automation,
+			"ref_doctype": doctype,
+			"ref_name": docname,
+			"status": "Pending",
+			"resume_run": ("is", "not set"),
+		},
+		"name",
+	)
+
+
+def _touch_row(name, run_after):
+	frappe.db.set_value(
+		"Automation Trigger Queue",
+		name,
+		{"triggered_at": frappe.utils.now(), "run_after": run_after},
+		update_modified=False,
+	)
+	return name
 
 
 def kick_drainer():
