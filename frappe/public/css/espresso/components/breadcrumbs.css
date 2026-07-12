@@ -1,0 +1,104 @@
+/* Espresso Breadcrumbs — the "where am I" trail.
+ *
+ * Markup (a real nav + list, so screen readers announce it properly):
+ *   <nav class="es-breadcrumbs" aria-label="Breadcrumb">
+ *     <ol>
+ *       <li><a class="es-breadcrumbs__item" href="...">
+ *         <span class="es-breadcrumbs__label">Home</span></a></li>
+ *       <li><span class="es-breadcrumbs__item" aria-current="page">...</span></li>
+ *     </ol>
+ *   </nav>
+ *
+ * Items are links (href), buttons (onclick), or plain spans (neither);
+ * the last one is the current page — darker, and it truncates with a
+ * tooltip when space runs out. The "collapse extra
+ * crumbs into a dropdown" behavior from frappe-ui isn't ported yet — it
+ * needs the Dropdown component. */
+
+.es-breadcrumbs {
+    display: flex;
+    min-width: 0;
+    align-items: center;
+}
+
+.es-breadcrumbs>ol {
+    display: flex;
+    min-width: 0;
+    align-items: center;
+    margin: 0;
+    padding: 0;
+    list-style: none;
+    white-space: nowrap;
+}
+
+.es-breadcrumbs li {
+    display: flex;
+    align-items: center;
+}
+
+/* the "/" between items; the empty alt text keeps screen readers quiet */
+.es-breadcrumbs li+li::before {
+    content: "/" / "";
+    margin-inline: calc(var(--spacing) * 0.5);
+    font-size: var(--text-base);
+    color: var(--ink-gray-4);
+}
+
+.es-breadcrumbs__item {
+    display: flex;
+    align-items: center;
+    gap: var(--spacing);
+    padding-inline: calc(var(--spacing) * 0.5);
+    padding-block: var(--spacing);
+    border-radius: var(--radius);
+    font-size: var(--text-lg);
+    font-weight: var(--font-weight-medium);
+    color: var(--ink-gray-5);
+    text-decoration: none;
+
+    /* button items: strip the native button look */
+    border: 0;
+    background: transparent;
+}
+
+/* only real links and buttons look and react clickable — a plain-text
+   crumb (no href, no onclick) renders as a span and stays put */
+a.es-breadcrumbs__item,
+button.es-breadcrumbs__item {
+    cursor: pointer;
+}
+
+a.es-breadcrumbs__item:hover,
+button.es-breadcrumbs__item:hover {
+    color: var(--ink-gray-7);
+    text-decoration: none;
+}
+
+.es-breadcrumbs__item:focus-visible {
+    outline: var(--focus-outline-default);
+}
+
+/* the current page: darker, and it truncates instead of pushing the row */
+.es-breadcrumbs li:last-child {
+    min-width: 0;
+}
+
+.es-breadcrumbs li:last-child .es-breadcrumbs__item {
+    min-width: 0;
+    color: var(--ink-gray-9);
+    cursor: default;
+}
+
+.es-breadcrumbs li:last-child .es-breadcrumbs__label {
+    min-width: 0;
+    overflow: hidden;
+    text-overflow: ellipsis;
+}
+
+/* prefix/suffix icons: text-sized, with their own margin toward the label
+   (no gap on the item — a lone icon then needs no special casing) */
+.es-breadcrumbs__item>svg {
+    width: calc(var(--spacing) * 4);
+    height: calc(var(--spacing) * 4);
+    flex-shrink: 0;
+}

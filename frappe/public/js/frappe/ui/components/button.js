@@ -1,3 +1,5 @@
+import { validated, safe_attrs } from "./utils.js";
+
 frappe.provide("frappe.ui");
 
 /**
@@ -7,8 +9,11 @@ frappe.provide("frappe.ui");
  * @property {"solid"|"subtle"|"outline"|"ghost"} [variant="subtle"]
  * @property {"xs"|"sm"|"md"|"lg"} [size="sm"]
  * @property {"gray"|"red"} [theme="gray"]
- * @property {string} [icon] Lucide icon name. Icon without label renders a square icon-button — pass `title`.
- * @property {string} [title] Tooltip; doubles as aria-label on icon-only buttons.
+ * @property {string} [icon] Lucide icon name, shown before the label. An icon without a label renders a square icon-button — pass `title`.
+ * @property {string} [icon_left] Same as `icon`.
+ * @property {string} [icon_right] Lucide icon name, shown after the label.
+ * @property {string} [title] Native browser tooltip; doubles as aria-label on icon-only buttons. Prefer `tooltip`.
+ * @property {string|Object} [tooltip] Espresso tooltip text (or full TooltipOpts) shown on hover/focus (element form only, like onclick). Doubles as aria-label on icon-only buttons.
  * @property {boolean} [disabled]
  * @property {boolean} [loading] Shows spinner, blocks clicks, sets aria-busy.
  * @property {"button"|"submit"|"reset"} [type="button"]
@@ -32,17 +37,6 @@ function default_loading_label(label) {
 	return map[label] || null;
 }
 
-function validated(value, allowed, option) {
-	if (value == null) return null;
-	if (!allowed.includes(value)) {
-		console.warn(
-			`frappe.ui.button: unknown ${option} "${value}" — expected ${allowed.join(" | ")}`
-		);
-		return null;
-	}
-	return value;
-}
-
 /**
  * Espresso button (`.es-button`) as a markup string, for template literals.
  * @param {ButtonOpts} [opts]
@@ -51,10 +45,11 @@ function validated(value, allowed, option) {
  */
 function button_html(opts = {}) {
 	const escape = frappe.utils.escape_html;
-	const variant = validated(opts.variant, VARIANTS, "variant");
-	const size = validated(opts.size, SIZES, "size");
-	const theme = validated(opts.theme, THEMES, "theme");
-	const icon_only = Boolean(opts.icon && !opts.label);
+	const variant = validated(opts.variant, VARIANTS, "variant", "button");
+	const size = validated(opts.size, SIZES, "size", "button");
+	const theme = validated(opts.theme, THEMES, "theme", "button");
+	const icon_left_name = opts.icon_left || opts.icon;
+	const icon_only = Boolean((icon_left_name || opts.icon_right) && !opts.label);
 
 	const attrs = [`type="${escape(opts.type || "button")}"`];
 	// omit attributes that equal the CSS defaults (subtle / sm / gray)
@@ -64,32 +59,31 @@ function button_html(opts = {}) {
 	if (icon_only) attrs.push('data-icon-button="true"');
 	if (opts.loading) attrs.push('aria-busy="true"');
 	if (opts.disabled) attrs.push("disabled");
-	if (opts.title) {
-		attrs.push(`title="${escape(opts.title)}"`);
-		if (icon_only) attrs.push(`aria-label="${escape(opts.title)}"`);
-	}
-	for (const [key, value] of Object.entries(opts.attrs || {})) {
-		// attribute names become markup (computed keys can carry user data,
-		// e.g. fieldnames), so enforce a safe charset; refuse on* handlers —
-		// their values execute as JS after HTML entity decoding, so escaping
-		// cannot protect user data in them. Bind handlers via onclick instead.
-		if (!/^[a-zA-Z][\w.:-]*$/.test(key) || /^on/i.test(key)) {
-			console.warn(`frappe.ui.button: refusing unsafe attribute "${key}"`);
-			continue;
-		}
-		attrs.push(value === true ? key : `${key}="${escape(value)}"`);
-	}
+	const tooltip_text =
+		typeof opts.tooltip === "string" ? opts.tooltip : opts.tooltip && opts.tooltip.text;
+	// native title only when there's no espresso tooltip — both at once
+	// would show two bubbles for the same button
+	if (opts.title && !tooltip_text) attrs.push(`title="${escape(opts.title)}"`);
+	// the name should match what the user can actually see, and the visible
+	// one is the espresso tooltip when both are given
+	const accessible_name = tooltip_text || opts.title;
+	if (icon_only && accessible_name) attrs.push(`aria-label="${escape(accessible_name)}"`);
+	attrs.push(...safe_attrs(opts.attrs, "button"));
 
-	if (icon_only && !opts.title && !(opts.attrs || {})["aria-label"]) {
+	if (icon_only && !accessible_name && !(opts.attrs || {})["aria-label"]) {
 		console.warn(
-			`frappe.ui.button: icon-only button ("${opts.icon}") needs a title for accessibility`
+			`frappe.ui.button: icon-only button ("${
+				icon_left_name || opts.icon_right
+			}") needs a tooltip or title for accessibility`
 		);
 	}
 
 	const classes = escape(["es-button", opts.css_class].filter(Boolean).join(" "));
-	// .es-button > svg in button.css sizes the icon to the button;
+	// .es-button > svg in button.css sizes the icons to the button;
 	// currentColor keeps the stroke in sync with the button's text color
-	const icon = opts.icon ? frappe.utils.icon(opts.icon, "sm", "", "", "", true) : "";
+	const render_icon = (name) => (name ? frappe.utils.icon(name, "sm", "", "", "", true) : "");
+	const icon_left = render_icon(icon_left_name);
+	const icon_right = render_icon(opts.icon_right);
 	const label = opts.label ? `<span class="es-button__label">${escape(opts.label)}</span>` : "";
 	const loading_label_text =
 		"loading_label" in opts ? opts.loading_label : default_loading_label(opts.label);
@@ -102,7 +96,7 @@ function button_html(opts = {}) {
 		: "";
 
 	return `<button class="${classes}" ${attrs.join(" ")}>
-		<span class="es-spinner" aria-hidden="true"></span>${loading_label}${icon}${label}
+		<span class="es-spinner" aria-hidden="true"></span>${loading_label}${icon_left}${label}${icon_right}
 	</button>`;
 }
 
@@ -117,6 +111,14 @@ function button_html(opts = {}) {
  */
 frappe.ui.button = function (opts = {}) {
 	const $btn = $(button_html(opts));
+	// runtime lookup, not an import: both live in the same bundles, and a
+	// bundle without the tooltip component should still get working buttons
+	if (opts.tooltip && frappe.ui.tooltip) {
+		frappe.ui.tooltip(
+			$btn,
+			typeof opts.tooltip === "string" ? { text: opts.tooltip } : opts.tooltip
+		);
+	}
 	if (opts.onclick) {
 		$btn.on("click", function (e) {
 			// pointer-events:none only blocks the mouse — keyboard activation
