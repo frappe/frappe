@@ -1363,6 +1363,8 @@ frappe.views.ListView = class ListView extends frappe.views.BaseList {
 		const field_html = () => {
 			let html;
 			let _value;
+			const escaped_fieldname = frappe.utils.escape_html(cstr(fieldname));
+			const escaped_value = frappe.utils.escape_html(cstr(value));
 			let strip_html_required =
 				df.fieldtype == "Text Editor" ||
 				(df.fetch_from && ["Text", "Small Text"].includes(df.fieldtype));
@@ -1397,12 +1399,12 @@ frappe.views.ListView = class ListView extends frappe.views.BaseList {
 				html = `<span class="${filterable} es-badge ellipsis" data-theme="${frappe.utils.guess_colour(
 					_value
 				)}"
-					data-filter="${fieldname},=,${value}">
+					data-filter="${escaped_fieldname},=,${escaped_value}">
 					<span class="ellipsis"> ${__(_value)} </span>
 				</span>`;
 			} else if (df.fieldtype === "Link") {
 				html = `<a class="${filterable} ellipsis "
-					data-filter="${fieldname},=,${value}">
+					data-filter="${escaped_fieldname},=,${escaped_value}">
 					${_value}
 				</a>`;
 			} else if (frappe.model.html_fieldtypes.includes(df.fieldtype)) {
@@ -1416,7 +1418,7 @@ frappe.views.ListView = class ListView extends frappe.views.BaseList {
 				</div>`;
 			} else {
 				html = `<a class="${filterable} ellipsis"
-					data-filter="${fieldname},=,${frappe.utils.escape_html(value)}">
+					data-filter="${escaped_fieldname},=,${escaped_value}">
 					${format()}
 				</a>`;
 			}
@@ -1764,9 +1766,13 @@ frappe.views.ListView = class ListView extends frappe.views.BaseList {
 		];
 		const title = docstatus_description[doc.docstatus || 0];
 		if (indicator) {
-			return `<span class="es-badge filterable ellipsis" data-theme="${indicator[1]}"
-				data-filter='${indicator[2]}' title='${title}'>
-				<span class="ellipsis"> ${indicator[0]}</span>
+			const escaped_theme = frappe.utils.escape_html(cstr(indicator[1] || ""));
+			const escaped_filter = frappe.utils.escape_html(cstr(indicator[2] || ""));
+			const escaped_title = frappe.utils.escape_html(cstr(title || ""));
+			const escaped_label = frappe.utils.escape_html(cstr(indicator[0] || ""));
+			return `<span class="es-badge filterable ellipsis" data-theme="${escaped_theme}"
+				data-filter='${escaped_filter}' title='${escaped_title}'>
+				<span class="ellipsis"> ${escaped_label}</span>
 			</span>`;
 		}
 		return "";
