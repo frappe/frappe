@@ -268,7 +268,10 @@ function open_html_split_dialog({ title, initial_html, on_save, doctype, docname
 
 	async function update_preview(iframe, html) {
 		if (!iframe) return;
-		write_to_iframe(iframe, await render_jinja_html(html || "", doctype, docname));
+		write_to_iframe(
+			iframe,
+			(await render_jinja_html(html || "", doctype, docname)) ?? html ?? ""
+		);
 	}
 
 	setTimeout(() => {
