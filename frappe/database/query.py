@@ -350,6 +350,7 @@ class Engine:
 		if self.apply_permissions:
 			# Store metadata for masked field processing during execution.
 			self.query._doctype = self.doctype
+			self.query._parent_doctype = self.parent_doctype
 			self.query._fields_list = getattr(self, "fields", [])
 
 		self.query.immutable = True
