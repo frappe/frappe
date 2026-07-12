@@ -1,30 +1,16 @@
-frappe.pages["print-format-builder-classic"].on_page_load = function (wrapper) {
-	frappe.print_format_builder = new frappe.PrintFormatBuilder(wrapper);
-	frappe.breadcrumbs.add("Setup", "Print Format");
-};
-
-frappe.pages["print-format-builder-classic"].on_page_show = function (wrapper) {
+frappe.pages["print-format-builder-classic"].on_page_load = function () {
+	// The classic builder is superseded: classic formats convert to the new
+	// builder on open, so always redirect there.
 	var route = frappe.get_route();
 	if (route.length > 1) {
-		frappe.model.with_doc("Print Format", route[1], function () {
-			frappe.print_format_builder.print_format = frappe.get_doc("Print Format", route[1]);
-			frappe.print_format_builder.refresh();
-		});
-	} else if (frappe.route_options) {
-		if (frappe.route_options.make_new) {
-			let { doctype, name, based_on, beta } = frappe.route_options;
-			frappe.route_options = null;
-			frappe.print_format_builder.setup_new_print_format(doctype, name, based_on, beta);
-		} else {
-			frappe.print_format_builder.print_format = frappe.route_options.doc;
-			frappe.route_options = null;
-			frappe.print_format_builder.refresh();
-		}
+		frappe.set_route("print-format-builder", route[1]);
 	} else {
-		// No route arg and no route_options — classic builder is edit-only,
-		// so redirect to the new builder's create/edit dialog.
-		frappe.print_format_builder.show_start();
+		frappe.set_route("print-format-builder");
 	}
+};
+
+frappe.pages["print-format-builder-classic"].on_page_show = function () {
+	frappe.pages["print-format-builder-classic"].on_page_load();
 };
 
 frappe.PrintFormatBuilder = class PrintFormatBuilder {
