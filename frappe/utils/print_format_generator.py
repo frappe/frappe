@@ -24,7 +24,7 @@ def render_jinja_template(template: str, doctype: str, docname: str) -> str:
 		# fail with 417 instead of 500 so the canvas can degrade inline
 		# rather than the client popping the error-report dialog
 		frappe.clear_last_message()
-		frappe.throw(_("Failed to render template: {0}").format(e), frappe.ValidationError)
+		frappe.throw(_("Failed to render template: {0}").format(str(e)), frappe.ValidationError)
 
 
 @frappe.whitelist()
