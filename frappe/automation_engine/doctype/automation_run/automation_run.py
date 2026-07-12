@@ -12,7 +12,7 @@ class AutomationRun(Document):
 	from typing import TYPE_CHECKING
 
 	if TYPE_CHECKING:
-		from frappe.automation.doctype.automation_run_step.automation_run_step import AutomationRunStep
+		from frappe.automation_engine.doctype.automation_run_step.automation_run_step import AutomationRunStep
 		from frappe.types import DF
 
 		actions_snapshot: DF.JSON | None
