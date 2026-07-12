@@ -5,6 +5,7 @@ from typing import ClassVar
 
 import frappe
 from frappe import _
+from frappe.utils.jinja_globals import is_rtl
 
 
 @frappe.whitelist()
@@ -22,8 +23,10 @@ def render_jinja_template(template: str, doctype: str, docname: str) -> str:
 
 @frappe.whitelist()
 def download_pdf(doctype: str, name: str | int, print_format: str, letterhead: str | None = None):
+	from frappe.www.printview import validate_print_permission
+
 	doc = frappe.get_doc(doctype, name)
-	doc.check_permission("print")
+	validate_print_permission(doc)
 	generator = PrintFormatGenerator(print_format, doc, letterhead)
 	pdf = generator.render_pdf()
 
@@ -45,11 +48,15 @@ def get_qr_code(value: str) -> str:
 	return "data:image/svg+xml;base64," + base64.b64encode(stream.getvalue()).decode()
 
 
-def get_html(doctype, name, print_format, letterhead=None):
+def get_html(
+	doctype, name, print_format, letterhead=None, action_banner=None, style=None, trigger_print=False
+):
+	from frappe.www.printview import validate_print_permission
+
 	doc = frappe.get_doc(doctype, name)
-	doc.check_permission("print")
-	generator = PrintFormatGenerator(print_format, doc, letterhead)
-	return generator.get_html_preview()
+	validate_print_permission(doc)
+	generator = PrintFormatGenerator(print_format, doc, letterhead, style=style)
+	return generator.get_html_preview(action_banner=action_banner, trigger_print=trigger_print)
 
 
 class PrintFormatGenerator:
@@ -66,9 +73,10 @@ class PrintFormatGenerator:
 		"bottom_right": "right",
 	}
 
-	def __init__(self, print_format, doc, letterhead=None):
+	def __init__(self, print_format, doc, letterhead=None, style=None):
 		self.print_format = frappe.get_doc("Print Format", print_format)
 		self.doc = doc
+		self.style = style
 
 		if letterhead == _("No Letterhead"):
 			letterhead = None
@@ -83,11 +91,8 @@ class PrintFormatGenerator:
 		page_width_map = {"A4": 210, "Letter": 216}
 		page_width = page_width_map.get(self.print_settings.pdf_page_size) or 210
 		body_width = page_width - self.print_format.margin_left - self.print_format.margin_right
-		print_style = (
-			frappe.get_doc("Print Style", self.print_settings.print_style)
-			if self.print_settings.print_style
-			else None
-		)
+		style_name = self.style or self.print_settings.print_style
+		print_style = frappe.get_doc("Print Style", style_name) if style_name else None
 		self.context = frappe._dict(
 			{
 				"doc": self.doc,
@@ -97,15 +102,22 @@ class PrintFormatGenerator:
 				"letterhead": self.letterhead,
 				"page_width": page_width,
 				"body_width": body_width,
+				"lang": frappe.local.lang,
+				"layout_direction": "rtl" if is_rtl() else "ltr",
 			}
 		)
 
 	# ----- HTML preview (browser printview) ------------------------------
 
-	def get_html_preview(self):
+	def get_html_preview(self, action_banner=None, trigger_print=False):
 		header_html, footer_html = self.get_header_footer_html()
 		self.context.header = header_html
 		self.context.footer = footer_html
+		self.context.action_banner = action_banner
+		if trigger_print:
+			from frappe.www.printview import trigger_print_script
+
+			self.context.trigger_print_script = trigger_print_script
 		return self.get_main_html()
 
 	def get_main_html(self):
