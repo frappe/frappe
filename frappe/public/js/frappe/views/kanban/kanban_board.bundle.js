@@ -11,8 +11,12 @@
 // Result: fast open, less memory, smooth scroll, drag-and-drop without redrawing everything.
 
 import { createStore } from "vuex";
+import { kanban_pagination } from "./kanban_pagination.js";
 
 frappe.provide("frappe.views");
+if (frappe.views.KanbanView) {
+	Object.assign(frappe.views.KanbanView.prototype, kanban_pagination);
+}
 
 (function () {
 	var method_prefix = "frappe.desk.doctype.kanban_board.kanban_board.";
