@@ -264,6 +264,7 @@
 import draggable from "vuedraggable";
 import Autocomplete from "../../vue-components/Autocomplete.vue";
 import { get_table_columns, pluck } from "../utils";
+import { mountColorControl } from "./inspector/useColorControl";
 import { useStore } from "../stores";
 import { computed, onMounted, onUnmounted, nextTick, ref, watch, inject } from "vue";
 
@@ -381,24 +382,17 @@ function mount_color_controls() {
 	for (const c of color_settings) {
 		const host = color_hosts.value[c.fieldname];
 		if (!host) continue;
-		host.innerHTML = "";
-		const control = frappe.ui.form.make_control({
-			parent: host,
-			df: {
-				fieldtype: "Color",
-				fieldname: c.fieldname,
-				placeholder: c.label,
-				change() {
-					const value = control.get_value() || null;
-					if ((print_format.value[c.fieldname] ?? null) !== value) {
-						print_format.value[c.fieldname] = value;
-					}
-				},
+		mountColorControl(host, {
+			value: print_format.value[c.fieldname] || "",
+			placeholder: c.label,
+			fieldname: c.fieldname,
+			onChange(value) {
+				const v = value || null;
+				if ((print_format.value[c.fieldname] ?? null) !== v) {
+					print_format.value[c.fieldname] = v;
+				}
 			},
-			render_input: true,
-			only_input: true,
 		});
-		control.set_value(print_format.value[c.fieldname] || "");
 	}
 }
 
