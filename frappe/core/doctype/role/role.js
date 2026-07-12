@@ -52,16 +52,26 @@ class RoleForm {
 		};
 		// EmbeddedList is lazy (not in the desk bundle); build the tabs' lists
 		// once it's loaded so build()/refresh() stay synchronous below.
-		frappe.require("embedded_list.bundle.js").then(() => {
-			Object.values(this.tabs).forEach((tab) => tab.build());
+		frappe
+			.require("embedded_list.bundle.js")
+			.then(() => {
+				Object.values(this.tabs).forEach((tab) => tab.build());
 
-			// Role Profiles live in the always-visible Details tab — load eagerly.
-			const profiles = new RoleProfilesTab(this.frm);
-			profiles.build();
-			profiles.refresh();
+				// Role Profiles live in the always-visible Details tab — load eagerly.
+				const profiles = new RoleProfilesTab(this.frm);
+				profiles.build();
+				profiles.refresh();
 
-			this.load_active_tab();
-		});
+				this.load_active_tab();
+			})
+			.catch((e) => {
+				// a failed lazy load must not leave the form silently blank
+				console.error("Role form: failed to load embedded_list.bundle.js", e);
+				frappe.ui.toast({
+					message: __("Could not load this section. Please refresh the page."),
+					type: "error",
+				});
+			});
 	}
 
 	load_active_tab() {

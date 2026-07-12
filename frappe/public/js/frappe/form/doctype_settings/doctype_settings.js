@@ -25,8 +25,17 @@ frappe.doctype_settings.open = function (doctype) {
 
 	// EmbeddedList is lazy (not in the desk bundle); load it in parallel with
 	// the settings check so the tabs that use it (Naming, Permissions) can
-	// build their lists synchronously by the time the dialog renders.
-	const ready = frappe.require("embedded_list.bundle.js");
+	// build their lists synchronously by the time the dialog renders. If the
+	// lazy load fails we still open the dialog (the other tabs work) and warn,
+	// rather than leave a rejected promise / a dialog that never opens.
+	const ready = frappe.require("embedded_list.bundle.js").catch((e) => {
+		console.error("DocType Settings: failed to load embedded_list.bundle.js", e);
+		// warning, not error: the dialog still opens and the other tabs work
+		frappe.ui.toast({
+			message: __("Some settings tabs may not load. Please refresh the page."),
+			type: "warning",
+		});
+	});
 
 	return (
 		frappe
