@@ -51,8 +51,10 @@ def claim_batch(batch_size=DEFAULT_BATCH_SIZE) -> list[str]:
 		return []
 
 	names = [row.name for row in rows]
+	# Stamp modified so a crashed claim can be spotted by requeue_stale_running().
 	frappe.db.sql(
-		f"UPDATE `tab{QUEUE}` SET status = 'Running' WHERE name IN %(names)s", {"names": names}
+		f"UPDATE `tab{QUEUE}` SET status = 'Running', modified = %(now)s WHERE name IN %(names)s",
+		{"names": names, "now": frappe.utils.now()},
 	)
 	frappe.db.commit()
 	return names
@@ -78,9 +80,20 @@ def _rekick():
 
 
 def drain_due():
-	"""Scheduler safety net: kick the drainer if due rows are waiting with no save to ride on."""
+	"""Scheduler safety net: requeue crashed claims, then kick the drainer if due rows wait."""
+	requeue_stale_running()
 	if _has_due_pending():
 		_rekick()
+
+
+def requeue_stale_running():
+	"""Flip Running rows stuck past the claim timeout back to Pending"""
+	minutes = frappe.conf.get("automation_stale_running_minutes") or 30
+	cutoff = frappe.utils.add_to_date(frappe.utils.now(), minutes=-minutes)
+	frappe.db.sql(
+		f"UPDATE `tab{QUEUE}` SET status = 'Pending' WHERE status = 'Running' AND modified < %(cutoff)s",
+		{"cutoff": cutoff},
+	)
 
 
 def purge_queue():
