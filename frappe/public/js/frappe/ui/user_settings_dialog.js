@@ -191,7 +191,6 @@ function _profile_tab(user_data) {
 					</div>
 					${frappe.ui.button.html({
 						label: __("Change Password"),
-						icon: "rotate-ccw-key",
 						css_class: "change-password-btn",
 					})}
 				</div>
