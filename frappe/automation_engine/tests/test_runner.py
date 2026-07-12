@@ -132,6 +132,43 @@ class TestRunner(IntegrationTestCase):
 		self.assertEqual(self.run_status(auto), "Failed")
 		self.assertFalse(frappe.db.exists("ToDo", {"description": "ghost-savepoint"}))
 
+	def test_timestamp_mismatch_retries_and_recovers(self):
+		class Racy(AutomationAction):
+			action_type = "RacyAction"
+			calls = 0
+
+			def execute(self, doc, params, context):
+				Racy.calls += 1
+				if Racy.calls == 1:
+					# Make the in-memory doc stale so the first save raises TimestampMismatch.
+					newer = frappe.utils.add_to_date(frappe.utils.now(), days=1)
+					frappe.db.set_value("ToDo", doc.name, "modified", newer, update_modified=False)
+				doc.set("priority", "High")
+				doc.save(ignore_permissions=True)
+				return "ok"
+
+		frappe.local.automation_actions = {**get_action_registry(), "RacyAction": Racy()}
+		todo = make_todo()
+		auto = make_automation([{"action_type": "RacyAction", "params": "{}"}])
+		execute_automation(self.queue_row(auto, todo.name))
+		self.assertEqual(self.run_status(auto), "Success")
+		self.assertGreaterEqual(Racy.calls, 2)
+
+	def test_breaker_skips_pending_backlog(self):
+		todo = make_todo()
+		auto = make_broken_automation(stop_on_error=1)
+		frappe.cache.delete(_failure_key(auto))
+		original = frappe.conf.get("automation_failure_threshold")
+		frappe.conf.automation_failure_threshold = 1
+		try:
+			backlog = [self.queue_row(auto, f"OTHER-{i}") for i in range(2)]
+			execute_automation(self.queue_row(auto, todo.name))
+			for name in backlog:
+				self.assertEqual(frappe.db.get_value(QUEUE, name, "status"), "Skipped")
+		finally:
+			frappe.conf.automation_failure_threshold = original
+			frappe.cache.delete(_failure_key(auto))
+
 	def test_circuit_breaker_disables_after_threshold(self):
 		todo = make_todo()
 		auto = make_broken_automation(stop_on_error=1)
