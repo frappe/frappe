@@ -23,6 +23,7 @@ import "./frappe/ui/components/popover.js";
 import "./frappe/ui/components/hover_card.js";
 import "./frappe/ui/components/tabs.js";
 import "./frappe/ui/components/tab_buttons.js";
+import "./frappe/ui/components/progress.js";
 
 import "./frappe/ui/background_tasks/background_tasks.js";
 import "./frappe/ui/keyboard.js";

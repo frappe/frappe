@@ -698,6 +698,69 @@ frappe.pages["component-explorer"].on_page_load = function (wrapper) {
 				},
 			],
 		},
+		Progress: {
+			helper: "frappe.ui.progress",
+			stacked: true,
+			groups: [
+				{
+					title: __("Basic (label + hint)"),
+					items: [{ value: 30, label: "Importing", hint: true }, { value: 65 }],
+				},
+				{
+					title: __("Sizes"),
+					items: [
+						{ value: 40, size: "sm", label: "sm (default)" },
+						{ value: 40, size: "md", label: "md" },
+						{ value: 40, size: "lg", label: "lg" },
+						{ value: 40, size: "xl", label: "xl" },
+					],
+				},
+				{
+					title: __("Intervals"),
+					items: [
+						{ value: 50, intervals: true, label: "Setup steps", hint: true },
+						{
+							value: 75,
+							intervals: true,
+							interval_count: 4,
+							size: "lg",
+							label: "Quarter goals",
+						},
+					],
+				},
+				{
+					title: __("Custom hint text"),
+					items: [
+						{
+							value: 42,
+							label: "Backing up",
+							hint: (value) => __("{0} of 120 files", [Math.round(value * 1.2)]),
+						},
+					],
+				},
+				{
+					title: __("Live (updates via set_value)"),
+					items: [
+						{
+							__label: __("Animate the first bar above"),
+							__code: 'const progress = $(".es-progress").first().data("es-progress");\ntimer = setInterval(() => progress.set_value(progress.get_value() + 5), 200);',
+							__run: () => {
+								const progress = $(".explorer-preview .es-progress")
+									.first()
+									.data("es-progress");
+								if (!progress) return;
+								progress.set_value(0);
+								const timer = setInterval(() => {
+									const next = progress.get_value() + 5;
+									progress.set_value(next);
+									if (next >= 100) clearInterval(timer);
+								}, 200);
+							},
+						},
+					],
+				},
+			],
+		},
 		Toast: {
 			helper: "frappe.ui.toast",
 			html: (opts) => "",
@@ -1280,7 +1343,7 @@ frappe.pages["component-explorer"].on_page_load = function (wrapper) {
 				<div class="explorer-group flex flex-col gap-2">
 					<div class="text-base-semibold text-ink-gray-8">${frappe.utils.escape_html(group.title)}</div>
 					<div class="flex gap-3 items-stretch">
-						<pre class="flex-1 rounded-md border m-0 px-4 py-3 text-ink-gray-8 text-p-sm overflow-x-auto"><code></code></pre>
+						<pre dir="ltr" class="flex-1 rounded-md border m-0 px-4 py-3 text-ink-gray-8 text-p-sm overflow-x-auto"><code></code></pre>
 						<div class="flex-1 min-w-0 flex ${
 							component.stacked ? "flex-col items-stretch" : "flex-wrap items-center"
 						} gap-2 rounded-md border px-4 py-4 explorer-preview"></div>
