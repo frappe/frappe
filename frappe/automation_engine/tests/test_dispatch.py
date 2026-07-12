@@ -8,7 +8,7 @@ from frappe.tests import IntegrationTestCase
 
 
 def make_automation(trigger_type="Doc Created", **kwargs):
-	doc = frappe.new_doc("Automation")
+	doc = frappe.new_doc("Automation Flow")
 	doc.title = kwargs.pop("title", "Dispatch Rule")
 	doc.trigger_type = trigger_type
 	doc.document_type = "ToDo"
@@ -32,7 +32,7 @@ class TestDispatch(IntegrationTestCase):
 	def setUp(self):
 		frappe.set_user("Administrator")
 		frappe.db.delete("Automation Trigger Queue")
-		frappe.db.delete("Automation")
+		frappe.db.delete("Automation Flow")
 		clear_automation_cache()
 
 	def tearDown(self):

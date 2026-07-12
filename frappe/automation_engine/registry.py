@@ -47,7 +47,7 @@ def get_automations_for(doctype: str) -> list:
 
 def _build_automations_for(doctype: str) -> list:
 	return frappe.get_all(
-		"Automation",
+		"Automation Flow",
 		filters={
 			"enabled": 1,
 			"document_type": doctype,
@@ -64,7 +64,7 @@ def get_custom_event_map() -> dict:
 
 def _build_custom_event_map() -> dict:
 	rules = frappe.get_all(
-		"Automation",
+		"Automation Flow",
 		filters={"enabled": 1, "trigger_type": "Custom Event"},
 		fields=(*RULE_FIELDS, "custom_event", "document_type"),
 	)

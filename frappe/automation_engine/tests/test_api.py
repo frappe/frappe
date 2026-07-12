@@ -10,7 +10,7 @@ from frappe.tests import IntegrationTestCase
 
 
 def make_automation():
-	doc = frappe.new_doc("Automation")
+	doc = frappe.new_doc("Automation Flow")
 	doc.title = "API Rule"
 	doc.trigger_type = "Manual"
 	doc.document_type = "ToDo"

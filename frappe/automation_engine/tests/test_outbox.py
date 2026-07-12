@@ -8,7 +8,7 @@ from frappe.tests import IntegrationTestCase
 
 
 def make_automation():
-	doc = frappe.new_doc("Automation")
+	doc = frappe.new_doc("Automation Flow")
 	doc.title = "Outbox Rule"
 	doc.trigger_type = "Doc Created"
 	doc.document_type = "ToDo"
@@ -25,7 +25,7 @@ def rows(automation, **filters):
 class TestOutbox(IntegrationTestCase):
 	def setUp(self):
 		frappe.db.delete("Automation Trigger Queue")
-		frappe.db.delete("Automation")
+		frappe.db.delete("Automation Flow")
 		clear_automation_cache()
 		self.automation = make_automation()
 

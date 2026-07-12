@@ -1,7 +1,7 @@
 # Copyright (c) 2026, Frappe Technologies Pvt. Ltd. and contributors
 # License: MIT. See LICENSE
 
-# IMP: the runner/drainer must NEVER call `rule.save()` on an Automation.
+# IMP: the runner/drainer must NEVER call `rule.save()` on an Automation Flow.
 # Bookkeeping (circuit-breaker state, "last run", etc.) goes to Redis or
 # frappe.db.set_value(..., update_modified=False).
 # A controller save fires on_update then invalidate case then rebuild registry thrash
@@ -13,7 +13,7 @@ from frappe.automation_engine.registry import DOC_TRIGGER_TYPES, clear_automatio
 from frappe.model.document import Document
 
 
-class Automation(Document):
+class AutomationFlow(Document):
 	# begin: auto-generated types
 	# This code is auto-generated. Do not modify anything in this block.
 
@@ -60,7 +60,7 @@ class Automation(Document):
 		self.validate_trigger_config()
 		self.validate_actions()
 		if self.enabled and not self.actions:
-			frappe.throw(_("Enable an Automation only after adding at least one action"))
+			frappe.throw(_("Enable an Automation Flow only after adding at least one action"))
 
 	def validate_actions(self):
 		from frappe.automation_engine.actions.base import get_action
@@ -72,7 +72,7 @@ class Automation(Document):
 
 	def validate_document_type(self):
 		if self.document_type and frappe.get_meta(self.document_type).istable:
-			frappe.throw(_("Automation cannot target a child table: {0}").format(self.document_type))
+			frappe.throw(_("Automation Flow cannot target a child table: {0}").format(self.document_type))
 
 	def validate_trigger_config(self):
 		needs_doctype = self.trigger_type in DOC_TRIGGER_TYPES or self.trigger_type == "Date Based"

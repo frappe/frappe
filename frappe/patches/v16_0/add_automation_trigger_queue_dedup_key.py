@@ -7,9 +7,7 @@ TABLE = "tabAutomation Trigger Queue"
 
 
 def execute():
-	"""Add the dedup_key generated column (JSON can't express it) + its unique index and the
-	drain-scan index. dedup_key is NULL for non-Pending and resume rows, so — NULLs being
-	distinct in a unique index — only concurrent Pending triggers for the same ref collide."""
+	"""Add the dedup_key generated column (JSON can't express it) + its unique index"""
 	if not frappe.db.table_exists("Automation Trigger Queue"):
 		return
 

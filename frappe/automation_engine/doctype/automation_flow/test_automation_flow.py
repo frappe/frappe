@@ -6,7 +6,7 @@ from frappe.tests import IntegrationTestCase
 
 
 def make_automation(**kwargs):
-	doc = frappe.new_doc("Automation")
+	doc = frappe.new_doc("Automation Flow")
 	doc.title = kwargs.pop("title", "Test Automation")
 	doc.trigger_type = kwargs.pop("trigger_type", "Doc Created")
 	doc.document_type = kwargs.pop("document_type", "ToDo")
@@ -18,7 +18,7 @@ def make_automation(**kwargs):
 	return doc
 
 
-class TestAutomation(IntegrationTestCase):
+class TestAutomationFlow(IntegrationTestCase):
 	@classmethod
 	def tearDownClass(cls):
 		frappe.db.rollback()

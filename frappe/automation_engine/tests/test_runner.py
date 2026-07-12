@@ -21,7 +21,7 @@ def make_todo(**kwargs):
 
 
 def make_automation(actions, stop_on_error=1):
-	doc = frappe.new_doc("Automation")
+	doc = frappe.new_doc("Automation Flow")
 	doc.title = "Runner Rule"
 	doc.trigger_type = "Doc Created"
 	doc.document_type = "ToDo"
@@ -38,7 +38,7 @@ def make_broken_automation(stop_on_error=1):
 	auto = make_automation([set_field("priority", "Low")], stop_on_error=stop_on_error)
 	child = frappe.db.get_value("Automation Action", {"parent": auto}, "name")
 	frappe.db.set_value("Automation Action", child, "action_type", "NopeAction", update_modified=False)
-	frappe.clear_document_cache("Automation", auto)
+	frappe.clear_document_cache("Automation Flow", auto)
 	return auto
 
 
@@ -107,7 +107,7 @@ class TestRunner(IntegrationTestCase):
 		frappe.db.set_value(
 			"Automation Action", first_child, "action_type", "NopeAction", update_modified=False
 		)
-		frappe.clear_document_cache("Automation", auto)
+		frappe.clear_document_cache("Automation Flow", auto)
 		name = self.queue_row(auto, todo.name)
 		execute_automation(name)
 		self.assertEqual(self.run_status(auto), "Partially Failed")
@@ -178,8 +178,8 @@ class TestRunner(IntegrationTestCase):
 		try:
 			for _ in range(2):
 				execute_automation(self.queue_row(auto, todo.name))
-			self.assertEqual(frappe.db.get_value("Automation", auto, "enabled"), 0)
-			self.assertTrue(frappe.db.get_value("Automation", auto, "disabled_reason"))
+			self.assertEqual(frappe.db.get_value("Automation Flow", auto, "enabled"), 0)
+			self.assertTrue(frappe.db.get_value("Automation Flow", auto, "disabled_reason"))
 		finally:
 			frappe.conf.automation_failure_threshold = original
 			frappe.cache.delete(_failure_key(auto))
