@@ -75,7 +75,7 @@ class PrintFormat(Document):
 			self.custom_format = 1
 
 		# New non-custom formats default to builder beta + Chrome
-		if self.is_new() and not self.custom_format:
+		if self.is_new() and not self.custom_format and not self.print_format_builder:
 			self.print_format_builder_beta = 1
 
 		if self.print_format_builder_beta and not self.custom_format:
