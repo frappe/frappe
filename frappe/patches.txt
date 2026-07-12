@@ -268,3 +268,11 @@ frappe.patches.v16_0.backfill_notification_email_type_preferences
 frappe.patches.v16_0.backfill_notification_log_app
 execute:frappe.db.set_single_value("Contact Us Settings", "send_acknowledgement_email", 1)
 frappe.patches.v16_0.seed_sms_settings_allowed_roles
+<<<<<<< HEAD
+=======
+execute:frappe.db.set_single_value("Website Settings", "max_signups_per_minute", 500)
+frappe.patches.v16_0.add_automation_trigger_queue_dedup_key
+
+
+[post_fixture_sync]
+>>>>>>> 2334513 (feat: add dedup_key virtual column and outbox indexes patch)
