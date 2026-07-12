@@ -118,6 +118,32 @@ $dropdown-item-padding-y: var(--padding-sm);
 $dropdown-item-padding-x: var(--padding-sm);
 
 $spacer: 14px;
+
+// Remap Bootstrap's spacing scale onto the espresso 4px grid. Bootstrap derives
+// $spacers from $spacer (14px), which produced off-grid values (p-2=7px, p-3=14,
+// p-4=21, p-5=42) that never lined up with our gap-*/ps-* utilities (--spacing =
+// 4px). Overriding the whole map here — before the bootstrap import below, and
+// bootstrap's own $spacers is !default so ours wins — puts bootstrap's p-*/m-*
+// utilities on the SAME grid as espresso: bootstrap .p-3 = 12px = our .gap-3.
+// That unifies the two systems and lets markup use p-*/m-* freely (they were
+// unusable before — see the note in scss/common/utilities.scss).
+// NOTE (develop-only, pixel-shifting): p-1/p-2/p-3 move ≤2px, but p-4 (21→16)
+// and p-5 (42→20) shift a lot — the ~478 p-4/p-5 sites across frappe/erpnext/hrms
+// need a visual audit before this ships. Steps 6/7/8/10/12 are additive (new).
+$spacers: (
+	0: 0,
+	1: 0.25rem,
+	2: 0.5rem,
+	3: 0.75rem,
+	4: 1rem,
+	5: 1.25rem,
+	6: 1.5rem,
+	7: 1.75rem,
+	8: 2rem,
+	10: 2.5rem,
+	12: 3rem,
+);
+
 $grid-breakpoints: (
 	xs: 0,
 	sm: 576px,
