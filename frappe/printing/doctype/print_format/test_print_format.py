@@ -3,7 +3,7 @@
 import os
 import re
 import unittest
-from typing import TYPE_CHECKING
+from typing import TYPE_CHECKING, ClassVar
 
 import frappe
 from frappe.tests import IntegrationTestCase
@@ -153,3 +153,217 @@ class TestPrintFormatBuilderElements(IntegrationTestCase):
 		prefix = "data:image/svg+xml;base64,"
 		self.assertTrue(data_uri.startswith(prefix))
 		self.assertIn(b"<svg", base64.b64decode(data_uri[len(prefix) :]))
+
+
+class TestClassicConverter(IntegrationTestCase):
+	"""Conversion of classic print-format-builder layouts to the beta builder."""
+
+	FORMAT_NAME = "_Test Classic Conversion"
+
+	CLASSIC_FORMAT_DATA: ClassVar[list] = [
+		{
+			"fieldname": "print_heading_template",
+			"fieldtype": "Custom HTML",
+			"options": "<div class='print-heading'><h2>User<br><small>{{ doc.name }}</small></h2></div>",
+		},
+		{"fieldtype": "Section Break", "label": "Details"},
+		{"fieldtype": "Column Break"},
+		{"fieldname": "first_name", "print_hide": 0, "nolabel": 1},
+		{"fieldname": "last_name", "print_hide": 0, "label": "Surname", "align": "right"},
+		{"fieldname": "email", "print_hide": 1},
+		{"fieldname": "dropped_field", "print_hide": 0},
+		{"fieldtype": "Column Break"},
+		{"fieldtype": "HTML", "options": "<p>Jinja: {{ doc.name }}</p>"},
+		{
+			"fieldname": "roles",
+			"print_hide": 0,
+			"visible_columns": [{"fieldname": "role", "print_width": "150px", "print_hide": 0}],
+		},
+		{"fieldtype": "Section Break", "label": "Empty Tail"},
+		{"fieldtype": "Column Break"},
+		{"fieldname": "another_dropped_field", "print_hide": 0},
+	]
+
+	EXPECTED_BETA_LAYOUT: ClassVar[dict] = {
+		"sections": [
+			{
+				"label": "Details",
+				"show_label": "hide",
+				"columns": [
+					{
+						"label": "",
+						"fields": [
+							{
+								"label": "First Name",
+								"fieldname": "first_name",
+								"fieldtype": "Data",
+								"options": None,
+								"show_label": "hide",
+							},
+							{
+								"label": "Surname",
+								"fieldname": "last_name",
+								"fieldtype": "Data",
+								"options": None,
+								"align": "right",
+							},
+						],
+					},
+					{
+						"label": "",
+						"fields": [
+							{
+								"label": "Custom HTML",
+								"fieldname": "custom_html_1",
+								"fieldtype": "HTML",
+								"html": "<p>Jinja: {{ doc.name }}</p>",
+								"custom": 1,
+							},
+							{
+								"label": "Roles Assigned",
+								"fieldname": "roles",
+								"fieldtype": "Table",
+								"options": "Has Role",
+								"show_label": "hide",
+								"table_columns": [
+									{
+										"label": "Sr",
+										"fieldname": "idx",
+										"fieldtype": "Int",
+										"options": None,
+										"width": 5.33,
+									},
+									{
+										"label": "Role",
+										"fieldname": "role",
+										"fieldtype": "Link",
+										"options": "Role",
+										"width": 20.0,
+									},
+								],
+							},
+						],
+					},
+				],
+			}
+		],
+		"header": {
+			"columns": [
+				{
+					"label": "",
+					"fields": [
+						{
+							"label": "",
+							"fieldname": "print_heading_template",
+							"fieldtype": "HTML",
+							"html": "<div class='print-heading'><h2>User<br><small>{{ doc.name }}</small></h2></div>",
+							"custom": 1,
+						}
+					],
+				}
+			]
+		},
+		"footer": {"columns": [{"label": "", "fields": []}]},
+	}
+
+	def make_classic_format(self):
+		frappe.delete_doc("Print Format", self.FORMAT_NAME, force=True, ignore_missing=True)
+		doc = frappe.get_doc(
+			{
+				"doctype": "Print Format",
+				"name": self.FORMAT_NAME,
+				"doc_type": "User",
+				"standard": "No",
+				"format_data": frappe.as_json(self.CLASSIC_FORMAT_DATA),
+			}
+		).insert()
+		doc.db_set(
+			{"print_format_builder": 1, "print_format_builder_beta": 0, "pdf_generator": "wkhtmltopdf"}
+		)
+		doc.reload()
+		self.addCleanup(frappe.delete_doc, "Print Format", self.FORMAT_NAME, force=True)
+		return doc
+
+	def test_convert_classic_to_beta_golden(self):
+		from frappe.printing.doctype.print_format.classic_converter import convert_classic_to_beta
+
+		layout, dropped = convert_classic_to_beta(self.CLASSIC_FORMAT_DATA, frappe.get_meta("User"))
+		self.assertEqual(dropped, ["dropped_field", "another_dropped_field"])
+		self.assertEqual(layout, self.EXPECTED_BETA_LAYOUT)
+
+	def test_section_headings_preserved(self):
+		from frappe.printing.doctype.print_format.classic_converter import convert_classic_to_beta
+
+		layout, _ = convert_classic_to_beta(
+			self.CLASSIC_FORMAT_DATA, frappe.get_meta("User"), frappe._dict(show_section_headings=1)
+		)
+		self.assertNotIn("show_label", layout["sections"][0])
+
+	def test_print_width_mapping(self):
+		from frappe.printing.doctype.print_format.classic_converter import (
+			distribute_widths,
+			parse_print_width,
+		)
+
+		self.assertEqual(parse_print_width("150px"), 20.0)
+		self.assertEqual(parse_print_width("25%"), 25.0)
+		self.assertIsNone(parse_print_width(""))
+		self.assertIsNone(parse_print_width("garbage"))
+
+		columns = [{"width": 20.0}, {"width": None}, {"width": None}]
+		self.assertEqual([c["width"] for c in distribute_widths(columns)], [20.0, 40.0, 40.0])
+
+		oversized = [{"width": 80.0}, {"width": 120.0}]
+		self.assertEqual([c["width"] for c in distribute_widths(oversized)], [40.0, 60.0])
+
+	def test_uses_beta_renderer(self):
+		from frappe.printing.doctype.print_format.classic_converter import uses_beta_renderer
+
+		classic = frappe._dict(print_format_builder=1, format_data="[]")
+		beta = frappe._dict(print_format_builder_beta=1, format_data="{}")
+		custom = frappe._dict(custom_format=1, format_data="[]")
+		self.assertFalse(uses_beta_renderer(None))
+		self.assertFalse(uses_beta_renderer(frappe._dict(print_format_builder=1)))
+		self.assertFalse(uses_beta_renderer(custom))
+		self.assertTrue(uses_beta_renderer(classic))
+		self.assertTrue(uses_beta_renderer(beta))
+
+	def test_convert_print_format_document(self):
+		from frappe.printing.doctype.print_format.classic_converter import convert_print_format
+
+		doc = self.make_classic_format()
+		dropped = convert_print_format(doc)
+
+		self.assertEqual(dropped, ["dropped_field", "another_dropped_field"])
+		self.assertEqual(doc.print_format_builder, 0)
+		self.assertEqual(doc.print_format_builder_beta, 1)
+		self.assertEqual(doc.pdf_generator, "chrome")
+		self.assertEqual(doc.page_number, "Bottom Center")
+		self.assertEqual(frappe.parse_json(doc.classic_format_data), self.CLASSIC_FORMAT_DATA)
+		self.assertEqual(frappe.parse_json(doc.format_data), self.EXPECTED_BETA_LAYOUT)
+
+		# re-running converts from the backup, not the already-converted layout
+		self.assertEqual(convert_print_format(doc), dropped)
+		self.assertEqual(frappe.parse_json(doc.format_data), self.EXPECTED_BETA_LAYOUT)
+
+	def test_get_beta_layout(self):
+		from frappe.printing.doctype.print_format.classic_converter import get_beta_layout
+
+		self.make_classic_format()
+		result = get_beta_layout(self.FORMAT_NAME)
+		self.assertEqual(result["layout"], self.EXPECTED_BETA_LAYOUT)
+		self.assertEqual(result["dropped"], ["dropped_field", "another_dropped_field"])
+		self.assertEqual(frappe.parse_json(result["classic_format_data"]), self.CLASSIC_FORMAT_DATA)
+		# read-only: the stored document is untouched
+		self.assertEqual(frappe.db.get_value("Print Format", self.FORMAT_NAME, "print_format_builder"), 1)
+
+	def test_classic_format_renders_via_beta_renderer(self):
+		self.make_classic_format()
+		html = frappe.get_print("User", "Administrator", print_format=self.FORMAT_NAME)
+
+		self.assertIn("print-format-doc", html)
+		self.assertIn("<p>Jinja: Administrator</p>", html)
+		self.assertIn('data-fieldname="first_name"', html)
+		self.assertIn('data-fieldname="roles"', html)
+		self.assertIn('data-fieldname="idx"', html)
+		self.assertIn("print-heading", html)

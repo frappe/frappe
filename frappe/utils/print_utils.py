@@ -47,6 +47,12 @@ def get_print(
 			pdf_generator = (
 				frappe.get_cached_value("Print Format", print_format, "pdf_generator") or "wkhtmltopdf"
 			)
+			if pdf_generator == "wkhtmltopdf" and print_format and print_format != "Standard":
+				from frappe.printing.doctype.print_format.classic_converter import uses_beta_renderer
+
+				# render-time converted classic formats produce markup only Chromium can lay out
+				if uses_beta_renderer(frappe.get_cached_doc("Print Format", print_format)):
+					pdf_generator = "chrome"
 		local.form_dict.pdf_generator = pdf_generator
 
 	original_form_dict = copy.deepcopy(local.form_dict)
@@ -142,8 +148,10 @@ def attach_print(
 
 	is_beta_print_format = False
 	if print_format and print_format != "Standard":
+		from frappe.printing.doctype.print_format.classic_converter import uses_beta_renderer
+
 		print_format_doc = frappe.get_cached_doc("Print Format", print_format)
-		is_beta_print_format = print_format_doc.get("print_format_builder_beta")
+		is_beta_print_format = uses_beta_renderer(print_format_doc)
 
 	try:
 		with print_language(lang or frappe.local.lang):

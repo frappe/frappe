@@ -323,6 +323,14 @@ class PrintFormatGenerator:
 			"header": {"columns": []},
 			"footer": {"columns": []},
 		}
+		if isinstance(layout, list):
+			from frappe.printing.doctype.print_format.classic_converter import convert_classic_to_beta
+
+			layout, _dropped = convert_classic_to_beta(
+				layout, frappe.get_meta(print_format.doc_type), print_format
+			)
+			if print_format.page_number == "Hide":
+				print_format.page_number = "Bottom Center"
 		layout = self.set_field_renderers(layout)
 		layout = self.process_margin_texts(layout)
 		return layout
