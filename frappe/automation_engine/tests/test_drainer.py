@@ -2,7 +2,7 @@
 # License: MIT. See LICENSE
 
 import frappe
-from frappe.automation_engine.drainer import claim_batch, drain
+from frappe.automation_engine.drainer import claim_batch, drain, requeue_stale_running
 from frappe.tests import IntegrationTestCase
 
 QUEUE = "Automation Trigger Queue"
@@ -74,6 +74,17 @@ class TestDrainer(IntegrationTestCase):
 		second = claim_batch(10)
 		self.assertEqual(len(second), 2)
 		self.assertEqual(set(first) & set(second), set())
+
+	def test_stale_running_row_is_requeued(self):
+		name = self.add_row("stale")
+		old = frappe.utils.add_to_date(frappe.utils.now(), minutes=-120)
+		frappe.db.sql(
+			f"UPDATE `tab{QUEUE}` SET status = 'Running', modified = %s WHERE name = %s", (old, name)
+		)
+		frappe.db.commit()
+		requeue_stale_running()
+		frappe.db.commit()
+		self.assertEqual(frappe.db.get_value(QUEUE, name, "status"), "Pending")
 
 	def test_drain_processes_all_with_injected_executor(self):
 		for i in range(3):
