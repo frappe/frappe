@@ -213,6 +213,8 @@ def convert_print_format(doc):
 
 	Keeps the original classic array in `classic_format_data` so the conversion
 	is reversible and re-runnable."""
+	if doc.custom_format or doc.raw_printing:
+		return
 	source = doc.classic_format_data or doc.format_data
 	if not source:
 		return
@@ -226,7 +228,7 @@ def convert_print_format(doc):
 	doc.print_format_builder = 0
 	doc.print_format_builder_beta = 1
 	doc.pdf_generator = "chrome"
-	if doc.page_number == "Hide":
+	if not doc.page_number or doc.page_number == "Hide":
 		doc.page_number = "Bottom Center"
 	return dropped
 

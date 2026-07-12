@@ -329,7 +329,7 @@ class PrintFormatGenerator:
 			layout, _dropped = convert_classic_to_beta(
 				layout, frappe.get_meta(print_format.doc_type), print_format
 			)
-			if print_format.page_number == "Hide":
+			if not print_format.page_number or print_format.page_number == "Hide":
 				print_format.page_number = "Bottom Center"
 		layout = self.set_field_renderers(layout)
 		layout = self.process_margin_texts(layout)
