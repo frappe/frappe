@@ -1170,6 +1170,9 @@ if (frappe.views.KanbanView) {
 					const from_colname = $from.parents(".kanban-column").attr("data-column-value");
 					const to_colname = $to.parents(".kanban-column").attr("data-column-value");
 					const card_name = decodeURIComponent($(e.item).attr("data-name"));
+					// Target column keeps virtualizing during drag; recompute offset at drop.
+					refresh_drag_list_offsets_for($from);
+					refresh_drag_list_offsets_for($to);
 					const old_index = get_sortable_full_index($from, e.oldIndex);
 					const new_index = get_sortable_full_index($to, e.newIndex);
 
@@ -1758,6 +1761,23 @@ if (frappe.views.KanbanView) {
 
 	function clear_drag_list_offsets() {
 		drag_list_offsets = null;
+	}
+
+	/** Live offset from DOM; ignores drag-start snapshot (target column may scroll during drag). */
+	function get_column_dom_list_offset_live($kanban_cards) {
+		const window_start = get_column_list_window_start($kanban_cards);
+		if (!$kanban_cards?.data("virtualized")) {
+			return window_start;
+		}
+		return window_start + ($kanban_cards.data("virt-start") || 0);
+	}
+
+	function refresh_drag_list_offsets_for($kanban_cards) {
+		if (!drag_list_offsets || !$kanban_cards?.length) return;
+		const column_title = get_kanban_column_title($kanban_cards);
+		if (column_title) {
+			drag_list_offsets[column_title] = get_column_dom_list_offset_live($kanban_cards);
+		}
 	}
 
 	function get_column_list_window_start($kanban_cards) {
