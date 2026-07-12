@@ -282,11 +282,7 @@ frappe.ui.form.PrintView = class {
 		}
 
 		if (is_custom_format) {
-			if (print_format.print_format_builder_beta) {
-				frappe.set_route("print-format-builder", print_format.name);
-			} else {
-				frappe.set_route("print-format-builder-classic", print_format.name);
-			}
+			frappe.set_route("print-format-builder", print_format.name);
 			return;
 		}
 		// start a new print format
