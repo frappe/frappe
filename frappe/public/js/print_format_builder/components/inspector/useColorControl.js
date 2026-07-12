@@ -31,7 +31,7 @@ export function mountColorControl(
 function setup_popover_close(control, host) {
 	const hide = () => control.$wrapper.popover("hide");
 	const close_if_outside = (e) => {
-		if (!document.body.contains(host)) {
+		if (!document.body.contains(control.$wrapper[0])) {
 			document.removeEventListener("click", close_if_outside, true);
 			return;
 		}
