@@ -50,14 +50,18 @@ class RoleForm {
 			pages_tab: new PagesTab(this.frm),
 			workspace_tab: new WorkspacesTab(this.frm),
 		};
-		Object.values(this.tabs).forEach((tab) => tab.build());
+		// EmbeddedList is lazy (not in the desk bundle); build the tabs' lists
+		// once it's loaded so build()/refresh() stay synchronous below.
+		frappe.require("embedded_list.bundle.js").then(() => {
+			Object.values(this.tabs).forEach((tab) => tab.build());
 
-		// Role Profiles live in the always-visible Details tab — load eagerly.
-		const profiles = new RoleProfilesTab(this.frm);
-		profiles.build();
-		profiles.refresh();
+			// Role Profiles live in the always-visible Details tab — load eagerly.
+			const profiles = new RoleProfilesTab(this.frm);
+			profiles.build();
+			profiles.refresh();
 
-		this.load_active_tab();
+			this.load_active_tab();
+		});
 	}
 
 	load_active_tab() {
