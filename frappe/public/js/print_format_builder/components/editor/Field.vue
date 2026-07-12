@@ -979,12 +979,18 @@ body.pfb-col-resizing * {
 .col-resize-handle::after {
 	content: "";
 	position: absolute;
-	top: 0;
-	bottom: 0;
+	top: 2px;
+	bottom: 2px;
 	left: 3px;
 	width: 2px;
+	border-radius: 1px;
 	background: var(--gray-400);
 	opacity: 0;
+	transition: opacity 0.15s;
+}
+
+thead:hover .col-resize-handle::after {
+	opacity: 0.4;
 }
 
 .col-resize-handle:hover::after,
