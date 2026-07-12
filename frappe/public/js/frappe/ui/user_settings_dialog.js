@@ -46,9 +46,9 @@ frappe.ui.show_user_settings = async function (default_tab) {
 			...response.message,
 		};
 	} catch (e) {
-		frappe.show_alert({
+		frappe.ui.toast({
 			message: __("Failed to load settings"),
-			indicator: "red",
+			type: "error",
 		});
 		console.error(e);
 		return;
@@ -87,9 +87,14 @@ function _save_user(fieldname_or_dict, value) {
 	return frappe.db
 		.set_value("User", frappe.session.user, fieldname_or_dict, value)
 		.then((res) => {
-			frappe.show_alert({
-				message: __("Saved. Refresh to see changes."),
-				indicator: "green",
+			frappe.ui.toast({
+				message: __("Saved"),
+				description: __("Refresh to see changes"),
+				type: "success",
+				action: {
+					label: __("Refresh"),
+					onclick: () => location.reload(),
+				},
 			});
 			if (frappe.boot.user) {
 				// Update the user data in the boot user object
@@ -110,7 +115,7 @@ function _save_user(fieldname_or_dict, value) {
 			return Promise.resolve(res);
 		})
 		.catch((e) => {
-			frappe.show_alert({ message: __("Failed to save"), indicator: "red" });
+			frappe.ui.toast({ message: __("Failed to save"), type: "error" });
 			console.error(e);
 			throw e;
 		});
@@ -692,17 +697,17 @@ function _session_defaults_tab() {
 					args: { default_values: values },
 					callback(data) {
 						if (data.message === "success") {
-							frappe.show_alert({
+							frappe.ui.toast({
 								message: __("Saved"),
-								indicator: "green",
+								type: "success",
 							});
 							frappe.ui.toolbar.clear_cache();
 						} else {
-							frappe.show_alert({
+							frappe.ui.toast({
 								message: __(
 									"An error occurred while updating your session defaults."
 								),
-								indicator: "red",
+								type: "error",
 							});
 						}
 					},
