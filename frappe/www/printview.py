@@ -343,6 +343,7 @@ def get_html_and_style(
 	if uses_beta_renderer(print_format):
 		from frappe.utils.print_format_generator import PrintFormatGenerator
 
+		validate_print_permission(document)
 		validate_print_for_docstatus(document)
 		generator = PrintFormatGenerator(print_format, document, None if no_letterhead else letterhead)
 		html = generator.get_html_preview()
