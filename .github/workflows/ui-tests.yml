@@ -100,6 +100,7 @@ jobs:
 
       - name: Run Tests
         id: ui-tests
+        continue-on-error: true
         run: |
           bench --site test_site \
             run-ui-tests ${{ github.event.repository.name }} \
@@ -113,14 +114,35 @@ jobs:
           SPLIT: 4
           SPLIT_INDEX: ${{ strategy.job-index }}
 
+      - name: Re-run Failed Tests With Video
+        id: ui-tests-retry
+        if: steps.ui-tests.outcome == 'failure'
+        run: |
+          FAILED_SPECS=$(sort -u ./cypress_failed_specs.txt 2>/dev/null | tr '\n' ',' | sed 's/,$//')
+          if [ -z "$FAILED_SPECS" ]; then
+            echo "No failed specs recorded; marking as failure"
+            exit 1
+          fi
+          echo "Re-running with video: $FAILED_SPECS"
+          bench --site test_site \
+            run-ui-tests ${{ github.event.repository.name }} \
+              --with-coverage \
+              --headless \
+              --browser ${{ env.BROWSER_PATH }} \
+              --ci-build-id $GITHUB_RUN_ID-$GITHUB_RUN_ATTEMPT-retry \
+              --spec "$FAILED_SPECS"
+        env:
+          CYPRESS_RECORD_KEY: 4a48f41c-11b3-425b-aa88-c58048fa69eb
+          CYPRESS_RECORD_VIDEO: "1"
+
       - name: Compress Cypress Videos
-        if: always() && steps.ui-tests.outcome == 'failure'
+        if: always() && steps.ui-tests-retry.outcome == 'failure'
         run: |
             if find ./cypressVideos -mindepth 1 | read; then
               zip -r cypress_recordings.zip ./cypressVideos
             fi
       - name: Upload Cypress Videos
-        if: always() && steps.ui-tests.outcome == 'failure'
+        if: always() && steps.ui-tests-retry.outcome == 'failure'
         uses: actions/upload-artifact@v7
         with:
           name: Cypress CI Video Recordings

@@ -9,7 +9,7 @@ module.exports = defineConfig({
 	testUser: "frappe@example.com",
 	defaultCommandTimeout: 20000,
 	pageLoadTimeout: 15000,
-	video: true,
+	video: process.env.CYPRESS_RECORD_VIDEO === "1",
 	videosFolder: path.resolve(__dirname, "..", "..") + "/cypressVideos/",
 	viewportHeight: 960,
 	viewportWidth: 1400,
@@ -34,15 +34,24 @@ module.exports = defineConfig({
 				cypressSplit(on, config);
 			}
 
-			// Delete videos for specs without failing or retried tests
+			// Delete videos for specs where no test was retried
 			// https://docs.cypress.io/guides/guides/screenshots-and-videos#Delete-videos-for-specs-without-failing-or-retried-tests
 			on("after:spec", (spec, results) => {
 				if (results && results.video) {
-					const failures = results.tests.some((test) =>
-						test.attempts.some((attempt) => attempt.state === "failed")
-					);
-					if (!failures) {
+					const hadRetries = results.tests.some((test) => test.attempts.length > 1);
+					if (!hadRetries) {
 						fs.unlinkSync(results.video);
+					}
+				}
+				// Write ultimately-failed spec paths to a file so CI can re-run them with video
+				if (results && results.tests) {
+					const lastAttemptFailed = results.tests.some(
+						(test) => test.attempts[test.attempts.length - 1].state === "failed"
+					);
+					if (lastAttemptFailed) {
+						const failedSpecsFile =
+							path.resolve(__dirname, "..", "..") + "/cypress_failed_specs.txt";
+						fs.appendFileSync(failedSpecsFile, spec.relative + "\n");
 					}
 				}
 			});
