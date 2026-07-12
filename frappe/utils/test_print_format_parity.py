@@ -9,12 +9,13 @@ language: same class names, same data attributes, same inline-style inputs.
 These tests fail when one surface learns a word the other doesn't know.
 """
 
+import functools
 import json
 import re
 from pathlib import Path
 
 import frappe
-from frappe.tests import IntegrationTestCase
+from frappe.tests import IntegrationTestCase, UnitTestCase
 
 APP_PATH = Path(frappe.get_app_path("frappe"))
 SHARED_CSS = APP_PATH / "templates" / "print_format" / "print_format_doc.css"
@@ -45,10 +46,22 @@ SERVER_ONLY_CLASSES = {
 CANVAS_ONLY_CLASSES = set()
 
 
-def _read(paths):
-	return "\n".join(p.read_text() for p in paths)
+@functools.cache
+def _server_text():
+	return "\n".join(p.read_text() for p in SERVER_SOURCES)
 
 
+@functools.cache
+def _canvas_text():
+	return "\n".join(p.read_text() for p in CANVAS_SOURCES)
+
+
+@functools.cache
+def _field_vue_text():
+	return (BUILDER_DIR / "components" / "editor" / "Field.vue").read_text()
+
+
+@functools.cache
 def _shared_css_selector_tokens():
 	"""Class names and data-* attributes used by the shared stylesheet's selectors."""
 	css = SHARED_CSS.read_text()
@@ -60,26 +73,27 @@ def _shared_css_selector_tokens():
 	return classes, data_attrs
 
 
+# Variant suffixes interpolated from field properties on both surfaces
+VARIANT_PREFIXES = (
+	"child-table--",
+	"field-align-",
+	"field-justify-",
+	"cell-line--",
+	"section--grid-",
+)
+
+
 def _present(token, haystack):
-	"""A token counts as present if it appears literally, or if it is a
-	dynamic-variant class (child-table--striped, field-justify-space-between)
-	whose composition prefix (child-table--, field-justify-) appears on that
-	surface — variant suffixes are interpolated from field properties."""
 	if token in haystack:
 		return True
-	parts = re.split(r"(-+)", token)  # keep separators
-	for i in range(len(parts) - 2, 0, -2):
-		prefix = "".join(parts[: i + 1])
-		if len(prefix) >= 5 and prefix in haystack:
-			return True
-	return False
+	return any(token.startswith(p) and p in haystack for p in VARIANT_PREFIXES)
 
 
-class TestPrintSurfaceParity(IntegrationTestCase):
+class TestPrintSurfaceMarkupContract(UnitTestCase):
 	def test_shared_stylesheet_classes_exist_on_both_surfaces(self):
 		classes, data_attrs = _shared_css_selector_tokens()
-		server = _read(SERVER_SOURCES)
-		canvas = _read(CANVAS_SOURCES)
+		server = _server_text()
+		canvas = _canvas_text()
 
 		missing_server = sorted(
 			t for t in classes | data_attrs if t not in CANVAS_ONLY_CLASSES and not _present(t, server)
@@ -102,10 +116,8 @@ class TestPrintSurfaceParity(IntegrationTestCase):
 		)
 
 	def test_scope_class_applied_on_both_surfaces(self):
-		server = _read(SERVER_SOURCES)
-		canvas = _read(CANVAS_SOURCES)
-		self.assertIn("print-format-doc", server)
-		self.assertIn("print-format-doc", canvas)
+		self.assertIn("print-format-doc", _server_text())
+		self.assertIn("print-format-doc", _canvas_text())
 
 	def test_data_html_field_properties_mirrored_in_canvas(self):
 		"""Every df.* property the regular-field macro reads must be handled by Field.vue."""
@@ -125,18 +137,15 @@ class TestPrintSurfaceParity(IntegrationTestCase):
 		skip = {"get", "renderer", "section", "html"}
 		macro = macro_path.read_text()
 		props = set(re.findall(r"df\.([a-z_]+)", macro)) - skip
-		field_vue = (BUILDER_DIR / "components" / "editor" / "Field.vue").read_text()
-		missing = sorted(p for p in props if f"df.{p}" not in field_vue)
+		missing = sorted(p for p in props if f"df.{p}" not in _field_vue_text())
 		self.assertFalse(
 			missing,
 			f"{macro_path.name} reads df properties {missing} that Field.vue never handles — "
 			"the canvas preview will silently ignore them. Mirror them in Field.vue's preview markup.",
 		)
 
-	# ------------------------------------------------------------------ #
-	# rendered-HTML contract
-	# ------------------------------------------------------------------ #
 
+class TestPrintSurfaceParity(IntegrationTestCase):
 	def _make_contact_format(self):
 		name = f"_Test PFP {frappe.generate_hash(length=6)}"
 		doc = frappe.get_doc(

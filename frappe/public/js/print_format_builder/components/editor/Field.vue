@@ -1,7 +1,7 @@
 <template>
 	<div
 		:class="[
-			preview_doc ? preview_root_classes : 'field field--chip',
+			preview_doc ? preview_root.classes : 'field field--chip',
 			{
 				'field--table': df.fieldtype == 'Table',
 				'field--selected': is_selected,
@@ -9,7 +9,7 @@
 				'field--condition-hidden': preview_doc && !is_field_visible,
 			},
 		]"
-		:style="preview_doc ? preview_root_style : undefined"
+		:style="preview_doc ? preview_root.style : undefined"
 		:data-fieldname="preview_data_attr(df.fieldname)"
 		:data-fieldtype="preview_data_attr(df.fieldtype)"
 		v-show="!df.remove"
@@ -186,8 +186,7 @@
 							<tr v-if="!preview_doc[df.fieldname]?.length">
 								<td
 									:colspan="df.table_columns?.length || 1"
-									class="text-muted"
-									style="text-align: center; font-size: 11px; padding: 6px"
+									class="text-muted pfb-table-note"
 								>
 									{{ __("No rows") }}
 								</td>
@@ -195,8 +194,7 @@
 							<tr v-if="(preview_doc[df.fieldname] || []).length > 4">
 								<td
 									:colspan="df.table_columns?.length || 1"
-									class="text-muted"
-									style="text-align: center; font-size: 11px; padding: 6px"
+									class="text-muted pfb-table-note"
 								>
 									{{
 										__(
@@ -241,18 +239,14 @@
 							</td>
 						</tr>
 						<tr v-if="!(preview_doc[df.source] || []).length">
-							<td
-								class="text-muted"
-								style="text-align: center; font-size: 11px; padding: 6px"
-							>
+							<td class="text-muted pfb-table-note">
 								{{ df.source ? __("No rows") : __("Pick a source table") }}
 							</td>
 						</tr>
 						<tr v-if="(preview_doc[df.source] || []).length > 6">
 							<td
 								:colspan="df.repeater_columns?.length || 1"
-								class="text-muted"
-								style="text-align: center; font-size: 11px; padding: 6px"
+								class="text-muted pfb-table-note"
 							>
 								{{
 									__(
@@ -288,6 +282,7 @@
 					<a
 						v-else-if="df.fieldtype == 'Attach' && preview_doc[df.fieldname]"
 						:href="preview_doc[df.fieldname]"
+						@click.prevent
 						>{{ String(preview_doc[df.fieldname]).split("/").pop() }}</a
 					>
 					<template v-else-if="df.fieldtype == 'Color' && preview_doc[df.fieldname]">
@@ -470,70 +465,62 @@ let is_selected = computed(() => store.selected_field.value === props.df);
 let preview_doc = computed(() => store.preview_doc.value);
 let is_field_visible = computed(() => evaluate_visible_if(props.df.visible_if, preview_doc.value));
 
-// Fieldtypes whose server macro is not the label/value field div (Data.html)
-const NON_VALUE_FIELDTYPES = new Set([
-	"Table",
-	"Repeater",
-	"HTML",
-	"Field Template",
-	"Spacer",
-	"Divider",
-	"Image",
-	"Barcode",
-]);
-
-// In preview mode the root element IS the server element: these mirror the
-// class/style/data-attribute output of templates/print_format/macros/*.html
-// so every shared-stylesheet rule hits the canvas exactly like the PDF.
-const preview_root_classes = computed(() => {
+// Mirrors the root markup of templates/print_format/macros/*.html per fieldtype
+const preview_root = computed(() => {
 	const df = props.df;
+	const custom = custom_style.value;
 	if (df.fieldtype === "Table") {
-		return [
-			"child-table",
-			`child-table--${df.table_style || "lined"}`,
-			df.table_bordered === false ? "child-table--borderless" : "",
-			df.table_header === "plain" ? "child-table--plain-header" : "",
-		];
-	}
-	if (df.fieldtype === "Repeater") return ["pfb-repeater"];
-	if (df.fieldtype === "HTML") return ["custom-html"];
-	if (df.fieldtype === "Field Template") return ["field-template"];
-	if (df.fieldtype === "Spacer" || df.fieldtype === "Divider") return [];
-	if (df.fieldtype === "Image" || df.fieldtype === "Barcode") {
-		return [
-			"field",
-			df.fieldtype === "Image" ? "print-image" : "print-barcode",
-			df.align ? `field-align-${df.align}` : "",
-		];
-	}
-	const lr = props.field_orientation === "left-right";
-	return [
-		"field",
-		lr ? "left-right" : "",
-		!lr && df.show_label === "inline" ? "field-inline" : "",
-		df.align ? `field-align-${df.align}` : "",
-		lr && df.label_justify ? `field-justify-${df.label_justify}` : "",
-	];
-});
-
-const preview_root_style = computed(() => {
-	const df = props.df;
-	if (df.fieldtype === "Spacer") return { height: "1em", ...custom_style.value };
-	if (df.fieldtype === "Divider") {
 		return {
-			height: "1px",
-			margin: "0.5em 0",
-			borderBottom: "1px solid",
-			borderBottomColor: "var(--dark-border-color)",
-			...custom_style.value,
+			classes: [
+				"child-table",
+				`child-table--${df.table_style || "lined"}`,
+				df.table_bordered === false ? "child-table--borderless" : "",
+				df.table_header === "plain" ? "child-table--plain-header" : "",
+			],
+			style: custom,
 		};
 	}
+	if (df.fieldtype === "Repeater") return { classes: ["pfb-repeater"], style: custom };
+	if (df.fieldtype === "HTML") return { classes: ["custom-html"], style: custom };
+	if (df.fieldtype === "Field Template") return { classes: ["field-template"], style: custom };
+	if (df.fieldtype === "Spacer") return { classes: [], style: { height: "1em", ...custom } };
+	if (df.fieldtype === "Divider") {
+		return {
+			classes: [],
+			style: {
+				height: "1px",
+				margin: "0.5em 0",
+				borderBottom: "1px solid",
+				borderBottomColor: "var(--dark-border-color)",
+				...custom,
+			},
+		};
+	}
+	if (df.fieldtype === "Image" || df.fieldtype === "Barcode") {
+		return {
+			classes: [
+				"field",
+				df.fieldtype === "Image" ? "print-image" : "print-barcode",
+				df.align ? `field-align-${df.align}` : "",
+			],
+			style: custom,
+		};
+	}
+	const lr = props.field_orientation === "left-right";
 	const style = {};
-	const inline = props.field_orientation === "left-right" || df.show_label === "inline";
-	if (!NON_VALUE_FIELDTYPES.has(df.fieldtype) && inline && df.label_gap != null) {
+	if ((lr || df.show_label === "inline") && df.label_gap != null) {
 		style.gap = df.label_gap + "px";
 	}
-	return { ...style, ...custom_style.value };
+	return {
+		classes: [
+			"field",
+			lr ? "left-right" : "",
+			!lr && df.show_label === "inline" ? "field-inline" : "",
+			df.align ? `field-align-${df.align}` : "",
+			lr && df.label_justify ? `field-justify-${df.label_justify}` : "",
+		],
+		style: { ...style, ...custom },
+	};
 });
 
 // Spacer/Divider carry no data attributes on the server either
@@ -1120,8 +1107,7 @@ watch(
 	border-radius: var(--radius);
 }
 
-/* Selection chrome is outline-only: it must never change the geometry
-   of the previewed markup, which mirrors the printed page 1:1. */
+/* outline-only selection chrome: must not change previewed geometry */
 .field--preview:hover {
 	outline: 1px dashed var(--gray-400);
 	outline-offset: 1px;
@@ -1133,6 +1119,12 @@ watch(
 }
 
 /* Top-right actions pill: drag + remove — hidden until hover/selected */
+.pfb-table-note {
+	text-align: center;
+	font-size: 11px;
+	padding: 6px;
+}
+
 .field-preview-actions {
 	display: none;
 	position: absolute;

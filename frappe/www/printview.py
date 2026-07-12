@@ -81,6 +81,21 @@ def get_context(context) -> PrintContext:
 		print_format and print_format.get("print_format_builder_beta") and print_format.get("format_data")
 	)
 
+	context = {
+		"standalone": standalone,
+		"comment": frappe.session.user,
+		"title": frappe.utils.strip_html(cstr(doc.get_title() or doc.name)),
+		"lang": frappe.local.lang,
+		"layout_direction": "rtl" if is_rtl() else "ltr",
+		"doctype": frappe.form_dict.doctype,
+		"name": frappe.form_dict.name,
+		"key": frappe.form_dict.get("key"),
+		"print_format": print_format_name,
+		"letterhead": letterhead,
+		"no_letterhead": frappe.form_dict.no_letterhead,
+		"pdf_generator": pdf_generator,
+	}
+
 	if standalone:
 		from frappe.utils.print_format_generator import get_html
 
@@ -89,22 +104,10 @@ def get_context(context) -> PrintContext:
 			name=frappe.form_dict.name,
 			print_format=print_format.name,
 			letterhead=letterhead,
-			action_banner=frappe.render_template(
-				"templates/print_formats/print_action_banner.html",
-				{
-					"doctype": frappe.form_dict.doctype,
-					"name": frappe.form_dict.name,
-					"print_format": print_format_name,
-					"letterhead": letterhead,
-					"no_letterhead": frappe.form_dict.no_letterhead,
-					"lang": frappe.local.lang,
-					"key": frappe.form_dict.get("key"),
-					"pdf_generator": pdf_generator,
-				},
-			),
+			style=frappe.form_dict.style,
+			trigger_print=cint(frappe.form_dict.trigger_print),
+			action_banner=frappe.render_template("templates/print_formats/print_action_banner.html", context),
 		)
-		if cint(frappe.form_dict.trigger_print):
-			body += trigger_print_script
 	else:
 		body = get_rendered_template(
 			doc,
@@ -124,22 +127,13 @@ def get_context(context) -> PrintContext:
 		page=f"Print Format: {print_format_name}",
 	)
 
-	return {
-		"body": body,
-		"standalone": standalone,
-		"print_style": "" if standalone else get_print_style(frappe.form_dict.style, print_format),
-		"comment": frappe.session.user,
-		"title": frappe.utils.strip_html(cstr(doc.get_title() or doc.name)),
-		"lang": frappe.local.lang,
-		"layout_direction": "rtl" if is_rtl() else "ltr",
-		"doctype": frappe.form_dict.doctype,
-		"name": frappe.form_dict.name,
-		"key": frappe.form_dict.get("key"),
-		"print_format": print_format_name,
-		"letterhead": letterhead,
-		"no_letterhead": frappe.form_dict.no_letterhead,
-		"pdf_generator": pdf_generator,
-	}
+	context.update(
+		{
+			"body": body,
+			"print_style": "" if standalone else get_print_style(frappe.form_dict.style, print_format),
+		}
+	)
+	return context
 
 
 def get_print_format_doc(print_format_name: str, meta: "Meta") -> "PrintFormat" | None:
@@ -166,8 +160,7 @@ def get_rendered_template(
 	trigger_print: bool = False,
 	settings: dict | None = None,
 ) -> str:
-	if not frappe.flags.ignore_print_permissions:
-		validate_print_permission(doc)
+	validate_print_permission(doc)
 
 	print_settings = frappe.get_single("Print Settings").as_dict()
 	print_settings.update(settings or {})
@@ -424,6 +417,9 @@ def get_rendered_raw_commands(
 
 
 def validate_print_permission(doc: "Document") -> None:
+	if frappe.flags.ignore_print_permissions:
+		return
+
 	for ptype in ("read", "print"):
 		if frappe.has_permission(doc.doctype, ptype, doc):
 			return

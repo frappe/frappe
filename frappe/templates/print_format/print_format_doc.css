@@ -14,10 +14,8 @@
 	}
 }
 
-/* Spacing uses em, not rem: the builder canvas lives inside the desk page, so
-   rem there resolves against the desk root, not the format's font size. Values
-   inside a scope that changes font-size are pre-divided by that multiplier so
-   the computed size is unchanged (e.g. td padding 0.5em × 0.9 = 0.45 body-em). */
+/* em only, never rem (the canvas rem root is the desk page); values inside a
+   font-size scope are pre-divided by that multiplier (0.5em × 0.9 = 0.45). */
 .print-format-doc .section-label {
 	font-size: 1.1em;
 	font-weight: 700;
@@ -81,6 +79,14 @@
 }
 
 /* Field-level alignment */
+.print-format-doc .field.field-align-left {
+	text-align: left;
+}
+
+.print-format-doc .field.field-align-left .value {
+	text-align: left;
+}
+
 .print-format-doc .field.field-align-center {
 	text-align: center;
 }

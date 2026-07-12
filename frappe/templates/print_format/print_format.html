@@ -1,7 +1,7 @@
 {% import "templates/print_format/macros.html" as macros %}
 
 <!DOCTYPE html>
-<html lang="en">
+<html lang="{{ lang or 'en' }}"{% if layout_direction %} dir="{{ layout_direction }}"{% endif %}>
 <head>
 	<meta charset="UTF-8">
 	<meta http-equiv="X-UA-Compatible" content="IE=edge">
@@ -135,5 +135,6 @@
 	{{ footer or '' }}
 	{{ include_script('print.bundle.js') }}
 	<script>document.querySelectorAll("svg[data-barcode-value]").forEach(render_barcode);</script>
+	{{ trigger_print_script or '' }}
 </body>
 </html>
