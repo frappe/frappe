@@ -289,12 +289,13 @@ def _get_linked_document_counts(doctype: str, name: str, items=None):
 			internal_links_data_for_d = get_internal_links(doc, internal_link_for_doctype, d)
 			if internal_links_data_for_d["count"]:
 				out["internal_links_found"].append(internal_links_data_for_d)
+			elif has_external_link_field(d, links):
+				# pairs can be linked from either side, e.g. a Sales Invoice made
+				# from a Delivery Note (internal) vs one a Delivery Note was made
+				# from (external), so probe the other direction too
+				out["external_links_found"].append(get_external_links(d, name, links))
 			else:
-				try:
-					external_links_data_for_d = get_external_links(d, name, links)
-					out["external_links_found"].append(external_links_data_for_d)
-				except Exception:
-					out["external_links_found"].append({"doctype": d, "open_count": 0, "count": 0})
+				out["external_links_found"].append({"doctype": d, "open_count": 0, "count": 0})
 		else:
 			external_links_data_for_d = get_external_links(d, name, links)
 			out["external_links_found"].append(external_links_data_for_d)
@@ -335,8 +336,23 @@ def get_internal_links(doc, link, link_doctype):
 	return data
 
 
+def get_external_link_fieldname(doctype, links):
+	return links.get("non_standard_fieldnames", {}).get(doctype, links.get("fieldname"))
+
+
+def has_external_link_field(doctype, links):
+	"""Whether `doctype` (or one of its child tables) has the field that links it back."""
+	fieldname = get_external_link_fieldname(doctype, links)
+	if not fieldname:
+		return False
+	meta = frappe.get_meta(doctype)
+	return meta.has_field(fieldname) or any(
+		frappe.get_meta(df.options).has_field(fieldname) for df in meta.get_table_fields()
+	)
+
+
 def get_external_links(doctype, name, links):
-	fieldname = links.get("non_standard_fieldnames", {}).get(doctype, links.get("fieldname"))
+	fieldname = get_external_link_fieldname(doctype, links)
 	filters = {fieldname: name}
 
 	# updating filters based on dynamic_links

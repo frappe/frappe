@@ -17,7 +17,7 @@ frappe.provide("frappe.views");
 (function () {
 	var method_prefix = "frappe.desk.doctype.kanban_board.kanban_board.";
 
-	let columns_unwatcher = null;
+	let active_board = null;
 	const LARGE_BOARD_ORDER_SYNC_LIMIT = 200;
 	var prepared_card_cache = {}; // Card HTML built only when shown on screen.
 	var column_registry = {}; // Per-column scroll + render helpers.
@@ -425,6 +425,8 @@ frappe.provide("frappe.views");
 		self.cur_list = opts.cur_list;
 		self.board_name = opts.board_name;
 		self.board_perms = self.cur_list.board_perms;
+		self.unwatchers = [];
+		self.columns = [];
 
 		self.update = function (cards) {
 			// update cards internally
@@ -474,23 +476,41 @@ frappe.provide("frappe.views");
 			store.dispatch("sync_from_realtime", { cards, columns, changed_names });
 		};
 
+		self.teardown = function () {
+			self.unwatchers.forEach((unwatch) => unwatch());
+			self.unwatchers = [];
+			self.columns.forEach((column) => column.unwatch && column.unwatch());
+			self.columns = [];
+		};
+
 		function init() {
+			// store is a shared singleton: release the previously active board's watchers
+			// (this instance on re-render, or an abandoned one after switching boards)
+			active_board && active_board.teardown();
+			active_board = self;
 			store.dispatch("init", opts);
-			columns_unwatcher && columns_unwatcher();
-			store.watch((state, getters) => {
-				return state.columns;
-			}, make_columns);
+			self.unwatchers.push(
+				store.watch((state, getters) => {
+					return state.columns;
+				}, make_columns)
+			);
 			prepare();
 			make_columns();
-			store.watch((state, getters) => {
-				return state.cur_list;
-			}, setup_restore_columns);
-			columns_unwatcher = store.watch((state, getters) => {
-				return state.columns;
-			}, setup_restore_columns);
-			store.watch((state, getters) => {
-				return state.empty_state;
-			}, show_empty_state);
+			self.unwatchers.push(
+				store.watch((state, getters) => {
+					return state.cur_list;
+				}, setup_restore_columns)
+			);
+			self.unwatchers.push(
+				store.watch((state, getters) => {
+					return state.columns;
+				}, setup_restore_columns)
+			);
+			self.unwatchers.push(
+				store.watch((state, getters) => {
+					return state.empty_state;
+				}, show_empty_state)
+			);
 
 			// Order sync on load is expensive for large boards (10k+ DB lookups server-side).
 			requestAnimationFrame(() => {
@@ -533,10 +553,12 @@ frappe.provide("frappe.views");
 				}
 			}
 
+			self.columns.forEach((column) => column.unwatch && column.unwatch());
+			self.columns = [];
 			self.$kanban_board.find(".kanban-column").not(".add-new-column").remove();
 			clear_column_registry();
-			columns.forEach(function (col) {
-				frappe.views.KanbanBoardColumn(col, self.$kanban_board, self.board_perms);
+			self.columns = columns.map(function (col) {
+				return frappe.views.KanbanBoardColumn(col, self.$kanban_board, self.board_perms);
 			});
 		}
 
@@ -753,7 +775,7 @@ frappe.provide("frappe.views");
 			init_virtualization();
 			// Paint column chrome first, then cards on the next frame.
 			requestAnimationFrame(() => make_cards());
-			store.watch(
+			self.unwatch = store.watch(
 				(state) => {
 					const column_cards = state.cards_index?.by_column[column.title] || [];
 					return column_cards.map((card) => card.name).join("\u0001");
@@ -1332,6 +1354,8 @@ frappe.provide("frappe.views");
 		}
 
 		init();
+
+		return self;
 	};
 
 	frappe.views.KanbanBoardCard = function (card, wrapper) {
@@ -1420,7 +1444,7 @@ frappe.provide("frappe.views");
 
 			if (card.comment_count > 0)
 				html += `<span class="list-comment-count small text-muted ">
-					${frappe.utils.icon("es-line-chat-alt")}
+					${frappe.utils.icon("message-circle")}
 					${card.comment_count}
 				</span>`;
 
@@ -1457,7 +1481,7 @@ frappe.provide("frappe.views");
 		function get_assignees_group() {
 			return frappe.avatar_group(card.assigned_list, 3, {
 				css_class: "avatar avatar-small",
-				action_icon: "add",
+				action_icon: "plus",
 				action: show_assign_to_dialog,
 			});
 		}

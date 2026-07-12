@@ -251,17 +251,13 @@ def _restore(
 
 	# Check for the backup file in the backup directory, as well as the main bench directory
 	dirs = (f"{site}/private/backups", "..")
-
-	# Try to resolve path to the file if we can't find it directly
 	if not Path(sql_file_path).exists():
-		click.secho(
-			f"File {sql_file_path} not found. Trying to check in alternative directories.", fg="yellow"
-		)
+		click.secho(f"File {sql_file_path} not found. Trying alternative directories.", fg="yellow")
 		for dir in dirs:
 			potential_path = Path(dir) / Path(sql_file_path)
 			if potential_path.exists():
 				sql_file_path = str(potential_path.resolve())
-				click.secho(f"File {sql_file_path} found.", fg="green")
+				click.secho(f"Found at {sql_file_path}", fg="green")
 				break
 		else:
 			click.secho(f"File {sql_file_path} not found.", fg="red")
@@ -271,21 +267,36 @@ def _restore(
 	if err:
 		click.secho("Failed to detect type of backup file", fg="red")
 		sys.exit(1)
+	is_encrypted = "AES" in out.decode().split(":")[-1].strip()
 
-	if "AES" in out.decode().split(":")[-1].strip():
+	# ---- Progress reporting: total = 2 mandatory (locate + restore) + optional phases
+
+	total_phases = 2 + int(is_encrypted) + int(bool(with_public_files)) + int(bool(with_private_files))
+	phase = 0
+
+	def _phase(msg: str, colour: str = "cyan") -> None:
+		nonlocal phase
+		phase += 1
+		click.secho(f"[{phase}/{total_phases}] {msg}", fg=colour)
+
+	_phase("Located backup file")
+	backup_size = frappe.utils.get_file_size(sql_file_path, format=True)
+	click.secho(f"      {os.path.basename(sql_file_path)} ({backup_size})", fg="green")
+
+	if is_encrypted:
 		if encryption_key:
-			click.secho("Encrypted backup file detected. Decrypting using provided key.", fg="yellow")
-
+			_phase("Decrypting backup (using provided key)", colour="yellow")
 		else:
-			click.secho("Encrypted backup file detected. Decrypting using site config.", fg="yellow")
+			_phase("Decrypting backup (using site config key)", colour="yellow")
 			encryption_key = get_or_generate_backup_encryption_key()
 
 		with decrypt_backup(sql_file_path, encryption_key):
 			# Rollback on unsuccessful decryption
 			if not os.path.exists(sql_file_path):
-				click.secho("Decryption failed. Please provide a valid key and try again.", fg="red")
+				click.secho("      Decryption failed. Please provide a valid key and try again.", fg="red")
 				sys.exit(1)
 
+			_phase("Restoring database")
 			restore_backup(
 				sql_file_path,
 				site,
@@ -297,6 +308,7 @@ def _restore(
 				force,
 			)
 	else:
+		_phase("Restoring database")
 		restore_backup(
 			sql_file_path,
 			site,
@@ -310,25 +322,21 @@ def _restore(
 
 	# Extract public and/or private files to the restored site, if user has given the path
 	if with_public_files:
-		# Decrypt data if there is a Key
+		_phase("Restoring public files")
 		if encryption_key:
 			with decrypt_backup(with_public_files, encryption_key):
 				public = extract_files(site, with_public_files)
 		else:
 			public = extract_files(site, with_public_files)
-
-		# Removing temporarily created file
 		os.remove(public)
 
 	if with_private_files:
-		# Decrypt data if there is a Key
+		_phase("Restoring private files")
 		if encryption_key:
 			with decrypt_backup(with_private_files, encryption_key):
 				private = extract_files(site, with_private_files)
 		else:
 			private = extract_files(site, with_private_files)
-
-		# Removing temporarily created file
 		os.remove(private)
 
 	success_message = "Site {} has been restored{}".format(
@@ -1226,6 +1234,9 @@ def publish_realtime(context: CliCtxObj, event, message, room, user, doctype, do
 @click.argument("site", required=False)
 @click.option("--user", required=False, help="Login as user")
 @click.option(
+	"--sid", "print_sid", is_flag=True, help="Print the generated session id instead of opening the browser"
+)
+@click.option(
 	"--session-end",
 	required=False,
 	help="Session end (in ISO8601 format and timezone-aware - 2025-01-24T12:26:29.200853+00:00)",
@@ -1236,6 +1247,7 @@ def browse(
 	context: CliCtxObj,
 	site,
 	user: str | None = None,
+	print_sid: bool = False,
 	session_end: str | None = None,
 	user_for_audit: str | None = None,
 ):
@@ -1255,6 +1267,7 @@ def browse(
 	frappe.connect()
 
 	sid = ""
+	login_path = ""
 	if user:
 		if not frappe.db.exists("User", user):
 			click.echo(f"User {user} does not exist")
@@ -1265,11 +1278,19 @@ def browse(
 			frappe.local.cookie_manager = CookieManager()
 			frappe.local.login_manager = LoginManager()
 			frappe.local.login_manager.login_as(user, session_end, user_for_audit)
-			sid = f"/app?sid={frappe.session.sid}"
+			sid = frappe.session.sid
+			login_path = f"/app?sid={sid}"
 		else:
 			click.echo("Please enable developer mode to login as a user")
 
-	url = f"{frappe.utils.get_site_url(site)}{sid}"
+	if print_sid:
+		if not sid:
+			click.echo("--sid requires --user and a generated session id", err=True)
+			sys.exit(1)
+		click.echo(sid)
+		return
+
+	url = f"{frappe.utils.get_site_url(site)}{login_path}"
 
 	if user == "Administrator":
 		click.echo(f"Login URL: {url}")

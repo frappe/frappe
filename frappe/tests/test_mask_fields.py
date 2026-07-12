@@ -65,6 +65,9 @@ class TestMaskFieldValue(IntegrationTestCase):
 	def test_time_field_masked(self):
 		self.assertEqual(mask_field_value(self._field("Time"), "14:30:00"), "XX:XX")
 
+	def test_datetime_field_masked(self):
+		self.assertEqual(mask_field_value(self._field("Datetime"), "2024-01-15 14:30:00"), "XX-XX-XXXX XX:XX")
+
 	def test_none_value_is_not_masked(self):
 		self.assertIsNone(mask_field_value(self._field("Data"), None))
 
@@ -212,6 +215,32 @@ class TestMaskFieldsBehaviour(IntegrationTestCase):
 			self.dt,
 			filters={"name": self.docname},
 			fields=["secret_data"],
+			ignore_permissions=True,
+		)
+		self.assertEqual(rows[0]["secret_data"], "top_secret_value")
+
+	def test_db_get_value_does_not_mask_when_permissions_are_ignored(self):
+		frappe.set_user(self.TEST_USER)
+		value = frappe.db.get_value(self.dt, self.docname, "secret_data")
+		self.assertEqual(value, "top_secret_value")
+
+	def test_qb_get_query_does_not_mask_when_permissions_are_ignored(self):
+		frappe.set_user(self.TEST_USER)
+		rows = frappe.qb.get_query(
+			self.dt,
+			fields=["secret_data"],
+			filters={"name": self.docname},
+			ignore_permissions=True,
+		).run(as_dict=True)
+		self.assertEqual(rows[0]["secret_data"], "top_secret_value")
+
+	def test_legacy_db_query_does_not_mask_when_permissions_are_ignored(self):
+		frappe.set_user(self.TEST_USER)
+		from frappe.model.db_query import DatabaseQuery
+
+		rows = DatabaseQuery(self.dt).execute(
+			fields=["secret_data"],
+			filters={"name": self.docname},
 			ignore_permissions=True,
 		)
 		self.assertEqual(rows[0]["secret_data"], "top_secret_value")

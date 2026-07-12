@@ -35,6 +35,7 @@ dependencies = [
     "croniter~=6.2.2",
     "cryptography~=48.0.1",
     "cssutils~=2.15.0",
+    "distro~=1.9.0",
     "email-reply-parser~=0.5.12",
     "Faker~=40.23.0",
     "gunicorn @ git+https://github.com/frappe/gunicorn@f189de0ec3143581d8826f707343fa36c3fb0184",
@@ -107,6 +108,7 @@ Documentation = "https://docs.frappe.io/framework"
 
 [project.optional-dependencies]
 dev = [
+    "pyperf==2.8.1",
     "pyngrok~=8.1.2",
     "watchdog~=6.0.0",
     "responses==0.23.1",
@@ -154,6 +156,7 @@ skip_namespaces = [
 
 [tool.bench.dev-dependencies]
 coverage = "~=7.14.1"
+pyperf = "==2.8.1"
 pyngrok = "~=8.1.2"
 unittest-xml-reporting = "~=4.0.0"
 watchdog = "~=6.0.0"

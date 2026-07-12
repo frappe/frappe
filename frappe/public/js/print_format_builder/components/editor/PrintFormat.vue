@@ -4,6 +4,7 @@
 		:style="rootStyles"
 		:class="{
 			'pfb-clean-preview': !!store.preview_doc.value,
+			'print-format-doc': !!store.preview_doc.value,
 		}"
 	>
 		<div v-if="!page_number_hidden" class="pfb-page-num" :style="page_number_style">
@@ -59,10 +60,31 @@ import LetterHeadZoneEditor from "../letterhead/LetterHeadZoneEditor.vue";
 import PrintFormatSection from "./PrintFormatSection.vue";
 import SectionInsert from "./SectionInsert.vue";
 import { useStore } from "../../stores";
-import { computed, inject, watch, nextTick } from "vue";
+import { computed, inject, watch, nextTick, onUnmounted } from "vue";
 
 let { layout, letterhead, print_format } = useStore();
 let store = inject("$store");
+
+const CUSTOM_CSS_ID = "pfb-letterhead-custom-css";
+watch(
+	letterhead,
+	(lh) => {
+		let el = document.getElementById(CUSTOM_CSS_ID);
+		const css = lh?.custom_css;
+		if (!css) {
+			el?.remove();
+			return;
+		}
+		if (!el) {
+			el = document.createElement("style");
+			el.id = CUSTOM_CSS_ID;
+			document.head.appendChild(el);
+		}
+		el.textContent = css;
+	},
+	{ immediate: true, deep: true }
+);
+onUnmounted(() => document.getElementById(CUSTOM_CSS_ID)?.remove());
 
 watch(
 	() => store.scroll_to_section.value,
@@ -120,10 +142,12 @@ let rootStyles = computed(() => {
 });
 
 let bodyStyles = computed(() => {
-	const { font_size, font } = print_format.value;
+	const { font_size, font, label_color, value_color } = print_format.value;
 	const styles = {};
-	if (font_size) styles.fontSize = `${font_size}pt`;
+	if (font_size) styles.fontSize = `${parseFloat(font_size)}px`;
 	if (font) styles.fontFamily = `'${font}', sans-serif`;
+	if (label_color) styles["--pfb-label-color"] = label_color;
+	if (value_color) styles["--pfb-value-color"] = value_color;
 	return styles;
 });
 
@@ -236,31 +260,36 @@ watch(print_format, () => (store.dirty.value = true), { deep: true });
 /* Hide all editor chrome */
 .pfb-clean-preview :deep(.section-toolbar),
 .pfb-clean-preview :deep(.configure-columns-btn) {
-	display: none !important;
+	display: none;
 }
 
-/* Section hover/selected states in clean-preview */
-.pfb-clean-preview :deep(.print-format-section) {
+/* Default section skin in clean-preview — grid sections style themselves */
+.pfb-clean-preview :deep(.print-format-section:not(.section--grid)) {
 	border: 1px solid transparent;
 	border-radius: var(--radius);
 	overflow: visible;
 	transition: border-color 0.1s;
 }
 
-.pfb-clean-preview :deep(.print-format-section:hover) {
-	border: 1px dashed var(--gray-400);
+/* Outlines live on the container so they enclose the section's margin too */
+.pfb-clean-preview :deep(.print-format-section-container:hover) {
+	outline: 1px dashed var(--gray-400);
+	outline-offset: 2px;
+	border-radius: var(--radius);
 }
 
-.pfb-clean-preview :deep(.print-format-section.section--selected) {
-	border: 1px solid var(--gray-400);
+.pfb-clean-preview :deep(.print-format-section-container:has(.section--selected)) {
+	outline: 1px solid var(--gray-400);
+	outline-offset: 2px;
+	border-radius: var(--radius);
 }
 
 .pfb-clean-preview :deep(.print-format-section-container) {
 	margin-bottom: 0;
 }
 
-/* Field hover/selected states in clean-preview */
-.pfb-clean-preview :deep(.field--preview) {
+/* Default field skin in clean-preview — grid cells style themselves */
+.pfb-clean-preview :deep(.field--preview:not(.section--grid *)) {
 	border: 1px solid transparent;
 	background: transparent;
 	padding: 0;
@@ -268,14 +297,18 @@ watch(print_format, () => (store.dirty.value = true), { deep: true });
 	transition: border-color 0.1s;
 }
 
-.pfb-clean-preview :deep(.field--preview:hover) {
+.pfb-clean-preview :deep(.field--preview:hover:not(.section--grid *)) {
 	border: 1px dashed var(--gray-400);
 	background: transparent;
 }
 
-.pfb-clean-preview :deep(.field--preview.field--selected) {
+.pfb-clean-preview :deep(.field--preview.field--selected:not(.section--grid *)) {
 	border: 1px solid var(--gray-400);
 	background: transparent;
+}
+
+.pfb-clean-preview :deep(.field--preview.field--condition-hidden:not(.section--grid *)) {
+	border: 1px dashed var(--gray-400);
 }
 
 /* Section columns: no vertical padding in preview (matches PDF) */
@@ -283,10 +316,14 @@ watch(print_format, () => (store.dirty.value = true), { deep: true });
 	padding: 0;
 }
 
-/* Remove drag container min-height gaps */
+/* Remove drag container min-height gaps; grid sections keep their own gap */
 .pfb-clean-preview :deep(.drag-container) {
 	min-height: 0;
-	gap: 0.15rem;
+}
+
+/* Field spacing comes from the shared .field + .field margin, like the PDF */
+.pfb-clean-preview :deep(.drag-container:not(.section--grid *)) {
+	gap: 0;
 }
 
 /* Section drag handle in clean-preview: show on hover */
@@ -301,14 +338,18 @@ watch(print_format, () => (store.dirty.value = true), { deep: true });
 	opacity: 1;
 }
 
-/* Section title: match PDF's .section-label look */
+/* Section title: typography/border come from the shared .section-label rules */
 .pfb-clean-preview :deep(.section-title-display) {
 	display: block;
-	padding: 0 0 0.3rem;
-	margin-bottom: 0.4rem;
-	border-bottom: 1.5px solid var(--border-color);
-	font-size: var(--text-lg);
-	font-weight: var(--weight-bold);
-	color: var(--text-color);
+}
+
+.pfb-body :deep(.field--preview) {
+	font-size: inherit;
+}
+.pfb-body :deep(.field--preview .field-preview-value) {
+	font-size: 1em;
+}
+.pfb-body :deep(.field--preview .field-preview-label) {
+	font-size: 1em;
 }
 </style>

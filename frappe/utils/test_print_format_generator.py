@@ -317,3 +317,577 @@ class TestPrintFormatGenerator(IntegrationTestCase):
 		html = get_html("ToDo", todo.name, pf.name)
 		# Padding values must appear as inline style on the section wrapper
 		self.assertIn("16px", html)
+
+	# ------------------------------------------------------------------ #
+	# Table layout (field_borders) + font size
+	# ------------------------------------------------------------------ #
+
+	def _grid_format_data(self, **section):
+		return json.dumps(
+			{
+				"sections": [
+					{
+						"label": "Grid",
+						"field_borders": True,
+						"columns": [
+							{
+								"fields": [
+									{"fieldtype": "Data", "fieldname": "description", "label": "Description"}
+								]
+							}
+						],
+						**section,
+					}
+				],
+				"header": {"columns": [{"label": "", "fields": []}]},
+				"footer": {"columns": [{"label": "", "fields": []}]},
+			}
+		)
+
+	def test_field_borders_renders_grid_class(self):
+		"""A section with field_borders should render the section--grid class."""
+		from frappe.utils.print_format_generator import get_html
+
+		pf = self._make_print_format(format_data=self._grid_format_data())
+		todo = self._make_todo()
+		html = get_html("ToDo", todo.name, pf.name)
+		self.assertIn("section--grid", html)
+
+	def test_field_borders_renders_cell_padding_var(self):
+		"""cell_padding on a grid section should render the --pfb-cell-pad CSS variable."""
+		from frappe.utils.print_format_generator import get_html
+
+		pf = self._make_print_format(format_data=self._grid_format_data(cell_padding=12))
+		todo = self._make_todo()
+		html = get_html("ToDo", todo.name, pf.name)
+		self.assertIn("--pfb-cell-pad:12px", html)
+
+	def test_font_size_rendered_as_px(self):
+		"""font_size should be rendered in px so the print output matches the builder preview."""
+		from frappe.utils.print_format_generator import get_html
+
+		pf = self._make_print_format(font_size=18)
+		todo = self._make_todo()
+		html = get_html("ToDo", todo.name, pf.name)
+		self.assertIn("font-size: 18px", html)
+
+	def test_section_style_is_escaped(self):
+		"""A crafted section background must be escaped so it cannot break out of the style attribute."""
+		from frappe.utils.print_format_generator import get_html
+
+		pf = self._make_print_format(
+			format_data=self._grid_format_data(field_borders=False, background='red;"><b>PWN</b>')
+		)
+		todo = self._make_todo()
+		html = get_html("ToDo", todo.name, pf.name)
+		self.assertIn("background:red", html)
+		self.assertNotIn('"><b>PWN</b>', html)
+
+	# ------------------------------------------------------------------ #
+	# Custom style (per-component inline CSS)
+	# ------------------------------------------------------------------ #
+
+	def _custom_style_format_data(self, field_style=None, section_style=None):
+		section = {
+			"label": "Styled",
+			"columns": [
+				{
+					"fields": [
+						{
+							"fieldtype": "Data",
+							"fieldname": "description",
+							"label": "Description",
+							**({"custom_style": field_style} if field_style else {}),
+						}
+					]
+				}
+			],
+		}
+		if section_style:
+			section["custom_style"] = section_style
+		return json.dumps(
+			{
+				"sections": [section],
+				"header": {"columns": [{"label": "", "fields": []}]},
+				"footer": {"columns": [{"label": "", "fields": []}]},
+			}
+		)
+
+	def test_custom_style_in_html(self):
+		"""custom_style renders as an inline style on every component root."""
+		from frappe.utils.print_format_generator import get_html
+
+		todo = self._make_todo()
+
+		with self.subTest("field"):
+			pf = self._make_print_format(
+				format_data=self._custom_style_format_data(
+					field_style="border: 1px solid #123456; padding: 6px"
+				)
+			)
+			html = get_html("ToDo", todo.name, pf.name)
+			self.assertIn("border: 1px solid #123456; padding: 6px", html)
+
+		with self.subTest("section"):
+			pf = self._make_print_format(
+				format_data=self._custom_style_format_data(section_style="border-radius: 9px")
+			)
+			html = get_html("ToDo", todo.name, pf.name)
+			self.assertIn("border-radius: 9px", html)
+
+		with self.subTest("blocks"):
+			pf = self._make_print_format(
+				format_data=json.dumps(
+					{
+						"sections": [
+							{
+								"label": "Blocks",
+								"columns": [
+									{
+										"fields": [
+											{
+												"fieldtype": "HTML",
+												"fieldname": "_html1",
+												"html": "<p>hello</p>",
+												"custom_style": "margin-top: 11px",
+											},
+											{
+												"fieldtype": "Spacer",
+												"fieldname": "_spacer1",
+												"custom_style": "height: 33px",
+											},
+											{
+												"fieldtype": "Divider",
+												"fieldname": "_divider1",
+												"custom_style": "border-bottom-color: #123456",
+											},
+										]
+									}
+								],
+							}
+						],
+						"header": {"columns": [{"label": "", "fields": []}]},
+						"footer": {"columns": [{"label": "", "fields": []}]},
+					}
+				)
+			)
+			html = get_html("ToDo", todo.name, pf.name)
+			self.assertIn("margin-top: 11px", html)
+			self.assertIn("height: 1rem;height: 33px", html)
+			self.assertIn("border-bottom-color: #123456", html)
+
+		contact = self._make_contact_with_email()
+
+		with self.subTest("table"):
+			pf = frappe.get_doc(
+				{
+					"doctype": "Print Format",
+					"name": f"_Test PFG Contact {frappe.generate_hash(length=6)}",
+					"doc_type": "Contact",
+					"print_format_builder_beta": 1,
+					"custom_format": 0,
+					"standard": "No",
+					"format_data": json.dumps(
+						{
+							"sections": [
+								{
+									"label": "Emails",
+									"columns": [
+										{
+											"fields": [
+												{
+													"fieldtype": "Table",
+													"fieldname": "email_ids",
+													"label": "Emails",
+													"custom_style": "margin-top: 27px",
+													"table_columns": [
+														{
+															"fieldname": "email_id",
+															"label": "Email",
+															"width": 100,
+														}
+													],
+												}
+											]
+										}
+									],
+								}
+							],
+							"header": {"columns": [{"label": "", "fields": []}]},
+							"footer": {"columns": [{"label": "", "fields": []}]},
+						}
+					),
+				}
+			)
+			pf.insert(ignore_permissions=True)
+			self.addCleanup(pf.delete, ignore_permissions=True)
+			html = get_html("Contact", contact.name, pf.name)
+			self.assertIn('style="margin-top: 27px"', html)
+
+		with self.subTest("repeater"):
+			pf = self._make_repeater_format(
+				columns=[{"template": [{"t": "f", "v": "email_id"}], "align": "left"}],
+				custom_style="padding: 13px",
+			)
+			html = get_html("Contact", contact.name, pf.name)
+			self.assertIn('style="padding: 13px"', html)
+
+	def test_custom_style_is_escaped(self):
+		"""A crafted custom_style must not break out of the style attribute."""
+		from frappe.utils.print_format_generator import get_html
+
+		todo = self._make_todo()
+
+		with self.subTest("field"):
+			pf = self._make_print_format(
+				format_data=self._custom_style_format_data(field_style='color:red;"><b>PWN</b>')
+			)
+			html = get_html("ToDo", todo.name, pf.name)
+			self.assertIn("color:red", html)
+			self.assertNotIn('"><b>PWN</b>', html)
+
+		with self.subTest("section"):
+			pf = self._make_print_format(
+				format_data=self._custom_style_format_data(section_style='border:1px;"><b>PWN</b>')
+			)
+			html = get_html("ToDo", todo.name, pf.name)
+			self.assertIn("border:1px", html)
+			self.assertNotIn('"><b>PWN</b>', html)
+
+	# ------------------------------------------------------------------ #
+	# Label / value colors (Format settings)
+	# ------------------------------------------------------------------ #
+
+	def test_label_color_rendered_in_css(self):
+		"""A label_color set on the print format emits a label color override rule."""
+		from frappe.utils.print_format_generator import get_html
+
+		pf = self._make_print_format(label_color="#c0392b")
+		todo = self._make_todo()
+		html = get_html("ToDo", todo.name, pf.name)
+		self.assertIn(
+			".print-format-doc .field .label,\n.print-format-doc .field.left-right .label,\n.print-format-doc .field.field-inline .label {\n\tcolor: #c0392b;\n}",
+			html,
+		)
+
+	def test_value_color_rendered_in_css(self):
+		"""A value_color set on the print format emits a value color override rule."""
+		from frappe.utils.print_format_generator import get_html
+
+		pf = self._make_print_format(value_color="#1a5fb4")
+		todo = self._make_todo()
+		html = get_html("ToDo", todo.name, pf.name)
+		self.assertIn(
+			".print-format-doc .field .value,\n.print-format-doc .field.left-right .value,\n.print-format-doc .field.field-inline .value {\n\tcolor: #1a5fb4;\n}",
+			html,
+		)
+
+	def test_no_color_override_when_colors_unset(self):
+		"""Without label/value colors, no color override rule is emitted."""
+		from frappe.utils.print_format_generator import get_html
+
+		pf = self._make_print_format()
+		todo = self._make_todo()
+		html = get_html("ToDo", todo.name, pf.name)
+		self.assertNotIn(".field.left-right .label {\n\tcolor:", html)
+		self.assertNotIn(".field.left-right .value {\n\tcolor:", html)
+
+	def test_non_hex_color_rejected(self):
+		"""Colors that are not #RRGGBB hex codes are rejected on save."""
+		with self.assertRaises(frappe.ValidationError):
+			self._make_print_format(label_color="red; } * { display: none")
+
+	def test_repeater_column_invalid_color_and_align_ignored(self):
+		"""Repeater column color/align values outside the whitelist render nothing."""
+		from frappe.utils.print_format_generator import get_html
+
+		contact = self._make_contact_with_email()
+		pf = self._make_repeater_format(
+			columns=[
+				{
+					"template": [{"t": "f", "v": "email_id"}],
+					"align": "up; position:fixed",
+					"color": "red; } * { display: none",
+				}
+			]
+		)
+		html = get_html("Contact", contact.name, pf.name)
+		self.assertNotIn("position:fixed", html)
+		self.assertNotIn("display: none", html)
+		self.assertIn('class="pfb-repeater-cell" style="text-align: left"', html)
+
+	def test_blank_table_column_header_falls_back_to_fieldname(self):
+		"""A child-table column with an empty label should render its fieldname as the header."""
+		import re
+
+		from frappe.utils.print_format_generator import get_html
+
+		contact = frappe.get_doc(
+			{
+				"doctype": "Contact",
+				"first_name": f"_Test PFG {frappe.generate_hash(length=6)}",
+				"email_ids": [{"email_id": "pfg@example.com", "is_primary": 1}],
+			}
+		)
+		contact.insert(ignore_permissions=True)
+		self.addCleanup(contact.delete, ignore_permissions=True)
+
+		pf = frappe.get_doc(
+			{
+				"doctype": "Print Format",
+				"name": f"_Test PFG Contact {frappe.generate_hash(length=6)}",
+				"doc_type": "Contact",
+				"print_format_builder_beta": 1,
+				"custom_format": 0,
+				"standard": "No",
+				"format_data": json.dumps(
+					{
+						"sections": [
+							{
+								"label": "Emails",
+								"columns": [
+									{
+										"fields": [
+											{
+												"fieldtype": "Table",
+												"fieldname": "email_ids",
+												"label": "Emails",
+												"table_columns": [
+													{"fieldname": "email_id", "label": "", "width": 100}
+												],
+											}
+										]
+									}
+								],
+							}
+						],
+						"header": {"columns": [{"label": "", "fields": []}]},
+						"footer": {"columns": [{"label": "", "fields": []}]},
+					}
+				),
+			}
+		)
+		pf.insert(ignore_permissions=True)
+		self.addCleanup(pf.delete, ignore_permissions=True)
+
+		html = get_html("Contact", contact.name, pf.name)
+		self.assertRegex(html, r"email_id\s*</th>")
+
+	# ------------------------------------------------------------------ #
+	# Repeater block
+	# ------------------------------------------------------------------ #
+
+	def _make_contact_with_email(self):
+		contact = frappe.get_doc(
+			{
+				"doctype": "Contact",
+				"first_name": f"_Test PFG {frappe.generate_hash(length=6)}",
+				"email_ids": [{"email_id": "pfg@example.com", "is_primary": 1}],
+			}
+		)
+		contact.insert(ignore_permissions=True)
+		self.addCleanup(contact.delete, ignore_permissions=True)
+		return contact
+
+	def _make_repeater_format(
+		self, label="", columns=None, omit_repeater_columns=False, section_label="", **field_extra
+	):
+		name = f"_Test PFG Rep {frappe.generate_hash(length=6)}"
+		repeater_field = {
+			"fieldtype": "Repeater",
+			"fieldname": "rep1",
+			"label": label,
+			"source": "email_ids",
+			**field_extra,
+		}
+		if not omit_repeater_columns:
+			repeater_field["repeater_columns"] = columns or []
+		pf = frappe.get_doc(
+			{
+				"doctype": "Print Format",
+				"name": name,
+				"doc_type": "Contact",
+				"print_format_builder_beta": 1,
+				"custom_format": 0,
+				"standard": "No",
+				"format_data": json.dumps(
+					{
+						"sections": [
+							{
+								"label": section_label,
+								"columns": [{"fields": [repeater_field]}],
+							}
+						],
+						"header": {"columns": [{"label": "", "fields": []}]},
+						"footer": {"columns": [{"label": "", "fields": []}]},
+					}
+				),
+			}
+		)
+		pf.insert(ignore_permissions=True)
+		self.addCleanup(pf.delete, ignore_permissions=True)
+		return pf
+
+	def test_labeled_section_with_only_repeater(self):
+		"""A labeled section whose only field is a repeater renders when the source
+		has rows and stays hidden when it does not."""
+		from frappe.utils.print_format_generator import get_html
+
+		contact = self._make_contact_with_email()
+
+		with self.subTest("renders when source has rows"):
+			pf = self._make_repeater_format(
+				columns=[{"template": [{"t": "f", "v": "email_id"}], "align": "left"}],
+				section_label="Emails Section",
+			)
+			html = get_html("Contact", contact.name, pf.name)
+			self.assertIn("Emails Section", html)
+			self.assertIn('<div class="pfb-repeater"', html)
+
+		with self.subTest("hidden when source is empty"):
+			pf = self._make_repeater_format(
+				columns=[{"template": [{"t": "f", "v": "number"}], "align": "left"}],
+				section_label="Phones Section",
+				source="phone_nos",
+			)
+			html = get_html("Contact", contact.name, pf.name)
+			self.assertNotIn("Phones Section", html)
+
+	def test_repeater_renders_templated_rows(self):
+		"""A repeater renders each child row via its column token templates."""
+		from frappe.utils.print_format_generator import get_html
+
+		contact = self._make_contact_with_email()
+		pf = self._make_repeater_format(
+			columns=[
+				{
+					"template": [{"t": "s", "v": "Email: "}, {"t": "f", "v": "email_id"}],
+					"align": "left",
+				}
+			]
+		)
+		html = get_html("Contact", contact.name, pf.name)
+		self.assertIn("pfb-repeater", html)
+		self.assertIn("Email: pfg@example.com", html)
+
+	def test_repeater_no_title_when_label_blank(self):
+		"""A repeater with a blank label renders no title element."""
+		from frappe.utils.print_format_generator import get_html
+
+		contact = self._make_contact_with_email()
+		pf = self._make_repeater_format(
+			label="", columns=[{"template": [{"t": "f", "v": "email_id"}], "align": "left"}]
+		)
+		html = get_html("Contact", contact.name, pf.name)
+		self.assertNotIn('<div class="label">', html)
+
+	def test_repeater_with_missing_columns_key_does_not_crash(self):
+		"""A repeater whose source is set but with no repeater_columns key must not raise."""
+		from frappe.utils.print_format_generator import get_html
+
+		contact = self._make_contact_with_email()
+		pf = self._make_repeater_format(omit_repeater_columns=True)
+		html = get_html("Contact", contact.name, pf.name)
+		self.assertIn("pfb-repeater", html)
+
+	def test_repeater_column_values_are_escaped(self):
+		"""A crafted column align/text token must be escaped so it cannot inject markup."""
+		from frappe.utils.print_format_generator import get_html
+
+		contact = self._make_contact_with_email()
+		pf = self._make_repeater_format(
+			columns=[
+				{
+					"template": [{"t": "s", "v": '"><b>PWN</b>'}],
+					"align": '"><b>PWN</b>',
+				}
+			]
+		)
+		html = get_html("Contact", contact.name, pf.name)
+		self.assertNotIn('"><b>PWN</b>', html)
+
+	def test_repeater_column_width_rendered(self):
+		"""A repeater column width emits a colgroup <col> with a width percentage."""
+		from frappe.utils.print_format_generator import get_html
+
+		contact = self._make_contact_with_email()
+		pf = self._make_repeater_format(
+			columns=[
+				{"template": [{"t": "f", "v": "email_id"}], "align": "left", "width": 40},
+				{"template": [{"t": "f", "v": "email_id"}], "align": "left"},
+			]
+		)
+		html = get_html("Contact", contact.name, pf.name)
+		self.assertIn("<colgroup>", html)
+		self.assertIn("width: 40%", html)
+
+	def test_repeater_column_color_rendered(self):
+		"""A repeater column color is rendered as an inline color on the cell."""
+		from frappe.utils.print_format_generator import get_html
+
+		contact = self._make_contact_with_email()
+		pf = self._make_repeater_format(
+			columns=[{"template": [{"t": "f", "v": "email_id"}], "align": "left", "color": "#C0392B"}]
+		)
+		html = get_html("Contact", contact.name, pf.name)
+		self.assertIn('style="text-align: left; color: #C0392B"', html)
+
+	def test_repeater_column_no_color_when_unset(self):
+		"""A repeater column without a color emits no inline color on the cell."""
+		from frappe.utils.print_format_generator import get_html
+
+		contact = self._make_contact_with_email()
+		pf = self._make_repeater_format(
+			columns=[{"template": [{"t": "f", "v": "email_id"}], "align": "left"}]
+		)
+		html = get_html("Contact", contact.name, pf.name)
+		self.assertIn('class="pfb-repeater-cell" style="text-align: left"', html)
+
+	# ------------------------------------------------------------------ #
+	# Field orientation / spacing
+	# ------------------------------------------------------------------ #
+
+	def test_left_right_field_gets_justify_class(self):
+		"""A left-right field with label_justify emits the field-justify-* class."""
+		from frappe.utils.print_format_generator import get_html
+
+		pf = self._make_print_format(
+			format_data=json.dumps(
+				{
+					"sections": [
+						{
+							"label": "",
+							"field_orientation": "left-right",
+							"columns": [
+								{
+									"fields": [
+										{
+											"fieldtype": "Data",
+											"fieldname": "description",
+											"label": "Desc",
+											"label_justify": "space-between",
+										}
+									]
+								}
+							],
+						}
+					],
+					"header": {"columns": [{"label": "", "fields": []}]},
+					"footer": {"columns": [{"label": "", "fields": []}]},
+				}
+			)
+		)
+		todo = self._make_todo()
+		html = get_html("ToDo", todo.name, pf.name)
+		self.assertIn("field-justify-space-between", html)
+
+	def test_top_orientation_field_is_not_inline(self):
+		"""A default (Top) field is not rendered inline — no left-right/field-inline class."""
+		from frappe.utils.print_format_generator import get_html
+
+		pf = self._make_print_format()
+		todo = self._make_todo()
+		html = get_html("ToDo", todo.name, pf.name)
+		body = html.split("<body", 1)[1]
+		self.assertNotIn("field-justify-", body)
+		self.assertNotIn("field left-right", body)

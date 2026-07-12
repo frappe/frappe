@@ -240,7 +240,7 @@ class DatabaseQuery:
 		if pluck:
 			return [d[pluck] for d in result]
 
-		if self.doctype and result:
+		if self.doctype and result and not self.flags.ignore_permissions:
 			result = self.mask_fields(result)
 
 		return result
@@ -817,6 +817,13 @@ from {tables}
 		df = meta.get("fields", {"fieldname": f.fieldname})
 		df = df[0] if df else None
 
+		# _assign and _liked_by store a JSON array of user ids, so `=`/`!=` never match a
+		# single member; treat them as `like`/`not like` against the serialized value.
+		if f.fieldname in ("_assign", "_liked_by") and f.operator in ("=", "!="):
+			f.operator = "like" if f.operator == "=" else "not like"
+			if isinstance(f.value, str) and f.value:
+				f.value = f"%{f.value}%"
+
 		# primary key is never nullable, modified is usually indexed by default and always present
 		can_be_null = f.fieldname not in ("name", "modified", "creation")
 
@@ -1170,6 +1177,11 @@ from {tables}
 		condition_methods = hooks.get(self.doctype, []) + hooks.get("*", [])
 		for method in condition_methods:
 			if c := frappe.call(frappe.get_attr(method), self.user, doctype=self.doctype):
+				# Hooks may return a raw SQL string or a pypika term. This path builds a
+				# string WHERE clause, so render any term to namespaced SQL using the
+				# active dialect's identifier quote char.
+				if not isinstance(c, str):
+					c = self._render_permission_criterion(c)
 				conditions.append(c)
 
 		active_child_tables = []
@@ -1188,6 +1200,23 @@ from {tables}
 				conditions.append(condition)
 
 		return " and ".join(conditions) if conditions else ""
+
+	def _render_permission_criterion(self, criterion) -> str:
+		"""Render a pypika permission criterion to a namespaced SQL string.
+
+		The legacy query path concatenates conditions into a single WHERE string, so any
+		embedded value must be inlined. We collect values via a parameter wrapper and inline
+		them with `frappe.db.escape` (the driver's escaping) rather than pypika's bare
+		quote-doubling, which is unsafe on MariaDB where backslash is an escape character.
+		"""
+		from frappe.query_builder.terms import NamedParameterWrapper
+
+		quote_char = "`" if frappe.db.db_type == "mariadb" else '"'
+		param_wrapper = NamedParameterWrapper()
+		sql = criterion.get_sql(with_namespace=True, quote_char=quote_char, param_wrapper=param_wrapper)
+		for key, value in param_wrapper.get_parameters().items():
+			sql = sql.replace(f"%({key})s", frappe.db.escape(value))
+		return sql
 
 	def set_order_by(self, args):
 		if self.order_by and self.order_by != "KEEP_DEFAULT_ORDERING":

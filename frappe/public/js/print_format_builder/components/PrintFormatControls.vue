@@ -10,7 +10,6 @@
 				:title="tab.label"
 				@click="activeTab = tab.id"
 			>
-				<span class="pfb-tab-icon" v-html="frappe.utils.icon(tab.icon, 'sm')"></span>
 				<span class="pfb-tab-label">{{ tab.label }}</span>
 			</button>
 		</div>
@@ -63,7 +62,7 @@
 						>
 							<span
 								class="pfb-field-drag"
-								v-html="frappe.utils.icon('drag', 'xs')"
+								v-html="frappe.utils.icon('grip', 'xs')"
 							></span>
 							<span class="pfb-field-label">{{ element.label }}</span>
 							<span class="pfb-field-type">{{ element.fieldtype }}</span>
@@ -141,7 +140,7 @@
 						)
 					}}
 				</p>
-				<a :href="new_template_link" target="_blank" class="btn btn-xs btn-secondary mt-2">
+				<a :href="new_template_link" target="_blank" class="es-button mt-2" data-size="xs">
 					{{ __("Create Field Template") }}
 				</a>
 			</div>
@@ -210,27 +209,30 @@
 		</div>
 
 		<!-- ── Format ─────────────────────────────────────────── -->
-		<div v-else-if="activeTab === 'format'" class="pfb-tab-body">
-			<div class="pfb-group-label">{{ __("Page margins (mm)") }}</div>
-			<div class="pfb-margin-grid">
-				<div class="pfb-margin-cell" v-for="df in margins" :key="df.fieldname">
-					<label class="pfb-margin-label control-label">{{ df.label }}</label>
-					<input
-						type="number"
-						class="form-control form-control-sm"
-						:value="print_format[df.fieldname]"
-						min="0"
-						@change="(e) => update_margin(df.fieldname, e.target.value)"
-					/>
+		<div v-else-if="activeTab === 'format'" class="pfb-tab-body pfb-format-tab">
+			<div class="form-group">
+				<label class="control-label">{{ __("Page Margins (mm)") }}</label>
+				<div class="pfb-margin-grid">
+					<div class="pfb-margin-cell" v-for="df in margins" :key="df.fieldname">
+						<label class="pfb-margin-label control-label">{{ df.label }}</label>
+						<input
+							type="number"
+							class="form-control form-control-sm"
+							:value="print_format[df.fieldname]"
+							min="0"
+							@change="(e) => update_margin(df.fieldname, e.target.value)"
+						/>
+					</div>
 				</div>
 			</div>
-
-			<div class="pfb-group-label mt-3">{{ __("Font") }}</div>
 			<div class="form-group">
 				<label class="control-label">{{ __("Google Font") }}</label>
-				<select class="form-control form-control-sm" v-model="print_format.font">
-					<option v-for="font in google_fonts" :value="font">{{ font }}</option>
-				</select>
+				<Autocomplete
+					:options="font_options"
+					:model-value="print_format.font || ''"
+					:placeholder="__('Default')"
+					@select="(o) => (print_format.font = o.value)"
+				/>
 			</div>
 			<div class="form-group">
 				<label class="control-label">{{ __("Font Size (pt)") }}</label>
@@ -242,9 +244,12 @@
 					@change="(e) => (print_format.font_size = parseFloat(e.target.value))"
 				/>
 			</div>
-
-			<div class="pfb-group-label mt-3">{{ __("Page number") }}</div>
+			<div class="form-group" v-for="c in color_settings" :key="c.fieldname">
+				<label class="control-label">{{ c.label }}</label>
+				<div :ref="(el) => (color_hosts[c.fieldname] = el)"></div>
+			</div>
 			<div class="form-group">
+				<label class="control-label">{{ __("Page Number") }}</label>
 				<select class="form-control form-control-sm" v-model="print_format.page_number">
 					<option v-for="p in page_number_positions" :value="p.value">
 						{{ p.label }}
@@ -257,6 +262,7 @@
 
 <script setup>
 import draggable from "vuedraggable";
+import Autocomplete from "../../vue-components/Autocomplete.vue";
 import { get_table_columns, pluck } from "../utils";
 import { useStore } from "../stores";
 import { computed, onMounted, onUnmounted, nextTick, ref, watch, inject } from "vue";
@@ -264,6 +270,10 @@ import { computed, onMounted, onUnmounted, nextTick, ref, watch, inject } from "
 // state
 let search_text = ref("");
 let google_fonts = ref([]);
+let font_options = computed(() => [
+	{ label: __("Default"), value: "" },
+	...google_fonts.value.map((f) => ({ label: f, value: f })),
+]);
 let activeTab = ref("fields");
 let search_input = ref(null);
 let raw_templates = ref([]);
@@ -279,11 +289,11 @@ let { meta, print_format, layout } = useStore();
 
 // ── tab definitions ───────────────────────────────────────
 const tabs = computed(() => [
-	{ id: "fields", label: __("Fields"), icon: "list" },
-	{ id: "blocks", label: __("Blocks"), icon: "blocks" },
-	{ id: "templates", label: __("Templates"), icon: "table" },
-	{ id: "outline", label: __("Outline"), icon: "layout-list" },
-	{ id: "format", label: __("Format"), icon: "settings" },
+	{ id: "fields", label: __("Fields") },
+	{ id: "blocks", label: __("Blocks") },
+	{ id: "templates", label: __("Templates") },
+	{ id: "outline", label: __("Outline") },
+	{ id: "format", label: __("Format") },
 ]);
 
 // ── blocks tab items ──────────────────────────────────────
@@ -321,7 +331,76 @@ const draggable_blocks = [
 		icon: "minus",
 		desc: __("Horizontal rule"),
 	},
+	{
+		label: __("Image"),
+		fieldname: "image",
+		fieldtype: "Image",
+		custom: 1,
+		icon: "image",
+		desc: __("Upload an image or use a URL"),
+		image_url: "",
+		width: "",
+	},
+	{
+		label: __("Barcode"),
+		fieldname: "barcode",
+		fieldtype: "Barcode",
+		custom: 1,
+		icon: "barcode",
+		desc: __("Barcode or QR code from a field or static value"),
+		barcode_field: "",
+		barcode_value: "",
+		barcode_format: "CODE128",
+		show_text: true,
+		width: "",
+	},
+	{
+		label: __("Repeater"),
+		fieldname: "repeater",
+		fieldtype: "Repeater",
+		custom: 1,
+		icon: "list",
+		desc: __("Repeat child table rows as templated lines"),
+		source: "",
+		repeater_columns: [
+			{ template: [], align: "left" },
+			{ template: [], align: "right" },
+		],
+	},
 ];
+
+const color_settings = [
+	{ fieldname: "label_color", label: __("Label Color") },
+	{ fieldname: "value_color", label: __("Value Color") },
+];
+let color_hosts = ref({});
+
+// The Format tab is v-if, so its DOM is recreated on each visit — (re)mount the
+// Frappe color controls into the fresh host divs when the tab is shown.
+function mount_color_controls() {
+	for (const c of color_settings) {
+		const host = color_hosts.value[c.fieldname];
+		if (!host) continue;
+		host.innerHTML = "";
+		const control = frappe.ui.form.make_control({
+			parent: host,
+			df: {
+				fieldtype: "Color",
+				fieldname: c.fieldname,
+				placeholder: c.label,
+				change() {
+					const value = control.get_value() || null;
+					if ((print_format.value[c.fieldname] ?? null) !== value) {
+						print_format.value[c.fieldname] = value;
+					}
+				},
+			},
+			render_input: true,
+			only_input: true,
+		});
+		control.set_value(print_format.value[c.fieldname] || "");
+	}
+}
 
 // ── helpers ────────────────────────────────────────────────
 function update_margin(fieldname, value) {
@@ -339,10 +418,21 @@ function clone_field(df) {
 		"table_columns",
 		"html",
 		"field_template",
+		"source",
+		"repeater_columns",
+		"custom",
+		"image_url",
+		"width",
+		"barcode_field",
+		"barcode_value",
+		"barcode_format",
+		"show_text",
 	]);
 	if (cloned.custom) {
 		cloned.fieldname += "_" + frappe.utils.get_random(8);
 	}
+	// Repeater has no title by default — the palette label is only for the palette.
+	if (cloned.fieldtype === "Repeater") cloned.label = "";
 	return cloned;
 }
 
@@ -484,6 +574,7 @@ function fetch_templates() {
 
 watch(activeTab, (tab) => {
 	if (tab === "templates") fetch_templates();
+	if (tab === "format") nextTick(mount_color_controls);
 });
 
 let print_templates_list = computed(() => {
@@ -541,7 +632,7 @@ onMounted(() => {
 	let method = "frappe.printing.page.print_format_builder.print_format_builder.get_google_fonts";
 	frappe.call(method).then((r) => {
 		google_fonts.value = r.message || [];
-		if (!google_fonts.value.includes(print_format.value.font)) {
+		if (print_format.value.font && !google_fonts.value.includes(print_format.value.font)) {
 			google_fonts.value.push(print_format.value.font);
 		}
 	});
@@ -574,7 +665,7 @@ watch(print_format, () => (store.dirty.value = true), { deep: true });
 .pfb-sidebar {
 	width: 260px;
 	flex-shrink: 0;
-	height: calc(100vh - 95px);
+	height: calc(100vh - var(--pfb-chrome-offset, 95px));
 	display: flex;
 	flex-direction: column;
 	border-right: 1px solid var(--border-color);
@@ -593,10 +684,9 @@ watch(print_format, () => (store.dirty.value = true), { deep: true });
 .pfb-tab {
 	flex: 1;
 	display: flex;
-	flex-direction: column;
 	align-items: center;
-	gap: 2px;
-	padding: 6px 2px 8px;
+	justify-content: center;
+	padding: 8px 2px;
 	border: none;
 	background: transparent;
 	border-radius: var(--radius) var(--radius) 0 0;
@@ -627,12 +717,6 @@ watch(print_format, () => (store.dirty.value = true), { deep: true });
 	height: 2px;
 	background: var(--primary);
 	border-radius: 2px 2px 0 0;
-}
-
-.pfb-tab-icon {
-	display: flex;
-	align-items: center;
-	line-height: 1;
 }
 
 .pfb-tab-label {
@@ -768,9 +852,6 @@ watch(print_format, () => (store.dirty.value = true), { deep: true });
 .pfb-field-type {
 	font-size: var(--text-tiny);
 	color: var(--gray-500);
-	background: var(--gray-100);
-	border: 1px solid var(--gray-200);
-	border-radius: var(--radius);
 	padding: 2px 6px;
 	white-space: nowrap;
 	flex-shrink: 0;
@@ -923,11 +1004,22 @@ watch(print_format, () => (store.dirty.value = true), { deep: true });
 }
 
 /* ── Format tab ──────────────────────────────────────────── */
+.pfb-format-tab .form-group {
+	margin-bottom: 10px;
+}
+
+.pfb-format-tab .form-group:last-child {
+	margin-bottom: 0;
+}
+
+.pfb-format-tab :deep(.frappe-control) {
+	margin-bottom: 0;
+}
+
 .pfb-margin-grid {
 	display: grid;
 	grid-template-columns: 1fr 1fr;
 	gap: 6px;
-	margin-bottom: 6px;
 }
 
 .pfb-margin-cell {

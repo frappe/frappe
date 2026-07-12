@@ -141,7 +141,7 @@ def generate_report_result(
 		"execution_time": frappe.cache.hget("report_execution_time", report.name) or 0,
 	}
 
-	if report.synced_report and report.doctype_to_sync:
+	if report.snapshot_report and report.doctype_to_sync:
 		if latest_sync := frappe.db.get_all(
 			"DuckDB Sync",
 			filters={"doc_type": report.doctype_to_sync[0].doc_type, "docstatus": 1},
@@ -152,8 +152,8 @@ def generate_report_result(
 		):
 			return_dict.update(
 				{
-					"synced_report": True,
-					"synced_at": latest_sync[0],
+					"snapshot_report": True,
+					"snapshot_at": latest_sync[0],
 				}
 			)
 
@@ -223,6 +223,30 @@ def get_reference_report(report):
 @frappe.whitelist()
 @frappe.read_only()
 def run(
+	report_name: str,
+	filters: str | dict | None = None,
+	user: str | None = None,  # Kept for backward compatibility
+	ignore_prepared_report: bool = False,
+	custom_columns: str | list | None = None,
+	is_tree: bool = False,
+	parent_field: str | None = None,
+	are_default_filters: bool = True,
+	js_filters: str | list | None = None,
+) -> dict:
+	return _run(
+		report_name=report_name,
+		filters=filters,
+		ignore_prepared_report=ignore_prepared_report,
+		custom_columns=custom_columns,
+		is_tree=is_tree,
+		parent_field=parent_field,
+		are_default_filters=are_default_filters,
+		js_filters=js_filters,
+	)
+
+
+def _run(
+	*,
 	report_name: str,
 	filters: str | dict | None = None,
 	user: str | None = None,

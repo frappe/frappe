@@ -933,6 +933,132 @@ class TestDBQuery(IntegrationTestCase):
 				limit=1,
 			)
 
+	def test_get_list_pluck_with_masked_fields(self):
+		"""Regression for the pluck-on-masked-doctype crash and mask handling.
+
+		For a non-admin user, a doctype with a masked field used to corrupt
+		``frappe.db.get_list(..., pluck=<name>)`` results: ``mask_list_results``
+		ran ``list(row)`` on each already-plucked scalar, so a string like
+		"P-1156" came back as the tuple ('P','-','1','1','5','6') and a non-
+		string value (int) raised ``TypeError`` on ``list(int)``.
+
+		Since eb9bf4428e made masking opt-in on ``apply_permissions``, only
+		permission-checking APIs (``frappe.db.get_list``) trigger masking.
+		``frappe.db.get_values`` and ``get_query(..., ignore_permissions=True)``
+		intentionally do not mask.
+		"""
+		from frappe.core.doctype.doctype.test_doctype import new_doctype
+
+		frappe.delete_doc_if_exists("DocType", "Test Masked Pluck")
+		new_doctype(
+			"Test Masked Pluck",
+			fields=[
+				{"label": "Secret", "fieldname": "secret", "fieldtype": "Data", "mask": 1},
+				{"label": "Amount", "fieldname": "amount", "fieldtype": "Int"},
+			],
+			permissions=[
+				{"role": "System Manager", "read": 1, "write": 1, "create": 1, "mask": 1},
+				{"role": "Blogger", "read": 1},
+			],
+		).insert(ignore_permissions=True)
+		self.addCleanup(frappe.delete_doc_if_exists, "DocType", "Test Masked Pluck")
+
+		record = frappe.get_doc({"doctype": "Test Masked Pluck", "secret": "P-1156", "amount": 42}).insert(
+			ignore_permissions=True
+		)
+
+		# Sanity: Administrator is never masked and gets the raw values.
+		self.assertEqual(
+			frappe.db.get_list("Test Masked Pluck", filters={"name": record.name}, pluck="name"),
+			[record.name],
+		)
+
+		with setup_test_user(set_user=True):
+			# `secret` is masked for this user, so the doctype has masked fields.
+			self.assertTrue(frappe.get_meta("Test Masked Pluck").get_masked_fields())
+
+			# Plucking a non-masked string field must return the scalar, not a
+			# char tuple.
+			self.assertEqual(
+				frappe.db.get_list("Test Masked Pluck", filters={"name": record.name}, pluck="name"),
+				[record.name],
+			)
+
+			# Plucking a non-masked int field must not raise (used to:
+			# list(int) -> TypeError).
+			self.assertEqual(
+				frappe.db.get_list("Test Masked Pluck", filters={"name": record.name}, pluck="amount"),
+				[42],
+			)
+
+			# Plucking the masked field itself returns the masked scalar value.
+			self.assertEqual(
+				frappe.db.get_list("Test Masked Pluck", filters={"name": record.name}, pluck="secret"),
+				["XXXXXXXX"],
+			)
+		frappe.set_user("Administrator")
+
+	def test_pluck_masks_field_wrapped_in_expression(self):
+		"""Regression for expression-tree bypass in mask_pluck_results.
+
+		Wrapping a masked field in a SQL function (Coalesce, Max, ...) or an
+		arithmetic expression must still mask the plucked result. The prior
+		check compared only ``fields[0].name`` — which returns the function
+		name ('COALESCE', 'MAX') for wrappers and is missing for arithmetic —
+		letting the raw value through.
+
+		Uses ``qb.get_query(..., ignore_permissions=False)`` since direct
+		``qb.from_(...).select(...).run()`` skips permission handling and
+		therefore skips masking (per eb9bf4428e).
+		"""
+		from pypika import functions as fn
+
+		from frappe.core.doctype.doctype.test_doctype import new_doctype
+
+		frappe.delete_doc_if_exists("DocType", "Test Masked Pluck Wrapped")
+		new_doctype(
+			"Test Masked Pluck Wrapped",
+			fields=[
+				{"label": "Secret", "fieldname": "secret", "fieldtype": "Data", "mask": 1},
+				{"label": "Amount", "fieldname": "amount", "fieldtype": "Int"},
+			],
+			permissions=[
+				{"role": "System Manager", "read": 1, "write": 1, "create": 1, "mask": 1},
+				{"role": "Blogger", "read": 1},
+			],
+		).insert(ignore_permissions=True)
+		self.addCleanup(frappe.delete_doc_if_exists, "DocType", "Test Masked Pluck Wrapped")
+
+		record = frappe.get_doc(
+			{"doctype": "Test Masked Pluck Wrapped", "secret": "P-1156", "amount": 42}
+		).insert(ignore_permissions=True)
+
+		def _pluck(field_expr):
+			return frappe.qb.get_query(
+				"Test Masked Pluck Wrapped",
+				fields=[field_expr],
+				filters={"name": record.name},
+				ignore_permissions=False,
+			).run(pluck=True)
+
+		with setup_test_user(set_user=True):
+			dt = frappe.qb.DocType("Test Masked Pluck Wrapped")
+
+			# Coalesce(secret, fallback) — Coalesce returns the raw secret when
+			# it is non-null, so the plucked result must be masked.
+			self.assertEqual(_pluck(fn.Coalesce(dt.secret, "fb")), ["XXXXXXXX"])
+
+			# Aggregation over the masked field — same principle.
+			self.assertEqual(_pluck(fn.Max(dt.secret)), ["XXXXXXXX"])
+
+			# Aliased wrapper — the alias must NOT hide the masked reference.
+			self.assertEqual(_pluck(fn.Coalesce(dt.secret, "fb").as_("s")), ["XXXXXXXX"])
+
+			# Non-masked field wrapped in a function — must NOT mask.
+			self.assertEqual(_pluck(fn.Max(dt.amount)), [42])
+
+		frappe.set_user("Administrator")
+
 	def test_cast_name(self):
 		from frappe.core.doctype.doctype.test_doctype import new_doctype
 
@@ -1038,6 +1164,56 @@ class TestDBQuery(IntegrationTestCase):
 		)[0]
 
 		self.assertTrue(dashboard_settings)
+
+	def test_permission_query_condition_supports_pypika(self):
+		"""The legacy DatabaseQuery path must also accept a pypika criterion from a hook."""
+		from frappe.desk.doctype.dashboard_settings.dashboard_settings import (
+			create_dashboard_settings,
+		)
+		from frappe.model.db_query import DatabaseQuery
+
+		self.user = "test@example.com"
+		create_dashboard_settings(self.user)
+
+		with self.patch_hooks(
+			{
+				"permission_query_conditions": {
+					"Dashboard Settings": ["frappe.tests.test_query.test_permission_hook_criterion"]
+				}
+			}
+		):
+			db_query = DatabaseQuery("Dashboard Settings", user=self.user)
+			conditions = db_query.get_permission_query_conditions()
+
+			# The criterion must be rendered to a namespaced SQL string (the `tab`-prefixed
+			# table name is dialect-independent; only the surrounding quote char differs).
+			self.assertIn("tabDashboard Settings", conditions)
+			self.assertIn("name", conditions)
+
+			# And the rendered string must be valid SQL that selects the user's record.
+			rows = frappe.db.sql(
+				f"SELECT name FROM `tabDashboard Settings` WHERE {conditions}",
+				as_dict=True,
+			)
+			self.assertTrue(any(r.name == self.user for r in rows))
+
+	def test_permission_criterion_escapes_values_safely(self):
+		"""Values inside a pypika permission criterion must be driver-escaped, not inlined raw.
+
+		pypika's bare quote-doubling is unsafe on MariaDB (backslash is an escape char), so the
+		legacy path must route values through frappe.db.escape. A backslash must be doubled and a
+		quote-breakout attempt must stay inside the string literal.
+		"""
+		from frappe.model.db_query import DatabaseQuery
+
+		payload = "back\\slash' OR 1=1 -- "
+		Dashboard = frappe.qb.DocType("Dashboard Settings")
+		rendered = DatabaseQuery("Dashboard Settings")._render_permission_criterion(Dashboard.name == payload)
+
+		# The value must appear exactly as frappe.db.escape produces it (driver-quality escaping:
+		# backslash doubled, quote escaped) — never the raw breakout sequence.
+		self.assertIn(frappe.db.escape(payload), rendered)
+		self.assertNotIn("slash' OR", rendered)
 
 	def test_virtual_doctype(self):
 		"""Test that virtual doctypes can be queried using get_all"""

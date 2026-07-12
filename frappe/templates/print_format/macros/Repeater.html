@@ -1,0 +1,26 @@
+{%- set _show_label = df.show_label if df.show_label else 'show' -%}
+{% if df.source and doc.get(df.source) %}
+<div class="pfb-repeater"{% if df.custom_style %} style="{{ df.custom_style|e }}"{% endif %} {{ field_attributes(df) }}>
+	{% if df.label and _show_label != 'hide' %}<div class="label">{{ _(df.label) }}</div>{% endif %}
+	<table class="pfb-repeater-table">
+		<colgroup>
+			{% for col in (df.repeater_columns or []) %}
+			<col{% if col.width %} style="width: {{ col.width|int }}%"{% endif %} />
+			{% endfor %}
+		</colgroup>
+		{% for row in doc.get(df.source) %}
+		<tr>
+			{% for col in (df.repeater_columns or []) %}
+			{%- set _align = col.align if col.align in ("left", "center", "right") else "left" -%}
+			{%- set _color = col.color if col.color and col.color|length == 7 and col.color[0] == "#" and col.color[1:]|lower|select("in", "0123456789abcdef")|list|length == 6 else None -%}
+			<td class="pfb-repeater-cell" style="text-align: {{ _align }}{% if _color %}; color: {{ _color }}{% endif %}">
+				{%- for tok in (col.template or []) -%}
+					{%- if tok.t == 'f' -%}{{ row.get_formatted(tok.v) }}{%- else -%}{{ tok.v|e }}{%- endif -%}
+				{%- endfor -%}
+			</td>
+			{% endfor %}
+		</tr>
+		{% endfor %}
+	</table>
+</div>
+{% endif %}

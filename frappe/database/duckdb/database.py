@@ -98,3 +98,22 @@ class DuckDBRelation:
 		return [
 			tuple(float(v) if isinstance(v, Decimal) else v for v in row) for row in self._rel.fetchmany(size)
 		]
+
+
+def start_duckdb_sync():
+	_dt = qb.DocType("Doctype To Sync")
+	to_sync = (
+		qb.from_(_dt)
+		.select(_dt.doc_type)
+		.distinct()
+		.where(_dt.parenttype.eq("Report") & _dt.parentfield.eq("doctype_to_sync"))
+		.run(pluck="doc_type")
+	)
+	for x in to_sync:
+		doc = frappe.get_doc(
+			{
+				"doctype": "DuckDB Sync",
+				"doc_type": x,
+			}
+		).insert()
+		doc.submit()

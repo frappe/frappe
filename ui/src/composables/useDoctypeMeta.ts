@@ -5,6 +5,7 @@ import type { RawMetaField } from "../components/FormLayout/types";
 
 export interface DoctypeMeta {
   name: string;
+  title_field?: string;
   fields?: RawMetaField[];
 }
 

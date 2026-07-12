@@ -89,7 +89,7 @@
 
 		let $comment_count = $(`
 			<div class="feedback-item comments">
-				<span class="comment-icon">${frappe.utils.icon('small-message', 'md')}</span>
+				<span class="comment-icon">${frappe.utils.icon('message-circle', 'md')}</span>
 				<span class="comment-count">${comment_count}</span>
 			</div>
 		`);
@@ -152,6 +152,10 @@
 				reference_name: "{{ reference_name or name }}",
 				comment_type: "Comment",
 				route: "{{ pathname }}",
+			}
+
+			if (frappe.web_form) {
+				args.web_form = frappe.web_form.name;
 			}
 
 			if (!args.comment_by || !args.comment_email || !args.comment) {

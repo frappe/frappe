@@ -558,7 +558,7 @@ frappe.PermissionEngine = class PermissionEngine {
 				});
 				d.show();
 			},
-			"small-add"
+			"plus"
 		);
 	}
 

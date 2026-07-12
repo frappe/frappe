@@ -92,7 +92,7 @@ frappe.views.QueryReport = class QueryReport extends frappe.views.BaseList {
 	set_default_secondary_action() {
 		this.refresh_button && this.refresh_button.remove();
 		this.refresh_button = this.page.add_action_icon(
-			"es-line-reload",
+			"refresh-cw",
 			() => {
 				this.setup_progress_bar();
 				this.refresh();
@@ -764,8 +764,8 @@ frappe.views.QueryReport = class QueryReport extends frappe.views.BaseList {
 				this.hide_status();
 				clearInterval(this.interval);
 				clearInterval(this.stale_report_interval);
-				this.synced_report = data.synced_report;
-				this.synced_at = data.synced_at;
+				this.snapshot_report = data.snapshot_report;
+				this.snapshot_at = data.snapshot_at;
 				this.refreshed_at = frappe.datetime.now_datetime();
 				this.execution_time = data.execution_time || 0.1;
 
@@ -797,14 +797,14 @@ frappe.views.QueryReport = class QueryReport extends frappe.views.BaseList {
 					}
 				};
 
-				if (this.synced_report) {
+				if (this.snapshot_report) {
 					if (data.result.length > 0) {
-						let diff = frappe.datetime.comment_when(this.synced_at);
+						let diff = frappe.datetime.comment_when(this.snapshot_at);
 						let pretty_diff = `<span style="color:var(--red-600)">${diff}</span>`;
 						this.show_status(`
 						<div class="indicator orange pl-1">
 							<span>
-								${__("This is a synced report generated {0}.", [pretty_diff])}
+								${__("This is a snapshot report generated {0}.", [pretty_diff])}
 							</span>
 						</div>
 					`);
@@ -903,7 +903,7 @@ frappe.views.QueryReport = class QueryReport extends frappe.views.BaseList {
 	}
 
 	add_prepared_report_buttons(doc) {
-		if (doc) {
+		if (doc && frappe.model.can_read("Prepared Report")) {
 			let is_csv =
 				doc.attachments &&
 				doc.attachments.some((attachment) => attachment.file_name.endsWith(".csv"));
@@ -1103,7 +1103,7 @@ frappe.views.QueryReport = class QueryReport extends frappe.views.BaseList {
 				[cstr(format_number(data.length, null, 0)).bold(), __("export").bold()]
 			);
 
-			this.toggle_message(true, `${frappe.utils.icon("solid-warning")} ${msg}`);
+			this.toggle_message(true, `${frappe.utils.icon("triangle-alert")} ${msg}`);
 			return;
 		}
 
@@ -2254,7 +2254,11 @@ frappe.views.QueryReport = class QueryReport extends frappe.views.BaseList {
 		});
 		this.data.forEach((row) => {
 			doctypes.forEach((doc) => {
-				this.doctype_field_map[doc.doctype][doc.fieldname].names.add(row[doc.fieldname]);
+				if (row[doc.fieldname] != null) {
+					this.doctype_field_map[doc.doctype][doc.fieldname].names.add(
+						row[doc.fieldname]
+					);
+				}
 			});
 		});
 
