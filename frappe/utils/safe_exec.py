@@ -235,6 +235,33 @@ class SafeDoc(frappe._dict):
 		df = meta.get_field(fieldname) if meta else None
 		return _(df.label) if df and df.label else None
 
+	def in_format_data(self, fieldname):
+		doc = getattr(self, "parent_doc", None) or self
+		format_data_map = doc.get("format_data_map")
+		if format_data_map:
+			return fieldname in format_data_map
+		return True
+
+	def is_print_hide(self, fieldname, df=None, for_print=True):
+		meta = frappe.get_meta(self.get("doctype")) if self.get("doctype") else None
+		meta_df = meta.get_field(fieldname) if meta else None
+
+		if meta_df and meta_df.get("__print_hide"):
+			return True
+
+		print_hide = 0
+
+		if self.get(fieldname) == 0 and not (meta and meta.istable):
+			print_hide = (df and df.print_hide_if_no_value) or (meta_df and meta_df.print_hide_if_no_value)
+
+		if not print_hide:
+			if df and df.print_hide is not None:
+				print_hide = df.print_hide
+			elif meta_df:
+				print_hide = meta_df.print_hide
+
+		return print_hide
+
 
 def get_doc_as_dict(*args, **kwargs):
 	return SafeDoc(frappe.get_doc(*args, **kwargs).as_dict())
