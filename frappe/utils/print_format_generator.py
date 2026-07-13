@@ -360,12 +360,21 @@ class PrintFormatGenerator:
 					rows = self.doc.get(df.get("fieldname")) or []
 					if not rows:
 						continue
-					df["table_columns"] = [
+					kept = [
 						col
 						for col in df["table_columns"]
 						if col.get("fieldname") == "idx"
 						or column_has_value(rows, col.get("fieldname"), frappe._dict(col))
 					]
+					# Widths were distributed across all columns (summing to 100%); after
+					# dropping empties, re-normalize the survivors so the table fills its
+					# width instead of laying out too narrow.
+					total = sum(col.get("width") or 0 for col in kept)
+					if total:
+						for col in kept:
+							if col.get("width"):
+								col["width"] = round(col["width"] / total * 100, 2)
+					df["table_columns"] = kept
 		return layout
 
 	def set_field_renderers(self, layout):

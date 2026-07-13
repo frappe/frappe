@@ -159,6 +159,10 @@
 	font-size: 0.9em;
 	border-collapse: collapse;
 	width: 100%;
+	/* Honour the per-column widths and wrap content instead of letting the table
+	   grow past the page (which makes Chrome scale the whole page down). */
+	table-layout: fixed;
+	word-break: break-word;
 }
 
 /* !important needed: bootstrap print styles set table-bordered cell borders with !important */
