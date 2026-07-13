@@ -1,10 +1,44 @@
 {
   "$schema": "http://json-schema.org/draft-07/schema#",
-  "$ref": "#/definitions/LinkProps",
   "definitions": {
-    "LinkProps": {
+    "GridProps": {
       "type": "object",
       "properties": {
+        "columns": {
+          "type": "array",
+          "items": {
+            "type": "object",
+            "properties": {
+              "fieldname": {
+                "type": "string"
+              },
+              "label": {
+                "type": "string"
+              },
+              "reqd": {
+                "type": "boolean"
+              },
+              "align": {
+                "type": "string",
+                "enum": [
+                  "left",
+                  "right",
+                  "center"
+                ]
+              },
+              "width": {
+                "type": "number"
+              }
+            },
+            "required": [
+              "fieldname"
+            ],
+            "additionalProperties": false
+          }
+        },
+        "disabled": {
+          "type": "boolean"
+        },
         "label": {
           "type": "string"
         },
@@ -45,29 +79,10 @@
         },
         "required": {
           "type": "boolean"
-        },
-        "id": {
-          "type": "string"
-        },
-        "doctype": {
-          "type": "string"
-        },
-        "filters": {
-          "type": "object",
-          "additionalProperties": {}
-        },
-        "creatable": {
-          "type": "boolean"
-        },
-        "disabled": {
-          "type": "boolean"
-        },
-        "placeholder": {
-          "type": "string"
         }
       },
       "required": [
-        "doctype"
+        "columns"
       ],
       "additionalProperties": false
     }

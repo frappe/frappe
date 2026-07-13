@@ -5,6 +5,49 @@
     "PopoverProps": {
       "type": "object",
       "properties": {
+        "open": {
+          "type": "boolean"
+        },
+        "side": {
+          "type": "string",
+          "enum": [
+            "top",
+            "right",
+            "bottom",
+            "left"
+          ]
+        },
+        "align": {
+          "type": "string",
+          "enum": [
+            "start",
+            "center",
+            "end"
+          ]
+        },
+        "offset": {
+          "type": "number"
+        },
+        "portalTo": {
+          "type": [
+            "string"
+          ]
+        },
+        "collisionPadding": {
+          "type": "number"
+        },
+        "dismissible": {
+          "type": "boolean"
+        },
+        "matchTriggerWidth": {
+          "type": "boolean"
+        },
+        "bare": {
+          "type": "boolean"
+        },
+        "arrow": {
+          "type": "boolean"
+        },
         "show": {
           "type": "boolean"
         },
@@ -76,12 +119,6 @@
         },
         "matchTargetWidth": {
           "type": "boolean"
-        },
-        "offset": {
-          "type": "number"
-        },
-        "collisionPadding": {
-          "type": "number"
         }
       },
       "additionalProperties": false

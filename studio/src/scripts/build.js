@@ -1,4 +1,9 @@
-import { FRAPPE_UI_COMPONENTS, FRAPPE_COMPONENTS, STUDIO_COMPONENTS } from "../utils/constants.js"
+import {
+	FRAPPE_UI_COMPONENTS,
+	FRAPPE_COMPONENTS,
+	STUDIO_COMPONENTS,
+	FRAMEWORK_UI_COMPONENTS,
+} from "../utils/constants.js"
 import { writeFileSync } from "fs"
 import fs from "fs"
 import { build } from "vite"
@@ -9,8 +14,48 @@ import { parseArgs } from "node:util"
 import frappeui from "frappe-ui/vite"
 import sharedDependencyResolver from "../../vite/sharedDependencyResolver.js"
 import studioRootAlias from "../../vite/studioRootAlias.js"
+import frameworkUIAlias from "../../vite/frameworkUIAlias.js"
 
 const __dirname = fileURLToPath(new URL(".", import.meta.url))
+// bench apps folder (scripts -> src -> frontend -> studio -> apps)
+const APPS_DIR = path.resolve(__dirname, "../../../../")
+
+// @framework/ui (apps/frappe/ui) is absent on older frappe. Skip its imports and
+// aliases so the exported-app build doesn't try to resolve a missing package.
+const frameworkUIAvailable = fs.existsSync(path.resolve(APPS_DIR, "frappe", "ui", "package.json"))
+
+// @framework/ui components are spread across the root barrel and per-widget subpath
+// exports, so their imports must be grouped by source module. Components with a
+// dedicated subpath export (grouped/heavier widgets) go here.
+const FRAMEWORK_UI_IMPORT_SOURCES = {
+	Filter: "@framework/ui/Filter",
+	SortBy: "@framework/ui/SortBy",
+	QuickFilter: "@framework/ui/QuickFilter",
+	ColumnSettings: "@framework/ui/ColumnSettings",
+	ListViewShell: "@framework/ui/ListView",
+	FileUploadDialog: "@framework/ui/FileUpload",
+	AttachmentsList: "@framework/ui/FileUpload",
+	UploadTray: "@framework/ui/FileUpload",
+}
+
+// Components imported as named exports from the root "@framework/ui" barrel. Kept as
+// an explicit allowlist (verified against apps/frappe/ui/src/index.ts and its
+// Notifications/ActivityTimeline sub-barrels) rather than a silent fallback, so a new
+// component can't emit an unresolvable barrel import — getFrameworkUIImports throws if
+// a component is in neither map. Every FRAMEWORK_UI_COMPONENTS entry must be in exactly
+// one of these two.
+const FRAMEWORK_UI_BARREL_COMPONENTS = new Set([
+	"FormLayout",
+	"Link",
+	"Grid",
+	"Phone",
+	"TableMultiSelect",
+	"NotificationPanel",
+	"NotificationItem",
+	"ActivityTimeline",
+	"EmailItem",
+	"CommentItem",
+])
 
 // create a temp directory for app renderers in studio app folder
 const TEMP_DIR = path.resolve(__dirname, "../../../.temp-app-renderers")
@@ -68,6 +113,7 @@ export async function generateAppBuild(
 function findComponentSources(appComponents, customComponents = {}) {
 	const frappeUIComponents = []
 	const frappeComponents = []
+	const frameworkUIComponents = []
 	const studioComponents = []
 
 	appComponents.forEach((component) => {
@@ -75,6 +121,10 @@ function findComponentSources(appComponents, customComponents = {}) {
 			frappeUIComponents.push(component)
 		} else if (FRAPPE_COMPONENTS.includes(component)) {
 			frappeComponents.push(component)
+		} else if (FRAMEWORK_UI_COMPONENTS.includes(component)) {
+			// Drop @framework/ui components when the package isn't on this bench —
+			// a stale app reference must not break the build with an unresolvable import.
+			if (frameworkUIAvailable) frameworkUIComponents.push(component)
 		} else if (STUDIO_COMPONENTS.includes(component)) {
 			studioComponents.push(component)
 		}
@@ -82,17 +132,20 @@ function findComponentSources(appComponents, customComponents = {}) {
 	return {
 		frappeUIComponents,
 		frappeComponents,
+		frameworkUIComponents,
 		studioComponents,
 		customComponents,
 	}
 }
 
 function getRendererContent(componentSources, pageScripts = []) {
-	const { frappeUIComponents, frappeComponents, studioComponents, customComponents } = componentSources
+	const { frappeUIComponents, frappeComponents, frameworkUIComponents, studioComponents, customComponents } =
+		componentSources
 	const frappeUIImports =
 		frappeUIComponents.length > 0 ? `import { ${frappeUIComponents.join(",\n ")} } from "frappe-ui";` : ""
 	const frappeImports =
 		frappeComponents.length > 0 ? `import { ${frappeComponents.join(",\n ")} } from "frappe-ui/frappe";` : ""
+	const frameworkUIImports = getFrameworkUIImports(frameworkUIComponents)
 	const studioImports = studioComponents
 		.map((comp) => `import ${comp} from "@/components/AppLayout/${comp}.vue"`)
 		.join("\n")
@@ -104,6 +157,7 @@ function getRendererContent(componentSources, pageScripts = []) {
 	const componentRegistrations = [
 		...frappeUIComponents.map((comp) => `app.component("${comp}", ${comp})`),
 		...frappeComponents.map((comp) => `app.component("${comp}", ${comp})`),
+		...frameworkUIComponents.map((comp) => `app.component("${comp}", ${comp})`),
 		...studioComponents.map((comp) => `app.component("${comp}", ${comp})`),
 		...customComponentNames.map((comp) => `app.component("${comp}", ${comp})`),
 	].join("\n")
@@ -131,6 +185,7 @@ import { spritePlugin } from "frappe-ui/icons"
 
 ${frappeUIImports}
 ${frappeImports}
+${frameworkUIImports}
 ${studioImports}
 ${customImports}
 ${pageScriptImport}
@@ -149,6 +204,28 @@ window.__APP_COMPONENTS__ = app._context.components
 ${pageScriptSetup}
 app.mount("#app")`
 	return rendererContent
+}
+
+// Build one `import { … } from "<source>"` line per @framework/ui source module,
+// since these components come from the root barrel plus several subpath exports.
+function getFrameworkUIImports(frameworkUIComponents) {
+	const bySource = {}
+	for (const comp of frameworkUIComponents) {
+		const source =
+			FRAMEWORK_UI_IMPORT_SOURCES[comp] ||
+			(FRAMEWORK_UI_BARREL_COMPONENTS.has(comp) ? "@framework/ui" : null)
+		if (!source) {
+			throw new Error(
+				`@framework/ui component "${comp}" has no import source. Add it to ` +
+					`FRAMEWORK_UI_IMPORT_SOURCES (dedicated subpath) or FRAMEWORK_UI_BARREL_COMPONENTS ` +
+					`(and ensure apps/frappe/ui/src/index.ts re-exports it).`,
+			)
+		}
+		(bySource[source] ||= []).push(comp)
+	}
+	return Object.entries(bySource)
+		.map(([source, comps]) => `import { ${comps.join(", ")} } from "${source}";`)
+		.join("\n")
 }
 
 function writeRendererFile(appName, content) {
@@ -179,9 +256,10 @@ async function buildWithVite(appName, entryFilePath, outDir, basePath) {
 			sharedDependencyResolver(path.resolve(__dirname, "../../")),
 		],
 		resolve: {
-			alias: {
-				"@": path.resolve(__dirname, "../"),
-			},
+			alias: [
+				...(frameworkUIAvailable ? frameworkUIAlias(APPS_DIR) : []),
+				{ find: "@", replacement: path.resolve(__dirname, "../") },
+			],
 			// keep vue/pinia/etc as single instances so studio modules (composables/stores)
 			// share the app's runtime — Pinia breaks with duplicate copies
 			dedupe: ["vue", "vue-router", "pinia", "frappe-ui"],

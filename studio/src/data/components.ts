@@ -1,5 +1,5 @@
 import { defineAsyncComponent } from "vue"
-import { FRAPPE_UI_COMPONENTS } from "@/utils/constants"
+import { FRAPPE_UI_COMPONENTS, FRAMEWORK_UI_COMPONENTS } from "@/utils/constants"
 
 import type { FrappeUIComponents, FrappeUIComponent } from "@/types"
 
@@ -48,9 +48,25 @@ import LucideChartPie from "~icons/lucide/chart-pie"
 import LucideListFilter from "~icons/lucide/list-filter"
 import LucideSquareMousePointer from "~icons/lucide/square-mouse-pointer"
 import LucideTimer from "~icons/lucide/timer"
-import LucidePill from "~icons/lucide/pill"
 import LucideLoaderCircle from "~icons/lucide/loader-circle"
 import LucideSlidersHorizontal from "~icons/lucide/sliders-horizontal"
+// @framework/ui component icons
+import LucideLayoutTemplate from "~icons/lucide/layout-template"
+import LucideLayoutGrid from "~icons/lucide/layout-grid"
+import LucidePhone from "~icons/lucide/phone"
+import LucideTableProperties from "~icons/lucide/table-properties"
+import LucideBell from "~icons/lucide/bell"
+import LucideBellDot from "~icons/lucide/bell-dot"
+import LucideHistory from "~icons/lucide/history"
+import LucideMail from "~icons/lucide/mail"
+import LucideMessageCircle from "~icons/lucide/message-circle"
+import LucideArrowUpDown from "~icons/lucide/arrow-up-down"
+import LucideFilter from "~icons/lucide/filter"
+import LucideColumns3 from "~icons/lucide/columns-3"
+import LucideRows3 from "~icons/lucide/rows-3"
+import LucideUpload from "~icons/lucide/upload"
+import LucidePaperclip from "~icons/lucide/paperclip"
+import LucideInbox from "~icons/lucide/inbox"
 
 export const COMPONENTS: FrappeUIComponents = {
 	TextBlock: {
@@ -410,17 +426,6 @@ export const COMPONENTS: FrappeUIComponents = {
 			fileTypes: "['image/*']",
 		},
 	},
-	Filter: {
-		name: "Filter",
-		title: "Filter",
-		icon: LucideListFilter,
-		initialState: {
-			doctype: "User",
-			filters: {
-				enabled: 1,
-			},
-		},
-	},
 	FormControl: {
 		name: "FormControl",
 		title: "Form Control",
@@ -495,17 +500,6 @@ export const COMPONENTS: FrappeUIComponents = {
 			rowKey: "id",
 		},
 	},
-	Link: {
-		name: "Link",
-		title: "Link",
-		icon: LucideLink,
-		initialState: {
-			doctype: "User",
-			filters: {
-				enabled: 1,
-			},
-		},
-	},
 	MultiSelect: {
 		name: "MultiSelect",
 		title: "Multi Select",
@@ -530,15 +524,6 @@ export const COMPONENTS: FrappeUIComponents = {
 					value: "grape",
 				},
 			],
-		},
-	},
-	Pill: {
-		name: "Pill",
-		title: "Pill",
-		icon: LucidePill,
-		initialState: {
-			label: "Pill",
-			active: true,
 		},
 	},
 	Progress: {
@@ -967,6 +952,230 @@ export const COMPONENTS: FrappeUIComponents = {
 			},
 		},
 	},
+	// @framework/ui components
+	Link: {
+		name: "Link",
+		title: "Link",
+		icon: LucideLink,
+		initialState: {
+			doctype: "User",
+			filters: {
+				enabled: 1,
+			},
+		},
+	},
+	Filter: {
+		name: "Filter",
+		title: "Filter",
+		icon: LucideListFilter,
+		initialState: {
+			doctype: "User",
+		},
+	},
+	FormLayout: {
+		name: "FormLayout",
+		title: "Form Layout",
+		icon: LucideLayoutTemplate,
+		initialState: {
+			layout: [
+				{
+					label: "Details",
+					sections: [
+						{
+							columns: [
+								{
+									fields: [
+										{ fieldname: "first_name", fieldtype: "Data", label: "First Name" },
+										{ fieldname: "email", fieldtype: "Data", label: "Email" },
+									],
+								},
+							],
+						},
+					],
+				},
+			],
+			doc: {},
+		},
+	},
+	Grid: {
+		name: "Grid",
+		title: "Grid",
+		icon: LucideLayoutGrid,
+		initialState: {
+			label: "Items",
+			columns: [
+				{ fieldname: "item", label: "Item" },
+				{ fieldname: "qty", label: "Qty", align: "right" },
+			],
+			modelValue: [
+				{ item: "Apple", qty: 2 },
+				{ item: "Orange", qty: 5 },
+			],
+		},
+	},
+	Phone: {
+		name: "Phone",
+		title: "Phone",
+		icon: LucidePhone,
+		initialState: {
+			label: "Phone",
+			placeholder: "Enter phone number",
+		},
+	},
+	TableMultiSelect: {
+		name: "TableMultiSelect",
+		title: "Table Multi Select",
+		icon: LucideTableProperties,
+		initialState: {
+			doctype: "User",
+			label: "Users",
+			placeholder: "Select users",
+		},
+	},
+	SortBy: {
+		name: "SortBy",
+		title: "Sort By",
+		icon: LucideArrowUpDown,
+		initialState: {
+			doctype: "User",
+		},
+	},
+	QuickFilter: {
+		name: "QuickFilter",
+		title: "Quick Filter",
+		icon: LucideFilter,
+		initialState: {
+			doctype: "User",
+		},
+	},
+	ColumnSettings: {
+		name: "ColumnSettings",
+		title: "Column Settings",
+		icon: LucideColumns3,
+		initialState: {
+			doctype: "User",
+		},
+	},
+	ListViewShell: {
+		name: "ListViewShell",
+		title: "List View Shell",
+		icon: LucideRows3,
+		initialState: {
+			doctype: "User",
+		},
+	},
+	NotificationPanel: {
+		name: "NotificationPanel",
+		title: "Notification Panel",
+		icon: LucideBell,
+		initialState: {
+			title: "Notifications",
+			hasNextPage: false,
+			unreadCount: 1,
+			notifications: [
+				{
+					name: "1",
+					title: "Welcome to Studio",
+					description: "Your app is ready to build.",
+					read: 0,
+				},
+			],
+		},
+	},
+	NotificationItem: {
+		name: "NotificationItem",
+		title: "Notification Item",
+		icon: LucideBellDot,
+		initialState: {
+			notification: {
+				name: "1",
+				title: "Welcome to Studio",
+				description: "Your app is ready to build.",
+				read: 0,
+			},
+		},
+	},
+	ActivityTimeline: {
+		name: "ActivityTimeline",
+		title: "Activity Timeline",
+		icon: LucideHistory,
+		initialState: {
+			activities: [
+				{
+					type: "comment",
+					key: "comment:1",
+					timestamp: "2024-07-08 10:30:00",
+					author: { fullname: "Jane Doe" },
+					data: { name: "1", content: "Looks good to me!" },
+				},
+				{
+					type: "log",
+					key: "log:1",
+					timestamp: "2024-07-08 09:00:00",
+					author: { fullname: "John Doe" },
+					data: { name: "2", subtype: "created", text: "created this document" },
+				},
+			],
+		},
+	},
+	EmailItem: {
+		name: "EmailItem",
+		title: "Email Item",
+		icon: LucideMail,
+		initialState: {
+			email: {
+				type: "email",
+				key: "email:1",
+				timestamp: "2024-07-08 11:00:00",
+				author: { fullname: "Jane Doe", email: "jane@doe.com" },
+				data: {
+					name: "1",
+					subject: "Project update",
+					sender: "jane@doe.com",
+					to: "john@doe.com",
+					content: "<p>Here is the latest update.</p>",
+				},
+			},
+		},
+	},
+	CommentItem: {
+		name: "CommentItem",
+		title: "Comment Item",
+		icon: LucideMessageCircle,
+		initialState: {
+			comment: {
+				type: "comment",
+				key: "comment:1",
+				timestamp: "2024-07-08 10:30:00",
+				author: { fullname: "Jane Doe" },
+				data: { name: "1", content: "Looks good to me!" },
+			},
+		},
+	},
+	FileUploadDialog: {
+		name: "FileUploadDialog",
+		title: "File Upload Dialog",
+		icon: LucideUpload,
+		initialState: {
+			open: false,
+		},
+	},
+	AttachmentsList: {
+		name: "AttachmentsList",
+		title: "Attachments List",
+		icon: LucidePaperclip,
+		initialState: {
+			modelValue: [],
+		},
+	},
+	UploadTray: {
+		name: "UploadTray",
+		title: "Upload Tray",
+		icon: LucideInbox,
+		initialState: {
+			side: "right",
+		},
+	},
 }
 
 const proxyComponentMap = new Map<string, any>()
@@ -978,6 +1187,17 @@ Object.values(COMPONENTS).forEach((component: FrappeUIComponent) => {
 
 function isFrappeUIComponent(name: string) {
 	return FRAPPE_UI_COMPONENTS.includes(name)
+}
+
+function isFrameworkUIComponent(name: string) {
+	return FRAMEWORK_UI_COMPONENTS.includes(name)
+}
+
+// True when @framework/ui (apps/frappe/ui) is present in this build. Older frappe
+// versions don't ship it, so its components are hidden from the panel. Guard the
+// build-time constant with typeof so non-vite tooling (type extraction) doesn't throw.
+function isFrameworkUIAvailable() {
+	return typeof __FRAMEWORK_UI_AVAILABLE__ === "undefined" || __FRAMEWORK_UI_AVAILABLE__
 }
 
 function getProxyComponent(name: string) {
@@ -994,6 +1214,8 @@ export default {
 	names: Object.keys(COMPONENTS),
 	getProxyComponent,
 	isFrappeUIComponent,
+	isFrameworkUIComponent,
+	isFrameworkUIAvailable,
 	get,
 }
 

@@ -1,12 +1,15 @@
 {
   "$schema": "http://json-schema.org/draft-07/schema#",
-  "$ref": "#/definitions/AxisChartProps",
   "definitions": {
-    "AxisChartProps": {
+    "UploadTrayProps": {
       "type": "object",
       "properties": {
-        "config": {
-          "type": "object"
+        "side": {
+          "type": "string",
+          "enum": [
+            "left",
+            "right"
+          ]
         }
       },
       "additionalProperties": false

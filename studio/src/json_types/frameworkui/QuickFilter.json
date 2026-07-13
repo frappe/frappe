@@ -1,14 +1,16 @@
 {
   "$schema": "http://json-schema.org/draft-07/schema#",
-  "$ref": "#/definitions/DonutChartProps",
   "definitions": {
-    "DonutChartProps": {
+    "QuickFilterProps": {
       "type": "object",
       "properties": {
-        "config": {
-          "type": "object"
+        "doctype": {
+          "type": "string"
         }
       },
+      "required": [
+        "doctype"
+      ],
       "additionalProperties": false
     }
   }

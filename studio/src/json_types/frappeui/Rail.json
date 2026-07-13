@@ -1,0 +1,53 @@
+{
+  "$schema": "http://json-schema.org/draft-07/schema#",
+  "$ref": "#/definitions/*",
+  "definitions": {
+    "*": {
+      "type": "object",
+      "properties": {
+        "label": {
+          "type": "string"
+        },
+        "icon": {
+          "type": [
+            "string"
+          ]
+        },
+        "to": {
+          "anyOf": [
+            {
+              "type": "string"
+            },
+            {
+              "type": "object"
+            }
+          ]
+        },
+        "active": {
+          "type": "boolean"
+        },
+        "badge": {
+          "type": "number"
+        },
+        "badgeStyle": {
+          "type": "string",
+          "enum": [
+            "count",
+            "dot"
+          ]
+        },
+        "variant": {
+          "type": "string",
+          "enum": [
+            "tile",
+            "ghost"
+          ]
+        }
+      },
+      "required": [
+        "label"
+      ],
+      "additionalProperties": false
+    }
+  }
+}

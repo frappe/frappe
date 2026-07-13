@@ -2,8 +2,9 @@
 <template>
 	<div>
 		<div class="text-sm-medium flex items-center justify-between">
-			<h3 class="cursor-pointer text-base text-ink-gray-9" @click="toggleCollapsed">
+			<h3 class="flex cursor-pointer items-center gap-1.5 text-base text-ink-gray-9" @click="toggleCollapsed">
 				{{ sectionName }}
+				<slot name="title-suffix" />
 			</h3>
 			<Button
 				class="text-ink-gray-6 hover:bg-surface-gray-2"

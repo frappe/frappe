@@ -184,6 +184,36 @@ const studioModules: Record<string, string> = import.meta.glob("@/components/App
 	import: "default",
 })
 
+// @framework/ui component sources (apps/frappe/ui). Used for slot parsing.
+const frameworkUIModules: Record<string, string> = import.meta.glob(
+	["../../../../frappe/ui/src/components/**/*.vue", "!**/*.story.vue"],
+	{ query: "?raw", eager: true, import: "default" },
+)
+
+// Component name -> "<Folder>/<File>.vue" under apps/frappe/ui/src/components.
+// The folder often differs from the component name (Notifications, ActivityTimeline,
+// ListView, FileUpload group several components each).
+const frameworkUIComponentPaths: Record<string, string> = {
+	FormLayout: "FormLayout/FormLayout.vue",
+	Link: "Link/Link.vue",
+	Grid: "Grid/Grid.vue",
+	Phone: "Phone/Phone.vue",
+	TableMultiSelect: "TableMultiSelect/TableMultiSelect.vue",
+	NotificationPanel: "Notifications/NotificationPanel.vue",
+	NotificationItem: "Notifications/NotificationItem.vue",
+	ActivityTimeline: "ActivityTimeline/ActivityTimeline.vue",
+	EmailItem: "ActivityTimeline/EmailItem.vue",
+	CommentItem: "ActivityTimeline/CommentItem.vue",
+	Filter: "Filter/Filter.vue",
+	SortBy: "SortBy/SortBy.vue",
+	QuickFilter: "QuickFilter/QuickFilter.vue",
+	ColumnSettings: "ColumnSettings/ColumnSettings.vue",
+	ListViewShell: "ListView/ListViewShell.vue",
+	FileUploadDialog: "FileUpload/FileUploadDialog.vue",
+	AttachmentsList: "FileUpload/AttachmentsList.vue",
+	UploadTray: "FileUpload/UploadTray.vue",
+}
+
 const templateCache = new Map<string, string>()
 
 const customComponentFilePaths = new Map<string, string>()
@@ -217,6 +247,14 @@ function getComponentTemplate(componentName: string): string {
 		} catch (error) {
 			console.error(`Error loading component template ${componentName}:`, error)
 			return ""
+		}
+	} else if (components.isFrameworkUIComponent(componentName)) {
+		const relativePath = frameworkUIComponentPaths[componentName]
+		if (relativePath) {
+			const modulePath = `../../../../frappe/ui/src/components/${relativePath}`
+			if (frameworkUIModules[modulePath]) {
+				rawTemplate = frameworkUIModules[modulePath]
+			}
 		}
 	} else {
 		const modulePath = `/src/components/AppLayout/${componentName}.vue`

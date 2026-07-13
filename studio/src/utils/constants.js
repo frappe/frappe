@@ -26,7 +26,6 @@ export const FRAPPE_UI_COMPONENTS = [
 	"FormControl",
 	"ListView",
 	"MultiSelect",
-	"Pill",
 	"Progress",
 	"Rating",
 	"Select",
@@ -45,7 +44,31 @@ export const FRAPPE_UI_COMPONENTS = [
 	"NumberChart",
 	"DonutChart",
 ]
-export const FRAPPE_COMPONENTS = ["Filter", "Link"]
+// Legacy frappe-ui/frappe components. Filter and Link now ship from @framework/ui
+// (see FRAMEWORK_UI_COMPONENTS), so this list is currently empty.
+export const FRAPPE_COMPONENTS = []
+
+// @framework/ui — the in-house shared component library from apps/frappe/ui.
+export const FRAMEWORK_UI_COMPONENTS = [
+	"FormLayout",
+	"Link",
+	"Grid",
+	"Phone",
+	"TableMultiSelect",
+	"NotificationPanel",
+	"NotificationItem",
+	"ActivityTimeline",
+	"EmailItem",
+	"CommentItem",
+	"Filter",
+	"SortBy",
+	"QuickFilter",
+	"ColumnSettings",
+	"ListViewShell",
+	"FileUploadDialog",
+	"AttachmentsList",
+	"UploadTray",
+]
 export const STUDIO_COMPONENTS = [
 	"Container",
 	"FitContainer",
