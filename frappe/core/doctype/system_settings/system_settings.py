@@ -64,11 +64,7 @@ class SystemSettings(Document):
 		float_precision: DF.Literal["", "2", "3", "4", "5", "6", "7", "8", "9"]
 		force_user_to_reset_password: DF.Int
 		force_web_capture_mode_for_uploads: DF.Check
-<<<<<<< HEAD
-=======
 		frequency: DF.Literal["Hourly", "Daily"]
-		hide_empty_read_only_fields: DF.Check
->>>>>>> fed015fb09 (refactor: move feature sync job to system settings -> advanced tab)
 		hide_footer_in_auto_email_reports: DF.Check
 		language: DF.Link
 		lifespan_qrcode_image: DF.Int

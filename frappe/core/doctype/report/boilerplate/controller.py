@@ -8,12 +8,8 @@ def execute(filters=None):
 	columns, data = [], []
 	return columns, data
 
-<<<<<<< HEAD
 
-def execute_synced_report(filters: dict | None = None):
-=======
 def execute_snapshot_report(filters: dict | None = None):
->>>>>>> 9c477cdb72 (refactor: rename execute_synced_report to execute_snapshot_report)
 	"""Return columns and data for the report.
 
 	This is the main entry point for snapshot report. When 'Synced

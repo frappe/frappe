@@ -789,11 +789,7 @@
  "icon": "fa fa-cog",
  "issingle": 1,
  "links": [],
-<<<<<<< HEAD
- "modified": "2026-05-27 12:34:24.382555",
-=======
  "modified": "2026-07-01 16:09:59.407976",
->>>>>>> fed015fb09 (refactor: move feature sync job to system settings -> advanced tab)
  "modified_by": "Administrator",
  "module": "Core",
  "name": "System Settings",
