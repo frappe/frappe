@@ -676,7 +676,7 @@ class FilterArea {
 	setup_mobile_toolbar() {
 		this.list_view.page.page_form.addClass("list-page-form");
 
-		$(`<button class="filter-toggle btn btn-default btn-sm filter-button hidden-lg">
+		$(`<button class="filter-toggle btn btn-default btn-sm hidden-lg">
 					<span class="filter-icon button-icon">
 						${frappe.utils.icon("chevrons-up-down")}
 					</span>
