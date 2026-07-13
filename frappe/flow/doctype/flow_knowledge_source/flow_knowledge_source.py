@@ -66,15 +66,22 @@ class FlowKnowledgeSource(Document):
 		self._validate_system_generated_immutable()
 
 	def _validate_system_generated_immutable(self):
-		# Lock the structural identity of a system-generated source against Desk edits; the
-		# owning app's sync (ignore_permissions) may still update content, filters, etc.
-		if not self.is_system_generated or self.is_new() or self.flags.ignore_permissions:
+		# Gate on the DB flag so unsetting it can't bypass these guards.
+		if self.is_new() or self.flags.ignore_permissions:
 			return
 		before = frappe.db.get_value(
-			"Flow Knowledge Source", self.name, ["source_type", "knowledge_base"], as_dict=True
+			"Flow Knowledge Source",
+			self.name,
+			["source_type", "knowledge_base", "is_system_generated"],
+			as_dict=True,
 		)
-		if before is None:
+		if not before or not before.is_system_generated:
 			return
+		if not self.is_system_generated:
+			frappe.throw(
+				_("Cannot remove the system-generated flag from knowledge source {0}.").format(self.name),
+				title=_("Protected"),
+			)
 		if before.source_type != self.source_type:
 			frappe.throw(
 				_("Cannot change the type of system-generated knowledge source {0}.").format(self.name),

@@ -1294,9 +1294,7 @@ class TestRetrieveAttachments(IntegrationTestCase):
 
 
 class TestSystemGeneratedProtection(IntegrationTestCase):
-	"""System-generated bases/sources are owned by the app that shipped them: the Desk
-	can't delete/rename/restructure them, but the owning app's sync (ignore_permissions)
-	retains full control."""
+	"""Desk edits can't break app-owned system rows; the app's sync (ignore_permissions) can."""
 
 	def setUp(self):
 		self.model = _make_model()
@@ -1339,8 +1337,6 @@ class TestSystemGeneratedProtection(IntegrationTestCase):
 		from frappe.model.rename_doc import rename_doc
 
 		kb = self._kb()
-		# Blocked outright, even via the low-level API with ignore_permissions: the title is
-		# the sync identity, so apps re-title by create+delete rather than rename.
 		with self.assertRaisesRegex(frappe.ValidationError, "Cannot rename system-generated"):
 			frappe.rename_doc("Flow Knowledge Base", kb.name, "Renamed KB")
 		with self.assertRaisesRegex(frappe.ValidationError, "Cannot rename system-generated"):
@@ -1373,7 +1369,19 @@ class TestSystemGeneratedProtection(IntegrationTestCase):
 	def test_content_of_system_generated_source_stays_editable(self):
 		source = self._source(self._kb())
 		source.content = "refreshed content"
-		source.save()  # structural identity unchanged, so a content edit is allowed
+		source.save()
 		self.assertEqual(
 			frappe.db.get_value("Flow Knowledge Source", source.name, "content"), "refreshed content"
 		)
+
+	def test_cannot_unset_system_generated_flag_on_kb(self):
+		kb = self._kb()
+		kb.is_system_generated = 0
+		with self.assertRaisesRegex(frappe.ValidationError, "Cannot remove the system-generated flag"):
+			kb.save()
+
+	def test_cannot_unset_system_generated_flag_on_source(self):
+		source = self._source(self._kb())
+		source.is_system_generated = 0
+		with self.assertRaisesRegex(frappe.ValidationError, "Cannot remove the system-generated flag"):
+			source.save()
