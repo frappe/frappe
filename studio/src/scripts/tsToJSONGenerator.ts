@@ -47,17 +47,28 @@ if (!moduleName || !configMap[moduleName]) {
 /* 1. Generate JSON types */
 const { srcFolders, destFolder, tsconfigPath, skipFolders, folderScan, perComponent } = configMap[moduleName]
 
-// Clear stale JSON so renamed/removed components don't linger in the index (e.g. the
-// switch from folder-keyed to per-component frameworkui files).
+// Generate in place (no upfront wipe). Aggregate which components exist in source
+// (`expected`) across all source folders, so a component whose schema fails to
+// generate this run keeps its previously-committed JSON instead of vanishing — a
+// frappe-ui bump that breaks extraction degrades to a stale schema, not a missing
+// one. Only truly gone components (renamed/removed upstream) are pruned below.
+const expected = new Set<string>()
+srcFolders.forEach((srcFolder: string) => {
+	const result = tsToJSON(srcFolder, destFolder, skipFolders, tsconfigPath, Boolean(folderScan), Boolean(perComponent))
+	result.expected.forEach((name) => expected.add(name))
+})
+
+// Prune stale JSON: drop only files whose component no longer exists in source, so
+// renamed/removed components don't linger in the index. Failed-but-still-present
+// components are in `expected`, so their old JSON is kept.
 if (fs.existsSync(destFolder)) {
 	for (const file of fs.readdirSync(destFolder)) {
-		if (file.endsWith(".json")) fs.rmSync(path.join(destFolder, file))
+		if (file.endsWith(".json") && !expected.has(path.parse(file).name)) {
+			fs.rmSync(path.join(destFolder, file))
+			console.log(`Pruned ${file} (no matching component in source)`)
+		}
 	}
 }
-
-srcFolders.forEach((srcFolder: string) => {
-	tsToJSON(srcFolder, destFolder, skipFolders, tsconfigPath, Boolean(folderScan), Boolean(perComponent))
-})
 
 /* 2. Update index file */
 const indexFilePath = "src/json_types/index.ts"

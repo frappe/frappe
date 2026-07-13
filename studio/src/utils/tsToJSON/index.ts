@@ -10,6 +10,15 @@ interface TypeFile {
 	hasSlots?: boolean
 }
 
+// `expected`: components found in source (so their JSON is current and should be
+// kept even if generation fails this run). `written`: components whose schema was
+// (re)generated successfully. The caller uses these to prune only JSONs whose
+// component no longer exists — never one that merely failed to generate.
+interface ExtractResult {
+	expected: string[]
+	written: string[]
+}
+
 function tsToJSON(
 	srcFolder: string,
 	destFolder: string,
@@ -17,7 +26,7 @@ function tsToJSON(
 	tsconfig = "",
 	folderScan = false,
 	perComponent = false,
-) {
+): ExtractResult {
 	// Get project root (where package.json is)
 	const root = process.cwd()
 	const inputDirPath = path.resolve(root, srcFolder)
@@ -40,11 +49,14 @@ function tsToJSON(
 		config["tsconfig"] = tsconfig ? path.resolve(root, tsconfig) : ""
 	}
 
+	const written: string[] = []
 	for (const { filePath, componentName, hasSlots } of typeFiles) {
 		config["path"] = filePath
 
 		if (perComponent) {
-			generateComponentSchema(config, componentName, Boolean(hasSlots), outputDirPath)
+			if (generateComponentSchema(config, componentName, Boolean(hasSlots), outputDirPath)) {
+				written.push(componentName)
+			}
 			continue
 		}
 
@@ -52,17 +64,21 @@ function tsToJSON(
 		try {
 			generateSchema(config, componentName, outputDirPath)
 			console.log(`Generated types for ${componentName} saved to ${componentName}.json`)
+			written.push(componentName)
 		} catch (error) {
 			console.warn(`Failed to generate schema for ${componentName}Props, trying wildcard type`)
 			config["type"] = "*"
 			try {
 				generateSchema(config, componentName, outputDirPath)
 				console.log(`Generated types for ${componentName} saved to ${componentName}.json`)
+				written.push(componentName)
 			} catch (error) {
 				console.error(`Failed to generate schema for ${componentName}:`, error)
 			}
 		}
 	}
+
+	return { expected: typeFiles.map((t) => t.componentName), written }
 }
 
 function findTypeFiles(dir: string, folderScan: boolean, skipFolders: string[] | null = null): TypeFile[] {
@@ -154,14 +170,14 @@ function generateComponentSchema(
 	componentName: string,
 	hasSlots: boolean,
 	outputDirPath: string,
-) {
+): boolean {
 	const definitions: Record<string, any> = {}
 	try {
 		config["type"] = `${componentName}Props`
 		Object.assign(definitions, buildSchema(config).definitions)
 	} catch (error) {
 		console.error(`Failed to generate Props schema for ${componentName}: ${errorMessage(error)}`)
-		return
+		return false
 	}
 
 	if (hasSlots) {
@@ -177,6 +193,7 @@ function generateComponentSchema(
 
 	writeSchema({ $schema: "http://json-schema.org/draft-07/schema#", definitions }, componentName, outputDirPath)
 	console.log(`Generated types for ${componentName} saved to ${componentName}.json`)
+	return true
 }
 
 function errorMessage(error: unknown): string {
