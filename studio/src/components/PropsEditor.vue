@@ -22,6 +22,7 @@
 				:label="propName"
 				language="html"
 				:modelValue="getFormattedValue(propName)"
+				:placeholder="isMixed(propName) ? 'Mixed' : undefined"
 				@update:modelValue="(newValue) => handlePropUpdate(propName, newValue)"
 				:required="config.required"
 				:completions="(context: CompletionContext) => getCompletions(context, block?.getCompletions())"
@@ -54,6 +55,7 @@
 						:label="propName"
 						language="javascript"
 						:modelValue="getFormattedValue(propName)"
+						:placeholder="isMixed(propName) ? 'Mixed' : undefined"
 						@update:modelValue="(newValue) => handlePropUpdate(propName, newValue)"
 						:required="config.required"
 						:completions="(context: CompletionContext) => getCompletions(context, block?.getCompletions())"
@@ -73,6 +75,7 @@
 						:label="propName"
 						:required="config.required"
 						:modelValue="getFormattedValue(propName)"
+						:emptyMessage="isMixed(propName) ? 'Mixed' : undefined"
 						@update:modelValue="(newValue) => handlePropUpdate(propName, newValue)"
 						:itemTypes="config.itemTypes"
 					/>
