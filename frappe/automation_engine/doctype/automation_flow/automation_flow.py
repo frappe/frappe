@@ -35,6 +35,7 @@ class AutomationFlow(Document):
 		enabled: DF.Check
 		filters: DF.JSON | None
 		from_value: DF.Data | None
+		log_only: DF.Check
 		revalidate_on_run: DF.Check
 		stop_on_error: DF.Check
 		throttle_per_minute: DF.Int
@@ -66,9 +67,24 @@ class AutomationFlow(Document):
 		from frappe.automation_engine.actions.base import get_action
 
 		for row in self.actions:
+			self.validate_step(row)
+			if row.step_type == "Wait":
+				continue
 			action = get_action(row.action_type)
 			if self.document_type:
 				action.validate(frappe.parse_json(row.params) if row.params else {}, self.document_type)
+
+	def validate_step(self, row):
+		row.step_type = row.step_type or "Action"
+		if row.step_type in ("If", "Else"):
+			frappe.throw(_("{0} steps are reserved for a future release").format(row.step_type))
+		if row.step_type == "Action" and not row.action_type:
+			frappe.throw(_("Action Type is required for action steps"))
+		if row.step_type != "Wait":
+			return
+		params = frappe.parse_json(row.params) if row.params else {}
+		if not params.get("value") or not params.get("unit"):
+			frappe.throw(_("Wait steps require a duration value and unit"))
 
 	def validate_document_type(self):
 		if self.document_type and frappe.get_meta(self.document_type).istable:

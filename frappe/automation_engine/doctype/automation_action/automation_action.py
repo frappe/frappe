@@ -13,12 +13,13 @@ class AutomationAction(Document):
 	if TYPE_CHECKING:
 		from frappe.types import DF
 
-		action_type: DF.Data
+		action_type: DF.Literal["SetFieldValue", "CreateDocument", "SendNotification", "AssignToUser"]
 		params: DF.JSON | None
 		parent: DF.Data
 		parentfield: DF.Data
 		parenttype: DF.Data
 		step_condition: DF.Code | None
+		step_type: DF.Literal["Action", "Wait", "If", "Else"]
 	# end: auto-generated types
 
 	pass
