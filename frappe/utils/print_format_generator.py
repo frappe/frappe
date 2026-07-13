@@ -190,34 +190,35 @@ class PrintFormatGenerator:
 	def _build_html_for_chrome(self):
 		"""Build the body HTML for the Chrome PDF pipeline.
 
-		When ``repeat_header_footer`` is enabled (default), letterhead and
-		layout header/footer are placed in ``#header-html`` / ``#footer-html``
-		overlay divs so they repeat on every PDF page.
+		The letterhead always renders inline in the body (page 1), exactly like the HTML
+		preview — so the PDF is WYSIWYG with the preview and its top spacing never depends
+		on the Chrome header-overlay height measurement.
 
-		When ``repeat_header_footer`` is disabled:
-		  - Letterhead + layout header/footer → rendered inline in the body
-		    (appear on page 1 / last page only via ``chrome_layout_header/footer``).
-		  - Page numbers → still placed in a minimal ``#header-html`` / ``#footer-html``
-		    overlay so they continue to repeat on every page if the user enabled them.
+		Layout header/footer zones and page numbers still repeat on every page via the
+		``#header-html`` / ``#footer-html`` overlay when ``repeat_header_footer`` is on;
+		otherwise the layout zones render inline too and only page numbers repeat.
 		"""
 		self.context.for_chrome = True
 		self.context.header_height = 0
 		self.context.footer_height = 0
 
-		repeat = self.print_settings.repeat_header_footer
+		inline_header = self._inline_letterhead("header")
+		inline_footer = self._inline_letterhead("footer")
 
-		if repeat:
-			header = self._render_overlay("header")
-			footer = self._render_overlay("footer")
+		if self.print_settings.repeat_header_footer:
+			# Layout zones + page numbers repeat via the overlay; letterhead stays inline.
+			header = self._render_overlay("header", include_letterhead=False)
+			footer = self._render_overlay("footer", include_letterhead=False)
 			self.context.header = f'<div id="header-html">{header}</div>' if header else ""
 			self.context.footer = f'<div id="footer-html">{footer}</div>' if footer else ""
-			self.context.chrome_layout_header = ""
-			self.context.chrome_layout_footer = ""
+			self.context.chrome_layout_header = inline_header
+			self.context.chrome_layout_footer = inline_footer
 		else:
-			# Letterhead + layout content → inline (once only, no repeat).
-			self.context.chrome_layout_header = self._render_overlay("header", with_page_no=False) or ""
-			self.context.chrome_layout_footer = self._render_overlay("footer", with_page_no=False) or ""
-			# Page numbers → minimal overlay so they still repeat on every page.
+			# Nothing repeats except page numbers; letterhead + layout zones render inline.
+			layout_header = self._render_overlay("header", with_page_no=False, include_letterhead=False) or ""
+			layout_footer = self._render_overlay("footer", with_page_no=False, include_letterhead=False) or ""
+			self.context.chrome_layout_header = inline_header + layout_header
+			self.context.chrome_layout_footer = layout_footer + inline_footer
 			page_no_header = self._render_page_no_overlay("header")
 			page_no_footer = self._render_page_no_overlay("footer")
 			self.context.header = f'<div id="header-html">{page_no_header}</div>' if page_no_header else ""
@@ -234,12 +235,28 @@ class PrintFormatGenerator:
 			return None
 		return self._page_number_html(page_pos)
 
-	def _render_overlay(self, kind: str, with_page_no: bool = True) -> str | None:
-		"""Render letterhead, layout.header/footer, and page number for the Chrome overlay.
+	def _inline_letterhead(self, kind: str) -> str:
+		"""Letterhead HTML for inline (in-body) rendering, matching the HTML preview."""
+		if not self.letterhead:
+			return ""
+		html = self.letterhead.content if kind == "header" else self.letterhead.footer
+		if not html:
+			return ""
+		return (
+			'<div class="letter-head">' + frappe.render_template(html, {"doc": self.context.doc}) + "</div>"
+		)
 
-		All three are included so they repeat on every PDF page.  Height measurement
-		is reliable because ``chrome_pdf_header_footer.html`` applies ``overflow: hidden``
-		to ``.wrapper``, creating a BFC that contains floated letterhead children.
+	def _render_overlay(
+		self, kind: str, with_page_no: bool = True, include_letterhead: bool = True
+	) -> str | None:
+		"""Render layout.header/footer, page number, and (optionally) letterhead for the
+		Chrome overlay so they repeat on every PDF page.
+
+		The letterhead is excluded by default from the repeating overlay (it renders
+		inline in the body instead, so the PDF is WYSIWYG with the HTML preview and does
+		not depend on the overlay's measured height). Height measurement stays reliable
+		because ``chrome_pdf_header_footer.html`` applies ``overflow: hidden`` to
+		``.wrapper``, creating a BFC that contains floated children.
 		"""
 		is_header = kind == "header"
 		page_pos = (self.print_format.page_number or "").lower().replace(" ", "_")
@@ -247,10 +264,10 @@ class PrintFormatGenerator:
 		wants_page_no = with_page_no and page_pos in valid_positions
 
 		if is_header:
-			letterhead_html = self.letterhead and self.letterhead.content
+			letterhead_html = (self.letterhead and self.letterhead.content) if include_letterhead else None
 			layout_template = self.layout.get("header") if self.layout else None
 		else:
-			letterhead_html = self.letterhead and self.letterhead.footer
+			letterhead_html = (self.letterhead and self.letterhead.footer) if include_letterhead else None
 			layout_template = self.layout.get("footer") if self.layout else None
 
 		if not (letterhead_html or wants_page_no or layout_template):
