@@ -1,6 +1,7 @@
 # Copyright (c) 2026, Frappe Technologies Pvt. Ltd. and Contributors
 # License: MIT. See LICENSE
 import os
+import tempfile
 from unittest.mock import MagicMock, patch
 
 import frappe
@@ -95,23 +96,15 @@ class TestChromePDFLocalResourceInterceptor(UnitTestCase):
 	def test_existing_public_file_sends_fulfill(self):
 		"""
 		A real file under the site public root must be served with fulfillRequest.
-
-		Note: this test touches real disk via os.walk; it is skipped when
-		site_public_root contains no files (e.g. a bare CI environment).
 		"""
 		site_public_root = os.path.realpath(frappe.utils.get_site_path("public"))
-		real_file = None
-		for root, _dirs, files in os.walk(site_public_root):
-			for fname in files:
-				candidate = os.path.join(root, fname)
-				if os.path.isfile(candidate):
-					real_file = candidate
-					break
-			if real_file:
-				break
+		os.makedirs(site_public_root, exist_ok=True)
 
-		if real_file is None:
-			self.skipTest("No files found under site_public_root")
+		fd, real_file = tempfile.mkstemp(dir=site_public_root, suffix=".txt")
+		# the interceptor only fulfills when read_file returns a body, so the file can't be empty
+		with os.fdopen(fd, "w") as f:
+			f.write("test")
+		self.addCleanup(os.remove, real_file)
 
 		rel_path = os.path.relpath(real_file, site_public_root)
 		callback = self._register()
