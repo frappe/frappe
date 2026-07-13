@@ -24,6 +24,7 @@ $(document).ready(function () {
 			close_button: true,
 			popper: true,
 			primary_button_alignment: "right",
+			primary_action_in_header: true,
 			dismiss_key: `${frappe.boot.site_info.name}_trial_card_time`,
 			dismiss_it_for: "day",
 		};
