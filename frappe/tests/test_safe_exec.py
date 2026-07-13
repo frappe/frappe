@@ -230,6 +230,18 @@ class TestSafeDoc(IntegrationTestCase):
 		result = row.get_formatted("amount", currency="INR")
 		self.assertIn("₹", result)
 
+	def test_get_label_from_fieldname(self):
+		from frappe.utils.safe_exec import get_doc_as_dict
+
+		doc = get_doc_as_dict("User", frappe.session.user)
+		self.assertEqual(doc.get_label_from_fieldname("email"), "Email")
+		self.assertIsNone(doc.get_label_from_fieldname("nonexistent_field"))
+
+		parent = self._make_parent()
+		row = parent.get("rows")[0]
+		self.assertEqual(row.get_label_from_fieldname("rate"), "Rate")
+		self.assertEqual(row.get_label_from_fieldname("amount"), "Amount")
+
 	def test_absolute_value_from_parent(self):
 		parent = self._make_parent(absolute_value=1)
 		row = parent.get("rows")[0]
