@@ -222,10 +222,17 @@ const selectedBlocks = computed(() => {
 	)
 }) as Ref<Block[]>
 
-function selectBlock(block: Block, e: MouseEvent | null, multiSelect = false, setBreakpoint = true) {
+function selectBlock(block: Block, e: MouseEvent | null, setBreakpoint = true) {
 	if (store.settingPage) return
 
-	selectBlockById(block.componentId, e, multiSelect)
+	if (e && e.shiftKey) {
+		selectBlockRange(block)
+	} else if (e && (e.metaKey || e.ctrlKey)) {
+		toggleBlockSelection(block)
+	} else {
+		selectBlockById(block.componentId)
+	}
+
 	if (setBreakpoint && e) {
 		const { breakpoint } = getBlockInfo(e)
 		setActiveBreakpoint(breakpoint)
@@ -239,12 +246,32 @@ function selectBlock(block: Block, e: MouseEvent | null, multiSelect = false, se
 	}
 }
 
-function selectBlockById(blockId: string, e: MouseEvent | null, multiSelect = false) {
-	if (multiSelect) {
-		selectedBlockIds.value.add(blockId)
+function selectBlockById(blockId: string) {
+	selectedBlockIds.value = new Set([blockId])
+}
+
+function toggleBlockSelection(block: Block) {
+	if (selectedBlockIds.value.has(block.componentId)) {
+		selectedBlockIds.value.delete(block.componentId)
 	} else {
-		selectedBlockIds.value = new Set([blockId])
+		selectedBlockIds.value.add(block.componentId)
 	}
+}
+
+function selectBlockRange(block: Block) {
+	const lastSelectedId = Array.from(selectedBlockIds.value).at(-1)
+	const lastSelected = lastSelectedId ? findBlock(lastSelectedId) : null
+	const parent = lastSelected?.getParentBlock()
+	// range selection only works within the same parent; fall back to single select
+	if (!lastSelected || !parent || parent !== block.getParentBlock()) {
+		selectBlockById(block.componentId)
+		return
+	}
+	const start = parent.getChildIndex(lastSelected)
+	const end = parent.getChildIndex(block)
+	parent.children
+		.slice(Math.min(start, end), Math.max(start, end) + 1)
+		.forEach((child) => selectedBlockIds.value.add(child.componentId))
 }
 
 const handleClick = (ev: MouseEvent) => {
@@ -270,7 +297,7 @@ const isRootSelected = computed(() => {
 const selectedSlot = ref<Slot | null>()
 function selectSlot(slot: Slot) {
 	selectedSlot.value = slot
-	selectBlockById(slot.parentBlockId, null)
+	selectBlockById(slot.parentBlockId)
 }
 
 const activeSlotIds = computed(() => {
@@ -359,6 +386,8 @@ defineExpose({
 	selectBlock,
 	scrollBlockIntoView,
 	selectBlockById,
+	toggleBlockSelection,
+	selectBlockRange,
 	clearSelection,
 	isRootSelected,
 	// slots
