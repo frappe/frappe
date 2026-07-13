@@ -13,6 +13,12 @@
 	}
 }
 
+.print-preview,
+.preview-beta-wrapper {
+	max-width: 8.3in;
+	margin: auto;
+}
+
 .preview-beta-wrapper {
 	border-radius: var(--radius);
 	overflow: hidden;
@@ -68,8 +74,6 @@
 
 .print-preview {
 	padding: 0;
-	max-width: 8.3in;
-	margin: auto;
 	min-height: 11.69in;
 	background: white;
 	border-radius: var(--radius);
