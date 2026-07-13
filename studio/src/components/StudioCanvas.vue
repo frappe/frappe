@@ -213,6 +213,8 @@ function setActiveBreakpoint(breakpoint: string | null) {
 }
 
 const selectedBlockIds = ref<Set<string>>(new Set())
+// anchor for shift-click range selection, set by plain/multi clicks and held fixed across shift-clicks
+const selectionAnchorId = ref<string | null>(null)
 const selectedBlocks = computed(() => {
 	return (
 		Array.from(selectedBlockIds.value)
@@ -248,6 +250,7 @@ function selectBlock(block: Block, e: MouseEvent | null, setBreakpoint = true) {
 
 function selectBlockById(blockId: string) {
 	selectedBlockIds.value = new Set([blockId])
+	selectionAnchorId.value = blockId
 }
 
 function toggleBlockSelection(block: Block) {
@@ -256,22 +259,22 @@ function toggleBlockSelection(block: Block) {
 	} else {
 		selectedBlockIds.value.add(block.componentId)
 	}
+	selectionAnchorId.value = block.componentId
 }
 
 function selectBlockRange(block: Block) {
-	const lastSelectedId = Array.from(selectedBlockIds.value).at(-1)
-	const lastSelected = lastSelectedId ? findBlock(lastSelectedId) : null
-	const parent = lastSelected?.getParentBlock()
+	const anchor = selectionAnchorId.value ? findBlock(selectionAnchorId.value) : null
+	const parent = anchor?.getParentBlock()
 	// range selection only works within the same parent; fall back to single select
-	if (!lastSelected || !parent || parent !== block.getParentBlock()) {
+	if (!anchor || !parent || parent !== block.getParentBlock()) {
 		selectBlockById(block.componentId)
 		return
 	}
-	const start = parent.getChildIndex(lastSelected)
+	// replace the selection with the anchor→block range so repeated shift-clicks grow/shrink it
+	const start = parent.getChildIndex(anchor)
 	const end = parent.getChildIndex(block)
-	parent.children
-		.slice(Math.min(start, end), Math.max(start, end) + 1)
-		.forEach((child) => selectedBlockIds.value.add(child.componentId))
+	const range = parent.children.slice(Math.min(start, end), Math.max(start, end) + 1)
+	selectedBlockIds.value = new Set(range.map((child) => child.componentId))
 }
 
 const handleClick = (ev: MouseEvent) => {
@@ -285,6 +288,7 @@ const handleClick = (ev: MouseEvent) => {
 
 function clearSelection() {
 	selectedBlockIds.value = new Set()
+	selectionAnchorId.value = null
 }
 
 const isRootSelected = computed(() => {
