@@ -4,6 +4,7 @@ from werkzeug.routing import Rule
 
 import frappe
 from frappe import _
+from frappe.handler import is_valid_http_method
 from frappe.utils import attach_expanded_links
 from frappe.utils.data import sbool
 
@@ -115,6 +116,9 @@ def execute_doc_method(doctype: str, name: str, method: str | None = None):
 	method = method or frappe.form_dict.pop("run_method")
 	doc = frappe.get_doc(doctype, name)
 	doc.is_whitelisted(method)
+	method_obj = getattr(doc, method)
+	fn = getattr(method_obj, "__func__", method_obj)
+	is_valid_http_method(fn)
 
 	if frappe.request.method == "GET":
 		doc.check_permission("read")
