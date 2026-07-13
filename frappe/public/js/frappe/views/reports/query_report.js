@@ -678,6 +678,22 @@ frappe.views.QueryReport = class QueryReport extends frappe.views.BaseList {
 
 				this.execution_time = data.execution_time || 0.1;
 
+				this.synced_report = data.synced_report;
+				this.synced_at = data.synced_at;
+				if (this.synced_report) {
+					if (data.result.length > 0) {
+						let diff = frappe.datetime.comment_when(this.synced_at);
+						let pretty_diff = `<span style="color:var(--red-600)">${diff}</span>`;
+						this.show_status(`
+						<div class="indicator orange pl-1">
+							<span>
+								${__("This is a synced report generated {0}.", [pretty_diff])}
+							</span>
+						</div>
+					`);
+					}
+				}
+
 				if (data.custom_filters) {
 					this.set_filters(data.custom_filters);
 					this.previous_filters = data.custom_filters;
