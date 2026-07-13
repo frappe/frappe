@@ -11,21 +11,19 @@ from frappe.website.doctype.web_form.web_form import accept, get_link_options
 from frappe.core.doctype.doctype.doctype import clear_permissions_cache
 from frappe.permissions import add_permission, reset_perms
 from frappe.tests import IntegrationTestCase
-<<<<<<< HEAD
-from frappe.utils import set_request
-from frappe.website.doctype.web_form.web_form import accept
-=======
 from frappe.utils import add_to_date, set_request
 from frappe.website.doctype.web_form.web_form import (
 	accept,
 	delete,
-	delete_multiple,
 	get_form_data,
 	get_link_options,
 	get_web_form_list,
 )
+<<<<<<< HEAD
 >>>>>>> 1904d0e6a3 (feat(Web Form): add request-key access for one-time links (#39194))
 >>>>>>> d4f1028775 (feat(Web Form): add request-key access for one-time links (#39194))
+=======
+>>>>>>> 732eddd90a (chore: resolve conflicts)
 from frappe.website.serve import get_response_content
 
 test_dependencies = ["Web Form"]

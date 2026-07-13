@@ -4,6 +4,7 @@
 import json
 import os
 <<<<<<< HEAD
+<<<<<<< HEAD
 from typing import Any
 =======
 <<<<<<< HEAD
@@ -11,6 +12,9 @@ from typing import Any
 from typing import TYPE_CHECKING
 >>>>>>> 1904d0e6a3 (feat(Web Form): add request-key access for one-time links (#39194))
 >>>>>>> d4f1028775 (feat(Web Form): add request-key access for one-time links (#39194))
+=======
+from typing import TYPE_CHECKING
+>>>>>>> 732eddd90a (chore: resolve conflicts)
 
 import frappe
 from frappe import _, scrub
@@ -709,6 +713,7 @@ def get_web_form_module(doc):
 @frappe.whitelist(methods=["POST", "PUT"], allow_guest=True)
 @rate_limit(key="web_form", limit=10, seconds=60)
 <<<<<<< HEAD
+<<<<<<< HEAD
 def accept(web_form: str, data: str):
 =======
 <<<<<<< HEAD
@@ -717,6 +722,9 @@ def accept(web_form, data):
 def accept(web_form: str, data: str | dict, web_form_request_key: str | None = None):
 >>>>>>> 1904d0e6a3 (feat(Web Form): add request-key access for one-time links (#39194))
 >>>>>>> d4f1028775 (feat(Web Form): add request-key access for one-time links (#39194))
+=======
+def accept(web_form: str, data: str | dict, web_form_request_key: str | None = None):
+>>>>>>> 732eddd90a (chore: resolve conflicts)
 	"""Save the web form"""
 	data = frappe._dict(json.loads(data))
 
@@ -896,6 +904,7 @@ def delete(web_form_name: str, docname: str | int, web_form_request_key: str | N
 
 
 <<<<<<< HEAD
+<<<<<<< HEAD
 @frappe.whitelist()
 <<<<<<< HEAD
 def delete_multiple(web_form_name: str, docnames: str):
@@ -904,10 +913,11 @@ def delete_multiple(web_form_name: str, docnames: str):
 =======
 def delete_multiple(web_form_name: str, docnames):
 =======
+=======
+>>>>>>> 732eddd90a (chore: resolve conflicts)
 @frappe.whitelist(methods=["POST", "DELETE"])
 @rate_limit(key="web_form_name", limit=10, seconds=60)
 def delete_multiple(web_form_name: str, docnames: str | list):
->>>>>>> 1904d0e6a3 (feat(Web Form): add request-key access for one-time links (#39194))
 	web_form = frappe.get_lazy_doc("Web Form", web_form_name)
 >>>>>>> d4f1028775 (feat(Web Form): add request-key access for one-time links (#39194))
 
