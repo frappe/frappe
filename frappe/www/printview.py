@@ -75,7 +75,6 @@ def get_context(context) -> PrintContext:
 	)
 
 	if print_format is None:
-		# Standard (no custom format) prints render through the new renderer
 		print_format = get_default_print_format(doc.doctype)
 
 	print_format_name = getattr(print_format, "name", "Standard")
@@ -194,10 +193,6 @@ def get_rendered_template(
 
 	jenv = frappe.get_jenv()
 
-	# Only server-side template formats (custom Jinja, raw, or standard=Yes .html)
-	# reach here — the Standard/default and builder layouts render through
-	# PrintFormatGenerator. The classic `standard.html` fallback has been removed,
-	# so callers wanting the default print should use `frappe.get_print(doctype, name)`.
 	if not print_format:
 		frappe.throw(
 			_("Pass a print format, or use frappe.get_print() for the default print."),
@@ -241,8 +236,6 @@ def get_rendered_template(
 	args = {
 		"doc": doc,
 		"meta": frappe.get_meta(doc.doctype),
-		# `layout` is the meta-driven page/section/column structure consumed by
-		# server-side print formats (e.g. the ERPNext *_standard formats iterate it).
 		"layout": make_layout(doc, meta),
 		"no_letterhead": no_letterhead,
 		"trigger_print": cint(trigger_print),

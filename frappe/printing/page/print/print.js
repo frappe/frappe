@@ -735,13 +735,15 @@ frappe.ui.form.PrintView = class {
 	}
 	render_pdf() {
 		let print_format = this.get_print_format();
-		if (print_format.print_format_builder_beta) {
+		if (print_format.print_format_builder_beta || !print_format.name) {
 			let params = new URLSearchParams({
 				doctype: this.frm.doc.doctype,
 				name: this.frm.doc.name,
-				print_format: print_format.name,
 				letterhead: this.get_letterhead(),
 			});
+			if (print_format.name) {
+				params.append("print_format", print_format.name);
+			}
 			let w = window.open(
 				`/api/method/frappe.utils.print_format_generator.download_pdf?${params}`
 			);

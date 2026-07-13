@@ -60,9 +60,7 @@ def get_print(
 	if "pdf_generator" not in local.form_dict:
 		from frappe.printing.doctype.print_format.classic_converter import uses_beta_renderer
 
-		# Standard (default) prints and beta/converted-classic formats produce markup
-		# only the Chromium renderer can lay out, so force it regardless of the passed arg.
-		# A deleted/unknown format also degrades to the Standard render, which needs chrome.
+		# Standard/beta formats only lay out under Chromium, so force it (a deleted format degrades to Standard).
 		pf_doc = _print_format_doc_or_none(print_format)
 		requires_chrome = not pf_doc or uses_beta_renderer(pf_doc)
 
@@ -73,46 +71,6 @@ def get_print(
 				frappe.get_cached_value("Print Format", print_format, "pdf_generator") or "wkhtmltopdf"
 			)
 		local.form_dict.pdf_generator = pdf_generator
-
-	# Beta/Standard formats must produce their PDF through PrintFormatGenerator — the same
-	# overlay pipeline attach_print uses — so the letterhead and layout header/footer
-	# repeat on every page. The plain printview HTML renders them in-flow (once only).
-	# Custom (print_designer / raw) chrome formats keep the hook path below.
-	if as_pdf and local.form_dict.pdf_generator == "chrome":
-		from frappe.printing.doctype.print_format.classic_converter import (
-			get_default_print_format,
-			uses_beta_renderer,
-		)
-
-		pf_doc = _print_format_doc_or_none(print_format)
-		if not pf_doc or uses_beta_renderer(pf_doc):
-			from frappe.utils.print_format_generator import PrintFormatGenerator
-			from frappe.www.printview import validate_print_for_docstatus, validate_print_permission
-
-			doc_obj = doc or frappe.get_doc(doctype, name)
-			validate_print_permission(doc_obj)
-			validate_print_for_docstatus(doc_obj)
-			pf = pf_doc or get_default_print_format(doc_obj.doctype)
-			letterhead_name = None if cint(no_letterhead) else letterhead
-			pdf = PrintFormatGenerator(pf, doc_obj, letterhead_name, style=style).render_pdf()
-
-			if password or output:
-				from io import BytesIO
-
-				from pypdf import PdfReader, PdfWriter
-
-				writer = PdfWriter()
-				writer.append_pages_from_reader(PdfReader(BytesIO(pdf)))
-				if password:
-					writer.encrypt(password)
-				if output is not None:
-					for page in writer.pages:
-						output.add_page(page)
-					return output
-				buffer = BytesIO()
-				writer.write(buffer)
-				return buffer.getvalue()
-			return pdf
 
 	original_form_dict = copy.deepcopy(local.form_dict)
 	try:
@@ -205,9 +163,13 @@ def attach_print(
 
 	frappe.local.flags.ignore_print_permissions = True
 
-	from frappe.printing.doctype.print_format.classic_converter import uses_beta_renderer
+	from frappe.printing.doctype.print_format.classic_converter import (
+		get_default_print_format,
+		uses_beta_renderer,
+	)
 
-	is_beta_print_format = uses_beta_renderer(_print_format_doc_or_none(print_format))
+	pf_doc = _print_format_doc_or_none(print_format)
+	render_via_generator = pf_doc is None or uses_beta_renderer(pf_doc)
 
 	try:
 		with print_language(lang or frappe.local.lang):
@@ -216,14 +178,15 @@ def attach_print(
 				ext = ".pdf"
 				if html:
 					content = get_pdf(html, options={"password": password} if password else None)
-				elif is_beta_print_format:
+				elif render_via_generator:
 					from frappe.utils.print_format_generator import PrintFormatGenerator
 					from frappe.www.printview import validate_print_for_docstatus
 
 					doc_obj = doc or frappe.get_cached_doc(doctype, name)
 					validate_print_for_docstatus(doc_obj)
 					letterhead_name = letterhead if print_letterhead else None
-					generator = PrintFormatGenerator(print_format, doc_obj, letterhead_name)
+					pf = pf_doc or get_default_print_format(doc_obj.doctype)
+					generator = PrintFormatGenerator(pf, doc_obj, letterhead_name)
 					content = generator.render_pdf()
 				else:
 					kwargs["as_pdf"] = True

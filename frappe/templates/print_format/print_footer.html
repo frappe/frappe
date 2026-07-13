@@ -1,9 +1,7 @@
 <style>
 	{% include "templates/print_format/print_format_font.css" %}
 </style>
-{#- Same reasoning as print_header.html: position:fixed would stamp the footer
-   over the body content on every printed page, so it stays in flow and prints
-   once after the content. The Chrome PDF overlay handles per-page repetition. -#}
+{#- In-flow: per-page repetition is done by the Chrome PDF overlay pipeline (see print_header.html). -#}
 <footer>
 	{%- if letterhead -%}
 	{{ frappe.render_template(letterhead.footer, {'doc': doc}) }}

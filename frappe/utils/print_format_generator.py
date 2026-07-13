@@ -28,12 +28,17 @@ def render_jinja_template(template: str, doctype: str, docname: str) -> str:
 
 
 @frappe.whitelist()
-def download_pdf(doctype: str, name: str | int, print_format: str, letterhead: str | None = None):
+def download_pdf(
+	doctype: str, name: str | int, print_format: str | None = None, letterhead: str | None = None
+):
+	from frappe.printing.doctype.print_format.classic_converter import get_default_print_format
 	from frappe.www.printview import validate_print_for_docstatus, validate_print_permission
 
 	doc = frappe.get_doc(doctype, name)
 	validate_print_permission(doc)
 	validate_print_for_docstatus(doc)
+	if not print_format or print_format == "Standard":
+		print_format = get_default_print_format(doctype)
 	generator = PrintFormatGenerator(print_format, doc, letterhead)
 	pdf = generator.render_pdf()
 
@@ -326,8 +331,6 @@ class PrintFormatGenerator:
 			"</div>"
 		)
 
-	# ----- layout normalisation ------------------------------------------
-
 	def get_layout(self, print_format):
 		layout = frappe.parse_json(print_format.format_data) or {
 			"sections": [],
@@ -335,6 +338,8 @@ class PrintFormatGenerator:
 			"footer": {"columns": []},
 		}
 		if isinstance(layout, list):
+			# App-shipped standard classic formats (Tax Invoice, Pick List, …) are re-synced
+			# from fixtures on migrate, so they can't be converted in the DB — convert at render.
 			from frappe.printing.doctype.print_format.classic_converter import convert_classic_to_beta
 
 			layout, _dropped = convert_classic_to_beta(
@@ -348,8 +353,6 @@ class PrintFormatGenerator:
 		return layout
 
 	def prune_empty_table_columns(self, layout):
-		"""Drop child-table columns that are blank in every row of this document,
-		matching the classic renderer. Currency/Float columns are always kept."""
 		from frappe.www.printview import column_has_value
 
 		for section in layout.get("sections", []):
@@ -366,9 +369,6 @@ class PrintFormatGenerator:
 						if col.get("fieldname") == "idx"
 						or column_has_value(rows, col.get("fieldname"), frappe._dict(col))
 					]
-					# Widths were distributed across all columns (summing to 100%); after
-					# dropping empties, re-normalize the survivors so the table fills its
-					# width instead of laying out too narrow.
 					total = sum(col.get("width") or 0 for col in kept)
 					if total:
 						for col in kept:
