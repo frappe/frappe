@@ -138,6 +138,20 @@ class TestResourceAPIV2(FrappeAPITestCase):
 		response = self.get(self.resource("Website Theme", "Standard", "method", "get_apps"))
 		self.assertEqual(response.json["data"][0]["name"], "frappe")
 
+	def test_execute_doc_method_v2_validates_http_method(self):
+		doc = frappe.get_doc("Website Theme", "Standard")
+		method = getattr(doc.get_apps, "__func__", doc.get_apps)
+
+		with (
+			patch.dict(frappe.allowed_http_methods_for_whitelisted_func, {method: ["POST"]}),
+			suppress_stdout(),
+		):
+			response = self.get(
+				self.resource("Website Theme", "Standard", "method", "get_apps"), {"sid": self.sid}
+			)
+
+		self.assertEqual(response.status_code, 403)
+
 	def test_update_document_v2(self):
 		generated_desc = frappe.mock("paragraph")
 		data = {"description": generated_desc, "sid": self.sid}
