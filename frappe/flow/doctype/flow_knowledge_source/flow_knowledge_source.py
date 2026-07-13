@@ -6,6 +6,8 @@ from frappe import _
 from frappe.model.document import Document
 from frappe.utils import cint
 
+from flow.utils.system_generated import block_delete, validate_immutable
+
 REQUIRED_INPUT = {
 	"Text": "content",
 	"File": "file",
@@ -63,37 +65,7 @@ class FlowKnowledgeSource(Document):
 				frappe.MandatoryError,
 			)
 		self._validate_chunking()
-		self._validate_system_generated_immutable()
-
-	def _validate_system_generated_immutable(self):
-		# Gate on the DB flag so unsetting it can't bypass these guards.
-		if self.is_new() or self.flags.ignore_permissions:
-			return
-		before = frappe.db.get_value(
-			"Flow Knowledge Source",
-			self.name,
-			["source_type", "knowledge_base", "is_system_generated"],
-			as_dict=True,
-		)
-		if not before or not before.is_system_generated:
-			return
-		if not self.is_system_generated:
-			frappe.throw(
-				_("Cannot remove the system-generated flag from knowledge source {0}.").format(self.name),
-				title=_("Protected"),
-			)
-		if before.source_type != self.source_type:
-			frappe.throw(
-				_("Cannot change the type of system-generated knowledge source {0}.").format(self.name),
-				title=_("Protected"),
-			)
-		if before.knowledge_base != self.knowledge_base:
-			frappe.throw(
-				_("Cannot move system-generated knowledge source {0} to another knowledge base.").format(
-					self.name
-				),
-				title=_("Protected"),
-			)
+		validate_immutable(self, ("source_type", "knowledge_base"))
 
 	def _validate_chunking(self):
 		"""0 inherits the global default. Only validate values set on the source itself."""
@@ -108,11 +80,7 @@ class FlowKnowledgeSource(Document):
 		enqueue_ingestion(self.name)
 
 	def on_trash(self):
-		if self.is_system_generated and not self.flags.ignore_permissions:
-			frappe.throw(
-				_("Cannot delete system-generated knowledge source {0}.").format(self.name),
-				title=_("Protected"),
-			)
+		block_delete(self)
 		from flow.knowledge.ingest import purge_source
 
 		purge_source(self.name)

@@ -1356,7 +1356,7 @@ class TestSystemGeneratedProtection(IntegrationTestCase):
 		source = self._source(self._kb())
 		source.source_type = "URL"
 		source.url = "https://example.com"
-		with self.assertRaisesRegex(frappe.ValidationError, "Cannot change the type"):
+		with self.assertRaisesRegex(frappe.ValidationError, "Cannot change Source Type"):
 			source.save()
 
 	def test_owning_app_can_restructure_system_generated_source(self):

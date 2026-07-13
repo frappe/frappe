@@ -10,6 +10,8 @@ import frappe
 from frappe import _
 from frappe.model.document import Document
 
+from flow.system_generated import block_delete, block_rename, validate_immutable
+
 if TYPE_CHECKING:
 	from flow.flow.doctype.flow_run.flow_run import FlowRun
 	from flow.lib.agent import Agent, Event
@@ -44,18 +46,10 @@ class FlowAgent(Document):
 	# end: auto-generated types
 
 	def on_trash(self):
-		if self.is_system_generated:
-			frappe.throw(
-				_("Cannot delete system-generated agent {0}.").format(self.name),
-				title=_("Protected"),
-			)
+		block_delete(self, always=True)
 
 	def before_rename(self, old: str, _new: str, _merge: bool = False) -> None:
-		if self.is_system_generated:
-			frappe.throw(
-				_("Cannot rename system-generated agent {0}.").format(old),
-				title=_("Protected"),
-			)
+		block_rename(self, old)
 
 	def before_insert(self):
 		if not self.tools:
@@ -66,6 +60,7 @@ class FlowAgent(Document):
 	def validate(self):
 		self._validate_max_iterations()
 		self._ensure_knowledge_search_tool()
+		validate_immutable(self)
 
 	def _validate_max_iterations(self):
 		if self.max_iterations is not None and self.max_iterations < 1:

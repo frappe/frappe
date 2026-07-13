@@ -10,6 +10,8 @@ import frappe
 from frappe import _
 from frappe.model.document import Document
 
+from flow.system_generated import block_delete, block_rename, validate_immutable
+
 SLUG_PATTERN = re.compile(r"^[a-z][a-z0-9_]*$")
 IMPORT_PATH_PATTERN = re.compile(r"^[a-zA-Z_][a-zA-Z0-9_]*(\.[a-zA-Z_][a-zA-Z0-9_]*)+$")
 MAIN_FUNCTION_NAME = "main"
@@ -42,38 +44,13 @@ class FlowTool(Document):
 		self._validate_type_fields()
 		if self.type == "Script":
 			self._validate_code()
-		self._validate_system_generated_immutable()
-
-	def _validate_system_generated_immutable(self):
-		if not self.is_system_generated or self.is_new():
-			return
-		before = frappe.db.get_value("Flow Tool", self.name, ["import_path", "type"], as_dict=True)
-		if before is None:
-			return
-		if before.import_path != self.import_path:
-			frappe.throw(
-				_("Cannot change import path of system-generated tool {0}.").format(self.name),
-				title=_("Protected"),
-			)
-		if before.type != self.type:
-			frappe.throw(
-				_("Cannot change type of system-generated tool {0}.").format(self.name),
-				title=_("Protected"),
-			)
+		validate_immutable(self, ("type", "import_path"))
 
 	def on_trash(self):
-		if self.is_system_generated:
-			frappe.throw(
-				_("Cannot delete system-generated tool {0}.").format(self.name),
-				title=_("Protected"),
-			)
+		block_delete(self, always=True)
 
 	def before_rename(self, old: str, _new: str, _merge: bool = False) -> None:
-		if self.is_system_generated:
-			frappe.throw(
-				_("Cannot rename system-generated tool {0}.").format(old),
-				title=_("Protected"),
-			)
+		block_rename(self, old)
 
 	def to_tool(self):
 		"""Resolve this row into a runtime Tool the Agent can call."""

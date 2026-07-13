@@ -1,9 +1,9 @@
 # Copyright (c) 2026, Frappe Technologies and contributors
 # License: MIT. See LICENSE
 
-import frappe
-from frappe import _
 from frappe.model.document import Document
+
+from flow.utils.system_generated import block_delete, block_rename, validate_immutable
 
 
 class FlowKnowledgeBase(Document):
@@ -28,29 +28,10 @@ class FlowKnowledgeBase(Document):
 			)
 
 			require_embedding_model()
-		self._protect_system_generated_flag()
-
-	def _protect_system_generated_flag(self):
-		# Read the flag from the DB so unsetting it (which would bypass on_trash) is blocked.
-		if self.is_new() or self.flags.ignore_permissions or self.is_system_generated:
-			return
-		if frappe.db.get_value("Flow Knowledge Base", self.name, "is_system_generated"):
-			frappe.throw(
-				_("Cannot remove the system-generated flag from knowledge base {0}.").format(self.name),
-				title=_("Protected"),
-			)
+		validate_immutable(self)
 
 	def on_trash(self):
-		if self.is_system_generated and not self.flags.ignore_permissions:
-			frappe.throw(
-				_("Cannot delete system-generated knowledge base {0}.").format(self.name),
-				title=_("Protected"),
-			)
+		block_delete(self)
 
 	def before_rename(self, old: str, new: str, merge: bool = False) -> None:
-		# Unconditional: the title is the app's sync identity; re-title via create + delete.
-		if self.is_system_generated:
-			frappe.throw(
-				_("Cannot rename system-generated knowledge base {0}.").format(old),
-				title=_("Protected"),
-			)
+		block_rename(self, old)
