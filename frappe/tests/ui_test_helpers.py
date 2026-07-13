@@ -197,11 +197,37 @@ def create_contact_records():
 @whitelist_for_tests()
 def create_multiple_todo_records():
 	if frappe.get_all("ToDo", {"description": "Multiple ToDo 1"}):
+		frappe.db.sql("UPDATE `tabToDo` SET status = 'Open' WHERE description LIKE 'Multiple ToDo %'")
 		return
 
-	values = [(f"100{i}", f"Multiple ToDo {i}") for i in range(1, 1002)]
+	values = [(f"100{i}", f"Multiple ToDo {i}", "Open") for i in range(1, 1002)]
 
-	frappe.db.bulk_insert("ToDo", fields=["name", "description"], values=set(values))
+	frappe.db.bulk_insert("ToDo", fields=["name", "description", "status"], values=set(values))
+
+
+@whitelist_for_tests()
+def ensure_todo_kanban_board():
+	"""Create the ToDo Kanban board used by cypress/integration/kanban.js."""
+	if frappe.db.exists("Kanban Board", "ToDo Kanban"):
+		return "ToDo Kanban"
+
+	doc = frappe.get_doc(
+		{
+			"doctype": "Kanban Board",
+			"kanban_board_name": "ToDo Kanban",
+			"reference_doctype": "ToDo",
+			"field_name": "status",
+			"private": 0,
+			"show_labels": 0,
+			"columns": [
+				{"column_name": "Open", "status": "Active", "indicator": "Gray"},
+				{"column_name": "Closed", "status": "Active", "indicator": "Gray"},
+				{"column_name": "Cancelled", "status": "Active", "indicator": "Gray"},
+			],
+		}
+	)
+	doc.insert(ignore_permissions=True)
+	return doc.name
 
 
 def insert_contact(first_name, phone_number):
