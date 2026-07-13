@@ -8,16 +8,13 @@
 
 @page {
 	size: {{ print_settings.pdf_page_size or 'A4' }} portrait;
-	{% if for_chrome %}
-	margin-top: {{ page_margins.top }}mm;
-	margin-bottom: {{ page_margins.bottom }}mm;
-	margin-left: {{ page_margins.left }}mm;
-	margin-right: {{ page_margins.right }}mm;
-	{% else %}
-	/* Screen/browser print: spacing is baked into the body as padding (below) so it
-	   is WYSIWYG and survives the print dialog's Margins setting. Keep the sheet
-	   borderless; page numbers are drawn via CSS margin boxes when margins allow. */
+	/* Never set margins here. For the Chrome PDF, printToPDF already applies the
+	   resolved margins via CDP options, and a CSS @page margin would stack on top
+	   of them (double margin). For screen/browser print the spacing is baked into
+	   the body as padding (below) so it is WYSIWYG and survives the print dialog's
+	   Margins setting. The sheet itself stays borderless. */
 	margin: 0;
+	{% if not for_chrome %}
 	{% set page_number_position = print_format.page_number.lower().replace(' ', '_') %}
 	{% if page_number_position in ['top_left', 'top_center', 'top_right', 'bottom_left', 'bottom_center', 'bottom_right'] %}
 	{{ render_margin_text(page_number_position, _('{0} of {1}').format('counter(page) "', '" counter(pages)')) }}

@@ -173,17 +173,27 @@ class TestPrintFormatGenerator(IntegrationTestCase):
 		self.assertIn("width: 210mm", html)
 		self.assertIn("padding: 15mm 15mm 15mm 15mm", html)
 
-	def test_chrome_pdf_uses_real_page_margins(self):
-		"""The Chrome PDF applies margins as real @page margins (so header/footer/page
-		number overlays get their margin band), not as body padding."""
+	def test_chrome_pdf_does_not_stack_css_margins(self):
+		"""Chrome's printToPDF applies the resolved margins via CDP options, and a CSS
+		@page margin or body padding would stack on top of them (double margin). The
+		Chrome HTML must therefore carry neither."""
 		from frappe.utils.print_format_generator import PrintFormatGenerator
 
 		pf = self._make_print_format(margin_top=15, margin_bottom=15, margin_left=15, margin_right=15)
 		todo = self._make_todo()
 		gen = PrintFormatGenerator(pf.name, todo)
 		html = gen._build_html_for_chrome()
-		self.assertIn("margin-top: 15mm", html)
 		self.assertNotIn("padding: 15mm 15mm 15mm 15mm", html)
+		self.assertNotIn("margin-left: 15mm", html)
+		self.assertNotIn("margin-top: 15mm", html)
+
+	def test_chrome_pdf_options_use_resolved_margins(self):
+		"""The margins fed to printToPDF come from the single resolver, defaulting an
+		unset side to 15mm."""
+		from frappe.utils.print_format_generator import resolve_print_margins
+
+		pf = self._make_print_format(margin_top=0, margin_bottom=20, margin_left=10, margin_right=10)
+		self.assertEqual(resolve_print_margins(pf), {"top": 15, "bottom": 20, "left": 10, "right": 10})
 
 	def test_resolve_print_margins_defaults_unset_to_15(self):
 		"""Single source of truth: defined margins pass through, unset (0) ones fall
