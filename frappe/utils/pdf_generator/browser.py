@@ -9,6 +9,13 @@ from frappe.utils.print_utils import convert_uom, parse_float_and_unit
 
 
 class Browser:
+	# get_element_height() measures the header/footer overlay in CSS px (96px/in), but
+	# Chrome's printToPDF renders those small overlay pages ~1.46x smaller. Without this
+	# correction the reserved header/footer band is ~1.46x too tall, leaving dead space
+	# between the letterhead and the body. print_designer measures differently, so the
+	# correction is applied only to the standard (non-print-designer) path.
+	_OVERLAY_MEASURE_PRINT_SCALE: ClassVar[float] = 1.46
+
 	def __init__(self, generator, print_format, html, options):
 		self.is_print_designer = frappe.get_cached_value("Print Format", print_format, "print_designer")
 		self.debug_mode = frappe.conf.developer_mode and bool(frappe.form_dict.get("pdf_debug"))
@@ -172,6 +179,8 @@ class Browser:
 		if self.header_page:
 			self.header_page.wait_for_set_content()
 			self.header_height = self.header_page.get_element_height()
+			if not self.is_print_designer:
+				self.header_height /= self._OVERLAY_MEASURE_PRINT_SCALE
 			self.is_header_dynamic = self.is_page_no_used(self.header_content)
 			del self.header_content
 		else:
@@ -183,6 +192,8 @@ class Browser:
 		if self.footer_page:
 			self.footer_page.wait_for_set_content()
 			self.footer_height = self.footer_page.get_element_height()
+			if not self.is_print_designer:
+				self.footer_height /= self._OVERLAY_MEASURE_PRINT_SCALE
 			self.is_footer_dynamic = self.is_page_no_used(self.footer_content)
 			del self.footer_content
 		else:
