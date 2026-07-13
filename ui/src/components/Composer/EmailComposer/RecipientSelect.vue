@@ -43,7 +43,7 @@
 <script setup lang="ts">
 import { computed, ref } from "vue";
 import { useDebounceFn } from "@vueuse/core";
-import { Avatar, FeatherIcon } from "frappe-ui";
+import { Avatar, FeatherIcon, toast } from "frappe-ui";
 import { MultiEmailInput, type MultiEmailOption } from "frappe-ui/experimental";
 import type { Recipient, RecipientSearch } from "../types";
 
@@ -83,6 +83,14 @@ async function runSearch(query: string) {
 	try {
 		const results = await props.search(query);
 		if (id === requestId) searchResults.value = results;
+	} catch {
+		// Only the latest request owns the shared state: drop stale matches and
+		// surface the failure instead of a silent empty dropdown. Race-losers
+		// (id !== requestId) are left alone — the newer request still owns it.
+		if (id === requestId) {
+			searchResults.value = [];
+			toast.error("Couldn't load recipients.");
+		}
 	} finally {
 		if (id === requestId) loading.value = false;
 	}
