@@ -43,7 +43,7 @@
 								>
 									<component :is="component.icon" class="h-6 w-6" />
 								</div>
-								<span class="wrap-normal w-full text-center text-xs">
+								<span class="w-full text-balance text-center text-xs leading-normal">
 									{{ component.title }}
 								</span>
 							</div>
