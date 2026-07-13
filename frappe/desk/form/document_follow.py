@@ -21,7 +21,11 @@ def update_follow(doctype: str, doc_name: str, following: bool | str):
 
 
 @frappe.whitelist()
-def follow_document(doctype, doc_name, user):
+def follow_document(doctype: str, doc_name: str, user: str):
+	return _follow_document(doctype, doc_name, user, ignore_permissions=False)
+
+
+def _follow_document(doctype: str, doc_name: str, user: str, *, ignore_permissions: bool | int = False):
 	"""
 	param:
 	Doctype name
@@ -55,7 +59,11 @@ def follow_document(doctype, doc_name, user):
 		frappe.toast(_("Administrator can't follow"))
 		return False
 
-	if user != frappe.session.user and not frappe.has_permission("Document Follow", "write"):
+	if (
+		not ignore_permissions
+		and user != frappe.session.user
+		and not frappe.has_permission("Document Follow", "write")
+	):
 		frappe.throw(_("You can only follow documents for yourself."), frappe.PermissionError)
 
 	if not frappe.has_permission(doctype, "read", doc=doc_name, user=user):
@@ -68,7 +76,7 @@ def follow_document(doctype, doc_name, user):
 	if not is_document_followed(doctype, doc_name, user):
 		doc = frappe.new_doc("Document Follow")
 		doc.update({"ref_doctype": doctype, "ref_docname": doc_name, "user": user})
-		doc.save()
+		doc.save(ignore_permissions=ignore_permissions)
 		frappe.toast(_("Following document {0}").format(doc_name))
 		return doc
 
