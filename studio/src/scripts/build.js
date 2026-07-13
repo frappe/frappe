@@ -24,9 +24,9 @@ const APPS_DIR = path.resolve(__dirname, "../../../../")
 // aliases so the exported-app build doesn't try to resolve a missing package.
 const frameworkUIAvailable = fs.existsSync(path.resolve(APPS_DIR, "frappe", "ui", "package.json"))
 
-// @framework/ui components are spread across the root barrel and per-widget
-// subpath exports, so their imports must be grouped by source module. Anything
-// not listed here comes from the root "@framework/ui" barrel.
+// @framework/ui components are spread across the root barrel and per-widget subpath
+// exports, so their imports must be grouped by source module. Components with a
+// dedicated subpath export (grouped/heavier widgets) go here.
 const FRAMEWORK_UI_IMPORT_SOURCES = {
 	Filter: "@framework/ui/Filter",
 	SortBy: "@framework/ui/SortBy",
@@ -37,6 +37,25 @@ const FRAMEWORK_UI_IMPORT_SOURCES = {
 	AttachmentsList: "@framework/ui/FileUpload",
 	UploadTray: "@framework/ui/FileUpload",
 }
+
+// Components imported as named exports from the root "@framework/ui" barrel. Kept as
+// an explicit allowlist (verified against apps/frappe/ui/src/index.ts and its
+// Notifications/ActivityTimeline sub-barrels) rather than a silent fallback, so a new
+// component can't emit an unresolvable barrel import — getFrameworkUIImports throws if
+// a component is in neither map. Every FRAMEWORK_UI_COMPONENTS entry must be in exactly
+// one of these two.
+const FRAMEWORK_UI_BARREL_COMPONENTS = new Set([
+	"FormLayout",
+	"Link",
+	"Grid",
+	"Phone",
+	"TableMultiSelect",
+	"NotificationPanel",
+	"NotificationItem",
+	"ActivityTimeline",
+	"EmailItem",
+	"CommentItem",
+])
 
 // create a temp directory for app renderers in studio app folder
 const TEMP_DIR = path.resolve(__dirname, "../../../.temp-app-renderers")
@@ -192,8 +211,17 @@ app.mount("#app")`
 function getFrameworkUIImports(frameworkUIComponents) {
 	const bySource = {}
 	for (const comp of frameworkUIComponents) {
-		const source = FRAMEWORK_UI_IMPORT_SOURCES[comp] || "@framework/ui"
-		;(bySource[source] ||= []).push(comp)
+		const source =
+			FRAMEWORK_UI_IMPORT_SOURCES[comp] ||
+			(FRAMEWORK_UI_BARREL_COMPONENTS.has(comp) ? "@framework/ui" : null)
+		if (!source) {
+			throw new Error(
+				`@framework/ui component "${comp}" has no import source. Add it to ` +
+					`FRAMEWORK_UI_IMPORT_SOURCES (dedicated subpath) or FRAMEWORK_UI_BARREL_COMPONENTS ` +
+					`(and ensure apps/frappe/ui/src/index.ts re-exports it).`,
+			)
+		}
+		(bySource[source] ||= []).push(comp)
 	}
 	return Object.entries(bySource)
 		.map(([source, comps]) => `import { ${comps.join(", ")} } from "${source}";`)
