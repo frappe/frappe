@@ -24,11 +24,25 @@ class AutomationRun(Document):
 		reference_doctype: DF.Link | None
 		reference_name: DF.DynamicLink | None
 		started_at: DF.Datetime | None
-		status: DF.Literal["Queued", "Running", "Waiting", "Success", "Partially Failed", "Failed", "Skipped"]
+		status: DF.Literal[
+			"Queued",
+			"Running",
+			"Waiting",
+			"Success",
+			"Partially Failed",
+			"Failed",
+			"Skipped",
+			"Simulated",
+		]
 		steps: DF.Table[AutomationRunStep]
 	# end: auto-generated types
 
-	pass
+	@staticmethod
+	def clear_old_logs(days=90):
+		frappe.db.delete(
+			"Automation Run",
+			{"creation": ("<", frappe.utils.add_days(frappe.utils.now(), -days))},
+		)
 
 
 def on_doctype_update():
