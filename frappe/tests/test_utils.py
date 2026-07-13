@@ -43,6 +43,7 @@ from frappe.utils import (
 	remove_blanks,
 	safe_json_loads,
 	scrub_urls,
+	set_request,
 	validate_email_address,
 	validate_name,
 	validate_phone_number_with_country_code,
@@ -89,7 +90,7 @@ from frappe.utils.diff import _get_value_from_version, get_version_diff, version
 from frappe.utils.identicon import Identicon
 from frappe.utils.image import optimize_image, strip_exif_data
 from frappe.utils.make_random import can_make, get_random, how_many
-from frappe.utils.response import json_handler
+from frappe.utils.response import json_handler, report_error
 from frappe.utils.synchronization import LockTimeoutError, filelock
 from frappe.utils.typing_validations import FrappeTypeError, validate_argument_types
 
@@ -1079,6 +1080,26 @@ class TestResponse(IntegrationTestCase):
 		self.assertIsInstance(processed_object["string"], str)
 		with self.assertRaises(TypeError):
 			json.dumps(BAD_OBJECT, default=json_handler)
+
+	def test_report_error_with_unserializable_response(self):
+		set_request(method="GET", path="/api/method/ping")
+		self.addCleanup(frappe.local.response.clear)
+
+		frappe.local.response["message"] = "ok"
+		frappe.local.response["unserializable"] = 2**70
+
+		try:
+			raise ValueError("boom")
+		except ValueError:
+			response = report_error(500)
+
+		payload = json.loads(response.data)
+
+		self.assertEqual(response.status_code, 500)
+		self.assertEqual(response.mimetype, "application/json")
+		self.assertNotIn("unserializable", payload)
+		self.assertEqual(payload["message"], "ok")
+		self.assertEqual(payload["exc_type"], "ValueError")
 
 
 class TestTimeDeltaUtils(IntegrationTestCase):
