@@ -1336,9 +1336,15 @@ class TestSystemGeneratedProtection(IntegrationTestCase):
 		self.assertFalse(frappe.db.exists("Flow Knowledge Base", kb.name))
 
 	def test_cannot_rename_system_generated_kb(self):
+		from frappe.model.rename_doc import rename_doc
+
 		kb = self._kb()
+		# Blocked outright, even via the low-level API with ignore_permissions: the title is
+		# the sync identity, so apps re-title by create+delete rather than rename.
 		with self.assertRaisesRegex(frappe.ValidationError, "Cannot rename system-generated"):
 			frappe.rename_doc("Flow Knowledge Base", kb.name, "Renamed KB")
+		with self.assertRaisesRegex(frappe.ValidationError, "Cannot rename system-generated"):
+			rename_doc("Flow Knowledge Base", kb.name, "Renamed KB", ignore_permissions=True)
 
 	def test_regular_kb_is_unaffected(self):
 		kb = self._kb(system=False, title="User KB")

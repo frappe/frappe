@@ -39,7 +39,10 @@ class FlowKnowledgeBase(Document):
 			)
 
 	def before_rename(self, old: str, new: str, merge: bool = False) -> None:
-		if self.is_system_generated and not self.flags.ignore_permissions:
+		# Unconditional: the title is the identity apps sync against, so a system base is
+		# never renamed (an app that wants a new title creates one and deletes the old).
+		# rename_doc doesn't propagate ignore_permissions here, so there's no escape hatch.
+		if self.is_system_generated:
 			frappe.throw(
 				_("Cannot rename system-generated knowledge base {0}.").format(old),
 				title=_("Protected"),
