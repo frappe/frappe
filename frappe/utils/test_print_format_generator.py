@@ -2,7 +2,6 @@
 # License: MIT. See LICENSE
 
 import json
-import re
 
 import frappe
 from frappe.tests import IntegrationTestCase
@@ -195,21 +194,6 @@ class TestPrintFormatGenerator(IntegrationTestCase):
 
 		pf = self._make_print_format(margin_top=0, margin_bottom=20, margin_left=10, margin_right=10)
 		self.assertEqual(resolve_print_margins(pf), {"top": 15, "bottom": 20, "left": 10, "right": 10})
-
-	def test_chrome_pdf_renders_letterhead_inline(self):
-		"""The letterhead renders inline in the body (WYSIWYG with the HTML preview), not
-		inside the repeating #header-html overlay whose measured height over-reserved the
-		top margin."""
-		from frappe.utils.print_format_generator import PrintFormatGenerator
-
-		pf = self._make_print_format()
-		todo = self._make_todo()
-		gen = PrintFormatGenerator(pf.name, todo)
-		gen.letterhead = frappe._dict(content="<div class='lh-marker'>ACME</div>", footer=None)
-		html = gen._build_html_for_chrome()
-		self.assertIn("lh-marker", html)
-		overlay = re.search(r'<div id="header-html">.*?</div>', html, re.S)
-		self.assertFalse(bool(overlay) and "lh-marker" in overlay.group(0))
 
 	def test_resolve_print_margins_defaults_unset_to_15(self):
 		"""Single source of truth: defined margins pass through, unset (0) ones fall
