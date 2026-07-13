@@ -27,12 +27,20 @@ html, body {
 }
 
 body {
+	{% if not for_chrome %}
 	margin: 0 auto;
 	max-width: {{ page_width | int }}mm;
-	{% if not for_chrome %}
 	box-sizing: border-box;
 	width: {{ page_width | int }}mm;
 	padding: {{ page_margins.top }}mm {{ page_margins.right }}mm {{ page_margins.bottom }}mm {{ page_margins.left }}mm;
+	{% else %}
+	/* Chrome PDF: pin the body to the content width (page minus margins) with
+	   !important so Bootstrap's print styles can't widen it. Without this the page
+	   lays out too wide and Chrome scales everything down, shrinking the font.
+	   printToPDF applies the page margins itself. */
+	margin: 0;
+	min-width: {{ (page_width - page_margins.left - page_margins.right) | int }}mm !important;
+	max-width: {{ (page_width - page_margins.left - page_margins.right) | int }}mm !important;
 	{% endif %}
 }
 
