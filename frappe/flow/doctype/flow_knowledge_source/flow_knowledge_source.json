@@ -9,6 +9,7 @@
   "knowledge_base",
   "column_break_meta",
   "source_type",
+  "is_system_generated",
   "section_break_input",
   "content",
   "file",
@@ -60,6 +61,13 @@
    "label": "Source Type",
    "options": "Text\nFile\nURL\nDocType",
    "reqd": 1
+  },
+  {
+   "default": "0",
+   "fieldname": "is_system_generated",
+   "fieldtype": "Check",
+   "label": "System Generated",
+   "read_only": 1
   },
   {
    "fieldname": "section_break_input",
@@ -192,7 +200,7 @@
  ],
  "index_web_pages_for_search": 1,
  "links": [],
- "modified": "2026-06-11 00:00:00",
+ "modified": "2026-07-13 00:00:00.000000",
  "modified_by": "Administrator",
  "module": "Flow",
  "name": "Flow Knowledge Source",

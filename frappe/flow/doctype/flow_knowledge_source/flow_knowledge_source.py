@@ -32,6 +32,7 @@ class FlowKnowledgeSource(Document):
 		error_log: DF.LongText | None
 		file: DF.Attach | None
 		filters: DF.JSON | None
+		is_system_generated: DF.Check
 		knowledge_base: DF.Link
 		last_synced_at: DF.Datetime | None
 		reference_doctype: DF.Link | None
@@ -62,6 +63,30 @@ class FlowKnowledgeSource(Document):
 				frappe.MandatoryError,
 			)
 		self._validate_chunking()
+		self._validate_system_generated_immutable()
+
+	def _validate_system_generated_immutable(self):
+		# Lock the structural identity of a system-generated source against Desk edits; the
+		# owning app's sync (ignore_permissions) may still update content, filters, etc.
+		if not self.is_system_generated or self.is_new() or self.flags.ignore_permissions:
+			return
+		before = frappe.db.get_value(
+			"Flow Knowledge Source", self.name, ["source_type", "knowledge_base"], as_dict=True
+		)
+		if before is None:
+			return
+		if before.source_type != self.source_type:
+			frappe.throw(
+				_("Cannot change the type of system-generated knowledge source {0}.").format(self.name),
+				title=_("Protected"),
+			)
+		if before.knowledge_base != self.knowledge_base:
+			frappe.throw(
+				_("Cannot move system-generated knowledge source {0} to another knowledge base.").format(
+					self.name
+				),
+				title=_("Protected"),
+			)
 
 	def _validate_chunking(self):
 		"""0 inherits the global default. Only validate values set on the source itself."""
@@ -76,6 +101,11 @@ class FlowKnowledgeSource(Document):
 		enqueue_ingestion(self.name)
 
 	def on_trash(self):
+		if self.is_system_generated and not self.flags.ignore_permissions:
+			frappe.throw(
+				_("Cannot delete system-generated knowledge source {0}.").format(self.name),
+				title=_("Protected"),
+			)
 		from flow.knowledge.ingest import purge_source
 
 		purge_source(self.name)
