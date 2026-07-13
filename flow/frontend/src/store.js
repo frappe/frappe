@@ -388,8 +388,11 @@ function setToolResult(msg, id, result) {
 	if (!part) return;
 	part.result = result;
 	// On reload the live approval state is gone; recover it from the persisted
-	// confirmation result so the "Denied"/"Changes requested" badge survives.
-	if (part.approval === null) part.approval = approvalFromResult(result);
+	// confirmation result so the "Denied"/"Changes requested" badge survives. Gated on
+	// the tool being a confirmation tool so a regular tool whose result happens to carry
+	// a {status: "denied"} payload isn't mislabeled.
+	if (part.approval === null && toolApproval.value[part.name] === true)
+		part.approval = approvalFromResult(result);
 }
 
 // A denied/redirected confirmation persists a known status payload as its tool result.
