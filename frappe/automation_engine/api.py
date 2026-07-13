@@ -48,6 +48,8 @@ def validate_action_params(action_type: str, doctype: str, params: str) -> dict:
 		return {"valid": True, "errors": []}
 	except AutomationParamError as e:
 		return {"valid": False, "errors": [{"fieldname": e.fieldname, "message": str(e)}]}
+	except Exception as e:
+		return {"valid": False, "errors": [{"fieldname": None, "message": str(e)}]}
 
 
 @frappe.whitelist()
@@ -64,8 +66,10 @@ def get_param_options(
 	field = next((f for f in action.params_schema if f["fieldname"] == fieldname), None)
 	if not field:
 		frappe.throw(_("Unknown parameter: {0}").format(fieldname))
+	parsed_params = frappe.parse_json(params) if params else {}
+	_reject_client_methods(parsed_params)
 	resolver = OPTION_RESOLVERS.get(field.get("options_source"))
-	return resolver(doctype, search_text) if resolver else []
+	return resolver(doctype, parsed_params, search_text) if resolver else []
 
 
 @frappe.whitelist()
@@ -77,7 +81,7 @@ def run_manually(automation: str, docname: str) -> dict:
 	frappe.has_permission("Automation Flow", "write", doc=rule, throw=True)
 	frappe.has_permission(rule.document_type, "read", doc=docname, throw=True)
 
-	queue_trigger(automation, rule.document_type, docname, depth=1)
+	queue_trigger(automation, rule.document_type, docname, payload={"manual": True}, depth=1)
 	frappe.db.after_commit.add(kick_drainer)
 	return {"queued": True}
 
@@ -106,7 +110,32 @@ def _applies(action, doctype: str) -> bool:
 	return action.applicable_doctypes is None or doctype in action.applicable_doctypes
 
 
+def _reject_client_methods(value):
+	for item in _walk_values(value):
+		if isinstance(item, str) and (item.startswith("method:") or item.startswith("frappe.")):
+			frappe.throw(_("Client-supplied resolver methods are not allowed"))
+
+
+def _walk_values(value):
+	if isinstance(value, dict):
+		for child in value.values():
+			yield from _walk_values(child)
+	elif isinstance(value, (list, tuple)):
+		for child in value:
+			yield from _walk_values(child)
+	else:
+		yield value
+
+
+def _user_options(doctype, params, search_text):
+	filters = {"enabled": 1}
+	if search_text:
+		filters["name"] = ("like", f"%{search_text}%")
+	return frappe.get_all("User", filters=filters, fields=["name", "full_name"], limit=20)
+
+
 # Fixed resolver table — the only server functions get_param_options may call.
 OPTION_RESOLVERS = {
-	"doc_fields": lambda doctype, search_text: _doc_fields(doctype),
+	"doc_fields": lambda doctype, params, search_text: _doc_fields(doctype),
+	"users": _user_options,
 }

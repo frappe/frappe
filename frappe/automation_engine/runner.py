@@ -11,6 +11,7 @@ import time
 import frappe
 from frappe import _
 from frappe.automation_engine.actions.base import StopAutomation, get_action_registry
+from frappe.automation_engine.dispatch import matches_rule
 
 QUEUE = "Automation Trigger Queue"
 DEFAULT_FAILURE_THRESHOLD = 10
@@ -22,13 +23,18 @@ def execute_automation(queue_name: str):
 	doc = _load_target(row)
 	run = _create_run(rule, row)
 
-	if doc is None:
+	if doc is None and row.ref_name:
 		return _finalize(run, rule, row, "Skipped", error="Target document not found")
+	if rule.revalidate_on_run and doc and not matches_rule(rule, doc):
+		return _finalize(run, rule, row, "Skipped", error="Rule no longer matches")
+	if rule.log_only:
+		_simulate_steps(run, rule)
+		return _finalize(run, rule, row, "Simulated")
 
 	previous_depth = frappe.flags.get("automation_depth", 0)
 	frappe.flags.automation_depth = frappe.utils.cint(row.depth)
 	try:
-		status = _run_steps(run, rule, doc)
+		status = _run_steps(run, rule, doc, _context(row, run, rule))
 	finally:
 		frappe.flags.automation_depth = previous_depth
 
@@ -56,7 +62,15 @@ def _create_run(rule, row):
 			"depth": frappe.utils.cint(row.depth),
 			"started_at": frappe.utils.now(),
 			"actions_snapshot": frappe.as_json(
-				[{"action_type": a.action_type, "params": a.params} for a in rule.actions]
+				[
+					{
+						"step_type": a.step_type or "Action",
+						"action_type": a.action_type,
+						"params": a.params,
+						"step_condition": a.step_condition,
+					}
+					for a in rule.actions
+				]
 			),
 		}
 	)
@@ -66,21 +80,23 @@ def _create_run(rule, row):
 	return run.insert(ignore_permissions=True)
 
 
-def _run_steps(run, rule, doc) -> str:
+def _context(row, run, rule) -> dict:
+	return {
+		"payload": frappe.parse_json(row.event_payload) if row.event_payload else {},
+		"queue_row": row,
+		"run": run,
+		"rule": rule,
+	}
+
+
+def _run_steps(run, rule, doc, context) -> str:
 	registry = get_action_registry()
 	overall = "Success"
 	for idx, action in enumerate(rule.actions):
-		status, detail, duration = _run_one(registry, action, doc, run, rule, idx)
-		run.append(
-			"steps",
-			{
-				"step_idx": idx,
-				"action_type": action.action_type,
-				"status": status,
-				"detail": (detail or "")[:5000],
-				"duration_ms": duration,
-			},
-		)
+		status, detail, duration = _run_one(registry, action, doc, context, idx)
+		_append_step(run, action, idx, status, detail, duration)
+		if status == "Waiting":
+			return "Waiting"
 		if status == "Failed":
 			overall = "Partially Failed"
 			if rule.stop_on_error:
@@ -88,24 +104,27 @@ def _run_steps(run, rule, doc) -> str:
 	return overall
 
 
-def _run_one(registry, action, doc, run, rule, idx):
+def _run_one(registry, action, doc, context, idx):
 	started = time.monotonic()
 	savepoint = f"auto_step_{idx}"
 	handler = registry.get(action.action_type)
 	params = frappe.parse_json(action.params) if action.params else {}
-	context = {"run": run, "rule": rule}
 
 	# A concurrent write between claim and save raises TimestampMismatch
 	# reload and retry once.
 	for last_attempt in (False, True):
 		frappe.db.savepoint(savepoint)
 		try:
+			if not _step_condition_matches(action, doc, context):
+				return "Skipped", _("Step condition did not match"), _ms(started)
+			if (action.step_type or "Action") == "Wait":
+				return "Waiting", _("Wait resume is not enabled yet"), _ms(started)
 			if not handler:
 				raise ValueError(f"Unknown action type: {action.action_type}")
 			detail = handler.execute(doc, params or {}, context)
 			return "Success", detail, _ms(started)
 		except StopAutomation:
-			raise
+			return "Waiting", _("Automation paused"), _ms(started)
 		except frappe.TimestampMismatchError:
 			frappe.db.rollback(save_point=savepoint)
 			if last_attempt:
@@ -114,6 +133,30 @@ def _run_one(registry, action, doc, run, rule, idx):
 		except Exception:
 			frappe.db.rollback(save_point=savepoint)
 			return "Failed", frappe.get_traceback(), _ms(started)
+
+
+def _step_condition_matches(action, doc, context) -> bool:
+	if not action.step_condition:
+		return True
+	return bool(frappe.safe_eval(action.step_condition, None, {"doc": doc, "context": context}))
+
+
+def _append_step(run, action, idx, status, detail, duration):
+	run.append(
+		"steps",
+		{
+			"step_idx": idx,
+			"action_type": action.action_type,
+			"status": status,
+			"detail": (detail or "")[:5000],
+			"duration_ms": duration,
+		},
+	)
+
+
+def _simulate_steps(run, rule):
+	for idx, action in enumerate(rule.actions):
+		_append_step(run, action, idx, "Skipped", _("Simulated: action was not executed"), 0)
 
 
 def _ms(started) -> int:
@@ -131,15 +174,16 @@ def _finalize(run, rule, row, status, error=None):
 
 	if status == "Failed":
 		_record_failure(rule)
-	elif status == "Success":
+	elif status in ("Success", "Simulated"):
 		_reset_failures(rule)
 
 	# Completed runs (Success / Partially Failed) drop their queue row — detail lives in the
 	# Run log. Failed (stopped) and Skipped rows are retained for the purge sweep.
-	if status in ("Success", "Partially Failed"):
+	if status in ("Success", "Partially Failed", "Simulated"):
 		frappe.delete_doc(QUEUE, row.name, ignore_permissions=True, force=True)
 	else:
-		frappe.db.set_value(QUEUE, row.name, "status", status, update_modified=False)
+		queue_status = "Done" if status == "Waiting" else status
+		frappe.db.set_value(QUEUE, row.name, "status", queue_status, update_modified=False)
 
 	frappe.publish_realtime(
 		"automation_run_update",

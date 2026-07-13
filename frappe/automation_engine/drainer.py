@@ -8,6 +8,8 @@ without double-executing a row. Each claim marks its rows Running and commits, r
 the locks before the (slower) execution phase.
 """
 
+import re
+
 import frappe
 
 DEFAULT_BATCH_SIZE = 500
@@ -42,7 +44,7 @@ def claim_batch(batch_size=DEFAULT_BATCH_SIZE) -> list[str]:
 		WHERE status = 'Pending' AND (run_after IS NULL OR run_after <= %(now)s)
 		ORDER BY triggered_at
 		LIMIT %(limit)s
-		FOR UPDATE SKIP LOCKED
+		{_lock_clause()}
 		""",
 		{"now": frappe.utils.now(), "limit": frappe.utils.cint(batch_size)},
 		as_dict=True,
@@ -58,6 +60,23 @@ def claim_batch(batch_size=DEFAULT_BATCH_SIZE) -> list[str]:
 	)
 	frappe.db.commit()
 	return names
+
+
+def _lock_clause() -> str:
+	if frappe.db.db_type != "mariadb":
+		return "FOR UPDATE SKIP LOCKED"
+	if _mariadb_supports_skip_locked():
+		return "FOR UPDATE SKIP LOCKED"
+	return "FOR UPDATE"
+
+
+def _mariadb_supports_skip_locked() -> bool:
+	version = frappe.db.sql("SELECT VERSION()")[0][0]
+	return _version_tuple(version) >= (10, 6)
+
+
+def _version_tuple(version) -> tuple[int, ...]:
+	return tuple(int(part) for part in re.findall(r"\d+", version)[:3])
 
 
 def _has_due_pending() -> bool:

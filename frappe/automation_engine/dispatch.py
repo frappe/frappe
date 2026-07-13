@@ -12,6 +12,7 @@ job is kicked after commit.
 import frappe
 from frappe.automation_engine import is_enabled
 from frappe.automation_engine.registry import get_automations_for
+from frappe.utils import cint, cstr
 from frappe.utils.data import evaluate_filters
 
 # Document lifecycle method -> trigger type. A save fires both on_update and on_change,
@@ -42,10 +43,10 @@ def run_automations(doc, method):
 	if not rules:
 		return
 
-	depth = frappe.flags.get("automation_depth", 0) + 1
+	depth = cint(frappe.flags.get("automation_depth")) + 1
 	kicked = False
 	for rule in rules:
-		if rule.trigger_type == trigger_type and _matches(rule, doc):
+		if rule.trigger_type == trigger_type and matches_rule(rule, doc):
 			queue_trigger(rule.name, doc.doctype, doc.name, depth=depth)
 			kicked = True
 
@@ -58,17 +59,53 @@ def _should_dispatch(doc) -> bool:
 	if not is_enabled() or flags.in_install or flags.in_patch or flags.in_migrate:
 		return False
 	max_depth = frappe.conf.get("automation_max_depth") or DEFAULT_MAX_DEPTH
-	return flags.get("automation_depth", 0) < max_depth
+	if cint(flags.get("automation_depth")) < max_depth:
+		return True
+	_log_depth_refusal(doc, max_depth)
+	return False
+
+
+def _log_depth_refusal(doc, max_depth):
+	previous = frappe.flags.get("skip_automations")
+	frappe.flags.skip_automations = True
+	try:
+		frappe.log_error(
+			title="Automation Flow depth limit reached",
+			message=f"Skipped automations for {doc.doctype} {doc.name} at depth {max_depth}",
+		)
+	finally:
+		frappe.flags.skip_automations = previous
+
+
+def matches_rule(rule, doc) -> bool:
+	try:
+		return _matches(rule, doc)
+	except Exception:
+		frappe.log_error(
+			title=f"Automation Flow match failed: {rule.name}",
+			message=frappe.get_traceback(),
+		)
+		return False
 
 
 def _matches(rule, doc) -> bool:
-	if rule.trigger_type == "Field Value Changed" and not _field_changed(rule, doc):
-		return False
-	if rule.filters and not evaluate_filters(doc, frappe.parse_json(rule.filters)):
-		return False
-	if rule.condition and not frappe.safe_eval(rule.condition, None, {"doc": doc}):
-		return False
-	return True
+	return (
+		_field_matches(rule, doc)
+		and _filters_match(rule, doc)
+		and _condition_matches(rule, doc)
+	)
+
+
+def _field_matches(rule, doc) -> bool:
+	return rule.trigger_type != "Field Value Changed" or _field_changed(rule, doc)
+
+
+def _filters_match(rule, doc) -> bool:
+	return not rule.filters or evaluate_filters(doc, frappe.parse_json(rule.filters))
+
+
+def _condition_matches(rule, doc) -> bool:
+	return not rule.condition or frappe.safe_eval(rule.condition, None, {"doc": doc})
 
 
 def _field_changed(rule, doc) -> bool:
@@ -78,9 +115,9 @@ def _field_changed(rule, doc) -> bool:
 	old, new = before.get(rule.trigger_field), doc.get(rule.trigger_field)
 	if old == new:
 		return False
-	if rule.from_value not in (None, "") and str(old) != str(rule.from_value):
+	if rule.from_value not in (None, "") and cstr(old) != cstr(rule.from_value):
 		return False
-	if rule.to_value not in (None, "") and str(new) != str(rule.to_value):
+	if rule.to_value not in (None, "") and cstr(new) != cstr(rule.to_value):
 		return False
 	return True
 
