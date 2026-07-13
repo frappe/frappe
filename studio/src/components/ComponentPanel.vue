@@ -31,6 +31,11 @@
 					:sectionName="componentGroup.label"
 					class="px-2"
 				>
+					<template #title-suffix v-if="componentGroup.label === 'Framework UI'">
+						<Tooltip text="Experimental — these components are still under development">
+							<LucideFlaskConical class="h-3.5 w-3.5 text-ink-amber-6" />
+						</Tooltip>
+					</template>
 					<div class="grid grid-cols-3 items-start gap-x-2 gap-y-4">
 						<div v-for="component in componentGroup.components" :key="component.name" class="flex flex-col">
 							<div
@@ -140,7 +145,8 @@
 <script setup lang="ts">
 import { computed, ref, watch, nextTick } from "vue"
 import { useEventListener } from "@vueuse/core"
-import { Dropdown, FeatherIcon } from "frappe-ui"
+import { Dropdown, FeatherIcon, Tooltip } from "frappe-ui"
+import LucideFlaskConical from "~icons/lucide/flask-conical"
 import OptionToggle from "@/components/OptionToggle.vue"
 import Input from "@/components/Input.vue"
 import EmptyState from "@/components/EmptyState.vue"
