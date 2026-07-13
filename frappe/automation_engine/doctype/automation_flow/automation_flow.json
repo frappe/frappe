@@ -147,7 +147,6 @@
    "label": "Conditions"
   },
   {
-   "description": "Structured filters, evaluated in-memory against the document.",
    "fieldname": "filters",
    "fieldtype": "JSON",
    "label": "Filters"
@@ -191,18 +190,18 @@
   },
   {
    "default": "0",
-   "description": "0 = unlimited. Enforced by the drainer (Phase 3).",
+   "description": "0 = unlimited. Enforced by the drainer.",
    "fieldname": "throttle_per_minute",
    "fieldtype": "Int",
    "label": "Throttle per Minute"
   }
  ],
- "index_web_pages_for_search": 0,
  "links": [],
- "modified": "2026-07-13 01:02:28.315098",
+ "modified": "2026-07-13 12:14:40.733633",
  "modified_by": "Administrator",
  "module": "Automation Engine",
  "name": "Automation Flow",
+ "naming_rule": "Expression (old style)",
  "owner": "Administrator",
  "permissions": [
   {

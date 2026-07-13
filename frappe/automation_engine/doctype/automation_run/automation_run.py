@@ -24,9 +24,7 @@ class AutomationRun(Document):
 		reference_doctype: DF.Link | None
 		reference_name: DF.DynamicLink | None
 		started_at: DF.Datetime | None
-		status: DF.Literal[
-			"Queued", "Running", "Waiting", "Success", "Partially Failed", "Failed", "Skipped"
-		]
+		status: DF.Literal["Queued", "Running", "Waiting", "Success", "Partially Failed", "Failed", "Skipped"]
 		steps: DF.Table[AutomationRunStep]
 	# end: auto-generated types
 

@@ -1,10 +1,8 @@
 {
  "actions": [],
- "allow_rename": 0,
  "autoname": "hash",
  "creation": "2026-07-11 20:59:51.554582",
  "doctype": "DocType",
- "editable_grid": 0,
  "engine": "InnoDB",
  "field_order": [
   "automation",
@@ -40,7 +38,7 @@
    "search_index": 1
   },
   {
-   "description": "Plain Data, not a Dynamic Link — avoids link-validation overhead on the hot save path.",
+   "description": "Plain Data, not a Dynamic Link",
    "fieldname": "ref_name",
    "fieldtype": "Data",
    "in_list_view": 1,
@@ -113,12 +111,12 @@
   }
  ],
  "in_create": 1,
- "index_web_pages_for_search": 0,
  "links": [],
- "modified": "2026-07-13 01:02:28.315098",
+ "modified": "2026-07-13 12:15:01.342535",
  "modified_by": "Administrator",
  "module": "Automation Engine",
  "name": "Automation Trigger Queue",
+ "naming_rule": "Random",
  "owner": "Administrator",
  "permissions": [
   {
@@ -134,10 +132,8 @@
    "write": 1
   }
  ],
- "quick_entry": 0,
  "row_format": "Dynamic",
  "sort_field": "creation",
  "sort_order": "DESC",
- "states": [],
- "track_changes": 0
+ "states": []
 }

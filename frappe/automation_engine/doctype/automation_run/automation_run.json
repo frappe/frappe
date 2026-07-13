@@ -1,10 +1,8 @@
 {
  "actions": [],
- "allow_rename": 0,
  "autoname": "hash",
  "creation": "2026-07-12 01:37:23.321144",
  "doctype": "DocType",
- "editable_grid": 0,
  "engine": "InnoDB",
  "field_order": [
   "automation",
@@ -107,7 +105,6 @@
    "label": "Actions Snapshot"
   },
   {
-   "description": "Copy of the action rows at run start — wait-resume safety.",
    "fieldname": "actions_snapshot",
    "fieldtype": "JSON",
    "label": "Actions Snapshot",
@@ -127,9 +124,8 @@
   }
  ],
  "in_create": 1,
- "index_web_pages_for_search": 0,
  "links": [],
- "modified": "2026-07-13 01:02:28.315098",
+ "modified": "2026-07-13 12:13:34.741049",
  "modified_by": "Administrator",
  "module": "Automation Engine",
  "name": "Automation Run",
@@ -150,6 +146,5 @@
  "sort_field": "creation",
  "sort_order": "DESC",
  "states": [],
- "title_field": "automation_title",
- "track_changes": 0
+ "title_field": "automation_title"
 }
