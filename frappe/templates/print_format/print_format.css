@@ -26,8 +26,8 @@ html, body {
 }
 
 body {
-	min-width: {{ body_width | int }}mm !important;
-	max-width: {{ body_width | int }}mm !important;
+	max-width: {{ page_width | int }}mm;
+	margin: 0 auto;
 }
 
 @media screen {

@@ -102,7 +102,6 @@ class PrintFormatGenerator:
 		self.print_settings = frappe.get_doc("Print Settings")
 		page_width_map = {"A4": 210, "Letter": 216}
 		page_width = page_width_map.get(self.print_settings.pdf_page_size) or 210
-		body_width = page_width - self.print_format.margin_left - self.print_format.margin_right
 		style_name = self.style or self.print_settings.print_style
 		# style_name may be a placeholder like "Standard" with no Print Style record
 		print_style = (
@@ -118,7 +117,6 @@ class PrintFormatGenerator:
 				"print_style": print_style,
 				"letterhead": self.letterhead,
 				"page_width": page_width,
-				"body_width": body_width,
 				"lang": frappe.local.lang,
 				"layout_direction": "rtl" if is_rtl() else "ltr",
 			}
