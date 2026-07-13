@@ -160,6 +160,18 @@ class TestPrintFormatGenerator(IntegrationTestCase):
 		# The CSS block should encode 20mm top/bottom margins
 		self.assertIn("20mm", html)
 
+	def test_screen_preview_paper_is_full_page_width(self):
+		"""On screen the preview paper must be the full page width (A4 = 210mm), so the
+		A4 sheet fills its container like the classic preview did — not shrink to the
+		inner content width once box-sizing eats the margins as padding."""
+		from frappe.utils.print_format_generator import get_html
+
+		pf = self._make_print_format()  # default A4, 15mm margins
+		todo = self._make_todo()
+		html = get_html("ToDo", todo.name, pf.name)
+		self.assertIn("box-sizing: border-box", html)
+		self.assertIn("max-width: 210mm !important", html)
+
 	# ------------------------------------------------------------------ #
 	# printpreview: Standard (no format selected) renders the beta default
 	# ------------------------------------------------------------------ #

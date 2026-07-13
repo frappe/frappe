@@ -40,8 +40,9 @@ body {
 		margin: 2rem auto;
 		min-height: 297mm;
 		height: min-content;
-		min-width: {{ body_width | int }}mm !important;
-		max-width: {{ body_width | int }}mm !important;
+		box-sizing: border-box;
+		min-width: {{ page_width | int }}mm !important;
+		max-width: {{ page_width | int }}mm !important;
 		padding-top: {{ print_format.margin_top | int }}mm;
 		padding-right: {{ print_format.margin_right | int }}mm;
 		padding-left: {{ print_format.margin_left | int }}mm;
