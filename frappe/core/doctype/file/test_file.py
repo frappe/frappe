@@ -761,10 +761,21 @@ def convert_to_symlink(directory):
 
 class TestAttachment(IntegrationTestCase):
 	test_doctype = "Test For Attachment"
+	test_child_doctype = "Test For Attachment Child"
 
 	@classmethod
 	def setUpClass(cls):
 		super().setUpClass()
+		frappe.get_doc(
+			doctype="DocType",
+			name=cls.test_child_doctype,
+			module="Custom",
+			custom=1,
+			istable=1,
+			fields=[
+				{"label": "Row Attachment", "fieldname": "row_attachment", "fieldtype": "Attach"},
+			],
+		).insert(ignore_if_duplicate=True)
 		frappe.get_doc(
 			doctype="DocType",
 			name=cls.test_doctype,
@@ -773,6 +784,12 @@ class TestAttachment(IntegrationTestCase):
 			fields=[
 				{"label": "Title", "fieldname": "title", "fieldtype": "Data"},
 				{"label": "Attachment", "fieldname": "attachment", "fieldtype": "Attach"},
+				{
+					"label": "Items",
+					"fieldname": "items",
+					"fieldtype": "Table",
+					"options": cls.test_child_doctype,
+				},
 			],
 		).insert(ignore_if_duplicate=True)
 
@@ -780,6 +797,7 @@ class TestAttachment(IntegrationTestCase):
 	def tearDownClass(cls):
 		frappe.db.rollback()
 		frappe.delete_doc("DocType", cls.test_doctype)
+		frappe.delete_doc("DocType", cls.test_child_doctype)
 
 	def test_file_attachment_on_update(self):
 		doc = frappe.get_doc(doctype=self.test_doctype, title="test for attachment on update").insert()
@@ -803,6 +821,68 @@ class TestAttachment(IntegrationTestCase):
 		)
 
 		self.assertTrue(exists)
+
+	def test_delete_file_referenced_in_attach_field(self):
+		doc = frappe.get_doc(doctype=self.test_doctype, title="test delete referenced file").insert()
+		file = frappe.get_doc(
+			{
+				"doctype": "File",
+				"file_name": "test_referenced.txt",
+				"content": "Referenced Content",
+				"attached_to_doctype": self.test_doctype,
+				"attached_to_name": doc.name,
+				"attached_to_field": "attachment",
+			}
+		).save()
+		doc.attachment = file.file_url
+		doc.save()
+
+		self.assertRaises(frappe.LinkExistsError, frappe.delete_doc, "File", file.name)
+
+		doc.attachment = None
+		doc.save()
+		frappe.delete_doc("File", file.name)
+		self.assertFalse(frappe.db.exists("File", file.name))
+
+	def test_delete_file_referenced_in_child_table_attach_field(self):
+		doc = frappe.get_doc(doctype=self.test_doctype, title="test delete child referenced file").insert()
+		file = frappe.get_doc(
+			{
+				"doctype": "File",
+				"file_name": "test_child_referenced.txt",
+				"content": "Child Referenced Content",
+				"attached_to_doctype": self.test_doctype,
+				"attached_to_name": doc.name,
+				"attached_to_field": "row_attachment",
+			}
+		).save()
+		doc.append("items", {"row_attachment": file.file_url})
+		doc.save()
+
+		self.assertRaises(frappe.LinkExistsError, frappe.delete_doc, "File", file.name)
+
+		doc.items = []
+		doc.save()
+		frappe.delete_doc("File", file.name)
+		self.assertFalse(frappe.db.exists("File", file.name))
+
+	def test_document_delete_cascades_referenced_attachment(self):
+		doc = frappe.get_doc(doctype=self.test_doctype, title="test cascade delete").insert()
+		file = frappe.get_doc(
+			{
+				"doctype": "File",
+				"file_name": "test_cascade.txt",
+				"content": "Cascade Content",
+				"attached_to_doctype": self.test_doctype,
+				"attached_to_name": doc.name,
+				"attached_to_field": "attachment",
+			}
+		).save()
+		doc.attachment = file.file_url
+		doc.save()
+
+		doc.delete()
+		self.assertFalse(frappe.db.exists("File", file.name))
 
 
 class TestCopyAttachmentsFromAmendedFrom(IntegrationTestCase):
