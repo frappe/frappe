@@ -3,10 +3,7 @@
 
 import json
 import os
-<<<<<<< HEAD
-=======
 from typing import TYPE_CHECKING
->>>>>>> 1904d0e6a3 (feat(Web Form): add request-key access for one-time links (#39194))
 
 import frappe
 from frappe import _, scrub
@@ -736,11 +733,7 @@ def get_web_form_module(doc):
 
 @frappe.whitelist(methods=["POST", "PUT"], allow_guest=True)
 @rate_limit(key="web_form", limit=10, seconds=60)
-<<<<<<< HEAD
-def accept(web_form, data):
-=======
 def accept(web_form: str, data: str | dict, web_form_request_key: str | None = None):
->>>>>>> 1904d0e6a3 (feat(Web Form): add request-key access for one-time links (#39194))
 	"""Save the web form"""
 	data = frappe._dict(json.loads(data))
 
@@ -911,14 +904,9 @@ def delete(web_form_name: str, docname: str | int, web_form_request_key: str | N
 		frappe.throw(_("Not Allowed"), frappe.PermissionError)
 
 
-<<<<<<< HEAD
-@frappe.whitelist()
-def delete_multiple(web_form_name: str, docnames):
-=======
 @frappe.whitelist(methods=["POST", "DELETE"])
 @rate_limit(key="web_form_name", limit=10, seconds=60)
 def delete_multiple(web_form_name: str, docnames: str | list):
->>>>>>> 1904d0e6a3 (feat(Web Form): add request-key access for one-time links (#39194))
 	web_form = frappe.get_lazy_doc("Web Form", web_form_name)
 
 	docnames = json.loads(docnames)

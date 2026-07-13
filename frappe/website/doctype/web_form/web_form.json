@@ -426,18 +426,6 @@
   {
    "fieldname": "column_break_hhec",
    "fieldtype": "Column Break"
-<<<<<<< HEAD
-=======
-  },
-  {
-   "fieldname": "dynamic_filters_json",
-   "fieldtype": "JSON",
-   "label": "Dynamic Filters JSON"
-  },
-  {
-   "fieldname": "dynamic_filters_section",
-   "fieldtype": "Section Break",
-   "label": "Dynamic Filters"
   },
   {
    "default": "0",
@@ -445,15 +433,10 @@
    "fieldname": "key_required",
    "fieldtype": "Check",
    "label": "Key required"
->>>>>>> 1904d0e6a3 (feat(Web Form): add request-key access for one-time links (#39194))
   }
  ],
  "icon": "icon-edit",
  "is_published_field": "published",
-<<<<<<< HEAD
- "links": [],
- "modified": "2025-12-12 16:29:35.806107",
-=======
  "links": [
   {
    "link_doctype": "Web Form Request",
@@ -461,7 +444,6 @@
   }
  ],
  "modified": "2026-06-18 15:58:18.453845",
->>>>>>> 1904d0e6a3 (feat(Web Form): add request-key access for one-time links (#39194))
  "modified_by": "Administrator",
  "module": "Website",
  "name": "Web Form",
