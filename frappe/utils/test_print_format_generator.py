@@ -160,17 +160,42 @@ class TestPrintFormatGenerator(IntegrationTestCase):
 		# The CSS block should encode 20mm top/bottom margins
 		self.assertIn("20mm", html)
 
-	def test_screen_preview_paper_is_full_page_width(self):
-		"""On screen the preview paper must be the full page width (A4 = 210mm), so the
-		A4 sheet fills its container like the classic preview did — not shrink to the
-		inner content width once box-sizing eats the margins as padding."""
+	def test_preview_bakes_margins_as_body_padding(self):
+		"""Preview/browser-print spacing is baked into the body as padding on a full
+		page-width (210mm) sheet, and the page itself is borderless — so the margins
+		are WYSIWYG and survive the print dialog's "Margins: None" setting."""
 		from frappe.utils.print_format_generator import get_html
 
-		pf = self._make_print_format()  # default A4, 15mm margins
+		pf = self._make_print_format(margin_top=15, margin_bottom=15, margin_left=15, margin_right=15)
 		todo = self._make_todo()
 		html = get_html("ToDo", todo.name, pf.name)
 		self.assertIn("box-sizing: border-box", html)
-		self.assertIn("max-width: 210mm !important", html)
+		self.assertIn("width: 210mm", html)
+		self.assertIn("padding: 15mm 15mm 15mm 15mm", html)
+
+	def test_chrome_pdf_uses_real_page_margins(self):
+		"""The Chrome PDF applies margins as real @page margins (so header/footer/page
+		number overlays get their margin band), not as body padding."""
+		from frappe.utils.print_format_generator import PrintFormatGenerator
+
+		pf = self._make_print_format(margin_top=15, margin_bottom=15, margin_left=15, margin_right=15)
+		todo = self._make_todo()
+		gen = PrintFormatGenerator(pf.name, todo)
+		html = gen._build_html_for_chrome()
+		self.assertIn("margin-top: 15mm", html)
+		self.assertNotIn("padding: 15mm 15mm 15mm 15mm", html)
+
+	def test_resolve_print_margins_defaults_unset_to_15(self):
+		"""Single source of truth: defined margins pass through, unset (0) ones fall
+		back to the 15mm default."""
+		from frappe.utils.print_format_generator import resolve_print_margins
+
+		pf = frappe.new_doc("Print Format")
+		pf.margin_top = 0
+		pf.margin_bottom = 30
+		pf.margin_left = 25
+		pf.margin_right = 5
+		self.assertEqual(resolve_print_margins(pf), {"top": 15, "bottom": 30, "left": 25, "right": 5})
 
 	def test_get_print_degrades_for_deleted_format(self):
 		"""A print_format name that no longer exists must not raise DoesNotExistError

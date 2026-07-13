@@ -7,6 +7,24 @@ import frappe
 from frappe import _
 from frappe.utils.jinja_globals import is_rtl
 
+DEFAULT_PRINT_MARGIN = 15
+
+
+def resolve_print_margins(print_format) -> dict[str, int]:
+	"""Single source of truth for print spacing (mm) across every render surface.
+
+	Uses the format's own margins, falling back to ``DEFAULT_PRINT_MARGIN`` when a
+	(standard) format leaves them unset. Screen preview, browser print and PDF all
+	derive their spacing from here, so changing the default or the rule is a
+	one-line change in this one place.
+	"""
+	from frappe.utils import cint
+
+	return {
+		side: cint(getattr(print_format, f"margin_{side}")) or DEFAULT_PRINT_MARGIN
+		for side in ("top", "bottom", "left", "right")
+	}
+
 
 @frappe.whitelist()
 def render_jinja_template(template: str, doctype: str, docname: str) -> str:
@@ -117,6 +135,7 @@ class PrintFormatGenerator:
 				"print_style": print_style,
 				"letterhead": self.letterhead,
 				"page_width": page_width,
+				"page_margins": resolve_print_margins(self.print_format),
 				"lang": frappe.local.lang,
 				"layout_direction": "rtl" if is_rtl() else "ltr",
 			}
@@ -153,11 +172,12 @@ class PrintFormatGenerator:
 		from frappe.utils.pdf import get_chrome_pdf
 
 		pf = self.print_format
+		margins = resolve_print_margins(pf)
 		options = {
-			"margin-top": f"{pf.margin_top}mm",
-			"margin-bottom": f"{pf.margin_bottom}mm",
-			"margin-left": f"{pf.margin_left}mm",
-			"margin-right": f"{pf.margin_right}mm",
+			"margin-top": f"{margins['top']}mm",
+			"margin-bottom": f"{margins['bottom']}mm",
+			"margin-left": f"{margins['left']}mm",
+			"margin-right": f"{margins['right']}mm",
 		}
 		return get_chrome_pdf(
 			print_format=pf.name,
