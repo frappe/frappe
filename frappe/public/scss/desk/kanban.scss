@@ -128,6 +128,13 @@
 				margin-left: var(--margin-sm);
 				cursor: grab;
 			}
+
+			.kanban-column-count {
+				flex-shrink: 0;
+				margin-left: var(--margin-xs);
+				font-variant-numeric: tabular-nums;
+				font-weight: var(--font-weight-medium, 500);
+			}
 		}
 
 		.sortable-ghost > .kanban-card:not(.add-card) {
