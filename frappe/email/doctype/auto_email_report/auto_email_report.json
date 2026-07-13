@@ -91,7 +91,7 @@
    "depends_on": "eval:doc.report_type=='Report Builder'",
    "fieldname": "no_of_rows",
    "fieldtype": "Int",
-   "label": "No of Rows (Max 500)"
+   "label": "No of Rows"
   },
   {
    "collapsible": 1,
