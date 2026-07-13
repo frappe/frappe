@@ -601,6 +601,12 @@ url_rules = [
 	),
 	Rule("/discovery/method", methods=["GET"], endpoint=discovery.methods),
 	Rule("/discovery/method/<method>", methods=["GET"], endpoint=discovery.method),
+	Rule("/discovery/doctype/<doctype>", methods=["GET"], endpoint=discovery.doctype_methods),
+	Rule(
+		"/discovery/doctype/<doctype>/method/<method>",
+		methods=["GET"],
+		endpoint=discovery.doctype_method,
+	),
 	# RPC calls
 	Rule("/method/login", endpoint=login),
 	Rule("/method/logout", endpoint=logout, methods=["POST"]),
