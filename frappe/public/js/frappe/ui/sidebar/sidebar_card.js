@@ -15,6 +15,7 @@ frappe.provide("frappe.ui");
  * @param {string} [primary_action_label] - Label for the primary action button
  * @param {Function} [primary_action] - Function to be called when the primary action button is clicked
  * @param {string} [primary_button_alignment] - Alignment for the primary action button (left or right)
+ * @param {boolean} [primary_action_in_header] - If true, moves the primary action button into the header slot, beside the close button
  * @param {string} [dismiss_it_for] - If set, it will dismiss the card for the specified duration (minute, hour, day, week) when the close button is clicked
  * @param {string} [dismiss_key="card_next_show_time"] - Key to be used in localStorage for storing the dismiss time
  * @param {Object} [styles] - Custom styles to be applied to the card, passed as an object with CSS variable names as keys and their values as values
@@ -74,6 +75,7 @@ frappe.ui.SidebarCard = class SidebarCard {
 		}
 		this.card.prependTo(this.parent);
 		this.set_button_alignment();
+		this.move_primary_action_to_header();
 		if (!this.popper) this.show();
 	}
 	setup() {
@@ -137,6 +139,13 @@ frappe.ui.SidebarCard = class SidebarCard {
 			this.card
 				.find(".sidebar-card-actions")
 				.css("justifyContent", this.alignment_style_map[this.primary_button_alignment]);
+		}
+	}
+	move_primary_action_to_header() {
+		if (this.primary_action_in_header) {
+			this.card
+				.find(".sidebar-card-header-slot")
+				.append(this.card.find(".sidebar-card-button"));
 		}
 	}
 };
