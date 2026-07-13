@@ -4,7 +4,8 @@
 	padding: 0;
 }
 
-.print-preview-wrapper {
+.print-preview-wrapper,
+.preview-beta-wrapper {
 	padding: 80px 0;
 	background-color: var(--gray-200);
 
@@ -14,14 +15,12 @@
 }
 
 .print-preview,
-.preview-beta-wrapper {
+.preview-beta-wrapper iframe {
+	display: block;
 	max-width: 8.3in;
-	margin: auto;
-}
-
-.preview-beta-wrapper {
+	margin: 0 auto;
+	background: white;
 	border-radius: var(--radius);
-	overflow: hidden;
 }
 
 .print-toolbar {
@@ -43,7 +42,8 @@
 }
 
 [data-theme="dark"] {
-	.print-preview-wrapper {
+	.print-preview-wrapper,
+	.preview-beta-wrapper {
 		background-color: var(--gray-700);
 	}
 }
@@ -75,8 +75,6 @@
 .print-preview {
 	padding: 0;
 	min-height: 11.69in;
-	background: white;
-	border-radius: var(--radius);
 	overflow-x: auto;
 
 	.print-format-container {

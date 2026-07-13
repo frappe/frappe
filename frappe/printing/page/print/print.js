@@ -506,7 +506,11 @@ frappe.ui.form.PrintView = class {
 		}
 		iframe.prop("src", `/printpreview?${params.toString()}`);
 		setTimeout(() => {
-			iframe.css("height", "calc(100vh - var(--page-head-height) - var(--navbar-height))");
+			// 160px = the .preview-beta-wrapper top+bottom padding that frames the page
+			iframe.css(
+				"height",
+				"calc(100vh - var(--page-head-height) - var(--navbar-height) - 160px)"
+			);
 		}, 500);
 	}
 
