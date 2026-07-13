@@ -94,6 +94,22 @@ frappe.ui.form.on("Print Format", {
 	doc_type: function (frm) {
 		frm.trigger("hide_absolute_value_field");
 	},
+	disabled: function (frm) {
+		if (!frm.doc.disabled || !frm.doc.doc_type) return;
+
+		frappe.model.with_doctype(frm.doc.doc_type, () => {
+			if (frappe.get_meta(frm.doc.doc_type).default_print_format !== frm.doc.name) return;
+
+			frappe.confirm(
+				__(
+					"{0} is the default print format for {1}. Disabling it will remove it as the default. Do you want to continue?",
+					[frm.doc.name.bold(), frm.doc.doc_type.bold()]
+				),
+				null,
+				() => frm.set_value("disabled", 0)
+			);
+		});
+	},
 	print_format_for: function (frm) {
 		if (frm.doc.print_format_for === "Report") {
 			frm.set_value("custom_format", 1);

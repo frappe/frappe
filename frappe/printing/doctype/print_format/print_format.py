@@ -7,6 +7,7 @@ import re
 import frappe
 import frappe.utils
 from frappe import _
+from frappe.custom.doctype.property_setter.property_setter import delete_property_setter
 from frappe.model.document import Document
 from frappe.utils.jinja import validate_template
 from frappe.utils.print_format_generator import download_pdf, get_html
@@ -152,6 +153,7 @@ class PrintFormat(Document):
 
 		self.export_doc()
 		self.enqueue_preview_generation()
+		self.clear_default_print_format_if_disabled()
 
 	def enqueue_preview_generation(self):
 		"""Refresh the preview image in the background so saving the format isn't blocked by
@@ -174,6 +176,29 @@ class PrintFormat(Document):
 			job_id=f"print_format_preview::{self.name}",
 			deduplicate=True,
 			name=self.name,
+		)
+
+	def clear_default_print_format_if_disabled(self):
+		"""If this format is disabled while set as its DocType's default, unset it as default."""
+		if not (self.disabled and self.doc_type):
+			return
+
+		meta = frappe.get_meta(self.doc_type)
+		if meta.default_print_format != self.name:
+			return
+
+		if meta.custom:
+			frappe.db.set_value("DocType", self.doc_type, "default_print_format", "")
+		else:
+			delete_property_setter(self.doc_type, "default_print_format")
+
+		frappe.clear_cache(doctype=self.doc_type)
+		frappe.msgprint(
+			_(
+				"{0} was the default print format for {1}. Since it is now disabled, it has been removed as the default."
+			).format(frappe.bold(self.name), frappe.bold(self.doc_type)),
+			indicator="orange",
+			alert=True,
 		)
 
 	def after_rename(self, old: str, new: str, *args, **kwargs):
