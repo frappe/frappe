@@ -22,6 +22,9 @@
 		margin-top: 2px;
 		margin-bottom: 2px;
 	}
+	.close-button {
+		align-self: flex-start;
+	}
 }
 .sidebar-card {
 	width: 100%;
@@ -34,6 +37,9 @@
 	@include get_textstyle("sm", "regular");
 	white-space: wrap;
 }
+.sidebar-card-header-slot {
+	align-items: flex-start;
+}
 .sidebar-card-button {
 	display: flex;
 	align-items: center;
@@ -45,14 +51,6 @@
 		stroke: var(--sidebar-card-button-color);
 		margin: 0px;
 	}
-}
-.sidebar-card-button:hover,
-.sidebar-card-button:focus {
-	outline: 1px solid var(--sidebar-card-button-outline);
-	color: var(--sidebar-card-button-color);
-}
-.cursor-pointer {
-	cursor: pointer;
 }
 
 .card-outline {

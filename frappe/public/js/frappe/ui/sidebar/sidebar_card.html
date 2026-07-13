@@ -16,7 +16,10 @@
                 <div class="sidebar-card-title">{{ card.title }}</div>
                 <div class="sidebar-card-description">{{ card.message }}</div>
             </span>
-        {%= frappe.utils.icon("x","sm", "", "", "card-icon cursor-pointer close-button") %}
+            <span class="sidebar-card-header-slot flex"></span>
+            <button type="button" class="close-button btn btn-default">
+                {%= frappe.utils.icon("x", "sm") %}
+            </button>
          </div>
     {% } %}
     <div class="sidebar-card-actions flex">
