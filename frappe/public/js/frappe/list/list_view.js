@@ -629,7 +629,7 @@ frappe.views.ListView = class ListView extends frappe.views.BaseList {
 		if (this.meta.documentation) {
 			return `<a href="${
 				this.meta.documentation
-			}" target="blank" class="meta-description small text-muted">${__("Need Help?")}</a>`;
+			}" target="_blank" class="meta-description small text-muted">${__("Need Help?")}</a>`;
 		}
 		return "";
 	}
