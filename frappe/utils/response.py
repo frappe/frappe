@@ -59,10 +59,29 @@ def report_error(status_code):
 			_link_error_with_message_log(error_log, exc_value, frappe.message_log)
 			frappe.local.response.errors = [error_log]
 
-	response = build_response("json")
+	try:
+		response = build_response("json")
+	except (TypeError, ValueError):
+		drop_unserializable_values(frappe.local.response)
+		response = build_response("json")
+
 	response.status_code = status_code
 
 	return response
+
+
+def drop_unserializable_values(response):
+	"""Remove values that can't be encoded as JSON.
+
+	An error response must still reach the client as JSON. If the failing request left something
+	unserializable in `frappe.local.response`, serializing it here would raise a second time and the
+	client would get an HTML 500 instead of the error.
+	"""
+	for key, value in list(response.items()):
+		try:
+			orjson_dumps(value, default=json_handler)
+		except (TypeError, ValueError):
+			del response[key]
 
 
 def is_traceback_allowed():
