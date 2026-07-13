@@ -222,7 +222,7 @@ frappe.views.ListView = class ListView extends frappe.views.BaseList {
 		if (match_rules_list.length) {
 			this.restricted_list = $(
 				`<button class="btn btn-xs restricted-button flex align-center">
-					${frappe.utils.icon("restriction", "xs")}
+					${frappe.utils.icon("ban", "xs")}
 				</button>`
 			)
 				.click(() => this.show_restrictions(match_rules_list))
@@ -635,11 +635,10 @@ frappe.views.ListView = class ListView extends frappe.views.BaseList {
 	}
 
 	get_no_result_message() {
-		let help_link = this.get_documentation_link();
 		let filters = this.filter_area && this.filter_area.get();
 
 		let has_filters_set = filters && filters.length;
-		let no_result_message = has_filters_set
+		const no_result_message = has_filters_set
 			? __("No {0} found with matching filters. Clear filters to see all {0}.", [
 					__(this.doctype),
 			  ])
@@ -647,7 +646,7 @@ frappe.views.ListView = class ListView extends frappe.views.BaseList {
 			? __(this.meta.description)
 			: __("You haven't created a {0} yet", [__(this.doctype)]);
 
-		let new_button_label = has_filters_set
+		const new_button_label = has_filters_set
 			? __("Create a new {0}", [__(this.doctype)], "Create a new document from list view")
 			: __(
 					"Create your first {0}",
@@ -655,24 +654,30 @@ frappe.views.ListView = class ListView extends frappe.views.BaseList {
 					"Create a new document from list view"
 			  );
 
-		const new_button = this.can_create
-			? `<p><button class="btn btn-default btn-sm btn-new-doc hidden-xs">
-				${new_button_label}
-			</button> <button class="btn btn-primary btn-new-doc visible-xs">
-				${__("Create New", null, "Create a new document from list view")}
-			</button></p>`
-			: "";
+		const actions = [];
+		if (this.can_create) {
+			actions.push({
+				label: new_button_label,
+				variant: "solid",
+				icon: "plus",
+				css_class: "btn-new-doc",
+			});
+		}
 
-		return `<div class="msg-box no-border">
-			<div class="mb-4">
-			  	<svg class="icon icon-xl" style="stroke: var(--text-light);">
-					<use href="#icon-small-file"></use>
-				</svg>
-			</div>
-			<p>${no_result_message}</p>
-			${new_button}
-			${help_link}
-		</div>`;
+		if (this.meta.documentation) {
+			actions.push({
+				label: __("Need Help?"),
+				href: this.meta.documentation,
+				icon: "external-link",
+			});
+		}
+
+		return frappe.ui.empty_state.html({
+			icon: "small-file",
+			title: no_result_message,
+			actions,
+			css_class: "msg-box no-border",
+		});
 	}
 
 	freeze() {
@@ -1395,15 +1400,17 @@ frappe.views.ListView = class ListView extends frappe.views.BaseList {
 					? `<img src="${frappe.utils.escape_html(doc[df.options])}"
 					style="max-height: 30px; max-width: 100%;">`
 					: `<div class="missing-image small">
-						${frappe.utils.icon("restriction")}
+						${frappe.utils.icon("ban")}
 					</div>`;
 			} else if (df.fieldtype === "Select") {
-				html = `<span class="${filterable} es-badge ellipsis" data-theme="${frappe.utils.guess_colour(
-					_value
-				)}"
-					data-filter="${escaped_fieldname},=,${escaped_value}">
-					<span class="ellipsis"> ${__(_value)} </span>
-				</span>`;
+				html = frappe.ui.badge.html({
+					label: __(_value),
+					theme: frappe.utils.guess_colour(_value),
+					css_class: `${filterable} ellipsis`.trim(),
+					attrs: {
+						"data-filter": `${escaped_fieldname},=,${escaped_value}`,
+					},
+				});
 			} else if (df.fieldtype === "Link") {
 				html = `<a class="${filterable} ellipsis "
 					data-filter="${escaped_fieldname},=,${escaped_value}">
@@ -1556,7 +1563,7 @@ frappe.views.ListView = class ListView extends frappe.views.BaseList {
 		let comment_count = null;
 		if (this.list_view_settings && !this.list_view_settings.disable_comment_count) {
 			comment_count = `<span class="comment-count d-flex align-items-center">
-				${frappe.utils.icon("es-line-chat-alt")}
+				${frappe.utils.icon("message-circle")}
 				${doc._comment_count > 99 ? "99+" : doc._comment_count || 0}
 			</span>`;
 		}
@@ -1622,7 +1629,7 @@ frappe.views.ListView = class ListView extends frappe.views.BaseList {
 				dropdown_buttons = `
 					<button type="button" class="btn btn-xs btn-default ellipsis" data-toggle="dropdown" aria-haspopup="true" aria-expanded="false">
 						${this.settings.dropdown_button.get_label}
-						${frappe.utils.icon("select", "xs")}
+						${frappe.utils.icon("chevrons-up-down", "xs")}
 					</button>
 					<div role="menu" class="dropdown-menu">${button_actions}</div>
 				`;
@@ -1768,14 +1775,15 @@ frappe.views.ListView = class ListView extends frappe.views.BaseList {
 		];
 		const title = docstatus_description[doc.docstatus || 0];
 		if (indicator) {
-			const escaped_theme = frappe.utils.escape_html(cstr(indicator[1] || ""));
-			const escaped_filter = frappe.utils.escape_html(cstr(indicator[2] || ""));
-			const escaped_title = frappe.utils.escape_html(cstr(title || ""));
-			const escaped_label = frappe.utils.escape_html(cstr(indicator[0] || ""));
-			return `<span class="es-badge filterable ellipsis" data-theme="${escaped_theme}"
-				data-filter='${escaped_filter}' title='${escaped_title}'>
-				<span class="ellipsis"> ${escaped_label}</span>
-			</span>`;
+			return frappe.ui.badge.html({
+				label: cstr(indicator[0] || ""),
+				theme: cstr(indicator[1] || ""),
+				title,
+				css_class: "filterable ellipsis",
+				attrs: {
+					"data-filter": cstr(indicator[2] || ""),
+				},
+			});
 		}
 		return "";
 	}
