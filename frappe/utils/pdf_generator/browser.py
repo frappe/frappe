@@ -12,8 +12,7 @@ class Browser:
 	# get_element_height() measures the header/footer overlay in CSS px (96px/in), but
 	# Chrome's printToPDF renders those small overlay pages ~1.46x smaller. Without this
 	# correction the reserved header/footer band is ~1.46x too tall, leaving dead space
-	# between the letterhead and the body. print_designer measures differently, so the
-	# correction is applied only to the standard (non-print-designer) path.
+	# between the letterhead and the body.
 	_OVERLAY_MEASURE_PRINT_SCALE: ClassVar[float] = 1.46
 
 	def __init__(self, generator, print_format, html, options):
@@ -178,9 +177,7 @@ class Browser:
 			)
 		if self.header_page:
 			self.header_page.wait_for_set_content()
-			self.header_height = self.header_page.get_element_height()
-			if not self.is_print_designer:
-				self.header_height /= self._OVERLAY_MEASURE_PRINT_SCALE
+			self.header_height = self.header_page.get_element_height() / self._OVERLAY_MEASURE_PRINT_SCALE
 			self.is_header_dynamic = self.is_page_no_used(self.header_content)
 			del self.header_content
 		else:
@@ -191,9 +188,7 @@ class Browser:
 
 		if self.footer_page:
 			self.footer_page.wait_for_set_content()
-			self.footer_height = self.footer_page.get_element_height()
-			if not self.is_print_designer:
-				self.footer_height /= self._OVERLAY_MEASURE_PRINT_SCALE
+			self.footer_height = self.footer_page.get_element_height() / self._OVERLAY_MEASURE_PRINT_SCALE
 			self.is_footer_dynamic = self.is_page_no_used(self.footer_content)
 			del self.footer_content
 		else:

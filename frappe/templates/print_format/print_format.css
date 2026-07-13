@@ -8,13 +8,12 @@
 
 @page {
 	size: {{ print_settings.pdf_page_size or 'A4' }} portrait;
-	/* Never set margins here. For the Chrome PDF, printToPDF already applies the
-	   resolved margins via CDP options, and a CSS @page margin would stack on top
-	   of them (double margin). For screen/browser print the spacing is baked into
-	   the body as padding (below) so it is WYSIWYG and survives the print dialog's
-	   Margins setting. The sheet itself stays borderless. */
-	margin: 0;
+	margin-top: {{ print_format.margin_top | int }}mm;
+	margin-bottom: {{ print_format.margin_bottom | int }}mm;
+	margin-left: {{ print_format.margin_left | int }}mm;
+	margin-right: {{ print_format.margin_right | int }}mm;
 	{% if not for_chrome %}
+	/* page number via CSS margin boxes (WeasyPrint / browser print only) */
 	{% set page_number_position = print_format.page_number.lower().replace(' ', '_') %}
 	{% if page_number_position in ['top_left', 'top_center', 'top_right', 'bottom_left', 'bottom_center', 'bottom_right'] %}
 	{{ render_margin_text(page_number_position, _('{0} of {1}').format('counter(page) "', '" counter(pages)')) }}
@@ -27,21 +26,8 @@ html, body {
 }
 
 body {
-	{% if not for_chrome %}
-	margin: 0 auto;
-	max-width: {{ page_width | int }}mm;
-	box-sizing: border-box;
-	width: {{ page_width | int }}mm;
-	padding: {{ page_margins.top }}mm {{ page_margins.right }}mm {{ page_margins.bottom }}mm {{ page_margins.left }}mm;
-	{% else %}
-	/* Chrome PDF: pin the body to the content width (page minus margins) with
-	   !important so Bootstrap's print styles can't widen it. Without this the page
-	   lays out too wide and Chrome scales everything down, shrinking the font.
-	   printToPDF applies the page margins itself. */
-	margin: 0;
-	min-width: {{ (page_width - page_margins.left - page_margins.right) | int }}mm !important;
-	max-width: {{ (page_width - page_margins.left - page_margins.right) | int }}mm !important;
-	{% endif %}
+	min-width: {{ body_width | int }}mm !important;
+	max-width: {{ body_width | int }}mm !important;
 }
 
 @media screen {
@@ -51,8 +37,18 @@ body {
 	body {
 		background-color: white;
 		box-shadow: var(--shadow-md);
+		margin: 2rem auto;
 		min-height: 297mm;
 		height: min-content;
+		/* Show the full page (A4) on screen so the preview sheet isn't the narrow
+		   content width; the margins render as padding inside the sheet. */
+		box-sizing: border-box;
+		min-width: {{ page_width | int }}mm !important;
+		max-width: {{ page_width | int }}mm !important;
+		padding-top: {{ print_format.margin_top | int }}mm;
+		padding-right: {{ print_format.margin_right | int }}mm;
+		padding-left: {{ print_format.margin_left | int }}mm;
+		padding-bottom: {{ print_format.margin_bottom | int }}mm;
 	}
 }
 
