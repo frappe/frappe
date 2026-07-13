@@ -246,6 +246,24 @@ class TestSafeDoc(IntegrationTestCase):
 		self.assertEqual(row.get_label_from_fieldname("rate"), "Rate")
 		self.assertEqual(row.get_label_from_fieldname("amount"), "Amount")
 
+	def test_meta_property(self):
+		from frappe.utils.safe_exec import get_doc_as_dict
+
+		doc = get_doc_as_dict("User", frappe.session.user)
+		# meta returns a plain dict, not a live Meta object
+		self.assertIsInstance(doc.meta, frappe._dict)
+		self.assertIsNotNone(doc.meta.get("is_submittable"))
+
+		# works on child rows too
+		parent = self._make_parent()
+		row = parent.get("rows")[0]
+		self.assertIsInstance(row.meta, frappe._dict)
+		self.assertEqual(row.meta.get("name"), "Test SafeDoc Row")
+
+		# no mutating methods exposed
+		self.assertIsNone(doc.meta.get("save"))
+		self.assertIsNone(doc.meta.get("insert"))
+
 	def test_in_format_data(self):
 		parent = self._make_parent()
 		row = parent.get("rows")[0]

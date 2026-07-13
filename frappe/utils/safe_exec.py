@@ -189,6 +189,14 @@ class SafeDoc(frappe._dict):
 						children.append(v)
 				self[key] = children
 
+	@property
+	def meta(self):
+		doctype = self.get("doctype")
+		if not isinstance(doctype, str):
+			return None
+		meta = frappe.get_meta(doctype)
+		return meta.as_dict() if meta else None
+
 	def get_formatted(
 		self,
 		fieldname,
