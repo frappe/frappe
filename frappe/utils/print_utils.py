@@ -74,6 +74,45 @@ def get_print(
 			)
 		local.form_dict.pdf_generator = pdf_generator
 
+	# Beta/Standard formats must produce their PDF through PrintFormatGenerator — the same
+	# for_chrome markup attach_print uses. The screen printview HTML carries the preview's
+	# body padding and full page width, which Chrome would double into the margins and
+	# shrink the content. Custom (print_designer / raw) chrome formats keep the hook path.
+	if as_pdf and local.form_dict.pdf_generator == "chrome":
+		from frappe.printing.doctype.print_format.classic_converter import (
+			get_default_print_format,
+			uses_beta_renderer,
+		)
+
+		pf_doc = _print_format_doc_or_none(print_format)
+		if not pf_doc or uses_beta_renderer(pf_doc):
+			from frappe.utils.print_format_generator import PrintFormatGenerator
+			from frappe.www.printview import validate_print_permission
+
+			doc_obj = doc or frappe.get_doc(doctype, name)
+			validate_print_permission(doc_obj)
+			pf = pf_doc or get_default_print_format(doc_obj.doctype)
+			letterhead_name = None if cint(no_letterhead) else letterhead
+			pdf = PrintFormatGenerator(pf, doc_obj, letterhead_name, style=style).render_pdf()
+
+			if password or output:
+				from io import BytesIO
+
+				from pypdf import PdfReader, PdfWriter
+
+				writer = PdfWriter()
+				writer.append_pages_from_reader(PdfReader(BytesIO(pdf)))
+				if password:
+					writer.encrypt(password)
+				if output is not None:
+					for page in writer.pages:
+						output.add_page(page)
+					return output
+				buffer = BytesIO()
+				writer.write(buffer)
+				return buffer.getvalue()
+			return pdf
+
 	original_form_dict = copy.deepcopy(local.form_dict)
 	try:
 		local.form_dict.doctype = doctype
