@@ -1032,7 +1032,7 @@ export const COMPONENTS: FrappeUIComponents = {
 			placeholder: "Select users",
 		},
 	},
-		SortBy: {
+	SortBy: {
 		name: "SortBy",
 		title: "Sort By",
 		icon: LucideArrowUpDown,
