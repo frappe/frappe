@@ -295,6 +295,21 @@ class TestResourceAPI(FrappeAPITestCase):
 			self.assertIsInstance(data, list)
 			self.assertIsInstance(data[0], dict)
 
+	def test_run_doc_method_v1_validates_http_method(self):
+		doc = frappe.get_doc("Website Theme", "Standard")
+		method = getattr(doc.get_apps, "__func__", doc.get_apps)
+
+		with (
+			patch.dict(frappe.allowed_http_methods_for_whitelisted_func, {method: ["POST"]}),
+			suppress_stdout(),
+		):
+			response = self.get(
+				self.resource("Website Theme", "Standard"),
+				{"run_method": "get_apps", "sid": self.sid},
+			)
+
+		self.assertEqual(response.status_code, 403)
+
 
 class TestMethodAPI(FrappeAPITestCase):
 	def test_ping(self):
