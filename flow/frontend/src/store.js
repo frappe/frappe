@@ -314,7 +314,10 @@ function stopRun() {
 	if (!sending.value) return;
 	abortController?.abort();
 	const rn = runName.value;
+	// Stopped before run_started arrived: no run name yet, so finalize any Running
+	// run on the session instead so the next turn isn't briefly blocked.
 	if (rn) api.stopRun(rn).catch(() => {});
+	else if (sessionName.value) api.recoverSession(sessionName.value).catch(() => {});
 }
 
 // Records one answer and stamps the tool's approval state; once every question
