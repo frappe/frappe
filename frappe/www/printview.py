@@ -195,9 +195,14 @@ def get_rendered_template(
 	jenv = frappe.get_jenv()
 
 	# Only server-side template formats (custom Jinja, raw, or standard=Yes .html)
-	# reach here — builder layouts render through PrintFormatGenerator.
+	# reach here — the Standard/default and builder layouts render through
+	# PrintFormatGenerator. The classic `standard.html` fallback has been removed,
+	# so callers wanting the default print should use `frappe.get_print(doctype, name)`.
 	if not print_format:
-		frappe.throw(_("No print format template found"), frappe.TemplateNotFoundError)
+		frappe.throw(
+			_("Pass a print format, or use frappe.get_print() for the default print."),
+			frappe.TemplateNotFoundError,
+		)
 
 	template = None
 	if hook_func := frappe.get_hooks("get_print_format_template"):
