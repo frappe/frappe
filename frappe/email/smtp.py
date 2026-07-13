@@ -128,6 +128,21 @@ class SMTPServer:
 			except Exception:
 				return False
 
+	def discard_session(self):
+		"""Force the cached session to be dropped so the next `session` access reconnects.
+
+		A failed `sendmail()` (e.g. server-side rate limiting) can leave the
+		connection mid-transaction on the server side even though `NOOP` still
+		reports the socket as alive. Reusing such a session causes every
+		subsequent send to fail with "Multiple MAIL commands not allowed"
+		instead of the real, original error. Call this after any exception
+		raised from `session.sendmail()`.
+		"""
+		if self._session:
+			with suppress(Exception):
+				self._session.close()
+			self._session = None
+
 	def quit(self):
 		with suppress(TimeoutError):
 			if self.is_session_active():

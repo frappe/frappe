@@ -5,6 +5,7 @@ from __future__ import annotations
 
 import json
 import quopri
+import smtplib
 import traceback
 from contextlib import suppress
 from email.parser import Parser
@@ -242,13 +243,22 @@ class EmailQueue(Document):
 						msg_bytes = validate_and_prepare_message(message)
 						mail_options, rcpt_options = get_smtp_options()
 
-						ctx.smtp_server.session.sendmail(
-							from_addr=self.sender,
-							to_addrs=recipient.recipient,
-							msg=msg_bytes,
-							mail_options=mail_options,
-							rcpt_options=rcpt_options,
-						)
+						try:
+							ctx.smtp_server.session.sendmail(
+								from_addr=self.sender,
+								to_addrs=recipient.recipient,
+								msg=msg_bytes,
+								mail_options=mail_options,
+								rcpt_options=rcpt_options,
+							)
+						except smtplib.SMTPResponseException:
+							# A failed send can leave the server-side transaction
+							# open even though our cached session still looks
+							# alive (NOOP succeeds). Reusing it would fail every
+							# subsequent recipient with "Multiple MAIL commands
+							# not allowed" instead of surfacing the real error.
+							ctx.smtp_server.discard_session()
+							raise
 
 				ctx.update_recipient_status_to_sent(recipient)
 
