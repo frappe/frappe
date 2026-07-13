@@ -172,6 +172,16 @@ class TestPrintFormatGenerator(IntegrationTestCase):
 		self.assertIn("box-sizing: border-box", html)
 		self.assertIn("max-width: 210mm !important", html)
 
+	def test_get_print_degrades_for_deleted_format(self):
+		"""A print_format name that no longer exists must not raise DoesNotExistError
+		during pdf_generator resolution — it degrades to the Standard (chrome) render,
+		so notifications referencing a removed format still send."""
+		from frappe.utils.print_utils import _print_format_doc_or_none
+
+		self.assertIsNone(_print_format_doc_or_none("_No Such Format ZZZ"))
+		self.assertIsNone(_print_format_doc_or_none("Standard"))
+		self.assertIsNone(_print_format_doc_or_none(None))
+
 	# ------------------------------------------------------------------ #
 	# printpreview: Standard (no format selected) renders the beta default
 	# ------------------------------------------------------------------ #

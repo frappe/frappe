@@ -7,6 +7,22 @@ from frappe.utils.data import cint, cstr
 # Chromium download/setup helpers were moved to `frappe.utils.chromium.download`.
 
 
+def _print_format_doc_or_none(print_format: str | None):
+	"""Return the Print Format doc, or None for an empty/"Standard"/deleted name.
+
+	Degrading a missing name to None (instead of raising DoesNotExistError) keeps
+	notifications and scheduled jobs that reference a removed format from breaking
+	mid-send — they fall back to the Standard render.
+	"""
+	if not print_format or print_format == "Standard":
+		return None
+	try:
+		return frappe.get_cached_doc("Print Format", print_format)
+	except frappe.DoesNotExistError:
+		frappe.clear_last_message()
+		return None
+
+
 def get_print(
 	doctype=None,
 	name=None,
@@ -46,9 +62,9 @@ def get_print(
 
 		# Standard (default) prints and beta/converted-classic formats produce markup
 		# only the Chromium renderer can lay out, so force it regardless of the passed arg.
-		requires_chrome = not print_format or print_format == "Standard"
-		if not requires_chrome:
-			requires_chrome = uses_beta_renderer(frappe.get_cached_doc("Print Format", print_format))
+		# A deleted/unknown format also degrades to the Standard render, which needs chrome.
+		pf_doc = _print_format_doc_or_none(print_format)
+		requires_chrome = not pf_doc or uses_beta_renderer(pf_doc)
 
 		if requires_chrome:
 			pdf_generator = "chrome"
@@ -149,12 +165,9 @@ def attach_print(
 
 	frappe.local.flags.ignore_print_permissions = True
 
-	is_beta_print_format = False
-	if print_format and print_format != "Standard":
-		from frappe.printing.doctype.print_format.classic_converter import uses_beta_renderer
+	from frappe.printing.doctype.print_format.classic_converter import uses_beta_renderer
 
-		print_format_doc = frappe.get_cached_doc("Print Format", print_format)
-		is_beta_print_format = uses_beta_renderer(print_format_doc)
+	is_beta_print_format = uses_beta_renderer(_print_format_doc_or_none(print_format))
 
 	try:
 		with print_language(lang or frappe.local.lang):
