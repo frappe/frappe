@@ -9,11 +9,14 @@ from typing import Any
 import frappe
 from frappe import _
 from frappe.core.doctype.server_script.server_script_utils import get_server_script_map
+from frappe.model.base_document import get_controller
 
 CACHE_TTL = 60 * 60
 DISCOVERY_CACHE_PREFIX = "api:v2:discovery"
 PYTHON_METHOD_CACHE_KEY = f"{DISCOVERY_CACHE_PREFIX}:global:methods:python"
 PYTHON_SEARCH_CACHE_KEY = f"{DISCOVERY_CACHE_PREFIX}:global:methods:python_search"
+DOCTYPE_METHOD_CACHE_KEY = f"{DISCOVERY_CACHE_PREFIX}:global:methods:doctype_all"
+DOCTYPE_SEARCH_CACHE_KEY = f"{DISCOVERY_CACHE_PREFIX}:global:methods:doctype_all_search"
 DISCOVERY_BUILD_JOB_ID = "api-v2-discovery-build"
 
 
@@ -25,14 +28,17 @@ class DiscoveryCacheUnavailable(frappe.ValidationError):
 def root() -> dict[str, Any]:
 	frappe.only_for("System Manager")
 	method_index = _method_index()
+	doctype_method_index = _doctype_method_index()
 	return {
 		"type": "discovery",
-		"resources": {"methods": len(method_index)},
+		"resources": {"methods": len(method_index), "doctype_methods": len(doctype_method_index)},
 		"links": {
 			"self": "/api/v2/discovery",
 			"search": "/api/v2/discovery/search?q={query}",
 			"methods": "/api/v2/discovery/method",
 			"method": "/api/v2/discovery/method/{method}",
+			"doctype_methods": "/api/v2/discovery/doctype/{doctype}",
+			"doctype_method": "/api/v2/discovery/doctype/{doctype}/method/{method}",
 		},
 	}
 
@@ -88,6 +94,27 @@ def method(method: str) -> dict[str, Any]:
 	return _method_document(method, fn)
 
 
+def doctype_methods(doctype: str) -> dict[str, Any]:
+	frappe.only_for("System Manager")
+	methods = [
+		_doctype_method_summary(doctype, name, fn, defining_class)
+		for name, fn, defining_class in _get_doctype_methods(doctype)
+	]
+	return {"type": "method_index", "doctype": doctype, "methods": methods}
+
+
+def doctype_method(doctype: str, method: str) -> dict[str, Any]:
+	frappe.only_for("System Manager")
+	for name, fn, defining_class in _get_doctype_methods(doctype):
+		if name == method:
+			return _doctype_method_document(doctype, name, fn, defining_class)
+
+	frappe.throw(
+		_("Method {0} is not available for discovery on DocType {1}").format(method, doctype),
+		frappe.DoesNotExistError,
+	)
+
+
 def clear_cache(user: str | None = None):
 	frappe.cache.delete_keys(f"{DISCOVERY_CACHE_PREFIX}:")
 
@@ -108,6 +135,21 @@ def build_cache() -> None:
 	frappe.cache.set_value(PYTHON_METHOD_CACHE_KEY, items, expires_in_sec=CACHE_TTL)
 	frappe.cache.set_value(PYTHON_SEARCH_CACHE_KEY, search_entries, expires_in_sec=CACHE_TTL)
 
+	doctype_items = []
+	doctype_search_entries = []
+	for doctype, method_name, fn, defining_class in _discover_doctype_methods():
+		method = _doctype_method_summary(doctype, method_name, fn, defining_class)
+		doctype_items.append(method)
+		doctype_search_entries.append(
+			{
+				"method": method,
+				"haystack": _method_search_text(method, inspect.getdoc(fn)),
+			}
+		)
+
+	frappe.cache.set_value(DOCTYPE_METHOD_CACHE_KEY, doctype_items, expires_in_sec=CACHE_TTL)
+	frappe.cache.set_value(DOCTYPE_SEARCH_CACHE_KEY, doctype_search_entries, expires_in_sec=CACHE_TTL)
+
 
 def _search_index() -> list[tuple[dict[str, Any], str]]:
 	entries: list[tuple[dict[str, Any], str]] = []
@@ -120,13 +162,30 @@ def _search_index() -> list[tuple[dict[str, Any], str]]:
 		entry = {"type": "method", "path": path}
 		entries.append((entry, _method_search_text(entry)))
 
-	return sorted(entries, key=lambda item: item[0].get("path") or "")
+	for item in _get_cached_doctype_search_entries():
+		entries.append((_without_none(item["method"]), item["haystack"]))
+
+	return sorted(
+		entries,
+		key=lambda item: (
+			item[0].get("path") or "",
+			item[0].get("doctype") or "",
+			item[0].get("method") or "",
+		),
+	)
 
 
 def _method_search_text(entry: dict[str, Any], docstring: str | None = None) -> str:
 	return " ".join(
 		str(value or "")
-		for value in (entry.get("type"), entry.get("path"), entry.get("description"), docstring)
+		for value in (
+			entry.get("type"),
+			entry.get("path"),
+			entry.get("doctype"),
+			entry.get("method"),
+			entry.get("description"),
+			docstring,
+		)
 	).lower()
 
 
@@ -136,12 +195,20 @@ def _method_index() -> list[dict[str, Any]]:
 	return sorted(items, key=lambda item: item["path"])
 
 
+def _doctype_method_index() -> list[dict[str, Any]]:
+	return _get_required_cache_value(DOCTYPE_METHOD_CACHE_KEY)
+
+
 def _get_cached_python_methods() -> list[dict[str, Any]]:
 	return _get_required_cache_value(PYTHON_METHOD_CACHE_KEY)
 
 
 def _get_cached_python_search_entries() -> list[dict[str, Any]]:
 	return _get_required_cache_value(PYTHON_SEARCH_CACHE_KEY)
+
+
+def _get_cached_doctype_search_entries() -> list[dict[str, Any]]:
+	return _get_required_cache_value(DOCTYPE_SEARCH_CACHE_KEY)
 
 
 def _get_required_cache_value(key: str) -> Any:
@@ -191,6 +258,45 @@ def _method_document(path: str, fn: Callable) -> dict[str, Any]:
 	)
 
 
+def _doctype_method_summary(
+	doctype: str,
+	method: str,
+	fn: Callable,
+	defining_class: type | None = None,
+) -> dict[str, Any]:
+	docstring = inspect.getdoc(fn)
+	return _without_none(
+		{
+			"type": "method",
+			"doctype": doctype,
+			"method": method,
+			"defined_in": _class_path(defining_class) if defining_class else None,
+			"description": docstring.splitlines()[0] if docstring else None,
+		}
+	)
+
+
+def _doctype_method_document(doctype: str, method: str, fn: Callable, defining_class: type) -> dict[str, Any]:
+	return _without_none(
+		{
+			"type": "method",
+			"doctype": doctype,
+			"method": method,
+			"defined_in": _class_path(defining_class),
+			"endpoint": f"/api/v2/document/{doctype}/{{name}}/method/{method}",
+			"http_methods": ["GET", "POST"],
+			"permission": {"GET": "read", "POST": "write"},
+			"params": _method_params(fn),
+			"docstring": inspect.getdoc(fn),
+			"source": _method_source(fn),
+		}
+	)
+
+
+def _class_path(class_: type) -> str:
+	return f"{class_.__module__}.{class_.__name__}"
+
+
 def _method_source(fn: Callable) -> str | None:
 	"""Return the method's source code, but only if its app opts in.
 
@@ -232,6 +338,68 @@ def _get_whitelisted_method(path: str, ignore_cache: bool = False) -> Callable |
 	if not ignore_cache and fn in frappe.whitelisted:
 		return fn
 	return None
+
+
+def _discover_doctype_methods() -> list[tuple[str, str, Callable, type]]:
+	methods = []
+	doctypes = frappe.get_all(
+		"DocType",
+		filters={"istable": 0},
+		pluck="name",
+		order_by="name",
+	)
+	for doctype in doctypes:
+		try:
+			doctype_methods = _get_doctype_methods(doctype)
+		except Exception:
+			continue
+		methods.extend(
+			(doctype, method_name, fn, defining_class) for method_name, fn, defining_class in doctype_methods
+		)
+
+	return methods
+
+
+def _get_doctype_methods(doctype: str) -> list[tuple[str, Callable, type]]:
+	meta = frappe.get_meta(doctype)
+	if meta.istable:
+		frappe.throw(
+			_("DocType {0} is not available for discovery").format(doctype), frappe.DoesNotExistError
+		)
+
+	controller = get_controller(doctype)
+	methods = []
+	for method_name in dir(controller):
+		defining_class = _defining_class(controller, method_name)
+		if not defining_class:
+			continue
+		try:
+			fn = _unwrap_method(getattr(controller, method_name))
+		except (AttributeError, TypeError):
+			continue
+		if not callable(fn):
+			continue
+		if fn not in frappe.whitelisted or not _doctype_method_applies(meta, method_name):
+			continue
+		methods.append((method_name, fn, defining_class))
+
+	return methods
+
+
+def _unwrap_method(method: Any) -> Any:
+	return getattr(method, "__func__", method)
+
+
+def _defining_class(controller: type, method: str) -> type | None:
+	return next((class_ for class_ in inspect.getmro(controller) if method in class_.__dict__), None)
+
+
+def _doctype_method_applies(meta: Any, method: str) -> bool:
+	if method in {"submit", "cancel", "discard"} and not meta.is_submittable:
+		return False
+	if method == "rename" and not meta.allow_rename:
+		return False
+	return True
 
 
 def _discover_whitelisted_method_paths() -> list[str]:
