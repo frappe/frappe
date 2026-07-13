@@ -288,6 +288,11 @@ def _doctype_method_summary(
 
 
 def _doctype_method_document(doctype: str, method: str, fn: Callable, defining_class: type) -> dict[str, Any]:
+	http_methods = [
+		method
+		for method in frappe.allowed_http_methods_for_whitelisted_func.get(fn, ())
+		if method in {"GET", "POST"}
+	]
 	return _without_none(
 		{
 			"type": "method",
@@ -296,7 +301,7 @@ def _doctype_method_document(doctype: str, method: str, fn: Callable, defining_c
 			"method": method,
 			"defined_in": _class_path(defining_class),
 			"endpoint": f"/api/v2/document/{doctype}/{{name}}/method/{method}",
-			"http_methods": ["GET", "POST"],
+			"http_methods": http_methods,
 			"permission": {"GET": "read", "POST": "write"},
 			"params": _method_params(fn),
 			"docstring": inspect.getdoc(fn),
