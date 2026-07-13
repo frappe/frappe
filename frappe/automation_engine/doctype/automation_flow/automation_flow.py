@@ -27,7 +27,7 @@ class AutomationFlow(Document):
 		condition: DF.Code | None
 		cron_expression: DF.Data | None
 		custom_event: DF.Data | None
-		date_direction: DF.Literal["", "Before", "After"]
+		date_direction: DF.Literal["Before", "After"]
 		date_field: DF.Literal[None]
 		date_offset: DF.Int
 		disabled_reason: DF.SmallText | None
