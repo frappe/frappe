@@ -385,7 +385,24 @@ const makeToolPart = (id, name, args) => ({
 
 function setToolResult(msg, id, result) {
 	const part = msg.parts.find((p) => p.type === "tool" && p.id === id);
-	if (part) part.result = result;
+	if (!part) return;
+	part.result = result;
+	// On reload the live approval state is gone; recover it from the persisted
+	// confirmation result so the "Denied"/"Changes requested" badge survives.
+	if (part.approval === null) part.approval = approvalFromResult(result);
+}
+
+// A denied/redirected confirmation persists a known status payload as its tool result.
+function approvalFromResult(result) {
+	if (typeof result !== "string") return null;
+	try {
+		const status = JSON.parse(result)?.status;
+		if (status === "denied") return "denied";
+		if (status === "redirect") return "redirected";
+	} catch {
+		// a normal tool result, not a confirmation payload
+	}
+	return null;
 }
 
 function pushAssistant(pending = true) {
