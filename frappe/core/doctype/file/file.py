@@ -245,7 +245,6 @@ class File(Document):
 			frappe.throw(_("Cannot delete Home and Attachments folders"))
 		self.validate_empty_folder()
 		self.validate_protected_file()
-		self.validate_not_referenced_in_attach_field()
 		self._delete_file_on_disk()
 		if not self.is_folder:
 			self.add_comment_in_reference_doc("Attachment Removed", self.file_name)
