@@ -246,6 +246,33 @@ class TestSafeDoc(IntegrationTestCase):
 		self.assertEqual(row.get_label_from_fieldname("rate"), "Rate")
 		self.assertEqual(row.get_label_from_fieldname("amount"), "Amount")
 
+	def test_in_format_data(self):
+		parent = self._make_parent()
+		row = parent.get("rows")[0]
+
+		# no format_data_map set — all fields visible
+		self.assertTrue(row.in_format_data("rate"))
+		self.assertTrue(row.in_format_data("amount"))
+
+		# parent itself has no parent_doc — falls back to self
+		self.assertTrue(parent.in_format_data("absolute_value"))
+
+		# with format_data_map on parent — only listed fields visible
+		parent["format_data_map"] = {"rate": True}
+		self.assertTrue(row.in_format_data("rate"))
+		self.assertFalse(row.in_format_data("amount"))
+
+	def test_is_print_hide(self):
+		parent = self._make_parent()
+		row = parent.get("rows")[0]
+
+		# field with no print_hide set — should not be hidden
+		self.assertFalse(row.is_print_hide("description"))
+
+		# explicit df with print_hide=1
+		df = frappe._dict(print_hide=1, print_hide_if_no_value=0)
+		self.assertTrue(row.is_print_hide("description", df=df))
+
 	def test_absolute_value_from_parent(self):
 		parent = self._make_parent(absolute_value=1)
 		row = parent.get("rows")[0]
