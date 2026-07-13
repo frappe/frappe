@@ -505,13 +505,14 @@ frappe.ui.form.PrintView = class {
 			params.append("letterhead", letterhead);
 		}
 		iframe.prop("src", `/printpreview?${params.toString()}`);
-		setTimeout(() => {
-			// 160px = the .preview-beta-wrapper top+bottom padding that frames the page
-			iframe.css(
-				"height",
-				"calc(100vh - var(--page-head-height) - var(--navbar-height) - 160px)"
-			);
-		}, 500);
+		iframe.off("load.beta").on("load.beta", () => {
+			// Size the card to the document height (like the classic preview and skeleton)
+			// so the whole page scrolls and there's no leftover gray strip.
+			const doc = iframe[0].contentDocument;
+			if (doc && doc.body) {
+				iframe.css("height", doc.body.scrollHeight + "px");
+			}
+		});
 	}
 
 	setup_print_format_dom(out, $print_format) {
