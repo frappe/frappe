@@ -73,7 +73,8 @@ def get_list_context(context=None):
 	filters = dict(published=1)
 
 	category = frappe.db.get_value(
-		"Help Category", {"route": (frappe.form_dict.get("pathname") or "").lstrip("/")}
+		"Help Category",
+		{"route": (frappe.form_dict.get("pathname") or frappe.local.path or "").lstrip("/")},
 	)
 
 	if category:
