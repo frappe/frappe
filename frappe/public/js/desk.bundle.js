@@ -35,8 +35,8 @@ import "./frappe/ui/sidebar/workspace_picker.js";
 import "./frappe/ui/sidebar/sidebar.html";
 import "./frappe/ui/sidebar/sidebar_item.html";
 import "./frappe/ui/sidebar/sidebar.js";
-import "./frappe/ui/sidebar/sidebar_card.html";
-import "./frappe/ui/sidebar/sidebar_card.js";
+import "./frappe/ui/sidebar/card.html";
+import "./frappe/ui/sidebar/card.js";
 import "./frappe/ui/link_preview.js";
 
 import "./frappe/request.js";
