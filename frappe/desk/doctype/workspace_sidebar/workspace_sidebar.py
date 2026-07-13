@@ -76,13 +76,12 @@ class WorkspaceSidebar(Document, DeskViews):
 			self.export_sidebar()
 
 	@staticmethod
-	def rename_private_sidebars(old_user, new_user, after_rename_user=False):
+	def rename_private_sidebars(old_user, new_user):
 		from frappe.model.rename_doc import rename_doc
 
-		for_user = new_user if after_rename_user else old_user
 		suffix = f"-{old_user}"
 		for sidebar in frappe.get_all(
-			"Workspace Sidebar", filters={"for_user": for_user}, fields=["name"], limit=0
+			"Workspace Sidebar", filters={"for_user": new_user}, fields=["name"], limit=0
 		):
 			if not sidebar.name.endswith(suffix):
 				continue

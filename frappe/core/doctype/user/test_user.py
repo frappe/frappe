@@ -420,8 +420,8 @@ class TestUser(IntegrationTestCase):
 			frappe.rename_doc("User", old_name, new_name)
 
 		# Workspace Sidebar.for_user is a Link field, so it is already cascaded to new_name by
-		# the User rename itself; rename_private_sidebars must look it up by new_name (that's
-		# what the after_rename_user flag is for) to find and rename "My Workspaces-<old_name>".
+		# the User rename itself; rename_private_sidebars must look it up by new_name to find
+		# and rename "My Workspaces-<old_name>".
 		new_sidebar = f"My Workspaces-{new_name}"
 		self.assertTrue(frappe.db.exists("Workspace Sidebar", new_sidebar))
 		self.assertEqual(frappe.db.get_value("Workspace Sidebar", new_sidebar, "for_user"), new_name)
