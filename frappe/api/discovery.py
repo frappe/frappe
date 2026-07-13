@@ -80,6 +80,7 @@ def method(method: str) -> dict[str, Any]:
 			)
 		return {
 			"type": "method",
+			"kind": "rpc",
 			"path": method,
 			"name": server_script,
 			"http_methods": ["GET", "POST", "PUT", "DELETE"],
@@ -155,15 +156,16 @@ def _search_index() -> list[tuple[dict[str, Any], str]]:
 	entries: list[tuple[dict[str, Any], str]] = []
 	for item in _get_cached_python_search_entries():
 		method = item["method"]
-		entry = _without_none({"type": "method", **method})
-		entries.append((entry, item["haystack"]))
+		entry = _without_none({"type": "method", **method, "kind": "rpc"})
+		entries.append((entry, f"{item['haystack']} rpc"))
 
 	for path, _script in _visible_server_scripts():
-		entry = {"type": "method", "path": path}
+		entry = {"type": "method", "kind": "rpc", "path": path}
 		entries.append((entry, _method_search_text(entry)))
 
 	for item in _get_cached_doctype_search_entries():
-		entries.append((_without_none(item["method"]), item["haystack"]))
+		entry = _without_none({**item["method"], "kind": "doctype"})
+		entries.append((entry, f"{item['haystack']} doctype"))
 
 	return sorted(
 		entries,
@@ -180,6 +182,7 @@ def _method_search_text(entry: dict[str, Any], docstring: str | None = None) -> 
 		str(value or "")
 		for value in (
 			entry.get("type"),
+			entry.get("kind"),
 			entry.get("path"),
 			entry.get("doctype"),
 			entry.get("method"),
@@ -190,9 +193,17 @@ def _method_search_text(entry: dict[str, Any], docstring: str | None = None) -> 
 
 
 def _method_index() -> list[dict[str, Any]]:
-	items = list(_get_cached_python_methods())
-	items.extend({"path": path} for path, _script in _visible_server_scripts())
-	return sorted(items, key=lambda item: item["path"])
+	items = [{**item, "kind": "rpc"} for item in _get_cached_python_methods()]
+	items.extend({"kind": "rpc", "path": path} for path, _script in _visible_server_scripts())
+	items.extend({**item, "kind": "doctype"} for item in _doctype_method_index())
+	return sorted(
+		items,
+		key=lambda item: (
+			item.get("path") or "",
+			item.get("doctype") or "",
+			item.get("method") or "",
+		),
+	)
 
 
 def _doctype_method_index() -> list[dict[str, Any]]:
@@ -235,6 +246,7 @@ def _method_summary(fn: Callable) -> dict[str, Any]:
 	docstring = inspect.getdoc(fn)
 	return _without_none(
 		{
+			"kind": "rpc",
 			"path": f"{fn.__module__}.{fn.__name__}",
 			"allow_guest": fn in frappe.guest_methods,
 			"description": docstring.splitlines()[0] if docstring else None,
@@ -246,6 +258,7 @@ def _method_document(path: str, fn: Callable) -> dict[str, Any]:
 	return _without_none(
 		{
 			"type": "method",
+			"kind": "rpc",
 			"path": path,
 			"name": fn.__name__,
 			"http_methods": frappe.allowed_http_methods_for_whitelisted_func.get(fn, []),
@@ -268,6 +281,7 @@ def _doctype_method_summary(
 	return _without_none(
 		{
 			"type": "method",
+			"kind": "doctype",
 			"doctype": doctype,
 			"method": method,
 			"defined_in": _class_path(defining_class) if defining_class else None,
@@ -280,6 +294,7 @@ def _doctype_method_document(doctype: str, method: str, fn: Callable, defining_c
 	return _without_none(
 		{
 			"type": "method",
+			"kind": "doctype",
 			"doctype": doctype,
 			"method": method,
 			"defined_in": _class_path(defining_class),

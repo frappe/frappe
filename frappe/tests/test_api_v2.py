@@ -624,7 +624,11 @@ class TestDiscoveryAPIV2(FrappeAPITestCase):
 		)
 		self.assertEqual(response.status_code, 200)
 		results = response.json["data"]["results"]
-		self.assertTrue(any(item.get("path") == "frappe.tests.test_api.test" for item in results))
+		self.assertTrue(
+			any(
+				item.get("path") == "frappe.tests.test_api.test" and item["kind"] == "rpc" for item in results
+			)
+		)
 		self.assertTrue(all("docstring" not in item for item in results))
 
 		docstring_response = self.get(
@@ -644,6 +648,9 @@ class TestDiscoveryAPIV2(FrappeAPITestCase):
 			{"sid": self.sid, "q": "User populate_role_profile_roles"},
 		)
 		self.assertEqual(controller_response.status_code, 200)
+		self.assertTrue(
+			all(item["kind"] == "doctype" for item in controller_response.json["data"]["results"])
+		)
 		self.assertIn(
 			{
 				"type": "method",
@@ -682,6 +689,7 @@ class TestDiscoveryAPIV2(FrappeAPITestCase):
 		self.assertEqual(response.status_code, 200)
 		methods = {item["method"]: item for item in response.json["data"]["methods"]}
 
+		self.assertEqual(methods["populate_role_profile_roles"]["kind"], "doctype")
 		self.assertEqual(
 			methods["populate_role_profile_roles"]["defined_in"],
 			"frappe.core.doctype.user.user.User",
@@ -703,6 +711,7 @@ class TestDiscoveryAPIV2(FrappeAPITestCase):
 		self.assertEqual(response.status_code, 200)
 		data = response.json["data"]
 		self.assertEqual(data["type"], "method")
+		self.assertEqual(data["kind"], "doctype")
 		self.assertEqual(data["doctype"], "User")
 		self.assertEqual(data["method"], "add_comment")
 		self.assertEqual(data["defined_in"], "frappe.model.document.Document")
@@ -737,15 +746,23 @@ class TestDiscoveryAPIV2(FrappeAPITestCase):
 		method = next(
 			item
 			for item in index_response.json["data"]["methods"]
-			if item["path"] == "frappe.tests.test_api.test"
+			if item.get("path") == "frappe.tests.test_api.test"
 		)
+		self.assertEqual(method["kind"], "rpc")
 		self.assertEqual(method["description"], "Exercise RPC success and failure responses.")
+		doctype_method = next(
+			item
+			for item in index_response.json["data"]["methods"]
+			if item.get("doctype") == "User" and item.get("method") == "populate_role_profile_roles"
+		)
+		self.assertEqual(doctype_method["kind"], "doctype")
 
 		method_response = self.get(
 			self.discovery_path("method", "frappe.tests.test_api.test"), {"sid": self.sid}
 		)
 		self.assertEqual(method_response.status_code, 200)
 		data = method_response.json["data"]
+		self.assertEqual(data["kind"], "rpc")
 		self.assertEqual(data["path"], "frappe.tests.test_api.test")
 		self.assertEqual(
 			data["docstring"],
