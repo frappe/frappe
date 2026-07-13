@@ -750,14 +750,17 @@ from {tables}
 			return [(ft, None) for ft in filters], exists_groups
 
 		additional_filters_config = get_additional_filters_from_hooks()
+		# quotes are stripped so `tabX`.`col`, "tabX".col and tabX.col forms all match
+		sort_group_references = f"{self.group_by or ''} {self.order_by or ''}".replace("`", "").replace(
+			'"', ""
+		)
 		for ft in filters:
 			f = get_filter(self.doctype, ft, additional_filters_config)
 			if (
 				f.doctype
 				and f.doctype != self.doctype
 				and f"`tab{f.doctype}`" not in self.tables
-				and f"`tab{f.doctype}`" not in (self.group_by or "")
-				and f"`tab{f.doctype}`" not in (self.order_by or "")
+				and f"tab{f.doctype}" not in sort_group_references
 				and self.get_meta(f.doctype).istable
 			):
 				exists_groups.setdefault(f.doctype, []).append((ft, f))

@@ -416,6 +416,17 @@ class TestDBQuery(IntegrationTestCase):
 		)
 		self.assertIn("`tabNote Seen By`", query.tables)
 
+		# unquoted and double-quoted references must keep the join too
+		for group_by in ("tabNote Seen By.user", '"tabNote Seen By".user'):
+			query = DatabaseQuery("Note")
+			query.execute(
+				filters=[["Note Seen By", "user", "=", "Administrator"]],
+				fields=["name"],
+				group_by=group_by,
+				run=0,
+			)
+			self.assertIn("`tabNote Seen By`", query.tables)
+
 	def test_child_table_filter_with_childnames_keeps_join(self):
 		query = DatabaseQuery("Note")
 		query.execute(
