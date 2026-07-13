@@ -1291,3 +1291,97 @@ class TestRetrieveAttachments(IntegrationTestCase):
 		):
 			retrieve_attachments("refund", session="SES-x")
 		self.assertEqual(mocked.call_args.kwargs["text"], "refund")
+
+
+class TestSystemGeneratedProtection(IntegrationTestCase):
+	"""Desk edits can't break app-owned system rows; the app's sync (ignore_permissions) can."""
+
+	def setUp(self):
+		self.model = _make_model()
+		_set_settings(embedding_model=self.model.name, embedding_dimension=DIM)
+
+	def tearDown(self):
+		frappe.db.rollback()
+
+	def _kb(self, system=True, title="Builtin KB"):
+		return frappe.get_doc(
+			{"doctype": "Flow Knowledge Base", "title": title, "is_system_generated": int(system)}
+		).insert()
+
+	def _source(self, kb, system=True, **values):
+		values.setdefault("source_type", "Text")
+		values.setdefault("title", "Builtin Source")
+		values.setdefault("content", "some indexed content")
+		doc = frappe.get_doc(
+			{
+				"doctype": "Flow Knowledge Source",
+				"knowledge_base": kb.name,
+				"is_system_generated": int(system),
+				**values,
+			}
+		)
+		doc.flags.skip_auto_ingest = True
+		return doc.insert()
+
+	def test_cannot_delete_system_generated_kb_via_desk(self):
+		kb = self._kb()
+		with self.assertRaisesRegex(frappe.ValidationError, "Cannot delete system-generated"):
+			frappe.delete_doc("Flow Knowledge Base", kb.name)
+
+	def test_owning_app_can_delete_system_generated_kb(self):
+		kb = self._kb()
+		frappe.delete_doc("Flow Knowledge Base", kb.name, ignore_permissions=True)
+		self.assertFalse(frappe.db.exists("Flow Knowledge Base", kb.name))
+
+	def test_cannot_rename_system_generated_kb(self):
+		from frappe.model.rename_doc import rename_doc
+
+		kb = self._kb()
+		with self.assertRaisesRegex(frappe.ValidationError, "Cannot rename system-generated"):
+			frappe.rename_doc("Flow Knowledge Base", kb.name, "Renamed KB")
+		with self.assertRaisesRegex(frappe.ValidationError, "Cannot rename system-generated"):
+			rename_doc("Flow Knowledge Base", kb.name, "Renamed KB", ignore_permissions=True)
+
+	def test_regular_kb_is_unaffected(self):
+		kb = self._kb(system=False, title="User KB")
+		frappe.delete_doc("Flow Knowledge Base", kb.name)
+		self.assertFalse(frappe.db.exists("Flow Knowledge Base", kb.name))
+
+	def test_cannot_delete_system_generated_source_via_desk(self):
+		source = self._source(self._kb())
+		with self.assertRaisesRegex(frappe.ValidationError, "Cannot delete system-generated"):
+			frappe.delete_doc("Flow Knowledge Source", source.name)
+
+	def test_cannot_change_type_of_system_generated_source_via_desk(self):
+		source = self._source(self._kb())
+		source.source_type = "URL"
+		source.url = "https://example.com"
+		with self.assertRaisesRegex(frappe.ValidationError, "Cannot change Source Type"):
+			source.save()
+
+	def test_owning_app_can_restructure_system_generated_source(self):
+		source = self._source(self._kb())
+		source.source_type = "URL"
+		source.url = "https://example.com"
+		source.save(ignore_permissions=True)
+		self.assertEqual(frappe.db.get_value("Flow Knowledge Source", source.name, "source_type"), "URL")
+
+	def test_content_of_system_generated_source_stays_editable(self):
+		source = self._source(self._kb())
+		source.content = "refreshed content"
+		source.save()
+		self.assertEqual(
+			frappe.db.get_value("Flow Knowledge Source", source.name, "content"), "refreshed content"
+		)
+
+	def test_cannot_unset_system_generated_flag_on_kb(self):
+		kb = self._kb()
+		kb.is_system_generated = 0
+		with self.assertRaisesRegex(frappe.ValidationError, "Cannot remove the system-generated flag"):
+			kb.save()
+
+	def test_cannot_unset_system_generated_flag_on_source(self):
+		source = self._source(self._kb())
+		source.is_system_generated = 0
+		with self.assertRaisesRegex(frappe.ValidationError, "Cannot remove the system-generated flag"):
+			source.save()

@@ -286,3 +286,44 @@ class TestFlowAgentModelPermission(IntegrationTestCase):
 		self.assertIsInstance(self.agent_doc.assemble(model=self.allowed.name), Agent)
 		with self.assertRaises(frappe.PermissionError):
 			self.agent_doc.assemble()
+
+
+class TestFlowAgentSystemGenerated(IntegrationTestCase):
+	"""Desk edits can't break system-generated agents; the owning app (ignore_permissions) can."""
+
+	def setUp(self):
+		sync_builtin_tools()
+		self.model_doc = frappe.get_doc(_model()).insert()
+
+	def tearDown(self):
+		frappe.db.rollback()
+
+	def _agent(self):
+		return frappe.get_doc(_agent(self.model_doc.name, is_system_generated=1)).insert()
+
+	def test_cannot_delete_via_desk(self):
+		agent = self._agent()
+		with self.assertRaisesRegex(frappe.ValidationError, "Cannot delete system-generated"):
+			frappe.delete_doc("Flow Agent", agent.name)
+
+	def test_delete_blocked_even_with_ignore_permissions(self):
+		agent = self._agent()
+		with self.assertRaisesRegex(frappe.ValidationError, "Cannot delete system-generated"):
+			frappe.delete_doc("Flow Agent", agent.name, ignore_permissions=True)
+
+	def test_cannot_rename(self):
+		agent = self._agent()
+		with self.assertRaisesRegex(frappe.ValidationError, "Cannot rename system-generated"):
+			frappe.rename_doc("Flow Agent", agent.name, "Renamed Agent")
+
+	def test_cannot_unset_flag(self):
+		agent = self._agent()
+		agent.is_system_generated = 0
+		with self.assertRaisesRegex(frappe.ValidationError, "Cannot remove the system-generated flag"):
+			agent.save()
+
+	def test_instructions_stay_editable(self):
+		agent = self._agent()
+		agent.instructions = "Be verbose."
+		agent.save()
+		self.assertEqual(frappe.db.get_value("Flow Agent", agent.name, "instructions"), "Be verbose.")
