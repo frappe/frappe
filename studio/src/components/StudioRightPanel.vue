@@ -49,7 +49,10 @@
 			</div>
 
 			<ComponentProperties
-				v-show="activeTab === 'Properties' || (activeTab === 'Styles' && combinePropsAndStylesTab)"
+				v-show="
+					activeTab === 'Properties' ||
+					(activeTab === 'Styles' && combinePropsAndStylesTab && showPropertiesTab)
+				"
 				class="p-3"
 				:class="combinePropsAndStylesTab ? '!pb-0' : ''"
 				:block="canvasStore.activeCanvas?.selectedBlocks[0]"
@@ -93,14 +96,13 @@ const canvasStore = useCanvasStore()
 const activeTab = computed(() => store.studioLayout.rightPanelActiveTab)
 
 const showInterfaceTab = computed(() => canvasStore.editingMode === "component")
-const combinePropsAndStylesTab = computed(
-	() => blockController.isRoot() || blockController.isText() || blockController.isContainer(),
-)
+const showPropertiesTab = computed(() => !(blockController.isRoot() || blockController.isContainer()))
+const combinePropsAndStylesTab = computed(() => blockController.isText())
 const tabs = computed(() => {
 	let _tabs = showInterfaceTab.value
 		? ["Interface", "Properties", "Styles", "Events"]
 		: ["Properties", "Styles", "Events"]
-	if (combinePropsAndStylesTab.value) {
+	if (combinePropsAndStylesTab.value || !showPropertiesTab.value) {
 		_tabs = _tabs.filter((tab) => tab !== "Properties")
 	}
 	return _tabs
