@@ -307,9 +307,6 @@ def load_desktop_data(bootinfo):
 			dict(
 				# whether the app opts into the apps screen via the add_to_apps_screen hook
 				on_apps_screen=bool(apps),
-				# opt-in (via add_to_apps_screen): route the app's desktop icon to the workspace
-				# explorer (its workspaces as cards) instead of straight into the app
-				show_workspace_explorer=bool(app_info.get("show_workspace_explorer")),
 				app_name=app_info.get("name") or app_name,
 				app_title=app_info.get("title")
 				or (
@@ -320,14 +317,6 @@ def load_desktop_data(bootinfo):
 					or ""
 				)
 				or app_name,
-				# app subtitle for the workspace explorer -- the add_to_apps_screen `description`
-				# wins, else the app's standard `app_description` hook
-				app_description=app_info.get("description")
-				or (
-					frappe.get_hooks("app_description", app_name=app_name)
-					and frappe.get_hooks("app_description", app_name=app_name)[0]
-				)
-				or "",
 				app_route=app_info.get("route")
 				or (
 					frappe.get_hooks("app_home", app_name=app_name)

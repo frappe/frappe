@@ -11,7 +11,6 @@
   "label",
   "icon",
   "title",
-  "description",
   "sequence_id",
   "for_user",
   "parent_page",
@@ -149,11 +148,6 @@
    "fieldtype": "Data",
    "label": "Title",
    "reqd": 1
-  },
-  {
-   "fieldname": "description",
-   "fieldtype": "Small Text",
-   "label": "Description"
   },
   {
    "fieldname": "parent_page",
@@ -297,7 +291,7 @@
  ],
  "in_create": 1,
  "links": [],
- "modified": "2026-07-06 23:03:20.000000",
+ "modified": "2026-07-06 23:20:00.000000",
  "modified_by": "Administrator",
  "module": "Desk",
  "name": "Workspace",

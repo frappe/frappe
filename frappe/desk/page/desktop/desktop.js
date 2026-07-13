@@ -55,24 +55,10 @@ class DesktopPage {
 				logo_url: app.app_logo_url,
 			};
 			const $icon = $(frappe.render_template("desktop_icon", { icon: icon_data }));
-
-			const is_external = app.app_route && app.app_route.startsWith("http");
-			// opt-in per app (add_to_apps_screen `show_workspace_explorer`): the icon lands on the
-			// app's workspaces in the explorer instead of jumping straight in
-			const use_explorer =
-				app.show_workspace_explorer && !is_external && (app.workspaces || []).length > 0;
-
-			if (use_explorer) {
-				$icon.attr("href", `/desk/workspace-explorer/${encodeURIComponent(app.app_name)}`);
-				$icon.on("click", (e) => {
-					e.preventDefault();
-					frappe.set_route("workspace-explorer", app.app_name);
-				});
-			} else {
-				// external apps, and apps that don't opt in, open directly
-				if (is_external) $icon.attr("target", "_blank");
-				$icon.attr("href", app.app_route);
+			if (app.app_route.startsWith("http")) {
+				$icon.attr("target", "_blank");
 			}
+			$icon.attr("href", app.app_route);
 			$grid.append($icon);
 		});
 
