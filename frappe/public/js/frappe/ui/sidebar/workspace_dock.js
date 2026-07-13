@@ -68,13 +68,9 @@ frappe.ui.WorkspaceDock = class WorkspaceDock {
 		}
 	}
 
+	// The dock shows unread as a small dot, not a number -- just toggle it on whether any exist.
 	sync_notification_count($bell, count) {
-		let $count = $bell.find(".sidebar-notification-count");
-		if (count > 0) {
-			$count.text(count > 99 ? "99+" : count).removeClass("hidden");
-		} else {
-			$count.addClass("hidden");
-		}
+		$bell.find(".sidebar-notification-count").toggleClass("hidden", count <= 0);
 	}
 
 	// Toggle the shared notifications panel (lives in the sidebar), mirroring the sidebar bell.

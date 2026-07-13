@@ -158,23 +158,21 @@
 			}
 		}
 
-		// unread count — mirrors <RailItemBadge>: a solid-red pill ringed in the surface colour
+		// unread indicator — a small dot on the bell's top-right corner (mirrors <RailItemBadge> dot)
 		.sidebar-notification-count {
 			position: absolute;
-			top: -6px;
-			right: -6px;
-			height: 16px;
-			min-width: 16px;
-			padding: 0 6px;
-			display: inline-flex;
-			align-items: center;
-			justify-content: center;
-			border-radius: 9999px;
+			top: 5px;
+			right: 5px;
+			width: 8px;
+			height: 8px;
+			padding: 0;
+			border-radius: 50%;
 			border: 1px solid var(--surface-base);
-			background: var(--surface-red-7);
-			color: var(--ink-red-1);
-			font-size: 12px;
-			line-height: 1;
+			background: var(--surface-red-6);
+			// dot only — hide any count text the shared notifications view sets on it
+			font-size: 0;
+			color: transparent;
+			overflow: hidden;
 
 			&.hidden {
 				display: none;
