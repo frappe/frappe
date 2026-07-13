@@ -895,7 +895,7 @@ frappe.views.QueryReport = class QueryReport extends frappe.views.BaseList {
 	}
 
 	add_prepared_report_buttons(doc) {
-		if (doc) {
+		if (doc && frappe.model.can_read("Prepared Report")) {
 			this.page.add_inner_button(
 				__("Download Report"),
 				function () {
