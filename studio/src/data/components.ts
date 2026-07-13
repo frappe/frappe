@@ -1223,6 +1223,13 @@ function isFrameworkUIComponent(name: string) {
 	return FRAMEWORK_UI_COMPONENTS.includes(name)
 }
 
+// True when @framework/ui (apps/frappe/ui) is present in this build. Older frappe
+// versions don't ship it, so its components are hidden from the panel. Guard the
+// build-time constant with typeof so non-vite tooling (type extraction) doesn't throw.
+function isFrameworkUIAvailable() {
+	return typeof __FRAMEWORK_UI_AVAILABLE__ === "undefined" || __FRAMEWORK_UI_AVAILABLE__
+}
+
 function getProxyComponent(name: string) {
 	return proxyComponentMap.get(name)
 }
@@ -1238,6 +1245,7 @@ export default {
 	getProxyComponent,
 	isFrappeUIComponent,
 	isFrameworkUIComponent,
+	isFrameworkUIAvailable,
 	get,
 }
 

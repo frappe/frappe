@@ -201,8 +201,11 @@ const standardComponentGroups = computed(() => {
 	const groups = [
 		{ label: "Core", components: list.filter((c) => !inFrappe(c.name) && !inFramework(c.name)) },
 		{ label: "Frappe UI", components: list.filter((c) => inFrappe(c.name)) },
-		{ label: "Framework UI", components: list.filter((c) => inFramework(c.name)) },
 	]
+	// @framework/ui isn't shipped on older frappe — hide its components entirely.
+	if (components.isFrameworkUIAvailable()) {
+		groups.push({ label: "Framework UI", components: list.filter((c) => inFramework(c.name)) })
+	}
 	return groups.filter((group) => group.components.length)
 })
 

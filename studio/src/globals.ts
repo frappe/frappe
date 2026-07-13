@@ -123,7 +123,10 @@ export function registerGlobalComponents(app: App) {
 	app.component("Duration", Duration)
 	app.component("Spinner", Spinner)
 
-	// @framework/ui components
+	// @framework/ui components — only on frappe versions that ship apps/frappe/ui.
+	// __FRAMEWORK_UI_AVAILABLE__ is a build-time constant; when false, the bundler
+	// drops this whole block (and the @framework/ui imports never need to resolve).
+	if (__FRAMEWORK_UI_AVAILABLE__) {
 	app.component("FormLayout", defineAsyncComponent(() => import("@framework/ui/components/FormLayout/FormLayout.vue")))
 	app.component("Link", defineAsyncComponent(() => import("@framework/ui/components/Link/Link.vue")))
 	app.component("Grid", defineAsyncComponent(() => import("@framework/ui/components/Grid/Grid.vue")))
@@ -144,6 +147,7 @@ export function registerGlobalComponents(app: App) {
 	app.component("FileUploadDialog", defineAsyncComponent(() => import("@framework/ui/components/FileUpload/FileUploadDialog.vue")))
 	app.component("AttachmentsList", defineAsyncComponent(() => import("@framework/ui/components/FileUpload/AttachmentsList.vue")))
 	app.component("UploadTray", defineAsyncComponent(() => import("@framework/ui/components/FileUpload/UploadTray.vue")))
+	}
 
 	// studio components
 	app.component("Container", Container)

@@ -20,6 +20,10 @@ const __dirname = fileURLToPath(new URL(".", import.meta.url))
 // bench apps folder (scripts -> src -> frontend -> studio -> apps)
 const APPS_DIR = path.resolve(__dirname, "../../../../")
 
+// @framework/ui (apps/frappe/ui) is absent on older frappe. Skip its imports and
+// aliases so the exported-app build doesn't try to resolve a missing package.
+const frameworkUIAvailable = fs.existsSync(path.resolve(APPS_DIR, "frappe", "ui", "package.json"))
+
 // @framework/ui components are spread across the root barrel and per-widget
 // subpath exports, so their imports must be grouped by source module. Anything
 // not listed here comes from the root "@framework/ui" barrel.
@@ -99,7 +103,9 @@ function findComponentSources(appComponents, customComponents = {}) {
 		} else if (FRAPPE_COMPONENTS.includes(component)) {
 			frappeComponents.push(component)
 		} else if (FRAMEWORK_UI_COMPONENTS.includes(component)) {
-			frameworkUIComponents.push(component)
+			// Drop @framework/ui components when the package isn't on this bench —
+			// a stale app reference must not break the build with an unresolvable import.
+			if (frameworkUIAvailable) frameworkUIComponents.push(component)
 		} else if (STUDIO_COMPONENTS.includes(component)) {
 			studioComponents.push(component)
 		}
@@ -222,7 +228,10 @@ async function buildWithVite(appName, entryFilePath, outDir, basePath) {
 			sharedDependencyResolver(path.resolve(__dirname, "../../")),
 		],
 		resolve: {
-			alias: [...frameworkUIAlias(APPS_DIR), { find: "@", replacement: path.resolve(__dirname, "../") }],
+			alias: [
+				...(frameworkUIAvailable ? frameworkUIAlias(APPS_DIR) : []),
+				{ find: "@", replacement: path.resolve(__dirname, "../") },
+			],
 			// keep vue/pinia/etc as single instances so studio modules (composables/stores)
 			// share the app's runtime — Pinia breaks with duplicate copies
 			dedupe: ["vue", "vue-router", "pinia", "frappe-ui"],
