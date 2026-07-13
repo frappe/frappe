@@ -10,7 +10,7 @@ import frappe
 from frappe import _
 from frappe.model.document import Document
 
-from flow.system_generated import block_delete, block_rename, validate_immutable
+from flow.utils.system_generated import block_delete, block_rename, validate_immutable
 
 SLUG_PATTERN = re.compile(r"^[a-z][a-z0-9_]*$")
 IMPORT_PATH_PATTERN = re.compile(r"^[a-zA-Z_][a-zA-Z0-9_]*(\.[a-zA-Z_][a-zA-Z0-9_]*)+$")

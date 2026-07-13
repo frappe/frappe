@@ -10,7 +10,7 @@ import frappe
 from frappe import _
 from frappe.model.document import Document
 
-from flow.system_generated import block_delete, block_rename, validate_immutable
+from flow.utils.system_generated import block_delete, block_rename, validate_immutable
 
 if TYPE_CHECKING:
 	from flow.flow.doctype.flow_run.flow_run import FlowRun
