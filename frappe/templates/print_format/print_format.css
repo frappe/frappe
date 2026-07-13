@@ -37,7 +37,7 @@ body {
 	body {
 		background-color: white;
 		box-shadow: var(--shadow-md);
-		margin: 2rem auto;
+		margin: 0 auto;
 		min-height: 297mm;
 		height: min-content;
 		box-sizing: border-box;
