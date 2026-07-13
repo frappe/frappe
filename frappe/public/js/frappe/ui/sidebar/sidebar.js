@@ -326,7 +326,7 @@ frappe.ui.Sidebar = class Sidebar {
 	add_sidebar_cards() {
 		this.wrapper.find(".body-sidebar-cards").html("");
 		this.cards.forEach((card) => {
-			let card_obj = new frappe.ui.SidebarCard(card);
+			let card_obj = new frappe.ui.Card(card);
 			card.obj = card_obj;
 		});
 	}
