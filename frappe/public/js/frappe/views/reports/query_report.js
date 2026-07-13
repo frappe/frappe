@@ -759,8 +759,8 @@ frappe.views.QueryReport = class QueryReport extends frappe.views.BaseList {
 				this.hide_status();
 				clearInterval(this.interval);
 				clearInterval(this.stale_report_interval);
-				this.synced_report = data.synced_report;
-				this.synced_at = data.synced_at;
+				this.snapshot_report = data.snapshot_report;
+				this.snapshot_at = data.snapshot_at;
 				this.refreshed_at = frappe.datetime.now_datetime();
 				this.execution_time = data.execution_time || 0.1;
 
@@ -792,14 +792,14 @@ frappe.views.QueryReport = class QueryReport extends frappe.views.BaseList {
 					}
 				};
 
-				if (this.synced_report) {
+				if (this.snapshot_report) {
 					if (data.result.length > 0) {
-						let diff = frappe.datetime.comment_when(this.synced_at);
+						let diff = frappe.datetime.comment_when(this.snapshot_at);
 						let pretty_diff = `<span style="color:var(--red-600)">${diff}</span>`;
 						this.show_status(`
 						<div class="indicator orange pl-1">
 							<span>
-								${__("This is a synced report generated {0}.", [pretty_diff])}
+								${__("This is a snapshot report generated {0}.", [pretty_diff])}
 							</span>
 						</div>
 					`);
