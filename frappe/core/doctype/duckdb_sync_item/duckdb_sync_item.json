@@ -1,0 +1,49 @@
+{
+ "actions": [],
+ "allow_bulk_edit": 1,
+ "allow_rename": 1,
+ "creation": "2026-06-04 12:20:31.177866",
+ "doctype": "DocType",
+ "editable_grid": 1,
+ "engine": "InnoDB",
+ "field_order": [
+  "table",
+  "column_break_kodk",
+  "synced"
+ ],
+ "fields": [
+  {
+   "fieldname": "table",
+   "fieldtype": "Data",
+   "in_list_view": 1,
+   "label": "Table"
+  },
+  {
+   "fieldname": "column_break_kodk",
+   "fieldtype": "Column Break",
+   "hidden": 1
+  },
+  {
+   "default": "0",
+   "fieldname": "synced",
+   "fieldtype": "Check",
+   "in_list_view": 1,
+   "label": "Synced"
+  }
+ ],
+ "grid_page_length": 50,
+ "index_web_pages_for_search": 1,
+ "istable": 1,
+ "links": [],
+ "modified": "2026-06-06 13:10:28.240122",
+ "modified_by": "Administrator",
+ "module": "Core",
+ "name": "DuckDB Sync Item",
+ "owner": "Administrator",
+ "permissions": [],
+ "row_format": "Dynamic",
+ "rows_threshold_for_grid_search": 20,
+ "sort_field": "creation",
+ "sort_order": "DESC",
+ "states": []
+}
