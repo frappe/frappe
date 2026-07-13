@@ -35,12 +35,15 @@ frappe.ui.form.ControlAttach = class ControlAttach extends frappe.ui.form.Contro
 		let me = this;
 		frappe.confirm(__("Are you sure you want to delete the attachment?"), function () {
 			if (me.frm) {
-				me.parse_validate_and_set_in_model(null);
-				me.refresh();
-				me.frm.attachments.remove_attachment_by_filename(me.value, async () => {
-					await me.parse_validate_and_set_in_model(null);
+				let file_url = me.value;
+				me.parse_validate_and_set_in_model(null).then(() => {
 					me.refresh();
-					me.frm.doc.docstatus == 1 ? me.frm.save("Update") : me.frm.save();
+					let save = me.frm.doc.docstatus == 1 ? me.frm.save("Update") : me.frm.save();
+					save.then(() => {
+						if (!me.frm.is_dirty()) {
+							me.frm.attachments.remove_attachment_by_filename(file_url);
+						}
+					});
 				});
 			} else {
 				me.dataurl = null;
