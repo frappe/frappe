@@ -8,11 +8,21 @@ from frappe import _
 from frappe.automation_engine.actions.base import AutomationAction, AutomationParamError
 
 
-def _render(value, doc):
+def _render(value, doc, context=None):
 	"""Render a Jinja-templated string against the document; pass through non-templates."""
 	if isinstance(value, str) and "{{" in value:
-		return frappe.render_template(value, {"doc": doc})
+		return frappe.render_template(value, _render_context(doc, context))
 	return value
+
+
+def _render_context(doc, context=None):
+	context = context or {}
+	return {"doc": doc, "payload": context.get("payload") or {}, "context": context}
+
+
+def _require_doc(doc, action_type):
+	if doc is None:
+		raise AutomationParamError(_("{0} requires a target document").format(action_type))
 
 
 class SetFieldValue(AutomationAction):
@@ -34,7 +44,8 @@ class SetFieldValue(AutomationAction):
 			)
 
 	def execute(self, doc, params, context):
-		field, value = params["field"], _render(params.get("value"), doc)
+		_require_doc(doc, self.label)
+		field, value = params["field"], _render(params.get("value"), doc, context)
 		doc.set(field, value)
 		doc.save(ignore_permissions=True)
 		return _("Set {0} = {1}").format(field, value)
@@ -52,11 +63,14 @@ class CreateDocument(AutomationAction):
 	def validate(self, params, doctype):
 		if not params.get("doctype"):
 			raise AutomationParamError(_("Target Document Type is required"), fieldname="doctype")
+		if not frappe.db.exists("DocType", params.get("doctype")):
+			raise AutomationParamError(_("Unknown DocType"), fieldname="doctype")
 
 	def execute(self, doc, params, context):
 		target = frappe.new_doc(params["doctype"])
-		for field, value in (params.get("values") or {}).items():
-			target.set(field, _render(value, doc))
+		values = frappe.parse_json(params.get("values")) if isinstance(params.get("values"), str) else params.get("values")
+		for field, value in (values or {}).items():
+			target.set(field, _render(value, doc, context))
 		target.insert(ignore_permissions=True)
 		return _("Created {0} {1}").format(params["doctype"], target.name)
 
@@ -67,7 +81,13 @@ class SendNotification(AutomationAction):
 	description = "Send an email or system notification, optionally from an Email Template."
 	params_schema = [
 		{"fieldname": "channel", "label": "Channel", "fieldtype": "Select", "options": "Email\nSystem", "reqd": 1},
-		{"fieldname": "recipients", "label": "Recipients", "fieldtype": "JSON", "reqd": 1},
+		{
+			"fieldname": "recipients",
+			"label": "Recipients",
+			"fieldtype": "JSON",
+			"reqd": 1,
+			"options_source": "users",
+		},
 		{"fieldname": "email_template", "label": "Email Template", "fieldtype": "Link", "options": "Email Template"},
 		{"fieldname": "subject", "label": "Subject", "fieldtype": "Data"},
 		{"fieldname": "message", "label": "Message", "fieldtype": "Text Editor"},
@@ -76,9 +96,11 @@ class SendNotification(AutomationAction):
 	def validate(self, params, doctype):
 		if not params.get("recipients"):
 			raise AutomationParamError(_("At least one recipient is required"), fieldname="recipients")
+		if params.get("email_template") and not frappe.db.exists("Email Template", params["email_template"]):
+			raise AutomationParamError(_("Unknown Email Template"), fieldname="email_template")
 
 	def execute(self, doc, params, context):
-		subject, message = self._content(params, doc)
+		subject, message = self._content(params, doc, context)
 		recipients = params.get("recipients") or []
 		if params.get("channel") == "System":
 			return self._notify_system(doc, recipients, subject, message)
@@ -86,21 +108,24 @@ class SendNotification(AutomationAction):
 			recipients=recipients,
 			subject=subject,
 			message=message,
-			reference_doctype=doc.doctype,
-			reference_name=doc.name,
+			reference_doctype=doc.doctype if doc else None,
+			reference_name=doc.name if doc else None,
 		)
 		return _("Emailed {0}").format(", ".join(recipients))
 
-	def _content(self, params, doc):
+	def _content(self, params, doc, context):
 		if params.get("email_template"):
 			template = frappe.get_doc("Email Template", params["email_template"])
 			return (
-				frappe.render_template(template.subject, {"doc": doc}),
-				frappe.render_template(template.response or template.response_html or "", {"doc": doc}),
+				frappe.render_template(template.subject, _render_context(doc, context)),
+				frappe.render_template(template.response or template.response_html or "", _render_context(doc, context)),
 			)
-		return _render(params.get("subject") or "", doc), _render(params.get("message") or "", doc)
+		return _render(params.get("subject") or "", doc, context), _render(
+			params.get("message") or "", doc, context
+		)
 
 	def _notify_system(self, doc, recipients, subject, message):
+		_require_doc(doc, self.label)
 		for user in recipients:
 			frappe.get_doc(
 				{
@@ -121,7 +146,13 @@ class AssignToUser(AutomationAction):
 	label = "Assign to User"
 	description = "Assign the triggering document to one or more users (wraps ToDo assignment)."
 	params_schema = [
-		{"fieldname": "assign_to", "label": "Assign To", "fieldtype": "JSON", "reqd": 1},
+		{
+			"fieldname": "assign_to",
+			"label": "Assign To",
+			"fieldtype": "JSON",
+			"reqd": 1,
+			"options_source": "users",
+		},
 		{"fieldname": "description", "label": "Description", "fieldtype": "Data"},
 	]
 
@@ -132,13 +163,14 @@ class AssignToUser(AutomationAction):
 	def execute(self, doc, params, context):
 		from frappe.desk.form.assign_to import add
 
+		_require_doc(doc, self.label)
 		users = params.get("assign_to") or []
 		add(
 			{
 				"doctype": doc.doctype,
 				"name": doc.name,
 				"assign_to": users,
-				"description": _render(params.get("description"), doc) or doc.doctype,
+				"description": _render(params.get("description"), doc, context) or doc.doctype,
 			}
 		)
 		return _("Assigned to {0}").format(", ".join(users))
