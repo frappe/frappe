@@ -47,6 +47,10 @@ export const getPausedRun = (session) =>
 // so a reloaded session isn't blocked from starting the next turn.
 export const recoverSession = (session) => frappe.xcall("flow.api.recover_session", { session });
 
+// Stop a run at the user's request: finalize an aborted stream's run or terminate a
+// paused run so the agent won't continue.
+export const stopRun = (run_name) => frappe.xcall("flow.api.stop_run", { run_name });
+
 // Map of the agent's tool slugs → requires_confirmation, so the panel can tell an
 // approval tool call from an inline one.
 export const getAgentTools = (agent) => frappe.xcall("flow.api.get_agent_tools", { agent });

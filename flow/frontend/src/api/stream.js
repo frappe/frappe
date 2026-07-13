@@ -2,7 +2,7 @@ import { serverMessage } from "./client";
 
 // Consumes the run SSE stream: POSTs the request, then parses `data:` blocks
 // and hands each decoded event to `onEvent`.
-async function postStream(method, body, onEvent) {
+async function postStream(method, body, onEvent, signal) {
 	const resp = await fetch(`/api/method/${method}`, {
 		method: "POST",
 		headers: {
@@ -10,6 +10,7 @@ async function postStream(method, body, onEvent) {
 			"X-Frappe-CSRF-Token": frappe.csrf_token,
 		},
 		body: JSON.stringify({ ...body, stream: true }),
+		signal,
 	});
 	if (!resp.ok) {
 		const data = await resp.json().catch(() => ({}));
@@ -37,5 +38,7 @@ async function postStream(method, body, onEvent) {
 	}
 }
 
-export const startRun = (body, onEvent) => postStream("flow.api.start_run", body, onEvent);
-export const resumeRun = (body, onEvent) => postStream("flow.api.resume_run", body, onEvent);
+export const startRun = (body, onEvent, signal) =>
+	postStream("flow.api.start_run", body, onEvent, signal);
+export const resumeRun = (body, onEvent, signal) =>
+	postStream("flow.api.resume_run", body, onEvent, signal);

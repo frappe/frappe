@@ -238,6 +238,9 @@ async function restorePausedRun(session) {
 }
 
 // ── sending / streaming ────────────────────────────────────────────────────────
+// Aborts the in-flight stream when the user stops the response.
+let abortController = null;
+
 async function send(text) {
 	text = text.trim();
 	if (!text || sending.value || paused.value || uploading.value) return;
@@ -250,6 +253,7 @@ async function send(text) {
 	messages.value.push({ id: nextId(), role: "user", content: text, attachments: chips });
 	const assistant = pushAssistant();
 	sending.value = true;
+	abortController = new AbortController();
 	requestScroll(true);
 
 	try {
@@ -261,11 +265,14 @@ async function send(text) {
 				...(selectedAgent.value && !sessionName.value && { agent: selectedAgent.value }),
 				...(selectedModel.value && { model: selectedModel.value }),
 			},
-			(event) => handleEvent(event, assistant)
+			(event) => handleEvent(event, assistant),
+			abortController.signal
 		);
 	} catch (e) {
-		failMessage(assistant, e);
+		if (e.name === "AbortError") assistant.pending = false;
+		else failMessage(assistant, e);
 	} finally {
+		abortController = null;
 		sending.value = false;
 		requestScroll();
 		focusTick.value++;
@@ -281,21 +288,38 @@ async function resume(answers, pausedMsg) {
 	pausedMsg.questions = [];
 	pausedMsg.pending = true;
 	sending.value = true;
+	abortController = new AbortController();
 	requestScroll(true);
 
 	try {
-		await resumeRun({ run_name: rn, answers }, (event) => handleEvent(event, pausedMsg));
+		await resumeRun(
+			{ run_name: rn, answers },
+			(event) => handleEvent(event, pausedMsg),
+			abortController.signal
+		);
 	} catch (e) {
-		failMessage(pausedMsg, e);
+		if (e.name === "AbortError") pausedMsg.pending = false;
+		else failMessage(pausedMsg, e);
 	} finally {
+		abortController = null;
 		sending.value = false;
 		requestScroll();
 		focusTick.value++;
 	}
 }
 
+// Stop the response: abort the live stream and finalize its run so the session
+// isn't left blocked. The backend agent loop unwinds on the aborted connection.
+function stopRun() {
+	if (!sending.value) return;
+	abortController?.abort();
+	const rn = runName.value;
+	if (rn) api.stopRun(rn).catch(() => {});
+}
+
 // Records one answer and stamps the tool's approval state; once every question
 // on the paused message is answered, resumes the run with all answers at once.
+// A Deny is sent through like any answer — the agent records it and stops the run.
 function answerQuestion(msg, question, answer) {
 	const a = (answer || "").trim();
 	if (!a || !msg) return;
@@ -448,6 +472,7 @@ export function useStore() {
 		newChat,
 		switchSession,
 		send,
+		stopRun,
 		answerQuestion,
 		attachFiles,
 		removeAttachment,
