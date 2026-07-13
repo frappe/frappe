@@ -37,7 +37,7 @@ export default function frameworkUIAlias(appsDir) {
 	return [
 		...named,
 		// catch-all `@framework/ui/*` -> `src/*` (e.g. self-imports like
-		// `@framework/ui/components/InviteUser`)
+		// `@framework/ui/components/Link`)
 		{ find: /^@framework\/ui\/(.*)$/, replacement: path.join(src, "$1") },
 		// bare `@framework/ui` -> the root barrel
 		{ find: /^@framework\/ui$/, replacement: path.join(src, "index.ts") },

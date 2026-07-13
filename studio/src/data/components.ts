@@ -60,8 +60,6 @@ import LucideBellDot from "~icons/lucide/bell-dot"
 import LucideHistory from "~icons/lucide/history"
 import LucideMail from "~icons/lucide/mail"
 import LucideMessageCircle from "~icons/lucide/message-circle"
-import LucideScrollText from "~icons/lucide/scroll-text"
-import LucideGitCommitHorizontal from "~icons/lucide/git-commit-horizontal"
 import LucideArrowUpDown from "~icons/lucide/arrow-up-down"
 import LucideFilter from "~icons/lucide/filter"
 import LucideColumns3 from "~icons/lucide/columns-3"
@@ -1151,34 +1149,6 @@ export const COMPONENTS: FrappeUIComponents = {
 				timestamp: "2024-07-08 10:30:00",
 				author: { fullname: "Jane Doe" },
 				data: { name: "1", content: "Looks good to me!" },
-			},
-		},
-	},
-	LogItem: {
-		name: "LogItem",
-		title: "Log Item",
-		icon: LucideScrollText,
-		initialState: {
-			activity: {
-				type: "log",
-				key: "log:1",
-				timestamp: "2024-07-08 09:00:00",
-				author: { fullname: "John Doe" },
-				data: { name: "1", subtype: "created", text: "created this document" },
-			},
-		},
-	},
-	VersionItem: {
-		name: "VersionItem",
-		title: "Version Item",
-		icon: LucideGitCommitHorizontal,
-		initialState: {
-			activity: {
-				type: "version",
-				key: "version:1",
-				timestamp: "2024-07-08 09:15:00",
-				author: { fullname: "John Doe" },
-				data: { type: "diff", name: "1", prefix: "changed Status", from: "Open", to: "Closed" },
 			},
 		},
 	},

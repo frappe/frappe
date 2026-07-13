@@ -60,8 +60,6 @@ export const FRAMEWORK_UI_COMPONENTS = [
 	"ActivityTimeline",
 	"EmailItem",
 	"CommentItem",
-	"LogItem",
-	"VersionItem",
 	"Filter",
 	"SortBy",
 	"QuickFilter",
