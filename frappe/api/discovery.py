@@ -15,8 +15,8 @@ CACHE_TTL = 60 * 60
 DISCOVERY_CACHE_PREFIX = "api:v2:discovery"
 PYTHON_METHOD_CACHE_KEY = f"{DISCOVERY_CACHE_PREFIX}:global:methods:python"
 PYTHON_SEARCH_CACHE_KEY = f"{DISCOVERY_CACHE_PREFIX}:global:methods:python_search"
-DOCTYPE_METHOD_CACHE_KEY = f"{DISCOVERY_CACHE_PREFIX}:global:methods:doctype_all"
-DOCTYPE_SEARCH_CACHE_KEY = f"{DISCOVERY_CACHE_PREFIX}:global:methods:doctype_all_search"
+DOCTYPE_METHOD_CACHE_KEY = f"{DISCOVERY_CACHE_PREFIX}:global:methods:doctype_nonstandard"
+DOCTYPE_SEARCH_CACHE_KEY = f"{DISCOVERY_CACHE_PREFIX}:global:methods:doctype_nonstandard_search"
 DISCOVERY_BUILD_JOB_ID = "api-v2-discovery-build"
 
 
@@ -369,7 +369,9 @@ def _discover_doctype_methods() -> list[tuple[str, str, Callable, type]]:
 		except Exception:
 			continue
 		methods.extend(
-			(doctype, method_name, fn, defining_class) for method_name, fn, defining_class in doctype_methods
+			(doctype, method_name, fn, defining_class)
+			for method_name, fn, defining_class in doctype_methods
+			if not _is_standard_doctype_method(defining_class)
 		)
 
 	return methods
@@ -407,6 +409,10 @@ def _unwrap_method(method: Any) -> Any:
 
 def _defining_class(controller: type, method: str) -> type | None:
 	return next((class_ for class_ in inspect.getmro(controller) if method in class_.__dict__), None)
+
+
+def _is_standard_doctype_method(defining_class: type) -> bool:
+	return _class_path(defining_class) == "frappe.model.document.Document"
 
 
 def _doctype_method_applies(meta: Any, method: str) -> bool:

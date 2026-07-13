@@ -677,7 +677,7 @@ class TestDiscoveryAPIV2(FrappeAPITestCase):
 			self.discovery_path("search"),
 			{"sid": self.sid, "q": "User add_comment"},
 		)
-		self.assertTrue(
+		self.assertFalse(
 			any(
 				item.get("doctype") == "User" and item.get("method") == "add_comment"
 				for item in inherited_response.json["data"]["results"]
@@ -756,6 +756,12 @@ class TestDiscoveryAPIV2(FrappeAPITestCase):
 			if item.get("doctype") == "User" and item.get("method") == "populate_role_profile_roles"
 		)
 		self.assertEqual(doctype_method["kind"], "doctype")
+		self.assertFalse(
+			any(
+				item.get("doctype") == "User" and item.get("method") == "add_comment"
+				for item in index_response.json["data"]["methods"]
+			)
+		)
 
 		method_response = self.get(
 			self.discovery_path("method", "frappe.tests.test_api.test"), {"sid": self.sid}
