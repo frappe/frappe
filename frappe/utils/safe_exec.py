@@ -230,6 +230,11 @@ class SafeDoc(frappe._dict):
 
 		return format_value(val, df=df, doc=doc, currency=currency, format=format)
 
+	def get_label_from_fieldname(self, fieldname):
+		meta = frappe.get_meta(self.get("doctype")) if self.get("doctype") else None
+		df = meta.get_field(fieldname) if meta else None
+		return _(df.label) if df and df.label else None
+
 
 def get_doc_as_dict(*args, **kwargs):
 	return SafeDoc(frappe.get_doc(*args, **kwargs).as_dict())
