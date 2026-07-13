@@ -127,11 +127,20 @@ Object.assign(frappe.model, {
 				}
 
 				// child table, override each row and append new rows if required
+				const incoming_names = new Set(doc[fieldname].map((d) => d.name));
 				for (let i = 0; i < doc[fieldname].length; i++) {
 					let d = doc[fieldname][i];
-					let local_d = local_doc[fieldname][i];
+					let local_d_in_parent = local_doc[fieldname][i];
+					const local_d = locals[d.doctype] ? locals[d.doctype][d.name] : null;
 					if (local_d) {
-						// deleted and added again
+						Object.assign(local_d, d);
+						clear_keys(d, local_d);
+						if (local_d_in_parent !== local_d) {
+							local_doc[fieldname][i] = local_d;
+						}
+						continue;
+					}
+					if (local_d_in_parent && !incoming_names.has(local_d_in_parent.name)) {
 						if (!locals[d.doctype]) locals[d.doctype] = {};
 
 						if (!d.name) {
@@ -141,13 +150,13 @@ Object.assign(frappe.model, {
 
 						// if incoming row is not registered, register it
 						if (!locals[d.doctype][d.name]) {
-							const old_name = local_d.name;
+							const old_name = local_d_in_parent.name;
 
 							// detach old key
 							delete locals[d.doctype][old_name];
 
 							// re-attach with new name
-							locals[d.doctype][d.name] = local_d;
+							locals[d.doctype][d.name] = local_d_in_parent;
 
 							// migrate per-row docfield overrides to new name
 							const dc = frappe.meta.docfield_copy[d.doctype];
@@ -158,10 +167,10 @@ Object.assign(frappe.model, {
 						}
 
 						// row exists, just copy the values
-						Object.assign(local_d, d);
-						clear_keys(d, local_d);
+						Object.assign(local_d_in_parent, d);
+						clear_keys(d, local_d_in_parent);
 					} else {
-						local_doc[fieldname].push(d);
+						local_doc[fieldname][i] = d;
 						if (!d.parent) d.parent = doc.name;
 						frappe.model.add_to_locals(d);
 					}
@@ -172,6 +181,7 @@ Object.assign(frappe.model, {
 					for (let i = doc[fieldname].length; i < local_doc[fieldname].length; i++) {
 						// clear from local
 						let d = local_doc[fieldname][i];
+						if (incoming_names.has(d.name)) continue;
 						if (locals[d.doctype] && locals[d.doctype][d.name]) {
 							delete locals[d.doctype][d.name];
 						}
