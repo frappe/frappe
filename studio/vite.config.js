@@ -24,7 +24,12 @@ const isStudioAppTsconfig = (file) =>
 export default defineConfig(async () => {
 	// Only pull in @framework/ui's vite plugin + source aliases when it exists.
 	const frameworkUIPlugins = frameworkUIAvailable ? [(await import("@framework/ui/vite")).default()] : []
-	const frameworkUIAliases = frameworkUIAvailable ? frameworkUIAlias(appsDir) : []
+	// When absent, alias @framework/ui/* to a stub so the dev server can resolve the
+	// (dead-branch) imports in globals.ts. Production builds DCE them; the dev server
+	// doesn't, so without this it errors "Failed to resolve import @framework/ui/...".
+	const frameworkUIAliases = frameworkUIAvailable
+		? frameworkUIAlias(appsDir)
+		: [{ find: /^@framework\/ui(\/.*)?$/, replacement: path.resolve(__dirname, "src/stubs/frameworkUI.ts") }]
 
 	return {
 		define: {

@@ -124,8 +124,10 @@ export function registerGlobalComponents(app: App) {
 	app.component("Spinner", Spinner)
 
 	// @framework/ui components — only on frappe versions that ship apps/frappe/ui.
-	// __FRAMEWORK_UI_AVAILABLE__ is a build-time constant; when false, the bundler
-	// drops this whole block (and the @framework/ui imports never need to resolve).
+	// __FRAMEWORK_UI_AVAILABLE__ is a build-time constant; when false, production
+	// builds DCE this whole block away. The dev server doesn't tree-shake, so it still
+	// resolves these specifiers — vite.config aliases @framework/ui/* to a stub when the
+	// package is absent so resolution succeeds (the branch is dead, never executed).
 	if (__FRAMEWORK_UI_AVAILABLE__) {
 		app.component(
 			"FormLayout",
