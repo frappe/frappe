@@ -219,7 +219,7 @@ class TestResumeRun(IntegrationTestCase):
 		run_name = self._pause(agent=self.agent.name)
 
 		with patch.object(Model, "chat", return_value=_final("ok")):
-			payload = resume_run(run_name, {"c1": "Deny"})
+			payload = resume_run(run_name, {"c1": "use a different approach"})
 
 		self.assertEqual(payload["status"], "Completed")
 		self.assertEqual(payload["output"], "ok")
@@ -228,15 +228,31 @@ class TestResumeRun(IntegrationTestCase):
 		run_name = self._pause(agent=None)
 
 		with patch.object(Model, "chat", return_value=_final("ok")):
+			payload = resume_run(run_name, {"c1": "use a different approach"})
+
+		self.assertEqual(payload["status"], "Completed")
+
+	def test_resume_deny_stops_run_without_calling_model(self):
+		run_name = self._pause(agent=self.agent.name)
+
+		called: list[bool] = []
+
+		def chat(self, messages, tools=None, *, stream=False):
+			called.append(True)
+			return _final("should not happen")
+
+		with patch.object(Model, "chat", new=chat):
 			payload = resume_run(run_name, {"c1": "Deny"})
 
 		self.assertEqual(payload["status"], "Completed")
+		self.assertEqual(called, [])  # model never called after Deny
+		self.assertEqual(frappe.get_doc("Flow Run", run_name).status, "Completed")
 
 	def test_resume_accepts_json_string_answers(self):
 		run_name = self._pause(agent=self.agent.name)
 
 		with patch.object(Model, "chat", return_value=_final("ok")):
-			payload = resume_run(run_name, json.dumps({"c1": "Deny"}))
+			payload = resume_run(run_name, json.dumps({"c1": "use a different approach"}))
 
 		self.assertEqual(payload["status"], "Completed")
 
@@ -244,7 +260,7 @@ class TestResumeRun(IntegrationTestCase):
 		run_name = self._pause(agent=self.agent.name)
 
 		with patch.object(Model, "chat", return_value=_confirm_call(call_id="c2")):
-			payload = resume_run(run_name, {"c1": "Deny"})
+			payload = resume_run(run_name, {"c1": "use a different approach"})
 
 		self.assertEqual(payload["status"], "Paused")
 		self.assertEqual(payload["questions"][0]["key"], "c2")
@@ -273,7 +289,7 @@ class TestResumeRun(IntegrationTestCase):
 		run_name = payload["name"]
 
 		with patch.object(Model, "chat", new=_stream_chat(["ok"], _final("ok"))):
-			response = resume_run(run_name, {"c1": "Deny"}, stream=True)
+			response = resume_run(run_name, {"c1": "use a different approach"}, stream=True)
 			self.assertIsInstance(response, Response)
 			events = _sse_events(response)
 
@@ -290,7 +306,7 @@ class TestResumeRun(IntegrationTestCase):
 
 		with patch.object(Model, "chat", side_effect=RuntimeError("boom")):
 			with self.assertRaises(RuntimeError):
-				resume_run(run_name, {"c1": "Deny"})
+				resume_run(run_name, {"c1": "use a different approach"})
 
 		failed = frappe.get_doc("Flow Run", run_name)
 		self.assertEqual(failed.status, "Failed")
@@ -504,7 +520,7 @@ class TestStartRunAttachments(IntegrationTestCase):
 
 		captured, chat = self._capture()
 		with patch.object(Model, "chat", side_effect=chat):
-			resume_run(paused["name"], {"c1": "Deny"})
+			resume_run(paused["name"], {"c1": "use a different approach"})
 
 		user_msgs = [m for m in captured[0] if m["role"] == "user"]
 		self.assertIn("the secret code is 1234", user_msgs[0]["content"])
