@@ -53,6 +53,11 @@ class TestApi(IntegrationTestCase):
 		self.assertFalse(result["valid"])
 		self.assertEqual(result["errors"][0]["fieldname"], "field")
 
+	def test_validate_action_params_generic_error_has_null_fieldname(self):
+		result = api.validate_action_params("SetFieldValue", "No Such DocType", json.dumps({"field": "x"}))
+		self.assertFalse(result["valid"])
+		self.assertIsNone(result["errors"][0]["fieldname"])
+
 	def test_get_param_options_resolves_doc_fields(self):
 		options = api.get_param_options("SetFieldValue", "field", "ToDo")
 		self.assertIn("priority", [o["fieldname"] for o in options])
@@ -60,6 +65,20 @@ class TestApi(IntegrationTestCase):
 	def test_get_param_options_without_resolver_returns_empty(self):
 		# "value" declares no options_source, so no server function is callable for it.
 		self.assertEqual(api.get_param_options("SetFieldValue", "value", "ToDo"), [])
+
+	def test_get_param_options_rejects_client_method_paths(self):
+		self.assertRaises(
+			frappe.ValidationError,
+			api.get_param_options,
+			"SetFieldValue",
+			"field",
+			"ToDo",
+			json.dumps({"resolver": "frappe.utils.now"}),
+		)
+
+	def test_get_param_options_user_search(self):
+		options = api.get_param_options("AssignToUser", "assign_to", "ToDo", search_text="Admin")
+		self.assertIn("Administrator", [option.name for option in options])
 
 	def test_get_param_options_unknown_field_throws(self):
 		self.assertRaises(
@@ -77,6 +96,8 @@ class TestApi(IntegrationTestCase):
 				{"automation": auto, "ref_name": todo.name, "status": "Pending"},
 			)
 		)
+		payload = frappe.db.get_value("Automation Trigger Queue", {"automation": auto}, "event_payload")
+		self.assertTrue(json.loads(payload)["manual"])
 
 	def test_get_runs_returns_history(self):
 		todo = frappe.get_doc({"doctype": "ToDo", "description": "history"}).insert()
