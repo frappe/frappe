@@ -405,6 +405,8 @@ frappe.ui.form.Form = class FrappeForm {
 	refresh(docname) {
 		var switched = docname ? true : false;
 
+		this.route_refresh_pending = false;
+
 		removeEventListener("beforeunload", this.beforeUnloadListener, { capture: true });
 
 		if (docname) {
@@ -958,7 +960,9 @@ frappe.ui.form.Form = class FrappeForm {
 				if (me.comment_box) {
 					me.comment_box.submit();
 				}
-				me.refresh();
+				if (!me.route_refresh_pending) {
+					me.refresh();
+				}
 			} else {
 				if (on_error) {
 					on_error();
@@ -1479,6 +1483,7 @@ frappe.ui.form.Form = class FrappeForm {
 
 		// Skip routing only when the document is created from a Form view's Link field
 		if (!frappe._from_link?.field_obj?.frm) {
+			this.route_refresh_pending = true;
 			frappe.set_route("Form", this.doctype, name);
 		}
 	}
