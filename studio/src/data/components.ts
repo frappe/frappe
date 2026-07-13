@@ -62,7 +62,6 @@ import LucideMail from "~icons/lucide/mail"
 import LucideMessageCircle from "~icons/lucide/message-circle"
 import LucideScrollText from "~icons/lucide/scroll-text"
 import LucideGitCommitHorizontal from "~icons/lucide/git-commit-horizontal"
-import LucideUserPlus from "~icons/lucide/user-plus"
 import LucideArrowUpDown from "~icons/lucide/arrow-up-down"
 import LucideFilter from "~icons/lucide/filter"
 import LucideColumns3 from "~icons/lucide/columns-3"
@@ -429,14 +428,6 @@ export const COMPONENTS: FrappeUIComponents = {
 			fileTypes: "['image/*']",
 		},
 	},
-	Filter: {
-		name: "Filter",
-		title: "Filter",
-		icon: LucideListFilter,
-		initialState: {
-			doctype: "User",
-		},
-	},
 	FormControl: {
 		name: "FormControl",
 		title: "Form Control",
@@ -509,17 +500,6 @@ export const COMPONENTS: FrappeUIComponents = {
 				},
 			],
 			rowKey: "id",
-		},
-	},
-	Link: {
-		name: "Link",
-		title: "Link",
-		icon: LucideLink,
-		initialState: {
-			doctype: "User",
-			filters: {
-				enabled: 1,
-			},
 		},
 	},
 	MultiSelect: {
@@ -975,6 +955,25 @@ export const COMPONENTS: FrappeUIComponents = {
 		},
 	},
 	// @framework/ui components
+	Link: {
+		name: "Link",
+		title: "Link",
+		icon: LucideLink,
+		initialState: {
+			doctype: "User",
+			filters: {
+				enabled: 1,
+			},
+		},
+	},
+	Filter: {
+		name: "Filter",
+		title: "Filter",
+		icon: LucideListFilter,
+		initialState: {
+			doctype: "User",
+		},
+	},
 	FormLayout: {
 		name: "FormLayout",
 		title: "Form Layout",
@@ -1033,6 +1032,38 @@ export const COMPONENTS: FrappeUIComponents = {
 			doctype: "User",
 			label: "Users",
 			placeholder: "Select users",
+		},
+	},
+		SortBy: {
+		name: "SortBy",
+		title: "Sort By",
+		icon: LucideArrowUpDown,
+		initialState: {
+			doctype: "User",
+		},
+	},
+	QuickFilter: {
+		name: "QuickFilter",
+		title: "Quick Filter",
+		icon: LucideFilter,
+		initialState: {
+			doctype: "User",
+		},
+	},
+	ColumnSettings: {
+		name: "ColumnSettings",
+		title: "Column Settings",
+		icon: LucideColumns3,
+		initialState: {
+			doctype: "User",
+		},
+	},
+	ListViewShell: {
+		name: "ListViewShell",
+		title: "List View Shell",
+		icon: LucideRows3,
+		initialState: {
+			doctype: "User",
 		},
 	},
 	NotificationPanel: {
@@ -1149,38 +1180,6 @@ export const COMPONENTS: FrappeUIComponents = {
 				author: { fullname: "John Doe" },
 				data: { type: "diff", name: "1", prefix: "changed Status", from: "Open", to: "Closed" },
 			},
-		},
-	},
-	SortBy: {
-		name: "SortBy",
-		title: "Sort By",
-		icon: LucideArrowUpDown,
-		initialState: {
-			doctype: "User",
-		},
-	},
-	QuickFilter: {
-		name: "QuickFilter",
-		title: "Quick Filter",
-		icon: LucideFilter,
-		initialState: {
-			doctype: "User",
-		},
-	},
-	ColumnSettings: {
-		name: "ColumnSettings",
-		title: "Column Settings",
-		icon: LucideColumns3,
-		initialState: {
-			doctype: "User",
-		},
-	},
-	ListViewShell: {
-		name: "ListViewShell",
-		title: "List View Shell",
-		icon: LucideRows3,
-		initialState: {
-			doctype: "User",
 		},
 	},
 	FileUploadDialog: {
