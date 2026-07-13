@@ -8,17 +8,23 @@
 
 @page {
 	size: {{ print_settings.pdf_page_size or 'A4' }} portrait;
+{%- if for_chrome %}
 	margin-top: {{ print_format.margin_top | int }}mm;
 	margin-bottom: {{ print_format.margin_bottom | int }}mm;
 	margin-left: {{ print_format.margin_left | int }}mm;
 	margin-right: {{ print_format.margin_right | int }}mm;
-	{% if not for_chrome %}
-	/* page number via CSS margin boxes (WeasyPrint / browser print only) */
-	{% set page_number_position = print_format.page_number.lower().replace(' ', '_') %}
-	{% if page_number_position in ['top_left', 'top_center', 'top_right', 'bottom_left', 'bottom_center', 'bottom_right'] %}
+{%- else %}
+	{#- Browser print / WeasyPrint: page margins stay 0 and the format's margins
+	   live on the body as padding, so spacing survives the browser "Margins: None"
+	   setting instead of collapsing to the paper edge. -#}
+	margin: 0;
+	{%- set page_number_position = print_format.page_number.lower().replace(' ', '_') %}
+	{%- if page_number_position in ['top_left', 'top_center', 'top_right', 'bottom_left', 'bottom_center', 'bottom_right'] %}
+	{%- set number_side = 'top' if 'top' in page_number_position else 'bottom' %}
+	margin-{{ number_side }}: {{ (print_format.margin_top if number_side == 'top' else print_format.margin_bottom) | int }}mm;
 	{{ render_margin_text(page_number_position, _('{0} of {1}').format('counter(page) "', '" counter(pages)')) }}
-	{% endif %}
-	{% endif %}
+	{%- endif %}
+{%- endif %}
 }
 
 html, body {
@@ -26,8 +32,16 @@ html, body {
 }
 
 body {
+{%- if for_chrome %}
 	min-width: {{ body_width | int }}mm !important;
 	max-width: {{ body_width | int }}mm !important;
+{%- else %}
+	box-sizing: border-box;
+	min-width: {{ page_width | int }}mm !important;
+	max-width: {{ page_width | int }}mm !important;
+	margin: 0 auto;
+	padding: {{ print_format.margin_top | int }}mm {{ print_format.margin_right | int }}mm {{ print_format.margin_bottom | int }}mm {{ print_format.margin_left | int }}mm;
+{%- endif %}
 }
 
 @media screen {
@@ -40,15 +54,6 @@ body {
 		margin: 2rem auto;
 		min-height: 297mm;
 		height: min-content;
-		/* Show the full page (A4) on screen so the preview sheet isn't the narrow
-		   content width; the margins render as padding inside the sheet. */
-		box-sizing: border-box;
-		min-width: {{ page_width | int }}mm !important;
-		max-width: {{ page_width | int }}mm !important;
-		padding-top: {{ print_format.margin_top | int }}mm;
-		padding-right: {{ print_format.margin_right | int }}mm;
-		padding-left: {{ print_format.margin_left | int }}mm;
-		padding-bottom: {{ print_format.margin_bottom | int }}mm;
 	}
 }
 
