@@ -24,6 +24,7 @@ const {
 	setAgent,
 	setModel,
 	send,
+	stopRun,
 	attachFiles,
 	removeAttachment,
 } = useStore();
@@ -205,7 +206,24 @@ watch(focusTick, () => nextTick(() => el.value?.focus()));
 
 			<span class="flex-1"></span>
 
-			<Button variant="solid" :disabled="!canSend" :title="__('Send')" @click="submit">
+			<Button
+				v-if="sending"
+				theme="red"
+				class="!bg-surface-red-3 hover:!bg-surface-red-4"
+				:title="__('Stop')"
+				@click="stopRun"
+			>
+				<template #icon
+					><span class="h-2.5 w-2.5 rounded-[2px] bg-current"></span
+				></template>
+			</Button>
+			<Button
+				v-else
+				variant="solid"
+				:disabled="!canSend"
+				:title="__('Send')"
+				@click="submit"
+			>
 				<template #icon><FeatherIcon name="arrow-up" class="h-4 w-4" /></template>
 			</Button>
 		</div>

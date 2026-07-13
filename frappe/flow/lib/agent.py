@@ -134,21 +134,37 @@ class Agent:
 		"""Continue a run that paused on a question.
 
 		`answers` maps each pending tool_call_id to the user's answer: "Approve" runs
-		the tool, "Deny" blocks it, and any other free text is returned to the LLM as
-		redirect feedback so it can adjust and retry.
+		the tool, "Deny" records the rejection and stops the run, and any other free
+		text is returned to the LLM as redirect feedback so it can adjust and retry.
 		"""
 		if stream:
 			return self._resume_stream(messages, answers)
 		messages, _ = self._prepare_resume(messages, answers)
+		if _has_denial(answers):
+			return self._stopped_result(messages)
 		return self._loop(messages, self._answered_calls(messages))
 
 	def _resume_stream(self, messages: list[dict[str, Any]], answers: dict[str, Any]) -> Generator[Event]:
 		"""Stream a resume: first replay the just-resolved tool results so the UI can fill in
-		the tool cards that were awaiting an answer, then continue the agent loop."""
+		the tool cards that were awaiting an answer, then continue the agent loop (or stop
+		if the user denied)."""
 		messages, resolved = self._prepare_resume(messages, answers)
 		for call, content in resolved:
 			yield ToolEnded(id=call.id, name=call.name, result=content)
+		if _has_denial(answers):
+			yield Done(result=self._stopped_result(messages))
+			return
 		yield from self._loop_stream(messages, self._answered_calls(messages))
+
+	def _stopped_result(self, messages: list[dict[str, Any]]) -> RunResult:
+		"""Terminal result for a run the user denied: pending calls are already resolved in
+		`messages`, so end the turn here without another model call (no further tokens)."""
+		return RunResult(
+			output=None,
+			messages=messages,
+			tool_calls=self._answered_calls(messages),
+			iterations=0,
+		)
 
 	def new_session(self, *, title: str | None = None) -> Any:
 		"""Start a persisted conversation driven by this code agent (session's agent link is left empty)."""
@@ -416,6 +432,12 @@ def _confirmation_question(call: ToolCall, tool: Tool) -> Question:
 		options=["Approve", "Deny"],
 		allow_other=True,
 	)
+
+
+def _has_denial(answers: dict[str, Any]) -> bool:
+	"""A Deny answer halts the run — the user rejected an action, so stop rather than
+	continue. Approve and free-text (redirect) answers let the run proceed."""
+	return any(answer == "Deny" for answer in answers.values())
 
 
 def _serialize_tool_result(result: Any) -> str:
