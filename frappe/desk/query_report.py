@@ -127,7 +127,7 @@ def generate_report_result(
 		"execution_time": frappe.cache.hget("report_execution_time", report.name) or 0,
 	}
 
-	if report.synced_report and report.doctype_to_sync:
+	if report.snapshot_report and report.doctype_to_sync:
 		if latest_sync := frappe.db.get_all(
 			"DuckDB Sync",
 			filters={"doc_type": report.doctype_to_sync[0].doc_type, "docstatus": 1},
@@ -138,8 +138,8 @@ def generate_report_result(
 		):
 			return_dict.update(
 				{
-					"synced_report": True,
-					"synced_at": latest_sync[0],
+					"snapshot_report": True,
+					"snapshot_at": latest_sync[0],
 				}
 			)
 
