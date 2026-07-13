@@ -161,6 +161,29 @@ class TestPrintFormatGenerator(IntegrationTestCase):
 		self.assertIn("20mm", html)
 
 	# ------------------------------------------------------------------ #
+	# printpreview: Standard (no format selected) renders the beta default
+	# ------------------------------------------------------------------ #
+
+	def test_printpreview_standard_renders_beta_default(self):
+		"""With no print_format, /printpreview must render the beta default document
+		itself — a full page with a single set of margins — not fall back to the old
+		classic wrapper that produced double padding."""
+		from frappe.www import printpreview
+
+		todo = self._make_todo()
+		frappe.form_dict.doctype = "ToDo"
+		frappe.form_dict.name = todo.name
+		frappe.form_dict.pop("print_format", None)
+		self.addCleanup(lambda: frappe.form_dict.pop("doctype", None))
+		self.addCleanup(lambda: frappe.form_dict.pop("name", None))
+
+		context = frappe._dict()
+		printpreview.get_context(context)
+
+		self.assertIn("print-format-doc", context.body)
+		self.assertNotIn("print-format-preview", context.body)
+
+	# ------------------------------------------------------------------ #
 	# render_jinja_template: whitelisted endpoint
 	# ------------------------------------------------------------------ #
 

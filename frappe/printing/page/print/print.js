@@ -457,7 +457,7 @@ frappe.ui.form.PrintView = class {
 
 	preview() {
 		let print_format = this.get_print_format();
-		if (print_format.print_format_builder_beta) {
+		if (print_format.print_format_builder_beta || !print_format.name) {
 			this.print_wrapper.find(".print-preview-wrapper").hide();
 			this.print_wrapper.find(".preview-beta-wrapper").show();
 			this.preview_beta();
@@ -496,8 +496,10 @@ frappe.ui.form.PrintView = class {
 		let params = new URLSearchParams({
 			doctype: this.frm.doc.doctype,
 			name: this.frm.doc.name,
-			print_format: print_format.name,
 		});
+		if (print_format.name) {
+			params.append("print_format", print_format.name);
+		}
 		let letterhead = this.get_letterhead();
 		if (letterhead) {
 			params.append("letterhead", letterhead);
