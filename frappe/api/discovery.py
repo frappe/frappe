@@ -98,8 +98,8 @@ def method(method: str) -> dict[str, Any]:
 def doctype_methods(doctype: str) -> dict[str, Any]:
 	frappe.only_for("System Manager")
 	methods = [
-		_doctype_method_summary(doctype, name, fn, defining_class)
-		for name, fn, defining_class in _get_doctype_methods(doctype)
+		_doctype_method_summary(doctype, name, fn)
+		for name, fn, _defining_class in _get_doctype_methods(doctype)
 	]
 	return {"type": "method_index", "doctype": doctype, "methods": methods}
 
@@ -138,8 +138,8 @@ def build_cache() -> None:
 
 	doctype_items = []
 	doctype_search_entries = []
-	for doctype, method_name, fn, defining_class in _discover_doctype_methods():
-		method = _doctype_method_summary(doctype, method_name, fn, defining_class)
+	for doctype, method_name, fn, _defining_class in _discover_doctype_methods():
+		method = _doctype_method_summary(doctype, method_name, fn)
 		doctype_items.append(method)
 		doctype_search_entries.append(
 			{
@@ -248,7 +248,6 @@ def _method_summary(fn: Callable) -> dict[str, Any]:
 		{
 			"kind": "rpc",
 			"path": f"{fn.__module__}.{fn.__name__}",
-			"allow_guest": fn in frappe.guest_methods,
 			"description": docstring.splitlines()[0] if docstring else None,
 		}
 	)
@@ -275,7 +274,6 @@ def _doctype_method_summary(
 	doctype: str,
 	method: str,
 	fn: Callable,
-	defining_class: type | None = None,
 ) -> dict[str, Any]:
 	docstring = inspect.getdoc(fn)
 	return _without_none(
@@ -284,7 +282,6 @@ def _doctype_method_summary(
 			"kind": "doctype",
 			"doctype": doctype,
 			"method": method,
-			"defined_in": _class_path(defining_class) if defining_class else None,
 			"description": docstring.splitlines()[0] if docstring else None,
 		}
 	)
