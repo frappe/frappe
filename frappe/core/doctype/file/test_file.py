@@ -18,7 +18,7 @@ from frappe.core.api.file import (
 )
 from frappe.core.doctype.file.exceptions import FileTypeNotAllowed
 from frappe.core.doctype.file.utils import get_corrupted_image_msg, get_extension
-from frappe.desk.form.utils import add_comment
+from frappe.desk.form.utils import add_comment, remove_attach
 from frappe.exceptions import ValidationError
 from frappe.tests import IntegrationTestCase
 from frappe.utils import get_files_path, set_request
@@ -28,6 +28,14 @@ if TYPE_CHECKING:
 
 test_content1 = "Hello"
 test_content2 = "Hello World"
+
+
+def remove_attach_with_fid(fid):
+	frappe.form_dict.fid = fid
+	try:
+		remove_attach()
+	finally:
+		frappe.form_dict.pop("fid", None)
 
 
 def make_test_doc(ignore_permissions=False):
@@ -837,11 +845,11 @@ class TestAttachment(IntegrationTestCase):
 		doc.attachment = file.file_url
 		doc.save()
 
-		self.assertRaises(frappe.LinkExistsError, frappe.delete_doc, "File", file.name)
+		self.assertRaises(frappe.LinkExistsError, remove_attach_with_fid, file.name)
 
 		doc.attachment = None
 		doc.save()
-		frappe.delete_doc("File", file.name)
+		remove_attach_with_fid(file.name)
 		self.assertFalse(frappe.db.exists("File", file.name))
 
 	def test_delete_file_referenced_in_child_table_attach_field(self):
@@ -859,10 +867,28 @@ class TestAttachment(IntegrationTestCase):
 		doc.append("items", {"row_attachment": file.file_url})
 		doc.save()
 
-		self.assertRaises(frappe.LinkExistsError, frappe.delete_doc, "File", file.name)
+		self.assertRaises(frappe.LinkExistsError, remove_attach_with_fid, file.name)
 
 		doc.items = []
 		doc.save()
+		remove_attach_with_fid(file.name)
+		self.assertFalse(frappe.db.exists("File", file.name))
+
+	def test_direct_deletion_of_referenced_file_is_allowed(self):
+		doc = frappe.get_doc(doctype=self.test_doctype, title="test direct delete").insert()
+		file = frappe.get_doc(
+			{
+				"doctype": "File",
+				"file_name": "test_direct_delete.txt",
+				"content": "Direct Delete Content",
+				"attached_to_doctype": self.test_doctype,
+				"attached_to_name": doc.name,
+				"attached_to_field": "attachment",
+			}
+		).save()
+		doc.attachment = file.file_url
+		doc.save()
+
 		frappe.delete_doc("File", file.name)
 		self.assertFalse(frappe.db.exists("File", file.name))
 
