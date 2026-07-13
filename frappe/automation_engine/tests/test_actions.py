@@ -51,6 +51,11 @@ class TestActions(IntegrationTestCase):
 		self.assertTrue(frappe.db.exists("ToDo", {"description": "created-by-automation"}))
 		self.assertIn("Created", detail)
 
+	def test_create_document_requires_existing_doctype(self):
+		self.assertRaises(
+			AutomationParamError, CreateDocument().validate, {"doctype": "No Such DocType"}, "ToDo"
+		)
+
 	def test_create_document_renders_template_values(self):
 		src = make_todo(priority="High")
 		CreateDocument().execute(
@@ -77,6 +82,28 @@ class TestActions(IntegrationTestCase):
 		)
 		after = frappe.db.count("Notification Log", {"for_user": "Administrator"})
 		self.assertEqual(after, before + 1)
+
+	def test_send_notification_requires_existing_template(self):
+		self.assertRaises(
+			AutomationParamError,
+			SendNotification().validate,
+			{"recipients": ["Administrator"], "email_template": "No Such Template"},
+			"ToDo",
+		)
+
+	def test_send_notification_renders_email_template(self):
+		todo = make_todo(description="templated")
+		template = frappe.get_doc(
+			{
+				"doctype": "Email Template",
+				"name": "Automation Test Template",
+				"subject": "Subject {{ doc.description }}",
+				"response": "Body {{ doc.description }}",
+			}
+		).insert(ignore_permissions=True)
+		subject, message = SendNotification()._content({"email_template": template.name}, todo, {})
+		self.assertEqual(subject, "Subject templated")
+		self.assertEqual(message, "Body templated")
 
 	def test_send_notification_email_delegates_to_sendmail(self):
 		todo = make_todo()

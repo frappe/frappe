@@ -20,12 +20,14 @@ def make_todo(**kwargs):
 	return frappe.get_doc({"doctype": "ToDo", "description": "x", **kwargs}).insert()
 
 
-def make_automation(actions, stop_on_error=1):
+def make_automation(actions, stop_on_error=1, **kwargs):
 	doc = frappe.new_doc("Automation Flow")
 	doc.title = "Runner Rule"
-	doc.trigger_type = "Doc Created"
-	doc.document_type = "ToDo"
+	doc.trigger_type = kwargs.pop("trigger_type", "Doc Created")
+	doc.document_type = kwargs.pop("document_type", "ToDo")
 	doc.stop_on_error = stop_on_error
+	for key, value in kwargs.items():
+		doc.set(key, value)
 	for action in actions:
 		doc.append("actions", action)
 	doc.enabled = 1
@@ -53,16 +55,17 @@ class TestRunner(IntegrationTestCase):
 		frappe.local.automation_actions = None
 		clear_automation_cache()
 
-	def queue_row(self, automation, ref_name, depth=1):
+	def queue_row(self, automation, ref_name, depth=1, ref_doctype="ToDo", payload=None):
 		row = frappe.get_doc(
 			{
 				"doctype": QUEUE,
 				"automation": automation,
-				"ref_doctype": "ToDo",
+				"ref_doctype": ref_doctype,
 				"ref_name": ref_name,
 				"status": "Pending",
 				"triggered_at": frappe.utils.now(),
 				"depth": depth,
+				"event_payload": json.dumps(payload) if payload else None,
 			}
 		).insert(ignore_permissions=True)
 		return row.name
@@ -87,6 +90,32 @@ class TestRunner(IntegrationTestCase):
 		execute_automation(name)
 		self.assertEqual(self.run_status(auto), "Skipped")
 		self.assertEqual(frappe.db.get_value(QUEUE, name, "status"), "Skipped")
+
+	def test_docless_run_executes_with_payload_context(self):
+		auto = make_automation(
+			[
+				{
+					"action_type": "CreateDocument",
+					"params": json.dumps(
+						{"doctype": "ToDo", "values": {"description": "weekly-{{ payload.label }}"}}
+					),
+				}
+			],
+			trigger_type="Scheduled",
+			document_type=None,
+			cron_expression="0 0 * * *",
+		)
+		name = self.queue_row(auto, None, ref_doctype=None, payload={"label": "digest"})
+		execute_automation(name)
+		self.assertEqual(self.run_status(auto), "Success")
+		self.assertTrue(frappe.db.exists("ToDo", {"description": "weekly-digest"}))
+
+	def test_log_only_simulates_without_side_effects(self):
+		todo = make_todo(priority="Low")
+		auto = make_automation([set_field("priority", "High")], log_only=1)
+		execute_automation(self.queue_row(auto, todo.name))
+		self.assertEqual(self.run_status(auto), "Simulated")
+		self.assertEqual(frappe.db.get_value("ToDo", todo.name, "priority"), "Low")
 
 	def test_failed_action_stops_and_marks_failed(self):
 		todo = make_todo()
@@ -113,6 +142,21 @@ class TestRunner(IntegrationTestCase):
 		self.assertEqual(self.run_status(auto), "Partially Failed")
 		self.assertEqual(frappe.db.get_value("ToDo", todo.name, "priority"), "High")
 		self.assertFalse(frappe.db.exists(QUEUE, name))
+
+	def test_step_condition_false_skips_action(self):
+		todo = make_todo(priority="Low")
+		auto = make_automation(
+			[
+				{
+					"action_type": "SetFieldValue",
+					"params": json.dumps({"field": "priority", "value": "High"}),
+					"step_condition": "doc.priority == 'Medium'",
+				}
+			]
+		)
+		execute_automation(self.queue_row(auto, todo.name))
+		self.assertEqual(self.run_status(auto), "Success")
+		self.assertEqual(frappe.db.get_value("ToDo", todo.name, "priority"), "Low")
 
 	def test_savepoint_rolls_back_failed_action_writes(self):
 		class Boom(AutomationAction):

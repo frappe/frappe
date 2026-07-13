@@ -60,3 +60,16 @@ class TestAutomationFlow(IntegrationTestCase):
 	def test_custom_event_requires_event_name(self):
 		doc = make_automation(trigger_type="Custom Event", document_type=None, custom_event=None)
 		self.assertRaises(frappe.ValidationError, doc.insert)
+
+	def test_reserved_branch_step_rejected(self):
+		doc = make_automation(actions=[{"step_type": "If", "params": "{}"}])
+		self.assertRaises(frappe.ValidationError, doc.insert)
+
+	def test_wait_step_requires_duration(self):
+		doc = make_automation(actions=[{"step_type": "Wait", "params": "{}"}])
+		self.assertRaises(frappe.ValidationError, doc.insert)
+
+	def test_wait_step_with_duration_saves(self):
+		doc = make_automation(actions=[{"step_type": "Wait", "params": '{"value": 5, "unit": "seconds"}'}])
+		doc.insert()
+		self.assertTrue(doc.name)

@@ -89,6 +89,14 @@ class TestDispatch(IntegrationTestCase):
 		make_todo(priority="High")
 		self.assertEqual(len(pending(rule.name)), 1)
 
+	def test_condition_exception_logs_and_skips(self):
+		rule = make_automation("Doc Created", condition="1 / 0")
+		make_todo()
+		self.assertEqual(len(pending(rule.name)), 0)
+		self.assertTrue(
+			frappe.db.exists("Error Log", {"method": f"Automation Flow match failed: {rule.name}"})
+		)
+
 	def test_skip_automations_flag(self):
 		rule = make_automation("Doc Created")
 		frappe.flags.skip_automations = True
@@ -97,6 +105,17 @@ class TestDispatch(IntegrationTestCase):
 		finally:
 			frappe.flags.skip_automations = False
 		self.assertEqual(len(pending(rule.name)), 0)
+
+	def test_depth_limit_logs_refusal(self):
+		rule = make_automation("Doc Created")
+		original_depth = frappe.flags.get("automation_depth")
+		frappe.flags.automation_depth = 3
+		try:
+			make_todo()
+		finally:
+			frappe.flags.automation_depth = original_depth
+		self.assertEqual(len(pending(rule.name)), 0)
+		self.assertTrue(frappe.db.exists("Error Log", {"method": "Automation Flow depth limit reached"}))
 
 	def test_zero_overhead_for_unautomated_doctype(self):
 		# Warm the (empty) cache so the no-op path is a local dict hit.

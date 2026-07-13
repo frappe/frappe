@@ -2,6 +2,7 @@
 # License: MIT. See LICENSE
 
 import frappe
+import frappe.automation_engine.drainer as drainer
 from frappe.automation_engine.drainer import claim_batch, drain, requeue_stale_running
 from frappe.tests import IntegrationTestCase
 
@@ -100,3 +101,14 @@ class TestDrainer(IntegrationTestCase):
 		self.assertEqual(len(processed), 3)
 		self.assertEqual(self.count("Pending"), 0)
 		self.assertEqual(self.count("Running"), 0)
+
+	def test_old_mariadb_uses_plain_for_update(self):
+		original = drainer._mariadb_supports_skip_locked
+		original_db_type = frappe.db.db_type
+		drainer._mariadb_supports_skip_locked = lambda: False
+		frappe.db.db_type = "mariadb"
+		try:
+			self.assertEqual(drainer._lock_clause(), "FOR UPDATE")
+		finally:
+			drainer._mariadb_supports_skip_locked = original
+			frappe.db.db_type = original_db_type
