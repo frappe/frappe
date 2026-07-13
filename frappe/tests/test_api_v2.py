@@ -638,7 +638,11 @@ class TestDiscoveryAPIV2(FrappeAPITestCase):
 		)
 		self.assertEqual(response.status_code, 200)
 		results = response.json["data"]["results"]
-		self.assertTrue(any(item.get("path") == "frappe.tests.test_api.test" for item in results))
+		self.assertTrue(
+			any(
+				item.get("path") == "frappe.tests.test_api.test" and item["kind"] == "rpc" for item in results
+			)
+		)
 		self.assertTrue(all("docstring" not in item for item in results))
 
 		docstring_response = self.get(
@@ -653,21 +657,127 @@ class TestDiscoveryAPIV2(FrappeAPITestCase):
 			)
 		)
 
+		controller_response = self.get(
+			self.discovery_path("search"),
+			{"sid": self.sid, "q": "User populate_role_profile_roles"},
+		)
+		self.assertEqual(controller_response.status_code, 200)
+		self.assertTrue(
+			all(item["kind"] == "doctype" for item in controller_response.json["data"]["results"])
+		)
+		self.assertIn(
+			{
+				"type": "method",
+				"doctype": "User",
+				"method": "populate_role_profile_roles",
+			},
+			[
+				{key: item[key] for key in ("type", "doctype", "method")}
+				for item in controller_response.json["data"]["results"]
+				if item.get("doctype")
+			],
+		)
+		user_response = self.get(
+			self.discovery_path("search"),
+			{"sid": self.sid, "q": "User"},
+		)
+		self.assertTrue(
+			any(
+				item.get("doctype") == "User" and item.get("method") == "populate_role_profile_roles"
+				for item in user_response.json["data"]["results"]
+			)
+		)
+		inherited_response = self.get(
+			self.discovery_path("search"),
+			{"sid": self.sid, "q": "User add_comment"},
+		)
+		self.assertFalse(
+			any(
+				item.get("doctype") == "User" and item.get("method") == "add_comment"
+				for item in inherited_response.json["data"]["results"]
+			)
+		)
+
+	def test_doctype_methods_v2(self):
+		response = self.get(self.discovery_path("doctype", "User"), {"sid": self.sid})
+		self.assertEqual(response.status_code, 200)
+		methods = {item["method"]: item for item in response.json["data"]["methods"]}
+
+		self.assertEqual(methods["populate_role_profile_roles"]["kind"], "doctype")
+		self.assertNotIn("submit", methods)
+
+		submittable_response = self.get(self.discovery_path("doctype", "DuckDB Sync"), {"sid": self.sid})
+		self.assertEqual(submittable_response.status_code, 200)
+		self.assertTrue(
+			any(item["method"] == "submit" for item in submittable_response.json["data"]["methods"])
+		)
+
+	def test_doctype_method_document_v2(self):
+		response = self.get(
+			self.discovery_path("doctype", "User", "method", "add_comment"),
+			{"sid": self.sid},
+		)
+		self.assertEqual(response.status_code, 200)
+		data = response.json["data"]
+		self.assertEqual(data["type"], "method")
+		self.assertEqual(data["kind"], "doctype")
+		self.assertEqual(data["doctype"], "User")
+		self.assertEqual(data["method"], "add_comment")
+		self.assertEqual(data["defined_in"], "frappe.model.document.Document")
+		self.assertEqual(data["endpoint"], "/api/v2/document/User/{name}/method/add_comment")
+		self.assertEqual(data["http_methods"], ["GET", "POST"])
+		self.assertEqual(data["permission"], {"GET": "read", "POST": "write"})
+		self.assertTrue(any(param["name"] == "comment_type" for param in data["params"]))
+		self.assertIn("source", data)
+		self.assertIn("def add_comment(", data["source"])
+
+	def test_doctype_method_not_found_v2(self):
+		paths = (
+			self.discovery_path("doctype", "Missing DocType"),
+			self.discovery_path("doctype", "User", "method", "validate"),
+		)
+		for path in paths:
+			with self.subTest(path=path), suppress_stdout():
+				response = self.get(path, {"sid": self.sid})
+			self.assertEqual(response.status_code, 404)
+
 	def test_methods_v2(self):
+		root_response = self.get(self.discovery_path(), {"sid": self.sid})
+		self.assertEqual(root_response.status_code, 200)
+		self.assertGreater(root_response.json["data"]["resources"]["doctype_methods"], 0)
+		self.assertEqual(
+			root_response.json["data"]["links"]["doctype_method"],
+			"/api/v2/discovery/doctype/{doctype}/method/{method}",
+		)
+
 		index_response = self.get(self.discovery_path("method"), {"sid": self.sid})
 		self.assertEqual(index_response.status_code, 200)
 		method = next(
 			item
 			for item in index_response.json["data"]["methods"]
-			if item["path"] == "frappe.tests.test_api.test"
+			if item.get("path") == "frappe.tests.test_api.test"
 		)
+		self.assertEqual(method["kind"], "rpc")
 		self.assertEqual(method["description"], "Exercise RPC success and failure responses.")
+		doctype_method = next(
+			item
+			for item in index_response.json["data"]["methods"]
+			if item.get("doctype") == "User" and item.get("method") == "populate_role_profile_roles"
+		)
+		self.assertEqual(doctype_method["kind"], "doctype")
+		self.assertFalse(
+			any(
+				item.get("doctype") == "User" and item.get("method") == "add_comment"
+				for item in index_response.json["data"]["methods"]
+			)
+		)
 
 		method_response = self.get(
 			self.discovery_path("method", "frappe.tests.test_api.test"), {"sid": self.sid}
 		)
 		self.assertEqual(method_response.status_code, 200)
 		data = method_response.json["data"]
+		self.assertEqual(data["kind"], "rpc")
 		self.assertEqual(data["path"], "frappe.tests.test_api.test")
 		self.assertEqual(
 			data["docstring"],
@@ -698,8 +808,14 @@ class TestDiscoveryAPIV2(FrappeAPITestCase):
 			response = self.get(
 				self.discovery_path("method", "frappe.tests.test_api.test"), {"sid": self.sid}
 			)
+			doctype_response = self.get(
+				self.discovery_path("doctype", "User", "method", "add_comment"),
+				{"sid": self.sid},
+			)
 		self.assertEqual(response.status_code, 200)
 		self.assertNotIn("source", response.json["data"])
+		self.assertEqual(doctype_response.status_code, 200)
+		self.assertNotIn("source", doctype_response.json["data"])
 
 	def test_cold_cache_returns_retryable_response_v2(self):
 		discovery.clear_cache()
@@ -716,6 +832,8 @@ class TestDiscoveryAPIV2(FrappeAPITestCase):
 			self.discovery_path("search"),
 			self.discovery_path("method"),
 			self.discovery_path("method", "frappe.tests.test_api.test"),
+			self.discovery_path("doctype", "User"),
+			self.discovery_path("doctype", "User", "method", "add_comment"),
 		)
 		for path in paths:
 			with self.subTest(path=path):
