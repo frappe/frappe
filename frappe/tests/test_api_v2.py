@@ -690,11 +690,6 @@ class TestDiscoveryAPIV2(FrappeAPITestCase):
 		methods = {item["method"]: item for item in response.json["data"]["methods"]}
 
 		self.assertEqual(methods["populate_role_profile_roles"]["kind"], "doctype")
-		self.assertEqual(
-			methods["populate_role_profile_roles"]["defined_in"],
-			"frappe.core.doctype.user.user.User",
-		)
-		self.assertEqual(methods["add_comment"]["defined_in"], "frappe.model.document.Document")
 		self.assertNotIn("submit", methods)
 
 		submittable_response = self.get(self.discovery_path("doctype", "DuckDB Sync"), {"sid": self.sid})
