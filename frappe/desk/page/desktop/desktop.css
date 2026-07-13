@@ -81,9 +81,6 @@
 }
 .icons-container:has(.sidebar-card){
     margin-top: 20px;
-    .sidebar-card{
-        gap: 6px;
-    }
 }
 .modal
 .modal-body .icons-container, .folder-icon .icons-container {
