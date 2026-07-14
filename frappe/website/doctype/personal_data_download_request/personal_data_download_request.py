@@ -65,6 +65,10 @@ class PersonalDataDownloadRequest(Document):
 		)
 		f.save(ignore_permissions=True)
 
+		# Bind ownership
+		frappe.db.set_value("File", f.name, "owner", self.user)
+		self.db_set("owner", self.user)
+
 		file_link = (
 			frappe.utils.get_url("/api/method/frappe.utils.file_manager.download_file")
 			+ "?"
