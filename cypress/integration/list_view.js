@@ -172,4 +172,46 @@ context("List View", () => {
 			cy.get(".result-container .list-row-checkbox:checked").should("exist");
 		}
 	);
+
+	it(
+		"keeps mobile virtual rows rendered during fast downward scroll",
+		{ scrollBehavior: false },
+		() => {
+			cy.viewport("iphone-6");
+			cy.go_to_list("ToDo");
+			cy.clear_filters();
+
+			cy.window()
+				.its("cur_list")
+				.then((list) => {
+					expect(list.data.length).to.be.greaterThan(0);
+					list.virtualization_threshold = 1;
+					list.render_list();
+				});
+
+			cy.get('.list-row-container[data-virtual-row="1"]').should("exist");
+
+			cy.get(".result-container").scrollTo("bottom", {
+				duration: 0,
+				ensureScrollable: false,
+			});
+
+			cy.wait(150);
+			cy.window()
+				.its("cur_list")
+				.then((list) => list.render_virtual_rows(true));
+
+			cy.get('.list-row-container[data-virtual-row="1"] .list-row')
+				.should("exist")
+				.and("have.length.greaterThan", 0);
+
+			cy.window()
+				.its("cur_list")
+				.then((list) => {
+					expect(list.virtualization_state.end).to.be.greaterThan(
+						list.virtualization_state.start
+					);
+				});
+		}
+	);
 });

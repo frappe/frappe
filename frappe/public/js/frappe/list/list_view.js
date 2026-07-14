@@ -44,7 +44,7 @@ frappe.views.ListView = class ListView extends frappe.views.BaseList {
 		 * Spacers (empty divs above/below) keep the scrollbar the correct length.
 		 */
 		this.virtualization_threshold = 2000; // row count at which we switch to virtual mode
-		this.virtualization_row_buffer = 8; // used to extend the window above/below viewport (desktop)
+		this.virtualization_row_buffer = 20; // used to extend the window above/below viewport (desktop)
 		this.virtualization_row_height = 44; // desktop height guess until we measure a real row
 		// Selected row names — needed in virtual mode because off-screen rows are not in the DOM.
 		this.checked_docnames = new Set();
@@ -942,6 +942,18 @@ frappe.views.ListView = class ListView extends frappe.views.BaseList {
 				.catch(() => {
 					// Bundle missing or failed — render all rows instead of retrying forever.
 					this._virtualization_bundle_failed = true;
+					if (!this._virtualization_bundle_failure_notified) {
+						this._virtualization_bundle_failure_notified = true;
+						frappe.show_alert(
+							{
+								message: __(
+									"List virtualization failed to load. Rendering full list."
+								),
+								indicator: "orange",
+							},
+							5
+						);
+					}
 					this.render_list();
 				});
 			return;

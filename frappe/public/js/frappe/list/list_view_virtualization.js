@@ -139,8 +139,8 @@ export const list_view_virtualization = {
 	},
 
 	get_virtualization_row_buffer() {
-		// Mobile needs a bigger buffer — taller cards and variable heights need more off-screen rows.
-		return frappe.is_mobile() ? 10 : this.virtualization_row_buffer;
+		// Keep more rows rendered off-screen so fast scrolls are less likely to hit a blank gap.
+		return frappe.is_mobile() ? 24 : this.virtualization_row_buffer;
 	},
 
 	uses_accumulated_row_heights() {
@@ -401,6 +401,10 @@ export const list_view_virtualization = {
 			this.$result.append(
 				`<div class="list-virtual-spacer" style="height:${bottom_spacer_height}px"></div>`
 			);
+		}
+
+		if (!frappe.is_mobile()) {
+			this.apply_column_widths();
 		}
 
 		// Step 7: measure; retry once if spacers were sized with stale height estimates.
