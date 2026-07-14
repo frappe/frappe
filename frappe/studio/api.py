@@ -13,18 +13,12 @@ from studio.utils import has_page_write_perm
 
 
 @frappe.whitelist()
-def get_docname(doctype: str, filters: dict | str) -> dict:
+def get_docname(doctype: str, filters: dict | str) -> str | None:
 	if isinstance(filters, str):
 		filters = frappe.parse_json(filters)
 
-	# remove name filter if it is dynamic or empty - for fetching a document while testing
-	if "name" in filters and (filters["name"].startswith(":") or not filters["name"]):
-		del filters["name"]
-
 	document = frappe.get_list(doctype, filters=filters, pluck="name", limit=1)
 	return document[0] if document else None
-
-	return None
 
 
 @frappe.whitelist()
