@@ -481,9 +481,10 @@ def validate_ip_address(user):
 	Certain methods called from our socketio backend need direct access, and so the IP is not
 	checked for those
 	"""
-	if hasattr(frappe.local, "request") and frappe.local.request.path.startswith(
-		"/api/method/frappe.realtime."
-	):
+	# getattr, not hasattr: frappe.local.request can be present but None (e.g. tests that clear it),
+	# in which case there is no request path to check -- treat it as a non-realtime call.
+	request = getattr(frappe.local, "request", None)
+	if request and request.path.startswith("/api/method/frappe.realtime."):
 		return True
 
 	user_info = frappe.get_cached_doc("User", user)
