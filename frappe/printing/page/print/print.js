@@ -509,8 +509,8 @@ frappe.ui.form.PrintView = class {
 			// Size the card to the document height (like the classic preview and skeleton)
 			// so the whole page scrolls and there's no leftover gray strip.
 			const doc = iframe[0].contentDocument;
-			if (doc && doc.body) {
-				iframe.css("height", doc.body.scrollHeight + "px");
+			if (doc && doc.documentElement) {
+				iframe.css("height", doc.documentElement.scrollHeight + "px");
 			}
 		});
 	}

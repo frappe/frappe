@@ -14,9 +14,8 @@
 	margin-left: {{ print_format.margin_left | int }}mm;
 	margin-right: {{ print_format.margin_right | int }}mm;
 {%- else %}
-	{#- Browser print / WeasyPrint: page margins stay 0 and the format's margins
-	   live on the body as padding, so spacing survives the browser "Margins: None"
-	   setting instead of collapsing to the paper edge. -#}
+	{#- Browser print: keep page margins at 0 and put the format's margins on the
+	   body as padding, so spacing survives the browser "Margins: None" setting. -#}
 	margin: 0;
 	{%- set page_number_position = print_format.page_number.lower().replace(' ', '_') %}
 	{%- if page_number_position in ['top_left', 'top_center', 'top_right', 'bottom_left', 'bottom_center', 'bottom_right'] %}
