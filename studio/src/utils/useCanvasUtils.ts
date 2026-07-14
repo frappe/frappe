@@ -111,10 +111,8 @@ export function useCanvasUtils(
 			block.toggleVisibility(false)
 		}
 		nextTick(() => {
-			if (parentBlock.children.length) {
-				if (nextSibling) {
-					nextSibling.selectBlock()
-				}
+			if (nextSibling) {
+				nextSibling.selectBlock()
 			}
 		})
 	}

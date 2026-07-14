@@ -270,7 +270,7 @@ const openBlockEditor = (block: Block, e: MouseEvent) => {
 			`Save ${block.componentName}`,
 		)
 	} else {
-		canvasStore.activeCanvas?.selectBlock(block, e, false, false)
+		canvasStore.activeCanvas?.selectBlock(block, e, false)
 	}
 }
 

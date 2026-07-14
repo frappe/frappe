@@ -46,7 +46,7 @@
 				</div>
 			</div>
 		</template>
-		<EmptyState v-else message="No items added" />
+		<EmptyState v-else :message="emptyMessage || 'No items added'" />
 
 		<Button variant="outline" class="w-full" icon-left="plus" @click="addItem">Add</Button>
 	</div>
@@ -65,6 +65,7 @@ const props = defineProps<{
 	label?: string
 	itemTypes?: Record<string, any>
 	required?: boolean
+	emptyMessage?: string
 }>()
 
 const emit = defineEmits(["update:modelValue"])

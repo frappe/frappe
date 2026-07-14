@@ -18,6 +18,12 @@ const blockController = {
 	multipleBlocksSelected: () => {
 		return canvasStore.activeCanvas?.selectedBlocks && canvasStore.activeCanvas?.selectedBlocks.length > 1
 	},
+	selectedBlocksHaveSameType: () => {
+		const blocks = blockController.getSelectedBlocks()
+		if (blocks.length <= 1) return true
+		const type = blocks[0].componentName
+		return blocks.every((block) => block.componentName === type)
+	},
 	getFirstSelectedBlock: () => {
 		return canvasStore.activeCanvas?.selectedBlocks[0] as Block
 	},

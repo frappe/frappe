@@ -1,6 +1,6 @@
 <template>
 	<div class="flex flex-col">
-		<div v-if="block" class="flex flex-col gap-3">
+		<div v-if="block && !multipleBlocksSelected" class="flex flex-col gap-3">
 			<div class="flex w-full flex-col space-y-1" v-if="!isObjectEmpty(block?.componentEvents)">
 				<div
 					v-for="(event, name) in block?.componentEvents"
@@ -136,7 +136,12 @@
 			</Dialog>
 		</div>
 
-		<EmptyState v-else message="Select a block to edit events" />
+		<EmptyState
+			v-else
+			:message="
+				multipleBlocksSelected ? 'Select a single block to edit events' : 'Select a block to edit events'
+			"
+		/>
 	</div>
 </template>
 
@@ -147,6 +152,7 @@ import useStudioStore from "@/stores/studioStore"
 import Block from "@/utils/block"
 import EmptyState from "@/components/EmptyState.vue"
 import ItemActions from "@/components/ItemActions.vue"
+import blockController from "@/utils/blockController"
 
 import { isObjectEmpty, confirm } from "@/utils/helpers"
 
@@ -166,6 +172,7 @@ const props = defineProps<{
 }>()
 const store = useStudioStore()
 const getEditorCompletions = useStudioCompletions(true)
+const multipleBlocksSelected = computed(() => blockController.multipleBlocksSelected())
 
 const showAddEventDialog = ref(false)
 const emptyEvent: ComponentEvent = {

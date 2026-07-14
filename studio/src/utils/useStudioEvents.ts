@@ -76,7 +76,10 @@ export function useStudioEvents() {
 			const blockId = target.dataset.componentLayerId || target.dataset.componentId
 			const block = canvasStore.activeCanvas?.findBlock(blockId as string)
 			if (block) {
-				canvasStore.activeCanvas?.selectBlock(block, null)
+				const alreadyInSelection = canvasStore.activeCanvas?.selectedBlockIds.has(block.componentId)
+				if (!(blockController.multipleBlocksSelected() && alreadyInSelection)) {
+					canvasStore.activeCanvas?.selectBlock(block, null)
+				}
 
 				const slotName = target.dataset.slotName
 				if (slotName) {

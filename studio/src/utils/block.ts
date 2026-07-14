@@ -237,19 +237,13 @@ class Block implements BlockOptions {
 
 	getSiblingBlock(direction: "next" | "previous") {
 		const parentBlock = this.getParentBlock();
-		let sibling = null as Block | null;
-		if (parentBlock) {
-			const index = parentBlock.getChildIndex(this);
-			if (direction === "next") {
-				sibling = parentBlock.children[index + 1];
-			} else {
-				sibling = parentBlock.children[index - 1];
-			}
-			if (sibling) {
-				return sibling;
-			}
-		}
-		return null;
+		if (!parentBlock) return null;
+		const siblings = this.parentSlotName
+			? (parentBlock.getSlotContent(this.parentSlotName) as Block[])
+			: parentBlock.children;
+		const index = parentBlock.getChildIndex(this);
+		const sibling = direction === "next" ? siblings[index + 1] : siblings[index - 1];
+		return sibling || null;
 	}
 
 	getIcon() {

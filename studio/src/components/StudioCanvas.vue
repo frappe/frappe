@@ -213,6 +213,8 @@ function setActiveBreakpoint(breakpoint: string | null) {
 }
 
 const selectedBlockIds = ref<Set<string>>(new Set())
+// anchor for shift-click range selection, set by plain/multi clicks and held fixed across shift-clicks
+const selectionAnchorId = ref<string | null>(null)
 const selectedBlocks = computed(() => {
 	return (
 		Array.from(selectedBlockIds.value)
@@ -222,10 +224,17 @@ const selectedBlocks = computed(() => {
 	)
 }) as Ref<Block[]>
 
-function selectBlock(block: Block, e: MouseEvent | null, multiSelect = false, setBreakpoint = true) {
+function selectBlock(block: Block, e: MouseEvent | null, setBreakpoint = true) {
 	if (store.settingPage) return
 
-	selectBlockById(block.componentId, e, multiSelect)
+	if (e && e.shiftKey) {
+		selectBlockRange(block)
+	} else if (e && (e.metaKey || e.ctrlKey)) {
+		toggleBlockSelection(block)
+	} else {
+		selectBlockById(block.componentId)
+	}
+
 	if (setBreakpoint && e) {
 		const { breakpoint } = getBlockInfo(e)
 		setActiveBreakpoint(breakpoint)
@@ -239,12 +248,41 @@ function selectBlock(block: Block, e: MouseEvent | null, multiSelect = false, se
 	}
 }
 
-function selectBlockById(blockId: string, e: MouseEvent | null, multiSelect = false) {
-	if (multiSelect) {
-		selectedBlockIds.value.add(blockId)
+function selectBlockById(blockId: string) {
+	selectedBlockIds.value = new Set([blockId])
+	selectionAnchorId.value = blockId
+}
+
+function toggleBlockSelection(block: Block) {
+	if (selectedBlockIds.value.has(block.componentId)) {
+		selectedBlockIds.value.delete(block.componentId)
 	} else {
-		selectedBlockIds.value = new Set([blockId])
+		selectedBlockIds.value.add(block.componentId)
 	}
+	selectionAnchorId.value = block.componentId
+}
+
+function selectBlockRange(block: Block) {
+	const anchor = selectionAnchorId.value ? findBlock(selectionAnchorId.value) : null
+	const parent = anchor?.getParentBlock()
+	// range selection only works among siblings sharing a parent AND slot; otherwise fall back to single select
+	if (
+		!anchor ||
+		!parent ||
+		parent !== block.getParentBlock() ||
+		anchor.parentSlotName !== block.parentSlotName
+	) {
+		selectBlockById(block.componentId)
+		return
+	}
+	const siblings = anchor.parentSlotName
+		? (parent.getSlotContent(anchor.parentSlotName) as Block[])
+		: parent.children
+	// replace the selection with the anchor→block range so repeated shift-clicks grow/shrink it
+	const start = parent.getChildIndex(anchor)
+	const end = parent.getChildIndex(block)
+	const range = siblings.slice(Math.min(start, end), Math.max(start, end) + 1)
+	selectedBlockIds.value = new Set(range.map((child) => child.componentId))
 }
 
 const handleClick = (ev: MouseEvent) => {
@@ -258,6 +296,7 @@ const handleClick = (ev: MouseEvent) => {
 
 function clearSelection() {
 	selectedBlockIds.value = new Set()
+	selectionAnchorId.value = null
 }
 
 const isRootSelected = computed(() => {
@@ -270,7 +309,7 @@ const isRootSelected = computed(() => {
 const selectedSlot = ref<Slot | null>()
 function selectSlot(slot: Slot) {
 	selectedSlot.value = slot
-	selectBlockById(slot.parentBlockId, null)
+	selectBlockById(slot.parentBlockId)
 }
 
 const activeSlotIds = computed(() => {
@@ -359,6 +398,8 @@ defineExpose({
 	selectBlock,
 	scrollBlockIntoView,
 	selectBlockById,
+	toggleBlockSelection,
+	selectBlockRange,
 	clearSelection,
 	isRootSelected,
 	// slots

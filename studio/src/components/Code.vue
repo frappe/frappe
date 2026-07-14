@@ -54,7 +54,7 @@ import {
 } from "@codemirror/autocomplete"
 import { Compartment, Extension } from "@codemirror/state"
 import { indentService, indentUnit, LRLanguage } from "@codemirror/language"
-import { EditorView, keymap } from "@codemirror/view"
+import { EditorView, keymap, placeholder as placeholderExtension } from "@codemirror/view"
 import { indentMore, indentLess } from "@codemirror/commands"
 import { indentationMarkers } from "@replit/codemirror-indentation-markers"
 import { tomorrow } from "thememirror"
@@ -78,6 +78,7 @@ const props = withDefaults(
 		completions?: Function | null
 		label?: string
 		description?: string
+		placeholder?: string
 		required?: boolean
 		readonly?: boolean
 		borderless?: boolean
@@ -260,6 +261,7 @@ const extensions = computed(() => {
 			},
 		}),
 		keymap.of([{ key: "Tab", run: indentMore, shift: indentLess }]),
+		props.placeholder ? placeholderExtension(props.placeholder) : [],
 	]
 	if (!props.readonly) {
 		baseExtensions.push(

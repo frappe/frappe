@@ -22,6 +22,7 @@
 				:label="propName"
 				language="html"
 				:modelValue="getFormattedValue(propName)"
+				:placeholder="isMixed(propName) ? 'Mixed' : undefined"
 				@update:modelValue="(newValue) => handlePropUpdate(propName, newValue)"
 				:required="config.required"
 				:completions="(context: CompletionContext) => getCompletions(context, block?.getCompletions())"
@@ -54,6 +55,7 @@
 						:label="propName"
 						language="javascript"
 						:modelValue="getFormattedValue(propName)"
+						:placeholder="isMixed(propName) ? 'Mixed' : undefined"
 						@update:modelValue="(newValue) => handlePropUpdate(propName, newValue)"
 						:required="config.required"
 						:completions="(context: CompletionContext) => getCompletions(context, block?.getCompletions())"
@@ -73,6 +75,7 @@
 						:label="propName"
 						:required="config.required"
 						:modelValue="getFormattedValue(propName)"
+						:emptyMessage="isMixed(propName) ? 'Mixed' : undefined"
 						@update:modelValue="(newValue) => handlePropUpdate(propName, newValue)"
 						:itemTypes="config.itemTypes"
 					/>
@@ -85,6 +88,7 @@
 				:options="config.options"
 				:required="config.required"
 				:modelValue="getFormattedValue(propName)"
+				:placeholder="isMixed(propName) ? 'Mixed' : undefined"
 				@update:modelValue="(newValue) => handlePropUpdate(propName, newValue)"
 				class="flex-1"
 				v-bind="config.props"
@@ -108,6 +112,7 @@ import useComponentStore from "@/stores/componentStore"
 import { getComponentProps } from "@/utils/components"
 import { isDynamicValue } from "@/utils/code"
 import useCanvasStore from "@/stores/canvasStore"
+import blockController from "@/utils/blockController"
 import useComponentEditorStore from "@/stores/componentEditorStore"
 import type { ComponentProps } from "@/types"
 import { ComponentInput } from "@/types/Studio/StudioComponent"
@@ -118,6 +123,7 @@ import useComponentInstance from "@/utils/useComponentInstance"
 const props = defineProps<{
 	block?: Block
 	isTestingComponent?: boolean
+	multiEdit?: boolean
 }>()
 
 const getCompletions = useStudioCompletions()
@@ -220,16 +226,32 @@ const isCodeField = (inputType: string) => {
 	return ["code", "html", "array"].includes(inputType)
 }
 
-function setDynamicValue(propName: string, varName: string, bindVariable: boolean) {
-	if (bindVariable) {
-		props.block?.setProp(propName, { $type: "variable", name: varName })
+function setProp(propName: string, value: any) {
+	if (props.multiEdit) {
+		blockController.setProp(propName, value)
 	} else {
-		props.block?.setProp(propName, `{{ ${varName} }}`)
+		props.block?.setProp(propName, value)
 	}
 }
 
+function setDynamicValue(propName: string, varName: string, bindVariable: boolean) {
+	if (bindVariable) {
+		setProp(propName, { $type: "variable", name: varName })
+	} else {
+		setProp(propName, `{{ ${varName} }}`)
+	}
+}
+
+const getRawValue = (propName: string) => {
+	return props.multiEdit ? blockController.getProp(propName) : props.block?.componentProps[propName]
+}
+
+const isMixed = (propName: string) => props.multiEdit && getRawValue(propName) === "Mixed"
+
 const getFormattedValue = (propName: string) => {
-	const value = props.block?.componentProps[propName]
+	const value = getRawValue(propName)
+	// mixed values across a multi-selection are surfaced via a placeholder, not a real value
+	if (isMixed(propName)) return ""
 	if (value?.$type === "variable") {
 		return `{{ ${value.name} }}`
 	}
@@ -237,7 +259,7 @@ const getFormattedValue = (propName: string) => {
 }
 
 const handlePropUpdate = (propName: string, newValue: any) => {
-	props.block?.setProp(propName, newValue)
+	setProp(propName, newValue)
 }
 
 const isVariableBound = (value: any) => {

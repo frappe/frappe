@@ -1,14 +1,15 @@
 <template>
 	<div class="flex select-none flex-col pb-16" v-show="filteredSections?.length">
-		<EmptyState v-if="!block?.componentName || block?.isRoot()" message="Select a block to edit properties" />
+		<EmptyState v-if="mixedTypeSelection" message="Select blocks of the same component to edit properties" />
+		<EmptyState v-else-if="!block?.componentName" message="Select a block to edit properties" />
 		<div v-else class="flex flex-col gap-3">
 			<!-- props -->
 			<SectionContainer title="Props" v-show="filteredSections.includes('props')">
-				<PropsEditor ref="propsEditor" :block="block" />
+				<PropsEditor ref="propsEditor" :block="block" :multiEdit="multipleBlocksSelected" />
 			</SectionContainer>
 
 			<!-- slots -->
-			<SectionContainer title="Slots" v-show="filteredSections.includes('slots')">
+			<SectionContainer title="Slots" v-show="filteredSections.includes('slots') && !multipleBlocksSelected">
 				<template #actions>
 					<Combobox
 						:options="availableSlots"
@@ -119,6 +120,11 @@ const props = defineProps<{
 }>()
 const getCompletions = useStudioCompletions()
 const studioStore = useStudioStore()
+
+const multipleBlocksSelected = computed(() => blockController.multipleBlocksSelected())
+const mixedTypeSelection = computed(
+	() => multipleBlocksSelected.value && !blockController.selectedBlocksHaveSameType(),
+)
 
 const attributesEditor = ref<InstanceType<typeof ObjectEditor> | null>(null)
 const propsEditor = ref<InstanceType<typeof PropsEditor> | null>(null)
