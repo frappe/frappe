@@ -257,6 +257,7 @@ body {
 				color: var(--ink-green-6);
 
 				svg {
+					margin: 0;
 					stroke: var(--ink-green-6);
 					flex-shrink: 0;
 				}
@@ -274,6 +275,7 @@ body {
 				color: var(--ink-red-8);
 
 				svg {
+					margin: 0;
 					stroke: var(--ink-red-8);
 					flex-shrink: 0;
 				}
@@ -332,7 +334,8 @@ body {
 				position: relative;
 				width: 100%;
 
-				input {
+				// only pad for a leading icon when one is present
+				&:has(.field-icon) input {
 					padding-left: 38px;
 				}
 			}
@@ -445,18 +448,13 @@ body {
 
 .for-reset-password {
 	.password-hint {
-		display: flex;
-		align-items: flex-start;
-		gap: 8px;
 		@include get_textstyle("sm", "regular");
 		color: var(--ink-gray-5);
 		margin-bottom: 0;
 		line-height: 150%;
 
-		svg {
-			fill: var(--ink-gray-4);
-			flex-shrink: 0;
-			margin-top: 1px;
+		&.hidden {
+			display: none;
 		}
 	}
 
@@ -470,85 +468,41 @@ body {
 		}
 	}
 
-	.password-strength-message {
+	.password-label-row {
+		display: flex;
+		justify-content: space-between;
+		align-items: center;
+		align-self: stretch;
+		gap: 8px;
+	}
+
+	.password-strength-indicator {
 		@include get_textstyle("sm", "regular");
 		color: var(--ink-gray-5);
-		margin-bottom: 0;
-
-		&.hidden {
-			display: none;
-		}
-	}
-
-	.password-strength-group {
-		display: flex;
-		flex-direction: column;
-		justify-content: center;
-		align-items: flex-start;
-		gap: 6px;
-		align-self: stretch;
-		margin-top: 2px;
-	}
-
-	.password-strength-container {
-		display: flex;
-		flex-direction: column;
-		align-items: flex-start;
-		gap: 10px;
-		align-self: stretch;
-		padding-top: 4px;
+		line-height: 150%;
+		white-space: nowrap;
 
 		&.hidden {
 			display: none;
 		}
 
-		.password-strength-label {
-			@include get_textstyle("base", "medium");
+		.password-strength-value {
+			@include get_textstyle("sm", "medium");
 
 			&.strength-red {
-				color: var(--dark-red-500, #b01f1f);
+				color: var(--red-700);
 			}
 
 			&.strength-orange {
-				color: var(--dark-orange-500, var(--orange-700));
+				color: var(--orange-700);
 			}
 
 			&.strength-blue {
-				color: var(--dark-blue-500, var(--blue-700));
+				color: var(--blue-700);
 			}
 
 			&.strength-green {
-				color: var(--dark-green-500, var(--green-700));
-			}
-		}
-
-		.password-strength-bar-track {
-			height: 4px;
-			background: var(--surface-gray-2);
-			border-radius: var(--radius);
-			align-self: stretch;
-			overflow: hidden;
-		}
-
-		.password-strength-bar-fill {
-			height: 100%;
-			border-radius: 20px 4px 4px 20px;
-			transition: width 0.3s ease;
-
-			&.strength-red {
-				background: var(--dark-red-500, #b01f1f);
-			}
-
-			&.strength-orange {
-				background: var(--dark-orange-500, var(--orange-700));
-			}
-
-			&.strength-blue {
-				background: var(--dark-blue-500, var(--blue-700));
-			}
-
-			&.strength-green {
-				background: var(--dark-green-500, var(--green-700));
+				color: var(--green-700);
 			}
 		}
 	}

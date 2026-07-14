@@ -21,9 +21,6 @@
 			<input type="text" id="login_email" class="form-control"
 				placeholder="{% if login_name_placeholder %}{{ login_name_placeholder  }}{% else %}{{ _('jane@example.com') }}{% endif %}"
 				required autofocus autocomplete="username">
-			<svg class="icon icon-sm field-icon email-icon" xmlns="http://www.w3.org/2000/svg">
-				<use href="#icon-mail"></use>
-			</svg>
 		</div>
 		<p class="field-error"></p>
 	</div>
@@ -31,13 +28,9 @@
 	<div class="form-group">
 		<label class="form-label" for="login_password">{{ _("Password") }}</label>
 		<div class="password-field">
-			<input type="password" id="login_password" class="form-control" placeholder="•••••"
+			<input type="password" id="login_password" class="form-control" placeholder="••••••••"
 				autocomplete="current-password" required>
 
-			<svg class="icon icon-sm field-icon password-icon"
-				xmlns="http://www.w3.org/2000/svg">
-					<use href="#icon-lock"></use>
-			</svg>
 			<svg toggle="#login_password" class="icon icon-sm toggle-password" xmlns="http://www.w3.org/2000/svg">
 					<use href="#icon-eye"></use>
 				</svg>
@@ -166,15 +159,19 @@
 			{{ logo_section(_('Forgot Password?'), _("Please enter your email, we'll send you password reset link")) }}
 			<form class="form-signin form-forgot hide" role="form" novalidate>
 				<div class="page-card-body">
+					<div class="login-error-banner">
+						<div class="flex align-items-center justify-content-center">
+							<svg class="icon icon-sm" xmlns="http://www.w3.org/2000/svg">
+								<use href="#icon-triangle-alert"></use>
+							</svg>
+						</div>
+						<span></span>
+					</div>
 					<div class="form-group">
 						<label class="form-label" for="forgot_email">{{ _("Email") }}</label>
 						<div class="email-field">
 							<input type="email" id="forgot_email" class="form-control"
 								placeholder="{{ _('jane@example.com') }}" required autofocus autocomplete="username">
-							<svg class="icon icon-sm field-icon email-icon"
-								xmlns="http://www.w3.org/2000/svg">
-								<use href="#icon-mail"></use>
-							</svg>
 						</div>
 						<p class="field-error"></p>
 					</div>
@@ -201,15 +198,19 @@
 						</svg>
 						<span>{{ _("Please check your email.") }}</span>
 					</div>
+					<div class="login-error-banner">
+						<div class="flex align-items-center justify-content-center">
+							<svg class="icon icon-sm" xmlns="http://www.w3.org/2000/svg">
+								<use href="#icon-triangle-alert"></use>
+							</svg>
+						</div>
+						<span></span>
+					</div>
 					<div class="form-group">
 						<label class="form-label" for="login_with_email_link_email">{{ _("Email") }}</label>
 						<div class="email-field">
 							<input type="email" id="login_with_email_link_email" class="form-control"
 								placeholder="{{ _('jane@example.com') }}" required autofocus autocomplete="username">
-							<svg class="icon icon-sm field-icon email-icon"
-								xmlns="http://www.w3.org/2000/svg">
-								<use href="#icon-mail"></use>
-							</svg>
 						</div>
 						<p class="field-error"></p>
 					</div>

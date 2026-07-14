@@ -73,6 +73,13 @@ login.bind_events = function () {
 		$(".btn-forgot").prop("disabled", !$(this).val().trim());
 	});
 
+	$("#login_with_email_link_email").on("input", function () {
+		// changing the email resets the "Sent" state back to the default
+		$(".form-login-with-email-link .btn-login-with-email-link")
+			.text({{ _("Send login link") | tojson }}).prop("disabled", false);
+		$("section.for-login-with-email-link .login-success-banner, section.for-login-with-email-link .resend-link").hide();
+	});
+
 	$(".form-login-with-email-link").on("submit", function (event) {
 		event.preventDefault();
 		var args = {};
@@ -96,7 +103,9 @@ login.bind_events = function () {
 	$("#signup_fullname, #signup_email").on("input", function () {
 		var name = $("#signup_fullname").val().trim();
 		var email = $("#signup_email").val().trim();
-		$(".btn-signup").prop("disabled", !(name && email));
+		// restore the default label in case a previous submit left a status message
+		// (e.g. "Already Registered") on the button
+		$(".form-signup .btn-signup").text({{ _("Create Account") | tojson }}).prop("disabled", !(name && email));
 	});
 
 	$(".btn-resend-link").on("click", function (e) {
@@ -237,6 +246,17 @@ login.set_invalid = function (message) {
 	setTimeout(() => {
 		$(".login-content.page-card").removeClass('invalid-login');
 	}, 500)
+	// forgot: error in a banner + reset its button (it isn't reset elsewhere)
+	if ($("section.for-forgot").is(":visible")) {
+		$(".form-forgot .btn-forgot").text({{ _("Send Link") | tojson }});
+		login.show_error_banner(message);
+		return;
+	}
+	// email-link: error in a banner (button reset by the form's own catch)
+	if ($("section.for-login-with-email-link").is(":visible")) {
+		login.show_error_banner(message);
+		return;
+	}
 	login.set_status(message, 'red');
 	login.show_error_banner(message);
 	$("#login_password").focus();
