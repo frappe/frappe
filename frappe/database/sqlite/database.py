@@ -122,12 +122,13 @@ class SQLiteExceptionUtil:
 		return "too many columns" in str(e)
 
 	@staticmethod
-	def is_primary_key_violation(e: sqlite3.IntegrityError) -> bool:
-		return e.sqlite_errorcode == sqlite3.SQLITE_CONSTRAINT_PRIMARYKEY
+	def is_primary_key_violation(e: sqlite3.Error) -> bool:
+		# Callers pass arbitrary exceptions here, so guard the sqlite3-only attribute.
+		return getattr(e, "sqlite_errorcode", None) == sqlite3.SQLITE_CONSTRAINT_PRIMARYKEY
 
 	@staticmethod
-	def is_unique_key_violation(e: sqlite3.IntegrityError) -> bool:
-		return e.sqlite_errorcode == sqlite3.SQLITE_CONSTRAINT_UNIQUE
+	def is_unique_key_violation(e: sqlite3.Error) -> bool:
+		return getattr(e, "sqlite_errorcode", None) == sqlite3.SQLITE_CONSTRAINT_UNIQUE
 
 	@staticmethod
 	def is_interface_error(e: sqlite3.Error):
