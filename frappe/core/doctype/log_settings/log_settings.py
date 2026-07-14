@@ -7,6 +7,7 @@ import frappe
 from frappe import _
 from frappe.model.base_document import get_controller
 from frappe.model.document import Document
+from frappe.query_builder import Table
 from frappe.utils import add_days, cint, now_datetime
 from frappe.utils.caching import site_cache
 
@@ -164,30 +165,27 @@ def clear_log_table(doctype, days=90):
 	original = get_table_name(doctype)
 	temporary = f"{original} temp_table"
 	backup = f"{original} backup_table"
+
+	original_table = Table(original)
 	cutoff = add_days(now_datetime(), -cint(days))
+	copy_recent_rows = (
+		frappe.qb.into(Table(temporary))
+		.from_(original_table)
+		.select("*")
+		.where(original_table.creation > cutoff)
+	)
 
 	try:
 		if frappe.db.db_type == "postgres":
 			frappe.db.sql_ddl(f'CREATE TABLE "{temporary}" (LIKE "{original}" INCLUDING ALL)')
 
-			frappe.db.sql(
-				f"""INSERT INTO "{temporary}"
-					SELECT * FROM "{original}"
-					WHERE "{original}"."creation" > %(cutoff)s""",
-				{"cutoff": cutoff},
-			)
+			copy_recent_rows.run()
 			frappe.db.sql_ddl(f'ALTER TABLE "{original}" RENAME TO "{backup}"')
 			frappe.db.sql_ddl(f'ALTER TABLE "{temporary}" RENAME TO "{original}"')
 		elif frappe.db.db_type == "mariadb":
 			frappe.db.sql_ddl(f"CREATE TABLE `{temporary}` LIKE `{original}`")
 
-			# Copy all recent data to new table
-			frappe.db.sql(
-				f"""INSERT INTO `{temporary}`
-					SELECT * FROM `{original}`
-					WHERE `{original}`.`creation` > %(cutoff)s""",
-				{"cutoff": cutoff},
-			)
+			copy_recent_rows.run()
 			frappe.db.sql_ddl(f"RENAME TABLE `{original}` TO `{backup}`, `{temporary}` TO `{original}`")
 	except Exception:
 		frappe.db.rollback()
