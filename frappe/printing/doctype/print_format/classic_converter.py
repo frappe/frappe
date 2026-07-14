@@ -324,15 +324,14 @@ def get_beta_layout(print_format: str) -> dict:
 
 
 def migrate_all_classic_formats():
-	"""Convert every non-standard classic format on the site. Idempotent: already
-	converted formats are re-converted from their `classic_format_data` backup."""
+	"""Convert every classic builder format on the site — standard (app-shipped) and
+	custom alike. Non-classic formats are skipped by convert_print_format. Standard
+	formats are written straight to the db so the conversion is not exported back to
+	the app's source files; the render-time shim re-converts any that a later app
+	sync reverts to classic. Idempotent: re-converts from `classic_format_data`."""
 	names = frappe.get_all(
 		"Print Format",
-		filters={"standard": "No"},
-		or_filters=[
-			["print_format_builder", "=", 1],
-			["classic_format_data", "is", "set"],
-		],
+		filters={"custom_format": 0, "raw_printing": 0, "print_format_builder_beta": 0},
 		pluck="name",
 	)
 	report = {}
@@ -342,7 +341,22 @@ def migrate_all_classic_formats():
 			dropped = convert_print_format(doc)
 			if dropped is None:
 				continue
-			doc.save(ignore_permissions=True)
+			if doc.standard == "Yes":
+				frappe.db.set_value(
+					"Print Format",
+					name,
+					{
+						"format_data": doc.format_data,
+						"classic_format_data": doc.classic_format_data,
+						"print_format_builder": 0,
+						"print_format_builder_beta": 1,
+						"pdf_generator": doc.pdf_generator,
+						"page_number": doc.page_number,
+					},
+					update_modified=False,
+				)
+			else:
+				doc.save(ignore_permissions=True)
 			report[name] = dropped
 		except Exception:
 			# never let one broken format abort the whole migration
