@@ -998,32 +998,43 @@ def modify_query(query: str) -> str:
 	return tree.sql(dialect=_FrappeSQLite)
 
 
+_POSITIONAL_PARAM = re.compile(r"%s")
+
+
+def _expand_sequence(value, bind_scalar) -> str:
+	"""Turn a bound value into placeholder text.
+
+	Scalar -> one placeholder, list/tuple/set -> "(a, b)", empty -> "(NULL)" (matches nothing),
+	nested -> a row value like "((1, 2), (3, 4))". bind_scalar records one scalar and returns its
+	placeholder; SQLite can't bind a whole sequence to one placeholder, so we expand it here.
+	"""
+	if not isinstance(value, list | tuple | set):
+		return bind_scalar(value)
+	if not value:
+		return "(NULL)"
+	return "(" + ", ".join(_expand_sequence(v, bind_scalar) for v in value) + ")"
+
+
 def _bind_named_params(query: str, values: dict):
-	"""Rewrite pyformat ``%(name)s`` placeholders to SQLite ``:name`` placeholders.
+	"""Rewrite %(name)s placeholders to SQLite :name, expanding sequences (see _expand_sequence).
 
-	A sequence value is expanded into a parenthesised list so ``WHERE x IN %(names)s``
-	works (SQLite can't bind a sequence to one placeholder); an empty sequence becomes
-	``(NULL)`` and a nested sequence becomes a row value, supporting ``WHERE (a, b) IN
-	%(pairs)s``. The caller's dict is never mutated."""
+	Placeholders inside string literals (e.g. '%(x)s') are left alone. The caller's dict is not mutated.
+	"""
 	bind: dict = {}
-
-	def placeholder(key, value):
-		"""Register ``value`` under ``key`` and return its placeholder text, recursing
-		into sequences (e.g. ``[1, 2]`` -> ``(:key__0, :key__1)``)."""
-		if isinstance(value, list | tuple | set):
-			if not value:
-				return "(NULL)"
-			return "(" + ", ".join(placeholder(f"{key}__{i}", v) for i, v in enumerate(value)) + ")"
-		bind[key] = value
-		return f":{key}"
 
 	def replace(match):
 		key = match.group(1)
 		if key not in values:
 			return match.group(0)
-		return placeholder(key, values[key])
 
-	# Rewrite placeholders only outside string literals, so a literal like `'%(x)s'` is preserved.
+		def bind_scalar(value):
+			# len(bind) keeps every generated name unique.
+			name = f"{key}_{len(bind)}"
+			bind[name] = value
+			return f":{name}"
+
+		return _expand_sequence(values[key], bind_scalar)
+
 	rewritten = "".join(
 		chunk if is_literal else _PARAM_COMP.sub(replace, chunk)
 		for is_literal, chunk in _split_sql_literals(query)
@@ -1032,64 +1043,45 @@ def _bind_named_params(query: str, values: dict):
 
 
 def _expand_positional_params(query: str, values):
-	"""Translate pyformat ``%s`` placeholders to SQLite ``?`` placeholders, expanding
-	any sequence value into ``(?, ?, ...)``.
+	"""Rewrite %s placeholders to SQLite ?, expanding sequences so "WHERE name IN %s" works.
 
-	MariaDB/Postgres drivers expand a list/tuple bound to a single ``%s`` (the common
-	``WHERE name IN %s`` idiom) into a parenthesised list. SQLite's driver cannot bind
-	a sequence to one placeholder, so we expand it ourselves and flatten the values to
-	match. An empty sequence becomes ``(NULL)`` (matches nothing), mirroring the drivers.
-
-	Placeholders are only recognised outside single-quoted string literals, so a literal
-	containing ``%s`` (e.g. ``LIKE '%system%'``) is never treated as a placeholder.
+	Placeholders inside string literals (e.g. LIKE '%system%') are left alone.
 	"""
 
-	def naive(q):
-		"""``%s`` -> ``?`` outside string literals only."""
+	flat: list = []
+	values_iter = iter(())  # the real iterator is set once values are normalised, below
+
+	def substitute_only(q):
+		# Plain %s -> ? outside string literals, no sequence expansion. Used as the fallback.
 		return "".join(
 			chunk if is_literal else chunk.replace("%s", "?") for is_literal, chunk in _split_sql_literals(q)
 		)
 
+	def bind_scalar(value):
+		flat.append(value)
+		return "?"
+
+	def replace(_match):
+		# Each %s, left to right, takes the next value; a sequence expands to several ? binds.
+		return _expand_sequence(next(values_iter), bind_scalar)
+
 	if not values:
-		return naive(query), values
+		return substitute_only(query), values
 
 	if not isinstance(values, list | tuple):
 		values = (values,)
 
-	# One value per placeholder is required. If they don't line up (e.g. a stray `%s`
-	# inside an already-substituted fragment), fall back to the naive rewrite.
+	# We need exactly one value per placeholder. If the counts disagree (e.g. a stray %s left
+	# by an earlier substitution), don't guess -- just do the plain substitution.
 	placeholder_count = sum(
 		chunk.count("%s") for is_literal, chunk in _split_sql_literals(query) if not is_literal
 	)
 	if placeholder_count != len(values):
-		return naive(query), values
+		return substitute_only(query), values
 
-	def expand(value):
-		"""Return ``(placeholder_text, bound_values)`` for one value, recursing into
-		sequences (e.g. ``[1, 2]`` -> ``("(?, ?)", [1, 2])``)."""
-		if not isinstance(value, list | tuple | set):
-			return "?", [value]
-		if not value:
-			return "(NULL)", []
-		texts, flat = [], []
-		for item in value:
-			text, sub = expand(item)
-			texts.append(text)
-			flat.extend(sub)
-		return "(" + ", ".join(texts) + ")", flat
-
-	rendered, flat, vi = [], [], 0
-	for is_literal, chunk in _split_sql_literals(query):
-		if is_literal:
-			rendered.append(chunk)
-			continue
-		parts = chunk.split("%s")
-		rendered.append(parts[0])
-		for tail in parts[1:]:
-			text, sub = expand(values[vi])
-			vi += 1
-			rendered.append(text)
-			flat.extend(sub)
-			rendered.append(tail)
-
-	return "".join(rendered), flat
+	values_iter = iter(values)
+	rewritten = "".join(
+		chunk if is_literal else _POSITIONAL_PARAM.sub(replace, chunk)
+		for is_literal, chunk in _split_sql_literals(query)
+	)
+	return rewritten, flat
