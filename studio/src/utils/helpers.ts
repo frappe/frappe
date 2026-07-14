@@ -283,6 +283,17 @@ async function findPageWithRoute(appName: string, pageRoute: string) {
 	return fetchPage(pageName)
 }
 
+// extract dynamic route variables from a vue-router route, e.g. "/articles/:category" -> ["category"]
+function getRouteVariables(route: string): string[] {
+	const variables = [] as string[]
+	route.split("/").forEach((part) => {
+		if (part.startsWith(":") && part.length > 1) {
+			variables.push(part.slice(1))
+		}
+	})
+	return variables
+}
+
 // data
 function getAutocompleteValues(data: SelectOption[]) {
 	if (!data.length || typeof data[0] === "string") return data
@@ -547,6 +558,7 @@ export {
 	// page
 	fetchPage,
 	findPageWithRoute,
+	getRouteVariables,
 	// data
 	getAutocompleteValues,
 	getParamsObj,

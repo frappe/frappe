@@ -11,7 +11,7 @@
 					<ItemActions
 						class="-mt-1 self-start"
 						:menuOptions="getResourceMenu(resource, resource_name)"
-						@edit="openResource(resource)"
+						@edit="openResource(resource_name)"
 					/>
 				</div>
 			</div>
@@ -188,21 +188,22 @@ const addResource = (resource: Resource) => {
 		})
 }
 
-const deleteResource = async (resource: Resource, resource_name: string) => {
+const deleteResource = async (resource_name: string) => {
 	const confirmed = await confirm(`Are you sure you want to delete the data source ${resource_name}?`)
-	if (confirmed) {
-		studioPageResources.delete
-			.submit(resource.resource_id)
-			.then(async () => {
-				if (store.activePage) {
-					await codeStore.setPageResources(store.activePage, true)
-				}
-				toast.success(`Data Source ${resource_name} deleted successfully`)
-			})
-			.catch(() => {
-				toast.error(`Failed to delete data source ${resource_name}`)
-			})
-	}
+	if (!confirmed) return
+	const stored = await getStoredResource(resource_name)
+	if (!stored) return
+	studioPageResources.delete
+		.submit(stored.resource_id)
+		.then(async () => {
+			if (store.activePage) {
+				await codeStore.setPageResources(store.activePage, true)
+			}
+			toast.success(`Data Source ${resource_name} deleted successfully`)
+		})
+		.catch(() => {
+			toast.error(`Failed to delete data source ${resource_name}`)
+		})
 }
 
 const editResource = async (resource: Resource) => {
@@ -230,15 +231,18 @@ const getResourceValues = (resource: Resource) => {
 	}
 }
 
-const openResource = async (resource: Resource) => {
+const openResource = async (resource_name: string) => {
+	existingResource.value = await getStoredResource(resource_name)
+	showResourceDialog.value = true
+}
+
+const getStoredResource = async (resource_name: string) => {
 	studioPageResources.filters = {
 		parent: store.activePage?.name,
-		name: resource.resource_id,
+		resource_name: resource_name,
 	}
 	await studioPageResources.reload()
-
-	existingResource.value = studioPageResources.data[0]
-	showResourceDialog.value = true
+	return studioPageResources.data[0]
 }
 
 const getResourceMenu = (resource: Resource, resource_name: string) => {
@@ -247,7 +251,7 @@ const getResourceMenu = (resource: Resource, resource_name: string) => {
 			label: "Delete",
 			icon: "lucide-trash",
 			theme: "red",
-			onClick: () => deleteResource(resource, resource_name),
+			onClick: () => deleteResource(resource_name),
 		},
 		{
 			label: "Copy Object",

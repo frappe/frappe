@@ -487,11 +487,7 @@ const useCodeStore = defineStore("codeStore", () => {
 	const getDocumentResource = async (resource: DocumentResource, context: ExpressionEvaluationContext) => {
 		let docname = resource.document_name
 		if (resource.fetch_document_using_filters && resource.filters) {
-			// fetch the docname based on filters
-			docname = await call(
-				"studio.api.get_docname",
-				{ doctype: resource.document_type, filters: getEvaluatedFilters(resource.filters, context) }
-			)
+			docname = await resolveDocnameFromFilters(resource, context)
 		}
 
 		return createDocumentResource({
@@ -502,6 +498,22 @@ const useCodeStore = defineStore("codeStore", () => {
 			...getSuccessErrorHandlers(resource),
 			...getWhitelistedMethods(resource),
 		})
+	}
+
+	const resolveDocnameFromFilters = async (resource: DocumentResource, context: ExpressionEvaluationContext) => {
+		const filters = getEvaluatedFilters(resource.filters, context) || {}
+		// the common `name = {{ route.params.id }}` case resolves to the docname itself — no server lookup needed
+		const keys = Object.keys(filters)
+		if (keys.length === 1 && keys[0] === "name") {
+			return filters.name
+		}
+		// other filters (e.g. category = tech) need a lookup for one matching doc's name
+		const doc = await call("frappe.client.get_value", {
+			doctype: resource.document_type,
+			fieldname: "name",
+			filters,
+		})
+		return doc?.name
 	}
 
 	const getEvaluatedFilters = (filters: Filters | null = null, context: ExpressionEvaluationContext) => {

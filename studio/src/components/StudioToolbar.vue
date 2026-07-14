@@ -87,6 +87,12 @@
 							<span class="flex max-w-96 truncate text-base text-ink-gray-5">
 								{{ routeString }}
 							</span>
+							<Tooltip
+								v-if="!store.areRouteVariablesSet"
+								text="Set route variable values here to preview page data"
+							>
+								<FeatherIcon name="alert-circle" class="h-[14px] w-[14px] text-ink-amber-6" />
+							</Tooltip>
 						</div>
 						<FeatherIcon
 							name="external-link"

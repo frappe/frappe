@@ -1,4 +1,5 @@
 import { ref, reactive, nextTick, computed, toRaw, readonly } from "vue"
+import { useDebounceFn } from "@vueuse/core"
 import router from "@/router/studio_router"
 import { defineStore } from "pinia"
 
@@ -7,6 +8,7 @@ import {
 	fetchPage,
 	confirm,
 	getInitialVariableValue,
+	getRouteVariables,
 } from "@/utils/helpers"
 import { getBlockInstance, getRootBlock, getBlockCopyWithoutParent, jsToJson } from "@/utils/serializer"
 import { studioPages } from "@/data/studioPages"
@@ -178,6 +180,9 @@ const useStudioStore = defineStore("store", () => {
 	const savingPage = ref(false)
 	const settingPage = ref(false)
 
+	// design-time test values for dynamic route variables (e.g. { category: "tech" }), persists in localStorage
+	const routeVariables = ref<Record<string, string>>({})
+
 	async function setPage(pageName: string) {
 		settingPage.value = true
 		const page = await fetchPage(pageName)
@@ -186,6 +191,7 @@ const useStudioStore = defineStore("store", () => {
 			return
 		}
 		activePage.value = page
+		loadRouteVariables(page)
 		await setPageData(page)
 		await codeStore.setPageScript(page, Boolean(page.is_standard))
 
@@ -375,7 +381,7 @@ const useStudioStore = defineStore("store", () => {
 	}
 
 	function openPageInBrowser(app: StudioApp, page: StudioPage, preview: boolean = false) {
-		let route = `/${app.route}${page.route}`
+		let route = `/${app.route}${resolveRouteVariables(page.route)}`
 		if (preview) {
 			route = `/dev${route}`
 		}
@@ -391,6 +397,15 @@ const useStudioStore = defineStore("store", () => {
 				targetWindow?.location.reload()
 			}, 50)
 		}
+	}
+
+	// substitute test route variables set by the user into the dynamic route so preview opens the concrete URL,
+	// e.g. "/notes/:id" + { id: "note-1" } -> "/notes/note-1" (unset params keep their placeholder)
+	function resolveRouteVariables(route: string) {
+		return getRouteVariables(route).reduce((resolved, name) => {
+			const value = routeVariables.value[name]
+			return value ? resolved.replace(`:${name}`, encodeURIComponent(value)) : resolved
+		}, route)
 	}
 
 	// custom components
@@ -454,15 +469,55 @@ const useStudioStore = defineStore("store", () => {
 		if (!activePage.value) return ""
 
 		const newRoute = toRaw(router.currentRoute.value)
-		// Extract param names from active page's route (e.g., ["employee", "id"] from "/hr/:employee/:id")
-		const paramNames = (activePage.value.route.match(/:\w+/g) || []).map(param => param.slice(1))
+		// Seed each dynamic param with its design-time test value (empty string when unset),
+		// e.g. "/hr/:employee/:id" -> { employee, id } filled from routeVariables
+		const paramNames = getRouteVariables(activePage.value.route)
 		newRoute.params = paramNames.reduce((params, name) => {
-			params[name] = ""
+			params[name] = routeVariables.value[name] ?? ""
 			return params
 		}, {} as Record<string, string>)
 
 		return newRoute
 	})
+
+	// route variables on the active page that have no test value yet — used to nudge the user, since
+	// unset variables render the page's empty state (no doc / no rows) which can look like a bug
+	const areRouteVariablesSet = computed(() => {
+		if (!activePage.value) return true
+		return getRouteVariables(activePage.value.route).every((name) => !!routeVariables.value[name])
+	})
+
+	function loadRouteVariables(page: StudioPage) {
+		const key = `${page.name}:routeVariables`
+		try {
+			const stored = localStorage.getItem(key)
+			const parsed = stored ? JSON.parse(stored) : null
+			routeVariables.value = parsed && typeof parsed === "object" && !Array.isArray(parsed) ? parsed : {}
+		} catch (error) {
+			console.error(`Failed to parse route variables for ${page.name}, resetting`, error)
+			routeVariables.value = {}
+			localStorage.removeItem(key)
+		}
+	}
+
+	function setRouteVariable(name: string, value: string) {
+		if (!activePage.value) return
+		routeVariables.value[name] = value
+		localStorage.setItem(
+			`${activePage.value.name}:routeVariables`,
+			JSON.stringify(routeVariables.value),
+		)
+		resetState()
+	}
+
+	const resetState = useDebounceFn(async () => {
+		const page = activePage.value
+		if (!page) return
+		// re-resolve data sources with the new value, then re-run the page script so bindings that
+		// derive from a resource (e.g. refs seeded from note.doc via a watcher) re-bind to the new doc.
+		await codeStore.setPageResources(page, true)
+		await codeStore.setPageScript(page, Boolean(page.is_standard))
+	}, 300)
 
 	const codeStore = useCodeStore()
 	codeStore.setRouteObject(routeObject)
@@ -568,6 +623,9 @@ const useStudioStore = defineStore("store", () => {
 		unpublishApp,
 		openPageInBrowser,
 		routeObject,
+		routeVariables,
+		areRouteVariablesSet,
+		setRouteVariable,
 		// app build
 		generateAppBuild,
 		// styles
