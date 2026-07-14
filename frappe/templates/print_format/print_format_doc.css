@@ -1,7 +1,9 @@
-/* Applied in every media (not just @media print) so the on-screen preview
-   lays columns and tables out exactly like the PDF. */
 .print-format-doc .col, .print-format-doc *[class^="col-"] {
 	max-width: none !important;
+}
+.print-format-doc {
+	-webkit-print-color-adjust: exact;
+	print-color-adjust: exact;
 }
 .print-format-doc .label {
 	border: none;
@@ -65,7 +67,6 @@
 	content: ":";
 }
 
-/* Opt-in (Print Settings ▸ Show Colon After Field Labels): classic "Name:" style */
 .print-format-doc.show-label-colon .field .label::after {
 	content: ":";
 }
@@ -152,8 +153,6 @@
 	font-size: 0.9em;
 	border-collapse: collapse;
 	width: 100%;
-	/* Honour the per-column widths and wrap content instead of letting the table
-	   grow past the page (which makes Chrome scale the whole page down). */
 	table-layout: fixed;
 	word-break: break-word;
 }
@@ -430,9 +429,6 @@
 	border-bottom: none;
 }
 
-/* HTML blocks migrated from the classic builder use the Bootstrap grid; the
-   Chrome PDF body has no horizontal padding, so a .row's negative margin
-   would push content off the printable page */
 .print-format-doc .custom-html .row {
 	margin-left: 0;
 	margin-right: 0;
