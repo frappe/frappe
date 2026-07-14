@@ -791,6 +791,30 @@ def _render_placeholder(self, node: exp.Placeholder) -> str:
 	return f"%({name})s" if name else "%s"
 
 
+# Names of the scalar functions frappe registers per connection (see get_connection). Keep in
+# sync with the registrations there; the `regexp` operator is handled by _render_regexp instead.
+_FRAPPE_UDF_NAMES = frozenset(
+	{
+		"curdate",
+		"curtime",
+		"utc_timestamp",
+		"unix_timestamp",
+		"timestamp",
+		"to_seconds",
+		"timediff",
+		"datediff",
+		"date_format",
+		"monthname",
+		"quarter",
+		"substring_index",
+		"month",
+		"year",
+		"day",
+		"dayofmonth",
+	}
+)
+
+
 class _FrappeMySQL(_MySQLDialect):
 	"""MariaDB dialect that treats both backtick- and doublequote-quoted names as identifiers.
 
@@ -802,6 +826,19 @@ class _FrappeMySQL(_MySQLDialect):
 	class Tokenizer(_MySQLDialect.Tokenizer):
 		IDENTIFIERS: typing.ClassVar = ["`", '"']
 		QUOTES: typing.ClassVar = ["'"]
+
+	class Parser(_MySQLDialect.Parser):
+		# Parse the functions we register as connection UDFs (see get_connection) as plain
+		# anonymous calls, so they round-trip verbatim to those UDFs instead of being transpiled
+		# to a SQLite built-in. sqlglot's rewrites are wrong or lossy here: MONTHNAME becomes
+		# STRFTIME('%B', ...) which SQLite evaluates to NULL, DAYOFMONTH becomes the non-existent
+		# DAY_OF_MONTH(), DATE_FORMAT loses our MariaDB specifier handling, and CURDATE/CURTIME
+		# become UTC CURRENT_DATE/CURRENT_TIME instead of frappe's local-time functions.
+		FUNCTIONS: typing.ClassVar = {
+			name: parser
+			for name, parser in _MySQLDialect.Parser.FUNCTIONS.items()
+			if name.lower() not in _FRAPPE_UDF_NAMES
+		}
 
 
 def _render_regexp(self, node: exp.RegexpLike) -> str:
