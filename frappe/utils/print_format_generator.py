@@ -109,7 +109,6 @@ class PrintFormatGenerator:
 		page_width = page_width_map.get(self.print_settings.pdf_page_size) or 210
 		body_width = page_width - self.print_format.margin_left - self.print_format.margin_right
 		style_name = self.style or self.print_settings.print_style
-		# style_name may be a placeholder like "Standard" with no Print Style record
 		print_style = (
 			frappe.get_doc("Print Style", style_name)
 			if style_name and frappe.db.exists("Print Style", style_name)
@@ -350,8 +349,6 @@ class PrintFormatGenerator:
 			"footer": {"columns": []},
 		}
 		if isinstance(layout, list):
-			# App-shipped standard classic formats (Tax Invoice, Pick List, …) are re-synced
-			# from fixtures on migrate, so they can't be converted in the DB — convert at render.
 			from frappe.printing.doctype.print_format.classic_converter import convert_classic_to_beta
 
 			layout, _dropped = convert_classic_to_beta(

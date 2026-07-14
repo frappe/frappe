@@ -60,7 +60,6 @@ def get_print(
 	if "pdf_generator" not in local.form_dict:
 		from frappe.printing.doctype.print_format.classic_converter import uses_beta_renderer
 
-		# Standard/beta formats only lay out under Chromium, so force it (a deleted format degrades to Standard).
 		pf_doc = _print_format_doc_or_none(print_format)
 		requires_chrome = not pf_doc or uses_beta_renderer(pf_doc)
 

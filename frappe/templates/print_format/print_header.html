@@ -1,7 +1,6 @@
 <style>
 	{% include "templates/print_format/print_format_font.css" %}
 </style>
-{#- In-flow (not position:fixed): per-page repetition is done by the Chrome PDF overlay pipeline. -#}
 <header>
 	{%- if letterhead -%}
 	<div class="letter-head">{{ frappe.render_template(letterhead.content, {'doc': doc}) }}</div>

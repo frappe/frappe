@@ -23,8 +23,6 @@
 	{{ render_margin_text(page_number_position, _('{0} of {1}').format('counter(page) "', '" counter(pages)')) }}
 	{%- endif %}
 {%- else %}
-	{#- Browser print: keep page margins at 0 and put the format's margins on the
-	   body as padding, so spacing survives the browser "Margins: None" setting. -#}
 	margin: 0;
 	{%- set page_number_position = print_format.page_number.lower().replace(' ', '_') %}
 	{%- if page_number_position in ['top_left', 'top_center', 'top_right', 'bottom_left', 'bottom_center', 'bottom_right'] %}

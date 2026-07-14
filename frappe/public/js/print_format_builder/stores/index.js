@@ -53,9 +53,7 @@ export function getStore(print_format_name) {
 						: Promise.resolve(saved_layout);
 					layout_ready.then((resolved_layout) => {
 						layout.value = resolved_layout || get_default_layout();
-						// Drop legacy sections that were soft-deleted before immediate splice was introduced
 						layout.value.sections = layout.value.sections.filter((s) => !s.remove);
-						// Migrate legacy string header/footer to section objects
 						layout.value.header = migrate_to_section(layout.value.header);
 						layout.value.footer = migrate_to_section(layout.value.footer);
 						edit_letterhead.value = false;
@@ -64,7 +62,6 @@ export function getStore(print_format_name) {
 						selected_letterhead.value = false;
 						selected_lh_footer.value = false;
 
-						// load the letter head stored in format_data, if any
 						const lh_name = layout.value?.letter_head;
 						const load_lh = lh_name
 							? frappe.db
@@ -108,7 +105,6 @@ export function getStore(print_format_name) {
 				return r.message.layout;
 			})
 			.catch((e) => {
-				// never leave the builder stuck on a spinner if conversion fails
 				console.error("Classic print format conversion failed", e);
 				frappe.msgprint({
 					title: __("Could not convert this print format"),

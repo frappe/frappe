@@ -19,6 +19,13 @@
 	margin: 0 auto;
 	background: white;
 	border-radius: var(--radius);
+	padding: 0;
+	min-height: 11.69in;
+	overflow-x: auto;
+
+	.print-format-container {
+		min-width: 8.3in;
+	}
 }
 
 .preview-beta-wrapper iframe {
@@ -73,16 +80,6 @@
 			flex: 1 0 auto;
 			width: 100%;
 		}
-	}
-}
-
-.print-preview {
-	padding: 0;
-	min-height: 11.69in;
-	overflow-x: auto;
-
-	.print-format-container {
-		min-width: 8.3in;
 	}
 }
 

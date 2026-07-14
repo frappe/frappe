@@ -504,14 +504,10 @@ def is_visible(df: "DocField", doc: "Document") -> bool:
 	return not doc.is_print_hide(df.fieldname, df)
 
 
-def make_layout(doc: "Document", meta: "Meta", format_data=None) -> list:
+def make_layout(doc: "Document", meta: "Meta") -> list:
 	"""Build a hierarchical (pages → sections → columns → fields) layout from the
 	doctype fields, consumed by server-side print templates via the `layout` arg
-	and by `standard_macros.html`.
-
-	:param doc: Document to be rendered.
-	:param meta: Document meta object (doctype).
-	:param format_data: Fields sequence and properties defined by Print Format Builder."""
+	and by `standard_macros.html`."""
 	layout, page = [], []
 	layout.append(page)
 
@@ -523,20 +519,7 @@ def make_layout(doc: "Document", meta: "Meta", format_data=None) -> list:
 		if not page[-1]["columns"]:
 			page[-1]["columns"].append({"fields": []})
 
-	for df in format_data or meta.fields:
-		if format_data:
-			# embellish df with original properties
-			df = frappe._dict(df)
-			if df.fieldname:
-				original = meta.get_field(df.fieldname)
-				if original:
-					newdf = original.as_dict()
-					newdf.hide_in_print_layout = original.get("hide_in_print_layout")
-					newdf.update(df)
-					df = newdf
-
-			df.print_hide = 0
-
+	for df in meta.fields:
 		if df.fieldtype == "Section Break" or page == []:
 			if len(page) > 1:
 				if not page[-1]["has_data"]:
