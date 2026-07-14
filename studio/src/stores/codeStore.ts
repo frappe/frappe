@@ -507,8 +507,13 @@ const useCodeStore = defineStore("codeStore", () => {
 		if (keys.length === 1 && keys[0] === "name") {
 			return filters.name
 		}
-		// other filters (e.g. category = tech) need a server lookup to find one matching doc
-		return await call("studio.api.get_docname", { doctype: resource.document_type, filters })
+		// other filters (e.g. category = tech) need a lookup for one matching doc's name
+		const doc = await call("frappe.client.get_value", {
+			doctype: resource.document_type,
+			fieldname: "name",
+			filters,
+		})
+		return doc?.name
 	}
 
 	const getEvaluatedFilters = (filters: Filters | null = null, context: ExpressionEvaluationContext) => {

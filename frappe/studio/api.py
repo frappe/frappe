@@ -13,15 +13,6 @@ from studio.utils import has_page_write_perm
 
 
 @frappe.whitelist()
-def get_docname(doctype: str, filters: dict | str) -> str | None:
-	if isinstance(filters, str):
-		filters = frappe.parse_json(filters)
-
-	document = frappe.get_list(doctype, filters=filters, pluck="name", limit=1)
-	return document[0] if document else None
-
-
-@frappe.whitelist()
 def get_doctype_fields(doctype: str) -> list[dict]:
 	fields = frappe.get_meta(doctype).fields
 	# find the name field
