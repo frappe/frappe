@@ -882,10 +882,16 @@ def has_child_permission(
 			)
 			return False
 
+		parent_doc = child_doc.parent_doc if hasattr(child_doc, "parent_doc") else None
+		if parent_doc is None:
+			parent_doc = child_doc.parent
+	else:
+		parent_doc = None
+
 	return has_permission(
 		parent_doctype,
 		ptype=ptype,
-		doc=child_doc and getattr(child_doc, "parent_doc", child_doc.parent),
+		doc=parent_doc,
 		user=user,
 		print_logs=print_logs,
 		debug=debug,
