@@ -62,7 +62,7 @@ def get_bootinfo():
 	bootinfo.all_domains = frappe.get_all("Domain", pluck="name")
 	add_layouts(bootinfo)
 
-	bootinfo.module_app = frappe.local.module_app
+	bootinfo.module_app = get_boot_module_app()
 	bootinfo.single_types = frappe.get_all("DocType", {"issingle": 1}, pluck="name")
 	bootinfo.nested_set_doctypes = frappe.get_all("DocField", {"fieldname": "lft"}, pluck="parent")
 	bootinfo.tree_view_doctypes = get_tree_view_doctypes()
@@ -171,6 +171,24 @@ def load_conf_settings(bootinfo):
 	for key in ("developer_mode", "socketio_port", "file_watcher_port"):
 		if key in frappe.conf:
 			bootinfo[key] = frappe.conf.get(key)
+
+
+def get_boot_module_app():
+	"""`frappe.local.module_app` extended with modules that exist only in the DB.
+
+	A Module Def created from the UI (e.g. to host a custom doctype) carries its app in
+	`app_name` but never appears in any modules.txt, so `frappe.local.module_app` misses it.
+	The desk uses this map to resolve a routed doctype's owning app -- which sidebar to show
+	and which app's workspace rail to switch to -- so fold those modules in for the boot
+	payload only. Server-side file-path resolution (`frappe.get_module_app`) intentionally
+	stays modules.txt-based."""
+	module_app = dict(frappe.local.module_app)
+	installed_apps = set(frappe.get_installed_apps())
+	for module in frappe.get_all("Module Def", fields=["name", "app_name"]):
+		key = frappe.scrub(module.name)
+		if key not in module_app and module.app_name in installed_apps:
+			module_app[key] = module.app_name
+	return module_app
 
 
 def get_app_rail_map():
