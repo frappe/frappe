@@ -243,6 +243,11 @@ def get_app_rail_host_map():
 	return host_map
 
 
+# Fallback apps-screen sort order for apps that don't declare a `sequence_id` in their
+# `add_to_apps_screen` hook. Sits below Framework (1000) so it always trails real apps.
+DEFAULT_APP_SEQUENCE_ID = 100
+
+
 def load_desktop_data(bootinfo):
 	from frappe.desk.desktop import get_user_workspaces
 
@@ -281,6 +286,7 @@ def load_desktop_data(bootinfo):
 				bootinfo.app_data.append(
 					dict(
 						on_apps_screen=False,
+						sequence_id=app_info.get("sequence_id") or DEFAULT_APP_SEQUENCE_ID,
 						app_name=app_info.get("name") or app_name,
 						app_title=app_info.get("title")
 						or (frappe.get_hooks("app_title", app_name=app_name) or [None])[0]
@@ -327,6 +333,9 @@ def load_desktop_data(bootinfo):
 			dict(
 				# whether the app opts into the apps screen via the add_to_apps_screen hook
 				on_apps_screen=bool(apps),
+				# Sort order for the apps (desktop) screen; lower shows first, Framework is pinned
+				# last (sequence_id 1000). Apps that don't declare one fall to a middle default.
+				sequence_id=app_info.get("sequence_id") or DEFAULT_APP_SEQUENCE_ID,
 				app_name=app_info.get("name") or app_name,
 				app_title=app_info.get("title")
 				or (

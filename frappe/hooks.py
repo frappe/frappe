@@ -555,5 +555,7 @@ add_to_apps_screen = [
 		"title": "Framework",
 		"route": app_home,
 		"has_permission": "frappe.permissions.check_app_permission",
+		# Sort order on the apps (desktop) screen; lower shows first. Framework is pinned last.
+		"sequence_id": 1000,
 	}
 ]

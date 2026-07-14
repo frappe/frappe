@@ -37,9 +37,11 @@ class DesktopPage {
 	render_app_icons() {
 		// the apps screen is powered entirely by the `add_to_apps_screen` hook,
 		// surfaced as `frappe.boot.app_data`; show one icon per opted-in app.
-		const apps = (frappe.boot.app_data || []).filter(
-			(app) => app.on_apps_screen && app.app_route
-		);
+		// Order by the hook's `sequence_id` (lower first); Framework declares 1000 so it
+		// always trails. Ties keep installed-apps order since sort() is stable.
+		const apps = (frappe.boot.app_data || [])
+			.filter((app) => app.on_apps_screen && app.app_route)
+			.sort((a, b) => (a.sequence_id ?? 100) - (b.sequence_id ?? 100));
 
 		const $container = $(`<div class="icons-container"></div>`).appendTo(this.wrapper);
 		const columns = frappe.is_mobile() ? 3 : null;
