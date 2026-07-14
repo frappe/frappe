@@ -198,3 +198,7 @@ cypress/videos
 .helix/
 # Aider AI Chat
 .aider*
+
+# SQLite sidecar files
+*.db-wal
+*.db-shm
