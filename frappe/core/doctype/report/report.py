@@ -213,7 +213,9 @@ class Report(Document):
 
 	def execute_snapshot_report(self, filters):
 		try:
-			execute_snapshot_report = self.get_module_method("execute_snapshot_report")
+			module = self.module or frappe.db.get_value("DocType", self.ref_doctype, "module")
+			abs_method_path = get_report_module_dotted_path(module, self.name) + ".execute_snapshot_report"
+			execute_snapshot_report = frappe.get_attr(abs_method_path)
 		except AttributeError:
 			return [], []
 		return execute_snapshot_report(frappe._dict(filters))

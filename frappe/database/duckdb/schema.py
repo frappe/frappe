@@ -11,7 +11,6 @@ class DuckDBColumn(DbColumn):
 			self.fieldtype,
 			precision=self.precision,
 			length=self.length,
-			options=self.options,
 			duckdb=True,
 		)
 
@@ -108,7 +107,6 @@ class DuckDBTable(DBTable):
 				options=field.get("options"),
 				unique=field.get("unique"),
 				precision=field.get("precision"),
-				not_nullable=field.get("not_nullable"),
 			)
 
 	def create(self, conn):
