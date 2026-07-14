@@ -514,8 +514,8 @@ const useStudioStore = defineStore("store", () => {
 		const page = activePage.value
 		if (!page) return
 		// re-resolve data sources with the new value, then re-run the page script so bindings that
-		// derive from a resource (e.g. refs seeded from note.doc via a watcher) re-bind to the new doc
-		await codeStore.setPageResources(page)
+		// derive from a resource (e.g. refs seeded from note.doc via a watcher) re-bind to the new doc.
+		await codeStore.setPageResources(page, true)
 		await codeStore.setPageScript(page, Boolean(page.is_standard))
 	}, 300)
 
