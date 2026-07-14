@@ -122,6 +122,7 @@ def enqueue_events_for_all_sites() -> None:
 	random.shuffle(sites)
 
 	for site in sites:
+		_update_scheduler_heartbeat()
 		try:
 			enqueue_events_for_site(site=site)
 		except Exception:

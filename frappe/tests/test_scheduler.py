@@ -113,6 +113,38 @@ class TestScheduler(IntegrationTestCase):
 
 
 class TestSchedulerHeartbeat(UnitTestCase):
+	@patch("frappe.utils.scheduler.FileLock")
+	@patch("frappe.utils.scheduler.set_niceness")
+	@patch("frappe.utils.scheduler.get_scheduler_tick", return_value=240)
+	@patch("frappe.utils.scheduler.sleep_duration", return_value=120)
+	@patch("frappe.utils.scheduler._sleep_with_scheduler_heartbeat")
+	@patch("frappe.utils.scheduler.enqueue_events_for_all_sites", side_effect=RuntimeError("stop"))
+	def test_start_scheduler_uses_heartbeat_sleep(
+		self, enqueue_events, heartbeat_sleep, _sleep_duration, _get_tick, _set_niceness, file_lock
+	):
+		with self.assertRaisesRegex(RuntimeError, "stop"):
+			scheduler_utils.start_scheduler()
+
+		file_lock.return_value.acquire.assert_called_once_with(blocking=False)
+		heartbeat_sleep.assert_called_once_with(120)
+		enqueue_events.assert_called_once_with()
+
+	@patch("frappe.utils.scheduler.enqueue_events_for_site")
+	@patch("frappe.utils.scheduler._update_scheduler_heartbeat")
+	@patch("frappe.utils.scheduler.random.shuffle")
+	@patch("frappe.utils.scheduler.get_sites", return_value=["site-1", "site-2"])
+	@patch("frappe.utils.scheduler.frappe.init_site")
+	def test_scheduler_heartbeat_before_each_site(
+		self, _init_site, _get_sites, _shuffle, update_heartbeat, enqueue_events_for_site
+	):
+		scheduler_utils.enqueue_events_for_all_sites()
+
+		self.assertEqual(update_heartbeat.call_count, 2)
+		self.assertEqual(
+			enqueue_events_for_site.call_args_list,
+			[call(site="site-1"), call(site="site-2")],
+		)
+
 	@patch("frappe.utils.scheduler.get_bench_id", return_value="test-bench")
 	@patch("frappe.utils.scheduler.get_redis_conn")
 	def test_scheduler_heartbeat(self, get_redis_conn, _get_bench_id):
