@@ -116,6 +116,14 @@
 	}
 }
 
+.avatar-medium-2 {
+	width: 32px;
+	height: 32px;
+	.standard-image {
+		@include get_textstyle("base", "regular");
+	}
+}
+
 .avatar-large {
 	width: 64px;
 	height: 64px;

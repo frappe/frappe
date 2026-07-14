@@ -8,6 +8,8 @@ from frappe.utils import nowdate
 
 
 class SMSSettings(Document):
+	_DOCTYPE_NAME = "SMS Settings"
+
 	# begin: auto-generated types
 	# This code is auto-generated. Do not modify anything in this block.
 
@@ -151,6 +153,10 @@ def send_request(gateway_url, params, headers=None, use_post=False, use_json=Fal
 # Create SMS Log
 # =========================================================
 def create_sms_log(args, sent_to):
+	# SMS Log doctype was removed; skip silently if it isn't available
+	# (apps that still ship it will continue to log).
+	if not frappe.db.exists("DocType", "SMS Log"):
+		return
 	sl = frappe.new_doc("SMS Log")
 	sl.sent_on = nowdate()
 	sl.message = args["message"].decode("utf-8")

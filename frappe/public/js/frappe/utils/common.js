@@ -52,7 +52,9 @@ frappe.get_avatar = function (css_class, title, image_url = null, remove_color, 
 	if (image_url) {
 		el.innerHTML = `
 			<span class="avatar ${css_class}" ${data_attributes}>
-				<span class="avatar-frame" style='background-image: url("${image_url}")'</span>
+				<span class="avatar-frame" style='background-image: url("${frappe.utils.escape_html(
+					image_url
+				)}")'</span>
 			</span>`;
 	} else {
 		let abbr = frappe.get_abbr(title);
@@ -185,17 +187,6 @@ frappe.get_abbr = function (txt, max_length) {
 	});
 
 	return abbr || "?";
-};
-
-frappe.gravatars = {};
-frappe.get_gravatar = function (email_id, size = 0) {
-	var param = size ? "s=" + size : "d=retro";
-	if (!frappe.gravatars[email_id]) {
-		// TODO: check if gravatar exists
-		frappe.gravatars[email_id] =
-			"https://secure.gravatar.com/avatar/" + md5(email_id) + "?" + param;
-	}
-	return frappe.gravatars[email_id];
 };
 
 // string commons

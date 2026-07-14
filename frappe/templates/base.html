@@ -98,6 +98,13 @@
 		frappe.boot = {{ frappe.utils.orjson_dumps(boot, default=frappe.json_handler) }}
 		// for backward compatibility of some libs
 		frappe.sys_defaults = frappe.boot.sysdefaults;
+		frappe._messages = {};
+		frappe._translations_loaded = fetch(
+			`/api/method/frappe.translate.get_boot_translations?v=${frappe.boot.translations_version}&lang=${frappe.boot.lang}`,
+			{credentials: "same-origin"}
+		).then(r => r.json()).then(data => {
+			frappe._messages = data.message || {};
+		}).catch(() => {});
 	</script>
 	{{ include_script('frappe-web.bundle.js') }}
 	{% endblock %}

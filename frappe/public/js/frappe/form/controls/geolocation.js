@@ -26,21 +26,31 @@ frappe.ui.form.ControlGeolocation = class ControlGeolocation extends frappe.ui.f
 
 		// show again on idempotent invocations
 		$(this.disp_area).removeClass("like-disabled-input");
+		$(this.disp_area).removeClass("hide");
 		$(this.disp_area).css("display", "block");
 
-		if (this.frm) {
-			this.make_map();
-			if (value) {
-				this.bind_leaflet_data(value);
-			}
-		} else {
-			$(document).on("frappe.ui.Dialog:shown", () => {
+		this.load_lib().then(() => {
+			if (this.frm) {
 				this.make_map();
 				if (value) {
 					this.bind_leaflet_data(value);
 				}
-			});
-		}
+			} else {
+				$(document).on("frappe.ui.Dialog:shown", () => {
+					this.make_map();
+					if (value) {
+						this.bind_leaflet_data(value);
+					}
+				});
+			}
+		});
+	}
+
+	load_lib() {
+		return Promise.all([
+			frappe.require("leaflet.bundle.js"),
+			frappe.require("leaflet.bundle.css"),
+		]);
 	}
 
 	make_map(value) {

@@ -6,6 +6,8 @@ from frappe.model.document import Document
 
 
 class WebsiteThemeIgnoreApp(Document):
+	_DOCTYPE_NAME = "Website Theme Ignore App"
+
 	# begin: auto-generated types
 	# This code is auto-generated. Do not modify anything in this block.
 

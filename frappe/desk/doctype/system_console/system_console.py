@@ -1,14 +1,14 @@
 # Copyright (c) 2020, Frappe Technologies and contributors
 # License: MIT. See LICENSE
 
-import json
-
 import frappe
 from frappe.model.document import Document
 from frappe.utils.safe_exec import read_sql, safe_exec
 
 
 class SystemConsole(Document):
+	_DOCTYPE_NAME = "System Console"
+
 	# begin: auto-generated types
 	# This code is auto-generated. Do not modify anything in this block.
 
@@ -29,9 +29,7 @@ class SystemConsole(Document):
 		try:
 			frappe.local.debug_log = []
 			if self.type == "Python":
-				safe_exec(
-					self.console, script_filename="System Console", restrict_commit_rollback=not self.commit
-				)
+				safe_exec(self.console, script_filename="System Console")
 				self.output = "\n".join(frappe.debug_log)
 			elif self.type == "SQL":
 				frappe.db.begin(read_only=True)
@@ -51,8 +49,8 @@ class SystemConsole(Document):
 
 
 @frappe.whitelist(methods=["POST"])
-def execute_code(doc: str):
-	console = frappe.get_doc(json.loads(doc))
+def execute_code(doc: str | dict):
+	console = frappe.get_doc(frappe.parse_json(doc))
 	console.run()
 	return console.as_dict()
 

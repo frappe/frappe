@@ -51,6 +51,7 @@ class TestPrintFormat(IntegrationTestCase):
 		doc_dict = doc.as_dict(no_nulls=True, convert_dates_to_str=True)
 
 		self.assertTrue(os.path.exists(exported_doc_path))
+		self.assertFalse(os.path.exists(os.path.join(os.path.dirname(exported_doc_path), "__init__.py")))
 
 		with open(exported_doc_path) as f:
 			exported_doc = frappe.parse_json(f.read())
@@ -61,3 +62,94 @@ class TestPrintFormat(IntegrationTestCase):
 					self.assertEqual(value, doc_dict[key])
 
 		self.addCleanup(os.remove, exported_doc_path)
+
+
+class TestPrintFormatBuilderElements(IntegrationTestCase):
+	"""Image and Barcode layout elements of the beta print format builder."""
+
+	FORMAT_NAME = "_Test Builder Elements"
+
+	def render(self, df):
+		from frappe.utils.print_format_generator import get_html
+
+		frappe.delete_doc("Print Format", self.FORMAT_NAME, force=True, ignore_missing=True)
+		format_data = {
+			"sections": [{"label": "", "columns": [{"label": "", "fields": [df]}]}],
+			"header": {"columns": []},
+			"footer": {"columns": []},
+		}
+		frappe.get_doc(
+			{
+				"doctype": "Print Format",
+				"name": self.FORMAT_NAME,
+				"doc_type": "User",
+				"standard": "No",
+				"print_format_builder_beta": 1,
+				"format_data": frappe.as_json(format_data),
+			}
+		).insert()
+		self.addCleanup(frappe.delete_doc, "Print Format", self.FORMAT_NAME, force=True)
+		return get_html("User", "Administrator", self.FORMAT_NAME)
+
+	def test_image_element(self):
+		df = {"fieldname": "image_test", "fieldtype": "Image", "custom": 1, "label": "Logo"}
+		html = self.render(df | {"image_url": "/img/logo.svg", "width": "40mm", "align": "center"})
+		self.assertIn('src="/img/logo.svg"', html)
+		self.assertIn("width: 40mm", html)
+		self.assertIn("field-align-center", html)
+
+		# no source -> block is skipped entirely
+		self.assertNotIn("print-image", self.render(df | {"image_url": ""}))
+
+	def test_barcode_element(self):
+		df = {"fieldname": "barcode_test", "fieldtype": "Barcode", "custom": 1, "label": ""}
+
+		html = self.render(
+			df
+			| {
+				"barcode_value": "TEST-123",
+				"barcode_format": "CODE39",
+				"show_text": False,
+				"width": "50mm",
+			}
+		)
+		self.assertIn('data-barcode-value="TEST-123"', html)
+		self.assertIn('"format": "CODE39"', html)
+		self.assertIn('"displayValue": false', html)
+		self.assertIn("width: 50mm", html)
+		# the client-side renderer must be shipped with the document
+		self.assertIn("print.bundle", html)
+		self.assertIn("render_barcode", html)
+
+		# value bound to a doc field
+		html = self.render(df | {"barcode_field": "name", "barcode_format": "CODE128"})
+		self.assertIn('data-barcode-value="Administrator"', html)
+
+		# no value -> block is skipped entirely
+		self.assertNotIn("print-barcode", self.render(df | {"barcode_value": ""}))
+
+	def test_qr_code(self):
+		import base64
+
+		from frappe.utils.print_format_generator import get_qr_code
+
+		html = self.render(
+			{
+				"fieldname": "barcode_test",
+				"fieldtype": "Barcode",
+				"custom": 1,
+				"barcode_field": "name",
+				"barcode_format": "QR",
+				"width": "30mm",
+				"align": "right",
+			}
+		)
+		# QR renders server-side as an embedded SVG image, no client-side JsBarcode svg
+		self.assertIn('src="data:image/svg+xml;base64,', html)
+		self.assertIn("field-align-right", html)
+		self.assertNotIn("<svg data-barcode-value", html)
+
+		data_uri = get_qr_code("hello world")
+		prefix = "data:image/svg+xml;base64,"
+		self.assertTrue(data_uri.startswith(prefix))
+		self.assertIn(b"<svg", base64.b64decode(data_uri[len(prefix) :]))

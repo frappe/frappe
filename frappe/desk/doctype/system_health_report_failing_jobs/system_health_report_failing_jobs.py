@@ -6,6 +6,8 @@ from frappe.model.document import Document
 
 
 class SystemHealthReportFailingJobs(Document):
+	_DOCTYPE_NAME = "System Health Report Failing Jobs"
+
 	# begin: auto-generated types
 	# This code is auto-generated. Do not modify anything in this block.
 

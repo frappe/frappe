@@ -196,20 +196,19 @@ class Meta(Document):
 	def get_dynamic_link_fields(self):
 		return self._dynamic_link_fields
 
-	def get_masked_fields(self):
+	def get_masked_fields(self, parenttype=None):
 		import copy
 
 		if frappe.session.user == "Administrator":
 			return []
-		cache_key = f"masked_fields::{self.name}::{frappe.session.user}"
+		cache_key = f"masked_fields::{self.name}::{parenttype or ''}::{frappe.session.user}"
 		masked_fields = frappe.cache.get_value(cache_key)
 
 		if masked_fields is None:
 			masked_fields = []
+			permlevel_access = set(self.get_permlevel_access("mask", parenttype))
 			for df in self.fields:
-				if df.get("mask") and not self.has_permlevel_access_to(
-					fieldname=df.fieldname, df=df, permission_type="mask"
-				):
+				if df.get("mask") and df.permlevel not in permlevel_access:
 					# work on a copy instead of original df
 					df_copy = copy.deepcopy(df)
 					df_copy.mask_readonly = 1
@@ -330,6 +329,7 @@ class Meta(Document):
 		if "name" not in search_fields:
 			search_fields.append("name")
 
+		assert "name" in search_fields, "search fields must always include 'name'"
 		return search_fields
 
 	def get_fields_to_fetch(self, link_fieldname=None):
@@ -377,6 +377,7 @@ class Meta(Document):
 		if not title_field:
 			title_field = "name"
 
+		assert title_field, "title field must resolve to a non-empty fieldname"
 		return title_field
 
 	def get_translatable_fields(self):
@@ -603,6 +604,13 @@ class Meta(Document):
 							# Break out to add this just after the last field
 							break
 						target_position = current_field
+				elif field.fieldtype == "Tab Break" and target_position in field_order:
+					# Find the next tab break and set target_position to just one field before,
+					# so the new tab is appended after the current tab instead of splitting it
+					for current_field in field_order[field_order.index(target_position) + 1 :]:
+						if self._fields[current_field].fieldtype == "Tab Break":
+							break
+						target_position = current_field
 				insertion_map.setdefault(target_position, []).append(field.fieldname)
 
 			else:
@@ -622,6 +630,7 @@ class Meta(Document):
 			field.idx = idx
 			sorted_fields.append(field)
 
+		assert len(sorted_fields) == len(field_order), "every field in field_order must map to a field"
 		self.fields = sorted_fields
 
 	def set_custom_permissions(self):
@@ -672,7 +681,7 @@ class Meta(Document):
 
 	@cached_property
 	def high_permlevel_fields(self):
-		return [df for df in self.fields if df.permlevel > 0]
+		return [df for df in self.fields if (df.permlevel or 0) > 0]
 
 	def get_permitted_fieldnames(
 		self,
@@ -705,7 +714,8 @@ class Meta(Document):
 		)
 
 		if 0 not in permlevel_access and permission_type in ("read", "select"):
-			if frappe.share.get_shared(self.name, user, rights=["read"], limit=1):
+			check_doctype = parenttype if self.istable and parenttype else self.name
+			if frappe.share.get_shared(check_doctype, user, rights=["read"], limit=1):
 				permlevel_access.add(0)
 
 		permitted_fieldnames.extend(
@@ -923,6 +933,7 @@ def get_field_precision(df, doc=None, currency=None):
 	else:
 		precision = cint(frappe.db.get_default("float_precision")) or 3
 
+	assert isinstance(precision, int), "computed field precision must be an integer"
 	return precision
 
 
@@ -1030,7 +1041,7 @@ CACHE_PROPERTIES = frozenset(prop for prop, value in vars(Meta).items() if isins
 
 
 def _serialize(doc, no_nulls=False, *, is_child=False):
-	out = {}
+	out = frappe._dict()
 	for key, value in doc.__dict__.items():
 		if not is_child:
 			if key in CACHE_PROPERTIES:

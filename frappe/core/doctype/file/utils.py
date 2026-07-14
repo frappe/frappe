@@ -119,7 +119,18 @@ def get_web_image(file_url: str) -> tuple["ImageFile", str, str]:
 	import requests.exceptions
 	from PIL import Image
 
+	from frappe.utils.data import validate_egress_url
+
 	file_url = frappe.utils.get_url(file_url)
+	site_url = frappe.utils.get_url().rstrip("/")
+	if not (file_url == site_url or file_url.startswith(site_url + "/")):
+		try:
+			validate_egress_url(file_url)
+		except ValueError:
+			frappe.throw(
+				_("Cannot fetch image from {0}: the URL resolves to a restricted address").format(file_url)
+			)
+
 	r = requests.get(file_url, stream=True)
 	try:
 		r.raise_for_status()
@@ -476,3 +487,20 @@ def find_file_by_url(path: str, name: str | None = None) -> "File" | None:
 		file: File = frappe.get_doc(doctype="File", **file_data)
 		if file.is_downloadable():
 			return file
+
+
+def get_safe_file_name(file_name: str) -> str:
+	return re.sub(r"[/\\%?#]", "_", file_name)
+
+
+def check_path_safety(base_path: str, requested_path: str) -> bool:
+	"""Util to check path safety by ensuring sandboxing and logging unsuccessful attempts"""
+	base_path = os.path.realpath(base_path)
+	requested_path = os.path.realpath(requested_path)
+	if os.path.commonpath([base_path, requested_path]) != base_path:
+		frappe.log_error(
+			title="Attempted Unauthorized File Access",
+			message=f"Blocked access to: {requested_path}",
+		)
+		return False
+	return True

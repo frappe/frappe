@@ -357,6 +357,10 @@ build-backend = "flit_core.buildapi"
 [tool.bench.dev-dependencies]
 # package_name = "~=1.1.0"
 
+# These apt dependencies will be installed from Ubuntu repositories when you host your app on Frappe Cloud
+[deploy.dependencies.apt]
+packages = []
+
 [tool.ruff]
 line-length = 110
 target-version = "py314"
@@ -406,6 +410,10 @@ app_description = "{app_description}"
 app_email = "{app_email}"
 app_license = "{app_license}"
 
+# Send non-GET requests for this app's endpoints as native `application/json`
+# bodies instead of form-encoded, per-key JSON-stringified values.
+use_json_request_body = True
+
 # Apps
 # ------------------
 
@@ -418,7 +426,17 @@ app_license = "{app_license}"
 # 		"logo": "/assets/{app_name}/logo.png",
 # 		"title": "{app_title}",
 # 		"route": "/{app_name}",
-# 		"has_permission": "{app_name}.api.permission.has_app_permission"
+# 		"has_permission": "{app_name}.api.permission.has_app_permission",
+# 	}}
+# ]
+
+# Companion apps that extend a host app (instead of taking their own apps-screen icon) can pin
+# their workspaces into the host app's workspace dock (rail) with this hook.
+# add_app_to_rail = [
+# 	{{
+# 		"app": "erpnext",
+# 		"workspace": "My Workspace",
+# 		"has_permission": "{app_name}.api.permission.has_app_permission",
 # 	}}
 # ]
 
@@ -510,6 +528,12 @@ app_license = "{app_license}"
 
 # before_app_uninstall = "{app_name}.utils.before_app_uninstall"
 # after_app_uninstall = "{app_name}.utils.after_app_uninstall"
+
+# Build
+# ------------------
+# To hook into the build process
+
+# after_build = "{app_name}.build.after_build"
 
 # Desk Notifications
 # ------------------
@@ -607,6 +631,8 @@ app_license = "{app_license}"
 # ----------
 # before_job = ["{app_name}.utils.before_job"]
 # after_job = ["{app_name}.utils.after_job"]
+
+# after_file_upload = ["{app_name}.utils.after_file_upload"]
 
 # User Data Protection
 # --------------------

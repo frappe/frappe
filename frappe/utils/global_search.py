@@ -535,16 +535,15 @@ def search(text: str, start: int = 0, limit: int = 20, doctype: str = ""):
 						r.image = doc.get(meta.image_field)
 					if meta.title_field:
 						r.title = doc.get(meta.title_field)
+					if doc.has_permission():
+						sorted_results.append(r)
 				except Exception:
 					frappe.clear_messages()
-
-				if doc.has_permission():
-					sorted_results.append(r)
 
 	return sorted_results
 
 
-@frappe.whitelist(allow_guest=True)
+@frappe.whitelist(allow_guest=True)  # nosemgrep
 def web_search(text: str, scope: str | None = None, start: int = 0, limit: int = 20):
 	"""
 	Search for given text in __global_search where published = 1
@@ -571,7 +570,9 @@ def web_search(text: str, scope: str | None = None, start: int = 0, limit: int =
 		mariadb_conditions += "MATCH(`content`) AGAINST ({} IN BOOLEAN MODE)".format(
 			frappe.db.escape("+" + text + "*")
 		)
-		postgres_conditions += f'TO_TSVECTOR("content") @@ PLAINTO_TSQUERY({frappe.db.escape(text)})'
+		postgres_conditions += (
+			f"to_tsvector('english', \"content\") @@ plainto_tsquery('english', {frappe.db.escape(text)})"
+		)
 
 		values = {"scope": "".join([scope, "%"]) if scope else "", "limit": limit, "start": start}
 

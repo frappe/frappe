@@ -53,7 +53,7 @@ frappe.ui.form.Share = class Share {
 	show() {
 		var me = this;
 		var d = new frappe.ui.Dialog({
-			title: __("Share {0} with", [this.frm.doc.name]),
+			title: __("Share {0} with", [__(this.frm.doc.name)]),
 		});
 
 		this.dialog = d;
@@ -97,7 +97,7 @@ frappe.ui.form.Share = class Share {
 				frm: this.frm,
 				shared: this.shared,
 				everyone: everyone,
-				custom_perm_types: this.frm.get_docinfo().custom_perm_types || [],
+				custom_perm_types: frappe.boot.doctype_ptype_map?.[this.frm.doctype] || [],
 			})
 		).appendTo(d.body);
 
@@ -154,7 +154,7 @@ frappe.ui.form.Share = class Share {
 				args.share = $(d.body).find(".add-share-share").prop("checked") ? 1 : 0;
 
 				// Add custom permissions
-				var custom_perm_types = me.frm.get_docinfo().custom_perm_types || [];
+				var custom_perm_types = frappe.boot.doctype_ptype_map?.[me.frm.doctype] || [];
 				custom_perm_types.forEach(function (perm) {
 					args[perm] = $(d.body)
 						.find(".add-share-" + perm)

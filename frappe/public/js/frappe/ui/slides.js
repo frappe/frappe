@@ -21,9 +21,14 @@ frappe.ui.Slide = class Slide {
 
 		this.attach_toggle_theme_btn();
 
+		let title = this.title;
+		if (typeof title === "function") {
+			title = title();
+		}
+
 		this.$body = $(`<div class="slide-body">
 			<div class="content text-center">
-				<h1 class="title slide-title">${__(this.title)}</h1>
+				<h1 class="title slide-title">${__(title)}</h1>
 			</div>
 			<div class="form-wrapper">
 				<div class="form"></div>
@@ -330,7 +335,7 @@ frappe.ui.Slides = class Slides {
 		this.slides.map((slide, id) => {
 			let $dot = $(`<div class="slide-step">
 				<div class="slide-step-indicator"></div>
-				<div class="slide-step-complete">${frappe.utils.icon("tick", "xs")}</div>
+				<div class="slide-step-complete">${frappe.utils.icon("check", "xs")}</div>
 			</div>`).attr({ "data-step-id": id });
 
 			if (

@@ -37,6 +37,9 @@ frappe.ui.Page = class Page {
 
 		this.make();
 		if (!Object.keys(opts).includes("hide_sidebar")) this.hide_sidebar = false;
+		// pages can hide just the workspace dock (while keeping the body sidebar) via this option;
+		// a page that hides the whole sidebar hides the dock too (see Sidebar.page_hides_dock)
+		if (!Object.keys(opts).includes("hide_workspace_dock")) this.hide_workspace_dock = false;
 		frappe.ui.pages[frappe.get_route_str()] = this;
 	}
 
@@ -45,13 +48,23 @@ frappe.ui.Page = class Page {
 		this.add_main_section();
 		this.setup_scroll_handler();
 		this.setup_main_sidebar_toggle();
-		this.setup_mobile_awesomebar();
+		this.setup_awesomebar();
 	}
 
-	setup_mobile_awesomebar() {
-		if (frappe.boot.desk_settings.search_bar && frappe.is_mobile()) {
+	setup_awesomebar() {
+		if (frappe.boot.desk_settings.search_bar && !frappe.app.awesome_bar) {
 			let awesome_bar = new frappe.search.AwesomeBar();
 			awesome_bar.setup(".navbar-modal-search-mobile");
+			frappe.app.awesome_bar = awesome_bar;
+			frappe.search.utils.make_function_searchable(
+				frappe.utils.generate_tracking_url,
+				__("Generate Tracking URL")
+			);
+			if (frappe.model.can_read("RQ Job")) {
+				frappe.search.utils.make_function_searchable(function () {
+					frappe.set_route("List", "RQ Job");
+				}, __("Background Jobs"));
+			}
 		}
 	}
 
@@ -143,7 +156,7 @@ frappe.ui.Page = class Page {
 		this.container = this.wrapper.find(".page-body");
 		this.sidebar = this.wrapper.find(".layout-side-section");
 		this.footer = this.wrapper.find(".layout-footer");
-		this.indicator = this.wrapper.find(".title-area .indicator-pill");
+		this.indicator = this.wrapper.find(".title-area .page-indicator-pill");
 
 		this.page_actions = this.wrapper.find(".page-actions");
 		this.filters = this.wrapper.find(".filters");
@@ -171,7 +184,12 @@ frappe.ui.Page = class Page {
 
 		// keyboard shortcuts
 		let menu_btn = this.menu_btn_group.find("button");
-		menu_btn.attr("title", __("Menu")).tooltip({ delay: { show: 600, hide: 100 } });
+		menu_btn
+			.attr("title", __("Menu"))
+			.tooltip({ delay: { show: 600, hide: 100 } })
+			.on("click mousedown", function () {
+				$(this).tooltip("hide");
+			});
 		frappe.ui.keys
 			.get_shortcut_group(this.page_actions[0])
 			.add(menu_btn, menu_btn.find(".menu-btn-group-label"));
@@ -208,7 +226,7 @@ frappe.ui.Page = class Page {
 		if (is_mobile) {
 			indicator_html = `<span class="indicator-doc-html" style="background-color: var(--${color}-400)"></span>`;
 		}
-		this.clear_indicator().removeClass("hide").html(indicator_html).addClass(color);
+		this.clear_indicator().removeClass("hide").html(indicator_html).attr("data-theme", color);
 
 		if (is_mobile) {
 			this.indicator.attr("title", label);
@@ -224,11 +242,6 @@ frappe.ui.Page = class Page {
 		`);
 		// ideally, we should pass tooltip_label this is just safe gaurd.
 		if (!tooltip_label) {
-			if (icon.startsWith("es-")) {
-				icon = icon.replace("es-line-", "");
-				icon = icon.replace("es-solid-", "");
-				icon = icon.replace("es-small-", "");
-			}
 			tooltip_label = frappe.unscrub(icon);
 		}
 
@@ -242,7 +255,7 @@ frappe.ui.Page = class Page {
 	}
 
 	setup_main_sidebar_toggle() {
-		$(".sidebar-toggle-btn.navbar-brand").on("click", (event) => {
+		this.wrapper.find(".sidebar-toggle-btn.navbar-brand").on("click", (event) => {
 			frappe.app.sidebar.set_height();
 			frappe.app.sidebar.toggle_width();
 			frappe.app.sidebar.prevent_scroll();
@@ -252,7 +265,8 @@ frappe.ui.Page = class Page {
 	clear_indicator() {
 		return this.indicator
 			.removeClass()
-			.addClass("indicator-pill no-indicator-dot whitespace-nowrap hide");
+			.removeAttr("data-theme")
+			.addClass("es-badge page-indicator-pill hide");
 	}
 
 	get_icon_label(icon, label) {
@@ -449,7 +463,9 @@ frappe.ui.Page = class Page {
 		let $icon = ``;
 
 		if (icon) {
-			$icon = `<span class="menu-item-icon">${frappe.utils.icon(icon)}</span>`;
+			$icon = `<span class="menu-item-icon flex align-items-center justify-items-center">${frappe.utils.icon(
+				icon
+			)}</span>`;
 		}
 
 		if (shortcut) {
@@ -459,9 +475,7 @@ frappe.ui.Page = class Page {
 					<a class="grey-link dropdown-item" href="#" onClick="return false;">
 						${$icon}
 						<span class="menu-item-label">${label}</span>
-						<kbd class="pull-right">
-							<span>${shortcut_obj.shortcut_label}</span>
-						</kbd>
+						<span class="menu-item-shortcut">${shortcut_obj.shortcut_label}</span>
 					</a>
 				</li>
 			`);
@@ -514,16 +528,7 @@ frappe.ui.Page = class Page {
 		} else {
 			shortcut_obj = shortcut;
 		}
-		// label
-		if (frappe.utils.is_mac()) {
-			shortcut_obj.shortcut_label = shortcut_obj.shortcut
-				.replace("Ctrl", "⌘")
-				.replace("Alt", "⌥");
-		} else {
-			shortcut_obj.shortcut_label = shortcut_obj.shortcut;
-		}
-
-		shortcut_obj.shortcut_label = shortcut_obj.shortcut_label.replace("Shift", "⇧");
+		shortcut_obj.shortcut_label = frappe.ui.keys.get_shortcut_label(shortcut_obj.shortcut);
 
 		// actual shortcut string
 		shortcut_obj.shortcut = shortcut_obj.shortcut.toLowerCase();
@@ -575,7 +580,7 @@ frappe.ui.Page = class Page {
 				`<div class="inner-group-button" data-label="${encodeURIComponent(label)}">
 					<button type="button" class="btn btn-default ellipsis" data-toggle="dropdown" aria-haspopup="true" aria-expanded="false">
 						${label}
-						${frappe.utils.icon("select", "xs")}
+						${frappe.utils.icon("chevrons-up-down", "xs")}
 					</button>
 					<div role="menu" class="dropdown-menu ${align_right ? "dropdown-menu-right" : ""}"></div>
 				</div>`
@@ -591,16 +596,20 @@ frappe.ui.Page = class Page {
 	}
 
 	set_inner_btn_group_as_primary(label) {
-		this.get_or_add_inner_group_button(label)
-			.find("button")
-			.removeClass("btn-default")
-			.addClass("btn-primary");
+		const group = this.get_or_add_inner_group_button(label);
+		const dropdown_items = group.find(".dropdown-menu .dropdown-item");
+
+		if (dropdown_items.length > 0) {
+			group.find("button").removeClass("btn-default").addClass("btn-primary");
+		} else {
+			group.toggleClass("hide", true);
+		}
 	}
 
 	btn_disable_enable(btn, response) {
 		if (response && response.then) {
 			btn.prop("disabled", true);
-			response.then(() => {
+			response.finally(() => {
 				btn.prop("disabled", false);
 			});
 		} else if (response && response.always) {
@@ -751,10 +760,7 @@ frappe.ui.Page = class Page {
 	}
 
 	get_main_icon(icon) {
-		return this.$title_area
-			.find(".title-icon")
-			.html('<i class="' + icon + ' fa-fw"></i> ')
-			.toggle(true);
+		return this.$title_area.find(".title-icon").html(frappe.utils.icon(icon)).toggle(true);
 	}
 
 	add_help_button(txt) {
@@ -782,14 +788,14 @@ frappe.ui.Page = class Page {
 	add_custom_button_group(label, icon, parent) {
 		let dropdown_label = `<span class="hidden-xs">
 			<span class="custom-btn-group-label">${__(label)}</span>
-			${frappe.utils.icon("select", "xs")}
+			${frappe.utils.icon("chevrons-up-down", "xs")}
 		</span>`;
 
 		if (icon) {
 			dropdown_label = `<span class="hidden-xs">
 				${frappe.utils.icon(icon)}
 				<span class="custom-btn-group-label">${__(label)}</span>
-				${frappe.utils.icon("select", "xs")}
+				${frappe.utils.icon("chevrons-up-down", "xs")}
 			</span>
 			<span class="visible-xs">
 				${frappe.utils.icon(icon)}

@@ -33,7 +33,7 @@ from frappe.modules import get_doc_path, make_boilerplate
 from frappe.modules.import_file import get_file_path
 from frappe.permissions import ALL_USER_ROLE, AUTOMATIC_ROLES, SYSTEM_USER_ROLE
 from frappe.query_builder.functions import Concat
-from frappe.utils import cint, flt, get_datetime, is_a_property, random_string
+from frappe.utils import cint, cstr, flt, get_datetime, is_a_property, random_string
 from frappe.website.utils import clear_cache
 
 if TYPE_CHECKING:
@@ -86,6 +86,8 @@ form_grid_templates = {"fields": "templates/form_grid/fields.html"}
 
 
 class DocType(Document):
+	_DOCTYPE_NAME = "DocType"
+
 	# begin: auto-generated types
 	# This code is auto-generated. Do not modify anything in this block.
 
@@ -101,6 +103,7 @@ class DocType(Document):
 
 		actions: DF.Table[DocTypeAction]
 		allow_auto_repeat: DF.Check
+		allow_bulk_edit: DF.Check
 		allow_copy: DF.Check
 		allow_events_in_timeline: DF.Check
 		allow_guest_to_view: DF.Check
@@ -217,6 +220,7 @@ class DocType(Document):
 		self.validate_virtual_doctype_methods()
 		self.ensure_minimum_max_attachment_limit()
 		self.patch_old_naming_expressions()
+		self.deduplicate_document_links()
 		validate_links_table_fieldnames(self)
 
 		if not self.is_new():
@@ -548,17 +552,38 @@ class DocType(Document):
 			and not frappe.flags.in_import
 			and (frappe.conf.developer_mode or frappe.flags.allow_doctype_export)
 		)
+		request = getattr(frappe.local, "request", None)
+		defer_doctype_export = request and hasattr(request, "after_response")
+		defer_module_methods = allow_doctype_export and defer_doctype_export
+
+		# Snapshot insert intent: flags.in_insert is cleared before request.after_response runs.
+		needs_after_doctype_insert = bool(self.flags.in_insert)
+
+		def run_doctype_module_methods():
+			self.run_module_method("on_doctype_update")
+			if needs_after_doctype_insert:
+				self.run_module_method("after_doctype_insert")
+
 		if allow_doctype_export:
-			self.export_doc()
-			self.make_controller_template()
-			self.set_base_class_for_controller()
-			self.export_types_to_controller()
+			self.warn_on_module_change()
+
+			def export_doctype_files():
+				self.export_doc()
+				self.make_controller_template()
+				self.set_base_class_for_controller()
+				self.export_types_to_controller()
+				if defer_module_methods:
+					run_doctype_module_methods()
+
+			# Defer file writes until after the response so the client can sync the saved doc first.
+			if defer_doctype_export:
+				request.after_response.add(export_doctype_files)
+			else:
+				export_doctype_files()
 
 		# update index
-		if not self.custom:
-			self.run_module_method("on_doctype_update")
-			if self.flags.in_insert:
-				self.run_module_method("after_doctype_insert")
+		if not self.custom and not defer_module_methods:
+			run_doctype_module_methods()
 
 		self.sync_doctype_layouts()
 		delete_notification_count_for(doctype=self.name)
@@ -572,6 +597,8 @@ class DocType(Document):
 			self.sync_global_search()
 
 		clear_linked_doctype_cache()
+
+		frappe.publish_realtime("doctype_update", {"doctype": self.name}, after_commit=True)
 
 	@savepoint(catch=Exception)
 	def sync_doctype_layouts(self):
@@ -731,11 +758,13 @@ class DocType(Document):
 						# replace in one go
 						file_content = re.sub(
 							rf"{old_scrub}|{old_no_space}|{old_no_space_no_hyphen}",
-							lambda x: new_scrub
-							if x.group() == old_scrub
-							else new_no_space_no_hyphen
-							if x.group() == old_no_space_no_hyphen
-							else new_no_space,
+							lambda x: (
+								new_scrub
+								if x.group() == old_scrub
+								else new_no_space_no_hyphen
+								if x.group() == old_no_space_no_hyphen
+								else new_no_space
+							),
 							code,
 						)
 
@@ -861,6 +890,24 @@ class DocType(Document):
 
 		if "field_order" in docdict:
 			del docdict["field_order"]
+
+	def warn_on_module_change(self):
+		"""Warn that the old module folder is left behind after a module change, since export only writes to the new one."""
+		previous = self.get_doc_before_save()
+		if not previous or previous.module == self.module:
+			return
+
+		try:
+			old_path = get_doc_path(previous.module, "doctype", self.name)
+		except Exception:
+			return
+
+		frappe.msgprint(
+			_(
+				"Module changed to {0}. Files in the previous module were not moved and remain at {1}, remove or relocate them manually."
+			).format(frappe.bold(self.module), frappe.bold(str(old_path))),
+			alert=True,
+		)
 
 	def export_doc(self):
 		"""Export to standard folder `[module]/doctype/[name]/[name].json`."""
@@ -1085,6 +1132,30 @@ class DocType(Document):
 				indicator="yellow",
 			)
 			return True
+
+	def deduplicate_document_links(self):
+		"""Remove duplicate document links from the links child table."""
+
+		seen_links = set()
+		unique_links = []
+
+		for link in self.links or []:
+			if link.is_child_table:
+				link_tuple = (
+					link.link_doctype,
+					link.link_fieldname,
+					link.parent_doctype or "",
+					link.table_fieldname or "",
+				)
+			else:
+				link_tuple = (link.link_doctype, link.link_fieldname)
+
+			if link_tuple not in seen_links:
+				seen_links.add(link_tuple)
+				unique_links.append(link)
+
+		if len(unique_links) < len(self.links or []):
+			self.links = unique_links
 
 
 def validate_series(dt, autoname=None, name=None):
@@ -1409,12 +1480,15 @@ def validate_fields(meta: Meta):
 	def check_illegal_default(d):
 		if d.fieldtype == "Check" and not d.default:
 			d.default = "0"
-		if d.fieldtype == "Check" and cint(d.default) not in (0, 1):
-			frappe.throw(
-				_("Default for 'Check' type of field {0} must be either '0' or '1'").format(
-					frappe.bold(d.fieldname)
+		if d.fieldtype == "Check":
+			default_value = cstr(d.default).strip()
+			if default_value not in ("0", "1"):
+				frappe.throw(
+					_("The default value for the Check field {0} must be either '0' or '1'").format(
+						frappe.bold(d.label or d.fieldname)
+					)
 				)
-			)
+			d.default = default_value
 		if d.fieldtype == "Select" and d.default:
 			if not d.options:
 				frappe.throw(
@@ -1637,7 +1711,8 @@ def validate_fields(meta: Meta):
 
 		if "." not in field.fetch_from:
 			return
-		source_field, _target_field = field.fetch_from.split(".", maxsplit=1)
+		parts = field.fetch_from.split(".", maxsplit=1)
+		source_field, _target_field = parts
 
 		if source_field == field.fieldname:
 			msg = _(
@@ -1716,6 +1791,29 @@ def validate_fields(meta: Meta):
 					)
 				)
 
+	def validate_link_filters(docfield):
+		link_filters_value = docfield.get("link_filters")
+		if not link_filters_value:
+			return
+
+		try:
+			link_filters = json.loads(link_filters_value)
+		except (TypeError, ValueError):
+			frappe.throw(
+				_("Invalid Link Filters for field {0}. Link Filters must be valid JSON.").format(
+					frappe.bold(docfield.label or docfield.fieldname)
+				)
+			)
+
+		if not isinstance(link_filters, list) or any(
+			not isinstance(filter_row, list) or len(filter_row) != 4 for filter_row in link_filters
+		):
+			frappe.throw(
+				_(
+					"Invalid Link Filters for field {0}. Link Filters must be a list of filters, where each filter is a list with four values: doctype, fieldname, operator, and value."
+				).format(frappe.bold(docfield.label or docfield.fieldname))
+			)
+
 	fields = meta.get("fields")
 	fieldname_list = [d.fieldname for d in fields]
 
@@ -1739,6 +1837,7 @@ def validate_fields(meta: Meta):
 		validate_fetch_from(d)
 		validate_data_field_type(d)
 		check_decimal_config(d)
+		validate_link_filters(d)
 
 		if not frappe.flags.in_migrate or in_ci:
 			check_unique_fieldname(meta.get("name"), d.fieldname)
@@ -1766,7 +1865,6 @@ def validate_fields(meta: Meta):
 
 def get_fields_not_allowed_in_list_view(meta) -> list[str]:
 	not_allowed_in_list_view = list(copy.copy(no_value_fields))
-	not_allowed_in_list_view.append("Attach Image")
 	if meta.istable:
 		not_allowed_in_list_view.remove("Button")
 		not_allowed_in_list_view.remove("HTML")
@@ -1952,6 +2050,26 @@ def validate_permissions(doctype, for_remove=False, alert=False):
 					title=_("Permissions Error"),
 				)
 
+	# `if_owner` is only honoured at permlevel 0. Clear it at higher levels, where it is
+	# ignored, then drop any row that becomes an exact duplicate of another.
+	for d in permissions:
+		if cint(d.permlevel) > 0 and d.if_owner:
+			d.if_owner = 0
+
+	seen = []
+	deduped = []
+	for d in permissions:
+		comparable = d.as_dict(no_default_fields=True)
+		comparable.pop("name", None)
+		if comparable in seen:
+			continue
+		seen.append(comparable)
+		deduped.append(d)
+
+	if len(deduped) != len(permissions):
+		doctype.set("permissions", deduped)
+		permissions = doctype.get("permissions")
+
 	for d in permissions:
 		if not d.permlevel:
 			d.permlevel = 0
@@ -2009,7 +2127,7 @@ def make_module_and_roles(doc, perm_fieldname="permissions"):
 def check_fieldname_conflicts(docfield):
 	"""Checks if fieldname conflicts with methods or properties"""
 	doc = frappe.get_doc({"doctype": docfield.dt})
-	available_objects = [x for x in dir(doc) if isinstance(x, str)]
+	available_objects = [x for x in dir(doc) if isinstance(x, str) and x != "docs"]
 	property_list = [x for x in available_objects if is_a_property(getattr(type(doc), x, None))]
 	method_list = [x for x in available_objects if x not in property_list and callable(getattr(doc, x))]
 	msg = _("Fieldname {0} conflicting with meta object").format(docfield.fieldname)

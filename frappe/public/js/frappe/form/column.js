@@ -37,8 +37,8 @@ export default class Column {
 	}
 
 	resize_all_columns() {
-		// distribute visible columns equally
-		let all_columns = this.section.wrapper.find(".form-column");
+		// distribute visible columns equally, scoped to this section's direct children only
+		let all_columns = this.section.body.children(".form-column");
 		let visible_columns = all_columns.filter(":not(.hide-control)");
 		let columns = visible_columns.length || all_columns.length;
 		let colspan = cint(12 / columns);

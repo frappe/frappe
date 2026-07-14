@@ -37,10 +37,13 @@
   "read_only_depends_on",
   "properties",
   "non_negative",
+  "min_value",
+  "max_value",
   "reqd",
   "unique",
   "is_virtual",
   "read_only",
+  "mask",
   "ignore_user_permissions",
   "hidden",
   "print_hide",
@@ -48,6 +51,7 @@
   "print_width",
   "alignment",
   "no_copy",
+  "set_only_once",
   "allow_on_submit",
   "in_list_view",
   "in_standard_filter",
@@ -57,6 +61,7 @@
   "report_hide",
   "search_index",
   "allow_in_quick_entry",
+  "allow_bulk_edit",
   "ignore_xss_filter",
   "translatable",
   "hide_border",
@@ -408,6 +413,13 @@
   },
   {
    "default": "0",
+   "depends_on": "eval: doc.fieldtype == \"Table\"",
+   "fieldname": "allow_bulk_edit",
+   "fieldtype": "Check",
+   "label": "Allow Bulk Edit"
+  },
+  {
+   "default": "0",
    "depends_on": "eval:!in_list(['Table', 'Table MultiSelect'], doc.fieldtype);",
    "fieldname": "in_preview",
    "fieldtype": "Check",
@@ -442,6 +454,18 @@
    "label": "Non Negative"
   },
   {
+   "depends_on": "eval:in_list([\"Int\", \"Float\", \"Currency\", \"Percent\"], doc.fieldtype)",
+   "fieldname": "min_value",
+   "fieldtype": "Float",
+   "label": "Min Value"
+  },
+  {
+   "depends_on": "eval:in_list([\"Int\", \"Float\", \"Currency\", \"Percent\"], doc.fieldtype)",
+   "fieldname": "max_value",
+   "fieldtype": "Float",
+   "label": "Max Value"
+  },
+  {
    "fieldname": "module",
    "fieldtype": "Link",
    "label": "Module (for export)",
@@ -462,9 +486,9 @@
    "label": "Sort Options"
   },
   {
+   "depends_on": "eval:doc.fieldtype===\"Link\"",
    "fieldname": "link_filters",
    "fieldtype": "JSON",
-   "hidden": 1,
    "label": "Link Filters"
   },
   {
@@ -484,6 +508,19 @@
    "fieldtype": "Select",
    "label": "Button Color",
    "options": "\nDefault\nPrimary\nInfo\nSuccess\nWarning\nDanger"
+  },
+  {
+   "default": "0",
+   "fieldname": "set_only_once",
+   "fieldtype": "Check",
+   "label": "Set only once"
+  },
+  {
+   "default": "0",
+   "depends_on": "eval:[\"Select\", \"Read Only\", \"Phone\", \"Percent\", \"Password\", \"Link\", \"Int\", \"Float\", \"Dynamic Link\", \"Duration\", \"Datetime\", \"Currency\", \"Data\", \"Date\"].includes(doc.fieldtype)",
+   "fieldname": "mask",
+   "fieldtype": "Check",
+   "label": "Mask"
   }
  ],
  "grid_page_length": 50,
@@ -491,7 +528,7 @@
  "idx": 1,
  "index_web_pages_for_search": 1,
  "links": [],
- "modified": "2025-11-12 01:14:24.753774",
+ "modified": "2026-07-11 11:35:29.567463",
  "modified_by": "Administrator",
  "module": "Custom",
  "name": "Custom Field",

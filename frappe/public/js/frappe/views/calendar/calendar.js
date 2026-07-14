@@ -223,13 +223,13 @@ frappe.views.Calendar = class Calendar {
 		this.$wrapper
 			.find(`.fc-prev-button span`)
 			.attr("class", "")
-			.html(frappe.utils.icon("left"));
+			.html(frappe.utils.icon("chevron-left"));
 		this.$wrapper
 			.find(`.fc-next-button span`)
 			.attr("class", "")
-			.html(frappe.utils.icon("right"));
+			.html(frappe.utils.icon("chevron-right"));
 		if (this.$wrapper.find(".fc-today-button svg").length == 0)
-			this.$wrapper.find(".fc-today-button").prepend(frappe.utils.icon("today"));
+			this.$wrapper.find(".fc-today-button").prepend(frappe.utils.icon("calendar-days"));
 
 		// v6.x of fc has weird behaviour which removes all the custom classes
 		// on header buttons on click, event below re-adds all the classes
@@ -415,6 +415,10 @@ frappe.views.Calendar = class Calendar {
 
 			if (d.start && !frappe.datetime.validate(d.end)) {
 				d.end = frappe.datetime.add_days(d.start, 1);
+			}
+
+			if (d.allDay && d.end) {
+				d.end = frappe.datetime.add_days(d.end, 1);
 			}
 
 			me.prepare_colors(d);

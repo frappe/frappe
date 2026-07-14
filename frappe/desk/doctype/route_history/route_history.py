@@ -9,6 +9,8 @@ from frappe.model.document import Document
 
 
 class RouteHistory(Document):
+	_DOCTYPE_NAME = "Route History"
+
 	# begin: auto-generated types
 	# This code is auto-generated. Do not modify anything in this block.
 

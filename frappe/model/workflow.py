@@ -3,7 +3,6 @@
 
 from __future__ import annotations
 
-import json
 from collections import defaultdict
 from typing import TYPE_CHECKING, Any
 
@@ -109,7 +108,7 @@ def evaluate_workflow_value(value, evaluate_as_expression, doc):
 			return frappe.safe_eval(value, get_workflow_safe_globals(), dict(doc=doc.as_dict()))
 		except Exception as e:
 			frappe.throw(
-				_("Invalid expression in Workflow Update Value: {0}").format(e),
+				_("Invalid expression in Workflow Update Value: {0}").format(str(e)),
 				title=_("Workflow Evaluation Error"),
 			)
 	else:
@@ -218,6 +217,10 @@ def apply_workflow(doc: Document | str | dict, action: str):
 	elif doc.docstatus.is_submitted() and new_docstatus.is_submitted():
 		doc.save()
 	elif doc.docstatus.is_submitted() and new_docstatus.is_cancelled():
+		if doc.meta.queue_in_background and not is_scheduler_inactive():
+			queue_submission(doc, "Cancel")
+			return
+
 		doc.cancel()
 	else:
 		frappe.throw(_("Illegal Document Status for {0}").format(next_state.state))
@@ -312,8 +315,8 @@ def get_workflow_field_value(workflow_name, field):
 
 
 @frappe.whitelist()
-def bulk_workflow_approval(docnames: str, doctype: str, action: str):
-	docnames = json.loads(docnames)
+def bulk_workflow_approval(docnames: str | list, doctype: str, action: str):
+	docnames = frappe.parse_json(docnames)
 	if len(docnames) < 20:
 		_bulk_workflow_action(docnames, doctype, action)
 	elif len(docnames) <= 500:
@@ -409,8 +412,7 @@ def print_workflow_log(messages, title, doctype, indicator):
 @frappe.whitelist()
 def get_common_transition_actions(docs: str | list[dict[str, Any]], doctype: str):
 	common_actions = []
-	if isinstance(docs, str):
-		docs = json.loads(docs)
+	docs = frappe.parse_json(docs)
 	try:
 		for i, doc in enumerate(docs, 1):
 			if not doc.get("doctype"):

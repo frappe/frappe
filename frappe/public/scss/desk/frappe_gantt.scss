@@ -4,7 +4,7 @@
 
 .gantt-container .popup-wrapper {
 	min-width: 9rem;
-	border-radius: var(--border-radius);
+	border-radius: var(--radius);
 	@include get_textstyle("sm", "regular");
 
 	.title {
@@ -19,5 +19,14 @@
 
 	.pointer {
 		height: 15px;
+	}
+}
+
+.gantt-modern {
+	height: calc(100vh - 240px);
+	overflow-y: auto;
+
+	.gantt-container {
+		position: relative;
 	}
 }

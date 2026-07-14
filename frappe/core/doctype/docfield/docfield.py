@@ -6,6 +6,8 @@ from frappe.model.document import Document
 
 
 class DocField(Document):
+	_DOCTYPE_NAME = "DocField"
+
 	# begin: auto-generated types
 	# This code is auto-generated. Do not modify anything in this block.
 
@@ -83,6 +85,7 @@ class DocField(Document):
 		ignore_xss_filter: DF.Check
 		in_filter: DF.Check
 		in_global_search: DF.Check
+		in_import_template: DF.Check
 		in_list_view: DF.Check
 		in_preview: DF.Check
 		in_standard_filter: DF.Check
@@ -94,6 +97,8 @@ class DocField(Document):
 		mandatory_depends_on: DF.Code | None
 		mask: DF.Check
 		max_height: DF.Data | None
+		max_value: DF.Float
+		min_value: DF.Float
 		no_copy: DF.Check
 		non_negative: DF.Check
 		not_nullable: DF.Check

@@ -11,6 +11,8 @@ from frappe.model.document import Document
 
 
 class DashboardSettings(Document):
+	_DOCTYPE_NAME = "Dashboard Settings"
+
 	# begin: auto-generated types
 	# This code is auto-generated. Do not modify anything in this block.
 

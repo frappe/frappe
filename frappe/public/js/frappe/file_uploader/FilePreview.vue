@@ -52,20 +52,22 @@
 					:progress="progress"
 					:stroke="3"
 				/>
-				<div v-if="uploaded" v-html="frappe.utils.icon('solid-success', 'lg')"></div>
-				<div v-if="file.failed" v-html="frappe.utils.icon('solid-error', 'lg')"></div>
+				<div v-if="uploaded" v-html="frappe.utils.icon('circle-check', 'lg')"></div>
+				<div v-if="file.failed" v-html="frappe.utils.icon('circle-x', 'lg')"></div>
 				<div class="file-action-buttons">
 					<button
 						v-if="is_cropable"
 						class="btn btn-crop muted"
 						@click="emit('toggle_image_cropper')"
 						v-html="frappe.utils.icon('crop', 'md')"
+						:title="__('Crop')"
 					></button>
 					<button
 						v-if="!uploaded && !file.uploading && !file.failed"
 						class="btn muted"
 						@click="emit('remove')"
-						v-html="frappe.utils.icon('delete', 'md')"
+						v-html="frappe.utils.icon('x', 'md')"
+						:title="__('Remove')"
 					></button>
 				</div>
 			</div>
@@ -192,7 +194,7 @@ onMounted(() => {
 .file-preview-outline:hover {
 	background-color: var(--bg-color);
 	border-color: var(--dark-border-color);
-	border-radius: var(--border-radius);
+	border-radius: var(--radius);
 }
 
 .file-preview-outline:hover + .file-preview-outline {
@@ -200,7 +202,7 @@ onMounted(() => {
 }
 
 .file-icon {
-	border-radius: var(--border-radius);
+	border-radius: var(--radius);
 	width: 2.625rem;
 	height: 2.625rem;
 	overflow: hidden;
@@ -221,7 +223,7 @@ onMounted(() => {
 	align-items: center;
 	justify-content: center;
 	border: 1px solid var(--border-color);
-	border-radius: var(--border-radius);
+	border-radius: var(--radius);
 }
 
 .file-name {

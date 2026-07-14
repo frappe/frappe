@@ -12,6 +12,8 @@ exclude_from_linked_with = True
 
 
 class ToDo(Document):
+	_DOCTYPE_NAME = "ToDo"
+
 	# begin: auto-generated types
 	# This code is auto-generated. Do not modify anything in this block.
 

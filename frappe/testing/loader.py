@@ -66,15 +66,15 @@ class FrappeTestLoader(unittest.TestLoader):
 			pymodule = importlib.import_module(pymodule_name)
 			self.load_testsuites_in_pymodule([pymodule])
 
+		elif self.params.module:
+			# handle --module (more specific than --app, so it takes precedence); supports --test as well
+			pymodule = importlib.import_module(self.params.module)
+			self.load_testsuites_in_pymodule([pymodule])
+
 		elif self.params.app:
 			# handle --app
 			files = self.get_files([self.params.app])
 			file_pymodules = self.load_pymodule_for_files(files)
 			self.load_testsuites_in_pymodule(file_pymodules)
-
-		elif self.params.module:
-			# handle --module; supports --test as well
-			pymodule = importlib.import_module(self.params.module)
-			self.load_testsuites_in_pymodule([pymodule])
 
 		return self.testsuite

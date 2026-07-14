@@ -39,7 +39,9 @@ frappe.ui.form.ControlDate = class ControlDate extends frappe.ui.form.ControlDat
 		}
 
 		if (should_refresh) {
+			this._suppress_change = true;
 			this.datepicker.selectDate(frappe.datetime.str_to_obj(value));
+			this._suppress_change = false;
 		}
 	}
 	set_date_options() {
@@ -68,7 +70,9 @@ frappe.ui.form.ControlDate = class ControlDate extends frappe.ui.form.ControlDat
 			maxDate: this.df.max_date,
 			firstDay: frappe.datetime.get_first_day_of_the_week_index(),
 			onSelect: () => {
-				this.$input.trigger("change");
+				if (!this._suppress_change) {
+					this.$input.trigger("change");
+				}
 			},
 			onShow: () => {
 				this.datepicker.$datepicker

@@ -15,6 +15,8 @@ class NamingSeriesNotSetError(frappe.ValidationError):
 
 
 class DocumentNamingSettings(Document):
+	_DOCTYPE_NAME = "Document Naming Settings"
+
 	# begin: auto-generated types
 	# This code is auto-generated. Do not modify anything in this block.
 

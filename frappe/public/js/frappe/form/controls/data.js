@@ -82,7 +82,7 @@ frappe.ui.form.ControlData = class ControlData extends frappe.ui.form.ControlInp
 		this.$wrapper.find(".control-input").append(
 			`<span class="link-btn">
 				<a class="btn-open no-decoration" title="${__("Open Link")}" target="_blank">
-					${frappe.utils.icon("link-url", "sm")}
+					${frappe.utils.icon("link", "sm")}
 				</a>
 			</span>`
 		);
@@ -184,6 +184,12 @@ frappe.ui.form.ControlData = class ControlData extends frappe.ui.form.ControlInp
 		if (this.constructor.trigger_change_on_input_event && !this.in_grid()) {
 			// debounce to avoid repeated validations on value change
 			this.$input.on("input", frappe.utils.debounce(change_handler, 500));
+		}
+
+		if (this.constructor?.trigger_dirty_on_input_event) {
+			this.$input.on("input", () => {
+				this.frm?.dirty();
+			});
 		}
 	}
 	setup_autoname_check() {

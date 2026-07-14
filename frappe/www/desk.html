@@ -52,8 +52,21 @@
 			if (!window.frappe) window.frappe = {};
 
 			frappe.boot = {{ frappe.utils.orjson_dumps(boot, default=frappe.json_handler) }};
-			frappe._messages = frappe.boot["__messages"];
+			frappe._messages = {};
 			frappe.csrf_token = "{{ csrf_token }}";
+
+			frappe._translations_loaded = fetch(
+				`/api/method/frappe.translate.get_boot_translations?v=${frappe.boot.translations_version}&lang=${frappe.boot.lang}`,
+				{
+					credentials: "same-origin",
+					headers: {
+						"X-Frappe-CSRF-Token": frappe.csrf_token,
+						"Accept": "application/json"
+					}
+				}
+			).then(r => r.json()).then(data => {
+				frappe._messages = data.message || {};
+			}).catch(() => {});
 
 
 		</script>

@@ -75,14 +75,20 @@ frappe.views.Container = class Container {
 			$(this.page).show();
 		}
 
-		$(document).trigger("page-change");
-
+		$(document).trigger("page-change", this.page);
 		this.page._route = frappe.router.get_sub_path();
 		$(this.page).trigger("show");
 		!this.page.disable_scroll_to_top && frappe.utils.scroll_to(0);
 		frappe.breadcrumbs.update();
-
+		this.toggle_sidebar();
 		return this.page;
+	}
+	toggle_sidebar() {
+		if (this.page.page && this.page.page.hide_sidebar) {
+			frappe.app.sidebar.toggle(this.page.page.hide_sidebar);
+		} else {
+			frappe.app.sidebar.toggle(false);
+		}
 	}
 	has_sidebar() {
 		var flag = 0;

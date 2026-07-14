@@ -208,6 +208,19 @@ def has_permission(
 		debug and _debug_log("Checking if document/doctype is explicitly shared with user")
 		perm = false_if_not_shared()
 
+	# select permission is implied by read permission
+	if not perm and ptype == "select":
+		perm = has_permission(
+			doctype,
+			ptype="read",
+			doc=doc,
+			user=user,
+			parent_doctype=parent_doctype,
+			print_logs=print_logs,
+			debug=debug,
+			ignore_share_permissions=ignore_share_permissions,
+		)
+
 	return bool(perm)
 
 
@@ -335,7 +348,7 @@ def get_user_permissions(user):
 	return get_user_permissions(user)
 
 
-def has_user_permission(doc, user=None, debug=False, *, ptype=None):
+def has_user_permission(doc, user=None, debug=False, *, ptype=None, strict=True):
 	"""Return True if User is allowed to view considering User Permissions."""
 	from frappe.core.doctype.user_permission.user_permission import get_user_permissions
 
@@ -350,7 +363,7 @@ def has_user_permission(doc, user=None, debug=False, *, ptype=None):
 	docname = doc.get("name")
 
 	# don't apply strict user permissions for single doctypes since they contain empty link fields
-	apply_strict_user_permissions = (
+	apply_strict_user_permissions = strict and (
 		False if doc.meta.issingle else frappe.get_system_settings("apply_strict_user_permissions")
 	)
 	if apply_strict_user_permissions:
@@ -485,8 +498,8 @@ def has_controller_permissions(doc, ptype, user=None, debug=False) -> bool:
 	return True
 
 
-def get_doctypes_with_read():
-	return list({cstr(p.parent) for p in get_valid_perms() if p.parent and p.read})
+def get_doctypes_with_read(user: str | None = None):
+	return list({cstr(p.parent) for p in get_valid_perms(user=user) if p.parent and p.read})
 
 
 def get_valid_perms(doctype=None, user=None):
@@ -855,7 +868,11 @@ def has_child_permission(
 			return False
 
 		permlevel = parent_meta.get_field(parentfield).permlevel
-		accessible_permlevels = parent_meta.get_permlevel_access(ptype, user=user)
+		# checking for select == checking for "select or read"
+		# select does not support access of higher permlevel child tables, but read does
+		accessible_permlevels = parent_meta.get_permlevel_access(
+			"read" if ptype == "select" else ptype, user=user
+		)
 		if permlevel > 0 and permlevel not in accessible_permlevels:
 			push_perm_check_log(
 				_("Insufficient Permission Level for {0}").format(frappe.bold(parent_doctype)), debug=debug
@@ -865,10 +882,16 @@ def has_child_permission(
 			)
 			return False
 
+		parent_doc = child_doc.parent_doc if hasattr(child_doc, "parent_doc") else None
+		if parent_doc is None:
+			parent_doc = child_doc.parent
+	else:
+		parent_doc = None
+
 	return has_permission(
 		parent_doctype,
 		ptype=ptype,
-		doc=child_doc and getattr(child_doc, "parent_doc", child_doc.parent),
+		doc=parent_doc,
 		user=user,
 		print_logs=print_logs,
 		debug=debug,
@@ -921,3 +944,10 @@ def _get_parent_and_ancestors(doctype, parent):
 	from frappe.utils.nestedset import get_ancestors_of
 
 	yield from get_ancestors_of(doctype, parent)
+
+
+def check_app_permission():
+	is_system_manager = "System Manager" in frappe.get_roles(frappe.session.user)
+	if is_system_user() and is_system_manager:
+		return True
+	return False

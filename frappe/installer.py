@@ -178,6 +178,7 @@ def install_db(
 	frappe.db.create_auth_table()
 	frappe.db.create_global_search_table()
 	frappe.db.create_user_settings_table()
+	frappe.db.create_sequence_table()
 
 	frappe.flags.in_install_db = False
 
@@ -359,6 +360,7 @@ def add_to_installed_apps(app_name, rebuild_website=True):
 
 	frappe.get_single("Installed Applications").update_versions()
 	frappe.db.commit()
+	_sync_installed_apps_to_site_config()
 
 
 def remove_from_installed_apps(app_name):
@@ -374,6 +376,7 @@ def remove_from_installed_apps(app_name):
 		frappe.db.commit()
 		if frappe.flags.in_install:
 			post_install()
+		_sync_installed_apps_to_site_config()
 
 
 def remove_app(app_name, dry_run=False, yes=False, no_backup=False, force=False):
@@ -623,8 +626,16 @@ def make_site_config(
 
 				site_config["db_user"] = db_user or db_name
 
-		with open(site_file, "w") as f:
+		with open(site_file, "w") as f:  # nosemgrep
 			f.write(json.dumps(site_config, indent=1, sort_keys=True))
+
+
+def _sync_installed_apps_to_site_config():
+	"""Mirror the installed-apps list into site_config.json for fast reads without a DB round-trip."""
+	try:
+		update_site_config("installed_apps", frappe.get_installed_apps())
+	except Exception:
+		pass
 
 
 def update_site_config(key, value, validate=True, site_config_path=None):

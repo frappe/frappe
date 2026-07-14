@@ -13,9 +13,9 @@ from frappe.utils.telemetry import capture_doc
 
 
 @frappe.whitelist(methods=["POST", "PUT"])
-def savedocs(doc: str, action: str):
+def savedocs(doc: str | dict, action: str):
 	"""save / submit / update doclist"""
-	doc = frappe.get_doc(json.loads(doc))
+	doc = frappe.get_doc(frappe.parse_json(doc))
 	capture_doc(doc, action)
 	if doc.get("__islocal") and doc.name.startswith("new-" + doc.doctype.lower().replace(" ", "-")):
 		# required to relink missing attachments if they exist.
@@ -64,6 +64,11 @@ def cancel(
 
 	if workflow_state_fieldname and workflow_state:
 		doc.set(workflow_state_fieldname, workflow_state)
+
+	if doc.meta.queue_in_background and not is_scheduler_inactive():
+		queue_submission(doc, "Cancel")
+		return
+
 	doc.cancel()
 	send_updated_docs(doc)
 	frappe.msgprint(frappe._("Cancelled"), indicator="red", alert=True)
@@ -104,3 +109,7 @@ def set_local_name(doc):
 
 	if doc.get("__newname"):
 		doc.name = doc.get("__newname")
+
+
+# Separate endpoint name for better logging
+submit = savedocs

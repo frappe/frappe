@@ -5,6 +5,7 @@ from __future__ import annotations
 
 import json
 import quopri
+import smtplib
 import traceback
 from contextlib import suppress
 from email.parser import Parser
@@ -13,7 +14,7 @@ from typing import TYPE_CHECKING
 
 import frappe
 from frappe import _, are_emails_muted, safe_encode, task
-from frappe.core.utils import html2text
+from frappe.core.utils import html_to_plain_text
 from frappe.database.database import savepoint
 from frappe.email.doctype.email_account.email_account import EmailAccount
 from frappe.email.email_body import add_attachment, get_email, get_formatted_html
@@ -42,6 +43,8 @@ if TYPE_CHECKING:
 
 
 class EmailQueue(Document):
+	_DOCTYPE_NAME = "Email Queue"
+
 	# begin: auto-generated types
 	# This code is auto-generated. Do not modify anything in this block.
 
@@ -129,7 +132,7 @@ class EmailQueue(Document):
 
 	def update_status(self, status, commit=False, **kwargs):
 		self.update_db(status=status, commit=commit, **kwargs)
-		if self.communication:
+		if self.communication and frappe.db.exists("Communication", self.communication):
 			communication_doc = frappe.get_doc("Communication", self.communication)
 			communication_doc.set_delivery_status(commit=commit)
 
@@ -188,16 +191,18 @@ class EmailQueue(Document):
 				if ctx.smtp_server.session.has_extn("SIZE"):
 					if max_size := ctx.smtp_server.session.esmtp_features.get("size"):
 						max_size = int(max_size)
-						msg_size = len(msg)
 
-						if msg_size > max_size:
-							msg_size_mb = msg_size / (1024 * 1024)
-							max_size_mb = max_size / (1024 * 1024)
-							frappe.throw(
-								_(
-									"Email size {0:.2f} MB exceeds the maximum allowed size of {1:.2f} MB"
-								).format(msg_size_mb, max_size_mb)
-							)
+						if max_size > 0:
+							msg_size = len(msg)
+
+							if msg_size > max_size:
+								msg_size_mb = msg_size / (1024 * 1024)
+								max_size_mb = max_size / (1024 * 1024)
+								frappe.throw(
+									_(
+										"Email size {0:.2f} MB exceeds the maximum allowed size of {1:.2f} MB"
+									).format(msg_size_mb, max_size_mb)
+								)
 
 				return msg
 
@@ -238,13 +243,19 @@ class EmailQueue(Document):
 						msg_bytes = validate_and_prepare_message(message)
 						mail_options, rcpt_options = get_smtp_options()
 
-						ctx.smtp_server.session.sendmail(
-							from_addr=self.sender,
-							to_addrs=recipient.recipient,
-							msg=msg_bytes,
-							mail_options=mail_options,
-							rcpt_options=rcpt_options,
-						)
+						try:
+							ctx.smtp_server.session.sendmail(
+								from_addr=self.sender,
+								to_addrs=recipient.recipient,
+								msg=msg_bytes,
+								mail_options=mail_options,
+								rcpt_options=rcpt_options,
+							)
+						except smtplib.SMTPException:
+							# Session can be poisoned server-side even though NOOP
+							# still reports it alive; discard so the next recipient reconnects.
+							ctx.smtp_server.discard_session()
+							raise
 
 				ctx.update_recipient_status_to_sent(recipient)
 
@@ -489,8 +500,7 @@ def retry_sending(queues: str | list[str]):
 	if not frappe.has_permission("Email Queue", throw=True):
 		return
 
-	if isinstance(queues, str):
-		queues = json.loads(queues)
+	queues = frappe.parse_json(queues)
 
 	if not queues:
 		return
@@ -691,7 +701,7 @@ class QueueBuilder:
 			return self._text_content + unsubscribe_text_message
 
 		try:
-			text_content = html2text(self._message)
+			text_content = html_to_plain_text(self._message)
 		except Exception:
 			text_content = "See html attachment"
 		return text_content + unsubscribe_text_message

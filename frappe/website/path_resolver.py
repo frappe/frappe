@@ -43,9 +43,9 @@ class PathResolver:
 		except frappe.Redirect as e:
 			return frappe.flags.redirect_location, RedirectPage(self.path, e.http_status_code)
 
-		if frappe.get_hooks("website_path_resolver"):
-			for handler in frappe.get_hooks("website_path_resolver"):
-				endpoint = frappe.get_attr(handler)(self.path)
+		if website_path_resolvers := frappe.get_hooks("website_path_resolver"):
+			for resolver in website_path_resolvers:
+				endpoint = frappe.get_attr(resolver)(self.path)
 		else:
 			try:
 				endpoint = resolve_path(self.path)

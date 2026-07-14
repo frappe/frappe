@@ -20,6 +20,8 @@ def get_config(name: str) -> str:
 
 
 class DashboardChartSource(Document):
+	_DOCTYPE_NAME = "Dashboard Chart Source"
+
 	# begin: auto-generated types
 	# This code is auto-generated. Do not modify anything in this block.
 

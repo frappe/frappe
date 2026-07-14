@@ -13,6 +13,15 @@ class TestWorkspace(IntegrationTestCase):
 		frappe.db.delete("DocType", {"module": "Test Module"})
 		frappe.delete_doc("Module Def", "Test Module")
 
+	def test_workspace_conflicts_with_existing_doctype(self):
+		"""Workspace name should not conflict with existing DocType names."""
+
+		create_doctype("Test", "Test Module")
+		workspace = create_workspace(name="Test", label="Test", public=1, title="Test")
+
+		with self.assertRaises(frappe.NameError):
+			workspace.insert()
+
 	# TODO: FIX ME - flaky test!!!
 	# def test_workspace_with_cards_specific_to_a_country(self):
 	# 	workspace = create_workspace()
@@ -30,7 +39,7 @@ class TestWorkspace(IntegrationTestCase):
 
 	def test_role_restricted_non_public_workspace_visible_to_permitted_user(self):
 		"""Non-public workspace with roles should be visible to users with matching role."""
-		from frappe.desk.desktop import get_workspace_sidebar_items
+		from frappe.desk.desktop import get_workspaces
 
 		workspace = frappe.new_doc("Workspace")
 		workspace.label = "Role Test Workspace"
@@ -42,7 +51,7 @@ class TestWorkspace(IntegrationTestCase):
 		workspace.insert(ignore_if_duplicate=True)
 
 		try:
-			result = get_workspace_sidebar_items()
+			result = get_workspaces()
 			workspace_titles = [p.title for p in result["pages"]]
 			self.assertIn("Role Test Workspace", workspace_titles)
 		finally:
@@ -65,6 +74,8 @@ def create_workspace(**args):
 	workspace.category = args.category or "Modules"
 	workspace.is_standard = args.is_standard or 1
 	workspace.module = "Test Module"
+	workspace.public = args.public or 0
+	workspace.title = args.title or "Test Workspace"
 
 	return workspace
 

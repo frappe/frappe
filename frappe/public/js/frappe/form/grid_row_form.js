@@ -47,21 +47,19 @@ export default class GridRowForm {
 						${__("Editing Row")} #<span class="grid-form-row-index"></span></span>
 					<span class="row-actions">
 						<button class="btn btn-secondary btn-sm pull-right grid-collapse-row">
-							${frappe.utils.icon("down")}
+							${frappe.utils.icon("chevron-down")}
 						</button>
 						<button class="btn btn-secondary btn-sm pull-right grid-move-row hidden-xs">
 							${__("Move")}</button>
 						<button class="btn btn-secondary btn-sm pull-right grid-duplicate-row hidden-xs">
-							${frappe.utils.icon("duplicate")}
+							${frappe.utils.icon("copy")}
 							${__("Duplicate")}
 						</button>
 						<button class="btn btn-secondary btn-sm pull-right grid-insert-row hidden-xs">
 							${__("Insert Above")}</button>
 						<button class="btn btn-secondary btn-sm pull-right grid-insert-row-below hidden-xs">
 							${__("Insert Below")}</button>
-						<button class="btn btn-danger btn-sm pull-right grid-delete-row">
-							${frappe.utils.icon("trash-2")} ${__("Delete")}
-						</button>
+						<button class="btn btn-danger btn-sm pull-right grid-delete-row">${__("Delete")}</button>
 					</span>
 				</div>
 			</div>

@@ -42,7 +42,7 @@ def download_file(url, prefix):
 	return local_filename
 
 
-def build_missing_files():
+def build_missing_files(verbose=True):
 	"""Check which files dont exist yet from the assets.json and run build for those files"""
 
 	missing_assets = []
@@ -67,12 +67,13 @@ def build_missing_files():
 				missing_assets.append(bundle_file)
 
 		if missing_assets:
-			click.secho("\nBuilding missing assets...\n", fg="yellow")
+			if verbose:
+				click.secho("\nBuilding missing assets...\n", fg="yellow")
 			files_to_build = ["frappe/" + name for name in missing_assets]
-			bundle(build_mode, files=files_to_build)
+			bundle(build_mode, files=files_to_build, verbose=verbose)
 	else:
 		# no assets.json, run full build
-		bundle(build_mode, apps="frappe")
+		bundle(build_mode, apps="frappe", verbose=verbose)
 
 
 def get_assets_link(frappe_head) -> str:
@@ -96,21 +97,23 @@ def get_assets_link(frappe_head) -> str:
 	return url
 
 
-def fetch_assets(url, frappe_head):
-	click.secho("Retrieving assets...", fg="yellow")
+def fetch_assets(url, frappe_head, verbose=True):
+	if verbose:
+		click.secho("Retrieving assets...", fg="yellow")
 
 	prefix = mkdtemp(prefix="frappe-assets-", suffix=frappe_head)
 	assets_archive = download_file(url, prefix)
 
 	if not assets_archive:
-		raise AssetsNotDownloadedError(f"Assets could not be retrived from {url}")
+		raise AssetsNotDownloadedError(f"Assets could not be retrieved from {url}")
 
-	click.echo(click.style("✔", fg="green") + f" Downloaded Frappe assets from {url}")
+	if verbose:
+		click.echo(click.style("✔", fg="green") + f" Downloaded Frappe assets from {url}")
 
 	return assets_archive
 
 
-def setup_assets(assets_archive):
+def setup_assets(assets_archive, verbose=True):
 	import tarfile
 
 	directories_created = set()
@@ -129,7 +132,8 @@ def setup_assets(assets_archive):
 					directories_created.add(asset_directory)
 
 				tar.makefile(file, dest)
-				click.echo(click.style("✔", fg="green") + f" Restored {show}")
+				if verbose:
+					click.echo(click.style("✔", fg="green") + f" Restored {show}")
 
 	return directories_created
 
@@ -145,9 +149,9 @@ def download_frappe_assets(verbose=True) -> bool:
 
 	try:
 		url = get_assets_link(frappe_head)
-		assets_archive = fetch_assets(url, frappe_head)
-		setup_assets(assets_archive)
-		build_missing_files()
+		assets_archive = fetch_assets(url, frappe_head, verbose=verbose)
+		setup_assets(assets_archive, verbose=verbose)
+		build_missing_files(verbose=verbose)
 		return True
 
 	except AssetsDontExistError as e:
@@ -232,7 +236,7 @@ def bundle(
 ):
 	"""concat / minify js files"""
 	setup()
-	make_asset_dirs(hard_link=hard_link)
+	make_asset_dirs(hard_link=hard_link, verbose=verbose)
 
 	mode = "production" if mode == "production" else "build"
 	command = f"yarn run {mode}"
@@ -256,6 +260,9 @@ def bundle(
 
 	if save_metafiles:
 		command += " --save-metafiles"
+
+	if verbose:
+		command += " --verbose"
 
 	check_node_executable()
 	frappe_app_path = frappe.get_app_source_path("frappe")
@@ -377,24 +384,32 @@ def unstrip(message: str) -> str:
 	return f"{message}{' ' * _rem}"
 
 
-def make_asset_dirs(hard_link=False):
+def make_asset_dirs(hard_link=False, verbose=True):
 	setup_assets_dirs()
 	clear_broken_symlinks()
 	symlinks = generate_assets_map()
 
 	for source, target in symlinks.items():
-		start_message = unstrip(f"{'Copying assets from' if hard_link else 'Linking'} {source} to {target}")
-		fail_message = unstrip(f"Cannot {'copy' if hard_link else 'link'} {source} to {target}")
+		start_message = (
+			unstrip(f"{'Copying assets from' if hard_link else 'Linking'} {source} to {target}")
+			if verbose
+			else None
+		)
+		fail_message = f"Cannot {'copy' if hard_link else 'link'} {source} to {target}"
 
 		# Used '\r' instead of '\x1b[1K\r' to print entire lines in smaller terminal sizes
 		try:
-			print(start_message, end="\r")
+			if verbose:
+				print(start_message, end="\r")
 			link_assets_dir(source, target, hard_link=hard_link)
 		except Exception as e:
 			print(e)
-			print(fail_message)
+			print(unstrip(fail_message) if verbose else fail_message)
 
-	click.echo(unstrip(click.style("✔", fg="green") + " Application Assets Linked") + "\n")
+	if verbose:
+		click.echo(unstrip(click.style("✔", fg="green") + " Application Assets Linked") + "\n")
+	else:
+		click.echo(click.style("✔", fg="green") + " Application Assets Linked")
 
 
 def link_assets_dir(source, target, hard_link=False):

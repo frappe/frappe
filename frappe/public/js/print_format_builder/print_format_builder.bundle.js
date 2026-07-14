@@ -1,5 +1,7 @@
 import { createApp, watch } from "vue";
 import PrintFormatBuilderComponent from "./PrintFormatBuilder.vue";
+import "./inspector.css";
+import "../../../templates/print_format/print_format_doc.css";
 
 class PrintFormatBuilder {
 	constructor({ wrapper, page, print_format }) {
@@ -11,9 +13,16 @@ class PrintFormatBuilder {
 		this.page.clear_icons();
 		this.page.clear_custom_actions();
 
-		this.page.set_title(__("Editing {0}", [this.print_format]));
+		this.page.set_title(this.print_format);
 		this.page.set_primary_action(__("Save"), () => {
 			this.$component.$store.save_changes();
+		});
+
+		frappe.ui.keys.add_shortcut({
+			shortcut: "ctrl+s",
+			action: () => this.$component.$store.save_changes(),
+			description: __("Save Print Format"),
+			page: this.page,
 		});
 		let $toggle_preview_btn = this.page.add_button(__("Show Preview"), () => {
 			this.$component.toggle_preview();
@@ -25,7 +34,7 @@ class PrintFormatBuilder {
 			frappe.set_route("Form", "Print Format", this.print_format);
 		});
 		this.page.add_menu_item(__("Change Print Format"), () => {
-			frappe.set_route("print-format-builder-beta");
+			frappe.set_route("print-format-builder");
 		});
 
 		let app = createApp(PrintFormatBuilderComponent, { print_format_name: print_format });

@@ -84,6 +84,8 @@ def mask_fields(
 	fields: list[Any],
 	result: list[dict] | list[tuple],
 	as_dict: bool = True,
+	pluck: bool = False,
+	parent_doctype: str | None = None,
 ) -> list[dict] | list[tuple]:
 	"""Mask fields in the result based on the doctype's masked fields.
 
@@ -92,21 +94,26 @@ def mask_fields(
 		fields: List of field objects from the query
 		result: Query results as list of dicts or tuples
 		as_dict: Whether results are dictionaries (True) or tuples (False)
-
+		pluck: Whether results were plucked into a flat list of scalar values
+		parent_doctype: Parent DocType when querying a child table, used to
+			resolve role permissions for the `mask` permission type
 	Returns:
 		Result with masked field values applied based on user permissions
 	"""
 	from frappe.database.query import CORE_DOCTYPES
-	from frappe.model.utils.mask import mask_dict_results, mask_list_results
+	from frappe.model.utils.mask import mask_dict_results, mask_list_results, mask_pluck_results
 
 	# We can't query meta for core doctypes here
 	if doctype in CORE_DOCTYPES:
 		return result
 
-	masked_fields = frappe.get_meta(doctype).get_masked_fields()
+	masked_fields = frappe.get_meta(doctype).get_masked_fields(parenttype=parent_doctype)
 
 	if not masked_fields:
 		return result
+
+	if pluck:
+		return mask_pluck_results(result, masked_fields, fields)
 
 	if not as_dict:
 		field_index_map = {}
@@ -125,6 +132,7 @@ def mask_fields(
 
 def execute_query(query, *args, **kwargs):
 	dt = query.__dict__.get("_doctype")
+	parent_dt = query.__dict__.get("_parent_doctype")
 	fields = query.__dict__.get("_fields_list", [])
 	child_queries = query._child_queries
 	query, params = prepare_query(query)
@@ -132,12 +140,35 @@ def execute_query(query, *args, **kwargs):
 
 	if child_queries and isinstance(child_queries, list) and result:
 		execute_child_queries(child_queries, result)
+		if dt:
+			mask_child_query_fields(child_queries, result)
 
 	if result and dt and fields:
 		as_dict = kwargs.get("as_dict", not kwargs.get("as_list", False))
-		result = mask_fields(dt, fields, result, as_dict=as_dict)
+		result = mask_fields(
+			dt, fields, result, as_dict=as_dict, pluck=kwargs.get("pluck", False), parent_doctype=parent_dt
+		)
 
 	return result
+
+
+def mask_child_query_fields(child_queries, result):
+	if not isinstance(result[0], dict):
+		return
+
+	from frappe.database.query import CORE_DOCTYPES
+	from frappe.model.utils.mask import mask_dict_results
+
+	for child_query in child_queries:
+		if child_query.doctype in CORE_DOCTYPES:
+			continue
+		masked_fields = frappe.get_meta(child_query.doctype).get_masked_fields(
+			parenttype=child_query.parent_doctype
+		)
+		if not masked_fields:
+			continue
+		for row in result:
+			mask_dict_results(row.get(child_query.fieldname) or [], masked_fields)
 
 
 def execute_child_queries(queries, result):
@@ -158,11 +189,11 @@ def execute_child_queries(queries, result):
 
 
 def prepare_query(query):
+	from frappe.utils.safe_exec import SERVER_SCRIPT_FILE_PREFIX, check_safe_sql_query
+
 	param_collector = NamedParameterWrapper()
 	query = query.get_sql(param_wrapper=param_collector)
 	if frappe.local.flags.get("in_safe_exec", False):
-		from frappe.utils.safe_exec import SERVER_SCRIPT_FILE_PREFIX, check_safe_sql_query
-
 		if not check_safe_sql_query(query, throw=False):
 			callstack = inspect.stack()
 
@@ -179,6 +210,10 @@ def prepare_query(query):
 			if len(callstack) >= 3 and SERVER_SCRIPT_FILE_PREFIX in callstack[2].filename:
 				raise frappe.PermissionError("Only SELECT SQL allowed in scripting")
 
+	if frappe.local.flags.get("in_render_safe_exec", False):
+		check_safe_sql_query(query, throw=True)
+
+	assert isinstance(query, str), "prepared query must be a SQL string"
 	return query, param_collector.parameters
 
 
@@ -210,7 +245,38 @@ def patch_get_query():
 	Base.get_query = get_query
 
 
+def patch_like_operators():
+	"""Render the query-builder LIKE / NOT LIKE operators as ILIKE / NOT ILIKE on postgres.
+
+	MariaDB's default collation makes LIKE case-insensitive; postgres compares text
+	case-sensitively, so a `.like()` search (link-field autocomplete, etc.) would only match
+	exact case on postgres. Mapping to ILIKE keeps pattern matching case-insensitive on both
+	backends -- matching MariaDB and the like->ilike translation `frappe.db.get_list` already
+	applies for its filter path. MariaDB keeps native LIKE.
+	"""
+	# pypika has no hook for dialect-specific operator rendering, so patch Term.like/not_like the same
+	# way the query-builder patches above (QueryBuilder.run, Base.max, ...) and app.py's
+	# Request.max_form_memory_size do. The rule anchors on the import, so suppress it there too.
+	from pypika.terms import Term  # nosemgrep: frappe-monkey-patching-not-allowed
+
+	_like, _not_like = Term.like, Term.not_like
+
+	def like(self, expr: str):
+		if frappe.db and frappe.db.db_type == "postgres":
+			return self.ilike(expr)
+		return _like(self, expr)
+
+	def not_like(self, expr: str):
+		if frappe.db and frappe.db.db_type == "postgres":
+			return self.not_ilike(expr)
+		return _not_like(self, expr)
+
+	Term.like = like  # nosemgrep: frappe-monkey-patching-not-allowed
+	Term.not_like = not_like  # nosemgrep: frappe-monkey-patching-not-allowed
+
+
 def patch_all():
 	patch_query_execute()
 	patch_query_aggregation()
 	patch_get_query()
+	patch_like_operators()
