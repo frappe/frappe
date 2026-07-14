@@ -7,6 +7,7 @@ import {
 	fetchPage,
 	confirm,
 	getInitialVariableValue,
+	getRouteVariables,
 } from "@/utils/helpers"
 import { getBlockInstance, getRootBlock, getBlockCopyWithoutParent, jsToJson } from "@/utils/serializer"
 import { studioPages } from "@/data/studioPages"
@@ -178,6 +179,9 @@ const useStudioStore = defineStore("store", () => {
 	const savingPage = ref(false)
 	const settingPage = ref(false)
 
+	// design-time test values for dynamic route variables (e.g. { category: "tech" }), persists in localStorage
+	const routeVariables = ref<Record<string, string>>({})
+
 	async function setPage(pageName: string) {
 		settingPage.value = true
 		const page = await fetchPage(pageName)
@@ -186,6 +190,7 @@ const useStudioStore = defineStore("store", () => {
 			return
 		}
 		activePage.value = page
+		loadRouteVariables(page)
 		await setPageData(page)
 		await codeStore.setPageScript(page, Boolean(page.is_standard))
 
@@ -454,15 +459,32 @@ const useStudioStore = defineStore("store", () => {
 		if (!activePage.value) return ""
 
 		const newRoute = toRaw(router.currentRoute.value)
-		// Extract param names from active page's route (e.g., ["employee", "id"] from "/hr/:employee/:id")
-		const paramNames = (activePage.value.route.match(/:\w+/g) || []).map(param => param.slice(1))
+		// Seed each dynamic param with its design-time test value (empty string when unset),
+		// e.g. "/hr/:employee/:id" -> { employee, id } filled from routeVariables
+		const paramNames = getRouteVariables(activePage.value.route)
 		newRoute.params = paramNames.reduce((params, name) => {
-			params[name] = ""
+			params[name] = routeVariables.value[name] ?? ""
 			return params
 		}, {} as Record<string, string>)
 
 		return newRoute
 	})
+
+	function loadRouteVariables(page: StudioPage) {
+		const stored = localStorage.getItem(`${page.name}:routeVariables`)
+		routeVariables.value = stored ? JSON.parse(stored) : {}
+	}
+
+	function setRouteVariable(name: string, value: string) {
+		if (!activePage.value) return
+		routeVariables.value[name] = value
+		localStorage.setItem(
+			`${activePage.value.name}:routeVariables`,
+			JSON.stringify(routeVariables.value),
+		)
+		// re-resolve data sources so the canvas reflects the new test value
+		codeStore.setPageResources(activePage.value)
+	}
 
 	const codeStore = useCodeStore()
 	codeStore.setRouteObject(routeObject)
@@ -568,6 +590,8 @@ const useStudioStore = defineStore("store", () => {
 		unpublishApp,
 		openPageInBrowser,
 		routeObject,
+		routeVariables,
+		setRouteVariable,
 		// app build
 		generateAppBuild,
 		// styles
