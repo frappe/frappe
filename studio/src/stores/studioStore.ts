@@ -475,15 +475,17 @@ const useStudioStore = defineStore("store", () => {
 		routeVariables.value = stored ? JSON.parse(stored) : {}
 	}
 
-	function setRouteVariable(name: string, value: string) {
+	async function setRouteVariable(name: string, value: string) {
 		if (!activePage.value) return
 		routeVariables.value[name] = value
 		localStorage.setItem(
 			`${activePage.value.name}:routeVariables`,
 			JSON.stringify(routeVariables.value),
 		)
-		// re-resolve data sources so the canvas reflects the new test value
-		codeStore.setPageResources(activePage.value)
+		// re-resolve data sources with the new value, then re-run the page script so bindings that
+		// derive from a resource (e.g. refs seeded from note.doc via a watcher) re-bind to the new doc
+		await codeStore.setPageResources(activePage.value)
+		await codeStore.setPageScript(activePage.value, Boolean(activePage.value.is_standard))
 	}
 
 	const codeStore = useCodeStore()
