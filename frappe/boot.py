@@ -298,7 +298,8 @@ def load_desktop_data(bootinfo):
 		# A workspace belongs to this app if its module is the app's (standard, app-shipped
 		# workspaces) or its `app` field points at it (custom workspaces have no module). Use a
 		# left join so module-less custom workspaces aren't dropped, and keep only public ones --
-		# private workspaces are surfaced separately by the selector's private listing.
+		# private workspaces are surfaced separately by the selector's private listing. Ordered by
+		# `sequence_id` so the dock lists them in the workspace record's configured order.
 		workspaces = [
 			r[0]
 			for r in (
@@ -309,6 +310,7 @@ def load_desktop_data(bootinfo):
 				.where(
 					((Module.app_name == app_name) | (Workspace.app == app_name)) & (Workspace.public == 1)
 				)
+				.orderby(Workspace.sequence_id)
 				.run()
 			)
 			if r[0] in allowed_pages
