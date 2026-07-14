@@ -1,7 +1,4 @@
 <template>
-	<!-- A standalone, inline comment composer: the shared editing core with
-		 @-mentions, for internal notes. Emits a CommentPayload on send — the host
-		 performs the send, then calls reset(). -->
 	<ComposerEditor
 		ref="core"
 		:placeholder="placeholder"
@@ -12,7 +9,6 @@
 		@submit="emit('submit', $event)"
 		@remove-attachment="emit('remove-attachment', $event)"
 	>
-		<!-- Extra footer actions; slot props drive a custom uploader. -->
 		<template v-if="$slots.actions" #actions="actionProps">
 			<slot name="actions" v-bind="actionProps" />
 		</template>
@@ -32,7 +28,6 @@ withDefaults(defineProps<CommentComposerProps>(), {
 const emit = defineEmits<CommentComposerEmits>();
 defineSlots<CommentComposerSlots>();
 
-// The comment draft; optional to bind — the host owns it via v-model.
 const body = defineModel<string>({ default: "" });
 
 const core = ref<InstanceType<typeof ComposerEditor> | null>(null);

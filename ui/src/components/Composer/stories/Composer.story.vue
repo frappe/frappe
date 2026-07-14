@@ -1,6 +1,5 @@
 <template>
 	<div class="mx-auto max-w-4xl p-6">
-		<!-- ── Intro ────────────────────────────────────────────────────────── -->
 		<h3 class="mb-1 text-xl-semibold text-ink-gray-9">Composers</h3>
 		<p class="mb-6 text-p-sm text-ink-gray-6">
 			Two standalone, inline message composers. <code>EmailComposer</code> stacks email
@@ -12,12 +11,10 @@
 			switcher (§1) and a docked reply window (§2) are a few host lines, not library surface.
 		</p>
 
-		<!-- ── Live controls (drive the flagship in §1) ─────────────────────── -->
 		<section class="mb-6 rounded-lg border border-outline-gray-2 p-4">
 			<div class="mb-3 text-sm-medium text-ink-gray-7">Controls</div>
 
 			<div class="flex flex-wrap items-center gap-x-8 gap-y-4">
-				<!-- Which header rows are offered (untick all to drop the section) -->
 				<div class="flex items-center gap-3">
 					<span class="text-p-sm text-ink-gray-6">headerFields</span>
 					<Checkbox v-model="fieldFrom" label="from" />
@@ -28,7 +25,6 @@
 				</div>
 			</div>
 
-			<!-- Imperative handle (exposed focus / reset / submit) on the active tab -->
 			<div
 				class="mt-4 flex flex-wrap items-center gap-2 border-t border-outline-gray-1 pt-4"
 			>
@@ -43,7 +39,6 @@
 			</div>
 		</section>
 
-		<!-- ── §1 Flagship: switchable Email / Comment composer ─────────────── -->
 		<section class="mb-8">
 			<div class="mb-2 text-sm-medium text-ink-gray-7">
 				Switchable composer — Email and Comment share one area via
@@ -55,7 +50,6 @@
 					<TabButtons v-model="channel" :options="channelOptions" />
 				</div>
 
-				<!-- Email tab -->
 				<div v-show="channel === 'email'" class="p-2">
 					<EmailComposer
 						ref="emailRef"
@@ -74,7 +68,6 @@
 					/>
 				</div>
 
-				<!-- Comment tab -->
 				<div v-show="channel === 'comment'" class="p-2">
 					<CommentComposer
 						ref="commentRef"
@@ -92,7 +85,6 @@
 			><code>{{ tabbedCode }}</code></pre>
 		</section>
 
-		<!-- ── §2 Windowed (host recipe) ────────────────────────────────────── -->
 		<section class="mb-8">
 			<div class="mb-2 text-sm-medium text-ink-gray-7">
 				A docked reply window is the host's own <code>FloatingWindow</code> around an
@@ -103,7 +95,6 @@
 			><code>{{ windowRecipe }}</code></pre>
 		</section>
 
-		<!-- ── §3 Custom addressing (host recipe) ───────────────────────────── -->
 		<section class="mb-8">
 			<div class="mb-2 text-sm-medium text-ink-gray-7">
 				<code>#header</code> replaces the built-in header rows wholesale — provide it empty
@@ -114,7 +105,6 @@
 			><code>{{ headerRecipe }}</code></pre>
 		</section>
 
-		<!-- ── Event log ─────────────────────────────────────────────────────── -->
 		<div class="text-sm-medium text-ink-gray-7">Events</div>
 		<pre
 			class="mt-2 max-h-64 overflow-auto rounded-lg bg-surface-gray-2 p-3 text-xs text-ink-gray-8"
@@ -142,14 +132,12 @@ import type {
 	UploadFunction,
 } from "../types";
 
-// ── Switcher: which composer the one area shows ────────────────────────────
 const channel = ref("email");
 const channelOptions = [
 	{ label: "Email", value: "email" },
 	{ label: "Comment", value: "comment" },
 ];
 
-// ── Which header rows the composer offers ──────────────────────────────────
 const fieldFrom = ref(true);
 const fieldTo = ref(true);
 const fieldSubject = ref(true);
@@ -169,41 +157,35 @@ const headerFields = computed<HeaderField[]>(() =>
 		.map(([name]) => name)
 );
 
-// ── Draft state (host-owned via v-model, survives tab switches) ────────────
+// Draft state — host-owned via v-model, survives tab switches.
 const emailBody = ref("");
 const commentBody = ref("");
 const subject = ref("");
-// Quoted reply HTML, shown as a collapsible block and appended back on send.
 const quoted = ref<string | null>(null);
-// Recipients are host-owned — seed a reply and observe edits.
 const recipients = ref<Recipients>({
 	to: [{ email: "grace@example.com", label: "Grace Hopper" }],
 	cc: [],
 	bcc: [],
 });
 
-// Each composer exposes { editor, focus, reset, submit }; drive the active tab.
 const emailRef = ref<InstanceType<typeof EmailComposer> | null>(null);
 const commentRef = ref<InstanceType<typeof CommentComposer> | null>(null);
 const activeComposer = computed(() =>
 	channel.value === "comment" ? commentRef.value : emailRef.value
 );
-// Drop a quoted message into the email channel to pre-fill a reply.
 function seedReply() {
 	channel.value = "email";
 	quoted.value = "<p>On Tue, Grace wrote:</p><p>Can we ship the composer this week?</p>";
 	emailRef.value?.focus();
 }
 
-// ── Sender identities for the built-in From row ────────────────────────────
 const senders: Recipient[] = [
 	{ label: "Support", email: "support@example.com" },
 	{ label: "Sales", email: "sales@example.com" },
 ];
 const fromEmail = ref(senders[0].email);
 
-// ── Mocked transports (a real host wires these to its backend) ─────────────
-// Attachment upload: fake latency, then a File-shaped result the chip renders.
+// Mocked transports — a real host wires these to its backend.
 const mockUpload: UploadFunction = async (file) => {
 	await new Promise((resolve) => setTimeout(resolve, 600));
 	return {
@@ -215,8 +197,6 @@ const mockUpload: UploadFunction = async (file) => {
 	};
 };
 
-// Recipient search: the composer calls this (debounced) as the user types To/
-// Cc/Bcc. Fake latency stands in for a contacts/users endpoint.
 const directory: Recipient[] = [
 	{ label: "Grace Hopper", email: "grace@example.com" },
 	{ label: "Ada Lovelace", email: "ada@example.com" },
@@ -235,14 +215,12 @@ function searchRecipients(query: string): Promise<Recipient[]> {
 	return new Promise((resolve) => setTimeout(() => resolve(matches), 300));
 }
 
-// @-mention options for the comment composer; the editor filters them on "@".
 const mentions: MentionOption[] = [
 	{ label: "Grace Hopper", value: "grace@example.com" },
 	{ label: "Ada Lovelace", value: "ada@example.com" },
 	{ label: "Alan Turing", value: "alan@example.com" },
 ];
 
-// ── Code samples shown under the sections ──────────────────────────────────
 const tabbedCode = `<TabButtons v-model="channel" :options="channelOptions" />
 
 <div v-show="channel === 'email'">
@@ -273,7 +251,6 @@ const headerRecipe = `<!-- Custom addressing UI -->
   <template #header />
 </EmailComposer>`;
 
-// ── Event log ──────────────────────────────────────────────────────────────
 const events = ref<string[]>([]);
 function log(name: string, payload?: EmailPayload | CommentPayload | UploadedFile) {
 	const time = new Date().toLocaleTimeString();

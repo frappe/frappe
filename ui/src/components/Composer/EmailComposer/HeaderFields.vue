@@ -1,11 +1,7 @@
 <template>
-	<!-- The email header rows, each enabled by `fields`: From is a picker over
-		 `senders`, and Cc/Bcc are revealed by the toggles on the To row (or
-		 whenever they already carry recipients). -->
 	<div class="px-2.5">
 		<Row v-if="showFrom" label="From" :items-center="true">
-			<!-- -ml-2 cancels the ghost trigger's px-2 so its text lines up with
-				 the borderless inputs below. -->
+			<!-- -ml-2 cancels the ghost trigger's px-2 so text aligns with the inputs below. -->
 			<Select v-model="from" :options="senderOptions" variant="ghost" class="-ml-2" />
 		</Row>
 
@@ -50,9 +46,7 @@ import type { HeaderField, Recipient, Recipients, RecipientSearch } from "../typ
 
 const props = withDefaults(
 	defineProps<{
-		/** Which header rows to render. */
 		fields?: HeaderField[];
-		/** Sender identities offered by the From row. */
 		senders?: Recipient[];
 		search?: RecipientSearch;
 	}>(),
@@ -63,15 +57,12 @@ const model = defineModel<Recipients>({ required: true });
 const subject = defineModel<string>("subject", { default: "" });
 const from = defineModel<string>("from", { default: "" });
 
-// The optional recipient rows, in fixed order. `from`/`subject` are handled
-// separately (single-value fields, not recipient lists).
 const OPTIONAL = ["cc", "bcc"] as const;
 type OptionalField = "cc" | "bcc";
 
 const showFrom = computed(() => props.fields.includes("from"));
 const showSubject = computed(() => props.fields.includes("subject"));
 const showTo = computed(() => props.fields.includes("to"));
-// Which optional rows this composer offers — each gets a toggle button + a row.
 const rows = computed(() => OPTIONAL.filter((field) => props.fields.includes(field)));
 
 const senderOptions = computed(() =>
@@ -90,13 +81,9 @@ watch(
 	{ immediate: true }
 );
 
-// Whether each optional row is open — the single source of truth for both the
-// row and its toggle button, so the button's highlighted state always matches
-// what's on screen.
 const open = reactive<Record<OptionalField, boolean>>({ cc: false, bcc: false });
 
-// Auto-open a row as soon as it carries recipients (prefilled or seeded later),
-// so they're never hidden behind an off-looking toggle.
+// Prefilled recipients auto-open their row.
 for (const field of OPTIONAL) {
 	watch(
 		() => model.value[field].length,
@@ -107,7 +94,7 @@ for (const field of OPTIONAL) {
 	);
 }
 
-// Closing a row drops its recipients — hidden ones would otherwise be sent invisibly.
+// Closing a row drops its recipients so none are sent invisibly.
 function toggle(field: OptionalField) {
 	open[field] = !open[field];
 	if (!open[field]) model.value[field] = [];

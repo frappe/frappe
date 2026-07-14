@@ -1,8 +1,5 @@
 <template>
-	<!-- Adapter over frappe-ui's MultiEmailInput: bridges Recipient objects
-		 (name + avatar) to the plain email strings it models. -->
-	<!-- Wrapper so the row's flex-1 lands on a flex child: MultiEmailInput puts
-		 attrs.class on its inner box, not its root. -->
+	<!-- Wrapper div so flex-1 applies: MultiEmailInput puts attrs.class on its inner box. -->
 	<div class="w-full flex-1">
 		<MultiEmailInput
 			v-model="emails"
@@ -55,9 +52,7 @@ const model = defineModel<Recipient[]>({ default: () => [] });
 const loading = ref(false);
 const searchResults = ref<Recipient[]>([]);
 
-// Bridge plain emails <-> Recipient objects, restoring each chip's name/avatar
-// from its match or existing entry. Set() dedupes so a repeated seed can't
-// collide on key.
+// Bridge plain emails <-> Recipient objects; Set() dedupes repeated seeds.
 const emails = computed<string[]>({
 	get: () => [...new Set(model.value.map((recipient) => recipient.email))],
 	set: (next) => {
@@ -84,8 +79,6 @@ async function runSearch(query: string) {
 		const results = await props.search(query);
 		if (id === requestId) searchResults.value = results;
 	} catch {
-		// Only the latest request owns the shared state; surface the failure
-		// instead of a silent empty dropdown.
 		if (id === requestId) {
 			searchResults.value = [];
 			toast.error("Couldn't load recipients.");

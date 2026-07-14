@@ -1,7 +1,4 @@
 <template>
-	<!-- A standalone, inline email composer: header rows (From/Subject/To/Cc/Bcc,
-		 per `headerFields`) above the shared editing core. Emits an EmailPayload on send —
-		 the host performs the actual send, then calls reset(). -->
 	<ComposerEditor
 		ref="core"
 		:placeholder="placeholder"
@@ -12,8 +9,7 @@
 		@submit="handleSubmit"
 		@remove-attachment="emit('remove-attachment', $event)"
 	>
-		<!-- Built-in header rows; providing #header replaces them, even empty
-			 (which renders no header at all). -->
+		<!-- Providing #header replaces the built-in rows, even when empty. -->
 		<template #top>
 			<slot v-if="$slots.header" name="header" />
 			<HeaderFields
@@ -27,7 +23,6 @@
 			/>
 		</template>
 
-		<!-- Extra footer actions; slot props drive a custom uploader. -->
 		<template v-if="$slots.actions" #actions="actionProps">
 			<slot name="actions" v-bind="actionProps" />
 		</template>
@@ -53,10 +48,7 @@ withDefaults(defineProps<EmailComposerProps>(), {
 const emit = defineEmits<EmailComposerEmits>();
 defineSlots<EmailComposerSlots>();
 
-// Two-way state, all optional to bind — the host owns each piece via v-model.
 const body = defineModel<string>({ default: "" });
-// Quoted reply HTML, shown as a collapsible block and appended back on send.
-// Seed it (and clear `v-model`) to pre-fill a reply.
 const quoted = defineModel<string | null>("quoted", { default: null });
 const recipients = defineModel<Recipients>("recipients", {
 	default: () => ({ to: [], cc: [], bcc: [] }),
@@ -66,7 +58,7 @@ const from = defineModel<string>("from", { default: "" });
 
 const core = ref<InstanceType<typeof ComposerEditor> | null>(null);
 
-// No recipient validation here — the host owns the send and can decline it.
+// No validation here — the host owns the send.
 function handleSubmit({ body: message, attachments }: CoreSubmitPayload) {
 	emit("submit", {
 		from: from.value,
@@ -77,7 +69,7 @@ function handleSubmit({ body: message, attachments }: CoreSubmitPayload) {
 	});
 }
 
-// `from` survives a reset — the sender identity carries over to the next email.
+// `from` survives reset — the sender identity carries over.
 function reset() {
 	recipients.value = { to: [], cc: [], bcc: [] };
 	subject.value = "";

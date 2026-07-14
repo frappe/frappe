@@ -1,9 +1,5 @@
 <template>
-	<!-- Shared editing core for EmailComposer and CommentComposer: editor body,
-		 attachments, and the Discard/Send toolbar. Renders inline; a host that wants
-		 a floating reply window wraps the composer in frappe-ui's FloatingWindow. -->
 	<div class="flex h-full min-h-0 flex-col">
-		<!-- frappe-ui's Editor is renderless: we render the layout in its slot. -->
 		<Editor
 			ref="editorRef"
 			v-model="body"
@@ -16,7 +12,7 @@
 					class="flex min-h-0 flex-1 flex-col"
 					@keydown.ctrl.enter.capture.stop="submit"
 					@keydown.meta.enter.capture.stop="submit"
-					@keydown.esc.capture.stop="reset"
+					@keydown.esc.stop="onEscape"
 					@keydown.ctrl.a.stop="selectAll"
 					@keydown.meta.a.stop="selectAll"
 					@keydown.delete="onDeleteAcrossQuote"
@@ -24,13 +20,8 @@
 				>
 					<slot name="top" />
 
-					<!-- Selection formatting popup. -->
 					<EditorBubbleMenu :items="commentToolbar" />
-					<!-- Contextual table controls (shown while cursor is inside a table). -->
 					<EditorTableMenu />
-
-					<!-- Editor space: grows to a 50vh cap then scrolls, and can shrink to 0
-						 so the footer (mt-auto, not flex-1) always keeps whatever it needs. -->
 
 					<div
 						class="flex max-h-[50vh] min-h-0 flex-1 flex-col overflow-y-auto px-2.5 pb-2.5"
@@ -38,9 +29,7 @@
 						<EditorContent
 							class="prose-sm max-w-full flex-1 pb-8 pt-2 [&_p.reply-to-content]:hidden"
 						/>
-						<!-- Collapsible quoted reply: the original message being
-							 replied to, kept out of the editor body and appended
-							 back on send. -->
+						<!-- Quoted reply: kept out of the editor body, appended back on send. -->
 						<details v-if="quotedContent" class="mb-2" :open="isQuoteExpanded">
 							<summary
 								class="w-fit cursor-pointer select-none rounded px-1 text-sm leading-none text-ink-gray-5 bg-surface-gray-2 list-none [&::-webkit-details-marker]:hidden"
@@ -57,7 +46,6 @@
 					</div>
 
 					<div class="mt-auto">
-						<!-- Attachments -->
 						<div
 							v-if="attachments.length"
 							ref="attachmentRow"
@@ -85,19 +73,11 @@
 						</div>
 
 						<div class="flex items-center justify-between gap-2 px-2.5 pb-2.5">
-							<!-- Host actions: clipped to 50% width, scrollable, with a right-side
-								 fade to signal overflow. -->
 							<div class="relative overflow-hidden" style="max-width: 70%">
-								<!-- p-0.5: without it, focus/hover rings on buttons flush against this
-									 row's edge get hard-clipped by overflow-x-auto (which also clips
-									 the vertical axis per the CSS overflow spec). -->
+								<!-- p-0.5 keeps button focus rings from being clipped by overflow-x-auto. -->
 								<div
 									class="flex items-center gap-1 overflow-x-auto p-0.5 [scrollbar-width:none] [&::-webkit-scrollbar]:hidden"
 								>
-									<!-- Built-in attach button, gated on `uploadFunction` (the only
-										 thing that can upload). The same function handles inline
-										 images; if inline-images-without-attach-button is ever
-										 needed, split it behind a prop. -->
 									<button
 										v-if="uploadFunction"
 										type="button"
@@ -120,7 +100,6 @@
 									/>
 									<EditorFixedMenu :items="emailToolbar" button-size="sm" />
 								</div>
-								<!-- Fade indicating more content to the right -->
 								<div
 									class="pointer-events-none absolute inset-y-0 right-0 w-8"
 									style="
@@ -186,7 +165,6 @@ import {
 import { sanitizeHtml } from "../../utils/sanitize";
 import type { ComposerEditorProps, CoreSubmitPayload, UploadedFile } from "./types";
 
-// Fixed formatting toolbar rendered in the footer (headings, bold, lists, …).
 const emailToolbar = [
 	Paragraph,
 	H2,
@@ -227,8 +205,6 @@ const emit = defineEmits<{
 const editorRef = ref<InstanceType<typeof Editor> | null>(null);
 const editor = computed(() => editorRef.value?.editor);
 
-// @-mention options mapped to the editor's { id, label } shape. Kept live via a
-// getter so a late-loading list works without recreating the editor.
 const mentionItems = computed(() =>
 	(props.mentions ?? []).map((option) => ({
 		id: option.value,
@@ -244,19 +220,14 @@ const extensions = [
 	}),
 ];
 
-// Editable body, exposed as `v-model:body` so a host can seed and observe it.
 const body = defineModel<string>("body", { default: "" });
 
 // Quoted reply, kept out of the editor body and appended back on send.
-// `v-model:quoted` lets a host seed it (EmailComposer surfaces it upward).
 const quotedContent = defineModel<string | null>("quoted", { default: null });
 const quotedContentRef = ref<HTMLElement | null>(null);
 const isQuoteExpanded = ref(false);
 
-// Body and quoted reply are two separate contenteditables, so a native
-// Ctrl/Cmd+A only spans the focused one. Select all of the editor's own
-// content (so its internal state knows it's selected), then stretch the DOM
-// selection from before the editor to after the quoted block.
+// Native Ctrl/Cmd+A only spans one contenteditable; stretch it across body + quote.
 function selectAll(event: KeyboardEvent) {
 	isQuoteExpanded.value = true;
 	const editorDom = editor.value?.view?.dom as HTMLElement | undefined;
@@ -279,8 +250,7 @@ function selectAll(event: KeyboardEvent) {
 	selection.addRange(range);
 }
 
-// Backspace/Delete only empties the focused editable; after a select-all
-// spanning both, clear both so the whole composer empties.
+// After a select-all spanning both editables, delete clears both.
 function onDeleteAcrossQuote(event: KeyboardEvent) {
 	const selection = window.getSelection();
 	const quotedEl = quotedContentRef.value;
@@ -298,14 +268,10 @@ function onDeleteAcrossQuote(event: KeyboardEvent) {
 
 function onQuotedInput() {
 	const html = quotedContentRef.value?.innerHTML ?? "";
-	// Empty-of-text (stray <br>/<p></p> left after deleting) collapses to null,
-	// so the quoted-reply block disappears instead of lingering empty.
 	quotedContent.value = isContentEmpty(html) ? null : html;
 }
 
-// Paint the quoted block whenever the model changes from outside (a host seeding
-// a reply via `v-model:quoted`, or a remount repainting a preserved draft).
-// `onQuotedInput` keeps `innerHTML` equal to the model, so user edits no-op here.
+// Paint the quoted block when the model changes from outside; user edits no-op.
 watch(
 	quotedContent,
 	(next) => {
@@ -326,8 +292,6 @@ function buildMessage() {
 		: body.value;
 }
 
-// Attachment state. Hosts add via the `actions` slot; explicit removals emit
-// `remove-attachment` (reset clears silently).
 const attachments = ref<UploadedFile[]>([]);
 const isUploading = ref(false);
 const attachmentRow = useTemplateRef<HTMLElement>("attachmentRow");
@@ -339,8 +303,6 @@ watch(attachmentRow, (el, _prev, onCleanup) => {
 		compactAttachments.value = el.scrollWidth > el.clientWidth;
 	});
 	observer.observe(el);
-	// Disconnect when the row element swaps out or the component unmounts, so
-	// observers don't pile up across add/remove cycles.
 	onCleanup(() => observer.disconnect());
 });
 
@@ -361,19 +323,14 @@ function setUploading(value: boolean) {
 
 const attachInput = useTemplateRef<HTMLInputElement>("attachInput");
 
-// Uploads a file picked via the built-in attach button and records it as an
-// attachment; the `actions` slot covers custom affordances.
 async function onAttachPicked(event: Event) {
 	const input = event.target as HTMLInputElement;
 	const file = input.files?.[0];
-	// Clear the input's value so selecting the same file again still fires
-	// `change` (browsers suppress it when the value is unchanged).
+	// Reset so picking the same file again still fires `change`.
 	input.value = "";
 	if (!file || !props.uploadFunction) return;
 	isUploading.value = true;
 	try {
-		// Narrow the editor's uploaded-file shape to what an attachment chip
-		// needs; `name` falls back to the URL as a stable key.
 		const uploaded = await props.uploadFunction(file);
 		addAttachment({
 			name: uploaded.name ?? uploaded.file_url,
@@ -394,19 +351,15 @@ function removeAttachment(file: UploadedFile) {
 	emit("remove-attachment", file);
 }
 
-// A message needs a body or at least one attachment to send (an attachment-only
-// email is valid) — and never sends mid-upload. A quoted reply alone doesn't
-// count: there's something to discard, but nothing new to send.
+// Sendable = body or attachment (a quoted reply alone isn't); never mid-upload.
 const isDisabled = computed(
 	() => (isContentEmpty(body.value) && !attachments.value.length) || isUploading.value
 );
 
-// Nothing to discard: empty body, no attachments, no quoted reply.
 const isEmpty = computed(
 	() => isContentEmpty(body.value) && !attachments.value.length && !quotedContent.value
 );
 
-/** True when the editor HTML carries no text and no media. */
 function isContentEmpty(content: string) {
 	if (!content) return true;
 	const doc = new DOMParser().parseFromString(content, "text/html");
@@ -418,17 +371,17 @@ function focus() {
 	setTimeout(() => editor.value?.commands?.focus("start"), 0);
 }
 
-// Emits and steps back — reset is never automatic, so the host can do its own
-// post-send work first.
 function submit() {
 	if (isDisabled.value) return;
 	emit("submit", { body: buildMessage(), attachments: attachments.value });
 }
 
-// Also what Discard (button and Esc) does — hosts observe the cleared body
-// through their v-model; there's no separate discard event.
+// An editor popup (mention list, etc.) that handled Esc marks it via preventDefault.
+function onEscape(event: KeyboardEvent) {
+	if (!event.defaultPrevented) reset();
+}
+
 function reset() {
-	// Clear the editor; the host re-seeds any default body (e.g. a signature).
 	body.value = "";
 	attachments.value = [];
 	quotedContent.value = null;
