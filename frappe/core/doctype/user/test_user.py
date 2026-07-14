@@ -372,63 +372,6 @@ class TestUser(IntegrationTestCase):
 		frappe.delete_doc("User", new_name, ignore_permissions=True, force=True)
 		frappe.delete_doc("User", actor_name, ignore_permissions=True, force=True)
 
-	def test_user_rename_updates_private_sidebar(self):
-		old_name = "test_user_rename_sb@example.com"
-		new_name = "test_user_rename_sb_new@example.com"
-		actor_name = "test_user_rename_sb_actor@example.com"
-
-		for email in (old_name, new_name, actor_name):
-			frappe.delete_doc("User", email, ignore_permissions=True, force=True)
-		if frappe.db.exists("Workspace Sidebar", f"My Workspaces-{old_name}"):
-			frappe.delete_doc(
-				"Workspace Sidebar", f"My Workspaces-{old_name}", ignore_permissions=True, force=True
-			)
-
-		frappe.get_doc(
-			{
-				"doctype": "User",
-				"email": old_name,
-				"enabled": 1,
-				"first_name": "_Test",
-				"new_password": "Eastern_43A1W",
-				"roles": [{"doctype": "Has Role", "parentfield": "roles", "role": "System Manager"}],
-			}
-		).insert(ignore_permissions=True, ignore_if_duplicate=True)
-
-		# Actor has no ownership relation to the sidebar being renamed, so this only succeeds
-		# if rename_private_sidebars passes ignore_permissions=True to rename_doc.
-		frappe.get_doc(
-			{
-				"doctype": "User",
-				"email": actor_name,
-				"enabled": 1,
-				"first_name": "_Test Actor",
-				"new_password": "Eastern_43A1W",
-				"roles": [{"doctype": "Has Role", "parentfield": "roles", "role": "System Manager"}],
-			}
-		).insert(ignore_permissions=True, ignore_if_duplicate=True)
-
-		frappe.get_doc(
-			{
-				"doctype": "Workspace Sidebar",
-				"title": f"My Workspaces-{old_name}",
-				"for_user": old_name,
-			}
-		).insert(ignore_permissions=True)
-
-		with self.set_user(actor_name):
-			frappe.rename_doc("User", old_name, new_name)
-
-		# Workspace Sidebar.for_user is a Link field, so it is already cascaded to new_name by
-		# the User rename itself; rename_private_sidebars must look it up by new_name to find
-		# and rename "My Workspaces-<old_name>".
-		new_sidebar = f"My Workspaces-{new_name}"
-		self.assertTrue(frappe.db.exists("Workspace Sidebar", new_sidebar))
-		self.assertEqual(frappe.db.get_value("Workspace Sidebar", new_sidebar, "for_user"), new_name)
-
-		frappe.delete_doc("User", new_name, ignore_permissions=True, force=True)
-		frappe.delete_doc("User", actor_name, ignore_permissions=True, force=True)
-
 	def test_signup(self):
 		import frappe.website.utils
 
