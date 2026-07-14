@@ -22,9 +22,11 @@ from frappe.database.database import (
 from frappe.database.sqlite.schema import SQLiteTable
 from frappe.utils import get_table_name
 
-# sqlglot logs a warning for every construct its target dialect can't represent (e.g. FOR
-# UPDATE, which modify_query() relies on it silently dropping) -- silence that per-query noise.
-logging.getLogger("sqlglot").setLevel(logging.ERROR)
+# sqlglot warns for every construct its target dialect can't represent (e.g. FOR UPDATE, which
+# modify_query() relies on it silently dropping) -- mute our own use without touching global config.
+_sqlglot_logger = logging.getLogger("sqlglot")
+_sqlglot_logger.addHandler(logging.NullHandler())
+_sqlglot_logger.propagate = False
 
 _PARAM_COMP = re.compile(r"%\((\w+)\)s")
 # A single-quoted string literal, including any doubled '' escapes inside it. Used to skip
