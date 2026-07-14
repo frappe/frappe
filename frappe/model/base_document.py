@@ -785,6 +785,10 @@ class BaseDocument:
 			conflict_handler = "on conflict (name) do nothing"
 			if self.meta.autoname == "hash":
 				returning = "RETURNING name"
+		elif ignore_if_duplicate and frappe.db.db_type == "sqlite":
+			# SQLite may hit a secondary or composite unique index before `name`.
+			# Ignore the conflict here; hash collisions still use the retry path.
+			conflict_handler = "on conflict do nothing"
 
 		if not self.creation:
 			self.creation = self.modified = now()

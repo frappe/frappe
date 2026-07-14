@@ -35,26 +35,35 @@ def execute(filters=None):
 				WHERE table_schema = 'public'
 				ORDER BY 2 DESC;
 			""",
+			# dbstat is a virtual table that materialises by scanning every page, so the
+			# previous per-table correlated subqueries scanned it once per table (O(tables
+			# x pages), ~minutes on a real DB). Scan it once into the `stat` CTE, map every
+			# table/index to its owning table, then aggregate with a single GROUP BY.
 			"sqlite": """
-				WITH RECURSIVE
-					page_size AS (
-						SELECT CAST(page_size AS FLOAT) as size FROM PRAGMA_page_size()
+				WITH
+					ps AS (SELECT CAST(page_size AS FLOAT) AS size FROM PRAGMA_page_size()),
+					stat AS (SELECT name, SUM(pgsize) AS bytes FROM dbstat GROUP BY name),
+					owner AS (
+						SELECT name AS obj, name AS tbl FROM sqlite_master
+						WHERE type = 'table' AND name NOT LIKE 'sqlite_%'
+						UNION ALL
+						SELECT name AS obj, tbl_name AS tbl FROM sqlite_master WHERE type = 'index'
+					),
+					agg AS (
+						SELECT o.tbl,
+							SUM(CASE WHEN o.obj = o.tbl THEN COALESCE(stat.bytes, 0) ELSE 0 END) AS data_bytes,
+							SUM(CASE WHEN o.obj <> o.tbl THEN COALESCE(stat.bytes, 0) ELSE 0 END) AS idx_bytes
+						FROM owner o
+						LEFT JOIN stat ON stat.name = o.obj
+						GROUP BY o.tbl
 					)
 				SELECT
-					m.name as 'table',
-					ROUND(CAST((SELECT SUM(pgsize) FROM dbstat WHERE name = m.name) * page_size.size / (1024.0 * 1024.0 * 1024.0) AS FLOAT), 2) as 'data_size',
-					ROUND(CAST((SELECT SUM(pgsize) FROM dbstat WHERE name IN (
-						SELECT name FROM sqlite_master
-						WHERE type = 'index' AND tbl_name = m.name
-					)) * page_size.size / (1024.0 * 1024.0 * 1024.0) AS FLOAT), 2) as 'index_size',
-					ROUND(CAST((SELECT SUM(pgsize) FROM dbstat WHERE name = m.name OR name IN (
-						SELECT name FROM sqlite_master
-						WHERE type = 'index' AND tbl_name = m.name
-					)) * page_size.size / (1024.0 * 1024.0 * 1024.0) AS FLOAT), 2) as 'size'
-				FROM sqlite_master m
-				CROSS JOIN page_size
-				WHERE m.type = 'table'
-				AND m.name NOT LIKE 'sqlite_%'
+					tbl AS 'table',
+					ROUND(CAST(data_bytes * ps.size / (1024.0 * 1024.0 * 1024.0) AS FLOAT), 2) AS 'data_size',
+					ROUND(CAST(idx_bytes * ps.size / (1024.0 * 1024.0 * 1024.0) AS FLOAT), 2) AS 'index_size',
+					ROUND(CAST((data_bytes + idx_bytes) * ps.size / (1024.0 * 1024.0 * 1024.0) AS FLOAT), 2) AS 'size'
+				FROM agg
+				CROSS JOIN ps
 				ORDER BY size DESC;""",
 		},
 		as_dict=1,
