@@ -136,10 +136,12 @@ class TestSafeExec(FrappeTestCase):
 		self.assertEqual(frappe.local.debug_log[-1], test_str)
 
 
-<<<<<<< HEAD
 class TestNoSafeExec(FrappeTestCase):
-=======
-class TestSafeDoc(IntegrationTestCase):
+	def test_safe_exec_disabled_by_default(self):
+		self.assertRaises(ServerScriptNotEnabled, safe_exec, "pass")
+
+
+class TestSafeDoc(FrappeTestCase):
 	@classmethod
 	def setUpClass(cls):
 		super().setUpClass()
@@ -182,8 +184,12 @@ class TestSafeDoc(IntegrationTestCase):
 
 	@classmethod
 	def tearDownClass(cls):
-		frappe.delete_doc("DocType", "Test SafeDoc Parent", ignore_missing=True, force=True)
-		frappe.delete_doc("DocType", "Test SafeDoc Row", ignore_missing=True, force=True)
+		frappe.delete_doc(
+			"DocType", "Test SafeDoc Parent", ignore_missing=True, force=True, ignore_permissions=True
+		)
+		frappe.delete_doc(
+			"DocType", "Test SafeDoc Row", ignore_missing=True, force=True, ignore_permissions=True
+		)
 		frappe.db.commit()
 		super().tearDownClass()
 
@@ -310,12 +316,6 @@ class TestSafeDoc(IntegrationTestCase):
 			restrict_globals=True,
 		)
 		self.assertEqual(result.strip(), expected)
-
-
-class TestNoSafeExec(IntegrationTestCase):
->>>>>>> 87b163a9cf (test(safe_exec): add tests for SafeDoc instance and attrs.)
-	def test_safe_exec_disabled_by_default(self):
-		self.assertRaises(ServerScriptNotEnabled, safe_exec, "pass")
 
 
 class TestJinjaGlobals(FrappeTestCase):
