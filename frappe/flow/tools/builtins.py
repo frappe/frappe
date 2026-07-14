@@ -8,9 +8,9 @@ from typing import Any
 
 import frappe
 from frappe import _
-from frappe.utils.safe_exec import safe_exec
 
 from flow.lib.tool import Tool, tool
+from flow.utils.safe_exec import safe_exec
 
 MAX_READ_LIMIT = 200
 LAYOUT_FIELDTYPES = frozenset({"Section Break", "Column Break", "Tab Break", "HTML", "Heading"})
@@ -149,23 +149,37 @@ search_knowledge = bind_search_knowledge([])
 	confirm_prompt=lambda args: f"Run this Python:\n\n{args.get('code', '')}",
 )
 def execute(code: str) -> Any:
-	"""Run Python in the Frappe sandbox (RestrictedPython) for computation, emails, or multi-record work.
+	"""Run Python in a permission-respecting sandbox for computation, emails, or multi-record work.
 
-	Assign the value you want returned to a variable named `result`.
-	Example:
+	Do NOT write `import` statements — imports are blocked and the whole script fails. `frappe`
+	and `frappe.utils` are already in scope; everything you can use is listed below, so never
+	start with `import ...`.
+
+	Every function here enforces the current user's permissions — there is no way to read or
+	write data the user cannot access. Assign the value to return to a variable named `result`.
+	Example (no imports, just use `frappe` directly):
 	    result = frappe.db.count("ToDo", {"status": "Open"})
+
+	Available:
+	- Reads: frappe.get_list (supports group_by and aggregates via dict fields, e.g.
+	  fields=[{"SUM": "qty", "as": "total"}] or [{"COUNT": "*", "as": "n"}]),
+	  frappe.get_doc (returns a dict), frappe.get_meta, frappe.db.get_value/get_single_value/count/exists.
+	- Writes: create, update, delete, run_action — the same permission-checked tools you call directly.
+	- Also: read, describe, find_doctypes, frappe.call (whitelisted methods), frappe.enqueue,
+	  frappe.sendmail, frappe.get_print, frappe.utils.* (dates, numbers, strings).
 
 	Sandbox limits — code using these FAILS:
 	- No `import`. `frappe` and `frappe.utils` are already in scope; nothing else can be imported.
 	- No names or attributes starting with `_` (no dunders, no `obj._private`).
+	- No raw database access: frappe.db.sql, frappe.qb, frappe.db.set_value and frappe.get_all are
+	  unavailable — use frappe.get_list and the write tools, which respect permissions.
 	- Unavailable builtins: open, eval, exec, compile, getattr, setattr, hasattr,
 	  globals, locals, vars, dir, type, input. Available: len, range, str, int, float,
 	  bool, sum, sorted, enumerate, zip, min, max, abs, dict, list, set, tuple.
 	- `str.format()` / `.format_map()` are blocked — use f-strings or `%` formatting.
-	- `frappe.db.sql` is read-only (SELECT/EXPLAIN only).
 	- `print()` output is logged, not returned — put what you want back into `result`.
 
-	Writes run as the current user and enforce permissions. The user approves each call before it runs.
+	The user approves each call before it runs.
 	"""
 	exec_globals, _locals = safe_exec(code, script_filename="ai_execute")
 	return exec_globals.get("result")
