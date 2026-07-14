@@ -471,6 +471,13 @@ const useStudioStore = defineStore("store", () => {
 		return newRoute
 	})
 
+	// route variables on the active page that have no test value yet — used to nudge the user, since
+	// unset variables render the page's empty state (no doc / no rows) which can look like a bug
+	const areRouteVariablesSet = computed(() => {
+		if (!activePage.value) return true
+		return getRouteVariables(activePage.value.route).every((name) => !!routeVariables.value[name])
+	})
+
 	function loadRouteVariables(page: StudioPage) {
 		const key = `${page.name}:routeVariables`
 		try {
@@ -608,6 +615,7 @@ const useStudioStore = defineStore("store", () => {
 		openPageInBrowser,
 		routeObject,
 		routeVariables,
+		areRouteVariablesSet,
 		setRouteVariable,
 		// app build
 		generateAppBuild,
