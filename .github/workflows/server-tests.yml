@@ -50,8 +50,8 @@ jobs:
     strategy:
       fail-fast: false
       matrix:
-        # Always run against postgres too -- it is a supported backend (see roulette.py).
-        db: ${{ fromJson(needs.checkrun.outputs.run_postgres == 'true' && '["mariadb", "postgres"]' || '["mariadb"]') }}
+        # Keep the existing Postgres gating and always include SQLite.
+        db: ${{ fromJson(needs.checkrun.outputs.run_postgres == 'true' && '["mariadb", "sqlite", "postgres"]' || '["mariadb", "sqlite"]') }}
         index: [1, 2]
     services:
       postgres:
@@ -98,6 +98,11 @@ jobs:
           # consumed by bench run-parallel-tests
           CAPTURE_COVERAGE: true
           BUILD_NUMBER: ${{ matrix.index }}
+          # Each (db, index) is a separate job on its own runner with its own site/db file, so
+          # SQLite's single-writer limit (which only affects parallel workers sharing one file) is
+          # not a concern here. Split into 2 chunks like the other DBs: this both halves runtime and
+          # gives SQLite the same test distribution as MariaDB, so accumulated cross-test state
+          # (committed shares, leftover doctypes) is isolated the same way.
           TOTAL_BUILDS: 2
           FRAPPE_SENTRY_DSN: ${{ secrets.SENTRY_DSN || '' }}
 
