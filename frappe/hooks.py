@@ -552,7 +552,7 @@ add_to_apps_screen = [
 	{
 		"name": app_name,
 		"logo": app_logo_url,
-		"title": app_title,
+		"title": "Framework",
 		"route": app_home,
 		"has_permission": "frappe.permissions.check_app_permission",
 	}
