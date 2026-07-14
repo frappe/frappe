@@ -1,17 +1,21 @@
 import os
 import time
 from datetime import datetime, timedelta
-from unittest.mock import patch
+from unittest.mock import call, patch
 
 import frappe
 from frappe.core.doctype.scheduled_job_type.scheduled_job_type import ScheduledJobType, sync_jobs
-from frappe.tests import IntegrationTestCase
+from frappe.tests import IntegrationTestCase, UnitTestCase
 from frappe.utils import add_days, get_datetime
+from frappe.utils import scheduler as scheduler_utils
 from frappe.utils.doctor import purge_pending_jobs
 from frappe.utils.scheduler import (
 	DEFAULT_SCHEDULER_TICK,
+	SCHEDULER_HEARTBEAT_INTERVAL,
+	SCHEDULER_HEARTBEAT_TTL,
 	enqueue_events,
 	is_dormant,
+	is_schduler_process_running,
 	schedule_jobs_based_on_activity,
 	sleep_duration,
 )
@@ -106,6 +110,56 @@ class TestScheduler(IntegrationTestCase):
 			fake_time = datetime(2024, 1, 1) + delta
 			with self.freeze_time(fake_time, is_utc=True):
 				self.assertEqual(sleep_duration(DEFAULT_SCHEDULER_TICK), expected_sleep, delta)
+
+
+class TestSchedulerHeartbeat(UnitTestCase):
+	@patch("frappe.utils.scheduler.get_bench_id", return_value="test-bench")
+	@patch("frappe.utils.scheduler.get_redis_conn")
+	def test_scheduler_heartbeat(self, get_redis_conn, _get_bench_id):
+		redis = get_redis_conn.return_value
+
+		with patch("frappe.utils.scheduler.time.time", return_value=123):
+			scheduler_utils._update_scheduler_heartbeat()
+
+		redis.set.assert_called_once_with(
+			"test-bench:scheduler:heartbeat",
+			123,
+			ex=SCHEDULER_HEARTBEAT_TTL,
+		)
+
+		redis.exists.return_value = 1
+		self.assertTrue(is_schduler_process_running())
+
+		redis.exists.return_value = 0
+		self.assertFalse(is_schduler_process_running())
+
+	@patch("frappe.utils.scheduler.frappe.logger")
+	@patch("frappe.utils.scheduler.get_redis_conn")
+	def test_scheduler_heartbeat_redis_failure(self, get_redis_conn, logger):
+		redis = get_redis_conn.return_value
+		redis.set.side_effect = scheduler_utils.RedisError("unavailable")
+
+		scheduler_utils._update_scheduler_heartbeat()
+
+		logger.return_value.warning.assert_called_once_with(
+			"Failed to update scheduler heartbeat",
+			exc_info=True,
+		)
+
+	@patch("frappe.utils.scheduler._update_scheduler_heartbeat")
+	@patch("frappe.utils.scheduler.time.sleep")
+	@patch("frappe.utils.scheduler.time.monotonic", side_effect=(0, 0, 30, 60))
+	def test_scheduler_heartbeat_during_sleep(self, _monotonic, sleep, update_heartbeat):
+		scheduler_utils._sleep_with_scheduler_heartbeat(60)
+
+		self.assertEqual(update_heartbeat.call_count, 3)
+		self.assertEqual(
+			sleep.call_args_list,
+			[
+				call(SCHEDULER_HEARTBEAT_INTERVAL),
+				call(SCHEDULER_HEARTBEAT_INTERVAL),
+			],
+		)
 
 
 def get_test_job(method="frappe.tests.test_scheduler.test_timeout_10", frequency="All") -> ScheduledJobType:
