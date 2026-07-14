@@ -4,10 +4,6 @@
   {
    "chart_name": "Webpage Views",
    "label": "Website Visits"
-  },
-  {
-   "chart_name": "Webpage Views",
-   "label": "Website Visits"
   }
  ],
  "content": "[{\"id\":\"6zVvGE_xaw\",\"type\":\"chart\",\"data\":{\"chart_name\":\"Website Visits\",\"col\":12}},{\"id\":\"_cD8O3c7OX\",\"type\":\"number_card\",\"data\":{\"number_card_name\":\"Published Web Pages\",\"col\":4}},{\"id\":\"7NNFjUlDOJ\",\"type\":\"number_card\",\"data\":{\"number_card_name\":\"Published Web Forms\",\"col\":4}},{\"id\":\"VcwJUwrmU2\",\"type\":\"number_card\",\"data\":{\"number_card_name\":\"Website Themes Available\",\"col\":4}}]",
@@ -17,7 +13,7 @@
  "doctype": "Workspace",
  "for_user": "",
  "hide_custom": 0,
- "icon": "globe",
+ "icon": "app-window",
  "idx": 5,
  "is_hidden": 0,
  "label": "Website",
@@ -37,28 +33,6 @@
    "dependencies": "",
    "hidden": 0,
    "is_query_report": 0,
-   "label": "Website Settings",
-   "link_count": 0,
-   "link_to": "Website Settings",
-   "link_type": "DocType",
-   "onboard": 1,
-   "type": "Link"
-  },
-  {
-   "dependencies": "",
-   "hidden": 0,
-   "is_query_report": 0,
-   "label": "Website Theme",
-   "link_count": 0,
-   "link_to": "Website Theme",
-   "link_type": "DocType",
-   "onboard": 1,
-   "type": "Link"
-  },
-  {
-   "dependencies": "",
-   "hidden": 0,
-   "is_query_report": 0,
    "label": "Website Theme",
    "link_count": 0,
    "link_to": "Website Theme",
@@ -73,28 +47,6 @@
    "label": "Website Script",
    "link_count": 0,
    "link_to": "Website Script",
-   "link_type": "DocType",
-   "onboard": 0,
-   "type": "Link"
-  },
-  {
-   "dependencies": "",
-   "hidden": 0,
-   "is_query_report": 0,
-   "label": "Website Script",
-   "link_count": 0,
-   "link_to": "Website Script",
-   "link_type": "DocType",
-   "onboard": 0,
-   "type": "Link"
-  },
-  {
-   "dependencies": "",
-   "hidden": 0,
-   "is_query_report": 0,
-   "label": "About Us Settings",
-   "link_count": 0,
-   "link_to": "About Us Settings",
    "link_type": "DocType",
    "onboard": 0,
    "type": "Link"
@@ -125,42 +77,9 @@
    "dependencies": "",
    "hidden": 0,
    "is_query_report": 0,
-   "label": "Contact Us Settings",
-   "link_count": 0,
-   "link_to": "Contact Us Settings",
-   "link_type": "DocType",
-   "onboard": 0,
-   "type": "Link"
-  },
-  {
-   "dependencies": "",
-   "hidden": 0,
-   "is_query_report": 0,
    "label": "Help Category",
    "link_count": 0,
    "link_to": "Help Category",
-   "link_type": "DocType",
-   "onboard": 0,
-   "type": "Link"
-  },
-  {
-   "dependencies": "",
-   "hidden": 0,
-   "is_query_report": 0,
-   "label": "Help Category",
-   "link_count": 0,
-   "link_to": "Help Category",
-   "link_type": "DocType",
-   "onboard": 0,
-   "type": "Link"
-  },
-  {
-   "dependencies": "",
-   "hidden": 0,
-   "is_query_report": 0,
-   "label": "Help Article",
-   "link_count": 0,
-   "link_to": "Help Article",
    "link_type": "DocType",
    "onboard": 0,
    "type": "Link"
@@ -177,7 +96,7 @@
    "type": "Link"
   }
  ],
- "modified": "2026-07-06 18:21:09.790202",
+ "modified": "2026-07-03 11:51:23.165769",
  "modified_by": "Administrator",
  "module": "Website",
  "name": "Website",
@@ -187,20 +106,8 @@
    "number_card_name": "Published Web Pages"
   },
   {
-   "label": "Published Web Pages",
-   "number_card_name": "Published Web Pages"
-  },
-  {
    "label": "Published Web Forms",
    "number_card_name": "Published Web Forms"
-  },
-  {
-   "label": "Published Web Forms",
-   "number_card_name": "Published Web Forms"
-  },
-  {
-   "label": "Website Themes Available",
-   "number_card_name": "Website Themes Available"
   },
   {
    "label": "Website Themes Available",
@@ -219,8 +126,7 @@
   {
    "child": 0,
    "collapsible": 1,
-   "default_workspace": 0,
-   "icon": "home",
+   "icon": "house",
    "indent": 0,
    "keep_closed": 0,
    "label": "Home",
@@ -233,8 +139,7 @@
   {
    "child": 0,
    "collapsible": 1,
-   "default_workspace": 0,
-   "icon": "web",
+   "icon": "globe",
    "indent": 0,
    "keep_closed": 0,
    "label": "Web Page",
@@ -247,7 +152,6 @@
   {
    "child": 0,
    "collapsible": 1,
-   "default_workspace": 0,
    "icon": "notebook-pen",
    "indent": 0,
    "keep_closed": 0,
@@ -261,7 +165,6 @@
   {
    "child": 0,
    "collapsible": 1,
-   "default_workspace": 0,
    "icon": "settings",
    "indent": 0,
    "keep_closed": 0,
@@ -275,7 +178,6 @@
   {
    "child": 0,
    "collapsible": 1,
-   "default_workspace": 0,
    "icon": "settings",
    "indent": 0,
    "keep_closed": 0,
@@ -289,8 +191,7 @@
   {
    "child": 0,
    "collapsible": 1,
-   "default_workspace": 0,
-   "icon": "customization",
+   "icon": "paintbrush",
    "indent": 1,
    "keep_closed": 0,
    "label": "Customize",
@@ -302,7 +203,6 @@
   {
    "child": 1,
    "collapsible": 1,
-   "default_workspace": 0,
    "icon": "",
    "indent": 0,
    "keep_closed": 0,
@@ -316,7 +216,6 @@
   {
    "child": 1,
    "collapsible": 1,
-   "default_workspace": 0,
    "icon": "",
    "indent": 0,
    "keep_closed": 0,
