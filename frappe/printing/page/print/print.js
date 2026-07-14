@@ -455,9 +455,13 @@ frappe.ui.form.PrintView = class {
 		this.wrapper.find(".btn-download-pdf").toggle(!is_raw_printing);
 	}
 
+	renders_via_generator(print_format) {
+		return !print_format.custom_format && !print_format.raw_printing;
+	}
+
 	preview() {
 		let print_format = this.get_print_format();
-		if (print_format.print_format_builder_beta || !print_format.name) {
+		if (this.renders_via_generator(print_format)) {
 			this.print_wrapper.find(".print-preview-wrapper").hide();
 			this.print_wrapper.find(".preview-beta-wrapper").show();
 			this.preview_beta();
@@ -728,7 +732,7 @@ frappe.ui.form.PrintView = class {
 	}
 	render_pdf() {
 		let print_format = this.get_print_format();
-		if (print_format.print_format_builder_beta || !print_format.name) {
+		if (this.renders_via_generator(print_format)) {
 			let params = new URLSearchParams({
 				doctype: this.frm.doc.doctype,
 				name: this.frm.doc.name,
