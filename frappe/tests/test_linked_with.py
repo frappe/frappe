@@ -139,6 +139,37 @@ class TestLinkedWith(IntegrationTestCase):
 		child_record.delete()
 		parent_record.delete()
 
+	def test_cancel_all_linked_docs_accepts_native(self):
+		doc = frappe.get_doc({"doctype": "Parent DocType"}).insert()
+		doc.submit()
+
+		# docs as a native list of dicts and ignore_doctypes as a native list (JSON request body)
+		linked_with.cancel_all_linked_docs(
+			docs=[{"doctype": "Parent DocType", "name": doc.name, "docstatus": 1}],
+			ignore_doctypes_on_cancel_all=["Comment"],
+		)
+		self.assertEqual(frappe.db.get_value("Parent DocType", doc.name, "docstatus"), 2)
+		doc.reload().delete()
+
+	def test_get_submitted_linked_docs_accepts_native_ignore_list(self):
+		parent_record = frappe.get_doc({"doctype": "Parent DocType"}).insert()
+
+		# ignore_doctypes_on_cancel_all as a native list (frappe.parse_json passthrough, L43)
+		result = linked_with.get_submitted_linked_docs(
+			parent_record.doctype, parent_record.name, ignore_doctypes_on_cancel_all=["Comment"]
+		)
+		self.assertIn("docs", result)
+		parent_record.delete()
+
+	def test_get_linked_docs_accepts_native_linkinfo(self):
+		parent_record = frappe.get_doc({"doctype": "Parent DocType"}).insert()
+		# linkinfo as a native dict instead of a JSON string (L429)
+		out = linked_with.get_linked_docs(
+			"Parent DocType", parent_record.name, linkinfo=linked_with.get_linked_doctypes("Parent DocType")
+		)
+		self.assertIsInstance(out, dict)
+		parent_record.delete()
+
 	def test_check_delete_integrity(self):
 		"""Don't allow deleting cancelled document if amendment exists"""
 		doc = frappe.get_doc({"doctype": "Parent DocType"}).insert()

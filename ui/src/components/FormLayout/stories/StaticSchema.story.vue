@@ -10,7 +10,7 @@
 <script setup lang="ts">
 import { reactive } from "vue";
 import FormLayout from "../FormLayout.vue";
-import { registerFieldType } from "../fieldTypes";
+import { registerFieldType } from "../../Fields/fieldTypes";
 import DemoLinkField from "./DemoLinkField.vue";
 import DemoCurrencyField from "./DemoCurrencyField.vue";
 import DemoTableMultiSelectField from "./DemoTableMultiSelectField.vue";

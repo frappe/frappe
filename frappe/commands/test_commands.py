@@ -218,6 +218,16 @@ class BaseTestCommands(IntegrationTestCase):
 
 
 class TestCommands(BaseTestCommands):
+	def test_browse_sid(self):
+		self.setup_test_site()
+
+		with patch("click.launch") as launch:
+			with cli(frappe.commands.site.browse, ["--user", "Administrator", "--sid"]) as result:
+				self.assertEqual(result.exit_code, 0)
+				self.assertTrue(result.output.strip())
+				self.assertNotIn("Login URL", result.output)
+				launch.assert_not_called()
+
 	def test_execute(self):
 		# test 1: execute a command expecting a numeric output
 		self.execute("bench --site {site} execute frappe.db.get_database_size")

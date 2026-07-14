@@ -12,6 +12,7 @@ frappe.views.BaseList = class BaseList {
 			() => this.hide_skeleton(),
 			() => this.check_permissions(),
 			() => this.init(),
+			() => this.filter_area?.place_id_filter(),
 			() => this.setup_list_filter_by(),
 			() => this.before_refresh(),
 			() => this.refresh(),
@@ -193,9 +194,9 @@ frappe.views.BaseList = class BaseList {
 				List: "list",
 				Report: "sheet",
 				Calendar: "calendar",
-				Gantt: "gantt",
-				Kanban: "kanban",
-				Dashboard: "dashboard",
+				Gantt: "square-chart-gantt",
+				Kanban: "square-kanban",
+				Dashboard: "layout-dashboard",
 				Map: "map",
 			};
 
@@ -241,7 +242,7 @@ frappe.views.BaseList = class BaseList {
 			}
 		} else {
 			this.refresh_button = this.page.add_action_icon(
-				"es-line-reload",
+				"refresh-cw",
 				() => {
 					this.refresh();
 				},
@@ -438,6 +439,7 @@ frappe.views.BaseList = class BaseList {
 					if (cur_list?.$result?.is(":visible")) {
 						cur_list.set_result_height();
 					}
+					cur_list?.filter_area?.place_id_filter();
 				}, 300)
 			);
 	}
@@ -634,8 +636,12 @@ frappe.views.BaseList = class BaseList {
 	}
 
 	setup_list_filter_by() {
+		if (!this.show_saved_layout_menu) {
+			return Promise.resolve();
+		}
+
 		return new Promise((resolve) => {
-			frappe.require("list_layout.bundle.js", () => {
+			frappe.require("list_filter.bundle.js", () => {
 				this.list_filter = new frappe.views.ListFilter(this);
 				resolve(this.list_filter.setup_promise);
 			});
@@ -664,41 +670,42 @@ class FilterArea {
 			300
 		);
 		this.setup();
-		if (frappe.is_mobile()) this.setup_mobile(list_view);
+		if (!this.list_view.hide_page_form) this.setup_mobile_toolbar();
 	}
 
-	setup_mobile(list_view) {
-		const me = this;
-		this.standard_filters_visible = false;
-		this.standard_filters_wrapper?.hide();
-		this.list_view.page.page_form.css("justify-content", "flex-end");
-		list_view.page.page_form.addClass("flex-column");
-		this.$filter_list_wrapper.addClass("justify-between p-0");
+	setup_mobile_toolbar() {
+		this.list_view.page.page_form.addClass("list-page-form");
 
-		// added this to manage spaceing between filter and sorf area
-		this.$filter_list_wrapper.find(".filter-selector").css("margin", "0 0 0 auto");
-
-		$(`<button class="filter-toggle btn btn-default btn-sm filter-button">
+		$(`<button class="filter-toggle btn btn-default btn-sm hidden-lg">
 					<span class="filter-icon button-icon">
 						${frappe.utils.icon("chevrons-up-down")}
 					</span>
-				</button>
-			</div>`)
+				</button>`)
 			.prependTo(this.$filter_list_wrapper.find(".filter-selector"))
-			.on("click", function () {
-				me.toggle_standard_filter();
-			});
-		let children = list_view.page.page_form.children();
-		list_view.page.page_form.append(children.get().reverse());
+			.on("click", () => this.toggle_standard_filter());
+
+		this.$mobile_id_filter = $('<div class="mobile-id-filter hidden-lg">').prependTo(
+			this.$filter_list_wrapper
+		);
 	}
 
 	toggle_standard_filter() {
-		if (this.standard_filters_visible) {
-			this.standard_filters_visible = false;
-			this.standard_filters_wrapper.hide();
+		this.list_view.page.page_form.toggleClass("standard-filters-visible");
+	}
+
+	place_id_filter() {
+		const id_filter = this.list_view.page.fields_dict.name;
+		if (!id_filter || !this.$mobile_id_filter) return;
+
+		// matchMedia keeps placement in sync with the toolbar media queries in list.scss
+		const mobile_layout = window.matchMedia("(max-width: 767.98px)").matches;
+		const target = mobile_layout ? this.$mobile_id_filter : this.standard_filters_wrapper;
+		if (id_filter.wrapper.parentElement === target[0]) return;
+
+		if (mobile_layout) {
+			target.append(id_filter.wrapper);
 		} else {
-			this.standard_filters_visible = true;
-			this.standard_filters_wrapper.show();
+			target.prepend(id_filter.wrapper);
 		}
 	}
 
@@ -800,8 +807,12 @@ class FilterArea {
 
 			// set in list view area if filters are present
 			// don't set like filter on link fields (gets reset)
+			// a Check standard filter is a checkbox that can't hold "= 0", so keep it as a regular filter
+			const is_unchecked_check =
+				fields_dict[fieldname]?.df?.fieldtype === "Check" && !cint(value);
 			if (
 				fields_dict[fieldname] &&
+				!is_unchecked_check &&
 				(condition === "=" ||
 					(condition === "like" && fields_dict[fieldname]?.df?.fieldtype != "Link") ||
 					(condition === "descendants of (inclusive)" &&
@@ -840,7 +851,7 @@ class FilterArea {
 						data-label="${label}" data-fieldname="${fieldname}" data-fieldtype="${fieldtype}"
 						href="#" onclick="return false;">
 							<span class="ellipsis">${__(label)}</span>
-							<span>${frappe.utils.icon("select", "xs")}</span>
+							<span>${frappe.utils.icon("chevrons-up-down", "xs")}</span>
 						</a>
 					<ul class="dropdown-menu group-by-dropdown" role="menu">
 					</ul>
@@ -975,7 +986,7 @@ class FilterArea {
 		}
 		let value = field.name == null ? "" : encodeURIComponent(field.name);
 		let applied_html = applied
-			? `<span class="applied"> ${frappe.utils.icon("tick", "xs")} </span>`
+			? `<span class="applied"> ${frappe.utils.icon("check", "xs")} </span>`
 			: "";
 		return `<div class="group-by-item ${applied ? "selected" : ""}" data-value="${value}">
 			<a class="dropdown-item flex justify-between" href="#" onclick="return false;">
@@ -1156,14 +1167,7 @@ class FilterArea {
 				onchange: () => this.debounced_refresh_list_view(),
 			};
 
-			if (frappe.is_mobile()) {
-				let mobile_id_filter = this.$filter_list_wrapper.append(
-					`<div class="mobile-id-filter"></div>`
-				);
-				this.list_view.page.add_field(field, mobile_id_filter.find(".mobile-id-filter"));
-			} else {
-				fields.push(field);
-			}
+			fields.push(field);
 		}
 
 		if (
@@ -1276,10 +1280,15 @@ class FilterArea {
 			];
 
 			if (input_fieldtypes.includes(df.fieldtype)) {
-				df.match_type = df.condition || "=";
+				const saved_conditions =
+					frappe.get_user_settings(this.list_view.doctype, this.list_view.view_name)
+						.filter_conditions || {};
+				df.match_type = saved_conditions[df.fieldname] || df.condition || "=";
 				this.filter_field_with_match_type(df);
 			}
 		});
+
+		this.place_id_filter();
 	}
 
 	filter_field_with_match_type(df) {
@@ -1332,6 +1341,13 @@ class FilterArea {
 
 				field.df.match_type = new_type;
 				$dropdown.find("button").html(getIcon(new_type));
+
+				const saved_conditions =
+					frappe.get_user_settings(this.list_view.doctype, this.list_view.view_name)
+						.filter_conditions || {};
+				this.list_view.save_view_user_settings?.({
+					filter_conditions: { ...saved_conditions, [df.fieldname]: new_type },
+				});
 
 				let value = field.get_value?.();
 				if (new_type === "=" && value) {
@@ -1388,7 +1404,7 @@ class FilterArea {
 			<div class="btn-group">
 				<button class="btn btn-default btn-sm filter-button">
 					<span class="filter-icon button-icon">
-						${frappe.utils.icon("es-line-filter")}
+						${frappe.utils.icon("funnel")}
 					</span>
 					<span class="button-label hidden-xs">
 					${__("Filter")}
@@ -1396,7 +1412,7 @@ class FilterArea {
 				</button>
 				<button class="btn btn-default btn-sm filter-x-button" title="${__("Clear all filters")}">
 					<span class="filter-icon button-icon">
-						${frappe.utils.icon("es-small-close")}
+						${frappe.utils.icon("x")}
 					</span>
 				</button>
 			</div>

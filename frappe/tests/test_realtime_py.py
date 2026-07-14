@@ -174,6 +174,20 @@ class TestAuthHelpers(unittest.TestCase):
 			auth_mod.get_url("http://x.local:9000", "/p", make_config()), "http://x.local:9000/p"
 		)
 
+	def test_get_url_webserver_host(self):
+		# bare host gets http:// scheme and the configured port
+		cfg = make_config(webserver_host="127.0.0.1", webserver_port=8000)
+		self.assertEqual(auth_mod.get_url("http://x.local", "/p", cfg), "http://127.0.0.1:8000/p")
+		# scheme in the value is preserved, not double-prefixed
+		cfg = make_config(webserver_host="https://app.frappe.cloud", webserver_port=8000)
+		self.assertEqual(auth_mod.get_url("http://x.local", "/p", cfg), "https://app.frappe.cloud:8000/p")
+		# explicit port in the value is not doubled
+		cfg = make_config(webserver_host="https://app.frappe.cloud:443", webserver_port=8000)
+		self.assertEqual(auth_mod.get_url("http://x.local", "/p", cfg), "https://app.frappe.cloud:443/p")
+		# bracketed IPv6 literal
+		cfg = make_config(webserver_host="[::1]", webserver_port=8000)
+		self.assertEqual(auth_mod.get_url("http://x.local", "/p", cfg), "http://[::1]:8000/p")
+
 
 class TestAuthenticate(unittest.TestCase):
 	def setUp(self):

@@ -20,13 +20,13 @@
 					</div>
 					<div
 						class="pfb-setup-option-arrow"
-						v-html="frappe.utils.icon('right', 'xs')"
+						v-html="frappe.utils.icon('chevron-right', 'xs')"
 					></div>
 				</button>
 				<button class="pfb-setup-option" @click="$emit('start-blank')">
 					<div
 						class="pfb-setup-option-icon"
-						v-html="frappe.utils.icon('add', 'md')"
+						v-html="frappe.utils.icon('plus', 'md')"
 					></div>
 					<div class="pfb-setup-option-body">
 						<div class="pfb-setup-option-label">{{ __("Start blank") }}</div>
@@ -36,7 +36,7 @@
 					</div>
 					<div
 						class="pfb-setup-option-arrow"
-						v-html="frappe.utils.icon('right', 'xs')"
+						v-html="frappe.utils.icon('chevron-right', 'xs')"
 					></div>
 				</button>
 			</div>

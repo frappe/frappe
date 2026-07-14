@@ -13,9 +13,9 @@ from frappe.utils.telemetry import capture_doc
 
 
 @frappe.whitelist(methods=["POST", "PUT"])
-def savedocs(doc: str, action: str):
+def savedocs(doc: str | dict, action: str):
 	"""save / submit / update doclist"""
-	doc = frappe.get_doc(json.loads(doc))
+	doc = frappe.get_doc(frappe.parse_json(doc))
 	capture_doc(doc, action)
 	if doc.get("__islocal") and doc.name.startswith("new-" + doc.doctype.lower().replace(" ", "-")):
 		# required to relink missing attachments if they exist.

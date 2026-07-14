@@ -20,48 +20,59 @@ export default class LayoutDialog {
 		const is_edit = Boolean(this.layout);
 		const fields = [
 			{
-				fieldname: "layout_name",
+				fieldname: "filter_name",
 				fieldtype: "Data",
-				label: __("Layout Name"),
+				label: __("Layout name"),
 				reqd: 1,
-				default: is_edit ? this.layout.layout_name : "",
+				default: is_edit ? this.layout.filter_name : "",
 			},
 		];
 
 		if (this.can_add_global) {
-			fields.push({ fieldtype: "Column Break" });
 			fields.push({
 				fieldname: "is_global",
 				fieldtype: "Check",
-				label: __("Available to All Users"),
-				description: __("Make this layout visible for everyone."),
+				label: __("Available to all users"),
 				default: this.get_initial_is_global(),
 			});
 		}
 
+		const sorting = this.get_initial_sorting();
+
 		fields.push(
 			{
 				fieldtype: "Section Break",
-				label: __("Filters"),
-				description: __("Define which records should appear in this list."),
+				label: __("Filters & Sorting"),
+				fieldname: "filters_sort_sb",
 			},
 			{ fieldtype: "HTML", fieldname: "filter_area" },
+			{ fieldtype: "Section Break", fieldname: "sort_row_sb", hide_border: true },
 			{
-				fieldtype: "Section Break",
-				label: __("Sort By"),
-				description: __("Choose the default order in which records appear."),
+				fieldname: "sort_field",
+				fieldtype: "Autocomplete",
+				label: __("Sort Field"),
+				options: this.get_sort_field_options(),
+				default: sorting.sort_by,
+				reqd: 1,
 			},
-			{ fieldtype: "HTML", fieldname: "sort_area" },
+			{ fieldtype: "Column Break" },
 			{
-				fieldtype: "Section Break",
-				label: __("Columns"),
-				description: __("Choose and order the columns to display."),
+				fieldname: "sort_order",
+				fieldtype: "Select",
+				label: __("Sort Order"),
+				options: [
+					{ label: __("Descending"), value: "desc" },
+					{ label: __("Ascending"), value: "asc" },
+				],
+				default: sorting.sort_order,
+				reqd: 1,
 			},
+			{ fieldtype: "Section Break", label: __("Columns") },
 			{ fieldtype: "HTML", fieldname: "columns_area" }
 		);
 
 		this.dialog = new frappe.ui.Dialog({
-			title: is_edit ? __("Edit Layout") : __("Create Layout"),
+			title: is_edit ? __("Edit layout") : __("Create layout"),
 			size: "large",
 			fields,
 			primary_action_label: is_edit ? __("Update") : __("Create"),
@@ -69,7 +80,6 @@ export default class LayoutDialog {
 		});
 
 		this.make_filter_area(this.dialog.get_field("filter_area").$wrapper);
-		this.make_sort_selector(this.dialog.get_field("sort_area").$wrapper);
 		this.preserved_layout_columns = [];
 		this.field_selector = new LayoutFieldSelector({
 			parent: this.dialog.get_field("columns_area").$wrapper,
@@ -124,25 +134,53 @@ export default class LayoutDialog {
 		}
 	}
 
-	/** Hide "No filters selected" when filters are present (FilterGroup only toggles on user actions). */
+	/** Hide "No filters selected" when any filter row is present (incomplete rows count too). */
 	sync_filter_empty_state() {
-		const has_filters =
-			this.filter_group.get_filters().length > 0 ||
-			this.filter_group.filters.some((f) => f.wrapper?.is(":visible") && f.field);
+		const has_filters = this.filter_group.wrapper.find(".filter-box").length > 0;
 		this.filter_group.toggle_empty_filters(!has_filters);
 	}
 
-	make_sort_selector(parent) {
-		const sorting = this.get_initial_sorting();
-		this.sort_selector = new frappe.ui.SortSelector({
-			parent,
-			doctype: this.doctype,
-			args: {
-				sort_by: sorting.sort_by,
-				sort_order: sorting.sort_order,
-			},
-			onchange: () => {},
+	/** Sortable field options for the sort-by Autocomplete (matches list SortSelector). */
+	get_sort_field_options() {
+		const meta = frappe.get_meta(this.doctype);
+		let options = [
+			{ fieldname: "modified" },
+			{ fieldname: "name" },
+			{ fieldname: "creation" },
+			{ fieldname: "idx" },
+		];
+
+		if (meta?.title_field) {
+			options.splice(1, 0, { fieldname: meta.title_field });
+		}
+		if (meta?.sort_field) {
+			const sort_field = meta.sort_field.split(",")[0].split(" ")[0];
+			options.splice(1, 0, { fieldname: sort_field });
+		}
+
+		(meta?.fields || []).forEach((df) => {
+			if (
+				(df.mandatory || df.bold || df.in_list_view || df.reqd) &&
+				frappe.model.is_value_type(df.fieldtype) &&
+				frappe.perm.has_perm(this.doctype, df.permlevel, "read")
+			) {
+				options.push({ fieldname: df.fieldname, label: df.label });
+			}
 		});
+
+		return options
+			.uniqBy((o) => o.fieldname)
+			.map((o) => ({
+				value: o.fieldname,
+				label: o.label || this.get_sort_field_label(o.fieldname),
+			}));
+	}
+
+	get_sort_field_label(fieldname) {
+		if (fieldname === "idx") {
+			return __("Most Used");
+		}
+		return frappe.meta.get_label(this.doctype, fieldname);
 	}
 
 	get_initial_sorting() {
@@ -159,9 +197,10 @@ export default class LayoutDialog {
 	}
 
 	get_sorting() {
+		const initial = this.get_initial_sorting();
 		return {
-			sort_field: this.sort_selector?.sort_by || this.get_initial_sorting().sort_by,
-			sort_order: this.sort_selector?.sort_order || this.get_initial_sorting().sort_order,
+			sort_field: this.dialog.get_value("sort_field") || initial.sort_by,
+			sort_order: this.dialog.get_value("sort_order") || initial.sort_order,
 		};
 	}
 
@@ -183,26 +222,26 @@ export default class LayoutDialog {
 
 	get_form_values() {
 		return {
-			layout_name: this.dialog.get_value("layout_name")?.trim(),
+			filter_name: this.dialog.get_value("filter_name")?.trim(),
 			is_global: this.can_add_global ? this.dialog.get_value("is_global") : false,
 		};
 	}
 
-	layout_name_exists(layout_name) {
+	filter_name_exists(filter_name) {
 		return (this.list_view.list_filter?.filters || []).some(
 			(row) =>
-				row.layout_name === layout_name && (!this.layout || row.name !== this.layout.name)
+				row.filter_name === filter_name && (!this.layout || row.name !== this.layout.name)
 		);
 	}
 
 	save_layout() {
-		const { layout_name, is_global } = this.get_form_values();
-		if (!layout_name) {
-			frappe.msgprint(__("Layout Name is required"));
+		const { filter_name, is_global } = this.get_form_values();
+		if (!filter_name) {
+			frappe.msgprint(__("Layout name is required"));
 			return;
 		}
 
-		if (this.layout_name_exists(layout_name)) {
+		if (this.filter_name_exists(filter_name)) {
 			frappe.msgprint(__("A layout with this name already exists"));
 			return;
 		}
@@ -216,7 +255,7 @@ export default class LayoutDialog {
 		const sorting = this.get_sorting();
 		const filters = this.get_filters();
 		const payload = {
-			layout_name,
+			filter_name,
 			is_global,
 			filters,
 			columns,
@@ -231,7 +270,7 @@ export default class LayoutDialog {
 			: this.list_view.list_filter.create_layout_from_dialog(payload);
 
 		return save_promise.then(() => {
-			const esc_name = frappe.utils.escape_html(layout_name);
+			const esc_name = frappe.utils.escape_html(filter_name);
 			const message = this.layout
 				? __("Layout <b>{0}</b> updated", [esc_name])
 				: __("Layout <b>{0}</b> created", [esc_name]);

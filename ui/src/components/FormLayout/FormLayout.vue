@@ -34,9 +34,9 @@ import FormLayoutSection from "./FormLayoutSection.vue";
 import { useFieldTypes } from "./useFieldTypes";
 import { resolveLayout } from "./resolveLayout";
 import { DocKey, HasTabsKey, ParentDocKey, ResolveFieldKey, UpdateKey } from "./types";
-import type { FormLayoutSchema } from "./types";
+import type { FormLayoutProps } from "./types";
 
-const props = defineProps<{ layout: FormLayoutSchema }>();
+const props = defineProps<FormLayoutProps>();
 
 // `FormLayout` is render-only and emits nothing: its sole outward channel is
 // `v-model:doc`. A consumer that wants "react to any change" uses `watch(doc, …)`;
@@ -54,15 +54,17 @@ const resolvedLayout = computed(() =>
 	resolveLayout(props.layout, doc.value, parentDoc?.value ?? doc.value)
 );
 
-const visibleTabs = computed(() =>
-	resolvedLayout.value
-		.filter((tab) => !tab.hidden)
-		.map((tab) => ({
-			...tab,
-			label: tab.label ?? "",
-			sections: tab.sections.filter((section) => !section.hidden),
-		}))
-);
+const visibleTabs = computed(() => {
+	const tabs = resolvedLayout.value.filter((tab) => !tab.hidden);
+	// With multiple tabs the strip is always shown, so an unlabelled tab would
+	// render a blank button — fall back to "Details" so every tab reads clearly.
+	const multipleTabs = tabs.length > 1;
+	return tabs.map((tab) => ({
+		...tab,
+		label: tab.label || (multipleTabs ? "Details" : ""),
+		sections: tab.sections.filter((section) => !section.hidden),
+	}));
+});
 
 // A `depends_on` tab can disappear while the user is on it, leaving `tabIndex`
 // pointing past the end so `Tabs` renders nothing (blank form). Clamp it back

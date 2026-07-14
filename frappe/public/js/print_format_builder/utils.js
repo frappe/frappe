@@ -138,19 +138,302 @@ export function pluck(object, keys) {
 	return out;
 }
 
+export const TABLE_COLUMN_PLUCK_KEYS = [
+	"label",
+	"fieldname",
+	"fieldtype",
+	"options",
+	"width",
+	"field_template",
+	"merged_fields",
+	"image_size",
+];
+
+export const FIELD_PLUCK_KEYS = [
+	"label",
+	"fieldname",
+	"fieldtype",
+	"options",
+	"table_columns",
+	"table_style",
+	"table_bordered",
+	"table_header",
+	"table_cell_padding",
+	"table_radius",
+	"table_header_bg",
+	"table_border_color",
+	"html",
+	"field_template",
+	"source",
+	"repeater_columns",
+	"show_label",
+	"align",
+	"label_justify",
+	"label_gap",
+	"visible_if",
+	"custom_style",
+	"value_color",
+	"label_color",
+	"custom",
+	"image_url",
+	"width",
+	"barcode_field",
+	"barcode_value",
+	"barcode_format",
+	"show_text",
+];
+
+export const ZONE_FIELD_PLUCK_KEYS = [
+	"label",
+	"fieldname",
+	"fieldtype",
+	"options",
+	"table_columns",
+	"table_style",
+	"table_bordered",
+	"table_header",
+	"table_header_bg",
+	"table_border_color",
+	"html",
+	"field_template",
+	"source",
+	"repeater_columns",
+	"show_label",
+	"align",
+	"label_justify",
+	"label_gap",
+	"visible_if",
+	"custom_style",
+	"value_color",
+	"label_color",
+	"custom",
+	"image_url",
+	"width",
+	"barcode_field",
+	"barcode_value",
+	"barcode_format",
+	"show_text",
+];
+
+export function serialize_layout(layout) {
+	layout.sections = layout.sections
+		.filter((section) => !section.remove)
+		.map((section) => {
+			section.columns = section.columns.map((column) => {
+				column.fields = column.fields
+					.filter((df) => !df.remove)
+					.map((df) => {
+						if (df.table_columns) {
+							df.table_columns = df.table_columns.map((tf) => {
+								if (Array.isArray(tf.merged_fields) && !tf.merged_fields.length) {
+									delete tf.merged_fields;
+								}
+								return pluck(tf, TABLE_COLUMN_PLUCK_KEYS);
+							});
+						}
+						return pluck(df, FIELD_PLUCK_KEYS);
+					});
+				return column;
+			});
+			return section;
+		});
+
+	function clean_zone(zone) {
+		if (!zone || !zone.columns) return zone;
+		zone.columns = zone.columns.map((column) => {
+			column.fields = column.fields
+				.filter((df) => !df.remove)
+				.map((df) => pluck(df, ZONE_FIELD_PLUCK_KEYS));
+			return column;
+		});
+		return zone;
+	}
+	layout.header = clean_zone(layout.header);
+	layout.footer = clean_zone(layout.footer);
+
+	return layout;
+}
+
+// Parse "border: 1px solid; padding: 4px" into a Vue style-binding object.
+// Splits on the first ":" per declaration so values like url(http://…) survive.
+export function parse_inline_style(css) {
+	const style = {};
+	if (!css || typeof css !== "string") return style;
+	for (const decl of css.split(";")) {
+		const idx = decl.indexOf(":");
+		if (idx === -1) continue;
+		const prop = decl.slice(0, idx).trim();
+		const value = decl.slice(idx + 1).trim();
+		if (prop && value) style[prop] = value;
+	}
+	return style;
+}
+
+// Deterministic pastel colour for a merged-cell initials thumbnail, keyed off
+// the first character so the canvas and the PDF (Table.html, same formula)
+// always agree — no palette table to keep in sync across the two.
+export function thumb_hue(text) {
+	const idx = "abcdefghijklmnopqrstuvwxyz0123456789".indexOf(
+		String(text || "")
+			.trim()
+			.charAt(0)
+			.toLowerCase()
+	);
+	return ((idx < 0 ? 0 : idx) * 37) % 360;
+}
+
 export async function render_jinja_html(html, doctype, docname) {
 	if (!html) return html;
 	if (!html.includes("{{") && !html.includes("{%")) return html;
 	if (!doctype || !docname) return html;
 	try {
-		const r = await frappe.call("frappe.utils.print_format_generator.render_jinja_template", {
-			template: html,
-			doctype,
-			docname,
+		const r = await frappe.call({
+			method: "frappe.utils.print_format_generator.render_jinja_template",
+			args: { template: html, doctype, docname },
+			silent: 1,
 		});
 		return r.message ?? html;
 	} catch {
-		return html;
+		return null;
+	}
+}
+
+const SAFE_HTML_TAGS = new Set([
+	"a",
+	"abbr",
+	"b",
+	"blockquote",
+	"br",
+	"caption",
+	"cite",
+	"code",
+	"col",
+	"colgroup",
+	"dd",
+	"del",
+	"div",
+	"dl",
+	"dt",
+	"em",
+	"figcaption",
+	"figure",
+	"h1",
+	"h2",
+	"h3",
+	"h4",
+	"h5",
+	"h6",
+	"hr",
+	"i",
+	"img",
+	"ins",
+	"kbd",
+	"li",
+	"mark",
+	"ol",
+	"p",
+	"pre",
+	"q",
+	"s",
+	"samp",
+	"small",
+	"span",
+	"strong",
+	"sub",
+	"summary",
+	"sup",
+	"table",
+	"tbody",
+	"td",
+	"tfoot",
+	"th",
+	"thead",
+	"tr",
+	"u",
+	"ul",
+	"var",
+	"wbr",
+]);
+
+const SAFE_HTML_ATTRS = new Set([
+	"alt",
+	"cite",
+	"class",
+	"colspan",
+	"datetime",
+	"dir",
+	"height",
+	"href",
+	"lang",
+	"rowspan",
+	"scope",
+	"span",
+	"src",
+	"title",
+	"width",
+	"align",
+	"valign",
+	"border",
+	"cellpadding",
+	"cellspacing",
+]);
+
+export function sanitize_html(html) {
+	const root = document.createElement("div");
+	root.innerHTML = frappe.dom.remove_script_and_style(html || "");
+	(function clean(node) {
+		// Linked-list traversal so promoted children are visited immediately
+		let child = node.firstChild;
+		while (child) {
+			const next = child.nextSibling;
+			if (child.nodeType === Node.TEXT_NODE) {
+				child = next;
+				continue;
+			}
+			if (child.nodeType !== Node.ELEMENT_NODE) {
+				child.remove();
+				child = next;
+				continue;
+			}
+			if (!SAFE_HTML_TAGS.has(child.tagName.toLowerCase())) {
+				const first_promoted = child.firstChild;
+				child.replaceWith(...child.childNodes);
+				// Continue from first promoted child so they are sanitized too
+				child = first_promoted || next;
+				continue;
+			}
+			for (const attr of [...child.attributes]) {
+				const name = attr.name.toLowerCase();
+				if (!SAFE_HTML_ATTRS.has(name) || name.startsWith("on")) {
+					child.removeAttribute(attr.name);
+				} else if (name === "src") {
+					const val = attr.value.trim();
+					const is_data_image = /^data:image\//i.test(val);
+					const is_relative =
+						!val.startsWith("//") && !/^[a-z][a-z0-9+\-.]*:/i.test(val);
+					const is_same_origin =
+						typeof window !== "undefined" &&
+						val.startsWith(window.location.origin + "/");
+					if (!is_data_image && !is_relative && !is_same_origin)
+						child.removeAttribute(attr.name);
+				} else if (name === "href") {
+					if (!/^https?:/i.test(attr.value.trim())) child.removeAttribute(attr.name);
+				}
+			}
+			clean(child);
+			child = next;
+		}
+	})(root);
+	return root.innerHTML;
+}
+
+export function evaluate_visible_if(expr, doc) {
+	if (!expr || !expr.trim()) return true;
+	try {
+		// eslint-disable-next-line no-new-func
+		return !!new Function("doc", `return (${expr})`)(doc);
+	} catch {
+		return true;
 	}
 }
 

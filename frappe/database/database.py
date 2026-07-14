@@ -1367,7 +1367,7 @@ class Database:
 			)
 
 			if columns:
-				frappe.cache.set_value(key, columns)
+				frappe.client_cache.set_value(key, columns)
 
 		return columns
 
@@ -1385,7 +1385,7 @@ class Database:
 	def has_index(self, table_name, index_name):
 		raise NotImplementedError
 
-	def add_index(self, doctype, fields, index_name=None):
+	def add_index(self, doctype, fields, index_name=None, using=None, where=None, include=None):
 		raise NotImplementedError
 
 	def add_unique(self, doctype, fields, constraint_name=None):
@@ -1534,9 +1534,21 @@ class Database:
 		while value_chunk := tuple(itertools.islice(value_iterator, chunk_size)):
 			query.insert(*value_chunk).run()
 
+	def advisory_lock(self, key, *, timeout=10):
+		"""Hold a session-level advisory lock for the duration of the `with` block. Postgres uses
+		pg_advisory_lock, MariaDB uses GET_LOCK; engines without advisory locks raise."""
+		raise NotImplementedError(f"Advisory locks are not supported on {self.db_type}.")
+
+	def transaction_advisory_lock(self, key, *, timeout=10):
+		"""Take an advisory lock released automatically when the current transaction ends.
+		Postgres only (pg_advisory_xact_lock); other engines have no transaction-scoped
+		advisory locks and raise."""
+		raise NotImplementedError(f"Transaction-scoped advisory locks are not supported on {self.db_type}.")
+
 	def create_sequence_table(self):
-		"""Create the `__sequences` table when required.
-		No-op for MariaDB and Postgres."""
+		# MariaDB/Postgres have native sequences and need no backing table;
+		# SQLite overrides this to create its emulation table at site setup.
+		pass
 
 	def create_sequence(self, *args, **kwargs):
 		from frappe.database.sequence import create_sequence

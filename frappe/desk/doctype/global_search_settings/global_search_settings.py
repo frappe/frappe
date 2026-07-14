@@ -168,7 +168,7 @@ def _set_global_search_property_setter(cf: CustomizeForm, fieldname: str, enable
 
 
 @frappe.whitelist()
-def update_global_search_fields(doctype: str, fields: str):
+def update_global_search_fields(doctype: str, fields: str | list):
 	"""Apply global-search field selection via the same Property Setter path as Customize Form."""
 
 	frappe.only_for("System Manager")

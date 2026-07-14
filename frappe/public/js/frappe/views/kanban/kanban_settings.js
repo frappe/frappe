@@ -94,7 +94,7 @@ export default class KanbanSettings {
 
 					<div class="row">
 						<div class="col-md-1">
-							${frappe.utils.icon("drag", "xs", "", "", "sortable-handle")}
+							${frappe.utils.icon("grip", "xs", "", "", "sortable-handle")}
 						</div>
 						<div class="col-md-10" style="padding-left:0px;">
 							${__(field.label, null, field.parent)}

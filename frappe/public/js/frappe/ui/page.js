@@ -37,6 +37,9 @@ frappe.ui.Page = class Page {
 
 		this.make();
 		if (!Object.keys(opts).includes("hide_sidebar")) this.hide_sidebar = false;
+		// pages can hide just the workspace dock (while keeping the body sidebar) via this option;
+		// a page that hides the whole sidebar hides the dock too (see Sidebar.page_hides_dock)
+		if (!Object.keys(opts).includes("hide_workspace_dock")) this.hide_workspace_dock = false;
 		frappe.ui.pages[frappe.get_route_str()] = this;
 	}
 
@@ -239,11 +242,6 @@ frappe.ui.Page = class Page {
 		`);
 		// ideally, we should pass tooltip_label this is just safe gaurd.
 		if (!tooltip_label) {
-			if (icon.startsWith("es-")) {
-				icon = icon.replace("es-line-", "");
-				icon = icon.replace("es-solid-", "");
-				icon = icon.replace("es-small-", "");
-			}
 			tooltip_label = frappe.unscrub(icon);
 		}
 
@@ -582,7 +580,7 @@ frappe.ui.Page = class Page {
 				`<div class="inner-group-button" data-label="${encodeURIComponent(label)}">
 					<button type="button" class="btn btn-default ellipsis" data-toggle="dropdown" aria-haspopup="true" aria-expanded="false">
 						${label}
-						${frappe.utils.icon("select", "xs")}
+						${frappe.utils.icon("chevrons-up-down", "xs")}
 					</button>
 					<div role="menu" class="dropdown-menu ${align_right ? "dropdown-menu-right" : ""}"></div>
 				</div>`
@@ -762,10 +760,7 @@ frappe.ui.Page = class Page {
 	}
 
 	get_main_icon(icon) {
-		return this.$title_area
-			.find(".title-icon")
-			.html('<i class="' + icon + ' fa-fw"></i> ')
-			.toggle(true);
+		return this.$title_area.find(".title-icon").html(frappe.utils.icon(icon)).toggle(true);
 	}
 
 	add_help_button(txt) {
@@ -793,14 +788,14 @@ frappe.ui.Page = class Page {
 	add_custom_button_group(label, icon, parent) {
 		let dropdown_label = `<span class="hidden-xs">
 			<span class="custom-btn-group-label">${__(label)}</span>
-			${frappe.utils.icon("select", "xs")}
+			${frappe.utils.icon("chevrons-up-down", "xs")}
 		</span>`;
 
 		if (icon) {
 			dropdown_label = `<span class="hidden-xs">
 				${frappe.utils.icon(icon)}
 				<span class="custom-btn-group-label">${__(label)}</span>
-				${frappe.utils.icon("select", "xs")}
+				${frappe.utils.icon("chevrons-up-down", "xs")}
 			</span>
 			<span class="visible-xs">
 				${frappe.utils.icon(icon)}

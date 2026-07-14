@@ -326,6 +326,15 @@ body.list-col-resizing {
 		cursor: pointer;
 		text-decoration: underline;
 	}
+
+	.selected-color {
+		display: inline-block;
+		width: 12px;
+		height: 12px;
+		border-radius: 4px;
+		margin-right: 6px;
+		vertical-align: middle;
+	}
 }
 
 $level-margin-right: 8px;
@@ -604,6 +613,31 @@ input.list-header-checkbox {
 			.btn:focus {
 				z-index: unset;
 			}
+		}
+	}
+
+	&.list-page-form {
+		@include media-breakpoint-between(xs, sm) {
+			flex-direction: column-reverse;
+			justify-content: flex-end;
+
+			.standard-filter-section {
+				display: none;
+			}
+
+			&.standard-filters-visible .standard-filter-section {
+				display: flex;
+			}
+		}
+	}
+}
+
+.filter-section {
+	@include media-breakpoint-between(xs, sm) {
+		justify-content: space-between;
+
+		.filter-selector {
+			margin: 0 0 0 auto;
 		}
 	}
 }

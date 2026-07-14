@@ -10,6 +10,13 @@ export interface LinkProps extends InputLabelingProps {
   placeholder?: string;
 }
 
+export interface LinkSlots {
+  /** Content rendered in the input's suffix region. Scoped. */
+  suffix?: (props: Record<string, unknown>) => any;
+  /** Custom render for the "Create New" option; receives the typed query. */
+  "item-create"?: (props: { query: string }) => any;
+}
+
 export type LinkEmits = {
   create: [query: string];
   redirect: [value: string];

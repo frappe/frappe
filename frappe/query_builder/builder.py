@@ -72,14 +72,44 @@ class Base:
 			throw(_("Invalid DocType: {0}").format(doctype))
 
 
+class RecursiveCTEMixin:
+	"""Adds `WITH RECURSIVE` support to a pypika query builder. Pass `recursive=True` to
+	`frappe.qb.with_(subquery, name, recursive=True)` and reference the CTE inside its own recursive
+	term via `pypika.Table(name)`. Renders `WITH RECURSIVE` on postgres, mariadb (10.2+) and sqlite;
+	a non-recursive builder is byte-for-byte unchanged (`recursive` defaults to False)."""
+
+	def __init__(self, *args, recursive: bool = False, **kwargs):
+		super().__init__(*args, **kwargs)
+		self._recursive_cte = recursive
+
+	def _with_sql(self, **kwargs) -> str:
+		keyword = "WITH RECURSIVE " if getattr(self, "_recursive_cte", False) else "WITH "
+		return keyword + ",".join(
+			clause.name + " AS (" + clause.get_sql(subquery=False, with_alias=False, **kwargs) + ") "
+			for clause in self._with
+		)
+
+
+class RecursiveMySQLQueryBuilder(RecursiveCTEMixin, MySQLQueryBuilder):
+	pass
+
+
+class RecursivePostgreSQLQueryBuilder(RecursiveCTEMixin, PostgreSQLQueryBuilder):
+	pass
+
+
+class RecursiveSQLLiteQueryBuilder(RecursiveCTEMixin, SQLLiteQueryBuilder):
+	pass
+
+
 class MariaDB(Base, MySQLQuery):
 	Field = terms.Field
 
-	_BuilderClasss = MySQLQueryBuilder
+	_BuilderClasss = RecursiveMySQLQueryBuilder
 
 	@classmethod
-	def _builder(cls, *args, **kwargs) -> "MySQLQueryBuilder":
-		return super()._builder(*args, wrapper_cls=ParameterizedValueWrapper, **kwargs)
+	def _builder(cls, *args, **kwargs) -> "RecursiveMySQLQueryBuilder":
+		return RecursiveMySQLQueryBuilder(*args, wrapper_cls=ParameterizedValueWrapper, **kwargs)
 
 	@classmethod
 	def from_(cls, table, *args, **kwargs):
@@ -100,11 +130,11 @@ class Postgres(Base, PostgreSQLQuery):
 	# they are two different objects. The quick fix used here is to replace the
 	# Field names in the "Field" function.
 
-	_BuilderClasss = PostgreSQLQueryBuilder
+	_BuilderClasss = RecursivePostgreSQLQueryBuilder
 
 	@classmethod
-	def _builder(cls, *args, **kwargs) -> "PostgreSQLQueryBuilder":
-		return super()._builder(*args, wrapper_cls=ParameterizedValueWrapper, **kwargs)
+	def _builder(cls, *args, **kwargs) -> "RecursivePostgreSQLQueryBuilder":
+		return RecursivePostgreSQLQueryBuilder(*args, wrapper_cls=ParameterizedValueWrapper, **kwargs)
 
 	@classmethod
 	def Field(cls, field_name, *args, **kwargs):
@@ -161,9 +191,10 @@ def _fold_now_interval(sql: str) -> str:
 	return _NOW_INTERVAL_PATTERN.sub(repl, sql)
 
 
-class FrappeSQLiteQueryBuilder(SQLLiteQueryBuilder):
+class FrappeSQLiteQueryBuilder(RecursiveSQLLiteQueryBuilder):
 	"""SQLite builder that emits SQL matching frappe's MariaDB semantics with no post-processing,
-	so ``SQLiteDatabase.sql`` can skip its dialect-rewrite pass for query-builder output."""
+	so ``SQLiteDatabase.sql`` can skip its dialect-rewrite pass for query-builder output. Extends
+	``RecursiveSQLLiteQueryBuilder`` so ``WITH RECURSIVE`` support is retained."""
 
 	def get_sql(self, *args, **kwargs) -> str:
 		return _fold_now_interval(super().get_sql(*args, **kwargs))

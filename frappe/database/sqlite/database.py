@@ -34,6 +34,15 @@ _SINGLE_QUOTE_LITERAL = re.compile(r"'(?:[^']|'')*'")
 IMPLICIT_COMMIT_QUERY_TYPES = frozenset(("start", "alter", "drop", "create", "truncate"))
 
 
+class SequenceGeneratorLimitExceeded(sqlite3.Error):
+	"""Raised when an emulated sequence with a max_value (and no cycle) is exhausted.
+
+	SQLite has no native sequences (frappe emulates them, see
+	``frappe.database.sequence``), so unlike MariaDB/Postgres there is no driver
+	exception to reuse for this case.
+	"""
+
+
 def _split_sql_literals(query: str):
 	"""Yield ``(is_literal, chunk)`` over ``query``: ``is_literal`` chunks are single-quoted
 	string literals (quotes included) that must not be scanned for placeholders; the rest is the
@@ -129,6 +138,7 @@ class SQLiteDatabase(SQLiteExceptionUtil, Database):
 	REGEX_CHARACTER = "regexp"
 	default_port = None
 	MAX_ROW_SIZE_LIMIT = None
+	SequenceGeneratorLimitExceeded = SequenceGeneratorLimitExceeded
 
 	# Time (in ms) a connection waits for a write lock held by another connection
 	# before giving up with "database is locked". SQLite allows only one writer at a
@@ -434,69 +444,23 @@ class SQLiteDatabase(SQLiteExceptionUtil, Database):
 		)
 
 	def create_sequence_table(self):
-		"""Create the `__sequences` table if needed."""
+		# SQLite has no native sequences; this table emulates them for
+		# autoname:autoincrement doctypes. See frappe.database.sequence.
+		from frappe.database.sequence import SQLITE_SEQUENCE_TABLE
+
+		# `declared` is 1 for sequences defined via create_sequence and 0 for rows
+		# auto-created by naming/set_next_val; it lets create_sequence adopt an
+		# implicit row without ever overwriting an explicit definition.
 		self.sql_ddl(
-			"""CREATE TABLE IF NOT EXISTS `__sequences` (
-			name TEXT PRIMARY KEY,
-			value INTEGER NOT NULL
+			f"""CREATE TABLE IF NOT EXISTS `{SQLITE_SEQUENCE_TABLE}` (
+			`name` TEXT PRIMARY KEY,
+			`current` INTEGER NOT NULL,
+			`increment` INTEGER NOT NULL DEFAULT 1,
+			`min_value` INTEGER NOT NULL DEFAULT 1,
+			`max_value` INTEGER,
+			`cycle` INTEGER NOT NULL DEFAULT 0,
+			`declared` INTEGER NOT NULL DEFAULT 0
 			)"""
-		)
-
-	def create_sequence(
-		self, doctype_name, *, slug="_id_seq", check_not_exists=False, start_value=0, **kwargs
-	):
-		from frappe import scrub
-
-		sequence_name = scrub(doctype_name + slug)
-		# `value` stores the last value handed out; the next `nextval` returns value + 1.
-		# Postgres' default start is 1, so a falsy start_value seeds 0 (first nextval = 1).
-		initial = start_value - 1 if start_value else 0
-		# `DO NOTHING` keeps an existing sequence intact (matches `check_not_exists`).
-		self.sql(
-			"INSERT INTO `__sequences` (name, value) VALUES (%s, %s) ON CONFLICT(name) DO NOTHING",
-			(sequence_name, initial),
-		)
-		return sequence_name
-
-	def get_next_sequence_val(self, doctype_name, slug="_id_seq"):
-		from frappe import scrub
-
-		sequence_name = scrub(f"{doctype_name}{slug}")
-		row = self.sql(
-			"UPDATE `__sequences` SET value = value + 1 WHERE name = %s RETURNING value",
-			(sequence_name,),
-		)
-		if row:
-			return row[0][0]
-
-		# Sequence row missing (e.g. doctype created before SQLite sequence support):
-		# seed it from the max existing name so an existing table never reuses an id.
-		table = get_table_name(doctype_name)
-		max_name = 0
-		try:
-			res = self.sql(f"SELECT MAX(CAST(name AS INTEGER)) FROM `{table}`")
-			max_name = (res and res[0][0]) or 0
-		except sqlite3.OperationalError as e:
-			if not self.is_table_missing(e):
-				raise
-		next_val = int(max_name) + 1
-		self.sql(
-			"INSERT INTO `__sequences` (name, value) VALUES (%s, %s) "
-			"ON CONFLICT(name) DO UPDATE SET value = value + 1",
-			(sequence_name, next_val),
-		)
-		return next_val
-
-	def set_next_sequence_val(self, doctype_name, next_val, *, slug="_id_seq", is_val_used=False):
-		from frappe import scrub
-
-		sequence_name = scrub(doctype_name + slug)
-		# Mirror Postgres SETVAL: if the value was used, the next nextval is next_val + 1.
-		stored = next_val if is_val_used else next_val - 1
-		self.sql(
-			"INSERT INTO `__sequences` (name, value) VALUES (%s, %s) "
-			"ON CONFLICT(name) DO UPDATE SET value = excluded.value",
-			(sequence_name, stored),
 		)
 
 	@staticmethod
@@ -527,13 +491,20 @@ class SQLiteDatabase(SQLiteExceptionUtil, Database):
 			if index_info and index_info[0]["name"] == fieldname:
 				return index
 
-	def add_index(self, doctype: str, fields: list, index_name: str | None = None):
-		"""Creates an index with given fields if not already created."""
+	def add_index(
+		self, doctype: str, fields: list, index_name: str | None = None, using=None, where=None, include=None
+	):
+		"""Creates an index with given fields if not already created.
+		`using`/`where`/`include` are postgres-only (trigram/partial/covering); a `using` kind
+		has no SQLite equivalent so it is skipped, and a plain index covers all rows regardless of
+		`where`/`include`."""
 
 		from frappe.custom.doctype.property_setter.property_setter import (
 			make_property_setter,
 		)
 
+		if using:
+			return
 		# We can't specify the length of the index in SQLite
 		fields = [re.sub(r"\(.*?\)", "", field) for field in fields]
 

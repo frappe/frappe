@@ -198,6 +198,8 @@ cypress/videos
 .helix/
 # Aider AI Chat
 .aider*
+# Playwright AI
+.playwright-mcp
 
 # SQLite sidecar files
 *.db-wal

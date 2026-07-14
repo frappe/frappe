@@ -46,7 +46,7 @@ def get_permission_query_conditions(user):
 	]
 
 	if allowed_doctypes:
-		doctype_condition = "`tabDashboard Chart`.`document_type` in ({allowed_doctypes})".format(
+		doctype_condition = "`tabDashboard Chart`.`document_type` in ({allowed_doctypes}) OR `tabDashboard Chart`.`parent_document_type` in ({allowed_doctypes})".format(
 			allowed_doctypes=",".join(allowed_doctypes)
 		)
 	if allowed_reports:
@@ -123,7 +123,7 @@ def get(
 
 	timegrain = time_interval or chart.time_interval
 	filters = frappe.parse_json(filters) or frappe.parse_json(chart.filters_json)
-	if not filters:
+	if not isinstance(filters, list):
 		filters = []
 
 	# don't include cancelled documents

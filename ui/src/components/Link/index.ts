@@ -1,2 +1,2 @@
 export { default as Link } from './Link.vue'
-export type { LinkEmits, LinkExposed, LinkOption, LinkProps } from './types.ts'
+export type { LinkEmits, LinkExposed, LinkOption, LinkProps, LinkSlots } from './types.ts'

@@ -410,6 +410,10 @@ app_description = "{app_description}"
 app_email = "{app_email}"
 app_license = "{app_license}"
 
+# Send non-GET requests for this app's endpoints as native `application/json`
+# bodies instead of form-encoded, per-key JSON-stringified values.
+use_json_request_body = True
+
 # Apps
 # ------------------
 
@@ -422,7 +426,17 @@ app_license = "{app_license}"
 # 		"logo": "/assets/{app_name}/logo.png",
 # 		"title": "{app_title}",
 # 		"route": "/{app_name}",
-# 		"has_permission": "{app_name}.api.permission.has_app_permission"
+# 		"has_permission": "{app_name}.api.permission.has_app_permission",
+# 	}}
+# ]
+
+# Companion apps that extend a host app (instead of taking their own apps-screen icon) can pin
+# their workspaces into the host app's workspace dock (rail) with this hook.
+# add_app_to_rail = [
+# 	{{
+# 		"app": "erpnext",
+# 		"workspace": "My Workspace",
+# 		"has_permission": "{app_name}.api.permission.has_app_permission",
 # 	}}
 # ]
 

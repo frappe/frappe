@@ -1,0 +1,105 @@
+{
+ "actions": [],
+ "creation": "2018-02-22 15:10:24.401801",
+ "doctype": "DocType",
+ "editable_grid": 1,
+ "engine": "InnoDB",
+ "field_order": [
+  "filter_name",
+  "reference_doctype",
+  "column_break_mfss",
+  "sort_field",
+  "sort_order",
+  "for_user",
+  "route_signature",
+  "section_break_aljf",
+  "filters",
+  "section_break_lrva",
+  "columns"
+ ],
+ "fields": [
+  {
+   "fieldname": "filter_name",
+   "fieldtype": "Data",
+   "label": "Filter Name"
+  },
+  {
+   "fieldname": "reference_doctype",
+   "fieldtype": "Link",
+   "label": "Reference Document Type",
+   "options": "DocType"
+  },
+  {
+   "fieldname": "for_user",
+   "fieldtype": "Link",
+   "label": "For User",
+   "options": "User"
+  },
+  {
+   "fieldname": "route_signature",
+   "fieldtype": "Small Text",
+   "label": "Route Signature",
+   "read_only": 1
+  },
+  {
+   "fieldname": "filters",
+   "fieldtype": "Long Text",
+   "label": "Filters"
+  },
+  {
+   "fieldname": "columns",
+   "fieldtype": "Long Text",
+   "label": "Columns"
+  },
+  {
+   "fieldname": "sort_field",
+   "fieldtype": "Data",
+   "label": "Sort Field"
+  },
+  {
+   "fieldname": "sort_order",
+   "fieldtype": "Data",
+   "label": "Sort Order"
+  },
+  {
+   "fieldname": "column_break_mfss",
+   "fieldtype": "Column Break"
+  },
+  {
+   "fieldname": "section_break_aljf",
+   "fieldtype": "Section Break",
+   "label": "Filters"
+  },
+  {
+   "fieldname": "section_break_lrva",
+   "fieldtype": "Section Break",
+   "label": "Columns"
+  }
+ ],
+ "in_create": 1,
+ "links": [],
+ "modified": "2026-06-25 12:07:04.897997",
+ "modified_by": "Administrator",
+ "module": "Desk",
+ "name": "List Filter",
+ "owner": "Administrator",
+ "permissions": [
+  {
+   "create": 1,
+   "delete": 1,
+   "email": 1,
+   "export": 1,
+   "print": 1,
+   "read": 1,
+   "report": 1,
+   "role": "Desk User",
+   "share": 1,
+   "write": 1
+  }
+ ],
+ "read_only": 1,
+ "row_format": "Dynamic",
+ "sort_field": "creation",
+ "sort_order": "DESC",
+ "states": []
+}

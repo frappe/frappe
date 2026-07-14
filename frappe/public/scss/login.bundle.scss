@@ -257,7 +257,7 @@ body {
 				color: var(--ink-green-6);
 
 				svg {
-					fill: var(--ink-green-6);
+					stroke: var(--ink-green-6);
 					flex-shrink: 0;
 				}
 			}
@@ -274,7 +274,7 @@ body {
 				color: var(--ink-red-8);
 
 				svg {
-					fill: var(--ink-red-8);
+					stroke: var(--ink-red-8);
 					flex-shrink: 0;
 				}
 			}
@@ -324,7 +324,7 @@ body {
 				transform: translateY(-50%);
 				position: absolute;
 				z-index: 2;
-				fill: var(--ink-gray-4);
+				stroke: var(--ink-gray-5);
 			}
 
 			.email-field,
@@ -349,7 +349,7 @@ body {
 					position: absolute;
 					z-index: 2;
 					cursor: pointer;
-					fill: var(--ink-gray-4);
+					stroke: var(--ink-gray-5);
 				}
 			}
 		}

@@ -558,7 +558,7 @@ frappe.PermissionEngine = class PermissionEngine {
 				});
 				d.show();
 			},
-			"small-add"
+			"plus"
 		);
 	}
 
@@ -688,7 +688,7 @@ frappe.PermissionEngine = class PermissionEngine {
 
 						return `<tr>
 							<td>${user_display}</td>
-							<td><span class="es-badge" data-theme="${badge_color}">${__(log.status)}</span></td>
+							<td>${frappe.ui.badge.html({ label: __(log.status), theme: badge_color })}</td>
 							<td>${__(role)}</td>
 							${doctype_cell}
 							<td class="small">${changes_text}</td>
