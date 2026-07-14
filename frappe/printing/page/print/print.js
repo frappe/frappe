@@ -510,7 +510,13 @@ frappe.ui.form.PrintView = class {
 			// so the whole page scrolls and there's no leftover gray strip.
 			const doc = iframe[0].contentDocument;
 			if (doc && doc.documentElement) {
-				iframe.css("height", doc.documentElement.scrollHeight + "px");
+				const height = Math.max(
+					doc.documentElement.scrollHeight,
+					doc.documentElement.offsetHeight,
+					doc.body ? doc.body.scrollHeight : 0,
+					doc.body ? doc.body.offsetHeight : 0
+				);
+				iframe.css("height", height + "px");
 			}
 		});
 	}
