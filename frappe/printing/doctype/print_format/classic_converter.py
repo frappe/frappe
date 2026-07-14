@@ -22,13 +22,13 @@ def is_classic_layout(format_data) -> bool:
 
 
 def uses_beta_renderer(print_format) -> bool:
-	if not print_format or not print_format.get("format_data"):
+	if not print_format:
 		return False
 	if print_format.get("custom_format") or print_format.get("raw_printing"):
 		return False
-	return bool(print_format.get("print_format_builder_beta")) or is_classic_layout(
-		print_format.get("format_data")
-	)
+	if print_format.get("print_format_builder_beta"):
+		return True
+	return is_classic_layout(print_format.get("format_data"))
 
 
 def convert_classic_to_beta(format_data, meta, print_format=None) -> tuple[dict, list]:

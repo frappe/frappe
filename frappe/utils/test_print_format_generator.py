@@ -1150,7 +1150,7 @@ class TestPrintFormatGenerator(IntegrationTestCase):
 	def test_browser_print_wraps_letterhead_in_repeating_frame(self):
 		"""With repeat_header_footer on, the browser-print HTML wraps the body in a
 		thead/tfoot table (display: table-header-group) so the browser reprints the
-		letterhead header and footer on every page."""
+		letterhead header in the thead and footer in the tfoot on every page."""
 		from frappe.utils.print_format_generator import get_html
 
 		lh = self._make_letterhead()
@@ -1161,8 +1161,30 @@ class TestPrintFormatGenerator(IntegrationTestCase):
 
 		self.assertIn("print-repeating-frame", html)
 		self.assertIn("table-header-group", html)
-		self.assertIn("LETTERHEAD_TOP", html)
-		self.assertIn("LETTERHEAD_BOTTOM", html)
+		# header must sit inside <thead>, footer inside <tfoot> (so the browser repeats them)
+		thead = html.split("<thead>", 1)[1].split("</thead>", 1)[0]
+		tfoot = html.split("<tfoot>", 1)[1].split("</tfoot>", 1)[0]
+		self.assertIn("LETTERHEAD_TOP", thead)
+		self.assertNotIn("LETTERHEAD_BOTTOM", thead)
+		self.assertIn("LETTERHEAD_BOTTOM", tfoot)
+
+	def test_empty_beta_format_renders_via_beta_renderer(self):
+		"""A beta format with empty format_data (e.g. create_custom_format based_on
+		'Standard') must route to the beta renderer, not fall through to the removed
+		classic standard.html and raise TemplateNotFoundError."""
+		from frappe.printing.doctype.print_format.classic_converter import uses_beta_renderer
+		from frappe.printing.doctype.print_format.print_format import create_custom_format
+		from frappe.utils.print_format_generator import get_html
+
+		todo = self._make_todo()
+		pf = create_custom_format("ToDo", f"_Test PFG Empty {frappe.generate_hash(length=6)}")
+		self.addCleanup(pf.delete, ignore_permissions=True)
+
+		self.assertTrue(pf.print_format_builder_beta)
+		self.assertFalse(pf.format_data)
+		self.assertTrue(uses_beta_renderer(pf))
+		html = get_html("ToDo", todo.name, pf.name)
+		self.assertIn("print-format-doc", html)
 
 	def test_browser_print_no_repeating_frame_when_off(self):
 		"""With repeat_header_footer off, the browser-print HTML is not wrapped in the
