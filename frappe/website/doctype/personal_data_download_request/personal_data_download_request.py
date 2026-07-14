@@ -22,9 +22,6 @@ class PersonalDataDownloadRequest(Document):
 		user: DF.Link
 		user_name: DF.Data | None
 
-<<<<<<< HEAD
-	# end: auto-generated types
-=======
 	def as_dict(self, *args, **kwargs):
 		d = super().as_dict(*args, **kwargs)
 		d.pop("user_name", None)
@@ -40,7 +37,6 @@ class PersonalDataDownloadRequest(Document):
 			return self
 		return super().insert(*args, **kwargs)
 
->>>>>>> 47a396ec59 (fix(pddr): keep response agnostic)
 	def after_insert(self):
 		personal_data = get_user_data(self.user)
 
