@@ -265,15 +265,23 @@ function toggleBlockSelection(block: Block) {
 function selectBlockRange(block: Block) {
 	const anchor = selectionAnchorId.value ? findBlock(selectionAnchorId.value) : null
 	const parent = anchor?.getParentBlock()
-	// range selection only works within the same parent; fall back to single select
-	if (!anchor || !parent || parent !== block.getParentBlock()) {
+	// range selection only works among siblings sharing a parent AND slot; otherwise fall back to single select
+	if (
+		!anchor ||
+		!parent ||
+		parent !== block.getParentBlock() ||
+		anchor.parentSlotName !== block.parentSlotName
+	) {
 		selectBlockById(block.componentId)
 		return
 	}
+	const siblings = anchor.parentSlotName
+		? (parent.getSlotContent(anchor.parentSlotName) as Block[])
+		: parent.children
 	// replace the selection with the anchor→block range so repeated shift-clicks grow/shrink it
 	const start = parent.getChildIndex(anchor)
 	const end = parent.getChildIndex(block)
-	const range = parent.children.slice(Math.min(start, end), Math.max(start, end) + 1)
+	const range = siblings.slice(Math.min(start, end), Math.max(start, end) + 1)
 	selectedBlockIds.value = new Set(range.map((child) => child.componentId))
 }
 
