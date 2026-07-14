@@ -26,6 +26,14 @@ class TestValidateCondition(IntegrationTestCase):
 		with self.assertRaisesRegex(frappe.ValidationError, "Invalid condition"):
 			validate_condition("doc.status ==")
 
+	def test_result_in_control_flow_is_valid(self):
+		validate_condition("if doc.status == 'Open':\n\tresult = True\nelse:\n\tresult = False")
+
+	def test_result_only_in_nested_scope_is_rejected(self):
+		# `result` set inside a def never reaches the exec globals, so it must be rejected.
+		with self.assertRaisesRegex(frappe.ValidationError, "result"):
+			validate_condition("def check():\n\tresult = True")
+
 
 class TestEvaluateCondition(IntegrationTestCase):
 	@classmethod

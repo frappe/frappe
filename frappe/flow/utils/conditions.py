@@ -54,19 +54,44 @@ def _is_expression(condition: str) -> bool:
 		return False
 
 
-def _assigns_result(tree: ast.Module) -> bool:
-	for node in ast.walk(tree):
-		if isinstance(node, ast.Assign):
-			targets = node.targets
-		elif isinstance(node, ast.AugAssign | ast.AnnAssign | ast.NamedExpr):
-			targets = [node.target]
-		else:
+# Scopes that don't execute in the module body, so a `result` assigned inside them
+# never reaches the exec globals the verdict is read from.
+_NESTED_SCOPES = (
+	ast.FunctionDef,
+	ast.AsyncFunctionDef,
+	ast.ClassDef,
+	ast.Lambda,
+	ast.ListComp,
+	ast.SetComp,
+	ast.DictComp,
+	ast.GeneratorExp,
+)
+
+
+def _assigns_result(node: ast.AST) -> bool:
+	"""Whether `result` is assigned in the module's own scope. Recurses through control
+	flow (if/for/try) but not into nested scopes, which never run in the exec globals."""
+	for child in ast.iter_child_nodes(node):
+		if isinstance(child, _NESTED_SCOPES):
 			continue
-		for target in targets:
-			if isinstance(target, ast.Name) and target.id == RESULT_VAR:
-				return True
-			if isinstance(target, ast.Tuple | ast.List) and any(
-				isinstance(el, ast.Name) and el.id == RESULT_VAR for el in target.elts
-			):
-				return True
+		if _targets_result(child) or _assigns_result(child):
+			return True
+	return False
+
+
+def _targets_result(node: ast.AST) -> bool:
+	if isinstance(node, ast.Assign):
+		targets = node.targets
+	elif isinstance(node, ast.AugAssign | ast.AnnAssign | ast.NamedExpr):
+		targets = [node.target]
+	else:
+		return False
+	return any(_is_result_name(target) for target in targets)
+
+
+def _is_result_name(target: ast.AST) -> bool:
+	if isinstance(target, ast.Name):
+		return target.id == RESULT_VAR
+	if isinstance(target, ast.Tuple | ast.List):
+		return any(_is_result_name(el) for el in target.elts)
 	return False
