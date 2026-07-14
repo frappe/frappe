@@ -173,6 +173,8 @@ class TestDBUpdate(IntegrationTestCase):
 
 		self.assertEqual(frappe.db.get_value(doctype.name, doc.name, "big_field"), big_value)
 
+	# SQLite has no fixed-width integers, so a standard Int column can't overflow.
+	@unimplemented_for(db_type_is.SQLITE)
 	def test_int_conversion_overflow_errors_on_standard_int(self):
 		# a standard Int column (int4) must still reject a value out of its range; only Int with
 		# length > 11 (a bigint column) may hold it

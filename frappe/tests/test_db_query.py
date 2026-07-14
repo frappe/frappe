@@ -218,7 +218,7 @@ class TestDBQuery(IntegrationTestCase):
 			filters=[["Note Seen By", "user", "=", "Administrator"]], fields=["name", "title"], run=0
 		)
 		self.assertEqual(query.tables, ["`tabNote`"])
-		self.assertIn("exists (", sql)
+		self.assertIn("exists", sql.lower())
 
 		# the dedup group by sent by list views is dropped once nothing multiplies rows
 		sql = DatabaseQuery("Note").execute(
@@ -227,7 +227,7 @@ class TestDBQuery(IntegrationTestCase):
 			group_by="`tabNote`.`name`",
 			run=0,
 		)
-		self.assertNotIn("group by", sql)
+		self.assertNotIn("group by", sql.lower())
 
 	def test_child_table_filter_with_link_field_fetch(self):
 		"""Full list view repro of GH-39851: child-table filter + link table column in
@@ -348,7 +348,7 @@ class TestDBQuery(IntegrationTestCase):
 			run=0,
 		)
 		self.assertIn("`tabNote Seen By`", query.tables)
-		self.assertNotIn("exists (", sql)
+		self.assertNotIn("exists", sql.lower())
 
 		# the surviving dedup group by must not break when link table columns are
 		# selected (GH-39851 with the join fallback)
@@ -454,7 +454,7 @@ class TestDBQuery(IntegrationTestCase):
 			)
 
 		self.assertIn("`tabNote Seen By`", query.tables)
-		self.assertNotIn("exists (", sql)
+		self.assertNotIn("exists", sql.lower())
 
 	def test_link_field_syntax(self):
 		todo = frappe.get_doc(doctype="ToDo", description="Test ToDo", allocated_to="Administrator").insert()

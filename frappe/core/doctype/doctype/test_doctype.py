@@ -27,6 +27,7 @@ from frappe.custom.doctype.custom_field.custom_field import create_custom_fields
 from frappe.desk.form.load import getdoc
 from frappe.model.delete_doc import delete_controllers
 from frappe.model.sync import remove_orphan_doctypes
+from frappe.query_builder.utils import db_type_is
 from frappe.tests import IntegrationTestCase
 from frappe.utils import get_table_name
 
@@ -125,6 +126,8 @@ class TestDocType(IntegrationTestCase):
 		doc1.delete()
 		doc2.delete()
 
+	# SQLite's dynamic typing accepts a text value in an Int column without erroring.
+	@skipIf(db_type_is(frappe.conf.db_type) == db_type_is.SQLITE, "not applicable for sqlite")
 	def test_change_field_type_with_incompatible_values(self):
 		if frappe.db.exists("DocType", "Test Field Type Change"):
 			frappe.delete_doc("DocType", "Test Field Type Change")
