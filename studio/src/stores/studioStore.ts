@@ -1,4 +1,5 @@
 import { ref, reactive, nextTick, computed, toRaw, readonly } from "vue"
+import { useDebounceFn } from "@vueuse/core"
 import router from "@/router/studio_router"
 import { defineStore } from "pinia"
 
@@ -483,18 +484,24 @@ const useStudioStore = defineStore("store", () => {
 		}
 	}
 
-	async function setRouteVariable(name: string, value: string) {
+	function setRouteVariable(name: string, value: string) {
 		if (!activePage.value) return
 		routeVariables.value[name] = value
 		localStorage.setItem(
 			`${activePage.value.name}:routeVariables`,
 			JSON.stringify(routeVariables.value),
 		)
+		resetState()
+	}
+
+	const resetState = useDebounceFn(async () => {
+		const page = activePage.value
+		if (!page) return
 		// re-resolve data sources with the new value, then re-run the page script so bindings that
 		// derive from a resource (e.g. refs seeded from note.doc via a watcher) re-bind to the new doc
-		await codeStore.setPageResources(activePage.value)
-		await codeStore.setPageScript(activePage.value, Boolean(activePage.value.is_standard))
-	}
+		await codeStore.setPageResources(page)
+		await codeStore.setPageScript(page, Boolean(page.is_standard))
+	}, 300)
 
 	const codeStore = useCodeStore()
 	codeStore.setRouteObject(routeObject)
