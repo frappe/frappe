@@ -381,7 +381,7 @@ const useStudioStore = defineStore("store", () => {
 	}
 
 	function openPageInBrowser(app: StudioApp, page: StudioPage, preview: boolean = false) {
-		let route = `/${app.route}${page.route}`
+		let route = `/${app.route}${resolveRouteVariables(page.route)}`
 		if (preview) {
 			route = `/dev${route}`
 		}
@@ -397,6 +397,15 @@ const useStudioStore = defineStore("store", () => {
 				targetWindow?.location.reload()
 			}, 50)
 		}
+	}
+
+	// substitute test route variables set by the user into the dynamic route so preview opens the concrete URL,
+	// e.g. "/notes/:id" + { id: "note-1" } -> "/notes/note-1" (unset params keep their placeholder)
+	function resolveRouteVariables(route: string) {
+		return getRouteVariables(route).reduce((resolved, name) => {
+			const value = routeVariables.value[name]
+			return value ? resolved.replace(`:${name}`, encodeURIComponent(value)) : resolved
+		}, route)
 	}
 
 	// custom components
