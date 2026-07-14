@@ -119,6 +119,8 @@ def create_missing_sequences() -> list[str]:
 	from frappe.query_builder.functions import Max
 
 	if db.db_type == "sqlite":
+		# SQLite emulates sequences with a single `__sequences` table;
+		db.create_sequence_table()
 		return []
 
 	doctypes = frappe.get_all(
