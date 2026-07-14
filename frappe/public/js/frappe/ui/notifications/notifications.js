@@ -146,8 +146,9 @@ frappe.ui.Notifications = class Notifications {
 		});
 
 		$(document).on("click", function (e) {
+			// the bell may live in the sidebar or the workspace dock; match either
 			const isInsideNotificationBtn =
-				$(e.target).closest(".standard-items-sections .sidebar-notification").length > 0;
+				$(e.target).closest(".sidebar-notification").length > 0;
 			const isInsideDropdown = $(e.target).closest(".notifications-list").length > 0;
 			if (!isInsideNotificationBtn && !isInsideDropdown) {
 				if (full_height) {
@@ -223,13 +224,6 @@ class NotificationsView extends BaseNotificationsView {
 		this.notifications_icon
 			.attr("title", __("Notifications"))
 			.tooltip({ delay: { show: 600, hide: 100 }, trigger: "hover" });
-
-		this.bell_indicator = this.parent.find(".desktop-notification-icon");
-		if (!this.bell_indicator.length) {
-			this.bell_indicator = this.parent
-				.closest(".body-sidebar")
-				?.find(".sidebar-notification .sidebar-item-icon");
-		}
 
 		this.setup_notification_listeners();
 
@@ -405,15 +399,22 @@ class NotificationsView extends BaseNotificationsView {
 		return form_link;
 	}
 
+	// The bell icon(s) that carry the unseen indicator. Re-queried each call so they cover every
+	// bell (sidebar and/or workspace dock, the latter created after this view). Falls back to the
+	// mobile navbar icon when there's no sidebar bell.
+	get_bell_icons() {
+		let $icons = this.parent.find(".desktop-notification-icon");
+		return $icons.length ? $icons : $(".sidebar-notification .sidebar-item-icon");
+	}
+
 	toggle_notification_icon(seen) {
-		this.bell_indicator?.toggleClass("indicator blue", !seen);
+		this.get_bell_icons().toggleClass("indicator blue", !seen);
 	}
 
 	update_count_badge(count) {
 		this.unread_count = count;
-		const $suffix = this.parent
-			.closest(".body-sidebar")
-			?.find(".sidebar-notification .sidebar-notification-count");
+		// update the count on every bell (sidebar and/or workspace dock)
+		const $suffix = $(".sidebar-notification .sidebar-notification-count");
 		if (!$suffix?.length) return;
 
 		if (count > 0) {
@@ -451,7 +452,7 @@ class NotificationsView extends BaseNotificationsView {
 
 		this.parent.on("show.bs.dropdown", () => {
 			this.toggle_seen(true);
-			if (this.bell_indicator?.hasClass("indicator")) {
+			if (this.get_bell_icons().hasClass("indicator")) {
 				this.toggle_notification_icon(true);
 				frappe.call(
 					"frappe.desk.doctype.notification_log.notification_log.trigger_indicator_hide"
