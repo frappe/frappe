@@ -131,7 +131,7 @@
    "label": "Condition"
   },
   {
-   "description": "Optional Python condition; the trigger fires only if it is truthy. A single expression (e.g. <code>doc.status == \"Open\"</code>) or a script that sets <code>result</code>. Runs in the server-script sandbox with <code>doc</code> in scope for DocType events.",
+   "description": "Optional Python condition; the trigger fires only if it is truthy. A single expression (e.g. <code>doc.status == \"Open\"</code>) or a script that sets <code>result</code>. Runs in the server-script sandbox with <code>doc</code> in scope for DocType events. Requires server scripts to be enabled in the bench configuration; without it the condition is treated as not met and the trigger does not fire.",
    "fieldname": "condition",
    "fieldtype": "Code",
    "label": "Condition",
