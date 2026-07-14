@@ -299,6 +299,27 @@ class TestClassicConverter(IntegrationTestCase):
 		)
 		self.assertNotIn("show_label", layout["sections"][0])
 
+	def test_section_print_hide_drops_section(self):
+		from frappe.printing.doctype.print_format.classic_converter import (
+			convert_classic_to_beta,
+			create_default_layout,
+		)
+
+		fields = [
+			frappe._dict(fieldtype="Section Break", fieldname="s1", label="Visible", print_hide=0),
+			frappe._dict(fieldtype="Data", fieldname="first_name", label="First", print_hide=0),
+			frappe._dict(fieldtype="Section Break", fieldname="s2", label="Hidden", print_hide=1),
+			frappe._dict(fieldtype="Data", fieldname="last_name", label="Last", print_hide=0),
+		]
+
+		default = create_default_layout(frappe._dict(fields=fields))
+		converted, _ = convert_classic_to_beta(fields, frappe.get_meta("User"))
+
+		for layout in (default, converted):
+			names = [f["fieldname"] for s in layout["sections"] for c in s["columns"] for f in c["fields"]]
+			self.assertIn("first_name", names)
+			self.assertNotIn("last_name", names)
+
 	def test_print_width_mapping(self):
 		from frappe.printing.doctype.print_format.classic_converter import (
 			distribute_widths,

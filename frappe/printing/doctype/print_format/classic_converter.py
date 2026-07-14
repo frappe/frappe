@@ -62,7 +62,7 @@ def convert_classic_to_beta(format_data, meta, print_format=None) -> tuple[dict,
 				}
 			)
 
-	state = frappe._dict(section=None, column=None, html_count=0)
+	state = frappe._dict(section=None, column=None, html_count=0, skip=False)
 
 	def new_section(label=""):
 		state.section = {"label": label or "", "columns": []}
@@ -84,7 +84,13 @@ def convert_classic_to_beta(format_data, meta, print_format=None) -> tuple[dict,
 
 	for df in data:
 		if df.fieldtype == "Section Break":
-			new_section(df.label)
+			state.skip = bool(cint(df.print_hide))
+			if state.skip:
+				state.section = state.column = None
+			else:
+				new_section(df.label)
+		elif state.skip:
+			continue
 		elif df.fieldtype == "Column Break":
 			new_column()
 		elif df.fieldtype == "HTML":
@@ -246,7 +252,7 @@ def create_default_layout(meta) -> dict:
 		"footer": {"columns": [{"label": "", "fields": []}]},
 		"sections": [],
 	}
-	state = frappe._dict(section=None, column=None)
+	state = frappe._dict(section=None, column=None, skip=False)
 
 	def new_section(df=None):
 		state.section = {"label": (df.label if df else "") or "", "columns": [], "has_fields": False}
@@ -263,7 +269,13 @@ def create_default_layout(meta) -> dict:
 		if not df.fieldname:
 			continue
 		if df.fieldtype == "Section Break":
-			new_section(df)
+			state.skip = bool(cint(df.print_hide))
+			if state.skip:
+				state.section = state.column = None
+			else:
+				new_section(df)
+		elif state.skip:
+			continue
 		elif df.fieldtype == "Column Break":
 			new_column(df)
 		elif df.label:
@@ -359,6 +371,5 @@ def migrate_all_classic_formats():
 				doc.save(ignore_permissions=True)
 			report[name] = dropped
 		except Exception:
-			# never let one broken format abort the whole migration
 			frappe.log_error(title=f"Print Format conversion failed: {name}")
 	return report
