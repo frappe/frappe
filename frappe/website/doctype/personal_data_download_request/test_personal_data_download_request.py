@@ -54,6 +54,26 @@ class TestRequestPersonalData(IntegrationTestCase):
 
 		frappe.db.delete("Email Queue")
 
+	def test_response_is_agnostic(self):
+		def get_response_shape(doc):
+			return set(doc.as_dict().keys())
+
+		valid = frappe.new_doc("Personal Data Download Request")
+		valid.user = "test_privacy@example.com"
+		valid.insert(ignore_permissions=True)
+
+		invalid = frappe.new_doc("Personal Data Download Request")
+		invalid.user = "nonexistent@example.com"
+		invalid.insert(ignore_permissions=True)
+
+		self.assertTrue(valid.name)
+		self.assertTrue(invalid.name)
+		self.assertFalse(frappe.db.exists("Personal Data Download Request", invalid.name))
+		self.assertTrue(frappe.db.exists("Personal Data Download Request", valid.name))
+		self.assertNotIn("user_name", valid.as_dict())
+		self.assertNotIn("user_name", invalid.as_dict())
+		self.assertEqual(get_response_shape(valid), get_response_shape(invalid))
+
 
 def create_user_if_not_exists(email, first_name=None):
 	frappe.delete_doc_if_exists("User", email)
