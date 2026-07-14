@@ -19,8 +19,24 @@ from frappe.database.database import (
 	Database,
 	ImplicitCommitError,
 )
+from frappe.database.sqlite import functions
 from frappe.database.sqlite.schema import SQLiteTable
 from frappe.utils import get_table_name
+
+# Converters and adapters are process-global, so register them once at import rather than on
+# every connection. Columns are declared DATETIME (see SQLiteTable.create), so we register that
+# name too so PARSE_DECLTYPES surfaces datetime objects -- matching MariaDB -- not raw strings.
+# There is deliberately no REAL converter: _transform_result / fetch_as_dict round all floats to
+# 9dp, covering both REAL-declared columns and float results of computed expressions.
+sqlite3.register_converter("datetime", functions.converter_datetime)
+sqlite3.register_converter("timestamp", functions.converter_datetime)
+sqlite3.register_converter("date", functions.converter_date)
+sqlite3.register_converter("time", functions.converter_time)
+sqlite3.register_adapter(datetime, functions.adapter_datetime)
+sqlite3.register_adapter(date, functions.adapter_date)
+sqlite3.register_adapter(time, functions.adapter_time)
+sqlite3.register_adapter(Decimal, functions.adapter_decimal)
+sqlite3.register_adapter(timedelta, functions.adapter_timedelta)
 
 # sqlglot warns for every construct its target dialect can't represent (e.g. FOR UPDATE, which
 # modify_query() relies on it silently dropping) -- mute our own use without touching global config.
@@ -73,7 +89,8 @@ class SQLiteExceptionUtil:
 
 	@staticmethod
 	def is_timedout(e: sqlite3.Error) -> bool:
-		return "database is locked" in str(e)
+		# SQLite reports a lock held past the busy_timeout with the same message as a deadlock.
+		return SQLiteExceptionUtil.is_deadlocked(e)
 
 	@staticmethod
 	def is_read_only_mode_error(e: sqlite3.Error) -> bool:
@@ -162,7 +179,6 @@ class SQLiteDatabase(SQLiteExceptionUtil, Database):
 		return cint(frappe.conf.get("sqlite_busy_timeout")) or self.DEFAULT_BUSY_TIMEOUT
 
 	def get_connection(self, read_only: bool = False):
-		from frappe.database.sqlite import functions
 		from frappe.utils import now, nowdate, nowtime
 
 		conn = self.create_connection(read_only)
@@ -204,22 +220,7 @@ class SQLiteDatabase(SQLiteExceptionUtil, Database):
 		return conn
 
 	def create_connection(self, read_only: bool = False):
-		from frappe.database.sqlite import functions
-
 		db_path = self.get_db_path()
-		# Columns are declared DATETIME (see SQLiteTable.create); register that name too so
-		# PARSE_DECLTYPES surfaces datetime objects -- matching MariaDB -- instead of raw strings.
-		sqlite3.register_converter("datetime", functions.converter_datetime)
-		sqlite3.register_converter("timestamp", functions.converter_datetime)
-		sqlite3.register_converter("date", functions.converter_date)
-		sqlite3.register_converter("time", functions.converter_time)
-		# No REAL converter: _transform_result / fetch_as_dict round all floats to 9dp,
-		# covering both REAL-declared columns and float values from computed expressions.
-		sqlite3.register_adapter(datetime, functions.adapter_datetime)
-		sqlite3.register_adapter(date, functions.adapter_date)
-		sqlite3.register_adapter(time, functions.adapter_time)
-		sqlite3.register_adapter(Decimal, functions.adapter_decimal)
-		sqlite3.register_adapter(timedelta, functions.adapter_timedelta)
 		if read_only:
 			return sqlite3.connect(
 				f"file:{db_path}?mode=ro",
