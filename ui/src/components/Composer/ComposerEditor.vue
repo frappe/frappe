@@ -183,6 +183,7 @@ import {
 	HorizontalRule,
 	InsertTable,
 } from "frappe-ui/editor";
+import { sanitizeHtml } from "../../utils/sanitize";
 import type { ComposerEditorProps, CoreSubmitPayload, UploadedFile } from "./types";
 
 // Fixed formatting toolbar rendered in the footer (headings, bold, lists, …).
@@ -311,7 +312,7 @@ watch(
 		if (!next) return;
 		nextTick(() => {
 			const el = quotedContentRef.value;
-			if (el && el.innerHTML !== next) el.innerHTML = next;
+			if (el && el.innerHTML !== next) el.innerHTML = sanitizeHtml(next);
 		});
 	},
 	{ immediate: true }

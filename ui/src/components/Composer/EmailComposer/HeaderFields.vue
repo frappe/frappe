@@ -66,7 +66,7 @@ const from = defineModel<string>("from", { default: "" });
 // The optional recipient rows, in fixed order. `from`/`subject` are handled
 // separately (single-value fields, not recipient lists).
 const OPTIONAL = ["cc", "bcc"] as const;
-type OptionalField = (typeof OPTIONAL)[number];
+type OptionalField = "cc" | "bcc";
 
 const showFrom = computed(() => props.fields.includes("from"));
 const showSubject = computed(() => props.fields.includes("subject"));
