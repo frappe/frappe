@@ -4,7 +4,7 @@ import sqlite3
 import typing
 import warnings
 from contextlib import contextmanager
-from datetime import date, datetime, time, timedelta, timezone
+from datetime import date, datetime, time, timedelta
 from decimal import Decimal
 from pathlib import Path
 
@@ -162,6 +162,9 @@ class SQLiteDatabase(SQLiteExceptionUtil, Database):
 		return cint(frappe.conf.get("sqlite_busy_timeout")) or self.DEFAULT_BUSY_TIMEOUT
 
 	def get_connection(self, read_only: bool = False):
+		from frappe.database.sqlite import functions
+		from frappe.utils import now, nowdate, nowtime
+
 		conn = self.create_connection(read_only)
 		# Disable the "double-quoted string literal" misfeature. frappe only ever emits
 		# double-quotes as identifiers (backticks are rewritten to double-quotes; string
@@ -170,25 +173,25 @@ class SQLiteDatabase(SQLiteExceptionUtil, Database):
 		# being treated as a string literal that matches nothing.
 		conn.setconfig(sqlite3.SQLITE_DBCONFIG_DQS_DDL, False)
 		conn.setconfig(sqlite3.SQLITE_DBCONFIG_DQS_DML, False)
-		conn.create_function("regexp", 2, _regexp)
-		conn.create_function("regexp_replace", 3, _regexp_replace)
-		conn.create_function("now", 0, _now)
-		conn.create_function("utc_timestamp", 0, _utc_timestamp)
-		conn.create_function("curdate", 0, _curdate)
-		conn.create_function("curtime", 0, _curtime)
-		conn.create_function("unix_timestamp", -1, _unix_timestamp)
-		conn.create_function("timestamp", -1, _timestamp)
-		conn.create_function("monthname", 1, _monthname)
-		conn.create_function("substring_index", 3, _substring_index)
-		conn.create_function("datediff", 2, _datediff)
-		conn.create_function("month", 1, _date_part_fn("month"))
-		conn.create_function("year", 1, _date_part_fn("year"))
-		conn.create_function("day", 1, _date_part_fn("day"))
-		conn.create_function("dayofmonth", 1, _date_part_fn("day"))
-		conn.create_function("quarter", 1, _quarter)
-		conn.create_function("date_format", 2, _date_format)
-		conn.create_function("to_seconds", 1, _to_seconds)
-		conn.create_function("timediff", 2, _timediff)
+		conn.create_function("now", 0, now)
+		conn.create_function("curdate", 0, nowdate)
+		conn.create_function("curtime", 0, nowtime)
+		conn.create_function("regexp", 2, functions.regexp)
+		conn.create_function("regexp_replace", 3, functions.regexp_replace)
+		conn.create_function("utc_timestamp", 0, functions.utc_timestamp)
+		conn.create_function("unix_timestamp", -1, functions.unix_timestamp)
+		conn.create_function("timestamp", -1, functions.timestamp)
+		conn.create_function("to_seconds", 1, functions.to_seconds)
+		conn.create_function("timediff", 2, functions.timediff)
+		conn.create_function("datediff", 2, functions.datediff)
+		conn.create_function("date_format", 2, functions.date_format)
+		conn.create_function("monthname", 1, functions.monthname)
+		conn.create_function("quarter", 1, functions.quarter)
+		conn.create_function("substring_index", 3, functions.substring_index)
+		conn.create_function("month", 1, functions.date_part("month"))
+		conn.create_function("year", 1, functions.date_part("year"))
+		conn.create_function("day", 1, functions.date_part("day"))
+		conn.create_function("dayofmonth", 1, functions.date_part("day"))
 		pragmas = {
 			"journal_mode": "WAL",
 			"synchronous": "NORMAL",
@@ -201,20 +204,22 @@ class SQLiteDatabase(SQLiteExceptionUtil, Database):
 		return conn
 
 	def create_connection(self, read_only: bool = False):
+		from frappe.database.sqlite import functions
+
 		db_path = self.get_db_path()
 		# Columns are declared DATETIME (see SQLiteTable.create); register that name too so
 		# PARSE_DECLTYPES surfaces datetime objects -- matching MariaDB -- instead of raw strings.
-		sqlite3.register_converter("datetime", _parse_timestamp)
-		sqlite3.register_converter("timestamp", _parse_timestamp)
-		sqlite3.register_converter("date", _parse_date)
-		sqlite3.register_converter("time", _parse_time)
+		sqlite3.register_converter("datetime", functions.converter_datetime)
+		sqlite3.register_converter("timestamp", functions.converter_datetime)
+		sqlite3.register_converter("date", functions.converter_date)
+		sqlite3.register_converter("time", functions.converter_time)
 		# No REAL converter: _transform_result / fetch_as_dict round all floats to 9dp,
 		# covering both REAL-declared columns and float values from computed expressions.
-		sqlite3.register_adapter(datetime, lambda v: v.isoformat(sep=" "))
-		sqlite3.register_adapter(date, lambda v: v.isoformat())
-		sqlite3.register_adapter(time, lambda v: v.isoformat())
-		sqlite3.register_adapter(Decimal, lambda v: float(v))
-		sqlite3.register_adapter(timedelta, _adapt_timedelta)
+		sqlite3.register_adapter(datetime, functions.adapter_datetime)
+		sqlite3.register_adapter(date, functions.adapter_date)
+		sqlite3.register_adapter(time, functions.adapter_time)
+		sqlite3.register_adapter(Decimal, functions.adapter_decimal)
+		sqlite3.register_adapter(timedelta, functions.adapter_timedelta)
 		if read_only:
 			return sqlite3.connect(
 				f"file:{db_path}?mode=ro",
@@ -337,76 +342,47 @@ class SQLiteDatabase(SQLiteExceptionUtil, Database):
 	) -> list | tuple:
 		"""Change column type by recreating the table"""
 		table_name = get_table_name(doctype)
-		temp_table = f"{table_name}_new"
-
-		# Get current table column definitions
-		columns = []
-		column_exists = False
-		for col in self.sql(f"PRAGMA table_info(`{table_name}`)", as_dict=1):
-			if col["name"] == column:
-				column_exists = True
-				null_str = "" if nullable else " NOT NULL"
-				columns.append(f"`{col['name']}` {type}{null_str}")
-			else:
-				null_str = "" if col["notnull"] == 0 else " NOT NULL"
-				columns.append(f"`{col['name']}` {col['type']}{null_str}")
-
-		# Check that the column exists
-		if not column_exists:
+		cols = self.sql(f"PRAGMA table_info(`{table_name}`)", as_dict=1)
+		if not any(col["name"] == column for col in cols):
 			raise frappe.InvalidColumnName(f"Column {column} does not exist in table {table_name}")
 
-		# Create new table
-		create_table = f"CREATE TABLE `{temp_table}` (\n{','.join(columns)}\n)"
-		self.sql_ddl(create_table)
+		column_defs = []
+		for col in cols:
+			if col["name"] == column:
+				null_str = "" if nullable else " NOT NULL"
+				column_defs.append(f"`{col['name']}` {type}{null_str}")
+			else:
+				null_str = "" if col["notnull"] == 0 else " NOT NULL"
+				column_defs.append(f"`{col['name']}` {col['type']}{null_str}")
 
-		# Copy data
-		column_names = [
-			f"`{col['name']}`" for col in self.sql(f"PRAGMA table_info(`{table_name}`)", as_dict=1)
-		]
-		column_list = ", ".join(column_names)
-		self.sql_ddl(f"INSERT INTO `{temp_table}` SELECT {column_list} FROM `{table_name}`")
-
-		# Drop old table and rename new table
-		self.sql_ddl(f"DROP TABLE `{table_name}`")
-		self.sql_ddl(f"ALTER TABLE `{temp_table}` RENAME TO `{table_name}`")
+		select_columns = [f"`{col['name']}`" for col in cols]
+		self._rebuild_table(table_name, column_defs, select_columns)
 
 	def rename_column(self, doctype: str, old_column_name: str, new_column_name: str):
 		"""Rename column by recreating the table"""
 		table_name = get_table_name(doctype)
-		temp_table = f"{table_name}_new"
-
-		# Get current table column definitions
-		columns = []
-		column_exists = False
-		for col in self.sql(f"PRAGMA table_info(`{table_name}`)", as_dict=1):
-			if col["name"] == old_column_name:
-				column_exists = True
-				null_str = "" if col["notnull"] == 0 else " NOT NULL"
-				columns.append(f"`{new_column_name}` {col['type']}{null_str}")
-			else:
-				null_str = "" if col["notnull"] == 0 else " NOT NULL"
-				columns.append(f"`{col['name']}` {col['type']}{null_str}")
-
-		if not column_exists:
+		cols = self.sql(f"PRAGMA table_info(`{table_name}`)", as_dict=1)
+		if not any(col["name"] == old_column_name for col in cols):
 			raise frappe.InvalidColumnName(f"Column {old_column_name} does not exist in table {table_name}")
 
-		# Create new table
-		create_table = f"CREATE TABLE `{temp_table}` (\n{','.join(columns)}\n)"
-		self.sql_ddl(create_table)
-
-		# Get list of columns for SELECT, replacing old name with new
-		column_names = []
-		for col in self.sql(f"PRAGMA table_info(`{table_name}`)", as_dict=1):
+		column_defs = []
+		select_columns = []
+		for col in cols:
+			null_str = "" if col["notnull"] == 0 else " NOT NULL"
 			if col["name"] == old_column_name:
-				column_names.append(f"`{old_column_name}` as `{new_column_name}`")
+				column_defs.append(f"`{new_column_name}` {col['type']}{null_str}")
+				select_columns.append(f"`{old_column_name}` as `{new_column_name}`")
 			else:
-				column_names.append(f"`{col['name']}`")
+				column_defs.append(f"`{col['name']}` {col['type']}{null_str}")
+				select_columns.append(f"`{col['name']}`")
 
-		# Copy data
-		column_list = ", ".join(column_names)
-		self.sql_ddl(f"INSERT INTO `{temp_table}` SELECT {column_list} FROM `{table_name}`")
+		self._rebuild_table(table_name, column_defs, select_columns)
 
-		# Drop old table and rename new table
+	def _rebuild_table(self, table_name: str, column_defs: list[str], select_columns: list[str]) -> None:
+		"""Recreate `table_name` with `column_defs`, copying data via `select_columns`, then swap it in."""
+		temp_table = f"{table_name}_new"
+		self.sql_ddl(f"CREATE TABLE `{temp_table}` (\n{','.join(column_defs)}\n)")
+		self.sql_ddl(f"INSERT INTO `{temp_table}` SELECT {', '.join(select_columns)} FROM `{table_name}`")
 		self.sql_ddl(f"DROP TABLE `{table_name}`")
 		self.sql_ddl(f"ALTER TABLE `{temp_table}` RENAME TO `{table_name}`")
 
@@ -1117,248 +1093,3 @@ def _expand_positional_params(query: str, values):
 			rendered.append(tail)
 
 	return "".join(rendered), flat
-
-
-def _now() -> str:
-	"""MariaDB/Postgres ``NOW()`` -- current datetime in frappe's stored format."""
-	from frappe.utils import now
-
-	return now()
-
-
-def _utc_timestamp() -> str:
-	"""MariaDB ``UTC_TIMESTAMP()`` -- current UTC datetime."""
-	# timezone.utc, not datetime.UTC: `datetime` here is the class, which has no UTC attribute
-	return datetime.now(timezone.utc).strftime("%Y-%m-%d %H:%M:%S.%f")  # noqa: UP017
-
-
-def _curdate() -> str:
-	"""MariaDB ``CURDATE()`` -- current date."""
-	from frappe.utils import nowdate
-
-	return nowdate()
-
-
-def _curtime() -> str:
-	"""MariaDB ``CURTIME()`` -- current time."""
-	from frappe.utils import nowtime
-
-	return nowtime()
-
-
-def _parse_timestamp(value: bytes):
-	"""Tolerant DATETIME converter. SQLite is dynamically typed, so a column declared
-	as a timestamp may hold a non-strict-ISO value; fall back to frappe's lenient
-	parser, and finally to the raw string, rather than raising."""
-	s = value.decode()
-	try:
-		return datetime.fromisoformat(s)
-	except ValueError:
-		from frappe.utils import get_datetime
-
-		try:
-			return get_datetime(s)
-		except Exception:
-			return s
-
-
-def _parse_date(value: bytes):
-	"""Tolerant DATE converter -- handles values that carry a time component (e.g. a
-	datetime stored in a DATE-declared column) by extracting the date part."""
-	s = value.decode()
-	try:
-		return date.fromisoformat(s)
-	except ValueError:
-		from frappe.utils import getdate
-
-		try:
-			return getdate(s)
-		except Exception:
-			return s
-
-
-def _adapt_timedelta(td: timedelta) -> str:
-	"""Serialize a `timedelta` back to a ``HH:MM:SS[.ffffff]`` TIME string (the inverse
-	of `_parse_time`), so a value read from a TIME column can be re-bound as a param."""
-	total = int(td.total_seconds())
-	hours, rem = divmod(total, 3600)
-	minutes, seconds = divmod(rem, 60)
-	if td.microseconds:
-		return f"{hours:02d}:{minutes:02d}:{seconds:02d}.{td.microseconds:06d}"
-	return f"{hours:02d}:{minutes:02d}:{seconds:02d}"
-
-
-def _parse_time(value: bytes):
-	"""Parse a stored TIME into a `timedelta`, matching how MariaDB's driver surfaces
-	TIME columns (which frappe/ERPNext expect). Tolerant of non-zero-padded values and
-	of datetime values landing in a TIME-declared column."""
-	s = value.decode()
-	try:
-		t = time.fromisoformat(s)
-	except ValueError:
-		from frappe.utils import get_time
-
-		try:
-			t = get_time(s)
-		except Exception:
-			return s
-	return timedelta(hours=t.hour, minutes=t.minute, seconds=t.second, microseconds=t.microsecond)
-
-
-# MariaDB DATE_FORMAT specifiers that differ from Python strftime.
-_DATE_FORMAT_MAP = {
-	"%i": "%M",  # minutes
-	"%s": "%S",  # seconds
-	"%M": "%B",  # full month name
-	"%h": "%I",  # 12-hour
-	"%W": "%A",  # full weekday name
-	"%r": "%I:%M:%S %p",
-	"%T": "%H:%M:%S",
-}
-
-
-def _date_format(value, fmt) -> str | None:
-	"""MariaDB ``DATE_FORMAT(date, fmt)`` using Python ``strftime`` with the MariaDB
-	format specifiers that differ from strftime translated. Done in a single pass so a
-	translated token (e.g. ``%i`` -> ``%M``) is not re-translated by a later rule."""
-	if value is None or fmt is None:
-		return None
-	from frappe.utils import get_datetime
-
-	translated = re.sub(r"%.", lambda m: _DATE_FORMAT_MAP.get(m.group(0), m.group(0)), fmt)
-	return get_datetime(value).strftime(translated)
-
-
-def _datediff(date1, date2) -> int | None:
-	"""MariaDB ``DATEDIFF(date1, date2)`` -- whole days between the two dates."""
-	if date1 is None or date2 is None:
-		return None
-	from frappe.utils import getdate
-
-	return (getdate(date1) - getdate(date2)).days
-
-
-def _date_part_fn(part: str):
-	"""Build a scalar function returning a date part (``MONTH``/``YEAR``/``DAY``)."""
-
-	def fn(value):
-		if value is None:
-			return None
-		from frappe.utils import getdate
-
-		return getattr(getdate(value), part)
-
-	return fn
-
-
-def _quarter(value) -> int | None:
-	"""MariaDB ``QUARTER(date)`` -- 1-4."""
-	if value is None:
-		return None
-	from frappe.utils import getdate
-
-	return (getdate(value).month - 1) // 3 + 1
-
-
-def _monthname(value) -> str | None:
-	"""MariaDB ``MONTHNAME(date)`` -- full month name (e.g. 'January')."""
-	if value is None:
-		return None
-	from frappe.utils import getdate
-
-	return getdate(value).strftime("%B")
-
-
-def _substring_index(value, delim, count) -> str | None:
-	"""MariaDB ``SUBSTRING_INDEX(str, delim, count)``: return the substring before the
-	``count``-th occurrence of ``delim`` (from the left if positive, right if negative)."""
-	if value is None:
-		return None
-	value = str(value)
-	count = int(count)
-	if count == 0:
-		return ""
-	if count > 0:
-		return delim.join(value.split(delim)[:count])
-	return delim.join(value.split(delim)[count:])
-
-
-def _timestamp(*args) -> str | None:
-	"""MariaDB ``TIMESTAMP(expr)`` / ``TIMESTAMP(date, time)``: with two arguments,
-	combine a date and time into a datetime; with one, return it as a datetime string.
-	Combining by concatenation is sufficient for frappe's ISO `YYYY-MM-DD` / `HH:MM:SS`
-	values and preserves lexicographic ordering."""
-	args = [a for a in args if a is not None]
-	if not args:
-		return None
-	if len(args) == 1:
-		return str(args[0])
-	return f"{args[0]} {args[1]}"
-
-
-def _to_seconds(value) -> int | None:
-	"""MariaDB ``TO_SECONDS(expr)`` -- seconds since year 0. The absolute epoch is
-	irrelevant in practice (it is used in differences, ``TO_SECONDS(a) - TO_SECONDS(b)``),
-	so seconds since the Unix epoch gives identical deltas while staying integer."""
-	if value is None:
-		return None
-	from frappe.utils import get_datetime
-
-	return int(get_datetime(value).timestamp())
-
-
-def _unix_timestamp(*args) -> int | float:
-	"""MariaDB ``UNIX_TIMESTAMP([datetime])`` -- epoch seconds.
-
-	With no argument returns the current epoch; with a datetime/date string
-	argument returns that moment's epoch (matching MariaDB's overloads). MariaDB
-	returns an integer for whole-second values (and a decimal only when the input
-	carries fractional seconds), so mirror that rather than always returning a float."""
-	from frappe.utils import get_datetime
-
-	epoch = datetime.now().timestamp() if not args or args[0] is None else get_datetime(args[0]).timestamp()
-	return int(epoch) if epoch == int(epoch) else epoch
-
-
-def _timediff(t1, t2) -> float | None:
-	"""Return seconds difference; 0.0 when equal (falsy), unlike SQLite's built-in timediff() which returns a string."""
-	if t1 is None or t2 is None:
-		return None
-	try:
-
-		def _parse(s):
-			s = str(s).strip()
-			for fmt in (
-				"%Y-%m-%d %H:%M:%S.%f",
-				"%Y-%m-%d %H:%M:%S",
-				"%Y-%m-%dT%H:%M:%S.%f",
-				"%Y-%m-%dT%H:%M:%S",
-			):
-				try:
-					return datetime.strptime(s, fmt)
-				except ValueError:
-					continue
-			return None
-
-		d1, d2 = _parse(t1), _parse(t2)
-		if d1 is None or d2 is None:
-			return None
-		return (d1 - d2).total_seconds()
-	except Exception:
-		return None
-
-
-def _regexp(expr: str, item: str) -> bool:
-	"""
-	Define regexp implementation for SQLite manually
-
-	Although it works in the CLI - doesn't work through python
-	"""
-	return re.search(expr, item) is not None
-
-
-def _regexp_replace(item: str, pattern: str, repl: str) -> str:
-	"""
-	Define regexp_replace implementation for SQLite
-	"""
-	return re.sub(pattern, repl, item)
