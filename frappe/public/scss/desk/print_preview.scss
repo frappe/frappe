@@ -4,8 +4,7 @@
 	padding: 0;
 }
 
-.print-preview-wrapper,
-.preview-beta-wrapper {
+.print-preview-wrapper {
 	padding: 80px 0;
 	background-color: var(--gray-200);
 
@@ -14,13 +13,18 @@
 	}
 }
 
-.print-preview,
-.preview-beta-wrapper iframe {
+.print-preview {
 	display: block;
 	max-width: 8.3in;
 	margin: 0 auto;
 	background: white;
 	border-radius: var(--radius);
+}
+
+.preview-beta-wrapper iframe {
+	display: block;
+	width: 100%;
+	border: 0;
 }
 
 .print-toolbar {

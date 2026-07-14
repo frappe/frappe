@@ -505,10 +505,7 @@ frappe.ui.form.PrintView = class {
 			params.append("letterhead", letterhead);
 		}
 		iframe.prop("src", `/printpreview?${params.toString()}`);
-		iframe.css(
-			"height",
-			"calc(100vh - var(--page-head-height) - var(--navbar-height) - 160px)"
-		);
+		iframe.css("height", "calc(100vh - var(--page-head-height) - var(--navbar-height))");
 	}
 
 	setup_print_format_dom(out, $print_format) {
