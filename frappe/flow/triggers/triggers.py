@@ -26,7 +26,7 @@ def dispatch(doc: Document, method: str | None = None) -> None:
 	triggers = _doctype_triggers(doc.doctype, method)
 
 	for trigger in triggers:
-		if trigger.condition and not _eval_condition(trigger.condition, doc):
+		if trigger.condition and not _passes_condition(trigger, doc):
 			continue
 		frappe.enqueue(
 			"flow.triggers.fire",
@@ -107,8 +107,20 @@ def _doctype_triggers(target_doctype: str, doc_event: str) -> list:
 			"doc_event": doc_event,
 			"enabled": 1,
 		},
-		fields=["name", "condition"],
+		fields=["name", "condition", "run_as", "owner"],
 	)
+
+
+def _passes_condition(trigger, doc: Document) -> bool:
+	"""Evaluate the pre-enqueue condition as the trigger's run identity (matching fire),
+	so a permission-sensitive condition doesn't silently under-fire for the low-privilege
+	user whose action triggered it."""
+	original_user = frappe.session.user
+	frappe.set_user(trigger.run_as or trigger.owner)
+	try:
+		return _eval_condition(trigger.condition, doc)
+	finally:
+		frappe.set_user(original_user)
 
 
 def _eval_condition(condition: str, doc: Document) -> bool:

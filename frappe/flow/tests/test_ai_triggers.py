@@ -160,6 +160,27 @@ class TestDispatch(IntegrationTestCase):
 			dispatch(closed_doc, "after_insert")
 		enqueue.assert_called_once()
 
+	def test_dispatch_evaluates_condition_as_run_as(self):
+		# The pre-enqueue check runs as run_as, not the triggering user.
+		service = frappe.get_doc(
+			{
+				"doctype": "User",
+				"email": "dispatch-service@example.com",
+				"first_name": "Svc",
+				"roles": [{"role": "System Manager"}],
+			}
+		).insert(ignore_permissions=True)
+		self.trigger.run_as = service.name
+		self.trigger.condition = f"frappe.session.user == '{service.name}'"
+		self.trigger.save()
+		doc = frappe.get_doc({"doctype": "ToDo", "description": "run-as cond"}).insert()
+
+		with patch("frappe.enqueue") as enqueue:
+			dispatch(doc, "after_insert")
+
+		enqueue.assert_called_once()
+		self.assertEqual(frappe.session.user, "Administrator")  # restored afterward
+
 	def test_condition_runtime_error_skips_trigger(self):
 		self.trigger.condition = "doc.status.no_such_method()"
 		self.trigger.save()
