@@ -246,12 +246,12 @@ const getRawValue = (propName: string) => {
 	return props.multiEdit ? blockController.getProp(propName) : props.block?.componentProps[propName]
 }
 
-const isMixed = (propName: string) => getRawValue(propName) === "Mixed"
+const isMixed = (propName: string) => props.multiEdit && getRawValue(propName) === "Mixed"
 
 const getFormattedValue = (propName: string) => {
 	const value = getRawValue(propName)
 	// mixed values across a multi-selection are surfaced via a placeholder, not a real value
-	if (value === "Mixed") return ""
+	if (isMixed(propName)) return ""
 	if (value?.$type === "variable") {
 		return `{{ ${value.name} }}`
 	}
