@@ -107,6 +107,10 @@
   "prepared_report_section",
   "max_auto_email_report_per_user",
   "max_report_rows",
+  "snapshot_reports_section",
+  "enable_snapshot_reports",
+  "frequency",
+  "sync_timeout",
   "background_workers",
   "enable_scheduler",
   "dormant_days",
@@ -805,12 +809,39 @@
    "fieldname": "allowed_doctypes_for_guest_uploads",
    "fieldtype": "Small Text",
    "label": "Allowed Doctypes for Guest Uploads"
+  },
+  {
+   "default": "Daily",
+   "depends_on": "eval: doc.enable_snapshot_reports",
+   "fieldname": "frequency",
+   "fieldtype": "Select",
+   "label": "Frequency",
+   "options": "Hourly\nDaily"
+  },
+  {
+   "depends_on": "eval: doc.enable_snapshot_reports",
+   "fieldname": "sync_timeout",
+   "fieldtype": "Int",
+   "label": "Sync Timeout (Seconds)"
+  },
+  {
+   "fieldname": "snapshot_reports_section",
+   "fieldtype": "Section Break",
+   "label": "Snapshot Reports",
+   "show_description_on_click": 1
+  },
+  {
+   "default": "0",
+   "documentation_url": "https://docs.frappe.io/framework/user/en/desk/reports/script-report#snapshot-reports",
+   "fieldname": "enable_snapshot_reports",
+   "fieldtype": "Check",
+   "label": "Enable Snapshot Reports"
   }
  ],
  "icon": "fa fa-cog",
  "issingle": 1,
  "links": [],
- "modified": "2026-05-21 10:32:53.594355",
+ "modified": "2026-07-01 16:09:59.407976",
  "modified_by": "Administrator",
  "module": "Core",
  "name": "System Settings",

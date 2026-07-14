@@ -34,15 +34,20 @@ class TestRequestPersonalData(IntegrationTestCase):
 
 		frappe.set_user("Administrator")
 
-		file_count = frappe.db.count(
+		files = frappe.get_all(
 			"File",
-			{
+			filters={
 				"attached_to_doctype": "Personal Data Download Request",
 				"attached_to_name": download_request.name,
 			},
+			fields=["name", "owner"],
 		)
 
-		self.assertEqual(file_count, 1)
+		self.assertEqual(len(files), 1)
+		self.assertEqual(files[0].owner, "test_privacy@example.com")
+
+		pddr_owner = frappe.db.get_value("Personal Data Download Request", download_request.name, "owner")
+		self.assertEqual(pddr_owner, "test_privacy@example.com")
 
 		email_queue = frappe.get_all("Email Queue", fields=["message"], order_by="creation DESC", limit=1)
 		self.assertIn(frappe._("Download Your Data"), email_queue[0].message)
