@@ -195,6 +195,7 @@ class Database:
 		run=True,
 		pluck=False,
 		as_iterator=False,
+		_skip_dialect_rewrite=False,
 	):
 		"""Execute a SQL query and fetch all rows.
 
@@ -209,6 +210,9 @@ class Database:
 		:param run: Return query without executing it if False.
 		:param pluck: Get the plucked field only.
 		:param explain: Print `EXPLAIN` in error log.
+		:param _skip_dialect_rewrite: Internal. Set by the query builder path (``QueryBuilder.run``),
+		        whose SQL is already generated in the connected backend's dialect and must not be
+		        rewritten again. Only the SQLite backend acts on it; other backends accept and ignore it.
 		:param as_iterator: Returns iterator over results instead of fetching all results at once.
 		        This should be used with unbuffered cursor as default cursors used by pymysql and postgres
 		        buffer the results internally. See `Database.unbuffered_cursor`.
@@ -1429,9 +1433,13 @@ class Database:
 	def multisql(self, sql_dict, values=(), **kwargs):
 		"""
 		Chooses which query to execute based on the current database type, falling back to a wildcard query.
+		SQLite falls back to the mariadb variant when no sqlite/`*` key exists; modify_query transpiles most
+		MariaDB syntax, but constructs it can't (e.g. ON DUPLICATE KEY UPDATE) still need a sqlite/`*` variant.
 		"""
 		current_dialect = self.db_type or "mariadb"
 		query = sql_dict.get(current_dialect) or sql_dict.get("*")
+		if query is None and current_dialect == "sqlite":
+			query = sql_dict.get("mariadb")
 		return self.sql(query, values, **kwargs)
 
 	def delete(self, doctype: str, filters: dict | list | None = None, debug=False, **kwargs):
@@ -1525,6 +1533,10 @@ class Database:
 		value_iterator = iter(values)
 		while value_chunk := tuple(itertools.islice(value_iterator, chunk_size)):
 			query.insert(*value_chunk).run()
+
+	def create_sequence_table(self):
+		"""Create the `__sequences` table when required.
+		No-op for MariaDB and Postgres."""
 
 	def create_sequence(self, *args, **kwargs):
 		from frappe.database.sequence import create_sequence

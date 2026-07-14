@@ -42,7 +42,15 @@ class ImportMapper:
 
 	def __call__(self, *args: Any, **kwds: Any) -> Callable:
 		db = db_type_is(frappe.conf.db_type)
-		return self.func_map[db](*args, **kwds)
+		func = self.func_map.get(db)
+		if func is None and db is db_type_is.SQLITE:
+			# Many builder functions have no dedicated SQLite mapping. SQLite is the
+			# closest dialect to MariaDB (and the SQLite driver shims MariaDB's scalar
+			# functions), so fall back to the MariaDB form instead of raising KeyError.
+			func = self.func_map.get(db_type_is.MARIADB)
+		if func is None:
+			func = self.func_map[db]  # surface the original KeyError
+		return func(*args, **kwds)
 
 
 class BuilderIdentificationFailed(Exception):
@@ -128,7 +136,10 @@ def execute_query(query, *args, **kwargs):
 	fields = query.__dict__.get("_fields_list", [])
 	child_queries = query._child_queries
 	query, params = prepare_query(query)
-	result = frappe.local.db.sql(query, params, *args, **kwargs)  # nosemgrep
+	# The query is already generated in the connected backend's dialect (pypika picks the
+	# dialect via get_query_builder), so the SQLite backend must not re-transpile it. Other
+	# backends accept and ignore this flag.
+	result = frappe.local.db.sql(query, params, *args, _skip_dialect_rewrite=True, **kwargs)  # nosemgrep
 
 	if child_queries and isinstance(child_queries, list) and result:
 		execute_child_queries(child_queries, result)
@@ -192,26 +203,26 @@ def patch_query_execute():
 	executing the query object
 	"""
 
-	QueryBuilder.run = execute_query
-	QueryBuilder.walk = prepare_query
+	QueryBuilder.run = execute_query  # nosemgrep
+	QueryBuilder.walk = prepare_query  # nosemgrep
 
 	# To support running union queries
-	_SetOperation.run = execute_query
-	_SetOperation.walk = prepare_query
+	_SetOperation.run = execute_query  # nosemgrep
+	_SetOperation.walk = prepare_query  # nosemgrep
 
 
 def patch_query_aggregation():
 	"""Patch aggregation functions to frappe.qb"""
 	from frappe.query_builder.functions import _avg, _max, _min, _sum
 
-	Base.max = _max
-	Base.min = _min
-	Base.avg = _avg
-	Base.sum = _sum
+	Base.max = _max  # nosemgrep
+	Base.min = _min  # nosemgrep
+	Base.avg = _avg  # nosemgrep
+	Base.sum = _sum  # nosemgrep
 
 
 def patch_get_query():
-	Base.get_query = get_query
+	Base.get_query = get_query  # nosemgrep
 
 
 def patch_like_operators():

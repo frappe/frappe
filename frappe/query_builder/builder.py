@@ -6,6 +6,7 @@ from pypika import MySQLQuery, Order, PostgreSQLQuery, SQLLiteQuery, terms
 from pypika.dialects import MySQLQueryBuilder, PostgreSQLQueryBuilder, SQLLiteQueryBuilder
 from pypika.queries import QueryBuilder, Schema, Table
 from pypika.terms import Function
+from pypika.utils import format_quotes
 
 from frappe.query_builder.terms import ParameterizedValueWrapper, SQLiteParameterizedValueWrapper
 from frappe.utils import get_table_name
@@ -124,14 +125,84 @@ class Postgres(Base, PostgreSQLQuery):
 		return super().from_(table, *args, **kwargs)
 
 
+# pypika renders `Now() - Interval(days=7)` for SQLite as `CURRENT_TIMESTAMP - datetime('now',
+# '+7 days')` -- a nonsensical subtraction of two timestamps. It has to be folded into a single
+# `datetime('now', '-7 days')`. This is the one construct pypika can't render correctly on its own:
+# the Interval renders independently of the surrounding +/- operator, so it can't know its sign.
+# The fold needs the whole expression, so it runs once over the finished SQL string.
+_NOW_INTERVAL_PATTERN = re.compile(
+	r"(?:CURRENT_TIMESTAMP|datetime\('now'\))\s*([+-])\s*datetime\('now',\s*([^)]*)\)",
+	re.IGNORECASE,
+)
+
+
+def _flip_modifier_signs(modifiers: str) -> str:
+	"""Flip the leading sign of each quoted datetime modifier, e.g. ``'+7 days'`` -> ``'-7 days'``
+	and ``'+1 years', '+2 months'`` -> ``'-1 years', '-2 months'``."""
+	flipped = []
+	for part in modifiers.split(","):
+		part = part.strip()
+		if len(part) > 1 and part[1] in "+-":
+			part = part[0] + ("-" if part[1] == "+" else "+") + part[2:]
+		flipped.append(part)
+	return ", ".join(flipped)
+
+
+def _fold_now_interval(sql: str) -> str:
+	if "datetime('now'" not in sql:
+		return sql
+
+	def repl(match: re.Match) -> str:
+		modifiers = match.group(2)
+		if match.group(1) == "-":
+			modifiers = _flip_modifier_signs(modifiers)
+		return f"datetime('now', {modifiers})"
+
+	return _NOW_INTERVAL_PATTERN.sub(repl, sql)
+
+
+class FrappeSQLiteQueryBuilder(SQLLiteQueryBuilder):
+	"""SQLite builder that emits SQL matching frappe's MariaDB semantics with no post-processing,
+	so ``SQLiteDatabase.sql`` can skip its dialect-rewrite pass for query-builder output."""
+
+	def get_sql(self, *args, **kwargs) -> str:
+		return _fold_now_interval(super().get_sql(*args, **kwargs))
+
+	def _orderby_sql(
+		self, quote_char=None, alias_quote_char=None, orderby_alias: bool = True, **kwargs
+	) -> str:
+		# Tag plain-column ORDER BY terms with COLLATE NOCASE so text sorts case-insensitively,
+		# matching MariaDB's default collation (SQLite's default BINARY collation is case-sensitive
+		# and sorts '_' after letters). Function/expression terms and select-aliases are left as-is,
+		# mirroring MariaDB, which doesn't apply its collation to an expression's result. Otherwise
+		# identical to QueryBuilder._orderby_sql.
+		clauses = []
+		selected_aliases = {s.alias for s in self._selects}
+		for field, directionality in self._orderbys:
+			if orderby_alias and field.alias and field.alias in selected_aliases:
+				term = format_quotes(field.alias, alias_quote_char or quote_char)
+			else:
+				term = field.get_sql(quote_char=quote_char, alias_quote_char=alias_quote_char, **kwargs)
+				if isinstance(field, terms.Field):
+					term += " COLLATE NOCASE"
+			clauses.append(f"{term} {directionality.value}" if directionality is not None else term)
+
+		return " ORDER BY {}".format(",".join(clauses))
+
+
 class SQLite(Base, SQLLiteQuery):
 	Field = terms.Field
 
-	_BuilderClasss = SQLLiteQueryBuilder
+	_BuilderClasss = FrappeSQLiteQueryBuilder
 
 	@classmethod
-	def _builder(cls, *args, **kwargs) -> "SQLLiteQueryBuilder":
-		return super()._builder(*args, wrapper_cls=SQLiteParameterizedValueWrapper, **kwargs)
+	def _builder(cls, *args, **kwargs) -> "FrappeSQLiteQueryBuilder":
+		builder = FrappeSQLiteQueryBuilder(*args, wrapper_cls=SQLiteParameterizedValueWrapper, **kwargs)
+		# SQLite does not allow parenthesised operands around set operations, i.e.
+		# invalid syntax -> `(SELECT ...) UNION (SELECT ...)`
+		# valid syntax ->`SELECT ... UNION SELECT ...`.
+		builder.wrap_set_operation_queries = False  # Instruct pypika to not wrap set operations
+		return builder
 
 	@classmethod
 	def from_(cls, table, *args, **kwargs):

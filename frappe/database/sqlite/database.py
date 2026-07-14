@@ -1,8 +1,17 @@
+import logging
 import re
 import sqlite3
+import typing
 import warnings
-from datetime import date, datetime, time
+from contextlib import contextmanager
+from datetime import date, datetime, time, timedelta, timezone
+from decimal import Decimal
 from pathlib import Path
+
+import sqlglot
+from sqlglot import exp
+from sqlglot.dialects.mysql import MySQL as _MySQLDialect
+from sqlglot.dialects.sqlite import SQLite as _SQLiteDialect
 
 import frappe
 from frappe.database.database import (
@@ -13,8 +22,30 @@ from frappe.database.database import (
 from frappe.database.sqlite.schema import SQLiteTable
 from frappe.utils import get_table_name
 
-_PARAM_COMP = re.compile(r"%\([\w]*\)s")
+# sqlglot logs a warning for every construct its target dialect can't represent (e.g. FOR
+# UPDATE, which modify_query() relies on it silently dropping) -- silence that per-query noise.
+logging.getLogger("sqlglot").setLevel(logging.ERROR)
+
+_PARAM_COMP = re.compile(r"%\((\w+)\)s")
+# A single-quoted string literal, including any doubled '' escapes inside it. Used to skip
+# literals when rewriting placeholders, so a literal that contains "%s" (e.g. `LIKE '%system%'`)
+# is never mistaken for a bind placeholder.
+_SINGLE_QUOTE_LITERAL = re.compile(r"'(?:[^']|'')*'")
 IMPLICIT_COMMIT_QUERY_TYPES = frozenset(("start", "alter", "drop", "create", "truncate"))
+
+
+def _split_sql_literals(query: str):
+	"""Yield ``(is_literal, chunk)`` over ``query``: ``is_literal`` chunks are single-quoted
+	string literals (quotes included) that must not be scanned for placeholders; the rest is the
+	SQL around them."""
+	pos = 0
+	for m in _SINGLE_QUOTE_LITERAL.finditer(query):
+		if m.start() > pos:
+			yield False, query[pos : m.start()]
+		yield True, m.group(0)
+		pos = m.end()
+	if pos < len(query):
+		yield False, query[pos:]
 
 
 class SQLiteExceptionUtil:
@@ -93,24 +124,63 @@ class SQLiteExceptionUtil:
 	def is_interface_error(e: sqlite3.Error):
 		return isinstance(e, sqlite3.InterfaceError)
 
-	@staticmethod
-	def is_nested_transaction_error(e: sqlite3.Error):
-		return "cannot start a transaction within a transaction" in str(e)
-
 
 class SQLiteDatabase(SQLiteExceptionUtil, Database):
 	REGEX_CHARACTER = "regexp"
 	default_port = None
 	MAX_ROW_SIZE_LIMIT = None
 
+	# Time (in ms) a connection waits for a write lock held by another connection
+	# before giving up with "database is locked". SQLite allows only one writer at a
+	# time, so a generous timeout lets concurrent writers queue instead of failing.
+	# Override per-site with `sqlite_busy_timeout` in site config.
+	DEFAULT_BUSY_TIMEOUT = 30_000
+
+	# Retry `BEGIN IMMEDIATE` a few times if the write lock stays contended.
+	WRITE_LOCK_RETRIES = 5
+
+	# Whether the current connection is the read-only (`mode=ro`) connection. Set as a
+	# class default so it is always readable even before `connect()`/`begin()` run.
+	read_only = False
+
+	@property
+	def busy_timeout(self) -> int:
+		from frappe.utils.data import cint
+
+		return cint(frappe.conf.get("sqlite_busy_timeout")) or self.DEFAULT_BUSY_TIMEOUT
+
 	def get_connection(self, read_only: bool = False):
 		conn = self.create_connection(read_only)
-		conn.create_function("regexp", 2, regexp)
-		conn.create_function("regexp_replace", 3, regexp_replace)
+		# Disable the "double-quoted string literal" misfeature. frappe only ever emits
+		# double-quotes as identifiers (backticks are rewritten to double-quotes; string
+		# literals use single quotes), so an unknown double-quoted name is a bug -- e.g. an
+		# invalid link fieldname -- and should error "no such column" instead of silently
+		# being treated as a string literal that matches nothing.
+		conn.setconfig(sqlite3.SQLITE_DBCONFIG_DQS_DDL, False)
+		conn.setconfig(sqlite3.SQLITE_DBCONFIG_DQS_DML, False)
+		conn.create_function("regexp", 2, _regexp)
+		conn.create_function("regexp_replace", 3, _regexp_replace)
+		conn.create_function("now", 0, _now)
+		conn.create_function("utc_timestamp", 0, _utc_timestamp)
+		conn.create_function("curdate", 0, _curdate)
+		conn.create_function("curtime", 0, _curtime)
+		conn.create_function("unix_timestamp", -1, _unix_timestamp)
+		conn.create_function("timestamp", -1, _timestamp)
+		conn.create_function("monthname", 1, _monthname)
+		conn.create_function("substring_index", 3, _substring_index)
+		conn.create_function("datediff", 2, _datediff)
+		conn.create_function("month", 1, _date_part_fn("month"))
+		conn.create_function("year", 1, _date_part_fn("year"))
+		conn.create_function("day", 1, _date_part_fn("day"))
+		conn.create_function("dayofmonth", 1, _date_part_fn("day"))
+		conn.create_function("quarter", 1, _quarter)
+		conn.create_function("date_format", 2, _date_format)
+		conn.create_function("to_seconds", 1, _to_seconds)
+		conn.create_function("timediff", 2, _timediff)
 		pragmas = {
 			"journal_mode": "WAL",
 			"synchronous": "NORMAL",
-			"busy_timeout": 5000,  # in milliseconds
+			"busy_timeout": self.busy_timeout,
 		}
 		cursor = conn.cursor()
 		for pragma, value in pragmas.items():
@@ -120,23 +190,40 @@ class SQLiteDatabase(SQLiteExceptionUtil, Database):
 
 	def create_connection(self, read_only: bool = False):
 		db_path = self.get_db_path()
-		sqlite3.register_converter("timestamp", lambda x: datetime.fromisoformat(x.decode()))
-		sqlite3.register_converter("date", lambda x: date.fromisoformat(x.decode()))
-		sqlite3.register_converter("time", lambda x: time.fromisoformat(x.decode()))
+		# Columns are declared DATETIME (see SQLiteTable.create); register that name too so
+		# PARSE_DECLTYPES surfaces datetime objects -- matching MariaDB -- instead of raw strings.
+		sqlite3.register_converter("datetime", _parse_timestamp)
+		sqlite3.register_converter("timestamp", _parse_timestamp)
+		sqlite3.register_converter("date", _parse_date)
+		sqlite3.register_converter("time", _parse_time)
+		# No REAL converter: _transform_result / fetch_as_dict round all floats to 9dp,
+		# covering both REAL-declared columns and float values from computed expressions.
+		sqlite3.register_adapter(datetime, lambda v: v.isoformat(sep=" "))
+		sqlite3.register_adapter(date, lambda v: v.isoformat())
+		sqlite3.register_adapter(time, lambda v: v.isoformat())
+		sqlite3.register_adapter(Decimal, lambda v: float(v))
+		sqlite3.register_adapter(timedelta, _adapt_timedelta)
 		if read_only:
 			return sqlite3.connect(
 				f"file:{db_path}?mode=ro",
 				uri=True,
 				detect_types=sqlite3.PARSE_DECLTYPES,
-				timeout=15,
+				timeout=self.busy_timeout / 1000,
+				isolation_level=None,
 			)
-		return sqlite3.connect(db_path, detect_types=sqlite3.PARSE_DECLTYPES, timeout=15)
+		return sqlite3.connect(
+			db_path,
+			detect_types=sqlite3.PARSE_DECLTYPES,
+			timeout=self.busy_timeout / 1000,
+			isolation_level=None,
+		)
 
 	def get_db_path(self):
 		return Path(frappe.get_site_path()) / "db" / f"{self.cur_db_name}.db"
 
 	def set_execution_timeout(self, seconds: int):
-		self.sql(f"PRAGMA busy_timeout = {int(seconds) * 1000}")
+		timeout = max(int(seconds) * 1000, self.busy_timeout)
+		self._cursor.execute(f"PRAGMA busy_timeout = {timeout}")
 
 	def setup_type_map(self):
 		self.db_type = "sqlite"
@@ -186,9 +273,31 @@ class SQLiteDatabase(SQLiteExceptionUtil, Database):
 	def _clean_up(self):
 		pass
 
+	def _transform_result(self, result):
+		"""Convert list of rows to tuple-of-tuples (PyMySQL compat) and round floats to 9dp."""
+		return tuple(tuple(round(v, 9) if type(v) is float else v for v in row) for row in result)
+
+	def fetch_as_dict(self, result):
+		"""Build _dict rows, strip double-quotes from string-literal column names, and round floats to 9dp."""
+		if not result:
+			return []
+		keys = []
+		for col in self._cursor.description:
+			name = col[0]
+			if name.startswith('"') and name.endswith('"') and len(name) > 2:
+				name = name[1:-1]
+			keys.append(name)
+		return [
+			frappe._dict(
+				{k: (round(v, 9) if type(v) is float else v) for k, v in zip(keys, row, strict=False)}
+			)
+			for row in result
+		]
+
 	@staticmethod
 	def escape(s, percent=True):
 		"""Escape quotes and percent in given string."""
+		s = frappe.as_unicode(s)
 		s = s.replace("'", "''")
 		if percent:
 			s = s.replace("%", "%%")
@@ -324,6 +433,72 @@ class SQLiteDatabase(SQLiteExceptionUtil, Database):
 			)"""
 		)
 
+	def create_sequence_table(self):
+		"""Create the `__sequences` table if needed."""
+		self.sql_ddl(
+			"""CREATE TABLE IF NOT EXISTS `__sequences` (
+			name TEXT PRIMARY KEY,
+			value INTEGER NOT NULL
+			)"""
+		)
+
+	def create_sequence(
+		self, doctype_name, *, slug="_id_seq", check_not_exists=False, start_value=0, **kwargs
+	):
+		from frappe import scrub
+
+		sequence_name = scrub(doctype_name + slug)
+		# `value` stores the last value handed out; the next `nextval` returns value + 1.
+		# Postgres' default start is 1, so a falsy start_value seeds 0 (first nextval = 1).
+		initial = start_value - 1 if start_value else 0
+		# `DO NOTHING` keeps an existing sequence intact (matches `check_not_exists`).
+		self.sql(
+			"INSERT INTO `__sequences` (name, value) VALUES (%s, %s) ON CONFLICT(name) DO NOTHING",
+			(sequence_name, initial),
+		)
+		return sequence_name
+
+	def get_next_sequence_val(self, doctype_name, slug="_id_seq"):
+		from frappe import scrub
+
+		sequence_name = scrub(f"{doctype_name}{slug}")
+		row = self.sql(
+			"UPDATE `__sequences` SET value = value + 1 WHERE name = %s RETURNING value",
+			(sequence_name,),
+		)
+		if row:
+			return row[0][0]
+
+		# Sequence row missing (e.g. doctype created before SQLite sequence support):
+		# seed it from the max existing name so an existing table never reuses an id.
+		table = get_table_name(doctype_name)
+		max_name = 0
+		try:
+			res = self.sql(f"SELECT MAX(CAST(name AS INTEGER)) FROM `{table}`")
+			max_name = (res and res[0][0]) or 0
+		except sqlite3.OperationalError as e:
+			if not self.is_table_missing(e):
+				raise
+		next_val = int(max_name) + 1
+		self.sql(
+			"INSERT INTO `__sequences` (name, value) VALUES (%s, %s) "
+			"ON CONFLICT(name) DO UPDATE SET value = value + 1",
+			(sequence_name, next_val),
+		)
+		return next_val
+
+	def set_next_sequence_val(self, doctype_name, next_val, *, slug="_id_seq", is_val_used=False):
+		from frappe import scrub
+
+		sequence_name = scrub(doctype_name + slug)
+		# Mirror Postgres SETVAL: if the value was used, the next nextval is next_val + 1.
+		stored = next_val if is_val_used else next_val - 1
+		self.sql(
+			"INSERT INTO `__sequences` (name, value) VALUES (%s, %s) "
+			"ON CONFLICT(name) DO UPDATE SET value = excluded.value",
+			(sequence_name, stored),
+		)
+
 	@staticmethod
 	def get_on_duplicate_update():
 		return "ON CONFLICT DO UPDATE SET "
@@ -368,16 +543,19 @@ class SQLiteDatabase(SQLiteExceptionUtil, Database):
 		self.sql(f"CREATE INDEX IF NOT EXISTS `{index_name}` ON `{table_name}` ({', '.join(fields)})")
 
 		# Ensure that DB migration doesn't clear this index, assuming this is manually added
-		# via code or console.
+		# via code or console. Text-like fieldtypes can't carry a search_index flag (doctype
+		# validation rejects it), though the TEXT column above is still validly indexed.
 		if len(fields) == 1 and not (frappe.flags.in_install or frappe.flags.in_migrate):
-			make_property_setter(
-				doctype,
-				fields[0],
-				property="search_index",
-				value="1",
-				property_type="Check",
-				for_doctype=False,  # Applied on docfield
-			)
+			field = frappe.get_meta(doctype).get_field(fields[0])
+			if field and field.fieldtype not in ("Text", "Long Text", "Small Text", "Code", "Text Editor"):
+				make_property_setter(
+					doctype,
+					fields[0],
+					property="search_index",
+					value="1",
+					property_type="Check",
+					for_doctype=False,  # Applied on docfield
+				)
 
 	def add_unique(self, doctype, fields, constraint_name=None):
 		"""Creates unique constraint on fields."""
@@ -409,6 +587,16 @@ class SQLiteDatabase(SQLiteExceptionUtil, Database):
 	def get_database_list(self):
 		return [self.db_name]
 
+	@staticmethod
+	def format_datetime(value):
+		"""Use isoformat(sep=" ") to match how SQLite stores datetimes; base class always appends microseconds which misses rows stored without them."""
+		from frappe.database.utils import FallBackDateTimeStr
+		from frappe.utils import get_datetime
+
+		if not value:
+			return FallBackDateTimeStr
+		return get_datetime(value).isoformat(sep=" ")
+
 	def get_tables(self, cached=True):
 		"""Return list of tables."""
 		to_query = not cached
@@ -428,55 +616,107 @@ class SQLiteDatabase(SQLiteExceptionUtil, Database):
 		raise NotImplementedError("SQLite does not support getting row size directly.")
 
 	def execute_query(self, query, values=None):
-		query = query.replace("%s", "?")
-		try:
-			if isinstance(values, dict):
-				for k, v in values.items():
-					if isinstance(v, str) and "'" in v:
-						values[k] = self.escape(v)
-					else:
-						values[k] = f"'{v}'"
-				query = query % values
-		except TypeError:
-			pass
+		# Open the transaction lazily on the first statement (still BEGIN IMMEDIATE for
+		# writable connections) so the write lock isn't held idle between transactions.
+		if self._conn is not None and not self._conn.in_transaction:
+			self._begin_transaction()
 
+		if isinstance(values, dict):
+			query, bind = _bind_named_params(query, values)
+			return self._cursor.execute(query, bind)
+
+		query, values = _expand_positional_params(query, values)
 		return self._cursor.execute(query, values or ())
 
 	def sql(self, *args, **kwargs):
-		if args:
-			# since tuple is immutable
-			args = list(args)
-			args[0] = modify_query(args[0])
-			args = tuple(args)
-		elif kwargs.get("query"):
-			kwargs["query"] = modify_query(kwargs.get("query"))
+		# The query builder (see query_builder/builder.py) already emits SQLite-dialect SQL, so
+		# it sets _skip_dialect_rewrite to bypass modify_query -- re-transpiling that output would
+		# be wasteful and lossy. Only raw MariaDB-flavoured SQL (frappe.db.sql) needs rewriting.
+		if not kwargs.pop("_skip_dialect_rewrite", False):
+			if args:
+				# args is a tuple (immutable); rebuild it with the query rewritten.
+				args = (modify_query(args[0]), *args[1:])
+			elif kwargs.get("query"):
+				kwargs["query"] = modify_query(kwargs["query"])
 
 		return super().sql(*args, **kwargs)
+
+	def log_query(self, query, query_type, values=None, debug=False):
+		# The base class doesn't set last_query; MariaDB/Postgres do (via override /
+		# property). Capture it here too so tooling that reads frappe.db.last_query
+		# (e.g. the recorder) works on SQLite.
+		mogrified_query = super().log_query(query, query_type, values, debug)
+		self.last_query = mogrified_query
+		return mogrified_query
 
 	def sql_ddl(self, query, *args, **kwargs):
 		"""Execute DDL query."""
 		super().sql_ddl(query, *args, **kwargs)
 		self.commit()
 
-	def begin(self, *, read_only=False):
-		if read_only or frappe.flags.read_only:
+	def connect(self):
+		"""Connect, then open the request's transaction (see ``begin``)."""
+		super().connect()
+		self.begin()
+
+	def _begin_transaction(self):
+		"""Open ``BEGIN IMMEDIATE`` for writable connections, ``DEFERRED`` for read-only ones."""
+		if self._conn.in_transaction:
+			return
+		# A read-only scope (frappe.read_only()) must not grab the write lock even when it couldn't
+		# swap to the mode=ro connection (e.g. writes were already pending): a DEFERRED read is
+		# served concurrently under WAL, so it won't deadlock against a writer.
+		if self.read_only or frappe.flags.read_only:
+			self._cursor.execute("BEGIN DEFERRED")
+		else:
+			self._begin_immediate()
+
+	def _begin_immediate(self):
+		"""Acquire the write lock with ``BEGIN IMMEDIATE``, retrying briefly on contention."""
+		import random
+		import time
+
+		for attempt in range(self.WRITE_LOCK_RETRIES):
+			try:
+				self._cursor.execute("BEGIN IMMEDIATE")
+				return
+			except sqlite3.OperationalError as e:
+				if not self.is_deadlocked(e) or attempt == self.WRITE_LOCK_RETRIES - 1:
+					raise
+				time.sleep(random.uniform(0, 0.05 * (attempt + 1)))
+
+	def begin(self, *, read_only=None):
+		"""Switch connection mode if needed, then start its transaction.
+
+		``read_only=None`` keeps the current mode across restarts.
+		"""
+		if read_only is None:
+			read_only = self.read_only
+		read_only = read_only or frappe.flags.read_only
+		if read_only != self.read_only:
 			if self._conn:
 				self._conn.close()
-			self._conn = self.get_connection(read_only=True)
+			self._conn = self.get_connection(read_only=read_only)
 			self._cursor = self._conn.cursor()
-			self.read_only = True
+			self.read_only = read_only
 
-		elif hasattr(self, "read_only") and self.read_only:
-			self._conn.close()
-			self._conn = self.get_connection()
-			self._cursor = self._conn.cursor()
-			self.read_only = False
+		# Transaction is opened lazily by execute_query() on the first statement, not
+		# here, so the write lock is not held during idle periods between transactions.
 
-		try:
-			self.sql("BEGIN")
-		except sqlite3.OperationalError as e:
-			if not self.is_nested_transaction_error(e):
-				raise e
+	def enter_read_only(self) -> bool:
+		"""Switch ``frappe.read_only()`` to the ``mode=ro`` connection when safe.
+
+		Returns ``False`` if already read-only or if writes are pending.
+		"""
+		if self.read_only or self.transaction_writes:
+			return False
+		# Reopen the connection in mode=ro, releasing the empty write transaction.
+		self.begin(read_only=True)
+		return True
+
+	def exit_read_only(self):
+		"""Restore the writable connection after ``enter_read_only``."""
+		self.begin(read_only=False)
 
 	def commit(self, chain=None):
 		"""Commit current transaction. Calls SQL `COMMIT`."""
@@ -492,9 +732,14 @@ class SQLiteDatabase(SQLiteExceptionUtil, Database):
 
 		self.before_commit.run()
 
-		self._conn.commit()
+		if self._conn.in_transaction:
+			self._conn.commit()
 		self.transaction_writes = 0
-		self.begin()  # explicitly start a new transaction
+		self.value_cache.clear()
+		# A transaction boundary ends any read-only scope (e.g. a query report that did
+		# begin(read_only=True)); return to the writable connection unless the whole site
+		# is in read-only mode (begin() still honours frappe.flags.read_only).
+		self.begin(read_only=False)
 
 		self.after_commit.run()
 
@@ -510,12 +755,25 @@ class SQLiteDatabase(SQLiteExceptionUtil, Database):
 
 			self.before_rollback.run()
 
-			self._conn.rollback()
-			self.begin()
+			if self._conn.in_transaction:
+				self._conn.rollback()
+			self.value_cache.clear()
+			# See commit(): a transaction boundary ends any read-only scope.
+			self.begin(read_only=False)
 
 			self.after_rollback.run()
 		else:
 			warnings.warn(message=TRANSACTION_DISABLED_MSG, stacklevel=2)
+
+	@contextmanager
+	def unbuffered_cursor(self):
+		"""SQLite reads rows lazily from its single cursor, so there is no separate
+		server-side/unbuffered cursor to switch to (unlike MariaDB's SSCursor or
+		Postgres' named cursor). Used with ``as_iterator=True`` it already provides
+		streaming reads, so this is a no-op context manager for API compatibility."""
+		if not self._conn:
+			self.connect()
+		yield
 
 	def get_db_table_columns(self, table) -> list[str]:
 		"""Return list of column names from given table."""
@@ -550,34 +808,557 @@ class SQLiteDatabase(SQLiteExceptionUtil, Database):
 		self.sql_ddl(f"DELETE FROM sqlite_sequence WHERE name='{table}'")
 
 	def check_implicit_commit(self, query: str, query_type: str):
-		if query_type in IMPLICIT_COMMIT_QUERY_TYPES and self.transaction_writes:
-			raise ImplicitCommitError("This statement can cause implicit commit", query)
+		# SQLite runs DDL (ALTER/CREATE/DROP/TRUNCATE) inside the current transaction and rolls it
+		# back with everything else -- unlike MariaDB/Postgres it does not implicitly commit -- so
+		# these statements are safe mid-transaction (e.g. renaming a doctype's table).
+		pass
 
 
-def modify_query(query):
-	"""
-	Modifies query according to the requirements of SQLite
-	"""
-	# Replace ` with " for definitions
+# ---------------------------------------------------------------------------
+# modify_query() rewrites a MariaDB-flavoured SQL string for SQLite compatibility.
+# It parses the query into an AST with sqlglot (reading the MariaDB/MySQL dialect
+# frappe's query builder and raw SQL are written in) and regenerates it for SQLite.
+# That alone handles backtick->doublequote quoting, dropping `FOR UPDATE`/`LOCK IN
+# SHARE MODE`/index hints, and `IF(...)` -> `IIF(...)`. A handful of AST passes on
+# top handle rewrites sqlglot has no dialect-conversion rule for: frappe's
+# NOW()/CURRENT_TIMESTAMP +/- INTERVAL idiom, ORDER BY collation, and HAVING alias
+# resolution (see each pass below for why SQLite needs it).
+#
+# DDL/PRAGMA statements skip the parser entirely: frappe already writes these in
+# SQLite-native SQL (see schema.py), so only backtick quoting applies, and it's
+# cheaper besides -- these run far less often than DML.
+# ---------------------------------------------------------------------------
+
+_DML_KEYWORDS = ("select", "update", "delete", "insert", "with")
+
+
+def _is_dml(query: str) -> bool:
+	"""Whether ``query`` opens with a DML keyword (optionally through leading whitespace/parens,
+	e.g. a whole-statement-wrapped ``(SELECT ...)``)."""
+	return query.lstrip(" \t\r\n(").lower().startswith(_DML_KEYWORDS)
+
+
+_INTERVAL_UNITS = {
+	"year": "years",
+	"years": "years",
+	"month": "months",
+	"months": "months",
+	"week": "days",
+	"weeks": "days",
+	"day": "days",
+	"days": "days",
+	"hour": "hours",
+	"hours": "hours",
+	"minute": "minutes",
+	"minutes": "minutes",
+	"second": "seconds",
+	"seconds": "seconds",
+}
+
+
+def _render_placeholder(self, node: exp.Placeholder) -> str:
+	"""Render a masked placeholder back to frappe's pyformat style (see _mask_placeholders)."""
+	name = node.this
+	return f"%({name})s" if name else "%s"
+
+
+class _FrappeMySQL(_MySQLDialect):
+	"""MariaDB/MySQL dialect that reads both backtick- and doublequote-quoted names as
+	identifiers, never as string literals.
+
+	Raw SQL frappe hands to modify_query is MariaDB-flavoured (backtick identifiers), but SQL
+	built by the query builder (`query_builder/builder.py`) already targets SQLite and quotes
+	identifiers with double quotes -- standard MySQL grammar treats those as string literals
+	(only backtick is an identifier quote), which would silently turn every quoted column/table
+	name in query-builder SQL into a string constant. Accepting both matches how frappe actually
+	writes SQL; frappe never emits a genuine double-quoted string literal (values are always
+	bound as parameters or single-quoted), so there is no ambiguity to resolve here."""
+
+	class Tokenizer(_MySQLDialect.Tokenizer):
+		IDENTIFIERS: typing.ClassVar = ["`", '"']
+		QUOTES: typing.ClassVar = ["'"]
+
+
+def _render_regexp(self, node: exp.RegexpLike) -> str:
+	"""Render as SQLite's native ``X REGEXP Y`` operator, not the default ``REGEXP_LIKE(x, y)``
+	rendering: SQLite has no such function, only the ``REGEXP`` operator, which it dispatches to
+	a user-defined function named ``regexp`` -- the one this module registers on every
+	connection (``get_connection``)."""
+	return f"{self.sql(node, 'this')} REGEXP {self.sql(node, 'expression')}"
+
+
+class _FrappeSQLite(_SQLiteDialect):
+	"""SQLite dialect that emits pyformat placeholders instead of `:name`/`?`, and the native
+	``REGEXP`` operator instead of ``REGEXP_LIKE(...)``."""
+
+	class Generator(_SQLiteDialect.Generator):
+		TRANSFORMS: typing.ClassVar = {
+			**_SQLiteDialect.Generator.TRANSFORMS,
+			exp.Placeholder: _render_placeholder,
+			exp.RegexpLike: _render_regexp,
+		}
+
+
+def _mask_placeholders(query: str) -> str:
+	"""Rewrite pyformat placeholders to syntax sqlglot's parser accepts as a bind parameter:
+	``%(name)s`` -> ``:name``, ``%s`` -> ``?``. ``_render_placeholder`` converts them back
+	when generating, via the AST rather than a second text substitution -- a blind
+	``:name``/``?`` -> pyformat regex on the output would also match colons or question
+	marks that legitimately appear inside string literals (e.g. a bound time value '12:30:00'
+	rendered as a literal elsewhere in the query).
+
+	Only placeholders *outside* single-quoted string literals are rewritten, so a literal that
+	happens to contain ``%s`` -- e.g. ``LIKE '%system%'`` -- is left untouched."""
+
+	def mask(chunk: str) -> str:
+		return _PARAM_COMP.sub(r":\1", chunk).replace("%s", "?")
+
+	return "".join(chunk if is_literal else mask(chunk) for is_literal, chunk in _split_sql_literals(query))
+
+
+def _unwrap_top_level_subquery(tree: exp.Expression) -> exp.Expression:
+	"""Unwrap a whole-statement parenthesised SELECT, e.g. ``(SELECT ...)`` -> ``SELECT ...``.
+
+	MariaDB accepts a top-level parenthesised query (ERPNext builds scalar-subquery strings
+	this way); SQLite rejects it with ``near "(": syntax error``. sqlglot parses this shape as
+	a bare ``Subquery`` node only when the parens wrap the *entire* statement, so this never
+	touches ``(SELECT ...) UNION (SELECT ...)`` (parsed as a `Union` of two `Subquery` operands)."""
+	if not isinstance(tree, exp.Subquery):
+		return tree
+	# Don't unwrap if the wrapper carries its own ORDER BY / LIMIT / OFFSET (e.g.
+	# `(SELECT ... ORDER BY x LIMIT 5)`) -- those live on the Subquery node and would be dropped.
+	if any(tree.args.get(k) for k in ("order", "limit", "offset")):
+		return tree
+	return tree.this
+
+
+def _strip_update_set_qualifiers(tree: exp.Expression) -> None:
+	"""Drop the table-qualifier from `UPDATE ... SET` column targets; SQLite rejects
+	``SET "tbl"."col" = val``, unlike MariaDB."""
+	if not isinstance(tree, exp.Update):
+		return
+	for assignment in tree.args.get("expressions", []):
+		target = assignment.this if isinstance(assignment, exp.EQ) else None
+		if isinstance(target, exp.Column):
+			target.set("table", None)
+
+
+def _is_now_like(node: exp.Expression) -> bool:
+	return isinstance(node, exp.CurrentTimestamp) or (
+		isinstance(node, exp.Anonymous) and str(node.this).upper() == "NOW"
+	)
+
+
+def _collapse_now_interval_arithmetic(tree: exp.Expression) -> None:
+	"""Fold raw MariaDB ``NOW()``/``CURRENT_TIMESTAMP`` +/- ``INTERVAL 'n' UNIT`` into one
+	``datetime('now', '±n units')`` call -- SQLite has no INTERVAL type. This handles hand-written
+	MariaDB date arithmetic in raw ``frappe.db.sql`` (query-builder output uses pypika's own SQLite
+	rendering and is folded there instead, see ``query_builder/builder.py``)."""
+	for node in list(tree.find_all((exp.Sub, exp.Add))):
+		base, other = node.this, node.expression
+		if not _is_now_like(base) or not isinstance(other, exp.Interval):
+			continue
+
+		unit = str(other.args.get("unit")).lower()
+		# Only fold the simple `INTERVAL <int> <single-unit>` forms SQLite can express as a
+		# datetime() modifier. Compound units (HOUR_MINUTE) or unmapped ones (QUARTER) are left
+		# for sqlglot to render as-is rather than crashing the whole rewrite.
+		if unit not in _INTERVAL_UNITS:
+			continue
+		try:
+			n = int(str(other.this.this))
+		except ValueError:
+			continue
+		if unit in ("week", "weeks"):
+			n *= 7
+		sign = "-" if isinstance(node, exp.Sub) else "+"
+		modifier = f"{sign}{n} {_INTERVAL_UNITS[unit]}"
+		node.replace(exp.Datetime(this=exp.Literal.string("now"), expression=exp.Literal.string(modifier)))
+
+
+def _add_collate_nocase_to_orderby(tree: exp.Expression) -> None:
+	"""Inject COLLATE NOCASE onto plain-column ORDER BY terms (including in subqueries) so text
+	sort matches MariaDB: SQLite's default BINARY collation sorts '_' after letters, unlike
+	MariaDB's default collation. Function-call terms are left alone, matching MariaDB's own
+	behaviour of not applying its collation to an expression's result."""
+	for order in tree.find_all(exp.Order):
+		for ordered in order.expressions:
+			target = ordered.this
+			if isinstance(target, exp.Column) and not target.find(exp.Collate):
+				ordered.set("this", exp.Collate(this=target.copy(), expression=exp.Var(this="NOCASE")))
+
+
+def _inline_having_aliases(tree: exp.Expression) -> None:
+	"""Inline aggregate SELECT aliases referenced bare in HAVING; SQLite resolves a bare name
+	in HAVING to a table column, not the SELECT alias."""
+	for select in tree.find_all(exp.Select):
+		having = select.args.get("having")
+		if not having:
+			continue
+		agg_map = {
+			item.alias_or_name.lower(): item.this
+			for item in select.expressions
+			if isinstance(item, exp.Alias) and isinstance(item.this, exp.AggFunc)
+		}
+		if not agg_map:
+			continue
+		for col in list(having.find_all(exp.Column)):
+			agg = None if col.table else agg_map.get(col.name.lower())
+			if agg is not None:
+				col.replace(agg.copy())
+
+
+def modify_query(query: str) -> str:
+	"""Rewrite a MariaDB-flavoured SQL query for SQLite compatibility. See the module comment
+	above for the overall approach."""
 	query = str(query)
-	query = query.replace("`", '"')
-	query = replace_locate_with_instr(query)
 
-	# Select from requires ""
-	if re.search("from tab", query, flags=re.IGNORECASE):
-		query = re.sub("from tab([a-zA-Z]*)", r'from "tab\1"', query, flags=re.IGNORECASE)
+	if not _is_dml(query):
+		return query.replace("`", '"')
 
-	return query
+	try:
+		tree = sqlglot.parse_one(_mask_placeholders(query), read=_FrappeMySQL)
+	except sqlglot.errors.ParseError:
+		# A construct sqlglot's MariaDB/MySQL grammar doesn't accept (rare); only the cheap
+		# identifier-quoting rewrite still applies.
+		return query.replace("`", '"')
+
+	tree = _unwrap_top_level_subquery(tree)
+	_strip_update_set_qualifiers(tree)
+	_collapse_now_interval_arithmetic(tree)
+	_inline_having_aliases(tree)
+	_add_collate_nocase_to_orderby(tree)
+
+	return tree.sql(dialect=_FrappeSQLite)
 
 
-def replace_locate_with_instr(query: str) -> str:
-	# instr is the locate equivalent in SQLite
-	if re.search(r"locate\(", query, flags=re.IGNORECASE):
-		query = re.sub(r"locate\(([^,]+),([^)]+)\)", r"instr(\2, \1)", query, flags=re.IGNORECASE)
-	return query
+def _bind_named_params(query: str, values: dict):
+	"""Rewrite pyformat ``%(name)s`` placeholders to SQLite ``:name`` placeholders.
+
+	A sequence value is expanded into a parenthesised list so ``WHERE x IN %(names)s``
+	works (SQLite can't bind a sequence to one placeholder); an empty sequence becomes
+	``(NULL)`` and a nested sequence becomes a row value, supporting ``WHERE (a, b) IN
+	%(pairs)s``. The caller's dict is never mutated."""
+	bind: dict = {}
+
+	def placeholder(key, value):
+		"""Register ``value`` under ``key`` and return its placeholder text, recursing
+		into sequences (e.g. ``[1, 2]`` -> ``(:key__0, :key__1)``)."""
+		if isinstance(value, list | tuple | set):
+			if not value:
+				return "(NULL)"
+			return "(" + ", ".join(placeholder(f"{key}__{i}", v) for i, v in enumerate(value)) + ")"
+		bind[key] = value
+		return f":{key}"
+
+	def replace(match):
+		key = match.group(1)
+		if key not in values:
+			return match.group(0)
+		return placeholder(key, values[key])
+
+	# Rewrite placeholders only outside string literals, so a literal like `'%(x)s'` is preserved.
+	rewritten = "".join(
+		chunk if is_literal else _PARAM_COMP.sub(replace, chunk)
+		for is_literal, chunk in _split_sql_literals(query)
+	)
+	return rewritten, bind
 
 
-def regexp(expr: str, item: str) -> bool:
+def _expand_positional_params(query: str, values):
+	"""Translate pyformat ``%s`` placeholders to SQLite ``?`` placeholders, expanding
+	any sequence value into ``(?, ?, ...)``.
+
+	MariaDB/Postgres drivers expand a list/tuple bound to a single ``%s`` (the common
+	``WHERE name IN %s`` idiom) into a parenthesised list. SQLite's driver cannot bind
+	a sequence to one placeholder, so we expand it ourselves and flatten the values to
+	match. An empty sequence becomes ``(NULL)`` (matches nothing), mirroring the drivers.
+
+	Placeholders are only recognised outside single-quoted string literals, so a literal
+	containing ``%s`` (e.g. ``LIKE '%system%'``) is never treated as a placeholder.
+	"""
+
+	def naive(q):
+		"""``%s`` -> ``?`` outside string literals only."""
+		return "".join(
+			chunk if is_literal else chunk.replace("%s", "?") for is_literal, chunk in _split_sql_literals(q)
+		)
+
+	if not values:
+		return naive(query), values
+
+	if not isinstance(values, list | tuple):
+		values = (values,)
+
+	# One value per placeholder is required. If they don't line up (e.g. a stray `%s`
+	# inside an already-substituted fragment), fall back to the naive rewrite.
+	placeholder_count = sum(
+		chunk.count("%s") for is_literal, chunk in _split_sql_literals(query) if not is_literal
+	)
+	if placeholder_count != len(values):
+		return naive(query), values
+
+	def expand(value):
+		"""Return ``(placeholder_text, bound_values)`` for one value, recursing into
+		sequences (e.g. ``[1, 2]`` -> ``("(?, ?)", [1, 2])``)."""
+		if not isinstance(value, list | tuple | set):
+			return "?", [value]
+		if not value:
+			return "(NULL)", []
+		texts, flat = [], []
+		for item in value:
+			text, sub = expand(item)
+			texts.append(text)
+			flat.extend(sub)
+		return "(" + ", ".join(texts) + ")", flat
+
+	rendered, flat, vi = [], [], 0
+	for is_literal, chunk in _split_sql_literals(query):
+		if is_literal:
+			rendered.append(chunk)
+			continue
+		parts = chunk.split("%s")
+		rendered.append(parts[0])
+		for tail in parts[1:]:
+			text, sub = expand(values[vi])
+			vi += 1
+			rendered.append(text)
+			flat.extend(sub)
+			rendered.append(tail)
+
+	return "".join(rendered), flat
+
+
+def _now() -> str:
+	"""MariaDB/Postgres ``NOW()`` -- current datetime in frappe's stored format."""
+	from frappe.utils import now
+
+	return now()
+
+
+def _utc_timestamp() -> str:
+	"""MariaDB ``UTC_TIMESTAMP()`` -- current UTC datetime."""
+	# timezone.utc, not datetime.UTC: `datetime` here is the class, which has no UTC attribute
+	return datetime.now(timezone.utc).strftime("%Y-%m-%d %H:%M:%S.%f")  # noqa: UP017
+
+
+def _curdate() -> str:
+	"""MariaDB ``CURDATE()`` -- current date."""
+	from frappe.utils import nowdate
+
+	return nowdate()
+
+
+def _curtime() -> str:
+	"""MariaDB ``CURTIME()`` -- current time."""
+	from frappe.utils import nowtime
+
+	return nowtime()
+
+
+def _parse_timestamp(value: bytes):
+	"""Tolerant DATETIME converter. SQLite is dynamically typed, so a column declared
+	as a timestamp may hold a non-strict-ISO value; fall back to frappe's lenient
+	parser, and finally to the raw string, rather than raising."""
+	s = value.decode()
+	try:
+		return datetime.fromisoformat(s)
+	except ValueError:
+		from frappe.utils import get_datetime
+
+		try:
+			return get_datetime(s)
+		except Exception:
+			return s
+
+
+def _parse_date(value: bytes):
+	"""Tolerant DATE converter -- handles values that carry a time component (e.g. a
+	datetime stored in a DATE-declared column) by extracting the date part."""
+	s = value.decode()
+	try:
+		return date.fromisoformat(s)
+	except ValueError:
+		from frappe.utils import getdate
+
+		try:
+			return getdate(s)
+		except Exception:
+			return s
+
+
+def _adapt_timedelta(td: timedelta) -> str:
+	"""Serialize a `timedelta` back to a ``HH:MM:SS[.ffffff]`` TIME string (the inverse
+	of `_parse_time`), so a value read from a TIME column can be re-bound as a param."""
+	total = int(td.total_seconds())
+	hours, rem = divmod(total, 3600)
+	minutes, seconds = divmod(rem, 60)
+	if td.microseconds:
+		return f"{hours:02d}:{minutes:02d}:{seconds:02d}.{td.microseconds:06d}"
+	return f"{hours:02d}:{minutes:02d}:{seconds:02d}"
+
+
+def _parse_time(value: bytes):
+	"""Parse a stored TIME into a `timedelta`, matching how MariaDB's driver surfaces
+	TIME columns (which frappe/ERPNext expect). Tolerant of non-zero-padded values and
+	of datetime values landing in a TIME-declared column."""
+	s = value.decode()
+	try:
+		t = time.fromisoformat(s)
+	except ValueError:
+		from frappe.utils import get_time
+
+		try:
+			t = get_time(s)
+		except Exception:
+			return s
+	return timedelta(hours=t.hour, minutes=t.minute, seconds=t.second, microseconds=t.microsecond)
+
+
+# MariaDB DATE_FORMAT specifiers that differ from Python strftime.
+_DATE_FORMAT_MAP = {
+	"%i": "%M",  # minutes
+	"%s": "%S",  # seconds
+	"%M": "%B",  # full month name
+	"%h": "%I",  # 12-hour
+	"%W": "%A",  # full weekday name
+	"%r": "%I:%M:%S %p",
+	"%T": "%H:%M:%S",
+}
+
+
+def _date_format(value, fmt) -> str | None:
+	"""MariaDB ``DATE_FORMAT(date, fmt)`` using Python ``strftime`` with the MariaDB
+	format specifiers that differ from strftime translated. Done in a single pass so a
+	translated token (e.g. ``%i`` -> ``%M``) is not re-translated by a later rule."""
+	if value is None or fmt is None:
+		return None
+	from frappe.utils import get_datetime
+
+	translated = re.sub(r"%.", lambda m: _DATE_FORMAT_MAP.get(m.group(0), m.group(0)), fmt)
+	return get_datetime(value).strftime(translated)
+
+
+def _datediff(date1, date2) -> int | None:
+	"""MariaDB ``DATEDIFF(date1, date2)`` -- whole days between the two dates."""
+	if date1 is None or date2 is None:
+		return None
+	from frappe.utils import getdate
+
+	return (getdate(date1) - getdate(date2)).days
+
+
+def _date_part_fn(part: str):
+	"""Build a scalar function returning a date part (``MONTH``/``YEAR``/``DAY``)."""
+
+	def fn(value):
+		if value is None:
+			return None
+		from frappe.utils import getdate
+
+		return getattr(getdate(value), part)
+
+	return fn
+
+
+def _quarter(value) -> int | None:
+	"""MariaDB ``QUARTER(date)`` -- 1-4."""
+	if value is None:
+		return None
+	from frappe.utils import getdate
+
+	return (getdate(value).month - 1) // 3 + 1
+
+
+def _monthname(value) -> str | None:
+	"""MariaDB ``MONTHNAME(date)`` -- full month name (e.g. 'January')."""
+	if value is None:
+		return None
+	from frappe.utils import getdate
+
+	return getdate(value).strftime("%B")
+
+
+def _substring_index(value, delim, count) -> str | None:
+	"""MariaDB ``SUBSTRING_INDEX(str, delim, count)``: return the substring before the
+	``count``-th occurrence of ``delim`` (from the left if positive, right if negative)."""
+	if value is None:
+		return None
+	value = str(value)
+	count = int(count)
+	if count == 0:
+		return ""
+	if count > 0:
+		return delim.join(value.split(delim)[:count])
+	return delim.join(value.split(delim)[count:])
+
+
+def _timestamp(*args) -> str | None:
+	"""MariaDB ``TIMESTAMP(expr)`` / ``TIMESTAMP(date, time)``: with two arguments,
+	combine a date and time into a datetime; with one, return it as a datetime string.
+	Combining by concatenation is sufficient for frappe's ISO `YYYY-MM-DD` / `HH:MM:SS`
+	values and preserves lexicographic ordering."""
+	args = [a for a in args if a is not None]
+	if not args:
+		return None
+	if len(args) == 1:
+		return str(args[0])
+	return f"{args[0]} {args[1]}"
+
+
+def _to_seconds(value) -> int | None:
+	"""MariaDB ``TO_SECONDS(expr)`` -- seconds since year 0. The absolute epoch is
+	irrelevant in practice (it is used in differences, ``TO_SECONDS(a) - TO_SECONDS(b)``),
+	so seconds since the Unix epoch gives identical deltas while staying integer."""
+	if value is None:
+		return None
+	from frappe.utils import get_datetime
+
+	return int(get_datetime(value).timestamp())
+
+
+def _unix_timestamp(*args) -> int | float:
+	"""MariaDB ``UNIX_TIMESTAMP([datetime])`` -- epoch seconds.
+
+	With no argument returns the current epoch; with a datetime/date string
+	argument returns that moment's epoch (matching MariaDB's overloads). MariaDB
+	returns an integer for whole-second values (and a decimal only when the input
+	carries fractional seconds), so mirror that rather than always returning a float."""
+	from frappe.utils import get_datetime
+
+	epoch = datetime.now().timestamp() if not args or args[0] is None else get_datetime(args[0]).timestamp()
+	return int(epoch) if epoch == int(epoch) else epoch
+
+
+def _timediff(t1, t2) -> float | None:
+	"""Return seconds difference; 0.0 when equal (falsy), unlike SQLite's built-in timediff() which returns a string."""
+	if t1 is None or t2 is None:
+		return None
+	try:
+
+		def _parse(s):
+			s = str(s).strip()
+			for fmt in (
+				"%Y-%m-%d %H:%M:%S.%f",
+				"%Y-%m-%d %H:%M:%S",
+				"%Y-%m-%dT%H:%M:%S.%f",
+				"%Y-%m-%dT%H:%M:%S",
+			):
+				try:
+					return datetime.strptime(s, fmt)
+				except ValueError:
+					continue
+			return None
+
+		d1, d2 = _parse(t1), _parse(t2)
+		if d1 is None or d2 is None:
+			return None
+		return (d1 - d2).total_seconds()
+	except Exception:
+		return None
+
+
+def _regexp(expr: str, item: str) -> bool:
 	"""
 	Define regexp implementation for SQLite manually
 
@@ -586,7 +1367,7 @@ def regexp(expr: str, item: str) -> bool:
 	return re.search(expr, item) is not None
 
 
-def regexp_replace(item: str, pattern: str, repl: str) -> str:
+def _regexp_replace(item: str, pattern: str, repl: str) -> str:
 	"""
 	Define regexp_replace implementation for SQLite
 	"""
