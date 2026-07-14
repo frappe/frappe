@@ -571,6 +571,19 @@ class TestMaskFieldsInChildTable(IntegrationTestCase):
 
 		self.assertEqual(values[0], "XXXXXXXX")
 
+	def test_plucked_aliased_child_field_masked(self):
+		"""An aliased dotted field is keyed under its alias, so the pluck path has to match
+		the alias too."""
+		frappe.set_user(self.TEST_USER)
+		values = frappe.qb.get_query(
+			self.dt,
+			fields=["items.rate as child_rate"],
+			filters={"name": self.docname},
+			ignore_permissions=False,
+		).run(pluck="child_rate")
+
+		self.assertEqual(values[0], "XXXXXXXX")
+
 	def test_query_run_without_as_dict_masks(self):
 		"""`run()` returns tuples, so masking must not treat the result as dicts."""
 		frappe.set_user(self.TEST_USER)
