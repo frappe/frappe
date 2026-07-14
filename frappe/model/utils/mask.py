@@ -86,7 +86,11 @@ def mask_pluck_results(
 	# surface the underlying "secret" reference. Non-Term items (raw string
 	# fieldnames) don't have fields_(); fall back to a shallow name check.
 	first = fields[0]
-	if hasattr(first, "fields_"):
+	alias = getattr(first, "alias", None)
+
+	if alias and alias in masked_names:
+		hit_name = alias
+	elif hasattr(first, "fields_"):
 		hit_name = next((f.name for f in first.fields_() if f.name in masked_names), None)
 	else:
 		# child / link fields selected through dot notation carry `fieldname`, not `name`
