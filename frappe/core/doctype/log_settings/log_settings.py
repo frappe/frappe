@@ -7,7 +7,7 @@ import frappe
 from frappe import _
 from frappe.model.base_document import get_controller
 from frappe.model.document import Document
-from frappe.utils import cint
+from frappe.utils import add_days, cint, now_datetime
 from frappe.utils.caching import site_cache
 
 
@@ -164,6 +164,7 @@ def clear_log_table(doctype, days=90):
 	original = get_table_name(doctype)
 	temporary = f"{original} temp_table"
 	backup = f"{original} backup_table"
+	cutoff = add_days(now_datetime(), -cint(days))
 
 	try:
 		if frappe.db.db_type == "postgres":
@@ -172,7 +173,8 @@ def clear_log_table(doctype, days=90):
 			frappe.db.sql(
 				f"""INSERT INTO "{temporary}"
 					SELECT * FROM "{original}"
-					WHERE "{original}"."creation" > NOW() - INTERVAL '{days}' DAY"""
+					WHERE "{original}"."creation" > %(cutoff)s""",
+				{"cutoff": cutoff},
 			)
 			frappe.db.sql_ddl(f'ALTER TABLE "{original}" RENAME TO "{backup}"')
 			frappe.db.sql_ddl(f'ALTER TABLE "{temporary}" RENAME TO "{original}"')
@@ -183,7 +185,8 @@ def clear_log_table(doctype, days=90):
 			frappe.db.sql(
 				f"""INSERT INTO `{temporary}`
 					SELECT * FROM `{original}`
-					WHERE `{original}`.`creation` > NOW() - INTERVAL '{days}' DAY"""
+					WHERE `{original}`.`creation` > %(cutoff)s""",
+				{"cutoff": cutoff},
 			)
 			frappe.db.sql_ddl(f"RENAME TABLE `{original}` TO `{backup}`, `{temporary}` TO `{original}`")
 	except Exception:
