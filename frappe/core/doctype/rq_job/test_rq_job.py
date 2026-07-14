@@ -231,6 +231,10 @@ class TestRQJob(IntegrationTestCase):
 		# TODO: Observed higher usage on 2026-05-26. Temporarily raising the limit
 		LAST_MEASURED_USAGE += 1
 
+		# TODO: Observed higher usage on 2026-07-15 (Python 3.14). Temporarily raising the limit
+		# Result of adding sqlglot
+		LAST_MEASURED_USAGE += 1
+
 		self.assertLessEqual(rss, LAST_MEASURED_USAGE * 1.05, msg)
 
 	@skipIf(frappe.conf.db_type == "sqlite", "worker can't commit while the test holds the write lock")
