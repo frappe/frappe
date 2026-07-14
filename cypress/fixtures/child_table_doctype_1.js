@@ -44,6 +44,12 @@ export default {
 			in_list_view: 1,
 			label: "Date",
 		},
+		{
+			depends_on: "data",
+			fieldname: "dependent_data",
+			fieldtype: "Data",
+			label: "Dependent Data",
+		},
 	],
 	links: [],
 	istable: 1,
