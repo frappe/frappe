@@ -23,11 +23,10 @@ from frappe.database.sqlite import functions
 from frappe.database.sqlite.schema import SQLiteTable
 from frappe.utils import get_table_name
 
-# Converters and adapters are process-global, so register them once at import rather than on
-# every connection. Columns are declared DATETIME (see SQLiteTable.create), so we register that
-# name too so PARSE_DECLTYPES surfaces datetime objects -- matching MariaDB -- not raw strings.
-# There is deliberately no REAL converter: _transform_result / fetch_as_dict round all floats to
-# 9dp, covering both REAL-declared columns and float results of computed expressions.
+# Converters/adapters are process-global, so register them once at import, not per connection.
+# "timestamp" is registered alongside "datetime" because columns are declared DATETIME (see
+# SQLiteTable.create) and PARSE_DECLTYPES keys off the declared name. No REAL converter: floats
+# are rounded to 9dp in _transform_result / fetch_as_dict instead.
 sqlite3.register_converter("datetime", functions.converter_datetime)
 sqlite3.register_converter("timestamp", functions.converter_datetime)
 sqlite3.register_converter("date", functions.converter_date)
@@ -55,9 +54,8 @@ IMPLICIT_COMMIT_QUERY_TYPES = frozenset(("start", "alter", "drop", "create", "tr
 class SequenceGeneratorLimitExceeded(sqlite3.Error):
 	"""Raised when an emulated sequence with a max_value (and no cycle) is exhausted.
 
-	SQLite has no native sequences (frappe emulates them, see
-	``frappe.database.sequence``), so unlike MariaDB/Postgres there is no driver
-	exception to reuse for this case.
+	SQLite has no native sequences (frappe emulates them, see frappe.database.sequence), so there
+	is no driver exception to reuse as MariaDB/Postgres would.
 	"""
 
 
@@ -159,17 +157,16 @@ class SQLiteDatabase(SQLiteExceptionUtil, Database):
 	MAX_ROW_SIZE_LIMIT = None
 	SequenceGeneratorLimitExceeded = SequenceGeneratorLimitExceeded
 
-	# Time (in ms) a connection waits for a write lock held by another connection
-	# before giving up with "database is locked". SQLite allows only one writer at a
-	# time, so a generous timeout lets concurrent writers queue instead of failing.
-	# Override per-site with `sqlite_busy_timeout` in site config.
+	# Milliseconds to wait for another connection's write lock before "database is locked". SQLite
+	# has one writer at a time, so a generous timeout lets writers queue. Override per-site with
+	# `sqlite_busy_timeout`.
 	DEFAULT_BUSY_TIMEOUT = 30_000
 
 	# Retry `BEGIN IMMEDIATE` a few times if the write lock stays contended.
 	WRITE_LOCK_RETRIES = 5
 
-	# Whether the current connection is the read-only (`mode=ro`) connection. Set as a
-	# class default so it is always readable even before `connect()`/`begin()` run.
+	# Whether the current connection is the read-only (`mode=ro`) one. Class default so it reads
+	# correctly even before connect()/begin() run.
 	read_only = False
 
 	@property
@@ -182,11 +179,8 @@ class SQLiteDatabase(SQLiteExceptionUtil, Database):
 		from frappe.utils import now, nowdate, nowtime
 
 		conn = self.create_connection(read_only)
-		# Disable the "double-quoted string literal" misfeature. frappe only ever emits
-		# double-quotes as identifiers (backticks are rewritten to double-quotes; string
-		# literals use single quotes), so an unknown double-quoted name is a bug -- e.g. an
-		# invalid link fieldname -- and should error "no such column" instead of silently
-		# being treated as a string literal that matches nothing.
+		# Disable the "double-quoted string literal" misfeature: frappe only emits double quotes as
+		# identifiers, so an unknown one is a bug and should error "no such column", not match nothing.
 		conn.setconfig(sqlite3.SQLITE_DBCONFIG_DQS_DDL, False)
 		conn.setconfig(sqlite3.SQLITE_DBCONFIG_DQS_DML, False)
 		conn.create_function("now", 0, now)
@@ -539,7 +533,8 @@ class SQLiteDatabase(SQLiteExceptionUtil, Database):
 
 	@staticmethod
 	def format_datetime(value):
-		"""Use isoformat(sep=" ") to match how SQLite stores datetimes; base class always appends microseconds which misses rows stored without them."""
+		"""Match SQLite's stored format with isoformat(sep=" "); the base class always appends
+		microseconds, missing rows stored without them."""
 		from frappe.database.utils import FallBackDateTimeStr
 		from frappe.utils import get_datetime
 
@@ -717,10 +712,8 @@ class SQLiteDatabase(SQLiteExceptionUtil, Database):
 
 	@contextmanager
 	def unbuffered_cursor(self):
-		"""SQLite reads rows lazily from its single cursor, so there is no separate
-		server-side/unbuffered cursor to switch to (unlike MariaDB's SSCursor or
-		Postgres' named cursor). Used with ``as_iterator=True`` it already provides
-		streaming reads, so this is a no-op context manager for API compatibility."""
+		"""No-op for API compatibility: SQLite's cursor already reads rows lazily, so there is no
+		separate unbuffered cursor to switch to (unlike MariaDB's SSCursor / Postgres' named cursor)."""
 		if not self._conn:
 			self.connect()
 		yield
@@ -764,20 +757,10 @@ class SQLiteDatabase(SQLiteExceptionUtil, Database):
 		pass
 
 
-# ---------------------------------------------------------------------------
-# modify_query() rewrites a MariaDB-flavoured SQL string for SQLite compatibility.
-# It parses the query into an AST with sqlglot (reading the MariaDB/MySQL dialect
-# frappe's query builder and raw SQL are written in) and regenerates it for SQLite.
-# That alone handles backtick->doublequote quoting, dropping `FOR UPDATE`/`LOCK IN
-# SHARE MODE`/index hints, and `IF(...)` -> `IIF(...)`. A handful of AST passes on
-# top handle rewrites sqlglot has no dialect-conversion rule for: frappe's
-# NOW()/CURRENT_TIMESTAMP +/- INTERVAL idiom, ORDER BY collation, and HAVING alias
-# resolution (see each pass below for why SQLite needs it).
-#
-# DDL/PRAGMA statements skip the parser entirely: frappe already writes these in
-# SQLite-native SQL (see schema.py), so only backtick quoting applies, and it's
-# cheaper besides -- these run far less often than DML.
-# ---------------------------------------------------------------------------
+# modify_query() rewrites MariaDB-flavoured SQL for SQLite. It transpiles via a sqlglot AST
+# (which handles quoting, FOR UPDATE, IF()->IIF() etc.), then applies the few passes below for
+# rewrites sqlglot has no rule for. DDL/PRAGMA skip the parser -- frappe already writes those in
+# SQLite-native SQL (see schema.py) -- so they only get backtick quoting.
 
 _DML_KEYWORDS = ("select", "update", "delete", "insert", "with")
 
@@ -813,16 +796,12 @@ def _render_placeholder(self, node: exp.Placeholder) -> str:
 
 
 class _FrappeMySQL(_MySQLDialect):
-	"""MariaDB/MySQL dialect that reads both backtick- and doublequote-quoted names as
-	identifiers, never as string literals.
+	"""MariaDB dialect that treats both backtick- and doublequote-quoted names as identifiers.
 
-	Raw SQL frappe hands to modify_query is MariaDB-flavoured (backtick identifiers), but SQL
-	built by the query builder (`query_builder/builder.py`) already targets SQLite and quotes
-	identifiers with double quotes -- standard MySQL grammar treats those as string literals
-	(only backtick is an identifier quote), which would silently turn every quoted column/table
-	name in query-builder SQL into a string constant. Accepting both matches how frappe actually
-	writes SQL; frappe never emits a genuine double-quoted string literal (values are always
-	bound as parameters or single-quoted), so there is no ambiguity to resolve here."""
+	Query-builder SQL quotes identifiers with double quotes, which standard MySQL grammar would
+	read as string literals. frappe never emits a genuine double-quoted string (values are bound
+	or single-quoted), so accepting both is unambiguous.
+	"""
 
 	class Tokenizer(_MySQLDialect.Tokenizer):
 		IDENTIFIERS: typing.ClassVar = ["`", '"']
@@ -830,10 +809,8 @@ class _FrappeMySQL(_MySQLDialect):
 
 
 def _render_regexp(self, node: exp.RegexpLike) -> str:
-	"""Render as SQLite's native ``X REGEXP Y`` operator, not the default ``REGEXP_LIKE(x, y)``
-	rendering: SQLite has no such function, only the ``REGEXP`` operator, which it dispatches to
-	a user-defined function named ``regexp`` -- the one this module registers on every
-	connection (``get_connection``)."""
+	"""Render as the native ``X REGEXP Y`` operator (dispatched to the `regexp` function
+	registered in get_connection), not the default ``REGEXP_LIKE(x, y)`` which SQLite lacks."""
 	return f"{self.sql(node, 'this')} REGEXP {self.sql(node, 'expression')}"
 
 
@@ -850,15 +827,10 @@ class _FrappeSQLite(_SQLiteDialect):
 
 
 def _mask_placeholders(query: str) -> str:
-	"""Rewrite pyformat placeholders to syntax sqlglot's parser accepts as a bind parameter:
-	``%(name)s`` -> ``:name``, ``%s`` -> ``?``. ``_render_placeholder`` converts them back
-	when generating, via the AST rather than a second text substitution -- a blind
-	``:name``/``?`` -> pyformat regex on the output would also match colons or question
-	marks that legitimately appear inside string literals (e.g. a bound time value '12:30:00'
-	rendered as a literal elsewhere in the query).
-
-	Only placeholders *outside* single-quoted string literals are rewritten, so a literal that
-	happens to contain ``%s`` -- e.g. ``LIKE '%system%'`` -- is left untouched."""
+	"""Mask pyformat placeholders so sqlglot can parse them: ``%(name)s`` -> ``:name``, ``%s`` ->
+	``?``. _render_placeholder restores them from the AST (not a text pass, which could hit a ``:``
+	or ``?`` inside a literal). Placeholders inside string literals (``LIKE '%system%'``) are left
+	alone."""
 
 	def mask(chunk: str) -> str:
 		return _PARAM_COMP.sub(r":\1", chunk).replace("%s", "?")
@@ -867,12 +839,9 @@ def _mask_placeholders(query: str) -> str:
 
 
 def _unwrap_top_level_subquery(tree: exp.Expression) -> exp.Expression:
-	"""Unwrap a whole-statement parenthesised SELECT, e.g. ``(SELECT ...)`` -> ``SELECT ...``.
-
-	MariaDB accepts a top-level parenthesised query (ERPNext builds scalar-subquery strings
-	this way); SQLite rejects it with ``near "(": syntax error``. sqlglot parses this shape as
-	a bare ``Subquery`` node only when the parens wrap the *entire* statement, so this never
-	touches ``(SELECT ...) UNION (SELECT ...)`` (parsed as a `Union` of two `Subquery` operands)."""
+	"""Unwrap a whole-statement parenthesised SELECT, ``(SELECT ...)`` -> ``SELECT ...``: MariaDB
+	accepts it (ERPNext builds scalar subqueries this way), SQLite rejects it. Only the
+	whole-statement shape parses as a bare Subquery, so ``(SELECT ...) UNION (...)`` is untouched."""
 	if not isinstance(tree, exp.Subquery):
 		return tree
 	# Don't unwrap if the wrapper carries its own ORDER BY / LIMIT / OFFSET (e.g.
@@ -900,19 +869,17 @@ def _is_now_like(node: exp.Expression) -> bool:
 
 
 def _collapse_now_interval_arithmetic(tree: exp.Expression) -> None:
-	"""Fold raw MariaDB ``NOW()``/``CURRENT_TIMESTAMP`` +/- ``INTERVAL 'n' UNIT`` into one
-	``datetime('now', '±n units')`` call -- SQLite has no INTERVAL type. This handles hand-written
-	MariaDB date arithmetic in raw ``frappe.db.sql`` (query-builder output uses pypika's own SQLite
-	rendering and is folded there instead, see ``query_builder/builder.py``)."""
+	"""Fold ``NOW()``/``CURRENT_TIMESTAMP`` +/- ``INTERVAL 'n' UNIT`` into ``datetime('now', '±n
+	units')`` -- SQLite has no INTERVAL type. Only for raw frappe.db.sql; query-builder output is
+	folded by pypika instead (see query_builder/builder.py)."""
 	for node in list(tree.find_all((exp.Sub, exp.Add))):
 		base, other = node.this, node.expression
 		if not _is_now_like(base) or not isinstance(other, exp.Interval):
 			continue
 
 		unit = str(other.args.get("unit")).lower()
-		# Only fold the simple `INTERVAL <int> <single-unit>` forms SQLite can express as a
-		# datetime() modifier. Compound units (HOUR_MINUTE) or unmapped ones (QUARTER) are left
-		# for sqlglot to render as-is rather than crashing the whole rewrite.
+		# Only the simple `INTERVAL <int> <single-unit>` forms map to a datetime() modifier.
+		# Compound (HOUR_MINUTE) or unmapped (QUARTER) units are left for sqlglot to render as-is.
 		if unit not in _INTERVAL_UNITS:
 			continue
 		try:
@@ -927,17 +894,15 @@ def _collapse_now_interval_arithmetic(tree: exp.Expression) -> None:
 
 
 def _add_collate_nocase_to_orderby(tree: exp.Expression) -> None:
-	"""Inject COLLATE NOCASE onto plain-column ORDER BY terms (including in subqueries) so text
-	sort matches MariaDB: SQLite's default BINARY collation sorts '_' after letters, unlike
-	MariaDB's default collation. Function-call terms are left alone, matching MariaDB's own
-	behaviour of not applying its collation to an expression's result."""
+	"""Add COLLATE NOCASE to plain-column ORDER BY terms so text sorts like MariaDB (SQLite's
+	default BINARY collation sorts '_' after letters). Function-call terms are left alone, as
+	MariaDB also doesn't collate an expression's result."""
 	for select in tree.find_all(exp.Select):
 		order = select.args.get("order")
 		if not order:
 			continue
-		# Map each output name to the column it projects. MariaDB/Postgres bind a bare ORDER BY
-		# term to the matching output column; SQLite instead calls it ambiguous when the name
-		# also lives in a joined table, so qualify it the same way before adding COLLATE.
+		# Map each output name to the column it projects, so a bare ORDER BY term can be qualified
+		# before adding COLLATE -- SQLite calls it ambiguous if the name also lives in a joined table.
 		outputs = {}
 		for e in select.expressions:
 			col = e.this if isinstance(e, exp.Alias) else e
