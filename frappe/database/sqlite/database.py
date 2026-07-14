@@ -952,11 +952,28 @@ def _add_collate_nocase_to_orderby(tree: exp.Expression) -> None:
 	sort matches MariaDB: SQLite's default BINARY collation sorts '_' after letters, unlike
 	MariaDB's default collation. Function-call terms are left alone, matching MariaDB's own
 	behaviour of not applying its collation to an expression's result."""
-	for order in tree.find_all(exp.Order):
+	for select in tree.find_all(exp.Select):
+		order = select.args.get("order")
+		if not order:
+			continue
+		# Map each output name to the column it projects. MariaDB/Postgres bind a bare ORDER BY
+		# term to the matching output column; SQLite instead calls it ambiguous when the name
+		# also lives in a joined table, so qualify it the same way before adding COLLATE.
+		outputs = {}
+		for e in select.expressions:
+			col = e.this if isinstance(e, exp.Alias) else e
+			if isinstance(col, exp.Column):
+				outputs[e.alias_or_name.lower()] = col
 		for ordered in order.expressions:
 			target = ordered.this
-			if isinstance(target, exp.Column) and not target.find(exp.Collate):
-				ordered.set("this", exp.Collate(this=target.copy(), expression=exp.Var(this="NOCASE")))
+			if not isinstance(target, exp.Column) or target.find(exp.Collate):
+				continue
+			if not target.table:
+				out = outputs.get(target.name.lower())
+				if out is not None and out.table:
+					target = out.copy()
+					ordered.set("this", target)
+			ordered.set("this", exp.Collate(this=target.copy(), expression=exp.Var(this="NOCASE")))
 
 
 def _inline_having_aliases(tree: exp.Expression) -> None:
