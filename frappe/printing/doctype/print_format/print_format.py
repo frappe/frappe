@@ -194,9 +194,10 @@ def create_custom_format(doctype: str, name: str | int, based_on: str = "Standar
 	doc.doc_type = doctype
 	doc.name = name
 	doc.print_format_builder_beta = 1
-	doc.format_data = (
-		frappe.db.get_value("Print Format", based_on, "format_data") if based_on != "Standard" else None
-	)
+	if based_on and based_on != "Standard":
+		source = frappe.get_doc("Print Format", based_on)
+		source.check_permission("read")
+		doc.format_data = source.format_data
 	doc.insert()
 	return doc
 
