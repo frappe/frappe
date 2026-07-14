@@ -563,31 +563,61 @@ def get_permission_query_conditions(user=None):
 	escaped_roles = ", ".join(frappe.db.escape(r) for r in user_roles)
 
 	if frappe.db.db_type == "postgres":
-		return f"""(
-			NOT EXISTS (
-				SELECT 1 FROM "tabHas Role"
-				WHERE "parenttype" = 'Report' AND "parent" = "tabReport"."name"
+		role_condition = f"""(
+			EXISTS (
+				SELECT 1 FROM "tabCustom Role" cr
+				JOIN "tabHas Role" hr ON hr.parent = cr.name AND hr.parenttype = 'Custom Role'
+				WHERE cr.report = "tabReport"."name" AND hr.role IN ({escaped_roles})
 			)
-			OR EXISTS (
-				SELECT 1 FROM "tabHas Role"
-				WHERE "parenttype" = 'Report' AND "parent" = "tabReport"."name"
-				AND "role" IN ({escaped_roles})
+			OR (
+				NOT EXISTS (
+					SELECT 1 FROM "tabCustom Role" cr
+					JOIN "tabHas Role" hr ON hr.parent = cr.name AND hr.parenttype = 'Custom Role'
+					WHERE cr.report = "tabReport"."name"
+				)
+				AND (
+					NOT EXISTS (
+						SELECT 1 FROM "tabHas Role"
+						WHERE "parenttype" = 'Report' AND "parent" = "tabReport"."name"
+					)
+					OR EXISTS (
+						SELECT 1 FROM "tabHas Role"
+						WHERE "parenttype" = 'Report' AND "parent" = "tabReport"."name"
+						AND "role" IN ({escaped_roles})
+					)
+				)
 			)
 		)"""
+		return role_condition
 
 	# substr comparison, not LIKE 'Postgres %': a literal % in a permission condition is read as a
 	# printf placeholder when the list query is parameterized, raising "not enough arguments".
-	return f"""substr(`tabReport`.`name`, 1, 9) != 'Postgres ' AND (
-		NOT EXISTS (
-			SELECT 1 FROM `tabHas Role`
-			WHERE `parenttype` = 'Report' AND `parent` = `tabReport`.`name`
+	role_condition = f"""(
+		EXISTS (
+			SELECT 1 FROM `tabCustom Role` cr
+			JOIN `tabHas Role` hr ON hr.parent = cr.name AND hr.parenttype = 'Custom Role'
+			WHERE cr.report = `tabReport`.`name` AND hr.role IN ({escaped_roles})
 		)
-		OR EXISTS (
-			SELECT 1 FROM `tabHas Role`
-			WHERE `parenttype` = 'Report' AND `parent` = `tabReport`.`name`
-			AND `role` IN ({escaped_roles})
+		OR (
+			NOT EXISTS (
+				SELECT 1 FROM `tabCustom Role` cr
+				JOIN `tabHas Role` hr ON hr.parent = cr.name AND hr.parenttype = 'Custom Role'
+				WHERE cr.report = `tabReport`.`name`
+			)
+			AND (
+				NOT EXISTS (
+					SELECT 1 FROM `tabHas Role`
+					WHERE `parenttype` = 'Report' AND `parent` = `tabReport`.`name`
+				)
+				OR EXISTS (
+					SELECT 1 FROM `tabHas Role`
+					WHERE `parenttype` = 'Report' AND `parent` = `tabReport`.`name`
+					AND `role` IN ({escaped_roles})
+				)
+			)
 		)
 	)"""
+	return f"substr(`tabReport`.`name`, 1, 9) != 'Postgres ' AND {role_condition}"
 
 
 def has_permission(doc, ptype=None, user=None, debug=False):
