@@ -84,9 +84,8 @@ async function runSearch(query: string) {
 		const results = await props.search(query);
 		if (id === requestId) searchResults.value = results;
 	} catch {
-		// Only the latest request owns the shared state: drop stale matches and
-		// surface the failure instead of a silent empty dropdown. Race-losers
-		// (id !== requestId) are left alone — the newer request still owns it.
+		// Only the latest request owns the shared state; surface the failure
+		// instead of a silent empty dropdown.
 		if (id === requestId) {
 			searchResults.value = [];
 			toast.error("Couldn't load recipients.");

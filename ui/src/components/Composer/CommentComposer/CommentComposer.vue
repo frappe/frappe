@@ -12,9 +12,7 @@
 		@submit="emit('submit', $event)"
 		@remove-attachment="emit('remove-attachment', $event)"
 	>
-		<!-- Extra footer actions. Attachments already have a built-in button (pass
-			 `uploadFunction`); this slot is for anything more, and still exposes
-			 `addAttachment` / `setUploading` for a fully custom uploader. -->
+		<!-- Extra footer actions; slot props drive a custom uploader. -->
 		<template v-if="$slots.actions" #actions="actionProps">
 			<slot name="actions" v-bind="actionProps" />
 		</template>
@@ -27,7 +25,7 @@ import ComposerEditor from "../ComposerEditor.vue";
 import type { CommentComposerEmits, CommentComposerProps, CommentComposerSlots } from "../types";
 
 withDefaults(defineProps<CommentComposerProps>(), {
-	placeholder: "This message is only visible to internal team.",
+	placeholder: "This message is only visible to your team.",
 	submitLabel: "Comment",
 });
 

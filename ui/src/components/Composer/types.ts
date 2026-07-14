@@ -16,8 +16,8 @@ export interface Recipients {
 /** Host-supplied recipient lookup, called as the user types (and once with ""). */
 export type RecipientSearch = (query: string) => Promise<Recipient[]>;
 
-/** Optional email rows beyond the always-present "To". */
-export type Field = "subject" | "cc" | "bcc";
+/** Email header rows the composer can render. */
+export type HeaderField = "from" | "to" | "subject" | "cc" | "bcc";
 
 /** A file as returned by FileUploader's `success` event. */
 export interface UploadedFile {
@@ -77,25 +77,29 @@ interface BaseComposerEmits<Payload> {
 
 /** Emitted on `submit`: the full email envelope. */
 export interface EmailPayload extends CoreSubmitPayload {
+  from: string;
   subject: string;
   recipients: Recipients;
 }
 
-/** Email content. Body (`v-model`), recipients, subject and quoted are models. */
+/** Email content. Body (`v-model`), from, recipients, subject and quoted are models. */
 export interface EmailComposerProps extends BaseComposerProps {
-  /** Rows beyond "To". Defaults to ["cc", "bcc"]. */
-  fields?: Field[];
+  /** Built-in header rows to render. Defaults to ["to", "cc", "bcc"]. */
+  headerFields?: HeaderField[];
+  /** Sender identities for the From row (shown when `headerFields` includes "from"). */
+  senders?: Recipient[];
   /** Recipient lookup; omit for a plain creatable-email field. */
   searchRecipients?: RecipientSearch;
-  /** Hide the recipient (To/Cc/Bcc) row entirely — e.g. customer-portal replies. */
-  hideRecipients?: boolean;
 }
 
 export type EmailComposerEmits = BaseComposerEmits<EmailPayload>;
 
 export interface EmailComposerSlots {
-  /** Sender picker, rendered above the recipient rows. */
-  from?: () => any;
+  /**
+   * Replaces the built-in header rows when provided — with custom content,
+   * or empty (`<template #header />`) to render no header at all.
+   */
+  header?: () => any;
   /** Extra footer actions, beside the built-in attach button. */
   actions?: (props: ComposerActionsSlotProps) => any;
 }

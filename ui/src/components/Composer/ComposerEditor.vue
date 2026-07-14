@@ -16,7 +16,7 @@
 					class="flex min-h-0 flex-1 flex-col"
 					@keydown.ctrl.enter.capture.stop="submit"
 					@keydown.meta.enter.capture.stop="submit"
-					@keydown.esc.capture.stop="discard"
+					@keydown.esc.capture.stop="reset"
 					@keydown.ctrl.a.stop="selectAll"
 					@keydown.meta.a.stop="selectAll"
 					@keydown.delete="onDeleteAcrossQuote"
@@ -94,20 +94,10 @@
 								<div
 									class="flex items-center gap-1 overflow-x-auto p-0.5 [scrollbar-width:none] [&::-webkit-scrollbar]:hidden"
 								>
-									<!-- Built-in file-attachment control.
-
-										 When an `uploadFunction` is provided we render an attach
-										 button here, so a consumer gets file attachments for free
-										 without wiring up their own file picker and upload
-										 plumbing. The same `uploadFunction` also handles inline
-										 image uploads, so attachments and inline media travel a
-										 single upload path.
-
-										 The button is gated on `uploadFunction` because that is the
-										 only thing that can perform the upload. Note this couples
-										 "can upload inline images" to "shows an attach button"; if a
-										 consumer ever needs inline images without an attach button,
-										 split this behind a dedicated prop. -->
+									<!-- Built-in attach button, gated on `uploadFunction` (the only
+										 thing that can upload). The same function handles inline
+										 images; if inline-images-without-attach-button is ever
+										 needed, split it behind a prop. -->
 									<button
 										v-if="uploadFunction"
 										type="button"
@@ -143,7 +133,7 @@
 								/>
 							</div>
 							<div class="flex shrink-0 items-center gap-2">
-								<Button label="Discard" :disabled="isEmpty" @click="discard" />
+								<Button label="Discard" :disabled="isEmpty" @click="reset" />
 								<Button
 									variant="solid"
 									:label="submitLabel"
@@ -229,8 +219,7 @@ const props = withDefaults(defineProps<ComposerEditorProps>(), {
 const emit = defineEmits<{
 	/** Only on explicit chip removal (so the host deletes server-side); not on reset/send. */
 	"remove-attachment": [file: UploadedFile];
-	/** Host runs the send and calls `reset()` itself when done; if it wants a
-	 *  pending/spinner state, that's the host's own UI to build. */
+	/** Host runs the send and calls `reset()` itself when done. */
 	submit: [payload: CoreSubmitPayload];
 }>();
 
@@ -371,13 +360,8 @@ function setUploading(value: boolean) {
 
 const attachInput = useTemplateRef<HTMLInputElement>("attachInput");
 
-// Handles a file chosen through the built-in attach button.
-//
-// Uploads the file with the consumer-provided `uploadFunction`, then records the
-// result as an attachment. Upload progress is tracked with a plain `isUploading`
-// ref — no external wiring. Consumers who need a custom attachment affordance
-// can instead render one through the `actions` slot and call the `addAttachment`
-// / `setUploading` helpers it exposes.
+// Uploads a file picked via the built-in attach button and records it as an
+// attachment; the `actions` slot covers custom affordances.
 async function onAttachPicked(event: Event) {
 	const input = event.target as HTMLInputElement;
 	const file = input.files?.[0];
@@ -387,10 +371,8 @@ async function onAttachPicked(event: Event) {
 	if (!file || !props.uploadFunction) return;
 	isUploading.value = true;
 	try {
-		// `uploadFunction` resolves to the editor's richer uploaded-file shape;
-		// narrow it to the fields an attachment chip needs, filling in for the
-		// optionally-present ones (name falls back to the URL as a stable key,
-		// file_type to an empty string).
+		// Narrow the editor's uploaded-file shape to what an attachment chip
+		// needs; `name` falls back to the URL as a stable key.
 		const uploaded = await props.uploadFunction(file);
 		addAttachment({
 			name: uploaded.name ?? uploaded.file_url,
@@ -435,14 +417,15 @@ function focus() {
 	setTimeout(() => editor.value?.commands?.focus("start"), 0);
 }
 
-// Emits and steps back — the host runs the send and calls the exposed `reset()`
-// itself once done (never automatic here, so the host can do its own post-send
-// work first).
+// Emits and steps back — reset is never automatic, so the host can do its own
+// post-send work first.
 function submit() {
 	if (isDisabled.value) return;
 	emit("submit", { body: buildMessage(), attachments: attachments.value });
 }
 
+// Also what Discard (button and Esc) does — hosts observe the cleared body
+// through their v-model; there's no separate discard event.
 function reset() {
 	// Clear the editor; the host re-seeds any default body (e.g. a signature).
 	body.value = "";
@@ -450,12 +433,6 @@ function reset() {
 	quotedContent.value = null;
 	isQuoteExpanded.value = false;
 	focus();
-}
-
-// The Discard button clears the draft. Hosts observe the cleared body through
-// their v-model — there's no separate discard event.
-function discard() {
-	reset();
 }
 
 defineExpose({ editor, focus, reset, submit });

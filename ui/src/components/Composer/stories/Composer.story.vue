@@ -3,13 +3,13 @@
 		<!-- ── Intro ────────────────────────────────────────────────────────── -->
 		<h3 class="mb-1 text-xl-semibold text-ink-gray-9">Composers</h3>
 		<p class="mb-6 text-p-sm text-ink-gray-6">
-			Two standalone, inline message composers. <code>EmailComposer</code> stacks recipient
-			(To/Cc/Bcc) and subject rows plus an optional quoted reply above the editor;
-			<code>CommentComposer</code> is the editor alone, with @-mentions, for internal notes.
-			Both are transport-agnostic — <code>submit</code> hands back a payload and the host
-			performs the send, then calls the exposed <code>reset()</code>. They render in normal
-			document flow: an Email/Comment tab switcher (§1) and a docked reply window (§2) are a
-			few host lines, not library surface.
+			Two standalone, inline message composers. <code>EmailComposer</code> stacks email
+			header rows (From/Subject/To/Cc/Bcc, per <code>headerFields</code>) plus an optional
+			quoted reply above the editor; <code>CommentComposer</code> is the editor alone, with
+			@-mentions, for internal notes. Both are transport-agnostic — <code>submit</code> hands
+			back a payload and the host performs the send, then calls the exposed
+			<code>reset()</code>. They render in normal document flow: an Email/Comment tab
+			switcher (§1) and a docked reply window (§2) are a few host lines, not library surface.
 		</p>
 
 		<!-- ── Live controls (drive the flagship in §1) ─────────────────────── -->
@@ -17,14 +17,15 @@
 			<div class="mb-3 text-sm-medium text-ink-gray-7">Controls</div>
 
 			<div class="flex flex-wrap items-center gap-x-8 gap-y-4">
-				<!-- Which optional email rows are offered -->
+				<!-- Which header rows are offered (untick all to drop the section) -->
 				<div class="flex items-center gap-3">
-					<span class="text-p-sm text-ink-gray-6">fields</span>
+					<span class="text-p-sm text-ink-gray-6">headerFields</span>
+					<Checkbox v-model="fieldFrom" label="from" />
+					<Checkbox v-model="fieldTo" label="to" />
 					<Checkbox v-model="fieldSubject" label="subject" />
 					<Checkbox v-model="fieldCc" label="cc" />
 					<Checkbox v-model="fieldBcc" label="bcc" />
 				</div>
-				<Switch v-model="hideRecipients" label="hideRecipients" size="sm" />
 			</div>
 
 			<!-- Imperative handle (exposed focus / reset / submit) on the active tab -->
@@ -62,26 +63,15 @@
 						v-model:recipients="recipients"
 						v-model:subject="subject"
 						v-model:quoted="quoted"
-						:fields="fields"
-						:hide-recipients="hideRecipients"
+						v-model:from="fromEmail"
+						:header-fields="headerFields"
+						:senders="senders"
 						:search-recipients="searchRecipients"
 						:upload-function="mockUpload"
 						placeholder="Write a reply…"
 						@submit="(payload) => log('email:submit', payload)"
 						@remove-attachment="(file) => log('email:remove-attachment', file)"
-					>
-						<!-- Host-supplied sender picker, injected above the recipient rows. -->
-						<template #from>
-							<div class="flex items-center gap-2 py-1.5">
-								<span class="text-p-sm text-ink-gray-5">From</span>
-								<Select
-									class="relative !bottom-0.5"
-									v-model="fromEmail"
-									:options="identities"
-								/>
-							</div>
-						</template>
-					</EmailComposer>
+					/>
 				</div>
 
 				<!-- Comment tab -->
@@ -113,6 +103,17 @@
 			><code>{{ windowRecipe }}</code></pre>
 		</section>
 
+		<!-- ── §3 Custom addressing (host recipe) ───────────────────────────── -->
+		<section class="mb-8">
+			<div class="mb-2 text-sm-medium text-ink-gray-7">
+				<code>#header</code> replaces the built-in header rows wholesale — provide it empty
+				to render no header at all
+			</div>
+			<pre
+				class="overflow-auto rounded-lg bg-surface-gray-2 p-3 text-xs text-ink-gray-8"
+			><code>{{ headerRecipe }}</code></pre>
+		</section>
+
 		<!-- ── Event log ─────────────────────────────────────────────────────── -->
 		<div class="text-sm-medium text-ink-gray-7">Events</div>
 		<pre
@@ -128,12 +129,12 @@
 
 <script setup lang="ts">
 import { computed, ref } from "vue";
-import { Button, Checkbox, Select, Switch, TabButtons } from "frappe-ui";
+import { Button, Checkbox, TabButtons } from "frappe-ui";
 import { CommentComposer, EmailComposer } from "../index";
 import type {
 	CommentPayload,
 	EmailPayload,
-	Field,
+	HeaderField,
 	MentionOption,
 	Recipient,
 	Recipients,
@@ -148,14 +149,17 @@ const channelOptions = [
 	{ label: "Comment", value: "comment" },
 ];
 
-// ── Which optional email rows the composer offers ──────────────────────────
+// ── Which header rows the composer offers ──────────────────────────────────
+const fieldFrom = ref(true);
+const fieldTo = ref(true);
 const fieldSubject = ref(true);
 const fieldCc = ref(true);
 const fieldBcc = ref(false);
-const hideRecipients = ref(false);
-const fields = computed<Field[]>(() =>
+const headerFields = computed<HeaderField[]>(() =>
 	(
 		[
+			["from", fieldFrom.value],
+			["to", fieldTo.value],
 			["subject", fieldSubject.value],
 			["cc", fieldCc.value],
 			["bcc", fieldBcc.value],
@@ -191,9 +195,12 @@ function seedReply() {
 	emailRef.value?.focus();
 }
 
-// ── Host-supplied sender picker for the #from slot ─────────────────────────
-const identities = ["support@example.com", "sales@example.com"];
-const fromEmail = ref(identities[0]);
+// ── Sender identities for the built-in From row ────────────────────────────
+const senders: Recipient[] = [
+	{ label: "Support", email: "support@example.com" },
+	{ label: "Sales", email: "sales@example.com" },
+];
+const fromEmail = ref(senders[0].email);
 
 // ── Mocked transports (a real host wires these to its backend) ─────────────
 // Attachment upload: fake latency, then a File-shaped result the chip renders.
@@ -253,6 +260,18 @@ const tabbedCode = `<TabButtons v-model="channel" :options="channelOptions" />
 const windowRecipe = `<FloatingWindow v-model:open="open">
   <EmailComposer v-model="body" v-model:recipients="recipients" @submit="onSend" />
 </FloatingWindow>`;
+
+const headerRecipe = `<!-- Custom addressing UI -->
+<EmailComposer v-model="body" v-model:recipients="recipients" @submit="onSend">
+  <template #header>
+    <MyAddressBar v-model="recipients" />
+  </template>
+</EmailComposer>
+
+<!-- No header at all — body-only reply, recipients seeded by the host -->
+<EmailComposer v-model="body" v-model:recipients="recipients" @submit="onSend">
+  <template #header />
+</EmailComposer>`;
 
 // ── Event log ──────────────────────────────────────────────────────────────
 const events = ref<string[]>([]);

@@ -41,6 +41,10 @@
       "import": "./src/components/ColumnSettings/index.ts",
       "types": "./src/components/ColumnSettings/index.ts"
     },
+    "./Composer": {
+      "import": "./src/components/Composer/index.ts",
+      "types": "./src/components/Composer/index.ts"
+    },
     "./fields": {
       "import": "./src/components/Fields/index.ts",
       "types": "./src/components/Fields/index.ts"

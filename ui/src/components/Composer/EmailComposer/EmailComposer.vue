@@ -1,7 +1,7 @@
 <template>
-	<!-- A standalone, inline email composer: a From slot plus recipient and subject
-		 rows above the shared editing core. Emits an EmailPayload on send — the host
-		 performs the actual send, then calls reset(). -->
+	<!-- A standalone, inline email composer: header rows (From/Subject/To/Cc/Bcc,
+		 per `headerFields`) above the shared editing core. Emits an EmailPayload on send —
+		 the host performs the actual send, then calls reset(). -->
 	<ComposerEditor
 		ref="core"
 		:placeholder="placeholder"
@@ -12,21 +12,22 @@
 		@submit="handleSubmit"
 		@remove-attachment="emit('remove-attachment', $event)"
 	>
-		<!-- From picker + recipient rows. -->
+		<!-- Built-in header rows; providing #header replaces them, even empty
+			 (which renders no header at all). -->
 		<template #top>
-			<slot name="from" />
-			<RecipientFields
-				v-if="!hideRecipients"
+			<slot v-if="$slots.header" name="header" />
+			<HeaderFields
+				v-else-if="headerFields.length"
 				v-model="recipients"
 				v-model:subject="subject"
-				:fields="fields"
+				v-model:from="from"
+				:fields="headerFields"
+				:senders="senders"
 				:search="searchRecipients"
 			/>
 		</template>
 
-		<!-- Extra footer actions. Attachments already have a built-in button (pass
-			 `uploadFunction`); this slot is for anything more, and still exposes
-			 `addAttachment` / `setUploading` for a fully custom uploader. -->
+		<!-- Extra footer actions; slot props drive a custom uploader. -->
 		<template v-if="$slots.actions" #actions="actionProps">
 			<slot name="actions" v-bind="actionProps" />
 		</template>
@@ -35,9 +36,8 @@
 
 <script setup lang="ts">
 import { computed, ref } from "vue";
-import { toast } from "frappe-ui";
 import ComposerEditor from "../ComposerEditor.vue";
-import RecipientFields from "./RecipientFields.vue";
+import HeaderFields from "./HeaderFields.vue";
 import type {
 	CoreSubmitPayload,
 	EmailComposerEmits,
@@ -47,8 +47,7 @@ import type {
 } from "../types";
 
 withDefaults(defineProps<EmailComposerProps>(), {
-	fields: () => ["cc", "bcc"],
-	submitLabel: "Send",
+	headerFields: () => ["to", "cc", "bcc"],
 });
 
 const emit = defineEmits<EmailComposerEmits>();
@@ -63,21 +62,14 @@ const recipients = defineModel<Recipients>("recipients", {
 	default: () => ({ to: [], cc: [], bcc: [] }),
 });
 const subject = defineModel<string>("subject", { default: "" });
+const from = defineModel<string>("from", { default: "" });
 
 const core = ref<InstanceType<typeof ComposerEditor> | null>(null);
 
-function hasRecipients() {
-	const { to, cc, bcc } = recipients.value;
-	return Boolean(to.length || cc.length || bcc.length);
-}
-
-// Bailing without emitting `submit` aborts the send and keeps the draft.
+// No recipient validation here — the host owns the send and can decline it.
 function handleSubmit({ body: message, attachments }: CoreSubmitPayload) {
-	if (!hasRecipients()) {
-		toast.warning("Add at least one recipient before sending.");
-		return;
-	}
 	emit("submit", {
+		from: from.value,
 		subject: subject.value,
 		body: message,
 		recipients: recipients.value,
@@ -85,6 +77,7 @@ function handleSubmit({ body: message, attachments }: CoreSubmitPayload) {
 	});
 }
 
+// `from` survives a reset — the sender identity carries over to the next email.
 function reset() {
 	recipients.value = { to: [], cc: [], bcc: [] };
 	subject.value = "";
