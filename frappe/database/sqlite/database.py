@@ -136,15 +136,11 @@ class SQLiteExceptionUtil:
 
 	@staticmethod
 	def is_primary_key_violation(e: sqlite3.IntegrityError) -> bool:
-		if hasattr(e, "sqlite_errorcode"):
-			return e.sqlite_errorcode == 1555
-		return "UNIQUE constraint failed" in str(e)
+		return e.sqlite_errorcode == sqlite3.SQLITE_CONSTRAINT_PRIMARYKEY
 
 	@staticmethod
 	def is_unique_key_violation(e: sqlite3.IntegrityError) -> bool:
-		if hasattr(e, "sqlite_errorcode"):
-			return e.sqlite_errorcode == 2067
-		return "UNIQUE constraint failed" in str(e)
+		return e.sqlite_errorcode == sqlite3.SQLITE_CONSTRAINT_UNIQUE
 
 	@staticmethod
 	def is_interface_error(e: sqlite3.Error):
@@ -183,25 +179,30 @@ class SQLiteDatabase(SQLiteExceptionUtil, Database):
 		# identifiers, so an unknown one is a bug and should error "no such column", not match nothing.
 		conn.setconfig(sqlite3.SQLITE_DBCONFIG_DQS_DDL, False)
 		conn.setconfig(sqlite3.SQLITE_DBCONFIG_DQS_DML, False)
-		conn.create_function("now", 0, now)
-		conn.create_function("curdate", 0, nowdate)
-		conn.create_function("curtime", 0, nowtime)
-		conn.create_function("regexp", 2, functions.regexp)
-		conn.create_function("regexp_replace", 3, functions.regexp_replace)
-		conn.create_function("utc_timestamp", 0, functions.utc_timestamp)
-		conn.create_function("unix_timestamp", -1, functions.unix_timestamp)
-		conn.create_function("timestamp", -1, functions.timestamp)
-		conn.create_function("to_seconds", 1, functions.to_seconds)
-		conn.create_function("timediff", 2, functions.timediff)
-		conn.create_function("datediff", 2, functions.datediff)
-		conn.create_function("date_format", 2, functions.date_format)
-		conn.create_function("monthname", 1, functions.monthname)
-		conn.create_function("quarter", 1, functions.quarter)
-		conn.create_function("substring_index", 3, functions.substring_index)
-		conn.create_function("month", 1, functions.date_part("month"))
-		conn.create_function("year", 1, functions.date_part("year"))
-		conn.create_function("day", 1, functions.date_part("day"))
-		conn.create_function("dayofmonth", 1, functions.date_part("day"))
+		# (name, arg count, implementation) for the MariaDB SQL functions frappe's queries call.
+		scalar_functions = (
+			("now", 0, now),
+			("curdate", 0, nowdate),
+			("curtime", 0, nowtime),
+			("regexp", 2, functions.regexp),
+			("regexp_replace", 3, functions.regexp_replace),
+			("utc_timestamp", 0, functions.utc_timestamp),
+			("unix_timestamp", -1, functions.unix_timestamp),
+			("timestamp", -1, functions.timestamp),
+			("to_seconds", 1, functions.to_seconds),
+			("timediff", 2, functions.timediff),
+			("datediff", 2, functions.datediff),
+			("date_format", 2, functions.date_format),
+			("monthname", 1, functions.monthname),
+			("quarter", 1, functions.quarter),
+			("substring_index", 3, functions.substring_index),
+			("month", 1, functions.date_part("month")),
+			("year", 1, functions.date_part("year")),
+			("day", 1, functions.date_part("day")),
+			("dayofmonth", 1, functions.date_part("day")),
+		)
+		for name, argc, fn in scalar_functions:
+			conn.create_function(name, argc, fn)
 		pragmas = {
 			"journal_mode": "WAL",
 			"synchronous": "NORMAL",
@@ -215,16 +216,11 @@ class SQLiteDatabase(SQLiteExceptionUtil, Database):
 
 	def create_connection(self, read_only: bool = False):
 		db_path = self.get_db_path()
-		if read_only:
-			return sqlite3.connect(
-				f"file:{db_path}?mode=ro",
-				uri=True,
-				detect_types=sqlite3.PARSE_DECLTYPES,
-				timeout=self.busy_timeout / 1000,
-				isolation_level=None,
-			)
+		# A read-only connection needs the mode=ro file: URI; a writable one takes the plain path.
+		dsn = f"file:{db_path}?mode=ro" if read_only else db_path
 		return sqlite3.connect(
-			db_path,
+			dsn,
+			uri=read_only,
 			detect_types=sqlite3.PARSE_DECLTYPES,
 			timeout=self.busy_timeout / 1000,
 			isolation_level=None,
