@@ -736,7 +736,7 @@ export default class GridRow {
 
 		this.grid.visible_columns.forEach((col, ci) => {
 			// to get update df for the row
-			let df = fields.find((field) => field?.fieldname === col[0].fieldname);
+			let df = this.get_column_docfield(fields, col[0].fieldname);
 
 			this.set_dependant_property(df);
 
@@ -821,6 +821,19 @@ export default class GridRow {
 			this.doc &&
 			!column.df.hidden
 		);
+	}
+
+	get_column_docfield(fields, fieldname) {
+		const column_df = fields.find((field) => field?.fieldname === fieldname);
+		const row_df = this.docfields?.find((df) => df.fieldname === fieldname);
+
+		if (!column_df || !row_df || column_df === row_df) return column_df;
+
+		row_df.width = column_df.width;
+		row_df.sticky = column_df.sticky;
+		row_df.in_list_view = column_df.in_list_view;
+
+		return row_df;
 	}
 
 	set_dependant_property(df) {
