@@ -187,25 +187,6 @@
 		position: absolute;
 		width: var(--sidebar-width);
 
-		.collapse-sidebar-link {
-			text-decoration: none;
-			font-size: var(--text-sm);
-			display: flex;
-			align-items: center;
-
-			svg {
-				margin: 0px;
-				flex: 0 0 auto;
-			}
-
-			span {
-				margin-left: 10px;
-				@include truncate();
-			}
-
-			@include transition(all, 0.3s, cubic-bezier(0.4, 0, 0.2, 1));
-		}
-
 		.nav-item {
 			padding: 4px 8px;
 		}
@@ -229,10 +210,6 @@
 	.body-sidebar-placeholder {
 		display: flex;
 		width: var(--sidebar-width);
-	}
-
-	.sidebar-resize-handle {
-		cursor: w-resize;
 	}
 }
 
@@ -306,67 +283,6 @@
 
 .overlay {
 	display: none;
-}
-
-.body-sidebar .sidebar-toggle-btn {
-	position: absolute;
-	right: -12px;
-	bottom: 80px;
-	width: 24px;
-	height: 24px;
-	border-radius: 50%;
-	border: 1px solid var(--sidebar-border-color);
-	background: var(--surface-sidebar);
-	box-shadow: 0 1px 4px rgba(0, 0, 0, 0.1);
-	display: flex;
-	align-items: center;
-	justify-content: center;
-	cursor: pointer;
-	padding: 0;
-	opacity: 0;
-	visibility: hidden;
-	transition: opacity 0.15s ease, visibility 0.15s ease;
-	z-index: 1023;
-
-	svg {
-		width: 12px;
-		height: 12px;
-	}
-
-	&:hover {
-		background: var(--sidebar-hover-color);
-	}
-}
-
-.body-sidebar:hover .sidebar-toggle-btn {
-	opacity: 1;
-	visibility: visible;
-}
-
-.sidebar-resize-handle {
-	position: absolute;
-	top: 0;
-	right: -4px;
-	width: 8px;
-	height: 100%;
-	z-index: 1022;
-	cursor: e-resize;
-
-	&::after {
-		content: "";
-		position: absolute;
-		left: 50%;
-		top: 0;
-		transform: translateX(-50%);
-		width: 2px;
-		height: 100%;
-		background: transparent;
-		transition: background 0.15s ease;
-	}
-
-	&:hover::after {
-		background: var(--ink-gray-2);
-	}
 }
 
 .section-break {

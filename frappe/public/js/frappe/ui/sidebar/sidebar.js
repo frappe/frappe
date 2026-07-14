@@ -345,7 +345,6 @@ frappe.ui.Sidebar = class Sidebar {
 	}
 
 	setup_events() {
-		const me = this;
 		frappe.router.on("change", function () {
 			// Resolve the app context from the route first, so `frappe.current_app` is correct
 			// before the sidebar/header renders below.
@@ -362,12 +361,6 @@ frappe.ui.Sidebar = class Sidebar {
 			frappe.app.sidebar.refresh_header();
 			// Keep the workspace dock in sync with the app context and the active workspace.
 			frappe.app.sidebar.refresh_dock();
-		});
-
-		frappe.ui.keys.add_shortcut({
-			shortcut: "ctrl+/",
-			action: () => me.toggle_width(),
-			description: __("Toggle sidebar"),
 		});
 	}
 
@@ -462,14 +455,6 @@ frappe.ui.Sidebar = class Sidebar {
 			})
 		).prependTo("body");
 		this.$sidebar = this.wrapper.find(".sidebar-items");
-
-		this.wrapper.find(".body-sidebar .sidebar-resize-handle").on("click", () => {
-			this.toggle_width();
-		});
-
-		this.wrapper.find(".body-sidebar .collapse-sidebar-link").on("click", () => {
-			this.toggle_width();
-		});
 
 		this.wrapper.find(".overlay").on("click", () => {
 			this.close();
@@ -636,22 +621,13 @@ frappe.ui.Sidebar = class Sidebar {
 
 	set_sidebar_state() {
 		this.load_sidebar_state();
-		if (this.workspace_sidebar_items.length === 0) {
-			this.sidebar_expanded = true;
-		}
-
 		this.expand_sidebar();
 	}
 
 	load_sidebar_state() {
-		this.sidebar_expanded = true;
-		if (localStorage.getItem("sidebar-expanded") !== null) {
-			this.sidebar_expanded = JSON.parse(localStorage.getItem("sidebar-expanded"));
-		}
-
-		if (frappe.is_mobile()) {
-			this.sidebar_expanded = false;
-		}
+		// The sidebar no longer collapses on desktop -- it is always expanded. On mobile it acts
+		// as a drawer that starts closed (opened via the navbar toggle).
+		this.sidebar_expanded = !frappe.is_mobile();
 	}
 	empty() {
 		if (this.wrapper.find(".sidebar-items")[0]) {
@@ -660,7 +636,6 @@ frappe.ui.Sidebar = class Sidebar {
 	}
 	make_sidebar() {
 		this.empty();
-		this.wrapper.find(".collapse-sidebar-link").removeClass("hidden");
 		this.create_sidebar(this.workspace_sidebar_items);
 
 		// Scroll sidebar to selected page if it is not in viewport.
@@ -682,7 +657,6 @@ frappe.ui.Sidebar = class Sidebar {
 				"<div class='flex' style='padding: 30px'> No Sidebar Items </div>"
 			);
 			this.wrapper.find(".sidebar-items").append(no_items_message);
-			this.wrapper.find(".collapse-sidebar-link").addClass("hidden");
 		}
 		this.handle_outside_click();
 	}
@@ -765,7 +739,6 @@ frappe.ui.Sidebar = class Sidebar {
 	}
 
 	expand_sidebar() {
-		const is_rtl = frappe.utils.is_rtl();
 		if (this.sidebar_expanded) {
 			this.wrapper.addClass("expanded");
 			$('[data-toggle="tooltip"]').tooltip("dispose");
@@ -784,18 +757,6 @@ frappe.ui.Sidebar = class Sidebar {
 			this.wrapper.find(".promotional-banner-title").hide();
 		}
 
-		localStorage.setItem("sidebar-expanded", this.sidebar_expanded);
-		const chevron_icon = this.sidebar_expanded
-			? is_rtl
-				? "chevron-right"
-				: "chevron-left"
-			: is_rtl
-			? "chevron-left"
-			: "chevron-right";
-		this.wrapper
-			.find(".body-sidebar .collapse-sidebar-link")
-			.find("use")
-			.attr("href", `#icon-${chevron_icon}`);
 		this.sidebar_header.toggle_width(this.sidebar_expanded);
 		$(document).trigger("sidebar-expand", {
 			sidebar_expand: this.sidebar_expanded,
