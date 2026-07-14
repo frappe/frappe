@@ -1087,3 +1087,62 @@ class TestPrintFormatGenerator(IntegrationTestCase):
 		with self.change_settings("Print Settings", show_label_colon=1):
 			body = get_html("ToDo", todo.name, pf.name).split("<body", 1)[1][:200]
 			self.assertIn("show-label-colon", body)
+
+	# ------------------------------------------------------------------ #
+	# repeating letterhead header / footer (repeat_header_footer setting)
+	# ------------------------------------------------------------------ #
+
+	def _make_letterhead(self):
+		"""Create a Letter Head with distinct header + footer markers."""
+		lh = frappe.get_doc(
+			{
+				"doctype": "Letter Head",
+				"letter_head_name": f"_Test PFG LH {frappe.generate_hash(length=6)}",
+				"source": "HTML",
+				"content": '<div class="pfg-lh">LETTERHEAD_TOP</div>',
+				"footer": '<div class="pfg-lf">LETTERHEAD_BOTTOM</div>',
+			}
+		)
+		lh.insert(ignore_permissions=True)
+		self.addCleanup(lh.delete, ignore_permissions=True)
+		return lh
+
+	def test_repeat_header_footer_on_repeats_letterhead_every_page(self):
+		"""With repeat_header_footer enabled, the letterhead header and footer are placed
+		in the #header-html / #footer-html overlay divs that Chrome stamps on every page,
+		and are NOT also rendered inline in the body (which would appear once only)."""
+		from frappe.utils.print_format_generator import PrintFormatGenerator
+
+		lh = self._make_letterhead()
+		pf = self._make_print_format()
+		todo = self._make_todo()
+
+		with self.change_settings("Print Settings", repeat_header_footer=1):
+			gen = PrintFormatGenerator(pf.name, todo, lh.name)
+			gen._build_html_for_chrome()
+
+		self.assertIn('id="header-html"', gen.context.header)
+		self.assertIn("LETTERHEAD_TOP", gen.context.header)
+		self.assertIn('id="footer-html"', gen.context.footer)
+		self.assertIn("LETTERHEAD_BOTTOM", gen.context.footer)
+		self.assertEqual(gen.context.chrome_layout_header, "")
+		self.assertEqual(gen.context.chrome_layout_footer, "")
+
+	def test_repeat_header_footer_off_renders_letterhead_once(self):
+		"""With repeat_header_footer disabled, the letterhead header renders inline once
+		(top of body → first page) and the footer inline once (end of body → last page);
+		neither goes into the repeating #header-html / #footer-html overlay."""
+		from frappe.utils.print_format_generator import PrintFormatGenerator
+
+		lh = self._make_letterhead()
+		pf = self._make_print_format()
+		todo = self._make_todo()
+
+		with self.change_settings("Print Settings", repeat_header_footer=0):
+			gen = PrintFormatGenerator(pf.name, todo, lh.name)
+			gen._build_html_for_chrome()
+
+		self.assertIn("LETTERHEAD_TOP", gen.context.chrome_layout_header)
+		self.assertIn("LETTERHEAD_BOTTOM", gen.context.chrome_layout_footer)
+		self.assertNotIn("LETTERHEAD_TOP", gen.context.header or "")
+		self.assertNotIn("LETTERHEAD_BOTTOM", gen.context.footer or "")
