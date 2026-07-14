@@ -44,6 +44,10 @@ def make_request(
 	kwargs: dict | None = None,
 	site: str | None = None,
 ) -> TestResponse:
+	# release the write lock before the request thread needs it (SQLite single-writer)
+	if frappe.db and frappe.db.db_type == "sqlite":
+		frappe.db.commit()
+
 	t = ThreadWithReturnValue(target=target, args=args, kwargs=kwargs, site=site)
 	t.start()
 	t.join()
@@ -69,7 +73,14 @@ class ThreadWithReturnValue(Thread):
 				header_patch = patch("frappe.get_request_header", new=patch_request_header)
 				if authorization_token:
 					header_patch.start()
-				self._return = self._target(*self._args, **self._kwargs)
+				try:
+					self._return = self._target(*self._args, **self._kwargs)
+				finally:
+					# the test client never closes the response, so frappe.destroy doesn't run;
+					# close the connection here or SQLite's write lock leaks into the next request
+					db = getattr(frappe.local, "db", None)
+					if db and db.db_type == "sqlite":
+						db.close()
 				if authorization_token:
 					header_patch.stop()
 

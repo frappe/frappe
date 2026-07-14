@@ -1,3 +1,5 @@
+from unittest import skipIf
+
 import frappe
 from frappe.tests import IntegrationTestCase
 
@@ -18,6 +20,10 @@ class TestSequence(IntegrationTestCase):
 		frappe.db.set_next_sequence_val(seq_name, next_val + 1, is_val_used=True)
 		self.assertEqual(next_val + 2, frappe.db.get_next_sequence_val(seq_name))
 
+	# SQLite emulates sequences with a simple monotonic counter (__sequences table) -- enough for
+	# autoname="autoincrement" doctypes, which only need increment-by-one -- but it doesn't model
+	# Postgres' cycle / min_value / max_value / increment_by that this test exercises.
+	@skipIf(frappe.conf.db_type == "sqlite", "sequence cycle/bounds/increment are not emulated")
 	def test_create_sequence(self):
 		seq_name = self.generate_sequence_name()
 		frappe.db.create_sequence(seq_name, max_value=2, cycle=True, temporary=True)

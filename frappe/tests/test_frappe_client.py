@@ -10,9 +10,12 @@ from frappe.core.doctype.user.user import generate_keys
 from frappe.frappeclient import FrappeClient, FrappeException
 from frappe.model import default_fields
 from frappe.tests import IntegrationTestCase
+from frappe.tests.test_query_builder import db_type_is, unimplemented_for
 from frappe.utils.data import get_url
 
 
+# single-writer deadlock: every test holds the write lock across a real HTTP request to the server
+@unimplemented_for(db_type_is.SQLITE)
 class TestFrappeClient(IntegrationTestCase):
 	PASSWORD = frappe.conf.admin_password or "admin"
 

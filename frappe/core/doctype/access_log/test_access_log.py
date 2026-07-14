@@ -15,6 +15,7 @@ from frappe.core.doctype.user.user import generate_keys
 
 # imports - standard imports
 from frappe.tests import IntegrationTestCase
+from frappe.tests.test_query_builder import db_type_is, unimplemented_for
 from frappe.utils import cstr, get_site_url
 
 
@@ -141,6 +142,8 @@ class TestAccessLog(IntegrationTestCase):
 		last_doc = frappe.get_last_doc("Access Log")
 		self.assertEqual(self.test_doctype, last_doc.export_from)
 
+	# single-writer deadlock: holds a write lock across a synchronous server request
+	@unimplemented_for(db_type_is.SQLITE)
 	def test_private_file_download(self):
 		# create new private file
 		new_private_file = frappe.get_doc(

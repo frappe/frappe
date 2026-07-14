@@ -94,14 +94,23 @@ class TestRecorder(IntegrationTestCase):
 
 	def test_multiple_queries(self):
 		queries = [
-			{"mariadb": "SELECT * FROM tabDocType", "postgres": 'SELECT * FROM "tabDocType"'},
-			{"mariadb": "SELECT COUNT(*) FROM tabDocType", "postgres": 'SELECT COUNT(*) FROM "tabDocType"'},
-			{"mariadb": "COMMIT", "postgres": "COMMIT"},
+			{
+				"mariadb": "SELECT * FROM tabDocType",
+				"postgres": 'SELECT * FROM "tabDocType"',
+				"sqlite": 'SELECT * FROM "tabDocType"',
+			},
+			{
+				"mariadb": "SELECT COUNT(*) FROM tabDocType",
+				"postgres": 'SELECT COUNT(*) FROM "tabDocType"',
+				"sqlite": 'SELECT COUNT(*) FROM "tabDocType"',
+			},
+			{"mariadb": "COMMIT", "postgres": "COMMIT", "sqlite": "COMMIT"},
 		]
 
 		sql_dialect = frappe.db.db_type or "mariadb"
 		for query in queries:
-			frappe.db.sql(query[sql_dialect])
+			# these queries are portable, so SQLite reuses the MariaDB form
+			frappe.db.sql(query.get(sql_dialect, query["mariadb"]))
 
 		self.stop_recording()
 
@@ -114,7 +123,10 @@ class TestRecorder(IntegrationTestCase):
 			self.assertEqual(
 				call["query"],
 				sqlparse.format(
-					query[sql_dialect].strip(), keyword_case="upper", reindent=True, strip_comments=True
+					query.get(sql_dialect, query["mariadb"]).strip(),
+					keyword_case="upper",
+					reindent=True,
+					strip_comments=True,
 				),
 			)
 

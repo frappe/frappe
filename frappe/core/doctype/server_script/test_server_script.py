@@ -7,6 +7,7 @@ from frappe.core.doctype.scheduled_job_type.scheduled_job_type import ScheduledJ
 from frappe.core.doctype.server_script.server_script import ServerScript
 from frappe.frappeclient import FrappeClient, FrappeException
 from frappe.tests import IntegrationTestCase
+from frappe.tests.test_query_builder import db_type_is, unimplemented_for
 from frappe.utils import get_site_url
 
 scripts = [
@@ -148,6 +149,8 @@ class TestServerScript(IntegrationTestCase):
 		self.assertEqual(role.disabled, 1)
 		self.assertEqual(role.desk_access, 0)
 
+	# single-writer deadlock: holds the write lock across a real HTTP request to the server
+	@unimplemented_for(db_type_is.SQLITE)
 	def test_api(self):
 		response = requests.post(get_site_url(frappe.local.site) + "/api/method/test_server_script")
 		self.assertEqual(response.status_code, 200)

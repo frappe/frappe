@@ -811,6 +811,7 @@ class TestDocType(IntegrationTestCase):
 	@unittest.skipUnless(
 		os.access(frappe.get_app_path("frappe"), os.W_OK), "Only run if frappe app paths is writable"
 	)
+	@skipIf(frappe.conf.db_type == "sqlite", "worker can't commit while the test holds the write lock")
 	@patch.dict(frappe.conf, {"developer_mode": 1})
 	def test_delete_orphaned_doctypes(self):
 		doctype = new_doctype(custom=0).insert()

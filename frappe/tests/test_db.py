@@ -36,6 +36,7 @@ class TestDB(IntegrationTestCase):
 	def test_get_database_size(self):
 		self.assertIsInstance(frappe.db.get_database_size(), (float, int))
 
+	@unimplemented_for(db_type_is.SQLITE)
 	def test_db_statement_execution_timeout(self):
 		frappe.db.set_execution_timeout(2)
 		# Setting 0 means no timeout.
@@ -78,10 +79,14 @@ class TestDB(IntegrationTestCase):
 			frappe.db.get_value("User", {}, [{"MIN": "name"}], order_by=None),
 			frappe.db.sql("SELECT Min(name) FROM tabUser")[0][0],
 		)
-		self.assertIn(
-			"for update",
-			frappe.db.get_value("User", Field("name") == "Administrator", for_update=True, run=False).lower(),
-		)
+		for_update_query = frappe.db.get_value(
+			"User", Field("name") == "Administrator", for_update=True, run=False
+		).lower()
+		if frappe.db.db_type == "sqlite":
+			# SQLite has no row-level locking; the FOR UPDATE clause is stripped.
+			self.assertNotIn("for update", for_update_query)
+		else:
+			self.assertIn("for update", for_update_query)
 		user_doctype = frappe.qb.DocType("User")
 		self.assertEqual(
 			frappe.qb.from_(user_doctype).select(user_doctype.name, user_doctype.email).run(),
@@ -130,10 +135,13 @@ class TestDB(IntegrationTestCase):
 		)
 
 		# test multiple orderby's
-		delimiter = '"' if frappe.db.db_type == "postgres" else "`"
+		delimiter = "`" if frappe.db.db_type == "mariadb" else '"'
+		# SQLite's query builder tags each ORDER BY term with COLLATE NOCASE so text sorts
+		# case-insensitively, matching MariaDB's default collation.
+		collate = " COLLATE NOCASE" if frappe.db.db_type == "sqlite" else ""
 		self.assertIn(
-			"ORDER BY {deli}creation{deli} DESC,{deli}modified{deli} ASC,{deli}name{deli} DESC".format(
-				deli=delimiter
+			"ORDER BY {d}creation{d}{c} DESC,{d}modified{d}{c} ASC,{d}name{d}{c} DESC".format(
+				d=delimiter, c=collate
 			),
 			frappe.db.get_value("DocType", "DocField", order_by="creation desc, modified asc, name", run=0),
 		)
@@ -344,6 +352,18 @@ class TestDB(IntegrationTestCase):
 				"FORTRAN",
 				"STABLE",
 			],
+			"sqlite": [
+				"ORDER",
+				"SELECT",
+				"WHERE",
+				"TABLE",
+				"INDEX",
+				"ALTER",
+				"GROUP",
+				"WHEN",
+				"UNION",
+				"VALUES",
+			],
 		}
 		created_docs = []
 
@@ -410,9 +430,16 @@ class TestDB(IntegrationTestCase):
 			),
 			random_field,
 		)
+		if frappe.conf.db_type == "postgres":
+			count_alias = "count"
+		elif frappe.conf.db_type == "sqlite":
+			# backticks are rewritten to double-quoted identifiers
+			count_alias = f'COUNT("{random_field}")'
+		else:
+			count_alias = f"COUNT(`{random_field}`)"
 		self.assertEqual(
 			next(iter(frappe.get_all("ToDo", fields=[{"COUNT": random_field}], limit=1, order_by=None)[0])),
-			"count" if frappe.conf.db_type == "postgres" else f"COUNT(`{random_field}`)",
+			count_alias,
 		)
 
 		# Testing update
@@ -1196,6 +1223,10 @@ class TestReplicaConnections(IntegrationTestCase):
 			self.assertEqual(write_connection, db_id())
 
 
+# Row-level locking (FOR UPDATE / skip_locked / NOWAIT) and the two-connection contention
+# semantics these tests assert don't exist on SQLite, which serializes all writers behind a
+# single database-wide write lock; a second writer just blocks until busy_timeout.
+@unimplemented_for(db_type_is.SQLITE)
 class TestConcurrency(IntegrationTestCase):
 	@timeout(5, "There shouldn't be any lock wait")
 	def test_skip_locking(self):
@@ -1521,6 +1552,9 @@ class TestPostgresSchemaQueryIndependence(ExtIntegrationTestCase):
 		del frappe.conf["db_schema"]
 
 
+# SQLite is a local file with no server, host, user or password, so wrong DB credentials
+# supplied via env vars have nothing to fail against (a bad db name just opens a new file).
+@unimplemented_for(db_type_is.SQLITE)
 class TestDbConnectWithEnvCredentials(IntegrationTestCase):
 	current_site = frappe.local.site
 

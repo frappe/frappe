@@ -11,11 +11,13 @@ from frappe.custom.doctype.property_setter.property_setter import (
 from frappe.database import savepoint
 from frappe.query_builder.utils import db_type_is
 from frappe.tests import IntegrationTestCase
-from frappe.tests.test_query_builder import run_only_if
+from frappe.tests.test_query_builder import run_only_if, unimplemented_for
 from frappe.utils import cstr
 
 
 class TestDBUpdate(IntegrationTestCase):
+	# asserts varchar/text/int column types, which SQLite's TEXT/INTEGER/REAL affinity doesn't have
+	@unimplemented_for(db_type_is.SQLITE)
 	def test_db_update(self):
 		doctype = "User"
 		frappe.reload_doctype("User", force=True)
@@ -45,6 +47,9 @@ class TestDBUpdate(IntegrationTestCase):
 			self.assertIn(fieldtype, table_column.type, msg=f"Types not matching for {fieldname}")
 			self.assertIn(cstr(table_column.default) or "NULL", [cstr(default), f"'{default}'"])
 
+	# asserts index/unique flags via column introspection, keyed on lowercase type names SQLite's
+	# TEXT affinity lacks (index creation itself is covered by the test_unique_index_on_* tests)
+	@unimplemented_for(db_type_is.SQLITE)
 	def test_index_and_unique_constraints(self):
 		doctype = "User"
 		frappe.reload_doctype("User", force=True)
@@ -130,10 +135,21 @@ class TestDBUpdate(IntegrationTestCase):
 				f"""show index from `tab{doctype}` where column_name = '{field}' and Non_unique = 0""",
 				as_dict=1,
 			)
+		elif frappe.db.db_type == "sqlite":
+			# unique single-column indexes covering `field`
+			indexes = []
+			for idx in frappe.db.sql(f"PRAGMA index_list(`tab{doctype}`)", as_dict=1):
+				if not idx.get("unique"):
+					continue
+				cols = frappe.db.sql(f"PRAGMA index_info(`{idx['name']}`)", as_dict=1)
+				if len(cols) == 1 and cols[0]["name"] == field:
+					indexes.append(idx)
 		self.assertEqual(
 			len(indexes), 1, msg=f"There should be 1 index on {doctype}.{field}, found {indexes}"
 		)
 
+	# SQLite's INTEGER is unbounded, so there's no width overflow to raise on
+	@unimplemented_for(db_type_is.SQLITE)
 	def test_bigint_conversion(self):
 		doctype = new_doctype(fields=[{"fieldname": "int_field", "fieldtype": "Int"}]).insert()
 
@@ -206,6 +222,8 @@ class TestDBUpdate(IntegrationTestCase):
 			doctype.delete(force=True)
 			frappe.db.commit()  # nosemgrep
 
+	# SQLite has no uuid column type; autoname=UUID stores plain TEXT.
+	@unimplemented_for(db_type_is.SQLITE)
 	def test_uuid_varchar_migration(self):
 		doctype = new_doctype().insert()
 		doctype.autoname = "UUID"
@@ -220,6 +238,8 @@ class TestDBUpdate(IntegrationTestCase):
 		self.assertIn(varchar, frappe.db.get_column_type(doctype.name, "name"))
 		doc.reload()  # ensure that docs are still accesible
 
+	# SQLite has no uuid column type; a Link to a UUID-named doctype is plain TEXT.
+	@unimplemented_for(db_type_is.SQLITE)
 	def test_uuid_link_field(self):
 		uuid_doctype = new_doctype().update({"autoname": "UUID"}).insert()
 		self.assertEqual(frappe.db.get_column_type(uuid_doctype.name, "name"), "uuid")
@@ -231,6 +251,8 @@ class TestDBUpdate(IntegrationTestCase):
 
 		self.assertEqual(frappe.db.get_column_type(referring_doctype.name, link), "uuid")
 
+	# needs information_schema column lengths, which SQLite has no equivalent for
+	@unimplemented_for(db_type_is.SQLITE)
 	def test_varchar_length(self):
 		from frappe.database.schema import add_column
 

@@ -5,6 +5,7 @@ import frappe
 from frappe.core.doctype.doctype.test_doctype import new_doctype
 from frappe.tests import IntegrationTestCase
 from frappe.tests.test_api import FrappeAPITestCase
+from frappe.tests.test_query_builder import db_type_is, unimplemented_for
 from frappe.tests.utils import whitelist_for_tests
 from frappe.utils.caching import redis_cache, request_cache, site_cache
 
@@ -90,6 +91,8 @@ class TestCachingUtils(IntegrationTestCase):
 			self.assertEqual(external_service.call_count, 2)
 
 
+# single-writer deadlock under the full suite: sequential HTTP requests contend on the write lock
+@unimplemented_for(db_type_is.SQLITE)
 class TestSiteCache(FrappeAPITestCase):
 	def test_site_cache(self):
 		module = __name__
