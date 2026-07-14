@@ -13,6 +13,15 @@
 	margin-bottom: {{ print_format.margin_bottom | int }}mm;
 	margin-left: {{ print_format.margin_left | int }}mm;
 	margin-right: {{ print_format.margin_right | int }}mm;
+{%- elif repeat_frame %}
+	margin-top: {{ print_format.margin_top | int }}mm;
+	margin-bottom: {{ print_format.margin_bottom | int }}mm;
+	margin-left: {{ print_format.margin_left | int }}mm;
+	margin-right: {{ print_format.margin_right | int }}mm;
+	{%- set page_number_position = print_format.page_number.lower().replace(' ', '_') %}
+	{%- if page_number_position in ['top_left', 'top_center', 'top_right', 'bottom_left', 'bottom_center', 'bottom_right'] %}
+	{{ render_margin_text(page_number_position, _('{0} of {1}').format('counter(page) "', '" counter(pages)')) }}
+	{%- endif %}
 {%- else %}
 	{#- Browser print: keep page margins at 0 and put the format's margins on the
 	   body as padding, so spacing survives the browser "Margins: None" setting. -#}
@@ -39,7 +48,9 @@ body {
 	min-width: {{ page_width | int }}mm !important;
 	max-width: {{ page_width | int }}mm !important;
 	margin: 0 auto;
+	{%- if not repeat_frame %}
 	padding: {{ print_format.margin_top | int }}mm {{ print_format.margin_right | int }}mm {{ print_format.margin_bottom | int }}mm {{ print_format.margin_left | int }}mm;
+	{%- endif %}
 {%- endif %}
 }
 
@@ -54,7 +65,31 @@ body {
 		min-height: 297mm;
 		height: min-content;
 	}
+	{%- if repeat_frame %}
+	body {
+		padding: {{ print_format.margin_top | int }}mm {{ print_format.margin_right | int }}mm {{ print_format.margin_bottom | int }}mm {{ print_format.margin_left | int }}mm;
+	}
+	{%- endif %}
 }
+
+{%- if repeat_frame %}
+.print-repeating-frame {
+	width: 100%;
+	border-collapse: collapse;
+}
+.print-repeating-frame > thead {
+	display: table-header-group;
+}
+.print-repeating-frame > tfoot {
+	display: table-footer-group;
+}
+.print-repeating-frame > thead > tr > td,
+.print-repeating-frame > tfoot > tr > td,
+.print-repeating-frame > tbody > tr > td {
+	padding: 0;
+	border: none;
+}
+{%- endif %}
 
 {%- if action_banner %}
 @media screen {

@@ -132,9 +132,20 @@ class PrintFormatGenerator:
 	# ----- HTML preview (browser printview) ------------------------------
 
 	def get_html_preview(self, action_banner=None, trigger_print=False):
-		header_html, footer_html = self.get_header_footer_html()
-		self.context.header = header_html
-		self.context.footer = footer_html
+		repeat = self.print_settings.repeat_header_footer
+		frame_header = self._render_overlay("header", with_page_no=False) if repeat else None
+		frame_footer = self._render_overlay("footer", with_page_no=False) if repeat else None
+		if repeat and (frame_header or frame_footer):
+			self.context.repeat_frame = True
+			self.context.frame_header = frame_header or ""
+			self.context.frame_footer = frame_footer or ""
+			self.context.header = ""
+			self.context.footer = ""
+		else:
+			self.context.repeat_frame = False
+			header_html, footer_html = self.get_header_footer_html()
+			self.context.header = header_html
+			self.context.footer = footer_html
 		self.context.action_banner = action_banner
 		if trigger_print:
 			from frappe.www.printview import trigger_print_script
@@ -188,6 +199,7 @@ class PrintFormatGenerator:
 		    overlay so they continue to repeat on every page if the user enabled them.
 		"""
 		self.context.for_chrome = True
+		self.context.repeat_frame = False
 		self.context.header_height = 0
 		self.context.footer_height = 0
 

@@ -1146,3 +1146,34 @@ class TestPrintFormatGenerator(IntegrationTestCase):
 		self.assertIn("LETTERHEAD_BOTTOM", gen.context.chrome_layout_footer)
 		self.assertNotIn("LETTERHEAD_TOP", gen.context.header or "")
 		self.assertNotIn("LETTERHEAD_BOTTOM", gen.context.footer or "")
+
+	def test_browser_print_wraps_letterhead_in_repeating_frame(self):
+		"""With repeat_header_footer on, the browser-print HTML wraps the body in a
+		thead/tfoot table (display: table-header-group) so the browser reprints the
+		letterhead header and footer on every page."""
+		from frappe.utils.print_format_generator import get_html
+
+		lh = self._make_letterhead()
+		pf = self._make_print_format()
+		todo = self._make_todo()
+		with self.change_settings("Print Settings", repeat_header_footer=1):
+			html = get_html("ToDo", todo.name, pf.name, lh.name)
+
+		self.assertIn("print-repeating-frame", html)
+		self.assertIn("table-header-group", html)
+		self.assertIn("LETTERHEAD_TOP", html)
+		self.assertIn("LETTERHEAD_BOTTOM", html)
+
+	def test_browser_print_no_repeating_frame_when_off(self):
+		"""With repeat_header_footer off, the browser-print HTML is not wrapped in the
+		repeating table — the letterhead renders inline once."""
+		from frappe.utils.print_format_generator import get_html
+
+		lh = self._make_letterhead()
+		pf = self._make_print_format()
+		todo = self._make_todo()
+		with self.change_settings("Print Settings", repeat_header_footer=0):
+			html = get_html("ToDo", todo.name, pf.name, lh.name)
+
+		self.assertNotIn("print-repeating-frame", html)
+		self.assertIn("LETTERHEAD_TOP", html)
