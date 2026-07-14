@@ -471,8 +471,16 @@ const useStudioStore = defineStore("store", () => {
 	})
 
 	function loadRouteVariables(page: StudioPage) {
-		const stored = localStorage.getItem(`${page.name}:routeVariables`)
-		routeVariables.value = stored ? JSON.parse(stored) : {}
+		const key = `${page.name}:routeVariables`
+		try {
+			const stored = localStorage.getItem(key)
+			const parsed = stored ? JSON.parse(stored) : null
+			routeVariables.value = parsed && typeof parsed === "object" && !Array.isArray(parsed) ? parsed : {}
+		} catch (error) {
+			console.error(`Failed to parse route variables for ${page.name}, resetting`, error)
+			routeVariables.value = {}
+			localStorage.removeItem(key)
+		}
 	}
 
 	async function setRouteVariable(name: string, value: string) {
