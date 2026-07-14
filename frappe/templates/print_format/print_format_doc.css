@@ -1,17 +1,10 @@
-/* Fix bootstrap column rendering in PDF */
-@media print {
-	.print-format-doc .col, .print-format-doc *[class^="col-"] {
-		max-width: none !important;
-	}
-	.print-format-doc .label {
-		border: none;
-	}
+/* Applied in every media (not just @media print) so the on-screen preview
+   lays columns and tables out exactly like the PDF. */
+.print-format-doc .col, .print-format-doc *[class^="col-"] {
+	max-width: none !important;
 }
-
-@media screen {
-	.print-format-doc .child-table {
-		overflow-x: auto;
-	}
+.print-format-doc .label {
+	border: none;
 }
 
 /* em only, never rem (the canvas rem root is the desk page); values inside a
