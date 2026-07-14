@@ -71,6 +71,7 @@ class TestDispatch(IntegrationTestCase):
 	def setUpClass(cls):
 		super().setUpClass()
 		sync_builtin_tools()
+		cls.enterClassContext(cls.enable_safe_exec())
 
 	def setUp(self):
 		self.model = frappe.get_doc(_model()).insert()
@@ -140,6 +141,39 @@ class TestDispatch(IntegrationTestCase):
 		with patch("frappe.enqueue") as enqueue:
 			dispatch(closed_doc, "after_insert")
 		enqueue.assert_called_once()
+
+	def test_dispatch_evaluates_multiline_condition(self):
+		self.trigger.condition = (
+			"status = frappe.db.get_value('ToDo', doc.name, 'status')\nresult = status == 'Closed'"
+		)
+		self.trigger.save()
+		open_doc = frappe.get_doc({"doctype": "ToDo", "description": "open one"}).insert()
+		closed_doc = frappe.get_doc(
+			{"doctype": "ToDo", "description": "closed one", "status": "Closed"}
+		).insert()
+
+		with patch("frappe.enqueue") as enqueue:
+			dispatch(open_doc, "after_insert")
+		enqueue.assert_not_called()
+
+		with patch("frappe.enqueue") as enqueue:
+			dispatch(closed_doc, "after_insert")
+		enqueue.assert_called_once()
+
+	def test_condition_runtime_error_skips_trigger(self):
+		self.trigger.condition = "doc.status.no_such_method()"
+		self.trigger.save()
+		doc = frappe.get_doc({"doctype": "ToDo", "description": "boom"}).insert()
+
+		with patch("frappe.enqueue") as enqueue:
+			dispatch(doc, "after_insert")
+
+		enqueue.assert_not_called()
+
+	def test_condition_script_without_result_rejected_on_save(self):
+		self.trigger.condition = "status = doc.status"
+		with self.assertRaisesRegex(frappe.ValidationError, "result"):
+			self.trigger.save()
 
 	def test_disabled_trigger_does_not_dispatch(self):
 		self.trigger.enabled = 0
@@ -220,6 +254,7 @@ class TestFire(IntegrationTestCase):
 	def setUpClass(cls):
 		super().setUpClass()
 		sync_builtin_tools()
+		cls.enterClassContext(cls.enable_safe_exec())
 
 	def setUp(self):
 		self.model = frappe.get_doc(_model()).insert()
@@ -244,6 +279,71 @@ class TestFire(IntegrationTestCase):
 		self.assertIn(todo.name, run.input)
 		self.assertEqual(run.reference_doctype, "ToDo")
 		self.assertEqual(run.reference_name, todo.name)
+
+	def test_fire_runs_as_trigger_owner_not_triggering_user(self):
+		# Helpdesk scenario: a low-privilege user (no Flow Agent access) fires the trigger by
+		# creating a doc; the agent must still run, with the owner's authority.
+		owner = frappe.get_doc(
+			{
+				"doctype": "User",
+				"email": "trigger-owner@example.com",
+				"first_name": "Owner",
+				"roles": [{"role": "System Manager"}],
+			}
+		).insert(ignore_permissions=True)
+		customer = frappe.get_doc(
+			{"doctype": "User", "email": "trigger-customer@example.com", "first_name": "Cust"}
+		).insert(ignore_permissions=True)
+		frappe.db.set_value("Flow Trigger", self.trigger.name, "owner", owner.name)
+		todo = frappe.get_doc({"doctype": "ToDo", "description": "help me"}).insert()
+
+		frappe.set_user(customer.name)
+		try:
+			with patch.object(Model, "chat", return_value=_final("done")):
+				run_name = fire(self.trigger.name, target_doctype="ToDo", target_name=todo.name)
+		finally:
+			frappe.set_user("Administrator")
+
+		self.assertIsNotNone(run_name)
+		run = frappe.get_doc("Flow Run", run_name)
+		self.assertEqual(run.status, "Completed")
+		self.assertEqual(run.owner, owner.name)
+		self.assertEqual(frappe.get_doc("Flow Session", run.session).owner, owner.name)
+
+	def test_fire_runs_as_configured_run_as_user(self):
+		# run_as overrides the owner: the agent runs with that user's scope.
+		service_user = frappe.get_doc(
+			{
+				"doctype": "User",
+				"email": "trigger-service@example.com",
+				"first_name": "Service",
+				"roles": [{"role": "System Manager"}],
+			}
+		).insert(ignore_permissions=True)
+		self.trigger.run_as = service_user.name
+		self.trigger.save()
+		todo = frappe.get_doc({"doctype": "ToDo", "description": "run-as"}).insert()
+
+		with patch.object(Model, "chat", return_value=_final("done")):
+			run_name = fire(self.trigger.name, target_doctype="ToDo", target_name=todo.name)
+
+		run = frappe.get_doc("Flow Run", run_name)
+		self.assertEqual(run.owner, service_user.name)
+		self.assertEqual(run.status, "Completed")
+
+	def test_run_as_disabled_user_rejected(self):
+		disabled = frappe.get_doc(
+			{"doctype": "User", "email": "trigger-disabled@example.com", "first_name": "Off", "enabled": 0}
+		).insert(ignore_permissions=True)
+		self.trigger.run_as = disabled.name
+		with self.assertRaisesRegex(frappe.ValidationError, "Run As must be an enabled user"):
+			self.trigger.save()
+
+	def test_fire_restores_the_original_user(self):
+		todo = frappe.get_doc({"doctype": "ToDo", "description": "restore"}).insert()
+		with patch.object(Model, "chat", return_value=_final("done")):
+			fire(self.trigger.name, target_doctype="ToDo", target_name=todo.name)
+		self.assertEqual(frappe.session.user, "Administrator")
 
 	def _execute_then_final(self):
 		from flow.lib.model import ToolCall

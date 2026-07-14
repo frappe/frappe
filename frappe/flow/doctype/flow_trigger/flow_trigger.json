@@ -12,6 +12,7 @@
   "agent",
   "event",
   "auto_approve",
+  "run_as",
   "section_break_when",
   "target_doctype",
   "doc_event",
@@ -73,6 +74,13 @@
    "label": "Auto Approve Tool Calls"
   },
   {
+   "description": "Run the agent as this user, so its tools act with a defined, least-privilege permission scope. Defaults to the trigger's owner when empty. Prefer a purpose-scoped service user over a full administrator.",
+   "fieldname": "run_as",
+   "fieldtype": "Link",
+   "label": "Run As",
+   "options": "User"
+  },
+  {
    "fieldname": "section_break_when",
    "fieldtype": "Section Break",
    "label": "When"
@@ -123,7 +131,7 @@
    "label": "Condition"
   },
   {
-   "description": "Optional Python expression. For DocType events, <code>doc</code> is in scope. Trigger only fires if the expression is truthy, e.g. <code>doc.status == \"Open\" and doc.priority == \"High\"</code>",
+   "description": "Optional Python condition; the trigger fires only if it is truthy. A single expression (e.g. <code>doc.status == \"Open\"</code>) or a script that sets <code>result</code>. Runs in the server-script sandbox with <code>doc</code> in scope for DocType events.",
    "fieldname": "condition",
    "fieldtype": "Code",
    "label": "Condition",
@@ -150,7 +158,7 @@
    "link_fieldname": "trigger"
   }
  ],
- "modified": "2026-07-04 00:00:01.000000",
+ "modified": "2026-07-14 00:00:00.000000",
  "modified_by": "Administrator",
  "module": "Flow",
  "name": "Flow Trigger",

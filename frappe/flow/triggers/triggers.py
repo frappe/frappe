@@ -70,26 +70,32 @@ def fire(
 	if not t.enabled:
 		return None
 
-	doc = None
-	if target_doctype and target_name:
-		try:
-			doc = frappe.get_doc(target_doctype, target_name)
-		except frappe.DoesNotExistError:
-			return None
-		if t.condition and not _eval_condition(t.condition, doc):
-			return None
+	# A trigger runs as its configured `run_as` user (falling back to the owner)
+	original_user = frappe.session.user
+	frappe.set_user(t.run_as or t.owner)
+	try:
+		doc = None
+		if target_doctype and target_name:
+			try:
+				doc = frappe.get_doc(target_doctype, target_name)
+			except frappe.DoesNotExistError:
+				return None
+			if t.condition and not _eval_condition(t.condition, doc):
+				return None
 
-	prompt = frappe.render_template(t.prompt_template, {"doc": doc, "now": frappe.utils.now_datetime()})
-	agent_doc = frappe.get_doc("Flow Agent", t.agent)
-	run = agent_doc.run(
-		prompt,
-		source="Trigger",
-		trigger=t.name,
-		reference_doctype=target_doctype if doc else None,
-		reference_name=target_name if doc else None,
-		auto_approve=bool(t.auto_approve),
-	)
-	return run.name
+		prompt = frappe.render_template(t.prompt_template, {"doc": doc, "now": frappe.utils.now_datetime()})
+		agent_doc = frappe.get_doc("Flow Agent", t.agent)
+		run = agent_doc.run(
+			prompt,
+			source="Trigger",
+			trigger=t.name,
+			reference_doctype=target_doctype if doc else None,
+			reference_name=target_name if doc else None,
+			auto_approve=bool(t.auto_approve),
+		)
+		return run.name
+	finally:
+		frappe.set_user(original_user)
 
 
 def _doctype_triggers(target_doctype: str, doc_event: str) -> list:
@@ -106,10 +112,13 @@ def _doctype_triggers(target_doctype: str, doc_event: str) -> list:
 
 
 def _eval_condition(condition: str, doc: Document) -> bool:
-	from frappe.integrations.doctype.webhook.webhook import get_context
+	from frappe.utils.safe_exec import get_safe_globals
 
+	from flow.utils.conditions import evaluate_condition
+
+	context = {"doc": doc, "utils": get_safe_globals().get("frappe").get("utils")}
 	try:
-		return bool(frappe.safe_eval(condition, eval_locals=get_context(doc)))
+		return evaluate_condition(condition, context)
 	except Exception:
 		frappe.log_error(title="Flow Trigger condition eval failed")
 		return False
