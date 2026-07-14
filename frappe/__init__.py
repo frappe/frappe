@@ -289,6 +289,7 @@ def connect(site: str | None = None, db_name: str | None = None, set_admin_as_us
 		password=local.conf.db_password,
 		cur_db_name=local.conf.db_name or db_name,
 	)
+
 	if set_admin_as_user:
 		set_user("Administrator")
 
