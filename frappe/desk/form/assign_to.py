@@ -14,7 +14,7 @@ from frappe.desk.doctype.notification_log.notification_log import (
 	get_title,
 	get_title_html,
 )
-from frappe.desk.form.document_follow import follow_document
+from frappe.desk.form.document_follow import _follow_document
 from frappe.utils.data import strip_html
 
 
@@ -118,7 +118,9 @@ def _add(args=None, *, ignore_permissions=False):
 
 			# make this document followed by assigned user
 			if frappe.get_cached_value("User", assign_to, "follow_assigned_documents"):
-				follow_document(args["doctype"], args["name"], assign_to)
+				_follow_document(
+					args["doctype"], args["name"], assign_to, ignore_permissions=ignore_permissions
+				)
 
 			# notify
 			notify_assignment(

@@ -796,8 +796,12 @@ class FilterArea {
 
 			// set in list view area if filters are present
 			// don't set like filter on link fields (gets reset)
+			// a Check standard filter is a checkbox that can't hold "= 0", so keep it as a regular filter
+			const is_unchecked_check =
+				fields_dict[fieldname]?.df?.fieldtype === "Check" && !cint(value);
 			if (
 				fields_dict[fieldname] &&
+				!is_unchecked_check &&
 				(condition === "=" ||
 					(condition === "like" && fields_dict[fieldname]?.df?.fieldtype != "Link") ||
 					(condition === "descendants of (inclusive)" &&

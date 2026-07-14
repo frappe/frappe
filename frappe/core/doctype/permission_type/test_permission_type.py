@@ -73,6 +73,27 @@ class IntegrationTestPermissionType(IntegrationTestCase):
 			if frappe.db.exists("Permission Type", ptype_b.name):
 				frappe.delete_doc("Permission Type", ptype_b.name, force=True)
 
+	def test_doctype_ptype_map_cache_invalidated(self):
+		"""get_doctype_ptype_map() is the source boot exposes to the client (frappe.perm) so it
+		can mirror server-side get_rights(); its (site-cached) value must reflect ptype creation
+		and deletion immediately. See https://github.com/frappe/frappe/issues/40233
+		"""
+		from frappe.core.doctype.permission_type.permission_type import get_doctype_ptype_map
+
+		ptype_name = "map_cache_ptype"
+		doc_type = "ToDo"
+
+		# prime the site cache so a stale entry would be returned if it isn't invalidated
+		get_doctype_ptype_map()
+
+		ptype_doc = self._create_permission_type(ptype_name, doc_type)
+		try:
+			self.assertIn(ptype_name, get_doctype_ptype_map().get(doc_type, []))
+		finally:
+			frappe.delete_doc("Permission Type", ptype_doc.name, force=True)
+
+		self.assertNotIn(ptype_name, get_doctype_ptype_map().get(doc_type, []))
+
 	def test_permission_type_creation_reserved_name(self):
 		"""Test that permission types with reserved names are rejected."""
 		doc = frappe.get_doc(

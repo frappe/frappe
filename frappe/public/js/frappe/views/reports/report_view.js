@@ -699,16 +699,16 @@ frappe.views.ReportView = class ReportView extends frappe.views.ListView {
 
 		control.df.change = () => control.set_focus();
 
+		const cell = this.datatable.getCell(colIndex, rowIndex);
+		const fieldname = this.datatable.getColumn(colIndex).docfield.fieldname;
+		const docname = cell.name;
+		const doctype = cell.doctype;
+
 		return {
 			initValue: (value) => {
 				return control.set_value(value);
 			},
 			setValue: (value) => {
-				const cell = this.datatable.getCell(colIndex, rowIndex);
-				let fieldname = this.datatable.getColumn(colIndex).docfield.fieldname;
-				let docname = cell.name;
-				let doctype = cell.doctype;
-
 				control.set_value(value);
 				return this.set_control_value(doctype, docname, fieldname, value)
 					.then((updated_doc) => {
@@ -741,6 +741,12 @@ frappe.views.ReportView = class ReportView extends frappe.views.ListView {
 							} else {
 								_data[field] = updated_doc[field];
 							}
+						}
+
+						const cell_at_index =
+							this.datatable.datamanager.rows[rowIndex]?.[colIndex];
+						if (cell_at_index?.name !== docname) {
+							this.datatable.refresh(this.get_data(this.data), this.columns);
 						}
 					})
 					.then(() => this.refresh_charts());

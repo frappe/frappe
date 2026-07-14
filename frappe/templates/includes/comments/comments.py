@@ -34,8 +34,6 @@ def add_comment(
 	route: str,
 	web_form: str | None = None,
 ):
-	comment_email = frappe.session.user
-	comment_by = frappe.get_value("User", frappe.session.user, "full_name")
 	if frappe.session.user == "Guest":
 		allowed_doctypes = ["Web Page"]
 		comments_permission_config = frappe.get_hooks("has_comment_permission")
@@ -50,9 +48,11 @@ def add_comment(
 
 		if not guest_allowed:
 			frappe.throw(_("Please login to post a comment."), exc=frappe.AuthenticationError)
-
-		if frappe.db.exists("User", comment_email):
-			frappe.throw(_("Please login to post a comment."))
+	else:
+		# override with the logged-in user's identity to prevent spoofing;
+		# guests must supply their own name/email in the request
+		comment_email = frappe.session.user
+		comment_by = frappe.get_value("User", frappe.session.user, "full_name")
 
 	if not comment.strip():
 		frappe.msgprint(_("The comment cannot be empty"))

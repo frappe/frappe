@@ -1292,6 +1292,8 @@ frappe.ui.form.Form = class FrappeForm {
 	}
 
 	add_web_link(path, label) {
+		if (!this.sidebar) return;
+
 		label = __(label) || __("See on Website");
 		this.web_link = this.sidebar
 			.add_user_action(__(label), function () {})

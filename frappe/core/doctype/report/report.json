@@ -17,9 +17,12 @@
   "add_total_row",
   "disabled",
   "prepared_report",
+  "snapshot_report",
   "disable_prepared_report_automation",
   "add_translate_data",
   "timeout",
+  "section_break_tljw",
+  "doctype_to_sync",
   "filters_section",
   "filters",
   "columns_section",
@@ -211,12 +214,29 @@
    "fieldname": "disable_prepared_report_automation",
    "fieldtype": "Check",
    "label": "Disable Prepared Report Automation"
+  },
+  {
+   "fieldname": "section_break_tljw",
+   "fieldtype": "Section Break"
+  },
+  {
+   "depends_on": "eval: doc.snapshot_report",
+   "fieldname": "doctype_to_sync",
+   "fieldtype": "Table",
+   "label": "Doctype To Sync",
+   "options": "Doctype To Sync"
+  },
+  {
+   "default": "0",
+   "fieldname": "snapshot_report",
+   "fieldtype": "Check",
+   "label": "Snapshot Report"
   }
  ],
  "idx": 1,
  "index_web_pages_for_search": 1,
  "links": [],
- "modified": "2026-06-04 03:43:50.279111",
+ "modified": "2026-07-01 13:35:14.237724",
  "modified_by": "Administrator",
  "module": "Core",
  "name": "Report",
