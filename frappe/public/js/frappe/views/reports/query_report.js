@@ -92,7 +92,7 @@ frappe.views.QueryReport = class QueryReport extends frappe.views.BaseList {
 	set_default_secondary_action() {
 		this.refresh_button && this.refresh_button.remove();
 		this.refresh_button = this.page.add_action_icon(
-			"es-line-reload",
+			"refresh-cw",
 			() => {
 				this.setup_progress_bar();
 				this.refresh();
@@ -103,12 +103,7 @@ frappe.views.QueryReport = class QueryReport extends frappe.views.BaseList {
 	}
 
 	get_no_result_message() {
-		return `<div class="msg-box no-border">
-			<svg class="icon icon-xl mb-4" style="stroke: var(--text-light);">
-				<use href="#icon-table"></use>
-			</svg>
-			<p>${__("Nothing to show")}</p>
-		</div>`;
+		return frappe.ui.empty_state({ icon: "sheet", title: __("Nothing to show") })[0].outerHTML;
 	}
 
 	setup_events() {
@@ -764,8 +759,8 @@ frappe.views.QueryReport = class QueryReport extends frappe.views.BaseList {
 				this.hide_status();
 				clearInterval(this.interval);
 				clearInterval(this.stale_report_interval);
-				this.synced_report = data.synced_report;
-				this.synced_at = data.synced_at;
+				this.snapshot_report = data.snapshot_report;
+				this.snapshot_at = data.snapshot_at;
 				this.refreshed_at = frappe.datetime.now_datetime();
 				this.execution_time = data.execution_time || 0.1;
 
@@ -797,14 +792,14 @@ frappe.views.QueryReport = class QueryReport extends frappe.views.BaseList {
 					}
 				};
 
-				if (this.synced_report) {
+				if (this.snapshot_report) {
 					if (data.result.length > 0) {
-						let diff = frappe.datetime.comment_when(this.synced_at);
+						let diff = frappe.datetime.comment_when(this.snapshot_at);
 						let pretty_diff = `<span style="color:var(--red-600)">${diff}</span>`;
 						this.show_status(`
 						<div class="indicator orange pl-1">
 							<span>
-								${__("This is a synced report generated {0}.", [pretty_diff])}
+								${__("This is a snapshot report generated {0}.", [pretty_diff])}
 							</span>
 						</div>
 					`);
@@ -903,7 +898,7 @@ frappe.views.QueryReport = class QueryReport extends frappe.views.BaseList {
 	}
 
 	add_prepared_report_buttons(doc) {
-		if (doc) {
+		if (doc && frappe.model.can_read("Prepared Report")) {
 			let is_csv =
 				doc.attachments &&
 				doc.attachments.some((attachment) => attachment.file_name.endsWith(".csv"));
@@ -1103,7 +1098,7 @@ frappe.views.QueryReport = class QueryReport extends frappe.views.BaseList {
 				[cstr(format_number(data.length, null, 0)).bold(), __("export").bold()]
 			);
 
-			this.toggle_message(true, `${frappe.utils.icon("solid-warning")} ${msg}`);
+			this.toggle_message(true, `${frappe.utils.icon("triangle-alert")} ${msg}`);
 			return;
 		}
 
@@ -1820,10 +1815,15 @@ frappe.views.QueryReport = class QueryReport extends frappe.views.BaseList {
 					filters.prepared_report_name = this.prepared_report_name;
 				}
 
-				// excluding total row index
-				const ignore_visible_idx =
-					visible_idx.length ===
-					this.data.length - (this.raw_data.add_total_row ? 1 : 0);
+				// visible_idx is a list of ORIGINAL row indices in DISPLAY order
+				// having both search-filter narrowing AND column sort. Only skip sending it
+				// when it exactly matches the default identity order [0, 1, ..., N-1]
+				// (i.e. neither sorted nor filtered), otherwise the server-side
+				// export would silently drop the user's UI sort direction.
+				const totalRows = this.data.length - (this.raw_data.add_total_row ? 1 : 0);
+				const isIdentityOrder =
+					visible_idx.length === totalRows && visible_idx.every((idx, i) => idx === i);
+				const ignore_visible_idx = isIdentityOrder;
 				visible_idx = ignore_visible_idx ? [] : visible_idx;
 
 				const args = {
@@ -2254,7 +2254,11 @@ frappe.views.QueryReport = class QueryReport extends frappe.views.BaseList {
 		});
 		this.data.forEach((row) => {
 			doctypes.forEach((doc) => {
-				this.doctype_field_map[doc.doctype][doc.fieldname].names.add(row[doc.fieldname]);
+				if (row[doc.fieldname] != null) {
+					this.doctype_field_map[doc.doctype][doc.fieldname].names.add(
+						row[doc.fieldname]
+					);
+				}
 			});
 		});
 

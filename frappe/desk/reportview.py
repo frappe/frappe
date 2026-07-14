@@ -21,6 +21,8 @@ from frappe.utils import add_user_info, cint, format_duration
 from frappe.utils.data import sbool
 
 DISALLOWED_PARAMS = ("cmd", "data", "ignore_permissions", "view", "user", "csrf_token", "join")
+SUPPORTED_AGGREGATE_FUNCTIONS = ("count", "sum", "avg")
+DEFAULT_AGGREGATE_FIELDNAME = "_aggregate_column"
 
 
 @frappe.whitelist()
@@ -190,12 +192,12 @@ def validate_filters(data, filters):
 def setup_group_by(data):
 	"""Add columns for aggregated values e.g. count(name)"""
 	if data.group_by and data.aggregate_function:
-		if data.aggregate_function.lower() not in ("count", "sum", "avg"):
+		if data.aggregate_function.lower() not in SUPPORTED_AGGREGATE_FUNCTIONS:
 			frappe.throw(_("Invalid aggregate function"))
 
 		if frappe.db.has_column(data.aggregate_on_doctype, data.aggregate_on_field):
 			field = f"`tab{data.aggregate_on_doctype}`.`{data.aggregate_on_field}`"
-			data.fields.append({data.aggregate_function.upper(): field, "as": "_aggregate_column"})
+			data.fields.append({data.aggregate_function.upper(): field, "as": DEFAULT_AGGREGATE_FIELDNAME})
 		else:
 			raise_invalid_field(data.aggregate_on_field)
 
@@ -553,19 +555,12 @@ def get_field_info(fields, parent_doctype):
 	field_info = []
 
 	for field in fields:
-		df = None
-		doctype = None
 		try:
 			doctype, fieldname = parse_field(field)
 		except ValueError:
-			# handles aggregate functions
-			if isinstance(field, dict):
-				# Eg: {"COUNT": "name", "as": "count_name"} -> "COUNT"
-				fieldname = next(f for f in field if f != "as")
-			else:
-				# Eg: "count(name)" -> "count"
-				fieldname = field.split("(", 1)[0]
-			fieldname = fieldname.capitalize()
+			# handles aggregate functions like COUNT, SUM, AVG etc.
+			field_info.append(get_aggregate_field_info(field, parent_doctype))
+			continue
 
 		doctype = doctype or parent_doctype
 		options = None
@@ -654,6 +649,127 @@ def parse_field(field: str | dict) -> tuple[str | None, str]:
 		return table[4:-1], column.strip("`")
 
 	return None, key.strip("`")
+
+
+def parse_aggregate_field(field: str | dict) -> tuple[str, str]:
+	"""
+	Extract an aggregate function name (uppercase) and target SQL expression from an aggregate field.
+
+	Example inputs and outputs:
+	```
+	_parse_aggregate_field("count(`tabSales Invoice`.`amount`) as _aggregate_column")
+	>>> ("COUNT", "`tabSales Invoice`.`amount`")
+
+	_parse_aggregate_field({"SUM": "`tabSales Invoice`.`amount`", "as": "_aggregate_column"})
+	>>> ("SUM", "`tabSales Invoice`.`amount`")
+	```
+	"""
+	if isinstance(field, dict):
+		function = next(f for f in field if f != "as")
+		return function.upper(), field[function]
+
+	key = field.split(" as ", 1)[0]
+	function, sep, rest = key.partition("(")
+	return function.upper(), rest.rstrip(")") if sep else ""
+
+
+def _aggregate_field_df(doctype: str, fieldname: str):
+	if not doctype or not fieldname:
+		return
+
+	return frappe.get_meta(doctype).get_field(fieldname)
+
+
+# NOTE: Parameter kept for handler signature consistency.
+def _aggregate_count_column_info(doctype: str, fieldname: str) -> dict:
+	return frappe._dict(
+		{
+			"label": _("Count"),
+			"fieldtype": "Int",
+			"translatable": False,
+			"options": None,
+		}
+	)
+
+
+def _aggregate_sum_column_info(doctype: str, fieldname: str) -> dict:
+	df = _aggregate_field_df(doctype, fieldname)
+	label = _(df.label) if df and df.label else _(frappe.unscrub(fieldname))
+
+	return frappe._dict(
+		{
+			"label": _("{0} of {1}").format(_("Sum"), label),
+			"fieldtype": df.fieldtype if df else "Float",
+			"translatable": False,
+			"options": df.options if df else None,
+		}
+	)
+
+
+def _aggregate_avg_column_info(doctype: str, fieldname: str) -> dict:
+	df = _aggregate_field_df(doctype, fieldname)
+	label = _(df.label) if df and df.label else _(frappe.unscrub(fieldname))
+	# average of Int can be a Float
+	fieldtype = "Float" if not df or df.fieldtype == "Int" else df.fieldtype
+
+	return frappe._dict(
+		{
+			"label": _("{0} of {1}").format(_("Average"), label),
+			"fieldtype": fieldtype,
+			"translatable": False,
+			"options": df.options if df else None,
+		}
+	)
+
+
+# Register new aggregate function handlers here.
+AGGREGATE_FIELD_INFO_HANDLERS = {
+	"COUNT": _aggregate_count_column_info,
+	"SUM": _aggregate_sum_column_info,
+	"AVG": _aggregate_avg_column_info,
+}
+
+
+def get_aggregate_field_info(field: str | dict, parent_doctype: str) -> dict:
+	"""
+	Build field info for an aggregate column (e.g. COUNT/SUM/AVG).
+
+	Example:
+
+	```
+	get_aggregate_field_info("count(`tabSales Invoice`.`amount`) as total", "Sales Invoice")
+
+	# Returns:
+	{
+	    "fieldname": "_aggregate_column",
+	    "label": "Count",
+	    "fieldtype": "Int",
+	    "translatable": False,
+	    "options": None,
+	}
+	```
+	"""
+	function, aggregate_on = parse_aggregate_field(field)
+	doctype, fieldname = parse_field(aggregate_on)
+
+	doctype = doctype or parent_doctype
+
+	field_info = frappe._dict(
+		{
+			"label": _(function.capitalize()),
+			"fieldtype": "Data",
+			"translatable": False,
+			"options": None,
+		}
+	)
+
+	if handler := AGGREGATE_FIELD_INFO_HANDLERS.get(function):
+		field_info = handler(doctype, fieldname)
+
+	# using a default fieldname for aggregate column
+	field_info["fieldname"] = DEFAULT_AGGREGATE_FIELDNAME
+
+	return field_info
 
 
 @frappe.whitelist(methods=["POST", "DELETE"])

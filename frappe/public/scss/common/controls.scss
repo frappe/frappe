@@ -287,10 +287,6 @@ select.form-control {
 		border-radius: var(--radius);
 		@include get_textstyle("base", "regular");
 
-		.es-icon {
-			margin-right: 8px;
-		}
-
 		.btn {
 			padding: 0px 8px;
 		}
@@ -635,7 +631,7 @@ label.switch-control {
 
 	.label-area {
 		font-size: var(--text-base);
-		color: var(--ink-gray-6);
+		color: var(--ink-gray-7);
 	}
 
 	// Description sits under the label

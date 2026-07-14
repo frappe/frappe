@@ -1,0 +1,160 @@
+{
+ "actions": [],
+ "allow_rename": 0,
+ "autoname": "field:workspace",
+ "creation": "2026-06-28 00:00:00.000000",
+ "doctype": "DocType",
+ "editable_grid": 1,
+ "engine": "InnoDB",
+ "field_order": [
+  "workspace",
+  "visibility_section",
+  "visibility",
+  "roles_column_break",
+  "added_roles",
+  "removed_roles",
+  "appearance_section",
+  "icon",
+  "indicator_color",
+  "appearance_column_break",
+  "override_sequence",
+  "sequence_id",
+  "content_section",
+  "content",
+  "widgets"
+ ],
+ "fields": [
+  {
+   "fieldname": "workspace",
+   "fieldtype": "Link",
+   "in_list_view": 1,
+   "label": "Workspace",
+   "options": "Workspace",
+   "reqd": 1,
+   "unique": 1
+  },
+  {
+   "fieldname": "visibility_section",
+   "fieldtype": "Section Break",
+   "label": "Visibility"
+  },
+  {
+   "default": "Inherit",
+   "description": "Override whether the standard workspace is shown. \"Inherit\" keeps the app-shipped value.",
+   "fieldname": "visibility",
+   "fieldtype": "Select",
+   "in_list_view": 1,
+   "label": "Visibility",
+   "options": "Inherit\nVisible\nHidden"
+  },
+  {
+   "fieldname": "roles_column_break",
+   "fieldtype": "Column Break"
+  },
+  {
+   "description": "Roles granted access on top of the app-shipped roles.",
+   "fieldname": "added_roles",
+   "fieldtype": "Table",
+   "label": "Added Roles",
+   "options": "Has Role"
+  },
+  {
+   "description": "App-shipped roles whose access is revoked on this site.",
+   "fieldname": "removed_roles",
+   "fieldtype": "Table",
+   "label": "Removed Roles",
+   "options": "Has Role"
+  },
+  {
+   "collapsible": 1,
+   "fieldname": "appearance_section",
+   "fieldtype": "Section Break",
+   "label": "Appearance"
+  },
+  {
+   "description": "Leave blank to inherit the app-shipped icon.",
+   "fieldname": "icon",
+   "fieldtype": "Data",
+   "label": "Icon"
+  },
+  {
+   "description": "Leave blank to inherit the app-shipped color.",
+   "fieldname": "indicator_color",
+   "fieldtype": "Select",
+   "label": "Indicator Color",
+   "options": "\ngreen\ncyan\nblue\norange\nyellow\ngray\ngrey\nred\npink\ndarkgrey\npurple\nlight-blue"
+  },
+  {
+   "fieldname": "appearance_column_break",
+   "fieldtype": "Column Break"
+  },
+  {
+   "default": "0",
+   "fieldname": "override_sequence",
+   "fieldtype": "Check",
+   "label": "Override Sidebar Position"
+  },
+  {
+   "depends_on": "override_sequence",
+   "fieldname": "sequence_id",
+   "fieldtype": "Float",
+   "label": "Sidebar Position"
+  },
+  {
+   "collapsible": 1,
+   "fieldname": "content_section",
+   "fieldtype": "Section Break",
+   "label": "Content"
+  },
+  {
+   "description": "The site's editor.js block layout for this workspace, shown verbatim. Managed by the workspace editor.",
+   "fieldname": "content",
+   "fieldtype": "Long Text",
+   "label": "Content"
+  },
+  {
+   "description": "Item definitions (shortcuts / charts / cards ...) backing blocks the site added, so they can be rendered. Managed by the workspace editor.",
+   "fieldname": "widgets",
+   "fieldtype": "Long Text",
+   "label": "Added Widgets"
+  }
+ ],
+ "index_web_pages_for_search": 1,
+ "links": [],
+ "modified": "2026-06-28 22:58:19.132064",
+ "modified_by": "Administrator",
+ "module": "Desk",
+ "name": "Workspace Customization",
+ "naming_rule": "By fieldname",
+ "owner": "Administrator",
+ "permissions": [
+  {
+   "create": 1,
+   "delete": 1,
+   "email": 1,
+   "export": 1,
+   "print": 1,
+   "read": 1,
+   "report": 1,
+   "role": "Workspace Manager",
+   "share": 1,
+   "write": 1
+  },
+  {
+   "create": 1,
+   "delete": 1,
+   "email": 1,
+   "export": 1,
+   "print": 1,
+   "read": 1,
+   "report": 1,
+   "role": "System Manager",
+   "share": 1,
+   "write": 1
+  }
+ ],
+ "sort_field": "modified",
+ "sort_order": "DESC",
+ "states": [],
+ "track_changes": 1
+}

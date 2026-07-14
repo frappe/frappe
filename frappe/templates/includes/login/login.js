@@ -108,7 +108,7 @@ login.bind_events = function () {
 		var input = $($(this).attr("toggle"));
 		var isPassword = input.attr("type") == "password";
 		input.attr("type", isPassword ? "text" : "password");
-		$(this).find("use").attr("href", isPassword ? "#es-line-hide" : "#es-line-preview");
+		$(this).find("use").attr("href", isPassword ? "#icon-eye-off" : "#icon-eye");
 	});
 
 	{% if ldap_settings and ldap_settings.enabled %}

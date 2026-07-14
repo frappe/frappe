@@ -96,13 +96,16 @@ class TO_TSVECTOR(DistinctOptionFunction):
 		        column (str): [ column to search in ]
 		"""
 		alias = kwargs.get("alias")
-		super().__init__("TO_TSVECTOR", column, *args, alias=alias)
+		# Pin the 'english' regconfig: it makes to_tsvector immutable so a GIN index can back it
+		# (the 1-arg form depends on a session GUC and can't be indexed); plainto_tsquery uses the
+		# same config so the index over to_tsvector('english', content) is actually used.
+		super().__init__("TO_TSVECTOR", "english", column, *args, alias=alias)
 		self._PLAINTO_TSQUERY = False
 
 	def get_function_sql(self, **kwargs):
 		s = super(DistinctOptionFunction, self).get_function_sql(**kwargs)
 		if self._PLAINTO_TSQUERY:
-			return f"{s} @@ PLAINTO_TSQUERY({frappe.db.escape(self._PLAINTO_TSQUERY)})"
+			return f"{s} @@ PLAINTO_TSQUERY('english', {frappe.db.escape(self._PLAINTO_TSQUERY)})"
 		return s
 
 	@builder

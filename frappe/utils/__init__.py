@@ -358,9 +358,7 @@ def _get_traceback_sanitizer():
 	placeholder = "********"
 
 	def dict_printer(v: dict) -> str:
-		from copy import deepcopy
-
-		v = deepcopy(v)
+		v = v.copy()
 		for key in blocklist:
 			if key in v:
 				v[key] = placeholder

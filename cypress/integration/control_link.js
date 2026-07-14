@@ -341,8 +341,8 @@ context("Control Link", () => {
 						{
 							html:
 								"<span class='text-primary custom-link-option'>" +
-								"<i class='fa fa-search' style='margin-right: 5px;'></i> " +
-								"Custom Link Option" +
+								frappe.utils.icon("search", "xs", "", "margin-right: 5px;") +
+								" Custom Link Option" +
 								"</span>",
 							label: "Custom Link Option",
 							value: "custom__link_option",

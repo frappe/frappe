@@ -197,11 +197,37 @@ def create_contact_records():
 @whitelist_for_tests()
 def create_multiple_todo_records():
 	if frappe.get_all("ToDo", {"description": "Multiple ToDo 1"}):
+		frappe.db.sql("UPDATE `tabToDo` SET status = 'Open' WHERE description LIKE 'Multiple ToDo %'")
 		return
 
-	values = [(f"100{i}", f"Multiple ToDo {i}") for i in range(1, 1002)]
+	values = [(f"100{i}", f"Multiple ToDo {i}", "Open") for i in range(1, 1002)]
 
-	frappe.db.bulk_insert("ToDo", fields=["name", "description"], values=set(values))
+	frappe.db.bulk_insert("ToDo", fields=["name", "description", "status"], values=set(values))
+
+
+@whitelist_for_tests()
+def ensure_todo_kanban_board():
+	"""Create the ToDo Kanban board used by cypress/integration/kanban.js."""
+	if frappe.db.exists("Kanban Board", "ToDo Kanban"):
+		return "ToDo Kanban"
+
+	doc = frappe.get_doc(
+		{
+			"doctype": "Kanban Board",
+			"kanban_board_name": "ToDo Kanban",
+			"reference_doctype": "ToDo",
+			"field_name": "status",
+			"private": 0,
+			"show_labels": 0,
+			"columns": [
+				{"column_name": "Open", "status": "Active", "indicator": "Gray"},
+				{"column_name": "Closed", "status": "Active", "indicator": "Gray"},
+				{"column_name": "Cancelled", "status": "Active", "indicator": "Gray"},
+			],
+		}
+	)
+	doc.insert(ignore_permissions=True)
+	return doc.name
 
 
 def insert_contact(first_name, phone_number):
@@ -472,7 +498,20 @@ def setup_tree_doctype():
 	).insert()
 
 	if not frappe.db.exists("Custom Tree", "All Trees"):
-		frappe.get_doc({"doctype": "Custom Tree", "tree": "All Trees"}).insert()
+		frappe.get_doc({"doctype": "Custom Tree", "tree": "All Trees", "is_group": 1}).insert()
+
+	for parent, child, is_group in (("All Trees", "Parent Node", 1), ("Parent Node", "Child Node", 0)):
+		if not frappe.db.exists("Custom Tree", child):
+			frappe.get_doc(
+				{"doctype": "Custom Tree", "tree": child, "parent_custom_tree": parent, "is_group": is_group}
+			).insert()
+
+	for i in range(40):
+		name = f"Scroll Node {i}"
+		if not frappe.db.exists("Custom Tree", name):
+			frappe.get_doc(
+				{"doctype": "Custom Tree", "tree": name, "parent_custom_tree": "All Trees", "is_group": 0}
+			).insert()
 
 
 @whitelist_for_tests()
@@ -668,13 +707,6 @@ def slow_task(duration, title, doctype, docname):
 	for i in range(steps + 1):
 		frappe.publish_progress(i * 10, title=title, doctype=doctype, docname=docname)
 		time.sleep(int(duration) / steps)
-
-
-@whitelist_for_tests()
-def empty_my_workspaces():
-	my_workspaces = frappe.get_doc("Workspace Sidebar", "My Workspaces")
-	my_workspaces.items = []
-	my_workspaces.save()
 
 
 LIST_LAYOUT_TEST_PREFIX = "_cypress_layout_"

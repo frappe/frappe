@@ -16,7 +16,9 @@ from werkzeug.routing import Rule
 import frappe
 import frappe.client
 from frappe import _, cint, cstr, get_newargs, is_whitelisted
+from frappe.api import discovery
 from frappe.core.doctype.server_script.server_script_utils import get_server_script_map
+from frappe.database.utils import DefaultOrderBy
 from frappe.handler import is_valid_http_method, run_server_script, upload_file
 
 PERMISSION_MAP = {
@@ -132,7 +134,7 @@ def document_list(doctype: str) -> list[dict[str, Any]]:
 	args = frappe.form_dict
 	fields: list | None = frappe.parse_json(args.get("fields", None))
 	filters: dict | None = frappe.parse_json(args.get("filters", None))
-	order_by: str | None = args.get("order_by", None)
+	order_by: str | None = args.get("order_by", DefaultOrderBy)
 	start: int = cint(args.get("start", 0))
 	limit: int = cint(args.get("limit", 20))
 	group_by: str | None = args.get("group_by", None)
@@ -253,6 +255,9 @@ def execute_doc_method(doctype: str, name: str, method: str | None = None):
 	method = method or frappe.form_dict.pop("run_method")
 	doc = frappe.get_doc(doctype, name)
 	doc.is_whitelisted(method)
+	method_obj = getattr(doc, method)
+	fn = getattr(method_obj, "__func__", method_obj)
+	is_valid_http_method(fn)
 
 	assert frappe.request.method in PERMISSION_MAP, "execute_doc_method route is only mounted for GET/POST"
 	doc.check_permission(PERMISSION_MAP[frappe.request.method])
@@ -590,6 +595,21 @@ def run_doc_method(method: str, document: dict[str, Any] | str, kwargs=None):
 
 
 url_rules = [
+	# Discovery APIs
+	Rule("/discovery", methods=["GET"], endpoint=discovery.root),
+	Rule(
+		"/discovery/search",
+		methods=["GET"],
+		endpoint=lambda: discovery.search(frappe.form_dict.get("q")),
+	),
+	Rule("/discovery/method", methods=["GET"], endpoint=discovery.methods),
+	Rule("/discovery/method/<method>", methods=["GET"], endpoint=discovery.method),
+	Rule("/discovery/doctype/<doctype>", methods=["GET"], endpoint=discovery.doctype_methods),
+	Rule(
+		"/discovery/doctype/<doctype>/method/<method>",
+		methods=["GET"],
+		endpoint=discovery.doctype_method,
+	),
 	# RPC calls
 	Rule("/method/login", endpoint=login),
 	Rule("/method/logout", endpoint=logout, methods=["POST"]),

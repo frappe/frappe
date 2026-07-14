@@ -32,6 +32,7 @@
     position: sticky;
     top: 0px;
     z-index: 1030;
+    border-bottom: 1px solid var(--border-color);
 }
 
 #brand-logo{
@@ -57,11 +58,8 @@
     margin-top: 60px;
     padding: 20px;
 }
-.icons-container:has(.sidebar-card){
+.icons-container:has(.frappe-card){
     margin-top: 20px;
-    .sidebar-card{
-        gap: 6px;
-    }
 }
 .modal
 .modal-body .icons-container, .folder-icon .icons-container {
@@ -136,6 +134,7 @@
     justify-content: space-between;
     height: 35px;
     flex-direction: column;
+      width: 100%;
 }
 .icon-title{
     font-weight: var(--weight-semibold);

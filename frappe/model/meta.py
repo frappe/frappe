@@ -196,20 +196,19 @@ class Meta(Document):
 	def get_dynamic_link_fields(self):
 		return self._dynamic_link_fields
 
-	def get_masked_fields(self):
+	def get_masked_fields(self, parenttype=None):
 		import copy
 
 		if frappe.session.user == "Administrator":
 			return []
-		cache_key = f"masked_fields::{self.name}::{frappe.session.user}"
+		cache_key = f"masked_fields::{self.name}::{parenttype or ''}::{frappe.session.user}"
 		masked_fields = frappe.cache.get_value(cache_key)
 
 		if masked_fields is None:
 			masked_fields = []
+			permlevel_access = set(self.get_permlevel_access("mask", parenttype))
 			for df in self.fields:
-				if df.get("mask") and not self.has_permlevel_access_to(
-					fieldname=df.fieldname, df=df, permission_type="mask"
-				):
+				if df.get("mask") and df.permlevel not in permlevel_access:
 					# work on a copy instead of original df
 					df_copy = copy.deepcopy(df)
 					df_copy.mask_readonly = 1
@@ -603,6 +602,13 @@ class Meta(Document):
 							self._fields[current_field].fieldtype == self._fields[original_target].fieldtype
 						):
 							# Break out to add this just after the last field
+							break
+						target_position = current_field
+				elif field.fieldtype == "Tab Break" and target_position in field_order:
+					# Find the next tab break and set target_position to just one field before,
+					# so the new tab is appended after the current tab instead of splitting it
+					for current_field in field_order[field_order.index(target_position) + 1 :]:
+						if self._fields[current_field].fieldtype == "Tab Break":
 							break
 						target_position = current_field
 				insertion_map.setdefault(target_position, []).append(field.fieldname)

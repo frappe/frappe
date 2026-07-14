@@ -52,7 +52,9 @@ frappe.get_avatar = function (css_class, title, image_url = null, remove_color, 
 	if (image_url) {
 		el.innerHTML = `
 			<span class="avatar ${css_class}" ${data_attributes}>
-				<span class="avatar-frame" style='background-image: url("${image_url}")'</span>
+				<span class="avatar-frame" style='background-image: url("${frappe.utils.escape_html(
+					image_url
+				)}")'</span>
 			</span>`;
 	} else {
 		let abbr = frappe.get_abbr(title);

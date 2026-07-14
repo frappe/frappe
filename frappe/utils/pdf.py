@@ -182,10 +182,9 @@ def get_chrome_pdf(print_format, html, options, output, pdf_generator=None):
 		# transforms and merges header, footer into body pdf and returns merged pdf
 		return transformer.transform_pdf(output=output)
 	except Exception:
-		# Chrome timeout / crash: reset singleton so the next request gets a fresh
-		# Chrome instance. _browsers cleanup is handled by Browser.__init__'s finally.
-		generator._close_browser()
 		raise
+	finally:
+		generator._close_browser()
 
 
 def get_file_data_from_writer(writer_obj):

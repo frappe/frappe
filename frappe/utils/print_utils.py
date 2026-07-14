@@ -145,27 +145,28 @@ def attach_print(
 		print_format_doc = frappe.get_cached_doc("Print Format", print_format)
 		is_beta_print_format = print_format_doc.get("print_format_builder_beta")
 
-	with print_language(lang or frappe.local.lang):
-		content = ""
-		if cint(print_settings.send_print_as_pdf):
-			ext = ".pdf"
-			if html:
-				content = get_pdf(html, options={"password": password} if password else None)
-			elif is_beta_print_format:
-				from frappe.utils.print_format_generator import PrintFormatGenerator
+	try:
+		with print_language(lang or frappe.local.lang):
+			content = ""
+			if cint(print_settings.send_print_as_pdf):
+				ext = ".pdf"
+				if html:
+					content = get_pdf(html, options={"password": password} if password else None)
+				elif is_beta_print_format:
+					from frappe.utils.print_format_generator import PrintFormatGenerator
 
-				doc_obj = doc or frappe.get_cached_doc(doctype, name)
-				letterhead_name = letterhead if print_letterhead else None
-				generator = PrintFormatGenerator(print_format, doc_obj, letterhead_name)
-				content = generator.render_pdf()
+					doc_obj = doc or frappe.get_cached_doc(doctype, name)
+					letterhead_name = letterhead if print_letterhead else None
+					generator = PrintFormatGenerator(print_format, doc_obj, letterhead_name)
+					content = generator.render_pdf()
+				else:
+					kwargs["as_pdf"] = True
+					content = get_print(doctype, name, **kwargs)
 			else:
-				kwargs["as_pdf"] = True
-				content = get_print(doctype, name, **kwargs)
-		else:
-			ext = ".html"
-			content = html or scrub_urls(get_print(doctype, name, **kwargs)).encode("utf-8")
-
-	frappe.local.flags.ignore_print_permissions = False
+				ext = ".html"
+				content = html or scrub_urls(get_print(doctype, name, **kwargs)).encode("utf-8")
+	finally:
+		frappe.local.flags.ignore_print_permissions = False
 
 	if not file_name:
 		file_name = name

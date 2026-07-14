@@ -244,6 +244,17 @@ class TestResourceAPI(FrappeAPITestCase):
 		json = frappe._dict(response.json)
 		self.assertIn("description", json.data[0])
 
+	def test_get_list_default_order_by_v1(self):
+		# without an explicit order_by, results should fall back to the
+		# doctype's configured sort order (ToDo => creation desc)
+		response = self.get(
+			self.resource(self.DOCTYPE),
+			{"sid": self.sid, "fields": '["creation"]', "limit": 5},
+		)
+		self.assertEqual(response.status_code, 200)
+		creations = [row["creation"] for row in response.json["data"]]
+		self.assertEqual(creations, sorted(creations, reverse=True))
+
 	def test_create_document_v1(self):
 		data = {"description": frappe.mock("paragraph"), "sid": self.sid}
 		response = self.post(self.resource(self.DOCTYPE), data)
@@ -294,6 +305,21 @@ class TestResourceAPI(FrappeAPITestCase):
 			data = response.json.get("data")
 			self.assertIsInstance(data, list)
 			self.assertIsInstance(data[0], dict)
+
+	def test_run_doc_method_v1_validates_http_method(self):
+		doc = frappe.get_doc("Website Theme", "Standard")
+		method = getattr(doc.get_apps, "__func__", doc.get_apps)
+
+		with (
+			patch.dict(frappe.allowed_http_methods_for_whitelisted_func, {method: ["POST"]}),
+			suppress_stdout(),
+		):
+			response = self.get(
+				self.resource("Website Theme", "Standard"),
+				{"run_method": "get_apps", "sid": self.sid},
+			)
+
+		self.assertEqual(response.status_code, 403)
 
 
 class TestMethodAPI(FrappeAPITestCase):
@@ -526,10 +552,20 @@ def generate_admin_keys():
 
 
 @whitelist_for_tests()
-def test(*, fail: int | bool = False, handled: int | bool = True, message: str = "Failed"):
+def test(
+	*,
+	fail: int | bool = False,
+	handled: int | bool = True,
+	message: str = "Failed",
+	optional_message: typing.Union[str, None] = None,  # noqa: UP007
+):
+	"""Exercise RPC success and failure responses.
+
+	Used by API discovery tests to verify parameter metadata.
+	"""
 	if fail:
 		if handled:
-			frappe.throw(message)
+			frappe.throw(optional_message or message)
 		else:
 			1 / 0
 	else:

@@ -138,19 +138,163 @@ export function pluck(object, keys) {
 	return out;
 }
 
+export const TABLE_COLUMN_PLUCK_KEYS = [
+	"label",
+	"fieldname",
+	"fieldtype",
+	"options",
+	"width",
+	"field_template",
+	"merged_fields",
+	"image_size",
+];
+
+export const FIELD_PLUCK_KEYS = [
+	"label",
+	"fieldname",
+	"fieldtype",
+	"options",
+	"table_columns",
+	"table_style",
+	"table_bordered",
+	"table_header",
+	"table_cell_padding",
+	"table_radius",
+	"table_header_bg",
+	"table_border_color",
+	"html",
+	"field_template",
+	"source",
+	"repeater_columns",
+	"show_label",
+	"align",
+	"label_justify",
+	"label_gap",
+	"visible_if",
+	"custom_style",
+	"value_color",
+	"label_color",
+	"custom",
+	"image_url",
+	"width",
+	"barcode_field",
+	"barcode_value",
+	"barcode_format",
+	"show_text",
+];
+
+export const ZONE_FIELD_PLUCK_KEYS = [
+	"label",
+	"fieldname",
+	"fieldtype",
+	"options",
+	"table_columns",
+	"table_style",
+	"table_bordered",
+	"table_header",
+	"table_header_bg",
+	"table_border_color",
+	"html",
+	"field_template",
+	"source",
+	"repeater_columns",
+	"show_label",
+	"align",
+	"label_justify",
+	"label_gap",
+	"visible_if",
+	"custom_style",
+	"value_color",
+	"label_color",
+	"custom",
+	"image_url",
+	"width",
+	"barcode_field",
+	"barcode_value",
+	"barcode_format",
+	"show_text",
+];
+
+export function serialize_layout(layout) {
+	layout.sections = layout.sections
+		.filter((section) => !section.remove)
+		.map((section) => {
+			section.columns = section.columns.map((column) => {
+				column.fields = column.fields
+					.filter((df) => !df.remove)
+					.map((df) => {
+						if (df.table_columns) {
+							df.table_columns = df.table_columns.map((tf) => {
+								if (Array.isArray(tf.merged_fields) && !tf.merged_fields.length) {
+									delete tf.merged_fields;
+								}
+								return pluck(tf, TABLE_COLUMN_PLUCK_KEYS);
+							});
+						}
+						return pluck(df, FIELD_PLUCK_KEYS);
+					});
+				return column;
+			});
+			return section;
+		});
+
+	function clean_zone(zone) {
+		if (!zone || !zone.columns) return zone;
+		zone.columns = zone.columns.map((column) => {
+			column.fields = column.fields
+				.filter((df) => !df.remove)
+				.map((df) => pluck(df, ZONE_FIELD_PLUCK_KEYS));
+			return column;
+		});
+		return zone;
+	}
+	layout.header = clean_zone(layout.header);
+	layout.footer = clean_zone(layout.footer);
+
+	return layout;
+}
+
+// Parse "border: 1px solid; padding: 4px" into a Vue style-binding object.
+// Splits on the first ":" per declaration so values like url(http://…) survive.
+export function parse_inline_style(css) {
+	const style = {};
+	if (!css || typeof css !== "string") return style;
+	for (const decl of css.split(";")) {
+		const idx = decl.indexOf(":");
+		if (idx === -1) continue;
+		const prop = decl.slice(0, idx).trim();
+		const value = decl.slice(idx + 1).trim();
+		if (prop && value) style[prop] = value;
+	}
+	return style;
+}
+
+// Deterministic pastel colour for a merged-cell initials thumbnail, keyed off
+// the first character so the canvas and the PDF (Table.html, same formula)
+// always agree — no palette table to keep in sync across the two.
+export function thumb_hue(text) {
+	const idx = "abcdefghijklmnopqrstuvwxyz0123456789".indexOf(
+		String(text || "")
+			.trim()
+			.charAt(0)
+			.toLowerCase()
+	);
+	return ((idx < 0 ? 0 : idx) * 37) % 360;
+}
+
 export async function render_jinja_html(html, doctype, docname) {
 	if (!html) return html;
 	if (!html.includes("{{") && !html.includes("{%")) return html;
 	if (!doctype || !docname) return html;
 	try {
-		const r = await frappe.call("frappe.utils.print_format_generator.render_jinja_template", {
-			template: html,
-			doctype,
-			docname,
+		const r = await frappe.call({
+			method: "frappe.utils.print_format_generator.render_jinja_template",
+			args: { template: html, doctype, docname },
+			silent: 1,
 		});
 		return r.message ?? html;
 	} catch {
-		return html;
+		return null;
 	}
 }
 
@@ -281,6 +425,16 @@ export function sanitize_html(html) {
 		}
 	})(root);
 	return root.innerHTML;
+}
+
+export function evaluate_visible_if(expr, doc) {
+	if (!expr || !expr.trim()) return true;
+	try {
+		// eslint-disable-next-line no-new-func
+		return !!new Function("doc", `return (${expr})`)(doc);
+	} catch {
+		return true;
+	}
 }
 
 export function get_image_dimensions(src) {

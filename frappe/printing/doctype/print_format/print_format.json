@@ -11,6 +11,7 @@
   "report",
   "module",
   "default_print_language",
+  "preview_image",
   "column_break_3",
   "standard",
   "custom_format",
@@ -33,6 +34,8 @@
   "column_break_11",
   "font_size",
   "font",
+  "label_color",
+  "value_color",
   "page_number",
   "css_section",
   "css",
@@ -165,10 +168,31 @@
    "options": "Language"
   },
   {
+   "description": "Auto-generated thumbnail of this format. Use the 'Generate Preview' button to (re)generate.",
+   "fieldname": "preview_image",
+   "fieldtype": "Attach Image",
+   "label": "Preview Image",
+   "no_copy": 1,
+   "print_hide": 1,
+   "hidden": 1
+  },
+  {
    "depends_on": "eval:!doc.custom_format",
    "fieldname": "font",
    "fieldtype": "Data",
    "label": "Google Font"
+  },
+  {
+   "depends_on": "eval:!doc.custom_format",
+   "fieldname": "label_color",
+   "fieldtype": "Color",
+   "label": "Label Color"
+  },
+  {
+   "depends_on": "eval:!doc.custom_format",
+   "fieldname": "value_color",
+   "fieldtype": "Color",
+   "label": "Value Color"
   },
   {
    "depends_on": "eval:!doc.raw_printing",
@@ -293,7 +317,7 @@
  "icon": "fa fa-print",
  "idx": 1,
  "links": [],
- "modified": "2026-03-26 16:27:02.559100",
+ "modified": "2026-07-03 01:28:04.950020",
  "modified_by": "Administrator",
  "module": "Printing",
  "name": "Print Format",
@@ -320,5 +344,6 @@
  "sort_field": "creation",
  "sort_order": "DESC",
  "states": [],
- "track_changes": 1
+ "track_changes": 1,
+ "image_field": "preview_image"
 }

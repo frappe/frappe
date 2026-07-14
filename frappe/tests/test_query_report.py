@@ -79,6 +79,99 @@ class TestQueryReport(IntegrationTestCase):
 		export_query()
 		self.assertIn("type", frappe.local.response)
 
+	def test_export_query_preserves_visible_idx_order(self):
+		"""Regression: `export_query` must apply `visible_idx` as an ordered
+		list so the UI column-header sort survives into the exported file.
+
+		Old code did ``set(visible_idx)`` and iterated ``data.result`` in its
+		default order, discarding the client's sort direction. New code
+		iterates ``visible_idx`` so output rows match display order.
+
+		Uses `mock.patch` on `run` so the test is decoupled from actual
+		report execution.
+		"""
+		import csv
+		import io
+		from unittest.mock import patch
+
+		frappe.set_user("Administrator")
+
+		# Fixed synthetic data — 5 rows in "default order" [A, B, C, D, E].
+		# The response the mocked `run` returns for any input.
+		fake_data = {
+			"result": [
+				["row_A", "id_a"],
+				["row_B", "id_b"],
+				["row_C", "id_c"],
+				["row_D", "id_d"],
+				["row_E", "id_e"],
+			],
+			"columns": [
+				{"label": "Description", "fieldname": "description", "fieldtype": "Data"},
+				{"label": "ID", "fieldname": "name", "fieldtype": "Data"},
+			],
+			"add_total_row": 0,
+			"applied_filters": {},
+			"filters": {},
+		}
+
+		# Minimal report to satisfy get_report_doc(); export_query looks up
+		# report_name to check permissions. The report's own body is unused
+		# because `run` is mocked.
+		report = frappe.get_doc(
+			{
+				"doctype": "Report",
+				"report_name": f"Sort Order Export {frappe.generate_hash(length=6)}",
+				"ref_doctype": "ToDo",
+				"report_type": "Report Builder",
+				"is_standard": "No",
+				"roles": [{"role": "System Manager"}],
+			}
+		).insert(ignore_permissions=True)
+
+		# Non-identity, non-reverse permutation to catch order bugs. If the
+		# server iterated data.result (old code), the output would be A/B/C/D/E.
+		# If it iterates visible_idx (fixed code), output is D/A/E/B/C.
+		reorder = [3, 0, 4, 1, 2]
+		expected_descriptions = [fake_data["result"][i][0] for i in reorder]
+
+		frappe.local.form_dict = frappe._dict(
+			report_name=report.name,
+			file_format_type="CSV",
+			visible_idx=reorder,
+			applied_filters={},
+			filters={},
+		)
+		frappe.local.response = frappe._dict()
+
+		with patch("frappe.desk.query_report.run", return_value=fake_data):
+			export_query()
+
+		self.assertIn(
+			"filecontent",
+			frappe.local.response,
+			f"export_query didn't produce a file, got: {dict(frappe.local.response)!r}",
+		)
+		csv_bytes = frappe.local.response["filecontent"]
+		if isinstance(csv_bytes, bytes):
+			csv_bytes = csv_bytes.decode("utf-8")
+
+		# Data rows carry our "row_" marker; header row does not.
+		all_rows = list(csv.reader(io.StringIO(csv_bytes)))
+		data_rows = [r for r in all_rows if r and r[0].startswith("row_")]
+		self.assertEqual(
+			len(data_rows),
+			5,
+			f"expected 5 data rows in CSV, got {len(data_rows)}: {data_rows!r}",
+		)
+
+		actual_descriptions = [r[0] for r in data_rows]
+		self.assertEqual(
+			actual_descriptions,
+			expected_descriptions,
+			"CSV row order should follow visible_idx sequence, not default order",
+		)
+
 	def test_xlsx_data_with_multiple_datatypes(self):
 		"""Test exporting report using rows with multiple datatypes (list, dict)"""
 

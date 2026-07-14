@@ -139,10 +139,13 @@ class _PostgresUnixTimestamp(Extract):
 		self.field = field
 
 	def get_sql(self, **kwargs):
-		# MySQL's UNIX_TIMESTAMP returns an integer, but EXTRACT(EPOCH ...) is double precision on
-		# postgres; cast to bigint so the value (and its Python type) matches across backends.
 		with_alias = kwargs.pop("with_alias", False)
-		sql = f"CAST({super().get_sql(**kwargs)} AS BIGINT)"
+		field = self.field if isinstance(self.field, Term) else Term.wrap_constant(self.field)
+		field_sql = field.get_sql(**kwargs)
+		sql = (
+			"CAST(EXTRACT(EPOCH FROM "
+			f"(CAST({field_sql} AS TIMESTAMP) AT TIME ZONE CURRENT_SETTING('TimeZone'))) AS BIGINT)"
+		)
 		if with_alias:
 			return format_alias_sql(sql, self.alias, **kwargs)
 		return sql

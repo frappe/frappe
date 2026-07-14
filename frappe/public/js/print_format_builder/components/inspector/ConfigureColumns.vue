@@ -5,13 +5,7 @@
 				<span class="text-muted" style="font-size: var(--text-sm)">
 					{{ __("Total width used") }}
 				</span>
-				<span
-					class="total-badge"
-					:class="{
-						'total-badge--ok': total_width <= 100,
-						'total-badge--over': total_width > 100,
-					}"
-				>
+				<span class="es-badge" :data-theme="total_width > 100 ? 'red' : 'green'">
 					{{ total_width }}%
 				</span>
 			</div>
@@ -42,7 +36,7 @@
 				<div class="column-row row align-items-center mt-2">
 					<div class="col-8">
 						<div class="column-label-row">
-							<div class="icon-drag" v-html="frappe.utils.icon('drag', 'xs')"></div>
+							<div class="icon-drag" v-html="frappe.utils.icon('grip', 'xs')"></div>
 							<input
 								class="input-column-label"
 								:class="{ 'text-danger': column.invalid_width }"
@@ -68,9 +62,13 @@
 							<span class="width-suffix">%</span>
 						</div>
 						<button
-							class="btn btn-xs btn-icon remove-col-btn"
+							class="es-button"
+							data-size="xs"
+							data-variant="ghost"
+							data-icon-button="true"
+							:title="__('Remove column')"
 							@click="remove_column(column)"
-							v-html="frappe.utils.icon('x', 'sm')"
+							v-html="frappe.utils.icon('x', 'xs')"
 						></button>
 					</div>
 				</div>
@@ -106,20 +104,6 @@ let total_width = computed(() => {
 	justify-content: space-between;
 	align-items: center;
 	margin-bottom: 0.4rem;
-}
-.total-badge {
-	font-size: var(--text-sm);
-	font-weight: var(--weight-semibold);
-	padding: 1px 8px;
-	border-radius: var(--radius);
-}
-.total-badge--ok {
-	background: var(--green-100);
-	color: var(--green-600);
-}
-.total-badge--over {
-	background: var(--red-100);
-	color: var(--red-600);
 }
 .total-bar-track {
 	height: 6px;
@@ -217,18 +201,6 @@ let total_width = computed(() => {
 }
 .width-input-wrap--invalid .width-suffix {
 	color: var(--red-400);
-}
-
-/* Remove button */
-.remove-col-btn {
-	box-shadow: none;
-	padding: 2px;
-	flex-shrink: 0;
-	color: var(--gray-500);
-}
-.remove-col-btn:hover {
-	color: var(--red-500);
-	background: var(--red-50);
 }
 
 .gap-2 {

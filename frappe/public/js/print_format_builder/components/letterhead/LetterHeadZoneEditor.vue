@@ -1,8 +1,11 @@
 <template>
 	<div class="lh-zone" :class="{ 'lh-zone--selected': is_selected }" @click.stop="select_zone">
-		<div v-if="letterhead && zone_content">
+		<div v-if="letterhead && zone_content" class="letter-head">
 			<!-- Preview mode: render Jinja server-side; edit mode: show raw -->
-			<div v-if="preview_doc" v-html="rendered_content ?? zone_content"></div>
+			<span v-if="preview_doc && render_failed" class="text-muted">{{
+				__("Couldn't render this letter head for the previewed document")
+			}}</span>
+			<div v-else-if="preview_doc" v-html="rendered_content ?? zone_content"></div>
 			<div v-else v-html="zone_content"></div>
 		</div>
 		<div v-else class="lh-zone-empty">
@@ -47,6 +50,7 @@ const F = computed(() =>
 
 let preview_doc = computed(() => raw_store.preview_doc.value);
 let rendered_content = ref(null);
+let render_failed = ref(false);
 let render_pending = ref(false);
 
 let zone_content = computed(() => letterhead.value?.[F.value.content] ?? "");
@@ -78,6 +82,7 @@ async function refresh_rendered_content() {
 	const content = zone_content.value;
 	if (!doc || !content) {
 		rendered_content.value = null;
+		render_failed.value = false;
 		return;
 	}
 	if (render_pending.value) return;
@@ -88,6 +93,7 @@ async function refresh_rendered_content() {
 			raw_store.meta.value?.name,
 			raw_store.preview_doc_name.value
 		);
+		render_failed.value = rendered_content.value === null;
 	} finally {
 		render_pending.value = false;
 	}
@@ -144,7 +150,7 @@ watch(
 onMounted(() => {
 	if (props.zone === "header" && !letterhead.value && !layout.value?.letter_head) {
 		const lh_name = frappe.boot.sysdefaults.letter_head;
-		if (lh_name) store.value.change_letterhead(lh_name);
+		if (lh_name) store.value.change_letterhead(lh_name, { keep_clean: true });
 	}
 });
 
