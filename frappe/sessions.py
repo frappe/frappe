@@ -191,6 +191,7 @@ def get():
 
 
 @frappe.whitelist()
+@frappe.read_only()
 def get_boot_assets_json():
 	return get_assets_json()
 

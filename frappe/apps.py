@@ -20,6 +20,7 @@ DESK_APP_PATTERN = re.compile(r"^/desk(/.*)?$")
 
 
 @frappe.whitelist()
+@frappe.read_only()
 @request_cache
 def get_apps():
 	apps = frappe.get_installed_apps()
@@ -104,6 +105,7 @@ def set_app_as_default(app_name: str):
 
 
 @frappe.whitelist()
+@frappe.read_only()
 def get_incomplete_setup_route(current_app: str, app_route: str):
 	pending_apps = get_apps_with_incomplete_dependencies(current_app)
 

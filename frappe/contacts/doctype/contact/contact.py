@@ -317,6 +317,7 @@ def invite_user(contact: str):
 
 
 @frappe.whitelist()
+@frappe.read_only()
 def get_contact_details(contact: str):
 	contact = frappe.get_doc("Contact", contact)
 	contact.check_permission()
@@ -345,6 +346,7 @@ def update_contact(doc, method):
 
 
 @frappe.whitelist()
+@frappe.read_only()
 @frappe.validate_and_sanitize_search_inputs
 def contact_query(
 	doctype: str, txt: str, searchfield: str, start: int, page_len: int, filters: dict[str, Any]
@@ -386,6 +388,7 @@ def contact_query(
 
 
 @frappe.whitelist()
+@frappe.read_only()
 def address_query(links: str):
 	import json
 

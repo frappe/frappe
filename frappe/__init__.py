@@ -645,13 +645,28 @@ def read_only():
 			switched_connection = False
 			if conf.read_from_replica:
 				switched_connection = connect_replica()
+			elif conf.db_type == "sqlite":
+				# SQLite has no replica; use the mode=ro connection instead.
+				switched_connection = local.db.enter_read_only()
+
+			# If SQLite couldn't swap to the mode=ro connection (writes already pending), flag the
+			# scope read-only so the writable connection still opens BEGIN DEFERRED rather than
+			# grabbing the write lock -- otherwise a read here can deadlock against a real writer.
+			set_read_only_flag = conf.db_type == "sqlite" and not switched_connection and not flags.read_only
+			if set_read_only_flag:
+				flags.read_only = True
 
 			try:
 				retval = fn(*args, **get_newargs(fn, kwargs))
 			finally:
-				if switched_connection and hasattr(local, "primary_db"):
-					local.db.close()
-					local.db = local.primary_db
+				if set_read_only_flag:
+					flags.read_only = False
+				if switched_connection:
+					if conf.read_from_replica and hasattr(local, "primary_db"):
+						local.db.close()
+						local.db = local.primary_db
+					elif conf.db_type == "sqlite":
+						local.db.exit_read_only()
 
 			return retval
 
@@ -672,12 +687,21 @@ def write_only():
 			if in_read_only and primary_db:
 				local.db = local.primary_db
 
+			# SQLite has no replica; read_only() flips the single connection to the mode=ro
+			# connection, so restore the writable one here (and re-enter read-only after).
+			sqlite_db = local.db if conf.db_type == "sqlite" and getattr(local, "db", None) else None
+			sqlite_was_read_only = sqlite_db is not None and sqlite_db.read_only
+			if sqlite_was_read_only:
+				sqlite_db.exit_read_only()
+
 			try:
 				retval = fn(*args, **get_newargs(fn, kwargs))
 			finally:
 				# switch back to replica connection
 				if in_read_only and replica_db:
 					local.db = replica_db
+				if sqlite_was_read_only:
+					sqlite_db.enter_read_only()
 
 			return retval
 

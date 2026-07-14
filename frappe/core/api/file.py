@@ -14,6 +14,7 @@ def unzip_file(name: str):
 
 
 @frappe.whitelist()
+@frappe.read_only()
 def get_attached_images(doctype: str, names: list[str] | str) -> frappe._dict:
 	"""Return list of image urls attached in form `{name: ['image.jpg', 'image.png']}`."""
 
@@ -39,6 +40,7 @@ def get_attached_images(doctype: str, names: list[str] | str) -> frappe._dict:
 
 
 @frappe.whitelist()
+@frappe.read_only()
 def get_files_in_folder(folder: str, start: int = 0, page_length: int = 20) -> dict:
 	attachment_folder = frappe.db.get_value(
 		"File",
@@ -62,6 +64,7 @@ def get_files_in_folder(folder: str, start: int = 0, page_length: int = 20) -> d
 
 
 @frappe.whitelist()
+@frappe.read_only()
 def get_files_by_search_text(text: str) -> list[dict]:
 	if not text:
 		return []
