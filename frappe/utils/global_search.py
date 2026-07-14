@@ -624,8 +624,14 @@ def web_search(text: str, scope: str | None = None, start: int = 0, limit: int =
 		sqlite_scope = "`route` LIKE %(scope)s AND " if scope else ""
 		sqlite_conditions = f"`published` = 1 AND {sqlite_scope}`__global_search` MATCH %(fts_query)s"
 
+		# Bare FTS5 tokens only; a raw fallback would be parsed as a MATCH expression and could
+		# raise on stray operators, so skip empty terms instead.
+		fts_tokens = re.findall(r"\w+", text)
+		if not fts_tokens:
+			continue
+
 		values = {"scope": "".join([scope, "%"]) if scope else "", "limit": limit, "start": start}
-		values["fts_query"] = " ".join(f"{token}*" for token in re.findall(r"\w+", text)) or text
+		values["fts_query"] = " ".join(f"{token}*" for token in fts_tokens)
 
 		result = frappe.db.multisql(
 			{
