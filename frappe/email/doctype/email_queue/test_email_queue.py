@@ -97,12 +97,7 @@ class TestEmailQueue(IntegrationTestCase):
 		self.assertIs(get_server(q1), get_server(q2))
 
 	def test_discards_smtp_session_on_send_failure(self):
-		"""A failed sendmail() must discard the (possibly poisoned) SMTP session so it
-		isn't reused for the next recipient, else every subsequent send in the same
-		batch fails with "503 Multiple MAIL commands not allowed" instead of surfacing
-		the real error. `SMTPRecipientsRefused` is deliberately used here since it
-		doesn't subclass `SMTPResponseException`, only the broader `SMTPException`.
-		"""
+		"""SMTPRecipientsRefused (not an SMTPResponseException) must still discard the session."""
 		email_record = frappe.new_doc(
 			"Email Queue",
 			sender="Test <test@example.com>",
