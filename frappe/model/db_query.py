@@ -209,12 +209,9 @@ _PARSE_FULL_QUERY_LOCK = threading.Lock()
 
 
 def _parse_full_query(query: str):
-	# sqlparse caps grouping at 10k tokens as a DoS guard for untrusted SQL. Here the input
-	# is our own generated (and about-to-be-executed) query, where a large but legitimate
-	# `IN (...)` list can exceed the cap; lift it for this parse so validation doesn't crash.
-	# The lock makes the save-mutate-restore of the module global atomic: without it, a
-	# concurrent thread can capture None as the "original" value and restore it, permanently
-	# disabling the cap for the process.
+	# Lift sqlparse's 10k-token DoS cap for our own generated query (a large but legitimate
+	# `IN (...)` list can exceed it). Lock keeps the save-restore of the global atomic across
+	# threads, else a concurrent parse can capture None as "original" and leave the cap off.
 	with _PARSE_FULL_QUERY_LOCK:
 		original_limit = sqlparse.engine.grouping.MAX_GROUPING_TOKENS
 		sqlparse.engine.grouping.MAX_GROUPING_TOKENS = None
