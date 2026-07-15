@@ -730,14 +730,6 @@ frappe.ui.Sidebar = class Sidebar {
 
 	remove_item(item, index) {}
 
-	toggle_width() {
-		if (!this.sidebar_expanded) {
-			this.open();
-		} else {
-			this.close();
-		}
-	}
-
 	expand_sidebar() {
 		if (this.sidebar_expanded) {
 			this.wrapper.addClass("expanded");
@@ -756,8 +748,6 @@ frappe.ui.Sidebar = class Sidebar {
 			this.wrapper.find(".onboarding-sidebar span").hide();
 			this.wrapper.find(".promotional-banner-title").hide();
 		}
-
-		this.sidebar_header.toggle_width(this.sidebar_expanded);
 		$(document).trigger("sidebar-expand", {
 			sidebar_expand: this.sidebar_expanded,
 		});

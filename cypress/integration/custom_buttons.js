@@ -40,11 +40,11 @@ describe(
 	() => {
 		before(() => {
 			cy.login();
-			cy.visit(`/desk/note/new`, {
-				onBeforeLoad: (win) => {
-					win.localStorage.setItem("sidebar-expanded", "false");
-				},
-			});
+			cy.visit(`/desk/note/new`);
+			// The desk sidebar is always expanded now (it can no longer be collapsed via the UI),
+			// which crowds the page header where the custom buttons render. Collapse it so the
+			// buttons have room and stay visible for the assertions below.
+			cy.window().its("frappe.app.sidebar").invoke("close");
 		});
 
 		test_button_names.forEach((button_name) => {
