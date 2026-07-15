@@ -10,6 +10,7 @@ from collections import Counter
 from functools import lru_cache
 
 import sqlparse
+import sqlparse.engine.grouping
 from sqlparse import tokens
 from sqlparse.sql import Function, Parenthesis, Statement
 
@@ -203,6 +204,18 @@ def _find_disallowed_function(node) -> str | None:
 	return None
 
 
+def _parse_full_query(query: str):
+	# sqlparse caps grouping at 10k tokens as a DoS guard for untrusted SQL. Here the input
+	# is our own generated (and about-to-be-executed) query, where a large but legitimate
+	# `IN (...)` list can exceed the cap; lift it for this parse so validation doesn't crash.
+	original_limit = sqlparse.engine.grouping.MAX_GROUPING_TOKENS
+	sqlparse.engine.grouping.MAX_GROUPING_TOKENS = None
+	try:
+		return sqlparse.parse(query)
+	finally:
+		sqlparse.engine.grouping.MAX_GROUPING_TOKENS = original_limit
+
+
 @lru_cache(maxsize=1024)
 def validate_generated_query(query: str) -> None:
 	"""Parse a finally generated query and reject constructs a list query must never contain.
@@ -217,7 +230,7 @@ def validate_generated_query(query: str) -> None:
 	7. No subqueries.
 	8. Only functions in `ALLOWED_SQL_FUNCTIONS` are used.
 	"""
-	statements = [s for s in sqlparse.parse(query) if s.token_first(skip_cm=True) is not None]
+	statements = [s for s in _parse_full_query(query) if s.token_first(skip_cm=True) is not None]
 
 	# stacked queries
 	if len(statements) != 1:
