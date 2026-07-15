@@ -46,15 +46,18 @@ def get_automations_for(doctype: str) -> list:
 
 
 def _build_automations_for(doctype: str) -> list:
-	return frappe.get_all(
-		"Automation Flow",
-		filters={
-			"enabled": 1,
-			"document_type": doctype,
-			"trigger_type": ("in", DOC_TRIGGER_TYPES),
-		},
-		fields=RULE_FIELDS,
-	)
+	try:
+		return frappe.get_all(
+			"Automation Flow",
+			filters={
+				"enabled": 1,
+				"document_type": doctype,
+				"trigger_type": ("in", DOC_TRIGGER_TYPES),
+			},
+			fields=RULE_FIELDS,
+		)
+	except (frappe.DoesNotExistError, frappe.db.TableMissingError):
+		return []
 
 
 def get_custom_event_map() -> dict:
@@ -63,11 +66,14 @@ def get_custom_event_map() -> dict:
 
 
 def _build_custom_event_map() -> dict:
-	rules = frappe.get_all(
-		"Automation Flow",
-		filters={"enabled": 1, "trigger_type": "Custom Event"},
-		fields=(*RULE_FIELDS, "custom_event", "document_type"),
-	)
+	try:
+		rules = frappe.get_all(
+			"Automation Flow",
+			filters={"enabled": 1, "trigger_type": "Custom Event"},
+			fields=(*RULE_FIELDS, "custom_event", "document_type"),
+		)
+	except (frappe.DoesNotExistError, frappe.db.TableMissingError):
+		return {}
 	event_map: dict = {}
 	for rule in rules:
 		event_map.setdefault(rule.custom_event, []).append(rule)
