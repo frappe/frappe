@@ -514,11 +514,7 @@
  "idx": 1,
  "index_web_pages_for_search": 1,
  "links": [],
-<<<<<<< HEAD
- "modified": "2026-07-08 13:37:37.503488",
-=======
  "modified": "2026-06-12 10:00:00.000000",
->>>>>>> 893908de63 (fix(custom-field): persist allow_bulk_edit for custom table fields)
  "modified_by": "Administrator",
  "module": "Custom",
  "name": "Custom Field",
