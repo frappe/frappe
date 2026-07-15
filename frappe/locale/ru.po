@@ -33553,7 +33553,7 @@ msgstr "{0} требуется"
 
 #: frappe/public/js/frappe/form/save.js:196
 msgid "{0} is required."
-msgstr "{0} С‚СЂРµР±СѓРµС‚СЃСЏ."
+msgstr "{0} требуется."
 
 #: frappe/public/js/frappe/form/controls/link.js:724
 #: frappe/public/js/frappe/views/reports/report_view.js:1591
