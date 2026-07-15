@@ -713,6 +713,10 @@ class Block implements BlockOptions {
 		return this.componentName === "Repeater"
 	}
 
+	isRepeated() {
+		return Boolean(this.getParentBlock()?.isRepeater())
+	}
+
 	setRepeaterDataItem(repeaterDataItem: Record<string, any>) {
 		// temporarily set repeater data item on selected block for autocompletions
 		this.repeaterDataItem = repeaterDataItem
