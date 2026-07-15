@@ -874,7 +874,7 @@ class TestAttachment(IntegrationTestCase):
 		remove_attach_with_fid(file.name)
 		self.assertFalse(frappe.db.exists("File", file.name))
 
-	def test_direct_deletion_of_referenced_file_is_blocked_unless_forced(self):
+	def test_direct_deletion_of_referenced_file_is_allowed(self):
 		doc = frappe.get_doc(doctype=self.test_doctype, title="test direct delete").insert()
 		file = frappe.get_doc(
 			{
@@ -889,9 +889,7 @@ class TestAttachment(IntegrationTestCase):
 		doc.attachment = file.file_url
 		doc.save()
 
-		self.assertRaises(frappe.LinkExistsError, frappe.delete_doc, "File", file.name)
-
-		frappe.delete_doc("File", file.name, force=True)
+		frappe.delete_doc("File", file.name)
 		self.assertFalse(frappe.db.exists("File", file.name))
 
 	def test_document_delete_cascades_referenced_attachment(self):
