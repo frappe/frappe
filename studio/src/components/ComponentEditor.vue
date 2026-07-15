@@ -10,9 +10,10 @@
 		<!-- Component name label -->
 		<span
 			v-if="!props.block.isRoot()"
-			class="absolute -top-3 left-0 inline-block text-xs"
+			class="absolute -top-3 left-0 inline-flex items-center gap-1 text-xs"
 			:class="componentLabelClasses"
 		>
+			<LucideRepeat v-if="block.isRepeater() || block.isRepeated()" class="h-3 w-3 shrink-0" />
 			{{ block.getBlockDescription() }}
 		</span>
 
@@ -92,6 +93,7 @@ import BoxResizer from "@/components/BoxResizer.vue"
 import PaddingHandler from "@/components/PaddingHandler.vue"
 import MarginHandler from "@/components/MarginHandler.vue"
 import Code from "@/components/Code.vue"
+import LucideRepeat from "~icons/lucide/repeat"
 
 import Block from "@/utils/block"
 import useStudioStore from "@/stores/studioStore"

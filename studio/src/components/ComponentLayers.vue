@@ -69,6 +69,12 @@
 							{{ element.getBlockDescription() }}
 						</span>
 
+						<LucideRepeat
+							v-if="element.isRepeated()"
+							title="Repeated for each data item"
+							class="h-3 w-3 shrink-0 text-ink-gray-4"
+						/>
+
 						<!-- toggle visibility -->
 						<div class="ml-auto flex items-center gap-2">
 							<div
@@ -153,6 +159,7 @@ import ComponentLayers from "@/components/ComponentLayers.vue"
 import useCanvasStore from "@/stores/canvasStore"
 import Block from "@/utils/block"
 import SlotIcon from "@/components/Icons/SlotIcon.vue"
+import LucideRepeat from "~icons/lucide/repeat"
 import type { Slot } from "@/types"
 
 type LayerInstance = InstanceType<typeof ComponentLayers>
