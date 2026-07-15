@@ -625,7 +625,7 @@
   },
   {
    "default": "0",
-   "depends_on": "eval:['Attach', 'Attach Image'].includes(doc.fieldtype)",
+   "depends_on": "eval:['Attach', 'Attach Image', 'Attachment Gallery'].includes(doc.fieldtype)",
    "fieldname": "make_attachment_public",
    "fieldtype": "Check",
    "label": "Make Attachment Public (by default)"
@@ -670,7 +670,7 @@
  "index_web_pages_for_search": 1,
  "istable": 1,
  "links": [],
- "modified": "2026-07-11 23:11:42.258326",
+ "modified": "2026-07-15 19:30:19.837689",
  "modified_by": "Administrator",
  "module": "Core",
  "name": "DocField",

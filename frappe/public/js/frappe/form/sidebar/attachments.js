@@ -664,11 +664,14 @@ frappe.ui.form.Attachments = class Attachments {
 			fieldname,
 			frm: this.frm,
 			folder: "Home/Attachments",
+			make_attachments_public:
+				fieldname && this.frm.get_docfield(fieldname)?.make_attachment_public
+					? 1
+					: this.frm.meta.make_attachments_public,
 			on_success: (file_doc) => {
 				this.attachment_uploaded(file_doc);
 			},
 			restrictions,
-			make_attachments_public: this.frm.meta.make_attachments_public,
 		});
 	}
 	get_args() {
