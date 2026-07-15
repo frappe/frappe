@@ -351,15 +351,41 @@ class SQLiteDatabase(SQLiteExceptionUtil, Database):
 				column_defs.append(f"`{col['name']}` {col['type']}{null_str}")
 				select_columns.append(f"`{col['name']}`")
 
-		self._rebuild_table(table_name, column_defs, select_columns)
+		self._rebuild_table(table_name, column_defs, select_columns, {old_column_name: new_column_name})
 
-	def _rebuild_table(self, table_name: str, column_defs: list[str], select_columns: list[str]) -> None:
+	def _rebuild_table(
+		self,
+		table_name: str,
+		column_defs: list[str],
+		select_columns: list[str],
+		renamed_columns: dict[str, str] | None = None,
+	) -> None:
 		"""Recreate `table_name` with `column_defs`, copying data via `select_columns`, then swap it in."""
+		# Dropping the table drops its user-defined indexes, so capture them for replay.
+		preserved_indexes = self._get_indexes_to_preserve(table_name, renamed_columns or {})
+
 		temp_table = f"{table_name}_new"
 		self.sql_ddl(f"CREATE TABLE `{temp_table}` (\n{','.join(column_defs)}\n)")
 		self.sql_ddl(f"INSERT INTO `{temp_table}` SELECT {', '.join(select_columns)} FROM `{table_name}`")
 		self.sql_ddl(f"DROP TABLE `{table_name}`")
 		self.sql_ddl(f"ALTER TABLE `{temp_table}` RENAME TO `{table_name}`")
+
+		for index_sql in preserved_indexes:
+			self.sql_ddl(index_sql)
+
+	def _get_indexes_to_preserve(self, table_name: str, renamed_columns: dict[str, str]) -> list[str]:
+		"""Return CREATE statements for user-defined indexes, remapping any renamed columns."""
+		statements = []
+		for index in self.sql(
+			"SELECT sql FROM sqlite_master WHERE type = 'index' AND tbl_name = %s AND sql IS NOT NULL",
+			(table_name,),
+			as_dict=True,
+		):
+			sql = index["sql"]
+			for old, new in renamed_columns.items():
+				sql = sql.replace(f"`{old}`", f"`{new}`")
+			statements.append(sql)
+		return statements
 
 	def create_auth_table(self):
 		self.sql_ddl(
