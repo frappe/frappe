@@ -213,16 +213,20 @@ frappe.ui.sidebar_item.TypeSectionBreak = class SectionBreakSidebarItem extends 
 
 	enable_collapsible(item, $item_container) {
 		let sidebar_control = this.$item_control;
-		let drop_icon = "chevron-down";
+		let stroke_color = window.getComputedStyle(document.body).getPropertyValue("--ink-gray-5");
+
 		if (item.collapsible) {
-			let stroke_color = window
-				.getComputedStyle(document.body)
-				.getPropertyValue("--ink-gray-5");
 			this.$drop_icon = $(`<button class="btn-reset drop-icon hidden">`)
-				.html(frappe.utils.icon(drop_icon, "sm", "", "", "", "", stroke_color))
+				.html(frappe.utils.icon("chevron-down", "sm", "", "", "", "", stroke_color))
 				.appendTo(sidebar_control);
 
 			this.$drop_icon.removeClass("hidden");
+		} else if (item.show_arrow) {
+			// The leading chevron span was removed from sidebar_item.html, so build the
+			// toggle indicator here instead of selecting the now-absent [item-icon] span.
+			this.$drop_icon = $(`<button class="btn-reset drop-icon">`)
+				.html(frappe.utils.icon("chevron-right", "sm", "", "", "", "", stroke_color))
+				.prependTo(this.wrapper.find(".item-anchor").first());
 		}
 
 		if (item.keep_closed) {
@@ -233,9 +237,6 @@ frappe.ui.sidebar_item.TypeSectionBreak = class SectionBreakSidebarItem extends 
 			this.section_breaks_state[this.workspace_title]
 		) {
 			this.apply_section_break_state();
-		}
-		if (item.show_arrow) {
-			this.$drop_icon = this.wrapper.find('[item-icon="chevron-right"]');
 		}
 		if (item.collapsible || item.show_arrow) {
 			this.setup_event_listner();
