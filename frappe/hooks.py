@@ -228,6 +228,7 @@ scheduler_events = {
 =======
 			"frappe.search.sqlite_search.index_docs_in_queue",
 			"frappe.integrations.doctype.webhook.webhook.retry_failed_webhooks",
+			"frappe.automation_engine.scheduler.process_cron",
 			"frappe.automation_engine.drainer.drain_due",
 >>>>>>> d74d0a1 (feat: wire automation scheduler events and run log retention)
 		],
