@@ -223,11 +223,8 @@ class User(Document):
 		if not frappe.in_test:
 			self.password_strength_test()
 
-		if self.name not in STANDARD_USERS and not self.name.startswith("USER-"):
-			self.email = self.name
-			self.validate_email_type(self.name)
-		elif self.name not in STANDARD_USERS:
-			self.validate_email_type(self.email)
+		self.email = self.email.strip().lower()
+		self.validate_email_type(self.email)
 
 		self.move_role_profile_name_to_role_profiles()
 		self.populate_role_profile_roles()

@@ -82,6 +82,16 @@ class TestUser(IntegrationTestCase):
 		self.assertEqual(user.email, email)
 		self.assertEqual(frappe.get_user_by_email(email), user.name)
 
+	def test_email_can_change_without_renaming_user(self):
+		user = frappe.get_doc("User", "test1@example.com")
+		original_name = user.name
+		user.email = "  RENAMED.TEST1@EXAMPLE.COM "
+		user.save()
+
+		self.assertEqual(user.name, original_name)
+		self.assertEqual(user.email, "renamed.test1@example.com")
+		self.assertEqual(frappe.get_user_by_email(user.email), original_name)
+
 	def test_delete(self):
 		frappe.get_doc("User", "test@example.com").add_roles("_Test Role 2")
 		self.assertRaises(frappe.LinkExistsError, delete_doc, "Role", "_Test Role 2")
