@@ -1,25 +1,31 @@
 frappe.ui.form.ControlAttachmentGallery = class ControlAttachmentGallery extends (
-	frappe.ui.form.ControlHTML
+	frappe.ui.form.ControlInput
 ) {
+	static horizontal = false;
+
 	make() {
 		super.make();
+		this.$gallery = $(this.input_area);
 		if (this.frm) {
 			$(this.frm.wrapper).on("attachments_change", () => this.refresh());
 		}
 	}
 
 	async refresh_input() {
+		this.set_label();
+		this.set_description();
+
 		const refresh_id = (this.refresh_id || 0) + 1;
 		this.refresh_id = refresh_id;
 
 		if (!this.frm) {
-			this.$wrapper.empty();
+			this.$gallery.empty();
 			this.image_thumbnails = new Map();
 			return;
 		}
 
 		if (this.frm.doc.__islocal) {
-			this.$wrapper.empty();
+			this.$gallery.empty();
 			this.image_thumbnails = new Map();
 			this.render_empty_state(__("Save the document to attach files."));
 			return;
@@ -32,7 +38,7 @@ frappe.ui.form.ControlAttachmentGallery = class ControlAttachmentGallery extends
 			if (refresh_id !== this.refresh_id) {
 				return;
 			}
-			this.$wrapper.empty();
+			this.$gallery.empty();
 			this.image_thumbnails = new Map();
 			this.render_empty_state(__("Unable to load attachments."));
 			return;
@@ -40,7 +46,7 @@ frappe.ui.form.ControlAttachmentGallery = class ControlAttachmentGallery extends
 		if (refresh_id !== this.refresh_id) {
 			return;
 		}
-		this.$wrapper.empty();
+		this.$gallery.empty();
 		this.image_thumbnails = new Map();
 		this.attachments = attachments;
 		const can_add = this.can_add_attachment();
@@ -50,7 +56,7 @@ frappe.ui.form.ControlAttachmentGallery = class ControlAttachmentGallery extends
 			return;
 		}
 
-		const $grid = $('<div class="attachment-gallery"></div>').appendTo(this.$wrapper);
+		const $grid = $('<div class="attachment-gallery"></div>').appendTo(this.$gallery);
 		const can_delete =
 			this.disp_status === "Write" && this.frm.attachments?.can_delete_attachment();
 
@@ -64,7 +70,7 @@ frappe.ui.form.ControlAttachmentGallery = class ControlAttachmentGallery extends
 	}
 
 	render_empty_state(message) {
-		$('<div class="attachment-gallery-empty"></div>').text(message).appendTo(this.$wrapper);
+		$('<div class="attachment-gallery-empty"></div>').text(message).appendTo(this.$gallery);
 	}
 
 	async get_attachments() {
