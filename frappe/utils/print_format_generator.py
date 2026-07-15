@@ -165,7 +165,7 @@ class PrintFormatGenerator:
 
 	# ----- PDF (Chrome) --------------------------------------------------
 
-	def render_pdf(self):
+	def render_pdf(self, password=None):
 		"""Return PDF bytes using the Chromium renderer."""
 		from frappe.utils.pdf import get_chrome_pdf
 
@@ -176,6 +176,8 @@ class PrintFormatGenerator:
 			"margin-left": f"{pf.margin_left}mm",
 			"margin-right": f"{pf.margin_right}mm",
 		}
+		if password:
+			options["password"] = password
 		return get_chrome_pdf(
 			print_format=pf.name,
 			html=self._build_html_for_chrome(),

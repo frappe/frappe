@@ -186,7 +186,7 @@ def attach_print(
 					letterhead_name = letterhead if print_letterhead else None
 					pf = pf_doc or get_default_print_format(doc_obj.doctype)
 					generator = PrintFormatGenerator(pf, doc_obj, letterhead_name)
-					content = generator.render_pdf()
+					content = generator.render_pdf(password=password)
 				else:
 					kwargs["as_pdf"] = True
 					content = get_print(doctype, name, **kwargs)
