@@ -1043,8 +1043,7 @@ def test_password_strength(
 			password_policy_validation_passed = True
 
 		result["feedback"]["password_policy_validation_passed"] = password_policy_validation_passed
-		result.pop("password", None)
-		return result
+		return {"score": result["score"], "feedback": result["feedback"]}
 
 
 @frappe.whitelist()

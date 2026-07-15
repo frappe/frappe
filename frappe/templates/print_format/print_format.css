@@ -49,6 +49,24 @@ body {
 	}
 }
 
+{%- if action_banner %}
+@media screen {
+	.action-banner {
+		position: fixed;
+		top: 0;
+		right: 0;
+		display: flex;
+		justify-content: flex-end;
+		padding-right: 20px;
+	}
+}
+@media print {
+	.action-banner {
+		display: none !important;
+	}
+}
+{%- endif %}
+
 {% include "templates/print_format/print_format_doc.css" %}
 
 {%- if print_format.label_color %}

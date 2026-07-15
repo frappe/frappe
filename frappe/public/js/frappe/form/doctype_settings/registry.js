@@ -71,31 +71,24 @@ frappe.doctype_settings.overflow_menu = function (items) {
 };
 
 /**
- * Shared empty state (banking-style: muted icon ▸ title ▸ description ▸ subtle action).
- * Renders into `$container` (cleared by the caller).
+ * Shared empty state — thin wrapper over frappe.ui.empty_state so every
+ * settings tab gets the standard component. Same signature as before, so
+ * callers don't change; its single `action` maps to the component's actions
+ * array. Renders into `$container` (cleared by the caller).
  * `opts`: { icon, title, description, action: { label, onclick() } }.
  */
 frappe.doctype_settings.empty_state = function ($container, opts) {
 	opts = opts || {};
-	const $empty = $('<div class="dts-empty"></div>').appendTo($container);
-	$('<div class="dts-empty-icon"></div>')
-		.append(frappe.utils.icon(opts.icon || "list", "lg"))
-		.appendTo($empty);
-	$('<div class="dts-empty-title"></div>')
-		.text(opts.title || __("Nothing here yet"))
-		.appendTo($empty);
-	if (opts.description) {
-		$('<div class="dts-empty-description"></div>').text(opts.description).appendTo($empty);
-	}
-	if (opts.action) {
-		frappe.ui
-			.button({
-				label: opts.action.label,
-				css_class: "dts-empty-action",
-				onclick: () => opts.action.onclick(),
-			})
-			.appendTo($empty);
-	}
+	const actions = opts.action
+		? [{ label: opts.action.label, variant: "subtle", onclick: () => opts.action.onclick() }]
+		: [];
+	const $empty = frappe.ui.empty_state({
+		icon: opts.icon || "list",
+		title: opts.title || __("Nothing here yet"),
+		description: opts.description,
+		actions,
+	});
+	$empty.appendTo($container);
 	return $empty;
 };
 

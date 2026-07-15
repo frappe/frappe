@@ -278,15 +278,19 @@ frappe.ui.BackgroundTasks = class BackgroundTasks {
 			`;
 		}
 
-		return $(`<a class="bg-task-item ${cancellable_class} ${retryable_class}" data-name="${task.name}" data-task-id="${task.task_id}">
+		return $(`<a class="bg-task-item ${cancellable_class} ${retryable_class}" data-name="${
+			task.name
+		}" data-task-id="${task.task_id}">
 			<div class="bg-task-header">
 				<div class="bg-task-title">
 					<span>${task_title}</span>
 				</div>
 				<div class="bg-task-actions" style="display: flex; align-items: center; justify-content: flex-end; min-width: 60px; flex-shrink: 0;">
-					<div class="es-badge status-badge" data-theme="${color}">
-						${task.status}
-					</div>
+					${frappe.ui.badge.html({
+						label: task.status,
+						theme: color,
+						css_class: "status-badge",
+					})}
 					${cancel_btn}
 					${retry_btn}
 				</div>

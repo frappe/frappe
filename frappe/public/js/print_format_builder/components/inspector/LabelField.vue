@@ -1,29 +1,30 @@
 <template>
-	<div class="pfb-insp-row" v-if="showToggle">
-		<span class="pfb-insp-label">{{ showLabel }}</span>
-		<label class="switch-control">
-			<span class="input-area">
-				<input
-					type="checkbox"
-					role="switch"
-					:checked="show_on"
-					@change="$emit('update:show', $event.target.checked ? 'show' : 'hide')"
-				/>
-			</span>
-			<span class="switch-visual" aria-hidden="true">
-				<span class="switch-thumb"></span>
-			</span>
-		</label>
-	</div>
-	<div class="pfb-insp-row pfb-insp-row--col" v-if="!showToggle || show_on">
+	<div class="pfb-insp-row pfb-insp-row--col">
 		<span class="pfb-insp-label">{{ label }}</span>
-		<input
-			class="pfb-insp-input"
-			type="text"
-			:placeholder="placeholder"
-			:value="modelValue"
-			@input="$emit('update:modelValue', $event.target.value)"
-		/>
+		<div class="label-field-controls">
+			<label v-if="showToggle" class="switch-control" :title="showLabel">
+				<span class="input-area">
+					<input
+						type="checkbox"
+						role="switch"
+						:aria-label="showLabel"
+						:checked="show_on"
+						@change="$emit('update:show', $event.target.checked ? 'show' : 'hide')"
+					/>
+				</span>
+				<span class="switch-visual" aria-hidden="true">
+					<span class="switch-thumb"></span>
+				</span>
+			</label>
+			<input
+				v-if="!showToggle || show_on"
+				class="pfb-insp-input"
+				type="text"
+				:placeholder="placeholder"
+				:value="modelValue"
+				@input="$emit('update:modelValue', $event.target.value)"
+			/>
+		</div>
 	</div>
 </template>
 
@@ -42,3 +43,15 @@ defineEmits(["update:modelValue", "update:show"]);
 
 let show_on = computed(() => props.show !== "hide");
 </script>
+
+<style scoped>
+.label-field-controls {
+	display: flex;
+	align-items: center;
+	gap: 10px;
+}
+
+.label-field-controls .pfb-insp-input {
+	flex: 1;
+}
+</style>

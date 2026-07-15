@@ -1,294 +1,218 @@
 <template>
 	<div
-		class="field"
-		:class="{
-			'field--table': df.fieldtype == 'Table',
-			'field--selected': is_selected,
-			'field--preview': !!preview_doc,
-			'field--condition-hidden': preview_doc && !is_field_visible,
-		}"
+		:class="[
+			preview_doc ? preview_root.classes : 'field field--chip',
+			{
+				'field--table': df.fieldtype == 'Table',
+				'field--selected': is_selected,
+				'field--preview': !!preview_doc,
+				'field--condition-hidden': preview_doc && !is_field_visible,
+			},
+		]"
+		:style="preview_doc ? preview_root.style : undefined"
+		:data-fieldname="preview_data_attr(df.fieldname)"
+		:data-fieldtype="preview_data_attr(df.fieldtype)"
 		v-show="!df.remove"
 		:title="df.label || df.fieldname"
 		@click.stop="select_field"
 	>
 		<!-- ── Preview mode: show actual doc values ─────────── -->
 		<template v-if="preview_doc">
-			<div class="field-preview-wrap" :style="custom_style">
-				<!-- Handle HTML fields: render Jinja2 server-side if needed -->
+			<!-- Handle HTML fields: render Jinja2 server-side if needed -->
+			<span v-if="template_render_failed" class="text-muted">{{
+				__("Couldn't render this template for the previewed document")
+			}}</span>
+			<div
+				v-else-if="df.fieldtype == 'HTML' && df.html"
+				v-html="rendered_html ?? df.html"
+			></div>
+			<!-- Spacer/Divider: the root element itself is the rendered output -->
+			<i
+				v-else-if="df.fieldtype == 'Spacer' || df.fieldtype == 'Divider'"
+				v-show="false"
+			></i>
+			<template v-else-if="df.fieldtype == 'Image'">
+				<img
+					v-if="df.image_url || preview_doc[df.fieldname]"
+					:src="df.image_url || preview_doc[df.fieldname]"
+					:style="{ maxWidth: '100%', ...(df.width ? { width: df.width } : {}) }"
+					:alt="df.label || ''"
+				/>
+				<span v-else class="text-muted">{{ __("No image — set one in the panel") }}</span>
+			</template>
+			<template v-else-if="df.fieldtype == 'Barcode' && df.custom">
+				<img
+					v-if="df.barcode_format == 'QR' && qr_src"
+					:src="qr_src"
+					:style="{ width: df.width || '35mm' }"
+				/>
 				<div
-					v-if="df.fieldtype == 'HTML' && df.html"
-					class="custom-html"
-					v-html="rendered_html ?? df.html"
+					v-else-if="barcode_svg"
+					class="pf-barcode-svg"
+					:style="df.width ? { width: df.width } : {}"
+					v-html="barcode_svg"
 				></div>
-				<div v-else-if="df.fieldtype == 'Spacer'" class="field-preview-spacer"></div>
-				<div v-else-if="df.fieldtype == 'Divider'" class="field-preview-divider"></div>
-				<div
-					v-else-if="df.fieldtype == 'Image' && df.custom"
-					:style="{ textAlign: df.align || 'left' }"
+				<span
+					v-else-if="barcode_raw_value && df.barcode_format !== 'QR'"
+					class="text-muted"
+					>{{ __("Invalid value for {0}", [df.barcode_format || "CODE128"]) }}</span
 				>
-					<img
-						v-if="df.image_url"
-						:src="df.image_url"
-						class="pf-element-img"
-						:style="df.width ? { width: df.width } : {}"
-						:alt="df.label || ''"
-					/>
-					<span v-else class="text-muted">{{
-						__("No image — set one in the panel")
-					}}</span>
+				<span v-else class="text-muted">{{
+					__("No barcode value — set one in the panel")
+				}}</span>
+			</template>
+			<div
+				v-else-if="df.fieldtype == 'Field Template'"
+				v-html="rendered_template || ''"
+			></div>
+			<!-- Table MultiSelect field: render as a comma-separated value list -->
+			<template v-else-if="df.fieldtype == 'Table MultiSelect'">
+				<div
+					v-if="df.label && df.show_label !== 'hide'"
+					class="label"
+					:style="label_text_style(df)"
+				>
+					{{ df.label }}
 				</div>
 				<div
-					v-else-if="df.fieldtype == 'Barcode' && df.custom"
-					:style="{ textAlign: df.align || 'left' }"
+					class="value"
+					:class="{ 'text-muted': !(preview_doc[df.fieldname] || []).length }"
+					:style="value_text_style(df)"
 				>
-					<img
-						v-if="df.barcode_format == 'QR' && qr_src"
-						:src="qr_src"
-						class="pf-element-img"
-						:style="{ width: df.width || '35mm' }"
-					/>
-					<div
-						v-else-if="barcode_svg"
-						class="pf-barcode-svg"
-						:style="df.width ? { width: df.width } : {}"
-						v-html="barcode_svg"
-					></div>
-					<span
-						v-else-if="barcode_raw_value && df.barcode_format !== 'QR'"
-						class="text-muted"
-						>{{ __("Invalid value for {0}", [df.barcode_format || "CODE128"]) }}</span
-					>
-					<span v-else class="text-muted">{{
-						__("No barcode value — set one in the panel")
-					}}</span>
+					{{ multiselect_display(df) }}
 				</div>
-				<div
-					v-else-if="df.fieldtype == 'Field Template'"
-					class="custom-html"
-					v-html="rendered_template || ''"
-				></div>
-				<!-- Table MultiSelect field: render as a comma-separated value list -->
-				<div
-					v-else-if="df.fieldtype == 'Table MultiSelect'"
-					:style="field_style(df, true)"
-					:class="[
-						'field-preview-lr',
-						field_orientation === 'left-right' && df.label_justify
-							? `field-preview-lr--${df.label_justify}`
-							: '',
-						field_orientation === 'left-right' && df.align && df.align !== 'left'
-							? `field-preview-lr--align-${df.align}`
-							: '',
-					]"
-				>
-					<div
-						v-if="df.label && df.show_label !== 'hide'"
-						class="field-preview-label"
-						:style="label_text_style(df)"
-					>
-						{{ df.label }}
-					</div>
-					<div
-						class="field-preview-value"
-						:class="{ 'text-muted': !(preview_doc[df.fieldname] || []).length }"
-						:style="value_text_style(df)"
-					>
-						{{ multiselect_display(df) }}
-					</div>
+			</template>
+			<!-- Table field -->
+			<template v-else-if="df.fieldtype == 'Table'">
+				<div v-if="df.label && df.show_label !== 'hide'" class="label">
+					{{ df.label }}
 				</div>
-				<!-- Table field -->
+				<!-- radius lives on a wrapper: border-radius is a no-op on a
+				     border-collapse:collapse table, same as the PDF markup -->
 				<div
-					v-else-if="df.fieldtype == 'Table'"
-					class="child-table"
-					:class="{
-						[`child-table--${df.table_style || 'lined'}`]: true,
-						'child-table--borderless': df.table_bordered === false,
-						'child-table--plain-header': df.table_header === 'plain',
-					}"
+					:style="
+						df.table_radius != null
+							? { borderRadius: df.table_radius + 'px', overflow: 'hidden' }
+							: {}
+					"
 				>
-					<div v-if="df.label && df.show_label !== 'hide'" class="label">
-						{{ df.label }}
-					</div>
-					<!-- radius lives on a wrapper: border-radius is a no-op on a
-					     border-collapse:collapse table, same as the PDF markup -->
-					<div
-						:style="
-							df.table_radius != null
-								? { borderRadius: df.table_radius + 'px', overflow: 'hidden' }
-								: {}
-						"
+					<table
+						class="table"
+						:class="{ 'table-bordered': df.table_bordered !== false }"
 					>
-						<table
-							class="table"
-							:class="{ 'table-bordered': df.table_bordered !== false }"
-						>
-							<thead v-if="df.table_header !== 'none'">
-								<!-- inline !important mirrors the server markup: the shared
+						<thead v-if="df.table_header !== 'none'">
+							<!-- inline !important mirrors the server markup: the shared
 								     stylesheet's own !important rules must lose to these -->
-								<tr
+							<tr
+								:style="
+									df.table_header_bg
+										? `background-color: ${df.table_header_bg} !important`
+										: ''
+								"
+							>
+								<th
+									v-for="(col, ci) in df.table_columns"
+									:key="col.fieldname"
+									class="column-header"
+									:class="{ 'column-value--merged': has_merge(col) }"
+									:data-fieldtype="col.fieldtype"
+									:data-fieldname="col.fieldname"
 									:style="
-										df.table_header_bg
-											? `background-color: ${df.table_header_bg} !important`
-											: ''
+										(col.width ? `width: ${col.width}%; ` : '') +
+										cell_style(df)
 									"
 								>
-									<th
-										v-for="col in df.table_columns"
-										:key="col.fieldname"
-										class="column-header"
-										:class="{ 'column-value--merged': has_merge(col) }"
-										:data-fieldtype="col.fieldtype"
-										:data-fieldname="col.fieldname"
-										:style="
-											(col.width ? `width: ${col.width}%; ` : '') +
-											cell_style(df)
-										"
-									>
-										{{ col.label || col.fieldname }}
-									</th>
-								</tr>
-							</thead>
-							<tbody>
-								<tr
-									v-for="(row, i) in (preview_doc[df.fieldname] || []).slice(
-										0,
-										4
-									)"
-									:key="i"
-									:class="i % 2 === 0 ? 'odd' : 'even'"
-								>
-									<td
-										v-for="col in df.table_columns"
-										:key="col.fieldname"
-										class="column-value"
-										:class="{ 'column-value--merged': has_merge(col) }"
-										:data-fieldtype="col.fieldtype"
-										:data-fieldname="col.fieldname"
-										:style="cell_style(df)"
-									>
-										<!-- Merged cell: image (if any) floats left, text lines stack -->
-										<div v-if="has_merge(col)" class="cell-merged">
-											<template v-if="image_merge(col)">
-												<img
-													v-if="cell_image(col, row)"
-													:src="cell_image(col, row)"
-													class="cell-thumb-img"
-													:style="thumb_box(col)"
-													:alt="col.label || col.fieldname"
-												/>
-												<span
-													v-else
-													class="cell-thumb"
-													:style="thumb(col, row).style"
-													>{{ thumb(col, row).abbr }}</span
-												>
-											</template>
-											<div class="cell-lines">
-												<div
-													v-for="(mf, mi) in text_merges(col)"
-													:key="mi"
-													class="cell-line"
-													:class="`cell-line--${mf.style || 'primary'}`"
-												>
-													{{ format_merged(row, mf.fieldname) }}
-												</div>
-											</div>
-										</div>
-										<!-- Single (default) -->
-										<template v-else>
-											<img
-												v-if="
-													is_image_field(col, row[col.fieldname]) &&
-													row[col.fieldname]
-												"
-												:src="row[col.fieldname]"
-												class="preview-table-img"
-												:alt="col.label || col.fieldname"
-											/>
-											<div
-												v-else-if="is_html_content_field(col)"
-												class="preview-table-html"
-												v-html="format_cell(row, col)"
-											></div>
-											<span v-else>{{ format_cell(row, col) }}</span>
-										</template>
-									</td>
-								</tr>
-								<tr v-if="!preview_doc[df.fieldname]?.length">
-									<td
-										:colspan="df.table_columns?.length || 1"
-										class="text-muted"
-										style="text-align: center; font-size: 11px; padding: 6px"
-									>
-										{{ __("No rows") }}
-									</td>
-								</tr>
-								<tr v-if="(preview_doc[df.fieldname] || []).length > 4">
-									<td
-										:colspan="df.table_columns?.length || 1"
-										class="text-muted"
-										style="text-align: center; font-size: 11px; padding: 6px"
-									>
-										{{
-											__(
-												"+ {0} more rows in this document — all print in the real output",
-												[preview_doc[df.fieldname].length - 4]
-											)
-										}}
-									</td>
-								</tr>
-							</tbody>
-						</table>
-					</div>
-				</div>
-				<!-- Repeater field -->
-				<div v-else-if="df.fieldtype == 'Repeater'" class="pfb-repeater">
-					<div v-if="df.label && df.show_label !== 'hide'" class="label">
-						{{ df.label }}
-					</div>
-					<table class="pfb-repeater-table">
-						<colgroup>
-							<col
-								v-for="(col, ci) in df.repeater_columns || []"
-								:key="ci"
-								:style="col.width ? { width: col.width + '%' } : {}"
-							/>
-						</colgroup>
+									{{ col.label || col.fieldname }}
+									<span
+										v-if="ci < df.table_columns.length - 1"
+										class="col-resize-handle"
+										@pointerdown.prevent.stop="start_col_resize($event, ci)"
+										@mousedown.prevent.stop
+										@click.stop
+									></span>
+								</th>
+							</tr>
+						</thead>
 						<tbody>
 							<tr
-								v-for="(row, i) in (preview_doc[df.source] || []).slice(0, 6)"
+								v-for="(row, i) in (preview_doc[df.fieldname] || []).slice(0, 4)"
 								:key="i"
+								:class="i % 2 === 0 ? 'odd' : 'even'"
 							>
 								<td
-									v-for="(col, ci) in df.repeater_columns || []"
-									:key="ci"
-									class="pfb-repeater-cell"
-									:style="{
-										textAlign: col.align || 'left',
-										...(col.color ? { color: col.color } : {}),
-									}"
+									v-for="col in df.table_columns"
+									:key="col.fieldname"
+									class="column-value"
+									:class="{ 'column-value--merged': has_merge(col) }"
+									:data-fieldtype="col.fieldtype"
+									:data-fieldname="col.fieldname"
+									:style="cell_style(df)"
 								>
-									{{ repeater_cell(col, row) }}
+									<!-- Merged cell: image (if any) floats left, text lines stack -->
+									<div v-if="has_merge(col)" class="cell-merged">
+										<template v-if="image_merge(col)">
+											<img
+												v-if="cell_image(col, row)"
+												:src="cell_image(col, row)"
+												class="cell-thumb-img"
+												:style="thumb_box(col)"
+												:alt="col.label || col.fieldname"
+											/>
+											<span
+												v-else
+												class="cell-thumb"
+												:style="thumb(col, row).style"
+												>{{ thumb(col, row).abbr }}</span
+											>
+										</template>
+										<div class="cell-lines">
+											<div
+												v-for="(mf, mi) in text_merges(col)"
+												:key="mi"
+												class="cell-line"
+												:class="`cell-line--${mf.style || 'primary'}`"
+											>
+												{{ format_merged(row, mf.fieldname) }}
+											</div>
+										</div>
+									</div>
+									<!-- Single (default) -->
+									<template v-else>
+										<img
+											v-if="
+												is_image_field(col, row[col.fieldname]) &&
+												row[col.fieldname]
+											"
+											:src="row[col.fieldname]"
+											class="preview-table-img"
+											:alt="col.label || col.fieldname"
+										/>
+										<div
+											v-else-if="is_html_content_field(col)"
+											class="preview-table-html"
+											v-html="format_cell(row, col)"
+										></div>
+										<span v-else>{{ format_cell(row, col) }}</span>
+									</template>
 								</td>
 							</tr>
-							<tr v-if="!(preview_doc[df.source] || []).length">
+							<tr v-if="!preview_doc[df.fieldname]?.length">
 								<td
-									class="text-muted"
-									style="text-align: center; font-size: 11px; padding: 6px"
+									:colspan="df.table_columns?.length || 1"
+									class="text-muted pfb-table-note"
 								>
-									{{ df.source ? __("No rows") : __("Pick a source table") }}
+									{{ __("No rows") }}
 								</td>
 							</tr>
-							<tr v-if="(preview_doc[df.source] || []).length > 6">
+							<tr v-if="(preview_doc[df.fieldname] || []).length > 4">
 								<td
-									:colspan="df.repeater_columns?.length || 1"
-									class="text-muted"
-									style="text-align: center; font-size: 11px; padding: 6px"
+									:colspan="df.table_columns?.length || 1"
+									class="text-muted pfb-table-note"
 								>
 									{{
 										__(
 											"+ {0} more rows in this document — all print in the real output",
-											[preview_doc[df.source].length - 6]
+											[preview_doc[df.fieldname].length - 4]
 										)
 									}}
 								</td>
@@ -296,44 +220,112 @@
 						</tbody>
 					</table>
 				</div>
-				<!-- Regular field -->
-				<div
-					v-else
-					:style="field_style(df)"
-					:class="[
-						field_orientation === 'left-right' || df.show_label === 'inline'
-							? 'field-preview-lr'
-							: '',
-						field_orientation === 'left-right' && df.label_justify
-							? `field-preview-lr--${df.label_justify}`
-							: '',
-						field_orientation === 'left-right' && df.align && df.align !== 'left'
-							? `field-preview-lr--align-${df.align}`
-							: '',
-					]"
-				>
-					<div
-						v-if="df.label && df.show_label !== 'hide'"
-						class="field-preview-label"
-						:style="label_text_style(df)"
-					>
-						{{ df.label }}
-					</div>
-					<div
-						class="field-preview-value"
-						:class="{ 'text-muted': !preview_value }"
-						:style="value_text_style(df)"
-					>
-						<img
-							v-if="is_image_field(df, preview_value) && preview_value"
-							:src="preview_value"
-							class="preview-field-img"
-							:alt="df.label || df.fieldname"
-						/>
-						<span v-else>{{ preview_value || "—" }}</span>
-					</div>
+			</template>
+			<!-- Repeater field -->
+			<template v-else-if="df.fieldtype == 'Repeater'">
+				<div v-if="df.label && df.show_label !== 'hide'" class="label">
+					{{ df.label }}
 				</div>
-			</div>
+				<table class="pfb-repeater-table">
+					<colgroup>
+						<col
+							v-for="(col, ci) in df.repeater_columns || []"
+							:key="ci"
+							:style="col.width ? { width: col.width + '%' } : {}"
+						/>
+					</colgroup>
+					<tbody>
+						<tr
+							v-for="(row, i) in (preview_doc[df.source] || []).slice(0, 6)"
+							:key="i"
+						>
+							<td
+								v-for="(col, ci) in df.repeater_columns || []"
+								:key="ci"
+								class="pfb-repeater-cell"
+								:style="{
+									textAlign: col.align || 'left',
+									...(col.color ? { color: col.color } : {}),
+								}"
+							>
+								{{ repeater_cell(col, row) }}
+							</td>
+						</tr>
+						<tr v-if="!(preview_doc[df.source] || []).length">
+							<td class="text-muted pfb-table-note">
+								{{ df.source ? __("No rows") : __("Pick a source table") }}
+							</td>
+						</tr>
+						<tr v-if="(preview_doc[df.source] || []).length > 6">
+							<td
+								:colspan="df.repeater_columns?.length || 1"
+								class="text-muted pfb-table-note"
+							>
+								{{
+									__(
+										"+ {0} more rows in this document — all print in the real output",
+										[preview_doc[df.source].length - 6]
+									)
+								}}
+							</td>
+						</tr>
+					</tbody>
+				</table>
+			</template>
+			<!-- Regular field -->
+			<template v-else>
+				<div
+					v-if="df.label && df.show_label !== 'hide'"
+					class="label"
+					:style="label_text_style(df)"
+				>
+					{{ df.label }}
+				</div>
+				<div
+					class="value"
+					:class="{ 'text-muted': !preview_value }"
+					:style="value_text_style(df)"
+				>
+					<img
+						v-if="df.fieldtype == 'Attach Image' && preview_doc[df.fieldname]"
+						class="w-100"
+						:src="preview_doc[df.fieldname]"
+						:alt="df.label || df.fieldname"
+					/>
+					<a
+						v-else-if="df.fieldtype == 'Attach' && preview_doc[df.fieldname]"
+						:href="preview_doc[df.fieldname]"
+						@click.prevent
+						>{{ String(preview_doc[df.fieldname]).split("/").pop() }}</a
+					>
+					<template v-else-if="df.fieldtype == 'Color' && preview_doc[df.fieldname]">
+						<div
+							class="color-square"
+							:style="{ backgroundColor: preview_doc[df.fieldname] }"
+						></div>
+						{{ preview_doc[df.fieldname] }}
+					</template>
+					<!-- Mirrors the star SVG of templates/print_format/macros/Rating.html -->
+					<template v-else-if="df.fieldtype == 'Rating' && preview_doc[df.fieldname]">
+						<svg
+							v-for="i in rating_stars.total"
+							:key="i"
+							class="rating-star"
+							:class="{ active: i <= rating_stars.filled }"
+							viewBox="0 0 24 24"
+							fill="none"
+							xmlns="http://www.w3.org/2000/svg"
+						>
+							<path
+								:fill="i <= rating_stars.filled ? '#f6c35e' : '#dce0e3'"
+								:stroke="i <= rating_stars.filled ? '#f6c35e' : '#dce0e3'"
+								d="M11.5516 2.90849C11.735 2.53687 12.265 2.53687 12.4484 2.90849L14.8226 7.71919C14.8954 7.86677 15.0362 7.96905 15.1991 7.99271L20.508 8.76415C20.9181 8.82374 21.0818 9.32772 20.7851 9.61699L16.9435 13.3616C16.8257 13.4765 16.7719 13.642 16.7997 13.8042L17.7066 19.0916C17.7766 19.5001 17.3479 19.8116 16.9811 19.6187L12.2327 17.1223C12.087 17.0457 11.913 17.0457 11.7673 17.1223L7.01888 19.6187C6.65207 19.8116 6.22335 19.5001 6.29341 19.0916L7.20028 13.8042C7.2281 13.642 7.17433 13.4765 7.05648 13.3616L3.21491 9.61699C2.91815 9.32772 3.08191 8.82374 3.49202 8.76415L8.80094 7.99271C8.9638 7.96905 9.10458 7.86677 9.17741 7.71919L11.5516 2.90849Z"
+							/>
+						</svg>
+					</template>
+					<span v-else>{{ preview_value || "—" }}</span>
+				</div>
+			</template>
 			<!-- Top-right actions pill: drag + remove -->
 			<div class="field-preview-actions">
 				<div
@@ -479,26 +471,10 @@ import {
 	thumb_hue,
 	parse_inline_style,
 } from "../../utils";
-import { createApp, ref, nextTick, watch, computed, inject } from "vue";
+import { createApp, ref, nextTick, watch, computed, inject, onUnmounted } from "vue";
 import JsBarcode from "jsbarcode";
 
 const props = defineProps(["df", "field_orientation"]);
-
-// Inline style for a preview field: text alignment (stacked only) plus an
-// optional label-to-value gap. `always_row` is for fields that are always a
-// flex row (e.g. Table MultiSelect) regardless of section orientation.
-function field_style(df, always_row = false) {
-	const style = {};
-	if (props.field_orientation !== "left-right") {
-		style.textAlign = df.align || "left";
-	}
-	const is_row =
-		always_row || props.field_orientation === "left-right" || df.show_label === "inline";
-	if (is_row && df.label_gap != null) {
-		style.gap = df.label_gap + "px";
-	}
-	return style;
-}
 
 // Per-field text colour for the label and value lines.
 function label_text_style(df) {
@@ -512,6 +488,7 @@ let store = inject("$store");
 let editing = ref(false);
 let label_input = ref(null);
 let rendered_html = ref(null);
+let template_render_failed = ref(false);
 let rendered_template = ref(null);
 
 let custom_style = computed(() => parse_inline_style(props.df.custom_style));
@@ -520,6 +497,71 @@ let is_selected = computed(() => store.selected_field.value === props.df);
 let preview_doc = computed(() => store.preview_doc.value);
 let is_field_visible = computed(() => evaluate_visible_if(props.df.visible_if, preview_doc.value));
 
+// Mirrors the root markup of templates/print_format/macros/*.html per fieldtype
+const preview_root = computed(() => {
+	const df = props.df;
+	const custom = custom_style.value;
+	if (df.fieldtype === "Table") {
+		return {
+			classes: [
+				"child-table",
+				`child-table--${df.table_style || "lined"}`,
+				df.table_bordered === false ? "child-table--borderless" : "",
+				df.table_header === "plain" ? "child-table--plain-header" : "",
+			],
+			style: custom,
+		};
+	}
+	if (df.fieldtype === "Repeater") return { classes: ["pfb-repeater"], style: custom };
+	if (df.fieldtype === "HTML") return { classes: ["custom-html"], style: custom };
+	if (df.fieldtype === "Field Template") return { classes: ["field-template"], style: custom };
+	if (df.fieldtype === "Spacer") return { classes: [], style: { height: "1em", ...custom } };
+	if (df.fieldtype === "Divider") {
+		return {
+			classes: [],
+			style: {
+				height: "1px",
+				margin: "0.5em 0",
+				borderBottom: "1px solid",
+				borderBottomColor: "var(--dark-border-color)",
+				...custom,
+			},
+		};
+	}
+	if (df.fieldtype === "Image" || df.fieldtype === "Barcode") {
+		return {
+			classes: [
+				"field",
+				df.fieldtype === "Image" ? "print-image" : "print-barcode",
+				df.align ? `field-align-${df.align}` : "",
+			],
+			style: custom,
+		};
+	}
+	const lr = props.field_orientation === "left-right";
+	const style = {};
+	if ((lr || df.show_label === "inline") && df.label_gap != null) {
+		style.gap = df.label_gap + "px";
+	}
+	return {
+		classes: [
+			"field",
+			lr ? "left-right" : "",
+			!lr && df.show_label === "inline" ? "field-inline" : "",
+			df.align ? `field-align-${df.align}` : "",
+			lr && df.label_justify ? `field-justify-${df.label_justify}` : "",
+		],
+		style: { ...style, ...custom },
+	};
+});
+
+// Spacer/Divider carry no data attributes on the server either
+function preview_data_attr(value) {
+	if (!preview_doc.value || !value) return undefined;
+	if (props.df.fieldtype === "Spacer" || props.df.fieldtype === "Divider") return undefined;
+	return value;
+}
+
 // Render Jinja2 HTML fields server-side when in preview mode
 watch(
 	[preview_doc, () => props.df.html],
@@ -527,6 +569,7 @@ watch(
 		const html = props.df.html;
 		if (!doc || !html || props.df.fieldtype !== "HTML") {
 			rendered_html.value = null;
+			template_render_failed.value = false;
 			return;
 		}
 		rendered_html.value = await render_jinja_html(
@@ -534,6 +577,7 @@ watch(
 			store.meta.value?.name,
 			store.preview_doc_name.value
 		);
+		template_render_failed.value = rendered_html.value === null;
 	},
 	{ immediate: true }
 );
@@ -544,6 +588,7 @@ watch(
 	async ([doc]) => {
 		if (!doc || props.df.fieldtype !== "Field Template" || !props.df.field_template) {
 			rendered_template.value = null;
+			template_render_failed.value = false;
 			return;
 		}
 		try {
@@ -558,8 +603,10 @@ watch(
 				store.meta.value?.name,
 				store.preview_doc_name.value
 			);
+			template_render_failed.value = rendered_template.value === null;
 		} catch {
 			rendered_template.value = null;
+			template_render_failed.value = true;
 		}
 	},
 	{ immediate: true }
@@ -634,6 +681,13 @@ let preview_value = computed(() => {
 	} catch {
 		return String(raw);
 	}
+});
+
+// Same math as macros/Rating.html: value is a 0-1 fraction, df.options holds the star count
+let rating_stars = computed(() => {
+	const total = parseInt(props.df.options) || 5;
+	const value = (preview_doc.value && preview_doc.value[props.df.fieldname]) || 0;
+	return { total, filled: Math.min(Math.floor(value * total + 0.5), total) };
 });
 
 const IMAGE_FIELDTYPES = new Set(["Attach Image", "Image", "Attach"]);
@@ -890,6 +944,42 @@ function get_column_to_add(fieldname) {
 	return { ...frappe.meta.get_docfield(props.df.options, fieldname), width: 10 };
 }
 
+let end_col_resize = null;
+
+function start_col_resize(e, ci) {
+	const cols = props.df.table_columns;
+	const left = cols[ci];
+	const right = cols[ci + 1];
+	if (!right) return;
+	const table_width = e.target.closest("table").getBoundingClientRect().width;
+	const start_x = e.clientX;
+	const start_left = left.width || 10;
+	const start_right = right.width || 10;
+	const handle = e.target;
+	handle.classList.add("col-resize-handle--active");
+	document.body.classList.add("pfb-col-resizing");
+	const on_move = (ev) => {
+		let delta = Math.round(((ev.clientX - start_x) / table_width) * 100);
+		delta = Math.max(5 - start_left, Math.min(start_right - 5, delta));
+		left.width = start_left + delta;
+		right.width = start_right - delta;
+	};
+	const on_up = () => {
+		document.removeEventListener("pointermove", on_move);
+		document.removeEventListener("pointerup", on_up);
+		document.removeEventListener("pointercancel", on_up);
+		handle.classList.remove("col-resize-handle--active");
+		document.body.classList.remove("pfb-col-resizing");
+		end_col_resize = null;
+	};
+	document.addEventListener("pointermove", on_move);
+	document.addEventListener("pointerup", on_up);
+	document.addEventListener("pointercancel", on_up);
+	end_col_resize = on_up;
+}
+
+onUnmounted(() => end_col_resize?.());
+
 function validate_table_columns() {
 	if (props.df.fieldtype != "Table") return;
 	let total = 0;
@@ -910,8 +1000,52 @@ watch(
 );
 </script>
 
+<style>
+body.pfb-col-resizing,
+body.pfb-col-resizing * {
+	cursor: col-resize !important;
+	user-select: none;
+}
+</style>
+
 <style scoped>
-.field {
+.column-header {
+	position: relative;
+}
+
+.col-resize-handle {
+	position: absolute;
+	top: 0;
+	bottom: 0;
+	right: -4px;
+	width: 8px;
+	cursor: col-resize;
+	z-index: 1;
+}
+
+.col-resize-handle::after {
+	content: "";
+	position: absolute;
+	top: 2px;
+	bottom: 2px;
+	left: 3px;
+	width: 2px;
+	border-radius: 1px;
+	background: var(--gray-400);
+	opacity: 0;
+	transition: opacity 0.15s;
+}
+
+thead:hover .col-resize-handle::after {
+	opacity: 0.4;
+}
+
+.col-resize-handle:hover::after,
+.col-resize-handle--active::after {
+	opacity: 1;
+}
+
+.field--chip {
 	display: flex;
 	flex-direction: column;
 	gap: 0;
@@ -926,21 +1060,21 @@ watch(
 	overflow: hidden;
 }
 
-.field:active {
+.field--chip:active {
 	cursor: grabbing;
 }
 
-.field.sortable-chosen,
-.field.sortable-ghost {
+.field--chip.sortable-chosen,
+.field--chip.sortable-ghost {
 	cursor: grabbing;
 }
 
-.field:focus-within {
+.field--chip:focus-within {
 	border-style: solid;
 	border-color: var(--gray-600);
 }
 
-.field--selected {
+.field--chip.field--selected {
 	border-style: solid;
 	border-color: var(--gray-500);
 }
@@ -995,7 +1129,7 @@ watch(
 	gap: 2px;
 }
 
-.custom-html {
+.field--chip .custom-html {
 	word-break: break-all;
 }
 
@@ -1088,10 +1222,8 @@ watch(
 
 /* ── Preview mode ────────────────────────────────────────── */
 .field--preview {
-	border: 1px solid transparent;
-	background: transparent;
-	padding: 0;
 	position: relative;
+	border-radius: var(--radius);
 }
 
 .field--condition-hidden {
@@ -1099,95 +1231,24 @@ watch(
 	border-radius: var(--radius);
 }
 
+/* outline-only selection chrome: must not change previewed geometry */
 .field--preview:hover {
-	border-color: var(--gray-200);
-	background: var(--gray-50);
+	outline: 1px dashed var(--gray-400);
+	outline-offset: 1px;
 }
 
 .field--preview.field--selected {
-	border-style: solid;
-	border-color: var(--gray-500);
-	background: var(--fg-color);
-}
-
-.field-preview-wrap {
-	padding: 2px 4px;
-	width: 100%;
-}
-
-.field-preview-label {
-	font-size: var(--text-sm);
-	color: var(--pfb-label-color, #6b7280);
-	margin-bottom: 1px;
-}
-
-/* Left-right: label and value side by side */
-.field-preview-lr {
-	display: flex;
-	align-items: baseline;
-	gap: 6px;
-}
-
-.field-preview-lr .field-preview-label {
-	flex-shrink: 0;
-	margin-bottom: 0;
-	white-space: nowrap;
-}
-
-.field-preview-lr .field-preview-value {
-	flex: 1;
-	min-width: 0;
-}
-
-.field-preview-lr--space-between {
-	justify-content: space-between;
-}
-.field-preview-lr--space-evenly {
-	justify-content: space-evenly;
-}
-.field-preview-lr--align-center {
-	justify-content: center;
-}
-.field-preview-lr--align-right {
-	justify-content: flex-end;
-}
-
-/* Spacing: value shrinks to natural width so justify-content has room to push it */
-.field-preview-lr--space-between .field-preview-value,
-.field-preview-lr--space-evenly .field-preview-value {
-	flex: none;
-}
-
-.field-preview-lr--space-between .field-preview-value {
-	text-align: right;
-}
-
-/* Align: both label and value shrink to natural width so the pair can be repositioned */
-.field-preview-lr--align-center .field-preview-label,
-.field-preview-lr--align-center .field-preview-value,
-.field-preview-lr--align-right .field-preview-label,
-.field-preview-lr--align-right .field-preview-value {
-	flex: none;
-	width: auto;
-}
-
-.field-preview-value {
-	font-size: var(--text-sm);
-	color: var(--pfb-value-color, var(--text-color));
-	word-break: break-word;
-}
-
-.field-preview-spacer {
-	height: 12px;
-}
-
-.field-preview-divider {
-	height: 1px;
-	background: var(--gray-300);
-	margin: 4px 0;
+	outline: 1px solid var(--gray-400);
+	outline-offset: 1px;
 }
 
 /* Top-right actions pill: drag + remove — hidden until hover/selected */
+.pfb-table-note {
+	text-align: center;
+	font-size: 11px;
+	padding: 6px;
+}
+
 .field-preview-actions {
 	display: none;
 	position: absolute;
@@ -1232,12 +1293,6 @@ watch(
 	white-space: normal;
 }
 
-.pf-element-img {
-	max-width: 100%;
-	display: inline-block;
-	vertical-align: top;
-}
-
 .pf-barcode-svg {
 	display: inline-block;
 	max-width: 100%;
@@ -1249,13 +1304,5 @@ watch(
 	object-fit: contain;
 	border-radius: var(--radius);
 	vertical-align: middle;
-}
-
-.preview-field-img {
-	max-width: 100%;
-	max-height: 80px;
-	object-fit: contain;
-	border-radius: var(--radius);
-	display: block;
 }
 </style>

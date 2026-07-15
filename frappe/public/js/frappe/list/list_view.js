@@ -576,27 +576,22 @@ frappe.views.ListView = class ListView extends frappe.views.BaseList {
 		return fields_order;
 	}
 
-	get_documentation_link() {
-		if (this.meta.documentation) {
-			return `<a href="${
-				this.meta.documentation
-			}" target="blank" class="meta-description small text-muted">${__("Need Help?")}</a>`;
-		}
-		return "";
-	}
-
 	get_no_result_message() {
-		let help_link = this.get_documentation_link();
 		let filters = this.filter_area && this.filter_area.get();
 
 		let has_filters_set = filters && filters.length;
-		let no_result_message = has_filters_set
-			? __("No {0} found with matching filters. Clear filters to see all {0}.", [
-					__(this.doctype),
-			  ])
+		// a short title; the detail (the doctype's own description, or the
+		// clear-filters hint) goes in the description below
+		let title = has_filters_set
+			? __("No {0} found", [__(this.doctype)])
+			: __("No {0} created", [__(this.doctype)]);
+		let description = has_filters_set
+			? __("Clear the filters to see all {0}.", [__(this.doctype)])
 			: this.meta.description
 			? __(this.meta.description)
-			: __("You haven't created a {0} yet", [__(this.doctype)]);
+			: this.can_create
+			? __("Create your first {0} to get started.", [__(this.doctype)])
+			: __("Nothing has been added yet.");
 
 		let new_button_label = has_filters_set
 			? __("Create a new {0}", [__(this.doctype)], "Create a new document from list view")
@@ -606,24 +601,38 @@ frappe.views.ListView = class ListView extends frappe.views.BaseList {
 					"Create a new document from list view"
 			  );
 
-		const new_button = this.can_create
-			? `<p><button class="btn btn-default btn-sm btn-new-doc hidden-xs">
-				${new_button_label}
-			</button> <button class="btn btn-primary btn-new-doc visible-xs">
-				${__("Create New", null, "Create a new document from list view")}
-			</button></p>`
-			: "";
+		// the shared empty-state component. The create button keeps its
+		// .btn-new-doc class so setup_new_doc_event() still wires its click,
+		// and the docs link becomes a plain action — nothing else changes.
+		const actions = [];
+		if (this.can_create) {
+			actions.push({
+				label: new_button_label,
+				icon: "plus",
+				css_class: "btn-new-doc",
+			});
+		}
+		if (this.meta.documentation) {
+			actions.push({
+				label: __("Documentation"),
+				href: this.meta.documentation,
+				icon: "external-link",
+				variant: "outline",
+			});
+		}
 
-		return `<div class="msg-box no-border">
-			<div class="mb-4">
-			  	<svg class="icon icon-xl" style="stroke: var(--text-light);">
-					<use href="#icon-file"></use>
-				</svg>
-			</div>
-			<p>${no_result_message}</p>
-			${new_button}
-			${help_link}
-		</div>`;
+		let icon = "file";
+		if (this.meta.icon && !this.meta.icon.startsWith("fa fa-")) {
+			icon = this.meta.icon;
+		}
+
+		// returned as a string: base_list.setup_no_result_area interpolates it
+		return frappe.ui.empty_state({
+			icon,
+			title,
+			description,
+			actions,
+		})[0].outerHTML;
 	}
 
 	freeze() {
@@ -1207,12 +1216,12 @@ frappe.views.ListView = class ListView extends frappe.views.BaseList {
 						${frappe.utils.icon("ban")}
 					</div>`;
 			} else if (df.fieldtype === "Select") {
-				html = `<span class="${filterable} es-badge ellipsis" data-theme="${frappe.utils.guess_colour(
-					_value
-				)}"
-					data-filter="${fieldname},=,${value}">
-					<span class="ellipsis"> ${__(_value)} </span>
-				</span>`;
+				html = frappe.ui.badge.html({
+					label: __(_value),
+					theme: frappe.utils.guess_colour(_value),
+					css_class: `${filterable} ellipsis`,
+					attrs: { "data-filter": `${fieldname},=,${value}` },
+				});
 			} else if (df.fieldtype === "Link") {
 				html = `<a class="${filterable} ellipsis "
 					data-filter="${fieldname},=,${value}">
@@ -1577,10 +1586,13 @@ frappe.views.ListView = class ListView extends frappe.views.BaseList {
 		];
 		const title = docstatus_description[doc.docstatus || 0];
 		if (indicator) {
-			return `<span class="es-badge filterable ellipsis" data-theme="${indicator[1]}"
-				data-filter='${indicator[2]}' title='${title}'>
-				<span class="ellipsis"> ${indicator[0]}</span>
-			</span>`;
+			return frappe.ui.badge.html({
+				label: indicator[0],
+				theme: indicator[1],
+				css_class: "filterable ellipsis",
+				title: title,
+				attrs: { "data-filter": indicator[2] },
+			});
 		}
 		return "";
 	}

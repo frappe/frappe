@@ -1,7 +1,7 @@
 {% import "templates/print_format/macros.html" as macros %}
 
 <!DOCTYPE html>
-<html lang="en">
+<html lang="{{ lang or 'en' }}"{% if layout_direction %} dir="{{ layout_direction }}"{% endif %}>
 <head>
 	<meta charset="UTF-8">
 	<meta http-equiv="X-UA-Compatible" content="IE=edge">
@@ -20,6 +20,7 @@
 	{%- endif -%}
 </head>
 <body class="print-format-doc">
+	{{ action_banner or '' }}
 	{{ header or '' }}
 	{#- Chrome PDF: layout.header rendered once as a body element (page 1 only, reliable height) -#}
 	{{ chrome_layout_header or '' }}
@@ -35,7 +36,7 @@
 	<div class="section document-header-content">
 	<div class="section-columns row" style="gap:{{ col_gap }}">
 	{%- for column in layout.header.columns %}
-	<div class="column col">
+	<div class="column col"{% if column.width %} style="flex: {{ column.width|float }} 1 0%"{% endif %}>
 	{%- for df in column.fields %}{{ macros.render_field(df, doc) }}{%- endfor %}
 	</div>
 	{%- endfor %}
@@ -97,7 +98,7 @@
 		{%- set col_gap = ('0' if section.field_borders else (section.gap if section.gap is defined and section.gap != None else 20)|string + 'px') -%}
 		<div class="section-columns row {{ row_layout }}" style="gap:{{ col_gap }}">
 			{% for column in section.columns %}
-			<div class="column col">
+			<div class="column col"{% if column.width %} style="flex: {{ column.width|float }} 1 0%"{% endif %}>
 				{% for df in column.fields %}
 				{{ macros.render_field(df, doc) }}
 				{% endfor %}
@@ -122,7 +123,7 @@
 	<div class="section document-footer-content">
 	<div class="section-columns row" style="gap:{{ col_gap_f }}">
 	{%- for column in layout.footer.columns %}
-	<div class="column col">
+	<div class="column col"{% if column.width %} style="flex: {{ column.width|float }} 1 0%"{% endif %}>
 	{%- for df in column.fields %}{{ macros.render_field(df, doc) }}{%- endfor %}
 	</div>
 	{%- endfor %}
@@ -134,5 +135,6 @@
 	{{ footer or '' }}
 	{{ include_script('print.bundle.js') }}
 	<script>document.querySelectorAll("svg[data-barcode-value]").forEach(render_barcode);</script>
+	{{ trigger_print_script or '' }}
 </body>
 </html>

@@ -96,20 +96,24 @@
 			</div>
 			<div
 				class="section-columns"
-				:style="
-					is_grid
-						? { gap: '0' }
-						: section.columns.length > 1 && section.gap
-						? { gap: section.gap + 'px' }
-						: {}
-				"
+				:class="preview_doc ? ['row', row_layout] : []"
+				:style="columns_gap_style"
 			>
 				<template v-for="(column, i) in section.columns" :key="i">
 					<div v-if="i > 0 && !preview_doc" class="column-divider"></div>
 					<div
 						class="column"
-						:class="{ 'column-align-right': column.align === 'right' }"
+						:class="{ col: !!preview_doc }"
+						:style="column.width ? { flex: `${column.width} 1 0%` } : {}"
 					>
+						<div
+							v-if="i < section.columns.length - 1"
+							class="col-width-handle"
+							:style="{ right: handle_offset }"
+							@pointerdown.prevent.stop="start_col_width_resize($event, i)"
+							@mousedown.prevent.stop
+							@click.stop
+						></div>
 						<draggable
 							class="drag-container"
 							v-model="column.fields"
@@ -170,7 +174,7 @@
 <script setup>
 import draggable from "vuedraggable";
 import Field from "./Field.vue";
-import { computed, inject } from "vue";
+import { computed, inject, onUnmounted } from "vue";
 import { evaluate_visible_if, parse_inline_style } from "../../utils";
 
 const props = defineProps(["section", "is_header", "zone"]);
@@ -184,6 +188,68 @@ let is_section_visible = computed(() =>
 );
 
 let is_grid = computed(() => !!props.section.field_borders);
+
+// Mirrors the row layout class print_format.html picks for right-aligned
+// columns; the server computes it for body sections only, never header/footer
+let row_layout = computed(() => {
+	if (props.is_header) return "";
+	const cols = props.section.columns || [];
+	if (!cols.some((c) => c.align === "right")) return "";
+	return cols.length === 1 ? "row-col-right-end" : "row-col-space-between";
+});
+
+// In preview the gap mirrors the server default (20px unless set, 0 for grid)
+let columns_gap_style = computed(() => {
+	if (preview_doc.value) {
+		return { gap: is_grid.value ? "0" : `${props.section.gap ?? 20}px` };
+	}
+	return is_grid.value
+		? { gap: "0" }
+		: props.section.columns.length > 1 && props.section.gap
+		? { gap: props.section.gap + "px" }
+		: {};
+});
+
+let handle_offset = computed(() => {
+	if (preview_doc.value) return `${-((props.section.gap ?? 20) / 2 + 4)}px`;
+	const gap = props.section.columns.length > 1 && props.section.gap ? props.section.gap : 0;
+	return `${-(gap + 12.5)}px`;
+});
+
+let end_col_width_resize = null;
+
+function start_col_width_resize(e, i) {
+	const cols = props.section.columns;
+	const handle = e.currentTarget;
+	const container = handle.closest(".section-columns");
+	const col_els = [...container.children].filter((el) => el.classList.contains("column"));
+	const total = container.getBoundingClientRect().width;
+	const widths = col_els.map((el) => (el.getBoundingClientRect().width / total) * 100);
+	const start_x = e.clientX;
+	handle.classList.add("col-width-handle--active");
+	document.body.classList.add("pfb-col-resizing");
+	const on_move = (ev) => {
+		let delta = ((ev.clientX - start_x) / total) * 100;
+		delta = Math.max(10 - widths[i], Math.min(widths[i + 1] - 10, delta));
+		cols.forEach((c, j) => (c.width = Math.round(widths[j])));
+		cols[i].width = Math.round(widths[i] + delta);
+		cols[i + 1].width = Math.round(widths[i + 1] - delta);
+	};
+	const on_up = () => {
+		document.removeEventListener("pointermove", on_move);
+		document.removeEventListener("pointerup", on_up);
+		document.removeEventListener("pointercancel", on_up);
+		handle.classList.remove("col-width-handle--active");
+		document.body.classList.remove("pfb-col-resizing");
+		end_col_width_resize = null;
+	};
+	document.addEventListener("pointermove", on_move);
+	document.addEventListener("pointerup", on_up);
+	document.addEventListener("pointercancel", on_up);
+	end_col_width_resize = on_up;
+}
+
+onUnmounted(() => end_col_width_resize?.());
 
 let has_visible_fields = computed(
 	() =>
@@ -364,6 +430,37 @@ function remove_column(index) {
 	flex-shrink: 0;
 }
 
+.col-width-handle {
+	position: absolute;
+	top: 0;
+	bottom: 0;
+	width: 8px;
+	cursor: col-resize;
+	z-index: 2;
+}
+
+.col-width-handle::after {
+	content: "";
+	position: absolute;
+	top: 2px;
+	bottom: 2px;
+	left: 3px;
+	width: 2px;
+	border-radius: 1px;
+	background: var(--gray-400);
+	opacity: 0;
+	transition: opacity 0.15s;
+}
+
+.section-columns:hover .col-width-handle::after {
+	opacity: 0.4;
+}
+
+.col-width-handle:hover::after,
+.col-width-handle--active::after {
+	opacity: 1;
+}
+
 .drag-container {
 	flex: 1;
 	min-width: 0;
@@ -483,23 +580,24 @@ function remove_column(index) {
 .section--grid :deep(.drag-container) {
 	gap: 0;
 }
-.section--grid :deep(.field) {
+.section--grid :deep(.field--chip) {
 	padding: var(--pfb-cell-pad, 8px);
 	border: none;
 	border-bottom: 1px solid var(--border-color);
 	border-radius: 0;
 	background: transparent;
 }
-.section--grid :deep(.field:last-child) {
+.section--grid :deep(.field--chip:last-child) {
 	border-bottom: none;
 }
 .section--grid-rows .column:not(:last-child) {
 	border-right: none;
 }
-.section--grid-columns :deep(.field) {
+.section--grid-columns :deep(.field--chip) {
 	border-bottom: none;
 }
-.section--grid :deep(.field:hover),
+.section--grid :deep(.field--chip:hover),
+.section--grid :deep(.field--preview:hover),
 .section--grid :deep(.field--selected) {
 	outline: 1px dashed var(--gray-400);
 	outline-offset: -1px;

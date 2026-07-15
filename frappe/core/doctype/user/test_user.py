@@ -27,6 +27,7 @@ from frappe.tests.classes.context_managers import change_settings
 from frappe.tests.test_api import FrappeAPITestCase
 from frappe.tests.utils import toggle_test_mode
 from frappe.utils import get_url
+from frappe.utils.data import orjson_dumps
 from frappe.www.login import sanitize_redirect
 
 user_module = frappe.core.doctype.user.user
@@ -207,6 +208,10 @@ class TestUser(IntegrationTestCase):
 			# Score 4; should pass
 			result = test_password_strength("Eastern_43A1W")
 			self.assertEqual(result["feedback"]["password_policy_validation_passed"], True)
+
+			result = test_password_strength("xK9#mP2$vL8@qR5&wN3*zB7!cF4^hJ6%tD1(gS0)yA9-eU2_iO5+kM8=nQ4~rV7")
+			self.assertEqual(set(result), {"score", "feedback"})
+			orjson_dumps(result)
 
 			# test password strength while saving user with new password
 			user = frappe.get_doc("User", "test@example.com")

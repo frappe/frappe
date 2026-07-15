@@ -587,6 +587,205 @@ context("Print Format Builder — section insert", () => {
 	});
 });
 
+// ─── Column width resize ──────────────────────────────────────────────────────
+
+context("Print Format Builder — column width resize", () => {
+	let PF_NAME;
+
+	before(() => {
+		cy.login();
+		cy.visit("/app");
+	});
+
+	beforeEach(() => {
+		PF_NAME = pf_name();
+	});
+
+	afterEach(() => {
+		cy.window().then((win) => cleanup(win, PF_NAME));
+	});
+
+	function two_column_section() {
+		return [
+			{
+				label: "Two Cols",
+				columns: [
+					{
+						label: "",
+						fields: [
+							{ fieldtype: "Data", fieldname: "description", label: "Description" },
+						],
+					},
+					{
+						label: "",
+						fields: [{ fieldtype: "Data", fieldname: "status", label: "Status" }],
+					},
+				],
+			},
+		];
+	}
+
+	function drag_handle(selector, dx) {
+		cy.get(selector)
+			.first()
+			.then(($h) => {
+				const rect = $h[0].getBoundingClientRect();
+				const x = rect.left + rect.width / 2;
+				const y = rect.top + rect.height / 2;
+				const opts = { button: 0, pointerId: 1, pointerType: "mouse", isPrimary: true };
+				cy.wrap($h).trigger("pointerdown", { ...opts, clientX: x, clientY: y });
+				cy.get("body")
+					.trigger("pointermove", { ...opts, clientX: x + dx, clientY: y })
+					.trigger("pointerup", { ...opts, clientX: x + dx, clientY: y });
+			});
+	}
+
+	// 16. One handle per column boundary; none for a single-column section
+	it("renders a resize handle only between section columns", () => {
+		insert_builder_format(PF_NAME, [
+			...two_column_section(),
+			{ label: "One Col", columns: [{ label: "", fields: [] }] },
+		]);
+
+		cy.visit(`/app/print-format-builder/${encodeURIComponent(PF_NAME)}`);
+		cy.get(".sections-container", { timeout: 20000 }).should("be.visible");
+
+		cy.contains("[data-pfb-section]", "Two Cols")
+			.find(".col-width-handle")
+			.should("have.length", 1);
+		cy.contains("[data-pfb-section]", "One Col")
+			.find(".col-width-handle")
+			.should("have.length", 0);
+	});
+
+	// 17. Dragging the boundary applies flex ratios on the canvas and persists
+	// column widths in format_data on save
+	it("dragging the section column handle resizes and persists widths", () => {
+		insert_builder_format(PF_NAME, two_column_section());
+
+		cy.intercept("POST", "api/method/frappe.client.save").as("save");
+		cy.visit(`/app/print-format-builder/${encodeURIComponent(PF_NAME)}`);
+		cy.get(".sections-container", { timeout: 20000 }).should("be.visible");
+
+		cy.get(".sections-container .column").first().should("not.have.attr", "style");
+
+		cy.get(".sections-container .section-columns")
+			.first()
+			.then(($sc) => {
+				const total = $sc[0].getBoundingClientRect().width;
+				drag_handle(".sections-container .col-width-handle", -total * 0.2);
+			});
+
+		cy.get(".sections-container .column")
+			.first()
+			.should(($el) => {
+				const flex_grow = parseInt($el.css("flex-grow"), 10);
+				expect(flex_grow).to.be.within(25, 35);
+			});
+		cy.get(".sections-container .column")
+			.eq(1)
+			.should(($el) => {
+				const flex_grow = parseInt($el.css("flex-grow"), 10);
+				expect(flex_grow).to.be.within(65, 75);
+			});
+
+		cy.contains(".page-actions .primary-action", "Save").click({ force: true });
+		cy.wait("@save").then((interception) => {
+			expect(interception.response.statusCode).to.equal(200);
+			const layout = JSON.parse(interception.response.body.message.format_data);
+			const cols = layout.sections[0].columns;
+			// the container gap is excluded from measured widths and each width
+			// is rounded, so the sum lands a few points under 100
+			expect(cols[0].width).to.be.within(23, 38);
+			expect(cols[1].width).to.be.within(60, 77);
+			expect(cols[0].width + cols[1].width).to.be.within(88, 100);
+		});
+	});
+
+	// 18. Dragging respects the 10% minimum per column
+	it("section column resize clamps at the 10% minimum", () => {
+		insert_builder_format(PF_NAME, two_column_section());
+
+		cy.visit(`/app/print-format-builder/${encodeURIComponent(PF_NAME)}`);
+		cy.get(".sections-container", { timeout: 20000 }).should("be.visible");
+
+		drag_handle(".sections-container .col-width-handle", -5000);
+
+		cy.get(".sections-container .column")
+			.first()
+			.should(($el) => {
+				expect(parseInt($el.css("flex-grow"), 10)).to.be.at.least(10);
+			});
+	});
+
+	// 19. Dragging a table column header boundary transfers width between
+	// neighbours and persists via table_columns
+	it("dragging the table column handle resizes and persists widths", () => {
+		// table markup (and its resize handles) only renders in live preview
+		// mode, so the doctype needs at least one record to auto-preview
+		cy.insert_doc("ToDo", { description: "pfb column resize preview" }, true);
+
+		insert_builder_format(PF_NAME, [
+			{
+				label: "Tbl",
+				columns: [
+					{
+						label: "",
+						fields: [
+							{
+								fieldtype: "Table",
+								fieldname: "assignments_cy1",
+								label: "Items",
+								custom: 1,
+								table_columns: [
+									{
+										fieldname: "a",
+										label: "Alpha",
+										fieldtype: "Data",
+										width: 50,
+									},
+									{
+										fieldname: "b",
+										label: "Beta",
+										fieldtype: "Data",
+										width: 50,
+									},
+								],
+							},
+						],
+					},
+				],
+			},
+		]);
+
+		cy.intercept("POST", "api/method/frappe.client.save").as("save");
+		cy.visit(`/app/print-format-builder/${encodeURIComponent(PF_NAME)}`);
+		cy.get(".sections-container", { timeout: 20000 }).should("be.visible");
+
+		cy.get(".sections-container th.column-header").should("have.length", 2);
+		cy.get(".sections-container .col-resize-handle").should("have.length", 1);
+
+		cy.get(".sections-container table.table")
+			.first()
+			.then(($t) => {
+				const total = $t[0].getBoundingClientRect().width;
+				drag_handle(".sections-container .col-resize-handle", -total * 0.2);
+			});
+
+		cy.contains(".page-actions .primary-action", "Save").click({ force: true });
+		cy.wait("@save").then((interception) => {
+			expect(interception.response.statusCode).to.equal(200);
+			const layout = JSON.parse(interception.response.body.message.format_data);
+			const fields = layout.sections.flatMap((s) => s.columns).flatMap((c) => c.fields);
+			const table = fields.find((f) => f.fieldtype === "Table");
+			expect(table, "table field survived").to.exist;
+			expect(table.table_columns[0].width).to.be.within(25, 35);
+			expect(table.table_columns[1].width).to.be.within(65, 75);
+			expect(table.table_columns[0].width + table.table_columns[1].width).to.equal(100);
+		});
+	});
+});
+
 // ─── Image and Barcode blocks ─────────────────────────────────────────────────
 
 context("Print Format Builder — image and barcode blocks", () => {

@@ -7,6 +7,7 @@
 			'print-format-doc': !!store.preview_doc.value,
 		}"
 	>
+		<component :is="'style'" v-if="color_css">{{ color_css }}</component>
 		<div v-if="!page_number_hidden" class="pfb-page-num" :style="page_number_style">
 			{{ __("1 of 2") }}
 		</div>
@@ -15,11 +16,16 @@
 
 		<!-- Body wrapper: font size/family applied here so letterhead zones are unaffected -->
 		<div class="pfb-body" :style="bodyStyles">
-			<div class="zone-divider zone-divider--header">
-				<span class="zone-divider-label">{{ __("Header") }}</span>
+			<div class="zone-divider">
+				<span class="zone-divider-label">
+					{{ __("Header") }}
+					<span v-if="repeat_header_footer" class="zone-divider-hint"
+						>· {{ __("repeats on all pages") }}</span
+					>
+				</span>
 			</div>
 			<PrintFormatSection :section="layout.header" :is_header="true" zone="header" />
-			<div class="zone-divider zone-divider--body">
+			<div class="zone-divider">
 				<span class="zone-divider-label">{{ __("Body") }}</span>
 			</div>
 
@@ -44,8 +50,13 @@
 				</template>
 			</draggable>
 
-			<div class="zone-divider zone-divider--footer">
-				<span class="zone-divider-label">{{ __("Footer") }}</span>
+			<div class="zone-divider">
+				<span class="zone-divider-label">
+					{{ __("Footer") }}
+					<span v-if="repeat_header_footer" class="zone-divider-hint"
+						>· {{ __("repeats on all pages") }}</span
+					>
+				</span>
 			</div>
 			<PrintFormatSection :section="layout.footer" :is_header="true" zone="footer" />
 		</div>
@@ -60,10 +71,19 @@ import LetterHeadZoneEditor from "../letterhead/LetterHeadZoneEditor.vue";
 import PrintFormatSection from "./PrintFormatSection.vue";
 import SectionInsert from "./SectionInsert.vue";
 import { useStore } from "../../stores";
-import { computed, inject, watch, nextTick, onUnmounted } from "vue";
+import { computed, inject, watch, nextTick, onMounted, onUnmounted, ref } from "vue";
 
 let { layout, letterhead, print_format } = useStore();
 let store = inject("$store");
+
+const PAGE_SIZES_MM = { A4: [210, 297], Letter: [216, 279.4] };
+let page_size = ref("A4");
+
+onMounted(() => {
+	frappe.db.get_single_value("Print Settings", "pdf_page_size").then((v) => {
+		if (v && PAGE_SIZES_MM[v]) page_size.value = v;
+	});
+});
 
 const CUSTOM_CSS_ID = "pfb-letterhead-custom-css";
 watch(
@@ -134,22 +154,43 @@ let rootStyles = computed(() => {
 		margin_left = 0,
 		margin_right = 0,
 	} = print_format.value;
+	const [page_w, page_h] = PAGE_SIZES_MM[page_size.value] || PAGE_SIZES_MM.A4;
 	return {
 		padding: `${margin_top}mm ${margin_right}mm ${margin_bottom}mm ${margin_left}mm`,
-		width: "210mm",
-		minHeight: "297mm",
+		width: `${page_w}mm`,
+		minHeight: `${page_h}mm`,
 	};
 });
 
 let bodyStyles = computed(() => {
-	const { font_size, font, label_color, value_color } = print_format.value;
+	const { font_size, font } = print_format.value;
 	const styles = {};
 	if (font_size) styles.fontSize = `${parseFloat(font_size)}px`;
 	if (font) styles.fontFamily = `'${font}', sans-serif`;
-	if (label_color) styles["--pfb-label-color"] = label_color;
-	if (value_color) styles["--pfb-value-color"] = value_color;
 	return styles;
 });
+
+// Same scoped colour rules the server appends after the shared stylesheet;
+// rendered as a style element inside the component so it dies with the DOM
+let color_css = computed(() => {
+	const { label_color, value_color } = print_format.value;
+	let css = "";
+	if (label_color) {
+		css += `.print-format-doc .field .label,
+.print-format-doc .field.left-right .label,
+.print-format-doc .field.field-inline .label { color: ${label_color}; }\n`;
+	}
+	if (value_color) {
+		css += `.print-format-doc .field .value,
+.print-format-doc .field.left-right .value,
+.print-format-doc .field.field-inline .value { color: ${value_color}; }\n`;
+	}
+	return css;
+});
+
+let repeat_header_footer = computed(
+	() => !!frappe.model.get_doc(":Print Settings", "Print Settings")?.repeat_header_footer
+);
 
 let page_number_hidden = computed(() => print_format.value.page_number.includes("Hide"));
 
@@ -206,7 +247,7 @@ watch(print_format, () => (store.dirty.value = true), { deep: true });
 .zone-divider {
 	display: flex;
 	align-items: center;
-	gap: 8px;
+	gap: 12px;
 	margin: 0.75rem 0 0.5rem;
 }
 
@@ -215,35 +256,22 @@ watch(print_format, () => (store.dirty.value = true), { deep: true });
 	content: "";
 	flex: 1;
 	height: 1px;
-	background: var(--gray-300);
+	background: var(--gray-200);
 }
 
 .zone-divider-label {
 	font-size: var(--text-tiny);
-	font-weight: var(--weight-bold);
+	font-weight: var(--weight-medium);
 	text-transform: uppercase;
-	letter-spacing: 0.08em;
+	letter-spacing: 0.12em;
 	white-space: nowrap;
-	padding: 2px 8px;
-	border-radius: var(--radius);
+	color: var(--gray-400);
 }
 
-.zone-divider--header .zone-divider-label {
-	color: var(--blue-500);
-	background: var(--blue-50);
-	border: 1px solid var(--blue-200);
-}
-
-.zone-divider--body .zone-divider-label {
-	color: var(--text-muted);
-	background: var(--gray-100);
-	border: 1px solid var(--gray-300);
-}
-
-.zone-divider--footer .zone-divider-label {
-	color: var(--blue-500);
-	background: var(--blue-50);
-	border: 1px solid var(--blue-200);
+.zone-divider-hint {
+	text-transform: none;
+	font-weight: var(--weight-regular);
+	letter-spacing: 0.02em;
 }
 
 .section-with-insert {
@@ -288,28 +316,7 @@ watch(print_format, () => (store.dirty.value = true), { deep: true });
 	margin-bottom: 0;
 }
 
-/* Default field skin in clean-preview — grid cells style themselves */
-.pfb-clean-preview :deep(.field--preview:not(.section--grid *)) {
-	border: 1px solid transparent;
-	background: transparent;
-	padding: 0;
-	border-radius: var(--radius);
-	transition: border-color 0.1s;
-}
-
-.pfb-clean-preview :deep(.field--preview:hover:not(.section--grid *)) {
-	border: 1px dashed var(--gray-400);
-	background: transparent;
-}
-
-.pfb-clean-preview :deep(.field--preview.field--selected:not(.section--grid *)) {
-	border: 1px solid var(--gray-400);
-	background: transparent;
-}
-
-.pfb-clean-preview :deep(.field--preview.field--condition-hidden:not(.section--grid *)) {
-	border: 1px dashed var(--gray-400);
-}
+/* Field selection chrome lives in Field.vue and is outline-only */
 
 /* Section columns: no vertical padding in preview (matches PDF) */
 .pfb-clean-preview :deep(.section-columns) {
@@ -341,15 +348,5 @@ watch(print_format, () => (store.dirty.value = true), { deep: true });
 /* Section title: typography/border come from the shared .section-label rules */
 .pfb-clean-preview :deep(.section-title-display) {
 	display: block;
-}
-
-.pfb-body :deep(.field--preview) {
-	font-size: inherit;
-}
-.pfb-body :deep(.field--preview .field-preview-value) {
-	font-size: 1em;
-}
-.pfb-body :deep(.field--preview .field-preview-label) {
-	font-size: 1em;
 }
 </style>

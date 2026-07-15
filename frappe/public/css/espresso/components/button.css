@@ -15,7 +15,7 @@
  *   data-theme     gray | red                                (default: gray)
  *   data-icon-button="true"   square, no inline padding
  *   aria-busy="true"          loading: blocks interaction without the disabled dimming
- *   aria-invalid="true"       red focus ring + red border (matches Raven)
+ *   aria-invalid="true"       red focus ring + red border
  *
  * DEFAULTS live on the base `.es-button` rule (variant=subtle, size=sm,
  * theme=gray) so a bare <button class="es-button"> renders correctly; the
@@ -24,13 +24,11 @@
  * Lives in @layer components so a consumer's Tailwind utility (later `utilities`
  * layer) overrides without !important.
  *
- * Dimensions use spacing-scale steps via `--spacing` (the 0.25rem unit h-7 / px-2
- * derive from); `--es-sp` carries a 0.25rem fallback for the plain-HTML page.
+ * Dimensions use spacing-scale steps via `--spacing` (the 0.25rem unit
+ * h-7 / px-2 derive from), which comes from the espresso tokens.
  */
 
 .es-button {
-    --es-sp: var(--spacing, 0.25rem);
-
     /* default theme = gray. Local vars are the "unrolled @each": the theme
          selector remaps them, every variant rule reads only these. */
     --bt-solid-bg: var(--surface-gray-10);
@@ -50,19 +48,19 @@
     --bt-focus: var(--focus-outline-default);
 
     /* default size = sm */
-    --es-bt-h: calc(var(--es-sp) * 7);
-    --es-bt-icon: calc(var(--es-sp) * 4);
+    --es-bt-h: calc(var(--spacing) * 7);
+    --es-bt-icon: calc(var(--spacing) * 4);
 
     display: inline-flex;
     align-items: center;
     justify-content: center;
-    gap: calc(var(--es-sp) * 2);
+    gap: calc(var(--spacing) * 2);
     flex-shrink: 0;
     white-space: nowrap;
     user-select: none;
     cursor: pointer;
     height: var(--es-bt-h);
-    padding-inline: calc(var(--es-sp) * 2);
+    padding-inline: calc(var(--spacing) * 2);
     border: 1px solid transparent;
     border-radius: var(--radius);
     font-size: var(--text-base);
@@ -109,24 +107,24 @@
 
 /* ---- sizes (override the sm default) ---- */
 .es-button[data-size="xs"] {
-    --es-bt-h: calc(var(--es-sp) * 6);
-    --es-bt-icon: calc(var(--es-sp) * 3.5);
-    padding-inline: calc(var(--es-sp) * 1.5);
+    --es-bt-h: calc(var(--spacing) * 6);
+    --es-bt-icon: calc(var(--spacing) * 3.5);
+    padding-inline: calc(var(--spacing) * 1.5);
     font-size: var(--text-xs);
     border-radius: var(--radius-3);
 }
 
 .es-button[data-size="md"] {
-    --es-bt-h: calc(var(--es-sp) * 8);
-    --es-bt-icon: calc(var(--es-sp) * 4.5);
-    padding-inline: calc(var(--es-sp) * 2.5);
+    --es-bt-h: calc(var(--spacing) * 8);
+    --es-bt-icon: calc(var(--spacing) * 4.5);
+    padding-inline: calc(var(--spacing) * 2.5);
     font-weight: var(--font-weight-medium);
 }
 
 .es-button[data-size="lg"] {
-    --es-bt-h: calc(var(--es-sp) * 10);
-    --es-bt-icon: calc(var(--es-sp) * 5);
-    padding-inline: calc(var(--es-sp) * 3);
+    --es-bt-h: calc(var(--spacing) * 10);
+    --es-bt-icon: calc(var(--spacing) * 5);
+    padding-inline: calc(var(--spacing) * 3);
     font-size: var(--text-xl);
     font-weight: var(--font-weight-medium);
     border-radius: var(--radius-md);
@@ -186,7 +184,7 @@
     outline-offset: 0;
 }
 
-/* ---- aria-invalid: red border + red focus ring (matches Raven) ---- */
+/* ---- aria-invalid: red border + red focus ring ---- */
 .es-button[aria-invalid="true"] {
     border-color: var(--outline-red-3);
 }

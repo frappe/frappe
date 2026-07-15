@@ -217,6 +217,7 @@ scheduler_events = {
 		"0/5 * * * *": [
 			"frappe.email.doctype.notification.notification.trigger_offset_alerts",
 			"frappe.search.sqlite_search.index_docs_in_queue",
+			"frappe.integrations.doctype.webhook.webhook.retry_failed_webhooks",
 		],
 		# 15 minutes
 		"0/15 * * * *": [
@@ -551,8 +552,10 @@ add_to_apps_screen = [
 	{
 		"name": app_name,
 		"logo": app_logo_url,
-		"title": app_title,
+		"title": "Framework",
 		"route": app_home,
 		"has_permission": "frappe.permissions.check_app_permission",
+		# Sort order on the apps (desktop) screen; lower shows first. Framework is pinned last.
+		"sequence_id": 1000,
 	}
 ]

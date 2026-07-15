@@ -287,14 +287,14 @@ export async function render_jinja_html(html, doctype, docname) {
 	if (!html.includes("{{") && !html.includes("{%")) return html;
 	if (!doctype || !docname) return html;
 	try {
-		const r = await frappe.call("frappe.utils.print_format_generator.render_jinja_template", {
-			template: html,
-			doctype,
-			docname,
+		const r = await frappe.call({
+			method: "frappe.utils.print_format_generator.render_jinja_template",
+			args: { template: html, doctype, docname },
+			silent: 1,
 		});
 		return r.message ?? html;
 	} catch {
-		return html;
+		return null;
 	}
 }
 

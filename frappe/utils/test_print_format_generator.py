@@ -473,7 +473,7 @@ class TestPrintFormatGenerator(IntegrationTestCase):
 			)
 			html = get_html("ToDo", todo.name, pf.name)
 			self.assertIn("margin-top: 11px", html)
-			self.assertIn("height: 1rem;height: 33px", html)
+			self.assertIn("height: 1em;height: 33px", html)
 			self.assertIn("border-bottom-color: #123456", html)
 
 		contact = self._make_contact_with_email()
