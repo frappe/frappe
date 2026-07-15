@@ -505,6 +505,9 @@ def _sqlite_fts_search(word: str, doctype: str, allowed_doctypes, limit: int, st
 		params["doctype"] = doctype
 	else:
 		doctypes = list(allowed_doctypes)
+		if not doctypes:
+			# `doctype IN ()` is a syntax error; callers guard this, but keep the helper self-safe.
+			return []
 		conditions.append("doctype IN ({})".format(", ".join(f"%(dt{i})s" for i in range(len(doctypes)))))
 		params.update({f"dt{i}": dt for i, dt in enumerate(doctypes)})
 
