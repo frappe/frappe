@@ -1,7 +1,7 @@
 {
  "actions": [],
  "allow_import": 1,
- "allow_rename": 1,
+ "allow_rename": 0,
  "creation": "2022-01-10 17:29:51.672911",
  "description": "Represents a User in the system.",
  "doctype": "DocType",

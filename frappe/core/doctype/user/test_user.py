@@ -319,7 +319,7 @@ class TestUser(IntegrationTestCase):
 		self.assertEqual(res1.status_code, 200)
 		self.assertEqual(res2.status_code, 429)
 
-	def test_user_rename(self):
+	def test_user_rename_is_disabled(self):
 		old_name = "test_user_rename@example.com"
 		new_name = "test_user_rename_new@example.com"
 		user = frappe.get_doc(
@@ -333,10 +333,12 @@ class TestUser(IntegrationTestCase):
 			}
 		).insert(ignore_permissions=True, ignore_if_duplicate=True)
 
-		frappe.rename_doc("User", user.name, new_name)
-		self.assertTrue(frappe.db.exists("Notification Settings", new_name))
-
-		frappe.delete_doc("User", new_name)
+		self.addCleanup(frappe.delete_doc, "User", user.name, force=True)
+		with (
+			patch.object(frappe.get_meta("User"), "allow_rename", 0),
+			self.assertRaises(frappe.ValidationError),
+		):
+			frappe.rename_doc("User", user.name, new_name)
 
 	def test_signup(self):
 		import frappe.website.utils

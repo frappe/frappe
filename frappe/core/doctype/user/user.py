@@ -668,47 +668,10 @@ class User(Document):
 			invite_doc.user = None
 			invite_doc.save(ignore_permissions=True)
 
-	def before_rename(self, old_name, new_name, merge=False):
-		# if merging, delete the old user notification settings
-		if merge:
-			frappe.delete_doc("Notification Settings", old_name, ignore_permissions=True)
-
-		frappe.clear_cache(user=old_name)
-		self.validate_rename(old_name, new_name)
-
-	def validate_rename(self, old_name, new_name):
-		# do not allow renaming administrator and guest
-		if old_name in STANDARD_USERS:
-			throw(_("User {0} cannot be renamed").format(self.name))
-
-		self.validate_email_type(new_name)
-
 	def validate_email_type(self, email):
 		from frappe.utils import validate_email_address
 
 		validate_email_address(email.strip(), True)
-
-	def after_rename(self, old_name, new_name, merge=False):
-		tables = frappe.db.get_tables()
-		for tab in tables:
-			desc = frappe.db.get_table_columns_description(tab)
-			has_fields = [d.get("name") for d in desc if d.get("name") in ["owner", "modified_by"]]
-			for field in has_fields:
-				frappe.db.sql(
-					"""UPDATE `{}`
-					SET `{}` = {}
-					WHERE `{}` = {}""".format(tab, field, "%s", field, "%s"),
-					(new_name, old_name),
-				)
-
-		if frappe.db.exists("Notification Settings", old_name):
-			frappe.rename_doc("Notification Settings", old_name, new_name, force=True, show_alert=False)
-
-		# set email
-		frappe.db.set_value("User", new_name, "email", new_name)
-
-		clear_sessions(user=old_name, force=True)
-		clear_sessions(user=new_name, force=True)
 
 	def append_roles(self, *roles):
 		"""Add roles to user"""
