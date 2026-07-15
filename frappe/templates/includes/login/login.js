@@ -34,7 +34,7 @@ login.bind_events = function () {
 
 	$(".page-card-body input").on("input", function () {
 		$(this).closest(".form-group").removeClass("invalid").find(".field-error").text("");
-		$(this).closest(".page-card-body").removeClass("invalid").find(".login-error-banner, .login-success-banner").hide();
+		$(this).closest(".page-card-body").removeClass("invalid").find(".login-error-banner, .login-success-banner").addClass("hidden");
 	});
 
 	$(".form-signup").on("submit", function (event) {
@@ -66,7 +66,7 @@ login.bind_events = function () {
 			return false;
 		}
 		// route the server confirmation into the success banner instead of a modal
-		login.call(args, null, "/", "section.for-forgot .login-success-banner span");
+		login.call(args, null, "/", "section.for-forgot .login-success-banner .es-alert__title");
 		return false;
 	});
 
@@ -94,8 +94,8 @@ login.bind_events = function () {
 		}
 		// route the rate-limit / server error into the banner instead of a modal
 		// (success sends no server message, so the green success banner is unaffected)
-		login.call(args, null, "/", "section.for-login-with-email-link .login-error-banner span").then(() => {
-			$("section:visible .login-success-banner").css("display", "flex");
+		login.call(args, null, "/", "section.for-login-with-email-link .login-error-banner .es-alert__title").then(() => {
+			$("section:visible .login-success-banner").removeClass("hidden");
 			$("section:visible .resend-link").css("display", "flex");
 			$("section:visible .btn-login-with-email-link").text({{ _("Sent") | tojson }}).prop("disabled", true);
 		}).catch(() => {
@@ -159,7 +159,7 @@ login.reset_sections = function (hide) {
 		$forms.find("input:not([type='submit'])").val("");
 		$forms.find(".page-card-body").removeClass("invalid");
 		$forms.find(".form-group").removeClass("invalid").find(".field-error").text("");
-		$forms.find(".login-error-banner, .login-success-banner").hide();
+		$forms.find(".login-error-banner, .login-success-banner").addClass("hidden");
 		$(".form-forgot .btn-forgot").prop("disabled", true).text({{ _("Send Link") | tojson }});
 		$(".form-signup .btn-signup").prop("disabled", true).text({{ _("Create Account") | tojson }});
 		$(".form-login-with-email-link .btn-login-with-email-link").prop("disabled", false).text({{ _("Send login link") | tojson }});
@@ -251,11 +251,11 @@ login.show_field_error = function (input_id, message) {
 };
 
 login.show_error_banner = function (message) {
-	$("section:visible .login-error-banner").css("display", "flex").find("span").text(message);
+	$("section:visible .login-error-banner").removeClass("hidden").find(".es-alert__title").text(message);
 };
 
 login.show_success_banner = function (message) {
-	$("section:visible .login-success-banner").css("display", "flex").find("span").text(message);
+	$("section:visible .login-success-banner").removeClass("hidden").find(".es-alert__title").text(message);
 };
 
 login.set_invalid = function (message) {
@@ -336,17 +336,17 @@ login.login_handlers = (function () {
 				// exists or not, to prevent username enumeration (CWE-204).
 				login.set_status({{ _("Sent") | tojson }}, 'green');
 				// reveal the success banner; its text is filled by the error_msg handler
-				$("section:visible .login-success-banner").css("display", "flex");
+				$("section:visible .login-success-banner").removeClass("hidden");
 			} else if (window.location.hash === '#signup') {
 				if (cint(data.message[0]) == 0) {
 					// signup failed (e.g. already registered): show in the banner, restore the button
 					$(".form-signup .btn-signup").text({{ _("Create Account") | tojson }});
-					$("section:visible .login-success-banner").hide();
+					$("section:visible .login-success-banner").addClass("hidden");
 					login.show_error_banner(data.message[1]);
 				} else {
 					login.set_status({{ _("Success") | tojson }}, 'green');
 					// show the confirmation in the banner instead of a modal
-					$("section:visible .login-error-banner").hide();
+					$("section:visible .login-error-banner").addClass("hidden");
 					login.show_success_banner(data.message[1]);
 				}
 			}

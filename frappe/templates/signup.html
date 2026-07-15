@@ -1,18 +1,20 @@
 <form class="form-signin form-signup hide" role="form" novalidate>
     <div class="page-card-body">
-        <div class="login-success-banner">
-            <svg xmlns="http://www.w3.org/2000/svg" class="icon icon-sm">
+        <div class="login-success-banner es-alert hidden" role="alert" data-theme="green">
+            <svg fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
                 <use href="#icon-circle-check"></use>
             </svg>
-            <span></span>
-        </div>
-        <div class="login-error-banner">
-            <div class="flex align-items-center justify-content-center">
-                <svg class="icon icon-sm" xmlns="http://www.w3.org/2000/svg">
-                    <use href="#icon-circle-alert"></use>
-                </svg>
+            <div class="es-alert__content">
+                <span class="es-alert__title"></span>
             </div>
-            <span></span>
+        </div>
+        <div class="login-error-banner es-alert hidden" role="alert" data-theme="red">
+            <svg fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+                <use href="#icon-circle-alert"></use>
+            </svg>
+            <div class="es-alert__content">
+                <span class="es-alert__title"></span>
+            </div>
         </div>
         <div class="form-group">
             <label class="form-label" for="signup_fullname">{{ _("Full Name") }}</label>

@@ -244,43 +244,6 @@ body {
 				}
 			}
 
-			.login-success-banner {
-				display: none;
-				padding: 6px 8px;
-				align-items: center;
-				gap: 8px;
-				align-self: stretch;
-				background-color: var(--surface-gray-1);
-				border-radius: var(--radius);
-				@include get_textstyle("base", "regular");
-				line-height: 115%;
-				color: var(--ink-gray-8);
-
-				svg {
-					margin: 0;
-					stroke: var(--ink-green-6);
-					flex-shrink: 0;
-				}
-			}
-
-			.login-error-banner {
-				display: none;
-				padding: 6px 8px;
-				align-items: flex-start;
-				gap: 8px;
-				align-self: stretch;
-				background-color: var(--surface-gray-1);
-				border-radius: var(--radius);
-				@include get_textstyle("base", "regular");
-				color: var(--ink-gray-8);
-
-				svg {
-					margin: 3px 0 0;
-					stroke: var(--ink-red-6);
-					flex-shrink: 0;
-				}
-			}
-
 			.field-error {
 				display: none;
 				@include get_textstyle("base", "regular");
