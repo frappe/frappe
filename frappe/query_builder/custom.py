@@ -150,6 +150,10 @@ class Xor(Criterion):
 	operands for ``AND``/``OR``/``NOT`` and will reject bare numeric columns/values;
 	MariaDB and SQLite coerce them via numeric truthiness, but for portability pass
 	explicit comparisons (e.g. ``col != 0``) rather than raw numerics.
+
+	The non-MariaDB fallback references each operand twice, so both are evaluated
+	twice. Pass deterministic operands (plain column comparisons); avoid subqueries
+	or volatile functions such as ``random()`` whose two evaluations could disagree.
 	"""
 
 	def __init__(self, left: Term, right: Term, alias: str | None = None) -> None:
