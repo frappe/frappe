@@ -52,6 +52,7 @@ export function getStore(print_format_name) {
 						? convert_classic_layout(_print_format)
 						: Promise.resolve(saved_layout);
 					layout_ready.then((resolved_layout) => {
+						const converted = is_classic && !!resolved_layout;
 						layout.value = resolved_layout || get_default_layout();
 						layout.value.sections = layout.value.sections.filter((s) => !s.remove);
 						layout.value.header = migrate_to_section(layout.value.header);
@@ -71,7 +72,7 @@ export function getStore(print_format_name) {
 
 						load_lh.then(() => {
 							reset_history();
-							nextTick(() => (dirty.value = is_classic));
+							nextTick(() => (dirty.value = converted));
 							resolve();
 						});
 					});
