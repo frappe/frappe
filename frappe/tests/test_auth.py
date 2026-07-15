@@ -10,6 +10,7 @@ from werkzeug.wrappers import Request
 
 import frappe
 from frappe.auth import LoginAttemptTracker
+from frappe.core.doctype.user.user import User
 from frappe.frappeclient import AuthError, FrappeClient
 from frappe.sessions import Session, get_expired_sessions, get_expiry_in_seconds
 from frappe.tests import IntegrationTestCase, UnitTestCase
@@ -91,6 +92,13 @@ class TestAuth(IntegrationTestCase):
 
 		# Login by email should work
 		FrappeClient(self.HOST_NAME, self.test_user_email, self.test_user_password)
+
+	def test_administrator_can_login_by_literal_user_id(self):
+		user = User.find_by_credentials("Administrator", "", validate_password=False)
+		self.assertEqual(user.name, "Administrator")
+
+		# The exception is limited to Administrator; opaque IDs are not login credentials.
+		self.assertIsNone(User.find_by_credentials(self.test_user_id, "", validate_password=False))
 
 	def test_allow_login_using_username(self):
 		self.set_system_settings("allow_login_using_mobile_number", 0)
