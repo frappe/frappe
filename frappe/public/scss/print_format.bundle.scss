@@ -3,11 +3,3 @@
 @import "./common/global.scss";
 @import "./common/icons.scss";
 @import "~bootstrap/scss/bootstrap";
-
-// Bootstrap 3 grid aliases: HTML blocks written in the classic print format
-// builder use .col-xs-*, which Bootstrap 5 dropped
-@for $i from 1 through 12 {
-	.col-xs-#{$i} {
-		@extend .col-#{$i};
-	}
-}
