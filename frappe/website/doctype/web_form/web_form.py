@@ -832,12 +832,12 @@ def accept(web_form: str, data: str | dict, web_form_request_key: str | None = N
 
 	# add files
 	if files:
-		replaced_files = []
 		for f in files:
 			fieldname, filedata = f
 
+			# remove earlier attached file (if exists)
 			if doc.get(fieldname):
-				replaced_files.append(doc.get(fieldname))
+				remove_file_by_url(doc.get(fieldname), doctype=doctype, name=doc.name)
 
 			# save new file
 			filename, dataurl = filedata.split(",", 1)
@@ -858,10 +858,6 @@ def accept(web_form: str, data: str | dict, web_form_request_key: str | None = N
 
 		# Persist attachment field URLs on a document already authorized above.
 		doc.save(ignore_permissions=True)
-
-		# remove replaced files only after the new URLs are saved on the document
-		for file_url in replaced_files:
-			remove_file_by_url(file_url, doctype=doctype, name=doc.name)
 
 	if files_to_delete:
 		for f in files_to_delete:

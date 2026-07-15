@@ -162,7 +162,6 @@ def delete_doc(
 				check_permission_and_not_submitted(doc)
 
 				if not ignore_on_trash:
-					doc.flags.force_delete = force
 					doc.run_method("on_trash")
 					doc.flags.in_delete = True
 					doc.run_method("on_change")

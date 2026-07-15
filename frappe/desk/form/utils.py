@@ -20,7 +20,10 @@ if TYPE_CHECKING:
 def remove_attach():
 	"""remove attachment"""
 	fid = frappe.form_dict.get("fid")
-	frappe.delete_doc("File", fid)
+	file = frappe.get_doc("File", fid)
+	file.check_permission("delete")
+	file.validate_not_referenced_in_attach_field()
+	file.delete()
 
 
 @frappe.whitelist(methods=["POST", "PUT"])
