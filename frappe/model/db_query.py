@@ -6,6 +6,7 @@ import copy
 import datetime
 import json
 import re
+import threading
 from collections import Counter
 from functools import lru_cache
 
@@ -204,16 +205,23 @@ def _find_disallowed_function(node) -> str | None:
 	return None
 
 
+_PARSE_FULL_QUERY_LOCK = threading.Lock()
+
+
 def _parse_full_query(query: str):
 	# sqlparse caps grouping at 10k tokens as a DoS guard for untrusted SQL. Here the input
 	# is our own generated (and about-to-be-executed) query, where a large but legitimate
 	# `IN (...)` list can exceed the cap; lift it for this parse so validation doesn't crash.
-	original_limit = sqlparse.engine.grouping.MAX_GROUPING_TOKENS
-	sqlparse.engine.grouping.MAX_GROUPING_TOKENS = None
-	try:
-		return sqlparse.parse(query)
-	finally:
-		sqlparse.engine.grouping.MAX_GROUPING_TOKENS = original_limit
+	# The lock makes the save-mutate-restore of the module global atomic: without it, a
+	# concurrent thread can capture None as the "original" value and restore it, permanently
+	# disabling the cap for the process.
+	with _PARSE_FULL_QUERY_LOCK:
+		original_limit = sqlparse.engine.grouping.MAX_GROUPING_TOKENS
+		sqlparse.engine.grouping.MAX_GROUPING_TOKENS = None
+		try:
+			return sqlparse.parse(query)
+		finally:
+			sqlparse.engine.grouping.MAX_GROUPING_TOKENS = original_limit
 
 
 @lru_cache(maxsize=1024)
