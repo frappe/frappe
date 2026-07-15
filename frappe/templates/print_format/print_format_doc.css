@@ -4,6 +4,13 @@
 .print-format-doc {
 	-webkit-print-color-adjust: exact;
 	print-color-adjust: exact;
+	--pf-text: #111827;
+	--pf-heading: #374151;
+	--pf-muted: #6b7280;
+	--pf-line: #e5e7eb;
+	--pf-fill: #f3f4f6;
+	--pf-fill-soft: #f9fafb;
+	--pf-paper: #ffffff;
 }
 .print-format-doc .label {
 	border: none;
@@ -36,12 +43,12 @@
 /* Stacked (default): muted label above value */
 .print-format-doc .field .label {
 	font-size: 1em;
-	color: #6b7280;
+	color: var(--pf-muted);
 	margin-bottom: 0.1em;
 }
 
 .print-format-doc .field .value {
-	color: #111827;
+	color: var(--pf-text);
 }
 
 /* Left-right (section-level): label shrinks to content width, value takes the rest */
@@ -56,7 +63,7 @@
 .print-format-doc .field.field-inline .label {
 	flex-shrink: 0;
 	font-size: 1em;
-	color: #374151;
+	color: var(--pf-heading);
 	text-transform: none;
 	letter-spacing: 0;
 	padding-top: 0.05em;
@@ -145,7 +152,7 @@
 .print-format-doc .child-table > .label {
 	font-size: 0.8em;
 	font-weight: 600;
-	color: #6b7280;
+	color: var(--pf-muted);
 	margin-bottom: 0.5em;
 }
 
@@ -163,7 +170,7 @@
    !important (Bootstrap print sets .table-bordered cell borders !important)
    so each axis opts back in without touching the others. */
 .print-format-doc .child-table .table th {
-	color: #374151;
+	color: var(--pf-heading);
 	font-weight: 600;
 	font-size: 0.85em;
 	padding: 0.5882em 0.7843em;
@@ -176,35 +183,35 @@
 /* header background lives on the row, not each cell, so a wrapper's border-radius
    clips one continuous bar instead of fighting per-cell backgrounds at the seams */
 .print-format-doc .child-table .table thead tr {
-	background-color: #f3f4f6 !important;
+	background-color: var(--pf-fill) !important;
 }
 
 .print-format-doc .child-table .table td {
 	padding: 0.5em 0.6667em;
 	border: none !important;
-	background-color: #ffffff !important;
+	background-color: var(--pf-paper) !important;
 	vertical-align: top;
 }
 
 /* lined: a divider under the header and under each row */
 .print-format-doc .child-table--lined .table th,
 .print-format-doc .child-table--lined .table td {
-	border-bottom: 1px solid #e5e7eb !important;
+	border-bottom: 1px solid var(--pf-line) !important;
 }
 
 /* striped: alternating row fill instead of dividers */
 .print-format-doc .child-table--striped .table .even td {
-	background-color: #f9fafb !important;
+	background-color: var(--pf-fill-soft) !important;
 }
 
 /* bordered: column separators + outer frame; adjacent cell borders collapse */
 .print-format-doc .child-table .table-bordered {
-	border: 1px solid #e5e7eb;
+	border: 1px solid var(--pf-line);
 }
 
 .print-format-doc .child-table .table-bordered td {
-	border-left: 1px solid #e5e7eb !important;
-	border-right: 1px solid #e5e7eb !important;
+	border-left: 1px solid var(--pf-line) !important;
+	border-right: 1px solid var(--pf-line) !important;
 }
 
 /* plain header: no fill, a single rule under the header row instead */
@@ -213,7 +220,7 @@
 }
 
 .print-format-doc .child-table--plain-header .table th {
-	border-bottom: 1px solid #e5e7eb !important;
+	border-bottom: 1px solid var(--pf-line) !important;
 }
 
 .print-format-doc .child-table [data-fieldtype="Currency"],
@@ -273,7 +280,7 @@
 
 .print-format-doc .child-table .cell-line--primary,
 .print-format-doc .child-table .cell-line--secondary {
-	color: #111827;
+	color: var(--pf-text);
 }
 
 .print-format-doc .child-table .cell-line--primary {
@@ -287,7 +294,7 @@
 .print-format-doc .child-table .cell-line--mono-sm,
 .print-format-doc .child-table .cell-line--muted-sm {
 	font-size: 0.85em;
-	color: #6b7280;
+	color: var(--pf-muted);
 }
 
 .print-format-doc .page-break {
@@ -347,7 +354,7 @@
 .print-format-doc .document-header {
 	border-bottom-width: 1px;
 	border-bottom-style: solid;
-	border-bottom-color: #e5e7eb;
+	border-bottom-color: var(--pf-line);
 }
 
 .print-format-doc .field[data-fieldtype="Rating"] .rating-star {
@@ -376,7 +383,7 @@
 
 /* ── Table layout (field-borders mode) ───────────────────── */
 .print-format-doc .section--grid {
-	border: 1px solid #e5e7eb;
+	border: 1px solid var(--pf-line);
 	border-radius: var(--border-radius-md, 8px);
 	overflow: hidden;
 	padding: 0;
@@ -384,7 +391,7 @@
 .print-format-doc .section--grid .section-label {
 	padding: var(--pfb-cell-pad, 8px);
 	margin: 0;
-	border-bottom: 1px solid #e5e7eb;
+	border-bottom: 1px solid var(--pf-line);
 }
 .print-format-doc .section--grid .section-columns {
 	padding: 0;
@@ -395,11 +402,11 @@
 	padding: 0;
 }
 .print-format-doc .section--grid .col:not(:last-child) {
-	border-right: 1px solid #e5e7eb;
+	border-right: 1px solid var(--pf-line);
 }
 .print-format-doc .section--grid .field {
 	padding: var(--pfb-cell-pad, 8px);
-	border-bottom: 1px solid #e5e7eb;
+	border-bottom: 1px solid var(--pf-line);
 }
 .print-format-doc .section--grid .field + .field {
 	margin-top: 0;
