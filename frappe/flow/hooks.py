@@ -39,7 +39,8 @@ doc_events = {
 # Flow's references to other docs are bookkeeping — they must never block deleting
 # the referenced doc. A knowledge chunk indexes a doc; a Flow Run records the doc a
 # trigger acted on. The incremental sweep removes orphaned chunks afterwards.
-ignore_links_on_delete = ["Flow Knowledge Chunk", "Flow Run"]
+# A session's Flow Model reference is historical bookkeeping and must not block deletion.
+ignore_links_on_delete = ["Flow Knowledge Chunk", "Flow Run", "Flow Session"]
 
 default_log_clearing_doctypes = {
 	"Flow Session": 90,
