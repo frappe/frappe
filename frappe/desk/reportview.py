@@ -772,6 +772,10 @@ AGGREGATE_FIELD_INFO_HANDLERS = {
 	"AVG": _aggregate_avg_column_info,
 }
 
+assert set(AGGREGATE_FIELD_INFO_HANDLERS) == {fn.upper() for fn in SUPPORTED_AGGREGATE_FUNCTIONS}, (
+	"aggregate field info handlers must stay in sync with SUPPORTED_AGGREGATE_FUNCTIONS"
+)
+
 
 def get_aggregate_field_info(field: str | dict, parent_doctype: str) -> dict:
 	"""

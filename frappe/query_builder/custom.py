@@ -33,6 +33,7 @@ class GROUP_CONCAT(DistinctOptionFunction):
 		self.alias = None
 		sql = super().get_sql(**kwargs)
 		if self._separator:
+			assert sql.endswith(")"), "GROUP_CONCAT SQL must end with ')' before injecting SEPARATOR"
 			sql = f"{sql[:-1]} SEPARATOR {frappe.db.escape(self._separator)})"
 
 		self.alias = query_alias

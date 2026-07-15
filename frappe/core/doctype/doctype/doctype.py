@@ -1154,6 +1154,8 @@ class DocType(Document):
 				seen_links.add(link_tuple)
 				unique_links.append(link)
 
+		assert len(unique_links) == len(seen_links), "document links must be unique after deduplication"
+
 		if len(unique_links) < len(self.links or []):
 			self.links = unique_links
 
