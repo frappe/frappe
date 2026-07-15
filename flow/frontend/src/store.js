@@ -365,10 +365,15 @@ function handleEvent(event, msg) {
 			appendText(msg, event.delta);
 			requestScroll();
 			break;
-		case "tool_started":
-			msg.parts.push(makeToolPart(event.id, event.name, event.arguments));
+		case "tool_started": {
+			// Fired twice: once mid-stream (no args yet), then again with the full arguments before
+			// the tool runs. Create the card on the first, fill its arguments on the second.
+			const part = msg.parts.find((p) => p.type === "tool" && p.id === event.id);
+			if (part) part.arguments = event.arguments;
+			else msg.parts.push(makeToolPart(event.id, event.name, event.arguments));
 			requestScroll();
 			break;
+		}
 		case "tool_ended":
 			setToolResult(msg, event.id, event.result);
 			requestScroll();

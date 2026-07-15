@@ -8,7 +8,7 @@ from collections.abc import Generator
 from dataclasses import dataclass, field
 from typing import TYPE_CHECKING, Any
 
-from flow.lib.model import ChatResponse, Model, ToolCall
+from flow.lib.model import ChatResponse, Model, ToolCall, ToolCallBegin
 from flow.lib.tool import Tool
 
 if TYPE_CHECKING:
@@ -56,7 +56,9 @@ class TextChunk:
 
 @dataclass
 class ToolStarted:
-	"""A tool call is about to execute. Lets the UI render a 'thinking' indicator."""
+	"""A tool call is about to execute. Lets the UI render a 'thinking' indicator. Emitted as soon
+	as the model starts streaming the call, so `arguments` may still be empty at that point — the
+	full arguments arrive on the matching ToolEnded."""
 
 	id: str
 	name: str
@@ -282,9 +284,15 @@ class Agent:
 
 		for iteration in range(1, self.max_iterations + 1):
 			chunks = self.model.chat(messages, tools=tool_schemas, stream=True)
+			# Tool calls are announced mid-stream (ToolCallBegin) so the UI shows the tool the moment
+			# the model starts it, before its arguments finish streaming.
 			try:
 				while True:
-					yield TextChunk(text=next(chunks))
+					item = next(chunks)
+					if isinstance(item, ToolCallBegin):
+						yield ToolStarted(id=item.id, name=item.name, arguments={})
+					else:
+						yield TextChunk(text=item)
 			except StopIteration as e:
 				response = e.value
 			_accumulate_usage(usage_total, response.usage)
@@ -304,6 +312,8 @@ class Agent:
 
 			questions: list[Question] = []
 			for call in response.tool_calls:
+				# Re-announce with the full arguments now that they've finished streaming, before the
+				# tool runs — so the UI shows the arguments during execution, not only with the result.
 				yield ToolStarted(id=call.id, name=call.name, arguments=call.arguments)
 				result = self._invoke(call)
 				if isinstance(result, Question):
