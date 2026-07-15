@@ -28,6 +28,7 @@ from frappe.tests.test_api import FrappeAPITestCase
 from frappe.tests.utils import toggle_test_mode
 from frappe.utils import get_url
 from frappe.utils.data import orjson_dumps
+from frappe.utils.user import add_system_manager
 from frappe.www.login import sanitize_redirect
 
 user_module = frappe.core.doctype.user.user
@@ -81,6 +82,14 @@ class TestUser(IntegrationTestCase):
 		self.assertRegex(user.name, r"^USER-\d{5}$")
 		self.assertEqual(user.email, email)
 		self.assertEqual(frappe.get_user_by_email(email), user.name)
+
+	def test_new_system_manager_gets_stable_series_name(self):
+		email = f"{frappe.generate_hash()}@example.com"
+		user = add_system_manager(email, first_name="Series")
+		self.addCleanup(frappe.delete_doc, "User", user.name, force=True)
+
+		self.assertRegex(user.name, r"^USER-\d{5}$")
+		self.assertEqual(user.email, email)
 
 	def test_email_can_change_without_renaming_user(self):
 		user = frappe.get_doc("User", "test1@example.com")
@@ -376,15 +385,15 @@ class TestUser(IntegrationTestCase):
 			sign_up(random_user, random_user_name, "/welcome"),
 			(1, "Please check your email for verification"),
 		)
-		self.assertEqual(
-			frappe.cache.hget("redirect_after_login", random_user), sanitize_redirect("/welcome")
-		)
+		user_id = frappe.get_user_by_email(random_user)
+		self.assertIsNotNone(user_id)
+		self.assertEqual(frappe.cache.hget("redirect_after_login", user_id), sanitize_redirect("/welcome"))
 
 		# re-register
 		self.assertTupleEqual(sign_up(random_user, random_user_name, "/welcome"), (0, "Already Registered"))
 
 		# disabled user
-		user = frappe.get_doc("User", random_user)
+		user = frappe.get_doc("User", user_id)
 		user.enabled = 0
 		user.save()
 

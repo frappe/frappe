@@ -957,11 +957,14 @@ class TestSiteMigration(BaseTestCommands):
 
 class TestAddNewUser(BaseTestCommands):
 	def test_create_user(self):
+		email = f"test-{frappe.generate_hash(length=8)}@gmail.com"
 		self.execute(
-			"bench --site {site} add-user test@gmail.com --first-name test --last-name test --password 123 --user-type 'System User' --add-role 'Accounts User' --add-role 'Sales User'"
+			f"bench --site {{site}} add-user {email} --first-name test --last-name test --password 123 --user-type 'System User' --add-role 'Accounts User' --add-role 'Sales User'"
 		)
 		self.assertEqual(self.returncode, 0)
-		user = frappe.get_doc("User", "test@gmail.com")
+		user = frappe.get_doc("User", frappe.get_user_by_email(email))
+		self.addCleanup(frappe.delete_doc, "User", user.name, force=True)
+		self.assertRegex(user.name, r"^USER-\d{5}$")
 		roles = {r.role for r in user.roles}
 		self.assertEqual({"Accounts User", "Sales User"}, roles)
 

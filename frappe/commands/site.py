@@ -1602,7 +1602,6 @@ def add_new_user(
 	user = frappe.new_doc("User")
 	user.update(
 		{
-			"name": email,
 			"email": email,
 			"enabled": 1,
 			"first_name": first_name or email,
