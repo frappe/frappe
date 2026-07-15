@@ -814,6 +814,9 @@ def _render_placeholder(self, node: exp.Placeholder) -> str:
 # Scalar functions frappe registers per connection (see get_connection); keep in sync with it.
 _FRAPPE_UDF_NAMES = frozenset(
 	{
+		"now",
+		"regexp",
+		"regexp_replace",
 		"curdate",
 		"curtime",
 		"utc_timestamp",
