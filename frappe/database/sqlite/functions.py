@@ -139,30 +139,34 @@ def substring_index(value, delim, count) -> str | None:
 	return delim.join(value.split(delim)[count:])
 
 
-def timediff(t1, t2) -> float | None:
-	"""Seconds between two datetimes, 0.0 when equal; replaces SQLite's timediff() which returns a string."""
+def timediff(t1, t2) -> str | None:
+	"""MariaDB TIMEDIFF: the signed difference t1 - t2 as a TIME string, e.g. '02:30:00' or '-01:00:00'."""
 	if t1 is None or t2 is None:
 		return None
+	from frappe.utils import get_datetime
+
 	try:
+		total = int((get_datetime(t1) - get_datetime(t2)).total_seconds())
+	except Exception:
+		return None
+	sign = "-" if total < 0 else ""
+	hours, rem = divmod(abs(total), 3600)
+	minutes, seconds = divmod(rem, 60)
+	return f"{sign}{hours:02d}:{minutes:02d}:{seconds:02d}"
 
-		def _parse(s):
-			s = str(s).strip()
-			for fmt in (
-				"%Y-%m-%d %H:%M:%S.%f",
-				"%Y-%m-%d %H:%M:%S",
-				"%Y-%m-%dT%H:%M:%S.%f",
-				"%Y-%m-%dT%H:%M:%S",
-			):
-				try:
-					return datetime.strptime(s, fmt)
-				except ValueError:
-					continue
-			return None
 
-		d1, d2 = _parse(t1), _parse(t2)
-		if d1 is None or d2 is None:
-			return None
-		return (d1 - d2).total_seconds()
+def hour(value) -> int | None:
+	"""MariaDB HOUR: the hour of a TIME/datetime; may exceed 23 for a duration such as TIMEDIFF output."""
+	if value is None:
+		return None
+	s = str(value).strip()
+	# A [-]H+:MM:SS(.ffffff) TIME string (as timediff emits); MariaDB HOUR() drops the sign.
+	if m := re.match(r"-?(\d+):[0-5]?\d:[0-5]?\d(?:\.\d+)?$", s):
+		return int(m.group(1))
+	from frappe.utils import get_datetime
+
+	try:
+		return get_datetime(s).hour
 	except Exception:
 		return None
 
