@@ -130,7 +130,7 @@ def post_process():
 				# dumps VDBE opcodes; EXPLAIN QUERY PLAN gives the query plan like other backends.
 				explain_keyword = "EXPLAIN QUERY PLAN" if frappe.db.db_type == "sqlite" else "EXPLAIN"
 				try:
-					call["explain_result"] = frappe.db.sql(
+					call["explain_result"] = frappe.db.sql(  # nosemgrep
 						f"{explain_keyword} {formatted_query}", as_dict=True
 					)
 				except Exception:

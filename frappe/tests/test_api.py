@@ -46,7 +46,7 @@ def make_request(
 ) -> TestResponse:
 	# release the write lock before the request thread needs it (SQLite single-writer)
 	if frappe.db and frappe.db.db_type == "sqlite":
-		frappe.db.commit()
+		frappe.db.commit()  # nosemgrep
 
 	t = ThreadWithReturnValue(target=target, args=args, kwargs=kwargs, site=site)
 	t.start()

@@ -4,13 +4,19 @@ from enum import Enum
 from importlib import import_module
 from typing import Any, get_type_hints
 
-from pypika.queries import Column, QueryBuilder, _SetOperation
+# The query-builder patches below (QueryBuilder.run, Base.max, ...) are intentional; the
+# monkey-patching rule anchors on these imports, so suppress it here at the match start.
+from pypika.queries import (  # nosemgrep: frappe-monkey-patching-not-allowed
+	Column,
+	QueryBuilder,
+	_SetOperation,
+)
 from pypika.terms import PseudoColumn
 
 import frappe
 from frappe.query_builder.terms import NamedParameterWrapper
 
-from .builder import Base, MariaDB, Postgres, SQLite
+from .builder import Base, MariaDB, Postgres, SQLite  # nosemgrep: frappe-monkey-patching-not-allowed
 
 
 class PseudoColumnMapper(PseudoColumn):
@@ -234,26 +240,26 @@ def patch_query_execute():
 	executing the query object
 	"""
 
-	QueryBuilder.run = execute_query  # nosemgrep
-	QueryBuilder.walk = prepare_query  # nosemgrep
+	QueryBuilder.run = execute_query
+	QueryBuilder.walk = prepare_query
 
 	# To support running union queries
-	_SetOperation.run = execute_query  # nosemgrep
-	_SetOperation.walk = prepare_query  # nosemgrep
+	_SetOperation.run = execute_query
+	_SetOperation.walk = prepare_query
 
 
 def patch_query_aggregation():
 	"""Patch aggregation functions to frappe.qb"""
 	from frappe.query_builder.functions import _avg, _max, _min, _sum
 
-	Base.max = _max  # nosemgrep
-	Base.min = _min  # nosemgrep
-	Base.avg = _avg  # nosemgrep
-	Base.sum = _sum  # nosemgrep
+	Base.max = _max
+	Base.min = _min
+	Base.avg = _avg
+	Base.sum = _sum
 
 
 def patch_get_query():
-	Base.get_query = get_query  # nosemgrep
+	Base.get_query = get_query
 
 
 def patch_like_operators():

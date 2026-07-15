@@ -192,7 +192,7 @@ def clear_log_table(doctype, days=90):
 			from frappe.utils import add_to_date, now_datetime
 
 			frappe.db.delete(doctype, {"creation": ("<", add_to_date(now_datetime(), days=-days))})
-			frappe.db.commit()  # nosemgrep: this is a maintenance cleanup, mirrors the DDL paths above
+			frappe.db.commit()  # maintenance cleanup, mirrors the DDL paths above; # nosemgrep
 			return
 	except Exception:
 		frappe.db.rollback()
