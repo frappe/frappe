@@ -133,13 +133,12 @@ class SQLiteTable(DBTable):
 		# Rebuilding the table drops user-defined indexes, so capture them first.
 		preserved_indexes = self.get_indexes_to_preserve()
 
-		# Create new table
+		# Build the new table and the data-copy statement. Copy data coalescing NULLs to the column
+		# default for any column gaining a NOT NULL constraint -- an existing NULL would otherwise
+		# violate it while copying.
 		temp_table = f"{self.table_name}_new"
 		create_table = f"CREATE TABLE `{temp_table}` (\n{','.join(columns)}\n)"
-		frappe.db.sql_ddl(create_table)
 
-		# Copy data, coalescing NULLs to the column default for any column gaining a NOT NULL
-		# constraint -- an existing NULL would otherwise violate it while copying.
 		not_null_defaults = {}
 		for col in self.change_nullability:
 			if col.not_nullable:
@@ -155,38 +154,48 @@ class SQLiteTable(DBTable):
 			else col
 			for col in existing_columns
 		]
-		frappe.db.sql_ddl(
+		insert_data = (
 			f"INSERT INTO `{temp_table}` ({', '.join(existing_columns)}) "
 			f"SELECT {', '.join(select_exprs)} FROM `{self.table_name}`"
 		)
 
-		# Drop old table
-		frappe.db.sql_ddl(f"DROP TABLE `{self.table_name}`")
+		# Run the whole swap in one transaction (SQLite DDL is transactional) instead of per-statement
+		# sql_ddl commits, so a crash between DROP and RENAME can't leave the table missing.
+		frappe.db.commit()
+		try:
+			frappe.db.sql(create_table)
+			frappe.db.sql(insert_data)
+			frappe.db.sql(f"DROP TABLE `{self.table_name}`")
+			frappe.db.sql(f"ALTER TABLE `{temp_table}` RENAME TO `{self.table_name}`")
 
-		# Rename new table
-		frappe.db.sql_ddl(f"ALTER TABLE `{temp_table}` RENAME TO `{self.table_name}`")
+			# Replay the indexes that existed before the rebuild
+			for index_sql in preserved_indexes:
+				frappe.db.sql(index_sql)
 
-		# Replay the indexes that existed before the rebuild
-		for index_sql in preserved_indexes:
-			frappe.db.sql_ddl(index_sql)
+			# Recreate indexes
+			index_queries = []
+			if self.add_unique:
+				index_queries.extend(
+					self.get_index_query(col.fieldname, unique=True) for col in self.add_unique
+				)
+			if self.add_index:
+				index_queries.extend(
+					self.get_index_query(col.fieldname)
+					for col in self.add_index
+					if not frappe.db.get_column_index(self.table_name, col.fieldname, unique=False)
+				)
+			if self.meta.sort_field == "modified" and not frappe.db.get_column_index(
+				self.table_name, "modified", unique=False
+			):
+				index_queries.append(self.get_index_query("modified"))
 
-		# Recreate indexes
-		index_queries = []
-		if self.add_unique:
-			index_queries.extend(self.get_index_query(col.fieldname, unique=True) for col in self.add_unique)
-		if self.add_index:
-			index_queries.extend(
-				self.get_index_query(col.fieldname)
-				for col in self.add_index
-				if not frappe.db.get_column_index(self.table_name, col.fieldname, unique=False)
-			)
-		if self.meta.sort_field == "modified" and not frappe.db.get_column_index(
-			self.table_name, "modified", unique=False
-		):
-			index_queries.append(self.get_index_query("modified"))
+			for query in index_queries:
+				frappe.db.sql(query)
 
-		for query in index_queries:
-			frappe.db.sql_ddl(query)
+			frappe.db.commit()
+		except Exception:
+			frappe.db.rollback()
+			raise
 
 	def alter_primary_key(self) -> str | None:
 		# If there are no values in table allow migrating to UUID from TEXT
