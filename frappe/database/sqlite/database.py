@@ -391,13 +391,20 @@ class SQLiteDatabase(SQLiteExceptionUtil, Database):
 		preserved_indexes = self._get_indexes_to_preserve(table_name, renamed_columns or {})
 
 		temp_table = f"{table_name}_new"
-		self.sql_ddl(f"CREATE TABLE `{temp_table}` (\n{','.join(column_defs)}\n)")
-		self.sql_ddl(f"INSERT INTO `{temp_table}` SELECT {', '.join(select_columns)} FROM `{table_name}`")
-		self.sql_ddl(f"DROP TABLE `{table_name}`")
-		self.sql_ddl(f"ALTER TABLE `{temp_table}` RENAME TO `{table_name}`")
-
-		for index_sql in preserved_indexes:
-			self.sql_ddl(index_sql)
+		# Run the whole swap in one transaction (SQLite DDL is transactional) instead of per-statement
+		# sql_ddl commits, so a crash between DROP and RENAME can't leave the table missing.
+		self.commit()
+		try:
+			self.sql(f"CREATE TABLE `{temp_table}` (\n{','.join(column_defs)}\n)")
+			self.sql(f"INSERT INTO `{temp_table}` SELECT {', '.join(select_columns)} FROM `{table_name}`")
+			self.sql(f"DROP TABLE `{table_name}`")
+			self.sql(f"ALTER TABLE `{temp_table}` RENAME TO `{table_name}`")
+			for index_sql in preserved_indexes:
+				self.sql(index_sql)
+			self.commit()
+		except Exception:
+			self.rollback()
+			raise
 
 	def _get_indexes_to_preserve(self, table_name: str, renamed_columns: dict[str, str]) -> list[str]:
 		"""Return CREATE statements for user-defined indexes, remapping any renamed columns."""

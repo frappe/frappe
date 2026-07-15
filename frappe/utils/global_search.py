@@ -645,6 +645,8 @@ def web_search(text: str, scope: str | None = None, start: int = 0, limit: int =
 			},
 			values=values,
 			as_dict=True,
+			# The sqlite variant is FTS5-native (MATCH); don't re-transpile it. Ignored by other backends.
+			_skip_dialect_rewrite=True,
 		)
 		tmp_result = []
 		for i in result:
