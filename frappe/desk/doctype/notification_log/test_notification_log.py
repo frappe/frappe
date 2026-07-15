@@ -3,16 +3,10 @@
 import frappe
 from frappe.core.doctype.user.user import get_system_users
 from frappe.desk.doctype.notification_log.notification_log import (
-	UNREAD_COUNT_CACHE_KEY,
-	NotificationLog,
 	enqueue_create_notification,
 	get_email_header,
 	get_title,
-	get_unread_count,
-	mark_all_as_read,
-	mark_as_read,
 )
-from frappe.desk.doctype.notification_settings.notification_settings import create_notification_settings
 from frappe.desk.doctype.notification_type.notification_type import install_notification_types
 from frappe.desk.form.assign_to import add as assign_task
 from frappe.tests import IntegrationTestCase
@@ -204,118 +198,6 @@ def make_recipient(email: str) -> str:
 			}
 		).insert(ignore_permissions=True)
 	return email
-
-
-class TestNotificationUnreadCount(IntegrationTestCase):
-	def setUp(self):
-		self.user = "test@example.com"
-		create_notification_settings(self.user)
-		frappe.db.delete("Notification Log", {"for_user": self.user})
-		frappe.cache.delete_value(UNREAD_COUNT_CACHE_KEY, user=self.user)
-
-	def tearDown(self):
-		frappe.set_user("Administrator")
-		frappe.db.delete("Notification Log", {"for_user": self.user})
-		frappe.cache.delete_value(UNREAD_COUNT_CACHE_KEY, user=self.user)
-
-	def _insert_log(self, for_user=None):
-		return frappe.get_doc(
-			{
-				"doctype": "Notification Log",
-				"subject": "test",
-				"for_user": for_user or self.user,
-				"from_user": "Administrator",
-				"type": "Alert",
-			}
-		).insert(ignore_permissions=True)
-
-	def _flush_after_commit(self):
-		frappe.db.after_commit.run()
-
-	def test_cold_cache_computes_from_log(self):
-		self._insert_log()
-		self._insert_log()
-		frappe.cache.delete_value(UNREAD_COUNT_CACHE_KEY, user=self.user)
-
-		self.assertEqual(get_unread_count(self.user), 2)
-		self.assertEqual(frappe.cache.get_value(UNREAD_COUNT_CACHE_KEY, user=self.user, expires=True), 2)
-
-	def test_returns_cached_value(self):
-		frappe.cache.set_value(UNREAD_COUNT_CACHE_KEY, 7, user=self.user, expires_in_sec=60)
-		self.assertEqual(get_unread_count(self.user), 7)
-
-	def test_insert_invalidates_cache(self):
-		frappe.cache.set_value(UNREAD_COUNT_CACHE_KEY, 0, user=self.user, expires_in_sec=60)
-		self._insert_log()
-		self._flush_after_commit()
-
-		self.assertIsNone(frappe.cache.get_value(UNREAD_COUNT_CACHE_KEY, user=self.user, expires=True))
-		self.assertEqual(get_unread_count(self.user), 1)
-
-	def test_mark_as_read_invalidates_cache(self):
-		log = self._insert_log()
-		self._insert_log()
-		self._flush_after_commit()
-		get_unread_count(self.user)
-
-		frappe.set_user(self.user)
-		mark_as_read(log.name)
-		self._flush_after_commit()
-
-		self.assertEqual(frappe.db.get_value("Notification Log", log.name, "read"), 1)
-		self.assertIsNone(frappe.cache.get_value(UNREAD_COUNT_CACHE_KEY, user=self.user, expires=True))
-		self.assertEqual(get_unread_count(self.user), 1)
-
-	def test_mark_all_as_read_invalidates_cache(self):
-		for _ in range(3):
-			self._insert_log()
-		self._flush_after_commit()
-		get_unread_count(self.user)
-
-		frappe.set_user(self.user)
-		mark_all_as_read()
-		self._flush_after_commit()
-
-		self.assertIsNone(frappe.cache.get_value(UNREAD_COUNT_CACHE_KEY, user=self.user, expires=True))
-		self.assertEqual(get_unread_count(self.user), 0)
-
-	def test_clear_old_logs_invalidates_cache(self):
-		from frappe.utils import add_to_date, now_datetime
-
-		log = self._insert_log()
-		frappe.db.set_value(
-			"Notification Log",
-			log.name,
-			"creation",
-			add_to_date(now_datetime(), days=-200),
-			update_modified=False,
-		)
-		frappe.cache.set_value(UNREAD_COUNT_CACHE_KEY, 5, user=self.user, expires_in_sec=60)
-
-		NotificationLog.clear_old_logs(days=180)
-		self._flush_after_commit()
-
-		self.assertIsNone(frappe.cache.get_value(UNREAD_COUNT_CACHE_KEY, user=self.user, expires=True))
-		self.assertFalse(frappe.db.exists("Notification Log", log.name))
-
-	def test_mark_as_read_does_not_affect_other_user(self):
-		other_user = "test1@example.com"
-		create_notification_settings(other_user)
-		frappe.db.delete("Notification Log", {"for_user": other_user})
-		frappe.cache.delete_value(UNREAD_COUNT_CACHE_KEY, user=other_user)
-		log = self._insert_log(for_user=other_user)
-		self._flush_after_commit()
-
-		frappe.set_user(self.user)
-		mark_as_read(log.name)
-		self._flush_after_commit()
-
-		self.assertEqual(frappe.db.get_value("Notification Log", log.name, "read"), 0)
-		self.assertEqual(get_unread_count(other_user), 1)
-
-		frappe.set_user("Administrator")
-		frappe.db.delete("Notification Log", {"for_user": other_user})
-		frappe.cache.delete_value(UNREAD_COUNT_CACHE_KEY, user=other_user)
 
 
 def get_last_email_queue():

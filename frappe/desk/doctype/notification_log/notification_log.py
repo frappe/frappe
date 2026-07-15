@@ -10,9 +10,6 @@ from frappe.desk.doctype.notification_settings.notification_settings import (
 from frappe.model.document import Document
 from frappe.utils.caching import http_cache
 
-UNREAD_COUNT_CACHE_KEY = "notification_unread_count"
-UNREAD_COUNT_CACHE_TTL = 5 * 60
-
 
 class NotificationLog(Document):
 	_DOCTYPE_NAME = "Notification Log"
@@ -64,7 +61,6 @@ class NotificationLog(Document):
 	def after_insert(self):
 		frappe.publish_realtime("notification", after_commit=True, user=self.for_user)
 		set_notifications_as_unseen(self.for_user)
-		clear_unread_count_cache(self.for_user)
 		if is_email_notifications_enabled_for_type(self.for_user, self.type):
 			try:
 				send_notification_email(self)
@@ -73,19 +69,11 @@ class NotificationLog(Document):
 
 	@staticmethod
 	def clear_old_logs(days=180):
-		from frappe.utils import add_to_date, now_datetime
+		from frappe.query_builder import Interval
+		from frappe.query_builder.functions import Now
 
-		cutoff = add_to_date(now_datetime(), days=-days)
-		affected_users = frappe.db.get_values(
-			"Notification Log",
-			filters=[["creation", "<", cutoff], ["read", "=", 0]],
-			fieldname="for_user",
-			distinct=True,
-			pluck=True,
-		)
-		frappe.db.delete("Notification Log", filters=[["creation", "<", cutoff]])
-		for user in affected_users:
-			clear_unread_count_cache(user)
+		table = frappe.qb.DocType("Notification Log")
+		frappe.db.delete(table, filters=(table.creation < (Now() - Interval(days=days))))
 
 
 def _resolve_app_for_doctype(doctype: str) -> str | None:
@@ -279,7 +267,6 @@ def mark_all_as_read():
 	(
 		frappe.qb.update(log).set(log.read, 1).where(log.for_user == frappe.session.user).where(log.read == 0)
 	).run()
-	clear_unread_count_cache(frappe.session.user)
 
 
 @frappe.whitelist()
@@ -295,7 +282,6 @@ def mark_as_read(docname: str):
 		.where(log.for_user == frappe.session.user)
 		.where(log.read == 0)
 	).run()
-	clear_unread_count_cache(frappe.session.user)
 
 
 @frappe.whitelist()
@@ -308,20 +294,3 @@ def set_notifications_as_unseen(user):
 		frappe.db.set_value("Notification Settings", user, "seen", 0, update_modified=False)
 	except frappe.DoesNotExistError:
 		return
-
-
-def get_unread_count(user: str | None = None) -> int:
-	user = user or frappe.session.user
-	count = frappe.cache.get_value(UNREAD_COUNT_CACHE_KEY, user=user, expires=True)
-	if count is None:
-		count = frappe.db.count("Notification Log", {"for_user": user, "read": 0})
-		frappe.cache.set_value(
-			UNREAD_COUNT_CACHE_KEY, count, user=user, expires_in_sec=UNREAD_COUNT_CACHE_TTL
-		)
-	return count
-
-
-def clear_unread_count_cache(user: str | None) -> None:
-	if not user:
-		return
-	frappe.db.after_commit.add(lambda: frappe.cache.delete_value(UNREAD_COUNT_CACHE_KEY, user=user))
