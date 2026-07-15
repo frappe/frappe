@@ -320,6 +320,31 @@ class TestClassicConverter(IntegrationTestCase):
 			self.assertIn("first_name", names)
 			self.assertNotIn("last_name", names)
 
+	def test_default_layout_has_document_heading(self):
+		"""The default (no custom format) print keeps the classic document heading:
+		select_print_heading / print_heading / doctype, plus the document name."""
+		from frappe.printing.doctype.print_format.classic_converter import (
+			create_default_layout,
+			get_default_print_format,
+		)
+		from frappe.utils.print_format_generator import PrintFormatGenerator
+
+		layout = create_default_layout(frappe.get_meta("ToDo"))
+		heading = layout["header"]["columns"][0]["fields"][0]
+		self.assertEqual(heading["fieldtype"], "HTML")
+		self.assertEqual(heading["fieldname"], "print_heading_template")
+
+		todo = frappe.get_doc({"doctype": "ToDo", "description": "Heading test"}).insert(
+			ignore_permissions=True
+		)
+		self.addCleanup(todo.delete, ignore_permissions=True)
+
+		generator = PrintFormatGenerator(get_default_print_format("ToDo"), todo)
+		html = generator.get_html_preview()
+		self.assertIn('<div class="print-heading">', html)
+		self.assertIn("<div>ToDo</div>", html)
+		self.assertIn(f'<small class="sub-heading">{todo.name}</small>', html)
+
 	def test_print_width_mapping(self):
 		from frappe.printing.doctype.print_format.classic_converter import (
 			distribute_widths,

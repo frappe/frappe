@@ -9,6 +9,13 @@ from frappe.utils import cint
 ASSUMED_BODY_WIDTH_PX = 750
 DEFAULT_COLUMN_WIDTH_PCT = 10
 
+DEFAULT_PRINT_HEADING = (
+	'{%- set heading = doc.get("select_print_heading") or doc.get("print_heading") or doc.doctype -%}'
+	'{%- set sub_heading = doc.get("sub_heading") or doc.name -%}'
+	'<div class="print-heading"><h2><div>{{ _(heading) }}</div>'
+	'<small class="sub-heading">{{ _(sub_heading|string) }}</small></h2></div>'
+)
+
 
 def is_classic_layout(format_data) -> bool:
 	if not format_data:
@@ -248,7 +255,22 @@ def create_default_layout(meta) -> dict:
 	Mirrors `create_default_layout()` in the JS builder so the Standard (no custom
 	format) print of every doctype renders through the new renderer."""
 	layout = {
-		"header": {"columns": [{"label": "", "fields": []}]},
+		"header": {
+			"columns": [
+				{
+					"label": "",
+					"fields": [
+						{
+							"label": "",
+							"fieldname": "print_heading_template",
+							"fieldtype": "HTML",
+							"html": DEFAULT_PRINT_HEADING,
+							"custom": 1,
+						}
+					],
+				}
+			]
+		},
 		"footer": {"columns": [{"label": "", "fields": []}]},
 		"sections": [],
 	}
