@@ -126,6 +126,7 @@ class FlowPanel {
 	show() {
 		this.visible = true;
 		this.root.style.transform = "translateX(0)";
+		this.store.restoreSession();
 		this._persist();
 	}
 

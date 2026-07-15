@@ -69,21 +69,26 @@ async function loadInitial() {
 		loaded.value = true;
 		focusTick.value++;
 
-		// Reopen the session that was active before a reload, even if the panel was closed.
-		const saved = readPanelState();
-		if (saved.session) {
-			try {
-				await switchSession(saved.session);
-			} catch {
-				newChat();
-			}
-		}
+		if (readPanelState().open) await restoreSession();
 	} catch {
 		// `loaded` stays false, keeping the composer disabled on "Loading…".
 		frappe.show_alert({
 			message: __("Flow failed to load. Refresh the page to retry."),
 			indicator: "red",
 		});
+	}
+}
+
+let sessionRestored = false;
+async function restoreSession() {
+	if (sessionRestored) return;
+	sessionRestored = true;
+	const { session } = readPanelState();
+	if (!session) return;
+	try {
+		await switchSession(session);
+	} catch {
+		newChat();
 	}
 }
 
@@ -500,6 +505,7 @@ export function useStore() {
 		modelLabel,
 		// actions
 		loadInitial,
+		restoreSession,
 		refreshHistory,
 		setAgent,
 		setModel,
