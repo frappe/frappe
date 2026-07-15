@@ -93,14 +93,6 @@ let docfield_df = computed(() => {
 			df.description = FIELD_DESCRIPTIONS[fieldtype] || "";
 		}
 
-		// show filters only for controls that support them
-		if (
-			df.fieldname === "link_filters" &&
-			!["Attachment Gallery", "Link"].includes(store.form.selected_field.fieldtype)
-		) {
-			return false;
-		}
-
 		if (search_text.value) {
 			if (
 				df.label.toLowerCase().includes(search_text.value.toLowerCase()) ||
