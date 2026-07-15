@@ -40,8 +40,14 @@ _sqlglot_logger.addHandler(logging.NullHandler())
 _sqlglot_logger.propagate = False
 
 _PARAM_COMP = re.compile(r"%\((\w+)\)s")
-# A single-quoted string literal (with '' escapes); used to skip literals when rewriting placeholders.
-_SINGLE_QUOTE_LITERAL = re.compile(r"'(?:[^']|'')*'")
+# Opaque spans to skip when rewriting placeholders: single-quoted string literals (with ''
+# escapes) and SQL comments. Apostrophes inside a comment must not open a string literal.
+_LITERAL_OR_COMMENT = re.compile(
+	r"'(?:[^']|'')*'"  # single-quoted string literal
+	r"|--[^\n]*"  # -- line comment
+	r"|/\*.*?\*/",  # /* block comment */
+	re.DOTALL,
+)
 IMPLICIT_COMMIT_QUERY_TYPES = frozenset(("start", "alter", "drop", "create", "truncate"))
 
 
@@ -50,9 +56,9 @@ class SequenceGeneratorLimitExceeded(sqlite3.Error):
 
 
 def _split_sql_literals(query: str):
-	"""Yield (is_literal, chunk) over query; is_literal chunks are single-quoted string literals."""
+	"""Yield (is_opaque, chunk) over query; opaque chunks are string literals or comments, left as-is."""
 	pos = 0
-	for m in _SINGLE_QUOTE_LITERAL.finditer(query):
+	for m in _LITERAL_OR_COMMENT.finditer(query):
 		if m.start() > pos:
 			yield False, query[pos : m.start()]
 		yield True, m.group(0)
