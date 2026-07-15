@@ -416,7 +416,11 @@ class SQLiteDatabase(SQLiteExceptionUtil, Database):
 		):
 			sql = index["sql"]
 			for old, new in renamed_columns.items():
-				sql = sql.replace(f"`{old}`", f"`{new}`")
+				# Match either quoting style: sqlglot stores CREATE INDEX with "col", but
+				# raw/backtick-quoted definitions can also appear. Only quoted forms are
+				# replaced so the column name isn't matched inside the index name.
+				for q in ("`", '"'):
+					sql = sql.replace(f"{q}{old}{q}", f"{q}{new}{q}")
 			statements.append(sql)
 		return statements
 
