@@ -575,6 +575,7 @@ class User(Document):
 		args = {
 			"first_name": self.first_name or self.last_name or "user",
 			"user": self.name,
+			"email": self.email,
 			"title": subject,
 			"login_url": get_url(),
 			"created_by": created_by,

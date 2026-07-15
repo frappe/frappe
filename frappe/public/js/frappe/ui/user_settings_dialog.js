@@ -182,7 +182,7 @@ function _profile_tab(user_data) {
 		render(panel) {
 			const user = frappe.session.user;
 			const full_name = frappe.user_info(user).fullname || user;
-			const email = frappe.session.user_email || user;
+			const email = frappe.session.user_email;
 
 			panel.body.html(`
 				<div class="flex items-center gap-3 pt-4 pb-5">

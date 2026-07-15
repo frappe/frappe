@@ -92,6 +92,22 @@ class TestUser(IntegrationTestCase):
 		self.assertEqual(user.email, "renamed.test1@example.com")
 		self.assertEqual(frappe.get_user_by_email(user.email), original_name)
 
+	def test_new_user_email_shows_email_as_login_id(self):
+		html = frappe.render_template(
+			"templates/emails/new_user.html",
+			{
+				"first_name": "Test",
+				"last_name": None,
+				"site_url": "https://example.com",
+				"user": "USER-00001",
+				"email": "test@example.com",
+				"link": "https://example.com/reset",
+				"created_by": "Administrator",
+			},
+		)
+		self.assertIn("<b>test@example.com</b>", html)
+		self.assertNotIn("USER-00001", html)
+
 	def test_delete(self):
 		frappe.get_doc("User", "test@example.com").add_roles("_Test Role 2")
 		self.assertRaises(frappe.LinkExistsError, delete_doc, "Role", "_Test Role 2")

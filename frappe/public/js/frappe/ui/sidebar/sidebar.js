@@ -69,7 +69,7 @@ frappe.ui.Sidebar = class Sidebar {
 				// no owning app (a custom workspace) -> clear the app context so the header/selector
 				// don't keep showing the app you came from
 				frappe.current_app = null;
-				this.header_subtitle = frappe.session.user;
+				this.header_subtitle = frappe.session.user_email;
 			}
 			return;
 		}
