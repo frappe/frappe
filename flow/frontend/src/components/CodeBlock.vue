@@ -43,7 +43,7 @@ const shown = computed(() =>
 	background: var(--surface-gray-2);
 	padding: 8px 10px;
 	font-family: var(--font-stack-monospace, ui-monospace, monospace);
-	font-size: 11.5px;
+	font-size: 12.5px;
 	line-height: 1.6;
 	color: var(--ink-gray-8);
 }

@@ -15,6 +15,28 @@ export default {
 		"./node_modules/frappe-ui/src/composables/**/*.{vue,js,ts}",
 		"./node_modules/frappe-ui/src/utils/**/*.{vue,js,ts}",
 	],
-	theme: { extend: {} },
+	theme: {
+		extend: {
+			fontSize: {
+				"2xs": [
+					"12px",
+					{ lineHeight: "1.15", letterSpacing: "0.01em", fontWeight: "420" },
+				],
+				xs: ["13px", { lineHeight: "1.15", letterSpacing: "0.02em", fontWeight: "420" }],
+				sm: ["14px", { lineHeight: "1.15", letterSpacing: "0.02em", fontWeight: "420" }],
+				base: ["15px", { lineHeight: "1.15", letterSpacing: "0.02em", fontWeight: "420" }],
+				lg: ["17px", { lineHeight: "1.15", letterSpacing: "0.02em", fontWeight: "400" }],
+				xl: ["19px", { lineHeight: "1.15", letterSpacing: "0.01em", fontWeight: "400" }],
+				"2xl": [
+					"21px",
+					{ lineHeight: "1.15", letterSpacing: "0.01em", fontWeight: "400" },
+				],
+				"3xl": [
+					"25px",
+					{ lineHeight: "1.15", letterSpacing: "0.005em", fontWeight: "400" },
+				],
+			},
+		},
+	},
 	plugins: [],
 };

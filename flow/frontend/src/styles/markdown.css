@@ -30,7 +30,7 @@
 	font-size: var(--text-lg);
 }
 .md h2 {
-	font-size: 15px;
+	font-size: 16px;
 }
 .md h3 {
 	font-size: var(--text-base);
@@ -73,7 +73,7 @@
 }
 .md code {
 	font-family: var(--font-stack-monospace, ui-monospace, monospace);
-	font-size: 12px;
+	font-size: 13px;
 	background: var(--surface-gray-2);
 	padding: 1px 5px;
 	border-radius: 5px;
@@ -89,7 +89,7 @@
 .md pre code {
 	background: transparent;
 	padding: 0;
-	font-size: 12px;
+	font-size: 13px;
 }
 /* Wide tables scroll inside their own box instead of widening the panel. */
 .md .md-table-scroll {

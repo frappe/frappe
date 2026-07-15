@@ -168,7 +168,7 @@ watch(focusTick, () => nextTick(() => el.value?.focus()));
 			>
 				<template #trigger="{ toggle }">
 					<button
-						class="flex h-6 items-center gap-1 rounded px-1.5 text-[11.5px] text-ink-gray-6 hover:bg-surface-gray-2 disabled:cursor-default disabled:hover:bg-transparent"
+						class="flex h-6 items-center gap-1 rounded px-1.5 text-[12.5px] text-ink-gray-6 hover:bg-surface-gray-2 disabled:cursor-default disabled:hover:bg-transparent"
 						:disabled="locked"
 						:title="__('Agent')"
 						@click="toggle"
@@ -192,7 +192,7 @@ watch(focusTick, () => nextTick(() => el.value?.focus()));
 			>
 				<template #trigger="{ toggle }">
 					<button
-						class="flex h-6 items-center gap-1 rounded px-1.5 text-[11.5px] text-ink-gray-6 hover:bg-surface-gray-2"
+						class="flex h-6 items-center gap-1 rounded px-1.5 text-[12.5px] text-ink-gray-6 hover:bg-surface-gray-2"
 						:title="__('Model')"
 						@click="toggle"
 					>

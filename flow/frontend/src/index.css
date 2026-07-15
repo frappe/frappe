@@ -6,6 +6,13 @@
 
 /* Authored rules are scoped to #flow-root by postcss-prefix-selector at build. */
 
+:root {
+	--text-xs: 13px;
+	--text-sm: 14px;
+	--text-base: 15px;
+	--text-lg: 17px;
+}
+
 /* frappe-ui forces `font-family: InterVar`, a face the desk doesn't load (it
    ships "Inter"/"InterVariable"), so it falls back to the system font. Point
    the panel at the desk's real fonts. */
