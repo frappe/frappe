@@ -543,6 +543,13 @@ def get_user():
 	return local.user_perms
 
 
+def get_user_by_email(email: str | None) -> str | None:
+	"""Return the stable User ID for an email address."""
+	if not email:
+		return None
+	return db.get_value("User", {"email": email.strip().lower()}, "name")
+
+
 def get_roles(username=None) -> list[str]:
 	"""Return roles of current user."""
 	if not local.session or not local.session.user:

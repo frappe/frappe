@@ -127,15 +127,15 @@ class UserInvitation(Document):
 			frappe.throw(title=_("Error"), msg=_("Invitation is cancelled"))
 		self.status = "Accepted"
 		self.accepted_at = frappe.utils.now()
-		self.user = self.email
+		self.user = frappe.get_user_by_email(self.email) or self.email
 		self.key = None
 		return True
 
 	def _upsert_user(self, ignore_permissions: bool = False):
 		user: Document | None = None
 		user_inserted = False
-		if frappe.db.exists("User", self.user):
-			user = frappe.get_doc("User", self.user)
+		if user_name := frappe.get_user_by_email(self.email):
+			user = frappe.get_doc("User", user_name)
 		else:
 			user = frappe.new_doc("User")
 			user.user_type = "System User"
@@ -144,6 +144,7 @@ class UserInvitation(Document):
 			user.send_welcome_email = False
 			user.insert(ignore_permissions)
 			user_inserted = True
+		self.user = user.name
 		user.append_roles(*[r.role for r in self.roles])
 		return user, user_inserted
 

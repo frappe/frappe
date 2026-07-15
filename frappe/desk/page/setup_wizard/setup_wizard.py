@@ -206,7 +206,7 @@ def run_setup_success(args):  # nosemgrep
 
 def login_as_first_user(args):
 	if args.get("email") and hasattr(frappe.local, "login_manager"):
-		frappe.local.login_manager.login_as(args.get("email"))
+		frappe.local.login_manager.login_as(frappe.get_user_by_email(args.get("email")))
 
 
 def get_stages_hooks(args):  # nosemgrep

@@ -2,6 +2,7 @@
 # License: MIT. See LICENSE
 import datetime
 import time
+from urllib.parse import parse_qs, urlparse
 
 import requests
 from werkzeug.test import EnvironBuilder
@@ -163,17 +164,23 @@ class TestAuth(IntegrationTestCase):
 
 	def test_login_uses_email_field(self):
 		new_email = "renamed_test_auth@test.com"
+
+		def restore_email():
+			frappe.db.rollback()
+			frappe.db.set_value(
+				"User", self.test_user_email, "email", self.test_user_email, update_modified=False
+			)
+			frappe.db.commit()
+
 		frappe.db.set_value("User", self.test_user_email, "email", new_email, update_modified=False)
 		frappe.db.commit()
-		self.addCleanup(
-			frappe.db.set_value,
-			"User",
-			self.test_user_email,
-			"email",
-			self.test_user_email,
-			update_modified=False,
-		)
+		self.addCleanup(restore_email)
 
+		self.assertEqual(frappe.get_user_by_email(new_email.upper()), self.test_user_email)
+		login_link = _generate_temporary_login_link(new_email, 10)
+		login_key = parse_qs(urlparse(login_link).query)["key"][0]
+		self.assertEqual(frappe.cache.get_value(f"one_time_login_key:{login_key}"), self.test_user_email)
+		frappe.cache.delete_value(f"one_time_login_key:{login_key}")
 		FrappeClient(self.HOST_NAME, new_email, self.test_user_password)
 		with self.assertRaises(AuthError):
 			FrappeClient(self.HOST_NAME, self.test_user_email, self.test_user_password)

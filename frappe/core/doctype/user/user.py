@@ -1181,7 +1181,10 @@ def reset_password(user: str) -> None:
 	# via different messages or HTTP status codes (CWE-204).
 
 	try:
-		user_doc: User = frappe.get_doc("User", user)
+		user_name = frappe.get_user_by_email(user)
+		if not user_name:
+			raise frappe.DoesNotExistError
+		user_doc: User = frappe.get_doc("User", user_name)
 		if user_doc.name != "Administrator" and user_doc.enabled:
 			user_doc.validate_reset_password()
 			user_doc._reset_password(send_email=True)

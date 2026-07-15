@@ -210,8 +210,8 @@ class LDAPSettings(Document):
 		user: User = None
 		role: str = None
 
-		if frappe.db.exists("User", user_data["email"]):
-			user = frappe.get_doc("User", user_data["email"])
+		if user_name := frappe.get_user_by_email(user_data["email"]):
+			user = frappe.get_doc("User", user_name)
 			LDAPSettings.update_user_fields(user=user, user_data=user_data)
 		elif not self.do_not_create_new_user:
 			doc = user_data | {
@@ -374,7 +374,7 @@ class LDAPSettings(Document):
 		if isinstance(email, list):
 			# check if any of the email in the list already exist
 			for e in email:
-				if frappe.db.exists("User", e):
+				if frappe.get_user_by_email(e):
 					email = e
 					break
 			else:

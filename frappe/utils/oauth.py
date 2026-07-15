@@ -236,7 +236,7 @@ def login_oauth_user(
 			http_status_code=403,
 		)
 
-	frappe.local.login_manager.login_as(user)
+	frappe.local.login_manager.login_as(frappe.get_user_by_email(user))
 
 	# because of a GET request!
 	frappe.db.commit()
@@ -260,7 +260,9 @@ def get_user_record(user: str, data: dict, provider: str) -> "User":
 	from frappe.integrations.doctype.social_login_key.social_login_key import provider_allows_signup
 
 	try:
-		return frappe.get_doc("User", user)
+		if user_name := frappe.get_user_by_email(user):
+			return frappe.get_doc("User", user_name)
+		raise frappe.DoesNotExistError
 	except frappe.DoesNotExistError:
 		if not provider_allows_signup(provider):
 			raise SignupDisabledError

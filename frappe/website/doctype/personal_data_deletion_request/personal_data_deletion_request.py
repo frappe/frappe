@@ -83,7 +83,7 @@ class PersonalDataDeletionRequest(Document):
 		return url
 
 	def disable_user(self):
-		user = frappe.get_doc("User", self.email)
+		user = frappe.get_doc("User", frappe.get_user_by_email(self.email))
 		user.enabled = False
 		user.save()
 

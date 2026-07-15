@@ -168,10 +168,11 @@ def send_login_link(email: str):
 def _generate_temporary_login_link(email: str, expiry: int):
 	assert isinstance(email, str)
 
-	if not frappe.db.exists("User", {"name": email, "enabled": 1}):
+	user = frappe.db.get_value("User", {"email": email, "enabled": 1}, "name")
+	if not user:
 		frappe.throw(_("No active user found with email address {0}").format(email), frappe.DoesNotExistError)
 	key = frappe.generate_hash()
-	frappe.cache.set_value(f"one_time_login_key:{key}", email, expires_in_sec=expiry * 60)
+	frappe.cache.set_value(f"one_time_login_key:{key}", user, expires_in_sec=expiry * 60)
 
 	return get_url(f"/api/method/frappe.www.login.login_via_key?key={key}", allow_header_override=False)
 
@@ -180,11 +181,11 @@ def _generate_temporary_login_link(email: str, expiry: int):
 @rate_limit(limit=get_login_with_email_link_ratelimit, seconds=60 * 60)
 def login_via_key(key: str):
 	cache_key = f"one_time_login_key:{key}"
-	email = frappe.cache.get_value(cache_key)
+	user = frappe.cache.get_value(cache_key)
 
-	if email:
+	if user:
 		frappe.cache.delete_value(cache_key)
-		frappe.local.login_manager.login_as(email)
+		frappe.local.login_manager.login_as(user)
 
 		redirect_post_login(
 			desk_user=frappe.db.get_value("User", frappe.session.user, "user_type") == "System User"
