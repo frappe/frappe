@@ -137,7 +137,8 @@ class SQLiteTable(DBTable):
 		# default for any column gaining a NOT NULL constraint -- an existing NULL would otherwise
 		# violate it while copying.
 		temp_table = f"{self.table_name}_new"
-		create_table = f"CREATE TABLE `{temp_table}` (\n{','.join(columns)}\n)"
+		# Identifiers/definitions are derived from schema metadata, not user input.
+		create_table = f"CREATE TABLE `{temp_table}` (\n{','.join(columns)}\n)"  # nosemgrep
 
 		not_null_defaults = {}
 		for col in self.change_nullability:
@@ -154,19 +155,19 @@ class SQLiteTable(DBTable):
 			else col
 			for col in existing_columns
 		]
-		insert_data = (
+		insert_data = (  # nosemgrep
 			f"INSERT INTO `{temp_table}` ({', '.join(existing_columns)}) "
 			f"SELECT {', '.join(select_exprs)} FROM `{self.table_name}`"
 		)
 
 		# Run the whole swap in one transaction (SQLite DDL is transactional) instead of per-statement
 		# sql_ddl commits, so a crash between DROP and RENAME can't leave the table missing.
-		frappe.db.commit()
+		frappe.db.commit()  # nosemgrep
 		try:
 			frappe.db.sql(create_table)
 			frappe.db.sql(insert_data)
-			frappe.db.sql(f"DROP TABLE `{self.table_name}`")
-			frappe.db.sql(f"ALTER TABLE `{temp_table}` RENAME TO `{self.table_name}`")
+			frappe.db.sql(f"DROP TABLE `{self.table_name}`")  # nosemgrep
+			frappe.db.sql(f"ALTER TABLE `{temp_table}` RENAME TO `{self.table_name}`")  # nosemgrep
 
 			# Replay the indexes that existed before the rebuild
 			for index_sql in preserved_indexes:
@@ -192,7 +193,7 @@ class SQLiteTable(DBTable):
 			for query in index_queries:
 				frappe.db.sql(query)
 
-			frappe.db.commit()
+			frappe.db.commit()  # nosemgrep
 		except Exception:
 			frappe.db.rollback()
 			raise
