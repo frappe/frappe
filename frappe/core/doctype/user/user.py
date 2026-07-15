@@ -21,6 +21,7 @@ from frappe.desk.doctype.notification_settings.notification_settings import (
 )
 from frappe.desk.notifications import clear_notifications
 from frappe.model.document import Document
+from frappe.model.naming import make_autoname
 from frappe.query_builder import DocType
 from frappe.rate_limiter import rate_limit
 from frappe.sessions import clear_sessions
@@ -193,12 +194,12 @@ class User(Document):
 		self.flags.ignore_save_passwords = ["new_password"]
 
 	def autoname(self):
-		"""set name as Email Address"""
+		"""Assign a stable ID to new users."""
 		if self.get("is_admin") or self.get("is_guest"):
 			self.name = self.first_name
 		else:
 			self.email = self.email.strip().lower()
-			self.name = self.email
+			self.name = make_autoname("USER-.#####", "User")
 
 	def onload(self):
 		from frappe.utils.modules import get_modules_from_all_apps
@@ -222,9 +223,11 @@ class User(Document):
 		if not frappe.in_test:
 			self.password_strength_test()
 
-		if self.name not in STANDARD_USERS:
+		if self.name not in STANDARD_USERS and not self.name.startswith("USER-"):
 			self.email = self.name
 			self.validate_email_type(self.name)
+		elif self.name not in STANDARD_USERS:
+			self.validate_email_type(self.email)
 
 		self.move_role_profile_name_to_role_profiles()
 		self.populate_role_profile_roles()

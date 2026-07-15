@@ -28,6 +28,7 @@ def add_user(email, password, username=None, mobile_no=None):
 	user.simultaneous_sessions = 1
 	user.add_roles("System Manager")
 	frappe.db.commit()
+	return user.name
 
 
 class TestAuth(IntegrationTestCase):
@@ -41,7 +42,7 @@ class TestAuth(IntegrationTestCase):
 		cls.test_user_password = "pwd_012"
 
 		cls.tearDownClass()
-		add_user(
+		cls.test_user_id = add_user(
 			email=cls.test_user_email,
 			password=cls.test_user_password,
 			username=cls.test_user_name,
@@ -51,7 +52,9 @@ class TestAuth(IntegrationTestCase):
 	@classmethod
 	def tearDownClass(cls):
 		frappe.db.rollback()
-		frappe.delete_doc("User", cls.test_user_email, force=True)
+		user = getattr(cls, "test_user_id", None) or frappe.get_user_by_email(cls.test_user_email)
+		if user:
+			frappe.delete_doc("User", user, force=True)
 		frappe.local.request_ip = None
 		frappe.form_dict.email = None
 		frappe.local.response["http_status_code"] = None
@@ -168,18 +171,18 @@ class TestAuth(IntegrationTestCase):
 		def restore_email():
 			frappe.db.rollback()
 			frappe.db.set_value(
-				"User", self.test_user_email, "email", self.test_user_email, update_modified=False
+				"User", self.test_user_id, "email", self.test_user_email, update_modified=False
 			)
 			frappe.db.commit()
 
-		frappe.db.set_value("User", self.test_user_email, "email", new_email, update_modified=False)
+		frappe.db.set_value("User", self.test_user_id, "email", new_email, update_modified=False)
 		frappe.db.commit()
 		self.addCleanup(restore_email)
 
-		self.assertEqual(frappe.get_user_by_email(new_email.upper()), self.test_user_email)
+		self.assertEqual(frappe.get_user_by_email(new_email.upper()), self.test_user_id)
 		login_link = _generate_temporary_login_link(new_email, 10)
 		login_key = parse_qs(urlparse(login_link).query)["key"][0]
-		self.assertEqual(frappe.cache.get_value(f"one_time_login_key:{login_key}"), self.test_user_email)
+		self.assertEqual(frappe.cache.get_value(f"one_time_login_key:{login_key}"), self.test_user_id)
 		frappe.cache.delete_value(f"one_time_login_key:{login_key}")
 		FrappeClient(self.HOST_NAME, new_email, self.test_user_password)
 		with self.assertRaises(AuthError):

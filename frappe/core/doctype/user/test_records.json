@@ -1,6 +1,7 @@
 [
  {
   "doctype": "User",
+  "name": "test@example.com",
   "email": "test@example.com",
   "enabled": 1,
   "first_name": "_Test",
@@ -20,12 +21,14 @@
  },
  {
   "doctype": "User",
+  "name": "test1@example.com",
   "email": "test1@example.com",
   "first_name": "_Test1",
   "new_password": "Eastern_43A1W"
  },
  {
   "doctype": "User",
+  "name": "test2@example.com",
   "email": "test2@example.com",
   "first_name": "_Test2",
   "new_password": "Eastern_43A1W",
@@ -33,6 +36,7 @@
  },
  {
   "doctype": "User",
+  "name": "test3@example.com",
   "email": "test3@example.com",
   "first_name": "_Test3",
   "new_password": "Eastern_43A1W",
@@ -40,6 +44,7 @@
  },
  {
   "doctype": "User",
+  "name": "test4@example.com",
   "email": "test4@example.com",
   "first_name": "_Test4",
   "new_password": "Eastern_43A1W",
@@ -47,6 +52,7 @@
  },
  {
   "doctype": "User",
+  "name": "test'5@example.com",
   "email": "test'5@example.com",
   "first_name": "_Test'5",
   "new_password": "Eastern_43A1W",
@@ -54,6 +60,7 @@
  },
  {
   "doctype": "User",
+  "name": "testperm@example.com",
   "email": "testperm@example.com",
   "first_name": "_Test Perm",
   "new_password": "Eastern_43A1W",
@@ -61,6 +68,7 @@
  },
  {
   "doctype": "User",
+  "name": "testdelete@example.com",
   "email": "testdelete@example.com",
   "enabled": 1,
   "first_name": "_Test",
@@ -80,6 +88,7 @@
  },
  {
     "doctype": "User",
+    "name": "testpassword@example.com",
     "email": "testpassword@example.com",
     "enabled": 1,
     "first_name": "_Test",

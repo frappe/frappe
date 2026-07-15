@@ -199,16 +199,20 @@ class TestNotificationLog(IntegrationTestCase):
 
 
 def make_recipient(email: str) -> str:
-	if not frappe.db.exists("User", email):
-		frappe.get_doc(
-			{
-				"doctype": "User",
-				"email": email,
-				"first_name": email.split("@")[0],
-				"send_welcome_email": 0,
-			}
-		).insert(ignore_permissions=True)
-	return email
+	if not (user := frappe.get_user_by_email(email)):
+		user = (
+			frappe.get_doc(
+				{
+					"doctype": "User",
+					"email": email,
+					"first_name": email.split("@")[0],
+					"send_welcome_email": 0,
+				}
+			)
+			.insert(ignore_permissions=True)
+			.name
+		)
+	return user
 
 
 def get_last_email_queue():

@@ -73,6 +73,15 @@ class TestUser(IntegrationTestCase):
 		delete_contact(new_user.name)
 		frappe.delete_doc("User", new_user.name)
 
+	def test_new_users_get_stable_series_name(self):
+		email = f"{frappe.generate_hash()}@example.com"
+		user = frappe.get_doc(doctype="User", email=email, first_name="Series").insert()
+		self.addCleanup(frappe.delete_doc, "User", user.name, force=True)
+
+		self.assertRegex(user.name, r"^USER-\d{5}$")
+		self.assertEqual(user.email, email)
+		self.assertEqual(frappe.get_user_by_email(email), user.name)
+
 	def test_delete(self):
 		frappe.get_doc("User", "test@example.com").add_roles("_Test Role 2")
 		self.assertRaises(frappe.LinkExistsError, delete_doc, "Role", "_Test Role 2")
