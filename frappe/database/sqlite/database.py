@@ -221,7 +221,10 @@ class SQLiteDatabase(SQLiteExceptionUtil, Database):
 		return Path(frappe.get_site_path()) / "db" / f"{self.cur_db_name}.db"
 
 	def set_execution_timeout(self, seconds: int):
-		timeout = max(int(seconds) * 1000, self.busy_timeout)
+		# SQLite has no statement-execution timeout, so map to busy_timeout (the lock wait), the
+		# closest analogue. Honour the requested value rather than max()-ing with the default, which
+		# would silently ignore a shorter timeout; 0 means "no limit" and restores the default wait.
+		timeout = int(seconds) * 1000 if seconds else self.busy_timeout
 		self._cursor.execute(f"PRAGMA busy_timeout = {timeout}")
 
 	def setup_type_map(self):
