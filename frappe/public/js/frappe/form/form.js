@@ -32,6 +32,7 @@ frappe.ui.form.Form = class FrappeForm {
 		this.refresh_if_stale_for = 120;
 		this.opendocs = {};
 		this.custom_buttons = {};
+		this.$intro_message = null;
 		this.sections = [];
 		this.grids = [];
 		this.cscript = new frappe.ui.form.Controller({ frm: this });
@@ -404,8 +405,6 @@ frappe.ui.form.Form = class FrappeForm {
 
 	refresh(docname) {
 		var switched = docname ? true : false;
-
-		this.route_refresh_pending = false;
 
 		removeEventListener("beforeunload", this.beforeUnloadListener, { capture: true });
 
@@ -960,9 +959,7 @@ frappe.ui.form.Form = class FrappeForm {
 				if (me.comment_box) {
 					me.comment_box.submit();
 				}
-				if (!me.route_refresh_pending) {
-					me.refresh();
-				}
+				me.refresh();
 			} else {
 				if (on_error) {
 					on_error();
@@ -1483,7 +1480,6 @@ frappe.ui.form.Form = class FrappeForm {
 
 		// Skip routing only when the document is created from a Form view's Link field
 		if (!frappe._from_link?.field_obj?.frm) {
-			this.route_refresh_pending = true;
 			frappe.set_route("Form", this.doctype, name);
 		}
 	}
@@ -1653,7 +1649,13 @@ frappe.ui.form.Form = class FrappeForm {
 	}
 
 	set_intro(txt, color) {
-		this.dashboard.set_headline_alert(txt, color);
+		if (this.$intro_message) {
+			this.$intro_message.remove();
+			this.$intro_message = null;
+		}
+		if (txt) {
+			this.$intro_message = this.dashboard.set_headline_alert(txt, color);
+		}
 	}
 
 	set_footnote(txt) {
