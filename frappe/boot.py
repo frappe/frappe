@@ -62,7 +62,7 @@ def get_bootinfo():
 	bootinfo.all_domains = frappe.get_all("Domain", pluck="name")
 	add_layouts(bootinfo)
 
-	bootinfo.module_app = frappe.local.module_app
+	bootinfo.module_app = get_boot_module_app()
 	bootinfo.single_types = frappe.get_all("DocType", {"issingle": 1}, pluck="name")
 	bootinfo.nested_set_doctypes = frappe.get_all("DocField", {"fieldname": "lft"}, pluck="parent")
 	bootinfo.tree_view_doctypes = get_tree_view_doctypes()
@@ -173,10 +173,91 @@ def load_conf_settings(bootinfo):
 			bootinfo[key] = frappe.conf.get(key)
 
 
+def get_boot_module_app():
+	"""`frappe.local.module_app` extended with modules that exist only in the DB.
+
+	A Module Def created from the UI (e.g. to host a custom doctype) carries its app in
+	`app_name` but never appears in any modules.txt, so `frappe.local.module_app` misses it.
+	The desk uses this map to resolve a routed doctype's owning app -- which sidebar to show
+	and which app's workspace rail to switch to -- so fold those modules in for the boot
+	payload only. Server-side file-path resolution (`frappe.get_module_app`) intentionally
+	stays modules.txt-based."""
+	module_app = dict(frappe.local.module_app)
+	installed_apps = set(frappe.get_installed_apps())
+	for module in frappe.get_all("Module Def", fields=["name", "app_name"]):
+		key = frappe.scrub(module.name)
+		if key not in module_app and module.app_name in installed_apps:
+			module_app[key] = module.app_name
+	return module_app
+
+
+def get_app_rail_map():
+	"""Workspaces that companion apps pin into another app's workspace dock (the rail).
+
+	A companion app (e.g. India Compliance for ERPNext, India Payroll for HRMS) stays off the
+	apps screen and instead surfaces its workspaces inside a host app's rail via the
+	`add_app_to_rail` hook. Each entry names the host `app` and the `workspace` to pin, with an
+	optional `has_permission` path to gate it. Returns a map of host app name -> ordered list of
+	permitted workspace names."""
+	rail_map = {}
+	permission_cache = {}
+
+	for entry in frappe.get_hooks("add_app_to_rail") or []:
+		if not isinstance(entry, dict):
+			continue
+
+		host_app = entry.get("app")
+		workspace = entry.get("workspace")
+		if not host_app or not workspace:
+			continue
+
+		has_permission = entry.get("has_permission")
+		if has_permission:
+			if has_permission not in permission_cache:
+				try:
+					permission_cache[has_permission] = bool(frappe.get_attr(has_permission)())
+				except Exception:
+					frappe.log_error(f"Failed to call add_app_to_rail has_permission hook ({has_permission})")
+					permission_cache[has_permission] = False
+			if not permission_cache[has_permission]:
+				continue
+
+		rail_map.setdefault(host_app, []).append(workspace)
+
+	return rail_map
+
+
+def get_app_rail_host_map():
+	"""Map of companion app -> the host app it pins into via `add_app_to_rail`.
+
+	A companion app has no shell of its own; its workspaces live inside the host app's rail. This
+	map lets the desk resolve the app context (dock + header) of a companion app's workspaces to
+	the host app, so you stay "in" the host's rail while using the companion. When a companion pins
+	into more than one host, the first host wins."""
+	host_map = {}
+	for app_name in frappe.get_installed_apps():
+		for entry in frappe.get_hooks("add_app_to_rail", app_name=app_name) or []:
+			if isinstance(entry, dict) and entry.get("app") and entry.get("workspace"):
+				host_map[app_name] = entry["app"]
+				break
+	return host_map
+
+
+# Fallback apps-screen sort order for apps that don't declare a `sequence_id` in their
+# `add_to_apps_screen` hook. Sits below Framework (1000) so it always trails real apps.
+DEFAULT_APP_SEQUENCE_ID = 100
+
+
 def load_desktop_data(bootinfo):
 	from frappe.desk.desktop import get_user_workspaces
 
 	allowed_pages = [d.name for d in bootinfo.workspaces.get("pages")]
+	# Companion apps pin their workspaces into a host app's dock (rail) via `add_app_to_rail`,
+	# instead of taking an apps-screen slot of their own. Resolved once, merged per host app below.
+	rail_map = get_app_rail_map()
+	# ...and their own workspaces resolve their app context (dock + header) to that host app, so a
+	# companion app appears to live inside the host's rail rather than flipping to a shell of its own.
+	bootinfo.app_rail_host = get_app_rail_host_map()
 	# The user's curated workspace selection (`User.workspaces`), ordered. Kept separate from
 	# `bootinfo.workspaces` (which holds every permitted workspace link) so the workspace selector
 	# can prefer it when set, without it affecting the full workspace listing.
@@ -205,6 +286,7 @@ def load_desktop_data(bootinfo):
 				bootinfo.app_data.append(
 					dict(
 						on_apps_screen=False,
+						sequence_id=app_info.get("sequence_id") or DEFAULT_APP_SEQUENCE_ID,
 						app_name=app_info.get("name") or app_name,
 						app_title=app_info.get("title")
 						or (frappe.get_hooks("app_title", app_name=app_name) or [None])[0]
@@ -222,7 +304,8 @@ def load_desktop_data(bootinfo):
 		# A workspace belongs to this app if its module is the app's (standard, app-shipped
 		# workspaces) or its `app` field points at it (custom workspaces have no module). Use a
 		# left join so module-less custom workspaces aren't dropped, and keep only public ones --
-		# private workspaces are surfaced separately by the selector's private listing.
+		# private workspaces are surfaced separately by the selector's private listing. Ordered by
+		# `sequence_id` so the dock lists them in the workspace record's configured order.
 		workspaces = [
 			r[0]
 			for r in (
@@ -233,15 +316,26 @@ def load_desktop_data(bootinfo):
 				.where(
 					((Module.app_name == app_name) | (Workspace.app == app_name)) & (Workspace.public == 1)
 				)
+				.orderby(Workspace.sequence_id)
 				.run()
 			)
 			if r[0] in allowed_pages
 		]
 
+		# Fold in workspaces that companion apps pinned to this app's rail (see get_app_rail_map).
+		# They are permission-filtered like the app's own workspaces and de-duplicated, so the dock
+		# lists them alongside the host app's without a companion app claiming an apps-screen icon.
+		for rail_workspace in rail_map.get(app_name, []):
+			if rail_workspace in allowed_pages and rail_workspace not in workspaces:
+				workspaces.append(rail_workspace)
+
 		bootinfo.app_data.append(
 			dict(
 				# whether the app opts into the apps screen via the add_to_apps_screen hook
 				on_apps_screen=bool(apps),
+				# Sort order for the apps (desktop) screen; lower shows first, Framework is pinned
+				# last (sequence_id 1000). Apps that don't declare one fall to a middle default.
+				sequence_id=app_info.get("sequence_id") or DEFAULT_APP_SEQUENCE_ID,
 				app_name=app_info.get("name") or app_name,
 				app_title=app_info.get("title")
 				or (

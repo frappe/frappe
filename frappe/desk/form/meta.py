@@ -69,7 +69,7 @@ class FormMeta(Meta):
 
 		self.set("__assets_loaded", True)
 
-	def as_dict(self, no_nulls=False):
+	def as_dict(self, no_nulls=False, parenttype=None):
 		d = super().as_dict(no_nulls=no_nulls)
 		__dict = self.__dict__
 
@@ -77,7 +77,7 @@ class FormMeta(Meta):
 			d[k] = __dict.get(k)
 
 		# add masked fields (per-user, per-meta)
-		d["masked_fields"] = [df.fieldname for df in self.get_masked_fields()]
+		d["masked_fields"] = [df.fieldname for df in self.get_masked_fields(parenttype=parenttype)]
 
 		return d
 

@@ -612,6 +612,31 @@ input.list-header-checkbox {
 			}
 		}
 	}
+
+	&.list-page-form {
+		@include media-breakpoint-between(xs, sm) {
+			flex-direction: column-reverse;
+			justify-content: flex-end;
+
+			.standard-filter-section {
+				display: none;
+			}
+
+			&.standard-filters-visible .standard-filter-section {
+				display: flex;
+			}
+		}
+	}
+}
+
+.filter-section {
+	@include media-breakpoint-between(xs, sm) {
+		justify-content: space-between;
+
+		.filter-selector {
+			margin: 0 0 0 auto;
+		}
+	}
 }
 
 .restricted-button {
