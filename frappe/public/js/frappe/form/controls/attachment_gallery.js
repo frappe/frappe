@@ -51,7 +51,8 @@ frappe.ui.form.ControlAttachmentGallery = class ControlAttachmentGallery extends
 		}
 
 		const $grid = $('<div class="attachment-gallery"></div>').appendTo(this.$wrapper);
-		const can_delete = this.frm.attachments?.can_delete_attachment();
+		const can_delete =
+			this.disp_status === "Write" && this.frm.attachments?.can_delete_attachment();
 
 		attachments.forEach((attachment) => {
 			this.render_attachment($grid, attachment, can_delete);
@@ -116,6 +117,7 @@ frappe.ui.form.ControlAttachmentGallery = class ControlAttachmentGallery extends
 
 	can_add_attachment() {
 		return (
+			this.disp_status === "Write" &&
 			!this.frm.doc.__islocal &&
 			this.frm.has_perm("write") &&
 			this.frm.attachments &&
