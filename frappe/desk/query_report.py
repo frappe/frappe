@@ -15,7 +15,17 @@ from frappe.model.utils import render_include
 from frappe.modules import get_module_path, scrub
 from frappe.monitor import add_data_to_monitor
 from frappe.permissions import get_role_permissions, get_roles, has_permission
-from frappe.utils import cint, cstr, flt, format_datetime, format_duration, formatdate, get_html_format, sbool
+from frappe.utils import (
+	cint,
+	create_batch,
+	cstr,
+	flt,
+	format_datetime,
+	format_duration,
+	formatdate,
+	get_html_format,
+	sbool,
+)
 from frappe.utils.caching import request_cache
 
 
@@ -648,13 +658,19 @@ def get_data_for_custom_field(doctype, field, names=None):
 	if not frappe.has_permission(doctype, "read"):
 		frappe.throw(_("Not Permitted to read {0}").format(_(doctype)), frappe.PermissionError)
 
-	filters = {}
-	if names:
-		if isinstance(names, str | bytearray):
-			names = frappe.json.loads(names)
-		filters.update({"name": ["in", names]})
+	if not names:
+		return frappe._dict(frappe.get_list(doctype, fields=["name", field], as_list=1))
 
-	return frappe._dict(frappe.get_list(doctype, filters=filters, fields=["name", field], as_list=1))
+	if isinstance(names, str | bytearray):
+		names = frappe.json.loads(names)
+
+	value_map = frappe._dict()
+	for batch in create_batch(names, 1000):
+		value_map.update(
+			frappe.get_list(doctype, filters={"name": ["in", batch]}, fields=["name", field], as_list=1)
+		)
+
+	return value_map
 
 
 def get_data_for_custom_report(columns, result):
