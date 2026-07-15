@@ -17,6 +17,15 @@ class TestQueryReport(FrappeTestCase):
 	def tearDown(self):
 		frappe.db.rollback()
 
+	def test_get_data_for_custom_field_with_large_name_list(self):
+		from frappe.desk.query_report import get_data_for_custom_field
+
+		frappe.set_user("Administrator")
+
+		names = [f"NONEXISTENT-{i:06d}" for i in range(6000)]
+		result = get_data_for_custom_field("ToDo", "description", names)
+		self.assertEqual(result, {})
+
 	def test_xlsx_data_with_multiple_datatypes(self):
 		"""Test exporting report using rows with multiple datatypes (list, dict)"""
 
