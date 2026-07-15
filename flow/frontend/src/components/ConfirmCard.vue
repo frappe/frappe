@@ -126,7 +126,7 @@ function sendOther() {
 	border: 1px solid var(--outline-gray-1);
 	border-radius: 6px;
 	font-family: var(--font-stack-monospace, ui-monospace, monospace);
-	font-size: 11.5px;
+	font-size: 12.5px;
 	line-height: 1.55;
 	color: var(--ink-gray-8);
 	white-space: pre-wrap;

@@ -2,6 +2,7 @@ import { ref, computed } from "vue";
 import * as api from "@/api/client";
 import { startRun, resumeRun } from "@/api/stream";
 import { normalizeToolName } from "@/lib/toolMeta";
+import { readPanelState } from "@/lib/panelState";
 import { __ } from "@/lib/translate";
 
 // Module-singleton store: one panel instance, one source of truth. Components
@@ -67,12 +68,27 @@ async function loadInitial() {
 		loadToolApproval(selectedAgent.value);
 		loaded.value = true;
 		focusTick.value++;
+
+		if (readPanelState().open) await restoreSession();
 	} catch {
 		// `loaded` stays false, keeping the composer disabled on "Loading…".
 		frappe.show_alert({
 			message: __("Flow failed to load. Refresh the page to retry."),
 			indicator: "red",
 		});
+	}
+}
+
+let sessionRestored = false;
+async function restoreSession() {
+	if (sessionRestored) return;
+	sessionRestored = true;
+	const { session } = readPanelState();
+	if (!session) return;
+	try {
+		await switchSession(session);
+	} catch {
+		newChat();
 	}
 }
 
@@ -489,6 +505,7 @@ export function useStore() {
 		modelLabel,
 		// actions
 		loadInitial,
+		restoreSession,
 		refreshHistory,
 		setAgent,
 		setModel,
