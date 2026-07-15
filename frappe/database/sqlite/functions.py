@@ -235,9 +235,12 @@ def adapter_decimal(value: Decimal) -> float:
 
 def adapter_timedelta(td: timedelta) -> str:
 	"""Serialize a timedelta into a TIME string HH:MM:SS[.ffffff], the inverse of converter_time."""
-	total = int(td.total_seconds())
-	hours, rem = divmod(total, 3600)
+	# Sign is applied once to the magnitude; divmod on a negative total would misplace it.
+	total_us = (td.days * 86400 + td.seconds) * 1_000_000 + td.microseconds
+	sign = "-" if total_us < 0 else ""
+	seconds, micro = divmod(abs(total_us), 1_000_000)
+	hours, rem = divmod(seconds, 3600)
 	minutes, seconds = divmod(rem, 60)
-	if td.microseconds:
-		return f"{hours:02d}:{minutes:02d}:{seconds:02d}.{td.microseconds:06d}"
-	return f"{hours:02d}:{minutes:02d}:{seconds:02d}"
+	if micro:
+		return f"{sign}{hours:02d}:{minutes:02d}:{seconds:02d}.{micro:06d}"
+	return f"{sign}{hours:02d}:{minutes:02d}:{seconds:02d}"
