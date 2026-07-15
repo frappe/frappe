@@ -3,7 +3,7 @@ msgstr ""
 "Project-Id-Version: frappe\n"
 "Report-Msgid-Bugs-To: developers@frappe.io\n"
 "POT-Creation-Date: 2026-07-05 10:14+0000\n"
-"PO-Revision-Date: 2026-07-08 22:10\n"
+"PO-Revision-Date: 2026-07-15 13:49\n"
 "Last-Translator: developers@frappe.io\n"
 "Language-Team: Persian\n"
 "MIME-Version: 1.0\n"
@@ -8417,7 +8417,7 @@ msgstr "سرور دایرکتوری"
 #: frappe/public/js/frappe/form/doctype_settings/tabs/notification.js:63
 #: frappe/public/js/frappe/form/doctype_settings/tabs/workflow.js:36
 msgid "Disable"
-msgstr "غیر فعال"
+msgstr ""
 
 #. Label of the disable_auto_refresh (Check) field in DocType 'List View
 #. Settings'
@@ -12597,7 +12597,7 @@ msgstr "هر دو هفته یکبار"
 
 #: frappe/public/js/frappe/ui/toolbar/about.js:26
 msgid "Forum"
-msgstr ""
+msgstr "انجمن"
 
 #: frappe/core/doctype/communication/communication.js:70
 msgid "Forward"
@@ -19864,7 +19864,7 @@ msgstr "هیچ ردیفی انتخاب نشده است"
 
 #: frappe/public/js/frappe/form/doctype_settings/tabs/naming.js:308
 msgid "No rules found."
-msgstr ""
+msgstr "قانونی یافت نشد."
 
 #: frappe/public/js/frappe/list/list_filter/manage_layouts_dialog.js:36
 msgid "No saved layouts yet."
