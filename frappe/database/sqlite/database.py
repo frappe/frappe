@@ -323,6 +323,7 @@ class SQLiteDatabase(SQLiteExceptionUtil, Database):
 			raise frappe.InvalidColumnName(f"Column {column} does not exist in table {table_name}")
 
 		column_defs = []
+		pk_columns = []
 		for col in cols:
 			if col["name"] == column:
 				null_str = "" if nullable else " NOT NULL"
@@ -330,6 +331,13 @@ class SQLiteDatabase(SQLiteExceptionUtil, Database):
 			else:
 				null_str = "" if col["notnull"] == 0 else " NOT NULL"
 				column_defs.append(f"`{col['name']}` {col['type']}{null_str}")
+			# PRAGMA table_info omits the PRIMARY KEY clause, so re-emit it or the rebuild drops it.
+			if col["pk"]:
+				pk_columns.append((col["pk"], col["name"]))
+
+		if pk_columns:
+			pk = ", ".join(f"`{name}`" for _, name in sorted(pk_columns))
+			column_defs.append(f"PRIMARY KEY ({pk})")
 
 		select_columns = [f"`{col['name']}`" for col in cols]
 		self._rebuild_table(table_name, column_defs, select_columns)
@@ -343,14 +351,25 @@ class SQLiteDatabase(SQLiteExceptionUtil, Database):
 
 		column_defs = []
 		select_columns = []
+		pk_columns = []
 		for col in cols:
 			null_str = "" if col["notnull"] == 0 else " NOT NULL"
 			if col["name"] == old_column_name:
+				pk_name = new_column_name
 				column_defs.append(f"`{new_column_name}` {col['type']}{null_str}")
 				select_columns.append(f"`{old_column_name}` as `{new_column_name}`")
 			else:
+				pk_name = col["name"]
 				column_defs.append(f"`{col['name']}` {col['type']}{null_str}")
 				select_columns.append(f"`{col['name']}`")
+			# PRAGMA table_info omits the PRIMARY KEY clause, so re-emit it (with the renamed
+			# column) or the rebuild drops it.
+			if col["pk"]:
+				pk_columns.append((col["pk"], pk_name))
+
+		if pk_columns:
+			pk = ", ".join(f"`{name}`" for _, name in sorted(pk_columns))
+			column_defs.append(f"PRIMARY KEY ({pk})")
 
 		self._rebuild_table(table_name, column_defs, select_columns, {old_column_name: new_column_name})
 
