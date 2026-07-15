@@ -140,7 +140,8 @@
    "oldfieldname": "email",
    "oldfieldtype": "Data",
    "options": "Email",
-   "reqd": 1
+   "reqd": 1,
+   "unique": 1
   },
   {
    "fieldname": "first_name",
