@@ -28,11 +28,17 @@ def render_jinja_template(template: str, doctype: str, docname: str) -> str:
 
 
 @frappe.whitelist()
-def download_pdf(doctype: str, name: str | int, print_format: str, letterhead: str | None = None):
-	from frappe.www.printview import validate_print_permission
+def download_pdf(
+	doctype: str, name: str | int, print_format: str | None = None, letterhead: str | None = None
+):
+	from frappe.printing.doctype.print_format.classic_converter import get_default_print_format
+	from frappe.www.printview import validate_print_for_docstatus, validate_print_permission
 
 	doc = frappe.get_doc(doctype, name)
 	validate_print_permission(doc)
+	validate_print_for_docstatus(doc)
+	if not print_format or print_format == "Standard":
+		print_format = get_default_print_format(doctype)
 	generator = PrintFormatGenerator(print_format, doc, letterhead)
 	pdf = generator.render_pdf()
 
@@ -57,10 +63,11 @@ def get_qr_code(value: str) -> str:
 def get_html(
 	doctype, name, print_format, letterhead=None, action_banner=None, style=None, trigger_print=False
 ):
-	from frappe.www.printview import validate_print_permission
+	from frappe.www.printview import validate_print_for_docstatus, validate_print_permission
 
 	doc = frappe.get_doc(doctype, name)
 	validate_print_permission(doc)
+	validate_print_for_docstatus(doc)
 	generator = PrintFormatGenerator(print_format, doc, letterhead, style=style)
 	return generator.get_html_preview(action_banner=action_banner, trigger_print=trigger_print)
 
@@ -80,7 +87,11 @@ class PrintFormatGenerator:
 	}
 
 	def __init__(self, print_format, doc, letterhead=None, style=None):
-		self.print_format = frappe.get_doc("Print Format", print_format)
+		self.print_format = (
+			print_format
+			if not isinstance(print_format, str)
+			else frappe.get_doc("Print Format", print_format)
+		)
 		self.doc = doc
 		self.style = style
 
@@ -98,7 +109,11 @@ class PrintFormatGenerator:
 		page_width = page_width_map.get(self.print_settings.pdf_page_size) or 210
 		body_width = page_width - self.print_format.margin_left - self.print_format.margin_right
 		style_name = self.style or self.print_settings.print_style
-		print_style = frappe.get_doc("Print Style", style_name) if style_name else None
+		print_style = (
+			frappe.get_doc("Print Style", style_name)
+			if style_name and frappe.db.exists("Print Style", style_name)
+			else None
+		)
 		self.context = frappe._dict(
 			{
 				"doc": self.doc,
@@ -116,9 +131,20 @@ class PrintFormatGenerator:
 	# ----- HTML preview (browser printview) ------------------------------
 
 	def get_html_preview(self, action_banner=None, trigger_print=False):
-		header_html, footer_html = self.get_header_footer_html()
-		self.context.header = header_html
-		self.context.footer = footer_html
+		repeat = self.print_settings.repeat_header_footer
+		frame_header = self._render_overlay("header", with_page_no=False) if repeat else None
+		frame_footer = self._render_overlay("footer", with_page_no=False) if repeat else None
+		if repeat and (frame_header or frame_footer):
+			self.context.repeat_frame = True
+			self.context.frame_header = frame_header or ""
+			self.context.frame_footer = frame_footer or ""
+			self.context.header = ""
+			self.context.footer = ""
+		else:
+			self.context.repeat_frame = False
+			header_html, footer_html = self.get_header_footer_html()
+			self.context.header = header_html
+			self.context.footer = footer_html
 		self.context.action_banner = action_banner
 		if trigger_print:
 			from frappe.www.printview import trigger_print_script
@@ -139,7 +165,7 @@ class PrintFormatGenerator:
 
 	# ----- PDF (Chrome) --------------------------------------------------
 
-	def render_pdf(self):
+	def render_pdf(self, password=None):
 		"""Return PDF bytes using the Chromium renderer."""
 		from frappe.utils.pdf import get_chrome_pdf
 
@@ -150,6 +176,8 @@ class PrintFormatGenerator:
 			"margin-left": f"{pf.margin_left}mm",
 			"margin-right": f"{pf.margin_right}mm",
 		}
+		if password:
+			options["password"] = password
 		return get_chrome_pdf(
 			print_format=pf.name,
 			html=self._build_html_for_chrome(),
@@ -172,6 +200,7 @@ class PrintFormatGenerator:
 		    overlay so they continue to repeat on every page if the user enabled them.
 		"""
 		self.context.for_chrome = True
+		self.context.repeat_frame = False
 		self.context.header_height = 0
 		self.context.footer_height = 0
 
@@ -315,16 +344,93 @@ class PrintFormatGenerator:
 			"</div>"
 		)
 
-	# ----- layout normalisation ------------------------------------------
-
 	def get_layout(self, print_format):
 		layout = frappe.parse_json(print_format.format_data) or {
 			"sections": [],
 			"header": {"columns": []},
 			"footer": {"columns": []},
 		}
+		if isinstance(layout, list):
+			from frappe.printing.doctype.print_format.classic_converter import convert_classic_to_beta
+
+			layout, _dropped = convert_classic_to_beta(
+				layout, frappe.get_meta(print_format.doc_type), print_format
+			)
+			if not print_format.page_number or print_format.page_number == "Hide":
+				print_format.page_number = "Bottom Center"
+		layout = self.apply_permlevel_access(layout)
 		layout = self.set_field_renderers(layout)
+		layout = self.prune_empty_table_columns(layout)
 		layout = self.process_margin_texts(layout)
+		return layout
+
+	def layout_columns(self, layout):
+		for section in layout.get("sections", []):
+			yield from section.get("columns", [])
+		for zone in ("header", "footer"):
+			zone_layout = layout.get(zone)
+			if isinstance(zone_layout, dict):
+				yield from zone_layout.get("columns", [])
+
+	@staticmethod
+	def has_field_access(doc, meta, fieldname) -> bool:
+		if not fieldname:
+			return True
+		df = meta.get_field(fieldname)
+		if not df or not (df.permlevel or 0):
+			return True
+		return doc.has_permlevel_access_to(fieldname, df)
+
+	def apply_permlevel_access(self, layout):
+		"""Drop fields the user has no permlevel read access to.
+
+		The layout is authored against the doctype, not the reader, so a format may
+		reference permlevel-restricted fields that this user must not see."""
+		meta = self.doc.meta
+		for column in self.layout_columns(layout):
+			fields = [
+				df
+				for df in column.get("fields", [])
+				if self.has_field_access(self.doc, meta, df.get("fieldname"))
+			]
+			column["fields"] = fields
+			for df in fields:
+				if df.get("fieldtype") != "Table" or not df.get("table_columns"):
+					continue
+				rows = self.doc.get(df.get("fieldname")) or []
+				if not rows:
+					continue
+				child, child_meta = rows[0], rows[0].meta
+				df["table_columns"] = [
+					col
+					for col in df["table_columns"]
+					if self.has_field_access(child, child_meta, col.get("fieldname"))
+				]
+		return layout
+
+	def prune_empty_table_columns(self, layout):
+		from frappe.www.printview import column_has_value
+
+		for section in layout.get("sections", []):
+			for column in section.get("columns", []):
+				for df in column.get("fields", []):
+					if df.get("fieldtype") != "Table" or not df.get("table_columns"):
+						continue
+					rows = self.doc.get(df.get("fieldname")) or []
+					if not rows:
+						continue
+					kept = [
+						col
+						for col in df["table_columns"]
+						if col.get("fieldname") == "idx"
+						or column_has_value(rows, col.get("fieldname"), frappe._dict(col))
+					]
+					total = sum(col.get("width") or 0 for col in kept)
+					if total:
+						for col in kept:
+							if col.get("width"):
+								col["width"] = round(col["width"] / total * 100, 2)
+					df["table_columns"] = kept
 		return layout
 
 	def set_field_renderers(self, layout):

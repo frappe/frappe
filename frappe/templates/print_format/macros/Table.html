@@ -36,7 +36,7 @@
 		{%- endif -%}
 		<tbody>
 			{% for row in doc.get(df.fieldname) %}
-			<tr class="table-row {{ loop.cycle('odd', 'even') }}" data-idx="{{ row.idx }}">
+			<tr class="table-row {{ loop.cycle('odd', 'even') }}" data-idx="{{ row.idx }}"{% if row.get("page_break") and not loop.first %} style="page-break-before: always"{% endif %}>
 				{% for column in columns %}
 				{# Column's own field is always the implicit primary line; merged_fields holds the extra fields. #}
 				{%- set _merged = ([{"fieldname": column.fieldname, "fieldtype": column.fieldtype, "style": "primary"}] + column.merged_fields) if column.merged_fields else None -%}
