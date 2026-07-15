@@ -47,34 +47,73 @@ export function getStore(print_format_name) {
 					print_format.value = _print_format;
 					const saved_layout = get_layout();
 					needs_setup.value = !saved_layout;
-					layout.value = saved_layout || get_default_layout();
-					// Drop legacy sections that were soft-deleted before immediate splice was introduced
-					layout.value.sections = layout.value.sections.filter((s) => !s.remove);
-					// Migrate legacy string header/footer to section objects
-					layout.value.header = migrate_to_section(layout.value.header);
-					layout.value.footer = migrate_to_section(layout.value.footer);
-					edit_letterhead.value = false;
-					selected_field.value = null;
-					selected_section.value = null;
-					selected_letterhead.value = false;
-					selected_lh_footer.value = false;
+					const is_classic = Array.isArray(saved_layout);
+					const layout_ready = is_classic
+						? convert_classic_layout(_print_format)
+						: Promise.resolve(saved_layout);
+					layout_ready.then((resolved_layout) => {
+						const converted = is_classic && !!resolved_layout;
+						layout.value = resolved_layout || get_default_layout();
+						layout.value.sections = layout.value.sections.filter((s) => !s.remove);
+						layout.value.header = migrate_to_section(layout.value.header);
+						layout.value.footer = migrate_to_section(layout.value.footer);
+						edit_letterhead.value = false;
+						selected_field.value = null;
+						selected_section.value = null;
+						selected_letterhead.value = false;
+						selected_lh_footer.value = false;
 
-					// load the letter head stored in format_data, if any
-					const lh_name = layout.value?.letter_head;
-					const load_lh = lh_name
-						? frappe.db
-								.get_doc("Letter Head", lh_name)
-								.then((doc) => (letterhead.value = doc))
-						: Promise.resolve((letterhead.value = null));
+						const lh_name = layout.value?.letter_head;
+						const load_lh = lh_name
+							? frappe.db
+									.get_doc("Letter Head", lh_name)
+									.then((doc) => (letterhead.value = doc))
+							: Promise.resolve((letterhead.value = null));
 
-					load_lh.then(() => {
-						reset_history();
-						nextTick(() => (dirty.value = false));
-						resolve();
+						load_lh.then(() => {
+							reset_history();
+							nextTick(() => (dirty.value = converted));
+							resolve();
+						});
 					});
 				});
 			});
 		});
+	}
+	function convert_classic_layout(_print_format) {
+		return frappe
+			.call("frappe.printing.doctype.print_format.classic_converter.get_beta_layout", {
+				print_format: print_format_name,
+			})
+			.then((r) => {
+				_print_format.classic_format_data = r.message.classic_format_data;
+				_print_format.print_format_builder = 0;
+				_print_format.print_format_builder_beta = 1;
+				_print_format.pdf_generator = "chrome";
+				if (_print_format.page_number === "Hide") {
+					_print_format.page_number = "Bottom Center";
+				}
+				if (r.message.dropped.length) {
+					frappe.msgprint({
+						title: __("Converted from the old Print Format Builder"),
+						indicator: "orange",
+						message: __(
+							"These fields no longer exist in the DocType and were removed from the layout: {0}",
+							[r.message.dropped.join(", ")]
+						),
+					});
+				}
+				return r.message.layout;
+			})
+			.catch((e) => {
+				console.error("Classic print format conversion failed", e);
+				frappe.msgprint({
+					title: __("Could not convert this print format"),
+					indicator: "red",
+					message: __("Starting from the default layout instead."),
+				});
+				return null;
+			});
 	}
 	function migrate_to_section(value) {
 		if (value && typeof value === "object" && value.columns) return value;

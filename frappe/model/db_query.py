@@ -280,7 +280,38 @@ class DatabaseQuery:
 
 		meta = self.get_meta(self.doctype)
 
-		return meta.get_masked_fields(parenttype=self.parent_doctype)
+		return meta.get_masked_fields(parenttype=self.parent_doctype) + self.get_masked_joined_fields()
+
+	def get_masked_joined_fields(self):
+		"""Get masked fields of the doctypes joined in through dot notation (`items.rate`)."""
+		from frappe.database.query import CORE_DOCTYPES
+		from frappe.desk.reportview import extract_fieldnames
+		from frappe.model.utils.mask import as_aliased_field
+
+		masked_fields = []
+		lookups = {}
+
+		for field in self.fields or []:
+			columns = extract_fieldnames(field)
+			if not columns or "." not in columns[0]:
+				continue
+
+			table, fieldname = columns[0].split(".", 1)
+			doctype = self.linked_table_aliases.get(table, table).replace("`", "").removeprefix("tab")
+
+			if doctype == self.doctype or doctype in CORE_DOCTYPES:
+				continue
+
+			if doctype not in lookups:
+				meta = self.get_meta(doctype)
+				parenttype = self.doctype if meta.istable else None
+				lookups[doctype] = {df.fieldname: df for df in meta.get_masked_fields(parenttype=parenttype)}
+
+			if df := lookups[doctype].get(fieldname):
+				alias = field.split(" as ")[1].strip(" '`") if " as " in field.lower() else None
+				masked_fields.append(as_aliased_field(df, alias))
+
+		return masked_fields
 
 	def build_and_run(self):
 		args = self.prepare_args()

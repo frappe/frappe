@@ -1,17 +1,12 @@
-/* Fix bootstrap column rendering in PDF */
-@media print {
-	.print-format-doc .col, .print-format-doc *[class^="col-"] {
-		max-width: none !important;
-	}
-	.print-format-doc .label {
-		border: none;
-	}
+.print-format-doc .col, .print-format-doc *[class^="col-"] {
+	max-width: none !important;
 }
-
-@media screen {
-	.print-format-doc .child-table {
-		overflow-x: auto;
-	}
+.print-format-doc {
+	-webkit-print-color-adjust: exact;
+	print-color-adjust: exact;
+}
+.print-format-doc .label {
+	border: none;
 }
 
 /* em only, never rem (the canvas rem root is the desk page); values inside a
@@ -69,6 +64,10 @@
 }
 
 .print-format-doc .field.field-inline .label::after {
+	content: ":";
+}
+
+.print-format-doc.show-label-colon .field .label::after {
 	content: ":";
 }
 
@@ -154,6 +153,8 @@
 	font-size: 0.9em;
 	border-collapse: collapse;
 	width: 100%;
+	table-layout: fixed;
+	word-break: break-word;
 }
 
 /* !important needed: bootstrap print styles set table-bordered cell borders with !important */
@@ -426,4 +427,9 @@
 }
 .print-format-doc .section--grid-columns .field {
 	border-bottom: none;
+}
+
+.print-format-doc .custom-html .row {
+	margin-left: 0;
+	margin-right: 0;
 }

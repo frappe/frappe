@@ -18,7 +18,6 @@ from frappe.utils.pdf import get_pdf
 no_cache = 1
 
 base_template_path = "www/printview.html"
-standard_format = "templates/print_formats/standard.html"
 
 from frappe.www.printview import validate_print_permission
 
