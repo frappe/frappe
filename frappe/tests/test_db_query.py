@@ -268,6 +268,12 @@ class TestDBQuery(FrappeTestCase):
 				result in DatabaseQuery("DocType").execute(filters={"name": ["not in", "DocType,DocField"]})
 			)
 
+	def test_large_in_filter_does_not_exceed_sqlparse_token_limit(self):
+		# A large `in (...)` list produces a query that exceeds sqlparse's 10k-token
+		# cap; query validation must not crash with SQLParseError.
+		names = [f"NONEXISTENT-{i:06d}" for i in range(6000)]
+		self.assertEqual(DatabaseQuery("DocType").execute(filters={"name": ["in", names]}), [])
+
 	def test_in_filter_json_encoded_values(self):
 		# JSON-encoded list string should work the same as comma-separated
 		for result in [{"name": "DocType"}, {"name": "DocField"}]:

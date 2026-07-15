@@ -6,10 +6,12 @@ import copy
 import datetime
 import json
 import re
+import threading
 from collections import Counter
 from functools import lru_cache
 
 import sqlparse
+import sqlparse.engine.grouping
 from sqlparse import tokens
 from sqlparse.sql import Function, Parenthesis, Statement
 
@@ -203,6 +205,22 @@ def _find_disallowed_function(node) -> str | None:
 	return None
 
 
+_PARSE_FULL_QUERY_LOCK = threading.Lock()
+
+
+def _parse_full_query(query: str):
+	# Lift sqlparse's 10k-token DoS cap for our own generated query (a large but legitimate
+	# `IN (...)` list can exceed it). Lock keeps the save-restore of the global atomic across
+	# threads, else a concurrent parse can capture None as "original" and leave the cap off.
+	with _PARSE_FULL_QUERY_LOCK:
+		original_limit = sqlparse.engine.grouping.MAX_GROUPING_TOKENS
+		sqlparse.engine.grouping.MAX_GROUPING_TOKENS = None
+		try:
+			return sqlparse.parse(query)
+		finally:
+			sqlparse.engine.grouping.MAX_GROUPING_TOKENS = original_limit
+
+
 @lru_cache(maxsize=1024)
 def validate_generated_query(query: str) -> None:
 	"""Parse a finally generated query and reject constructs a list query must never contain.
@@ -217,7 +235,7 @@ def validate_generated_query(query: str) -> None:
 	7. No subqueries.
 	8. Only functions in `ALLOWED_SQL_FUNCTIONS` are used.
 	"""
-	statements = [s for s in sqlparse.parse(query) if s.token_first(skip_cm=True) is not None]
+	statements = [s for s in _parse_full_query(query) if s.token_first(skip_cm=True) is not None]
 
 	# stacked queries
 	if len(statements) != 1:
