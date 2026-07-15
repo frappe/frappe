@@ -358,9 +358,54 @@ class PrintFormatGenerator:
 			)
 			if not print_format.page_number or print_format.page_number == "Hide":
 				print_format.page_number = "Bottom Center"
+		layout = self.apply_permlevel_access(layout)
 		layout = self.set_field_renderers(layout)
 		layout = self.prune_empty_table_columns(layout)
 		layout = self.process_margin_texts(layout)
+		return layout
+
+	def layout_columns(self, layout):
+		for section in layout.get("sections", []):
+			yield from section.get("columns", [])
+		for zone in ("header", "footer"):
+			zone_layout = layout.get(zone)
+			if isinstance(zone_layout, dict):
+				yield from zone_layout.get("columns", [])
+
+	@staticmethod
+	def has_field_access(doc, meta, fieldname) -> bool:
+		if not fieldname:
+			return True
+		df = meta.get_field(fieldname)
+		if not df or not (df.permlevel or 0):
+			return True
+		return doc.has_permlevel_access_to(fieldname, df)
+
+	def apply_permlevel_access(self, layout):
+		"""Drop fields the user has no permlevel read access to.
+
+		The layout is authored against the doctype, not the reader, so a format may
+		reference permlevel-restricted fields that this user must not see."""
+		meta = self.doc.meta
+		for column in self.layout_columns(layout):
+			fields = [
+				df
+				for df in column.get("fields", [])
+				if self.has_field_access(self.doc, meta, df.get("fieldname"))
+			]
+			column["fields"] = fields
+			for df in fields:
+				if df.get("fieldtype") != "Table" or not df.get("table_columns"):
+					continue
+				rows = self.doc.get(df.get("fieldname")) or []
+				if not rows:
+					continue
+				child, child_meta = rows[0], rows[0].meta
+				df["table_columns"] = [
+					col
+					for col in df["table_columns"]
+					if self.has_field_access(child, child_meta, col.get("fieldname"))
+				]
 		return layout
 
 	def prune_empty_table_columns(self, layout):

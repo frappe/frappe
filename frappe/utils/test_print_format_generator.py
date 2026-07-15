@@ -171,6 +171,79 @@ class TestPrintFormatGenerator(IntegrationTestCase):
 		self.assertIn("max-width: 210mm !important", html)
 		self.assertIn("box-sizing: border-box", html)
 
+	def test_browser_print_keeps_page_margins_on_every_page(self):
+		"""Browser print takes its margins from @page, not from body padding: padding
+		only applies to the first/last page, so interior pages would lose them."""
+		from frappe.utils.print_format_generator import get_html
+
+		pf = self._make_print_format(margin_top=20, margin_bottom=20)
+		todo = self._make_todo()
+		html = get_html("ToDo", todo.name, pf.name)
+
+		page_rule = html[html.find("@page") : html.find("html, body {", html.find("@page"))]
+		self.assertIn("margin-top: 20mm", page_rule)
+		self.assertIn("margin-bottom: 20mm", page_rule)
+		self.assertNotIn("margin: 0;", page_rule)
+		self.assertLess(html.find("@media screen"), html.find("padding: 20mm"))
+
+	def test_render_pdf_passes_password_to_chrome(self):
+		"""Encrypted PDFs (attach_print(password=...)) must stay encrypted on the
+		generator path — the chrome pipeline encrypts from options['password']."""
+		from unittest.mock import patch
+
+		from frappe.utils.print_format_generator import PrintFormatGenerator
+
+		pf = self._make_print_format()
+		todo = self._make_todo()
+		generator = PrintFormatGenerator(pf, todo)
+
+		with patch("frappe.utils.pdf.get_chrome_pdf", return_value=b"%PDF-") as chrome_pdf:
+			generator.render_pdf(password="s3cret")
+		self.assertEqual(chrome_pdf.call_args.kwargs["options"]["password"], "s3cret")
+
+		with patch("frappe.utils.pdf.get_chrome_pdf", return_value=b"%PDF-") as chrome_pdf:
+			generator.render_pdf()
+		self.assertNotIn("password", chrome_pdf.call_args.kwargs["options"])
+
+	def test_permlevel_restricted_fields_are_dropped(self):
+		"""A layout may reference permlevel-restricted fields; readers without access
+		to that permlevel must not get them in the print output."""
+		from unittest.mock import patch
+
+		from frappe.utils.print_format_generator import PrintFormatGenerator
+
+		pf = self._make_print_format()
+		todo = self._make_todo()
+
+		layout = json.loads(pf.format_data)
+		layout["sections"][0]["columns"][0]["fields"].append(
+			{"fieldtype": "Data", "fieldname": "_secret", "label": "Secret"}
+		)
+		pf.format_data = json.dumps(layout)
+
+		restricted = frappe._dict(fieldname="_secret", fieldtype="Data", permlevel=1, label="Secret")
+		get_field = todo.meta.get_field
+
+		def get_field_with_secret(fieldname):
+			return restricted if fieldname == "_secret" else get_field(fieldname)
+
+		with patch.object(todo.meta, "get_field", side_effect=get_field_with_secret):
+			with patch.object(todo, "has_permlevel_access_to", return_value=False):
+				fieldnames = self._layout_fieldnames(PrintFormatGenerator(pf, todo))
+			self.assertNotIn("_secret", fieldnames)
+			self.assertIn("description", fieldnames)
+
+			with patch.object(todo, "has_permlevel_access_to", return_value=True):
+				fieldnames = self._layout_fieldnames(PrintFormatGenerator(pf, todo))
+			self.assertIn("_secret", fieldnames)
+
+	def _layout_fieldnames(self, generator):
+		return [
+			df.get("fieldname")
+			for column in generator.layout_columns(generator.layout)
+			for df in column.get("fields", [])
+		]
+
 	def test_get_print_degrades_for_deleted_format(self):
 		"""A print_format name that no longer exists must not raise DoesNotExistError
 		during pdf_generator resolution — it degrades to the Standard (chrome) render,
