@@ -857,7 +857,7 @@ class User(Document):
 		login_with_mobile = cint(frappe.get_system_settings("allow_login_using_mobile_number"))
 		login_with_username = cint(frappe.get_system_settings("allow_login_using_user_name"))
 
-		or_filters = [{"name": user_name}]
+		or_filters = [{"email": user_name}]
 		if login_with_mobile:
 			or_filters.append({"mobile_no": user_name})
 		if login_with_username:

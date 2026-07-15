@@ -161,6 +161,23 @@ class TestAuth(IntegrationTestCase):
 		else:
 			self.fail("Rate limting not working")
 
+	def test_login_uses_email_field(self):
+		new_email = "renamed_test_auth@test.com"
+		frappe.db.set_value("User", self.test_user_email, "email", new_email, update_modified=False)
+		frappe.db.commit()
+		self.addCleanup(
+			frappe.db.set_value,
+			"User",
+			self.test_user_email,
+			"email",
+			self.test_user_email,
+			update_modified=False,
+		)
+
+		FrappeClient(self.HOST_NAME, new_email, self.test_user_password)
+		with self.assertRaises(AuthError):
+			FrappeClient(self.HOST_NAME, self.test_user_email, self.test_user_password)
+
 	def test_correct_cookie_expiry_set(self):
 		client = FrappeClient(self.HOST_NAME, self.test_user_email, self.test_user_password)
 
