@@ -255,6 +255,7 @@ scheduler_events = {
 			"frappe.email.doctype.notification.notification.trigger_offset_alerts",
 			"frappe.search.sqlite_search.index_docs_in_queue",
 			"frappe.integrations.doctype.webhook.webhook.retry_failed_webhooks",
+			"frappe.automation_engine.scheduler.process_cron",
 			"frappe.automation_engine.drainer.drain_due",
 		],
 		# 15 minutes
