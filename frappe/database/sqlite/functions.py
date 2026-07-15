@@ -15,13 +15,19 @@ from decimal import Decimal
 # --- Scalar functions (create_function) ------------------------------------
 
 
-def regexp(expr, item) -> bool:
+def regexp(expr, item) -> bool | None:
 	"""SQL REGEXP operator: whether item matches the regular expression expr."""
+	# NULL on either side yields NULL, as in MariaDB, rather than a TypeError.
+	if expr is None or item is None:
+		return None
 	return re.search(expr, item) is not None
 
 
-def regexp_replace(item, pattern, repl) -> str:
+def regexp_replace(item, pattern, repl) -> str | None:
 	"""MariaDB REGEXP_REPLACE: replace every match of pattern in item with repl."""
+	# NULL in any argument yields NULL, as in MariaDB, rather than a TypeError.
+	if item is None or pattern is None or repl is None:
+		return None
 	return re.sub(pattern, repl, item)
 
 
