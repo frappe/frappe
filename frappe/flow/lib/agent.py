@@ -67,13 +67,11 @@ class ToolStarted:
 
 @dataclass
 class ToolEnded:
-	"""A tool call finished. `result` is the JSON-serialized return value; `arguments` are the
-	final parsed arguments (backfills a ToolStarted that fired before they finished streaming)."""
+	"""A tool call finished. `result` is the JSON-serialized return value."""
 
 	id: str
 	name: str
 	result: str
-	arguments: dict[str, Any] = field(default_factory=dict)
 
 
 @dataclass
@@ -287,13 +285,11 @@ class Agent:
 		for iteration in range(1, self.max_iterations + 1):
 			chunks = self.model.chat(messages, tools=tool_schemas, stream=True)
 			# Tool calls are announced mid-stream (ToolCallBegin) so the UI shows the tool the moment
-			# the model starts it.
-			announced: set[str] = set()
+			# the model starts it, before its arguments finish streaming.
 			try:
 				while True:
 					item = next(chunks)
 					if isinstance(item, ToolCallBegin):
-						announced.add(item.id)
 						yield ToolStarted(id=item.id, name=item.name, arguments={})
 					else:
 						yield TextChunk(text=item)
@@ -316,19 +312,20 @@ class Agent:
 
 			questions: list[Question] = []
 			for call in response.tool_calls:
-				if call.id not in announced:
-					yield ToolStarted(id=call.id, name=call.name, arguments=call.arguments)
+				# Re-announce with the full arguments now that they've finished streaming, before the
+				# tool runs — so the UI shows the arguments during execution, not only with the result.
+				yield ToolStarted(id=call.id, name=call.name, arguments=call.arguments)
 				result = self._invoke(call)
 				if isinstance(result, Question):
 					result.key = call.id
 					questions.append(result)
-					yield ToolEnded(id=call.id, name=call.name, result="", arguments=call.arguments)
+					yield ToolEnded(id=call.id, name=call.name, result="")
 					continue
 
 				executed_calls.append(call)
 				serialized = _serialize_tool_result(result)
 				messages.append({"role": "tool", "tool_call_id": call.id, "content": serialized})
-				yield ToolEnded(id=call.id, name=call.name, result=serialized, arguments=call.arguments)
+				yield ToolEnded(id=call.id, name=call.name, result=serialized)
 
 			if questions:
 				yield Done(

@@ -161,13 +161,7 @@ def _event_to_dict(event: Event) -> dict[str, Any]:
 	if isinstance(event, ToolStarted):
 		return {"type": "tool_started", "id": event.id, "name": event.name, "arguments": event.arguments}
 	if isinstance(event, ToolEnded):
-		return {
-			"type": "tool_ended",
-			"id": event.id,
-			"name": event.name,
-			"result": event.result,
-			"arguments": event.arguments,
-		}
+		return {"type": "tool_ended", "id": event.id, "name": event.name, "result": event.result}
 	if isinstance(event, RunStarted):
 		return {"type": "run_started", "name": event.name, "session": event.session}
 	if isinstance(event, Error):
