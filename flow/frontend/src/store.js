@@ -2,6 +2,7 @@ import { ref, computed } from "vue";
 import * as api from "@/api/client";
 import { startRun, resumeRun } from "@/api/stream";
 import { normalizeToolName } from "@/lib/toolMeta";
+import { readPanelState } from "@/lib/panelState";
 import { __ } from "@/lib/translate";
 
 // Module-singleton store: one panel instance, one source of truth. Components
@@ -67,6 +68,16 @@ async function loadInitial() {
 		loadToolApproval(selectedAgent.value);
 		loaded.value = true;
 		focusTick.value++;
+
+		// Reopen the session that was active before a reload, even if the panel was closed.
+		const saved = readPanelState();
+		if (saved.session) {
+			try {
+				await switchSession(saved.session);
+			} catch {
+				newChat();
+			}
+		}
 	} catch {
 		// `loaded` stays false, keeping the composer disabled on "Loading…".
 		frappe.show_alert({

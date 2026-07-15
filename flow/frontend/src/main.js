@@ -1,6 +1,7 @@
-import { createApp } from "vue";
+import { createApp, watch } from "vue";
 import App from "@/App.vue";
 import { useStore } from "@/store";
+import { readPanelState, writePanelState } from "@/lib/panelState";
 import "@/index.css";
 
 const PANEL_WIDTH = 420;
@@ -11,29 +12,43 @@ const MIN_WIDTH = 360;
 // that id so nothing leaks onto the desk.
 class FlowPanel {
 	constructor() {
-		this.visible = false;
+		const saved = readPanelState();
+		this.visible = Boolean(saved.open);
+		this._halfWidth = saved.width || PANEL_WIDTH;
+		// Fullscreen is the default mode; a saved preference wins on reload.
+		this._initialFullscreen = saved.fullscreen ?? true;
+
 		this._mount();
 		this._syncTheme();
 		this._registerShortcut();
+
+		watch(this.store.sessionName, () => this._persist());
+	}
+
+	get fullscreen() {
+		return this.store.fullscreen.value;
 	}
 
 	_mount() {
+		this.store = useStore();
+		this.store.fullscreen.value = this._initialFullscreen;
+
 		this.root = document.createElement("div");
 		this.root.id = "flow-root";
 		Object.assign(this.root.style, {
 			position: "fixed",
 			top: "0",
 			right: "0",
-			width: `${PANEL_WIDTH}px`,
+			width: this.fullscreen ? "100vw" : `${this._halfWidth}px`,
 			height: "100vh",
 			zIndex: "1040",
-			transform: "translateX(100%)",
+			// A restored-open panel renders in place (no slide) so a refresh is seamless.
+			transform: this.visible ? "translateX(0)" : "translateX(100%)",
 			transition: "transform 0.22s ease",
 			boxShadow: "-2px 0 16px rgba(0, 0, 0, 0.08)",
 		});
 		document.body.appendChild(this.root);
 
-		this.store = useStore();
 		this.app = createApp(App, {
 			onClose: () => this.hide(),
 			onToggleFullscreen: () => this.toggleFullscreen(),
@@ -63,6 +78,7 @@ class FlowPanel {
 			const max = window.innerWidth - 80;
 			const width = Math.min(max, Math.max(MIN_WIDTH, window.innerWidth - e.clientX));
 			this.root.style.width = `${width}px`;
+			this._halfWidth = width;
 			// A manual resize takes the panel out of fullscreen; keep the header icon honest.
 			this.store.fullscreen.value = false;
 		};
@@ -71,6 +87,7 @@ class FlowPanel {
 			document.removeEventListener("mouseup", onUp);
 			document.body.style.userSelect = "";
 			this.root.style.transition = this._savedTransition;
+			this._persist();
 		};
 		handle.addEventListener("mousedown", (e) => {
 			e.preventDefault();
@@ -109,28 +126,35 @@ class FlowPanel {
 	show() {
 		this.visible = true;
 		this.root.style.transform = "translateX(0)";
+		this._persist();
 	}
 
 	hide() {
 		this.visible = false;
 		this.root.style.transform = "translateX(100%)";
+		this._persist();
 	}
 
 	toggle() {
 		this.visible ? this.hide() : this.show();
 	}
 
-	// Expand the panel to the full viewport width, or restore its previous
-	// width. State lives in the store so the header icon tracks it reactively.
+	// Expand to the full viewport width, or restore the half-screen width. State
+	// lives in the store so the header icon tracks it reactively.
 	toggleFullscreen() {
-		const next = !this.store.fullscreen.value;
+		const next = !this.fullscreen;
 		this.store.fullscreen.value = next;
-		if (next) {
-			this._savedWidth = this.root.style.width;
-			this.root.style.width = "100vw";
-		} else {
-			this.root.style.width = this._savedWidth || `${PANEL_WIDTH}px`;
-		}
+		this.root.style.width = next ? "100vw" : `${this._halfWidth}px`;
+		this._persist();
+	}
+
+	_persist() {
+		writePanelState({
+			open: this.visible,
+			fullscreen: this.fullscreen,
+			width: this._halfWidth,
+			session: this.store.sessionName.value,
+		});
 	}
 }
 
