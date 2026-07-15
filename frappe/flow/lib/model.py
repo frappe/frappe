@@ -24,6 +24,15 @@ class ToolCall:
 
 
 @dataclass
+class ToolCallBegin:
+	"""Streamed marker: the model has started emitting a tool call (name known, arguments still
+	streaming). Lets the UI show the tool immediately instead of after the full arguments arrive."""
+
+	id: str
+	name: str
+
+
+@dataclass
 class ChatResponse:
 	content: str | None
 	tool_calls: list[ToolCall] = field(default_factory=list)
@@ -126,10 +135,12 @@ def resolve_provider_credentials(model_id: str) -> dict[str, Any]:
 	}
 
 
-def _consume_stream(chunks: Any) -> Generator[str, None, ChatResponse]:
-	"""Yield text deltas from a litellm stream; return the assembled ChatResponse at the end."""
+def _consume_stream(chunks: Any) -> Generator[str | ToolCallBegin, None, ChatResponse]:
+	"""Yield text deltas (and a ToolCallBegin the moment each tool call's name is known) from a
+	litellm stream; return the assembled ChatResponse at the end."""
 	content_parts: list[str] = []
 	tool_calls_acc: dict[int, dict[str, str]] = {}
+	announced: set[int] = set()
 	usage: dict[str, int] = {"prompt_tokens": 0, "completion_tokens": 0, "total_tokens": 0}
 	finish_reason: str | None = None
 
@@ -144,7 +155,11 @@ def _consume_stream(chunks: Any) -> Generator[str, None, ChatResponse]:
 					content_parts.append(text)
 					yield text
 				for tc_delta in _attr(delta, "tool_calls") or []:
-					_accumulate_tool_call(tool_calls_acc, tc_delta)
+					index = _accumulate_tool_call(tool_calls_acc, tc_delta)
+					slot = tool_calls_acc[index]
+					if index not in announced and slot["id"] and slot["name"]:
+						announced.add(index)
+						yield ToolCallBegin(id=slot["id"], name=slot["name"])
 			reason = _attr(choice, "finish_reason")
 			if reason:
 				finish_reason = reason
@@ -165,7 +180,7 @@ def _consume_stream(chunks: Any) -> Generator[str, None, ChatResponse]:
 	)
 
 
-def _accumulate_tool_call(acc: dict[int, dict[str, str]], delta: Any) -> None:
+def _accumulate_tool_call(acc: dict[int, dict[str, str]], delta: Any) -> int:
 	index = _attr(delta, "index", 0) or 0
 	slot = acc.setdefault(index, {"id": "", "name": "", "arguments": ""})
 	call_id = _attr(delta, "id")
@@ -179,6 +194,7 @@ def _accumulate_tool_call(acc: dict[int, dict[str, str]], delta: Any) -> None:
 		args = _attr(function, "arguments")
 		if args:
 			slot["arguments"] += args
+	return index
 
 
 def _finalize_tool_calls(acc: dict[int, dict[str, str]]) -> list[ToolCall]:

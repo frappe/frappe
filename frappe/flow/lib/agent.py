@@ -8,7 +8,7 @@ from collections.abc import Generator
 from dataclasses import dataclass, field
 from typing import TYPE_CHECKING, Any
 
-from flow.lib.model import ChatResponse, Model, ToolCall
+from flow.lib.model import ChatResponse, Model, ToolCall, ToolCallBegin
 from flow.lib.tool import Tool
 
 if TYPE_CHECKING:
@@ -56,7 +56,9 @@ class TextChunk:
 
 @dataclass
 class ToolStarted:
-	"""A tool call is about to execute. Lets the UI render a 'thinking' indicator."""
+	"""A tool call is about to execute. Lets the UI render a 'thinking' indicator. Emitted as soon
+	as the model starts streaming the call, so `arguments` may still be empty at that point — the
+	full arguments arrive on the matching ToolEnded."""
 
 	id: str
 	name: str
@@ -65,11 +67,13 @@ class ToolStarted:
 
 @dataclass
 class ToolEnded:
-	"""A tool call finished. `result` is the JSON-serialized return value."""
+	"""A tool call finished. `result` is the JSON-serialized return value; `arguments` are the
+	final parsed arguments (backfills a ToolStarted that fired before they finished streaming)."""
 
 	id: str
 	name: str
 	result: str
+	arguments: dict[str, Any] = field(default_factory=dict)
 
 
 @dataclass
@@ -282,9 +286,17 @@ class Agent:
 
 		for iteration in range(1, self.max_iterations + 1):
 			chunks = self.model.chat(messages, tools=tool_schemas, stream=True)
+			# Tool calls are announced mid-stream (ToolCallBegin) so the UI shows the tool the moment
+			# the model starts it.
+			announced: set[str] = set()
 			try:
 				while True:
-					yield TextChunk(text=next(chunks))
+					item = next(chunks)
+					if isinstance(item, ToolCallBegin):
+						announced.add(item.id)
+						yield ToolStarted(id=item.id, name=item.name, arguments={})
+					else:
+						yield TextChunk(text=item)
 			except StopIteration as e:
 				response = e.value
 			_accumulate_usage(usage_total, response.usage)
@@ -304,18 +316,19 @@ class Agent:
 
 			questions: list[Question] = []
 			for call in response.tool_calls:
-				yield ToolStarted(id=call.id, name=call.name, arguments=call.arguments)
+				if call.id not in announced:
+					yield ToolStarted(id=call.id, name=call.name, arguments=call.arguments)
 				result = self._invoke(call)
 				if isinstance(result, Question):
 					result.key = call.id
 					questions.append(result)
-					yield ToolEnded(id=call.id, name=call.name, result="")
+					yield ToolEnded(id=call.id, name=call.name, result="", arguments=call.arguments)
 					continue
 
 				executed_calls.append(call)
 				serialized = _serialize_tool_result(result)
 				messages.append({"role": "tool", "tool_call_id": call.id, "content": serialized})
-				yield ToolEnded(id=call.id, name=call.name, result=serialized)
+				yield ToolEnded(id=call.id, name=call.name, result=serialized, arguments=call.arguments)
 
 			if questions:
 				yield Done(

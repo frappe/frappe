@@ -370,7 +370,7 @@ function handleEvent(event, msg) {
 			requestScroll();
 			break;
 		case "tool_ended":
-			setToolResult(msg, event.id, event.result);
+			setToolResult(msg, event.id, event.result, event.arguments);
 			requestScroll();
 			break;
 		case "done":
@@ -402,10 +402,12 @@ const makeToolPart = (id, name, args) => ({
 	approval: null,
 });
 
-function setToolResult(msg, id, result) {
+// `args` backfills a tool part announced mid-stream, before its arguments finished streaming.
+function setToolResult(msg, id, result, args) {
 	const part = msg.parts.find((p) => p.type === "tool" && p.id === id);
 	if (!part) return;
 	part.result = result;
+	if (args && Object.keys(args).length) part.arguments = args;
 	// On reload the live approval state is gone; recover it from the persisted
 	// confirmation result so the "Denied"/"Changes requested" badge survives. Gated on
 	// the tool being a confirmation tool so a regular tool whose result happens to carry
