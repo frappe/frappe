@@ -559,7 +559,7 @@ def generate_admin_keys():
 	from frappe.core.doctype.user.user import generate_keys
 
 	generate_keys("Administrator")
-	frappe.db.commit()
+	frappe.db.commit()  # nosemgrep
 
 
 @whitelist_for_tests()
