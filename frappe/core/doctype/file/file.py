@@ -245,6 +245,7 @@ class File(Document):
 			frappe.throw(_("Cannot delete Home and Attachments folders"))
 		self.validate_empty_folder()
 		self.validate_protected_file()
+		self.validate_not_referenced_in_attach_field()
 		self._delete_file_on_disk()
 		if not self.is_folder:
 			self.add_comment_in_reference_doc("Attachment Removed", self.file_name)
@@ -605,6 +606,9 @@ class File(Document):
 
 	def validate_not_referenced_in_attach_field(self):
 		"""Throw an exception if the linked document still has this file's URL set in an Attach field."""
+		if self.flags.force_delete:
+			return
+
 		if not (self.attached_to_doctype and self.attached_to_name and self.file_url):
 			return
 
@@ -623,8 +627,10 @@ class File(Document):
 			docs_to_check.extend(ref_doc.get(table_field.fieldname))
 
 		referencing_field = None
+		referencing_doc = None
 		for doc in docs_to_check:
 			if referencing_field := get_referencing_field(doc):
+				referencing_doc = doc
 				break
 
 		if referencing_field:
@@ -633,8 +639,8 @@ class File(Document):
 					"This file cannot be deleted as it is set in field {0} of {1} {2}. Clear the field first."
 				).format(
 					frappe.bold(_(referencing_field.label or referencing_field.fieldname)),
-					_(self.attached_to_doctype),
-					self.attached_to_name,
+					_(referencing_doc.doctype),
+					referencing_doc.name,
 				),
 				frappe.LinkExistsError,
 			)
