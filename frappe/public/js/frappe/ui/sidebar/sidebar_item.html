@@ -27,10 +27,6 @@
                 {% } %}
                 class="item-anchor"
             >
-                {% let icon = item.icon %}
-                {% if (item.show_arrow) { %}
-                    {% icon = "chevron-right" %}
-                {% } %}
                 <span class="sidebar-item-label">{{ item.label }}</span>
                 {% if (item.suffix) { %}
                      <span class="sidebar-item-suffix">{{ item.suffix }}</span>
