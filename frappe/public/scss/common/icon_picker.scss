@@ -65,6 +65,9 @@
 	input {
 		padding-left: 30px;
 	}
+	.control-input {
+		position: relative;
+	}
 	.selected-icon {
 		cursor: pointer;
 		width: 22px;
@@ -77,19 +80,10 @@
 		content: " ";
 	}
 	.like-disabled-input {
-		.icon-value {
-			padding-left: 25px;
-		}
 		.selected-icon {
-			top: 20%;
+			position: static;
+			transform: none;
 			cursor: default;
-		}
-	}
-	.horizontal {
-		.like-disabled-input {
-			.selected-icon {
-				left: 8px;
-			}
 		}
 	}
 }
