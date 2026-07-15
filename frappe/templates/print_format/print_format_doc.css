@@ -4,13 +4,6 @@
 .print-format-doc {
 	-webkit-print-color-adjust: exact;
 	print-color-adjust: exact;
-	--pf-text: #111827;
-	--pf-heading: #374151;
-	--pf-muted: #6b7280;
-	--pf-line: #e5e7eb;
-	--pf-fill: #f3f4f6;
-	--pf-fill-soft: #f9fafb;
-	--pf-paper: #ffffff;
 }
 .print-format-doc .label {
 	border: none;
@@ -21,10 +14,10 @@
 .print-format-doc .section-label {
 	font-size: 1.1em;
 	font-weight: 700;
-	color: #1a1a1a;
+	color: var(--gray-900);
 	padding-bottom: 0.3182em;
 	margin-bottom: 0.6818em;
-	border-bottom: 1.5px solid #e2e2e2;
+	border-bottom: 1.5px solid var(--gray-300);
 	/* Don't let the section heading sit alone at the bottom of a page */
 	break-after: avoid;
 	page-break-after: avoid;
@@ -43,12 +36,12 @@
 /* Stacked (default): muted label above value */
 .print-format-doc .field .label {
 	font-size: 1em;
-	color: var(--pf-muted);
+	color: var(--gray-600);
 	margin-bottom: 0.1em;
 }
 
 .print-format-doc .field .value {
-	color: var(--pf-text);
+	color: var(--gray-900);
 }
 
 /* Left-right (section-level): label shrinks to content width, value takes the rest */
@@ -63,7 +56,7 @@
 .print-format-doc .field.field-inline .label {
 	flex-shrink: 0;
 	font-size: 1em;
-	color: var(--pf-heading);
+	color: var(--gray-800);
 	text-transform: none;
 	letter-spacing: 0;
 	padding-top: 0.05em;
@@ -152,7 +145,7 @@
 .print-format-doc .child-table > .label {
 	font-size: 0.8em;
 	font-weight: 600;
-	color: var(--pf-muted);
+	color: var(--gray-600);
 	margin-bottom: 0.5em;
 }
 
@@ -170,7 +163,7 @@
    !important (Bootstrap print sets .table-bordered cell borders !important)
    so each axis opts back in without touching the others. */
 .print-format-doc .child-table .table th {
-	color: var(--pf-heading);
+	color: var(--gray-800);
 	font-weight: 600;
 	font-size: 0.85em;
 	padding: 0.5882em 0.7843em;
@@ -183,35 +176,35 @@
 /* header background lives on the row, not each cell, so a wrapper's border-radius
    clips one continuous bar instead of fighting per-cell backgrounds at the seams */
 .print-format-doc .child-table .table thead tr {
-	background-color: var(--pf-fill) !important;
+	background-color: var(--gray-100) !important;
 }
 
 .print-format-doc .child-table .table td {
 	padding: 0.5em 0.6667em;
 	border: none !important;
-	background-color: var(--pf-paper) !important;
+	background-color: var(--white) !important;
 	vertical-align: top;
 }
 
 /* lined: a divider under the header and under each row */
 .print-format-doc .child-table--lined .table th,
 .print-format-doc .child-table--lined .table td {
-	border-bottom: 1px solid var(--pf-line) !important;
+	border-bottom: 1px solid var(--gray-300) !important;
 }
 
 /* striped: alternating row fill instead of dividers */
 .print-format-doc .child-table--striped .table .even td {
-	background-color: var(--pf-fill-soft) !important;
+	background-color: var(--gray-50) !important;
 }
 
 /* bordered: column separators + outer frame; adjacent cell borders collapse */
 .print-format-doc .child-table .table-bordered {
-	border: 1px solid var(--pf-line);
+	border: 1px solid var(--gray-300);
 }
 
 .print-format-doc .child-table .table-bordered td {
-	border-left: 1px solid var(--pf-line) !important;
-	border-right: 1px solid var(--pf-line) !important;
+	border-left: 1px solid var(--gray-300) !important;
+	border-right: 1px solid var(--gray-300) !important;
 }
 
 /* plain header: no fill, a single rule under the header row instead */
@@ -220,7 +213,7 @@
 }
 
 .print-format-doc .child-table--plain-header .table th {
-	border-bottom: 1px solid var(--pf-line) !important;
+	border-bottom: 1px solid var(--gray-300) !important;
 }
 
 .print-format-doc .child-table [data-fieldtype="Currency"],
@@ -280,7 +273,7 @@
 
 .print-format-doc .child-table .cell-line--primary,
 .print-format-doc .child-table .cell-line--secondary {
-	color: var(--pf-text);
+	color: var(--gray-900);
 }
 
 .print-format-doc .child-table .cell-line--primary {
@@ -294,7 +287,7 @@
 .print-format-doc .child-table .cell-line--mono-sm,
 .print-format-doc .child-table .cell-line--muted-sm {
 	font-size: 0.85em;
-	color: var(--pf-muted);
+	color: var(--gray-600);
 }
 
 .print-format-doc .page-break {
@@ -354,7 +347,7 @@
 .print-format-doc .document-header {
 	border-bottom-width: 1px;
 	border-bottom-style: solid;
-	border-bottom-color: var(--pf-line);
+	border-bottom-color: var(--gray-300);
 }
 
 .print-format-doc .field[data-fieldtype="Rating"] .rating-star {
@@ -383,7 +376,7 @@
 
 /* ── Table layout (field-borders mode) ───────────────────── */
 .print-format-doc .section--grid {
-	border: 1px solid var(--pf-line);
+	border: 1px solid var(--gray-300);
 	border-radius: var(--border-radius-md, 8px);
 	overflow: hidden;
 	padding: 0;
@@ -391,7 +384,7 @@
 .print-format-doc .section--grid .section-label {
 	padding: var(--pfb-cell-pad, 8px);
 	margin: 0;
-	border-bottom: 1px solid var(--pf-line);
+	border-bottom: 1px solid var(--gray-300);
 }
 .print-format-doc .section--grid .section-columns {
 	padding: 0;
@@ -402,11 +395,11 @@
 	padding: 0;
 }
 .print-format-doc .section--grid .col:not(:last-child) {
-	border-right: 1px solid var(--pf-line);
+	border-right: 1px solid var(--gray-300);
 }
 .print-format-doc .section--grid .field {
 	padding: var(--pfb-cell-pad, 8px);
-	border-bottom: 1px solid var(--pf-line);
+	border-bottom: 1px solid var(--gray-300);
 }
 .print-format-doc .section--grid .field + .field {
 	margin-top: 0;
