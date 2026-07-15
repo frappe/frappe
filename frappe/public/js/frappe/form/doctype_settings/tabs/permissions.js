@@ -52,7 +52,9 @@ function draw(panel, doctype) {
 				roles: perms.map((p) => ({ ...p, source: is_customized ? "Custom" : "Standard" })),
 			});
 		})
-		.catch(() => frappe.doctype_settings.render_error(panel, () => draw(panel, doctype)));
+		.catch((err) =>
+			frappe.doctype_settings.render_error(panel, () => draw(panel, doctype), err)
+		);
 }
 
 function render(panel, doctype, { roles, is_customized }) {

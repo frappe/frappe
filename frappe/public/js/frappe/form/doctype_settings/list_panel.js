@@ -75,7 +75,7 @@ class ListPanel {
 				this.rows = rows || [];
 				this.render();
 			})
-			.catch(() => this.render_error());
+			.catch((err) => this.render_error(err));
 	}
 
 	// ── public controller API ──
@@ -265,8 +265,18 @@ class ListPanel {
 		$('<div class="text-muted small dts-list-state"></div>').text(text).appendTo(this.$body);
 	}
 
-	render_error() {
+	render_error(err) {
 		this.$body.empty();
+		// Permission failures get a terminal no-access state — no Retry, a 403 won't
+		// succeed on the second try.
+		if (frappe.doctype_settings.is_permission_error(err)) {
+			frappe.doctype_settings.empty_state(this.$body, {
+				icon: "lock",
+				title: __("No access"),
+				description: __("You don't have permission to view this."),
+			});
+			return;
+		}
 		const $err = $('<div class="dts-list-state"></div>').appendTo(this.$body);
 		$('<div class="text-muted small"></div>')
 			.text(__("Could not load this tab."))

@@ -76,7 +76,7 @@ frappe.doctype_settings.register("print-format", function (panel, doctype) {
 				default_pf = current_default;
 				render(formats || []);
 			})
-			.catch(() => frappe.doctype_settings.render_error(panel, load));
+			.catch((err) => frappe.doctype_settings.render_error(panel, load, err));
 	}
 
 	// Default print format lives in a Property Setter for standard doctypes (Customize

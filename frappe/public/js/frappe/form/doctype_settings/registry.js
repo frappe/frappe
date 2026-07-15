@@ -92,10 +92,34 @@ frappe.doctype_settings.empty_state = function ($container, opts) {
 	return $empty;
 };
 
-frappe.doctype_settings.render_error = function (panel, retry_fn) {
+// Tab load failures land here. Permission failures get a dedicated state without a
+// Retry button (retrying a 403 will always fail again); everything else keeps the
+// generic message + Retry, the right affordance for transient/network errors.
+frappe.doctype_settings.render_error = function (panel, retry_fn, err) {
+	if (frappe.doctype_settings.is_permission_error(err)) {
+		panel.body.empty();
+		frappe.doctype_settings.empty_state(panel.body, {
+			icon: "lock",
+			title: __("No access"),
+			description: __("You don't have permission to view this."),
+		});
+		return;
+	}
 	const $err = panel.body.empty();
 	$('<div class="text-muted small"></div>').text(__("Could not load this tab.")).appendTo($err);
 	frappe.ui.button({ label: __("Retry"), size: "xs", onclick: () => retry_fn() }).appendTo($err);
+};
+
+// Rejections reach the tabs in different shapes depending on the API: frappe.call
+// hands back the xhr, frappe.db/xcall the parsed server message. Sniff all of them.
+frappe.doctype_settings.is_permission_error = function (err) {
+	if (!err) return false;
+	return (
+		err.status === 403 ||
+		err.exc_type === "PermissionError" ||
+		(err.responseJSON || {}).exc_type === "PermissionError" ||
+		(typeof err === "string" && err.includes("PermissionError"))
+	);
 };
 
 // Shared helper: write a DocType-level Property Setter (same mechanism Customize Form uses).
@@ -113,12 +137,25 @@ frappe.doctype_settings.set_property = function (doctype, property, value) {
 		.then(() => frappe.show_alert({ message: __("Default updated"), indicator: "green" }));
 };
 
+// Each `condition` hides a tab the user could never load anyway (boot perms are a
+// client-side hint; the server still enforces). A tab that is guaranteed to 403
+// shouldn't be offered at all — see render_error for the residual failure path.
 frappe.doctype_settings.groups = [
 	{
 		group: __("Document"),
 		items: [
-			{ id: "naming", label: __("Naming"), icon: "tag" },
-			{ id: "workflow", label: __("Workflow"), icon: "workflow" },
+			{
+				id: "naming",
+				label: __("Naming"),
+				icon: "tag",
+				condition: () => frappe.model.can_read("Document Naming Rule"),
+			},
+			{
+				id: "workflow",
+				label: __("Workflow"),
+				icon: "workflow",
+				condition: () => frappe.model.can_read("Workflow"),
+			},
 			{
 				id: "permissions",
 				label: __("Permissions"),
@@ -126,19 +163,41 @@ frappe.doctype_settings.groups = [
 				// Role permission APIs are System-Manager-only; hide the tab otherwise.
 				condition: () => frappe.user.has_role("System Manager"),
 			},
-			{ id: "print-format", label: __("Print Formats"), icon: "printer" },
+			{
+				id: "print-format",
+				label: __("Print Formats"),
+				icon: "printer",
+				condition: () => frappe.model.can_read("Print Format"),
+			},
 		],
 	},
 	{
 		group: __("Communication"),
 		items: [
-			{ id: "notifications", label: __("Notifications"), icon: "bell" },
-			{ id: "email-template", label: __("Email Templates"), icon: "mail" },
+			{
+				id: "notifications",
+				label: __("Notifications"),
+				icon: "bell",
+				condition: () => frappe.model.can_read("Notification"),
+			},
+			{
+				id: "email-template",
+				label: __("Email Templates"),
+				icon: "mail",
+				condition: () => frappe.model.can_read("Email Template"),
+			},
 		],
 	},
 	{
 		group: __("Data"),
-		items: [{ id: "global-search", label: __("Global Search"), icon: "search" }],
+		items: [
+			{
+				id: "global-search",
+				label: __("Global Search"),
+				icon: "search",
+				condition: () => frappe.model.can_read("Global Search Settings"),
+			},
+		],
 	},
 ];
 

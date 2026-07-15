@@ -30,7 +30,9 @@ function load(panel, doctype) {
 					render(panel, doctype, true, r.message || []);
 				});
 		})
-		.catch(() => frappe.doctype_settings.render_error(panel, () => load(panel, doctype)));
+		.catch((err) =>
+			frappe.doctype_settings.render_error(panel, () => load(panel, doctype), err)
+		);
 }
 
 function render(panel, doctype, included, options) {

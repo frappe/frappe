@@ -271,12 +271,20 @@ async function remove_series(doctype, series, refresh) {
 // Load the Document Naming Settings Single into client locals and resolve with it, so
 // frappe.call({ doc }) (which reads the doc from locals by name) can drive its
 // whitelisted instance methods. Calls reuse one doc and must stay sequential.
+// Not frappe.model.with_doc: its callback only fires on success, so a failed fetch
+// (e.g. no permission) would never settle this promise and the tab would hang on
+// "Loading" forever. Fetch via getdoc directly so failures reject to the caller.
 function load_settings() {
-	return new Promise((resolve) =>
-		frappe.model.with_doc(NAMING_SETTINGS, NAMING_SETTINGS, () =>
-			resolve(frappe.get_doc(NAMING_SETTINGS, NAMING_SETTINGS))
-		)
-	);
+	const cached = frappe.get_doc(NAMING_SETTINGS, NAMING_SETTINGS);
+	if (cached) return Promise.resolve(cached);
+
+	return frappe
+		.call({
+			method: "frappe.desk.form.load.getdoc",
+			type: "GET",
+			args: { doctype: NAMING_SETTINGS, name: NAMING_SETTINGS },
+		})
+		.then(() => frappe.get_doc(NAMING_SETTINGS, NAMING_SETTINGS));
 }
 
 function settings_call(doc, method) {
