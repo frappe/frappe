@@ -250,11 +250,11 @@ body {
 				align-items: center;
 				gap: 8px;
 				align-self: stretch;
-				background-color: var(--surface-green-1);
+				background-color: var(--surface-gray-1);
 				border-radius: var(--radius);
 				@include get_textstyle("base", "regular");
 				line-height: 115%;
-				color: var(--ink-green-6);
+				color: var(--ink-gray-8);
 
 				svg {
 					margin: 0;
@@ -266,17 +266,17 @@ body {
 			.login-error-banner {
 				display: none;
 				padding: 6px 8px;
-				align-items: center;
+				align-items: flex-start;
 				gap: 8px;
 				align-self: stretch;
-				background-color: var(--red-50);
+				background-color: var(--surface-gray-1);
 				border-radius: var(--radius);
 				@include get_textstyle("base", "regular");
-				color: var(--ink-red-8);
+				color: var(--ink-gray-8);
 
 				svg {
-					margin: 0;
-					stroke: var(--ink-red-8);
+					margin: 3px 0 0;
+					stroke: var(--ink-red-6);
 					flex-shrink: 0;
 				}
 			}

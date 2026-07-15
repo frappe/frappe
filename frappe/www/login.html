@@ -10,7 +10,7 @@
 	<div class="login-error-banner">
 		<div class="flex align-items-center justify-content-center">
 			<svg class="icon icon-sm" xmlns="http://www.w3.org/2000/svg">
-				<use href="#icon-triangle-alert"></use>
+				<use href="#icon-circle-alert"></use>
 			</svg>
 		</div>
 		<span></span>
@@ -159,10 +159,16 @@
 			{{ logo_section(_('Forgot Password?'), _("Please enter your email, we'll send you password reset link")) }}
 			<form class="form-signin form-forgot hide" role="form" novalidate>
 				<div class="page-card-body">
+					<div class="login-success-banner">
+						<svg xmlns="http://www.w3.org/2000/svg" class="icon icon-sm">
+							<use href="#icon-circle-check"></use>
+						</svg>
+						<span></span>
+					</div>
 					<div class="login-error-banner">
 						<div class="flex align-items-center justify-content-center">
 							<svg class="icon icon-sm" xmlns="http://www.w3.org/2000/svg">
-								<use href="#icon-triangle-alert"></use>
+								<use href="#icon-circle-alert"></use>
 							</svg>
 						</div>
 						<span></span>
@@ -194,14 +200,14 @@
 				<div class="page-card-body">
 					<div class="login-success-banner">
 						<svg xmlns="http://www.w3.org/2000/svg" class="icon icon-sm">
-							<use href="#icon-circle-alert"></use>
+							<use href="#icon-circle-check"></use>
 						</svg>
 						<span>{{ _("Please check your email.") }}</span>
 					</div>
 					<div class="login-error-banner">
 						<div class="flex align-items-center justify-content-center">
 							<svg class="icon icon-sm" xmlns="http://www.w3.org/2000/svg">
-								<use href="#icon-triangle-alert"></use>
+								<use href="#icon-circle-alert"></use>
 							</svg>
 						</div>
 						<span></span>
