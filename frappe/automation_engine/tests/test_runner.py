@@ -38,10 +38,14 @@ def make_automation(actions, stop_on_error=1, **kwargs):
 def make_broken_automation(stop_on_error=1):
 	"""A rule whose action_type no longer resolves (e.g. its action was removed post-save)."""
 	auto = make_automation([set_field("priority", "Low")], stop_on_error=stop_on_error)
-	child = frappe.db.get_value("Automation Action", {"parent": auto}, "name")
-	frappe.db.set_value("Automation Action", child, "action_type", "NopeAction", update_modified=False)
-	frappe.clear_document_cache("Automation Flow", auto)
+	set_first_action_type(auto, "NopeAction")
 	return auto
+
+
+def set_first_action_type(auto, action_type):
+	child = frappe.db.get_value("Automation Action", {"parent": auto}, "name")
+	frappe.db.set_value("Automation Action", child, "action_type", action_type, update_modified=False)
+	frappe.clear_document_cache("Automation Flow", auto)
 
 
 class TestRunner(IntegrationTestCase):
@@ -170,7 +174,8 @@ class TestRunner(IntegrationTestCase):
 
 		frappe.local.automation_actions = {**get_action_registry(), "BoomAction": Boom()}
 		todo = make_todo()
-		auto = make_automation([{"action_type": "BoomAction", "params": "{}"}], stop_on_error=1)
+		auto = make_automation([set_field("priority", "Low")], stop_on_error=1)
+		set_first_action_type(auto, "BoomAction")
 		name = self.queue_row(auto, todo.name)
 		execute_automation(name)
 		self.assertEqual(self.run_status(auto), "Failed")
@@ -193,7 +198,8 @@ class TestRunner(IntegrationTestCase):
 
 		frappe.local.automation_actions = {**get_action_registry(), "RacyAction": Racy()}
 		todo = make_todo()
-		auto = make_automation([{"action_type": "RacyAction", "params": "{}"}])
+		auto = make_automation([set_field("priority", "Low")])
+		set_first_action_type(auto, "RacyAction")
 		execute_automation(self.queue_row(auto, todo.name))
 		self.assertEqual(self.run_status(auto), "Success")
 		self.assertGreaterEqual(Racy.calls, 2)
