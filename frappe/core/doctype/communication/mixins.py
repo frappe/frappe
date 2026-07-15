@@ -34,7 +34,7 @@ class CommunicationEmailMixin:
 		if notification_email:
 			return notification_email
 
-		return parent_doc.owner
+		return frappe.db.get_value("User", parent_doc.owner, "email") or parent_doc.owner
 
 	def get_all_email_addresses(self, exclude_displayname=False):
 		"""Get all Email addresses mentioned in the doc along with display name."""

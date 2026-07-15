@@ -67,6 +67,17 @@ class TestNotificationLog(IntegrationTestCase):
 			)
 		)
 
+	def test_enqueue_create_notification_accepts_user_ids(self):
+		install_notification_types()
+		recipient = make_recipient("notify_by_user_id@example.com")
+		enqueue_create_notification(
+			[recipient],
+			{"type": "Mention", "subject": "By user ID", "from_user": "Administrator"},
+		)
+		self.assertTrue(
+			frappe.db.exists("Notification Log", {"for_user": recipient, "subject": "By user ID"})
+		)
+
 	def test_dedupe_on_prevents_duplicate_rows(self):
 		install_notification_types()
 		recipient = make_recipient("notify_dedupe@example.com")

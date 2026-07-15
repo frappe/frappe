@@ -885,14 +885,13 @@ def get_context(doc):
 
 
 def get_assignees(doc):
-	assignees = []
 	assignees = frappe.get_all(
 		"ToDo",
 		filters={"status": "Open", "reference_name": doc.name, "reference_type": doc.doctype},
 		fields=["allocated_to"],
 	)
 
-	return [d.allocated_to for d in assignees]
+	return [frappe.db.get_value("User", d.allocated_to, "email") or d.allocated_to for d in assignees]
 
 
 def get_emails_from_template(template, context):

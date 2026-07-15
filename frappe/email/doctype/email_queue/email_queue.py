@@ -634,6 +634,7 @@ class QueueBuilder:
 		self._add_unsubscribe_link = add_unsubscribe_link
 		self._unsubscribe_message = unsubscribe_message
 		self._attachments = attachments
+		self._resolved_user_recipients = {}
 
 		self._unsubscribed_user_emails = None
 		self._email_account = None
@@ -666,7 +667,26 @@ class QueueBuilder:
 
 	def _get_emails_list(self, emails=None):
 		emails = split_emails(emails) if isinstance(emails, str) else (emails or [])
-		return [each for each in set(emails) if each]
+		return [self._resolve_user_recipient(each) for each in set(emails) if each]
+
+	def _resolve_user_recipient(self, recipient: str) -> str:
+		"""Temporarily support User IDs passed to email recipient arguments."""
+		if "@" in recipient:
+			return recipient
+		if recipient in self._resolved_user_recipients:
+			return self._resolved_user_recipients[recipient]
+		if email := frappe.db.get_value("User", recipient, "email"):
+			from frappe.deprecation_dumpster import deprecation_warning
+
+			deprecation_warning(
+				"v17",
+				"v19",
+				"Passing a User ID to frappe.sendmail is deprecated; pass User.email instead.",
+			)
+			self._resolved_user_recipients[recipient] = email
+			return email
+		self._resolved_user_recipients[recipient] = recipient
+		return recipient
 
 	@property
 	def recipients(self):

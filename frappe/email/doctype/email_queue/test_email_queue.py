@@ -2,14 +2,22 @@
 # License: MIT. See LICENSE
 import smtplib
 import textwrap
-from unittest.mock import MagicMock
+from unittest.mock import MagicMock, patch
 
 import frappe
-from frappe.email.doctype.email_queue.email_queue import SendMailContext, get_email_retry_limit
+from frappe.email.doctype.email_queue.email_queue import QueueBuilder, SendMailContext, get_email_retry_limit
 from frappe.tests import IntegrationTestCase
 
 
 class TestEmailQueue(IntegrationTestCase):
+	def test_user_id_recipient_is_resolved_to_email(self):
+		with (
+			patch.object(frappe.db, "get_value", return_value="person@example.com"),
+			patch("frappe.deprecation_dumpster.deprecation_warning") as warning,
+		):
+			self.assertEqual(QueueBuilder(recipients=["USER-00001"]).recipients, ["person@example.com"])
+			warning.assert_called_once()
+
 	def test_email_queue_deletion_based_on_modified_date(self):
 		from frappe.email.doctype.email_queue.email_queue import EmailQueue
 

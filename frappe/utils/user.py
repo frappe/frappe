@@ -320,7 +320,7 @@ def get_system_managers(only_name: bool = False) -> list[str]:
 	if only_name:
 		fields = [User.name]
 	else:
-		fields = [User.full_name, User.name]
+		fields = [User.full_name, User.email]
 
 	system_managers = (
 		frappe.qb.from_(User)
@@ -341,7 +341,7 @@ def get_system_managers(only_name: bool = False) -> list[str]:
 	if only_name:
 		return [p.name for p in system_managers]
 	else:
-		return [formataddr((p.full_name, p.name)) for p in system_managers]
+		return [formataddr((p.full_name, p.email)) for p in system_managers]
 
 
 def add_role(user: str, role: str) -> None:
