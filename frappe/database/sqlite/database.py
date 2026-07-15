@@ -638,14 +638,21 @@ class SQLiteDatabase(SQLiteExceptionUtil, Database):
 		import random
 		import time
 
-		for attempt in range(self.WRITE_LOCK_RETRIES):
-			try:
-				self._cursor.execute("BEGIN IMMEDIATE")
-				return
-			except sqlite3.OperationalError as e:
-				if not self.is_deadlocked(e) or attempt == self.WRITE_LOCK_RETRIES - 1:
-					raise
-				time.sleep(random.uniform(0, 0.05 * (attempt + 1)))
+		# busy_timeout already blocks per attempt, so split it across retries; otherwise the
+		# worst-case wait would be retries x busy_timeout (e.g. 5 x 30s) before the error surfaces.
+		per_attempt = max(1, self.busy_timeout // self.WRITE_LOCK_RETRIES)
+		self._cursor.execute(f"PRAGMA busy_timeout = {per_attempt}")
+		try:
+			for attempt in range(self.WRITE_LOCK_RETRIES):
+				try:
+					self._cursor.execute("BEGIN IMMEDIATE")
+					return
+				except sqlite3.OperationalError as e:
+					if not self.is_deadlocked(e) or attempt == self.WRITE_LOCK_RETRIES - 1:
+						raise
+					time.sleep(random.uniform(0, 0.05 * (attempt + 1)))
+		finally:
+			self._cursor.execute(f"PRAGMA busy_timeout = {self.busy_timeout}")
 
 	def begin(self, *, read_only=None):
 		"""Switch connection mode if needed; read_only=None keeps the current mode."""

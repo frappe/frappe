@@ -518,7 +518,8 @@ def _sqlite_fts_search(word: str, doctype: str, allowed_doctypes, limit: int, st
 		f"WHERE {' AND '.join(conditions)} "
 		f'ORDER BY bm25("__global_search") LIMIT {cint(limit)} {offset}'
 	)
-	return frappe.db.sql(query, params, as_dict=True)
+	# Query is already SQLite-native (FTS5 MATCH, bm25(), quoted identifiers); don't re-transpile it.
+	return frappe.db.sql(query, params, as_dict=True, _skip_dialect_rewrite=True)
 
 
 @frappe.whitelist()
