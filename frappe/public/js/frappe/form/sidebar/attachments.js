@@ -46,6 +46,7 @@ frappe.ui.form.Attachments = class Attachments {
 	refresh() {
 		if (this.frm.doc.__islocal) {
 			this.parent.toggle(false);
+			this.notify_change();
 			return;
 		}
 		this.parent.toggle(true);
@@ -58,6 +59,11 @@ frappe.ui.form.Attachments = class Attachments {
 		var attachments = this.get_attachments();
 		this.render_attachments(attachments);
 		this.setup_show_all_button(attachments);
+		this.notify_change();
+	}
+
+	notify_change() {
+		$(this.frm.wrapper).trigger("attachments_change");
 	}
 
 	setup_show_all_button(attachments) {
@@ -247,13 +253,17 @@ frappe.ui.form.Attachments = class Attachments {
 		new frappe.ui.FileUploader({
 			doctype: this.frm.doctype,
 			docname: this.frm.docname,
+			fieldname,
 			frm: this.frm,
 			folder: "Home/Attachments",
+			make_attachments_public:
+				fieldname && this.frm.get_docfield(fieldname)?.make_attachment_public
+					? 1
+					: this.frm.meta.make_attachments_public,
 			on_success: (file_doc) => {
 				this.attachment_uploaded(file_doc);
 			},
 			restrictions,
-			make_attachments_public: this.frm.meta.make_attachments_public,
 		});
 	}
 	get_args() {
