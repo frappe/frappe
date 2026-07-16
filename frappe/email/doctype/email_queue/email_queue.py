@@ -357,7 +357,14 @@ class SendMailContext:
 		self.queue_doc.update_status(**update_fields, commit=True)
 
 		if not exc_type and self.queue_doc.redact_message_after_send:
-			self.queue_doc.redact_message()
+			try:
+				self.queue_doc.redact_message()
+			except Exception:
+				frappe.log_error(
+					title="Failed to redact email message after send",
+					reference_doctype=self.queue_doc.doctype,
+					reference_name=self.queue_doc.name,
+				)
 
 	@savepoint(catch=Exception)
 	def notify_failed_email(self):
