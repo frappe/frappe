@@ -228,8 +228,15 @@ login.call = function (args, callback, url="/", error_msg=null) {
 }
 
 login.show_loading = function () {
+	// only the button that triggered the request (falls back to the section's
+	// primary button for keyboard submits); matters when both password and
+	// LDAP login render their own solid button
+	var $btn = $(document.activeElement).filter('section:visible .es-button[data-variant="solid"]');
+	if (!$btn.length) {
+		$btn = $('section:visible .es-button[data-variant="solid"]').first();
+	}
 	// es-button shows the spinner (and blocks clicks) only while aria-busy is set
-	$('section:visible .es-button[data-variant="solid"]:not([aria-busy])').each(function () {
+	$btn.not("[aria-busy]").each(function () {
 		$(this)
 			.data("label", $(this).text().trim())
 			.attr("aria-busy", "true")
@@ -244,7 +251,12 @@ login.hide_loading = function () {
 };
 
 login.set_status = function (message, color) {
-	$('section:visible .es-button[data-variant="solid"]').removeAttr("aria-busy").text(message);
+	// the busy button is the one whose request this status answers
+	var $btn = $('section:visible .es-button[aria-busy="true"]');
+	if (!$btn.length) {
+		$btn = $('section:visible .es-button[data-variant="solid"]').first();
+	}
+	$btn.removeAttr("aria-busy").text(message);
 	if (color == "red") {
 		$('section:visible .page-card-body').addClass("invalid");
 	}
