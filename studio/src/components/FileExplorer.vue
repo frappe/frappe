@@ -50,17 +50,17 @@
 
 		<div ref="treeContainer" class="overflow-auto rounded">
 			<EmptyState v-if="!loading && !tree.length" message="No code files yet" />
-			<Tree v-for="node in tree" :key="node.path" :node="node" nodeKey="path" :options="treeOptions">
-				<template #node="{ node, isCollapsed, toggleCollapsed }">
+			<Tree :nodes="tree" nodeKey="path" guides="none" :style="treeStyle">
+				<template #item="{ node, expanded, toggle }">
 					<div
-						class="flex h-7 cursor-pointer select-none items-center gap-1 rounded px-1 outline-none"
+						class="flex h-7 flex-1 cursor-pointer select-none items-center gap-1 rounded px-1 outline-none"
 						:class="
 							selectedNode?.path === node.path
 								? 'bg-surface-gray-3 text-ink-gray-9'
 								: 'text-ink-gray-7 hover:bg-surface-gray-2'
 						"
 						tabindex="0"
-						@click="onNodeClick(node, toggleCollapsed, $event)"
+						@click.stop="onNodeClick(node, toggle)"
 						@contextmenu.prevent.stop="openContextMenu($event, node)"
 						@keydown.enter.prevent.stop="startRename(node)"
 						@keydown.f2.prevent.stop="startRename(node)"
@@ -69,7 +69,7 @@
 							<span
 								v-if="node.is_folder"
 								class="size-3.5 items-center text-ink-gray-5"
-								:class="isCollapsed ? 'lucide-chevron-right' : 'lucide-chevron-down'"
+								:class="expanded ? 'lucide-chevron-down' : 'lucide-chevron-right'"
 							/>
 							<span
 								v-else
@@ -210,11 +210,9 @@ const store = useStudioStore()
 const codeStore = useCodeStore()
 const app = computed(() => store.activeApp)
 
-const treeOptions = {
-	rowHeight: "28px",
-	indentWidth: "14px",
-	showIndentationGuides: false,
-	defaultCollapsed: false,
+const treeStyle = {
+	"--tree-row-height": "28px",
+	"--tree-indent": "14px",
 }
 
 const location = computed(() => ({
@@ -240,9 +238,9 @@ async function loadTree() {
 // -- Node selection --
 const selectedNode = ref<StudioFileNode | null>(null)
 
-function onNodeClick(node: StudioFileNode, toggleCollapsed: (event: MouseEvent) => void, event: MouseEvent) {
+function onNodeClick(node: StudioFileNode, toggle: () => void) {
 	selectedNode.value = node
-	if (node.is_folder) toggleCollapsed(event)
+	if (node.is_folder) toggle()
 	else openNode(node)
 }
 
