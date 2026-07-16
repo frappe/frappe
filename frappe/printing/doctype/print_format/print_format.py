@@ -278,7 +278,7 @@ def generate_preview(name: str) -> str | None:
 			"name",
 		)
 		if old:
-			frappe.delete_doc("File", old, ignore_permissions=True, delete_permanently=True)
+			frappe.delete_doc("File", old, ignore_permissions=True, delete_permanently=True, force=True)
 
 	fname = f"pf-preview-{frappe.generate_hash(length=10)}.webp"
 	file = save_file(fname, image, "Print Format", name, is_private=1)
