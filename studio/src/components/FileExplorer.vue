@@ -185,6 +185,7 @@
 <script setup lang="ts">
 import { ref, computed, watch, nextTick, onMounted, onBeforeUnmount } from "vue"
 import { vOnClickOutside } from "@vueuse/components"
+import { useStorage } from "@vueuse/core"
 import { Button, Dialog, ErrorMessage, FormControl, Tree, toast, Tooltip } from "frappe-ui"
 import CodeEditorDock from "@/components/CodeEditorDock.vue"
 import ContextMenu from "@/components/ContextMenu.vue"
@@ -625,15 +626,40 @@ function openFileIsUnder(path: string, isFolder: boolean): boolean {
 	return openFile.value.path === path || (isFolder && openFile.value.path.startsWith(`${path}/`))
 }
 
+// remember last opened file
+const lastOpenFiles = useStorage<Record<string, string>>("studioOpenFiles", {})
+watch(
+	() => openFile.value?.path,
+	(path) => {
+		const appName = app.value?.name
+		if (!appName) return
+		if (path) lastOpenFiles.value[appName] = path
+		else delete lastOpenFiles.value[appName]
+	},
+)
+
 watch(
 	() => app.value?.name,
-	() => {
+	async (appName) => {
+		const remembered = appName ? lastOpenFiles.value[appName] : undefined
 		openFile.value = null
 		selectedNode.value = null
-		loadTree()
+		try {
+			await loadTree()
+			reopenLastFile(remembered)
+		} finally {
+			if (appName && remembered && !openFile.value) lastOpenFiles.value[appName] = remembered
+		}
 	},
 	{ immediate: true },
 )
+
+function reopenLastFile(path: string | undefined) {
+	const node = path ? findNode(path) : null
+	if (!node) return
+	selectedNode.value = node
+	openNode(node)
+}
 
 async function onStudioFilesChanged() {
 	await loadTree()
