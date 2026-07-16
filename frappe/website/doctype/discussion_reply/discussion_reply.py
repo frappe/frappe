@@ -22,10 +22,12 @@ class DiscussionReply(Document):
 	# end: auto-generated types
 
 	def on_update(self):
+		from frappe.utils.html_utils import sanitize_html
+
 		frappe.publish_realtime(
 			event="update_message",
 			room=get_website_room(),
-			message={"reply": frappe.utils.md_to_html(self.reply), "reply_name": self.name},
+			message={"reply": sanitize_html(frappe.utils.md_to_html(self.reply)), "reply_name": self.name},
 			after_commit=True,
 		)
 
