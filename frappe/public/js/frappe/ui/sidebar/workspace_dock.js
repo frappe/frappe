@@ -32,8 +32,33 @@ frappe.ui.WorkspaceDock = class WorkspaceDock {
 		this.$items = this.$dock.find(".workspace-dock-items");
 		this.$actions = this.$dock.find(".workspace-dock-actions");
 		this.$user = this.$dock.find(".workspace-dock-user");
+		this.render_search();
 		this.render_notifications();
+		// only reserve the actions band (and its divider spacing) if something landed in it
+		this.$actions.toggleClass("hidden", this.$actions.children().length === 0);
 		this.render_user();
+	}
+
+	// Global search trigger, replacing the page header's search button. It carries the
+	// `navbar-modal-search-mobile` class so the AwesomeBar's delegated click handler (see
+	// awesome_bar.js) opens and toggles the same search modal. Set up once (make() runs once).
+	render_search() {
+		if (frappe.session.user === "Guest" || !frappe.boot.desk_settings.search_bar) {
+			return;
+		}
+
+		let $search = $(`<button
+			class="workspace-dock-item navbar-modal-search-mobile"
+			title="${__("Search")}"
+			data-toggle="tooltip"
+			data-placement="right"
+			aria-label="${__("Search")}"
+		>
+			<span class="sidebar-item-icon">${frappe.utils.icon("search", "md")}</span>
+		</button>`);
+
+		$search.tooltip({ boundary: "window", container: "body", trigger: "hover" });
+		this.$actions.append($search);
 	}
 
 	// Notification bell pinned above the user avatar. It carries the `sidebar-notification` /
@@ -42,7 +67,6 @@ frappe.ui.WorkspaceDock = class WorkspaceDock {
 	// the sidebar's own bell does. Set up once (make() runs once) so the handler isn't re-bound.
 	render_notifications() {
 		if (frappe.session.user === "Guest" || !frappe.boot.desk_settings.notifications) {
-			this.$actions.addClass("hidden");
 			return;
 		}
 
