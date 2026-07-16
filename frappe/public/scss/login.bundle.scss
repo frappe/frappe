@@ -78,8 +78,6 @@ body {
 			gap: 12px;
 
 			.social-logins {
-				@include get_textstyle("base", "regular");
-
 				.btn-salesforce i {
 					color: var(--blue-400);
 				}
@@ -108,12 +106,9 @@ body {
 				align-items: center;
 				gap: 8px;
 				align-self: stretch;
-				@include get_textstyle("base", "regular");
-				color: var(--ink-gray-6);
-				margin-bottom: 0;
 
 				a {
-					color: var(--ink-gray-6);
+					color: inherit;
 					text-decoration: underline;
 				}
 			}
@@ -159,9 +154,6 @@ body {
 
 			.field-error {
 				display: none;
-				@include get_textstyle("base", "regular");
-				color: var(--ink-red-8);
-				margin-bottom: 0;
 			}
 
 			.form-group.invalid {
@@ -173,26 +165,6 @@ body {
 
 				.field-error {
 					display: block;
-				}
-			}
-
-			.form-label {
-				@include get_textstyle("base", "regular");
-				color: var(--ink-gray-5);
-				width: 100%;
-				line-height: 115%;
-				margin-bottom: 0;
-			}
-
-			.forgot-password-message {
-				text-align: right;
-				align-self: stretch;
-				line-height: 115%;
-				margin-bottom: 0;
-
-				> * {
-					color: var(--ink-gray-5);
-					@include get_textstyle("base", "regular");
 				}
 			}
 
@@ -237,14 +209,9 @@ body {
 	.sign-up-message {
 		margin-top: auto;
 		margin-bottom: 0;
-		color: var(--ink-gray-6);
-		@include get_textstyle("sm", "regular");
-		line-height: 150%;
 
 		a {
-			color: var(--ink-gray-6);
-			font-weight: var(--weight-regular);
-			letter-spacing: 0.195px;
+			color: inherit;
 			text-decoration-line: underline;
 			text-decoration-style: solid;
 			text-decoration-skip-ink: none;
@@ -301,49 +268,9 @@ body {
 		gap: 6px;
 		align-self: stretch;
 	}
-
-	h4 {
-		margin: 0;
-		font-size: var(--text-2xl);
-		font-weight: var(--weight-bold);
-		letter-spacing: 0.01em;
-		line-height: 115%;
-		color: var(--heading-color);
-		align-self: stretch;
-	}
-
-	.page-card-subtitle {
-		margin: 0;
-		font-size: var(--text-base);
-		font-weight: var(--weight-regular);
-		line-height: 150%;
-		letter-spacing: 0.28px;
-		color: var(--ink-gray-6);
-	}
 }
 
 .for-reset-password {
-	.password-hint {
-		@include get_textstyle("sm", "regular");
-		color: var(--ink-gray-5);
-		margin-bottom: 0;
-		line-height: 150%;
-
-		&.hidden {
-			display: none;
-		}
-	}
-
-	.password-mismatch-message {
-		@include get_textstyle("sm", "regular");
-		color: var(--ink-red-8);
-		margin-bottom: 0;
-
-		&.hidden {
-			display: none;
-		}
-	}
-
 	.password-label-row {
 		display: flex;
 		justify-content: space-between;
@@ -352,34 +279,21 @@ body {
 		gap: 8px;
 	}
 
-	.password-strength-indicator {
-		@include get_textstyle("sm", "regular");
-		color: var(--ink-gray-5);
-		line-height: 150%;
-		white-space: nowrap;
-
-		&.hidden {
-			display: none;
+	.password-strength-value {
+		&.strength-red {
+			color: var(--red-700);
 		}
 
-		.password-strength-value {
-			@include get_textstyle("sm", "medium");
+		&.strength-orange {
+			color: var(--orange-700);
+		}
 
-			&.strength-red {
-				color: var(--red-700);
-			}
+		&.strength-blue {
+			color: var(--blue-700);
+		}
 
-			&.strength-orange {
-				color: var(--orange-700);
-			}
-
-			&.strength-blue {
-				color: var(--blue-700);
-			}
-
-			&.strength-green {
-				color: var(--green-700);
-			}
+		&.strength-green {
+			color: var(--green-700);
 		}
 	}
 }
