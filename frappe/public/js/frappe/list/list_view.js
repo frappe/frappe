@@ -291,7 +291,9 @@ frappe.views.ListView = class ListView extends frappe.views.BaseList {
 			const doctype_name = __(frappe.router.doctype_layout) || __(this.doctype);
 			const add_button_label = __("Add {0}", [doctype_name], "Primary action in list view");
 			const create_button = this.page.set_primary_action(
-				add_button_label,
+				// CSS swaps to the short label below the md breakpoint, so the
+				// button stays right when the window is resized
+				{ label: add_button_label, short_label: __("Add") },
 				() => {
 					if (this.settings.primary_action) {
 						this.settings.primary_action();
@@ -319,11 +321,7 @@ frappe.views.ListView = class ListView extends frappe.views.BaseList {
 				),
 				page: this.page,
 			});
-			if (frappe.is_mobile()) {
-				create_button.append(__("Add"));
-			} else {
-				this._trim_primary_action_if_overflow(create_button, add_button_label);
-			}
+			this._trim_primary_action_if_overflow(create_button, add_button_label);
 		} else {
 			frappe.ui.keys.off("ctrl+b", this.page);
 			this.page.clear_primary_action();
@@ -338,7 +336,9 @@ frappe.views.ListView = class ListView extends frappe.views.BaseList {
 		if (btnRect.right > containerRect.right) {
 			const short_label = __("Add");
 			btn.attr("title", add_button_label).tooltip();
-			btn.find("span").text(short_label);
+			// only the full label span — the button also holds the spinner,
+			// loading-label and short-label spans
+			btn.find(".es-button__label").first().text(short_label);
 		}
 	}
 
