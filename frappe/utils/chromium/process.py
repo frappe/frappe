@@ -209,11 +209,15 @@ class ChromiumManager:
 		"""
 		stderr = self._chromium_process.stderr
 		start_time = time.time()
+		output = []
 
 		while time.time() - start_time < self.START_TIMEOUT:
 			# Read a single line from stderr and check if it contains the DevTools URL.
 			# Not using select() because it is not supported on Windows for non-socket file descriptors.
 			line = stderr.readline()
+			if not line:
+				break
+			output.append(line)
 			# not sure if "DevTools listening on" is consistent in all chromium versions.
 			if "DevTools listening on" in line:
 				url_start = line.find("ws://")
@@ -221,9 +225,28 @@ class ChromiumManager:
 					self._devtools_url = line[url_start:].strip()
 					break
 
-		if not self._devtools_url:
+		if self._devtools_url:
+			return
+
+		self._raise_start_failure(output)
+
+	def _raise_start_failure(self, output):
+		"""Report why Chromium never handed us a DevTools URL, quoting its own stderr."""
+		exit_code = self._chromium_process.poll()
+		chromium_output = "".join(output).strip() or "<no output on stderr>"
+
+		if exit_code is None:
 			self._chromium_process.terminate()
-			raise TimeoutError("Chromium took too long to start.")
+			raise TimeoutError(
+				f"Chromium did not report a DevTools URL within {self.START_TIMEOUT}s. "
+				f"Raise `chromium_start_timeout` in site config if this machine is slow.\n"
+				f"Chromium output:\n{chromium_output}"
+			)
+
+		raise RuntimeError(
+			f"Chromium exited with code {exit_code} before reporting a DevTools URL.\n"
+			f"Chromium output:\n{chromium_output}"
+		)
 
 	def _close_browser(self):
 		"""
