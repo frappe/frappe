@@ -14,7 +14,6 @@ frappe.ui.form.on("Print Format", "onload", function (frm) {
 
 frappe.ui.form.on("Print Format", {
 	refresh: function (frm) {
-		frm.set_intro("");
 		frm.toggle_enable(["html", "doc_type", "module"], false);
 		if (frappe.session.user === "Administrator" || frm.doc.standard === "No") {
 			frm.toggle_enable(["html", "doc_type", "module"], true);
@@ -38,11 +37,7 @@ frappe.ui.form.on("Print Format", {
 						frappe.msgprint(__("Please select DocType first"));
 						return;
 					}
-					if (frm.doc.print_format_builder_beta) {
-						frappe.set_route("print-format-builder", frm.doc.name);
-					} else {
-						frappe.set_route("print-format-builder-classic", frm.doc.name);
-					}
+					frappe.set_route("print-format-builder", frm.doc.name);
 				});
 			}
 			if (frappe.model.can_write("Customize Form")) {

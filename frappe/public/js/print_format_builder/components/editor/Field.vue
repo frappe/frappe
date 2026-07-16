@@ -99,13 +99,18 @@
 					<table
 						class="table"
 						:class="{ 'table-bordered': df.table_bordered !== false }"
+						:style="
+							df.table_bordered !== false && df.table_border_color
+								? { borderColor: df.table_border_color }
+								: {}
+						"
 					>
 						<thead v-if="df.table_header !== 'none'">
 							<!-- inline !important mirrors the server markup: the shared
 								     stylesheet's own !important rules must lose to these -->
 							<tr
 								:style="
-									df.table_header_bg
+									df.table_header_bg && df.table_header !== 'plain'
 										? `background-color: ${df.table_header_bg} !important`
 										: ''
 								"
@@ -506,7 +511,6 @@ const preview_root = computed(() => {
 			classes: [
 				"child-table",
 				`child-table--${df.table_style || "lined"}`,
-				df.table_bordered === false ? "child-table--borderless" : "",
 				df.table_header === "plain" ? "child-table--plain-header" : "",
 			],
 			style: custom,

@@ -45,6 +45,7 @@ def get_meta(doctype, cached=True) -> "FormMeta":
 		#       In prod don't use cached meta when explicitly requesting from DB.
 		meta = FormMeta(doctype, cached=frappe.conf.developer_mode)
 
+	assert isinstance(meta, FormMeta), "get_meta must return a FormMeta instance"
 	return meta
 
 

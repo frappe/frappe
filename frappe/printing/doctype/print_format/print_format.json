@@ -43,6 +43,7 @@
   "section_break_13",
   "print_format_help",
   "format_data",
+  "classic_format_data",
   "print_format_builder",
   "print_format_builder_beta"
  ],
@@ -230,6 +231,14 @@
    "label": "Format Data"
   },
   {
+   "fieldname": "classic_format_data",
+   "fieldtype": "Code",
+   "hidden": 1,
+   "label": "Classic Format Data",
+   "no_copy": 1,
+   "read_only": 1
+  },
+  {
    "default": "0",
    "fieldname": "print_format_builder",
    "fieldtype": "Check",
@@ -317,7 +326,7 @@
  "icon": "fa fa-print",
  "idx": 1,
  "links": [],
- "modified": "2026-07-03 01:28:04.950020",
+ "modified": "2026-07-12 12:00:00.000000",
  "modified_by": "Administrator",
  "module": "Printing",
  "name": "Print Format",

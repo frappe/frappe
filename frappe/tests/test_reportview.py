@@ -1,8 +1,17 @@
 # Copyright (c) 2019, Frappe Technologies Pvt. Ltd. and Contributors
 # License: MIT. See LICENSE
 
+import json
+
 import frappe
-from frappe.desk.reportview import export_query, extract_fieldnames, get, get_filter_dashboard_data, get_stats
+from frappe.desk.reportview import (
+	_reorder_by_visible_names,
+	export_query,
+	extract_fieldnames,
+	get,
+	get_filter_dashboard_data,
+	get_stats,
+)
 from frappe.tests import IntegrationTestCase
 
 
@@ -67,6 +76,43 @@ class TestReportview(IntegrationTestCase):
 					for row in reader:
 						self.assertEqual(int(row["Is Single"]), 1)
 						self.assertEqual(row["Module"], "Core")
+
+	def test_reorder_by_visible_names(self):
+		fields = ["`tabDocType`.`name`", "`tabDocType`.`module`"]
+		ret = [
+			("DocType", "Core"),
+			("DocField", "Core"),
+			("Report", "Core"),
+		]
+		# Reorder — server-order was DocType, DocField, Report; client shows Report first.
+		reordered = _reorder_by_visible_names(ret, fields, "DocType", ["Report", "DocType"])
+		self.assertEqual(reordered, [("Report", "Core"), ("DocType", "Core")])
+
+		# When name column can't be located, fall back to ret unchanged.
+		fields_without_name = ["`tabDocType`.`module`"]
+		ret_no_name = [("Core",), ("Website",)]
+		unchanged = _reorder_by_visible_names(ret_no_name, fields_without_name, "DocType", ["x"])
+		self.assertEqual(unchanged, ret_no_name)
+
+	def test_export_query_preserves_visible_names_order(self):
+		from csv import DictReader
+		from io import StringIO
+
+		# Pick three known DocTypes and request them in a non-alphabetical order.
+		desired_order = ["Report", "DocType", "DocField"]
+		frappe.local.form_dict = frappe._dict(
+			doctype="DocType",
+			file_format_type="CSV",
+			fields=("`tabDocType`.`name`", "`tabDocType`.`module`"),
+			filters={"name": ("in", desired_order)},
+			order_by="`tabDocType`.`name` asc",  # would otherwise sort alphabetically
+			visible_names=json.dumps(desired_order),
+		)
+		export_query()
+		with StringIO(frappe.response["filecontent"].decode("utf-8")) as buf:
+			rows = list(DictReader(buf))
+		names_in_export = [row["ID"] for row in rows if row.get("ID") in desired_order]
+		self.assertEqual(names_in_export, desired_order)
 
 	def test_extract_fieldname(self):
 		self.assertEqual(

@@ -160,6 +160,140 @@ class TestPrintFormatGenerator(IntegrationTestCase):
 		# The CSS block should encode 20mm top/bottom margins
 		self.assertIn("20mm", html)
 
+	def test_screen_preview_is_full_page_width(self):
+		"""On screen the preview sheet is the full page width (A4 = 210mm) with the
+		margins as padding, so it looks like a page — not the narrow content width."""
+		from frappe.utils.print_format_generator import get_html
+
+		pf = self._make_print_format()
+		todo = self._make_todo()
+		html = get_html("ToDo", todo.name, pf.name)
+		self.assertIn("max-width: 210mm !important", html)
+		self.assertIn("box-sizing: border-box", html)
+
+	def test_browser_print_keeps_page_margins_on_every_page(self):
+		"""Browser print takes its margins from @page, not from body padding: padding
+		only applies to the first/last page, so interior pages would lose them."""
+		from frappe.utils.print_format_generator import get_html
+
+		pf = self._make_print_format(margin_top=20, margin_bottom=20)
+		todo = self._make_todo()
+		html = get_html("ToDo", todo.name, pf.name)
+
+		page_rule = html[html.find("@page") : html.find("html, body {", html.find("@page"))]
+		self.assertIn("margin-top: 20mm", page_rule)
+		self.assertIn("margin-bottom: 20mm", page_rule)
+		self.assertNotIn("margin: 0;", page_rule)
+		self.assertLess(html.find("@media screen"), html.find("padding: 20mm"))
+
+	def test_render_pdf_passes_password_to_chrome(self):
+		"""Encrypted PDFs (attach_print(password=...)) must stay encrypted on the
+		generator path — the chrome pipeline encrypts from options['password']."""
+		from unittest.mock import patch
+
+		from frappe.utils.print_format_generator import PrintFormatGenerator
+
+		pf = self._make_print_format()
+		todo = self._make_todo()
+		generator = PrintFormatGenerator(pf, todo)
+
+		with patch("frappe.utils.pdf.get_chrome_pdf", return_value=b"%PDF-") as chrome_pdf:
+			generator.render_pdf(password="s3cret")
+		self.assertEqual(chrome_pdf.call_args.kwargs["options"]["password"], "s3cret")
+
+		with patch("frappe.utils.pdf.get_chrome_pdf", return_value=b"%PDF-") as chrome_pdf:
+			generator.render_pdf()
+		self.assertNotIn("password", chrome_pdf.call_args.kwargs["options"])
+
+	def test_permlevel_restricted_fields_are_dropped(self):
+		"""A layout may reference permlevel-restricted fields; readers without access
+		to that permlevel must not get them in the print output."""
+		from unittest.mock import patch
+
+		from frappe.utils.print_format_generator import PrintFormatGenerator
+
+		pf = self._make_print_format()
+		todo = self._make_todo()
+
+		layout = json.loads(pf.format_data)
+		layout["sections"][0]["columns"][0]["fields"].append(
+			{"fieldtype": "Data", "fieldname": "_secret", "label": "Secret"}
+		)
+		pf.format_data = json.dumps(layout)
+
+		restricted = frappe._dict(fieldname="_secret", fieldtype="Data", permlevel=1, label="Secret")
+		get_field = todo.meta.get_field
+
+		def get_field_with_secret(fieldname):
+			return restricted if fieldname == "_secret" else get_field(fieldname)
+
+		with patch.object(todo.meta, "get_field", side_effect=get_field_with_secret):
+			with patch.object(todo, "has_permlevel_access_to", return_value=False):
+				fieldnames = self._layout_fieldnames(PrintFormatGenerator(pf, todo))
+			self.assertNotIn("_secret", fieldnames)
+			self.assertIn("description", fieldnames)
+
+			with patch.object(todo, "has_permlevel_access_to", return_value=True):
+				fieldnames = self._layout_fieldnames(PrintFormatGenerator(pf, todo))
+			self.assertIn("_secret", fieldnames)
+
+	def _layout_fieldnames(self, generator):
+		return [
+			df.get("fieldname")
+			for column in generator.layout_columns(generator.layout)
+			for df in column.get("fields", [])
+		]
+
+	def test_get_print_degrades_for_deleted_format(self):
+		"""A print_format name that no longer exists must not raise DoesNotExistError
+		during pdf_generator resolution — it degrades to the Standard render, so
+		notifications referencing a removed format still send."""
+		from frappe.utils.print_utils import _print_format_doc_or_none
+
+		self.assertIsNone(_print_format_doc_or_none("_No Such Format ZZZ"))
+		self.assertIsNone(_print_format_doc_or_none("Standard"))
+		self.assertIsNone(_print_format_doc_or_none(None))
+
+	def test_standard_print_follows_print_settings_pdf_generator(self):
+		"""Standard (no print format) must honour Print Settings, while a beta format
+		stays pinned to chrome — wkhtmltopdf cannot lay out its flexbox columns."""
+		from frappe.utils.print_utils import resolve_pdf_generator
+
+		beta = self._make_print_format()
+		original = frappe.db.get_single_value("Print Settings", "pdf_generator")
+		self.addCleanup(frappe.db.set_single_value, "Print Settings", "pdf_generator", original)
+
+		for setting in ("wkhtmltopdf", "chrome"):
+			frappe.db.set_single_value("Print Settings", "pdf_generator", setting)
+			self.assertEqual(resolve_pdf_generator(None), setting)
+			self.assertEqual(resolve_pdf_generator(beta), "chrome")
+
+		frappe.db.set_single_value("Print Settings", "pdf_generator", "wkhtmltopdf")
+		self.assertEqual(resolve_pdf_generator(None, "chrome"), "chrome")
+
+	# ------------------------------------------------------------------ #
+	# printpreview: Standard (no format selected) renders the beta default
+	# ------------------------------------------------------------------ #
+
+	def test_printpreview_standard_renders_beta_default(self):
+		"""With no print_format, /printpreview must render the beta default document
+		itself — a full page with a single set of margins — not fall back to the old
+		classic wrapper that produced double padding."""
+		from frappe.www import printpreview
+
+		todo = self._make_todo()
+		frappe.form_dict.doctype = "ToDo"
+		frappe.form_dict.name = todo.name
+		frappe.form_dict.pop("print_format", None)
+		self.addCleanup(lambda: frappe.form_dict.pop("doctype", None))
+		self.addCleanup(lambda: frappe.form_dict.pop("name", None))
+
+		context = frappe._dict()
+		printpreview.get_context(context)
+
+		self.assertIn("print-format-doc", context.body)
+		self.assertNotIn("print-format-preview", context.body)
+
 	# ------------------------------------------------------------------ #
 	# render_jinja_template: whitelisted endpoint
 	# ------------------------------------------------------------------ #
@@ -891,3 +1025,267 @@ class TestPrintFormatGenerator(IntegrationTestCase):
 		body = html.split("<body", 1)[1]
 		self.assertNotIn("field-justify-", body)
 		self.assertNotIn("field left-right", body)
+
+	# ------------------------------------------------------------------ #
+	# draft / cancelled heading + docstatus guard (new renderer)
+	# ------------------------------------------------------------------ #
+
+	def _make_submittable_doc(self, target_docstatus=0):
+		"""Create a submittable doctype + one document at the requested docstatus."""
+		from frappe.core.doctype.doctype.test_doctype import new_doctype
+
+		dt = new_doctype(
+			is_submittable=1,
+			fields=[{"label": "Title", "fieldname": "title", "fieldtype": "Data"}],
+		).insert(ignore_permissions=True)
+		self.addCleanup(frappe.delete_doc, "DocType", dt.name, force=1)
+
+		doc = frappe.new_doc(dt.name)
+		doc.title = "Doc Title"
+		doc.insert(ignore_permissions=True)
+		if target_docstatus >= 1:
+			doc.submit()
+		if target_docstatus == 2:
+			doc.cancel()
+		return doc
+
+	def _render_standard(self, doc):
+		from frappe.www.printview import get_html_and_style
+
+		return get_html_and_style(doc=doc.as_json(), print_format="Standard", no_letterhead=1)["html"] or ""
+
+	def test_draft_heading_rendered(self):
+		"""A draft submittable document prints the DRAFT heading."""
+		with self.change_settings("Print Settings", allow_print_for_draft=1, add_draft_heading=1):
+			html = self._render_standard(self._make_submittable_doc(0))
+		self.assertIn('document-status="draft"', html)
+
+	def test_draft_heading_suppressed_by_print_setting(self):
+		"""add_draft_heading=0 hides the DRAFT heading even for a draft document."""
+		with self.change_settings("Print Settings", allow_print_for_draft=1, add_draft_heading=0):
+			html = self._render_standard(self._make_submittable_doc(0))
+		# bare "document-status" also matches the CSS selector, so assert on the banner markup
+		self.assertNotIn('document-status="draft"', html)
+
+	def test_cancelled_heading_rendered(self):
+		"""A cancelled document prints the CANCELLED heading (not gated by a setting)."""
+		with self.change_settings("Print Settings", allow_print_for_cancelled=1):
+			html = self._render_standard(self._make_submittable_doc(2))
+		self.assertIn('document-status="cancelled"', html)
+
+	def test_submitted_doc_has_no_status_heading(self):
+		"""A submitted document has neither DRAFT nor CANCELLED heading."""
+		html = self._render_standard(self._make_submittable_doc(1))
+		self.assertNotIn('document-status="draft"', html)
+		self.assertNotIn('document-status="cancelled"', html)
+
+	def test_draft_print_blocked_when_not_allowed(self):
+		"""The new renderer enforces the draft-print guard on the beta path."""
+		with self.change_settings("Print Settings", allow_print_for_draft=0):
+			doc = self._make_submittable_doc(0)
+			self.assertRaises(frappe.PermissionError, self._render_standard, doc)
+
+	def test_download_pdf_blocked_for_draft(self):
+		"""download_pdf refuses to render a draft when printing drafts is disallowed."""
+		from frappe.utils.print_format_generator import download_pdf
+
+		with self.change_settings("Print Settings", allow_print_for_draft=0):
+			doc = self._make_submittable_doc(0)
+			self.assertRaises(frappe.PermissionError, download_pdf, doc.doctype, doc.name, "Standard")
+
+	def test_get_html_blocks_draft(self):
+		"""get_html (the printview / printpreview render path) enforces the draft guard."""
+		from frappe.utils.print_format_generator import get_html
+
+		with self.change_settings("Print Settings", allow_print_for_draft=0):
+			doc = self._make_submittable_doc(0)
+			self.assertRaises(frappe.PermissionError, get_html, doc.doctype, doc.name, "Standard")
+
+	def test_attach_print_beta_blocks_draft(self):
+		"""attach_print's beta branch enforces the draft guard before rendering."""
+		doc = self._make_submittable_doc(0)
+		pf = frappe.get_doc(
+			{
+				"doctype": "Print Format",
+				"name": f"_Test PFG Sub {frappe.generate_hash(length=6)}",
+				"doc_type": doc.doctype,
+				"print_format_builder_beta": 1,
+				"custom_format": 0,
+				"standard": "No",
+				"format_data": json.dumps(
+					{
+						"sections": [
+							{
+								"label": "",
+								"columns": [
+									{"label": "", "fields": [{"fieldtype": "Data", "fieldname": "title"}]}
+								],
+							}
+						],
+						"header": {"columns": [{"label": "", "fields": []}]},
+						"footer": {"columns": [{"label": "", "fields": []}]},
+					}
+				),
+			}
+		).insert(ignore_permissions=True)
+		self.addCleanup(pf.delete, ignore_permissions=True)
+		with self.change_settings("Print Settings", allow_print_for_draft=0, send_print_as_pdf=1):
+			self.assertRaises(
+				frappe.PermissionError, frappe.attach_print, doc.doctype, doc.name, print_format=pf.name
+			)
+
+	# ------------------------------------------------------------------ #
+	# empty child-table column pruning (new renderer)
+	# ------------------------------------------------------------------ #
+
+	def test_empty_child_table_columns_pruned(self):
+		"""Columns blank in every row are dropped; populated columns are kept."""
+		from frappe.core.doctype.doctype.test_doctype import new_doctype
+
+		child = new_doctype(
+			istable=1,
+			fields=[
+				{"label": "Col A", "fieldname": "col_a", "fieldtype": "Data"},
+				{"label": "Col B", "fieldname": "col_b", "fieldtype": "Data"},
+			],
+		).insert(ignore_permissions=True)
+		self.addCleanup(frappe.delete_doc, "DocType", child.name, force=1)
+
+		parent = new_doctype(
+			fields=[{"label": "Items", "fieldname": "items", "fieldtype": "Table", "options": child.name}],
+		).insert(ignore_permissions=True)
+		self.addCleanup(frappe.delete_doc, "DocType", parent.name, force=1)
+
+		doc = frappe.new_doc(parent.name)
+		doc.append("items", {"col_a": "filled", "col_b": ""})
+		doc.append("items", {"col_a": "more", "col_b": ""})
+		doc.insert(ignore_permissions=True)
+
+		html = self._render_standard(doc)
+		self.assertIn("Col A", html)
+		self.assertNotIn("Col B", html)
+
+	def test_show_label_colon_setting(self):
+		"""Print Settings ▸ show_label_colon toggles the classic colon body class."""
+		from frappe.utils.print_format_generator import get_html
+
+		pf = self._make_print_format()
+		todo = self._make_todo()
+		with self.change_settings("Print Settings", show_label_colon=0):
+			body = get_html("ToDo", todo.name, pf.name).split("<body", 1)[1][:200]
+			self.assertNotIn("show-label-colon", body)
+		with self.change_settings("Print Settings", show_label_colon=1):
+			body = get_html("ToDo", todo.name, pf.name).split("<body", 1)[1][:200]
+			self.assertIn("show-label-colon", body)
+
+	# ------------------------------------------------------------------ #
+	# repeating letterhead header / footer (repeat_header_footer setting)
+	# ------------------------------------------------------------------ #
+
+	def _make_letterhead(self):
+		"""Create a Letter Head with distinct header + footer markers."""
+		lh = frappe.get_doc(
+			{
+				"doctype": "Letter Head",
+				"letter_head_name": f"_Test PFG LH {frappe.generate_hash(length=6)}",
+				"source": "HTML",
+				"content": '<div class="pfg-lh">LETTERHEAD_TOP</div>',
+				"footer": '<div class="pfg-lf">LETTERHEAD_BOTTOM</div>',
+			}
+		)
+		lh.insert(ignore_permissions=True)
+		self.addCleanup(lh.delete, ignore_permissions=True)
+		return lh
+
+	def test_repeat_header_footer_on_repeats_letterhead_every_page(self):
+		"""With repeat_header_footer enabled, the letterhead header and footer are placed
+		in the #header-html / #footer-html overlay divs that Chrome stamps on every page,
+		and are NOT also rendered inline in the body (which would appear once only)."""
+		from frappe.utils.print_format_generator import PrintFormatGenerator
+
+		lh = self._make_letterhead()
+		pf = self._make_print_format()
+		todo = self._make_todo()
+
+		with self.change_settings("Print Settings", repeat_header_footer=1):
+			gen = PrintFormatGenerator(pf.name, todo, lh.name)
+			gen._build_html_for_chrome()
+
+		self.assertIn('id="header-html"', gen.context.header)
+		self.assertIn("LETTERHEAD_TOP", gen.context.header)
+		self.assertIn('id="footer-html"', gen.context.footer)
+		self.assertIn("LETTERHEAD_BOTTOM", gen.context.footer)
+		self.assertEqual(gen.context.chrome_layout_header, "")
+		self.assertEqual(gen.context.chrome_layout_footer, "")
+
+	def test_repeat_header_footer_off_renders_letterhead_once(self):
+		"""With repeat_header_footer disabled, the letterhead header renders inline once
+		(top of body → first page) and the footer inline once (end of body → last page);
+		neither goes into the repeating #header-html / #footer-html overlay."""
+		from frappe.utils.print_format_generator import PrintFormatGenerator
+
+		lh = self._make_letterhead()
+		pf = self._make_print_format()
+		todo = self._make_todo()
+
+		with self.change_settings("Print Settings", repeat_header_footer=0):
+			gen = PrintFormatGenerator(pf.name, todo, lh.name)
+			gen._build_html_for_chrome()
+
+		self.assertIn("LETTERHEAD_TOP", gen.context.chrome_layout_header)
+		self.assertIn("LETTERHEAD_BOTTOM", gen.context.chrome_layout_footer)
+		self.assertNotIn("LETTERHEAD_TOP", gen.context.header or "")
+		self.assertNotIn("LETTERHEAD_BOTTOM", gen.context.footer or "")
+
+	def test_browser_print_wraps_letterhead_in_repeating_frame(self):
+		"""With repeat_header_footer on, the browser-print HTML wraps the body in a
+		thead/tfoot table (display: table-header-group) so the browser reprints the
+		letterhead header in the thead and footer in the tfoot on every page."""
+		from frappe.utils.print_format_generator import get_html
+
+		lh = self._make_letterhead()
+		pf = self._make_print_format()
+		todo = self._make_todo()
+		with self.change_settings("Print Settings", repeat_header_footer=1):
+			html = get_html("ToDo", todo.name, pf.name, lh.name)
+
+		self.assertIn("print-repeating-frame", html)
+		self.assertIn("table-header-group", html)
+		# header must sit inside <thead>, footer inside <tfoot> (so the browser repeats them)
+		thead = html.split("<thead>", 1)[1].split("</thead>", 1)[0]
+		tfoot = html.split("<tfoot>", 1)[1].split("</tfoot>", 1)[0]
+		self.assertIn("LETTERHEAD_TOP", thead)
+		self.assertNotIn("LETTERHEAD_BOTTOM", thead)
+		self.assertIn("LETTERHEAD_BOTTOM", tfoot)
+
+	def test_empty_beta_format_renders_via_beta_renderer(self):
+		"""A beta format with empty format_data (e.g. create_custom_format based_on
+		'Standard') must route to the beta renderer, not fall through to the removed
+		classic standard.html and raise TemplateNotFoundError."""
+		from frappe.printing.doctype.print_format.classic_converter import uses_beta_renderer
+		from frappe.printing.doctype.print_format.print_format import create_custom_format
+		from frappe.utils.print_format_generator import get_html
+
+		todo = self._make_todo()
+		pf = create_custom_format("ToDo", f"_Test PFG Empty {frappe.generate_hash(length=6)}")
+		self.addCleanup(pf.delete, ignore_permissions=True)
+
+		self.assertTrue(pf.print_format_builder_beta)
+		self.assertFalse(pf.format_data)
+		self.assertTrue(uses_beta_renderer(pf))
+		html = get_html("ToDo", todo.name, pf.name)
+		self.assertIn("print-format-doc", html)
+
+	def test_browser_print_no_repeating_frame_when_off(self):
+		"""With repeat_header_footer off, the browser-print HTML is not wrapped in the
+		repeating table — the letterhead renders inline once."""
+		from frappe.utils.print_format_generator import get_html
+
+		lh = self._make_letterhead()
+		pf = self._make_print_format()
+		todo = self._make_todo()
+		with self.change_settings("Print Settings", repeat_header_footer=0):
+			html = get_html("ToDo", todo.name, pf.name, lh.name)
+
+		self.assertNotIn("print-repeating-frame", html)
+		self.assertIn("LETTERHEAD_TOP", html)
