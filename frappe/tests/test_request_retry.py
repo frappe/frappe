@@ -3,11 +3,12 @@
 
 import frappe
 from frappe.tests.test_api import FrappeAPITestCase
+from frappe.tests.utils import whitelist_for_tests
 
 calls = {"flaky": 0, "after_commit": 0}
 
 
-@frappe.whitelist(allow_guest=True)
+@whitelist_for_tests(allow_guest=True)
 def flaky_method():
 	calls["flaky"] += 1
 	if calls["flaky"] == 1:
@@ -15,7 +16,7 @@ def flaky_method():
 	return "ok"
 
 
-@frappe.whitelist(allow_guest=True)
+@whitelist_for_tests(allow_guest=True)
 def conflict_after_commit():
 	calls["after_commit"] += 1
 	frappe.db.commit()
