@@ -86,6 +86,8 @@ onMounted(() => {
 			options: doctype.value,
 			change: () => {
 				docname.value = doc_select.value.get_value();
+				// keep the editor's preview selection in sync with the preview
+				store.value.load_preview_doc(docname.value || null);
 			},
 		},
 		render_input: true,
@@ -104,9 +106,17 @@ onMounted(() => {
 		render_input: true,
 	});
 	preview_type.value.set_value(type.value);
-	get_default_docname().then((doc_name) => {
-		doc_name && doc_select.value.set_value(doc_name);
-	});
+	// Prefer the document already chosen while editing; only fall back to a
+	// default when nothing has been selected yet. `store` is ref(inject("$store")),
+	// so `store.value` is a reactive proxy that unwraps preview_doc_name to a string.
+	const selected = store.value.preview_doc_name;
+	if (selected) {
+		doc_select.value.set_value(selected);
+	} else {
+		get_default_docname().then((doc_name) => {
+			doc_name && doc_select.value.set_value(doc_name);
+		});
+	}
 });
 </script>
 

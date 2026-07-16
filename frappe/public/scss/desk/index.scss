@@ -21,7 +21,6 @@
 @import "doctype_settings";
 @import "../common/about";
 @import "slides";
-@import "toast";
 @import "breadcrumb";
 @import "../common/indicator";
 @import "tags";
@@ -34,6 +33,7 @@
 @import "../common/awesomeplete";
 @import "main";
 @import "sidebar";
+@import "workspace_dock";
 @import "list_sidebar";
 @import "form_sidebar";
 @import "filters";
@@ -61,6 +61,6 @@
 @import "version";
 @import "menu";
 @import "sidebar_header";
-@import "sidebar_card";
+@import "card";
 @import "workspace_picker";
 @import "document_template";

@@ -182,7 +182,6 @@ def document_list(doctype: str) -> list[dict[str, Any]]:
 			frappe.throw(_("Error in {0}.get_list: {1}").format(doctype, str(e)))
 
 	data = query.run(as_dict=as_dict, debug=debug, as_list=not as_dict)
-	assert isinstance(data, list), "query.run must return a list of records"
 	frappe.response["has_next_page"] = len(data) > limit
 	return data[:limit]
 
@@ -255,6 +254,9 @@ def execute_doc_method(doctype: str, name: str, method: str | None = None):
 	method = method or frappe.form_dict.pop("run_method")
 	doc = frappe.get_doc(doctype, name)
 	doc.is_whitelisted(method)
+	method_obj = getattr(doc, method)
+	fn = getattr(method_obj, "__func__", method_obj)
+	is_valid_http_method(fn)
 
 	assert frappe.request.method in PERMISSION_MAP, "execute_doc_method route is only mounted for GET/POST"
 	doc.check_permission(PERMISSION_MAP[frappe.request.method])
@@ -389,6 +391,7 @@ def execute_bulk_delete(docs: list):
 			frappe.db.rollback(save_point=savepoint)
 			failed.append({"doctype": doctype, "name": name, "error": str(e)})
 
+	assert len(deleted) + len(failed) == len(docs), "every doc must be either deleted or failed exactly once"
 	return {
 		"deleted": deleted,
 		"failed": failed,
@@ -464,6 +467,7 @@ def execute_bulk_update_docs(doctype: str, docs: list):
 			frappe.db.rollback(save_point=savepoint)
 			failed.append({"name": name, "error": str(e)})
 
+	assert len(updated) + len(failed) == len(docs), "every doc must be either updated or failed exactly once"
 	return {
 		"updated": updated,
 		"failed": failed,
@@ -546,6 +550,7 @@ def execute_bulk_update(docs: list):
 			frappe.db.rollback(save_point=savepoint)
 			failed.append({"doctype": doctype, "name": name, "error": str(e)})
 
+	assert len(updated) + len(failed) == len(docs), "every doc must be either updated or failed exactly once"
 	return {
 		"updated": updated,
 		"failed": failed,
@@ -601,6 +606,12 @@ url_rules = [
 	),
 	Rule("/discovery/method", methods=["GET"], endpoint=discovery.methods),
 	Rule("/discovery/method/<method>", methods=["GET"], endpoint=discovery.method),
+	Rule("/discovery/doctype/<doctype>", methods=["GET"], endpoint=discovery.doctype_methods),
+	Rule(
+		"/discovery/doctype/<doctype>/method/<method>",
+		methods=["GET"],
+		endpoint=discovery.doctype_method,
+	),
 	# RPC calls
 	Rule("/method/login", endpoint=login),
 	Rule("/method/logout", endpoint=logout, methods=["POST"]),

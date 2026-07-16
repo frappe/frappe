@@ -1154,6 +1154,8 @@ class DocType(Document):
 				seen_links.add(link_tuple)
 				unique_links.append(link)
 
+		assert len(unique_links) == len(seen_links), "document links must be unique after deduplication"
+
 		if len(unique_links) < len(self.links or []):
 			self.links = unique_links
 
@@ -1792,11 +1794,12 @@ def validate_fields(meta: Meta):
 				)
 
 	def validate_link_filters(docfield):
-		if not docfield.link_filters:
+		link_filters_value = docfield.get("link_filters")
+		if not link_filters_value:
 			return
 
 		try:
-			link_filters = json.loads(docfield.link_filters)
+			link_filters = json.loads(link_filters_value)
 		except (TypeError, ValueError):
 			frappe.throw(
 				_("Invalid Link Filters for field {0}. Link Filters must be valid JSON.").format(
@@ -2048,6 +2051,26 @@ def validate_permissions(doctype, for_remove=False, alert=False):
 					).format(d.idx, frappe.bold(_(d.role))),
 					title=_("Permissions Error"),
 				)
+
+	# `if_owner` is only honoured at permlevel 0. Clear it at higher levels, where it is
+	# ignored, then drop any row that becomes an exact duplicate of another.
+	for d in permissions:
+		if cint(d.permlevel) > 0 and d.if_owner:
+			d.if_owner = 0
+
+	seen = []
+	deduped = []
+	for d in permissions:
+		comparable = d.as_dict(no_default_fields=True)
+		comparable.pop("name", None)
+		if comparable in seen:
+			continue
+		seen.append(comparable)
+		deduped.append(d)
+
+	if len(deduped) != len(permissions):
+		doctype.set("permissions", deduped)
+		permissions = doctype.get("permissions")
 
 	for d in permissions:
 		if not d.permlevel:

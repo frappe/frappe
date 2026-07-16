@@ -37,6 +37,8 @@
   "read_only_depends_on",
   "properties",
   "non_negative",
+  "min_value",
+  "max_value",
   "reqd",
   "unique",
   "is_virtual",
@@ -452,6 +454,18 @@
    "label": "Non Negative"
   },
   {
+   "depends_on": "eval:in_list([\"Int\", \"Float\", \"Currency\", \"Percent\"], doc.fieldtype)",
+   "fieldname": "min_value",
+   "fieldtype": "Float",
+   "label": "Min Value"
+  },
+  {
+   "depends_on": "eval:in_list([\"Int\", \"Float\", \"Currency\", \"Percent\"], doc.fieldtype)",
+   "fieldname": "max_value",
+   "fieldtype": "Float",
+   "label": "Max Value"
+  },
+  {
    "fieldname": "module",
    "fieldtype": "Link",
    "label": "Module (for export)",
@@ -514,7 +528,7 @@
  "idx": 1,
  "index_web_pages_for_search": 1,
  "links": [],
- "modified": "2026-07-08 13:37:37.503488",
+ "modified": "2026-07-11 11:35:29.567463",
  "modified_by": "Administrator",
  "module": "Custom",
  "name": "Custom Field",

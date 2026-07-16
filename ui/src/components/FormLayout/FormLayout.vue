@@ -34,9 +34,9 @@ import FormLayoutSection from "./FormLayoutSection.vue";
 import { useFieldTypes } from "./useFieldTypes";
 import { resolveLayout } from "./resolveLayout";
 import { DocKey, HasTabsKey, ParentDocKey, ResolveFieldKey, UpdateKey } from "./types";
-import type { FormLayoutSchema } from "./types";
+import type { FormLayoutProps } from "./types";
 
-const props = defineProps<{ layout: FormLayoutSchema }>();
+const props = defineProps<FormLayoutProps>();
 
 // `FormLayout` is render-only and emits nothing: its sole outward channel is
 // `v-model:doc`. A consumer that wants "react to any change" uses `watch(doc, …)`;

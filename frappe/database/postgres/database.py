@@ -26,7 +26,7 @@ from psycopg2.errors import (
 	SequenceGeneratorLimitExceeded,
 	SyntaxError,
 )
-from psycopg2.extensions import ISOLATION_LEVEL_READ_COMMITTED
+from psycopg2.extensions import ISOLATION_LEVEL_REPEATABLE_READ
 
 import frappe
 from frappe.database.database import CREATE_OR_DROP, Database
@@ -96,10 +96,10 @@ class PostgresExceptionUtil:
 	@staticmethod
 	def is_deadlocked(e):
 		# Treat serialization failures like deadlocks: both are retriable transaction-rollback
-		# (class 40) errors. READ COMMITTED (the default now) doesn't raise SERIALIZATION_FAILURE
-		# on plain write conflicts, but transactions explicitly run at a stricter level still can;
-		# keep classifying it here so those route through frappe's deadlock retry instead of
-		# surfacing as an unhandled query error.
+		# (class 40) errors. Under REPEATABLE READ, a write-write conflict makes MariaDB lock and
+		# wait, but postgres aborts the loser with SERIALIZATION_FAILURE ("could not serialize
+		# access due to concurrent update"). Classifying it here routes it through frappe's deadlock
+		# retry instead of surfacing as an unhandled query error.
 		return getattr(e, "pgcode", None) in (DEADLOCK_DETECTED, SERIALIZATION_FAILURE)
 
 	@staticmethod
@@ -264,7 +264,7 @@ class PostgresDatabase(PostgresExceptionUtil, Database):
 			conn_settings["port"] = self.port
 
 		conn = psycopg2.connect(**conn_settings)
-		conn.set_isolation_level(ISOLATION_LEVEL_READ_COMMITTED)
+		conn.set_isolation_level(ISOLATION_LEVEL_REPEATABLE_READ)
 
 		return conn
 
@@ -625,6 +625,7 @@ class PostgresDatabase(PostgresExceptionUtil, Database):
 			CASE LOWER(a.data_type)
 				WHEN 'character varying' THEN CONCAT('varchar(', a.character_maximum_length ,')')
 				WHEN 'timestamp without time zone' THEN 'timestamp'
+				WHEN 'time without time zone' THEN CONCAT('time(', a.datetime_precision, ')')
 				WHEN 'integer' THEN 'int'
 				WHEN 'numeric' THEN CONCAT('decimal(', a.numeric_precision, ',', a.numeric_scale, ')')
 				ELSE a.data_type
@@ -646,7 +647,7 @@ class PostgresDatabase(PostgresExceptionUtil, Database):
 			) b ON b.column_name = a.column_name
 			WHERE a.table_name = '{table_name}'
 				AND a.table_schema = '{self.db_schema}'
-			GROUP BY a.column_name, a.data_type, a.column_default, a.character_maximum_length, a.is_nullable, a.numeric_precision, a.numeric_scale;
+			GROUP BY a.column_name, a.data_type, a.column_default, a.character_maximum_length, a.is_nullable, a.numeric_precision, a.numeric_scale, a.datetime_precision;
 		""",
 			as_dict=1,
 		)

@@ -78,10 +78,11 @@ def getdoctype(doctype: str, with_parent: int | bool = False):
 
 
 def get_meta_bundle(doctype):
-	bundle = [frappe.desk.form.meta.get_meta(doctype)]
+	form_meta = frappe.desk.form.meta.get_meta(doctype)
+	bundle = [form_meta.as_dict(no_nulls=True)]
 	bundle.extend(
-		frappe.desk.form.meta.get_meta(df.options)
-		for df in bundle[0].fields
+		frappe.desk.form.meta.get_meta(df.options).as_dict(no_nulls=True, parenttype=doctype)
+		for df in form_meta.fields
 		if df.fieldtype in frappe.model.table_fields
 	)
 	return bundle
@@ -105,6 +106,9 @@ def get_docinfo(
 	communications_except_auto_messages = [
 		msg for msg in all_communications if msg["communication_type"] != "Automated Message"
 	]
+	assert len(automated_messages) + len(communications_except_auto_messages) == len(all_communications), (
+		"every communication must be classified into exactly one message group"
+	)
 
 	docinfo = frappe._dict(user_info={})
 

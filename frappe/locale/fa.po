@@ -3,7 +3,7 @@ msgstr ""
 "Project-Id-Version: frappe\n"
 "Report-Msgid-Bugs-To: developers@frappe.io\n"
 "POT-Creation-Date: 2026-07-05 10:14+0000\n"
-"PO-Revision-Date: 2026-07-05 21:51\n"
+"PO-Revision-Date: 2026-07-15 13:49\n"
 "Last-Translator: developers@frappe.io\n"
 "Language-Team: Persian\n"
 "MIME-Version: 1.0\n"
@@ -8417,7 +8417,7 @@ msgstr "سرور دایرکتوری"
 #: frappe/public/js/frappe/form/doctype_settings/tabs/notification.js:63
 #: frappe/public/js/frappe/form/doctype_settings/tabs/workflow.js:36
 msgid "Disable"
-msgstr "غیر فعال"
+msgstr ""
 
 #. Label of the disable_auto_refresh (Check) field in DocType 'List View
 #. Settings'
@@ -12597,7 +12597,7 @@ msgstr "هر دو هفته یکبار"
 
 #: frappe/public/js/frappe/ui/toolbar/about.js:26
 msgid "Forum"
-msgstr ""
+msgstr "انجمن"
 
 #: frappe/core/doctype/communication/communication.js:70
 msgid "Forward"
@@ -13279,7 +13279,7 @@ msgstr "خاکستری"
 
 #: frappe/www/update-password.html:289
 msgid "Great!"
-msgstr ""
+msgstr "عالیه!"
 
 #: frappe/public/js/frappe/ui/filters/filter.js:23
 msgid "Greater Than"
@@ -18882,7 +18882,7 @@ msgstr "قانون نام‌گذاری"
 
 #: frappe/public/js/frappe/form/doctype_settings/tabs/naming.js:296
 msgid "Naming Rules"
-msgstr ""
+msgstr "قوانین نامگذاری"
 
 #. Label of the naming_series_tab (Tab Break) field in DocType 'Document Naming
 #. Settings'
@@ -19103,7 +19103,7 @@ msgstr "گذرواژه جدید"
 #: frappe/public/js/frappe/form/doctype_settings/tabs/print_format.js:34
 #: frappe/public/js/frappe/form/doctype_settings/tabs/print_format.js:107
 msgid "New Print Format"
-msgstr ""
+msgstr "قالب چاپ جدید"
 
 #: frappe/printing/page/print/print.js:295
 #: frappe/printing/page/print/print.js:386
@@ -19144,7 +19144,7 @@ msgstr "مقدار جدید"
 
 #: frappe/public/js/frappe/form/doctype_settings/tabs/workflow.js:68
 msgid "New Workflow"
-msgstr ""
+msgstr "گردش کار جدید"
 
 #: frappe/workflow/page/workflow_builder/workflow_builder.js:61
 msgid "New Workflow Name"
@@ -19189,7 +19189,7 @@ msgstr "نقش جدید با موفقیت ایجاد شد."
 
 #: frappe/public/js/frappe/form/doctype_settings/tabs/naming.js:132
 msgid "New series"
-msgstr ""
+msgstr "سری جدید"
 
 #: frappe/utils/change_log.py:405
 msgid "New updates are available"
@@ -19369,7 +19369,7 @@ msgstr "بعدی با کلیک"
 
 #: frappe/public/js/frappe/form/doctype_settings/tabs/naming.js:174
 msgid "Next: {0}"
-msgstr ""
+msgstr "بعدی: {0}"
 
 #. Option for the 'Standard' (Select) field in DocType 'Page'
 #. Option for the 'Is Standard' (Select) field in DocType 'Report'
@@ -19864,7 +19864,7 @@ msgstr "هیچ ردیفی انتخاب نشده است"
 
 #: frappe/public/js/frappe/form/doctype_settings/tabs/naming.js:308
 msgid "No rules found."
-msgstr ""
+msgstr "قانونی یافت نشد."
 
 #: frappe/public/js/frappe/list/list_filter/manage_layouts_dialog.js:36
 msgid "No saved layouts yet."
@@ -35525,7 +35525,7 @@ msgstr "مثلاً smtp.gmail.com"
 
 #: frappe/public/js/frappe/form/doctype_settings/tabs/naming.js:135
 msgid "e.g. {0}"
-msgstr ""
+msgstr "مثلاً {0}"
 
 #: frappe/custom/doctype/custom_field/custom_field.js:98
 msgid "e.g.:"
@@ -36767,7 +36767,7 @@ msgstr "{0} ماه پیش"
 
 #: frappe/printing/doctype/print_format/print_format.py:129
 msgid "{0} must be a hex color code like #1a5fb4"
-msgstr ""
+msgstr "{0} باید یک کد رنگ هگز مانند #1a5fb4 باشد"
 
 #: frappe/model/document.py:2338
 msgid "{0} must be after {1}"

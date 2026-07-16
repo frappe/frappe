@@ -948,21 +948,14 @@ frappe.views.CommunicationComposer = class {
 						me.frm.reload_doc();
 					}
 
-					let undo_alert = frappe.show_alert(
-						{
-							message: `<span>${__(
-								"Email Sent"
-							)}</span><span class="cursor-pointer ml-4" data-action="undo" style="font-weight: 500; text-decoration: underline;">${__(
-								"Undo"
-							)}</span>`,
-							indicator: "green",
-						},
-						10,
-						{
-							undo: () => {
-								if (undo_alert) {
-									undo_alert.find(".close").click();
-								}
+					const undo_toast = frappe.ui.toast({
+						message: __("Email Sent"),
+						type: "success",
+						duration: 10000,
+						action: {
+							label: __("Undo"),
+							onclick: () => {
+								undo_toast.dismiss();
 								frappe
 									.xcall(
 										"frappe.core.doctype.communication.email.undo_email_send",
@@ -987,14 +980,14 @@ frappe.views.CommunicationComposer = class {
 											frm: me.frm,
 										});
 
-										frappe.show_alert({
+										frappe.ui.toast({
 											message: __("Email sending undone"),
-											indicator: "blue",
+											type: "info",
 										});
 									});
 							},
-						}
-					);
+						},
+					});
 
 					// try the success callback if it exists
 					if (me.success) {

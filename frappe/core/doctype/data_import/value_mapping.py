@@ -356,4 +356,7 @@ def sync_value_mappings(doc, import_file, lookup: dict | None = None) -> bool:
 	doc.set("value_mappings", [])
 	for row in new_rows:
 		doc.append("value_mappings", row)
+	assert len(doc.get("value_mappings")) == len(new_rows), (
+		"value mappings table must contain exactly the synced rows"
+	)
 	return True

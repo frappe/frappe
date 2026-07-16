@@ -195,6 +195,7 @@ execute:frappe.reload_doc("desk", "doctype", "Form Tour")
 execute:frappe.delete_doc('Page', 'recorder', ignore_missing=True, force=True)
 frappe.patches.v14_0.modify_value_column_size_for_singles
 frappe.integrations.doctype.oauth_bearer_token.patches.clear_old_tokens
+frappe.patches.v16_0.hash_oauth_bearer_tokens
 execute:frappe.db.truncate("Desktop Icon")
 
 [post_model_sync]
@@ -266,3 +267,5 @@ execute:frappe.db.create_sequence_table()  # backfill SQLite sequence emulation 
 frappe.patches.v16_0.migrate_workspace_sidebar_to_workspace
 frappe.patches.v16_0.populate_workspace_sidebar_from_shortcuts
 frappe.desk.doctype.workspace.patches.set_standard_flag
+frappe.patches.v16_0.clear_if_owner_above_permlevel_zero
+frappe.patches.v16_0.migrate_classic_print_formats

@@ -13,6 +13,7 @@
   "client_secret",
   "default_redirect_uri",
   "skip_authorization",
+  "is_dynamic_client",
   "client_metadata_section",
   "app_name",
   "scopes",
@@ -69,6 +70,15 @@
    "fieldname": "skip_authorization",
    "fieldtype": "Check",
    "label": "Skip Authorization"
+  },
+  {
+   "default": "0",
+   "fieldname": "is_dynamic_client",
+   "fieldtype": "Check",
+   "hidden": 1,
+   "label": "Is Dynamic Client",
+   "read_only": 1,
+   "search_index": 1
   },
   {
    "default": "all openid",
@@ -201,7 +211,7 @@
  ],
  "grid_page_length": 50,
  "links": [],
- "modified": "2025-07-04 14:07:36.146393",
+ "modified": "2026-07-11 00:00:00.000000",
  "modified_by": "Administrator",
  "module": "Integrations",
  "name": "OAuth Client",

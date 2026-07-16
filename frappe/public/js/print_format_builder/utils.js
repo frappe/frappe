@@ -160,6 +160,8 @@ export const FIELD_PLUCK_KEYS = [
 	"table_header",
 	"table_cell_padding",
 	"table_radius",
+	"table_header_bg",
+	"table_border_color",
 	"html",
 	"field_template",
 	"source",
@@ -170,6 +172,8 @@ export const FIELD_PLUCK_KEYS = [
 	"label_gap",
 	"visible_if",
 	"custom_style",
+	"value_color",
+	"label_color",
 	"custom",
 	"image_url",
 	"width",
@@ -188,6 +192,8 @@ export const ZONE_FIELD_PLUCK_KEYS = [
 	"table_style",
 	"table_bordered",
 	"table_header",
+	"table_header_bg",
+	"table_border_color",
 	"html",
 	"field_template",
 	"source",
@@ -198,6 +204,8 @@ export const ZONE_FIELD_PLUCK_KEYS = [
 	"label_gap",
 	"visible_if",
 	"custom_style",
+	"value_color",
+	"label_color",
 	"custom",
 	"image_url",
 	"width",
@@ -279,14 +287,14 @@ export async function render_jinja_html(html, doctype, docname) {
 	if (!html.includes("{{") && !html.includes("{%")) return html;
 	if (!doctype || !docname) return html;
 	try {
-		const r = await frappe.call("frappe.utils.print_format_generator.render_jinja_template", {
-			template: html,
-			doctype,
-			docname,
+		const r = await frappe.call({
+			method: "frappe.utils.print_format_generator.render_jinja_template",
+			args: { template: html, doctype, docname },
+			silent: 1,
 		});
 		return r.message ?? html;
 	} catch {
-		return html;
+		return null;
 	}
 }
 

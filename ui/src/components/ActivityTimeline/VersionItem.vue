@@ -122,12 +122,10 @@
 import { Tooltip } from "frappe-ui";
 import { computed, reactive, ref } from "vue";
 import TimeAgo from "./TimeAgo.vue";
-import type { FieldChange, VersionActivity, VersionChange } from "./types";
+import type { FieldChange, VersionChange, VersionItemProps } from "./types";
 import { truncate } from "./utils";
 
-const props = defineProps<{
-	activity: VersionActivity;
-}>();
+const props = defineProps<VersionItemProps>();
 
 // folded run → list of changes; lone change → list of one
 const changes = computed<VersionChange[]>(

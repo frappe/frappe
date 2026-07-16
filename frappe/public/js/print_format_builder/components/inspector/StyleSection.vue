@@ -1,5 +1,6 @@
 <template>
 	<div class="pfb-style-body">
+		<span v-if="label" class="pfb-style-label">{{ label }}</span>
 		<textarea
 			class="pfb-insp-input pfb-style-input"
 			rows="4"
@@ -15,7 +16,7 @@
 </template>
 
 <script setup>
-defineProps(["modelValue"]);
+defineProps(["modelValue", "label"]);
 defineEmits(["update:modelValue"]);
 </script>
 
@@ -25,6 +26,11 @@ defineEmits(["update:modelValue"]);
 	flex-direction: column;
 	gap: 6px;
 	padding: 4px 14px 12px;
+}
+
+.pfb-style-label {
+	font-size: var(--text-sm);
+	color: var(--text-muted);
 }
 
 .pfb-style-input {

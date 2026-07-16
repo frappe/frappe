@@ -1,6 +1,8 @@
 # Copyright (c) 2020, Frappe Technologies Pvt. Ltd. and Contributors
 # License: The MIT License
 
+from unittest.mock import Mock
+
 import frappe
 from frappe.email.doctype.email_account.email_account import EmailAccount
 from frappe.email.smtp import SMTPServer
@@ -8,6 +10,34 @@ from frappe.tests import IntegrationTestCase
 
 
 class TestSMTP(IntegrationTestCase):
+	def test_discard_session_closes_and_clears_active_session(self):
+		server = SMTPServer(server="smtp.example.com")
+		fake_session = Mock()
+		server._session = fake_session
+
+		server.discard_session()
+
+		fake_session.close.assert_called_once()
+		self.assertIsNone(server._session)
+
+	def test_discard_session_suppresses_close_errors(self):
+		server = SMTPServer(server="smtp.example.com")
+		fake_session = Mock()
+		fake_session.close.side_effect = OSError("already disconnected")
+		server._session = fake_session
+
+		server.discard_session()  # must not raise
+
+		self.assertIsNone(server._session)
+
+	def test_discard_session_is_noop_without_active_session(self):
+		server = SMTPServer(server="smtp.example.com")
+		server._session = None
+
+		server.discard_session()  # must not raise
+
+		self.assertIsNone(server._session)
+
 	def test_smtp_ssl_session(self):
 		for port in [None, 0, 465, "465"]:
 			make_server(port, 1, 0)

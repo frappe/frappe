@@ -5,6 +5,7 @@ from __future__ import annotations
 
 import json
 import quopri
+import smtplib
 import traceback
 from contextlib import suppress
 from email.parser import Parser
@@ -242,13 +243,19 @@ class EmailQueue(Document):
 						msg_bytes = validate_and_prepare_message(message)
 						mail_options, rcpt_options = get_smtp_options()
 
-						ctx.smtp_server.session.sendmail(
-							from_addr=self.sender,
-							to_addrs=recipient.recipient,
-							msg=msg_bytes,
-							mail_options=mail_options,
-							rcpt_options=rcpt_options,
-						)
+						try:
+							ctx.smtp_server.session.sendmail(
+								from_addr=self.sender,
+								to_addrs=recipient.recipient,
+								msg=msg_bytes,
+								mail_options=mail_options,
+								rcpt_options=rcpt_options,
+							)
+						except smtplib.SMTPException:
+							# Session can be poisoned server-side even though NOOP
+							# still reports it alive; discard so the next recipient reconnects.
+							ctx.smtp_server.discard_session()
+							raise
 
 				ctx.update_recipient_status_to_sent(recipient)
 

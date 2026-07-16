@@ -144,7 +144,7 @@ let field_is_inline = computed(() => parent_section.value?.field_orientation ===
 .pfb-inspector {
 	width: 280px;
 	flex-shrink: 0;
-	height: calc(100vh - 95px);
+	height: calc(100vh - var(--pfb-chrome-offset, 95px));
 	overflow-y: auto;
 	border-left: 1px solid var(--border-color);
 	background: var(--fg-color);

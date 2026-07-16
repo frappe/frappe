@@ -1,15 +1,6 @@
 <template>
 	<div class="pfb-insp-body">
 		<InspectorSection :label="__('Field')">
-			<div class="pfb-insp-row">
-				<span class="pfb-insp-label">{{ __("Source") }}</span>
-				<div class="pfb-source-display d-flex align-items-center justify-content-between">
-					<span class="ellipsis" style="min-width: 0">{{
-						selected_field.label || selected_field.fieldname
-					}}</span>
-					<span class="es-badge">{{ short_fieldtype }}</span>
-				</div>
-			</div>
 			<template v-if="is_html_field">
 				<div
 					class="pfb-html-preview"
@@ -157,7 +148,19 @@
 		</InspectorSection>
 
 		<InspectorSection :label="__('Style')" :init-open="false" :padded="false">
-			<StyleSection v-model="selected_field.custom_style" />
+			<div v-if="is_text_field" class="pfb-insp-section-body">
+				<ColorField
+					:label="__('Label')"
+					:model-value="selected_field.label_color || ''"
+					@update:model-value="(v) => set_field_prop('label_color', v)"
+				/>
+				<ColorField
+					:label="__('Value')"
+					:model-value="selected_field.value_color || ''"
+					@update:model-value="(v) => set_field_prop('value_color', v)"
+				/>
+			</div>
+			<StyleSection :label="__('Custom CSS')" v-model="selected_field.custom_style" />
 		</InspectorSection>
 
 		<InspectorSection :label="__('Visibility')" :init-open="false" :padded="false">
@@ -173,6 +176,7 @@ import SegmentedRow from "./SegmentedRow.vue";
 import InspectorSection from "./InspectorSection.vue";
 import StepperRow from "./StepperRow.vue";
 import StyleSection from "./StyleSection.vue";
+import ColorField from "./ColorField.vue";
 import VisibilitySection from "./VisibilitySection.vue";
 import ImageUploadControl from "./ImageUploadControl.vue";
 import { get_image_dimensions } from "../../utils";
@@ -182,6 +186,22 @@ import { useSelectedField } from "./useSelectedField";
 defineProps(["fieldIsInline"]);
 
 const { selected_field, preview_doc } = useSelectedField();
+
+// Fieldtypes rendered as a label/value pair that a text colour can target
+const NON_TEXT_FIELDTYPES = new Set([
+	"HTML",
+	"Image",
+	"Barcode",
+	"Spacer",
+	"Divider",
+	"Field Template",
+]);
+let is_text_field = computed(() => !NON_TEXT_FIELDTYPES.has(selected_field.value?.fieldtype));
+
+function set_field_prop(key, value) {
+	if (value) selected_field.value[key] = value;
+	else delete selected_field.value[key];
+}
 
 let is_html_field = computed(() => selected_field.value?.fieldtype === "HTML");
 let is_image_element = computed(
@@ -224,29 +244,6 @@ function set_image_url(url) {
 		}
 	});
 }
-
-let short_fieldtype = computed(() => {
-	if (!selected_field.value) return "";
-	const map = {
-		Data: "Data",
-		Currency: "Currency",
-		Int: "Int",
-		Float: "Float",
-		Date: "Date",
-		Datetime: "DateTime",
-		Check: "Check",
-		Select: "Select",
-		Table: "Table",
-		"Long Text": "Text",
-		Text: "Text",
-		Link: "Link",
-		HTML: "HTML",
-		Spacer: "Spacer",
-		Divider: "Divider",
-		"Field Template": "Template",
-	};
-	return map[selected_field.value.fieldtype] || selected_field.value.fieldtype || "";
-});
 
 let current_align = computed(() => selected_field.value?.align ?? "left");
 let current_label_justify = computed(() => selected_field.value?.label_justify ?? "");

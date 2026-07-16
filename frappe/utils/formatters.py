@@ -50,6 +50,8 @@ def format_value(value, df=None, doc=None, currency=None, translated=False, form
 			case _:
 				df.fieldtype = "Data"
 
+		assert df.get("fieldtype"), "value type guessing must always resolve a fieldtype"
+
 	elif isinstance(df, dict):
 		# Convert dict to object if necessary
 		df = frappe._dict(df)
@@ -93,6 +95,9 @@ def format_value(value, df=None, doc=None, currency=None, translated=False, form
 		currency = currency or get_field_currency(df, doc)
 
 		return fmt_money(value, precision=precision, currency=currency)
+
+	elif df.get("fieldtype") == "Int":
+		return "" if value == "" else cstr(cint(value))
 
 	elif df.get("fieldtype") == "Percent":
 		return f"{flt(value, 2)}%"

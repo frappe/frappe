@@ -163,7 +163,7 @@ import {
 	defaultValueFor,
 	isOptionField,
 } from "./operators";
-import type { Filter, FilterField, FilterOperator, FilterValue } from "./types";
+import type { Filter, FilterField, FilterOperator, FilterProps, FilterValue } from "./types";
 // `in` / `not in` over an option field picks values from a MultiSelect rather than
 // typing a comma string: a static list for Select/Autocomplete, a live link search
 // for Link.
@@ -181,7 +181,7 @@ import DurationField from "../Fields/DurationField.vue";
 import RatingField from "../Fields/RatingField.vue";
 import type { FieldMeta } from "../Fields/types";
 
-const props = defineProps<{ doctype: string }>();
+const props = defineProps<FilterProps>();
 
 // `v-model` is the list of Filter conditions. The component is controlled: it only
 // reads and re-emits this array, never a data resource.

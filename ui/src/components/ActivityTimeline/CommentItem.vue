@@ -44,17 +44,11 @@ import { Button, TextEditor } from "frappe-ui";
 import { ref } from "vue";
 import TimeAgo from "./TimeAgo.vue";
 import TimelineCard from "./TimelineCard.vue";
-import type { CommentActivity } from "./types";
+import type { CommentItemProps } from "./types";
 
-const props = withDefaults(
-	defineProps<{
-		comment: CommentActivity;
-		editable?: boolean;
-	}>(),
-	{
-		editable: false,
-	}
-);
+const props = withDefaults(defineProps<CommentItemProps>(), {
+	editable: false,
+});
 
 const emit = defineEmits<{
 	save: [content: string];

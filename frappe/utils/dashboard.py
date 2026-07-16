@@ -13,13 +13,13 @@ from frappe.utils import cint, get_link_to_form
 def cache_source(function):
 	@wraps(function)
 	def wrapper(*args, **kwargs):
+		if kwargs.get("no_cache"):
+			return function(*args, **kwargs)
+
 		if kwargs.get("chart_name"):
 			chart = frappe.get_doc("Dashboard Chart", kwargs.get("chart_name"))
 		else:
 			chart = kwargs.get("chart")
-		no_cache = kwargs.get("no_cache")
-		if no_cache:
-			return function(chart=chart, no_cache=no_cache)
 		chart_name = frappe.parse_json(chart).name
 		cache_key = f"chart-data:{chart_name}"
 		if cint(kwargs.get("refresh")):

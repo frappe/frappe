@@ -50,6 +50,10 @@ class TestDocument(IntegrationTestCase):
 		self.assertEqual(d.doctype, "Website Settings")
 		self.assertTrue(d.disable_signup in (0, 1))
 
+		with patch.object(frappe.db, "get_singles_dict", return_value=frappe._dict({"disable_signup": 0})):
+			d = frappe.get_doc("Website Settings")
+			self.assertEqual(d.name, "Website Settings")
+
 	def test_insert(self):
 		d = frappe.get_doc(
 			{
@@ -342,6 +346,27 @@ class TestDocument(IntegrationTestCase):
 		self.assertEqual(frappe.db.get_value("Currency", d.name), d.name)
 
 		frappe.delete_doc_if_exists("Currency", "Frappe Coin", 1)
+
+	def test_min_max_value_check(self):
+		doctype = new_doctype(
+			fields=[
+				{
+					"fieldname": "qty",
+					"fieldtype": "Int",
+					"label": "Qty",
+					"min_value": 5,
+					"max_value": 10,
+				}
+			]
+		).insert()
+
+		try:
+			self.assertRaises(frappe.ValidationError, frappe.get_doc(doctype=doctype.name, qty=3).insert)
+			self.assertRaises(frappe.ValidationError, frappe.get_doc(doctype=doctype.name, qty=12).insert)
+			frappe.get_doc(doctype=doctype.name, qty=7).insert()
+			frappe.get_doc(doctype=doctype.name).insert()
+		finally:
+			doctype.delete(force=True)
 
 	def test_get_formatted(self):
 		frappe.get_doc(

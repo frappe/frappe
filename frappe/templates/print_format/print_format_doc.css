@@ -1,0 +1,420 @@
+.print-format-doc .col, .print-format-doc *[class^="col-"] {
+	max-width: none !important;
+}
+.print-format-doc {
+	-webkit-print-color-adjust: exact;
+	print-color-adjust: exact;
+}
+.print-format-doc .label {
+	border: none;
+}
+
+/* em only, never rem (the canvas rem root is the desk page); values inside a
+   font-size scope are pre-divided by that multiplier (0.5em × 0.9 = 0.45). */
+.print-format-doc .section-label {
+	font-size: 1.1em;
+	font-weight: 700;
+	color: var(--gray-900);
+	padding-bottom: 0.3182em;
+	margin-bottom: 0.6818em;
+	border-bottom: 1.5px solid var(--gray-300);
+	/* Don't let the section heading sit alone at the bottom of a page */
+	break-after: avoid;
+	page-break-after: avoid;
+}
+
+.print-format-doc .field + .field {
+	margin-top: 0.5em;
+}
+
+/* Keep field label and value on the same page */
+.print-format-doc .field {
+	break-inside: avoid;
+	page-break-inside: avoid;
+}
+
+/* Stacked (default): muted label above value */
+.print-format-doc .field .label {
+	font-size: 1em;
+	color: var(--gray-600);
+	margin-bottom: 0.1em;
+}
+
+.print-format-doc .field .value {
+	color: var(--gray-900);
+}
+
+/* Left-right (section-level): label shrinks to content width, value takes the rest */
+.print-format-doc .field.left-right,
+.print-format-doc .field.field-inline {
+	display: flex;
+	align-items: baseline;
+	gap: 0.5em;
+}
+
+.print-format-doc .field.left-right .label,
+.print-format-doc .field.field-inline .label {
+	flex-shrink: 0;
+	font-size: 1em;
+	color: var(--gray-800);
+	text-transform: none;
+	letter-spacing: 0;
+	padding-top: 0.05em;
+	white-space: nowrap;
+}
+
+.print-format-doc .field.field-inline .label::after {
+	content: ":";
+}
+
+.print-format-doc.show-label-colon .field .label::after {
+	content: ":";
+}
+
+.print-format-doc .field.left-right .value,
+.print-format-doc .field.field-inline .value {
+	flex: 1;
+	min-width: 0;
+}
+
+/* Field-level alignment */
+.print-format-doc .field.field-align-left {
+	text-align: left;
+}
+
+.print-format-doc .field.field-align-left .value {
+	text-align: left;
+}
+
+.print-format-doc .field.field-align-center {
+	text-align: center;
+}
+
+.print-format-doc .field.field-align-center .value {
+	text-align: center;
+}
+
+.print-format-doc .field.field-align-right {
+	text-align: right;
+}
+
+.print-format-doc .field.field-align-right .value {
+	text-align: right;
+}
+
+/* Spacing/alignment variants for left-right orientation.
+   Right/center align: both label and value need flex:none so the pair moves as a unit.
+   Space-between/evenly: only value needs flex:none (label already has flex-shrink:0). */
+.print-format-doc .field.left-right.field-align-right .label,
+.print-format-doc .field.left-right.field-align-right .value,
+.print-format-doc .field.left-right.field-align-center .label,
+.print-format-doc .field.left-right.field-align-center .value,
+.print-format-doc .field.left-right.field-justify-space-between .value,
+.print-format-doc .field.left-right.field-justify-space-evenly .value {
+	flex: none;
+}
+
+.print-format-doc .field.left-right.field-align-right { justify-content: flex-end; }
+.print-format-doc .field.left-right.field-align-center { justify-content: center; }
+.print-format-doc .field.left-right.field-justify-space-between { justify-content: space-between; }
+.print-format-doc .field.left-right.field-justify-space-between .value { text-align: right; }
+.print-format-doc .field.left-right.field-justify-space-evenly { justify-content: space-evenly; }
+
+/* Repeater */
+.print-format-doc .pfb-repeater-table {
+	width: 100%;
+	border-collapse: collapse;
+}
+
+.print-format-doc .pfb-repeater-cell {
+	padding: 0;
+	vertical-align: top;
+}
+
+.print-format-doc .pfb-repeater-table tr + tr .pfb-repeater-cell {
+	padding-top: 0.5em;
+}
+
+/* Child table + Repeater share the same block-label styling */
+.print-format-doc .pfb-repeater,
+.print-format-doc .child-table {
+	margin-top: 0.5em;
+}
+
+.print-format-doc .pfb-repeater > .label,
+.print-format-doc .child-table > .label {
+	font-size: 0.8em;
+	font-weight: 600;
+	color: var(--gray-600);
+	margin-bottom: 0.5em;
+}
+
+.print-format-doc .child-table .table {
+	font-size: 0.9em;
+	border-collapse: collapse;
+	width: 100%;
+	table-layout: fixed;
+	word-break: break-word;
+}
+
+/* Table variants are three independent axes: Style (--lined/--striped/--plain)
+   draws horizontal lines/fills, .table-bordered draws vertical lines + frame,
+   --plain-header restyles the header. The base kills every border with
+   !important (Bootstrap print sets .table-bordered cell borders !important)
+   so each axis opts back in without touching the others. */
+.print-format-doc .child-table .table th {
+	color: var(--gray-800);
+	font-weight: 600;
+	font-size: 0.85em;
+	padding: 0.5882em 0.7843em;
+	border: none !important;
+	/* Bootstrap print paints th white !important, which would cover the
+	   thead tr fill; transparent cells let the row background through */
+	background-color: transparent !important;
+}
+
+/* header background lives on the row, not each cell, so a wrapper's border-radius
+   clips one continuous bar instead of fighting per-cell backgrounds at the seams */
+.print-format-doc .child-table .table thead tr {
+	background-color: var(--gray-100) !important;
+}
+
+.print-format-doc .child-table .table td {
+	padding: 0.5em 0.6667em;
+	border: none !important;
+	background-color: var(--white) !important;
+	vertical-align: top;
+}
+
+/* lined: a divider under the header and under each row */
+.print-format-doc .child-table--lined .table th,
+.print-format-doc .child-table--lined .table td {
+	border-bottom: 1px solid var(--gray-300) !important;
+}
+
+/* striped: alternating row fill instead of dividers */
+.print-format-doc .child-table--striped .table .even td {
+	background-color: var(--gray-50) !important;
+}
+
+/* bordered: column separators + outer frame; adjacent cell borders collapse */
+.print-format-doc .child-table .table-bordered {
+	border: 1px solid var(--gray-300);
+}
+
+.print-format-doc .child-table .table-bordered td {
+	border-left: 1px solid var(--gray-300) !important;
+	border-right: 1px solid var(--gray-300) !important;
+}
+
+/* plain header: no fill, a single rule under the header row instead */
+.print-format-doc .child-table--plain-header .table thead tr {
+	background-color: transparent !important;
+}
+
+.print-format-doc .child-table--plain-header .table th {
+	border-bottom: 1px solid var(--gray-300) !important;
+}
+
+.print-format-doc .child-table [data-fieldtype="Currency"],
+.print-format-doc .child-table [data-fieldtype="Float"],
+.print-format-doc .child-table [data-fieldtype="Int"] {
+	text-align: right;
+}
+
+/* Serial-number column is centered */
+.print-format-doc .child-table [data-fieldname="idx"] {
+	text-align: center;
+}
+
+/* ── Merged cells (multiple fields, optional left image) ─── */
+/* Same specificity as the numeric-align rule above but declared later, so
+   this wins the cascade without needing !important. */
+.print-format-doc .child-table .column-value--merged {
+	text-align: left;
+}
+
+.print-format-doc .child-table .cell-merged {
+	display: flex;
+	align-items: flex-start;
+	gap: 0.5556em;
+}
+
+/* size comes from an inline style (column.image_size) */
+.print-format-doc .child-table .cell-thumb-img,
+.print-format-doc .child-table .cell-thumb {
+	border-radius: 6px;
+	flex-shrink: 0;
+}
+
+.print-format-doc .child-table .cell-thumb-img {
+	object-fit: cover;
+}
+
+.print-format-doc .child-table .cell-thumb {
+	display: flex;
+	align-items: center;
+	justify-content: center;
+	font-weight: 600;
+	text-transform: uppercase;
+	line-height: 1;
+}
+
+.print-format-doc .child-table .cell-lines {
+	display: flex;
+	flex-direction: column;
+	gap: 0.1111em;
+	min-width: 0;
+}
+
+.print-format-doc .child-table .cell-line {
+	word-break: break-word;
+}
+
+.print-format-doc .child-table .cell-line--primary,
+.print-format-doc .child-table .cell-line--secondary {
+	color: var(--gray-900);
+}
+
+.print-format-doc .child-table .cell-line--primary {
+	font-weight: 600;
+}
+
+.print-format-doc .child-table .cell-line--mono-sm {
+	font-family: var(--monospace-font-family, monospace);
+}
+
+.print-format-doc .child-table .cell-line--mono-sm,
+.print-format-doc .child-table .cell-line--muted-sm {
+	font-size: 0.85em;
+	color: var(--gray-600);
+}
+
+.print-format-doc .page-break {
+	page-break-after: always;
+}
+
+/* Override Bootstrap's tr { page-break-inside: avoid } so tall child-table rows
+   flow across pages; keep thead repeating on each new page. */
+@media print {
+	.print-format-doc .child-table tr {
+		page-break-inside: auto;
+		break-inside: auto;
+	}
+	.print-format-doc .child-table thead {
+		display: table-header-group;
+	}
+}
+
+/*
+ * Column right-align layout modes
+ *
+ * row-col-space-between (2+ cols, at least one right-aligned):
+ *   Columns sit at natural content width. justify-content:space-between
+ *   pushes the leftmost to the left edge and rightmost to the right edge.
+ *   No empty-box spacer needed.
+ *
+ * row-col-right-end (1 col, right-aligned):
+ *   Single column is pushed to the right edge with justify-content:flex-end.
+ */
+.print-format-doc .row-col-space-between {
+	justify-content: space-between !important;
+}
+
+.print-format-doc .row-col-space-between .col {
+	flex: none !important;
+	max-width: 48% !important;
+}
+
+.print-format-doc .row-col-right-end {
+	justify-content: flex-end !important;
+}
+
+.print-format-doc .row-col-right-end .col {
+	flex: none !important;
+	max-width: 50% !important;
+}
+
+/* Keep letterhead images from overflowing their box. The .letter-head selector
+   must be here too: the Chrome PDF header/footer overlay renders the letterhead
+   in a bare div (no <header>), so a header-only rule never reaches the PDF. */
+.print-format-doc header img,
+.print-format-doc .letter-head img {
+	max-width: 100%;
+	height: auto;
+}
+
+.print-format-doc .document-header {
+	border-bottom-width: 1px;
+	border-bottom-style: solid;
+	border-bottom-color: var(--gray-300);
+}
+
+.print-format-doc .field[data-fieldtype="Rating"] .rating-star {
+	width: 1.5em;
+}
+
+.print-format-doc .field[data-fieldtype="Long Text"] .value, .print-format-doc .field[data-fieldtype="Text"] .value {
+	white-space: pre-line;
+}
+
+.print-format-doc .field[data-fieldtype="Color"] .value {
+	display: flex;
+	align-items: center;
+}
+
+.print-format-doc .field[data-fieldtype="Color"] .color-square {
+	width: 1em;
+	height: 1em;
+	margin-right: 0.3em;
+	border-radius: var(--radius);
+}
+
+.print-format-doc .field[data-fieldtype="Check"] #icon-tick {
+	width: 1em;
+}
+
+/* ── Table layout (field-borders mode) ───────────────────── */
+.print-format-doc .section--grid {
+	border: 1px solid var(--gray-300);
+	border-radius: var(--border-radius-md, 8px);
+	overflow: hidden;
+	padding: 0;
+}
+.print-format-doc .section--grid .section-label {
+	padding: var(--pfb-cell-pad, 8px);
+	margin: 0;
+	border-bottom: 1px solid var(--gray-300);
+}
+.print-format-doc .section--grid .section-columns {
+	padding: 0;
+	margin-left: 0;
+	margin-right: 0;
+}
+.print-format-doc .section--grid .col {
+	padding: 0;
+}
+.print-format-doc .section--grid .col:not(:last-child) {
+	border-right: 1px solid var(--gray-300);
+}
+.print-format-doc .section--grid .field {
+	padding: var(--pfb-cell-pad, 8px);
+	border-bottom: 1px solid var(--gray-300);
+}
+.print-format-doc .section--grid .field + .field {
+	margin-top: 0;
+}
+.print-format-doc .section--grid .field:last-child {
+	border-bottom: none;
+}
+.print-format-doc .section--grid-rows .col:not(:last-child) {
+	border-right: none;
+}
+.print-format-doc .section--grid-columns .field {
+	border-bottom: none;
+}
+
+.print-format-doc .custom-html .row {
+	margin-left: 0;
+	margin-right: 0;
+}

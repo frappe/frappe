@@ -32,6 +32,7 @@ frappe.ui.form.Form = class FrappeForm {
 		this.refresh_if_stale_for = 120;
 		this.opendocs = {};
 		this.custom_buttons = {};
+		this.$intro_message = null;
 		this.sections = [];
 		this.grids = [];
 		this.cscript = new frappe.ui.form.Controller({ frm: this });
@@ -545,6 +546,7 @@ frappe.ui.form.Form = class FrappeForm {
 			// reset page number to 1
 			grid_obj.grid.grid_pagination.go_to_page(1, true);
 		});
+		this.layout?.sections.forEach((section) => (section.expanded_by_user = false));
 		frappe.ui.form.close_grid_form();
 		this.viewers && this.viewers.parent.empty();
 		this.docname = docname;
@@ -1411,6 +1413,8 @@ frappe.ui.form.Form = class FrappeForm {
 	}
 
 	add_web_link(path, label) {
+		if (!this.sidebar) return;
+
 		label = __(label) || __("See on Website");
 		this.web_link = this.sidebar
 			.add_user_action(__(label), function () {})
@@ -1645,7 +1649,13 @@ frappe.ui.form.Form = class FrappeForm {
 	}
 
 	set_intro(txt, color) {
-		this.dashboard.set_headline_alert(txt, color);
+		if (this.$intro_message) {
+			this.$intro_message.remove();
+			this.$intro_message = null;
+		}
+		if (txt) {
+			this.$intro_message = this.dashboard.set_headline_alert(txt, color);
+		}
 	}
 
 	set_footnote(txt) {

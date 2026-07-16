@@ -1,12 +1,12 @@
 # Copyright (c) 2017, Frappe Technologies and contributors
 # License: MIT. See LICENSE
 
-import json
 import re
 
 import frappe
 import frappe.utils
 from frappe import _
+from frappe.custom.doctype.property_setter.property_setter import delete_property_setter
 from frappe.model.document import Document
 from frappe.utils.jinja import validate_template
 from frappe.utils.print_format_generator import download_pdf, get_html
@@ -25,6 +25,7 @@ class PrintFormat(Document):
 
 		absolute_value: DF.Check
 		align_labels_right: DF.Check
+		classic_format_data: DF.Code | None
 		css: DF.Code | None
 		custom_format: DF.Check
 		default_print_language: DF.Link | None
@@ -100,8 +101,6 @@ class PrintFormat(Document):
 		# old_doc_type is required for clearing item cache
 		self.old_doc_type = frappe.db.get_value("Print Format", self.name, "doc_type")
 
-		self.extract_images()
-
 		if not self.module:
 			doc_type = "DocType" if self.print_format_for == "DocType" else "Report"
 			document_name = self.doc_type if self.print_format_for == "DocType" else self.report
@@ -131,19 +130,6 @@ class PrintFormat(Document):
 					)
 				)
 
-	def extract_images(self):
-		from frappe.core.doctype.file.utils import extract_images_from_html
-
-		if self.print_format_builder_beta:
-			return
-
-		if self.format_data:
-			data = json.loads(self.format_data)
-			for df in data:
-				if df.get("fieldtype") and df["fieldtype"] in ("HTML", "Custom HTML") and df.get("options"):
-					df["options"] = extract_images_from_html(self, df["options"])
-			self.format_data = json.dumps(data)
-
 	def on_update(self):
 		if hasattr(self, "old_doc_type") and self.old_doc_type:
 			frappe.clear_cache(doctype=self.old_doc_type)
@@ -152,6 +138,7 @@ class PrintFormat(Document):
 
 		self.export_doc()
 		self.enqueue_preview_generation()
+		self.clear_default_print_format_if_disabled()
 
 	def enqueue_preview_generation(self):
 		"""Refresh the preview image in the background so saving the format isn't blocked by
@@ -174,6 +161,29 @@ class PrintFormat(Document):
 			job_id=f"print_format_preview::{self.name}",
 			deduplicate=True,
 			name=self.name,
+		)
+
+	def clear_default_print_format_if_disabled(self):
+		"""If this format is disabled while set as its DocType's default, unset it as default."""
+		if not (self.disabled and self.doc_type):
+			return
+
+		meta = frappe.get_meta(self.doc_type)
+		if meta.default_print_format != self.name:
+			return
+
+		if meta.custom:
+			frappe.db.set_value("DocType", self.doc_type, "default_print_format", "")
+		else:
+			delete_property_setter(self.doc_type, "default_print_format")
+
+		frappe.clear_cache(doctype=self.doc_type)
+		frappe.msgprint(
+			_(
+				"{0} was the default print format for {1}. Since it is now disabled, it has been removed as the default."
+			).format(frappe.bold(self.name), frappe.bold(self.doc_type)),
+			indicator="orange",
+			alert=True,
 		)
 
 	def after_rename(self, old: str, new: str, *args, **kwargs):
@@ -201,6 +211,20 @@ class PrintFormat(Document):
 	def on_trash(self):
 		if self.doc_type:
 			frappe.clear_cache(doctype=self.doc_type)
+
+
+@frappe.whitelist()
+def create_custom_format(doctype: str, name: str | int, based_on: str = "Standard"):
+	doc = frappe.new_doc("Print Format")
+	doc.doc_type = doctype
+	doc.name = name
+	doc.print_format_builder_beta = 1
+	if based_on and based_on != "Standard":
+		source = frappe.get_doc("Print Format", based_on)
+		source.check_permission("read")
+		doc.format_data = source.format_data
+	doc.insert()
+	return doc
 
 
 @frappe.whitelist()

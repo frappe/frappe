@@ -1447,17 +1447,22 @@ class TestTypingValidations(IntegrationTestCase):
 
 class TestTBSanitization(IntegrationTestCase):
 	def test_traceback_sanitzation(self):
+		handle = io.BufferedWriter(io.BytesIO())
 		try:
 			password = "424242"  # noqa: F841
-			args = {"password": "424242", "pwd": "424242", "safe": "safe_value"}
-			args = frappe._dict({"password": "424242", "pwd": "424242", "safe": "safe_value"})  # noqa: F841
+			values = {"password": "424242", "pwd": "424242", "safe": "safe_value", "handle": handle}
+			args = frappe._dict(values)  # noqa: F841
 			raise Exception
 		except Exception:
 			traceback = frappe.get_traceback(with_context=True)
-			self.assertNotIn("424242", traceback)
-			self.assertIn("********", traceback)
-			self.assertIn("password =", traceback)
-			self.assertIn("safe_value", traceback)
+		finally:
+			handle.close()
+
+		self.assertNotIn("424242", traceback)
+		self.assertNotIn("cannot pickle", traceback)
+		self.assertIn("********", traceback)
+		self.assertIn("password =", traceback)
+		self.assertIn("safe_value", traceback)
 
 
 class TestRounding(IntegrationTestCase):

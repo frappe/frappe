@@ -703,16 +703,16 @@ frappe.views.ReportView = class ReportView extends frappe.views.ListView {
 
 		control.df.change = () => control.set_focus();
 
+		const cell = this.datatable.getCell(colIndex, rowIndex);
+		const fieldname = this.datatable.getColumn(colIndex).docfield.fieldname;
+		const docname = cell.name;
+		const doctype = cell.doctype;
+
 		return {
 			initValue: (value) => {
 				return control.set_value(value);
 			},
 			setValue: (value) => {
-				const cell = this.datatable.getCell(colIndex, rowIndex);
-				let fieldname = this.datatable.getColumn(colIndex).docfield.fieldname;
-				let docname = cell.name;
-				let doctype = cell.doctype;
-
 				control.set_value(value);
 				return this.set_control_value(doctype, docname, fieldname, value)
 					.then((updated_doc) => {
@@ -745,6 +745,12 @@ frappe.views.ReportView = class ReportView extends frappe.views.ListView {
 							} else {
 								_data[field] = updated_doc[field];
 							}
+						}
+
+						const cell_at_index =
+							this.datatable.datamanager.rows[rowIndex]?.[colIndex];
+						if (cell_at_index?.name !== docname) {
+							this.datatable.refresh(this.get_data(this.data), this.columns);
 						}
 					})
 					.then(() => this.refresh_charts());
@@ -1796,9 +1802,56 @@ frappe.views.ReportView = class ReportView extends frappe.views.ListView {
 							if (!data.export_all_rows) {
 								args.start = 0;
 								args.page_length = this.data.length;
+
+								// Send display-order primary keys so the server
+								// can filter+reorder the exported rows.
+								// Mirrors Query Report's visible_idx pattern.
+								const view_order = this.datatable?.datamanager?.rowViewOrder;
+								if (view_order?.length && this.data?.length) {
+									let visible_names = view_order
+										.map((idx) => this.data[idx]?.name)
+										.filter((n) => n);
+									if (selected_items?.length) {
+										const checked = new Set(selected_items);
+										visible_names = visible_names.filter((n) =>
+											checked.has(n)
+										);
+									}
+									if (visible_names.length) {
+										args.visible_names = JSON.stringify(visible_names);
+									}
+								}
 							} else {
 								delete args.start;
 								delete args.page_length;
+
+								// "Export all rows" bypasses visible_names.
+								//  Reflect the datatable's client-side column sort into
+								// args.order_by so all matching rows return in
+								// the user's chosen sort.
+								const sorted_col = this.datatable?.datamanager
+									?.getColumns?.()
+									?.find(
+										(c) =>
+											c.sortOrder &&
+											c.sortOrder !== "none" &&
+											c.docfield?.fieldname
+									);
+								if (sorted_col) {
+									const order = sorted_col.sortOrder;
+									// Whitelist guard to validate order_by
+									if (["asc", "desc"].includes(order)) {
+										const parent_dt =
+											sorted_col.docfield.parent || this.doctype;
+										const table = "`tab" + parent_dt + "`";
+										const field = "`" + sorted_col.docfield.fieldname + "`";
+										args.order_by = ["name", "creation", "modified"].includes(
+											sorted_col.docfield.fieldname
+										)
+											? `${table}.${field} ${order}`
+											: `${table}.${field} ${order}, ${table}.\`name\` ${order}`;
+									}
+								}
 							}
 							args.export_in_background = data.export_in_background;
 							if (data.export_in_background) {

@@ -18,6 +18,24 @@ context("List View", () => {
 		cy.get(".list-row-container .list-row-checkbox:checked").should("be.visible");
 	});
 
+	it("keeps a Check '= No' standard filter applied", { scrollBehavior: false }, () => {
+		cy.go_to_list("Web Page");
+		cy.clear_filters();
+		cy.window().then((win) => {
+			win.frappe.route_options = { published: ["=", 0] };
+			win.frappe.set_route("List", "Web Page");
+		});
+		cy.get(".filter-selector .filter-button .button-label").should("contain", "Filters");
+		cy.window()
+			.its("cur_list.filter_area")
+			.then((filter_area) => {
+				const has_published_no = filter_area
+					.get()
+					.some((f) => f[1] === "published" && String(f[3]) === "0");
+				expect(has_published_no, "published = No filter applied").to.be.true;
+			});
+	});
+
 	it('enables "Actions" button', { scrollBehavior: false }, () => {
 		const actions = [
 			"Approve",
