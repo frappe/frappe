@@ -1,11 +1,16 @@
 <div class="website-list-filters">
 	<div class="row">
 		<div class="col-6">
-			<form class="form-inline form-search" action="/{{ pathname }}">
+			<form class="form-inline form-search" action="/{{ pathname | urlencode }}">
 				<div class="input-group">
 					<input class="form-control" doctype="text" name="txt"
+<<<<<<< HEAD
 						placeholder="Search..." value="{{ txt or '' }}">
 					<span class="input-group-btn">
+=======
+						placeholder="Search..." value="{{ (txt or '') | e }}">
+					<div class="input-group-append">
+>>>>>>> 9b6d4f8c93 (fix: escape list filter values before rendering)
 						<button class="btn btn-light" type="submit">
 							<i class="fa fa-search"></i></button>
 					</span>
@@ -14,9 +19,15 @@
 		</div>
 	</div>
 	{% if txt %}
+<<<<<<< HEAD
 	<div>
 		<div class="filter-message small text-muted">Results filtered by <b>{{ txt }}</b>.
 			<a href="/{{ pathname }}" class="text-muted">( <span class="close-inline">&times;</span> {{ _("clear") }} )</a></div>
 	</div>
+=======
+		<div class="filter-message small text-muted">
+			Results filtered by <b>{{ txt | e }}</b>.
+		</div>
+>>>>>>> 9b6d4f8c93 (fix: escape list filter values before rendering)
 	{% endif %}
 </div>
