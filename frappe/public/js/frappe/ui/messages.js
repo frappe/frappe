@@ -453,19 +453,31 @@ frappe.show_alert = frappe.toast = function (message, seconds = 7, actions = {})
 		});
 		return $root;
 	};
-	harden(handle.$el.find(".es-toast__message").html(sane(message.message || "")));
+	// legacy alerts could also pass a DOM element or jQuery for any of these
+	// channels (e.g. success_action's next-action buttons) — append those as
+	// they are, with their event bindings intact; stringifying them would
+	// print "[object Object]". Strings go through sanitise + harden as before.
+	const fill = ($target, content) => {
+		if (content && (content.jquery || content.nodeType)) {
+			return $target.append(content);
+		}
+		return harden($target.html(sane(content)));
+	};
+	fill(handle.$el.find(".es-toast__message"), message.message || "");
 	if (message.subtitle) {
-		harden(
-			$('<div class="es-toast__description"></div>')
-				.html(sane(message.subtitle))
-				.appendTo(handle.$el.find(".es-toast__content"))
+		fill(
+			$('<div class="es-toast__description"></div>').appendTo(
+				handle.$el.find(".es-toast__content")
+			),
+			message.subtitle
 		);
 	}
 	if (message.body) {
-		harden(
-			$('<div class="es-toast__body"></div>')
-				.html(sane(message.body))
-				.appendTo(handle.$el.find(".es-toast__content"))
+		fill(
+			$('<div class="es-toast__body"></div>').appendTo(
+				handle.$el.find(".es-toast__content")
+			),
+			message.body
 		);
 	}
 
