@@ -37,14 +37,14 @@
 		</div>
 		<p class="field-error text-base text-ink-red-8 mb-0"></p>
 		{% if not disable_user_pass_login %}
-		<p class="forgot-password-message text-base text-right w-full mb-0">
-			<a href="#forgot" class="text-ink-gray-5">{{ _("Forgot password?") }}</a>
+		<p class="forgot-password-message text-lg text-right w-full mb-0">
+			<a href="#forgot" class="text-base text-ink-gray-5">{{ _("Forgot password?") }}</a>
 		</p>
 		{% endif %}
 	</div>
 </div>
 {% endif %}
-<div class="page-card-actions">
+<div class="page-card-actions flex flex-col gap-3">
 	{% if not disable_user_pass_login %}
 	<button class="es-button w-full" data-variant="solid" type="submit">
 		{{ _("Continue") }}</button>
@@ -82,7 +82,7 @@
 {% endblock %}
 
 {% macro logo_section(title=null, subtitle=null) %}
-<div class="page-card-head">
+<div class="page-card-head flex flex-col items-start gap-4 text-left">
 	<img class="app-logo" src="{{ logo }}">
 	<div class="page-card-head-text">
 		{% if title %}
@@ -111,7 +111,7 @@
 	<section class='for-login'>
 		<div class="login-content page-card">
 			{{ logo_section(_('Sign In'), _('Welcome! Please sign in to continue.')) }}
-			<form class="form-signin form-login" role="form" novalidate>
+			<form class="form-signin form-login flex flex-col gap-4" role="form" novalidate>
 				{{ email_login_body() }}
 			</form>
 			{%- if not disable_signup and not disable_user_pass_login -%}
@@ -127,7 +127,7 @@
 	<section class='for-email-login'>
 		<div class="login-content page-card">
 			{{ logo_section(_('Sign In'), _('Welcome! Please sign in to continue.')) }}
-			<form class="form-signin form-login" role="form" novalidate>
+			<form class="form-signin form-login flex flex-col gap-4" role="form" novalidate>
 			{{ email_login_body() }}
 			</form>
 			{%- if not disable_signup and not disable_user_pass_login -%}
@@ -157,7 +157,7 @@
 	<section class='for-forgot'>
 		<div class="login-content page-card">
 			{{ logo_section(_('Forgot Password?'), _("Please enter your email, we'll send you password reset link")) }}
-			<form class="form-signin form-forgot hide" role="form" novalidate>
+			<form class="form-signin form-forgot hide flex flex-col gap-4" role="form" novalidate>
 				<div class="page-card-body">
 					<div class="login-success-banner es-alert hidden" role="alert" data-theme="green">
 						<svg fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
@@ -184,7 +184,7 @@
 						<p class="field-error text-base text-ink-red-8 mb-0"></p>
 					</div>
 				</div>
-				<div class="page-card-actions">
+				<div class="page-card-actions flex flex-col gap-3">
 					<button class="es-button w-full btn-forgot" data-variant="solid"
 						type="submit" disabled>{{ _("Send Link") }}</button>
 				</div>
@@ -198,7 +198,7 @@
 	<section class='for-login-with-email-link'>
 		<div class="login-content page-card">
 			{{ logo_section(_('Sign In'), _('Welcome! Please sign in to continue.')) }}
-			<form class="form-signin form-login-with-email-link hide" role="form" novalidate>
+			<form class="form-signin form-login-with-email-link hide flex flex-col gap-4" role="form" novalidate>
 				<div class="page-card-body">
 					<div class="login-success-banner es-alert hidden" role="alert" data-theme="green">
 						<svg fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
@@ -225,8 +225,8 @@
 						<p class="field-error text-base text-ink-red-8 mb-0"></p>
 					</div>
 				</div>
-				<div class="page-card-actions">
-					<p class="resend-link text-base text-ink-gray-6 mb-0">
+				<div class="page-card-actions flex flex-col gap-3">
+					<p class="resend-link hidden flex items-center gap-2 w-full text-base text-ink-gray-6 mb-0">
 						{{ _("Didn't receive the link?") }} <a href="#" class="btn-resend-link">{{ _("Resend") }}</a>
 					</p>
 					<button class="es-button w-full btn-login-with-email-link" data-variant="solid"

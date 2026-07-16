@@ -50,72 +50,48 @@ body {
 			padding: 60px 32px 32px;
 		}
 
-		form {
+		// 6px is off the Espresso 4px spacing scale (Figma spec), so it stays here
+		// instead of a gap-* utility
+		.form-group {
 			display: flex;
 			flex-direction: column;
-			gap: 16px;
-			max-width: 100%;
-			margin: 0;
+			align-items: flex-start;
+			gap: 6px;
+			align-self: stretch;
+			margin-bottom: 0;
 
-			.form-group {
-				display: flex;
-				flex-direction: column;
-				align-items: flex-start;
-				gap: 6px;
-				align-self: stretch;
-				margin-bottom: 0;
+			&:has(.forgot-password-message) {
+				gap: 8px;
+			}
+		}
 
-				&:has(.forgot-password-message) {
-					gap: 8px;
+		.social-logins {
+			.btn-salesforce i {
+				color: var(--blue-400);
+			}
+
+			.social-login-buttons {
+				margin-top: var(--margin-md);
+
+				.login-button-wrapper {
+					@include media-breakpoint-up(md) {
+						min-width: 33.33%;
+					}
+
+					min-width: 50%;
+					padding: 0 4px;
+					margin-bottom: var(--margin-md);
+
+					&:last-child {
+						margin-bottom: 0;
+					}
 				}
 			}
 		}
 
-		.page-card-actions {
-			margin-top: 0;
-			display: flex;
-			flex-direction: column;
-			gap: 12px;
-
-			.social-logins {
-				.btn-salesforce i {
-					color: var(--blue-400);
-				}
-
-				.social-login-buttons {
-					margin-top: var(--margin-md);
-
-					.login-button-wrapper {
-						@include media-breakpoint-up(md) {
-							min-width: 33.33%;
-						}
-
-						min-width: 50%;
-						padding: 0 4px;
-						margin-bottom: var(--margin-md);
-
-						&:last-child {
-							margin-bottom: 0;
-						}
-					}
-				}
-			}
-
-			.resend-link {
-				display: none;
-				align-items: center;
-				gap: 8px;
-				align-self: stretch;
-
-				a {
-					color: inherit;
-					text-decoration: underline;
-				}
-			}
-
-			.login-divider {
-				margin: var(--margin-md) 0;
-			}
+		.resend-link a {
+			color: inherit;
+			text-decoration: underline;
 		}
 
 		.page-card-body {
@@ -249,19 +225,12 @@ body {
 }
 
 .page-card-head {
-	padding: 0;
-	margin: 0;
-	text-align: left;
-	display: flex;
-	flex-direction: column;
-	align-items: flex-start;
-	gap: 16px;
-
 	img.app-logo {
 		max-height: 32px;
 		width: auto;
 	}
 
+	// 6px is off the Espresso 4px spacing scale (Figma spec)
 	.page-card-head-text {
 		display: flex;
 		flex-direction: column;
@@ -271,14 +240,6 @@ body {
 }
 
 .for-reset-password {
-	.password-label-row {
-		display: flex;
-		justify-content: space-between;
-		align-items: center;
-		align-self: stretch;
-		gap: 8px;
-	}
-
 	.password-strength-value {
 		&.strength-red {
 			color: var(--red-700);

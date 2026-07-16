@@ -80,7 +80,7 @@ login.bind_events = function () {
 		// by the shared .page-card-body input handler, so only reset the button + resend link here
 		$(".form-login-with-email-link .btn-login-with-email-link")
 			.text({{ _("Send login link") | tojson }}).prop("disabled", false);
-		$("section.for-login-with-email-link .resend-link").hide();
+		$("section.for-login-with-email-link .resend-link").addClass("hidden");
 	});
 
 	$(".form-login-with-email-link").on("submit", function (event) {
@@ -96,7 +96,7 @@ login.bind_events = function () {
 		// (success sends no server message, so the green success banner is unaffected)
 		login.call(args, null, "/", "section.for-login-with-email-link .login-error-banner .es-alert__title").then(() => {
 			$("section:visible .login-success-banner").removeClass("hidden");
-			$("section:visible .resend-link").css("display", "flex");
+			$("section:visible .resend-link").removeClass("hidden");
 			login.set_status({{ _("Sent") | tojson }});
 			$("section:visible .btn-login-with-email-link").prop("disabled", true);
 		}).catch(() => {
@@ -166,7 +166,7 @@ login.reset_sections = function (hide) {
 		$(".form-signup .btn-signup").prop("disabled", true).text({{ _("Create Account") | tojson }});
 		$(".form-login-with-email-link .btn-login-with-email-link").prop("disabled", false).text({{ _("Send login link") | tojson }});
 		$(".btn-login-option.btn-login-with-email-link").prop("disabled", false);
-		$("section.for-login-with-email-link .resend-link").hide();
+		$("section.for-login-with-email-link .resend-link").addClass("hidden");
 	}
 	$('section:not(.signup-disabled) .indicator').each(function () {
 		$(this).removeClass().addClass('indicator').addClass('blue')
