@@ -29,8 +29,18 @@
 						<EditorContent
 							class="prose-sm max-w-full flex-1 pb-8 pt-2 [&_p.reply-to-content]:hidden"
 						/>
-						<!-- Quoted reply: kept out of the editor body, appended back on send. -->
-						<details v-if="quotedContent" class="mb-2" :open="isQuoteExpanded">
+						<!--
+							Quoted reply lives outside the editor: tiptap parses HTML into its
+							schema and drops what it can't represent, which mangles email tables
+							and inline styling. A sibling contenteditable preserves the original;
+							appended back on send.
+						-->
+						<details
+							v-if="quotedContent"
+							class="mb-2"
+							:open="isQuoteExpanded"
+							@toggle="onQuoteToggle"
+						>
 							<summary
 								class="w-fit cursor-pointer select-none rounded px-1 text-sm leading-none text-ink-gray-5 bg-surface-gray-2 list-none [&::-webkit-details-marker]:hidden"
 							>
@@ -227,9 +237,13 @@ const quotedContent = defineModel<string | null>("quoted", { default: null });
 const quotedContentRef = ref<HTMLElement | null>(null);
 const isQuoteExpanded = ref(false);
 
+// Keep the ref in step with native user toggles, or `:open` silently no-ops later.
+function onQuoteToggle(event: Event) {
+	isQuoteExpanded.value = (event.target as HTMLDetailsElement).open;
+}
+
 // Native Ctrl/Cmd+A only spans one contenteditable; stretch it across body + quote.
 function selectAll(event: KeyboardEvent) {
-	isQuoteExpanded.value = true;
 	const editorDom = editor.value?.view?.dom as HTMLElement | undefined;
 	const quotedEl = quotedContentRef.value;
 	const selection = window.getSelection();
@@ -237,6 +251,8 @@ function selectAll(event: KeyboardEvent) {
 	if (!selection || !editorDom) return;
 	if (!editorDom.contains(active) && !quotedEl?.contains(active)) return;
 
+	// Reveal the quote only once we know the selection will span it.
+	isQuoteExpanded.value = true;
 	event.preventDefault();
 	editor.value?.commands?.selectAll();
 	selection.removeAllRanges();
@@ -339,7 +355,7 @@ async function onAttachPicked(event: Event) {
 			file_type: uploaded.file_type ?? "",
 			file_size: uploaded.file_size,
 		});
-	} catch (error) {
+	} catch {
 		toast.error("Failed to upload the attachment.");
 	} finally {
 		isUploading.value = false;
