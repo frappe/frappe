@@ -644,8 +644,12 @@ watch(
 		const remembered = appName ? lastOpenFiles.value[appName] : undefined
 		openFile.value = null
 		selectedNode.value = null
-		await loadTree()
-		reopenLastFile(remembered)
+		try {
+			await loadTree()
+			reopenLastFile(remembered)
+		} finally {
+			if (appName && remembered && !openFile.value) lastOpenFiles.value[appName] = remembered
+		}
 	},
 	{ immediate: true },
 )
