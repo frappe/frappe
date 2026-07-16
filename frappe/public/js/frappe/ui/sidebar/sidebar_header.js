@@ -142,23 +142,6 @@ frappe.ui.SidebarHeader = class SidebarHeader {
 		return frappe.boot.app_data[0].app_logo_url;
 	}
 
-	setup_app_switcher() {
-		frappe.ui.create_menu({
-			parent: this.wrapper,
-			menu_items: this.dropdown_items,
-			onShow: this.toggle_active,
-			onHide: this.toggle_active,
-			onItemClick: this.toggle_active,
-		});
-	}
-
-	toggle_active(wrapper) {
-		$(wrapper).toggleClass("active-sidebar");
-		if (!frappe.app.sidebar.sidebar_expanded) {
-			$(wrapper).removeClass("active-sidebar");
-		}
-	}
-
 	setup_hover() {
 		$(".sidebar-header").on("mouseover", function (event) {
 			if ($(this).parent().hasClass("active-sidebar")) return;
