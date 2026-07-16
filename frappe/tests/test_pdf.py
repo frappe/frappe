@@ -94,3 +94,6 @@ class TestPdf(IntegrationTestCase):
 
 		# If image was actually retrieved then size will be  in few kbs, else bytes.
 		self.assertGreaterEqual(len(pdf), 10_000)
+
+	def test_images_without_src(self):
+		self.assertEqual(pdfgen.inline_private_images('<img><img src="">'), '<img/><img src=""/>')

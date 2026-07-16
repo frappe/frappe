@@ -329,8 +329,9 @@ def get_print_format_styles(soup: BeautifulSoup) -> list[cssutils.css.Property]:
 def inline_private_images(html) -> str:
 	soup = BeautifulSoup(html, "html.parser")
 	for img in soup.find_all("img"):
-		if b64 := _get_base64_image(img["src"]):
-			img["src"] = b64
+		if src := img.get("src"):
+			if b64 := _get_base64_image(src):
+				img["src"] = b64
 	return str(soup)
 
 
