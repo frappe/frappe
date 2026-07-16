@@ -1209,7 +1209,7 @@ class Document(BaseDocument):
 				if fail:
 					frappe.throw(
 						_("Value cannot be changed for {0}").format(
-							frappe.bold(_(self.meta.get_label(field.fieldname)))
+							frappe.bold(_(self.meta.get_label(field.fieldname), context=self.doctype))
 						),
 						exc=frappe.CannotChangeConstantError,
 					)
@@ -2116,7 +2116,7 @@ class Document(BaseDocument):
 		val2 = doc.cast(val2, df)
 
 		if not compare(val1, condition, val2):
-			label = doc.meta.get_label(fieldname)
+			label = _(doc.meta.get_label(fieldname), context=doc.doctype)
 			if doc.get("parentfield"):
 				msg = _("Incorrect value in row {0}:").format(doc.idx)
 			else:
@@ -2139,7 +2139,7 @@ class Document(BaseDocument):
 	def validate_table_has_rows(self, parentfield, raise_exception=None):
 		"""Raise exception if Table field is empty."""
 		if not (isinstance(self.get(parentfield), list) and len(self.get(parentfield)) > 0):
-			label = _(self.meta.get_label(parentfield))
+			label = _(self.meta.get_label(parentfield), context=self.doctype)
 			frappe.throw(
 				_("Table {0} cannot be empty").format(label), raise_exception or frappe.EmptyTableError
 			)
@@ -2379,8 +2379,8 @@ class Document(BaseDocument):
 			frappe.throw(
 				table_row
 				+ _("{0} must be after {1}").format(
-					frappe.bold(_(self.meta.get_label(to_date_field))),
-					frappe.bold(_(self.meta.get_label(from_date_field))),
+					frappe.bold(_(self.meta.get_label(to_date_field), context=self.doctype)),
+					frappe.bold(_(self.meta.get_label(from_date_field), context=self.doctype)),
 				),
 				frappe.exceptions.InvalidDates,
 			)

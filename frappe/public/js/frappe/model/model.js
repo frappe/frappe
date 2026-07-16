@@ -810,7 +810,11 @@ $.extend(frappe.model, {
 			frappe.throw(
 				__("Please specify") +
 					": " +
-					__(frappe.meta.get_label(doc.doctype, fieldname, doc.parent || doc.name))
+					__(
+						frappe.meta.get_label(doc.doctype, fieldname, doc.parent || doc.name),
+						null,
+						doc.doctype
+					)
 			);
 		}
 	},

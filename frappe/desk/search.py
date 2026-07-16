@@ -344,7 +344,7 @@ def validate_ignore_user_permissions(form_doctype, link_fieldname, link_doctype)
 	if not ignore_user_permissions:
 		_throw(
 			_("The field {0} in {1} does not allow ignoring user permissions").format(
-				bold(meta.get_label(link_fieldname)), bold(_(form_doctype))
+				bold(_(meta.get_label(link_fieldname), context=form_doctype)), bold(_(form_doctype))
 			)
 		)
 
@@ -359,7 +359,7 @@ def validate_ignore_user_permissions(form_doctype, link_fieldname, link_doctype)
 	if found_doctype != link_doctype:
 		_throw(
 			_("The field {0} in {1} links to {2} and not {3}").format(
-				bold(meta.get_label(link_fieldname)),
+				bold(_(meta.get_label(link_fieldname), context=form_doctype)),
 				bold(_(form_doctype)),
 				bold(_(found_doctype)),
 				bold(escape_html(link_doctype)),

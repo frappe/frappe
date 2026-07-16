@@ -1004,7 +1004,9 @@ frappe.views.ReportView = class ReportView extends frappe.views.ListView {
 			}
 			const field_label = frappe.meta.get_label(doctype, field[0]);
 			frappe.show_alert(
-				__("Also adding the dependent currency field {0}", [__(field_label).bold()])
+				__("Also adding the dependent currency field {0}", [
+					__(field_label, null, doctype).bold(),
+				])
 			);
 		}
 	}
@@ -1017,7 +1019,9 @@ frappe.views.ReportView = class ReportView extends frappe.views.ListView {
 			this.refresh();
 			const field_label = frappe.meta.get_label(doctype, field[0]);
 			frappe.show_alert(
-				__("Also adding the status dependency field {0}", [__(field_label).bold()])
+				__("Also adding the status dependency field {0}", [
+					__(field_label, null, doctype).bold(),
+				])
 			);
 		}
 	}
@@ -1536,7 +1540,11 @@ frappe.views.ReportView = class ReportView extends frappe.views.ListView {
 				.map((f) => {
 					const [doctype, fieldname, condition, value] = f;
 					const docfield = frappe.meta.get_docfield(doctype, fieldname);
-					const label = `<b>${__(frappe.meta.get_label(doctype, fieldname))}</b>`;
+					const label = `<b>${__(
+						frappe.meta.get_label(doctype, fieldname),
+						null,
+						doctype
+					)}</b>`;
 					switch (condition) {
 						case "=":
 							return __("{0} is equal to {1}", [

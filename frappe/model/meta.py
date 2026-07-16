@@ -23,7 +23,7 @@ from datetime import datetime
 import click
 
 import frappe
-from frappe import _, _lt
+from frappe import _, _noop
 from frappe.model import (
 	NO_VALUE_FIELDS,
 	child_table_fields,
@@ -49,17 +49,17 @@ ListOrTuple = list | tuple
 SerializableTypes = str | int | float | datetime
 
 DEFAULT_FIELD_LABELS = {
-	"name": _lt("ID"),
-	"creation": _lt("Created On"),
-	"docstatus": _lt("Document Status"),
-	"idx": _lt("Index"),
-	"modified": _lt("Last Updated On"),
-	"modified_by": _lt("Last Updated By"),
-	"owner": _lt("Created By"),
-	"_user_tags": _lt("Tags"),
-	"_liked_by": _lt("Liked By"),
-	"_comments": _lt("Comments"),
-	"_assign": _lt("Assigned To"),
+	"name": _noop("ID"),
+	"creation": _noop("Created On"),
+	"docstatus": _noop("Document Status"),
+	"idx": _noop("Index"),
+	"modified": _noop("Last Updated On"),
+	"modified_by": _noop("Last Updated By"),
+	"owner": _noop("Created By"),
+	"_user_tags": _noop("Tags"),
+	"_liked_by": _noop("Liked By"),
+	"_comments": _noop("Comments"),
+	"_assign": _noop("Assigned To"),
 }
 
 # When number of rows in a table exceeds this number, we disable certain features automatically.
@@ -302,12 +302,12 @@ class Meta(Document):
 		return fieldname in self._fields
 
 	def get_label(self, fieldname):
-		"""Return label of the given fieldname."""
+		"""Return the untranslated source label of the given fieldname."""
 		if df := self.get_field(fieldname):
 			return df.get("label")
 
 		if fieldname in DEFAULT_FIELD_LABELS:
-			return str(DEFAULT_FIELD_LABELS[fieldname])
+			return DEFAULT_FIELD_LABELS[fieldname]
 
 		return "No Label"
 
