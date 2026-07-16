@@ -531,14 +531,31 @@ download only after 24 hours."""
 
 
 def _get_tables(doctypes: list[str], existing_tables: list[str]) -> list[str]:
-	"""Return a list of tables for the given doctypes that exist in the database."""
+	"""Return tables for the existing doctypes. Raises if any non-empty input
+	doctype doesn't resolve to an existing table.
+	"""
 	tables = []
+	missing = []
 	for doctype in doctypes:
+		doctype = (doctype or "").strip()
 		if not doctype:
 			continue
 		table = frappe.utils.get_table_name(doctype)
 		if table in existing_tables:
 			tables.append(table)
+		else:
+			missing.append(doctype)
+
+	if missing:
+		frappe.throw(
+			_(
+				"Backup requested for unknown DocType(s): {0}. "
+				"Check for typos or use the exact DocType name (case-sensitive). "
+				"Aborting to avoid taking a full backup instead of the requested subset."
+			).format(", ".join(missing)),
+			exc=frappe.ValidationError,
+		)
+
 	return tables
 
 
