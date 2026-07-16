@@ -619,7 +619,9 @@ def get_field_info(fields, parent_doctype):
 
 			if df:
 				fieldname = df.fieldname
-				label = _(meta.get_label(fieldname) or "", context=doctype)
+				label = meta.get_label(fieldname) or ""
+				if label:
+					label = _(label, context=doctype)
 
 				fieldtype = df.fieldtype
 				translatable = df.translatable or False
