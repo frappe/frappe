@@ -660,6 +660,61 @@ class TestDBQuery(FrappeTestCase):
 			with self.subTest(query=query):
 				self.assertRaises(frappe.DataError, validate_generated_query, query)
 
+	def test_normalize_query_for_validation_keeps_injection_visible(self):
+		"""Normalization must not swallow any blocked construct, including one next to a literal."""
+		from frappe.model.db_query import _normalize_query_for_validation, validate_generated_query
+
+		blocked = [
+			"select `tabNote`.`name` from `tabNote`; drop table `tabUser`",
+			"select `tabNote`.`name` from `tabNote` union select password from `tabUser`",
+			"select `tabNote`.`name` /* x */ from `tabNote`",
+			"select un/**/ion from `tabNote`",
+			"select * into outfile '/tmp/x' from `tabNote`",
+			"select `tabNote`.`name` from `tabNote` where x in (select secret from vault)",
+			"select version() from `tabNote`",
+			# malicious construct sitting right next to a string literal
+			"select `tabNote`.`name` from `tabNote` where `tabNote`.`title` = 'a'; drop table `tabUser`",
+			"select `tabNote`.`name` from `tabNote` where `tabNote`.`title` = 'a' union select password from `tabUser`",
+		]
+		for query in blocked:
+			with self.subTest(query=query):
+				self.assertRaises(
+					frappe.DataError, validate_generated_query, _normalize_query_for_validation(query)
+				)
+
+	def test_normalize_query_for_validation_collapses_literals(self):
+		"""Queries differing only in filter values map to one skeleton, so the cache can hit."""
+		from frappe.model.db_query import _normalize_query_for_validation
+
+		base = "select `tabNote`.`name` from `tabNote` where `tabNote`.`status` = {status} and `tabNote`.`age` = {age}"
+		self.assertEqual(
+			_normalize_query_for_validation(base.format(status="'Open'", age="25")),
+			_normalize_query_for_validation(base.format(status="'Closed'", age="99")),
+		)
+
+		# different-length IN lists collapse to the same skeleton
+		in_query = "select `tabNote`.`name` from `tabNote` where `tabNote`.`name` in ({names})"
+		self.assertEqual(
+			_normalize_query_for_validation(in_query.format(names="'a', 'b'")),
+			_normalize_query_for_validation(in_query.format(names="'a', 'b', 'c', 'd'")),
+		)
+
+	def test_normalize_query_for_validation_keeps_unbalanced_quote(self):
+		"""An unbalanced quote is not collapsed, so it still reaches the parser as-is."""
+		from frappe.model.db_query import _normalize_query_for_validation
+
+		broken = "select `tabNote`.`name` from `tabNote` where `tabNote`.`title` = 'x'; drop table `tabUser`"
+		self.assertIn("drop table", _normalize_query_for_validation(broken))
+
+	def test_validate_generated_query_cache_hits_across_values(self):
+		"""Repeated list queries with different filter values must hit the skeleton cache."""
+		from frappe.model.db_query import validate_generated_query
+
+		validate_generated_query.cache_clear()
+		frappe.get_list("Note", filters={"title": "alpha"}, limit_page_length=5)
+		frappe.get_list("Note", filters={"title": "beta"}, limit_page_length=5)
+		self.assertGreaterEqual(validate_generated_query.cache_info().hits, 1)
+
 	def test_permission_conditions_with_subquery_allowed(self):
 		"""Trusted permission/hook conditions may contain subqueries and must not be blocked."""
 		# Event's get_permission_query_conditions injects `or exists (select ... )`
