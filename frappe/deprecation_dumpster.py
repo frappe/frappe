@@ -1046,3 +1046,8 @@ def get_gravatar(email: str) -> str:
 	from frappe.utils import get_identicon
 
 	return get_identicon(email)
+
+
+@deprecated("frappe.desk.page.setup_wizard.install_fixtures._", "2026-07-16", "v17", "Use N_ instead")
+def _(x, *args, **kwargs):
+	return x

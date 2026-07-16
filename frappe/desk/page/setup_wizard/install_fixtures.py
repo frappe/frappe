@@ -3,6 +3,7 @@
 
 import frappe
 from frappe import N_
+from frappe.deprecation_dumpster import _
 from frappe.desk.doctype.global_search_settings.global_search_settings import (
 	update_global_search_doctypes,
 )
