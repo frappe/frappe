@@ -87,6 +87,7 @@ function sanitize_markdown_html(html) {
 					name === "alt" ||
 					(tag === "a" && name === "href" && MD_SAFE_URL.test(attr.value)) ||
 					(tag === "img" && name === "src" && MD_SAFE_IMG_SRC.test(attr.value)) ||
+					((tag === "code" || tag === "pre") && name === "class") ||
 					((tag === "th" || tag === "td") &&
 						name === "style" &&
 						MD_SAFE_ALIGN.test(attr.value));
