@@ -19,7 +19,8 @@ def flaky_method():
 @whitelist_for_tests(allow_guest=True)
 def conflict_after_commit():
 	calls["after_commit"] += 1
-	frappe.db.commit()
+	# the mid-request commit is the point: it must disable the replay
+	frappe.db.commit()  # nosemgrep
 	raise frappe.QueryDeadlockError("simulated conflict after commit")
 
 
