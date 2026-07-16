@@ -575,12 +575,14 @@ def get_field_info(fields, parent_doctype):
 			translatable = True
 		else:
 			meta = frappe.get_meta(doctype)
-			meta_df = meta.get_field(fieldname)
-			df = meta_df or get_default_df(fieldname)
+			df = meta.get_field(fieldname) or get_default_df(fieldname)
 
 			if df:
 				fieldname = df.fieldname
-				label = _(df.label or "") if meta_df else meta.get_label(fieldname)
+
+				# default fields have no df.label; their labels come pre-translated from meta.get_label
+				label = _(df.label) if df.label else meta.get_label(fieldname) or ""
+
 				fieldtype = df.fieldtype
 				translatable = df.translatable or False
 				options = df.options
