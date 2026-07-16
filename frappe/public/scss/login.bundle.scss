@@ -38,9 +38,6 @@ body {
 		width: 100%;
 		margin: 0 auto;
 		border-radius: var(--radius-lg);
-		display: flex;
-		flex-direction: column;
-		gap: var(--margin-lg);
 
 		@include media-breakpoint-down(xs) {
 			max-width: 100%;
@@ -48,21 +45,6 @@ body {
 			border-radius: 0;
 			border: none;
 			padding: 60px 32px 32px;
-		}
-
-		// 6px is off the Espresso 4px spacing scale (Figma spec), so it stays here
-		// instead of a gap-* utility
-		.form-group {
-			display: flex;
-			flex-direction: column;
-			align-items: flex-start;
-			gap: 6px;
-			align-self: stretch;
-			margin-bottom: 0;
-
-			&:has(.forgot-password-message) {
-				gap: 8px;
-			}
 		}
 
 		.social-logins {
@@ -95,10 +77,6 @@ body {
 		}
 
 		.page-card-body {
-			display: flex;
-			flex-direction: column;
-			gap: 14px;
-
 			::placeholder,
 			/* Chrome, Firefox, Opera, Safari 10.1+ */
 			::-ms-input-placeholder {
@@ -228,14 +206,6 @@ body {
 	img.app-logo {
 		max-height: 32px;
 		width: auto;
-	}
-
-	// 6px is off the Espresso 4px spacing scale (Figma spec)
-	.page-card-head-text {
-		display: flex;
-		flex-direction: column;
-		gap: 6px;
-		align-self: stretch;
 	}
 }
 
