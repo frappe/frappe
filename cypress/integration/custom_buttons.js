@@ -25,7 +25,7 @@ const check_button_count = (label, group = "TestGroup") => {
 	// Verify dropdown buttons in mobile view
 	cy.viewport(420, 900);
 	const dropdown_btn_label = `${group} > ${label}`;
-	cy.get(".menu-btn-group > .btn").click();
+	cy.get(".menu-btn-group > button").click();
 	cy.get(`[data-label="${encodeURIComponent(dropdown_btn_label)}"]`)
 		.should("have.length", 1)
 		.should("be.visible");

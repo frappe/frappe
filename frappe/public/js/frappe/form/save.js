@@ -2,7 +2,11 @@
 // MIT License. See license.txt
 
 frappe.ui.form.save = function (frm, action, callback, btn) {
-	$(btn).prop("disabled", true);
+	// aria-busy is managed everywhere this file manages disabled: the save
+	// promise never settles on validation errors (missing mandatory fields,
+	// "no changes"), so the page header's promise-based busy state can't be
+	// trusted to clear itself — the button would stay stuck on "Saving...".
+	$(btn).prop("disabled", true).attr("aria-busy", "true");
 
 	// specified here because there are keyboard shortcuts to save
 	const working_label = {
@@ -37,7 +41,7 @@ frappe.ui.form.save = function (frm, action, callback, btn) {
 		} else {
 			!frm.is_dirty() &&
 				frappe.show_alert({ message: __("No changes in document"), indicator: "orange" });
-			$(btn).prop("disabled", false);
+			$(btn).prop("disabled", false).removeAttr("aria-busy");
 		}
 	};
 
@@ -100,7 +104,7 @@ frappe.ui.form.save = function (frm, action, callback, btn) {
 			},
 			error: opts.error,
 			always: function (r) {
-				$(btn).prop("disabled", false);
+				$(btn).prop("disabled", false).removeAttr("aria-busy");
 				frappe.ui.form.is_saving = false;
 
 				if (r) {

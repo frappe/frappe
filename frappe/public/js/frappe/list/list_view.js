@@ -290,26 +290,24 @@ frappe.views.ListView = class ListView extends frappe.views.BaseList {
 		if (this.can_create && !frappe.boot.read_only) {
 			const doctype_name = __(frappe.router.doctype_layout) || __(this.doctype);
 			const add_button_label = __("Add {0}", [doctype_name], "Primary action in list view");
+			const primary_action = () => {
+				if (this.settings.primary_action) {
+					this.settings.primary_action();
+				} else {
+					this.make_new_doc();
+				}
+			};
 			const create_button = this.page.set_primary_action(
-				add_button_label,
-				() => {
-					if (this.settings.primary_action) {
-						this.settings.primary_action();
-					} else {
-						this.make_new_doc();
-					}
-				},
+				// CSS swaps to the short label below the md breakpoint, so the
+				// button stays right when the window is resized
+				{ label: add_button_label, short_label: __("Add") },
+				primary_action,
 				"plus"
 			);
 			frappe.ui.keys.add_shortcut({
 				shortcut: "ctrl+b",
 				action: () => {
-					if (this.settings.primary_action) {
-						this.settings.primary_action();
-					} else {
-						this.make_new_doc();
-					}
-
+					primary_action();
 					return true;
 				},
 				description: __(
@@ -319,26 +317,27 @@ frappe.views.ListView = class ListView extends frappe.views.BaseList {
 				),
 				page: this.page,
 			});
-			if (frappe.is_mobile()) {
-				create_button.append(__("Add"));
-			} else {
-				this._trim_primary_action_if_overflow(create_button, add_button_label);
-			}
+			this._trim_primary_action_if_overflow(create_button, add_button_label, primary_action);
 		} else {
 			frappe.ui.keys.off("ctrl+b", this.page);
 			this.page.clear_primary_action();
 		}
 	}
 
-	_trim_primary_action_if_overflow(btn, add_button_label) {
+	// If the full label makes the button overflow the header (very long
+	// doctype names), re-render it with the short label at every width. Done
+	// through set_primary_action, never by writing into the button's DOM, so
+	// the icon, responsive spans and shortcut wiring stay coherent.
+	_trim_primary_action_if_overflow(btn, add_button_label, primary_action) {
 		const container = this.page.wrapper.find(".page-head-content")[0];
 		if (!container || !btn[0]) return;
 		const containerRect = container.getBoundingClientRect();
 		const btnRect = btn[0].getBoundingClientRect();
 		if (btnRect.right > containerRect.right) {
-			const short_label = __("Add");
-			btn.attr("title", add_button_label).tooltip();
-			btn.find("span").text(short_label);
+			this.page
+				.set_primary_action({ label: __("Add") }, primary_action, "plus")
+				.attr("title", add_button_label)
+				.tooltip();
 		}
 	}
 
