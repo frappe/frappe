@@ -400,13 +400,16 @@ class TestExtract(IntegrationTestCase):
 			extract(frappe._dict(source_type="File", file=file_doc.file_url))
 
 	def test_doctype_source_one_record_per_document(self):
-		frappe.get_doc({"doctype": "ToDo", "description": "first task", "status": "Open"}).insert()
-		frappe.get_doc({"doctype": "ToDo", "description": "second task", "status": "Cancelled"}).insert()
+		marker = frappe.generate_hash(length=10)
+		frappe.get_doc({"doctype": "ToDo", "description": f"{marker} first task", "status": "Open"}).insert()
+		frappe.get_doc(
+			{"doctype": "ToDo", "description": f"{marker} second task", "status": "Cancelled"}
+		).insert()
 		source = frappe._dict(
 			source_type="DocType",
 			reference_doctype="ToDo",
 			content_fields="description",
-			filters='{"status": "Open"}',
+			filters=json.dumps({"status": "Open", "description": ["like", f"%{marker}%"]}),
 		)
 		docs = extract(source)
 		self.assertEqual(len(docs), 1)
@@ -415,14 +418,15 @@ class TestExtract(IntegrationTestCase):
 		self.assertTrue(docs[0].reference_name)
 
 	def test_doctype_source_strips_html_from_rich_text(self):
+		marker = frappe.generate_hash(length=10)
 		frappe.get_doc(
-			{"doctype": "ToDo", "description": "<p>Cannot <b>login</b></p><script>x=1</script>"}
+			{"doctype": "ToDo", "description": f"<p>{marker} Cannot <b>login</b></p><script>x=1</script>"}
 		).insert()
 		source = frappe._dict(
 			source_type="DocType",
 			reference_doctype="ToDo",
 			content_fields="description",
-			filters=None,
+			filters=json.dumps({"description": ["like", f"%{marker}%"]}),
 		)
 		text = extract(source)[0].text
 		self.assertIn("Cannot login", text)
