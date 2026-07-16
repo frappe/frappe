@@ -39,6 +39,7 @@ from frappe.utils import (
 	CallbackManager,
 	cint,
 	get_datetime,
+	get_system_timezone,
 	get_table_name,
 	getdate,
 	now,
@@ -154,9 +155,18 @@ class Database:
 		except Exception as e:
 			self.logger.warning(f"Couldn't set execution timeout {e}")
 
+		try:
+			self.set_session_time_zone(get_system_timezone())
+		except Exception as e:
+			self.logger.warning(f"Couldn't set session time zone {e}")
+
 	def set_execution_timeout(self, seconds: int):
 		"""Set session speicifc timeout on exeuction of statements.
 		If any statement takes more time it will be killed along with entire transaction."""
+		raise NotImplementedError
+
+	def set_session_time_zone(self, timezone: str):
+		"""Set session time zone so database clock functions match the system timezone."""
 		raise NotImplementedError
 
 	def use(self, db_name):

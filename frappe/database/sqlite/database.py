@@ -148,6 +148,9 @@ class SQLiteDatabase(SQLiteExceptionUtil, Database):
 	def set_execution_timeout(self, seconds: int):
 		self.sql(f"PRAGMA busy_timeout = {int(seconds) * 1000}")
 
+	def set_session_time_zone(self, timezone: str):
+		pass
+
 	def setup_type_map(self):
 		self.db_type = "sqlite"
 		self.type_map = {
