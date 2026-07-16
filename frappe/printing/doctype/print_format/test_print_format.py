@@ -3,7 +3,11 @@
 import os
 import re
 import unittest
+from io import BytesIO
 from typing import TYPE_CHECKING
+from unittest.mock import patch
+
+from PIL import Image
 
 import frappe
 from frappe.tests import IntegrationTestCase
@@ -32,6 +36,25 @@ class TestPrintFormat(IntegrationTestCase):
 	def test_print_user_classic(self):
 		print_html = self.test_print_user("Classic")
 		self.assertTrue("/* classic format: for-test */" in print_html)
+
+	def test_regenerate_preview_replaces_referenced_file(self):
+		from frappe.printing.doctype.print_format.print_format import generate_preview
+
+		name = self.globalTestRecords["Print Format"][0]["name"]
+
+		buffer = BytesIO()
+		Image.new("RGB", (10, 10)).save(buffer, format="WEBP")
+
+		with patch("frappe.utils.preview.get_preview_from_html", return_value=buffer.getvalue()):
+			first_url = generate_preview(name)
+			self.assertTrue(first_url)
+
+			second_url = generate_preview(name)
+			self.assertTrue(second_url)
+
+		self.assertNotEqual(first_url, second_url)
+		self.assertFalse(frappe.db.exists("File", {"file_url": first_url}))
+		self.assertEqual(frappe.db.get_value("Print Format", name, "preview_image"), second_url)
 
 	@unittest.skipUnless(
 		os.access(frappe.get_app_path("frappe"), os.W_OK), "Only run if frappe app paths is writable"
