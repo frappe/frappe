@@ -9,7 +9,6 @@ frappe.ui.SidebarHeader = class SidebarHeader {
 		this.dock_active = sidebar.workspace_dock_enabled();
 		this.dropdown_items = this.build_dropdown_items();
 		this.make();
-		this.setup_app_switcher();
 	}
 	// Workspaces (the shared selector set, owned by Sidebar) then the Apps section, and finally the
 	// "My Workspaces" picker dialog -- the same entry as the user menu, so it's reachable here too.
@@ -141,23 +140,6 @@ frappe.ui.SidebarHeader = class SidebarHeader {
 	}
 	get_default_icon() {
 		return frappe.boot.app_data[0].app_logo_url;
-	}
-
-	setup_app_switcher() {
-		frappe.ui.create_menu({
-			parent: this.wrapper,
-			menu_items: this.dropdown_items,
-			onShow: this.toggle_active,
-			onHide: this.toggle_active,
-			onItemClick: this.toggle_active,
-		});
-	}
-
-	toggle_active(wrapper) {
-		$(wrapper).toggleClass("active-sidebar");
-		if (!frappe.app.sidebar.sidebar_expanded) {
-			$(wrapper).removeClass("active-sidebar");
-		}
 	}
 
 	setup_hover() {
