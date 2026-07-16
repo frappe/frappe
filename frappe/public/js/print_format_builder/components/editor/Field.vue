@@ -553,7 +553,9 @@ const preview_root = computed(() => {
 			lr ? "left-right" : "",
 			!lr && df.show_label === "inline" ? "field-inline" : "",
 			df.align ? `field-align-${df.align}` : "",
-			lr && df.label_justify ? `field-justify-${df.label_justify}` : "",
+			lr && df.label_justify && !["center", "right"].includes(df.align)
+				? `field-justify-${df.label_justify}`
+				: "",
 		],
 		style: { ...style, ...custom },
 	};
