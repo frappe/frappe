@@ -212,7 +212,9 @@ function searchRecipients(query: string): Promise<Recipient[]> {
 					person.email.toLowerCase().includes(text)
 		  )
 		: directory;
-	return new Promise((resolve) => setTimeout(() => resolve(matches), 300));
+	// Short queries resolve slower, so typing fast forces the out-of-order case.
+	const delay = text.length < 3 ? 900 : 150;
+	return new Promise((resolve) => setTimeout(() => resolve(matches), delay));
 }
 
 const mentions: MentionOption[] = [

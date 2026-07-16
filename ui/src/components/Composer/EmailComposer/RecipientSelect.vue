@@ -38,8 +38,8 @@
 </template>
 
 <script setup lang="ts">
-import { computed, ref, watch } from "vue";
-import { useDebounceFn } from "@vueuse/core";
+import { computed, ref } from "vue";
+import { computedAsync, useDebounceFn } from "@vueuse/core";
 import { Avatar, FeatherIcon, toast } from "frappe-ui";
 import { MultiEmailInput, type MultiEmailOption } from "frappe-ui/experimental";
 import type { Recipient, RecipientSearch } from "../types";
@@ -50,7 +50,6 @@ const props = withDefaults(defineProps<{ placeholder?: string; search?: Recipien
 const model = defineModel<Recipient[]>({ default: () => [] });
 
 const loading = ref(false);
-const searchResults = ref<Recipient[]>([]);
 
 // Bridge plain emails <-> Recipient objects; Set() dedupes repeated seeds.
 const emails = computed<string[]>({
@@ -69,28 +68,23 @@ const options = computed<MultiEmailOption[]>(() =>
 	}))
 );
 
-const query = ref("");
+// null until the user searches, so the composer doesn't fetch on mount.
+const query = ref<string | null>(null);
 const onQuery = useDebounceFn((value: string) => (query.value = value), 250);
 
-// onCleanup runs when the next query supersedes this one, so a slow earlier
-// response can't clobber newer results.
-watch(query, async (value, _previous, onCleanup) => {
-	if (!props.search) return;
-	let stale = false;
-	onCleanup(() => (stale = true));
-	loading.value = true;
-	try {
-		const results = await props.search(value);
-		if (!stale) searchResults.value = results;
-	} catch {
-		if (!stale) {
-			searchResults.value = [];
-			toast.error("Couldn't load recipients.");
-		}
-	} finally {
-		if (!stale) loading.value = false;
+// computedAsync drops superseded responses, so a slow earlier request can't
+// clobber newer results.
+const searchResults = computedAsync<Recipient[]>(
+	async () => {
+		if (query.value === null || !props.search) return [];
+		return props.search(query.value);
+	},
+	[],
+	{
+		evaluating: loading,
+		onError: () => toast.error("Couldn't load recipients."),
 	}
-});
+);
 </script>
 
 <style scoped>
