@@ -65,19 +65,16 @@ login.bind_events = function () {
 			login.show_field_error("forgot_email", {{ _("Invalid Email.") | tojson }});
 			return false;
 		}
-		// route the server confirmation into the success banner instead of a modal
 		login.call(args, null, "/", "section.for-forgot .login-success-banner .es-alert__title");
 		return false;
 	});
 
 	$("#forgot_email").on("input", function () {
-		// editing the email resets the "Sent" state back to the default label
 		$(".btn-forgot").text({{ _("Send Link") | tojson }}).prop("disabled", !$(this).val().trim());
 	});
 
 	$("#login_with_email_link_email").on("input", function () {
-		// changing the email resets the "Sent" state; the success banner is cleared
-		// by the shared .page-card-body input handler, so only reset the button + resend link here
+		// the shared input handler clears the banner; only button + resend link reset here
 		$(".form-login-with-email-link .btn-login-with-email-link")
 			.text({{ _("Send login link") | tojson }}).prop("disabled", false);
 		$("section.for-login-with-email-link .resend-link").addClass("hidden");
@@ -92,8 +89,7 @@ login.bind_events = function () {
 			login.show_field_error("login_with_email_link_email", {{ _("Invalid Email.") | tojson }});
 			return false;
 		}
-		// route the rate-limit / server error into the banner instead of a modal
-		// (success sends no server message, so the green success banner is unaffected)
+		// errors land in the error banner via error_msg; success sends no server message
 		login.call(args, null, "/", "section.for-login-with-email-link .login-error-banner .es-alert__title").then(() => {
 			$("section:visible .login-success-banner").removeClass("hidden");
 			$("section:visible .resend-link").removeClass("hidden");
@@ -109,8 +105,7 @@ login.bind_events = function () {
 	$("#signup_fullname, #signup_email").on("input", function () {
 		var name = $("#signup_fullname").val().trim();
 		var email = $("#signup_email").val().trim();
-		// restore the default label in case a previous submit left a status message
-		// (e.g. "Already Registered") on the button
+		// a previous submit may have left "Already Registered" on the button
 		$(".form-signup .btn-signup").text({{ _("Create Account") | tojson }}).prop("disabled", !(name && email));
 	});
 
@@ -233,8 +228,7 @@ login.call = function (args, callback, url="/", error_msg=null) {
 }
 
 login.show_loading = function () {
-	// swap the visible primary button's label for the Espresso spinner; es-button
-	// only reveals it (and blocks clicks) while aria-busy is set
+	// es-button shows the spinner (and blocks clicks) only while aria-busy is set
 	$('section:visible .es-button[data-variant="solid"]:not([aria-busy])').each(function () {
 		$(this)
 			.data("label", $(this).text().trim())
@@ -244,7 +238,6 @@ login.show_loading = function () {
 };
 
 login.hide_loading = function () {
-	// restore the label saved by show_loading
 	$('.es-button[aria-busy="true"]').each(function () {
 		$(this).removeAttr("aria-busy").text($(this).data("label") || "");
 	});
@@ -286,8 +279,7 @@ login.set_invalid = function (message) {
 		login.show_error_banner(message);
 		return;
 	}
-	// sign-in: restore the button label, flag the fields, error in the banner
-	// (the OTP screen has no banner — there the message replaces the button label)
+	// sign-in; the OTP screen has no banner — there the message replaces the button label
 	login.hide_loading();
 	$("section:visible .page-card-body").addClass("invalid");
 	if ($("section:visible .login-error-banner").length) {
@@ -358,13 +350,12 @@ login.login_handlers = (function () {
 				$("section:visible .login-success-banner").removeClass("hidden");
 			} else if (window.location.hash === '#signup') {
 				if (cint(data.message[0]) == 0) {
-					// signup failed (e.g. already registered): show in the banner, restore the button
+					// signup failed (e.g. already registered)
 					login.hide_loading();
 					$("section:visible .login-success-banner").addClass("hidden");
 					login.show_error_banner(data.message[1]);
 				} else {
 					login.set_status({{ _("Success") | tojson }}, 'green');
-					// show the confirmation in the banner instead of a modal
 					$("section:visible .login-error-banner").addClass("hidden");
 					login.show_success_banner(data.message[1]);
 				}
