@@ -97,7 +97,8 @@ login.bind_events = function () {
 		login.call(args, null, "/", "section.for-login-with-email-link .login-error-banner .es-alert__title").then(() => {
 			$("section:visible .login-success-banner").removeClass("hidden");
 			$("section:visible .resend-link").css("display", "flex");
-			$("section:visible .btn-login-with-email-link").text({{ _("Sent") | tojson }}).prop("disabled", true);
+			login.set_status({{ _("Sent") | tojson }});
+			$("section:visible .btn-login-with-email-link").prop("disabled", true);
 		}).catch(() => {
 			login.set_status({{ _("Send login link") | tojson }}, 'blue');
 		});
@@ -160,6 +161,7 @@ login.reset_sections = function (hide) {
 		$forms.find(".page-card-body").removeClass("invalid");
 		$forms.find(".form-group").removeClass("invalid").find(".field-error").text("");
 		$forms.find(".login-error-banner, .login-success-banner").addClass("hidden");
+		$(".es-button[aria-busy]").removeAttr("aria-busy");
 		$(".form-forgot .btn-forgot").prop("disabled", true).text({{ _("Send Link") | tojson }});
 		$(".form-signup .btn-signup").prop("disabled", true).text({{ _("Create Account") | tojson }});
 		$(".form-login-with-email-link .btn-login-with-email-link").prop("disabled", false).text({{ _("Send login link") | tojson }});
@@ -231,15 +233,25 @@ login.call = function (args, callback, url="/", error_msg=null) {
 }
 
 login.show_loading = function () {
-	// replace the submit button label with the Espresso spinner while the request is
-	// in flight; a later set_status()/reset_sections() call restores the label
-	$('section:visible .btn-primary').html(
-		'<span class="es-spinner" role="status" aria-label="{{ _("Loading") | e }}"></span>'
-	);
+	// swap the visible primary button's label for the Espresso spinner; es-button
+	// only reveals it (and blocks clicks) while aria-busy is set
+	$('section:visible .es-button[data-variant="solid"]:not([aria-busy])').each(function () {
+		$(this)
+			.data("label", $(this).text().trim())
+			.attr("aria-busy", "true")
+			.html('<span class="es-spinner" aria-hidden="true"></span>');
+	});
+};
+
+login.hide_loading = function () {
+	// restore the label saved by show_loading
+	$('.es-button[aria-busy="true"]').each(function () {
+		$(this).removeAttr("aria-busy").text($(this).data("label") || "");
+	});
 };
 
 login.set_status = function (message, color) {
-	$('section:visible .btn-primary').text(message)
+	$('section:visible .es-button[data-variant="solid"]').removeAttr("aria-busy").text(message);
 	if (color == "red") {
 		$('section:visible .page-card-body').addClass("invalid");
 	}
@@ -263,9 +275,9 @@ login.set_invalid = function (message) {
 	setTimeout(() => {
 		$(".login-content.page-card").removeClass('invalid-login');
 	}, 500)
-	// forgot: error in a banner + reset its button (it isn't reset elsewhere)
+	// forgot: error in a banner + restore its button label
 	if ($("section.for-forgot").is(":visible")) {
-		$(".form-forgot .btn-forgot").text({{ _("Send Link") | tojson }});
+		login.hide_loading();
 		login.show_error_banner(message);
 		return;
 	}
@@ -274,8 +286,15 @@ login.set_invalid = function (message) {
 		login.show_error_banner(message);
 		return;
 	}
-	login.set_status(message, 'red');
-	login.show_error_banner(message);
+	// sign-in: restore the button label, flag the fields, error in the banner
+	// (the OTP screen has no banner — there the message replaces the button label)
+	login.hide_loading();
+	$("section:visible .page-card-body").addClass("invalid");
+	if ($("section:visible .login-error-banner").length) {
+		login.show_error_banner(message);
+	} else {
+		login.set_status(message, 'red');
+	}
 	$("#login_password").focus();
 }
 
@@ -340,7 +359,7 @@ login.login_handlers = (function () {
 			} else if (window.location.hash === '#signup') {
 				if (cint(data.message[0]) == 0) {
 					// signup failed (e.g. already registered): show in the banner, restore the button
-					$(".form-signup .btn-signup").text({{ _("Create Account") | tojson }});
+					login.hide_loading();
 					$("section:visible .login-success-banner").addClass("hidden");
 					login.show_error_banner(data.message[1]);
 				} else {
@@ -412,7 +431,7 @@ var request_otp = function (r) {
 				</div>
 				<div id="otp_div"></div>
 				<input type="text" id="login_token" autocomplete="off" class="form-control" placeholder="{{ _("Verification Code") | e }}" required="">
-				<button class="btn btn-sm btn-primary btn-block mt-3" id="verify_token">{{ _("Verify") | e }}</button>
+				<button class="es-button w-full mt-3" data-variant="solid" id="verify_token">{{ _("Verify") | e }}</button>
 			</form>
 		</div>`
 	);

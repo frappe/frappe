@@ -46,16 +46,16 @@
 {% endif %}
 <div class="page-card-actions">
 	{% if not disable_user_pass_login %}
-	<button class="btn btn-sm btn-default btn-block btn-login" type="submit">
+	<button class="es-button w-full" data-variant="solid" type="submit">
 		{{ _("Continue") }}</button>
 	{% endif %}
 	{% if ldap_settings and ldap_settings.enabled %}
-	<button class="btn btn-sm {{ "btn-primary" if disable_user_pass_login else "btn-default" }} btn-block btn-login btn-ldap-login">
+	<button class="es-button w-full btn-ldap-login" data-variant="solid">
 		{{ _("Login with LDAP") }}</button>
 	{% endif %}
 	{% if login_with_email_link %}
 	<a href="#login-with-email-link"
-		class="btn btn-block btn-default btn-sm btn-login-option btn-login-with-email-link">
+		class="es-button w-full btn-login-option btn-login-with-email-link">
 		{{ _("Login with Email Link") }}</a>
 	{% endif %}
 	{% if social_login %}
@@ -64,7 +64,7 @@
 			{% for provider in provider_logins %}
 			<div class="login-button-wrapper">
 				<a href="{{ provider.auth_url }}"
-					class="btn btn-block btn-default btn-sm btn-login-option btn-{{ provider.name }}">
+					class="es-button w-full btn-login-option btn-{{ provider.name }}">
 					{% if provider.icon %}
 						{{ provider.icon }}
 					{% endif %}
@@ -148,7 +148,7 @@
 			<div class="signup-disabled-message">
 				<span class='indicator gray'>{{_("Signup Disabled")}}</span>
 				<p class="text-muted text-normal sign-up-message mt-1 mb-8">{{_("Signups have been disabled for this website.")}}</p>
-				<div><a href='/' class='btn btn-primary btn-md'>{{ _("Home") }}</a></div>
+				<div><a href='/' class='es-button' data-variant="solid">{{ _("Home") }}</a></div>
 			</div>
 			{%- endif -%}
 		</div>
@@ -185,7 +185,7 @@
 					</div>
 				</div>
 				<div class="page-card-actions">
-					<button class="btn btn-sm btn-primary btn-block btn-signup btn-forgot"
+					<button class="es-button w-full btn-forgot" data-variant="solid"
 						type="submit" disabled>{{ _("Send Link") }}</button>
 				</div>
 			</form>
@@ -229,9 +229,9 @@
 					<p class="resend-link">
 						{{ _("Didn't receive the link?") }} <a href="#" class="btn-resend-link">{{ _("Resend") }}</a>
 					</p>
-					<button class="btn btn-sm btn-primary btn-block btn-login btn-login-with-email-link"
+					<button class="es-button w-full btn-login-with-email-link" data-variant="solid"
 						type="submit">{{ _("Send login link") }}</button>
-					<a href="#login" class="btn btn-sm btn-default btn-block btn-login-option">
+					<a href="#login" class="es-button w-full btn-login-option">
 						{{ _("Login with password") }}</a>
 				</div>
 			</form>

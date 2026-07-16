@@ -77,99 +77,12 @@ body {
 			flex-direction: column;
 			gap: 12px;
 
-			.btn-login,
-			.btn-ldap-login {
-				@include get_textstyle("base", "regular");
-				line-height: 115%;
-				color: white;
-				background: var(--gray-900);
-				border: none;
-				box-shadow: none;
-				padding: 6px 8px;
-				border-radius: var(--radius);
-				width: 100%;
-
-				&:hover,
-				&:focus,
-				&:active {
-					background: var(--gray-800);
-					color: white;
-					border: none;
-					box-shadow: none;
-				}
-
-				&:disabled {
-					background: var(--gray-900);
-					color: white;
-					opacity: 1;
-					pointer-events: none;
-				}
-			}
-
-			.btn-signup {
-				@include get_textstyle("base", "regular");
-				line-height: 115%;
-				background: var(--surface-gray-2);
-				color: var(--ink-gray-4);
-				border: none;
-				box-shadow: none;
-				padding: 6px 8px;
-				border-radius: var(--radius);
-				width: 100%;
-
-				&:not(:disabled) {
-					background: var(--surface-gray-10);
-					color: white;
-
-					&:hover,
-					&:focus,
-					&:active {
-						background: var(--gray-800);
-						color: white;
-						border: none;
-						box-shadow: none;
-					}
-				}
-
-				&:disabled {
-					opacity: 1;
-					pointer-events: none;
-				}
-			}
-
-			.btn-login-option {
-				@include get_textstyle("base", "medium");
-				line-height: 115%;
-				color: var(--gray-800);
-				background: var(--gray-100);
-				box-shadow: none;
-				border: none;
-				display: flex;
-				justify-content: center;
-				align-items: center;
-				padding: 6px 8px;
-				margin-top: 0;
-				border-radius: var(--radius);
-				width: 100%;
-
-				&.btn-salesforce {
-					i {
-						color: var(--blue-400);
-					}
-				}
-
-				img {
-					margin-right: var(--padding-xs);
-				}
-
-				&:hover {
-					border: none;
-					background: var(--gray-200);
-				}
-			}
-
 			.social-logins {
 				@include get_textstyle("base", "regular");
+
+				.btn-salesforce i {
+					color: var(--blue-400);
+				}
 
 				.social-login-buttons {
 					margin-top: var(--margin-md);
