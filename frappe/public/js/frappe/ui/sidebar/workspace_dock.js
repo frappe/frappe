@@ -28,6 +28,14 @@ frappe.ui.WorkspaceDock = class WorkspaceDock {
 		} else {
 			this.$dock.prependTo("body");
 		}
+		// Right-edge handle: the mirror of the body sidebar's own collapse handle. While the sidebar
+		// is collapsed (only the rail shows), clicking the rail's right edge reopens it. Shown only in
+		// the collapsed state via CSS (body.sidebar-collapsed), so it doesn't compete with the sidebar
+		// handle while expanded.
+		let $resize = $(`<div class="workspace-dock-resize-handle" aria-hidden="true"></div>`);
+		$resize.on("click", () => this.sidebar.open());
+		this.$dock.append($resize);
+
 		this.$logo = this.$dock.find(".workspace-dock-logo");
 		this.$items = this.$dock.find(".workspace-dock-items");
 		this.$actions = this.$dock.find(".workspace-dock-actions");

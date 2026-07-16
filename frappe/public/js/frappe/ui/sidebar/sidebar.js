@@ -8,7 +8,6 @@ frappe.ui.Sidebar = class Sidebar {
 		}
 		this.make_dom();
 		// states
-		this.sidebar_expanded = false;
 		this.all_sidebar_items = frappe.boot.workspace_sidebar_item;
 		this.$items = [];
 		this.fields_for_dialog = [];
@@ -453,8 +452,10 @@ frappe.ui.Sidebar = class Sidebar {
 		return !!(page && (page.hide_sidebar || page.hide_workspace_dock));
 	}
 	make_dom() {
+		this.load_sidebar_state();
 		this.wrapper = $(
 			frappe.render_template("sidebar", {
+				expanded: this.sidebar_expanded,
 				avatar: frappe.avatar(frappe.session.user, "avatar-medium-2"),
 				navbar_settings: frappe.boot.navbar_settings,
 			})
@@ -633,11 +634,23 @@ frappe.ui.Sidebar = class Sidebar {
 	}
 
 	set_sidebar_state() {
+		this.load_sidebar_state();
 		if (this.workspace_sidebar_items.length === 0) {
 			this.sidebar_expanded = true;
 		}
 
 		this.expand_sidebar();
+	}
+
+	load_sidebar_state() {
+		this.sidebar_expanded = true;
+		if (localStorage.getItem("sidebar-expanded") !== null) {
+			this.sidebar_expanded = JSON.parse(localStorage.getItem("sidebar-expanded"));
+		}
+
+		if (frappe.is_mobile()) {
+			this.sidebar_expanded = false;
+		}
 	}
 
 	empty() {
@@ -656,6 +669,7 @@ frappe.ui.Sidebar = class Sidebar {
 			this.wrapper.find(".selected")[0].scrollIntoView();
 
 		this.set_active_workspace_item();
+		this.set_sidebar_state();
 	}
 	create_sidebar(items) {
 		this.empty();
@@ -783,6 +797,9 @@ frappe.ui.Sidebar = class Sidebar {
 			.find("use")
 			.attr("href", `#icon-${chevron_icon}`);
 		this.sidebar_header.toggle_width(this.sidebar_expanded);
+		// while collapsed the body sidebar is hidden and only the workspace dock (rail) shows; this
+		// gates the rail's edge handle that reopens the sidebar (see workspace_dock.scss)
+		$("body").toggleClass("sidebar-collapsed", !this.sidebar_expanded);
 		$(document).trigger("sidebar-expand", {
 			sidebar_expand: this.sidebar_expanded,
 		});
