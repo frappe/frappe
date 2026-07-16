@@ -231,8 +231,15 @@ class ChromiumManager:
 		self._raise_start_failure(output)
 
 	def _raise_start_failure(self, output):
-		"""Report why Chromium never handed us a DevTools URL, quoting its own stderr."""
-		exit_code = self._chromium_process.poll()
+		"""Report why Chromium never handed us a DevTools URL, quoting its own stderr.
+
+		stderr reaching EOF races the process becoming reapable, so give a dead Chromium
+		a moment to be collected rather than misreporting it as a live one.
+		"""
+		try:
+			exit_code = self._chromium_process.wait(timeout=1)
+		except subprocess.TimeoutExpired:
+			exit_code = None
 		chromium_output = "".join(output).strip() or "<no output on stderr>"
 
 		if exit_code is None:
