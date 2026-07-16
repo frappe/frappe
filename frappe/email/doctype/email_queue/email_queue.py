@@ -41,6 +41,8 @@ from frappe.utils.verified_command import get_signed_params
 if TYPE_CHECKING:
 	from typing import Literal
 
+REDACTED_MESSAGE = "[THE FOLLOWING CONTENT HAS BEEN REDACTED FOR SECURITY REASONS]"
+
 
 class EmailQueue(Document):
 	_DOCTYPE_NAME = "Email Queue"
@@ -65,6 +67,7 @@ class EmailQueue(Document):
 		priority: DF.Int
 		raw_html: DF.Check
 		recipients: DF.Table[EmailQueueRecipient]
+		redact_message_after_send: DF.Check
 		reference_doctype: DF.Link | None
 		reference_name: DF.Data | None
 		retry: DF.Int
@@ -135,6 +138,18 @@ class EmailQueue(Document):
 		if self.communication and frappe.db.exists("Communication", self.communication):
 			communication_doc = frappe.get_doc("Communication", self.communication)
 			communication_doc.set_delivery_status(commit=commit)
+
+	def redact_message(self):
+		"""Drop the message body, keeping the headers.
+
+		Only called once the email is out of the door, since the queued message is the only
+		copy the retrying sender has.
+		"""
+		message = Parser(policy=SMTP).parsestr(self.message)
+		message.clear_content()
+		message.set_content(REDACTED_MESSAGE)
+
+		self.update_db(message=message.as_string(), commit=True)
 
 	@property
 	def cc(self):
@@ -340,6 +355,9 @@ class SendMailContext:
 			update_fields = {"status": "Sent"}
 
 		self.queue_doc.update_status(**update_fields, commit=True)
+
+		if not exc_type and self.queue_doc.redact_message_after_send:
+			self.queue_doc.redact_message()
 
 	@savepoint(catch=Exception)
 	def notify_failed_email(self):
@@ -587,6 +605,7 @@ class QueueBuilder:
 		email_headers=None,
 		raw_html=False,
 		add_css=True,
+		redact_message_after_send=False,
 	):
 		"""Add email to sending queue (Email Queue)
 
@@ -620,6 +639,7 @@ class QueueBuilder:
 		:param email_headers: Additional headers to be added in the email, e.g. {"X-Custom-Header": "value"} or {"Custom-Header": "value"}. Automatically prepends "X-" to the header name if not present.
 		:param raw_html: Whether to treat email template as a complete HTML file
 		:param add_css: Add default CSS from hooks/email_css to the email template (default True)
+		:param redact_message_after_send: Replace the message body with a placeholder once sent, for emails carrying sensitive content.
 		"""
 
 		self._unsubscribe_method = unsubscribe_method
@@ -659,6 +679,7 @@ class QueueBuilder:
 		self.email_headers = email_headers
 		self.raw_html = raw_html
 		self.add_css = add_css
+		self.redact_message_after_send = redact_message_after_send
 
 	@property
 	def unsubscribe_method(self):
@@ -934,6 +955,7 @@ class QueueBuilder:
 			"email_read_tracker_url": self.email_read_tracker_url,
 			"raw_html": self.raw_html,
 			"add_css": self.add_css,
+			"redact_message_after_send": self.redact_message_after_send,
 		}
 
 		if include_recipients:
