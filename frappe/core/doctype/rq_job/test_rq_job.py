@@ -229,6 +229,9 @@ class TestRQJob(IntegrationTestCase):
 		# TODO: Observed higher usage on 2026-05-26. Temporarily raising the limit
 		LAST_MEASURED_USAGE += 1
 
+		# Setting session time zone on connect loads System Settings in the worker
+		LAST_MEASURED_USAGE += 3
+
 		self.assertLessEqual(rss, LAST_MEASURED_USAGE * 1.05, msg)
 
 	def test_clear_failed_jobs(self):
