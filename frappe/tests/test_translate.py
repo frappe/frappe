@@ -7,7 +7,7 @@ from unittest.mock import patch
 
 import frappe
 import frappe.translate
-from frappe import _, _lt
+from frappe import N_, _, _lt
 from frappe.gettext.extractors.javascript import extract_javascript
 from frappe.tests import IntegrationTestCase
 from frappe.translate import (
@@ -61,6 +61,13 @@ class TestTranslate(IntegrationTestCase):
 
 		self.assertIsNone(frappe.cache.hget(USER_TRANSLATION_KEY, frappe.local.lang))
 		self.assertIsNone(frappe.cache.hget(MERGED_TRANSLATION_KEY, frappe.local.lang))
+
+	def test_noop_preserves_source_string(self):
+		frappe.local.lang = "de"
+		message = N_("Communication")
+
+		self.assertIs(type(message), str)
+		self.assertEqual(message, "Communication")
 
 	def test_extract_message_from_file(self):
 		data = frappe.translate.get_messages_from_file(translation_string_file)
@@ -216,6 +223,7 @@ class TestTranslate(IntegrationTestCase):
 			_(not_a_string)
 			_(not_a_string, context="wat")
 			_lt("Communication")
+			N_("Created On")
 		"""
 		)
 		expected_output = [
@@ -226,6 +234,7 @@ class TestTranslate(IntegrationTestCase):
 			(6, "broken on", "new line"),
 			(10, "broken on separate line", None),
 			(15, "Communication", None),
+			(16, "Created On", None),
 		]
 
 		output = extract_messages_from_python_code(code)
