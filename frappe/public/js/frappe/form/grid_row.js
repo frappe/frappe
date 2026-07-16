@@ -769,7 +769,6 @@ export default class GridRow {
 
 		if (!column_df || !row_df || column_df === row_df) return column_df;
 
-		row_df.width = column_df.width;
 		row_df.sticky = column_df.sticky;
 		row_df.in_list_view = column_df.in_list_view;
 
