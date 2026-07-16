@@ -86,7 +86,7 @@ import TableFieldInspector from "./TableFieldInspector.vue";
 import FieldPropertiesPanel from "./FieldPropertiesPanel.vue";
 
 let store = inject("$store");
-let { letterhead, layout } = useStore();
+let { letterhead, layout, print_format } = useStore();
 
 let selected_field = computed(() => store.selected_field.value);
 let selected_section = computed(() => store.selected_section.value);
@@ -110,7 +110,11 @@ let inspector_kind = computed(() => {
 let inspector_subtitle = computed(() => {
 	if (selected_lh_footer.value) return __("Footer");
 	if (selected_letterhead.value) return letterhead.value?.name || "";
-	if (selected_field.value) return selected_field.value.label || selected_field.value.fieldname;
+	if (selected_field.value) {
+		const df = selected_field.value;
+		if (df.custom) return df.label || df.fieldname;
+		return frappe.meta.get_label(print_format.value.doc_type, df.fieldname);
+	}
 	if (selected_section.value) return selected_section.value.label || __("Untitled section");
 	return "";
 });
