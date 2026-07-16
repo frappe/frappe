@@ -303,8 +303,9 @@ frappe.ui.Page = class Page {
 		this.clear_action_of(btn);
 
 		// icon can be a name or { icon, size } — the es contract sizes icons
-		// from the button itself, so only the name matters now
-		const icon = typeof opts.icon === "object" ? opts.icon.icon : opts.icon;
+		// from the button itself, so only the name matters now. Guard against
+		// null: callers pass it to skip the icon (typeof null === "object")
+		const icon = opts.icon && typeof opts.icon === "object" ? opts.icon.icon : opts.icon;
 		const dress_opts = {
 			label: opts.label,
 			icon: icon,
@@ -357,7 +358,7 @@ frappe.ui.Page = class Page {
 	// shorter text below the md breakpoint (e.g. "Add" for "Add Sales Order")
 	set_primary_action(label, click, icon, working_label) {
 		this.set_action(this.btn_primary, {
-			...(typeof label === "object" ? label : { label }),
+			...(label && typeof label === "object" ? label : { label }),
 			click: click,
 			icon: icon,
 			working_label: working_label,
@@ -368,7 +369,7 @@ frappe.ui.Page = class Page {
 
 	set_secondary_action(label, click, icon, working_label) {
 		this.set_action(this.btn_secondary, {
-			...(typeof label === "object" ? label : { label }),
+			...(label && typeof label === "object" ? label : { label }),
 			click: click,
 			icon: icon,
 			working_label: working_label,
