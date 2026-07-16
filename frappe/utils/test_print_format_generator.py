@@ -246,13 +246,30 @@ class TestPrintFormatGenerator(IntegrationTestCase):
 
 	def test_get_print_degrades_for_deleted_format(self):
 		"""A print_format name that no longer exists must not raise DoesNotExistError
-		during pdf_generator resolution — it degrades to the Standard (chrome) render,
-		so notifications referencing a removed format still send."""
+		during pdf_generator resolution — it degrades to the Standard render, so
+		notifications referencing a removed format still send."""
 		from frappe.utils.print_utils import _print_format_doc_or_none
 
 		self.assertIsNone(_print_format_doc_or_none("_No Such Format ZZZ"))
 		self.assertIsNone(_print_format_doc_or_none("Standard"))
 		self.assertIsNone(_print_format_doc_or_none(None))
+
+	def test_standard_print_follows_print_settings_pdf_generator(self):
+		"""Standard (no print format) must honour Print Settings, while a beta format
+		stays pinned to chrome — wkhtmltopdf cannot lay out its flexbox columns."""
+		from frappe.utils.print_utils import resolve_pdf_generator
+
+		beta = self._make_print_format()
+		original = frappe.db.get_single_value("Print Settings", "pdf_generator")
+		self.addCleanup(frappe.db.set_single_value, "Print Settings", "pdf_generator", original)
+
+		for setting in ("wkhtmltopdf", "chrome"):
+			frappe.db.set_single_value("Print Settings", "pdf_generator", setting)
+			self.assertEqual(resolve_pdf_generator(None), setting)
+			self.assertEqual(resolve_pdf_generator(beta), "chrome")
+
+		frappe.db.set_single_value("Print Settings", "pdf_generator", "wkhtmltopdf")
+		self.assertEqual(resolve_pdf_generator(None, "chrome"), "chrome")
 
 	# ------------------------------------------------------------------ #
 	# printpreview: Standard (no format selected) renders the beta default
