@@ -2,17 +2,11 @@
 # License: MIT. See LICENSE
 
 import frappe
+from frappe import _noop
 from frappe.desk.doctype.global_search_settings.global_search_settings import (
 	update_global_search_doctypes,
 )
 from frappe.utils.dashboard import sync_dashboards
-
-
-def _(x, *args, **kwargs):
-	"""Redefine the translation function to return the string as is.
-	We want to create english records but still mark the strings as translatable.
-	The respective DocTypes have 'Translate Link Fields' enabled."""
-	return x
 
 
 def install():
@@ -25,13 +19,13 @@ def install():
 
 def update_genders():
 	for gender in (
-		_("Male"),
-		_("Female"),
-		_("Other"),
-		_("Transgender"),
-		_("Genderqueer"),
-		_("Non-Conforming"),
-		_("Prefer not to say"),
+		_noop("Male"),
+		_noop("Female"),
+		_noop("Other"),
+		_noop("Transgender"),
+		_noop("Genderqueer"),
+		_noop("Non-Conforming"),
+		_noop("Prefer not to say"),
 	):
 		doc = frappe.new_doc("Gender")
 		doc.gender = gender
@@ -40,15 +34,15 @@ def update_genders():
 
 def update_salutations():
 	for salutation in (
-		_("Mr"),
-		_("Ms"),
-		_("Mx"),
-		_("Dr"),
-		_("Mrs"),
-		_("Madam"),
-		_("Miss"),
-		_("Master"),
-		_("Prof"),
+		_noop("Mr"),
+		_noop("Ms"),
+		_noop("Mx"),
+		_noop("Dr"),
+		_noop("Mrs"),
+		_noop("Madam"),
+		_noop("Miss"),
+		_noop("Master"),
+		_noop("Prof"),
 	):
 		doc = frappe.new_doc("Salutation")
 		doc.salutation = salutation
