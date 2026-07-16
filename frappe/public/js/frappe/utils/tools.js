@@ -94,8 +94,11 @@ function sanitize_markdown_html(html) {
 				if (!keep) el.removeAttribute(attr.name);
 			}
 			if (tag === "a") {
-				el.setAttribute("target", "_blank");
-				el.setAttribute("rel", "noopener noreferrer");
+				const href = el.getAttribute("href") || "";
+				if (href && !href.startsWith("#")) {
+					el.setAttribute("target", "_blank");
+					el.setAttribute("rel", "noopener noreferrer");
+				}
 			}
 		}
 	})(doc.body);
