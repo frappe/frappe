@@ -3,7 +3,7 @@ msgstr ""
 "Project-Id-Version: frappe\n"
 "Report-Msgid-Bugs-To: developers@frappe.io\n"
 "POT-Creation-Date: 2026-07-12 10:03+0000\n"
-"PO-Revision-Date: 2026-07-15 12:33\n"
+"PO-Revision-Date: 2026-07-16 12:33\n"
 "Last-Translator: developers@frappe.io\n"
 "Language-Team: Bosnian\n"
 "MIME-Version: 1.0\n"
@@ -3346,7 +3346,7 @@ msgstr "Automatsko praćenje dokumenata koje komentarišete"
 #. Label of the follow_created_documents (Check) field in DocType 'User'
 #: frappe/core/doctype/user/user.json
 msgid "Auto follow documents that you create"
-msgstr "Automatsko praćenje dokumenata koje izradite"
+msgstr "Automatsko praćenje dokumenata koje izradi"
 
 #: frappe/automation/doctype/auto_repeat/auto_repeat.py:242
 msgid "Auto repeat failed. Please enable auto repeat after fixing the issues."
@@ -9584,11 +9584,11 @@ msgstr "Omogući masovnu izmjenu ovog polja u redovima podređenih tabela."
 
 #: frappe/printing/doctype/print_format_field_template/print_format_field_template.py:28
 msgid "Enable developer mode to create a standard Print Template"
-msgstr "Omogući način rada za programere da izradite standardni Predložak Ispisa"
+msgstr "Omogući način rada za programere da izradi standardni Predložak Ispisa"
 
 #: frappe/website/doctype/web_template/web_template.py:33
 msgid "Enable developer mode to create a standard Web Template"
-msgstr "Omogući način rada za programere da izradite standardni Web Predložak"
+msgstr "Omogući način rada za programere da izradi standardni Web Predložak"
 
 #. Description of the 'Modal Trigger' (Check) field in DocType 'Form Tour Step'
 #: frappe/desk/doctype/form_tour_step/form_tour_step.json
@@ -12130,7 +12130,7 @@ msgstr "Google Kalendar je Konfigurisan."
 #. Label of a Workspace Sidebar Item
 #: frappe/workspace_sidebar/integrations.json
 msgid "Google Calender"
-msgstr ""
+msgstr "Google Kalendar"
 
 #. Label of the sb_00 (Section Break) field in DocType 'Contact'
 #. Label of the google_contacts (Link) field in DocType 'Contact'
@@ -14140,11 +14140,11 @@ msgstr "Nevažeća Veza"
 
 #: frappe/core/doctype/doctype/doctype.py:1738
 msgid "Invalid Link Filters for field {0}. Link Filters must be a list of filters, where each filter is a list with four values: doctype, fieldname, operator, and value."
-msgstr ""
+msgstr "Nevažeći Filteri Linkova za polje {0}. Filteri Linkova moraju biti lista filtera, gdje je svaki filter lista sa četiri vrijednosti: doctype, ime polja, operator i vrijednost."
 
 #: frappe/core/doctype/doctype/doctype.py:1729
 msgid "Invalid Link Filters for field {0}. Link Filters must be valid JSON."
-msgstr ""
+msgstr "Nevažeći Filteri Linkova za polje {0}. Filteri Linkova moraju biti važeći JSON."
 
 #: frappe/www/login.py:123
 msgid "Invalid Login Token"
@@ -17372,7 +17372,7 @@ msgstr "NAPOMENA: Ako dodate stanja ili tranzicije u tablicu, to će se odraziti
 #. Settings'
 #: frappe/integrations/doctype/ldap_settings/ldap_settings.json
 msgid "NOTE: This box is due for depreciation. Please re-setup LDAP to work with the newer settings"
-msgstr "NAPOMENA: Ovo polje je zbog starih postavki. Ponovo podesite LDAP za rad sa novijim postavkama"
+msgstr "NAPOMENA: Ovo polje je zbog starih postavki. Ponovo podesi LDAP za rad sa novijim postavkama"
 
 #. Label of the fieldname (Data) field in DocType 'DocField'
 #. Label of the fieldname (Data) field in DocType 'Customize Form Field'
@@ -19265,7 +19265,7 @@ msgstr "Otvori URL u Novoj Kartici"
 #. Description of the 'Quick Entry' (Check) field in DocType 'DocType'
 #: frappe/core/doctype/doctype/doctype.json
 msgid "Open a dialog with mandatory fields to create a new record quickly. There must be at least one mandatory field to show in dialog."
-msgstr "Otvorite dijalog sa obaveznim poljima da brzo izradite novi zapis. Mora postojati barem jedno obavezno polje za prikaz u dijalogu."
+msgstr "Otvorite dijalog sa obaveznim poljima da brzo izradi novi zapis. Mora postojati barem jedno obavezno polje za prikaz u dijalogu."
 
 #: frappe/public/js/frappe/ui/keyboard.js:361
 msgid "Open console"
@@ -20711,7 +20711,7 @@ msgstr "Postavi adresu e-pošte"
 
 #: frappe/printing/page/print/print.js:605
 msgid "Please set a printer mapping for this print format in the Printer Settings"
-msgstr "Podesite mapiranje pisača za ovaj format ispisivanja u postavkama pisača"
+msgstr "Podesi mapiranje pisača za ovaj format ispisivanja u postavkama pisača"
 
 #: frappe/public/js/frappe/views/reports/query_report.js:1464
 msgid "Please set filters"
@@ -20735,7 +20735,7 @@ msgstr "Postavi seriju imenovanja koja će se koristiti."
 
 #: frappe/core/doctype/system_settings/system_settings.py:134
 msgid "Please setup SMS before setting it as an authentication method, via SMS Settings"
-msgstr "Podesite SMS prije nego što ga postavi kao metodu provjere autentičnosti, putem SMS Postavki"
+msgstr "Podesi SMS prije nego što ga postavi kao metodu provjere autentičnosti, putem SMS Postavki"
 
 #: frappe/automation/doctype/auto_repeat/auto_repeat.js:108
 msgid "Please setup a message first"
@@ -21327,7 +21327,7 @@ msgstr "Mapiranje pisača nije postavljeno."
 #. Title of a Workspace Sidebar
 #: frappe/desktop_icon/printing.json frappe/workspace_sidebar/printing.json
 msgid "Printing"
-msgstr "Štampanje"
+msgstr "Ispis"
 
 #: frappe/utils/print_format.py:380
 msgid "Printing failed"
@@ -24664,7 +24664,7 @@ msgstr "Odaberi artikle više listi"
 
 #: frappe/public/js/frappe/views/calendar/calendar.js:167
 msgid "Select or drag across time slots to create a new event."
-msgstr "Odaberi ili prevucite preko vremenskih intervala da izradite novi događaj."
+msgstr "Odaberi ili prevucite preko vremenskih intervala da izradi novi događaj."
 
 #: frappe/public/js/frappe/list/bulk_operations.js:239
 msgid "Select records for assignment"
@@ -31314,7 +31314,7 @@ msgstr "Konstruktor Radnog Toka"
 
 #: frappe/workflow/doctype/workflow/workflow.js:11
 msgid "Workflow Builder allows you to create workflows visually. You can drag and drop states and link them to create transitions. Also you can update their properties from the sidebar."
-msgstr "Konstruktor Radnog Toka vam omogućava da izradite radne tokove vizuelno. Možete prevući i ispustiti stanja i povezati ih da biste izradili prelaze. Također možete ažurirati njihova svojstva sa bočne trake."
+msgstr "Konstruktor Radnog Toka vam omogućava da izradi radne tokove vizuelno. Možete prevući i ispustiti stanja i povezati ih da biste izradili prelaze. Također možete ažurirati njihova svojstva sa bočne trake."
 
 #. Label of the workflow_data (JSON) field in DocType 'Workflow'
 #: frappe/workflow/doctype/workflow/workflow.json
@@ -31670,7 +31670,7 @@ msgstr "Nije vam dozvoljen pristup ovom zapisu {0} jer je povezan s {1} '{2}' u 
 
 #: frappe/public/js/frappe/views/kanban/kanban_board.bundle.js:68
 msgid "You are not allowed to create columns"
-msgstr "Nije vam dozvoljeno da izradite kolone"
+msgstr "Nije vam dozvoljeno da izradi kolone"
 
 #: frappe/core/doctype/report/report.py:103
 msgid "You are not allowed to delete Standard Report"
