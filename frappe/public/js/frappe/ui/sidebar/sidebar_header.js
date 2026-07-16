@@ -9,7 +9,6 @@ frappe.ui.SidebarHeader = class SidebarHeader {
 		this.dock_active = sidebar.workspace_dock_enabled();
 		this.dropdown_items = this.build_dropdown_items();
 		this.make();
-		this.setup_app_switcher();
 	}
 	// Workspaces (the shared selector set, owned by Sidebar) then the Apps section, and finally the
 	// "My Workspaces" picker dialog -- the same entry as the user menu, so it's reachable here too.
