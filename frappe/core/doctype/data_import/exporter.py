@@ -5,7 +5,7 @@ import frappe
 from frappe import _
 from frappe.model import display_fieldtypes, no_value_fields
 from frappe.model import table_fields as table_fieldtypes
-from frappe.utils import flt, format_duration, groupby_metric
+from frappe.utils import create_batch, flt, format_duration, groupby_metric
 from frappe.utils.csvutils import build_csv_response
 from frappe.utils.xlsxutils import build_xlsx_response
 
@@ -193,18 +193,21 @@ class Exporter:
 				"parentfield",
 				*list({format_column_name(df) for df in self.fields if df.parent == child_table_doctype}),
 			]
-			data = frappe.get_all(
-				child_table_doctype,
-				filters={
-					"parent": ("in", parent_names),
-					"parentfield": child_table_df.fieldname,
-					"parenttype": self.doctype,
-				},
-				fields=child_fields,
-				order_by="idx asc",
-				as_list=0,
-			)
-			child_data[key] = data
+			# Fetch in batches to keep the `parent in (...)` clause small.
+			rows = []
+			for batch in create_batch(parent_names, 1000):
+				rows += frappe.get_all(
+					child_table_doctype,
+					filters={
+						"parent": ("in", batch),
+						"parentfield": child_table_df.fieldname,
+						"parenttype": self.doctype,
+					},
+					fields=child_fields,
+					order_by="idx asc",
+					as_list=0,
+				)
+			child_data[key] = rows
 
 		# Group children data by parent name
 		grouped_children_data = self.group_children_data_by_parent(child_data)
