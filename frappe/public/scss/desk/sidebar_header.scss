@@ -52,6 +52,7 @@
 	line-height: 1.2;
 	@include truncate();
 	overflow: unset;
+	margin-left: var(--margin-sm);
 }
 
 .header-subtitle {
