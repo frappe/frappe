@@ -875,6 +875,11 @@ class TestDateUtils(IntegrationTestCase):
 		self.assertEqual(frappe.utils.is_last_day_of_the_month("2020-12-24"), False)
 		self.assertEqual(frappe.utils.is_last_day_of_the_month("2020-12-31"), True)
 
+	def test_get_timezone_utc_offset(self):
+		self.assertEqual(frappe.utils.data.get_timezone_utc_offset("UTC"), "+00:00")
+		self.assertEqual(frappe.utils.data.get_timezone_utc_offset("Asia/Kolkata"), "+05:30")
+		self.assertEqual(frappe.utils.data.get_timezone_utc_offset("Pacific/Marquesas"), "-09:30")
+
 	def test_get_time(self):
 		datetime_input = now_datetime()
 		timedelta_input = get_timedelta()

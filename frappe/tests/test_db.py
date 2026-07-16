@@ -782,6 +782,33 @@ class TestDB(IntegrationTestCase):
 		expected = datetime.datetime.now(ZoneInfo("America/New_York")).replace(tzinfo=None)
 		self.assertLess(abs((expected - db_now).total_seconds()), 10)
 
+	@run_only_if(db_type_is.MARIADB)
+	def test_session_time_zone_falls_back_to_utc_offset(self):
+		with patch.object(
+			frappe.db.__class__, "sql", side_effect=[frappe.db.OperationalError, None]
+		) as mocked_sql:
+			frappe.db.set_session_time_zone("Asia/Kolkata")
+
+		mocked_sql.assert_called_with("set session time_zone = %s", "+05:30")
+
+	@unimplemented_for(db_type_is.SQLITE)
+	def test_connect_survives_session_time_zone_failure(self):
+		with patch(
+			"frappe.database.database.get_system_timezone", side_effect=Exception("timezone unavailable")
+		):
+			db = get_db(
+				socket=frappe.db.socket,
+				host=frappe.db.host,
+				user=frappe.db.user,
+				password=frappe.db.password,
+				port=frappe.db.port,
+				cur_db_name=frappe.db.cur_db_name,
+			)
+			try:
+				self.assertEqual(db.sql("select 1")[0][0], 1)
+			finally:
+				db.close()
+
 
 @run_only_if(db_type_is.MARIADB)
 class TestDDLCommandsMaria(IntegrationTestCase):
