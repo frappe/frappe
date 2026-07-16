@@ -1,5 +1,5 @@
-import { ref, reactive, nextTick, computed, toRaw, readonly } from "vue"
-import { useDebounceFn } from "@vueuse/core"
+import { ref, nextTick, computed, toRaw, readonly } from "vue"
+import { useDebounceFn, useStorage } from "@vueuse/core"
 import router from "@/router/studio_router"
 import { defineStore } from "pinia"
 
@@ -36,15 +36,20 @@ import { toast } from "frappe-ui"
 import { createResource } from "frappe-ui"
 
 const useStudioStore = defineStore("store", () => {
-	const studioLayout = reactive({
-		leftPanelWidth: 338,
-		rightPanelWidth: 275,
-		showLeftPanel: true,
-		showRightPanel: true,
-		leftPanelActiveTab: <LeftPanelOptions>"Add Component",
-		leftPanelComponentTab: <leftPanelComponentTabOptions>"Standard",
-		rightPanelActiveTab: <RightPanelOptions>"Properties",
-	})
+	const studioLayout = useStorage(
+		"studioLayout",
+		{
+			leftPanelWidth: 338,
+			rightPanelWidth: 275,
+			showLeftPanel: true,
+			showRightPanel: true,
+			leftPanelActiveTab: <LeftPanelOptions>"Add Component",
+			leftPanelComponentTab: <leftPanelComponentTabOptions>"Standard",
+			rightPanelActiveTab: <RightPanelOptions>"Properties",
+		},
+		localStorage,
+		{ mergeDefaults: true },
+	)
 	const mode = ref<StudioMode>("select")
 	const componentContextMenu = ref<InstanceType<typeof ComponentContextMenu> | null>(null)
 
@@ -63,15 +68,15 @@ const useStudioStore = defineStore("store", () => {
 	const selectedVueComponent = ref<string | null>(null)
 
 	function navigateToCodeFile(studioFilePath: string) {
-		studioLayout.leftPanelActiveTab = "Code"
-		studioLayout.showLeftPanel = true
+		studioLayout.value.leftPanelActiveTab = "Code"
+		studioLayout.value.showLeftPanel = true
 		selectedVueFile.value = studioFilePath
 	}
 
 	function navigateToVueComponent(componentName: string) {
-		studioLayout.leftPanelActiveTab = "Add Component"
-		studioLayout.leftPanelComponentTab = "Custom"
-		studioLayout.showLeftPanel = true
+		studioLayout.value.leftPanelActiveTab = "Add Component"
+		studioLayout.value.leftPanelComponentTab = "Custom"
+		studioLayout.value.showLeftPanel = true
 		selectedVueComponent.value = componentName
 	}
 
@@ -286,7 +291,7 @@ const useStudioStore = defineStore("store", () => {
 							action: {
 								label: "Edit Pages",
 								onClick: () => {
-									studioLayout.leftPanelActiveTab = "Pages"
+									studioLayout.value.leftPanelActiveTab = "Pages"
 								}
 							}
 						})
