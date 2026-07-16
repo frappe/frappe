@@ -220,6 +220,8 @@ class SystemSettings(Document):
 
 	def validate_snapshot_reports(self):
 		old_doc = self.get_doc_before_save()
+		if not old_doc:
+			return
 		if (old_doc.enable_snapshot_reports != self.enable_snapshot_reports) or (
 			old_doc.frequency != self.frequency
 		):
