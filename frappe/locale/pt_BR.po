@@ -3,7 +3,7 @@ msgstr ""
 "Project-Id-Version: frappe\n"
 "Report-Msgid-Bugs-To: developers@frappe.io\n"
 "POT-Creation-Date: 2026-07-12 10:03+0000\n"
-"PO-Revision-Date: 2026-07-15 12:32\n"
+"PO-Revision-Date: 2026-07-16 12:33\n"
 "Last-Translator: developers@frappe.io\n"
 "Language-Team: Portuguese, Brazilian\n"
 "MIME-Version: 1.0\n"
@@ -16975,7 +16975,7 @@ msgstr "Celular"
 #: frappe/tests/test_translate.py:89 frappe/tests/test_translate.py:91
 #: frappe/tests/test_translate.py:94
 msgid "Mobile No"
-msgstr "Celular"
+msgstr "Telefone Celular"
 
 #. Label of a field in the edit-profile Web Form
 #: frappe/core/web_form/edit_profile/edit_profile.json
