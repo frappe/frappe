@@ -23,6 +23,24 @@ def _print_format_doc_or_none(print_format: str | None):
 		return None
 
 
+def resolve_pdf_generator(print_format=None, pdf_generator: str | None = None) -> str:
+	"""Pick the PDF engine for a render.
+
+	The beta renderer emits flexbox layouts that only Chromium lays out correctly, so a
+	beta format pins itself to Chrome. Everything else honours an explicit choice, then
+	the format's own setting, then the site default in Print Settings.
+	"""
+	from frappe.printing.doctype.print_format.classic_converter import uses_beta_renderer
+
+	if print_format and uses_beta_renderer(print_format):
+		return "chrome"
+	if pdf_generator:
+		return pdf_generator
+	if print_format and print_format.get("pdf_generator"):
+		return print_format.get("pdf_generator")
+	return frappe.db.get_single_value("Print Settings", "pdf_generator") or "wkhtmltopdf"
+
+
 def get_print(
 	doctype=None,
 	name=None,
@@ -58,18 +76,8 @@ def get_print(
 
 	local = frappe.local
 	if "pdf_generator" not in local.form_dict:
-		from frappe.printing.doctype.print_format.classic_converter import uses_beta_renderer
-
 		pf_doc = _print_format_doc_or_none(print_format)
-		requires_chrome = not pf_doc or uses_beta_renderer(pf_doc)
-
-		if requires_chrome:
-			pdf_generator = "chrome"
-		elif pdf_generator is None:
-			pdf_generator = (
-				frappe.get_cached_value("Print Format", print_format, "pdf_generator") or "wkhtmltopdf"
-			)
-		local.form_dict.pdf_generator = pdf_generator
+		local.form_dict.pdf_generator = resolve_pdf_generator(pf_doc, pdf_generator)
 
 	original_form_dict = copy.deepcopy(local.form_dict)
 	try:
@@ -168,7 +176,9 @@ def attach_print(
 	)
 
 	pf_doc = _print_format_doc_or_none(print_format)
-	render_via_generator = pf_doc is None or uses_beta_renderer(pf_doc)
+	render_via_generator = (pf_doc is None or uses_beta_renderer(pf_doc)) and resolve_pdf_generator(
+		pf_doc
+	) == "chrome"
 
 	try:
 		with print_language(lang or frappe.local.lang):
