@@ -117,9 +117,9 @@
 				{{ email_login_body() }}
 			</form>
 			{%- if not disable_signup and not disable_user_pass_login -%}
-			<div class="text-center sign-up-message text-p-sm text-ink-gray-6">
+			<div class="text-center sign-up-message text-p-sm text-ink-gray-6 mt-auto mb-0">
 				{{ _("Don't have an account?") }}
-				<a href="#signup">{{ _("Sign up") }}</a>
+				<a href="#signup" class="text-p-sm-semibold text-ink-gray-6">{{ _("Sign up") }}</a>
 			</div>
 			{%- endif -%}
 		</div>
@@ -133,9 +133,9 @@
 			{{ email_login_body() }}
 			</form>
 			{%- if not disable_signup and not disable_user_pass_login -%}
-			<div class="text-center sign-up-message text-p-sm text-ink-gray-6">
+			<div class="text-center sign-up-message text-p-sm text-ink-gray-6 mt-auto mb-0">
 				{{ _("Don't have an account?") }}
-				<a href="#signup">{{ _("Sign up") }}</a>
+				<a href="#signup" class="text-p-sm-semibold text-ink-gray-6">{{ _("Sign up") }}</a>
 			</div>
 			{%- endif -%}
 		</div>
@@ -191,8 +191,8 @@
 						type="submit" disabled>{{ _("Send Link") }}</button>
 				</div>
 			</form>
-			<div class="text-center sign-up-message text-p-sm text-ink-gray-6">
-				<a href="#login">{{ _("Back to sign in") }}</a>
+			<div class="text-center sign-up-message text-p-sm text-ink-gray-6 mt-auto mb-0">
+				<a href="#login" class="text-p-sm-semibold text-ink-gray-6">{{ _("Back to sign in") }}</a>
 			</div>
 		</div>
 	</section>
@@ -229,7 +229,7 @@
 				</div>
 				<div class="page-card-actions flex flex-col gap-3">
 					<p class="resend-link hidden flex items-center gap-2 w-full text-base text-ink-gray-6 mb-0">
-						{{ _("Didn't receive the link?") }} <a href="#" class="btn-resend-link">{{ _("Resend") }}</a>
+						{{ _("Didn't receive the link?") }} <a href="#" class="btn-resend-link text-base-semibold text-ink-gray-6">{{ _("Resend") }}</a>
 					</p>
 					<button class="es-button w-full btn-login-with-email-link" data-variant="solid"
 						type="submit">{{ _("Send login link") }}</button>
@@ -238,9 +238,9 @@
 				</div>
 			</form>
 			{%- if not disable_signup -%}
-			<div class="text-center sign-up-message text-p-sm text-ink-gray-6">
+			<div class="text-center sign-up-message text-p-sm text-ink-gray-6 mt-auto mb-0">
 				{{ _("Don't have an account?") }}
-				<a href="#signup">{{ _("Sign up") }}</a>
+				<a href="#signup" class="text-p-sm-semibold text-ink-gray-6">{{ _("Sign up") }}</a>
 			</div>
 			{%- endif -%}
 		</div>

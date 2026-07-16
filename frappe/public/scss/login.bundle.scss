@@ -34,7 +34,7 @@ body {
 	.page-card {
 		padding: 24px;
 		background-color: var(--bg-color);
-		max-width: 371px;
+		max-width: 400px;
 		width: 100%;
 		margin: 0 auto;
 		border-radius: var(--radius-lg);
@@ -69,11 +69,6 @@ body {
 					}
 				}
 			}
-		}
-
-		.resend-link a {
-			color: inherit;
-			text-decoration: underline;
 		}
 
 		.page-card-body {
@@ -160,20 +155,6 @@ body {
 		}
 	}
 
-	.sign-up-message {
-		margin-top: auto;
-		margin-bottom: 0;
-
-		a {
-			color: inherit;
-			text-decoration-line: underline;
-			text-decoration-style: solid;
-			text-decoration-skip-ink: none;
-			text-decoration-thickness: 1px;
-			text-underline-position: from-font;
-		}
-	}
-
 	.invalid-login {
 		animation: wiggle 0.4s ease-in-out;
 	}
@@ -206,25 +187,5 @@ body {
 	img.app-logo {
 		max-height: 32px;
 		width: auto;
-	}
-}
-
-.for-reset-password {
-	.password-strength-value {
-		&.strength-red {
-			color: var(--red-700);
-		}
-
-		&.strength-orange {
-			color: var(--orange-700);
-		}
-
-		&.strength-blue {
-			color: var(--blue-700);
-		}
-
-		&.strength-green {
-			color: var(--green-700);
-		}
 	}
 }
