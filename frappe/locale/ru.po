@@ -3,7 +3,7 @@ msgstr ""
 "Project-Id-Version: frappe\n"
 "Report-Msgid-Bugs-To: developers@frappe.io\n"
 "POT-Creation-Date: 2026-07-12 10:03+0000\n"
-"PO-Revision-Date: 2026-07-15 12:32\n"
+"PO-Revision-Date: 2026-07-16 12:32\n"
 "Last-Translator: developers@frappe.io\n"
 "Language-Team: Russian\n"
 "MIME-Version: 1.0\n"
@@ -33553,7 +33553,7 @@ msgstr "{0} требуется"
 
 #: frappe/public/js/frappe/form/save.js:196
 msgid "{0} is required."
-msgstr "{0} требуется."
+msgstr "{0} С‚СЂРµР±СѓРµС‚СЃСЏ."
 
 #: frappe/public/js/frappe/form/controls/link.js:724
 #: frappe/public/js/frappe/views/reports/report_view.js:1591
