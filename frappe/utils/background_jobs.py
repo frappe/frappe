@@ -278,11 +278,13 @@ def execute_job(site, method, event, job_name, kwargs, user=None, is_async=True,
 	try:
 		retval = method(**kwargs)
 
-	except (frappe.db.InternalError, frappe.RetryBackgroundJobError) as e:
+	except (frappe.db.InternalError, frappe.RetryBackgroundJobError, frappe.QueryDeadlockError) as e:
 		frappe.db.rollback(chain=True)
 
 		if retry < 5 and (
-			isinstance(e, frappe.RetryBackgroundJobError)
+			# sql() wraps deadlocks/serialization conflicts in QueryDeadlockError, so the raw
+			# is_deadlocked check below never sees them -- catch the wrapper explicitly.
+			isinstance(e, (frappe.RetryBackgroundJobError, frappe.QueryDeadlockError))
 			or (frappe.db.is_deadlocked(e) or frappe.db.is_timedout(e))
 		):
 			# retry the job if
