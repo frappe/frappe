@@ -460,7 +460,7 @@ Cypress.Commands.add("click_action_button", (name) => {
 });
 
 Cypress.Commands.add("click_menu_button", (name) => {
-	cy.get(".standard-actions .menu-btn-group > .btn").click();
+	cy.get(".standard-actions .menu-btn-group > button").click();
 	cy.get(`.menu-btn-group [data-label="${encodeURIComponent(name)}"]`).click();
 });
 
