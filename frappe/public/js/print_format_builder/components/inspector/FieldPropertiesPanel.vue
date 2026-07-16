@@ -119,7 +119,7 @@
 					:options="align_opts"
 					@update:model-value="(v) => (selected_field.align = v)"
 				/>
-				<div class="pfb-insp-row" v-if="fieldIsInline">
+				<div class="pfb-insp-row" v-if="fieldIsInline && current_align === 'left'">
 					<span class="pfb-insp-label">{{ __("Spacing") }}</span>
 					<select
 						class="pfb-insp-select"
