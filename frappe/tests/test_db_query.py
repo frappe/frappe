@@ -699,6 +699,13 @@ class TestDBQuery(FrappeTestCase):
 			_normalize_query_for_validation(in_query.format(names="'a', 'b', 'c', 'd'")),
 		)
 
+		# scientific-notation numbers collapse fully, like plain numbers
+		num_query = "select `tabNote`.`name` from `tabNote` where `tabNote`.`idx` > {value}"
+		self.assertEqual(
+			_normalize_query_for_validation(num_query.format(value="5")),
+			_normalize_query_for_validation(num_query.format(value="1e+20")),
+		)
+
 	def test_normalize_query_for_validation_keeps_unbalanced_quote(self):
 		"""An unbalanced quote is not collapsed, so it still reaches the parser as-is."""
 		from frappe.model.db_query import _normalize_query_for_validation
