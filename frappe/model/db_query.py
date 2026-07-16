@@ -281,6 +281,38 @@ def _raise_illegal_query():
 	frappe.throw(_("Illegal SQL Query"), frappe.DataError)
 
 
+# Comment and backtick alternatives come first so a `'` or digit inside them is never collapsed.
+_QUERY_TOKEN = re.compile(
+	r"""
+	  (?P<comment>/\*.*?\*/|(?:--|\#)[^\n]*)
+	| (?P<backtick>`(?:[^`]|``)*`)
+	| (?P<string>'(?:\\.|''|[^'\\])*')
+	| (?P<number>(?<![\w.])\d+(?:\.\d+)?|(?<![\w.])\.\d+)
+	""",
+	re.VERBOSE | re.DOTALL,
+)
+
+_LITERAL_IN_LIST = re.compile(r"\bin\s*\(\s*(?:'\?'|\?)(?:\s*,\s*(?:'\?'|\?))*\s*\)", re.IGNORECASE)
+
+
+def _normalize_query_for_validation(query: str) -> str:
+	"""Collapse closed literals to a value-independent skeleton so the validator cache can hit.
+
+	Only balanced, fully-closed literals collapse; structure stays verbatim and an unbalanced
+	quote is left intact, so anything the raw query would be rejected for is still rejected.
+	"""
+
+	def replace(match):
+		if match.lastgroup == "string":
+			return "'?'"
+		if match.lastgroup == "number":
+			return "?"
+		return match.group()
+
+	skeleton = _QUERY_TOKEN.sub(replace, query)
+	return _LITERAL_IN_LIST.sub("in (?)", skeleton)
+
+
 class DatabaseQuery:
 	def __init__(self, doctype, user=None):
 		self.doctype = doctype
@@ -496,7 +528,7 @@ from {tables}
 			group_by=args.group_by or "",
 			order_by=args.order_by or "",
 		)
-		validate_generated_query(query)
+		validate_generated_query(_normalize_query_for_validation(query))
 
 	def prepare_args(self):
 		self.parse_args()
