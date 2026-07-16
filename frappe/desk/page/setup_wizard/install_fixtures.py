@@ -2,7 +2,7 @@
 # License: MIT. See LICENSE
 
 import frappe
-from frappe import _noop
+from frappe import N_
 from frappe.desk.doctype.global_search_settings.global_search_settings import (
 	update_global_search_doctypes,
 )
@@ -19,13 +19,13 @@ def install():
 
 def update_genders():
 	for gender in (
-		_noop("Male"),
-		_noop("Female"),
-		_noop("Other"),
-		_noop("Transgender"),
-		_noop("Genderqueer"),
-		_noop("Non-Conforming"),
-		_noop("Prefer not to say"),
+		N_("Male"),
+		N_("Female"),
+		N_("Other"),
+		N_("Transgender"),
+		N_("Genderqueer"),
+		N_("Non-Conforming"),
+		N_("Prefer not to say"),
 	):
 		doc = frappe.new_doc("Gender")
 		doc.gender = gender
@@ -34,15 +34,15 @@ def update_genders():
 
 def update_salutations():
 	for salutation in (
-		_noop("Mr"),
-		_noop("Ms"),
-		_noop("Mx"),
-		_noop("Dr"),
-		_noop("Mrs"),
-		_noop("Madam"),
-		_noop("Miss"),
-		_noop("Master"),
-		_noop("Prof"),
+		N_("Mr"),
+		N_("Ms"),
+		N_("Mx"),
+		N_("Dr"),
+		N_("Mrs"),
+		N_("Madam"),
+		N_("Miss"),
+		N_("Master"),
+		N_("Prof"),
 	):
 		doc = frappe.new_doc("Salutation")
 		doc.salutation = salutation

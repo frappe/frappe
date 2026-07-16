@@ -10,7 +10,7 @@ class TestPython(UnitTestCase):
 	def test_extract_noop(self):
 		messages = list(
 			extract_python(
-				BytesIO(b'_noop("Created On")\n_lt("Last Updated On")'),
+				BytesIO(b'N_("Created On")\n_lt("Last Updated On")'),
 				keywords=PYTHON_KEYWORDS,
 				comment_tags=(),
 				options={},
@@ -19,5 +19,5 @@ class TestPython(UnitTestCase):
 
 		self.assertEqual(
 			[(line, function, message) for line, function, message, _comments in messages],
-			[(1, "_noop", "Created On"), (2, "_lt", "Last Updated On")],
+			[(1, "N_", "Created On"), (2, "_lt", "Last Updated On")],
 		)

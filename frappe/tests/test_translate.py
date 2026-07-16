@@ -7,7 +7,7 @@ from unittest.mock import patch
 
 import frappe
 import frappe.translate
-from frappe import _, _lt, _noop
+from frappe import N_, _, _lt
 from frappe.gettext.extractors.javascript import extract_javascript
 from frappe.tests import IntegrationTestCase
 from frappe.translate import (
@@ -64,7 +64,7 @@ class TestTranslate(IntegrationTestCase):
 
 	def test_noop_preserves_source_string(self):
 		frappe.local.lang = "de"
-		message = _noop("Communication")
+		message = N_("Communication")
 
 		self.assertIs(type(message), str)
 		self.assertEqual(message, "Communication")
@@ -223,7 +223,7 @@ class TestTranslate(IntegrationTestCase):
 			_(not_a_string)
 			_(not_a_string, context="wat")
 			_lt("Communication")
-			_noop("Created On")
+			N_("Created On")
 		"""
 		)
 		expected_output = [

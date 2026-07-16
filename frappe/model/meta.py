@@ -23,7 +23,7 @@ from datetime import datetime
 import click
 
 import frappe
-from frappe import _, _noop
+from frappe import N_, _
 from frappe.model import (
 	NO_VALUE_FIELDS,
 	child_table_fields,
@@ -49,17 +49,17 @@ ListOrTuple = list | tuple
 SerializableTypes = str | int | float | datetime
 
 DEFAULT_FIELD_LABELS = {
-	"name": _noop("ID"),
-	"creation": _noop("Created On"),
-	"docstatus": _noop("Document Status"),
-	"idx": _noop("Index"),
-	"modified": _noop("Last Updated On"),
-	"modified_by": _noop("Last Updated By"),
-	"owner": _noop("Created By"),
-	"_user_tags": _noop("Tags"),
-	"_liked_by": _noop("Liked By"),
-	"_comments": _noop("Comments"),
-	"_assign": _noop("Assigned To"),
+	"name": N_("ID"),
+	"creation": N_("Created On"),
+	"docstatus": N_("Document Status"),
+	"idx": N_("Index"),
+	"modified": N_("Last Updated On"),
+	"modified_by": N_("Last Updated By"),
+	"owner": N_("Created By"),
+	"_user_tags": N_("Tags"),
+	"_liked_by": N_("Liked By"),
+	"_comments": N_("Comments"),
+	"_assign": N_("Assigned To"),
 }
 
 # When number of rows in a table exceeds this number, we disable certain features automatically.

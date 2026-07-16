@@ -17,7 +17,7 @@ from frappe.utils import get_bench_path
 
 PO_DIR = "locale"  # po and pot files go into [app]/locale
 POT_FILE = "main.pot"  # the app's pot file is always main.pot
-PYTHON_KEYWORDS = DEFAULT_KEYWORDS | {"_lt": None, "_noop": None}
+PYTHON_KEYWORDS = DEFAULT_KEYWORDS | {"_lt": None, "N_": None}
 
 
 def new_catalog(app: str, locale: str | None = None) -> Catalog:
