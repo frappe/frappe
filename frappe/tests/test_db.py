@@ -784,12 +784,14 @@ class TestDB(IntegrationTestCase):
 
 	@run_only_if(db_type_is.MARIADB)
 	def test_session_time_zone_falls_back_to_utc_offset(self):
-		with patch.object(
-			frappe.db.__class__, "sql", side_effect=[frappe.db.OperationalError, None]
-		) as mocked_sql:
-			frappe.db.set_session_time_zone("Asia/Kolkata")
+		from frappe.database.mariadb.database import MariaDBDatabase
+		from frappe.database.mariadb.mysqlclient import MariaDBDatabase as MySQLClientDatabase
 
-		mocked_sql.assert_called_with("set session time_zone = %s", "+05:30")
+		for db_class in (MariaDBDatabase, MySQLClientDatabase):
+			with patch.object(db_class, "sql", side_effect=[db_class.OperationalError, None]) as mocked_sql:
+				db_class(cur_db_name=frappe.db.cur_db_name).set_session_time_zone("Asia/Kolkata")
+
+			mocked_sql.assert_called_with("set session time_zone = %s", "+05:30")
 
 	@unimplemented_for(db_type_is.SQLITE)
 	def test_connect_survives_session_time_zone_failure(self):
