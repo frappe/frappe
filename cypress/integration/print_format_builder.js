@@ -326,6 +326,72 @@ context("Print Format Builder — create flow", () => {
 		cy.get(".pfb-inspector .pfb-rep-col-color .selected-color").should("exist");
 		cy.get(".pfb-inspector .pfb-col-width-input").should("exist");
 	});
+
+	// 10. Inspector header shows the doctype field's label, not a custom print label
+	it("field inspector header keeps the doctype label after a custom rename", () => {
+		cy.visit("/app");
+
+		insert_builder_format(PF_NAME, [
+			{
+				label: "Details",
+				columns: [
+					{
+						label: "",
+						fields: [{ fieldtype: "Date", fieldname: "date", label: "Deadline" }],
+					},
+				],
+			},
+		]);
+
+		cy.visit(`/app/print-format-builder/${encodeURIComponent(PF_NAME)}`);
+
+		cy.get("[data-pfb-section]", { timeout: 30000 }).should("be.visible");
+		cy.contains("[data-pfb-section]", "Details").find(".field").first().click({ force: true });
+
+		cy.get(".pfb-inspector").should("contain", "Due Date");
+		cy.get(".pfb-inspector").should("not.contain", "Deadline");
+		cy.contains(".pfb-insp-row", "Label")
+			.find("input.pfb-insp-input")
+			.should("have.value", "Deadline");
+	});
+
+	// 11. Center/right align wins over a stale Spacing value, and the now-irrelevant
+	// Spacing control is hidden instead of silently conflicting with it
+	it("field align overrides a conflicting label-justify setting", () => {
+		cy.visit("/app");
+
+		insert_builder_format(PF_NAME, [
+			{
+				label: "Details",
+				field_orientation: "left-right",
+				columns: [
+					{
+						label: "",
+						fields: [
+							{
+								fieldtype: "Date",
+								fieldname: "date",
+								label: "Due Date",
+								align: "center",
+								label_justify: "space-between",
+							},
+						],
+					},
+				],
+			},
+		]);
+
+		cy.visit(`/app/print-format-builder/${encodeURIComponent(PF_NAME)}`);
+
+		cy.get("[data-pfb-section]", { timeout: 30000 }).should("be.visible");
+		cy.contains("[data-pfb-section]", "Details")
+			.find(".field.left-right")
+			.as("field")
+			.click({ force: true });
+
+		cy.get("@field").should("have.css", "justify-content", "center");
+		cy.get(".pfb-inspector").should("not.contain", "Spacing");
+	});
 });
 
 // ─── Setup flow ───────────────────────────────────────────────────────────────
