@@ -38,7 +38,7 @@
 </template>
 
 <script setup lang="ts">
-import { computed, ref } from "vue";
+import { computed, ref, watch } from "vue";
 import { useDebounceFn } from "@vueuse/core";
 import { Avatar, FeatherIcon, toast } from "frappe-ui";
 import { MultiEmailInput, type MultiEmailOption } from "frappe-ui/experimental";
@@ -69,26 +69,28 @@ const options = computed<MultiEmailOption[]>(() =>
 	}))
 );
 
-// Drop stale responses so a slow earlier request can't clobber newer results.
-let requestId = 0;
-async function runSearch(query: string) {
+const query = ref("");
+const onQuery = useDebounceFn((value: string) => (query.value = value), 250);
+
+// onCleanup runs when the next query supersedes this one, so a slow earlier
+// response can't clobber newer results.
+watch(query, async (value, _previous, onCleanup) => {
 	if (!props.search) return;
-	const id = ++requestId;
+	let stale = false;
+	onCleanup(() => (stale = true));
 	loading.value = true;
 	try {
-		const results = await props.search(query);
-		if (id === requestId) searchResults.value = results;
+		const results = await props.search(value);
+		if (!stale) searchResults.value = results;
 	} catch {
-		if (id === requestId) {
+		if (!stale) {
 			searchResults.value = [];
 			toast.error("Couldn't load recipients.");
 		}
 	} finally {
-		if (id === requestId) loading.value = false;
+		if (!stale) loading.value = false;
 	}
-}
-
-const onQuery = useDebounceFn(runSearch, 250);
+});
 </script>
 
 <style scoped>
@@ -100,6 +102,6 @@ const onQuery = useDebounceFn(runSearch, 250);
 
 /* Clear outline on chips against the transparent container. */
 :deep([data-slot="tag"]) {
-	border-color: var(--outline-gray-2);
+	@apply border-outline-gray-2;
 }
 </style>
