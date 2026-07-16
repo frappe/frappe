@@ -362,7 +362,7 @@ class TestFile(IntegrationTestCase):
 			order_by="creation desc",
 		)
 		for f in test_file_data:
-			frappe.delete_doc("File", f)
+			frappe.delete_doc("File", f, force=True)
 
 	def upload_file(self):
 		_file = frappe.get_doc(
@@ -770,6 +770,7 @@ def convert_to_symlink(directory):
 class TestAttachment(IntegrationTestCase):
 	test_doctype = "Test For Attachment"
 	test_child_doctype = "Test For Attachment Child"
+	test_submittable_doctype = "Test For Attachment Submittable"
 
 	@classmethod
 	def setUpClass(cls):
@@ -782,6 +783,20 @@ class TestAttachment(IntegrationTestCase):
 			istable=1,
 			fields=[
 				{"label": "Row Attachment", "fieldname": "row_attachment", "fieldtype": "Attach"},
+			],
+		).insert(ignore_if_duplicate=True)
+		frappe.get_doc(
+			doctype="DocType",
+			name=cls.test_submittable_doctype,
+			module="Custom",
+			custom=1,
+			is_submittable=1,
+			fields=[
+				{"label": "Title", "fieldname": "title", "fieldtype": "Data"},
+				{"label": "Attachment", "fieldname": "attachment", "fieldtype": "Attach"},
+			],
+			permissions=[
+				{"role": "System Manager", "read": 1, "write": 1, "create": 1, "delete": 1, "submit": 1}
 			],
 		).insert(ignore_if_duplicate=True)
 		frappe.get_doc(
@@ -806,6 +821,7 @@ class TestAttachment(IntegrationTestCase):
 		frappe.db.rollback()
 		frappe.delete_doc("DocType", cls.test_doctype)
 		frappe.delete_doc("DocType", cls.test_child_doctype)
+		frappe.delete_doc("DocType", cls.test_submittable_doctype)
 
 	def test_file_attachment_on_update(self):
 		doc = frappe.get_doc(doctype=self.test_doctype, title="test for attachment on update").insert()
@@ -874,7 +890,7 @@ class TestAttachment(IntegrationTestCase):
 		remove_attach_with_fid(file.name)
 		self.assertFalse(frappe.db.exists("File", file.name))
 
-	def test_direct_deletion_of_referenced_file_is_allowed(self):
+	def test_direct_deletion_of_referenced_file_is_blocked(self):
 		doc = frappe.get_doc(doctype=self.test_doctype, title="test direct delete").insert()
 		file = frappe.get_doc(
 			{
@@ -888,6 +904,57 @@ class TestAttachment(IntegrationTestCase):
 		).save()
 		doc.attachment = file.file_url
 		doc.save()
+
+		self.assertRaises(frappe.LinkExistsError, frappe.delete_doc, "File", file.name)
+
+		frappe.delete_doc("File", file.name, force=True)
+		self.assertFalse(frappe.db.exists("File", file.name))
+
+	def test_delete_file_sharing_url_with_another_file_is_allowed(self):
+		doc = frappe.get_doc(doctype=self.test_doctype, title="test shared url delete").insert()
+		file = frappe.get_doc(
+			{
+				"doctype": "File",
+				"file_name": "test_shared_url.txt",
+				"content": "Shared Url Content",
+				"attached_to_doctype": self.test_doctype,
+				"attached_to_name": doc.name,
+				"attached_to_field": "attachment",
+			}
+		).save()
+		duplicate = frappe.get_doc(
+			{
+				"doctype": "File",
+				"file_name": "test_shared_url_copy.txt",
+				"content": "Shared Url Content",
+				"attached_to_doctype": self.test_doctype,
+				"attached_to_name": doc.name,
+				"attached_to_field": "attachment",
+			}
+		).save()
+		doc.attachment = file.file_url
+		doc.save()
+
+		self.assertEqual(duplicate.file_url, file.file_url)
+
+		frappe.delete_doc("File", duplicate.name)
+		self.assertFalse(frappe.db.exists("File", duplicate.name))
+
+	def test_delete_file_referenced_on_submitted_document_is_allowed(self):
+		doc = frappe.get_doc(doctype=self.test_submittable_doctype, title="test submitted delete").insert()
+		file = frappe.get_doc(
+			{
+				"doctype": "File",
+				"file_name": "test_submitted.txt",
+				"content": "Submitted Content",
+				"attached_to_doctype": self.test_submittable_doctype,
+				"attached_to_name": doc.name,
+				"attached_to_field": "attachment",
+			}
+		).save()
+		doc.attachment = file.file_url
+		doc.save()
+		doc.submit()
 
 		frappe.delete_doc("File", file.name)
 		self.assertFalse(frappe.db.exists("File", file.name))
