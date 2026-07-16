@@ -360,6 +360,10 @@ context("Print Format Builder — create flow", () => {
 	it("field align overrides a conflicting label-justify setting", () => {
 		cy.visit("/app");
 
+		// the left-right/align classes only render in live preview mode, so
+		// the doctype needs at least one record to auto-preview
+		cy.insert_doc("ToDo", { description: "pfb align override preview" }, true);
+
 		insert_builder_format(PF_NAME, [
 			{
 				label: "Details",
