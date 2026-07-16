@@ -146,7 +146,14 @@ def sendmail(
 	email_read_tracker_url=None,
 	x_priority: Literal[1, 3, 5] = 3,
 	email_headers=None,
+<<<<<<< HEAD
 ):
+=======
+	raw_html=False,
+	add_css=True,
+	redact_message_after_send=False,
+) -> EmailQueue | None:
+>>>>>>> 18035398c8 (feat: redact email message after it is sent)
 	"""Send email using user's default **Email Account** or global default **Email Account**.
 
 
@@ -177,6 +184,12 @@ def sendmail(
 	    :param with_container: Wraps email inside a styled container
 	    :param x_priority: 1 = HIGHEST, 3 = NORMAL, 5 = LOWEST
 	    :param email_headers: Additional headers to be added in the email, e.g. {"X-Custom-Header": "value"} or {"Custom-Header": "value"}. Automatically prepends "X-" to the header name if not present.
+<<<<<<< HEAD
+=======
+	    :param raw_html: Whether to treat email template as a complete HTML file
+	    :param add_css: Whether to add CSS from hooks/email_css to the email template
+	    :param redact_message_after_send: Replace the message body with a placeholder once sent, for emails carrying sensitive content.
+>>>>>>> 18035398c8 (feat: redact email message after it is sent)
 	"""
 
 	from frappe.utils.jinja import get_email_from_template
@@ -236,6 +249,12 @@ def sendmail(
 		email_read_tracker_url=email_read_tracker_url,
 		x_priority=x_priority,
 		email_headers=email_headers,
+<<<<<<< HEAD
+=======
+		raw_html=raw_html,
+		add_css=add_css,
+		redact_message_after_send=redact_message_after_send,
+>>>>>>> 18035398c8 (feat: redact email message after it is sent)
 	)
 
 	# build email queue and send the email if send_now is True.
