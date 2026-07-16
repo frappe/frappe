@@ -377,8 +377,14 @@ $level-margin-right: 8px;
 	}
 }
 
-.progress {
+.result .progress {
 	height: 10px;
+}
+
+// The list header row never renders a progress bar; guard against the
+// generic list .progress height override above leaking into it
+.list-row-head .progress {
+	height: auto;
 }
 
 .list-liked-by-me {
