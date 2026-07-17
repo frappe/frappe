@@ -19,10 +19,7 @@
 				:show="selected_field.show_label"
 				@update:show="(v) => (selected_field.show_label = v)"
 			/>
-			<div
-				class="pfb-insp-row--col"
-				style="display: flex; flex-direction: column; gap: 6px; margin-top: 8px"
-			>
+			<div class="pfb-insp-row--col" style="margin-top: 8px">
 				<label class="pfb-insp-label">{{ __("Show row when") }}</label>
 				<input
 					class="pfb-insp-input"
