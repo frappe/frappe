@@ -878,6 +878,11 @@ frappe.ui.form.on("Data Import", {
 		frm.events.setup_preview_section_collapse_handler(frm);
 		frm.trigger("render_custom_ui");
 		frm.trigger("update_primary_action");
+		// Preview is often already cached after import, so import_file is skipped —
+		// refresh Map columns visibility from the new status without a re-fetch.
+		if (is_import_complete(frm.doc.status)) {
+			frm.import_preview?.add_actions?.();
+		}
 	},
 
 	/** Mount the wizard on the form view; std layout stays hidden for field logic. */
@@ -983,6 +988,9 @@ frappe.ui.form.on("Data Import", {
 
 		if (frm.has_import_file?.()) {
 			refresh_wizard_table_preview(frm, { force: table_reparented });
+			// Preview DOM is reused across steps; refresh actions so Map columns hides
+			// after Success / Partial Success without a full page reload.
+			frm.import_preview?.add_actions?.();
 		}
 	},
 
