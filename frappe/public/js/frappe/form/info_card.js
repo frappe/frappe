@@ -49,7 +49,7 @@ export class InfoCard {
 				this.df.documentation_url
 			}" target="_blank">${__("View Documentation")}</a>`;
 		}
-		this.card = new frappe.ui.SidebarCard(card_args);
+		this.card = new frappe.ui.Card(card_args);
 	}
 	setup_click() {
 		const me = this;
