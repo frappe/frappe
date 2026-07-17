@@ -35,6 +35,8 @@ DB_TYPE_MAP = {
 	db_type_is.SQLITE: SQLite,
 }
 
+assert set(DB_TYPE_MAP) == set(db_type_is), "DB_TYPE_MAP must map every db_type_is member to a builder"
+
 
 class ImportMapper:
 	def __init__(self, func_map: dict[db_type_is, Callable]) -> None:

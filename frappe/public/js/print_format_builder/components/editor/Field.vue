@@ -99,13 +99,18 @@
 					<table
 						class="table"
 						:class="{ 'table-bordered': df.table_bordered !== false }"
+						:style="
+							df.table_bordered !== false && df.table_border_color
+								? { borderColor: df.table_border_color }
+								: {}
+						"
 					>
 						<thead v-if="df.table_header !== 'none'">
 							<!-- inline !important mirrors the server markup: the shared
 								     stylesheet's own !important rules must lose to these -->
 							<tr
 								:style="
-									df.table_header_bg
+									df.table_header_bg && df.table_header !== 'plain'
 										? `background-color: ${df.table_header_bg} !important`
 										: ''
 								"
@@ -165,7 +170,13 @@
 												>{{ thumb(col, row).abbr }}</span
 											>
 										</template>
-										<div class="cell-lines">
+										<div
+											class="cell-lines"
+											:class="{
+												'cell-lines--horizontal':
+													col.merge_direction === 'horizontal',
+											}"
+										>
 											<div
 												v-for="(mf, mi) in text_merges(col)"
 												:key="mi"
@@ -506,7 +517,6 @@ const preview_root = computed(() => {
 			classes: [
 				"child-table",
 				`child-table--${df.table_style || "lined"}`,
-				df.table_bordered === false ? "child-table--borderless" : "",
 				df.table_header === "plain" ? "child-table--plain-header" : "",
 			],
 			style: custom,
@@ -549,7 +559,9 @@ const preview_root = computed(() => {
 			lr ? "left-right" : "",
 			!lr && df.show_label === "inline" ? "field-inline" : "",
 			df.align ? `field-align-${df.align}` : "",
-			lr && df.label_justify ? `field-justify-${df.label_justify}` : "",
+			lr && df.label_justify && !["center", "right"].includes(df.align)
+				? `field-justify-${df.label_justify}`
+				: "",
 		],
 		style: { ...style, ...custom },
 	};

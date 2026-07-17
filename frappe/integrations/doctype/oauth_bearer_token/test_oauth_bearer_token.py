@@ -61,6 +61,36 @@ class TestOAuthBearerToken(IntegrationTestCase):
 		self.assertEqual(stored_token.access_token, sha256_hash(access_token))
 		self.assertEqual(stored_token.refresh_token, sha256_hash(refresh_token))
 
+	def test_refresh_grant_revokes_the_rotated_token(self):
+		from frappe.oauth import OAuthWebRequestValidator
+
+		old_refresh_token = frappe.generate_hash()
+		old_token = make_bearer_token(frappe.generate_hash(), old_refresh_token)
+
+		new_access_token = frappe.generate_hash()
+		new_refresh_token = frappe.generate_hash()
+		request = frappe._dict(
+			client={"name": old_token.client},
+			user=None,
+			scopes=["all", "openid"],
+			body={"refresh_token": old_refresh_token},
+		)
+		OAuthWebRequestValidator().save_bearer_token(
+			{
+				"access_token": new_access_token,
+				"refresh_token": new_refresh_token,
+				"expires_in": 3600,
+			},
+			request,
+		)
+
+		# The rotated token is revoked, the freshly issued one is active and
+		# inherits the user from the token it replaced.
+		self.assertEqual(frappe.db.get_value("OAuth Bearer Token", old_token.name, "status"), "Revoked")
+		new_token = frappe.get_doc("OAuth Bearer Token", {"access_token": sha256_hash(new_access_token)})
+		self.assertEqual(new_token.status, "Active")
+		self.assertEqual(new_token.user, "Administrator")
+
 	def test_patch_normalizes_missing_refresh_tokens_to_null(self):
 		null_token = make_bearer_token(frappe.generate_hash(), frappe.generate_hash())
 		empty_token = make_bearer_token(frappe.generate_hash(), frappe.generate_hash())

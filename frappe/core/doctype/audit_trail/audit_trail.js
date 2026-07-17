@@ -93,6 +93,7 @@ frappe.ui.form.on("Audit Trail", {
 			documents: document_names,
 			changed: changed_fields.changed,
 			row_changed: changed_fields.row_changed,
+			doctype: frm.doc.doctype_name,
 		};
 		$(frappe.render_template("audit_trail", render_dict)).appendTo(
 			frm.fields_dict.version_table.$wrapper.empty()
@@ -113,6 +114,7 @@ frappe.ui.form.on("Audit Trail", {
 			hide_section = 0;
 			section_dict = {
 				added_or_removed: added_or_removed[key],
+				doctype: frm.doc.doctype_name,
 			};
 			$(frappe.render_template("audit_trail_rows_added_removed", section_dict)).appendTo(
 				frm.fields_dict[key].$wrapper.empty()

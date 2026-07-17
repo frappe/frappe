@@ -747,3 +747,9 @@ svg_attributes = {
 	"y2",
 	"zoomAndPan",
 }
+
+# Tags whose content is stripped must never also be present in any allow-list of
+# renderable tags, otherwise sanitization would keep dangerous content.
+assert REMOVE_CONTENT_TAGS.isdisjoint(acceptable_elements | mathml_elements | svg_elements), (
+	"content-removal tags must never appear in any allowed tag set"
+)

@@ -270,7 +270,8 @@ def load_desktop_data(bootinfo):
 	Workspace = frappe.qb.DocType("Workspace")
 	Module = frappe.qb.DocType("Module Def")
 
-	for app_name in frappe.get_installed_apps():
+	installed_apps = frappe.get_installed_apps()
+	for app_name in installed_apps:
 		# get app details from app_info (/apps)
 		apps = frappe.get_hooks("add_to_apps_screen", app_name=app_name)
 		app_info = {}

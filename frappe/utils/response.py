@@ -45,6 +45,8 @@ def report_error(status_code):
 	traceback = frappe.utils.get_traceback()
 	exc_type, exc_value, _ = sys.exc_info()
 
+	assert exc_type is not None, "report_error must be called while handling an active exception"
+
 	match get_api_version():
 		case ApiVersion.V1:
 			if allow_traceback:

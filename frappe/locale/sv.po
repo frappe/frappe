@@ -3,7 +3,7 @@ msgstr ""
 "Project-Id-Version: frappe\n"
 "Report-Msgid-Bugs-To: developers@frappe.io\n"
 "POT-Creation-Date: 2026-07-05 10:14+0000\n"
-"PO-Revision-Date: 2026-07-06 22:04\n"
+"PO-Revision-Date: 2026-07-15 13:49\n"
 "Last-Translator: developers@frappe.io\n"
 "Language-Team: Swedish\n"
 "MIME-Version: 1.0\n"
@@ -28725,7 +28725,7 @@ msgstr "Stack Trace"
 #. Label of the stage (Data) field in DocType 'Background Task'
 #: frappe/core/doctype/background_task/background_task.json
 msgid "Stage"
-msgstr "Fas"
+msgstr "Steg"
 
 #. Label of the standard (Select) field in DocType 'Page'
 #. Label of the standard (Check) field in DocType 'Desktop Icon'

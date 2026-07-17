@@ -6,6 +6,7 @@
 // icons use the `tile` treatment (filled cell + left indicator bar when active) and the bell uses
 // the `ghost` treatment (transparent until hovered).
 .workspace-dock {
+	position: relative;
 	flex: 0 0 50px;
 	width: 50px;
 	height: 100vh;
@@ -87,7 +88,6 @@
 		display: flex;
 		flex-direction: column;
 		align-items: center;
-		gap: 12px;
 
 		&.hidden {
 			display: none;
@@ -168,7 +168,7 @@
 			padding: 0;
 			border-radius: 50%;
 			border: 1px solid var(--surface-base);
-			background: var(--surface-red-6);
+			background: var(--surface-blue-5);
 			// dot only — hide any count text the shared notifications view sets on it
 			font-size: 0;
 			color: transparent;
@@ -207,6 +207,40 @@ body.workspace-dock-active .body-sidebar {
 	.sidebar-notification {
 		display: none;
 	}
+}
+
+// Right-edge handle that reopens the collapsed body sidebar -- the mirror of the sidebar's own
+// .sidebar-resize-handle. Only present while collapsed (body.sidebar-collapsed), so it doesn't
+// offer an expand affordance when the sidebar is already open.
+.workspace-dock-resize-handle {
+	position: absolute;
+	top: 0;
+	right: -4px;
+	width: 8px;
+	height: 100%;
+	z-index: 1022;
+	cursor: e-resize;
+	display: none;
+
+	&::after {
+		content: "";
+		position: absolute;
+		left: 50%;
+		top: 0;
+		transform: translateX(-50%);
+		width: 2px;
+		height: 100%;
+		background: transparent;
+		transition: background 0.15s ease;
+	}
+
+	&:hover::after {
+		background: var(--ink-gray-2);
+	}
+}
+
+body.sidebar-collapsed .workspace-dock-resize-handle {
+	display: block;
 }
 
 // mirror the body sidebar: the rail collapses away on mobile

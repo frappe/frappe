@@ -3,7 +3,7 @@ msgstr ""
 "Project-Id-Version: frappe\n"
 "Report-Msgid-Bugs-To: developers@frappe.io\n"
 "POT-Creation-Date: 2026-07-05 10:14+0000\n"
-"PO-Revision-Date: 2026-07-05 21:51\n"
+"PO-Revision-Date: 2026-07-15 13:49\n"
 "Last-Translator: developers@frappe.io\n"
 "Language-Team: Dutch\n"
 "MIME-Version: 1.0\n"
@@ -8417,7 +8417,7 @@ msgstr "Directory Server"
 #: frappe/public/js/frappe/form/doctype_settings/tabs/notification.js:63
 #: frappe/public/js/frappe/form/doctype_settings/tabs/workflow.js:36
 msgid "Disable"
-msgstr "Uitzetten"
+msgstr "Deactiveer"
 
 #. Label of the disable_auto_refresh (Check) field in DocType 'List View
 #. Settings'

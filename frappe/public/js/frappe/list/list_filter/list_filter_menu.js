@@ -414,15 +414,9 @@ export const ListFilterMenu = {
 		if (!this.layout_menu_group) return;
 
 		const label = this.active_layout_label || this.default_layout_label;
-		const label_node = $(
-			`.inner-group-button[data-label="${encodeURIComponent(
-				this.saved_layout_group_label
-			)}"] button`
-		)
-			.contents()
-			.first()[0];
-		if (!label_node) return;
-		label_node.textContent = label;
+		// the group trigger is an es-button now — its text lives in the
+		// label span, not in the button's first text node
+		this.layout_menu_group.find("button .es-button__label").text(label);
 	},
 
 	/** Show tick on the currently selected layout row. */

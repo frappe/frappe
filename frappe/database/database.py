@@ -73,6 +73,9 @@ COMMIT_OR_ROLLBACK = frozenset(("commit", "rollback"))
 WRITE_QUERY_TYPES = frozenset(("update", "insert", "delete"))
 QUERY_TYPES_FOR_LOG_TOUCHED_TABLES = frozenset(("insert", "delete", "update", "alter", "drop", "rename"))
 
+assert CREATE_OR_DROP <= DDL_QUERY_TYPES, "CREATE_OR_DROP must be a subset of DDL_QUERY_TYPES"
+assert COMMIT_OR_ROLLBACK.isdisjoint(WRITE_QUERY_TYPES), "commit/rollback are not write queries"
+
 SQL_ITERATOR_BATCH_SIZE = 1000
 
 
@@ -1432,6 +1435,7 @@ class Database:
 		"""
 		current_dialect = self.db_type or "mariadb"
 		query = sql_dict.get(current_dialect) or sql_dict.get("*")
+		assert query is not None, f"multisql has no query for dialect {current_dialect!r} and no '*' fallback"
 		return self.sql(query, values, **kwargs)
 
 	def delete(self, doctype: str, filters: dict | list | None = None, debug=False, **kwargs):

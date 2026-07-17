@@ -8,7 +8,6 @@ frappe.ui.Sidebar = class Sidebar {
 		}
 		this.make_dom();
 		// states
-		this.sidebar_expanded = false;
 		this.all_sidebar_items = frappe.boot.workspace_sidebar_item;
 		this.$items = [];
 		this.fields_for_dialog = [];
@@ -653,6 +652,7 @@ frappe.ui.Sidebar = class Sidebar {
 			this.sidebar_expanded = false;
 		}
 	}
+
 	empty() {
 		if (this.wrapper.find(".sidebar-items")[0]) {
 			this.wrapper.find(".sidebar-items").html("");
@@ -797,6 +797,9 @@ frappe.ui.Sidebar = class Sidebar {
 			.find("use")
 			.attr("href", `#icon-${chevron_icon}`);
 		this.sidebar_header.toggle_width(this.sidebar_expanded);
+		// while collapsed the body sidebar is hidden and only the workspace dock (rail) shows; this
+		// gates the rail's edge handle that reopens the sidebar (see workspace_dock.scss)
+		$("body").toggleClass("sidebar-collapsed", !this.sidebar_expanded);
 		$(document).trigger("sidebar-expand", {
 			sidebar_expand: this.sidebar_expanded,
 		});

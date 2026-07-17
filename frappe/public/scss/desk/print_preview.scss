@@ -13,9 +13,25 @@
 	}
 }
 
-.preview-beta-wrapper {
+.print-preview {
+	display: block;
+	max-width: 8.3in;
+	margin: 0 auto;
+	background: white;
 	border-radius: var(--radius);
-	overflow: hidden;
+	padding: 0;
+	min-height: 11.69in;
+	overflow-x: auto;
+
+	.print-format-container {
+		min-width: 8.3in;
+	}
+}
+
+.preview-beta-wrapper iframe {
+	display: block;
+	width: 100%;
+	border: 0;
 }
 
 .print-toolbar {
@@ -37,7 +53,8 @@
 }
 
 [data-theme="dark"] {
-	.print-preview-wrapper {
+	.print-preview-wrapper,
+	.preview-beta-wrapper {
 		background-color: var(--gray-700);
 	}
 }
@@ -63,20 +80,6 @@
 			flex: 1 0 auto;
 			width: 100%;
 		}
-	}
-}
-
-.print-preview {
-	padding: 0;
-	max-width: 8.3in;
-	margin: auto;
-	min-height: 11.69in;
-	background: white;
-	border-radius: var(--radius);
-	overflow-x: auto;
-
-	.print-format-container {
-		min-width: 8.3in;
 	}
 }
 
