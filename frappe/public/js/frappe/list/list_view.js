@@ -361,8 +361,8 @@ frappe.views.ListView = class ListView extends frappe.views.BaseList {
 		frappe.new_doc(doctype, options);
 	}
 
-	setup_view() {
-		this.setup_columns();
+	async setup_view() {
+		await this.setup_columns();
 		// Header is rendered on first refresh after layout restore in before_refresh().
 		this.render_skeleton();
 		this.setup_events();
@@ -370,12 +370,12 @@ frappe.views.ListView = class ListView extends frappe.views.BaseList {
 		this.show_restricted_list_indicator_if_applicable();
 	}
 
-	refresh_columns(meta, list_view_settings) {
+	async refresh_columns(meta, list_view_settings) {
 		this.meta = meta;
 		this.tags_shown = list_view_settings?.show_tags;
 		this.list_view_settings = list_view_settings;
 
-		this.setup_columns();
+		await this.setup_columns();
 		this.refresh();
 	}
 
@@ -418,7 +418,7 @@ frappe.views.ListView = class ListView extends frappe.views.BaseList {
 		this.$result.append(this.$freeze);
 	}
 
-	setup_columns(fields_override = null) {
+	async setup_columns(fields_override = null) {
 		// setup columns for list view
 		this.columns = [];
 		if (
@@ -435,78 +435,135 @@ frappe.views.ListView = class ListView extends frappe.views.BaseList {
 			this.columns = this.build_columns_from_fields(fields_override);
 			this.columns = this.columns.slice(0, this.max_number_of_fields);
 			this.columns.splice(1, 0, { type: "Tag" });
-			return;
-		}
-
-		const get_df = frappe.meta.get_docfield.bind(null, this.doctype);
-
-		// 1st column: title_field or name
-		if (this.meta.title_field) {
-			this.columns.push({
-				type: "Subject",
-				df: get_df(this.meta.title_field),
-			});
 		} else {
-			this.columns.push({
-				type: "Subject",
-				df: {
-					label: __("ID"),
-					fieldname: "name",
-				},
-			});
-		}
+			const get_df = frappe.meta.get_docfield.bind(null, this.doctype);
 
-		// 3rd column: Status indicator
-		if (frappe.has_indicator(this.doctype)) {
-			// indicator
-			this.columns.push({
-				type: "Status",
-			});
-		}
+			// 1st column: title_field or name
+			if (this.meta.title_field) {
+				this.columns.push({
+					type: "Subject",
+					df: get_df(this.meta.title_field),
+				});
+			} else {
+				this.columns.push({
+					type: "Subject",
+					df: {
+						label: __("ID"),
+						fieldname: "name",
+					},
+				});
+			}
 
-		const fields_in_list_view = this.get_fields_in_list_view();
-		// Add rest from in_list_view docfields
-		this.columns = this.columns.concat(
-			fields_in_list_view
-				.filter((df) => {
-					if (frappe.has_indicator(this.doctype) && df.fieldname === "status") {
-						return false;
-					}
-					if (!df.in_list_view || df.is_virtual) {
-						return false;
-					}
-					return df.fieldname !== this.meta.title_field;
-				})
-				.map((df) => ({
+			// 3rd column: Status indicator
+			if (frappe.has_indicator(this.doctype)) {
+				// indicator
+				this.columns.push({
+					type: "Status",
+				});
+			}
+
+			const fields_in_list_view = this.get_fields_in_list_view();
+			// Add rest from in_list_view docfields
+			this.columns = this.columns.concat(
+				fields_in_list_view
+					.filter((df) => {
+						if (frappe.has_indicator(this.doctype) && df.fieldname === "status") {
+							return false;
+						}
+						if (!df.in_list_view || df.is_virtual) {
+							return false;
+						}
+						return df.fieldname !== this.meta.title_field;
+					})
+					.map((df) => ({
+						type: "Field",
+						df,
+					}))
+			);
+
+			if (this.list_view_settings.fields || (fields_override && fields_override.length)) {
+				this.columns = this.reorder_listview_fields(fields_override);
+			}
+
+			this.columns = this.columns.slice(0, this.max_number_of_fields);
+
+			// 2nd column: tag - normally hidden doesn't count towards total_fields
+			this.columns.splice(1, 0, {
+				type: "Tag",
+			});
+
+			if (
+				!this.settings.hide_name_column &&
+				this.meta.title_field &&
+				this.meta.title_field !== "name"
+			) {
+				this.columns.push({
 					type: "Field",
-					df,
-				}))
+					df: {
+						label: __("ID"),
+						fieldname: "name",
+					},
+				});
+			}
+		}
+
+		await this.ensure_column_fields_fetched();
+	}
+
+	/**
+	 * Ensure every displayed column's field is included in the server fetch set (`this.fields`).
+	 * Columns can come from a saved layout or the settings picker and may reference fields that
+	 * are not `in_list_view`; without this they render blank because no data is fetched.
+	 */
+	async ensure_column_fields_fetched() {
+		if (!this.columns?.length) return;
+
+		await Promise.all(
+			this.columns.map((col) => {
+				const fieldname = col.df?.fieldname;
+				if (
+					!fieldname ||
+					["Tag", "Status"].includes(col.type) ||
+					fieldname === "status_field"
+				) {
+					return null;
+				}
+
+				this._add_field(fieldname);
+
+				const df = frappe.meta.get_docfield(this.doctype, fieldname);
+				if (!df) return null;
+
+				// Currency columns need their options field (company currency) for formatting.
+				if (df.fieldtype === "Currency" && df.options && !df.options.includes(":")) {
+					this._add_field(df.options);
+				}
+
+				// Link columns that show titles need the linked title field in the fetch set.
+				// The linked meta may not be loaded yet, so pull it in before reading title_field.
+				if (
+					df.fieldtype === "Link" &&
+					frappe.boot.link_title_doctypes.includes(df.options)
+				) {
+					return new Promise((resolve) => {
+						frappe.model.with_doctype(df.options, () => {
+							const link_meta = frappe.get_meta(df.options);
+							if (link_meta?.show_title_field_in_link && link_meta.title_field) {
+								if (!this.link_field_title_fields) {
+									this.link_field_title_fields = {};
+								}
+								this.link_field_title_fields[fieldname] = link_meta.title_field;
+							}
+							resolve();
+						});
+					});
+				}
+
+				return null;
+			})
 		);
 
-		if (this.list_view_settings.fields || (fields_override && fields_override.length)) {
-			this.columns = this.reorder_listview_fields(fields_override);
-		}
-
-		this.columns = this.columns.slice(0, this.max_number_of_fields);
-
-		// 2nd column: tag - normally hidden doesn't count towards total_fields
-		this.columns.splice(1, 0, {
-			type: "Tag",
-		});
-
-		if (
-			!this.settings.hide_name_column &&
-			this.meta.title_field &&
-			this.meta.title_field !== "name"
-		) {
-			this.columns.push({
-				type: "Field",
-				df: {
-					label: __("ID"),
-					fieldname: "name",
-				},
-			});
-		}
+		this.build_fields();
 	}
 
 	/** Build list columns directly from saved layout / settings field list (order preserved). */

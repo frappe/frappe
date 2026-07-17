@@ -129,4 +129,37 @@ context("List View — Saved Layouts", () => {
 		cy.get(".layout-manage-row").should("contain", "_cypress_layout_manage");
 		cy.get(".layout-manage-row").should("contain", "Personal");
 	});
+
+	it("fetches non-in_list_view fields used as saved layout columns", () => {
+		// `role` is on ToDo but not in_list_view — layout columns must still be fetched.
+		createTestLayout({
+			layout_name: "_cypress_layout_columns",
+			filters: "[]",
+			columns: JSON.stringify([
+				{ fieldname: "description", label: "Description" },
+				{ fieldname: "status_field", label: "Status" },
+				{ fieldname: "role", label: "Role" },
+			]),
+		});
+
+		cy.visit(LIST_URL);
+		cy.wait(500);
+		cy.clear_filters();
+
+		selectLayout("_cypress_layout_columns");
+		getLayoutButton().should("contain", "_cypress_layout_columns");
+
+		cy.window().then((win) => {
+			const list = win.cur_list;
+			expect(list).to.exist;
+
+			const fetch_fields = (list.fields || []).map((f) => f[0]);
+			expect(fetch_fields).to.include("role");
+
+			const column_names = (list.columns || [])
+				.filter((col) => col.df?.fieldname)
+				.map((col) => col.df.fieldname);
+			expect(column_names).to.include("role");
+		});
+	});
 });

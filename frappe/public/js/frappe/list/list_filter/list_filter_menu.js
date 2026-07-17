@@ -375,10 +375,9 @@ export const ListFilterMenu = {
 						lv.column_max_widths[col.fieldname] = cint(col.width);
 					}
 				});
-				lv.setup_columns(columns);
-			} else {
-				lv.setup_columns();
+				return lv.setup_columns(columns);
 			}
+			return lv.setup_columns();
 		};
 
 		const finish = () => {
@@ -388,12 +387,12 @@ export const ListFilterMenu = {
 		const filter_area = lv.filter_area;
 		if (!filter_area) {
 			lv.filters = filters || [];
-			apply_columns();
-			if (refresh) {
-				return lv.refresh(true).then(finish, finish);
-			}
-			finish();
-			return Promise.resolve();
+			return apply_columns().then(() => {
+				if (refresh) {
+					return lv.refresh(true).then(finish, finish);
+				}
+				finish();
+			}, finish);
 		}
 
 		filter_area.trigger_refresh = false;
@@ -403,8 +402,9 @@ export const ListFilterMenu = {
 			.then(() => {
 				filter_area.trigger_refresh = true;
 				lv.filters = filters || [];
-				apply_columns();
-				if (refresh) return lv.refresh(true);
+				return apply_columns().then(() => {
+					if (refresh) return lv.refresh(true);
+				});
 			})
 			.then(finish, finish);
 	},
