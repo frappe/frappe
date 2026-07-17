@@ -102,6 +102,20 @@ class TestDrainer(IntegrationTestCase):
 		self.assertEqual(self.count("Pending"), 0)
 		self.assertEqual(self.count("Running"), 0)
 
+	def test_kill_switch_stops_drain(self):
+		for i in range(3):
+			self.add_row(f"T{i}")
+
+		processed = []
+		frappe.conf.automation_disabled = True
+		try:
+			drain(executor=lambda name: processed.append(name))
+		finally:
+			frappe.conf.automation_disabled = False
+
+		self.assertEqual(processed, [])
+		self.assertEqual(self.count("Pending"), 3)
+
 	def test_old_mariadb_uses_plain_for_update(self):
 		original = drainer._mariadb_supports_skip_locked
 		original_db_type = frappe.db.db_type
