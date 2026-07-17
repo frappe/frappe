@@ -833,7 +833,12 @@ frappe.ui.form.on("Data Import", {
 		frm.events.reset_stale_document_state(frm);
 		frm.page.hide_icon_group();
 		frm.trigger("update_indicators");
-		const is_import_running = frm.doc.status === "In Progress";
+		// Status is db_set in the worker — the client doc stays Pending until reload.
+		// Keep a client-started run alive across refresh so the navbar and Import step
+		// do not briefly treat the job as idle.
+		const status_running = frm.doc.status === "In Progress";
+		const client_starting = Boolean(frm.import_in_progress && frm.doc.status === "Pending");
+		const is_import_running = status_running || client_starting;
 		frm.import_in_progress = is_import_running;
 		if (is_import_running) {
 			frm._wizard_import_progress = frm._wizard_import_progress || {
@@ -1144,6 +1149,20 @@ frappe.ui.form.on("Data Import", {
 			});
 			return false;
 		}
+		// Navigate before start_import settles. When the job runs inline rather than on a
+		// worker (developer_mode, or an inactive scheduler), the call only returns once every
+		// row is imported — gating navigation on it pinned the wizard on Fix Issues, looking
+		// frozen, for the whole run. A run stopped by prechecks is corrected by the
+		// `data_import_blocked` handler, which resets this state and returns to Fix Issues.
+		frm.events.begin_import(frm);
+		return true;
+	},
+
+	/**
+	 * Mark the import as started, paint progress UI, open the Import step, then enqueue.
+	 * Shared by the wizard footer Import and the navbar Start Import / Retry actions.
+	 */
+	begin_import(frm) {
 		frm.import_in_progress = true;
 		frm._wizard_import_progress = {
 			title: __("Importing your data"),
@@ -1158,15 +1177,15 @@ frappe.ui.form.on("Data Import", {
 			failed: 0,
 		};
 		frm.dashboard?.show_progress?.(__("Import Progress"), 0, __("Starting import..."));
-		// Navigate before start_import settles. When the job runs inline rather than on a
-		// worker (developer_mode, or an inactive scheduler), the call only returns once every
-		// row is imported — gating navigation on it pinned the wizard on Fix Issues, looking
-		// frozen, for the whole run. A run stopped by prechecks is corrected by the
-		// `data_import_blocked` handler, which resets this state and returns to Fix Issues.
+		// Paint progress into the log field before the wizard reparents it on step 3,
+		// so we never flash the empty after-import log that refresh may have left there.
+		frm.events.render_import_progress_state(frm);
+		frm.page.clear_primary_action();
+		frm.page.set_indicator(__("In Progress"), "orange");
 		frm.events.go_to_wizard_step(frm, 3);
 		frm.trigger("show_cancel_import_btn");
+		frm.trigger("update_primary_action");
 		frm.events.start_import(frm);
-		return true;
 	},
 
 	go_to_wizard_step(frm, step) {
@@ -1253,7 +1272,9 @@ frappe.ui.form.on("Data Import", {
 
 			frm.disable_save();
 			if (!frm.is_new() && frm.has_import_file() && on_last_step) {
-				if (frm.doc.status === "In Progress") {
+				// Client doc.status stays Pending until reload — import_in_progress is the
+				// live signal while the worker runs.
+				if (frm.doc.status === "In Progress" || frm.import_in_progress) {
 					frm.page.clear_primary_action();
 					frm.events.refresh_wizard_ui?.(frm);
 					return;
@@ -1261,14 +1282,7 @@ frappe.ui.form.on("Data Import", {
 
 				let label = frm.doc.status === "Pending" ? __("Start Import") : __("Retry");
 				frm.page.set_primary_action(label, () => {
-					// Navigate first — see handle_wizard_apply: start_import only settles once
-					// an inline job has finished importing every row.
-					const was_pending = frm.doc.status === "Pending";
-					frm.events.go_to_wizard_step(frm, 3);
-					if (!was_pending) {
-						frm.trigger("show_cancel_import_btn");
-					}
-					frm.events.start_import(frm);
+					frm.events.begin_import(frm);
 				});
 			} else {
 				frm.page.set_primary_action(__("Save"), () => frm.save());
@@ -2803,6 +2817,14 @@ frappe.ui.form.on("Data Import", {
 
 		if (is_import_running) {
 			frm.events.render_import_progress_state(frm);
+			return;
+		}
+
+		// Pending: do not paint the empty after-import log into hidden fields —
+		// reparenting them on step 3 would flash that empty UI before progress.
+		if (frm.doc.status === "Pending") {
+			frm.events.set_import_log_heading(frm, "");
+			frm.get_field("import_log_preview")?.$wrapper?.empty();
 			return;
 		}
 
