@@ -52,7 +52,10 @@ export interface ComposerEditorProps extends BaseComposerProps {
   mentions?: MentionOption[];
 }
 
-/** Helpers the footer `actions` slot receives to drive a custom uploader. */
+/**
+ * Helpers the footer `actions` slot receives to drive a custom uploader.
+ * Don't call `addAttachment` if the composer was reset mid-upload.
+ */
 export interface ComposerActionsSlotProps {
   addAttachment: (file: UploadedFile) => void;
   setUploading: (value: boolean) => void;

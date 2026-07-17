@@ -339,15 +339,20 @@ function setUploading(value: boolean) {
 
 const attachInput = useTemplateRef<HTMLInputElement>("attachInput");
 
+// Bumped by reset() so a late-arriving upload can't re-add a discarded file.
+let uploadEpoch = 0;
+
 async function onAttachPicked(event: Event) {
 	const input = event.target as HTMLInputElement;
 	const file = input.files?.[0];
 	// Reset so picking the same file again still fires `change`.
 	input.value = "";
 	if (!file || !props.uploadFunction) return;
+	const epoch = uploadEpoch;
 	isUploading.value = true;
 	try {
 		const uploaded = await props.uploadFunction(file);
+		if (epoch !== uploadEpoch) return;
 		addAttachment({
 			name: uploaded.name ?? uploaded.file_url,
 			file_name: uploaded.file_name,
@@ -356,9 +361,9 @@ async function onAttachPicked(event: Event) {
 			file_size: uploaded.file_size,
 		});
 	} catch {
-		toast.error("Failed to upload the attachment.");
+		if (epoch === uploadEpoch) toast.error("Failed to upload the attachment.");
 	} finally {
-		isUploading.value = false;
+		if (epoch === uploadEpoch) isUploading.value = false;
 	}
 }
 
@@ -398,6 +403,8 @@ function onEscape(event: KeyboardEvent) {
 }
 
 function reset() {
+	uploadEpoch++;
+	isUploading.value = false;
 	body.value = "";
 	attachments.value = [];
 	quotedContent.value = null;
