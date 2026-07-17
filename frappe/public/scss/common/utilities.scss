@@ -83,6 +83,10 @@
 	align-items: baseline;
 }
 
+.self-end {
+	align-self: flex-end;
+}
+
 .justify-start {
 	justify-content: flex-start;
 }
@@ -220,6 +224,10 @@ $spacing-steps: (
 	margin-inline-end: auto;
 }
 
+.mt-auto {
+	margin-top: auto;
+}
+
 /* ---- sizing / overflow ---- */
 .w-full {
 	width: 100%;
@@ -227,6 +235,11 @@ $spacing-steps: (
 
 .min-w-0 {
 	min-width: 0;
+}
+
+/* Lets a flex child shrink and scroll instead of blowing out the parent. */
+.min-h-0 {
+	min-height: 0;
 }
 
 /* size-<n> sets width AND height together (Tailwind's size-*), reusing the
@@ -268,6 +281,10 @@ $min-h-steps: 24, 32, 40, 48, 64, 80, 96;
 
 .overflow-hidden {
 	overflow: hidden;
+}
+
+.overflow-auto {
+	overflow: auto;
 }
 
 .overflow-x-auto {

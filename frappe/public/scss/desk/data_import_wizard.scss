@@ -1,25 +1,6 @@
 // Data Import stepper wizard — see data_import_wizard.bundle.js and data_import.js
-
-@mixin diw-stat-cell {
-	display: flex;
-	flex-direction: column;
-	align-items: center;
-	justify-content: center;
-	text-align: center;
-	gap: 4px;
-	min-width: 0;
-}
-
-@mixin diw-attached-card {
-	display: flex;
-	align-items: center;
-	justify-content: space-between;
-	gap: var(--padding-sm);
-	width: 100%;
-	box-sizing: border-box;
-	font-size: var(--text-sm);
-	line-height: 1.2;
-}
+// Layout/spacing/border utilities live on the markup (utilities.scss). Keep only
+// component-specific rules here: states, form overrides, grids, and chrome tokens.
 
 body[data-route^="data-import"] {
 	.layout-main-section {
@@ -67,67 +48,18 @@ body[data-route^="data-import"] {
 	}
 }
 
-.data-import-custom-ui {
-	display: flex;
-	justify-content: center;
-	width: 100%;
-}
-
 .diw-shell {
-	display: flex;
-	flex-direction: column;
-	width: 100%;
 	max-width: 840px;
 	gap: var(--padding-lg);
 	box-sizing: border-box;
 }
 
-.diw-stepper-wrap {
-	flex-shrink: 0;
-	width: 100%;
-}
-
-.diw-card {
-	display: flex;
-	flex-direction: column;
-	width: 100%;
-	background: var(--fg-color, var(--card-bg));
-	border: 1px solid var(--border-color);
-	border-radius: var(--radius-lg);
-	box-shadow: var(--shadow-sm);
-	overflow: hidden;
-}
-
-.diw-panels-wrap,
-.diw-panels,
-.diw-step-panel {
-	display: flex;
-	flex-direction: column;
-	flex: 1 1 auto;
-	min-height: 0;
-	width: 100%;
-}
-
 // ---- stepper ----
-.diw-stepper {
-	display: flex;
-	align-items: flex-start;
-	width: 100%;
-}
-
 .diw-step {
-	flex: 1 1 0;
-	display: flex;
-	flex-direction: column;
-	align-items: center;
-	gap: 8px;
-	min-width: 0;
 	width: 0;
 	padding: 0;
 	background: none;
 	border: none;
-	cursor: pointer;
-	text-align: center;
 	font: inherit;
 	appearance: none;
 
@@ -178,7 +110,6 @@ body[data-route^="data-import"] {
 .diw-step-marker {
 	display: grid;
 	place-items: center;
-	flex-shrink: 0;
 	width: 28px;
 	height: 28px;
 	border-radius: 50%;
@@ -206,16 +137,10 @@ body[data-route^="data-import"] {
 	font-weight: 500;
 	color: var(--ink-gray-5, var(--text-muted));
 	line-height: 1.25;
-	width: 100%;
-	overflow: hidden;
-	text-overflow: ellipsis;
 }
 
 // ---- panels / chrome ----
 .diw-step-content {
-	flex: 1 1 auto;
-	min-height: 0;
-	overflow: auto;
 	padding: var(--padding-md) var(--padding-lg);
 
 	.form-section {
@@ -224,7 +149,6 @@ body[data-route^="data-import"] {
 }
 
 .diw-status-area {
-	flex-shrink: 0;
 	padding: 0 var(--padding-lg) var(--padding-md);
 
 	&:empty {
@@ -232,46 +156,15 @@ body[data-route^="data-import"] {
 	}
 }
 
-.diw-headline {
-	padding: var(--padding-md);
-	background: var(--bg-light-gray);
-	border-radius: var(--radius);
-	border: 1px solid var(--border-color);
-}
-
 .diw-footer {
-	display: flex;
-	align-items: center;
-	justify-content: space-between;
-	flex-shrink: 0;
-	width: 100%;
 	padding: var(--padding-md) var(--padding-lg);
-	border-top: 1px solid var(--border-color);
-	margin-top: auto;
-}
-
-.diw-footer-right {
-	display: flex;
-	align-items: center;
-	gap: var(--padding-sm);
 }
 
 .diw-mobile-step-header {
 	display: none;
-	flex-shrink: 0;
-}
-
-.diw-loading-skeleton {
-	width: 100%;
 }
 
 // ---- config step ----
-.diw-config-step {
-	display: flex;
-	flex-direction: column;
-	gap: var(--padding-md);
-}
-
 .diw-config-section {
 	margin: 0;
 	padding: 0;
@@ -282,7 +175,7 @@ body[data-route^="data-import"] {
 
 .diw-config-head {
 	padding: 0;
-	margin: 0 0 var(--padding-md);
+	margin: 0;
 	border: none;
 }
 
@@ -297,13 +190,10 @@ body[data-route^="data-import"] {
 	grid-template-columns: minmax(0, 1fr) minmax(0, 1fr);
 	gap: var(--padding-lg);
 	align-items: start;
-	width: 100%;
 }
 
 .diw-config-column {
-	width: 100%;
 	max-width: 100%;
-	min-width: 0;
 	padding: 0;
 	margin: 0;
 	float: none;
@@ -318,24 +208,6 @@ body[data-route^="data-import"] {
 			margin-bottom: 0;
 		}
 	}
-}
-
-.diw-upload-section {
-	margin-top: var(--padding-md);
-	padding-top: var(--padding-md);
-	border-top: 1px solid var(--border-color);
-}
-
-.diw-upload-header {
-	display: flex;
-	align-items: center;
-	justify-content: space-between;
-	gap: var(--padding-md);
-	margin-bottom: var(--padding-sm);
-}
-
-.diw-upload-pane {
-	width: 100%;
 }
 
 // ---- file drop zone ----
@@ -405,43 +277,25 @@ body[data-route^="data-import"] {
 }
 
 .diw-file-dropzone-ui {
-	display: flex;
-	flex-direction: column;
-	align-items: center;
-	text-align: center;
-	gap: var(--padding-xs);
 	pointer-events: none;
 }
 
-.diw-file-dropzone-icon {
-	color: var(--text-muted);
-	line-height: 0;
-}
-
 .diw-file-dropzone-text {
-	font-size: var(--text-sm);
-	color: var(--text-muted);
 	max-width: 360px;
 }
 
-.diw-file-dropzone-hint {
-	font-size: var(--text-xs);
-	color: var(--text-light);
+.diw-file-dropzone-icon,
+.diw-tree-header-icon,
+.diw-tree-filter-icon,
+.diw-tree-node-icon,
+.diw-tree-chevron,
+.diw-tree-warning-icon,
+.diw-tree-legend-icon,
+.diw-card-icon-well {
+	line-height: 0;
 }
 
-// ---- attached file / sheet cards ----
 .diw-card-icon-well {
-	display: flex;
-	align-items: center;
-	justify-content: center;
-	flex-shrink: 0;
-	width: 40px;
-	height: 40px;
-	border-radius: var(--radius);
-	background: var(--control-bg, var(--gray-100));
-	color: var(--ink-gray-7, var(--text-color));
-	line-height: 0;
-
 	.icon {
 		width: 20px;
 		height: 20px;
@@ -449,24 +303,18 @@ body[data-route^="data-import"] {
 }
 
 .diw-import-file-card {
-	@include diw-attached-card;
 	padding: 14px 16px;
-	background-color: var(--card-bg, var(--fg-color));
-	border: 1px solid var(--border-color);
-	border-radius: var(--radius-lg, var(--radius));
-	margin-top: var(--padding-md);
+	box-sizing: border-box;
+	line-height: 1.2;
 }
 
 .diw-import-file-card-name {
+	display: block;
 	font-size: var(--text-md, var(--text-base));
 	font-weight: 600;
 	color: var(--heading-color);
 	text-decoration: none;
 	line-height: 1.35;
-	overflow: hidden;
-	text-overflow: ellipsis;
-	white-space: nowrap;
-	display: block;
 
 	&:hover {
 		text-decoration: underline;
@@ -474,19 +322,14 @@ body[data-route^="data-import"] {
 }
 
 .diw-google-sheet-card {
-	@include diw-attached-card;
 	padding: 6px 8px;
-	background-color: var(--control-bg, var(--gray-100));
-	border-radius: var(--radius);
+	box-sizing: border-box;
+	line-height: 1.2;
 }
 
 .diw-google-sheet-card-url {
 	color: var(--text-color);
 	text-decoration: none;
-	overflow: hidden;
-	text-overflow: ellipsis;
-	white-space: nowrap;
-	min-width: 0;
 
 	&:hover {
 		text-decoration: underline;
@@ -523,11 +366,6 @@ body[data-route^="data-import"] {
 	}
 }
 
-.diw-preview-pane {
-	min-height: 0;
-	width: 100%;
-}
-
 .diw-preview-tabs {
 	> .es-tabs__list {
 		padding-left: 0;
@@ -540,20 +378,6 @@ body[data-route^="data-import"] {
 }
 
 .diw-table-preview {
-	.diw-preview-toolbar {
-		display: flex;
-		align-items: center;
-		justify-content: space-between;
-		gap: var(--padding-sm);
-		margin-bottom: var(--padding-sm);
-	}
-
-	.diw-preview-toolbar-actions {
-		display: inline-flex;
-		align-items: center;
-		flex-shrink: 0;
-	}
-
 	.diw-preview-toolbar-meta {
 		margin-left: auto;
 		font-size: var(--text-md);
@@ -563,17 +387,18 @@ body[data-route^="data-import"] {
 	}
 
 	.table-preview {
-		border: 1px solid var(--border-color);
-		border-radius: var(--radius-md);
-		overflow: hidden;
 		background: var(--fg-color);
 
+		// Keep the grid inside the card width so .dt-scrollable can scroll sideways.
 		.datatable {
 			border: none;
 			border-radius: inherit;
+			min-width: 0;
+			max-width: 100%;
 
 			.dt-scrollable {
 				border-bottom: 1px solid var(--border-color);
+				overflow-x: auto;
 
 				.dt-row:last-child .dt-cell {
 					border-bottom: 1px solid var(--border-color);
@@ -585,7 +410,6 @@ body[data-route^="data-import"] {
 
 .diw-fix-empty-stats {
 	max-width: 920px;
-	margin-top: var(--padding-sm);
 
 	> [role="listitem"] + [role="listitem"] {
 		border-inline-start: 1px solid var(--outline-gray-2);
@@ -640,9 +464,6 @@ body[data-route^="data-import"] {
 			h5,
 			.warning-row-header,
 			.warning-col-header {
-				display: flex;
-				align-items: center;
-				gap: 12px;
 				margin: 0 0 6px;
 				padding: 0;
 				border-left: none !important;
@@ -751,31 +572,19 @@ body[data-route^="data-import"] {
 .diw-import-progress-stats {
 	display: grid;
 	align-items: stretch;
-	width: 100%;
 }
 
 .diw-import-log-metrics {
 	grid-template-columns: repeat(var(--diw-import-log-metric-count, 4), minmax(0, 1fr));
 	margin-bottom: var(--padding-lg);
-	border: 1px solid var(--border-color);
-	border-radius: var(--radius-md);
-	background: var(--card-bg, #fff);
-	overflow: hidden;
 }
 
 .diw-import-log-metric {
-	@include diw-stat-cell;
 	padding: 14px 12px;
 	min-height: 84px;
 
 	+ .diw-import-log-metric {
 		border-left: 1px solid var(--border-color);
-	}
-
-	&-value {
-		font-size: var(--text-2xl);
-		font-weight: 700;
-		line-height: 1.2;
 	}
 
 	&-label {
@@ -784,35 +593,11 @@ body[data-route^="data-import"] {
 	}
 }
 
-.diw-import-log-limit-note {
-	font-size: var(--text-sm);
-	margin: 2px 0 var(--padding-sm);
-}
-
-.diw-import-log-filters {
-	display: flex;
-	align-items: center;
-	justify-content: space-between;
-	gap: var(--padding-sm);
-}
-
-.diw-import-log-filter-actions {
-	margin-inline-start: auto;
-	display: inline-flex;
-	align-items: center;
-}
-
 .diw-import-progress-hero {
-	display: flex;
-	flex-direction: column;
-	align-items: stretch;
-	text-align: center;
-	gap: 6px;
 	padding: 6px 0 0;
 }
 
 .diw-import-progress-bar-wrap {
-	width: 100%;
 	margin: var(--padding-xs) 0 2px;
 }
 
@@ -830,10 +615,7 @@ body[data-route^="data-import"] {
 }
 
 .diw-import-progress-status {
-	align-self: flex-end;
-	text-align: right;
 	margin-top: -2px;
-	margin-bottom: var(--padding-sm);
 }
 
 .diw-import-progress-stats {
@@ -843,12 +625,7 @@ body[data-route^="data-import"] {
 }
 
 .diw-import-progress-stat {
-	@include diw-stat-cell;
-	gap: 2px;
-
 	.value {
-		font-size: var(--text-2xl);
-		font-weight: 600;
 		line-height: 1.1;
 		color: var(--heading-color);
 	}
@@ -866,21 +643,15 @@ body[data-route^="data-import"] {
 	}
 
 	.label {
-		font-size: var(--text-sm);
 		line-height: 1.3;
-		color: var(--text-muted);
 	}
 }
 
 .diw-import-progress-activity {
-	width: 100%;
 	max-width: 1200px;
 	margin-top: 10px;
 	padding: 10px 14px;
-	border: 1px solid var(--border-color);
 	border-radius: 14px;
-	background: var(--fg-color);
-	text-align: left;
 
 	.title {
 		font-size: var(--text-sm);
@@ -915,8 +686,6 @@ body[data-route^="data-import"] {
 }
 
 .diw-import-log-table {
-	width: 100%;
-
 	thead th {
 		font-size: var(--text-sm);
 		font-weight: 600;
@@ -935,18 +704,10 @@ body[data-route^="data-import"] {
 
 .diw-import-log-cell-row {
 	width: 72px;
-	white-space: nowrap;
 }
 
 .diw-import-log-message a {
 	text-decoration: underline;
-}
-
-.diw-import-log-summary-wrap {
-	display: flex;
-	align-items: flex-start;
-	justify-content: space-between;
-	gap: var(--padding-sm);
 }
 
 .diw-import-log-expand-btn[aria-expanded="true"] .icon {
@@ -954,8 +715,6 @@ body[data-route^="data-import"] {
 }
 
 .diw-import-log-details {
-	margin-top: var(--padding-xs);
-
 	.well {
 		margin: var(--padding-sm) 0 0;
 		padding: var(--padding-sm);
@@ -1019,19 +778,12 @@ body[data-route^="data-import"] {
 	}
 
 	.diw-tree-row {
-		gap: 8px;
 		padding: 5px 8px;
 		border-radius: var(--radius-sm, var(--radius));
 		box-sizing: border-box;
-		cursor: pointer;
 	}
 
 	.diw-tree-row-main {
-		display: flex;
-		align-items: center;
-		gap: 6px;
-		flex: 1;
-		min-width: 0;
 		width: auto;
 		padding: 0;
 		font-size: var(--text-sm);
@@ -1044,12 +796,7 @@ body[data-route^="data-import"] {
 
 	.diw-tree-label,
 	.tree-label {
-		flex: 1;
-		min-width: 0;
 		margin-left: 0 !important;
-		overflow: hidden;
-		text-overflow: ellipsis;
-		white-space: nowrap;
 		line-height: 1.4;
 		font-size: inherit;
 		font-weight: inherit;
@@ -1063,17 +810,9 @@ body[data-route^="data-import"] {
 	}
 
 	.diw-tree-preview-footer {
-		display: flex;
-		align-items: center;
-		justify-content: space-between;
-		gap: var(--padding-md);
-		flex-shrink: 0;
 		margin-top: 0;
 		padding: 10px 14px;
-		border-top: 1px solid var(--border-color);
 		background: var(--subtle-fg, var(--bg-light-gray));
-		font-size: var(--text-sm);
-		color: var(--text-muted);
 	}
 }
 
@@ -1081,43 +820,12 @@ body[data-route^="data-import"] {
 	max-height: none;
 }
 
-.diw-tree-header-icon,
-.diw-tree-filter-icon,
-.diw-tree-node-icon,
-.diw-tree-chevron,
-.diw-tree-warning-icon,
-.diw-tree-legend-icon {
-	display: inline-flex;
-	line-height: 0;
-	color: var(--text-muted);
-}
-
-.diw-tree-preview-actions,
-.diw-tree-row-meta,
-.diw-tree-preview-legend {
-	display: inline-flex;
-	align-items: center;
-	gap: var(--padding-xs);
-	flex-shrink: 0;
-}
-
 .diw-tree-row-meta {
-	justify-content: flex-end;
 	min-width: 52px;
-	padding-left: var(--padding-sm);
-	font-size: var(--text-xs);
 	font-weight: 400;
 }
 
-.diw-tree-filter {
-	margin-bottom: var(--padding-sm);
-}
-
 .diw-tree-filter-input {
-	display: flex;
-	align-items: center;
-	gap: 8px;
-	width: 100%;
 	padding: 4px 10px;
 	min-height: 32px;
 	border: 1px solid var(--border-color);
@@ -1146,40 +854,13 @@ body[data-route^="data-import"] {
 	}
 }
 
-.diw-tree-chevron {
-	justify-content: center;
-	width: 16px;
-	height: 16px;
-
-	&--spacer {
-		visibility: hidden;
-	}
+.diw-tree-chevron--spacer {
+	visibility: hidden;
 }
 
 .diw-tree-node-icon--leaf,
 .diw-tree-legend-icon--leaf {
 	color: var(--gray-500, var(--text-muted));
-}
-
-.diw-tree-preview-count {
-	white-space: nowrap;
-}
-
-.diw-tree-preview-legend {
-	justify-content: flex-end;
-	flex-wrap: nowrap;
-	margin-left: auto;
-}
-
-.diw-tree-legend-item {
-	display: inline-flex;
-	align-items: center;
-	gap: 6px;
-	white-space: nowrap;
-}
-
-.diw-tree-orphan-tag {
-	font-size: var(--text-xs);
 }
 
 // ---- mobile ----

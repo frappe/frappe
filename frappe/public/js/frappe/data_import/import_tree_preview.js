@@ -39,14 +39,14 @@ frappe.data_import.ImportTreePreview = class ImportTreePreview {
 		const header_folder = frappe.utils.icon("folder", "sm", "", "", "", true);
 
 		this.wrapper.html(`
-			<div class="import-tree-preview-panel diw-tree-preview-panel">
+			<div class="import-tree-preview-panel">
 				${this.get_status_banner_html(tree_preview)}
 				<div class="import-tree-header">
 					<div class="import-tree-title">
-						<span class="diw-tree-header-icon">${header_folder}</span>
+						<span class="diw-tree-header-icon inline-flex text-muted">${header_folder}</span>
 						<span class="import-tree-doctype-label">${frappe.utils.escape_html(root_label)}</span>
 					</div>
-					<div class="diw-tree-preview-actions">
+					<div class="inline-flex items-center gap-1 shrink-0">
 						${frappe.ui.button.html({
 							label: __("Expand all"),
 							variant: "outline",
@@ -59,9 +59,9 @@ frappe.data_import.ImportTreePreview = class ImportTreePreview {
 						})}
 					</div>
 				</div>
-				<div class="diw-tree-filter">
-					<label class="diw-tree-filter-input">
-						<span class="diw-tree-filter-icon">${this.icon_set.search}</span>
+				<div class="mb-2">
+					<label class="diw-tree-filter-input flex items-center gap-2 w-full">
+						<span class="diw-tree-filter-icon inline-flex text-muted">${this.icon_set.search}</span>
 						<input type="search" class="form-control input-sm" placeholder="${__(
 							"Filter nodes"
 						)}" autocomplete="off" />
@@ -69,15 +69,17 @@ frappe.data_import.ImportTreePreview = class ImportTreePreview {
 				</div>
 				<div class="import-tree-box">
 					<div class="import-tree-body"></div>
-					<div class="diw-tree-preview-footer">
-						<span class="diw-tree-preview-count">${footer}</span>
-						<div class="diw-tree-preview-legend">
-							<span class="diw-tree-legend-item">
-								<span class="diw-tree-legend-icon">${this.icon_set.closed}</span>
+					<div class="diw-tree-preview-footer flex items-center justify-between gap-4 shrink-0 border-t text-sm text-muted">
+						<span class="whitespace-nowrap">${footer}</span>
+						<div class="inline-flex items-center gap-1 shrink-0 ms-auto flex-nowrap">
+							<span class="inline-flex items-center gap-1 whitespace-nowrap">
+								<span class="diw-tree-legend-icon inline-flex text-muted">${this.icon_set.closed}</span>
 								${__("Group")}
 							</span>
-							<span class="diw-tree-legend-item">
-								<span class="diw-tree-legend-icon diw-tree-legend-icon--leaf">${this.icon_set.leaf}</span>
+							<span class="inline-flex items-center gap-1 whitespace-nowrap">
+								<span class="diw-tree-legend-icon diw-tree-legend-icon--leaf inline-flex text-muted">${
+									this.icon_set.leaf
+								}</span>
 								${__("Leaf")}
 							</span>
 						</div>
@@ -170,31 +172,39 @@ frappe.data_import.ImportTreePreview = class ImportTreePreview {
 			$li.addClass("opened");
 		}
 
-		const $row = $('<div class="diw-tree-row">').appendTo($li);
-		const $main = $('<span class="tree-link diw-tree-row-main">').appendTo($row);
+		const $row = $(
+			'<div class="diw-tree-row flex items-center gap-2 cursor-pointer">'
+		).appendTo($li);
+		const $main = $(
+			'<span class="tree-link diw-tree-row-main flex items-center gap-1 flex-1 min-w-0">'
+		).appendTo($row);
 
 		if (expandable) {
-			$('<span class="diw-tree-chevron">')
+			$('<span class="diw-tree-chevron inline-flex size-4 justify-center text-muted">')
 				.html(is_open ? this.icon_set.chevron_open : this.icon_set.chevron_closed)
 				.appendTo($main);
-			$('<span class="node-parent diw-tree-node-icon">')
+			$('<span class="node-parent diw-tree-node-icon inline-flex text-muted">')
 				.html(is_open ? this.icon_set.open : this.icon_set.closed)
 				.appendTo($main);
 		} else {
 			$(
-				'<span class="diw-tree-chevron diw-tree-chevron--spacer" aria-hidden="true"></span>'
+				'<span class="diw-tree-chevron diw-tree-chevron--spacer inline-flex size-4 justify-center" aria-hidden="true"></span>'
 			).appendTo($main);
-			$('<span class="diw-tree-node-icon diw-tree-node-icon--leaf">')
+			$('<span class="diw-tree-node-icon diw-tree-node-icon--leaf inline-flex text-muted">')
 				.html(this.icon_set.leaf)
 				.appendTo($main);
 		}
 
-		$('<a class="tree-label diw-tree-label">')
+		$('<a class="tree-label diw-tree-label flex-1 min-w-0 truncate">')
 			.attr("data-name", node.id)
 			.html(this.get_node_label_html(node))
 			.appendTo($main);
 
-		$('<span class="diw-tree-row-meta">').html(this.get_node_meta_html(node)).appendTo($row);
+		$(
+			'<span class="diw-tree-row-meta inline-flex items-center justify-end gap-1 shrink-0 text-xs ps-2">'
+		)
+			.html(this.get_node_meta_html(node))
+			.appendTo($row);
 
 		const $children = $('<ul class="tree-children">').appendTo($li);
 		children.forEach((child) => this.render_node(child, $children, children_by_parent));
@@ -244,7 +254,7 @@ frappe.data_import.ImportTreePreview = class ImportTreePreview {
 			);
 		}
 		if (node.orphan) {
-			parts.push(`<span class="text-muted diw-tree-orphan-tag">(${__("unlinked")})</span>`);
+			parts.push(`<span class="text-muted text-xs">(${__("unlinked")})</span>`);
 		}
 		parts.push(`<span class="import-tree-row-number">#${node.row_number}</span>`);
 		return parts.join("");

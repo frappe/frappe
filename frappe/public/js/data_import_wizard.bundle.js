@@ -97,7 +97,7 @@ function get_dropzone_hint_html() {
 	const max_bytes = frappe.boot?.max_file_size;
 	if (!max_bytes) return "";
 	const max_mb = Math.round(max_bytes / (1024 * 1024));
-	return `<div class="diw-file-dropzone-hint text-muted">${__(".csv, .xlsx up to {0} MB", [
+	return `<div class="text-xs text-ink-gray-5">${__(".csv, .xlsx up to {0} MB", [
 		max_mb,
 	])}</div>`;
 }
@@ -150,9 +150,9 @@ function render_import_file_card(control, frm, $mount) {
 	const is_read_only = control.df?.read_only || control.disp_status === "Read";
 
 	$mount.html(`
-		<div class="diw-import-file-card flex items-center justify-between gap-3 w-full">
+		<div class="diw-import-file-card flex items-center justify-between gap-3 w-full border rounded-lg mt-4 text-sm bg-surface-base">
 			<div class="flex items-center gap-2 min-w-0 flex-1">
-				<div class="diw-card-icon-well">${frappe.utils.icon(
+				<div class="diw-card-icon-well flex items-center justify-center shrink-0 size-10 rounded bg-surface-gray-2 text-ink-gray-7">${frappe.utils.icon(
 					"file-spreadsheet",
 					"md",
 					"",
@@ -161,7 +161,7 @@ function render_import_file_card(control, frm, $mount) {
 					true
 				)}</div>
 				<div class="min-w-0">
-					<a class="diw-import-file-card-name" href="${safe_href}" target="_blank" rel="noopener noreferrer" title="${safe_name}">${safe_name}</a>
+					<a class="diw-import-file-card-name truncate" href="${safe_href}" target="_blank" rel="noopener noreferrer" title="${safe_name}">${safe_name}</a>
 					<div class="text-sm text-muted">${frappe.utils.escape_html(meta_text)}</div>
 				</div>
 			</div>
@@ -188,7 +188,7 @@ function render_google_sheet_card(control, frm, $mount) {
 	const safe_url = frappe.utils.escape_html(url);
 	const is_read_only = control.df?.read_only || control.disp_status === "Read";
 	$mount.html(`
-		<div class="diw-google-sheet-card flex items-center justify-between gap-2 w-full">
+		<div class="diw-google-sheet-card flex items-center justify-between gap-2 w-full rounded text-sm bg-surface-gray-2">
 			<div class="flex items-center gap-2 min-w-0 flex-1">
 				<span class="inline-flex shrink-0 text-muted">${frappe.utils.icon(
 					"link",
@@ -198,7 +198,7 @@ function render_google_sheet_card(control, frm, $mount) {
 					"",
 					true
 				)}</span>
-				<a class="diw-google-sheet-card-url min-w-0" href="${safe_url}" target="_blank" rel="noopener noreferrer" title="${safe_url}">${safe_url}</a>
+				<a class="diw-google-sheet-card-url min-w-0 truncate" href="${safe_url}" target="_blank" rel="noopener noreferrer" title="${safe_url}">${safe_url}</a>
 			</div>
 			${
 				is_read_only
@@ -207,7 +207,6 @@ function render_google_sheet_card(control, frm, $mount) {
 							label: __("Clear"),
 							size: "xs",
 							variant: "outline",
-							css_class: "diw-google-sheet-clear-btn",
 							attrs: { "data-action": "clear_google_sheet" },
 					  })
 			}
@@ -236,18 +235,18 @@ frappe.ui.DataImportWizard = class DataImportWizard {
 
 	build() {
 		this.$root = $(`
-			<div class="data-import-custom-ui">
-				<div class="diw-shell">
-					<div class="diw-stepper-wrap"><nav class="diw-stepper" aria-label="${__(
+			<div class="data-import-custom-ui flex justify-center w-full">
+				<div class="diw-shell flex flex-col w-full min-w-0">
+					<div class="diw-stepper-wrap shrink-0 w-full"><nav class="diw-stepper flex items-start w-full" aria-label="${__(
 						"Import steps"
 					)}"></nav></div>
-					<div class="diw-card">
-						<div class="diw-mobile-step-header"></div>
-						<div class="diw-panels-wrap"><div class="diw-panels"></div></div>
-						<div class="diw-status-area"></div>
-						<div class="diw-footer">
+					<div class="diw-card flex flex-col w-full min-w-0 overflow-hidden rounded-lg shadow-sm border bg-surface-base">
+						<div class="diw-mobile-step-header shrink-0"></div>
+						<div class="flex flex-col flex-1 min-h-0 min-w-0 w-full"><div class="diw-panels flex flex-col flex-1 min-h-0 min-w-0 w-full"></div></div>
+						<div class="diw-status-area shrink-0"></div>
+						<div class="diw-footer flex items-center justify-between shrink-0 w-full border-t mt-auto">
 							<div class="diw-footer-left"></div>
-							<div class="diw-footer-right"></div>
+							<div class="diw-footer-right flex items-center gap-2"></div>
 						</div>
 					</div>
 				</div>
@@ -399,17 +398,19 @@ frappe.ui.DataImportWizard = class DataImportWizard {
 			const is_completed = index < current;
 			const is_locked = !can_go_to_wizard_step(frm, index, current);
 			const $btn = $(`
-				<button type="button" class="diw-step${is_active ? " active" : ""}${
-				is_completed ? " completed" : ""
-			}${is_locked ? " is-locked" : ""}" aria-disabled="${is_locked}">
-					<span class="diw-step-marker">
+				<button type="button" class="diw-step flex flex-1 flex-col items-center gap-2 min-w-0 text-center cursor-pointer${
+					is_active ? " active" : ""
+				}${is_completed ? " completed" : ""}${
+				is_locked ? " is-locked" : ""
+			}" aria-disabled="${is_locked}">
+					<span class="diw-step-marker shrink-0">
 						${
 							is_completed
 								? `<span class="diw-step-check">${step_icon("check", "xs")}</span>`
 								: `<span class="diw-step-icon">${step_icon(step.icon)}</span>`
 						}
 					</span>
-					<span class="diw-step-label">${frappe.utils.escape_html(step.label)}</span>
+					<span class="diw-step-label truncate w-full">${frappe.utils.escape_html(step.label)}</span>
 				</button>
 			`);
 			$btn.on("click", () => this.on_step_click(index));
@@ -444,8 +445,12 @@ frappe.ui.DataImportWizard = class DataImportWizard {
 		// .empty() would otherwise strip their event handlers (e.g. the dropzone click).
 		this.detach_reparented_fields();
 		this.$panels.empty();
-		const $panel = $(`<section class="diw-step-panel" data-step="${step}"></section>`);
-		const $content = $('<div class="diw-step-content"></div>').appendTo($panel);
+		const $panel = $(
+			`<section class="diw-step-panel flex flex-col flex-1 min-h-0 min-w-0 w-full" data-step="${step}"></section>`
+		);
+		const $content = $(
+			'<div class="diw-step-content flex-1 min-h-0 min-w-0 w-full overflow-auto"></div>'
+		).appendTo($panel);
 		this.$panels.append($panel);
 
 		if (step === 0) {
@@ -470,19 +475,19 @@ frappe.ui.DataImportWizard = class DataImportWizard {
 
 	mount_config($content) {
 		const frm = this.frm;
-		const $step = $('<div class="diw-config-step"></div>');
+		const $step = $('<div class="diw-config-step flex flex-col gap-4"></div>');
 
 		// Import settings — two-column grid of the configuration fields. The grid
 		// container purposely does NOT use the frappe `section-body` class (whose flex
 		// rules would override display:grid and collapse the columns).
 		const $settings = $(`
 			<div class="diw-config-section">
-				<div class="diw-config-head"><span class="diw-section-head-title">${__(
+				<div class="diw-config-head mb-4"><span class="diw-section-head-title">${__(
 					"Import settings"
 				)}</span></div>
-				<div class="diw-config-grid">
-					<div class="diw-config-column diw-config-main"></div>
-					<div class="diw-config-column diw-config-options"></div>
+				<div class="diw-config-grid w-full">
+					<div class="diw-config-column diw-config-main w-full min-w-0"></div>
+					<div class="diw-config-column diw-config-options w-full min-w-0"></div>
 				</div>
 			</div>
 		`);
@@ -500,8 +505,8 @@ frappe.ui.DataImportWizard = class DataImportWizard {
 
 		// Upload file — header with Download Template, source tabs, then panes.
 		const $upload = $(`
-			<div class="diw-upload-section">
-				<div class="diw-upload-header">
+			<div class="diw-upload-section mt-4 pt-4 border-t">
+				<div class="flex items-center justify-between gap-4 mb-2">
 					<span class="diw-section-head-title">${__("Upload file")}</span>
 					<span class="diw-upload-header-action"></span>
 				</div>
@@ -518,13 +523,9 @@ frappe.ui.DataImportWizard = class DataImportWizard {
 		// Google Sheet URL is saved and unchanged) the source is fixed, so we show just
 		// that source's card without tabs.
 		const show_tabs = this.should_show_upload_tabs();
-		const $file_pane = $(
-			'<div class="diw-upload-pane diw-upload-pane-file diw-frm-field"></div>'
-		);
+		const $file_pane = $('<div class="diw-frm-field w-full"></div>');
 		this.reparent_field($file_pane, "import_file");
-		const $sheet_pane = $(
-			'<div class="diw-upload-pane diw-upload-pane-sheet diw-frm-field"></div>'
-		);
+		const $sheet_pane = $('<div class="diw-frm-field w-full"></div>');
 		this.reparent_field($sheet_pane, "google_sheets_url");
 		this.reparent_field($sheet_pane, "refresh_google_sheet");
 		this._upload_panes = { file_upload: $file_pane, google_sheet: $sheet_pane };
@@ -614,8 +615,8 @@ frappe.ui.DataImportWizard = class DataImportWizard {
 		control._diw_dropzone_enhanced = true;
 
 		const $ui = $(`
-			<div class="diw-file-dropzone-ui" aria-hidden="true">
-				<div class="diw-file-dropzone-icon">${frappe.utils.icon(
+			<div class="diw-file-dropzone-ui flex flex-col items-center text-center gap-1" aria-hidden="true">
+				<div class="diw-file-dropzone-icon text-muted">${frappe.utils.icon(
 					"cloud-upload",
 					"md",
 					"",
@@ -623,14 +624,14 @@ frappe.ui.DataImportWizard = class DataImportWizard {
 					"",
 					true
 				)}</div>
-				<div class="diw-file-dropzone-text">${__(
+				<div class="diw-file-dropzone-text text-sm text-muted">${__(
 					"Drag a CSV or Excel file here, or click to browse"
 				)}</div>
 				${get_dropzone_hint_html()}
 			</div>
 		`);
 		$input_area.addClass("diw-file-dropzone-target").append($ui);
-		const $card_mount = $('<div class="diw-import-file-card-mount hide"></div>');
+		const $card_mount = $('<div class="hide"></div>');
 		$input_area.append($card_mount);
 
 		const original_set_input = control.set_input.bind(control);
@@ -768,8 +769,8 @@ frappe.ui.DataImportWizard = class DataImportWizard {
 		const $input_area = $(control.input_area);
 		if (!$input_area.length || !control.$input?.length) return;
 		control._diw_google_sheet_enhanced = true;
-		const $card_mount = $('<div class="diw-google-sheet-card-mount hide"></div>');
-		$input_area.addClass("diw-google-sheet-input-area").append($card_mount);
+		const $card_mount = $('<div class="hide"></div>');
+		$input_area.append($card_mount);
 
 		// Resolve the current host each time — the pane is recreated on every render.
 		const host_of = () => $input_area.closest(".diw-google-sheet-host");
@@ -836,7 +837,7 @@ frappe.ui.DataImportWizard = class DataImportWizard {
 		const frm = this.frm;
 		const is_tree = frm.is_tree_doctype?.() ?? false;
 		const $step = $('<div class="diw-preview-step"></div>');
-		const $table_pane = $('<div class="diw-preview-pane diw-preview-pane-table"></div>');
+		const $table_pane = $('<div class="diw-preview-pane-table min-h-0 min-w-0 w-full"></div>');
 
 		if (!is_tree) {
 			this.preview_tabs = null;
@@ -847,7 +848,7 @@ frappe.ui.DataImportWizard = class DataImportWizard {
 			return;
 		}
 
-		const $tree_pane = $('<div class="diw-preview-pane diw-preview-pane-tree"></div>');
+		const $tree_pane = $('<div class="diw-preview-pane-tree min-h-0 min-w-0 w-full"></div>');
 		// Remembered tab, so a re-render (e.g. when the preview resolves) doesn't yank
 		// the user back to Tree.
 		const active = this._preview_tab === "table" ? 1 : 0;
@@ -917,7 +918,7 @@ frappe.ui.DataImportWizard = class DataImportWizard {
 		const sk = (width, height = "14px") =>
 			frappe.ui.skeleton.html({ width, height, css_class: "rounded" });
 		$content.empty().append(`
-			<div class="diw-loading-skeleton flex flex-col gap-3 w-full" role="status" aria-busy="true" aria-label="${frappe.utils.escape_html(
+			<div class="flex flex-col gap-3 w-full" role="status" aria-busy="true" aria-label="${frappe.utils.escape_html(
 				__("Checking import file for issues...")
 			)}">
 				${sk("55%", "20px")}
@@ -974,7 +975,7 @@ frappe.ui.DataImportWizard = class DataImportWizard {
 				</div>
 			`;
 			$empty.append(`
-				<div class="diw-fix-empty-stats flex w-full border rounded-lg overflow-hidden bg-surface-base" role="list" aria-label="${frappe.utils.escape_html(
+				<div class="diw-fix-empty-stats flex w-full border rounded-lg overflow-hidden bg-surface-base mt-2" role="list" aria-label="${frappe.utils.escape_html(
 					__("Fix issues summary")
 				)}">
 					${stat(rows_checked, __("Rows checked"))}
@@ -1008,7 +1009,9 @@ frappe.ui.DataImportWizard = class DataImportWizard {
 		const raw_message = ($msg?.text() || "").trim();
 		if (raw_message) {
 			const safe = frappe.utils.escape_html(raw_message).replace(/\n/g, "<br>");
-			$(`<div class="diw-headline">${safe}</div>`).appendTo(this.$status);
+			$(`<div class="p-4 rounded border bg-surface-gray-2">${safe}</div>`).appendTo(
+				this.$status
+			);
 		}
 
 		const $progress = frm.dashboard?.progress_area;

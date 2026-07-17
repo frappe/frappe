@@ -238,9 +238,7 @@ function mount_fix_issues_step(frm, container) {
 		if (!section.show) continue;
 
 		const $shell = $(`
-			<div class="form-section diw-legacy-section-shell diw-fix-issues-section" data-fieldname="${
-				section.section_name
-			}">
+			<div class="form-section diw-fix-issues-section" data-fieldname="${section.section_name}">
 				<div class="section-head">${frappe.utils.escape_html(section.label)}</div>
 				<div class="section-body"></div>
 			</div>
@@ -468,17 +466,17 @@ function tree_preview_has_rendered_content(wrapper_el) {
 function get_import_log_skeleton_html() {
 	const sk = (width, height = "14px", css_class = "rounded") =>
 		frappe.ui.skeleton.html({ width, height, css_class });
-	return `<div class="diw-loading-skeleton flex flex-col gap-3 w-full" aria-busy="true" aria-label="${frappe.utils.escape_html(
+	return `<div class="flex flex-col gap-3 w-full" aria-busy="true" aria-label="${frappe.utils.escape_html(
 		__("Loading import log")
 	)}">
-		<div class="diw-import-log-metrics" role="list" style="--diw-import-log-metric-count: 3;">
+		<div class="diw-import-log-metrics w-full border rounded-md overflow-hidden bg-surface-base" role="list" style="--diw-import-log-metric-count: 3;">
 			${[0, 0, 0]
 				.map(
 					() =>
-						`<div class="diw-import-log-metric">${sk("48px", "28px")}${sk(
-							"72px",
-							"13px"
-						)}</div>`
+						`<div class="diw-import-log-metric flex flex-col items-center justify-center text-center gap-1 min-w-0">${sk(
+							"48px",
+							"28px"
+						)}${sk("72px", "13px")}</div>`
 				)
 				.join("")}
 		</div>
@@ -497,7 +495,7 @@ function get_table_preview_skeleton_html() {
 	const sk = (width, height = "14px") =>
 		frappe.ui.skeleton.html({ width, height, css_class: "rounded" });
 	const row = () => sk("100%", "32px");
-	return `<div class="diw-loading-skeleton flex flex-col gap-2 w-full" data-fallback-skeleton="table" role="status" aria-busy="true" aria-label="${frappe.utils.escape_html(
+	return `<div class="flex flex-col gap-2 w-full" data-fallback-skeleton="table" role="status" aria-busy="true" aria-label="${frappe.utils.escape_html(
 		__("Loading import preview...")
 	)}">
 		<div class="flex items-center justify-between gap-2">
@@ -512,7 +510,7 @@ function get_table_preview_skeleton_html() {
 function get_tree_preview_skeleton_html() {
 	const sk = (width, height = "14px", extra = "") =>
 		frappe.ui.skeleton.html({ width, height, css_class: `rounded ${extra}`.trim() });
-	return `<div class="diw-loading-skeleton flex flex-col gap-3 w-full" data-fallback-skeleton="tree" role="status" aria-busy="true" aria-label="${frappe.utils.escape_html(
+	return `<div class="flex flex-col gap-3 w-full" data-fallback-skeleton="tree" role="status" aria-busy="true" aria-label="${frappe.utils.escape_html(
 		__("Loading tree preview...")
 	)}">
 		<div class="flex gap-2">${sk("148px", "24px")}${sk("96px", "24px")}</div>
@@ -2149,7 +2147,7 @@ frappe.ui.form.on("Data Import", {
 				});
 				return `
 				<div class="warning${is_skipped ? " skipped" : ""}" data-row="${row_number}">
-					<h5 class="warning-row-header">
+					<h5 class="warning-row-header flex items-center gap-3">
 						<span>${__("Row {0}", [row_number])}</span>
 						${skip_btn}
 					</h5>
@@ -2180,7 +2178,7 @@ frappe.ui.form.on("Data Import", {
 				}
 				return `
 					<div class="warning" data-col="${warning.col}">
-						<h5 class="warning-row-header warning-col-header">
+						<h5 class="warning-row-header warning-col-header flex items-center gap-3">
 							<span>${header}</span>
 							${map_columns_btn}
 						</h5>
@@ -2203,7 +2201,7 @@ frappe.ui.form.on("Data Import", {
 		let html = "";
 		if (row_issue_html) {
 			html += `
-				<div class="diw-warning-group diw-warning-group-rows">
+				<div class="diw-warning-group">
 					<div class="diw-warning-group-title text-uppercase">${__("Row issues")}</div>
 					${row_issue_html}
 				</div>
@@ -2212,7 +2210,7 @@ frappe.ui.form.on("Data Import", {
 
 		if (column_issue_html) {
 			html += `
-				<div class="diw-warning-group diw-warning-group-columns">
+				<div class="diw-warning-group">
 					<div class="diw-warning-group-title text-uppercase">${__("Column issues")}</div>
 					${column_issue_html}
 				</div>
@@ -2221,7 +2219,7 @@ frappe.ui.form.on("Data Import", {
 
 		if (generic_issue_html) {
 			html += `
-				<div class="diw-warning-group diw-warning-group-generic">
+				<div class="diw-warning-group">
 					<div class="diw-warning-group-title text-uppercase">${__("Issues")}</div>
 					${generic_issue_html}
 				</div>
@@ -2434,25 +2432,21 @@ frappe.ui.form.on("Data Import", {
 							})
 							.map((m) => {
 								const title = m.title
-									? `<div class="diw-import-log-detail-title"><strong>${frappe.utils.escape_html(
+									? `<div><strong>${frappe.utils.escape_html(
 											m.title
 									  )}</strong></div>`
 									: "";
-								const message = m.message
-									? `<div class="diw-import-log-detail-message">${m.message}</div>`
-									: "";
+								const message = m.message ? `<div>${m.message}</div>` : "";
 								return `${title}${message}`;
 							})
 							.join("");
-						const detail_list = message_details
-							? `<div class="diw-import-log-detail-list">${message_details}</div>`
-							: "";
+						const detail_list = message_details ? `<div>${message_details}</div>` : "";
 						const has_traceback = Boolean((log.exception || "").trim());
 						const is_expandable = Boolean(detail_list || has_traceback);
 						let id = frappe.dom.get_unique_id();
-						html = `<div class="diw-import-log-message diw-import-log-message--failed">
-							<div class="diw-import-log-summary-wrap">
-								<div class="diw-import-log-summary">${summary}</div>
+						html = `<div class="diw-import-log-message">
+							<div class="flex items-start justify-between gap-2">
+								<div>${summary}</div>
 								${
 									is_expandable
 										? frappe.ui.button.html({
@@ -2473,7 +2467,7 @@ frappe.ui.form.on("Data Import", {
 							</div>
 							${
 								is_expandable
-									? `<div class="collapse diw-import-log-details" id="${id}">
+									? `<div class="collapse diw-import-log-details mt-1" id="${id}">
 										${detail_list}
 										${
 											has_traceback
@@ -2481,7 +2475,6 @@ frappe.ui.form.on("Data Import", {
 														label: __("Show traceback"),
 														size: "xs",
 														variant: "outline",
-														css_class: "diw-import-log-traceback-btn",
 														attrs: {
 															"data-toggle": "collapse",
 															"data-target": `#${id}-trace`,
@@ -2504,12 +2497,10 @@ frappe.ui.form.on("Data Import", {
 						theme: log.success ? "green" : "red",
 					});
 
-					return `<tr class="diw-import-log-row ${
-						log.success ? "is-success" : "is-failed"
-					}">
-							<td class="diw-import-log-cell-row">${row_number_label}</td>
+					return `<tr>
+							<td class="diw-import-log-cell-row whitespace-nowrap">${row_number_label}</td>
 							<td>${status_badge}</td>
-							<td class="diw-import-log-cell-message">
+							<td>
 								${html}
 							</td>
 						</tr>`;
@@ -2524,14 +2515,14 @@ frappe.ui.form.on("Data Import", {
 
 			const metric_html = [];
 			metric_html.push(
-				`<div class="diw-import-log-metric" role="listitem"><div class="diw-import-log-metric-value">${total_rows_in_file}</div><div class="diw-import-log-metric-label text-muted">${__(
+				`<div class="diw-import-log-metric flex flex-col items-center justify-center text-center gap-1 min-w-0" role="listitem"><div class="diw-import-log-metric-value text-2xl-bold">${total_rows_in_file}</div><div class="diw-import-log-metric-label text-muted">${__(
 					"Total rows"
 				)}</div></div>`
 			);
 
 			if (skipped_rows_count) {
 				metric_html.push(
-					`<div class="diw-import-log-metric" role="listitem"><div class="diw-import-log-metric-value text-warning">${skipped_rows_count}</div><div class="diw-import-log-metric-label text-muted">${__(
+					`<div class="diw-import-log-metric flex flex-col items-center justify-center text-center gap-1 min-w-0" role="listitem"><div class="diw-import-log-metric-value text-2xl-bold text-warning">${skipped_rows_count}</div><div class="diw-import-log-metric-label text-muted">${__(
 						"Skipped"
 					)}</div></div>`
 				);
@@ -2539,7 +2530,7 @@ frappe.ui.form.on("Data Import", {
 
 			if (is_upsert || frm.doc.import_type === "Insert New Records") {
 				metric_html.push(
-					`<div class="diw-import-log-metric" role="listitem"><div class="diw-import-log-metric-value text-success">${inserted_rows}</div><div class="diw-import-log-metric-label text-muted">${__(
+					`<div class="diw-import-log-metric flex flex-col items-center justify-center text-center gap-1 min-w-0" role="listitem"><div class="diw-import-log-metric-value text-2xl-bold text-success">${inserted_rows}</div><div class="diw-import-log-metric-label text-muted">${__(
 						"Inserted"
 					)}</div></div>`
 				);
@@ -2547,38 +2538,38 @@ frappe.ui.form.on("Data Import", {
 
 			if (is_upsert || frm.doc.import_type === "Update Existing Records") {
 				metric_html.push(
-					`<div class="diw-import-log-metric" role="listitem"><div class="diw-import-log-metric-value text-primary">${updated_rows}</div><div class="diw-import-log-metric-label text-muted">${__(
+					`<div class="diw-import-log-metric flex flex-col items-center justify-center text-center gap-1 min-w-0" role="listitem"><div class="diw-import-log-metric-value text-2xl-bold text-primary">${updated_rows}</div><div class="diw-import-log-metric-label text-muted">${__(
 						"Updated"
 					)}</div></div>`
 				);
 			}
 
 			metric_html.push(
-				`<div class="diw-import-log-metric" role="listitem"><div class="diw-import-log-metric-value text-danger">${failed_rows}</div><div class="diw-import-log-metric-label text-muted">${__(
+				`<div class="diw-import-log-metric flex flex-col items-center justify-center text-center gap-1 min-w-0" role="listitem"><div class="diw-import-log-metric-value text-2xl-bold text-danger">${failed_rows}</div><div class="diw-import-log-metric-label text-muted">${__(
 					"Failed"
 				)}</div></div>`
 			);
 
 			const wrapper = frm.get_field("import_log_preview").$wrapper;
 			wrapper.html(`
-				<div class="diw-import-log-metrics" role="list" aria-label="${frappe.utils.escape_html(
+				<div class="diw-import-log-metrics w-full border rounded-md overflow-hidden bg-surface-base" role="list" aria-label="${frappe.utils.escape_html(
 					__("Import metrics")
 				)}" style="--diw-import-log-metric-count: ${Math.max(metric_html.length, 1)};">
 					${metric_html.join("")}
 				</div>
 				${
 					is_truncated
-						? `<div class="diw-import-log-limit-note text-muted">${__(
+						? `<div class="text-muted text-sm mb-2">${__(
 								"Showing first {0} out of {1} log entries.",
 								[shown_count, total_log_entries]
 						  )}</div>`
 						: ""
 				}
-				<div class="diw-import-log-filters">
+				<div class="flex items-center justify-between gap-2">
 					<div class="diw-import-log-filter-tabs"></div>
-					<div class="diw-import-log-filter-actions"></div>
+					<div class="diw-import-log-filter-actions inline-flex items-center ms-auto"></div>
 				</div>
-				<table class="table diw-import-log-table">
+				<table class="table diw-import-log-table w-full">
 					<thead>
 						<tr class="text-muted">
 							<th width="10%">${__("Row")}</th>
@@ -2694,30 +2685,30 @@ frappe.ui.form.on("Data Import", {
 		const stat_cards = [];
 		if (show_inserted) {
 			stat_cards.push(`
-				<div class="diw-import-progress-stat is-success" role="listitem">
-					<div class="value">${inserted}</div>
-					<div class="label">${__("Inserted")}</div>
+				<div class="diw-import-progress-stat flex flex-col items-center justify-center text-center gap-0.5 min-w-0 is-success" role="listitem">
+					<div class="value text-2xl-semibold">${inserted}</div>
+					<div class="label text-sm text-muted">${__("Inserted")}</div>
 				</div>
 			`);
 		}
 		if (show_updated) {
 			stat_cards.push(`
-				<div class="diw-import-progress-stat" role="listitem">
-					<div class="value">${updated}</div>
-					<div class="label">${__("Updated")}</div>
+				<div class="diw-import-progress-stat flex flex-col items-center justify-center text-center gap-0.5 min-w-0" role="listitem">
+					<div class="value text-2xl-semibold">${updated}</div>
+					<div class="label text-sm text-muted">${__("Updated")}</div>
 				</div>
 			`);
 		}
 		stat_cards.push(`
-			<div class="diw-import-progress-stat is-warning" role="listitem">
-				<div class="value">${skipped}</div>
-				<div class="label">${__("Skipped")}</div>
+			<div class="diw-import-progress-stat flex flex-col items-center justify-center text-center gap-0.5 min-w-0 is-warning" role="listitem">
+				<div class="value text-2xl-semibold">${skipped}</div>
+				<div class="label text-sm text-muted">${__("Skipped")}</div>
 			</div>
 		`);
 		stat_cards.push(`
-			<div class="diw-import-progress-stat is-danger" role="listitem">
-				<div class="value">${failed}</div>
-				<div class="label">${__("Failed")}</div>
+			<div class="diw-import-progress-stat flex flex-col items-center justify-center text-center gap-0.5 min-w-0 is-danger" role="listitem">
+				<div class="value text-2xl-semibold">${failed}</div>
+				<div class="label text-sm text-muted">${__("Failed")}</div>
 			</div>
 		`);
 		const recent = Array.isArray(progress.recent_activity)
@@ -2744,23 +2735,23 @@ frappe.ui.form.on("Data Import", {
 			  )}</li>`;
 
 		frm.get_field("import_log_preview")?.$wrapper?.html(`
-			<div class="diw-import-progress-hero">
-				<h3 class="diw-import-progress-heading text-base-medium mb-0">${title}</h3>
-				<p class="diw-import-progress-subtitle text-sm text-muted mb-0">${subtitle}</p>
-				<div class="diw-import-progress-bar-wrap">${linear_progress}</div>
+			<div class="diw-import-progress-hero flex flex-col text-center gap-1">
+				<h3 class="text-base-medium mb-0">${title}</h3>
+				<p class="text-sm text-muted mb-0">${subtitle}</p>
+				<div class="diw-import-progress-bar-wrap w-full">${linear_progress}</div>
 				${
 					status_line
-						? `<div class="diw-import-progress-status text-sm text-muted">${status_line}</div>`
+						? `<div class="diw-import-progress-status self-end text-right text-sm text-muted mb-2">${status_line}</div>`
 						: ""
 				}
 
-				<div class="diw-import-progress-stats" role="list" aria-label="${frappe.utils.escape_html(
+				<div class="diw-import-progress-stats w-full" role="list" aria-label="${frappe.utils.escape_html(
 					__("Progress summary")
 				)}" style="--diw-import-progress-stat-count: ${Math.max(stat_cards.length, 1)};">
 					${stat_cards.join("")}
 				</div>
 
-				<div class="diw-import-progress-activity">
+				<div class="diw-import-progress-activity w-full border text-left bg-surface-base">
 					<div class="title text-muted">${__("Recent activity")}</div>
 					<ul>${recent_html}</ul>
 				</div>

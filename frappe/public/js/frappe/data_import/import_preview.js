@@ -38,12 +38,12 @@ frappe.data_import.ImportPreview = class ImportPreview {
 		let $preview = this.wrapper.find(".diw-table-preview");
 		if (!$preview.length) {
 			this.wrapper.html(`
-				<div class="diw-table-preview">
-					<div class="diw-preview-toolbar">
-						<div class="diw-preview-toolbar-actions table-actions"></div>
+				<div class="diw-table-preview min-w-0 w-full">
+					<div class="diw-preview-toolbar flex items-center justify-between gap-2 mb-2">
+						<div class="table-actions inline-flex items-center shrink-0"></div>
 						<div class="diw-preview-toolbar-meta table-message"></div>
 					</div>
-					<div class="table-preview"></div>
+					<div class="table-preview min-w-0 w-full border rounded-md overflow-hidden"></div>
 				</div>
 			`);
 			$preview = this.wrapper.find(".diw-table-preview");
