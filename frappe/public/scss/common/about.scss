@@ -47,13 +47,6 @@
 	gap: 20px;
 }
 
-.about-frappe-section {
-	display: flex;
-	flex-direction: column;
-	align-items: center;
-	gap: 6px;
-}
-
 .about-frappe-wordmark {
 	height: 27px;
 	width: auto;
@@ -63,17 +56,6 @@
 	[data-theme="dark"] & {
 		filter: invert(1);
 	}
-}
-
-.about-tagline {
-	margin: 0;
-	font-size: var(--text-sm);
-	color: var(--text-muted);
-}
-
-.about-social-btns {
-	display: flex;
-	gap: 4px;
 }
 
 .about-info-rows {
@@ -101,44 +83,6 @@
 	align-items: center;
 	align-self: flex-start;
 	gap: 5px;
-	font-size: var(--text-md);
-	font-weight: var(--weight-semibold);
-	letter-spacing: 0.015em;
-	color: var(--text-color);
-}
-
-a.about-info-title-link {
-	color: inherit;
-	text-decoration: none;
-
-	&:hover {
-		color: var(--text-color);
-	}
-}
-
-.about-info-sub {
-	font-size: var(--text-sm);
-	font-weight: var(--weight-regular);
-	letter-spacing: 0.015em;
-	line-height: var(--para-line-height-sm);
-	color: var(--ink-gray-5);
-
-	a {
-		color: var(--ink-gray-5);
-		text-decoration: none;
-
-		&:hover {
-			color: var(--text-color);
-		}
-	}
-}
-
-.about-section-label {
-	font-size: 11px;
-	font-weight: var(--weight-regular);
-	color: var(--text-muted);
-	text-transform: uppercase;
-	letter-spacing: 0.09em;
 }
 
 .about-app-list {
@@ -165,8 +109,6 @@ a.about-info-title-link {
 	display: flex;
 	align-items: center;
 	justify-content: center;
-	font-size: 13px;
-	font-weight: var(--weight-semibold);
 }
 
 .about-app-logo {
@@ -176,27 +118,4 @@ a.about-info-title-link {
 .about-app-info {
 	flex: 1;
 	min-width: 0;
-}
-
-.about-app-name {
-	font-size: var(--text-md);
-	font-weight: var(--weight-semibold);
-	letter-spacing: 0.015em;
-	color: var(--text-color);
-}
-
-.about-app-version {
-	font-size: var(--text-sm);
-	font-weight: var(--weight-regular);
-	letter-spacing: 0.015em;
-	color: var(--ink-gray-5);
-}
-
-.about-footer {
-	text-align: center;
-	font-size: var(--text-sm);
-	font-weight: var(--weight-regular);
-	letter-spacing: 0.015em;
-	line-height: var(--para-line-height-sm);
-	color: var(--ink-gray-4);
 }
