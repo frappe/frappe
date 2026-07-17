@@ -1681,7 +1681,8 @@ class Document(BaseDocument):
 	def run_method(self, method: str, *args, **kwargs):
 		"""run standard triggers, plus those in hooks"""
 
-		assert not method.startswith("__"), "Run method is for hooks, avoid usage on internal methods"
+		if method.startswith("__"):
+			raise Exception("Run method is for hooks, avoid usage on internal methods")
 
 		def fn(self, *args, **kwargs):
 			method_object = getattr(self, method, None)
