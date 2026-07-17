@@ -23,6 +23,7 @@ class DesktopIcon(Document):
 		app: DF.Autocomplete | None
 		bg_color: DF.Literal["gray", "blue"]
 		hidden: DF.Check
+		icon: DF.Icon | None
 		icon_image: DF.Attach | None
 		icon_type: DF.Literal["Link", "Folder", "App"]
 		idx: DF.Int
@@ -36,3 +37,4 @@ class DesktopIcon(Document):
 		roles: DF.Table[HasRole]
 		sidebar: DF.Link | None
 		standard: DF.Check
+	# end: auto-generated types
