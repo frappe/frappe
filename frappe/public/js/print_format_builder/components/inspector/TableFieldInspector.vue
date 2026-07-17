@@ -184,14 +184,17 @@
 										@select="(opt) => add_merged_field(col, opt.value)"
 									/>
 								</div>
-								<SegmentedRow
+								<div
 									v-if="col.merged_fields && col.merged_fields.length"
-									:label="__('Direction')"
-									:model-value="col.merge_direction || 'vertical'"
-									:options="merge_direction_opts"
-									style="margin-top: 8px"
-									@update:model-value="(v) => (col.merge_direction = v)"
-								/>
+									class="pfb-merge-direction"
+								>
+									<SegmentedRow
+										:label="__('Direction')"
+										:model-value="col.merge_direction || 'vertical'"
+										:options="merge_direction_opts"
+										@update:model-value="(v) => (col.merge_direction = v)"
+									/>
+								</div>
 							</div>
 						</div>
 					</template>
@@ -507,6 +510,11 @@ function set_image_size(col, value) {
 
 .pfb-col-add-row {
 	padding: 6px 14px 10px;
+	border-top: 1px solid var(--gray-100);
+}
+
+.pfb-merge-direction {
+	padding: 8px 14px 10px;
 	border-top: 1px solid var(--gray-100);
 }
 
