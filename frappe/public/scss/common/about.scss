@@ -76,24 +76,6 @@
 	gap: 4px;
 }
 
-.about-icon-btn {
-	display: flex;
-	align-items: center;
-	justify-content: center;
-	padding: 6px;
-	border-radius: var(--radius);
-	color: var(--text-muted);
-
-	&:hover {
-		background-color: var(--fg-hover-color);
-		color: var(--text-color);
-	}
-
-	.icon {
-		display: block;
-	}
-}
-
 .about-info-rows {
 	display: flex;
 	flex-direction: column;
@@ -208,12 +190,6 @@ a.about-info-title-link {
 	font-weight: var(--weight-regular);
 	letter-spacing: 0.015em;
 	color: var(--ink-gray-5);
-}
-
-a.about-update-indicator.btn {
-	padding: 6px 8px;
-	border: none;
-	box-shadow: none;
 }
 
 .about-footer {

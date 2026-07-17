@@ -14,17 +14,17 @@ frappe.ui.misc.about = function () {
 			<img src="/assets/frappe/images/frappe-comp-logo.svg" alt="Frappe" class="about-frappe-wordmark">
 				<p class="about-tagline">${__("Open Source applications for the web.")}</p>
 				<div class="about-social-btns">
-					<a href="https://frappe.io/" target="_blank" class="about-icon-btn"
-						title="${__("Website")}">
-						${frappe.utils.icon("globe", "sm")}
+					<a href="https://frappe.io/" target="_blank" class="es-button" data-variant="ghost"
+						data-icon-button="true" title="${__("Website")}" aria-label="${__("Website")}">
+						${frappe.utils.icon("globe", "sm", "", "", "", true)}
 					</a>
-					<a href="https://github.com/frappe" target="_blank" class="about-icon-btn"
-						title="${__("Source Code")}">
-						${frappe.utils.icon("github", "sm")}
+					<a href="https://github.com/frappe" target="_blank" class="es-button" data-variant="ghost"
+						data-icon-button="true" title="${__("Source Code")}" aria-label="${__("Source Code")}">
+						${frappe.utils.icon("github", "sm", "", "", "", true)}
 					</a>
-					<a href="https://discuss.frappe.io" target="_blank" class="about-icon-btn"
-						title="${__("Forum")}">
-						${frappe.utils.icon("message-circle", "sm")}
+					<a href="https://discuss.frappe.io" target="_blank" class="es-button" data-variant="ghost"
+						data-icon-button="true" title="${__("Forum")}" aria-label="${__("Forum")}">
+						${frappe.utils.icon("message-circle", "sm", "", "", "", true)}
 					</a>
 				</div>
 			</div>
@@ -115,7 +115,7 @@ frappe.ui.misc.about = function () {
 		if (frappe.boot.has_app_updates && frappe.boot.is_fc_site) {
 			$(`<a href="https://frappecloud.com/dashboard/sites/${window.location.hostname}"
 					target="_blank"
-					class="btn btn-default btn-sm about-update-indicator">
+					class="es-button no-underline about-update-indicator">
 					${__("Update Available")}
 				</a>`).appendTo($version_row);
 		}
