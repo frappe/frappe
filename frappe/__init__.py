@@ -128,13 +128,46 @@ _LAZY_IMPORTS: dict[str, tuple[str, str]] = {
 	"redirect_to_message": ("frappe.utils.response", "redirect_to_message"),
 }
 
+# --------------------------------------------------------------------------------------------
+# Creating a background thread to load  atttributes/symbols in background.
+# We argue that most of those attributes are hit anyway on `bench start` and/or very first request to server.
+# So it doesn't make sense to do Lazy Imports for Frappe (namespace) code, as we end up with adding significant "perceived" latency on User side .
+# We also argue it is SAFE, as a dedicated lock/sync is used by Python internally to cleanly initialize a module (Even if it has some code that could run on init, so no side-effects).
+# https://docs.python.org/3/whatsnew/3.3.html#a-finer-grained-import-lock
+import_thread_lock = threading.RLock()
+
+
+def _import_frappe_modules_in_background():
+	for name, (module_path, attr_name) in _LAZY_IMPORTS.items():
+		import_thread_lock.acquire()
+		if name not in globals():
+			mod = importlib.import_module(module_path)
+			value = getattr(mod, attr_name)
+			globals()[name] = value
+		import_thread_lock.release()
+
+
+# Any exception inside the thread should trigger the `assert` statement by being unable to find an expected name/module defined in _LAZY_IMPORTS !
+threading.Thread(target=_import_frappe_modules_in_background).start()
+# ----------------------------------------------------------------------------------------------
+
 
 def __getattr__(name: str):
 	if name in _LAZY_IMPORTS:
-		module_path, attr_name = _LAZY_IMPORTS[name]
-		mod = importlib.import_module(module_path)
-		value = getattr(mod, attr_name)
-		globals()[name] = value
+		value = None
+		# NOTE: we priortize the direct request to load a module from parent thread, `globals()` and `import_thread_lock` are used to sync this information to the background thread.
+		import_thread_lock.acquire()
+		if name not in globals():
+			module_path, attr_name = _LAZY_IMPORTS[name]
+			mod = importlib.import_module(module_path)
+			value = getattr(mod, attr_name)
+			globals()[name] = value
+		else:
+			value = globals()[name]
+		import_thread_lock.release()
+		assert value is not None, (
+			f"Failed to load an Expected module {name}, most likely bug in our background import loading thread!"
+		)
 		return value
 	raise AttributeError(f"module 'frappe' has no attribute {name!r}")
 
