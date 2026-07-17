@@ -4,6 +4,7 @@ frappe.ui.form.ControlDatetime = class ControlDatetime extends frappe.ui.form.Co
 		if (!this.datepicker) return;
 		if (!value) {
 			this.datepicker.clear();
+			this.datepicker.date = this.get_now_date();
 			return;
 		} else if (value.toLowerCase() === "today") {
 			value = this.get_now_date();
@@ -19,7 +20,7 @@ frappe.ui.form.ControlDatetime = class ControlDatetime extends frappe.ui.form.Co
 		} else if (value && !this.datepicker.selectedDates.length) {
 			const date_obj = frappe.datetime.str_to_obj(raw_value);
 			this.datepicker.selectedDates = [date_obj];
-			this.datepicker.viewDate = date_obj;
+			this.datepicker.date = date_obj;
 			this.datepicker.lastSelectedDate = date_obj;
 		}
 	}
