@@ -518,6 +518,16 @@ frappe.views.ListView = class ListView extends frappe.views.BaseList {
 	async ensure_column_fields_fetched() {
 		if (!this.columns?.length) return;
 
+		// Snapshot the init-time fetch set once. Restore it on later calls so fields
+		// from a previously viewed layout don't stay in the server request forever.
+		if (!this._baseline_fields) {
+			this._baseline_fields = [...(this.fields || [])];
+			this._baseline_link_title_fields = { ...(this.link_field_title_fields || {}) };
+		} else {
+			this.fields = [...this._baseline_fields];
+			this.link_field_title_fields = { ...this._baseline_link_title_fields };
+		}
+
 		await Promise.all(
 			this.columns.map((col) => {
 				const fieldname = col.df?.fieldname;

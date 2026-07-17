@@ -141,6 +141,15 @@ context("List View — Saved Layouts", () => {
 				{ fieldname: "role", label: "Role" },
 			]),
 		});
+		createTestLayout({
+			layout_name: "_cypress_layout_no_role",
+			filters: "[]",
+			columns: JSON.stringify([
+				{ fieldname: "description", label: "Description" },
+				{ fieldname: "status_field", label: "Status" },
+				{ fieldname: "priority", label: "Priority" },
+			]),
+		});
 
 		cy.visit(LIST_URL);
 		cy.wait(500);
@@ -160,6 +169,16 @@ context("List View — Saved Layouts", () => {
 				.filter((col) => col.df?.fieldname)
 				.map((col) => col.df.fieldname);
 			expect(column_names).to.include("role");
+		});
+
+		// Switching layouts should drop fields that are no longer visible.
+		selectLayout("_cypress_layout_no_role");
+		getLayoutButton().should("contain", "_cypress_layout_no_role");
+
+		cy.window().then((win) => {
+			const fetch_fields = (win.cur_list.fields || []).map((f) => f[0]);
+			expect(fetch_fields).to.not.include("role");
+			expect(fetch_fields).to.include("priority");
 		});
 	});
 });
