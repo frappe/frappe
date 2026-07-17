@@ -1413,3 +1413,18 @@ class TestPrintFormatGenerator(IntegrationTestCase):
 		generator = PrintFormatGenerator(pf, todo, settings={"repeat_header_footer": flipped})
 		self.assertEqual(generator.print_settings.repeat_header_footer, flipped)
 		self.assertEqual(frappe.db.get_single_value("Print Settings", "repeat_header_footer"), saved)
+
+	def test_settings_override_reaches_pdf_download(self):
+		"""render_pdf (the PDF download path) renders with the overridden print_settings,
+		so a print-preview toggle carries into the downloaded file too."""
+		from unittest.mock import patch
+
+		from frappe.utils.print_format_generator import PrintFormatGenerator
+
+		pf = self._make_print_format()
+		todo = self._make_todo()
+		generator = PrintFormatGenerator(pf, todo, settings={"repeat_header_footer": 1})
+
+		with patch("frappe.utils.pdf.get_chrome_pdf", return_value=b"%PDF-"):
+			generator.render_pdf()
+		self.assertEqual(generator.print_settings.repeat_header_footer, 1)

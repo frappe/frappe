@@ -29,7 +29,11 @@ def render_jinja_template(template: str, doctype: str, docname: str) -> str:
 
 @frappe.whitelist()
 def download_pdf(
-	doctype: str, name: str | int, print_format: str | None = None, letterhead: str | None = None
+	doctype: str,
+	name: str | int,
+	print_format: str | None = None,
+	letterhead: str | None = None,
+	settings: str | dict | None = None,
 ):
 	from frappe.printing.doctype.print_format.classic_converter import get_default_print_format
 	from frappe.www.printview import validate_print_for_docstatus, validate_print_permission
@@ -39,7 +43,7 @@ def download_pdf(
 	validate_print_for_docstatus(doc)
 	if not print_format or print_format == "Standard":
 		print_format = get_default_print_format(doctype)
-	generator = PrintFormatGenerator(print_format, doc, letterhead)
+	generator = PrintFormatGenerator(print_format, doc, letterhead, settings=frappe.parse_json(settings))
 	pdf = generator.render_pdf()
 
 	frappe.local.response.filename = "{name}.pdf".format(name=name.replace(" ", "-").replace("/", "-"))

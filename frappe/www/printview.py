@@ -112,6 +112,7 @@ def get_context(context) -> PrintContext:
 			style=frappe.form_dict.style,
 			trigger_print=cint(frappe.form_dict.trigger_print),
 			action_banner=frappe.render_template("templates/print_formats/print_action_banner.html", context),
+			settings=settings,
 		)
 	else:
 		body = get_rendered_template(
