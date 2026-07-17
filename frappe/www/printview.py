@@ -169,7 +169,7 @@ def get_rendered_template(
 	validate_print_permission(doc)
 
 	print_settings = frappe.get_single("Print Settings").as_dict()
-	print_settings.update(settings or {})
+	print_settings.update(get_allowed_print_settings_override(doc, settings))
 
 	if isinstance(no_letterhead, str):
 		no_letterhead = cint(no_letterhead)
@@ -389,6 +389,15 @@ def get_rendered_raw_commands(
 	return {
 		"raw_commands": get_rendered_template(doc=document, print_format=print_format, meta=document.meta)
 	}
+
+
+def get_allowed_print_settings_override(doc: "Document", settings: dict | None) -> dict:
+	"""Keep only the Print Settings a caller may override: the doctype's own print toggles,
+	never unrelated flags like allow_print_for_draft that the docstatus guard reads."""
+	if not settings:
+		return {}
+	allowed = set(doc.get_print_settings() or []) if hasattr(doc, "get_print_settings") else set()
+	return {key: value for key, value in settings.items() if key in allowed}
 
 
 def validate_print_for_docstatus(doc: "Document", print_settings: dict | None = None) -> None:

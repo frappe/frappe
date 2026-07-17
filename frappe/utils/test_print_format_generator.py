@@ -1401,18 +1401,40 @@ class TestPrintFormatGenerator(IntegrationTestCase):
 		self.assertEqual(cell_lines_class(html_for(None)), "cell-lines")
 
 	def test_settings_override_does_not_persist(self):
-		"""A print-preview settings override changes the print_settings the generator
-		renders with, but never writes back to the saved single."""
+		"""A print-preview settings override (limited to the doctype's own print toggles)
+		changes the print_settings the generator renders with, but never writes back to
+		the saved single; keys outside the allowlist are ignored."""
 		from frappe.utils.print_format_generator import PrintFormatGenerator
 
 		pf = self._make_print_format()
 		todo = self._make_todo()
+		todo.get_print_settings = lambda: ["repeat_header_footer"]
 		saved = frappe.db.get_single_value("Print Settings", "repeat_header_footer")
+		saved_draft = frappe.db.get_single_value("Print Settings", "allow_print_for_draft")
 		flipped = 0 if saved else 1
 
-		generator = PrintFormatGenerator(pf, todo, settings={"repeat_header_footer": flipped})
+		generator = PrintFormatGenerator(
+			pf, todo, settings={"repeat_header_footer": flipped, "allow_print_for_draft": 1}
+		)
 		self.assertEqual(generator.print_settings.repeat_header_footer, flipped)
+		self.assertEqual(generator.print_settings.allow_print_for_draft, saved_draft)
 		self.assertEqual(frappe.db.get_single_value("Print Settings", "repeat_header_footer"), saved)
+
+	def test_print_settings_override_allowlist(self):
+		"""get_allowed_print_settings_override keeps only fields the doctype exposes."""
+		from frappe.www.printview import get_allowed_print_settings_override
+
+		todo = self._make_todo()
+		self.assertEqual(get_allowed_print_settings_override(todo, None), {})
+		self.assertEqual(get_allowed_print_settings_override(todo, {"repeat_header_footer": 1}), {})
+
+		todo.get_print_settings = lambda: ["repeat_header_footer"]
+		self.assertEqual(
+			get_allowed_print_settings_override(
+				todo, {"repeat_header_footer": 1, "allow_print_for_draft": 1}
+			),
+			{"repeat_header_footer": 1},
+		)
 
 	def test_settings_override_reaches_pdf_download(self):
 		"""render_pdf (the PDF download path) renders with the overridden print_settings,
@@ -1423,6 +1445,7 @@ class TestPrintFormatGenerator(IntegrationTestCase):
 
 		pf = self._make_print_format()
 		todo = self._make_todo()
+		todo.get_print_settings = lambda: ["repeat_header_footer"]
 		generator = PrintFormatGenerator(pf, todo, settings={"repeat_header_footer": 1})
 
 		with patch("frappe.utils.pdf.get_chrome_pdf", return_value=b"%PDF-"):

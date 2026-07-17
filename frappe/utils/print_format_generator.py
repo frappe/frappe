@@ -118,7 +118,9 @@ class PrintFormatGenerator:
 	def build_context(self):
 		self.print_settings = frappe.get_doc("Print Settings")
 		if self.settings_override:
-			self.print_settings.update(self.settings_override)
+			from frappe.www.printview import get_allowed_print_settings_override
+
+			self.print_settings.update(get_allowed_print_settings_override(self.doc, self.settings_override))
 		page_width_map = {"A4": 210, "Letter": 216}
 		page_width = page_width_map.get(self.print_settings.pdf_page_size) or 210
 		body_width = page_width - self.print_format.margin_left - self.print_format.margin_right
