@@ -1399,3 +1399,17 @@ class TestPrintFormatGenerator(IntegrationTestCase):
 		self.assertEqual(cell_lines_class(html_for("horizontal")), "cell-lines cell-lines--horizontal")
 		self.assertEqual(cell_lines_class(html_for("vertical")), "cell-lines")
 		self.assertEqual(cell_lines_class(html_for(None)), "cell-lines")
+
+	def test_settings_override_does_not_persist(self):
+		"""A print-preview settings override changes the print_settings the generator
+		renders with, but never writes back to the saved single."""
+		from frappe.utils.print_format_generator import PrintFormatGenerator
+
+		pf = self._make_print_format()
+		todo = self._make_todo()
+		saved = frappe.db.get_single_value("Print Settings", "repeat_header_footer")
+		flipped = 0 if saved else 1
+
+		generator = PrintFormatGenerator(pf, todo, settings={"repeat_header_footer": flipped})
+		self.assertEqual(generator.print_settings.repeat_header_footer, flipped)
+		self.assertEqual(frappe.db.get_single_value("Print Settings", "repeat_header_footer"), saved)

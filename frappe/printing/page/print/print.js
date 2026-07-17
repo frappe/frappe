@@ -508,6 +508,9 @@ frappe.ui.form.PrintView = class {
 		if (letterhead) {
 			params.append("letterhead", letterhead);
 		}
+		if (this.additional_settings && Object.keys(this.additional_settings).length) {
+			params.append("settings", JSON.stringify(this.additional_settings));
+		}
 		iframe.prop("src", `/printpreview?${params.toString()}`);
 		iframe.css("height", "calc(100vh - var(--page-head-height) - var(--navbar-height))");
 	}

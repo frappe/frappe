@@ -61,14 +61,21 @@ def get_qr_code(value: str) -> str:
 
 
 def get_html(
-	doctype, name, print_format, letterhead=None, action_banner=None, style=None, trigger_print=False
+	doctype,
+	name,
+	print_format,
+	letterhead=None,
+	action_banner=None,
+	style=None,
+	trigger_print=False,
+	settings=None,
 ):
 	from frappe.www.printview import validate_print_for_docstatus, validate_print_permission
 
 	doc = frappe.get_doc(doctype, name)
 	validate_print_permission(doc)
 	validate_print_for_docstatus(doc)
-	generator = PrintFormatGenerator(print_format, doc, letterhead, style=style)
+	generator = PrintFormatGenerator(print_format, doc, letterhead, style=style, settings=settings)
 	return generator.get_html_preview(action_banner=action_banner, trigger_print=trigger_print)
 
 
@@ -86,7 +93,7 @@ class PrintFormatGenerator:
 		"bottom_right": "right",
 	}
 
-	def __init__(self, print_format, doc, letterhead=None, style=None):
+	def __init__(self, print_format, doc, letterhead=None, style=None, settings=None):
 		self.print_format = (
 			print_format
 			if not isinstance(print_format, str)
@@ -94,6 +101,7 @@ class PrintFormatGenerator:
 		)
 		self.doc = doc
 		self.style = style
+		self.settings_override = settings or {}
 
 		if letterhead == _("No Letterhead"):
 			letterhead = None
@@ -105,6 +113,8 @@ class PrintFormatGenerator:
 
 	def build_context(self):
 		self.print_settings = frappe.get_doc("Print Settings")
+		if self.settings_override:
+			self.print_settings.update(self.settings_override)
 		page_width_map = {"A4": 210, "Letter": 216}
 		page_width = page_width_map.get(self.print_settings.pdf_page_size) or 210
 		body_width = page_width - self.print_format.margin_left - self.print_format.margin_right

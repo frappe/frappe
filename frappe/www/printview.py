@@ -342,7 +342,12 @@ def get_html_and_style(
 
 		validate_print_permission(document)
 		validate_print_for_docstatus(document)
-		generator = PrintFormatGenerator(print_format, document, None if no_letterhead else letterhead)
+		generator = PrintFormatGenerator(
+			print_format,
+			document,
+			None if no_letterhead else letterhead,
+			settings=frappe.parse_json(settings),
+		)
 		html = generator.get_html_preview()
 	else:
 		try:
