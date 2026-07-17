@@ -32,6 +32,10 @@ class DataImport(Document):
 	from typing import TYPE_CHECKING
 
 	if TYPE_CHECKING:
+		from frappe.core.doctype.data_import_skipped_row.data_import_skipped_row import DataImportSkippedRow
+		from frappe.core.doctype.data_import_value_mapping.data_import_value_mapping import (
+			DataImportValueMapping,
+		)
 		from frappe.types import DF
 
 		custom_delimiters: DF.Check
@@ -44,12 +48,13 @@ class DataImport(Document):
 		mute_emails: DF.Check
 		payload_count: DF.Int
 		reference_doctype: DF.Link
-		show_failed_logs: DF.Check
-		status: DF.Literal["Pending", "Success", "Partial Success", "Error", "Timed Out"]
+		skipped_rows: DF.Table[DataImportSkippedRow]
+		status: DF.Literal["Pending", "In Progress", "Success", "Partial Success", "Error", "Timed Out"]
 		submit_after_import: DF.Check
 		template_options: DF.Code | None
 		template_warnings: DF.Code | None
 		use_csv_sniffer: DF.Check
+		value_mappings: DF.Table[DataImportValueMapping]
 	# end: auto-generated types
 
 	def validate(self):
@@ -64,20 +69,38 @@ class DataImport(Document):
 			self.value_mappings = []
 			self.skipped_rows = []
 
+		self.clear_stale_template_warnings(doc_before_save)
 		self.set_delimiters_flag()
 		self.validate_doctype()
 		self.validate_google_sheets_url()
-		importer = self.get_importer_for_validation()
+		importer = self.get_importer() if (self.import_file or self.google_sheets_url) else None
 		if importer:
 			self.set_payload_count(importer)
 			self.sync_value_mappings_from_import(importer)
 		else:
 			self.set_payload_count()
 
-	def get_importer_for_validation(self) -> Importer | None:
-		if self.import_file or self.google_sheets_url:
-			return self.get_importer()
-		return None
+	def clear_stale_template_warnings(self, doc_before_save) -> None:
+		"""Warnings snapshotted from a blocked import attempt go stale once the user updates
+		value mappings — clear them so the UI recomputes from a fresh preview."""
+		if not self.template_warnings or not doc_before_save:
+			return
+
+		def mapping_state(doc):
+			return sorted(
+				(
+					row.fieldname or "",
+					row.parent_field or "",
+					row.source_value or "",
+					(row.target_value or "").strip(),
+				)
+				for row in (doc.get("value_mappings") or [])
+			)
+
+		# Keep template warnings when only skipped_rows changes so skipped row warnings
+		# remain visible in Fix Issues with an Undo Skip action after save.
+		if mapping_state(self) != mapping_state(doc_before_save):
+			self.template_warnings = ""
 
 	def sync_value_mappings_from_import(self, importer: Importer | None = None) -> bool:
 		"""Parse the import file and populate invalid Link/Select values in the child table."""
@@ -351,7 +374,8 @@ def get_import_status(data_import_name: str):
 		import_status.setdefault("updated", 0)
 
 	logged_total = import_status.get("success", 0) + import_status.get("failed", 0)
-	if logged_total:
+	import_status["processed_records"] = logged_total
+	if logged_total and not import_status.get("total_records"):
 		import_status["total_records"] = logged_total
 
 	return import_status
@@ -375,7 +399,7 @@ def get_import_logs(data_import: str):
 		"Data Import Log",
 		fields=["success", "docname", "messages", "exception", "row_indexes", "import_action"],
 		filters={"data_import": data_import},
-		limit_page_length=5000,
+		limit_page_length=1000,
 		order_by="log_index",
 	)
 
