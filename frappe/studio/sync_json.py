@@ -21,11 +21,19 @@ COMPONENT_FOLDER = "studio_components"
 SYNCED_HASHES_KEY = "studio_synced_file_hashes"
 
 
-def sync_file(path: str) -> str | None:
-	"""Import an exported studio JSON file. Return the doctype synced, or None if nothing was.
+# Where each doctype's real docname lives in its exported JSON. A page's top-level `name` is the
+# scrubbed title (before_export rewrites it); its docname is `page_name`. App and component `name`
+# already are the docname.
+DOCNAME_FIELD = {"Studio App": "name", "Studio Page": "page_name", "Studio Component": "name"}
 
-	Nothing is synced when `path` isn't a studio document, when it has since been removed — a file
-	can be deleted between a watch event and the import — or when the DB already holds it.
+
+def sync_file(path: str) -> dict | None:
+	"""Import an exported studio JSON file. Return the synced doc's identity, or None if nothing was.
+
+	The identity is `{doctype, name, studio_app}` — enough for the watcher to tell an open editor
+	what changed (see watch.py). Nothing is synced when `path` isn't a studio document, when it has
+	since been removed — a file can be deleted between a watch event and the import — or when the DB
+	already holds it.
 	"""
 	doctype = get_doctype_from_path(path)
 	if not doctype or not os.path.exists(path) or is_in_sync(path):
@@ -37,7 +45,16 @@ def sync_file(path: str) -> str | None:
 
 	# Mirrors frappe stamping `migration_hash` after its own imports.
 	cache_synced_file_hash(path)
-	return doctype
+	return synced_doc_identity(path, doctype)
+
+
+def synced_doc_identity(path: str, doctype: str) -> dict:
+	data = frappe.parse_json(frappe.read_file(path))
+	return {
+		"doctype": doctype,
+		"name": data.get(DOCNAME_FIELD[doctype]),
+		"studio_app": get_studio_relative_parts(path)[0],
+	}
 
 
 def cache_synced_file_hash(path: str):
