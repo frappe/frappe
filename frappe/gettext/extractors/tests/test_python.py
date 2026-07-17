@@ -3,10 +3,10 @@ from io import BytesIO
 from babel.messages.extract import extract_python
 
 from frappe.gettext.translate import PYTHON_KEYWORDS
-from frappe.tests import UnitTestCase
+from frappe.tests.utils import FrappeTestCase
 
 
-class TestPython(UnitTestCase):
+class TestPython(FrappeTestCase):
 	def test_extract_noop(self):
 		messages = list(
 			extract_python(
