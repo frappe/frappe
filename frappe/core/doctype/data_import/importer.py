@@ -9,17 +9,18 @@ from datetime import date, datetime, time
 
 import frappe
 from frappe import _
+from frappe.core.doctype.data_import.value_mapping import INVALID_VALUES
 from frappe.core.doctype.version.version import get_diff
 from frappe.model import no_value_fields
 from frappe.utils import cint, cstr, duration_to_seconds, flt, update_progress_bar
 from frappe.utils.csvutils import get_csv_content_from_google_sheets, read_csv_content
 from frappe.utils.data import escape_html
+from frappe.utils.html_utils import clean_html
 from frappe.utils.xlsxutils import (
 	read_xls_file_from_attached_file,
 	read_xlsx_file_from_attached_file,
 )
 
-INVALID_VALUES = ("", None)
 MAX_ROWS_IN_PREVIEW = 10
 INSERT = "Insert New Records"
 UPDATE = "Update Existing Records"
@@ -151,12 +152,21 @@ class Importer:
 				self.print_grouped_warnings(warnings)
 			else:
 				self.data_import.db_set("template_warnings", json.dumps(warnings))
+				# Keep the doc actionable in the UI when import prechecks block execution.
+				self.data_import.db_set("status", "Pending")
 				frappe.publish_realtime(
 					"data_import_blocked",
 					{"data_import": self.data_import.name},
 					user=frappe.session.user,
 				)
 			return
+
+		# The retry purge below keys off the status of the *previous* attempt, so read it
+		# before "In Progress" overwrites it.
+		previous_status = self.data_import.status
+
+		if self.data_import.name:
+			self.data_import.db_set("status", "In Progress")
 
 		# setup import log
 		# Only use import log for retry/resume when Data Import is persisted in DB.
@@ -166,7 +176,7 @@ class Importer:
 			import_log = (
 				frappe.get_all(
 					"Data Import Log",
-					fields=["row_indexes", "success", "log_index"],
+					fields=["row_indexes", "success", "log_index", "import_action"],
 					filters={"data_import": self.data_import.name},
 					order_by="log_index",
 				)
@@ -177,17 +187,34 @@ class Importer:
 
 		# Do not remove rows in case of retry after an error or pending data import
 		if (
-			self.data_import.status in ("Partial Success", "Error")
+			previous_status in ("Partial Success", "Error", "Timed Out")
 			and len(import_log) >= self.data_import.payload_count
 		):
-			# remove previous failures from import log only in case of retry after partial success
+			# When the previous attempt fully logged every payload, retry should start from the
+			# successful rows only; stale failed rows must be dropped even after a timeout.
 			import_log = [log for log in import_log if log.get("success")]
 			frappe.db.delete("Data Import Log", {"success": 0, "data_import": self.data_import.name})
 
 		# get successfully imported rows
 		imported_rows = set()
+		failed_count = 0
+		inserted_count = 0
+		updated_count = 0
 		for log in import_log:
 			log = frappe._dict(log)
+			if log.success:
+				if self.import_type == UPSERT:
+					if log.import_action == ACTION_UPDATE:
+						updated_count += 1
+					else:
+						inserted_count += 1
+				elif self.import_type == UPDATE:
+					updated_count += 1
+				else:
+					inserted_count += 1
+			else:
+				failed_count += 1
+
 			if log.success or len(import_log) < self.data_import.payload_count:
 				imported_rows.update(json.loads(log.row_indexes))
 
@@ -208,12 +235,28 @@ class Importer:
 
 				if row_set.intersection(skipped_rows):
 					skipped_payload_count += 1
-					self._publish_skip_progress(current_index, total_payload_count)
+					self._publish_skip_progress(
+						current_index,
+						total_payload_count,
+						inserted_count,
+						updated_count,
+						failed_count,
+						row_indexes=row_indexes,
+						reason=_("Skipped row {0}").format(row_indexes[0]),
+					)
 					continue
 
 				if row_set.intersection(imported_rows):
 					print("Skipping imported rows", row_indexes)
-					self._publish_skip_progress(current_index, total_payload_count)
+					self._publish_skip_progress(
+						current_index,
+						total_payload_count,
+						inserted_count,
+						updated_count,
+						failed_count,
+						row_indexes=row_indexes,
+						reason=_("Already imported row {0}").format(row_indexes[0]),
+					)
 					continue
 
 				try:
@@ -222,6 +265,16 @@ class Importer:
 					processing_time = timeit.default_timer() - start
 					eta = self.get_eta(current_index, total_payload_count, processing_time)
 
+					if self.import_type == UPSERT:
+						if import_action == ACTION_UPDATE:
+							updated_count += 1
+						else:
+							inserted_count += 1
+					elif self.import_type == UPDATE:
+						updated_count += 1
+					else:
+						inserted_count += 1
+
 					if self.console:
 						update_progress_bar(
 							f"Importing {self.doctype}: {total_payload_count} records",
@@ -229,18 +282,17 @@ class Importer:
 							total_payload_count,
 						)
 					elif total_payload_count > 5:
-						frappe.publish_realtime(
-							"data_import_progress",
-							{
-								"current": current_index,
-								"total": total_payload_count,
-								"docname": doc.name,
-								"data_import": self.data_import.name,
-								"success": True,
-								"row_indexes": row_indexes,
-								"eta": eta,
-							},
-							user=frappe.session.user,
+						self._publish_progress_event(
+							current_index=current_index,
+							total_payload_count=total_payload_count,
+							eta=eta,
+							inserted_count=inserted_count,
+							updated_count=updated_count,
+							failed_count=failed_count,
+							success=True,
+							row_indexes=row_indexes,
+							docname=doc.name,
+							activity=self._build_success_activity(import_action, doc.name),
 						)
 
 					log_details = {
@@ -254,9 +306,6 @@ class Importer:
 					create_import_log(self.data_import.name, log_index, log_details)
 
 					log_index += 1
-
-					if self.data_import.status != "Partial Success":
-						self.data_import.db_set("status", "Partial Success")
 
 					# commit after every successful import
 					frappe.db.commit()
@@ -280,6 +329,7 @@ class Importer:
 					)
 
 					log_index += 1
+					failed_count += 1
 
 					try:
 						frappe.logger("data_import").error(
@@ -288,6 +338,18 @@ class Importer:
 						)
 					except Exception:
 						pass
+
+					self._publish_progress_event(
+						current_index=current_index,
+						total_payload_count=total_payload_count,
+						eta=self.get_eta(current_index, total_payload_count, 0),
+						inserted_count=inserted_count,
+						updated_count=updated_count,
+						failed_count=failed_count,
+						success=False,
+						row_indexes=row_indexes,
+						activity=self._build_error_activity(messages, row_indexes),
+					)
 
 		# Logs are db inserted directly so will have to be fetched again
 		import_log = (
@@ -337,18 +399,98 @@ class Importer:
 		frappe.flags.in_import = False
 		frappe.flags.mute_emails = False
 
-	def _publish_skip_progress(self, current_index, total_payload_count):
-		if total_payload_count > 5:
-			frappe.publish_realtime(
-				"data_import_progress",
-				{
-					"current": current_index,
-					"total": total_payload_count,
-					"skipping": True,
-					"data_import": self.data_import.name,
-				},
-				user=frappe.session.user,
-			)
+	def _publish_progress_event(
+		self,
+		*,
+		current_index,
+		total_payload_count,
+		inserted_count,
+		updated_count,
+		failed_count,
+		success=None,
+		skipping=False,
+		row_indexes=None,
+		docname=None,
+		eta=0,
+		activity=None,
+	):
+		if total_payload_count <= 5:
+			return
+
+		payload = {
+			"current": current_index,
+			"total": total_payload_count,
+			"data_import": self.data_import.name,
+			"eta": eta,
+			"inserted": inserted_count,
+			"updated": updated_count,
+			"failed": failed_count,
+			"skipping": skipping,
+		}
+		if success is not None:
+			payload["success"] = success
+		if row_indexes:
+			payload["row_indexes"] = row_indexes
+		if docname:
+			payload["docname"] = docname
+		if activity:
+			payload["activity"] = activity
+
+		frappe.publish_realtime("data_import_progress", payload, user=frappe.session.user)
+
+	def _publish_skip_progress(
+		self,
+		current_index,
+		total_payload_count,
+		inserted_count,
+		updated_count,
+		failed_count,
+		row_indexes=None,
+		reason=None,
+	):
+		self._publish_progress_event(
+			current_index=current_index,
+			total_payload_count=total_payload_count,
+			inserted_count=inserted_count,
+			updated_count=updated_count,
+			failed_count=failed_count,
+			skipping=True,
+			row_indexes=row_indexes,
+			activity={"kind": "info", "text": reason} if reason else None,
+		)
+
+	def _build_success_activity(self, import_action, docname):
+		if self.import_type == UPSERT:
+			action = _("Updated") if import_action == ACTION_UPDATE else _("Inserted")
+		elif self.import_type == UPDATE:
+			action = _("Updated")
+		else:
+			action = _("Imported")
+		# `action` is already translated; the "{0} {1}" wrapper has no translatable text.
+		return {"kind": "success", "text": f"{action} {docname}"}
+
+	def _build_error_activity(self, messages, row_indexes):
+		message_text = ""
+		is_html = False
+		if isinstance(messages, list) and messages:
+			first_message = messages[0]
+			if isinstance(first_message, dict):
+				if first_message.get("message"):
+					# message_log entries are already clean_html-sanitized by msgprint; run it
+					# again here so the realtime payload is safe to render as HTML regardless of
+					# how the message reached us (defense-in-depth before the client .html() sink).
+					message_text = clean_html(first_message.get("message"))
+					is_html = True
+				else:
+					message_text = first_message.get("title") or ""
+			elif isinstance(first_message, str):
+				message_text = first_message
+
+		if not message_text:
+			first_row = row_indexes[0] if row_indexes else None
+			message_text = _("Row {0} failed").format(first_row) if first_row else _("Row validation failed")
+
+		return {"kind": "error", "text": cstr(message_text), "is_html": is_html}
 
 	def process_doc(self, doc):
 		"""Process one import payload; returns ``(document, import_action)``."""
@@ -742,9 +884,6 @@ class ImportFile:
 			out.data = out.data[:MAX_ROWS_IN_PREVIEW]
 			out.max_rows_exceeded = True
 			out.max_rows_in_preview = MAX_ROWS_IN_PREVIEW
-		from frappe.core.doctype.data_import.value_mapping import get_mapping_hints
-
-		out.mapping_hints = get_mapping_hints(self, self.reference_doctype, self.value_lookup)
 
 		return out
 
@@ -1090,7 +1229,7 @@ def build_tree_preview(import_file: "ImportFile") -> frappe._dict | None:
 	for node_id, row_numbers in id_to_rows.items():
 		if len(row_numbers) > 1:
 			message = _("Duplicate ID {0} in rows {1}").format(
-				frappe.bold(node_id), format_row_numbers_for_warning(row_numbers)
+				frappe.bold(escape_html(cstr(node_id))), format_row_numbers_for_warning(row_numbers)
 			)
 			tree_warnings.append({"message": message})
 			duplicate_messages[node_id] = message
@@ -1104,7 +1243,7 @@ def build_tree_preview(import_file: "ImportFile") -> frappe._dict | None:
 		if not parent_id or parent_id not in nodes_by_id:
 			continue
 		if _has_parent_cycle(node.id, nodes_by_id):
-			message = _("Circular parent reference for {0}").format(frappe.bold(node.id))
+			message = _("Circular parent reference for {0}").format(frappe.bold(escape_html(cstr(node.id))))
 			node.warnings.append(message)
 			if not any(w.get("message") == message for w in tree_warnings):
 				tree_warnings.append({"row": node.row_number, "message": message})
@@ -1130,7 +1269,7 @@ def build_tree_preview(import_file: "ImportFile") -> frappe._dict | None:
 		if allow_any_existing_parent or parent_id in existing_parents_in_db:
 			continue
 
-		message = _("Parent {0} not found in file").format(frappe.bold(parent_id))
+		message = _("Parent {0} not found in file").format(frappe.bold(escape_html(cstr(parent_id))))
 		node.warnings.append(message)
 		tree_warnings.append({"row": node.row_number, "message": message})
 
@@ -1162,7 +1301,7 @@ def _append_non_group_parent_warnings(
 
 		display_name = parent.label or parent.id
 		message = _("{0} has children but Is Group is 0 — parent must be a group node").format(
-			frappe.bold(display_name)
+			frappe.bold(escape_html(cstr(display_name)))
 		)
 		if message not in parent.warnings:
 			parent.warnings.append(message)
@@ -1379,6 +1518,9 @@ class Row:
 		if df.fieldtype == "Select":
 			select_options = get_select_options(df)
 			if select_options and cstr(value) not in select_options:
+				if self.has_value_mapping(value, col):
+					# A saved value mapping resolves this at import time — no row warning.
+					return value
 				options_string = ", ".join(select_options)
 				msg = _('"{0}" is not valid. Allowed: {1}').format(
 					frappe.bold(escape_html(cstr(value))), frappe.bold(options_string)
@@ -1398,6 +1540,9 @@ class Row:
 
 			exists = self.link_exists(value, df)
 			if not exists:
+				if self.has_value_mapping(value, col):
+					# A saved value mapping resolves this at import time — no row warning.
+					return value
 				msg = _('"{0}" is not a valid {1}').format(
 					frappe.bold(escape_html(cstr(value))), frappe.bold(df.label)
 				)
@@ -1455,6 +1600,16 @@ class Row:
 				)
 
 		return value
+
+	def has_value_mapping(self, value, col) -> bool:
+		"""True when a saved value mapping covers this invalid Link/Select value (preview only)."""
+		if frappe.flags.in_import:
+			# During import the value is already resolved via resolve_import_value.
+			return False
+		from frappe.core.doctype.data_import.value_mapping import get_field_map, normalize_source_value
+
+		field_map = get_field_map(col, self.header.value_lookup, self.header.reference_doctype)
+		return normalize_source_value(value) in field_map
 
 	def link_exists(self, value, df):
 		return bool(frappe.db.exists(df.options, value, cache=True))
@@ -1672,9 +1827,10 @@ class Column:
 			self.warnings.append(
 				{
 					"col": column_number,
-					"message": _('"{0}" does not match any field — map it in the preview').format(
-						frappe.bold(header_title)
+					"message": _('"{0}" does not match any field').format(
+						frappe.bold(escape_html(header_title))
 					),
+					"code": "unknown_column",
 					"type": "info",
 				}
 			)

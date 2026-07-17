@@ -264,8 +264,10 @@ def warn_invalid_link_select_values(col) -> None:
 		lines.append(line)
 
 	if col.df.fieldtype == "Select" and options_string and lines:
+		# Put "Allowed:" on its own line below the last row-numbers line so it
+		# doesn't run together with the row list (avoids the awkward "· " separator).
 		allowed = _("Allowed: {0}").format(frappe.bold(options_string))
-		lines[-1] = f"{lines[-1]} · {allowed}"
+		lines[-1] = f"{lines[-1]}<br><span class='text-muted'>{allowed}</span>"
 
 	message = "<br>".join(lines)
 	col.warnings.append({"col": col.column_number, "message": message, "type": "value_mapping"})

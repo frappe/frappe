@@ -1,19 +1,26 @@
 import DataTable from "frappe-datatable";
+
+/** True for the synthetic row-number column added during import preview. */
+function is_sr_no_column(col) {
+	return col?.header_title === "Sr. No" || col?.header_title === __("Sr. No");
+}
 import { get_columns_for_picker } from "./data_exporter";
 
 frappe.provide("frappe.data_import");
 
 frappe.data_import.ImportPreview = class ImportPreview {
-	constructor({ wrapper, doctype, preview_data, frm, import_log, events = {} }) {
+	constructor({ wrapper, doctype, preview_data, frm, import_log, events = {}, on_ready } = {}) {
 		this.wrapper = wrapper;
 		this.doctype = doctype;
 		this.preview_data = preview_data;
 		this.events = events;
 		this.import_log = import_log;
 		this.frm = frm;
+		this.on_ready = on_ready;
 
 		frappe.model.with_doctype(doctype, () => {
 			this.refresh();
+			this.on_ready?.();
 		});
 	}
 
@@ -22,37 +29,43 @@ frappe.data_import.ImportPreview = class ImportPreview {
 		this.make_wrapper();
 		this.prepare_columns();
 		this.prepare_data();
-		this.render_datatable();
-		this.setup_styles();
+		this._rendered_container_width = null;
+		this.render_datatable_if_needed(true);
 		this.add_actions();
 	}
 
 	make_wrapper() {
-		this.wrapper.html(`
-			<div>
-				<div class="row">
-					<div class="col-sm-12">
-						<div class="table-actions margin-bottom">
-						</div>
-						<div class="table-preview"></div>
-						<div class="table-message"></div>
+		let $preview = this.wrapper.find(".diw-table-preview");
+		if (!$preview.length) {
+			this.wrapper.html(`
+				<div class="diw-table-preview">
+					<div class="diw-preview-toolbar">
+						<div class="diw-preview-toolbar-actions table-actions"></div>
+						<div class="diw-preview-toolbar-meta table-message"></div>
 					</div>
+					<div class="table-preview"></div>
 				</div>
-			</div>
-		`);
-		frappe.utils.bind_actions_with_object(this.wrapper, this);
+			`);
+			$preview = this.wrapper.find(".diw-table-preview");
+		}
+		this.wrapper.off("click.import_preview_actions");
+		this.wrapper.on("click.import_preview_actions", ".diw-preview-map-btn", (e) => {
+			e.preventDefault();
+			e.stopPropagation();
+			this.show_column_mapper(e, $(e.currentTarget));
+		});
 
-		this.$table_preview = this.wrapper.find(".table-preview");
+		this.$table_preview = $preview.find(".table-preview");
 	}
 
 	prepare_columns() {
 		this.columns = this.preview_data.columns.map((col, i) => {
 			let df = col.df;
-			let column_width = 120;
-			const is_row_number_col =
-				col.header_title === "Sr. No" || col.header_title === __("Sr. No");
+			const header_label = col.header_title || df?.label || "";
+			let column_width = Math.max(140, Math.min(260, header_label.length * 9 + 48));
+			const is_row_number_col = is_sr_no_column(col);
 			if (is_row_number_col) {
-				const row_number_label = __("Sr. No");
+				const row_number_label = __("Sr");
 				return {
 					id: "srno",
 					name: row_number_label,
@@ -60,23 +73,20 @@ frappe.data_import.ImportPreview = class ImportPreview {
 					editable: false,
 					focusable: false,
 					align: "left",
-					width: 60,
+					width: 56,
 				};
 			}
 
-			if (col.skip_import) {
-				let show_warnings_button = `<button class="btn btn-xs" data-action="show_column_warning" data-col="${i}">
-					${frappe.utils.icon("circle-alert", "sm")}</button>`;
-				if (!col.df) {
-					// increase column width for unidentified columns
-					column_width += 50;
-				}
-				let column_title = `<span class="indicator red">
-					${frappe.utils.escape_html(col.header_title) || `<i>${__("Untitled Column")}</i>`}
-					${!col.df ? show_warnings_button : ""}
+			if (col.skip_import || !df) {
+				const title =
+					frappe.utils.escape_html(col.header_title) ||
+					`<i>${__("Untitled Column")}</i>`;
+				let column_title = `<span class="diw-preview-col-header diw-preview-col-header--skipped">
+					<span class="diw-preview-col-dot diw-preview-col-dot--skipped" aria-hidden="true"></span>
+					<span class="diw-preview-col-title">${title}</span>
 				</span>`;
 				return {
-					id: frappe.utils.get_random(6),
+					id: `skipped-${i}`,
 					name:
 						frappe.utils.escape_html(col.header_title) ||
 						(df ? df.label : "Untitled Column"),
@@ -102,9 +112,12 @@ frappe.data_import.ImportPreview = class ImportPreview {
 						.replace("%b", "Mon")
 				: null;
 
-			let column_title = `<span class="indicator green">
-				${frappe.utils.escape_html(col.header_title) || df.label}
-				${date_format ? `(${date_format})` : ""}
+			let column_title = `<span class="diw-preview-col-header">
+				<span class="diw-preview-col-dot diw-preview-col-dot--mapped" aria-hidden="true"></span>
+				<span class="diw-preview-col-title">${
+					frappe.utils.escape_html(col.header_title) || df.label
+				}</span>
+				${date_format ? `<span class="diw-preview-col-format text-muted">(${date_format})</span>` : ""}
 			</span>`;
 
 			return {
@@ -134,23 +147,142 @@ frappe.data_import.ImportPreview = class ImportPreview {
 		});
 	}
 
-	render_datatable() {
-		if (this.datatable) {
-			this.datatable.destroy();
+	/** Build or refresh the datatable once the pane has a stable width. */
+	render_datatable_if_needed(force = false) {
+		if (!this.$table_preview?.length) return;
+
+		if (!this._can_render_datatable()) {
+			this._schedule_datatable_render();
+			return;
 		}
 
-		this.datatable = new DataTable(this.$table_preview.get(0), {
-			data: this.data,
-			columns: this.columns,
-			layout: "fixed",
-			cellHeight: 35,
-			language: frappe.boot.lang,
-			translations: frappe.utils.datatable.get_translations(),
-			serialNoColumn: false,
-			checkboxColumn: false,
-			noDataMessage: __("No Data"),
-			disableReorderColumn: true,
-		});
+		const width = this._get_container_width();
+		if (!force && this.datatable && this._rendered_container_width === width) {
+			this.setup_wizard_scroll();
+			return;
+		}
+
+		try {
+			this._build_datatable();
+		} catch (error) {
+			const now = Date.now();
+			if (!this._datatable_last_build_warn || now - this._datatable_last_build_warn > 5000) {
+				console.warn("Data Import preview datatable build failed; will retry", error);
+				this._datatable_last_build_warn = now;
+			}
+			this._schedule_datatable_render();
+			return;
+		}
+		this._rendered_container_width = width;
+	}
+
+	/** Width of the visible preview pane — stable before stretching columns. */
+	_get_container_width() {
+		const el = this.$table_preview?.get(0);
+		if (!el) return 0;
+
+		const host =
+			el.closest(".diw-preview-pane-table") ||
+			el.closest(".diw-step-content") ||
+			el.closest(".data-import-preview-section") ||
+			el.closest(".form-section") ||
+			el;
+
+		return Math.floor(host.getBoundingClientRect().width || 0);
+	}
+
+	/** Preview may mount in a hidden wizard pane — wait until layout is visible. */
+	_can_render_datatable() {
+		const el = this.$table_preview?.get(0);
+		if (!el) return false;
+		if (!el.isConnected || !document.contains(el)) return false;
+
+		const host =
+			el.closest(".diw-preview-pane-table") ||
+			el.closest(".data-import-preview-section") ||
+			el.closest(".form-section");
+		if (!host) return true;
+		if (!host.isConnected || !document.contains(host)) return false;
+
+		const step_panel = el.closest(".diw-step-panel");
+		if (step_panel?.classList.contains("hidden")) return false;
+
+		const style = window.getComputedStyle(host);
+		if (style.display === "none" || style.visibility === "hidden") return false;
+		if (host.offsetWidth <= 0) return false;
+		if (this._get_container_width() <= 0) return false;
+		return el.getClientRects().length > 0;
+	}
+
+	_schedule_datatable_render() {
+		if (this._datatable_render_queued) return;
+		this._datatable_render_queued = true;
+
+		const try_render = (attempt = 0) => {
+			if (this._can_render_datatable()) {
+				this._datatable_render_queued = false;
+				this.render_datatable_if_needed(true);
+				return;
+			}
+			if (attempt < 40) {
+				requestAnimationFrame(() => try_render(attempt + 1));
+				return;
+			}
+			this._datatable_render_queued = false;
+		};
+
+		requestAnimationFrame(() => try_render(0));
+	}
+
+	_build_datatable() {
+		const host_el = this.$table_preview.get(0);
+		if (!host_el || !host_el.isConnected || !document.contains(host_el)) {
+			throw new Error("Preview host unavailable");
+		}
+		if (!document.head) {
+			throw new Error("Document head unavailable");
+		}
+		const columns = this._get_render_columns();
+		const can_refresh = this.datatable && this._datatable_host === host_el;
+
+		if (can_refresh) {
+			try {
+				this.datatable.refresh(this.data, columns);
+			} catch (error) {
+				// Reparenting during wizard step switches can invalidate datatable's
+				// internal stylesheet reference; recreate the table as a safe fallback.
+				console.warn("Data Import preview datatable refresh failed; rebuilding", error);
+				this.datatable.destroy();
+				this.datatable = null;
+			}
+		} else {
+			if (this.datatable) {
+				this.datatable.destroy();
+				this.datatable = null;
+			}
+		}
+
+		if (!this.datatable) {
+			try {
+				this.datatable = new DataTable(host_el, {
+					data: this.data,
+					columns,
+					layout: "fixed",
+					cellHeight: 35,
+					language: frappe.boot.lang,
+					translations: frappe.utils.datatable.get_translations(),
+					serialNoColumn: false,
+					checkboxColumn: false,
+					noDataMessage: __("No Data"),
+					disableReorderColumn: true,
+				});
+				this._datatable_host = host_el;
+			} catch (error) {
+				this.datatable = null;
+				this._datatable_host = null;
+				throw error;
+			}
+		}
 
 		this.render_table_message();
 
@@ -162,6 +294,76 @@ frappe.data_import.ImportPreview = class ImportPreview {
 
 		this.datatable.style.setStyle(".dt-dropdown", {
 			display: "none",
+		});
+
+		this.setup_styles();
+
+		this.setup_wizard_scroll();
+	}
+
+	/**
+	 * Stretch columns to fill the available width when the dataset has few columns,
+	 * avoiding a large blank strip on the right side of the table.
+	 */
+	_get_render_columns() {
+		const base_columns = (this.columns || []).map((col) => ({ ...col }));
+		// Wizard uses horizontal scroll — stretching columns causes visible width reflow.
+		if (this.$table_preview?.closest(".diw-preview-step").length) {
+			return base_columns;
+		}
+
+		const container_width = this._get_container_width();
+		if (!container_width || base_columns.length === 0) {
+			return base_columns;
+		}
+
+		const total_width = base_columns.reduce(
+			(sum, col) => sum + (Number(col.width) > 0 ? Number(col.width) : 140),
+			0
+		);
+		if (total_width >= container_width) {
+			return base_columns;
+		}
+
+		const growable_columns = base_columns.filter((col) => col.id !== "srno");
+		if (!growable_columns.length) {
+			return base_columns;
+		}
+
+		const extra_width = container_width - total_width;
+		const extra_per_column = Math.floor(extra_width / growable_columns.length);
+		if (extra_per_column <= 0) {
+			return base_columns;
+		}
+
+		growable_columns.forEach((col) => {
+			const current = Number(col.width) > 0 ? Number(col.width) : 140;
+			col.width = current + extra_per_column;
+		});
+
+		return base_columns;
+	}
+
+	/** Fixed scroll region when the preview table is inside the wizard card. */
+	setup_wizard_scroll() {
+		if (!this.datatable || !this.$table_preview?.length) return;
+		if (!this.$table_preview.closest(".diw-preview-step").length) return;
+
+		const rows = this.data?.length || 0;
+		const preview_limited = Boolean(this.preview_data?.max_rows_exceeded);
+		const dynamic_height = Math.min(360, Math.max(220, window.innerHeight * 0.42));
+		const compact_height = Math.max(120, rows * 35 + 44);
+		const use_compact = rows > 0 && rows <= 10 && !preview_limited;
+		const scroll_height = use_compact ? compact_height : dynamic_height;
+
+		this.datatable.style.setStyle(".dt-scrollable", {
+			height: `${scroll_height}px`,
+			overflowX: "auto",
+			overflowY: use_compact ? "hidden" : "auto",
+		});
+		this.$table_preview.css({
+			overflowX: "auto",
+			overflowY: "hidden",
 		});
 	}
 
@@ -185,7 +387,7 @@ frappe.data_import.ImportPreview = class ImportPreview {
 		frappe.utils.scroll_to(this.$table_preview.find(`.dt-row-${row_index}`), true, 30);
 	}
 
-	/** Row count below the preview table (always shown when data exists). */
+	/** Row count in the preview toolbar (right side). */
 	render_table_message() {
 		const $message = this.wrapper.find(".table-message");
 		if (!this.data.length) {
@@ -195,19 +397,20 @@ frappe.data_import.ImportPreview = class ImportPreview {
 
 		const { max_rows_exceeded, max_rows_in_preview, total_number_of_rows } = this.preview_data;
 		const total = total_number_of_rows ?? this.data.length;
+		const shown = max_rows_exceeded ? max_rows_in_preview : this.data.length;
 		let text;
-		if (max_rows_exceeded) {
-			text = __("Showing only first {0} rows out of {1}", [max_rows_in_preview, total]);
+		if (max_rows_exceeded || shown < total) {
+			text = __("Showing first {0} rows of {1}", [shown, total]);
 		} else {
 			text = total === 1 ? __("1 row") : __("Showing all {0} rows", [total]);
 		}
 
-		$message.html(`
-			<div class="text-muted margin-top text-medium">${text}</div>
-		`);
+		$message.text(text);
 	}
 
 	setup_styles() {
+		if (!this.datatable?.style) return;
+
 		// import success checkbox
 		this.datatable.style.setStyle(`svg.import-success`, {
 			width: "16px",
@@ -230,70 +433,56 @@ frappe.data_import.ImportPreview = class ImportPreview {
 	add_actions() {
 		let actions = [
 			{
-				label: __("Map Columns"),
+				label: __("Map columns"),
 				handler: "show_column_mapper",
 				condition: this.frm.doc.status !== "Success",
-			},
-			{
-				label: __("Export Errored Rows"),
-				handler: "export_errored_rows",
-				condition: this.import_log.filter((log) => !log.success).length > 0,
-			},
-			{
-				label: __("Show Warnings"),
-				handler: "show_warnings",
-				condition:
-					this.preview_data.warnings.length > 0 &&
-					!["Success", "Partial Success"].includes(this.frm.doc.status),
 			},
 		];
 
 		let html = actions
 			.filter((action) => action.condition)
 			.map((action) => {
-				return `<button class="btn btn-sm btn-default" data-action="${action.handler}">
-					${action.label}
-				</button>
-			`;
+				// No inline onclick — the delegated click.import_preview_actions handler
+				// owns these buttons; two bindings opened duplicate dialogs.
+				if (action.handler === "show_column_mapper") {
+					return frappe.ui.button.html({
+						label: action.label,
+						variant: "outline",
+						icon_left: "arrow-right-left",
+						css_class: "diw-preview-map-btn",
+						attrs: { "data-action": action.handler },
+					});
+				}
+				return frappe.ui.button.html({
+					label: action.label,
+					variant: "outline",
+					attrs: { "data-action": action.handler },
+				});
 			});
 
-		this.wrapper.find(".table-actions").html(html);
-	}
-
-	export_errored_rows() {
-		this.frm.trigger("export_errored_rows");
-	}
-
-	show_warnings() {
-		this.frm.scroll_to_field("import_warnings");
-	}
-
-	show_column_warning(_, $target) {
-		let $warning = this.frm
-			.get_field("import_warnings")
-			.$wrapper.find(`[data-col=${$target.data("col")}]`);
-		frappe.utils.scroll_to($warning, true, 30);
+		this.wrapper.find(".table-actions").html(html.join(""));
 	}
 
 	show_column_mapper() {
 		let column_picker_fields = get_columns_for_picker(this.doctype);
 		let changed = [];
+		let initial_map_by_index = {};
 		let fields = this.preview_data.columns.map((col, i) => {
 			let df = col.df;
-			const is_row_number_col =
-				col.header_title === "Sr. No" || col.header_title === __("Sr. No");
+			const is_row_number_col = is_sr_no_column(col);
 			if (is_row_number_col) return [];
 
 			let fieldname;
-			if (!df) {
-				fieldname = null;
-			} else if (col.map_to_field) {
+			if (col.map_to_field) {
 				fieldname = col.map_to_field;
+			} else if (!df) {
+				fieldname = null;
 			} else if (col.is_child_table_field) {
 				fieldname = `${col.child_table_df.fieldname}.${df.fieldname}`;
 			} else {
 				fieldname = df.fieldname;
 			}
+			initial_map_by_index[i] = fieldname || "Don't Import";
 			return [
 				{
 					label: "",
@@ -345,6 +534,12 @@ frappe.data_import.ImportPreview = class ImportPreview {
 			},
 		].concat(fields);
 
+		if (this._column_mapper_dialog) {
+			this._column_mapper_dialog.hide();
+			this._column_mapper_dialog.$wrapper?.remove();
+			this._column_mapper_dialog = null;
+		}
+
 		let dialog = new frappe.ui.Dialog({
 			title: __("Map Columns"),
 			fields,
@@ -352,14 +547,19 @@ frappe.data_import.ImportPreview = class ImportPreview {
 				let changed_map = {};
 				changed.map((i) => {
 					let header_row_index = i - 1;
-					changed_map[header_row_index] = values[i];
+					const next_value = values[i] || "Don't Import";
+					const current_value = initial_map_by_index[i] || "Don't Import";
+					if (next_value !== current_value) {
+						changed_map[header_row_index] = next_value;
+					}
 				});
-				if (changed.length > 0) {
+				if (Object.keys(changed_map).length > 0) {
 					this.events.remap_column(changed_map);
 				}
 				dialog.hide();
 			},
 		});
+		this._column_mapper_dialog = dialog;
 		dialog.$body.addClass("map-columns");
 		dialog.show();
 	}
