@@ -41,7 +41,6 @@ class DesktopIcon(Document):
 		sidebar: DF.Link | None
 		standard: DF.Check
 	# end: auto-generated types
-<<<<<<< HEAD
 
 	def validate(self):
 		if not self.label:
@@ -338,5 +337,3 @@ def add_workspace_to_desktop(workspace: str):
 	new_icon.link_type = "Workspace Sidebar"
 	new_icon.insert()
 	return {"icon": new_icon.as_dict()}
-=======
->>>>>>> bd7b3365f0 (fix(DX): add missing DF types for controller annotations (#40992))
