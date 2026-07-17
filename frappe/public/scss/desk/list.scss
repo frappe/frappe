@@ -227,7 +227,7 @@
 
 .list-col-resize-handle {
 	position: absolute;
-	right: -8px;
+	inset-inline-end: -8px;
 	top: 0;
 	bottom: 0;
 	width: 16px;
