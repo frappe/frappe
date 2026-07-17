@@ -6,6 +6,7 @@ from datetime import datetime, timedelta
 from croniter import croniter
 
 import frappe
+from frappe.automation_engine import is_enabled
 from frappe.automation_engine.dispatch import kick_drainer, matches_rule, queue_trigger
 
 QUEUE = "Automation Trigger Queue"
@@ -14,6 +15,8 @@ SCHEDULED_PAYLOAD_KEY = "scheduled_fire_at"
 
 def process_cron(now: datetime | None = None):
 	"""Queue each due Scheduled automation once for its latest cron fire."""
+	if not is_enabled():
+		return
 	now = frappe.utils.get_datetime(now or frappe.utils.now_datetime())
 	queued = 0
 	for rule in _scheduled_rules():
