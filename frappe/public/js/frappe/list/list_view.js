@@ -763,6 +763,9 @@ frappe.views.ListView = class ListView extends frappe.views.BaseList {
 		let fieldname = null;
 		let startX = 0;
 		let startWidth = 0;
+		// In RTL the handle sits on the inline-end (left) edge, so dragging
+		// left grows the column — the mouse delta must be inverted.
+		const dir = frappe.utils.is_rtl() ? -1 : 1;
 
 		this.$result.on(
 			"mousedown.list-col-resize",
@@ -782,7 +785,7 @@ frappe.views.ListView = class ListView extends frappe.views.BaseList {
 
 		$(document).on("mousemove.list-col-resize", (e) => {
 			if (!isDragging || !fieldname) return;
-			const newWidth = Math.max(50, Math.min(400, startWidth + (e.pageX - startX)));
+			const newWidth = Math.max(50, Math.min(400, startWidth + dir * (e.pageX - startX)));
 			this.$result.find(`.list-row-col[data-fieldname="${fieldname}"]`).css({
 				width: newWidth,
 				flex: `0 0 ${newWidth}px`,
@@ -795,7 +798,10 @@ frappe.views.ListView = class ListView extends frappe.views.BaseList {
 			$("body").removeClass("list-col-resizing");
 
 			if (fieldname) {
-				const newWidth = Math.max(50, Math.min(400, startWidth + (e.pageX - startX)));
+				const newWidth = Math.max(
+					50,
+					Math.min(400, startWidth + dir * (e.pageX - startX))
+				);
 				this.column_max_widths[fieldname] = newWidth;
 				this.save_column_width(fieldname, newWidth);
 			}
