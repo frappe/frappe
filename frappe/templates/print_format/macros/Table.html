@@ -66,7 +66,7 @@
 								<span class="cell-thumb" style="width:{{ _size }}px;height:{{ _size }}px;font-size:{{ (_size * 0.4)|int }}px;background:hsl({{ _hue }},65%,92%);color:hsl({{ _hue }},55%,35%)">{{ _abbr|e }}</span>
 								{%- endif -%}
 							{%- endif -%}
-							<div class="cell-lines">
+							<div class="cell-lines{% if column.merge_direction == 'horizontal' %} cell-lines--horizontal{% endif %}">
 								{%- for mf in _merged -%}{%- if mf.fieldname and mf.fieldname != ns.img_fn -%}<div class="cell-line cell-line--{{ (mf.style or 'primary')|e }}">{{ row.get_formatted(mf.fieldname)|striptags|e }}</div>{%- endif -%}{%- endfor -%}
 							</div>
 						</div>

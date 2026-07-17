@@ -1289,3 +1289,142 @@ class TestPrintFormatGenerator(IntegrationTestCase):
 
 		self.assertNotIn("print-repeating-frame", html)
 		self.assertIn("LETTERHEAD_TOP", html)
+
+	def _user_beta_format(self, layout):
+		import json
+
+		pf = frappe.get_doc(
+			{
+				"doctype": "Print Format",
+				"name": f"_Test PFG {frappe.generate_hash(length=6)}",
+				"doc_type": "User",
+				"print_format_builder_beta": 1,
+				"custom_format": 0,
+				"standard": "No",
+				"format_data": json.dumps(layout),
+			}
+		).insert(ignore_permissions=True)
+		self.addCleanup(pf.delete, ignore_permissions=True)
+		return pf
+
+	def test_repeater_row_condition_filters_rows(self):
+		"""A repeater row_condition drops rows where it is falsy; a bad expression
+		fails open so a typo never blanks the table."""
+		import re
+
+		from frappe.utils.print_format_generator import PrintFormatGenerator
+
+		user = frappe.get_doc("User", "Administrator")
+		n = len(user.roles)
+		self.assertGreaterEqual(n, 2)
+
+		def rows_for(condition):
+			df = {
+				"fieldtype": "Repeater",
+				"fieldname": "_rep",
+				"label": "Roles",
+				"custom": 1,
+				"source": "roles",
+				"repeater_columns": [{"template": [{"t": "f", "v": "role"}], "align": "left"}],
+			}
+			if condition is not None:
+				df["row_condition"] = condition
+			layout = {
+				"sections": [{"label": "", "columns": [{"label": "", "fields": [df]}]}],
+				"header": {"columns": [{"label": "", "fields": []}]},
+				"footer": {"columns": [{"label": "", "fields": []}]},
+			}
+			html = PrintFormatGenerator(self._user_beta_format(layout), user).get_html_preview()
+			block = re.search(r"pfb-repeater-table.*?</table>", html, re.S)
+			return len(re.findall(r"<tr>", block.group(0))) if block else 0
+
+		self.assertEqual(rows_for(None), n)
+		self.assertEqual(rows_for("row.idx == 1"), 1)
+		self.assertEqual(rows_for("False"), 0)
+		self.assertEqual(rows_for("this is (( invalid"), n)
+		# print_settings is in scope alongside doc/row
+		with self.change_settings("Print Settings", pdf_page_size="A4"):
+			self.assertEqual(rows_for("print_settings.pdf_page_size == 'A4'"), n)
+			self.assertEqual(rows_for("print_settings.pdf_page_size == 'Letter'"), 0)
+
+	def test_merged_column_direction_emits_class(self):
+		"""A merged table column renders .cell-lines--horizontal only when
+		merge_direction is 'horizontal'."""
+		import re
+
+		from frappe.utils.print_format_generator import PrintFormatGenerator
+
+		user = frappe.get_doc("User", "Administrator")
+
+		def html_for(direction):
+			column = {
+				"fieldname": "role",
+				"fieldtype": "Data",
+				"label": "Role",
+				"width": 100,
+				"merged_fields": [{"fieldname": "role", "fieldtype": "Data", "style": "secondary"}],
+			}
+			if direction:
+				column["merge_direction"] = direction
+			layout = {
+				"sections": [
+					{
+						"label": "",
+						"columns": [
+							{
+								"label": "",
+								"fields": [
+									{
+										"fieldtype": "Table",
+										"fieldname": "roles",
+										"label": "Roles",
+										"custom": 1,
+										"table_columns": [column],
+									}
+								],
+							}
+						],
+					}
+				],
+				"header": {"columns": [{"label": "", "fields": []}]},
+				"footer": {"columns": [{"label": "", "fields": []}]},
+			}
+			return PrintFormatGenerator(self._user_beta_format(layout), user).get_html_preview()
+
+		def cell_lines_class(html):
+			# Match the markup, not the .cell-lines--horizontal rule in the embedded stylesheet.
+			match = re.search(r'<div class="(cell-lines[^"]*)"', html)
+			return match.group(1) if match else ""
+
+		self.assertEqual(cell_lines_class(html_for("horizontal")), "cell-lines cell-lines--horizontal")
+		self.assertEqual(cell_lines_class(html_for("vertical")), "cell-lines")
+		self.assertEqual(cell_lines_class(html_for(None)), "cell-lines")
+
+	def test_settings_override_does_not_persist(self):
+		"""A print-preview settings override changes the print_settings the generator
+		renders with, but never writes back to the saved single."""
+		from frappe.utils.print_format_generator import PrintFormatGenerator
+
+		pf = self._make_print_format()
+		todo = self._make_todo()
+		saved = frappe.db.get_single_value("Print Settings", "repeat_header_footer")
+		flipped = 0 if saved else 1
+
+		generator = PrintFormatGenerator(pf, todo, settings={"repeat_header_footer": flipped})
+		self.assertEqual(generator.print_settings.repeat_header_footer, flipped)
+		self.assertEqual(frappe.db.get_single_value("Print Settings", "repeat_header_footer"), saved)
+
+	def test_settings_override_reaches_pdf_download(self):
+		"""render_pdf (the PDF download path) renders with the overridden print_settings,
+		so a print-preview toggle carries into the downloaded file too."""
+		from unittest.mock import patch
+
+		from frappe.utils.print_format_generator import PrintFormatGenerator
+
+		pf = self._make_print_format()
+		todo = self._make_todo()
+		generator = PrintFormatGenerator(pf, todo, settings={"repeat_header_footer": 1})
+
+		with patch("frappe.utils.pdf.get_chrome_pdf", return_value=b"%PDF-"):
+			generator.render_pdf()
+		self.assertEqual(generator.print_settings.repeat_header_footer, 1)

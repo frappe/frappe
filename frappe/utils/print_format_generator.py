@@ -29,7 +29,11 @@ def render_jinja_template(template: str, doctype: str, docname: str) -> str:
 
 @frappe.whitelist()
 def download_pdf(
-	doctype: str, name: str | int, print_format: str | None = None, letterhead: str | None = None
+	doctype: str,
+	name: str | int,
+	print_format: str | None = None,
+	letterhead: str | None = None,
+	settings: str | dict | None = None,
 ):
 	from frappe.printing.doctype.print_format.classic_converter import get_default_print_format
 	from frappe.www.printview import validate_print_for_docstatus, validate_print_permission
@@ -39,7 +43,7 @@ def download_pdf(
 	validate_print_for_docstatus(doc)
 	if not print_format or print_format == "Standard":
 		print_format = get_default_print_format(doctype)
-	generator = PrintFormatGenerator(print_format, doc, letterhead)
+	generator = PrintFormatGenerator(print_format, doc, letterhead, settings=frappe.parse_json(settings))
 	pdf = generator.render_pdf()
 
 	frappe.local.response.filename = "{name}.pdf".format(name=name.replace(" ", "-").replace("/", "-"))
@@ -61,14 +65,21 @@ def get_qr_code(value: str) -> str:
 
 
 def get_html(
-	doctype, name, print_format, letterhead=None, action_banner=None, style=None, trigger_print=False
+	doctype,
+	name,
+	print_format,
+	letterhead=None,
+	action_banner=None,
+	style=None,
+	trigger_print=False,
+	settings=None,
 ):
 	from frappe.www.printview import validate_print_for_docstatus, validate_print_permission
 
 	doc = frappe.get_doc(doctype, name)
 	validate_print_permission(doc)
 	validate_print_for_docstatus(doc)
-	generator = PrintFormatGenerator(print_format, doc, letterhead, style=style)
+	generator = PrintFormatGenerator(print_format, doc, letterhead, style=style, settings=settings)
 	return generator.get_html_preview(action_banner=action_banner, trigger_print=trigger_print)
 
 
@@ -86,7 +97,7 @@ class PrintFormatGenerator:
 		"bottom_right": "right",
 	}
 
-	def __init__(self, print_format, doc, letterhead=None, style=None):
+	def __init__(self, print_format, doc, letterhead=None, style=None, settings=None):
 		self.print_format = (
 			print_format
 			if not isinstance(print_format, str)
@@ -94,6 +105,7 @@ class PrintFormatGenerator:
 		)
 		self.doc = doc
 		self.style = style
+		self.settings_override = settings or {}
 
 		if letterhead == _("No Letterhead"):
 			letterhead = None
@@ -105,6 +117,8 @@ class PrintFormatGenerator:
 
 	def build_context(self):
 		self.print_settings = frappe.get_doc("Print Settings")
+		if self.settings_override:
+			self.print_settings.update(self.settings_override)
 		page_width_map = {"A4": 210, "Letter": 216}
 		page_width = page_width_map.get(self.print_settings.pdf_page_size) or 210
 		body_width = page_width - self.print_format.margin_left - self.print_format.margin_right
@@ -435,7 +449,7 @@ class PrintFormatGenerator:
 
 	def set_field_renderers(self, layout):
 		renderers = {"HTML Editor": "HTML", "Markdown Editor": "Markdown"}
-		eval_locals = {"doc": self.doc}
+		eval_locals = {"doc": self.doc, "print_settings": self.print_settings}
 		for section in layout["sections"]:
 			if section.get("visible_if"):
 				try:
@@ -453,6 +467,7 @@ class PrintFormatGenerator:
 					df["renderer"] = renderers.get(fieldtype) or fieldtype.replace(" ", "")
 					df["section"] = section
 					self.prepare_barcode(df)
+					self.filter_repeater_rows(df)
 
 		# Also process header/footer zones if they are section objects
 		for zone_key in ("header", "footer"):
@@ -469,8 +484,26 @@ class PrintFormatGenerator:
 						df["renderer"] = renderers.get(fieldtype) or fieldtype.replace(" ", "")
 						df["section"] = zone
 						self.prepare_barcode(df)
+						self.filter_repeater_rows(df)
 
 		return layout
+
+	def filter_repeater_rows(self, df):
+		"""Drop repeater rows whose row_condition is falsy; a bad expression fails open
+		(keeps the row) so a typo never silently blanks the table."""
+		if df.get("fieldtype") != "Repeater" or not df.get("row_condition") or not df.get("source"):
+			return
+		condition = df["row_condition"]
+		eval_locals = {"doc": self.doc, "print_settings": self.print_settings}
+		kept = []
+		for row in self.doc.get(df["source"]) or []:
+			try:
+				keep = frappe.safe_eval(condition, None, {**eval_locals, "row": row})
+			except Exception:
+				keep = True
+			if keep:
+				kept.append(row)
+		df["_rows"] = kept
 
 	def prepare_barcode(self, df):
 		"""Resolve JsBarcode options / QR data URI for Barcode layout elements."""

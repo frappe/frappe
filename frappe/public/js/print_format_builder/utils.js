@@ -146,6 +146,7 @@ export const TABLE_COLUMN_PLUCK_KEYS = [
 	"width",
 	"field_template",
 	"merged_fields",
+	"merge_direction",
 	"image_size",
 ];
 
@@ -166,6 +167,7 @@ export const FIELD_PLUCK_KEYS = [
 	"field_template",
 	"source",
 	"repeater_columns",
+	"row_condition",
 	"show_label",
 	"align",
 	"label_justify",
@@ -198,6 +200,7 @@ export const ZONE_FIELD_PLUCK_KEYS = [
 	"field_template",
 	"source",
 	"repeater_columns",
+	"row_condition",
 	"show_label",
 	"align",
 	"label_justify",

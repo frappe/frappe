@@ -112,6 +112,7 @@ def get_context(context) -> PrintContext:
 			style=frappe.form_dict.style,
 			trigger_print=cint(frappe.form_dict.trigger_print),
 			action_banner=frappe.render_template("templates/print_formats/print_action_banner.html", context),
+			settings=settings,
 		)
 	else:
 		body = get_rendered_template(
@@ -342,7 +343,12 @@ def get_html_and_style(
 
 		validate_print_permission(document)
 		validate_print_for_docstatus(document)
-		generator = PrintFormatGenerator(print_format, document, None if no_letterhead else letterhead)
+		generator = PrintFormatGenerator(
+			print_format,
+			document,
+			None if no_letterhead else letterhead,
+			settings=frappe.parse_json(settings),
+		)
 		html = generator.get_html_preview()
 	else:
 		try:
