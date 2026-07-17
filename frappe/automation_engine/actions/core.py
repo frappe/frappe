@@ -28,27 +28,41 @@ def _require_doc(doc, action_type):
 class SetFieldValue(AutomationAction):
 	action_type = "SetFieldValue"
 	label = "Set Field Value"
-	description = "Set a field on the triggering document."
+	description = "Set one or more fields on the triggering document."
 	params_schema = [
-		{"fieldname": "field", "label": "Field", "fieldtype": "Select", "reqd": 1, "options_source": "doc_fields"},
-		{"fieldname": "value", "label": "Value", "fieldtype": "Data", "reqd": 1},
+		{"fieldname": "field", "label": "Field", "fieldtype": "Select", "options_source": "doc_fields"},
+		{"fieldname": "value", "label": "Value", "fieldtype": "Data"},
+		# Set several fields at once: {"values": {"color": "#ED6396", "priority": "High"}}.
+		{"fieldname": "values", "label": "Field Values", "fieldtype": "JSON"},
 	]
 
 	def validate(self, params, doctype):
-		field = params.get("field")
-		if not field:
-			raise AutomationParamError(_("Field is required"), fieldname="field")
-		if not frappe.get_meta(doctype).get_field(field):
-			raise AutomationParamError(
-				_("{0} has no field {1}").format(doctype, field), fieldname="field"
-			)
+		pairs = self._pairs(params)
+		if not pairs:
+			raise AutomationParamError(_("Set at least one field"), fieldname="field")
+		meta = frappe.get_meta(doctype)
+		for field in pairs:
+			if not meta.get_field(field):
+				raise AutomationParamError(
+					_("{0} has no field {1}").format(doctype, field), fieldname="field"
+				)
 
 	def execute(self, doc, params, context):
 		_require_doc(doc, self.label)
-		field, value = params["field"], _render(params.get("value"), doc, context)
-		doc.set(field, value)
+		pairs = self._pairs(params)
+		for field, value in pairs.items():
+			doc.set(field, _render(value, doc, context))
 		doc.save(ignore_permissions=True)
-		return _("Set {0} = {1}").format(field, value)
+		return _("Set {0}").format(", ".join(pairs))
+
+	def _pairs(self, params) -> dict:
+		"""Normalize single field/value or a `values` map into {field: value}."""
+		values = params.get("values")
+		if values:
+			return frappe.parse_json(values) if isinstance(values, str) else values
+		if params.get("field"):
+			return {params["field"]: params.get("value")}
+		return {}
 
 
 class CreateDocument(AutomationAction):
