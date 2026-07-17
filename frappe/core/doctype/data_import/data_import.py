@@ -244,6 +244,7 @@ def start_import(data_import):
 	data_import = frappe.get_doc("Data Import", data_import)
 	# Apply same delimiter/sniffer settings as preview so CSV is parsed correctly (e.g. EU ";" delimiter)
 	data_import.set_delimiters_flag()
+	i = None
 	try:
 		i = Importer(
 			data_import.reference_doctype,
@@ -265,7 +266,10 @@ def start_import(data_import):
 	finally:
 		frappe.flags.in_import = False
 
-	frappe.publish_realtime("data_import_refresh", {"data_import": data_import.name})
+	# A blocked run already published `data_import_blocked`, which reloads the doc client
+	# side; publishing refresh as well would make it reload twice.
+	if not (i and i.blocked_by_warnings):
+		frappe.publish_realtime("data_import_refresh", {"data_import": data_import.name})
 
 
 @frappe.whitelist()

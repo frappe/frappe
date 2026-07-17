@@ -1056,6 +1056,26 @@ class TestTreeAliasDataImport(IntegrationTestCase):
 
 		self._cleanup_docs((existing_label, "New Child"))
 
+	def test_blocked_import_resets_status_to_pending(self):
+		"""A run stopped by prechecks must stay actionable instead of sticking on In Progress."""
+		self._cleanup_docs(("Orphan Child",))
+
+		# "Ghost Parent" exists neither in the file nor in the DB, so the parent warning blocks.
+		rows = [("Orphan Child", "0", "Ghost Parent")]
+		data_import = self._get_importer(self._make_csv_file(rows))
+		data_import.db_set("status", "In Progress")
+
+		imp = Importer(self.doctype_name, data_import=data_import)
+		imp.import_data()
+		data_import.reload()
+
+		self.assertTrue(imp.blocked_by_warnings)
+		self.assertEqual(data_import.status, "Pending")
+		self.assertTrue(frappe.parse_json(data_import.template_warnings or "[]"))
+		self.assertFalse(frappe.db.exists(self.doctype_name, {"node_label": "Orphan Child"}))
+
+		self._cleanup_docs(("Orphan Child",))
+
 	def test_tree_preview_nests_subtree_with_external_db_parent(self):
 		"""In-file subtree under a DB-only parent is nested in preview, not shown as orphans."""
 		existing_label = "Existing Root"

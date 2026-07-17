@@ -44,6 +44,9 @@ class Importer:
 		self.doctype = doctype
 		self.console = console
 		self.use_sniffer = use_sniffer
+		# Set when prechecks block the run; callers use it to skip the "refresh" broadcast
+		# since a `data_import_blocked` event was already sent.
+		self.blocked_by_warnings = False
 
 		self.data_import = data_import
 		if not self.data_import:
@@ -148,6 +151,7 @@ class Importer:
 		)
 
 		if warnings:
+			self.blocked_by_warnings = True
 			if self.console:
 				self.print_grouped_warnings(warnings)
 			else:

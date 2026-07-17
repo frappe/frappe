@@ -628,9 +628,9 @@ function refresh_wizard_table_preview(frm, { force = false } = {}) {
 frappe.ui.form.on("Data Import", {
 	setup(frm) {
 		frappe.realtime.on("data_import_refresh", ({ data_import }) => {
+			if (data_import !== frm.doc.name) return;
 			frm.import_in_progress = false;
 			frm._wizard_import_progress = null;
-			if (data_import !== frm.doc.name) return;
 			frappe.model.clear_doc("Data Import", frm.doc.name);
 			frappe.model.with_doc("Data Import", frm.doc.name).then(() => {
 				frm.refresh();
@@ -655,10 +655,12 @@ frappe.ui.form.on("Data Import", {
 			});
 		});
 		frappe.realtime.on("data_import_progress", (data) => {
-			frm.import_in_progress = true;
+			// Guard first: the desk reuses one frm across documents, so an event for a
+			// different import must not mark this one as running.
 			if (data.data_import !== frm.doc.name) {
 				return;
 			}
+			frm.import_in_progress = true;
 			const prev_progress = frm._wizard_import_progress || {};
 			let percent = Math.floor((data.current * 100) / data.total);
 			let eta_seconds = Number.isFinite(Number(data.eta))
@@ -732,14 +734,30 @@ frappe.ui.form.on("Data Import", {
 					: cint(prev_progress.failed),
 				recent_activity,
 			};
-			frm.dashboard.show_progress(__("Import Progress"), percent, message);
-			frm.page.set_indicator(__("In Progress"), "orange");
-			frm.trigger("update_primary_action");
-			if (cint(frm.wizard_step) === 3) {
-				frm.trigger("show_import_log");
-			}
+			// A large import emits one event per row (thousands of them). Repainting the
+			// dashboard, stepper, footer and progress hero on each one saturates the main
+			// thread and the wizard stops responding to clicks — so coalesce the DOM work
+			// onto the next frame and paint from the latest state instead of every event.
+			frm._diw_pending_progress = { percent, message };
+			if (!frm._diw_progress_raf) {
+				frm._diw_progress_raf = requestAnimationFrame(() => {
+					frm._diw_progress_raf = null;
+					const pending = frm._diw_pending_progress;
+					if (!pending || !frm.import_in_progress) return;
 
-			frm.trigger("show_cancel_import_btn");
+					frm.dashboard.show_progress(
+						__("Import Progress"),
+						pending.percent,
+						pending.message
+					);
+					frm.page.set_indicator(__("In Progress"), "orange");
+					frm.trigger("update_primary_action");
+					if (cint(frm.wizard_step) === 3) {
+						frm.trigger("show_import_log");
+					}
+					frm.trigger("show_cancel_import_btn");
+				});
+			}
 			// Completion transition is handled by data_import_refresh realtime event.
 		});
 
@@ -1126,15 +1144,6 @@ frappe.ui.form.on("Data Import", {
 			});
 			return false;
 		}
-		const started = await frm.events.start_import(frm);
-		if (!started) {
-			frm.import_in_progress = false;
-			frm._wizard_import_progress = null;
-			frm.dashboard?.hide_progress?.();
-			frm.events.refresh_wizard_ui?.(frm);
-			return false;
-		}
-
 		frm.import_in_progress = true;
 		frm._wizard_import_progress = {
 			title: __("Importing your data"),
@@ -1149,8 +1158,14 @@ frappe.ui.form.on("Data Import", {
 			failed: 0,
 		};
 		frm.dashboard?.show_progress?.(__("Import Progress"), 0, __("Starting import..."));
+		// Navigate before start_import settles. When the job runs inline rather than on a
+		// worker (developer_mode, or an inactive scheduler), the call only returns once every
+		// row is imported — gating navigation on it pinned the wizard on Fix Issues, looking
+		// frozen, for the whole run. A run stopped by prechecks is corrected by the
+		// `data_import_blocked` handler, which resets this state and returns to Fix Issues.
 		frm.events.go_to_wizard_step(frm, 3);
 		frm.trigger("show_cancel_import_btn");
+		frm.events.start_import(frm);
 		return true;
 	},
 
@@ -1246,13 +1261,14 @@ frappe.ui.form.on("Data Import", {
 
 				let label = frm.doc.status === "Pending" ? __("Start Import") : __("Retry");
 				frm.page.set_primary_action(label, () => {
-					frm.events.start_import(frm).then((started) => {
-						if (!started) return;
-						frm.events.go_to_wizard_step(frm, 3);
-						if (frm.doc.status !== "Pending") {
-							frm.trigger("show_cancel_import_btn");
-						}
-					});
+					// Navigate first — see handle_wizard_apply: start_import only settles once
+					// an inline job has finished importing every row.
+					const was_pending = frm.doc.status === "Pending";
+					frm.events.go_to_wizard_step(frm, 3);
+					if (!was_pending) {
+						frm.trigger("show_cancel_import_btn");
+					}
+					frm.events.start_import(frm);
 				});
 			} else {
 				frm.page.set_primary_action(__("Save"), () => frm.save());
@@ -2258,7 +2274,10 @@ frappe.ui.form.on("Data Import", {
 		if (skipped) {
 			frappe.model.clear_doc(skipped.doctype, skipped.name);
 		} else {
-			const preview_row = frm.import_preview?.preview_data?.data?.find(
+			// Fix Issues can render its Skip Row buttons from cached preview data before
+			// ImportPreview exists, so resolve through the same helper the step mounts with —
+			// reading frm.import_preview alone would silently store an empty row_data.
+			const preview_row = get_fix_issues_preview_data(frm)?.data?.find(
 				(row) => cint(row[0]) === row_number
 			);
 			frm.add_child("skipped_rows", {
@@ -2277,9 +2296,9 @@ frappe.ui.form.on("Data Import", {
 		const normalize_import_log_text = (value) =>
 			(value || "").replace(/\s+/g, " ").trim().toLowerCase();
 
+		// Renders even with zero logs (e.g. every row skipped => Success with no log rows);
+		// returning early here would leave the loading skeleton on screen forever.
 		const render_logs = (logs, status_summary = {}) => {
-			if (logs.length === 0) return;
-
 			frm.events.toggle_import_log_ui(frm, true);
 			const active_filter = frm._import_log_filter || "all";
 
@@ -2477,7 +2496,7 @@ frappe.ui.form.on("Data Import", {
 
 			if (!rows) {
 				rows = `<tr><td class="text-center text-muted" colspan=3>
-						${__("No logs for the selected filter")}
+						${logs.length === 0 ? __("No rows were imported") : __("No logs for the selected filter")}
 					</td></tr>`;
 			}
 
