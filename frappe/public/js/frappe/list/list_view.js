@@ -672,7 +672,7 @@ frappe.views.ListView = class ListView extends frappe.views.BaseList {
 		}
 
 		return frappe.ui.empty_state.html({
-			icon: "small-file",
+			icon: "file",
 			title: no_result_message,
 			actions,
 			css_class: "msg-box no-border",
