@@ -18,6 +18,10 @@ QUEUE = "Automation Trigger Queue"
 
 def drain(batch_size=DEFAULT_BATCH_SIZE, max_batches=None, executor=None):
 	"""Claim and execute due Pending rows until the queue is drained."""
+	from frappe.automation_engine import is_enabled
+
+	if not is_enabled():
+		return
 	if executor is None:
 		from frappe.automation_engine.runner import execute_automation as executor
 
