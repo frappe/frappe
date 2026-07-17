@@ -23,6 +23,14 @@ def make_rule(document_type="ToDo", enabled=1, trigger_type="Doc Created", **kwa
 	return doc
 
 
+def make_enabled_custom_event_rule(custom_event="deal_won"):
+	# Custom Event rules can't be enabled through the controller yet (no emitter is wired),
+	# so flip `enabled` directly in the DB to exercise the registry's event-map build.
+	doc = make_rule(trigger_type="Custom Event", document_type="ToDo", custom_event=custom_event, enabled=0)
+	frappe.db.set_value("Automation Flow", doc.name, "enabled", 1, update_modified=False)
+	return doc
+
+
 class TestRegistry(IntegrationTestCase):
 	def setUp(self):
 		frappe.db.delete("Automation Flow")
@@ -59,11 +67,11 @@ class TestRegistry(IntegrationTestCase):
 		self.assertEqual(get_automations_for("ToDo"), [])
 
 	def test_custom_event_map(self):
-		make_rule(trigger_type="Custom Event", document_type="ToDo", custom_event="deal_won")
+		make_enabled_custom_event_rule(custom_event="deal_won")
 		event_map = get_custom_event_map()
 		self.assertIn("deal_won", event_map)
 		self.assertEqual(len(event_map["deal_won"]), 1)
 
 	def test_custom_event_excluded_from_doc_map(self):
-		make_rule(trigger_type="Custom Event", document_type="ToDo", custom_event="deal_won")
+		make_enabled_custom_event_rule(custom_event="deal_won")
 		self.assertEqual(get_automations_for("ToDo"), [])
