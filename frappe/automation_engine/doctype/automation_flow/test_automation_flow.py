@@ -73,3 +73,30 @@ class TestAutomationFlow(IntegrationTestCase):
 		doc = make_automation(actions=[{"step_type": "Wait", "params": '{"value": 5, "unit": "seconds"}'}])
 		doc.insert()
 		self.assertTrue(doc.name)
+
+	def test_enabling_wait_containing_flow_blocked(self):
+		doc = make_automation(
+			enabled=1,
+			actions=[
+				{"action_type": "SetFieldValue", "params": '{"field": "priority", "value": "Low"}'},
+				{"step_type": "Wait", "params": '{"value": 5, "unit": "seconds"}'},
+			],
+		)
+		self.assertRaises(frappe.ValidationError, doc.insert)
+
+	def test_enabling_custom_event_flow_blocked(self):
+		doc = make_automation(
+			trigger_type="Custom Event", document_type=None, custom_event="deal_won", enabled=1
+		)
+		self.assertRaises(frappe.ValidationError, doc.insert)
+
+	def test_custom_event_flow_saves_as_draft(self):
+		doc = make_automation(trigger_type="Custom Event", document_type=None, custom_event="deal_won")
+		doc.insert()
+		self.assertTrue(doc.name)
+
+	def test_enabling_date_based_flow_blocked(self):
+		doc = make_automation(
+			trigger_type="Date Based", date_field="date", date_direction="Before", enabled=1
+		)
+		self.assertRaises(frappe.ValidationError, doc.insert)
