@@ -12,6 +12,10 @@ from frappe import _
 from frappe.automation_engine.registry import DOC_TRIGGER_TYPES, clear_automation_cache
 from frappe.model.document import Document
 
+# Triggers whose runtime path isn't wired yet (no emitter / no scheduler). They may be
+# saved as drafts, but enabling one would silently never fire — so enable is blocked.
+NON_EXECUTABLE_TRIGGERS = ("Custom Event", "Date Based")
+
 
 class AutomationFlow(Document):
 	# begin: auto-generated types
@@ -60,8 +64,27 @@ class AutomationFlow(Document):
 		self.validate_document_type()
 		self.validate_trigger_config()
 		self.validate_actions()
-		if self.enabled and not self.actions:
+		if self.enabled:
+			self.validate_ready_to_enable()
+
+	def validate_ready_to_enable(self):
+		"""Only allow enabling a rule whose every part can actually run today.
+
+		Wait steps and not-yet-wired triggers are legal to draft, but enabling them would
+		silently no-op (Custom Event/Date Based) or halt mid-run (Wait), so block enable.
+		"""
+		if not self.actions:
 			frappe.throw(_("Enable an Automation Flow only after adding at least one action"))
+		if self.trigger_type in NON_EXECUTABLE_TRIGGERS:
+			frappe.throw(
+				_("{0} triggers are not executable yet — keep this Automation Flow as a draft").format(
+					self.trigger_type
+				)
+			)
+		if any((row.step_type or "Action") == "Wait" for row in self.actions):
+			frappe.throw(
+				_("Wait steps are not executable yet — remove them or keep this Automation Flow as a draft")
+			)
 
 	def validate_actions(self):
 		from frappe.automation_engine.actions.base import get_action
