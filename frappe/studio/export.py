@@ -6,7 +6,7 @@ import frappe
 from frappe.modules import scrub
 from frappe.modules.export_file import strip_default_fields
 
-from studio.sync_json import cache_exported_file_hash
+from studio.sync_json import cache_synced_file_hash
 
 
 def write_document_file(doc, folder=None, exclude_fields=None):
@@ -24,7 +24,7 @@ def write_document_file(doc, folder=None, exclude_fields=None):
 		frappe.throw("Invalid export path: " + Path(path).as_posix())
 	with open(path, "w+") as txtfile:
 		txtfile.write(frappe.as_json(doc_export) + "\n")
-	cache_exported_file_hash(path)
+	cache_synced_file_hash(path)
 	print(f"Wrote document file for {doc.doctype} {doc.name} at {path}")
 
 
