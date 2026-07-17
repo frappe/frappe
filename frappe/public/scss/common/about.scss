@@ -41,81 +41,25 @@
 	}
 }
 
-.about-body {
-	display: flex;
-	flex-direction: column;
-	gap: 20px;
-}
-
 .about-frappe-wordmark {
 	height: 27px;
 	width: auto;
-
-	color: #171717;
 
 	[data-theme="dark"] & {
 		filter: invert(1);
 	}
 }
 
-.about-info-rows {
-	display: flex;
-	flex-direction: column;
-	gap: 13px;
-}
-
 .about-info-row {
-	display: flex;
-	align-items: center;
-	justify-content: space-between;
+	// 6px vertical padding is off the 4px scale; radius removed (dead — row has no bg)
 	padding: 6px 0;
-	border-radius: 11px;
-}
-
-.about-info-content {
-	display: flex;
-	flex-direction: column;
-	gap: 4px;
 }
 
 .about-info-title {
-	display: inline-flex;
-	align-items: center;
+	// no self-start utility on desk
 	align-self: flex-start;
-	gap: 5px;
-}
-
-.about-app-list {
-	display: flex;
-	flex-direction: column;
-	gap: 13px;
-}
-
-.about-app-row {
-	display: flex;
-	align-items: center;
-	gap: 12px;
-}
-
-.about-app-icon,
-.about-app-logo {
-	width: 32px;
-	height: 32px;
-	border-radius: var(--radius);
-	flex-shrink: 0;
-}
-
-.about-app-icon {
-	display: flex;
-	align-items: center;
-	justify-content: center;
 }
 
 .about-app-logo {
 	object-fit: contain;
-}
-
-.about-app-info {
-	flex: 1;
-	min-width: 0;
 }

@@ -9,8 +9,8 @@ frappe.ui.misc.about = function () {
 	$(dialog.wrapper).addClass("about-dialog");
 
 	$(dialog.body).html(
-		`<div class="about-body">
-			<div class="about-frappe-section flex flex-col items-center gap-3 py-3">
+		`<div class="about-body flex flex-col gap-5 items-start">
+			<div class="about-frappe-section flex flex-col items-center gap-3 py-3 w-full">
 				<div class="about-frappe-header flex flex-col justify-center items-center gap-1.5">
 					<img src="/assets/frappe/images/frappe-comp-logo.svg" alt="Frappe" class="about-frappe-wordmark">
 					<p class="about-tagline text-p-sm text-ink-gray-5 m-0">${__(
@@ -33,10 +33,10 @@ frappe.ui.misc.about = function () {
 				</div>
 			</div>
 
-			<div class="about-info-rows">
-				<div class="about-info-row">
-					<div class="about-info-content">
-						<div class="about-info-title text-base-semibold text-ink-gray-8">${__(
+			<div class="about-info-rows flex flex-col gap-3 w-full">
+				<div class="about-info-row flex items-center justify-between">
+					<div class="about-info-content flex flex-col gap-1">
+						<div class="about-info-title inline-flex items-center gap-1 text-base-semibold text-ink-gray-8">${__(
 							"Frappe Framework Version"
 						)}</div>
 						<div class="about-info-sub text-p-sm text-ink-gray-5" id="about-framework-version">
@@ -46,9 +46,9 @@ frappe.ui.misc.about = function () {
 				</div>
 				${
 					frappe.boot.is_fc_site
-						? `<div class="about-info-row">
-					<div class="about-info-content">
-						<a href="https://frappecloud.com/support" target="_blank" class="about-info-title about-info-title-link text-base-semibold text-ink-gray-8 no-underline">
+						? `<div class="about-info-row flex items-center justify-between">
+					<div class="about-info-content flex flex-col gap-1">
+						<a href="https://frappecloud.com/support" target="_blank" class="about-info-title inline-flex items-center gap-1 about-info-title-link text-base-semibold text-ink-gray-8 no-underline">
 							${__("Frappe Support")}
 							${frappe.utils.icon("external-link", "xs")}
 						</a>
@@ -65,7 +65,7 @@ frappe.ui.misc.about = function () {
 				"Installed Apps"
 			)}</div>
 
-			<div id="about-app-versions" class="about-app-list"></div>
+			<div id="about-app-versions" class="about-app-list flex flex-col gap-3 w-full"></div>
 		</div>`
 	);
 
@@ -103,13 +103,13 @@ frappe.ui.misc.about = function () {
 	const render_app_icon = function (app_name, app) {
 		const first_letter = (app.title || app_name).charAt(0).toUpperCase();
 		if (app.logo) {
-			return `<img src="${app.logo}" class="about-app-logo" alt="${first_letter}">`;
+			return `<img src="${app.logo}" class="about-app-logo size-8 rounded shrink-0" alt="${first_letter}">`;
 		}
 		if (app.color) {
-			return `<div class="about-app-icon text-sm-semibold" style="background-color: ${app.color};">${first_letter}</div>`;
+			return `<div class="about-app-icon text-sm-semibold flex items-center justify-center size-8 rounded shrink-0" style="background-color: ${app.color};">${first_letter}</div>`;
 		}
 		const palette = frappe.get_palette(app_name);
-		return `<div class="about-app-icon text-sm-semibold" style="background-color: var(${palette[0]}); color: var(${palette[1]});">${first_letter}</div>`;
+		return `<div class="about-app-icon text-sm-semibold flex items-center justify-center size-8 rounded shrink-0" style="background-color: var(${palette[0]}); color: var(${palette[1]});">${first_letter}</div>`;
 	};
 
 	const show_versions = function (versions) {
@@ -136,9 +136,9 @@ frappe.ui.misc.about = function () {
 			const version_text = get_version_text(app);
 			const title = `${app_name}: ${app.version}`;
 
-			$(`<div class="about-app-row" title="${title}">
+			$(`<div class="about-app-row flex items-center gap-3" title="${title}">
 					${render_app_icon(app_name, app)}
-					<div class="about-app-info">
+					<div class="about-app-info flex-1 min-w-0">
 						<div class="about-app-name text-base-semibold text-ink-gray-8">${__(app.title)}</div>
 						<div class="about-app-version text-sm text-ink-gray-5">${app_name}: ${version_text}</div>
 					</div>
