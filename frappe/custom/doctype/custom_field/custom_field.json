@@ -473,11 +473,7 @@
  "idx": 1,
  "index_web_pages_for_search": 1,
  "links": [],
-<<<<<<< HEAD
- "modified": "2026-07-08 13:37:37.503488",
-=======
- "modified": "2026-07-11 23:17:05.768689",
->>>>>>> 2870ff24d1 (feat: new control "Attachment Gallery" (#40781))
+ "modified": "2026-07-17 16:27:04.783622",
  "modified_by": "Administrator",
  "module": "Custom",
  "name": "Custom Field",
