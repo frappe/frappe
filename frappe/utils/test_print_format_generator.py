@@ -1342,6 +1342,10 @@ class TestPrintFormatGenerator(IntegrationTestCase):
 		self.assertEqual(rows_for("row.idx == 1"), 1)
 		self.assertEqual(rows_for("False"), 0)
 		self.assertEqual(rows_for("this is (( invalid"), n)
+		# print_settings is in scope alongside doc/row
+		with self.change_settings("Print Settings", pdf_page_size="A4"):
+			self.assertEqual(rows_for("print_settings.pdf_page_size == 'A4'"), n)
+			self.assertEqual(rows_for("print_settings.pdf_page_size == 'Letter'"), 0)
 
 	def test_merged_column_direction_emits_class(self):
 		"""A merged table column renders .cell-lines--horizontal only when

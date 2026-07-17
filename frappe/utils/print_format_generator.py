@@ -435,7 +435,7 @@ class PrintFormatGenerator:
 
 	def set_field_renderers(self, layout):
 		renderers = {"HTML Editor": "HTML", "Markdown Editor": "Markdown"}
-		eval_locals = {"doc": self.doc}
+		eval_locals = {"doc": self.doc, "print_settings": self.print_settings}
 		for section in layout["sections"]:
 			if section.get("visible_if"):
 				try:
@@ -484,10 +484,11 @@ class PrintFormatGenerator:
 		if df.get("fieldtype") != "Repeater" or not df.get("row_condition") or not df.get("source"):
 			return
 		condition = df["row_condition"]
+		eval_locals = {"doc": self.doc, "print_settings": self.print_settings}
 		kept = []
 		for row in self.doc.get(df["source"]) or []:
 			try:
-				keep = frappe.safe_eval(condition, None, {"doc": self.doc, "row": row})
+				keep = frappe.safe_eval(condition, None, {**eval_locals, "row": row})
 			except Exception:
 				keep = True
 			if keep:
