@@ -251,7 +251,6 @@ class Importer:
 					continue
 
 				if row_set.intersection(imported_rows):
-					print("Skipping imported rows", row_indexes)
 					self._publish_skip_progress(
 						current_index,
 						total_payload_count,
