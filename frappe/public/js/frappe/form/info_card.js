@@ -31,7 +31,9 @@ export class InfoCard {
 		this.$info_card = $("<div class='info-card'></div>").appendTo(this.label_span);
 		let card_args = {
 			title: "",
-			message: this.df.show_description_on_click ? this.df.description || "" : "",
+			message: this.df.show_description_on_click
+				? __(this.df.description, null, this.df.parent) || ""
+				: "",
 			parent: this.$info_card,
 			trigger: $(this.label_span).find("svg").get(0),
 			close_button: true,
