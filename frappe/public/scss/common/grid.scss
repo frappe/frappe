@@ -900,7 +900,7 @@
 	cursor: col-resize;
 	user-select: none;
 
-	// Invisible at rest (the column border is the separator); a soft gray edge on hover.
+	// Invisible at rest (the column border is the separator).
 	&::before {
 		content: "";
 		position: absolute;
@@ -910,11 +910,6 @@
 		width: 2px;
 		background-color: var(--gray-400);
 		opacity: 0;
-		transition: opacity 0.15s;
-	}
-
-	&:hover::before {
-		opacity: 0.6;
 	}
 }
 
