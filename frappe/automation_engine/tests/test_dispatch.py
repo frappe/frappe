@@ -117,6 +117,21 @@ class TestDispatch(IntegrationTestCase):
 		self.assertEqual(len(pending(rule.name)), 0)
 		self.assertTrue(frappe.db.exists("Error Log", {"method": "Automation Flow depth limit reached"}))
 
+	def test_no_refusal_log_for_unautomated_doctype_at_max_depth(self):
+		# A deep automation context must not log a depth refusal for unrelated saves
+		# (doctypes that have no automations of their own).
+		frappe.db.delete("Error Log", {"method": "Automation Flow depth limit reached"})
+		self.assertEqual(get_automations_for("User"), [])
+		original_depth = frappe.flags.get("automation_depth")
+		frappe.flags.automation_depth = 3
+		try:
+			run_automations(frappe.get_doc("User", "Administrator"), "on_update")
+		finally:
+			frappe.flags.automation_depth = original_depth
+		self.assertFalse(
+			frappe.db.exists("Error Log", {"method": "Automation Flow depth limit reached"})
+		)
+
 	def test_zero_overhead_for_unautomated_doctype(self):
 		# Warm the (empty) cache so the no-op path is a local dict hit.
 		self.assertEqual(get_automations_for("User"), [])
