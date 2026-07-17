@@ -30,23 +30,25 @@ except ImportError:
 # editors write to a temp file and rename over the target.
 DEBOUNCE_SECONDS = 0.3
 
-# site -> observer, or None if the watcher couldn't start (so it isn't retried every request)
+# site -> observer, or None if this process won't watch it. Both outcomes are cached: the decision
+# can't change while the process lives, and this runs on every request.
 _watchers: dict[str, object | None] = {}
 _watchers_lock = threading.Lock()
 
 
 def ensure_watcher_running():
-	"""`before_request` hook: start the watcher once per site.
+	"""`before_request` hook: decide once per site whether to watch, then stay out of the way.
 
-	Runs on every request, so the started case must stay a dict lookup.
+	Runs on every request — including production, where the answer is always no — so every call
+	after the first must cost nothing but the dict lookup.
 	"""
 	site = frappe.local.site
-	if site in _watchers or not can_watch():
+	if site in _watchers:
 		return
 
 	with _watchers_lock:
 		if site not in _watchers:
-			_watchers[site] = start_watcher(site)
+			_watchers[site] = start_watcher(site) if can_watch() else None
 
 
 def can_watch() -> bool:
