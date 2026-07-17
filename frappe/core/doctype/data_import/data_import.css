@@ -12,12 +12,6 @@
 	gap: 8px;
 }
 
-.warnings .skip-row-btn {
-	text-transform: none;
-	font-weight: normal;
-	letter-spacing: normal;
-}
-
 /* Collapsible section headers with (count) before chevron. */
 .data-import-warnings-section .section-head.collapsible,
 .data-import-value-mappings-section .section-head.collapsible,
@@ -35,12 +29,14 @@
 	margin-right: 6px;
 }
 
-.data-import-tree-preview-section .section-body {
+.data-import-tree-preview-section .section-body,
+.data-import-preview-section .section-body {
 	display: block;
 	width: 100%;
 }
 
-.data-import-tree-preview-section .section-body .form-column {
+.data-import-tree-preview-section .section-body .form-column,
+.data-import-preview-section .section-body .form-column {
 	width: 100%;
 	max-width: 100%;
 }
@@ -49,32 +45,25 @@
 	display: none;
 }
 
-
-/* Preview section: full-width layout for datatable and import log. */
-.data-import-preview-section .section-body {
-	display: block;
-	width: 100%;
-}
-
-.data-import-preview-section .section-body .form-column {
-	width: 100%;
-	max-width: 100%;
-}
-
 .data-import-preview-section [data-fieldname="import_log_heading"] {
 	width: 100%;
 	margin-top: var(--margin-xl);
 	margin-bottom: 0;
 }
 
-.data-import-preview-section [data-fieldname="import_log_heading"] .section-head.import-log-title {
-	padding: 0 0 var(--padding-sm);
-	margin: 0;
-	cursor: default;
+/* Wizard step DOM reparents this field outside .data-import-preview-section. */
+.diw-step-panel[data-step="3"]
+	.frappe-control[data-fieldname="import_log_heading"]
+	.section-head.import-log-title {
+	font-size: var(--text-md);
+	font-weight: 600;
+	line-height: 1.5;
+	color: var(--text-color);
+	padding-bottom: var(--padding-lg);
 }
 
-.data-import-preview-section [data-fieldname="show_failed_logs"] {
-	margin-bottom: var(--margin-sm);
+.data-import-preview-section [data-fieldname="import_log_preview"] {
+	margin-top: 0;
 }
 
 /* Hide duplicate field labels; section break is the collapsible header. */
@@ -88,11 +77,16 @@
 	display: none;
 }
 
-/* Let Link / Select dropdowns escape the scrollable grid container. */
-[data-fieldname="value_mappings"] .form-grid-container,
-[data-fieldname="value_mappings"] .column-limit-reached,
-[data-fieldname="value_mappings"] .form-grid,
-[data-fieldname="value_mappings"] .grid-body {
+/* Let Link / Select dropdowns escape the scrollable grid in the hidden std form. */
+body[data-route^="data-import"]
+	.data-import-std-form
+	[data-fieldname="value_mappings"]
+	.form-grid-container,
+body[data-route^="data-import"] .data-import-std-form [data-fieldname="value_mappings"] .form-grid,
+body[data-route^="data-import"]
+	.data-import-std-form
+	[data-fieldname="value_mappings"]
+	.grid-body {
 	overflow: visible !important;
 }
 
