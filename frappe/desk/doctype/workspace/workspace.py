@@ -39,6 +39,7 @@ class Workspace(Document):
 		external_link: DF.Data | None
 		for_user: DF.Data | None
 		hide_custom: DF.Check
+		icon: DF.Icon | None
 		indicator_color: DF.Literal[
 			"green",
 			"cyan",
