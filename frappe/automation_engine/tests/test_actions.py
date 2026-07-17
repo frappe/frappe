@@ -43,6 +43,22 @@ class TestActions(IntegrationTestCase):
 			AutomationParamError, SetFieldValue().validate, {"field": "nope_field"}, "ToDo"
 		)
 
+	def test_set_field_value_multiple_fields(self):
+		todo = make_todo(priority="Low", color="#000000")
+		SetFieldValue().execute(
+			todo, {"values": {"priority": "High", "color": "#ED6396"}}, {}
+		)
+		self.assertEqual(frappe.db.get_value("ToDo", todo.name, "priority"), "High")
+		self.assertEqual(frappe.db.get_value("ToDo", todo.name, "color"), "#ED6396")
+
+	def test_set_field_value_multiple_validates_each_field(self):
+		self.assertRaises(
+			AutomationParamError,
+			SetFieldValue().validate,
+			{"values": {"priority": "High", "nope_field": "x"}},
+			"ToDo",
+		)
+
 	def test_create_document(self):
 		src = make_todo()
 		detail = CreateDocument().execute(
