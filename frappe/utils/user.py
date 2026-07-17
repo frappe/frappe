@@ -216,6 +216,27 @@ class UserPermissions:
 			self.build_permissions()
 		return self.can_read
 
+	def load_user_default_workspace(self):
+		"""
+		Note: ideally it should leverage existing `load_user` routine, through some specific flag aka `workspace_only` (aka ability to query only a specific attribute as required).
+		"""
+		d = frappe.db.get_value("User", self.name, ["default_workspace"], as_dict=True)
+
+		if not self.can_read:
+			self.build_permissions()
+
+		if d.get("default_workspace"):
+			try:
+				workspace = frappe.get_cached_doc("Workspace", d.default_workspace)
+				d.default_workspace = {
+					"name": workspace.name,
+					"public": workspace.public,
+					"title": workspace.title,
+				}
+			except frappe.DoesNotExistError:
+				d.default_workspace = None
+		return d.default_workspace
+
 	def load_user(self):
 		d = frappe.db.get_value(
 			"User",
