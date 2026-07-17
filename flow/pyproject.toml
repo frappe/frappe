@@ -9,7 +9,7 @@ readme = "README.md"
 license = "AGPL-3.0-or-later"
 dynamic = ["version"]
 dependencies = [
-    "litellm<2,>=1.83.0",
+    "litellm>=1.83.0,<1.83.8",
     "lancedb<1,>=0.33",
     "python-docx<2,>=1.1",
     "pdfplumber<1,>=0.11",
@@ -21,13 +21,16 @@ dependencies = [
 requires = ["flit_core >=3.4,<4"]
 build-backend = "flit_core.buildapi"
 
+[tool.bench.frappe-dependencies]
+frappe = ">=16.0.0-dev,<18.0.0"
+
 # These dependencies are only installed when developer mode is enabled
 [tool.bench.dev-dependencies]
 # package_name = "~=1.1.0"
 
 # These apt dependencies will be installed from Ubuntu repositories when you host your app on Frappe Cloud
 [deploy.dependencies.apt]
-packages = []
+packages = ["libgl1", "libglib2.0-0"]
 
 [tool.ruff]
 line-length = 110
