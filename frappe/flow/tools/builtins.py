@@ -150,7 +150,7 @@ search_knowledge = bind_search_knowledge([])
 		f"{args.get('description') or 'Run Python code'}:\n\n{args.get('code', '')}"
 	),
 )
-def execute(code: str, description: str = "") -> Any:
+def execute(code: str, description: str) -> Any:
 	"""Run Python in a permission-respecting sandbox for computation, emails, or multi-record work.
 
 	`description` is one short, plain-English sentence stating what this code does, for a
