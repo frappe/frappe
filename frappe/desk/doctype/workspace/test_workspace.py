@@ -38,9 +38,6 @@ class TestWorkspace(IntegrationTestCase):
 	# 		self.assertEqual(len(cards), 2)
 	# 	else:
 	# 		self.assertEqual(len(cards), 1)
-
-<<<<<<< HEAD
-=======
 	def test_save_page_with_new_widgets_as_dict(self):
 		"""save_page receives new_widgets already parsed into a dict by the request layer."""
 		from frappe.desk.doctype.workspace.workspace import save_page
@@ -70,27 +67,6 @@ class TestWorkspace(IntegrationTestCase):
 		finally:
 			frappe.db.delete("Workspace", {"name": workspace.name})
 
-	def test_role_restricted_non_public_workspace_visible_to_permitted_user(self):
-		"""Non-public workspace with roles should be visible to users with matching role."""
-		from frappe.desk.desktop import get_workspaces
-
-		workspace = frappe.new_doc("Workspace")
-		workspace.label = "Role Test Workspace"
-		workspace.title = "Role Test Workspace"
-		workspace.category = "Modules"
-		workspace.public = 0
-		workspace.module = "Desk"
-		workspace.append("roles", {"role": "System Manager"})
-		workspace.insert(ignore_if_duplicate=True)
-
-		try:
-			result = get_workspaces()
-			workspace_titles = [p.title for p in result["pages"]]
-			self.assertIn("Role Test Workspace", workspace_titles)
-		finally:
-			frappe.db.delete("Workspace", {"name": workspace.name})
-
->>>>>>> 7c6167d1ff (test(workspace): cover save_page with new_widgets as dict)
 
 def create_module(module_name):
 	module = frappe.get_doc({"doctype": "Module Def", "module_name": module_name, "app_name": "frappe"})
