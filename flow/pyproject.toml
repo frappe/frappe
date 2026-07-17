@@ -9,7 +9,7 @@ readme = "README.md"
 license = "AGPL-3.0-or-later"
 dynamic = ["version"]
 dependencies = [
-    "litellm==1.83.7",
+    "litellm>=1.83.0,<1.83.8",
     "lancedb<1,>=0.33",
     "python-docx<2,>=1.1",
     "pdfplumber<1,>=0.11",
