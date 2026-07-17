@@ -146,10 +146,15 @@ search_knowledge = bind_search_knowledge([])
 
 @tool(
 	requires_confirmation=True,
-	confirm_prompt=lambda args: f"Run this Python:\n\n{args.get('code', '')}",
+	confirm_prompt=lambda args: (
+		f"{args.get('description') or 'Run Python code'}:\n\n{args.get('code', '')}"
+	),
 )
-def execute(code: str) -> Any:
+def execute(code: str, description: str = "") -> Any:
 	"""Run Python in a permission-respecting sandbox for computation, emails, or multi-record work.
+
+	`description` is one short, plain-English sentence stating what this code does, for a
+	non-technical user who approves it — e.g. "Count open ToDos". Describe the intent, not the code.
 
 	Do NOT write `import` statements — imports are blocked and the whole script fails. `frappe`
 	and `frappe.utils` are already in scope; everything you can use is listed below, so never
