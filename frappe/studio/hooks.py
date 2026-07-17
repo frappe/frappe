@@ -194,8 +194,7 @@ before_app_uninstall = "studio.sync.before_app_uninstall"
 
 # Request Events
 # ----------------
-# Starts the disk -> DB watcher for exported studio apps once per site. No-op unless developer
-# mode is on and we're under `bench serve`. See studio/watch.py.
+# Starts the disk -> DB watcher for exported studio apps once per site in developer-mode
 before_request = ["studio.watch.ensure_watcher_running"]
 # after_request = ["studio.utils.after_request"]
 

@@ -31,15 +31,11 @@ def sync_file(path: str) -> str | None:
 	if not doctype or not os.path.exists(path) or is_in_sync(path):
 		return None
 
-	# `force` because editing JSON on disk doesn't bump its `modified`, and import_file_by_path
-	# otherwise skips any doc whose DB timestamp isn't older than the file's.
+	# `force` because editing JSON on disk doesn't bump its `modified`
 	if not import_file_by_path(path, force=True):
 		return None
 
-	# Disk and DB now agree, so remember this state too — not just the ones we export. Otherwise
-	# the cache stays pinned to the last export, and reverting a file back to that content (a
-	# `git checkout`, an undone AI edit) would look like an echo and be skipped, leaving the DB
-	# ahead of disk. Mirrors frappe stamping `migration_hash` after its own imports.
+	# Mirrors frappe stamping `migration_hash` after its own imports.
 	cache_synced_file_hash(path)
 	return doctype
 
@@ -50,14 +46,7 @@ def cache_synced_file_hash(path: str):
 
 
 def is_in_sync(path: str) -> bool:
-	"""True if `path` still holds what the DB last agreed with — nothing to import.
-
-	Covers both directions. Saving a doc exports it (`StudioPage.on_update` -> `export_page`),
-	which trips the watcher; re-importing that write would be a pointless delete+insert of the doc
-	just saved, and could clobber a save that lands while it's in flight. An import records the
-	same thing, so a repeated event for one edit doesn't import twice. Anything else on disk is a
-	genuine edit.
-	"""
+	"""True if `path`'s content matches the DB, so syncing it back is skipped."""
 	synced_hash = frappe.cache.hget(SYNCED_HASHES_KEY, path)
 	return bool(synced_hash) and synced_hash == calculate_hash(path)
 

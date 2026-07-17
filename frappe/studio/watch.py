@@ -1,7 +1,7 @@
 """Watch every installed app's `<app>/studio` folder and import changed JSON into the DB.
 
 Lets apps, pages and components generated on disk (by the CLI or an AI agent) show up without a
-`bench migrate`, with no editor open. Started automatically per site by the `before_request` hook
+`bench migrate`. Started automatically per site by the `before_request` hook
 under `bench serve`, or explicitly via `bench --site <site> studio-watch`.
 
 Only `.json` is watched: an exported page's script lives in a sibling `.ts` that the runtime loads
