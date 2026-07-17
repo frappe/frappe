@@ -489,12 +489,8 @@ class PrintFormatGenerator:
 		return layout
 
 	def filter_repeater_rows(self, df):
-		"""Drop repeater rows whose row_condition evaluates falsy.
-
-		The condition is a user expression evaluated per row with `doc` and `row`
-		in scope. Rows are cached on `_rows` for the macro; a bad expression fails
-		open (keeps the row) so a typo never silently blanks the table.
-		"""
+		"""Drop repeater rows whose row_condition is falsy; a bad expression fails open
+		(keeps the row) so a typo never silently blanks the table."""
 		if df.get("fieldtype") != "Repeater" or not df.get("row_condition") or not df.get("source"):
 			return
 		condition = df["row_condition"]
