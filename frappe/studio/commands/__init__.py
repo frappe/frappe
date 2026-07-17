@@ -21,6 +21,22 @@ def build_studio_app(context, app_name: str, site: str | None = None):
 	print(f"Studio App '{app_name}' built successfully.")
 
 
+@click.command("studio-watch")
+@pass_context
+def studio_watch(context):
+	"""Watch studio folders and sync changed JSON into the DB"""
+	from studio.watch import watch
+
+	site = get_site(context)
+	frappe.init(site)
+	frappe.connect()
+	try:
+		watch(site)
+	finally:
+		frappe.destroy()
+
+
 commands = [
 	build_studio_app,
+	studio_watch,
 ]
