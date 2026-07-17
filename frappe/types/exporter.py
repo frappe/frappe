@@ -17,11 +17,7 @@ from keyword import iskeyword
 from pathlib import Path
 
 import frappe
-<<<<<<< HEAD
-=======
-from frappe import scrub
 from frappe.model import NO_VALUE_FIELDS, table_fields
->>>>>>> bd7b3365f0 (fix(DX): add missing DF types for controller annotations (#40992))
 from frappe.types import DF
 
 field_template = "{field}: {type}"

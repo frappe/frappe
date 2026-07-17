@@ -29,20 +29,13 @@ class DesktopIcon(Document):
 		description: DF.SmallText | None
 		force_show: DF.Check
 		hidden: DF.Check
-<<<<<<< HEAD
 		icon: DF.Data | None
-=======
-		icon: DF.Icon | None
-		icon_image: DF.Attach | None
-		icon_type: DF.Literal["Link", "Folder", "App"]
->>>>>>> bd7b3365f0 (fix(DX): add missing DF types for controller annotations (#40992))
 		idx: DF.Int
 		label: DF.Data | None
 		link: DF.SmallText | None
 		module_name: DF.Data | None
 		reverse: DF.Check
 		standard: DF.Check
-<<<<<<< HEAD
 		type: DF.Literal["module", "list", "link", "page", "query-report"]
 
 	# end: auto-generated types
@@ -577,6 +570,3 @@ def hide(name, user=None):
 		return False
 
 	return True
-=======
-	# end: auto-generated types
->>>>>>> bd7b3365f0 (fix(DX): add missing DF types for controller annotations (#40992))
