@@ -36,8 +36,16 @@ from frappe.query_builder import (
 	patch_query_aggregation,
 	patch_query_execute,
 )
+<<<<<<< HEAD
 from frappe.utils.caching import request_cache
 from frappe.utils.data import cint, cstr, sbool
+=======
+from frappe.utils.caching import deprecated_local_cache as local_cache
+from frappe.utils.caching import request_cache, site_cache
+from frappe.utils.data import as_unicode, bold, cint, cstr, safe_decode, safe_encode, sbool
+from frappe.utils.local import Local, LocalProxy, release_local
+from frappe.utils.translations import N_, _, _lt, set_user_lang
+>>>>>>> 5ea0f85a3b (feat: add N_ noop for translation extraction (backport #40961) (#40984))
 
 # Local application imports
 from .exceptions import *
