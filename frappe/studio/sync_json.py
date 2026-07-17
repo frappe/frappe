@@ -7,7 +7,7 @@
 import os
 
 import frappe
-from frappe.modules.import_file import import_file_by_path
+from frappe.modules.import_file import calculate_hash, import_file_by_path
 
 # Layout written by the exporters — see StudioApp.get_folder_path and StudioPage.get_folder_path:
 #   <frappe_app>/studio/<studio_app>/<studio_app>.json                -> Studio App
@@ -16,20 +16,41 @@ from frappe.modules.import_file import import_file_by_path
 PAGE_FOLDER = "studio_page"
 COMPONENT_FOLDER = "studio_components"
 
+# Hash of each file studio last exported, keyed by path. Lets the watcher tell its own writes
+# apart from a real edit.
+EXPORTED_HASHES_KEY = "studio_exported_file_hashes"
+
 
 def sync_file(path: str) -> str | None:
 	"""Import an exported studio JSON file. Return the doctype synced, or None if nothing was.
 
-	Nothing is synced when `path` isn't a studio document, or when it has since been removed —
-	a file can be deleted between a watch event and the import.
+	Nothing is synced when `path` isn't a studio document, when it has since been removed — a file
+	can be deleted between a watch event and the import — or when it's an echo of studio's own
+	export.
 	"""
 	doctype = get_doctype_from_path(path)
-	if not doctype or not os.path.exists(path):
+	if not doctype or not os.path.exists(path) or is_echo(path):
 		return None
 
 	# `force` because editing JSON on disk doesn't bump its `modified`, and import_file_by_path
 	# otherwise skips any doc whose DB timestamp isn't older than the file's.
 	return doctype if import_file_by_path(path, force=True) else None
+
+
+def cache_exported_file_hash(path: str):
+	"""Record what studio just wrote to `path` so syncing it back is skipped as an echo."""
+	frappe.cache.hset(EXPORTED_HASHES_KEY, path, calculate_hash(path))
+
+
+def is_echo(path: str) -> bool:
+	"""True if `path` still holds exactly what studio last exported to it.
+
+	Saving a doc exports it (`StudioPage.on_update` -> `export_page`), which trips the watcher.
+	Re-importing that write would be a pointless delete+insert of the doc just saved, and could
+	clobber a save that lands while it's in flight. Anything else on disk is a genuine edit.
+	"""
+	exported_hash = frappe.cache.hget(EXPORTED_HASHES_KEY, path)
+	return bool(exported_hash) and exported_hash == calculate_hash(path)
 
 
 def get_doctype_from_path(path: str) -> str | None:
