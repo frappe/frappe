@@ -12,6 +12,7 @@ from frappe.desk.reportview import (
 	get_field_info,
 	get_filter_dashboard_data,
 	get_stats,
+	resolve_link_titles,
 )
 from frappe.tests import IntegrationTestCase
 
@@ -142,6 +143,60 @@ class TestReportview(IntegrationTestCase):
 			rows = list(DictReader(buf))
 		names_in_export = [row["ID"] for row in rows if row.get("ID") in desired_order]
 		self.assertEqual(names_in_export, desired_order)
+
+	def test_resolve_link_titles(self):
+		# `language` links to Language, which has show_title_field_in_link
+		fields = ["`tabUser`.`name`", "`tabUser`.`language`", "`tabUser`.`user_type`", "`tabUser`.`owner`"]
+		data = [
+			("Administrator", "de", "System User", "Administrator"),
+			("Guest", None, "System User", "Administrator"),
+			("test@example.com", "no-such-language", "System User", "Administrator"),
+		]
+		resolved = resolve_link_titles(data, fields, "User")
+
+		self.assertEqual(resolved[0][1], "Deutsch")  # replaced with title
+		self.assertIsNone(resolved[1][1])  # empty values untouched
+		self.assertEqual(resolved[2][1], "no-such-language")  # unknown names kept as-is
+		# non-Link and Link-without-flag columns untouched
+		self.assertEqual(resolved[0][0], "Administrator")
+		self.assertEqual(resolved[0][2], "System User")
+		self.assertEqual(resolved[0][3], "Administrator")
+
+	def test_export_query_resolves_link_titles(self):
+		from csv import DictReader
+		from io import StringIO
+
+		doc = frappe.get_doc(
+			{
+				"doctype": "Translation",
+				"language": "de",
+				"source_text": "Export link title source",
+				"translated_text": "Export link title translated",
+			}
+		).insert()
+
+		frappe.local.form_dict = frappe._dict(
+			doctype="Translation",
+			file_format_type="CSV",
+			fields=("`tabTranslation`.`name`", "`tabTranslation`.`language`"),
+			filters={"name": doc.name},
+		)
+		export_query()
+		with StringIO(frappe.response["filecontent"].decode("utf-8")) as buf:
+			rows = list(DictReader(buf))
+		# on-screen Report View shows the Language title, export must match
+		self.assertEqual(rows[0]["Language"], "Deutsch")
+
+		frappe.local.form_dict.file_format_type = "Excel"
+		export_query()
+		self.assertTrue(frappe.response["filename"].endswith(".xlsx"))
+
+		from io import BytesIO
+
+		from openpyxl import load_workbook
+
+		sheet = load_workbook(BytesIO(frappe.response["filecontent"])).active
+		self.assertIn("Deutsch", [cell.value for row in sheet.iter_rows() for cell in row])
 
 	def test_extract_fieldname(self):
 		self.assertEqual(
