@@ -139,7 +139,7 @@ def get_home_page():
 		if home_page == "me" and is_portal_user():
 			home_page = "portal"
 
-		default_workspace = frappe.get_user().load_user().default_workspace
+		default_workspace = frappe.get_user().load_user_default_workspace()
 		if default_workspace:
 			home_page = get_url_to_workspace(default_workspace["name"], default_workspace["public"])
 			return home_page
