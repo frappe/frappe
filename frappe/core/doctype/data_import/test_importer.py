@@ -10,6 +10,7 @@ from frappe.core.doctype.data_import.importer import (
 	Importer,
 	_get_tree_node_key,
 	build_fields_dict_for_column_matching,
+	create_import_log,
 	get_tree_alias_fieldname,
 	uses_tree_alias_references,
 )
@@ -319,6 +320,60 @@ class TestImporter(IntegrationTestCase):
 		self.assertEqual(len(import_logs), 1)
 		self.assertEqual(import_logs[0].import_action, ACTION_UPDATE)
 
+	def test_retry_after_timed_out_clears_failed_logs(self):
+		self.addCleanup(_delete_doctype_records, doctype_name, SAMPLE_IMPORT_DOC_NAMES)
+		for name in SAMPLE_IMPORT_DOC_NAMES:
+			frappe.delete_doc_if_exists(doctype_name, name)
+		frappe.db.commit()  # nosemgrep
+
+		import_file = get_import_file("sample_import_file")
+		data_import = self.get_importer(doctype_name, import_file)
+
+		# "Test" carries a second child-table row, so its payload spans sheet rows 2-3;
+		# "Test 2" is row 4 and "Test 3" is row 5. Seed a previous attempt that imported
+		# "Test" and "Test 3" but failed on "Test 2" before timing out.
+		for name in ("Test", "Test 3"):
+			frappe.get_doc({"doctype": doctype_name, "title": name}).insert()
+		frappe.db.commit()  # nosemgrep
+
+		create_import_log(
+			data_import.name,
+			0,
+			{"success": True, "docname": "Test", "row_indexes": [2, 3]},
+		)
+		create_import_log(
+			data_import.name,
+			1,
+			{
+				"success": False,
+				"row_indexes": [4],
+				"messages": [{"message": "Previous attempt timed out"}],
+			},
+		)
+		create_import_log(
+			data_import.name,
+			2,
+			{"success": True, "docname": "Test 3", "row_indexes": [5]},
+		)
+		frappe.db.commit()  # nosemgrep
+		data_import.db_set("status", "Timed Out")
+
+		i = Importer(data_import.reference_doctype, data_import=data_import)
+		i.import_data()
+		data_import.reload()
+
+		self.assertEqual(data_import.status, "Success")
+		self.assertTrue(frappe.db.exists(doctype_name, "Test 2"))
+
+		import_logs = frappe.get_all(
+			"Data Import Log",
+			fields=["success", "row_indexes"],
+			filters={"data_import": data_import.name},
+			order_by="log_index",
+		)
+		self.assertEqual(len(import_logs), 3)
+		self.assertFalse(any(not log.success for log in import_logs))
+
 	def test_get_import_status_upsert_counts(self):
 		existing_doc = frappe.get_doc(
 			doctype=doctype_name,
@@ -392,7 +447,10 @@ class TestImporter(IntegrationTestCase):
 		self.assertIn("Opn", col.warnings[0]["message"])
 		self.assertIn("Pasiv", col.warnings[0]["message"])
 		self.assertIn("is not valid", col.warnings[0]["message"])
-		self.assertIn("row 3 · Allowed:", col.warnings[0]["message"])
+		message = col.warnings[0]["message"]
+		self.assertIn("row 3", message)
+		# "Allowed:" renders on its own line below the last row-numbers line
+		self.assertLess(message.index("row 3"), message.index("Allowed:"))
 		unmapped = get_unmapped_invalid_values_for_column(col, value_lookup, "Contact")
 		self.assertEqual(len(unmapped), 1)
 		self.assertEqual(unmapped[0]["source"], "Opn")
