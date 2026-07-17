@@ -150,6 +150,8 @@ export function confirmTitle(name, args) {
 			humanize(a.action),
 			doctype ? `${count(a.names)} ${doctype}` : __("records"),
 		]);
-	else if (name === "execute") title = __("Run Python code");
+	else if (name === "execute")
+		title =
+			(typeof a.description === "string" && a.description.trim()) || __("Run Python code");
 	return { title: title || toolLabel(name), danger: name === "delete" };
 }
