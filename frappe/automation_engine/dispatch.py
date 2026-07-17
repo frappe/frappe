@@ -32,7 +32,7 @@ DEFAULT_MAX_DEPTH = 3
 def run_automations(doc, method):
 	"""Entry point wired into Document.run_method."""
 	trigger_type = METHOD_TRIGGER.get(method)
-	if not trigger_type or not _should_dispatch(doc):
+	if not trigger_type or not _dispatch_allowed():
 		return
 
 	# on_update also fires during insert; the insert path is owned by "Doc Created".
@@ -43,26 +43,29 @@ def run_automations(doc, method):
 	if not rules:
 		return
 
+	matched = [r for r in rules if r.trigger_type == trigger_type and matches_rule(r, doc)]
+	if not matched:
+		return
+
+	# Enforce recursion depth only once we know there's real work to do. Checking earlier
+	# would log a refusal for every unrelated save (Run logs, ToDos, Notification Logs)
+	# that happens inside a max-depth automation context.
 	depth = cint(frappe.flags.get("automation_depth")) + 1
-	kicked = False
-	for rule in rules:
-		if rule.trigger_type == trigger_type and matches_rule(rule, doc):
-			queue_trigger(rule.name, doc.doctype, doc.name, depth=depth)
-			kicked = True
-
-	if kicked:
-		frappe.db.after_commit.add(kick_drainer)
-
-
-def _should_dispatch(doc) -> bool:
-	flags = frappe.flags
-	if not is_enabled() or flags.in_install or flags.in_patch or flags.in_migrate:
-		return False
 	max_depth = frappe.conf.get("automation_max_depth") or DEFAULT_MAX_DEPTH
-	if cint(flags.get("automation_depth")) < max_depth:
-		return True
-	_log_depth_refusal(doc, max_depth)
-	return False
+	if depth > max_depth:
+		_log_depth_refusal(doc, max_depth)
+		return
+
+	for rule in matched:
+		queue_trigger(rule.name, doc.doctype, doc.name, depth=depth)
+	frappe.db.after_commit.add(kick_drainer)
+
+
+def _dispatch_allowed() -> bool:
+	flags = frappe.flags
+	if not is_enabled():
+		return False
+	return not (flags.in_install or flags.in_patch or flags.in_migrate)
 
 
 def _log_depth_refusal(doc, max_depth):
