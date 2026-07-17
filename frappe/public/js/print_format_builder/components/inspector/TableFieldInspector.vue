@@ -184,6 +184,14 @@
 										@select="(opt) => add_merged_field(col, opt.value)"
 									/>
 								</div>
+								<SegmentedRow
+									v-if="col.merged_fields && col.merged_fields.length"
+									:label="__('Direction')"
+									:model-value="col.merge_direction || 'vertical'"
+									:options="merge_direction_opts"
+									style="margin-top: 8px"
+									@update:model-value="(v) => (col.merge_direction = v)"
+								/>
 							</div>
 						</div>
 					</template>
@@ -372,6 +380,11 @@ const merge_style_opts = [
 	{ value: "secondary", label: __("Secondary") },
 	{ value: "mono-sm", label: __("Code") },
 	{ value: "muted-sm", label: __("Muted") },
+];
+
+const merge_direction_opts = [
+	{ value: "vertical", label: __("Vertical") },
+	{ value: "horizontal", label: __("Horizontal") },
 ];
 
 function find_field(fieldname) {

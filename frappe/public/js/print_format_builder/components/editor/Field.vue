@@ -170,7 +170,13 @@
 												>{{ thumb(col, row).abbr }}</span
 											>
 										</template>
-										<div class="cell-lines">
+										<div
+											class="cell-lines"
+											:class="{
+												'cell-lines--horizontal':
+													col.merge_direction === 'horizontal',
+											}"
+										>
 											<div
 												v-for="(mf, mi) in text_merges(col)"
 												:key="mi"

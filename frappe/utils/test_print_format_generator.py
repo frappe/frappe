@@ -1289,3 +1289,109 @@ class TestPrintFormatGenerator(IntegrationTestCase):
 
 		self.assertNotIn("print-repeating-frame", html)
 		self.assertIn("LETTERHEAD_TOP", html)
+
+	def _user_beta_format(self, layout):
+		import json
+
+		pf = frappe.get_doc(
+			{
+				"doctype": "Print Format",
+				"name": f"_Test PFG {frappe.generate_hash(length=6)}",
+				"doc_type": "User",
+				"print_format_builder_beta": 1,
+				"custom_format": 0,
+				"standard": "No",
+				"format_data": json.dumps(layout),
+			}
+		).insert(ignore_permissions=True)
+		self.addCleanup(pf.delete, ignore_permissions=True)
+		return pf
+
+	def test_repeater_row_condition_filters_rows(self):
+		"""A repeater row_condition drops rows where it is falsy; a bad expression
+		fails open so a typo never blanks the table."""
+		import re
+
+		from frappe.utils.print_format_generator import PrintFormatGenerator
+
+		user = frappe.get_doc("User", "Administrator")
+		n = len(user.roles)
+		self.assertGreaterEqual(n, 2)
+
+		def rows_for(condition):
+			df = {
+				"fieldtype": "Repeater",
+				"fieldname": "_rep",
+				"label": "Roles",
+				"custom": 1,
+				"source": "roles",
+				"repeater_columns": [{"template": [{"t": "f", "v": "role"}], "align": "left"}],
+			}
+			if condition is not None:
+				df["row_condition"] = condition
+			layout = {
+				"sections": [{"label": "", "columns": [{"label": "", "fields": [df]}]}],
+				"header": {"columns": [{"label": "", "fields": []}]},
+				"footer": {"columns": [{"label": "", "fields": []}]},
+			}
+			html = PrintFormatGenerator(self._user_beta_format(layout), user).get_html_preview()
+			block = re.search(r"pfb-repeater-table.*?</table>", html, re.S)
+			return len(re.findall(r"<tr>", block.group(0))) if block else 0
+
+		self.assertEqual(rows_for(None), n)
+		self.assertEqual(rows_for("row.idx == 1"), 1)
+		self.assertEqual(rows_for("False"), 0)
+		self.assertEqual(rows_for("this is (( invalid"), n)
+
+	def test_merged_column_direction_emits_class(self):
+		"""A merged table column renders .cell-lines--horizontal only when
+		merge_direction is 'horizontal'."""
+		import re
+
+		from frappe.utils.print_format_generator import PrintFormatGenerator
+
+		user = frappe.get_doc("User", "Administrator")
+
+		def html_for(direction):
+			column = {
+				"fieldname": "role",
+				"fieldtype": "Data",
+				"label": "Role",
+				"width": 100,
+				"merged_fields": [{"fieldname": "role", "fieldtype": "Data", "style": "secondary"}],
+			}
+			if direction:
+				column["merge_direction"] = direction
+			layout = {
+				"sections": [
+					{
+						"label": "",
+						"columns": [
+							{
+								"label": "",
+								"fields": [
+									{
+										"fieldtype": "Table",
+										"fieldname": "roles",
+										"label": "Roles",
+										"custom": 1,
+										"table_columns": [column],
+									}
+								],
+							}
+						],
+					}
+				],
+				"header": {"columns": [{"label": "", "fields": []}]},
+				"footer": {"columns": [{"label": "", "fields": []}]},
+			}
+			return PrintFormatGenerator(self._user_beta_format(layout), user).get_html_preview()
+
+		def cell_lines_class(html):
+			# Match the markup, not the .cell-lines--horizontal rule in the embedded stylesheet.
+			match = re.search(r'<div class="(cell-lines[^"]*)"', html)
+			return match.group(1) if match else ""
+
+		self.assertEqual(cell_lines_class(html_for("horizontal")), "cell-lines cell-lines--horizontal")
+		self.assertEqual(cell_lines_class(html_for("vertical")), "cell-lines")
+		self.assertEqual(cell_lines_class(html_for(None)), "cell-lines")

@@ -267,6 +267,13 @@
 	min-width: 0;
 }
 
+.print-format-doc .child-table .cell-lines--horizontal {
+	flex-direction: row;
+	flex-wrap: wrap;
+	align-items: baseline;
+	column-gap: 0.6em;
+}
+
 .print-format-doc .child-table .cell-line {
 	word-break: break-word;
 }

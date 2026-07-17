@@ -453,6 +453,7 @@ class PrintFormatGenerator:
 					df["renderer"] = renderers.get(fieldtype) or fieldtype.replace(" ", "")
 					df["section"] = section
 					self.prepare_barcode(df)
+					self.filter_repeater_rows(df)
 
 		# Also process header/footer zones if they are section objects
 		for zone_key in ("header", "footer"):
@@ -469,8 +470,29 @@ class PrintFormatGenerator:
 						df["renderer"] = renderers.get(fieldtype) or fieldtype.replace(" ", "")
 						df["section"] = zone
 						self.prepare_barcode(df)
+						self.filter_repeater_rows(df)
 
 		return layout
+
+	def filter_repeater_rows(self, df):
+		"""Drop repeater rows whose row_condition evaluates falsy.
+
+		The condition is a user expression evaluated per row with `doc` and `row`
+		in scope. Rows are cached on `_rows` for the macro; a bad expression fails
+		open (keeps the row) so a typo never silently blanks the table.
+		"""
+		if df.get("fieldtype") != "Repeater" or not df.get("row_condition") or not df.get("source"):
+			return
+		condition = df["row_condition"]
+		kept = []
+		for row in self.doc.get(df["source"]) or []:
+			try:
+				keep = frappe.safe_eval(condition, None, {"doc": self.doc, "row": row})
+			except Exception:
+				keep = True
+			if keep:
+				kept.append(row)
+		df["_rows"] = kept
 
 	def prepare_barcode(self, df):
 		"""Resolve JsBarcode options / QR data URI for Barcode layout elements."""
