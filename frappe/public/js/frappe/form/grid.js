@@ -515,6 +515,9 @@ export default class Grid {
 		// Unique namespace per grid so multiple grids don't unbind each other.
 		let ns =
 			this._resize_ns || (this._resize_ns = "grid-col-resize-" + this.get_random_name());
+		// In RTL the handle sits on the inline-end (left) edge, so dragging
+		// left grows the column — the mouse delta must be inverted.
+		let dir = frappe.utils.is_rtl() ? -1 : 1;
 
 		this.wrapper.off(`mousedown.${ns}`);
 		this.wrapper.on(
@@ -534,7 +537,9 @@ export default class Grid {
 				// Bind document listeners only for the drag, so they don't outlive it.
 				$(document)
 					.on(`mousemove.${ns}`, function (ev) {
-						let width = me.clamp_column_width(start_width + (ev.pageX - start_x));
+						let width = me.clamp_column_width(
+							start_width + dir * (ev.pageX - start_x)
+						);
 						me.wrapper.find(`.grid-static-col[data-fieldname="${fieldname}"]`).css({
 							width: `${width}px`,
 							flex: `0 0 ${width}px`,
@@ -545,7 +550,7 @@ export default class Grid {
 						$("body").removeClass("grid-col-resizing");
 						me.save_column_width(
 							fieldname,
-							me.clamp_column_width(start_width + (ev.pageX - start_x))
+							me.clamp_column_width(start_width + dir * (ev.pageX - start_x))
 						);
 					});
 			}
