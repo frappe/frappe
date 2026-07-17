@@ -48,6 +48,11 @@ def _(msg: str, lang: str | None = None, context: str | None = None) -> str:
 	return non_translated_string
 
 
+def N_(msg: str, context: str | None = None) -> str:
+	"""Mark a string for translation extraction without translating it."""
+	return msg
+
+
 def _lt(msg: str, lang: str | None = None, context: str | None = None):
 	"""Lazily translate a string.
 
