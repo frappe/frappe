@@ -11,7 +11,7 @@ frappe.ui.form.on("Background Task", {
 			if (frm.doc.allow_user_retry) {
 				frm.add_custom_button(__("Retry Task"), () => {
 					frappe.call({
-						method: "frappe.core.doctype.background_task.background_task.retry_task",
+						method: "frappe.core.api.background_jobs.retry_task",
 						args: { task_id: frm.doc.task_id },
 						callback: () => {
 							frm.reload_doc();
@@ -48,7 +48,7 @@ frappe.ui.form.on("Background Task", {
 		if (frm.doc.status == "Queued" || frm.doc.allow_user_cancellation) {
 			frm.add_custom_button(__("Cancel Task"), () => {
 				frappe.call({
-					method: "frappe.core.doctype.background_task.background_task.stop_task",
+					method: "frappe.core.api.background_jobs.stop_task",
 					args: { task_id: frm.doc.task_id },
 					callback: () => {
 						frm.reload_doc();
@@ -58,7 +58,7 @@ frappe.ui.form.on("Background Task", {
 		}
 
 		frappe.call({
-			method: "frappe.core.doctype.background_task.background_task.get_cached_task_status",
+			method: "frappe.core.api.background_jobs.get_cached_task_status",
 			args: { task_id: frm.doc.task_id },
 			callback: (r) => {
 				if (!r.message) return;

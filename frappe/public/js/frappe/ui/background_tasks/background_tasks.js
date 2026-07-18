@@ -81,7 +81,7 @@ frappe.ui.BackgroundTasks = class BackgroundTasks {
 			e.stopPropagation();
 			let task_id = $(e.currentTarget).data("task-id");
 			frappe.call({
-				method: "frappe.core.doctype.background_task.background_task.stop_task",
+				method: "frappe.core.api.background_jobs.stop_task",
 				args: { task_id: task_id },
 			});
 		});
@@ -91,7 +91,7 @@ frappe.ui.BackgroundTasks = class BackgroundTasks {
 			e.stopPropagation();
 			let task_id = $(e.currentTarget).data("task-id");
 			frappe.call({
-				method: "frappe.core.doctype.background_task.background_task.retry_task",
+				method: "frappe.core.api.background_jobs.retry_task",
 				args: { task_id: task_id },
 			});
 		});
@@ -180,7 +180,7 @@ frappe.ui.BackgroundTasks = class BackgroundTasks {
 	update_tasks() {
 		frappe
 			.call({
-				method: "frappe.core.doctype.background_task.background_task.get_recent_tasks",
+				method: "frappe.core.api.background_jobs.get_recent_tasks",
 				args: { limit: 15 },
 			})
 			.then((r) => {

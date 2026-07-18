@@ -8,13 +8,13 @@ frappe.listview_settings["RQ Job"] = {
 			__("Remove Failed Jobs"),
 			() => {
 				frappe.confirm(__("Are you sure you want to remove all failed jobs?"), () => {
-					frappe.xcall("frappe.core.doctype.rq_job.rq_job.remove_failed_jobs");
+					frappe.xcall("frappe.core.api.background_jobs.remove_failed_jobs");
 				});
 			},
 			__("Actions")
 		);
 
-		frappe.xcall("frappe.core.doctype.rq_job.rq_job.get_custom_queues").then((options) => {
+		frappe.xcall("frappe.core.api.background_jobs.get_custom_queues").then((options) => {
 			const select_element = listview.filter_area.standard_filters_wrapper.find(
 				'select[data-fieldname="queue"]'
 			);
@@ -23,7 +23,7 @@ frappe.listview_settings["RQ Job"] = {
 			});
 		});
 
-		frappe.xcall("frappe.utils.scheduler.get_scheduler_status").then(({ status }) => {
+		frappe.xcall("frappe.core.api.background_jobs.get_scheduler_status").then(({ status }) => {
 			if (status === "active") {
 				listview.page.set_indicator(__("Scheduler: Active"), "green");
 			} else {
@@ -33,7 +33,7 @@ frappe.listview_settings["RQ Job"] = {
 					() => {
 						frappe.confirm(__("Are you sure you want to re-enable scheduler?"), () => {
 							frappe
-								.xcall("frappe.utils.scheduler.activate_scheduler")
+								.xcall("frappe.core.api.background_jobs.activate_scheduler")
 								.then(() => {
 									frappe.show_alert(__("Enabled Scheduler"));
 								})

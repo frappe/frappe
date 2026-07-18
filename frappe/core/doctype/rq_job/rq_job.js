@@ -17,7 +17,7 @@ frappe.ui.form.on("RQ Job", {
 					),
 					() => {
 						frappe
-							.xcall("frappe.core.doctype.rq_job.rq_job.stop_job", {
+							.xcall("frappe.core.api.background_jobs.stop_job", {
 								job_id: frm.doc.name,
 							})
 							.then((r) => {

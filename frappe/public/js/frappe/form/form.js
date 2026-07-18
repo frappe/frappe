@@ -2454,7 +2454,7 @@ frappe.ui.form.Form = class FrappeForm {
 
 		frappe
 			.call({
-				method: "frappe.core.doctype.submission_queue.submission_queue.get_latest_submissions",
+				method: "frappe.core.api.background_jobs.get_latest_submissions",
 				args: { doctype: this.doctype, docname: this.docname },
 			})
 			.then((r) => {

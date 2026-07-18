@@ -130,135 +130,20 @@ class BackgroundTask(Document):
 		frappe.cache.set_value(cache_key, cached, expires_in_sec=3600)
 
 
-@frappe.whitelist()
-def get_recent_tasks(limit: int = 15) -> list[dict]:
-	fields = [
-		"name",
-		"task_id",
-		"task_name",
-		"status",
-		"stage",
-		"progress",
-		"show_progress_bar",
-		"allow_user_cancellation",
-		"allow_user_retry",
-		"creation",
-	]
-	tasks = frappe.get_list("Background Task", fields=fields, limit=limit, order_by="creation desc")
-	for task in tasks:
-		cached = frappe.cache.get_value(f"background_task:{task.task_id}")
-		if cached:
-			if cached.get("progress") is not None:
-				task["progress"] = cached["progress"]
-			if cached.get("stage") is not None:
-				task["stage"] = cached["stage"]
-			if cached.get("status") is not None:
-				task["status"] = cached["status"]
-	return tasks
+# `get_recent_tasks`, `get_cached_task_status`, `stop_task`, `retry_task` moved to frappe.core.api.background_jobs.
+# The aliases keep the old dotted paths working; resolved lazily to avoid
+# circular imports.
+_MOVED_TO_BACKGROUND_JOBS_API = {
+	"get_recent_tasks": "get_recent_tasks",
+	"get_cached_task_status": "get_cached_task_status",
+	"stop_task": "stop_task",
+	"retry_task": "retry_task",
+}
 
 
-@frappe.whitelist()
-def get_cached_task_status(task_id: str) -> dict | None:
-	return frappe.cache.get_value(f"background_task:{task_id}")
+def __getattr__(name: str):
+	if new_name := _MOVED_TO_BACKGROUND_JOBS_API.get(name):
+		from frappe.core.api import background_jobs
 
-
-@frappe.whitelist()
-def stop_task(task_id: str):
-	task_name = frappe.db.get_value("Background Task", {"task_id": task_id}, "name")
-	if not task_name:
-		raise frappe.DoesNotExistError(frappe._("Background Task {0} not found").format(task_id))
-
-	task = frappe.get_doc("Background Task", task_name)
-
-	is_owner = task.user == frappe.session.user
-	is_system_manager = "System Manager" in frappe.get_roles(frappe.session.user)
-	if not (is_owner or is_system_manager):
-		raise frappe.PermissionError(frappe._("Not permitted"))
-
-	is_stoppable = task.status == "Queued" or (task.status == "Running" and task.allow_user_cancellation)
-	if not is_stoppable and not is_system_manager:
-		raise frappe.PermissionError(frappe._("Cancellation is not allowed for this task"))
-
-	if task.status not in ("Queued", "Running"):
-		raise frappe.InvalidStatusError(frappe._("Task is not queued or running"))
-
-	from rq.command import send_stop_job_command
-	from rq.job import Job, JobStatus
-
-	from frappe.utils.background_jobs import create_job_id, get_redis_conn
-
-	conn = get_redis_conn()
-	rq_job_id = create_job_id(task.job_id or task.task_id)
-	job = Job.fetch(rq_job_id, connection=conn)
-
-	if job.get_status(refresh=True) == JobStatus.STARTED:
-		send_stop_job_command(connection=conn, job_id=rq_job_id)
-	else:
-		job.cancel()
-
-	task.db_set("status", "Cancelled")
-	frappe.cache.delete_value(f"background_task:{task.task_id}")
-
-	frappe.publish_realtime(
-		event="task_update",
-		message={"task_id": task.task_id, "status": "Cancelled", "task_name": task.task_name},
-		user=task.user,
-	)
-
-
-@frappe.whitelist()
-def retry_task(task_id: str):
-	task_name = frappe.db.get_value("Background Task", {"task_id": task_id}, "name")
-	if not task_name:
-		raise frappe.DoesNotExistError(frappe._("Background Task {0} not found").format(task_id))
-
-	task = frappe.get_doc("Background Task", task_name)
-
-	is_owner = task.user == frappe.session.user
-	is_system_manager = "System Manager" in frappe.get_roles(frappe.session.user)
-	if not (is_owner or is_system_manager):
-		raise frappe.PermissionError(frappe._("Not permitted"))
-
-	if not task.allow_user_retry and not is_system_manager:
-		raise frappe.PermissionError(frappe._("Retry is not allowed for this task"))
-
-	if task.status not in ("Failed", "Cancelled"):
-		raise frappe.InvalidStatusError(frappe._("Task can only be retried if failed or cancelled"))
-
-	task.db_set(
-		{
-			"status": "Queued",
-			"exception": None,
-			"result": None,
-			"progress": 0,
-			"stage": None,
-			"started_at": None,
-			"ended_at": None,
-		}
-	)
-	frappe.cache.delete_value(f"background_task:{task.task_id}")
-
-	import json
-
-	from frappe.utils.task_queue import _execute_task
-
-	arguments = json.loads(task.arguments) if task.arguments else {}
-
-	frappe.enqueue(
-		_execute_task,
-		queue=task.queue or "default",
-		job_id=task.job_id or task.task_id,
-		at_front=False,
-		task_id=task.task_id,
-		target_method=task.method,
-		task_user=task.user,
-		task_on_success=task.on_success_callback,
-		task_on_failure=task.on_failure_callback,
-		**arguments,
-	)
-
-	frappe.publish_realtime(
-		event="task_update",
-		message={"task_id": task.task_id, "status": "Queued", "task_name": task.task_name},
-		user=task.user,
-	)
+		return getattr(background_jobs, new_name)
+	raise AttributeError(f"module {__name__!r} has no attribute {name!r}")

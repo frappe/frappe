@@ -193,23 +193,6 @@ class ScheduledJobType(Document):
 		frappe.db.delete("Scheduled Job Log", {"scheduled_job_type": self.name})
 
 
-@frappe.whitelist()
-def execute_event(doc: str | dict):
-	frappe.only_for("System Manager")
-	doc = frappe.parse_json(doc)
-	frappe.get_doc("Scheduled Job Type", doc.get("name")).enqueue(force=True)
-	return doc
-
-
-@frappe.whitelist()
-def skip_next_execution(doc: str | dict):
-	frappe.only_for("System Manager")
-	doc = frappe.parse_json(doc)
-	doc: ScheduledJobType = frappe.get_doc("Scheduled Job Type", doc.get("name"))
-	doc.last_execution = doc.next_execution
-	return doc.save()
-
-
 def run_scheduled_job(scheduled_job_type: str, job_type: str | None = None):
 	"""This is a wrapper function that runs a hooks.scheduler_events method"""
 	if frappe.conf.maintenance_mode:
@@ -318,3 +301,20 @@ def on_doctype_update():
 	frappe.db.add_unique(
 		"Scheduled Job Type", ["frequency", "cron_format", "method"], constraint_name="unique_scheduled_job"
 	)
+
+
+# `execute_event`, `skip_next_execution` moved to frappe.core.api.background_jobs.
+# The aliases keep the old dotted paths working; resolved lazily to avoid
+# circular imports.
+_MOVED_TO_BACKGROUND_JOBS_API = {
+	"execute_event": "execute_event",
+	"skip_next_execution": "skip_next_execution",
+}
+
+
+def __getattr__(name: str):
+	if new_name := _MOVED_TO_BACKGROUND_JOBS_API.get(name):
+		from frappe.core.api import background_jobs
+
+		return getattr(background_jobs, new_name)
+	raise AttributeError(f"module {__name__!r} has no attribute {name!r}")

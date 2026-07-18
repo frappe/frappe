@@ -238,28 +238,23 @@ def _get_last_creation_timestamp(doctype):
 		return get_datetime(timestamp)
 
 
-@frappe.whitelist()
-def activate_scheduler():
-	from frappe.installer import update_site_config
-
-	frappe.only_for("Administrator")
-
-	if frappe.local.conf.maintenance_mode:
-		frappe.throw(frappe._("Scheduler can not be re-enabled when maintenance mode is active."))
-
-	if is_scheduler_disabled():
-		enable_scheduler()
-	if frappe.conf.pause_scheduler:
-		update_site_config("pause_scheduler", 0)
-
-
-@frappe.whitelist()
-def get_scheduler_status():
-	if is_scheduler_inactive():
-		return {"status": "inactive"}
-	return {"status": "active"}
-
-
 def get_scheduler_tick() -> int:
 	conf = frappe.get_conf()
 	return cint(conf.scheduler_tick_interval) or DEFAULT_SCHEDULER_TICK
+
+
+# `activate_scheduler`, `get_scheduler_status` moved to frappe.core.api.background_jobs.
+# The aliases keep the old dotted paths working; resolved lazily to avoid
+# circular imports.
+_MOVED_TO_BACKGROUND_JOBS_API = {
+	"activate_scheduler": "activate_scheduler",
+	"get_scheduler_status": "get_scheduler_status",
+}
+
+
+def __getattr__(name: str):
+	if new_name := _MOVED_TO_BACKGROUND_JOBS_API.get(name):
+		from frappe.core.api import background_jobs
+
+		return getattr(background_jobs, new_name)
+	raise AttributeError(f"module {__name__!r} has no attribute {name!r}")

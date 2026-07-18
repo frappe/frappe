@@ -89,6 +89,8 @@ class RQJob(Document):
 
 	@staticmethod
 	def get_matching_job_ids(filters) -> list[str]:
+		from frappe.core.api.background_jobs import get_custom_queues
+
 		filters = make_filter_dict(filters or [])
 
 		queues = _eval_filters(filters.get("queue"), QUEUES + get_custom_queues())
@@ -224,20 +226,6 @@ def fetch_job_ids(queue: Queue, status: str) -> list[str]:
 	return []
 
 
-@frappe.whitelist()
-def remove_failed_jobs():
-	frappe.only_for("System Manager")
-	for queue in get_queues():
-		fail_registry = queue.failed_job_registry
-		failed_jobs = filter_current_site_jobs(fail_registry.get_job_ids(cleanup=False))
-
-		# Delete in batches to avoid loading too many things in memory
-		conn = get_redis_conn()
-		for job_ids in create_batch(failed_jobs, 100):
-			for job in Job.fetch_many(job_ids=job_ids, connection=conn):
-				job and fail_registry.remove(job, delete_job=True)
-
-
 def get_all_queued_jobs():
 	jobs = []
 	for q in get_queues():
@@ -246,12 +234,19 @@ def get_all_queued_jobs():
 	return [job for job in jobs if for_current_site(job)]
 
 
-@frappe.whitelist()
-def stop_job(job_id: str):
-	frappe.get_doc("RQ Job", job_id).stop_job()
+# `remove_failed_jobs`, `stop_job`, `get_custom_queues` moved to frappe.core.api.background_jobs.
+# The aliases keep the old dotted paths working; resolved lazily to avoid
+# circular imports.
+_MOVED_TO_BACKGROUND_JOBS_API = {
+	"remove_failed_jobs": "remove_failed_jobs",
+	"stop_job": "stop_job",
+	"get_custom_queues": "get_custom_queues",
+}
 
 
-@frappe.whitelist()
-def get_custom_queues():
-	frappe.has_permission("RQ Job", throw=True)
-	return list((frappe.conf.workers or {}).keys())
+def __getattr__(name: str):
+	if new_name := _MOVED_TO_BACKGROUND_JOBS_API.get(name):
+		from frappe.core.api import background_jobs
+
+		return getattr(background_jobs, new_name)
+	raise AttributeError(f"module {__name__!r} has no attribute {name!r}")

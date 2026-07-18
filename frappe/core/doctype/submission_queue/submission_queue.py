@@ -193,30 +193,24 @@ def queue_submission(doc: Document, action: str, alert: bool = True):
 		)
 
 
-@frappe.whitelist()
-def get_latest_submissions(doctype: str, docname: str | int):
-	# NOTE: not used creation as orderby intentianlly as we have used update_modified=False everywhere
-	# hence assuming modified will be equal to creation for submission queue documents
-
-	latest_submission = frappe.db.get_value(
-		"Submission Queue",
-		filters={"ref_doctype": doctype, "ref_docname": docname},
-		fieldname=["name", "exception", "status"],
-	)
-
-	out = None
-	if latest_submission:
-		out = {
-			"latest_submission": latest_submission[0],
-			"exc": format_tb(latest_submission[1]),
-			"status": latest_submission[2],
-		}
-
-	return out
-
-
 def format_tb(traceback: str | None = None):
 	if not traceback:
 		return
 
 	return traceback.strip().split("\n")[-1]
+
+
+# `get_latest_submissions` moved to frappe.core.api.background_jobs.
+# The aliases keep the old dotted paths working; resolved lazily to avoid
+# circular imports.
+_MOVED_TO_BACKGROUND_JOBS_API = {
+	"get_latest_submissions": "get_latest_submissions",
+}
+
+
+def __getattr__(name: str):
+	if new_name := _MOVED_TO_BACKGROUND_JOBS_API.get(name):
+		from frappe.core.api import background_jobs
+
+		return getattr(background_jobs, new_name)
+	raise AttributeError(f"module {__name__!r} has no attribute {name!r}")
