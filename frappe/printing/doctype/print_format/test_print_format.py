@@ -592,3 +592,16 @@ class TestPrintFormatChildTableVisibility(IntegrationTestCase):
 		self.assertIn('data-fieldname="email_id"', html)
 		self.assertIn("primary@example.com", html)
 		self.assertIn("secondary@example.com", html)
+
+	def test_print_settings_available_in_conditions(self):
+		html = self.render(
+			self.table_field(row_condition="print_settings.doctype == 'Print Settings' and row.is_primary")
+		)
+		self.assertIn("primary@example.com", html)
+		self.assertNotIn("secondary@example.com", html)
+
+		df = self.table_field()
+		df["table_columns"][1]["column_condition"] = "print_settings.doctype == 'Nope'"
+		html = self.render(df)
+		self.assertNotIn('data-fieldname="is_primary"', html)
+		self.assertIn('data-fieldname="email_id"', html)
