@@ -194,18 +194,47 @@
 			<div v-if="!visible_sections.length" class="pfb-empty">
 				{{ __("No sections yet. Add sections to the canvas.") }}
 			</div>
-			<div
-				v-for="(section, i) in visible_sections"
-				:key="i"
-				class="pfb-outline-item"
-				:class="{ active: store.selected_section.value === section }"
-				@click="select_section(section)"
-			>
-				<span class="pfb-outline-idx text-muted">{{ i + 1 }}</span>
-				<span class="pfb-outline-label">
-					{{ section.label || __("Untitled section") }}
-				</span>
-			</div>
+			<template v-for="(section, i) in visible_sections" :key="i">
+				<div
+					class="pfb-outline-item"
+					:class="{ active: store.selected_section.value === section }"
+					@click="select_section(section)"
+				>
+					<button
+						class="pfb-outline-caret"
+						:class="{ collapsed: is_collapsed(section) }"
+						:title="__('Toggle')"
+						@click.stop="toggle_collapse(section)"
+						v-html="frappe.utils.icon('chevron-down', 'xs')"
+					></button>
+					<span class="pfb-outline-idx text-muted">{{ i + 1 }}</span>
+					<span class="pfb-outline-label">
+						{{ section.label || __("Untitled section") }}
+					</span>
+				</div>
+				<template v-if="!is_collapsed(section)">
+					<template v-for="(column, ci) in outline_columns(section)" :key="ci">
+						<div
+							class="pfb-outline-item pfb-outline-col"
+							@click="select_section(section)"
+						>
+							<span class="pfb-outline-label text-muted">
+								{{ __("Column {0}", [ci + 1]) }}
+							</span>
+						</div>
+						<div
+							v-for="(field, fi) in column.fields"
+							:key="fi"
+							class="pfb-outline-item pfb-outline-field"
+							:class="{ active: store.selected_field.value === field }"
+							@click="select_field(field, section)"
+						>
+							<span class="pfb-outline-label">{{ field_label(field) }}</span>
+							<span class="pfb-outline-type text-muted">{{ field.fieldtype }}</span>
+						</div>
+					</template>
+				</template>
+			</template>
 		</div>
 
 		<!-- ── Format ─────────────────────────────────────────── -->
@@ -481,6 +510,31 @@ function build_field(df) {
 function select_section(section) {
 	store.scroll_to_section.value = section;
 	store.select_section(section);
+}
+
+function select_field(field, section) {
+	if (section) store.scroll_to_section.value = section;
+	store.select_field(field);
+}
+
+function field_label(f) {
+	return f.label || f.fieldname || f.fieldtype || __("Field");
+}
+
+function outline_columns(section) {
+	return (section.columns || []).map((col) => ({
+		fields: (col.fields || []).filter((f) => !f.remove),
+	}));
+}
+
+let collapsed_sections = ref(new Set());
+function is_collapsed(section) {
+	return collapsed_sections.value.has(section);
+}
+function toggle_collapse(section) {
+	const next = new Set(collapsed_sections.value);
+	next.has(section) ? next.delete(section) : next.add(section);
+	collapsed_sections.value = next;
 }
 
 function clone_as_section() {
@@ -974,9 +1028,25 @@ watch(print_format, () => (store.dirty.value = true), { deep: true });
 }
 
 .pfb-outline-item.active {
-	background: var(--blue-50);
-	color: var(--primary);
+	background: var(--gray-200);
+	color: var(--gray-900);
 	font-weight: 500;
+}
+
+.pfb-outline-caret {
+	display: flex;
+	align-items: center;
+	padding: 0;
+	border: none;
+	background: transparent;
+	cursor: pointer;
+	color: var(--gray-500);
+	flex-shrink: 0;
+	transition: transform 0.12s ease;
+}
+
+.pfb-outline-caret.collapsed {
+	transform: rotate(-90deg);
 }
 
 .pfb-outline-idx {
@@ -991,6 +1061,19 @@ watch(print_format, () => (store.dirty.value = true), { deep: true });
 	overflow: hidden;
 	text-overflow: ellipsis;
 	white-space: nowrap;
+}
+
+.pfb-outline-col {
+	padding-left: 30px;
+}
+
+.pfb-outline-field {
+	padding-left: 42px;
+}
+
+.pfb-outline-type {
+	font-size: var(--text-tiny);
+	flex-shrink: 0;
 }
 
 /* ── Format tab ──────────────────────────────────────────── */
