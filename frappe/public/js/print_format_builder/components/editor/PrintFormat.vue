@@ -1,6 +1,7 @@
 <template>
 	<div
 		class="print-format-main"
+		data-theme="light"
 		:style="rootStyles"
 		:class="{
 			'pfb-clean-preview': !!store.preview_doc.value,
