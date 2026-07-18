@@ -138,6 +138,16 @@ export function pluck(object, keys) {
 	return out;
 }
 
+// Smooth drag: use SortableJS's own clone instead of the browser's native HTML5
+// drag image (which jitters), and float it on <body> so overflow containers don't
+// clip it. Shared by every draggable in the builder for a consistent feel.
+export const DRAG_OPTIONS = {
+	forceFallback: true,
+	fallbackOnBody: true,
+	fallbackTolerance: 4,
+	fallbackClass: "pfb-drag-fallback",
+};
+
 export const TABLE_COLUMN_PLUCK_KEYS = [
 	"label",
 	"fieldname",

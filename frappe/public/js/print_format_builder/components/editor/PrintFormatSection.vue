@@ -123,6 +123,7 @@
 							filter="a, input, textarea, select, button, label, summary, [contenteditable], [role='button'], [tabindex]"
 							:preventOnFilter="false"
 							:emptyInsertThreshold="100"
+							v-bind="DRAG_OPTIONS"
 							@add="select_section"
 						>
 							<template #item="{ element }">
@@ -176,7 +177,7 @@ import draggable from "vuedraggable";
 import Field from "./Field.vue";
 import { computed, inject } from "vue";
 import { useColumnResize } from "../../composables/useColumnResize";
-import { evaluate_visible_if, parse_inline_style } from "../../utils";
+import { DRAG_OPTIONS, evaluate_visible_if, parse_inline_style } from "../../utils";
 
 const props = defineProps(["section", "is_header", "zone"]);
 

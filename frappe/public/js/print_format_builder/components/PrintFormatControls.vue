@@ -53,6 +53,7 @@
 					:sort="false"
 					:clone="clone_field"
 					item-key="fieldname"
+					v-bind="DRAG_OPTIONS"
 				>
 					<template #item="{ element }">
 						<div
@@ -85,6 +86,7 @@
 				:sort="false"
 				:clone="clone_field"
 				item-key="fieldname"
+				v-bind="DRAG_OPTIONS"
 			>
 				<template #item="{ element }">
 					<div
@@ -111,6 +113,7 @@
 				:sort="false"
 				:clone="clone_as_section"
 				item-key="fieldname"
+				v-bind="DRAG_OPTIONS"
 			>
 				<template #item="{ element }">
 					<div class="pfb-block-card" :title="element.desc" @click="add_page_break">
@@ -162,6 +165,7 @@
 					:sort="false"
 					:clone="clone_field"
 					item-key="fieldname"
+					v-bind="DRAG_OPTIONS"
 				>
 					<template #item="{ element }">
 						<div
@@ -310,7 +314,7 @@
 <script setup>
 import draggable from "vuedraggable";
 import Autocomplete from "../../vue-components/Autocomplete.vue";
-import { get_table_columns, pluck } from "../utils";
+import { DRAG_OPTIONS, get_table_columns, pluck } from "../utils";
 import { mountColorControl } from "./inspector/useColorControl";
 import { useStore } from "../stores";
 import { computed, onMounted, onUnmounted, nextTick, ref, watch, inject } from "vue";
