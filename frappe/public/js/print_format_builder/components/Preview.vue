@@ -43,12 +43,21 @@ let doc_select_ref = ref(null);
 let preview_type_ref = ref(null);
 let doc_select = ref(null);
 let preview_type = ref(null);
+let render_seq = 0;
 
 // methods
+function write_iframe(html) {
+	let cd = iframe.value?.contentDocument;
+	if (!cd) return;
+	cd.open();
+	cd.write(html);
+	cd.close();
+}
 function render() {
 	if (!docname.value) return;
 	preview_loaded.value = false;
 	if (type.value === "PDF") return;
+	let seq = ++render_seq;
 	let params = {
 		print_format: store.value.get_preview_format_doc(),
 		doctype: doctype.value,
@@ -60,11 +69,13 @@ function render() {
 	return frappe
 		.call("frappe.utils.print_format_generator.render_builder_preview", params)
 		.then((r) => {
-			let cd = iframe.value?.contentDocument;
-			if (!cd) return;
-			cd.open();
-			cd.write(r.message || "");
-			cd.close();
+			if (seq !== render_seq) return;
+			write_iframe(r.message || "");
+			preview_loaded.value = true;
+		})
+		.catch(() => {
+			if (seq !== render_seq) return;
+			write_iframe(`<p style="padding:1rem">${__("Could not generate preview.")}</p>`);
 			preview_loaded.value = true;
 		});
 }
