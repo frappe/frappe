@@ -486,7 +486,8 @@ import {
 	thumb_hue,
 	parse_inline_style,
 } from "../../utils";
-import { createApp, ref, nextTick, watch, computed, inject, onUnmounted } from "vue";
+import { createApp, ref, nextTick, watch, computed, inject } from "vue";
+import { useColumnResize } from "../../composables/useColumnResize";
 import JsBarcode from "jsbarcode";
 
 const props = defineProps(["df", "field_orientation"]);
@@ -952,7 +953,7 @@ function get_column_to_add(fieldname) {
 	return { ...frappe.meta.get_docfield(props.df.options, fieldname), width: 10 };
 }
 
-let end_col_resize = null;
+const { start: start_column_resize } = useColumnResize();
 
 function start_col_resize(e, ci) {
 	const cols = props.df.table_columns;
@@ -963,30 +964,14 @@ function start_col_resize(e, ci) {
 	const start_x = e.clientX;
 	const start_left = left.width || 10;
 	const start_right = right.width || 10;
-	const handle = e.target;
-	handle.classList.add("col-resize-handle--active");
-	document.body.classList.add("pfb-col-resizing");
 	const on_move = (ev) => {
 		let delta = Math.round(((ev.clientX - start_x) / table_width) * 100);
 		delta = Math.max(5 - start_left, Math.min(start_right - 5, delta));
 		left.width = start_left + delta;
 		right.width = start_right - delta;
 	};
-	const on_up = () => {
-		document.removeEventListener("pointermove", on_move);
-		document.removeEventListener("pointerup", on_up);
-		document.removeEventListener("pointercancel", on_up);
-		handle.classList.remove("col-resize-handle--active");
-		document.body.classList.remove("pfb-col-resizing");
-		end_col_resize = null;
-	};
-	document.addEventListener("pointermove", on_move);
-	document.addEventListener("pointerup", on_up);
-	document.addEventListener("pointercancel", on_up);
-	end_col_resize = on_up;
+	start_column_resize(e.target, "col-resize-handle--active", on_move);
 }
-
-onUnmounted(() => end_col_resize?.());
 
 function validate_table_columns() {
 	if (props.df.fieldtype != "Table") return;

@@ -174,7 +174,8 @@
 <script setup>
 import draggable from "vuedraggable";
 import Field from "./Field.vue";
-import { computed, inject, onUnmounted } from "vue";
+import { computed, inject } from "vue";
+import { useColumnResize } from "../../composables/useColumnResize";
 import { evaluate_visible_if, parse_inline_style } from "../../utils";
 
 const props = defineProps(["section", "is_header", "zone"]);
@@ -216,7 +217,7 @@ let handle_offset = computed(() => {
 	return `${-(gap + 12.5)}px`;
 });
 
-let end_col_width_resize = null;
+const { start: start_column_resize } = useColumnResize();
 
 function start_col_width_resize(e, i) {
 	const cols = props.section.columns;
@@ -226,8 +227,6 @@ function start_col_width_resize(e, i) {
 	const total = container.getBoundingClientRect().width;
 	const widths = col_els.map((el) => (el.getBoundingClientRect().width / total) * 100);
 	const start_x = e.clientX;
-	handle.classList.add("col-width-handle--active");
-	document.body.classList.add("pfb-col-resizing");
 	const on_move = (ev) => {
 		let delta = ((ev.clientX - start_x) / total) * 100;
 		delta = Math.max(10 - widths[i], Math.min(widths[i + 1] - 10, delta));
@@ -235,21 +234,8 @@ function start_col_width_resize(e, i) {
 		cols[i].width = Math.round(widths[i] + delta);
 		cols[i + 1].width = Math.round(widths[i + 1] - delta);
 	};
-	const on_up = () => {
-		document.removeEventListener("pointermove", on_move);
-		document.removeEventListener("pointerup", on_up);
-		document.removeEventListener("pointercancel", on_up);
-		handle.classList.remove("col-width-handle--active");
-		document.body.classList.remove("pfb-col-resizing");
-		end_col_width_resize = null;
-	};
-	document.addEventListener("pointermove", on_move);
-	document.addEventListener("pointerup", on_up);
-	document.addEventListener("pointercancel", on_up);
-	end_col_width_resize = on_up;
+	start_column_resize(handle, "col-width-handle--active", on_move);
 }
-
-onUnmounted(() => end_col_width_resize?.());
 
 let has_visible_fields = computed(
 	() =>
