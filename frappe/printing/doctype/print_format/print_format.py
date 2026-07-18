@@ -290,24 +290,25 @@ def generate_preview(name: str) -> str | None:
 		frappe.log_error(f"Print format preview generation failed: {name}")
 		return None
 
+	fname = f"pf-preview-{frappe.generate_hash(length=10)}.webp"
+	file = save_file(fname, image, "Print Format", name, is_private=1, df="preview_image")
+	# Don't bump `modified` — generating a preview isn't a content edit. Otherwise the
+	# background refresh would stale-date an open form and break its next save with a
+	# timestamp mismatch.
+	doc.db_set("preview_image", file.file_url, update_modified=False)
+
 	stale = frappe.get_all(
 		"File",
 		filters={
 			"attached_to_doctype": "Print Format",
 			"attached_to_name": name,
-			"file_url": ("like", "%pf-preview-%"),
+			"attached_to_field": "preview_image",
+			"name": ("!=", file.name),
 		},
 		pluck="name",
 	)
 	for old in stale:
 		frappe.delete_doc("File", old, ignore_permissions=True, delete_permanently=True)
-
-	fname = f"pf-preview-{frappe.generate_hash(length=10)}.webp"
-	file = save_file(fname, image, "Print Format", name, is_private=1)
-	# Don't bump `modified` — generating a preview isn't a content edit. Otherwise the
-	# background refresh would stale-date an open form and break its next save with a
-	# timestamp mismatch.
-	doc.db_set("preview_image", file.file_url, update_modified=False)
 
 	for old in stale:
 		notify_docinfo_attachment(name, {"name": old}, "delete")
