@@ -679,10 +679,12 @@ class TestBuilderMaria(IntegrationTestCase, TestBuilderBase):
 			.join(docfield)
 			.on(docfield.parent == doctype.name)
 			.set(doctype.module, docfield.fieldname)
+			.set(doctype.description, docfield.label)
 		)
 		self.assertEqual(
 			"UPDATE `tabDocType` JOIN `tabDocField` ON `tabDocField`.`parent`=`tabDocType`.`name` "
-			"SET `tabDocType`.`module`=`tabDocField`.`fieldname`",
+			"SET `tabDocType`.`module`=`tabDocField`.`fieldname`,"
+			"`tabDocType`.`description`=`tabDocField`.`label`",
 			query.get_sql(),
 		)
 
