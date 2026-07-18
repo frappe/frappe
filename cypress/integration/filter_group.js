@@ -1,7 +1,7 @@
 context("Filter Group", () => {
 	before(() => {
 		cy.login();
-		cy.visit("/desk/website");
+		cy.visit("/app/website");
 	});
 
 	it("preserves numeric filter values with a comma decimal separator", () => {
