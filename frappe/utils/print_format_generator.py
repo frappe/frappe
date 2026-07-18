@@ -64,6 +64,42 @@ def get_qr_code(value: str) -> str:
 	return "data:image/svg+xml;base64," + base64.b64encode(stream.getvalue()).decode()
 
 
+@frappe.whitelist()
+def render_builder_preview(
+	print_format: str | dict,
+	doctype: str,
+	name: str | None = None,
+	letterhead: str | None = None,
+	settings: str | dict | None = None,
+) -> str:
+	"""Render print HTML for an UNSAVED builder format.
+
+	The print format builder holds the format in memory; this lets its preview
+	reflect edits before they are saved, using the same renderer the PDF uses so
+	the preview cannot drift from the printed output. ``print_format`` is the
+	in-memory Print Format document (dict/JSON), not a saved name.
+	"""
+	from frappe.printing.doctype.print_format.print_format import printable_sample
+	from frappe.www.printview import validate_print_for_docstatus, validate_print_permission
+
+	frappe.has_permission("Print Format", "write", throw=True)
+
+	pf = frappe.get_doc(frappe.parse_json(print_format))
+	if pf.doctype != "Print Format":
+		frappe.throw(_("Expected an unsaved Print Format document"))
+
+	name = name or printable_sample(doctype)
+	if not name:
+		return ""
+
+	doc = frappe.get_doc(doctype, name)
+	validate_print_permission(doc)
+	validate_print_for_docstatus(doc)
+
+	generator = PrintFormatGenerator(pf, doc, letterhead, settings=frappe.parse_json(settings))
+	return generator.get_html_preview()
+
+
 def get_html(
 	doctype,
 	name,

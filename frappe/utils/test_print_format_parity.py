@@ -253,6 +253,20 @@ class TestPrintSurfaceParity(IntegrationTestCase):
 
 		self.assertEqual(self._doc_body(preview), self._doc_body(pdf))
 
+	def test_builder_preview_endpoint_matches_saved_render(self):
+		"""render_builder_preview() renders an UNSAVED in-memory format; its body
+		must match the saved format's print render (which the PDF shares), so a
+		live preview of unsaved edits shows exactly what will print."""
+		from frappe.utils.print_format_generator import get_html, render_builder_preview
+
+		fmt = self._make_contact_format()
+		contact = self._make_contact()
+
+		saved = get_html("Contact", contact.name, fmt.name)
+		live = render_builder_preview(frappe.as_json(fmt.as_dict()), "Contact", name=contact.name)
+
+		self.assertEqual(self._doc_body(saved), self._doc_body(live))
+
 	def test_rendered_html_carries_shared_markup_contract(self):
 		"""The server render must produce the markup vocabulary the shared
 		stylesheet and the canvas both rely on."""
