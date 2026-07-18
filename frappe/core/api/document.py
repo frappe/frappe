@@ -7,9 +7,11 @@ mapped to `/api/method/frappe.core.api.document.*`. Requests to the
 `/api/resource` REST routes and via FrappeClient are also handled here.
 
 Endpoints were consolidated from `frappe.client` (which remains as a
-permanent alias module) and `frappe.model.document`.
+permanent alias module), `frappe.model.document`, `frappe.model.rename_doc`,
+`frappe.model.mapper` and `frappe.share`.
 """
 
+from types import NoneType
 from typing import TYPE_CHECKING, Any
 
 import frappe
@@ -18,13 +20,15 @@ import frappe.utils
 from frappe import _
 from frappe.desk.reportview import validate_args
 from frappe.desk.search import PAGE_LENGTH_FOR_LINK_VALIDATION, search_widget
+from frappe.model.document import Document
 from frappe.public_api import public
 from frappe.utils import attach_expanded_links, get_safe_filters
 from frappe.utils.caching import http_cache
+from frappe.utils.data import sbool
+from frappe.utils.scheduler import is_scheduler_inactive
 
 if TYPE_CHECKING:
 	from frappe.core.doctype.file.file import File
-	from frappe.model.document import Document
 
 
 @public(group="Documents")
@@ -629,6 +633,237 @@ def unlock_document(doctype: str, name: str) -> None:
 	"""
 	frappe.get_lazy_doc(doctype, name).unlock()
 	frappe.msgprint(frappe._("Document Unlocked"), alert=True)
+
+
+@public(group="Documents")
+@frappe.whitelist()
+def update_document_title(
+	*,
+	doctype: str,
+	docname: str,
+	title: str | None = None,
+	name: str | None = None,
+	merge: bool = False,
+	enqueue: bool = False,
+	**kwargs: Any,
+) -> str:
+	"""Update the name or title of a document.
+
+	:param doctype: DocType of the document
+	:param docname: Name of the document
+	:param title: New Title of the document
+	:param name: New Name of the document
+	:param merge: Merge the current Document with the existing one if exists
+	:param enqueue: Enqueue the rename operation, title is updated in current process
+	:return: `name` if document was renamed, `docname` if renaming operation was queued.
+	"""
+
+	# to maintain backwards API compatibility
+	updated_title = kwargs.get("new_title") or title
+	updated_name = kwargs.get("new_name") or name
+
+	# TODO: omit this after runtime type checking (ref: https://github.com/frappe/frappe/pull/14927)
+	for obj in [docname, updated_title, updated_name]:
+		if not isinstance(obj, str | NoneType):
+			frappe.throw(f"{obj=} must be of type str or None")
+
+	# handle bad API usages
+	merge = sbool(merge)
+	enqueue = sbool(enqueue)
+	action_enqueued = enqueue and not is_scheduler_inactive()
+
+	doc = frappe.get_doc(doctype, docname)
+	doc.check_permission(permtype="write")
+
+	title_field = doc.meta.get_title_field()
+
+	title_updated = updated_title and (title_field != "name") and (updated_title != doc.get(title_field))
+	name_updated = updated_name and (updated_name != doc.name)
+
+	queue = kwargs.get("queue") or "long"
+
+	if name_updated:
+		if action_enqueued:
+			current_name = doc.name
+
+			# before_name hook may have DocType specific validations or transformations
+			transformed_name = doc.run_method("before_rename", current_name, updated_name, merge)
+			if isinstance(transformed_name, dict):
+				transformed_name = transformed_name.get("new")
+			transformed_name = transformed_name or updated_name
+
+			doc.queue_action("rename", name=transformed_name, merge=merge, queue=queue, timeout=36000)
+		else:
+			doc.rename(updated_name, merge=merge)
+
+	if title_updated:
+		if action_enqueued and name_updated:
+			frappe.enqueue(
+				"frappe.core.api.document.set_value",
+				doctype=doc.doctype,
+				name=updated_name,
+				fieldname=title_field,
+				value=updated_title,
+			)
+		else:
+			try:
+				setattr(doc, title_field, updated_title)
+				doc.save()
+				frappe.msgprint(_("Saved"), alert=True, indicator="green")
+			except Exception as e:
+				if frappe.db.is_duplicate_entry(e):
+					frappe.throw(
+						_("{0} {1} already exists").format(doctype, frappe.bold(docname)),
+						title=_("Duplicate Name"),
+						exc=frappe.DuplicateEntryError,
+					)
+				raise
+
+	return doc.name
+
+
+@public(group="Documents")
+@frappe.whitelist()
+def make_mapped_doc(
+	method: str,
+	source_name: str,
+	selected_children: str | list | dict | None = None,
+	args: str | dict | None = None,
+) -> Document:
+	"""Return a new mapped document made by calling the given mapper method.
+
+	Sets `selected_children` as flags for the `get_mapped_doc` method.
+	Called from `open_mapped_doc` in create_new.js.
+
+	:param method: dotted path of a whitelisted mapper method
+	:param source_name: name of the source document, passed to the mapper method
+	:param selected_children: rows selected in the UI, mapped instead of full child tables
+	:param args: args set as `frappe.flags.args` for the mapper method
+	:return: The mapped document, not yet inserted.
+	"""
+	method = frappe.get_attr(frappe.override_whitelisted_method(method))
+
+	frappe.is_whitelisted(method)
+
+	if selected_children:
+		selected_children = frappe.parse_json(selected_children)
+
+	if args:
+		frappe.flags.args = frappe._dict(frappe.parse_json(args))
+
+	frappe.flags.selected_children = selected_children or None
+
+	return method(source_name)
+
+
+@public(group="Documents")
+@frappe.whitelist()
+def map_docs(
+	method: str,
+	source_names: str | list,
+	target_doc: Document | dict | str,
+	args: str | dict | None = None,
+) -> Document:
+	"""Return the mapped document made by calling the given mapper method with each source doc on the target doc.
+
+	:param method: dotted path of a whitelisted mapper method
+	:param source_names: names of the source documents, each passed to the mapper method
+	:param target_doc: document (or dict/JSON) the sources are mapped onto
+	:param args: args as JSON to pass to the mapper method, e.g. `"{ 'supplier': 'XYZ' }"`
+	:return: The mapped target document.
+	"""
+	method = frappe.get_attr(frappe.override_whitelisted_method(method))
+
+	frappe.is_whitelisted(method)
+
+	for src in frappe.parse_json(source_names):
+		_args = (src, target_doc, frappe.parse_json(args)) if args else (src, target_doc)
+		target_doc = method(*_args)
+	return target_doc
+
+
+@public(group="Documents")
+@frappe.whitelist()
+def add_share(
+	doctype: str,
+	name: str | int,
+	user: str | None = None,
+	read: str | bool | int = 1,
+	write: str | bool | int = 0,
+	submit: str | bool | int = 0,
+	share: str | bool | int = 0,
+	everyone: str | bool | int = 0,
+	notify: str | bool | int = 0,
+	**kwargs: Any,
+) -> Document:
+	"""Share a document with a user.
+
+	:param doctype: DocType of the document to be shared
+	:param name: name of the document to be shared
+	:param user: user the document is shared with, defaults to the session user
+	:param read: grant read permission
+	:param write: grant write permission
+	:param submit: grant submit permission
+	:param share: grant permission to share further
+	:param everyone: share with everyone instead of a single user
+	:param notify: notify the user about the share
+	:param kwargs: custom permission types to grant
+	:return: The DocShare document.
+	"""
+	from frappe.share import add_docshare
+
+	return add_docshare(
+		doctype,
+		name,
+		user=user,
+		read=read,
+		write=write,
+		submit=submit,
+		share=share,
+		everyone=everyone,
+		notify=notify,
+		**kwargs,
+	)
+
+
+@public(group="Documents")
+@frappe.whitelist()
+def set_share_permission(
+	doctype: str,
+	name: str | int,
+	user: str | None,
+	permission_to: str,
+	value: str | bool | int = 1,
+	everyone: str | bool | int = 0,
+) -> Document | None:
+	"""Set or unset one permission on an existing share of a document.
+
+	:param doctype: DocType of the shared document
+	:param name: name of the shared document
+	:param user: user the document is shared with
+	:param permission_to: permission type to change, e.g. `read`, `write`, `share`
+	:param value: 1 to grant the permission, 0 to revoke it
+	:param everyone: target the share with everyone instead of a single user
+	:return: The updated DocShare document, or None if the share was removed.
+	"""
+	from frappe.share import set_docshare_permission
+
+	return set_docshare_permission(doctype, name, user, permission_to, value=value, everyone=everyone)
+
+
+@public(group="Documents")
+@frappe.whitelist()
+def get_shared_users(doctype: str, name: str) -> list:
+	"""Get the shares (DocShare records) of a document.
+
+	:param doctype: DocType of the shared document
+	:param name: name of the shared document
+	:return: DocShare records of the document, one per user it is shared with.
+	"""
+	from frappe.share import _get_users
+
+	doc = frappe.get_lazy_doc(doctype, name)
+	return _get_users(doc)
 
 
 def insert_doc(doc) -> "Document":

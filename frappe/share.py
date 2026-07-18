@@ -18,34 +18,6 @@ if TYPE_CHECKING:
 	from frappe.model.document import Document
 
 
-@frappe.whitelist()
-def add(
-	doctype: str,
-	name: str | int,
-	user: str | None = None,
-	read: str | bool | int = 1,
-	write: str | bool | int = 0,
-	submit: str | bool | int = 0,
-	share: str | bool | int = 0,
-	everyone: str | bool | int = 0,
-	notify: str | bool | int = 0,
-	**kwargs,
-):
-	"""Expose function without flags to the client-side"""
-	return add_docshare(
-		doctype,
-		name,
-		user=user,
-		read=read,
-		write=write,
-		submit=submit,
-		share=share,
-		everyone=everyone,
-		notify=notify,
-		**kwargs,
-	)
-
-
 def add_docshare(
 	doctype, name, user=None, read=1, write=0, submit=0, share=0, everyone=0, flags=None, notify=0, **kwargs
 ):
@@ -97,19 +69,6 @@ def remove(doctype, name, user, flags=None):
 		frappe.delete_doc("DocShare", share_name, flags=flags)
 
 
-@frappe.whitelist()
-def set_permission(
-	doctype: str,
-	name: str | int,
-	user: str | None,
-	permission_to: str,
-	value: str | bool | int = 1,
-	everyone: str | bool | int = 0,
-):
-	"""Expose function without flags to the client-side"""
-	return set_docshare_permission(doctype, name, user, permission_to, value=value, everyone=everyone)
-
-
 def set_docshare_permission(doctype, name, user, permission_to, value=1, everyone=0, flags=None):
 	"""Set share permission."""
 	if not (flags or {}).get("ignore_share_permission"):
@@ -145,13 +104,6 @@ def set_docshare_permission(doctype, name, user, permission_to, value=1, everyon
 			share = None
 
 	return share
-
-
-@frappe.whitelist()
-def get_users(doctype: str, name: str) -> list:
-	"""Get list of users with which this document is shared"""
-	doc = frappe.get_lazy_doc(doctype, name)
-	return _get_users(doc)
 
 
 def _get_users(doc: "Document") -> list:
@@ -287,3 +239,22 @@ def notify_assignment(shared_by, doctype, doc_name, everyone, notify=0):
 	}
 
 	enqueue_create_notification(shared_by, notification_doc)
+
+
+# The whitelisted endpoints moved to frappe.core.api.document (renamed there to
+# add_share, set_share_permission and get_shared_users). Aliases keep the old
+# dotted paths and programmatic callers working; they are resolved lazily
+# because frappe.core.api.document transitively imports this module.
+_MOVED_TO_DOCUMENT_API = {
+	"add": "add_share",
+	"get_users": "get_shared_users",
+	"set_permission": "set_share_permission",
+}
+
+
+def __getattr__(name: str):
+	if new_name := _MOVED_TO_DOCUMENT_API.get(name):
+		from frappe.core.api import document
+
+		return getattr(document, new_name)
+	raise AttributeError(f"module {__name__!r} has no attribute {name!r}")
