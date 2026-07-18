@@ -74,7 +74,7 @@ frappe.ui.misc.about = function () {
 	frappe.ui.misc.about_dialog.on_page_show = function () {
 		if (!frappe.versions) {
 			frappe.call({
-				method: "frappe.utils.change_log.get_versions",
+				method: "frappe.core.api.diagnostics.get_versions",
 				callback: function (r) {
 					show_versions(r.message);
 				},

@@ -114,12 +114,17 @@ def concurrent_limit(limit: int | None = None, wait_timeout: int = _DEFAULT_WAIT
 	return decorator
 
 
-@frappe.whitelist()
-def get_stats() -> dict:
-	frappe.only_for("System Manager")
-	cached_limit = _default_limit()
-	gunicorn_limit = gunicorn_max_concurrency()
-	return {
-		"cached_limit": cached_limit,
-		"gunicorn_limit": gunicorn_limit,
-	}
+# `get_stats` moved to frappe.core.api.diagnostics.
+# The aliases keep the old dotted paths working; resolved lazily to avoid
+# circular imports.
+_MOVED_TO_DIAGNOSTICS_API = {
+	"get_stats": "get_concurrency_stats",
+}
+
+
+def __getattr__(name: str):
+	if new_name := _MOVED_TO_DIAGNOSTICS_API.get(name):
+		from frappe.core.api import diagnostics
+
+		return getattr(diagnostics, new_name)
+	raise AttributeError(f"module {__name__!r} has no attribute {name!r}")

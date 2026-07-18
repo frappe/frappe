@@ -10,7 +10,9 @@ frappe.listview_settings["Recorder"] = {
 		}
 
 		listview.page.add_button(__("Clear"), () => {
-			frappe.xcall("frappe.recorder.delete").then(listview.refresh);
+			frappe
+				.xcall("frappe.core.api.diagnostics.delete_recorder_data")
+				.then(listview.refresh);
 		});
 
 		listview.page.add_menu_item(__("Import"), () => {
@@ -22,7 +24,7 @@ frappe.listview_settings["Recorder"] = {
 						return;
 					}
 					frappe.call({
-						method: "frappe.recorder.import_data",
+						method: "frappe.core.api.diagnostics.import_recorder_data",
 						args: {
 							file: file.file_url,
 						},
@@ -36,7 +38,7 @@ frappe.listview_settings["Recorder"] = {
 
 		listview.page.add_menu_item(__("Export"), () => {
 			frappe.call({
-				method: "frappe.recorder.export_data",
+				method: "frappe.core.api.diagnostics.export_recorder_data",
 				callback: function (r) {
 					const data = r.message;
 					const filename = `${data[0]["uuid"]}..${data[data.length - 1]["uuid"]}.json`;
@@ -77,7 +79,7 @@ frappe.listview_settings["Recorder"] = {
 	},
 
 	fetch_recorder_status(listview) {
-		return frappe.xcall("frappe.recorder.status").then((status) => {
+		return frappe.xcall("frappe.core.api.diagnostics.get_recorder_status").then((status) => {
 			listview.enabled = Boolean(status);
 		});
 	},
@@ -95,7 +97,7 @@ frappe.listview_settings["Recorder"] = {
 
 	stop_recorder(listview) {
 		let me = this;
-		frappe.xcall("frappe.recorder.stop", {}).then(() => {
+		frappe.xcall("frappe.core.api.diagnostics.stop_recorder", {}).then(() => {
 			listview.refresh();
 			listview.enabled = false;
 			me.refresh_controls(listview);
@@ -191,7 +193,7 @@ frappe.listview_settings["Recorder"] = {
 				},
 			],
 			(values) => {
-				frappe.xcall("frappe.recorder.start", values).then(() => {
+				frappe.xcall("frappe.core.api.diagnostics.start_recorder", values).then(() => {
 					listview.refresh();
 					listview.enabled = true;
 					me.refresh_controls(listview);

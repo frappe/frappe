@@ -464,7 +464,7 @@ frappe.Application = class Application {
 		change_log_dialog.keep_open = true;
 		change_log_dialog.custom_onhide = function () {
 			frappe.call({
-				method: "frappe.utils.change_log.update_last_known_versions",
+				method: "frappe.core.api.diagnostics.update_last_known_versions",
 			});
 			me.show_notes();
 		};
@@ -472,7 +472,7 @@ frappe.Application = class Application {
 
 	show_update_available() {
 		if (!frappe.boot.has_app_updates || !frappe.boot.setup_complete) return;
-		frappe.xcall("frappe.utils.change_log.show_update_popup");
+		frappe.xcall("frappe.core.api.diagnostics.show_update_popup");
 	}
 
 	add_browser_class() {

@@ -322,76 +322,6 @@ def administrator_only(function):
 	return wrapper
 
 
-@frappe.whitelist()
-@do_not_record
-@administrator_only
-def status(*args, **kwargs):
-	return bool(frappe.cache.get_value(RECORDER_INTERCEPT_FLAG))
-
-
-@frappe.whitelist()
-@do_not_record
-@administrator_only
-def start(
-	record_jobs: bool = True,
-	record_requests: bool = True,
-	record_sql: bool = True,
-	profile: bool = False,
-	capture_stack: bool = True,
-	explain: bool = True,
-	request_filter: str = "/",
-	jobs_filter: str = "",
-	*args,
-	**kwargs,
-):
-	RecorderConfig(
-		record_requests=int(record_requests),
-		record_jobs=int(record_jobs),
-		record_sql=int(record_sql),
-		profile=int(profile),
-		capture_stack=int(capture_stack),
-		explain=int(explain),
-		request_filter=request_filter,
-		jobs_filter=jobs_filter,
-	).store()
-	frappe.client_cache.set_value(RECORDER_INTERCEPT_FLAG, True)
-	frappe.cache.expire_key(RECORDER_INTERCEPT_FLAG, RECORDER_AUTO_DISABLE)
-
-
-@frappe.whitelist()
-@do_not_record
-@administrator_only
-def stop(*args, **kwargs):
-	frappe.client_cache.set_value(RECORDER_INTERCEPT_FLAG, False)
-	frappe.enqueue(post_process, now=frappe.in_test)
-
-
-@frappe.whitelist()
-@do_not_record
-@administrator_only
-def get(uuid: str | None = None, *args, **kwargs):
-	if uuid:
-		result = frappe.cache.hget(RECORDER_REQUEST_HASH, uuid)
-	else:
-		result = list(frappe.cache.hgetall(RECORDER_REQUEST_SPARSE_HASH).values())
-	return result
-
-
-@frappe.whitelist()
-@do_not_record
-@administrator_only
-def export_data(*args, **kwargs):
-	return list(frappe.cache.hgetall(RECORDER_REQUEST_HASH).values())
-
-
-@frappe.whitelist()
-@do_not_record
-@administrator_only
-def delete(*args, **kwargs):
-	frappe.cache.delete_value(RECORDER_REQUEST_SPARSE_HASH)
-	frappe.cache.delete_value(RECORDER_REQUEST_HASH)
-
-
 def record_queries(func: Callable):
 	"""Decorator to profile a specific function using recorder."""
 
@@ -409,13 +339,23 @@ def record_queries(func: Callable):
 	return wrapped
 
 
-@frappe.whitelist()
-@do_not_record
-@administrator_only
-def import_data(file: str) -> None:
-	file_doc = frappe.get_doc("File", {"file_url": file})
-	file_content = json.loads(file_doc.get_content())
-	for request in file_content:
-		frappe.cache.hset(RECORDER_REQUEST_SPARSE_HASH, request["uuid"], request)
-		frappe.cache.hset(RECORDER_REQUEST_HASH, request["uuid"], request)
-	file_doc.delete(delete_permanently=True)
+# `status`, `start`, `stop`, `get`, `export_data`, `delete`, `import_data` moved to frappe.core.api.diagnostics.
+# The aliases keep the old dotted paths working; resolved lazily to avoid
+# circular imports.
+_MOVED_TO_DIAGNOSTICS_API = {
+	"status": "get_recorder_status",
+	"start": "start_recorder",
+	"stop": "stop_recorder",
+	"get": "get_recorded_requests",
+	"export_data": "export_recorder_data",
+	"delete": "delete_recorder_data",
+	"import_data": "import_recorder_data",
+}
+
+
+def __getattr__(name: str):
+	if new_name := _MOVED_TO_DIAGNOSTICS_API.get(name):
+		from frappe.core.api import diagnostics
+
+		return getattr(diagnostics, new_name)
+	raise AttributeError(f"module {__name__!r} has no attribute {name!r}")

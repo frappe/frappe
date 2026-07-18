@@ -25,9 +25,13 @@ def get_change_log(user=None):
 	last_known_versions = frappe._dict(
 		json.loads(frappe.db.get_value("User", user, "last_known_versions") or "{}")
 	)
+	from frappe.core.api.diagnostics import get_versions
+
 	current_versions = get_versions()
 
 	if not last_known_versions:
+		from frappe.core.api.diagnostics import update_last_known_versions
+
 		update_last_known_versions()
 		return []
 
@@ -89,64 +93,6 @@ def get_change_log_for_app(app, from_version, to_version):
 	return [[cstr(d[0]), d[1]] for d in app_change_log]
 
 
-@frappe.whitelist()
-def update_last_known_versions():
-	with suppress(frappe.QueryDeadlockError):
-		frappe.db.set_value(
-			"User",
-			frappe.session.user,
-			"last_known_versions",
-			json.dumps(get_versions()),
-			update_modified=False,
-		)
-
-
-@frappe.whitelist()
-def get_versions():
-	"""Get versions of all installed apps.
-
-	Example:
-
-	        {
-	                "frappe": {
-	                        "title": "Frappe Framework",
-	                        "version": "5.0.0"
-	                }
-	        }"""
-	versions = {}
-	for app in frappe.get_installed_apps(_ensure_on_bench=True):
-		app_hooks = frappe.get_hooks(app_name=app)
-		app_color = app_hooks.get("app_color")
-
-		# Prefer add_to_apps_screen logo, then app_logo_url — no frappe fallback
-		logo = None
-		apps_screen = app_hooks.get("add_to_apps_screen")
-		if apps_screen and apps_screen[0].get("logo"):
-			logo = apps_screen[0]["logo"]
-		elif app_hooks.get("app_logo_url"):
-			logo = app_hooks["app_logo_url"][0]
-
-		versions[app] = {
-			"title": app_hooks.get("app_title")[0],
-			"description": app_hooks.get("app_description")[0],
-			"branch": get_app_branch(app),
-			"color": app_color[0] if app_color else None,
-			"logo": logo,
-		}
-
-		if versions[app]["branch"] != "master":
-			branch_version = app_hooks.get("{}_version".format(versions[app]["branch"]))
-			if branch_version:
-				versions[app]["branch_version"] = branch_version[0] + f" ({get_app_last_commit_ref(app)})"
-
-		try:
-			versions[app]["version"] = frappe.get_attr(app + ".__version__")
-		except AttributeError:
-			versions[app]["version"] = "0.0.1"
-
-	return versions
-
-
 def get_app_branch(app):
 	"""Return branch of an app."""
 	try:
@@ -185,6 +131,8 @@ def check_for_update():
 		return
 
 	updates = frappe._dict(major=[], minor=[], patch=[])
+	from frappe.core.api.diagnostics import get_versions
+
 	apps = get_versions()
 
 	for app in apps:
@@ -351,64 +299,6 @@ def add_message_to_redis(update_json):
 	frappe.cache.sadd("changelog-update-user-set", *system_managers)
 
 
-@frappe.whitelist()
-def show_update_popup():
-	if frappe.get_system_settings("disable_system_update_notification"):
-		return
-	user = frappe.session.user
-
-	update_info = frappe.cache.get_value("changelog-update-info")
-	if not update_info:
-		return
-
-	updates = json.loads(update_info)
-
-	# Check if user is int the set of users to send update message to
-	update_message = ""
-	if frappe.cache.sismember("changelog-update-user-set", user):
-		for update_type in updates:
-			release_links = ""
-			for app in updates[update_type]:
-				app = frappe._dict(app)
-				security_msg = ""
-				if app.security_issues:
-					security_msg = (
-						_("Contains {0} security fixes")
-						if app.security_issues > 1
-						else _("Contains {0} security fix")
-					)
-					security_msg = security_msg.format(frappe.bold(app.security_issues))
-					security_msg = f"""( <a href='https://github.com/{app.org_name}/{app.app_name}/security/advisories'
-						 target='_blank'>{security_msg}</a> )"""
-				release_links += f"""
-					<b>{app.title}</b>:
-						<a href='https://github.com/{app.org_name}/{app.app_name}/releases/tag/v{app.available_version}'
-							target="_blank">
-							v{app.available_version}
-						</a> {security_msg}<br>
-					"""
-			if release_links:
-				message = _("New {} releases for the following apps are available").format(_(update_type))
-				update_message += f"<div class='new-version-log'>{message}<div class='new-version-links'>{release_links}</div></div>"
-
-	primary_action = None
-	if on_frappecloud():
-		primary_action = {
-			"label": _("Update from Frappe Cloud"),
-			"client_action": "window.open",
-			"args": f"https://frappecloud.com/dashboard/sites/{frappe.local.site}",
-		}
-
-	if update_message:
-		frappe.msgprint(
-			update_message,
-			title=_("New updates are available"),
-			indicator="green",
-			primary_action=primary_action,
-		)
-		frappe.cache.srem("changelog-update-user-set", user)
-
-
 def get_pyproject(app: str) -> dict | None:
 	from tomllib import load
 
@@ -419,3 +309,21 @@ def get_pyproject(app: str) -> dict | None:
 
 	with open(pyproject_path, "rb") as f:
 		return load(f)
+
+
+# `get_versions`, `update_last_known_versions` and `show_update_popup` moved to
+# frappe.core.api.diagnostics. The aliases keep the old dotted paths working;
+# resolved lazily to avoid circular imports.
+_MOVED_TO_DIAGNOSTICS_API = {
+	"get_versions": "get_versions",
+	"update_last_known_versions": "update_last_known_versions",
+	"show_update_popup": "show_update_popup",
+}
+
+
+def __getattr__(name: str):
+	if new_name := _MOVED_TO_DIAGNOSTICS_API.get(name):
+		from frappe.core.api import diagnostics
+
+		return getattr(diagnostics, new_name)
+	raise AttributeError(f"module {__name__!r} has no attribute {name!r}")
