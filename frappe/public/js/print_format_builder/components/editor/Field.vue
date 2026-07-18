@@ -186,7 +186,7 @@
 												class="cell-line"
 												:class="`cell-line--${mf.style || 'primary'}`"
 											>
-												{{ format_merged(row, mf.fieldname) }}
+												{{ format_merged(row, i, mf.fieldname) }}
 											</div>
 										</div>
 									</div>
@@ -814,10 +814,11 @@ function text_merges(col) {
 	return merged_fields(col).filter((mf) => mf.fieldname !== img?.fieldname);
 }
 
-// Format a merged sub-field using its own child docfield definition.
-// Merged lines are plain text, so strip any HTML kept for rich-text
-// fields (Text Editor / Long Text) down to its text content.
-function format_merged(row, fieldname) {
+function format_merged(row, i, fieldname) {
+	const server = store.preview_child_values.value?.[props.df.fieldname]?.[i]?.[fieldname];
+	if (server !== null && server !== undefined && server !== "") {
+		return strip_html_to_text(String(server)).trim();
+	}
 	const dcol = frappe.meta.get_docfield(props.df.options, fieldname) || {
 		fieldname,
 		fieldtype: "Data",
