@@ -1130,9 +1130,7 @@ watch(print_format, () => (store.dirty.value = true), { deep: true });
 }
 
 .pfb-tree-children {
-	margin-left: 15px;
-	border-left: 1px solid var(--gray-200);
-	padding-left: 3px;
+	margin-left: 18px;
 }
 
 /* ── Format tab ──────────────────────────────────────────── */
