@@ -352,6 +352,12 @@ const SAFE_HTML_ATTRS = new Set([
 	"cellspacing",
 ]);
 
+export function strip_html_to_text(html, fallback = "") {
+	const tmp = document.createElement("div");
+	tmp.innerHTML = html;
+	return tmp.textContent || tmp.innerText || fallback;
+}
+
 export function sanitize_html(html) {
 	const root = document.createElement("div");
 	root.innerHTML = frappe.dom.remove_script_and_style(html || "");

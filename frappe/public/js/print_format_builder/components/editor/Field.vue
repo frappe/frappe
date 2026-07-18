@@ -481,6 +481,7 @@ import ConfigureColumnsVue from "../inspector/ConfigureColumns.vue";
 import {
 	render_jinja_html,
 	sanitize_html,
+	strip_html_to_text,
 	evaluate_visible_if,
 	thumb_hue,
 	parse_inline_style,
@@ -688,9 +689,7 @@ let preview_value = computed(() => {
 		const formatted = frappe.format(raw, props.df, { only_value: true }, preview_doc.value);
 		// If frappe.format returned HTML markup, extract the text content
 		if (typeof formatted === "string" && formatted.includes("<")) {
-			const tmp = document.createElement("div");
-			tmp.innerHTML = formatted;
-			return tmp.textContent || tmp.innerText || String(raw);
+			return strip_html_to_text(formatted, String(raw));
 		}
 		return formatted;
 	} catch {
@@ -769,9 +768,7 @@ function format_cell(row, col) {
 	try {
 		const formatted = frappe.format(raw, col, { only_value: true }, row);
 		if (typeof formatted === "string" && formatted.includes("<")) {
-			const tmp = document.createElement("div");
-			tmp.innerHTML = formatted;
-			return tmp.textContent || tmp.innerText || String(raw);
+			return strip_html_to_text(formatted, String(raw));
 		}
 		return formatted;
 	} catch {
@@ -816,9 +813,7 @@ function format_merged(row, fieldname) {
 	};
 	const val = format_cell(row, dcol);
 	if (typeof val === "string" && val.includes("<")) {
-		const tmp = document.createElement("div");
-		tmp.innerHTML = val;
-		return (tmp.textContent || tmp.innerText || "").trim();
+		return strip_html_to_text(val).trim();
 	}
 	return val;
 }
