@@ -112,12 +112,7 @@ class TestTranslate(IntegrationTestCase):
 			self.assertEqual(_(source), source)
 
 			frappe.local.lang = "pt-BR"
-<<<<<<< HEAD
-			self.assertEqual(_("Mobile No"), "Telefone Celular")
-=======
 			self.assertEqual(_(source), "Tradução PT-BR")
-
->>>>>>> 4855ee1e01 (test: stop relying on shipped .po strings in translate tests (#41021))
 			frappe.local.lang = "pt"
 			self.assertEqual(_(source), "Tradução PT")
 		finally:
