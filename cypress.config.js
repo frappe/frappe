@@ -9,7 +9,7 @@ module.exports = defineConfig({
 	testUser: "frappe@example.com",
 	defaultCommandTimeout: 20000,
 	pageLoadTimeout: 15000,
-	video: true,
+	video: process.env.CYPRESS_RECORD_VIDEO === "1",
 	videosFolder: path.resolve(__dirname, "..", "..") + "/cypressVideos/",
 	viewportHeight: 960,
 	viewportWidth: 1400,
@@ -34,20 +34,24 @@ module.exports = defineConfig({
 				cypressSplit(on, config);
 			}
 
-			// Delete videos for specs without failing or retried tests
+			// Delete videos for specs where no test ultimately failed
 			// https://docs.cypress.io/guides/guides/screenshots-and-videos#Delete-videos-for-specs-without-failing-or-retried-tests
 			on("after:spec", (spec, results) => {
 				if (results && results.video) {
-					const failures = results.tests.some((test) =>
-						test.attempts.some((attempt) => attempt.state === "failed")
+					const anyFailed = results.tests.some(
+						(test) => test.attempts[test.attempts.length - 1].state === "failed"
 					);
-					if (!failures) {
+					if (!anyFailed) {
 						fs.unlinkSync(results.video);
 					}
 				}
 			});
 
-			return require("./cypress/plugins/index.js")(on, config);
+			const result = require("./cypress/plugins/index.js")(on, config);
+			if (process.env.CI) {
+				on("task", { coverageReport: () => null });
+			}
+			return result;
 		},
 		testIsolation: false,
 		baseUrl: "http://test_site_ui:8000",
