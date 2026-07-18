@@ -2,30 +2,27 @@
 import { computed } from "vue";
 import CodeBlock from "./CodeBlock.vue";
 import ChipList from "./ChipList.vue";
-import ClampText from "./ClampText.vue";
 import RecordsList from "./RecordsList.vue";
-import { humanize, argKind, formatScalar, isLongText } from "@/lib/toolMeta";
+import { humanize, argKind, formatScalar } from "@/lib/toolMeta";
 
-// Fields render in one bordered table: single values as two-column rows, code and
-// long text as full-width rows (label on top, block below) so they keep their
-// place in the field order. Collections (lists, records, nested objects) render
-// as full-width sections beneath. `blockKeys` forces a key to the text form so a
-// field looks the same across sibling records.
+// Fields render in one bordered table: single values as two-column rows, block
+// text (code, long, or multi-line) as full-width rows (label on top, code block
+// below) so they keep their place in the field order. Collections (lists, records,
+// nested objects) render as full-width sections beneath. `blockKeys` forces a key
+// to the block form so a field looks the same across sibling records.
 const props = defineProps({
 	value: { type: Object, required: true },
 	blockKeys: { type: Object, default: () => new Set() },
 });
 
 const kindFor = (k, v) => {
-	const base = k === "code" && typeof v === "string" && v ? "code" : argKind(v);
-	if (base === "code") return "code";
-	if (typeof v === "string" && v && (props.blockKeys.has(k) || isLongText(v))) return "text";
-	return base;
+	if (typeof v === "string" && v && props.blockKeys.has(k)) return "code";
+	return argKind(v);
 };
 
-// In the table: two-column single values + full-span code/text. Below: collections.
-const TABLE = new Set(["scalar", "empty", "tuple", "code", "text"]);
-const isFull = (kind) => kind === "code" || kind === "text";
+// In the table: two-column single values + full-span block text. Below: collections.
+const TABLE = new Set(["scalar", "empty", "tuple", "code"]);
+const isFull = (kind) => kind === "code";
 
 const entries = computed(() =>
 	Object.entries(props.value).map(([key, value]) => ({ key, value, kind: kindFor(key, value) }))
@@ -53,8 +50,7 @@ const tupleValues = (v) => (Array.isArray(v[1]) ? v[1] : [v[1]]).map(formatScala
 					>
 						{{ humanize(row.key) }}
 					</div>
-					<CodeBlock v-if="row.kind === 'code'" :code="String(row.value)" />
-					<ClampText v-else :text="String(row.value)" />
+					<CodeBlock :code="String(row.value)" />
 				</div>
 				<template v-else>
 					<div

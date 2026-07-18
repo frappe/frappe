@@ -1,7 +1,7 @@
 <script setup>
 import { ref, computed } from "vue";
 import ArgValue from "./ArgValue.vue";
-import { formatScalar, recordLabelKey, isLongText } from "@/lib/toolMeta";
+import { formatScalar, recordLabelKey, isBlockText } from "@/lib/toolMeta";
 import { __ } from "@/lib/translate";
 
 // Records laid flat: numbered, title first, every field visible right away.
@@ -27,14 +27,14 @@ const fieldOrder = computed(() => {
 	return order;
 });
 
-// Fields long in any record render as a text block in every record, so a field
-// looks the same across records regardless of one record's shorter value.
+// Fields that are block text in any record render as a code block in every record,
+// so a field looks the same across records regardless of one record's shorter value.
 const blockKeys = computed(() => {
 	const keys = new Set();
 	for (const rec of props.records) {
 		if (!isObj(rec)) continue;
 		for (const [k, v] of Object.entries(rec)) {
-			if (k !== labelKey.value && isLongText(v)) keys.add(k);
+			if (k !== labelKey.value && isBlockText(v)) keys.add(k);
 		}
 	}
 	return keys;
