@@ -108,6 +108,8 @@ _LAZY_IMPORTS: dict[str, tuple[str, str]] = {
 	"sendmail": ("frappe.email", "sendmail"),
 	# frappe.concurrency_limiter
 	"concurrent_limit": ("frappe.concurrency_limiter", "concurrent_limit"),
+	# frappe.public_api
+	"public": ("frappe.public_api", "public"),
 	# frappe.deprecation_dumpster
 	"get_test_records": ("frappe.deprecation_dumpster", "frappe_get_test_records"),
 	# frappe.utils.data
@@ -185,6 +187,7 @@ if TYPE_CHECKING:  # pragma: no cover
 		get_pymodule_path,
 		get_site_path,
 	)
+	from frappe.public_api import public
 	from frappe.query_builder.builder import MariaDB, Postgres, SQLite
 	from frappe.realtime import publish_progress, publish_realtime
 	from frappe.utils import (
