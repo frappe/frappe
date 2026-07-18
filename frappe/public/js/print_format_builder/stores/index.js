@@ -36,6 +36,7 @@ export function getStore(print_format_name) {
 	let preview_doc = ref(null);
 	let preview_doc_name = ref(null);
 	let preview_values = ref({});
+	let preview_child_values = ref({});
 
 	// methods
 	function fetch() {
@@ -216,6 +217,7 @@ export function getStore(print_format_name) {
 			preview_doc.value = null;
 			preview_doc_name.value = null;
 			preview_values.value = {};
+			preview_child_values.value = {};
 			localStorage.removeItem(preview_doc_ls_key);
 			return;
 		}
@@ -230,7 +232,8 @@ export function getStore(print_format_name) {
 				name,
 			})
 			.then((r) => {
-				preview_values.value = r.message || {};
+				preview_values.value = r.message?.values || {};
+				preview_child_values.value = r.message?.child || {};
 			});
 	}
 	function get_layout() {
@@ -355,6 +358,7 @@ export function getStore(print_format_name) {
 		preview_doc,
 		preview_doc_name,
 		preview_values,
+		preview_child_values,
 		load_preview_doc,
 		persisted_preview_doc_name,
 		fetch,

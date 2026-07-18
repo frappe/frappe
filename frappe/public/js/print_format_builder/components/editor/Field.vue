@@ -202,9 +202,9 @@
 											:alt="col.label || col.fieldname"
 										/>
 										<div
-											v-else-if="is_html_content_field(col)"
+											v-else-if="cell_server_html(i, col)"
 											class="preview-table-html"
-											v-html="format_cell(row, col)"
+											v-html="cell_server_html(i, col)"
 										></div>
 										<span v-else>{{ format_cell(row, col) }}</span>
 									</template>
@@ -764,8 +764,10 @@ function multiselect_display(df) {
 	);
 }
 
-function is_html_content_field(col) {
-	return HTML_CONTENT_FIELDTYPES.has(col?.fieldtype);
+function cell_server_html(i, col) {
+	const v = store.preview_child_values.value?.[props.df.fieldname]?.[i]?.[col.fieldname];
+	if (v === null || v === undefined || v === "") return null;
+	return sanitize_html(String(v));
 }
 
 function format_cell(row, col) {

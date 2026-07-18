@@ -276,11 +276,14 @@ class TestPrintSurfaceParity(IntegrationTestCase):
 		fmt = self._make_contact_format()
 		contact = self._make_contact()
 
-		values = get_formatted_field_values("Contact", contact.name)
+		result = get_formatted_field_values("Contact", contact.name)
 		html = get_html("Contact", contact.name, fmt.name)
 
-		self.assertEqual(values["first_name"], contact.get_formatted("first_name"))
-		self.assertIn(values["first_name"], html)
+		self.assertEqual(result["values"]["first_name"], contact.get_formatted("first_name"))
+		self.assertIn(result["values"]["first_name"], html)
+
+		email_rows = result["child"]["email_ids"]
+		self.assertEqual(email_rows[0]["email_id"], contact.email_ids[0].get_formatted("email_id"))
 
 	def test_rendered_html_carries_shared_markup_contract(self):
 		"""The server render must produce the markup vocabulary the shared
