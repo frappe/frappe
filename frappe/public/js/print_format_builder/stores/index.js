@@ -174,6 +174,37 @@ export function getStore(print_format_name) {
 		serialize_layout(snapshot);
 		return { ...print_format.value, format_data: JSON.stringify(snapshot) };
 	}
+	function select_field(df) {
+		selected_field.value = df;
+		selected_letterhead.value = false;
+		selected_lh_footer.value = false;
+	}
+	function select_section(section) {
+		selected_section.value = section;
+		selected_field.value = null;
+		selected_letterhead.value = false;
+		selected_lh_footer.value = false;
+	}
+	function select_letterhead({ footer = false } = {}) {
+		selected_letterhead.value = !footer;
+		selected_lh_footer.value = footer;
+		selected_field.value = null;
+		selected_section.value = null;
+	}
+	function remove_section(section) {
+		const idx = layout.value.sections.indexOf(section);
+		if (idx === -1) return;
+		layout.value.sections.splice(idx, 1);
+		if (selected_section.value === section) {
+			selected_section.value = null;
+		}
+		if (
+			selected_field.value &&
+			section.columns.some((c) => c.fields.includes(selected_field.value))
+		) {
+			selected_field.value = null;
+		}
+	}
 	// Persist the chosen preview record per print format so it survives a refresh
 	const preview_doc_ls_key = `pfb:preview_doc:${print_format_name}`;
 	function persisted_preview_doc_name() {
@@ -320,6 +351,10 @@ export function getStore(print_format_name) {
 		save_changes,
 		reset_changes,
 		get_preview_format_doc,
+		select_field,
+		select_section,
+		select_letterhead,
+		remove_section,
 		get_layout,
 		get_default_layout,
 		change_letterhead,

@@ -276,26 +276,11 @@ let section_inline_style = computed(() => {
 });
 
 function select_section() {
-	store.selected_section.value = props.section;
-	store.selected_field.value = null;
-	store.selected_letterhead.value = false;
-	store.selected_lh_footer.value = false;
+	store.select_section(props.section);
 }
 
 function remove_section() {
-	const idx = store.layout.value.sections.indexOf(props.section);
-	if (idx !== -1) {
-		store.layout.value.sections.splice(idx, 1);
-		if (store.selected_section.value === props.section) {
-			store.selected_section.value = null;
-		}
-		if (
-			store.selected_field.value &&
-			props.section.columns.some((c) => c.fields.includes(store.selected_field.value))
-		) {
-			store.selected_field.value = null;
-		}
-	}
+	store.remove_section(props.section);
 }
 
 function remove_column(index) {

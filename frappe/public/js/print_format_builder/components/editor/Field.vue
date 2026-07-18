@@ -846,9 +846,7 @@ function thumb(col, row) {
 }
 
 function select_field() {
-	store.selected_field.value = props.df;
-	store.selected_letterhead.value = false;
-	store.selected_lh_footer.value = false;
+	store.select_field(props.df);
 	if (props.df.fieldtype !== "HTML") {
 		editing.value = true;
 	}

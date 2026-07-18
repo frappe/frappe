@@ -480,10 +480,7 @@ function build_field(df) {
 
 function select_section(section) {
 	store.scroll_to_section.value = section;
-	store.selected_section.value = section;
-	store.selected_field.value = null;
-	store.selected_letterhead.value = false;
-	store.selected_lh_footer.value = false;
+	store.select_section(section);
 }
 
 function clone_as_section() {
