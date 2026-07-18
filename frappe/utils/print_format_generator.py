@@ -71,17 +71,22 @@ def get_formatted_field_values(doctype: str, name: str) -> dict:
 	`values` holds parent fields; `child` maps each table field to a per-row list
 	of its cells' formatted values (row order matches the document)."""
 	from frappe.model import table_fields
+	from frappe.www.printview import set_link_titles
 
 	doc = frappe.get_doc(doctype, name)
 	doc.check_permission("read")
+	set_link_titles(doc)
 
-	def formatted_fields(row):
+	def has_access(d, df):
+		return not (df.permlevel or 0) or d.has_permlevel_access_to(df.fieldname, df)
+
+	def formatted_fields(d):
 		out = {}
-		for df in row.meta.fields:
-			if df.fieldtype in table_fields:
+		for df in d.meta.fields:
+			if df.fieldtype in table_fields or not has_access(d, df):
 				continue
 			try:
-				out[df.fieldname] = row.get_formatted(df.fieldname)
+				out[df.fieldname] = d.get_formatted(df.fieldname)
 			except Exception:
 				continue
 		return out
@@ -91,7 +96,7 @@ def get_formatted_field_values(doctype: str, name: str) -> dict:
 	for df in doc.meta.fields:
 		if df.fieldtype in table_fields:
 			child[df.fieldname] = [formatted_fields(row) for row in doc.get(df.fieldname) or []]
-		else:
+		elif has_access(doc, df):
 			try:
 				values[df.fieldname] = doc.get_formatted(df.fieldname)
 			except Exception:

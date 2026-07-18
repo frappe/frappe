@@ -285,6 +285,26 @@ class TestPrintSurfaceParity(IntegrationTestCase):
 		email_rows = result["child"]["email_ids"]
 		self.assertEqual(email_rows[0]["email_id"], contact.email_ids[0].get_formatted("email_id"))
 
+	def test_formatted_field_values_respect_permlevel(self):
+		"""A reader without permlevel access must not get restricted field values —
+		the endpoint returns raw field data, so it has to honour permlevel like the
+		render path does."""
+		from unittest.mock import patch
+
+		from frappe.utils.print_format_generator import get_formatted_field_values
+
+		contact = self._make_contact()
+		restricted = frappe.get_meta("Contact").get_field("first_name")
+
+		with (
+			patch.object(restricted, "permlevel", 1),
+			patch("frappe.model.document.Document.has_permlevel_access_to", return_value=False),
+		):
+			result = get_formatted_field_values("Contact", contact.name)
+
+		self.assertNotIn("first_name", result["values"])
+		self.assertIn("email_ids", result["child"])
+
 	def test_rendered_html_carries_shared_markup_contract(self):
 		"""The server render must produce the markup vocabulary the shared
 		stylesheet and the canvas both rely on."""
