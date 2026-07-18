@@ -96,6 +96,11 @@ def get_formatted_field_values(doctype: str, name: str) -> dict:
 	for df in doc.meta.fields:
 		if df.fieldtype in table_fields:
 			child[df.fieldname] = [formatted_fields(row) for row in doc.get(df.fieldname) or []]
+			if df.fieldtype == "Table MultiSelect" and has_access(doc, df):
+				try:
+					values[df.fieldname] = doc.get_formatted(df.fieldname)
+				except Exception:
+					pass
 		elif has_access(doc, df):
 			try:
 				values[df.fieldname] = doc.get_formatted(df.fieldname)

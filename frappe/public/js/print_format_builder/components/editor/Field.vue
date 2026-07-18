@@ -262,7 +262,7 @@
 									...(col.color ? { color: col.color } : {}),
 								}"
 							>
-								{{ repeater_cell(col, row) }}
+								{{ repeater_cell(col, i, row) }}
 							</td>
 						</tr>
 						<tr v-if="!(preview_doc[df.source] || []).length">
@@ -734,10 +734,14 @@ function cell_style(df) {
 	return parts.join("; ");
 }
 
-function repeater_cell(col, row) {
+function repeater_cell(col, i, row) {
 	return (col.template || [])
 		.map((tok) => {
 			if (tok.t === "s") return tok.v || "";
+			const server = store.preview_child_values.value?.[props.df.source]?.[i]?.[tok.v];
+			if (server !== null && server !== undefined && server !== "") {
+				return strip_html_to_text(String(server));
+			}
 			const child_df = repeater_child_df(tok.v);
 			return child_df ? format_cell(row || {}, child_df) : row?.[tok.v] ?? "";
 		})
@@ -751,6 +755,10 @@ function repeater_child_df(fieldname) {
 }
 
 function multiselect_display(df) {
+	const server = store.preview_values.value?.[df.fieldname];
+	if (server !== null && server !== undefined && server !== "") {
+		return strip_html_to_text(String(server));
+	}
 	const rows = preview_doc.value?.[df.fieldname] || [];
 	if (!rows.length) return "—";
 	const child_meta = frappe.get_meta(df.options);
