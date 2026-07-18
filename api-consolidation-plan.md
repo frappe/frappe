@@ -7,15 +7,15 @@ and ships in v17; nothing is backported to v16.
 Two workstreams that land together, one per-domain PR at a time:
 
 1. **Contract** — a `@frappe.public` decorator marking endpoints as explicitly
-   public, enforcing annotations + docstrings, and feeding a registry for
-   discovery/OpenAPI.
+   public, enforcing annotations + docstrings, and attaching machine-readable
+   metadata for discovery/OpenAPI.
 2. **Structure** — consolidating 525 scattered whitelisted endpoints into
    audience-oriented `api` modules.
 
 They reinforce each other: a move PR is the natural moment to apply `@public`,
 add missing annotations/docstrings, and decide whether an endpoint is actually
-public at all. The registry then documents the *consolidated* paths, not the
-legacy ones.
+public at all. The discovery layer then documents the *consolidated* paths,
+not the legacy ones.
 
 ## Context
 
@@ -31,8 +31,8 @@ Precedents already in the codebase:
 - `frappe/core/api/` (`file.py`, `user_invitation.py`) — the consolidation
   pattern to extend.
 - `frappe/api/` is **taken** by the REST v1/v2 handlers — a new top-level
-  `frappe/api/` namespace is off the table (the `PublicAPISpec` registry lives
-  in `frappe/public_api.py` instead).
+  `frappe/api/` namespace is off the table (the `@public` machinery lives in
+  `frappe/public_api.py` instead).
 
 ### Load-bearing mechanism (verified)
 
@@ -105,8 +105,9 @@ exception with a message that says exactly what's missing.
 
 ### 2. Linter test (CI only, zero runtime cost)
 
-A framework-provided test that walks the `public_apis` registry and validates
-Sphinx docstring structure:
+A framework-provided test that iterates `@public` functions (filtering the
+`whitelisted` set for the `__public_api__` attribute) and validates Sphinx
+docstring structure:
 
 - standalone imperative summary line, blank line after
 - `:param` / `:return:` / `:raises` entries parseable (`docstring_parser`)
@@ -143,33 +144,57 @@ codebase convention.
 Deferred: `since` (stability version marker), `examples`, decorator-level
 `raises`.
 
-## Registry
+## Spec storage: function attribute, no registry
 
-`frappe/public_api.py`:
+**Decided:** no side-table dict like `whitelisted`. `@public` validates,
+attaches the spec directly on the function, and returns the same function
+object — it never wraps:
 
 ```python
 @dataclass(frozen=True)
 class PublicAPISpec:
-    fn: Callable
-    path: str                    # "frappe.core.api.document.get_list"
-    methods: tuple[str, ...]     # derived from allowed_http_methods_for_whitelisted_func
-    allow_guest: bool            # derived from guest_methods
-    group: str | None
-    deprecated: str | None
+    group: str | None = None
+    deprecated: str | None = None
 
-public_apis: dict[str, PublicAPISpec] = {}   # keyed by dotted path
+def public(*, group=None, deprecated=None):
+    def marker(fn):
+        _validate_public_contract(fn)          # dev/CI hard fail, prod warning
+        fn.__public_api__ = PublicAPISpec(group=group, deprecated=deprecated)
+        return fn                              # same object, not a wrapper
+    return marker
 ```
 
-`methods` / `allow_guest` are derived from the existing whitelist registries in
-`frappe/__init__.py` — one source of truth, nothing re-declared. `path` is the
-canonical (post-consolidation) location; legacy aliases don't create duplicate
-registry entries because registration happens at decoration, not import of the
-alias module.
+The spec holds only the *declared* metadata. Everything derivable —
+canonical dotted path (`fn.__module__` + `__qualname__`), `methods`
+(`allowed_http_methods_for_whitelisted_func`), `allow_guest`
+(`guest_methods`), signature, parsed docstring — is computed at read time by
+the discovery layer. One source of truth, nothing stored twice, no
+registration-order or duplicate-alias concerns.
+
+Discovery enumerates by filtering the existing whitelist registry:
+
+```python
+def iter_public_apis():
+    for fn in frappe.whitelisted:
+        if spec := getattr(fn, "__public_api__", None):
+            yield fn, spec
+```
+
+**Survival through wrapping.** In practice `@frappe.whitelist` is applied
+first and `@public` sits on top, so the attribute lands on the outermost
+(dispatched) object and there's nothing to survive. But it's robust to other
+orders too: `functools.wraps` copies `__dict__` onto wrappers, so any
+later `@wraps`-based decorator carries `__public_api__` along automatically.
+A `get_public_spec(fn)` helper additionally walks the `__wrapped__` chain as
+a defensive fallback for non-conforming wrappers. The validator likewise sees
+through wrapping for free: `inspect.signature` follows `__wrapped__`, and
+`wraps` copies `__doc__`.
 
 ## Code home
 
-`frappe/public_api.py` — decorator, `PublicAPISpec`, `public_apis` registry,
-validators. Re-exported as `frappe.public`. Keeps `frappe/__init__.py` lean.
+`frappe/public_api.py` — decorator, `PublicAPISpec`, `iter_public_apis()` /
+`get_public_spec()` helpers, validators. Re-exported as `frappe.public`.
+Keeps `frappe/__init__.py` lean.
 
 ---
 
@@ -278,7 +303,7 @@ move + alias + `@public` + docstring/annotation cleanup in one reviewable unit.
    removed), marking staged aliases via `@public(deprecated=...)` where
    applicable. Ship the discovery endpoint
    (`/api/method/frappe.discovery.get_public_apis`) and/or OpenAPI plugin
-   consuming the `public_apis` registry.
+   consuming `iter_public_apis()`.
 
 ## Raw inventory
 
