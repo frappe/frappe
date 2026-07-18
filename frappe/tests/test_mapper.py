@@ -17,7 +17,7 @@ def _collect_sources(source_name: str, target_doc: dict | None = None, args: dic
 
 class TestMapper(IntegrationTestCase):
 	def test_map_docs_accepts_native_lists(self):
-		from frappe.model.mapper import map_docs
+		from frappe.core.api.document import map_docs
 
 		method = "frappe.tests.test_mapper._collect_sources"
 		# source_names as a native list and args as a native dict (frappe.parse_json passthrough)

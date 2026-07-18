@@ -62,7 +62,7 @@ frappe.ui.form.Share = class Share {
 		$(d.body).html('<p class="text-muted">' + __("Loading...") + "</p>");
 
 		frappe.call({
-			method: "frappe.share.get_users",
+			method: "frappe.core.api.document.get_shared_users",
 			args: {
 				doctype: this.frm.doctype,
 				name: this.frm.doc.name,
@@ -164,7 +164,7 @@ frappe.ui.form.Share = class Share {
 				});
 
 				frappe.call({
-					method: "frappe.share.add",
+					method: "frappe.core.api.document.add_share",
 					args: args,
 					btn: this,
 					callback: function (r) {
@@ -194,7 +194,7 @@ frappe.ui.form.Share = class Share {
 					everyone = cint($(this).parents(".shared-user:first").attr("data-everyone"));
 
 				frappe.call({
-					method: "frappe.share.set_permission",
+					method: "frappe.core.api.document.set_share_permission",
 					args: {
 						doctype: me.frm.doctype,
 						name: me.frm.doc.name,

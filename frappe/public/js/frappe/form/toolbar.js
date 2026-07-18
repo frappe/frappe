@@ -140,7 +140,7 @@ frappe.ui.form.Toolbar = class Toolbar {
 			if (input_name != docname) frappe.realtime.doctype_subscribe(doctype, input_name);
 			return frappe
 				.xcall(
-					"frappe.model.rename_doc.update_document_title",
+					"frappe.core.api.document.update_document_title",
 					{
 						doctype,
 						docname,

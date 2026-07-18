@@ -335,7 +335,7 @@ $.extend(frappe.model, {
 
 		return frappe.call({
 			type: "POST",
-			method: "frappe.model.mapper.make_mapped_doc",
+			method: "frappe.core.api.document.make_mapped_doc",
 			args: {
 				method: opts.method,
 				source_name: opts.source_name,
