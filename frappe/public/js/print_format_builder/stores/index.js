@@ -2,9 +2,28 @@ import { create_default_layout, serialize_layout } from "../utils";
 import { useLayoutHistory } from "./useLayoutHistory";
 import { watch, ref, inject, computed, nextTick } from "vue";
 
-// Copy/paste clipboard — module-level so a field or section copied in one print
-// format can be pasted into another.
-const clipboard = ref(null);
+// Copy/paste clipboard — persisted to localStorage so a field or section copied
+// in one print format can be pasted into another, even across reloads or tabs.
+const CLIPBOARD_KEY = "pfb_clipboard";
+
+function load_clipboard() {
+	try {
+		return JSON.parse(localStorage.getItem(CLIPBOARD_KEY)) || null;
+	} catch {
+		return null;
+	}
+}
+
+const clipboard = ref(load_clipboard());
+
+function set_clipboard(value) {
+	clipboard.value = value;
+	try {
+		localStorage.setItem(CLIPBOARD_KEY, JSON.stringify(value));
+	} catch {
+		// ignore quota / privacy-mode failures; in-memory copy still works
+	}
+}
 
 function clone_plain(obj) {
 	return JSON.parse(JSON.stringify(obj));
@@ -292,11 +311,11 @@ export function getStore(print_format_name) {
 
 	function copy_field(df) {
 		if (!df) return;
-		clipboard.value = { type: "field", data: clone_plain(df) };
+		set_clipboard({ type: "field", data: clone_plain(df) });
 	}
 	function copy_section(section) {
 		if (!section) return;
-		clipboard.value = { type: "section", data: clone_plain(section) };
+		set_clipboard({ type: "section", data: clone_plain(section) });
 	}
 	function copy_selection() {
 		if (selected_field.value) copy_field(selected_field.value);
@@ -313,7 +332,8 @@ export function getStore(print_format_name) {
 		return null;
 	}
 	function paste_clipboard() {
-		const clip = clipboard.value;
+		const clip = load_clipboard() || clipboard.value;
+		clipboard.value = clip;
 		if (!clip || !layout.value) return;
 
 		if (clip.type === "field") {
