@@ -169,6 +169,11 @@ export function getStore(print_format_name) {
 	function reset_changes() {
 		fetch();
 	}
+	function get_preview_format_doc() {
+		const snapshot = clone_plain(layout.value);
+		serialize_layout(snapshot);
+		return { ...print_format.value, format_data: JSON.stringify(snapshot) };
+	}
 	// Persist the chosen preview record per print format so it survives a refresh
 	const preview_doc_ls_key = `pfb:preview_doc:${print_format_name}`;
 	function persisted_preview_doc_name() {
@@ -314,6 +319,7 @@ export function getStore(print_format_name) {
 		update,
 		save_changes,
 		reset_changes,
+		get_preview_format_doc,
 		get_layout,
 		get_default_layout,
 		change_letterhead,

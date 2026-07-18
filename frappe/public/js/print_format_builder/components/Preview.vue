@@ -16,21 +16,20 @@
 				</button>
 			</div>
 		</div>
-		<div v-if="url && !preview_loaded">Generating preview...</div>
+		<div v-if="docname && !preview_loaded">{{ __("Generating preview...") }}</div>
 		<iframe
 			ref="iframe"
-			:src="url"
-			v-if="url"
-			v-show="preview_loaded"
+			:src="type === 'PDF' ? url : undefined"
+			v-show="docname && preview_loaded"
 			class="preview-iframe"
-			@load="preview_loaded = true"
+			@load="type === 'PDF' && (preview_loaded = true)"
 		></iframe>
 	</div>
 </template>
 
 <script setup>
 import { useStore } from "../stores";
-import { ref, computed, onMounted } from "vue";
+import { ref, computed, onMounted, onActivated } from "vue";
 
 // mixin
 let { print_format, store } = useStore();
@@ -46,8 +45,35 @@ let doc_select = ref(null);
 let preview_type = ref(null);
 
 // methods
+function render() {
+	if (!docname.value) return;
+	preview_loaded.value = false;
+	if (type.value === "PDF") return;
+	let params = {
+		print_format: store.value.get_preview_format_doc(),
+		doctype: doctype.value,
+		name: docname.value,
+	};
+	if (store.value.letterhead) {
+		params.letterhead = store.value.letterhead.name;
+	}
+	return frappe
+		.call("frappe.utils.print_format_generator.render_builder_preview", params)
+		.then((r) => {
+			let cd = iframe.value?.contentDocument;
+			if (!cd) return;
+			cd.open();
+			cd.write(r.message || "");
+			cd.close();
+			preview_loaded.value = true;
+		});
+}
 function refresh() {
-	iframe.value?.contentWindow.location.reload();
+	if (type.value === "PDF") {
+		iframe.value?.contentWindow.location.reload();
+	} else {
+		render();
+	}
 }
 function get_default_docname() {
 	return frappe.db.get_list(doctype.value, { limit: 1 }).then((doc) => {
@@ -75,6 +101,8 @@ let url = computed(() => {
 	return `${_url}?${params.toString()}`;
 });
 
+onActivated(render);
+
 // mounted
 onMounted(() => {
 	doc_select.value = frappe.ui.form.make_control({
@@ -88,6 +116,7 @@ onMounted(() => {
 				docname.value = doc_select.value.get_value();
 				// keep the editor's preview selection in sync with the preview
 				store.value.load_preview_doc(docname.value || null);
+				render();
 			},
 		},
 		render_input: true,
@@ -101,6 +130,7 @@ onMounted(() => {
 			options: ["HTML", "PDF"],
 			change: () => {
 				type.value = preview_type.value.get_value();
+				render();
 			},
 		},
 		render_input: true,
