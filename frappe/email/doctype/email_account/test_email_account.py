@@ -9,8 +9,8 @@ from datetime import datetime, timedelta
 from unittest.mock import MagicMock, patch
 
 import frappe
-from frappe.core.doctype.communication.email import make
 from frappe.desk.form.load import get_attachments
+from frappe.email.api import make_communication as make
 from frappe.email.doctype.email_account.email_account import notify_unreplied
 from frappe.email.email_body import get_message_id
 from frappe.email.receive import Email, InboundMail, SentEmailInInboxError

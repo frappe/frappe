@@ -354,7 +354,7 @@ frappe.views.CommunicationComposer = class {
 				}
 
 				frappe.call({
-					method: "frappe.email.get_contact_list",
+					method: "frappe.email.api.get_contact_list",
 					args: args,
 					callback: (r) => {
 						this.dialog.fields_dict[field].set_data(r.message);
@@ -901,7 +901,7 @@ frappe.views.CommunicationComposer = class {
 		}
 
 		return frappe.call({
-			method: "frappe.core.doctype.communication.email.make",
+			method: "frappe.email.api.make_communication",
 			args: {
 				recipients: form_values.recipients,
 				cc: form_values.cc,
@@ -957,10 +957,9 @@ frappe.views.CommunicationComposer = class {
 							onclick: () => {
 								undo_toast.dismiss();
 								frappe
-									.xcall(
-										"frappe.core.doctype.communication.email.undo_email_send",
-										{ communication_name: communication_name }
-									)
+									.xcall("frappe.email.api.undo_email_send", {
+										communication_name: communication_name,
+									})
 									.then((d) => {
 										if (me.frm) {
 											me.frm.reload_doc();

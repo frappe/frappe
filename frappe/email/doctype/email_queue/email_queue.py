@@ -408,7 +408,7 @@ class SendMailContext:
 			and self.email_account_doc.track_email_status
 			and self.queue_doc.communication
 		):
-			tracker_url = f"{get_url()}/api/method/frappe.core.doctype.communication.email.mark_email_as_seen?name={self.queue_doc.communication}"
+			tracker_url = f"{get_url()}/api/method/frappe.email.api.mark_email_as_seen?name={self.queue_doc.communication}"
 
 		if tracker_url:
 			tracker_url_html = f'<img src="{tracker_url}"/>'
@@ -493,49 +493,6 @@ class SendMailContext:
 		file = frappe.new_doc("File", **file_data)
 		file.content = content
 		file.insert()
-
-
-@frappe.whitelist()
-def retry_sending(queues: str | list[str]):
-	if not frappe.has_permission("Email Queue", throw=True):
-		return
-
-	queues = frappe.parse_json(queues)
-
-	if not queues:
-		return
-
-	# NOTE: this will probably work fine with the way current listview works (showing and selecting 20-20 records)
-	# but, ideally this should be enqueued
-	email_queue = frappe.qb.DocType("Email Queue")
-	frappe.qb.update(email_queue).set(email_queue.status, "Not Sent").set(email_queue.modified, now()).set(
-		email_queue.modified_by, frappe.session.user
-	).where(email_queue.name.isin(queues) & email_queue.status == "Error").run()
-
-
-@frappe.whitelist()
-def send_now(name: str | int, force_send: bool = False):
-	record = EmailQueue.find(name)
-	if record:
-		record.check_permission()
-		record.send(force_send=force_send)
-
-
-@frappe.whitelist()
-def toggle_sending(enable: bool | int | str):
-	frappe.only_for("System Manager")
-	suspend_value = 0 if sbool(enable) else 1
-	frappe.db.set_default("suspend_email_queue", suspend_value)
-
-	action = "Resumed" if suspend_value == 0 else "Suspended"
-	frappe.get_doc(
-		{
-			"doctype": "Activity Log",
-			"user": frappe.session.user,
-			"status": "Success",
-			"subject": f"Email Queue sending {action.lower()}",
-		}
-	).insert(ignore_permissions=True, ignore_links=True)
 
 
 def on_doctype_update():
@@ -940,3 +897,21 @@ class QueueBuilder:
 			d["recipients"] = self.final_recipients()
 
 		return d
+
+
+# `retry_sending`, `send_now`, `toggle_sending` moved to frappe.email.api.
+# The aliases keep the old dotted paths working; resolved lazily to avoid
+# circular imports.
+_MOVED_TO_EMAIL_API = {
+	"retry_sending": "retry_sending",
+	"send_now": "send_now",
+	"toggle_sending": "toggle_sending",
+}
+
+
+def __getattr__(name: str):
+	if new_name := _MOVED_TO_EMAIL_API.get(name):
+		from frappe.email import api
+
+		return getattr(api, new_name)
+	raise AttributeError(f"module {__name__!r} has no attribute {name!r}")

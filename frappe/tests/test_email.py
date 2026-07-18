@@ -8,8 +8,8 @@ from unittest.mock import patch
 import requests
 
 import frappe
-from frappe.core.doctype.communication.email import make
 from frappe.desk.form.load import get_attachments
+from frappe.email.api import make_communication as make
 from frappe.email.doctype.email_account.test_email_account import TestEmailAccount
 from frappe.email.doctype.email_queue.email_queue import QueueBuilder
 from frappe.query_builder.utils import db_type_is

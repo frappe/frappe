@@ -12,8 +12,8 @@ from frappe.contacts.doctype.contact.contact import (
 	get_contacts_linked_from,
 	get_contacts_linking_to,
 )
-from frappe.core.doctype.communication.email import make
 from frappe.desk.form.assign_to import add as assign_to
+from frappe.email.api import make_communication as make
 from frappe.model.document import Document
 from frappe.utils import (
 	add_days,

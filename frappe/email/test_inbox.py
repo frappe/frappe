@@ -2,7 +2,7 @@
 # License: MIT. See LICENSE
 
 import frappe
-from frappe.email.inbox import create_email_flag_queue
+from frappe.email.api import create_email_flag_queue
 from frappe.tests import IntegrationTestCase
 
 

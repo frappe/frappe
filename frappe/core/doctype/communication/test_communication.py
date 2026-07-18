@@ -5,7 +5,9 @@ from typing import TYPE_CHECKING
 
 import frappe
 from frappe.core.doctype.communication.communication import Communication, get_emails, parse_email
-from frappe.core.doctype.communication.email import add_attachments, make, undo_email_send
+from frappe.core.doctype.communication.email import add_attachments
+from frappe.email.api import make_communication as make
+from frappe.email.api import undo_email_send
 from frappe.email.doctype.email_queue.email_queue import EmailQueue
 from frappe.tests import IntegrationTestCase
 from frappe.utils import add_to_date, now_datetime

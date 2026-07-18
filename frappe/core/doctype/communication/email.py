@@ -29,117 +29,6 @@ if TYPE_CHECKING:
 	from frappe.core.doctype.communication.communication import Communication
 
 
-@frappe.whitelist()
-def make(
-	doctype: str | None = None,
-	name: str | int | None = None,
-	content: str | None = None,
-	subject: str | None = None,
-	sent_or_received: str = "Sent",
-	sender: str | None = None,
-	sender_full_name: str | None = None,
-	recipients: str | list[str] | None = None,
-	communication_medium: str = "Email",
-	send_email: str | bool | int = False,
-	print_html: str | None = None,
-	print_format: str | None = None,
-	attachments: str | list[str | dict[str, Any]] | None = None,
-	send_me_a_copy: str | int | bool = False,
-	cc: str | list[str] | None = None,
-	bcc: str | list[str] | None = None,
-	read_receipt: str | int | bool | None = None,
-	print_letterhead: int | bool = True,
-	letterhead: str | None = None,
-	email_template: str | None = None,
-	communication_type: str | None = None,
-	send_after: str | datetime | None = None,
-	print_language: str | None = None,
-	now: int | bool = False,
-	raw_html: int | bool = False,
-	add_css: int | bool = True,
-	in_reply_to: str | None = None,
-	**kwargs,
-) -> dict[str, str]:
-	"""Make a new communication. Checks for email permissions for specified Document.
-
-	:param doctype: Reference DocType.
-	:param name: Reference Document name.
-	:param content: Communication body.
-	:param subject: Communication subject.
-	:param sent_or_received: Sent or Received (default **Sent**).
-	:param sender: Communcation sender (default current user).
-	:param recipients: Communication recipients as list.
-	:param communication_medium: Medium of communication (default **Email**).
-	:param send_email: Send via email (default **False**).
-	:param print_html: HTML Print format to be sent as attachment.
-	:param print_format: Print Format name of parent document to be sent as attachment.
-	:param attachments: List of File names or dicts with keys "fname" and "fcontent"
-	:param send_me_a_copy: Send a copy to the sender (default **False**).
-	:param email_template: Template which is used to compose mail .
-	:param send_after: Send after the given datetime.
-	:param raw_html: Whether to use html version of email template
-	:param add_css: Add default CSS from hooks/email_css to the email template (default **True**)
-	:param in_reply_to: Name of the Communication document to which this communication is a reply.
-	"""
-	from frappe.utils.commands import warn
-
-	if kwargs:
-		warn(
-			f"Options {kwargs} used in frappe.core.doctype.communication.email.make "
-			"are deprecated or unsupported",
-			category=DeprecationWarning,
-		)
-
-	if doctype and name:
-		frappe.has_permission(doctype, doc=name, ptype="email", throw=True)
-
-	if letterhead:
-		frappe.has_permission("Letter Head", doc=letterhead, ptype="read", throw=True)
-
-	if raw_html and not (
-		email_template and frappe.get_cached_value("Email Template", email_template, "use_html")
-	):
-		warn(
-			_(
-				"Raw HTML can be used only with Email Templates having 'Use HTML' checked. "
-				"Proceeding with plain text email."
-			),
-			category=UserWarning,
-		)
-		raw_html = False
-
-	return _make(
-		doctype=doctype,
-		name=name,
-		content=content,
-		subject=subject,
-		sent_or_received=sent_or_received,
-		sender=sender,
-		sender_full_name=sender_full_name,
-		recipients=recipients,
-		communication_medium=communication_medium,
-		send_email=send_email,
-		print_html=print_html,
-		print_format=print_format,
-		attachments=attachments,
-		send_me_a_copy=cint(send_me_a_copy),
-		cc=cc,
-		bcc=bcc,
-		read_receipt=cint(read_receipt),
-		print_letterhead=print_letterhead,
-		letterhead=letterhead,
-		email_template=email_template,
-		communication_type=communication_type,
-		add_signature=False,
-		send_after=send_after,
-		print_language=print_language,
-		now=now,
-		raw_html=raw_html,
-		add_css=add_css,
-		in_reply_to=in_reply_to,
-	)
-
-
 def _make(
 	doctype=None,
 	name=None,
@@ -311,12 +200,6 @@ def add_attachments(name: str, attachments: Iterable[str | dict]) -> None:
 		_file.save(ignore_permissions=True)
 
 
-@frappe.whitelist(allow_guest=True, methods=("GET",))
-def mark_email_as_seen(name: str | None = None):
-	commit_after_response(lambda: _mark_email_as_seen(name))
-	frappe.response.update(frappe.utils.get_imaginary_pixel_response())
-
-
 def _mark_email_as_seen(name):
 	try:
 		update_communication_as_read(name)
@@ -340,61 +223,19 @@ def update_communication_as_read(name):
 	)
 
 
-@frappe.whitelist()
-def undo_email_send(communication_name: str):
-	communication = frappe.get_doc("Communication", communication_name)
+# `make`, `mark_email_as_seen`, `undo_email_send` moved to frappe.email.api.
+# The aliases keep the old dotted paths working; resolved lazily to avoid
+# circular imports.
+_MOVED_TO_EMAIL_API = {
+	"make": "make_communication",
+	"mark_email_as_seen": "mark_email_as_seen",
+	"undo_email_send": "undo_email_send",
+}
 
-	if communication.owner != frappe.session.user:
-		frappe.throw(_("You are not authorized to undo this email"))
 
-	if communication.sent_or_received != "Sent" or communication.communication_medium != "Email":
-		frappe.throw(_("Failed to delete communication"))
+def __getattr__(name: str):
+	if new_name := _MOVED_TO_EMAIL_API.get(name):
+		from frappe.email import api
 
-	time_elapsed_in_seconds = time_diff_in_seconds(now_datetime(), communication.creation)
-	if time_elapsed_in_seconds > 10:
-		frappe.msgprint(
-			_("Email undo window is over. Cannot undo email."), alert=True, indicator="red", raise_exception=1
-		)
-
-	email_queue_records = frappe.get_all(
-		"Email Queue", filters={"communication": communication_name}, fields=["name", "status"]
-	)
-
-	for queue in email_queue_records:
-		if queue.status != "Not Sent":
-			frappe.msgprint(
-				_("It is too late to undo this email. It is already being sent."),
-				alert=True,
-				indicator="red",
-				raise_exception=1,
-			)
-
-	for queue in email_queue_records:
-		frappe.delete_doc("Email Queue", queue.name, ignore_permissions=True)
-
-	communication_data = {
-		"subject": communication.subject,
-		"content": communication.content,
-		"recipients": communication.recipients,
-		"cc": communication.cc,
-		"bcc": communication.bcc,
-		"doc": {"doctype": communication.reference_doctype, "name": communication.reference_name},
-		"sender": communication.sender,
-		"send_read_receipt": communication.read_receipt,
-	}
-
-	linked_files = frappe.get_all(
-		"File",
-		filters={"attached_to_doctype": "Communication", "attached_to_name": communication_name},
-		pluck="name",
-	)
-
-	if linked_files:
-		for file_name in linked_files:
-			frappe.db.set_value("File", file_name, {"attached_to_doctype": None, "attached_to_name": None})
-
-	communication_data["attachments"] = linked_files
-
-	communication.delete(ignore_permissions=True)
-
-	return communication_data
+		return getattr(api, new_name)
+	raise AttributeError(f"module {__name__!r} has no attribute {name!r}")

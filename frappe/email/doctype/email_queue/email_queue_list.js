@@ -28,7 +28,7 @@ function show_toggle_sending_button(list_view) {
 
 	list_view.page.add_inner_button(label, async () => {
 		await frappe.xcall(
-			"frappe.email.doctype.email_queue.email_queue.toggle_sending",
+			"frappe.email.api.toggle_sending",
 
 			// enable if disabled
 			{ enable: sending_disabled }
@@ -53,7 +53,7 @@ function add_bulk_retry_button_to_actions(list_view) {
 		);
 
 		frappe.call({
-			method: "frappe.email.doctype.email_queue.email_queue.retry_sending",
+			method: "frappe.email.api.retry_sending",
 			args: {
 				queues: list_view.get_checked_items(true),
 			},
