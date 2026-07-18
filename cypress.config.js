@@ -45,17 +45,6 @@ module.exports = defineConfig({
 						fs.unlinkSync(results.video);
 					}
 				}
-				// Write ultimately-failed spec paths to a file so CI can re-run them with video
-				if (results && results.tests) {
-					const lastAttemptFailed = results.tests.some(
-						(test) => test.attempts[test.attempts.length - 1].state === "failed"
-					);
-					if (lastAttemptFailed) {
-						const failedSpecsFile =
-							path.resolve(__dirname, "..", "..") + "/cypress_failed_specs.txt";
-						fs.appendFileSync(failedSpecsFile, spec.relative + "\n");
-					}
-				}
 			});
 
 			return require("./cypress/plugins/index.js")(on, config);
