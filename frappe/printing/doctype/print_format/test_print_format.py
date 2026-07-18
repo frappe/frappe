@@ -593,6 +593,13 @@ class TestPrintFormatChildTableVisibility(IntegrationTestCase):
 		self.assertIn("primary@example.com", html)
 		self.assertIn("secondary@example.com", html)
 
+	def test_bad_column_condition_keeps_column(self):
+		df = self.table_field()
+		df["table_columns"][1]["column_condition"] = "doc.does_not_exist >"
+		html = self.render(df)
+		self.assertIn('data-fieldname="is_primary"', html)
+		self.assertIn('data-fieldname="email_id"', html)
+
 	def test_print_settings_available_in_conditions(self):
 		html = self.render(
 			self.table_field(row_condition="print_settings.doctype == 'Print Settings' and row.is_primary")
