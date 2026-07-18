@@ -16,7 +16,7 @@ const props = defineProps({
 });
 
 const kindFor = (k, v) => {
-	if (typeof v === "string" && v && (k === "code" || props.blockKeys.has(k))) return "code";
+	if (typeof v === "string" && v && props.blockKeys.has(k)) return "code";
 	return argKind(v);
 };
 

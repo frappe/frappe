@@ -124,6 +124,11 @@ export function recordLabelKey(records) {
 	return entry ? entry[0] : null;
 }
 
+// Args to always render as a code block regardless of content, keyed by tool name.
+// execute's "code" is Python source even when short/single-line.
+const CODE_ARG_KEYS = { execute: new Set(["code"]) };
+export const blockKeysFor = (name) => CODE_ARG_KEYS[name] || new Set();
+
 // Muted suffix that distinguishes a step (which doctype / search / action).
 export function toolContext(args) {
 	const a = parseArgs(args);

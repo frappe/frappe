@@ -2,7 +2,7 @@
 import { ref, computed, nextTick } from "vue";
 import { Button, FeatherIcon } from "@/lib/ui";
 import ArgsView from "./ArgsView.vue";
-import { confirmTitle, hasArgs, parseArgs } from "@/lib/toolMeta";
+import { confirmTitle, hasArgs, parseArgs, blockKeysFor } from "@/lib/toolMeta";
 import { __ } from "@/lib/translate";
 
 const props = defineProps({
@@ -31,6 +31,7 @@ const displayArgs = computed(() => {
 	return rest;
 });
 const showArgs = computed(() => Boolean(props.tool) && hasArgs(displayArgs.value));
+const blockKeys = computed(() => blockKeysFor(props.tool?.name));
 const answered = computed(() => props.question._answer !== undefined);
 
 function pick(option) {
@@ -67,7 +68,7 @@ function sendOther() {
 		</div>
 
 		<div v-if="showArgs" class="mt-2.5">
-			<ArgsView :arguments="displayArgs" />
+			<ArgsView :arguments="displayArgs" :block-keys="blockKeys" />
 		</div>
 		<pre v-else-if="body" class="flow-confirm-body">{{ body }}</pre>
 
