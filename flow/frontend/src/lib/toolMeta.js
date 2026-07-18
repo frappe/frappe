@@ -67,10 +67,11 @@ export function formatScalar(v) {
 	return String(v);
 }
 
-// Single-line text long enough to clamp behind "Show more" rather than inline it.
+// Text that must render as a full-width code block rather than inline: multi-line
+// or long. Anything with a newline, or a single line past the limit.
 const LONG_TEXT_LIMIT = 120;
-export const isLongText = (v) =>
-	typeof v === "string" && !v.includes("\n") && v.length > LONG_TEXT_LIMIT;
+export const isBlockText = (v) =>
+	typeof v === "string" && (v.includes("\n") || v.length > LONG_TEXT_LIMIT);
 
 const FILTER_OPERATORS = new Set([
 	"=",
@@ -103,7 +104,7 @@ export function argKind(v) {
 		return v.every(isScalar) ? "list" : "records";
 	}
 	if (typeof v === "object") return Object.keys(v).length ? "object" : "empty";
-	if (typeof v === "string" && v.includes("\n")) return "code";
+	if (isBlockText(v)) return "code";
 	return "scalar";
 }
 
@@ -115,9 +116,11 @@ export function recordLabelKey(records) {
 	const first = records.find((r) => r && typeof r === "object" && !Array.isArray(r));
 	if (!first) return null;
 	for (const key of TITLE_KEYS) {
-		if (typeof first[key] === "string" && first[key]) return key;
+		if (typeof first[key] === "string" && first[key] && !isBlockText(first[key])) return key;
 	}
-	const entry = Object.entries(first).find(([, v]) => isScalar(v) && v !== null && v !== "");
+	const entry = Object.entries(first).find(
+		([, v]) => isScalar(v) && v !== null && v !== "" && !isBlockText(v)
+	);
 	return entry ? entry[0] : null;
 }
 
