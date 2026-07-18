@@ -39,7 +39,6 @@ from frappe.deprecation_dumpster import get_js as _get_js
 get_js = frappe.whitelist()(_get_js)
 
 
-@frappe.whitelist(allow_guest=True)
-def get_time_zone():
-	"""Return the default time zone."""
-	return {"time_zone": frappe.defaults.get_defaults().get("time_zone")}
+# `get_time_zone` moved to frappe.core.api.user; alias below keeps the old
+# dotted path working.
+from frappe.core.api.user import get_time_zone

@@ -37,17 +37,15 @@ frappe.RoleEditor = class {
 				select_all: true,
 				columns: "15rem",
 				get_data: () => {
-					return frappe
-						.xcall("frappe.core.doctype.user.user.get_all_roles")
-						.then((roles) => {
-							return roles.map((role) => {
-								return {
-									label: __(role),
-									value: role,
-									checked: user_roles.includes(role),
-								};
-							});
+					return frappe.xcall("frappe.core.api.user.get_all_roles").then((roles) => {
+						return roles.map((role) => {
+							return {
+								label: __(role),
+								value: role,
+								checked: user_roles.includes(role),
+							};
 						});
+					});
 				},
 				on_change: () => {
 					this.set_roles_in_table();
@@ -84,25 +82,23 @@ frappe.RoleEditor = class {
 		$(this.perm_dialog.body).empty();
 		let is_dark = document.documentElement.getAttribute("data-theme") === "dark";
 		let header_bg_color = is_dark ? "bg-dark text-white" : "bg-light";
-		return frappe
-			.xcall("frappe.core.doctype.user.user.get_perm_info", { role })
-			.then((permissions) => {
-				const $body = $(this.perm_dialog.body);
-				if (!permissions.length) {
-					$body.append(`<div class="text-muted text-center padding">
+		return frappe.xcall("frappe.core.api.user.get_perm_info", { role }).then((permissions) => {
+			const $body = $(this.perm_dialog.body);
+			if (!permissions.length) {
+				$body.append(`<div class="text-muted text-center padding">
 						${__("{0} role does not have permission on any doctype", [__(role)])}
 					</div>`);
-				} else {
-					// standard rights + any custom permission types for the doctypes shown
-					const rights = [
-						...frappe.perm.rights,
-						...new Set(
-							permissions.flatMap(
-								(perm) => frappe.boot?.doctype_ptype_map?.[perm.parent] || []
-							)
-						),
-					];
-					$body.append(`
+			} else {
+				// standard rights + any custom permission types for the doctypes shown
+				const rights = [
+					...frappe.perm.rights,
+					...new Set(
+						permissions.flatMap(
+							(perm) => frappe.boot?.doctype_ptype_map?.[perm.parent] || []
+						)
+					),
+				];
+				$body.append(`
 						<div style="max-height:calc(100vh - 200px); overflow-y:auto;">
 							<table class="user-perm">
 								<thead>
@@ -124,8 +120,8 @@ frappe.RoleEditor = class {
 							</table>
 						</div>
 					`);
-					permissions.forEach((perm) => {
-						$body.find("tbody").append(`
+				permissions.forEach((perm) => {
+					$body.find("tbody").append(`
 							<tr>
 								<td>${__(perm.parent)}</td>
 								<td>${perm.permlevel}</td>
@@ -140,11 +136,11 @@ frappe.RoleEditor = class {
 									.join("")}
 							</tr>
 						`);
-					});
-				}
-				this.perm_dialog.set_title(__(role));
-				this.perm_dialog.show();
-			});
+				});
+			}
+			this.perm_dialog.set_title(__(role));
+			this.perm_dialog.show();
+		});
 	}
 	make_perm_dialog() {
 		this.perm_dialog = new frappe.ui.Dialog({

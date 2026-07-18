@@ -25,7 +25,7 @@ frappe.ui.form.on("User", {
 
 		if (!frappe.all_timezones) {
 			frappe.call({
-				method: "frappe.core.doctype.user.user.get_timezones",
+				method: "frappe.core.api.user.get_timezones",
 				callback: function (r) {
 					frappe.all_timezones = r.message.timezones;
 					update_tz_options();

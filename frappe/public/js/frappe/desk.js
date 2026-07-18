@@ -200,7 +200,7 @@ frappe.Application = class Application {
 	set_password(user) {
 		var me = this;
 		frappe.call({
-			method: "frappe.core.doctype.user.user.get_email_awaiting",
+			method: "frappe.core.api.user.get_email_awaiting",
 			args: {
 				user: user,
 			},

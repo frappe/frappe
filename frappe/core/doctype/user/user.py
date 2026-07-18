@@ -906,48 +906,11 @@ class User(Document):
 		self.restrict_ip = ",".join(self.get_restricted_ip_list())
 
 
-@frappe.whitelist()
-def get_timezones():
-	return {"timezones": _get_timezones()}
-
-
 @lru_cache(maxsize=1)
 def _get_timezones():
 	import pytz
 
 	return sorted(pytz.common_timezones)
-
-
-@frappe.whitelist()
-def get_all_roles():
-	"""return all roles"""
-	active_domains = frappe.get_active_domains()
-
-	Role = frappe.qb.DocType("Role")
-
-	domain_condition = (Role.restrict_to_domain.isnull()) | (Role.restrict_to_domain == "")
-	if active_domains:
-		domain_condition = domain_condition | Role.restrict_to_domain.isin(active_domains)
-
-	roles = (
-		frappe.qb.from_(Role)
-		.select(Role.name)
-		.where(
-			(Role.name.notin(frappe.permissions.AUTOMATIC_ROLES)) & (Role.disabled == 0) & domain_condition
-		)
-		.orderby(Role.name)
-		.run(as_dict=True)
-	)
-
-	return sorted([role.get("name") for role in roles])
-
-
-@frappe.whitelist()
-def get_perm_info(role: str):
-	"""get permission info"""
-	from frappe.permissions import get_all_perms
-
-	return get_all_perms(role)
 
 
 @frappe.whitelist(allow_guest=True, methods=["POST"])
@@ -1047,23 +1010,6 @@ def test_password_strength(
 
 		result["feedback"]["password_policy_validation_passed"] = password_policy_validation_passed
 		return {"score": result["score"], "feedback": result["feedback"]}
-
-
-@frappe.whitelist()
-def has_email_account(email: str):
-	return frappe.get_list("Email Account", filters={"email_id": email})
-
-
-@frappe.whitelist(allow_guest=False)
-def get_email_awaiting(user: str):
-	if user != frappe.session.user:
-		frappe.has_permission("User", "read", doc=user, throw=True)
-
-	return frappe.get_all(
-		"User Email",
-		fields=["email_account", "email_id"],
-		filters={"awaiting_password": 1, "parent": user, "used_oauth": 0},
-	)
 
 
 def ask_pass_update():
@@ -1215,40 +1161,6 @@ def change_password(user: str, new_password: str, logout_all_sessions: int = 1) 
 	user_doc.save()
 
 
-@frappe.whitelist()
-@frappe.validate_and_sanitize_search_inputs
-def user_query(doctype: str, txt: str, searchfield: str, start: int, page_len: int, filters: dict[str, Any]):
-	doctype = "User"
-
-	list_filters = {
-		"enabled": 1,
-		"docstatus": ["<", 2],
-	}
-
-	# Check if we have a search term, and decide the filters depending on the search term
-	or_filters = [[searchfield, "like", f"%{txt}%"]]
-	if "name" in searchfield:
-		or_filters += [[field, "like", f"%{txt}%"] for field in ("first_name", "middle_name", "last_name")]
-
-	if filters:
-		if not (filters.get("ignore_user_type") and frappe.session.data.user_type == "System User"):
-			list_filters["user_type"] = ["!=", "Website User"]
-
-		filters.pop("ignore_user_type", None)
-		list_filters.update(filters)
-
-	return frappe.get_list(
-		doctype,
-		filters=list_filters,
-		fields=["name", "full_name"],
-		limit_start=start,
-		limit_page_length=page_len,
-		order_by="name asc",
-		or_filters=or_filters,
-		as_list=True,
-	)
-
-
 def get_total_users():
 	"""Return total number of system users."""
 	return flt(
@@ -1385,12 +1297,6 @@ def throttle_user_creation():
 		frappe.throw(_("Throttled"))
 
 
-@frappe.whitelist()
-def get_module_profile(module_profile: str):
-	module_profile = frappe.get_doc("Module Profile", {"module_profile_name": module_profile})
-	return module_profile.get("block_modules")
-
-
 def create_contact(user, ignore_links=False, ignore_mandatory=False):
 	from frappe.contacts.doctype.contact.contact import get_contact_name
 
@@ -1485,12 +1391,6 @@ def generate_keys(user: str):
 	return {"api_key": user_details.api_key, "api_secret": api_secret}
 
 
-@frappe.whitelist()
-def switch_theme(theme: str):
-	if theme in ["Dark", "Light", "Automatic"]:
-		frappe.db.set_value("User", frappe.session.user, "desk_theme", theme)
-
-
 def get_enabled_users():
 	def _get_enabled_users():
 		enabled_users = frappe.get_all("User", filters={"enabled": "1"}, pluck="name")
@@ -1553,3 +1453,25 @@ def clear_session(sid_hash: str):
 			delete_session(sid=session, reason="Force Logged out by the user", user=frappe.session.user)
 			frappe.toast(_("Successfully signed out"))
 			return
+
+
+# These endpoints moved to frappe.core.api.user. The aliases keep the old
+# dotted paths working; resolved lazily to avoid circular imports.
+_MOVED_TO_USER_API = {
+	"get_timezones": "get_timezones",
+	"get_all_roles": "get_all_roles",
+	"get_perm_info": "get_perm_info",
+	"has_email_account": "has_email_account",
+	"get_email_awaiting": "get_email_awaiting",
+	"user_query": "user_query",
+	"get_module_profile": "get_module_profile",
+	"switch_theme": "switch_theme",
+}
+
+
+def __getattr__(name: str):
+	if new_name := _MOVED_TO_USER_API.get(name):
+		from frappe.core.api import user as user_api
+
+		return getattr(user_api, new_name)
+	raise AttributeError(f"module {__name__!r} has no attribute {name!r}")

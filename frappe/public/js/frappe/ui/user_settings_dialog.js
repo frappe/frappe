@@ -14,7 +14,7 @@ frappe.ui.show_user_settings = async function (default_tab) {
 	let user_data;
 	try {
 		if (!frappe.all_timezones) {
-			const { message } = await frappe.call("frappe.core.doctype.user.user.get_timezones");
+			const { message } = await frappe.call("frappe.core.api.user.get_timezones");
 			frappe.all_timezones = message?.timezones || [];
 		}
 
