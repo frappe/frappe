@@ -701,17 +701,9 @@ let preview_value = computed(() => {
 
 let preview_value_html = computed(() => {
 	if (!preview_doc.value || !props.df.fieldname || props.df.fieldtype === "Check") return null;
-	const raw = preview_doc.value[props.df.fieldname];
-	if (raw === null || raw === undefined || raw === "") return null;
-	try {
-		const formatted = frappe.format(raw, props.df, { only_value: true }, preview_doc.value);
-		if (typeof formatted === "string" && formatted.includes("<")) {
-			return sanitize_html(formatted);
-		}
-	} catch {
-		return null;
-	}
-	return null;
+	const server = store.preview_values.value?.[props.df.fieldname];
+	if (server === null || server === undefined || server === "") return null;
+	return sanitize_html(String(server));
 });
 
 // Same math as macros/Rating.html: value is a 0-1 fraction, df.options holds the star count

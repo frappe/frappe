@@ -267,6 +267,21 @@ class TestPrintSurfaceParity(IntegrationTestCase):
 
 		self.assertEqual(self._doc_body(saved), self._doc_body(live))
 
+	def test_formatted_field_values_match_print(self):
+		"""The canvas sources values from get_formatted_field_values; each value must
+		be the same one the print render emits, so the builder can't reformat it
+		differently (the whole point — one formatter, not two)."""
+		from frappe.utils.print_format_generator import get_formatted_field_values, get_html
+
+		fmt = self._make_contact_format()
+		contact = self._make_contact()
+
+		values = get_formatted_field_values("Contact", contact.name)
+		html = get_html("Contact", contact.name, fmt.name)
+
+		self.assertEqual(values["first_name"], contact.get_formatted("first_name"))
+		self.assertIn(values["first_name"], html)
+
 	def test_rendered_html_carries_shared_markup_contract(self):
 		"""The server render must produce the markup vocabulary the shared
 		stylesheet and the canvas both rely on."""

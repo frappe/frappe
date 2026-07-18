@@ -35,6 +35,7 @@ export function getStore(print_format_name) {
 	let selected_lh_footer = ref(false);
 	let preview_doc = ref(null);
 	let preview_doc_name = ref(null);
+	let preview_values = ref({});
 
 	// methods
 	function fetch() {
@@ -214,6 +215,7 @@ export function getStore(print_format_name) {
 		if (!name) {
 			preview_doc.value = null;
 			preview_doc_name.value = null;
+			preview_values.value = {};
 			localStorage.removeItem(preview_doc_ls_key);
 			return;
 		}
@@ -222,6 +224,14 @@ export function getStore(print_format_name) {
 		frappe.db.get_doc(print_format.value.doc_type, name).then((doc) => {
 			preview_doc.value = doc;
 		});
+		frappe
+			.call("frappe.utils.print_format_generator.get_formatted_field_values", {
+				doctype: print_format.value.doc_type,
+				name,
+			})
+			.then((r) => {
+				preview_values.value = r.message || {};
+			});
 	}
 	function get_layout() {
 		if (print_format.value && print_format.value.format_data) {
@@ -344,6 +354,7 @@ export function getStore(print_format_name) {
 		selected_lh_footer,
 		preview_doc,
 		preview_doc_name,
+		preview_values,
 		load_preview_doc,
 		persisted_preview_doc_name,
 		fetch,

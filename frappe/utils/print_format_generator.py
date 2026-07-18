@@ -64,6 +64,26 @@ def get_qr_code(value: str) -> str:
 
 
 @frappe.whitelist()
+def get_formatted_field_values(doctype: str, name: str) -> dict:
+	"""Return the same formatted value each field prints (`doc.get_formatted`) so the
+	builder canvas shows the server's output instead of re-formatting client-side."""
+	from frappe.model import table_fields
+
+	doc = frappe.get_doc(doctype, name)
+	doc.check_permission("read")
+
+	values = {}
+	for df in doc.meta.fields:
+		if df.fieldtype in table_fields:
+			continue
+		try:
+			values[df.fieldname] = doc.get_formatted(df.fieldname)
+		except Exception:
+			continue
+	return values
+
+
+@frappe.whitelist()
 def render_builder_preview(
 	print_format: str | dict,
 	doctype: str,
