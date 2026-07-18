@@ -861,8 +861,11 @@
 }
 
 .form-grid {
-	// Pin action and index columns so wide grids stay usable.
-	.grid-row > .row .col:last-child,
+	// Pin action and index columns so wide grids stay usable. Data columns
+	// (.grid-static-col) are exempt: a grid without a trailing action column
+	// (e.g. an in_place_edit dialog table) ends on a data column, which must
+	// keep its width instead of being pinned to 30px.
+	.grid-row > .row .col:last-child:not(.grid-static-col),
 	.grid-row > .dialog-assignment-row .col:first-child,
 	.grid-row > .dialog-assignment-row .col:last-child {
 		max-width: 30px;
