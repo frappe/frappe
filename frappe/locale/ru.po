@@ -3,7 +3,7 @@ msgstr ""
 "Project-Id-Version: frappe\n"
 "Report-Msgid-Bugs-To: developers@frappe.io\n"
 "POT-Creation-Date: 2026-07-12 10:03+0000\n"
-"PO-Revision-Date: 2026-07-16 12:32\n"
+"PO-Revision-Date: 2026-07-18 12:57\n"
 "Last-Translator: developers@frappe.io\n"
 "Language-Team: Russian\n"
 "MIME-Version: 1.0\n"
@@ -33012,7 +33012,7 @@ msgstr "vscode"
 
 #: frappe/templates/includes/oauth_confirmation.html:5
 msgid "wants to access the following details from your account"
-msgstr "хочет получить доступ к следующим данным из вашего аккаунта"
+msgstr "хочет получить доступ к следующим данным из вашей учетной записи"
 
 #. Description of the 'Popover Element' (Check) field in DocType 'Form Tour
 #. Step'

@@ -3,7 +3,7 @@ msgstr ""
 "Project-Id-Version: frappe\n"
 "Report-Msgid-Bugs-To: developers@frappe.io\n"
 "POT-Creation-Date: 2026-07-12 10:03+0000\n"
-"PO-Revision-Date: 2026-07-15 12:33\n"
+"PO-Revision-Date: 2026-07-18 12:57\n"
 "Last-Translator: developers@frappe.io\n"
 "Language-Team: Persian\n"
 "MIME-Version: 1.0\n"
@@ -2119,7 +2119,7 @@ msgstr "اجازه پاسخ‌های متعدد"
 #: frappe/custom/doctype/custom_field/custom_field.json
 #: frappe/custom/doctype/customize_form_field/customize_form_field.json
 msgid "Allow on Submit"
-msgstr "اجازه پس از ارسال"
+msgstr "در ارسال مجاز است"
 
 #. Label of the deny_multiple_sessions (Check) field in DocType 'System
 #. Settings'
@@ -9002,7 +9002,7 @@ msgstr "حالت ویرایش"
 
 #: frappe/public/js/frappe/form/grid.js:247
 msgid "Edit row"
-msgstr ""
+msgstr "ویرایش سطر"
 
 #: frappe/public/js/form_builder/components/Field.vue:249
 msgid "Edit the {0} Doctype"
@@ -9578,7 +9578,7 @@ msgstr ""
 #. Description of the 'Allow Bulk Edit' (Check) field in DocType 'DocType'
 #: frappe/core/doctype/doctype/doctype.json
 msgid "Enable bulk update of this field across child table rows."
-msgstr ""
+msgstr "فعال کردن به‌روزرسانی انبوه این فیلد در سطرهای جدول فرزند."
 
 #: frappe/printing/doctype/print_format_field_template/print_format_field_template.py:28
 msgid "Enable developer mode to create a standard Print Template"
@@ -18152,7 +18152,7 @@ msgstr "هیچ سندی با تگ {0} یافت نشد"
 
 #: frappe/public/js/frappe/form/grid.js:1148
 msgid "No editable fields available for bulk edit."
-msgstr ""
+msgstr "هیچ فیلد قابل ویرایشی برای ویرایش انبوه موجود نیست."
 
 #: frappe/public/js/frappe/views/inbox/inbox_view.js:21
 msgid "No email account associated with the User. Please add an account under User > Email Inbox."
