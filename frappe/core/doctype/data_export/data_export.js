@@ -49,7 +49,7 @@ const can_export = (frm) => {
 };
 
 const export_data = (frm) => {
-	let get_template_url = "/api/method/frappe.core.doctype.data_export.exporter.export_data";
+	let get_template_url = "/api/method/frappe.core.api.data_import_export.export_data";
 	var export_params = () => {
 		let columns = {};
 		Object.keys(frm.fields_multicheck).forEach((dt) => {

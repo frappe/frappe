@@ -185,37 +185,6 @@ class DataImport(Document):
 		frappe.db.delete("Data Import Log", {"data_import": self.name})
 
 
-@frappe.whitelist()
-def get_preview_from_template(
-	data_import: str, import_file: str | None = None, google_sheets_url: str | None = None
-):
-	di: DataImport = frappe.get_doc("Data Import", data_import)
-	di.check_permission("read")
-	return di.get_preview_from_template(import_file, google_sheets_url)
-
-
-@frappe.whitelist()
-def form_start_import(data_import: str):
-	di: DataImport = frappe.get_doc("Data Import", data_import)
-	di.check_permission("write")
-	return di.start_import()
-
-
-@frappe.whitelist()
-def stop_data_import(doc_name: str):
-	"""Stop a running Data Import job."""
-	data_import = frappe.get_doc("Data Import", doc_name)
-	data_import.check_permission("write")
-
-	rq_job_id = f"{frappe.local.site}||data_import||{doc_name}"
-	job_id = rq_job_id.replace(":", "|")  # patching the change in job id format (for timestamp part)
-	try:
-		send_stop_job_command(connection=get_redis_conn(), job_id=job_id)
-	except InvalidJobOperation:
-		frappe.msgprint(_("Job is not running."), title=_("Invalid Operation"))
-	return {"status": "success", "message": "Job stopped successfully"}
-
-
 def start_import(data_import):
 	"""This method runs in background job"""
 	data_import = frappe.get_doc("Data Import", data_import)
@@ -243,141 +212,6 @@ def start_import(data_import):
 		frappe.flags.in_import = False
 
 	frappe.publish_realtime("data_import_refresh", {"data_import": data_import.name})
-
-
-@frappe.whitelist()
-def download_template(
-	doctype: str,
-	export_fields: str | dict[str, list[str]] | None = None,
-	export_records: str | None = None,
-	export_filters: str | dict[str, Any] | list[list[Any]] | None = None,
-	file_type: str = "CSV",
-):
-	"""
-	Download template from Exporter
-	        :param doctype: Document Type
-	        :param export_fields=None: Fields to export as dict {'Sales Invoice': ['name', 'customer'], 'Sales Invoice Item': ['item_code']}
-	        :param export_records=None: One of 'all', 'by_filter', 'blank_template'
-	        :param export_filters: Filter dict
-	        :param file_type: File type to export into
-	"""
-	frappe.has_permission(doctype, "read", throw=True)
-
-	export_fields = frappe.parse_json(export_fields)
-	export_filters = frappe.parse_json(export_filters)
-	export_data = export_records != "blank_template"
-
-	list_settings = frappe.parse_json(get_user_settings(doctype)).get("List", {})
-	sort_by = list_settings.get("sort_by")
-	sort_order = list_settings.get("sort_order")
-
-	if sort_by and not frappe.get_meta(doctype).get_field(sort_by):
-		sort_by = None
-
-	if sort_order and sort_order.upper() not in ("ASC", "DESC"):
-		sort_order = None
-
-	order_by = f"{sort_by} {sort_order}" if sort_by and sort_order else None
-
-	e = Exporter(
-		doctype,
-		export_fields=export_fields,
-		export_data=export_data,
-		export_filters=export_filters,
-		file_type=file_type,
-		export_page_length=5 if export_records == "5_records" else None,
-		order_by=order_by,
-	)
-	e.build_response()
-
-
-@frappe.whitelist()
-def download_errored_template(data_import_name: str):
-	data_import: DataImport = frappe.get_doc("Data Import", data_import_name)
-	data_import.check_permission("read")
-	data_import.export_errored_rows()
-
-
-@frappe.whitelist()
-def download_skipped_rows(data_import_name: str):
-	data_import: DataImport = frappe.get_doc("Data Import", data_import_name)
-	data_import.check_permission("read")
-	data_import.export_skipped_rows()
-
-
-@frappe.whitelist()
-def download_import_log(data_import_name: str):
-	data_import: DataImport = frappe.get_doc("Data Import", data_import_name)
-	data_import.check_permission("read")
-	data_import.download_import_log()
-
-
-@frappe.whitelist()
-def get_import_status(data_import_name: str):
-	from frappe.core.doctype.data_import.importer import ACTION_INSERT, ACTION_UPDATE
-
-	data_import: DataImport = frappe.get_doc("Data Import", data_import_name)
-	data_import.check_permission("read")
-
-	import_status = {
-		"status": data_import.status,
-		"total_records": data_import.payload_count,
-	}
-	is_upsert = data_import.import_type == UPSERT
-	group_by = "success, import_action" if is_upsert else "success"
-	log_fields = [{"COUNT": "*", "as": "count"}, "success"]
-	if is_upsert:
-		log_fields.append("import_action")
-
-	for log in frappe.get_all(
-		"Data Import Log",
-		fields=log_fields,
-		filters={"data_import": data_import_name},
-		group_by=group_by,
-	):
-		count = log.get("count")
-		if log.get("success"):
-			import_status["success"] = import_status.get("success", 0) + count
-			if is_upsert:
-				if log.get("import_action") == ACTION_INSERT:
-					import_status["inserted"] = count
-				elif log.get("import_action") == ACTION_UPDATE:
-					import_status["updated"] = count
-		else:
-			import_status["failed"] = count
-
-	if is_upsert:
-		import_status.setdefault("inserted", 0)
-		import_status.setdefault("updated", 0)
-
-	logged_total = import_status.get("success", 0) + import_status.get("failed", 0)
-	if logged_total:
-		import_status["total_records"] = logged_total
-
-	return import_status
-
-
-@frappe.whitelist(methods=["GET"])
-@frappe.read_only()
-def get_import_log_count(data_import: str):
-	doc = frappe.get_doc("Data Import", data_import)
-	doc.check_permission("read")
-
-	return frappe.db.count("Data Import Log", {"data_import": data_import})
-
-
-@frappe.whitelist()
-def get_import_logs(data_import: str):
-	doc = frappe.get_doc("Data Import", data_import)
-	doc.check_permission("read")
-
-	return frappe.get_all(
-		"Data Import Log",
-		fields=["success", "docname", "messages", "exception", "row_indexes", "import_action"],
-		filters={"data_import": data_import},
-		limit_page_length=5000,
-		order_by="log_index",
-	)
 
 
 def import_file(doctype, file_path, import_type, submit_after_import=False, console=False):
@@ -482,8 +316,32 @@ def export_json(doctype, path, filters=None, or_filters=None, name=None, order_b
 
 
 def export_csv(doctype, path):
-	from frappe.core.doctype.data_export.exporter import export_data
+	from frappe.core.api.data_import_export import export_data
 
 	with open(path, "wb") as csvfile:
 		export_data(doctype=doctype, all_doctypes=True, template=True, with_data=True)
 		csvfile.write(frappe.response.result.encode("utf-8"))
+
+
+# These endpoints moved to frappe.core.api.data_import_export. The aliases
+# keep the old dotted paths working; resolved lazily to avoid circular imports.
+_MOVED_TO_DATA_IE_API = {
+	"get_preview_from_template": "get_preview_from_template",
+	"form_start_import": "form_start_import",
+	"stop_data_import": "stop_data_import",
+	"download_template": "download_template",
+	"download_errored_template": "download_errored_template",
+	"download_skipped_rows": "download_skipped_rows",
+	"download_import_log": "download_import_log",
+	"get_import_status": "get_import_status",
+	"get_import_log_count": "get_import_log_count",
+	"get_import_logs": "get_import_logs",
+}
+
+
+def __getattr__(name: str):
+	if new_name := _MOVED_TO_DATA_IE_API.get(name):
+		from frappe.core.api import data_import_export
+
+		return getattr(data_import_export, new_name)
+	raise AttributeError(f"module {__name__!r} has no attribute {name!r}")

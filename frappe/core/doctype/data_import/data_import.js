@@ -313,7 +313,7 @@ frappe.ui.form.on("Data Import", {
 
 	show_import_status(frm) {
 		frappe.call({
-			method: "frappe.core.doctype.data_import.data_import.get_import_status",
+			method: "frappe.core.api.data_import_export.get_import_status",
 			args: {
 				data_import_name: frm.doc.name,
 			},
@@ -374,7 +374,7 @@ frappe.ui.form.on("Data Import", {
 				),
 				() => {
 					frappe
-						.xcall("frappe.core.doctype.data_import.data_import.stop_data_import", {
+						.xcall("frappe.core.api.data_import_export.stop_data_import", {
 							doc_name: frm.doc.name,
 						})
 						.then((r) => {
@@ -747,30 +747,21 @@ frappe.ui.form.on("Data Import", {
 	},
 
 	export_errored_rows(frm) {
-		open_url_post(
-			"/api/method/frappe.core.doctype.data_import.data_import.download_errored_template",
-			{
-				data_import_name: frm.doc.name,
-			}
-		);
+		open_url_post("/api/method/frappe.core.api.data_import_export.download_errored_template", {
+			data_import_name: frm.doc.name,
+		});
 	},
 
 	download_skipped_rows(frm) {
-		open_url_post(
-			"/api/method/frappe.core.doctype.data_import.data_import.download_skipped_rows",
-			{
-				data_import_name: frm.doc.name,
-			}
-		);
+		open_url_post("/api/method/frappe.core.api.data_import_export.download_skipped_rows", {
+			data_import_name: frm.doc.name,
+		});
 	},
 
 	export_import_log(frm) {
-		open_url_post(
-			"/api/method/frappe.core.doctype.data_import.data_import.download_import_log",
-			{
-				data_import_name: frm.doc.name,
-			}
-		);
+		open_url_post("/api/method/frappe.core.api.data_import_export.download_import_log", {
+			data_import_name: frm.doc.name,
+		});
 	},
 
 	/** Render import warnings; dedupe when preview and ``template_warnings`` overlap. */
@@ -1047,7 +1038,7 @@ frappe.ui.form.on("Data Import", {
 
 		const fetch_logs = (inserted_count = 0, updated_count = 0) => {
 			frappe.call({
-				method: "frappe.core.doctype.data_import.data_import.get_import_logs",
+				method: "frappe.core.api.data_import_export.get_import_logs",
 				args: {
 					data_import: frm.doc.name,
 				},
@@ -1059,7 +1050,7 @@ frappe.ui.form.on("Data Import", {
 
 		if (is_upsert) {
 			frappe.call({
-				method: "frappe.core.doctype.data_import.data_import.get_import_status",
+				method: "frappe.core.api.data_import_export.get_import_status",
 				args: {
 					data_import_name: frm.doc.name,
 				},
@@ -1083,7 +1074,7 @@ frappe.ui.form.on("Data Import", {
 		}
 
 		frappe.call({
-			method: "frappe.core.doctype.data_import.data_import.get_import_log_count",
+			method: "frappe.core.api.data_import_export.get_import_log_count",
 			type: "GET",
 			args: {
 				data_import: frm.doc.name,

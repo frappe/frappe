@@ -291,7 +291,7 @@ frappe.ui.form.on("Customize Form", {
 						],
 						function (data) {
 							frappe.call({
-								method: "frappe.modules.utils.export_customizations",
+								method: "frappe.core.api.data_import_export.export_customizations",
 								args: {
 									doctype: frm.doc.doc_type,
 									module: data.module,

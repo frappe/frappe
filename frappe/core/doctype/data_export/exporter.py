@@ -29,51 +29,6 @@ def get_data_keys():
 	)
 
 
-@frappe.whitelist()
-def export_data(
-	doctype: str | list[str | dict[str, Any]] | None = None,
-	parent_doctype: str | None = None,
-	all_doctypes: bool | int | str = True,
-	with_data: bool | int | str = False,
-	select_columns: str | dict[str, list[str]] | None = None,
-	file_type: str = "CSV",
-	template: bool | str = False,
-	filters: str | dict[str, Any] | list | None = None,
-	export_without_column_meta: bool | str = False,
-):
-	_doctype = doctype
-	if isinstance(_doctype, list):
-		_doctype = _doctype[0]
-	make_access_log(
-		doctype=_doctype,
-		file_type=file_type,
-		columns=select_columns,
-		filters=filters,
-		method=parent_doctype,
-	)
-
-	template_bool = template
-	if isinstance(template, str):
-		template_bool = template.lower() == "true"
-
-	export_without_column_meta_bool = export_without_column_meta
-	if isinstance(export_without_column_meta, str):
-		export_without_column_meta_bool = export_without_column_meta.lower() == "true"
-
-	exporter = DataExporter(
-		doctype=doctype,
-		parent_doctype=parent_doctype,
-		all_doctypes=all_doctypes,
-		with_data=with_data,
-		select_columns=select_columns,
-		file_type=file_type,
-		template=template_bool,
-		filters=filters,
-		export_without_column_meta=export_without_column_meta_bool,
-	)
-	exporter.build_response()
-
-
 class DataExporter:
 	def __init__(
 		self,
@@ -480,3 +435,18 @@ class DataExporter:
 			),
 			True,
 		)
+
+
+# These endpoints moved to frappe.core.api.data_import_export. The aliases
+# keep the old dotted paths working; resolved lazily to avoid circular imports.
+_MOVED_TO_DATA_IE_API = {
+	"export_data": "export_data",
+}
+
+
+def __getattr__(name: str):
+	if new_name := _MOVED_TO_DATA_IE_API.get(name):
+		from frappe.core.api import data_import_export
+
+		return getattr(data_import_export, new_name)
+	raise AttributeError(f"module {__name__!r} has no attribute {name!r}")

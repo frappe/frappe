@@ -107,15 +107,6 @@ def read_csv_content(fcontent, use_sniffer: bool = False, delimiter: str | None 
 		raise
 
 
-@frappe.whitelist()
-def send_csv_to_client(args: str | dict[str, Any]):
-	args = frappe._dict(frappe.parse_json(args))
-
-	frappe.response["result"] = cstr(to_csv(args.data))
-	frappe.response["doctype"] = args.filename
-	frappe.response["type"] = "csv"
-
-
 def to_csv(data):
 	writer = UnicodeWriter()
 	for row in data:
@@ -247,3 +238,18 @@ def validate_google_sheets_url(url):
 			_('"{0}" is not a valid Google Sheets URL').format(url),
 			title=_("Invalid URL"),
 		)
+
+
+# These endpoints moved to frappe.core.api.data_import_export. The aliases
+# keep the old dotted paths working; resolved lazily to avoid circular imports.
+_MOVED_TO_DATA_IE_API = {
+	"send_csv_to_client": "send_csv_to_client",
+}
+
+
+def __getattr__(name: str):
+	if new_name := _MOVED_TO_DATA_IE_API.get(name):
+		from frappe.core.api import data_import_export
+
+		return getattr(data_import_export, new_name)
+	raise AttributeError(f"module {__name__!r} has no attribute {name!r}")

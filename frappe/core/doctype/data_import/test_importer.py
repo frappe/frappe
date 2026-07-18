@@ -356,7 +356,7 @@ class TestImporter(IntegrationTestCase):
 		i.import_file.parse_data_from_template()
 		i.import_data()
 
-		from frappe.core.doctype.data_import.data_import import get_import_status
+		from frappe.core.api.data_import_export import get_import_status
 
 		status = get_import_status(data_import.name)
 		self.assertEqual(status["inserted"], 1)

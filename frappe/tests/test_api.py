@@ -479,7 +479,7 @@ class TestAPIResponse(FrappeAPITestCase):
 			filters = json.dumps({})
 			fields = json.dumps({"User": ["name"]})
 			return self.post(
-				"/api/method/frappe.core.doctype.data_import.data_import.download_template",
+				"/api/method/frappe.core.api.data_import_export.download_template",
 				{
 					"sid": self.sid,
 					"doctype": "User",
