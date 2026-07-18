@@ -148,6 +148,7 @@ export const TABLE_COLUMN_PLUCK_KEYS = [
 	"merged_fields",
 	"merge_direction",
 	"image_size",
+	"column_condition",
 ];
 
 export const FIELD_PLUCK_KEYS = [

@@ -195,6 +195,18 @@
 										@update:model-value="(v) => (col.merge_direction = v)"
 									/>
 								</div>
+								<div class="pfb-col-cond">
+									<label class="pfb-insp-label">{{
+										__("Show column when")
+									}}</label>
+									<input
+										class="pfb-insp-input"
+										type="text"
+										:placeholder="__('e.g. doc.apply_discount')"
+										:value="col.column_condition || ''"
+										@input="col.column_condition = $event.target.value"
+									/>
+								</div>
 							</div>
 						</div>
 					</template>
@@ -237,6 +249,20 @@
 		<!-- VISIBILITY section -->
 		<InspectorSection :label="__('Visibility')" :padded="false">
 			<VisibilitySection v-model="selected_field.visible_if" :previewDoc="preview_doc" />
+			<div class="pfb-row-cond">
+				<label class="pfb-insp-label">{{ __("Show row when") }}</label>
+				<input
+					class="pfb-insp-input"
+					type="text"
+					:placeholder="__('e.g. row.qty > 0')"
+					:value="selected_field.row_condition || ''"
+					@input="selected_field.row_condition = $event.target.value"
+				/>
+				<p class="pfb-insp-hint text-muted">
+					{{ __("Leave blank to show every row. Reference the row with") }}
+					<code>row.fieldname</code>.
+				</p>
+			</div>
 		</InspectorSection>
 	</div>
 </template>
@@ -561,5 +587,20 @@ function set_image_size(col, value) {
 .pfb-col-editor .pfb-col-remove,
 .pfb-col-editor .pfb-merge-drag {
 	color: var(--gray-400);
+}
+
+.pfb-col-cond {
+	display: flex;
+	flex-direction: column;
+	gap: 6px;
+	padding: 8px 14px 10px;
+	border-top: 1px solid var(--gray-100);
+}
+
+.pfb-row-cond {
+	display: flex;
+	flex-direction: column;
+	gap: 6px;
+	padding: 0 14px 12px;
 }
 </style>

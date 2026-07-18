@@ -456,7 +456,7 @@ class PrintFormatGenerator:
 				print_format.page_number = "Bottom Center"
 		layout = self.apply_permlevel_access(layout)
 		layout = self.set_field_renderers(layout)
-		layout = self.prune_empty_table_columns(layout)
+		layout = self.prune_table_columns(layout)
 		layout = self.process_margin_texts(layout)
 		return layout
 
@@ -504,23 +504,29 @@ class PrintFormatGenerator:
 				]
 		return layout
 
-	def prune_empty_table_columns(self, layout):
+	def prune_table_columns(self, layout):
+		"""Drop table columns that fail their column_condition (doc-scoped) or that are
+		empty across all rows, then renormalize widths. A bad condition fails open."""
 		from frappe.www.printview import column_has_value
 
+		eval_locals = {"doc": self.doc, "print_settings": self.print_settings}
 		for section in layout.get("sections", []):
 			for column in section.get("columns", []):
 				for df in column.get("fields", []):
 					if df.get("fieldtype") != "Table" or not df.get("table_columns"):
 						continue
 					rows = self.doc.get(df.get("fieldname")) or []
-					if not rows:
-						continue
-					kept = [
-						col
-						for col in df["table_columns"]
-						if col.get("fieldname") == "idx"
-						or column_has_value(rows, col.get("fieldname"), frappe._dict(col))
-					]
+					kept = []
+					for col in df["table_columns"]:
+						if not self.column_condition_met(col, eval_locals):
+							continue
+						if (
+							rows
+							and col.get("fieldname") != "idx"
+							and not column_has_value(rows, col.get("fieldname"), frappe._dict(col))
+						):
+							continue
+						kept.append(col)
 					total = sum(col.get("width") or 0 for col in kept)
 					if total:
 						for col in kept:
@@ -528,6 +534,15 @@ class PrintFormatGenerator:
 								col["width"] = round(col["width"] / total * 100, 2)
 					df["table_columns"] = kept
 		return layout
+
+	def column_condition_met(self, col, eval_locals):
+		condition = col.get("column_condition")
+		if not condition:
+			return True
+		try:
+			return bool(frappe.safe_eval(condition, None, eval_locals))
+		except Exception:
+			return True
 
 	def _prepare_field(self, df, section, eval_locals):
 		if df.get("visible_if"):
@@ -564,14 +579,21 @@ class PrintFormatGenerator:
 		return layout
 
 	def filter_repeater_rows(self, df):
-		"""Drop repeater rows whose row_condition is falsy; a bad expression fails open
-		(keeps the row) so a typo never silently blanks the table."""
-		if df.get("fieldtype") != "Repeater" or not df.get("row_condition") or not df.get("source"):
+		"""Drop repeater/table rows whose row_condition is falsy; a bad expression fails
+		open (keeps the row) so a typo never silently blanks the table."""
+		fieldtype = df.get("fieldtype")
+		if fieldtype == "Repeater":
+			source = df.get("source")
+		elif fieldtype == "Table":
+			source = df.get("fieldname")
+		else:
+			return
+		if not df.get("row_condition") or not source:
 			return
 		condition = df["row_condition"]
 		eval_locals = {"doc": self.doc, "print_settings": self.print_settings}
 		kept = []
-		for row in self.doc.get(df["source"]) or []:
+		for row in self.doc.get(source) or []:
 			try:
 				keep = frappe.safe_eval(condition, None, {**eval_locals, "row": row})
 			except Exception:
