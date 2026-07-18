@@ -19,7 +19,7 @@ frappe.doctype_settings.register("general", function (panel, doctype) {
 
 function load(panel, doctype) {
 	const $body = panel.body.empty();
-	$('<div class="text-muted small"></div>').text(__("Loading")).appendTo($body);
+	frappe.doctype_settings.render_loading($body);
 
 	frappe
 		.call({
@@ -47,14 +47,41 @@ function render(panel, doctype, groups) {
 		return;
 	}
 
-	// Flat list — every field across every source single, no per-single section headers.
-	// Each field keeps its `group` context (the source single + its `doc`) for saving and
-	// dependency evaluation, plus its own `can_write` flag (doc-level write ∧ field permlevel).
+	// One section per source single (Selling Settings, Stock Settings, …) so long maps
+	// scan in chunks and every setting keeps its provenance. A single-source map stays
+	// flat — one heading over the whole list is noise. Each field keeps its `group`
+	// context (the source single + its `doc`) for saving and dependency evaluation,
+	// plus its own `can_write` flag (doc-level write ∧ field permlevel).
+	const show_headings = groups.length > 1;
 	groups.forEach((group) => {
 		group.doc = group.doc || {};
+		if (show_headings) $body.append(make_heading(panel, group));
 		group.fields.forEach((field) => render_field($body, group, field));
 		apply_dependencies(group);
 	});
+}
+
+// Section heading for one source single: its label plus a jump link to the full
+// settings form, for anything beyond the curated subset shown here.
+function make_heading(panel, group) {
+	// Self-contained: espresso typography utility for the title instead of the shared
+	// section-heading classes, so nothing is inherited or overridden across files.
+	const $heading = $('<div class="dts-settings-group-heading"></div>');
+	$('<div class="text-base text-ink-gray-6"></div>').text(group.label).appendTo($heading);
+	// Icon-only arrow right beside the title — the whole heading names the single, so
+	// the glyph is the affordance; the tooltip/aria-label carry the full action.
+	$('<a href="#" class="dts-settings-group-link"></a>')
+		.attr("title", __("Open {0}", [group.label]))
+		.attr("aria-label", __("Open {0}", [group.label]))
+		.append(frappe.utils.icon("arrow-up-right", "sm"))
+		.appendTo($heading)
+		.on("click", (e) => {
+			e.preventDefault();
+			panel.dialog.hide();
+			frappe.set_route("Form", group.settings);
+		});
+	group.$heading = $heading; // referenced by apply_dependencies() to hide emptied groups
+	return $heading;
 }
 
 // One consistent row for every field type: label + description on the left, a compact
@@ -65,9 +92,11 @@ function render_field($body, group, field) {
 	field.$row = $row; // referenced by apply_dependencies() to show/hide the field
 
 	const $text = $('<div class="dts-setting-text"></div>').appendTo($row);
-	$('<div class="dts-setting-label"></div>').text(field.label).appendTo($text);
+	$('<div class="dts-setting-label text-base-medium"></div>').text(field.label).appendTo($text);
 	if (field.description) {
-		$('<div class="dts-setting-description"></div>').text(field.description).appendTo($text);
+		$('<div class="dts-setting-description text-p-sm"></div>')
+			.text(field.description)
+			.appendTo($text);
 	}
 
 	const $control = $('<div class="dts-setting-control"></div>').appendTo($row);
@@ -146,12 +175,18 @@ function save(group, field, value, revert) {
 // Show/hide and lock each field in a group per its depends_on / read_only_depends_on,
 // evaluated against the group's live `doc`.
 function apply_dependencies(group) {
+	let any_visible = false;
 	group.fields.forEach((field) => {
-		field.$row.toggle(evaluate(field.depends_on, group.doc));
+		const visible = evaluate(field.depends_on, group.doc);
+		field.$row.toggle(visible);
+		any_visible = any_visible || visible;
 
 		const ro = field.read_only_depends_on && evaluate(field.read_only_depends_on, group.doc);
 		field.set_locked && field.set_locked(!field.can_write || !!ro);
 	});
+	// A group whose fields are all dependency-hidden takes its heading with it —
+	// no orphaned section titles mid-list.
+	group.$heading && group.$heading.toggle(any_visible);
 }
 
 // Mirrors frappe.ui.form.Layout.evaluate_depends_on_value, minus the frm-only `fn:` branch.

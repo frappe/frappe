@@ -10,7 +10,7 @@ frappe.doctype_settings.register("global-search", function (panel, doctype) {
 
 function load(panel, doctype) {
 	panel.body.empty();
-	$(`<div class="text-muted small">${__("Loading")}</div>`).appendTo(panel.body);
+	frappe.doctype_settings.render_loading(panel.body);
 
 	frappe.db
 		.get_doc(SETTINGS)
