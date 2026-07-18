@@ -55,8 +55,8 @@ function write_iframe(html) {
 }
 function render() {
 	if (!docname.value) return;
-	preview_loaded.value = false;
 	if (type.value === "PDF") return;
+	preview_loaded.value = false;
 	let seq = ++render_seq;
 	let params = {
 		print_format: store.value.get_preview_format_doc(),
