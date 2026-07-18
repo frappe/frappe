@@ -593,6 +593,16 @@ class TestPrintFormatChildTableVisibility(IntegrationTestCase):
 		self.assertIn("primary@example.com", html)
 		self.assertIn("secondary@example.com", html)
 
+	def test_column_emptiness_respects_row_condition(self):
+		# Keep only the non-primary row; is_primary is 0 in that row, so the column has
+		# no value in the rendered rows and must be dropped — even though the filtered-out
+		# primary row had a 1.
+		html = self.render(self.table_field(row_condition="not row.is_primary"))
+		self.assertIn("secondary@example.com", html)
+		self.assertNotIn("primary@example.com", html)
+		self.assertIn('data-fieldname="email_id"', html)
+		self.assertNotIn('data-fieldname="is_primary"', html)
+
 	def test_bad_column_condition_keeps_column(self):
 		df = self.table_field()
 		df["table_columns"][1]["column_condition"] = "doc.does_not_exist >"

@@ -515,7 +515,10 @@ class PrintFormatGenerator:
 				for df in column.get("fields", []):
 					if df.get("fieldtype") != "Table" or not df.get("table_columns"):
 						continue
-					rows = self.doc.get(df.get("fieldname")) or []
+					rows = (
+						df.get("_rows") if df.get("_rows") is not None else self.doc.get(df.get("fieldname"))
+					)
+					rows = rows or []
 					kept = []
 					for col in df["table_columns"]:
 						if not self.column_condition_met(col, eval_locals):
