@@ -190,51 +190,69 @@
 		</div>
 
 		<!-- ── Outline ────────────────────────────────────────── -->
-		<div v-else-if="activeTab === 'outline'" class="pfb-tab-body">
+		<div v-else-if="activeTab === 'outline'" class="pfb-tab-body pfb-tree">
 			<div v-if="!visible_sections.length" class="pfb-empty">
 				{{ __("No sections yet. Add sections to the canvas.") }}
 			</div>
-			<template v-for="(section, i) in visible_sections" :key="i">
+			<div v-for="(section, i) in visible_sections" :key="i" class="pfb-tree-node">
 				<div
-					class="pfb-outline-item"
+					class="pfb-tree-row"
 					:class="{ active: store.selected_section.value === section }"
 					@click="select_section(section)"
 				>
 					<button
-						class="pfb-outline-caret"
+						class="pfb-tree-chevron"
 						:class="{ collapsed: is_collapsed(section) }"
-						:title="__('Toggle')"
 						@click.stop="toggle_collapse(section)"
-						v-html="frappe.utils.icon('chevron-down', 'xs')"
+						v-html="frappe.utils.icon('chevron-down', 'sm')"
 					></button>
-					<span class="pfb-outline-idx text-muted">{{ i + 1 }}</span>
-					<span class="pfb-outline-label">
+					<span
+						class="pfb-tree-icon"
+						v-html="frappe.utils.icon('rectangle-horizontal', 'sm')"
+					></span>
+					<span class="pfb-tree-label">
 						{{ section.label || __("Untitled section") }}
 					</span>
 				</div>
-				<template v-if="!is_collapsed(section)">
-					<template v-for="(column, ci) in outline_columns(section)" :key="ci">
-						<div
-							class="pfb-outline-item pfb-outline-col"
-							@click="select_section(section)"
-						>
-							<span class="pfb-outline-label text-muted">
+				<div v-if="!is_collapsed(section)" class="pfb-tree-children">
+					<div v-for="(column, ci) in section.columns" :key="ci" class="pfb-tree-node">
+						<div class="pfb-tree-row" @click="select_section(section)">
+							<button
+								v-if="visible_fields(column).length"
+								class="pfb-tree-chevron"
+								:class="{ collapsed: is_collapsed(column) }"
+								@click.stop="toggle_collapse(column)"
+								v-html="frappe.utils.icon('chevron-down', 'sm')"
+							></button>
+							<span v-else class="pfb-tree-spacer"></span>
+							<span
+								class="pfb-tree-icon"
+								v-html="frappe.utils.icon('columns-2', 'sm')"
+							></span>
+							<span class="pfb-tree-label text-muted">
 								{{ __("Column {0}", [ci + 1]) }}
 							</span>
 						</div>
-						<div
-							v-for="(field, fi) in column.fields"
-							:key="fi"
-							class="pfb-outline-item pfb-outline-field"
-							:class="{ active: store.selected_field.value === field }"
-							@click="select_field(field, section)"
-						>
-							<span class="pfb-outline-label">{{ field_label(field) }}</span>
-							<span class="pfb-outline-type text-muted">{{ field.fieldtype }}</span>
+						<div v-if="!is_collapsed(column)" class="pfb-tree-children">
+							<div
+								v-for="(field, fi) in visible_fields(column)"
+								:key="fi"
+								class="pfb-tree-row"
+								:class="{ active: store.selected_field.value === field }"
+								@click="select_field(field, section)"
+							>
+								<span class="pfb-tree-spacer"></span>
+								<span
+									class="pfb-tree-icon"
+									v-html="frappe.utils.icon(field_icon(field), 'sm')"
+								></span>
+								<span class="pfb-tree-label">{{ field_label(field) }}</span>
+								<span class="pfb-tree-badge">{{ field.fieldtype }}</span>
+							</div>
 						</div>
-					</template>
-				</template>
-			</template>
+					</div>
+				</div>
+			</div>
 		</div>
 
 		<!-- ── Format ─────────────────────────────────────────── -->
@@ -521,20 +539,35 @@ function field_label(f) {
 	return f.label || f.fieldname || f.fieldtype || __("Field");
 }
 
-function outline_columns(section) {
-	return (section.columns || []).map((col) => ({
-		fields: (col.fields || []).filter((f) => !f.remove),
-	}));
+function visible_fields(column) {
+	return (column.fields || []).filter((f) => !f.remove);
 }
 
-let collapsed_sections = ref(new Set());
-function is_collapsed(section) {
-	return collapsed_sections.value.has(section);
+const FIELD_ICONS = {
+	Table: "table",
+	Repeater: "rows-3",
+	Image: "image",
+	"Attach Image": "image",
+	Attach: "image",
+	HTML: "file-text",
+	"Text Editor": "file-text",
+	"Small Text": "file-text",
+	"Long Text": "file-text",
+	Text: "file-text",
+	Barcode: "square",
+};
+function field_icon(f) {
+	return FIELD_ICONS[f.fieldtype] || "type";
 }
-function toggle_collapse(section) {
-	const next = new Set(collapsed_sections.value);
-	next.has(section) ? next.delete(section) : next.add(section);
-	collapsed_sections.value = next;
+
+let collapsed_nodes = ref(new Set());
+function is_collapsed(node) {
+	return collapsed_nodes.value.has(node);
+}
+function toggle_collapse(node) {
+	const next = new Set(collapsed_nodes.value);
+	next.has(node) ? next.delete(node) : next.add(node);
+	collapsed_nodes.value = next;
 }
 
 function clone_as_section() {
@@ -1011,31 +1044,38 @@ watch(print_format, () => (store.dirty.value = true), { deep: true });
 	letter-spacing: 0;
 }
 
-/* ── Outline tab ─────────────────────────────────────────── */
-.pfb-outline-item {
-	display: flex;
-	align-items: center;
-	gap: 8px;
-	padding: 6px 8px;
-	border-radius: var(--radius);
-	cursor: pointer;
-	margin-top: 2px;
-	font-size: var(--text-sm);
+/* ── Outline tab (tree) ──────────────────────────────────── */
+.pfb-tree {
+	padding-top: 4px;
 }
 
-.pfb-outline-item:hover {
+.pfb-tree-row {
+	display: flex;
+	align-items: center;
+	gap: 6px;
+	padding: 4px 6px;
+	border-radius: var(--radius);
+	cursor: pointer;
+	font-size: var(--text-sm);
+	user-select: none;
+}
+
+.pfb-tree-row:hover {
 	background: var(--gray-100);
 }
 
-.pfb-outline-item.active {
+.pfb-tree-row.active {
 	background: var(--gray-200);
 	color: var(--gray-900);
 	font-weight: 500;
 }
 
-.pfb-outline-caret {
+.pfb-tree-chevron {
 	display: flex;
 	align-items: center;
+	justify-content: center;
+	width: 16px;
+	height: 16px;
 	padding: 0;
 	border: none;
 	background: transparent;
@@ -1045,35 +1085,43 @@ watch(print_format, () => (store.dirty.value = true), { deep: true });
 	transition: transform 0.12s ease;
 }
 
-.pfb-outline-caret.collapsed {
+.pfb-tree-chevron.collapsed {
 	transform: rotate(-90deg);
 }
 
-.pfb-outline-idx {
-	font-size: var(--text-tiny);
-	font-variant-numeric: tabular-nums;
-	min-width: 18px;
-	text-align: right;
+.pfb-tree-spacer {
+	width: 16px;
+	flex-shrink: 0;
 }
 
-.pfb-outline-label {
+.pfb-tree-icon {
+	display: flex;
+	align-items: center;
+	color: var(--gray-500);
+	flex-shrink: 0;
+}
+
+.pfb-tree-row.active .pfb-tree-icon {
+	color: var(--gray-700);
+}
+
+.pfb-tree-label {
 	flex: 1;
 	overflow: hidden;
 	text-overflow: ellipsis;
 	white-space: nowrap;
 }
 
-.pfb-outline-col {
-	padding-left: 30px;
-}
-
-.pfb-outline-field {
-	padding-left: 42px;
-}
-
-.pfb-outline-type {
+.pfb-tree-badge {
 	font-size: var(--text-tiny);
+	color: var(--gray-500);
 	flex-shrink: 0;
+}
+
+.pfb-tree-children {
+	margin-left: 15px;
+	border-left: 1px solid var(--gray-200);
+	padding-left: 3px;
 }
 
 /* ── Format tab ──────────────────────────────────────────── */
