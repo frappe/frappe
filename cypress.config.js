@@ -47,7 +47,11 @@ module.exports = defineConfig({
 				}
 			});
 
-			return require("./cypress/plugins/index.js")(on, config);
+			const result = require("./cypress/plugins/index.js")(on, config);
+			if (process.env.CI) {
+				on("task", { coverageReport: () => null });
+			}
+			return result;
 		},
 		testIsolation: false,
 		baseUrl: "http://test_site_ui:8000",
