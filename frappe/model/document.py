@@ -783,7 +783,7 @@ class Document(BaseDocument):
 		if file_lock.lock_age(self.get_signature()) > DOCUMENT_LOCK_SOFT_EXPIRY:
 			primary_action = {
 				"label": "Force Unlock",
-				"server_action": "frappe.model.document.unlock_document",
+				"server_action": "frappe.core.api.document.unlock_document",
 				"hide_on_success": True,
 				"args": {
 					"doctype": self.doctype,
@@ -2526,10 +2526,14 @@ def _document_values_generator(
 		yield tuple(doc_values.get(col) for col in columns)
 
 
-@frappe.whitelist()
-def unlock_document(doctype: str, name: str):
-	frappe.get_lazy_doc(doctype, name).unlock()
-	frappe.msgprint(frappe._("Document Unlocked"), alert=True)
+def __getattr__(name: str):
+	# `unlock_document` moved to frappe.core.api.document. The alias is resolved
+	# lazily because that module transitively imports this one at import time.
+	if name == "unlock_document":
+		from frappe.core.api.document import unlock_document
+
+		return unlock_document
+	raise AttributeError(f"module {__name__!r} has no attribute {name!r}")
 
 
 def get_lazy_controller(doctype):
