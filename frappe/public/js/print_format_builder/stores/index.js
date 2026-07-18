@@ -37,6 +37,7 @@ export function getStore(print_format_name) {
 	let preview_doc_name = ref(null);
 	let preview_values = ref({});
 	let preview_child_values = ref({});
+	let preview_load_seq = 0;
 
 	// methods
 	function fetch() {
@@ -213,6 +214,7 @@ export function getStore(print_format_name) {
 		return localStorage.getItem(preview_doc_ls_key);
 	}
 	function load_preview_doc(name) {
+		const seq = ++preview_load_seq;
 		if (!name) {
 			preview_doc.value = null;
 			preview_doc_name.value = null;
@@ -224,6 +226,7 @@ export function getStore(print_format_name) {
 		preview_doc_name.value = name;
 		localStorage.setItem(preview_doc_ls_key, name);
 		frappe.db.get_doc(print_format.value.doc_type, name).then((doc) => {
+			if (seq !== preview_load_seq) return;
 			preview_doc.value = doc;
 		});
 		frappe
@@ -232,6 +235,7 @@ export function getStore(print_format_name) {
 				name,
 			})
 			.then((r) => {
+				if (seq !== preview_load_seq) return;
 				preview_values.value = r.message?.values || {};
 				preview_child_values.value = r.message?.child || {};
 			});
