@@ -444,13 +444,13 @@ function remove_column(index) {
 	min-height: 3rem;
 }
 
-.column:has(.sortable-ghost) .empty-drop-zone {
+.column:has(.pfb-drag-ghost) .empty-drop-zone {
 	background: transparent;
-	border-color: var(--blue-300);
+	border-color: var(--gray-400);
 	border-style: solid;
 }
 
-.column:has(.sortable-ghost) .empty-drop-zone-hint {
+.column:has(.pfb-drag-ghost) .empty-drop-zone-hint {
 	display: none;
 }
 

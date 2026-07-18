@@ -276,3 +276,32 @@
 	cursor: grabbing !important;
 	pointer-events: none;
 }
+
+/* Ghost placeholder collapses to a thin insertion line marking the drop position.
+   Only builder draggables use this class (via DRAG_OPTIONS ghostClass). */
+.pfb-drag-ghost {
+	height: 0 !important;
+	min-height: 0 !important;
+	margin: 4px 0 !important;
+	padding: 0 !important;
+	border: none !important;
+	overflow: visible !important;
+	position: relative !important;
+	opacity: 1 !important;
+	box-shadow: none !important;
+}
+
+.pfb-drag-ghost > * {
+	visibility: hidden !important;
+}
+
+.pfb-drag-ghost::after {
+	content: "";
+	position: absolute;
+	left: 0;
+	right: 0;
+	top: -1px;
+	height: 2px;
+	background: var(--gray-500);
+	border-radius: 2px;
+}

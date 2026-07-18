@@ -146,6 +146,7 @@ export const DRAG_OPTIONS = {
 	fallbackOnBody: true,
 	fallbackTolerance: 4,
 	fallbackClass: "pfb-drag-fallback",
+	ghostClass: "pfb-drag-ghost",
 };
 
 export const TABLE_COLUMN_PLUCK_KEYS = [
