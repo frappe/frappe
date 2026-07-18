@@ -305,3 +305,14 @@
 	background: var(--gray-500);
 	border-radius: 2px;
 }
+
+/* Drag sources must not start a text selection when grabbed: forceFallback uses a
+   real mousedown-drag (unlike native HTML5 drag, which never selected text). */
+.pfb-field-row,
+.pfb-block-card,
+.pfb-template-card,
+.drag-container .field,
+.sections-container .section-drag-handle {
+	user-select: none;
+	-webkit-user-select: none;
+}
