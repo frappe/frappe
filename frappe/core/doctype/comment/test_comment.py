@@ -3,10 +3,10 @@
 import json
 
 import frappe
-from frappe.templates.includes.comments.comments import add_comment
 from frappe.tests import IntegrationTestCase
 from frappe.tests.test_helpers import setup_for_tests
 from frappe.tests.test_model_utils import set_user
+from frappe.website.api import add_comment
 
 EXTRA_TEST_RECORD_DEPENDENCIES = ["Web Page"]
 

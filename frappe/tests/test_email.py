@@ -245,7 +245,7 @@ class TestEmail(IntegrationTestCase):
 				eol = "\r\n"
 
 				query_string = re.search(
-					r"(?<=/api/method/frappe.email.queue.unsubscribe\?).*(?=" + eol + ")", content.decode()
+					r"(?<=/api/method/frappe.website.api.unsubscribe\?).*(?=" + eol + ")", content.decode()
 				).group(0)
 
 				set_request(method="GET", query_string=query_string)
@@ -284,7 +284,7 @@ class TestEmail(IntegrationTestCase):
 		_patched_assertion(email_account, "_Test Email Account 1 <test@example.com>")
 
 	def test_unsubscribe(self):
-		from frappe.email.queue import unsubscribe
+		from frappe.website.api import unsubscribe
 
 		unsubscribe(doctype="User", name="Administrator", email="test@example.com")
 		self.assertTrue(

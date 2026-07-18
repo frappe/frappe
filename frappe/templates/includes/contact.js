@@ -25,7 +25,7 @@ frappe.ready(function() {
 		$("#contact-alert").toggle(false);
 		frappe.call({
 			type: "POST",
-			method: "frappe.www.contact.send_message",
+			method: "frappe.website.api.send_contact_message",
 			args: {
 				subject: $('[name="subject"]').val(),
 				sender: email,

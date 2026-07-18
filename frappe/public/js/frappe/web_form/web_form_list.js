@@ -35,7 +35,7 @@ export default class WebFormList {
 		let filter_area = $(".web-list-filters");
 
 		frappe
-			.call("frappe.website.doctype.web_form.web_form.get_web_form_filters", {
+			.call("frappe.website.api.get_web_form_filters", {
 				web_form_name: this.web_form_name,
 			})
 			.then((response) => {
@@ -120,7 +120,7 @@ export default class WebFormList {
 		if (frappe.web_form_doc.web_form_request_key) {
 			args = {
 				type: "GET",
-				method: "frappe.website.doctype.web_form.web_form.get_web_form_list",
+				method: "frappe.website.api.get_web_form_list",
 				args: {
 					web_form: this.web_form_name,
 					web_form_request_key: frappe.web_form_doc.web_form_request_key,
@@ -374,7 +374,7 @@ export default class WebFormList {
 		frappe
 			.call({
 				type: "DELETE",
-				method: "frappe.website.doctype.web_form.web_form.delete_multiple",
+				method: "frappe.website.api.delete_web_form_documents",
 				args: {
 					web_form_name: this.web_form_name,
 					docnames: this.get_selected().map((row) => row.doc.name),

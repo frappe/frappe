@@ -43,7 +43,7 @@ frappe.ready(function() {
 
 		frappe.call({
 			btn: this,
-			method: "frappe.website.doctype.help_article.help_article.add_feedback",
+			method: "frappe.website.api.add_help_article_feedback",
 			args: args,
 			callback: function(r) {
 				$(".feedback")[0].classList.add("hidden");

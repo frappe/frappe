@@ -3,7 +3,7 @@
 
 import frappe
 from frappe.tests import IntegrationTestCase
-from frappe.website.doctype.discussion_topic.discussion_topic import submit_discussion
+from frappe.website.api import submit_discussion
 
 
 class TestDiscussionTopic(IntegrationTestCase):

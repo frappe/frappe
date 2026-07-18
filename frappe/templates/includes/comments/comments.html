@@ -176,7 +176,7 @@
 			frappe.call({
 				btn: this,
 				type: "POST",
-				method: "frappe.templates.includes.comments.comments.add_comment",
+				method: "frappe.website.api.add_comment",
 				args: args,
 				callback: function (r) {
 					if (r.exc) {

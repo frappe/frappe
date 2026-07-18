@@ -200,7 +200,7 @@ export default class WebForm extends frappe.ui.FieldGroup {
 		frappe.confirm(__("Are you sure you want to delete this record?"), () => {
 			frappe.call({
 				type: "DELETE",
-				method: "frappe.website.doctype.web_form.web_form.delete",
+				method: "frappe.website.api.delete_web_form_document",
 				args: {
 					web_form_name: this.name,
 					docname: this.doc.name,
@@ -416,7 +416,7 @@ export default class WebForm extends frappe.ui.FieldGroup {
 
 		frappe.call({
 			type: "POST",
-			method: "frappe.website.doctype.web_form.web_form.accept",
+			method: "frappe.website.api.accept_web_form",
 			args: {
 				data: this.doc,
 				web_form: this.name,

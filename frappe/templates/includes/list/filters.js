@@ -4,7 +4,7 @@ function setup_list_filters() {
 		frappe.web_form_doc?.web_form_request_key ||
 		frappe.utils.get_query_params().web_form_request_key;
 
-	frappe.call('frappe.website.doctype.web_form.web_form.get_form_data', {
+	frappe.call('frappe.website.api.get_web_form_data', {
 		doctype: web_form_doctype,
 		web_form_name,
 		web_form_request_key,

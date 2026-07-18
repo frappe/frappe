@@ -24,7 +24,7 @@ class TestHelpArticle(IntegrationTestCase):
 		).insert()
 
 	def test_article_is_helpful(self):
-		from frappe.website.doctype.help_article.help_article import add_feedback
+		from frappe.website.api import add_help_article_feedback as add_feedback
 
 		self.help_article.load_from_db()
 		self.assertEqual(self.help_article.helpful, 0)

@@ -71,10 +71,7 @@ class PersonalDataDeletionRequest(Document):
 
 	def generate_url_for_confirmation(self):
 		params = {"email": self.email, "name": self.name, "host_name": frappe.local.site}
-		api = frappe.utils.get_url(
-			"/api/method/frappe.website.doctype.personal_data_deletion_request"
-			".personal_data_deletion_request.confirm_deletion"
-		)
+		api = frappe.utils.get_url("/api/method/frappe.website.api.confirm_personal_data_deletion")
 		url = f"{api}?{get_signed_params(params)}"
 
 		if frappe.conf.developer_mode:

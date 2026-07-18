@@ -598,7 +598,7 @@ class QueueBuilder:
 		:param reference_doctype: Reference DocType of caller document.
 		:param reference_name: Reference name of caller document.
 		:param send_priority: Priority for Email Queue, default 1.
-		:param unsubscribe_method: URL method for unsubscribe. Default is `/api/method/frappe.email.queue.unsubscribe`.
+		:param unsubscribe_method: URL method for unsubscribe. Default is `/api/method/frappe.website.api.unsubscribe`.
 		:param unsubscribe_params: additional params for unsubscribed links. default are name, doctype, email
 		:param attachments: Attachments to be sent.
 		:param reply_to: Reply to be captured here (default inbox)
@@ -662,7 +662,7 @@ class QueueBuilder:
 
 	@property
 	def unsubscribe_method(self):
-		return self._unsubscribe_method or "/api/method/frappe.email.queue.unsubscribe"
+		return self._unsubscribe_method or "/api/method/frappe.website.api.unsubscribe"
 
 	def _get_emails_list(self, emails=None):
 		emails = split_emails(emails) if isinstance(emails, str) else (emails or [])

@@ -226,7 +226,7 @@ const submit_discussion = (e) => {
 		docname = docname ? decodeURIComponent(docname) : docname;
 
 		frappe.call({
-			method: "frappe.website.doctype.discussion_topic.discussion_topic.submit_discussion",
+			method: "frappe.website.api.submit_discussion",
 			args: {
 				doctype: doctype ? doctype : "",
 				docname: docname ? docname : "",
@@ -304,7 +304,7 @@ const edit_reply = (e) => {
 
 const delete_reply = (e) => {
 	frappe.call({
-		method: "frappe.website.doctype.discussion_reply.discussion_reply.delete_message",
+		method: "frappe.website.api.delete_discussion_reply",
 		args: {
 			reply_name: $(e.target).closest(".reply-card").data("reply"),
 		},

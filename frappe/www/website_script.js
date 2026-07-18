@@ -27,7 +27,7 @@ ga('send', 'pageview');
 				.then(fingerprint_js => fingerprint_js.load())
 				.then(fp => fp.get())
 				.then(result => {
-					frappe.call("frappe.website.doctype.web_page_view.web_page_view.make_view_log", {
+					frappe.call("frappe.website.api.make_view_log", {
 						referrer: document.referrer,
 						browser: browser.name,
 						version: browser.version,
