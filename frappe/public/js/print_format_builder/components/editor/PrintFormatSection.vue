@@ -402,10 +402,6 @@ function remove_column(index) {
 /* Section title — hidden in editor (toolbar shows it), revealed via parent :deep() */
 .section-title-display {
 	display: none;
-	font-size: var(--text-sm);
-	font-weight: var(--weight-semibold);
-	color: var(--text-muted);
-	padding: 0;
 }
 
 .section-columns {
@@ -552,7 +548,7 @@ function remove_column(index) {
 
 /* ── Table layout (field borders) ───────────────────────── */
 .section--grid {
-	border: 1px solid var(--border-color);
+	border: 1px solid var(--gray-300);
 	border-radius: var(--border-radius-md, 8px);
 	overflow: hidden;
 	padding: 0;
@@ -563,7 +559,7 @@ function remove_column(index) {
 .section--grid .section-title-display {
 	padding: var(--pfb-cell-pad, 8px);
 	margin: 0;
-	border-bottom: 1px solid var(--border-color);
+	border-bottom: 1px solid var(--gray-300);
 }
 .section--grid .section-columns {
 	padding: 0;
@@ -572,7 +568,7 @@ function remove_column(index) {
 	padding: 0;
 }
 .section--grid .column:not(:last-child) {
-	border-right: 1px solid var(--border-color);
+	border-right: 1px solid var(--gray-300);
 }
 .section--grid .column-divider {
 	display: none;
@@ -583,7 +579,7 @@ function remove_column(index) {
 .section--grid :deep(.field--chip) {
 	padding: var(--pfb-cell-pad, 8px);
 	border: none;
-	border-bottom: 1px solid var(--border-color);
+	border-bottom: 1px solid var(--gray-300);
 	border-radius: 0;
 	background: transparent;
 }

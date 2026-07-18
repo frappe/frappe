@@ -151,7 +151,10 @@
 									:class="{ 'column-value--merged': has_merge(col) }"
 									:data-fieldtype="col.fieldtype"
 									:data-fieldname="col.fieldname"
-									:style="cell_style(df)"
+									:style="
+										(col.width ? `width: ${col.width}%; ` : '') +
+										cell_style(df)
+									"
 								>
 									<!-- Merged cell: image (if any) floats left, text lines stack -->
 									<div v-if="has_merge(col)" class="cell-merged">
@@ -840,7 +843,7 @@ function thumb(col, row) {
 		abbr: frappe.get_abbr(raw) || "?",
 		style: {
 			...thumb_box(col),
-			fontSize: Math.round((col.image_size || 40) * 0.4) + "px",
+			fontSize: Math.floor((col.image_size || 40) * 0.4) + "px",
 			background: `hsl(${hue}, 65%, 92%)`,
 			color: `hsl(${hue}, 55%, 35%)`,
 		},
@@ -1305,7 +1308,6 @@ thead:hover .col-resize-handle::after {
 
 .pf-barcode-svg {
 	display: inline-block;
-	max-width: 100%;
 }
 
 .pf-builder-thumb {
