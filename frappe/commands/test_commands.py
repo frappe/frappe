@@ -32,6 +32,7 @@ import frappe.commands.scheduler
 import frappe.commands.site
 import frappe.commands.utils
 import frappe.recorder
+from frappe.core.api.diagnostics import get_recorder_status, stop_recorder
 from frappe.installer import add_to_installed_apps, remove_app
 from frappe.query_builder.utils import db_type_is
 from frappe.tests import IntegrationTestCase, timeout
@@ -370,15 +371,15 @@ class TestCommands(BaseTestCommands):
 		"Not for SQLite for now",
 	)
 	def test_recorder(self):
-		frappe.recorder.stop()
+		stop_recorder()
 
 		self.execute("bench --site {site} start-recording")
 		frappe.local.cache = {}
-		self.assertEqual(frappe.recorder.status(), True)
+		self.assertEqual(get_recorder_status(), True)
 
 		self.execute("bench --site {site} stop-recording")
 		frappe.local.cache = {}
-		self.assertEqual(frappe.recorder.status(), False)
+		self.assertEqual(get_recorder_status(), False)
 
 	@unittest.skip("Poorly written, relied on app name being absent in apps.txt")
 	def test_remove_from_installed_apps(self):

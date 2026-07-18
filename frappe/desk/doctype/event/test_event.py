@@ -32,7 +32,7 @@ class TestEvent(IntegrationTestCase):
 
 	def test_allowed_private_if_in_event_user(self):
 		name = frappe.db.get_value("Event", {"subject": "_Test Event 3"})
-		frappe.share.add("Event", name, self.test_user, "read")
+		frappe.share.add_docshare("Event", name, self.test_user, "read")
 		frappe.set_user(self.test_user)
 		doc = frappe.get_doc("Event", name)
 		self.assertTrue(frappe.has_permission("Event", doc=doc))

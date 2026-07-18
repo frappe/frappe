@@ -10,7 +10,7 @@ from frappe.desk.form.utils import add_comment
 from frappe.desk.like import toggle_like
 from frappe.query_builder import DocType
 from frappe.query_builder.functions import Cast_
-from frappe.share import add as share
+from frappe.share import add_docshare as share
 from frappe.tests import IntegrationTestCase
 
 
@@ -317,7 +317,7 @@ def get_event():
 		}
 	)
 	doc.insert()
-	frappe.share.add("Event", doc.name, "test@docsub.com", read=1)
+	frappe.share.add_docshare("Event", doc.name, "test@docsub.com", read=1)
 	return doc
 
 

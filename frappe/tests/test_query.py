@@ -2273,7 +2273,7 @@ class TestQuery(IntegrationTestCase):
 
 		# Share the document
 		frappe.set_user("Administrator")
-		frappe.share.add("Event", event.name, test_user)
+		frappe.share.add_docshare("Event", event.name, test_user)
 
 		# Now user should be able to access via share
 		frappe.set_user(test_user)
@@ -2314,7 +2314,7 @@ class TestQuery(IntegrationTestCase):
 
 		# Share the document
 		frappe.set_user("Administrator")
-		frappe.share.add("Test Blog Post", blog_post.name, test_user)
+		frappe.share.add_docshare("Test Blog Post", blog_post.name, test_user)
 
 		# Now user should see it via share (shared docs trump if_owner)
 		frappe.set_user(test_user)
@@ -2373,7 +2373,7 @@ class TestQuery(IntegrationTestCase):
 
 		# Share post2 with user
 		frappe.set_user("Administrator")
-		frappe.share.add("Test Blog Post", blog_post2.name, test_user)
+		frappe.share.add_docshare("Test Blog Post", blog_post2.name, test_user)
 
 		# Now user should see post2 via share (shared docs trump user permissions)
 		frappe.set_user(test_user)

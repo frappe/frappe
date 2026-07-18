@@ -8,7 +8,8 @@ from rq import exceptions as rq_exc
 from rq.job import Job
 
 import frappe
-from frappe.core.doctype.rq_job.rq_job import RQJob, remove_failed_jobs, stop_job
+from frappe.core.api.background_jobs import remove_failed_jobs, stop_job
+from frappe.core.doctype.rq_job.rq_job import RQJob
 from frappe.installer import update_site_config
 from frappe.tests import IntegrationTestCase, timeout
 from frappe.utils import cstr, execute_in_shell

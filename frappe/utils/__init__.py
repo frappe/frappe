@@ -784,7 +784,7 @@ def get_name_from_email_string(email_string, email_id, name):
 
 def get_installed_apps_info():
 	out = []
-	from frappe.utils.change_log import get_versions
+	from frappe.core.api.diagnostics import get_versions
 
 	out.extend(
 		{

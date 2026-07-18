@@ -6,7 +6,7 @@ from rq import Queue
 from werkzeug.local import Local
 
 import frappe
-from frappe.core.doctype.rq_job.rq_job import remove_failed_jobs
+from frappe.core.api.background_jobs import remove_failed_jobs
 from frappe.tests import IntegrationTestCase
 from frappe.utils.background_jobs import (
 	RQ_JOB_FAILURE_TTL,

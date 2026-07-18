@@ -217,9 +217,7 @@ class TestMethodAPIV2(FrappeAPITestCase):
 		shorthand_response = self.get(self.method("User", "get_all_roles"), {"sid": self.sid})
 		self.assertIn("Website Manager", shorthand_response.json["data"])
 
-		expanded_response = self.get(
-			self.method("frappe.core.doctype.user.user.get_all_roles"), {"sid": self.sid}
-		)
+		expanded_response = self.get(self.method("frappe.core.api.user.get_all_roles"), {"sid": self.sid})
 		self.assertEqual(expanded_response.data, shorthand_response.data)
 
 	def test_logout_v2(self):

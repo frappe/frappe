@@ -1302,12 +1302,12 @@ def browse(
 @pass_context
 def start_recording(context: CliCtxObj):
 	"""Start Frappe Recorder."""
-	import frappe.recorder
+	from frappe.core.api.diagnostics import start_recorder
 
 	for site in context.sites:
 		frappe.init(site)
 		frappe.set_user("Administrator")
-		frappe.recorder.start()
+		start_recorder()
 	if not context.sites:
 		raise SiteNotSpecifiedError
 
@@ -1316,12 +1316,12 @@ def start_recording(context: CliCtxObj):
 @pass_context
 def stop_recording(context: CliCtxObj):
 	"""Stop Frappe Recorder."""
-	import frappe.recorder
+	from frappe.core.api.diagnostics import stop_recorder
 
 	for site in context.sites:
 		frappe.init(site)
 		frappe.set_user("Administrator")
-		frappe.recorder.stop()
+		stop_recorder()
 	if not context.sites:
 		raise SiteNotSpecifiedError
 

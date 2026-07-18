@@ -5,9 +5,16 @@ import re
 
 import frappe
 import frappe.recorder
+from frappe.core.api.diagnostics import (
+	delete_recorder_data,
+	start_recorder,
+	stop_recorder,
+)
+from frappe.core.api.diagnostics import (
+	get_recorded_requests as get_recorder_data,
+)
 from frappe.core.doctype.recorder.recorder import _optimize_query, serialize_request
 from frappe.query_builder.utils import db_type_is
-from frappe.recorder import get as get_recorder_data
 from frappe.tests import IntegrationTestCase
 from frappe.tests.test_query_builder import run_only_if
 from frappe.utils import set_request
@@ -18,13 +25,13 @@ class TestRecorder(IntegrationTestCase):
 		self.start_recoder()
 
 	def tearDown(self) -> None:
-		frappe.recorder.stop()
+		stop_recorder()
 
 	def start_recoder(self):
-		frappe.recorder.stop()
-		frappe.recorder.delete()
+		stop_recorder()
+		delete_recorder_data()
 		set_request(path="/api/method/ping")
-		frappe.recorder.start()
+		start_recorder()
 		frappe.recorder.record()
 
 	def stop_recorder(self):
@@ -51,7 +58,7 @@ class TestRecorder(IntegrationTestCase):
 		self.stop_recorder()
 
 		set_request(path="/api/method/abc")
-		frappe.recorder.start()
+		start_recorder()
 		frappe.recorder.record()
 		frappe.get_all("User")
 		self.stop_recorder()

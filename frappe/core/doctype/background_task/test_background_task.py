@@ -172,7 +172,7 @@ class IntegrationTestBackgroundTask(IntegrationTestCase):
 		self.assertIn("failing_task", doc.on_failure_callback)
 
 	def test_retry_passes_stored_callbacks(self):
-		from frappe.core.doctype.background_task.background_task import retry_task
+		from frappe.core.api.background_jobs import retry_task
 
 		doc = enqueue_task(failing_task, on_success=sample_task, on_failure=sample_task)
 		doc.db_set("status", "Failed")
@@ -221,7 +221,7 @@ class IntegrationTestBackgroundTask(IntegrationTestCase):
 
 	@patch("rq.job.Job.fetch")
 	def test_stop_task_cancels_queued_task(self, mock_job_fetch):
-		from frappe.core.doctype.background_task.background_task import stop_task
+		from frappe.core.api.background_jobs import stop_task
 
 		doc = enqueue_task(sample_task, task_name="Test stop", enqueue_after_commit=False)
 

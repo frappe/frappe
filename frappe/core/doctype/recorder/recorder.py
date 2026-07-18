@@ -5,11 +5,11 @@ from collections import Counter, defaultdict
 
 import frappe
 from frappe import _
+from frappe.core.api.diagnostics import get_recorded_requests as get_recorder_data
 from frappe.core.doctype.recorder.db_optimizer import DBOptimizer, DBTable
 from frappe.custom.doctype.property_setter.property_setter import make_property_setter
 from frappe.model.document import Document
 from frappe.recorder import RECORDER_REQUEST_HASH
-from frappe.recorder import get as get_recorder_data
 from frappe.utils import cint, cstr, evaluate_filters, get_table_name
 from frappe.utils.caching import redis_cache
 

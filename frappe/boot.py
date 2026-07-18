@@ -9,6 +9,7 @@ import os
 import frappe
 import frappe.defaults
 import frappe.desk.desk_page
+from frappe.core.api.diagnostics import get_versions
 from frappe.core.doctype.installed_applications.installed_applications import (
 	get_setup_wizard_completed_apps,
 )
@@ -24,7 +25,6 @@ from frappe.integrations.frappe_providers.frappecloud_billing import current_sit
 from frappe.model.base_document import get_controller
 from frappe.utils import add_user_info, get_system_timezone
 from frappe.utils.caching import redis_cache
-from frappe.utils.change_log import get_versions
 from frappe.website.doctype.web_page_view.web_page_view import is_tracking_enabled
 
 

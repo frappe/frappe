@@ -29,7 +29,7 @@ class TestNotificationLog(IntegrationTestCase):
 		todo = get_todo()
 		user = get_user()
 
-		frappe.share.add("ToDo", todo.name, user, notify=1)
+		frappe.share.add_docshare("ToDo", todo.name, user, notify=1)
 		log_type = frappe.db.get_value(
 			"Notification Log", {"document_type": "ToDo", "document_name": todo.name}, "type"
 		)

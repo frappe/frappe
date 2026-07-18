@@ -147,7 +147,7 @@ class WebsiteTheme(Document):
 
 	@frappe.whitelist()
 	def get_apps(self):
-		from frappe.utils.change_log import get_versions
+		from frappe.core.api.diagnostics import get_versions
 
 		apps = get_versions()
 		return [{"name": app, "title": values["title"]} for app, values in apps.items()]
