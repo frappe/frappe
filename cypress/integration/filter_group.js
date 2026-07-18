@@ -5,7 +5,11 @@ context("Filter Group", () => {
 	});
 
 	it("preserves numeric filter values with a comma decimal separator", () => {
-		cy.window().then(async ({ frappe, $ }) => {
+		cy.window().its("frappe").should("exist");
+
+		cy.window().then(async (win) => {
+			const frappe = win.frappe;
+			const $ = win.$;
 			const original_number_format = frappe.boot.sysdefaults.number_format;
 			frappe.boot.sysdefaults.number_format = "#.###,##";
 			await frappe.model.with_doctype("Currency");
