@@ -3,7 +3,7 @@ msgstr ""
 "Project-Id-Version: frappe\n"
 "Report-Msgid-Bugs-To: developers@frappe.io\n"
 "POT-Creation-Date: 2026-07-12 10:03+0000\n"
-"PO-Revision-Date: 2026-07-16 12:33\n"
+"PO-Revision-Date: 2026-07-18 12:57\n"
 "Last-Translator: developers@frappe.io\n"
 "Language-Team: Bosnian\n"
 "MIME-Version: 1.0\n"
@@ -1475,7 +1475,7 @@ msgstr "Dodaj Red Ispod Trenutnog Reda"
 
 #: frappe/public/js/frappe/views/dashboard/dashboard_view.js:286
 msgid "Add a {0} Chart"
-msgstr "+ {0} Grafikon"
+msgstr "{0} Grafikon"
 
 #: frappe/public/js/form_builder/components/Section.vue:271
 #: frappe/public/js/print_format_builder/PrintFormatSection.vue:115
@@ -3978,7 +3978,7 @@ msgstr "Napravite vlastite izvještaje, formate za ispisivanje i nadzorne table.
 
 #: frappe/workflow/doctype/workflow/workflow_list.js:18
 msgid "Build {0}"
-msgstr "+ {0}"
+msgstr "Razvij {0}"
 
 #: frappe/templates/includes/footer/footer_powered.html:1
 msgid "Built on {0}"
@@ -6180,7 +6180,7 @@ msgstr "Izradi novi dokument"
 #: frappe/public/js/frappe/list/list_view.js:547
 #: frappe/public/js/frappe/web_form/web_form_list.js:230
 msgid "Create a new {0}"
-msgstr "+ {0}"
+msgstr "Izradi {0}"
 
 #: frappe/printing/page/print_format_builder_beta/print_format_builder_beta.js:34
 msgid "Create or Edit Print Format"
@@ -6192,7 +6192,7 @@ msgstr "Izradi ili Uredi Radni Tok"
 
 #: frappe/public/js/frappe/list/list_view.js:550
 msgid "Create your first {0}"
-msgstr "+ {0}"
+msgstr "Izradi {0}"
 
 #: frappe/workflow/doctype/workflow/workflow.js:16
 msgid "Create your workflow visually using the Workflow Builder."
@@ -19450,7 +19450,7 @@ msgstr "Historija"
 #. Settings'
 #: frappe/website/doctype/about_us_settings/about_us_settings.json
 msgid "Org History Heading"
-msgstr "Naslov Istorije Organizacije"
+msgstr "Naslov Historije Poduzeća"
 
 #: frappe/public/js/frappe/form/print_utils.js:22
 msgid "Orientation"
@@ -32264,7 +32264,7 @@ msgstr "Vaša stara lozinka nije tačna."
 #. 'System Settings'
 #: frappe/core/doctype/system_settings/system_settings.json
 msgid "Your organization name and address for the email footer."
-msgstr "Ime vaše organizacije i adresa za podnožje e-pošte."
+msgstr "Ime vašeg poduzeća i adresa za podnožje e-pošte."
 
 #: frappe/core/doctype/user/user.py:394
 msgid "Your password has been changed and you might have been logged out of all systems.<br>Please contact the Administrator for further assistance."
