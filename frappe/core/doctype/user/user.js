@@ -186,7 +186,7 @@ frappe.ui.form.on("User", {
 				__("Reset Password"),
 				function () {
 					frappe.call({
-						method: "frappe.core.doctype.user.user.reset_password",
+						method: "frappe.core.api.auth.reset_password",
 						args: {
 							user: frm.doc.name,
 						},
@@ -254,7 +254,7 @@ frappe.ui.form.on("User", {
 					__("Reset OTP Secret"),
 					function () {
 						frappe.call({
-							method: "frappe.twofactor.reset_otp_secret",
+							method: "frappe.core.api.auth.reset_otp_secret",
 							args: {
 								user: frm.doc.name,
 							},
@@ -357,7 +357,7 @@ frappe.ui.form.on("User", {
 	},
 	generate_keys: function (frm) {
 		frappe.call({
-			method: "frappe.core.doctype.user.user.generate_keys",
+			method: "frappe.core.api.auth.generate_api_keys",
 			args: {
 				user: frm.doc.name,
 			},
@@ -423,7 +423,7 @@ frappe.ui.form.on("User", {
 					],
 					(values) => {
 						frappe
-							.xcall("frappe.core.doctype.user.user.impersonate", {
+							.xcall("frappe.core.api.auth.impersonate", {
 								user: frm.doc.name,
 								reason: values.reason,
 							})
@@ -540,7 +540,7 @@ function show_api_key_dialog(api_key, api_secret) {
 frappe.ui.form.on("User Session Display", {
 	sign_out(frm, doctype, name) {
 		frappe
-			.xcall("frappe.core.doctype.user.user.clear_session", { sid_hash: name })
+			.xcall("frappe.core.api.auth.clear_session", { sid_hash: name })
 			.then(() => frm.reload_doc());
 	},
 });

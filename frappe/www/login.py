@@ -113,56 +113,8 @@ def get_context(context):
 	return context
 
 
-@frappe.whitelist(allow_guest=True)
-def login_via_token(login_token: str):
-	sid = frappe.cache.get_value(f"login_token:{login_token}", expires=True)
-	if not sid:
-		frappe.respond_as_web_page(_("Invalid Request"), _("Invalid Login Token"), http_status_code=417)
-		return
-
-	frappe.local.form_dict.sid = sid
-	frappe.local.login_manager = LoginManager()
-
-	redirect_post_login(
-		desk_user=frappe.db.get_value("User", frappe.session.user, "user_type") == "System User"
-	)
-
-
 def get_login_with_email_link_ratelimit() -> int:
 	return frappe.get_system_settings("rate_limit_email_link_login") or 5
-
-
-@frappe.whitelist(allow_guest=True, methods=["POST"])
-@rate_limit(limit=get_login_with_email_link_ratelimit, seconds=60 * 60)
-def send_login_link(email: str):
-	if not frappe.get_system_settings("login_with_email_link"):
-		return
-
-	try:
-		expiry = frappe.get_system_settings("login_with_email_link_expiry") or 10
-		link = _generate_temporary_login_link(email, expiry)
-
-		app_name = (
-			frappe.get_website_settings("app_name") or frappe.get_system_settings("app_name") or _("Frappe")
-		)
-
-		subject = _("Login To {0}").format(app_name)
-
-		frappe.sendmail(
-			subject=subject,
-			recipients=email,
-			template="login_with_email_link",
-			args={"link": link, "minutes": expiry, "app_name": app_name},
-			now=True,
-		)
-	except frappe.DoesNotExistError:
-		frappe.clear_messages()
-	except frappe.OutgoingEmailError:
-		frappe.clear_messages()
-		frappe.log_error(title="Login link email could not be sent", message=frappe.get_traceback())
-	except Exception:
-		frappe.clear_messages()
-		frappe.log_error(title="Login link generation failed unexpectedly", message=frappe.get_traceback())
 
 
 def _generate_temporary_login_link(email: str, expiry: int):
@@ -174,28 +126,6 @@ def _generate_temporary_login_link(email: str, expiry: int):
 	frappe.cache.set_value(f"one_time_login_key:{key}", email, expires_in_sec=expiry * 60)
 
 	return get_url(f"/api/method/frappe.www.login.login_via_key?key={key}", allow_header_override=False)
-
-
-@frappe.whitelist(allow_guest=True, methods=["GET"])
-@rate_limit(limit=get_login_with_email_link_ratelimit, seconds=60 * 60)
-def login_via_key(key: str):
-	cache_key = f"one_time_login_key:{key}"
-	email = frappe.cache.get_value(cache_key)
-
-	if email:
-		frappe.cache.delete_value(cache_key)
-		frappe.local.login_manager.login_as(email)
-
-		redirect_post_login(
-			desk_user=frappe.db.get_value("User", frappe.session.user, "user_type") == "System User"
-		)
-	else:
-		frappe.respond_as_web_page(
-			_("Not Permitted"),
-			_("The link you trying to login is invalid or expired."),
-			http_status_code=403,
-			indicator_color="red",
-		)
 
 
 def sanitize_redirect(redirect: str | None) -> str | None:
@@ -221,3 +151,21 @@ def sanitize_redirect(redirect: str | None) -> str | None:
 			output_parsed_url = output_parsed_url._replace(path=parsed_redirect.path)
 
 	return output_parsed_url.geturl()
+
+
+# These endpoints moved to frappe.core.api.auth.
+# The aliases keep the old dotted paths working; resolved lazily to avoid
+# circular imports.
+_MOVED_TO_AUTH_API = {
+	"login_via_token": "login_via_token",
+	"send_login_link": "send_login_link",
+	"login_via_key": "login_via_key",
+}
+
+
+def __getattr__(name: str):
+	if new_name := _MOVED_TO_AUTH_API.get(name):
+		from frappe.core.api import auth
+
+		return getattr(auth, new_name)
+	raise AttributeError(f"module {__name__!r} has no attribute {name!r}")

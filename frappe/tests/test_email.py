@@ -360,7 +360,7 @@ class TestEmail(IntegrationTestCase):
 
 	def test_impersonation_alert_queue(self):
 		"""Verifies that impersonation alerts are sent as mail too"""
-		from frappe.core.doctype.user.user import impersonate
+		from frappe.core.api.auth import impersonate
 
 		target_user = "testimpersonate@example.com"
 		frappe.db.delete("Email Queue Recipient", {"recipient": target_user})  # sanity

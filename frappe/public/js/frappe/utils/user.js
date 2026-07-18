@@ -45,7 +45,7 @@ frappe.ui.show_change_password_dialog = function (user, on_success) {
 		primary_action: (values) => {
 			return frappe
 				.call({
-					method: "frappe.core.doctype.user.user.change_password",
+					method: "frappe.core.api.auth.change_password",
 					args: {
 						user: user,
 						new_password: values.new_password,

@@ -352,7 +352,7 @@ frappe.verify_password = function (callback) {
 		},
 		function (data) {
 			frappe.call({
-				method: "frappe.core.doctype.user.user.verify_password",
+				method: "frappe.core.api.auth.verify_password",
 				args: {
 					password: data.password,
 				},

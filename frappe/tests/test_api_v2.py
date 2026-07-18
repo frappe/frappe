@@ -871,7 +871,7 @@ class TestReadOnlyMode(FrappeAPITestCase):
 
 
 def generate_admin_keys():
-	from frappe.core.doctype.user.user import generate_keys
+	from frappe.core.api.auth import generate_api_keys as generate_keys
 
 	generate_keys("Administrator")
 	frappe.db.commit()  # nosemgrep

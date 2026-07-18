@@ -9,9 +9,9 @@ import requests
 
 # imports - module imports
 import frappe
+from frappe.core.api.auth import generate_api_keys as generate_keys
 from frappe.core.doctype.access_log.access_log import make_access_log
 from frappe.core.doctype.data_import.data_import import export_csv
-from frappe.core.doctype.user.user import generate_keys
 
 # imports - standard imports
 from frappe.tests import IntegrationTestCase

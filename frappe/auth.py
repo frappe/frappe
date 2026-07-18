@@ -459,11 +459,6 @@ class CookieManager:
 			response.set_cookie(key, "", expires=expires)
 
 
-@frappe.whitelist()
-def get_logged_user():
-	return frappe.session.user
-
-
 def clear_cookies():
 	if hasattr(frappe.local, "session"):
 		frappe.session.sid = ""
@@ -768,3 +763,19 @@ def validate_auth_via_hooks():
 def check_request_ip():
 	if frappe.local.request_ip is None:
 		frappe.local.request_ip = "127.0.0.1"
+
+
+# These endpoints moved to frappe.core.api.auth.
+# The aliases keep the old dotted paths working; resolved lazily to avoid
+# circular imports.
+_MOVED_TO_AUTH_API = {
+	"get_logged_user": "get_logged_user",
+}
+
+
+def __getattr__(name: str):
+	if new_name := _MOVED_TO_AUTH_API.get(name):
+		from frappe.core.api import auth
+
+		return getattr(auth, new_name)
+	raise AttributeError(f"module {__name__!r} has no attribute {name!r}")

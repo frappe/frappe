@@ -10,15 +10,14 @@ from werkzeug.http import parse_cookie
 
 import frappe
 import frappe.exceptions
-from frappe.core.doctype.user.user import (
-	User,
-	handle_password_test_fail,
+from frappe.core.api.auth import (
 	reset_password,
 	sign_up,
 	test_password_strength,
 	update_password,
 	verify_password,
 )
+from frappe.core.doctype.user.user import User, handle_password_test_fail
 from frappe.desk.notifications import extract_mentions
 from frappe.frappeclient import FrappeClient
 from frappe.model.delete_doc import delete_doc
@@ -31,6 +30,7 @@ from frappe.utils.data import orjson_dumps
 from frappe.www.login import sanitize_redirect
 
 user_module = frappe.core.doctype.user.user
+auth_api_module = frappe.core.api.auth
 
 
 class TestUser(IntegrationTestCase):
@@ -325,7 +325,7 @@ class TestUser(IntegrationTestCase):
 		random_user = frappe.mock("email")
 		random_user_name = frappe.mock("name")
 		# disabled signup
-		with patch.object(user_module, "is_signup_disabled", return_value=True):
+		with patch.object(auth_api_module, "is_signup_disabled", return_value=True):
 			self.assertRaisesRegex(
 				frappe.exceptions.ValidationError,
 				"Sign Up is disabled",
@@ -356,7 +356,7 @@ class TestUser(IntegrationTestCase):
 		)
 
 		# throttle user creation
-		with patch.object(user_module.frappe.db, "get_creation_count", return_value=301):
+		with patch.object(auth_api_module.frappe.db, "get_creation_count", return_value=301):
 			self.assertRaisesRegex(
 				frappe.exceptions.ValidationError,
 				"Throttled",
@@ -402,7 +402,7 @@ class TestUser(IntegrationTestCase):
 		}
 
 		# password strength failure test
-		with patch.object(user_module, "test_password_strength", return_value=password_strength_response):
+		with patch.object(auth_api_module, "test_password_strength", return_value=password_strength_response):
 			self.assertRaisesRegex(
 				frappe.exceptions.ValidationError,
 				"Fix password",

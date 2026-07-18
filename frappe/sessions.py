@@ -26,14 +26,6 @@ from frappe.utils.change_log import has_app_update_notifications
 from frappe.utils.data import add_to_date
 
 
-@frappe.whitelist()
-def clear():
-	# updating session causes a commit, explicit commit not needed
-	frappe.local.session_obj.update(force=True)
-	clear_user_cache(frappe.session.user)
-	frappe.response["message"] = _("Cache Cleared")
-
-
 def clear_sessions(user=None, keep_current=False, force=False):
 	"""Clear other sessions of the current user. Called at login / logout
 
@@ -529,3 +521,19 @@ def get_expiry_period():
 
 	assert len(exp_sec.split(":")) == 3, "expiry period must be normalized to HH:MM:SS"
 	return exp_sec
+
+
+# These endpoints moved to frappe.core.api.auth.
+# The aliases keep the old dotted paths working; resolved lazily to avoid
+# circular imports.
+_MOVED_TO_AUTH_API = {
+	"clear": "clear_cache",
+}
+
+
+def __getattr__(name: str):
+	if new_name := _MOVED_TO_AUTH_API.get(name):
+		from frappe.core.api import auth
+
+		return getattr(auth, new_name)
+	raise AttributeError(f"module {__name__!r} has no attribute {name!r}")

@@ -70,7 +70,7 @@ frappe.ui.form.ControlPassword = class ControlPassword extends frappe.ui.form.Co
 		var me = this;
 		frappe.call({
 			type: "POST",
-			method: "frappe.core.doctype.user.user.test_password_strength",
+			method: "frappe.core.api.auth.test_password_strength",
 			args: {
 				new_password: value || "",
 			},

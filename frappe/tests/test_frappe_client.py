@@ -6,7 +6,7 @@ import base64
 import requests
 
 import frappe
-from frappe.core.doctype.user.user import generate_keys
+from frappe.core.api.auth import generate_api_keys as generate_keys
 from frappe.frappeclient import FrappeClient, FrappeException
 from frappe.model import default_fields
 from frappe.tests import IntegrationTestCase

@@ -434,45 +434,17 @@ def disable():
 	frappe.db.set_single_value("System Settings", "enable_two_factor_auth", 0)
 
 
-@frappe.whitelist()
-def reset_otp_secret(user: str):
-	if frappe.session.user != user:
-		frappe.only_for("System Manager", message=True)
+# These endpoints moved to frappe.core.api.auth.
+# The aliases keep the old dotted paths working; resolved lazily to avoid
+# circular imports.
+_MOVED_TO_AUTH_API = {
+	"reset_otp_secret": "reset_otp_secret",
+}
 
-	settings = frappe.get_cached_doc("System Settings")
 
-	if not settings.enable_two_factor_auth:
-		frappe.throw(
-			_("You have to enable Two Factor Auth from System Settings."),
-			title=_("Enable Two Factor Auth"),
-		)
+def __getattr__(name: str):
+	if new_name := _MOVED_TO_AUTH_API.get(name):
+		from frappe.core.api import auth
 
-	otp_issuer = settings.otp_issuer_name or "Frappe Framework"
-	user_email = frappe.get_cached_value("User", user, "email")
-
-	clear_default(user + "_otplogin")
-	clear_default(user + "_otpsecret")
-
-	email_args = {
-		"recipients": user_email,
-		"sender": None,
-		"subject": _("OTP Secret Reset - {0}").format(otp_issuer),
-		"message": _(
-			"<p>Your OTP secret on {0} has been reset. If you did not perform this reset and did not request it, please contact your System Administrator immediately.</p>"
-		).format(otp_issuer),
-		"delayed": False,
-		"retry": 3,
-	}
-
-	enqueue(
-		method=frappe.sendmail,
-		queue="short",
-		timeout=300,
-		event=None,
-		is_async=True,
-		job_name=None,
-		now=False,
-		**email_args,
-	)
-
-	frappe.msgprint(_("OTP Secret has been reset. Re-registration will be required on next login."))
+		return getattr(auth, new_name)
+	raise AttributeError(f"module {__name__!r} has no attribute {name!r}")

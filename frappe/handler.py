@@ -94,20 +94,10 @@ def is_valid_http_method(method):
 		frappe.throw_permission_error()
 
 
-@frappe.whitelist(allow_guest=True, methods=["POST"])
-def logout():
-	frappe.local.login_manager.logout()
-	frappe.db.commit()
-
-
-@frappe.whitelist(allow_guest=True, methods=["POST"])
-def web_logout():
-	frappe.local.login_manager.logout()
-	frappe.db.commit()
-	frappe.respond_as_web_page(
-		_("Logged Out"), _("You have been successfully logged out"), indicator_color="green"
-	)
-
+# `logout` and `web_logout` moved to frappe.core.api.auth. Plain import
+# aliases (not lazy __getattr__) because the deprecated bare-cmd shorthand
+# (`/api/method/logout`) resolves through this module's globals().
+from frappe.core.api.auth import logout, web_logout
 
 # `upload_file` and `download_file` (and their helpers) moved to
 # frappe.core.api.file. Plain import aliases (not lazy __getattr__) because the

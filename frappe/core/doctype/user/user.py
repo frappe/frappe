@@ -788,6 +788,8 @@ class User(Document):
 			return
 
 		if self.__new_password:
+			from frappe.core.api.auth import test_password_strength
+
 			user_data = (self.first_name, self.middle_name, self.last_name, self.email, self.birth_date)
 			result = test_password_strength(self.__new_password, user_data=user_data)
 			feedback = result.get("feedback", None)
@@ -913,105 +915,6 @@ def _get_timezones():
 	return sorted(pytz.common_timezones)
 
 
-@frappe.whitelist(allow_guest=True, methods=["POST"])
-def update_password(
-	new_password: str, logout_all_sessions: int = 0, key: str | None = None, old_password: str | None = None
-):
-	"""Update password for the current user.
-
-	Args:
-	    new_password (str): New password.
-	    logout_all_sessions (int, optional): If set to 1, all other sessions will be logged out. Defaults to 0.
-	    key (str, optional): Password reset key. Defaults to None.
-	    old_password (str, optional): Old password. Defaults to None.
-	"""
-
-	if len(new_password) > MAX_PASSWORD_SIZE:
-		frappe.throw(_("Password size exceeded the maximum allowed size."))
-
-	result = test_password_strength(new_password)
-	feedback = result.get("feedback", None)
-
-	if feedback and not feedback.get("password_policy_validation_passed", False):
-		handle_password_test_fail(feedback)
-
-	res = _get_user_for_update_password(key, old_password)
-	if res.get("message"):
-		frappe.local.response.http_status_code = 410
-		return res["message"]
-	else:
-		user = res["user"]
-
-	if is_password_reused(user, new_password):
-		frappe.throw(
-			_(
-				"New password cannot be the same as your current password. Please choose a different password."
-			),
-			title=_("Invalid Password"),
-		)
-
-	logout_all_sessions = cint(logout_all_sessions) or frappe.get_system_settings("logout_on_password_reset")
-	_update_password(user, new_password, logout_all_sessions=cint(logout_all_sessions))
-
-	user_doc, redirect_url = reset_user_data(user)
-
-	user_doc.validate_reset_password()
-
-	# get redirect url from cache
-	redirect_to = frappe.cache.hget("redirect_after_login", user)
-	if redirect_to:
-		redirect_url = redirect_to
-		frappe.cache.hdel("redirect_after_login", user)
-
-	frappe.local.login_manager.login_as(user)
-
-	frappe.db.set_value("User", user, "last_password_reset_date", today())
-	frappe.db.set_value("User", user, "reset_password_key", "")
-
-	if user_doc.user_type == "System User":
-		return get_default_path() or "/desk"
-	else:
-		return redirect_url or get_default_path() or get_home_page()
-
-
-@frappe.whitelist(allow_guest=True)
-def test_password_strength(
-	new_password: str, key: str | None = None, old_password: str | None = None, user_data: tuple | None = None
-):
-	from frappe.utils.password_strength import test_password_strength as _test_password_strength
-
-	if key is not None or old_password is not None:
-		from frappe.deprecation_dumpster import deprecation_warning
-
-		deprecation_warning(
-			"unknown",
-			"v17",
-			"Arguments `key` and `old_password` are deprecated in function `test_password_strength`.",
-		)
-
-	enable_password_policy = frappe.get_system_settings("enable_password_policy")
-
-	if not enable_password_policy:
-		return {}
-
-	if not user_data:
-		user_data = frappe.db.get_value(
-			"User", frappe.session.user, ["first_name", "middle_name", "last_name", "email", "birth_date"]
-		)
-
-	if new_password:
-		result = _test_password_strength(new_password, user_inputs=user_data)
-		password_policy_validation_passed = False
-		minimum_password_score = cint(frappe.get_system_settings("minimum_password_score"))
-
-		# score should be greater than 0 and minimum_password_score
-		if result.get("score") and result.get("score") >= minimum_password_score:
-			password_policy_validation_passed = True
-
-		result["feedback"]["password_policy_validation_passed"] = password_policy_validation_passed
-		return {"score": result["score"], "feedback": result["feedback"]}
-
-
 def ask_pass_update():
 	# update the sys defaults as to awaiting users
 	from frappe.utils import set_default
@@ -1062,103 +965,6 @@ def reset_user_data(user):
 	user_doc.save(ignore_permissions=True)
 
 	return user_doc, redirect_url
-
-
-@frappe.whitelist(methods=["POST"])
-def verify_password(password: str):
-	frappe.local.login_manager.check_password(frappe.session.user, password)
-
-
-@frappe.whitelist(allow_guest=True)
-def sign_up(email: str, full_name: str, redirect_to: str) -> tuple[int, str]:
-	if is_signup_disabled():
-		frappe.throw(_("Sign Up is disabled"), title=_("Not Allowed"))
-
-	user = frappe.db.get("User", {"email": email})
-	if user:
-		if user.enabled:
-			return 0, _("Already Registered")
-		else:
-			return 0, _("Registered but disabled")
-	else:
-		max_signups_allowed_per_hour = cint(frappe.get_system_settings("max_signups_allowed_per_hour") or 300)
-		users_created_past_hour = frappe.db.get_creation_count("User", 60)
-		if users_created_past_hour >= max_signups_allowed_per_hour:
-			frappe.respond_as_web_page(
-				_("Temporarily Disabled"),
-				_(
-					"Too many users signed up recently, so the registration is disabled. Please try back in an hour"
-				),
-				http_status_code=429,
-			)
-
-		from frappe.utils import random_string
-
-		user = frappe.get_doc(
-			{
-				"doctype": "User",
-				"email": email,
-				"first_name": escape_html(full_name),
-				"enabled": 1,
-				"new_password": random_string(10),
-				"user_type": "Website User",
-			}
-		)
-		user.flags.ignore_permissions = True
-		user.flags.ignore_password_policy = True
-		user.insert()
-
-		# set default signup role as per Portal Settings
-		default_role = frappe.get_single_value("Portal Settings", "default_role")
-		if default_role:
-			user.add_roles(default_role)
-
-		if redirect_to:
-			frappe.cache.hset("redirect_after_login", user.name, sanitize_redirect(redirect_to))
-
-		if user.flags.email_sent:
-			return 1, _("Please check your email for verification")
-		else:
-			return 2, _("Please ask your administrator to verify your sign-up")
-
-
-@frappe.whitelist(allow_guest=True, methods=["POST"])
-@rate_limit(limit=get_password_reset_limit, seconds=60 * 60)
-def reset_password(user: str) -> None:
-	# Always return the same generic response regardless of whether the user
-	# exists, is disabled, or is restricted. This prevents username enumeration
-	# via different messages or HTTP status codes (CWE-204).
-
-	try:
-		user_doc: User = frappe.get_doc("User", user)
-		if user_doc.name != "Administrator" and user_doc.enabled:
-			user_doc.validate_reset_password()
-			user_doc._reset_password(send_email=True)
-		# For Administrator or disabled users: silently skip — same response below
-	except frappe.DoesNotExistError:
-		frappe.clear_messages()
-	except frappe.OutgoingEmailError:
-		frappe.clear_messages()
-		frappe.log_error(title="Password reset email could not be sent", message=frappe.get_traceback())
-	except Exception:
-		frappe.clear_messages()
-		frappe.log_error(title="Password reset failed unexpectedly", message=frappe.get_traceback())
-
-	frappe.msgprint(
-		msg=_(
-			"If this email is registered with us, we have sent password reset instructions to it. Please check your inbox."
-		),
-		title=_("Password Reset"),
-	)
-
-
-@frappe.whitelist(methods=["POST"])
-def change_password(user: str, new_password: str, logout_all_sessions: int = 1) -> None:
-	user_doc: User = frappe.get_doc("User", user)
-	user_doc.check_permission("write")
-	user_doc.new_password = new_password
-	user_doc.logout_all_sessions = logout_all_sessions
-	user_doc.save()
 
 
 def get_total_users():
@@ -1371,88 +1177,12 @@ def get_restricted_ip_list(user):
 	return [i.strip() for i in user.restrict_ip.strip().split(",")]
 
 
-@frappe.whitelist(methods=["POST"])
-def generate_keys(user: str):
-	"""
-	generate api key and api secret
-
-	:param user: str
-	"""
-	frappe.only_for("System Manager")
-	user_details: User = frappe.get_doc("User", user)
-	api_secret = frappe.generate_hash(length=15)
-	# if api key is not set generate api key
-	if not user_details.api_key:
-		api_key = frappe.generate_hash(length=15)
-		user_details.api_key = api_key
-	user_details.api_secret = api_secret
-	user_details.save()
-
-	return {"api_key": user_details.api_key, "api_secret": api_secret}
-
-
 def get_enabled_users():
 	def _get_enabled_users():
 		enabled_users = frappe.get_all("User", filters={"enabled": "1"}, pluck="name")
 		return enabled_users
 
 	return frappe.cache.get_value("enabled_users", _get_enabled_users)
-
-
-@frappe.whitelist(methods=["POST"])
-def impersonate(user: str, reason: str):
-	frappe.has_permission("User", "impersonate", throw=True)
-
-	impersonator = frappe.session.user
-	frappe.get_doc(
-		{
-			"doctype": "Activity Log",
-			"user": user,
-			"status": "Success",
-			"subject": _("User {0} impersonated as {1}").format(impersonator, user),
-			"operation": "Impersonate",
-		}
-	).insert(ignore_permissions=True, ignore_links=True)
-
-	notification = frappe.new_doc(
-		"Notification Log",
-		for_user=user,
-		from_user=frappe.session.user,
-		subject=_("{0} just impersonated as you. They gave this reason: {1}").format(impersonator, reason),
-	)
-	notification.set("type", "Alert")
-	notification.insert(ignore_permissions=True)
-	# notify user via email too
-	outgoing_email_exists = frappe.db.exists("Email Account", {"default_outgoing": 1, "awaiting_password": 0})
-	if outgoing_email_exists:
-		user_email = frappe.db.get_value("User", user, "email")
-		email_message = _(
-			"User {0} has started an impersonation session as you. <br><br><b>Reason provided:</b> {1}"
-		).format(escape_html(impersonator), escape_html(reason))
-
-		frappe.sendmail(
-			recipients=[user_email],
-			subject=_("Security Alert: Your account is being impersonated"),
-			content=email_message,
-		)
-	frappe.local.login_manager.impersonate(user)
-
-
-@frappe.whitelist()
-@rate_limit(limit=10, seconds=60 * 60, methods="POST")
-def clear_session(sid_hash: str):
-	from frappe.sessions import delete_session
-
-	sessions = frappe.qb.DocType("Sessions")
-	sessions_data = (
-		frappe.qb.from_(sessions).select(sessions.sid).where(sessions.user == frappe.session.user)
-	).run(pluck=True)
-
-	for session in sessions_data:
-		if sha256_hash(session) == sid_hash:
-			delete_session(sid=session, reason="Force Logged out by the user", user=frappe.session.user)
-			frappe.toast(_("Successfully signed out"))
-			return
 
 
 # These endpoints moved to frappe.core.api.user. The aliases keep the old
@@ -1469,9 +1199,27 @@ _MOVED_TO_USER_API = {
 }
 
 
+# The auth-related endpoints moved to frappe.core.api.auth.
+_MOVED_TO_AUTH_API = {
+	"update_password": "update_password",
+	"test_password_strength": "test_password_strength",
+	"verify_password": "verify_password",
+	"sign_up": "sign_up",
+	"reset_password": "reset_password",
+	"change_password": "change_password",
+	"generate_keys": "generate_api_keys",
+	"impersonate": "impersonate",
+	"clear_session": "clear_session",
+}
+
+
 def __getattr__(name: str):
 	if new_name := _MOVED_TO_USER_API.get(name):
 		from frappe.core.api import user as user_api
 
 		return getattr(user_api, new_name)
+	if new_name := _MOVED_TO_AUTH_API.get(name):
+		from frappe.core.api import auth
+
+		return getattr(auth, new_name)
 	raise AttributeError(f"module {__name__!r} has no attribute {name!r}")

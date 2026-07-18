@@ -40,7 +40,7 @@ login.bind_events = function () {
 	$(".form-signup").on("submit", function (event) {
 		event.preventDefault();
 		var args = {};
-		args.cmd = "frappe.core.doctype.user.user.sign_up";
+		args.cmd = "frappe.core.api.auth.sign_up";
 		args.email = ($("#signup_email").val() || "").trim();
 		args.redirect_to = frappe.utils.sanitise_redirect(frappe.utils.get_url_arg("redirect-to"));
 		args.full_name = frappe.utils.xss_sanitise(($("#signup_fullname").val() || "").trim());
@@ -59,7 +59,7 @@ login.bind_events = function () {
 	$(".form-forgot").on("submit", function (event) {
 		event.preventDefault();
 		var args = {};
-		args.cmd = "frappe.core.doctype.user.user.reset_password";
+		args.cmd = "frappe.core.api.auth.reset_password";
 		args.user = ($("#forgot_email").val() || "").trim();
 		if (!args.user || !validate_email(args.user)) {
 			login.show_field_error("forgot_email", {{ _("Invalid Email.") | tojson }});
@@ -76,7 +76,7 @@ login.bind_events = function () {
 	$(".form-login-with-email-link").on("submit", function (event) {
 		event.preventDefault();
 		var args = {};
-		args.cmd = "frappe.www.login.send_login_link";
+		args.cmd = "frappe.core.api.auth.send_login_link";
 		args.email = ($("#login_with_email_link_email").val() || "").trim();
 		if (!args.email || !validate_email(args.email)) {
 			login.show_field_error("login_with_email_link_email", {{ _("Invalid Email.") | tojson }});
