@@ -36,11 +36,10 @@ def download_pdf(
 	settings: str | dict | None = None,
 ):
 	from frappe.printing.doctype.print_format.classic_converter import get_default_print_format
-	from frappe.www.printview import validate_print_for_docstatus, validate_print_permission
+	from frappe.www.printview import validate_print
 
 	doc = frappe.get_doc(doctype, name)
-	validate_print_permission(doc)
-	validate_print_for_docstatus(doc)
+	validate_print(doc)
 	if not print_format or print_format == "Standard":
 		print_format = get_default_print_format(doctype)
 	generator = PrintFormatGenerator(print_format, doc, letterhead, settings=frappe.parse_json(settings))
@@ -80,7 +79,7 @@ def render_builder_preview(
 	in-memory Print Format document (dict/JSON), not a saved name.
 	"""
 	from frappe.printing.doctype.print_format.print_format import printable_sample
-	from frappe.www.printview import validate_print_for_docstatus, validate_print_permission
+	from frappe.www.printview import validate_print
 
 	frappe.has_permission("Print Format", "write", throw=True)
 
@@ -93,8 +92,7 @@ def render_builder_preview(
 		return ""
 
 	doc = frappe.get_doc(doctype, name)
-	validate_print_permission(doc)
-	validate_print_for_docstatus(doc)
+	validate_print(doc)
 
 	generator = PrintFormatGenerator(pf, doc, letterhead, settings=frappe.parse_json(settings))
 	return generator.get_html_preview()
@@ -110,11 +108,10 @@ def get_html(
 	trigger_print=False,
 	settings=None,
 ):
-	from frappe.www.printview import validate_print_for_docstatus, validate_print_permission
+	from frappe.www.printview import validate_print
 
 	doc = frappe.get_doc(doctype, name)
-	validate_print_permission(doc)
-	validate_print_for_docstatus(doc)
+	validate_print(doc)
 	generator = PrintFormatGenerator(print_format, doc, letterhead, style=style, settings=settings)
 	return generator.get_html_preview(action_banner=action_banner, trigger_print=trigger_print)
 

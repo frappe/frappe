@@ -443,6 +443,12 @@ def validate_print_permission(doc: "Document") -> None:
 	doc._handle_permission_failure("print")
 
 
+def validate_print(doc: "Document", print_settings: dict | None = None) -> None:
+	"""Run both print gates for a document: permission, then draft/cancelled docstatus."""
+	validate_print_permission(doc)
+	validate_print_for_docstatus(doc, print_settings)
+
+
 def validate_key(key: str, doc: "Document") -> None:
 	document_key_expiry = frappe.get_cached_value(
 		"Document Share Key",
