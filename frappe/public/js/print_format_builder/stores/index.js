@@ -146,13 +146,13 @@ export function getStore(print_format_name) {
 		print_format.value.format_data = JSON.stringify(layout.value);
 
 		frappe
-			.call("frappe.client.save", {
+			.call("frappe.core.api.document.save", {
 				doc: print_format.value,
 			})
 			.then(() => {
 				if (letterhead.value && letterhead.value._dirty) {
 					return frappe
-						.call("frappe.client.save", {
+						.call("frappe.core.api.document.save", {
 							doc: letterhead.value,
 						})
 						.then((r) => (letterhead.value = r.message));

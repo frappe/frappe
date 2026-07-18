@@ -366,7 +366,7 @@ class TestRedisWrapper(FrappeAPITestCase):
 class TestHttpCache(FrappeAPITestCase):
 	def test_http_headers(self):
 		resp = self.get(
-			self.method("frappe.client.is_document_amended"),
+			self.method("frappe.core.api.document.is_document_amended"),
 			{"sid": self.sid, "doctype": "User", "docname": "Guest"},
 		)
 		self.assertEqual(resp.cache_control.max_age, 600)

@@ -124,14 +124,16 @@ function set_included(doctype, included) {
 			? [...rows, { document_type: doctype }]
 			: rows.filter((r) => r.document_type !== doctype);
 
-		return frappe.call({ method: "frappe.client.save", args: { doc: settings } }).then(() => {
-			frappe.show_alert({
-				message: included
-					? __("Added to global search")
-					: __("Removed from global search"),
-				indicator: "green",
+		return frappe
+			.call({ method: "frappe.core.api.document.save", args: { doc: settings } })
+			.then(() => {
+				frappe.show_alert({
+					message: included
+						? __("Added to global search")
+						: __("Removed from global search"),
+					indicator: "green",
+				});
 			});
-		});
 	});
 }
 

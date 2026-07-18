@@ -1595,7 +1595,7 @@ if (frappe.views.KanbanView) {
 
 	function insert_doc(doc) {
 		return frappe.call({
-			method: "frappe.client.insert",
+			method: "frappe.core.api.document.insert",
 			args: {
 				doc: doc,
 			},

@@ -14,7 +14,7 @@ from typing import Any
 from werkzeug.routing import Rule
 
 import frappe
-import frappe.client
+import frappe.core.api.document
 from frappe import _, cint, cstr, get_newargs, is_whitelisted
 from frappe.api import discovery
 from frappe.core.doctype.server_script.server_script_utils import get_server_script_map
@@ -234,7 +234,7 @@ def update_doc(doctype: str, name: str):
 
 
 def delete_doc(doctype: str, name: str):
-	frappe.client.delete_doc(doctype, name)
+	frappe.core.api.document.delete_doc(doctype, name)
 	frappe.response.http_status_code = 202
 	return "ok"
 

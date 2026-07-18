@@ -683,7 +683,7 @@ frappe.ui.form.MultiSelectDialog = class MultiSelectDialog {
 		this.add_custom_child_filters(filters);
 
 		return frappe.call({
-			method: "frappe.client.get_list",
+			method: "frappe.core.api.document.get_list",
 			args: {
 				doctype: this.child_doctype,
 				filters: filters,

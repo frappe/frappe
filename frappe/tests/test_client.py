@@ -17,7 +17,7 @@ class TestClient(IntegrationTestCase):
 		self.assertEqual(frappe.get_value("ToDo", todo.name, "description"), "test 2")
 
 	def test_delete(self):
-		from frappe.client import delete
+		from frappe.core.api.document import delete
 		from frappe.desk.doctype.note.note import Note
 
 		note = frappe.get_doc(
@@ -40,7 +40,7 @@ class TestClient(IntegrationTestCase):
 		self.assertRaises(frappe.DoesNotExistError, delete, "Note Seen By", child_row_name)
 
 	def test_http_valid_method_access(self):
-		from frappe.client import delete
+		from frappe.core.api.document import delete
 		from frappe.handler import execute_cmd
 
 		frappe.set_user("Administrator")
@@ -143,7 +143,7 @@ class TestClient(IntegrationTestCase):
 		self.assertTrue("modified" in first_item)
 
 	def test_client_get(self):
-		from frappe.client import get
+		from frappe.core.api.document import get
 
 		todo = frappe.get_doc(doctype="ToDo", description="test").insert()
 		filters = {"name": todo.name}
@@ -156,7 +156,7 @@ class TestClient(IntegrationTestCase):
 		todo.delete()
 
 	def test_client_validate_link_and_fetch(self):
-		from frappe.client import validate_link_and_fetch
+		from frappe.core.api.document import validate_link_and_fetch
 
 		# Use Role doctype (no custom query like User has)
 		# Basic test
@@ -191,7 +191,7 @@ class TestClient(IntegrationTestCase):
 		"""
 		Test validate_link_and_fetch works for child table doctypes with field fetch.
 		"""
-		from frappe.client import validate_link_and_fetch
+		from frappe.core.api.document import validate_link_and_fetch
 
 		self.addCleanup(frappe.db.rollback)
 
@@ -206,7 +206,7 @@ class TestClient(IntegrationTestCase):
 		self.assertEqual(result.get("module"), "Setup")
 
 	def test_client_insert(self):
-		from frappe.client import insert
+		from frappe.core.api.document import insert
 
 		def get_random_title():
 			return f"test-{frappe.generate_hash()}"
@@ -243,7 +243,7 @@ class TestClient(IntegrationTestCase):
 		frappe.delete_doc("Note", note2.name)
 
 	def test_client_insert_many(self):
-		from frappe.client import insert, insert_many
+		from frappe.core.api.document import insert, insert_many
 
 		def get_random_title():
 			return f"test-{frappe.generate_hash(length=5)}"
@@ -293,7 +293,7 @@ class TestClient(IntegrationTestCase):
 			frappe.delete_doc("Note", doc)
 
 	def test_client_crud_accepts_native_dict(self):
-		import frappe.client as client
+		import frappe.core.api.document as client
 
 		# save (frappe.parse_json passthrough) accepts a native dict, not a JSON string
 		doc = client.insert({"doctype": "ToDo", "description": "json-body insert"})
@@ -312,7 +312,7 @@ class TestClient(IntegrationTestCase):
 			frappe.delete_doc("ToDo", name)
 
 	def test_bulk_update_accepts_native_list(self):
-		from frappe.client import bulk_update
+		from frappe.core.api.document import bulk_update
 
 		todo = frappe.get_doc(doctype="ToDo", description="bulk").insert()
 		# bulk_update with a native list of dicts (frappe.parse_json passthrough)
@@ -322,7 +322,7 @@ class TestClient(IntegrationTestCase):
 		todo.delete()
 
 	def test_get_value_scientific_notation_docname(self):
-		from frappe.client import get_value
+		from frappe.core.api.document import get_value
 
 		tag = frappe.get_doc({"doctype": "Tag", "name": "3E002"}).insert(ignore_if_duplicate=True)
 		try:

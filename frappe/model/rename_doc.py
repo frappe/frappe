@@ -82,7 +82,7 @@ def update_document_title(
 	if title_updated:
 		if action_enqueued and name_updated:
 			frappe.enqueue(
-				"frappe.client.set_value",
+				"frappe.core.api.document.set_value",
 				doctype=doc.doctype,
 				name=updated_name,
 				fieldname=title_field,

@@ -950,7 +950,7 @@ frappe.ui.form.ControlLink = class ControlLink extends frappe.ui.form.ControlDat
 
 		return frappe
 			.xcall(
-				"frappe.client.validate_link_and_fetch",
+				"frappe.core.api.document.validate_link_and_fetch",
 				{
 					...args,
 					docname: value,

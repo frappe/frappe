@@ -725,7 +725,7 @@ class ReplicateRoleDialog {
 // ============================================================
 
 function client_save(doc) {
-	return frappe.call({ method: "frappe.client.save", args: { doc } });
+	return frappe.call({ method: "frappe.core.api.document.save", args: { doc } });
 }
 
 function unique_parents(rows) {

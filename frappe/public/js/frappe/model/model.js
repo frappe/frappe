@@ -484,7 +484,7 @@ $.extend(frappe.model, {
 	get_value: function (doctype, filters, fieldname, callback) {
 		if (callback) {
 			frappe.call({
-				method: "frappe.client.get_value",
+				method: "frappe.core.api.document.get_value",
 				args: {
 					doctype: doctype,
 					fieldname: fieldname,
@@ -722,7 +722,7 @@ $.extend(frappe.model, {
 		}
 		frappe.confirm(__("Permanently delete {0}?", [title.bold()]), function () {
 			return frappe.call({
-				method: "frappe.client.delete",
+				method: "frappe.core.api.document.delete",
 				args: {
 					doctype: doctype,
 					name: docname,

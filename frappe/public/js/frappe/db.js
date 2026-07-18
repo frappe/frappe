@@ -41,7 +41,7 @@ frappe.db = {
 	},
 	get_value: function (doctype, filters, fieldname, callback, parent_doc) {
 		return frappe.call({
-			method: "frappe.client.get_value",
+			method: "frappe.core.api.document.get_value",
 			type: "GET",
 			args: {
 				doctype: doctype,
@@ -58,7 +58,7 @@ frappe.db = {
 		return new Promise((resolve) => {
 			frappe
 				.call({
-					method: "frappe.client.get_single_value",
+					method: "frappe.core.api.document.get_single_value",
 					args: { doctype, field },
 					type: "GET",
 				})
@@ -67,7 +67,7 @@ frappe.db = {
 	},
 	set_value: function (doctype, docname, fieldname, value, callback) {
 		return frappe.call({
-			method: "frappe.client.set_value",
+			method: "frappe.core.api.document.set_value",
 			args: {
 				doctype: doctype,
 				name: docname,
@@ -83,7 +83,7 @@ frappe.db = {
 		return new Promise((resolve, reject) => {
 			frappe
 				.call({
-					method: "frappe.client.get",
+					method: "frappe.core.api.document.get",
 					type: "GET",
 					args: { doctype, name, filters },
 					callback: (r) => {
@@ -95,11 +95,13 @@ frappe.db = {
 		});
 	},
 	insert: function (doc) {
-		return frappe.xcall("frappe.client.insert", { doc });
+		return frappe.xcall("frappe.core.api.document.insert", { doc });
 	},
 	delete_doc: function (doctype, name) {
 		return new Promise((resolve) => {
-			frappe.call("frappe.client.delete", { doctype, name }, (r) => resolve(r.message));
+			frappe.call("frappe.core.api.document.delete", { doctype, name }, (r) =>
+				resolve(r.message)
+			);
 		});
 	},
 	count: function (doctype, args = {}, cache = false) {

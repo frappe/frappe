@@ -257,7 +257,7 @@ frappe.views.InteractionComposer = class InteractionComposer {
 			interaction_values["assigned_by"] = frappe.session.user;
 		}
 		return frappe.call({
-			method: "frappe.client.insert",
+			method: "frappe.core.api.document.insert",
 			args: { doc: interaction_values },
 			btn: btn,
 			callback: function (r) {

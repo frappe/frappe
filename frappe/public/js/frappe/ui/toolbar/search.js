@@ -563,7 +563,7 @@ frappe.search.SearchDialog = class {
 			this._global_search_settings_promise = new Promise((resolve) => {
 				/** Fetches the Global Search Settings from the server and caches the results. */
 				frappe.call({
-					method: "frappe.client.get",
+					method: "frappe.core.api.document.get",
 					args: {
 						doctype: "Global Search Settings",
 						name: "Global Search Settings",

@@ -37,7 +37,7 @@ def get_settings_map(doctype: str) -> list[dict]:
 
 	Only Single source doctypes the user can read are returned; each group carries a
 	`can_write` flag so the tab can render read-only when the user lacks write access.
-	Saving is done client-side via `frappe.client.set_value` (which re-checks permission)."""
+	Saving is done client-side via `frappe.core.api.document.set_value` (which re-checks permission)."""
 	if not frappe.db.exists("DocType", doctype):
 		frappe.throw(_("DocType {0} not found").format(doctype), frappe.DoesNotExistError)
 
@@ -76,7 +76,7 @@ def get_settings_map(doctype: str) -> list[dict]:
 		# Field-level (permlevel) access: a field is shown only if the user has read at its
 		# permlevel, and is editable only with both doc-level write and write at its permlevel.
 		# `can_write` is a UI hint only — the real write check happens server-side on save via
-		# `frappe.client.set_value`, so this boolean isn't the enforcement boundary.
+		# `frappe.core.api.document.set_value`, so this boolean isn't the enforcement boundary.
 		doc_write = bool(frappe.has_permission(single, "write"))
 		read_levels = single_meta.get_permlevel_access("read")
 		write_levels = single_meta.get_permlevel_access("write")

@@ -1256,7 +1256,7 @@ frappe.ui.form.Form = class FrappeForm {
 		}
 
 		frappe
-			.xcall("frappe.client.is_document_amended", {
+			.xcall("frappe.core.api.document.is_document_amended", {
 				doctype: this.doc.doctype,
 				docname: this.doc.name,
 			})

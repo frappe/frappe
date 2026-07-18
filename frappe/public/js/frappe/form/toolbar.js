@@ -747,7 +747,7 @@ frappe.ui.form.Toolbar = class Toolbar {
 				let doc = this.frm.doc;
 				frappe
 					.xcall(
-						"frappe.client.is_document_amended",
+						"frappe.core.api.document.is_document_amended",
 						{
 							doctype: doc.doctype,
 							docname: doc.name,

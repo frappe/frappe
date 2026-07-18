@@ -18,7 +18,7 @@ frappe.request.logs = {};
 // `frappe.request.app_uses_json`). Apps that don't opt in keep the legacy
 // form-encoded behaviour. A call can still override the choice with `opts.json`.
 frappe.request.app_uses_json = function (cmd) {
-	// cmd is the dotted endpoint path (e.g. "frappe.client.get_list"); its
+	// cmd is the dotted endpoint path (e.g. "frappe.core.api.document.get_list"); its
 	// first segment is the owning app. Unrecognized apps keep legacy behaviour.
 	if (!cmd) return false;
 	// `run_doc_method` is a dotless built-in frappe endpoint (doc method calls,

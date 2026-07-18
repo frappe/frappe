@@ -45,7 +45,7 @@ import num2words
 import pydantic
 
 import frappe.boot
-import frappe.client
+import frappe.core.api.document
 import frappe.core.doctype.file.file
 import frappe.core.doctype.user.user
 

@@ -239,7 +239,7 @@ frappe.ui.form.QuickEntryForm = class QuickEntryForm extends frappe.ui.Dialog {
 		return new Promise((resolve) => {
 			me.update_doc();
 			frappe.call({
-				method: "frappe.client.save",
+				method: "frappe.core.api.document.save",
 				args: {
 					doc: me.dialog.doc,
 				},
@@ -277,7 +277,7 @@ frappe.ui.form.QuickEntryForm = class QuickEntryForm extends frappe.ui.Dialog {
 	submit(doc) {
 		var me = this;
 		frappe.call({
-			method: "frappe.client.submit",
+			method: "frappe.core.api.document.submit",
 			args: {
 				doc: doc,
 			},

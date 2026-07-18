@@ -335,7 +335,7 @@ frappe.ui.form.PrintView = class {
 		}
 		return frappe
 			.call({
-				method: "frappe.client.get",
+				method: "frappe.core.api.document.get",
 				args: { doctype: "Print Format", name: format_name },
 			})
 			.then((r) => {

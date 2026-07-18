@@ -1,7 +1,7 @@
 import json
 
 import frappe
-from frappe.client import set_value
+from frappe.core.api.document import set_value
 
 
 def get_email_accounts(user=None):

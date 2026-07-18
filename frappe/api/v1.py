@@ -3,7 +3,7 @@ import json
 from werkzeug.routing import Rule
 
 import frappe
-import frappe.client
+import frappe.core.api.document
 from frappe import _
 from frappe.database.utils import DefaultOrderBy
 from frappe.handler import is_valid_http_method
@@ -34,7 +34,7 @@ def document_list(doctype: str):
 			frappe.form_dict[param] = sbool(param_val)
 
 	# evaluate frappe.get_list
-	return frappe.call(frappe.client.get_list, doctype, **frappe.form_dict)
+	return frappe.call(frappe.core.api.document.get_list, doctype, **frappe.form_dict)
 
 
 def handle_rpc_call(method: str):

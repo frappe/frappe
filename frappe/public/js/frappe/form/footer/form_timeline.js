@@ -750,7 +750,7 @@ class FormTimeline extends BaseTimeline {
 	delete_comment(comment_name) {
 		frappe.confirm(__("Delete comment?"), () => {
 			return frappe
-				.xcall("frappe.client.delete", {
+				.xcall("frappe.core.api.document.delete", {
 					doctype: "Comment",
 					name: comment_name,
 				})

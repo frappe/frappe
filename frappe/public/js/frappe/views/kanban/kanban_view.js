@@ -113,7 +113,7 @@ frappe.views.KanbanView = class KanbanView extends frappe.views.ListView {
 	set_board_perms_and_push_menu_items() {
 		// needs server-side call as client-side document instance is absent before kanban render
 		return frappe.call({
-			method: "frappe.client.get_doc_permissions",
+			method: "frappe.core.api.document.get_doc_permissions",
 			args: {
 				doctype: "Kanban Board",
 				docname: this.board_name,

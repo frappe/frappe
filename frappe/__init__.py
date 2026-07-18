@@ -873,10 +873,10 @@ def generate_hash(txt: str | None = None, length: int = 56) -> str:
 
 
 def set_value(doctype, docname, fieldname, value=None):
-	"""Set document value. Calls `frappe.client.set_value`"""
-	import frappe.client
+	"""Set document value. Calls `frappe.core.api.document.set_value`"""
+	import frappe.core.api.document
 
-	return frappe.client.set_value(doctype, docname, fieldname, value)
+	return frappe.core.api.document.set_value(doctype, docname, fieldname, value)
 
 
 def get_meta_module(doctype):

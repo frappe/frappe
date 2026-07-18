@@ -188,7 +188,7 @@ frappe.ui.form.Sidebar = class {
 		if (this.frm.meta.allow_auto_repeat && this.frm.doc.auto_repeat) {
 			const me = this;
 			frappe.call({
-				method: "frappe.client.get_value",
+				method: "frappe.core.api.document.get_value",
 				args: {
 					doctype: "Auto Repeat",
 					filters: {
