@@ -185,38 +185,9 @@ export const FIELD_PLUCK_KEYS = [
 	"show_text",
 ];
 
-export const ZONE_FIELD_PLUCK_KEYS = [
-	"label",
-	"fieldname",
-	"fieldtype",
-	"options",
-	"table_columns",
-	"table_style",
-	"table_bordered",
-	"table_header",
-	"table_header_bg",
-	"table_border_color",
-	"html",
-	"field_template",
-	"source",
-	"repeater_columns",
-	"row_condition",
-	"show_label",
-	"align",
-	"label_justify",
-	"label_gap",
-	"visible_if",
-	"custom_style",
-	"value_color",
-	"label_color",
-	"custom",
-	"image_url",
-	"width",
-	"barcode_field",
-	"barcode_value",
-	"barcode_format",
-	"show_text",
-];
+export const ZONE_FIELD_PLUCK_KEYS = FIELD_PLUCK_KEYS.filter(
+	(key) => key !== "table_cell_padding" && key !== "table_radius"
+);
 
 export function serialize_layout(layout) {
 	layout.sections = layout.sections
@@ -380,6 +351,12 @@ const SAFE_HTML_ATTRS = new Set([
 	"cellpadding",
 	"cellspacing",
 ]);
+
+export function strip_html_to_text(html, fallback = "") {
+	const tmp = document.createElement("div");
+	tmp.innerHTML = html;
+	return tmp.textContent || tmp.innerText || fallback;
+}
 
 export function sanitize_html(html) {
 	const root = document.createElement("div");

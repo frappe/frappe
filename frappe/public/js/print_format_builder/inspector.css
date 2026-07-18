@@ -25,8 +25,7 @@
 .pfb-insp-section-label {
 	font-size: var(--text-tiny);
 	font-weight: var(--weight-bold);
-	text-transform: uppercase;
-	letter-spacing: 0.08em;
+	letter-spacing: 0;
 	color: var(--text-muted);
 }
 .pfb-insp-chevron {
@@ -167,8 +166,7 @@
 .pfb-html-split-label {
 	font-size: var(--text-tiny);
 	font-weight: var(--weight-bold);
-	text-transform: uppercase;
-	letter-spacing: 0.08em;
+	letter-spacing: 0;
 	color: var(--text-muted);
 	padding: 10px 12px 8px;
 	border-bottom: 1px solid var(--border-color);

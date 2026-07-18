@@ -36,11 +36,10 @@ def download_pdf(
 	settings: str | dict | None = None,
 ):
 	from frappe.printing.doctype.print_format.classic_converter import get_default_print_format
-	from frappe.www.printview import validate_print_for_docstatus, validate_print_permission
+	from frappe.www.printview import validate_print
 
 	doc = frappe.get_doc(doctype, name)
-	validate_print_permission(doc)
-	validate_print_for_docstatus(doc)
+	validate_print(doc)
 	if not print_format or print_format == "Standard":
 		print_format = get_default_print_format(doctype)
 	generator = PrintFormatGenerator(print_format, doc, letterhead, settings=frappe.parse_json(settings))
@@ -64,6 +63,87 @@ def get_qr_code(value: str) -> str:
 	return "data:image/svg+xml;base64," + base64.b64encode(stream.getvalue()).decode()
 
 
+@frappe.whitelist()
+def get_formatted_field_values(doctype: str, name: str) -> dict:
+	"""Return the same formatted value each field prints (`doc.get_formatted`) so the
+	builder canvas shows the server's output instead of re-formatting client-side.
+
+	`values` holds parent fields; `child` maps each table field to a per-row list
+	of its cells' formatted values (row order matches the document)."""
+	from frappe.model import table_fields
+	from frappe.www.printview import set_link_titles
+
+	doc = frappe.get_doc(doctype, name)
+	doc.check_permission("read")
+	set_link_titles(doc)
+
+	def has_access(d, df):
+		return not (df.permlevel or 0) or d.has_permlevel_access_to(df.fieldname, df)
+
+	def formatted_fields(d):
+		out = {}
+		for df in d.meta.fields:
+			if df.fieldtype in table_fields or not has_access(d, df):
+				continue
+			try:
+				out[df.fieldname] = d.get_formatted(df.fieldname)
+			except Exception:
+				continue
+		return out
+
+	values = {}
+	child = {}
+	for df in doc.meta.fields:
+		if df.fieldtype in table_fields:
+			child[df.fieldname] = [formatted_fields(row) for row in doc.get(df.fieldname) or []]
+			if df.fieldtype == "Table MultiSelect" and has_access(doc, df):
+				try:
+					values[df.fieldname] = doc.get_formatted(df.fieldname)
+				except Exception:
+					pass
+		elif has_access(doc, df):
+			try:
+				values[df.fieldname] = doc.get_formatted(df.fieldname)
+			except Exception:
+				continue
+	return {"values": values, "child": child}
+
+
+@frappe.whitelist()
+def render_builder_preview(
+	print_format: str | dict,
+	doctype: str,
+	name: str | None = None,
+	letterhead: str | None = None,
+	settings: str | dict | None = None,
+) -> str:
+	"""Render print HTML for an UNSAVED builder format.
+
+	The print format builder holds the format in memory; this lets its preview
+	reflect edits before they are saved, using the same renderer the PDF uses so
+	the preview cannot drift from the printed output. ``print_format`` is the
+	in-memory Print Format document (dict/JSON), not a saved name.
+	"""
+	from frappe.printing.doctype.print_format.print_format import printable_sample
+	from frappe.www.printview import validate_print
+
+	frappe.has_permission("Print Format", "write", throw=True)
+
+	pf = frappe.get_doc(frappe.parse_json(print_format))
+	if pf.doctype != "Print Format":
+		frappe.throw(_("Expected an unsaved Print Format document"))
+
+	name = name or printable_sample(doctype)
+	if not name:
+		return ""
+
+	doc = frappe.get_doc(doctype, name)
+	validate_print(doc)
+
+	generator = PrintFormatGenerator(pf, doc, letterhead, settings=frappe.parse_json(settings))
+	return generator.get_html_preview()
+
+
 def get_html(
 	doctype,
 	name,
@@ -74,11 +154,10 @@ def get_html(
 	trigger_print=False,
 	settings=None,
 ):
-	from frappe.www.printview import validate_print_for_docstatus, validate_print_permission
+	from frappe.www.printview import validate_print
 
 	doc = frappe.get_doc(doctype, name)
-	validate_print_permission(doc)
-	validate_print_for_docstatus(doc)
+	validate_print(doc)
 	generator = PrintFormatGenerator(print_format, doc, letterhead, style=style, settings=settings)
 	return generator.get_html_preview(action_banner=action_banner, trigger_print=trigger_print)
 
@@ -96,6 +175,7 @@ class PrintFormatGenerator:
 		"bottom_center": "center",
 		"bottom_right": "right",
 	}
+	_FIELD_RENDERERS: ClassVar[dict[str, str]] = {"HTML Editor": "HTML", "Markdown Editor": "Markdown"}
 
 	def __init__(self, print_format, doc, letterhead=None, style=None, settings=None):
 		self.print_format = (
@@ -449,8 +529,19 @@ class PrintFormatGenerator:
 					df["table_columns"] = kept
 		return layout
 
+	def _prepare_field(self, df, section, eval_locals):
+		if df.get("visible_if"):
+			try:
+				df["_hidden"] = not frappe.safe_eval(df["visible_if"], eval_locals)
+			except Exception:
+				df["_hidden"] = False
+		fieldtype = df.get("fieldtype", "Data")
+		df["renderer"] = self._FIELD_RENDERERS.get(fieldtype) or fieldtype.replace(" ", "")
+		df["section"] = section
+		self.prepare_barcode(df)
+		self.filter_repeater_rows(df)
+
 	def set_field_renderers(self, layout):
-		renderers = {"HTML Editor": "HTML", "Markdown Editor": "Markdown"}
 		eval_locals = {"doc": self.doc, "print_settings": self.print_settings}
 		for section in layout["sections"]:
 			if section.get("visible_if"):
@@ -460,16 +551,7 @@ class PrintFormatGenerator:
 					section["_hidden"] = False
 			for column in section["columns"]:
 				for df in column["fields"]:
-					if df.get("visible_if"):
-						try:
-							df["_hidden"] = not frappe.safe_eval(df["visible_if"], eval_locals)
-						except Exception:
-							df["_hidden"] = False
-					fieldtype = df["fieldtype"]
-					df["renderer"] = renderers.get(fieldtype) or fieldtype.replace(" ", "")
-					df["section"] = section
-					self.prepare_barcode(df)
-					self.filter_repeater_rows(df)
+					self._prepare_field(df, section, eval_locals)
 
 		# Also process header/footer zones if they are section objects
 		for zone_key in ("header", "footer"):
@@ -477,16 +559,7 @@ class PrintFormatGenerator:
 			if isinstance(zone, dict) and "columns" in zone:
 				for column in zone.get("columns", []):
 					for df in column.get("fields", []):
-						if df.get("visible_if"):
-							try:
-								df["_hidden"] = not frappe.safe_eval(df["visible_if"], eval_locals)
-							except Exception:
-								df["_hidden"] = False
-						fieldtype = df.get("fieldtype", "Data")
-						df["renderer"] = renderers.get(fieldtype) or fieldtype.replace(" ", "")
-						df["section"] = zone
-						self.prepare_barcode(df)
-						self.filter_repeater_rows(df)
+						self._prepare_field(df, zone, eval_locals)
 
 		return layout
 

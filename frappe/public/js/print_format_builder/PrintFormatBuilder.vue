@@ -23,7 +23,7 @@
 			     v-show (not v-if) so the picker control survives a preview round-trip. -->
 			<div v-show="!show_preview" class="canvas-toolbar">
 				<div class="canvas-toolbar-left">
-					<span class="canvas-toolbar-eyebrow">{{ __("PREVIEW DATA") }}</span>
+					<span class="canvas-toolbar-eyebrow">{{ __("Data") }}</span>
 				</div>
 				<div class="canvas-toolbar-center">
 					<div ref="doc_picker_ref" class="canvas-doc-picker"></div>

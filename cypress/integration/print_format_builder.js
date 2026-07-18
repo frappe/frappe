@@ -122,7 +122,7 @@ context("Print Format Builder — create flow", () => {
 		cy.intercept("POST", "api/method/frappe.client.save").as("save");
 		cy.visit(`/app/print-format-builder/${encodeURIComponent(PF_NAME)}`);
 
-		cy.get(".pfb-tab[title='Format']", { timeout: 30000 }).click();
+		cy.get(".pfb-tab[title='Setting']", { timeout: 30000 }).click();
 		cy.get(".pfb-margin-grid").should("be.visible");
 
 		cy.get(".freeze").should("not.exist");
@@ -211,7 +211,7 @@ context("Print Format Builder — create flow", () => {
 		cy.intercept("POST", "api/method/frappe.client.save").as("save");
 		cy.visit(`/app/print-format-builder/${encodeURIComponent(PF_NAME)}`);
 
-		cy.get(".pfb-tab[title='Format']", { timeout: 30000 }).click();
+		cy.get(".pfb-tab[title='Setting']", { timeout: 30000 }).click();
 		cy.get(".pfb-margin-grid").should("be.visible");
 
 		cy.contains("label", "Font Size")
@@ -266,7 +266,7 @@ context("Print Format Builder — create flow", () => {
 		cy.intercept("POST", "api/method/frappe.client.save").as("save");
 		cy.visit(`/app/print-format-builder/${encodeURIComponent(PF_NAME)}`);
 
-		cy.get(".pfb-tab[title='Format']", { timeout: 30000 }).click();
+		cy.get(".pfb-tab[title='Setting']", { timeout: 30000 }).click();
 		cy.get(".pfb-margin-grid").should("be.visible");
 
 		// The color field is rendered with Frappe's ControlColor (adds .selected-color swatch)

@@ -186,7 +186,7 @@
 												class="cell-line"
 												:class="`cell-line--${mf.style || 'primary'}`"
 											>
-												{{ format_merged(row, mf.fieldname) }}
+												{{ format_merged(row, i, mf.fieldname) }}
 											</div>
 										</div>
 									</div>
@@ -202,9 +202,9 @@
 											:alt="col.label || col.fieldname"
 										/>
 										<div
-											v-else-if="is_html_content_field(col)"
+											v-else-if="cell_server_html(i, col)"
 											class="preview-table-html"
-											v-html="format_cell(row, col)"
+											v-html="cell_server_html(i, col)"
 										></div>
 										<span v-else>{{ format_cell(row, col) }}</span>
 									</template>
@@ -262,7 +262,7 @@
 									...(col.color ? { color: col.color } : {}),
 								}"
 							>
-								{{ repeater_cell(col, row) }}
+								{{ repeater_cell(col, i, row) }}
 							</td>
 						</tr>
 						<tr v-if="!(preview_doc[df.source] || []).length">
@@ -337,6 +337,7 @@
 							/>
 						</svg>
 					</template>
+					<span v-else-if="preview_value_html" v-html="preview_value_html"></span>
 					<span v-else>{{ preview_value || "—" }}</span>
 				</div>
 			</template>
@@ -481,11 +482,13 @@ import ConfigureColumnsVue from "../inspector/ConfigureColumns.vue";
 import {
 	render_jinja_html,
 	sanitize_html,
+	strip_html_to_text,
 	evaluate_visible_if,
 	thumb_hue,
 	parse_inline_style,
 } from "../../utils";
-import { createApp, ref, nextTick, watch, computed, inject, onUnmounted } from "vue";
+import { createApp, ref, nextTick, watch, computed, inject } from "vue";
+import { useColumnResize } from "../../composables/useColumnResize";
 import JsBarcode from "jsbarcode";
 
 const props = defineProps(["df", "field_orientation"]);
@@ -688,14 +691,19 @@ let preview_value = computed(() => {
 		const formatted = frappe.format(raw, props.df, { only_value: true }, preview_doc.value);
 		// If frappe.format returned HTML markup, extract the text content
 		if (typeof formatted === "string" && formatted.includes("<")) {
-			const tmp = document.createElement("div");
-			tmp.innerHTML = formatted;
-			return tmp.textContent || tmp.innerText || String(raw);
+			return strip_html_to_text(formatted, String(raw));
 		}
 		return formatted;
 	} catch {
 		return String(raw);
 	}
+});
+
+let preview_value_html = computed(() => {
+	if (!preview_doc.value || !props.df.fieldname || props.df.fieldtype === "Check") return null;
+	const server = store.preview_values.value?.[props.df.fieldname];
+	if (server === null || server === undefined || server === "") return null;
+	return sanitize_html(String(server));
 });
 
 // Same math as macros/Rating.html: value is a 0-1 fraction, df.options holds the star count
@@ -726,10 +734,14 @@ function cell_style(df) {
 	return parts.join("; ");
 }
 
-function repeater_cell(col, row) {
+function repeater_cell(col, i, row) {
 	return (col.template || [])
 		.map((tok) => {
 			if (tok.t === "s") return tok.v || "";
+			const server = store.preview_child_values.value?.[props.df.source]?.[i]?.[tok.v];
+			if (server !== null && server !== undefined && server !== "") {
+				return strip_html_to_text(String(server));
+			}
 			const child_df = repeater_child_df(tok.v);
 			return child_df ? format_cell(row || {}, child_df) : row?.[tok.v] ?? "";
 		})
@@ -743,6 +755,10 @@ function repeater_child_df(fieldname) {
 }
 
 function multiselect_display(df) {
+	const server = store.preview_values.value?.[df.fieldname];
+	if (server !== null && server !== undefined && server !== "") {
+		return strip_html_to_text(String(server));
+	}
 	const rows = preview_doc.value?.[df.fieldname] || [];
 	if (!rows.length) return "—";
 	const child_meta = frappe.get_meta(df.options);
@@ -756,8 +772,10 @@ function multiselect_display(df) {
 	);
 }
 
-function is_html_content_field(col) {
-	return HTML_CONTENT_FIELDTYPES.has(col?.fieldtype);
+function cell_server_html(i, col) {
+	const v = store.preview_child_values.value?.[props.df.fieldname]?.[i]?.[col.fieldname];
+	if (v === null || v === undefined || v === "") return null;
+	return sanitize_html(String(v));
 }
 
 function format_cell(row, col) {
@@ -769,9 +787,7 @@ function format_cell(row, col) {
 	try {
 		const formatted = frappe.format(raw, col, { only_value: true }, row);
 		if (typeof formatted === "string" && formatted.includes("<")) {
-			const tmp = document.createElement("div");
-			tmp.innerHTML = formatted;
-			return tmp.textContent || tmp.innerText || String(raw);
+			return strip_html_to_text(formatted, String(raw));
 		}
 		return formatted;
 	} catch {
@@ -806,19 +822,18 @@ function text_merges(col) {
 	return merged_fields(col).filter((mf) => mf.fieldname !== img?.fieldname);
 }
 
-// Format a merged sub-field using its own child docfield definition.
-// Merged lines are plain text, so strip any HTML kept for rich-text
-// fields (Text Editor / Long Text) down to its text content.
-function format_merged(row, fieldname) {
+function format_merged(row, i, fieldname) {
+	const server = store.preview_child_values.value?.[props.df.fieldname]?.[i]?.[fieldname];
+	if (server !== null && server !== undefined && server !== "") {
+		return strip_html_to_text(String(server)).trim();
+	}
 	const dcol = frappe.meta.get_docfield(props.df.options, fieldname) || {
 		fieldname,
 		fieldtype: "Data",
 	};
 	const val = format_cell(row, dcol);
 	if (typeof val === "string" && val.includes("<")) {
-		const tmp = document.createElement("div");
-		tmp.innerHTML = val;
-		return (tmp.textContent || tmp.innerText || "").trim();
+		return strip_html_to_text(val).trim();
 	}
 	return val;
 }
@@ -851,9 +866,7 @@ function thumb(col, row) {
 }
 
 function select_field() {
-	store.selected_field.value = props.df;
-	store.selected_letterhead.value = false;
-	store.selected_lh_footer.value = false;
+	store.select_field(props.df);
 	if (props.df.fieldtype !== "HTML") {
 		editing.value = true;
 	}
@@ -959,7 +972,7 @@ function get_column_to_add(fieldname) {
 	return { ...frappe.meta.get_docfield(props.df.options, fieldname), width: 10 };
 }
 
-let end_col_resize = null;
+const { start: start_column_resize } = useColumnResize();
 
 function start_col_resize(e, ci) {
 	const cols = props.df.table_columns;
@@ -970,30 +983,14 @@ function start_col_resize(e, ci) {
 	const start_x = e.clientX;
 	const start_left = left.width || 10;
 	const start_right = right.width || 10;
-	const handle = e.target;
-	handle.classList.add("col-resize-handle--active");
-	document.body.classList.add("pfb-col-resizing");
 	const on_move = (ev) => {
 		let delta = Math.round(((ev.clientX - start_x) / table_width) * 100);
 		delta = Math.max(5 - start_left, Math.min(start_right - 5, delta));
 		left.width = start_left + delta;
 		right.width = start_right - delta;
 	};
-	const on_up = () => {
-		document.removeEventListener("pointermove", on_move);
-		document.removeEventListener("pointerup", on_up);
-		document.removeEventListener("pointercancel", on_up);
-		handle.classList.remove("col-resize-handle--active");
-		document.body.classList.remove("pfb-col-resizing");
-		end_col_resize = null;
-	};
-	document.addEventListener("pointermove", on_move);
-	document.addEventListener("pointerup", on_up);
-	document.addEventListener("pointercancel", on_up);
-	end_col_resize = on_up;
+	start_column_resize(e.target, "col-resize-handle--active", on_move);
 }
-
-onUnmounted(() => end_col_resize?.());
 
 function validate_table_columns() {
 	if (props.df.fieldtype != "Table") return;

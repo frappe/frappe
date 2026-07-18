@@ -35,6 +35,9 @@ export function getStore(print_format_name) {
 	let selected_lh_footer = ref(false);
 	let preview_doc = ref(null);
 	let preview_doc_name = ref(null);
+	let preview_values = ref({});
+	let preview_child_values = ref({});
+	let preview_load_seq = 0;
 
 	// methods
 	function fetch() {
@@ -169,23 +172,73 @@ export function getStore(print_format_name) {
 	function reset_changes() {
 		fetch();
 	}
+	function get_preview_format_doc() {
+		const snapshot = clone_plain(layout.value);
+		serialize_layout(snapshot);
+		return { ...print_format.value, format_data: JSON.stringify(snapshot) };
+	}
+	function select_field(df) {
+		selected_field.value = df;
+		selected_letterhead.value = false;
+		selected_lh_footer.value = false;
+	}
+	function select_section(section) {
+		selected_section.value = section;
+		selected_field.value = null;
+		selected_letterhead.value = false;
+		selected_lh_footer.value = false;
+	}
+	function select_letterhead({ footer = false } = {}) {
+		selected_letterhead.value = !footer;
+		selected_lh_footer.value = footer;
+		selected_field.value = null;
+		selected_section.value = null;
+	}
+	function remove_section(section) {
+		const idx = layout.value.sections.indexOf(section);
+		if (idx === -1) return;
+		layout.value.sections.splice(idx, 1);
+		if (selected_section.value === section) {
+			selected_section.value = null;
+		}
+		if (
+			selected_field.value &&
+			section.columns.some((c) => c.fields.includes(selected_field.value))
+		) {
+			selected_field.value = null;
+		}
+	}
 	// Persist the chosen preview record per print format so it survives a refresh
 	const preview_doc_ls_key = `pfb:preview_doc:${print_format_name}`;
 	function persisted_preview_doc_name() {
 		return localStorage.getItem(preview_doc_ls_key);
 	}
 	function load_preview_doc(name) {
+		const seq = ++preview_load_seq;
 		if (!name) {
 			preview_doc.value = null;
 			preview_doc_name.value = null;
+			preview_values.value = {};
+			preview_child_values.value = {};
 			localStorage.removeItem(preview_doc_ls_key);
 			return;
 		}
 		preview_doc_name.value = name;
 		localStorage.setItem(preview_doc_ls_key, name);
 		frappe.db.get_doc(print_format.value.doc_type, name).then((doc) => {
+			if (seq !== preview_load_seq) return;
 			preview_doc.value = doc;
 		});
+		frappe
+			.call("frappe.utils.print_format_generator.get_formatted_field_values", {
+				doctype: print_format.value.doc_type,
+				name,
+			})
+			.then((r) => {
+				if (seq !== preview_load_seq) return;
+				preview_values.value = r.message?.values || {};
+				preview_child_values.value = r.message?.child || {};
+			});
 	}
 	function get_layout() {
 		if (print_format.value && print_format.value.format_data) {
@@ -308,12 +361,19 @@ export function getStore(print_format_name) {
 		selected_lh_footer,
 		preview_doc,
 		preview_doc_name,
+		preview_values,
+		preview_child_values,
 		load_preview_doc,
 		persisted_preview_doc_name,
 		fetch,
 		update,
 		save_changes,
 		reset_changes,
+		get_preview_format_doc,
+		select_field,
+		select_section,
+		select_letterhead,
+		remove_section,
 		get_layout,
 		get_default_layout,
 		change_letterhead,
