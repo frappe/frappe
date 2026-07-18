@@ -2331,6 +2331,10 @@ frappe.ui.form.Form = class FrappeForm {
 
 			this.timeline && this.timeline.refresh();
 
+			if (key === "attachments") {
+				this.attachments && this.attachments.refresh();
+			}
+
 			if (["add", "delete"].includes(action) && doc.doctype === "Comment") {
 				this.footer.refresh_comments_count();
 			}

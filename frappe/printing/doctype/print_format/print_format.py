@@ -308,4 +308,22 @@ def generate_preview(name: str) -> str | None:
 	# background refresh would stale-date an open form and break its next save with a
 	# timestamp mismatch.
 	doc.db_set("preview_image", file.file_url, update_modified=False)
+
+	for old in stale:
+		notify_docinfo_attachment(name, {"name": old}, "delete")
+	notify_docinfo_attachment(name, file.as_dict(), "add")
 	return file.file_url
+
+
+def notify_docinfo_attachment(print_format: str, doc: dict, action: str):
+	frappe.publish_realtime(
+		"docinfo_update",
+		{
+			"doc": {**doc, "reference_doctype": "Print Format", "reference_name": print_format},
+			"key": "attachments",
+			"action": action,
+		},
+		doctype="Print Format",
+		docname=print_format,
+		after_commit=True,
+	)
