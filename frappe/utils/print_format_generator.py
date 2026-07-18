@@ -132,6 +132,7 @@ class PrintFormatGenerator:
 		"bottom_center": "center",
 		"bottom_right": "right",
 	}
+	_FIELD_RENDERERS: ClassVar[dict[str, str]] = {"HTML Editor": "HTML", "Markdown Editor": "Markdown"}
 
 	def __init__(self, print_format, doc, letterhead=None, style=None, settings=None):
 		self.print_format = (
@@ -485,8 +486,19 @@ class PrintFormatGenerator:
 					df["table_columns"] = kept
 		return layout
 
+	def _prepare_field(self, df, section, eval_locals):
+		if df.get("visible_if"):
+			try:
+				df["_hidden"] = not frappe.safe_eval(df["visible_if"], eval_locals)
+			except Exception:
+				df["_hidden"] = False
+		fieldtype = df.get("fieldtype", "Data")
+		df["renderer"] = self._FIELD_RENDERERS.get(fieldtype) or fieldtype.replace(" ", "")
+		df["section"] = section
+		self.prepare_barcode(df)
+		self.filter_repeater_rows(df)
+
 	def set_field_renderers(self, layout):
-		renderers = {"HTML Editor": "HTML", "Markdown Editor": "Markdown"}
 		eval_locals = {"doc": self.doc, "print_settings": self.print_settings}
 		for section in layout["sections"]:
 			if section.get("visible_if"):
@@ -496,16 +508,7 @@ class PrintFormatGenerator:
 					section["_hidden"] = False
 			for column in section["columns"]:
 				for df in column["fields"]:
-					if df.get("visible_if"):
-						try:
-							df["_hidden"] = not frappe.safe_eval(df["visible_if"], eval_locals)
-						except Exception:
-							df["_hidden"] = False
-					fieldtype = df["fieldtype"]
-					df["renderer"] = renderers.get(fieldtype) or fieldtype.replace(" ", "")
-					df["section"] = section
-					self.prepare_barcode(df)
-					self.filter_repeater_rows(df)
+					self._prepare_field(df, section, eval_locals)
 
 		# Also process header/footer zones if they are section objects
 		for zone_key in ("header", "footer"):
@@ -513,16 +516,7 @@ class PrintFormatGenerator:
 			if isinstance(zone, dict) and "columns" in zone:
 				for column in zone.get("columns", []):
 					for df in column.get("fields", []):
-						if df.get("visible_if"):
-							try:
-								df["_hidden"] = not frappe.safe_eval(df["visible_if"], eval_locals)
-							except Exception:
-								df["_hidden"] = False
-						fieldtype = df.get("fieldtype", "Data")
-						df["renderer"] = renderers.get(fieldtype) or fieldtype.replace(" ", "")
-						df["section"] = zone
-						self.prepare_barcode(df)
-						self.filter_repeater_rows(df)
+						self._prepare_field(df, zone, eval_locals)
 
 		return layout
 
