@@ -168,6 +168,26 @@ class TestPublicSpecDiscovery(PublicAPITestCase):
 		self.assertEqual(matches[0][1].group, "Tests")
 
 
+class TestDiscovery(UnitTestCase):
+	def test_get_public_apis(self):
+		from frappe.discovery import get_public_apis
+
+		apis = get_public_apis()
+		self.assertTrue(apis)
+
+		by_path = {api["path"]: api for api in apis}
+		get_list = by_path["frappe.core.api.document.get_list"]
+		self.assertEqual(get_list["group"], "Documents")
+		self.assertFalse(get_list["allow_guest"])
+		self.assertIn("GET", get_list["methods"])
+		self.assertIn("doctype", [p["name"] for p in get_list["parameters"]])
+		self.assertTrue(get_list["summary"])
+
+		accept = by_path["frappe.website.api.accept_web_form"]
+		self.assertTrue(accept["allow_guest"])
+		self.assertEqual(sorted(accept["methods"]), ["POST", "PUT"])
+
+
 class TestPublicAPIDocstringLint(UnitTestCase):
 	"""Linter for `@frappe.public` docstrings — Sphinx style, enforced in CI.
 

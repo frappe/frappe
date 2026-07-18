@@ -1,13 +1,26 @@
+from typing import Any
+
 import frappe
 import frappe.utils
 from frappe import _
 from frappe.core.doctype.user_invitation.user_invitation import UserInvitation
+from frappe.public_api import public
 
 
+@public(group="User")
 @frappe.whitelist(methods=["POST"])
 def invite_by_email(
-	emails: str, roles: list[str], redirect_to_path: str, app_name: str = "frappe", **kwargs
+	emails: str, roles: list[str], redirect_to_path: str, app_name: str = "frappe", **kwargs: Any
 ) -> dict[str, list[str]]:
+	"""Invite users by email, creating and mailing User Invitations.
+
+	:param emails: comma/semicolon separated email addresses to invite
+	:param roles: roles to be assigned when an invitation is accepted
+	:param redirect_to_path: path to redirect to after accepting
+	:param app_name: app the invitation belongs to (role-checked)
+	:param kwargs: ignored, tolerated for backwards compatibility
+	:return: Dict of accepted, pending and newly invited emails.
+	"""
 	UserInvitation.validate_role(app_name)
 
 	# validate emails
@@ -76,14 +89,26 @@ def get_allowed_invite_params(app_name: str, kwargs: dict) -> dict:
 	return allowed_params
 
 
+@public(group="User")
 @frappe.whitelist(allow_guest=True, methods=["GET"])
 def accept_invitation(key: str) -> None:
+	"""Accept a user invitation from a signed email link.
+
+	:param key: the invitation key from the emailed link
+	"""
 	_accept_invitation(key, False)
 
 
 # `app_name` is required for security
+@public(group="User")
 @frappe.whitelist(methods=["PATCH", "POST"])
-def cancel_invitation(name: str, app_name: str):
+def cancel_invitation(name: str, app_name: str) -> dict:
+	"""Cancel a pending user invitation.
+
+	:param name: name of the User Invitation
+	:param app_name: app the invitation belongs to (role-checked)
+	:return: Dict indicating whether the invitation was cancelled now.
+	"""
 	UserInvitation.validate_role(app_name)
 
 	if not frappe.db.exists("User Invitation", name):
@@ -104,11 +129,17 @@ def cancel_invitation(name: str, app_name: str):
 	return {"cancelled_now": invitation.cancel_invite()}
 
 
+@public(group="User")
 @frappe.whitelist(methods=["POST"])
 def resend_invitation(
 	name: str,
 	app_name: str,
 ) -> None:
+	"""Resend a pending user invitation email.
+
+	:param name: name of the User Invitation
+	:param app_name: app the invitation belongs to (role-checked)
+	"""
 	UserInvitation.validate_role(app_name)
 
 	if not frappe.db.exists("User Invitation", name):

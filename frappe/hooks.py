@@ -160,6 +160,26 @@ require_type_annotated_api_methods = True
 
 standard_queries = {"User": "frappe.core.api.user.user_query"}
 
+# Modules that declare `@frappe.public` endpoints. Imported by the discovery
+# endpoint (frappe.discovery.get_public_apis) so the public API registry is
+# complete; apps append their own api modules to this hook.
+public_api_modules = [
+	"frappe.core.api.auth",
+	"frappe.core.api.background_jobs",
+	"frappe.core.api.data_import_export",
+	"frappe.core.api.diagnostics",
+	"frappe.core.api.document",
+	"frappe.core.api.file",
+	"frappe.core.api.permissions",
+	"frappe.core.api.user",
+	"frappe.core.api.user_invitation",
+	"frappe.core.api.workflow",
+	"frappe.discovery",
+	"frappe.email.api",
+	"frappe.printing.api",
+	"frappe.website.api",
+]
+
 doc_events = {
 	"*": {
 		"on_update": [
