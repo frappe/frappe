@@ -58,6 +58,36 @@ export function normalizeToolName(name) {
 
 export const hasArgs = (args) => Object.keys(parseArgs(args)).length > 0 || Boolean(rawArgs(args));
 
+// The error message when a tool call wholly failed, else null. Two failure shapes:
+// a thrown tool → {error: "..."}; a bulk create/update/delete where every record
+// failed → {created|updated|deleted: [], failures: [{error}, ...]}.
+export function toolError(result) {
+	if (typeof result !== "string") return null;
+	let parsed;
+	try {
+		parsed = JSON.parse(result);
+	} catch {
+		return null; // a plain-text result, not an error payload
+	}
+	if (!parsed || typeof parsed !== "object") return null;
+	if (typeof parsed.error === "string") return parsed.error;
+
+	const failures = parsed.failures;
+	if (Array.isArray(failures) && failures.length) {
+		const succeeded = [parsed.created, parsed.updated, parsed.deleted].some(
+			(a) => Array.isArray(a) && a.length
+		);
+		if (!succeeded) {
+			const msg = failures
+				.map((f) => f && f.error)
+				.filter((e) => typeof e === "string")
+				.join("\n");
+			return msg || null;
+		}
+	}
+	return null;
+}
+
 export const isScalar = (v) => v === null || typeof v !== "object";
 
 export function formatScalar(v) {

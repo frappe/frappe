@@ -4,7 +4,8 @@ import { FeatherIcon } from "@/lib/ui";
 import ActivityLabel from "./ActivityLabel.vue";
 import ActivityStep from "./ActivityStep.vue";
 import ArgsView from "./ArgsView.vue";
-import { toolLabel, hasArgs } from "@/lib/toolMeta";
+import ToolError from "./ToolError.vue";
+import { toolLabel, hasArgs, toolError } from "@/lib/toolMeta";
 import { __ } from "@/lib/translate";
 
 // Tool calls as one collapsible line: running → active step's label; done → latest
@@ -27,16 +28,22 @@ const summary = computed(() => {
 	return toolLabel(props.parts[props.parts.length - 1].name);
 });
 
-// Only set on a resolved approval line.
+// A single tool call whose result is an error payload.
+const error = computed(() => (single.value ? toolError(props.parts[0].result) : null));
+
+// Only set on a resolved approval or failed line.
 const status = computed(() => {
+	if (error.value) return __("Failed");
 	const a = single.value ? props.parts[0].approval : null;
 	if (a === "denied") return __("Denied");
 	if (a === "redirected") return __("Changes requested");
 	return "";
 });
 
-// A lone step with no inputs has nothing to reveal.
-const expandable = computed(() => !single.value || hasArgs(props.parts[0].arguments));
+// A lone step reveals its inputs, or its error when it failed with none.
+const expandable = computed(
+	() => !single.value || hasArgs(props.parts[0].arguments) || Boolean(error.value)
+);
 const open = ref(false);
 function toggle() {
 	if (expandable.value) open.value = !open.value;
@@ -71,7 +78,14 @@ function toggle() {
 				v-if="open"
 				class="mb-2 mt-1.5 rounded-lg border border-outline-gray-1 px-3 py-2.5"
 			>
-				<ArgsView v-if="single" :arguments="parts[0].arguments" />
+				<template v-if="single">
+					<ArgsView :arguments="parts[0].arguments" />
+					<ToolError
+						v-if="error"
+						:message="error"
+						:class="{ 'mt-2': hasArgs(parts[0].arguments) }"
+					/>
+				</template>
 				<div v-else>
 					<ActivityStep
 						v-for="(part, i) in parts"
