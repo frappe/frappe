@@ -10,6 +10,7 @@
   "model",
   "source",
   "section_break_transcript",
+  "transcript_html",
   "messages",
   "attachments"
  ],
@@ -56,9 +57,15 @@
    "label": "Transcript"
   },
   {
+   "fieldname": "transcript_html",
+   "fieldtype": "HTML",
+   "label": "Transcript"
+  },
+  {
    "description": "Full chat transcript across all runs in this conversation.",
    "fieldname": "messages",
    "fieldtype": "Table",
+   "hidden": 1,
    "label": "Messages",
    "options": "Flow Session Message",
    "read_only": 1

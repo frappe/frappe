@@ -1,0 +1,43 @@
+<style>
+.flow-transcript { max-width: 900px; position: relative; }
+.flow-transcript::before { content: ""; position: absolute; top: 0; bottom: 0; left: 90px; width: 1px; background: var(--border-color); }
+.flow-transcript .msg { display: flex; padding: 14px 0; border-top: 1px solid var(--border-color); }
+.flow-transcript .msg:first-child { border-top: none; }
+.flow-transcript .role { flex: 0 0 90px; font-size: 11px; font-weight: 500; text-transform: uppercase; letter-spacing: .04em; color: var(--text-muted); padding-top: 1px; }
+.flow-transcript .msg-user .role { color: var(--text-color); }
+.flow-transcript .body { flex: 1 1 auto; min-width: 0; padding-left: 20px; }
+.flow-transcript .text { white-space: pre-wrap; word-break: break-word; color: var(--text-color); line-height: 1.55; }
+.flow-transcript .calls { margin-top: 10px; display: flex; flex-direction: column; gap: 10px; }
+.flow-transcript .calls:first-child { margin-top: 0; }
+.flow-transcript .tname { display: inline-block; font-family: var(--font-stack-monospace, monospace); font-size: 12px; font-weight: 500; color: var(--text-color); background: var(--control-bg); border-radius: 4px; padding: 2px 7px; margin-bottom: 6px; }
+.flow-transcript pre.json { white-space: pre-wrap; word-break: break-word; font-size: 12px; line-height: 1.5; margin: 0; background: var(--control-bg); border: 1px solid var(--border-color); border-radius: 6px; padding: 9px 11px; overflow: auto; max-height: 360px; }
+.flow-transcript .empty { color: var(--text-muted); }
+</style>
+{% var esc = (v) => frappe.utils.escape_html(v == null ? "" : String(v)); %}
+<div class="flow-transcript">
+{% if !items || !items.length %}
+	<div class="empty">{{ __("No messages yet.") }}</div>
+{% endif %}
+{% for m in items %}
+	<div class="msg msg-{{ esc(m.role) }}">
+		<div class="role">{{ esc(m.role) }}</div>
+		<div class="body">
+		{% if m.role === "tool" %}
+			<pre class="json">{{ esc(m.output) }}</pre>
+		{% else %}
+			{% if m.content %}<div class="text">{{ esc(m.content) }}</div>{% endif %}
+			{% if m.calls && m.calls.length %}
+			<div class="calls">
+			{% for c in m.calls %}
+				<div class="toolcall">
+					<div class="tname">{{ esc(c.name) }}</div>
+					<pre class="json">{{ esc(c.args) }}</pre>
+				</div>
+			{% endfor %}
+			</div>
+			{% endif %}
+		{% endif %}
+		</div>
+	</div>
+{% endfor %}
+</div>
