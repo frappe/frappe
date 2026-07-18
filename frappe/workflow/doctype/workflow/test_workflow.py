@@ -5,11 +5,8 @@ from unittest.mock import patch
 import responses
 
 import frappe
-from frappe.model.workflow import (
-	WorkflowTransitionError,
-	apply_workflow,
-	get_common_transition_actions,
-)
+from frappe.core.api.workflow import apply_workflow, get_common_transition_actions
+from frappe.model.workflow import WorkflowTransitionError
 from frappe.tests import IntegrationTestCase
 from frappe.tests.utils import make_test_records
 from frappe.utils import random_string
@@ -92,7 +89,7 @@ class TestWorkflow(IntegrationTestCase):
 		self.assertListEqual(actions, ["Review"])
 
 	def test_bulk_workflow_approval_accepts_native_list(self):
-		from frappe.model.workflow import bulk_workflow_approval
+		from frappe.core.api.workflow import bulk_workflow_approval
 
 		todo = create_new_todo()
 		# docnames as a native list (frappe.parse_json passthrough); < 20 docs runs inline

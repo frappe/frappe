@@ -5,12 +5,12 @@ from datetime import datetime
 
 import frappe
 from frappe import _
+from frappe.core.api.workflow import apply_workflow
 from frappe.desk.form.utils import get_pdf_link
 from frappe.desk.notifications import clear_doctype_notifications
 from frappe.email.doctype.email_template.email_template import get_email_template
 from frappe.model.document import Document
 from frappe.model.workflow import (
-	apply_workflow,
 	get_workflow_name,
 	get_workflow_state_field,
 	has_approval_access,
@@ -128,44 +128,6 @@ def process_workflow_actions(doc, state):
 			enqueue_after_commit=True,
 			now=frappe.in_test,
 		)
-
-
-@frappe.whitelist(allow_guest=True)
-def apply_action(
-	action: str,
-	doctype: str,
-	docname: str | int,
-	current_state: str,
-	user: str | None = None,
-	last_modified: str | datetime | None = None,
-):
-	if not verify_request():
-		return
-
-	doc = frappe.get_doc(doctype, docname)
-	doc_workflow_state = get_doc_workflow_state(doc)
-
-	if doc_workflow_state == current_state:
-		action_link = get_confirm_workflow_action_url(doc, action, user)
-
-		if not last_modified or get_datetime(doc.modified) == get_datetime(last_modified):
-			return_action_confirmation_page(doc, action, action_link)
-		else:
-			return_action_confirmation_page(doc, action, action_link, alert_doc_change=True)
-
-	else:
-		return_link_expired_page(doc, doc_workflow_state)
-
-
-@frappe.whitelist()
-def confirm_action(doctype: str, docname: str | int, user: str, action: str):
-	if not verify_request():
-		return
-
-	doc = frappe.get_doc(doctype, docname)
-	newdoc = apply_workflow(doc, action)
-	frappe.db.commit()
-	return_success_page(newdoc)
 
 
 def return_success_page(doc):
@@ -423,7 +385,7 @@ def deduplicate_actions(action_list):
 
 
 def get_workflow_action_url(action, doc, user):
-	apply_action_method = "/api/method/frappe.workflow.doctype.workflow_action.workflow_action.apply_action"
+	apply_action_method = "/api/method/frappe.core.api.workflow.apply_action"
 
 	params = {
 		"doctype": doc.get("doctype"),
@@ -438,9 +400,7 @@ def get_workflow_action_url(action, doc, user):
 
 
 def get_confirm_workflow_action_url(doc, action, user):
-	confirm_action_method = (
-		"/api/method/frappe.workflow.doctype.workflow_action.workflow_action.confirm_action"
-	)
+	confirm_action_method = "/api/method/frappe.core.api.workflow.confirm_action"
 
 	params = {
 		"action": action,
@@ -540,3 +500,20 @@ def get_state_optional_field_value(workflow_name, state):
 	return frappe.get_cached_value(
 		"Workflow Document State", {"parent": workflow_name, "state": state}, "is_optional_state"
 	)
+
+
+# `apply_action`, `confirm_action` moved to frappe.core.api.workflow.
+# The aliases keep the old dotted paths working; resolved lazily to avoid
+# circular imports.
+_MOVED_TO_WORKFLOW_API = {
+	"apply_action": "apply_action",
+	"confirm_action": "confirm_action",
+}
+
+
+def __getattr__(name: str):
+	if new_name := _MOVED_TO_WORKFLOW_API.get(name):
+		from frappe.core.api import workflow
+
+		return getattr(workflow, new_name)
+	raise AttributeError(f"module {__name__!r} has no attribute {name!r}")

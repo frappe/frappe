@@ -40,43 +40,6 @@ def get_workflow_name(doctype):
 	return workflow_name
 
 
-@frappe.whitelist()
-def get_transitions(
-	doc: Document | str | dict, workflow: Workflow | None = None, raise_exception: bool = False
-) -> list[dict]:
-	"""Return list of possible transitions for the given doc"""
-	from frappe.model.document import Document
-
-	if not isinstance(doc, Document):
-		doc = frappe.get_doc(frappe.parse_json(doc))
-		doc.load_from_db()
-
-	if doc.is_new():
-		return []
-
-	doc.check_permission("read")
-
-	workflow = workflow or get_workflow(doc.doctype)
-	current_state = doc.get(workflow.workflow_state_field)
-
-	if not current_state:
-		if raise_exception:
-			raise WorkflowStateError
-		else:
-			frappe.throw(_("Workflow State not set"), WorkflowStateError)
-
-	transitions = []
-	roles = frappe.get_roles()
-
-	for transition in workflow.transitions:
-		if transition.state == current_state and transition.allowed in roles:
-			if not is_transition_condition_satisfied(transition, doc):
-				continue
-			transitions.append(transition.as_dict())
-
-	return transitions
-
-
 def get_workflow_safe_globals():
 	# access to frappe.db.get_value, frappe.db.get_list, and date time utils.
 	return dict(
@@ -113,134 +76,6 @@ def evaluate_workflow_value(value, evaluate_as_expression, doc):
 			)
 	else:
 		return value
-
-
-@frappe.whitelist()
-def apply_workflow(doc: Document | str | dict, action: str):
-	"""Allow workflow action on the current doc"""
-	doc = frappe.get_doc(frappe.parse_json(doc))
-	doc.load_from_db()
-	workflow = get_workflow(doc.doctype)
-	transitions = get_transitions(doc, workflow)
-	user = frappe.session.user
-
-	# find the transition
-	transition = None
-	for t in transitions:
-		if t.action == action:
-			transition = t
-
-	if not transition:
-		frappe.throw(_("Not a valid Workflow Action"), WorkflowTransitionError)
-
-	if not has_approval_access(user, doc, transition):
-		frappe.throw(_("Self approval is not allowed"))
-
-	# update workflow state field
-	doc.set(workflow.workflow_state_field, transition.next_state)
-
-	# find settings for the next state
-	next_state = next(d for d in workflow.states if d.state == transition.next_state)
-
-	# update any additional field
-	if next_state.update_field:
-		update_value = evaluate_workflow_value(
-			next_state.update_value, next_state.evaluate_as_expression, doc
-		)
-		doc.set(next_state.update_field, update_value)
-
-	if transition.transition_tasks:
-		workflow_transitions = frappe.db.get_all(
-			"Workflow Transition Task",
-			{"parent": transition.transition_tasks, "enabled": True},
-			["task", "link", "asynchronous"],
-			order_by="idx",
-		)
-
-		"""app-specific actions defined by the user
-		Example:
-		def create_customer(doc):
-			<your-code>
-
-		this goes in the hooks.py
-		workflow_methods = [{"name": "Create a customer", "method":
-					 		"frappe.dotted.path.create_customer"}]
-		"""
-
-		tasks = {i["name"]: i["method"] for i in frappe.get_hooks("workflow_methods")}
-
-		sync_tasks = []
-		async_tasks = []
-		for workflow_transition in workflow_transitions:
-			# edge-case with user-defined server scripts
-			if workflow_transition.task in DEFAULT_WORKFLOW_TASKS:
-				match workflow_transition.task:
-					case "Webhook":
-						webhook = frappe.get_doc("Webhook", workflow_transition.link)
-						task_method = webhook.execute_for_doc
-
-					case "Server Script":
-						server_script = frappe.get_doc("Server Script", workflow_transition.link)
-						task_method = server_script.execute_workflow_task
-
-			else:  # normal app-defined tasks
-				try:
-					task_method = frappe.get_attr(tasks[workflow_transition.task])
-				except KeyError:
-					frappe.throw(_('There is no task called "{}"').format(workflow_transition.task))
-
-			if workflow_transition.asynchronous:
-				async_tasks.append(task_method)
-			else:
-				sync_tasks.append(task_method)
-
-		# will execute in the same transaction as the rest of the transition
-		for sync_task in sync_tasks:
-			sync_task(doc)
-
-		# will spawn separate background jobs. Use for asynchronous, optional tasks.
-		for async_task in async_tasks:
-			frappe.enqueue(async_task, doc=doc, enqueue_after_commit=True)
-
-	new_docstatus = DocStatus(next_state.doc_status or 0)
-	if doc.docstatus.is_draft() and new_docstatus.is_draft():
-		doc.save()
-	elif doc.docstatus.is_draft() and new_docstatus.is_submitted():
-		from frappe.core.doctype.submission_queue.submission_queue import queue_submission
-		from frappe.utils.scheduler import is_scheduler_inactive
-
-		if doc.meta.queue_in_background and not is_scheduler_inactive():
-			queue_submission(doc, "Submit")
-			return
-
-		doc.submit()
-	elif doc.docstatus.is_submitted() and new_docstatus.is_submitted():
-		doc.save()
-	elif doc.docstatus.is_submitted() and new_docstatus.is_cancelled():
-		if doc.meta.queue_in_background and not is_scheduler_inactive():
-			queue_submission(doc, "Cancel")
-			return
-
-		doc.cancel()
-	else:
-		frappe.throw(_("Illegal Document Status for {0}").format(next_state.state))
-
-	doc.add_comment("Workflow", _(next_state.state))
-
-	return doc
-
-
-@frappe.whitelist()
-def can_cancel_document(doctype: str):
-	workflow = get_workflow(doctype)
-	cancelling_states = [s.state for s in workflow.states if s.doc_status == "2"]
-	if not cancelling_states:
-		return True
-
-	for transition in workflow.transitions:
-		if transition.next_state in cancelling_states:
-			return False
-	return True
 
 
 def validate_workflow(doc):
@@ -285,6 +120,8 @@ def validate_workflow(doc):
 				WorkflowPermissionError,
 			)
 
+		from frappe.core.api.workflow import get_transitions
+
 		transitions = get_transitions(doc._doc_before_save)
 		transition = [d for d in transitions if d.next_state == next_state]
 		if not transition:
@@ -314,26 +151,6 @@ def get_workflow_field_value(workflow_name, field):
 	return frappe.get_cached_value("Workflow", workflow_name, field)
 
 
-@frappe.whitelist()
-def bulk_workflow_approval(docnames: str | list, doctype: str, action: str):
-	docnames = frappe.parse_json(docnames)
-	if len(docnames) < 20:
-		_bulk_workflow_action(docnames, doctype, action)
-	elif len(docnames) <= 500:
-		frappe.msgprint(_("Bulk {0} is enqueued in background.").format(action), alert=True)
-		frappe.enqueue(
-			_bulk_workflow_action,
-			docnames=docnames,
-			doctype=doctype,
-			action=action,
-			queue="short",
-			timeout=1000,
-			at_front_when_starved=True,
-		)
-	else:
-		frappe.throw(_("Bulk approval only support up to 500 documents."), title=_("Too Many Documents"))
-
-
 def _bulk_workflow_action(docnames, doctype, action):
 	# dictionaries for logging
 	failed_transactions = defaultdict(list)
@@ -344,6 +161,8 @@ def _bulk_workflow_action(docnames, doctype, action):
 		message_dict = {}
 		try:
 			show_progress(docnames, _("Applying: {0}").format(action), idx, docname)
+			from frappe.core.api.workflow import apply_workflow
+
 			apply_workflow(frappe.get_doc(doctype, docname), action)
 			frappe.db.commit()
 		except Exception as e:
@@ -413,30 +232,6 @@ def print_workflow_log(messages, title, doctype, indicator):
 		)
 
 
-@frappe.whitelist()
-def get_common_transition_actions(docs: str | list[dict[str, Any]], doctype: str):
-	common_actions = []
-	docs = frappe.parse_json(docs)
-	try:
-		for i, doc in enumerate(docs, 1):
-			if not doc.get("doctype"):
-				doc["doctype"] = doctype
-			actions = [
-				t.get("action")
-				for t in get_transitions(doc, raise_exception=True)
-				if has_approval_access(frappe.session.user, doc, t)
-			]
-			if not actions:
-				return []
-			common_actions = actions if i == 1 else set(common_actions).intersection(actions)
-			if not common_actions:
-				return []
-	except WorkflowStateError:
-		pass
-
-	return list(common_actions)
-
-
 def show_progress(docnames, message, i, description):
 	n = len(docnames)
 	if n >= 5:
@@ -458,3 +253,23 @@ def set_workflow_state_on_action(doc, workflow_name, action):
 		if state.doc_status == docstatus:
 			doc.set(workflow_state_field, state.state)
 			return
+
+
+# `get_transitions`, `apply_workflow`, `can_cancel_document`, `bulk_workflow_approval`, `get_common_transition_actions` moved to frappe.core.api.workflow.
+# The aliases keep the old dotted paths working; resolved lazily to avoid
+# circular imports.
+_MOVED_TO_WORKFLOW_API = {
+	"get_transitions": "get_transitions",
+	"apply_workflow": "apply_workflow",
+	"can_cancel_document": "can_cancel_document",
+	"bulk_workflow_approval": "bulk_workflow_approval",
+	"get_common_transition_actions": "get_common_transition_actions",
+}
+
+
+def __getattr__(name: str):
+	if new_name := _MOVED_TO_WORKFLOW_API.get(name):
+		from frappe.core.api import workflow
+
+		return getattr(workflow, new_name)
+	raise AttributeError(f"module {__name__!r} has no attribute {name!r}")

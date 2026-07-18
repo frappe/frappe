@@ -5,7 +5,7 @@ frappe.ui.form.on("Workflow Transition Tasks", {
 	refresh: function (frm) {
 		frappe
 			.call({
-				method: "frappe.workflow.doctype.workflow.workflow.get_workflow_methods",
+				method: "frappe.core.api.workflow.get_workflow_methods",
 				type: "GET",
 			})
 			.then((options) => {

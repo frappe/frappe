@@ -2381,7 +2381,7 @@ frappe.views.ListView = class ListView extends frappe.views.BaseList {
 					action: () => {
 						me.disable_list_update = true;
 						frappe
-							.xcall("frappe.model.workflow.bulk_workflow_approval", {
+							.xcall("frappe.core.api.workflow.bulk_workflow_approval", {
 								docnames: this.get_checked_items(true),
 								doctype: this.doctype,
 								action: action,
@@ -2406,7 +2406,7 @@ frappe.views.ListView = class ListView extends frappe.views.BaseList {
 		const checked_items = this.get_checked_items();
 
 		frappe
-			.xcall("frappe.model.workflow.get_common_transition_actions", {
+			.xcall("frappe.core.api.workflow.get_common_transition_actions", {
 				docs: checked_items,
 				doctype: this.doctype,
 			})

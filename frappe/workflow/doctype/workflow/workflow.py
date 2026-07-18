@@ -137,21 +137,18 @@ class Workflow(Document):
 			).run()
 
 
-@frappe.whitelist()
-def get_workflow_state_count(doctype: str, workflow_state_field: str, states: str | list[str]):
-	frappe.has_permission(doctype=doctype, ptype="read", throw=True)
-	states = frappe.parse_json(states)
-
-	if workflow_state_field in frappe.get_meta(doctype).get_valid_columns():
-		result = frappe.get_all(
-			doctype,
-			fields=[workflow_state_field, {"COUNT": "*", "as": "count"}],
-			filters={workflow_state_field: ["not in", states]},
-			group_by=workflow_state_field,
-		)
-		return [r for r in result if r[workflow_state_field]]
+# `get_workflow_state_count`, `get_workflow_methods` moved to frappe.core.api.workflow.
+# The aliases keep the old dotted paths working; resolved lazily to avoid
+# circular imports.
+_MOVED_TO_WORKFLOW_API = {
+	"get_workflow_state_count": "get_workflow_state_count",
+	"get_workflow_methods": "get_workflow_methods",
+}
 
 
-@frappe.whitelist(methods=["GET"])
-def get_workflow_methods():
-	return [i["name"] for i in frappe.get_hooks("workflow_methods")] + DEFAULT_WORKFLOW_TASKS
+def __getattr__(name: str):
+	if new_name := _MOVED_TO_WORKFLOW_API.get(name):
+		from frappe.core.api import workflow
+
+		return getattr(workflow, new_name)
+	raise AttributeError(f"module {__name__!r} has no attribute {name!r}")

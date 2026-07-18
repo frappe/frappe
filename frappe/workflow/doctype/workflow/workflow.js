@@ -205,7 +205,7 @@ frappe.ui.form.on("Workflow", {
 		let states_list = [];
 		frm.doc.states.map((state) => states_list.push(state.state));
 		return frappe
-			.xcall("frappe.workflow.doctype.workflow.workflow.get_workflow_state_count", {
+			.xcall("frappe.core.api.workflow.get_workflow_state_count", {
 				doctype: frm.doc.document_type,
 				workflow_state_field: frm.doc.workflow_state_field,
 				states: states_list,

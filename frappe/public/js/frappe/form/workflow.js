@@ -127,7 +127,7 @@ frappe.ui.form.States = class FormStates {
 		me.frm.selected_workflow_action = transition.action;
 		me.frm.script_manager.trigger("before_workflow_action").then(() => {
 			frappe
-				.xcall("frappe.model.workflow.apply_workflow", {
+				.xcall("frappe.core.api.workflow.apply_workflow", {
 					doc: me.frm.doc,
 					action: transition.action,
 				})

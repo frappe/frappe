@@ -38,7 +38,7 @@ frappe.workflow = {
 	},
 	get_transitions: function (doc) {
 		frappe.workflow.setup(doc.doctype);
-		return frappe.xcall("frappe.model.workflow.get_transitions", { doc: doc });
+		return frappe.xcall("frappe.core.api.workflow.get_transitions", { doc: doc });
 	},
 	get_document_state_roles: function (doctype, state) {
 		frappe.workflow.setup(doctype);
