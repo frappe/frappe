@@ -1235,12 +1235,10 @@ thead:hover .col-resize-handle::after {
 /* ── Preview mode ────────────────────────────────────────── */
 .field--preview {
 	position: relative;
-	border-radius: var(--radius);
 }
 
 .field--condition-hidden {
 	opacity: 0.35;
-	border-radius: var(--radius);
 }
 
 /* outline-only selection chrome: must not change previewed geometry */
