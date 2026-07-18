@@ -191,19 +191,19 @@
 
 		<!-- ── Outline ────────────────────────────────────────── -->
 		<div v-else-if="activeTab === 'outline'" class="pfb-tab-body pfb-tree">
-			<div v-if="!visible_sections.length" class="pfb-empty">
+			<div v-if="!outline_tree.length" class="pfb-empty">
 				{{ __("No sections yet. Add sections to the canvas.") }}
 			</div>
-			<div v-for="(section, i) in visible_sections" :key="i" class="pfb-tree-node">
+			<div v-for="(node, i) in outline_tree" :key="i" class="pfb-tree-node">
 				<div
 					class="pfb-tree-row"
-					:class="{ active: store.selected_section.value === section }"
-					@click="select_section(section)"
+					:class="{ active: store.selected_section.value === node.section }"
+					@click="select_section(node.section)"
 				>
 					<button
 						class="pfb-tree-chevron"
-						:class="{ collapsed: is_collapsed(section) }"
-						@click.stop="toggle_collapse(section)"
+						:class="{ collapsed: is_collapsed(node.section) }"
+						@click.stop="toggle_collapse(node.section)"
 						v-html="frappe.utils.icon('chevron-down', 'sm')"
 					></button>
 					<span
@@ -211,17 +211,17 @@
 						v-html="frappe.utils.icon('rectangle-horizontal', 'sm')"
 					></span>
 					<span class="pfb-tree-label">
-						{{ section.label || __("Untitled section") }}
+						{{ node.section.label || __("Untitled section") }}
 					</span>
 				</div>
-				<div v-if="!is_collapsed(section)" class="pfb-tree-children">
-					<div v-for="(column, ci) in section.columns" :key="ci" class="pfb-tree-node">
-						<div class="pfb-tree-row" @click="select_section(section)">
+				<div v-if="!is_collapsed(node.section)" class="pfb-tree-children">
+					<div v-for="(col, ci) in node.columns" :key="ci" class="pfb-tree-node">
+						<div class="pfb-tree-row" @click="select_section(node.section)">
 							<button
-								v-if="visible_fields(column).length"
+								v-if="col.fields.length"
 								class="pfb-tree-chevron"
-								:class="{ collapsed: is_collapsed(column) }"
-								@click.stop="toggle_collapse(column)"
+								:class="{ collapsed: is_collapsed(col.column) }"
+								@click.stop="toggle_collapse(col.column)"
 								v-html="frappe.utils.icon('chevron-down', 'sm')"
 							></button>
 							<span v-else class="pfb-tree-spacer"></span>
@@ -233,13 +233,13 @@
 								{{ __("Column {0}", [ci + 1]) }}
 							</span>
 						</div>
-						<div v-if="!is_collapsed(column)" class="pfb-tree-children">
+						<div v-if="!is_collapsed(col.column)" class="pfb-tree-children">
 							<div
-								v-for="(field, fi) in visible_fields(column)"
+								v-for="(field, fi) in col.fields"
 								:key="fi"
 								class="pfb-tree-row"
 								:class="{ active: store.selected_field.value === field }"
-								@click="select_field(field, section)"
+								@click="select_field(field, node.section)"
 							>
 								<span class="pfb-tree-spacer"></span>
 								<span
@@ -539,9 +539,15 @@ function field_label(f) {
 	return f.label || f.fieldname || f.fieldtype || __("Field");
 }
 
-function visible_fields(column) {
-	return (column.fields || []).filter((f) => !f.remove);
-}
+let outline_tree = computed(() =>
+	visible_sections.value.map((section) => ({
+		section,
+		columns: (section.columns || []).map((column) => ({
+			column,
+			fields: (column.fields || []).filter((f) => !f.remove),
+		})),
+	}))
+);
 
 const FIELD_ICONS = {
 	Table: "table",

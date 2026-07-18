@@ -557,7 +557,7 @@ class PrintFormatGenerator:
 		df["renderer"] = self._FIELD_RENDERERS.get(fieldtype) or fieldtype.replace(" ", "")
 		df["section"] = section
 		self.prepare_barcode(df)
-		self.filter_repeater_rows(df)
+		self.filter_conditional_rows(df)
 
 	def set_field_renderers(self, layout):
 		eval_locals = {"doc": self.doc, "print_settings": self.print_settings}
@@ -581,7 +581,7 @@ class PrintFormatGenerator:
 
 		return layout
 
-	def filter_repeater_rows(self, df):
+	def filter_conditional_rows(self, df):
 		"""Drop repeater/table rows whose row_condition is falsy; a bad expression fails
 		open (keeps the row) so a typo never silently blanks the table."""
 		fieldtype = df.get("fieldtype")
