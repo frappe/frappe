@@ -17,7 +17,7 @@ import frappe
 from frappe.installer import update_site_config
 from frappe.tests import IntegrationTestCase
 from frappe.tests.utils import whitelist_for_tests
-from frappe.utils import cint, get_test_client, get_url
+from frappe.utils import cint, get_site_url, get_test_client
 
 try:
 	_site = frappe.local.site
@@ -91,7 +91,10 @@ class FrappeAPITestCase(IntegrationTestCase):
 
 	@property
 	def site_url(self):
-		return get_url()
+		# Note: can't use get_url() here; a previously run test may have left a
+		# fake request (set_request) in frappe.local, making it return the
+		# request host (localhost) instead of the site's own address.
+		return get_site_url(frappe.local.site)
 
 	def resource(self, *parts):
 		return self.get_path(resource_key[self.version], *parts)
@@ -103,7 +106,8 @@ class FrappeAPITestCase(IntegrationTestCase):
 		return self.get_path("doctype", *method)
 
 	def get_path(self, *parts):
-		return urljoin(self.site_url, "/".join(("api", self.version, *parts)))
+		# self.version is empty for v1, filter it out to avoid `api//resource` urls
+		return urljoin(self.site_url, "/".join(filter(None, ("api", self.version, *parts))))
 
 	@cached_property
 	def sid(self) -> str:
