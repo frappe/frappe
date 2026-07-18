@@ -581,6 +581,17 @@ class TestPrintFormatChildTableVisibility(IntegrationTestCase):
 		self.assertIn("primary@example.com", html)
 		self.assertIn("secondary@example.com", html)
 
+	def test_all_rows_filtered_hides_table(self):
+		html = self.render(self.table_field(row_condition="1 == 2"))
+		self.assertNotIn('data-fieldname="email_ids"', html)
+
+	def test_all_columns_dropped_hides_table(self):
+		df = self.table_field()
+		for col in df["table_columns"]:
+			col["column_condition"] = "1 == 2"
+		html = self.render(df)
+		self.assertNotIn('data-fieldname="email_ids"', html)
+
 	def test_column_condition_drops_column(self):
 		kept = self.render(self.table_field())
 		self.assertIn('data-fieldname="is_primary"', kept)

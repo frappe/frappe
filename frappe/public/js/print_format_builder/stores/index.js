@@ -25,6 +25,13 @@ function set_clipboard(value) {
 	}
 }
 
+// keep the in-memory copy fresh when another tab copies something
+if (typeof window !== "undefined") {
+	window.addEventListener("storage", (e) => {
+		if (e.key === CLIPBOARD_KEY) clipboard.value = load_clipboard();
+	});
+}
+
 function clone_plain(obj) {
 	return JSON.parse(JSON.stringify(obj));
 }

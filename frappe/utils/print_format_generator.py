@@ -510,32 +510,29 @@ class PrintFormatGenerator:
 		from frappe.www.printview import column_has_value
 
 		eval_locals = {"doc": self.doc, "print_settings": self.print_settings}
-		for section in layout.get("sections", []):
-			for column in section.get("columns", []):
-				for df in column.get("fields", []):
-					if df.get("fieldtype") != "Table" or not df.get("table_columns"):
+		for column in self.layout_columns(layout):
+			for df in column.get("fields", []):
+				if df.get("fieldtype") != "Table" or not df.get("table_columns"):
+					continue
+				rows = df.get("_rows") if df.get("_rows") is not None else self.doc.get(df.get("fieldname"))
+				rows = rows or []
+				kept = []
+				for col in df["table_columns"]:
+					if not self.column_condition_met(col, eval_locals):
 						continue
-					rows = (
-						df.get("_rows") if df.get("_rows") is not None else self.doc.get(df.get("fieldname"))
-					)
-					rows = rows or []
-					kept = []
-					for col in df["table_columns"]:
-						if not self.column_condition_met(col, eval_locals):
-							continue
-						if (
-							rows
-							and col.get("fieldname") != "idx"
-							and not column_has_value(rows, col.get("fieldname"), frappe._dict(col))
-						):
-							continue
-						kept.append(col)
-					total = sum(col.get("width") or 0 for col in kept)
-					if total:
-						for col in kept:
-							if col.get("width"):
-								col["width"] = round(col["width"] / total * 100, 2)
-					df["table_columns"] = kept
+					if (
+						rows
+						and col.get("fieldname") != "idx"
+						and not column_has_value(rows, col.get("fieldname"), frappe._dict(col))
+					):
+						continue
+					kept.append(col)
+				total = sum(col.get("width") or 0 for col in kept)
+				if total:
+					for col in kept:
+						if col.get("width"):
+							col["width"] = round(col["width"] / total * 100, 2)
+				df["table_columns"] = kept
 		return layout
 
 	def column_condition_met(self, col, eval_locals):

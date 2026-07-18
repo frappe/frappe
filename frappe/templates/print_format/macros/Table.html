@@ -1,4 +1,5 @@
-{% if doc.get(df.fieldname) %}
+{%- set _rows = df.get('_rows') if df.get('_rows') is not none else doc.get(df.fieldname) -%}
+{% if _rows and df.table_columns %}
 {% set _style = df.table_style or "lined" %}
 {% set _bordered = df.table_bordered != False %}
 {% set _plain_header = df.table_header == "plain" %}
@@ -35,7 +36,6 @@
 		</thead>
 		{%- endif -%}
 		<tbody>
-			{%- set _rows = df.get('_rows') if df.get('_rows') is not none else doc.get(df.fieldname) -%}
 			{% for row in _rows %}
 			<tr class="table-row {{ loop.cycle('odd', 'even') }}" data-idx="{{ row.idx }}"{% if row.get("page_break") and not loop.first %} style="page-break-before: always"{% endif %}>
 				{% for column in columns %}

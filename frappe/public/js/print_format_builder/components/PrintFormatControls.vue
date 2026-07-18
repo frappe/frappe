@@ -575,6 +575,11 @@ function toggle_collapse(node) {
 	next.has(node) ? next.delete(node) : next.add(node);
 	collapsed_nodes.value = next;
 }
+// undo/redo/load replace every section/column object, so drop the now-stale refs
+watch(
+	() => layout.value,
+	() => (collapsed_nodes.value = new Set())
+);
 
 function clone_as_section() {
 	return { label: "", columns: [{ label: "", fields: [] }], page_break: true };
