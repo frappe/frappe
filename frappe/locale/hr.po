@@ -3,7 +3,7 @@ msgstr ""
 "Project-Id-Version: frappe\n"
 "Report-Msgid-Bugs-To: developers@frappe.io\n"
 "POT-Creation-Date: 2026-07-12 10:03+0000\n"
-"PO-Revision-Date: 2026-07-17 13:56\n"
+"PO-Revision-Date: 2026-07-18 13:51\n"
 "Last-Translator: developers@frappe.io\n"
 "Language-Team: Croatian\n"
 "MIME-Version: 1.0\n"
@@ -159,7 +159,7 @@ msgstr "+ Dodaj / Ukloni polja"
 #: frappe/public/js/print_format_builder/components/editor/Field.vue:233
 #: frappe/public/js/print_format_builder/components/editor/Field.vue:289
 msgid "+ {0} more rows in this document — all print in the real output"
-msgstr ""
+msgstr " {0} više redaka u ovom dokumentu — sve se ispisuje u stvarnom ispisu"
 
 #. Description of the 'Doc Status' (Select) field in DocType 'Workflow Document
 #. State'
@@ -215,7 +215,7 @@ msgstr "Sinkroniziran je 1 događaj Google Kalendara."
 
 #: frappe/core/doctype/error_log/error_log_list.js:23
 msgid "1 Queued Error Log"
-msgstr ""
+msgstr "1 Zapisnik Pogrešaka u Redu Čekanja"
 
 #: frappe/public/js/frappe/views/reports/query_report.js:1022
 msgid "1 Report"
@@ -1063,7 +1063,7 @@ msgstr "API Tajna"
 
 #: frappe/api/discovery.py:152
 msgid "API discovery cache is being generated. Please try again in a few seconds."
-msgstr ""
+msgstr "API predmemorija otkrivanja se stvara. Pokušaj ponovno za nekoliko sekundi."
 
 #. Option for the 'Default Sort Order' (Select) field in DocType 'DocType'
 #. Option for the 'Sort Order' (Select) field in DocType 'Customize Form'
@@ -1629,7 +1629,7 @@ msgstr "Dodaj Red Ispod Trenutnog Reda"
 
 #: frappe/public/js/frappe/views/dashboard/dashboard_view.js:286
 msgid "Add a {0} Chart"
-msgstr "+ {0} Grafikon"
+msgstr "Dodaj {0} Grafikon"
 
 #: frappe/public/js/form_builder/components/Section.vue:275
 #: frappe/public/js/print_format_builder/components/inspector/RepeaterFieldInspector.vue:69
@@ -3545,7 +3545,7 @@ msgstr "Autorizirajte pristup API indeksiranju"
 
 #: frappe/templates/includes/oauth_confirmation.html:132
 msgid "Authorize App"
-msgstr ""
+msgstr "Autoriziraj Aplikaciju"
 
 #. Label of the authorize_google_calendar_access (Button) field in DocType
 #. 'Google Calendar'
@@ -4037,7 +4037,7 @@ msgstr "Barkod"
 
 #: frappe/public/js/print_format_builder/components/PrintFormatControls.vue:350
 msgid "Barcode or QR code from a field or static value"
-msgstr ""
+msgstr "Barkod ili QR kod iz polja ili statičke vrijednosti"
 
 #. Label of the base_dn (Data) field in DocType 'LDAP Settings'
 #: frappe/integrations/doctype/ldap_settings/ldap_settings.json
@@ -4237,7 +4237,7 @@ msgstr "Podebljano"
 
 #: frappe/public/js/print_format_builder/components/inspector/TableFieldInspector.vue:215
 msgid "Border"
-msgstr ""
+msgstr "Granica"
 
 #: frappe/public/js/print_format_builder/components/inspector/TableFieldInspector.vue:24
 msgid "Bordered"
@@ -4365,7 +4365,7 @@ msgstr "Napravite vlastita izvještća, formate za ispisivanje i nadzorne ploče
 
 #: frappe/workflow/doctype/workflow/workflow_list.js:18
 msgid "Build {0}"
-msgstr "+ {0}"
+msgstr "Izgradi {0}"
 
 #: frappe/templates/includes/footer/footer_powered.html:1
 msgid "Built on {0}"
@@ -4910,7 +4910,7 @@ msgstr "Nije moguće omogućiti {0} za tip dokumenta koji se ne može podnijeti"
 
 #: frappe/core/doctype/file/utils.py:131
 msgid "Cannot fetch image from {0}: the URL resolves to a restricted address"
-msgstr ""
+msgstr "Nije moguće preuzetii sliku iz {0}: URL vodi na ograničenu adresu"
 
 #: frappe/core/doctype/file/file.py:346
 msgid "Cannot find file {} on disk"
@@ -5745,7 +5745,7 @@ msgstr "Boja"
 
 #: frappe/public/js/print_format_builder/components/inspector/TableFieldInspector.vue:207
 msgid "Colors"
-msgstr ""
+msgstr "Boje"
 
 #. Label of the column_label (Data) field in DocType 'Data Import Value
 #. Mapping'
@@ -6491,7 +6491,7 @@ msgstr "Kopirano {0} {1} u međuspremnik"
 #: frappe/public/js/print_format_builder/components/editor/Field.vue:348
 #: frappe/public/js/print_format_builder/components/editor/Field.vue:421
 msgid "Copy"
-msgstr ""
+msgstr "Kopiraj"
 
 #: frappe/public/js/frappe/views/file/file_view.js:308
 msgid "Copy File URL"
@@ -6518,7 +6518,7 @@ msgstr "Kopiraj URL datoteke u međuspremnik"
 #: frappe/public/js/print_format_builder/components/editor/PrintFormatSection.vue:20
 #: frappe/public/js/print_format_builder/components/editor/PrintFormatSection.vue:71
 msgid "Copy section"
-msgstr ""
+msgstr "Kopiraj odjeljak"
 
 #: frappe/public/js/frappe/form/controls/code.js:32
 #: frappe/public/js/frappe/form/toolbar.js:555
@@ -6772,7 +6772,7 @@ msgstr "Stvori novi dokument"
 #: frappe/public/js/frappe/list/list_view.js:602
 #: frappe/public/js/frappe/web_form/web_form_list.js:253
 msgid "Create a new {0}"
-msgstr "+ {0}"
+msgstr "Izradi {0}"
 
 #: frappe/public/js/frappe/form/doctype_settings/tabs/notification.js:95
 msgid "Create a notification to alert users about {0} events."
@@ -6808,7 +6808,7 @@ msgstr "Izradi ili Uredi Tijek  Rada"
 
 #: frappe/public/js/frappe/list/list_view.js:605
 msgid "Create your first {0}"
-msgstr "+ {0}"
+msgstr "Izradi {0}"
 
 #: frappe/workflow/doctype/workflow/workflow.js:16
 msgid "Create your workflow visually using the Workflow Builder."
@@ -12224,7 +12224,7 @@ msgstr "Decimalna Preciznost"
 
 #: frappe/core/doctype/error_log/error_log_list.js:26
 msgid "Flush Error Logs"
-msgstr ""
+msgstr "Isprazni Zapisnike Pogrešaka"
 
 #. Option for the 'Type' (Select) field in DocType 'DocField'
 #. Option for the 'Fieldtype' (Select) field in DocType 'Report Column'
@@ -15624,7 +15624,7 @@ msgstr "Neispravno korisničko Ime ili lozinka"
 
 #: frappe/public/js/print_format_builder/components/editor/Field.vue:59
 msgid "Invalid value for {0}"
-msgstr ""
+msgstr "Nevažeća vrijednost za {0}"
 
 #: frappe/model/naming.py:177
 msgid "Invalid value specified for UUID: {}"
@@ -15779,7 +15779,7 @@ msgstr "Je Odbacivo"
 #. Label of the is_dynamic_client (Check) field in DocType 'OAuth Client'
 #: frappe/integrations/doctype/oauth_client/oauth_client.json
 msgid "Is Dynamic Client"
-msgstr ""
+msgstr "Je Dinamički Klijent"
 
 #. Label of the is_dynamic_url (Check) field in DocType 'Webhook'
 #: frappe/integrations/doctype/webhook/webhook.json
@@ -16484,7 +16484,7 @@ msgstr "Oznaka i Tip"
 
 #: frappe/public/js/print_format_builder/components/inspector/FieldPropertiesPanel.vue:158
 msgid "Label color"
-msgstr ""
+msgstr "Boja oznake"
 
 #: frappe/public/js/print_format_builder/components/inspector/FieldPropertiesPanel.vue:138
 msgid "Label gap"
@@ -18321,7 +18321,7 @@ msgstr "Metoda je potrebna za Izradu numeričke kartice"
 
 #: frappe/api/discovery.py:73 frappe/api/discovery.py:86
 msgid "Method {0} is not available for discovery"
-msgstr ""
+msgstr "Metoda {0} nije dostupna za otkrivanje"
 
 #. Option for the 'Position' (Select) field in DocType 'Form Tour Step'
 #: frappe/desk/doctype/form_tour_step/form_tour_step.json
@@ -18368,7 +18368,7 @@ msgstr "Praćenje Prekretnice"
 #: frappe/custom/doctype/custom_field/custom_field.json
 #: frappe/custom/doctype/customize_form_field/customize_form_field.json
 msgid "Min Value"
-msgstr ""
+msgstr "Minimalna vrijednost"
 
 #. Option for the 'Function' (Select) field in DocType 'Number Card'
 #: frappe/desk/doctype/number_card/number_card.json
@@ -19713,7 +19713,7 @@ msgstr "Nema pozadinskih zadataka"
 
 #: frappe/public/js/print_format_builder/components/editor/Field.vue:62
 msgid "No barcode value — set one in the panel"
-msgstr ""
+msgstr "Nema vrijednosti barkoda — postavite je u panelu"
 
 #: frappe/public/js/frappe/form/save.js:39
 msgid "No changes in document"
@@ -19838,7 +19838,7 @@ msgstr "Nema daljnjih zapisa"
 
 #: frappe/public/js/print_format_builder/components/editor/Field.vue:37
 msgid "No image — set one in the panel"
-msgstr ""
+msgstr "Nema slike — postavite je u panelu"
 
 #: frappe/public/js/print_format_builder/components/inspector/LetterHeadZoneInspector.vue:30
 #: frappe/public/js/print_format_builder/components/inspector/LetterHeadZoneInspector.vue:61
@@ -23762,7 +23762,7 @@ msgstr "U Redu Od"
 
 #: frappe/core/doctype/error_log/error_log_list.js:30
 msgid "Queued Error Logs flushed"
-msgstr ""
+msgstr "Zapisnici Pogrešaka u Redu Čekanja ispražnjeni"
 
 #: frappe/desk/page/backups/backups.py:96
 msgid "Queued for backup. You will receive an email with the download link"
@@ -29066,7 +29066,7 @@ msgstr "Statički parametri"
 #: frappe/public/js/print_format_builder/components/inspector/FieldPropertiesPanel.vue:50
 #: frappe/public/js/print_format_builder/components/inspector/FieldPropertiesPanel.vue:61
 msgid "Static value"
-msgstr ""
+msgstr "Statička vrijednost"
 
 #. Label of the statistics_section (Section Break) field in DocType 'RQ Worker'
 #: frappe/core/doctype/rq_worker/rq_worker.json
@@ -31092,7 +31092,7 @@ msgstr "Ova vrijednost određuje maksimalan broj redova koji se mogu prikazati u
 
 #: frappe/templates/includes/oauth_confirmation.html:140
 msgid "This will allow {0} to:"
-msgstr ""
+msgstr "Ovo će omogućiti {0} da:"
 
 #: frappe/website/doctype/web_page/web_page.js:85
 msgid "This will be automatically generated when you publish the page, you can also enter a route yourself if you wish"
@@ -32625,7 +32625,7 @@ msgstr "Prenesi Sliku"
 
 #: frappe/public/js/print_format_builder/components/PrintFormatControls.vue:340
 msgid "Upload an image or use a URL"
-msgstr ""
+msgstr "Otpremi sliku ili upotrijebi URL"
 
 #: frappe/public/js/frappe/file_uploader/FileUploader.vue:215
 msgid "Upload file"
@@ -33321,11 +33321,11 @@ msgstr "Vrijednost se ne može promijeniti za {0}"
 
 #: frappe/model/document.py:1163
 msgid "Value cannot be less than {0} for"
-msgstr ""
+msgstr "Vrijednost ne može biti manja od {0} za"
 
 #: frappe/model/document.py:1167
 msgid "Value cannot be more than {0} for"
-msgstr ""
+msgstr "Vrijednost ne može biti veća od {0} za"
 
 #: frappe/model/document.py:1116
 msgid "Value cannot be negative for"
@@ -33337,7 +33337,7 @@ msgstr "Vrijednost ne može biti negativna za {0}: {1}"
 
 #: frappe/public/js/print_format_builder/components/inspector/FieldPropertiesPanel.vue:153
 msgid "Value color"
-msgstr ""
+msgstr "Boja vrijednosti"
 
 #: frappe/custom/doctype/property_setter/property_setter.js:7
 msgid "Value for a check field can be either 0 or 1"
@@ -33353,7 +33353,7 @@ msgstr "Vrijednost za {0} ne može biti lista"
 
 #: frappe/public/js/print_format_builder/components/inspector/FieldPropertiesPanel.vue:44
 msgid "Value from"
-msgstr ""
+msgstr "Vrijednost od"
 
 #. Description of the 'Due Date Based On' (Select) field in DocType 'Assignment
 #. Rule'
@@ -33369,11 +33369,11 @@ msgstr "Vrijednost u Datoteci"
 
 #: frappe/model/document.py:1168
 msgid "Value is too large"
-msgstr ""
+msgstr "Vrijednost je prevelika"
 
 #: frappe/model/document.py:1164
 msgid "Value is too small"
-msgstr ""
+msgstr "Vrijednost je premala"
 
 #. Description of the 'Token Endpoint Auth Method' (Select) field in DocType
 #. 'OAuth Client'
@@ -33383,7 +33383,7 @@ msgstr "Vrijednost \"None\" podrazumijeva javnog klijenta. U takvom slučaju, ta
 
 #: frappe/public/js/print_format_builder/components/inspector/FieldPropertiesPanel.vue:90
 msgid "Value text"
-msgstr ""
+msgstr "Tekst vrijednosti"
 
 #. Label of the value_to_validate (Data) field in DocType 'Onboarding Step'
 #: frappe/desk/doctype/onboarding_step/onboarding_step.json
@@ -35949,7 +35949,7 @@ msgstr "ili"
 
 #: frappe/public/js/print_format_builder/components/inspector/ImageUploadControl.vue:25
 msgid "or image URL"
-msgstr ""
+msgstr "ili URL slike"
 
 #. Option for the 'Indicator Color' (Select) field in DocType 'Workspace'
 #. Option for the 'Indicator Color' (Select) field in DocType 'Workspace
@@ -36425,7 +36425,7 @@ msgstr "{0} Dopuštenje za {1}"
 
 #: frappe/core/doctype/error_log/error_log_list.js:24
 msgid "{0} Queued Error Logs"
-msgstr ""
+msgstr "{0} Zapisnici Pogrešaka u Redu Čekanja"
 
 #: frappe/public/js/frappe/widgets/chart_widget.js:371
 msgid "{0} Report"
@@ -37147,7 +37147,7 @@ msgstr "{0} w"
 
 #: frappe/templates/includes/oauth_confirmation.html:134
 msgid "{0} wants to access your account"
-msgstr ""
+msgstr "{0} želi pristupiti vašem računu"
 
 #: frappe/public/js/frappe/utils/pretty_date.js:66
 msgid "{0} weeks ago"

@@ -3,7 +3,7 @@ msgstr ""
 "Project-Id-Version: frappe\n"
 "Report-Msgid-Bugs-To: developers@frappe.io\n"
 "POT-Creation-Date: 2026-07-12 10:03+0000\n"
-"PO-Revision-Date: 2026-07-17 13:55\n"
+"PO-Revision-Date: 2026-07-18 13:51\n"
 "Last-Translator: developers@frappe.io\n"
 "Language-Team: Swedish\n"
 "MIME-Version: 1.0\n"
@@ -159,7 +159,7 @@ msgstr "+Lägg Till/Ta Bort Fält"
 #: frappe/public/js/print_format_builder/components/editor/Field.vue:233
 #: frappe/public/js/print_format_builder/components/editor/Field.vue:289
 msgid "+ {0} more rows in this document — all print in the real output"
-msgstr ""
+msgstr "+ {0} fler rader i detta dokument — alla skrivs ut i faktisk utskrift"
 
 #. Description of the 'Doc Status' (Select) field in DocType 'Workflow Document
 #. State'
@@ -214,7 +214,7 @@ msgstr "1 Google Kalender Händelse Synkroniserad."
 
 #: frappe/core/doctype/error_log/error_log_list.js:23
 msgid "1 Queued Error Log"
-msgstr ""
+msgstr "1 Köande Fellogg"
 
 #: frappe/public/js/frappe/views/reports/query_report.js:1022
 msgid "1 Report"
@@ -1063,7 +1063,7 @@ msgstr "API Hemlighet"
 
 #: frappe/api/discovery.py:152
 msgid "API discovery cache is being generated. Please try again in a few seconds."
-msgstr ""
+msgstr "API upptäckt cache skapas. Försök igen om några sekunder."
 
 #. Option for the 'Default Sort Order' (Select) field in DocType 'DocType'
 #. Option for the 'Sort Order' (Select) field in DocType 'Customize Form'
@@ -3545,7 +3545,7 @@ msgstr "Auktorisera API Indexering Åtkomst"
 
 #: frappe/templates/includes/oauth_confirmation.html:132
 msgid "Authorize App"
-msgstr ""
+msgstr "Auktorisera App"
 
 #. Label of the authorize_google_calendar_access (Button) field in DocType
 #. 'Google Calendar'
@@ -4037,7 +4037,7 @@ msgstr "Streck/Qr Kod"
 
 #: frappe/public/js/print_format_builder/components/PrintFormatControls.vue:350
 msgid "Barcode or QR code from a field or static value"
-msgstr ""
+msgstr "Streckkod eller QR kod från ett fält eller ett fast värde"
 
 #. Label of the base_dn (Data) field in DocType 'LDAP Settings'
 #: frappe/integrations/doctype/ldap_settings/ldap_settings.json
@@ -4237,7 +4237,7 @@ msgstr "Fet"
 
 #: frappe/public/js/print_format_builder/components/inspector/TableFieldInspector.vue:215
 msgid "Border"
-msgstr ""
+msgstr "Kant"
 
 #: frappe/public/js/print_format_builder/components/inspector/TableFieldInspector.vue:24
 msgid "Bordered"
@@ -4911,7 +4911,7 @@ msgstr "Kan inte aktivera {0} för ej godkännbar doctype"
 
 #: frappe/core/doctype/file/utils.py:131
 msgid "Cannot fetch image from {0}: the URL resolves to a restricted address"
-msgstr ""
+msgstr "Kan inte hämta bild från {0}: URL: pekar på adress med åtkomstbegränsningar"
 
 #: frappe/core/doctype/file/file.py:346
 msgid "Cannot find file {} on disk"
@@ -5746,7 +5746,7 @@ msgstr "Färg"
 
 #: frappe/public/js/print_format_builder/components/inspector/TableFieldInspector.vue:207
 msgid "Colors"
-msgstr ""
+msgstr "Färger"
 
 #. Label of the column_label (Data) field in DocType 'Data Import Value
 #. Mapping'
@@ -6492,7 +6492,7 @@ msgstr "Kopierade {0} {1} till urklipp"
 #: frappe/public/js/print_format_builder/components/editor/Field.vue:348
 #: frappe/public/js/print_format_builder/components/editor/Field.vue:421
 msgid "Copy"
-msgstr ""
+msgstr "Kopiera"
 
 #: frappe/public/js/frappe/views/file/file_view.js:308
 msgid "Copy File URL"
@@ -6519,7 +6519,7 @@ msgstr "Kopiera fil URL till urklipp"
 #: frappe/public/js/print_format_builder/components/editor/PrintFormatSection.vue:20
 #: frappe/public/js/print_format_builder/components/editor/PrintFormatSection.vue:71
 msgid "Copy section"
-msgstr ""
+msgstr "Kopiera avsnitt"
 
 #: frappe/public/js/frappe/form/controls/code.js:32
 #: frappe/public/js/frappe/form/toolbar.js:555
@@ -12225,7 +12225,7 @@ msgstr "Flyttal Precision"
 
 #: frappe/core/doctype/error_log/error_log_list.js:26
 msgid "Flush Error Logs"
-msgstr ""
+msgstr "Rensa Felloggar"
 
 #. Option for the 'Type' (Select) field in DocType 'DocField'
 #. Option for the 'Fieldtype' (Select) field in DocType 'Report Column'
@@ -15625,7 +15625,7 @@ msgstr "Ogiltig användarnamn eller lösenord"
 
 #: frappe/public/js/print_format_builder/components/editor/Field.vue:59
 msgid "Invalid value for {0}"
-msgstr ""
+msgstr "Ogiltigt värde för {0}"
 
 #: frappe/model/naming.py:177
 msgid "Invalid value specified for UUID: {}"
@@ -15780,7 +15780,7 @@ msgstr "Är Avfärdande"
 #. Label of the is_dynamic_client (Check) field in DocType 'OAuth Client'
 #: frappe/integrations/doctype/oauth_client/oauth_client.json
 msgid "Is Dynamic Client"
-msgstr ""
+msgstr "Är Dynamisk Klient"
 
 #. Label of the is_dynamic_url (Check) field in DocType 'Webhook'
 #: frappe/integrations/doctype/webhook/webhook.json
@@ -16485,7 +16485,7 @@ msgstr "Etikett och Typ"
 
 #: frappe/public/js/print_format_builder/components/inspector/FieldPropertiesPanel.vue:158
 msgid "Label color"
-msgstr ""
+msgstr "Etikett Färg"
 
 #: frappe/public/js/print_format_builder/components/inspector/FieldPropertiesPanel.vue:138
 msgid "Label gap"
@@ -18322,7 +18322,7 @@ msgstr "Sätt erfordras för att skapa nummerkort"
 
 #: frappe/api/discovery.py:73 frappe/api/discovery.py:86
 msgid "Method {0} is not available for discovery"
-msgstr ""
+msgstr "Metod {0} är inte tillgänglig för upptäckt"
 
 #. Option for the 'Position' (Select) field in DocType 'Form Tour Step'
 #: frappe/desk/doctype/form_tour_step/form_tour_step.json
@@ -18369,7 +18369,7 @@ msgstr "Milstolpe Spårare"
 #: frappe/custom/doctype/custom_field/custom_field.json
 #: frappe/custom/doctype/customize_form_field/customize_form_field.json
 msgid "Min Value"
-msgstr ""
+msgstr "Lägsta värde"
 
 #. Option for the 'Function' (Select) field in DocType 'Number Card'
 #: frappe/desk/doctype/number_card/number_card.json
@@ -19714,7 +19714,7 @@ msgstr "Inga bakgrund uppgifter"
 
 #: frappe/public/js/print_format_builder/components/editor/Field.vue:62
 msgid "No barcode value — set one in the panel"
-msgstr ""
+msgstr "Inget streckkodsvärde – ange i panelen"
 
 #: frappe/public/js/frappe/form/save.js:39
 msgid "No changes in document"
@@ -19839,7 +19839,7 @@ msgstr "Inga fler poster"
 
 #: frappe/public/js/print_format_builder/components/editor/Field.vue:37
 msgid "No image — set one in the panel"
-msgstr ""
+msgstr "Ingen bild — ange i panelen"
 
 #: frappe/public/js/print_format_builder/components/inspector/LetterHeadZoneInspector.vue:30
 #: frappe/public/js/print_format_builder/components/inspector/LetterHeadZoneInspector.vue:61
@@ -23763,7 +23763,7 @@ msgstr "I Kö Av"
 
 #: frappe/core/doctype/error_log/error_log_list.js:30
 msgid "Queued Error Logs flushed"
-msgstr ""
+msgstr "Köande Felloggar rensade"
 
 #: frappe/desk/page/backups/backups.py:96
 msgid "Queued for backup. You will receive an email with the download link"
@@ -29067,7 +29067,7 @@ msgstr "Statiska Parametrar"
 #: frappe/public/js/print_format_builder/components/inspector/FieldPropertiesPanel.vue:50
 #: frappe/public/js/print_format_builder/components/inspector/FieldPropertiesPanel.vue:61
 msgid "Static value"
-msgstr ""
+msgstr "Statiskt värde"
 
 #. Label of the statistics_section (Section Break) field in DocType 'RQ Worker'
 #: frappe/core/doctype/rq_worker/rq_worker.json
@@ -31088,7 +31088,7 @@ msgstr "Detta värde anger maximal antal rader som kan återges i rapport vyn."
 
 #: frappe/templates/includes/oauth_confirmation.html:140
 msgid "This will allow {0} to:"
-msgstr ""
+msgstr "Detta tillåter {0} att:"
 
 #: frappe/website/doctype/web_page/web_page.js:85
 msgid "This will be automatically generated when you publish the page, you can also enter a route yourself if you wish"
@@ -32620,7 +32620,7 @@ msgstr "Ladda upp Bild"
 
 #: frappe/public/js/print_format_builder/components/PrintFormatControls.vue:340
 msgid "Upload an image or use a URL"
-msgstr ""
+msgstr "Ladda upp bild eller använd URL"
 
 #: frappe/public/js/frappe/file_uploader/FileUploader.vue:215
 msgid "Upload file"
@@ -33316,11 +33316,11 @@ msgstr "Värde kan inte ändras för {0}"
 
 #: frappe/model/document.py:1163
 msgid "Value cannot be less than {0} for"
-msgstr ""
+msgstr "Värde kan inte vara lägre än {0} för"
 
 #: frappe/model/document.py:1167
 msgid "Value cannot be more than {0} for"
-msgstr ""
+msgstr "Värdet kan inte vara högre än {0} för"
 
 #: frappe/model/document.py:1116
 msgid "Value cannot be negative for"
@@ -33332,7 +33332,7 @@ msgstr "Värde kan inte vara negativ för {0}: {1}"
 
 #: frappe/public/js/print_format_builder/components/inspector/FieldPropertiesPanel.vue:153
 msgid "Value color"
-msgstr ""
+msgstr "Värdefärg"
 
 #: frappe/custom/doctype/property_setter/property_setter.js:7
 msgid "Value for a check field can be either 0 or 1"
@@ -33348,7 +33348,7 @@ msgstr "Värde för {0} kan inte vara en lista"
 
 #: frappe/public/js/print_format_builder/components/inspector/FieldPropertiesPanel.vue:44
 msgid "Value from"
-msgstr ""
+msgstr "Värde från"
 
 #. Description of the 'Due Date Based On' (Select) field in DocType 'Assignment
 #. Rule'
@@ -33364,11 +33364,11 @@ msgstr "Värde i fil"
 
 #: frappe/model/document.py:1168
 msgid "Value is too large"
-msgstr ""
+msgstr "Värde är för högt"
 
 #: frappe/model/document.py:1164
 msgid "Value is too small"
-msgstr ""
+msgstr "Värde är för lågt"
 
 #. Description of the 'Token Endpoint Auth Method' (Select) field in DocType
 #. 'OAuth Client'
@@ -33378,7 +33378,7 @@ msgstr "Värdet \"None\" innebär publik klient. I ett sådant fall ges inte Kli
 
 #: frappe/public/js/print_format_builder/components/inspector/FieldPropertiesPanel.vue:90
 msgid "Value text"
-msgstr ""
+msgstr "Värdetext"
 
 #. Label of the value_to_validate (Data) field in DocType 'Onboarding Step'
 #: frappe/desk/doctype/onboarding_step/onboarding_step.json
@@ -35944,7 +35944,7 @@ msgstr "eller"
 
 #: frappe/public/js/print_format_builder/components/inspector/ImageUploadControl.vue:25
 msgid "or image URL"
-msgstr ""
+msgstr "eller bild URL"
 
 #. Option for the 'Indicator Color' (Select) field in DocType 'Workspace'
 #. Option for the 'Indicator Color' (Select) field in DocType 'Workspace
@@ -36420,7 +36420,7 @@ msgstr "{0} behörighet för {1}"
 
 #: frappe/core/doctype/error_log/error_log_list.js:24
 msgid "{0} Queued Error Logs"
-msgstr ""
+msgstr "{0} Köande Felloggar"
 
 #: frappe/public/js/frappe/widgets/chart_widget.js:371
 msgid "{0} Report"
@@ -37142,7 +37142,7 @@ msgstr "{0} w"
 
 #: frappe/templates/includes/oauth_confirmation.html:134
 msgid "{0} wants to access your account"
-msgstr ""
+msgstr "{0} vill komma åt ditt konto"
 
 #: frappe/public/js/frappe/utils/pretty_date.js:66
 msgid "{0} weeks ago"
