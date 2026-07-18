@@ -231,6 +231,28 @@ class TestPrintSurfaceParity(IntegrationTestCase):
 		self.addCleanup(doc.delete, ignore_permissions=True)
 		return doc
 
+	def _doc_body(self, html):
+		from bs4 import BeautifulSoup
+
+		el = BeautifulSoup(html, "html.parser").find(class_="print-format-doc")
+		self.assertIsNotNone(el, "render is missing the .print-format-doc body")
+		return self.normalize_html(str(el))
+
+	def test_preview_and_pdf_bodies_are_identical(self):
+		"""The builder preview (get_html_preview) and the PDF pipeline
+		(_build_html_for_chrome) must emit the same .print-format-doc body. Both
+		go through get_main_html(), so any divergence is a regression that would
+		make the on-screen preview lie about the printed output."""
+		from frappe.utils.print_format_generator import PrintFormatGenerator
+
+		fmt = self._make_contact_format()
+		contact = self._make_contact()
+
+		preview = PrintFormatGenerator(fmt, contact).get_html_preview()
+		pdf = PrintFormatGenerator(fmt, contact)._build_html_for_chrome()
+
+		self.assertEqual(self._doc_body(preview), self._doc_body(pdf))
+
 	def test_rendered_html_carries_shared_markup_contract(self):
 		"""The server render must produce the markup vocabulary the shared
 		stylesheet and the canvas both rely on."""
