@@ -208,8 +208,9 @@ frappe.ui.Filter = class {
 
 		if (Array.isArray(value)) {
 			this._filter_value_set = this.field.set_value(value);
-		} else if (value !== undefined || value !== null) {
-			this._filter_value_set = this.field.set_value((value + "").trim());
+		} else if (value !== undefined && value !== null) {
+			const field_value = typeof value === "number" ? value : String(value).trim();
+			this._filter_value_set = this.field.set_value(field_value);
 		}
 		return this._filter_value_set;
 	}
