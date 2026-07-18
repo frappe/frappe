@@ -680,7 +680,7 @@ async function upload_file(file, i) {
 				}
 			};
 
-			xhr.open("POST", "/api/method/upload_file", true);
+			xhr.open("POST", "/api/method/frappe.core.api.file.upload_file", true);
 			xhr.setRequestHeader("Accept", "application/json");
 			xhr.setRequestHeader("X-Frappe-CSRF-Token", frappe.csrf_token);
 

@@ -395,32 +395,6 @@ def get_file_name(fname, optional_suffix):
 	return fname
 
 
-@frappe.whitelist()
-def add_attachments(doctype: str, name: str | int, attachments: str | list[str]):
-	"""Add attachments to the given DocType"""
-	if not frappe.has_permission(doctype, "write", doc=name):
-		frappe.throw(_("You need write permissions to add attachments to this record."))
-
-	attachments = frappe.parse_json(attachments)
-	# loop through attachments
-	files = []
-	for a in attachments:
-		if isinstance(a, str):
-			if not frappe.has_permission("File", ptype="read", doc=a):
-				frappe.throw(_("You don't have permission to read/attach the file {0}.").format(a))
-
-			attach = frappe.db.get_value(
-				"File", {"name": a}, ["file_name", "file_url", "is_private"], as_dict=1
-			)
-			# save attachments to new doc
-			f = save_url(
-				attach.file_url, attach.file_name, doctype, name, "Home/Attachments", attach.is_private
-			)
-			files.append(f)
-
-	return files
-
-
 def is_safe_path(path: str) -> bool:
 	if path.startswith(("http://", "https://", "/api/method/")):
 		return True
@@ -431,3 +405,13 @@ def is_safe_path(path: str) -> bool:
 	basedir = os.path.abspath(basedir)
 
 	return basedir == os.path.commonpath((basedir, matchpath))
+
+
+# `add_attachments` moved to frappe.core.api.file. The alias keeps the old
+# dotted path working; resolved lazily to avoid circular imports.
+def __getattr__(name: str):
+	if name == "add_attachments":
+		from frappe.core.api.file import add_attachments
+
+		return add_attachments
+	raise AttributeError(f"module {__name__!r} has no attribute {name!r}")

@@ -436,7 +436,7 @@ export default class WebForm extends frappe.ui.FieldGroup {
 					if (is_new && (response.message.attachment || response.message.file)) {
 						frappe.call({
 							type: "POST",
-							method: "frappe.handler.upload_file",
+							method: "frappe.core.api.file.upload_file",
 							args: {
 								file_url: response.message.attachment || response.message.file,
 								doctype: response.message.doctype,

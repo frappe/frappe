@@ -314,7 +314,7 @@ frappe.views.InteractionComposer = class InteractionComposer {
 
 	add_attachments(doc, attachments) {
 		frappe.call({
-			method: "frappe.utils.file_manager.add_attachments",
+			method: "frappe.core.api.file.add_attachments",
 			args: {
 				doctype: doc.doctype,
 				name: doc.name,

@@ -26,23 +26,6 @@ if TYPE_CHECKING:
 	from frappe.core.doctype.file.file import File
 	from frappe.core.doctype.user.user import User
 
-ALLOWED_MIMETYPES = (
-	"image/png",
-	"image/jpeg",
-	"image/gif",
-	"application/pdf",
-	"application/msword",
-	"application/vnd.openxmlformats-officedocument.wordprocessingml.document",
-	"application/vnd.ms-excel",
-	"application/vnd.openxmlformats-officedocument.spreadsheetml.sheet",
-	"application/vnd.oasis.opendocument.text",
-	"application/vnd.oasis.opendocument.spreadsheet",
-	"text/plain",
-	"video/quicktime",
-	"video/mp4",
-	"text/csv",
-)
-
 
 def handle():
 	"""handle request"""
@@ -126,154 +109,16 @@ def web_logout():
 	)
 
 
-@frappe.whitelist(allow_guest=True, methods=["POST"])
-def upload_file():
-	user = None
-	if frappe.session.user == "Guest":
-		if frappe.get_system_settings("allow_guests_to_upload_files"):
-			ignore_permissions = True
-			guest_allowed_docs = frappe.get_system_settings("allowed_doctypes_for_guest_uploads")
-			if guest_allowed_docs:
-				target_doctype = frappe.form_dict.doctype
-				allowed_docs = guest_allowed_docs.splitlines()
-				allowed_docs = [doc.strip() for doc in allowed_docs if doc.strip()]
-				if allowed_docs and target_doctype not in allowed_docs:
-					frappe.throw(
-						_("Guests are not allowed to upload files for {0} Doctype").format(target_doctype),
-						frappe.PermissionError,
-					)
-		else:
-			raise frappe.PermissionError
-	else:
-		user: User = frappe.get_lazy_doc("User", frappe.session.user)
-		ignore_permissions = False
-
-	files = frappe.request.files
-	is_private = frappe.form_dict.get("is_private", 1)
-	doctype = frappe.form_dict.doctype
-	docname = frappe.form_dict.docname
-	fieldname = frappe.form_dict.fieldname
-	file_url = frappe.form_dict.file_url
-	folder = frappe.form_dict.folder or "Home"
-	method = frappe.form_dict.method
-	filename = frappe.form_dict.file_name
-	optimize = frappe.form_dict.optimize
-	content = None
-
-	if library_file := frappe.form_dict.get("library_file_name"):
-		frappe.has_permission("File", doc=library_file, throw=True)
-		doc = frappe.get_value(
-			"File",
-			frappe.form_dict.library_file_name,
-			["is_private", "file_url", "file_name"],
-			as_dict=True,
-		)
-		is_private = doc.is_private
-		file_url = doc.file_url
-		filename = doc.file_name
-
-	if not ignore_permissions:
-		check_write_permission(doctype, docname)
-
-	if "file" in files:
-		file = files["file"]
-		filename = file.filename
-
-		if frappe.form_dict.get("chunk_index") is not None:
-			current_chunk = int(frappe.form_dict.chunk_index)
-			total_chunks = int(frappe.form_dict.total_chunk_count)
-			offset = int(frappe.form_dict.chunk_byte_offset)
-		else:
-			offset = 0
-			current_chunk = 0
-			total_chunks = 1
-
-		temp_path = Path(get_files_path(".temp-" + get_safe_file_name(filename), is_private=is_private))
-		with temp_path.open("ab" if current_chunk > 0 else "wb") as f:
-			total_file_size = frappe.form_dict.total_file_size or 0
-			f.seek(offset)
-			f.write(file.stream.read())
-			if not f.tell() >= int(total_file_size) or current_chunk != total_chunks - 1:
-				return
-
-		content = temp_path.read_bytes()
-		temp_path.unlink()
-		content_type = guess_type(filename)[0]
-		if optimize and content_type and content_type.startswith("image/"):
-			args = {"content": content, "content_type": content_type}
-			if frappe.form_dict.max_width:
-				args["max_width"] = int(frappe.form_dict.max_width)
-			if frappe.form_dict.max_height:
-				args["max_height"] = int(frappe.form_dict.max_height)
-			content = optimize_image(**args)
-
-	frappe.local.uploaded_file_url = file_url
-	frappe.local.uploaded_file = content
-	frappe.local.uploaded_filename = filename
-
-	if content is not None and (frappe.session.user == "Guest" or (user and not user.has_desk_access())):
-		filetype = guess_type(filename)[0]
-		if filetype not in ALLOWED_MIMETYPES:
-			frappe.throw(_("You can only upload JPG, PNG, GIF, PDF, TXT, CSV or Microsoft documents."))
-
-	if method:
-		method = frappe.get_attr(method)
-		is_whitelisted(method)
-		return method()
-	else:
-		doc = frappe.get_doc(
-			{
-				"doctype": "File",
-				"attached_to_doctype": doctype,
-				"attached_to_name": docname,
-				"attached_to_field": fieldname,
-				"folder": folder,
-				"file_name": filename,
-				"file_url": file_url,
-				"is_private": cint(is_private),
-				"content": content,
-			}
-		)
-		funcs = frappe.get_hooks("after_file_upload")
-		for func in funcs:
-			doc = frappe.call(func, doc=doc)
-		return doc.save(ignore_permissions=ignore_permissions)
-
-
-def check_write_permission(doctype: str | None = None, name: str | None = None):
-	if not doctype:
-		return
-
-	if not name:
-		frappe.has_permission(doctype, "write", throw=True)
-		return
-
-	try:
-		frappe.get_lazy_doc(doctype, name, check_permission="write")
-	except frappe.DoesNotExistError:
-		# doc has not been inserted yet, name is set to "new-some-doctype"
-		# If doc inserts fine then only this attachment will be linked see file/utils.py:relink_mismatched_files
-		frappe.new_doc(doctype).check_permission("write")
-		return
-
-
-@frappe.whitelist(allow_guest=True)
-def download_file(file_url: str):
-	"""
-	Download file using token and REST API. Valid session or
-	token is required to download private files.
-
-	Method : GET
-	Endpoints : download_file, frappe.core.doctype.file.file.download_file
-	URL Params : file_name = /path/to/file relative to site path
-	"""
-	file = find_file_by_url(file_url)
-	if not file:
-		raise frappe.PermissionError
-
-	frappe.local.response.filename = os.path.basename(file_url)
-	frappe.local.response.filecontent = file.get_content()
-	frappe.local.response.type = "download"
+# `upload_file` and `download_file` (and their helpers) moved to
+# frappe.core.api.file. Plain import aliases (not lazy __getattr__) because the
+# deprecated bare-cmd shorthand (`/api/method/upload_file`) resolves through
+# this module's globals().
+from frappe.core.api.file import (
+	ALLOWED_MIMETYPES,
+	check_write_permission,
+	download_file,
+	upload_file,
+)
 
 
 def get_attr(cmd):

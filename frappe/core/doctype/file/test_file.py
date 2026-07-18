@@ -673,7 +673,7 @@ class TestFile(IntegrationTestCase):
 		from werkzeug.test import EnvironBuilder
 		from werkzeug.wrappers import Request
 
-		from frappe.handler import upload_file
+		from frappe.core.api.file import upload_file
 
 		builder = EnvironBuilder(path="/", base_url="http://localhost")
 		frappe.local.request = Request(builder.get_environ())
@@ -700,7 +700,7 @@ class TestFile(IntegrationTestCase):
 		from werkzeug.test import EnvironBuilder
 		from werkzeug.wrappers import Request
 
-		from frappe.handler import upload_file
+		from frappe.core.api.file import upload_file
 
 		builder = EnvironBuilder(path="/", base_url="http://localhost")
 		frappe.local.request = Request(builder.get_environ())
@@ -741,7 +741,7 @@ class TestFile(IntegrationTestCase):
 		from werkzeug.test import EnvironBuilder
 		from werkzeug.wrappers import Request
 
-		from frappe.handler import upload_file
+		from frappe.core.api.file import upload_file
 
 		builder = EnvironBuilder(path="/", base_url="http://localhost")
 		frappe.local.request = Request(builder.get_environ())

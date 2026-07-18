@@ -17,9 +17,10 @@ import frappe
 import frappe.core.api.document
 from frappe import _, cint, cstr, get_newargs, is_whitelisted
 from frappe.api import discovery
+from frappe.core.api.file import upload_file
 from frappe.core.doctype.server_script.server_script_utils import get_server_script_map
 from frappe.database.utils import DefaultOrderBy
-from frappe.handler import is_valid_http_method, run_server_script, upload_file
+from frappe.handler import is_valid_http_method, run_server_script
 
 PERMISSION_MAP = {
 	"GET": "read",

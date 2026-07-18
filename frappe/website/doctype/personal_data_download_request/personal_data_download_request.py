@@ -73,7 +73,7 @@ class PersonalDataDownloadRequest(Document):
 		self.db_set("owner", self.user)
 
 		file_link = (
-			frappe.utils.get_url("/api/method/frappe.utils.file_manager.download_file")
+			frappe.utils.get_url("/api/method/frappe.core.api.file.download_file")
 			+ "?"
 			+ get_signed_params({"file_url": f.file_url})
 		)
