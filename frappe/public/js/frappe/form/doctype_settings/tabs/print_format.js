@@ -200,7 +200,7 @@ frappe.doctype_settings.register("print-format", function (panel, doctype) {
 		// the print page's own structure: the base print stylesheet (absolute URL, since
 		// srcdoc has no base) + the format style, with the html in a `.print-format` wrapper.
 		frappe.call({
-			method: "frappe.www.printview.get_html_and_style",
+			method: "frappe.printing.api.get_html_and_style",
 			args: {
 				doc: doctype,
 				name: sample_name,

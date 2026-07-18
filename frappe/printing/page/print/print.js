@@ -672,7 +672,7 @@ frappe.ui.form.PrintView = class {
 		let me = this;
 		if (localStorage.getItem("network_printer")) {
 			frappe.call({
-				method: "frappe.utils.print_format.print_by_server",
+				method: "frappe.printing.api.print_by_server",
 				args: {
 					doctype: me.frm.doc.doctype,
 					name: me.frm.doc.name,
@@ -760,7 +760,7 @@ frappe.ui.form.PrintView = class {
 				this.is_wkhtmltopdf_valid();
 			}
 			this.render_page(
-				"/api/method/frappe.utils.print_format.download_pdf?",
+				"/api/method/frappe.printing.api.download_pdf?",
 				false,
 				print_format?.pdf_generator
 			);
@@ -813,7 +813,7 @@ frappe.ui.form.PrintView = class {
 			this._req.abort();
 		}
 		this._req = frappe.call({
-			method: "frappe.www.printview.get_html_and_style",
+			method: "frappe.printing.api.get_html_and_style",
 			args: {
 				doc: this.frm.doc,
 				print_format: this.selected_format(),
@@ -843,7 +843,7 @@ frappe.ui.form.PrintView = class {
 	get_raw_commands(callback) {
 		// fetches rendered raw commands from the server for the current print format.
 		frappe.call({
-			method: "frappe.www.printview.get_rendered_raw_commands",
+			method: "frappe.printing.api.get_rendered_raw_commands",
 			args: {
 				doc: this.frm.doc,
 				print_format: this.selected_format(),

@@ -1705,7 +1705,7 @@ frappe.views.QueryReport = class QueryReport extends frappe.views.BaseList {
 		}
 
 		try {
-			const r = await frappe.call("frappe.utils.print_format.render_letterhead_for_print", {
+			const r = await frappe.call("frappe.printing.api.render_letterhead_for_print", {
 				letterhead: print_settings.letter_head_name,
 				doc: doc_context,
 			});

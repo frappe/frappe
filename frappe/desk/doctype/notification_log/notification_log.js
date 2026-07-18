@@ -41,7 +41,7 @@ frappe.ui.form.on("Notification Log", {
 
 		$wrapper.find(".attached-file-link").click(() => {
 			const w = window.open(
-				frappe.urllib.get_full_url(`/api/method/frappe.utils.print_format.download_pdf?
+				frappe.urllib.get_full_url(`/api/method/frappe.printing.api.download_pdf?
 					doctype=${encodeURIComponent(attachment.doctype)}
 					&name=${encodeURIComponent(attachment.name)}
 					&format=${encodeURIComponent(attachment.print_format)}

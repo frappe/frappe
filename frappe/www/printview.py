@@ -309,88 +309,6 @@ def convert_markdown(doc: "Document") -> None:
 				doc.set(field.fieldname, frappe.utils.md_to_html(value))
 
 
-@frappe.whitelist()
-def get_html_and_style(
-	doc: str | dict,
-	name: str | None = None,
-	print_format: str | None = None,
-	no_letterhead: bool | None = None,
-	letterhead: str | None = None,
-	trigger_print: bool = False,
-	style: str | None = None,
-	settings: str | dict | None = None,
-) -> dict[str, str | None]:
-	"""Return `html` and `style` of print format, used in PDF etc."""
-
-	if isinstance(doc, str) and isinstance(name, str):
-		document = frappe.get_lazy_doc(doc, name, check_permission=True)
-	else:
-		document = frappe.get_doc(frappe.parse_json(doc), check_permission=True)
-
-	print_format = get_print_format_doc(print_format, meta=document.meta)
-	set_link_titles(document)
-
-	from frappe.printing.doctype.print_format.classic_converter import (
-		get_default_print_format,
-		uses_beta_renderer,
-	)
-
-	if print_format is None:
-		print_format = get_default_print_format(document.doctype)
-
-	if uses_beta_renderer(print_format):
-		from frappe.utils.print_format_generator import PrintFormatGenerator
-
-		validate_print_permission(document)
-		validate_print_for_docstatus(document)
-		generator = PrintFormatGenerator(
-			print_format,
-			document,
-			None if no_letterhead else letterhead,
-			settings=frappe.parse_json(settings),
-		)
-		html = generator.get_html_preview()
-	else:
-		try:
-			html = get_rendered_template(
-				doc=document,
-				print_format=print_format,
-				meta=document.meta,
-				no_letterhead=no_letterhead,
-				letterhead=letterhead,
-				trigger_print=trigger_print,
-				settings=frappe.parse_json(settings),
-			)
-		except frappe.TemplateNotFoundError:
-			frappe.clear_last_message()
-			html = None
-
-	return {"html": html, "style": get_print_style(style=style, print_format=print_format)}
-
-
-@frappe.whitelist()
-def get_rendered_raw_commands(
-	doc: str | dict, name: str | None = None, print_format: str | None = None
-) -> dict:
-	"""Return Rendered Raw Commands of print format, used to send directly to printer."""
-
-	if isinstance(doc, str) and isinstance(name, str):
-		document = frappe.get_lazy_doc(doc, name, check_permission=True)
-	else:
-		document = frappe.get_doc(frappe.parse_json(doc), check_permission=True)
-
-	print_format = get_print_format_doc(print_format, meta=document.meta)
-
-	if not print_format or (print_format and not print_format.raw_printing):
-		frappe.throw(
-			_("{0} is not a raw printing format.").format(print_format), frappe.TemplateNotFoundError
-		)
-
-	return {
-		"raw_commands": get_rendered_template(doc=document, print_format=print_format, meta=document.meta)
-	}
-
-
 def get_allowed_print_settings_override(doc: "Document", settings: dict | None) -> dict:
 	"""Keep only the Print Settings a caller may override: the doctype's own print toggles,
 	never unrelated flags like allow_print_for_draft that the docstatus guard reads."""
@@ -744,3 +662,19 @@ setTimeout(function() {
 }, 5000);
 </script>
 """
+
+# `get_html_and_style`, `get_rendered_raw_commands` moved to frappe.printing.api.
+# The aliases keep the old dotted paths working; resolved lazily to avoid
+# circular imports.
+_MOVED_TO_PRINTING_API = {
+	"get_html_and_style": "get_html_and_style",
+	"get_rendered_raw_commands": "get_rendered_raw_commands",
+}
+
+
+def __getattr__(name: str):
+	if new_name := _MOVED_TO_PRINTING_API.get(name):
+		from frappe.printing import api
+
+		return getattr(api, new_name)
+	raise AttributeError(f"module {__name__!r} has no attribute {name!r}")

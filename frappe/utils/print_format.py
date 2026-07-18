@@ -22,61 +22,6 @@ base_template_path = "www/printview.html"
 from frappe.www.printview import validate_print_permission
 
 
-@frappe.whitelist()
-def download_multi_pdf(
-	doctype: str | dict[str, list[str]],
-	name: str | list[str],
-	format: str | None = None,
-	no_letterhead: bool = False,
-	letterhead: str | None = None,
-	options: str | None = None,
-):
-	"""
-	Calls _download_multi_pdf with the given parameters and returns the response
-	"""
-	if not (frappe.get_cached_value("User", frappe.session.user, "bulk_actions")):
-		frappe.throw(_("You are not allowed to perform bulk actions."), frappe.PermissionError)
-
-	return _download_multi_pdf(doctype, name, format, no_letterhead, letterhead, options)
-
-
-@frappe.whitelist()
-def download_multi_pdf_async(
-	doctype: str | dict[str, list[str]],
-	name: str | list[str],
-	format: str | None = None,
-	no_letterhead: bool = False,
-	letterhead: str | None = None,
-	options: str | None = None,
-):
-	"""
-	Calls _download_multi_pdf with the given parameters in a background job, returns task ID
-	"""
-	if not frappe.get_cached_value("User", frappe.session.user, "bulk_actions"):
-		frappe.throw(_("You are not allowed to perform bulk actions"), frappe.PermissionError)
-
-	task_id = str(uuid.uuid4())
-	if isinstance(doctype, dict):
-		doc_count = sum([len(doctype[dt]) for dt in doctype])
-	else:
-		doc_count = len(frappe.parse_json(name))
-
-	frappe.enqueue(
-		_download_multi_pdf,
-		doctype=doctype,
-		name=name,
-		task_id=task_id,
-		format=format,
-		no_letterhead=no_letterhead,
-		letterhead=letterhead,
-		options=options,
-		queue="long" if doc_count > 20 else "short",
-		at_front_when_starved=True,
-	)
-	frappe.local.response["http_status_code"] = http.HTTPStatus.CREATED
-	return {"task_id": task_id}
-
-
 def _download_multi_pdf(
 	doctype: str | dict[str, list[str]],
 	name: str | list[str],
@@ -228,53 +173,6 @@ def _download_multi_pdf(
 from frappe.deprecation_dumpster import read_multi_pdf
 
 
-@frappe.whitelist(allow_guest=True)
-def download_pdf(
-	doctype: str,
-	name: str,
-	format: str | None = None,
-	doc: Document | None = None,
-	no_letterhead: bool | int = 0,
-	language: str | None = None,
-	letterhead: str | None = None,
-	pdf_generator: Literal["wkhtmltopdf", "chrome"] | None = None,
-):
-	doc = doc or frappe.get_doc(doctype, name)
-	validate_print_permission(doc)
-
-	with print_language(language):
-		pdf_file = frappe.get_print(
-			doctype,
-			name,
-			format,
-			doc=doc,
-			as_pdf=True,
-			letterhead=letterhead,
-			no_letterhead=no_letterhead,
-			pdf_generator=pdf_generator,
-		)
-
-	frappe.local.response.filename = "{name}.pdf".format(name=name.replace(" ", "-").replace("/", "-"))
-	frappe.local.response.filecontent = pdf_file
-	frappe.local.response.type = "pdf"
-
-
-@frappe.whitelist()
-def report_to_pdf(html: str, orientation: str = "Landscape"):
-	make_access_log(file_type="PDF", method="PDF", page=html)
-	frappe.local.response.filename = "report.pdf"
-	frappe.local.response.filecontent = get_pdf(
-		html,
-		{
-			"orientation": orientation,
-			"proxy": "http://0.0.0.0:0",
-			"bypass-proxy-for": _pdf_bypass_proxy_hosts(),
-			"load-error-handling": "ignore",
-		},
-	)
-	frappe.local.response.type = "pdf"
-
-
 def _pdf_bypass_proxy_hosts() -> list[str]:
 	"""Hosts wkhtmltopdf is allowed to fetch from while rendering a report PDF.
 
@@ -306,84 +204,22 @@ def _hostname(value: str) -> str | None:
 	return urlparse(value).hostname
 
 
-@frappe.whitelist()
-def render_letterhead_for_print(letterhead: str | None = None, doc: dict | str | None = None) -> dict:
-	"""Render letterhead HTML (header/footer) with Jinja for report printing."""
-
-	if not frappe.has_permission("Letter Head", "read"):
-		return {}
-
-	if isinstance(doc, str):
-		try:
-			doc = frappe.parse_json(doc)
-		except Exception:
-			doc = {}
-
-	letter_head = frappe._dict(
-		frappe.db.get_value(
-			"Letter Head",
-			letterhead or {"is_default": 1},
-			["content", "footer", "header_script", "footer_script", "custom_css"],
-			as_dict=True,
-		)
-		or {}
-	)
-
-	context_doc = frappe._dict(doc or {})
-	rendered = {}
-
-	if letter_head.content:
-		header = render_template(letter_head.content, {"doc": context_doc})
-		if letter_head.custom_css:
-			header += f"\n<style>\n{letter_head.custom_css}\n</style>\n"
-		rendered["header"] = header
-		if letter_head.header_script:
-			header += f"\n<script>\n{letter_head.header_script}\n</script>\n"
-
-	if letter_head.footer:
-		footer = render_template(letter_head.footer, {"doc": context_doc})
-		if letter_head.footer_script:
-			footer += f"\n<script>\n{letter_head.footer_script}\n</script>\n"
-		rendered["footer"] = footer
-
-	return rendered
+# `download_multi_pdf`, `download_multi_pdf_async`, `download_pdf`, `report_to_pdf`, `render_letterhead_for_print`, `print_by_server` moved to frappe.printing.api.
+# The aliases keep the old dotted paths working; resolved lazily to avoid
+# circular imports.
+_MOVED_TO_PRINTING_API = {
+	"download_multi_pdf": "download_multi_pdf",
+	"download_multi_pdf_async": "download_multi_pdf_async",
+	"download_pdf": "download_pdf",
+	"report_to_pdf": "report_to_pdf",
+	"render_letterhead_for_print": "render_letterhead_for_print",
+	"print_by_server": "print_by_server",
+}
 
 
-@frappe.whitelist()
-def print_by_server(
-	doctype: str,
-	name: str | int,
-	printer_setting: str,
-	print_format: str | None = None,
-	doc: Document | None = None,
-	no_letterhead: bool | int = 0,
-	file_path: str | None = None,
-):
-	print_settings = frappe.get_doc("Network Printer Settings", printer_setting)
-	try:
-		import cups
-	except ImportError:
-		frappe.throw(_("You need to install pycups to use this feature!"))
+def __getattr__(name: str):
+	if new_name := _MOVED_TO_PRINTING_API.get(name):
+		from frappe.printing import api
 
-	try:
-		cups.setServer(print_settings.server_ip)
-		cups.setPort(print_settings.port)
-		conn = cups.Connection()
-		output = PdfWriter()
-		output = frappe.get_print(
-			doctype, name, print_format, doc=doc, no_letterhead=no_letterhead, as_pdf=True, output=output
-		)
-		if not file_path:
-			file_path = os.path.join("/", "tmp", f"frappe-pdf-{frappe.generate_hash()}.pdf")
-		output.write(open(file_path, "wb"))
-		conn.printFile(print_settings.printer_name, file_path, name, {})
-	except OSError as e:
-		if (
-			"ContentNotFoundError" in e.message
-			or "ContentOperationNotPermittedError" in e.message
-			or "UnknownContentError" in e.message
-			or "RemoteHostClosedError" in e.message
-		):
-			frappe.throw(_("PDF generation failed"))
-	except cups.IPPError:
-		frappe.throw(_("Printing failed"))
+		return getattr(api, new_name)
+	raise AttributeError(f"module {__name__!r} has no attribute {name!r}")

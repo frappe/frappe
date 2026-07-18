@@ -115,7 +115,7 @@ export default class BulkOperations {
 
 			if (args.background_print) {
 				frappe
-					.call("frappe.utils.print_format.download_multi_pdf_async", {
+					.call("frappe.printing.api.download_multi_pdf_async", {
 						doctype: this.doctype,
 						name: json_string,
 						format: print_format,
@@ -142,7 +142,7 @@ export default class BulkOperations {
 					});
 			} else {
 				const w = window.open(
-					"/api/method/frappe.utils.print_format.download_multi_pdf?" +
+					"/api/method/frappe.printing.api.download_multi_pdf?" +
 						"doctype=" +
 						encodeURIComponent(this.doctype) +
 						"&name=" +

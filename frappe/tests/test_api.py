@@ -465,7 +465,7 @@ def after_request(*args, **kwargs):
 class TestAPIResponse(FrappeAPITestCase):
 	def test_generate_pdf_v1(self):
 		response = self.get(
-			"/api/method/frappe.utils.print_format.download_pdf",
+			"/api/method/frappe.printing.api.download_pdf",
 			{"sid": self.sid, "doctype": "User", "name": "Guest"},
 		)
 		self.assertEqual(response.status_code, 200)
