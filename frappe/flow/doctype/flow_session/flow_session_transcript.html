@@ -19,8 +19,8 @@
 	<div class="empty">{{ __("No messages yet.") }}</div>
 {% endif %}
 {% for m in items %}
-	<div class="msg msg-{{ m.role }}">
-		<div class="role">{{ m.role }}</div>
+	<div class="msg msg-{{ esc(m.role) }}">
+		<div class="role">{{ esc(m.role) }}</div>
 		<div class="body">
 		{% if m.role === "tool" %}
 			<pre class="json">{{ esc(m.output) }}</pre>
