@@ -1,7 +1,7 @@
 import { createPopper } from "@popperjs/core";
 frappe.provide("frappe.ui");
 /**
- * Sidebar Card is used to render a card with a close button. It is used to show cards in the sidebar, tooltip on form descriptions and billing banners etc.
+ * Card is used to render a card with a close button. It is used to show cards in the sidebar, tooltip on form descriptions and billing banners etc.
  *
  * @param {string} title - Title of the card
  * @param {string} message - Message to be shown in the card
@@ -20,7 +20,7 @@ frappe.provide("frappe.ui");
  * @param {string} [dismiss_key="card_next_show_time"] - Key to be used in localStorage for storing the dismiss time
  * @param {Object} [styles] - Custom styles to be applied to the card, passed as an object with CSS variable names as keys and their values as values
  */
-frappe.ui.SidebarCard = class SidebarCard {
+frappe.ui.Card = class Card {
 	constructor(opts) {
 		Object.assign(this, opts);
 		this.alignment_style_map = {
@@ -42,7 +42,7 @@ frappe.ui.SidebarCard = class SidebarCard {
 			this.icon = "info";
 		}
 		this.card = $(
-			frappe.render_template("sidebar_card", {
+			frappe.render_template("card", {
 				card: this,
 			})
 		);
@@ -70,7 +70,7 @@ frappe.ui.SidebarCard = class SidebarCard {
 			});
 		}
 		if (this.outline) {
-			this.card.addClass("card-outline");
+			this.card.addClass("frappe-card-outline");
 			this.card.removeClass("px-2 py-2");
 		}
 		this.card.prependTo(this.parent);
@@ -107,7 +107,7 @@ frappe.ui.SidebarCard = class SidebarCard {
 	}
 	setup_primary_action() {
 		const me = this;
-		this.card.find(".sidebar-card-button").on("click", function (event) {
+		this.card.find(".frappe-card-button").on("click", function (event) {
 			event.preventDefault();
 			me.primary_action(event);
 		});
@@ -137,15 +137,16 @@ frappe.ui.SidebarCard = class SidebarCard {
 	set_button_alignment() {
 		if (this.primary_button_alignment) {
 			this.card
-				.find(".sidebar-card-actions")
+				.find(".frappe-card-actions")
 				.css("justifyContent", this.alignment_style_map[this.primary_button_alignment]);
 		}
 	}
 	move_primary_action_to_header() {
 		if (this.primary_action_in_header) {
 			this.card
-				.find(".sidebar-card-header-slot")
-				.append(this.card.find(".sidebar-card-button"));
+				.find(".frappe-card-header-slot")
+				.append(this.card.find(".frappe-card-button"));
 		}
 	}
 };
+frappe.ui.SidebarCard = frappe.ui.Card;

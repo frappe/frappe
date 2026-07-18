@@ -45,9 +45,9 @@ $(document).ready(function () {
 				primary_action_label: "Upgrade",
 				primary_action_suffix_icon: "square-arrow-out-up-right",
 				styles: {
-					"sidebar-card-button-bg-color": "var(--surface-gray-2)",
-					"sidebar-card-button-color": "var(--ink-gray-7)",
-					"sidebar-card-button-outline": "var(--ink-gray-7)",
+					"frappe-card-button-bg-color": "var(--surface-gray-2)",
+					"frappe-card-button-color": "var(--ink-gray-7)",
+					"frappe-card-button-outline": "var(--ink-gray-7)",
 				},
 				primary_action: () => {
 					openFrappeCloudDashboard();
@@ -58,7 +58,7 @@ $(document).ready(function () {
 			if (visiblity_condition) {
 				if (site_info.trial_end_date && trial_end_date > new Date()) {
 					card_args.parent = $(".icons-container").first();
-					let banner_card = new frappe.ui.SidebarCard(card_args);
+					let banner_card = new frappe.ui.Card(card_args);
 				}
 				addManageBillingDropdown(data.desktop);
 

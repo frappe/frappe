@@ -27,6 +27,7 @@ class WorkspaceSidebar(Document, DeskViews):
 
 		app: DF.Autocomplete | None
 		for_user: DF.Link | None
+		header_icon: DF.Icon | None
 		items: DF.Table[WorkspaceSidebarItem]
 		module: DF.Text | None
 		module_onboarding: DF.Link | None
