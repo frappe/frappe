@@ -43,68 +43,21 @@ class WebPageView(Document):
 		frappe.db.delete(table, filters=(table.creation < (Now() - Interval(days=days))))
 
 
-@frappe.whitelist(allow_guest=True)
-def make_view_log(
-	referrer: str | None = None,
-	browser: str | None = None,
-	version: str | int | None = None,
-	user_tz: str | None = None,
-	source: str | None = None,
-	campaign: str | None = None,
-	medium: str | None = None,
-	content: str | None = None,
-	visitor_id: str | None = None,
-):
-	if not is_tracking_enabled():
-		return
-
-	# real path
-	path = frappe.request.headers.get("Referer")
-
-	if not frappe.utils.is_site_link(path):
-		return
-
-	path = urlparse(path).path
-
-	request_dict = frappe.request.__dict__
-	user_agent = request_dict.get("environ", {}).get("HTTP_USER_AGENT")
-
-	if referrer:
-		referrer = referrer.split("?", 1)[0]
-
-	if path != "/" and path.startswith("/"):
-		path = path[1:]
-
-	if path.startswith(("api/", "app/", "assets/", "private/files/")):
-		return
-
-	is_unique = visitor_id and not bool(frappe.db.exists("Web Page View", {"visitor_id": visitor_id}))
-
-	view = frappe.new_doc("Web Page View")
-	view.path = path
-	view.referrer = referrer
-	view.browser = browser
-	view.browser_version = version
-	view.time_zone = user_tz
-	view.user_agent = user_agent
-	view.is_unique = is_unique
-	view.source = source
-	view.campaign = campaign
-	view.medium = (medium or "").lower()
-	view.content = content
-	view.visitor_id = visitor_id
-
-	try:
-		view.deferred_insert()
-	except Exception:
-		frappe.clear_last_message()
-
-
-@frappe.whitelist()
-@redis_cache(ttl=5 * 60)
-def get_page_view_count(path: str):
-	return frappe.db.count("Web Page View", filters={"path": path})
-
-
 def is_tracking_enabled():
 	return frappe.get_website_settings("enable_view_tracking")
+
+
+# `make_view_log`, `get_page_view_count` moved to frappe.website.api. The aliases keep the old
+# dotted paths working; resolved lazily to avoid circular imports.
+_MOVED_TO_WEBSITE_API = {
+	"make_view_log": "make_view_log",
+	"get_page_view_count": "get_page_view_count",
+}
+
+
+def __getattr__(name: str):
+	if new_name := _MOVED_TO_WEBSITE_API.get(name):
+		from frappe.website import api
+
+		return getattr(api, new_name)
+	raise AttributeError(f"module {__name__!r} has no attribute {name!r}")

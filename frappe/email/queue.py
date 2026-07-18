@@ -93,31 +93,6 @@ def get_unsubcribed_url(reference_doctype, reference_name, email, unsubscribe_me
 	return get_url(unsubscribe_method + "?" + get_signed_params(params))
 
 
-@frappe.whitelist(allow_guest=True)
-def unsubscribe(doctype: str, name: str, email: str):
-	# unsubsribe from comments and communications
-	if not frappe.in_test and not verify_request():
-		return
-
-	try:
-		frappe.get_doc(
-			{
-				"doctype": "Email Unsubscribe",
-				"email": email,
-				"reference_doctype": doctype,
-				"reference_name": name,
-			}
-		).insert(ignore_permissions=True)
-
-	except frappe.DuplicateEntryError:
-		frappe.db.rollback()
-
-	else:
-		frappe.db.commit()
-
-	return_unsubscribed_page(email, doctype, name)
-
-
 def return_unsubscribed_page(email, doctype, name):
 	frappe.respond_as_web_page(
 		_("Unsubscribed"),
@@ -206,3 +181,18 @@ def retry_sending_emails():
 				update_fields.update({"status": "Error"})
 				update_fields.update({"error": "Retry Limit Exceeded"})
 			email_queue.update_status(**update_fields, commit=True)
+
+
+# `unsubscribe` moved to frappe.website.api. The aliases keep the old
+# dotted paths working; resolved lazily to avoid circular imports.
+_MOVED_TO_WEBSITE_API = {
+	"unsubscribe": "unsubscribe",
+}
+
+
+def __getattr__(name: str):
+	if new_name := _MOVED_TO_WEBSITE_API.get(name):
+		from frappe.website import api
+
+		return getattr(api, new_name)
+	raise AttributeError(f"module {__name__!r} has no attribute {name!r}")

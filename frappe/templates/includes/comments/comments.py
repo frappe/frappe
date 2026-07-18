@@ -23,68 +23,16 @@ def get_limit():
 		return limit
 
 
-@frappe.whitelist(allow_guest=True)
-@rate_limit(limit=get_limit, seconds=60 * 60)
-def add_comment(
-	comment: str,
-	comment_email: str,
-	comment_by: str,
-	reference_doctype: str,
-	reference_name: str,
-	route: str,
-	web_form: str | None = None,
-):
-	if frappe.session.user == "Guest":
-		allowed_doctypes = ["Web Page"]
-		comments_permission_config = frappe.get_hooks("has_comment_permission")
-		guest_allowed = False
-		if len(comments_permission_config):
-			if comments_permission_config["doctype"]:
-				allowed_doctypes.append(comments_permission_config["doctype"][0])
-				check_permission_method = comments_permission_config["method"]
-				guest_allowed = frappe.call(check_permission_method[0], ref_doctype=reference_doctype)
-		if reference_doctype not in allowed_doctypes:
-			return
+# `add_comment` moved to frappe.website.api. The aliases keep the old
+# dotted paths working; resolved lazily to avoid circular imports.
+_MOVED_TO_WEBSITE_API = {
+	"add_comment": "add_comment",
+}
 
-		if not guest_allowed:
-			frappe.throw(_("Please login to post a comment."), exc=frappe.AuthenticationError)
-	else:
-		# override with the logged-in user's identity to prevent spoofing;
-		# guests must supply their own name/email in the request
-		comment_email = frappe.session.user
-		comment_by = frappe.get_value("User", frappe.session.user, "full_name")
 
-	if not comment.strip():
-		frappe.msgprint(_("The comment cannot be empty"))
-		return False
+def __getattr__(name: str):
+	if new_name := _MOVED_TO_WEBSITE_API.get(name):
+		from frappe.website import api
 
-	if URLS_COMMENT_PATTERN.search(comment) or EMAIL_PATTERN.search(comment):
-		frappe.msgprint(_("Comments cannot have links or email addresses"))
-		return False
-
-	perm_flag = True
-	doc = frappe.get_doc(reference_doctype, reference_name)
-	if web_form:
-		web_form = frappe.get_lazy_doc("Web Form", web_form)
-		perm_flag = web_form.doc_type == reference_doctype and web_form.has_web_form_permission(
-			reference_doctype, reference_name
-		)
-	elif not (frappe.session.user == "Guest" and guest_allowed):
-		perm_flag = doc.has_permission()
-
-	if not perm_flag:
-		if frappe.session.user == "Guest":
-			raise frappe.AuthenticationError
-		raise frappe.PermissionError
-
-	comment = doc.add_comment(text=clean_html(comment), comment_email=comment_email, comment_by=comment_by)
-
-	comment.db_set("published", 1)
-
-	# since comments are embedded in the page, clear the web cache
-	if route:
-		clear_cache(route)
-
-	# revert with template if all clear (no backlinks)
-	template = frappe.get_template("templates/includes/comments/comment.html")
-	return template.render({"comment": comment.as_dict()})
+		return getattr(api, new_name)
+	raise AttributeError(f"module {__name__!r} has no attribute {name!r}")

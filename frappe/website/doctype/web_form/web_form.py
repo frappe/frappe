@@ -734,327 +734,11 @@ def get_web_form_module(doc):
 		return get_doc_module(doc.module, doc.doctype, doc.name)
 
 
-@frappe.whitelist(methods=["POST", "PUT"], allow_guest=True)
-@rate_limit(key="web_form", limit=10, seconds=60)
-def accept(web_form: str, data: str | dict, web_form_request_key: str | None = None):
-	"""Save the web form"""
-	data = frappe._dict(frappe.parse_json(data))
-
-	files = []
-	files_to_delete = []
-
-	web_form = frappe.get_lazy_doc("Web Form", web_form)
-	doctype = web_form.doc_type
-	user = frappe.session.user
-	web_form_request = web_form.get_web_form_request(
-		web_form_request_key,
-		docname=data.name,
-		for_update=True,
-		allow_used=bool(data.name) or bool(web_form.allow_multiple),
-	)
-
-	if web_form.login_required and frappe.session.user == "Guest":
-		frappe.throw(_("You must login to use this form"))
-
-	if web_form.anonymous and frappe.session.user != "Guest":
-		frappe.session.user = "Guest"
-
-	if data.name and not web_form.allow_edit:
-		frappe.throw(_("You are not allowed to update this Web Form Document"))
-
-	frappe.flags.in_web_form = True
-	meta = frappe.get_meta(doctype)
-
-	if data.name:
-		# update
-		doc = frappe.get_doc(doctype, data.name)
-	else:
-		# insert
-		doc = frappe.new_doc(doctype)
-
-	# Set ignore_mandatory flag if allow_incomplete is enabled
-	if web_form.allow_incomplete:
-		doc.flags.ignore_mandatory = True
-
-	# set values
-	for field in web_form.web_form_fields:
-		fieldname = field.fieldname
-		df = meta.get_field(fieldname)
-		value = data.get(fieldname, "")
-
-		if df and df.fieldtype in ("Attach", "Attach Image"):
-			if value and "data:" and "base64" in value:
-				files.append((fieldname, value))
-				if not doc.name:
-					doc.set(fieldname, "")
-				continue
-
-			elif not value and doc.get(fieldname):
-				files_to_delete.append(doc.get(fieldname))
-
-		doc.set(fieldname, value)
-
-	if web_form_request:
-		for fieldname, value in web_form_request.get_doc_values().items():
-			if meta.has_field(fieldname):
-				doc.set(fieldname, value)
-
-	if doc.name:
-		if web_form_request:
-			# Access was granted by the request key (often as Guest), not by
-			# Role Permissions on the target DocType. allow_edit is enforced
-			# above when data.name is set.
-			doc.save(ignore_permissions=True)
-			if not web_form_request.first_used_on:
-				web_form_request.first_used_on = now_datetime()
-				web_form_request.save(ignore_permissions=True)
-		elif web_form.has_web_form_permission(doctype, doc.name, "write"):
-			# has_web_form_permission uses web-form rules (owner, website
-			# permission, hooks) that are separate from Role Permissions.
-			doc.save(ignore_permissions=True)
-		else:
-			# Standard DocType write permission applies.
-			doc.save()
-
-	else:
-		# insert
-		ignore_mandatory = True if (files or web_form.allow_incomplete) else False
-
-		# login_required, key_required + valid web_form_request (for_update),
-		# and allow_edit (updates) are enforced above; open forms allow Guest create.
-		doc.insert(ignore_permissions=True, ignore_mandatory=ignore_mandatory)
-		if web_form_request:
-			web_form_request.append("references", {"link_doctype": doctype, "link_name": doc.name})
-			if not web_form_request.first_used_on:
-				web_form_request.first_used_on = now_datetime()
-			# Request key validated above; Guest holders cannot save Web Form Request otherwise.
-			web_form_request.save(ignore_permissions=True)
-
-	# add files
-	if files:
-		for f in files:
-			fieldname, filedata = f
-
-			# remove earlier attached file (if exists)
-			if doc.get(fieldname):
-				remove_file_by_url(doc.get(fieldname), doctype=doctype, name=doc.name)
-
-			# save new file
-			filename, dataurl = filedata.split(",", 1)
-			_file = frappe.get_doc(
-				{
-					"doctype": "File",
-					"file_name": filename,
-					"attached_to_doctype": doctype,
-					"attached_to_name": doc.name,
-					"content": dataurl,
-					"decode": True,
-				}
-			)
-			_file.save()
-
-			# update values
-			doc.set(fieldname, _file.file_url)
-
-		# Persist attachment field URLs on a document already authorized above.
-		doc.save(ignore_permissions=True)
-
-	if files_to_delete:
-		for f in files_to_delete:
-			if f:
-				remove_file_by_url(f, doctype=doctype, name=doc.name)
-
-	if web_form.anonymous and frappe.session.user == "Guest" and user:
-		frappe.session.user = user
-
-	frappe.flags.web_form_doc = doc
-	return doc
-
-
-@frappe.whitelist(methods=["POST", "DELETE"], allow_guest=True)
-@rate_limit(key="web_form_name", limit=10, seconds=60)
-def delete(web_form_name: str, docname: str | int, web_form_request_key: str | None = None):
-	web_form: WebForm = frappe.get_lazy_doc("Web Form", web_form_name)
-	web_form_request: "WebFormRequest | None" = web_form.get_web_form_request(
-		web_form_request_key,
-		docname=docname,
-		for_update=True,
-		allow_used=True,
-	)
-
-	if (
-		not web_form.allow_delete
-		or (frappe.session.user == "Guest" and web_form.login_required)
-		or (frappe.session.user == "Guest" and not web_form_request)
-	):
-		frappe.throw(_("Not Allowed"), frappe.PermissionError)
-
-	owner = frappe.db.get_value(web_form.doc_type, docname, "owner")
-	if web_form_request or frappe.session.user == owner:
-		if web_form_request:
-			# Drop the matching reference row before deleting the bound document
-			# so Frappe's link-integrity check doesn't block the cascade. If
-			# delete_doc fails, the framework rolls back the transaction.
-			web_form_request.remove(web_form_request.find_reference(docname))
-			if not web_form_request.first_used_on:
-				web_form_request.first_used_on = now_datetime()
-			# Key binding to docname verified above; update references before cascade delete.
-			web_form_request.save(ignore_permissions=True)
-
-		# allow_delete, guest/login/key gating, and owner or key binding checked above.
-		frappe.delete_doc(web_form.doc_type, docname, ignore_permissions=True)
-	else:
-		frappe.throw(_("Not Allowed"), frappe.PermissionError)
-
-
-@frappe.whitelist(methods=["POST", "DELETE"])
-@rate_limit(key="web_form_name", limit=10, seconds=60)
-def delete_multiple(web_form_name: str, docnames: str | list):
-	web_form = frappe.get_lazy_doc("Web Form", web_form_name)
-
-	docnames = frappe.parse_json(docnames)
-
-	allowed_docnames = []
-	restricted_docnames = []
-
-	for docname in docnames:
-		assert isinstance(docname, str | int)
-
-		owner = frappe.db.get_value(web_form.doc_type, docname, "owner")
-		if frappe.session.user == owner and web_form.allow_delete:
-			allowed_docnames.append(docname)
-		else:
-			restricted_docnames.append(docname)
-
-	for docname in allowed_docnames:
-		# Only owner-owned docnames with allow_delete enabled reach this loop.
-		frappe.delete_doc(web_form.doc_type, docname, ignore_permissions=True)
-
-	if restricted_docnames:
-		raise frappe.PermissionError(
-			"You do not have permisssion to delete " + ", ".join(restricted_docnames)
-		)
-
-
 def check_webform_perm(doctype, name):
 	doc = frappe.get_lazy_doc(doctype, name)
 	if hasattr(doc, "has_webform_permission"):
 		if doc.has_webform_permission():
 			return True
-
-
-@frappe.whitelist(allow_guest=True)
-@frappe.read_only()
-def get_web_form_filters(web_form_name: str):
-	web_form = frappe.get_doc("Web Form", web_form_name)
-	return [field for field in web_form.web_form_fields if field.show_in_filter]
-
-
-@frappe.whitelist(allow_guest=True)
-@rate_limit(key="web_form", limit=10, seconds=60)
-@frappe.read_only()
-def get_web_form_list(
-	web_form: str,
-	web_form_request_key: str,
-	limit_start: int = 0,
-	limit: int = 20,
-	**kwargs,
-) -> list[dict]:
-	"""Return documents bound to a Web Form Request key for the list view.
-
-	The key authorises read access to exactly the documents recorded in its
-	``references`` child table — no more, no less.
-	"""
-	web_form_doc: WebForm = frappe.get_lazy_doc("Web Form", web_form)
-	if web_form_doc.login_required and frappe.session.user == "Guest":
-		frappe.throw(_("You must login to use this form"), frappe.PermissionError)
-
-	if not web_form_doc.show_list:
-		frappe.throw(_("Not permitted"), frappe.PermissionError)
-
-	web_form_request: "WebFormRequest | None" = web_form_doc.get_web_form_request(
-		web_form_request_key,
-		allow_used=True,
-	)
-	if not web_form_request:
-		frappe.throw(_("Invalid Web Form Request"), frappe.PermissionError)
-
-	reference_names = [row.link_name for row in web_form_request.references]
-	if not reference_names:
-		return []
-
-	meta = frappe.get_meta(web_form_doc.doc_type)
-	filters = {}
-	for fieldname, raw_value in kwargs.items():
-		if not meta.has_field(fieldname):
-			continue
-		try:
-			filters[fieldname] = json.loads(raw_value)
-		except (TypeError, ValueError):
-			filters[fieldname] = raw_value
-
-	filters["name"] = ["in", reference_names]
-
-	fields = get_web_form_list_fields(web_form_doc, web_form_request_key)
-
-	return frappe.get_list(
-		web_form_doc.doc_type,
-		fields=fields,
-		filters=filters,
-		limit_start=cint(limit_start),
-		limit_page_length=min(cint(limit), 100),
-		# Valid key + show_list verified above; filters restrict to request references.
-		ignore_permissions=True,
-		order_by="creation desc",
-		distinct=True,
-	)
-
-
-@frappe.whitelist(allow_guest=True)
-@frappe.read_only()
-def get_form_data(
-	doctype: str,
-	docname: str | None = None,
-	web_form_name: str | None = None,
-	web_form_request_key: str | None = None,
-):
-	web_form = frappe.get_doc("Web Form", web_form_name)
-
-	if web_form.login_required and frappe.session.user == "Guest":
-		frappe.throw(_("Not Permitted"), frappe.PermissionError)
-
-	if getattr(web_form, "key_required", False):
-		web_form.get_web_form_request(
-			web_form_request_key,
-			docname=docname,
-			allow_used=True,
-		)
-
-	out = frappe._dict()
-	out.web_form = web_form
-
-	if frappe.session.user != "Guest" and not docname and not web_form.allow_multiple:
-		docname = frappe.db.get_value(doctype, {"owner": frappe.session.user}, "name")
-
-	if docname:
-		doc = frappe.get_doc(doctype, docname)
-		if web_form.has_web_form_permission(doctype, docname, ptype="read"):
-			out.doc = doc
-		else:
-			frappe.throw(_("Not permitted"), frappe.PermissionError)
-
-	# For Table fields, server-side processing for meta
-	for field in out.web_form.web_form_fields:
-		if field.fieldtype == "Table":
-			field.fields = get_in_list_view_fields(
-				field.options, web_form_name, web_form_request_key, docname
-			)
-			out.update({field.fieldname: field.fields})
-
-		if field.fieldtype == "Link":
-			process_link_field(field, web_form_name, web_form_request_key, docname)
-
-	return out
 
 
 def get_web_form_list_fields(web_form_doc: "WebForm", web_form_request_key: str | None = None) -> list[str]:
@@ -1190,3 +874,23 @@ def get_link_options(
 @redis_cache(ttl=60 * 60)
 def get_published_web_forms() -> dict[str, str]:
 	return frappe.get_all("Web Form", ["name", "route", "modified"], {"published": 1})
+
+
+# `accept`, `delete`, `delete_multiple`, `get_web_form_filters`, `get_web_form_list`, `get_form_data` moved to frappe.website.api. The aliases keep the old
+# dotted paths working; resolved lazily to avoid circular imports.
+_MOVED_TO_WEBSITE_API = {
+	"accept": "accept_web_form",
+	"delete": "delete_web_form_document",
+	"delete_multiple": "delete_web_form_documents",
+	"get_web_form_filters": "get_web_form_filters",
+	"get_web_form_list": "get_web_form_list",
+	"get_form_data": "get_web_form_data",
+}
+
+
+def __getattr__(name: str):
+	if new_name := _MOVED_TO_WEBSITE_API.get(name):
+		from frappe.website import api
+
+		return getattr(api, new_name)
+	raise AttributeError(f"module {__name__!r} has no attribute {name!r}")

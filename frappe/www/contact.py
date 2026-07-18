@@ -29,45 +29,16 @@ def get_context(context):
 	return out
 
 
-@frappe.whitelist(allow_guest=True)
-@rate_limit(limit=1000, seconds=60 * 60)
-def send_message(sender: str, message: str, subject: str = "Website Query"):
-	doc = frappe.get_doc("Contact Us Settings", "Contact Us Settings")
-	if doc.is_disabled:
-		return
-
-	sender = validate_email_address(sender, throw=True)
-
-	message = escape_html(message)
-
-	with suppress(frappe.OutgoingEmailError):
-		if forward_to_email := frappe.db.get_single_value("Contact Us Settings", "forward_to_email"):
-			frappe.sendmail(recipients=forward_to_email, reply_to=sender, content=message, subject=subject)
-
-		reply = _(
-			"""Thank you for reaching out to us. We will get back to you at the earliest.
+# `send_message` moved to frappe.website.api. The aliases keep the old
+# dotted paths working; resolved lazily to avoid circular imports.
+_MOVED_TO_WEBSITE_API = {
+	"send_message": "send_contact_message",
+}
 
 
-Your query:
+def __getattr__(name: str):
+	if new_name := _MOVED_TO_WEBSITE_API.get(name):
+		from frappe.website import api
 
-{0}"""
-		).format(message)
-		frappe.sendmail(
-			recipients=sender,
-			content=f"<div style='white-space: pre-wrap'>{reply}</div>",
-			subject=_("We've received your query!"),
-		)
-
-	# for clearing outgoing email error message
-	frappe.clear_last_message()
-
-	system_language = frappe.db.get_single_value("System Settings", "language")
-	# add to to-do ?
-	frappe.get_doc(
-		doctype="Communication",
-		sender=sender,
-		subject=_("New Message from Website Contact Page", system_language),
-		sent_or_received="Received",
-		content=message,
-		status="Open",
-	).insert(ignore_permissions=True)
+		return getattr(api, new_name)
+	raise AttributeError(f"module {__name__!r} has no attribute {name!r}")

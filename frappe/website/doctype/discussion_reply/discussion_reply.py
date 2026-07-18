@@ -79,8 +79,16 @@ class DiscussionReply(Document):
 		)
 
 
-@frappe.whitelist()
-def delete_message(reply_name: str):
-	owner = frappe.db.get_value("Discussion Reply", reply_name, "owner")
-	if owner == frappe.session.user:
-		frappe.delete_doc("Discussion Reply", reply_name)
+# `delete_message` moved to frappe.website.api. The aliases keep the old
+# dotted paths working; resolved lazily to avoid circular imports.
+_MOVED_TO_WEBSITE_API = {
+	"delete_message": "delete_discussion_reply",
+}
+
+
+def __getattr__(name: str):
+	if new_name := _MOVED_TO_WEBSITE_API.get(name):
+		from frappe.website import api
+
+		return getattr(api, new_name)
+	raise AttributeError(f"module {__name__!r} has no attribute {name!r}")

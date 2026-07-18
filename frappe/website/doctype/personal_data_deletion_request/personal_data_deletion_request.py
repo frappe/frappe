@@ -384,34 +384,20 @@ def remove_unverified_record():
 	)
 
 
-@frappe.whitelist(allow_guest=True)
-def confirm_deletion(email: str, name: str, host_name: str):
-	if not verify_request():
-		return
-
-	doc = frappe.get_doc("Personal Data Deletion Request", name)
-	host_name = frappe.utils.get_url()
-
-	if doc.status == "Pending Verification":
-		doc.status = "Pending Approval"
-		doc.save(ignore_permissions=True)
-		doc.notify_system_managers()
-		frappe.db.commit()
-		frappe.respond_as_web_page(
-			_("Confirmed"),
-			_("The process for deletion of {0} data associated with {1} has been initiated.").format(
-				host_name, email
-			),
-			indicator_color="green",
-		)
-
-	else:
-		frappe.respond_as_web_page(
-			_("Link Expired"),
-			_("This link has already been activated for verification."),
-			indicator_color="red",
-		)
-
-
 def get_pattern(full_match):
 	return re.compile(rf"(?<!\.)\b{re.escape(full_match)}\b(?!\.)")
+
+
+# `confirm_deletion` moved to frappe.website.api. The aliases keep the old
+# dotted paths working; resolved lazily to avoid circular imports.
+_MOVED_TO_WEBSITE_API = {
+	"confirm_deletion": "confirm_personal_data_deletion",
+}
+
+
+def __getattr__(name: str):
+	if new_name := _MOVED_TO_WEBSITE_API.get(name):
+		from frappe.website import api
+
+		return getattr(api, new_name)
+	raise AttributeError(f"module {__name__!r} has no attribute {name!r}")

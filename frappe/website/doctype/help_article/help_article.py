@@ -123,10 +123,16 @@ def clear_knowledge_base_cache():
 	frappe.cache.delete_value("knowledge_base:faq")
 
 
-@frappe.whitelist(allow_guest=True)
-@rate_limit(key="article", limit=5, seconds=60 * 60)
-def add_feedback(article: str, helpful: str):
-	field = "not_helpful" if helpful == "No" else "helpful"
+# `add_feedback` moved to frappe.website.api. The aliases keep the old
+# dotted paths working; resolved lazily to avoid circular imports.
+_MOVED_TO_WEBSITE_API = {
+	"add_feedback": "add_help_article_feedback",
+}
 
-	value = cint(frappe.db.get_value("Help Article", article, field))
-	frappe.db.set_value("Help Article", article, field, value + 1, update_modified=False)
+
+def __getattr__(name: str):
+	if new_name := _MOVED_TO_WEBSITE_API.get(name):
+		from frappe.website import api
+
+		return getattr(api, new_name)
+	raise AttributeError(f"module {__name__!r} has no attribute {name!r}")
