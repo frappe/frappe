@@ -1308,6 +1308,7 @@ thead:hover .col-resize-handle::after {
 
 .pf-barcode-svg {
 	display: inline-block;
+	max-width: 100%;
 }
 
 .pf-builder-thumb {
