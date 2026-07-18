@@ -1,7 +1,9 @@
 # Copyright (c) 2015, Frappe Technologies Pvt. Ltd. and Contributors
 # License: MIT. See LICENSE
 import frappe
-from frappe.core.page.permission_manager.permission_manager import add, reset, update
+from frappe.core.api.permissions import add_permission_rule as add
+from frappe.core.api.permissions import reset_permissions as reset
+from frappe.core.api.permissions import update_permission_rule as update
 from frappe.custom.doctype.property_setter.property_setter import make_property_setter
 from frappe.desk.form.load import get_docinfo, getdoc, getdoctype
 from frappe.tests import IntegrationTestCase

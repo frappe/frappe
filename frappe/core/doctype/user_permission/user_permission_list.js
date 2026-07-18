@@ -114,7 +114,7 @@ frappe.listview_settings["User Permission"] = {
 					data = me.validate(dialog, data);
 					frappe.call({
 						async: false,
-						method: "frappe.core.doctype.user_permission.user_permission.add_user_permissions",
+						method: "frappe.core.api.permissions.add_user_permissions",
 						args: {
 							data: data,
 						},
@@ -164,10 +164,7 @@ frappe.listview_settings["User Permission"] = {
 
 					frappe.confirm(__("Are you sure?"), () => {
 						frappe
-							.xcall(
-								"frappe.core.doctype.user_permission.user_permission.clear_user_permissions",
-								data
-							)
+							.xcall("frappe.core.api.permissions.clear_user_permissions", data)
 							.then((data) => {
 								dialog.hide();
 								let message = "";
@@ -209,7 +206,7 @@ frappe.listview_settings["User Permission"] = {
 		return new Promise((resolve) => {
 			frappe
 				.call({
-					method: "frappe.core.doctype.user_permission.user_permission.check_applicable_doc_perm",
+					method: "frappe.core.api.permissions.check_applicable_doc_perm",
 					async: false,
 					args: {
 						user: dialog.fields_dict.user.value,

@@ -33,9 +33,7 @@ frappe.PermissionEngine = class PermissionEngine {
 		this.make_reset_button();
 		frappe
 			.call({
-				module: "frappe.core",
-				page: "permission_manager",
-				method: "get_roles_and_doctypes",
+				method: "frappe.core.api.permissions.get_roles_and_doctypes",
 			})
 			.then((res) => {
 				this.options = res.message;
@@ -106,9 +104,7 @@ frappe.PermissionEngine = class PermissionEngine {
 		let doctype = this.get_doctype();
 		if (doctype) {
 			return frappe.call({
-				module: "frappe.core",
-				page: "permission_manager",
-				method: "get_standard_permissions",
+				method: "frappe.core.api.permissions.get_standard_permissions",
 				args: { doctype: doctype },
 				callback: callback,
 			});
@@ -121,9 +117,7 @@ frappe.PermissionEngine = class PermissionEngine {
 		let d = frappe.confirm(__("Reset Permissions for {0}?", [__(doctype)]), () => {
 			return frappe
 				.call({
-					module: "frappe.core",
-					page: "permission_manager",
-					method: "reset",
+					method: "frappe.core.api.permissions.reset_permissions",
 					args: { doctype },
 				})
 				.then(() => {
@@ -188,9 +182,7 @@ frappe.PermissionEngine = class PermissionEngine {
 		// get permissions
 		frappe
 			.call({
-				module: "frappe.core",
-				page: "permission_manager",
-				method: "get_permissions",
+				method: "frappe.core.api.permissions.get_permissions",
 				args: { doctype, role },
 			})
 			.then((r) => {
@@ -353,9 +345,7 @@ frappe.PermissionEngine = class PermissionEngine {
 			.click(function () {
 				const role = $(this).attr("data-role");
 				frappe.call({
-					module: "frappe.core",
-					page: "permission_manager",
-					method: "get_users_with_role",
+					method: "frappe.core.api.permissions.get_users_with_role",
 					args: { role },
 					callback: function (r) {
 						let message_html = "";
@@ -431,9 +421,7 @@ frappe.PermissionEngine = class PermissionEngine {
 			.attr("data-permlevel", d.permlevel)
 			.on("click", () => {
 				return frappe.call({
-					module: "frappe.core",
-					page: "permission_manager",
-					method: "remove",
+					method: "frappe.core.api.permissions.remove_permission_rule",
 					args: {
 						doctype: d.parent,
 						role: d.role,
@@ -470,9 +458,7 @@ frappe.PermissionEngine = class PermissionEngine {
 				if_owner: chk.attr("data-if_owner"),
 			};
 			return frappe.call({
-				module: "frappe.core",
-				page: "permission_manager",
-				method: "update",
+				method: "frappe.core.api.permissions.update_permission_rule",
 				args: args,
 				callback: (r) => {
 					frappe.dom.unfreeze();
@@ -542,9 +528,7 @@ frappe.PermissionEngine = class PermissionEngine {
 						return;
 					}
 					frappe.call({
-						module: "frappe.core",
-						page: "permission_manager",
-						method: "add",
+						method: "frappe.core.api.permissions.add_permission_rule",
 						args: args,
 						callback: (r) => {
 							if (r.exc) {
@@ -616,9 +600,7 @@ frappe.PermissionEngine = class PermissionEngine {
 
 		frappe
 			.call({
-				module: "frappe.core",
-				page: "permission_manager",
-				method: "get_permission_logs",
+				method: "frappe.core.api.permissions.get_permission_logs",
 				args: { doctype: doctype || null, limit: 50 },
 			})
 			.then((r) => {

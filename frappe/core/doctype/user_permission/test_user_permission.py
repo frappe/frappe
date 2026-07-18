@@ -1,11 +1,9 @@
 # Copyright (c) 2021, Frappe Technologies and Contributors
 # See LICENSE
 import frappe
+from frappe.core.api.permissions import add_user_permissions
 from frappe.core.doctype.doctype.test_doctype import new_doctype
-from frappe.core.doctype.user_permission.user_permission import (
-	add_user_permissions,
-	remove_applicable,
-)
+from frappe.core.doctype.user_permission.user_permission import remove_applicable
 from frappe.permissions import add_permission, has_user_permission
 from frappe.tests import IntegrationTestCase
 from frappe.tests.test_helpers import setup_for_tests

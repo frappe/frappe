@@ -328,7 +328,7 @@ class DocumentsTab extends RoleTab {
 	get_data() {
 		return frappe
 			.call({
-				method: "frappe.core.page.permission_manager.permission_manager.get_permissions",
+				method: "frappe.core.api.permissions.get_permissions",
 				args: { role: this.role },
 			})
 			.then((r) => this.transform(r.message || []));
@@ -384,7 +384,7 @@ class DocumentsTab extends RoleTab {
 		const permlevel = cint(values.permlevel);
 		return frappe
 			.call({
-				method: "frappe.core.page.permission_manager.permission_manager.add",
+				method: "frappe.core.api.permissions.add_permission_rule",
 				args: { parent: doctype, role: this.role, permlevel },
 			})
 			.then(() =>
@@ -416,7 +416,7 @@ class DocumentsTab extends RoleTab {
 		// if_owner is not mutated before we look up the row by it.
 		return frappe
 			.call({
-				method: "frappe.core.page.permission_manager.permission_manager.update",
+				method: "frappe.core.api.permissions.update_permission_rule",
 				args: {
 					doctype: row.parent,
 					role: this.role,
@@ -448,7 +448,7 @@ class DocumentsTab extends RoleTab {
 
 	remove(row) {
 		return frappe.call({
-			method: "frappe.core.page.permission_manager.permission_manager.remove",
+			method: "frappe.core.api.permissions.remove_permission_rule",
 			args: {
 				doctype: row.parent,
 				role: this.role,

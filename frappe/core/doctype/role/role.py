@@ -2,7 +2,7 @@
 # License: MIT. See LICENSE
 
 import frappe
-from frappe.core.page.permission_manager.permission_manager import get_permissions
+from frappe.core.api.permissions import get_permissions
 from frappe.model.document import Document
 from frappe.website.path_resolver import validate_path
 from frappe.website.router import clear_routing_cache
@@ -153,19 +153,18 @@ def get_users(role):
 
 
 # searches for active employees
-@frappe.whitelist()
-@frappe.validate_and_sanitize_search_inputs
-def role_query(
-	doctype: str, txt: str, searchfield: str, start: int, page_len: int, filters: list | dict | str
-):
-	return frappe.get_all(
-		"Role",
-		limit_start=start,
-		limit_page_length=page_len,
-		filters=[
-			["Role", "name", "like", f"%{txt}%"],
-			["Role", "is_custom", "=", 0],
-			["Role", "name", "!=", "All"],
-		],
-		as_list=True,
-	)
+
+# `role_query` moved to frappe.core.api.permissions.
+# The aliases keep the old dotted paths working; resolved lazily to avoid
+# circular imports.
+_MOVED_TO_PERMISSIONS_API = {
+	"role_query": "role_query",
+}
+
+
+def __getattr__(name: str):
+	if new_name := _MOVED_TO_PERMISSIONS_API.get(name):
+		from frappe.core.api import permissions
+
+		return getattr(permissions, new_name)
+	raise AttributeError(f"module {__name__!r} has no attribute {name!r}")

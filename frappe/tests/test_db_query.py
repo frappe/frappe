@@ -5,8 +5,10 @@ from contextlib import contextmanager
 from unittest.mock import MagicMock, patch
 
 import frappe
+from frappe.core.api.permissions import add_permission_rule as add
+from frappe.core.api.permissions import reset_permissions as reset
+from frappe.core.api.permissions import update_permission_rule as update
 from frappe.core.doctype.doctype.test_doctype import new_doctype
-from frappe.core.page.permission_manager.permission_manager import add, reset, update
 from frappe.custom.doctype.property_setter.property_setter import make_property_setter
 from frappe.database.utils import DefaultOrderBy
 from frappe.desk.reportview import get_filters_cond
@@ -889,7 +891,7 @@ class TestDBQuery(IntegrationTestCase):
 		# user permission for only one root folder
 		add_user_permission("Nested DocType", "Level 1 A", "test2@example.com")
 
-		from frappe.core.page.permission_manager.permission_manager import update
+		from frappe.core.api.permissions import update_permission_rule as update
 
 		# to avoid if_owner filter
 		update("Nested DocType", "All", 0, "if_owner", 0)

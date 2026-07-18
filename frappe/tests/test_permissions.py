@@ -6,9 +6,12 @@ import frappe
 import frappe.defaults
 import frappe.model.meta
 import frappe.permissions
+from frappe.core.api.permissions import add_permission_rule as add
+from frappe.core.api.permissions import clear_user_permissions
+from frappe.core.api.permissions import remove_permission_rule as remove
+from frappe.core.api.permissions import reset_permissions as reset
+from frappe.core.api.permissions import update_permission_rule as update
 from frappe.core.doctype.doctype.test_doctype import new_doctype
-from frappe.core.doctype.user_permission.user_permission import clear_user_permissions
-from frappe.core.page.permission_manager.permission_manager import add, remove, reset, update
 from frappe.desk.form.load import getdoc
 from frappe.installer import _delete_doctypes
 from frappe.permissions import (

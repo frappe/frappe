@@ -1161,7 +1161,7 @@ class TestQuery(IntegrationTestCase):
 		# Add user permission for only one root folder
 		add_user_permission("Nested DocType", "Level 1 A", "test2@example.com")
 
-		from frappe.core.page.permission_manager.permission_manager import update
+		from frappe.core.api.permissions import update_permission_rule as update
 
 		# To avoid if_owner filter
 		update("Nested DocType", "All", 0, "if_owner", 0)
@@ -2283,7 +2283,7 @@ class TestQuery(IntegrationTestCase):
 	def test_if_owner_constraint_with_shared_docs(self):
 		"""Test that shared docs trump if_owner constraint."""
 		import frappe.share
-		from frappe.core.page.permission_manager.permission_manager import update
+		from frappe.core.api.permissions import update_permission_rule as update
 
 		test_user = "test2@example.com"
 		test_user_doc = frappe.get_doc("User", test_user)
@@ -2384,7 +2384,7 @@ class TestQuery(IntegrationTestCase):
 
 	def test_role_permission_without_restrictions(self):
 		"""Test that all documents are accessible when role permissions exist without if_owner/user_perms."""
-		from frappe.core.page.permission_manager.permission_manager import update
+		from frappe.core.api.permissions import update_permission_rule as update
 		from frappe.permissions import clear_user_permissions_for_doctype
 
 		test_user = "test2@example.com"

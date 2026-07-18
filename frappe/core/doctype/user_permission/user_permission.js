@@ -14,7 +14,7 @@ frappe.ui.form.on("User Permission", {
 
 		frm.set_query("applicable_for", () => {
 			return {
-				query: "frappe.core.doctype.user_permission.user_permission.get_applicable_for_doctype_list",
+				query: "frappe.core.api.permissions.get_applicable_for_doctype_list",
 				filters: {
 					doctype: frm.doc.allow,
 				},

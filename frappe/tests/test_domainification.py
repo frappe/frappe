@@ -1,8 +1,8 @@
 # Copyright (c) 2015, Frappe Technologies Pvt. Ltd. and Contributors
 # License: MIT. See LICENSE
 import frappe
+from frappe.core.api.permissions import get_roles_and_doctypes
 from frappe.core.doctype.domain_settings.domain_settings import get_active_modules
-from frappe.core.page.permission_manager.permission_manager import get_roles_and_doctypes
 from frappe.tests import IntegrationTestCase
 
 

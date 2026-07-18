@@ -343,14 +343,14 @@ def get_role_permissions(doctype_meta, user=None, is_owner=None, debug=False):
 
 
 def get_user_permissions(user):
-	from frappe.core.doctype.user_permission.user_permission import get_user_permissions
+	from frappe.core.api.permissions import get_user_permissions
 
 	return get_user_permissions(user)
 
 
 def has_user_permission(doc, user=None, debug=False, *, ptype=None, strict=True):
 	"""Return True if User is allowed to view considering User Permissions."""
-	from frappe.core.doctype.user_permission.user_permission import get_user_permissions
+	from frappe.core.api.permissions import get_user_permissions
 
 	user_permissions = get_user_permissions(user)
 

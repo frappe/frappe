@@ -9,7 +9,7 @@ import copy
 
 import frappe
 import frappe.defaults
-from frappe.core.doctype.user_permission.user_permission import get_user_permissions
+from frappe.core.api.permissions import get_user_permissions
 from frappe.model import data_fieldtypes
 from frappe.permissions import filter_allowed_docs_for_doctype
 from frappe.utils import cstr, now_datetime, nowdate, nowtime
