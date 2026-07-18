@@ -234,6 +234,28 @@
 	text-align: left;
 }
 
+/* numeric merged cells keep their right alignment */
+.print-format-doc .child-table [data-fieldtype="Currency"].column-value--merged,
+.print-format-doc .child-table [data-fieldtype="Float"].column-value--merged,
+.print-format-doc .child-table [data-fieldtype="Int"].column-value--merged {
+	text-align: right;
+}
+
+.print-format-doc .child-table [data-fieldtype="Currency"].column-value--merged .cell-merged,
+.print-format-doc .child-table [data-fieldtype="Float"].column-value--merged .cell-merged,
+.print-format-doc .child-table [data-fieldtype="Int"].column-value--merged .cell-merged,
+.print-format-doc .child-table [data-fieldtype="Currency"].column-value--merged .cell-lines--horizontal,
+.print-format-doc .child-table [data-fieldtype="Float"].column-value--merged .cell-lines--horizontal,
+.print-format-doc .child-table [data-fieldtype="Int"].column-value--merged .cell-lines--horizontal {
+	justify-content: flex-end;
+}
+
+.print-format-doc .child-table [data-fieldtype="Currency"].column-value--merged .cell-lines,
+.print-format-doc .child-table [data-fieldtype="Float"].column-value--merged .cell-lines,
+.print-format-doc .child-table [data-fieldtype="Int"].column-value--merged .cell-lines {
+	align-items: flex-end;
+}
+
 .print-format-doc .child-table .cell-merged {
 	display: flex;
 	align-items: flex-start;
