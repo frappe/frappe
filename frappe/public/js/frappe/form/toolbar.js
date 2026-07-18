@@ -643,7 +643,22 @@ frappe.ui.form.Toolbar = class Toolbar {
 			let is_doctype_custom = is_doctype_form ? this.frm.doc.custom : false;
 			let is_core_doctype = frappe.model.core_doctypes_list.includes(doctype);
 
+<<<<<<< HEAD
 			if (!is_core_doctype && !is_doctype_custom && this.frm.meta.issingle === 0) {
+=======
+			if (!is_core_doctype && !frappe.model.is_single(doctype)) {
+				this.page.add_menu_item(
+					__("Settings"),
+					() => {
+						// The DocType Settings feature ships as its own on-demand bundle
+						// (kept out of desk.bundle.js), so load it before opening.
+						frappe.require("doctype_settings.bundle.js", () => {
+							frappe.doctype_settings.open(doctype);
+						});
+					},
+					true
+				);
+>>>>>>> 6a8fd4306b (fix(toolbar): use frappe.model.is_single to gate Customize menu)
 				this.page.add_menu_item(
 					__("Customize"),
 					() => {
