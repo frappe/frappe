@@ -294,7 +294,7 @@ const tabs = computed(() => [
 	{ id: "blocks", label: __("Blocks") },
 	{ id: "templates", label: __("Templates") },
 	{ id: "outline", label: __("Outline") },
-	{ id: "format", label: __("Format") },
+	{ id: "format", label: __("Setting") },
 ]);
 
 // ── blocks tab items ──────────────────────────────────────
@@ -791,8 +791,7 @@ watch(print_format, () => (store.dirty.value = true), { deep: true });
 .pfb-group-label {
 	font-size: var(--text-tiny);
 	font-weight: var(--weight-semibold);
-	text-transform: uppercase;
-	letter-spacing: 0.06em;
+	letter-spacing: 0;
 	color: var(--text-muted);
 	padding: 8px 10px 2px;
 	display: flex;

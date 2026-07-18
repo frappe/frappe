@@ -263,8 +263,7 @@ watch(print_format, () => (store.dirty.value = true), { deep: true });
 .zone-divider-label {
 	font-size: var(--text-tiny);
 	font-weight: var(--weight-medium);
-	text-transform: uppercase;
-	letter-spacing: 0.12em;
+	letter-spacing: 0;
 	white-space: nowrap;
 	color: var(--gray-400);
 }
