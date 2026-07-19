@@ -105,6 +105,15 @@ hr {
 .email-body {
 	font-size: 14px;
 	color: $text-color;
+	a:not(.btn) {
+		color: $gray-900;
+		font-weight: 600;
+		text-decoration: underline;
+	}
+	.text-muted a {
+		color: $text-muted !important;
+		font-weight: normal !important;
+	}
 	.gray-container {
 		background-color: $gray-50;
 		border-radius: $border-radius-lg;
@@ -155,10 +164,20 @@ hr {
 			padding: 28px 36px 0;
 		}
 		.email-body-cell {
-			padding: 8px 36px 12px;
+			padding: 8px 36px 28px;
 		}
 		.email-footer-cell {
-			padding: 0 36px 28px;
+			padding: 0 36px;
+		}
+		.email-footer-cell.filled {
+			background-color: #fafafa;
+			border-top: 1px solid $gray-100;
+			padding: 18px 36px 22px;
+		}
+		.email-footer-cell.filled .email-footer-container.with-divider {
+			margin-top: 0;
+			padding-top: 0;
+			border-top: none;
 		}
 		.email-body {
 			border-radius: 0 0 4px 4px;
@@ -189,10 +208,13 @@ hr {
 				padding: 24px 24px 0;
 			}
 			.email-body-cell {
-				padding: 8px 24px 12px;
+				padding: 8px 24px 24px;
 			}
 			.email-footer-cell {
-				padding: 0 24px 24px;
+				padding: 0 24px;
+			}
+			.email-footer-cell.filled {
+				padding: 16px 24px 20px;
 			}
 		}
 	}
