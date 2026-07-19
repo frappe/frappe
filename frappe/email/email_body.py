@@ -693,7 +693,7 @@ def sanitize_email_header(header: str):
 
 
 def get_brand_logo(email_account):
-	return email_account.get("brand_logo")
+	return (email_account and email_account.get("brand_logo")) or frappe.get_website_settings("app_logo")
 
 
 def get_brand_name():
