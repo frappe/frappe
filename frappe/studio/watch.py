@@ -9,6 +9,7 @@ straight off disk, and the vite dev server already hot-reloads those.
 
 import os
 import threading
+import traceback
 
 import frappe
 
@@ -112,13 +113,27 @@ class StudioSyncHandler(FileSystemEventHandler):
 
 		# `frappe.local` is a ContextVar, so this timer thread starts without one and needs its
 		# own connection. Connecting per flush also avoids holding one open while idle.
-		frappe.init(self.site)
-		frappe.connect()
+		try:
+			frappe.init(self.site)
+			frappe.connect()
+		except Exception:
+			# The DB was briefly unreachable. Put the batch back and let the debounce timer
+			# retry it, rather than dropping these edits until the next file change.
+			frappe.destroy()
+			self.requeue(paths)
+			print(f"[watch-studio] could not connect, will retry\n{traceback.format_exc()}")
+			return
+
 		try:
 			for path in sorted(paths):
 				self.sync(path)
 		finally:
 			frappe.destroy()
+
+	def requeue(self, paths: set[str]):
+		with self.lock:
+			self.pending |= paths
+			self.restart_timer()
 
 	def sync(self, path: str):
 		try:
