@@ -88,6 +88,18 @@ def _confirm_call(call_id: str = "c1") -> ChatResponse:
 	)
 
 
+def _memory_call(content: str = "Widget A maps to WGT-001.", call_id: str = "m1") -> ChatResponse:
+	"""A response that calls update_memory (runs inline, no confirmation)."""
+	return ChatResponse(
+		content=None,
+		tool_calls=[
+			ToolCall(id=call_id, name="update_memory", arguments={"content": content, "scope": "agent"})
+		],
+		finish_reason="tool_calls",
+		usage={"prompt_tokens": 1, "completion_tokens": 1, "total_tokens": 2},
+	)
+
+
 class TestStartRun(IntegrationTestCase):
 	@classmethod
 	def setUpClass(cls):
@@ -794,3 +806,40 @@ class TestSubmitFeedback(IntegrationTestCase):
 		result = submit_feedback(run, "Down", comment="Widget A maps to WGT-001.")
 		submit_feedback(run, "None")
 		self.assertTrue(frappe.db.exists("Flow Agent Memory", result["memory"]))
+
+
+class TestMemoryRunProvenance(IntegrationTestCase):
+	@classmethod
+	def setUpClass(cls):
+		super().setUpClass()
+		sync_builtin_tools()
+
+	def setUp(self):
+		self.model = frappe.get_doc(_model_doc(title="Provenance Model")).insert()
+		self.agent = frappe.get_doc(
+			_agent_doc(self.model.name, title="Provenance Agent", tools=[{"tool": "update_memory"}])
+		).insert()
+
+	def tearDown(self):
+		frappe.flags.flow_run = None
+		frappe.db.rollback()
+
+	def test_agent_memory_stamped_with_run_then_flag_cleared(self):
+		with patch.object(Model, "chat", side_effect=[_memory_call(), _final("done")]):
+			payload = start_run("remember the mapping", agent=self.agent.name)
+
+		self.assertEqual(payload["status"], "Completed")
+		memory = frappe.get_doc("Flow Agent Memory", {"agent": self.agent.name})
+		self.assertEqual(memory.source, "Agent")
+		self.assertEqual(memory.source_run, payload["name"])
+		# The flag must not linger past the run that set it.
+		self.assertIsNone(frappe.flags.get("flow_run"))
+
+	def test_flag_cleared_when_run_fails(self):
+		def boom(self, messages, tools=None, *, stream=False):
+			raise RuntimeError("kaboom")
+
+		with patch.object(Model, "chat", new=boom):
+			with self.assertRaises(RuntimeError):
+				start_run("go", agent=self.agent.name)
+		self.assertIsNone(frappe.flags.get("flow_run"))

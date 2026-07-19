@@ -204,6 +204,8 @@ def stream_with_persistence(
 			frappe.db.commit()
 		yield Error(message=str(e))
 	finally:
+		# The run's tools have finished; drop the source_run flag set for update_memory.
+		frappe.flags.flow_run = None
 		# Stream cut short (e.g. client disconnect raises GeneratorExit) before
 		# we persisted — record the run as failed so it doesn't sit in "Running".
 		if not persisted:

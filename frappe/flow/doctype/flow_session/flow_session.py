@@ -32,6 +32,13 @@ RESERVED_OUTPUT_TOKENS = 4096
 RETRIEVAL_TOP_K = 8
 
 
+def _set_active_run(run: str | None) -> None:
+	"""Record which run is executing, so memories the update_memory tool creates during it
+	are stamped with this run as their source_run. flow.memory.memory reads this flag;
+	stream_with_persistence clears it when a streamed run ends."""
+	frappe.flags.flow_run = run
+
+
 class FlowSession(Document):
 	# begin: auto-generated types
 	# This code is auto-generated. Do not modify anything in this block.
@@ -154,7 +161,6 @@ class FlowSession(Document):
 			reference_name=reference_name,
 			config_snapshot=self._snapshot,
 		)
-		frappe.flags.flow_run = run.name
 		self._persist_turn(input, attachment_data, run.name)
 		self._index_retrieval_attachments(run.name, {d["file"]: d["extracted_text"] for d in attachment_data})
 		run_input = self._build_prompt_messages()
@@ -168,6 +174,9 @@ class FlowSession(Document):
 		# trigger runs don't park in Paused waiting for a confirmation no one can give.
 		self._runtime.auto_approve = auto_approve
 
+		# The update_memory tool reads this to stamp source_run. Scope tightly to the runtime
+		# call and clear after, so a stale run never leaks onto a later write in this request.
+		_set_active_run(run.name)
 		if stream:
 			return stream_with_persistence(lambda: self._runtime.run(run_input, stream=True), run)
 
@@ -179,6 +188,8 @@ class FlowSession(Document):
 			if not frappe.flags.in_test:
 				frappe.db.commit()
 			raise
+		finally:
+			_set_active_run(None)
 		run.apply_result(result)
 		return run
 
@@ -285,13 +296,13 @@ class FlowSession(Document):
 		if not run_name:
 			frappe.throw(_("This session has no paused run to resume."), title=_("Nothing to Resume"))
 		run = frappe.get_doc("Flow Run", run_name)
-		frappe.flags.flow_run = run.name
 
 		self.reload()
 		messages = self._build_prompt_messages()
 		if not messages:
 			frappe.throw(_("This session has no transcript to resume from."))
 
+		_set_active_run(run.name)
 		if stream:
 			return stream_with_persistence(lambda: self._runtime.resume(messages, answers, stream=True), run)
 
@@ -300,6 +311,8 @@ class FlowSession(Document):
 		except Exception as e:
 			run.mark_failed(str(e))
 			raise
+		finally:
+			_set_active_run(None)
 		run.apply_result(result)
 		return run
 
