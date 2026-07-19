@@ -259,6 +259,17 @@
 									v-html="frappe.utils.icon(field_icon(field), 'sm')"
 								></span>
 								<span class="pfb-tree-label">{{ field_label(field) }}</span>
+								<span
+									v-if="field_broken(field)"
+									class="pfb-tree-warn"
+									:title="
+										__('Field “{0}” no longer exists on {1}', [
+											field.fieldname,
+											meta.name,
+										])
+									"
+									v-html="frappe.utils.icon('triangle-alert', 'sm')"
+								></span>
 								<span class="pfb-tree-badge">{{ field.fieldtype }}</span>
 							</div>
 						</div>
@@ -549,6 +560,19 @@ function select_field(field, section) {
 
 function field_label(f) {
 	return f.label || f.fieldname || f.fieldtype || __("Field");
+}
+
+// Fieldnames the doctype currently defines (plus the always-present ID field).
+let known_fieldnames = computed(() => {
+	const s = new Set((meta.value?.fields || []).map((df) => df.fieldname));
+	s.add("name");
+	return s;
+});
+// A real doctype field is broken when its fieldname is gone from the schema.
+// Custom blocks (HTML/Image/Barcode/Field Template) carry their own data, so skip them.
+function field_broken(f) {
+	if (f.custom || f.fieldtype === "Field Template" || !f.fieldname) return false;
+	return !known_fieldnames.value.has(f.fieldname);
 }
 
 let outline_tree = computed(() =>
@@ -1139,6 +1163,12 @@ watch(print_format, () => (store.dirty.value = true), { deep: true });
 	font-size: var(--text-tiny);
 	color: var(--gray-500);
 	flex-shrink: 0;
+}
+
+.pfb-tree-warn {
+	display: inline-flex;
+	flex-shrink: 0;
+	color: var(--text-on-orange, #b95000);
 }
 
 .pfb-tree-children {
