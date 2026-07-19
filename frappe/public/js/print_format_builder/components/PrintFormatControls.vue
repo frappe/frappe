@@ -18,9 +18,10 @@
 		<div v-if="activeTab === 'fields'" class="pfb-tab-body pfb-fields-tab">
 			<!-- Search -->
 			<div class="pfb-search-wrap">
-				<svg class="icon icon-xs pfb-search-icon text-muted">
-					<use href="#icon-search"></use>
-				</svg>
+				<span
+					class="pfb-search-icon text-muted"
+					v-html="frappe.utils.icon('search', 'xs')"
+				></span>
 				<input
 					ref="search_input"
 					class="pfb-search"
@@ -213,9 +214,10 @@
 							@click="add_to_layout(element)"
 						>
 							<div class="pfb-template-thumb">
-								<svg class="icon icon-sm text-muted">
-									<use href="#icon-table"></use>
-								</svg>
+								<span
+									class="text-muted"
+									v-html="frappe.utils.icon('table', 'sm')"
+								></span>
 							</div>
 							<div class="pfb-template-info">
 								<div class="pfb-template-name">{{ element.display_label }}</div>
@@ -1089,7 +1091,8 @@ watch(print_format, () => (store.dirty.value = true), { deep: true });
 }
 
 /* ── Block card (Blocks tab) ─────────────────────────────── */
-.pfb-block-card {
+.pfb-block-card,
+.pfb-template-card {
 	display: flex;
 	align-items: center;
 	gap: 10px;
@@ -1101,7 +1104,8 @@ watch(print_format, () => (store.dirty.value = true), { deep: true });
 	margin-top: 6px;
 }
 
-.pfb-block-card:hover {
+.pfb-block-card:hover,
+.pfb-template-card:hover {
 	background: var(--gray-100);
 	border-color: var(--gray-500);
 }
@@ -1132,23 +1136,6 @@ watch(print_format, () => (store.dirty.value = true), { deep: true });
 }
 
 /* ── Template card (Templates tab) ──────────────────────── */
-.pfb-template-card {
-	display: flex;
-	align-items: center;
-	gap: 10px;
-	padding: 8px 10px;
-	border-radius: var(--radius);
-	border: 1px solid var(--border-color);
-	background: var(--gray-50);
-	cursor: grab;
-	margin-top: 6px;
-}
-
-.pfb-template-card:hover {
-	background: var(--gray-100);
-	border-color: var(--gray-500);
-}
-
 .pfb-template-thumb {
 	display: flex;
 	align-items: center;
