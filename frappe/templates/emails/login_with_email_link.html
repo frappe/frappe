@@ -1,5 +1,6 @@
-<h1 class="email-header-title">{{ _('Click on the button to log in to {0}').format(app_name) }}</h1>
-<p class="text-muted">{{ _('The link will expire in {0} minutes').format(minutes) }}</p>
+<h1 class="email-header-title">{{ _("Log in to {0}").format(app_name) }}</h1>
+<p>{{ _("Click the button below to sign in to your account. This link will expire in {0} minutes.").format(minutes) }}</p>
 <p>
-	<a href="{{ link or '#'}}" class="btn btn-primary">{{ _('Log In To {0}').format(app_name) }}</a>
+	<a href="{{ link or '#'}}" class="btn btn-primary">{{ _("Log In to {0}").format(app_name) }}</a>
 </p>
+<p class="text-muted text-small">{{ _("If you didn't request this link, you can ignore this email. Someone may have entered your email address by mistake.") }}</p>
