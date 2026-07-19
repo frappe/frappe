@@ -627,6 +627,10 @@
 	.grid-form-body {
 		max-height: 80vh;
 		overflow: auto;
+
+		&:has(.awesomplete > [role="listbox"]:not([hidden])) {
+			min-height: unquote("min(60vh, 360px)");
+		}
 	}
 
 	// Tabs styling for child table grid row forms
