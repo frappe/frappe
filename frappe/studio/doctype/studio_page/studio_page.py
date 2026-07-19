@@ -277,6 +277,27 @@ class StudioPage(Document):
 
 	@frappe.whitelist()
 	def save_draft(self, draft_blocks: str, known_modified: str | None = None):
+		"""Persist the editor's working blocks under the optimistic lock (see reject_if_stale)."""
+		self.reject_if_stale(known_modified)
+		self.draft_blocks = draft_blocks
+		self._skip_validate = True  # blocks only change
+		self.save()
+		return self.modified
+
+	@frappe.whitelist()
+	def save_page_field(self, fieldname: str, value, known_modified: str | None = None):
+		"""Set a single editor-owned field (title/route/script) under the same optimistic lock as
+		save_draft, so a field edit can't silently overwrite a page the DB has moved past either."""
+		self.reject_if_stale(known_modified)
+		self.set(fieldname, value)
+		self._skip_validate = True
+		self.save()
+		return self.modified
+
+	def reject_if_stale(self, known_modified: str | None):
+		"""Refuse an editor write if the page changed in the DB (a disk sync by the watcher, an AI
+		edit) after the editor loaded it — otherwise the write would silently overwrite that newer
+		version. The editor turns the raised conflict into a "refresh to load the latest" prompt."""
 		if known_modified and get_datetime(known_modified) != get_datetime(self.modified):
 			frappe.throw(
 				_(
@@ -285,10 +306,6 @@ class StudioPage(Document):
 				exc=TimestampMismatchError,
 				title=_("Page changed"),
 			)
-		self.draft_blocks = draft_blocks
-		self._skip_validate = True
-		self.save()
-		return self.modified
 
 	@frappe.whitelist()
 	def publish(self, **kwargs):

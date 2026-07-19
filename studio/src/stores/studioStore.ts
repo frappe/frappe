@@ -56,6 +56,7 @@ const useStudioStore = defineStore("store", () => {
 	const showSlotEditorDialog = ref(false)
 	const showSearchBlock = ref(false)
 	const showStudioSettingsDialog = ref(false)
+	const showPageOptions = ref(false)
 
 	// studio apps
 	const activeApp = ref<StudioApp | null>(null)
@@ -240,54 +241,49 @@ const useStudioStore = defineStore("store", () => {
 				draft_blocks: pageData,
 				known_modified: activePage.value?.modified,
 			})
-			.then((response: any) => {
-				// keep our token current so the next autosave isn't seen as a conflict
-				const modified = response?.docs?.[0]?.modified ?? response?.message
-				if (activePage.value && modified) activePage.value.modified = modified
-			})
-			.catch((error: any) => {
-				if (error?.exc_type === "TimestampMismatchError") {
-					flagPageConflict()
-				} else {
-					throw error
-				}
-			})
+			.then(syncPageModified)
+			.catch(handlePageWriteConflict)
 			.finally(() => {
 				savingPage.value = false
 			})
 	}
 
-	function flagPageConflict() {
-		if (pageConflict.value) return
-		pageConflict.value = true
-		dialog.confirm({
-			title: "Page changed outside the editor",
-			message:
-				"This page was updated after you opened it. Refresh to load the latest version - your unsaved canvas changes will be replaced.",
-			confirmLabel: "Refresh",
-			theme: "yellow",
-			onConfirm: () => selectedPage.value && setPage(selectedPage.value),
-		})
+	function syncPageModified(response: any) {
+		const modified = response?.docs?.[0]?.modified ?? response?.message
+		if (activePage.value && modified) activePage.value.modified = modified
+	}
+
+	function handlePageWriteConflict(error: any) {
+		if (error?.exc_type === "TimestampMismatchError") {
+			if (pageConflict.value) return
+			pageConflict.value = true
+			showPageOptions.value = false
+			dialog.confirm({
+				title: "Page changed outside the editor",
+				message:
+					"This page was updated after you opened it. Refresh to load the latest version - your unsaved canvas changes will be replaced.",
+				confirmLabel: "Refresh",
+				theme: "yellow",
+				onConfirm: () => selectedPage.value && setPage(selectedPage.value),
+			})
+		}
+		else throw error
 	}
 
 	function updateActivePage(key: string, value: string) {
-		return studioPages.setValue.submit(
-			{ name: activePage.value?.name, [key]: value, _skip_validate: true },
-			{
-				onSuccess() {
-					activePage.value![key] = value
-				},
-			},
-		)
-	}
-
-	function setActivePageScript(script: string) {
-		if (!activePage.value) return Promise.resolve()
-		return studioPages.setValue
-			.submit({ name: activePage.value.name, script, _skip_validate: true })
-			.then(() => {
-				activePage.value!.script = script
+		return studioPages.runDocMethod
+			.submit({
+				name: activePage.value?.name,
+				method: "save_page_field",
+				fieldname: key,
+				value: value,
+				known_modified: activePage.value?.modified,
 			})
+			.then((response: any) => {
+				activePage.value![key] = value
+				syncPageModified(response)
+			})
+			.catch(handlePageWriteConflict)
 	}
 
 	// A server tool (AI) wrote the page script straight to the DB / code file, so re-fetch the
@@ -599,6 +595,7 @@ const useStudioStore = defineStore("store", () => {
 		showSlotEditorDialog,
 		showSearchBlock,
 		showStudioSettingsDialog,
+		showPageOptions,
 		// studio app
 		activeApp,
 		setApp,
@@ -628,7 +625,6 @@ const useStudioStore = defineStore("store", () => {
 		setPage,
 		savePage,
 		updateActivePage,
-		setActivePageScript,
 		reloadActivePageScript,
 		publishPage,
 		unpublishPage,

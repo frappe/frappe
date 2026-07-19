@@ -106,7 +106,7 @@ async function saveScript() {
 	}
 	saving.value = true
 	try {
-		await store.setActivePageScript(script.value)
+		await store.updateActivePage("script", script.value)
 		savedScript.value = script.value
 		// keep the runtime bindings in sync with the saved script
 		codeStore.setPageScript(page)
