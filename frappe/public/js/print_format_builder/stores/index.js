@@ -16,16 +16,20 @@ function load_clipboard() {
 
 const clipboard = ref(load_clipboard());
 
-function set_clipboard(value) {
-	clipboard.value = value;
+function persist_local(key, value) {
 	try {
-		localStorage.setItem(CLIPBOARD_KEY, JSON.stringify(value));
+		localStorage.setItem(key, JSON.stringify(value));
+		return true;
 	} catch {
-		// ignore quota / privacy-mode failures; in-memory copy still works
+		return false;
 	}
 }
 
-// keep the in-memory copy fresh when another tab copies something
+function set_clipboard(value) {
+	clipboard.value = value;
+	persist_local(CLIPBOARD_KEY, value);
+}
+
 if (typeof window !== "undefined") {
 	window.addEventListener("storage", (e) => {
 		if (e.key === CLIPBOARD_KEY) clipboard.value = load_clipboard();
@@ -36,7 +40,6 @@ function clone_plain(obj) {
 	return JSON.parse(JSON.stringify(obj));
 }
 
-// Style presets — the visual settings a preset captures, plus its persistence.
 const STYLE_PRESETS_KEY = "pfb_style_presets";
 const STYLE_PRESET_KEYS = [
 	"font",
@@ -57,14 +60,9 @@ function load_style_presets() {
 	}
 }
 function persist_style_presets(list) {
-	try {
-		localStorage.setItem(STYLE_PRESETS_KEY, JSON.stringify(list));
-	} catch {
-		// ignore quota / privacy-mode failures; in-memory copy still works
-	}
+	persist_local(STYLE_PRESETS_KEY, list);
 }
 
-// Section snippets — named, reusable sections shared across print formats.
 const SECTION_SNIPPETS_KEY = "pfb_section_snippets";
 function load_section_snippets() {
 	try {
@@ -74,11 +72,7 @@ function load_section_snippets() {
 	}
 }
 function persist_section_snippets(list) {
-	try {
-		localStorage.setItem(SECTION_SNIPPETS_KEY, JSON.stringify(list));
-	} catch {
-		// ignore quota / privacy-mode failures; in-memory copy still works
-	}
+	persist_local(SECTION_SNIPPETS_KEY, list);
 }
 
 // A pasted custom element (HTML/Image/Barcode block) gets a fresh fieldname so
@@ -101,7 +95,6 @@ export function getStore(print_format_name) {
 	let edit_letterhead = ref(false);
 	let scroll_to_section = ref(null);
 	let selected_field = ref(null);
-	// Multi-selection layer; selected_field stays the "primary" for the inspector.
 	let selected_fields = ref([]);
 	let selected_section = ref(null);
 	let selected_letterhead = ref(false);
@@ -265,8 +258,6 @@ export function getStore(print_format_name) {
 		selected_letterhead.value = false;
 		selected_lh_footer.value = false;
 	}
-	// Keep the multi-selection in step when the primary is set directly
-	// (paste, duplicate, keyboard nav) rather than through select_field.
 	watch(selected_field, (nf) => {
 		if (!nf) {
 			if (selected_fields.value.length) selected_fields.value = [];
@@ -415,7 +406,6 @@ export function getStore(print_format_name) {
 		if (!section || !layout.value) return;
 		const sections = layout.value.sections;
 		const idx = sections.indexOf(section);
-		// header/footer zones live outside sections and can't be duplicated
 		if (idx === -1) return;
 		const clone = clone_plain(section);
 		delete clone.remove;
@@ -425,8 +415,20 @@ export function getStore(print_format_name) {
 		selected_section.value = clone;
 	}
 	function duplicate_selection() {
-		if (selected_field.value) duplicate_field(selected_field.value);
-		else if (selected_section.value) duplicate_section(selected_section.value);
+		if (selected_fields.value.length > 1) {
+			const clones = [];
+			selected_fields.value.slice().forEach((df) => {
+				selected_field.value = null;
+				duplicate_field(df);
+				if (selected_field.value) clones.push(selected_field.value);
+			});
+			selected_fields.value = clones;
+			selected_field.value = clones[clones.length - 1] || null;
+		} else if (selected_field.value) {
+			duplicate_field(selected_field.value);
+		} else if (selected_section.value) {
+			duplicate_section(selected_section.value);
+		}
 	}
 	function move_in_array(arr, item, dir) {
 		const i = arr.indexOf(item);
@@ -435,8 +437,31 @@ export function getStore(print_format_name) {
 		arr.splice(i, 1);
 		arr.splice(j, 0, item);
 	}
+	function move_fields_in_column(col, fields, dir) {
+		const selected = new Set(fields);
+		const ordered = fields
+			.slice()
+			.sort((a, b) => col.fields.indexOf(a) - col.fields.indexOf(b));
+		const seq = dir > 0 ? ordered.reverse() : ordered;
+		for (const df of seq) {
+			const i = col.fields.indexOf(df);
+			const j = i + dir;
+			if (j < 0 || j >= col.fields.length) continue;
+			if (selected.has(col.fields[j])) continue;
+			move_in_array(col.fields, df, dir);
+		}
+	}
 	function move_selection(dir) {
-		if (selected_field.value) {
+		if (selected_fields.value.length > 1) {
+			const groups = new Map();
+			selected_fields.value.forEach((df) => {
+				const col = find_field_column(df);
+				if (!col) return;
+				if (!groups.has(col)) groups.set(col, []);
+				groups.get(col).push(df);
+			});
+			groups.forEach((fields, col) => move_fields_in_column(col, fields, dir));
+		} else if (selected_field.value) {
 			const col = find_field_column(selected_field.value);
 			if (col) move_in_array(col.fields, selected_field.value, dir);
 		} else if (selected_section.value) {
@@ -444,8 +469,6 @@ export function getStore(print_format_name) {
 		}
 	}
 
-	// Style presets — a named bundle of the format's visual settings, persisted
-	// to localStorage so one look can be reused across print formats.
 	const style_presets = ref(load_style_presets());
 	function save_style_preset(name) {
 		name = (name || "").trim();
@@ -484,8 +507,6 @@ export function getStore(print_format_name) {
 
 		if (clip.type === "field") {
 			const clone = freshen_field(clone_plain(clip.data));
-			// Insert after the selected field in its column; else append to the
-			// selected section (or the last body section).
 			const col = selected_field.value && find_field_column(selected_field.value);
 			if (col) {
 				col.fields.splice(col.fields.indexOf(selected_field.value) + 1, 0, clone);
@@ -502,8 +523,6 @@ export function getStore(print_format_name) {
 			insert_section(clip.data);
 		}
 	}
-	// Clone a section, freshen its custom fields, and drop it in after the
-	// selected section (or at the end). Shared by paste and snippet insert.
 	function insert_section(data) {
 		if (!data || !layout.value) return;
 		const clone = clone_plain(data);
