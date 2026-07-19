@@ -1,3 +1,13 @@
+export function clone_plain(obj) {
+	return JSON.parse(JSON.stringify(obj));
+}
+
+export function freshen_field(f) {
+	delete f.remove;
+	if (f.custom && f.fieldname) f.fieldname += "_" + frappe.utils.get_random(8);
+	return f;
+}
+
 export function create_default_layout(meta, print_format) {
 	let layout = {
 		header: get_default_header(meta),

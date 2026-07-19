@@ -1,87 +1,12 @@
-import { create_default_layout, serialize_layout } from "../utils";
+import { clone_plain, create_default_layout, serialize_layout } from "../utils";
 import { useLayoutHistory } from "./useLayoutHistory";
+import { usePresets } from "../composables/usePresets";
+import { usePreviewDoc } from "../composables/usePreviewDoc";
+import { useSelection } from "../composables/useSelection";
+import { useLayoutMutations } from "../composables/useLayoutMutations";
+import { useClipboard } from "../composables/useClipboard";
+import { useSnippets } from "../composables/useSnippets";
 import { watch, ref, inject, computed, nextTick } from "vue";
-
-// Copy/paste clipboard — persisted to localStorage so a field or section copied
-// in one print format can be pasted into another, even across reloads or tabs.
-const CLIPBOARD_KEY = "pfb_clipboard";
-
-function load_clipboard() {
-	try {
-		return JSON.parse(localStorage.getItem(CLIPBOARD_KEY)) || null;
-	} catch {
-		return null;
-	}
-}
-
-const clipboard = ref(load_clipboard());
-
-function persist_local(key, value) {
-	try {
-		localStorage.setItem(key, JSON.stringify(value));
-		return true;
-	} catch {
-		return false;
-	}
-}
-
-function set_clipboard(value) {
-	clipboard.value = value;
-	persist_local(CLIPBOARD_KEY, value);
-}
-
-if (typeof window !== "undefined") {
-	window.addEventListener("storage", (e) => {
-		if (e.key === CLIPBOARD_KEY) clipboard.value = load_clipboard();
-	});
-}
-
-function clone_plain(obj) {
-	return JSON.parse(JSON.stringify(obj));
-}
-
-const STYLE_PRESETS_KEY = "pfb_style_presets";
-const STYLE_PRESET_KEYS = [
-	"font",
-	"font_size",
-	"label_color",
-	"value_color",
-	"margin_top",
-	"margin_right",
-	"margin_bottom",
-	"margin_left",
-	"page_number",
-];
-function load_style_presets() {
-	try {
-		return JSON.parse(localStorage.getItem(STYLE_PRESETS_KEY)) || [];
-	} catch {
-		return [];
-	}
-}
-function persist_style_presets(list) {
-	persist_local(STYLE_PRESETS_KEY, list);
-}
-
-const SECTION_SNIPPETS_KEY = "pfb_section_snippets";
-function load_section_snippets() {
-	try {
-		return JSON.parse(localStorage.getItem(SECTION_SNIPPETS_KEY)) || [];
-	} catch {
-		return [];
-	}
-}
-function persist_section_snippets(list) {
-	persist_local(SECTION_SNIPPETS_KEY, list);
-}
-
-// A pasted custom element (HTML/Image/Barcode block) gets a fresh fieldname so
-// duplicates don't collide; real doctype fields keep theirs.
-function freshen_field(f) {
-	delete f.remove;
-	if (f.custom && f.fieldname) f.fieldname += "_" + frappe.utils.get_random(8);
-	return f;
-}
 
 export function getStore(print_format_name) {
 	// variables
@@ -93,16 +18,37 @@ export function getStore(print_format_name) {
 	let needs_setup = ref(false);
 	let edit_letterhead = ref(false);
 	let scroll_to_section = ref(null);
-	let selected_field = ref(null);
-	let selected_fields = ref([]);
-	let selected_section = ref(null);
-	let selected_letterhead = ref(false);
-	let selected_lh_footer = ref(false);
-	let preview_doc = ref(null);
-	let preview_doc_name = ref(null);
-	let preview_values = ref({});
-	let preview_child_values = ref({});
-	let preview_load_seq = 0;
+	const selection = useSelection();
+	const {
+		selected_field,
+		selected_fields,
+		selected_section,
+		selected_letterhead,
+		selected_lh_footer,
+		select_field,
+		select_section,
+		select_letterhead,
+		remove_selected_fields,
+		remove_field,
+		align_selected_fields,
+	} = selection;
+	const {
+		find_field_column,
+		duplicate_field,
+		duplicate_section,
+		duplicate_selection,
+		move_selection,
+		insert_section,
+		remove_section,
+	} = useLayoutMutations(layout, selection);
+	const {
+		preview_doc,
+		preview_doc_name,
+		preview_values,
+		preview_child_values,
+		load_preview_doc,
+		persisted_preview_doc_name,
+	} = usePreviewDoc(print_format, print_format_name);
 
 	// methods
 	function fetch() {
@@ -239,100 +185,6 @@ export function getStore(print_format_name) {
 		serialize_layout(snapshot);
 		return { ...print_format.value, format_data: JSON.stringify(snapshot) };
 	}
-	function select_field(df, additive = false) {
-		if (additive && df) {
-			const arr = selected_fields.value.slice();
-			const i = arr.indexOf(df);
-			if (i === -1) arr.push(df);
-			else arr.splice(i, 1);
-			selected_fields.value = arr;
-			selected_field.value = arr[arr.length - 1] || null;
-		} else {
-			selected_fields.value = df ? [df] : [];
-			selected_field.value = df;
-		}
-		selected_letterhead.value = false;
-		selected_lh_footer.value = false;
-	}
-	watch(selected_field, (nf) => {
-		if (!nf) {
-			if (selected_fields.value.length) selected_fields.value = [];
-		} else if (!selected_fields.value.includes(nf)) {
-			selected_fields.value = [nf];
-		}
-	});
-	function remove_selected_fields() {
-		selected_fields.value.forEach((df) => (df.remove = true));
-		selected_fields.value = [];
-		selected_field.value = null;
-	}
-	function remove_field(df) {
-		df.remove = true;
-		const rest = selected_fields.value.filter((f) => f !== df);
-		if (rest.length !== selected_fields.value.length) selected_fields.value = rest;
-		if (selected_field.value === df) selected_field.value = rest[rest.length - 1] || null;
-	}
-	function align_selected_fields(align) {
-		selected_fields.value.forEach((df) => (df.align = align));
-	}
-	function select_section(section) {
-		selected_section.value = section;
-		selected_field.value = null;
-		selected_letterhead.value = false;
-		selected_lh_footer.value = false;
-	}
-	function select_letterhead({ footer = false } = {}) {
-		selected_letterhead.value = !footer;
-		selected_lh_footer.value = footer;
-		selected_field.value = null;
-		selected_section.value = null;
-	}
-	function remove_section(section) {
-		const idx = layout.value.sections.indexOf(section);
-		if (idx === -1) return;
-		layout.value.sections.splice(idx, 1);
-		if (selected_section.value === section) {
-			selected_section.value = null;
-		}
-		if (
-			selected_field.value &&
-			section.columns.some((c) => c.fields.includes(selected_field.value))
-		) {
-			selected_field.value = null;
-		}
-	}
-	// Persist the chosen preview record per print format so it survives a refresh
-	const preview_doc_ls_key = `pfb:preview_doc:${print_format_name}`;
-	function persisted_preview_doc_name() {
-		return localStorage.getItem(preview_doc_ls_key);
-	}
-	function load_preview_doc(name) {
-		const seq = ++preview_load_seq;
-		if (!name) {
-			preview_doc.value = null;
-			preview_doc_name.value = null;
-			preview_values.value = {};
-			preview_child_values.value = {};
-			localStorage.removeItem(preview_doc_ls_key);
-			return;
-		}
-		preview_doc_name.value = name;
-		localStorage.setItem(preview_doc_ls_key, name);
-		frappe.db.get_doc(print_format.value.doc_type, name).then((doc) => {
-			if (seq !== preview_load_seq) return;
-			preview_doc.value = doc;
-		});
-		frappe
-			.call("frappe.utils.print_format_generator.get_formatted_field_values", {
-				doctype: print_format.value.doc_type,
-				name,
-			})
-			.then((r) => {
-				if (seq !== preview_load_seq) return;
-				preview_values.value = r.message?.values || {};
-				preview_child_values.value = r.message?.child || {};
-			});
-	}
 	function get_layout() {
 		if (print_format.value && print_format.value.format_data) {
 			if (typeof print_format.value.format_data == "string") {
@@ -387,179 +239,20 @@ export function getStore(print_format_name) {
 		{ deep: true }
 	);
 
-	function copy_field(df) {
-		if (!df) return;
-		set_clipboard({ type: "field", data: clone_plain(df) });
-	}
-	function copy_section(section) {
-		if (!section) return;
-		set_clipboard({ type: "section", data: clone_plain(section) });
-	}
-	function copy_selection() {
-		if (selected_field.value) copy_field(selected_field.value);
-		else if (selected_section.value) copy_section(selected_section.value);
-	}
-	function duplicate_field(df) {
-		if (!df || !layout.value) return;
-		const col = find_field_column(df);
-		if (!col) return;
-		const clone = freshen_field(clone_plain(df));
-		col.fields.splice(col.fields.indexOf(df) + 1, 0, clone);
-		selected_section.value = null;
-		selected_field.value = clone;
-	}
-	function duplicate_section(section) {
-		if (!section || !layout.value) return;
-		const sections = layout.value.sections;
-		const idx = sections.indexOf(section);
-		if (idx === -1) return;
-		const clone = clone_plain(section);
-		delete clone.remove;
-		(clone.columns || []).forEach((c) => (c.fields || []).forEach(freshen_field));
-		sections.splice(idx + 1, 0, clone);
-		selected_field.value = null;
-		selected_section.value = clone;
-	}
-	function duplicate_selection() {
-		if (selected_fields.value.length > 1) {
-			const clones = [];
-			selected_fields.value.slice().forEach((df) => {
-				selected_field.value = null;
-				duplicate_field(df);
-				if (selected_field.value) clones.push(selected_field.value);
-			});
-			selected_fields.value = clones;
-			selected_field.value = clones[clones.length - 1] || null;
-		} else if (selected_field.value) {
-			duplicate_field(selected_field.value);
-		} else if (selected_section.value) {
-			duplicate_section(selected_section.value);
-		}
-	}
-	function move_in_array(arr, item, dir) {
-		const i = arr.indexOf(item);
-		const j = i + dir;
-		if (i === -1 || j < 0 || j >= arr.length) return;
-		arr.splice(i, 1);
-		arr.splice(j, 0, item);
-	}
-	function move_fields_in_column(col, fields, dir) {
-		const selected = new Set(fields);
-		const ordered = fields
-			.slice()
-			.sort((a, b) => col.fields.indexOf(a) - col.fields.indexOf(b));
-		const seq = dir > 0 ? ordered.reverse() : ordered;
-		for (const df of seq) {
-			const i = col.fields.indexOf(df);
-			const j = i + dir;
-			if (j < 0 || j >= col.fields.length) continue;
-			if (selected.has(col.fields[j])) continue;
-			move_in_array(col.fields, df, dir);
-		}
-	}
-	function move_selection(dir) {
-		if (selected_fields.value.length > 1) {
-			const groups = new Map();
-			selected_fields.value.forEach((df) => {
-				const col = find_field_column(df);
-				if (!col) return;
-				if (!groups.has(col)) groups.set(col, []);
-				groups.get(col).push(df);
-			});
-			groups.forEach((fields, col) => move_fields_in_column(col, fields, dir));
-		} else if (selected_field.value) {
-			const col = find_field_column(selected_field.value);
-			if (col) move_in_array(col.fields, selected_field.value, dir);
-		} else if (selected_section.value) {
-			move_in_array(layout.value?.sections || [], selected_section.value, dir);
-		}
-	}
-
-	const style_presets = ref(load_style_presets());
-	function save_style_preset(name) {
-		name = (name || "").trim();
-		if (!name || !print_format.value) return;
-		const style = {};
-		for (const key of STYLE_PRESET_KEYS) style[key] = print_format.value[key];
-		const list = style_presets.value.filter((p) => p.name !== name);
-		list.push({ name, style });
-		list.sort((a, b) => a.name.localeCompare(b.name));
-		style_presets.value = list;
-		persist_style_presets(list);
-	}
-	function apply_style_preset(name) {
-		const preset = style_presets.value.find((p) => p.name === name);
-		if (!preset || !print_format.value) return;
-		Object.assign(print_format.value, preset.style);
-	}
-	function delete_style_preset(name) {
-		style_presets.value = style_presets.value.filter((p) => p.name !== name);
-		persist_style_presets(style_presets.value);
-	}
-	function find_field_column(df) {
-		const lv = layout.value;
-		const zones = [lv?.header, lv?.footer, ...(lv?.sections || [])].filter(Boolean);
-		for (const section of zones) {
-			for (const column of section.columns || []) {
-				if (column.fields?.includes(df)) return column;
-			}
-		}
-		return null;
-	}
-	function paste_clipboard() {
-		const clip = load_clipboard() || clipboard.value;
-		clipboard.value = clip;
-		if (!clip || !layout.value) return;
-
-		if (clip.type === "field") {
-			const clone = freshen_field(clone_plain(clip.data));
-			const col = selected_field.value && find_field_column(selected_field.value);
-			if (col) {
-				col.fields.splice(col.fields.indexOf(selected_field.value) + 1, 0, clone);
-			} else {
-				const sections = layout.value.sections || [];
-				const target = selected_section.value || sections[sections.length - 1];
-				const first_col = target?.columns?.[0];
-				if (!first_col) return;
-				first_col.fields.push(clone);
-			}
-			selected_section.value = null;
-			selected_field.value = clone;
-		} else if (clip.type === "section") {
-			insert_section(clip.data);
-		}
-	}
-	function insert_section(data) {
-		if (!data || !layout.value) return;
-		const clone = clone_plain(data);
-		delete clone.remove;
-		(clone.columns || []).forEach((c) => (c.fields || []).forEach(freshen_field));
-		const sections = layout.value.sections;
-		const idx = selected_section.value ? sections.indexOf(selected_section.value) : -1;
-		if (idx !== -1) sections.splice(idx + 1, 0, clone);
-		else sections.push(clone);
-		selected_field.value = null;
-		selected_section.value = clone;
-	}
-
-	const section_snippets = ref(load_section_snippets());
-	function save_section_snippet(name, section) {
-		name = (name || "").trim();
-		if (!name || !section) return;
-		const list = section_snippets.value.filter((s) => s.name !== name);
-		list.push({ name, section: clone_plain(section) });
-		list.sort((a, b) => a.name.localeCompare(b.name));
-		section_snippets.value = list;
-		persist_section_snippets(list);
-	}
-	function insert_section_snippet(name) {
-		const snip = section_snippets.value.find((s) => s.name === name);
-		if (snip) insert_section(snip.section);
-	}
-	function delete_section_snippet(name) {
-		section_snippets.value = section_snippets.value.filter((s) => s.name !== name);
-		persist_section_snippets(section_snippets.value);
-	}
+	const { style_presets, save_style_preset, apply_style_preset, delete_style_preset } =
+		usePresets(print_format);
+	const { clipboard, copy_field, copy_section, copy_selection, paste_clipboard } = useClipboard({
+		selection,
+		layout,
+		find_field_column,
+		insert_section,
+	});
+	const {
+		section_snippets,
+		save_section_snippet,
+		insert_section_snippet,
+		delete_section_snippet,
+	} = useSnippets({ insert_section });
 
 	return {
 		print_format,
