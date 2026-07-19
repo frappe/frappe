@@ -267,8 +267,6 @@
 	margin: 0;
 }
 
-/* The floating element dragged with SortableJS's fallback (DRAG_OPTIONS
-   forceFallback). It is appended to <body>, so this must stay global/unscoped. */
 .pfb-drag-fallback {
 	opacity: 0.95 !important;
 	box-shadow: 0 10px 28px rgba(0, 0, 0, 0.16);
@@ -277,8 +275,6 @@
 	pointer-events: none;
 }
 
-/* Ghost placeholder collapses to a thin insertion line marking the drop position.
-   Only builder draggables use this class (via DRAG_OPTIONS ghostClass). */
 .pfb-drag-ghost {
 	height: 0 !important;
 	min-height: 0 !important;
@@ -306,8 +302,6 @@
 	border-radius: 2px;
 }
 
-/* Drag sources must not start a text selection when grabbed: forceFallback uses a
-   real mousedown-drag (unlike native HTML5 drag, which never selected text). */
 .pfb-field-row,
 .pfb-block-card,
 .pfb-template-card,
@@ -317,8 +311,6 @@
 	-webkit-user-select: none;
 }
 
-/* While a drag is in progress the whole page is unselectable, so the mouse-move
-   can't extend a selection across gaps or neighbouring elements. */
 body.pfb-dragging,
 body.pfb-dragging * {
 	user-select: none !important;

@@ -138,9 +138,6 @@ export function pluck(object, keys) {
 	return out;
 }
 
-// Smooth drag: use SortableJS's own clone instead of the browser's native HTML5
-// drag image (which jitters), and float it on <body> so overflow containers don't
-// clip it. Shared by every draggable in the builder for a consistent feel.
 export const DRAG_OPTIONS = {
 	forceFallback: true,
 	fallbackOnBody: true,
@@ -149,9 +146,6 @@ export const DRAG_OPTIONS = {
 	ghostClass: "pfb-drag-ghost",
 };
 
-// forceFallback drags with a real mousedown, which the browser treats as a text
-// selection. Suppress selection for the duration of the drag and clear any range
-// that already started. Wire to every draggable's @start/@end.
 export function setDragging(active) {
 	document.body.classList.toggle("pfb-dragging", active);
 	if (active) window.getSelection()?.removeAllRanges();

@@ -252,7 +252,6 @@ function handle_keydown(e) {
 		}
 	}
 
-	// Alt+↑/↓ nudges the selected field/section up or down in its list
 	if (e.altKey && (e.key === "ArrowUp" || e.key === "ArrowDown")) {
 		const el = document.activeElement;
 		if (
