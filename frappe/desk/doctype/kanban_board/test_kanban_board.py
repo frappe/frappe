@@ -180,6 +180,23 @@ class TestKanbanBoard(IntegrationTestCase):
 		self.assertEqual(len(_decompress_kanban_cards(open_data["cards"])), 3)
 		self.assertEqual(len(_decompress_kanban_cards(closed_data["cards"])), 1)
 
+	def test_on_change_clears_only_reference_doctype_user_settings(self):
+		from frappe.model.utils import user_settings
+
+		user = frappe.session.user
+		user_settings.update_user_settings("ToDo", {"sentinel": "ref"})
+		user_settings.update_user_settings("User", {"sentinel": "other"})
+
+		self.assertIsNotNone(frappe.cache.hget("_user_settings", f"ToDo::{user}"))
+		self.assertIsNotNone(frappe.cache.hget("_user_settings", f"User::{user}"))
+
+		frappe.get_doc("Kanban Board", self.board_name).save(ignore_permissions=True)
+
+		self.assertIsNone(frappe.cache.hget("_user_settings", f"ToDo::{user}"))
+		self.assertIsNotNone(frappe.cache.hget("_user_settings", f"User::{user}"))
+
+		frappe.cache.hdel("_user_settings", f"User::{user}")
+
 	def test_get_kanban_column_page(self):
 		frappe.local.form_dict = frappe._dict(
 			{
