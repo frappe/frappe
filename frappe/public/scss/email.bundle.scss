@@ -88,6 +88,8 @@ hr {
 		vertical-align: middle;
 	}
 	.email-masthead a {
+		display: flex;
+		align-items: center;
 		text-decoration: none;
 		color: $gray-900;
 	}
