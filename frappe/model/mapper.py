@@ -14,7 +14,8 @@ def make_mapped_doc(method, source_name, selected_children=None, args=None):
 	Set `selected_children` as flags for the `get_mapped_doc` method.
 
 	Called from `open_mapped_doc` from create_new.js"""
-	method = frappe.get_attr(frappe.override_whitelisted_method(method))
+	resolved_method_path = frappe.override_whitelisted_method(method)
+	method = frappe.get_attr(resolved_method_path)
 
 	frappe.is_whitelisted(method)
 
@@ -37,7 +38,8 @@ def map_docs(method, source_names, target_doc, args=None):
 
 	e.g. args: "{ 'supplier': 'XYZ' }"
 	"""
-	method = frappe.get_attr(frappe.override_whitelisted_method(method))
+	resolved_method_path = frappe.override_whitelisted_method(method)
+	method = frappe.get_attr(resolved_method_path)
 
 	frappe.is_whitelisted(method)
 
