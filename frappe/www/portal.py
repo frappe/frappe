@@ -23,7 +23,7 @@ def get_context(context, **dict_params):
 
 		list_params = frappe.local.form_dict.copy()
 		list_params.pop("list_context", None)
-		context.update(get(list_context, **list_params))
+		context.update(get(list_context=list_context, **list_params))
 		context.home_page = "/portal"
 		context.doctype = frappe.local.form_dict.doctype
 	return context
@@ -40,12 +40,13 @@ def set_route(context):
 
 
 def get(
-	list_context,
 	doctype: str,
 	txt: str | None = None,
 	limit_start: int = 0,
 	limit: int = 20,
 	pathname: str | None = None,
+	*,
+	list_context,
 	**kwargs,
 ):
 	"""Return processed HTML page for a standard listing."""
