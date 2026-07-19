@@ -354,6 +354,21 @@ export function getStore(print_format_name) {
 		if (selected_field.value) duplicate_field(selected_field.value);
 		else if (selected_section.value) duplicate_section(selected_section.value);
 	}
+	function move_in_array(arr, item, dir) {
+		const i = arr.indexOf(item);
+		const j = i + dir;
+		if (i === -1 || j < 0 || j >= arr.length) return;
+		arr.splice(i, 1);
+		arr.splice(j, 0, item);
+	}
+	function move_selection(dir) {
+		if (selected_field.value) {
+			const col = find_field_column(selected_field.value);
+			if (col) move_in_array(col.fields, selected_field.value, dir);
+		} else if (selected_section.value) {
+			move_in_array(layout.value?.sections || [], selected_section.value, dir);
+		}
+	}
 	function find_field_column(df) {
 		const lv = layout.value;
 		const zones = [lv?.header, lv?.footer, ...(lv?.sections || [])].filter(Boolean);
@@ -437,6 +452,7 @@ export function getStore(print_format_name) {
 		duplicate_field,
 		duplicate_section,
 		duplicate_selection,
+		move_selection,
 		paste_clipboard,
 		undo,
 		redo,

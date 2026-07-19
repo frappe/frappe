@@ -252,6 +252,22 @@ function handle_keydown(e) {
 		}
 	}
 
+	// Alt+↑/↓ nudges the selected field/section up or down in its list
+	if (e.altKey && (e.key === "ArrowUp" || e.key === "ArrowDown")) {
+		const el = document.activeElement;
+		if (
+			el?.tagName === "INPUT" ||
+			el?.tagName === "TEXTAREA" ||
+			el?.isContentEditable ||
+			el?.closest(".modal")
+		)
+			return;
+		if (!$store.value.selected_field.value && !$store.value.selected_section.value) return;
+		e.preventDefault();
+		$store.value.move_selection(e.key === "ArrowUp" ? -1 : 1);
+		return;
+	}
+
 	if (e.key === "Delete" || e.key === "Backspace") {
 		// Never hijack delete/backspace from text editing contexts
 		const el = document.activeElement;
