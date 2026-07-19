@@ -178,33 +178,29 @@ function on_start_blank() {
 	$store.value.needs_setup.value = false;
 }
 
+function is_typing_context() {
+	const el = document.activeElement;
+	return !!(
+		el?.tagName === "INPUT" ||
+		el?.tagName === "TEXTAREA" ||
+		el?.isContentEditable ||
+		el?.closest(".modal")
+	);
+}
+
 function handle_keydown(e) {
 	// Zoom shortcuts: Ctrl+= / Ctrl+- / Ctrl+0
 	if (e.ctrlKey || e.metaKey) {
 		if (e.key === "z" || e.key === "Z" || e.key === "y") {
 			// rich text editors and dialogs keep their own undo
-			const el = document.activeElement;
-			if (
-				el?.tagName === "INPUT" ||
-				el?.tagName === "TEXTAREA" ||
-				el?.isContentEditable ||
-				el?.closest(".modal")
-			)
-				return;
+			if (is_typing_context()) return;
 			e.preventDefault();
 			if (e.key === "y" || e.shiftKey) $store.value.redo();
 			else $store.value.undo();
 			return;
 		}
 		if (e.key === "c" || e.key === "C" || e.key === "v" || e.key === "V") {
-			const el = document.activeElement;
-			if (
-				el?.tagName === "INPUT" ||
-				el?.tagName === "TEXTAREA" ||
-				el?.isContentEditable ||
-				el?.closest(".modal")
-			)
-				return;
+			if (is_typing_context()) return;
 			const is_copy = e.key === "c" || e.key === "C";
 			if (is_copy) {
 				// Let native copy work when text is highlighted or nothing in the
@@ -222,14 +218,7 @@ function handle_keydown(e) {
 			return;
 		}
 		if (e.key === "d" || e.key === "D") {
-			const el = document.activeElement;
-			if (
-				el?.tagName === "INPUT" ||
-				el?.tagName === "TEXTAREA" ||
-				el?.isContentEditable ||
-				el?.closest(".modal")
-			)
-				return;
+			if (is_typing_context()) return;
 			if (!$store.value.selected_field.value && !$store.value.selected_section.value) return;
 			e.preventDefault();
 			$store.value.duplicate_selection();
@@ -253,14 +242,7 @@ function handle_keydown(e) {
 	}
 
 	if (e.altKey && (e.key === "ArrowUp" || e.key === "ArrowDown")) {
-		const el = document.activeElement;
-		if (
-			el?.tagName === "INPUT" ||
-			el?.tagName === "TEXTAREA" ||
-			el?.isContentEditable ||
-			el?.closest(".modal")
-		)
-			return;
+		if (is_typing_context()) return;
 		if (!$store.value.selected_field.value && !$store.value.selected_section.value) return;
 		e.preventDefault();
 		$store.value.move_selection(e.key === "ArrowUp" ? -1 : 1);
@@ -269,14 +251,7 @@ function handle_keydown(e) {
 
 	if (e.key === "Delete" || e.key === "Backspace") {
 		// Never hijack delete/backspace from text editing contexts
-		const el = document.activeElement;
-		if (
-			el?.tagName === "INPUT" ||
-			el?.tagName === "TEXTAREA" ||
-			el?.isContentEditable ||
-			el?.closest(".modal")
-		)
-			return;
+		if (is_typing_context()) return;
 		const sf = $store.value.selected_field.value;
 		const ss = $store.value.selected_section.value;
 		if ($store.value.selected_fields.value.length > 1) {
