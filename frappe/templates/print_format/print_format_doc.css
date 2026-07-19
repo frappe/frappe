@@ -1,4 +1,5 @@
-.print-format-doc .col, .print-format-doc *[class^="col-"] {
+.print-format-doc .col,
+.print-format-doc *[class^="col-"] {
 	max-width: none !important;
 }
 .print-format-doc {
@@ -114,11 +115,21 @@
 	flex: none;
 }
 
-.print-format-doc .field.left-right.field-align-right { justify-content: flex-end; }
-.print-format-doc .field.left-right.field-align-center { justify-content: center; }
-.print-format-doc .field.left-right.field-justify-space-between { justify-content: space-between; }
-.print-format-doc .field.left-right.field-justify-space-between .value { text-align: right; }
-.print-format-doc .field.left-right.field-justify-space-evenly { justify-content: space-evenly; }
+.print-format-doc .field.left-right.field-align-right {
+	justify-content: flex-end;
+}
+.print-format-doc .field.left-right.field-align-center {
+	justify-content: center;
+}
+.print-format-doc .field.left-right.field-justify-space-between {
+	justify-content: space-between;
+}
+.print-format-doc .field.left-right.field-justify-space-between .value {
+	text-align: right;
+}
+.print-format-doc .field.left-right.field-justify-space-evenly {
+	justify-content: space-evenly;
+}
 
 /* Repeater */
 .print-format-doc .pfb-repeater-table {
@@ -244,9 +255,18 @@
 .print-format-doc .child-table [data-fieldtype="Currency"].column-value--merged .cell-merged,
 .print-format-doc .child-table [data-fieldtype="Float"].column-value--merged .cell-merged,
 .print-format-doc .child-table [data-fieldtype="Int"].column-value--merged .cell-merged,
-.print-format-doc .child-table [data-fieldtype="Currency"].column-value--merged .cell-lines--horizontal,
-.print-format-doc .child-table [data-fieldtype="Float"].column-value--merged .cell-lines--horizontal,
-.print-format-doc .child-table [data-fieldtype="Int"].column-value--merged .cell-lines--horizontal {
+.print-format-doc
+	.child-table
+	[data-fieldtype="Currency"].column-value--merged
+	.cell-lines--horizontal,
+.print-format-doc
+	.child-table
+	[data-fieldtype="Float"].column-value--merged
+	.cell-lines--horizontal,
+.print-format-doc
+	.child-table
+	[data-fieldtype="Int"].column-value--merged
+	.cell-lines--horizontal {
 	justify-content: flex-end;
 }
 
@@ -388,7 +408,8 @@
 	width: 1.5em;
 }
 
-.print-format-doc .field[data-fieldtype="Long Text"] .value, .print-format-doc .field[data-fieldtype="Text"] .value {
+.print-format-doc .field[data-fieldtype="Long Text"] .value,
+.print-format-doc .field[data-fieldtype="Text"] .value {
 	white-space: pre-line;
 }
 

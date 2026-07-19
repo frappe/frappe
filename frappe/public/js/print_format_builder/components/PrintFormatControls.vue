@@ -320,7 +320,11 @@
 						@change="apply_preset($event.target.value)"
 					>
 						<option value="">{{ __("Choose a preset…") }}</option>
-						<option v-for="p in store.style_presets.value" :key="p.name" :value="p.name">
+						<option
+							v-for="p in store.style_presets.value"
+							:key="p.name"
+							:value="p.name"
+						>
 							{{ p.name }}
 						</option>
 					</select>
