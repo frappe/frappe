@@ -44,27 +44,7 @@
 				/>
 				<span v-else class="text-muted">{{ __("No image — set one in the panel") }}</span>
 			</template>
-			<template v-else-if="df.fieldtype == 'Barcode' && df.custom">
-				<img
-					v-if="df.barcode_format == 'QR' && qr_src"
-					:src="qr_src"
-					:style="{ width: df.width || '35mm' }"
-				/>
-				<div
-					v-else-if="barcode_svg"
-					class="pf-barcode-svg"
-					:style="df.width ? { width: df.width } : {}"
-					v-html="barcode_svg"
-				></div>
-				<span
-					v-else-if="barcode_raw_value && df.barcode_format !== 'QR'"
-					class="text-muted"
-					>{{ __("Invalid value for {0}", [df.barcode_format || "CODE128"]) }}</span
-				>
-				<span v-else class="text-muted">{{
-					__("No barcode value — set one in the panel")
-				}}</span>
-			</template>
+			<FieldPreviewBarcode v-else-if="df.fieldtype == 'Barcode' && df.custom" :df="df" />
 			<div
 				v-else-if="df.fieldtype == 'Field Template'"
 				v-html="rendered_template || ''"
@@ -504,6 +484,7 @@
 
 <script setup>
 import ConfigureColumnsVue from "../inspector/ConfigureColumns.vue";
+import FieldPreviewBarcode from "./FieldPreviewBarcode.vue";
 import {
 	render_jinja_html,
 	sanitize_html,
@@ -514,7 +495,6 @@ import {
 } from "../../utils";
 import { createApp, ref, nextTick, watch, computed, inject } from "vue";
 import { useColumnResize } from "../../composables/useColumnResize";
-import JsBarcode from "jsbarcode";
 
 const props = defineProps(["df", "field_orientation"]);
 
@@ -654,56 +634,6 @@ watch(
 			template_render_failed.value = true;
 		}
 	},
-	{ immediate: true }
-);
-
-// ── Barcode element (custom layout block) ─────────────────
-let qr_src = ref(null);
-
-let barcode_raw_value = computed(() => {
-	if (props.df.fieldtype !== "Barcode" || !props.df.custom) return null;
-	if (props.df.barcode_field) {
-		return preview_doc.value?.[props.df.barcode_field] ?? null;
-	}
-	return props.df.barcode_value || null;
-});
-
-let barcode_svg = computed(() => {
-	const value = barcode_raw_value.value;
-	if (!value || props.df.barcode_format === "QR") return null;
-	const str = String(value);
-	if (str.startsWith("<svg")) return sanitize_html(str);
-	const svg = document.createElementNS("http://www.w3.org/2000/svg", "svg");
-	try {
-		JsBarcode(svg, str, {
-			format: props.df.barcode_format || "CODE128",
-			displayValue: props.df.show_text !== false,
-			height: 40,
-			margin: 0,
-		});
-		svg.setAttribute("width", "100%");
-		return svg.outerHTML;
-	} catch {
-		return null;
-	}
-});
-
-watch(
-	[barcode_raw_value, () => props.df.barcode_format],
-	frappe.utils.debounce(async ([value, format]) => {
-		if (format !== "QR" || !value) {
-			qr_src.value = null;
-			return;
-		}
-		try {
-			const r = await frappe.call("frappe.utils.print_format_generator.get_qr_code", {
-				value: String(value),
-			});
-			qr_src.value = r.message || null;
-		} catch {
-			qr_src.value = null;
-		}
-	}, 300),
 	{ immediate: true }
 );
 
@@ -1331,11 +1261,6 @@ thead:hover .col-resize-handle::after {
 .preview-table-html {
 	word-break: break-word;
 	white-space: normal;
-}
-
-.pf-barcode-svg {
-	display: inline-block;
-	max-width: 100%;
 }
 
 .pf-builder-thumb {
