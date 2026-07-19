@@ -42,10 +42,11 @@ frappe.ui.Tree = class {
 		this.setup_root_node();
 	}
 
-	get_nodes(value, is_root) {
+	get_nodes(value, is_root, node_id) {
 		var args = Object.assign({}, this.args);
 		args.parent = value;
 		args.is_root = is_root;
+		if (node_id && node_id !== value) args.parent_node_id = node_id;
 
 		return new Promise((resolve) => {
 			frappe.call({
@@ -59,11 +60,12 @@ frappe.ui.Tree = class {
 		});
 	}
 
-	get_all_nodes(value, is_root, label) {
+	get_all_nodes(value, is_root, label, node_id) {
 		var args = Object.assign({}, this.args);
 		args.label = label || value;
 		args.parent = value;
 		args.is_root = is_root;
+		if (node_id && node_id !== value) args.parent_node_id = node_id;
 
 		args.tree_method = this.method;
 
@@ -82,15 +84,20 @@ frappe.ui.Tree = class {
 	setup_treenode_class() {
 		let tree = this;
 		this.TreeNode = class {
-			constructor({ parent, label, parent_label, expandable, is_root, data }) {
+			constructor({ parent, label, parent_label, parent_node_id, expandable, is_root, data }) {
 				$.extend(this, arguments[0]);
 				this.loaded = 0;
 				this.expanded = 0;
-				if (this.parent_label) {
-					this.parent_node = tree.nodes[this.parent_label];
+				// `label` is not necessarily unique (e.g. the same item can appear at
+				// several places in a BOM tree), so nodes are keyed by `node_id` when
+				// the tree method supplies one, falling back to `label` otherwise.
+				this.node_id = (data && data.node_id) || this.label;
+				this.parent_node_id = this.parent_node_id || this.parent_label;
+				if (this.parent_node_id) {
+					this.parent_node = tree.nodes[this.parent_node_id];
 				}
 
-				tree.nodes[this.label] = this;
+				tree.nodes[this.node_id] = this;
 				tree.make_node_element(this);
 				tree.on_render && tree.on_render(this);
 			}
@@ -135,6 +142,7 @@ frappe.ui.Tree = class {
 		return new this.TreeNode({
 			parent: $li.appendTo(node.$ul),
 			parent_label: node.label,
+			parent_node_id: node.node_id,
 			label: data.value,
 			title: data.title,
 			expandable: data.expandable,
@@ -160,17 +168,18 @@ frappe.ui.Tree = class {
 
 	load_children(node, deep = false) {
 		const value = node.data.value,
-			is_root = node.is_root;
+			is_root = node.is_root,
+			node_id = node.node_id;
 
 		return deep
 			? frappe.run_serially([
-					() => this.get_all_nodes(value, is_root, node.label),
+					() => this.get_all_nodes(value, is_root, node.label, node_id),
 					(data_list) => this.render_children_of_all_nodes(data_list),
 					() => this.set_selected_node(node),
 					() => this.on_node_render && this.on_node_render(node, deep),
 			  ])
 			: frappe.run_serially([
-					() => this.get_nodes(value, is_root),
+					() => this.get_nodes(value, is_root, node_id),
 					(data_set) => this.render_node_children(node, data_set),
 					() => this.set_selected_node(node),
 					() => this.on_node_render && this.on_node_render(node, deep),

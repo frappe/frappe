@@ -21,19 +21,31 @@ def get_all_nodes(doctype: str, label: str, parent: str, tree_method: str | None
 
 	frappe.is_whitelisted(callable_tree_method)
 
-	data = callable_tree_method(doctype, parent, **filters)
-	out = [dict(parent=label, data=data)]
+	# A tree method may return a `node_id` per node when `value` alone is not unique
+	# (e.g. the same item appearing at several places in a BOM tree). Recursion is
+	# keyed on that id so sibling branches don't collapse into one another.
+	# `parent_node_id` is only forwarded when set, since most tree methods take a
+	# fixed set of keyword arguments and would reject an unexpected one.
+	parent_node_id = filters.pop("parent_node_id", None)
+
+	def get_data(parent, node_id, **kwargs):
+		if node_id:
+			kwargs["parent_node_id"] = node_id
+		return callable_tree_method(doctype, parent, **kwargs)
+
+	data = get_data(parent, parent_node_id, **filters)
+	out = [dict(parent=parent_node_id or label, data=data)]
 
 	filters.pop("is_root", None)
-	to_check = [d.get("value") for d in data if d.get("expandable")]
+	to_check = [(d.get("value"), d.get("node_id")) for d in data if d.get("expandable")]
 
 	while to_check:
-		parent = to_check.pop()
-		data = callable_tree_method(doctype, parent, is_root=False, **filters)
-		out.append(dict(parent=parent, data=data))
+		parent, node_id = to_check.pop()
+		data = get_data(parent, node_id, is_root=False, **filters)
+		out.append(dict(parent=node_id or parent, data=data))
 		for d in data:
 			if d.get("expandable"):
-				to_check.append(d.get("value"))
+				to_check.append((d.get("value"), d.get("node_id")))
 
 	return out
 
