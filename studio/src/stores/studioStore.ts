@@ -18,7 +18,6 @@ import { studioVariables } from "@/data/studioVariables"
 import Block from "@/utils/block"
 import useCanvasStore from "@/stores/canvasStore"
 import useCodeStore from "@/stores/codeStore"
-import useComponentStore from "@/stores/componentStore"
 import { registerCustomVueComponents, unregisterCustomVueComponents } from "@/globals"
 import {
 	registerStudioPageScripts,
@@ -273,28 +272,6 @@ const useStudioStore = defineStore("store", () => {
 		if (!page) return
 		activePage.value = page
 		await codeStore.setPageScript(page, Boolean(page.is_standard))
-	}
-
-	async function applyDiskSync({ doctype, name, studio_app, source }: { doctype: string; name: string; studio_app: string; source: string }) {
-		if (source !== "disk") return
-
-		if (doctype === "Studio Component") {
-			await useComponentStore().reloadComponent(name)
-			return
-		}
-
-		if (studio_app !== activeApp.value?.name) return
-
-		if (doctype === "Studio App") {
-			const app = await fetchApp(studio_app)
-			if (app) activeApp.value = app
-		} else if (doctype === "Studio Page") {
-			await setAppPages(studio_app)
-			// rebuild the open page's canvas from the synced blocks if it's the one that changed
-			if (name === selectedPage.value) {
-				await setPage(name)
-			}
-		}
 	}
 
 	async function publishPage() {
@@ -644,7 +621,6 @@ const useStudioStore = defineStore("store", () => {
 		updateActivePage,
 		setActivePageScript,
 		reloadActivePageScript,
-		applyDiskSync,
 		publishPage,
 		unpublishPage,
 		publishApp,
