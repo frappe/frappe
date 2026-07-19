@@ -323,6 +323,11 @@
 	page-break-after: always;
 }
 
+.print-format-doc .section.keep-together {
+	page-break-inside: avoid;
+	break-inside: avoid;
+}
+
 /* Override Bootstrap's tr { page-break-inside: avoid } so tall child-table rows
    flow across pages; keep thead repeating on each new page. */
 @media print {

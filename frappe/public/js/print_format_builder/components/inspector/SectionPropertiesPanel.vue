@@ -97,6 +97,20 @@
 			/>
 		</InspectorSection>
 
+		<!-- PRINT -->
+		<InspectorSection :label="__('Print')" :init-open="false">
+			<ToggleRow
+				:label="__('Start on new page')"
+				:model-value="!!selected_section.page_break"
+				@update:model-value="(v) => (selected_section.page_break = v)"
+			/>
+			<ToggleRow
+				:label="__('Keep together')"
+				:model-value="!!selected_section.keep_together"
+				@update:model-value="(v) => (selected_section.keep_together = v)"
+			/>
+		</InspectorSection>
+
 		<!-- STYLE -->
 		<InspectorSection :label="__('Style')" :init-open="false" :padded="false">
 			<StyleSection v-model="selected_section.custom_style" />
@@ -117,6 +131,7 @@ import InspectorSection from "./InspectorSection.vue";
 import StepperRow from "./StepperRow.vue";
 import SpacingRow from "./SpacingRow.vue";
 import StyleSection from "./StyleSection.vue";
+import ToggleRow from "./ToggleRow.vue";
 import VisibilitySection from "./VisibilitySection.vue";
 import { mountColorControl } from "./useColorControl";
 
