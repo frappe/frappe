@@ -19,7 +19,7 @@ from studio.export import (
 	write_document_file,
 )
 from studio.realtime import publish_doc_change
-from studio.utils import camel_case_to_kebab_case
+from studio.utils import camel_case_to_kebab_case, has_page_write_perm
 
 # A variable is referenced as {{ name }} and spread into the page's JS eval context, so its
 # name must be a bare JS identifier.
@@ -87,12 +87,10 @@ class StudioPage(Document):
 			self.route = f"/{self.route}"
 
 	def validate(self):
-		if hasattr(self, "_skip_validate"):
-			# passed from the frontend for faster page saves when variables & resources are not changed
-			return
-
-		self.validate_variables()
-		self.process_resources()
+		# passed from the frontend for faster page saves when variables & resources are not changed
+		if not hasattr(self, "_skip_validate"):
+			self.validate_variables()
+			self.process_resources()
 
 	def on_update(self):
 		self.export_page()
@@ -288,6 +286,9 @@ class StudioPage(Document):
 	def save_page_field(self, fieldname: str, value, known_modified: str | None = None):
 		"""Set a single editor-owned field (title/route/script) under the same optimistic lock as
 		save_draft, so a field edit can't silently overwrite a page the DB has moved past either."""
+		FIELDS = ["page_title", "route", "script"]
+		if fieldname not in FIELDS:
+			frappe.throw(_("Field {0} is not editable outside the Studio editor").format(fieldname))
 		self.reject_if_stale(known_modified)
 		self.set(fieldname, value)
 		self._skip_validate = True
