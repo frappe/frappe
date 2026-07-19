@@ -219,57 +219,7 @@
 					</table>
 				</div>
 			</template>
-			<!-- Repeater field -->
-			<template v-else-if="df.fieldtype == 'Repeater'">
-				<div v-if="df.label && df.show_label !== 'hide'" class="label">
-					{{ df.label }}
-				</div>
-				<table class="pfb-repeater-table">
-					<colgroup>
-						<col
-							v-for="(col, ci) in df.repeater_columns || []"
-							:key="ci"
-							:style="col.width ? { width: col.width + '%' } : {}"
-						/>
-					</colgroup>
-					<tbody>
-						<tr
-							v-for="(row, i) in (preview_doc[df.source] || []).slice(0, 6)"
-							:key="i"
-						>
-							<td
-								v-for="(col, ci) in df.repeater_columns || []"
-								:key="ci"
-								class="pfb-repeater-cell"
-								:style="{
-									textAlign: col.align || 'left',
-									...(col.color ? { color: col.color } : {}),
-								}"
-							>
-								{{ repeater_cell(col, i, row) }}
-							</td>
-						</tr>
-						<tr v-if="!(preview_doc[df.source] || []).length">
-							<td class="text-muted pfb-table-note">
-								{{ df.source ? __("No rows") : __("Pick a source table") }}
-							</td>
-						</tr>
-						<tr v-if="(preview_doc[df.source] || []).length > 6">
-							<td
-								:colspan="df.repeater_columns?.length || 1"
-								class="text-muted pfb-table-note"
-							>
-								{{
-									__(
-										"+ {0} more rows in this document — all print in the real output",
-										[preview_doc[df.source].length - 6]
-									)
-								}}
-							</td>
-						</tr>
-					</tbody>
-				</table>
-			</template>
+			<FieldPreviewRepeater v-else-if="df.fieldtype == 'Repeater'" :df="df" />
 			<!-- Regular field -->
 			<template v-else>
 				<div
@@ -485,6 +435,7 @@
 <script setup>
 import ConfigureColumnsVue from "../inspector/ConfigureColumns.vue";
 import FieldPreviewBarcode from "./FieldPreviewBarcode.vue";
+import FieldPreviewRepeater from "./FieldPreviewRepeater.vue";
 import { render_jinja_html, evaluate_visible_if, parse_inline_style } from "../../utils";
 import { createApp, ref, nextTick, watch, computed, inject } from "vue";
 import { useColumnResize } from "../../composables/useColumnResize";
@@ -637,7 +588,6 @@ const {
 	rating_stars,
 	is_image_field,
 	cell_style,
-	repeater_cell,
 	multiselect_display,
 	cell_server_html,
 	format_cell,
