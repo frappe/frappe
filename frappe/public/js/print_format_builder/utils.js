@@ -149,6 +149,14 @@ export const DRAG_OPTIONS = {
 	ghostClass: "pfb-drag-ghost",
 };
 
+// forceFallback drags with a real mousedown, which the browser treats as a text
+// selection. Suppress selection for the duration of the drag and clear any range
+// that already started. Wire to every draggable's @start/@end.
+export function setDragging(active) {
+	document.body.classList.toggle("pfb-dragging", active);
+	if (active) window.getSelection()?.removeAllRanges();
+}
+
 export const TABLE_COLUMN_PLUCK_KEYS = [
 	"label",
 	"fieldname",

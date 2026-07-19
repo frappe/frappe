@@ -39,6 +39,8 @@
 				handle=".section-drag-handle"
 				filter=".section-columns, .column, .field"
 				v-bind="DRAG_OPTIONS"
+				@start="setDragging(true)"
+				@end="setDragging(false)"
 				@add="on_section_add"
 			>
 				<template #item="{ element, index }">
@@ -72,7 +74,7 @@ import draggable from "vuedraggable";
 import LetterHeadZoneEditor from "../letterhead/LetterHeadZoneEditor.vue";
 import PrintFormatSection from "./PrintFormatSection.vue";
 import SectionInsert from "./SectionInsert.vue";
-import { DRAG_OPTIONS } from "../../utils";
+import { DRAG_OPTIONS, setDragging } from "../../utils";
 import { useStore } from "../../stores";
 import { computed, inject, watch, nextTick, onMounted, onUnmounted, ref } from "vue";
 

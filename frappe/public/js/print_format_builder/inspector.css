@@ -316,3 +316,11 @@
 	user-select: none;
 	-webkit-user-select: none;
 }
+
+/* While a drag is in progress the whole page is unselectable, so the mouse-move
+   can't extend a selection across gaps or neighbouring elements. */
+body.pfb-dragging,
+body.pfb-dragging * {
+	user-select: none !important;
+	-webkit-user-select: none !important;
+}
