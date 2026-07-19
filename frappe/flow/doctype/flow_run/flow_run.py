@@ -44,6 +44,8 @@ class FlowRun(Document):
 
 		config_snapshot: DF.JSON | None
 		error: DF.LongText | None
+		feedback_comment: DF.SmallText | None
+		feedback_rating: DF.Literal["", "Up", "Down"]
 		input: DF.LongText | None
 		iterations: DF.Int
 		output: DF.LongText | None

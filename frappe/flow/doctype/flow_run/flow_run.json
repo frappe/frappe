@@ -23,7 +23,10 @@
   "usage",
   "config_snapshot",
   "section_break_error",
-  "error"
+  "error",
+  "section_break_feedback",
+  "feedback_rating",
+  "feedback_comment"
  ],
  "fields": [
   {
@@ -165,6 +168,28 @@
    "fieldname": "error",
    "fieldtype": "Long Text",
    "label": "Error",
+   "read_only": 1
+  },
+  {
+   "collapsible": 1,
+   "depends_on": "eval:doc.feedback_rating",
+   "fieldname": "section_break_feedback",
+   "fieldtype": "Section Break",
+   "label": "Feedback"
+  },
+  {
+   "description": "Thumbs rating the user gave this response.",
+   "fieldname": "feedback_rating",
+   "fieldtype": "Select",
+   "in_standard_filter": 1,
+   "label": "Feedback Rating",
+   "options": "\nUp\nDown",
+   "read_only": 1
+  },
+  {
+   "fieldname": "feedback_comment",
+   "fieldtype": "Small Text",
+   "label": "Feedback Comment",
    "read_only": 1
   }
  ],
