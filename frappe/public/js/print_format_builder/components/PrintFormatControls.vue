@@ -134,6 +134,37 @@
 					</div>
 				</template>
 			</draggable>
+
+			<div class="pfb-group-label mt-3">{{ __("Saved Sections") }}</div>
+			<div v-if="!store.section_snippets.value.length" class="pfb-empty">
+				{{ __("Save a section as a snippet to reuse it here.") }}
+			</div>
+			<div
+				v-for="snip in store.section_snippets.value"
+				:key="snip.name"
+				class="pfb-block-card"
+				:title="__('Insert saved section')"
+				@click="store.insert_section_snippet(snip.name)"
+			>
+				<span
+					class="pfb-block-icon"
+					v-html="frappe.utils.icon('layout-template', 'sm')"
+				></span>
+				<div class="pfb-block-info">
+					<div class="pfb-block-name">{{ snip.name }}</div>
+					<div class="pfb-block-desc text-muted">{{ __("Click to insert") }}</div>
+				</div>
+				<button
+					class="es-button"
+					data-size="xs"
+					data-variant="ghost"
+					data-theme="red"
+					data-icon-button="true"
+					:title="__('Delete snippet')"
+					@click.stop="store.delete_section_snippet(snip.name)"
+					v-html="frappe.utils.icon('trash', 'xs')"
+				></button>
+			</div>
 		</div>
 
 		<!-- ── Templates ─────────────────────────────────────── -->

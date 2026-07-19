@@ -34,6 +34,15 @@
 				class="es-button"
 				data-size="xs"
 				data-variant="ghost"
+				data-icon-button="true"
+				:title="__('Save as snippet')"
+				@click.stop="save_as_snippet"
+				v-html="frappe.utils.icon('bookmark-plus', 'xs')"
+			></button>
+			<button
+				class="es-button"
+				data-size="xs"
+				data-variant="ghost"
 				data-theme="red"
 				data-icon-button="true"
 				:title="__('Remove section')"
@@ -92,6 +101,17 @@
 						@click.stop="store.duplicate_section(section)"
 					>
 						<span v-html="frappe.utils.icon('copy-plus', 'sm')"></span>
+					</button>
+					<button
+						v-if="!is_header"
+						class="es-button"
+						data-size="xs"
+						data-variant="ghost"
+						data-icon-button="true"
+						:title="__('Save as snippet')"
+						@click.stop="save_as_snippet"
+					>
+						<span v-html="frappe.utils.icon('bookmark-plus', 'sm')"></span>
 					</button>
 					<button
 						v-if="!is_header"
@@ -290,6 +310,24 @@ function select_section() {
 
 function remove_section() {
 	store.remove_section(props.section);
+}
+
+function save_as_snippet() {
+	frappe.prompt(
+		{
+			label: __("Snippet name"),
+			fieldname: "name",
+			fieldtype: "Data",
+			reqd: 1,
+			default: props.section.label || "",
+		},
+		({ name }) => {
+			store.save_section_snippet(name, props.section);
+			frappe.show_alert({ message: __("Section saved as snippet"), indicator: "green" }, 3);
+		},
+		__("Save Section as Snippet"),
+		__("Save")
+	);
 }
 
 function remove_column(index) {

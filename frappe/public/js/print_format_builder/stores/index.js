@@ -64,6 +64,23 @@ function persist_style_presets(list) {
 	}
 }
 
+// Section snippets — named, reusable sections shared across print formats.
+const SECTION_SNIPPETS_KEY = "pfb_section_snippets";
+function load_section_snippets() {
+	try {
+		return JSON.parse(localStorage.getItem(SECTION_SNIPPETS_KEY)) || [];
+	} catch {
+		return [];
+	}
+}
+function persist_section_snippets(list) {
+	try {
+		localStorage.setItem(SECTION_SNIPPETS_KEY, JSON.stringify(list));
+	} catch {
+		// ignore quota / privacy-mode failures; in-memory copy still works
+	}
+}
+
 // A pasted custom element (HTML/Image/Barcode block) gets a fresh fieldname so
 // duplicates don't collide; real doctype fields keep theirs.
 function freshen_field(f) {
@@ -453,16 +470,41 @@ export function getStore(print_format_name) {
 			selected_section.value = null;
 			selected_field.value = clone;
 		} else if (clip.type === "section") {
-			const clone = clone_plain(clip.data);
-			delete clone.remove;
-			(clone.columns || []).forEach((c) => (c.fields || []).forEach(freshen_field));
-			const sections = layout.value.sections;
-			const idx = selected_section.value ? sections.indexOf(selected_section.value) : -1;
-			if (idx !== -1) sections.splice(idx + 1, 0, clone);
-			else sections.push(clone);
-			selected_field.value = null;
-			selected_section.value = clone;
+			insert_section(clip.data);
 		}
+	}
+	// Clone a section, freshen its custom fields, and drop it in after the
+	// selected section (or at the end). Shared by paste and snippet insert.
+	function insert_section(data) {
+		if (!data || !layout.value) return;
+		const clone = clone_plain(data);
+		delete clone.remove;
+		(clone.columns || []).forEach((c) => (c.fields || []).forEach(freshen_field));
+		const sections = layout.value.sections;
+		const idx = selected_section.value ? sections.indexOf(selected_section.value) : -1;
+		if (idx !== -1) sections.splice(idx + 1, 0, clone);
+		else sections.push(clone);
+		selected_field.value = null;
+		selected_section.value = clone;
+	}
+
+	const section_snippets = ref(load_section_snippets());
+	function save_section_snippet(name, section) {
+		name = (name || "").trim();
+		if (!name || !section) return;
+		const list = section_snippets.value.filter((s) => s.name !== name);
+		list.push({ name, section: clone_plain(section) });
+		list.sort((a, b) => a.name.localeCompare(b.name));
+		section_snippets.value = list;
+		persist_section_snippets(list);
+	}
+	function insert_section_snippet(name) {
+		const snip = section_snippets.value.find((s) => s.name === name);
+		if (snip) insert_section(snip.section);
+	}
+	function delete_section_snippet(name) {
+		section_snippets.value = section_snippets.value.filter((s) => s.name !== name);
+		persist_section_snippets(section_snippets.value);
 	}
 
 	return {
@@ -509,6 +551,10 @@ export function getStore(print_format_name) {
 		save_style_preset,
 		apply_style_preset,
 		delete_style_preset,
+		section_snippets,
+		save_section_snippet,
+		insert_section_snippet,
+		delete_section_snippet,
 		paste_clipboard,
 		undo,
 		redo,
