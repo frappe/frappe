@@ -270,7 +270,7 @@ const useStudioStore = defineStore("store", () => {
 		else throw error
 	}
 
-	function updateActivePage(key: string, value: string) {
+	function updateActivePage(key: string, value: string | number) {
 		return studioPages.runDocMethod
 			.submit({
 				name: activePage.value?.name,
@@ -337,7 +337,7 @@ const useStudioStore = defineStore("store", () => {
 	async function unpublishPage() {
 		if (!activePage.value) return
 		const confirmed = await confirm(
-			`Are you sure you want to unpublish the page <b>${activePage.value.page_title}</b>? It will no longer be publicly accessible.`,
+			`Are you sure you want to unpublish the page "${activePage.value.page_title}"? It will no longer be publicly accessible.`,
 		)
 		if (!confirmed) {
 			return
@@ -348,8 +348,9 @@ const useStudioStore = defineStore("store", () => {
 				method: "unpublish",
 			},
 			{
-				onSuccess() {
+				onSuccess(data: any) {
 					activePage.value!.published = 0
+					syncPageModified(data)
 					toast.success("Page unpublished")
 				},
 				onError(error: any) {
