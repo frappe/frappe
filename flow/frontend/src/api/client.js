@@ -45,6 +45,17 @@ export const getPausedRun = (session) =>
 		limit: 1,
 	});
 
+// Feedback the user already gave on this session's runs, to restore thumbs state on reload.
+export const getRunFeedback = (session) =>
+	getList("Flow Run", {
+		filters: { session, feedback_rating: ["is", "set"] },
+		fields: ["name", "feedback_rating", "feedback_comment"],
+		limit: 100,
+	});
+
+// Record thumbs feedback on a run; optionally store a Down comment as agent memory.
+export const submitFeedback = (args) => frappe.xcall("flow.api.submit_feedback", args);
+
 // Fail any Running run left behind by a stream that was cut off (refresh/navigation),
 // so a reloaded session isn't blocked from starting the next turn.
 export const recoverSession = (session) => frappe.xcall("flow.api.recover_session", { session });
