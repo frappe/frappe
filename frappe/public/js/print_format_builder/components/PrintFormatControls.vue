@@ -1,13 +1,15 @@
 <template>
 	<div class="pfb-sidebar">
 		<!-- Tab bar -->
-		<div class="pfb-tabbar">
+		<div class="pfb-tabbar" role="tablist">
 			<button
 				v-for="tab in tabs"
 				:key="tab.id"
 				class="pfb-tab"
 				:class="{ active: activeTab === tab.id }"
 				:title="tab.label"
+				role="tab"
+				:aria-selected="activeTab === tab.id"
 				@click="activeTab = tab.id"
 			>
 				<span class="pfb-tab-label">{{ tab.label }}</span>
@@ -239,7 +241,7 @@
 		</div>
 
 		<!-- ── Outline ────────────────────────────────────────── -->
-		<div v-else-if="activeTab === 'outline'" class="pfb-tab-body pfb-tree">
+		<div v-else-if="activeTab === 'outline'" class="pfb-tab-body pfb-tree" role="tree">
 			<div v-if="!outline_tree.length" class="pfb-empty">
 				{{ __("No sections yet. Add sections to the canvas.") }}
 			</div>
@@ -247,7 +249,13 @@
 				<div
 					class="pfb-tree-row"
 					:class="{ active: store.selected_section.value === node.section }"
+					role="treeitem"
+					tabindex="0"
+					:aria-expanded="!is_collapsed(node.section)"
+					:aria-selected="store.selected_section.value === node.section"
 					@click="select_section(node.section)"
+					@keydown.enter.prevent="select_section(node.section)"
+					@keydown.space.prevent="select_section(node.section)"
 				>
 					<button
 						class="pfb-tree-chevron"
@@ -265,7 +273,14 @@
 				</div>
 				<div v-if="!is_collapsed(node.section)" class="pfb-tree-children">
 					<div v-for="(col, ci) in node.columns" :key="ci" class="pfb-tree-node">
-						<div class="pfb-tree-row" @click="select_section(node.section)">
+						<div
+							class="pfb-tree-row"
+							role="treeitem"
+							tabindex="0"
+							@click="select_section(node.section)"
+							@keydown.enter.prevent="select_section(node.section)"
+							@keydown.space.prevent="select_section(node.section)"
+						>
 							<button
 								v-if="col.fields.length"
 								class="pfb-tree-chevron"
@@ -288,7 +303,12 @@
 								:key="fi"
 								class="pfb-tree-row"
 								:class="{ active: store.selected_fields.value.includes(field) }"
+								role="treeitem"
+								tabindex="0"
+								:aria-selected="store.selected_fields.value.includes(field)"
 								@click="select_field(field, node.section, $event)"
+								@keydown.enter.prevent="select_field(field, node.section, $event)"
+								@keydown.space.prevent="select_field(field, node.section, $event)"
 							>
 								<span class="pfb-tree-spacer"></span>
 								<span
