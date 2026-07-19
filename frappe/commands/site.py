@@ -832,6 +832,9 @@ def use(site, sites_path="."):
 	from frappe.installer import update_site_config
 
 	site = Path(site.strip()).name
+	if not site:
+		print("Site name is invalid")
+		return
 	if os.path.exists(os.path.join(sites_path, site)):
 		sites_path = os.getcwd()
 		conifg = os.path.join(sites_path, "common_site_config.json")
