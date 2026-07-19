@@ -73,7 +73,12 @@
 		</div>
 
 		<div>
-			<Popover transition="default" placement="bottom" popoverClass="!mt-[20px]">
+			<Popover
+				v-model:open="store.showPageOptions"
+				transition="default"
+				placement="bottom"
+				popoverClass="!mt-[20px]"
+			>
 				<template #target="{ togglePopover, isOpen }">
 					<div class="flex cursor-pointer items-center gap-2 p-2">
 						<div class="flex h-6 items-center text-base text-ink-gray-7" v-if="!store.activePage">

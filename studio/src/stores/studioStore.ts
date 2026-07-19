@@ -18,11 +18,10 @@ import { studioVariables } from "@/data/studioVariables"
 import Block from "@/utils/block"
 import useCanvasStore from "@/stores/canvasStore"
 import useCodeStore from "@/stores/codeStore"
-import { registerCustomVueComponents, unregisterCustomVueComponents } from "@/globals"
+import { reloadCustomVueComponents } from "@/globals"
 import {
 	registerStudioPageScripts,
 	unregisterStudioPageScripts,
-	setPageScriptHotUpdateHandler,
 } from "@/data/studioPageScripts"
 import { setCustomComponentFilePaths } from "@/utils/components"
 import type { CustomVueComponentMeta } from "@/types/vue"
@@ -32,7 +31,7 @@ import type { StudioPage } from "@/types/Studio/StudioPage"
 import type { LeftPanelOptions, RightPanelOptions, leftPanelComponentTabOptions, StudioMode } from "@/types"
 import ComponentContextMenu from "@/components/ComponentContextMenu.vue"
 import type { Variable, VariableOption } from "@/types/Studio/StudioPageVariable"
-import { toast } from "frappe-ui"
+import { toast, dialog } from "frappe-ui"
 import { createResource } from "frappe-ui"
 
 const useStudioStore = defineStore("store", () => {
@@ -57,10 +56,17 @@ const useStudioStore = defineStore("store", () => {
 	const showSlotEditorDialog = ref(false)
 	const showSearchBlock = ref(false)
 	const showStudioSettingsDialog = ref(false)
+	const showPageOptions = ref(false)
 
 	// studio apps
 	const activeApp = ref<StudioApp | null>(null)
-	const appPages = ref<Record<string, StudioPage>>({})
+	const appPages = computed<Record<string, StudioPage>>(() => {
+		const pages: Record<string, StudioPage> = {}
+		studioPages.data.map((page: StudioPage) => {
+			pages[page.name] = page
+		})
+		return pages
+	})
 	const customVueComponents = ref<CustomVueComponentMeta[]>([])
 
 	// cross-panel navigation
@@ -113,11 +119,6 @@ const useStudioStore = defineStore("store", () => {
 		}
 		studioPages.filters = { studio_app: appName }
 		await studioPages.reload()
-		appPages.value = {}
-
-		studioPages.data.map((page: StudioPage) => {
-			appPages.value[page.name] = page
-		})
 	}
 
 	function updateActiveApp(key: string, value: string) {
@@ -184,12 +185,16 @@ const useStudioStore = defineStore("store", () => {
 	const selectedPage = ref<string | null>(null)
 	const savingPage = ref(false)
 	const settingPage = ref(false)
+	// set when a save is rejected because the page moved on in the DB (a disk sync or an AI edit)
+	// after the editor loaded it. Autosave pauses until the user refreshes to the latest version.
+	const pageConflict = ref(false)
 
 	// design-time test values for dynamic route variables (e.g. { category: "tech" }), persists in localStorage
 	const routeVariables = ref<Record<string, string>>({})
 
 	async function setPage(pageName: string) {
 		settingPage.value = true
+		pageConflict.value = false
 		const page = await fetchPage(pageName)
 		if (!page) {
 			settingPage.value = false
@@ -229,39 +234,56 @@ const useStudioStore = defineStore("store", () => {
 		}
 		const pageData = jsToJson(pageBlocks.value.map((block) => getBlockCopyWithoutParent(block)))
 
-		const args = {
-			name: selectedPage.value,
-			draft_blocks: pageData,
-			_skip_validate: true,
-		}
-		return studioPages.setValue.submit(args)
-			.then((page: StudioPage) => {
-				activePage.value = page
+		return studioPages.runDocMethod
+			.submit({
+				name: selectedPage.value,
+				method: "save_draft",
+				draft_blocks: pageData,
+				known_modified: activePage.value?.modified,
 			})
+			.then(syncPageModified)
+			.catch(handlePageWriteConflict)
 			.finally(() => {
 				savingPage.value = false
 			})
 	}
 
-	function updateActivePage(key: string, value: string) {
-		return studioPages.setValue.submit(
-			{ name: activePage.value?.name, [key]: value, _skip_validate: true },
-			{
-				onSuccess() {
-					activePage.value![key] = value
-					setAppPages(activeApp.value!.name)
-				},
-			},
-		)
+	function syncPageModified(response: any) {
+		const modified = response?.docs?.[0]?.modified ?? response?.message
+		if (activePage.value && modified) activePage.value.modified = modified
 	}
 
-	function setActivePageScript(script: string) {
-		if (!activePage.value) return Promise.resolve()
-		return studioPages.setValue
-			.submit({ name: activePage.value.name, script, _skip_validate: true })
-			.then(() => {
-				activePage.value!.script = script
+	function handlePageWriteConflict(error: any) {
+		if (error?.exc_type === "TimestampMismatchError") {
+			if (pageConflict.value) return
+			pageConflict.value = true
+			showPageOptions.value = false
+			dialog.confirm({
+				title: "Page changed outside the editor",
+				message:
+					"This page was updated after you opened it. Refresh to load the latest version - your unsaved canvas changes will be replaced.",
+				confirmLabel: "Refresh",
+				theme: "yellow",
+				onConfirm: () => selectedPage.value && setPage(selectedPage.value),
 			})
+		}
+		else throw error
+	}
+
+	function updateActivePage(key: string, value: string | number) {
+		return studioPages.runDocMethod
+			.submit({
+				name: activePage.value?.name,
+				method: "save_page_field",
+				fieldname: key,
+				value: value,
+				known_modified: activePage.value?.modified,
+			})
+			.then((response: any) => {
+				activePage.value![key] = value
+				syncPageModified(response)
+			})
+			.catch(handlePageWriteConflict)
 	}
 
 	// A server tool (AI) wrote the page script straight to the DB / code file, so re-fetch the
@@ -282,19 +304,24 @@ const useStudioStore = defineStore("store", () => {
 				{
 					name: selectedPage.value,
 					method: "publish",
+					known_modified: activePage.value?.modified,
 				},
 				{
 					onError(error: any) {
-						toast.error("Failed to publish the page", {
-							description: error.messages.join(", "),
-							duration: Infinity,
-							action: {
-								label: "Edit Pages",
-								onClick: () => {
-									studioLayout.value.leftPanelActiveTab = "Pages"
+						try {
+							handlePageWriteConflict(error)
+						} catch {
+							toast.error("Failed to publish the page", {
+								description: error.messages.join(", "),
+								duration: Infinity,
+								action: {
+									label: "Edit Pages",
+									onClick: () => {
+										studioLayout.value.leftPanelActiveTab = "Pages"
+									}
 								}
-							}
-						})
+							})
+						}
 					},
 				}
 			)
@@ -310,7 +337,7 @@ const useStudioStore = defineStore("store", () => {
 	async function unpublishPage() {
 		if (!activePage.value) return
 		const confirmed = await confirm(
-			`Are you sure you want to unpublish the page <b>${activePage.value.page_title}</b>? It will no longer be publicly accessible.`,
+			`Are you sure you want to unpublish the page "${activePage.value.page_title}"? It will no longer be publicly accessible.`,
 		)
 		if (!confirmed) {
 			return
@@ -321,9 +348,9 @@ const useStudioStore = defineStore("store", () => {
 				method: "unpublish",
 			},
 			{
-				onSuccess() {
+				onSuccess(data: any) {
 					activePage.value!.published = 0
-					setAppPages(activeApp.value!.name)
+					syncPageModified(data)
 					toast.success("Page unpublished")
 				},
 				onError(error: any) {
@@ -416,18 +443,12 @@ const useStudioStore = defineStore("store", () => {
 	// custom components
 	async function setCustomComponents() {
 		await loadCustomVueComponents()
-		setCustomComponentListener()
 		setCustomComponentFilePaths(customVueComponents.value)
 	}
 
 	async function loadCustomVueComponents() {
-		if (customVueComponents.value.length) {
-			unregisterCustomVueComponents(customVueComponents.value)
-			customVueComponents.value = []
-		}
-		if (activeApp.value?.is_standard) {
-			customVueComponents.value = await registerCustomVueComponents(activeApp.value.frappe_app!)
-		}
+		const frappeApp = activeApp.value?.is_standard ? activeApp.value.frappe_app! : ""
+		customVueComponents.value = await reloadCustomVueComponents(frappeApp)
 	}
 
 	// Register per-page code scripts (<page>.ts) for exported apps so the editor can load them.
@@ -435,15 +456,6 @@ const useStudioStore = defineStore("store", () => {
 		unregisterStudioPageScripts()
 		if (activeApp.value?.is_standard) {
 			await registerStudioPageScripts(activeApp.value.frappe_app!)
-		}
-	}
-
-	function setCustomComponentListener() {
-		if (activeApp.value?.is_standard && import.meta.hot) {
-			// Auto-refresh custom components when .vue files are added/removed/renamed in studio folders
-			import.meta.hot.on("studio:custom-components-changed", () => {
-				loadCustomVueComponents()
-			})
 		}
 	}
 
@@ -532,10 +544,6 @@ const useStudioStore = defineStore("store", () => {
 	// active page so new refs/functions and changed dependency code show up on the canvas, in the
 	// value selectors and in completions — no reload. Non-active pages refresh lazily on navigation
 	// (studioPageScripts caches the latest setup).
-	setPageScriptHotUpdateHandler((pageName, setup) => {
-		if (activePage.value?.name === pageName) codeStore.applyPageScriptHMR(setup)
-	})
-
 	async function setPageData(page: StudioPage) {
 		await codeStore.setPageVariables(page)
 		await codeStore.setPageResources(page, true)
@@ -593,6 +601,7 @@ const useStudioStore = defineStore("store", () => {
 		showSlotEditorDialog,
 		showSearchBlock,
 		showStudioSettingsDialog,
+		showPageOptions,
 		// studio app
 		activeApp,
 		setApp,
@@ -605,6 +614,7 @@ const useStudioStore = defineStore("store", () => {
 		getAppPageRoute,
 		// custom components
 		setCustomComponents,
+		loadCustomVueComponents,
 		customVueComponents,
 		// cross-panel navigation
 		selectedVueFile,
@@ -616,11 +626,11 @@ const useStudioStore = defineStore("store", () => {
 		selectedPage,
 		settingPage,
 		savingPage,
+		pageConflict,
 		activePage,
 		setPage,
 		savePage,
 		updateActivePage,
-		setActivePageScript,
 		reloadActivePageScript,
 		publishPage,
 		unpublishPage,

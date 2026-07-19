@@ -212,6 +212,7 @@ watch(
 			!pageCanvas.value?.canvasProps?.settingCanvas &&
 			!store.settingPage &&
 			!store.savingPage &&
+			!store.pageConflict &&
 			!canvasStore.isAIStreaming
 		) {
 			store.savingPage = true

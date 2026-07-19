@@ -5,8 +5,10 @@ import re
 
 import frappe
 from frappe import _
+from frappe.exceptions import TimestampMismatchError
 from frappe.model.document import Document
 from frappe.model.naming import append_number_if_name_exists
+from frappe.utils import get_datetime
 
 from studio.export import (
 	can_export,
@@ -16,7 +18,8 @@ from studio.export import (
 	write_code_file,
 	write_document_file,
 )
-from studio.utils import camel_case_to_kebab_case
+from studio.realtime import publish_doc_change
+from studio.utils import camel_case_to_kebab_case, has_page_write_perm
 
 # A variable is referenced as {{ name }} and spread into the page's JS eval context, so its
 # name must be a bare JS identifier.
@@ -84,15 +87,14 @@ class StudioPage(Document):
 			self.route = f"/{self.route}"
 
 	def validate(self):
-		if hasattr(self, "_skip_validate"):
-			# passed from the frontend for faster page saves when variables & resources are not changed
-			return
-
-		self.validate_variables()
-		self.process_resources()
+		# passed from the frontend for faster page saves when variables & resources are not changed
+		if not hasattr(self, "_skip_validate"):
+			self.validate_variables()
+			self.process_resources()
 
 	def on_update(self):
 		self.export_page()
+		publish_doc_change("Studio Page", self.name, self.studio_app)
 
 	def export_page(self):
 		if can_export(self):
@@ -272,7 +274,43 @@ class StudioPage(Document):
 		return frappe.scrub(self.page_title)
 
 	@frappe.whitelist()
-	def publish(self, **kwargs):
+	def save_draft(self, draft_blocks: str, known_modified: str | None = None):
+		"""Persist the editor's working blocks under the optimistic lock (see reject_if_stale)."""
+		self.reject_if_stale(known_modified)
+		self.draft_blocks = draft_blocks
+		self._skip_validate = True  # blocks only change
+		self.save()
+		return self.modified
+
+	@frappe.whitelist()
+	def save_page_field(self, fieldname: str, value, known_modified: str | None = None):
+		"""Set a single editor-owned field (title/route/script) under the same optimistic lock as
+		save_draft, so a field edit can't silently overwrite a page the DB has moved past either."""
+		FIELDS = ["page_title", "route", "script"]
+		if fieldname not in FIELDS:
+			frappe.throw(_("Field {0} is not editable outside the Studio editor").format(fieldname))
+		self.reject_if_stale(known_modified)
+		self.set(fieldname, value)
+		self._skip_validate = True
+		self.save()
+		return self.modified
+
+	def reject_if_stale(self, known_modified: str | None):
+		"""Refuse an editor write if the page changed in the DB (a disk sync by the watcher, an AI
+		edit) after the editor loaded it — otherwise the write would silently overwrite that newer
+		version. The editor turns the raised conflict into a "refresh to load the latest" prompt."""
+		if known_modified and get_datetime(known_modified) != get_datetime(self.modified):
+			frappe.throw(
+				_(
+					"This page was changed outside the editor. Refresh to load the latest version before editing."
+				),
+				exc=TimestampMismatchError,
+				title=_("Page changed"),
+			)
+
+	@frappe.whitelist()
+	def publish(self, known_modified: str | None = None, **kwargs):
+		self.reject_if_stale(known_modified)
 		frappe.form_dict.update(kwargs)
 		self.validate_conflicts_with_other_pages()
 		self.published = 1

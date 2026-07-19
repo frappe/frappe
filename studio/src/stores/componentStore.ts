@@ -62,6 +62,14 @@ const useComponentStore = defineStore("componentStore", () => {
 		}
 	}
 
+	async function reloadComponent(componentName: string) {
+		try {
+			cacheComponent(await fetchComponent(componentName))
+		} catch {
+			removeCachedComponent(componentName)
+		}
+	}
+
 	function cacheComponent(componentDoc: StudioComponent) {
 		componentDocMap.set(componentDoc.component_id, componentDoc)
 		if (componentDoc.block) {
@@ -103,6 +111,7 @@ const useComponentStore = defineStore("componentStore", () => {
 		componentMap,
 		componentDocMap,
 		loadComponent,
+		reloadComponent,
 		getComponent,
 		getComponentDoc,
 		getComponentName,
