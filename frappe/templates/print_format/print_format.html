@@ -69,6 +69,11 @@
 				{%- if df.source and doc.get(df.source) -%}
 					{%- set ns.has_content = true -%}
 				{%- endif -%}
+			{%- elif df.fieldtype == 'Table' -%}
+				{%- set _tr = df.get('_rows') if df.get('_rows') is not none else doc.get(df.fieldname) -%}
+				{%- if _tr and df.table_columns -%}
+					{%- set ns.has_content = true -%}
+				{%- endif -%}
 			{%- elif doc.get(df.fieldname) -%}
 				{%- set ns.has_content = true -%}
 			{%- endif -%}
