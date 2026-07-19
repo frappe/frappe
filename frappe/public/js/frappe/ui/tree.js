@@ -8,6 +8,7 @@ frappe.ui.Tree = class {
 		parent,
 		label,
 		root_value,
+		root_node_id,
 		icon_set,
 		toolbar,
 		expandable,
@@ -46,7 +47,7 @@ frappe.ui.Tree = class {
 		var args = Object.assign({}, this.args);
 		args.parent = value;
 		args.is_root = is_root;
-		if (node_id && node_id !== value) args.parent_node_id = node_id;
+		if (node_id) args.parent_node_id = node_id;
 
 		return new Promise((resolve) => {
 			frappe.call({
@@ -65,7 +66,7 @@ frappe.ui.Tree = class {
 		args.label = label || value;
 		args.parent = value;
 		args.is_root = is_root;
-		if (node_id && node_id !== value) args.parent_node_id = node_id;
+		if (node_id) args.parent_node_id = node_id;
 
 		args.tree_method = this.method;
 
@@ -91,7 +92,11 @@ frappe.ui.Tree = class {
 				// `label` is not necessarily unique (e.g. the same item can appear at
 				// several places in a BOM tree), so nodes are keyed by `node_id` when
 				// the tree method supplies one, falling back to `label` otherwise.
-				this.node_id = (data && data.node_id) || this.label;
+				// `has_node_id` records whether the id was actually supplied: that, and
+				// not a comparison against `value`, is what marks a tree method as
+				// having opted in to being sent `parent_node_id`.
+				this.has_node_id = Boolean(data && data.node_id);
+				this.node_id = this.has_node_id ? data.node_id : this.label;
 				this.parent_node_id = this.parent_node_id || this.parent_label;
 				if (this.parent_node_id) {
 					this.parent_node = tree.nodes[this.parent_node_id];
@@ -113,6 +118,10 @@ frappe.ui.Tree = class {
 			is_root: true,
 			data: {
 				value: this.root_value,
+				// The root has no record of its own, so a tree that keys its nodes by
+				// id must say what identity the root stands for (e.g. the document
+				// whose children the top level represents).
+				node_id: this.root_node_id,
 			},
 		});
 		this.expand_node(this.root_node, false);
@@ -169,7 +178,10 @@ frappe.ui.Tree = class {
 	load_children(node, deep = false) {
 		const value = node.data.value,
 			is_root = node.is_root,
-			node_id = node.node_id;
+			// Only forwarded for trees that opted in by supplying a `node_id`; most
+			// tree methods accept a fixed set of keyword arguments and would raise on
+			// an unexpected one.
+			node_id = node.has_node_id ? node.node_id : null;
 
 		return deep
 			? frappe.run_serially([

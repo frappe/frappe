@@ -243,6 +243,7 @@ frappe.views.TreeView = class TreeView {
 			parent: this.body,
 			label: use_label,
 			root_value: use_value,
+			root_node_id: this.opts.root_node_id,
 			expandable: true,
 
 			args: this.args,
