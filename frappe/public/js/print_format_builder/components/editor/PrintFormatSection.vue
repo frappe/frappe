@@ -59,7 +59,11 @@
 				'section--grid-columns': is_grid && section.grid_borders === 'columns',
 			}"
 			:style="section_inline_style"
+			tabindex="0"
+			:aria-label="section.label || __('Untitled section')"
 			@click.stop="select_section"
+			@keydown.enter.prevent="select_section"
+			@keydown.space.prevent="select_section"
 		>
 			<div class="section-toolbar">
 				<div class="section-toolbar-left">

@@ -14,7 +14,11 @@
 		:data-fieldtype="preview_data_attr(df.fieldtype)"
 		v-show="!df.remove"
 		:title="df.label || df.fieldname"
+		:aria-label="df.label || df.fieldname"
+		tabindex="0"
 		@click.stop="select_field($event)"
+		@keydown.enter.prevent="kbd_select($event)"
+		@keydown.space.prevent="kbd_select($event)"
 	>
 		<!-- ── Preview mode: show actual doc values ─────────── -->
 		<template v-if="preview_doc">
@@ -894,6 +898,9 @@ function select_field(e) {
 	if (!additive && props.df.fieldtype !== "HTML") {
 		editing.value = true;
 	}
+}
+function kbd_select(e) {
+	store.select_field(props.df, !!(e.shiftKey || e.metaKey || e.ctrlKey));
 }
 
 let short_fieldtype = computed(() => {
