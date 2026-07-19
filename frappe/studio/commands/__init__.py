@@ -21,9 +21,9 @@ def build_studio_app(context, app_name: str, site: str | None = None):
 	print(f"Studio App '{app_name}' built successfully.")
 
 
-@click.command("studio-watch")
+@click.command("watch-studio")
 @pass_context
-def studio_watch(context):
+def watch_studio(context):
 	"""Watch studio folders and sync changed JSON into the DB"""
 	from studio.watch import watch
 
@@ -38,5 +38,5 @@ def studio_watch(context):
 
 commands = [
 	build_studio_app,
-	studio_watch,
+	watch_studio,
 ]

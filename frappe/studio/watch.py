@@ -1,8 +1,7 @@
 """Watch every installed app's `<app>/studio` folder and import changed JSON into the DB.
 
 Lets apps, pages and components generated on disk (by the CLI or an AI agent) show up without a
-`bench migrate`. Started automatically per site by the `before_request` hook
-under `bench serve`, or explicitly via `bench --site <site> studio-watch`.
+`bench migrate`. Run explicitly with `bench --site <site> watch-studio`.
 
 Only `.json` is watched: an exported page's script lives in a sibling `.ts` that the runtime loads
 straight off disk, and the vite dev server already hot-reloads those.
@@ -21,8 +20,8 @@ try:
 
 	WATCHDOG_AVAILABLE = True
 except ImportError:
-	# watchdog is a dev-only dependency (see pyproject.toml). Keep the module importable — the
-	# `before_request` hook imports it on every request — and let start_watcher report it.
+	# watchdog is a dev-only dependency (see pyproject.toml). Keep the module importable so the
+	# command can report the missing dep rather than failing on import.
 	FileSystemEventHandler = object
 	WATCHDOG_AVAILABLE = False
 
@@ -30,40 +29,9 @@ except ImportError:
 # editors write to a temp file and rename over the target.
 DEBOUNCE_SECONDS = 0.3
 
-# site -> observer, or None if this process won't watch it. Both outcomes are cached: the decision
-# can't change while the process lives, and this runs on every request.
-_watchers: dict[str, object | None] = {}
-_watchers_lock = threading.Lock()
-
-
-def ensure_watcher_running():
-	"""`before_request` hook: decide once per site whether to watch, then stay out of the way.
-
-	Runs on every request — including production, where the answer is always no — so every call
-	after the first must cost nothing but the dict lookup.
-	"""
-	site = frappe.local.site
-	if site in _watchers:
-		return
-
-	with _watchers_lock:
-		if site not in _watchers:
-			_watchers[site] = start_watcher(site) if can_watch() else None
-
-
-def can_watch() -> bool:
-	# Exports only happen in developer mode (studio.export.can_export), so without it there is
-	# nothing on disk to sync back.
-	if not frappe.conf.developer_mode:
-		return False
-	# Only inside `bench serve`'s reloader child, which werkzeug marks with WERKZEUG_RUN_MAIN.
-	# Gunicorn never sets it, so production's workers don't each start a watcher and race to
-	# import the same file. Use `bench studio-watch` there instead.
-	return os.environ.get("WERKZEUG_RUN_MAIN") == "true"
-
 
 def watch(site: str):
-	"""Watch until interrupted. Entry point for `bench studio-watch`."""
+	"""Watch until interrupted. Entry point for `bench watch-studio`."""
 	observer = start_watcher(site)
 	if not observer:
 		return
@@ -80,12 +48,12 @@ def start_watcher(site: str):
 	"""Start a background observer for `site`. Returns None if it can't run."""
 	if not WATCHDOG_AVAILABLE:
 		# say so rather than silently leaving the site out of sync
-		print("[studio-watch] watchdog not installed — run `bench setup requirements --dev studio`")
+		print("[watch-studio] watchdog not installed — run `bench setup requirements --dev studio`")
 		return None
 
 	folders = get_studio_folders()
 	if not folders:
-		print("[studio-watch] no studio folder found in any installed app")
+		print("[watch-studio] no studio folder found in any installed app")
 		return None
 
 	observer = Observer()
@@ -95,7 +63,7 @@ def start_watcher(site: str):
 		observer.schedule(handler, folder, recursive=True)
 	observer.start()
 
-	print(f"[studio-watch] watching {len(folders)} studio folder(s) for {site}")
+	print(f"[watch-studio] watching {len(folders)} studio folder(s) for {site}")
 	return observer
 
 
@@ -158,8 +126,8 @@ class StudioSyncHandler(FileSystemEventHandler):
 				# the import ran the doc's on_update, which broadcasts studio_doc_update
 				# (source "disk") after this commit — that's what refreshes open editors/previews
 				frappe.db.commit()
-				print(f"[studio-watch] synced {info['doctype']} from {os.path.basename(path)}")
+				print(f"[watch-studio] synced {info['doctype']} from {os.path.basename(path)}")
 		except Exception:
 			# A half-written or malformed file must not take the watcher down with it.
 			frappe.db.rollback()
-			print(f"[studio-watch] failed to sync {path}\n{frappe.get_traceback()}")
+			print(f"[watch-studio] failed to sync {path}\n{frappe.get_traceback()}")
