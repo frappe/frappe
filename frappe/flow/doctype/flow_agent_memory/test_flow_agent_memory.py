@@ -7,6 +7,7 @@ from unittest.mock import patch
 import frappe
 from frappe.tests import IntegrationTestCase
 
+from flow.memory import store
 from flow.memory.memory import build_memory_block, save_memory
 from flow.tools.builtins import sync_builtin_tools
 
@@ -28,6 +29,8 @@ def _memory(agent: str, **overrides: Any) -> dict:
 class IntegrationTestFlowAgentMemory(IntegrationTestCase):
 	def setUp(self):
 		sync_builtin_tools()
+		# LanceDB writes aren't covered by the tx rollback below; reset the (test-only) index.
+		store.drop_table()
 		self.model = frappe.get_doc(
 			{
 				"doctype": "Flow Model",
@@ -49,6 +52,7 @@ class IntegrationTestFlowAgentMemory(IntegrationTestCase):
 
 	def tearDown(self):
 		frappe.db.rollback()
+		store.drop_table()
 
 	def test_agent_scope_clears_user(self):
 		doc = frappe.get_doc(_memory(self.agent.name, user="Administrator")).insert()

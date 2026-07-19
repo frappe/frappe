@@ -12,6 +12,7 @@ from werkzeug.wrappers import Response
 from flow.api import attach_file, recover_session, resume_run, start_run, submit_feedback
 from flow.api.api import _parse_attachments
 from flow.lib.model import ChatResponse, Model, ToolCall
+from flow.memory import store as memory_store
 from flow.tools.builtins import sync_builtin_tools
 
 
@@ -716,6 +717,7 @@ class TestSubmitFeedback(IntegrationTestCase):
 	def tearDown(self):
 		frappe.set_user("Administrator")
 		frappe.db.rollback()
+		memory_store.drop_table()
 
 	def _run(self, status: str = "Completed", agent: str | None = None, **fields) -> str:
 		session = frappe.get_doc({"doctype": "Flow Session", "agent": agent or self.agent.name}).insert(
@@ -823,6 +825,7 @@ class TestMemoryRunProvenance(IntegrationTestCase):
 	def tearDown(self):
 		frappe.flags.flow_run = None
 		frappe.db.rollback()
+		memory_store.drop_table()
 
 	def test_agent_memory_stamped_with_run_then_flag_cleared(self):
 		with patch.object(Model, "chat", side_effect=[_memory_call(), _final("done")]):
