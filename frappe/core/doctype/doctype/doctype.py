@@ -1417,27 +1417,46 @@ def validate_fields(meta: Meta):
 					),
 					DoctypeLinkError,
 				)
-			if d.options == "[Select]" or d.options == d.parent:
+			if d.options == "[Select]":
 				return
-			if d.options != d.parent:
-				options = frappe.db.get_value("DocType", d.options, "name")
-				if not options:
-					frappe.throw(
-						_("{0}: Options must be a valid DocType for field {1} in row {2}").format(
-							docname, d.label, d.idx
-						),
-						WrongOptionsDoctypeLinkError,
-					)
-				elif options != d.options:
-					frappe.throw(
-						_("{0}: Options {1} must be the same as doctype name {2} for the field {3}").format(
-							docname, d.options, options, d.label
-						),
-						DoctypeLinkError,
-					)
-				else:
-					# fix case
-					d.options = options
+			if d.options == d.parent:
+				check_link_to_child_table(docname, d, meta.istable)
+				return
+			linked_doctype = frappe.db.get_value("DocType", d.options, ("name", "istable"), as_dict=True)
+			if not linked_doctype:
+				frappe.throw(
+					_("{0}: Options must be a valid DocType for field {1} in row {2}").format(
+						docname, d.label, d.idx
+					),
+					WrongOptionsDoctypeLinkError,
+				)
+			elif linked_doctype.name != d.options:
+				frappe.throw(
+					_("{0}: Options {1} must be the same as doctype name {2} for the field {3}").format(
+						docname, d.options, linked_doctype.name, d.label
+					),
+					DoctypeLinkError,
+				)
+			else:
+				# fix case
+				d.options = linked_doctype.name
+				check_link_to_child_table(docname, d, linked_doctype.istable)
+
+	def check_link_to_child_table(docname, d, is_child_table):
+		if d.fieldtype != "Link" or not is_child_table:
+			return
+
+		msg = _("{0}: Options {1} for Link field {2} in row {3} cannot be a child table").format(
+			docname, d.options, d.label, d.idx
+		)
+
+		# fields already saved on existing sites must not break install or import
+		if frappe.flags.in_install or frappe.flags.in_import:
+			frappe.logger().warning(msg)
+			frappe.msgprint(msg, title=_("Invalid Option"), alert=True)
+			return
+
+		frappe.throw(msg, WrongOptionsDoctypeLinkError)
 
 	def check_hidden_and_mandatory(docname, d):
 		if d.hidden and d.reqd and not d.default and not frappe.flags.in_migrate:
