@@ -4,7 +4,7 @@
 from __future__ import annotations
 
 import json
-from typing import Any
+from typing import Any, Literal
 
 import frappe
 from frappe import _
@@ -142,6 +142,49 @@ def _knowledge_search_description(kbs: list[str]) -> str:
 
 
 search_knowledge = bind_search_knowledge([])
+
+
+_UPDATE_MEMORY_DESCRIPTION = """Save a durable fact to persistent memory, or edit one by passing its memory_id.
+
+Saved memories appear in the <agent_memory> block of your system prompt on every turn, \
+including future conversations.
+
+When to save: stable, reusable facts learned during the conversation — mappings and \
+identifiers (e.g. an invoice item name to its ERP item code), business rules, corrections \
+the user gives you, and their preferences. Do not save transient conversation state, \
+secrets or credentials, or anything you can re-derive by reading records.
+
+How to write: one short, self-contained, third-person fact per memory. Before adding, \
+check <agent_memory> — if a related memory exists, pass its memory_id to revise or extend \
+it instead of adding a duplicate. When a fact changes, edit the existing memory to the new \
+value. Near the memory limit, consolidate related memories into one.
+
+scope:
+- "agent" — true for everyone who uses this agent (mappings, business rules, conventions).
+- "user" — specific to the current user (their preferences and defaults).
+Ask: is this about the organisation, or about this person?"""
+
+
+def bind_update_memory(agent: str | None) -> Tool:
+	"""Build an `update_memory` tool bound to `agent`. The binding comes from the agent's
+	config, never the model. The registered builtin binds None, so an unbound call
+	fails closed."""
+
+	def update_memory(
+		content: str,
+		scope: Literal["agent", "user"],
+		memory_id: str | None = None,
+	) -> dict[str, Any]:
+		from flow.memory.memory import save_memory
+
+		if not agent:
+			frappe.throw(_("Memory is not configured for this agent."), title=_("Memory Unavailable"))
+		return save_memory(agent, content=content, scope=scope, memory_id=memory_id)
+
+	return tool(update_memory, description=_UPDATE_MEMORY_DESCRIPTION)
+
+
+update_memory = bind_update_memory(None)
 
 
 @tool(
@@ -420,6 +463,7 @@ BUILTIN_TOOLS: list[Tool] = [
 	describe,
 	read,
 	search_knowledge,
+	update_memory,
 	create,
 	update,
 	delete,
