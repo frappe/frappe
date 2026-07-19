@@ -8,6 +8,7 @@ from frappe.model.document import Document
 from frappe.model.naming import append_number_if_name_exists
 
 from studio.export import delete_file, parse_json
+from studio.realtime import publish_doc_change
 
 
 class StudioComponent(Document):
@@ -36,6 +37,9 @@ class StudioComponent(Document):
 
 	def before_export(self, doc):
 		doc.block = parse_json(doc.block)
+
+	def on_update(self):
+		publish_doc_change("Studio Component", self.name)
 
 	@frappe.whitelist()
 	def delete_component(self, studio_app: str | None = None):

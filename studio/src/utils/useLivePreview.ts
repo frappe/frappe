@@ -1,6 +1,7 @@
 import { inject, onMounted, onBeforeUnmount, type Ref } from "vue"
 import { useDebounceFn } from "@vueuse/core"
 
+import useComponentStore from "@/stores/componentStore"
 import type { StudioPage } from "@/types/Studio/StudioPage"
 
 // Re-render the preview when the open page changes in the DB — an editor save, an AI edit, or a disk
@@ -11,7 +12,11 @@ export function useLivePreview(page: Ref<StudioPage | null>, reload: () => void)
 	const reloadDebounced = useDebounceFn(reload, 300)
 
 	const onDocUpdate = (info: any) => {
-		if (info?.doctype === "Studio Page" && info?.name === page.value?.name) reloadDebounced()
+		if (info?.doctype === "Studio Component") {
+			useComponentStore().reloadComponent(info.name)
+		} else if (info?.doctype === "Studio Page" && info?.name === page.value?.name) {
+			reloadDebounced()
+		}
 	}
 
 	onMounted(() => socket?.on("studio_doc_update", onDocUpdate))

@@ -1,7 +1,7 @@
 import frappe
 
 
-def publish_doc_change(doctype: str, name: str, studio_app: str):
+def publish_doc_change(doctype: str, name: str, studio_app: str | None = None):
 	if frappe.flags.in_migrate or frappe.flags.in_install or frappe.flags.in_patch:
 		return
 

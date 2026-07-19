@@ -18,6 +18,7 @@ import { studioVariables } from "@/data/studioVariables"
 import Block from "@/utils/block"
 import useCanvasStore from "@/stores/canvasStore"
 import useCodeStore from "@/stores/codeStore"
+import useComponentStore from "@/stores/componentStore"
 import { registerCustomVueComponents, unregisterCustomVueComponents } from "@/globals"
 import {
 	registerStudioPageScripts,
@@ -275,7 +276,14 @@ const useStudioStore = defineStore("store", () => {
 	}
 
 	async function applyDiskSync({ doctype, name, studio_app, source }: { doctype: string; name: string; studio_app: string; source: string }) {
-		if (source !== "disk" || studio_app !== activeApp.value?.name) return
+		if (source !== "disk") return
+
+		if (doctype === "Studio Component") {
+			await useComponentStore().reloadComponent(name)
+			return
+		}
+
+		if (studio_app !== activeApp.value?.name) return
 
 		if (doctype === "Studio App") {
 			const app = await fetchApp(studio_app)
