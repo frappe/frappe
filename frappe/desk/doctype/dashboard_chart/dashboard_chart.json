@@ -75,14 +75,16 @@
    "fieldname": "document_type",
    "fieldtype": "Link",
    "label": "Document Type",
+   "mandatory_depends_on": "eval: doc.chart_type !== 'Custom' && doc.chart_type !== 'Report'",
    "options": "DocType",
    "set_only_once": 1
   },
   {
-   "depends_on": "eval: doc.timeseries && ['Count', 'Sum', 'Average'].includes(doc.chart_type)",
+   "depends_on": "eval: ['Count', 'Sum', 'Average'].includes(doc.chart_type)",
    "fieldname": "based_on",
    "fieldtype": "Select",
-   "label": "Time Series Based On"
+   "label": "Time Series Based On",
+   "mandatory_depends_on": "eval: ['Count', 'Sum', 'Average'].includes(doc.chart_type)"
   },
   {
    "depends_on": "eval: ['Sum', 'Average'].includes(doc.chart_type)\n",
@@ -163,7 +165,8 @@
    "depends_on": "eval:doc.chart_type === 'Group By'",
    "fieldname": "group_by_based_on",
    "fieldtype": "Select",
-   "label": "Group By Based On"
+   "label": "Group By Based On",
+   "mandatory_depends_on": "eval:doc.chart_type === 'Group By'"
   },
   {
    "default": "Count",
@@ -177,7 +180,8 @@
    "depends_on": "eval: ['Sum', 'Average'].includes(doc.group_by_type)",
    "fieldname": "aggregate_function_based_on",
    "fieldtype": "Select",
-   "label": "Aggregate Function Based On"
+   "label": "Aggregate Function Based On",
+   "mandatory_depends_on": "eval: doc.chart_type === 'Group By' && ['Sum', 'Average'].includes(doc.group_by_type)"
   },
   {
    "depends_on": "eval:doc.chart_type === 'Group By'",
@@ -304,7 +308,7 @@
   }
  ],
  "links": [],
- "modified": "2025-06-08 22:49:08.587921",
+ "modified": "2026-07-17 11:42:00.000000",
  "modified_by": "Administrator",
  "module": "Desk",
  "name": "Dashboard Chart",
