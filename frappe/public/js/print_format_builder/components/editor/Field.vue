@@ -371,6 +371,7 @@
 					data-variant="ghost"
 					data-theme="red"
 					data-icon-button="true"
+					:title="__('Remove field')"
 					@click.stop="store.remove_field(df)"
 					v-html="frappe.utils.icon('x', 'xs')"
 				></button>
@@ -426,6 +427,7 @@
 								data-size="xs"
 								data-variant="ghost"
 								data-icon-button="true"
+								:title="__('Edit HTML')"
 								@click.stop="edit_html"
 								v-html="frappe.utils.icon('pencil', 'sm')"
 							></button>
@@ -453,6 +455,7 @@
 								data-variant="ghost"
 								data-theme="red"
 								data-icon-button="true"
+								:title="__('Remove field')"
 								@click.stop="store.remove_field(df)"
 								v-html="frappe.utils.icon('x', 'sm')"
 							></button>
