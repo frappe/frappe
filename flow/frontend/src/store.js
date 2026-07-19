@@ -388,7 +388,7 @@ function handleEvent(event, msg) {
 			refreshHistory();
 			break;
 		case "error":
-			appendText(msg, `\n\nError: ${event.message}`);
+			appendText(msg, `\n\n${__("Error")}: ${event.message}`);
 			msg.pending = false;
 			break;
 	}
@@ -454,7 +454,7 @@ function appendText(msg, delta) {
 }
 
 function failMessage(msg, error) {
-	appendText(msg, `\n\nError: ${error.message}`);
+	appendText(msg, `\n\n${__("Error")}: ${error.message}`);
 	msg.pending = false;
 }
 

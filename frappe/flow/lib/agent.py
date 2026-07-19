@@ -8,6 +8,8 @@ from collections.abc import Generator
 from dataclasses import dataclass, field
 from typing import TYPE_CHECKING, Any
 
+from frappe import _
+
 from flow.lib.model import ChatResponse, Model, ToolCall, ToolCallBegin
 from flow.lib.tool import Tool
 
@@ -438,7 +440,7 @@ def _confirmation_question(call: ToolCall, tool: Tool) -> Question:
 	else:
 		body = json.dumps(call.arguments, indent=2, default=str)
 	return Question(
-		prompt=f"Approve `{call.name}`?\n\n{body}",
+		prompt=_("Approve `{0}`?\n\n{1}").format(call.name, body),
 		options=["Approve", "Deny"],
 		allow_other=True,
 	)
