@@ -46,9 +46,11 @@
 			"
 			class="pfb-inspector-empty"
 		>
-			<svg class="icon icon-md text-muted" style="margin-bottom: 8px">
-				<use href="#icon-text-cursor"></use>
-			</svg>
+			<span
+				class="text-muted"
+				style="margin-bottom: 8px"
+				v-html="frappe.utils.icon('text-cursor', 'md')"
+			></span>
 			<p class="text-muted">{{ __("Click a field to edit its properties") }}</p>
 		</div>
 
