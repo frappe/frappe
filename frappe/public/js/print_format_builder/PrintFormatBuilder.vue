@@ -221,6 +221,20 @@ function handle_keydown(e) {
 			}
 			return;
 		}
+		if (e.key === "d" || e.key === "D") {
+			const el = document.activeElement;
+			if (
+				el?.tagName === "INPUT" ||
+				el?.tagName === "TEXTAREA" ||
+				el?.isContentEditable ||
+				el?.closest(".modal")
+			)
+				return;
+			if (!$store.value.selected_field.value && !$store.value.selected_section.value) return;
+			e.preventDefault();
+			$store.value.duplicate_selection();
+			return;
+		}
 		if (e.key === "=" || e.key === "+") {
 			e.preventDefault();
 			zoom_in();

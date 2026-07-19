@@ -328,6 +328,32 @@ export function getStore(print_format_name) {
 		if (selected_field.value) copy_field(selected_field.value);
 		else if (selected_section.value) copy_section(selected_section.value);
 	}
+	function duplicate_field(df) {
+		if (!df || !layout.value) return;
+		const col = find_field_column(df);
+		if (!col) return;
+		const clone = freshen_field(clone_plain(df));
+		col.fields.splice(col.fields.indexOf(df) + 1, 0, clone);
+		selected_section.value = null;
+		selected_field.value = clone;
+	}
+	function duplicate_section(section) {
+		if (!section || !layout.value) return;
+		const sections = layout.value.sections;
+		const idx = sections.indexOf(section);
+		// header/footer zones live outside sections and can't be duplicated
+		if (idx === -1) return;
+		const clone = clone_plain(section);
+		delete clone.remove;
+		(clone.columns || []).forEach((c) => (c.fields || []).forEach(freshen_field));
+		sections.splice(idx + 1, 0, clone);
+		selected_field.value = null;
+		selected_section.value = clone;
+	}
+	function duplicate_selection() {
+		if (selected_field.value) duplicate_field(selected_field.value);
+		else if (selected_section.value) duplicate_section(selected_section.value);
+	}
 	function find_field_column(df) {
 		const lv = layout.value;
 		const zones = [lv?.header, lv?.footer, ...(lv?.sections || [])].filter(Boolean);
@@ -408,6 +434,9 @@ export function getStore(print_format_name) {
 		copy_field,
 		copy_section,
 		copy_selection,
+		duplicate_field,
+		duplicate_section,
+		duplicate_selection,
 		paste_clipboard,
 		undo,
 		redo,
