@@ -156,6 +156,7 @@ def send_login_link(email: str):
 			recipients=email,
 			template="login_with_email_link",
 			args={"link": link, "minutes": expiry, "app_name": app_name},
+			with_container=True,
 			now=True,
 		)
 	except frappe.DoesNotExistError:

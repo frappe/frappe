@@ -102,7 +102,7 @@ hr {
 	.gray-container {
 		background-color: $gray-50;
 		border-radius: $border-radius-lg;
-		padding: 25px 15px;
+		padding: 16px 20px;
 	}
 }
 
@@ -182,6 +182,19 @@ hr {
 	& > div:not(:last-child) {
 		margin-bottom: 4px;
 	}
+}
+
+.verification-code {
+	display: inline-block;
+	font-size: 24px;
+	font-weight: 600;
+	letter-spacing: 6px;
+	color: $gray-900;
+	background-color: $gray-50;
+	border: 1px solid $gray-200;
+	border-radius: $border-radius-lg;
+	padding: 12px 18px 12px 24px;
+	margin: 4px 0 16px;
 }
 
 .email-unsubscribe a {
@@ -310,6 +323,21 @@ hr {
 /* auto email report */
 .report-title {
 	margin-bottom: 20px;
+}
+
+/* document follow */
+.follow-panel {
+	margin-bottom: 16px;
+}
+
+.follow-panel-title {
+	margin-bottom: 8px;
+	font-weight: 600;
+}
+
+.follow-timeline {
+	margin: 0;
+	line-height: 1.7;
 }
 
 /* csslint ignore:end */
