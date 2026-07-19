@@ -80,7 +80,18 @@ def build_memory_block(agent: str | None, *, query: str = "") -> str | None:
 	return "\n".join(lines)
 
 
-def _add(agent: str, content: str, scope: str) -> dict[str, Any]:
+def save_feedback_memory(run: Any, comment: str) -> str | None:
+	"""Store a thumbs-down comment as shared agent memory so future runs correct course.
+	Returns None (a no-op) when the agent has no memory tool — nothing to store into."""
+	agent = frappe.db.get_value("Flow Session", run.session, "agent")
+	if not agent or not _has_memory_tool(agent):
+		return None
+	return _add(agent, comment, "Agent", source="Feedback", source_run=run.name)["memory_id"]
+
+
+def _add(
+	agent: str, content: str, scope: str, *, source: str = "Agent", source_run: str | None = None
+) -> dict[str, Any]:
 	filters: dict[str, Any] = {"agent": agent, "scope": scope, "status": "Active"}
 	if scope == "User":
 		filters["user"] = frappe.session.user
@@ -97,8 +108,8 @@ def _add(agent: str, content: str, scope: str) -> dict[str, Any]:
 			"scope": scope,
 			"user": frappe.session.user if scope == "User" else None,
 			"content": content,
-			"source": "Agent",
-			"source_run": frappe.flags.get("flow_run"),
+			"source": source,
+			"source_run": source_run or frappe.flags.get("flow_run"),
 			"status": "Active",
 		}
 	).insert(ignore_permissions=True)

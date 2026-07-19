@@ -6,6 +6,7 @@ from flow.api.api import (
 	resume_run,
 	start_run,
 	stop_run,
+	submit_feedback,
 )
 
 __all__ = [
@@ -15,4 +16,5 @@ __all__ = [
 	"resume_run",
 	"start_run",
 	"stop_run",
+	"submit_feedback",
 ]
