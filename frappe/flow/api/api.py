@@ -96,7 +96,7 @@ def recover_session(session: str) -> dict[str, int]:
 		frappe.db.set_value(
 			"Flow Run",
 			name,
-			{"status": "Failed", "error": _("Run abandoned: stream ended without completing.")},
+			{"status": "Failed", "error": "Run abandoned: stream ended without completing."},
 		)
 	return {"recovered": len(abandoned)}
 
