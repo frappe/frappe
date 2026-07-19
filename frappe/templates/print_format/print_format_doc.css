@@ -197,8 +197,9 @@
 	vertical-align: top;
 }
 
-/* lined: a divider under the header and under each row */
-.print-format-doc .child-table--lined .table th,
+/* lined: a divider under each body row. The header needs none — the styled
+   header's fill (clipped by the wrapper radius) separates it, and the plain
+   header has its own rule below. */
 .print-format-doc .child-table--lined .table td {
 	border-bottom: 1px solid var(--gray-300) !important;
 }
