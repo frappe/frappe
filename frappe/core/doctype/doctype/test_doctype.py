@@ -365,6 +365,37 @@ class TestDocType(IntegrationTestCase):
 
 		self.assertRaises(WrongOptionsDoctypeLinkError, doc.insert)
 
+	def test_link_to_child_table(self):
+		child = new_doctype(istable=1).insert()
+		self.addCleanup(lambda: frappe.delete_doc("DocType", child.name, force=True))
+
+		doc = new_doctype(fields=[{"fieldname": "link", "fieldtype": "Link", "options": child.name}])
+		self.assertRaises(WrongOptionsDoctypeLinkError, doc.insert)
+
+		doc.fields[0].fieldtype = "Table"
+		doc.insert()
+		self.addCleanup(lambda: frappe.delete_doc("DocType", doc.name, force=True))
+
+		self_linking_child = new_doctype(istable=1, fields=[{"fieldname": "link", "fieldtype": "Link"}])
+		self_linking_child.fields[0].options = self_linking_child.name
+		self.assertRaises(WrongOptionsDoctypeLinkError, self_linking_child.insert)
+
+	def test_link_to_child_table_does_not_block_install(self):
+		child = new_doctype(istable=1).insert()
+		self.addCleanup(lambda: frappe.delete_doc("DocType", child.name, force=True))
+
+		doc = new_doctype(fields=[{"fieldname": "link", "fieldtype": "Link", "options": child.name}])
+
+		messages = []
+		with (
+			patch.dict(frappe.flags, {"in_install": "frappe"}),
+			patch.object(frappe, "msgprint", side_effect=lambda msg, **kwargs: messages.append(msg)),
+		):
+			doc.insert()
+
+		self.addCleanup(lambda: frappe.delete_doc("DocType", doc.name, force=True))
+		self.assertTrue(any("cannot be a child table" in msg for msg in messages))
+
 	def test_hidden_and_mandatory_without_default(self):
 		doc = new_doctype("Test hidden and mandatory")
 		field_1 = doc.append("fields", {})
