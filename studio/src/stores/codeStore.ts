@@ -8,7 +8,7 @@ import { watchDebounced } from "@vueuse/core"
 import { createDocumentResource, createListResource, createResource, call } from "frappe-ui"
 import { studioPageResources } from "@/data/studioResources"
 import { studioVariables } from "@/data/studioVariables"
-import { loadPageScriptModule } from "@/data/studioPageScripts"
+import { loadPageScriptModule, setPageScriptHotUpdateHandler } from "@/data/studioPageScripts"
 import * as globalUtils from "@/utils/globalUtils"
 import { getInitialVariableValue, getValueFromObject, setValueInObject } from "@/utils/helpers"
 import { isDynamicValue, normalizeDynamicValue } from "@/utils/code"
@@ -41,6 +41,7 @@ const useCodeStore = defineStore("codeStore", () => {
 		return unwrapped
 	})
 	const pageScriptError = ref<string | null>(null)
+	const currentPageName = ref<string | null>(null)
 	let pageScriptScope: EffectScope | null = null
 
 	function setRouteObject(route: ComputedRef) {
@@ -126,6 +127,7 @@ const useCodeStore = defineStore("codeStore", () => {
 		disposePageScriptScope()
 		pageScriptBindings.value = {}
 		pageScriptError.value = null
+		currentPageName.value = page.name
 
 		if (isStandardPage) {
 			pageScriptBindings.value = await loadCodePageScript(page.name)
@@ -165,12 +167,16 @@ const useCodeStore = defineStore("codeStore", () => {
 
 	// HMR: the active page's script (or a composable/util it imports) was edited. Re-run its setup
 	// with the freshly hot-loaded module so new refs/computed and changed dependency code take
-	// effect on the canvas without a reload. (Pinia stores keep their singleton state — they refresh
-	// their code only via their own acceptHMRUpdate.)
+	// effect without a reload. (Pinia stores keep their singleton state — they refresh their code
+	// only via their own acceptHMRUpdate.) Registered once here so both the editor and the preview
+	// (each with their own codeStore) hot-apply script edits to the page they're showing.
 	async function applyPageScriptHMR(setup: unknown) {
 		pageScriptError.value = null
 		pageScriptBindings.value = await runPageScriptSetup(setup)
 	}
+	setPageScriptHotUpdateHandler((pageName, setup) => {
+		if (currentPageName.value === pageName) applyPageScriptHMR(setup)
+	})
 
 	function reportPageScriptError(error: unknown) {
 		console.error("Error running page script", error)
@@ -626,7 +632,6 @@ const useCodeStore = defineStore("codeStore", () => {
 		pageScriptTemplateBindings,
 		pageScriptError,
 		setPageScript,
-		applyPageScriptHMR,
 		// code execution
 		evalContext,
 		scriptContext,

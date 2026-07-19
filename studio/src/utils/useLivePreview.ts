@@ -2,9 +2,7 @@ import { inject, onMounted, onBeforeUnmount, type Ref } from "vue"
 import { useDebounceFn } from "@vueuse/core"
 
 import { reloadCustomVueComponents } from "@/globals"
-import { setPageScriptHotUpdateHandler } from "@/data/studioPageScripts"
 import useComponentStore from "@/stores/componentStore"
-import useCodeStore from "@/stores/codeStore"
 import type { StudioPage } from "@/types/Studio/StudioPage"
 
 // Re-render the preview when the open page changes in the DB — an editor save, an AI edit, or a disk
@@ -33,11 +31,5 @@ export function useLivePreview(page: Ref<StudioPage | null>, reload: () => void)
 	onBeforeUnmount(() => {
 		socket?.off("studio_doc_update", onDocUpdate)
 		import.meta.hot?.off("studio:custom-components-changed", onCustomComponentsChanged)
-	})
-
-	// a page .ts script hot-updated (routed here via a window global, see studioPageScripts). Re-run
-	// its setup so the shown page picks up the change in place, without re-navigating.
-	setPageScriptHotUpdateHandler((pageName, setup) => {
-		if (page.value?.name === pageName) useCodeStore().applyPageScriptHMR(setup)
 	})
 }

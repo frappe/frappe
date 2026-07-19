@@ -1,15 +1,12 @@
 import { inject, onMounted, onBeforeUnmount } from "vue"
 
 import { fetchApp } from "@/utils/helpers"
-import { setPageScriptHotUpdateHandler } from "@/data/studioPageScripts"
 import useStudioStore from "@/stores/studioStore"
-import useCodeStore from "@/stores/codeStore"
 import useComponentStore from "@/stores/componentStore"
 
 // Keep the open editor in sync with changes made outside it. Three sources, two transports:
 //   - page/app/component JSON synced from disk -> backend socket (studio_doc_update)
 //   - custom .vue components hot-reloaded by Vite (dev only)
-//   - page .ts scripts hot-swapped in place by Vite (dev only)
 // Call once at the editor root (App.vue). Sibling of useLivePreview, which does this for the render.
 export function useLiveEditor() {
 	const store = useStudioStore()
@@ -50,13 +47,6 @@ export function useLiveEditor() {
 	onBeforeUnmount(() => {
 		socket?.off("studio_doc_update", onDiskSync)
 		import.meta.hot?.off("studio:custom-components-changed", onCustomComponentsChanged)
-	})
-
-	// 3. A page .ts script hot-updated. Not a subscription — the exported script self-accepts and
-	// routes the new setup() here via a window global (see studioPageScripts.applyPageScriptHotUpdate);
-	// we just re-run it on the canvas if it's the open page.
-	setPageScriptHotUpdateHandler((pageName, setup) => {
-		if (store.activePage?.name === pageName) useCodeStore().applyPageScriptHMR(setup)
 	})
 }
 
