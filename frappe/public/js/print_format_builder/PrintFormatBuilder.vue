@@ -456,10 +456,10 @@ defineExpose({ toggle_preview, show_preview, $store });
 	align-items: center;
 	gap: 6px;
 	padding: 4px 12px;
-	background: var(--blue-50);
-	border-bottom: 1px solid var(--blue-100);
+	background: var(--gray-50);
+	border-bottom: 1px solid var(--gray-200);
 	font-size: var(--text-xs);
-	color: var(--blue-700);
+	color: var(--gray-700);
 }
 
 .pfb-hint-icon {
@@ -479,7 +479,7 @@ defineExpose({ toggle_preview, show_preview, $store });
 	border: none;
 	background: transparent;
 	cursor: pointer;
-	color: var(--blue-400);
+	color: var(--gray-500);
 	border-radius: var(--radius);
 	line-height: 1;
 	opacity: 0.7;
@@ -487,7 +487,7 @@ defineExpose({ toggle_preview, show_preview, $store });
 
 .pfb-hint-dismiss:hover {
 	opacity: 1;
-	background: var(--blue-100);
+	background: var(--gray-200);
 }
 
 /* ── Canvas toolbar ──────────────────────────────────────── */
@@ -549,22 +549,6 @@ defineExpose({ toggle_preview, show_preview, $store });
 	border: 1px solid var(--yellow-200);
 	border-radius: var(--radius);
 	padding: 3px 8px;
-}
-
-.canvas-icon-btn {
-	display: flex;
-	align-items: center;
-	padding: 3px;
-	border: none;
-	background: transparent;
-	cursor: pointer;
-	color: var(--gray-400);
-	border-radius: var(--radius);
-}
-
-.canvas-icon-btn:hover {
-	background: var(--gray-100);
-	color: var(--gray-600);
 }
 
 /* ── Zoom control ────────────────────────────────────────── */

@@ -108,8 +108,8 @@ defineEmits(["start-default", "start-blank"]);
 }
 
 .pfb-setup-option:hover {
-	border-color: var(--primary);
-	background: var(--blue-50);
+	border-color: var(--gray-500);
+	background: var(--gray-50);
 }
 
 .pfb-setup-option-icon {
@@ -118,7 +118,7 @@ defineEmits(["start-default", "start-blank"]);
 }
 
 .pfb-setup-option:hover .pfb-setup-option-icon {
-	color: var(--primary);
+	color: var(--gray-700);
 }
 
 .pfb-setup-option-body {
