@@ -154,6 +154,7 @@ class FlowSession(Document):
 			reference_name=reference_name,
 			config_snapshot=self._snapshot,
 		)
+		frappe.flags.flow_run = run.name
 		self._persist_turn(input, attachment_data, run.name)
 		self._index_retrieval_attachments(run.name, {d["file"]: d["extracted_text"] for d in attachment_data})
 		run_input = self._build_prompt_messages()
@@ -284,6 +285,7 @@ class FlowSession(Document):
 		if not run_name:
 			frappe.throw(_("This session has no paused run to resume."), title=_("Nothing to Resume"))
 		run = frappe.get_doc("Flow Run", run_name)
+		frappe.flags.flow_run = run.name
 
 		self.reload()
 		messages = self._build_prompt_messages()
@@ -308,8 +310,10 @@ class FlowSession(Document):
 		- Inline files: full text re-injected on their turn, clamped to the remaining budget.
 		- Retrieval files: a short note marks where each was attached; for the latest user turn
 		  the most relevant chunks (by that turn's query) are injected in place of the full text.
+		- Agent memory: the agent's saved memories are appended to the system message.
 		"""
 		from flow.knowledge.retriever import retrieve_attachments
+		from flow.memory.memory import build_memory_block
 
 		attachments_by_run = self._group_attachments_by_run()
 		last_user_run = self._latest_user_run()
@@ -333,6 +337,13 @@ class FlowSession(Document):
 					content, budget = _inject_retrieved_chunks(content, chunks, budget)
 				message["content"] = content
 			messages.append(message)
+
+		memory_block = build_memory_block(self.agent, query=self._latest_user_content())
+		if memory_block:
+			if messages and messages[0]["role"] == "system":
+				messages[0]["content"] = f"{messages[0]['content']}\n\n{memory_block}"
+			else:
+				messages.insert(0, {"role": "system", "content": memory_block})
 		return messages
 
 	def _latest_user_run(self) -> str | None:
