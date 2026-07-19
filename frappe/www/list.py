@@ -24,6 +24,24 @@ def get_list_data(
 	**kwargs,
 ):
 	"""Return processed HTML page for a standard listing."""
+	list_context = get_list_context(frappe._dict(), doctype, web_form_name)
+	return get_list_data_for_context(
+		list_context, doctype, txt, limit_start, limit=limit, web_form_name=web_form_name, **kwargs
+	)
+
+
+def get_list_data_for_context(
+	list_context,
+	doctype: str,
+	txt: str | None = None,
+	limit_start: int = 0,
+	fields: list | None = None,
+	cmd: str | None = None,
+	limit: int = 20,
+	web_form_name: str | None = None,
+	**kwargs,
+):
+	"""Return rows for a standard listing, using an already resolved list context."""
 	limit_start = cint(limit_start)
 
 	if frappe.is_table(doctype):
@@ -37,7 +55,6 @@ def get_list_data(
 	meta = frappe.get_meta(doctype)
 
 	filters = prepare_filters(doctype, controller, kwargs)
-	list_context = get_list_context(frappe._dict(), doctype, web_form_name)
 	list_context.title_field = getattr(controller, "website", {}).get(
 		"page_title_field", meta.title_field or "name"
 	)
