@@ -211,10 +211,10 @@ class Agent:
 
 	def _resolve_confirmation(self, call: ToolCall, answer: Any) -> str:
 		"""Run the tool if approved; deny if rejected; redirect with user feedback otherwise."""
-		if answer == "Approve" or answer == _("Approve"):
+		if answer == "Approve":
 			result = self._run_tool(call)
 			return _serialize_tool_result(result)
-		if answer == "Deny" or answer == _("Deny"):
+		if answer == "Deny":
 			return json.dumps({"status": "denied", "message": "User denied this tool call."})
 		# Free-text "Other"
 		return json.dumps(
@@ -441,7 +441,7 @@ def _confirmation_question(call: ToolCall, tool: Tool) -> Question:
 		body = json.dumps(call.arguments, indent=2, default=str)
 	return Question(
 		prompt=_("Approve `{0}`?\n\n{1}").format(call.name, body),
-		options=[_("Approve"), _("Deny")],
+		options=["Approve", "Deny"],
 		allow_other=True,
 	)
 
