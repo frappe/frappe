@@ -3,13 +3,13 @@
 </template>
 
 <script setup lang="ts">
-import { watch, ref, inject, onMounted, onBeforeUnmount } from "vue"
+import { watch, ref } from "vue"
 import { useRoute } from "vue-router"
 import { usePageMeta } from "frappe-ui"
-import { useDebounceFn } from "@vueuse/core"
 
 import { findPageWithRoute } from "@/utils/helpers"
 import { getBlockInstance } from "@/utils/serializer"
+import { useLivePreview } from "@/utils/useLivePreview"
 import AppComponent from "@/components/AppComponent.vue"
 
 import useAppStore from "@/stores/appStore"
@@ -56,17 +56,7 @@ async function loadPage() {
 
 watch(() => route.path, loadPage, { immediate: true })
 
-// Live preview: re-render when the open page changes in the DB — an editor save, an AI edit, or a
-// disk edit. Debounced so a burst of autosaves coalesces into one reload. Socket is provided only
-// in preview (renderer.ts), so this is inert for a published app.
-const socket = inject<any>("socket")
-const reloadPage = useDebounceFn(loadPage, 300)
-const onDocUpdate = (info: any) => {
-	if (info?.doctype === "Studio Page" && info?.name === page.value?.name) reloadPage()
-}
-
-onMounted(() => socket?.on("studio_doc_update", onDocUpdate))
-onBeforeUnmount(() => socket?.off("studio_doc_update", onDocUpdate))
+if (window.is_preview) useLivePreview(page, loadPage)
 
 usePageMeta(() => {
 	return {
