@@ -138,6 +138,19 @@ export function pluck(object, keys) {
 	return out;
 }
 
+export const DRAG_OPTIONS = {
+	forceFallback: true,
+	fallbackOnBody: true,
+	fallbackTolerance: 4,
+	fallbackClass: "pfb-drag-fallback",
+	ghostClass: "pfb-drag-ghost",
+};
+
+export function setDragging(active) {
+	document.body.classList.toggle("pfb-dragging", active);
+	if (active) window.getSelection()?.removeAllRanges();
+}
+
 export const TABLE_COLUMN_PLUCK_KEYS = [
 	"label",
 	"fieldname",
@@ -148,6 +161,7 @@ export const TABLE_COLUMN_PLUCK_KEYS = [
 	"merged_fields",
 	"merge_direction",
 	"image_size",
+	"column_condition",
 ];
 
 export const FIELD_PLUCK_KEYS = [

@@ -32,6 +32,7 @@ function patch_breadcrumbs_once() {
 function load_print_format_builder(wrapper) {
 	let route = frappe.get_route();
 	let $parent = $(wrapper).find(".layout-main-section");
+	frappe.print_format_builder?.destroy?.();
 	$parent.empty();
 
 	if (route.length > 1) {

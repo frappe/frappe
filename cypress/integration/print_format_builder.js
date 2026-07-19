@@ -160,11 +160,11 @@ context("Print Format Builder — create flow", () => {
 		cy.visit(`/app/print-format-builder/${encodeURIComponent(PF_NAME)}`);
 
 		cy.get(".pfb-tab[title='Outline']", { timeout: 30000 }).click();
-		cy.contains(".pfb-outline-item", "Beta").click();
+		cy.contains(".pfb-tree-row", "Beta").click();
 
 		cy.get(".pfb-inspector").should("contain", "Section");
 		cy.get(".pfb-inspector").should("contain", "Beta");
-		cy.contains(".pfb-outline-item", "Beta").should("have.class", "active");
+		cy.contains(".pfb-tree-row", "Beta").should("have.class", "active");
 	});
 
 	// 5. Field inspector breadcrumb navigates back to parent section
@@ -188,7 +188,7 @@ context("Print Format Builder — create flow", () => {
 		cy.visit(`/app/print-format-builder/${encodeURIComponent(PF_NAME)}`);
 
 		cy.get(".pfb-tab[title='Outline']", { timeout: 30000 }).click();
-		cy.contains(".pfb-outline-item", "Details").click();
+		cy.contains(".pfb-tree-row", "Details").click();
 
 		cy.get(".print-format-container").click();
 		cy.contains("[data-pfb-section]", "Details").find(".field").first().click({ force: true });
@@ -466,7 +466,7 @@ context("Print Format Builder — setup flow", () => {
 		cy.contains(".pfb-setup-option-label", "Start blank").click();
 
 		cy.get(".pfb-setup").should("not.exist");
-		cy.get(".sections-container").should("be.visible");
+		cy.get(".body-empty").should("be.visible");
 		// blank canvas — no body sections
 		cy.get(".sections-container [data-pfb-section]").should("have.length", 0);
 
@@ -616,10 +616,11 @@ context("Print Format Builder — section insert", () => {
 		);
 
 		cy.visit(`/app/print-format-builder/${encodeURIComponent(PF_NAME)}`);
-		cy.get(".sections-container", { timeout: 20000 }).should("be.visible");
+		cy.get(".body-empty", { timeout: 20000 }).should("be.visible");
 		cy.get(".sections-container [data-pfb-section]").should("have.length", 0);
 
-		cy.get(".sections-container > .section-insert .section-insert-btn").click({ force: true });
+		// blank canvas: the first section is added via the empty-state CTA
+		cy.get(".body-empty").click({ force: true });
 		cy.get(".sections-container [data-pfb-section]").should("have.length", 1);
 
 		cy.get(".sections-container > .section-insert .section-insert-btn").click({ force: true });

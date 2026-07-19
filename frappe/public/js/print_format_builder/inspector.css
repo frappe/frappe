@@ -266,3 +266,53 @@
 	cursor: pointer;
 	margin: 0;
 }
+
+.pfb-drag-fallback {
+	opacity: 0.95 !important;
+	box-shadow: 0 10px 28px rgba(0, 0, 0, 0.16);
+	border-radius: var(--radius);
+	cursor: grabbing !important;
+	pointer-events: none;
+}
+
+.pfb-drag-ghost {
+	height: 0 !important;
+	min-height: 0 !important;
+	margin: 4px 0 !important;
+	padding: 0 !important;
+	border: none !important;
+	overflow: visible !important;
+	position: relative !important;
+	opacity: 1 !important;
+	box-shadow: none !important;
+}
+
+.pfb-drag-ghost > * {
+	visibility: hidden !important;
+}
+
+.pfb-drag-ghost::after {
+	content: "";
+	position: absolute;
+	left: 0;
+	right: 0;
+	top: -1px;
+	height: 2px;
+	background: var(--gray-500);
+	border-radius: 2px;
+}
+
+.pfb-field-row,
+.pfb-block-card,
+.pfb-template-card,
+.drag-container .field,
+.sections-container .section-drag-handle {
+	user-select: none;
+	-webkit-user-select: none;
+}
+
+body.pfb-dragging,
+body.pfb-dragging * {
+	user-select: none !important;
+	-webkit-user-select: none !important;
+}

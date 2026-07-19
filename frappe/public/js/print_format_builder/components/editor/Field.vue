@@ -14,7 +14,11 @@
 		:data-fieldtype="preview_data_attr(df.fieldtype)"
 		v-show="!df.remove"
 		:title="df.label || df.fieldname"
-		@click.stop="select_field"
+		:aria-label="df.label || df.fieldname"
+		tabindex="0"
+		@click.stop="select_field($event)"
+		@keydown.enter.prevent="kbd_select($event)"
+		@keydown.space.prevent="kbd_select($event)"
 	>
 		<!-- ── Preview mode: show actual doc values ─────────── -->
 		<template v-if="preview_doc">
@@ -360,9 +364,19 @@
 					class="es-button"
 					data-size="xs"
 					data-variant="ghost"
+					data-icon-button="true"
+					:title="__('Duplicate')"
+					@click.stop="store.duplicate_field(df)"
+					v-html="frappe.utils.icon('copy-plus', 'xs')"
+				></button>
+				<button
+					class="es-button"
+					data-size="xs"
+					data-variant="ghost"
 					data-theme="red"
 					data-icon-button="true"
-					@click.stop="df['remove'] = true"
+					:title="__('Remove field')"
+					@click.stop="store.remove_field(df)"
 					v-html="frappe.utils.icon('x', 'xs')"
 				></button>
 			</div>
@@ -417,6 +431,7 @@
 								data-size="xs"
 								data-variant="ghost"
 								data-icon-button="true"
+								:title="__('Edit HTML')"
 								@click.stop="edit_html"
 								v-html="frappe.utils.icon('pencil', 'sm')"
 							></button>
@@ -433,9 +448,19 @@
 								class="es-button"
 								data-size="xs"
 								data-variant="ghost"
+								data-icon-button="true"
+								:title="__('Duplicate')"
+								@click.stop="store.duplicate_field(df)"
+								v-html="frappe.utils.icon('copy-plus', 'sm')"
+							></button>
+							<button
+								class="es-button"
+								data-size="xs"
+								data-variant="ghost"
 								data-theme="red"
 								data-icon-button="true"
-								@click.stop="df['remove'] = true"
+								:title="__('Remove field')"
+								@click.stop="store.remove_field(df)"
 								v-html="frappe.utils.icon('x', 'sm')"
 							></button>
 						</div>
@@ -510,7 +535,9 @@ let rendered_template = ref(null);
 
 let custom_style = computed(() => parse_inline_style(props.df.custom_style));
 
-let is_selected = computed(() => store.selected_field.value === props.df);
+let is_selected = computed(
+	() => store.selected_field.value === props.df || store.selected_fields.value.includes(props.df)
+);
 let preview_doc = computed(() => store.preview_doc.value);
 let is_field_visible = computed(() => evaluate_visible_if(props.df.visible_if, preview_doc.value));
 
@@ -865,11 +892,15 @@ function thumb(col, row) {
 	};
 }
 
-function select_field() {
-	store.select_field(props.df);
-	if (props.df.fieldtype !== "HTML") {
+function select_field(e) {
+	const additive = !!(e && (e.metaKey || e.ctrlKey || e.shiftKey));
+	store.select_field(props.df, additive);
+	if (!additive && props.df.fieldtype !== "HTML") {
 		editing.value = true;
 	}
+}
+function kbd_select(e) {
+	store.select_field(props.df, !!(e.shiftKey || e.metaKey || e.ctrlKey));
 }
 
 let short_fieldtype = computed(() => {
@@ -1076,8 +1107,7 @@ thead:hover .col-resize-handle::after {
 	cursor: grabbing;
 }
 
-.field--chip.sortable-chosen,
-.field--chip.sortable-ghost {
+.field--chip.sortable-chosen {
 	cursor: grabbing;
 }
 

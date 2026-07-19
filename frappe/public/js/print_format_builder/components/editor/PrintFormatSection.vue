@@ -25,6 +25,24 @@
 				class="es-button"
 				data-size="xs"
 				data-variant="ghost"
+				data-icon-button="true"
+				:title="__('Duplicate section')"
+				@click.stop="store.duplicate_section(section)"
+				v-html="frappe.utils.icon('copy-plus', 'xs')"
+			></button>
+			<button
+				class="es-button"
+				data-size="xs"
+				data-variant="ghost"
+				data-icon-button="true"
+				:title="__('Save as snippet')"
+				@click.stop="save_as_snippet"
+				v-html="frappe.utils.icon('bookmark-plus', 'xs')"
+			></button>
+			<button
+				class="es-button"
+				data-size="xs"
+				data-variant="ghost"
 				data-theme="red"
 				data-icon-button="true"
 				:title="__('Remove section')"
@@ -41,7 +59,11 @@
 				'section--grid-columns': is_grid && section.grid_borders === 'columns',
 			}"
 			:style="section_inline_style"
+			tabindex="0"
+			:aria-label="section.label || __('Untitled section')"
 			@click.stop="select_section"
+			@keydown.enter.prevent="select_section"
+			@keydown.space.prevent="select_section"
 		>
 			<div class="section-toolbar">
 				<div class="section-toolbar-left">
@@ -72,6 +94,28 @@
 						@click.stop="store.copy_section(section)"
 					>
 						<span v-html="frappe.utils.icon('copy', 'sm')"></span>
+					</button>
+					<button
+						v-if="!is_header"
+						class="es-button"
+						data-size="xs"
+						data-variant="ghost"
+						data-icon-button="true"
+						:title="__('Duplicate section')"
+						@click.stop="store.duplicate_section(section)"
+					>
+						<span v-html="frappe.utils.icon('copy-plus', 'sm')"></span>
+					</button>
+					<button
+						v-if="!is_header"
+						class="es-button"
+						data-size="xs"
+						data-variant="ghost"
+						data-icon-button="true"
+						:title="__('Save as snippet')"
+						@click.stop="save_as_snippet"
+					>
+						<span v-html="frappe.utils.icon('bookmark-plus', 'sm')"></span>
 					</button>
 					<button
 						v-if="!is_header"
@@ -123,6 +167,9 @@
 							filter="a, input, textarea, select, button, label, summary, [contenteditable], [role='button'], [tabindex]"
 							:preventOnFilter="false"
 							:emptyInsertThreshold="100"
+							v-bind="DRAG_OPTIONS"
+							@start="setDragging(true)"
+							@end="setDragging(false)"
 							@add="select_section"
 						>
 							<template #item="{ element }">
@@ -176,7 +223,7 @@ import draggable from "vuedraggable";
 import Field from "./Field.vue";
 import { computed, inject } from "vue";
 import { useColumnResize } from "../../composables/useColumnResize";
-import { evaluate_visible_if, parse_inline_style } from "../../utils";
+import { DRAG_OPTIONS, evaluate_visible_if, parse_inline_style, setDragging } from "../../utils";
 
 const props = defineProps(["section", "is_header", "zone"]);
 
@@ -267,6 +314,24 @@ function select_section() {
 
 function remove_section() {
 	store.remove_section(props.section);
+}
+
+function save_as_snippet() {
+	frappe.prompt(
+		{
+			label: __("Snippet name"),
+			fieldname: "name",
+			fieldtype: "Data",
+			reqd: 1,
+			default: props.section.label || "",
+		},
+		({ name }) => {
+			store.save_section_snippet(name, props.section);
+			frappe.show_alert({ message: __("Section saved as snippet"), indicator: "green" }, 3);
+		},
+		__("Save Section as Snippet"),
+		__("Save")
+	);
 }
 
 function remove_column(index) {
@@ -443,13 +508,13 @@ function remove_column(index) {
 	min-height: 3rem;
 }
 
-.column:has(.sortable-ghost) .empty-drop-zone {
+.column:has(.pfb-drag-ghost) .empty-drop-zone {
 	background: transparent;
-	border-color: var(--blue-300);
+	border-color: var(--gray-400);
 	border-style: solid;
 }
 
-.column:has(.sortable-ghost) .empty-drop-zone-hint {
+.column:has(.pfb-drag-ghost) .empty-drop-zone-hint {
 	display: none;
 }
 

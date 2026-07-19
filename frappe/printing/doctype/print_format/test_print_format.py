@@ -514,3 +514,122 @@ class TestPrintFormatPreview(IntegrationTestCase):
 
 		url = frappe.db.get_value("Print Format", self.FORMAT_NAME, "preview_image")
 		self.assertEqual(frappe.db.get_value("File", previews[0], "file_url"), url)
+
+
+class TestPrintFormatChildTableVisibility(IntegrationTestCase):
+	"""Per-row and per-column conditional visibility for child Table fields."""
+
+	FORMAT_NAME = "_Test Child Table Visibility"
+
+	def setUp(self):
+		frappe.delete_doc("Contact", "PFB Table Test", force=True, ignore_missing=True)
+		self.contact = frappe.get_doc(
+			{
+				"doctype": "Contact",
+				"first_name": "PFB Table Test",
+				"email_ids": [
+					{"email_id": "primary@example.com", "is_primary": 1},
+					{"email_id": "secondary@example.com", "is_primary": 0},
+				],
+			}
+		).insert(ignore_permissions=True)
+		self.addCleanup(frappe.delete_doc, "Contact", self.contact.name, force=True)
+
+	def render(self, df):
+		from frappe.utils.print_format_generator import get_html
+
+		frappe.delete_doc("Print Format", self.FORMAT_NAME, force=True, ignore_missing=True)
+		format_data = {
+			"sections": [{"label": "", "columns": [{"label": "", "fields": [df]}]}],
+			"header": {"columns": []},
+			"footer": {"columns": []},
+		}
+		frappe.get_doc(
+			{
+				"doctype": "Print Format",
+				"name": self.FORMAT_NAME,
+				"doc_type": "Contact",
+				"standard": "No",
+				"print_format_builder_beta": 1,
+				"format_data": frappe.as_json(format_data),
+			}
+		).insert()
+		self.addCleanup(frappe.delete_doc, "Print Format", self.FORMAT_NAME, force=True)
+		return get_html("Contact", self.contact.name, self.FORMAT_NAME)
+
+	def table_field(self, **overrides):
+		df = {
+			"fieldname": "email_ids",
+			"fieldtype": "Table",
+			"label": "Emails",
+			"options": "Contact Email",
+			"table_columns": [
+				{"label": "Email", "fieldname": "email_id", "fieldtype": "Data", "width": 60},
+				{"label": "Primary", "fieldname": "is_primary", "fieldtype": "Check", "width": 40},
+			],
+		}
+		df.update(overrides)
+		return df
+
+	def test_row_condition_drops_non_matching_rows(self):
+		html = self.render(self.table_field(row_condition="row.is_primary"))
+		self.assertIn("primary@example.com", html)
+		self.assertNotIn("secondary@example.com", html)
+
+	def test_bad_row_condition_keeps_all_rows(self):
+		html = self.render(self.table_field(row_condition="row.does_not_exist >"))
+		self.assertIn("primary@example.com", html)
+		self.assertIn("secondary@example.com", html)
+
+	def test_all_rows_filtered_hides_table(self):
+		html = self.render(self.table_field(row_condition="1 == 2"))
+		self.assertNotIn('data-fieldname="email_ids"', html)
+
+	def test_all_columns_dropped_hides_table(self):
+		df = self.table_field()
+		for col in df["table_columns"]:
+			col["column_condition"] = "1 == 2"
+		html = self.render(df)
+		self.assertNotIn('data-fieldname="email_ids"', html)
+
+	def test_column_condition_drops_column(self):
+		kept = self.render(self.table_field())
+		self.assertIn('data-fieldname="is_primary"', kept)
+
+		df = self.table_field()
+		df["table_columns"][1]["column_condition"] = "doc.first_name == 'no match'"
+		html = self.render(df)
+		self.assertNotIn('data-fieldname="is_primary"', html)
+		self.assertIn('data-fieldname="email_id"', html)
+		self.assertIn("primary@example.com", html)
+		self.assertIn("secondary@example.com", html)
+
+	def test_column_emptiness_respects_row_condition(self):
+		# Keep only the non-primary row; is_primary is 0 in that row, so the column has
+		# no value in the rendered rows and must be dropped — even though the filtered-out
+		# primary row had a 1.
+		html = self.render(self.table_field(row_condition="not row.is_primary"))
+		self.assertIn("secondary@example.com", html)
+		self.assertNotIn("primary@example.com", html)
+		self.assertIn('data-fieldname="email_id"', html)
+		self.assertNotIn('data-fieldname="is_primary"', html)
+
+	def test_bad_column_condition_keeps_column(self):
+		df = self.table_field()
+		df["table_columns"][1]["column_condition"] = "doc.does_not_exist >"
+		html = self.render(df)
+		self.assertIn('data-fieldname="is_primary"', html)
+		self.assertIn('data-fieldname="email_id"', html)
+
+	def test_print_settings_available_in_conditions(self):
+		html = self.render(
+			self.table_field(row_condition="print_settings.doctype == 'Print Settings' and row.is_primary")
+		)
+		self.assertIn("primary@example.com", html)
+		self.assertNotIn("secondary@example.com", html)
+
+		df = self.table_field()
+		df["table_columns"][1]["column_condition"] = "print_settings.doctype == 'Nope'"
+		html = self.render(df)
+		self.assertNotIn('data-fieldname="is_primary"', html)
+		self.assertIn('data-fieldname="email_id"', html)

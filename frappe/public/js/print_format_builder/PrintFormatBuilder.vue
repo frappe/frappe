@@ -178,33 +178,29 @@ function on_start_blank() {
 	$store.value.needs_setup.value = false;
 }
 
+function is_typing_context() {
+	const el = document.activeElement;
+	return !!(
+		el?.tagName === "INPUT" ||
+		el?.tagName === "TEXTAREA" ||
+		el?.isContentEditable ||
+		el?.closest(".modal")
+	);
+}
+
 function handle_keydown(e) {
 	// Zoom shortcuts: Ctrl+= / Ctrl+- / Ctrl+0
 	if (e.ctrlKey || e.metaKey) {
 		if (e.key === "z" || e.key === "Z" || e.key === "y") {
 			// rich text editors and dialogs keep their own undo
-			const el = document.activeElement;
-			if (
-				el?.tagName === "INPUT" ||
-				el?.tagName === "TEXTAREA" ||
-				el?.isContentEditable ||
-				el?.closest(".modal")
-			)
-				return;
+			if (is_typing_context()) return;
 			e.preventDefault();
 			if (e.key === "y" || e.shiftKey) $store.value.redo();
 			else $store.value.undo();
 			return;
 		}
 		if (e.key === "c" || e.key === "C" || e.key === "v" || e.key === "V") {
-			const el = document.activeElement;
-			if (
-				el?.tagName === "INPUT" ||
-				el?.tagName === "TEXTAREA" ||
-				el?.isContentEditable ||
-				el?.closest(".modal")
-			)
-				return;
+			if (is_typing_context()) return;
 			const is_copy = e.key === "c" || e.key === "C";
 			if (is_copy) {
 				// Let native copy work when text is highlighted or nothing in the
@@ -219,6 +215,13 @@ function handle_keydown(e) {
 				e.preventDefault();
 				$store.value.paste_clipboard();
 			}
+			return;
+		}
+		if (e.key === "d" || e.key === "D") {
+			if (is_typing_context()) return;
+			if (!$store.value.selected_field.value && !$store.value.selected_section.value) return;
+			e.preventDefault();
+			$store.value.duplicate_selection();
 			return;
 		}
 		if (e.key === "=" || e.key === "+") {
@@ -238,19 +241,23 @@ function handle_keydown(e) {
 		}
 	}
 
+	if (e.altKey && (e.key === "ArrowUp" || e.key === "ArrowDown")) {
+		if (is_typing_context()) return;
+		if (!$store.value.selected_field.value && !$store.value.selected_section.value) return;
+		e.preventDefault();
+		$store.value.move_selection(e.key === "ArrowUp" ? -1 : 1);
+		return;
+	}
+
 	if (e.key === "Delete" || e.key === "Backspace") {
 		// Never hijack delete/backspace from text editing contexts
-		const el = document.activeElement;
-		if (
-			el?.tagName === "INPUT" ||
-			el?.tagName === "TEXTAREA" ||
-			el?.isContentEditable ||
-			el?.closest(".modal")
-		)
-			return;
+		if (is_typing_context()) return;
 		const sf = $store.value.selected_field.value;
 		const ss = $store.value.selected_section.value;
-		if (sf) {
+		if ($store.value.selected_fields.value.length > 1) {
+			$store.value.remove_selected_fields();
+			e.preventDefault();
+		} else if (sf) {
 			sf.remove = true;
 			$store.value.selected_field.value = null;
 			e.preventDefault();
@@ -424,10 +431,10 @@ defineExpose({ toggle_preview, show_preview, $store });
 	align-items: center;
 	gap: 6px;
 	padding: 4px 12px;
-	background: var(--blue-50);
-	border-bottom: 1px solid var(--blue-100);
+	background: var(--gray-50);
+	border-bottom: 1px solid var(--gray-200);
 	font-size: var(--text-xs);
-	color: var(--blue-700);
+	color: var(--gray-700);
 }
 
 .pfb-hint-icon {
@@ -447,7 +454,7 @@ defineExpose({ toggle_preview, show_preview, $store });
 	border: none;
 	background: transparent;
 	cursor: pointer;
-	color: var(--blue-400);
+	color: var(--gray-500);
 	border-radius: var(--radius);
 	line-height: 1;
 	opacity: 0.7;
@@ -455,7 +462,7 @@ defineExpose({ toggle_preview, show_preview, $store });
 
 .pfb-hint-dismiss:hover {
 	opacity: 1;
-	background: var(--blue-100);
+	background: var(--gray-200);
 }
 
 /* ── Canvas toolbar ──────────────────────────────────────── */
@@ -517,22 +524,6 @@ defineExpose({ toggle_preview, show_preview, $store });
 	border: 1px solid var(--yellow-200);
 	border-radius: var(--radius);
 	padding: 3px 8px;
-}
-
-.canvas-icon-btn {
-	display: flex;
-	align-items: center;
-	padding: 3px;
-	border: none;
-	background: transparent;
-	cursor: pointer;
-	color: var(--gray-400);
-	border-radius: var(--radius);
-}
-
-.canvas-icon-btn:hover {
-	background: var(--gray-100);
-	color: var(--gray-600);
 }
 
 /* ── Zoom control ────────────────────────────────────────── */
