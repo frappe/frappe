@@ -42,6 +42,9 @@ SERVER_ONLY_CLASSES = {
 	# opt-in colon after labels: driven by a Print Setting the builder canvas doesn't read,
 	# so the class is added to the print body only, never on the canvas
 	"show-label-colon",
+	# per-section "keep together" is page-break-inside:avoid — a pure pagination
+	# concern with no effect on the non-paginated canvas, so it's print-only
+	"keep-together",
 }
 CANVAS_ONLY_CLASSES = set()
 
