@@ -100,7 +100,7 @@
 		<!-- PRINT -->
 		<InspectorSection :label="__('Print')" :init-open="false">
 			<ToggleRow
-				:label="__('Start on new page')"
+				:label="__('Page break after')"
 				:model-value="!!selected_section.page_break"
 				@update:model-value="(v) => (selected_section.page_break = v)"
 			/>
