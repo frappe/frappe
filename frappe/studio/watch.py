@@ -155,10 +155,9 @@ class StudioSyncHandler(FileSystemEventHandler):
 	def sync(self, path: str):
 		try:
 			if info := sync_file(path):
+				# the import ran the doc's on_update, which broadcasts studio_doc_update
+				# (source "disk") after this commit — that's what refreshes open editors/previews
 				frappe.db.commit()
-				# tell any open editor on this site to re-fetch, so disk edits show without a reload.
-				# Room defaults to the site room; every desk (System User) socket is in it.
-				frappe.publish_realtime("studio_disk_sync", info)
 				print(f"[studio-watch] synced {info['doctype']} from {os.path.basename(path)}")
 		except Exception:
 			# A half-written or malformed file must not take the watcher down with it.

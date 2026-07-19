@@ -16,6 +16,7 @@ from studio.export import (
 	write_code_file,
 	write_document_file,
 )
+from studio.realtime import publish_doc_change
 from studio.utils import camel_case_to_kebab_case
 
 # A variable is referenced as {{ name }} and spread into the page's JS eval context, so its
@@ -93,6 +94,7 @@ class StudioPage(Document):
 
 	def on_update(self):
 		self.export_page()
+		publish_doc_change("Studio Page", self.name, self.studio_app)
 
 	def export_page(self):
 		if can_export(self):

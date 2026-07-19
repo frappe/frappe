@@ -29,9 +29,6 @@ import type { CustomVueComponentMeta } from "@/types/vue"
 
 import type { StudioApp } from "@/types/Studio/StudioApp"
 import type { StudioPage } from "@/types/Studio/StudioPage"
-
-// payload of the studio_disk_sync realtime event (studio/watch.py)
-type DiskSyncInfo = { doctype: string; name: string; studio_app: string }
 import type { LeftPanelOptions, RightPanelOptions, leftPanelComponentTabOptions, StudioMode } from "@/types"
 import ComponentContextMenu from "@/components/ComponentContextMenu.vue"
 import type { Variable, VariableOption } from "@/types/Studio/StudioPageVariable"
@@ -277,12 +274,8 @@ const useStudioStore = defineStore("store", () => {
 		await codeStore.setPageScript(page, Boolean(page.is_standard))
 	}
 
-	// Re-fetch so the open editor reflects an exported JSON edited on disk (Claude Code / CLI) that
-	// the folder watcher synced into the DB and announced via studio_disk_sync. The editor's own
-	// saves are echo-suppressed at the source (studio/watch.py) so they never arrive here — an
-	// event means the file changed outside the editor.
-	async function applyDiskSync({ doctype, name, studio_app }: DiskSyncInfo) {
-		if (studio_app !== activeApp.value?.name) return
+	async function applyDiskSync({ doctype, name, studio_app, source }: { doctype: string; name: string; studio_app: string; source: string }) {
+		if (source !== "disk" || studio_app !== activeApp.value?.name) return
 
 		if (doctype === "Studio App") {
 			const app = await fetchApp(studio_app)

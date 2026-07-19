@@ -15,13 +15,10 @@ import { inject, onMounted, onBeforeUnmount } from "vue"
 import { FrappeUIProvider } from "frappe-ui"
 import useStudioStore from "@/stores/studioStore"
 
-// Re-fetch the open editor when the folder watcher imports a disk edit (studio_disk_sync). Wired
-// here in the editor root — not in the shared socket module — so the app renderer never pulls the
-// editor store in.
 const store = useStudioStore()
 const socket = inject<any>("socket")
-const onDiskSync = (info: any) => store.applyDiskSync(info)
+const onDocUpdate = (info: any) => store.applyDiskSync(info)
 
-onMounted(() => socket?.on("studio_disk_sync", onDiskSync))
-onBeforeUnmount(() => socket?.off("studio_disk_sync", onDiskSync))
+onMounted(() => socket?.on("studio_doc_update", onDocUpdate))
+onBeforeUnmount(() => socket?.off("studio_doc_update", onDocUpdate))
 </script>
