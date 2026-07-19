@@ -34,6 +34,14 @@ const showArgs = computed(() => Boolean(props.tool) && hasArgs(displayArgs.value
 const blockKeys = computed(() => blockKeysFor(props.tool?.name));
 const answered = computed(() => props.question._answer !== undefined);
 
+// Options are stable tokens ("Approve"/"Deny"); translate only for display.
+// LLM-authored options pass through as-is.
+function optLabel(opt) {
+	if (opt === "Approve") return __("Approve");
+	if (opt === "Deny") return __("Deny");
+	return opt;
+}
+
 function pick(option) {
 	emit("answer", option);
 }
@@ -77,7 +85,7 @@ function sendOther() {
 			class="mt-2 flex items-center justify-end gap-1.5 text-xs text-ink-gray-6"
 		>
 			<FeatherIcon name="check" class="h-3 w-3" />
-			<span class="truncate">{{ question._answer }}</span>
+			<span class="truncate">{{ optLabel(question._answer) }}</span>
 		</div>
 
 		<template v-else>
@@ -87,7 +95,7 @@ function sendOther() {
 					:key="opt"
 					:variant="opt === 'Approve' ? 'solid' : 'outline'"
 					theme="gray"
-					:label="opt"
+					:label="optLabel(opt)"
 					@click="pick(opt)"
 				/>
 				<Button

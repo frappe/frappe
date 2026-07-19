@@ -1,4 +1,5 @@
 import { serverMessage } from "./client";
+import { __ } from "@/lib/translate";
 
 // Consumes the run SSE stream: POSTs the request, then parses `data:` blocks
 // and hands each decoded event to `onEvent`.
@@ -14,10 +15,10 @@ async function postStream(method, body, onEvent, signal) {
 	});
 	if (!resp.ok) {
 		const data = await resp.json().catch(() => ({}));
-		throw new Error(serverMessage(data) || `Request failed (${resp.status})`);
+		throw new Error(serverMessage(data) || __("Request failed ({0})", [resp.status]));
 	}
 	if (!resp.body) {
-		throw new Error(`Request failed (${resp.status})`);
+		throw new Error(__("Request failed ({0})", [resp.status]));
 	}
 
 	const reader = resp.body.getReader();

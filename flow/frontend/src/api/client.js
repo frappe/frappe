@@ -1,3 +1,5 @@
+import { __ } from "@/lib/translate";
+
 // Read-only data fetches over the desk's whitelisted client API.
 function getList(doctype, options) {
 	return frappe.xcall("frappe.client.get_list", { doctype, ...options });
@@ -68,7 +70,7 @@ export async function uploadFile(file) {
 		body: form,
 	});
 	const data = await resp.json().catch(() => ({}));
-	if (!resp.ok) throw new Error(serverMessage(data) || `Upload failed (${resp.status})`);
+	if (!resp.ok) throw new Error(serverMessage(data) || __("Upload failed ({0})", [resp.status]));
 	return data.message;
 }
 
