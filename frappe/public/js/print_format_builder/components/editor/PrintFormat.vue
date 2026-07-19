@@ -50,9 +50,24 @@
 					</div>
 				</template>
 				<template #footer>
-					<SectionInsert @insert="add_section_at(layout.sections.length)" />
+					<SectionInsert
+						v-if="layout.sections && layout.sections.length"
+						@insert="add_section_at(layout.sections.length)"
+					/>
 				</template>
 			</draggable>
+
+			<button
+				v-if="!layout.sections || !layout.sections.length"
+				class="body-empty"
+				@click="add_section_at(0)"
+			>
+				<span class="body-empty-icon" v-html="frappe.utils.icon('plus', 'md')"></span>
+				<span class="body-empty-title">{{ __("Add a section") }}</span>
+				<span class="body-empty-hint">
+					{{ __("Sections hold the columns and fields of your document.") }}
+				</span>
+			</button>
 
 			<div class="zone-divider">
 				<span class="zone-divider-label">
@@ -246,6 +261,49 @@ watch(print_format, () => (store.dirty.value = true), { deep: true });
 
 .sections-container {
 	margin-bottom: 1rem;
+}
+
+/* ── Empty-body call to action ────────────────────────────── */
+.body-empty {
+	display: flex;
+	flex-direction: column;
+	align-items: center;
+	gap: 4px;
+	width: 100%;
+	padding: 2rem 1rem;
+	border: 1px dashed var(--gray-300);
+	border-radius: var(--radius);
+	background: var(--gray-50);
+	color: var(--text-muted);
+	cursor: pointer;
+	transition: border-color 0.15s ease, background 0.15s ease, color 0.15s ease;
+}
+
+.body-empty:hover {
+	border-color: var(--gray-500);
+	background: var(--gray-100);
+	color: var(--text-color);
+}
+
+.body-empty-icon {
+	display: flex;
+	align-items: center;
+	justify-content: center;
+	width: 28px;
+	height: 28px;
+	margin-bottom: 2px;
+	border-radius: 50%;
+	background: var(--gray-200);
+	color: var(--gray-700);
+}
+
+.body-empty-title {
+	font-size: var(--text-md);
+	font-weight: var(--weight-medium);
+}
+
+.body-empty-hint {
+	font-size: var(--text-sm);
 }
 
 /* ── Zone dividers ────────────────────────────────────────── */
