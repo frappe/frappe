@@ -138,7 +138,7 @@ class DeskViews:
 		"""
 		if cache:
 			cached = frappe.cache.get_value(key, user=user)
-			if cached:
+			if cached is not None:
 				return cached
 
 		value = builder()

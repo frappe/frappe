@@ -28,6 +28,25 @@ class TestBootData(IntegrationTestCase):
 		unseen_notes = [d.title for d in get_unseen_notes()]
 		self.assertListEqual(unseen_notes, [])
 
+	def test_empty_allowed_views_are_served_from_cache(self):
+		from unittest.mock import patch
+
+		# An empty allowed-set is a valid result and must be a cache hit; otherwise the
+		# sidebar rebuilds it once per workspace on every desk/login load.
+		frappe.set_user("Administrator")
+		user = frappe.session.user
+		frappe.cache.delete_value("has_role:Report", user=user)
+
+		with patch.object(DeskViews, "_build_user_pages_or_reports", return_value={}) as build:
+			self.assertEqual(DeskViews.get_allowed_reports(cache=True), {})
+			self.assertEqual(build.call_count, 1)
+
+			# fresh request: process-local cache cleared, redis cache stays warm
+			frappe.local.cache.clear()
+
+			self.assertEqual(DeskViews.get_allowed_reports(cache=True), {})
+			self.assertEqual(build.call_count, 1)
+
 
 class TestPermissionQueries(IntegrationTestCase):
 	@classmethod
