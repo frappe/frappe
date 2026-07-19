@@ -289,6 +289,16 @@ def validate_ignore_user_permissions(form_doctype, link_fieldname, link_doctype)
 	):
 		return
 
+	for table_field in meta.get_table_fields():
+		child_field = frappe.get_meta(table_field.options).get_field(link_fieldname)
+		if (
+			child_field
+			and child_field.fieldtype == "Link"
+			and child_field.options == link_doctype
+			and child_field.ignore_user_permissions
+		):
+			return
+
 	link_field = meta.get_field(link_fieldname)
 	if not link_field:
 		_throw(
