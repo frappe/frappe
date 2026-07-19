@@ -1450,8 +1450,8 @@ def validate_fields(meta: Meta):
 			docname, d.options, d.label, d.idx
 		)
 
-		# fields already saved on existing sites must not break install or import
-		if frappe.flags.in_install or frappe.flags.in_import:
+		# fields already saved on existing sites must not break app installs
+		if frappe.flags.in_install:
 			frappe.logger().warning(msg)
 			frappe.msgprint(msg, title=_("Invalid Option"), alert=True)
 			return
