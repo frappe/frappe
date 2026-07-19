@@ -5,28 +5,8 @@ import { usePreviewDoc } from "../composables/usePreviewDoc";
 import { useSelection } from "../composables/useSelection";
 import { useLayoutMutations } from "../composables/useLayoutMutations";
 import { useClipboard } from "../composables/useClipboard";
+import { useSnippets } from "../composables/useSnippets";
 import { watch, ref, inject, computed, nextTick } from "vue";
-
-function persist_local(key, value) {
-	try {
-		localStorage.setItem(key, JSON.stringify(value));
-		return true;
-	} catch {
-		return false;
-	}
-}
-
-const SECTION_SNIPPETS_KEY = "pfb_section_snippets";
-function load_section_snippets() {
-	try {
-		return JSON.parse(localStorage.getItem(SECTION_SNIPPETS_KEY)) || [];
-	} catch {
-		return [];
-	}
-}
-function persist_section_snippets(list) {
-	persist_local(SECTION_SNIPPETS_KEY, list);
-}
 
 export function getStore(print_format_name) {
 	// variables
@@ -267,24 +247,12 @@ export function getStore(print_format_name) {
 		find_field_column,
 		insert_section,
 	});
-	const section_snippets = ref(load_section_snippets());
-	function save_section_snippet(name, section) {
-		name = (name || "").trim();
-		if (!name || !section) return;
-		const list = section_snippets.value.filter((s) => s.name !== name);
-		list.push({ name, section: clone_plain(section) });
-		list.sort((a, b) => a.name.localeCompare(b.name));
-		section_snippets.value = list;
-		persist_section_snippets(list);
-	}
-	function insert_section_snippet(name) {
-		const snip = section_snippets.value.find((s) => s.name === name);
-		if (snip) insert_section(snip.section);
-	}
-	function delete_section_snippet(name) {
-		section_snippets.value = section_snippets.value.filter((s) => s.name !== name);
-		persist_section_snippets(section_snippets.value);
-	}
+	const {
+		section_snippets,
+		save_section_snippet,
+		insert_section_snippet,
+		delete_section_snippet,
+	} = useSnippets({ insert_section });
 
 	return {
 		print_format,
