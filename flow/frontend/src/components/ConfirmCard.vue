@@ -111,7 +111,7 @@ function sendOther() {
 					ref="otherEl"
 					v-model="question._otherText"
 					rows="2"
-					class="w-full resize-none rounded-md border border-outline-gray-2 bg-surface-white px-2.5 py-2 text-sm text-ink-gray-9 outline-none focus:border-outline-gray-3"
+					class="flow-textarea w-full resize-none rounded-md border border-outline-gray-2 bg-surface-white px-2.5 py-2 text-sm text-ink-gray-9 outline-none focus:border-outline-gray-3"
 					:placeholder="__('Describe what you want instead…')"
 					@keydown.enter.exact.prevent="sendOther"
 					@keydown.esc="cancelOther"
@@ -132,6 +132,12 @@ function sendOther() {
 </template>
 
 <style scoped>
+/* Kill the desk's global blue focus ring on the free-text box. */
+.flow-textarea:focus {
+	border-color: var(--outline-gray-3);
+	box-shadow: none;
+	outline: none;
+}
 .flow-confirm-body {
 	margin: 8px 0 0;
 	padding: 8px 10px;
