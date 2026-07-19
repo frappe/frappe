@@ -101,6 +101,8 @@ export function getStore(print_format_name) {
 	let edit_letterhead = ref(false);
 	let scroll_to_section = ref(null);
 	let selected_field = ref(null);
+	// Multi-selection layer; selected_field stays the "primary" for the inspector.
+	let selected_fields = ref([]);
 	let selected_section = ref(null);
 	let selected_letterhead = ref(false);
 	let selected_lh_footer = ref(false);
@@ -248,10 +250,37 @@ export function getStore(print_format_name) {
 		serialize_layout(snapshot);
 		return { ...print_format.value, format_data: JSON.stringify(snapshot) };
 	}
-	function select_field(df) {
-		selected_field.value = df;
+	function select_field(df, additive = false) {
+		if (additive && df) {
+			const arr = selected_fields.value.slice();
+			const i = arr.indexOf(df);
+			if (i === -1) arr.push(df);
+			else arr.splice(i, 1);
+			selected_fields.value = arr;
+			selected_field.value = arr[arr.length - 1] || null;
+		} else {
+			selected_fields.value = df ? [df] : [];
+			selected_field.value = df;
+		}
 		selected_letterhead.value = false;
 		selected_lh_footer.value = false;
+	}
+	// Keep the multi-selection in step when the primary is set directly
+	// (paste, duplicate, keyboard nav) rather than through select_field.
+	watch(selected_field, (nf) => {
+		if (!nf) {
+			if (selected_fields.value.length) selected_fields.value = [];
+		} else if (!selected_fields.value.includes(nf)) {
+			selected_fields.value = [nf];
+		}
+	});
+	function remove_selected_fields() {
+		selected_fields.value.forEach((df) => (df.remove = true));
+		selected_fields.value = [];
+		selected_field.value = null;
+	}
+	function align_selected_fields(align) {
+		selected_fields.value.forEach((df) => (df.align = align));
 	}
 	function select_section(section) {
 		selected_section.value = section;
@@ -518,6 +547,9 @@ export function getStore(print_format_name) {
 		edit_letterhead,
 		scroll_to_section,
 		selected_field,
+		selected_fields,
+		remove_selected_fields,
+		align_selected_fields,
 		selected_section,
 		selected_letterhead,
 		selected_lh_footer,

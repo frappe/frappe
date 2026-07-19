@@ -20,7 +20,7 @@
 		</div>
 
 		<!-- Breadcrumb: navigate up to parent section when a field is selected -->
-		<div v-if="selected_field && parent_section" class="pfb-breadcrumb">
+		<div v-if="selected_field && parent_section && !is_multi_select" class="pfb-breadcrumb">
 			<button
 				class="pfb-breadcrumb-btn"
 				@click="select_parent_section"
@@ -62,6 +62,9 @@
 			<LetterHeadZoneInspector zone="header" />
 		</template>
 
+		<!-- ── Multi-select bulk inspector ─────────────────────── -->
+		<BulkPropertiesPanel v-else-if="is_multi_select" />
+
 		<!-- ── Table field inspector ───────────────────────────────── -->
 		<TableFieldInspector v-else-if="selected_field && is_table_field" />
 
@@ -84,11 +87,13 @@ import SectionPropertiesPanel from "./SectionPropertiesPanel.vue";
 import RepeaterFieldInspector from "./RepeaterFieldInspector.vue";
 import TableFieldInspector from "./TableFieldInspector.vue";
 import FieldPropertiesPanel from "./FieldPropertiesPanel.vue";
+import BulkPropertiesPanel from "./BulkPropertiesPanel.vue";
 
 let store = inject("$store");
 let { letterhead, layout, print_format } = useStore();
 
 let selected_field = computed(() => store.selected_field.value);
+let is_multi_select = computed(() => store.selected_fields.value.length > 1);
 let selected_section = computed(() => store.selected_section.value);
 let selected_letterhead = computed(() => store.selected_letterhead.value);
 let selected_lh_footer = computed(() => store.selected_lh_footer.value);
@@ -97,6 +102,7 @@ let is_table_field = computed(() => selected_field.value?.fieldtype === "Table")
 let is_repeater_field = computed(() => selected_field.value?.fieldtype === "Repeater");
 
 let inspector_kind = computed(() => {
+	if (is_multi_select.value) return __("Selection");
 	if (selected_lh_footer.value) return __("Letter Head");
 	if (selected_letterhead.value) return __("Letter Head");
 	if (selected_field.value) {
@@ -108,6 +114,7 @@ let inspector_kind = computed(() => {
 });
 
 let inspector_subtitle = computed(() => {
+	if (is_multi_select.value) return __("{0} fields", [store.selected_fields.value.length]);
 	if (selected_lh_footer.value) return __("Footer");
 	if (selected_letterhead.value) return letterhead.value?.name || "";
 	if (selected_field.value) {

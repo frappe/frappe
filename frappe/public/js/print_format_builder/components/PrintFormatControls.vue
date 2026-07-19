@@ -281,8 +281,8 @@
 								v-for="(field, fi) in col.fields"
 								:key="fi"
 								class="pfb-tree-row"
-								:class="{ active: store.selected_field.value === field }"
-								@click="select_field(field, node.section)"
+								:class="{ active: store.selected_fields.value.includes(field) }"
+								@click="select_field(field, node.section, $event)"
 							>
 								<span class="pfb-tree-spacer"></span>
 								<span
@@ -648,9 +648,10 @@ function select_section(section) {
 	store.select_section(section);
 }
 
-function select_field(field, section) {
-	if (section) store.scroll_to_section.value = section;
-	store.select_field(field);
+function select_field(field, section, e) {
+	const additive = !!(e && (e.metaKey || e.ctrlKey || e.shiftKey));
+	if (section && !additive) store.scroll_to_section.value = section;
+	store.select_field(field, additive);
 }
 
 function field_label(f) {

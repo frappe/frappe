@@ -280,7 +280,10 @@ function handle_keydown(e) {
 			return;
 		const sf = $store.value.selected_field.value;
 		const ss = $store.value.selected_section.value;
-		if (sf) {
+		if ($store.value.selected_fields.value.length > 1) {
+			$store.value.remove_selected_fields();
+			e.preventDefault();
+		} else if (sf) {
 			sf.remove = true;
 			$store.value.selected_field.value = null;
 			e.preventDefault();

@@ -14,7 +14,7 @@
 		:data-fieldtype="preview_data_attr(df.fieldtype)"
 		v-show="!df.remove"
 		:title="df.label || df.fieldname"
-		@click.stop="select_field"
+		@click.stop="select_field($event)"
 	>
 		<!-- ── Preview mode: show actual doc values ─────────── -->
 		<template v-if="preview_doc">
@@ -528,7 +528,9 @@ let rendered_template = ref(null);
 
 let custom_style = computed(() => parse_inline_style(props.df.custom_style));
 
-let is_selected = computed(() => store.selected_field.value === props.df);
+let is_selected = computed(
+	() => store.selected_field.value === props.df || store.selected_fields.value.includes(props.df)
+);
 let preview_doc = computed(() => store.preview_doc.value);
 let is_field_visible = computed(() => evaluate_visible_if(props.df.visible_if, preview_doc.value));
 
@@ -883,9 +885,10 @@ function thumb(col, row) {
 	};
 }
 
-function select_field() {
-	store.select_field(props.df);
-	if (props.df.fieldtype !== "HTML") {
+function select_field(e) {
+	const additive = !!(e && (e.metaKey || e.ctrlKey || e.shiftKey));
+	store.select_field(props.df, additive);
+	if (!additive && props.df.fieldtype !== "HTML") {
 		editing.value = true;
 	}
 }
