@@ -1,1 +1,4 @@
-<p>{{ _("Your verification code is {0}").format(frappe.bold(code)) }}</p>
+<h1 class="email-header-title">{{ _("Verification code") }}</h1>
+<p>{{ _("Use the code below to complete your sign-in.") }}</p>
+<div class="verification-code">{{ code }}</div>
+<p class="text-muted text-small">{{ _("If you did not request this code, you can safely ignore this email.") }}</p>

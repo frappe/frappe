@@ -603,7 +603,7 @@ class User(Document):
 			template=template if not custom_template else None,
 			content=content if custom_template else None,
 			args=args,
-			header=[subject, "green"],
+			with_container=True,
 			delayed=(not now) if now is not None else self.flags.delay_emails,
 			retry=3,
 		)
