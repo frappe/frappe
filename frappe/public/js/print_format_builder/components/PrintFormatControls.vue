@@ -76,7 +76,11 @@
 			</div>
 
 			<div v-if="!field_groups.length" class="pfb-empty">
-				{{ __("No fields match your search.") }}
+				{{
+					search_text
+						? __("No fields match your search.")
+						: __("This document type has no printable fields.")
+				}}
 			</div>
 		</div>
 
@@ -162,7 +166,7 @@
 					data-theme="red"
 					data-icon-button="true"
 					:title="__('Delete snippet')"
-					@click.stop="store.delete_section_snippet(snip.name)"
+					@click.stop="confirm_delete_snippet(snip.name)"
 					v-html="frappe.utils.icon('trash', 'xs')"
 				></button>
 			</div>
@@ -555,15 +559,24 @@ function save_preset() {
 		({ name }) => {
 			store.save_style_preset(name);
 			active_preset.value = name.trim();
+			frappe.show_alert({ message: __("Style preset saved"), indicator: "green" });
 		},
 		__("Save Style Preset"),
 		__("Save")
 	);
 }
 function delete_preset() {
-	if (!active_preset.value) return;
-	store.delete_style_preset(active_preset.value);
-	active_preset.value = "";
+	const name = active_preset.value;
+	if (!name) return;
+	frappe.confirm(__("Delete the style preset '{0}'?", [name]), () => {
+		store.delete_style_preset(name);
+		active_preset.value = "";
+	});
+}
+function confirm_delete_snippet(name) {
+	frappe.confirm(__("Delete the section snippet '{0}'?", [name]), () =>
+		store.delete_section_snippet(name)
+	);
 }
 
 // ── helpers ────────────────────────────────────────────────
