@@ -28,6 +28,11 @@ $border-radius-lg: 8px;
 $orange-bg: #ffeae1;
 $orange-color: #cb5a2a;
 
+$canvas-bg: #f5f4f2;
+$card-border: #ededed;
+$hairline: #f0f0f0;
+$body-text: #525252;
+
 body {
 	line-height: 1.5;
 	color: $text-color;
@@ -45,6 +50,7 @@ p {
 	p {
 		margin: 0 0 16px !important;
 		line-height: 1.6;
+		color: $body-text;
 	}
 }
 
@@ -71,14 +77,14 @@ hr {
 	font-size: 14px;
 	line-height: 1.4;
 	.brand-logo {
-		margin: auto;
-		text-align: center;
+		margin: 0;
+		text-align: left;
 		border: 0;
 		outline: none;
 		text-decoration: none;
-		max-height: 40px;
+		max-height: 28px;
 		width: auto;
-		margin-bottom: 24px;
+		display: block;
 	}
 	td {
 		font-family: $font-stack;
@@ -120,27 +126,40 @@ hr {
 }
 
 .email-header-title {
-	margin: 0 0 20px !important;
-	font-size: 18px;
-	font-weight: 600;
-	line-height: 1.3;
+	margin: 0 0 16px !important;
+	font-size: 20px;
+	font-weight: 700;
+	line-height: 1.25;
+	letter-spacing: -0.02em;
 	color: $gray-900;
 }
 
 .body-table.with-container {
-	background-color: $gray-100;
+	background-color: $canvas-bg;
 	color: $text-color;
 	.body-content {
-		padding: 60px 40px;
+		padding: 48px 24px;
 	}
 	.email-container {
 		max-width: 600px;
 		border-spacing: 0;
-		padding: 40px;
 		border-radius: 12px;
-		border: 1px solid $gray-200;
+		border: 1px solid $card-border;
 		overflow: hidden;
 		background-color: white;
+		.email-masthead {
+			padding: 24px 36px 20px;
+			border-bottom: 1px solid $hairline;
+		}
+		.email-title-cell {
+			padding: 28px 36px 0;
+		}
+		.email-body-cell {
+			padding: 8px 36px 12px;
+		}
+		.email-footer-cell {
+			padding: 0 36px 28px;
+		}
 		.email-body {
 			border-radius: 0 0 4px 4px;
 			border-top: none;
@@ -159,11 +178,22 @@ hr {
 @media only screen and (max-width: 700px) {
 	.body-table.with-container {
 		.body-content {
-			padding: 30px 20px;
+			padding: 24px 12px;
 		}
 		.email-container {
-			padding: 20px;
 			width: auto;
+			.email-masthead {
+				padding: 20px 24px 16px;
+			}
+			.email-title-cell {
+				padding: 24px 24px 0;
+			}
+			.email-body-cell {
+				padding: 8px 24px 12px;
+			}
+			.email-footer-cell {
+				padding: 0 24px 24px;
+			}
 		}
 	}
 }
@@ -171,10 +201,10 @@ hr {
 .email-footer-container {
 	font-size: 12px;
 	line-height: 1.6;
-	color: $text-muted;
+	color: $gray-500;
 
 	&.with-divider {
-		margin-top: 32px;
+		margin-top: 24px;
 		padding-top: 16px;
 		border-top: 1px solid $gray-100;
 	}
@@ -186,15 +216,16 @@ hr {
 
 .verification-code {
 	display: inline-block;
-	font-size: 24px;
-	font-weight: 600;
-	letter-spacing: 6px;
+	font-family: "SF Mono", "Menlo", "Consolas", monospace;
+	font-size: 32px;
+	font-weight: 700;
+	letter-spacing: 0.18em;
 	color: $gray-900;
-	background-color: $gray-50;
-	border: 1px solid $gray-200;
-	border-radius: $border-radius-lg;
-	padding: 12px 18px 12px 24px;
-	margin: 4px 0 16px;
+	background-color: $canvas-bg;
+	border: 1px solid #e5e4e1;
+	border-radius: 10px;
+	padding: 18px 26px 18px 32px;
+	margin: 4px 0 20px;
 }
 
 .email-unsubscribe a {
@@ -204,21 +235,22 @@ hr {
 
 .btn {
 	text-decoration: none;
-	padding: 10px 20px;
-	font-size: 14px;
-	font-weight: 500;
+	padding: 11px 22px;
+	font-size: 13px;
+	font-weight: 600;
+	letter-spacing: -0.01em;
 	border: 1px solid;
-	border-radius: $border-radius;
+	border-radius: $border-radius-lg;
 	color: $gray-800;
 	background-color: $gray-100;
 	border-color: transparent;
 	display: inline-block;
-	line-height: 20px;
+	line-height: 18px;
 	margin: 8px 0;
 
 	&.btn-primary {
 		color: #fff;
-		background-color: $primary;
+		background-color: $gray-900;
 	}
 }
 
