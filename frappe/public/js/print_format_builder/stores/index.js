@@ -270,6 +270,12 @@ export function getStore(print_format_name) {
 		selected_fields.value = [];
 		selected_field.value = null;
 	}
+	function remove_field(df) {
+		df.remove = true;
+		const rest = selected_fields.value.filter((f) => f !== df);
+		if (rest.length !== selected_fields.value.length) selected_fields.value = rest;
+		if (selected_field.value === df) selected_field.value = rest[rest.length - 1] || null;
+	}
 	function align_selected_fields(align) {
 		selected_fields.value.forEach((df) => (df.align = align));
 	}
@@ -568,6 +574,7 @@ export function getStore(print_format_name) {
 		selected_field,
 		selected_fields,
 		remove_selected_fields,
+		remove_field,
 		align_selected_fields,
 		selected_section,
 		selected_letterhead,

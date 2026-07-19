@@ -371,7 +371,7 @@
 					data-variant="ghost"
 					data-theme="red"
 					data-icon-button="true"
-					@click.stop="df['remove'] = true"
+					@click.stop="store.remove_field(df)"
 					v-html="frappe.utils.icon('x', 'xs')"
 				></button>
 			</div>
@@ -453,7 +453,7 @@
 								data-variant="ghost"
 								data-theme="red"
 								data-icon-button="true"
-								@click.stop="df['remove'] = true"
+								@click.stop="store.remove_field(df)"
 								v-html="frappe.utils.icon('x', 'sm')"
 							></button>
 						</div>
@@ -1097,8 +1097,7 @@ thead:hover .col-resize-handle::after {
 	cursor: grabbing;
 }
 
-.field--chip.sortable-chosen,
-.field--chip.sortable-ghost {
+.field--chip.sortable-chosen {
 	cursor: grabbing;
 }
 
