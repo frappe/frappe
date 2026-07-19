@@ -466,7 +466,7 @@ context("Print Format Builder — setup flow", () => {
 		cy.contains(".pfb-setup-option-label", "Start blank").click();
 
 		cy.get(".pfb-setup").should("not.exist");
-		cy.get(".sections-container").should("be.visible");
+		cy.get(".body-empty").should("be.visible");
 		// blank canvas — no body sections
 		cy.get(".sections-container [data-pfb-section]").should("have.length", 0);
 
@@ -616,7 +616,7 @@ context("Print Format Builder — section insert", () => {
 		);
 
 		cy.visit(`/app/print-format-builder/${encodeURIComponent(PF_NAME)}`);
-		cy.get(".sections-container", { timeout: 20000 }).should("be.visible");
+		cy.get(".body-empty", { timeout: 20000 }).should("be.visible");
 		cy.get(".sections-container [data-pfb-section]").should("have.length", 0);
 
 		// blank canvas: the first section is added via the empty-state CTA
