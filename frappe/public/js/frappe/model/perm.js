@@ -58,14 +58,26 @@ $.extend(frappe.perm, {
 			return frappe.perm._get_perm(doctype, doc);
 		}
 
-		return (frappe.perm.doctype_perm[doctype] ??= frappe.perm._get_perm(doctype));
+		if (frappe.perm.doctype_perm[doctype]) {
+			return frappe.perm.doctype_perm[doctype];
+		}
+
+		const perm = frappe.perm._get_perm(doctype);
+
+		// don't cache a perm computed before the meta loads; it's degraded (read only)
+		// and would stay pinned for the session
+		if (frappe.get_meta(doctype)) {
+			frappe.perm.doctype_perm[doctype] = perm;
+		}
+
+		return perm;
 	},
 
 	_get_perm: (doctype, doc) => {
 		const user = frappe.session.user;
 		let meta = frappe.get_meta(doctype);
 
-		let perm = [{ read: 0, permlevel: 0 }];
+		let perm = [{ read: 0, permlevel: 0, rights_without_if_owner: new Set() }];
 
 		if (user === "Administrator" || frappe.user_roles.includes("Administrator")) {
 			perm[0].read = 1;
@@ -136,7 +148,7 @@ $.extend(frappe.perm, {
 		}
 		*/
 
-		let perm = [{ read: 0, permlevel: 0 }];
+		let perm = [{ read: 0, permlevel: 0, rights_without_if_owner: new Set() }];
 		const rights = frappe.perm.get_rights(meta.name);
 
 		(meta.permissions || []).forEach((p) => {
