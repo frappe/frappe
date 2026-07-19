@@ -15,11 +15,11 @@
 					width="{% if header %} 600 {% else %} 100% {% endif %}">
 					{% if brand_logo %}
 					<tr>
-						<td width="40" align="left" valign="middle">
+						<td align="left" valign="middle" class="email-masthead">
 							<a href="{{ site_url or 'https://frappeframework.com' }}">
 								<img
 									src="{{ brand_logo or '/assets/frappe/images/frappe-framework-logo.svg' }}"
-									height="40"
+									height="28"
 									class="brand-logo"
 								/>
 							</a>
@@ -27,12 +27,12 @@
 					</tr>
 					{% endif %}
 					<tr>
-						<td valign="top">
+						<td valign="top" class="email-title-cell">
 							{{ header or "" }}
 						</td>
 					</tr>
 					<tr>
-						<td valign="top">
+						<td valign="top" class="email-body-cell">
 							<table class="email-body" border="0" cellpadding="0" cellspacing="0" width="100%">
 								<tr>
 									<td valign="top">
@@ -43,7 +43,7 @@
 						</td>
 					</tr>
 					<tr>
-						<td valign="top">
+						<td valign="top" class="email-footer-cell">
 							<table class="email-footer" border="0" cellpadding="0" cellspacing="0" width="100%">
 								<tr>
 									<td valign="top" data-email-footer="true">
