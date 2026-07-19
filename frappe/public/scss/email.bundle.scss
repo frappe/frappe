@@ -77,14 +77,27 @@ hr {
 	font-size: 14px;
 	line-height: 1.4;
 	.brand-logo {
-		margin: 0;
+		margin: 0 10px 0 0;
 		text-align: left;
 		border: 0;
 		outline: none;
 		text-decoration: none;
 		max-height: 28px;
 		width: auto;
-		display: block;
+		display: inline-block;
+		vertical-align: middle;
+	}
+	.email-masthead a {
+		text-decoration: none;
+		color: $gray-900;
+	}
+	.brand-name {
+		display: inline-block;
+		vertical-align: middle;
+		font-size: 15px;
+		font-weight: 700;
+		letter-spacing: -0.02em;
+		color: $gray-900;
 	}
 	td {
 		font-family: $font-stack;
@@ -248,6 +261,20 @@ hr {
 	border-radius: 10px;
 	padding: 18px 26px 18px 32px;
 	margin: 4px 0 20px;
+}
+
+.callout {
+	border-radius: $border-radius-lg;
+	padding: 14px 16px;
+	font-size: 12px;
+	line-height: 1.6;
+	margin: 20px 0 16px;
+}
+
+.callout-warning {
+	background-color: #fff8f0;
+	border: 1px solid #fde8c7;
+	color: #8a5a00;
 }
 
 .email-unsubscribe a {
