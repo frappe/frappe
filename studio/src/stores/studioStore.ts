@@ -31,7 +31,7 @@ import type { StudioPage } from "@/types/Studio/StudioPage"
 import type { LeftPanelOptions, RightPanelOptions, leftPanelComponentTabOptions, StudioMode } from "@/types"
 import ComponentContextMenu from "@/components/ComponentContextMenu.vue"
 import type { Variable, VariableOption } from "@/types/Studio/StudioPageVariable"
-import { toast } from "frappe-ui"
+import { toast, dialog } from "frappe-ui"
 import { createResource } from "frappe-ui"
 
 const useStudioStore = defineStore("store", () => {
@@ -184,12 +184,16 @@ const useStudioStore = defineStore("store", () => {
 	const selectedPage = ref<string | null>(null)
 	const savingPage = ref(false)
 	const settingPage = ref(false)
+	// set when a save is rejected because the page moved on in the DB (a disk sync or an AI edit)
+	// after the editor loaded it. Autosave pauses until the user refreshes to the latest version.
+	const pageConflict = ref(false)
 
 	// design-time test values for dynamic route variables (e.g. { category: "tech" }), persists in localStorage
 	const routeVariables = ref<Record<string, string>>({})
 
 	async function setPage(pageName: string) {
 		settingPage.value = true
+		pageConflict.value = false
 		const page = await fetchPage(pageName)
 		if (!page) {
 			settingPage.value = false
@@ -229,18 +233,41 @@ const useStudioStore = defineStore("store", () => {
 		}
 		const pageData = jsToJson(pageBlocks.value.map((block) => getBlockCopyWithoutParent(block)))
 
-		const args = {
-			name: selectedPage.value,
-			draft_blocks: pageData,
-			_skip_validate: true,
-		}
-		return studioPages.setValue.submit(args)
-			.then((page: StudioPage) => {
-				activePage.value = page
+		return studioPages.runDocMethod
+			.submit({
+				name: selectedPage.value,
+				method: "save_draft",
+				draft_blocks: pageData,
+				known_modified: activePage.value?.modified,
+			})
+			.then((response: any) => {
+				// keep our token current so the next autosave isn't seen as a conflict
+				const modified = response?.docs?.[0]?.modified ?? response?.message
+				if (activePage.value && modified) activePage.value.modified = modified
+			})
+			.catch((error: any) => {
+				if (error?.exc_type === "TimestampMismatchError") {
+					flagPageConflict()
+				} else {
+					throw error
+				}
 			})
 			.finally(() => {
 				savingPage.value = false
 			})
+	}
+
+	function flagPageConflict() {
+		if (pageConflict.value) return
+		pageConflict.value = true
+		dialog.confirm({
+			title: "Page changed outside the editor",
+			message:
+				"This page was updated after you opened it. Refresh to load the latest version - your unsaved canvas changes will be replaced.",
+			confirmLabel: "Refresh",
+			theme: "yellow",
+			onConfirm: () => selectedPage.value && setPage(selectedPage.value),
+		})
 	}
 
 	function updateActivePage(key: string, value: string) {
@@ -596,6 +623,7 @@ const useStudioStore = defineStore("store", () => {
 		selectedPage,
 		settingPage,
 		savingPage,
+		pageConflict,
 		activePage,
 		setPage,
 		savePage,

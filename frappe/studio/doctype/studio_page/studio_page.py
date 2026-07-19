@@ -5,8 +5,10 @@ import re
 
 import frappe
 from frappe import _
+from frappe.exceptions import TimestampMismatchError
 from frappe.model.document import Document
 from frappe.model.naming import append_number_if_name_exists
+from frappe.utils import get_datetime
 
 from studio.export import (
 	can_export,
@@ -272,6 +274,21 @@ class StudioPage(Document):
 
 	def get_export_docname(self):
 		return frappe.scrub(self.page_title)
+
+	@frappe.whitelist()
+	def save_draft(self, draft_blocks: str, known_modified: str | None = None):
+		if known_modified and get_datetime(known_modified) != get_datetime(self.modified):
+			frappe.throw(
+				_(
+					"This page was changed outside the editor. Refresh to load the latest version before editing."
+				),
+				exc=TimestampMismatchError,
+				title=_("Page changed"),
+			)
+		self.draft_blocks = draft_blocks
+		self._skip_validate = True
+		self.save()
+		return self.modified
 
 	@frappe.whitelist()
 	def publish(self, **kwargs):
