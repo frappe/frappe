@@ -403,6 +403,100 @@ class TestSearch(IntegrationTestCase):
 			link_fieldname="value",
 		)
 
+	def test_search_link_ignore_user_permissions_child_table(self):
+		"""List view filters target a child table field; the ignore_user_permissions flag
+		lives on the child table's link field, not on the parent."""
+
+		for dt in (
+			"Test Search Child Parent",
+			"Test Search Child Parent Dup",
+			"Test Search Child Row",
+			"Test Search Child Target",
+		):
+			if frappe.db.exists("DocType", dt):
+				frappe.delete_doc("DocType", dt, force=True)
+
+		new_doctype(
+			name="Test Search Child Target",
+			fields=[{"label": "Title", "fieldname": "title", "fieldtype": "Data"}],
+		).insert()
+
+		new_doctype(
+			name="Test Search Child Row",
+			istable=1,
+			fields=[
+				{
+					"label": "Member",
+					"fieldname": "member",
+					"fieldtype": "Link",
+					"options": "Test Search Child Target",
+					"ignore_user_permissions": 1,
+				}
+			],
+		).insert()
+
+		# field lives only in the child table
+		new_doctype(
+			name="Test Search Child Parent",
+			fields=[
+				{
+					"label": "Rows",
+					"fieldname": "rows",
+					"fieldtype": "Table",
+					"options": "Test Search Child Row",
+				}
+			],
+		).insert()
+
+		# same fieldname on parent (no flag) and child (with flag)
+		new_doctype(
+			name="Test Search Child Parent Dup",
+			fields=[
+				{
+					"label": "Member",
+					"fieldname": "member",
+					"fieldtype": "Link",
+					"options": "Test Search Child Target",
+					"ignore_user_permissions": 0,
+				},
+				{
+					"label": "Rows",
+					"fieldname": "rows",
+					"fieldtype": "Table",
+					"options": "Test Search Child Row",
+				},
+			],
+		).insert()
+
+		for dt in (
+			"Test Search Child Parent",
+			"Test Search Child Parent Dup",
+			"Test Search Child Row",
+			"Test Search Child Target",
+		):
+			self.addCleanup(lambda dt=dt: frappe.delete_doc("DocType", dt, force=True, ignore_missing=True))
+
+		# should not throw for either parent when the child link field allows ignoring
+		for reference_doctype in ("Test Search Child Parent", "Test Search Child Parent Dup"):
+			search_link(
+				doctype="Test Search Child Target",
+				txt="test",
+				ignore_user_permissions=True,
+				reference_doctype=reference_doctype,
+				link_fieldname="member",
+			)
+
+		# should still throw for a field that no parent or child table exposes
+		self.assertRaises(
+			frappe.ValidationError,
+			search_link,
+			doctype="Test Search Child Target",
+			txt="test",
+			ignore_user_permissions=True,
+			reference_doctype="Test Search Child Parent",
+			link_fieldname="nonexistent_field",
+		)
+
 
 @frappe.validate_and_sanitize_search_inputs
 def get_data(doctype, txt, searchfield, start, page_len, filters):
