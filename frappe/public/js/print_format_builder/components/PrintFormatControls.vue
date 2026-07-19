@@ -903,8 +903,6 @@ function handle_slash_key(e) {
 		focus_search();
 	}
 }
-
-watch(print_format, () => (store.dirty.value = true), { deep: true });
 </script>
 
 <style scoped>

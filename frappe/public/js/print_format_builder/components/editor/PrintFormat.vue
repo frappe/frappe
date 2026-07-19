@@ -234,9 +234,6 @@ let page_number_style = computed(() => {
 	}
 	return style;
 });
-
-watch(layout, () => (store.dirty.value = true), { deep: true });
-watch(print_format, () => (store.dirty.value = true), { deep: true });
 </script>
 
 <style scoped>

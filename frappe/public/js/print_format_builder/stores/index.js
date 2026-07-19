@@ -87,7 +87,6 @@ export function getStore(print_format_name) {
 	// variables
 	let print_format = ref(null);
 	let letterhead = ref(null);
-	let doctype = ref(null);
 	let meta = ref(null);
 	let layout = ref(null);
 	let dirty = ref(false);
@@ -204,9 +203,6 @@ export function getStore(print_format_name) {
 				},
 			],
 		};
-	}
-	function update({ fieldname, value }) {
-		print_format.value[fieldname] = value;
 	}
 	function save_changes() {
 		frappe.dom.freeze(__("Saving..."));
@@ -383,9 +379,13 @@ export function getStore(print_format_name) {
 		},
 		{ deep: true }
 	);
-	watch(print_format, () => {
-		dirty.value = true;
-	});
+	watch(
+		print_format,
+		() => {
+			dirty.value = true;
+		},
+		{ deep: true }
+	);
 
 	function copy_field(df) {
 		if (!df) return;
@@ -564,7 +564,6 @@ export function getStore(print_format_name) {
 	return {
 		print_format,
 		letterhead,
-		doctype,
 		meta,
 		layout,
 		dirty,
@@ -586,7 +585,6 @@ export function getStore(print_format_name) {
 		load_preview_doc,
 		persisted_preview_doc_name,
 		fetch,
-		update,
 		save_changes,
 		reset_changes,
 		get_preview_format_doc,
