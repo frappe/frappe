@@ -45,6 +45,9 @@ SERVER_ONLY_CLASSES = {
 	# per-section "keep together" is page-break-inside:avoid — a pure pagination
 	# concern with no effect on the non-paginated canvas, so it's print-only
 	"keep-together",
+	# per-section "page break" is page-break-after:always — likewise pagination-only;
+	# the canvas renders a separate .page-break-indicator element, not this class
+	"page-break",
 }
 CANVAS_ONLY_CLASSES = set()
 
