@@ -515,14 +515,13 @@ const color_settings = [
 	{ fieldname: "value_color", label: __("Value Color") },
 ];
 let color_hosts = ref({});
+let color_controls = {};
 
-// The Format tab is v-if, so its DOM is recreated on each visit — (re)mount the
-// Frappe color controls into the fresh host divs when the tab is shown.
 function mount_color_controls() {
 	for (const c of color_settings) {
 		const host = color_hosts.value[c.fieldname];
 		if (!host) continue;
-		mountColorControl(host, {
+		color_controls[c.fieldname] = mountColorControl(host, {
 			value: print_format.value[c.fieldname] || "",
 			placeholder: c.label,
 			fieldname: c.fieldname,
@@ -662,14 +661,11 @@ function field_label(f) {
 	return f.label || f.fieldname || f.fieldtype || __("Field");
 }
 
-// Fieldnames the doctype currently defines (plus the always-present ID field).
 let known_fieldnames = computed(() => {
 	const s = new Set((meta.value?.fields || []).map((df) => df.fieldname));
 	s.add("name");
 	return s;
 });
-// A real doctype field is broken when its fieldname is gone from the schema.
-// Custom blocks (HTML/Image/Barcode/Field Template) carry their own data, so skip them.
 function field_broken(f) {
 	if (f.custom || f.fieldtype === "Field Template" || !f.fieldname) return false;
 	return !known_fieldnames.value.has(f.fieldname);
@@ -711,7 +707,6 @@ function toggle_collapse(node) {
 	next.has(node) ? next.delete(node) : next.add(node);
 	collapsed_nodes.value = next;
 }
-// undo/redo/load replace every section/column object, so drop the now-stale refs
 watch(
 	() => layout.value,
 	() => (collapsed_nodes.value = new Set())
@@ -801,6 +796,18 @@ watch(activeTab, (tab) => {
 	if (tab === "templates") fetch_templates();
 	if (tab === "format") nextTick(mount_color_controls);
 });
+
+watch(
+	() => color_settings.map((c) => print_format.value?.[c.fieldname]),
+	() => {
+		for (const c of color_settings) {
+			const ctrl = color_controls[c.fieldname];
+			if (!ctrl) continue;
+			const model = print_format.value?.[c.fieldname] || "";
+			if ((ctrl.get_value() || "") !== model) ctrl.set_value(model);
+		}
+	}
+);
 
 let print_templates_list = computed(() => {
 	const templates = raw_templates.value;
