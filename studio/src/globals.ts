@@ -263,3 +263,17 @@ export function unregisterCustomVueComponents(components: CustomVueComponentMeta
 	}
 	customVueComponentsRegistry.value = registry
 }
+
+// Re-sync the registry to the app's current custom components. register() only merges, so on its
+// own a removed component would linger; this also evicts any that no longer exist. Pass an empty
+// frappeApp to clear them all (e.g. a non-standard app). Shared by the editor and the preview.
+export async function reloadCustomVueComponents(frappeApp: string): Promise<CustomVueComponentMeta[]> {
+	const before = Object.keys(customVueComponentsRegistry.value)
+	const components = await registerCustomVueComponents(frappeApp)
+
+	const current = new Set(components.map((comp) => comp.component_name))
+	const removed = before.filter((name) => !current.has(name)).map((name) => ({ component_name: name }))
+	if (removed.length) unregisterCustomVueComponents(removed as CustomVueComponentMeta[])
+
+	return components
+}

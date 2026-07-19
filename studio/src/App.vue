@@ -12,7 +12,7 @@
 
 <script setup lang="ts">
 import { FrappeUIProvider } from "frappe-ui"
-import { useDiskSync } from "@/utils/useDiskSync"
+import { useLiveEditor } from "@/utils/useLiveEditor"
 
-useDiskSync()
+useLiveEditor()
 </script>

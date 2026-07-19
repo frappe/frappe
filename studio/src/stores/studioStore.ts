@@ -18,11 +18,10 @@ import { studioVariables } from "@/data/studioVariables"
 import Block from "@/utils/block"
 import useCanvasStore from "@/stores/canvasStore"
 import useCodeStore from "@/stores/codeStore"
-import { registerCustomVueComponents, unregisterCustomVueComponents } from "@/globals"
+import { reloadCustomVueComponents } from "@/globals"
 import {
 	registerStudioPageScripts,
 	unregisterStudioPageScripts,
-	setPageScriptHotUpdateHandler,
 } from "@/data/studioPageScripts"
 import { setCustomComponentFilePaths } from "@/utils/components"
 import type { CustomVueComponentMeta } from "@/types/vue"
@@ -415,18 +414,12 @@ const useStudioStore = defineStore("store", () => {
 	// custom components
 	async function setCustomComponents() {
 		await loadCustomVueComponents()
-		setCustomComponentListener()
 		setCustomComponentFilePaths(customVueComponents.value)
 	}
 
 	async function loadCustomVueComponents() {
-		if (customVueComponents.value.length) {
-			unregisterCustomVueComponents(customVueComponents.value)
-			customVueComponents.value = []
-		}
-		if (activeApp.value?.is_standard) {
-			customVueComponents.value = await registerCustomVueComponents(activeApp.value.frappe_app!)
-		}
+		const frappeApp = activeApp.value?.is_standard ? activeApp.value.frappe_app! : ""
+		customVueComponents.value = await reloadCustomVueComponents(frappeApp)
 	}
 
 	// Register per-page code scripts (<page>.ts) for exported apps so the editor can load them.
@@ -434,15 +427,6 @@ const useStudioStore = defineStore("store", () => {
 		unregisterStudioPageScripts()
 		if (activeApp.value?.is_standard) {
 			await registerStudioPageScripts(activeApp.value.frappe_app!)
-		}
-	}
-
-	function setCustomComponentListener() {
-		if (activeApp.value?.is_standard && import.meta.hot) {
-			// Auto-refresh custom components when .vue files are added/removed/renamed in studio folders
-			import.meta.hot.on("studio:custom-components-changed", () => {
-				loadCustomVueComponents()
-			})
 		}
 	}
 
@@ -531,10 +515,6 @@ const useStudioStore = defineStore("store", () => {
 	// active page so new refs/functions and changed dependency code show up on the canvas, in the
 	// value selectors and in completions — no reload. Non-active pages refresh lazily on navigation
 	// (studioPageScripts caches the latest setup).
-	setPageScriptHotUpdateHandler((pageName, setup) => {
-		if (activePage.value?.name === pageName) codeStore.applyPageScriptHMR(setup)
-	})
-
 	async function setPageData(page: StudioPage) {
 		await codeStore.setPageVariables(page)
 		await codeStore.setPageResources(page, true)
@@ -604,6 +584,7 @@ const useStudioStore = defineStore("store", () => {
 		getAppPageRoute,
 		// custom components
 		setCustomComponents,
+		loadCustomVueComponents,
 		customVueComponents,
 		// cross-panel navigation
 		selectedVueFile,
