@@ -69,6 +69,8 @@ function studioFolderWatcher(appsDir) {
 		hotUpdate({ type, file, modules }) {
 			if (!isUnderStudioFolder(file)) return
 			if (type !== "update") return []
+			// skip .json files (exporting them leads to a full reload)
+			if (file.endsWith(".json")) return []
 			if (modules.length > 0) return
 			return []
 		},
