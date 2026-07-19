@@ -281,6 +281,41 @@
 		<!-- ── Format ─────────────────────────────────────────── -->
 		<div v-else-if="activeTab === 'format'" class="pfb-tab-body pfb-format-tab">
 			<div class="form-group">
+				<label class="control-label">{{ __("Style Preset") }}</label>
+				<div class="pfb-preset-row">
+					<select
+						class="form-control form-control-sm"
+						:value="active_preset"
+						@change="apply_preset($event.target.value)"
+					>
+						<option value="">{{ __("Choose a preset…") }}</option>
+						<option v-for="p in store.style_presets.value" :key="p.name" :value="p.name">
+							{{ p.name }}
+						</option>
+					</select>
+					<button
+						class="es-button"
+						data-size="sm"
+						data-variant="ghost"
+						data-icon-button="true"
+						:title="__('Save current style as a preset')"
+						@click="save_preset"
+						v-html="frappe.utils.icon('save', 'sm')"
+					></button>
+					<button
+						v-if="active_preset"
+						class="es-button"
+						data-size="sm"
+						data-variant="ghost"
+						data-theme="red"
+						data-icon-button="true"
+						:title="__('Delete preset')"
+						@click="delete_preset"
+						v-html="frappe.utils.icon('trash', 'sm')"
+					></button>
+				</div>
+			</div>
+			<div class="form-group">
 				<label class="control-label">{{ __("Page Margins (mm)") }}</label>
 				<div class="pfb-margin-grid">
 					<div class="pfb-margin-cell" v-for="df in margins" :key="df.fieldname">
@@ -464,6 +499,35 @@ function mount_color_controls() {
 			},
 		});
 	}
+}
+
+// ── style presets ──────────────────────────────────────────
+let active_preset = ref("");
+function apply_preset(name) {
+	active_preset.value = name;
+	if (name) store.apply_style_preset(name);
+}
+function save_preset() {
+	frappe.prompt(
+		{
+			label: __("Preset name"),
+			fieldname: "name",
+			fieldtype: "Data",
+			reqd: 1,
+			default: active_preset.value || "",
+		},
+		({ name }) => {
+			store.save_style_preset(name);
+			active_preset.value = name.trim();
+		},
+		__("Save Style Preset"),
+		__("Save")
+	);
+}
+function delete_preset() {
+	if (!active_preset.value) return;
+	store.delete_style_preset(active_preset.value);
+	active_preset.value = "";
 }
 
 // ── helpers ────────────────────────────────────────────────
@@ -1178,6 +1242,16 @@ watch(print_format, () => (store.dirty.value = true), { deep: true });
 /* ── Format tab ──────────────────────────────────────────── */
 .pfb-format-tab .form-group {
 	margin-bottom: 10px;
+}
+
+.pfb-preset-row {
+	display: flex;
+	align-items: center;
+	gap: 6px;
+}
+
+.pfb-preset-row select {
+	flex: 1;
 }
 
 .pfb-format-tab .form-group:last-child {

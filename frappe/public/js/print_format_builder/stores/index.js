@@ -36,6 +36,34 @@ function clone_plain(obj) {
 	return JSON.parse(JSON.stringify(obj));
 }
 
+// Style presets — the visual settings a preset captures, plus its persistence.
+const STYLE_PRESETS_KEY = "pfb_style_presets";
+const STYLE_PRESET_KEYS = [
+	"font",
+	"font_size",
+	"label_color",
+	"value_color",
+	"margin_top",
+	"margin_right",
+	"margin_bottom",
+	"margin_left",
+	"page_number",
+];
+function load_style_presets() {
+	try {
+		return JSON.parse(localStorage.getItem(STYLE_PRESETS_KEY)) || [];
+	} catch {
+		return [];
+	}
+}
+function persist_style_presets(list) {
+	try {
+		localStorage.setItem(STYLE_PRESETS_KEY, JSON.stringify(list));
+	} catch {
+		// ignore quota / privacy-mode failures; in-memory copy still works
+	}
+}
+
 // A pasted custom element (HTML/Image/Barcode block) gets a fresh fieldname so
 // duplicates don't collide; real doctype fields keep theirs.
 function freshen_field(f) {
@@ -369,6 +397,30 @@ export function getStore(print_format_name) {
 			move_in_array(layout.value?.sections || [], selected_section.value, dir);
 		}
 	}
+
+	// Style presets — a named bundle of the format's visual settings, persisted
+	// to localStorage so one look can be reused across print formats.
+	const style_presets = ref(load_style_presets());
+	function save_style_preset(name) {
+		name = (name || "").trim();
+		if (!name || !print_format.value) return;
+		const style = {};
+		for (const key of STYLE_PRESET_KEYS) style[key] = print_format.value[key];
+		const list = style_presets.value.filter((p) => p.name !== name);
+		list.push({ name, style });
+		list.sort((a, b) => a.name.localeCompare(b.name));
+		style_presets.value = list;
+		persist_style_presets(list);
+	}
+	function apply_style_preset(name) {
+		const preset = style_presets.value.find((p) => p.name === name);
+		if (!preset || !print_format.value) return;
+		Object.assign(print_format.value, preset.style);
+	}
+	function delete_style_preset(name) {
+		style_presets.value = style_presets.value.filter((p) => p.name !== name);
+		persist_style_presets(style_presets.value);
+	}
 	function find_field_column(df) {
 		const lv = layout.value;
 		const zones = [lv?.header, lv?.footer, ...(lv?.sections || [])].filter(Boolean);
@@ -453,6 +505,10 @@ export function getStore(print_format_name) {
 		duplicate_section,
 		duplicate_selection,
 		move_selection,
+		style_presets,
+		save_style_preset,
+		apply_style_preset,
+		delete_style_preset,
 		paste_clipboard,
 		undo,
 		redo,
