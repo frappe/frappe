@@ -3,6 +3,14 @@
 
 frappe.ui.form.on("Flow Run", {
 	refresh(frm) {
+		if (frm.doc.output) {
+			const trimmed = frm.doc.output.trim();
+			if (trimmed !== frm.doc.output) {
+				frm.doc.output = trimmed;
+				frm.refresh_field("output");
+			}
+		}
+
 		const parse = (value) => {
 			if (!value) return null;
 			if (typeof value === "object") return value;

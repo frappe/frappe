@@ -63,6 +63,22 @@ def resume_run(
 
 
 @frappe.whitelist()
+def stop_run(run_name: str) -> dict[str, str]:
+	"""Stop a run at the user's request: terminate a Paused run so the agent won't continue,
+	or finalize a Running one whose SSE stream the client has aborted."""
+	from flow.lib.session import assert_run_owner
+
+	if not isinstance(run_name, str) or not run_name.strip():
+		frappe.throw(_("Run is required."), title=_("Invalid Run"))
+
+	run = frappe.get_doc("Flow Run", run_name.strip())
+	assert_run_owner(run)
+	if run.status not in ("Completed", "Failed"):
+		run.mark_failed("Stopped by user.")
+	return {"status": run.status}
+
+
+@frappe.whitelist()
 def recover_session(session: str) -> dict[str, int]:
 	"""Fail any Running run on session (re)load. The client that owned the stream is
 	gone, so the run is abandoned; clearing it here unblocks the next turn instead of

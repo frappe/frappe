@@ -3,6 +3,8 @@
 
 from frappe.model.document import Document
 
+from flow.utils.system_generated import block_delete, block_rename, validate_immutable
+
 
 class FlowKnowledgeBase(Document):
 	# begin: auto-generated types
@@ -15,6 +17,7 @@ class FlowKnowledgeBase(Document):
 
 		description: DF.SmallText | None
 		enabled: DF.Check
+		is_system_generated: DF.Check
 		title: DF.Data
 	# end: auto-generated types
 
@@ -25,3 +28,10 @@ class FlowKnowledgeBase(Document):
 			)
 
 			require_embedding_model()
+		validate_immutable(self)
+
+	def on_trash(self):
+		block_delete(self)
+
+	def before_rename(self, old: str, new: str, merge: bool = False) -> None:
+		block_rename(self, old)

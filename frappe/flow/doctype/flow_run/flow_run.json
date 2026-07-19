@@ -103,7 +103,8 @@
    "description": "Original user input that started the run.",
    "fieldname": "input",
    "fieldtype": "Long Text",
-   "label": "Input"
+   "label": "Input",
+   "read_only": 1
   },
   {
    "description": "Final assistant message when the run completes.",

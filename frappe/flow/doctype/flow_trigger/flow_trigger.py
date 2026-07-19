@@ -28,6 +28,7 @@ class FlowTrigger(Document):
 		event: DF.Literal["DocType Event", "Scheduled"]
 		last_fired_at: DF.Datetime | None
 		prompt_template: DF.Code
+		run_as: DF.Link | None
 		target_doctype: DF.Link | None
 		title: DF.Data
 	# end: auto-generated types
@@ -37,6 +38,16 @@ class FlowTrigger(Document):
 		self._validate_cron()
 		self._validate_condition()
 		self._validate_template()
+		self._validate_run_as()
+
+	def _validate_run_as(self):
+		if not self.run_as:
+			return
+		if self.run_as == "Guest" or not frappe.db.get_value("User", self.run_as, "enabled"):
+			frappe.throw(
+				_("Run As must be an enabled user."),
+				title=_("Invalid Run As"),
+			)
 
 	def _validate_event_fields(self):
 		if self.event == "DocType Event":
@@ -60,12 +71,9 @@ class FlowTrigger(Document):
 			frappe.throw(_("Invalid cron expression: {0}").format(e), title=_("Invalid Cron"))
 
 	def _validate_condition(self):
-		if not self.condition:
-			return
-		try:
-			compile(self.condition, "<ai_trigger_condition>", "eval")
-		except SyntaxError as e:
-			frappe.throw(_("Invalid condition expression: {0}").format(e), title=_("Invalid Condition"))
+		from flow.utils.conditions import validate_condition
+
+		validate_condition(self.condition)
 
 	def _validate_template(self):
 		from jinja2 import TemplateSyntaxError

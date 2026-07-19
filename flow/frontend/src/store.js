@@ -2,6 +2,7 @@ import { ref, computed } from "vue";
 import * as api from "@/api/client";
 import { startRun, resumeRun } from "@/api/stream";
 import { normalizeToolName } from "@/lib/toolMeta";
+import { readPanelState } from "@/lib/panelState";
 import { __ } from "@/lib/translate";
 
 // Module-singleton store: one panel instance, one source of truth. Components
@@ -67,12 +68,27 @@ async function loadInitial() {
 		loadToolApproval(selectedAgent.value);
 		loaded.value = true;
 		focusTick.value++;
+
+		if (readPanelState().open) await restoreSession();
 	} catch {
 		// `loaded` stays false, keeping the composer disabled on "Loading…".
 		frappe.show_alert({
 			message: __("Flow failed to load. Refresh the page to retry."),
 			indicator: "red",
 		});
+	}
+}
+
+let sessionRestored = false;
+async function restoreSession() {
+	if (sessionRestored) return;
+	sessionRestored = true;
+	const { session } = readPanelState();
+	if (!session) return;
+	try {
+		await switchSession(session);
+	} catch {
+		newChat();
 	}
 }
 
@@ -238,6 +254,9 @@ async function restorePausedRun(session) {
 }
 
 // ── sending / streaming ────────────────────────────────────────────────────────
+// Aborts the in-flight stream when the user stops the response.
+let abortController = null;
+
 async function send(text) {
 	text = text.trim();
 	if (!text || sending.value || paused.value || uploading.value) return;
@@ -250,6 +269,7 @@ async function send(text) {
 	messages.value.push({ id: nextId(), role: "user", content: text, attachments: chips });
 	const assistant = pushAssistant();
 	sending.value = true;
+	abortController = new AbortController();
 	requestScroll(true);
 
 	try {
@@ -261,11 +281,14 @@ async function send(text) {
 				...(selectedAgent.value && !sessionName.value && { agent: selectedAgent.value }),
 				...(selectedModel.value && { model: selectedModel.value }),
 			},
-			(event) => handleEvent(event, assistant)
+			(event) => handleEvent(event, assistant),
+			abortController.signal
 		);
 	} catch (e) {
-		failMessage(assistant, e);
+		if (e.name === "AbortError") assistant.pending = false;
+		else failMessage(assistant, e);
 	} finally {
+		abortController = null;
 		sending.value = false;
 		requestScroll();
 		focusTick.value++;
@@ -281,21 +304,41 @@ async function resume(answers, pausedMsg) {
 	pausedMsg.questions = [];
 	pausedMsg.pending = true;
 	sending.value = true;
+	abortController = new AbortController();
 	requestScroll(true);
 
 	try {
-		await resumeRun({ run_name: rn, answers }, (event) => handleEvent(event, pausedMsg));
+		await resumeRun(
+			{ run_name: rn, answers },
+			(event) => handleEvent(event, pausedMsg),
+			abortController.signal
+		);
 	} catch (e) {
-		failMessage(pausedMsg, e);
+		if (e.name === "AbortError") pausedMsg.pending = false;
+		else failMessage(pausedMsg, e);
 	} finally {
+		abortController = null;
 		sending.value = false;
 		requestScroll();
 		focusTick.value++;
 	}
 }
 
+// Stop the response: abort the live stream and finalize its run so the session
+// isn't left blocked. The backend agent loop unwinds on the aborted connection.
+function stopRun() {
+	if (!sending.value) return;
+	abortController?.abort();
+	const rn = runName.value;
+	// Stopped before run_started arrived: no run name yet, so finalize any Running
+	// run on the session instead so the next turn isn't briefly blocked.
+	if (rn) api.stopRun(rn).catch(() => {});
+	else if (sessionName.value) api.recoverSession(sessionName.value).catch(() => {});
+}
+
 // Records one answer and stamps the tool's approval state; once every question
 // on the paused message is answered, resumes the run with all answers at once.
+// A Deny is sent through like any answer — the agent records it and stops the run.
 function answerQuestion(msg, question, answer) {
 	const a = (answer || "").trim();
 	if (!a || !msg) return;
@@ -322,10 +365,15 @@ function handleEvent(event, msg) {
 			appendText(msg, event.delta);
 			requestScroll();
 			break;
-		case "tool_started":
-			msg.parts.push(makeToolPart(event.id, event.name, event.arguments));
+		case "tool_started": {
+			// Fired twice: once mid-stream (no args yet), then again with the full arguments before
+			// the tool runs. Create the card on the first, fill its arguments on the second.
+			const part = msg.parts.find((p) => p.type === "tool" && p.id === event.id);
+			if (part) part.arguments = event.arguments;
+			else msg.parts.push(makeToolPart(event.id, event.name, event.arguments));
 			requestScroll();
 			break;
+		}
 		case "tool_ended":
 			setToolResult(msg, event.id, event.result);
 			requestScroll();
@@ -361,7 +409,27 @@ const makeToolPart = (id, name, args) => ({
 
 function setToolResult(msg, id, result) {
 	const part = msg.parts.find((p) => p.type === "tool" && p.id === id);
-	if (part) part.result = result;
+	if (!part) return;
+	part.result = result;
+	// On reload the live approval state is gone; recover it from the persisted
+	// confirmation result so the "Denied"/"Changes requested" badge survives. Gated on
+	// the tool being a confirmation tool so a regular tool whose result happens to carry
+	// a {status: "denied"} payload isn't mislabeled.
+	if (part.approval === null && toolApproval.value[part.name] === true)
+		part.approval = approvalFromResult(result);
+}
+
+// A denied/redirected confirmation persists a known status payload as its tool result.
+function approvalFromResult(result) {
+	if (typeof result !== "string") return null;
+	try {
+		const status = JSON.parse(result)?.status;
+		if (status === "denied") return "denied";
+		if (status === "redirect") return "redirected";
+	} catch {
+		// a normal tool result, not a confirmation payload
+	}
+	return null;
 }
 
 function pushAssistant(pending = true) {
@@ -442,12 +510,14 @@ export function useStore() {
 		modelLabel,
 		// actions
 		loadInitial,
+		restoreSession,
 		refreshHistory,
 		setAgent,
 		setModel,
 		newChat,
 		switchSession,
 		send,
+		stopRun,
 		answerQuestion,
 		attachFiles,
 		removeAttachment,

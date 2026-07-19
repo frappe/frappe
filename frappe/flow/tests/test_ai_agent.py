@@ -638,25 +638,42 @@ class TestAgentConfirmation(UnitTestCase):
 		self.assertEqual(tool_message["content"], "wrote 2 bytes to /tmp/x")
 		self.assertEqual(resumed.output, "done")
 
-	def test_deny_skips_tool_and_returns_denial_to_llm(self):
+	def test_deny_records_rejection_and_stops_without_calling_model(self):
 		write_file, calls = self._danger_tool()
-		model = FakeModel(
-			[
-				_tool_call("write_file", {"path": "/tmp/x", "body": "hi"}, call_id="c1"),
-				_final("understood"),
-			]
-		)
+		# Only the pausing response is scripted: if resume called the model again,
+		# FakeModel would raise "ran out of scripted responses".
+		model = FakeModel([_tool_call("write_file", {"path": "/tmp/x", "body": "hi"}, call_id="c1")])
 		agent = Agent(model=model, tools=[write_file])
 
 		paused = agent.run("write hi to /tmp/x")
 		resumed = agent.resume(paused.messages, {"c1": "Deny"})
 
 		self.assertEqual(calls, [])  # tool never ran
+		self.assertFalse(resumed.paused)  # run ended, not paused
+		self.assertIsNone(resumed.output)
+		self.assertEqual(len(model.calls), 1)  # model not called again after Deny
 		tool_message = next(m for m in resumed.messages if m["role"] == "tool")
 		self.assertEqual(
 			json.loads(tool_message["content"]),
 			{"status": "denied", "message": "User denied this tool call."},
 		)
+
+	def test_stream_deny_stops_and_replays_denied_call(self):
+		write_file, calls = self._danger_tool()
+		model = FakeModel([_tool_call("write_file", {"path": "/tmp/x", "body": "hi"}, call_id="c1")])
+		agent = Agent(model=model, tools=[write_file])
+
+		paused = agent.run("write hi to /tmp/x")
+		events = list(agent.resume(paused.messages, {"c1": "Deny"}, stream=True))
+
+		self.assertEqual(calls, [])  # tool never ran
+		self.assertEqual(len(model.calls), 1)  # model not called again after Deny
+		# the denied call is replayed as a ToolEnded so the UI can fill its card, then Done
+		tool_ended = [e for e in events if isinstance(e, ToolEnded)]
+		self.assertEqual(len(tool_ended), 1)
+		self.assertEqual(json.loads(tool_ended[0].result)["status"], "denied")
+		self.assertIsInstance(events[-1], Done)
+		self.assertFalse(events[-1].result.paused)
 
 	def test_confirm_prompt_renders_plain_english_body(self):
 		@tool(

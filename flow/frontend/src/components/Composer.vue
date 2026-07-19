@@ -24,6 +24,7 @@ const {
 	setAgent,
 	setModel,
 	send,
+	stopRun,
 	attachFiles,
 	removeAttachment,
 } = useStore();
@@ -108,7 +109,7 @@ watch(focusTick, () => nextTick(() => el.value?.focus()));
 
 <template>
 	<div
-		class="flow-composer absolute inset-x-4 bottom-3.5 mx-auto flex max-w-3xl flex-col gap-1.5 rounded-xl border bg-surface-white px-2.5 py-2 shadow-sm transition-[border-color,background-color] focus-within:border-outline-gray-3"
+		class="flow-composer absolute inset-x-5 bottom-3.5 mx-auto flex max-w-3xl flex-col gap-1.5 rounded-xl border bg-surface-white px-2.5 py-2 shadow-sm transition-[border-color,background-color] focus-within:border-outline-gray-3"
 		:class="dragging ? 'border-outline-gray-4 bg-surface-gray-1' : 'border-outline-gray-2'"
 		@dragover="onDragOver"
 		@dragleave="onDragLeave"
@@ -167,7 +168,7 @@ watch(focusTick, () => nextTick(() => el.value?.focus()));
 			>
 				<template #trigger="{ toggle }">
 					<button
-						class="flex h-6 items-center gap-1 rounded px-1.5 text-[11.5px] text-ink-gray-6 hover:bg-surface-gray-2 disabled:cursor-default disabled:hover:bg-transparent"
+						class="flex h-6 items-center gap-1 rounded px-1.5 text-[12.5px] text-ink-gray-6 hover:bg-surface-gray-2 disabled:cursor-default disabled:hover:bg-transparent"
 						:disabled="locked"
 						:title="__('Agent')"
 						@click="toggle"
@@ -191,7 +192,7 @@ watch(focusTick, () => nextTick(() => el.value?.focus()));
 			>
 				<template #trigger="{ toggle }">
 					<button
-						class="flex h-6 items-center gap-1 rounded px-1.5 text-[11.5px] text-ink-gray-6 hover:bg-surface-gray-2"
+						class="flex h-6 items-center gap-1 rounded px-1.5 text-[12.5px] text-ink-gray-6 hover:bg-surface-gray-2"
 						:title="__('Model')"
 						@click="toggle"
 					>
@@ -205,7 +206,24 @@ watch(focusTick, () => nextTick(() => el.value?.focus()));
 
 			<span class="flex-1"></span>
 
-			<Button variant="solid" :disabled="!canSend" :title="__('Send')" @click="submit">
+			<Button
+				v-if="sending"
+				theme="red"
+				class="!bg-surface-red-3 hover:!bg-surface-red-4"
+				:title="__('Stop')"
+				@click="stopRun"
+			>
+				<template #icon
+					><span class="h-2.5 w-2.5 rounded-[2px] bg-current"></span
+				></template>
+			</Button>
+			<Button
+				v-else
+				variant="solid"
+				:disabled="!canSend"
+				:title="__('Send')"
+				@click="submit"
+			>
 				<template #icon><FeatherIcon name="arrow-up" class="h-4 w-4" /></template>
 			</Button>
 		</div>

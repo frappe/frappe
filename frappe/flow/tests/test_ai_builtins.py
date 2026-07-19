@@ -100,18 +100,18 @@ class TestExecute(IntegrationTestCase):
 		frappe.db.rollback()
 
 	def test_returns_result_variable(self):
-		self.assertEqual(execute(code="result = 1 + 1"), 2)
+		self.assertEqual(execute(code="result = 1 + 1", description="Add two numbers"), 2)
 
 	def test_no_result_returns_none(self):
-		self.assertIsNone(execute(code="x = 5"))
+		self.assertIsNone(execute(code="x = 5", description="Set a variable"))
 
 	def test_can_read_via_frappe(self):
-		count = execute(code="result = frappe.db.count('DocType')")
+		count = execute(code="result = frappe.db.count('DocType')", description="Count doctypes")
 		self.assertIsInstance(count, int)
 
 	def test_imports_are_blocked(self):
 		with self.assertRaises(Exception):
-			execute(code="import os\nresult = os.getcwd()")
+			execute(code="import os\nresult = os.getcwd()", description="Get working directory")
 
 
 class TestCreate(IntegrationTestCase):

@@ -34,7 +34,7 @@ export function humanize(name) {
 const LABELS = {
 	find_doctypes: "Finding relevant DocTypes",
 	describe: "Reading DocType Meta",
-	read: "Reading Doctype Records",
+	read: "Reading DocType Records",
 	search_knowledge: "Searching Knowledge",
 	execute: "Executing",
 	create: "Creating Records",
@@ -58,6 +58,36 @@ export function normalizeToolName(name) {
 
 export const hasArgs = (args) => Object.keys(parseArgs(args)).length > 0 || Boolean(rawArgs(args));
 
+// The error message when a tool call wholly failed, else null. Two failure shapes:
+// a thrown tool → {error: "..."}; a bulk create/update/delete where every record
+// failed → {created|updated|deleted: [], failures: [{error}, ...]}.
+export function toolError(result) {
+	if (typeof result !== "string") return null;
+	let parsed;
+	try {
+		parsed = JSON.parse(result);
+	} catch {
+		return null; // a plain-text result, not an error payload
+	}
+	if (!parsed || typeof parsed !== "object") return null;
+	if (typeof parsed.error === "string") return parsed.error;
+
+	const failures = parsed.failures;
+	if (Array.isArray(failures) && failures.length) {
+		const succeeded = [parsed.created, parsed.updated, parsed.deleted].some(
+			(a) => Array.isArray(a) && a.length
+		);
+		if (!succeeded) {
+			const msg = failures
+				.map((f) => f && f.error)
+				.filter((e) => typeof e === "string")
+				.join("\n");
+			return msg || null;
+		}
+	}
+	return null;
+}
+
 export const isScalar = (v) => v === null || typeof v !== "object";
 
 export function formatScalar(v) {
@@ -67,10 +97,11 @@ export function formatScalar(v) {
 	return String(v);
 }
 
-// Single-line text long enough to clamp behind "Show more" rather than inline it.
+// Text that must render as a full-width code block rather than inline: multi-line
+// or long. Anything with a newline, or a single line past the limit.
 const LONG_TEXT_LIMIT = 120;
-export const isLongText = (v) =>
-	typeof v === "string" && !v.includes("\n") && v.length > LONG_TEXT_LIMIT;
+export const isBlockText = (v) =>
+	typeof v === "string" && (v.includes("\n") || v.length > LONG_TEXT_LIMIT);
 
 const FILTER_OPERATORS = new Set([
 	"=",
@@ -103,7 +134,7 @@ export function argKind(v) {
 		return v.every(isScalar) ? "list" : "records";
 	}
 	if (typeof v === "object") return Object.keys(v).length ? "object" : "empty";
-	if (typeof v === "string" && v.includes("\n")) return "code";
+	if (isBlockText(v)) return "code";
 	return "scalar";
 }
 
@@ -115,11 +146,18 @@ export function recordLabelKey(records) {
 	const first = records.find((r) => r && typeof r === "object" && !Array.isArray(r));
 	if (!first) return null;
 	for (const key of TITLE_KEYS) {
-		if (typeof first[key] === "string" && first[key]) return key;
+		if (typeof first[key] === "string" && first[key] && !isBlockText(first[key])) return key;
 	}
-	const entry = Object.entries(first).find(([, v]) => isScalar(v) && v !== null && v !== "");
+	const entry = Object.entries(first).find(
+		([, v]) => isScalar(v) && v !== null && v !== "" && !isBlockText(v)
+	);
 	return entry ? entry[0] : null;
 }
+
+// Args to always render as a code block regardless of content, keyed by tool name.
+// execute's "code" is Python source even when short/single-line.
+const CODE_ARG_KEYS = { execute: new Set(["code"]) };
+export const blockKeysFor = (name) => CODE_ARG_KEYS[name] || new Set();
 
 // Muted suffix that distinguishes a step (which doctype / search / action).
 export function toolContext(args) {
@@ -150,6 +188,8 @@ export function confirmTitle(name, args) {
 			humanize(a.action),
 			doctype ? `${count(a.names)} ${doctype}` : __("records"),
 		]);
-	else if (name === "execute") title = __("Run Python code");
+	else if (name === "execute")
+		title =
+			(typeof a.description === "string" && a.description.trim()) || __("Run Python code");
 	return { title: title || toolLabel(name), danger: name === "delete" };
 }

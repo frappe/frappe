@@ -6,7 +6,7 @@ from unittest.mock import patch
 
 from frappe.tests import UnitTestCase
 
-from flow.lib.model import ChatResponse, Model, ToolCall
+from flow.lib.model import ChatResponse, Model, ToolCall, ToolCallBegin
 
 
 def _fake_response(content=None, tool_calls=None, finish_reason="stop", usage=None):
@@ -179,7 +179,8 @@ class TestModel(UnitTestCase):
 		m = Model(model_id="openai/gpt-4.1", api_key="sk-test")
 		yielded, response = _drain(m.chat([{"role": "user", "content": "hi"}], stream=True))
 
-		self.assertEqual(yielded, [])
+		# The call is announced mid-stream the moment its id+name are known.
+		self.assertEqual(yielded, [ToolCallBegin(id="call_a", name="add")])
 		self.assertEqual(len(response.tool_calls), 1)
 		call = response.tool_calls[0]
 		self.assertIsInstance(call, ToolCall)

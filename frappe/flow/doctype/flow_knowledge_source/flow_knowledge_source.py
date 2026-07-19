@@ -6,6 +6,8 @@ from frappe import _
 from frappe.model.document import Document
 from frappe.utils import cint
 
+from flow.utils.system_generated import block_delete, validate_immutable
+
 REQUIRED_INPUT = {
 	"Text": "content",
 	"File": "file",
@@ -32,6 +34,7 @@ class FlowKnowledgeSource(Document):
 		error_log: DF.LongText | None
 		file: DF.Attach | None
 		filters: DF.JSON | None
+		is_system_generated: DF.Check
 		knowledge_base: DF.Link
 		last_synced_at: DF.Datetime | None
 		reference_doctype: DF.Link | None
@@ -62,6 +65,7 @@ class FlowKnowledgeSource(Document):
 				frappe.MandatoryError,
 			)
 		self._validate_chunking()
+		validate_immutable(self, ("source_type", "knowledge_base"))
 
 	def _validate_chunking(self):
 		"""0 inherits the global default. Only validate values set on the source itself."""
@@ -76,6 +80,7 @@ class FlowKnowledgeSource(Document):
 		enqueue_ingestion(self.name)
 
 	def on_trash(self):
+		block_delete(self)
 		from flow.knowledge.ingest import purge_source
 
 		purge_source(self.name)

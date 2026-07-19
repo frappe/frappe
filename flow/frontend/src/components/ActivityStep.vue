@@ -3,7 +3,9 @@ import { computed, ref } from "vue";
 import { FeatherIcon, Spinner } from "@/lib/ui";
 import ActivityLabel from "./ActivityLabel.vue";
 import ArgsView from "./ArgsView.vue";
-import { toolLabel, toolContext, hasArgs } from "@/lib/toolMeta";
+import ToolError from "./ToolError.vue";
+import { toolLabel, toolContext, hasArgs, blockKeysFor, toolError } from "@/lib/toolMeta";
+import { __ } from "@/lib/translate";
 
 // One timeline step. A fixed-width gutter holds the dot; connector lines are
 // flex-1 fillers above and below it, so they auto-centre on the dot and meet the
@@ -20,7 +22,9 @@ const active = computed(
 );
 const label = computed(() => toolLabel(props.part.name));
 const context = computed(() => toolContext(props.part.arguments));
-const expandable = computed(() => hasArgs(props.part.arguments));
+const error = computed(() => toolError(props.part.result));
+const expandable = computed(() => hasArgs(props.part.arguments) || Boolean(error.value));
+const blockKeys = computed(() => blockKeysFor(props.part.name));
 
 const open = ref(false);
 function toggle() {
@@ -58,6 +62,9 @@ function toggle() {
 				<span v-if="context" class="truncate text-xs text-ink-gray-4"
 					>· {{ context }}</span
 				>
+				<span v-if="error" class="shrink-0 text-xs text-ink-gray-5"
+					>· {{ __("Failed") }}</span
+				>
 				<span class="flex-1"></span>
 				<FeatherIcon
 					v-if="expandable"
@@ -73,7 +80,12 @@ function toggle() {
 				<span class="w-px" :class="{ 'bg-surface-gray-3': !last }"></span>
 			</div>
 			<div class="min-w-0 flex-1 pb-2">
-				<ArgsView :arguments="part.arguments" />
+				<ArgsView :arguments="part.arguments" :block-keys="blockKeys" />
+				<ToolError
+					v-if="error"
+					:message="error"
+					:class="{ 'mt-2': hasArgs(part.arguments) }"
+				/>
 			</div>
 		</div>
 	</div>

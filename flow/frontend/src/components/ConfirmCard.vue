@@ -2,7 +2,7 @@
 import { ref, computed, nextTick } from "vue";
 import { Button, FeatherIcon } from "@/lib/ui";
 import ArgsView from "./ArgsView.vue";
-import { confirmTitle, hasArgs } from "@/lib/toolMeta";
+import { confirmTitle, hasArgs, parseArgs, blockKeysFor } from "@/lib/toolMeta";
 import { __ } from "@/lib/translate";
 
 const props = defineProps({
@@ -24,7 +24,14 @@ const danger = computed(() => Boolean(confirm.value?.danger));
 const body = computed(() =>
 	props.tool ? "" : props.question.prompt.split("\n\n").slice(1).join("\n\n").trim()
 );
-const showArgs = computed(() => Boolean(props.tool) && hasArgs(props.tool.arguments));
+// execute's description becomes the title, so drop it from the args shown below.
+const displayArgs = computed(() => {
+	if (props.tool?.name !== "execute") return props.tool?.arguments;
+	const { description, ...rest } = parseArgs(props.tool.arguments);
+	return rest;
+});
+const showArgs = computed(() => Boolean(props.tool) && hasArgs(displayArgs.value));
+const blockKeys = computed(() => blockKeysFor(props.tool?.name));
 const answered = computed(() => props.question._answer !== undefined);
 
 function pick(option) {
@@ -61,7 +68,7 @@ function sendOther() {
 		</div>
 
 		<div v-if="showArgs" class="mt-2.5">
-			<ArgsView :arguments="tool.arguments" />
+			<ArgsView :arguments="displayArgs" :block-keys="blockKeys" />
 		</div>
 		<pre v-else-if="body" class="flow-confirm-body">{{ body }}</pre>
 
@@ -126,7 +133,7 @@ function sendOther() {
 	border: 1px solid var(--outline-gray-1);
 	border-radius: 6px;
 	font-family: var(--font-stack-monospace, ui-monospace, monospace);
-	font-size: 11.5px;
+	font-size: 12.5px;
 	line-height: 1.55;
 	color: var(--ink-gray-8);
 	white-space: pre-wrap;

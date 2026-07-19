@@ -8,6 +8,7 @@
  "field_order": [
   "title",
   "enabled",
+  "is_system_generated",
   "section_break_description",
   "description"
  ],
@@ -29,6 +30,13 @@
    "label": "Enabled"
   },
   {
+   "default": "0",
+   "fieldname": "is_system_generated",
+   "fieldtype": "Check",
+   "label": "System Generated",
+   "read_only": 1
+  },
+  {
    "fieldname": "section_break_description",
    "fieldtype": "Section Break"
   },
@@ -46,7 +54,7 @@
    "link_fieldname": "knowledge_base"
   }
  ],
- "modified": "2026-07-04 00:00:02.000000",
+ "modified": "2026-07-13 00:00:00.000000",
  "modified_by": "Administrator",
  "module": "Flow",
  "name": "Flow Knowledge Base",

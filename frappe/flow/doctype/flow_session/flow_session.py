@@ -155,7 +155,7 @@ class FlowSession(Document):
 			config_snapshot=self._snapshot,
 		)
 		self._persist_turn(input, attachment_data, run.name)
-		self._index_retrieval_attachments(run.name)
+		self._index_retrieval_attachments(run.name, {d["file"]: d["extracted_text"] for d in attachment_data})
 		run_input = self._build_prompt_messages()
 
 		# Release row locks and publish the Running run before the long model call, so a
@@ -205,14 +205,15 @@ class FlowSession(Document):
 		threshold = self._attachment_inline_threshold()
 		embeddings_on = _embeddings_configured()
 		for data in attachment_data:
+			text = data["extracted_text"]
 			self.append(
 				"attachments",
 				{
 					"file": data["file"],
 					"file_name": data["file_name"],
 					"file_size": data["file_size"],
-					"extracted_text": data["extracted_text"],
-					"mode": _route_attachment(data["extracted_text"], threshold, embeddings_on),
+					"extracted_text": text[:threshold],
+					"mode": _route_attachment(text, threshold, embeddings_on),
 					"run": run,
 				},
 			)
@@ -238,10 +239,9 @@ class FlowSession(Document):
 		dialogue = sum(len(m.content or "") for m in self.messages)
 		return max(0, window_chars - reserved - dialogue)
 
-	def _index_retrieval_attachments(self, run: str) -> None:
-		"""Chunk, embed, and store this run's retrieval-mode attachments. On any failure
-		the row is demoted to Inline so the turn still works (file text gets truncated
-		at prompt-build time instead)."""
+	def _index_retrieval_attachments(self, run: str, texts: dict[str, str] | None = None) -> None:
+		"""Chunk, embed, and store this run's retrieval-mode attachments, preferring the full
+		in-memory `texts` over the (capped) row text. Demotes to Inline on failure."""
 		rows = [a for a in self.attachments if a.run == run and a.mode == "Retrieval"]
 		if not rows:
 			return
@@ -252,11 +252,12 @@ class FlowSession(Document):
 		from flow.knowledge.chunker import chunk_text
 		from flow.knowledge.embedder import embed_texts
 
+		texts = texts or {}
 		settings = frappe.get_cached_doc("Flow Knowledge Settings")
 		for row in rows:
 			try:
 				chunks = chunk_text(
-					row.extracted_text,
+					texts.get(row.file) or row.extracted_text,
 					chunk_size=cint(settings.chunk_size),
 					overlap=cint(settings.chunk_overlap),
 				)
