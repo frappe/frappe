@@ -309,7 +309,8 @@ class StudioPage(Document):
 			)
 
 	@frappe.whitelist()
-	def publish(self, **kwargs):
+	def publish(self, known_modified: str | None = None, **kwargs):
+		self.reject_if_stale(known_modified)
 		frappe.form_dict.update(kwargs)
 		self.validate_conflicts_with_other_pages()
 		self.published = 1

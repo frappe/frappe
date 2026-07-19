@@ -304,19 +304,24 @@ const useStudioStore = defineStore("store", () => {
 				{
 					name: selectedPage.value,
 					method: "publish",
+					known_modified: activePage.value?.modified,
 				},
 				{
 					onError(error: any) {
-						toast.error("Failed to publish the page", {
-							description: error.messages.join(", "),
-							duration: Infinity,
-							action: {
-								label: "Edit Pages",
-								onClick: () => {
-									studioLayout.value.leftPanelActiveTab = "Pages"
+						try {
+							handlePageWriteConflict(error)
+						} catch {
+							toast.error("Failed to publish the page", {
+								description: error.messages.join(", "),
+								duration: Infinity,
+								action: {
+									label: "Edit Pages",
+									onClick: () => {
+										studioLayout.value.leftPanelActiveTab = "Pages"
+									}
 								}
-							}
-						})
+							})
+						}
 					},
 				}
 			)
