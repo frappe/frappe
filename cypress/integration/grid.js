@@ -184,6 +184,29 @@ context("Grid", () => {
 			});
 	});
 
+	it("shows bulk edit fields on submitted documents for allow-on-submit columns", () => {
+		cy.visit("/desk/contact/Test Contact");
+		cy.get('.frappe-control[data-fieldname="phone_nos"]').as("table");
+
+		cy.window()
+			.its("cur_frm")
+			.then((frm) => {
+				const grid = frm.get_field("phone_nos").grid;
+				grid.meta.allow_bulk_edit = true;
+				grid.refresh_edit_rows_button();
+
+				const phone_df = grid.docfields.find((df) => df.fieldname === "phone");
+				phone_df.allow_on_submit = 1;
+				frm.doc.docstatus = 1;
+			});
+
+		cy.get("@table").find('.grid-row[data-idx="1"] .grid-row-check').click({ force: true });
+		cy.get("@table").find(".grid-edit-rows").click({ force: true });
+
+		cy.get(".modal-dialog:visible").find('[data-fieldname="field"]').should("be.visible");
+		cy.get(".modal-dialog:visible").find('[data-fieldname="value"]').should("be.visible");
+	});
+
 	it("hides add-row and add-multiple-rows buttons when rows are selected", () => {
 		cy.visit("/desk/contact/Test Contact");
 		cy.get('.frappe-control[data-fieldname="phone_nos"]').as("table");
