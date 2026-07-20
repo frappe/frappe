@@ -74,7 +74,6 @@ login.bind_events = function () {
 	});
 
 	$("#login_with_email_link_email").on("input", function () {
-		// the shared input handler clears the banner; only button + resend link reset here
 		$(".form-login-with-email-link .btn-login-with-email-link")
 			.text({{ _("Send login link") | tojson }}).prop("disabled", false);
 		$("section.for-login-with-email-link .resend-link").addClass("hidden");
@@ -89,7 +88,6 @@ login.bind_events = function () {
 			login.show_field_error("login_with_email_link_email", {{ _("Invalid Email.") | tojson }});
 			return false;
 		}
-		// errors land in the error banner via error_msg; success sends no server message
 		login.call(args, null, "/", "section.for-login-with-email-link .login-error-banner .es-alert__title").then(() => {
 			$("section:visible .login-success-banner").removeClass("hidden");
 			$("section:visible .resend-link").removeClass("hidden");
@@ -105,7 +103,6 @@ login.bind_events = function () {
 	$("#signup_fullname, #signup_email").on("input", function () {
 		var name = $("#signup_fullname").val().trim();
 		var email = $("#signup_email").val().trim();
-		// a previous submit may have left "Already Registered" on the button
 		$(".form-signup .btn-signup").text({{ _("Create Account") | tojson }}).prop("disabled", !(name && email));
 	});
 
@@ -228,14 +225,10 @@ login.call = function (args, callback, url="/", error_msg=null) {
 }
 
 login.show_loading = function () {
-	// only the button that triggered the request (falls back to the section's
-	// primary button for keyboard submits); matters when both password and
-	// LDAP login render their own solid button
 	var $btn = $(document.activeElement).filter('section:visible .es-button[data-variant="solid"]');
 	if (!$btn.length) {
 		$btn = $('section:visible .es-button[data-variant="solid"]').first();
 	}
-	// es-button shows the spinner (and blocks clicks) only while aria-busy is set
 	$btn.not("[aria-busy]").each(function () {
 		$(this)
 			.data("label", $(this).text().trim())
@@ -251,7 +244,6 @@ login.hide_loading = function () {
 };
 
 login.set_status = function (message, color) {
-	// the busy button is the one whose request this status answers
 	var $btn = $('section:visible .es-button[aria-busy="true"]');
 	if (!$btn.length) {
 		$btn = $('section:visible .es-button[data-variant="solid"]').first();
@@ -280,18 +272,15 @@ login.set_invalid = function (message) {
 	setTimeout(() => {
 		$(".login-content.page-card").removeClass('invalid-login');
 	}, 500)
-	// forgot: error in a banner + restore its button label
 	if ($("section.for-forgot").is(":visible")) {
 		login.hide_loading();
 		login.show_error_banner(message);
 		return;
 	}
-	// email-link: error in a banner (button reset by the form's own catch)
 	if ($("section.for-login-with-email-link").is(":visible")) {
 		login.show_error_banner(message);
 		return;
 	}
-	// sign-in; the OTP screen has no banner — there the message replaces the button label
 	login.hide_loading();
 	$("section:visible .page-card-body").addClass("invalid");
 	if ($("section:visible .login-error-banner").length) {
@@ -358,11 +347,9 @@ login.login_handlers = (function () {
 				// Always show the same message regardless of whether the account
 				// exists or not, to prevent username enumeration (CWE-204).
 				login.set_status({{ _("Sent") | tojson }}, 'green');
-				// reveal the success banner; its text is filled by the error_msg handler
 				$("section:visible .login-success-banner").removeClass("hidden");
 			} else if (window.location.hash === '#signup') {
 				if (cint(data.message[0]) == 0) {
-					// signup failed (e.g. already registered)
 					login.hide_loading();
 					$("section:visible .login-success-banner").addClass("hidden");
 					login.show_error_banner(data.message[1]);
