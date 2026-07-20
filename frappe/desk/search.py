@@ -289,17 +289,30 @@ def validate_ignore_user_permissions(form_doctype, link_fieldname, link_doctype)
 	):
 		return
 
+	matched_child_field = None
 	for table_field in meta.get_table_fields():
+		if not frappe.db.exists("DocType", table_field.options):
+			continue
+
 		child_field = frappe.get_meta(table_field.options).get_field(link_fieldname)
-		if (
-			child_field
-			and child_field.fieldtype == "Link"
-			and child_field.options == link_doctype
-			and child_field.ignore_user_permissions
-		):
+		if not child_field or child_field.fieldtype not in ("Link", "Dynamic Link"):
+			continue
+
+		if child_field.fieldtype == "Link" and child_field.options != link_doctype:
+			continue
+
+		if child_field.ignore_user_permissions:
 			return
 
+		matched_child_field = child_field
+
 	link_field = meta.get_field(link_fieldname)
+	field_doctype = form_doctype
+
+	if not link_field and matched_child_field:
+		link_field = matched_child_field
+		field_doctype = matched_child_field.parent
+
 	if not link_field:
 		_throw(
 			_("Field <code>{0}</code> not found in {1}").format(
@@ -329,7 +342,11 @@ def validate_ignore_user_permissions(form_doctype, link_fieldname, link_doctype)
 	if not ignore_user_permissions:
 		_throw(
 			_("The field {0} in {1} does not allow ignoring user permissions").format(
+<<<<<<< HEAD
 				bold(meta.get_label(link_fieldname)), bold(_(form_doctype))
+=======
+				bold(_(link_field.label or link_fieldname, context=field_doctype)), bold(_(field_doctype))
+>>>>>>> d71b8964d9 (fix(search): handle dynamic links and missing doctypes in child table permission check)
 			)
 		)
 
@@ -344,8 +361,13 @@ def validate_ignore_user_permissions(form_doctype, link_fieldname, link_doctype)
 	if found_doctype != link_doctype:
 		_throw(
 			_("The field {0} in {1} links to {2} and not {3}").format(
+<<<<<<< HEAD
 				bold(meta.get_label(link_fieldname)),
 				bold(_(form_doctype)),
+=======
+				bold(_(link_field.label or link_fieldname, context=field_doctype)),
+				bold(_(field_doctype)),
+>>>>>>> d71b8964d9 (fix(search): handle dynamic links and missing doctypes in child table permission check)
 				bold(_(found_doctype)),
 				bold(escape_html(link_doctype)),
 			)
