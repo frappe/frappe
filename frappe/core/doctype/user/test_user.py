@@ -365,6 +365,7 @@ class TestUser(IntegrationTestCase):
 		self.assertTrue(frappe.db.exists("Workspace", new_workspace))
 		self.assertEqual(frappe.db.get_value("Workspace", new_workspace, "for_user"), new_name)
 
+		frappe.delete_doc("Workspace", new_workspace, ignore_permissions=True, force=True)
 		frappe.delete_doc("User", new_name, ignore_permissions=True, force=True)
 		frappe.delete_doc("User", actor_name, ignore_permissions=True, force=True)
 
