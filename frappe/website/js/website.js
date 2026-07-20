@@ -168,9 +168,9 @@ $.extend(frappe, {
 			if (opts.error_msg) {
 				var message_html = server_messages
 					.map((msg) => {
-						// temp fix for messages sent as dict
 						try {
-							return JSON.parse(msg).message;
+							const parsed = JSON.parse(msg);
+							return parsed && typeof parsed === "object" ? parsed.message : parsed;
 						} catch (e) {
 							return msg;
 						}
