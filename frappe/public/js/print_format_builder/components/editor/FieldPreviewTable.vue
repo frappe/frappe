@@ -33,11 +33,6 @@
 				</th>
 			</tr>
 		</thead>
-		<tfoot>
-			<tr>
-				<td class="table-foot" :colspan="df.table_columns?.length || 1"></td>
-			</tr>
-		</tfoot>
 		<tbody>
 			<tr
 				v-for="(row, i) in (preview_doc[df.fieldname] || []).slice(0, 4)"
