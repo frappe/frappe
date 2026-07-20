@@ -1,6 +1,10 @@
 # Copyright (c) 2026, Frappe Technologies and contributors
 # For license information, please see license.txt
 
+import copy
+
+import pyarrow as pa
+
 import frappe
 from frappe import qb
 from frappe.database import get_duckdb
@@ -106,7 +110,6 @@ def cleanup_old_syncs():
 
 
 def sync_data_to_duckdb(docname: str):
-	# TODO: permissions
 	sync_dt = qb.DocType("DuckDB Sync Item")
 	if (
 		unsynced := qb.from_(sync_dt)
@@ -122,39 +125,59 @@ def sync_data_to_duckdb(docname: str):
 		duck_tb = DuckDBTable(dt)
 
 		timeout = frappe.db.get_single_value("System Settings", "sync_timeout") or 25 * 60
-		# connect to mariadb
 		conn = frappe.get_doc("DuckDB Sync", docname).get_duckdb_conn()
-		try:
-			conn.sql(
-				f"attach 'user={frappe.conf.db_name} password={frappe.conf.db_password} host={frappe.conf.db_host} database={frappe.conf.db_name} port={frappe.conf.db_port}' as mariadb_db (TYPE mysql);"
-			)
-			columns = frappe.get_meta(dt).get_valid_columns()
-			# quotted fields
-			columns_sql = ", ".join([f'"{x}"' for x in columns])
-			query = f'insert into "{duck_tb.table_name}" ({columns_sql}) select {columns_sql} from mariadb_db."{duck_tb.table_name}";'
-			conn.sql(query)
-		except Exception as e:
-			import re
 
-			sanitized = re.sub(
-				r"(user|password)=\S+",
-				lambda m: f"{m.group(1)}=***",
-				str(e),
-			)
+		conn.execute(f'delete from "{duck_tb.table_name}";').fetchall()
 
-			raise Exception(sanitized) from None
-		else:
-			# update flag
-			frappe.db.set_value("DuckDB Sync Item", name, "synced", True)
+		_dt = qb.DocType(dt)
+		columns = frappe.get_meta(dt).get_valid_columns()
+		query = qb.from_(_dt)
+		for col in columns:
+			query = query.select(_dt[col])
+		schema = duck_tb.get_arrow_schema()
 
-			# schedule next
-			frappe.enqueue(
-				method="frappe.core.doctype.duckdb_sync.duckdb_sync.sync_data_to_duckdb",
-				queue="long",
-				timeout=timeout,
-				is_async=True,
-				enqueue_after_commit=True,
-				docname=docname,
-			)
-		finally:
-			conn.close()
+		with frappe.db.unbuffered_cursor():
+			iter = query.run(as_dict=True, as_iterator=True)
+			field_list = ", ".join(f'"{c}"' for c in schema.names)
+
+			# an iterator to create RecordBatch from list
+			def recordbatch_from_list(iter, schema):
+				batch_size = 204800
+				rows = []
+				for row in iter:
+					rows.append(row)
+					if len(rows) >= batch_size:
+						batch = pa.RecordBatch.from_pylist(rows, schema=schema)
+						yield batch
+						rows.clear()
+
+				if rows:
+					batch = pa.RecordBatch.from_pylist(rows, schema=schema)
+					yield batch
+
+			# streaming RecordBatch on demand
+			# sets backpressure on sql cursor through 'recordbatch_from_list' iterator
+			reader = pa.RecordBatchReader.from_batches(schema, recordbatch_from_list(iter, schema))
+
+			for batch in reader:
+				# zero-copy streaming: duckdb understands arrow table's memory layout
+				arrow_table = pa.Table.from_batches([batch])
+				conn.register("arrow_table", arrow_table)
+				conn.execute(
+					f'insert into "{duck_tb.table_name}" ({field_list}) select {field_list} from arrow_table;'
+				).fetchall()
+				conn.unregister("arrow_table")
+
+		conn.close()
+		# update flag
+		frappe.db.set_value("DuckDB Sync Item", name, "synced", True)
+
+		# schedule next
+		frappe.enqueue(
+			method="frappe.core.doctype.duckdb_sync.duckdb_sync.sync_data_to_duckdb",
+			queue="long",
+			timeout=timeout,
+			is_async=True,
+			enqueue_after_commit=True,
+			docname=docname,
+		)
