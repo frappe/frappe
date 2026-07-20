@@ -19,7 +19,7 @@ frappe.views.InboxView = class InboxView extends frappe.views.ListView {
 		} else if (!route[3] || (route[3] !== "All Accounts" && !is_valid(route[3]))) {
 			frappe.throw(
 				__(
-					"No email account associated with the User. Please add an account under User > Email Inbox."
+					"No email account associated with the User. Please add an account under User > Settings > User Emails."
 				)
 			);
 		}
