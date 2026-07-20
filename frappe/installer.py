@@ -816,7 +816,14 @@ def extract_files(site_name, file_path):
 			subprocess.check_output(["tar", "xvf", tar_path, "--strip", "2"], cwd=abs_site_path)
 		elif file_path.endswith(".tgz"):
 			subprocess.check_output(["tar", "zxvf", tar_path, "--strip", "2"], cwd=abs_site_path)
+		else:
+			raise ValueError(f"Unsupported archive format for {tar_name}: expected .tar or .tgz")
 	except Exception:
+		if os.path.exists(tar_path):
+			try:
+				os.remove(tar_path)
+			except OSError:
+				pass
 		raise
 	finally:
 		frappe.destroy()
