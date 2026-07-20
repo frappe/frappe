@@ -1282,18 +1282,38 @@ export default class Grid {
 			return;
 		}
 
+		// One child row drives Link get_query(cb, doc, cdt, cdn) / locals lookups in bulk-edit dialog.
+		// Multiple rows selected may diverge — filters follow the first selected row only.
+		const bulk_edit_reference_row = selected_children[0];
+		const parent_doc = this.frm?.doc;
+		const perm_reference_doc = parent_doc
+			? Object.assign({ doctype: this.doctype }, bulk_edit_reference_row, {
+					docstatus: parent_doc.docstatus,
+			  })
+			: null;
+
+		/** Match grid editability, including allow-on-submit fields after parent submit. */
 		const is_field_editable = (field_doc) => {
-			const parent_docstatus = this.frm?.doc?.docstatus;
-			const is_submitted_or_cancelled = [1, 2].includes(parent_docstatus);
+			if (
+				!field_doc.fieldname ||
+				!frappe.model.is_value_type(field_doc) ||
+				field_doc.fieldtype === "Read Only" ||
+				field_doc.hidden ||
+				field_doc.is_virtual
+			) {
+				return false;
+			}
+
+			if (!perm_reference_doc) {
+				return !field_doc.read_only;
+			}
 
 			return (
-				field_doc.fieldname &&
-				frappe.model.is_value_type(field_doc) &&
-				field_doc.fieldtype !== "Read Only" &&
-				!field_doc.hidden &&
-				!field_doc.read_only &&
-				!field_doc.is_virtual &&
-				(!is_submitted_or_cancelled || field_doc.allow_on_submit)
+				frappe.perm.get_field_display_status(
+					field_doc,
+					perm_reference_doc,
+					this.frm.perm
+				) === "Write"
 			);
 		};
 
@@ -1325,17 +1345,8 @@ export default class Grid {
 			field_options.find((value) => status_regex.test(value)) ||
 			field_options.find((value) => field_mappings[value]?.fieldtype === "Select");
 
-		// One child row drives Link get_query(cb, doc, cdt, cdn) / locals lookups in bulk-edit dialog.
-		// Multiple rows selected may diverge — filters follow the first selected row only.
-		const bulk_edit_reference_row = selected_children[0];
-
 		const dialog = new frappe.ui.Dialog({
 			title: __("Bulk Edit"),
-			...(bulk_edit_reference_row && {
-				frm: this.frm,
-				doc: bulk_edit_reference_row,
-				doctype: bulk_edit_reference_row.doctype,
-			}),
 			fields: [
 				{
 					fieldtype: "Autocomplete",
@@ -1412,11 +1423,21 @@ export default class Grid {
 			}
 
 			dialogObj.replace_field("value", new_df);
-			// replace_field does not re-run attach_doc; Link needs docname + doctype for set_query third arg.
-			if (bulk_edit_reference_row) {
-				dialogObj.attach_doc_and_docfields(true);
-			}
+			setup_bulk_edit_value_field(dialogObj);
 			show_help_text();
+		}
+
+		function setup_bulk_edit_value_field(dialogObj) {
+			const value_control = dialogObj.fields_dict.value;
+			if (!value_control || !bulk_edit_reference_row) return;
+
+			// Scope child doc to the value control only. Attaching it on the dialog
+			// re-runs submit/read perm checks and hides every field on submitted forms.
+			value_control.frm = grid.frm;
+			value_control.doc = bulk_edit_reference_row;
+			value_control.docname = bulk_edit_reference_row.name;
+			value_control.doctype = bulk_edit_reference_row.doctype;
+			value_control.refresh();
 		}
 
 		function show_help_text() {
