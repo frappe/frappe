@@ -204,6 +204,8 @@ const frameworkUIComponentPaths: Record<string, string> = {
 	ActivityTimeline: "ActivityTimeline/ActivityTimeline.vue",
 	EmailItem: "ActivityTimeline/EmailItem.vue",
 	CommentItem: "ActivityTimeline/CommentItem.vue",
+	EmailComposer: "Composer/EmailComposer/EmailComposer.vue",
+	CommentComposer: "Composer/CommentComposer/CommentComposer.vue",
 	Filter: "Filter/Filter.vue",
 	SortBy: "SortBy/SortBy.vue",
 	QuickFilter: "QuickFilter/QuickFilter.vue",

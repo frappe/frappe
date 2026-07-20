@@ -26,6 +26,7 @@ function tsToJSON(
 	tsconfig = "",
 	folderScan = false,
 	perComponent = false,
+	skipComponents: string[] | null = null,
 ): ExtractResult {
 	// Get project root (where package.json is)
 	const root = process.cwd()
@@ -34,7 +35,7 @@ function tsToJSON(
 	const tsconfigPath = tsconfig ? path.resolve(root, tsconfig) : ""
 
 	const typeFiles = perComponent
-		? findComponentTypeFiles(inputDirPath, skipFolders)
+		? findComponentTypeFiles(inputDirPath, skipFolders, skipComponents)
 		: findTypeFiles(inputDirPath, folderScan, skipFolders)
 
 	let config = {
@@ -120,10 +121,16 @@ function findTypeFiles(dir: string, folderScan: boolean, skipFolders: string[] |
 
 // perComponent (@framework/ui): a folder can host several components (Notifications,
 // ActivityTimeline, FileUpload, …), so drive extraction off the `.vue` files. A
-// component is extracted when its sibling `types.ts` exports `<Component>Props`;
-// `<Component>Slots` is picked up too when present. The Props/Slots type lives in the
-// folder's `types.ts`, which is the schema-generation entry (`filePath`).
-function findComponentTypeFiles(dir: string, skipFolders: string[] | null = null): TypeFile[] {
+// component is extracted when a `types.ts` exports `<Component>Props`; `<Component>Slots`
+// is picked up too when present. The type usually lives in a sibling `types.ts`, but
+// grouped widgets (e.g. Composer's EmailComposer/CommentComposer subfolders) declare
+// theirs in an ancestor barrel `types.ts` — that declaring file is the schema-generation
+// entry (`filePath`). `skipComponents` excludes private cores that aren't studio blocks.
+function findComponentTypeFiles(
+	dir: string,
+	skipFolders: string[] | null = null,
+	skipComponents: string[] | null = null,
+): TypeFile[] {
 	const typeFiles: TypeFile[] = []
 
 	function scanDirectory(currentDir: string) {
@@ -131,15 +138,15 @@ function findComponentTypeFiles(dir: string, skipFolders: string[] | null = null
 		const vueFiles = items
 			.filter((i) => i.isFile() && i.name.endsWith(".vue") && !i.name.endsWith(".story.vue"))
 			.map((i) => path.basename(i.name, ".vue"))
-		const typesPath = path.join(currentDir, "types.ts")
-		const typesSource = fs.existsSync(typesPath) ? fs.readFileSync(typesPath, "utf-8") : ""
 
 		for (const componentName of vueFiles) {
-			if (!exportsType(typesSource, `${componentName}Props`)) continue
+			if (skipComponents && skipComponents.includes(componentName)) continue
+			const typesFile = findComponentTypesFile(currentDir, componentName, dir)
+			if (!typesFile) continue
 			typeFiles.push({
-				filePath: typesPath,
+				filePath: typesFile.path,
 				componentName,
-				hasSlots: exportsType(typesSource, `${componentName}Slots`),
+				hasSlots: exportsType(typesFile.source, `${componentName}Slots`),
 			})
 		}
 
@@ -152,6 +159,28 @@ function findComponentTypeFiles(dir: string, skipFolders: string[] | null = null
 
 	scanDirectory(dir)
 	return typeFiles
+}
+
+// The `types.ts` that declares this component's `<Component>Props` — its own folder or
+// the nearest ancestor up to `rootDir`. Returned with its source (so the caller can reuse
+// it for the `Slots` check), or null when no such file declares it.
+function findComponentTypesFile(
+	startDir: string,
+	componentName: string,
+	rootDir: string,
+): { path: string; source: string } | null {
+	let currentDir = startDir
+	while (true) {
+		const typesPath = path.join(currentDir, "types.ts")
+		if (fs.existsSync(typesPath)) {
+			const source = fs.readFileSync(typesPath, "utf-8")
+			if (exportsType(source, `${componentName}Props`)) return { path: typesPath, source }
+		}
+		if (currentDir === rootDir) return null
+		const parent = path.dirname(currentDir)
+		if (parent === currentDir) return null
+		currentDir = parent
+	}
 }
 
 function exportsType(source: string, typeName: string): boolean {

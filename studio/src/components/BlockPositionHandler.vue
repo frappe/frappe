@@ -1,19 +1,20 @@
 <!-- Extracted from Builder -->
 <template>
 	<div class="flex w-full flex-col items-center gap-5">
-		<OptionToggle
+		<Input
+			type="select"
+			class="w-full"
 			:modelValue="position"
-			@update:modelValue="position = $event"
+			@update:modelValue="(value: string) => (position = value)"
+			:hideClearButton="true"
 			:options="[
 				{ label: 'Auto', value: 'static' },
 				{ label: 'Free', value: 'absolute' },
-				{
-					label: 'Fixed',
-					value: 'fixed',
-				},
+				{ label: 'Relative', value: 'relative' },
+				{ label: 'Fixed', value: 'fixed' },
 				{ label: 'Sticky', value: 'sticky' },
 			]"
-		></OptionToggle>
+		/>
 		<div class="grid-rows grid grid-cols-3 gap-4" v-if="showHandler">
 			<div class="col-span-1 col-start-2 w-16 self-center">
 				<Input
@@ -69,17 +70,12 @@
 </template>
 
 <script setup lang="ts">
-import OptionToggle from "@/components/OptionToggle.vue"
 import blockController from "@/utils/blockController"
 import { computed, watch } from "vue"
 
 const position = computed({
 	get() {
-		const pos = (blockController.getStyle("position") as string) || "static"
-		if (["relative", "static"].includes(pos)) {
-			return "static"
-		}
-		return pos
+		return (blockController.getStyle("position") as string) || "static"
 	},
 	set(value: string) {
 		if (value === "static") {
