@@ -475,8 +475,10 @@ function pushAssistant(pending = true) {
 
 function appendText(msg, delta) {
 	const last = msg.parts[msg.parts.length - 1];
+	// Only open a new text part on real text. A whitespace-only delta between tool calls
+	// (some models emit these) would otherwise split one activity group into two.
 	if (last && last.type === "text") last.text += delta;
-	else msg.parts.push(makeTextPart(delta));
+	else if (delta.trim()) msg.parts.push(makeTextPart(delta));
 }
 
 function failMessage(msg, error) {
