@@ -272,6 +272,9 @@ class PostgresDatabase(PostgresExceptionUtil, Database):
 		# Postgres expects milliseconds as input
 		self.sql("set local statement_timeout = %s", int(seconds) * 1000)
 
+	def set_session_time_zone(self, timezone: str):
+		self.sql("set time zone %s", timezone)
+
 	def escape(self, s, percent=True):
 		"""Escape quotes and percent in given string."""
 		if isinstance(s, bytes):
