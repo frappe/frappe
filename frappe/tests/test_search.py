@@ -408,95 +408,149 @@ class TestSearch(IntegrationTestCase):
 		"""List view filters target a child table field; the ignore_user_permissions flag
 		lives on the child table's link field, not on the parent."""
 
-		for dt in (
-			"Test Search Child Parent",
-			"Test Search Child Parent Dup",
-			"Test Search Child Row",
-			"Test Search Child Target",
-		):
+		target = "Test Search Child Target"
+		child = "Test Search Child Row"
+		parent = "Test Search Child Parent"
+		parent_dup = "Test Search Child Parent Dup"
+
+		def make_doctype(name, fields, **kwargs):
+			if frappe.db.exists("DocType", name):
+				frappe.delete_doc("DocType", name, force=True)
+			new_doctype(name=name, fields=fields, **kwargs).insert()
+			self.addCleanup(lambda: frappe.delete_doc("DocType", name, force=True, ignore_missing=True))
+
+		def link_to_target(fieldname, label, ignore_user_permissions):
+			return {
+				"label": label,
+				"fieldname": fieldname,
+				"fieldtype": "Link",
+				"options": target,
+				"ignore_user_permissions": ignore_user_permissions,
+			}
+
+		def rows_field():
+			return {"label": "Rows", "fieldname": "rows", "fieldtype": "Table", "options": child}
+
+		make_doctype(
+			target,
+			[{"label": "Title", "fieldname": "title", "fieldtype": "Data"}],
+			permissions=[{"role": "System Manager", "read": 1, "write": 1}],
+			search_fields="title",
+		)
+		make_doctype(
+			child,
+			[
+				link_to_target("member", "Member", 1),
+				link_to_target("plain_member", "Plain Member", 0),
+				{
+					"label": "Member Doctype",
+					"fieldname": "member_doctype",
+					"fieldtype": "Link",
+					"options": "DocType",
+				},
+				{
+					"label": "Dynamic Member",
+					"fieldname": "dynamic_member",
+					"fieldtype": "Dynamic Link",
+					"options": "member_doctype",
+					"ignore_user_permissions": 1,
+				},
+			],
+			istable=1,
+		)
+		make_doctype(parent, [rows_field()])
+		make_doctype(parent_dup, [link_to_target("member", "Member", 0), rows_field()])
+
+		allowed = frappe.get_doc({"doctype": target, "title": "Allowed Document"}).insert()
+		restricted = frappe.get_doc({"doctype": target, "title": "Restricted Document"}).insert()
+
+		test_user = "test_search_child_user@example.com"
+		if not frappe.db.exists("User", test_user):
+			frappe.get_doc(
+				{
+					"doctype": "User",
+					"email": test_user,
+					"first_name": "Test Search Child User",
+					"user_type": "System User",
+				}
+			).insert(ignore_permissions=True).add_roles("System Manager")
+			self.addCleanup(lambda: frappe.delete_doc("User", test_user, force=True))
+
+		add_user_permission(target, allowed.name, test_user)
+		self.addCleanup(lambda: frappe.db.delete("User Permission", {"user": test_user}))
+
+		def values(**kwargs):
+			return [r["value"] for r in search_link(doctype=target, txt="Document", **kwargs)]
+
+		with self.set_user(test_user):
+			self.assertNotIn(restricted.name, values(ignore_user_permissions=False))
+
+			for reference_doctype in (parent, parent_dup):
+				self.assertIn(
+					restricted.name,
+					values(
+						ignore_user_permissions=True,
+						reference_doctype=reference_doctype,
+						link_fieldname="member",
+					),
+				)
+
+			self.assertIn(
+				restricted.name,
+				values(
+					ignore_user_permissions=True,
+					reference_doctype=parent,
+					link_fieldname="dynamic_member",
+				),
+			)
+
+			with self.assertRaisesRegex(frappe.ValidationError, "does not allow ignoring user permissions"):
+				values(ignore_user_permissions=True, reference_doctype=parent, link_fieldname="plain_member")
+
+			with self.assertRaisesRegex(frappe.ValidationError, "not found"):
+				values(ignore_user_permissions=True, reference_doctype=parent, link_fieldname="unknown_field")
+
+	def test_search_link_ignore_user_permissions_dangling_child_table(self):
+		"""A child table pointing at a deleted doctype should not escape as DoesNotExistError."""
+
+		for dt in ("Test Search Dangling Parent", "Test Search Dangling Row"):
 			if frappe.db.exists("DocType", dt):
 				frappe.delete_doc("DocType", dt, force=True)
 
 		new_doctype(
-			name="Test Search Child Target",
+			name="Test Search Dangling Row",
+			istable=1,
 			fields=[{"label": "Title", "fieldname": "title", "fieldtype": "Data"}],
 		).insert()
 
 		new_doctype(
-			name="Test Search Child Row",
-			istable=1,
-			fields=[
-				{
-					"label": "Member",
-					"fieldname": "member",
-					"fieldtype": "Link",
-					"options": "Test Search Child Target",
-					"ignore_user_permissions": 1,
-				}
-			],
-		).insert()
-
-		# field lives only in the child table
-		new_doctype(
-			name="Test Search Child Parent",
+			name="Test Search Dangling Parent",
 			fields=[
 				{
 					"label": "Rows",
 					"fieldname": "rows",
 					"fieldtype": "Table",
-					"options": "Test Search Child Row",
+					"options": "Test Search Dangling Row",
 				}
 			],
 		).insert()
+		self.addCleanup(
+			lambda: frappe.delete_doc(
+				"DocType", "Test Search Dangling Parent", force=True, ignore_missing=True
+			)
+		)
 
-		# same fieldname on parent (no flag) and child (with flag)
-		new_doctype(
-			name="Test Search Child Parent Dup",
-			fields=[
-				{
-					"label": "Member",
-					"fieldname": "member",
-					"fieldtype": "Link",
-					"options": "Test Search Child Target",
-					"ignore_user_permissions": 0,
-				},
-				{
-					"label": "Rows",
-					"fieldname": "rows",
-					"fieldtype": "Table",
-					"options": "Test Search Child Row",
-				},
-			],
-		).insert()
+		frappe.delete_doc("DocType", "Test Search Dangling Row", force=True)
+		frappe.clear_cache()
 
-		for dt in (
-			"Test Search Child Parent",
-			"Test Search Child Parent Dup",
-			"Test Search Child Row",
-			"Test Search Child Target",
-		):
-			self.addCleanup(lambda dt=dt: frappe.delete_doc("DocType", dt, force=True, ignore_missing=True))
-
-		# should not throw for either parent when the child link field allows ignoring
-		for reference_doctype in ("Test Search Child Parent", "Test Search Child Parent Dup"):
+		with self.assertRaisesRegex(frappe.ValidationError, "not found"):
 			search_link(
-				doctype="Test Search Child Target",
+				doctype="User",
 				txt="test",
 				ignore_user_permissions=True,
-				reference_doctype=reference_doctype,
-				link_fieldname="member",
+				reference_doctype="Test Search Dangling Parent",
+				link_fieldname="nonexistent_field",
 			)
-
-		# should still throw for a field that no parent or child table exposes
-		self.assertRaises(
-			frappe.ValidationError,
-			search_link,
-			doctype="Test Search Child Target",
-			txt="test",
-			ignore_user_permissions=True,
-			reference_doctype="Test Search Child Parent",
-			link_fieldname="nonexistent_field",
-		)
 
 
 @frappe.validate_and_sanitize_search_inputs
