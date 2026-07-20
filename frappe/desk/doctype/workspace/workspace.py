@@ -116,6 +116,8 @@ class Workspace(Document, DeskViews):
 			if shortcut.type == "Report":
 				shortcut.report_ref_doctype = frappe.get_value("Report", shortcut.link_to, "ref_doctype")
 
+		self.validate_duplicate_widget_labels()
+
 		if self.standard:
 			if not self.app and self.module:
 				from frappe.modules.utils import get_module_app
@@ -127,6 +129,69 @@ class Workspace(Document, DeskViews):
 		# so reject it here rather than let it strand the workspace.
 		if self.app and self.app not in frappe.get_installed_apps():
 			frappe.throw(_("{0} is not an installed app.").format(frappe.bold(self.app)))
+	@staticmethod
+	def get_duplicate_widget_labels(doc, parentfield):
+		rows = doc.get(parentfield) or []
+		if parentfield == "links":
+			# only `Card Break` rows name a card; the link rows beneath them aren't addressed by label
+			rows = [row for row in rows if row.type == "Card Break"]
+
+		seen, duplicates = set(), set()
+		for row in rows:
+			label = (row.label or "").strip()
+			if not label:
+				continue
+			if label in seen:
+				duplicates.add(label)
+			seen.add(label)
+
+		return duplicates
+
+	def validate_duplicate_widget_labels(self):
+		"""Widget blocks in `content` reference their child row by label (see `clean_up` in
+		frappe/desk/desktop.py), so two widgets of the same type sharing a label collapse into a
+		single row on save and one of them silently loses its settings.
+
+		Only duplicates that *this* save introduces are rejected. Ones already stored — shipped app
+		data, sites saved before this check existed — are left alone, so an affected workspace
+		doesn't become impossible to edit.
+		"""
+		# app-shipped workspaces are imported verbatim; a duplicate in one is the app's bug to fix
+		# and shouldn't take down install/migrate
+		if (
+			frappe.flags.in_install
+			or frappe.flags.in_migrate
+			or frappe.flags.in_import
+			or frappe.flags.in_patch
+		):
+			return
+
+		widget_labels = {
+			"shortcuts": _("Shortcut"),
+			"charts": _("Chart"),
+			"quick_lists": _("Quick List"),
+			"number_cards": _("Number Card"),
+			"custom_blocks": _("Custom Block"),
+			"links": _("Card"),
+		}
+
+		before_save = self.get_doc_before_save()
+
+		for parentfield, widget_label in widget_labels.items():
+			duplicates = self.get_duplicate_widget_labels(self, parentfield)
+			if not duplicates:
+				continue
+
+			if before_save:
+				duplicates -= self.get_duplicate_widget_labels(before_save, parentfield)
+
+			if duplicates:
+				frappe.throw(
+					_(
+						"Duplicate {0} labels: {1}. Labels are used to tell widgets apart when a workspace is saved, so each {0} needs a unique label."
+					).format(widget_label, frappe.bold(", ".join(sorted(duplicates)))),
+					title=_("Duplicate Label"),
+				)
 
 	def before_rename(self, old_name, new_name, merge=False):
 		if self.public and not is_workspace_manager() and not disable_saving_as_public():

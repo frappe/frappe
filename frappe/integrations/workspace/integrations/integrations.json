@@ -320,7 +320,7 @@
    "type": "Link"
   }
  ],
- "modified": "2026-07-06 18:21:45.545054",
+ "modified": "2026-07-20 12:00:00.000000",
  "modified_by": "Administrator",
  "module": "Integrations",
  "name": "Integrations",
@@ -338,21 +338,6 @@
    "doc_view": "List",
    "label": "Google Settings",
    "link_to": "Google Settings",
-   "type": "DocType"
-  },
-  {
-   "color": "Grey",
-   "doc_view": "List",
-   "label": "Google Settings",
-   "link_to": "Google Settings",
-   "type": "DocType"
-  },
-  {
-   "color": "Grey",
-   "doc_view": "List",
-   "label": "Webhook",
-   "link_to": "Webhook",
-   "stats_filter": "[]",
    "type": "DocType"
   },
   {
