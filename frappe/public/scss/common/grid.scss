@@ -862,7 +862,8 @@
 
 .form-grid {
 	// Pin action and index columns so wide grids stay usable.
-	.grid-row > .row .col:last-child,
+	// :not(.grid-data-last) excludes the case where the last column is data field (table in a dialog)
+	.grid-row > .row .col:last-child:not(.grid-data-last),
 	.grid-row > .dialog-assignment-row .col:first-child,
 	.grid-row > .dialog-assignment-row .col:last-child {
 		max-width: 30px;
