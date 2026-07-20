@@ -186,6 +186,7 @@ class PrintFormatGenerator:
 		self.doc = doc
 		self.style = style
 		self.settings_override = settings or {}
+		self._header_absorbs_top_margin = False
 
 		if letterhead == _("No Letterhead"):
 			letterhead = None
@@ -266,17 +267,20 @@ class PrintFormatGenerator:
 		from frappe.utils.pdf import get_chrome_pdf
 
 		pf = self.print_format
+		html = self._build_html_for_chrome()
 		options = {
 			"margin-top": f"{pf.margin_top}mm",
 			"margin-bottom": f"{pf.margin_bottom}mm",
 			"margin-left": f"{pf.margin_left}mm",
 			"margin-right": f"{pf.margin_right}mm",
 		}
+		if self._header_absorbs_top_margin:
+			options["header-includes-top-margin"] = True
 		if password:
 			options["password"] = password
 		return get_chrome_pdf(
 			print_format=pf.name,
-			html=self._build_html_for_chrome(),
+			html=html,
 			options=options,
 			output=None,
 			pdf_generator="chrome",
@@ -356,10 +360,11 @@ class PrintFormatGenerator:
 		ctx = {"doc": self.context.doc}
 
 		parts = []
+		body_parts = []
 		if is_header and page_no_html:
 			parts.append(page_no_html)
 		if letterhead_html:
-			parts.append(
+			body_parts.append(
 				'<div class="letter-head">' + frappe.render_template(letterhead_html, ctx) + "</div>"
 			)
 		if layout_template:
@@ -372,9 +377,17 @@ class PrintFormatGenerator:
 				# Section object — render using the same logic as print_format.html
 				zone_html = self._render_zone_section(layout_template, ctx["doc"])
 			if zone_html:
-				parts.append('<div class="document-header-content">' + zone_html + "</div>")
+				body_parts.append('<div class="document-header-content">' + zone_html + "</div>")
 		if not is_header and page_no_html:
-			parts.append(page_no_html)
+			body_parts.append(page_no_html)
+
+		top_margin = float(self.print_format.margin_top or 0)
+		if is_header and page_no_html and body_parts and top_margin:
+			body_parts = [
+				f'<div style="padding-top:{top_margin}mm">' + "\n".join(body_parts) + "</div>"
+			]
+			self._header_absorbs_top_margin = True
+		parts.extend(body_parts)
 		return "\n".join(parts) or None
 
 	_ZONE_SECTION_TEMPLATE = """\

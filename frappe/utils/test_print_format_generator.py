@@ -186,6 +186,33 @@ class TestPrintFormatGenerator(IntegrationTestCase):
 		self.assertNotIn("margin: 0;", page_rule)
 		self.assertLess(html.find("@media screen"), html.find("padding: 20mm"))
 
+	def test_top_page_number_sits_above_the_page_margin(self):
+		"""A top page number renders flush to the page edge, not below margin_top.
+		The header markup absorbs the margin (padding on everything after the page
+		number) and flags it so browser.py drops the header page's own marginTop —
+		otherwise the margin would be applied twice and the body would shift."""
+		from unittest.mock import patch
+
+		from frappe.utils.print_format_generator import PrintFormatGenerator
+
+		todo = self._make_todo()
+		letterhead = self._make_letterhead()
+
+		def chrome_options(**pf_kwargs):
+			pf = self._make_print_format(margin_top=12, **pf_kwargs)
+			generator = PrintFormatGenerator(pf, todo, letterhead=letterhead.name)
+			with patch("frappe.utils.pdf.get_chrome_pdf", return_value=b"%PDF-") as chrome_pdf:
+				generator.render_pdf()
+			return chrome_pdf.call_args.kwargs
+
+		top = chrome_options(page_number="Top Left")
+		self.assertTrue(top["options"]["header-includes-top-margin"])
+		self.assertIn("padding-top:12.0mm", top["html"])
+
+		for pos in ("Hide", "Bottom Center"):
+			opts = chrome_options(page_number=pos)["options"]
+			self.assertNotIn("header-includes-top-margin", opts)
+
 	def test_render_pdf_passes_password_to_chrome(self):
 		"""Encrypted PDFs (attach_print(password=...)) must stay encrypted on the
 		generator path — the chrome pipeline encrypts from options['password']."""
