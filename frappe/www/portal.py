@@ -18,12 +18,9 @@ def get_context(context, **dict_params):
 		if frappe.session.user == "Guest" and not meta.allow_guest_to_view:
 			frappe.throw(_("Login to view"), frappe.PermissionError)
 		context.meta = meta
-		list_context = get_list_context(context, doctype, frappe.local.form_dict.web_form_name)
+		list_context = get_list_context(frappe._dict(), doctype, frappe.local.form_dict.web_form_name)
 		context.update(list_context)
-
-		list_params = frappe.local.form_dict.copy()
-		list_params.pop("list_context", None)
-		context.update(get(list_context=list_context, **list_params))
+		context.update(get(list_context, **frappe.local.form_dict))
 		context.home_page = "/portal"
 		context.doctype = frappe.local.form_dict.doctype
 	return context
@@ -40,17 +37,20 @@ def set_route(context):
 
 
 def get(
-	doctype: str,
+	list_context=None,
+	/,
+	doctype: str | None = None,
 	txt: str | None = None,
 	limit_start: int = 0,
 	limit: int = 20,
 	pathname: str | None = None,
-	*,
-	list_context,
 	**kwargs,
 ):
 	"""Return processed HTML page for a standard listing."""
 	limit_start = cint(limit_start)
+	if list_context is None:
+		list_context = get_list_context(frappe._dict(), doctype, kwargs.get("web_form_name"))
+
 	raw_result = get_list_data_for_context(list_context, doctype, txt, limit_start, limit=limit + 1, **kwargs)
 	show_more = len(raw_result) > limit
 	if show_more:
