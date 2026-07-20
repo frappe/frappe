@@ -178,8 +178,9 @@ class Workspace(Document):
 			limit=0,
 		):
 			new_label = f"{workspace.title}-{new_name}"
-			workspace_name = workspace.name
-			if workspace.name != new_label and not frappe.db.exists("Workspace", new_label):
+			if workspace.name != new_label:
+				if frappe.db.exists("Workspace", new_label):
+					continue
 				rename_doc(
 					"Workspace",
 					workspace.name,
@@ -188,8 +189,7 @@ class Workspace(Document):
 					show_alert=False,
 					ignore_permissions=True,
 				)
-				workspace_name = new_label
-			frappe.db.set_value("Workspace", workspace_name, {"for_user": new_name, "label": new_label})
+			frappe.db.set_value("Workspace", new_label, {"for_user": new_name, "label": new_label})
 
 	@staticmethod
 	def get_module_wise_workspaces():
