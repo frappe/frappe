@@ -60,6 +60,8 @@ import LucideBellDot from "~icons/lucide/bell-dot"
 import LucideHistory from "~icons/lucide/history"
 import LucideMail from "~icons/lucide/mail"
 import LucideMessageCircle from "~icons/lucide/message-circle"
+import LucideMailPlus from "~icons/lucide/mail-plus"
+import LucideMessageSquarePlus from "~icons/lucide/message-square-plus"
 import LucideArrowUpDown from "~icons/lucide/arrow-up-down"
 import LucideFilter from "~icons/lucide/filter"
 import LucideColumns3 from "~icons/lucide/columns-3"
@@ -1150,6 +1152,25 @@ export const COMPONENTS: FrappeUIComponents = {
 				author: { fullname: "Jane Doe" },
 				data: { name: "1", content: "Looks good to me!" },
 			},
+		},
+	},
+	EmailComposer: {
+		name: "EmailComposer",
+		title: "Email Composer",
+		icon: LucideMailPlus,
+		initialState: {
+			placeholder: "Write your email...",
+			submitLabel: "Send",
+			headerFields: ["to", "cc", "bcc"],
+		},
+	},
+	CommentComposer: {
+		name: "CommentComposer",
+		title: "Comment Composer",
+		icon: LucideMessageSquarePlus,
+		initialState: {
+			placeholder: "This message is only visible to your team.",
+			submitLabel: "Comment",
 		},
 	},
 	FileUploadDialog: {

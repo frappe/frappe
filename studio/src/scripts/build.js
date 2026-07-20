@@ -55,6 +55,8 @@ const FRAMEWORK_UI_BARREL_COMPONENTS = new Set([
 	"ActivityTimeline",
 	"EmailItem",
 	"CommentItem",
+	"EmailComposer",
+	"CommentComposer",
 ])
 
 // create a temp directory for app renderers in studio app folder
@@ -212,8 +214,7 @@ function getFrameworkUIImports(frameworkUIComponents) {
 	const bySource = {}
 	for (const comp of frameworkUIComponents) {
 		const source =
-			FRAMEWORK_UI_IMPORT_SOURCES[comp] ||
-			(FRAMEWORK_UI_BARREL_COMPONENTS.has(comp) ? "@framework/ui" : null)
+			FRAMEWORK_UI_IMPORT_SOURCES[comp] || (FRAMEWORK_UI_BARREL_COMPONENTS.has(comp) ? "@framework/ui" : null)
 		if (!source) {
 			throw new Error(
 				`@framework/ui component "${comp}" has no import source. Add it to ` +

@@ -170,6 +170,14 @@ export function registerGlobalComponents(app: App) {
 			defineAsyncComponent(() => import("@framework/ui/components/ActivityTimeline/CommentItem.vue")),
 		)
 		app.component(
+			"EmailComposer",
+			defineAsyncComponent(() => import("@framework/ui/components/Composer/EmailComposer/EmailComposer.vue")),
+		)
+		app.component(
+			"CommentComposer",
+			defineAsyncComponent(() => import("@framework/ui/components/Composer/CommentComposer/CommentComposer.vue")),
+		)
+		app.component(
 			"Filter",
 			defineAsyncComponent(() => import("@framework/ui/components/Filter/Filter.vue")),
 		)

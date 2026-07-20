@@ -25,6 +25,9 @@ const configMap: Record<string, any> = {
 		destFolder: "src/json_types/frameworkui",
 		tsconfigPath: "../node_modules/frappe-ui/tsconfig.base.json",
 		skipFolders: ["stories", "tests"],
+		// ComposerEditor is the private editing core shared by Email/CommentComposer —
+		// it exports Props (for the composers to extend) but is not a studio block.
+		skipComponents: ["ComposerEditor"],
 		perComponent: true,
 	},
 	studio: {
@@ -45,7 +48,8 @@ if (!moduleName || !configMap[moduleName]) {
 }
 
 /* 1. Generate JSON types */
-const { srcFolders, destFolder, tsconfigPath, skipFolders, folderScan, perComponent } = configMap[moduleName]
+const { srcFolders, destFolder, tsconfigPath, skipFolders, folderScan, perComponent, skipComponents } =
+	configMap[moduleName]
 
 // Generate in place (no upfront wipe). Aggregate which components exist in source
 // (`expected`) across all source folders, so a component whose schema fails to
@@ -54,7 +58,15 @@ const { srcFolders, destFolder, tsconfigPath, skipFolders, folderScan, perCompon
 // one. Only truly gone components (renamed/removed upstream) are pruned below.
 const expected = new Set<string>()
 srcFolders.forEach((srcFolder: string) => {
-	const result = tsToJSON(srcFolder, destFolder, skipFolders, tsconfigPath, Boolean(folderScan), Boolean(perComponent))
+	const result = tsToJSON(
+		srcFolder,
+		destFolder,
+		skipFolders,
+		tsconfigPath,
+		Boolean(folderScan),
+		Boolean(perComponent),
+		skipComponents,
+	)
 	result.expected.forEach((name) => expected.add(name))
 })
 

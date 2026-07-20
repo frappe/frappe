@@ -1,0 +1,48 @@
+{
+  "$schema": "http://json-schema.org/draft-07/schema#",
+  "definitions": {
+    "CommentComposerProps": {
+      "type": "object",
+      "properties": {
+        "placeholder": {
+          "type": "string"
+        },
+        "submitLabel": {
+          "type": "string"
+        },
+        "uploadFunction": {
+          "type": "object"
+        },
+        "mentions": {
+          "type": "array",
+          "items": {
+            "type": "object",
+            "properties": {
+              "label": {
+                "type": "string"
+              },
+              "value": {
+                "type": "string"
+              }
+            },
+            "required": [
+              "label",
+              "value"
+            ],
+            "additionalProperties": false
+          }
+        }
+      },
+      "additionalProperties": false
+    },
+    "CommentComposerSlots": {
+      "type": "object",
+      "properties": {
+        "actions": {
+          "type": "object"
+        }
+      },
+      "additionalProperties": false
+    }
+  }
+}
