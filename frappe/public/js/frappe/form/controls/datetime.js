@@ -4,6 +4,7 @@ frappe.ui.form.ControlDatetime = class ControlDatetime extends frappe.ui.form.Co
 		if (!this.datepicker) return;
 		if (!value) {
 			this.datepicker.clear();
+			this.datepicker.date = this.get_now_date();
 			return;
 		} else if (value.toLowerCase() === "today") {
 			value = this.get_now_date();

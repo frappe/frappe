@@ -66,15 +66,7 @@ let empty_label = computed(() =>
 );
 
 function select_zone() {
-	if (props.zone === "header") {
-		raw_store.selected_letterhead.value = true;
-		raw_store.selected_lh_footer.value = false;
-	} else {
-		raw_store.selected_lh_footer.value = true;
-		raw_store.selected_letterhead.value = false;
-	}
-	raw_store.selected_field.value = null;
-	raw_store.selected_section.value = null;
+	raw_store.select_letterhead({ footer: props.zone !== "header" });
 }
 
 async function refresh_rendered_content() {

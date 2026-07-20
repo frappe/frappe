@@ -1,3 +1,13 @@
+export function clone_plain(obj) {
+	return JSON.parse(JSON.stringify(obj));
+}
+
+export function freshen_field(f) {
+	delete f.remove;
+	if (f.custom && f.fieldname) f.fieldname += "_" + frappe.utils.get_random(8);
+	return f;
+}
+
 export function create_default_layout(meta, print_format) {
 	let layout = {
 		header: get_default_header(meta),
@@ -138,6 +148,19 @@ export function pluck(object, keys) {
 	return out;
 }
 
+export const DRAG_OPTIONS = {
+	forceFallback: true,
+	fallbackOnBody: true,
+	fallbackTolerance: 4,
+	fallbackClass: "pfb-drag-fallback",
+	ghostClass: "pfb-drag-ghost",
+};
+
+export function setDragging(active) {
+	document.body.classList.toggle("pfb-dragging", active);
+	if (active) window.getSelection()?.removeAllRanges();
+}
+
 export const TABLE_COLUMN_PLUCK_KEYS = [
 	"label",
 	"fieldname",
@@ -146,7 +169,9 @@ export const TABLE_COLUMN_PLUCK_KEYS = [
 	"width",
 	"field_template",
 	"merged_fields",
+	"merge_direction",
 	"image_size",
+	"column_condition",
 ];
 
 export const FIELD_PLUCK_KEYS = [
@@ -166,6 +191,7 @@ export const FIELD_PLUCK_KEYS = [
 	"field_template",
 	"source",
 	"repeater_columns",
+	"row_condition",
 	"show_label",
 	"align",
 	"label_justify",
@@ -183,37 +209,9 @@ export const FIELD_PLUCK_KEYS = [
 	"show_text",
 ];
 
-export const ZONE_FIELD_PLUCK_KEYS = [
-	"label",
-	"fieldname",
-	"fieldtype",
-	"options",
-	"table_columns",
-	"table_style",
-	"table_bordered",
-	"table_header",
-	"table_header_bg",
-	"table_border_color",
-	"html",
-	"field_template",
-	"source",
-	"repeater_columns",
-	"show_label",
-	"align",
-	"label_justify",
-	"label_gap",
-	"visible_if",
-	"custom_style",
-	"value_color",
-	"label_color",
-	"custom",
-	"image_url",
-	"width",
-	"barcode_field",
-	"barcode_value",
-	"barcode_format",
-	"show_text",
-];
+export const ZONE_FIELD_PLUCK_KEYS = FIELD_PLUCK_KEYS.filter(
+	(key) => key !== "table_cell_padding" && key !== "table_radius"
+);
 
 export function serialize_layout(layout) {
 	layout.sections = layout.sections
@@ -377,6 +375,12 @@ const SAFE_HTML_ATTRS = new Set([
 	"cellpadding",
 	"cellspacing",
 ]);
+
+export function strip_html_to_text(html, fallback = "") {
+	const tmp = document.createElement("div");
+	tmp.innerHTML = html;
+	return tmp.textContent || tmp.innerText || fallback;
+}
 
 export function sanitize_html(html) {
 	const root = document.createElement("div");

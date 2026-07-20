@@ -939,9 +939,10 @@ def backup(
 				old_backup_metadata=old_backup_metadata,
 				rollback_callback=rollback_callback,
 			)
-		except Exception:
+		except Exception as e:
+			error_msg = str(e).strip() or "Database or site_config.json may be corrupted"
 			click.secho(
-				f"Backup failed for Site {site}. Database or site_config.json may be corrupted",
+				f"Backup failed for Site {site}: {error_msg}",
 				fg="red",
 			)
 			if rollback_callback:

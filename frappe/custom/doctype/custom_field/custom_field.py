@@ -44,6 +44,7 @@ class CustomField(Document):
 			"Autocomplete",
 			"Attach",
 			"Attach Image",
+			"Attachment Gallery",
 			"Barcode",
 			"Button",
 			"Check",
@@ -257,7 +258,11 @@ class CustomField(Document):
 			)
 
 		if self.fieldname == self.insert_after:
-			frappe.throw(_("Insert After cannot be set as {0}").format(meta.get_label(self.insert_after)))
+			frappe.throw(
+				_("Insert After cannot be set as {0}").format(
+					_(meta.get_label(self.insert_after), context=self.dt)
+				)
+			)
 
 	def get_permission_log_options(self, event=None):
 		if event != "after_delete" and self.fieldtype not in (

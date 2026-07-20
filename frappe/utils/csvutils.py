@@ -99,6 +99,7 @@ def read_csv_content(fcontent, use_sniffer: bool = False, delimiter: str | None 
 
 			rows.append(r)
 
+		assert len(rows) <= len(content), "parsing cannot produce more rows than input lines"
 		return rows
 
 	except Exception:

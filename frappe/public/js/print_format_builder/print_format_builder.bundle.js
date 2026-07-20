@@ -39,6 +39,7 @@ class PrintFormatBuilder {
 
 		let app = createApp(PrintFormatBuilderComponent, { print_format_name: print_format });
 		SetVueGlobals(app);
+		this.app = app;
 		this.$component = app.mount(this.$wrapper.get(0));
 
 		watch(
@@ -63,6 +64,10 @@ class PrintFormatBuilder {
 				$toggle_preview_btn.text(value ? __("Hide Preview") : __("Show Preview"));
 			}
 		);
+	}
+
+	destroy() {
+		this.app?.unmount();
 	}
 }
 

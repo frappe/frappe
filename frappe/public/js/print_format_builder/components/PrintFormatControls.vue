@@ -1,13 +1,15 @@
 <template>
 	<div class="pfb-sidebar">
 		<!-- Tab bar -->
-		<div class="pfb-tabbar">
+		<div class="pfb-tabbar" role="tablist">
 			<button
 				v-for="tab in tabs"
 				:key="tab.id"
 				class="pfb-tab"
 				:class="{ active: activeTab === tab.id }"
 				:title="tab.label"
+				role="tab"
+				:aria-selected="activeTab === tab.id"
 				@click="activeTab = tab.id"
 			>
 				<span class="pfb-tab-label">{{ tab.label }}</span>
@@ -18,9 +20,10 @@
 		<div v-if="activeTab === 'fields'" class="pfb-tab-body pfb-fields-tab">
 			<!-- Search -->
 			<div class="pfb-search-wrap">
-				<svg class="icon icon-xs pfb-search-icon text-muted">
-					<use href="#icon-search"></use>
-				</svg>
+				<span
+					class="pfb-search-icon text-muted"
+					v-html="frappe.utils.icon('search', 'xs')"
+				></span>
 				<input
 					ref="search_input"
 					class="pfb-search"
@@ -53,6 +56,9 @@
 					:sort="false"
 					:clone="clone_field"
 					item-key="fieldname"
+					v-bind="DRAG_OPTIONS"
+					@start="setDragging(true)"
+					@end="setDragging(false)"
 				>
 					<template #item="{ element }">
 						<div
@@ -72,7 +78,11 @@
 			</div>
 
 			<div v-if="!field_groups.length" class="pfb-empty">
-				{{ __("No fields match your search.") }}
+				{{
+					search_text
+						? __("No fields match your search.")
+						: __("This document type has no printable fields.")
+				}}
 			</div>
 		</div>
 
@@ -85,6 +95,9 @@
 				:sort="false"
 				:clone="clone_field"
 				item-key="fieldname"
+				v-bind="DRAG_OPTIONS"
+				@start="setDragging(true)"
+				@end="setDragging(false)"
 			>
 				<template #item="{ element }">
 					<div
@@ -111,6 +124,9 @@
 				:sort="false"
 				:clone="clone_as_section"
 				item-key="fieldname"
+				v-bind="DRAG_OPTIONS"
+				@start="setDragging(true)"
+				@end="setDragging(false)"
 			>
 				<template #item="{ element }">
 					<div class="pfb-block-card" :title="element.desc" @click="add_page_break">
@@ -122,6 +138,52 @@
 							<div class="pfb-block-name">{{ element.label }}</div>
 							<div class="pfb-block-desc text-muted">{{ element.desc }}</div>
 						</div>
+					</div>
+				</template>
+			</draggable>
+
+			<div class="pfb-group-label mt-3">{{ __("Saved Sections") }}</div>
+			<div v-if="!store.section_snippets.value.length" class="pfb-empty">
+				{{ __("Save a section as a snippet to reuse it here.") }}
+			</div>
+			<draggable
+				:list="store.section_snippets.value"
+				:group="{ name: 'sections', pull: 'clone', put: false }"
+				:sort="false"
+				:clone="clone_snippet_section"
+				item-key="name"
+				filter="button"
+				:preventOnFilter="false"
+				v-bind="DRAG_OPTIONS"
+				@start="setDragging(true)"
+				@end="setDragging(false)"
+			>
+				<template #item="{ element: snip }">
+					<div
+						class="pfb-block-card"
+						:title="__('Drag into the layout, or click to insert')"
+						@click="store.insert_section_snippet(snip.name)"
+					>
+						<span
+							class="pfb-block-icon"
+							v-html="frappe.utils.icon('layout-template', 'sm')"
+						></span>
+						<div class="pfb-block-info">
+							<div class="pfb-block-name">{{ snip.name }}</div>
+							<div class="pfb-block-desc text-muted">
+								{{ __("Drag or click to insert") }}
+							</div>
+						</div>
+						<button
+							class="es-button"
+							data-size="xs"
+							data-variant="ghost"
+							data-theme="red"
+							data-icon-button="true"
+							:title="__('Delete snippet')"
+							@click.stop="confirm_delete_snippet(snip.name)"
+							v-html="frappe.utils.icon('trash', 'xs')"
+						></button>
 					</div>
 				</template>
 			</draggable>
@@ -162,6 +224,9 @@
 					:sort="false"
 					:clone="clone_field"
 					item-key="fieldname"
+					v-bind="DRAG_OPTIONS"
+					@start="setDragging(true)"
+					@end="setDragging(false)"
 				>
 					<template #item="{ element }">
 						<div
@@ -170,9 +235,10 @@
 							@click="add_to_layout(element)"
 						>
 							<div class="pfb-template-thumb">
-								<svg class="icon icon-sm text-muted">
-									<use href="#icon-table"></use>
-								</svg>
+								<span
+									class="text-muted"
+									v-html="frappe.utils.icon('table', 'sm')"
+								></span>
 							</div>
 							<div class="pfb-template-info">
 								<div class="pfb-template-name">{{ element.display_label }}</div>
@@ -190,26 +256,141 @@
 		</div>
 
 		<!-- ── Outline ────────────────────────────────────────── -->
-		<div v-else-if="activeTab === 'outline'" class="pfb-tab-body">
-			<div v-if="!visible_sections.length" class="pfb-empty">
+		<div v-else-if="activeTab === 'outline'" class="pfb-tab-body pfb-tree" role="tree">
+			<div v-if="!outline_tree.length" class="pfb-empty">
 				{{ __("No sections yet. Add sections to the canvas.") }}
 			</div>
-			<div
-				v-for="(section, i) in visible_sections"
-				:key="i"
-				class="pfb-outline-item"
-				:class="{ active: store.selected_section.value === section }"
-				@click="select_section(section)"
-			>
-				<span class="pfb-outline-idx text-muted">{{ i + 1 }}</span>
-				<span class="pfb-outline-label">
-					{{ section.label || __("Untitled section") }}
-				</span>
+			<div v-for="(node, i) in outline_tree" :key="i" class="pfb-tree-node">
+				<div
+					class="pfb-tree-row"
+					:class="{ active: store.selected_section.value === node.section }"
+					role="treeitem"
+					tabindex="0"
+					:aria-expanded="!is_collapsed(node.section)"
+					:aria-selected="store.selected_section.value === node.section"
+					@click="select_section(node.section)"
+					@keydown.enter.prevent="select_section(node.section)"
+					@keydown.space.prevent="select_section(node.section)"
+				>
+					<button
+						class="pfb-tree-chevron"
+						:class="{ collapsed: is_collapsed(node.section) }"
+						@click.stop="toggle_collapse(node.section)"
+						v-html="frappe.utils.icon('chevron-down', 'sm')"
+					></button>
+					<span
+						class="pfb-tree-icon"
+						v-html="frappe.utils.icon('rectangle-horizontal', 'sm')"
+					></span>
+					<span class="pfb-tree-label">
+						{{ node.section.label || __("Untitled section") }}
+					</span>
+				</div>
+				<div v-if="!is_collapsed(node.section)" class="pfb-tree-children">
+					<div v-for="(col, ci) in node.columns" :key="ci" class="pfb-tree-node">
+						<div
+							class="pfb-tree-row"
+							role="treeitem"
+							tabindex="0"
+							@click="select_section(node.section)"
+							@keydown.enter.prevent="select_section(node.section)"
+							@keydown.space.prevent="select_section(node.section)"
+						>
+							<button
+								v-if="col.fields.length"
+								class="pfb-tree-chevron"
+								:class="{ collapsed: is_collapsed(col.column) }"
+								@click.stop="toggle_collapse(col.column)"
+								v-html="frappe.utils.icon('chevron-down', 'sm')"
+							></button>
+							<span v-else class="pfb-tree-spacer"></span>
+							<span
+								class="pfb-tree-icon"
+								v-html="frappe.utils.icon('columns-2', 'sm')"
+							></span>
+							<span class="pfb-tree-label text-muted">
+								{{ __("Column {0}", [ci + 1]) }}
+							</span>
+						</div>
+						<div v-if="!is_collapsed(col.column)" class="pfb-tree-children">
+							<div
+								v-for="(field, fi) in col.fields"
+								:key="fi"
+								class="pfb-tree-row"
+								:class="{ active: store.selected_fields.value.includes(field) }"
+								role="treeitem"
+								tabindex="0"
+								:aria-selected="store.selected_fields.value.includes(field)"
+								@click="select_field(field, node.section, $event)"
+								@keydown.enter.prevent="select_field(field, node.section, $event)"
+								@keydown.space.prevent="select_field(field, node.section, $event)"
+							>
+								<span class="pfb-tree-spacer"></span>
+								<span
+									class="pfb-tree-icon"
+									v-html="frappe.utils.icon(field_icon(field), 'sm')"
+								></span>
+								<span class="pfb-tree-label">{{ field_label(field) }}</span>
+								<span
+									v-if="field_broken(field)"
+									class="pfb-tree-warn"
+									:title="
+										__('Field “{0}” no longer exists on {1}', [
+											field.fieldname,
+											meta.name,
+										])
+									"
+									v-html="frappe.utils.icon('triangle-alert', 'sm')"
+								></span>
+								<span class="pfb-tree-badge">{{ field.fieldtype }}</span>
+							</div>
+						</div>
+					</div>
+				</div>
 			</div>
 		</div>
 
 		<!-- ── Format ─────────────────────────────────────────── -->
 		<div v-else-if="activeTab === 'format'" class="pfb-tab-body pfb-format-tab">
+			<div class="form-group">
+				<label class="control-label">{{ __("Style Preset") }}</label>
+				<div class="pfb-preset-row">
+					<select
+						class="form-control form-control-sm"
+						:value="active_preset"
+						@change="apply_preset($event.target.value)"
+					>
+						<option value="">{{ __("Choose a preset…") }}</option>
+						<option
+							v-for="p in store.style_presets.value"
+							:key="p.name"
+							:value="p.name"
+						>
+							{{ p.name }}
+						</option>
+					</select>
+					<button
+						class="es-button"
+						data-size="sm"
+						data-variant="ghost"
+						data-icon-button="true"
+						:title="__('Save current style as a preset')"
+						@click="save_preset"
+						v-html="frappe.utils.icon('save', 'sm')"
+					></button>
+					<button
+						v-if="active_preset"
+						class="es-button"
+						data-size="sm"
+						data-variant="ghost"
+						data-theme="red"
+						data-icon-button="true"
+						:title="__('Delete preset')"
+						@click="delete_preset"
+						v-html="frappe.utils.icon('trash', 'sm')"
+					></button>
+				</div>
+			</div>
 			<div class="form-group">
 				<label class="control-label">{{ __("Page Margins (mm)") }}</label>
 				<div class="pfb-margin-grid">
@@ -263,7 +444,7 @@
 <script setup>
 import draggable from "vuedraggable";
 import Autocomplete from "../../vue-components/Autocomplete.vue";
-import { get_table_columns, pluck } from "../utils";
+import { DRAG_OPTIONS, clone_plain, get_table_columns, pluck, setDragging } from "../utils";
 import { mountColorControl } from "./inspector/useColorControl";
 import { useStore } from "../stores";
 import { computed, onMounted, onUnmounted, nextTick, ref, watch, inject } from "vue";
@@ -294,7 +475,7 @@ const tabs = computed(() => [
 	{ id: "blocks", label: __("Blocks") },
 	{ id: "templates", label: __("Templates") },
 	{ id: "outline", label: __("Outline") },
-	{ id: "format", label: __("Format") },
+	{ id: "format", label: __("Setting") },
 ]);
 
 // ── blocks tab items ──────────────────────────────────────
@@ -375,14 +556,13 @@ const color_settings = [
 	{ fieldname: "value_color", label: __("Value Color") },
 ];
 let color_hosts = ref({});
+let color_controls = {};
 
-// The Format tab is v-if, so its DOM is recreated on each visit — (re)mount the
-// Frappe color controls into the fresh host divs when the tab is shown.
 function mount_color_controls() {
 	for (const c of color_settings) {
 		const host = color_hosts.value[c.fieldname];
 		if (!host) continue;
-		mountColorControl(host, {
+		color_controls[c.fieldname] = mountColorControl(host, {
 			value: print_format.value[c.fieldname] || "",
 			placeholder: c.label,
 			fieldname: c.fieldname,
@@ -394,6 +574,44 @@ function mount_color_controls() {
 			},
 		});
 	}
+}
+
+// ── style presets ──────────────────────────────────────────
+let active_preset = ref("");
+function apply_preset(name) {
+	active_preset.value = name;
+	if (name) store.apply_style_preset(name);
+}
+function save_preset() {
+	frappe.prompt(
+		{
+			label: __("Preset name"),
+			fieldname: "name",
+			fieldtype: "Data",
+			reqd: 1,
+			default: active_preset.value || "",
+		},
+		({ name }) => {
+			store.save_style_preset(name);
+			active_preset.value = name.trim();
+			frappe.show_alert({ message: __("Style preset saved"), indicator: "green" });
+		},
+		__("Save Style Preset"),
+		__("Save")
+	);
+}
+function delete_preset() {
+	const name = active_preset.value;
+	if (!name) return;
+	frappe.confirm(__("Delete the style preset '{0}'?", [name]), () => {
+		store.delete_style_preset(name);
+		active_preset.value = "";
+	});
+}
+function confirm_delete_snippet(name) {
+	frappe.confirm(__("Delete the section snippet '{0}'?", [name]), () =>
+		store.delete_section_snippet(name)
+	);
 }
 
 // ── helpers ────────────────────────────────────────────────
@@ -480,14 +698,76 @@ function build_field(df) {
 
 function select_section(section) {
 	store.scroll_to_section.value = section;
-	store.selected_section.value = section;
-	store.selected_field.value = null;
-	store.selected_letterhead.value = false;
-	store.selected_lh_footer.value = false;
+	store.select_section(section);
 }
+
+function select_field(field, section, e) {
+	const additive = !!(e && (e.metaKey || e.ctrlKey || e.shiftKey));
+	if (section && !additive) store.scroll_to_section.value = section;
+	store.select_field(field, additive);
+}
+
+function field_label(f) {
+	return f.label || f.fieldname || f.fieldtype || __("Field");
+}
+
+let known_fieldnames = computed(() => {
+	const s = new Set((meta.value?.fields || []).map((df) => df.fieldname));
+	s.add("name");
+	return s;
+});
+function field_broken(f) {
+	if (f.custom || f.fieldtype === "Field Template" || !f.fieldname) return false;
+	return !known_fieldnames.value.has(f.fieldname);
+}
+
+let outline_tree = computed(() =>
+	visible_sections.value.map((section) => ({
+		section,
+		columns: (section.columns || []).map((column) => ({
+			column,
+			fields: (column.fields || []).filter((f) => !f.remove),
+		})),
+	}))
+);
+
+const FIELD_ICONS = {
+	Table: "table",
+	Repeater: "rows-3",
+	Image: "image",
+	"Attach Image": "image",
+	Attach: "image",
+	HTML: "file-text",
+	"Text Editor": "file-text",
+	"Small Text": "file-text",
+	"Long Text": "file-text",
+	Text: "file-text",
+	Barcode: "square",
+};
+function field_icon(f) {
+	return FIELD_ICONS[f.fieldtype] || "type";
+}
+
+let collapsed_nodes = ref(new Set());
+function is_collapsed(node) {
+	return collapsed_nodes.value.has(node);
+}
+function toggle_collapse(node) {
+	const next = new Set(collapsed_nodes.value);
+	next.has(node) ? next.delete(node) : next.add(node);
+	collapsed_nodes.value = next;
+}
+watch(
+	() => layout.value,
+	() => (collapsed_nodes.value = new Set())
+);
 
 function clone_as_section() {
 	return { label: "", columns: [{ label: "", fields: [] }], page_break: true };
+}
+
+function clone_snippet_section(snip) {
+	return clone_plain(snip.section);
 }
 
 function add_page_break() {
@@ -571,6 +851,18 @@ watch(activeTab, (tab) => {
 	if (tab === "format") nextTick(mount_color_controls);
 });
 
+watch(
+	() => color_settings.map((c) => print_format.value?.[c.fieldname]),
+	() => {
+		for (const c of color_settings) {
+			const ctrl = color_controls[c.fieldname];
+			if (!ctrl) continue;
+			const model = print_format.value?.[c.fieldname] || "";
+			if ((ctrl.get_value() || "") !== model) ctrl.set_value(model);
+		}
+	}
+);
+
 let print_templates_list = computed(() => {
 	const templates = raw_templates.value;
 	return templates.map((template) => {
@@ -650,8 +942,6 @@ function handle_slash_key(e) {
 		focus_search();
 	}
 }
-
-watch(print_format, () => (store.dirty.value = true), { deep: true });
 </script>
 
 <style scoped>
@@ -794,8 +1084,7 @@ watch(print_format, () => (store.dirty.value = true), { deep: true });
 .pfb-group-label {
 	font-size: var(--text-tiny);
 	font-weight: var(--weight-semibold);
-	text-transform: uppercase;
-	letter-spacing: 0.06em;
+	letter-spacing: 0;
 	color: var(--text-muted);
 	padding: 8px 10px 2px;
 	display: flex;
@@ -852,7 +1141,8 @@ watch(print_format, () => (store.dirty.value = true), { deep: true });
 }
 
 /* ── Block card (Blocks tab) ─────────────────────────────── */
-.pfb-block-card {
+.pfb-block-card,
+.pfb-template-card {
 	display: flex;
 	align-items: center;
 	gap: 10px;
@@ -864,7 +1154,8 @@ watch(print_format, () => (store.dirty.value = true), { deep: true });
 	margin-top: 6px;
 }
 
-.pfb-block-card:hover {
+.pfb-block-card:hover,
+.pfb-template-card:hover {
 	background: var(--gray-100);
 	border-color: var(--gray-500);
 }
@@ -882,6 +1173,7 @@ watch(print_format, () => (store.dirty.value = true), { deep: true });
 
 .pfb-block-info {
 	min-width: 0;
+	flex: 1;
 }
 
 .pfb-block-name {
@@ -895,23 +1187,6 @@ watch(print_format, () => (store.dirty.value = true), { deep: true });
 }
 
 /* ── Template card (Templates tab) ──────────────────────── */
-.pfb-template-card {
-	display: flex;
-	align-items: center;
-	gap: 10px;
-	padding: 8px 10px;
-	border-radius: var(--radius);
-	border: 1px solid var(--border-color);
-	background: var(--gray-50);
-	cursor: grab;
-	margin-top: 6px;
-}
-
-.pfb-template-card:hover {
-	background: var(--gray-100);
-	border-color: var(--gray-500);
-}
-
 .pfb-template-thumb {
 	display: flex;
 	align-items: center;
@@ -961,45 +1236,103 @@ watch(print_format, () => (store.dirty.value = true), { deep: true });
 	letter-spacing: 0;
 }
 
-/* ── Outline tab ─────────────────────────────────────────── */
-.pfb-outline-item {
-	display: flex;
-	align-items: center;
-	gap: 8px;
-	padding: 6px 8px;
-	border-radius: var(--radius);
-	cursor: pointer;
-	margin-top: 2px;
-	font-size: var(--text-sm);
+/* ── Outline tab (tree) ──────────────────────────────────── */
+.pfb-tree {
+	padding-top: 4px;
 }
 
-.pfb-outline-item:hover {
+.pfb-tree-row {
+	display: flex;
+	align-items: center;
+	gap: 6px;
+	padding: 4px 6px;
+	border-radius: var(--radius);
+	cursor: pointer;
+	font-size: var(--text-sm);
+	user-select: none;
+}
+
+.pfb-tree-row:hover {
 	background: var(--gray-100);
 }
 
-.pfb-outline-item.active {
-	background: var(--blue-50);
-	color: var(--primary);
+.pfb-tree-row.active {
+	background: var(--gray-200);
+	color: var(--gray-900);
 	font-weight: 500;
 }
 
-.pfb-outline-idx {
-	font-size: var(--text-tiny);
-	font-variant-numeric: tabular-nums;
-	min-width: 18px;
-	text-align: right;
+.pfb-tree-chevron {
+	display: flex;
+	align-items: center;
+	justify-content: center;
+	width: 16px;
+	height: 16px;
+	padding: 0;
+	border: none;
+	background: transparent;
+	cursor: pointer;
+	color: var(--gray-500);
+	flex-shrink: 0;
+	transition: transform 0.12s ease;
 }
 
-.pfb-outline-label {
+.pfb-tree-chevron.collapsed {
+	transform: rotate(-90deg);
+}
+
+.pfb-tree-spacer {
+	width: 16px;
+	flex-shrink: 0;
+}
+
+.pfb-tree-icon {
+	display: flex;
+	align-items: center;
+	color: var(--gray-500);
+	flex-shrink: 0;
+}
+
+.pfb-tree-row.active .pfb-tree-icon {
+	color: var(--gray-700);
+}
+
+.pfb-tree-label {
 	flex: 1;
 	overflow: hidden;
 	text-overflow: ellipsis;
 	white-space: nowrap;
 }
 
+.pfb-tree-badge {
+	font-size: var(--text-tiny);
+	color: var(--gray-500);
+	flex-shrink: 0;
+}
+
+.pfb-tree-warn {
+	display: inline-flex;
+	flex-shrink: 0;
+	color: var(--text-on-orange, #b95000);
+}
+
+.pfb-tree-children {
+	margin-left: 18px;
+}
+
 /* ── Format tab ──────────────────────────────────────────── */
 .pfb-format-tab .form-group {
 	margin-bottom: 10px;
+}
+
+.pfb-preset-row {
+	display: flex;
+	align-items: center;
+	gap: 6px;
+}
+
+.pfb-preset-row select {
+	flex: 1;
 }
 
 .pfb-format-tab .form-group:last-child {

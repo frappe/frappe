@@ -697,6 +697,21 @@ class TestBackups(BaseTestCommands):
 		self.assertIn("successfully completed", self.stdout)
 		self.assertNotEqual(before_backup["database"], after_backup["database"])
 
+	def test_backup_fails_on_unknown_include_doctype(self):
+		"""Regression: --include with an unknown doctype must abort, not
+		silently take a full backup (which would be filed as if it were the
+		requested partial subset)."""
+		self.execute("bench --site {site} backup --include NonExistentDoctypeXYZ")
+		self.assertEqual(self.returncode, 1)
+		self.assertIn("NonExistentDoctypeXYZ", self.stderr + self.stdout)
+
+	def test_backup_fails_on_unknown_exclude_doctype(self):
+		"""Regression: --exclude with an unknown doctype must abort — same
+		silent-full-backup class of bug as --include."""
+		self.execute("bench --site {site} backup --exclude NonExistentDoctypeXYZ")
+		self.assertEqual(self.returncode, 1)
+		self.assertIn("NonExistentDoctypeXYZ", self.stderr + self.stdout)
+
 	@skipIf(
 		not (frappe.conf.db_type == "mariadb"),
 		"Only for MariaDB",

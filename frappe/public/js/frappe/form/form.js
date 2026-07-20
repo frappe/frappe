@@ -32,6 +32,7 @@ frappe.ui.form.Form = class FrappeForm {
 		this.refresh_if_stale_for = 120;
 		this.opendocs = {};
 		this.custom_buttons = {};
+		this.$intro_message = null;
 		this.sections = [];
 		this.grids = [];
 		this.cscript = new frappe.ui.form.Controller({ frm: this });
@@ -921,7 +922,10 @@ frappe.ui.form.Form = class FrappeForm {
 	save(save_action, callback, btn, on_error) {
 		let me = this;
 		return new Promise((resolve, reject) => {
-			btn && $(btn).prop("disabled", true);
+			// aria-busy mirrors the disabled handling here and in save.js —
+			// see the note in frappe.ui.form.save (this promise doesn't settle
+			// on every validation-error path)
+			btn && $(btn).prop("disabled", true).attr("aria-busy", "true");
 			frappe.ui.form.close_grid_form();
 			me.validate_and_save(save_action, callback, btn, on_error, resolve, reject);
 		})
@@ -973,7 +977,7 @@ frappe.ui.form.Form = class FrappeForm {
 			if (e) {
 				console.error(e);
 			}
-			btn && $(btn).prop("disabled", false);
+			btn && $(btn).prop("disabled", false).removeAttr("aria-busy");
 			if (on_error) {
 				on_error();
 				reject();
@@ -1340,7 +1344,7 @@ frappe.ui.form.Form = class FrappeForm {
 	}
 
 	handle_save_fail(btn, on_error) {
-		$(btn).prop("disabled", false);
+		$(btn).prop("disabled", false).removeAttr("aria-busy");
 		if (on_error) {
 			on_error();
 		}
@@ -1648,7 +1652,13 @@ frappe.ui.form.Form = class FrappeForm {
 	}
 
 	set_intro(txt, color) {
-		this.dashboard.set_headline_alert(txt, color);
+		if (this.$intro_message) {
+			this.$intro_message.remove();
+			this.$intro_message = null;
+		}
+		if (txt) {
+			this.$intro_message = this.dashboard.set_headline_alert(txt, color);
+		}
 	}
 
 	set_footnote(txt) {
@@ -2320,6 +2330,10 @@ frappe.ui.form.Form = class FrappeForm {
 			}
 
 			this.timeline && this.timeline.refresh();
+
+			if (key === "attachments") {
+				this.attachments && this.attachments.refresh();
+			}
 
 			if (["add", "delete"].includes(action) && doc.doctype === "Comment") {
 				this.footer.refresh_comments_count();

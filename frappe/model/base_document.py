@@ -1060,7 +1060,11 @@ class BaseDocument:
 				assert df.fieldtype == "Dynamic Link"
 				doctype = self.get(df.options)
 				if not doctype:
-					frappe.throw(_("{0} must be set first").format(_(self.meta.get_label(df.options))))
+					frappe.throw(
+						_("{0} must be set first").format(
+							_(self.meta.get_label(df.options), context=self.doctype)
+						)
+					)
 				invalidate_distinct_link_doctypes(df.parent, df.options, doctype)
 
 			meta = frappe.get_meta(doctype)
@@ -1189,7 +1193,7 @@ class BaseDocument:
 			if value not in options and not (frappe.in_test and value.startswith("_T-")):
 				# show an elaborate message
 				prefix = _("Row #{0}:").format(self.idx) if self.get("parentfield") else ""
-				label = _(self.meta.get_label(df.fieldname))
+				label = _(self.meta.get_label(df.fieldname), context=self.doctype)
 				comma_options = '", "'.join(_(each) for each in options)
 
 				frappe.throw(
@@ -1264,7 +1268,9 @@ class BaseDocument:
 
 			if self.get(fieldname) != value:
 				frappe.throw(
-					_("Value cannot be changed for {0}").format(_(self.meta.get_label(fieldname))),
+					_("Value cannot be changed for {0}").format(
+						_(self.meta.get_label(fieldname), context=self.doctype)
+					),
 					frappe.CannotChangeConstantError,
 				)
 
@@ -1544,15 +1550,12 @@ class BaseDocument:
 		return print_hide
 
 	def in_format_data(self, fieldname):
-		"""Return True if shown via Print Format::`format_data` property.
+		"""Compatibility shim for third-party server-side print templates.
 
-		Called from within standard print format."""
-		doc = getattr(self, "parent_doc", self)
-
-		if hasattr(doc, "format_data_map"):
-			return fieldname in doc.format_data_map
-		else:
-			return True
+		The classic print format builder that populated `format_data_map` has been
+		removed; builder layouts now render through PrintFormatGenerator, so every
+		field is considered in scope here."""
+		return True
 
 	def reset_values_if_no_permlevel_access(self, has_access_to, high_permlevel_fields, mask_fields=None):
 		"""If the user does not have permissions at permlevel > 0, then reset the values to original / default"""

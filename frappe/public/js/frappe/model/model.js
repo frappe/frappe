@@ -8,6 +8,7 @@ $.extend(frappe.model, {
 		"Autocomplete",
 		"Attach",
 		"Attach Image",
+		"Attachment Gallery",
 		"Barcode",
 		"Button",
 		"Check",
@@ -50,6 +51,7 @@ $.extend(frappe.model, {
 		"Section Break",
 		"Column Break",
 		"Tab Break",
+		"Attachment Gallery",
 		"HTML",
 		"Table",
 		"Table MultiSelect",
@@ -810,7 +812,11 @@ $.extend(frappe.model, {
 			frappe.throw(
 				__("Please specify") +
 					": " +
-					__(frappe.meta.get_label(doc.doctype, fieldname, doc.parent || doc.name))
+					__(
+						frappe.meta.get_label(doc.doctype, fieldname, doc.parent || doc.name),
+						null,
+						doc.doctype
+					)
 			);
 		}
 	},

@@ -12,33 +12,22 @@
 				:show="selected_field.show_label"
 				@update:show="(v) => (selected_field.show_label = v)"
 			/>
-			<!-- Style -->
-			<SegmentedRow
-				:label="__('Style')"
-				:model-value="table_style"
-				:options="table_style_opts"
-				@update:model-value="(v) => (selected_field.table_style = v)"
-			/>
-			<!-- Bordered -->
-			<SegmentedRow
-				:label="__('Bordered')"
-				:model-value="table_bordered !== false"
-				:options="[
-					{ value: true, label: __('Yes') },
-					{ value: false, label: __('No') },
-				]"
-				@update:model-value="(v) => (selected_field.table_bordered = v)"
-			/>
-			<!-- Cell padding -->
-			<StepperRow
-				:label="__('Cell padding')"
-				:model-value="table_cell_padding"
-				:base="7"
-				unit="px"
-				:placeholder="__('auto')"
-				allow-empty
-				@update:model-value="set_cell_padding"
-			/>
+			<!-- Style: one look = one (table_style, table_bordered) pair -->
+			<div class="pfb-insp-row">
+				<span class="pfb-insp-label">{{ __("Style") }}</span>
+				<select
+					class="pfb-insp-select"
+					:value="table_look ?? ''"
+					@change="set_table_look($event.target.value)"
+				>
+					<option v-if="table_look === null" value="" disabled hidden>
+						{{ __("Custom") }}
+					</option>
+					<option v-for="o in table_look_opts" :key="o.value" :value="o.value">
+						{{ o.label }}
+					</option>
+				</select>
+			</div>
 			<!-- Header -->
 			<SegmentedRow
 				:label="__('Header')"
@@ -49,6 +38,16 @@
 					{ value: 'none', label: __('None') },
 				]"
 				@update:model-value="(v) => (selected_field.table_header = v)"
+			/>
+			<!-- Cell padding -->
+			<StepperRow
+				:label="__('Cell padding')"
+				:model-value="table_cell_padding"
+				:base="7"
+				unit="px"
+				:placeholder="__('auto')"
+				allow-empty
+				@update:model-value="set_cell_padding"
 			/>
 			<!-- Corner radius -->
 			<StepperRow
@@ -185,6 +184,29 @@
 										@select="(opt) => add_merged_field(col, opt.value)"
 									/>
 								</div>
+								<div
+									v-if="col.merged_fields && col.merged_fields.length"
+									class="pfb-merge-direction"
+								>
+									<SegmentedRow
+										:label="__('Direction')"
+										:model-value="col.merge_direction || 'vertical'"
+										:options="merge_direction_opts"
+										@update:model-value="(v) => (col.merge_direction = v)"
+									/>
+								</div>
+								<div class="pfb-col-cond">
+									<label class="pfb-insp-label">{{
+										__("Show column when")
+									}}</label>
+									<input
+										class="pfb-insp-input"
+										type="text"
+										:placeholder="__('e.g. doc.apply_discount')"
+										:value="col.column_condition || ''"
+										@input="col.column_condition = $event.target.value"
+									/>
+								</div>
 							</div>
 						</div>
 					</template>
@@ -207,12 +229,14 @@
 		<InspectorSection :label="__('Style')" :init-open="false" :padded="false">
 			<div class="pfb-insp-section-body">
 				<ColorField
+					v-if="table_header === 'styled'"
 					:label="__('Header')"
 					:model-value="table_header_bg"
 					:placeholder="__('Default')"
 					@update:model-value="(v) => set_table_prop('table_header_bg', v)"
 				/>
 				<ColorField
+					v-if="has_lines"
 					:label="__('Border')"
 					:model-value="table_border_color"
 					:placeholder="__('Default')"
@@ -225,6 +249,20 @@
 		<!-- VISIBILITY section -->
 		<InspectorSection :label="__('Visibility')" :padded="false">
 			<VisibilitySection v-model="selected_field.visible_if" :previewDoc="preview_doc" />
+			<div class="pfb-row-cond">
+				<label class="pfb-insp-label">{{ __("Show row when") }}</label>
+				<input
+					class="pfb-insp-input"
+					type="text"
+					:placeholder="__('e.g. row.qty > 0')"
+					:value="selected_field.row_condition || ''"
+					@input="selected_field.row_condition = $event.target.value"
+				/>
+				<p class="pfb-insp-hint text-muted">
+					{{ __("Leave blank to show every row. Reference the row with") }}
+					<code>row.fieldname</code>.
+				</p>
+			</div>
 		</InspectorSection>
 	</div>
 </template>
@@ -252,6 +290,12 @@ let table_cell_padding = computed(() => selected_field.value?.table_cell_padding
 let table_radius = computed(() => selected_field.value?.table_radius ?? null);
 let table_header_bg = computed(() => selected_field.value?.table_header_bg ?? "");
 let table_border_color = computed(() => selected_field.value?.table_border_color ?? "");
+let has_lines = computed(
+	() =>
+		table_bordered.value !== false ||
+		table_style.value === "lined" ||
+		table_header.value === "plain"
+);
 
 function set_table_prop(key, value) {
 	if (value) selected_field.value[key] = value;
@@ -268,11 +312,35 @@ function set_table_radius(v) {
 	else selected_field.value.table_radius = v;
 }
 
-const table_style_opts = [
-	{ value: "lined", label: __("Lined") },
+const LOOKS = {
+	grid: { style: "lined", bordered: true },
+	rows: { style: "lined", bordered: false },
+	striped: { style: "striped", bordered: false },
+	clean: { style: "plain", bordered: false },
+};
+
+const table_look_opts = [
+	{ value: "grid", label: __("Grid") },
+	{ value: "rows", label: __("Rows") },
 	{ value: "striped", label: __("Striped") },
-	{ value: "plain", label: __("Plain") },
+	{ value: "clean", label: __("None") },
 ];
+
+let table_look = computed(
+	() =>
+		Object.keys(LOOKS).find(
+			(k) =>
+				LOOKS[k].style === table_style.value && LOOKS[k].bordered === table_bordered.value
+		) ?? null
+);
+
+function set_table_look(look) {
+	const { style, bordered } = LOOKS[look];
+	if (style === "lined") delete selected_field.value.table_style;
+	else selected_field.value.table_style = style;
+	if (bordered) delete selected_field.value.table_bordered;
+	else selected_field.value.table_bordered = bordered;
+}
 
 let child_value_fields = computed(() => {
 	const dt = selected_field.value?.options;
@@ -341,6 +409,11 @@ const merge_style_opts = [
 	{ value: "secondary", label: __("Secondary") },
 	{ value: "mono-sm", label: __("Code") },
 	{ value: "muted-sm", label: __("Muted") },
+];
+
+const merge_direction_opts = [
+	{ value: "vertical", label: __("Vertical") },
+	{ value: "horizontal", label: __("Horizontal") },
 ];
 
 function find_field(fieldname) {
@@ -466,6 +539,11 @@ function set_image_size(col, value) {
 	border-top: 1px solid var(--gray-100);
 }
 
+.pfb-merge-direction {
+	padding: 8px 14px 10px;
+	border-top: 1px solid var(--gray-100);
+}
+
 .pfb-col-config {
 	display: flex;
 	align-items: center;
@@ -509,5 +587,20 @@ function set_image_size(col, value) {
 .pfb-col-editor .pfb-col-remove,
 .pfb-col-editor .pfb-merge-drag {
 	color: var(--gray-400);
+}
+
+.pfb-col-cond {
+	display: flex;
+	flex-direction: column;
+	gap: 6px;
+	padding: 8px 14px 10px;
+	border-top: 1px solid var(--gray-100);
+}
+
+.pfb-row-cond {
+	display: flex;
+	flex-direction: column;
+	gap: 6px;
+	padding: 0 14px 12px;
 }
 </style>

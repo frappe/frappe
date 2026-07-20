@@ -643,7 +643,7 @@ frappe.ui.form.Toolbar = class Toolbar {
 			let doctype = is_doctype_form ? this.frm.docname : this.frm.doctype;
 			let is_core_doctype = frappe.model.core_doctypes_list.includes(doctype);
 
-			if (!is_core_doctype && this.frm.meta.issingle === 0) {
+			if (!is_core_doctype && !frappe.model.is_single(doctype)) {
 				this.page.add_menu_item(
 					__("Settings"),
 					() => {

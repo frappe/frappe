@@ -46,7 +46,7 @@ def get_permission_query_conditions(user):
 	]
 
 	if allowed_doctypes:
-		doctype_condition = "`tabDashboard Chart`.`document_type` in ({allowed_doctypes})".format(
+		doctype_condition = "`tabDashboard Chart`.`document_type` in ({allowed_doctypes}) OR `tabDashboard Chart`.`parent_document_type` in ({allowed_doctypes})".format(
 			allowed_doctypes=",".join(allowed_doctypes)
 		)
 	if allowed_reports:

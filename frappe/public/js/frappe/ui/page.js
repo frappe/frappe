@@ -26,6 +26,21 @@ frappe.ui.make_app_page = function (opts) {
 
 frappe.ui.pages = {};
 
+// bootstrap button types (the public add_inner_button/add_button vocabulary)
+// mapped onto the es-button contract; unknown types fall back to subtle
+const BTN_TYPE_TO_ES = {
+	default: { variant: "subtle" },
+	secondary: { variant: "subtle" },
+	light: { variant: "subtle" },
+	primary: { variant: "solid" },
+	danger: { variant: "solid", theme: "red" },
+	ghost: { variant: "ghost" },
+};
+
+function es_opts_for_btn_type(type) {
+	return BTN_TYPE_TO_ES[type] || BTN_TYPE_TO_ES.default;
+}
+
 frappe.ui.Page = class Page {
 	constructor(opts) {
 		$.extend(this, opts);
@@ -37,6 +52,9 @@ frappe.ui.Page = class Page {
 
 		this.make();
 		if (!Object.keys(opts).includes("hide_sidebar")) this.hide_sidebar = false;
+		// pages can hide just the workspace dock (while keeping the body sidebar) via this option;
+		// a page that hides the whole sidebar hides the dock too (see Sidebar.page_hides_dock)
+		if (!Object.keys(opts).includes("hide_workspace_dock")) this.hide_workspace_dock = false;
 		frappe.ui.pages[frappe.get_route_str()] = this;
 	}
 
@@ -159,7 +177,7 @@ frappe.ui.Page = class Page {
 		this.filters = this.wrapper.find(".filters");
 		this.page_head = this.wrapper.find(".page-head");
 		this.btn_primary = this.page_actions.find(".primary-action");
-		this.btn_secondary = this.page_actions.find(".btn-secondary");
+		this.btn_secondary = this.page_actions.find(".secondary-action");
 
 		this.menu = this.page_actions.find(".menu-btn-group .dropdown-menu");
 		this.menu_btn_group = this.page_actions.find(".menu-btn-group");
@@ -187,14 +205,15 @@ frappe.ui.Page = class Page {
 			.on("click mousedown", function () {
 				$(this).tooltip("hide");
 			});
-		frappe.ui.keys
-			.get_shortcut_group(this.page_actions[0])
-			.add(menu_btn, menu_btn.find(".menu-btn-group-label"));
+		frappe.ui.keys.get_shortcut_group(this.page_actions[0]).add(menu_btn);
 
+		// desktop shows "Actions" + chevron; mobile keeps just the chevron.
+		// actions-btn-group-label stays as the legacy hook name for the span.
 		let action_btn = this.actions_btn_group.find("button");
-		frappe.ui.keys
-			.get_shortcut_group(this.page_actions[0])
-			.add(action_btn, action_btn.find(".actions-btn-group-label"));
+		let action_btn_label = action_btn
+			.find(".es-button__label")
+			.addClass("hidden-xs actions-btn-group-label");
+		frappe.ui.keys.get_shortcut_group(this.page_actions[0]).add(action_btn, action_btn_label);
 
 		// https://axesslab.com/skip-links
 		this.skip_link_to_main = $("<button>")
@@ -280,46 +299,81 @@ frappe.ui.Page = class Page {
 
 	set_action(btn, opts) {
 		let me = this;
-		if (opts.icon) {
-			opts.iconHTML = this.get_icon_label(opts.icon, opts.label);
-		}
 
 		this.clear_action_of(btn);
 
+		// icon can be a name or { icon, size } — the es contract sizes icons
+		// from the button itself, so only the name matters now. Guard against
+		// null: callers pass it to skip the icon (typeof null === "object")
+		const icon = opts.icon && typeof opts.icon === "object" ? opts.icon.icon : opts.icon;
+		const dress_opts = {
+			label: opts.label,
+			icon: icon,
+			variant: opts.variant,
+		};
+		// only pass loading_label through when the caller gave one, so the
+		// component's default map (Save → Saving...) still applies otherwise
+		if (opts.working_label) {
+			dress_opts.loading_label = opts.working_label;
+		}
+		frappe.ui.button.dress(btn, dress_opts);
+
 		btn.removeClass("hide")
 			.prop("disabled", false)
-			.html(opts.iconHTML || opts.label)
 			.attr("data-label", opts.label)
 			.on("click", function () {
+				// busy blocks the mouse via pointer-events, but keyboard
+				// activation still fires — guard re-entry
+				if (btn.attr("aria-busy") === "true") return;
 				let response = opts.click.apply(this, [btn]);
 				me.btn_disable_enable(btn, response);
 			});
+
+		if (opts.short_label) {
+			// responsive label pair: the full label shows from md up, the short
+			// one below md (hidden-xs and hidden-lg are exact complements at
+			// the 768px boundary) — CSS decides, so resizing just works
+			btn.find(".es-button__label").addClass("hidden-xs");
+			$('<span class="es-button__label hidden-lg"></span>')
+				.text(opts.short_label)
+				.insertAfter(btn.find(".es-button__label").first());
+		} else if (opts.icon) {
+			// with an icon and no short label, mobile shows the icon alone
+			// (page.scss squares the button into an icon button below md)
+			btn.find(".es-button__label").addClass("hidden-xs");
+		}
 
 		if (opts.working_label) {
 			btn.attr("data-working-label", opts.working_label);
 		}
 
-		// alt shortcuts
-		let text_span = btn.find("span");
+		// alt shortcuts — pass the full label span alone; the button also
+		// contains the spinner, loading-label and short-label spans, whose
+		// text must not join in
+		let text_span = btn.find(".es-button__label").first();
 		frappe.ui.keys.get_shortcut_group(this).add(btn, text_span.length ? text_span : btn);
 	}
 
+	// `label` can be a plain string, or { label, short_label } to show a
+	// shorter text below the md breakpoint (e.g. "Add" for "Add Sales Order")
 	set_primary_action(label, click, icon, working_label) {
 		this.set_action(this.btn_primary, {
-			label: label,
+			...(label && typeof label === "object" ? label : { label }),
 			click: click,
 			icon: icon,
 			working_label: working_label,
+			variant: "solid",
 		});
 		return this.btn_primary;
 	}
 
 	set_secondary_action(label, click, icon, working_label) {
 		this.set_action(this.btn_secondary, {
-			label: label,
+			...(label && typeof label === "object" ? label : { label }),
 			click: click,
 			icon: icon,
 			working_label: working_label,
+			variant: "subtle",
 		});
 
 		return this.btn_secondary;
@@ -575,13 +629,21 @@ frappe.ui.Page = class Page {
 		if (!$group.length) {
 			$group = $(
 				`<div class="inner-group-button" data-label="${encodeURIComponent(label)}">
-					<button type="button" class="btn btn-default ellipsis" data-toggle="dropdown" aria-haspopup="true" aria-expanded="false">
-						${label}
-						${frappe.utils.icon("chevrons-up-down", "xs")}
-					</button>
 					<div role="menu" class="dropdown-menu ${align_right ? "dropdown-menu-right" : ""}"></div>
 				</div>`
 			).appendTo(this.inner_toolbar);
+			frappe.ui
+				.button({
+					label: label,
+					icon_right: "chevrons-up-down",
+					css_class: "ellipsis",
+					attrs: {
+						"data-toggle": "dropdown",
+						"aria-haspopup": "true",
+						"aria-expanded": "false",
+					},
+				})
+				.prependTo($group);
 		}
 		return $group;
 	}
@@ -597,23 +659,24 @@ frappe.ui.Page = class Page {
 		const dropdown_items = group.find(".dropdown-menu .dropdown-item");
 
 		if (dropdown_items.length > 0) {
-			group.find("button").removeClass("btn-default").addClass("btn-primary");
+			group.find("button").attr("data-variant", "solid");
 		} else {
 			group.toggleClass("hide", true);
 		}
 	}
 
 	btn_disable_enable(btn, response) {
+		// aria-busy, not disabled: disabling ejects keyboard focus, busy shows
+		// the es-button spinner/loading-label and blocks clicks. Direct
+		// .prop("disabled") pokes from outside still work (es-button styles
+		// :disabled) — this only changes what the page does on its own.
+		const busy = (on) => (on ? btn.attr("aria-busy", "true") : btn.removeAttr("aria-busy"));
 		if (response && response.then) {
-			btn.prop("disabled", true);
-			response.finally(() => {
-				btn.prop("disabled", false);
-			});
+			busy(true);
+			response.finally(() => busy(false));
 		} else if (response && response.always) {
-			btn.prop("disabled", true);
-			response.always(() => {
-				btn.prop("disabled", false);
-			});
+			busy(true);
+			response.always(() => busy(false));
 		}
 	}
 	add_divider_to_button_group(group) {
@@ -663,11 +726,12 @@ frappe.ui.Page = class Page {
 				`button[data-label="${encodeURIComponent(label)}"]`
 			);
 			if (button.length == 0) {
-				button = $(`<button data-label="${encodeURIComponent(
-					label
-				)}" class="btn btn-${type} ellipsis">
-					${__(label)}
-				</button>`);
+				button = frappe.ui.button({
+					label: __(label),
+					...es_opts_for_btn_type(type),
+					css_class: "ellipsis",
+					attrs: { "data-label": encodeURIComponent(label) },
+				});
 				button.on("click", _action);
 				button.appendTo(this.inner_toolbar.removeClass("hide"));
 			}
@@ -697,16 +761,25 @@ frappe.ui.Page = class Page {
 		let btn;
 
 		if (group) {
+			// dropdown items keep the legacy class treatment until the menu
+			// wave; note this strips any extra classes (pre-existing behavior)
 			var $group = this.get_inner_group_button(__(group));
 			if ($group.length) {
 				btn = $group.find(`.dropdown-item[data-label="${encodeURIComponent(label)}"]`);
+				if (btn) btn.removeClass().addClass(`btn btn-${type} ellipsis`);
 			}
 		} else {
+			// es-buttons change look via data attributes — the classes
+			// (es-button, ellipsis, data-label hooks) must survive
 			btn = this.inner_toolbar.find(`button[data-label="${encodeURIComponent(label)}"]`);
-		}
-
-		if (btn) {
-			btn.removeClass().addClass(`btn btn-${type} ellipsis`);
+			if (btn.length) {
+				const es = es_opts_for_btn_type(type);
+				// defaults (subtle/gray) are expressed by NO attribute
+				es.variant === "subtle"
+					? btn.removeAttr("data-variant")
+					: btn.attr("data-variant", es.variant);
+				es.theme ? btn.attr("data-theme", es.theme) : btn.removeAttr("data-theme");
+			}
 		}
 	}
 
@@ -766,11 +839,19 @@ frappe.ui.Page = class Page {
 
 	add_button(label, click, opts) {
 		if (!opts) opts = {};
-		let button = $(`<button
-			class="btn ${opts.btn_class || "btn-default"} ${opts.btn_size || "btn-sm"} ellipsis">
-				${opts.icon ? frappe.utils.icon(opts.icon) : ""}
-				${label}
-		</button>`);
+		// btn_class/btn_size keep their bootstrap vocabulary ("btn-primary",
+		// "btn-xs") and are mapped onto the es contract; a class we don't
+		// recognize passes through so custom hooks keep working
+		const type = (opts.btn_class || "btn-default").replace(/^btn-/, "");
+		const known = Boolean(BTN_TYPE_TO_ES[type]);
+		let button = frappe.ui.button({
+			label: label,
+			icon: opts.icon,
+			...es_opts_for_btn_type(type),
+			size: opts.btn_size === "btn-xs" ? "xs" : undefined,
+			css_class: ["ellipsis", !known && opts.btn_class].filter(Boolean).join(" "),
+			attrs: { "data-label": encodeURIComponent(label) },
+		});
 		// Add actions as menu item in Mobile View (similar to "add_custom_button" in forms.js)
 		let menu_item = this.add_menu_item(label, click, false);
 		menu_item.parent().addClass("hidden-xl");
@@ -783,30 +864,28 @@ frappe.ui.Page = class Page {
 	}
 
 	add_custom_button_group(label, icon, parent) {
-		let dropdown_label = `<span class="hidden-xs">
-			<span class="custom-btn-group-label">${__(label)}</span>
-			${frappe.utils.icon("chevrons-up-down", "xs")}
-		</span>`;
-
-		if (icon) {
-			dropdown_label = `<span class="hidden-xs">
-				${frappe.utils.icon(icon)}
-				<span class="custom-btn-group-label">${__(label)}</span>
-				${frappe.utils.icon("chevrons-up-down", "xs")}
-			</span>
-			<span class="visible-xs">
-				${frappe.utils.icon(icon)}
-			</span>`;
-		}
-
 		let custom_btn_group = $(`
 			<div class="custom-btn-group">
-				<button type="button" class="btn btn-default btn-sm ellipsis" data-toggle="dropdown" aria-expanded="false">
-					${dropdown_label}
-				</button>
 				<ul class="dropdown-menu" role="menu"></ul>
 			</div>
 		`);
+
+		let $button = frappe.ui.button({
+			label: __(label),
+			icon: icon,
+			icon_right: "chevrons-up-down",
+			css_class: "ellipsis",
+			attrs: { "data-toggle": "dropdown", "aria-expanded": "false" },
+		});
+		$button.find(".es-button__label").addClass("custom-btn-group-label");
+		if (icon) {
+			// with an icon, mobile collapses to it alone: label and chevron
+			// hide below md and page.scss squares the button. Without an icon
+			// there is nothing to collapse to, so the label stays.
+			$button.find(".es-button__label").addClass("hidden-xs");
+			$button.children("svg").last().addClass("hidden-xs");
+		}
+		$button.prependTo(custom_btn_group);
 
 		if (!parent)
 			parent = frappe.is_mobile() ? this.custom_mobile_actions : this.custom_actions;

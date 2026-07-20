@@ -39,6 +39,15 @@ SERVER_ONLY_CLASSES = {
 	"letter-head",
 	# Chrome PDF overlay wrapper (templates/print_formats/chrome_pdf_header_footer.html)
 	"document-header",
+	# opt-in colon after labels: driven by a Print Setting the builder canvas doesn't read,
+	# so the class is added to the print body only, never on the canvas
+	"show-label-colon",
+	# per-section "keep together" is page-break-inside:avoid — a pure pagination
+	# concern with no effect on the non-paginated canvas, so it's print-only
+	"keep-together",
+	# per-section "page break" is page-break-after:always — likewise pagination-only;
+	# the canvas renders a separate .page-break-indicator element, not this class
+	"page-break",
 }
 CANVAS_ONLY_CLASSES = set()
 
@@ -56,6 +65,15 @@ def _canvas_text():
 @functools.cache
 def _field_vue_text():
 	return (BUILDER_DIR / "components" / "editor" / "Field.vue").read_text()
+
+
+@functools.cache
+def _canvas_logic_text():
+	"""The preview surface that reads df.* — Field.vue dispatches to the
+	FieldPreview* components, which lean on the composables; a df prop handled
+	in any of them is mirrored, so the check spans .vue markup + composables."""
+	js = "\n".join(p.read_text() for p in sorted((BUILDER_DIR / "composables").glob("*.js")))
+	return _canvas_text() + "\n" + js
 
 
 @functools.cache
@@ -149,11 +167,11 @@ class TestPrintSurfaceMarkupContract(UnitTestCase):
 		skip = {"get", "renderer", "section", "html"}
 		macro = macro_path.read_text()
 		props = set(re.findall(r"df\.([a-z_]+)", macro)) - skip
-		missing = sorted(p for p in props if f"df.{p}" not in _field_vue_text())
+		missing = sorted(p for p in props if f"df.{p}" not in _canvas_logic_text())
 		self.assertFalse(
 			missing,
-			f"{macro_path.name} reads df properties {missing} that Field.vue never handles — "
-			"the canvas preview will silently ignore them. Mirror them in Field.vue's preview markup.",
+			f"{macro_path.name} reads df properties {missing} that the canvas preview never handles — "
+			"the preview will silently ignore them. Mirror them in Field.vue or its FieldPreview* components.",
 		)
 
 
@@ -228,6 +246,80 @@ class TestPrintSurfaceParity(IntegrationTestCase):
 		self.addCleanup(doc.delete, ignore_permissions=True)
 		return doc
 
+	def _doc_body(self, html):
+		from bs4 import BeautifulSoup
+
+		el = BeautifulSoup(html, "html.parser").find(class_="print-format-doc")
+		self.assertIsNotNone(el, "render is missing the .print-format-doc body")
+		return self.normalize_html(str(el))
+
+	def test_preview_and_pdf_bodies_are_identical(self):
+		"""The builder preview (get_html_preview) and the PDF pipeline
+		(_build_html_for_chrome) must emit the same .print-format-doc body. Both
+		go through get_main_html(), so any divergence is a regression that would
+		make the on-screen preview lie about the printed output."""
+		from frappe.utils.print_format_generator import PrintFormatGenerator
+
+		fmt = self._make_contact_format()
+		contact = self._make_contact()
+
+		preview = PrintFormatGenerator(fmt, contact).get_html_preview()
+		pdf = PrintFormatGenerator(fmt, contact)._build_html_for_chrome()
+
+		self.assertEqual(self._doc_body(preview), self._doc_body(pdf))
+
+	def test_builder_preview_endpoint_matches_saved_render(self):
+		"""render_builder_preview() renders an UNSAVED in-memory format; its body
+		must match the saved format's print render (which the PDF shares), so a
+		live preview of unsaved edits shows exactly what will print."""
+		from frappe.utils.print_format_generator import get_html, render_builder_preview
+
+		fmt = self._make_contact_format()
+		contact = self._make_contact()
+
+		saved = get_html("Contact", contact.name, fmt.name)
+		live = render_builder_preview(frappe.as_json(fmt.as_dict()), "Contact", name=contact.name)
+
+		self.assertEqual(self._doc_body(saved), self._doc_body(live))
+
+	def test_formatted_field_values_match_print(self):
+		"""The canvas sources values from get_formatted_field_values; each value must
+		be the same one the print render emits, so the builder can't reformat it
+		differently (the whole point — one formatter, not two)."""
+		from frappe.utils.print_format_generator import get_formatted_field_values, get_html
+
+		fmt = self._make_contact_format()
+		contact = self._make_contact()
+
+		result = get_formatted_field_values("Contact", contact.name)
+		html = get_html("Contact", contact.name, fmt.name)
+
+		self.assertEqual(result["values"]["first_name"], contact.get_formatted("first_name"))
+		self.assertIn(result["values"]["first_name"], html)
+
+		email_rows = result["child"]["email_ids"]
+		self.assertEqual(email_rows[0]["email_id"], contact.email_ids[0].get_formatted("email_id"))
+
+	def test_formatted_field_values_respect_permlevel(self):
+		"""A reader without permlevel access must not get restricted field values —
+		the endpoint returns raw field data, so it has to honour permlevel like the
+		render path does."""
+		from unittest.mock import patch
+
+		from frappe.utils.print_format_generator import get_formatted_field_values
+
+		contact = self._make_contact()
+		restricted = frappe.get_meta("Contact").get_field("first_name")
+
+		with (
+			patch.object(restricted, "permlevel", 1),
+			patch("frappe.model.document.Document.has_permlevel_access_to", return_value=False),
+		):
+			result = get_formatted_field_values("Contact", contact.name)
+
+		self.assertNotIn("first_name", result["values"])
+		self.assertIn("email_ids", result["child"])
+
 	def test_rendered_html_carries_shared_markup_contract(self):
 		"""The server render must produce the markup vocabulary the shared
 		stylesheet and the canvas both rely on."""
@@ -245,7 +337,8 @@ class TestPrintSurfaceParity(IntegrationTestCase):
 			'data-fieldname="first_name"',
 			'data-fieldtype="Data"',
 			"child-table child-table--lined",
-			'<table class="table table-bordered">',
+			"child-table--bordered",
+			'<table class="table">',
 			"column-header",
 			'data-fieldname="idx"',
 			'data-fieldname="email_id"',

@@ -1,17 +1,13 @@
-/* Fix bootstrap column rendering in PDF */
-@media print {
-	.print-format-doc .col, .print-format-doc *[class^="col-"] {
-		max-width: none !important;
-	}
-	.print-format-doc .label {
-		border: none;
-	}
+.print-format-doc .col,
+.print-format-doc *[class^="col-"] {
+	max-width: none !important;
 }
-
-@media screen {
-	.print-format-doc .child-table {
-		overflow-x: auto;
-	}
+.print-format-doc {
+	-webkit-print-color-adjust: exact;
+	print-color-adjust: exact;
+}
+.print-format-doc .label {
+	border: none;
 }
 
 /* em only, never rem (the canvas rem root is the desk page); values inside a
@@ -19,10 +15,10 @@
 .print-format-doc .section-label {
 	font-size: 1.1em;
 	font-weight: 700;
-	color: #1a1a1a;
+	color: var(--gray-900);
 	padding-bottom: 0.3182em;
 	margin-bottom: 0.6818em;
-	border-bottom: 1.5px solid #e2e2e2;
+	border-bottom: 1.5px solid var(--gray-300);
 	/* Don't let the section heading sit alone at the bottom of a page */
 	break-after: avoid;
 	page-break-after: avoid;
@@ -41,12 +37,12 @@
 /* Stacked (default): muted label above value */
 .print-format-doc .field .label {
 	font-size: 1em;
-	color: #6b7280;
+	color: var(--gray-600);
 	margin-bottom: 0.1em;
 }
 
 .print-format-doc .field .value {
-	color: #111827;
+	color: var(--gray-900);
 }
 
 /* Left-right (section-level): label shrinks to content width, value takes the rest */
@@ -61,7 +57,7 @@
 .print-format-doc .field.field-inline .label {
 	flex-shrink: 0;
 	font-size: 1em;
-	color: #374151;
+	color: var(--gray-800);
 	text-transform: none;
 	letter-spacing: 0;
 	padding-top: 0.05em;
@@ -69,6 +65,10 @@
 }
 
 .print-format-doc .field.field-inline .label::after {
+	content: ":";
+}
+
+.print-format-doc.show-label-colon .field .label::after {
 	content: ":";
 }
 
@@ -115,11 +115,21 @@
 	flex: none;
 }
 
-.print-format-doc .field.left-right.field-align-right { justify-content: flex-end; }
-.print-format-doc .field.left-right.field-align-center { justify-content: center; }
-.print-format-doc .field.left-right.field-justify-space-between { justify-content: space-between; }
-.print-format-doc .field.left-right.field-justify-space-between .value { text-align: right; }
-.print-format-doc .field.left-right.field-justify-space-evenly { justify-content: space-evenly; }
+.print-format-doc .field.left-right.field-align-right {
+	justify-content: flex-end;
+}
+.print-format-doc .field.left-right.field-align-center {
+	justify-content: center;
+}
+.print-format-doc .field.left-right.field-justify-space-between {
+	justify-content: space-between;
+}
+.print-format-doc .field.left-right.field-justify-space-between .value {
+	text-align: right;
+}
+.print-format-doc .field.left-right.field-justify-space-evenly {
+	justify-content: space-evenly;
+}
 
 /* Repeater */
 .print-format-doc .pfb-repeater-table {
@@ -146,88 +156,105 @@
 .print-format-doc .child-table > .label {
 	font-size: 0.8em;
 	font-weight: 600;
-	color: #6b7280;
+	color: var(--gray-600);
 	margin-bottom: 0.5em;
 }
 
 .print-format-doc .child-table .table {
 	font-size: 0.9em;
-	border-collapse: collapse;
+	border-collapse: separate;
+	border-spacing: 0;
+	margin: 0;
 	width: 100%;
+	table-layout: fixed;
+	word-break: break-word;
 }
 
-/* !important needed: bootstrap print styles set table-bordered cell borders with !important */
+@media print {
+	.print-format-doc .child-table .table {
+		border-collapse: separate !important;
+		border-spacing: 0 !important;
+	}
+}
+
 .print-format-doc .child-table .table th {
-	color: #374151;
+	color: var(--gray-800);
 	font-weight: 600;
 	font-size: 0.85em;
 	padding: 0.5882em 0.7843em;
 	border: none !important;
 }
 
-/* header background lives on the row, not each cell, so a wrapper's border-radius
-   clips one continuous bar instead of fighting per-cell backgrounds at the seams */
-.print-format-doc .child-table .table thead tr {
-	background-color: #f3f4f6 !important;
+.print-format-doc .child-table .table thead th {
+	background-color: var(--pfb-header-bg, var(--gray-100)) !important;
+}
+
+.print-format-doc .child-table:not(.child-table--plain-header) .table thead th:first-child {
+	border-top-left-radius: var(--pfb-radius, 0);
+}
+
+.print-format-doc .child-table:not(.child-table--plain-header) .table thead th:last-child {
+	border-top-right-radius: var(--pfb-radius, 0);
+}
+
+.print-format-doc
+	.child-table--lined:not(.child-table--bordered):not(.child-table--plain-header)
+	.table
+	thead
+	th:first-child {
+	border-bottom-left-radius: var(--pfb-radius, 0);
+}
+
+.print-format-doc
+	.child-table--lined:not(.child-table--bordered):not(.child-table--plain-header)
+	.table
+	thead
+	th:last-child {
+	border-bottom-right-radius: var(--pfb-radius, 0);
+}
+
+.print-format-doc .child-table .table tbody tr:last-child td:first-child {
+	border-bottom-left-radius: var(--pfb-radius, 0);
+}
+
+.print-format-doc .child-table .table tbody tr:last-child td:last-child {
+	border-bottom-right-radius: var(--pfb-radius, 0);
 }
 
 .print-format-doc .child-table .table td {
 	padding: 0.5em 0.6667em;
-	border: 1px solid #e5e7eb !important;
+	border: none !important;
+	background-color: var(--white) !important;
 	vertical-align: top;
 }
 
-/* lined (default): no row alternation — target td directly to beat Bootstrap @media print */
-.print-format-doc .child-table--lined .table .odd td,
-.print-format-doc .child-table--lined .table .even td {
-	background-color: #ffffff !important;
-}
-
-/* striped: alternating rows */
-.print-format-doc .child-table--striped .table .odd td {
-	background-color: #ffffff !important;
+.print-format-doc .child-table--lined .table td {
+	border-bottom: 1px solid var(--gray-300) !important;
 }
 
 .print-format-doc .child-table--striped .table .even td {
-	background-color: #f9fafb !important;
+	background-color: var(--gray-50) !important;
 }
 
-/* plain: no borders, bottom dividers only */
-.print-format-doc .child-table--plain .table {
-	border: none;
+.print-format-doc .child-table--bordered .table th,
+.print-format-doc .child-table--bordered .table td {
+	border-right: 1px solid var(--gray-300) !important;
+	border-bottom: 1px solid var(--gray-300) !important;
 }
 
-/* !important needed: bootstrap print styles set table-bordered cell borders with !important */
-.print-format-doc .child-table--plain .table th,
-.print-format-doc .child-table--plain .table td {
-	border: none !important;
-	border-bottom: 1px solid #e5e7eb !important;
+.print-format-doc .child-table--bordered .table th:first-child,
+.print-format-doc .child-table--bordered .table td:first-child {
+	border-left: 1px solid var(--gray-300) !important;
 }
 
-.print-format-doc .child-table--plain .table thead tr {
+.print-format-doc .child-table--bordered .table thead th {
+	border-top: 1px solid var(--gray-300) !important;
+}
+
+/* plain header: no fill, a single rule under the header row instead */
+.print-format-doc .child-table--plain-header .table thead th {
 	background-color: transparent !important;
-}
-
-.print-format-doc .child-table--plain .table .odd td,
-.print-format-doc .child-table--plain .table .even td {
-	background-color: #ffffff !important;
-}
-
-/* borderless variant */
-.print-format-doc .child-table--borderless .table th,
-.print-format-doc .child-table--borderless .table td {
-	border: none !important;
-	border-bottom: 1px solid #e5e7eb !important;
-}
-
-/* plain header variant: no fill, a single rule under the header row instead */
-.print-format-doc .child-table--plain-header .table thead tr {
-	background-color: transparent !important;
-}
-
-.print-format-doc .child-table--plain-header .table th {
-	border: none !important;
-	border-bottom: 1px solid #e5e7eb !important;
+	border-bottom: 1px solid var(--gray-300) !important;
 }
 
 .print-format-doc .child-table [data-fieldtype="Currency"],
@@ -246,6 +273,37 @@
    this wins the cascade without needing !important. */
 .print-format-doc .child-table .column-value--merged {
 	text-align: left;
+}
+
+/* numeric merged cells keep their right alignment */
+.print-format-doc .child-table [data-fieldtype="Currency"].column-value--merged,
+.print-format-doc .child-table [data-fieldtype="Float"].column-value--merged,
+.print-format-doc .child-table [data-fieldtype="Int"].column-value--merged {
+	text-align: right;
+}
+
+.print-format-doc .child-table [data-fieldtype="Currency"].column-value--merged .cell-merged,
+.print-format-doc .child-table [data-fieldtype="Float"].column-value--merged .cell-merged,
+.print-format-doc .child-table [data-fieldtype="Int"].column-value--merged .cell-merged,
+.print-format-doc
+	.child-table
+	[data-fieldtype="Currency"].column-value--merged
+	.cell-lines--horizontal,
+.print-format-doc
+	.child-table
+	[data-fieldtype="Float"].column-value--merged
+	.cell-lines--horizontal,
+.print-format-doc
+	.child-table
+	[data-fieldtype="Int"].column-value--merged
+	.cell-lines--horizontal {
+	justify-content: flex-end;
+}
+
+.print-format-doc .child-table [data-fieldtype="Currency"].column-value--merged .cell-lines,
+.print-format-doc .child-table [data-fieldtype="Float"].column-value--merged .cell-lines,
+.print-format-doc .child-table [data-fieldtype="Int"].column-value--merged .cell-lines {
+	align-items: flex-end;
 }
 
 .print-format-doc .child-table .cell-merged {
@@ -281,13 +339,20 @@
 	min-width: 0;
 }
 
+.print-format-doc .child-table .cell-lines--horizontal {
+	flex-direction: row;
+	flex-wrap: wrap;
+	align-items: baseline;
+	column-gap: 0.6em;
+}
+
 .print-format-doc .child-table .cell-line {
 	word-break: break-word;
 }
 
 .print-format-doc .child-table .cell-line--primary,
 .print-format-doc .child-table .cell-line--secondary {
-	color: #111827;
+	color: var(--gray-900);
 }
 
 .print-format-doc .child-table .cell-line--primary {
@@ -301,19 +366,24 @@
 .print-format-doc .child-table .cell-line--mono-sm,
 .print-format-doc .child-table .cell-line--muted-sm {
 	font-size: 0.85em;
-	color: #6b7280;
+	color: var(--gray-600);
 }
 
 .print-format-doc .page-break {
 	page-break-after: always;
 }
 
+.print-format-doc .section.keep-together {
+	page-break-inside: avoid;
+	break-inside: avoid;
+}
+
 /* Override Bootstrap's tr { page-break-inside: avoid } so tall child-table rows
    flow across pages; keep thead repeating on each new page. */
 @media print {
 	.print-format-doc .child-table tr {
-		page-break-inside: auto;
-		break-inside: auto;
+		page-break-inside: avoid;
+		break-inside: avoid;
 	}
 	.print-format-doc .child-table thead {
 		display: table-header-group;
@@ -361,14 +431,15 @@
 .print-format-doc .document-header {
 	border-bottom-width: 1px;
 	border-bottom-style: solid;
-	border-bottom-color: #e5e7eb;
+	border-bottom-color: var(--gray-300);
 }
 
 .print-format-doc .field[data-fieldtype="Rating"] .rating-star {
 	width: 1.5em;
 }
 
-.print-format-doc .field[data-fieldtype="Long Text"] .value, .print-format-doc .field[data-fieldtype="Text"] .value {
+.print-format-doc .field[data-fieldtype="Long Text"] .value,
+.print-format-doc .field[data-fieldtype="Text"] .value {
 	white-space: pre-line;
 }
 
@@ -390,7 +461,7 @@
 
 /* ── Table layout (field-borders mode) ───────────────────── */
 .print-format-doc .section--grid {
-	border: 1px solid #e5e7eb;
+	border: 1px solid var(--gray-300);
 	border-radius: var(--border-radius-md, 8px);
 	overflow: hidden;
 	padding: 0;
@@ -398,7 +469,7 @@
 .print-format-doc .section--grid .section-label {
 	padding: var(--pfb-cell-pad, 8px);
 	margin: 0;
-	border-bottom: 1px solid #e5e7eb;
+	border-bottom: 1px solid var(--gray-300);
 }
 .print-format-doc .section--grid .section-columns {
 	padding: 0;
@@ -409,11 +480,11 @@
 	padding: 0;
 }
 .print-format-doc .section--grid .col:not(:last-child) {
-	border-right: 1px solid #e5e7eb;
+	border-right: 1px solid var(--gray-300);
 }
 .print-format-doc .section--grid .field {
 	padding: var(--pfb-cell-pad, 8px);
-	border-bottom: 1px solid #e5e7eb;
+	border-bottom: 1px solid var(--gray-300);
 }
 .print-format-doc .section--grid .field + .field {
 	margin-top: 0;
@@ -426,4 +497,9 @@
 }
 .print-format-doc .section--grid-columns .field {
 	border-bottom: none;
+}
+
+.print-format-doc .custom-html .row {
+	margin-left: 0;
+	margin-right: 0;
 }

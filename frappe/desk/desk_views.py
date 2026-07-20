@@ -121,7 +121,7 @@ class DeskViews:
 		"""
 		if cache:
 			cached = frappe.cache.get_value(key, user=user)
-			if cached:
+			if cached is not None:
 				return cached
 
 		value = builder()
@@ -230,15 +230,21 @@ class DeskViews:
 
 			reports = frappe.get_list(
 				"Report",
-				fields=["name", "report_type"],
+				fields=["name", "report_type", "ref_doctype"],
 				filters={"name": ("in", has_role.keys())},
 				ignore_ifnull=True,
 				user=user,
 			)
+			permitted_names = set()
 			for report in reports:
+				if report.ref_doctype and not has_permission(
+					report.ref_doctype, "report", user=user, print_logs=False
+				):
+					continue
 				has_role[report.name]["report_type"] = report.report_type
+				permitted_names.add(report.name)
 
-			non_permitted_reports = set(has_role.keys()) - {r.name for r in reports}
+			non_permitted_reports = set(has_role.keys()) - permitted_names
 			for r in non_permitted_reports:
 				has_role.pop(r, None)
 

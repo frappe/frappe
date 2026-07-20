@@ -1,6 +1,18 @@
 # Copyright (c) 2015, Frappe Technologies Pvt. Ltd. and Contributors
 # License: MIT. See LICENSE
+import copy
 from typing import Any
+
+
+def as_aliased_field(df, alias: str | None):
+	"""Return the docfield keyed by the alias it is selected under, since masking matches
+	the result columns by fieldname (`items.rate as 'Item:rate'` lands under `Item:rate`)."""
+	if not alias:
+		return df
+
+	df = copy.copy(df)
+	df.fieldname = alias
+	return df
 
 
 def mask_field_value(field, val):
@@ -74,10 +86,15 @@ def mask_pluck_results(
 	# surface the underlying "secret" reference. Non-Term items (raw string
 	# fieldnames) don't have fields_(); fall back to a shallow name check.
 	first = fields[0]
-	if hasattr(first, "fields_"):
+	alias = getattr(first, "alias", None)
+
+	if alias and alias in masked_names:
+		hit_name = alias
+	elif hasattr(first, "fields_"):
 		hit_name = next((f.name for f in first.fields_() if f.name in masked_names), None)
 	else:
-		name = getattr(first, "name", None)
+		# child / link fields selected through dot notation carry `fieldname`, not `name`
+		name = getattr(first, "name", None) or getattr(first, "fieldname", None)
 		hit_name = name if name in masked_names else None
 
 	if not hit_name:

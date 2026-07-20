@@ -122,7 +122,7 @@ context("Print Format Builder — create flow", () => {
 		cy.intercept("POST", "api/method/frappe.client.save").as("save");
 		cy.visit(`/app/print-format-builder/${encodeURIComponent(PF_NAME)}`);
 
-		cy.get(".pfb-tab[title='Format']", { timeout: 30000 }).click();
+		cy.get(".pfb-tab[title='Setting']", { timeout: 30000 }).click();
 		cy.get(".pfb-margin-grid").should("be.visible");
 
 		cy.get(".freeze").should("not.exist");
@@ -160,11 +160,11 @@ context("Print Format Builder — create flow", () => {
 		cy.visit(`/app/print-format-builder/${encodeURIComponent(PF_NAME)}`);
 
 		cy.get(".pfb-tab[title='Outline']", { timeout: 30000 }).click();
-		cy.contains(".pfb-outline-item", "Beta").click();
+		cy.contains(".pfb-tree-row", "Beta").click();
 
 		cy.get(".pfb-inspector").should("contain", "Section");
 		cy.get(".pfb-inspector").should("contain", "Beta");
-		cy.contains(".pfb-outline-item", "Beta").should("have.class", "active");
+		cy.contains(".pfb-tree-row", "Beta").should("have.class", "active");
 	});
 
 	// 5. Field inspector breadcrumb navigates back to parent section
@@ -188,7 +188,7 @@ context("Print Format Builder — create flow", () => {
 		cy.visit(`/app/print-format-builder/${encodeURIComponent(PF_NAME)}`);
 
 		cy.get(".pfb-tab[title='Outline']", { timeout: 30000 }).click();
-		cy.contains(".pfb-outline-item", "Details").click();
+		cy.contains(".pfb-tree-row", "Details").click();
 
 		cy.get(".print-format-container").click();
 		cy.contains("[data-pfb-section]", "Details").find(".field").first().click({ force: true });
@@ -211,7 +211,7 @@ context("Print Format Builder — create flow", () => {
 		cy.intercept("POST", "api/method/frappe.client.save").as("save");
 		cy.visit(`/app/print-format-builder/${encodeURIComponent(PF_NAME)}`);
 
-		cy.get(".pfb-tab[title='Format']", { timeout: 30000 }).click();
+		cy.get(".pfb-tab[title='Setting']", { timeout: 30000 }).click();
 		cy.get(".pfb-margin-grid").should("be.visible");
 
 		cy.contains("label", "Font Size")
@@ -266,7 +266,7 @@ context("Print Format Builder — create flow", () => {
 		cy.intercept("POST", "api/method/frappe.client.save").as("save");
 		cy.visit(`/app/print-format-builder/${encodeURIComponent(PF_NAME)}`);
 
-		cy.get(".pfb-tab[title='Format']", { timeout: 30000 }).click();
+		cy.get(".pfb-tab[title='Setting']", { timeout: 30000 }).click();
 		cy.get(".pfb-margin-grid").should("be.visible");
 
 		// The color field is rendered with Frappe's ControlColor (adds .selected-color swatch)
@@ -325,6 +325,76 @@ context("Print Format Builder — create flow", () => {
 		cy.get(".pfb-inspector").should("contain", "Color");
 		cy.get(".pfb-inspector .pfb-rep-col-color .selected-color").should("exist");
 		cy.get(".pfb-inspector .pfb-col-width-input").should("exist");
+	});
+
+	// 10. Inspector header shows the doctype field's label, not a custom print label
+	it("field inspector header keeps the doctype label after a custom rename", () => {
+		cy.visit("/app");
+
+		insert_builder_format(PF_NAME, [
+			{
+				label: "Details",
+				columns: [
+					{
+						label: "",
+						fields: [{ fieldtype: "Date", fieldname: "date", label: "Deadline" }],
+					},
+				],
+			},
+		]);
+
+		cy.visit(`/app/print-format-builder/${encodeURIComponent(PF_NAME)}`);
+
+		cy.get("[data-pfb-section]", { timeout: 30000 }).should("be.visible");
+		cy.contains("[data-pfb-section]", "Details").find(".field").first().click({ force: true });
+
+		cy.get(".pfb-inspector").should("contain", "Due Date");
+		cy.get(".pfb-inspector").should("not.contain", "Deadline");
+		cy.contains(".pfb-insp-row", "Label")
+			.find("input.pfb-insp-input")
+			.should("have.value", "Deadline");
+	});
+
+	// 11. Center/right align wins over a stale Spacing value, and the now-irrelevant
+	// Spacing control is hidden instead of silently conflicting with it
+	it("field align overrides a conflicting label-justify setting", () => {
+		cy.visit("/app");
+
+		// the left-right/align classes only render in live preview mode, so
+		// the doctype needs at least one record to auto-preview
+		cy.insert_doc("ToDo", { description: "pfb align override preview" }, true);
+
+		insert_builder_format(PF_NAME, [
+			{
+				label: "Details",
+				field_orientation: "left-right",
+				columns: [
+					{
+						label: "",
+						fields: [
+							{
+								fieldtype: "Date",
+								fieldname: "date",
+								label: "Due Date",
+								align: "center",
+								label_justify: "space-between",
+							},
+						],
+					},
+				],
+			},
+		]);
+
+		cy.visit(`/app/print-format-builder/${encodeURIComponent(PF_NAME)}`);
+
+		cy.get("[data-pfb-section]", { timeout: 30000 }).should("be.visible");
+		cy.contains("[data-pfb-section]", "Details")
+			.find(".field.left-right")
+			.as("field")
+			.click({ force: true });
+
+		cy.get("@field").should("have.css", "justify-content", "center");
+		cy.get(".pfb-inspector").should("not.contain", "Spacing");
 	});
 });
 
@@ -396,7 +466,7 @@ context("Print Format Builder — setup flow", () => {
 		cy.contains(".pfb-setup-option-label", "Start blank").click();
 
 		cy.get(".pfb-setup").should("not.exist");
-		cy.get(".sections-container").should("be.visible");
+		cy.get(".body-empty").should("be.visible");
 		// blank canvas — no body sections
 		cy.get(".sections-container [data-pfb-section]").should("have.length", 0);
 
@@ -546,10 +616,11 @@ context("Print Format Builder — section insert", () => {
 		);
 
 		cy.visit(`/app/print-format-builder/${encodeURIComponent(PF_NAME)}`);
-		cy.get(".sections-container", { timeout: 20000 }).should("be.visible");
+		cy.get(".body-empty", { timeout: 20000 }).should("be.visible");
 		cy.get(".sections-container [data-pfb-section]").should("have.length", 0);
 
-		cy.get(".sections-container > .section-insert .section-insert-btn").click({ force: true });
+		// blank canvas: the first section is added via the empty-state CTA
+		cy.get(".body-empty").click({ force: true });
 		cy.get(".sections-container [data-pfb-section]").should("have.length", 1);
 
 		cy.get(".sections-container > .section-insert .section-insert-btn").click({ force: true });

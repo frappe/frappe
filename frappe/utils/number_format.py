@@ -14,6 +14,11 @@ NUMBER_FORMAT_MAP = {
 	"#.########": (".", "", 8),
 }
 
+assert all(
+	precision >= 0 and decimal_separator != thousands_separator
+	for decimal_separator, thousands_separator, precision in NUMBER_FORMAT_MAP.values()
+), "each number format must have non-negative precision and distinct decimal/thousands separators"
+
 
 @dataclass
 class NumberFormat:
