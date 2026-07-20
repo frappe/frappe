@@ -117,24 +117,10 @@ body {
 				}
 			}
 
-			.field-icon {
-				left: 8px;
-				top: 50%;
-				transform: translateY(-50%);
-				position: absolute;
-				z-index: 2;
-				stroke: var(--ink-gray-5);
-			}
-
 			.email-field,
 			.password-field {
 				position: relative;
 				width: 100%;
-
-				// only pad for a leading icon when one is present
-				&:has(.field-icon) input {
-					padding-left: 38px;
-				}
 			}
 
 			.password-field {
