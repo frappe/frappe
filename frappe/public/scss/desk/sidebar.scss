@@ -410,7 +410,8 @@
 }
 
 .indent + .nested-container {
-	margin-left: 16px;
+	margin-left: calc(var(--margin-sm) + 1px);
+	border-left: 1px solid var(--border-color);
 }
 
 .sidebar-item-suffix {
