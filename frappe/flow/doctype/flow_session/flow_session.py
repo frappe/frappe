@@ -32,6 +32,13 @@ RESERVED_OUTPUT_TOKENS = 4096
 RETRIEVAL_TOP_K = 8
 
 
+def _set_active_run(run: str | None) -> None:
+	"""Record which run is executing, so memories the update_memory tool creates during it
+	are stamped with this run as their source_run. flow.memory.memory reads this flag;
+	stream_with_persistence clears it when a streamed run ends."""
+	frappe.flags.flow_run = run
+
+
 class FlowSession(Document):
 	# begin: auto-generated types
 	# This code is auto-generated. Do not modify anything in this block.
@@ -167,6 +174,9 @@ class FlowSession(Document):
 		# trigger runs don't park in Paused waiting for a confirmation no one can give.
 		self._runtime.auto_approve = auto_approve
 
+		# The update_memory tool reads this to stamp source_run. Scope tightly to the runtime
+		# call and clear after, so a stale run never leaks onto a later write in this request.
+		_set_active_run(run.name)
 		if stream:
 			return stream_with_persistence(lambda: self._runtime.run(run_input, stream=True), run)
 
@@ -178,6 +188,8 @@ class FlowSession(Document):
 			if not frappe.flags.in_test:
 				frappe.db.commit()
 			raise
+		finally:
+			_set_active_run(None)
 		run.apply_result(result)
 		return run
 
@@ -290,6 +302,7 @@ class FlowSession(Document):
 		if not messages:
 			frappe.throw(_("This session has no transcript to resume from."))
 
+		_set_active_run(run.name)
 		if stream:
 			return stream_with_persistence(lambda: self._runtime.resume(messages, answers, stream=True), run)
 
@@ -298,6 +311,8 @@ class FlowSession(Document):
 		except Exception as e:
 			run.mark_failed(str(e))
 			raise
+		finally:
+			_set_active_run(None)
 		run.apply_result(result)
 		return run
 
@@ -308,8 +323,10 @@ class FlowSession(Document):
 		- Inline files: full text re-injected on their turn, clamped to the remaining budget.
 		- Retrieval files: a short note marks where each was attached; for the latest user turn
 		  the most relevant chunks (by that turn's query) are injected in place of the full text.
+		- Agent memory: the agent's saved memories are appended to the system message.
 		"""
 		from flow.knowledge.retriever import retrieve_attachments
+		from flow.memory.memory import build_memory_block
 
 		attachments_by_run = self._group_attachments_by_run()
 		last_user_run = self._latest_user_run()
@@ -333,6 +350,13 @@ class FlowSession(Document):
 					content, budget = _inject_retrieved_chunks(content, chunks, budget)
 				message["content"] = content
 			messages.append(message)
+
+		memory_block = build_memory_block(self.agent, query=self._latest_user_content())
+		if memory_block:
+			if messages and messages[0]["role"] == "system":
+				messages[0]["content"] = f"{messages[0]['content']}\n\n{memory_block}"
+			else:
+				messages.insert(0, {"role": "system", "content": memory_block})
 		return messages
 
 	def _latest_user_run(self) -> str | None:

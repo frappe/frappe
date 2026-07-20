@@ -217,6 +217,7 @@ async function switchSession(name) {
 			});
 		} else if (m.role === "assistant") {
 			if (!current) current = pushAssistant(false);
+			if (m.run) current.runName = m.run;
 			if (m.content) current.parts.push(makeTextPart(m.content));
 			for (const t of parseToolCalls(m.tool_calls)) {
 				current.parts.push(makeToolPart(t.id, t.function.name, t.function.arguments));
@@ -235,8 +236,19 @@ async function switchSession(name) {
 			built[i].interrupted = true;
 	}
 
+	await restoreFeedback(name, seq);
 	requestScroll();
 	await restorePausedRun(name);
+}
+
+async function restoreFeedback(session, seq) {
+	const runs = await api.getRunFeedback(session).catch(() => []);
+	if (seq !== switchSeq || !runs.length) return;
+	const byRun = new Map(runs.map((r) => [r.name, r]));
+	for (const m of messages.value) {
+		const fb = m.runName && byRun.get(m.runName);
+		if (fb) m.feedback = { rating: fb.feedback_rating, comment: fb.feedback_comment || "" };
+	}
 }
 
 async function restorePausedRun(session) {
@@ -336,6 +348,18 @@ function stopRun() {
 	else if (sessionName.value) api.recoverSession(sessionName.value).catch(() => {});
 }
 
+// Record thumbs feedback on a finished turn (rating "None" clears it). A Down comment
+// is saved as agent memory server-side. Local state updates only after the server accepts.
+async function submitFeedback(msg, rating, comment = "") {
+	const result = await api.submitFeedback({
+		run_name: msg.runName,
+		rating,
+		comment: comment || null,
+	});
+	msg.feedback = rating === "None" ? null : { rating, comment };
+	return result;
+}
+
 // Records one answer and stamps the tool's approval state; once every question
 // on the paused message is answered, resumes the run with all answers at once.
 // A Deny is sent through like any answer — the agent records it and stops the run.
@@ -360,6 +384,7 @@ function handleEvent(event, msg) {
 		case "run_started":
 			runName.value = event.name;
 			sessionName.value = event.session;
+			msg.runName = event.name;
 			break;
 		case "text":
 			appendText(msg, event.delta);
@@ -440,6 +465,7 @@ function pushAssistant(pending = true) {
 		pending,
 		questions: [],
 		runName: null,
+		feedback: null,
 	};
 	messages.value.push(msg);
 	// Return the reactive proxy, not the raw object — streaming mutates this after
@@ -519,6 +545,7 @@ export function useStore() {
 		send,
 		stopRun,
 		answerQuestion,
+		submitFeedback,
 		attachFiles,
 		removeAttachment,
 	};

@@ -9,9 +9,10 @@ import frappe
 from frappe.tests import IntegrationTestCase
 from werkzeug.wrappers import Response
 
-from flow.api import attach_file, recover_session, resume_run, start_run
+from flow.api import attach_file, recover_session, resume_run, start_run, submit_feedback
 from flow.api.api import _parse_attachments
 from flow.lib.model import ChatResponse, Model, ToolCall
+from flow.memory import store as memory_store
 from flow.tools.builtins import sync_builtin_tools
 
 
@@ -83,6 +84,18 @@ def _confirm_call(call_id: str = "c1") -> ChatResponse:
 	return ChatResponse(
 		content=None,
 		tool_calls=[ToolCall(id=call_id, name="execute", arguments={"code": "result = 1"})],
+		finish_reason="tool_calls",
+		usage={"prompt_tokens": 1, "completion_tokens": 1, "total_tokens": 2},
+	)
+
+
+def _memory_call(content: str = "Widget A maps to WGT-001.", call_id: str = "m1") -> ChatResponse:
+	"""A response that calls update_memory (runs inline, no confirmation)."""
+	return ChatResponse(
+		content=None,
+		tool_calls=[
+			ToolCall(id=call_id, name="update_memory", arguments={"content": content, "scope": "agent"})
+		],
 		finish_reason="tool_calls",
 		usage={"prompt_tokens": 1, "completion_tokens": 1, "total_tokens": 2},
 	)
@@ -687,3 +700,149 @@ class TestRecoverSession(IntegrationTestCase):
 	def test_blank_session_raises(self):
 		with self.assertRaisesRegex(frappe.ValidationError, "required"):
 			recover_session("  ")
+
+
+class TestSubmitFeedback(IntegrationTestCase):
+	@classmethod
+	def setUpClass(cls):
+		super().setUpClass()
+		sync_builtin_tools()
+
+	def setUp(self):
+		self.model = frappe.get_doc(_model_doc(title="Feedback Test Model")).insert()
+		self.agent = frappe.get_doc(
+			_agent_doc(self.model.name, title="Feedback Test Agent", tools=[{"tool": "update_memory"}])
+		).insert()
+
+	def tearDown(self):
+		frappe.set_user("Administrator")
+		frappe.db.rollback()
+		memory_store.drop_table()
+
+	def _run(self, status: str = "Completed", agent: str | None = None, **fields) -> str:
+		session = frappe.get_doc({"doctype": "Flow Session", "agent": agent or self.agent.name}).insert(
+			ignore_permissions=True
+		)
+		return (
+			frappe.get_doc(
+				{
+					"doctype": "Flow Run",
+					"session": session.name,
+					"source": "Manual",
+					"status": status,
+					**fields,
+				}
+			)
+			.insert(ignore_permissions=True)
+			.name
+		)
+
+	def test_up_rating_persists(self):
+		run = self._run()
+		self.assertEqual(submit_feedback(run, "Up"), {"rating": "Up"})
+		self.assertEqual(frappe.db.get_value("Flow Run", run, "feedback_rating"), "Up")
+
+	def test_down_with_comment_persists(self):
+		run = self._run()
+		submit_feedback(run, "Down", comment="Wrong item code.")
+		doc = frappe.get_doc("Flow Run", run)
+		self.assertEqual(doc.feedback_rating, "Down")
+		self.assertEqual(doc.feedback_comment, "Wrong item code.")
+
+	def test_rejects_invalid_rating(self):
+		with self.assertRaisesRegex(frappe.ValidationError, "Rating"):
+			submit_feedback(self._run(), "Sideways")
+
+	def test_rejects_unfinished_run(self):
+		with self.assertRaisesRegex(frappe.ValidationError, "finished"):
+			submit_feedback(self._run(status="Running"), "Up")
+
+	def test_rejects_overlong_comment(self):
+		with self.assertRaisesRegex(frappe.ValidationError, "characters"):
+			submit_feedback(self._run(), "Down", comment="x" * 501)
+
+	def test_rejects_other_users_run(self):
+		run = self._run()
+		frappe.set_user(_ensure_user("feedback-other-user@example.com"))
+		with self.assertRaises(frappe.PermissionError):
+			submit_feedback(run, "Up")
+
+	def test_down_comment_saved_as_memory(self):
+		run = self._run()
+		result = submit_feedback(run, "Down", comment="Widget A maps to WGT-001.")
+		memory = frappe.get_doc("Flow Agent Memory", result["memory"])
+		self.assertEqual(memory.agent, self.agent.name)
+		self.assertEqual(memory.scope, "Agent")
+		self.assertEqual(memory.source, "Feedback")
+		self.assertEqual(memory.source_run, run)
+		self.assertEqual(memory.content, "Widget A maps to WGT-001.")
+
+	def test_down_comment_without_memory_tool_records_but_skips_memory(self):
+		other = frappe.get_doc(_agent_doc(self.model.name, title="Feedback No Memory Agent")).insert()
+		run = self._run(agent=other.name)
+		result = submit_feedback(run, "Down", comment="Fix it.")
+		self.assertNotIn("memory", result)
+		self.assertEqual(frappe.db.get_value("Flow Run", run, "feedback_rating"), "Down")
+		self.assertFalse(frappe.db.exists("Flow Agent Memory", {"agent": other.name}))
+
+	def test_up_never_saves_memory(self):
+		result = submit_feedback(self._run(), "Up", comment="Nice.")
+		self.assertNotIn("memory", result)
+		self.assertFalse(frappe.db.exists("Flow Agent Memory", {"agent": self.agent.name}))
+
+	def test_down_without_comment_saves_no_memory(self):
+		result = submit_feedback(self._run(), "Down")
+		self.assertNotIn("memory", result)
+		self.assertFalse(frappe.db.exists("Flow Agent Memory", {"agent": self.agent.name}))
+
+	def test_none_clears_rating(self):
+		run = self._run()
+		submit_feedback(run, "Down", comment="Not quite.")
+		self.assertEqual(submit_feedback(run, "None"), {"rating": None})
+		doc = frappe.get_doc("Flow Run", run)
+		self.assertFalse(doc.feedback_rating)
+		self.assertIsNone(doc.feedback_comment)
+
+	def test_none_keeps_saved_memory(self):
+		run = self._run()
+		result = submit_feedback(run, "Down", comment="Widget A maps to WGT-001.")
+		submit_feedback(run, "None")
+		self.assertTrue(frappe.db.exists("Flow Agent Memory", result["memory"]))
+
+
+class TestMemoryRunProvenance(IntegrationTestCase):
+	@classmethod
+	def setUpClass(cls):
+		super().setUpClass()
+		sync_builtin_tools()
+
+	def setUp(self):
+		self.model = frappe.get_doc(_model_doc(title="Provenance Model")).insert()
+		self.agent = frappe.get_doc(
+			_agent_doc(self.model.name, title="Provenance Agent", tools=[{"tool": "update_memory"}])
+		).insert()
+
+	def tearDown(self):
+		frappe.flags.flow_run = None
+		frappe.db.rollback()
+		memory_store.drop_table()
+
+	def test_agent_memory_stamped_with_run_then_flag_cleared(self):
+		with patch.object(Model, "chat", side_effect=[_memory_call(), _final("done")]):
+			payload = start_run("remember the mapping", agent=self.agent.name)
+
+		self.assertEqual(payload["status"], "Completed")
+		memory = frappe.get_doc("Flow Agent Memory", {"agent": self.agent.name})
+		self.assertEqual(memory.source, "Agent")
+		self.assertEqual(memory.source_run, payload["name"])
+		# The flag must not linger past the run that set it.
+		self.assertIsNone(frappe.flags.get("flow_run"))
+
+	def test_flag_cleared_when_run_fails(self):
+		def boom(self, messages, tools=None, *, stream=False):
+			raise RuntimeError("kaboom")
+
+		with patch.object(Model, "chat", new=boom):
+			with self.assertRaises(RuntimeError):
+				start_run("go", agent=self.agent.name)
+		self.assertIsNone(frappe.flags.get("flow_run"))

@@ -105,7 +105,8 @@ class FlowAgent(Document):
 		)
 
 	def _resolve_tools(self) -> list[Tool]:
-		from flow.tools.builtins import KNOWLEDGE_SEARCH_SLUG, bind_search_knowledge
+		from flow.memory.memory import MEMORY_TOOL_SLUG
+		from flow.tools.builtins import KNOWLEDGE_SEARCH_SLUG, bind_search_knowledge, bind_update_memory
 
 		resolved: list[Tool] = []
 		for row in self.tools:
@@ -118,6 +119,8 @@ class FlowAgent(Document):
 				continue
 			if tool_doc.name == KNOWLEDGE_SEARCH_SLUG:
 				resolved.append(bind_search_knowledge([kb.knowledge_base for kb in self.knowledge_bases]))
+			elif tool_doc.name == MEMORY_TOOL_SLUG:
+				resolved.append(bind_update_memory(self.name))
 			else:
 				resolved.append(tool_doc.to_tool())
 		return resolved

@@ -1,8 +1,9 @@
 <script setup>
-import { computed } from "vue";
+import { ref, computed } from "vue";
 import MarkdownText from "./MarkdownText.vue";
 import ActivityGroup from "./ActivityGroup.vue";
 import ConfirmCard from "./ConfirmCard.vue";
+import FeedbackBar from "./FeedbackBar.vue";
 import WorkingIndicator from "./WorkingIndicator.vue";
 import { useStore } from "@/store";
 
@@ -43,10 +44,22 @@ const items = computed(() => {
 // Standalone "Thinking…" only until the first response part arrives; later thinking
 // shows inline as the activity group's label.
 const showWorking = computed(() => props.message.pending && !props.message.parts.length);
+
+// Thumbs only on finished turns that map to a run (not pending, not awaiting approval).
+const showFeedback = computed(
+	() => props.message.runName && !props.message.pending && !props.message.questions?.length
+);
+
+// Reveal the feedback bar on hover; FeedbackBar keeps itself visible once rated.
+const hovered = ref(false);
 </script>
 
 <template>
-	<div class="flow-parts flex flex-col">
+	<div
+		class="flow-parts flex flex-col"
+		@mouseenter="hovered = true"
+		@mouseleave="hovered = false"
+	>
 		<template v-for="(item, i) in items" :key="item.id">
 			<MarkdownText v-if="item.kind === 'text'" :part="item.part" />
 			<ConfirmCard
@@ -64,5 +77,6 @@ const showWorking = computed(() => props.message.pending && !props.message.parts
 		</template>
 
 		<WorkingIndicator v-if="showWorking" />
+		<FeedbackBar v-if="showFeedback" :message="message" :hovered="hovered" />
 	</div>
 </template>
