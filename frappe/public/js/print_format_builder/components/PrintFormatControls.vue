@@ -142,51 +142,77 @@
 				</template>
 			</draggable>
 
-			<div class="pfb-group-label mt-3">{{ __("Saved Sections") }}</div>
-			<div v-if="!store.section_snippets.value.length" class="pfb-empty">
-				{{ __("Save a section as a snippet to reuse it here.") }}
+			<div class="pfb-group-label mt-3">
+				{{ __("Saved Snippets") }}
+				<span class="pfb-label-actions">
+					<button
+						class="es-button"
+						data-size="xs"
+						data-variant="ghost"
+						data-icon-button="true"
+						:disabled="!store.snippets.value.length"
+						:title="__('Export snippets')"
+						@click="store.export_snippets()"
+						v-html="frappe.utils.icon('download', 'xs')"
+					></button>
+					<button
+						class="es-button"
+						data-size="xs"
+						data-variant="ghost"
+						data-icon-button="true"
+						:title="__('Import snippets')"
+						@click="import_snippets"
+						v-html="frappe.utils.icon('upload', 'xs')"
+					></button>
+				</span>
 			</div>
-			<draggable
-				:list="store.section_snippets.value"
-				:group="{ name: 'sections', pull: 'clone', put: false }"
-				:sort="false"
-				:clone="clone_snippet_section"
-				item-key="name"
-				filter="button"
-				:preventOnFilter="false"
-				v-bind="DRAG_OPTIONS"
-				@start="setDragging(true)"
-				@end="setDragging(false)"
-			>
-				<template #item="{ element: snip }">
-					<div
-						class="pfb-block-card"
-						:title="__('Drag into the layout, or click to insert')"
-						@click="store.insert_section_snippet(snip.name)"
-					>
-						<span
-							class="pfb-block-icon"
-							v-html="frappe.utils.icon('layout-template', 'sm')"
-						></span>
-						<div class="pfb-block-info">
-							<div class="pfb-block-name">{{ snip.name }}</div>
-							<div class="pfb-block-desc text-muted">
-								{{ __("Drag or click to insert") }}
+			<div v-if="!store.snippets.value.length" class="pfb-empty">
+				{{ __("Save a section or field as a snippet to reuse it here.") }}
+			</div>
+			<template v-for="grp in snippet_groups" :key="grp.type">
+				<draggable
+					v-if="grp.items.length"
+					:list="grp.items"
+					:group="{ name: grp.drag_group, pull: 'clone', put: false }"
+					:sort="false"
+					:clone="clone_snippet"
+					item-key="name"
+					filter="button"
+					:preventOnFilter="false"
+					v-bind="DRAG_OPTIONS"
+					@start="setDragging(true)"
+					@end="setDragging(false)"
+				>
+					<template #item="{ element: snip }">
+						<div
+							class="pfb-block-card"
+							:title="__('Drag into the layout, or click to insert')"
+							@click="store.insert_snippet(snip.name)"
+						>
+							<span
+								class="pfb-block-icon"
+								v-html="frappe.utils.icon(grp.icon, 'sm')"
+							></span>
+							<div class="pfb-block-info">
+								<div class="pfb-block-name">{{ snip.name }}</div>
+								<div class="pfb-block-desc text-muted">
+									{{ __("Drag or click to insert") }}
+								</div>
 							</div>
+							<button
+								class="es-button"
+								data-size="xs"
+								data-variant="ghost"
+								data-theme="red"
+								data-icon-button="true"
+								:title="__('Delete snippet')"
+								@click.stop="confirm_delete_snippet(snip.name)"
+								v-html="frappe.utils.icon('trash', 'xs')"
+							></button>
 						</div>
-						<button
-							class="es-button"
-							data-size="xs"
-							data-variant="ghost"
-							data-theme="red"
-							data-icon-button="true"
-							:title="__('Delete snippet')"
-							@click.stop="confirm_delete_snippet(snip.name)"
-							v-html="frappe.utils.icon('trash', 'xs')"
-						></button>
-					</div>
-				</template>
-			</draggable>
+					</template>
+				</draggable>
+			</template>
 		</div>
 
 		<!-- ── Templates ─────────────────────────────────────── -->
@@ -609,9 +635,30 @@ function delete_preset() {
 	});
 }
 function confirm_delete_snippet(name) {
-	frappe.confirm(__("Delete the section snippet '{0}'?", [name]), () =>
-		store.delete_section_snippet(name)
-	);
+	frappe.confirm(__("Delete the snippet '{0}'?", [name]), () => store.delete_snippet(name));
+}
+
+function import_snippets() {
+	const input = document.createElement("input");
+	input.type = "file";
+	input.accept = "application/json,.json";
+	input.onchange = async () => {
+		const file = input.files?.[0];
+		if (!file) return;
+		let payload;
+		try {
+			payload = JSON.parse(await file.text());
+		} catch {
+			frappe.throw(__("{0} is not a valid JSON file", [file.name]));
+		}
+		const { imported, other_doctypes } = await store.import_snippets(payload);
+		let message = __("Imported {0} snippet(s)", [imported]);
+		if (other_doctypes) {
+			message += " " + __("({0} belong to other document types)", [other_doctypes]);
+		}
+		frappe.show_alert({ message, indicator: "green" }, 5);
+	};
+	input.click();
 }
 
 // ── helpers ────────────────────────────────────────────────
@@ -766,9 +813,21 @@ function clone_as_section() {
 	return { label: "", columns: [{ label: "", fields: [] }], page_break: true };
 }
 
-function clone_snippet_section(snip) {
-	return clone_plain(snip.section);
+function clone_snippet(snip) {
+	return clone_plain(snip.content);
 }
+
+const SNIPPET_GROUPS = [
+	{ type: "Section", drag_group: "sections", icon: "layout-template" },
+	{ type: "Field", drag_group: "fields", icon: "text-cursor-input" },
+];
+
+let snippet_groups = computed(() =>
+	SNIPPET_GROUPS.map((grp) => ({
+		...grp,
+		items: store.snippets.value.filter((s) => s.snippet_type === grp.type),
+	}))
+);
 
 function add_page_break() {
 	if (!layout.value) return;
@@ -1234,6 +1293,12 @@ function handle_slash_key(e) {
 	font-weight: 400;
 	text-transform: none;
 	letter-spacing: 0;
+}
+
+.pfb-label-actions {
+	display: flex;
+	gap: 2px;
+	margin-right: -4px;
 }
 
 /* ── Outline tab (tree) ──────────────────────────────────── */

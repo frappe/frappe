@@ -1,5 +1,5 @@
 import { ref } from "vue";
-import { clone_plain, freshen_field } from "../utils";
+import { clone_plain } from "../utils";
 
 const CLIPBOARD_KEY = "pfb_clipboard";
 
@@ -31,7 +31,7 @@ if (typeof window !== "undefined") {
 	});
 }
 
-export function useClipboard({ selection, layout, find_field_column, insert_section }) {
+export function useClipboard({ selection, layout, insert_section, insert_field }) {
 	const { selected_field, selected_section } = selection;
 
 	function copy_field(df) {
@@ -52,19 +52,7 @@ export function useClipboard({ selection, layout, find_field_column, insert_sect
 		if (!clip || !layout.value) return;
 
 		if (clip.type === "field") {
-			const clone = freshen_field(clone_plain(clip.data));
-			const col = selected_field.value && find_field_column(selected_field.value);
-			if (col) {
-				col.fields.splice(col.fields.indexOf(selected_field.value) + 1, 0, clone);
-			} else {
-				const sections = layout.value.sections || [];
-				const target = selected_section.value || sections[sections.length - 1];
-				const first_col = target?.columns?.[0];
-				if (!first_col) return;
-				first_col.fields.push(clone);
-			}
-			selected_section.value = null;
-			selected_field.value = clone;
+			insert_field(clip.data);
 		} else if (clip.type === "section") {
 			insert_section(clip.data);
 		}

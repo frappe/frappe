@@ -151,6 +151,15 @@
 					class="es-button"
 					data-size="xs"
 					data-variant="ghost"
+					data-icon-button="true"
+					:title="__('Save as snippet')"
+					@click.stop="save_as_snippet"
+					v-html="frappe.utils.icon('bookmark-plus', 'xs')"
+				></button>
+				<button
+					class="es-button"
+					data-size="xs"
+					data-variant="ghost"
 					data-theme="red"
 					data-icon-button="true"
 					:title="__('Remove field')"
@@ -489,6 +498,28 @@ function edit_html() {
 	});
 	d.set_value("html", props.df.html);
 	d.show();
+}
+
+function save_as_snippet() {
+	frappe.prompt(
+		{
+			label: __("Snippet name"),
+			fieldname: "name",
+			fieldtype: "Data",
+			reqd: 1,
+			default: props.df.label || props.df.fieldname || "",
+		},
+		({ name }) => {
+			store.save_snippet(name, props.df, "Field").then(() => {
+				frappe.show_alert(
+					{ message: __("Field saved as snippet"), indicator: "green" },
+					3
+				);
+			});
+		},
+		__("Save Field as Snippet"),
+		__("Save")
+	);
 }
 
 function configure_columns() {

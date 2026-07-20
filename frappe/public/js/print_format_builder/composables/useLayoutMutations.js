@@ -100,6 +100,22 @@ export function useLayoutMutations(layout, selection) {
 		selected_field.value = null;
 		selected_section.value = clone;
 	}
+	function insert_field(data) {
+		if (!data || !layout.value) return;
+		const clone = freshen_field(clone_plain(data));
+		const col = selected_field.value && find_field_column(selected_field.value);
+		if (col) {
+			col.fields.splice(col.fields.indexOf(selected_field.value) + 1, 0, clone);
+		} else {
+			const sections = layout.value.sections || [];
+			const target = selected_section.value || sections[sections.length - 1];
+			const first_col = target?.columns?.[0];
+			if (!first_col) return;
+			first_col.fields.push(clone);
+		}
+		selected_section.value = null;
+		selected_field.value = clone;
+	}
 	function remove_section(section) {
 		const idx = layout.value.sections.indexOf(section);
 		if (idx === -1) return;
@@ -116,12 +132,12 @@ export function useLayoutMutations(layout, selection) {
 	}
 
 	return {
-		find_field_column,
 		duplicate_field,
 		duplicate_section,
 		duplicate_selection,
 		move_selection,
 		insert_section,
+		insert_field,
 		remove_section,
 	};
 }
