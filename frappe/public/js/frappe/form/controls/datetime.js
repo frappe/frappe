@@ -16,13 +16,6 @@ frappe.ui.form.ControlDatetime = class ControlDatetime extends frappe.ui.form.Co
 		this.$input && this.$input.val(value);
 		if (should_refresh) {
 			this.datepicker.selectDate(frappe.datetime.user_to_obj(value));
-<<<<<<< HEAD
-		} else if (value && !this.datepicker.selectedDates.length) {
-			const date_obj = frappe.datetime.str_to_obj(raw_value);
-			this.datepicker.selectedDates = [date_obj];
-			this.datepicker.date = date_obj;
-			this.datepicker.lastSelectedDate = date_obj;
-=======
 		} else if (value) {
 			this.sync_datepicker_state(frappe.datetime.user_to_obj(value));
 		}
@@ -54,7 +47,6 @@ frappe.ui.form.ControlDatetime = class ControlDatetime extends frappe.ui.form.Co
 		if (timepicker) {
 			timepicker._setTime(date);
 			timepicker.update();
->>>>>>> b8340eca33 (fix(datetime): synchronize picker state on form refresh)
 		}
 	}
 
