@@ -167,7 +167,11 @@
    "type": "Link"
   }
  ],
+<<<<<<< HEAD
  "modified": "2025-07-14 10:35:20.131242",
+=======
+ "modified": "2026-07-20 12:00:00.000000",
+>>>>>>> 904feca12c (fix(ux): show warning over same label)
  "modified_by": "Administrator",
  "module": "Integrations",
  "name": "Integrations",
