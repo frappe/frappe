@@ -164,7 +164,7 @@
 							group="fields"
 							:animation="150"
 							item-key="id"
-							filter="a, input, textarea, select, button, label, summary, [contenteditable], [role='button'], [tabindex]"
+							filter="a, input, textarea, select, button, label, summary, [contenteditable], [role='button'], [tabindex]:not(.field--chip):not(.field--preview)"
 							:preventOnFilter="false"
 							:emptyInsertThreshold="100"
 							v-bind="DRAG_OPTIONS"

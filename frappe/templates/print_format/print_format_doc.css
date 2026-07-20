@@ -162,32 +162,63 @@
 
 .print-format-doc .child-table .table {
 	font-size: 0.9em;
-	border-collapse: collapse;
+	border-collapse: separate;
+	border-spacing: 0;
+	margin: 0;
 	width: 100%;
 	table-layout: fixed;
 	word-break: break-word;
 }
 
-/* Table variants are three independent axes: Style (--lined/--striped/--plain)
-   draws horizontal lines/fills, .table-bordered draws vertical lines + frame,
-   --plain-header restyles the header. The base kills every border with
-   !important (Bootstrap print sets .table-bordered cell borders !important)
-   so each axis opts back in without touching the others. */
+@media print {
+	.print-format-doc .child-table .table {
+		border-collapse: separate !important;
+		border-spacing: 0 !important;
+	}
+}
+
 .print-format-doc .child-table .table th {
 	color: var(--gray-800);
 	font-weight: 600;
 	font-size: 0.85em;
 	padding: 0.5882em 0.7843em;
 	border: none !important;
-	/* Bootstrap print paints th white !important, which would cover the
-	   thead tr fill; transparent cells let the row background through */
-	background-color: transparent !important;
 }
 
-/* header background lives on the row, not each cell, so a wrapper's border-radius
-   clips one continuous bar instead of fighting per-cell backgrounds at the seams */
-.print-format-doc .child-table .table thead tr {
-	background-color: var(--gray-100) !important;
+.print-format-doc .child-table .table thead th {
+	background-color: var(--pfb-header-bg, var(--gray-100)) !important;
+}
+
+.print-format-doc .child-table:not(.child-table--plain-header) .table thead th:first-child {
+	border-top-left-radius: var(--pfb-radius, 0);
+}
+
+.print-format-doc .child-table:not(.child-table--plain-header) .table thead th:last-child {
+	border-top-right-radius: var(--pfb-radius, 0);
+}
+
+.print-format-doc
+	.child-table--lined:not(.child-table--bordered):not(.child-table--plain-header)
+	.table
+	thead
+	th:first-child {
+	border-bottom-left-radius: var(--pfb-radius, 0);
+}
+
+.print-format-doc
+	.child-table--lined:not(.child-table--bordered):not(.child-table--plain-header)
+	.table
+	thead
+	th:last-child {
+	border-bottom-right-radius: var(--pfb-radius, 0);
+}
+
+.print-format-doc .child-table .table .table-foot {
+	padding: 0;
+	height: 0;
+	border: none !important;
+	border-bottom-left-radius: var(--pfb-radius, 0);
+	border-bottom-right-radius: var(--pfb-radius, 0);
 }
 
 .print-format-doc .child-table .table td {
@@ -197,33 +228,39 @@
 	vertical-align: top;
 }
 
-/* lined: a divider under the header and under each row */
-.print-format-doc .child-table--lined .table th,
 .print-format-doc .child-table--lined .table td {
 	border-bottom: 1px solid var(--gray-300) !important;
 }
 
-/* striped: alternating row fill instead of dividers */
 .print-format-doc .child-table--striped .table .even td {
 	background-color: var(--gray-50) !important;
 }
 
-/* bordered: column separators + outer frame; adjacent cell borders collapse */
-.print-format-doc .child-table .table-bordered {
-	border: 1px solid var(--gray-300);
+.print-format-doc .child-table--bordered .table th,
+.print-format-doc .child-table--bordered .table td {
+	border-right: 1px solid var(--gray-300) !important;
+	border-bottom: 1px solid var(--gray-300) !important;
 }
 
-.print-format-doc .child-table .table-bordered td {
+.print-format-doc .child-table--bordered .table th:first-child,
+.print-format-doc .child-table--bordered .table td:first-child {
+	border-left: 1px solid var(--gray-300) !important;
+}
+
+.print-format-doc .child-table--bordered .table thead th {
+	border-top: 1px solid var(--gray-300) !important;
+}
+
+.print-format-doc .child-table--bordered .table .table-foot {
+	height: var(--pfb-radius, 0);
 	border-left: 1px solid var(--gray-300) !important;
 	border-right: 1px solid var(--gray-300) !important;
+	border-bottom: 1px solid var(--gray-300) !important;
 }
 
 /* plain header: no fill, a single rule under the header row instead */
-.print-format-doc .child-table--plain-header .table thead tr {
+.print-format-doc .child-table--plain-header .table thead th {
 	background-color: transparent !important;
-}
-
-.print-format-doc .child-table--plain-header .table th {
 	border-bottom: 1px solid var(--gray-300) !important;
 }
 
@@ -352,8 +389,8 @@
    flow across pages; keep thead repeating on each new page. */
 @media print {
 	.print-format-doc .child-table tr {
-		page-break-inside: auto;
-		break-inside: auto;
+		page-break-inside: avoid;
+		break-inside: avoid;
 	}
 	.print-format-doc .child-table thead {
 		display: table-header-group;

@@ -2,135 +2,120 @@
 	<div v-if="df.label && df.show_label !== 'hide'" class="label">
 		{{ df.label }}
 	</div>
-	<!-- radius lives on a wrapper: border-radius is a no-op on a
-	     border-collapse:collapse table, same as the PDF markup -->
-	<div
-		:style="
-			df.table_radius != null
-				? { borderRadius: df.table_radius + 'px', overflow: 'hidden' }
-				: {}
-		"
+	<table
+		class="table"
+		:style="{
+			...(df.table_radius != null ? { '--pfb-radius': df.table_radius + 'px' } : {}),
+			...(df.table_header_bg && df.table_header !== 'plain'
+				? { '--pfb-header-bg': df.table_header_bg }
+				: {}),
+		}"
 	>
-		<table
-			class="table"
-			:class="{ 'table-bordered': df.table_bordered !== false }"
-			:style="
-				df.table_bordered !== false && df.table_border_color
-					? { borderColor: df.table_border_color }
-					: {}
-			"
-		>
-			<thead v-if="df.table_header !== 'none'">
-				<!-- inline !important mirrors the server markup: the shared
-					     stylesheet's own !important rules must lose to these -->
-				<tr
-					:style="
-						df.table_header_bg && df.table_header !== 'plain'
-							? `background-color: ${df.table_header_bg} !important`
-							: ''
-					"
+		<thead v-if="df.table_header !== 'none'">
+			<tr>
+				<th
+					v-for="(col, ci) in df.table_columns"
+					:key="col.fieldname"
+					class="column-header"
+					:class="{ 'column-value--merged': has_merge(col) }"
+					:data-fieldtype="col.fieldtype"
+					:data-fieldname="col.fieldname"
+					:style="(col.width ? `width: ${col.width}%; ` : '') + cell_style(df)"
 				>
-					<th
-						v-for="(col, ci) in df.table_columns"
-						:key="col.fieldname"
-						class="column-header"
-						:class="{ 'column-value--merged': has_merge(col) }"
-						:data-fieldtype="col.fieldtype"
-						:data-fieldname="col.fieldname"
-						:style="(col.width ? `width: ${col.width}%; ` : '') + cell_style(df)"
-					>
-						{{ col.label || col.fieldname }}
-						<span
-							v-if="ci < df.table_columns.length - 1"
-							class="col-resize-handle"
-							@pointerdown.prevent.stop="start_col_resize($event, ci)"
-							@mousedown.prevent.stop
-							@click.stop
-						></span>
-					</th>
-				</tr>
-			</thead>
-			<tbody>
-				<tr
-					v-for="(row, i) in (preview_doc[df.fieldname] || []).slice(0, 4)"
-					:key="i"
-					:class="i % 2 === 0 ? 'odd' : 'even'"
+					{{ col.label || col.fieldname }}
+					<span
+						v-if="ci < df.table_columns.length - 1"
+						class="col-resize-handle"
+						@pointerdown.prevent.stop="start_col_resize($event, ci)"
+						@mousedown.prevent.stop
+						@click.stop
+					></span>
+				</th>
+			</tr>
+		</thead>
+		<tfoot>
+			<tr>
+				<td class="table-foot" :colspan="df.table_columns?.length || 1"></td>
+			</tr>
+		</tfoot>
+		<tbody>
+			<tr
+				v-for="(row, i) in (preview_doc[df.fieldname] || []).slice(0, 4)"
+				:key="i"
+				:class="i % 2 === 0 ? 'odd' : 'even'"
+			>
+				<td
+					v-for="col in df.table_columns"
+					:key="col.fieldname"
+					class="column-value"
+					:class="{ 'column-value--merged': has_merge(col) }"
+					:data-fieldtype="col.fieldtype"
+					:data-fieldname="col.fieldname"
+					:style="(col.width ? `width: ${col.width}%; ` : '') + cell_style(df)"
 				>
-					<td
-						v-for="col in df.table_columns"
-						:key="col.fieldname"
-						class="column-value"
-						:class="{ 'column-value--merged': has_merge(col) }"
-						:data-fieldtype="col.fieldtype"
-						:data-fieldname="col.fieldname"
-						:style="(col.width ? `width: ${col.width}%; ` : '') + cell_style(df)"
-					>
-						<!-- Merged cell: image (if any) floats left, text lines stack -->
-						<div v-if="has_merge(col)" class="cell-merged">
-							<template v-if="image_merge(col)">
-								<img
-									v-if="cell_image(col, row)"
-									:src="cell_image(col, row)"
-									class="cell-thumb-img"
-									:style="thumb_box(col)"
-									:alt="col.label || col.fieldname"
-								/>
-								<span v-else class="cell-thumb" :style="thumb(col, row).style">{{
-									thumb(col, row).abbr
-								}}</span>
-							</template>
-							<div
-								class="cell-lines"
-								:class="{
-									'cell-lines--horizontal': col.merge_direction === 'horizontal',
-								}"
-							>
-								<div
-									v-for="(mf, mi) in text_merges(col)"
-									:key="mi"
-									class="cell-line"
-									:class="`cell-line--${mf.style || 'primary'}`"
-								>
-									{{ format_merged(row, i, mf.fieldname) }}
-								</div>
-							</div>
-						</div>
-						<!-- Single (default) -->
-						<template v-else>
+					<!-- Merged cell: image (if any) floats left, text lines stack -->
+					<div v-if="has_merge(col)" class="cell-merged">
+						<template v-if="image_merge(col)">
 							<img
-								v-if="
-									is_image_field(col, row[col.fieldname]) && row[col.fieldname]
-								"
-								:src="row[col.fieldname]"
-								class="preview-table-img"
+								v-if="cell_image(col, row)"
+								:src="cell_image(col, row)"
+								class="cell-thumb-img"
+								:style="thumb_box(col)"
 								:alt="col.label || col.fieldname"
 							/>
-							<div
-								v-else-if="cell_server_html(i, col)"
-								class="preview-table-html"
-								v-html="cell_server_html(i, col)"
-							></div>
-							<span v-else>{{ format_cell(row, col) }}</span>
+							<span v-else class="cell-thumb" :style="thumb(col, row).style">{{
+								thumb(col, row).abbr
+							}}</span>
 						</template>
-					</td>
-				</tr>
-				<tr v-if="!preview_doc[df.fieldname]?.length">
-					<td :colspan="df.table_columns?.length || 1" class="text-muted pfb-table-note">
-						{{ __("No rows") }}
-					</td>
-				</tr>
-				<tr v-if="(preview_doc[df.fieldname] || []).length > 4">
-					<td :colspan="df.table_columns?.length || 1" class="text-muted pfb-table-note">
-						{{
-							__("+ {0} more rows in this document — all print in the real output", [
-								preview_doc[df.fieldname].length - 4,
-							])
-						}}
-					</td>
-				</tr>
-			</tbody>
-		</table>
-	</div>
+						<div
+							class="cell-lines"
+							:class="{
+								'cell-lines--horizontal': col.merge_direction === 'horizontal',
+							}"
+						>
+							<div
+								v-for="(mf, mi) in text_merges(col)"
+								:key="mi"
+								class="cell-line"
+								:class="`cell-line--${mf.style || 'primary'}`"
+							>
+								{{ format_merged(row, i, mf.fieldname) }}
+							</div>
+						</div>
+					</div>
+					<!-- Single (default) -->
+					<template v-else>
+						<img
+							v-if="is_image_field(col, row[col.fieldname]) && row[col.fieldname]"
+							:src="row[col.fieldname]"
+							class="preview-table-img"
+							:alt="col.label || col.fieldname"
+						/>
+						<div
+							v-else-if="cell_server_html(i, col)"
+							class="preview-table-html"
+							v-html="cell_server_html(i, col)"
+						></div>
+						<span v-else>{{ format_cell(row, col) }}</span>
+					</template>
+				</td>
+			</tr>
+			<tr v-if="!preview_doc[df.fieldname]?.length">
+				<td :colspan="df.table_columns?.length || 1" class="text-muted pfb-table-note">
+					{{ __("No rows") }}
+				</td>
+			</tr>
+			<tr v-if="(preview_doc[df.fieldname] || []).length > 4">
+				<td :colspan="df.table_columns?.length || 1" class="text-muted pfb-table-note">
+					{{
+						__("+ {0} more rows in this document — all print in the real output", [
+							preview_doc[df.fieldname].length - 4,
+						])
+					}}
+				</td>
+			</tr>
+		</tbody>
+	</table>
 </template>
 
 <script setup>
