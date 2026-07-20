@@ -122,7 +122,7 @@ class DuckDBTable(DBTable):
 	def create(self, conn):
 		additional_definitions = []
 		varchar_len = frappe.db.VARCHAR_LEN
-		name_column = f"name varchar({varchar_len}) primary key"
+		name_column = f"name varchar({varchar_len})"
 
 		# columns
 		column_defs = self.get_column_definitions()
