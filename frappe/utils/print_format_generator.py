@@ -300,6 +300,7 @@ class PrintFormatGenerator:
 		    overlay so they continue to repeat on every page if the user enabled them.
 		"""
 		self.context.for_chrome = True
+		self._header_absorbs_top_margin = False
 		self.context.repeat_frame = False
 		self.context.header_height = 0
 		self.context.footer_height = 0
@@ -325,6 +326,19 @@ class PrintFormatGenerator:
 
 		return self.get_main_html()
 
+	def _reserve_top_margin(self, html: str) -> str:
+		"""Reserve the page's top margin *below* the page number.
+
+		browser.py then drops the header page's own ``marginTop`` (via the
+		``header-includes-top-margin`` option), so the number sits flush to the
+		paper edge while everything after it keeps the configured margin.
+		"""
+		top_margin = float(self.print_format.margin_top or 0)
+		if not top_margin:
+			return html
+		self._header_absorbs_top_margin = True
+		return f'<div style="padding-top:{top_margin}mm">{html}</div>'
+
 	def _render_page_no_overlay(self, kind: str) -> str | None:
 		"""Return only the page-number HTML for kind ('header'/'footer'), or None."""
 		is_header = kind == "header"
@@ -332,7 +346,10 @@ class PrintFormatGenerator:
 		valid_positions = self._TOP_POSITIONS if is_header else self._BOTTOM_POSITIONS
 		if page_pos not in valid_positions:
 			return None
-		return self._page_number_html(page_pos)
+		page_no_html = self._page_number_html(page_pos)
+		if not is_header:
+			return page_no_html
+		return page_no_html + self._reserve_top_margin("")
 
 	def _render_overlay(self, kind: str, with_page_no: bool = True) -> str | None:
 		"""Render letterhead, layout.header/footer, and page number for the Chrome overlay.
@@ -381,12 +398,8 @@ class PrintFormatGenerator:
 		if not is_header and page_no_html:
 			body_parts.append(page_no_html)
 
-		top_margin = float(self.print_format.margin_top or 0)
-		if is_header and page_no_html and body_parts and top_margin:
-			body_parts = [
-				f'<div style="padding-top:{top_margin}mm">' + "\n".join(body_parts) + "</div>"
-			]
-			self._header_absorbs_top_margin = True
+		if is_header and page_no_html:
+			body_parts = [self._reserve_top_margin("\n".join(body_parts))]
 		parts.extend(body_parts)
 		return "\n".join(parts) or None
 

@@ -196,11 +196,14 @@ class TestPrintFormatGenerator(IntegrationTestCase):
 		from frappe.utils.print_format_generator import PrintFormatGenerator
 
 		todo = self._make_todo()
-		letterhead = self._make_letterhead()
+		letterhead_doc = self._make_letterhead()
 
-		def chrome_options(**pf_kwargs):
-			pf = self._make_print_format(margin_top=12, **pf_kwargs)
-			generator = PrintFormatGenerator(pf, todo, letterhead=letterhead.name)
+		def chrome_options(letterhead=True, **pf_kwargs):
+			pf_kwargs.setdefault("margin_top", 12)
+			pf = self._make_print_format(**pf_kwargs)
+			generator = PrintFormatGenerator(
+				pf, todo, letterhead=letterhead_doc.name if letterhead else None
+			)
 			with patch("frappe.utils.pdf.get_chrome_pdf", return_value=b"%PDF-") as chrome_pdf:
 				generator.render_pdf()
 			return chrome_pdf.call_args.kwargs
@@ -209,9 +212,25 @@ class TestPrintFormatGenerator(IntegrationTestCase):
 		self.assertTrue(top["options"]["header-includes-top-margin"])
 		self.assertIn("padding-top:12.0mm", top["html"])
 
+		# No letterhead and no header template: the page number is still the only
+		# thing above the margin, so the margin must still be reserved below it.
+		bare = chrome_options(page_number="Top Left", letterhead=False)
+		self.assertTrue(bare["options"]["header-includes-top-margin"])
+		self.assertIn("padding-top:12.0mm", bare["html"])
+
+		# repeat_header_footer off routes page numbers through the minimal overlay.
+		no_repeat = chrome_options(page_number="Top Left", repeat_header_footer=0)
+		self.assertTrue(no_repeat["options"]["header-includes-top-margin"])
+
 		for pos in ("Hide", "Bottom Center"):
 			opts = chrome_options(page_number=pos)["options"]
 			self.assertNotIn("header-includes-top-margin", opts)
+
+		# margin_top 0 has nothing to reserve.
+		self.assertNotIn(
+			"header-includes-top-margin",
+			chrome_options(page_number="Top Left", margin_top=0)["options"],
+		)
 
 	def test_render_pdf_passes_password_to_chrome(self):
 		"""Encrypted PDFs (attach_print(password=...)) must stay encrypted on the
