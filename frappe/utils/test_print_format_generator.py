@@ -201,9 +201,7 @@ class TestPrintFormatGenerator(IntegrationTestCase):
 		def chrome_options(letterhead=True, **pf_kwargs):
 			pf_kwargs.setdefault("margin_top", 12)
 			pf = self._make_print_format(**pf_kwargs)
-			generator = PrintFormatGenerator(
-				pf, todo, letterhead=letterhead_doc.name if letterhead else None
-			)
+			generator = PrintFormatGenerator(pf, todo, letterhead=letterhead_doc.name if letterhead else None)
 			with patch("frappe.utils.pdf.get_chrome_pdf", return_value=b"%PDF-") as chrome_pdf:
 				generator.render_pdf()
 			return chrome_pdf.call_args.kwargs
