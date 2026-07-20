@@ -17,6 +17,7 @@ from keyword import iskeyword
 from pathlib import Path
 
 import frappe
+from frappe.model import NO_VALUE_FIELDS, table_fields
 from frappe.types import DF
 
 field_template = "{field}: {type}"
@@ -41,6 +42,7 @@ non_nullable_types = {
 	"Currency",
 	"Float",
 	"Int",
+	"Long Int",
 	"Percent",
 	"Rating",
 	"Select",
@@ -140,6 +142,10 @@ class TypeExporter:
 		return f"from {filepath} import {class_name}", class_name
 
 	def _map_fieldtype(self, field) -> str | None:
+		# Table fields are in NO_VALUE_FIELDS but still get typed as child lists.
+		if field.fieldtype in NO_VALUE_FIELDS and field.fieldtype not in table_fields:
+			return
+
 		fieldtype = field.fieldtype.replace(" ", "")
 		field_definition = ""
 
