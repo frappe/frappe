@@ -33,8 +33,7 @@ GOOGLE_OAUTH_STATE_CACHE_PREFIX = "frappe_google_oauth_state"
 def create_google_oauth_state(state: dict) -> str:
 	"""Store this authorization attempt's state server-side and return a single-use token for it.
 
-	The returned token is what gets sent to Google as `state`, so the client never sees or
-	controls the actual state (redirect target, domain, callback kwargs, etc).
+	The returned token is what gets sent to Google as `state`.
 	"""
 	token = frappe.generate_hash(length=32)
 	frappe.cache.set_value(f"{GOOGLE_OAUTH_STATE_CACHE_PREFIX}:{token}", state, expires_in_sec=600)
