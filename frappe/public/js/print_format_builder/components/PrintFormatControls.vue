@@ -146,32 +146,47 @@
 			<div v-if="!store.section_snippets.value.length" class="pfb-empty">
 				{{ __("Save a section as a snippet to reuse it here.") }}
 			</div>
-			<div
-				v-for="snip in store.section_snippets.value"
-				:key="snip.name"
-				class="pfb-block-card"
-				:title="__('Insert saved section')"
-				@click="store.insert_section_snippet(snip.name)"
+			<draggable
+				:list="store.section_snippets.value"
+				:group="{ name: 'sections', pull: 'clone', put: false }"
+				:sort="false"
+				:clone="clone_snippet_section"
+				item-key="name"
+				filter="button"
+				:preventOnFilter="false"
+				v-bind="DRAG_OPTIONS"
+				@start="setDragging(true)"
+				@end="setDragging(false)"
 			>
-				<span
-					class="pfb-block-icon"
-					v-html="frappe.utils.icon('layout-template', 'sm')"
-				></span>
-				<div class="pfb-block-info">
-					<div class="pfb-block-name">{{ snip.name }}</div>
-					<div class="pfb-block-desc text-muted">{{ __("Click to insert") }}</div>
-				</div>
-				<button
-					class="es-button"
-					data-size="xs"
-					data-variant="ghost"
-					data-theme="red"
-					data-icon-button="true"
-					:title="__('Delete snippet')"
-					@click.stop="confirm_delete_snippet(snip.name)"
-					v-html="frappe.utils.icon('trash', 'xs')"
-				></button>
-			</div>
+				<template #item="{ element: snip }">
+					<div
+						class="pfb-block-card"
+						:title="__('Drag into the layout, or click to insert')"
+						@click="store.insert_section_snippet(snip.name)"
+					>
+						<span
+							class="pfb-block-icon"
+							v-html="frappe.utils.icon('layout-template', 'sm')"
+						></span>
+						<div class="pfb-block-info">
+							<div class="pfb-block-name">{{ snip.name }}</div>
+							<div class="pfb-block-desc text-muted">
+								{{ __("Drag or click to insert") }}
+							</div>
+						</div>
+						<button
+							class="es-button"
+							data-size="xs"
+							data-variant="ghost"
+							data-theme="red"
+							data-icon-button="true"
+							:title="__('Delete snippet')"
+							@click.stop="confirm_delete_snippet(snip.name)"
+							v-html="frappe.utils.icon('trash', 'xs')"
+						></button>
+					</div>
+				</template>
+			</draggable>
 		</div>
 
 		<!-- ── Templates ─────────────────────────────────────── -->
@@ -429,7 +444,7 @@
 <script setup>
 import draggable from "vuedraggable";
 import Autocomplete from "../../vue-components/Autocomplete.vue";
-import { DRAG_OPTIONS, get_table_columns, pluck, setDragging } from "../utils";
+import { DRAG_OPTIONS, clone_plain, get_table_columns, pluck, setDragging } from "../utils";
 import { mountColorControl } from "./inspector/useColorControl";
 import { useStore } from "../stores";
 import { computed, onMounted, onUnmounted, nextTick, ref, watch, inject } from "vue";
@@ -749,6 +764,10 @@ watch(
 
 function clone_as_section() {
 	return { label: "", columns: [{ label: "", fields: [] }], page_break: true };
+}
+
+function clone_snippet_section(snip) {
+	return clone_plain(snip.section);
 }
 
 function add_page_break() {
@@ -1154,6 +1173,7 @@ function handle_slash_key(e) {
 
 .pfb-block-info {
 	min-width: 0;
+	flex: 1;
 }
 
 .pfb-block-name {
