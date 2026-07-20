@@ -326,7 +326,15 @@ $.extend(frappe.model, {
 
 	add_mapped_doc_guard: function (fn) {
 		// fn(mapped_doc, opts) -> boolean | Promise<boolean>; false blocks opening the doc
-		frappe.model._mapped_doc_guards.push(fn);
+		if (!frappe.model._mapped_doc_guards.includes(fn)) {
+			frappe.model._mapped_doc_guards.push(fn);
+		}
+	},
+
+	remove_mapped_doc_guard: function (fn) {
+		frappe.model._mapped_doc_guards = frappe.model._mapped_doc_guards.filter(
+			(guard) => guard !== fn
+		);
 	},
 
 	should_open_mapped_doc: async function (mapped_doc, opts) {
