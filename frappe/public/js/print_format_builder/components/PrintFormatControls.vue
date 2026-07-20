@@ -141,8 +141,11 @@
 					</div>
 				</template>
 			</draggable>
+		</div>
 
-			<div class="pfb-group-label mt-3">
+		<!-- ── Templates ─────────────────────────────────────── -->
+		<div v-else-if="activeTab === 'templates'" class="pfb-tab-body">
+			<div class="pfb-group-label">
 				{{ __("Saved Snippets") }}
 				<span class="pfb-label-actions">
 					<button
@@ -195,9 +198,7 @@
 							></span>
 							<div class="pfb-block-info">
 								<div class="pfb-block-name">{{ snip.name }}</div>
-								<div class="pfb-block-desc text-muted">
-									{{ __("Drag or click to insert") }}
-								</div>
+								<div class="pfb-block-desc text-muted">{{ grp.desc }}</div>
 							</div>
 							<button
 								class="es-button"
@@ -213,72 +214,55 @@
 					</template>
 				</draggable>
 			</template>
-		</div>
 
-		<!-- ── Templates ─────────────────────────────────────── -->
-		<div v-else-if="activeTab === 'templates'" class="pfb-tab-body">
-			<div v-if="!print_templates_list.length" class="pfb-templates-empty">
-				<div class="pfb-empty">
-					{{ __("No field templates for this document type.") }}
-				</div>
-				<p class="pfb-templates-hint text-muted">
-					{{
-						__(
-							"Field templates let you render specific fields with custom Jinja/HTML, e.g. a custom items table layout."
-						)
-					}}
-				</p>
-				<a :href="new_template_link" target="_blank" class="es-button mt-2" data-size="xs">
-					{{ __("Create Field Template") }}
+			<div class="pfb-group-label mt-3">
+				{{ __("Field Templates") }}
+				<a
+					:href="'/app/print-format-field-template'"
+					target="_blank"
+					class="pfb-manage-link text-muted"
+				>
+					{{ __("Manage") }}
 				</a>
 			</div>
-
-			<template v-else>
-				<div class="pfb-group-label">
-					{{ __("Field Templates") }}
-					<a
-						:href="'/app/print-format-field-template'"
-						target="_blank"
-						class="pfb-manage-link text-muted"
+			<div v-if="!print_templates_list.length" class="pfb-empty">
+				{{
+					__(
+						"Field templates render a specific field with custom Jinja/HTML, e.g. a custom items table."
+					)
+				}}
+				<a :href="new_template_link" target="_blank">{{ __("Create one") }}</a>
+			</div>
+			<draggable
+				v-else
+				:list="print_templates_list"
+				:group="{ name: 'fields', pull: 'clone', put: false }"
+				:sort="false"
+				:clone="clone_field"
+				item-key="fieldname"
+				v-bind="DRAG_OPTIONS"
+				@start="setDragging(true)"
+				@end="setDragging(false)"
+			>
+				<template #item="{ element }">
+					<div
+						class="pfb-block-card"
+						:title="element.fieldname"
+						@click="add_to_layout(element)"
 					>
-						{{ __("Manage") }}
-					</a>
-				</div>
-				<draggable
-					:list="print_templates_list"
-					:group="{ name: 'fields', pull: 'clone', put: false }"
-					:sort="false"
-					:clone="clone_field"
-					item-key="fieldname"
-					v-bind="DRAG_OPTIONS"
-					@start="setDragging(true)"
-					@end="setDragging(false)"
-				>
-					<template #item="{ element }">
-						<div
-							class="pfb-template-card"
-							:title="element.fieldname"
-							@click="add_to_layout(element)"
-						>
-							<div class="pfb-template-thumb">
-								<span
-									class="text-muted"
-									v-html="frappe.utils.icon('table', 'sm')"
-								></span>
-							</div>
-							<div class="pfb-template-info">
-								<div class="pfb-template-name">{{ element.display_label }}</div>
-								<div class="pfb-template-field text-muted">
-									{{ element.field_label || __("Custom block") }}
-								</div>
+						<span
+							class="pfb-block-icon"
+							v-html="frappe.utils.icon('code', 'sm')"
+						></span>
+						<div class="pfb-block-info">
+							<div class="pfb-block-name">{{ element.display_label }}</div>
+							<div class="pfb-block-desc text-muted">
+								{{ element.field_label || __("Custom block") }}
 							</div>
 						</div>
-					</template>
-				</draggable>
-				<div class="pfb-templates-hint text-muted mt-2">
-					{{ __("Drag or click to add a field template to the last section.") }}
-				</div>
-			</template>
+					</div>
+				</template>
+			</draggable>
 		</div>
 
 		<!-- ── Outline ────────────────────────────────────────── -->
@@ -818,8 +802,8 @@ function clone_snippet(snip) {
 }
 
 const SNIPPET_GROUPS = [
-	{ type: "Section", drag_group: "sections", icon: "layout-template" },
-	{ type: "Field", drag_group: "fields", icon: "text-cursor-input" },
+	{ type: "Section", drag_group: "sections", icon: "layout-template", desc: __("Section") },
+	{ type: "Field", drag_group: "fields", icon: "text-cursor-input", desc: __("Field") },
 ];
 
 let snippet_groups = computed(() =>
@@ -1199,9 +1183,8 @@ function handle_slash_key(e) {
 	flex-shrink: 0;
 }
 
-/* ── Block card (Blocks tab) ─────────────────────────────── */
-.pfb-block-card,
-.pfb-template-card {
+/* ── Block card (Blocks + Templates tabs) ────────────────── */
+.pfb-block-card {
 	display: flex;
 	align-items: center;
 	gap: 10px;
@@ -1213,8 +1196,7 @@ function handle_slash_key(e) {
 	margin-top: 6px;
 }
 
-.pfb-block-card:hover,
-.pfb-template-card:hover {
+.pfb-block-card:hover {
 	background: var(--gray-100);
 	border-color: var(--gray-500);
 }
@@ -1243,49 +1225,6 @@ function handle_slash_key(e) {
 .pfb-block-desc {
 	font-size: var(--text-tiny);
 	margin-top: 1px;
-}
-
-/* ── Template card (Templates tab) ──────────────────────── */
-.pfb-template-thumb {
-	display: flex;
-	align-items: center;
-	justify-content: center;
-	width: 32px;
-	height: 32px;
-	border-radius: var(--radius);
-	background: var(--gray-200);
-	flex-shrink: 0;
-}
-
-.pfb-template-info {
-	flex: 1;
-	min-width: 0;
-}
-
-.pfb-template-name {
-	font-size: var(--text-sm);
-	font-weight: 500;
-	overflow: hidden;
-	text-overflow: ellipsis;
-	white-space: nowrap;
-}
-
-.pfb-template-field {
-	font-size: var(--text-tiny);
-	margin-top: 1px;
-}
-
-.pfb-templates-empty {
-	display: flex;
-	flex-direction: column;
-	align-items: center;
-	padding: 16px 0;
-}
-
-.pfb-templates-hint {
-	font-size: var(--text-tiny);
-	line-height: 1.5;
-	margin-top: 6px;
 }
 
 .pfb-manage-link {
