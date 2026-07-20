@@ -46,7 +46,7 @@ def save_memory(
 		frappe.throw(_("scope must be 'agent' or 'user'."), title=_("Invalid Scope"))
 
 	if memory_id:
-		return _update(agent, memory_id.strip(), content, scope_value, keywords)
+		return _update(agent, memory_id.strip(), content, keywords)
 	return _add(agent, content, scope_value, keywords=keywords)
 
 
@@ -125,9 +125,7 @@ def _add(
 	return {"memory_id": doc.name, "action": "added"}
 
 
-def _update(
-	agent: str, memory_id: str, content: str, scope: str, keywords: str | None = None
-) -> dict[str, Any]:
+def _update(agent: str, memory_id: str, content: str, keywords: str | None = None) -> dict[str, Any]:
 	row = frappe.db.get_value(
 		"Flow Agent Memory", memory_id, ["agent", "scope", "user", "status"], as_dict=True
 	)
@@ -144,9 +142,6 @@ def _update(
 
 	doc = frappe.get_doc("Flow Agent Memory", memory_id)
 	doc.content = content
-	doc.scope = scope
-	doc.user = frappe.session.user if scope == "User" else None
-	# Only replace keywords when supplied, so a content-only edit keeps existing aliases.
 	if keywords is not None:
 		doc.keywords = keywords
 	doc.save(ignore_permissions=True)

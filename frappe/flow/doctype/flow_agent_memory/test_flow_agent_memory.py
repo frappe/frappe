@@ -125,6 +125,17 @@ class IntegrationTestFlowAgentMemory(IntegrationTestCase):
 		self.assertEqual(result["action"], "updated")
 		self.assertEqual(frappe.db.get_value("Flow Agent Memory", added["memory_id"], "content"), "New fact.")
 
+	def test_update_cannot_change_scope(self):
+		# A shared Agent memory must not be privatized by an edit passing scope="user".
+		added = save_memory(self.agent.name, content="Widget A maps to WGT-001.", scope="agent")
+		save_memory(
+			self.agent.name, content="Widget A maps to WGT-002.", scope="user", memory_id=added["memory_id"]
+		)
+		doc = frappe.get_doc("Flow Agent Memory", added["memory_id"])
+		self.assertEqual(doc.scope, "Agent")
+		self.assertIsNone(doc.user)
+		self.assertEqual(doc.content, "Widget A maps to WGT-002.")
+
 	def test_update_rejects_other_agents_memory(self):
 		other = frappe.get_doc(
 			{
