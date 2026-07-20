@@ -3,7 +3,7 @@ msgstr ""
 "Project-Id-Version: frappe\n"
 "Report-Msgid-Bugs-To: developers@frappe.io\n"
 "POT-Creation-Date: 2026-06-24 16:55+0000\n"
-"PO-Revision-Date: 2026-07-15 13:51\n"
+"PO-Revision-Date: 2026-07-17 13:57\n"
 "Last-Translator: developers@frappe.io\n"
 "Language-Team: Bosnian\n"
 "MIME-Version: 1.0\n"
@@ -18784,7 +18784,7 @@ msgstr "Historija"
 #. Label of a Data field in DocType 'About Us Settings'
 #: frappe/website/doctype/about_us_settings/about_us_settings.json
 msgid "Org History Heading"
-msgstr "Naslov povijesti organizacije"
+msgstr "Naslov Historije Poduzeća"
 
 #: frappe/public/js/frappe/form/print_utils.js:21
 msgid "Orientation"
@@ -31245,7 +31245,7 @@ msgstr "Vaša stara lozinka nije tačna."
 #. 'System Settings'
 #: frappe/core/doctype/system_settings/system_settings.json
 msgid "Your organization name and address for the email footer."
-msgstr "Ime vaše organizacije i adresa za podnožje e-pošte."
+msgstr "Ime vašeg poduzeća i adresa za podnožje e-pošte."
 
 #: frappe/core/doctype/user/user.py:286
 msgid "Your password has been changed and you might have been logged out of all systems.<br>Please contact the Administrator for further assistance."
