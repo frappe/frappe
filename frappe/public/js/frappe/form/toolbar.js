@@ -28,7 +28,6 @@ frappe.ui.form.Toolbar = class Toolbar {
 		} else {
 			if (this.frm.doc.__islocal) {
 				this.page.hide_menu();
-				this.print_icon && this.print_icon.addClass("hide");
 			} else {
 				const is_children_visible =
 					this.page.menu.children().filter(function () {
@@ -42,7 +41,6 @@ frappe.ui.form.Toolbar = class Toolbar {
 				} else {
 					this.page.hide_menu();
 				}
-				this.print_icon && this.print_icon.removeClass("hide");
 			}
 		}
 	}
@@ -477,26 +475,15 @@ frappe.ui.form.Toolbar = class Toolbar {
 	}
 
 	add_print() {
-		const print_settings = frappe.model.get_doc(":Print Settings", "Print Settings");
-		const allow_print_for_draft = cint(print_settings.allow_print_for_draft);
-		const allow_print_for_cancelled = cint(print_settings.allow_print_for_cancelled);
-
-		if (
-			!frappe.model.is_submittable(this.frm.doc.doctype) ||
-			this.frm.doc.docstatus == 1 ||
-			(allow_print_for_cancelled && this.frm.doc.docstatus == 2) ||
-			(allow_print_for_draft && this.frm.doc.docstatus == 0)
-		) {
-			if (frappe.model.can_print(null, this.frm) && !this.frm.meta.issingle) {
-				let menu_item = this.page.add_menu_item(
-					__("Print"),
-					() => {
-						this.frm.print_doc();
-					},
-					true
-				);
-				menu_item.parent().addClass("hidden-xl");
-			}
+		if (frappe.model.can_print_doc(this.frm)) {
+			let menu_item = this.page.add_menu_item(
+				__("Print"),
+				() => {
+					this.frm.print_doc();
+				},
+				true
+			);
+			menu_item.parent().addClass("hidden-xl");
 		}
 	}
 
