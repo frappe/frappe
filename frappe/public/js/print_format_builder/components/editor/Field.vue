@@ -324,6 +324,7 @@ const preview_root = computed(() => {
 				"child-table",
 				`child-table--${df.table_style || "lined"}`,
 				df.table_header === "plain" ? "child-table--plain-header" : "",
+				df.table_bordered !== false ? "child-table--bordered" : "",
 			],
 			style: custom,
 		};
