@@ -629,8 +629,12 @@
 		overflow: auto;
 
 		&:has(.awesomplete > [role="listbox"]:not([hidden])) {
-			min-height: unquote("min(60vh, 360px)");
+			overflow: visible;
 		}
+	}
+
+	&:has(.grid-form-body .awesomplete > [role="listbox"]:not([hidden])) {
+		overflow: visible;
 	}
 
 	// Tabs styling for child table grid row forms
