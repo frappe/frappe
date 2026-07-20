@@ -68,6 +68,15 @@ def _field_vue_text():
 
 
 @functools.cache
+def _canvas_logic_text():
+	"""The preview surface that reads df.* — Field.vue dispatches to the
+	FieldPreview* components, which lean on the composables; a df prop handled
+	in any of them is mirrored, so the check spans .vue markup + composables."""
+	js = "\n".join(p.read_text() for p in sorted((BUILDER_DIR / "composables").glob("*.js")))
+	return _canvas_text() + "\n" + js
+
+
+@functools.cache
 def _shared_css_selector_tokens():
 	"""Class names and data-* attributes used by the shared stylesheet's selectors."""
 	css = SHARED_CSS.read_text()
@@ -158,11 +167,11 @@ class TestPrintSurfaceMarkupContract(UnitTestCase):
 		skip = {"get", "renderer", "section", "html"}
 		macro = macro_path.read_text()
 		props = set(re.findall(r"df\.([a-z_]+)", macro)) - skip
-		missing = sorted(p for p in props if f"df.{p}" not in _field_vue_text())
+		missing = sorted(p for p in props if f"df.{p}" not in _canvas_logic_text())
 		self.assertFalse(
 			missing,
-			f"{macro_path.name} reads df properties {missing} that Field.vue never handles — "
-			"the canvas preview will silently ignore them. Mirror them in Field.vue's preview markup.",
+			f"{macro_path.name} reads df properties {missing} that the canvas preview never handles — "
+			"the preview will silently ignore them. Mirror them in Field.vue or its FieldPreview* components.",
 		)
 
 
@@ -328,7 +337,8 @@ class TestPrintSurfaceParity(IntegrationTestCase):
 			'data-fieldname="first_name"',
 			'data-fieldtype="Data"',
 			"child-table child-table--lined",
-			'<table class="table table-bordered">',
+			"child-table--bordered",
+			'<table class="table">',
 			"column-header",
 			'data-fieldname="idx"',
 			'data-fieldname="email_id"',

@@ -390,6 +390,14 @@ def get_system_timezone() -> str:
 	return frappe.get_system_settings("time_zone") or "Asia/Kolkata"  # Default to India ?!
 
 
+def get_timezone_utc_offset(timezone: str) -> str:
+	"""Return the current UTC offset of the given timezone in ±HH:MM format."""
+	offset_seconds = int(datetime.datetime.now(ZoneInfo(timezone)).utcoffset().total_seconds())
+	sign = "+" if offset_seconds >= 0 else "-"
+	hours, minutes = divmod(abs(offset_seconds) // 60, 60)
+	return f"{sign}{hours:02d}:{minutes:02d}"
+
+
 def convert_utc_to_timezone(utc_timestamp: datetime.datetime, time_zone: str) -> datetime.datetime:
 	if utc_timestamp.tzinfo is None:
 		utc_timestamp = utc_timestamp.replace(tzinfo=ZoneInfo("UTC"))
