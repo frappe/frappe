@@ -37,6 +37,7 @@ def save_memory(
 	content: str,
 	scope: str,
 	memory_id: str | None = None,
+	keywords: str | None = None,
 ) -> dict[str, Any]:
 	"""Core of the `update_memory` tool. Trusts `agent` (bound from the agent's config, never
 	the model). User-scoped rows are stamped with the session user server-side."""
@@ -45,8 +46,8 @@ def save_memory(
 		frappe.throw(_("scope must be 'agent' or 'user'."), title=_("Invalid Scope"))
 
 	if memory_id:
-		return _update(agent, memory_id.strip(), content, scope_value)
-	return _add(agent, content, scope_value)
+		return _update(agent, memory_id.strip(), content, scope_value, keywords)
+	return _add(agent, content, scope_value, keywords=keywords)
 
 
 def build_memory_block(agent: str | None, *, query: str = "") -> str | None:
@@ -90,7 +91,13 @@ def save_feedback_memory(run: Any, comment: str) -> str | None:
 
 
 def _add(
-	agent: str, content: str, scope: str, *, source: str = "Agent", source_run: str | None = None
+	agent: str,
+	content: str,
+	scope: str,
+	*,
+	source: str = "Agent",
+	source_run: str | None = None,
+	keywords: str | None = None,
 ) -> dict[str, Any]:
 	filters: dict[str, Any] = {"agent": agent, "scope": scope, "status": "Active"}
 	if scope == "User":
@@ -108,7 +115,9 @@ def _add(
 			"scope": scope,
 			"user": frappe.session.user if scope == "User" else None,
 			"content": content,
+			"keywords": keywords,
 			"source": source,
+			# flow_run is set for the current run by FlowSession._set_active_run.
 			"source_run": source_run or frappe.flags.get("flow_run"),
 			"status": "Active",
 		}
@@ -116,7 +125,9 @@ def _add(
 	return {"memory_id": doc.name, "action": "added"}
 
 
-def _update(agent: str, memory_id: str, content: str, scope: str) -> dict[str, Any]:
+def _update(
+	agent: str, memory_id: str, content: str, scope: str, keywords: str | None = None
+) -> dict[str, Any]:
 	row = frappe.db.get_value(
 		"Flow Agent Memory", memory_id, ["agent", "scope", "user", "status"], as_dict=True
 	)
@@ -135,6 +146,9 @@ def _update(agent: str, memory_id: str, content: str, scope: str) -> dict[str, A
 	doc.content = content
 	doc.scope = scope
 	doc.user = frappe.session.user if scope == "User" else None
+	# Only replace keywords when supplied, so a content-only edit keeps existing aliases.
+	if keywords is not None:
+		doc.keywords = keywords
 	doc.save(ignore_permissions=True)
 	return {"memory_id": doc.name, "action": "updated"}
 

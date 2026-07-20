@@ -13,7 +13,8 @@
   "source",
   "source_run",
   "section_break_content",
-  "content"
+  "content",
+  "keywords"
  ],
  "fields": [
   {
@@ -82,6 +83,12 @@
    "in_list_view": 1,
    "label": "Content",
    "reqd": 1
+  },
+  {
+   "description": "Optional search aliases (synonyms, codes, alternate names) that improve retrieval. Used only for keyword matching, never shown to the agent as a fact.",
+   "fieldname": "keywords",
+   "fieldtype": "Small Text",
+   "label": "Keywords"
   }
  ],
  "links": [],

@@ -24,7 +24,14 @@ if TYPE_CHECKING:
 	from flow.flow.doctype.flow_agent_memory.flow_agent_memory import FlowAgentMemory
 
 TABLE_NAME = "memories"
-FTS_FIELD = "content"
+# The FTS-indexed field holds content + keywords.
+FTS_FIELD = "search_text"
+
+
+def _search_text(doc: FlowAgentMemory) -> str:
+	content = (doc.content or "").strip()
+	keywords = (doc.keywords or "").strip()
+	return f"{content}\n{keywords}" if keywords else content
 
 
 def sync(doc: FlowAgentMemory) -> None:
@@ -40,7 +47,7 @@ def sync(doc: FlowAgentMemory) -> None:
 						"agent": doc.agent or "",
 						"scope": doc.scope or "",
 						"user": doc.user or "",
-						"content": doc.content or "",
+						"search_text": _search_text(doc),
 					}
 				]
 			)

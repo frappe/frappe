@@ -80,6 +80,39 @@ class IntegrationTestFlowAgentMemory(IntegrationTestCase):
 		self.assertEqual(doc.scope, "User")
 		self.assertEqual(doc.user, frappe.session.user)
 
+	def test_keywords_persist_and_are_preserved_on_content_edit(self):
+		added = save_memory(
+			self.agent.name, content="GST rate for stationery is 12%.", scope="agent", keywords="pens paper"
+		)
+		self.assertEqual(
+			frappe.db.get_value("Flow Agent Memory", added["memory_id"], "keywords"), "pens paper"
+		)
+		# A content-only edit must keep the existing keywords.
+		save_memory(
+			self.agent.name,
+			content="GST rate for stationery is 18%.",
+			scope="agent",
+			memory_id=added["memory_id"],
+		)
+		self.assertEqual(
+			frappe.db.get_value("Flow Agent Memory", added["memory_id"], "keywords"), "pens paper"
+		)
+
+	def test_keywords_make_memory_findable_by_synonym(self):
+		# Content shares no token with the query; only the keywords bridge the gap.
+		hit = save_memory(
+			self.agent.name,
+			content="GST rate for stationery is 12 percent.",
+			scope="agent",
+			keywords="pens paper pencils office supplies",
+		)
+		miss = save_memory(self.agent.name, content="Fiscal year starts in April.", scope="agent")
+		found = store.search(
+			"tax for pens and paper", agent=self.agent.name, user=frappe.session.user, limit=5
+		)
+		self.assertIn(hit["memory_id"], found)
+		self.assertNotIn(miss["memory_id"], found)
+
 	def test_save_memory_rejects_bad_scope(self):
 		with self.assertRaises(frappe.ValidationError):
 			save_memory(self.agent.name, content="fact", scope="global")

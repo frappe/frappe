@@ -162,7 +162,13 @@ value. Near the memory limit, consolidate related memories into one.
 scope:
 - "agent" — true for everyone who uses this agent (mappings, business rules, conventions).
 - "user" — specific to the current user (their preferences and defaults).
-Ask: is this about the organisation, or about this person?"""
+Ask: is this about the organisation, or about this person?
+
+keywords: optional space-separated search terms that help this memory resurface later — \
+synonyms, alternate names, codes, or the words a user would ask with (e.g. for a fact about \
+stationery tax: "pens paper pencils office supplies GST"). They are used only for retrieval, \
+never shown as part of the fact. Add them when the fact's wording differs from how it will be \
+asked about."""
 
 
 def bind_update_memory(agent: str | None) -> Tool:
@@ -174,12 +180,13 @@ def bind_update_memory(agent: str | None) -> Tool:
 		content: str,
 		scope: Literal["agent", "user"],
 		memory_id: str | None = None,
+		keywords: str | None = None,
 	) -> dict[str, Any]:
 		from flow.memory.memory import save_memory
 
 		if not agent:
 			frappe.throw(_("Memory is not configured for this agent."), title=_("Memory Unavailable"))
-		return save_memory(agent, content=content, scope=scope, memory_id=memory_id)
+		return save_memory(agent, content=content, scope=scope, memory_id=memory_id, keywords=keywords)
 
 	return tool(update_memory, description=_UPDATE_MEMORY_DESCRIPTION)
 
