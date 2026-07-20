@@ -149,10 +149,12 @@ frappe.request.call = function (opts) {
 			opts.success_callback && opts.success_callback(data, xhr.responseText);
 		},
 		401: function (xhr) {
-			if (frappe.app.session_expired_dialog && frappe.app.session_expired_dialog.display) {
-				frappe.app.redirect_to_login();
-			} else {
+			if (
+				frappe.app.session_expired_dialog ||
+				frappe.request.is_session_expired(xhr.responseJSON)
+			) {
 				frappe.app.handle_session_expired();
+				return;
 			}
 			opts.error_callback && opts.error_callback();
 		},
@@ -166,17 +168,14 @@ frappe.request.call = function (opts) {
 			opts.error_callback && opts.error_callback();
 		},
 		403: function (xhr) {
-			const user_id = document.cookie
-				.split(";")
-				.find((c) => c.trim().startsWith("user_id="))
-				?.split("=")[1];
 			if (
-				user_id === "Guest" ||
-				(frappe.session.user === "Guest" && frappe.session.logged_in_user !== "Guest")
+				frappe.app.session_expired_dialog ||
+				frappe.request.is_session_expired(xhr.responseJSON)
 			) {
-				// session expired
 				frappe.app.handle_session_expired();
-			} else if (xhr.responseJSON && xhr.responseJSON._error_message) {
+				return;
+			}
+			if (xhr.responseJSON && xhr.responseJSON._error_message) {
 				frappe.msgprint({
 					title: __("Not permitted"),
 					indicator: "red",
@@ -452,6 +451,20 @@ frappe.request.prepare = function (opts) {
 	delete opts.error;
 };
 
+frappe.request.is_session_expired = function (response) {
+	if (response?.session_expired) return true;
+
+	const was_logged_in =
+		frappe.session.logged_in_user && frappe.session.logged_in_user !== "Guest";
+	if (!was_logged_in) return false;
+
+	const user_id = document.cookie
+		.split(";")
+		.find((c) => c.trim().startsWith("user_id="))
+		?.split("=")[1];
+	return !user_id || user_id === "Guest" || frappe.session.user === "Guest";
+};
+
 frappe.request.cleanup = function (opts, r) {
 	// stop button indicator
 	if (opts.btn) {
@@ -464,11 +477,7 @@ frappe.request.cleanup = function (opts, r) {
 	if (opts.freeze) frappe.dom.unfreeze();
 
 	if (r) {
-		// session expired? - Guest has no business here!
-		if (
-			r.session_expired ||
-			(frappe.session.user === "Guest" && frappe.session.logged_in_user !== "Guest")
-		) {
+		if (frappe.app.session_expired_dialog || frappe.request.is_session_expired(r)) {
 			frappe.app.handle_session_expired();
 			return;
 		}
