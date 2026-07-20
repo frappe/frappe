@@ -335,10 +335,6 @@ class TestUser(IntegrationTestCase):
 			}
 		).insert(ignore_permissions=True, ignore_if_duplicate=True)
 
-		# Deliberately only System Manager (no Desk User / Workspace Manager role): Workspace
-		# permissions are only granted to those two roles, so renaming a private workspace
-		# owned by someone else only succeeds if rename_private_workspaces passes
-		# ignore_permissions=True to rename_doc.
 		frappe.get_doc(
 			{
 				"doctype": "User",
