@@ -1,3 +1,4 @@
+{% from "templates/includes/login/macros.html" import alert_banner %}
 {% extends "templates/web.html" %}
 {% block navbar %}
 {% if show_language_picker %}
@@ -7,14 +8,7 @@
 {% macro email_login_body() -%}
 {% if not disable_user_pass_login or (ldap_settings and ldap_settings.enabled) %}
 <div class="page-card-body flex flex-col gap-4">
-	<div class="login-error-banner es-alert hidden" role="alert" data-theme="red">
-		<svg fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
-			<use href="#icon-circle-alert"></use>
-		</svg>
-		<div class="es-alert__content">
-			<span class="es-alert__title"></span>
-		</div>
-	</div>
+	{{ alert_banner("error") }}
 	<div class="form-group flex flex-col items-start gap-1.5 mb-0">
 		<label class="text-base text-ink-gray-5 w-full mb-0" for="login_email">{{ login_label or _("Email")}}</label>
 		<div class="email-field">
@@ -161,22 +155,8 @@
 			{{ logo_section(_('Forgot Password?'), _("Please enter your email, we'll send you password reset link")) }}
 			<form class="form-signin form-forgot hide flex flex-col gap-8" role="form" novalidate>
 				<div class="page-card-body flex flex-col gap-4">
-					<div class="login-success-banner es-alert hidden" role="alert" data-theme="green">
-						<svg fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
-							<use href="#icon-circle-check"></use>
-						</svg>
-						<div class="es-alert__content">
-							<span class="es-alert__title"></span>
-						</div>
-					</div>
-					<div class="login-error-banner es-alert hidden" role="alert" data-theme="red">
-						<svg fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
-							<use href="#icon-circle-alert"></use>
-						</svg>
-						<div class="es-alert__content">
-							<span class="es-alert__title"></span>
-						</div>
-					</div>
+					{{ alert_banner("success") }}
+					{{ alert_banner("error") }}
 					<div class="form-group flex flex-col items-start gap-1.5 mb-0">
 						<label class="text-base text-ink-gray-5 w-full mb-0" for="forgot_email">{{ _("Email") }}</label>
 						<div class="email-field">
@@ -202,22 +182,8 @@
 			{{ logo_section(_('Sign In'), _('Welcome! Please sign in to continue.')) }}
 			<form class="form-signin form-login-with-email-link hide flex flex-col gap-8" role="form" novalidate>
 				<div class="page-card-body flex flex-col gap-4">
-					<div class="login-success-banner es-alert hidden" role="alert" data-theme="green">
-						<svg fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
-							<use href="#icon-circle-check"></use>
-						</svg>
-						<div class="es-alert__content">
-							<span class="es-alert__title">{{ _("Please check your email.") }}</span>
-						</div>
-					</div>
-					<div class="login-error-banner es-alert hidden" role="alert" data-theme="red">
-						<svg fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
-							<use href="#icon-circle-alert"></use>
-						</svg>
-						<div class="es-alert__content">
-							<span class="es-alert__title"></span>
-						</div>
-					</div>
+					{{ alert_banner("success", _("Please check your email.")) }}
+					{{ alert_banner("error") }}
 					<div class="form-group flex flex-col items-start gap-1.5 mb-0">
 						<label class="text-base text-ink-gray-5 w-full mb-0" for="login_with_email_link_email">{{ _("Email") }}</label>
 						<div class="email-field">

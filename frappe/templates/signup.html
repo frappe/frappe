@@ -1,21 +1,8 @@
+{% from "templates/includes/login/macros.html" import alert_banner %}
 <form class="form-signin form-signup hide flex flex-col gap-8" role="form" novalidate>
     <div class="page-card-body flex flex-col gap-4">
-        <div class="login-success-banner es-alert hidden" role="alert" data-theme="green">
-            <svg fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
-                <use href="#icon-circle-check"></use>
-            </svg>
-            <div class="es-alert__content">
-                <span class="es-alert__title"></span>
-            </div>
-        </div>
-        <div class="login-error-banner es-alert hidden" role="alert" data-theme="red">
-            <svg fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
-                <use href="#icon-circle-alert"></use>
-            </svg>
-            <div class="es-alert__content">
-                <span class="es-alert__title"></span>
-            </div>
-        </div>
+        {{ alert_banner("success") }}
+        {{ alert_banner("error") }}
         <div class="form-group flex flex-col items-start gap-1.5 mb-0">
             <label class="text-base text-ink-gray-5 w-full mb-0" for="signup_fullname">{{ _("Full Name") }}</label>
             <input type="text" id="signup_fullname" class="form-control" placeholder="{{ _('Jane Doe') }}"
