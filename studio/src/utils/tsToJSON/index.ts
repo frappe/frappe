@@ -141,12 +141,12 @@ function findComponentTypeFiles(
 
 		for (const componentName of vueFiles) {
 			if (skipComponents && skipComponents.includes(componentName)) continue
-			const typesPath = findTypesDeclaring(currentDir, componentName, dir)
-			if (!typesPath) continue
+			const typesFile = findComponentTypesFile(currentDir, componentName, dir)
+			if (!typesFile) continue
 			typeFiles.push({
-				filePath: typesPath,
+				filePath: typesFile.path,
 				componentName,
-				hasSlots: exportsType(fs.readFileSync(typesPath, "utf-8"), `${componentName}Slots`),
+				hasSlots: exportsType(typesFile.source, `${componentName}Slots`),
 			})
 		}
 
@@ -161,14 +161,20 @@ function findComponentTypeFiles(
 	return typeFiles
 }
 
-// Nearest `types.ts` — this folder or an ancestor up to `rootDir` — that exports
-// `<Component>Props`, or null when none declares it.
-function findTypesDeclaring(startDir: string, componentName: string, rootDir: string): string | null {
+// The `types.ts` that declares this component's `<Component>Props` — its own folder or
+// the nearest ancestor up to `rootDir`. Returned with its source (so the caller can reuse
+// it for the `Slots` check), or null when no such file declares it.
+function findComponentTypesFile(
+	startDir: string,
+	componentName: string,
+	rootDir: string,
+): { path: string; source: string } | null {
 	let currentDir = startDir
 	while (true) {
 		const typesPath = path.join(currentDir, "types.ts")
-		if (fs.existsSync(typesPath) && exportsType(fs.readFileSync(typesPath, "utf-8"), `${componentName}Props`)) {
-			return typesPath
+		if (fs.existsSync(typesPath)) {
+			const source = fs.readFileSync(typesPath, "utf-8")
+			if (exportsType(source, `${componentName}Props`)) return { path: typesPath, source }
 		}
 		if (currentDir === rootDir) return null
 		const parent = path.dirname(currentDir)
