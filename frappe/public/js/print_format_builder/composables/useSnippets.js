@@ -104,11 +104,14 @@ export function useSnippets({ insert_section, insert_field, doc_type }) {
 		};
 		const blob = new Blob([JSON.stringify(payload, null, 2)], { type: "application/json" });
 		const a = document.createElement("a");
-		a.href = URL.createObjectURL(blob);
+		const url = URL.createObjectURL(blob);
+		a.href = url;
 		a.download = "print-format-snippets.json";
 		document.body.appendChild(a);
 		a.click();
 		document.body.removeChild(a);
+		// revoking in the same task can cancel the download in some browsers
+		setTimeout(() => URL.revokeObjectURL(url), 0);
 	}
 
 	async function import_snippets(payload) {
@@ -117,15 +120,22 @@ export function useSnippets({ insert_section, insert_field, doc_type }) {
 			frappe.throw(__("This file does not contain any snippets"));
 		}
 		const imported = [];
+		const skipped = [];
 		for (const row of rows) {
 			if (!row?.name || !row?.content) continue;
-			const name = await write_snippet(
-				row.name,
-				row.content,
-				row.snippet_type || "Section",
-				row.document_type || ""
-			);
-			if (name) imported.push(name);
+			// One unusable row (name taken by another document type, server refusal)
+			// must not abandon the rest of the file half-imported.
+			try {
+				const name = await write_snippet(
+					row.name,
+					row.content,
+					row.snippet_type || "Section",
+					row.document_type || ""
+				);
+				if (name) imported.push(name);
+			} catch {
+				skipped.push(row.name);
+			}
 		}
 		await reload();
 		const current = doc_type?.value;
@@ -136,7 +146,7 @@ export function useSnippets({ insert_section, insert_field, doc_type }) {
 				current &&
 				s.document_type !== current
 		).length;
-		return { imported: imported.length, other_doctypes };
+		return { imported: imported.length, other_doctypes, skipped };
 	}
 
 	// One-time lift of the old browser-local snippets. Anything whose name is already

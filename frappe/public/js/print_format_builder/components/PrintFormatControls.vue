@@ -642,12 +642,18 @@ function import_snippets() {
 		} catch {
 			frappe.throw(__("{0} is not a valid JSON file", [file.name]));
 		}
-		const { imported, other_doctypes } = await store.import_snippets(payload);
+		const { imported, other_doctypes, skipped } = await store.import_snippets(payload);
 		let message = __("Imported {0} snippet(s)", [imported]);
 		if (other_doctypes) {
 			message += " " + __("({0} belong to other document types)", [other_doctypes]);
 		}
-		frappe.show_alert({ message, indicator: "green" }, 5);
+		if (skipped.length) {
+			message += " — " + __("skipped {0}", [skipped.join(", ")]);
+		}
+		frappe.show_alert(
+			{ message, indicator: skipped.length ? "orange" : "green" },
+			skipped.length ? 7 : 5
+		);
 	};
 	input.click();
 }
