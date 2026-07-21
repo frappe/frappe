@@ -412,6 +412,9 @@
 .indent + .nested-container {
 	margin-left: calc(var(--margin-sm) + 1px);
 	border-left: 1px solid var(--border-color);
+	.sidebar-item-container {
+		margin-left: var(--margin-xs);
+	}
 }
 
 .sidebar-item-suffix {
