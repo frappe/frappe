@@ -3,7 +3,7 @@
 
 from collections.abc import Iterable
 from datetime import timedelta
-from functools import cached_property
+from functools import cached_property, lru_cache
 
 import frappe
 import frappe.defaults
@@ -882,9 +882,14 @@ class User(Document):
 
 @frappe.whitelist()
 def get_timezones():
-	import zoneinfo
+	return {"timezones": _get_timezones()}
 
-	return {"timezones": zoneinfo.available_timezones()}
+
+@lru_cache(maxsize=1)
+def _get_timezones():
+	import pytz
+
+	return sorted(pytz.common_timezones)
 
 
 @frappe.whitelist()
