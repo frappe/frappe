@@ -77,13 +77,14 @@ $.extend(frappe.perm, {
 				// used Set for "unique" levels
 				permlevels = [...new Set([0, ...levels])].sort();
 			}
+			const rights = frappe.perm.get_rights(doctype);
 			const admin_perm = [];
 			permlevels.forEach((level) => {
 				const p = {
 					permlevel: level,
-					rights_without_if_owner: new Set(frappe.perm.rights),
+					rights_without_if_owner: new Set(rights),
 				};
-				frappe.perm.rights.forEach((right) => {
+				rights.forEach((right) => {
 					p[right] = 1;
 				});
 				admin_perm[level] = p;

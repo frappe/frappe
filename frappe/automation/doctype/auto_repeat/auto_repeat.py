@@ -601,6 +601,7 @@ def get_auto_repeat_doctypes(doctype, txt, searchfield, start, page_len, filters
 def update_reference(docname: str, reference: str):
 	doc = frappe.get_doc("Auto Repeat", str(docname))
 	doc.check_permission("write")
+	frappe.has_permission(doc.reference_doctype, "read", str(reference), throw=True)
 	doc.db_set("reference_document", str(reference))
 	return "success"  # backward compatbility
 

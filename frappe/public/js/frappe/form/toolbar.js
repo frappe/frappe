@@ -23,7 +23,6 @@ frappe.ui.form.Toolbar = class Toolbar {
 		} else {
 			if (this.frm.doc.__islocal) {
 				this.page.hide_menu();
-				this.print_icon && this.print_icon.addClass("hide");
 			} else {
 				const is_children_visible =
 					this.page.menu.children().filter(function () {
@@ -37,7 +36,6 @@ frappe.ui.form.Toolbar = class Toolbar {
 				} else {
 					this.page.hide_menu();
 				}
-				this.print_icon && this.print_icon.removeClass("hide");
 			}
 		}
 	}
@@ -360,7 +358,7 @@ frappe.ui.form.Toolbar = class Toolbar {
 	}
 
 	make_menu_items() {
-		// Print
+		this.add_print();
 		this.add_discard();
 		this.add_open_sidebar();
 		this.add_email();
@@ -461,6 +459,19 @@ frappe.ui.form.Toolbar = class Toolbar {
 				},
 				true
 			);
+		}
+	}
+
+	add_print() {
+		if (frappe.model.can_print_doc(this.frm)) {
+			let menu_item = this.page.add_menu_item(
+				__("Print"),
+				() => {
+					this.frm.print_doc();
+				},
+				true
+			);
+			menu_item.parent().addClass("hidden-xl");
 		}
 	}
 

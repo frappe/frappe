@@ -1,6 +1,8 @@
 # Copyright (c) 2015, Frappe Technologies and Contributors
 # License: MIT. See LICENSE
+import smtplib
 import textwrap
+from unittest.mock import MagicMock
 
 import frappe
 from frappe.email.doctype.email_queue.email_queue import SendMailContext, get_email_retry_limit
@@ -93,3 +95,53 @@ class TestEmailQueue(IntegrationTestCase):
 		q2 = frappe.new_doc("Email Queue", email_account="_Test Email Account 1")
 		self.assertIsNot(get_server(frappe.new_doc("Email Queue")), get_server(q1))
 		self.assertIs(get_server(q1), get_server(q2))
+
+	def test_redacts_message_only_once_sent(self):
+		"""A failed send must keep the message intact, it is the only copy the retry has."""
+		link = f"http://example.com/update-password?key={frappe.generate_hash()}"
+		email_record = frappe.new_doc(
+			"Email Queue",
+			sender="Test <test@example.com>",
+			show_as_cc="",
+			email_account="_Test Email Account 1",
+			message=textwrap.dedent(
+				f"""\
+			MIME-Version: 1.0
+			Content-Type: text/plain; charset="utf-8"
+			Message-Id: {frappe.generate_hash()}
+			Subject: Welcome
+			From: Test <test@example.com>
+			To: <!--recipient-->
+
+			Hello, complete your registration at {link}
+			"""
+			),
+			status="Not Sent",
+			priority=1,
+			redact_message_after_send=1,
+			recipients=[{"recipient": "test_redact@example.com"}],
+		).insert()
+
+		mock_session = MagicMock()
+		mock_session.has_extn.return_value = False
+		mock_session.sendmail.side_effect = smtplib.SMTPRecipientsRefused(
+			{"test_redact@example.com": (450, b"Mailbox busy")}
+		)
+		mock_smtp_server = MagicMock()
+		mock_smtp_server.session = mock_session
+
+		frappe.flags.testing_email = True
+		try:
+			with self.assertRaises(smtplib.SMTPRecipientsRefused):
+				email_record.send(smtp_server_instance=mock_smtp_server)
+
+			self.assertIn(link, frappe.db.get_value("Email Queue", email_record.name, "message"))
+
+			mock_session.sendmail.side_effect = None
+			email_record.reload()
+			email_record.send(smtp_server_instance=mock_smtp_server)
+		finally:
+			frappe.flags.testing_email = False
+
+		self.assertIn(link, mock_session.sendmail.call_args.kwargs["msg"].decode())
+		self.assertNotIn(link, frappe.db.get_value("Email Queue", email_record.name, "message"))

@@ -59,6 +59,7 @@
   "report_hide",
   "search_index",
   "allow_in_quick_entry",
+  "allow_bulk_edit",
   "ignore_xss_filter",
   "translatable",
   "hide_border",
@@ -410,6 +411,13 @@
   },
   {
    "default": "0",
+   "depends_on": "eval: doc.fieldtype == \"Table\"",
+   "fieldname": "allow_bulk_edit",
+   "fieldtype": "Check",
+   "label": "Allow Bulk Edit"
+  },
+  {
+   "default": "0",
    "depends_on": "eval:!in_list(['Table', 'Table MultiSelect'], doc.fieldtype);",
    "fieldname": "in_preview",
    "fieldtype": "Check",
@@ -506,7 +514,7 @@
  "idx": 1,
  "index_web_pages_for_search": 1,
  "links": [],
- "modified": "2026-07-08 13:37:37.503488",
+ "modified": "2026-06-12 10:00:00.000000",
  "modified_by": "Administrator",
  "module": "Custom",
  "name": "Custom Field",
