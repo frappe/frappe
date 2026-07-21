@@ -11,11 +11,7 @@ import frappe
 from frappe import _
 from frappe.integrations.utils import make_get_request
 from frappe.model.document import Document
-<<<<<<< HEAD
-=======
-from frappe.utils.synchronization import filelock
 from frappe.www.login import sanitize_redirect
->>>>>>> 83dfc6ce6f (fix(connected_app): add perm. chk & sanitize redirects)
 
 if any((os.getenv("CI"), frappe.conf.developer_mode, frappe.conf.allow_tests)):
 	# Disable mandatory TLS in developer mode and tests
