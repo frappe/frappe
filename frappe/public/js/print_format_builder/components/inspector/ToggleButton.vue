@@ -6,14 +6,17 @@
 		:aria-pressed="!!modelValue"
 		:title="title"
 		@click="$emit('update:modelValue', !modelValue)"
-		v-html="frappe.utils.icon(icon, 'sm')"
-	></button>
+	>
+		<span v-if="icon" v-html="frappe.utils.icon(icon, 'sm')"></span>
+		<template v-else>{{ label }}</template>
+	</button>
 </template>
 
 <script setup>
 defineProps({
 	modelValue: { type: Boolean, default: false },
-	icon: { type: String, required: true },
+	label: { type: String, default: "" },
+	icon: { type: String, default: "" },
 	title: { type: String, default: "" },
 });
 defineEmits(["update:modelValue"]);
@@ -24,10 +27,10 @@ defineEmits(["update:modelValue"]);
 	display: inline-flex;
 	align-items: center;
 	justify-content: center;
-	align-self: stretch;
-	width: 32px;
-	flex-shrink: 0;
-	padding: 0;
+	min-width: 32px;
+	padding: 5px 10px;
+	font-size: var(--text-sm);
+	line-height: 1;
 	border: 1px solid var(--border-color);
 	border-radius: var(--radius);
 	background: var(--control-bg);
@@ -42,5 +45,6 @@ defineEmits(["update:modelValue"]);
 	background: var(--gray-300);
 	border-color: var(--gray-400);
 	color: var(--text-color);
+	font-weight: var(--weight-medium);
 }
 </style>

@@ -153,26 +153,27 @@
 					:label="__('Label')"
 					:model-value="selected_field.label_color || ''"
 					@update:model-value="(v) => set_field_prop('label_color', v)"
-				>
-					<IconToggle
-						icon="bold"
-						:title="__('Bold label')"
-						:model-value="!!selected_field.label_bold"
-						@update:model-value="(v) => set_field_prop('label_bold', v)"
-					/>
-				</ColorField>
+				/>
 				<ColorField
 					:label="__('Value')"
 					:model-value="selected_field.value_color || ''"
 					@update:model-value="(v) => set_field_prop('value_color', v)"
-				>
-					<IconToggle
-						icon="bold"
-						:title="__('Bold value')"
-						:model-value="!!selected_field.value_bold"
-						@update:model-value="(v) => set_field_prop('value_bold', v)"
-					/>
-				</ColorField>
+				/>
+				<div class="pfb-insp-row">
+					<span class="pfb-insp-label">{{ __("Bold") }}</span>
+					<div class="pfb-insp-toggles">
+						<ToggleButton
+							:label="__('Label')"
+							:model-value="!!selected_field.label_bold"
+							@update:model-value="(v) => set_field_prop('label_bold', v)"
+						/>
+						<ToggleButton
+							:label="__('Value')"
+							:model-value="!!selected_field.value_bold"
+							@update:model-value="(v) => set_field_prop('value_bold', v)"
+						/>
+					</div>
+				</div>
 			</div>
 			<StyleSection :label="__('Custom CSS')" v-model="selected_field.custom_style" />
 		</InspectorSection>
@@ -191,7 +192,7 @@ import InspectorSection from "./InspectorSection.vue";
 import StepperRow from "./StepperRow.vue";
 import StyleSection from "./StyleSection.vue";
 import ColorField from "./ColorField.vue";
-import IconToggle from "./IconToggle.vue";
+import ToggleButton from "./ToggleButton.vue";
 import VisibilitySection from "./VisibilitySection.vue";
 import ImageUploadControl from "./ImageUploadControl.vue";
 import { get_image_dimensions } from "../../utils";
