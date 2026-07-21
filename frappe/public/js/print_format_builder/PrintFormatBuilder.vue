@@ -32,10 +32,6 @@
 					<span v-if="!$store.preview_doc.value" class="canvas-no-data-hint">
 						← {{ __("Pick a record to see real values") }}
 					</span>
-					<span v-if="$store.preview_doc.value" class="es-badge" data-theme="green">{{
-						__("Live")
-					}}</span>
-
 					<div class="canvas-zoom-control" role="group" :aria-label="__('Zoom')">
 						<button
 							class="canvas-zoom-btn"
