@@ -2,6 +2,9 @@ export function clone_plain(obj) {
 	return JSON.parse(JSON.stringify(obj));
 }
 
+// Blocks the builder invents — they never map to a docfield on the document type
+export const BLOCK_FIELDTYPES = new Set(["Spacer", "Divider", "Repeater"]);
+
 export function freshen_field(f) {
 	delete f.remove;
 	if (f.custom && f.fieldname) f.fieldname += "_" + frappe.utils.get_random(8);
