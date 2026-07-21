@@ -724,7 +724,7 @@ frappe.views.ListView = class ListView extends frappe.views.BaseList {
 		if (this.can_create) {
 			actions.push({
 				label: new_button_label,
-				variant: "solid",
+				variant: "subtle",
 				icon: "plus",
 				css_class: "btn-new-doc",
 			});
