@@ -455,6 +455,7 @@
 import draggable from "vuedraggable";
 import Autocomplete from "../../vue-components/Autocomplete.vue";
 import {
+	BLOCK_FIELDTYPES,
 	DRAG_OPTIONS,
 	clone_plain,
 	freshen_field,
@@ -762,6 +763,7 @@ let known_fieldnames = computed(() => {
 });
 function field_broken(f) {
 	if (f.custom || f.fieldtype === "Field Template" || !f.fieldname) return false;
+	if (BLOCK_FIELDTYPES.has(f.fieldtype)) return false;
 	return !known_fieldnames.value.has(f.fieldname);
 }
 
