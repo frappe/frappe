@@ -97,7 +97,7 @@ frappe.ui.Sidebar = class Sidebar {
 		return frappe.boot.module_app[frappe.scrub(meta.module)];
 	}
 
-	// Resolve a companion app to the host app it's pinned into (via the `add_app_to_rail` hook,
+	// Resolve a companion app to the host app it's pinned into (via the `add_app_to_dock` hook,
 	// surfaced as `frappe.boot.app_rail_host`). A companion app has no shell of its own -- its
 	// workspaces live inside the host app's rail -- so its app context (dock + header) is the host's.
 	// Non-companion apps (and unknown/null names) pass through unchanged.
