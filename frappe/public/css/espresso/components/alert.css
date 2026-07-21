@@ -31,6 +31,9 @@
     padding-block: calc(var(--spacing) * 3.5);
     border-radius: var(--radius-md);
     font-size: var(--text-base);
+    /* pin alignment so the icon and text stay start-aligned regardless of any
+       inherited text-align from the surrounding page (e.g. the login card). */
+    text-align: start;
     background: var(--es-al-bg);
 }
 
