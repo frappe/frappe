@@ -219,11 +219,13 @@ const frameworkUIComponentPaths: Record<string, string> = {
 const templateCache = new Map<string, string>()
 
 const customComponentFilePaths = new Map<string, string>()
-function setCustomComponentFilePaths(components: CustomVueComponentMeta[]) {
+
+async function registerCustomComponentPaths(components: CustomVueComponentMeta[]) {
 	customComponentFilePaths.clear()
 	for (const comp of components) {
 		customComponentFilePaths.set(comp.component_name, comp.file_path)
 	}
+	await Promise.all(components.map((comp) => getComponentSlots(comp.component_name, true)))
 }
 
 function getComponentTemplate(componentName: string): string {
@@ -385,5 +387,5 @@ export {
 	getComponentSlots,
 	componentHasDefaultSlot,
 	invalidateComponentCache,
-	setCustomComponentFilePaths,
+	registerCustomComponentPaths,
 }

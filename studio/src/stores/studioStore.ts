@@ -23,7 +23,7 @@ import {
 	registerStudioPageScripts,
 	unregisterStudioPageScripts,
 } from "@/data/studioPageScripts"
-import { setCustomComponentFilePaths } from "@/utils/components"
+import { registerCustomComponentPaths } from "@/utils/components"
 import type { CustomVueComponentMeta } from "@/types/vue"
 
 import type { StudioApp } from "@/types/Studio/StudioApp"
@@ -443,7 +443,7 @@ const useStudioStore = defineStore("store", () => {
 	// custom components
 	async function setCustomComponents() {
 		await loadCustomVueComponents()
-		setCustomComponentFilePaths(customVueComponents.value)
+		await registerCustomComponentPaths(customVueComponents.value)
 	}
 
 	async function loadCustomVueComponents() {
