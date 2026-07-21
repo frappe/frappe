@@ -52,12 +52,11 @@
 						class="canvas-preview-toggle"
 						:class="{ active: show_preview }"
 						:aria-pressed="show_preview"
+						:aria-label="__('Toggle preview')"
 						:title="__('Toggle preview')"
 						@click="toggle_preview"
-					>
-						<span v-html="frappe.utils.icon('eye', 'xs')"></span>
-						<span>{{ __("Preview") }}</span>
-					</button>
+						v-html="frappe.utils.icon('eye', 'xs')"
+					></button>
 				</div>
 			</div>
 			<div
@@ -74,7 +73,7 @@
 			</div>
 		</div>
 		<!-- the right rail is either the inspector or the preview, never both -->
-		<Preview v-if="show_preview" />
+		<Preview v-if="show_preview" @close="show_preview = false" />
 		<FieldInspector v-else />
 	</div>
 </template>
@@ -84,10 +83,9 @@ import PrintFormat from "./components/editor/PrintFormat.vue";
 import PrintFormatSetup from "./components/editor/PrintFormatSetup.vue";
 import Preview from "./components/Preview.vue";
 import PrintFormatControls from "./components/PrintFormatControls.vue";
-import PrintSettingsPanel from "./components/PrintSettingsPanel.vue";
 import FieldInspector from "./components/inspector/FieldInspector.vue";
 import { getStore } from "./stores";
-import { computed, createApp, ref, onMounted, onUnmounted, provide, nextTick, watch } from "vue";
+import { computed, ref, onMounted, onUnmounted, provide, nextTick, watch } from "vue";
 
 // props
 const props = defineProps(["print_format_name"]);
@@ -126,19 +124,40 @@ function toggle_preview() {
 	show_preview.value = !show_preview.value;
 }
 
-function open_settings() {
-	let settings_app = null;
+const SETTINGS_DOCTYPE = "Print Settings";
+
+// Editing the Single in a dialog rather than routing to its form: the builder
+// holds unsaved layout in memory, and navigating away would drop it.
+async function open_print_settings() {
+	if (!frappe.perm.has_perm(SETTINGS_DOCTYPE, 0, "write")) {
+		frappe.msgprint(__("You are not permitted to change Print Settings"));
+		return;
+	}
+	await frappe.model.with_doctype(SETTINGS_DOCTYPE);
+	const doc = await frappe.model.with_doc(SETTINGS_DOCTYPE, SETTINGS_DOCTYPE);
+	// built from the doctype's own meta, so a new field shows up here for free
+	const fields = frappe.get_meta(SETTINGS_DOCTYPE).fields.filter((df) => !df.hidden);
+
 	const dialog = new frappe.ui.Dialog({
 		title: __("Print Settings"),
-		fields: [{ fieldtype: "HTML", fieldname: "settings_area" }],
-		on_page_show: () => {
-			settings_app = createApp(PrintSettingsPanel);
-			SetVueGlobals(settings_app);
-			// the panel reads and writes the live format, same as the sidebar tab did
-			settings_app.provide("$store", $store.value);
-			settings_app.mount(dialog.get_field("settings_area").$wrapper.get(0));
+		size: "large",
+		fields: fields.map((df) => ({ ...df, default: doc[df.fieldname] })),
+		primary_action_label: __("Save"),
+		primary_action: (values) => {
+			frappe
+				.call("frappe.client.set_value", {
+					doctype: SETTINGS_DOCTYPE,
+					name: SETTINGS_DOCTYPE,
+					fieldname: values,
+				})
+				.then(() => {
+					dialog.hide();
+					frappe.show_alert({
+						message: __("Print Settings updated"),
+						indicator: "green",
+					});
+				});
 		},
-		on_hide: () => settings_app?.unmount(),
 	});
 	dialog.show();
 }
@@ -393,7 +412,7 @@ onUnmounted(() => {
 	sidebar_observer_ref?.disconnect();
 });
 
-defineExpose({ toggle_preview, open_settings, show_preview, $store });
+defineExpose({ toggle_preview, open_print_settings, show_preview, $store });
 </script>
 
 <style scoped>
@@ -526,9 +545,10 @@ defineExpose({ toggle_preview, open_settings, show_preview, $store });
 .canvas-preview-toggle {
 	display: flex;
 	align-items: center;
-	gap: 4px;
+	justify-content: center;
+	width: 26px;
 	height: 26px;
-	padding: 0 8px;
+	padding: 0;
 	border: 1px solid var(--border-color);
 	border-radius: var(--radius);
 	background: transparent;

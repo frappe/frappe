@@ -360,7 +360,10 @@
 			</div>
 		</div>
 
-		<!-- ── Format ─────────────────────────────────────────── -->
+		<!-- ── Setting ────────────────────────────────────────── -->
+		<div v-else-if="activeTab === 'format'" class="pfb-tab-body">
+			<PrintSettingsPanel />
+		</div>
 	</div>
 </template>
 
@@ -375,6 +378,7 @@ import {
 	pluck,
 	setDragging,
 } from "../utils";
+import PrintSettingsPanel from "./PrintSettingsPanel.vue";
 import { useStore } from "../stores";
 import { computed, onMounted, onUnmounted, nextTick, ref, watch, inject } from "vue";
 
@@ -390,6 +394,7 @@ const tabs = computed(() => [
 	{ id: "fields", label: __("Fields") },
 	{ id: "blocks", label: __("Blocks") },
 	{ id: "library", label: __("Library") },
+	{ id: "format", label: __("Setting") },
 ]);
 
 // A stale tab id would render an empty sidebar, so fall back to the first tab

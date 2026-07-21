@@ -36,30 +36,28 @@
 			</div>
 		</div>
 
-		<div class="pfb-settings-grid">
-			<div class="form-group">
-				<label class="control-label">{{ __("Google Font") }}</label>
-				<Autocomplete
-					:options="font_options"
-					:model-value="print_format.font || ''"
-					:placeholder="__('Default')"
-					@select="(o) => (print_format.font = o.value)"
-				/>
-			</div>
-			<div class="form-group">
-				<label class="control-label">{{ __("Font Size (pt)") }}</label>
-				<input
-					type="number"
-					class="form-control form-control-sm"
-					placeholder="12, 13, 14"
-					:value="print_format.font_size"
-					@change="(e) => (print_format.font_size = parseFloat(e.target.value))"
-				/>
-			</div>
-			<div class="form-group" v-for="c in color_settings" :key="c.fieldname">
-				<label class="control-label">{{ c.label }}</label>
-				<div :ref="(el) => (color_hosts[c.fieldname] = el)"></div>
-			</div>
+		<div class="form-group">
+			<label class="control-label">{{ __("Google Font") }}</label>
+			<Autocomplete
+				:options="font_options"
+				:model-value="print_format.font || ''"
+				:placeholder="__('Default')"
+				@select="(o) => (print_format.font = o.value)"
+			/>
+		</div>
+		<div class="form-group">
+			<label class="control-label">{{ __("Font Size (pt)") }}</label>
+			<input
+				type="number"
+				class="form-control form-control-sm"
+				placeholder="12, 13, 14"
+				:value="print_format.font_size"
+				@change="(e) => (print_format.font_size = parseFloat(e.target.value))"
+			/>
+		</div>
+		<div class="form-group" v-for="c in color_settings" :key="c.fieldname">
+			<label class="control-label">{{ c.label }}</label>
+			<div :ref="(el) => (color_hosts[c.fieldname] = el)"></div>
 		</div>
 
 		<div class="form-group">
@@ -235,16 +233,9 @@ onMounted(() => {
 	flex: 1;
 }
 
-/* the dialog is wider than the sidebar was, so pair the short controls up */
-.pfb-settings-grid {
-	display: grid;
-	grid-template-columns: 1fr 1fr;
-	gap: 0 12px;
-}
-
 .pfb-margin-grid {
 	display: grid;
-	grid-template-columns: repeat(4, 1fr);
+	grid-template-columns: 1fr 1fr;
 	gap: 6px;
 }
 

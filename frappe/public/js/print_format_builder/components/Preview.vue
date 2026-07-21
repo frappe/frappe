@@ -25,6 +25,13 @@
 				:title="__('Open in a new tab')"
 				v-html="frappe.utils.icon('external-link', 'xs')"
 			></a>
+			<button
+				class="pfb-preview-btn"
+				:title="__('Close preview')"
+				:aria-label="__('Close preview')"
+				@click="$emit('close')"
+				v-html="frappe.utils.icon('x', 'xs')"
+			></button>
 		</div>
 
 		<div v-if="!docname" class="pfb-preview-empty">
@@ -51,6 +58,8 @@
 import { useStore } from "../stores";
 import { ref, computed, nextTick, onMounted, onUnmounted, watch } from "vue";
 
+defineEmits(["close"]);
+
 let { print_format, layout, store } = useStore();
 
 const DOCK_KEY = "pfb_preview_width";
@@ -61,6 +70,7 @@ let type = ref("HTML");
 let preview_loaded = ref(false);
 let iframe = ref(null);
 let viewport = ref(null);
+let pdf_url = ref(null);
 let render_seq = 0;
 
 let dock_width = ref(clamp_width(parseInt(localStorage.getItem(DOCK_KEY)) || 520));
@@ -229,12 +239,7 @@ function render() {
 }
 
 function refresh() {
-	if (type.value === "PDF") {
-		preview_loaded.value = false;
-		iframe.value?.contentWindow.location.reload();
-	} else {
-		render();
-	}
+	render();
 }
 
 // Editing beside the preview is the whole point of the dock, but every render is a
@@ -253,7 +258,10 @@ onMounted(() => {
 	if (viewport.value) resize_observer.observe(viewport.value);
 });
 
-onUnmounted(() => resize_observer?.disconnect());
+onUnmounted(() => {
+	resize_observer?.disconnect();
+	set_pdf_url(null);
+});
 </script>
 
 <style scoped>
