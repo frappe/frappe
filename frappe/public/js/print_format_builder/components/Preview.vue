@@ -46,6 +46,7 @@
 				<iframe
 					ref="iframe"
 					:src="type === 'PDF' ? pdf_url : undefined"
+					:scrolling="type === 'PDF' ? 'auto' : 'no'"
 					class="pfb-preview-iframe"
 					:style="frame_style"
 				></iframe>
@@ -115,12 +116,27 @@ function fit_preview() {
 	const w = cd.documentElement.scrollWidth;
 	const h = cd.documentElement.scrollHeight;
 	if (!w || !h) return;
-	page.value = { w, h };
+	// re-measuring feeds back through the body observer, so ignore sub-pixel noise
+	if (Math.abs(w - page.value.w) > 1 || Math.abs(h - page.value.h) > 1) {
+		page.value = { w, h };
+	}
 	// never blow a narrow page up past its natural size
 	scale.value = Math.min(1, (box.clientWidth - 16) / w);
 }
 
 let resize_observer = null;
+let frame_observer = null;
+
+// Images and webfonts land after the first measure, so the page grows past the
+// height we sized the frame to — and the frame sprouts its own scrollbar next to
+// the dock's. Track the rendered body instead of measuring once.
+function observe_frame_body() {
+	frame_observer?.disconnect();
+	const body = iframe.value?.contentDocument?.body;
+	if (!body) return;
+	frame_observer = new ResizeObserver(fit_preview);
+	frame_observer.observe(body);
+}
 
 function start_resize(e) {
 	const start_x = e.clientX;
@@ -229,7 +245,10 @@ function render() {
 			write_iframe(r.message || "");
 			preview_loaded.value = true;
 			// measure after the document has laid out, not before
-			nextTick(() => setTimeout(fit_preview, 0));
+			nextTick(() => {
+				fit_preview();
+				observe_frame_body();
+			});
 		})
 		.catch(() => {
 			if (seq !== render_seq) return;
@@ -260,6 +279,7 @@ onMounted(() => {
 
 onUnmounted(() => {
 	resize_observer?.disconnect();
+	frame_observer?.disconnect();
 	set_pdf_url(null);
 });
 </script>
