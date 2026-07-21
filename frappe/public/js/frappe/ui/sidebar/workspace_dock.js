@@ -36,6 +36,17 @@ frappe.ui.WorkspaceDock = class WorkspaceDock {
 		$resize.on("click", () => this.sidebar.open());
 		this.$dock.append($resize);
 
+		// Visible affordance for the same action, mirroring the sidebar's own .sidebar-toggle-btn --
+		// same circular button on the rail's right edge, chevron pointing right since it only ever
+		// expands. Like the handle, CSS keeps it to the collapsed state.
+		let $expand = $(`<button
+			class="expand-sidebar-link workspace-dock-toggle-btn"
+			aria-label="${__("Toggle Sidebar")}"
+			data-placement="right"
+		>${frappe.utils.icon("chevron-right", "sm", "", "", "", true)}</button>`);
+		$expand.on("click", () => this.sidebar.open());
+		this.$dock.append($expand);
+
 		this.$logo = this.$dock.find(".workspace-dock-logo");
 		this.$items = this.$dock.find(".workspace-dock-items");
 		this.$actions = this.$dock.find(".workspace-dock-actions");
