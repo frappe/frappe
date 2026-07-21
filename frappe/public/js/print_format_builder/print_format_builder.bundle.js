@@ -39,9 +39,15 @@ class PrintFormatBuilder {
 			"",
 			__("Print Settings")
 		);
-		this.page.add_menu_item(__("Edit Print Format"), () => {
-			frappe.set_route("Form", "Print Format", this.print_format);
-		});
+		this.page.add_action_icon(
+			"file-pen",
+			() => frappe.set_route("Form", "Print Format", this.print_format),
+			"",
+			__("Edit Print Format")
+		);
+		// Every menu entry left is a mobile-only mirror of a custom action button, so on
+		// wide screens the ⋯ would open an empty dropdown
+		this.page.menu_btn_group.addClass("hidden-xl");
 
 		let app = createApp(PrintFormatBuilderComponent, { print_format_name: print_format });
 		SetVueGlobals(app);
