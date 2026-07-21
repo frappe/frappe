@@ -8,8 +8,8 @@
 		<div class="pfb-preview-head">
 			<span class="pfb-preview-title">{{ __("Preview") }}</span>
 			<select class="pfb-preview-type" v-model="type">
-				<option value="HTML">{{ __("HTML") }}</option>
-				<option value="PDF">{{ __("PDF") }}</option>
+				<option value="HTML">{{ __("Flow") }}</option>
+				<option value="PDF">{{ __("Pages") }}</option>
 			</select>
 			<button
 				class="pfb-preview-btn"
@@ -27,10 +27,6 @@
 			></a>
 		</div>
 
-		<div v-if="type === 'PDF' && store.dirty" class="pfb-preview-note">
-			{{ __("The PDF renders the saved format. Save to see recent edits.") }}
-		</div>
-
 		<div v-if="!docname" class="pfb-preview-empty">
 			{{ __("Pick a record in the toolbar above to preview it.") }}
 		</div>
@@ -42,10 +38,9 @@
 			<div class="pfb-preview-stage" :style="stage_style">
 				<iframe
 					ref="iframe"
-					:src="type === 'PDF' ? url : undefined"
+					:src="type === 'PDF' ? pdf_url : undefined"
 					class="pfb-preview-iframe"
 					:style="frame_style"
-					@load="type === 'PDF' && (preview_loaded = true)"
 				></iframe>
 			</div>
 		</div>
@@ -140,6 +135,9 @@ let doctype = computed(() => print_format.value.doc_type);
 
 let url = computed(() => {
 	if (!docname.value) return null;
+	// the paged view is a blob of the unsaved format — opening the saved one
+	// in a new tab would quietly show something else
+	if (type.value === "PDF") return pdf_url.value;
 	let params = new URLSearchParams();
 	params.append("doctype", doctype.value);
 	params.append("name", docname.value);
@@ -147,11 +145,7 @@ let url = computed(() => {
 	if (store.value.letterhead) {
 		params.append("letterhead", store.value.letterhead.name);
 	}
-	let _url =
-		type.value == "PDF"
-			? `/api/method/frappe.utils.print_format_generator.download_pdf`
-			: "/printpreview";
-	return `${_url}?${params.toString()}`;
+	return `/printpreview?${params.toString()}`;
 });
 
 function write_iframe(html) {
@@ -162,10 +156,52 @@ function write_iframe(html) {
 	cd.close();
 }
 
+// Chromium decides where a page actually breaks — automatic breaks depend on
+// laid-out heights, keep-together and table splitting, none of which the browser
+// can work out from the flowed HTML. So the paged view asks the print renderer.
+async function render_pages() {
+	preview_loaded.value = false;
+	let seq = ++render_seq;
+	const params = {
+		print_format: store.value.get_preview_format_doc(),
+		doctype: doctype.value,
+		name: docname.value,
+	};
+	if (store.value.letterhead) {
+		params.letterhead = store.value.letterhead.name;
+	}
+	try {
+		const res = await fetch(
+			"/api/method/frappe.utils.print_format_generator.download_builder_preview_pdf",
+			{
+				method: "POST",
+				headers: {
+					"Content-Type": "application/json",
+					"X-Frappe-CSRF-Token": frappe.csrf_token,
+				},
+				body: JSON.stringify(params),
+			}
+		);
+		if (!res.ok) throw new Error(res.statusText);
+		const blob = await res.blob();
+		if (seq !== render_seq) return;
+		set_pdf_url(URL.createObjectURL(blob));
+	} catch (e) {
+		if (seq !== render_seq) return;
+		set_pdf_url(null);
+		frappe.show_alert({ message: __("Could not render the paged preview"), indicator: "red" });
+	}
+	preview_loaded.value = true;
+}
+
+function set_pdf_url(next) {
+	if (pdf_url.value) URL.revokeObjectURL(pdf_url.value);
+	pdf_url.value = next;
+}
+
 function render() {
 	if (!docname.value) return;
-	// PDF is served straight into the iframe via src, and costs a Chromium render
-	if (type.value === "PDF") return;
+	if (type.value === "PDF") return render_pages();
 	preview_loaded.value = false;
 	let seq = ++render_seq;
 	let params = {
@@ -226,6 +262,8 @@ onUnmounted(() => resize_observer?.disconnect());
 	display: flex;
 	flex-direction: column;
 	flex-shrink: 0;
+	/* pin to the viewport like the inspector, so the dock scrolls and the page doesn't */
+	height: calc(100vh - var(--pfb-chrome-offset, 95px));
 	border-left: 1px solid var(--border-color);
 	background: var(--fg-color);
 	overflow: hidden;

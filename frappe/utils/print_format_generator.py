@@ -144,6 +144,42 @@ def render_builder_preview(
 	return generator.get_html_preview()
 
 
+@frappe.whitelist()
+def download_builder_preview_pdf(
+	print_format: str | dict,
+	doctype: str,
+	name: str | None = None,
+	letterhead: str | None = None,
+	settings: str | dict | None = None,
+):
+	"""Render a PDF for an UNSAVED builder format.
+
+	Same contract as :func:`render_builder_preview`, but through the PDF renderer.
+	Paginating HTML in the browser can only ever approximate where Chromium breaks
+	a page, so the builder's paged preview asks Chromium instead of guessing.
+	"""
+	from frappe.printing.doctype.print_format.print_format import printable_sample
+	from frappe.www.printview import validate_print
+
+	frappe.has_permission("Print Format", "write", throw=True)
+
+	pf = frappe.get_doc(frappe.parse_json(print_format))
+	if pf.doctype != "Print Format":
+		frappe.throw(_("Expected an unsaved Print Format document"))
+
+	name = name or printable_sample(doctype)
+	if not name:
+		frappe.throw(_("No document available to preview"))
+
+	doc = frappe.get_doc(doctype, name)
+	validate_print(doc)
+
+	generator = PrintFormatGenerator(pf, doc, letterhead, settings=frappe.parse_json(settings))
+	frappe.local.response.filename = "preview.pdf"
+	frappe.local.response.filecontent = generator.render_pdf()
+	frappe.local.response.type = "pdf"
+
+
 def get_html(
 	doctype,
 	name,
