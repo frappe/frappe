@@ -4,7 +4,7 @@ import type { VueProp, VuePropType } from "@/types/vue"
 
 import * as jsonTypes from "@/json_types"
 import { isObjectEmpty } from "@/utils/helpers"
-import { ConcreteComponent } from "vue"
+import { ConcreteComponent, reactive } from "vue"
 import type { CustomVueComponentMeta } from "@/types/vue"
 
 interface ComponentTypes {
@@ -281,8 +281,11 @@ async function fetchCustomComponentTemplate(componentName: string): Promise<stri
 	if (!filePath) return ""
 
 	try {
-		// Use Vite's ?raw import to get unprocessed file content as a string
-		const module = await import(/* @vite-ignore */ `${filePath}?raw`)
+		// Use Vite's ?raw import to get unprocessed file content as a string. In dev, a unique
+		// query busts the browser's ES-module cache so a re-fetch after invalidateComponentCache
+		// (HMR content edit) gets the new source instead of the stale cached module.
+		const cacheBust = import.meta.env.DEV ? `&t=${Date.now()}` : ""
+		const module = await import(/* @vite-ignore */ `${filePath}?raw${cacheBust}`)
 		const rawSource = module.default || ""
 		if (rawSource) {
 			templateCache.set(componentName, rawSource)
@@ -322,7 +325,7 @@ function parseSlotsFromTemplate(template: string) {
 	return slots
 }
 
-const slotsCache = new Map<string, ReturnType<typeof parseSlotsFromTemplate>>()
+const slotsCache = reactive(new Map<string, ReturnType<typeof parseSlotsFromTemplate>>())
 
 async function getComponentSlots(componentName: string, isCustomVueComponent?: boolean) {
 	const cached = slotsCache.get(componentName)
@@ -341,6 +344,11 @@ function componentHasDefaultSlot(componentName: string): boolean {
 		if (template) slotsCache.set(componentName, parseSlotsFromTemplate(template))
 	}
 	return (slotsCache.get(componentName) ?? []).some((slot) => slot.type === "default")
+}
+
+function invalidateComponentCache(componentName: string) {
+	templateCache.delete(componentName)
+	slotsCache.delete(componentName)
 }
 
 function resolveProperty(
@@ -385,4 +393,11 @@ function resolveProperty(
 	return { type: type as string, inputType, options }
 }
 
-export { getComponentProps, getComponentTemplate, getComponentSlots, componentHasDefaultSlot, setCustomComponentFilePaths }
+export {
+	getComponentProps,
+	getComponentTemplate,
+	getComponentSlots,
+	componentHasDefaultSlot,
+	invalidateComponentCache,
+	setCustomComponentFilePaths,
+}
