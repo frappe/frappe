@@ -68,6 +68,17 @@
 				}}</span>
 			</template>
 			<div>
+				<!-- Add column picker -->
+				<div class="pfb-col-add-row top" v-if="available_columns.length">
+					<Autocomplete
+						:options="available_column_opts"
+						:placeholder="__('Add column...')"
+						@select="pick_column"
+					/>
+				</div>
+				<div v-else class="pfb-insp-hint text-muted pfb-col-add-row top">
+					{{ __("All available columns added.") }}
+				</div>
 				<!-- Column list -->
 				<draggable
 					:list="selected_field.table_columns"
@@ -211,17 +222,6 @@
 						</div>
 					</template>
 				</draggable>
-				<!-- Add column picker -->
-				<div class="pfb-col-add-row" v-if="available_columns.length">
-					<Autocomplete
-						:options="available_column_opts"
-						:placeholder="__('Add column...')"
-						@select="pick_column"
-					/>
-				</div>
-				<div v-else class="pfb-insp-hint text-muted" style="padding: 8px 14px 10px">
-					{{ __("All available columns added.") }}
-				</div>
 			</div>
 		</InspectorSection>
 
@@ -537,6 +537,13 @@ function set_image_size(col, value) {
 .pfb-col-add-row {
 	padding: 6px 14px 10px;
 	border-top: 1px solid var(--gray-100);
+}
+
+/* the column picker sits above its list, so the divider belongs on the other side */
+.pfb-col-add-row.top {
+	padding: 8px 14px;
+	border-top: none;
+	border-bottom: 1px solid var(--gray-100);
 }
 
 .pfb-merge-direction {
