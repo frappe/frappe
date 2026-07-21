@@ -40,7 +40,7 @@ frappe.ui.form.on("Web Form", {
 				__("Standard Web Forms can not be modified, duplicate the Web Form instead.")
 			);
 		}
-		render_list_settings_message(frm);
+		on_controlled_access_change(frm);
 
 		frm.trigger("set_fields");
 		frm.trigger("add_get_fields_button");
@@ -48,9 +48,9 @@ frappe.ui.form.on("Web Form", {
 		frm.trigger("render_condition_table");
 	},
 
-	login_required: function (frm) {
-		render_list_settings_message(frm);
-	},
+	login_required: on_controlled_access_change,
+
+	key_required: on_controlled_access_change,
 
 	anonymous: function (frm) {
 		if (frm.doc.anonymous) {
@@ -59,12 +59,8 @@ frappe.ui.form.on("Web Form", {
 	},
 
 	validate: function (frm) {
-		if (!frm.doc.login_required) {
-			frm.set_value("allow_multiple", 0);
-			frm.set_value("allow_edit", 0);
-			frm.set_value("show_list", 0);
-		}
-
+		// allow_delete is hidden (depends_on allow_multiple) and would otherwise
+		// retain a stale value while server-side checks read it directly.
 		!frm.doc.allow_multiple && frm.set_value("allow_delete", 0);
 		frm.doc.allow_multiple && frm.set_value("show_list", 1);
 
@@ -376,22 +372,41 @@ function get_fields_for_doctype(doctype) {
 	});
 }
 
+function on_controlled_access_change(frm) {
+	const has_controlled_access = frm.doc.login_required || frm.doc.key_required;
+	if (!has_controlled_access) {
+		frm.set_value("allow_multiple", 0);
+		frm.set_value("allow_edit", 0);
+		frm.set_value("allow_delete", 0);
+		frm.set_value("show_list", 0);
+	}
+	render_list_settings_message(frm);
+}
+
 function render_list_settings_message(frm) {
 	// render list setting message
-	if (frm.fields_dict["list_setting_message"] && !frm.doc.login_required) {
-		const go_to_login_required_field = `
-			<code class="pointer" title="${__("Go to Login Required field")}">
-				${__("login_required")}
+	if (
+		frm.fields_dict["list_setting_message"] &&
+		!frm.doc.login_required &&
+		!frm.doc.key_required
+	) {
+		const go_to_access_fields = `
+			<code class="pointer" title="${__("Go to Access Control section")}">
+				${__("Login Required")}
+			</code>
+			${__("or")}
+			<code class="pointer" title="${__("Go to Access Control section")}">
+				${__("Key Required")}
 			</code>
 		`;
 		let message = __(
-			"Login is required to see web form list view. Enable {0} to see list settings",
-			[go_to_login_required_field]
+			"Login or a request key is required to see web form list view. Enable {0} to see list settings",
+			[go_to_access_fields]
 		);
 		$(frm.fields_dict["list_setting_message"].wrapper)
 			.html($(`<div class="form-message blue">${message}</div>`))
 			.find("code")
-			.click(() => frm.scroll_to_field("login_required"));
+			.click(() => frm.scroll_to_field("access_control_section"));
 	} else {
 		$(frm.fields_dict["list_setting_message"].wrapper).empty();
 	}
