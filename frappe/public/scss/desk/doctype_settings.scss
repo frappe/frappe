@@ -59,12 +59,6 @@
 	}
 }
 
-// Related Settings: one section per source single, styled after the CRM settings
-// dialog (the design reference for this dialog family): the section title is a size
-// step above the row labels (espresso `text-lg-medium` utility, set in the markup),
-// and the heading floats in clear space — separators belong to the rows
-// (border-bottom on .dts-setting), never to the heading. Self-contained: no shared
-// section-heading classes, so nothing cascades in from other dialogs.
 .dts-settings-group-heading {
 	display: flex;
 	align-items: center;
@@ -98,8 +92,6 @@
 	justify-content: space-between;
 	gap: var(--margin-lg);
 	padding: var(--padding-md) 0;
-	// Separator under each row (CRM reference) — this also closes off a group before
-	// the next section heading. The final row of the tab ends clean.
 	border-bottom: 1px solid var(--border-color);
 
 	&:last-child {
@@ -111,8 +103,6 @@
 	min-width: 0;
 }
 
-// Type comes from espresso utilities in the markup (text-base-medium / text-p-sm);
-// only color and rhythm live here.
 .dts-setting-label {
 	color: var(--ink-gray-8);
 }
@@ -156,7 +146,6 @@
 	border-bottom: 1px solid var(--border-color);
 }
 
-// Type via espresso `text-sm-medium` utility in the markup.
 .dts-list-head {
 	padding: 0 0 var(--padding-sm);
 	color: var(--ink-gray-5);
@@ -208,8 +197,6 @@
 	min-width: 0;
 }
 
-// Truncation comes from the shared `.ellipsis` utility, type from espresso
-// `text-base-medium` / `text-p-sm` utilities on the elements.
 .dts-list-primary {
 	color: var(--ink-gray-8);
 	min-width: 0;
@@ -243,8 +230,6 @@
 	cursor: pointer;
 }
 
-// Shared loading placeholder (see frappe.doctype_settings.render_loading): a
-// short stack of skeleton lines.
 .dts-loading {
 	display: flex;
 	flex-direction: column;

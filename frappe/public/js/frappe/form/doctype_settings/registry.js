@@ -22,6 +22,13 @@ frappe.doctype_settings.register = function (tab_id, builder) {
 	frappe.doctype_settings.builders[tab_id] = builder;
 };
 
+frappe.doctype_settings.get_list = function (doctype, args) {
+	args = Object.assign({ fields: ["name"], limit: 20 }, args, { doctype });
+	return frappe
+		.call({ method: "frappe.desk.reportview.get_list", args, type: "GET" })
+		.then((r) => r.message);
+};
+
 /**
  * Shared overflow "…" menu used by list rows and custom tabs, built on the
  * espresso Dropdown component (open/close, positioning, keyboard handling all
@@ -39,6 +46,7 @@ frappe.doctype_settings.overflow_menu = function (items) {
 	frappe.ui
 		.dropdown({
 			button: {
+				label: "",
 				icon: "ellipsis",
 				size: "xs",
 				variant: "ghost",
@@ -88,9 +96,6 @@ frappe.doctype_settings.empty_state = function ($container, opts) {
 	return $empty;
 };
 
-// Tab load failures land here. Permission failures get a dedicated state without a
-// Retry button (retrying a 403 will always fail again); everything else keeps the
-// generic message + Retry, the right affordance for transient/network errors.
 frappe.doctype_settings.render_error = function (panel, retry_fn, err) {
 	if (frappe.doctype_settings.is_permission_error(err)) {
 		panel.body.empty();
@@ -108,8 +113,6 @@ frappe.doctype_settings.render_error = function (panel, retry_fn, err) {
 	frappe.ui.button({ label: __("Retry"), size: "xs", onclick: () => retry_fn() }).appendTo($err);
 };
 
-// Rejections reach the tabs in different shapes depending on the API: frappe.call
-// hands back the xhr, frappe.db/xcall the parsed server message. Sniff all of them.
 frappe.doctype_settings.is_permission_error = function (err) {
 	if (!err) return false;
 	return (

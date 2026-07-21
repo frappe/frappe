@@ -265,8 +265,6 @@ class ListPanel {
 
 	render_error(err) {
 		this.$body.empty();
-		// Permission failures get a terminal no-access state — no Retry, a 403 won't
-		// succeed on the second try.
 		if (frappe.doctype_settings.is_permission_error(err)) {
 			frappe.doctype_settings.empty_state(this.$body, {
 				icon: "lock",

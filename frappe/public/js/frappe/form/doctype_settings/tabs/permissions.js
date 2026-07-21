@@ -37,7 +37,7 @@ function draw(panel, doctype) {
 	Promise.all([
 		perm_call("get_permissions", { doctype }),
 		// A Custom DocPerm row means this doctype's permissions diverge from standard.
-		frappe.db.get_list("Custom DocPerm", {
+		frappe.doctype_settings.get_list("Custom DocPerm", {
 			filters: { parent: doctype },
 			fields: ["name"],
 			limit: 1,

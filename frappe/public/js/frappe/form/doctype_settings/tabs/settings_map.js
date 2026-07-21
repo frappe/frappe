@@ -47,11 +47,6 @@ function render(panel, doctype, groups) {
 		return;
 	}
 
-	// One section per source single (Selling Settings, Stock Settings, …) so long maps
-	// scan in chunks and every setting keeps its provenance. A single-source map stays
-	// flat — one heading over the whole list is noise. Each field keeps its `group`
-	// context (the source single + its `doc`) for saving and dependency evaluation,
-	// plus its own `can_write` flag (doc-level write ∧ field permlevel).
 	const show_headings = groups.length > 1;
 	groups.forEach((group) => {
 		group.doc = group.doc || {};
@@ -64,12 +59,8 @@ function render(panel, doctype, groups) {
 // Section heading for one source single: its label plus a jump link to the full
 // settings form, for anything beyond the curated subset shown here.
 function make_heading(panel, group) {
-	// Self-contained: espresso typography utility for the title instead of the shared
-	// section-heading classes, so nothing is inherited or overridden across files.
 	const $heading = $('<div class="dts-settings-group-heading"></div>');
 	$('<div class="text-base text-ink-gray-6"></div>').text(group.label).appendTo($heading);
-	// Icon-only arrow right beside the title — the whole heading names the single, so
-	// the glyph is the affordance; the tooltip/aria-label carry the full action.
 	$('<a href="#" class="dts-settings-group-link"></a>')
 		.attr("title", __("Open {0}", [group.label]))
 		.attr("aria-label", __("Open {0}", [group.label]))
@@ -80,7 +71,7 @@ function make_heading(panel, group) {
 			panel.dialog.hide();
 			frappe.set_route("Form", group.settings);
 		});
-	group.$heading = $heading; // referenced by apply_dependencies() to hide emptied groups
+	group.$heading = $heading;
 	return $heading;
 }
 
@@ -184,8 +175,6 @@ function apply_dependencies(group) {
 		const ro = field.read_only_depends_on && evaluate(field.read_only_depends_on, group.doc);
 		field.set_locked && field.set_locked(!field.can_write || !!ro);
 	});
-	// A group whose fields are all dependency-hidden takes its heading with it —
-	// no orphaned section titles mid-list.
 	group.$heading && group.$heading.toggle(any_visible);
 }
 

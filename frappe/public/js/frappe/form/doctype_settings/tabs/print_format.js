@@ -57,13 +57,13 @@ frappe.doctype_settings.register("print-format", function (panel, doctype) {
 		const sample_filters = meta.is_submittable ? { docstatus: 1 } : {};
 
 		Promise.all([
-			frappe.db.get_list("Print Format", {
+			frappe.doctype_settings.get_list("Print Format", {
 				filters: { doc_type: doctype },
 				fields: ["name", "standard", "preview_image"],
 				order_by: "standard asc, name asc",
 				limit: 0,
 			}),
-			frappe.db.get_list(doctype, {
+			frappe.doctype_settings.get_list(doctype, {
 				filters: sample_filters,
 				fields: ["name"],
 				order_by: "modified desc",
