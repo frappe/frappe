@@ -104,6 +104,28 @@ def cancel_invitation(name: str, app_name: str):
 	return {"cancelled_now": invitation.cancel_invite()}
 
 
+@frappe.whitelist(methods=["POST"])
+def resend_invitation(
+	name: str,
+	app_name: str,
+) -> None:
+	UserInvitation.validate_role(app_name)
+
+	if not frappe.db.exists("User Invitation", name):
+		frappe.throw(title=_("Error"), msg=_("Invitation not found"))
+
+	invitation = frappe.get_doc("User Invitation", name)
+
+	if invitation.app_name != app_name:
+		# message is not specific enough for security
+		frappe.throw(title=_("Error"), msg=_("Invitation not found"))
+
+	if invitation.status != "Pending":
+		frappe.throw(title=_("Error"), msg=_("Only pending invitations can be resent"))
+
+	invitation.send_invitation_mail()
+
+
 @frappe.whitelist(methods=["GET"])
 def get_pending_invitations(app_name: str):
 	UserInvitation.validate_role(app_name)
