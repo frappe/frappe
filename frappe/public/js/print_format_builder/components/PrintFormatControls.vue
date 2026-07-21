@@ -474,7 +474,7 @@ let font_options = computed(() => [
 	{ label: __("Default"), value: "" },
 	...google_fonts.value.map((f) => ({ label: f, value: f })),
 ]);
-let activeTab = ref("fields");
+let activeTab = ref("outline");
 let search_input = ref(null);
 let raw_templates = ref([]);
 
@@ -489,10 +489,10 @@ let { meta, print_format, layout } = useStore();
 
 // ── tab definitions ───────────────────────────────────────
 const tabs = computed(() => [
+	{ id: "outline", label: __("Outline") },
 	{ id: "fields", label: __("Fields") },
 	{ id: "blocks", label: __("Blocks") },
 	{ id: "library", label: __("Library") },
-	{ id: "outline", label: __("Outline") },
 	{ id: "format", label: __("Setting") },
 ]);
 
