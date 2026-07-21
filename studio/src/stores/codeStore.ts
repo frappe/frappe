@@ -360,12 +360,12 @@ const useCodeStore = defineStore("codeStore", () => {
 
 	function executeUserScript(
 		script: string,
-		repeaterContext?: Record<string, any>,
+		slotScope?: Record<string, any>,
 		componentContext?: Record<string, any>,
 		eventArgs?: any[],
 	) {
 		try {
-			const context = { ...scriptContext.value, ...repeaterContext, ...componentContext, eventArgs }
+			const context = { ...scriptContext.value, ...slotScope, ...componentContext, eventArgs }
 
 			const scriptToExecute = `
 				with (context) {
@@ -385,14 +385,14 @@ const useCodeStore = defineStore("codeStore", () => {
 	function handleSuccess(
 		script: string,
 		data: DataResult,
-		repeaterContext?: Record<string, any>,
+		slotScope?: Record<string, any>,
 		componentContext?: Record<string, any>,
 		eventArgs?: any[],
 	) {
 		try {
 			const context = {
 				...scriptContext.value,
-				...repeaterContext,
+				...slotScope,
 				...componentContext,
 				eventArgs,
 				data,
@@ -414,14 +414,14 @@ const useCodeStore = defineStore("codeStore", () => {
 	function handleError(
 		script: string,
 		error: any,
-		repeaterContext?: Record<string, any>,
+		slotScope?: Record<string, any>,
 		componentContext?: Record<string, any>,
 		eventArgs?: any[],
 	) {
 		try {
 			const context = {
 				...scriptContext.value,
-				...repeaterContext,
+				...slotScope,
 				...componentContext,
 				eventArgs,
 				error,

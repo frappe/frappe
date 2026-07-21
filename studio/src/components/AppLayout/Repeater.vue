@@ -7,15 +7,15 @@
 			{{ emptyStateMessage || "No data" }}
 		</div>
 		<template v-else v-for="(dataItem, dataIndex) in data" :key="dataItem?.[dataKey] || dataIndex">
-			<RepeaterContextProvider :dataItem="dataItem" :dataIndex="dataIndex" :dataKey="dataKey">
+			<SlotScopeProvider :scope="{ dataItem, dataIndex, dataKey }">
 				<slot v-bind="{ dataItem, dataKey, dataIndex }"></slot>
-			</RepeaterContextProvider>
+			</SlotScopeProvider>
 		</template>
 	</div>
 </template>
 
 <script setup lang="ts">
-import RepeaterContextProvider from "@/components/AppLayout/RepeaterContextProvider.vue"
+import SlotScopeProvider from "@/components/SlotScopeProvider.vue"
 import type { RepeaterProps } from "@/types/studio_components/Repeater"
 
 defineProps<RepeaterProps>()

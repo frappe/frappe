@@ -1,4 +1,4 @@
-import type { BlockOptions, BlockStyleMap, CompletionSource, Slot } from "@/types"
+import type { BlockOptions, BlockStyleMap, CompletionSource, Slot, SlotScope } from "@/types"
 import { clamp } from "@vueuse/core"
 import { reactive, CSSProperties, nextTick } from 'vue'
 
@@ -42,7 +42,7 @@ class Block implements BlockOptions {
 	extendedFromComponent?: Block // for the component root
 	isCustomVueComponent?: boolean // custom vue component from frappe app
 	// temporary properties
-	repeaterDataItem?: Record<string, any> | null
+	slotScope?: SlotScope | null
 	componentContext?: Record<string, any> | null
 
 	// @editor-only
@@ -97,8 +97,8 @@ class Block implements BlockOptions {
 		this.initializeSlots()
 
 		// Define as non-reactive property
-		Object.defineProperty(this, "repeaterDataItem", {
-			value: options.repeaterDataItem || null,
+		Object.defineProperty(this, "slotScope", {
+			value: options.slotScope || null,
 			writable: true,
 			enumerable: false,
 			configurable: true
@@ -731,35 +731,14 @@ class Block implements BlockOptions {
 		return Boolean(this.getParentBlock()?.isRepeater())
 	}
 
-	setRepeaterDataItem(repeaterDataItem: Record<string, any>) {
-		// temporarily set repeater data item on selected block for autocompletions
-		this.repeaterDataItem = repeaterDataItem
+	// scoped slots
+	setSlotScope(slotScope: SlotScope) {
+		// temporarily set the enclosing scoped slot props on selected block for autocompletions
+		this.slotScope = slotScope
 	}
 
 	getCompletions(): CompletionSource[] {
-		const completions = []
-		if (this.repeaterDataItem) {
-			completions.push(
-				{
-					item: this.repeaterDataItem,
-					completion: {
-						label: "dataItem",
-						type: "data",
-						detail: "Repeater Data Item",
-					}
-				}
-			)
-			completions.push(
-				{
-					item: "dataIndex",
-					completion: {
-						label: "dataIndex",
-						type: "data",
-						detail: "Repeater Data Index",
-					}
-				}
-			)
-		}
+		const completions = this.getSlotScopeCompletions()
 		if (this.componentContext) {
 			completions.push(
 				{
@@ -774,6 +753,17 @@ class Block implements BlockOptions {
 		}
 
 		return completions
+	}
+
+	getSlotScopeCompletions(): CompletionSource[] {
+		return Object.entries(this.slotScope || {}).map(([name, value]) => ({
+			item: value,
+			completion: {
+				label: name,
+				type: "data",
+				detail: "Slot Scope",
+			},
+		}))
 	}
 
 	// events

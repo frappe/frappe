@@ -158,12 +158,8 @@ export type HashString = `#${string}`
 
 export type RGBString = `rgb(${number}, ${number}, ${number})`
 
-// repeater
-export type RepeaterContext = {
-	dataItem: Record<string, any>
-	dataIndex: number
-	dataKey?: string
-}
+// scoped slots
+export type SlotScope = Record<string, any>
 
 // completions
 export type CompletionSource = {
