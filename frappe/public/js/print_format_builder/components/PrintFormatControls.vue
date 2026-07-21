@@ -141,118 +141,128 @@
 					</div>
 				</template>
 			</draggable>
-
-			<div class="pfb-group-label mt-3">{{ __("Saved Sections") }}</div>
-			<div v-if="!store.section_snippets.value.length" class="pfb-empty">
-				{{ __("Save a section as a snippet to reuse it here.") }}
-			</div>
-			<draggable
-				:list="store.section_snippets.value"
-				:group="{ name: 'sections', pull: 'clone', put: false }"
-				:sort="false"
-				:clone="clone_snippet_section"
-				item-key="name"
-				filter="button"
-				:preventOnFilter="false"
-				v-bind="DRAG_OPTIONS"
-				@start="setDragging(true)"
-				@end="setDragging(false)"
-			>
-				<template #item="{ element: snip }">
-					<div
-						class="pfb-block-card"
-						:title="__('Drag into the layout, or click to insert')"
-						@click="store.insert_section_snippet(snip.name)"
-					>
-						<span
-							class="pfb-block-icon"
-							v-html="frappe.utils.icon('layout-template', 'sm')"
-						></span>
-						<div class="pfb-block-info">
-							<div class="pfb-block-name">{{ snip.name }}</div>
-							<div class="pfb-block-desc text-muted">
-								{{ __("Drag or click to insert") }}
-							</div>
-						</div>
-						<button
-							class="es-button"
-							data-size="xs"
-							data-variant="ghost"
-							data-theme="red"
-							data-icon-button="true"
-							:title="__('Delete snippet')"
-							@click.stop="confirm_delete_snippet(snip.name)"
-							v-html="frappe.utils.icon('trash', 'xs')"
-						></button>
-					</div>
-				</template>
-			</draggable>
 		</div>
 
-		<!-- ── Templates ─────────────────────────────────────── -->
-		<div v-else-if="activeTab === 'templates'" class="pfb-tab-body">
-			<div v-if="!print_templates_list.length" class="pfb-templates-empty">
-				<div class="pfb-empty">
-					{{ __("No field templates for this document type.") }}
-				</div>
-				<p class="pfb-templates-hint text-muted">
-					{{
-						__(
-							"Field templates let you render specific fields with custom Jinja/HTML, e.g. a custom items table layout."
-						)
-					}}
-				</p>
-				<a :href="new_template_link" target="_blank" class="es-button mt-2" data-size="xs">
-					{{ __("Create Field Template") }}
-				</a>
+		<!-- ── Library ───────────────────────────────────────── -->
+		<div v-else-if="activeTab === 'library'" class="pfb-tab-body">
+			<div class="pfb-group-label">
+				{{ __("Saved Snippets") }}
+				<span class="pfb-label-actions">
+					<button
+						class="es-button"
+						data-size="xs"
+						data-variant="ghost"
+						data-icon-button="true"
+						:disabled="!store.snippets.value.length"
+						:title="__('Export snippets')"
+						@click="store.export_snippets()"
+						v-html="frappe.utils.icon('download', 'xs')"
+					></button>
+					<button
+						class="es-button"
+						data-size="xs"
+						data-variant="ghost"
+						data-icon-button="true"
+						:title="__('Import snippets')"
+						@click="import_snippets"
+						v-html="frappe.utils.icon('upload', 'xs')"
+					></button>
+				</span>
 			</div>
-
-			<template v-else>
-				<div class="pfb-group-label">
-					{{ __("Field Templates") }}
-					<a
-						:href="'/app/print-format-field-template'"
-						target="_blank"
-						class="pfb-manage-link text-muted"
-					>
-						{{ __("Manage") }}
-					</a>
-				</div>
+			<div v-if="!store.snippets.value.length" class="pfb-empty">
+				{{ __("Save a section or field as a snippet to reuse it here.") }}
+			</div>
+			<template v-for="grp in snippet_groups" :key="grp.type">
 				<draggable
-					:list="print_templates_list"
-					:group="{ name: 'fields', pull: 'clone', put: false }"
+					v-if="grp.items.length"
+					:list="grp.items"
+					:group="{ name: grp.drag_group, pull: 'clone', put: false }"
 					:sort="false"
-					:clone="clone_field"
-					item-key="fieldname"
+					:clone="clone_snippet"
+					item-key="name"
+					filter="button"
+					:preventOnFilter="false"
 					v-bind="DRAG_OPTIONS"
 					@start="setDragging(true)"
 					@end="setDragging(false)"
 				>
-					<template #item="{ element }">
+					<template #item="{ element: snip }">
 						<div
-							class="pfb-template-card"
-							:title="element.fieldname"
-							@click="add_to_layout(element)"
+							class="pfb-block-card"
+							:title="__('Drag into the layout, or click to insert')"
+							@click="store.insert_snippet(snip.name)"
 						>
-							<div class="pfb-template-thumb">
-								<span
-									class="text-muted"
-									v-html="frappe.utils.icon('table', 'sm')"
-								></span>
+							<span
+								class="pfb-block-icon"
+								v-html="frappe.utils.icon(grp.icon, 'sm')"
+							></span>
+							<div class="pfb-block-info">
+								<div class="pfb-block-name">{{ snip.name }}</div>
+								<div class="pfb-block-desc text-muted">{{ grp.desc }}</div>
 							</div>
-							<div class="pfb-template-info">
-								<div class="pfb-template-name">{{ element.display_label }}</div>
-								<div class="pfb-template-field text-muted">
-									{{ element.field_label || __("Custom block") }}
-								</div>
-							</div>
+							<button
+								class="es-button"
+								data-size="xs"
+								data-variant="ghost"
+								data-theme="red"
+								data-icon-button="true"
+								:title="__('Delete snippet')"
+								@click.stop="confirm_delete_snippet(snip.name)"
+								v-html="frappe.utils.icon('trash', 'xs')"
+							></button>
 						</div>
 					</template>
 				</draggable>
-				<div class="pfb-templates-hint text-muted mt-2">
-					{{ __("Drag or click to add a field template to the last section.") }}
-				</div>
 			</template>
+
+			<div class="pfb-group-label mt-3">
+				{{ __("Field Templates") }}
+				<a
+					:href="'/app/print-format-field-template'"
+					target="_blank"
+					class="pfb-manage-link text-muted"
+				>
+					{{ __("Manage") }}
+				</a>
+			</div>
+			<div v-if="!print_templates_list.length" class="pfb-empty">
+				{{
+					__(
+						"Field templates render a specific field with custom Jinja/HTML, e.g. a custom items table."
+					)
+				}}
+				<a :href="new_template_link" target="_blank">{{ __("Create one") }}</a>
+			</div>
+			<draggable
+				v-else
+				:list="print_templates_list"
+				:group="{ name: 'fields', pull: 'clone', put: false }"
+				:sort="false"
+				:clone="clone_field"
+				item-key="fieldname"
+				v-bind="DRAG_OPTIONS"
+				@start="setDragging(true)"
+				@end="setDragging(false)"
+			>
+				<template #item="{ element }">
+					<div
+						class="pfb-block-card"
+						:title="element.fieldname"
+						@click="add_to_layout(element)"
+					>
+						<span
+							class="pfb-block-icon"
+							v-html="frappe.utils.icon('code', 'sm')"
+						></span>
+						<div class="pfb-block-info">
+							<div class="pfb-block-name">{{ element.display_label }}</div>
+							<div class="pfb-block-desc text-muted">
+								{{ element.field_label || __("Custom block") }}
+							</div>
+						</div>
+					</div>
+				</template>
+			</draggable>
 		</div>
 
 		<!-- ── Outline ────────────────────────────────────────── -->
@@ -444,7 +454,14 @@
 <script setup>
 import draggable from "vuedraggable";
 import Autocomplete from "../../vue-components/Autocomplete.vue";
-import { DRAG_OPTIONS, clone_plain, get_table_columns, pluck, setDragging } from "../utils";
+import {
+	DRAG_OPTIONS,
+	clone_plain,
+	freshen_field,
+	get_table_columns,
+	pluck,
+	setDragging,
+} from "../utils";
 import { mountColorControl } from "./inspector/useColorControl";
 import { useStore } from "../stores";
 import { computed, onMounted, onUnmounted, nextTick, ref, watch, inject } from "vue";
@@ -473,7 +490,7 @@ let { meta, print_format, layout } = useStore();
 const tabs = computed(() => [
 	{ id: "fields", label: __("Fields") },
 	{ id: "blocks", label: __("Blocks") },
-	{ id: "templates", label: __("Templates") },
+	{ id: "library", label: __("Library") },
 	{ id: "outline", label: __("Outline") },
 	{ id: "format", label: __("Setting") },
 ]);
@@ -609,9 +626,36 @@ function delete_preset() {
 	});
 }
 function confirm_delete_snippet(name) {
-	frappe.confirm(__("Delete the section snippet '{0}'?", [name]), () =>
-		store.delete_section_snippet(name)
-	);
+	frappe.confirm(__("Delete the snippet '{0}'?", [name]), () => store.delete_snippet(name));
+}
+
+function import_snippets() {
+	const input = document.createElement("input");
+	input.type = "file";
+	input.accept = "application/json,.json";
+	input.onchange = async () => {
+		const file = input.files?.[0];
+		if (!file) return;
+		let payload;
+		try {
+			payload = JSON.parse(await file.text());
+		} catch {
+			frappe.throw(__("{0} is not a valid JSON file", [file.name]));
+		}
+		const { imported, other_doctypes, skipped } = await store.import_snippets(payload);
+		let message = __("Imported {0} snippet(s)", [imported]);
+		if (other_doctypes) {
+			message += " " + __("({0} belong to other document types)", [other_doctypes]);
+		}
+		if (skipped.length) {
+			message += " — " + __("skipped {0}", [skipped.join(", ")]);
+		}
+		frappe.show_alert(
+			{ message, indicator: skipped.length ? "orange" : "green" },
+			skipped.length ? 7 : 5
+		);
+	};
+	input.click();
 }
 
 // ── helpers ────────────────────────────────────────────────
@@ -766,9 +810,27 @@ function clone_as_section() {
 	return { label: "", columns: [{ label: "", fields: [] }], page_break: true };
 }
 
-function clone_snippet_section(snip) {
-	return clone_plain(snip.section);
+// Drag-insert bypasses insert_field/insert_section, so freshen here too — a custom
+// field dropped twice would otherwise carry the same fieldname into both copies.
+function clone_snippet(snip) {
+	const clone = clone_plain(snip.content);
+	if (snip.snippet_type === "Field") return freshen_field(clone);
+	delete clone.remove;
+	(clone.columns || []).forEach((c) => (c.fields || []).forEach(freshen_field));
+	return clone;
 }
+
+const SNIPPET_GROUPS = [
+	{ type: "Section", drag_group: "sections", icon: "layout-template", desc: __("Section") },
+	{ type: "Field", drag_group: "fields", icon: "text-cursor-input", desc: __("Field") },
+];
+
+let snippet_groups = computed(() =>
+	SNIPPET_GROUPS.map((grp) => ({
+		...grp,
+		items: store.snippets.value.filter((s) => s.snippet_type === grp.type),
+	}))
+);
 
 function add_page_break() {
 	if (!layout.value) return;
@@ -822,7 +884,7 @@ let field_groups = computed(() => {
 	return groups.filter((g) => g.fields.length);
 });
 
-// ── templates tab ─────────────────────────────────────────
+// ── library tab ───────────────────────────────────────────
 function fetch_templates() {
 	const doctype = meta.value?.name;
 	if (!doctype) return;
@@ -847,7 +909,7 @@ function fetch_templates() {
 }
 
 watch(activeTab, (tab) => {
-	if (tab === "templates") fetch_templates();
+	if (tab === "library") fetch_templates();
 	if (tab === "format") nextTick(mount_color_controls);
 });
 
@@ -1140,9 +1202,8 @@ function handle_slash_key(e) {
 	flex-shrink: 0;
 }
 
-/* ── Block card (Blocks tab) ─────────────────────────────── */
-.pfb-block-card,
-.pfb-template-card {
+/* ── Block card (Blocks + Templates tabs) ────────────────── */
+.pfb-block-card {
 	display: flex;
 	align-items: center;
 	gap: 10px;
@@ -1154,8 +1215,7 @@ function handle_slash_key(e) {
 	margin-top: 6px;
 }
 
-.pfb-block-card:hover,
-.pfb-template-card:hover {
+.pfb-block-card:hover {
 	background: var(--gray-100);
 	border-color: var(--gray-500);
 }
@@ -1186,54 +1246,17 @@ function handle_slash_key(e) {
 	margin-top: 1px;
 }
 
-/* ── Template card (Templates tab) ──────────────────────── */
-.pfb-template-thumb {
-	display: flex;
-	align-items: center;
-	justify-content: center;
-	width: 32px;
-	height: 32px;
-	border-radius: var(--radius);
-	background: var(--gray-200);
-	flex-shrink: 0;
-}
-
-.pfb-template-info {
-	flex: 1;
-	min-width: 0;
-}
-
-.pfb-template-name {
-	font-size: var(--text-sm);
-	font-weight: 500;
-	overflow: hidden;
-	text-overflow: ellipsis;
-	white-space: nowrap;
-}
-
-.pfb-template-field {
-	font-size: var(--text-tiny);
-	margin-top: 1px;
-}
-
-.pfb-templates-empty {
-	display: flex;
-	flex-direction: column;
-	align-items: center;
-	padding: 16px 0;
-}
-
-.pfb-templates-hint {
-	font-size: var(--text-tiny);
-	line-height: 1.5;
-	margin-top: 6px;
-}
-
 .pfb-manage-link {
 	font-size: var(--text-tiny);
 	font-weight: 400;
 	text-transform: none;
 	letter-spacing: 0;
+}
+
+.pfb-label-actions {
+	display: flex;
+	gap: 2px;
+	margin-right: -4px;
 }
 
 /* ── Outline tab (tree) ──────────────────────────────────── */

@@ -33,12 +33,12 @@ export function getStore(print_format_name) {
 		align_selected_fields,
 	} = selection;
 	const {
-		find_field_column,
 		duplicate_field,
 		duplicate_section,
 		duplicate_selection,
 		move_selection,
 		insert_section,
+		insert_field,
 		remove_section,
 	} = useLayoutMutations(layout, selection);
 	const {
@@ -244,15 +244,21 @@ export function getStore(print_format_name) {
 	const { clipboard, copy_field, copy_section, copy_selection, paste_clipboard } = useClipboard({
 		selection,
 		layout,
-		find_field_column,
 		insert_section,
+		insert_field,
 	});
 	const {
-		section_snippets,
-		save_section_snippet,
-		insert_section_snippet,
-		delete_section_snippet,
-	} = useSnippets({ insert_section });
+		snippets,
+		save_snippet,
+		insert_snippet,
+		delete_snippet,
+		export_snippets,
+		import_snippets,
+	} = useSnippets({
+		insert_section,
+		insert_field,
+		doc_type: computed(() => print_format.value?.doc_type),
+	});
 
 	return {
 		print_format,
@@ -300,10 +306,12 @@ export function getStore(print_format_name) {
 		save_style_preset,
 		apply_style_preset,
 		delete_style_preset,
-		section_snippets,
-		save_section_snippet,
-		insert_section_snippet,
-		delete_section_snippet,
+		snippets,
+		save_snippet,
+		insert_snippet,
+		delete_snippet,
+		export_snippets,
+		import_snippets,
 		paste_clipboard,
 		undo,
 		redo,
