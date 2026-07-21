@@ -1,12 +1,6 @@
 <template>
-	<div
-		v-if="shouldRender"
-		class="builder-root"
-		:class="{
-			'builder-root--preview': show_preview,
-		}"
-	>
-		<PrintFormatControls v-if="!show_preview" />
+	<div v-if="shouldRender" class="builder-root">
+		<PrintFormatControls />
 		<div class="canvas-area">
 			<!-- Sidebar-open hint -->
 			<div v-if="sidebar_open && !hint_dismissed" class="pfb-sidebar-hint">
@@ -19,9 +13,8 @@
 				</button>
 			</div>
 
-			<!-- Canvas toolbar: sample data picker (hidden in preview mode).
-			     v-show (not v-if) so the picker control survives a preview round-trip. -->
-			<div v-show="!show_preview" class="canvas-toolbar">
+			<!-- Canvas toolbar: sample data picker, zoom, preview toggle -->
+			<div class="canvas-toolbar">
 				<div class="canvas-toolbar-left">
 					<span class="canvas-toolbar-eyebrow">{{ __("Data") }}</span>
 				</div>
@@ -55,6 +48,16 @@
 							v-html="frappe.utils.icon('plus', 'xs')"
 						></button>
 					</div>
+					<button
+						class="canvas-preview-toggle"
+						:class="{ active: show_preview }"
+						:aria-pressed="show_preview"
+						:title="__('Toggle preview')"
+						@click="toggle_preview"
+					>
+						<span v-html="frappe.utils.icon('eye', 'xs')"></span>
+						<span>{{ __("Preview") }}</span>
+					</button>
 				</div>
 			</div>
 			<div
@@ -67,13 +70,12 @@
 					@start-default="on_start_default"
 					@start-blank="on_start_blank"
 				/>
-				<KeepAlive v-else>
-					<component :is="Preview" v-if="show_preview" />
-					<component :is="PrintFormat" v-else />
-				</KeepAlive>
+				<component :is="PrintFormat" v-else />
 			</div>
 		</div>
-		<FieldInspector v-if="!show_preview" />
+		<!-- the right rail is either the inspector or the preview, never both -->
+		<Preview v-if="show_preview" />
+		<FieldInspector v-else />
 	</div>
 </template>
 
@@ -121,27 +123,6 @@ provide("$store", $store.value);
 // methods
 function toggle_preview() {
 	show_preview.value = !show_preview.value;
-}
-
-watch(show_preview, (on) => {
-	if (on) {
-		history.pushState({ ...history.state, pfb_preview: true }, "");
-	} else {
-		// Reflect a document changed in preview mode back in the edit-mode picker
-		const name = $store.value.preview_doc_name.value;
-		if (name && doc_picker_ctrl.value?.get_value() !== name) {
-			doc_picker_ctrl.value?.set_value(name);
-		}
-		if (history.state?.pfb_preview) {
-			history.back();
-		}
-	}
-});
-
-function handle_popstate() {
-	if (show_preview.value) {
-		show_preview.value = false;
-	}
 }
 
 function clear_selection() {
@@ -372,7 +353,6 @@ function init_doc_picker() {
 // mounted
 onMounted(() => {
 	document.addEventListener("keydown", handle_keydown);
-	window.addEventListener("popstate", handle_popstate);
 
 	// Detect desk sidebar open/close via MutationObserver on the wrapper's style attribute
 	check_sidebar();
@@ -392,7 +372,6 @@ onMounted(() => {
 
 onUnmounted(() => {
 	document.removeEventListener("keydown", handle_keydown);
-	window.removeEventListener("popstate", handle_popstate);
 	sidebar_observer_ref?.disconnect();
 });
 
@@ -413,11 +392,6 @@ defineExpose({ toggle_preview, show_preview, $store });
 	display: flex;
 	flex-direction: column;
 	height: calc(100vh - var(--pfb-chrome-offset));
-}
-
-.builder-root--preview .canvas-area {
-	padding-left: 1.5rem;
-	padding-right: 1.5rem;
 }
 
 /* ── Sidebar hint ────────────────────────────────────────── */
@@ -529,6 +503,33 @@ defineExpose({ toggle_preview, show_preview, $store });
 	border: 1px solid var(--border-color);
 	border-radius: var(--radius);
 	overflow: hidden;
+}
+
+.canvas-preview-toggle {
+	display: flex;
+	align-items: center;
+	gap: 4px;
+	height: 26px;
+	padding: 0 8px;
+	border: 1px solid var(--border-color);
+	border-radius: var(--radius);
+	background: transparent;
+	color: var(--text-muted);
+	font-size: 11px;
+	font-weight: 500;
+	cursor: pointer;
+	white-space: nowrap;
+}
+
+.canvas-preview-toggle:hover {
+	background: var(--gray-100);
+	color: var(--text-color);
+}
+
+.canvas-preview-toggle.active {
+	background: var(--text-color);
+	border-color: var(--text-color);
+	color: var(--fg-color);
 }
 
 .canvas-zoom-btn {

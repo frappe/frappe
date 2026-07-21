@@ -1,27 +1,42 @@
 <template>
-	<div class="h-100">
-		<div class="row">
-			<div class="col">
-				<div class="preview-control" ref="doc_select_ref"></div>
-			</div>
-			<div class="col">
-				<div class="preview-control" ref="preview_type_ref"></div>
-			</div>
-			<div class="col d-flex">
-				<a v-if="url" class="es-button btn-new-tab" target="_blank" :href="url">
-					{{ __("Open in a new tab") }}
-				</a>
-				<button v-if="url" class="ml-3 es-button btn-new-tab" @click="refresh">
-					{{ __("Refresh") }}
-				</button>
-			</div>
+	<div class="pfb-preview-dock">
+		<div class="pfb-preview-head">
+			<span class="pfb-preview-title">{{ __("Preview") }}</span>
+			<select class="pfb-preview-type" v-model="type">
+				<option value="HTML">{{ __("HTML") }}</option>
+				<option value="PDF">{{ __("PDF") }}</option>
+			</select>
+			<button
+				class="pfb-preview-btn"
+				:title="__('Refresh')"
+				@click="refresh"
+				v-html="frappe.utils.icon('refresh-cw', 'xs')"
+			></button>
+			<a
+				v-if="url"
+				class="pfb-preview-btn"
+				target="_blank"
+				:href="url"
+				:title="__('Open in a new tab')"
+				v-html="frappe.utils.icon('external-link', 'xs')"
+			></a>
 		</div>
-		<div v-if="docname && !preview_loaded">{{ __("Generating preview...") }}</div>
+
+		<div v-if="type === 'PDF' && store.dirty" class="pfb-preview-note">
+			{{ __("The PDF renders the saved format. Save to see recent edits.") }}
+		</div>
+
+		<div v-if="!docname" class="pfb-preview-empty">
+			{{ __("Pick a record in the toolbar above to preview it.") }}
+		</div>
+		<div v-else-if="!preview_loaded" class="pfb-preview-empty">
+			{{ __("Generating preview...") }}
+		</div>
 		<iframe
 			ref="iframe"
 			:src="type === 'PDF' ? url : undefined"
 			v-show="docname && preview_loaded"
-			class="preview-iframe"
+			class="pfb-preview-iframe"
 			@load="type === 'PDF' && (preview_loaded = true)"
 		></iframe>
 	</div>
@@ -29,23 +44,36 @@
 
 <script setup>
 import { useStore } from "../stores";
-import { ref, computed, onMounted, onActivated } from "vue";
+import { ref, computed, onMounted, watch } from "vue";
 
-// mixin
-let { print_format, store } = useStore();
+let { print_format, layout, store } = useStore();
 
-// variables
 let type = ref("HTML");
-let docname = ref(null);
 let preview_loaded = ref(false);
 let iframe = ref(null);
-let doc_select_ref = ref(null);
-let preview_type_ref = ref(null);
-let doc_select = ref(null);
-let preview_type = ref(null);
 let render_seq = 0;
 
-// methods
+// the canvas toolbar owns the record picker; the dock just follows it
+let docname = computed(() => store.value.preview_doc_name);
+
+let doctype = computed(() => print_format.value.doc_type);
+
+let url = computed(() => {
+	if (!docname.value) return null;
+	let params = new URLSearchParams();
+	params.append("doctype", doctype.value);
+	params.append("name", docname.value);
+	params.append("print_format", print_format.value.name);
+	if (store.value.letterhead) {
+		params.append("letterhead", store.value.letterhead.name);
+	}
+	let _url =
+		type.value == "PDF"
+			? `/api/method/frappe.utils.print_format_generator.download_pdf`
+			: "/printpreview";
+	return `${_url}?${params.toString()}`;
+});
+
 function write_iframe(html) {
 	let cd = iframe.value?.contentDocument;
 	if (!cd) return;
@@ -53,8 +81,10 @@ function write_iframe(html) {
 	cd.write(html);
 	cd.close();
 }
+
 function render() {
 	if (!docname.value) return;
+	// PDF is served straight into the iframe via src, and costs a Chromium render
 	if (type.value === "PDF") return;
 	preview_loaded.value = false;
 	let seq = ++render_seq;
@@ -79,100 +109,94 @@ function render() {
 			preview_loaded.value = true;
 		});
 }
+
 function refresh() {
 	if (type.value === "PDF") {
+		preview_loaded.value = false;
 		iframe.value?.contentWindow.location.reload();
 	} else {
 		render();
 	}
 }
-function get_default_docname() {
-	return frappe.db.get_list(doctype.value, { limit: 1 }).then((doc) => {
-		return doc.length > 0 ? doc[0].name : null;
-	});
-}
-// computed
-let doctype = computed(() => {
-	return print_format.value.doc_type;
-});
-let url = computed(() => {
-	if (!docname.value) return null;
-	let params = new URLSearchParams();
-	params.append("doctype", doctype.value);
-	params.append("name", docname.value);
-	params.append("print_format", print_format.value.name);
 
-	if (store.value.letterhead) {
-		params.append("letterhead", store.value.letterhead.name);
-	}
-	let _url =
-		type.value == "PDF"
-			? `/api/method/frappe.utils.print_format_generator.download_pdf`
-			: "/printpreview";
-	return `${_url}?${params.toString()}`;
-});
+// Editing beside the preview is the whole point of the dock, but every render is a
+// server round trip — so coalesce bursts of edits, and never auto-fire a PDF render.
+const auto_render = frappe.utils.debounce(() => {
+	if (type.value === "HTML") render();
+}, 1000);
 
-onActivated(render);
+watch(() => layout.value, auto_render, { deep: true });
+watch([docname, type], render);
 
-// mounted
-onMounted(() => {
-	doc_select.value = frappe.ui.form.make_control({
-		parent: doc_select_ref.value,
-		df: {
-			label: __("Select {0}", [__(doctype.value)]),
-			fieldname: "docname",
-			fieldtype: "Link",
-			options: doctype.value,
-			change: () => {
-				docname.value = doc_select.value.get_value();
-				// keep the editor's preview selection in sync with the preview
-				store.value.load_preview_doc(docname.value || null);
-				render();
-			},
-		},
-		render_input: true,
-	});
-	preview_type.value = frappe.ui.form.make_control({
-		parent: preview_type_ref.value,
-		df: {
-			label: __("Preview type"),
-			fieldname: "docname",
-			fieldtype: "Select",
-			options: ["HTML", "PDF"],
-			change: () => {
-				type.value = preview_type.value.get_value();
-				render();
-			},
-		},
-		render_input: true,
-	});
-	preview_type.value.set_value(type.value);
-	// Prefer the document already chosen while editing; only fall back to a
-	// default when nothing has been selected yet. `store` is ref(inject("$store")),
-	// so `store.value` is a reactive proxy that unwraps preview_doc_name to a string.
-	const selected = store.value.preview_doc_name;
-	if (selected) {
-		doc_select.value.set_value(selected);
-	} else {
-		get_default_docname().then((doc_name) => {
-			doc_name && doc_select.value.set_value(doc_name);
-		});
-	}
-});
+onMounted(render);
 </script>
 
 <style scoped>
-.preview-iframe {
-	width: 100%;
-	height: 96%;
-	border: none;
+.pfb-preview-dock {
+	display: flex;
+	flex-direction: column;
+	width: 420px;
+	flex-shrink: 0;
+	border-left: 1px solid var(--border-color);
+	background: var(--fg-color);
+	overflow: hidden;
+}
+
+.pfb-preview-head {
+	display: flex;
+	align-items: center;
+	gap: 6px;
+	padding: 8px 10px;
+	border-bottom: 1px solid var(--border-color);
+	flex-shrink: 0;
+}
+
+.pfb-preview-title {
+	flex: 1;
+	font-size: var(--text-sm);
+	font-weight: var(--weight-medium);
+}
+
+.pfb-preview-type {
+	border: 1px solid var(--border-color);
+	background: var(--control-bg);
 	border-radius: var(--radius);
+	font-size: var(--text-xs);
+	padding: 2px 4px;
+	color: var(--text-color);
 }
-.btn-new-tab {
-	margin-top: auto;
-	margin-bottom: 1.2rem;
+
+.pfb-preview-btn {
+	display: flex;
+	align-items: center;
+	padding: 4px;
+	border: none;
+	background: transparent;
+	border-radius: var(--radius);
+	color: var(--text-muted);
+	cursor: pointer;
 }
-.preview-control :deep(.form-control) {
-	background: var(--control-bg-on-gray);
+
+.pfb-preview-btn:hover {
+	background: var(--gray-100);
+	color: var(--text-color);
+}
+
+.pfb-preview-note,
+.pfb-preview-empty {
+	padding: 10px 12px;
+	font-size: var(--text-sm);
+	color: var(--text-muted);
+}
+
+.pfb-preview-note {
+	border-bottom: 1px solid var(--border-color);
+}
+
+.pfb-preview-iframe {
+	flex: 1;
+	width: 100%;
+	border: none;
+	min-height: 0;
 }
 </style>
