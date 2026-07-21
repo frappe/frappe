@@ -1,21 +1,13 @@
 # Copyright (c) 2021, FOSS United and Contributors
 # See license.txt
 
-<<<<<<< HEAD
-# import frappe
+from unittest.mock import patch
+
+import frappe
 from frappe.tests.utils import FrappeTestCase
 
 
 class TestDiscussionReply(FrappeTestCase):
-	pass
-=======
-from unittest.mock import patch
-
-import frappe
-from frappe.tests import IntegrationTestCase
-
-
-class TestDiscussionReply(IntegrationTestCase):
 	def make_reply(self, reply):
 		topic = frappe.get_doc({"doctype": "Discussion Topic", "title": "Test Topic"}).insert(
 			ignore_permissions=True
@@ -61,4 +53,3 @@ class TestDiscussionReply(IntegrationTestCase):
 		self.assertNotIn("alert(document.cookie)", rendered)
 		self.assertIn("before", rendered)
 		self.assertIn("after", rendered)
->>>>>>> c9b99c0ba4 (fix: allow safe tags only in discussion reply md)
