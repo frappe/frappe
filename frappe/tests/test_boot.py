@@ -31,18 +31,16 @@ class TestBootData(FrappeTestCase):
 	def test_empty_allowed_reports_are_served_from_cache(self):
 		from unittest.mock import patch
 
-		# An empty allowed-set is a valid result and must be a cache hit; otherwise the
-		# sidebar rebuilds it once per workspace on every desk/login load.
 		frappe.set_user("Administrator")
 		user = frappe.session.user
 		frappe.cache.delete_value("has_role:Report", user=user)
+		self.addCleanup(frappe.cache.delete_value, "has_role:Report", user=user)
 
 		with patch("frappe.boot.has_permission", return_value=False) as has_perm:
 			self.assertEqual(get_user_pages_or_reports("Report", cache=True), {})
 			builds = has_perm.call_count
 			self.assertGreaterEqual(builds, 1)
 
-			# fresh request: process-local cache cleared, redis cache stays warm
 			frappe.local.cache.clear()
 
 			self.assertEqual(get_user_pages_or_reports("Report", cache=True), {})
