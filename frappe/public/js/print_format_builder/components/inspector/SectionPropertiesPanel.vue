@@ -50,6 +50,16 @@
 		<!-- BACKGROUND -->
 		<InspectorSection :label="__('Background')" :init-open="false">
 			<div ref="bg_color_host"></div>
+			<!-- Nothing to round unless the section paints a box -->
+			<StepperRow
+				v-if="section_has_box"
+				:label="__('Radius')"
+				:model-value="section_radius"
+				unit="px"
+				:placeholder="__('none')"
+				allow-empty
+				@update:model-value="set_section_radius"
+			/>
 		</InspectorSection>
 
 		<!-- SPACING -->
@@ -149,6 +159,15 @@ let section_orientation = computed(() => selected_section.value?.field_orientati
 let section_gap = computed(() => selected_section.value?.gap ?? 20);
 let section_field_borders = computed(() => !!selected_section.value?.field_borders);
 let section_cell_padding = computed(() => selected_section.value?.cell_padding ?? 8);
+let section_radius = computed(() => selected_section.value?.radius ?? null);
+let section_has_box = computed(
+	() => !!(selected_section.value?.background || selected_section.value?.field_borders)
+);
+
+function set_section_radius(v) {
+	if (v === null) delete selected_section.value.radius;
+	else selected_section.value.radius = v;
+}
 
 const bg_color_host = ref(null);
 

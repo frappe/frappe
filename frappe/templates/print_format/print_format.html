@@ -94,6 +94,9 @@
 		{%- set _cp = (section.cell_padding if section.cell_padding is defined and section.cell_padding is not none else 8) -%}
 		{%- set ns3.section_style = ns3.section_style + '--pfb-cell-pad:' + _cp|string + 'px;' -%}
 	{%- endif -%}
+	{%- if section.radius is defined and section.radius is not none -%}
+		{%- set ns3.section_style = ns3.section_style + 'border-radius:' + section.radius|string + 'px;' -%}
+	{%- endif -%}
 	{%- if section.custom_style -%}
 		{%- set ns3.section_style = ns3.section_style + section.custom_style|string -%}
 	{%- endif -%}
