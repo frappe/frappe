@@ -119,6 +119,13 @@ $.extend(frappe.perm, {
 						perm[0][right] = 1;
 					}
 				}
+
+				if (
+					frappe.boot.user?.can_create?.includes(doctype) ||
+					frappe.boot.user?.in_create?.includes(doctype)
+				) {
+					perm[0].create = 1;
+				}
 			}
 			return perm;
 		}
