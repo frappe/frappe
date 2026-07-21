@@ -299,30 +299,16 @@ async function fetchCustomComponentTemplate(componentName: string): Promise<stri
 
 function parseSlotsFromTemplate(template: string) {
 	const slotRegex = /<slot\s*(?:name=["']([^"']*)?["'])?(?:\s*\/>|\s*>(.*?)<\/slot>)?/gi
-	const slots = []
+	const slots = new Map<string, { name: string; type: "named" | "default" }>()
 	let match
 
 	while ((match = slotRegex.exec(template)) !== null) {
-		// Named slot with name attribute
-		const namedSlot = match[1]
-		// Default/unnamed slot or slot content
-		const defaultSlotContent = match[2]
-
-		if (namedSlot) {
-			slots.push({
-				name: namedSlot,
-				type: "named",
-				hasDefaultContent: !!defaultSlotContent,
-			})
-		} else if (defaultSlotContent || match[0].includes("<slot")) {
-			slots.push({
-				name: "default",
-				type: "default",
-				hasDefaultContent: !!defaultSlotContent,
-			})
+		const name = match[1] || "default"
+		if (!slots.has(name)) {
+			slots.set(name, { name, type: match[1] ? "named" : "default" })
 		}
 	}
-	return slots
+	return [...slots.values()]
 }
 
 const slotsCache = reactive(new Map<string, ReturnType<typeof parseSlotsFromTemplate>>())
