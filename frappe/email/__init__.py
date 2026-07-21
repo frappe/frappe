@@ -146,6 +146,7 @@ def sendmail(
 	email_read_tracker_url=None,
 	x_priority: Literal[1, 3, 5] = 3,
 	email_headers=None,
+	redact_message_after_send=False,
 ):
 	"""Send email using user's default **Email Account** or global default **Email Account**.
 
@@ -177,6 +178,7 @@ def sendmail(
 	    :param with_container: Wraps email inside a styled container
 	    :param x_priority: 1 = HIGHEST, 3 = NORMAL, 5 = LOWEST
 	    :param email_headers: Additional headers to be added in the email, e.g. {"X-Custom-Header": "value"} or {"Custom-Header": "value"}. Automatically prepends "X-" to the header name if not present.
+	    :param redact_message_after_send: Replace the message body with a placeholder once sent, for emails carrying sensitive content.
 	"""
 
 	from frappe.utils.jinja import get_email_from_template
@@ -236,6 +238,7 @@ def sendmail(
 		email_read_tracker_url=email_read_tracker_url,
 		x_priority=x_priority,
 		email_headers=email_headers,
+		redact_message_after_send=redact_message_after_send,
 	)
 
 	# build email queue and send the email if send_now is True.
