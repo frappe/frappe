@@ -51,7 +51,7 @@ frappe.breadcrumbs = {
 	set_tree_breadcrumb(breadcrumbs) {
 		const doctype = breadcrumbs.doctype;
 
-		const tree_title =frappe.treeview_settings?.[doctype]?.title || __(doctype);
+		const tree_title = frappe.treeview_settings?.[doctype]?.title || doctype;
 
 		this.append_breadcrumb_element(
 			`/desk/${frappe.router.slug(doctype)}`,
@@ -100,7 +100,6 @@ frappe.breadcrumbs = {
 				this.set_list_breadcrumb(breadcrumbs);
 				this.set_form_breadcrumb(breadcrumbs, view);
 			}else if (breadcrumbs.doctype && view === "tree"){
-				//this.set_sidebar_breadcrumbs(breadcrumbs);
 				this.set_tree_breadcrumb(breadcrumbs);
 			}else if (breadcrumbs.doctype && view === "list") {
 				this.set_list_breadcrumb(breadcrumbs);
@@ -127,8 +126,6 @@ frappe.breadcrumbs = {
 
 		this.toggle(true);
 	},
-	// // In breadcrumb.js, in the update() method, after the workspace breadcrumb and before the form/print check:
-
 
 	set_custom_breadcrumbs(breadcrumbs) {
 		this.append_breadcrumb_element(breadcrumbs.route, breadcrumbs.label);
@@ -167,9 +164,7 @@ frappe.breadcrumbs = {
 		}
 
 		// Current section, e.g. "Setup"
-		const section_title = sidebar.active_item
-			?.closest(".section-item")
-			.attr("data-id");
+		const section_title = sidebar.active_item?.closest(".section-item").attr("data-id");
 
 		if (section_title && section_title !== sidebar_title) {
 			this.append_breadcrumb_element("", __(section_title));
