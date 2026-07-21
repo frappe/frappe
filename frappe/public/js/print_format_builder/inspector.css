@@ -56,10 +56,6 @@
 	grid-template-columns: 1fr;
 	gap: 4px;
 }
-.pfb-insp-toggles {
-	display: flex;
-	gap: 6px;
-}
 .pfb-insp-label {
 	font-size: var(--text-sm);
 	color: var(--text-muted);
