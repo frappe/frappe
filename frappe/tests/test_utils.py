@@ -1443,11 +1443,13 @@ class TestTypingValidations(IntegrationTestCase):
 
 		self.assertEqual(
 			frappe.allowed_http_methods_for_whitelisted_func[default_methods],
-			("GET", "POST", "PUT", "DELETE"),
+			("GET", "POST", "PUT", "DELETE", "QUERY"),
 		)
-		self.assertEqual(frappe.allowed_http_methods_for_whitelisted_func[list_methods], ("GET", "POST"))
+		self.assertEqual(
+			frappe.allowed_http_methods_for_whitelisted_func[list_methods], ("GET", "POST", "QUERY")
+		)
 		self.assertEqual(frappe.allowed_http_methods_for_whitelisted_func[tuple_methods], ("PUT", "DELETE"))
-		self.assertEqual(frappe.allowed_http_methods_for_whitelisted_func[string_method], ("GET",))
+		self.assertEqual(frappe.allowed_http_methods_for_whitelisted_func[string_method], ("GET", "QUERY"))
 
 
 class TestTBSanitization(IntegrationTestCase):
