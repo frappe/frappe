@@ -2,8 +2,8 @@ msgid ""
 msgstr ""
 "Project-Id-Version: frappe\n"
 "Report-Msgid-Bugs-To: developers@frappe.io\n"
-"POT-Creation-Date: 2026-07-12 10:03+0000\n"
-"PO-Revision-Date: 2026-07-15 12:33\n"
+"POT-Creation-Date: 2026-07-19 10:02+0000\n"
+"PO-Revision-Date: 2026-07-21 13:53\n"
 "Last-Translator: developers@frappe.io\n"
 "Language-Team: Uzbek\n"
 "MIME-Version: 1.0\n"
@@ -78,7 +78,7 @@ msgstr "'*' belgisi faqat {0} SQL funksiya(lar)ida ruxsat etiladi"
 msgid "'In Global Search' is not allowed for field {0} of type {1}"
 msgstr "{1} turidagi {0} maydoni uchun \"Global qidiruvda\" ga ruxsat berilmaydi"
 
-#: frappe/core/doctype/doctype/doctype.py:1390
+#: frappe/core/doctype/doctype/doctype.py:1409
 msgid "'In Global Search' not allowed for type {0} in row {1}"
 msgstr "{1} qatoridagi {0} turi uchun \"Global qidiruvda\" ga ruxsat berilmaydi"
 
@@ -102,7 +102,7 @@ msgstr "'{0}' haqiqiy IBAN emas"
 msgid "'{0}' is not a valid URL"
 msgstr "'{0}' yaroqli URL emas"
 
-#: frappe/core/doctype/doctype/doctype.py:1384
+#: frappe/core/doctype/doctype/doctype.py:1403
 msgid "'{0}' not allowed for type {1} in row {2}"
 msgstr "'{0}' {2} qatoridagi {1} turi uchun ruxsat berilmagan"
 
@@ -171,7 +171,7 @@ msgstr "1 kun"
 msgid "1 Google Calendar Event synced."
 msgstr "1 ta Google Taqvim tadbiri sinxronlashtirildi."
 
-#: frappe/public/js/frappe/views/reports/query_report.js:992
+#: frappe/public/js/frappe/views/reports/query_report.js:1008
 msgid "1 Report"
 msgstr "1 ta hisobot"
 
@@ -705,7 +705,7 @@ msgstr ">"
 msgid ">="
 msgstr ">="
 
-#: frappe/core/doctype/doctype/doctype.py:1059
+#: frappe/core/doctype/doctype/doctype.py:1078
 msgid "A DocType's name should start with a letter and can only consist of letters, numbers, spaces, underscores and hyphens"
 msgstr "DocType nomi harf bilan boshlanishi va faqat harflar, raqamlar, bo'shliqlar, pastki chiziqlar va defislardan iborat bo'lishi kerak."
 
@@ -713,11 +713,6 @@ msgstr "DocType nomi harf bilan boshlanishi va faqat harflar, raqamlar, bo'shliq
 #: frappe/integrations/doctype/oauth_settings/oauth_settings.json
 msgid "A Frappe Framework instance can function as an OAuth Client, Resource, or Authorization server. This DocType contains settings related to all three."
 msgstr "Frappe Framework nusxasi OAuth mijozi, resurs yoki avtorizatsiya serveri sifatida ishlashi mumkin. Ushbu DocType uchalasiga ham tegishli sozlamalarni o'z ichiga oladi."
-
-#. Success message of the request-data Web Form
-#: frappe/website/web_form/request_data/request_data.json
-msgid "A download link with your data will be sent to the email address associated with your account."
-msgstr "Ma'lumotlaringiz bilan yuklab olish havolasi hisobingiz bilan bog'liq elektron pochta manziliga yuboriladi."
 
 #: frappe/custom/doctype/custom_field/custom_field.py:179
 msgid "A field with the name {0} already exists in {1}"
@@ -998,6 +993,7 @@ msgstr "Hisobni o'chirish sozlamalari"
 #. Name of a role
 #: frappe/automation/doctype/auto_repeat/auto_repeat.json
 #: frappe/contacts/doctype/contact/contact.json
+#: frappe/core/doctype/duckdb_sync/duckdb_sync.json
 #: frappe/geo/doctype/currency/currency.json
 msgid "Accounts Manager"
 msgstr "Hisob menejeri"
@@ -1099,7 +1095,7 @@ msgstr "{0} amali {1} {2}da bajarilmadi. Uni {3} da ko'ring."
 #: frappe/public/js/frappe/views/reports/query_report.js:192
 #: frappe/public/js/frappe/views/reports/query_report.js:205
 #: frappe/public/js/frappe/views/reports/query_report.js:215
-#: frappe/public/js/frappe/views/reports/query_report.js:894
+#: frappe/public/js/frappe/views/reports/query_report.js:910
 msgid "Actions"
 msgstr "Harakatlar"
 
@@ -1221,8 +1217,8 @@ msgid "Add Child"
 msgstr "Bola qo'shish"
 
 #: frappe/public/js/frappe/views/kanban/kanban_board.html:4
-#: frappe/public/js/frappe/views/reports/query_report.js:1974
-#: frappe/public/js/frappe/views/reports/query_report.js:1977
+#: frappe/public/js/frappe/views/reports/query_report.js:1990
+#: frappe/public/js/frappe/views/reports/query_report.js:1993
 #: frappe/public/js/frappe/views/reports/report_view.js:367
 #: frappe/public/js/frappe/views/reports/report_view.js:392
 #: frappe/public/js/print_format_builder/Field.vue:112
@@ -1321,7 +1317,7 @@ msgstr "Obunachilarni qo'shish"
 msgid "Add Tags"
 msgstr "Teglar qo'shish"
 
-#: frappe/public/js/frappe/list/list_view.js:2281
+#: frappe/public/js/frappe/list/list_view.js:2284
 msgctxt "Button in list view actions menu"
 msgid "Add Tags"
 msgstr "Teglar qo'shish"
@@ -1632,7 +1628,7 @@ msgstr "Administrator tizimga kirdi"
 msgid "Administrator accessed {0} on {1} via IP Address {2}."
 msgstr "Administrator {0} ga {1} manzilida {2} IP manzili orqali kirdi."
 
-#: frappe/desk/form/document_follow.py:55
+#: frappe/desk/form/document_follow.py:59
 msgid "Administrator can't follow"
 msgstr "Administrator kuzatib bora olmaydi"
 
@@ -2233,11 +2229,11 @@ msgstr "Foydalanuvchilarga tegishli hujjat turining istalgan maydoni uchun niqob
 msgid "Already Registered"
 msgstr "Ro'yxatdan o'tgan"
 
-#: frappe/public/js/frappe/form/toolbar.js:742
+#: frappe/public/js/frappe/form/toolbar.js:743
 msgid "Already amended as {0}"
 msgstr "{0} sifatida allaqachon o'zgartirilgan"
 
-#: frappe/desk/form/assign_to.py:141
+#: frappe/desk/form/assign_to.py:143
 msgid "Already in the following Users ToDo list:{0}"
 msgstr "Quyidagi Foydalanuvchilar Bajaradigan Ishlar ro'yxatida allaqachon mavjud:{0}"
 
@@ -2288,7 +2284,7 @@ msgstr "Bu nomni har doim jo'natuvchi nomi sifatida ishlating"
 #: frappe/core/doctype/custom_docperm/custom_docperm.json
 #: frappe/core/doctype/docperm/docperm.json
 #: frappe/core/doctype/user_document_type/user_document_type.json
-#: frappe/public/js/frappe/form/toolbar.js:738
+#: frappe/public/js/frappe/form/toolbar.js:739
 msgid "Amend"
 msgstr "O'zgartirish"
 
@@ -2312,8 +2308,10 @@ msgstr "O'zgartirilgan hujjat nomlash sozlamalari"
 msgid "Amended Documents"
 msgstr "O'zgartirilgan hujjatlar"
 
+#. Label of the amended_from (Link) field in DocType 'DuckDB Sync'
 #. Label of the amended_from (Link) field in DocType 'Personal Data Download
 #. Request'
+#: frappe/core/doctype/duckdb_sync/duckdb_sync.json
 #: frappe/website/doctype/personal_data_download_request/personal_data_download_request.json
 msgid "Amended From"
 msgstr "O'zgartirilgan"
@@ -2538,7 +2536,7 @@ msgstr "(DocType) ga tegishli"
 msgid "Apply"
 msgstr "Qo'llash"
 
-#: frappe/public/js/frappe/list/list_view.js:2266
+#: frappe/public/js/frappe/list/list_view.js:2269
 msgctxt "Button in list view actions menu"
 msgid "Apply Assignment Rule"
 msgstr "Topshiriq qoidasini qo'llang"
@@ -2625,7 +2623,7 @@ msgstr "Arxivlangan ustunlar"
 msgid "Are you sure you want to cancel the invitation?"
 msgstr "Taklifnomani bekor qilmoqchimisiz?"
 
-#: frappe/public/js/frappe/list/list_view.js:2251
+#: frappe/public/js/frappe/list/list_view.js:2254
 msgid "Are you sure you want to clear the assignments?"
 msgstr "Topshiriqlarni bajarmoqchi ekanligingizga aminmisiz?"
 
@@ -2661,7 +2659,7 @@ msgstr "Haqiqatan ham ushbu yozuvni o'chirmoqchimisiz?"
 msgid "Are you sure you want to discard the changes?"
 msgstr "O'zgarishlarni bekor qilmoqchimisiz?"
 
-#: frappe/public/js/frappe/views/reports/query_report.js:1008
+#: frappe/public/js/frappe/views/reports/query_report.js:1024
 msgid "Are you sure you want to generate a new report?"
 msgstr "Haqiqatan ham yangi hisobot yaratmoqchimisiz?"
 
@@ -2755,7 +2753,7 @@ msgstr "Shartni tayinlash"
 msgid "Assign To"
 msgstr "Kimga tayinlash"
 
-#: frappe/public/js/frappe/list/list_view.js:2234
+#: frappe/public/js/frappe/list/list_view.js:2237
 msgctxt "Button in list view actions menu"
 msgid "Assign To"
 msgstr "Kimga tayinlash"
@@ -3927,11 +3925,11 @@ msgstr "Ommaviy tahrirlash"
 msgid "Bulk Edit {0}"
 msgstr "Ommaviy tahrirlash {0}"
 
-#: frappe/desk/reportview.py:701
+#: frappe/desk/reportview.py:703
 msgid "Bulk Operation Failed"
 msgstr "Ommaviy operatsiya bajarilmadi"
 
-#: frappe/desk/reportview.py:705
+#: frappe/desk/reportview.py:707
 msgid "Bulk Operation Successful"
 msgstr "Ommaviy operatsiya muvaffaqiyatli"
 
@@ -4174,7 +4172,7 @@ msgstr "Kampaniya tavsifi (ixtiyoriy)"
 msgid "Can not rename as column {0} is already present on DocType."
 msgstr "DocType’da {0} ustuni allaqachon mavjud bo‘lgani uchun nomini o‘zgartirib bo‘lmadi."
 
-#: frappe/core/doctype/doctype/doctype.py:1188
+#: frappe/core/doctype/doctype/doctype.py:1207
 msgid "Can only change to/from Autoincrement naming rule when there is no data in the doctype"
 msgstr "Faqat hujjat turida ma'lumotlar bo'lmaganda, Autoincrement nomlash qoidasiga o'zgartirish/o'zgartirish mumkin"
 
@@ -4184,7 +4182,7 @@ msgstr "Faqat hujjat turida ma'lumotlar bo'lmaganda, Autoincrement nomlash qoida
 msgid "Can only list down the document types which has been linked to the User document type."
 msgstr "Faqat foydalanuvchi hujjat turiga bog'langan hujjat turlarini sanab o'tish mumkin."
 
-#: frappe/desk/form/document_follow.py:51
+#: frappe/desk/form/document_follow.py:55
 msgid "Can't follow since changes are not tracked."
 msgstr "O'zgarishlar kuzatilmagani uchun kuzatib bo'lmayapti."
 
@@ -4207,7 +4205,7 @@ msgstr "{0} ni {1} ga o'zgartirib bo'lmadi, chunki {0} mavjud emas."
 msgid "Cancel"
 msgstr "Bekor qilish"
 
-#: frappe/public/js/frappe/list/list_view.js:2336
+#: frappe/public/js/frappe/list/list_view.js:2339
 msgctxt "Button in list view actions menu"
 msgid "Cancel"
 msgstr "Bekor qilish"
@@ -4233,7 +4231,7 @@ msgstr "Importni bekor qilish"
 msgid "Cancel Prepared Report"
 msgstr "Tayyorlangan hisobotni bekor qilish"
 
-#: frappe/public/js/frappe/list/list_view.js:2341
+#: frappe/public/js/frappe/list/list_view.js:2344
 msgctxt "Title of confirmation dialog"
 msgid "Cancel {0} documents?"
 msgstr "{0} hujjatlar bekor qilinsinmi?"
@@ -4249,7 +4247,7 @@ msgstr "{0} hujjatlar bekor qilinsinmi?"
 #: frappe/desk/form/save.py:64
 #: frappe/integrations/doctype/integration_request/integration_request.json
 #: frappe/public/js/frappe/model/indicator.js:78
-#: frappe/public/js/frappe/ui/filters/filter.js:552
+#: frappe/public/js/frappe/ui/filters/filter.js:553
 msgid "Cancelled"
 msgstr "Bekor qilindi"
 
@@ -4326,7 +4324,7 @@ msgstr "Bekor qilingan hujjatning holatini o'zgartirib bo'lmadi <b>({0} Holat)</
 msgid "Cannot change state of Cancelled Document. Transition row {0}"
 msgstr "Bekor qilingan hujjatning holatini o'zgartirib bo'lmaydi. O'tish qatori {0}"
 
-#: frappe/core/doctype/doctype/doctype.py:1178
+#: frappe/core/doctype/doctype/doctype.py:1197
 msgid "Cannot change to/from autoincrement autoname in Customize Form"
 msgstr "Moslashtirish formasida avtomatik oshirish avtomatik nomini o'zgartirib bo'lmaydi"
 
@@ -4338,11 +4336,11 @@ msgstr "Global qidiruv uchun Core DocTypes ni sozlab bo'lmadi."
 msgid "Cannot create a {0} against a child document: {1}"
 msgstr "Quyidagi kichik hujjatga qarshi {0} yaratib bo'lmadi: {1}"
 
-#: frappe/desk/doctype/workspace/workspace.py:306
+#: frappe/desk/doctype/workspace/workspace.py:307
 msgid "Cannot create private workspace of other users"
 msgstr "Boshqa foydalanuvchilarning shaxsiy ish maydonini yaratib bo'lmaydi"
 
-#: frappe/desk/doctype/desktop_icon/desktop_icon.py:55
+#: frappe/desk/doctype/desktop_icon/desktop_icon.py:56
 msgid "Cannot delete Desktop Icon '{0}' as it is restricted"
 msgstr ""
 
@@ -4401,7 +4399,7 @@ msgstr "Standart bildirishnomani tahrirlab bo‘lmadi. Tahrirlash uchun buni o�
 msgid "Cannot edit Standard charts"
 msgstr "Standart jadvallarni tahrirlab bo'lmaydi"
 
-#: frappe/core/doctype/report/report.py:74
+#: frappe/core/doctype/report/report.py:78
 msgid "Cannot edit a standard report. Please duplicate and create a new report"
 msgstr "Standart hisobotni tahrirlab bo'lmaydi. Iltimos, nusxasini oling va yangi hisobot yarating"
 
@@ -4446,7 +4444,7 @@ msgstr "5000 dan ortiq qatorli jadvalni import qilib bo'lmaydi."
 msgid "Cannot link cancelled document: {0}"
 msgstr "Bekor qilingan hujjatni bog'lab bo'lmadi: {0}"
 
-#: frappe/model/mapper.py:175
+#: frappe/model/mapper.py:177
 msgid "Cannot map because following condition fails:"
 msgstr "Quyidagi shart bajarilmagani uchun xaritalash mumkin emas:"
 
@@ -4559,11 +4557,11 @@ msgstr "Kategoriya nomi"
 msgid "Center"
 msgstr "Markaz"
 
-#: frappe/tests/test_translate.py:111
+#: frappe/tests/test_translate.py:118
 msgid "Change"
 msgstr "O'zgarish"
 
-#: frappe/tests/test_translate.py:112
+#: frappe/tests/test_translate.py:119
 msgctxt "Coins"
 msgid "Change"
 msgstr "O'zgarish"
@@ -4768,7 +4766,7 @@ msgstr "Bola hujjat turi"
 msgid "Child Item"
 msgstr "Bolalar elementi"
 
-#: frappe/core/doctype/doctype/doctype.py:1685
+#: frappe/core/doctype/doctype/doctype.py:1704
 msgid "Child Table {0} for field {1} must be virtual"
 msgstr "{1} maydoni uchun {0} bolalar jadvali virtual bo'lishi kerak"
 
@@ -4834,7 +4832,7 @@ msgstr "Shablonni tozalash va qo'shish"
 msgid "Clear All"
 msgstr "Hammasini tozalash"
 
-#: frappe/public/js/frappe/list/list_view.js:2249
+#: frappe/public/js/frappe/list/list_view.js:2252
 msgctxt "Button in list view actions menu"
 msgid "Clear Assignment"
 msgstr "Topshiriqni tozalash"
@@ -4860,7 +4858,7 @@ msgstr "Kunlardan keyin jurnallarni tozalash"
 msgid "Clear User Permissions"
 msgstr "Foydalanuvchi ruxsatlarini tozalash"
 
-#: frappe/public/js/frappe/list/base_list.js:1406
+#: frappe/public/js/frappe/list/base_list.js:1407
 msgid "Clear all filters"
 msgstr "Barcha filtrlarni tozalash"
 
@@ -4941,7 +4939,7 @@ msgid "Click to Set Filters"
 msgstr "Filtrlarni o'rnatish uchun bosing"
 
 #: frappe/public/js/frappe/list/list_view.js:763
-#: frappe/public/js/frappe/list/list_view.js:783
+#: frappe/public/js/frappe/list/list_view.js:782
 msgid "Click to sort by {0}"
 msgstr "{0} bo'yicha saralash uchun bosing"
 
@@ -5120,7 +5118,7 @@ msgctxt "Shrink code field."
 msgid "Collapse"
 msgstr "Yig'ish"
 
-#: frappe/public/js/frappe/views/reports/query_report.js:2277
+#: frappe/public/js/frappe/views/reports/query_report.js:2293
 #: frappe/public/js/frappe/views/treeview.js:133
 msgid "Collapse All"
 msgstr "Hammasini yig'ish"
@@ -5177,7 +5175,7 @@ msgstr "Yig'iladigan (JS) ga bog'liq"
 #: frappe/desk/doctype/number_card/number_card.json
 #: frappe/desk/doctype/todo/todo.json
 #: frappe/desk/doctype/workspace_shortcut/workspace_shortcut.json
-#: frappe/public/js/frappe/views/reports/query_report.js:1289
+#: frappe/public/js/frappe/views/reports/query_report.js:1305
 #: frappe/public/js/frappe/widgets/widget_dialog.js:546
 #: frappe/public/js/frappe/widgets/widget_dialog.js:694
 #: frappe/website/doctype/color/color.json
@@ -5194,11 +5192,11 @@ msgstr "Rang"
 msgid "Column"
 msgstr "Ustun"
 
-#: frappe/core/doctype/report/boilerplate/controller.py:28
+#: frappe/core/doctype/report/boilerplate/controller.py:44
 msgid "Column 1"
 msgstr "1-ustun"
 
-#: frappe/core/doctype/report/boilerplate/controller.py:33
+#: frappe/core/doctype/report/boilerplate/controller.py:49
 msgid "Column 2"
 msgstr "2-ustun"
 
@@ -5323,7 +5321,7 @@ msgstr "Izohlar"
 msgid "Comments and Communications will be associated with this linked document"
 msgstr "Izohlar va xabarlar ushbu bog'langan hujjat bilan bog'lanadi"
 
-#: frappe/templates/includes/comments/comments.py:65
+#: frappe/templates/includes/comments/comments.py:62
 msgid "Comments cannot have links or email addresses"
 msgstr "Izohlarda havolalar yoki elektron pochta manzillari bo'lmasligi kerak"
 
@@ -5359,8 +5357,8 @@ msgstr "Umumiy so'zlarni taxmin qilish oson."
 #: frappe/core/doctype/communication/communication.json
 #: frappe/email/doctype/email_flag_queue/email_flag_queue.json
 #: frappe/email/doctype/email_queue/email_queue.json
-#: frappe/tests/test_translate.py:35 frappe/tests/test_translate.py:119
-#: frappe/workspace_sidebar/email.json
+#: frappe/tests/test_translate.py:35 frappe/tests/test_translate.py:67
+#: frappe/tests/test_translate.py:126 frappe/workspace_sidebar/email.json
 msgid "Communication"
 msgstr "Aloqa"
 
@@ -5793,7 +5791,7 @@ msgstr "Kontent xeshi"
 msgid "Content Type"
 msgstr "Kontent turi"
 
-#: frappe/desk/doctype/workspace/workspace.py:88
+#: frappe/desk/doctype/workspace/workspace.py:89
 msgid "Content data shoud be a list"
 msgstr "Kontent ma'lumotlari ro'yxat bo'lishi kerak"
 
@@ -5849,7 +5847,7 @@ msgstr "Yangi foydalanuvchilar ushbu ijtimoiy tarmoqqa kirish kaliti yordamida r
 msgid "Copied to clipboard."
 msgstr "Buferga nusxalandi."
 
-#: frappe/public/js/frappe/list/list_view.js:2561
+#: frappe/public/js/frappe/list/list_view.js:2564
 msgid "Copied {0} {1} to clipboard"
 msgstr "{0} {1} vaqtinchalik xotiraga nusxalandi"
 
@@ -5871,7 +5869,7 @@ msgstr "Xatolikni buferga nusxalash"
 
 #: frappe/public/js/frappe/form/controls/code.js:32
 #: frappe/public/js/frappe/form/toolbar.js:543
-#: frappe/public/js/frappe/list/list_view.js:2445
+#: frappe/public/js/frappe/list/list_view.js:2448
 msgid "Copy to Clipboard"
 msgstr "Buferga nusxalash"
 
@@ -6007,7 +6005,7 @@ msgstr "Cr"
 #: frappe/public/js/frappe/list/list_filter.js:121
 #: frappe/public/js/frappe/views/file/file_view.js:118
 #: frappe/public/js/frappe/views/interaction.js:18
-#: frappe/public/js/frappe/views/reports/query_report.js:1321
+#: frappe/public/js/frappe/views/reports/query_report.js:1337
 #: frappe/public/js/frappe/views/workspace/workspace.js:519
 #: frappe/workflow/page/workflow_builder/workflow_builder.js:46
 msgid "Create"
@@ -6031,7 +6029,7 @@ msgid "Create Card"
 msgstr "Karta yaratish"
 
 #: frappe/public/js/frappe/views/reports/query_report.js:286
-#: frappe/public/js/frappe/views/reports/query_report.js:1248
+#: frappe/public/js/frappe/views/reports/query_report.js:1264
 msgid "Create Chart"
 msgstr "Grafik yaratish"
 
@@ -6141,11 +6139,11 @@ msgstr "Yaratilgan joyi"
 msgid "Created By"
 msgstr "Yaratgan"
 
-#: frappe/public/js/frappe/form/sidebar/form_sidebar.js:177
+#: frappe/public/js/frappe/form/sidebar/form_sidebar.js:176
 msgid "Created By You"
 msgstr "Siz tomonidan yaratilgan"
 
-#: frappe/public/js/frappe/form/sidebar/form_sidebar.js:178
+#: frappe/public/js/frappe/form/sidebar/form_sidebar.js:177
 msgid "Created By {0}"
 msgstr "{0} tomonidan yaratilgan"
 
@@ -6516,7 +6514,7 @@ msgstr "<b>{0}</b> uchun moslashtirishlar eksport qilindi:<br>{1}"
 msgid "Customize"
 msgstr "Moslashtiring"
 
-#: frappe/public/js/frappe/list/list_view.js:2010
+#: frappe/public/js/frappe/list/list_view.js:2013
 msgctxt "Button in list view menu"
 msgid "Customize"
 msgstr "Moslashtiring"
@@ -6550,7 +6548,7 @@ msgstr "Shaklni sozlash - {0}"
 msgid "Customize Form Field"
 msgstr "Forma maydonini sozlash"
 
-#: frappe/public/js/frappe/list/list_view.js:2036
+#: frappe/public/js/frappe/list/list_view.js:2039
 msgctxt "Customize qucik filters of List View"
 msgid "Customize Quick Filters"
 msgstr "Tezkor filtrlarni sozlash"
@@ -6570,6 +6568,11 @@ msgstr "Kesish"
 #: frappe/desk/doctype/kanban_board_column/kanban_board_column.json
 msgid "Cyan"
 msgstr "Moviy rang"
+
+#. Label of the db_tables (Table) field in DocType 'DuckDB Sync'
+#: frappe/core/doctype/duckdb_sync/duckdb_sync.json
+msgid "DB Tables"
+msgstr ""
 
 #. Option for the 'Delivery Status Notification Type' (Select) field in DocType
 #. 'Email Account'
@@ -6603,6 +6606,7 @@ msgstr "QORALAMA"
 #. Option for the 'Frequency' (Select) field in DocType 'Auto Repeat'
 #. Option for the 'Frequency' (Select) field in DocType 'Scheduled Job Type'
 #. Option for the 'Event Frequency' (Select) field in DocType 'Server Script'
+#. Option for the 'Frequency' (Select) field in DocType 'System Settings'
 #. Option for the 'Frequency' (Select) field in DocType 'User'
 #. Option for the 'Time Interval' (Select) field in DocType 'Dashboard Chart'
 #. Option for the 'Repeat On' (Select) field in DocType 'Event'
@@ -6612,6 +6616,7 @@ msgstr "QORALAMA"
 #: frappe/automation/doctype/auto_repeat/auto_repeat.json
 #: frappe/core/doctype/scheduled_job_type/scheduled_job_type.json
 #: frappe/core/doctype/server_script/server_script.json
+#: frappe/core/doctype/system_settings/system_settings.json
 #: frappe/core/doctype/user/user.json
 #: frappe/desk/doctype/dashboard_chart/dashboard_chart.json
 #: frappe/desk/doctype/event/event.json
@@ -6892,7 +6897,7 @@ msgstr "Ushbu security.txt fayli eskirgan deb hisoblanishi kerak bo'lgan sana. M
 msgid "Date and Number Format"
 msgstr "Sana va raqam formati"
 
-#: frappe/public/js/frappe/form/controls/date.js:252
+#: frappe/public/js/frappe/form/controls/date.js:253
 msgid "Date {0} must be in format: {1}"
 msgstr "Sana {0} quyidagi formatda bo'lishi kerak: {1}"
 
@@ -7153,7 +7158,7 @@ msgstr "Standart ish maydoni"
 msgid "Default display currency"
 msgstr "Standart ko'rsatish valyutasi"
 
-#: frappe/core/doctype/doctype/doctype.py:1428
+#: frappe/core/doctype/doctype/doctype.py:1447
 msgid "Default value for {0} must be in the list of options."
 msgstr "{0} uchun standart qiymat variantlar ro'yxatida bo'lishi kerak."
 
@@ -7229,7 +7234,7 @@ msgstr "Kechiktirilgan"
 msgid "Delete"
 msgstr "O'chirish"
 
-#: frappe/public/js/frappe/list/list_view.js:2304
+#: frappe/public/js/frappe/list/list_view.js:2307
 msgctxt "Button in list view actions menu"
 msgid "Delete"
 msgstr "O'chirish"
@@ -7285,7 +7290,7 @@ msgstr "Hammasini o'chirish"
 msgid "Delete all {0} rows"
 msgstr "Barcha {0} qatorlarni o'chirish"
 
-#: frappe/public/js/frappe/views/reports/query_report.js:975
+#: frappe/public/js/frappe/views/reports/query_report.js:991
 msgid "Delete and Generate New"
 msgstr "O'chirish va yangisini yaratish"
 
@@ -7331,12 +7336,12 @@ msgstr "Yorliqni o'chirish"
 msgid "Delete this record to allow sending to this email address"
 msgstr "Ushbu elektron pochta manziliga yuborishga ruxsat berish uchun ushbu yozuvni o'chirib tashlang"
 
-#: frappe/public/js/frappe/list/list_view.js:2309
+#: frappe/public/js/frappe/list/list_view.js:2312
 msgctxt "Title of confirmation dialog"
 msgid "Delete {0} item permanently?"
 msgstr "{0} element butunlay oʻchirib tashlansinmi?"
 
-#: frappe/public/js/frappe/list/list_view.js:2315
+#: frappe/public/js/frappe/list/list_view.js:2318
 msgctxt "Title of confirmation dialog"
 msgid "Delete {0} items permanently?"
 msgstr "{0} elementlar butunlay o'chirib tashlansinmi?"
@@ -7373,7 +7378,7 @@ msgstr "O'chirilgan hujjat"
 msgid "Deleted Name"
 msgstr "O'chirilgan ism"
 
-#: frappe/desk/reportview.py:705
+#: frappe/desk/reportview.py:707
 msgid "Deleted all documents successfully"
 msgstr "Barcha hujjatlar muvaffaqiyatli o'chirildi"
 
@@ -7381,7 +7386,7 @@ msgstr "Barcha hujjatlar muvaffaqiyatli o'chirildi"
 msgid "Deleted!"
 msgstr "O'chirildi!"
 
-#: frappe/desk/reportview.py:682
+#: frappe/desk/reportview.py:684
 msgid "Deleting {0}"
 msgstr "{0} o'chirilmoqda"
 
@@ -7938,6 +7943,7 @@ msgstr "Quyidagi holatlarning DocStatus ko'rsatkichlari o'zgardi:<br><strong>{0}
 #. Settings'
 #. Label of the doctype_name (Link) field in DocType 'Audit Trail'
 #. Name of a DocType
+#. Label of the doc_type (Link) field in DocType 'Doctype To Sync'
 #. Group in Module Def's connections
 #. Label of the ref_doctype (Link) field in DocType 'Permission Inspector'
 #. Label of the ref_doctype (Link) field in DocType 'Version'
@@ -7960,6 +7966,7 @@ msgstr "Quyidagi holatlarning DocStatus ko'rsatkichlari o'zgardi:<br><strong>{0}
 #: frappe/core/doctype/audit_trail/audit_trail.json
 #: frappe/core/doctype/data_export/exporter.py:26
 #: frappe/core/doctype/doctype/doctype.json
+#: frappe/core/doctype/doctype_to_sync/doctype_to_sync.json
 #: frappe/core/doctype/module_def/module_def.json
 #: frappe/core/doctype/permission_inspector/permission_inspector.json
 #: frappe/core/doctype/version/version.json
@@ -7982,7 +7989,7 @@ msgstr "Quyidagi holatlarning DocStatus ko'rsatkichlari o'zgardi:<br><strong>{0}
 msgid "DocType"
 msgstr "DocType"
 
-#: frappe/core/doctype/doctype/doctype.py:1616
+#: frappe/core/doctype/doctype/doctype.py:1635
 msgid "DocType <b>{0}</b> provided for the field <b>{1}</b> must have atleast one Link field"
 msgstr "DocType <b>{0}</b> maydoni uchun berilgan <b>{1}</b> kamida bitta Havola maydoniga ega bo'lishi kerak"
 
@@ -8033,11 +8040,11 @@ msgstr "DocType holati"
 msgid "DocType View"
 msgstr "DocType ko'rinishi"
 
-#: frappe/core/doctype/doctype/doctype.py:671
+#: frappe/core/doctype/doctype/doctype.py:672
 msgid "DocType can not be merged"
 msgstr "DocType ni birlashtirib bo'lmaydi"
 
-#: frappe/core/doctype/doctype/doctype.py:665
+#: frappe/core/doctype/doctype/doctype.py:666
 msgid "DocType can only be renamed by Administrator"
 msgstr "DocType nomini faqat administrator o'zgartirishi mumkin"
 
@@ -8075,7 +8082,7 @@ msgstr "DocType {0} mavjud emas."
 msgid "DocType {} not found"
 msgstr "DocType {} topilmadi"
 
-#: frappe/core/doctype/doctype/doctype.py:1053
+#: frappe/core/doctype/doctype/doctype.py:1072
 msgid "DocType's name should not start or end with whitespace"
 msgstr "DocType nomi bo'sh joy bilan boshlanmasligi yoki tugamasligi kerak"
 
@@ -8083,13 +8090,22 @@ msgstr "DocType nomi bo'sh joy bilan boshlanmasligi yoki tugamasligi kerak"
 msgid "DocTypes cannot be modified, please use {0} instead"
 msgstr "DocTypes faylini oʻzgartirib boʻlmaydi, iltimos, buning oʻrniga {0} dan foydalaning"
 
+#. Label of the doc_type (Link) field in DocType 'DuckDB Sync'
 #. Label of the ref_doctype (Link) field in DocType 'Document Follow'
+#: frappe/core/doctype/duckdb_sync/duckdb_sync.json
 #: frappe/email/doctype/document_follow/document_follow.json
 #: frappe/public/js/frappe/widgets/widget_dialog.js:682
 msgid "Doctype"
 msgstr "Hujjat turi"
 
-#: frappe/core/doctype/doctype/doctype.py:1047
+#. Name of a DocType
+#. Label of the doctype_to_sync (Table) field in DocType 'Report'
+#: frappe/core/doctype/doctype_to_sync/doctype_to_sync.json
+#: frappe/core/doctype/report/report.json
+msgid "Doctype To Sync"
+msgstr ""
+
+#: frappe/core/doctype/doctype/doctype.py:1066
 msgid "Doctype name is limited to {0} characters ({1})"
 msgstr "Doctype nomi {0} belgidan iborat ({1})"
 
@@ -8128,7 +8144,7 @@ msgstr "Hujjat harakatlari"
 msgid "Document Follow"
 msgstr "Hujjatni kuzatib boring"
 
-#: frappe/desk/form/document_follow.py:106
+#: frappe/desk/form/document_follow.py:114
 msgid "Document Follow Notification"
 msgstr "Hujjatni kuzatish haqida bildirishnoma"
 
@@ -8151,19 +8167,19 @@ msgstr "Hujjatlarni bog'lash"
 msgid "Document Links"
 msgstr "Hujjat havolalari"
 
-#: frappe/core/doctype/doctype/doctype.py:1236
+#: frappe/core/doctype/doctype/doctype.py:1255
 msgid "Document Links Row #{0}: Could not find field {1} in {2} DocType"
 msgstr ""
 
-#: frappe/core/doctype/doctype/doctype.py:1256
+#: frappe/core/doctype/doctype/doctype.py:1275
 msgid "Document Links Row #{0}: Invalid doctype or fieldname."
 msgstr "Hujjat havolalari qatori #{0}: Noto'g'ri hujjat turi yoki maydon nomi."
 
-#: frappe/core/doctype/doctype/doctype.py:1219
+#: frappe/core/doctype/doctype/doctype.py:1238
 msgid "Document Links Row #{0}: Parent DocType is mandatory for internal links"
 msgstr "Hujjat havolalari qatori #{0}: Ichki havolalar uchun ota-ona DocType majburiydir"
 
-#: frappe/core/doctype/doctype/doctype.py:1225
+#: frappe/core/doctype/doctype/doctype.py:1244
 msgid "Document Links Row #{0}: Table Fieldname is mandatory for internal links"
 msgstr "Hujjat havolalari qatori #{0}: Jadval maydoni nomi ichki havolalar uchun majburiydir"
 
@@ -8379,19 +8395,19 @@ msgstr "Hujjat qulfdan chiqarildi"
 msgid "Document cannot be used as a filter value"
 msgstr "Hujjatni filtr qiymati sifatida ishlatib bo'lmaydi"
 
-#: frappe/desk/form/document_follow.py:65
+#: frappe/desk/form/document_follow.py:73
 msgid "Document follow is not enabled for this user."
 msgstr "Bu foydalanuvchi uchun hujjatni kuzatish funksiyasi yoqilmagan."
 
-#: frappe/public/js/frappe/list/list_view.js:1369
+#: frappe/public/js/frappe/list/list_view.js:1372
 msgid "Document has been cancelled"
 msgstr "Hujjat bekor qilindi"
 
-#: frappe/public/js/frappe/list/list_view.js:1368
+#: frappe/public/js/frappe/list/list_view.js:1371
 msgid "Document has been submitted"
 msgstr "Hujjat topshirildi"
 
-#: frappe/public/js/frappe/list/list_view.js:1367
+#: frappe/public/js/frappe/list/list_view.js:1370
 msgid "Document is in draft state"
 msgstr "Hujjat qoralama holatida"
 
@@ -8524,7 +8540,7 @@ msgstr "Bajarildi"
 msgid "Donut"
 msgstr "Ponchik"
 
-#: frappe/public/js/form_builder/components/EditableInput.vue:43
+#: frappe/public/js/form_builder/components/EditableInput.vue:32
 msgid "Double click to edit label"
 msgstr "Yorliqni tahrirlash uchun ikki marta bosing"
 
@@ -8559,7 +8575,7 @@ msgstr "Yuklab olish havolasi"
 msgid "Download PDF"
 msgstr "PDF yuklab olish"
 
-#: frappe/public/js/frappe/views/reports/query_report.js:884
+#: frappe/public/js/frappe/views/reports/query_report.js:900
 msgid "Download Report"
 msgstr "Hisobotni yuklab olish"
 
@@ -8568,9 +8584,9 @@ msgstr "Hisobotni yuklab olish"
 msgid "Download Template"
 msgstr "Shablonni yuklab oling"
 
-#: frappe/website/doctype/personal_data_download_request/personal_data_download_request.py:61
-#: frappe/website/doctype/personal_data_download_request/personal_data_download_request.py:69
-#: frappe/website/doctype/personal_data_download_request/test_personal_data_download_request.py:48
+#: frappe/website/doctype/personal_data_download_request/personal_data_download_request.py:80
+#: frappe/website/doctype/personal_data_download_request/personal_data_download_request.py:88
+#: frappe/website/doctype/personal_data_download_request/test_personal_data_download_request.py:53
 msgid "Download Your Data"
 msgstr "Ma'lumotlaringizni yuklab oling"
 
@@ -8591,7 +8607,7 @@ msgid "Dr"
 msgstr "Doktor"
 
 #: frappe/public/js/frappe/model/indicator.js:73
-#: frappe/public/js/frappe/ui/filters/filter.js:550
+#: frappe/public/js/frappe/ui/filters/filter.js:551
 msgid "Draft"
 msgstr "Qoralama"
 
@@ -8631,6 +8647,16 @@ msgstr "Fayllarni bu yerga tashlang"
 #: frappe/core/doctype/navbar_settings/navbar_settings.json
 msgid "Dropdowns"
 msgstr "Ochiq menyular"
+
+#. Name of a DocType
+#: frappe/core/doctype/duckdb_sync/duckdb_sync.json
+msgid "DuckDB Sync"
+msgstr ""
+
+#. Name of a DocType
+#: frappe/core/doctype/duckdb_sync_item/duckdb_sync_item.json
+msgid "DuckDB Sync Item"
+msgstr ""
 
 #. Label of the date (Date) field in DocType 'ToDo'
 #: frappe/desk/doctype/todo/todo.json
@@ -8768,9 +8794,9 @@ msgstr "ESC"
 #: frappe/public/js/frappe/form/templates/address_list.html:13
 #: frappe/public/js/frappe/form/templates/contact_list.html:13
 #: frappe/public/js/frappe/form/toolbar.js:214
-#: frappe/public/js/frappe/form/toolbar.js:791
-#: frappe/public/js/frappe/views/reports/query_report.js:910
-#: frappe/public/js/frappe/views/reports/query_report.js:1920
+#: frappe/public/js/frappe/form/toolbar.js:792
+#: frappe/public/js/frappe/views/reports/query_report.js:926
+#: frappe/public/js/frappe/views/reports/query_report.js:1936
 #: frappe/public/js/frappe/widgets/base_widget.js:65
 #: frappe/public/js/frappe/widgets/chart_widget.js:304
 #: frappe/public/js/frappe/widgets/number_card_widget.js:365
@@ -8781,7 +8807,7 @@ msgstr "ESC"
 msgid "Edit"
 msgstr "Tahrirlash"
 
-#: frappe/public/js/frappe/list/list_view.js:2390
+#: frappe/public/js/frappe/list/list_view.js:2393
 msgctxt "Button in list view actions menu"
 msgid "Edit"
 msgstr "Tahrirlash"
@@ -8820,7 +8846,7 @@ msgstr "Maxsus HTMLni tahrirlash"
 msgid "Edit DocType"
 msgstr "DocType-ni tahrirlash"
 
-#: frappe/public/js/frappe/list/list_view.js:2029
+#: frappe/public/js/frappe/list/list_view.js:2032
 msgctxt "Button in list view menu"
 msgid "Edit DocType"
 msgstr "DocType-ni tahrirlash"
@@ -8830,7 +8856,7 @@ msgstr "DocType-ni tahrirlash"
 msgid "Edit Existing"
 msgstr "Mavjudni tahrirlash"
 
-#: frappe/public/js/frappe/ui/filters/filter.js:401
+#: frappe/public/js/frappe/ui/filters/filter.js:402
 msgid "Edit Filter"
 msgstr "Filtrni tahrirlash"
 
@@ -9475,6 +9501,12 @@ msgstr "Rejalashtiruvchini yoqish"
 msgid "Enable Security"
 msgstr "Xavfsizlikni yoqish"
 
+#. Label of the enable_snapshot_reports (Check) field in DocType 'System
+#. Settings'
+#: frappe/core/doctype/system_settings/system_settings.json
+msgid "Enable Snapshot Reports"
+msgstr ""
+
 #. Label of the enable_social_login (Check) field in DocType 'Social Login Key'
 #: frappe/integrations/doctype/social_login_key/social_login_key.json
 msgid "Enable Social Login"
@@ -9740,7 +9772,7 @@ msgstr "Obyekt nomi"
 msgid "Entity Type"
 msgstr "Obyekt turi"
 
-#: frappe/public/js/frappe/list/base_list.js:1317
+#: frappe/public/js/frappe/list/base_list.js:1318
 #: frappe/public/js/frappe/ui/filters/filter.js:16
 msgid "Equals"
 msgstr "Teng"
@@ -10033,7 +10065,7 @@ msgstr "Kodni bajarish"
 msgid "Executing..."
 msgstr "Bajarilmoqda..."
 
-#: frappe/public/js/frappe/views/reports/query_report.js:2293
+#: frappe/public/js/frappe/views/reports/query_report.js:2309
 msgid "Execution Time: {0} sec"
 msgstr "Bajarilish vaqti: {0} soniya"
 
@@ -10067,7 +10099,7 @@ msgctxt "Enlarge code field."
 msgid "Expand"
 msgstr "Kengaytirish"
 
-#: frappe/public/js/frappe/views/reports/query_report.js:2275
+#: frappe/public/js/frappe/views/reports/query_report.js:2291
 #: frappe/public/js/frappe/views/treeview.js:143
 msgid "Expand All"
 msgstr "Barchasini kengaytirish"
@@ -10141,13 +10173,13 @@ msgstr "QR kod tasviri sahifasining amal qilish muddati"
 #: frappe/core/page/permission_manager/permission_manager_help.html:66
 #: frappe/public/js/frappe/data_import/data_exporter.js:92
 #: frappe/public/js/frappe/data_import/data_exporter.js:247
-#: frappe/public/js/frappe/views/reports/query_report.js:1962
+#: frappe/public/js/frappe/views/reports/query_report.js:1978
 #: frappe/public/js/frappe/views/reports/report_view.js:1737
 #: frappe/public/js/frappe/widgets/chart_widget.js:320
 msgid "Export"
 msgstr "Eksport qilish"
 
-#: frappe/public/js/frappe/list/list_view.js:2433
+#: frappe/public/js/frappe/list/list_view.js:2436
 msgctxt "Button in list view actions menu"
 msgid "Export"
 msgstr "Eksport qilish"
@@ -10370,7 +10402,7 @@ msgstr "{0} kalitini shifrlashda xatolik yuz berdi"
 msgid "Failed to delete communication"
 msgstr "Aloqani o'chirishda xatolik yuz berdi"
 
-#: frappe/desk/reportview.py:699
+#: frappe/desk/reportview.py:701
 msgid "Failed to delete {0} documents: {1}"
 msgstr "{0} hujjatlarni o'chirishda xatolik yuz berdi: {1}"
 
@@ -10383,7 +10415,7 @@ msgstr "Rejalashtiruvchini yoqishda xatolik yuz berdi: {0}"
 msgid "Failed to evaluate conditions: {}"
 msgstr "Shartlarni baholashda xatolik yuz berdi: {}"
 
-#: frappe/types/exporter.py:205
+#: frappe/types/exporter.py:211
 msgid "Failed to export python type hints"
 msgstr "Python turidagi maslahatlarni eksport qilishda xatolik yuz berdi"
 
@@ -10531,7 +10563,7 @@ msgstr "{0} dan maydonlar olinmoqda ..."
 #: frappe/public/js/frappe/list/bulk_operations.js:336
 #: frappe/public/js/frappe/list/list_view_permission_restrictions.html:3
 #: frappe/public/js/frappe/views/reports/query_report.js:237
-#: frappe/public/js/frappe/views/reports/query_report.js:2021
+#: frappe/public/js/frappe/views/reports/query_report.js:2037
 #: frappe/website/doctype/web_form_field/web_form_field.json
 #: frappe/website/doctype/web_form_list_column/web_form_list_column.json
 msgid "Field"
@@ -10541,7 +10573,7 @@ msgstr "Maydon"
 msgid "Field \"route\" is mandatory for Web Views"
 msgstr "Veb ko'rinishlar uchun \"marshrut\" maydoni majburiydir"
 
-#: frappe/core/doctype/doctype/doctype.py:1565
+#: frappe/core/doctype/doctype/doctype.py:1584
 msgid "Field \"title\" is mandatory if \"Website Search Field\" is set."
 msgstr "Agar \"Veb-sayt qidiruv maydoni\" o'rnatilgan bo'lsa, \"sarlavha\" maydoni majburiydir."
 
@@ -10558,7 +10590,7 @@ msgstr "<code>{0}</code> maydoni {1} da topilmadi"
 msgid "Field Description"
 msgstr "Maydon tavsifi"
 
-#: frappe/core/doctype/doctype/doctype.py:1102
+#: frappe/core/doctype/doctype/doctype.py:1121
 msgid "Field Missing"
 msgstr "Maydon yo'q"
 
@@ -10614,7 +10646,7 @@ msgstr "{0} maydoni {1} da mavjud emas"
 msgid "Field {0} is referring to non-existing doctype {1}."
 msgstr "{0} maydoni mavjud bo'lmagan doctype {1} ga ishora qilmoqda."
 
-#: frappe/core/doctype/doctype/doctype.py:1693
+#: frappe/core/doctype/doctype/doctype.py:1712
 msgid "Field {0} must be a virtual field to support virtual doctype."
 msgstr "Virtual doctype ni qo'llab-quvvatlash uchun {0} maydoni virtual maydon bo'lishi kerak."
 
@@ -10649,7 +10681,7 @@ msgstr "Maydon nomi"
 msgid "Fieldname '{0}' conflicting with a {1} of the name {2} in {3}"
 msgstr "{0}' maydoni nomi {3} maydonidagi {2} nomining {1} raqami bilan ziddiyatga ega"
 
-#: frappe/core/doctype/doctype/doctype.py:1101
+#: frappe/core/doctype/doctype/doctype.py:1120
 msgid "Fieldname called {0} must exist to enable autonaming"
 msgstr "Avtomatik nomlashni yoqish uchun {0} nomli maydon nomi mavjud bo'lishi kerak"
 
@@ -10673,7 +10705,7 @@ msgstr "Maydon nomi {0} bir necha marta paydo bo'ladi"
 msgid "Fieldname {0} cannot have special characters like {1}"
 msgstr "{0} maydoni nomida {1} kabi maxsus belgilar bo'lmasligi kerak"
 
-#: frappe/core/doctype/doctype/doctype.py:1989
+#: frappe/core/doctype/doctype/doctype.py:2008
 msgid "Fieldname {0} conflicting with meta object"
 msgstr "Fieldname {0} meta obyekt bilan ziddiyatli"
 
@@ -10846,6 +10878,11 @@ msgstr "Fayl yuklash amalga oshmadi."
 msgid "File {0} does not exist"
 msgstr "{0} fayli mavjud emas"
 
+#. Label of the filename (Data) field in DocType 'DuckDB Sync'
+#: frappe/core/doctype/duckdb_sync/duckdb_sync.json
+msgid "Filename"
+msgstr "Fayl nomi"
+
 #. Label of the files_tab (Tab Break) field in DocType 'System Settings'
 #: frappe/core/doctype/system_settings/system_settings.json
 msgid "Files"
@@ -10857,7 +10894,7 @@ msgstr "Fayllar"
 #: frappe/desk/doctype/number_card/number_card.js:208
 #: frappe/desk/doctype/number_card/number_card.js:347
 #: frappe/email/doctype/auto_email_report/auto_email_report.js:93
-#: frappe/public/js/frappe/list/base_list.js:1403
+#: frappe/public/js/frappe/list/base_list.js:1404
 #: frappe/public/js/frappe/ui/filters/filter_list.js:134
 #: frappe/website/doctype/web_form/web_form.js:245
 msgid "Filter"
@@ -11110,11 +11147,11 @@ msgstr "Suzuvchi aniqlik"
 msgid "Fold"
 msgstr "Buklang"
 
-#: frappe/core/doctype/doctype/doctype.py:1489
+#: frappe/core/doctype/doctype/doctype.py:1508
 msgid "Fold can not be at the end of the form"
 msgstr "Buklama shaklning oxirida bo'lishi mumkin emas"
 
-#: frappe/core/doctype/doctype/doctype.py:1487
+#: frappe/core/doctype/doctype/doctype.py:1506
 msgid "Fold must come before a Section Break"
 msgstr "Buklama bo'lim tanaffusidan oldin bo'lishi kerak"
 
@@ -11144,7 +11181,7 @@ msgid "Folio"
 msgstr "Folio"
 
 #: frappe/public/js/frappe/form/templates/form_sidebar.html:150
-#: frappe/public/js/frappe/form/toolbar.js:1004
+#: frappe/public/js/frappe/form/toolbar.js:1005
 msgid "Follow"
 msgstr "Kuzatib boring"
 
@@ -11156,7 +11193,7 @@ msgstr "Dan so'ng"
 msgid "Following Report Filters have missing values:"
 msgstr "Quyidagi hisobot filtrlarida qiymatlar yo'q:"
 
-#: frappe/desk/form/document_follow.py:72
+#: frappe/desk/form/document_follow.py:80
 msgid "Following document {0}"
 msgstr "Quyidagi hujjat {0}"
 
@@ -11344,7 +11381,7 @@ msgid "For comparison, use >5, <10 or =324.\n"
 msgstr "Taqqoslash uchun >5, <10 yoki =324 dan foydalaning.\n"
 "Diapazonlar uchun 5:10 dan foydalaning (5 va 10 orasidagi qiymatlar uchun)."
 
-#: frappe/public/js/frappe/views/reports/query_report.js:2290
+#: frappe/public/js/frappe/views/reports/query_report.js:2306
 msgid "For comparison, use >5, <10 or =324. For ranges, use 5:10 (for values between 5 & 10)."
 msgstr "Taqqoslash uchun >5, <10 yoki =324 dan foydalaning. Diapazonlar uchun 5:10 dan foydalaning (5 va 10 orasidagi qiymatlar uchun)."
 
@@ -11380,7 +11417,7 @@ msgstr "Bir nechta manzillar uchun manzilni turli qatorlarga kiriting. Masalan, 
 msgid "For updating, you can update only selective columns."
 msgstr "Yangilash uchun faqat tanlangan ustunlarni yangilashingiz mumkin."
 
-#: frappe/core/doctype/doctype/doctype.py:1833
+#: frappe/core/doctype/doctype/doctype.py:1852
 msgid "For {0} at level {1} in {2} in row {3}"
 msgstr "{3} qatoridagi {2} dagi {1} darajasida {0} uchun"
 
@@ -11584,11 +11621,13 @@ msgstr "Bepul"
 
 #. Label of the frequency (Select) field in DocType 'Auto Repeat'
 #. Label of the frequency (Select) field in DocType 'Scheduled Job Type'
+#. Label of the frequency (Select) field in DocType 'System Settings'
 #. Label of the document_follow_frequency (Select) field in DocType 'User'
 #. Label of the frequency (Select) field in DocType 'Auto Email Report'
 #: frappe/automation/doctype/auto_repeat/auto_repeat.json
 #: frappe/automation/doctype/auto_repeat/auto_repeat_schedule.html:5
 #: frappe/core/doctype/scheduled_job_type/scheduled_job_type.json
+#: frappe/core/doctype/system_settings/system_settings.json
 #: frappe/core/doctype/user/user.json
 #: frappe/email/doctype/auto_email_report/auto_email_report.json
 #: frappe/public/js/frappe/utils/common.js:395
@@ -11639,7 +11678,7 @@ msgstr "Boshlanish sanasi"
 msgid "From Date Field"
 msgstr "Sana maydonidan"
 
-#: frappe/public/js/frappe/views/reports/query_report.js:1982
+#: frappe/public/js/frappe/views/reports/query_report.js:1998
 msgid "From Document Type"
 msgstr "Hujjat turidan"
 
@@ -11775,7 +11814,7 @@ msgstr "Umumiy"
 msgid "Generate Keys"
 msgstr "Kalitlarni yaratish"
 
-#: frappe/public/js/frappe/views/reports/query_report.js:904
+#: frappe/public/js/frappe/views/reports/query_report.js:920
 msgid "Generate New Report"
 msgstr "Yangi hisobot yaratish"
 
@@ -11906,7 +11945,7 @@ msgstr "Global yorliqlar"
 msgid "Global Unsubscribe"
 msgstr "Global obunani bekor qilish"
 
-#: frappe/public/js/frappe/form/toolbar.js:891
+#: frappe/public/js/frappe/form/toolbar.js:892
 msgid "Go"
 msgstr "Boring"
 
@@ -12580,7 +12619,7 @@ msgstr "Yashirin"
 msgid "Hidden Fields"
 msgstr "Yashirin maydonlar"
 
-#: frappe/public/js/frappe/views/reports/query_report.js:1770
+#: frappe/public/js/frappe/views/reports/query_report.js:1786
 msgid "Hidden columns include: <br> {0}"
 msgstr "Yashirin ustunlar quyidagilarni o'z ichiga oladi: <br> {0}"
 
@@ -12746,6 +12785,7 @@ msgstr "Belgilash"
 #: frappe/public/js/frappe/views/file/file_view.js:94
 #: frappe/public/js/frappe/views/pageview.js:162 frappe/templates/doc.html:19
 #: frappe/templates/includes/navbar/navbar.html:9
+#: frappe/tests/test_background_jobs.py:72
 #: frappe/website/doctype/website_settings/website_settings.json
 #: frappe/website/web_template/primary_navbar/primary_navbar.html:9
 #: frappe/workspace_sidebar/users.json frappe/workspace_sidebar/website.json
@@ -12782,9 +12822,11 @@ msgstr "Bosh sahifa/Sinov papkasi 2"
 
 #. Option for the 'Frequency' (Select) field in DocType 'Scheduled Job Type'
 #. Option for the 'Event Frequency' (Select) field in DocType 'Server Script'
+#. Option for the 'Frequency' (Select) field in DocType 'System Settings'
 #. Option for the 'Frequency' (Select) field in DocType 'User'
 #: frappe/core/doctype/scheduled_job_type/scheduled_job_type.json
 #: frappe/core/doctype/server_script/server_script.json
+#: frappe/core/doctype/system_settings/system_settings.json
 #: frappe/core/doctype/user/user.json
 msgid "Hourly"
 msgstr "Soatlik"
@@ -12839,7 +12881,7 @@ msgstr "Sizda hali hech qanday ish maydoniga kirish imkoni yo'q deb o'ylayman, l
 #: frappe/public/js/frappe/list/list_settings.js:340
 #: frappe/public/js/frappe/list/list_view.js:427
 #: frappe/public/js/frappe/list/list_view.js:491
-#: frappe/public/js/frappe/list/list_view.js:2483
+#: frappe/public/js/frappe/list/list_view.js:2486
 #: frappe/public/js/frappe/model/meta.js:208
 #: frappe/public/js/frappe/model/model.js:122
 msgid "ID"
@@ -12980,7 +13022,7 @@ msgstr "Agar \"Qattiq foydalanuvchi ruxsatini qo'llash\" katagiga belgi qo'yilga
 msgid "If Checked workflow status will not override status in list view"
 msgstr "Agar tekshirilgan ish oqimi holati ro'yxat ko'rinishidagi holatni bekor qilmaydi"
 
-#: frappe/core/doctype/doctype/doctype.py:1845
+#: frappe/core/doctype/doctype/doctype.py:1864
 #: frappe/core/report/user_doctype_permissions/user_doctype_permissions.py:45
 #: frappe/public/js/frappe/roles_editor.js:109
 msgid "If Owner"
@@ -13135,6 +13177,11 @@ msgstr "Agar foydalanuvchi biron bir rolni belgilagan bo'lsa, u holda foydalanuv
 #: frappe/core/page/permission_manager/permission_manager_help.html:105
 msgid "If these instructions where not helpful, please add in your suggestions on GitHub Issues."
 msgstr "Agar ushbu ko'rsatmalar foydali bo'lmasa, iltimos, GitHub muammolari bo'yicha takliflaringizni qo'shing."
+
+#. Success message of the request-data Web Form
+#: frappe/website/web_form/request_data/request_data.json
+msgid "If this email is registered with us, a download link will be sent to it."
+msgstr ""
 
 #: frappe/core/doctype/user/user.py:1180
 msgid "If this email is registered with us, we have sent password reset instructions to it. Please check your inbox."
@@ -13302,11 +13349,11 @@ msgstr "Rasm ko'rinishi"
 msgid "Image Width (px)"
 msgstr "Rasm kengligi (px)"
 
-#: frappe/core/doctype/doctype/doctype.py:1545
+#: frappe/core/doctype/doctype/doctype.py:1564
 msgid "Image field must be a valid fieldname"
 msgstr "Rasm maydoni to'g'ri maydon nomi bo'lishi kerak"
 
-#: frappe/core/doctype/doctype/doctype.py:1547
+#: frappe/core/doctype/doctype/doctype.py:1566
 msgid "Image field must be of type Attach Image"
 msgstr "Rasm maydoni \"Rasmni biriktirish\" turida bo'lishi kerak"
 
@@ -13363,7 +13410,7 @@ msgstr "Yashirin"
 msgid "Import"
 msgstr "Import"
 
-#: frappe/public/js/frappe/list/list_view.js:1973
+#: frappe/public/js/frappe/list/list_view.js:1976
 msgctxt "Button in list view menu"
 msgid "Import"
 msgstr "Import"
@@ -13602,15 +13649,15 @@ msgid "Include Web View Link in Email"
 msgstr "Elektron pochtaga veb-ko'rinish havolasini qo'shing"
 
 #: frappe/public/js/frappe/form/print_utils.js:60
-#: frappe/public/js/frappe/views/reports/query_report.js:1744
+#: frappe/public/js/frappe/views/reports/query_report.js:1760
 msgid "Include filters"
 msgstr "Filtrlarni qo'shing"
 
-#: frappe/public/js/frappe/views/reports/query_report.js:1766
+#: frappe/public/js/frappe/views/reports/query_report.js:1782
 msgid "Include hidden columns"
 msgstr "Yashirin ustunlarni qo'shish"
 
-#: frappe/public/js/frappe/views/reports/query_report.js:1736
+#: frappe/public/js/frappe/views/reports/query_report.js:1752
 msgid "Include indentation"
 msgstr "Chetga qo'shish"
 
@@ -13784,7 +13831,7 @@ msgstr "Yuqoriga joylashtiring"
 
 #. Label of the insert_after (Select) field in DocType 'Custom Field'
 #: frappe/custom/doctype/custom_field/custom_field.json
-#: frappe/public/js/frappe/views/reports/query_report.js:2027
+#: frappe/public/js/frappe/views/reports/query_report.js:2043
 msgid "Insert After"
 msgstr "Keyin qo'shish"
 
@@ -14033,8 +14080,8 @@ msgstr "Noto'g'ri hujjat turi"
 msgid "Invalid Email."
 msgstr "Noto'g'ri elektron pochta."
 
-#: frappe/core/doctype/doctype/doctype.py:1299
-#: frappe/core/doctype/doctype/doctype.py:1308
+#: frappe/core/doctype/doctype/doctype.py:1318
+#: frappe/core/doctype/doctype/doctype.py:1327
 msgid "Invalid Fieldname"
 msgstr "Maydon nomi noto'g'ri"
 
@@ -14063,11 +14110,11 @@ msgstr "Noto'g'ri bosh sahifa"
 msgid "Invalid Link"
 msgstr "Noto'g'ri havola"
 
-#: frappe/core/doctype/doctype/doctype.py:1738
+#: frappe/core/doctype/doctype/doctype.py:1757
 msgid "Invalid Link Filters for field {0}. Link Filters must be a list of filters, where each filter is a list with four values: doctype, fieldname, operator, and value."
 msgstr ""
 
-#: frappe/core/doctype/doctype/doctype.py:1729
+#: frappe/core/doctype/doctype/doctype.py:1748
 msgid "Invalid Link Filters for field {0}. Link Filters must be valid JSON."
 msgstr ""
 
@@ -14090,8 +14137,8 @@ msgstr "Noto'g'ri nomlash seriyasi: {}"
 msgid "Invalid Operation"
 msgstr "Noto'g'ri operatsiya"
 
-#: frappe/core/doctype/doctype/doctype.py:1680
-#: frappe/core/doctype/doctype/doctype.py:1688
+#: frappe/core/doctype/doctype/doctype.py:1699
+#: frappe/core/doctype/doctype/doctype.py:1707
 msgid "Invalid Option"
 msgstr "Noto'g'ri variant"
 
@@ -14132,7 +14179,7 @@ msgstr "Noto'g'ri so'rov"
 msgid "Invalid Search Field {0}"
 msgstr "Qidiruv maydoni noto'g'ri {0}"
 
-#: frappe/core/doctype/doctype/doctype.py:1239
+#: frappe/core/doctype/doctype/doctype.py:1258
 msgid "Invalid Table Fieldname"
 msgstr "Jadval maydoni nomi noto'g'ri"
 
@@ -14183,7 +14230,7 @@ msgstr "Argument formati noto'g'ri: {0}. Faqat iqtibos qilingan satr harflari yo
 msgid "Invalid argument type: {0}. Only strings, numbers, dicts, and None are allowed."
 msgstr "Noto'g'ri argument turi: {0}. Faqat satrlar, raqamlar, diktlar va None ga ruxsat beriladi."
 
-#: frappe/utils/response.py:289
+#: frappe/utils/response.py:300
 msgid "Invalid backup path"
 msgstr "Zaxira yo'li noto'g'ri"
 
@@ -14239,7 +14286,7 @@ msgstr "Maydon nomi noto'g'ri {0}"
 msgid "Invalid field type: {0}"
 msgstr "Maydon turi noto'g'ri: {0}"
 
-#: frappe/core/doctype/doctype/doctype.py:1110
+#: frappe/core/doctype/doctype/doctype.py:1129
 msgid "Invalid fieldname '{0}' in autoname"
 msgstr "Avtomatik nomdagi '{0}' maydon nomi noto'g'ri"
 
@@ -14350,7 +14397,7 @@ msgstr "Maydonlar uchun noto'g'ri qiymatlar:"
 msgid "Invalid wkhtmltopdf version"
 msgstr "wkhtmltopdf versiyasi noto'g'ri"
 
-#: frappe/core/doctype/doctype/doctype.py:1603
+#: frappe/core/doctype/doctype/doctype.py:1622
 msgid "Invalid {0} condition"
 msgstr "{0} sharti noto'g'ri"
 
@@ -14554,7 +14601,7 @@ msgstr "Ommaviy"
 msgid "Is Published Field"
 msgstr "Nashr qilingan maydon"
 
-#: frappe/core/doctype/doctype/doctype.py:1554
+#: frappe/core/doctype/doctype/doctype.py:1573
 msgid "Is Published Field must be a valid fieldname"
 msgstr "Nashr qilingan maydon haqiqiy maydon nomi bo'lishi kerak"
 
@@ -14804,7 +14851,7 @@ msgid "Join video conference with {0}"
 msgstr "{0} bilan video konferensiyaga qo'shiling"
 
 #: frappe/public/js/frappe/form/toolbar.js:421
-#: frappe/public/js/frappe/form/toolbar.js:880
+#: frappe/public/js/frappe/form/toolbar.js:881
 msgid "Jump to field"
 msgstr "Maydonga o'tish"
 
@@ -15183,23 +15230,23 @@ msgstr "Oxirgi"
 msgid "Last 10 active users"
 msgstr "Oxirgi 10 ta faol foydalanuvchi"
 
-#: frappe/public/js/frappe/ui/filters/filter.js:640
+#: frappe/public/js/frappe/ui/filters/filter.js:641
 msgid "Last 14 Days"
 msgstr "So'nggi 14 kun"
 
-#: frappe/public/js/frappe/ui/filters/filter.js:644
+#: frappe/public/js/frappe/ui/filters/filter.js:645
 msgid "Last 30 Days"
 msgstr "Oxirgi 30 kun"
 
-#: frappe/public/js/frappe/ui/filters/filter.js:664
+#: frappe/public/js/frappe/ui/filters/filter.js:665
 msgid "Last 6 Months"
 msgstr "So'nggi 6 oy"
 
-#: frappe/public/js/frappe/ui/filters/filter.js:636
+#: frappe/public/js/frappe/ui/filters/filter.js:637
 msgid "Last 7 Days"
 msgstr "So'nggi 7 kun"
 
-#: frappe/public/js/frappe/ui/filters/filter.js:648
+#: frappe/public/js/frappe/ui/filters/filter.js:649
 msgid "Last 90 Days"
 msgstr "Oxirgi 90 kun"
 
@@ -15208,11 +15255,11 @@ msgstr "Oxirgi 90 kun"
 msgid "Last Active"
 msgstr "Oxirgi faol"
 
-#: frappe/public/js/frappe/form/sidebar/form_sidebar.js:163
+#: frappe/public/js/frappe/form/sidebar/form_sidebar.js:162
 msgid "Last Edited By You"
 msgstr "Oxirgi marta siz tomonidan tahrirlangan"
 
-#: frappe/public/js/frappe/form/sidebar/form_sidebar.js:164
+#: frappe/public/js/frappe/form/sidebar/form_sidebar.js:163
 msgid "Last Edited By {0}"
 msgstr "Oxirgi tahrirlovchi {0}"
 
@@ -15252,7 +15299,7 @@ msgstr "Oxirgi marta o'zgartirilgan sana"
 
 #. Option for the 'Timespan' (Select) field in DocType 'Dashboard Chart'
 #: frappe/desk/doctype/dashboard_chart/dashboard_chart.json
-#: frappe/public/js/frappe/ui/filters/filter.js:656
+#: frappe/public/js/frappe/ui/filters/filter.js:657
 msgid "Last Month"
 msgstr "O'tgan oy"
 
@@ -15274,7 +15321,7 @@ msgstr "Oxirgi parolni tiklash sanasi"
 
 #. Option for the 'Timespan' (Select) field in DocType 'Dashboard Chart'
 #: frappe/desk/doctype/dashboard_chart/dashboard_chart.json
-#: frappe/public/js/frappe/ui/filters/filter.js:660
+#: frappe/public/js/frappe/ui/filters/filter.js:661
 msgid "Last Quarter"
 msgstr "Oxirgi chorak"
 
@@ -15330,13 +15377,13 @@ msgstr "Oxirgi foydalanuvchi"
 
 #. Option for the 'Timespan' (Select) field in DocType 'Dashboard Chart'
 #: frappe/desk/doctype/dashboard_chart/dashboard_chart.json
-#: frappe/public/js/frappe/ui/filters/filter.js:652
+#: frappe/public/js/frappe/ui/filters/filter.js:653
 msgid "Last Week"
 msgstr "O'tkan hafta"
 
 #. Option for the 'Timespan' (Select) field in DocType 'Dashboard Chart'
 #: frappe/desk/doctype/dashboard_chart/dashboard_chart.json
-#: frappe/public/js/frappe/ui/filters/filter.js:668
+#: frappe/public/js/frappe/ui/filters/filter.js:669
 msgid "Last Year"
 msgstr "O'tkan yili"
 
@@ -15576,7 +15623,7 @@ msgstr "Yorug'lik mavzusi"
 
 #. Option for the 'Comment Type' (Select) field in DocType 'Comment'
 #: frappe/core/doctype/comment/comment.json
-#: frappe/public/js/frappe/list/base_list.js:1318
+#: frappe/public/js/frappe/list/base_list.js:1319
 #: frappe/public/js/frappe/ui/filters/filter.js:18
 msgid "Like"
 msgstr "Yoqdi"
@@ -15590,7 +15637,7 @@ msgstr "Yoqdi"
 msgid "Liked By"
 msgstr "Yoqtirgan"
 
-#: frappe/public/js/frappe/list/list_view.js:804
+#: frappe/public/js/frappe/list/list_view.js:806
 msgid "Liked by me"
 msgstr "Menga yoqdi"
 
@@ -15846,7 +15893,7 @@ msgstr "Ro'yxat filtri"
 msgid "List Settings"
 msgstr "Ro'yxat sozlamalari"
 
-#: frappe/public/js/frappe/list/list_view.js:2127
+#: frappe/public/js/frappe/list/list_view.js:2130
 msgctxt "Button in list view menu"
 msgid "List Settings"
 msgstr "Ro'yxat sozlamalari"
@@ -15909,7 +15956,7 @@ msgstr "Ko'proq yuklang"
 #: frappe/public/js/frappe/list/base_list.js:525
 #: frappe/public/js/frappe/list/list_view.js:405
 #: frappe/public/js/frappe/ui/listing.html:16
-#: frappe/public/js/frappe/views/reports/query_report.js:1149
+#: frappe/public/js/frappe/views/reports/query_report.js:1165
 msgid "Loading"
 msgstr "Yuklanmoqda"
 
@@ -16290,7 +16337,7 @@ msgstr "Noto'g'ri shakllangan manzil sarlavhasi"
 msgid "Manage 3rd party apps"
 msgstr "Uchinchi tomon ilovalarini boshqarish"
 
-#: frappe/public/js/billing.bundle.js:78
+#: frappe/public/js/billing.bundle.js:79
 msgid "Manage Billing"
 msgstr "Hisob-kitoblarni boshqarish"
 
@@ -16518,7 +16565,7 @@ msgstr "Har bir foydalanuvchi uchun maksimal avtomatik elektron pochta hisoboti"
 msgid "Max signups allowed per hour"
 msgstr "Soatiga maksimal ro'yxatdan o'tishga ruxsat berilgan"
 
-#: frappe/core/doctype/doctype/doctype.py:1378
+#: frappe/core/doctype/doctype/doctype.py:1397
 msgid "Max width for type Currency is 100px in row {0}"
 msgstr "Valyuta turi uchun maksimal kenglik {0} qatorida 100 piksel"
 
@@ -16867,7 +16914,7 @@ msgstr "Miss"
 msgid "Missing DocType"
 msgstr "DocType yo'q"
 
-#: frappe/core/doctype/doctype/doctype.py:1565
+#: frappe/core/doctype/doctype/doctype.py:1584
 msgid "Missing Field"
 msgstr "Yo'qolgan maydon"
 
@@ -16901,9 +16948,9 @@ msgstr "Mobil"
 #. Label of the mobile_no (Data) field in DocType 'Contact'
 #. Label of the mobile_no (Data) field in DocType 'User'
 #: frappe/contacts/doctype/contact/contact.json
-#: frappe/core/doctype/user/user.json frappe/tests/test_translate.py:86
-#: frappe/tests/test_translate.py:89 frappe/tests/test_translate.py:91
-#: frappe/tests/test_translate.py:94
+#: frappe/core/doctype/user/user.json frappe/tests/test_translate.py:93
+#: frappe/tests/test_translate.py:96 frappe/tests/test_translate.py:98
+#: frappe/tests/test_translate.py:101
 msgid "Mobile No"
 msgstr ""
 
@@ -17011,6 +17058,10 @@ msgstr "Modul profili"
 #: frappe/core/doctype/module_profile/module_profile.json
 msgid "Module Profile Name"
 msgstr "Modul profili nomi"
+
+#: frappe/core/doctype/doctype/doctype.py:879
+msgid "Module changed to {0}. Files in the previous module were not moved and remain at {1}, remove or relocate them manually."
+msgstr ""
 
 #: frappe/desk/doctype/module_onboarding/module_onboarding.py:70
 msgid "Module onboarding progress reset"
@@ -17238,11 +17289,11 @@ msgstr "'()' ichiga qo'shilishi va foydalanuvchi/login nomi uchun joy egallovchi
 msgid "Must be of type \"Attach Image\""
 msgstr "\"Rasm biriktirish\" turida bo'lishi kerak"
 
-#: frappe/desk/query_report.py:247
+#: frappe/desk/query_report.py:265
 msgid "Must have report permission to access this report."
 msgstr "Ushbu hisobotga kirish uchun hisobot ruxsatnomasi bo'lishi kerak."
 
-#: frappe/core/doctype/report/report.py:173
+#: frappe/core/doctype/report/report.py:177
 msgid "Must specify a Query to run"
 msgstr "Ishga tushirish uchun so'rovni ko'rsatish kerak"
 
@@ -17421,12 +17472,12 @@ msgstr "Navigatsiya paneli shabloni"
 msgid "Navbar Template Values"
 msgstr "Navigatsiya paneli shablon qiymatlari"
 
-#: frappe/public/js/frappe/list/list_view.js:1447
+#: frappe/public/js/frappe/list/list_view.js:1450
 msgctxt "Description of a list view shortcut"
 msgid "Navigate list down"
 msgstr "Ro'yxatni pastga yo'naltirish"
 
-#: frappe/public/js/frappe/list/list_view.js:1454
+#: frappe/public/js/frappe/list/list_view.js:1457
 msgctxt "Description of a list view shortcut"
 msgid "Navigate list up"
 msgstr "Roʻyxatni yuqoriga koʻchirish"
@@ -17450,11 +17501,11 @@ msgstr "Navigatsiya sozlamalari"
 msgid "Need Help?"
 msgstr "Yordam kerakmi?"
 
-#: frappe/desk/doctype/workspace/workspace.py:369
+#: frappe/desk/doctype/workspace/workspace.py:370
 msgid "Need Workspace Manager role to edit private workspace of other users."
 msgstr "Boshqa foydalanuvchilarning shaxsiy ish maydonini tahrirlash uchun Workspace Manager roli kerak."
 
-#: frappe/desk/doctype/workspace/workspace.py:366
+#: frappe/desk/doctype/workspace/workspace.py:367
 msgid "Need Workspace Manager role to edit public workspaces."
 msgstr "Umumiy ish joylarini tahrirlash uchun ish maydoni menejeri lavozimi kerak."
 
@@ -17733,19 +17784,19 @@ msgctxt "Go to next slide"
 msgid "Next"
 msgstr "Keyingisi"
 
-#: frappe/public/js/frappe/ui/filters/filter.js:696
+#: frappe/public/js/frappe/ui/filters/filter.js:697
 msgid "Next 14 Days"
 msgstr "Keyingi 14 kun"
 
-#: frappe/public/js/frappe/ui/filters/filter.js:700
+#: frappe/public/js/frappe/ui/filters/filter.js:701
 msgid "Next 30 Days"
 msgstr "Keyingi 30 kun"
 
-#: frappe/public/js/frappe/ui/filters/filter.js:716
+#: frappe/public/js/frappe/ui/filters/filter.js:717
 msgid "Next 6 Months"
 msgstr "Keyingi 6 oy"
 
-#: frappe/public/js/frappe/ui/filters/filter.js:692
+#: frappe/public/js/frappe/ui/filters/filter.js:693
 msgid "Next 7 Days"
 msgstr "Keyingi 7 kun"
 
@@ -17778,11 +17829,11 @@ msgstr "Keyingi ijro"
 msgid "Next Form Tour"
 msgstr "Keyingi shakl turi"
 
-#: frappe/public/js/frappe/ui/filters/filter.js:708
+#: frappe/public/js/frappe/ui/filters/filter.js:709
 msgid "Next Month"
 msgstr "Keyingi oy"
 
-#: frappe/public/js/frappe/ui/filters/filter.js:712
+#: frappe/public/js/frappe/ui/filters/filter.js:713
 msgid "Next Quarter"
 msgstr "Keyingi chorak"
 
@@ -17812,11 +17863,11 @@ msgstr "Keyingi bosqich sharti"
 msgid "Next Sync Token"
 msgstr "Keyingi sinxronlash tokeni"
 
-#: frappe/public/js/frappe/ui/filters/filter.js:704
+#: frappe/public/js/frappe/ui/filters/filter.js:705
 msgid "Next Week"
 msgstr "Keyingi hafta"
 
-#: frappe/public/js/frappe/ui/filters/filter.js:720
+#: frappe/public/js/frappe/ui/filters/filter.js:721
 msgid "Next Year"
 msgstr "Keyingi yil"
 
@@ -17853,7 +17904,7 @@ msgstr "Keyingi bosishda"
 msgid "No"
 msgstr "Yo'q"
 
-#: frappe/public/js/frappe/ui/filters/filter.js:558
+#: frappe/public/js/frappe/ui/filters/filter.js:559
 msgctxt "Checkbox is not checked"
 msgid "No"
 msgstr "Yo'q"
@@ -17957,7 +18008,7 @@ msgstr "{0} uchun nom ko'rsatilmagan"
 msgid "No New notifications"
 msgstr "Yangi bildirishnomalar yo'q"
 
-#: frappe/core/doctype/doctype/doctype.py:1825
+#: frappe/core/doctype/doctype/doctype.py:1844
 msgid "No Permissions Specified"
 msgstr "Ruxsatlar ko'rsatilmagan"
 
@@ -18001,7 +18052,7 @@ msgstr "Tanlash maydoni topilmadi"
 msgid "No Suggestions"
 msgstr "Takliflar yo'q"
 
-#: frappe/desk/reportview.py:770 frappe/public/js/frappe/list/base_list.js:1071
+#: frappe/desk/reportview.py:772 frappe/public/js/frappe/list/base_list.js:1071
 msgid "No Tags"
 msgstr "Teglar yo'q"
 
@@ -18061,11 +18112,11 @@ msgstr "Hujjatga bog'langan kontaktlar yo'q"
 msgid "No currency fields in {0}"
 msgstr "{0} da valyuta maydonlari yo'q"
 
-#: frappe/desk/query_report.py:429
+#: frappe/desk/query_report.py:447
 msgid "No data to export"
 msgstr "Eksport qilish uchun ma'lumotlar yo'q"
 
-#: frappe/public/js/frappe/views/reports/query_report.js:1552
+#: frappe/public/js/frappe/views/reports/query_report.js:1568
 msgid "No data to perform this action"
 msgstr "Bu amalni bajarish uchun ma'lumot yo'q"
 
@@ -18203,7 +18254,7 @@ msgid "No rows"
 msgstr "Qatorlar yo'q"
 
 #: frappe/public/js/frappe/form/grid.js:1125
-#: frappe/public/js/frappe/list/list_view.js:2450
+#: frappe/public/js/frappe/list/list_view.js:2453
 msgid "No rows selected"
 msgstr "Hech qanday qator tanlanmagan"
 
@@ -18335,7 +18386,7 @@ msgstr "Null qilib bo'lmaydi"
 msgid "Not Permitted"
 msgstr "Ruxsat berilmagan"
 
-#: frappe/desk/query_report.py:796
+#: frappe/desk/query_report.py:814
 msgid "Not Permitted to read {0}"
 msgstr "{0} ni o'qishga ruxsat berilmagan"
 
@@ -18345,7 +18396,7 @@ msgid "Not Published"
 msgstr "Nashr qilinmagan"
 
 #: frappe/public/js/frappe/form/toolbar.js:316
-#: frappe/public/js/frappe/form/toolbar.js:859
+#: frappe/public/js/frappe/form/toolbar.js:860
 #: frappe/public/js/frappe/model/indicator.js:28
 #: frappe/public/js/frappe/views/kanban/kanban_view.js:215
 #: frappe/public/js/frappe/views/reports/report_view.js:215
@@ -18370,7 +18421,7 @@ msgstr "Yuborilmadi"
 msgid "Not Set"
 msgstr "O'rnatilmagan"
 
-#: frappe/public/js/frappe/ui/filters/filter.js:620
+#: frappe/public/js/frappe/ui/filters/filter.js:621
 msgctxt "Field value is not set"
 msgid "Not Set"
 msgstr "O'rnatilmagan"
@@ -18431,7 +18482,7 @@ msgstr "Dasturchi rejimida emas"
 msgid "Not in Developer Mode! Set in site_config.json or make 'Custom' DocType."
 msgstr "Dasturchi rejimida emas! site_config.json fayliga o'rnating yoki \"Maxsus\" DocType faylini yarating."
 
-#: frappe/core/doctype/system_settings/system_settings.py:236
+#: frappe/core/doctype/system_settings/system_settings.py:247
 #: frappe/public/js/frappe/request.js:157
 #: frappe/public/js/frappe/request.js:168
 #: frappe/public/js/frappe/request.js:173
@@ -18622,7 +18673,7 @@ msgstr "Javob berilmagan bo'lsa, xabar bering (daqiqalarda)"
 msgid "Notify users with a popup when they log in"
 msgstr "Foydalanuvchilar tizimga kirganlarida qalqib chiquvchi oyna orqali xabardor qilish"
 
-#: frappe/public/js/frappe/form/controls/datetime.js:34
+#: frappe/public/js/frappe/form/controls/datetime.js:35
 #: frappe/public/js/frappe/form/controls/time.js:37
 msgid "Now"
 msgstr "Hozir"
@@ -18685,7 +18736,7 @@ msgstr "So'rovlar soni"
 msgid "Number of attachment fields are more than {}, limit updated to {}."
 msgstr "Ilova maydonlari soni {} dan ortiq, limit {} ga yangilandi."
 
-#: frappe/core/doctype/system_settings/system_settings.py:191
+#: frappe/core/doctype/system_settings/system_settings.py:195
 msgid "Number of backups must be greater than zero."
 msgstr "Zaxira nusxalari soni noldan katta bo'lishi kerak."
 
@@ -18807,7 +18858,7 @@ msgstr "OTP emitentining nomi"
 msgid "OTP SMS Template"
 msgstr "OTP SMS shabloni"
 
-#: frappe/core/doctype/system_settings/system_settings.py:170
+#: frappe/core/doctype/system_settings/system_settings.py:174
 msgid "OTP SMS Template must contain <code>{0}</code> placeholder to insert the OTP."
 msgstr "Bir martalik parolni kiritish uchun SMS shablonida <code>{0}</code> joy egallovchisi bo'lishi kerak."
 
@@ -19017,7 +19068,7 @@ msgstr "Elektron pochta navbatini faqat administrator o'chira oladi"
 msgid "Only Administrator can edit"
 msgstr "Faqat administrator tahrirlashi mumkin"
 
-#: frappe/core/doctype/report/report.py:424
+#: frappe/core/doctype/report/report.py:438
 msgid "Only Administrator can save a standard report. Please rename and save."
 msgstr "Standart hisobotni faqat administrator saqlashi mumkin. Iltimos, nomini o'zgartiring va saqlang."
 
@@ -19030,7 +19081,7 @@ msgstr "Faqat administrator Yozuvchidan foydalanishi mumkin"
 msgid "Only Allow Edit For"
 msgstr "Faqat tahrirlashga ruxsat berish"
 
-#: frappe/desk/query_report.py:477
+#: frappe/desk/query_report.py:495
 msgid "Only CSV and Excel formats are supported for export"
 msgstr "Eksport qilish uchun faqat CSV va Excel formatlari qo'llab-quvvatlanadi"
 
@@ -19038,7 +19089,7 @@ msgstr "Eksport qilish uchun faqat CSV va Excel formatlari qo'llab-quvvatlanadi"
 msgid "Only Custom Modules can be renamed."
 msgstr "Faqat maxsus modullarning nomini o'zgartirish mumkin."
 
-#: frappe/core/doctype/doctype/doctype.py:1659
+#: frappe/core/doctype/doctype/doctype.py:1678
 msgid "Only Options allowed for Data field are:"
 msgstr "Ma'lumotlar maydoni uchun faqat quyidagi variantlarga ruxsat beriladi:"
 
@@ -19100,7 +19151,7 @@ msgstr "Faqat standart DocType fayllarini \"Moslashtirish shakli\"dan sozlash mu
 msgid "Only the Administrator can delete a standard DocType."
 msgstr "Standart DocType faylini faqat Administrator o'chira oladi."
 
-#: frappe/desk/form/assign_to.py:206
+#: frappe/desk/form/assign_to.py:208
 msgid "Only the assignee can complete this to-do."
 msgstr "Bu vazifani faqat topshiriq beruvchi bajarishi mumkin."
 
@@ -19200,7 +19251,7 @@ msgstr "Konsolni ochish"
 msgid "Open in a new tab"
 msgstr "Yangi yorliqda ochish"
 
-#: frappe/public/js/frappe/list/list_view.js:1500
+#: frappe/public/js/frappe/list/list_view.js:1503
 msgctxt "Description of a list view shortcut"
 msgid "Open list item"
 msgstr "Ro'yxat elementini ochish"
@@ -19282,7 +19333,7 @@ msgstr "2-variant"
 msgid "Option 3"
 msgstr "3-variant"
 
-#: frappe/core/doctype/doctype/doctype.py:1677
+#: frappe/core/doctype/doctype/doctype.py:1696
 msgid "Option {0} for field {1} is not a child table"
 msgstr "{1} maydoni uchun {0} parametri bolalar jadvali emas"
 
@@ -19320,7 +19371,7 @@ msgstr "Ixtiyoriy ravishda, ketma-ketlikdagi raqamlar sonini nuqta (.) va keyin 
 msgid "Options"
 msgstr "Tanlovlar"
 
-#: frappe/core/doctype/doctype/doctype.py:1402
+#: frappe/core/doctype/doctype/doctype.py:1421
 msgid "Options 'Dynamic Link' type of field must point to another Link Field with options as 'DocType'"
 msgstr "\"Dynamic Link\" parametrlari maydoni \"DocType\" parametrlari bilan boshqa \"Link\" maydoniga ishora qilishi kerak."
 
@@ -19329,7 +19380,7 @@ msgstr "\"Dynamic Link\" parametrlari maydoni \"DocType\" parametrlari bilan bos
 msgid "Options Help"
 msgstr "Variantlar bo'yicha yordam"
 
-#: frappe/core/doctype/doctype/doctype.py:1706
+#: frappe/core/doctype/doctype/doctype.py:1725
 msgid "Options for Rating field can range from 3 to 10"
 msgstr "Reyting maydoni uchun variantlar 3 dan 10 gacha bo'lishi mumkin"
 
@@ -19337,7 +19388,7 @@ msgstr "Reyting maydoni uchun variantlar 3 dan 10 gacha bo'lishi mumkin"
 msgid "Options for select. Each option on a new line."
 msgstr "Tanlash uchun variantlar. Har bir variant yangi qatorda."
 
-#: frappe/core/doctype/doctype/doctype.py:1422
+#: frappe/core/doctype/doctype/doctype.py:1441
 msgid "Options for {0} must be set before setting the default value."
 msgstr "Standart qiymatni o'rnatishdan oldin {0} parametrlari o'rnatilishi kerak."
 
@@ -19464,7 +19515,7 @@ msgstr "YAMOQ"
 #: frappe/email/doctype/auto_email_report/auto_email_report.json
 #: frappe/printing/page/print/print.js:90
 #: frappe/public/js/frappe/form/templates/print_layout.html:44
-#: frappe/public/js/frappe/views/reports/query_report.js:1944
+#: frappe/public/js/frappe/views/reports/query_report.js:1960
 msgid "PDF"
 msgstr "PDF"
 
@@ -19740,11 +19791,11 @@ msgstr "Ota-ona maydoni"
 
 #. Label of the nsm_parent_field (Data) field in DocType 'DocType'
 #: frappe/core/doctype/doctype/doctype.json
-#: frappe/core/doctype/doctype/doctype.py:952
+#: frappe/core/doctype/doctype/doctype.py:971
 msgid "Parent Field (Tree)"
 msgstr "Ota-ona maydoni (daraxt)"
 
-#: frappe/core/doctype/doctype/doctype.py:958
+#: frappe/core/doctype/doctype/doctype.py:977
 msgid "Parent Field must be a valid fieldname"
 msgstr "Ota-maydon haqiqiy maydon nomi bo'lishi kerak"
 
@@ -19758,7 +19809,7 @@ msgstr "Ota-ona belgisi"
 msgid "Parent Label"
 msgstr "Ota-ona yorlig'i"
 
-#: frappe/core/doctype/doctype/doctype.py:1222
+#: frappe/core/doctype/doctype/doctype.py:1241
 msgid "Parent Missing"
 msgstr "Ota-ona yo'qolgan"
 
@@ -20063,7 +20114,7 @@ msgid "Permission"
 msgstr "Ruxsat"
 
 #: frappe/database/query.py:996 frappe/database/query.py:1371
-#: frappe/desk/doctype/workspace/workspace.py:108
+#: frappe/desk/doctype/workspace/workspace.py:109
 msgid "Permission Error"
 msgstr "Ruxsat xatosi"
 
@@ -20142,8 +20193,8 @@ msgstr "Ruxsat turi '{0}' band. Iltimos, boshqa nom tanlang."
 msgid "Permissions"
 msgstr "Ruxsatnomalar"
 
-#: frappe/core/doctype/doctype/doctype.py:1916
-#: frappe/core/doctype/doctype/doctype.py:1926
+#: frappe/core/doctype/doctype/doctype.py:1935
+#: frappe/core/doctype/doctype/doctype.py:1945
 msgid "Permissions Error"
 msgstr "Ruxsatnomalar xatosi"
 
@@ -20312,7 +20363,7 @@ msgstr "Iltimos, jadvalni o'rnating"
 msgid "Please Update SMS Settings"
 msgstr "SMS sozlamalarini yangilang"
 
-#: frappe/automation/doctype/auto_repeat/auto_repeat.py:614
+#: frappe/automation/doctype/auto_repeat/auto_repeat.py:615
 msgid "Please add a subject to your email"
 msgstr "Iltimos, elektron pochtangizga mavzu qo'shing"
 
@@ -20324,7 +20375,7 @@ msgstr "Iltimos, to'g'ri izoh qo'shing."
 msgid "Please add at least one naming series."
 msgstr "Iltimos, kamida bitta nomlash seriyasini qo'shing."
 
-#: frappe/public/js/frappe/views/reports/query_report.js:1553
+#: frappe/public/js/frappe/views/reports/query_report.js:1569
 msgid "Please adjust filters to include some data"
 msgstr "Iltimos, ba'zi ma'lumotlarni kiritish uchun filtrlarni sozlang"
 
@@ -20416,7 +20467,7 @@ msgstr "Iltimos, shablon sarlavhalarini o'zgartirmang."
 msgid "Please duplicate this to make changes"
 msgstr "O'zgartirishlar kiritish uchun buni nusxalash"
 
-#: frappe/core/doctype/system_settings/system_settings.py:184
+#: frappe/core/doctype/system_settings/system_settings.py:188
 msgid "Please enable atleast one Social Login Key or LDAP or Login With Email Link before disabling username/password based login."
 msgstr "Foydalanuvchi nomi/parol asosida kirishni o'chirishdan oldin kamida bitta ijtimoiy tarmoqqa kirish kalitini yoki LDAP yoki elektron pochta orqali kirish havolasini yoqing."
 
@@ -20516,7 +20567,6 @@ msgid "Please find attached {0}: {1}"
 msgstr "Iltimos, ilova qilingan {0}ni toping: {1}"
 
 #: frappe/templates/includes/comments/comments.py:50
-#: frappe/templates/includes/comments/comments.py:58
 msgid "Please login to post a comment."
 msgstr "Fikr qoldirish uchun tizimga kiring."
 
@@ -20568,11 +20618,11 @@ msgstr "Avval Hujjat turini tanlang."
 msgid "Please select Entity Type first"
 msgstr "Avval obyekt turini tanlang"
 
-#: frappe/core/doctype/system_settings/system_settings.py:120
+#: frappe/core/doctype/system_settings/system_settings.py:123
 msgid "Please select Minimum Password Score"
 msgstr "Iltimos, minimal parol balini tanlang"
 
-#: frappe/public/js/frappe/views/reports/query_report.js:1242
+#: frappe/public/js/frappe/views/reports/query_report.js:1258
 msgid "Please select X and Y fields"
 msgstr "Iltimos, X va Y maydonlarini tanlang"
 
@@ -20638,7 +20688,7 @@ msgstr "Iltimos, elektron pochta manzilini o'rnating"
 msgid "Please set a printer mapping for this print format in the Printer Settings"
 msgstr "Iltimos, printer sozlamalarida ushbu chop etish formati uchun printer xaritasini o'rnating"
 
-#: frappe/public/js/frappe/views/reports/query_report.js:1464
+#: frappe/public/js/frappe/views/reports/query_report.js:1480
 msgid "Please set filters"
 msgstr "Iltimos, filtrlarni o'rnating"
 
@@ -20658,7 +20708,7 @@ msgstr "Iltimos, avval ushbu boshqaruv panelidagi quyidagi hujjatlarni standart 
 msgid "Please set the series to be used."
 msgstr "Iltimos, ishlatiladigan seriyalarni sozlang."
 
-#: frappe/core/doctype/system_settings/system_settings.py:134
+#: frappe/core/doctype/system_settings/system_settings.py:137
 msgid "Please setup SMS before setting it as an authentication method, via SMS Settings"
 msgstr "SMS sozlamalari orqali autentifikatsiya usuli sifatida o'rnatishdan oldin SMSni sozlang"
 
@@ -20842,11 +20892,11 @@ msgstr "Vaqt tamg'asini joylashtirish"
 msgid "Precision"
 msgstr "Aniqlik"
 
-#: frappe/core/doctype/doctype/doctype.py:1715
+#: frappe/core/doctype/doctype/doctype.py:1734
 msgid "Precision ({0}) for {1} cannot be greater than its length ({2})."
 msgstr "{1} uchun aniqlik ({0}) uning uzunligidan ({2} ) katta bo'lmasligi kerak."
 
-#: frappe/core/doctype/doctype/doctype.py:1439
+#: frappe/core/doctype/doctype/doctype.py:1458
 msgid "Precision should be between 1 and 6"
 msgstr "Aniqlik 1 dan 6 gacha bo'lishi kerak"
 
@@ -20900,7 +20950,7 @@ msgstr "Tayyorlangan hisobot tahlili"
 msgid "Prepared Report User"
 msgstr "Tayyorlangan hisobot foydalanuvchisi"
 
-#: frappe/desk/query_report.py:347
+#: frappe/desk/query_report.py:365
 msgid "Prepared report render failed"
 msgstr "Tayyorlangan hisobotni ko'rsatishda xatolik yuz berdi"
 
@@ -21045,17 +21095,17 @@ msgstr "Mavjud qiymatlar mavjudligi sababli, {0} doctype ning asosiy kalitini o'
 #: frappe/core/doctype/user_document_type/user_document_type.json
 #: frappe/core/page/permission_manager/permission_manager_help.html:51
 #: frappe/printing/page/print/print.js:84
-#: frappe/public/js/frappe/form/sidebar/form_sidebar.js:109
+#: frappe/public/js/frappe/form/sidebar/form_sidebar.js:108
 #: frappe/public/js/frappe/form/success_action.js:81
 #: frappe/public/js/frappe/form/templates/print_layout.html:46
 #: frappe/public/js/frappe/list/bulk_operations.js:95
-#: frappe/public/js/frappe/views/reports/query_report.js:1926
+#: frappe/public/js/frappe/views/reports/query_report.js:1942
 #: frappe/public/js/frappe/views/reports/report_view.js:1636
 #: frappe/public/js/frappe/views/treeview.js:510 frappe/www/printview.html:18
 msgid "Print"
 msgstr "Chop etish"
 
-#: frappe/public/js/frappe/list/list_view.js:2296
+#: frappe/public/js/frappe/list/list_view.js:2299
 msgctxt "Button in list view actions menu"
 msgid "Print"
 msgstr "Chop etish"
@@ -21123,7 +21173,7 @@ msgstr "Chop etish formati bo'yicha yordam"
 msgid "Print Format Type"
 msgstr "Chop etish formati turi"
 
-#: frappe/public/js/frappe/views/reports/query_report.js:1672
+#: frappe/public/js/frappe/views/reports/query_report.js:1688
 msgid "Print Format not found"
 msgstr "Chop etish formati topilmadi"
 
@@ -21303,7 +21353,7 @@ msgstr "ProTip: Hujjat havolasini yuborish uchun <code>Malumotnoma: {{ reference
 msgid "Proceed"
 msgstr "Davom eting"
 
-#: frappe/public/js/frappe/views/reports/query_report.js:969
+#: frappe/public/js/frappe/views/reports/query_report.js:985
 msgid "Proceed Anyway"
 msgstr "Baribir davom eting"
 
@@ -21909,7 +21959,7 @@ msgstr "O'qish rejimi"
 msgid "Read the documentation to know more"
 msgstr "Ko'proq bilish uchun hujjatlarni o'qing"
 
-#: frappe/utils/safe_exec.py:645 frappe/utils/safe_exec.py:658
+#: frappe/utils/safe_exec.py:747 frappe/utils/safe_exec.py:760
 msgid "Read-Only queries are allowed"
 msgstr "Faqat o'qish uchun so'rovlarga ruxsat beriladi"
 
@@ -21929,7 +21979,7 @@ msgstr "Real vaqt rejimida (SocketIO)"
 msgid "Reason"
 msgstr "Sabab"
 
-#: frappe/public/js/frappe/views/reports/query_report.js:923
+#: frappe/public/js/frappe/views/reports/query_report.js:939
 msgid "Rebuild"
 msgstr "Qayta qurish"
 
@@ -22020,7 +22070,7 @@ msgstr "Yozuvchi tavsiya etilgan indeks"
 msgid "Records for following doctypes will be filtered"
 msgstr "Quyidagi hujjat turlari uchun yozuvlar filtrlanadi"
 
-#: frappe/core/doctype/doctype/doctype.py:1647
+#: frappe/core/doctype/doctype/doctype.py:1666
 msgid "Recursive Fetch From"
 msgstr "Rekursiv olish"
 
@@ -22312,7 +22362,7 @@ msgstr "Yo'naltiruvchi"
 #: frappe/public/js/frappe/form/form.js:1250
 #: frappe/public/js/frappe/form/templates/print_layout.html:6
 #: frappe/public/js/frappe/list/base_list.js:68
-#: frappe/public/js/frappe/views/reports/query_report.js:1915
+#: frappe/public/js/frappe/views/reports/query_report.js:1931
 #: frappe/public/js/frappe/views/treeview.js:516
 #: frappe/public/js/frappe/widgets/chart_widget.js:296
 #: frappe/public/js/frappe/widgets/number_card_widget.js:358
@@ -22478,7 +22528,7 @@ msgstr "Muvaffaqiyatsiz vazifalarni olib tashlash"
 msgid "Remove Field"
 msgstr "Maydonni olib tashlash"
 
-#: frappe/public/js/frappe/ui/filters/filter.js:404
+#: frappe/public/js/frappe/ui/filters/filter.js:405
 msgid "Remove Filter"
 msgstr "Filtrni olib tashlash"
 
@@ -22548,7 +22598,7 @@ msgstr "Maydon nomini qayta nomlash"
 msgid "Rename {0}"
 msgstr "{0} ni qayta nomlash"
 
-#: frappe/core/doctype/doctype/doctype.py:713
+#: frappe/core/doctype/doctype/doctype.py:714
 msgid "Renamed files and replaced code in controllers, please check!"
 msgstr "Fayllarning nomi o'zgartirildi va kontrollerlardagi kod almashtirildi, iltimos, tekshiring!"
 
@@ -22608,7 +22658,7 @@ msgstr "\"aaa\" kabi takrorlarni taxmin qilish oson"
 msgid "Repeats like \"abcabcabc\" are only slightly harder to guess than \"abc\""
 msgstr "\"abcabcabc\" kabi takroriy so'zlarni \"abc\" ga qaraganda taxmin qilish biroz qiyinroq."
 
-#: frappe/public/js/frappe/form/sidebar/form_sidebar.js:202
+#: frappe/public/js/frappe/form/sidebar/form_sidebar.js:201
 msgid "Repeats {0}"
 msgstr "Takrorlaydi {0}"
 
@@ -22726,7 +22776,7 @@ msgstr "Hisobot ustuni"
 msgid "Report Description"
 msgstr "Hisobot tavsifi"
 
-#: frappe/core/doctype/report/report.py:173
+#: frappe/core/doctype/report/report.py:177
 msgid "Report Document Error"
 msgstr "Hujjat xatosi haqida xabar berish"
 
@@ -22773,7 +22823,7 @@ msgstr "Hisobot menejeri"
 #: frappe/core/report/prepared_report_analytics/prepared_report_analytics.py:39
 #: frappe/desk/doctype/dashboard_chart/dashboard_chart.json
 #: frappe/desk/doctype/number_card/number_card.json
-#: frappe/public/js/frappe/views/reports/query_report.js:2114
+#: frappe/public/js/frappe/views/reports/query_report.js:2130
 msgid "Report Name"
 msgstr "Hisobot nomi"
 
@@ -22811,7 +22861,7 @@ msgstr "Hisobot ko'rinishi"
 msgid "Report bug"
 msgstr "Xato haqida xabar berish"
 
-#: frappe/core/doctype/doctype/doctype.py:1891
+#: frappe/core/doctype/doctype/doctype.py:1910
 msgid "Report cannot be set for Single types"
 msgstr "Hisobotni bitta tur uchun o'rnatib bo'lmaydi"
 
@@ -22825,7 +22875,7 @@ msgstr "Hisobotda ma'lumotlar yo'q, iltimos, filtrlarni o'zgartiring yoki hisobo
 msgid "Report has no numeric fields, please change the Report Name"
 msgstr "Hisobotda raqamli maydonlar yo'q, iltimos, hisobot nomini o'zgartiring"
 
-#: frappe/public/js/frappe/views/reports/query_report.js:1050
+#: frappe/public/js/frappe/views/reports/query_report.js:1066
 msgid "Report initiated, click to view status"
 msgstr "Hisobot boshlandi, holatini ko'rish uchun bosing"
 
@@ -22837,7 +22887,7 @@ msgstr "Hisobot limitiga yetdi"
 msgid "Report timed out."
 msgstr "Hisobot vaqti tugadi."
 
-#: frappe/desk/query_report.py:854
+#: frappe/desk/query_report.py:872
 msgid "Report updated successfully"
 msgstr "Hisobot muvaffaqiyatli yangilandi"
 
@@ -22845,7 +22895,7 @@ msgstr "Hisobot muvaffaqiyatli yangilandi"
 msgid "Report was not saved (there were errors)"
 msgstr "Hisobot saqlanmadi (xatoliklar mavjud edi)"
 
-#: frappe/public/js/frappe/views/reports/query_report.js:2152
+#: frappe/public/js/frappe/views/reports/query_report.js:2168
 msgid "Report with more than 10 columns looks better in Landscape mode."
 msgstr "10 dan ortiq ustunli hisobot Landshaft rejimida yaxshiroq ko'rinadi."
 
@@ -22880,7 +22930,7 @@ msgstr "Hisobotlar"
 msgid "Reports & Masters"
 msgstr "Hisobotlar va magistrlar"
 
-#: frappe/public/js/frappe/views/reports/query_report.js:966
+#: frappe/public/js/frappe/views/reports/query_report.js:982
 msgid "Reports already in Queue"
 msgstr "Hisobotlar allaqachon navbatda"
 
@@ -23340,7 +23390,7 @@ msgstr "Rol ruxsatnomalari"
 msgid "Role Permissions Manager"
 msgstr "Rol ruxsatnomalari menejeri"
 
-#: frappe/public/js/frappe/list/list_view.js:1995
+#: frappe/public/js/frappe/list/list_view.js:1998
 msgctxt "Button in list view menu"
 msgid "Role Permissions Manager"
 msgstr "Rol ruxsatnomalari menejeri"
@@ -23501,8 +23551,8 @@ msgstr "Qator"
 msgid "Row #"
 msgstr "Qator raqami"
 
-#: frappe/core/doctype/doctype/doctype.py:1913
-#: frappe/core/doctype/doctype/doctype.py:1923
+#: frappe/core/doctype/doctype/doctype.py:1932
+#: frappe/core/doctype/doctype/doctype.py:1942
 msgid "Row # {0}: Non administrator user can not set the role {1} to the custom doctype"
 msgstr "Qator raqami {0}: Administrator bo'lmagan foydalanuvchi {1} rolini maxsus hujjat turiga o'rnata olmaydi"
 
@@ -23733,6 +23783,7 @@ msgstr "NAMUNALAR"
 
 #. Name of a role
 #: frappe/contacts/doctype/contact/contact.json
+#: frappe/core/doctype/duckdb_sync/duckdb_sync.json
 msgid "Sales Manager"
 msgstr "Sotish bo'yicha menejer"
 
@@ -23803,13 +23854,13 @@ msgstr "Shanba"
 #: frappe/public/js/frappe/form/quick_entry.js:186
 #: frappe/public/js/frappe/list/list_settings.js:37
 #: frappe/public/js/frappe/list/list_settings.js:250
-#: frappe/public/js/frappe/list/list_view.js:2058
+#: frappe/public/js/frappe/list/list_view.js:2061
 #: frappe/public/js/frappe/ui/toolbar/toolbar.js:335
 #: frappe/public/js/frappe/utils/common.js:443
 #: frappe/public/js/frappe/views/kanban/kanban_settings.js:45
 #: frappe/public/js/frappe/views/kanban/kanban_settings.js:189
 #: frappe/public/js/frappe/views/kanban/kanban_view.js:389
-#: frappe/public/js/frappe/views/reports/query_report.js:2106
+#: frappe/public/js/frappe/views/reports/query_report.js:2122
 #: frappe/public/js/frappe/views/reports/report_view.js:1843
 #: frappe/public/js/frappe/views/workspace/workspace.js:384
 #: frappe/public/js/frappe/widgets/base_widget.js:143
@@ -23832,7 +23883,7 @@ msgstr "Saqlash"
 msgid "Save Customizations"
 msgstr "Sozlamalarni saqlash"
 
-#: frappe/public/js/frappe/views/reports/query_report.js:2109
+#: frappe/public/js/frappe/views/reports/query_report.js:2125
 msgid "Save Report"
 msgstr "Hisobotni saqlash"
 
@@ -23872,7 +23923,7 @@ msgctxt "Freeze message while saving a document"
 msgid "Saving"
 msgstr "Saqlash"
 
-#: frappe/public/js/frappe/list/list_view.js:2069
+#: frappe/public/js/frappe/list/list_view.js:2072
 msgid "Saving Changes..."
 msgstr "O'zgarishlar saqlanmoqda..."
 
@@ -24093,7 +24144,7 @@ msgstr "Skriptlar"
 #: frappe/public/js/frappe/list/base_list.js:941
 #: frappe/public/js/frappe/list/list_sidebar_group_by.js:141
 #: frappe/public/js/frappe/list/list_sidebar_stat.html:4
-#: frappe/public/js/frappe/list/list_view.js:2078
+#: frappe/public/js/frappe/list/list_view.js:2081
 #: frappe/public/js/frappe/ui/address_autocomplete/autocomplete_dialog.js:20
 #: frappe/public/js/frappe/ui/sidebar/sidebar.js:508
 #: frappe/public/js/frappe/ui/toolbar/search.js:96
@@ -24130,7 +24181,7 @@ msgstr "Qidiruv natijalari"
 msgid "Search by filename or extension"
 msgstr "Fayl nomi yoki kengaytmasi bo'yicha qidiruv"
 
-#: frappe/core/doctype/doctype/doctype.py:1506
+#: frappe/core/doctype/doctype/doctype.py:1525
 msgid "Search field {0} is not valid"
 msgstr "{0} qidiruv maydoni yaroqsiz"
 
@@ -24343,11 +24394,11 @@ msgid "Select"
 msgstr "Tanlang"
 
 #: frappe/public/js/frappe/data_import/data_exporter.js:154
-#: frappe/public/js/frappe/form/controls/multicheck.js:174
+#: frappe/public/js/frappe/form/controls/multicheck.js:184
 #: frappe/public/js/frappe/form/controls/multiselect_list.js:19
 #: frappe/public/js/frappe/form/grid_row.js:485
 #: frappe/public/js/frappe/list/list_view.js:760
-#: frappe/public/js/frappe/list/list_view.js:825
+#: frappe/public/js/frappe/list/list_view.js:827
 #: frappe/public/js/frappe/views/file/file_view.js:374
 #: frappe/public/js/frappe/views/reports/report_view.js:1711
 msgid "Select All"
@@ -24420,7 +24471,7 @@ msgstr "Kirishni cheklash uchun qaysi foydalanuvchi ruxsatlaridan foydalanishni 
 
 #: frappe/public/js/form_builder/components/controls/FetchFromControl.vue:33
 #: frappe/public/js/frappe/doctype/index.js:207
-#: frappe/public/js/frappe/form/toolbar.js:885
+#: frappe/public/js/frappe/form/toolbar.js:886
 msgid "Select Field"
 msgstr "Maydonni tanlang"
 
@@ -24446,7 +24497,7 @@ msgstr "Qo'shish uchun maydonlarni tanlang"
 msgid "Select Fields To Update"
 msgstr "Yangilash uchun maydonlarni tanlang"
 
-#: frappe/public/js/frappe/list/list_view.js:2054
+#: frappe/public/js/frappe/list/list_view.js:2057
 msgid "Select Filters"
 msgstr "Filtrlarni tanlang"
 
@@ -24546,11 +24597,11 @@ msgstr "Xususiyatlarini tahrirlash uchun maydonni tanlang."
 msgid "Select a group {0} first."
 msgstr "Avval {0} guruhini tanlang."
 
-#: frappe/core/doctype/doctype/doctype.py:2024
+#: frappe/core/doctype/doctype/doctype.py:2043
 msgid "Select a valid Sender Field for creating documents from Email"
 msgstr "Elektron pochtadan hujjatlar yaratish uchun to'g'ri \"Yuboruvchi\" maydonini tanlang"
 
-#: frappe/core/doctype/doctype/doctype.py:2008
+#: frappe/core/doctype/doctype/doctype.py:2027
 msgid "Select a valid Subject field for creating documents from Email"
 msgstr "Elektron pochtadan hujjatlar yaratish uchun to'g'ri Mavzu maydonini tanlang"
 
@@ -24576,13 +24627,13 @@ msgstr "Chop etish uchun kamida 1 ta yozuvni tanlang"
 msgid "Select atleast 2 actions"
 msgstr "Kamida 2 ta amalni tanlang"
 
-#: frappe/public/js/frappe/list/list_view.js:1514
+#: frappe/public/js/frappe/list/list_view.js:1517
 msgctxt "Description of a list view shortcut"
 msgid "Select list item"
 msgstr "Ro'yxat elementini tanlang"
 
-#: frappe/public/js/frappe/list/list_view.js:1466
-#: frappe/public/js/frappe/list/list_view.js:1482
+#: frappe/public/js/frappe/list/list_view.js:1469
+#: frappe/public/js/frappe/list/list_view.js:1485
 msgctxt "Description of a list view shortcut"
 msgid "Select multiple list items"
 msgstr "Bir nechta ro'yxat elementlarini tanlang"
@@ -24816,7 +24867,7 @@ msgstr "Yuboruvchining elektron pochta manzili"
 msgid "Sender Email Field"
 msgstr "Yuboruvchining elektron pochta maydoni"
 
-#: frappe/core/doctype/doctype/doctype.py:2027
+#: frappe/core/doctype/doctype/doctype.py:2046
 msgid "Sender Field should have Email in options"
 msgstr "Yuboruvchi maydonida elektron pochta sozlamalari bo'lishi kerak"
 
@@ -24916,7 +24967,7 @@ msgstr "Seriya {} uchun yangilandi"
 msgid "Series counter for {} updated to {} successfully"
 msgstr "{} uchun ketma-ket hisoblagich {} ga muvaffaqiyatli yangilandi"
 
-#: frappe/core/doctype/doctype/doctype.py:1134
+#: frappe/core/doctype/doctype/doctype.py:1153
 #: frappe/core/doctype/document_naming_settings/document_naming_settings.py:170
 msgid "Series {0} already used in {1}"
 msgstr "{0} seriyasi allaqachon {1} da ishlatilgan"
@@ -25014,7 +25065,7 @@ msgstr "Sessiya muddati tugadi"
 msgid "Session Expiry (idle timeout)"
 msgstr "Sessiyaning tugashi (bo'sh vaqt tugashi)"
 
-#: frappe/core/doctype/system_settings/system_settings.py:127
+#: frappe/core/doctype/system_settings/system_settings.py:130
 msgid "Session Expiry must be in format {0}"
 msgstr "Sessiyaning amal qilish muddati {0} formatida bo'lishi kerak"
 
@@ -25031,7 +25082,7 @@ msgstr "Sessiyalar"
 msgid "Set"
 msgstr "O'rnatish"
 
-#: frappe/public/js/frappe/ui/filters/filter.js:619
+#: frappe/public/js/frappe/ui/filters/filter.js:620
 msgctxt "Field value is set"
 msgid "Set"
 msgstr "O'rnatish"
@@ -25068,7 +25119,7 @@ msgstr "Filtrlarni o'rnatish"
 msgid "Set Filters for {0}"
 msgstr "{0} uchun filtrlarni o'rnating"
 
-#: frappe/public/js/frappe/views/reports/query_report.js:2273
+#: frappe/public/js/frappe/views/reports/query_report.js:2289
 msgid "Set Level"
 msgstr "Darajani o'rnatish"
 
@@ -25310,7 +25361,7 @@ msgstr "Sozlash > Foydalanuvchi"
 msgid "Setup > User Permissions"
 msgstr "Sozlash > Foydalanuvchi ruxsatnomalari"
 
-#: frappe/public/js/frappe/views/reports/query_report.js:1968
+#: frappe/public/js/frappe/views/reports/query_report.js:1984
 #: frappe/public/js/frappe/views/reports/report_view.js:1821
 msgid "Setup Auto Email"
 msgstr "Avtomatik elektron pochtani sozlash"
@@ -25364,7 +25415,7 @@ msgstr "{0} ni ulashing"
 msgid "Shared"
 msgstr "Birgalikda"
 
-#: frappe/desk/form/assign_to.py:136
+#: frappe/desk/form/assign_to.py:138
 msgid "Shared with the following Users with Read access:{0}"
 msgstr "O'qish huquqiga ega quyidagi foydalanuvchilar bilan ulashilgan:{0}"
 
@@ -26014,6 +26065,17 @@ msgstr "Eng kichik valyuta fraksiyasining qiymati"
 msgid "Smallest circulating fraction unit (coin). For e.g. 1 cent for USD and it should be entered as 0.01"
 msgstr "Eng kichik aylanma kasr birligi (tanga). Masalan, AQSh dollari uchun 1 sent va u 0,01 sifatida kiritilishi kerak."
 
+#. Label of the snapshot_report (Check) field in DocType 'Report'
+#: frappe/core/doctype/report/report.json
+msgid "Snapshot Report"
+msgstr ""
+
+#. Label of the snapshot_reports_section (Section Break) field in DocType
+#. 'System Settings'
+#: frappe/core/doctype/system_settings/system_settings.json
+msgid "Snapshot Reports"
+msgstr ""
+
 #: frappe/printing/doctype/letter_head/letter_head.js:47
 msgid "Snippet and more variables:  {0}"
 msgstr "Parcha va boshqa o'zgaruvchilar:  {0}"
@@ -26141,7 +26203,7 @@ msgstr "Saralash parametrlari"
 msgid "Sort Order"
 msgstr "Saralash tartibi"
 
-#: frappe/core/doctype/doctype/doctype.py:1589
+#: frappe/core/doctype/doctype/doctype.py:1608
 msgid "Sort field {0} must be a valid fieldname"
 msgstr "{0} saralash maydoni to'g'ri maydon nomi bo'lishi kerak"
 
@@ -26294,7 +26356,7 @@ msgstr "Standart yon panel menyusi"
 msgid "Standard Web Forms can not be modified, duplicate the Web Form instead."
 msgstr "Standart veb-shakllarni o'zgartirib bo'lmaydi, buning o'rniga veb-shaklni nusxalash mumkin."
 
-#: frappe/core/doctype/report/report.py:432
+#: frappe/core/doctype/report/report.py:446
 msgid "Standard reports can only be created in developer mode."
 msgstr "Standart hisobotlarni faqat ishlab chiquvchi rejimida yaratish mumkin."
 
@@ -26489,7 +26551,7 @@ msgstr "Statistika vaqt oralig'i"
 #: frappe/integrations/doctype/integration_request/integration_request.json
 #: frappe/integrations/doctype/oauth_bearer_token/oauth_bearer_token.json
 #: frappe/public/js/frappe/list/list_settings.js:362
-#: frappe/public/js/frappe/list/list_view.js:2489
+#: frappe/public/js/frappe/list/list_view.js:2492
 #: frappe/public/js/frappe/views/reports/report_view.js:1076
 #: frappe/website/doctype/personal_data_deletion_request/personal_data_deletion_request.json
 #: frappe/website/doctype/personal_data_deletion_step/personal_data_deletion_step.json
@@ -26652,7 +26714,7 @@ msgstr "Mavzu"
 msgid "Subject Field"
 msgstr "Mavzu maydoni"
 
-#: frappe/core/doctype/doctype/doctype.py:2017
+#: frappe/core/doctype/doctype/doctype.py:2036
 msgid "Subject Field type should be Data, Text, Long Text, Small Text, Text Editor"
 msgstr "Mavzu maydoni turi quyidagicha bo'lishi kerak: Ma'lumotlar, Matn, Uzun matn, Kichik matn, Matn muharriri"
 
@@ -26680,7 +26742,7 @@ msgstr "Yuborish navbati"
 msgid "Submit"
 msgstr "Yuborish"
 
-#: frappe/public/js/frappe/list/list_view.js:2363
+#: frappe/public/js/frappe/list/list_view.js:2366
 msgctxt "Button in list view actions menu"
 msgid "Submit"
 msgstr "Yuborish"
@@ -26738,7 +26800,7 @@ msgstr "Ushbu bosqichni yakunlash uchun ushbu hujjatni taqdim eting."
 msgid "Submit this document to confirm"
 msgstr "Tasdiqlash uchun ushbu hujjatni taqdim eting"
 
-#: frappe/public/js/frappe/list/list_view.js:2368
+#: frappe/public/js/frappe/list/list_view.js:2371
 msgctxt "Title of confirmation dialog"
 msgid "Submit {0} documents?"
 msgstr "{0} hujjatlarni topshirasizmi?"
@@ -26746,7 +26808,7 @@ msgstr "{0} hujjatlarni topshirasizmi?"
 #. Option for the 'Comment Type' (Select) field in DocType 'Comment'
 #: frappe/core/doctype/comment/comment.json
 #: frappe/public/js/frappe/model/indicator.js:95
-#: frappe/public/js/frappe/ui/filters/filter.js:551
+#: frappe/public/js/frappe/ui/filters/filter.js:552
 #: frappe/website/doctype/web_form/templates/web_form.html:152
 msgid "Submitted"
 msgstr "Yuborildi"
@@ -26988,6 +27050,15 @@ msgstr "Taqvimni sinxronlashtirish"
 msgid "Sync Contacts"
 msgstr "Kontaktlarni sinxronlashtirish"
 
+#: frappe/core/doctype/duckdb_sync/duckdb_sync.js:23
+msgid "Sync Data"
+msgstr ""
+
+#. Label of the sync_timeout (Int) field in DocType 'System Settings'
+#: frappe/core/doctype/system_settings/system_settings.json
+msgid "Sync Timeout (Seconds)"
+msgstr ""
+
 #. Label of the sync_as_public (Check) field in DocType 'Google Calendar'
 #: frappe/integrations/doctype/google_calendar/google_calendar.json
 msgid "Sync events from Google as public"
@@ -27014,6 +27085,11 @@ msgstr "Google Kontaktlar bilan sinxronlashtiring"
 #: frappe/custom/doctype/doctype_layout/doctype_layout.js:46
 msgid "Sync {0} Fields"
 msgstr "Sinxronlashtirish {0} Maydonlar"
+
+#. Label of the synced (Check) field in DocType 'DuckDB Sync Item'
+#: frappe/core/doctype/duckdb_sync_item/duckdb_sync_item.json
+msgid "Synced"
+msgstr "Sinxronlashtirilgan"
 
 #: frappe/custom/doctype/doctype_layout/doctype_layout.js:100
 msgid "Synced Fields"
@@ -27122,6 +27198,7 @@ msgstr "Tizim jurnallari"
 #: frappe/core/doctype/document_share_key/document_share_key.json
 #: frappe/core/doctype/domain/domain.json
 #: frappe/core/doctype/domain_settings/domain_settings.json
+#: frappe/core/doctype/duckdb_sync/duckdb_sync.json
 #: frappe/core/doctype/error_log/error_log.json
 #: frappe/core/doctype/file/file.json
 #: frappe/core/doctype/installed_applications/installed_applications.json
@@ -27307,6 +27384,7 @@ msgid "Tab Label"
 msgstr "Yorliq yorlig'i"
 
 #. Option for the 'Type' (Select) field in DocType 'DocField'
+#. Label of the table (Data) field in DocType 'DuckDB Sync Item'
 #. Label of the table (Data) field in DocType 'Recorder Suggested Index'
 #. Option for the 'Field Type' (Select) field in DocType 'Custom Field'
 #. Option for the 'Type' (Select) field in DocType 'Customize Form Field'
@@ -27314,6 +27392,7 @@ msgstr "Yorliq yorlig'i"
 #. Option for the 'Fieldtype' (Select) field in DocType 'Web Form Field'
 #: frappe/core/doctype/data_export/exporter.py:23
 #: frappe/core/doctype/docfield/docfield.json
+#: frappe/core/doctype/duckdb_sync_item/duckdb_sync_item.json
 #: frappe/core/doctype/recorder_suggested_index/recorder_suggested_index.json
 #: frappe/custom/doctype/custom_field/custom_field.json
 #: frappe/custom/doctype/customize_form_field/customize_form_field.json
@@ -27337,7 +27416,7 @@ msgstr "Jadval maydoni"
 msgid "Table Fieldname"
 msgstr "Jadval maydoni nomi"
 
-#: frappe/core/doctype/doctype/doctype.py:1228
+#: frappe/core/doctype/doctype/doctype.py:1247
 msgid "Table Fieldname Missing"
 msgstr "Jadval maydoni nomi yo'q"
 
@@ -27646,7 +27725,7 @@ msgstr "O'zgarishlar qaytarildi."
 msgid "The column {0} has {1} different date formats. Automatically setting {2} as the default format as it is the most common. Please change other values in this column to this format."
 msgstr "{0} ustunida {1} turli sana formatlari mavjud. Eng keng tarqalgan format bo'lgani uchun {2} avtomatik ravishda standart format sifatida o'rnatiladi. Iltimos, ushbu ustundagi boshqa qiymatlarni ushbu formatga o'zgartiring."
 
-#: frappe/templates/includes/comments/comments.py:61
+#: frappe/templates/includes/comments/comments.py:58
 msgid "The comment cannot be empty"
 msgstr "Izoh bo'sh bo'lishi mumkin emas"
 
@@ -27667,7 +27746,7 @@ msgstr "Ko'rsatilgan son taxminiy son. Aniq sonni ko'rish uchun bu yerga bosing.
 msgid "The country's ISO 3166 ALPHA-2 code."
 msgstr "Mamlakatning ISO 3166 ALPHA-2 kodi."
 
-#: frappe/core/doctype/doctype/doctype.py:1414
+#: frappe/core/doctype/doctype/doctype.py:1433
 msgid "The default value for the Check field {0} must be either '0' or '1'"
 msgstr ""
 
@@ -27800,7 +27879,7 @@ msgstr "{0} roli maxsus rol bo'lishi kerak."
 msgid "The selected document {0} is not a {1}."
 msgstr "Tanlangan {0} hujjati {1} emas."
 
-#: frappe/utils/response.py:351
+#: frappe/utils/response.py:362
 msgid "The system is being updated. Please refresh again after a few moments."
 msgstr "Tizim yangilanmoqda. Bir necha daqiqadan so'ng qayta yangilang."
 
@@ -27893,7 +27972,7 @@ msgstr "Siz uchun yaqinlashib kelayotgan tadbirlar yo'q."
 msgid "There are no {0} for this {1}, why don't you start one!"
 msgstr ""
 
-#: frappe/public/js/frappe/views/reports/query_report.js:1002
+#: frappe/public/js/frappe/views/reports/query_report.js:1018
 msgid "There are {0} with the same filters already in the queue:"
 msgstr "Navbatda allaqachon bir xil filtrlarga ega {0} mavjud:"
 
@@ -27902,7 +27981,7 @@ msgstr "Navbatda allaqachon bir xil filtrlarga ega {0} mavjud:"
 msgid "There can be only 9 Page Break fields in a Web Form"
 msgstr "Veb-formada faqat 9 ta sahifa ajratish maydonlari bo'lishi mumkin"
 
-#: frappe/core/doctype/doctype/doctype.py:1482
+#: frappe/core/doctype/doctype/doctype.py:1501
 msgid "There can be only one Fold in a form"
 msgstr "Formada faqat bitta katlama bo'lishi mumkin"
 
@@ -27926,7 +28005,7 @@ msgstr "Hozir sizga ko'rsatadigan yangi narsa yo'q."
 msgid "There is some problem with the file url: {0}"
 msgstr "Fayl URL manzili bilan bog'liq muammo bor: {0}"
 
-#: frappe/public/js/frappe/views/reports/query_report.js:999
+#: frappe/public/js/frappe/views/reports/query_report.js:1015
 msgid "There is {0} with the same filters already in the queue:"
 msgstr "Navbatda allaqachon bir xil filtrlarga ega {0} mavjud:"
 
@@ -27999,7 +28078,7 @@ msgstr "Bu valyuta oʻchirilgan. Tranzaksiyalarda foydalanish uchun ruxsat berin
 msgid "This Kanban Board will be private"
 msgstr "Ushbu Kanban kengashi xususiy bo'ladi"
 
-#: frappe/public/js/frappe/ui/filters/filter.js:678
+#: frappe/public/js/frappe/ui/filters/filter.js:679
 msgid "This Month"
 msgstr "Bu oy"
 
@@ -28007,15 +28086,15 @@ msgstr "Bu oy"
 msgid "This PDF cannot be uploaded as it contains unsafe content."
 msgstr "Ushbu PDF faylini yuklab bo'lmaydi, chunki unda xavfli kontent mavjud."
 
-#: frappe/public/js/frappe/ui/filters/filter.js:682
+#: frappe/public/js/frappe/ui/filters/filter.js:683
 msgid "This Quarter"
 msgstr "Bu chorak"
 
-#: frappe/public/js/frappe/ui/filters/filter.js:674
+#: frappe/public/js/frappe/ui/filters/filter.js:675
 msgid "This Week"
 msgstr "Ushbu hafta"
 
-#: frappe/public/js/frappe/ui/filters/filter.js:686
+#: frappe/public/js/frappe/ui/filters/filter.js:687
 msgid "This Year"
 msgstr "Bu yil"
 
@@ -28051,7 +28130,7 @@ msgstr "Agar sozlangan bo'lsa, ushbu jadval barcha foydalanuvchilar uchun mavjud
 msgid "This doctype has no orphan fields to trim"
 msgstr "Ushbu hujjat turida qirqish uchun yetim maydonlar yo'q"
 
-#: frappe/core/doctype/doctype/doctype.py:1079
+#: frappe/core/doctype/doctype/doctype.py:1098
 msgid "This doctype has pending migrations, run 'bench migrate' before modifying the doctype to avoid losing changes."
 msgstr "Ushbu doctype kutilayotgan migratsiyalarga ega, o'zgarishlarni yo'qotmaslik uchun doctype ni o'zgartirishdan oldin 'bench migration' buyrug'ini bajaring."
 
@@ -28140,9 +28219,13 @@ msgstr "Ushbu geolokatsiya provayderi hali qo'llab-quvvatlanmaydi."
 msgid "This goes above the slideshow."
 msgstr "Bu slaydshoudan yuqoriroq."
 
-#: frappe/public/js/frappe/views/reports/query_report.js:2350
+#: frappe/public/js/frappe/views/reports/query_report.js:2366
 msgid "This is a background report. Please set the appropriate filters and then generate a new one."
 msgstr "Bu fon hisoboti. Iltimos, tegishli filtrlarni o'rnating va keyin yangisini yarating."
+
+#: frappe/public/js/frappe/views/reports/query_report.js:802
+msgid "This is a snapshot report generated {0}."
+msgstr ""
 
 #: frappe/utils/password_strength.py:158
 msgid "This is a top-10 common password."
@@ -28190,7 +28273,7 @@ msgstr "Bu bir nechta sahifalarda chop etilishi mumkin"
 msgid "This month"
 msgstr "Bu oy"
 
-#: frappe/public/js/frappe/views/reports/query_report.js:1078
+#: frappe/public/js/frappe/views/reports/query_report.js:1094
 msgid "This report contains {0} rows and is too big to display in browser, you can {1} this report instead."
 msgstr "Ushbu hisobotda {0} qator mavjud va brauzerda ko'rsatish uchun juda katta, buning o'rniga ushbu hisobotni {1} qilishingiz mumkin."
 
@@ -28198,7 +28281,7 @@ msgstr "Ushbu hisobotda {0} qator mavjud va brauzerda ko'rsatish uchun juda katt
 msgid "This report was generated on {0}"
 msgstr "Ushbu hisobot {0} da yaratilgan"
 
-#: frappe/public/js/frappe/views/reports/query_report.js:786
+#: frappe/public/js/frappe/views/reports/query_report.js:788
 msgid "This report was generated {0}."
 msgstr "Ushbu hisobot {0} tomonidan yaratilgan."
 
@@ -28419,11 +28502,11 @@ msgstr "Vaqt jadvali havolalari"
 msgid "Timeline Name"
 msgstr "Xronologiya nomi"
 
-#: frappe/core/doctype/doctype/doctype.py:1577
+#: frappe/core/doctype/doctype/doctype.py:1596
 msgid "Timeline field must be a Link or Dynamic Link"
 msgstr "Vaqt jadvali maydoni havola yoki dinamik havola bo'lishi kerak"
 
-#: frappe/core/doctype/doctype/doctype.py:1573
+#: frappe/core/doctype/doctype/doctype.py:1592
 msgid "Timeline field must be a valid fieldname"
 msgstr "Vaqt jadvali maydoni to'g'ri maydon nomi bo'lishi kerak"
 
@@ -28517,7 +28600,7 @@ msgstr "Sarlavha maydoni"
 msgid "Title Prefix"
 msgstr "Sarlavha prefiksi"
 
-#: frappe/core/doctype/doctype/doctype.py:1514
+#: frappe/core/doctype/doctype/doctype.py:1533
 msgid "Title field must be a valid fieldname"
 msgstr "Sarlavha maydoni to'g'ri maydon nomi bo'lishi kerak"
 
@@ -28651,8 +28734,8 @@ msgstr "Versiyaga"
 msgid "ToDo"
 msgstr "Bajarish"
 
-#: frappe/public/js/frappe/form/controls/date.js:58
-#: frappe/public/js/frappe/ui/filters/filter.js:745
+#: frappe/public/js/frappe/form/controls/date.js:59
+#: frappe/public/js/frappe/ui/filters/filter.js:746
 #: frappe/public/js/frappe/views/calendar/calendar.js:281
 msgid "Today"
 msgstr "Bugun"
@@ -28717,7 +28800,7 @@ msgstr "Token URI"
 msgid "Token is missing"
 msgstr "Token yo'q"
 
-#: frappe/public/js/frappe/ui/filters/filter.js:751
+#: frappe/public/js/frappe/ui/filters/filter.js:752
 msgid "Tomorrow"
 msgstr "Ertaga"
 
@@ -28803,9 +28886,9 @@ msgstr "Yuqori o'ng"
 msgid "Topic"
 msgstr "Mavzu"
 
-#: frappe/desk/query_report.py:787
+#: frappe/desk/query_report.py:805
 #: frappe/public/js/frappe/views/reports/print_grid.html:50
-#: frappe/public/js/frappe/views/reports/query_report.js:1380
+#: frappe/public/js/frappe/views/reports/query_report.js:1396
 #: frappe/public/js/frappe/views/reports/report_view.js:1651
 msgid "Total"
 msgstr "Jami"
@@ -28963,7 +29046,7 @@ msgstr "O'tishlar"
 msgid "Translatable"
 msgstr "Tarjima qilinadigan"
 
-#: frappe/public/js/frappe/views/reports/query_report.js:2412
+#: frappe/public/js/frappe/views/reports/query_report.js:2428
 msgid "Translate Data"
 msgstr "Ma'lumotlarni tarjima qilish"
 
@@ -29302,7 +29385,7 @@ msgstr "UTM manbai"
 msgid "UUID"
 msgstr "UUID"
 
-#: frappe/desk/form/document_follow.py:91
+#: frappe/desk/form/document_follow.py:99
 msgid "Un-following document {0}"
 msgstr "Hujjatni kuzatishni bekor qilish {0}"
 
@@ -29361,7 +29444,7 @@ msgid "Undo last action"
 msgstr "Oxirgi amalni bekor qilish"
 
 #: frappe/public/js/frappe/form/templates/form_sidebar.html:153
-#: frappe/public/js/frappe/form/toolbar.js:1004
+#: frappe/public/js/frappe/form/toolbar.js:1005
 msgid "Unfollow"
 msgstr "Kuzatuvni bekor qilish"
 
@@ -29440,12 +29523,12 @@ msgstr "O'qilmagan"
 msgid "Unread Notification Sent"
 msgstr "O'qilmagan bildirishnoma yuborildi"
 
-#: frappe/utils/safe_exec.py:646 frappe/utils/safe_exec.py:659
+#: frappe/utils/safe_exec.py:748 frappe/utils/safe_exec.py:761
 msgid "Unsafe SQL query"
 msgstr "Xavfsiz SQL so'rovi"
 
 #: frappe/public/js/frappe/data_import/data_exporter.js:164
-#: frappe/public/js/frappe/form/controls/multicheck.js:177
+#: frappe/public/js/frappe/form/controls/multicheck.js:187
 #: frappe/public/js/frappe/views/reports/report_view.js:1712
 msgid "Unselect All"
 msgstr "Barchasini bekor qilish"
@@ -29479,7 +29562,7 @@ msgstr "Obunani bekor qilish Paramlar"
 msgid "Unsubscribed"
 msgstr "Obuna bekor qilindi"
 
-#: frappe/desk/query_report.py:476
+#: frappe/desk/query_report.py:494
 msgid "Unsupported file format: {0}"
 msgstr "Qo'llab-quvvatlanmaydigan fayl formati: {0}"
 
@@ -29629,7 +29712,7 @@ msgstr "Muvaffaqiyatli yangilandi"
 msgid "Updated {0} selected {1}. Save the form to keep changes."
 msgstr "{0} yangilandi va {1}tanlandi. O'zgarishlarni saqlash uchun shaklni saqlang."
 
-#: frappe/utils/response.py:350
+#: frappe/utils/response.py:361
 msgid "Updating"
 msgstr "Yangilanmoqda"
 
@@ -30022,12 +30105,12 @@ msgstr "Foydalanuvchi ruxsati"
 #. Label of a Link in the Users Workspace
 #: frappe/core/page/permission_manager/permission_manager_help.html:97
 #: frappe/core/workspace/users/users.json
-#: frappe/public/js/frappe/views/reports/query_report.js:2093
+#: frappe/public/js/frappe/views/reports/query_report.js:2109
 #: frappe/public/js/frappe/views/reports/report_view.js:1869
 msgid "User Permissions"
 msgstr "Foydalanuvchi ruxsatnomalari"
 
-#: frappe/public/js/frappe/list/list_view.js:1984
+#: frappe/public/js/frappe/list/list_view.js:1987
 msgctxt "Button in list view menu"
 msgid "User Permissions"
 msgstr "Foydalanuvchi ruxsatnomalari"
@@ -30144,7 +30227,7 @@ msgstr "{0} foydalanuvchisi ushbu hujjatga kirish huquqiga ega emas"
 msgid "User {0} does not have doctype access via role permission for document {1}"
 msgstr "{0} foydalanuvchisi {1} hujjati uchun rol ruxsatnomasi orqali doctype ga kirish huquqiga ega emas"
 
-#: frappe/desk/doctype/workspace/workspace.py:309
+#: frappe/desk/doctype/workspace/workspace.py:310
 msgid "User {0} does not have the permission to create a Workspace."
 msgstr "{0} foydalanuvchisi ish maydoni yaratishga ruxsatga ega emas."
 
@@ -30476,7 +30559,7 @@ msgstr "Hujjatlarni ko'rish"
 msgid "View Doctype Permissions"
 msgstr "Doctype ruxsatnomalarini ko'rish"
 
-#: frappe/public/js/frappe/form/info_card.js:48
+#: frappe/public/js/frappe/form/info_card.js:50
 msgid "View Documentation"
 msgstr "Hujjatlarni ko'rish"
 
@@ -30588,7 +30671,7 @@ msgstr "Virtual DocType {} funksiyasi {} found {} deb nomlangan statik usulni ta
 msgid "Virtual DocType {} requires overriding an instance method called {} found {}"
 msgstr "Virtual DocType {} funksiyasi {} found {} deb nomlangan instansiya usulini bekor qilishni talab qiladi"
 
-#: frappe/core/doctype/doctype/doctype.py:1696
+#: frappe/core/doctype/doctype/doctype.py:1715
 msgid "Virtual tables must be virtual fields"
 msgstr "Virtual jadvallar virtual maydonlar bo'lishi kerak"
 
@@ -30649,7 +30732,7 @@ msgstr "Ogohlantirish"
 msgid "Warning: DATA LOSS IMMINENT! Proceeding will permanently delete following database columns from doctype {0}:"
 msgstr "Ogohlantirish: MA'LUMOTLAR YO'QOLISHI YAQIN! Davom etish quyidagi ma'lumotlar bazasi ustunlarini doctype {0} dan butunlay o'chirib tashlaydi:"
 
-#: frappe/core/doctype/doctype/doctype.py:1150
+#: frappe/core/doctype/doctype/doctype.py:1169
 msgid "Warning: Naming is not set"
 msgstr "Ogohlantirish: Nomlash belgilanmagan"
 
@@ -30894,7 +30977,7 @@ msgstr "Veb-sayt skripti"
 msgid "Website Search Field"
 msgstr "Veb-sayt qidiruv maydoni"
 
-#: frappe/core/doctype/doctype/doctype.py:1561
+#: frappe/core/doctype/doctype/doctype.py:1580
 msgid "Website Search Field must be a valid fieldname"
 msgstr "Veb-sayt qidiruv maydoni to'g'ri maydon nomi bo'lishi kerak"
 
@@ -31462,7 +31545,7 @@ msgstr "Y o'qi maydonlari"
 
 #. Label of the y_field (Select) field in DocType 'Dashboard Chart Field'
 #: frappe/desk/doctype/dashboard_chart_field/dashboard_chart_field.json
-#: frappe/public/js/frappe/views/reports/query_report.js:1281
+#: frappe/public/js/frappe/views/reports/query_report.js:1297
 msgid "Y Field"
 msgstr "Y maydoni"
 
@@ -31547,12 +31630,12 @@ msgctxt "Approve confirmation dialog"
 msgid "Yes"
 msgstr "Ha"
 
-#: frappe/public/js/frappe/ui/filters/filter.js:557
+#: frappe/public/js/frappe/ui/filters/filter.js:558
 msgctxt "Checkbox is checked"
 msgid "Yes"
 msgstr "Ha"
 
-#: frappe/public/js/frappe/ui/filters/filter.js:739
+#: frappe/public/js/frappe/ui/filters/filter.js:740
 msgid "Yesterday"
 msgstr "Kecha"
 
@@ -31597,7 +31680,7 @@ msgstr ""
 msgid "You are not allowed to create columns"
 msgstr "Sizga ustunlar yaratishga ruxsat berilmagan"
 
-#: frappe/core/doctype/report/report.py:103
+#: frappe/core/doctype/report/report.py:107
 msgid "You are not allowed to delete Standard Report"
 msgstr "Siz standart hisobotni o'chirishga ruxsatsizsiz"
 
@@ -31609,7 +31692,7 @@ msgstr "Siz standart bildirishnomani o'chira olmaysiz. Buning o'rniga uni o'chir
 msgid "You are not allowed to delete a standard Website Theme"
 msgstr "Siz standart veb-sayt mavzusini o'chira olmaysiz"
 
-#: frappe/core/doctype/report/report.py:437
+#: frappe/core/doctype/report/report.py:451
 msgid "You are not allowed to edit the report."
 msgstr "Siz hisobotni tahrirlashga ruxsat berilmagan."
 
@@ -31729,7 +31812,7 @@ msgstr "Agar xavfsiz deb hisoblasangiz, qulfni qo'lda olib tashlashingiz mumkin:
 msgid "You can only edit your own replies."
 msgstr "Siz faqat o'z javoblaringizni tahrirlashingiz mumkin."
 
-#: frappe/desk/form/document_follow.py:59
+#: frappe/desk/form/document_follow.py:67
 msgid "You can only follow documents for yourself."
 msgstr "Siz faqat o'zingiz uchun hujjatlarni kuzatib borishingiz mumkin."
 
@@ -31741,7 +31824,7 @@ msgstr "Siz rasmlarni faqat Markdown maydonlariga qo'shishingiz mumkin"
 msgid "You can only print upto {0} documents at a time"
 msgstr "Bir vaqtning o'zida faqat {0} gacha hujjatlarni chop etishingiz mumkin"
 
-#: frappe/desk/form/document_follow.py:81
+#: frappe/desk/form/document_follow.py:89
 msgid "You can only unfollow documents for yourself."
 msgstr "Siz faqat o'zingiz uchun hujjatlarni kuzatishni bekor qilishingiz mumkin."
 
@@ -31763,7 +31846,7 @@ msgstr "Quyidagilardan birini tanlashingiz mumkin,"
 msgid "You can set a high value here if multiple users will be logging in from the same network."
 msgstr "Agar bir nechta foydalanuvchi bitta tarmoqdan tizimga kirsa, bu yerda yuqori qiymatni o'rnatishingiz mumkin."
 
-#: frappe/desk/query_report.py:430
+#: frappe/desk/query_report.py:448
 msgid "You can try changing the filters of your report."
 msgstr "Hisobotingiz filtrlarini o'zgartirishga urinib ko'rishingiz mumkin."
 
@@ -31859,7 +31942,7 @@ msgstr "Sizda quyidagi maydonga kirish uchun ruxsat yo'q: {0}"
 msgid "You do not have permission to access this file"
 msgstr "Sizda bu faylga kirish uchun ruxsat yo'q"
 
-#: frappe/desk/query_report.py:1137
+#: frappe/desk/query_report.py:1155
 msgid "You do not have permission to access {0}: {1}."
 msgstr "Sizda {0}: {1} ga kirish uchun ruxsat yo'q."
 
@@ -31883,7 +31966,7 @@ msgstr "Sizda \"Hisobot\"ga kirish huquqi yo'q: {0}"
 msgid "You don't have permission to access the {0} DocType."
 msgstr "Sizda {0} DocType fayliga kirish uchun ruxsat yo'q."
 
-#: frappe/utils/response.py:299 frappe/utils/response.py:303
+#: frappe/utils/response.py:310 frappe/utils/response.py:314
 msgid "You don't have permission to access this file"
 msgstr "Sizda bu faylga kirish uchun ruxsat yo'q"
 
@@ -31968,16 +32051,16 @@ msgstr "Ushbu shaklni yuborish uchun tizimga kirishingiz kerak"
 msgid "You need the '{0}' permission on {1} {2} to perform this action."
 msgstr "Ushbu amalni bajarish uchun sizga {1} {2} faylida '{0}' ruxsatnomasi kerak."
 
-#: frappe/desk/doctype/workspace/workspace.py:346
+#: frappe/desk/doctype/workspace/workspace.py:347
 msgid "You need the Workspace Manager role to edit this workspace."
 msgstr "Ushbu ish maydonini tahrirlash uchun sizga Workspace Manager roli kerak."
 
-#: frappe/desk/doctype/workspace/workspace.py:140
-#: frappe/desk/doctype/workspace_sidebar/workspace_sidebar.py:69
+#: frappe/desk/doctype/workspace/workspace.py:141
+#: frappe/desk/doctype/workspace_sidebar/workspace_sidebar.py:70
 msgid "You need to be Workspace Manager to delete a public workspace."
 msgstr "Umumiy ish maydonini o'chirish uchun siz Ish maydoni menejeri bo'lishingiz kerak."
 
-#: frappe/desk/doctype/workspace/workspace.py:78
+#: frappe/desk/doctype/workspace/workspace.py:79
 msgid "You need to be Workspace Manager to edit this document"
 msgstr "Ushbu hujjatni tahrirlash uchun siz Workspace Manager bo'lishingiz kerak"
 
@@ -31989,7 +32072,7 @@ msgstr "Ushbu sahifaga kirish uchun siz tizim foydalanuvchisi bo'lishingiz kerak
 msgid "You need to be in developer mode to edit a Standard Web Form"
 msgstr "Standart veb-shaklni tahrirlash uchun siz dasturchi rejimida bo'lishingiz kerak"
 
-#: frappe/utils/response.py:281
+#: frappe/utils/response.py:292
 msgid "You need to be logged in and have System Manager Role to be able to access backups."
 msgstr "Zaxira nusxalariga kirish uchun tizimga kirishingiz va Tizim menejeri roliga ega bo'lishingiz kerak."
 
@@ -32001,7 +32084,7 @@ msgstr "Ushbu sahifaga kirish uchun tizimga kirishingiz kerak"
 msgid "You need to be logged in to access this {0}."
 msgstr "Bunga kirish uchun tizimga kirishingiz kerak {0}."
 
-#: frappe/desk/doctype/workspace/workspace.py:106
+#: frappe/desk/doctype/workspace/workspace.py:107
 msgid "You need to be {0} to rename this document"
 msgstr "Ushbu hujjatni qayta nomlash uchun siz {0} bo'lishingiz kerak"
 
@@ -32137,7 +32220,7 @@ msgstr "Hisobingiz o'chirib tashlandi"
 msgid "Your account has been locked and will resume after {0} seconds"
 msgstr "Hisobingiz qulflandi va {0} soniyadan keyin qayta tiklanadi"
 
-#: frappe/desk/form/assign_to.py:287
+#: frappe/desk/form/assign_to.py:289
 msgid "Your assignment on {0} {1} has been removed by {2}"
 msgstr "{0} {1} bo'yicha topshirig'ingiz {2} tomonidan olib tashlandi"
 
@@ -32203,7 +32286,7 @@ msgstr "Parolingiz muddati tugagan. Iltimos, yangi parol o'rnating."
 msgid "Your query has been received. We will reply back shortly. If you have any additional information, please reply to this mail."
 msgstr "Sizning so'rovingiz qabul qilindi. Tez orada javob beramiz. Agar sizda qo'shimcha ma'lumot bo'lsa, iltimos, ushbu xatga javob bering."
 
-#: frappe/desk/query_report.py:381 frappe/desk/reportview.py:409
+#: frappe/desk/query_report.py:399 frappe/desk/reportview.py:409
 msgid "Your report is being generated in the background. You will receive an email on {0} with a download link once it is ready."
 msgstr "Hisobotingiz fonda yaratilmoqda. Tayyor bo'lgach, sizga yuklab olish havolasi bilan {0} manziliga elektron pochta xabari yuboriladi."
 
@@ -32548,7 +32631,7 @@ msgstr "jane@example.com"
 msgid "just now"
 msgstr "hozirgina"
 
-#: frappe/desk/desktop.py:223 frappe/desk/query_report.py:330
+#: frappe/desk/desktop.py:223 frappe/desk/query_report.py:348
 msgid "label"
 msgstr "yorliq"
 
@@ -32850,7 +32933,7 @@ msgstr "topshirish"
 msgid "this form"
 msgstr "ushbu shakl"
 
-#: frappe/tests/test_translate.py:174
+#: frappe/tests/test_translate.py:181
 msgid "this shouldn't break"
 msgstr "bu buzilmasligi kerak"
 
@@ -32888,11 +32971,11 @@ msgstr "Twitter"
 msgid "updated to {0}"
 msgstr "{0} ga yangilandi"
 
-#: frappe/public/js/frappe/ui/filters/filter.js:362
+#: frappe/public/js/frappe/ui/filters/filter.js:363
 msgid "use % as wildcard"
 msgstr "% ni joker belgi sifatida ishlating"
 
-#: frappe/public/js/frappe/ui/filters/filter.js:361
+#: frappe/public/js/frappe/ui/filters/filter.js:362
 msgid "values separated by commas"
 msgstr "vergul bilan ajratilgan qiymatlar"
 
@@ -33082,7 +33165,7 @@ msgstr "{0} Yuborilgandan so'ng {1} ni {2} dan {3} ga o'zgartirishga ruxsat beri
 msgid "{0} Report"
 msgstr "{0} Hisobot"
 
-#: frappe/public/js/frappe/views/reports/query_report.js:993
+#: frappe/public/js/frappe/views/reports/query_report.js:1009
 msgid "{0} Reports"
 msgstr "{0} Hisobotlar"
 
@@ -33095,7 +33178,7 @@ msgid "{0} Tree"
 msgstr "{0} Daraxt"
 
 #: frappe/public/js/frappe/form/footer/form_timeline.js:128
-#: frappe/public/js/frappe/form/sidebar/form_sidebar.js:152
+#: frappe/public/js/frappe/form/sidebar/form_sidebar.js:151
 msgid "{0} Web page views"
 msgstr "{0} Veb-sahifa ko'rishlari"
 
@@ -33135,7 +33218,7 @@ msgstr "{0} hozirda {1}"
 msgid "{0} are required"
 msgstr "{0} shart"
 
-#: frappe/desk/form/assign_to.py:294
+#: frappe/desk/form/assign_to.py:296
 msgid "{0} assigned a new task {1} {2} to you"
 msgstr "{0} sizga yangi vazifa {1} {2} tayinladi"
 
@@ -33148,7 +33231,7 @@ msgctxt "Form timeline"
 msgid "{0} attached {1}"
 msgstr "{0} biriktirilgan {1}"
 
-#: frappe/core/doctype/system_settings/system_settings.py:161
+#: frappe/core/doctype/system_settings/system_settings.py:164
 msgid "{0} can not be more than {1}"
 msgstr "{0} {1} dan ortiq bo'lmasligi kerak"
 
@@ -33190,7 +33273,7 @@ msgctxt "Form timeline"
 msgid "{0} changed {1} to {2}"
 msgstr "{0} {1} ni {2} ga o'zgartirildi"
 
-#: frappe/core/doctype/doctype/doctype.py:1644
+#: frappe/core/doctype/doctype/doctype.py:1663
 msgid "{0} contains an invalid Fetch From expression, Fetch From can't be self-referential."
 msgstr "{0} tarkibida yaroqsiz Fetch From ifodasi mavjud, Fetch From o'z-o'ziga havola bo'la olmaydi."
 
@@ -33281,7 +33364,7 @@ msgstr "{0} qatorida {1} URL va pastki elementlar bo'lishi mumkin emas"
 msgid "{0} is a descendant of {1}"
 msgstr "{0} {1} ning avlodidir"
 
-#: frappe/core/doctype/doctype/doctype.py:953
+#: frappe/core/doctype/doctype/doctype.py:972
 msgid "{0} is a mandatory field"
 msgstr "{0} maydonni to'ldirish shart"
 
@@ -33297,7 +33380,7 @@ msgstr "{0} {1} dan keyin keladi"
 msgid "{0} is an ancestor of {1}"
 msgstr "{0} {1} ning ajdodidir"
 
-#: frappe/core/doctype/doctype/doctype.py:1657
+#: frappe/core/doctype/doctype/doctype.py:1676
 msgid "{0} is an invalid Data field."
 msgstr "{0} yaroqsiz ma'lumotlar maydoni."
 
@@ -33496,7 +33579,7 @@ msgstr "{0} {1} ichida"
 msgid "{0} is {1}"
 msgstr "{0} {1} dir"
 
-#: frappe/public/js/frappe/list/list_view.js:1903
+#: frappe/public/js/frappe/list/list_view.js:1906
 msgid "{0} items selected"
 msgstr "{0} element tanlandi"
 
@@ -33576,12 +33659,12 @@ msgstr "{0} haqiqiy shtat emas"
 msgid "{0} not allowed to be renamed"
 msgstr "{0} qayta nomlashga ruxsat berilmagan"
 
-#: frappe/core/doctype/report/report.py:486
-#: frappe/public/js/frappe/list/list_view.js:1280
+#: frappe/core/doctype/report/report.py:500
+#: frappe/public/js/frappe/list/list_view.js:1283
 msgid "{0} of {1}"
 msgstr "{0} / {1}"
 
-#: frappe/public/js/frappe/list/list_view.js:1282
+#: frappe/public/js/frappe/list/list_view.js:1285
 msgid "{0} of {1} ({2} rows with children)"
 msgstr "{0} / {1} ({2} bolalari bo'lgan qatorlar)"
 
@@ -33661,7 +33744,7 @@ msgctxt "User added rows to child table"
 msgid "{0} rows to {1}"
 msgstr "{0} qatorlarni {1} gacha"
 
-#: frappe/desk/query_report.py:869
+#: frappe/desk/query_report.py:887
 msgid "{0} saved successfully"
 msgstr "{0} muvaffaqiyatli saqlandi"
 
@@ -33802,31 +33885,31 @@ msgstr "{0}/{1} tugallandi | Iltimos, tugallanguncha ushbu yorliqni ochiq qoldir
 msgid "{0}: '{1}' ({3}) will get truncated, as max characters allowed is {2}"
 msgstr "{0}: '{1}' ({3}) qisqartiriladi, chunki ruxsat etilgan maksimal belgilar {2} dir."
 
-#: frappe/core/doctype/doctype/doctype.py:1882
+#: frappe/core/doctype/doctype/doctype.py:1901
 msgid "{0}: Cannot set Amend without Cancel"
 msgstr "{0}: Bekor qilmasdan o'zgartirishni o'rnatib bo'lmaydi"
 
-#: frappe/core/doctype/doctype/doctype.py:1900
+#: frappe/core/doctype/doctype/doctype.py:1919
 msgid "{0}: Cannot set Assign Amend if not Submittable"
 msgstr "{0}: Agar Submittable bo'lmasa, Assign O'zgartirishni o'rnatib bo'lmaydi"
 
-#: frappe/core/doctype/doctype/doctype.py:1898
+#: frappe/core/doctype/doctype/doctype.py:1917
 msgid "{0}: Cannot set Assign Submit if not Submittable"
 msgstr "{0}: Agar Submittable bo'lmasa, Assign Submit ni o'rnatib bo'lmaydi"
 
-#: frappe/core/doctype/doctype/doctype.py:1877
+#: frappe/core/doctype/doctype/doctype.py:1896
 msgid "{0}: Cannot set Cancel without Submit"
 msgstr "{0}: Yuborishsiz Bekor qilish funksiyasini o'rnatib bo'lmaydi"
 
-#: frappe/core/doctype/doctype/doctype.py:1884
+#: frappe/core/doctype/doctype/doctype.py:1903
 msgid "{0}: Cannot set Import without Create"
 msgstr "{0}: Yaratmasdan importni o'rnatib bo'lmaydi"
 
-#: frappe/core/doctype/doctype/doctype.py:1880
+#: frappe/core/doctype/doctype/doctype.py:1899
 msgid "{0}: Cannot set Submit, Cancel, Amend without Write"
 msgstr "{0}: Yozmasdan Yuborish, Bekor qilish, O'zgartirishni o'rnatib bo'lmaydi"
 
-#: frappe/core/doctype/doctype/doctype.py:1904
+#: frappe/core/doctype/doctype/doctype.py:1923
 msgid "{0}: Cannot set import as {1} is not importable"
 msgstr "{0}: {1} import qilib bo'lmaydiganligi sababli importni o'rnatib bo'lmaydi"
 
@@ -33834,44 +33917,44 @@ msgstr "{0}: {1} import qilib bo'lmaydiganligi sababli importni o'rnatib bo'lmay
 msgid "{0}: Failed to attach new recurring document. To enable attaching document in the auto repeat notification email, enable {1} in Print Settings"
 msgstr "{0}: Yangi takrorlanuvchi hujjatni biriktirishda xatolik yuz berdi. Avtomatik takrorlanish haqida bildirishnoma elektron pochtasida hujjatni biriktirishni yoqish uchun Chop etish sozlamalarida {1} ni yoqing."
 
-#: frappe/core/doctype/doctype/doctype.py:1465
+#: frappe/core/doctype/doctype/doctype.py:1484
 msgid "{0}: Field '{1}' cannot be set as Unique as it has non-unique values"
 msgstr "{0}: '{1}' maydoni noyob bo'lmagan qiymatlarga ega bo'lgani uchun uni noyob deb o'rnatib bo'lmaydi."
 
-#: frappe/core/doctype/doctype/doctype.py:1370
+#: frappe/core/doctype/doctype/doctype.py:1389
 #: frappe/website/doctype/web_form/web_form.py:121
 msgid "{0}: Field {1} in row {2} cannot be hidden and mandatory without default"
 msgstr "{0}: {2} qatoridagi {1} maydoni sukut bo'yicha yashirilishi va majburiy bo'lishi mumkin emas"
 
-#: frappe/core/doctype/doctype/doctype.py:1329
+#: frappe/core/doctype/doctype/doctype.py:1348
 msgid "{0}: Field {1} of type {2} cannot be mandatory"
 msgstr "{0}: {2} turdagi {1} maydoni majburiy bo'lishi mumkin emas"
 
-#: frappe/core/doctype/doctype/doctype.py:1317
+#: frappe/core/doctype/doctype/doctype.py:1336
 msgid "{0}: Fieldname {1} appears multiple times in rows {2}"
 msgstr "{0}: Maydon nomi {1} qatorlarda bir necha marta paydo bo'ladi {2}"
 
-#: frappe/core/doctype/doctype/doctype.py:1452
+#: frappe/core/doctype/doctype/doctype.py:1471
 msgid "{0}: Fieldtype {1} for {2} cannot be unique"
 msgstr "{0}: {2} uchun {1} maydon turi noyob bo'lishi mumkin emas"
 
-#: frappe/core/doctype/doctype/doctype.py:1837
+#: frappe/core/doctype/doctype/doctype.py:1856
 msgid "{0}: No basic permissions set"
 msgstr "{0}: Asosiy ruxsatnomalar o'rnatilmagan"
 
-#: frappe/core/doctype/doctype/doctype.py:1851
+#: frappe/core/doctype/doctype/doctype.py:1870
 msgid "{0}: Only one rule allowed with the same Role, Level and {1}"
 msgstr "{0}: Faqat bitta qoidaga ruxsat beriladi, bir xil rol, daraja va {1} bilan."
 
-#: frappe/core/doctype/doctype/doctype.py:1351
+#: frappe/core/doctype/doctype/doctype.py:1370
 msgid "{0}: Options must be a valid DocType for field {1} in row {2}"
 msgstr "{0}: {2} qatoridagi {1} maydoni uchun parametrlar haqiqiy DocType bo'lishi kerak"
 
-#: frappe/core/doctype/doctype/doctype.py:1340
+#: frappe/core/doctype/doctype/doctype.py:1359
 msgid "{0}: Options required for Link or Table type field {1} in row {2}"
 msgstr "{0}: {2} qatoridagi {1} bogʻlanish yoki jadval turi maydoni uchun kerakli parametrlar"
 
-#: frappe/core/doctype/doctype/doctype.py:1358
+#: frappe/core/doctype/doctype/doctype.py:1377
 msgid "{0}: Options {1} must be the same as doctype name {2} for the field {3}"
 msgstr "{0}: {3} maydoni uchun {1} parametrlari doctype name {2} bilan bir xil bo'lishi kerak."
 
@@ -33879,7 +33962,7 @@ msgstr "{0}: {3} maydoni uchun {1} parametrlari doctype name {2} bilan bir xil b
 msgid "{0}: Other permission rules may also apply"
 msgstr "{0}: Boshqa ruxsat berish qoidalari ham qo'llanilishi mumkin"
 
-#: frappe/core/doctype/doctype/doctype.py:1866
+#: frappe/core/doctype/doctype/doctype.py:1885
 msgid "{0}: Permission at level 0 must be set before higher levels are set"
 msgstr "{0}: Yuqori darajalar o'rnatilishidan oldin 0 darajasidagi ruxsatnoma o'rnatilishi kerak"
 
@@ -33887,11 +33970,11 @@ msgstr "{0}: Yuqori darajalar o'rnatilishidan oldin 0 darajasidagi ruxsatnoma o'
 msgid "{0}: You can increase the limit for the field if required via {1}"
 msgstr "{0}: Agar kerak bo'lsa, {1} orqali maydon uchun limitni oshirishingiz mumkin."
 
-#: frappe/core/doctype/doctype/doctype.py:1304
+#: frappe/core/doctype/doctype/doctype.py:1323
 msgid "{0}: fieldname cannot be set to reserved field {1} in DocType"
 msgstr "{0}: DocType'da maydon nomini {1} ajratilgan maydonga o'rnatib bo'lmaydi"
 
-#: frappe/core/doctype/doctype/doctype.py:1295
+#: frappe/core/doctype/doctype/doctype.py:1314
 msgid "{0}: fieldname cannot be set to reserved keyword {1}"
 msgstr "{0}: maydon nomini zaxiralangan kalit so'zga o'rnatib bo'lmaydi {1}"
 
@@ -33904,11 +33987,11 @@ msgstr "{0}: {1}"
 msgid "{0}: {1} is set to state {2}"
 msgstr "{0}: {1} {2} holatiga o'rnatilgan"
 
-#: frappe/public/js/frappe/views/reports/query_report.js:1339
+#: frappe/public/js/frappe/views/reports/query_report.js:1355
 msgid "{0}: {1} vs {2}"
 msgstr "{0}: {1} va {2}"
 
-#: frappe/core/doctype/doctype/doctype.py:1473
+#: frappe/core/doctype/doctype/doctype.py:1492
 msgid "{0}:Fieldtype {1} for {2} cannot be indexed"
 msgstr "{0}:Maydon turi {1} uchun {2} indekslanib bo'lmaydi"
 
@@ -33932,7 +34015,7 @@ msgstr "{count} qator tanlandi"
 msgid "{count} rows selected"
 msgstr "{count} qatorlar tanlandi"
 
-#: frappe/core/doctype/doctype/doctype.py:1527
+#: frappe/core/doctype/doctype/doctype.py:1546
 msgid "{{{0}}} is not a valid fieldname pattern. It should be {{field_name}}."
 msgstr "{{{0}}} yaroqli maydon nomi naqsh emas. U {{field_name}} bo'lishi kerak."
 
