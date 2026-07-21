@@ -3,7 +3,7 @@ msgstr ""
 "Project-Id-Version: frappe\n"
 "Report-Msgid-Bugs-To: developers@frappe.io\n"
 "POT-Creation-Date: 2026-06-24 16:55+0000\n"
-"PO-Revision-Date: 2026-07-05 21:52\n"
+"PO-Revision-Date: 2026-07-21 13:56\n"
 "Last-Translator: developers@frappe.io\n"
 "Language-Team: Italian\n"
 "MIME-Version: 1.0\n"
@@ -1740,7 +1740,7 @@ msgstr "Allinea a destra"
 
 #: frappe/printing/page/print_format_builder/print_format_builder.js:481
 msgid "Align Value"
-msgstr "Allinea Valore"
+msgstr ""
 
 #. Name of a role
 #. Option for the 'Frequency' (Select) field in DocType 'Scheduled Job Type'
@@ -3812,7 +3812,7 @@ msgstr "Bot"
 
 #: frappe/printing/page/print_format_builder/print_format_builder.js:128
 msgid "Both DocType and Name required"
-msgstr "Sono richiesti sia il DocType che il Nome"
+msgstr ""
 
 #: frappe/templates/includes/login/login.js:25
 #: frappe/templates/includes/login/login.js:97
@@ -4772,7 +4772,7 @@ msgstr ""
 
 #: frappe/printing/page/print_format_builder/print_format_builder_column_selector.html:1
 msgid "Check columns to select, drag to set order."
-msgstr "Seleziona le colonne da visualizzare, trascina per impostare l'ordine."
+msgstr ""
 
 #: frappe/automation/doctype/auto_repeat/auto_repeat.py:457
 msgid "Check the Error Log for more information: {0}"
@@ -4939,7 +4939,7 @@ msgstr "Cancellazione della data di fine, poiché non può essere nel passato pe
 
 #: frappe/public/js/frappe/views/dashboard/dashboard_view.js:195
 msgid "Click On Customize to add your first widget"
-msgstr "Fare clic su Personalizza per aggiungere il primo widget"
+msgstr ""
 
 #: frappe/templates/emails/user_invitation.html:8
 msgid "Click below to get started:"
@@ -6094,7 +6094,7 @@ msgstr "Crea email utente"
 
 #: frappe/printing/page/print_format_builder/print_format_builder_start.html:16
 msgid "Create a New Format"
-msgstr "Crea un Nuovo Formato"
+msgstr ""
 
 #: frappe/public/js/frappe/form/reminders.js:9
 msgid "Create a Reminder"
@@ -8518,7 +8518,7 @@ msgstr ""
 
 #: frappe/printing/page/print_format_builder/print_format_builder_layout.html:3
 msgid "Drag elements from the sidebar to add. Drag them back to trash."
-msgstr "Trascina gli elementi dalla barra laterale per aggiungerli. Trascinali nel cestino per rimuoverli."
+msgstr ""
 
 #: frappe/public/js/workflow_builder/WorkflowBuilder.vue:296
 msgid "Drag to add state"
@@ -8725,7 +8725,7 @@ msgstr "Modifica impostazioni report e-mail automatico"
 
 #: frappe/printing/page/print_format_builder/print_format_builder.js:721
 msgid "Edit Custom HTML"
-msgstr "Modifica HTML personalizzato"
+msgstr ""
 
 #: frappe/public/js/frappe/form/toolbar.js:574
 msgid "Edit DocType"
@@ -8773,7 +8773,7 @@ msgstr ""
 #: frappe/printing/page/print_format_builder/print_format_builder.js:604
 #: frappe/printing/page/print_format_builder/print_format_builder_layout.html:8
 msgid "Edit Heading"
-msgstr "Modifica titolo"
+msgstr ""
 
 #: frappe/public/js/print_format_builder/LetterHeadEditor.vue:52
 msgid "Edit Letter Head"
@@ -8795,7 +8795,7 @@ msgstr "Modifica Profilo"
 
 #: frappe/printing/page/print_format_builder/print_format_builder.js:175
 msgid "Edit Properties"
-msgstr "Modifica proprietà"
+msgstr ""
 
 #: frappe/printing/page/print_format_builder/print_format_builder.js:414
 msgid "Edit Section"
@@ -8819,7 +8819,7 @@ msgstr "Modalità modifica"
 
 #: frappe/printing/page/print_format_builder/print_format_builder.js:715
 msgid "Edit to add content"
-msgstr "Modifica per aggiungere contenuto"
+msgstr ""
 
 #: frappe/public/js/frappe/web_form/web_form.js:477
 msgctxt "Button in web form"
@@ -10694,7 +10694,7 @@ msgstr ""
 
 #: frappe/printing/page/print_format_builder/print_format_builder_sidebar.html:3
 msgid "Filter..."
-msgstr "Filtra..."
+msgstr ""
 
 #. Label of a Data field in DocType 'Personal Data Deletion Step'
 #: frappe/website/doctype/personal_data_deletion_step/personal_data_deletion_step.json
@@ -11100,7 +11100,7 @@ msgstr "Ad esempio:"
 
 #: frappe/printing/page/print_format_builder/print_format_builder.js:746
 msgid "For example: If you want to include the document ID, use {0}"
-msgstr "Ad esempio: se si desidera includere l'ID del documento, utilizzare {0}"
+msgstr ""
 
 #. Description of the 'Format' (Data) field in DocType 'Workspace Shortcut'
 #: frappe/desk/doctype/workspace_shortcut/workspace_shortcut.json
@@ -16818,7 +16818,7 @@ msgstr "Nome del Tipo Documento (DocType) al quale si desidera collegare questo 
 
 #: frappe/printing/page/print_format_builder/print_format_builder.js:119
 msgid "Name of the new Print Format"
-msgstr "Nome del nuovo Formato di Stampa"
+msgstr ""
 
 #: frappe/model/naming.py:496
 msgid "Name of {0} cannot be {1}"
@@ -17608,12 +17608,12 @@ msgstr ""
 
 #: frappe/printing/page/print_format_builder/print_format_builder.js:417
 msgid "No of Columns"
-msgstr "Numero di Colonne"
+msgstr ""
 
 #. Label of a Int field in DocType 'Auto Email Report'
 #: frappe/email/doctype/auto_email_report/auto_email_report.json
 msgid "No of Rows (Max 500)"
-msgstr "Numero di Righe (Max 500)"
+msgstr ""
 
 #: frappe/__init__.py:1072 frappe/client.py:126 frappe/client.py:168
 msgid "No permission for {0}"
@@ -21776,7 +21776,7 @@ msgstr "Rimuovi i lavori non riusciti"
 
 #: frappe/printing/page/print_format_builder/print_format_builder.js:490
 msgid "Remove Field"
-msgstr "Rimuovi campo"
+msgstr ""
 
 #: frappe/public/js/frappe/ui/filters/filter.js:403
 msgid "Remove Filter"
@@ -21784,7 +21784,7 @@ msgstr "Rimuovi filtro"
 
 #: frappe/printing/page/print_format_builder/print_format_builder.js:429
 msgid "Remove Section"
-msgstr "Rimuovi sezione"
+msgstr ""
 
 #: frappe/custom/doctype/customize_form/customize_form.js:138
 msgid "Remove all customizations?"
@@ -23450,7 +23450,7 @@ msgstr "Interruzione di sezione"
 
 #: frappe/printing/page/print_format_builder/print_format_builder.js:423
 msgid "Section Heading"
-msgstr "Intestazione sezione"
+msgstr ""
 
 #. Label of a Data field in DocType 'Web Page Block'
 #: frappe/website/doctype/web_page_block/web_page_block.json
@@ -23737,7 +23737,7 @@ msgstr "Seleziona formato di stampa"
 
 #: frappe/printing/page/print_format_builder/print_format_builder.js:84
 msgid "Select Print Format to Edit"
-msgstr "Seleziona formato di stampa da modificare"
+msgstr ""
 
 #. Label of a Link field in DocType 'Form Tour'
 #: frappe/desk/doctype/form_tour/form_tour.json
@@ -23746,7 +23746,7 @@ msgstr "Seleziona Report"
 
 #: frappe/printing/page/print_format_builder/print_format_builder.js:625
 msgid "Select Table Columns for {0}"
-msgstr "Seleziona colonne tabella per {0}"
+msgstr ""
 
 #: frappe/desk/page/setup_wizard/setup_wizard.js:415
 msgid "Select Time Zone"
@@ -23772,7 +23772,7 @@ msgstr "Seleziona prima un'immagine del brand."
 
 #: frappe/printing/page/print_format_builder/print_format_builder.js:110
 msgid "Select a DocType to make a new format"
-msgstr "Seleziona un DocType per creare un nuovo formato"
+msgstr ""
 
 #: frappe/integrations/doctype/webhook/webhook.py:133
 msgid "Select a document to check if it meets conditions."
@@ -24356,7 +24356,7 @@ msgstr "Imposta permessi"
 
 #: frappe/printing/page/print_format_builder/print_format_builder.js:473
 msgid "Set Properties"
-msgstr "Imposta proprietà"
+msgstr ""
 
 #. Label of a Section Break field in DocType 'Notification'
 #. Label of a Select field in DocType 'Notification'
@@ -25248,7 +25248,7 @@ msgstr "Rimbalzo temporaneo"
 
 #: frappe/printing/page/print_format_builder/print_format_builder_column_selector.html:4
 msgid "Some columns might get cut off when printing to PDF. Try to keep number of columns under 10."
-msgstr "Alcune colonne potrebbero essere tagliate durante la stampa in PDF. Cercate di mantenere il numero di colonne inferiore a 10."
+msgstr ""
 
 #. Description of the 'Sent Folder Name' (Data) field in DocType 'Email Domain'
 #: frappe/email/doctype/email_domain/email_domain.json
@@ -25519,7 +25519,7 @@ msgstr "Inizia a inserire i dati sotto questa riga"
 
 #: frappe/printing/page/print_format_builder/print_format_builder.js:167
 msgid "Start new Format"
-msgstr "Inizia nuovo formato"
+msgstr ""
 
 #. Option for the 'SSL/TLS Mode' (Select) field in DocType 'LDAP Settings'
 #: frappe/integrations/doctype/ldap_settings/ldap_settings.json
@@ -30179,7 +30179,7 @@ msgstr "Larghezza"
 
 #: frappe/printing/page/print_format_builder/print_format_builder_column_selector.html:2
 msgid "Widths can be set in px or %."
-msgstr "Le larghezze possono essere impostate in px o %."
+msgstr ""
 
 #. Label of a Check field in DocType 'Report Filter'
 #: frappe/core/doctype/report_filter/report_filter.json
@@ -30678,7 +30678,7 @@ msgstr "Hai allegato {0}"
 
 #: frappe/printing/page/print_format_builder/print_format_builder.js:743
 msgid "You can add dynamic properties from the document by using Jinja templating."
-msgstr "Puoi aggiungere proprietà dinamiche dal documento utilizzando i template Jinja."
+msgstr ""
 
 #: frappe/printing/doctype/letter_head/letter_head.js:43
 msgid "You can also access wkhtmltopdf variables (valid only in PDF print):"
@@ -30954,7 +30954,7 @@ msgstr "Hai {0} non visualizzati"
 
 #: frappe/public/js/frappe/views/dashboard/dashboard_view.js:192
 msgid "You haven't added any Dashboard Charts or Number Cards yet."
-msgstr "Non hai ancora aggiunto alcun Grafico Dashboard o Scheda Numerica."
+msgstr ""
 
 #: frappe/public/js/frappe/list/list_view.js:508
 msgid "You haven't created a {0} yet"
