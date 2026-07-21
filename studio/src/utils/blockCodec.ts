@@ -26,8 +26,8 @@ export function expandBlock(node: Record<string, any>): BlockOptions {
 	return block
 }
 
-/** Expand the compact `slots` map ({slotName: [compact blocks] | "html string"}) into Studio
- * componentSlots. slotId/parentBlockId are backfilled by the Block constructor (initializeSlots).
+/** Expand the compact `slots` map ({slotName: [compact blocks]}) into Studio componentSlots.
+ * slotId/parentBlockId are backfilled by the Block constructor (initializeSlots).
  * Mirrors BlockCodec._expand_slots. */
 function expandSlots(slots: Record<string, any> | undefined): Record<string, any> {
 	const out: Record<string, any> = {}
@@ -35,8 +35,6 @@ function expandSlots(slots: Record<string, any> | undefined): Record<string, any
 	for (const [name, content] of Object.entries(slots)) {
 		if (Array.isArray(content)) {
 			out[name] = { slotName: name, slotContent: content.map(expandBlock) }
-		} else if (typeof content === "string") {
-			out[name] = { slotName: name, slotContent: content }
 		}
 	}
 	return out

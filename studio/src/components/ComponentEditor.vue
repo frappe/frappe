@@ -60,39 +60,13 @@
 			</div>
 		</template>
 	</div>
-
-	<Dialog
-		v-if="canvasStore.activeCanvas?.selectedSlot?.slotId"
-		v-model="store.showSlotEditorDialog"
-		class="overscroll-none"
-		:title="`Edit #${canvasStore.activeCanvas?.selectedSlot?.slotName} slot for ${block.componentName}`"
-		size="3xl"
-	>
-		<template #default>
-			<Code
-				:modelValue="block.getSlotContent(canvasStore.activeCanvas?.selectedSlot?.slotName) || ''"
-				language="html"
-				height="60vh"
-				:showSaveButton="true"
-				@save="
-					(val) => {
-						if (!canvasStore.activeCanvas?.selectedSlot) return
-						props.block.updateSlot(canvasStore.activeCanvas?.selectedSlot?.slotName, val)
-						store.showSlotEditorDialog = false
-					}
-				"
-			/>
-		</template>
-	</Dialog>
 </template>
 
 <script setup lang="ts">
 import { ref, computed, onMounted, Ref, watchEffect, nextTick, inject, watch } from "vue"
-import { Dialog } from "frappe-ui"
 import BoxResizer from "@/components/BoxResizer.vue"
 import PaddingHandler from "@/components/PaddingHandler.vue"
 import MarginHandler from "@/components/MarginHandler.vue"
-import Code from "@/components/Code.vue"
 import LucideRepeat from "~icons/lucide/repeat"
 
 import Block from "@/utils/block"

@@ -37,41 +37,25 @@
 				:key="slotName"
 				v-slot:[slotName]="slotProps"
 			>
-				<template v-if="Array.isArray(slot.slotContent)">
-					<SlotScopeProvider :scope="slotProps">
-						<StudioComponent
-							v-for="slotBlock in slot?.slotContent"
-							:key="slotBlock.componentId"
-							:block="slotBlock"
-							:class="slotClasses"
-							:data-slot-id="slot.slotId"
-							:data-slot-name="slotName"
-							:data-component-id="block.componentId"
-						/>
-					</SlotScopeProvider>
-				</template>
-				<template v-else-if="isHTML(slot.slotContent)">
-					<component
-						v-memo="[slot.slotContent]"
-						:is="{ template: slot.slotContent }"
+				<SlotScopeProvider v-if="slot.slotContent.length" :scope="slotProps">
+					<StudioComponent
+						v-for="slotBlock in slot.slotContent"
+						:key="slotBlock.componentId"
+						:block="slotBlock"
 						:class="slotClasses"
 						:data-slot-id="slot.slotId"
 						:data-slot-name="slotName"
 						:data-component-id="block.componentId"
-						v-bind="slotProps"
 					/>
-				</template>
-				<template v-else>
-					<div
-						:class="[slotClasses, !slot.slotContent ? 'min-h-5 w-full' : '']"
-						:data-slot-id="slot.slotId"
-						:data-slot-name="slotName"
-						:data-component-id="block.componentId"
-						v-bind="slotProps"
-					>
-						{{ slot.slotContent }}
-					</div>
-				</template>
+				</SlotScopeProvider>
+				<!-- drop target for an empty slot -->
+				<div
+					v-else
+					:class="[slotClasses, 'min-h-5 w-full']"
+					:data-slot-id="slot.slotId"
+					:data-slot-name="slotName"
+					:data-component-id="block.componentId"
+				/>
 			</template>
 
 			<StudioComponent
@@ -124,7 +108,7 @@ import { customVueComponentsRegistry } from "@/globals"
 
 import Block from "@/utils/block"
 import useCanvasStore from "@/stores/canvasStore"
-import { getComponentRoot, isHTML, isObjectEmpty } from "@/utils/helpers"
+import { getComponentRoot, isObjectEmpty } from "@/utils/helpers"
 import { isDynamicValue } from "@/utils/code"
 
 import type { CanvasProps } from "@/types/StudioCanvas"

@@ -42,7 +42,7 @@ export type StudioMode = "select" | "container"
 export interface Slot {
 	slotId: string
 	slotName: string
-	slotContent: string | Block[]
+	slotContent: Block[]
 	parentBlockId: string
 }
 

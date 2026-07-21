@@ -22,30 +22,15 @@
 					</Combobox>
 				</template>
 
-				<div class="flex flex-col gap-3" v-if="!isObjectEmpty(block?.componentSlots)">
+				<div class="flex flex-col gap-2" v-if="!isObjectEmpty(block?.componentSlots)">
 					<div
 						v-for="(slot, name) in block?.componentSlots"
 						:key="name"
-						class="flex w-full flex-row justify-between"
+						class="flex w-full items-center justify-between gap-2"
 					>
-						<div class="flex w-full cursor-pointer items-center justify-between gap-2">
-							<div class="relative w-full">
-								<InlineInput
-									:label="name"
-									type="textarea"
-									:modelValue="getSlotContent(slot)"
-									@update:modelValue="(slotContent) => block?.updateSlot(name, slotContent)"
-									:disabled="Array.isArray(slot.slotContent)"
-								/>
-								<Badge
-									v-if="Array.isArray(slot.slotContent)"
-									variant="subtle"
-									theme="blue"
-									class="absolute left-2 top-8"
-								>
-									Component Tree
-								</Badge>
-							</div>
+						<span class="text-base text-ink-gray-8">#{{ name }}</span>
+						<div class="flex items-center gap-2">
+							<span class="text-sm text-ink-gray-5">{{ getSlotSummary(slot) }}</span>
 							<Button variant="subtle" size="sm" icon="lucide-x" @click="block?.removeSlot(name)" />
 						</div>
 					</div>
@@ -105,7 +90,6 @@ import Block from "@/utils/block"
 import { getComponentSlots } from "@/utils/components"
 import PropsEditor from "@/components/PropsEditor.vue"
 import ObjectEditor from "@/components/ObjectEditor.vue"
-import InlineInput from "@/components/InlineInput.vue"
 import EmptyState from "@/components/EmptyState.vue"
 import type { Slot } from "@/types"
 import { isObjectEmpty } from "@/utils/helpers"
@@ -142,11 +126,10 @@ watchEffect(async () => {
 	componentSlots.value = slots.map((slot) => slot.name)
 })
 
-const getSlotContent = (slot: Slot) => {
-	if (!slot.slotContent) return ""
-	else if (typeof slot.slotContent === "string") return slot.slotContent
-	// hack to show the clear button for slot blocks
-	return " "
+const getSlotSummary = (slot: Slot) => {
+	const count = slot.slotContent.length
+	if (!count) return "Empty"
+	return count === 1 ? "1 block" : `${count} blocks`
 }
 
 const sections: Record<string, { condition?: any; collapsed?: any; searchKeyWords: string }> = {

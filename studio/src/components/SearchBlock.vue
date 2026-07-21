@@ -435,9 +435,7 @@ const searchWithFilters = (searchTerm: string): Block[] => {
 
 		if (block.componentSlots) {
 			Object.values(block.componentSlots).forEach((slot) => {
-				if (Array.isArray(slot.slotContent)) {
-					slot.slotContent.forEach((child) => searchInBlock(child))
-				}
+				slot.slotContent.forEach((child) => searchInBlock(child))
 			})
 		}
 	}

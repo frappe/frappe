@@ -180,9 +180,10 @@ class StudioAppBuilder:
 
 		if slots := block.get("componentSlots"):
 			for slot in slots.values():
-				if isinstance(slot.get("slotContent"), str):
+				content = slot.get("slotContent")
+				if not isinstance(content, list):
 					continue
-				for slot_child in slot.get("slotContent"):
+				for slot_child in content:
 					self._add_block_components(slot_child)
 
 	def _add_studio_components(self, block: dict):

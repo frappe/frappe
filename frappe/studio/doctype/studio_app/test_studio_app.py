@@ -74,8 +74,8 @@ class TestStudioAppBuilder(FrappeTestCase):
 		self.assertIn("Dialog", builder.components)
 		self.assertIn("TextInput", builder.components)
 
-	def test_handles_string_slot_content(self):
-		"""String slot content should be gracefully skipped without errors."""
+	def test_handles_non_block_slot_content(self):
+		"""Legacy string slot content should be gracefully skipped without errors."""
 		app = make_studio_app(app_title="Str Slot App", app_name="str-slot-app")
 		blocks = json.dumps(
 			[

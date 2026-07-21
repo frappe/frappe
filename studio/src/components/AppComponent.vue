@@ -21,21 +21,13 @@
 				:key="slotName"
 				v-slot:[slotName]="slotProps"
 			>
-				<template v-if="Array.isArray(slot.slotContent)">
-					<SlotScopeProvider :scope="slotProps">
-						<AppComponent
-							v-for="slotBlock in slot.slotContent"
-							:block="slotBlock"
-							:key="slotBlock.componentId"
-						/>
-					</SlotScopeProvider>
-				</template>
-				<template v-else-if="isHTML(slot.slotContent)">
-					<component :is="{ template: slot.slotContent }" v-bind="slotProps" />
-				</template>
-				<template v-else v-bind="slotProps">
-					{{ slot.slotContent }}
-				</template>
+				<SlotScopeProvider :scope="slotProps">
+					<AppComponent
+						v-for="slotBlock in slot.slotContent"
+						:block="slotBlock"
+						:key="slotBlock.componentId"
+					/>
+				</SlotScopeProvider>
 			</template>
 
 			<AppComponent v-for="child in block?.children" :key="child.componentId" :block="child" />
@@ -62,7 +54,7 @@ import Block from "@/utils/block"
 import { computed, onMounted, ref, useAttrs, inject, type ComputedRef, h } from "vue"
 import type { ComponentPublicInstance } from "vue"
 import { createResource } from "frappe-ui"
-import { getComponentRoot, isHTML, isObjectEmpty } from "@/utils/helpers"
+import { getComponentRoot, isObjectEmpty } from "@/utils/helpers"
 import { useScreenSize } from "@/utils/useScreenSize"
 import { isDynamicValue } from "@/utils/code"
 import { resolveEventListener } from "@/utils/eventModifiers"

@@ -159,14 +159,7 @@ class Block implements BlockOptions {
 		if (index === -1) return
 
 		if (child.isSlotBlock()) {
-			let slotContent = this.getSlotContent(child.parentSlotName!)
-			if (!Array.isArray(slotContent)) return
-
-			if (slotContent.length === 1) {
-				this.updateSlot(child.parentSlotName!, "")
-			} else {
-				slotContent.splice(index, 1)
-			}
+			this.getSlotContent(child.parentSlotName!)?.splice(index, 1)
 		} else {
 			this.children.splice(index, 1)
 		}
@@ -185,9 +178,8 @@ class Block implements BlockOptions {
 
 	getChildIndex(child: Block) {
 		if (child.parentSlotName) {
-			return (
-				this.getSlotContent(child.parentSlotName) as Block[]
-			)?.findIndex((block) => block.componentId === child.componentId)
+			return this.getSlotContent(child.parentSlotName)
+				?.findIndex((block) => block.componentId === child.componentId)
 		}
 		return this.children.findIndex((block) => block.componentId === child.componentId)
 	}
@@ -197,10 +189,8 @@ class Block implements BlockOptions {
 		const child = this.children.find((block) => block.componentId === componentId)
 		if (child) return child
 		for (const slot of Object.values(this.componentSlots)) {
-			if (Array.isArray(slot.slotContent)) {
-				const found = slot.slotContent.find((block) => block.componentId === componentId)
-				if (found) return found
-			}
+			const found = slot.slotContent.find((block) => block.componentId === componentId)
+			if (found) return found
 		}
 		return null
 	}
@@ -646,12 +636,11 @@ class Block implements BlockOptions {
 			}
 			slot.parentBlockId = this.componentId
 
-			if (Array.isArray(slot.slotContent)) {
-				slot.slotContent = slot.slotContent.map((block) => {
-					block.parentBlock = this
-					return reactive(new Block(block))
-				})
-			}
+			// legacy pages may carry string slot content; those are migrated, ignore any leftovers
+			slot.slotContent = (Array.isArray(slot.slotContent) ? slot.slotContent : []).map((block) => {
+				block.parentBlock = this
+				return reactive(new Block(block))
+			})
 		})
 	}
 
@@ -659,7 +648,7 @@ class Block implements BlockOptions {
 		this.componentSlots[slotName] = {
 			slotName: slotName,
 			slotId: this.generateSlotId(slotName),
-			slotContent: "",
+			slotContent: [],
 			parentBlockId: this.componentId
 		}
 		nextTick(() => {
@@ -668,24 +657,16 @@ class Block implements BlockOptions {
 		})
 	}
 
-	updateSlot(slotName: string, content: string | Block | BlockOptions, index?: number | null) {
-		if (typeof content === "string") {
-			this.componentSlots[slotName].slotContent = content
-		} else {
-			if (!Array.isArray(this.componentSlots[slotName].slotContent)) {
-				this.componentSlots[slotName].slotContent = []
-			}
-
-			// for top-level blocks inside a slot
-			content.parentSlotName = slotName
-			content.parentBlock = this
-			const slotContent = this.componentSlots[slotName].slotContent as Block[]
-			index = this.getValidIndex(index, slotContent.length)
-			const childBlock = reactive(new Block(content))
-			slotContent.splice(index, 0, childBlock)
-			childBlock.selectBlock()
-			return childBlock
-		}
+	updateSlot(slotName: string, content: Block | BlockOptions, index?: number | null) {
+		// for top-level blocks inside a slot
+		content.parentSlotName = slotName
+		content.parentBlock = this
+		const slotContent = this.componentSlots[slotName].slotContent
+		index = this.getValidIndex(index, slotContent.length)
+		const childBlock = reactive(new Block(content))
+		slotContent.splice(index, 0, childBlock)
+		childBlock.selectBlock()
+		return childBlock
 	}
 
 	removeSlot(slotName: string) {
@@ -706,16 +687,6 @@ class Block implements BlockOptions {
 
 	generateSlotId(slotName: string) {
 		return `${this.componentId}:${slotName}`
-	}
-
-	isSlotEditable(slot: Slot | undefined | null) {
-		if (!slot) return false
-
-		return Boolean(
-			!this.isRoot()
-			&& slot.slotId
-			&& typeof slot.slotContent === "string"
-		)
 	}
 
 	isSlotBlock() {

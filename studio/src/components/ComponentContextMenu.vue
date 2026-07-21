@@ -17,17 +17,14 @@ import { ref, Ref } from "vue"
 import { vOnClickOutside } from "@vueuse/components"
 import ContextMenu from "@/components/ContextMenu.vue"
 import Block from "@/utils/block"
-import useStudioStore from "@/stores/studioStore"
 import useCanvasStore from "@/stores/canvasStore"
 import useComponentEditorStore from "@/stores/componentEditorStore"
 import type { ContextMenuOption } from "@/types"
-import { isObjectEmpty } from "@/utils/helpers"
 import { getBlockCopy, getComponentBlock } from "@/utils/serializer"
 import getBlockTemplate from "@/utils/blockTemplate"
 import FormDialog from "@/components/FormDialog.vue"
 import { toast } from "frappe-ui"
 
-const store = useStudioStore()
 const canvasStore = useCanvasStore()
 
 const contextMenuVisible = ref(false)
@@ -128,15 +125,6 @@ const contextMenuOptions: ContextMenuOption[] = [
 		condition: () => {
 			return !block.value.isRoot() && Boolean(block.value.getParentBlock())
 		},
-	},
-	{
-		label: "Edit Slot",
-		action: () => {
-			store.showSlotEditorDialog = true
-		},
-		condition: () =>
-			!isObjectEmpty(block.value.componentSlots) &&
-			block.value.isSlotEditable(canvasStore.activeCanvas?.selectedSlot),
 	},
 	{
 		label: "Save as Component",

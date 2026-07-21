@@ -119,7 +119,7 @@
 								:style="{ paddingLeft: `${childIndent}px` }"
 							>
 								<FeatherIcon
-									v-if="isSlotExpandable(slot, element)"
+									v-if="isSlotExpandable(slot)"
 									:name="isSlotExpanded(slot) ? 'chevron-down' : 'chevron-right'"
 									class="h-3 w-3"
 									@click.stop="toggleSlotExpanded(slot)"
@@ -128,7 +128,7 @@
 								<span class="min-h-[1em] min-w-[2em] truncate" :title="slot.slotName">#{{ slotName }}</span>
 							</div>
 
-							<div v-if="Array.isArray(slot.slotContent) && isSlotExpanded(slot)">
+							<div v-if="isSlotExpanded(slot)">
 								<ComponentLayers :blocks="slot.slotContent" ref="slotLayer" :indent="slotIndent" />
 							</div>
 						</div>
@@ -252,8 +252,8 @@ const isSlotExpanded = (slot: Slot) => {
 	return expandedSlots.value.has(slot.slotId)
 }
 
-const isSlotExpandable = (slot: Slot, block: Block) => {
-	return !block.isSlotEditable(slot) && slot.slotContent?.length > 0
+const isSlotExpandable = (slot: Slot) => {
+	return slot.slotContent.length > 0
 }
 
 const toggleSlotExpanded = (slot: Slot) => {
@@ -387,10 +387,7 @@ const moveBlockAdjacent = (draggedBlock: Block, targetBlock: Block, position: "b
 	draggedBlock.parentBlock = targetParent
 	if (targetBlock.isSlotBlock()) {
 		draggedBlock.parentSlotName = targetBlock.parentSlotName
-		let slotContent = targetParent.getSlotContent(targetBlock.parentSlotName!)
-		if (Array.isArray(slotContent)) {
-			slotContent.splice(insertIndex, 0, draggedBlock)
-		}
+		targetParent.getSlotContent(targetBlock.parentSlotName!)?.splice(insertIndex, 0, draggedBlock)
 	} else {
 		delete draggedBlock.parentSlotName
 		targetParent.children.splice(insertIndex, 0, draggedBlock)

@@ -151,7 +151,7 @@ add_block = Tool(
 					},
 					"slots": {
 						"type": "object",
-						"description": 'NAMED slots (only for components that expose them): {"<slotName>": [ child block objects ]} — each value is a list of blocks in this same schema, or a raw HTML string. Use "c" for default-slot content; use "slots" only for named slots.',
+						"description": 'NAMED slots (only for components that expose them): {"<slotName>": [ child block objects ]} — each value is a list of blocks in this same schema. Use "c" for default-slot content; use "slots" only for named slots.',
 					},
 				},
 				"required": ["name"],
@@ -210,11 +210,11 @@ set_slot = Tool(
 	description=(
 		"Fill a NAMED slot of a block that ALREADY EXISTS on the page — the component-specific slots "
 		"a frappe-ui component exposes beyond its default slot (e.g. a card's header/footer, a custom "
-		"prefix/suffix). Replaces that slot's content. Provide EITHER 'blocks' (a list of block "
-		"definitions in the add_block schema — they get their ids on the canvas, so bake any bindings/"
-		"events into their props) OR 'html' (a raw HTML string). For default-slot content, add children "
-		"with add_block instead; for a block you are CREATING this turn, put named slots in its add_block "
-		"'slots' field rather than calling this."
+		"prefix/suffix). Replaces that slot's content with 'blocks' (a list of block definitions in the "
+		"add_block schema — they get their ids on the canvas, so bake any bindings/events into their "
+		"props). A slot only holds blocks: for a text label use a TextBlock. For default-slot content, "
+		"add children with add_block instead; for a block you are CREATING this turn, put named slots in "
+		"its add_block 'slots' field rather than calling this."
 	),
 	parameters={
 		"type": "object",
@@ -229,12 +229,8 @@ set_slot = Tool(
 				"description": "Block definitions to place in the slot (add_block schema, recursively). Do NOT include ids.",
 				"items": {"type": "object"},
 			},
-			"html": {
-				"type": "string",
-				"description": "Raw HTML for the slot, as an alternative to 'blocks'.",
-			},
 		},
-		"required": ["component_id", "slot_name"],
+		"required": ["component_id", "slot_name", "blocks"],
 	},
 )
 
