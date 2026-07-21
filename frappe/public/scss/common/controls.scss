@@ -464,7 +464,10 @@ textarea.form-control {
 
 .duration-picker {
 	position: fixed;
-	z-index: 999;
+	// Must sit above Bootstrap modals (z-index 1050+) since the picker is
+	// now appended to <body> as a sibling of the modal, not a descendant.
+	// Matches the datepicker's z-index for consistent popover layering.
+	z-index: 9999;
 	border-radius: var(--radius);
 	box-shadow: var(--shadow-sm);
 	background: var(--popover-bg);
