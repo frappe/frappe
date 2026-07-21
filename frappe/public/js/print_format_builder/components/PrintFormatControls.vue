@@ -454,7 +454,14 @@
 <script setup>
 import draggable from "vuedraggable";
 import Autocomplete from "../../vue-components/Autocomplete.vue";
-import { DRAG_OPTIONS, clone_plain, get_table_columns, pluck, setDragging } from "../utils";
+import {
+	DRAG_OPTIONS,
+	clone_plain,
+	freshen_field,
+	get_table_columns,
+	pluck,
+	setDragging,
+} from "../utils";
 import { mountColorControl } from "./inspector/useColorControl";
 import { useStore } from "../stores";
 import { computed, onMounted, onUnmounted, nextTick, ref, watch, inject } from "vue";
@@ -797,8 +804,14 @@ function clone_as_section() {
 	return { label: "", columns: [{ label: "", fields: [] }], page_break: true };
 }
 
+// Drag-insert bypasses insert_field/insert_section, so freshen here too — a custom
+// field dropped twice would otherwise carry the same fieldname into both copies.
 function clone_snippet(snip) {
-	return clone_plain(snip.content);
+	const clone = clone_plain(snip.content);
+	if (snip.snippet_type === "Field") return freshen_field(clone);
+	delete clone.remove;
+	(clone.columns || []).forEach((c) => (c.fields || []).forEach(freshen_field));
+	return clone;
 }
 
 const SNIPPET_GROUPS = [

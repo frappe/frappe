@@ -42,6 +42,16 @@ class TestPrintFormatSnippet(IntegrationTestCase):
 				)
 				self.assertRaises(frappe.ValidationError, doc.insert)
 
+	def test_missing_content_reports_mandatory_not_a_crash(self):
+		doc = frappe.get_doc(
+			{
+				"doctype": "Print Format Snippet",
+				"name": "_Test Empty Snippet",
+				"snippet_type": "Section",
+			}
+		)
+		self.assertRaises(frappe.MandatoryError, doc.insert)
+
 	def test_standard_requires_developer_mode(self):
 		doc = frappe.get_doc(
 			{

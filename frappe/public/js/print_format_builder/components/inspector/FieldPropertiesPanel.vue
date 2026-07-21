@@ -154,23 +154,25 @@
 					:model-value="selected_field.label_color || ''"
 					@update:model-value="(v) => set_field_prop('label_color', v)"
 				>
-					<button
-						type="button"
-						class="es-button"
-						data-size="sm"
-						data-icon-button="true"
-						:data-variant="selected_field.label_bold ? 'subtle' : 'ghost'"
-						:aria-pressed="!!selected_field.label_bold"
+					<IconToggle
+						icon="bold"
 						:title="__('Bold label')"
-						@click="set_field_prop('label_bold', !selected_field.label_bold)"
-						v-html="frappe.utils.icon('bold', 'sm')"
-					></button>
+						:model-value="!!selected_field.label_bold"
+						@update:model-value="(v) => set_field_prop('label_bold', v)"
+					/>
 				</ColorField>
 				<ColorField
 					:label="__('Value')"
 					:model-value="selected_field.value_color || ''"
 					@update:model-value="(v) => set_field_prop('value_color', v)"
-				/>
+				>
+					<IconToggle
+						icon="bold"
+						:title="__('Bold value')"
+						:model-value="!!selected_field.value_bold"
+						@update:model-value="(v) => set_field_prop('value_bold', v)"
+					/>
+				</ColorField>
 			</div>
 			<StyleSection :label="__('Custom CSS')" v-model="selected_field.custom_style" />
 		</InspectorSection>
@@ -189,6 +191,7 @@ import InspectorSection from "./InspectorSection.vue";
 import StepperRow from "./StepperRow.vue";
 import StyleSection from "./StyleSection.vue";
 import ColorField from "./ColorField.vue";
+import IconToggle from "./IconToggle.vue";
 import VisibilitySection from "./VisibilitySection.vue";
 import ImageUploadControl from "./ImageUploadControl.vue";
 import { get_image_dimensions } from "../../utils";

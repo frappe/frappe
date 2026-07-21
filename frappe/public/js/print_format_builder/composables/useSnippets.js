@@ -29,38 +29,54 @@ export function useSnippets({ insert_section, insert_field, doc_type }) {
 		}
 	}
 
+	// frappe.db.get_list never settles its promise on failure, so go through
+	// xcall — a permission error must reject, not hang the builder forever.
 	async function reload() {
-		let rows;
-		try {
-			rows = await frappe.db.get_list(DOCTYPE, {
-				fields: ["name", "snippet_type", "document_type", "content"],
-				limit: 0,
-				order_by: "name asc",
-			});
-		} catch {
-			all_snippets.value = [];
-			return;
-		}
-		all_snippets.value = rows.map(parse).filter(Boolean);
+		const rows = await frappe.xcall("frappe.client.get_list", {
+			doctype: DOCTYPE,
+			fields: ["name", "snippet_type", "document_type", "content"],
+			limit_page_length: 0,
+			order_by: "name asc",
+		});
+		all_snippets.value = (rows || []).map(parse).filter(Boolean);
 	}
 
-	async function save_snippet(name, data, snippet_type = "Section", document_type) {
+	// Writes without reloading, so bulk callers pay for one round trip instead of N.
+	// The optimistic push keeps the "already exists" check honest within a batch.
+	async function write_snippet(name, data, snippet_type, document_type) {
 		name = (name || "").trim();
-		if (!name || !data) return;
-		const content = JSON.stringify(clone_plain(data));
+		if (!name || !data) return null;
+		const parsed = clone_plain(data);
+		const content = JSON.stringify(parsed);
 		const existing = all_snippets.value.find((s) => s.name === name);
+		// The docname is global, so a name taken by another document type would be
+		// silently rewritten — refuse instead of destroying a snippet the user can't see.
+		const scope = document_type ?? doc_type?.value ?? "";
+		if (existing && existing.document_type && existing.document_type !== scope) {
+			frappe.throw(
+				__("A snippet named {0} already exists for {1}.", [name, existing.document_type])
+			);
+		}
 		if (existing) {
-			await frappe.db.set_value(DOCTYPE, name, { content, snippet_type });
+			const update = { content, snippet_type };
+			if (document_type !== undefined) update.document_type = document_type;
+			await frappe.db.set_value(DOCTYPE, name, update);
+			Object.assign(existing, update, { content: parsed });
 		} else {
-			await frappe.db.insert({
-				doctype: DOCTYPE,
-				__newname: name,
+			const row = {
+				name,
 				snippet_type,
 				document_type: document_type ?? doc_type?.value ?? "",
 				content,
-			});
+			};
+			await frappe.db.insert({ doctype: DOCTYPE, __newname: name, ...row });
+			all_snippets.value.push({ ...row, content: parsed });
 		}
-		await reload();
+		return name;
+	}
+
+	async function save_snippet(name, data, snippet_type = "Section", document_type) {
+		if (await write_snippet(name, data, snippet_type, document_type)) await reload();
 	}
 
 	function insert_snippet(name) {
@@ -75,14 +91,11 @@ export function useSnippets({ insert_section, insert_field, doc_type }) {
 		await reload();
 	}
 
-	function export_snippets(names) {
-		const picked = names?.length
-			? snippets.value.filter((s) => names.includes(s.name))
-			: snippets.value;
-		if (!picked.length) return;
+	function export_snippets() {
+		if (!snippets.value.length) return;
 		const payload = {
 			version: 1,
-			snippets: picked.map((s) => ({
+			snippets: snippets.value.map((s) => ({
 				name: s.name,
 				snippet_type: s.snippet_type,
 				document_type: s.document_type || "",
@@ -103,34 +116,58 @@ export function useSnippets({ insert_section, insert_field, doc_type }) {
 		if (!Array.isArray(rows)) {
 			frappe.throw(__("This file does not contain any snippets"));
 		}
-		let imported = 0;
-		let other_doctypes = 0;
-		const current = doc_type?.value;
+		const imported = [];
 		for (const row of rows) {
 			if (!row?.name || !row?.content) continue;
-			const document_type = row.document_type || "";
-			await save_snippet(
+			const name = await write_snippet(
 				row.name,
 				row.content,
 				row.snippet_type || "Section",
-				document_type
+				row.document_type || ""
 			);
-			imported++;
-			if (document_type && current && document_type !== current) other_doctypes++;
+			if (name) imported.push(name);
 		}
 		await reload();
-		return { imported, other_doctypes };
+		const current = doc_type?.value;
+		const other_doctypes = all_snippets.value.filter(
+			(s) =>
+				imported.includes(s.name) &&
+				s.document_type &&
+				current &&
+				s.document_type !== current
+		).length;
+		return { imported: imported.length, other_doctypes };
 	}
 
+	// One-time lift of the old browser-local snippets. Anything whose name is already
+	// taken on the server stays in localStorage rather than being dropped on the floor.
 	async function migrate_legacy() {
 		const legacy = read_legacy();
 		if (!legacy.length) return;
+		const kept = [];
 		for (const snip of legacy) {
 			if (!snip?.name || !snip?.section) continue;
-			if (all_snippets.value.some((s) => s.name === snip.name)) continue;
-			await save_snippet(snip.name, snip.section, "Section", "");
+			if (all_snippets.value.some((s) => s.name === snip.name)) {
+				kept.push(snip);
+				continue;
+			}
+			await write_snippet(snip.name, snip.section, "Section", "");
 		}
-		localStorage.removeItem(LEGACY_KEY);
+		if (kept.length) {
+			localStorage.setItem(LEGACY_KEY, JSON.stringify(kept));
+			frappe.show_alert(
+				{
+					message: __(
+						"{0} saved section(s) already exist by name and were not imported",
+						[kept.length]
+					),
+					indicator: "orange",
+				},
+				7
+			);
+		} else {
+			localStorage.removeItem(LEGACY_KEY);
+		}
 		await reload();
 	}
 
@@ -139,7 +176,7 @@ export function useSnippets({ insert_section, insert_field, doc_type }) {
 		await migrate_legacy();
 	}
 
-	init().catch(() => {});
+	init().catch((e) => console.error("Could not load print format snippets", e));
 
 	return {
 		snippets,
@@ -148,6 +185,5 @@ export function useSnippets({ insert_section, insert_field, doc_type }) {
 		delete_snippet,
 		export_snippets,
 		import_snippets,
-		reload_snippets: reload,
 	};
 }

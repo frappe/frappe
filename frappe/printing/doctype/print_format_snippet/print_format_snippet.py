@@ -34,9 +34,13 @@ class PrintFormatSnippet(Document):
 				frappe.throw(_("Module is required for a standard Print Format Snippet"))
 
 	def validate_content(self):
+		# validate() runs before the mandatory check, so content can still be None here
+		if not self.content:
+			return
+
 		try:
 			content = json.loads(self.content)
-		except ValueError:
+		except (TypeError, ValueError):
 			frappe.throw(_("Content must be valid JSON"), title=_("Invalid Snippet"))
 
 		if not isinstance(content, dict):

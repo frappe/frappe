@@ -4,7 +4,6 @@
  "autoname": "Prompt",
  "creation": "2026-07-20 12:00:00.000000",
  "doctype": "DocType",
- "editable_grid": 1,
  "engine": "InnoDB",
  "field_order": [
   "snippet_type",
@@ -69,7 +68,6 @@
    "label": "Standard"
   }
  ],
- "index_web_pages_for_search": 1,
  "links": [],
  "modified": "2026-07-20 12:00:00.000000",
  "modified_by": "Administrator",
@@ -81,9 +79,7 @@
   {
    "create": 1,
    "delete": 1,
-   "email": 1,
    "export": 1,
-   "print": 1,
    "read": 1,
    "report": 1,
    "role": "System Manager",
@@ -91,8 +87,8 @@
    "write": 1
   }
  ],
- "sort_field": "modified",
- "sort_order": "DESC",
+ "sort_field": "name",
+ "sort_order": "ASC",
  "states": [],
  "track_changes": 1
 }

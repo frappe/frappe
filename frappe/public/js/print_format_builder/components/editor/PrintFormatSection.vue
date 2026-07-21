@@ -326,12 +326,14 @@ function save_as_snippet() {
 			default: props.section.label || "",
 		},
 		({ name }) => {
-			store.save_snippet(name, props.section, "Section").then(() => {
-				frappe.show_alert(
-					{ message: __("Section saved as snippet"), indicator: "green" },
-					3
-				);
-			});
+			store.save_snippet(name, props.section, "Section").then(
+				() =>
+					frappe.show_alert(
+						{ message: __("Section saved as snippet"), indicator: "green" },
+						3
+					),
+				() => {}
+			);
 		},
 		__("Save Section as Snippet"),
 		__("Save")

@@ -308,7 +308,10 @@ function label_text_style(df) {
 	};
 }
 function value_text_style(df) {
-	return df.value_color ? { color: df.value_color } : {};
+	return {
+		...(df.value_color ? { color: df.value_color } : {}),
+		...(df.value_bold ? { fontWeight: 600 } : {}),
+	};
 }
 
 let store = inject("$store");
@@ -513,12 +516,14 @@ function save_as_snippet() {
 			default: props.df.label || props.df.fieldname || "",
 		},
 		({ name }) => {
-			store.save_snippet(name, props.df, "Field").then(() => {
-				frappe.show_alert(
-					{ message: __("Field saved as snippet"), indicator: "green" },
-					3
-				);
-			});
+			store.save_snippet(name, props.df, "Field").then(
+				() =>
+					frappe.show_alert(
+						{ message: __("Field saved as snippet"), indicator: "green" },
+						3
+					),
+				() => {}
+			);
 		},
 		__("Save Field as Snippet"),
 		__("Save")

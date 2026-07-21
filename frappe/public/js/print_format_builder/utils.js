@@ -199,6 +199,7 @@ export const FIELD_PLUCK_KEYS = [
 	"visible_if",
 	"custom_style",
 	"value_color",
+	"value_bold",
 	"label_color",
 	"label_bold",
 	"custom",
