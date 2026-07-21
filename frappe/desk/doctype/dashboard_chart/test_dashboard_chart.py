@@ -212,6 +212,7 @@ class TestDashboardChart(IntegrationTestCase):
 			timeseries=1,
 		)
 		chart.insert()
+		self.addCleanup(chart.delete)
 
 	def test_daily_dashboard_chart(self):
 		insert_test_records(self.doctype_name)
