@@ -243,6 +243,47 @@ body.sidebar-collapsed .workspace-dock-resize-handle {
 	display: block;
 }
 
+// The visible twin of the handle above, mirroring .body-sidebar .sidebar-toggle-btn so the expand
+// affordance lands in the same spot and looks the same as the collapse one it replaces.
+.workspace-dock-toggle-btn {
+	position: absolute;
+	right: -12px;
+	bottom: 80px;
+	width: 24px;
+	height: 24px;
+	border-radius: 50%;
+	border: 1px solid var(--sidebar-border-color);
+	background: var(--surface-sidebar);
+	box-shadow: 0 1px 4px rgba(0, 0, 0, 0.1);
+	align-items: center;
+	justify-content: center;
+	cursor: pointer;
+	padding: 0;
+	opacity: 0;
+	visibility: hidden;
+	transition: opacity 0.15s ease, visibility 0.15s ease;
+	z-index: 1023;
+	display: none;
+
+	svg {
+		width: 12px;
+		height: 12px;
+	}
+
+	&:hover {
+		background: var(--sidebar-hover-color);
+	}
+}
+
+body.sidebar-collapsed .workspace-dock-toggle-btn {
+	display: flex;
+}
+
+body.sidebar-collapsed .workspace-dock:hover .workspace-dock-toggle-btn {
+	opacity: 1;
+	visibility: visible;
+}
+
 // mirror the body sidebar: the rail collapses away on mobile
 @include media-breakpoint-down(sm) {
 	.workspace-dock {
