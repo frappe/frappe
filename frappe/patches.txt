@@ -198,6 +198,8 @@ frappe.integrations.doctype.oauth_bearer_token.patches.clear_old_tokens
 frappe.patches.v16_0.hash_oauth_bearer_tokens
 execute:frappe.db.truncate("Desktop Icon")
 
+frappe.patches.v16_0.move_show_label_colon_to_print_format
+
 [post_model_sync]
 execute:frappe.get_doc('Role', 'Guest').save() # remove desk access
 frappe.core.doctype.role.patches.v13_set_default_desk_properties

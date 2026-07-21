@@ -54,6 +54,7 @@ class PrintFormat(Document):
 		raw_commands: DF.Code | None
 		raw_printing: DF.Check
 		report: DF.Link | None
+		show_label_colon: DF.Check
 		show_section_headings: DF.Check
 		standard: DF.Literal["No", "Yes"]
 		value_color: DF.Color | None

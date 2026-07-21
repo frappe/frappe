@@ -19,7 +19,7 @@
 	<style>{{ letterhead.custom_css }}</style>
 	{%- endif -%}
 </head>
-<body class="print-format-doc{% if print_settings and print_settings.show_label_colon %} show-label-colon{% endif %}">
+<body class="print-format-doc{% if print_format and print_format.show_label_colon %} show-label-colon{% endif %}">
 	{{ action_banner or '' }}
 	{%- if repeat_frame -%}
 	<table class="print-repeating-frame">

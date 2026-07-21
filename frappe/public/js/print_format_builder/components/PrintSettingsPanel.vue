@@ -77,6 +77,17 @@
 		</div>
 
 		<div class="form-group">
+			<label class="pfb-check">
+				<input
+					type="checkbox"
+					:checked="!!print_format.show_label_colon"
+					@change="(e) => (print_format.show_label_colon = e.target.checked ? 1 : 0)"
+				/>
+				{{ __("Show colon after labels") }}
+			</label>
+		</div>
+
+		<div class="form-group">
 			<label class="control-label">{{ __("Page Number") }}</label>
 			<select class="form-control form-control-sm" v-model="print_format.page_number">
 				<option v-for="p in page_number_positions" :value="p.value">{{ p.label }}</option>
@@ -247,5 +258,14 @@ onMounted(() => {
 
 .pfb-margin-label {
 	font-size: var(--text-tiny);
+}
+
+.pfb-check {
+	display: flex;
+	align-items: center;
+	gap: 6px;
+	margin: 0;
+	font-size: var(--text-sm);
+	cursor: pointer;
 }
 </style>
