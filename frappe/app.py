@@ -2,8 +2,11 @@
 # License: MIT. See LICENSE
 
 import functools
+import itertools
 import logging
 import os
+import random
+import time
 
 import orjson
 from werkzeug.exceptions import HTTPException, NotFound
@@ -103,55 +106,65 @@ def application(request: Request):
 	response = None
 
 	try:
-		init_request(request)
+		for attempt in itertools.count():
+			try:
+				init_request(request)
 
-		validate_auth()
+				validate_auth()
 
-		if request.method == "OPTIONS":
-			response = Response()
+				if request.method == "OPTIONS":
+					response = Response()
 
-		elif frappe.form_dict.cmd:
-			from frappe.deprecation_dumpster import deprecation_warning
+				elif frappe.form_dict.cmd:
+					from frappe.deprecation_dumpster import deprecation_warning
 
-			deprecation_warning(
-				"unknown",
-				"v17",
-				f"{frappe.form_dict.cmd}: Sending `cmd` for RPC calls is deprecated, call REST API instead `/api/method/cmd`",
-			)
-			frappe.handler.handle()
-			response = frappe.utils.response.build_response("json")
+					deprecation_warning(
+						"unknown",
+						"v17",
+						f"{frappe.form_dict.cmd}: Sending `cmd` for RPC calls is deprecated, call REST API instead `/api/method/cmd`",
+					)
+					frappe.handler.handle()
+					response = frappe.utils.response.build_response("json")
 
-		elif request.path.startswith("/api/"):
-			response = frappe.api.handle(request)
+				elif request.path.startswith("/api/"):
+					response = frappe.api.handle(request)
 
-		elif request.path.startswith("/backups"):
-			response = frappe.utils.response.download_backup(request.path)
+				elif request.path.startswith("/backups"):
+					response = frappe.utils.response.download_backup(request.path)
 
-		elif request.path.startswith("/private/files/"):
-			response = frappe.utils.response.download_private_file(request.path)
+				elif request.path.startswith("/private/files/"):
+					response = frappe.utils.response.download_private_file(request.path)
 
-		elif request.path == "/.well-known/security.txt" and request.method == "GET":
-			if request.scheme != "https":
-				raise NotFound
-			security_settings = frappe.get_doc("Security Settings")
-			response = Response(security_settings.security_txt, content_type="text/plain")
+				elif request.path == "/.well-known/security.txt" and request.method == "GET":
+					if request.scheme != "https":
+						raise NotFound
+					security_settings = frappe.get_doc("Security Settings")
+					response = Response(security_settings.security_txt, content_type="text/plain")
 
-		elif request.path.startswith("/.well-known/") and request.method == "GET":
-			response = handle_wellknown(request.path)
+				elif request.path.startswith("/.well-known/") and request.method == "GET":
+					response = handle_wellknown(request.path)
 
-		elif request.method in ("GET", "HEAD", "POST"):
-			response = get_response()
+				elif request.method in ("GET", "HEAD", "POST"):
+					response = get_response()
 
-		else:
-			raise NotFound
+				else:
+					raise NotFound
 
-	except Exception as e:
-		response = e.get_response(request.environ) if isinstance(e, HTTPException) else handle_exception(e)
-		if db := getattr(frappe.local, "db", None):
-			db.rollback(chain=True)
+			except Exception as e:
+				if should_retry_transaction_conflict(e, attempt):
+					frappe.local.db.rollback()
+					transaction_conflict_backoff(attempt)
+					continue
+				response = (
+					e.get_response(request.environ) if isinstance(e, HTTPException) else handle_exception(e)
+				)
+				if db := getattr(frappe.local, "db", None):
+					db.rollback(chain=True)
 
-	else:
-		sync_database()
+			else:
+				sync_database()
+
+			break
 
 	finally:
 		# Important note:
@@ -168,6 +181,36 @@ def application(request: Request):
 	process_response(response)
 
 	return response
+
+
+# Replay budget for a request whose transaction lost a serialization/deadlock conflict
+# (SERIALIZATION_FAILURE on postgres, ER_LOCK_DEADLOCK / ER_CHECKREAD on mariadb).
+# Overridable per site with `db_conflict_retries` (0 disables).
+TRANSACTION_CONFLICT_RETRIES = 2
+
+
+def should_retry_transaction_conflict(exception, attempt) -> bool:
+	"""A lost conflict rolled the whole transaction back, so replaying the request is an
+	all-or-nothing redo. Only safe while nothing was committed mid-request: after a commit,
+	a replay would apply the already-committed work twice."""
+	db = getattr(frappe.local, "db", None)
+	if db is None or db.commit_count:
+		return False
+
+	is_conflict = isinstance(exception, frappe.QueryDeadlockError) or (
+		isinstance(exception, db.InternalError) and db.is_deadlocked(exception)
+	)
+	if not is_conflict:
+		return False
+
+	retries = frappe.local.conf.get("db_conflict_retries")
+	return attempt < (cint(retries) if retries is not None else TRANSACTION_CONFLICT_RETRIES)
+
+
+def transaction_conflict_backoff(attempt):
+	# Full jitter: two conflicting requests that both retry after a fixed delay would
+	# just collide again in lockstep.
+	time.sleep(random.uniform(0, 0.2 * (2**attempt)))
 
 
 def run_after_request_hooks(request, response):
