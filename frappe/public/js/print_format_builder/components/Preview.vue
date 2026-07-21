@@ -1,5 +1,10 @@
 <template>
-	<div class="pfb-preview-dock">
+	<div class="pfb-preview-dock" :style="{ width: dock_width + 'px' }">
+		<div
+			class="pfb-preview-resizer"
+			:title="__('Drag to resize')"
+			@mousedown.prevent="start_resize"
+		></div>
 		<div class="pfb-preview-head">
 			<span class="pfb-preview-title">{{ __("Preview") }}</span>
 			<select class="pfb-preview-type" v-model="type">
@@ -32,26 +37,101 @@
 		<div v-else-if="!preview_loaded" class="pfb-preview-empty">
 			{{ __("Generating preview...") }}
 		</div>
-		<iframe
-			ref="iframe"
-			:src="type === 'PDF' ? url : undefined"
-			v-show="docname && preview_loaded"
-			class="pfb-preview-iframe"
-			@load="type === 'PDF' && (preview_loaded = true)"
-		></iframe>
+		<div ref="viewport" class="pfb-preview-viewport" v-show="docname && preview_loaded">
+			<!-- the page renders at its true width and is scaled down to fit the rail -->
+			<div class="pfb-preview-stage" :style="stage_style">
+				<iframe
+					ref="iframe"
+					:src="type === 'PDF' ? url : undefined"
+					class="pfb-preview-iframe"
+					:style="frame_style"
+					@load="type === 'PDF' && (preview_loaded = true)"
+				></iframe>
+			</div>
+		</div>
 	</div>
 </template>
 
 <script setup>
 import { useStore } from "../stores";
-import { ref, computed, onMounted, watch } from "vue";
+import { ref, computed, nextTick, onMounted, onUnmounted, watch } from "vue";
 
 let { print_format, layout, store } = useStore();
+
+const DOCK_KEY = "pfb_preview_width";
+const DOCK_MIN = 320;
+const DOCK_MAX = 1100;
 
 let type = ref("HTML");
 let preview_loaded = ref(false);
 let iframe = ref(null);
+let viewport = ref(null);
 let render_seq = 0;
+
+let dock_width = ref(clamp_width(parseInt(localStorage.getItem(DOCK_KEY)) || 520));
+let page = ref({ w: 0, h: 0 });
+let scale = ref(1);
+
+function clamp_width(w) {
+	return Math.min(DOCK_MAX, Math.max(DOCK_MIN, w));
+}
+
+// The PDF viewer does its own fitting; only the HTML render needs scaling.
+let is_scaled = computed(() => type.value === "HTML" && page.value.w > 0);
+
+let stage_style = computed(() =>
+	is_scaled.value
+		? {
+				width: `${page.value.w * scale.value}px`,
+				height: `${page.value.h * scale.value}px`,
+		  }
+		: { flex: "1", width: "100%" }
+);
+
+let frame_style = computed(() =>
+	is_scaled.value
+		? {
+				width: `${page.value.w}px`,
+				height: `${page.value.h}px`,
+				transform: `scale(${scale.value})`,
+				transformOrigin: "top left",
+		  }
+		: { width: "100%", height: "100%" }
+);
+
+function fit_preview() {
+	if (type.value === "PDF") {
+		page.value = { w: 0, h: 0 };
+		return;
+	}
+	const cd = iframe.value?.contentDocument;
+	const box = viewport.value;
+	if (!cd?.documentElement || !box) return;
+	const w = cd.documentElement.scrollWidth;
+	const h = cd.documentElement.scrollHeight;
+	if (!w || !h) return;
+	page.value = { w, h };
+	// never blow a narrow page up past its natural size
+	scale.value = Math.min(1, (box.clientWidth - 16) / w);
+}
+
+let resize_observer = null;
+
+function start_resize(e) {
+	const start_x = e.clientX;
+	const start_w = dock_width.value;
+	const on_move = (ev) => {
+		// the dock is on the right, so dragging left widens it
+		dock_width.value = clamp_width(start_w + (start_x - ev.clientX));
+	};
+	const on_up = () => {
+		document.removeEventListener("mousemove", on_move);
+		document.removeEventListener("mouseup", on_up);
+		localStorage.setItem(DOCK_KEY, dock_width.value);
+	};
+	document.addEventListener("mousemove", on_move);
+	document.addEventListener("mouseup", on_up);
+}
 
 // the canvas toolbar owns the record picker; the dock just follows it
 let docname = computed(() => store.value.preview_doc_name);
@@ -102,6 +182,8 @@ function render() {
 			if (seq !== render_seq) return;
 			write_iframe(r.message || "");
 			preview_loaded.value = true;
+			// measure after the document has laid out, not before
+			nextTick(() => setTimeout(fit_preview, 0));
 		})
 		.catch(() => {
 			if (seq !== render_seq) return;
@@ -127,19 +209,40 @@ const auto_render = frappe.utils.debounce(() => {
 
 watch(() => layout.value, auto_render, { deep: true });
 watch([docname, type], render);
+watch(type, fit_preview);
 
-onMounted(render);
+onMounted(() => {
+	render();
+	resize_observer = new ResizeObserver(fit_preview);
+	if (viewport.value) resize_observer.observe(viewport.value);
+});
+
+onUnmounted(() => resize_observer?.disconnect());
 </script>
 
 <style scoped>
 .pfb-preview-dock {
+	position: relative;
 	display: flex;
 	flex-direction: column;
-	width: 420px;
 	flex-shrink: 0;
 	border-left: 1px solid var(--border-color);
 	background: var(--fg-color);
 	overflow: hidden;
+}
+
+.pfb-preview-resizer {
+	position: absolute;
+	top: 0;
+	left: -3px;
+	width: 6px;
+	height: 100%;
+	cursor: col-resize;
+	z-index: 1;
+}
+
+.pfb-preview-resizer:hover {
+	background: var(--gray-200);
 }
 
 .pfb-preview-head {
@@ -193,10 +296,25 @@ onMounted(render);
 	border-bottom: 1px solid var(--border-color);
 }
 
-.pfb-preview-iframe {
+.pfb-preview-viewport {
 	flex: 1;
-	width: 100%;
-	border: none;
 	min-height: 0;
+	overflow: auto;
+	padding: 8px;
+	display: flex;
+	justify-content: center;
+	background: var(--gray-100);
+}
+
+.pfb-preview-stage {
+	position: relative;
+	flex-shrink: 0;
+	background: white;
+	box-shadow: var(--shadow-sm);
+}
+
+.pfb-preview-iframe {
+	border: none;
+	display: block;
 }
 </style>

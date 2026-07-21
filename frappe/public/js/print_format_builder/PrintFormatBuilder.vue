@@ -526,10 +526,11 @@ defineExpose({ toggle_preview, show_preview, $store });
 	color: var(--text-color);
 }
 
+/* Save is the only primary action on this page — an active toggle stays quiet */
 .canvas-preview-toggle.active {
-	background: var(--text-color);
-	border-color: var(--text-color);
-	color: var(--fg-color);
+	background: var(--gray-100);
+	border-color: var(--gray-300);
+	color: var(--text-color);
 }
 
 .canvas-zoom-btn {
