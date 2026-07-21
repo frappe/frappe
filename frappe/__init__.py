@@ -451,7 +451,18 @@ def whitelist(allow_guest=False, xss_safe=False, methods=None):
 	"""
 
 	if not methods:
+<<<<<<< HEAD
 		methods = ["GET", "POST", "PUT", "DELETE"]
+=======
+		methods = ("GET", "POST", "PUT", "DELETE", "QUERY")
+	elif isinstance(methods, str):
+		methods = (methods,)
+	else:
+		methods = tuple(methods)
+>>>>>>> 70760a5 (feat: support QUERY HTTP method (RFC 10008))
+
+	if "GET" in methods and "QUERY" not in methods:
+		methods = (*methods, "QUERY")
 
 	def innerfn(fn):
 		from frappe.utils.typing_validations import validate_argument_types

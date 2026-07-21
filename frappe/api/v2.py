@@ -24,6 +24,7 @@ from frappe.mcp import handle as handle_mcp
 PERMISSION_MAP = {
 	"GET": "read",
 	"POST": "write",
+	"QUERY": "read",
 }
 
 
@@ -235,6 +236,12 @@ def execute_doc_method(doctype: str, name: str, method: str | None = None):
 	fn = getattr(method_obj, "__func__", method_obj)
 	is_valid_http_method(fn)
 
+<<<<<<< HEAD
+=======
+	assert frappe.request.method in PERMISSION_MAP, (
+		"execute_doc_method route is only mounted for GET/POST/QUERY"
+	)
+>>>>>>> 70760a5 (feat: support QUERY HTTP method (RFC 10008))
 	doc.check_permission(PERMISSION_MAP[frappe.request.method])
 	result = doc.run_method(method, **frappe.form_dict)
 	doc.apply_fieldlevel_read_permissions()
@@ -258,6 +265,7 @@ def run_doc_method(method: str, document: dict[str, Any] | str, kwargs=None):
 	if kwargs is None:
 		kwargs = {}
 
+<<<<<<< HEAD
 	doc = frappe.get_doc(document)
 	ptype = PERMISSION_MAP[frappe.request.method]
 	# unsaved docs need create, not write; `__islocal` comes from the client, so check the DB too
@@ -269,6 +277,10 @@ def run_doc_method(method: str, document: dict[str, Any] | str, kwargs=None):
 		frappe.has_permission(doc.doctype, ptype, doc.name, throw=True)
 	else:
 		doc.check_permission(ptype)
+=======
+	assert frappe.request.method in PERMISSION_MAP, "run_doc_method route is only mounted for GET/POST/QUERY"
+	doc = frappe.get_doc(document, check_permission=PERMISSION_MAP[frappe.request.method])
+>>>>>>> 70760a5 (feat: support QUERY HTTP method (RFC 10008))
 	doc._original_modified = doc.modified
 	doc.check_if_latest()
 
@@ -309,12 +321,12 @@ url_rules = [
 	Rule("/method/<method>", endpoint=handle_rpc_call),
 	Rule(
 		"/method/run_doc_method",
-		methods=["GET", "POST"],
+		methods=["GET", "POST", "QUERY"],
 		endpoint=lambda: frappe.call(run_doc_method, **frappe.form_dict),
 	),
 	Rule("/method/<doctype>/<method>", endpoint=handle_rpc_call),
 	# Document level APIs
-	Rule("/document/<doctype>", methods=["GET"], endpoint=document_list),
+	Rule("/document/<doctype>", methods=["GET", "QUERY"], endpoint=document_list),
 	Rule("/document/<doctype>", methods=["POST"], endpoint=create_doc),
 	Rule("/document/<doctype>/<path:name>/", methods=["GET"], endpoint=read_doc),
 	Rule("/document/<doctype>/<path:name>/copy", methods=["GET"], endpoint=copy_doc),
@@ -322,10 +334,10 @@ url_rules = [
 	Rule("/document/<doctype>/<path:name>/", methods=["DELETE"], endpoint=delete_doc),
 	Rule(
 		"/document/<doctype>/<path:name>/method/<method>/",
-		methods=["GET", "POST"],
+		methods=["GET", "POST", "QUERY"],
 		endpoint=execute_doc_method,
 	),
 	# Collection level APIs
 	Rule("/doctype/<doctype>/meta", methods=["GET"], endpoint=get_meta),
-	Rule("/doctype/<doctype>/count", methods=["GET"], endpoint=count),
+	Rule("/doctype/<doctype>/count", methods=["GET", "QUERY"], endpoint=count),
 ]
