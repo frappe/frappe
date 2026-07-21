@@ -143,8 +143,8 @@
 			</draggable>
 		</div>
 
-		<!-- ── Templates ─────────────────────────────────────── -->
-		<div v-else-if="activeTab === 'templates'" class="pfb-tab-body">
+		<!-- ── Library ───────────────────────────────────────── -->
+		<div v-else-if="activeTab === 'library'" class="pfb-tab-body">
 			<div class="pfb-group-label">
 				{{ __("Saved Snippets") }}
 				<span class="pfb-label-actions">
@@ -490,7 +490,7 @@ let { meta, print_format, layout } = useStore();
 const tabs = computed(() => [
 	{ id: "fields", label: __("Fields") },
 	{ id: "blocks", label: __("Blocks") },
-	{ id: "templates", label: __("Templates") },
+	{ id: "library", label: __("Library") },
 	{ id: "outline", label: __("Outline") },
 	{ id: "format", label: __("Setting") },
 ]);
@@ -884,7 +884,7 @@ let field_groups = computed(() => {
 	return groups.filter((g) => g.fields.length);
 });
 
-// ── templates tab ─────────────────────────────────────────
+// ── library tab ───────────────────────────────────────────
 function fetch_templates() {
 	const doctype = meta.value?.name;
 	if (!doctype) return;
@@ -909,7 +909,7 @@ function fetch_templates() {
 }
 
 watch(activeTab, (tab) => {
-	if (tab === "templates") fetch_templates();
+	if (tab === "library") fetch_templates();
 	if (tab === "format") nextTick(mount_color_controls);
 });
 
