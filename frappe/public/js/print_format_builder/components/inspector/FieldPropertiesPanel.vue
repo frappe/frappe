@@ -153,7 +153,19 @@
 					:label="__('Label')"
 					:model-value="selected_field.label_color || ''"
 					@update:model-value="(v) => set_field_prop('label_color', v)"
-				/>
+				>
+					<button
+						type="button"
+						class="es-button"
+						data-size="sm"
+						data-icon-button="true"
+						:data-variant="selected_field.label_bold ? 'subtle' : 'ghost'"
+						:aria-pressed="!!selected_field.label_bold"
+						:title="__('Bold label')"
+						@click="set_field_prop('label_bold', !selected_field.label_bold)"
+						v-html="frappe.utils.icon('bold', 'sm')"
+					></button>
+				</ColorField>
 				<ColorField
 					:label="__('Value')"
 					:model-value="selected_field.value_color || ''"

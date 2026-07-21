@@ -302,7 +302,10 @@ const props = defineProps(["df", "field_orientation"]);
 
 // Per-field text colour for the label and value lines.
 function label_text_style(df) {
-	return df.label_color ? { color: df.label_color } : {};
+	return {
+		...(df.label_color ? { color: df.label_color } : {}),
+		...(df.label_bold ? { fontWeight: 600 } : {}),
+	};
 }
 function value_text_style(df) {
 	return df.value_color ? { color: df.value_color } : {};

@@ -200,6 +200,7 @@ export const FIELD_PLUCK_KEYS = [
 	"custom_style",
 	"value_color",
 	"label_color",
+	"label_bold",
 	"custom",
 	"image_url",
 	"width",
