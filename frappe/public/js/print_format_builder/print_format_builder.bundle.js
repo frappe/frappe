@@ -42,9 +42,6 @@ class PrintFormatBuilder {
 		this.page.add_menu_item(__("Edit Print Format"), () => {
 			frappe.set_route("Form", "Print Format", this.print_format);
 		});
-		this.page.add_menu_item(__("Change Print Format"), () => {
-			frappe.set_route("print-format-builder");
-		});
 
 		let app = createApp(PrintFormatBuilderComponent, { print_format_name: print_format });
 		SetVueGlobals(app);
