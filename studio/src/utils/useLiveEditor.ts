@@ -1,6 +1,7 @@
 import { inject, onMounted, onBeforeUnmount } from "vue"
 
 import { fetchApp } from "@/utils/helpers"
+import { invalidateComponentCache, getComponentSlots } from "@/utils/components"
 import useStudioStore from "@/stores/studioStore"
 import useComponentStore from "@/stores/componentStore"
 
@@ -40,13 +41,27 @@ export function useLiveEditor() {
 	// dev; content edits hot-reload on their own). Reload the app's component set.
 	const onCustomComponentsChanged = () => store.loadCustomVueComponents()
 
+	// 3. A custom .vue component's content changed on disk. Vite hot-reloads its rendered module,
+	// but our template/slot caches keep the stale copy — so a newly added/removed <slot> wouldn't
+	// affect droppability. Drop the caches for the edited component and re-warm its slots.
+	const onCustomComponentFileChanged = ({ path }: { path: string }) => {
+		const component = store.customVueComponents.find(
+			(comp) => `${comp.studio_app}/${comp.studio_file_path}` === path,
+		)
+		if (!component) return
+		invalidateComponentCache(component.component_name)
+		void getComponentSlots(component.component_name, true)
+	}
+
 	onMounted(() => {
 		socket?.on("studio_doc_update", onDiskSync)
 		import.meta.hot?.on("studio:custom-components-changed", onCustomComponentsChanged)
+		import.meta.hot?.on("studio:file-changed", onCustomComponentFileChanged)
 	})
 	onBeforeUnmount(() => {
 		socket?.off("studio_doc_update", onDiskSync)
 		import.meta.hot?.off("studio:custom-components-changed", onCustomComponentsChanged)
+		import.meta.hot?.off("studio:file-changed", onCustomComponentFileChanged)
 	})
 }
 

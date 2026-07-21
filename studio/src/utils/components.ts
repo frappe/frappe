@@ -4,7 +4,7 @@ import type { VueProp, VuePropType } from "@/types/vue"
 
 import * as jsonTypes from "@/json_types"
 import { isObjectEmpty } from "@/utils/helpers"
-import { ConcreteComponent } from "vue"
+import { ConcreteComponent, reactive } from "vue"
 import type { CustomVueComponentMeta } from "@/types/vue"
 
 interface ComponentTypes {
@@ -219,11 +219,13 @@ const frameworkUIComponentPaths: Record<string, string> = {
 const templateCache = new Map<string, string>()
 
 const customComponentFilePaths = new Map<string, string>()
-function setCustomComponentFilePaths(components: CustomVueComponentMeta[]) {
+
+async function registerCustomComponentPaths(components: CustomVueComponentMeta[]) {
 	customComponentFilePaths.clear()
 	for (const comp of components) {
 		customComponentFilePaths.set(comp.component_name, comp.file_path)
 	}
+	await Promise.all(components.map((comp) => getComponentSlots(comp.component_name, true)))
 }
 
 function getComponentTemplate(componentName: string): string {
@@ -281,8 +283,11 @@ async function fetchCustomComponentTemplate(componentName: string): Promise<stri
 	if (!filePath) return ""
 
 	try {
-		// Use Vite's ?raw import to get unprocessed file content as a string
-		const module = await import(/* @vite-ignore */ `${filePath}?raw`)
+		// Use Vite's ?raw import to get unprocessed file content as a string. In dev, a unique
+		// query busts the browser's ES-module cache so a re-fetch after invalidateComponentCache
+		// (HMR content edit) gets the new source instead of the stale cached module.
+		const cacheBust = import.meta.env.DEV ? `&t=${Date.now()}` : ""
+		const module = await import(/* @vite-ignore */ `${filePath}?raw${cacheBust}`)
 		const rawSource = module.default || ""
 		if (rawSource) {
 			templateCache.set(componentName, rawSource)
@@ -296,35 +301,42 @@ async function fetchCustomComponentTemplate(componentName: string): Promise<stri
 
 function parseSlotsFromTemplate(template: string) {
 	const slotRegex = /<slot\s*(?:name=["']([^"']*)?["'])?(?:\s*\/>|\s*>(.*?)<\/slot>)?/gi
-	const slots = []
+	const slots = new Map<string, { name: string; type: "named" | "default" }>()
 	let match
 
 	while ((match = slotRegex.exec(template)) !== null) {
-		// Named slot with name attribute
-		const namedSlot = match[1]
-		// Default/unnamed slot or slot content
-		const defaultSlotContent = match[2]
-
-		if (namedSlot) {
-			slots.push({
-				name: namedSlot,
-				type: "named",
-				hasDefaultContent: !!defaultSlotContent,
-			})
-		} else if (defaultSlotContent || match[0].includes("<slot")) {
-			slots.push({
-				name: "default",
-				type: "default",
-				hasDefaultContent: !!defaultSlotContent,
-			})
+		const name = match[1] || "default"
+		if (!slots.has(name)) {
+			slots.set(name, { name, type: match[1] ? "named" : "default" })
 		}
 	}
+	return [...slots.values()]
+}
+
+const slotsCache = reactive(new Map<string, ReturnType<typeof parseSlotsFromTemplate>>())
+
+async function getComponentSlots(componentName: string, isCustomVueComponent?: boolean) {
+	const cached = slotsCache.get(componentName)
+	if (cached) return cached
+	const template = isCustomVueComponent
+		? await fetchCustomComponentTemplate(componentName)
+		: getComponentTemplate(componentName)
+	const slots = parseSlotsFromTemplate(template)
+	if (template) slotsCache.set(componentName, slots)
 	return slots
 }
 
-async function getComponentSlots(componentName: string, isCustomVueComponent?: boolean) {
-	const template = isCustomVueComponent ? await fetchCustomComponentTemplate(componentName) : getComponentTemplate(componentName)
-	return parseSlotsFromTemplate(template)
+function componentHasDefaultSlot(componentName: string): boolean {
+	if (!slotsCache.has(componentName)) {
+		const template = getComponentTemplate(componentName)
+		if (template) slotsCache.set(componentName, parseSlotsFromTemplate(template))
+	}
+	return (slotsCache.get(componentName) ?? []).some((slot) => slot.type === "default")
+}
+
+function invalidateComponentCache(componentName: string) {
+	templateCache.delete(componentName)
+	slotsCache.delete(componentName)
 }
 
 function resolveProperty(
@@ -369,4 +381,11 @@ function resolveProperty(
 	return { type: type as string, inputType, options }
 }
 
-export { getComponentProps, getComponentTemplate, getComponentSlots, setCustomComponentFilePaths }
+export {
+	getComponentProps,
+	getComponentTemplate,
+	getComponentSlots,
+	componentHasDefaultSlot,
+	invalidateComponentCache,
+	registerCustomComponentPaths,
+}
