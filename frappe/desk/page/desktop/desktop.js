@@ -3,19 +3,34 @@
 const DEFAULT_MENU_ITEM_ORDER = 50;
 
 frappe.pages["desktop"].on_page_load = function (wrapper) {
+	const workspace_nav = frappe.is_workspace_navigation();
 	var page = frappe.ui.make_app_page({
 		parent: wrapper,
 		title: "Desktop",
 		single_column: true,
 		hide_sidebar: true,
-		hide_workspace_dock: true,
+		// only the workspace-navigation shell has a dock to suppress
+		hide_workspace_dock: workspace_nav,
 	});
-	let desktop_page = new DesktopPage(page);
-	frappe.pages["desktop"].desktop_page = desktop_page;
+
+	if (!workspace_nav) {
+		// The desktop icon grid is ~1200 lines and lives in its own bundle, because
+		// Page.load_assets only ever serves `<page_name>.js` from this folder. Construct
+		// and update inside the callback: on_page_show fires before this resolves on the
+		// first load, so it can't be relied on to do the initial render.
+		frappe.require("desktop_v16.bundle.js").then(() => {
+			frappe.pages["desktop"].desktop_page = new frappe.ui.V16DesktopPage(page);
+			frappe.pages["desktop"].desktop_page.update();
+		});
+		return;
+	}
+
+	frappe.pages["desktop"].desktop_page = new DesktopPage(page);
 };
 
 frappe.pages["desktop"].on_page_show = function (wrapper) {
-	frappe.pages["desktop"].desktop_page.update();
+	// optional-chained: the lazy bundle above may not have resolved yet
+	frappe.pages["desktop"].desktop_page?.update();
 };
 
 class DesktopPage {

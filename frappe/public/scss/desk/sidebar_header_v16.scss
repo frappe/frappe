@@ -1,0 +1,61 @@
+.sidebar-header {
+	position: relative;
+	display: flex;
+	align-items: center;
+	padding: 8px;
+	height: 48px;
+	button {
+		margin-left: 8px;
+		@include truncate();
+	}
+}
+.header-logo-container {
+	border-radius: 8px;
+	background-color: var(--surface-gray-3);
+	&:has(img) {
+		background-color: unset;
+	}
+}
+.header-logo {
+	width: 32px;
+	height: 32px;
+
+	& .icon-container {
+		padding: 4px;
+		border-radius: 10px;
+		width: 100%;
+		height: 100%;
+		display: flex;
+		align-items: center;
+	}
+	& img {
+		width: 100%;
+		height: 100%;
+	}
+}
+.header-logo:has(img) {
+	padding: 0px;
+}
+
+.title-container {
+	flex: 1 1 0%;
+	margin-left: 8px;
+	display: flex;
+	flex-direction: column;
+	text-align: left;
+	@include truncate();
+}
+.header-title {
+	font-weight: 500;
+	line-height: 1.2;
+	@include truncate();
+	overflow: unset;
+}
+
+.header-subtitle {
+	color: var(--ink-gray-6);
+	line-height: 1.2;
+	font-size: var(--text-sm);
+	@include truncate();
+	margin-top: 3px;
+}

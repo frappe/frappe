@@ -37,6 +37,16 @@ import "./frappe/ui/sidebar/sidebar_item.html";
 import "./frappe/ui/sidebar/sidebar.js";
 import "./frappe/ui/sidebar/card.html";
 import "./frappe/ui/sidebar/card.js";
+// Desktop Icon and Workspace Sidebar navigation (System Settings -> Navigation).
+// sidebar_v16.js pulls in sidebar_item_v16 and sidebar_editor itself; the templates
+// and the card have to be listed here because nothing imports them.
+import "./frappe/ui/sidebar/sidebar_header_v16.js";
+import "./frappe/ui/sidebar/sidebar_header_v16.html";
+import "./frappe/ui/sidebar/sidebar_v16.html";
+import "./frappe/ui/sidebar/sidebar_item_v16.html";
+import "./frappe/ui/sidebar/sidebar_v16.js";
+import "./frappe/ui/sidebar/sidebar_card.html";
+import "./frappe/ui/sidebar/sidebar_card.js";
 import "./frappe/ui/link_preview.js";
 
 import "./frappe/request.js";

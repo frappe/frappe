@@ -92,6 +92,7 @@
   "allowed_doctypes_for_guest_uploads",
   "app_tab",
   "default_app",
+  "navigation",
   "updates_tab",
   "system_updates_section",
   "disable_system_update_notification",
@@ -688,6 +689,14 @@
    "label": "Default App"
   },
   {
+   "default": "Workspace",
+   "description": "Workspace uses the workspace dock, the hook-driven apps screen, and sidebars authored on the workspace itself. Desktop Icon and Workspace Sidebar keeps the desktop icon grid and the separate Workspace Sidebar doctype.",
+   "fieldname": "navigation",
+   "fieldtype": "Select",
+   "label": "Navigation",
+   "options": "Workspace\nDesktop Icon and Workspace Sidebar"
+  },
+  {
    "depends_on": "login_with_email_link",
    "description": "You can set a high value here if multiple users will be logging in from the same network.",
    "fieldname": "rate_limit_email_link_login",
@@ -840,7 +849,7 @@
  "icon": "fa fa-cog",
  "issingle": 1,
  "links": [],
- "modified": "2026-07-01 16:09:59.407976",
+ "modified": "2026-07-21 10:00:00.000000",
  "modified_by": "Administrator",
  "module": "Core",
  "name": "System Settings",

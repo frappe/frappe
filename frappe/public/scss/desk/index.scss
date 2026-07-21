@@ -32,7 +32,17 @@
 @import "desktop";
 @import "../common/awesomeplete";
 @import "main";
-@import "sidebar";
+// The two navigation systems both style `.body-sidebar` and friends, so each
+// sidebar stylesheet is scoped to the body class set in `desk.js`. Exactly one of
+// these classes is ever present. `workspace_dock` needs no scope -- its selectors
+// target elements the v16 sidebar never renders.
+@import "sidebar_variables";
+body.workspace-navigation {
+	@import "sidebar";
+}
+body.v16-navigation {
+	@import "sidebar_v16";
+}
 @import "workspace_dock";
 @import "list_sidebar";
 @import "form_sidebar";
@@ -60,7 +70,12 @@
 @import "plyr";
 @import "version";
 @import "menu";
-@import "sidebar_header";
+body.workspace-navigation {
+	@import "sidebar_header";
+}
+body.v16-navigation {
+	@import "sidebar_header_v16";
+}
 @import "card";
 @import "dock_manager";
 @import "document_template";
