@@ -4,6 +4,7 @@
 import re
 from collections.abc import Iterable
 from datetime import timedelta
+from functools import cached_property, lru_cache
 
 import frappe
 import frappe.defaults
@@ -794,9 +795,14 @@ class User(Document):
 
 @frappe.whitelist()
 def get_timezones():
+	return {"timezones": _get_timezones()}
+
+
+@lru_cache(maxsize=1)
+def _get_timezones():
 	import pytz
 
-	return {"timezones": pytz.all_timezones}
+	return sorted(pytz.common_timezones)
 
 
 @frappe.whitelist()
