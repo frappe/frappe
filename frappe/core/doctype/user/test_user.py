@@ -319,10 +319,11 @@ class TestUser(IntegrationTestCase):
 		new_name = "test_user_rename_ws_new@example.com"
 		actor_name = "test_user_rename_ws_actor@example.com"
 
+		old_workspace = f"Test Rename Workspace-{old_name}"
 		for email in (old_name, new_name, actor_name):
 			frappe.delete_doc("User", email, ignore_permissions=True, force=True)
-		if frappe.db.exists("Workspace", "Test Rename Workspace"):
-			frappe.delete_doc("Workspace", "Test Rename Workspace", ignore_permissions=True, force=True)
+		if frappe.db.exists("Workspace", old_workspace):
+			frappe.delete_doc("Workspace", old_workspace, ignore_permissions=True, force=True)
 
 		frappe.get_doc(
 			{
@@ -350,7 +351,7 @@ class TestUser(IntegrationTestCase):
 			{
 				"doctype": "Workspace",
 				"title": "Test Rename Workspace",
-				"label": "Test Rename Workspace",
+				"label": old_workspace,
 				"type": "Workspace",
 				"for_user": old_name,
 				"public": 0,
