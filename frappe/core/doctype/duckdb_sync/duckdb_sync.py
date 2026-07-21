@@ -59,6 +59,9 @@ class DuckDBSync(Document):
 				ddbt.sync(duck_conn)
 		duck_conn.close()
 
+	def on_cancel(self):
+		self.flags.ignore_links = True
+
 	def on_trash(self):
 		if self.docstatus.is_cancelled():
 			from frappe.database import delete_duckdb_file
@@ -123,7 +126,7 @@ def sync_data_to_duckdb(docname: str):
 		conn = frappe.get_doc("DuckDB Sync", docname).get_duckdb_conn()
 		try:
 			conn.sql(
-				f"attach 'user={frappe.conf.db_name} password={frappe.conf.db_password} host={frappe.conf.db_host} database={frappe.conf.db_name}' as mariadb_db (TYPE mysql);"
+				f"attach 'user={frappe.conf.db_name} password={frappe.conf.db_password} host={frappe.conf.db_host} database={frappe.conf.db_name} port={frappe.conf.db_port}' as mariadb_db (TYPE mysql);"
 			)
 			columns = frappe.get_meta(dt).get_valid_columns()
 			# quotted fields
