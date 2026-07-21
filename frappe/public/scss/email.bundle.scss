@@ -286,17 +286,16 @@ hr {
 
 .btn {
 	text-decoration: none;
-	padding: 11px 22px;
+	padding: 4px 20px;
 	font-size: 13px;
 	font-weight: 600;
-	letter-spacing: -0.01em;
 	border: 1px solid;
-	border-radius: $border-radius-lg;
+	border-radius: $border-radius;
 	color: $gray-800;
 	background-color: $gray-100;
 	border-color: transparent;
 	display: inline-block;
-	line-height: 18px;
+	line-height: 20px;
 	margin: 8px 0;
 
 	&.btn-primary {
