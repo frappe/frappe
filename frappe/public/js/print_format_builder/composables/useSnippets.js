@@ -58,8 +58,9 @@ export function useSnippets({ insert_section, insert_field, doc_type }) {
 			);
 		}
 		if (existing) {
+			// Scope is never rewritten by a write: importing a Sales Invoice snippet
+			// over a global one would otherwise narrow it and hide it from everyone else.
 			const update = { content, snippet_type };
-			if (document_type !== undefined) update.document_type = document_type;
 			await frappe.db.set_value(DOCTYPE, name, update);
 			Object.assign(existing, update, { content: parsed });
 		} else {
