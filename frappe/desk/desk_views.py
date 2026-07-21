@@ -237,11 +237,14 @@ class DeskViews:
 			)
 			permitted_names = set()
 			for report in reports:
-				if report.ref_doctype and not has_permission(
-					report.ref_doctype, "report", user=user, print_logs=False
-				):
-					continue
-				has_role[report.name]["report_type"] = report.report_type
+				try:
+					if report.ref_doctype and not has_permission(
+						report.ref_doctype, "report", user=user, print_logs=False
+					):
+						continue
+					has_role[report.name]["report_type"] = report.report_type
+				except frappe.DoesNotExistError:
+					frappe.log_error("Error occurred while checking report permissions")
 				permitted_names.add(report.name)
 
 			non_permitted_reports = set(has_role.keys()) - permitted_names
