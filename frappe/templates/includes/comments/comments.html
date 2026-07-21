@@ -1,24 +1,13 @@
 <div class="comment-view mb-6">
 	{% if not comment_list %}
-<<<<<<< HEAD
 		<div class="no-comment">
 			<p class="text-muted small">{{ _("No comments yet. ") }}
 				<span class="hidden login-required">
-					<a href="/login?redirect-to={{ pathname }}">{{ _("Login to start a new discussion") }}</a>
+					<a href="/login?redirect-to={{ pathname | urlencode }}">{{ _("Login to start a new discussion") }}</a>
 				</span>
 				<span class="hidden start-discussion">{{ _("Start a new discussion") }}</span>
 			</p>
 		</div>
-=======
-	<div class="no-comment">
-		<p class="text-muted small">{{ _("No comments yet.") }}
-			<span class="hidden login-required">
-				<a href="/login?redirect-to={{ pathname | urlencode }}">{{ _("Login to start a new discussion") }}</a>
-			</span>
-			<span class="hidden start-discussion">{{ _("Start a new discussion") }}</span>
-		</p>
-	</div>
->>>>>>> 2a8b8a7429 (fix: escape template context values before rendering)
 	{% endif %}
 
 	{% if not is_communication %}
