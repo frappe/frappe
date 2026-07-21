@@ -305,6 +305,7 @@ let section_inline_style = computed(() => {
 		const pad = props.section.cell_padding ?? 8;
 		style["--pfb-cell-pad"] = `${pad}px`;
 	}
+	if (props.section.radius != null) style.borderRadius = `${props.section.radius}px`;
 	return { ...style, ...parse_inline_style(props.section.custom_style) };
 });
 

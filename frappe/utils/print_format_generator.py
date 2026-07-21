@@ -109,6 +109,37 @@ def get_formatted_field_values(doctype: str, name: str) -> dict:
 	return {"values": values, "child": child}
 
 
+def _builder_preview_generator(
+	print_format: str | dict,
+	doctype: str,
+	name: str | None = None,
+	letterhead: str | None = None,
+	settings: str | dict | None = None,
+) -> "PrintFormatGenerator | None":
+	"""Permission gate and generator for the builder's unsaved-format previews.
+
+	Shared by the HTML and PDF entry points so the checks below have one home.
+	Returns None when the document type has nothing printable to sample.
+	"""
+	from frappe.printing.doctype.print_format.print_format import printable_sample
+	from frappe.www.printview import validate_print
+
+	frappe.has_permission("Print Format", "write", throw=True)
+
+	pf = frappe.get_doc(frappe.parse_json(print_format))
+	if pf.doctype != "Print Format":
+		frappe.throw(_("Expected an unsaved Print Format document"))
+
+	name = name or printable_sample(doctype)
+	if not name:
+		return None
+
+	doc = frappe.get_doc(doctype, name)
+	validate_print(doc)
+
+	return PrintFormatGenerator(pf, doc, letterhead, settings=frappe.parse_json(settings))
+
+
 @frappe.whitelist()
 def render_builder_preview(
 	print_format: str | dict,
@@ -124,24 +155,31 @@ def render_builder_preview(
 	the preview cannot drift from the printed output. ``print_format`` is the
 	in-memory Print Format document (dict/JSON), not a saved name.
 	"""
-	from frappe.printing.doctype.print_format.print_format import printable_sample
-	from frappe.www.printview import validate_print
+	generator = _builder_preview_generator(print_format, doctype, name, letterhead, settings)
+	return generator.get_html_preview() if generator else ""
 
-	frappe.has_permission("Print Format", "write", throw=True)
 
-	pf = frappe.get_doc(frappe.parse_json(print_format))
-	if pf.doctype != "Print Format":
-		frappe.throw(_("Expected an unsaved Print Format document"))
+@frappe.whitelist()
+def download_builder_preview_pdf(
+	print_format: str | dict,
+	doctype: str,
+	name: str | None = None,
+	letterhead: str | None = None,
+	settings: str | dict | None = None,
+):
+	"""Render a PDF for an UNSAVED builder format.
 
-	name = name or printable_sample(doctype)
-	if not name:
-		return ""
+	Same contract as :func:`render_builder_preview`, but through the PDF renderer.
+	Paginating HTML in the browser can only ever approximate where Chromium breaks
+	a page, so the builder's paged preview asks Chromium instead of guessing.
+	"""
+	generator = _builder_preview_generator(print_format, doctype, name, letterhead, settings)
+	if not generator:
+		frappe.throw(_("No document available to preview"))
 
-	doc = frappe.get_doc(doctype, name)
-	validate_print(doc)
-
-	generator = PrintFormatGenerator(pf, doc, letterhead, settings=frappe.parse_json(settings))
-	return generator.get_html_preview()
+	frappe.local.response.filename = "preview.pdf"
+	frappe.local.response.filecontent = generator.render_pdf()
+	frappe.local.response.type = "pdf"
 
 
 def get_html(

@@ -1,12 +1,6 @@
 <template>
-	<div
-		v-if="shouldRender"
-		class="builder-root"
-		:class="{
-			'builder-root--preview': show_preview,
-		}"
-	>
-		<PrintFormatControls v-if="!show_preview" />
+	<div v-if="shouldRender" class="builder-root">
+		<PrintFormatControls />
 		<div class="canvas-area">
 			<!-- Sidebar-open hint -->
 			<div v-if="sidebar_open && !hint_dismissed" class="pfb-sidebar-hint">
@@ -19,9 +13,8 @@
 				</button>
 			</div>
 
-			<!-- Canvas toolbar: sample data picker (hidden in preview mode).
-			     v-show (not v-if) so the picker control survives a preview round-trip. -->
-			<div v-show="!show_preview" class="canvas-toolbar">
+			<!-- Canvas toolbar: sample data picker, zoom, preview toggle -->
+			<div class="canvas-toolbar">
 				<div class="canvas-toolbar-left">
 					<span class="canvas-toolbar-eyebrow">{{ __("Data") }}</span>
 				</div>
@@ -67,13 +60,12 @@
 					@start-default="on_start_default"
 					@start-blank="on_start_blank"
 				/>
-				<KeepAlive v-else>
-					<component :is="Preview" v-if="show_preview" />
-					<component :is="PrintFormat" v-else />
-				</KeepAlive>
+				<component :is="PrintFormat" v-else />
 			</div>
 		</div>
-		<FieldInspector v-if="!show_preview" />
+		<!-- the right rail is either the inspector or the preview, never both -->
+		<Preview v-if="show_preview" @close="show_preview = false" />
+		<FieldInspector v-else />
 	</div>
 </template>
 
@@ -84,7 +76,7 @@ import Preview from "./components/Preview.vue";
 import PrintFormatControls from "./components/PrintFormatControls.vue";
 import FieldInspector from "./components/inspector/FieldInspector.vue";
 import { getStore } from "./stores";
-import { computed, ref, onMounted, onUnmounted, provide, nextTick, watch } from "vue";
+import { computed, ref, onMounted, onUnmounted, provide, nextTick } from "vue";
 
 // props
 const props = defineProps(["print_format_name"]);
@@ -123,25 +115,42 @@ function toggle_preview() {
 	show_preview.value = !show_preview.value;
 }
 
-watch(show_preview, (on) => {
-	if (on) {
-		history.pushState({ ...history.state, pfb_preview: true }, "");
-	} else {
-		// Reflect a document changed in preview mode back in the edit-mode picker
-		const name = $store.value.preview_doc_name.value;
-		if (name && doc_picker_ctrl.value?.get_value() !== name) {
-			doc_picker_ctrl.value?.set_value(name);
-		}
-		if (history.state?.pfb_preview) {
-			history.back();
-		}
-	}
-});
+const SETTINGS_DOCTYPE = "Print Settings";
 
-function handle_popstate() {
-	if (show_preview.value) {
-		show_preview.value = false;
+// Editing the Single in a dialog rather than routing to its form: the builder
+// holds unsaved layout in memory, and navigating away would drop it.
+async function open_print_settings() {
+	if (!frappe.perm.has_perm(SETTINGS_DOCTYPE, 0, "write")) {
+		frappe.msgprint(__("You are not permitted to change Print Settings"));
+		return;
 	}
+	await frappe.model.with_doctype(SETTINGS_DOCTYPE);
+	const doc = await frappe.model.with_doc(SETTINGS_DOCTYPE, SETTINGS_DOCTYPE);
+	// built from the doctype's own meta, so a new field shows up here for free
+	const fields = frappe.get_meta(SETTINGS_DOCTYPE).fields.filter((df) => !df.hidden);
+
+	const dialog = new frappe.ui.Dialog({
+		title: __("Print Settings"),
+		size: "large",
+		fields: fields.map((df) => ({ ...df, default: doc[df.fieldname] })),
+		primary_action_label: __("Save"),
+		primary_action: (values) => {
+			frappe
+				.call("frappe.client.set_value", {
+					doctype: SETTINGS_DOCTYPE,
+					name: SETTINGS_DOCTYPE,
+					fieldname: values,
+				})
+				.then(() => {
+					dialog.hide();
+					frappe.show_alert({
+						message: __("Print Settings updated"),
+						indicator: "green",
+					});
+				});
+		},
+	});
+	dialog.show();
 }
 
 function clear_selection() {
@@ -372,7 +381,6 @@ function init_doc_picker() {
 // mounted
 onMounted(() => {
 	document.addEventListener("keydown", handle_keydown);
-	window.addEventListener("popstate", handle_popstate);
 
 	// Detect desk sidebar open/close via MutationObserver on the wrapper's style attribute
 	check_sidebar();
@@ -392,11 +400,10 @@ onMounted(() => {
 
 onUnmounted(() => {
 	document.removeEventListener("keydown", handle_keydown);
-	window.removeEventListener("popstate", handle_popstate);
 	sidebar_observer_ref?.disconnect();
 });
 
-defineExpose({ toggle_preview, show_preview, $store });
+defineExpose({ toggle_preview, open_print_settings, show_preview, $store });
 </script>
 
 <style scoped>
@@ -413,11 +420,6 @@ defineExpose({ toggle_preview, show_preview, $store });
 	display: flex;
 	flex-direction: column;
 	height: calc(100vh - var(--pfb-chrome-offset));
-}
-
-.builder-root--preview .canvas-area {
-	padding-left: 1.5rem;
-	padding-right: 1.5rem;
 }
 
 /* ── Sidebar hint ────────────────────────────────────────── */

@@ -6,6 +6,7 @@
 		:class="{
 			'pfb-clean-preview': !!store.preview_doc.value,
 			'print-format-doc': !!store.preview_doc.value,
+			'show-label-colon': !!print_format.show_label_colon,
 		}"
 	>
 		<component :is="'style'" v-if="color_css">{{ color_css }}</component>

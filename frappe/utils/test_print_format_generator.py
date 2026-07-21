@@ -1210,17 +1210,33 @@ class TestPrintFormatGenerator(IntegrationTestCase):
 		self.assertNotIn("Col B", html)
 
 	def test_show_label_colon_setting(self):
-		"""Print Settings ▸ show_label_colon toggles the classic colon body class."""
+		"""Print Format ▸ show_label_colon toggles the classic colon body class."""
 		from frappe.utils.print_format_generator import get_html
 
 		pf = self._make_print_format()
 		todo = self._make_todo()
-		with self.change_settings("Print Settings", show_label_colon=0):
-			body = get_html("ToDo", todo.name, pf.name).split("<body", 1)[1][:200]
-			self.assertNotIn("show-label-colon", body)
-		with self.change_settings("Print Settings", show_label_colon=1):
-			body = get_html("ToDo", todo.name, pf.name).split("<body", 1)[1][:200]
-			self.assertIn("show-label-colon", body)
+
+		body = get_html("ToDo", todo.name, pf.name).split("<body", 1)[1][:200]
+		self.assertNotIn("show-label-colon", body)
+
+		pf.db_set("show_label_colon", 1)
+		body = get_html("ToDo", todo.name, pf.name).split("<body", 1)[1][:200]
+		self.assertIn("show-label-colon", body)
+
+	def test_show_label_colon_is_per_format(self):
+		"""One format opting in must not put colons on another."""
+		from frappe.utils.print_format_generator import get_html
+
+		plain = self._make_print_format()
+		with_colon = self._make_print_format(show_label_colon=1)
+		todo = self._make_todo()
+
+		self.assertIn(
+			"show-label-colon", get_html("ToDo", todo.name, with_colon.name).split("<body", 1)[1][:200]
+		)
+		self.assertNotIn(
+			"show-label-colon", get_html("ToDo", todo.name, plain.name).split("<body", 1)[1][:200]
+		)
 
 	# ------------------------------------------------------------------ #
 	# repeating letterhead header / footer (repeat_header_footer setting)
