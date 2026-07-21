@@ -110,11 +110,17 @@ class FrappeAPITestCase(IntegrationTestCase):
 		from frappe.auth import CookieManager, LoginManager
 		from frappe.utils import set_request
 
+		# restore the original request afterwards, the fake one has "localhost" as
+		# host which changes what get_url() returns for rest of the test process
+		original_request = getattr(frappe.local, "request", None)
 		set_request(path="/")
-		frappe.local.cookie_manager = CookieManager()
-		frappe.local.login_manager = LoginManager()
-		frappe.local.login_manager.login_as("Administrator")
-		return frappe.session.sid
+		try:
+			frappe.local.cookie_manager = CookieManager()
+			frappe.local.login_manager = LoginManager()
+			frappe.local.login_manager.login_as("Administrator")
+			return frappe.session.sid
+		finally:
+			frappe.local.request = original_request
 
 	def get(self, path: str, params: dict | None = None, **kwargs) -> TestResponse:
 		return make_request(target=self.TEST_CLIENT.get, args=(path,), kwargs={"json": params, **kwargs})
