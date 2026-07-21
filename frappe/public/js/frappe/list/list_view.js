@@ -731,12 +731,12 @@ frappe.views.ListView = class ListView extends frappe.views.BaseList {
 			icon = this.meta.icon;
 		}
 
-		return frappe.ui.empty_state({
+		return frappe.ui.empty_state.html({
 			icon,
 			title,
 			description,
 			actions,
-		})[0].outerHTML;
+		});
 	}
 
 	freeze() {
