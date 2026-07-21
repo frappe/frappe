@@ -14,6 +14,12 @@
 			>
 				<span class="pfb-tab-label">{{ tab.label }}</span>
 			</button>
+			<button
+				class="pfb-tab-settings"
+				:title="__('Print Settings')"
+				@click="open_settings"
+				v-html="frappe.utils.icon('settings', 'sm')"
+			></button>
 		</div>
 
 		<!-- ── Fields ────────────────────────────────────────── -->
@@ -361,99 +367,11 @@
 		</div>
 
 		<!-- ── Format ─────────────────────────────────────────── -->
-		<div v-else-if="activeTab === 'format'" class="pfb-tab-body pfb-format-tab">
-			<div class="form-group">
-				<label class="control-label">{{ __("Style Preset") }}</label>
-				<div class="pfb-preset-row">
-					<select
-						class="form-control form-control-sm"
-						:value="active_preset"
-						@change="apply_preset($event.target.value)"
-					>
-						<option value="">{{ __("Choose a preset…") }}</option>
-						<option
-							v-for="p in store.style_presets.value"
-							:key="p.name"
-							:value="p.name"
-						>
-							{{ p.name }}
-						</option>
-					</select>
-					<button
-						class="es-button"
-						data-size="sm"
-						data-variant="ghost"
-						data-icon-button="true"
-						:title="__('Save current style as a preset')"
-						@click="save_preset"
-						v-html="frappe.utils.icon('save', 'sm')"
-					></button>
-					<button
-						v-if="active_preset"
-						class="es-button"
-						data-size="sm"
-						data-variant="ghost"
-						data-theme="red"
-						data-icon-button="true"
-						:title="__('Delete preset')"
-						@click="delete_preset"
-						v-html="frappe.utils.icon('trash', 'sm')"
-					></button>
-				</div>
-			</div>
-			<div class="form-group">
-				<label class="control-label">{{ __("Page Margins (mm)") }}</label>
-				<div class="pfb-margin-grid">
-					<div class="pfb-margin-cell" v-for="df in margins" :key="df.fieldname">
-						<label class="pfb-margin-label control-label">{{ df.label }}</label>
-						<input
-							type="number"
-							class="form-control form-control-sm"
-							:value="print_format[df.fieldname]"
-							min="0"
-							@change="(e) => update_margin(df.fieldname, e.target.value)"
-						/>
-					</div>
-				</div>
-			</div>
-			<div class="form-group">
-				<label class="control-label">{{ __("Google Font") }}</label>
-				<Autocomplete
-					:options="font_options"
-					:model-value="print_format.font || ''"
-					:placeholder="__('Default')"
-					@select="(o) => (print_format.font = o.value)"
-				/>
-			</div>
-			<div class="form-group">
-				<label class="control-label">{{ __("Font Size (pt)") }}</label>
-				<input
-					type="number"
-					class="form-control form-control-sm"
-					placeholder="12, 13, 14"
-					:value="print_format.font_size"
-					@change="(e) => (print_format.font_size = parseFloat(e.target.value))"
-				/>
-			</div>
-			<div class="form-group" v-for="c in color_settings" :key="c.fieldname">
-				<label class="control-label">{{ c.label }}</label>
-				<div :ref="(el) => (color_hosts[c.fieldname] = el)"></div>
-			</div>
-			<div class="form-group">
-				<label class="control-label">{{ __("Page Number") }}</label>
-				<select class="form-control form-control-sm" v-model="print_format.page_number">
-					<option v-for="p in page_number_positions" :value="p.value">
-						{{ p.label }}
-					</option>
-				</select>
-			</div>
-		</div>
 	</div>
 </template>
 
 <script setup>
 import draggable from "vuedraggable";
-import Autocomplete from "../../vue-components/Autocomplete.vue";
 import {
 	BLOCK_FIELDTYPES,
 	DRAG_OPTIONS,
@@ -463,17 +381,12 @@ import {
 	pluck,
 	setDragging,
 } from "../utils";
-import { mountColorControl } from "./inspector/useColorControl";
 import { useStore } from "../stores";
-import { computed, onMounted, onUnmounted, nextTick, ref, watch, inject } from "vue";
+import PrintSettingsPanel from "./PrintSettingsPanel.vue";
+import { computed, createApp, onMounted, onUnmounted, nextTick, ref, watch, inject } from "vue";
 
 // state
 let search_text = ref("");
-let google_fonts = ref([]);
-let font_options = computed(() => [
-	{ label: __("Default"), value: "" },
-	...google_fonts.value.map((f) => ({ label: f, value: f })),
-]);
 let search_input = ref(null);
 let raw_templates = ref([]);
 
@@ -484,7 +397,6 @@ const tabs = computed(() => [
 	{ id: "fields", label: __("Fields") },
 	{ id: "blocks", label: __("Blocks") },
 	{ id: "library", label: __("Library") },
-	{ id: "format", label: __("Setting") },
 ]);
 
 // A stale tab id would render an empty sidebar, so fall back to the first tab
@@ -576,63 +488,6 @@ const draggable_blocks = [
 	},
 ];
 
-const color_settings = [
-	{ fieldname: "label_color", label: __("Label Color") },
-	{ fieldname: "value_color", label: __("Value Color") },
-];
-let color_hosts = ref({});
-let color_controls = {};
-
-function mount_color_controls() {
-	for (const c of color_settings) {
-		const host = color_hosts.value[c.fieldname];
-		if (!host) continue;
-		color_controls[c.fieldname] = mountColorControl(host, {
-			value: print_format.value[c.fieldname] || "",
-			placeholder: c.label,
-			fieldname: c.fieldname,
-			onChange(value) {
-				const v = value || null;
-				if ((print_format.value[c.fieldname] ?? null) !== v) {
-					print_format.value[c.fieldname] = v;
-				}
-			},
-		});
-	}
-}
-
-// ── style presets ──────────────────────────────────────────
-let active_preset = ref("");
-function apply_preset(name) {
-	active_preset.value = name;
-	if (name) store.apply_style_preset(name);
-}
-function save_preset() {
-	frappe.prompt(
-		{
-			label: __("Preset name"),
-			fieldname: "name",
-			fieldtype: "Data",
-			reqd: 1,
-			default: active_preset.value || "",
-		},
-		({ name }) => {
-			store.save_style_preset(name);
-			active_preset.value = name.trim();
-			frappe.show_alert({ message: __("Style preset saved"), indicator: "green" });
-		},
-		__("Save Style Preset"),
-		__("Save")
-	);
-}
-function delete_preset() {
-	const name = active_preset.value;
-	if (!name) return;
-	frappe.confirm(__("Delete the style preset '{0}'?", [name]), () => {
-		store.delete_style_preset(name);
-		active_preset.value = "";
-	});
-}
 function confirm_delete_snippet(name) {
 	frappe.confirm(__("Delete the snippet '{0}'?", [name]), () => store.delete_snippet(name));
 }
@@ -667,12 +522,6 @@ function import_snippets() {
 }
 
 // ── helpers ────────────────────────────────────────────────
-function update_margin(fieldname, value) {
-	value = parseFloat(value);
-	if (value < 0) value = 0;
-	print_format.value[fieldname] = value;
-}
-
 function clone_field(df) {
 	let cloned = pluck(df, [
 		"label",
@@ -919,25 +768,29 @@ function fetch_templates() {
 
 function enter_tab(tab) {
 	if (tab === "library") fetch_templates();
-	if (tab === "format") nextTick(mount_color_controls);
+}
+
+function open_settings() {
+	let settings_app = null;
+	const dialog = new frappe.ui.Dialog({
+		title: __("Print Settings"),
+		fields: [{ fieldtype: "HTML", fieldname: "settings_area" }],
+		on_page_show: () => {
+			settings_app = createApp(PrintSettingsPanel);
+			SetVueGlobals(settings_app);
+			// the panel reads and writes the live format, same as the sidebar did
+			settings_app.provide("$store", store);
+			settings_app.mount(dialog.get_field("settings_area").$wrapper.get(0));
+		},
+		on_hide: () => settings_app?.unmount(),
+	});
+	dialog.show();
 }
 
 watch(activeTab, (tab) => {
 	localStorage.setItem(TAB_STORE_KEY, tab);
 	enter_tab(tab);
 });
-
-watch(
-	() => color_settings.map((c) => print_format.value?.[c.fieldname]),
-	() => {
-		for (const c of color_settings) {
-			const ctrl = color_controls[c.fieldname];
-			if (!ctrl) continue;
-			const model = print_format.value?.[c.fieldname] || "";
-			if ((ctrl.get_value() || "") !== model) ctrl.set_value(model);
-		}
-	}
-);
 
 let print_templates_list = computed(() => {
 	const templates = raw_templates.value;
@@ -972,33 +825,8 @@ let new_template_link = computed(
 	() => `/app/print-format-field-template/new?document_type=${meta.value?.name || ""}`
 );
 
-let margins = computed(() => [
-	{ label: __("Top"), fieldname: "margin_top" },
-	{ label: __("Bottom"), fieldname: "margin_bottom" },
-	{ label: __("Left", null, "alignment"), fieldname: "margin_left" },
-	{ label: __("Right", null, "alignment"), fieldname: "margin_right" },
-]);
-
-let page_number_positions = computed(() => [
-	{ label: __("Hide"), value: "Hide" },
-	{ label: __("Top Left"), value: "Top Left" },
-	{ label: __("Top Center"), value: "Top Center" },
-	{ label: __("Top Right"), value: "Top Right" },
-	{ label: __("Bottom Left"), value: "Bottom Left" },
-	{ label: __("Bottom Center"), value: "Bottom Center" },
-	{ label: __("Bottom Right"), value: "Bottom Right" },
-]);
-
 // ── lifecycle ──────────────────────────────────────────────
 onMounted(() => {
-	let method = "frappe.printing.page.print_format_builder.print_format_builder.get_google_fonts";
-	frappe.call(method).then((r) => {
-		google_fonts.value = r.message || [];
-		if (print_format.value.font && !google_fonts.value.includes(print_format.value.font)) {
-			google_fonts.value.push(print_format.value.font);
-		}
-	});
-
 	document.addEventListener("keydown", handle_slash_key);
 
 	// the watcher only fires on change, so a restored tab needs its setup run here
@@ -1042,6 +870,23 @@ function handle_slash_key(e) {
 	gap: 2px;
 	border-bottom: 1px solid var(--border-color);
 	flex-shrink: 0;
+}
+
+.pfb-tab-settings {
+	display: flex;
+	align-items: center;
+	padding: 0 6px;
+	margin-bottom: 4px;
+	border: none;
+	background: transparent;
+	color: var(--text-muted);
+	cursor: pointer;
+	border-radius: var(--radius);
+}
+
+.pfb-tab-settings:hover {
+	background: var(--gray-100);
+	color: var(--text-color);
 }
 
 .pfb-tab {
@@ -1358,45 +1203,6 @@ function handle_slash_key(e) {
 
 .pfb-tree-children {
 	margin-left: 18px;
-}
-
-/* ── Format tab ──────────────────────────────────────────── */
-.pfb-format-tab .form-group {
-	margin-bottom: 10px;
-}
-
-.pfb-preset-row {
-	display: flex;
-	align-items: center;
-	gap: 6px;
-}
-
-.pfb-preset-row select {
-	flex: 1;
-}
-
-.pfb-format-tab .form-group:last-child {
-	margin-bottom: 0;
-}
-
-.pfb-format-tab :deep(.frappe-control) {
-	margin-bottom: 0;
-}
-
-.pfb-margin-grid {
-	display: grid;
-	grid-template-columns: 1fr 1fr;
-	gap: 6px;
-}
-
-.pfb-margin-cell {
-	display: flex;
-	flex-direction: column;
-	gap: 2px;
-}
-
-.pfb-margin-label {
-	font-size: var(--text-tiny);
 }
 
 /* ── Empty state ─────────────────────────────────────────── */
