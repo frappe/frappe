@@ -57,6 +57,7 @@ class UserInvitation(Document):
 			subject=_("Invitation to join {0} cancelled").format(email_title),
 			template="user_invitation_cancelled",
 			args={"title": email_title},
+			with_container=True,
 			now=True,
 		)
 		return True
@@ -74,6 +75,7 @@ class UserInvitation(Document):
 			subject=_("Invitation to join {0} expired").format(email_title),
 			template="user_invitation_expired",
 			args={"title": email_title},
+			with_container=True,
 			now=False,
 		)
 
@@ -111,6 +113,7 @@ class UserInvitation(Document):
 			subject=_("You've been invited to join {0}").format(email_title),
 			template="user_invitation",
 			args={"title": email_title, "invite_link": invite_link},
+			with_container=True,
 			now=True,
 		)
 		self.db_set("email_sent_at", frappe.utils.now())

@@ -431,6 +431,7 @@ def get_formatted_html(
 		params.update(
 			{
 				"brand_logo": get_brand_logo(email_account) if with_container or header else None,
+				"brand_name": get_brand_name() if with_container or header else None,
 				"with_container": with_container,
 				"header": get_header(header),
 				"content": message,
@@ -692,4 +693,8 @@ def sanitize_email_header(header: str):
 
 
 def get_brand_logo(email_account):
-	return email_account.get("brand_logo")
+	return (email_account and email_account.get("brand_logo")) or frappe.get_website_settings("app_logo")
+
+
+def get_brand_name():
+	return frappe.get_website_settings("app_name") or frappe.get_system_settings("app_name")

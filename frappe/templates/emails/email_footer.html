@@ -1,4 +1,4 @@
-<div class="email-footer-container text-muted">
+<div class="email-footer-container text-muted {% if email_account_footer or sender_address or default_mail_footer %}with-divider{% endif %}">
 	<!-- email_account_footer -->
 	{% if email_account_footer %}
 	<div class="email-account-footer">
