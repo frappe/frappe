@@ -27,9 +27,18 @@ class PrintFormatBuilder {
 		let $reset_changes_btn = this.page.add_button(__("Reset Changes"), () =>
 			this.$component.$store.reset_changes()
 		);
-		this.page.add_menu_item(__("Print Settings"), () => {
-			this.$component.open_print_settings();
-		});
+		let $preview_btn = this.page.add_action_icon(
+			"eye",
+			() => this.$component.toggle_preview(),
+			"",
+			__("Show Preview")
+		);
+		this.page.add_action_icon(
+			"settings",
+			() => this.$component.open_print_settings(),
+			"",
+			__("Print Settings")
+		);
 		this.page.add_menu_item(__("Edit Print Format"), () => {
 			frappe.set_route("Form", "Print Format", this.print_format);
 		});
@@ -54,6 +63,16 @@ class PrintFormatBuilder {
 				}
 			},
 			{ deep: true }
+		);
+
+		watch(
+			() => this.$component.show_preview,
+			(value) => {
+				// the icon is the only affordance, so its tooltip carries the state.
+				// bootstrap caches the initial title in data-original-title, so set both
+				const label = value ? __("Hide Preview") : __("Show Preview");
+				$preview_btn.attr("title", label).attr("data-original-title", label);
+			}
 		);
 	}
 

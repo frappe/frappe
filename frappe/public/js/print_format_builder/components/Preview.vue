@@ -315,6 +315,12 @@ onUnmounted(() => {
 	color: var(--text-color);
 }
 
+.pfb-preview-type:focus-visible {
+	outline: none;
+	border-color: var(--gray-500);
+	box-shadow: 0 0 0 2px var(--gray-200);
+}
+
 .pfb-preview-btn {
 	display: flex;
 	align-items: center;

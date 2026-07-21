@@ -48,15 +48,6 @@
 							v-html="frappe.utils.icon('plus', 'xs')"
 						></button>
 					</div>
-					<button
-						class="canvas-preview-toggle"
-						:class="{ active: show_preview }"
-						:aria-pressed="show_preview"
-						:aria-label="__('Toggle preview')"
-						:title="__('Toggle preview')"
-						@click="toggle_preview"
-						v-html="frappe.utils.icon('eye', 'xs')"
-					></button>
 				</div>
 			</div>
 			<div
@@ -540,35 +531,6 @@ defineExpose({ toggle_preview, open_print_settings, show_preview, $store });
 	border: 1px solid var(--border-color);
 	border-radius: var(--radius);
 	overflow: hidden;
-}
-
-.canvas-preview-toggle {
-	display: flex;
-	align-items: center;
-	justify-content: center;
-	width: 26px;
-	height: 26px;
-	padding: 0;
-	border: 1px solid var(--border-color);
-	border-radius: var(--radius);
-	background: transparent;
-	color: var(--text-muted);
-	font-size: 11px;
-	font-weight: 500;
-	cursor: pointer;
-	white-space: nowrap;
-}
-
-.canvas-preview-toggle:hover {
-	background: var(--gray-100);
-	color: var(--text-color);
-}
-
-/* Save is the only primary action on this page — an active toggle stays quiet */
-.canvas-preview-toggle.active {
-	background: var(--gray-100);
-	border-color: var(--gray-300);
-	color: var(--text-color);
 }
 
 .canvas-zoom-btn {
