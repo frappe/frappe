@@ -76,7 +76,7 @@ import Preview from "./components/Preview.vue";
 import PrintFormatControls from "./components/PrintFormatControls.vue";
 import FieldInspector from "./components/inspector/FieldInspector.vue";
 import { getStore } from "./stores";
-import { computed, ref, onMounted, onUnmounted, provide, nextTick, watch } from "vue";
+import { computed, ref, onMounted, onUnmounted, provide, nextTick } from "vue";
 
 // props
 const props = defineProps(["print_format_name"]);

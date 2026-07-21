@@ -411,7 +411,7 @@ function focus_search() {
 
 // store
 let store = inject("$store");
-let { meta, print_format, layout } = useStore();
+let { meta, layout } = useStore();
 
 // ── blocks tab items ──────────────────────────────────────
 const page_break_block = [

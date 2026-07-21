@@ -3,7 +3,7 @@
 		<div
 			class="pfb-preview-resizer"
 			:title="__('Drag to resize')"
-			@mousedown.prevent="start_resize"
+			@pointerdown.prevent="start_resize"
 		></div>
 		<div class="pfb-preview-head">
 			<span class="pfb-preview-title">{{ __("Preview") }}</span>
@@ -45,6 +45,7 @@
 			<div class="pfb-preview-stage" :style="stage_style">
 				<iframe
 					ref="iframe"
+					:key="type"
 					:src="type === 'PDF' ? pdf_url : undefined"
 					:scrolling="type === 'PDF' ? 'auto' : 'no'"
 					class="pfb-preview-iframe"
@@ -120,8 +121,11 @@ function fit_preview() {
 	if (Math.abs(w - page.value.w) > 1 || Math.abs(h - page.value.h) > 1) {
 		page.value = { w, h };
 	}
-	// never blow a narrow page up past its natural size
-	scale.value = Math.min(1, (box.clientWidth - 16) / w);
+	// never blow a narrow page up past its natural size. The epsilon matters: the
+	// viewport's own scrollbar appearing changes clientWidth, which would otherwise
+	// rescale, hide the scrollbar, and oscillate.
+	const next = Math.min(1, (box.clientWidth - 16) / w);
+	if (Math.abs(next - scale.value) > 0.01) scale.value = next;
 }
 
 let resize_observer = null;
@@ -138,20 +142,28 @@ function observe_frame_body() {
 	frame_observer.observe(body);
 }
 
+// Pointer capture, not document listeners: the drag crosses the preview iframe,
+// and a mouseup over an iframe is delivered to that frame's document, never ours —
+// so the drag would carry on with the button released.
 function start_resize(e) {
+	const handle = e.currentTarget;
 	const start_x = e.clientX;
 	const start_w = dock_width.value;
+	handle.setPointerCapture(e.pointerId);
+
 	const on_move = (ev) => {
 		// the dock is on the right, so dragging left widens it
 		dock_width.value = clamp_width(start_w + (start_x - ev.clientX));
 	};
 	const on_up = () => {
-		document.removeEventListener("mousemove", on_move);
-		document.removeEventListener("mouseup", on_up);
+		handle.removeEventListener("pointermove", on_move);
+		handle.removeEventListener("pointerup", on_up);
+		handle.removeEventListener("pointercancel", on_up);
 		localStorage.setItem(DOCK_KEY, dock_width.value);
 	};
-	document.addEventListener("mousemove", on_move);
-	document.addEventListener("mouseup", on_up);
+	handle.addEventListener("pointermove", on_move);
+	handle.addEventListener("pointerup", on_up);
+	handle.addEventListener("pointercancel", on_up);
 }
 
 // the canvas toolbar owns the record picker; the dock just follows it
@@ -185,9 +197,8 @@ function write_iframe(html) {
 // Chromium decides where a page actually breaks — automatic breaks depend on
 // laid-out heights, keep-together and table splitting, none of which the browser
 // can work out from the flowed HTML. So the paged view asks the print renderer.
-async function render_pages() {
+async function render_pages(seq) {
 	preview_loaded.value = false;
-	let seq = ++render_seq;
 	const params = {
 		print_format: store.value.get_preview_format_doc(),
 		doctype: doctype.value,
@@ -226,10 +237,11 @@ function set_pdf_url(next) {
 }
 
 function render() {
-	if (!docname.value) return;
-	if (type.value === "PDF") return render_pages();
-	preview_loaded.value = false;
+	// bump first: clearing the record must invalidate a response already in flight
 	let seq = ++render_seq;
+	if (!docname.value) return;
+	if (type.value === "PDF") return render_pages(seq);
+	preview_loaded.value = false;
 	let params = {
 		print_format: store.value.get_preview_format_doc(),
 		doctype: doctype.value,
@@ -244,17 +256,22 @@ function render() {
 			if (seq !== render_seq) return;
 			write_iframe(r.message || "");
 			preview_loaded.value = true;
-			// measure after the document has laid out, not before
-			nextTick(() => {
-				fit_preview();
-				observe_frame_body();
-			});
+			after_write();
 		})
 		.catch(() => {
 			if (seq !== render_seq) return;
 			write_iframe(`<p style="padding:1rem">${__("Could not generate preview.")}</p>`);
 			preview_loaded.value = true;
+			after_write();
 		});
+}
+
+// every write replaces the document, so re-measure and re-observe the new body
+function after_write() {
+	nextTick(() => {
+		fit_preview();
+		observe_frame_body();
+	});
 }
 
 function refresh() {
@@ -268,8 +285,7 @@ const auto_render = frappe.utils.debounce(() => {
 }, 1000);
 
 watch(() => layout.value, auto_render, { deep: true });
-watch([docname, type], render);
-watch(type, fit_preview);
+watch([docname, type], render, { flush: "post" });
 
 onMounted(() => {
 	render();
@@ -278,6 +294,7 @@ onMounted(() => {
 });
 
 onUnmounted(() => {
+	auto_render.cancel();
 	resize_observer?.disconnect();
 	frame_observer?.disconnect();
 	set_pdf_url(null);
@@ -357,15 +374,10 @@ onUnmounted(() => {
 	color: var(--text-color);
 }
 
-.pfb-preview-note,
 .pfb-preview-empty {
 	padding: 10px 12px;
 	font-size: var(--text-sm);
 	color: var(--text-muted);
-}
-
-.pfb-preview-note {
-	border-bottom: 1px solid var(--border-color);
 }
 
 .pfb-preview-viewport {
