@@ -84,9 +84,10 @@ import PrintFormat from "./components/editor/PrintFormat.vue";
 import PrintFormatSetup from "./components/editor/PrintFormatSetup.vue";
 import Preview from "./components/Preview.vue";
 import PrintFormatControls from "./components/PrintFormatControls.vue";
+import PrintSettingsPanel from "./components/PrintSettingsPanel.vue";
 import FieldInspector from "./components/inspector/FieldInspector.vue";
 import { getStore } from "./stores";
-import { computed, ref, onMounted, onUnmounted, provide, nextTick, watch } from "vue";
+import { computed, createApp, ref, onMounted, onUnmounted, provide, nextTick, watch } from "vue";
 
 // props
 const props = defineProps(["print_format_name"]);
@@ -123,6 +124,23 @@ provide("$store", $store.value);
 // methods
 function toggle_preview() {
 	show_preview.value = !show_preview.value;
+}
+
+function open_settings() {
+	let settings_app = null;
+	const dialog = new frappe.ui.Dialog({
+		title: __("Print Settings"),
+		fields: [{ fieldtype: "HTML", fieldname: "settings_area" }],
+		on_page_show: () => {
+			settings_app = createApp(PrintSettingsPanel);
+			SetVueGlobals(settings_app);
+			// the panel reads and writes the live format, same as the sidebar tab did
+			settings_app.provide("$store", $store.value);
+			settings_app.mount(dialog.get_field("settings_area").$wrapper.get(0));
+		},
+		on_hide: () => settings_app?.unmount(),
+	});
+	dialog.show();
 }
 
 function clear_selection() {
@@ -375,7 +393,7 @@ onUnmounted(() => {
 	sidebar_observer_ref?.disconnect();
 });
 
-defineExpose({ toggle_preview, show_preview, $store });
+defineExpose({ toggle_preview, open_settings, show_preview, $store });
 </script>
 
 <style scoped>

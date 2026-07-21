@@ -27,6 +27,9 @@ class PrintFormatBuilder {
 		let $reset_changes_btn = this.page.add_button(__("Reset Changes"), () =>
 			this.$component.$store.reset_changes()
 		);
+		this.page.add_menu_item(__("Print Settings"), () => {
+			this.$component.open_settings();
+		});
 		this.page.add_menu_item(__("Edit Print Format"), () => {
 			frappe.set_route("Form", "Print Format", this.print_format);
 		});

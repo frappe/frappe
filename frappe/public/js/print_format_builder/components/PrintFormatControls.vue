@@ -14,12 +14,6 @@
 			>
 				<span class="pfb-tab-label">{{ tab.label }}</span>
 			</button>
-			<button
-				class="pfb-tab-settings"
-				:title="__('Print Settings')"
-				@click="open_settings"
-				v-html="frappe.utils.icon('settings', 'sm')"
-			></button>
 		</div>
 
 		<!-- ── Fields ────────────────────────────────────────── -->
@@ -382,8 +376,7 @@ import {
 	setDragging,
 } from "../utils";
 import { useStore } from "../stores";
-import PrintSettingsPanel from "./PrintSettingsPanel.vue";
-import { computed, createApp, onMounted, onUnmounted, nextTick, ref, watch, inject } from "vue";
+import { computed, onMounted, onUnmounted, nextTick, ref, watch, inject } from "vue";
 
 // state
 let search_text = ref("");
@@ -770,23 +763,6 @@ function enter_tab(tab) {
 	if (tab === "library") fetch_templates();
 }
 
-function open_settings() {
-	let settings_app = null;
-	const dialog = new frappe.ui.Dialog({
-		title: __("Print Settings"),
-		fields: [{ fieldtype: "HTML", fieldname: "settings_area" }],
-		on_page_show: () => {
-			settings_app = createApp(PrintSettingsPanel);
-			SetVueGlobals(settings_app);
-			// the panel reads and writes the live format, same as the sidebar did
-			settings_app.provide("$store", store);
-			settings_app.mount(dialog.get_field("settings_area").$wrapper.get(0));
-		},
-		on_hide: () => settings_app?.unmount(),
-	});
-	dialog.show();
-}
-
 watch(activeTab, (tab) => {
 	localStorage.setItem(TAB_STORE_KEY, tab);
 	enter_tab(tab);
@@ -870,23 +846,6 @@ function handle_slash_key(e) {
 	gap: 2px;
 	border-bottom: 1px solid var(--border-color);
 	flex-shrink: 0;
-}
-
-.pfb-tab-settings {
-	display: flex;
-	align-items: center;
-	padding: 0 6px;
-	margin-bottom: 4px;
-	border: none;
-	background: transparent;
-	color: var(--text-muted);
-	cursor: pointer;
-	border-radius: var(--radius);
-}
-
-.pfb-tab-settings:hover {
-	background: var(--gray-100);
-	color: var(--text-color);
 }
 
 .pfb-tab {
