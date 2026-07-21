@@ -322,9 +322,25 @@ function parseSlotsFromTemplate(template: string) {
 	return slots
 }
 
+const slotsCache = new Map<string, ReturnType<typeof parseSlotsFromTemplate>>()
+
 async function getComponentSlots(componentName: string, isCustomVueComponent?: boolean) {
-	const template = isCustomVueComponent ? await fetchCustomComponentTemplate(componentName) : getComponentTemplate(componentName)
-	return parseSlotsFromTemplate(template)
+	const cached = slotsCache.get(componentName)
+	if (cached) return cached
+	const template = isCustomVueComponent
+		? await fetchCustomComponentTemplate(componentName)
+		: getComponentTemplate(componentName)
+	const slots = parseSlotsFromTemplate(template)
+	if (template) slotsCache.set(componentName, slots)
+	return slots
+}
+
+function componentHasDefaultSlot(componentName: string): boolean {
+	if (!slotsCache.has(componentName)) {
+		const template = getComponentTemplate(componentName)
+		if (template) slotsCache.set(componentName, parseSlotsFromTemplate(template))
+	}
+	return (slotsCache.get(componentName) ?? []).some((slot) => slot.type === "default")
 }
 
 function resolveProperty(
@@ -369,4 +385,4 @@ function resolveProperty(
 	return { type: type as string, inputType, options }
 }
 
-export { getComponentProps, getComponentTemplate, getComponentSlots, setCustomComponentFilePaths }
+export { getComponentProps, getComponentTemplate, getComponentSlots, componentHasDefaultSlot, setCustomComponentFilePaths }

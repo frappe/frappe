@@ -11,6 +11,7 @@ import LucideCode from "~icons/lucide/code"
 
 import { generateId, isObjectEmpty, kebabToCamelCase, numberToPx } from "./helpers";
 import { copyObject, getBlockCopy, getComponentBlock } from "@/utils/serializer"
+import { componentHasDefaultSlot } from "@/utils/components"
 
 import type { StyleValue, FrappeUIComponents } from "@/types"
 import type { ComponentEvent } from "@/types/ComponentEvent"
@@ -219,8 +220,19 @@ class Block implements BlockOptions {
 	}
 
 	canHaveChildren() {
-		if (this.isRoot() || this.isContainer() || this.hasComponentSlots() || this.hasChildren()) return true
+		if (
+			this.isRoot() ||
+			this.isContainer() ||
+			this.hasComponentSlots() ||
+			this.hasChildren() ||
+			this.hasDefaultSlot()
+		)
+			return true
 		return false
+	}
+
+	hasDefaultSlot() {
+		return componentHasDefaultSlot(this.componentName)
 	}
 
 	isRoot() {
