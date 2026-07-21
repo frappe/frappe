@@ -11,7 +11,7 @@ import LucideCode from "~icons/lucide/code"
 
 import { generateId, isObjectEmpty, kebabToCamelCase, numberToPx } from "./helpers";
 import { copyObject, getBlockCopy, getComponentBlock } from "@/utils/serializer"
-import { componentHasDefaultSlot } from "@/utils/components"
+import { componentHasDefaultSlot, getComponentSlots } from "@/utils/components"
 
 import type { StyleValue, FrappeUIComponents } from "@/types"
 import type { ComponentEvent } from "@/types/ComponentEvent"
@@ -73,6 +73,8 @@ class Block implements BlockOptions {
 		}
 		if (options.isCustomVueComponent) {
 			this.isCustomVueComponent = options.isCustomVueComponent
+			// Warm the slot cache so canHaveChildren() knows this component's default slot
+			void getComponentSlots(this.componentName, true)
 		}
 
 		// get component props
