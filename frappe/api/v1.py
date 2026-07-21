@@ -1,5 +1,3 @@
-import json
-
 from werkzeug.routing import Rule
 
 import frappe
@@ -12,12 +10,11 @@ from frappe.utils.data import sbool
 
 
 def document_list(doctype: str):
-	# QUERY requests send these as native JSON types in body, GET sends JSON-encoded strings
-	if isinstance(fields := frappe.form_dict.get("fields"), str) and fields:
-		frappe.form_dict["fields"] = json.loads(fields)
+	if frappe.form_dict.get("fields"):
+		frappe.form_dict["fields"] = frappe.parse_json(frappe.form_dict["fields"])
 
-	if isinstance(expand := frappe.form_dict.get("expand"), str) and expand:
-		frappe.form_dict["expand"] = json.loads(expand)
+	if frappe.form_dict.get("expand"):
+		frappe.form_dict["expand"] = frappe.parse_json(frappe.form_dict["expand"])
 
 	# set limit of records for frappe.get_list
 	frappe.form_dict.setdefault(
