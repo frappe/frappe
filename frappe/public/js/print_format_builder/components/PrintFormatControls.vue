@@ -474,9 +474,25 @@ let font_options = computed(() => [
 	{ label: __("Default"), value: "" },
 	...google_fonts.value.map((f) => ({ label: f, value: f })),
 ]);
-let activeTab = ref("outline");
 let search_input = ref(null);
 let raw_templates = ref([]);
+
+// ── tab definitions ───────────────────────────────────────
+const TAB_STORE_KEY = "pfb_active_tab";
+const tabs = computed(() => [
+	{ id: "outline", label: __("Outline") },
+	{ id: "fields", label: __("Fields") },
+	{ id: "blocks", label: __("Blocks") },
+	{ id: "library", label: __("Library") },
+	{ id: "format", label: __("Setting") },
+]);
+
+// A stale tab id would render an empty sidebar, so fall back to the first tab
+function restore_tab() {
+	const saved = localStorage.getItem(TAB_STORE_KEY);
+	return tabs.value.some((t) => t.id === saved) ? saved : "outline";
+}
+let activeTab = ref(restore_tab());
 
 function focus_search() {
 	activeTab.value = "fields";
@@ -486,15 +502,6 @@ function focus_search() {
 // store
 let store = inject("$store");
 let { meta, print_format, layout } = useStore();
-
-// ── tab definitions ───────────────────────────────────────
-const tabs = computed(() => [
-	{ id: "outline", label: __("Outline") },
-	{ id: "fields", label: __("Fields") },
-	{ id: "blocks", label: __("Blocks") },
-	{ id: "library", label: __("Library") },
-	{ id: "format", label: __("Setting") },
-]);
 
 // ── blocks tab items ──────────────────────────────────────
 const page_break_block = [
@@ -910,9 +917,14 @@ function fetch_templates() {
 		});
 }
 
-watch(activeTab, (tab) => {
+function enter_tab(tab) {
 	if (tab === "library") fetch_templates();
 	if (tab === "format") nextTick(mount_color_controls);
+}
+
+watch(activeTab, (tab) => {
+	localStorage.setItem(TAB_STORE_KEY, tab);
+	enter_tab(tab);
 });
 
 watch(
@@ -988,6 +1000,9 @@ onMounted(() => {
 	});
 
 	document.addEventListener("keydown", handle_slash_key);
+
+	// the watcher only fires on change, so a restored tab needs its setup run here
+	enter_tab(activeTab.value);
 });
 
 onUnmounted(() => {
