@@ -45,11 +45,11 @@ class TestDiscussionReply(FrappeTestCase):
 		self.assertNotIn("javascript:", rendered)
 		self.assertIn("clickme</a>", rendered)
 
-	def test_script_tag_is_stripped(self):
+	def test_script_tag_is_neutralised(self):
 		reply = "before <script>alert(document.cookie)</script> after"
 		_, rendered = self.make_reply(reply)
 
 		self.assertNotIn("<script>", rendered)
-		self.assertNotIn("alert(document.cookie)", rendered)
+		self.assertIn("&lt;script&gt;", rendered)
 		self.assertIn("before", rendered)
 		self.assertIn("after", rendered)
