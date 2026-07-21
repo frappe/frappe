@@ -4,11 +4,7 @@
 import re
 from collections.abc import Iterable
 from datetime import timedelta
-<<<<<<< HEAD
-=======
 from functools import cached_property, lru_cache
-from typing import Any
->>>>>>> b484cf0136 (fix: pytz to filter out deprecated timezones (#38751))
 
 import frappe
 import frappe.defaults
@@ -799,11 +795,6 @@ class User(Document):
 
 @frappe.whitelist()
 def get_timezones():
-<<<<<<< HEAD
-	import pytz
-
-	return {"timezones": pytz.all_timezones}
-=======
 	return {"timezones": _get_timezones()}
 
 
@@ -812,7 +803,6 @@ def _get_timezones():
 	import pytz
 
 	return sorted(pytz.common_timezones)
->>>>>>> b484cf0136 (fix: pytz to filter out deprecated timezones (#38751))
 
 
 @frappe.whitelist()
