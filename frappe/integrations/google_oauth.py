@@ -194,10 +194,6 @@ def callback(state: str, code: str | None = None, error: str | None = None) -> N
 	Invokes functions using `frappe.get_attr` and also adds required (keyworded) arguments
 	along with committing and redirecting us back to frappe site."""
 
-<<<<<<< HEAD
-	state = json.loads(state)
-	redirect = state.pop("redirect", "/app")
-=======
 	state = consume_google_oauth_state(state)
 	if state is None:
 		return frappe.respond_as_web_page(
@@ -205,9 +201,7 @@ def callback(state: str, code: str | None = None, error: str | None = None) -> N
 			frappe._("Your authorization attempt is invalid or has expired. Please try again."),
 			http_status_code=417,
 		)
-
-	redirect = state.pop("redirect", "/desk")
->>>>>>> 2268e05056 (fix(google_oauth): store OAuth state server-side instead)
+	redirect = state.pop("redirect", "/app")
 	success_query_param = state.pop("success_query_param", "")
 	failure_query_param = state.pop("failure_query_param", "")
 

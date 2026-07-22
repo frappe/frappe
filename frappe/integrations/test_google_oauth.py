@@ -7,7 +7,7 @@ from unittest.mock import patch
 import frappe
 from frappe.integrations import google_oauth
 from frappe.integrations.google_oauth import callback, create_google_oauth_state
-from frappe.tests import IntegrationTestCase
+from frappe.tests.utils import FrappeTestCase
 
 _dispatched_calls = []
 
@@ -17,7 +17,7 @@ def _fake_domain_callback(code=None, **kwargs):
 	_dispatched_calls.append({"code": code, **kwargs})
 
 
-class TestGoogleOAuth(IntegrationTestCase):
+class TestGoogleOAuth(FrappeTestCase):
 	def test_callback_uses_server_side_state(self):
 		frappe.local.response = frappe._dict()
 		state_token = create_google_oauth_state({"redirect": "/app/todo", "failure_query_param": "failed=1"})
