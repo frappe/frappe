@@ -483,6 +483,44 @@ if sentry_dsn := os.getenv("FRAPPE_SENTRY_DSN"):
 	)
 
 
+def _tolerate_reloader_crashes():
+	"""Keep `bench serve` alive when the restarted process crashes on boot.
+
+	Werkzeug's reloader gives up permanently if the reloaded process exits with an
+	error, e.g. when a file is saved with a syntax error halfway through an edit.
+	Instead of exiting, keep watching files and attempt another restart on the next
+	change.
+	"""
+	from werkzeug._internal import _log
+	from werkzeug._reloader import ReloaderLoop
+
+	original_restart = ReloaderLoop.restart_with_reloader
+
+	def restart_with_reloader(self) -> int:
+		while True:
+			exit_code = original_restart(self)
+			if exit_code == 0:
+				return exit_code
+
+			_log(
+				"warning",
+				f" * Server exited with code {exit_code}, waiting for a file change to restart it",
+			)
+			try:
+				# Fresh instance because watchdog observers can't be restarted after use.
+				with type(self)(
+					extra_files=self.extra_files,
+					exclude_patterns=self.exclude_patterns,
+					interval=self.interval,
+				) as watcher:
+					watcher.run()
+			except SystemExit as e:
+				if e.code != 3:  # 3 = file changed, restart requested
+					return exit_code
+
+	ReloaderLoop.restart_with_reloader = restart_with_reloader
+
+
 def serve(
 	port=8000,
 	profile=False,
@@ -517,12 +555,16 @@ def serve(
 	if in_test_env:
 		log.setLevel(logging.ERROR)
 
+	use_reloader = False if in_test_env else not no_reload
+	if use_reloader:
+		_tolerate_reloader_crashes()
+
 	run_simple(
 		"0.0.0.0",
 		int(port),
 		application,
 		exclude_patterns=["test_*"],
-		use_reloader=False if in_test_env else not no_reload,
+		use_reloader=use_reloader,
 		use_debugger=not in_test_env,
 		use_evalex=not in_test_env,
 		threaded=not no_threading,
