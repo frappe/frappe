@@ -241,20 +241,29 @@ async function setPage() {
 			})
 			.then(async (data: StudioPage) => {
 				router.push({ name: "StudioPage", params: { appID: appID, pageID: data.name }, force: true })
-				await store.setApp(appID)
-				await store.setPage(data.name)
+				await loadPage(appID, data.name)
 			})
 	} else {
+		await loadPage(appID, pageID)
+	}
+}
+
+let loadingPageID: string | null = null
+async function loadPage(appID: string, pageID: string) {
+	if (loadingPageID === pageID) return
+	loadingPageID = pageID
+	try {
 		await store.setApp(appID)
 		await store.setPage(pageID)
+	} finally {
+		loadingPageID = null
 	}
 }
 
 onActivated(async () => {
 	const pageID = route.params.pageID
 	if (pageID && pageID !== store.selectedPage && pageID !== "new") {
-		await store.setApp(route.params.appID as string)
-		await store.setPage(pageID as string)
+		await loadPage(route.params.appID as string, pageID as string)
 	}
 })
 
