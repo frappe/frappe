@@ -42,8 +42,19 @@ context("Form Builder", () => {
 
 		cy.get("[data-fieldname='gender']").click();
 
+		// wait for the dialog to be fully shown before interacting: bootstrap
+		// focuses the modal container at the end of the fade transition, which
+		// otherwise swallows keystrokes typed into the filter input
+		cy.window().then((win) => {
+			win.__filter_modal_shown = false;
+			win.$(win.document).one("shown.bs.modal", () => {
+				win.__filter_modal_shown = true;
+			});
+		});
+
 		// click on filter action button
 		cy.get('[data-fieldname="gender"] .field-actions button:first').click();
+		cy.window().its("__filter_modal_shown").should("eq", true);
 
 		// add filter
 		cy.get(".modal-body .clear-filters").click();
