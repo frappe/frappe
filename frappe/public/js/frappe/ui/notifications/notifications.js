@@ -6,7 +6,7 @@ frappe.ui.Notifications = class Notifications {
 		this.notification_settings = frappe.boot.notification_settings;
 		this.full_height = opts?.full_height || false;
 
-		this.wrapper = opts?.wrapper || $(".standard-items-sections");
+		this.wrapper = opts?.wrapper || $(".body-sidebar");
 		this.make();
 	}
 
