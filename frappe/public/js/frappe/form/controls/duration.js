@@ -19,7 +19,6 @@ frappe.ui.form.ControlDuration = class ControlDuration extends frappe.ui.form.Co
 				<div class="picker-row row"></div>
 			</div>`
 		);
-		this.$wrapper.append(this.$picker);
 		this.build_numeric_input(
 			"days",
 			this.duration_options.hide_days,
@@ -83,7 +82,7 @@ frappe.ui.form.ControlDuration = class ControlDuration extends frappe.ui.form.Co
 		// flag to handle the display property of the picker
 		let clicked = false;
 
-		this.$wrapper.find(".duration-input").mousedown(() => {
+		this.$picker.on("mousedown", ".duration-input", () => {
 			// input in individual duration boxes
 			clicked = true;
 		});
@@ -123,6 +122,38 @@ frappe.ui.form.ControlDuration = class ControlDuration extends frappe.ui.form.Co
 		});
 	}
 
+<<<<<<< HEAD
+=======
+	show_picker() {
+		$(document.body).append(this.$picker);
+		this.$picker.show();
+		this.position_picker();
+		document.addEventListener("scroll", this.reposition_picker, true);
+		window.addEventListener("resize", this.reposition_picker);
+	}
+
+	hide_picker() {
+		this.$picker.hide();
+		this.$picker.detach();
+		document.removeEventListener("scroll", this.reposition_picker, true);
+		window.removeEventListener("resize", this.reposition_picker);
+	}
+
+	position_picker() {
+		let input = this.$input.get(0);
+		if (!input.isConnected) {
+			this.hide_picker();
+			return;
+		}
+
+		let rect = input.getBoundingClientRect();
+		this.$picker.css({
+			top: rect.bottom + 10 + "px",
+			left: rect.left + "px",
+		});
+	}
+
+>>>>>>> 4dbea72 (fix(ui): Detach duration picker to avoid css issue (#41109))
 	get_value() {
 		return cint(this.value);
 	}

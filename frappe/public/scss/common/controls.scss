@@ -450,8 +450,13 @@ textarea.form-control {
 
 .duration-picker {
 	position: fixed;
+<<<<<<< HEAD
 	z-index: 999;
 	border-radius: var(--border-radius);
+=======
+	z-index: 9999;
+	border-radius: var(--radius);
+>>>>>>> 4dbea72 (fix(ui): Detach duration picker to avoid css issue (#41109))
 	box-shadow: var(--shadow-sm);
 	background: var(--popover-bg);
 	width: max-content;
@@ -478,12 +483,6 @@ textarea.form-control {
 		border-bottom-color: var(--border-color);
 		border-width: 10px;
 		margin-left: -10px;
-	}
-
-	.row .col {
-		// for fixing layout in child table
-		padding-left: 0px !important;
-		padding-right: 0px !important;
 	}
 
 	.duration-row {
@@ -513,19 +512,8 @@ textarea.form-control {
 		margin: var(--margin-sm);
 
 		.col {
-			&:last-child {
-				.grid-row & {
-					// remove flex and justify content added by grid context
-					display: block;
-					justify-content: initial;
-				}
-			}
-
-			.grid-row & {
-				// remove border and padding added by grid context
-				border-right: none;
-				padding: unset;
-			}
+			padding-left: 0;
+			padding-right: 0;
 		}
 	}
 }
