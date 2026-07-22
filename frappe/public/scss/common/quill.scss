@@ -7,7 +7,9 @@
 	font-family: inherit;
 }
 
-/*rtl:begin:ignore*/
+// The "quill" param keeps this comment textually unique: esbuild's minifier
+// dedupes identical legal comments, which would break begin/end pairing.
+/*!rtl:begin:ignore:quill*/
 .ql-editor {
 	font-family: var(--font-stack);
 	color: var(--text-color);
@@ -35,7 +37,7 @@
 	}
 }
 
-/*rtl:end:ignore*/
+/*!rtl:end:ignore:quill*/
 
 // Quill doesn't use variables for :(
 .ql-snow.ql-toolbar button:hover,
