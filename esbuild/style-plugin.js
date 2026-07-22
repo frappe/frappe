@@ -1,10 +1,11 @@
 const path = require("path");
 const fs = require("fs");
 const { fileURLToPath } = require("url");
-const postcss = require("postcss");
-const autoprefixer = require("autoprefixer");
 const { sass, sass_options, app_paths, node_modules_paths } = require("./sass_compiler");
 
+// Plain .css files are not handled here on purpose: esbuild's native CSS
+// loader already resolves @imports (via nodePaths), watches the files, and
+// errors on unresolvable imports.
 module.exports = {
 	name: "frappe-style",
 	setup(build) {
@@ -13,34 +14,12 @@ module.exports = {
 			const watch_files = result.loadedUrls
 				.filter((url) => url.protocol === "file:")
 				.map((url) => fileURLToPath(url));
-			const { contents, warnings } = await postprocess(
-				result.css,
-				args.path,
-				result.sourceMap,
-				watch_files
-			);
 			return {
-				contents,
+				contents: with_inline_sourcemap(result.css, result.sourceMap),
 				loader: "css",
 				resolveDir: path.dirname(args.path),
 				watchFiles: watch_files,
-				warnings,
-			};
-		});
-
-		// Plain CSS — both .bundle.css entries and .css files that sass emitted
-		// as plain-CSS @imports (which esbuild resolves and inlines) — still
-		// goes through autoprefixer, like every stylesheet in the bundle.
-		build.onLoad({ filter: /\.css$/ }, async (args) => {
-			const source = await fs.promises.readFile(args.path, "utf-8");
-			const watch_files = [args.path];
-			const { contents, warnings } = await postprocess(source, args.path, null, watch_files);
-			return {
-				contents,
-				loader: "css",
-				resolveDir: path.dirname(args.path),
-				watchFiles: watch_files,
-				warnings,
+				warnings: find_leftover_imports(result.css, args.path),
 			};
 		});
 
@@ -50,35 +29,27 @@ module.exports = {
 			const less = require("less");
 			const source = await fs.promises.readFile(args.path, "utf-8");
 			const result = await less.render(source, { filename: args.path });
-			const watch_files = [args.path, ...(result.imports || [])];
-			const { contents, warnings } = await postprocess(
-				result.css,
-				args.path,
-				null,
-				watch_files
-			);
 			return {
-				contents,
+				contents: result.css,
 				loader: "css",
 				resolveDir: path.dirname(args.path),
-				watchFiles: watch_files,
-				warnings,
+				watchFiles: [args.path, ...(result.imports || [])],
+				warnings: find_leftover_imports(result.css, args.path),
 			};
 		});
 	},
 };
 
-async function postprocess(css, from, prev_map, watch_files) {
-	const result = await postcss([autoprefixer]).process(css, {
-		from,
-		map: { prev: prev_map || undefined, inline: true, sourcesContent: true },
-	});
-	for (const message of result.messages) {
-		if (message.type === "dependency") {
-			watch_files.push(message.file);
-		}
-	}
-	return { contents: result.css, warnings: find_leftover_imports(css, from) };
+// esbuild picks up inline source maps from loaded contents and chains them
+// into the final .css.map; sources arrive as file: URLs which devtools (and
+// esbuild's relative-path rewriting) expect as plain paths.
+function with_inline_sourcemap(css, map) {
+	if (!map) return css;
+	map.sources = map.sources.map((source) =>
+		source.startsWith("file:") ? fileURLToPath(source) : source
+	);
+	const encoded = Buffer.from(JSON.stringify(map)).toString("base64");
+	return `${css}\n/*# sourceMappingURL=data:application/json;charset=utf-8;base64,${encoded} */\n`;
 }
 
 function is_external_url(url) {
