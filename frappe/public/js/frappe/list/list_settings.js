@@ -30,7 +30,10 @@ export default class ListSettings {
 		let list_view_settings = frappe.get_meta("List View Settings");
 
 		me.dialog = new frappe.ui.Dialog({
-			title: __("{0} List View Settings", [__(me.doctype)]),
+			title:
+				me.doctype === "List View Settings"
+					? __("List View Settings")
+					: __("{0} List View Settings", [__(me.doctype)]),
 			fields: list_view_settings.fields,
 		});
 		me.dialog.set_values(me.settings);
