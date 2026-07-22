@@ -110,8 +110,14 @@
 							v-for="(slot, slotName) in element.componentSlots"
 							:key="slot.slotId"
 							:data-slot-layer-id="slot.slotId"
+							:data-slot-name="slotName"
+							:data-slot-parent-id="slot.parentBlockId"
 							:title="slot.slotName"
 							class="relative min-w-24 cursor-pointer select-none rounded border border-transparent bg-surface-base bg-opacity-50 text-base text-ink-gray-6"
+							:class="{
+								'border-outline-blue-5 !bg-surface-blue-2 dark:!bg-surface-blue-10':
+									canvasStore.layerDraggingOverSlot === slot.slotId,
+							}"
 							@click.stop="canvasStore.activeCanvas?.selectSlot(slot)"
 						>
 							<div
@@ -286,16 +292,22 @@ interface DragState {
 	draggedElement: HTMLElement | null
 	hoverTarget: HTMLElement | null
 	hoverPosition: "before" | "after" | "inside" | null
+	hoverSlot: { parentId: string; slotName: string } | null
 }
 
 const showDropIndicator = ref(false)
 const dropIndicatorTop = ref(0)
 const dropIndicatorLeft = ref(0)
-const dragState: DragState = { draggedElement: null, hoverTarget: null, hoverPosition: null }
+const dragState: DragState = { draggedElement: null, hoverTarget: null, hoverPosition: null, hoverSlot: null }
+
+const clearDragState = () => {
+	Object.assign(dragState, { draggedElement: null, hoverTarget: null, hoverPosition: null, hoverSlot: null })
+}
 
 const resetDropIndicators = () => {
 	showDropIndicator.value = false
 	canvasStore.layerDraggingOverBlock = null
+	canvasStore.layerDraggingOverSlot = null
 }
 
 const checkMove = () => false // Prevent automatic reordering
@@ -327,10 +339,18 @@ const onMouseMove = (event: MouseEvent) => {
 	if (!draggedElement) return
 
 	const target = document.elementFromPoint(event.clientX, event.clientY)
+	const slotRow = target?.closest("[data-slot-layer-id]") as HTMLElement | null
 	const layerItem = target?.closest(".component-layer-item") as HTMLElement | null
+
+	// Hovering a slot header row (deeper than the nearest block row) targets the slot itself
+	if (slotRow && (!layerItem || layerItem.contains(slotRow)) && !draggedElement.contains(slotRow)) {
+		hoverSlot(slotRow)
+		return
+	}
 
 	if (!layerItem || layerItem === draggedElement || draggedElement.contains(layerItem)) {
 		resetDropIndicators()
+		dragState.hoverSlot = null
 		return
 	}
 
@@ -348,6 +368,7 @@ const onMouseMove = (event: MouseEvent) => {
 	const isInCenterZone = relativeY > elementHeight * 0.25 && relativeY < elementHeight * 0.75
 
 	dragState.hoverTarget = layerItem
+	dragState.hoverSlot = null
 
 	if (block.canHaveChildren() && isInCenterZone) {
 		// Highlight parent block for nested drop
@@ -361,11 +382,32 @@ const onMouseMove = (event: MouseEvent) => {
 	}
 }
 
+const hoverSlot = (slotRow: HTMLElement) => {
+	resetDropIndicators()
+	canvasStore.layerDraggingOverSlot = slotRow.dataset.slotLayerId!
+	dragState.hoverTarget = null
+	dragState.hoverPosition = null
+	dragState.hoverSlot = {
+		parentId: slotRow.dataset.slotParentId!,
+		slotName: slotRow.dataset.slotName!,
+	}
+}
+
 const removeFromParent = (block: Block) => {
 	const parent = block.getParentBlock()
 	if (parent) {
 		parent.removeChild(block)
 	}
+}
+
+const moveBlockIntoSlot = (draggedBlock: Block, parentBlock: Block, slotName: string) => {
+	const slot = parentBlock.getSlot(slotName)
+	if (!slot) return
+	removeFromParent(draggedBlock)
+	draggedBlock.parentBlock = parentBlock
+	draggedBlock.parentSlotName = slotName
+	if (!Array.isArray(slot.slotContent)) slot.slotContent = []
+	slot.slotContent.push(draggedBlock)
 }
 
 const moveBlockInside = (draggedBlock: Block, targetBlock: Block) => {
@@ -402,27 +444,34 @@ const onDragEnd = (e: DragEvent) => {
 	resetDropIndicators()
 	document.removeEventListener("mousemove", onMouseMove)
 
-	const { draggedElement, hoverTarget, hoverPosition } = dragState
-	if (!draggedElement || !hoverTarget || !hoverPosition || draggedElement.contains(hoverTarget)) {
-		Object.assign(dragState, { draggedElement: null, hoverTarget: null, hoverPosition: null })
+	const { draggedElement, hoverTarget, hoverPosition, hoverSlot } = dragState
+	clearDragState()
+
+	const draggedBlock =
+		draggedElement && canvasStore.activeCanvas?.findBlock(draggedElement.dataset.componentLayerId!)
+	if (!draggedBlock) return
+
+	if (hoverSlot) {
+		const parentBlock = canvasStore.activeCanvas?.findBlock(hoverSlot.parentId)
+		if (parentBlock && parentBlock !== draggedBlock) {
+			moveBlockIntoSlot(draggedBlock, parentBlock, hoverSlot.slotName)
+			canvasStore.activeCanvas?.selectBlock(draggedBlock, e)
+		}
 		return
 	}
 
-	const draggedBlock = canvasStore.activeCanvas?.findBlock(draggedElement.dataset.componentLayerId!)
-	const targetBlock = canvasStore.activeCanvas?.findBlock(hoverTarget.dataset.componentLayerId!)
+	if (!hoverTarget || !hoverPosition || draggedElement!.contains(hoverTarget)) return
 
-	if (draggedBlock && targetBlock && draggedBlock !== targetBlock) {
+	const targetBlock = canvasStore.activeCanvas?.findBlock(hoverTarget.dataset.componentLayerId!)
+	if (targetBlock && draggedBlock !== targetBlock) {
 		if (hoverPosition === "inside") {
 			moveBlockInside(draggedBlock, targetBlock)
 		} else {
 			moveBlockAdjacent(draggedBlock, targetBlock, hoverPosition)
 		}
-
 		// Select the moved block
 		canvasStore.activeCanvas?.selectBlock(draggedBlock, e)
 	}
-
-	Object.assign(dragState, { draggedElement: null, hoverTarget: null, hoverPosition: null })
 }
 
 // @ts-ignore
