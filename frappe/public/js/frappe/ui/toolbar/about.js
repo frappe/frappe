@@ -150,7 +150,33 @@ frappe.ui.misc.about = function () {
 		}
 
 		frappe.versions = versions;
+
+		if (frappe.versions) {
+			$(dialog.body).find("#copy-apps-info").removeClass("hidden");
+		}
 	};
+
+	const code_block = (snippet, lang = "") => "```" + lang + "\n" + snippet + "\n```";
+
+	// Listener for copying installed apps info
+	$(dialog.body).on("click", "#copy-apps-info", function () {
+		if (!frappe.versions) return;
+
+		const versions = Object.entries(frappe.versions).reduce((acc, [key, app]) => {
+			acc[key] = app.branch_version || app.version;
+			return acc;
+		}, {});
+
+		frappe.utils.copy_to_clipboard(code_block(JSON.stringify(versions, null, "\t"), "json"));
+	});
+
+	// Listener for copy app version
+	$(dialog.body).on("click", ".about-app-row", function () {
+		const title = $(this).attr("title");
+		if (title) {
+			frappe.utils.copy_to_clipboard(title);
+		}
+	});
 
 	frappe.ui.misc.about_dialog.show();
 };
