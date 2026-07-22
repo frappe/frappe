@@ -4,6 +4,7 @@
 import functools
 import logging
 import os
+import sys
 
 import orjson
 from werkzeug.exceptions import HTTPException, NotFound
@@ -521,6 +522,46 @@ def _tolerate_reloader_crashes():
 	ReloaderLoop.restart_with_reloader = restart_with_reloader
 
 
+_RELOADER_EXCLUDED_DIRS = ("node_modules", ".git")
+
+
+def _get_reloader_watch_config(sites_path) -> tuple[list[str], list[str]]:
+	"""Keep the reloader from watching node_modules, .git and the sites directory.
+
+	See #41147
+	"""
+	try:
+		__import__("watchdog.observers")  # same check werkzeug uses to pick the reloader
+	except ImportError:
+		# The stat reloader polls only .py files and skips the venv already; the
+		# watch-root surgery below would just make it walk the app packages twice.
+		return [], ["test_*"]
+
+	sites_dir = os.path.abspath(sites_path)
+	extra_dirs = []
+	exclude_patterns = ["test_*", sites_dir, *[f"*/{d}/*" for d in _RELOADER_EXCLUDED_DIRS]]
+
+	# the stat reloader never scans the venv or the stdlib; skip them here too
+	prefixes = {sys.prefix, sys.exec_prefix, sys.base_prefix, sys.base_exec_prefix}
+	exclude_patterns.extend(f"{os.path.abspath(p)}{os.sep}*" for p in prefixes)
+
+	for path in sys.path:
+		path = os.path.abspath(path)
+		if path == sites_dir or not os.path.isdir(path):
+			continue
+		if not any(os.path.lexists(os.path.join(path, d)) for d in _RELOADER_EXCLUDED_DIRS):
+			continue
+
+		exclude_patterns.append(path)
+		extra_dirs.extend(
+			os.path.join(path, child)
+			for child in sorted(os.listdir(path))
+			if os.path.isfile(os.path.join(path, child, "__init__.py"))
+		)
+
+	return extra_dirs, exclude_patterns
+
+
 def serve(
 	port=8000,
 	profile=False,
@@ -556,14 +597,17 @@ def serve(
 		log.setLevel(logging.ERROR)
 
 	use_reloader = False if in_test_env else not no_reload
+	extra_dirs, exclude_patterns = [], ["test_*"]
 	if use_reloader:
 		_tolerate_reloader_crashes()
+		extra_dirs, exclude_patterns = _get_reloader_watch_config(sites_path)
 
 	run_simple(
 		"0.0.0.0",
 		int(port),
 		application,
-		exclude_patterns=["test_*"],
+		extra_files=extra_dirs,
+		exclude_patterns=exclude_patterns,
 		use_reloader=use_reloader,
 		use_debugger=not in_test_env,
 		use_evalex=not in_test_env,
