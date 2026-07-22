@@ -79,7 +79,6 @@
     "sortablejs": "^1.15.0",
     "vue": "^3.3.0",
     "vuedraggable": "^4.1.0",
-    "vuex": "4.0.2",
     "yargs": "^17.5.1"
   },
   "nyc": {
