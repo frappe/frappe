@@ -2,6 +2,7 @@
 # For license information, please see license.txt
 
 import copy
+from datetime import time, timedelta
 
 import pyarrow as pa
 
@@ -139,12 +140,26 @@ def sync_data_to_duckdb(docname: str):
 		with frappe.db.unbuffered_cursor():
 			iter = query.run(as_dict=True, as_iterator=True)
 			field_list = ", ".join(f'"{c}"' for c in schema.names)
+			time_columns = [
+				name
+				for name, dtype in zip(schema.names, schema.types, strict=False)
+				if pa.types.is_time(dtype)
+			]
+
+			def timedelta_to_time(td):
+				total_seconds = int(td.total_seconds()) % 86400
+				hours, remainder = divmod(total_seconds, 3600)
+				minutes, seconds = divmod(remainder, 60)
+				return time(hours, minutes, seconds, td.microseconds)
 
 			# an iterator to create RecordBatch from list
 			def recordbatch_from_list(iter, schema):
 				batch_size = 204800
 				rows = []
 				for row in iter:
+					for col in time_columns:
+						if isinstance(row.get(col), timedelta):
+							row[col] = timedelta_to_time(row[col])
 					rows.append(row)
 					if len(rows) >= batch_size:
 						batch = pa.RecordBatch.from_pylist(rows, schema=schema)

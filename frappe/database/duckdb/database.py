@@ -62,7 +62,7 @@ def get_pyarrow_type_map():
 		"HTML Editor": pa.string(),
 		"Date": pa.date32(),
 		"Datetime": pa.timestamp("us"),
-		"Time": pa.time32("ms"),
+		"Time": pa.time64("us"),
 		"Text": pa.string(),
 		"Data": pa.string(),
 		"Link": pa.string(),
