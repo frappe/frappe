@@ -92,7 +92,7 @@ const FILES_TO_BUILD = argv.files ? argv.files.split(",") : [];
 const WATCH_MODE = Boolean(argv.watch);
 const PRODUCTION = Boolean(argv.production);
 const RUN_BUILD_COMMAND = !WATCH_MODE && Boolean(argv["run-build-command"]);
-const ESBUILD_TARGET = argv["esbuild-target"] || "es2017";
+const ESBUILD_TARGET = argv["esbuild-target"] || "es2020";
 // Allow VERBOSE to be inherited by nested esbuild invocations (per-app yarn
 // build) via the environment; CLI flag propagation through yarn run breaks
 // chained scripts like `yarn copy && cp`.
