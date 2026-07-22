@@ -348,9 +348,10 @@ frappe.views.DashboardView = class DashboardView extends frappe.views.ListView {
 				{
 					label: "Value Based On",
 					fieldtype: "Select",
-					fieldname: "based_on",
+					fieldname: "value_based_on",
 					options: fields.value_fields,
-					depends_on: 'eval: doc.chart_function=="Sum"',
+					depends_on: 'eval: ["Sum", "Average"].includes(doc.chart_function)',
+					mandatory_depends_on: 'eval: ["Sum", "Average"].includes(doc.chart_function)',
 				},
 				{
 					label: "Time Series Based On",
