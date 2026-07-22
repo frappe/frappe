@@ -100,20 +100,13 @@
 				@end="setDragging(false)"
 			>
 				<template #item="{ element }">
-					<div
-						class="pfb-block-card"
+					<BlockCard
+						:icon="element.icon"
+						:name="element.label"
+						:desc="element.desc"
 						:title="element.desc"
 						@click="add_to_layout(element)"
-					>
-						<span
-							class="pfb-block-icon"
-							v-html="frappe.utils.icon(element.icon, 'sm')"
-						></span>
-						<div class="pfb-block-info">
-							<div class="pfb-block-name">{{ element.label }}</div>
-							<div class="pfb-block-desc text-muted">{{ element.desc }}</div>
-						</div>
-					</div>
+					/>
 				</template>
 			</draggable>
 
@@ -129,16 +122,13 @@
 				@end="setDragging(false)"
 			>
 				<template #item="{ element }">
-					<div class="pfb-block-card" :title="element.desc" @click="add_page_break">
-						<span
-							class="pfb-block-icon"
-							v-html="frappe.utils.icon('scissors-line-dashed', 'sm')"
-						></span>
-						<div class="pfb-block-info">
-							<div class="pfb-block-name">{{ element.label }}</div>
-							<div class="pfb-block-desc text-muted">{{ element.desc }}</div>
-						</div>
-					</div>
+					<BlockCard
+						icon="scissors-line-dashed"
+						:name="element.label"
+						:desc="element.desc"
+						:title="element.desc"
+						@click="add_page_break"
+					/>
 				</template>
 			</draggable>
 		</div>
@@ -187,30 +177,26 @@
 					@end="setDragging(false)"
 				>
 					<template #item="{ element: snip }">
-						<div
-							class="pfb-block-card"
+						<BlockCard
+							:icon="grp.icon"
+							:name="snip.name"
+							:desc="grp.desc"
 							:title="__('Drag into the layout, or click to insert')"
 							@click="store.insert_snippet(snip.name)"
 						>
-							<span
-								class="pfb-block-icon"
-								v-html="frappe.utils.icon(grp.icon, 'sm')"
-							></span>
-							<div class="pfb-block-info">
-								<div class="pfb-block-name">{{ snip.name }}</div>
-								<div class="pfb-block-desc text-muted">{{ grp.desc }}</div>
-							</div>
-							<button
-								class="es-button"
-								data-size="xs"
-								data-variant="ghost"
-								data-theme="red"
-								data-icon-button="true"
-								:title="__('Delete snippet')"
-								@click.stop="confirm_delete_snippet(snip.name)"
-								v-html="frappe.utils.icon('trash', 'xs')"
-							></button>
-						</div>
+							<template #action>
+								<button
+									class="es-button"
+									data-size="xs"
+									data-variant="ghost"
+									data-theme="red"
+									data-icon-button="true"
+									:title="__('Delete snippet')"
+									@click.stop="confirm_delete_snippet(snip.name)"
+									v-html="frappe.utils.icon('trash', 'xs')"
+								></button>
+							</template>
+						</BlockCard>
 					</template>
 				</draggable>
 			</template>
@@ -245,22 +231,13 @@
 				@end="setDragging(false)"
 			>
 				<template #item="{ element }">
-					<div
-						class="pfb-block-card"
+					<BlockCard
+						icon="code"
+						:name="element.display_label"
+						:desc="element.field_label || __('Custom block')"
 						:title="element.fieldname"
 						@click="add_to_layout(element)"
-					>
-						<span
-							class="pfb-block-icon"
-							v-html="frappe.utils.icon('code', 'sm')"
-						></span>
-						<div class="pfb-block-info">
-							<div class="pfb-block-name">{{ element.display_label }}</div>
-							<div class="pfb-block-desc text-muted">
-								{{ element.field_label || __("Custom block") }}
-							</div>
-						</div>
-					</div>
+					/>
 				</template>
 			</draggable>
 		</div>
@@ -378,6 +355,7 @@ import {
 	pluck,
 	setDragging,
 } from "../utils";
+import BlockCard from "./BlockCard.vue";
 import PrintSettingsPanel from "./PrintSettingsPanel.vue";
 import { useStore } from "../stores";
 import { computed, onMounted, onUnmounted, nextTick, ref, watch, inject } from "vue";
@@ -1026,50 +1004,6 @@ function handle_slash_key(e) {
 	padding: 2px 6px;
 	white-space: nowrap;
 	flex-shrink: 0;
-}
-
-/* ── Block card (Blocks + Templates tabs) ────────────────── */
-.pfb-block-card {
-	display: flex;
-	align-items: center;
-	gap: 10px;
-	padding: 8px 10px;
-	border-radius: var(--radius);
-	border: 1px solid var(--border-color);
-	background: var(--gray-50);
-	cursor: grab;
-	margin-top: 6px;
-}
-
-.pfb-block-card:hover {
-	background: var(--gray-100);
-	border-color: var(--gray-500);
-}
-
-.pfb-block-icon {
-	display: flex;
-	align-items: center;
-	justify-content: center;
-	width: 28px;
-	height: 28px;
-	border-radius: var(--radius);
-	background: var(--gray-200);
-	flex-shrink: 0;
-}
-
-.pfb-block-info {
-	min-width: 0;
-	flex: 1;
-}
-
-.pfb-block-name {
-	font-size: var(--text-sm);
-	font-weight: 500;
-}
-
-.pfb-block-desc {
-	font-size: var(--text-tiny);
-	margin-top: 1px;
 }
 
 .pfb-manage-link {
