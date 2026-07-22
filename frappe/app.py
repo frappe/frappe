@@ -565,8 +565,8 @@ def serve(
 		application,
 		exclude_patterns=["test_*"],
 		use_reloader=use_reloader,
-		use_debugger=not in_test_env,
-		use_evalex=not in_test_env,
+		use_debugger=False,
+		use_evalex=False,
 		threaded=not no_threading,
 	)
 
