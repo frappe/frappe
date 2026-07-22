@@ -3,7 +3,6 @@
 		:class="[
 			preview_doc ? preview_root.classes : 'field field--chip',
 			{
-				'field--table': df.fieldtype == 'Table',
 				'field--selected': is_selected,
 				'field--preview': !!preview_doc,
 				'field--condition-hidden': preview_doc && !is_field_visible,
@@ -68,7 +67,6 @@
 			</template>
 			<FieldPreviewTable v-else-if="df.fieldtype == 'Table'" :df="df" />
 			<FieldPreviewRepeater v-else-if="df.fieldtype == 'Repeater'" :df="df" />
-			<!-- Regular field -->
 			<template v-else>
 				<div
 					v-if="df.label && df.show_label !== 'hide'"
@@ -123,7 +121,6 @@
 					<span v-else>{{ preview_value || "—" }}</span>
 				</div>
 			</template>
-			<!-- Top-right actions pill: drag + remove -->
 			<div class="field-preview-actions">
 				<div
 					class="drag-handle field-drag-handle"
@@ -802,7 +799,6 @@ watch(
 	outline-offset: 1px;
 }
 
-/* Top-right actions pill: drag + remove — hidden until hover/selected */
 .field-preview-actions {
 	display: none;
 	position: absolute;

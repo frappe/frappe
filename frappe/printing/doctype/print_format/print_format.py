@@ -76,7 +76,6 @@ class PrintFormat(Document):
 		if self.print_format_for == "Report":
 			self.custom_format = 1
 
-		# New non-custom formats default to builder beta + Chrome
 		if self.is_new() and not self.custom_format:
 			self.print_format_builder_beta = 1
 
@@ -191,7 +190,6 @@ class PrintFormat(Document):
 		if self.doc_type:
 			frappe.clear_cache(doctype=self.doc_type)
 
-		# update property setter default_print_format if set
 		frappe.db.set_value(
 			"Property Setter",
 			{
@@ -310,8 +308,6 @@ def generate_preview(name: str) -> str | None:
 	)
 	for old in stale:
 		frappe.delete_doc("File", old, ignore_permissions=True, delete_permanently=True)
-
-	for old in stale:
 		notify_docinfo_attachment(name, {"name": old}, "delete")
 	notify_docinfo_attachment(name, file.as_dict(), "add")
 	return file.file_url
