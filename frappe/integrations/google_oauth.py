@@ -196,9 +196,6 @@ def callback(state: str, code: str | None = None, error: str | None = None) -> N
 	Invokes functions using `frappe.get_attr` and also adds required (keyworded) arguments
 	along with committing and redirecting us back to frappe site."""
 
-<<<<<<< HEAD
-	state = json.loads(state)
-=======
 	state = consume_google_oauth_state(state)
 	if state is None:
 		return frappe.respond_as_web_page(
@@ -207,7 +204,6 @@ def callback(state: str, code: str | None = None, error: str | None = None) -> N
 			http_status_code=417,
 		)
 
->>>>>>> 2268e05056 (fix(google_oauth): store OAuth state server-side instead)
 	redirect = state.pop("redirect", "/desk")
 	success_query_param = state.pop("success_query_param", "")
 	failure_query_param = state.pop("failure_query_param", "")
