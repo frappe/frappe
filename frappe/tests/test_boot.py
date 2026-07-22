@@ -28,6 +28,24 @@ class TestBootData(FrappeTestCase):
 		unseen_notes = [d.title for d in get_unseen_notes()]
 		self.assertListEqual(unseen_notes, [])
 
+	def test_empty_allowed_reports_are_served_from_cache(self):
+		from unittest.mock import patch
+
+		frappe.set_user("Administrator")
+		user = frappe.session.user
+		frappe.cache.delete_value("has_role:Report", user=user)
+		self.addCleanup(frappe.cache.delete_value, "has_role:Report", user=user)
+
+		with patch("frappe.boot.has_permission", return_value=False) as has_perm:
+			self.assertEqual(get_user_pages_or_reports("Report", cache=True), {})
+			builds = has_perm.call_count
+			self.assertGreaterEqual(builds, 1)
+
+			frappe.local.cache.clear()
+
+			self.assertEqual(get_user_pages_or_reports("Report", cache=True), {})
+			self.assertEqual(has_perm.call_count, builds)
+
 
 class TestPermissionQueries(FrappeTestCase):
 	@classmethod
