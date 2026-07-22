@@ -37,10 +37,17 @@
 		<div v-if="!docname" class="pfb-preview-empty">
 			{{ __("Pick a record in the toolbar above to preview it.") }}
 		</div>
+		<div v-else-if="is_cancelled" class="pfb-preview-empty">
+			{{ __("This document is cancelled and cannot be printed.") }}
+		</div>
 		<div v-else-if="!preview_loaded" class="pfb-preview-empty">
 			{{ __("Generating preview...") }}
 		</div>
-		<div ref="viewport" class="pfb-preview-viewport" v-show="docname && preview_loaded">
+		<div
+			ref="viewport"
+			class="pfb-preview-viewport"
+			v-show="docname && preview_loaded && !is_cancelled"
+		>
 			<!-- the page renders at its true width and is scaled down to fit the rail -->
 			<div class="pfb-preview-stage" :style="stage_style">
 				<iframe
@@ -171,6 +178,20 @@ let docname = computed(() => store.value.preview_doc_name);
 
 let doctype = computed(() => print_format.value.doc_type);
 
+// cancelled documents aren't printable unless Print Settings allows it (see
+// printview.validate_print_for_docstatus) — asking the server for a preview would
+// only bounce back a permission error, so skip the round trip and say so directly
+// instead of rendering a generic "broken" message.
+let allow_print_for_cancelled = computed(() =>
+	cint(frappe.model.get_doc(":Print Settings", "Print Settings")?.allow_print_for_cancelled)
+);
+let is_cancelled = computed(
+	() =>
+		!allow_print_for_cancelled.value &&
+		store.value.preview_doc?.name === docname.value &&
+		store.value.preview_doc?.docstatus === 2
+);
+
 let url = computed(() => {
 	if (!docname.value) return null;
 	// the paged view is a blob of the unsaved format — opening the saved one
@@ -198,6 +219,11 @@ function write_iframe(html) {
 // laid-out heights, keep-together and table splitting, none of which the browser
 // can work out from the flowed HTML. So the paged view asks the print renderer.
 async function render_pages(seq) {
+	if (is_cancelled.value) {
+		set_pdf_url(null);
+		preview_loaded.value = true;
+		return;
+	}
 	preview_loaded.value = false;
 	const params = {
 		print_format: store.value.get_preview_format_doc(),
@@ -241,6 +267,10 @@ function render() {
 	let seq = ++render_seq;
 	if (!docname.value) return;
 	if (type.value === "PDF") return render_pages(seq);
+	if (is_cancelled.value) {
+		preview_loaded.value = true;
+		return;
+	}
 	preview_loaded.value = false;
 	let params = {
 		print_format: store.value.get_preview_format_doc(),
@@ -285,7 +315,9 @@ const auto_render = frappe.utils.debounce(() => {
 }, 1000);
 
 watch(() => layout.value, auto_render, { deep: true });
-watch([docname, type], render, { flush: "post" });
+// preview_doc (and its docstatus) arrives async and can resolve after docname
+// already triggered a render, so re-evaluate once it lands
+watch([docname, type, () => store.value.preview_doc?.docstatus], render, { flush: "post" });
 
 onMounted(() => {
 	render();

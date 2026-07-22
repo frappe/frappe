@@ -341,6 +341,11 @@ function dismiss_hint() {
 function init_doc_picker() {
 	if (!doc_picker_ref.value) return;
 	const meta = $store.value.meta.value;
+	// cancelled documents can't be printed unless Print Settings allows it, so keep
+	// them out of the picker unless that's turned on (mirrors frappe.model.can_print_doc)
+	const print_settings = frappe.model.get_doc(":Print Settings", "Print Settings") || {};
+	const allow_cancelled = cint(print_settings.allow_print_for_cancelled);
+	const printable_filters = meta?.is_submittable && !allow_cancelled ? { docstatus: ["!=", 2] } : {};
 	doc_picker_ctrl.value = frappe.ui.form.make_control({
 		parent: doc_picker_ref.value,
 		df: {
@@ -348,6 +353,7 @@ function init_doc_picker() {
 			fieldtype: "Link",
 			options: meta?.name,
 			placeholder: __("Pick a {0} to preview...", [__(meta?.name || "document")]),
+			get_query: () => ({ filters: printable_filters }),
 			change: () => {
 				const name = doc_picker_ctrl.value.get_value();
 				$store.value.load_preview_doc(name || null);
@@ -363,16 +369,25 @@ function init_doc_picker() {
 		$store.value.load_preview_doc(name);
 	};
 	// Prefer the record chosen last time (persisted across refresh); otherwise
-	// auto-select the most recent record so the preview is ready immediately.
+	// auto-select the most recent printable record so the preview is ready immediately.
 	const saved = $store.value.persisted_preview_doc_name();
 	const auto_select = () =>
 		frappe.db
-			.get_list(meta?.name, { limit: 1, fields: ["name"], order_by: "creation desc" })
+			.get_list(meta?.name, {
+				filters: printable_filters,
+				limit: 1,
+				fields: ["name"],
+				order_by: "creation desc",
+			})
 			.then((rows) => rows?.length && select(rows[0].name));
 	if (saved) {
 		frappe.db
-			.get_value(meta?.name, saved, "name")
-			.then((r) => (r?.message?.name ? select(saved) : auto_select()));
+			.get_value(meta?.name, saved, ["name", "docstatus"])
+			.then((r) =>
+				r?.message?.name && (allow_cancelled || r.message.docstatus !== 2)
+					? select(saved)
+					: auto_select()
+			);
 	} else {
 		auto_select();
 	}
