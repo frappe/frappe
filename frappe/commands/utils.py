@@ -32,9 +32,7 @@ if typing.TYPE_CHECKING:
 )
 @click.option("--production", is_flag=True, default=False, help="Build assets in production mode")
 @click.option("--verbose", is_flag=True, default=False, help="Verbose")
-@click.option(
-	"--force", is_flag=True, default=False, help="Force build assets instead of downloading available"
-)
+@click.option("--force", is_flag=True, default=False, help="Force build and compile translations")
 @click.option(
 	"--save-metafiles",
 	is_flag=True,
@@ -59,7 +57,7 @@ def build(
 	using_cached=False,
 ):
 	"Compile JS and CSS source files"
-	from frappe.build import bundle, download_frappe_assets
+	from frappe.build import bundle
 	from frappe.gettext.translate import compile_translations
 	from frappe.utils.synchronization import filelock
 
@@ -69,13 +67,6 @@ def build(
 		apps = app
 
 	with filelock("bench_build", is_global=True, timeout=10):
-		# dont try downloading assets if force used, app specified or running via CI
-		if not (force or apps or os.environ.get("CI")):
-			# skip building frappe if assets exist remotely
-			skip_frappe = download_frappe_assets(verbose=verbose)
-		else:
-			skip_frappe = False
-
 		# don't minify in developer_mode for faster builds
 		development = frappe.local.conf.developer_mode or frappe._dev_server
 		esbuild_target = frappe.local.conf.get("esbuild_target") or os.environ.get("ESBUILD_TARGET")
@@ -92,7 +83,6 @@ def build(
 			apps=apps,
 			hard_link=hard_link,
 			verbose=verbose,
-			skip_frappe=skip_frappe,
 			save_metafiles=save_metafiles,
 			using_cached=using_cached,
 			esbuild_target=esbuild_target,
