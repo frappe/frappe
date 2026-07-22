@@ -34,10 +34,6 @@ const argv = yargs
 		type: "string",
 		description: "Run build for specific apps",
 	})
-	.option("skip_frappe", {
-		type: "boolean",
-		description: "Skip building frappe assets",
-	})
 	.option("files", {
 		type: "string",
 		description: "Run build for specified bundles",
@@ -84,9 +80,7 @@ const argv = yargs
 	)
 	.version(false).argv;
 
-const APPS = (!argv.apps ? app_list : argv.apps.split(",")).filter(
-	(app) => !(argv.skip_frappe && app == "frappe")
-);
+const APPS = !argv.apps ? app_list : argv.apps.split(",");
 const FILES_TO_BUILD = argv.files ? argv.files.split(",") : [];
 const WATCH_MODE = Boolean(argv.watch);
 const PRODUCTION = Boolean(argv.production);

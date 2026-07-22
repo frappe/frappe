@@ -5,9 +5,6 @@ import re
 import shutil
 import subprocess
 from contextlib import suppress
-from subprocess import getoutput
-from tempfile import mkdtemp
-from urllib.parse import urlparse
 
 import click
 from semantic_version import Version
@@ -19,155 +16,6 @@ app_paths = None
 sites_path = os.path.abspath(os.getcwd())
 WHITESPACE_PATTERN = re.compile(r"\s+")
 HTML_COMMENT_PATTERN = re.compile(r"(<!--.*?-->)")
-
-
-class AssetsNotDownloadedError(Exception):
-	pass
-
-
-class AssetsDontExistError(Exception):
-	pass
-
-
-def download_file(url, prefix):
-	from requests import get
-
-	filename = urlparse(url).path.split("/")[-1]
-	local_filename = os.path.join(prefix, filename)
-	with get(url, stream=True, allow_redirects=True) as r:
-		r.raise_for_status()
-		with open(local_filename, "wb") as f:
-			for chunk in r.iter_content(chunk_size=8192):
-				f.write(chunk)
-	return local_filename
-
-
-def build_missing_files(verbose=True):
-	"""Check which files dont exist yet from the assets.json and run build for those files"""
-
-	missing_assets = []
-	current_asset_files = []
-
-	for type in ["css", "js"]:
-		folder = os.path.join(sites_path, "assets", "frappe", "dist", type)
-		current_asset_files.extend(os.listdir(folder))
-
-	development = frappe.local.conf.developer_mode or frappe._dev_server
-	build_mode = "development" if development else "production"
-
-	assets_json = frappe.read_file("assets/assets.json")
-	if assets_json:
-		assets_json = frappe.parse_json(assets_json)
-
-		for bundle_file, output_file in assets_json.items():
-			if not output_file.startswith("/assets/frappe"):
-				continue
-
-			if os.path.basename(output_file) not in current_asset_files:
-				missing_assets.append(bundle_file)
-
-		if missing_assets:
-			if verbose:
-				click.secho("\nBuilding missing assets...\n", fg="yellow")
-			files_to_build = ["frappe/" + name for name in missing_assets]
-			bundle(build_mode, files=files_to_build, verbose=verbose)
-	else:
-		# no assets.json, run full build
-		bundle(build_mode, apps="frappe", verbose=verbose)
-
-
-def get_assets_link(frappe_head) -> str:
-	import requests
-
-	tag = getoutput(
-		r"cd ../apps/frappe && git show-ref --tags -d | grep {} | sed -e 's,.*"
-		r" refs/tags/,,' -e 's/\^{{}}//'".format(frappe_head)
-	)
-
-	if tag:
-		# if tag exists, download assets from github release
-		url = f"https://github.com/frappe/frappe/releases/download/{tag}/assets.tar.gz"
-	else:
-		url = f"http://assets.frappeframework.com/{frappe_head}.tar.gz"
-
-	if not requests.head(url):
-		reference = f"Release {tag}" if tag else f"Commit {frappe_head}"
-		raise AssetsDontExistError(f"Assets for {reference} don't exist")
-
-	return url
-
-
-def fetch_assets(url, frappe_head, verbose=True):
-	if verbose:
-		click.secho("Retrieving assets...", fg="yellow")
-
-	prefix = mkdtemp(prefix="frappe-assets-", suffix=frappe_head)
-	assets_archive = download_file(url, prefix)
-
-	if not assets_archive:
-		raise AssetsNotDownloadedError(f"Assets could not be retrieved from {url}")
-
-	if verbose:
-		click.echo(click.style("✔", fg="green") + f" Downloaded Frappe assets from {url}")
-
-	return assets_archive
-
-
-def setup_assets(assets_archive, verbose=True):
-	import tarfile
-
-	directories_created = set()
-
-	click.secho("\nExtracting assets...\n", fg="yellow")
-	with tarfile.open(assets_archive) as tar:
-		for file in tar:
-			if not file.isdir():
-				dest = "." + file.name.replace("./frappe-bench/sites", "")
-				asset_directory = os.path.dirname(dest)
-				show = dest.replace("./assets/", "")
-
-				if asset_directory not in directories_created:
-					if not os.path.exists(asset_directory):
-						os.makedirs(asset_directory, exist_ok=True)
-					directories_created.add(asset_directory)
-
-				tar.makefile(file, dest)
-				if verbose:
-					click.echo(click.style("✔", fg="green") + f" Restored {show}")
-
-	return directories_created
-
-
-def download_frappe_assets(verbose=True) -> bool:
-	"""Download and set up Frappe assets if they exist based on the current commit HEAD.
-	Return True if correctly setup else return False.
-	"""
-	frappe_head = getoutput("cd ../apps/frappe && git rev-parse HEAD")
-
-	if not frappe_head:
-		return False
-
-	try:
-		url = get_assets_link(frappe_head)
-		assets_archive = fetch_assets(url, frappe_head, verbose=verbose)
-		setup_assets(assets_archive, verbose=verbose)
-		build_missing_files(verbose=verbose)
-		return True
-
-	except AssetsDontExistError as e:
-		click.secho(str(e), fg="yellow")
-
-	except Exception as e:
-		# TODO: log traceback in bench.log
-		click.secho(str(e), fg="red")
-
-	finally:
-		try:
-			shutil.rmtree(os.path.dirname(assets_archive))
-		except Exception:
-			pass
-
-	return False
 
 
 def symlink(target, link_name, overwrite=False):
@@ -228,7 +76,6 @@ def bundle(
 	apps=None,
 	hard_link=False,
 	verbose=False,
-	skip_frappe=False,
 	files=None,
 	save_metafiles=False,
 	using_cached=False,
@@ -246,9 +93,6 @@ def bundle(
 
 	if esbuild_target:
 		command += f" --esbuild-target {esbuild_target}"
-
-	if skip_frappe:
-		command += " --skip_frappe"
 
 	if files:
 		command += " --files {files}".format(files=",".join(files))
