@@ -222,11 +222,22 @@ def start_worker(queue, quiet=False, rq_username=None, rq_password=None, burst=F
 @click.option("--num-workers", type=int, default=2, help="Number of workers to spawn in pool.")
 @click.option("--quiet", is_flag=True, default=False, help="Hide Log Outputs")
 @click.option("--burst", is_flag=True, default=False, help="Run Worker in Burst mode.")
-def start_worker_pool(queue, quiet=False, num_workers=2, burst=False):
+@click.option(
+	"--threaded",
+	is_flag=True,
+	default=False,
+	help="EXPERIMENTAL: Run workers as threads of a single process instead of separate processes.",
+)
+def start_worker_pool(queue, quiet=False, num_workers=2, burst=False, threaded=False):
 	"""Start a pool of background workers"""
-	from frappe.utils.background_jobs import start_worker_pool
+	if threaded:
+		from frappe.utils.background_jobs import start_threaded_worker_pool
 
-	start_worker_pool(queue=queue, quiet=quiet, burst=burst, num_workers=num_workers)
+		start_threaded_worker_pool(queue=queue, quiet=quiet, burst=burst, num_workers=num_workers)
+	else:
+		from frappe.utils.background_jobs import start_worker_pool
+
+		start_worker_pool(queue=queue, quiet=quiet, burst=burst, num_workers=num_workers)
 
 
 @click.command("ready-for-migration")

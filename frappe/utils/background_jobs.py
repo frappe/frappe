@@ -19,7 +19,7 @@ from rq.defaults import DEFAULT_WORKER_TTL
 from rq.exceptions import InvalidJobOperation, NoSuchJobError
 from rq.job import Job, JobStatus
 from rq.logutils import setup_loghandlers
-from rq.timeouts import JobTimeoutException
+from rq.timeouts import JobTimeoutException, TimerDeathPenalty
 from rq.worker import DequeueStrategy, StopRequested, WorkerStatus
 from rq.worker_pool import WorkerPool
 from tenacity import retry, retry_if_exception_type, stop_after_attempt, wait_fixed
@@ -412,6 +412,135 @@ class FrappeWorkerNoFork(FrappeWorker):
 	def kill_horse(self, sig=signal.SIGKILL):
 		# Horse = self when we are not forking
 		os.kill(os.getpid(), sig)
+
+
+class FrappeThreadedWorker(FrappeWorkerNoFork):
+	"""EXPERIMENTAL: Worker designed to run as one of many threads in a single process.
+
+	Multiple instances of this worker run `work()` concurrently, one per thread, sharing
+	the interpreter. Each instance keeps its own RQ registration, heartbeat and current-job
+	bookkeeping, so monitoring behaves exactly like N separate workers. Job-local state is
+	isolated because frappe.local is contextvar-based and each thread has its own context.
+
+	Differences from process workers:
+	- Job timeouts use TimerDeathPenalty (PyThreadState_SetAsyncExc) since SIGALRM only
+	  works in the main thread. This cannot interrupt jobs blocked inside C calls.
+	- A worker thread can't be killed individually; on timeout the inherited
+	  no_fork_exception_handler raises StopRequested, this worker's loop exits and the
+	  supervisor recycles the entire process (finishing sibling jobs gracefully first).
+	- Signal handling is done by the supervisor thread, not here.
+	"""
+
+	death_penalty_class = TimerDeathPenalty
+
+	def _install_signal_handlers(self):
+		# signal.signal() is only allowed in the main thread; the pool supervisor
+		# owns signal handling and requests stop via self._stop_requested.
+		pass
+
+	@property
+	def dequeue_timeout(self) -> int:
+		# Short BLPOP timeout so heartbeat() (called every dequeue iteration) can
+		# observe _stop_requested; worker threads can't be interrupted by signals.
+		return 5
+
+	def heartbeat(self, timeout=None, pipeline=None):
+		if self._stop_requested and pipeline is None and self._state == WorkerStatus.IDLE:
+			raise StopRequested
+		super().heartbeat(timeout=timeout, pipeline=pipeline)
+
+	def kill_horse(self, sig=signal.SIGKILL):
+		# Never SIGKILL the shared process; that would take down sibling workers.
+		self.log.warning("Worker %s: can not kill horse thread, ignoring", self.name)
+
+
+def start_threaded_worker_pool(
+	queue: str | None = None,
+	num_workers: int = 1,
+	quiet: bool = False,
+	burst: bool = False,
+) -> NoReturn:
+	"""Start `num_workers` workers as threads of the current process.
+
+	WARNING: This feature is considered "EXPERIMENTAL".
+
+	The whole process exits as soon as any one worker exits (max_jobs reached, job
+	timeout, crash) after gracefully stopping the others, relying on the process
+	supervisor (bench/systemd/supervisord) to restart it. This is how memory is
+	reclaimed and interpreter state is kept trustworthy, mirroring the no-fork
+	process pool's recycling behavior.
+	"""
+	_start_sentry()
+
+	# Preloading is even more valuable here: one interpreter serves all workers.
+	import frappe.database.query  # sqlparse and indirect imports
+	import frappe.query_builder  # pypika
+	import frappe.utils  # common utils
+	import frappe.utils.safe_exec
+	import frappe.utils.scheduler
+	import frappe.utils.typing_validations  # any whitelisted method uses this
+	import frappe.website.path_resolver  # all the page types and resolver
+	# end: module pre-loading
+
+	redis_connection = get_redis_conn()
+
+	if queue:
+		queue = [q.strip() for q in queue.split(",")]
+	queues = get_queue_list(queue, build_queue_name=True)
+
+	if os.environ.get("CI"):
+		setup_loghandlers("ERROR")
+
+	set_niceness()
+	logging_level = "WARNING" if quiet else "INFO"
+
+	hostname = socket.gethostname()
+	workers = [
+		FrappeThreadedWorker(
+			queues,
+			connection=redis_connection,
+			name=f"{hostname}.{os.getpid()}.t{i}.{uuid4().hex[:8]}",
+		)
+		for i in range(num_workers)
+	]
+	threads = [
+		Thread(
+			target=worker.work,
+			kwargs={
+				"logging_level": logging_level,
+				"burst": burst,
+				"date_format": "%Y-%m-%d %H:%M:%S",
+				"log_format": "%(asctime)s,%(msecs)03d %(message)s",
+				"with_scheduler": False,
+			},
+			name=f"rq-worker-{i}",
+		)
+		for i, worker in enumerate(workers)
+	]
+
+	def request_stop(signum, frame):
+		if any(w._stop_requested for w in workers):
+			log("Cold shutdown requested, exiting immediately", colour="red")
+			os._exit(1)
+		log("Warm shutdown requested, waiting for current jobs to finish", colour="yellow")
+		for worker in workers:
+			worker._stop_requested = True
+
+	signal.signal(signal.SIGTERM, request_stop)
+	signal.signal(signal.SIGINT, request_stop)
+
+	for thread in threads:
+		thread.start()
+
+	while alive := [t for t in threads if t.is_alive()]:
+		if len(alive) < len(threads):
+			# One worker exited (max_jobs, timeout poisoning or crash): recycle the
+			# whole process instead of limping along with reduced capacity.
+			for worker in workers:
+				worker._stop_requested = True
+		alive[0].join(timeout=1)
+
+	sys.exit(0)
 
 
 def start_worker_pool(
