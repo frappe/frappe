@@ -360,9 +360,10 @@ frappe.ui.Filter = class {
 
 	make_field(df, old_fieldtype) {
 		let old_text = this.field ? this.field.get_value() : null;
-		this.hide_invalid_conditions(df.fieldtype, df.original_type);
+		let current_condition = this.filter_edit_area.find(".condition").val();
+		this.hide_invalid_conditions(df.fieldtype, df.original_type, current_condition);
 		this.set_special_condition_labels(df.original_type);
-		this.toggle_nested_set_conditions(df);
+		this.toggle_nested_set_conditions(df, current_condition);
 		let field_area = this.filter_edit_area.find(".filter-field").empty().get(0);
 		df.input_class = "input-xs";
 		let f = frappe.ui.form.make_control({
@@ -515,16 +516,29 @@ frappe.ui.Filter = class {
 		</div>`);
 	}
 
-	hide_invalid_conditions(fieldtype, original_type) {
+	hide_invalid_conditions(fieldtype, original_type, current_value) {
+		// Safari's native <select> popup does not honor display:none on <option>
+		// elements, so invalid conditions must be removed from the DOM rather
+		// than just visually hidden.
 		let invalid_conditions =
 			this.invalid_condition_map[original_type] ||
 			this.invalid_condition_map[fieldtype] ||
 			[];
 
+		let $select = this.filter_edit_area.find(".condition");
+		let is_nested_set_condition = (value) =>
+			this.nested_set_conditions.some(([condition]) => condition === value);
+
+		$select.empty();
 		for (let condition of this.conditions) {
-			this.filter_edit_area
-				.find(`.condition option[value="${condition[0]}"]`)
-				.toggle(!invalid_conditions.includes(condition[0]));
+			if (is_nested_set_condition(condition[0])) continue;
+			if (!invalid_conditions.includes(condition[0])) {
+				$select.append($("<option>").attr("value", condition[0]).text(condition[1]));
+			}
+		}
+
+		if ($select.find(`option[value="${current_value}"]`).length) {
+			$select.val(current_value);
 		}
 	}
 
@@ -544,14 +558,27 @@ frappe.ui.Filter = class {
 		}
 	}
 
-	toggle_nested_set_conditions(df) {
+	toggle_nested_set_conditions(df, current_value) {
 		let show_condition =
 			df.fieldtype === "Link" && frappe.boot.nested_set_doctypes.includes(df.options);
+		let $select = this.filter_edit_area.find(".condition");
 		this.nested_set_conditions.forEach((condition) => {
-			this.filter_edit_area
-				.find(`.condition option[value="${condition[0]}"]`)
-				.toggle(show_condition);
+			let $option = $select.find(`option[value="${condition[0]}"]`);
+			if (show_condition && !$option.length) {
+				$select.append($("<option>").attr("value", condition[0]).text(condition[1]));
+			} else if (!show_condition) {
+				$option.remove();
+			}
 		});
+
+		// hide_invalid_conditions can't restore a nested-set selection since those
+		// options don't exist until this method re-inserts them above
+		if (
+			show_condition &&
+			this.nested_set_conditions.some(([condition]) => condition === current_value)
+		) {
+			$select.val(current_value);
+		}
 	}
 };
 
