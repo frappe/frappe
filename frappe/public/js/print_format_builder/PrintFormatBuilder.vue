@@ -78,7 +78,6 @@ import FieldInspector from "./components/inspector/FieldInspector.vue";
 import { getStore } from "./stores";
 import { computed, ref, onMounted, onUnmounted, provide, nextTick } from "vue";
 
-// props
 const props = defineProps(["print_format_name"]);
 
 const HINT_KEY = "pfb_sidebar_hint_dismissed";
@@ -87,7 +86,6 @@ const ZOOM_STEP = 10;
 const ZOOM_MIN = 50;
 const ZOOM_MAX = 150;
 
-// variables
 let show_preview = ref(false);
 let doc_picker_ref = ref(null);
 let doc_picker_ctrl = ref(null);
@@ -96,7 +94,6 @@ let hint_dismissed = ref(localStorage.getItem(HINT_KEY) === "1");
 let canvas_zoom = ref(parseInt(localStorage.getItem(ZOOM_KEY)) || 100);
 let sidebar_observer_ref = null;
 
-// computed
 let $store = computed(() => {
 	return getStore(props.print_format_name);
 });
@@ -107,10 +104,8 @@ let shouldRender = computed(() => {
 	);
 });
 
-// provide
 provide("$store", $store.value);
 
-// methods
 function toggle_preview() {
 	show_preview.value = !show_preview.value;
 }
@@ -378,7 +373,6 @@ function init_doc_picker() {
 	}
 }
 
-// mounted
 onMounted(() => {
 	document.addEventListener("keydown", handle_keydown);
 

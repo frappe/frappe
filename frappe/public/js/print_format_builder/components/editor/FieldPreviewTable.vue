@@ -207,12 +207,6 @@ thead:hover .col-resize-handle::after {
 	opacity: 1;
 }
 
-.pfb-table-note {
-	text-align: center;
-	font-size: 11px;
-	padding: 6px;
-}
-
 .preview-table-img {
 	max-width: 100%;
 	max-height: 100px;

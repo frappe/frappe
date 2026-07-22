@@ -82,7 +82,7 @@
 				<div v-if="letterhead[image_field]" class="pfb-insp-row pfb-insp-row--col">
 					<span class="pfb-insp-label">{{ __("Size") }}</span>
 					<input
-						class="pfb-lh-slider"
+						class="pfb-size-slider"
 						type="range"
 						min="20"
 						:max="zone_size_max"
@@ -371,11 +371,6 @@ function lh_create_letterhead() {
 	border-bottom: 1px solid var(--gray-200);
 	padding: 7px 14px;
 	flex-shrink: 0;
-}
-
-.pfb-lh-slider {
-	width: 100%;
-	accent-color: var(--primary);
 }
 
 .pfb-lh-actions {

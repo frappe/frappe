@@ -1,16 +1,8 @@
 import { computed, ref } from "vue";
-import { clone_plain } from "../utils";
+import { clone_plain, read_json } from "../utils";
 
 const DOCTYPE = "Print Format Snippet";
 const LEGACY_KEY = "pfb_section_snippets";
-
-function read_legacy() {
-	try {
-		return JSON.parse(localStorage.getItem(LEGACY_KEY)) || [];
-	} catch {
-		return [];
-	}
-}
 
 export function useSnippets({ insert_section, insert_field, doc_type }) {
 	const all_snippets = ref([]);
@@ -153,7 +145,7 @@ export function useSnippets({ insert_section, insert_field, doc_type }) {
 	// One-time lift of the old browser-local snippets. Anything whose name is already
 	// taken on the server stays in localStorage rather than being dropped on the floor.
 	async function migrate_legacy() {
-		const legacy = read_legacy();
+		const legacy = read_json(LEGACY_KEY, []);
 		if (!legacy.length) return;
 		const kept = [];
 		for (const snip of legacy) {

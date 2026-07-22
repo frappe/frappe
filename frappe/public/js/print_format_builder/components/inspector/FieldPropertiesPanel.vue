@@ -200,7 +200,7 @@ import { useSelectedField } from "./useSelectedField";
 
 defineProps(["fieldIsInline"]);
 
-const { selected_field, preview_doc } = useSelectedField();
+const { selected_field, preview_doc, set_field_prop } = useSelectedField();
 
 // Fieldtypes rendered as a label/value pair that a text colour can target
 const NON_TEXT_FIELDTYPES = new Set([
@@ -212,11 +212,6 @@ const NON_TEXT_FIELDTYPES = new Set([
 	"Field Template",
 ]);
 let is_text_field = computed(() => !NON_TEXT_FIELDTYPES.has(selected_field.value?.fieldtype));
-
-function set_field_prop(key, value) {
-	if (value) selected_field.value[key] = value;
-	else delete selected_field.value[key];
-}
 
 let is_html_field = computed(() => selected_field.value?.fieldtype === "HTML");
 let is_image_element = computed(

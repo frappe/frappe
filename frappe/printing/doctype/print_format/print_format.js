@@ -5,7 +5,6 @@ frappe.ui.form.on("Print Format", "onload", function (frm) {
 	frm.add_fetch("doc_type", "module", "module");
 	frm.add_fetch("report", "module", "module");
 
-	// For new non-custom formats: default to Print Format Builder Beta + Chrome PDF
 	if (frm.is_new() && !frm.doc.custom_format) {
 		frm.set_value("print_format_builder_beta", 1);
 		frm.set_value("pdf_generator", "chrome");

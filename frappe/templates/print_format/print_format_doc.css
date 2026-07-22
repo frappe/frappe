@@ -64,10 +64,7 @@
 	white-space: nowrap;
 }
 
-.print-format-doc .field.field-inline .label::after {
-	content: ":";
-}
-
+.print-format-doc .field.field-inline .label::after,
 .print-format-doc.show-label-colon .field .label::after {
 	content: ":";
 }
@@ -248,15 +245,12 @@
 
 .print-format-doc .child-table--bordered .table thead th {
 	border-bottom: 1px solid var(--gray-300) !important;
+	border-top: 1px solid var(--gray-300) !important;
 }
 
 .print-format-doc .child-table--bordered .table th:first-child,
 .print-format-doc .child-table--bordered .table td:first-child {
 	border-left: 1px solid var(--gray-300) !important;
-}
-
-.print-format-doc .child-table--bordered .table thead th {
-	border-top: 1px solid var(--gray-300) !important;
 }
 
 .print-format-doc .child-table .table .table-foot {
@@ -450,12 +444,6 @@
 	height: auto;
 }
 
-.print-format-doc .document-header {
-	border-bottom-width: 1px;
-	border-bottom-style: solid;
-	border-bottom-color: var(--gray-300);
-}
-
 .print-format-doc .field[data-fieldtype="Rating"] .rating-star {
 	width: 1.5em;
 }
@@ -475,10 +463,6 @@
 	height: 1em;
 	margin-right: 0.3em;
 	border-radius: var(--radius);
-}
-
-.print-format-doc .field[data-fieldtype="Check"] #icon-tick {
-	width: 1em;
 }
 
 /* ── Table layout (field-borders mode) ───────────────────── */

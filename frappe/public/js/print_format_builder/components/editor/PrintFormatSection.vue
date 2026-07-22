@@ -12,43 +12,12 @@
 				class="drag-handle section-drag-handle"
 				v-html="frappe.utils.icon('grip', 'xs')"
 			></div>
-			<button
-				class="es-button"
-				data-size="xs"
-				data-variant="ghost"
-				data-icon-button="true"
-				:title="__('Copy section')"
-				@click.stop="store.copy_section(section)"
-				v-html="frappe.utils.icon('copy', 'xs')"
-			></button>
-			<button
-				class="es-button"
-				data-size="xs"
-				data-variant="ghost"
-				data-icon-button="true"
-				:title="__('Duplicate section')"
-				@click.stop="store.duplicate_section(section)"
-				v-html="frappe.utils.icon('copy-plus', 'xs')"
-			></button>
-			<button
-				class="es-button"
-				data-size="xs"
-				data-variant="ghost"
-				data-icon-button="true"
-				:title="__('Save as snippet')"
-				@click.stop="save_as_snippet"
-				v-html="frappe.utils.icon('bookmark-plus', 'xs')"
-			></button>
-			<button
-				class="es-button"
-				data-size="xs"
-				data-variant="ghost"
-				data-theme="red"
-				data-icon-button="true"
-				:title="__('Remove section')"
-				@click.stop="remove_section"
-				v-html="frappe.utils.icon('x', 'xs')"
-			></button>
+			<SectionActions
+				:section="section"
+				size="xs"
+				@snippet="save_as_snippet"
+				@remove="remove_section"
+			/>
 		</div>
 		<div
 			class="print-format-section"
@@ -84,51 +53,13 @@
 					/>
 				</div>
 				<div class="section-toolbar-right">
-					<button
+					<SectionActions
 						v-if="!is_header"
-						class="es-button"
-						data-size="xs"
-						data-variant="ghost"
-						data-icon-button="true"
-						:title="__('Copy section')"
-						@click.stop="store.copy_section(section)"
-					>
-						<span v-html="frappe.utils.icon('copy', 'sm')"></span>
-					</button>
-					<button
-						v-if="!is_header"
-						class="es-button"
-						data-size="xs"
-						data-variant="ghost"
-						data-icon-button="true"
-						:title="__('Duplicate section')"
-						@click.stop="store.duplicate_section(section)"
-					>
-						<span v-html="frappe.utils.icon('copy-plus', 'sm')"></span>
-					</button>
-					<button
-						v-if="!is_header"
-						class="es-button"
-						data-size="xs"
-						data-variant="ghost"
-						data-icon-button="true"
-						:title="__('Save as snippet')"
-						@click.stop="save_as_snippet"
-					>
-						<span v-html="frappe.utils.icon('bookmark-plus', 'sm')"></span>
-					</button>
-					<button
-						v-if="!is_header"
-						class="es-button"
-						data-size="xs"
-						data-variant="ghost"
-						data-theme="red"
-						data-icon-button="true"
-						:title="__('Remove section')"
-						@click.stop="remove_section"
-					>
-						<span v-html="frappe.utils.icon('x', 'sm')"></span>
-					</button>
+						:section="section"
+						size="sm"
+						@snippet="save_as_snippet"
+						@remove="remove_section"
+					/>
 				</div>
 			</div>
 
@@ -221,6 +152,7 @@
 <script setup>
 import draggable from "vuedraggable";
 import Field from "./Field.vue";
+import SectionActions from "./SectionActions.vue";
 import { computed, inject } from "vue";
 import { useColumnResize } from "../../composables/useColumnResize";
 import { DRAG_OPTIONS, evaluate_visible_if, parse_inline_style, setDragging } from "../../utils";

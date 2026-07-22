@@ -32,7 +32,6 @@ onMounted(() => {
 	});
 });
 
-// Reflect external changes (e.g. selecting a different field) into the control
 watch(
 	() => props.modelValue,
 	(value) => {

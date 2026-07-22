@@ -17,7 +17,7 @@
 
 <script setup>
 import { useStore } from "../../stores";
-import { get_image_dimensions, render_jinja_html } from "../../utils";
+import { render_jinja_html } from "../../utils";
 import { ref, watch, onMounted, inject, computed } from "vue";
 
 const props = defineProps({
@@ -94,16 +94,13 @@ async function refresh_rendered_content() {
 watch([preview_doc, zone_content], refresh_rendered_content, { immediate: true });
 
 // ── Image-based content builder ───────────────────────────
-let aspect_ratio = ref(null);
-let range_input_field = ref(null);
-
 function build_image_content() {
 	if (!letterhead.value) return;
 	const lh = letterhead.value;
 	const f = F.value;
 	if (!lh[f.image] || !lh[f.width] || !lh[f.height]) return;
 	const dim = lh[f.width] > lh[f.height] ? "width" : "height";
-	const dim_val = lh[`${f[dim === "width" ? "width" : "height"]}`];
+	const dim_val = lh[f[dim]];
 	lh[f.content] = `<div style="text-align:${(lh[f.align] || "Left").toLowerCase()}">
 <img src="${lh[f.image]}" alt="${lh.name}" ${dim}="${dim_val}" style="${dim}:${dim_val}px">
 </div>`;
@@ -124,30 +121,12 @@ watch(
 	{ deep: true }
 );
 
-watch(
-	letterhead,
-	(lh) => {
-		if (!lh) return;
-		const img = lh[F.value.image];
-		if (img) {
-			get_image_dimensions(img).then(({ width, height }) => {
-				aspect_ratio.value = width / height;
-				range_input_field.value = aspect_ratio.value > 1 ? F.value.width : F.value.height;
-			});
-		}
-	},
-	{ immediate: true }
-);
-
 onMounted(() => {
 	if (props.zone === "header" && !letterhead.value && !layout.value?.letter_head) {
 		const lh_name = frappe.boot.sysdefaults.letter_head;
 		if (lh_name) store.value.change_letterhead(lh_name, { keep_clean: true });
 	}
 });
-
-// Expose for inspector
-defineExpose({ aspect_ratio, range_input_field, F });
 </script>
 
 <style scoped>
