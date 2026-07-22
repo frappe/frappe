@@ -141,10 +141,14 @@ frappe.ui.misc.about = function () {
 			const title = `${app_name}: ${app.version}`;
 
 <<<<<<< HEAD
+<<<<<<< HEAD
 			$(`<div class="about-app-row" title="${title}">
 =======
 			$(`<div class="about-app-row flex items-center gap-3 cursor-pointer" role="button" title="${title}">
 >>>>>>> cb6f5b4966 (feat: Add cursor pointer and role attribute to app row in about dialog)
+=======
+			$(`<div class="about-app-row flex items-center gap-3 cursor-pointer" role="button" tabindex="0" title="${title}">
+>>>>>>> 700641d176 (fix: Add tabindex attribute to app row in about dialog for accessibility)
 					${render_app_icon(app_name, app)}
 					<div class="about-app-info">
 						<div class="about-app-name">${__(app.title)}</div>
