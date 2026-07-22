@@ -3,7 +3,7 @@ msgstr ""
 "Project-Id-Version: frappe\n"
 "Report-Msgid-Bugs-To: developers@frappe.io\n"
 "POT-Creation-Date: 2026-06-24 16:55+0000\n"
-"PO-Revision-Date: 2026-07-05 21:52\n"
+"PO-Revision-Date: 2026-07-21 13:56\n"
 "Last-Translator: developers@frappe.io\n"
 "Language-Team: Turkish\n"
 "MIME-Version: 1.0\n"
@@ -1777,7 +1777,7 @@ msgstr "Sağa Hizala"
 
 #: frappe/printing/page/print_format_builder/print_format_builder.js:481
 msgid "Align Value"
-msgstr "Değer Hizala"
+msgstr ""
 
 #. Name of a role
 #. Option for the 'Frequency' (Select) field in DocType 'Scheduled Job Type'
@@ -3849,7 +3849,7 @@ msgstr "Bot"
 
 #: frappe/printing/page/print_format_builder/print_format_builder.js:128
 msgid "Both DocType and Name required"
-msgstr "Hem DocType hem de Ad gereklidir"
+msgstr ""
 
 #: frappe/templates/includes/login/login.js:25
 #: frappe/templates/includes/login/login.js:97
@@ -4810,7 +4810,7 @@ msgstr ""
 
 #: frappe/printing/page/print_format_builder/print_format_builder_column_selector.html:1
 msgid "Check columns to select, drag to set order."
-msgstr "Seçmek için sütunları işaretleyin, sıralamak için sürükleyin."
+msgstr ""
 
 #: frappe/automation/doctype/auto_repeat/auto_repeat.py:457
 msgid "Check the Error Log for more information: {0}"
@@ -8556,7 +8556,7 @@ msgstr ""
 
 #: frappe/printing/page/print_format_builder/print_format_builder_layout.html:3
 msgid "Drag elements from the sidebar to add. Drag them back to trash."
-msgstr "Eklemek istediğiniz öğeleri kenar çubuğundan sürükleyin. Onları çöp kutusuna geri sürükleyin."
+msgstr ""
 
 #: frappe/public/js/workflow_builder/WorkflowBuilder.vue:296
 msgid "Drag to add state"
@@ -11140,7 +11140,7 @@ msgstr "Örnek:"
 
 #: frappe/printing/page/print_format_builder/print_format_builder.js:746
 msgid "For example: If you want to include the document ID, use {0}"
-msgstr "Örnek: Belge kimliğini eklemek istiyorsanız {0} kullanın"
+msgstr ""
 
 #. Description of the 'Format' (Data) field in DocType 'Workspace Shortcut'
 #: frappe/desk/doctype/workspace_shortcut/workspace_shortcut.json
@@ -17651,7 +17651,7 @@ msgstr ""
 
 #: frappe/printing/page/print_format_builder/print_format_builder.js:417
 msgid "No of Columns"
-msgstr "Sütun Sayısı"
+msgstr ""
 
 #. Label of a Int field in DocType 'Auto Email Report'
 #: frappe/email/doctype/auto_email_report/auto_email_report.json
@@ -23493,7 +23493,7 @@ msgstr "Bölüm Başlığı"
 
 #: frappe/printing/page/print_format_builder/print_format_builder.js:423
 msgid "Section Heading"
-msgstr "Bölüm Başlığı"
+msgstr ""
 
 #. Label of a Data field in DocType 'Web Page Block'
 #: frappe/website/doctype/web_page_block/web_page_block.json
@@ -25562,7 +25562,7 @@ msgstr "Bu satırın altına veri girmeye başlayın"
 
 #: frappe/printing/page/print_format_builder/print_format_builder.js:167
 msgid "Start new Format"
-msgstr "Yeni Format Başlat"
+msgstr ""
 
 #. Option for the 'SSL/TLS Mode' (Select) field in DocType 'LDAP Settings'
 #: frappe/integrations/doctype/ldap_settings/ldap_settings.json
@@ -30224,7 +30224,7 @@ msgstr "Genişlik"
 
 #: frappe/printing/page/print_format_builder/print_format_builder_column_selector.html:2
 msgid "Widths can be set in px or %."
-msgstr "Genişlikler px veya % olarak ayarlanabilir."
+msgstr ""
 
 #. Label of a Check field in DocType 'Report Filter'
 #: frappe/core/doctype/report_filter/report_filter.json

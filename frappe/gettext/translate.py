@@ -17,6 +17,7 @@ from frappe.utils import get_bench_path
 
 PO_DIR = "locale"  # po and pot files go into [app]/locale
 POT_FILE = "main.pot"  # the app's pot file is always main.pot
+PYTHON_KEYWORDS = DEFAULT_KEYWORDS | {"_lt": None, "N_": None}
 
 
 def new_catalog(app: str, locale: str | None = None) -> Catalog:
@@ -131,9 +132,6 @@ def generate_pot(target_app: str | None = None):
 	apps = [target_app] if target_app else frappe.get_all_apps(True)
 	default_method_map = get_method_map("frappe")
 
-	keywords = DEFAULT_KEYWORDS.copy()
-	keywords["_lt"] = None
-
 	for app in apps:
 		app_path = frappe.get_pymodule_path(app, "..")
 		catalog = new_catalog(app)
@@ -145,7 +143,7 @@ def generate_pot(target_app: str | None = None):
 		method_map.extend(default_method_map)
 
 		for filename, lineno, message, comments, context in extract_from_dir(
-			app_path, method_map, directory_filter=directory_filter, keywords=keywords
+			app_path, method_map, directory_filter=directory_filter, keywords=PYTHON_KEYWORDS
 		):
 			if not message:
 				continue
