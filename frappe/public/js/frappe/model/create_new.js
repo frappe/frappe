@@ -322,6 +322,35 @@ $.extend(frappe.model, {
 		return newdoc;
 	},
 
+	_mapped_doc_guards: [],
+
+	add_mapped_doc_guard: function (fn) {
+		// fn(mapped_doc, opts) -> boolean | Promise<boolean>; false blocks opening the doc
+		if (!frappe.model._mapped_doc_guards.includes(fn)) {
+			frappe.model._mapped_doc_guards.push(fn);
+		}
+	},
+
+	remove_mapped_doc_guard: function (fn) {
+		frappe.model._mapped_doc_guards = frappe.model._mapped_doc_guards.filter(
+			(guard) => guard !== fn
+		);
+	},
+
+	should_open_mapped_doc: async function (mapped_doc, opts) {
+		for (const guard of frappe.model._mapped_doc_guards) {
+			try {
+				if (!(await guard(mapped_doc, opts))) {
+					return false;
+				}
+			} catch (e) {
+				// a broken guard must never block document creation
+				console.error(e);
+			}
+		}
+		return true;
+	},
+
 	open_mapped_doc: function (opts) {
 		if (opts.frm && opts.frm.doc.__unsaved) {
 			frappe.throw(
@@ -344,17 +373,26 @@ $.extend(frappe.model, {
 			},
 			freeze: true,
 			freeze_message: opts.freeze_message || "",
-			callback: function (r) {
-				if (!r.exc) {
-					frappe.model.sync(r.message);
-					if (opts.run_link_triggers) {
-						frappe.get_doc(
-							r.message.doctype,
-							r.message.name
-						).__run_link_triggers = true;
-					}
-					frappe.set_route("Form", r.message.doctype, r.message.name);
+			callback: async function (r) {
+				if (r.exc) {
+					return;
 				}
+				// the request's own freeze lifts as soon as this async callback
+				// yields, so hold our own freeze while guards run; confirmation
+				// dialogs stay usable above the freeze backdrop
+				frappe.dom.freeze(opts.freeze_message || "");
+				try {
+					if (!(await frappe.model.should_open_mapped_doc(r.message, opts))) {
+						return;
+					}
+				} finally {
+					frappe.dom.unfreeze();
+				}
+				frappe.model.sync(r.message);
+				if (opts.run_link_triggers) {
+					frappe.get_doc(r.message.doctype, r.message.name).__run_link_triggers = true;
+				}
+				frappe.set_route("Form", r.message.doctype, r.message.name);
 			},
 		});
 	},
