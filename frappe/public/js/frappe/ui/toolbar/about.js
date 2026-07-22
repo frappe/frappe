@@ -186,5 +186,13 @@ frappe.ui.misc.about = function () {
 		}
 	});
 
+	// Keyboard support for copy app version (Enter / Space)
+	$(dialog.body).on("keydown", ".about-app-row", function (e) {
+		if (e.key === "Enter" || e.key === " ") {
+			e.preventDefault();
+			$(this).trigger("click");
+		}
+	});
+
 	frappe.ui.misc.about_dialog.show();
 };
