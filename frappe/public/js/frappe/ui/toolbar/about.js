@@ -61,9 +61,15 @@ frappe.ui.misc.about = function () {
 				}
 			</div>
 
-			<div class="about-section-label text-2xs text-ink-gray-6 text-uppercase">${__(
-				"Installed Apps"
-			)}</div>
+			<div class="about-section-header flex items-center justify-between w-full">
+				<div class="about-section-label text-2xs text-ink-gray-6 text-uppercase">${__(
+					"Installed Apps"
+				)}</div>
+				<button class="es-button hidden" data-variant="ghost" data-icon-button="true"
+					id="copy-apps-info" title="${__("Copy Apps Version")}" aria-label="${__("Copy Apps Version")}">
+					${frappe.utils.icon("clipboard", "sm", "", "", "", true)}
+				</button>
+			</div>
 
 			<div id="about-app-versions" class="about-app-list flex flex-col gap-3 w-full"></div>
 		</div>`
