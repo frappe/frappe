@@ -12,7 +12,7 @@ from frappe.core.doctype.doctype.test_doctype import new_doctype
 from frappe.core.doctype.user.user import User
 from frappe.desk.doctype.note.note import Note
 from frappe.desk.doctype.todo.todo import ToDo
-from frappe.model.document import Document, LazyChildTable
+from frappe.model.document import Document, LazyChildTable, LazyDocument
 from frappe.model.naming import make_autoname, parse_naming_series, revert_series_if_last
 from frappe.tests import IntegrationTestCase
 from frappe.utils import cint, now_datetime, set_request
@@ -843,6 +843,27 @@ class TestLazyDocument(IntegrationTestCase):
 	def test_for_update(self):
 		guest = frappe.get_lazy_doc("User", "Guest", for_update=True)
 		self.assertTrue(guest.flags.for_update)
+
+	def test_lazy_doc_is_pickleable(self):
+		# Lazy controllers are built dynamically and can't be referenced by a qualified
+		# name, so pickle used to choke on them (e.g. when a lazy doc was passed to a
+		# background job via frappe.enqueue). It should reduce to its non-lazy controller.
+		import pickle
+
+		# Both an untouched lazy doc and one whose child tables were loaded must round-trip.
+		for touch_children in (False, True):
+			guest = frappe.get_lazy_doc("User", "Guest")
+			if touch_children:
+				_ = guest.roles
+
+			unpickled = pickle.loads(pickle.dumps(guest))
+
+			self.assertEqual(unpickled.doctype, "User")
+			self.assertEqual(unpickled.name, "Guest")
+			self.assertEqual(unpickled.user_type, guest.user_type)
+			# reduced to the non-lazy controller
+			self.assertIsInstance(unpickled, User)
+			self.assertNotIsInstance(unpickled, LazyDocument)
 
 
 class TestGetDocs(IntegrationTestCase):

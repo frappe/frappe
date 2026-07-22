@@ -2533,6 +2533,29 @@ def unlock_document(doctype: str, name: str):
 	frappe.msgprint(frappe._("Document Unlocked"), alert=True)
 
 
+def _reduce_lazy_instance(doc):
+	"""Make lazy document instances picklable.
+
+	Lazy controllers are constructed dynamically per doctype (see `get_lazy_controller`)
+	and therefore can't be referenced by a qualified name for pickle to find them. This is
+	the same problem `_reduce_extended_instance` solves for `override_doctype_class` controllers.
+
+	Reconstruct the instance as its non-lazy controller instead: laziness is only a fetch-time
+	optimization and carries no meaning once the document is handed to another process (e.g. a
+	background job serialized by RQ). Reconstruction goes through the base controller's real
+	classes so it never needs database/meta access at unpickle time.
+	"""
+	from frappe.model.base_document import _reconstruct_extended_instance, _reduce_extended_instance
+
+	_lazy_mixin, original_controller = type(doc).__bases__
+	if original_controller.__dict__.get("__reduce__") is _reduce_extended_instance:
+		# `original_controller` is itself a dynamically extended class; use its real bases.
+		bases = original_controller.__bases__
+	else:
+		bases = (original_controller,)
+	return (_reconstruct_extended_instance, (bases,), doc.__getstate__())
+
+
 def get_lazy_controller(doctype):
 	lazy_controllers = frappe.lazy_controllers.setdefault(frappe.local.site, {})
 	if doctype not in lazy_controllers:
@@ -2544,7 +2567,11 @@ def get_lazy_controller(doctype):
 			return original_controller
 
 		# Dynamically construct a class that subclasses LazyDocument and original controller.
-		lazy_controller = type(f"Lazy{original_controller.__name__}", (LazyDocument, original_controller), {})
+		lazy_controller = type(
+			f"Lazy{original_controller.__name__}",
+			(LazyDocument, original_controller),
+			{"__reduce__": _reduce_lazy_instance},
+		)
 		for df in meta.get_table_fields():
 			setattr(lazy_controller, df.fieldname, LazyChildTable(df.fieldname, df.options))
 
