@@ -10,10 +10,9 @@ const cliui = require("cliui")();
 const chalk = require("chalk");
 const html_plugin = require("./frappe-html");
 const vue_style_plugin = require("./frappe-vue-style");
-const postCssPlugin = require("@frappe/esbuild-plugin-postcss2").default;
+const style_plugin = require("./style-plugin");
 const { derive_rtl_styles } = require("./derive-rtl");
 const ignore_assets = require("./ignore-assets");
-const sass_options = require("./sass_options");
 const build_cleanup_plugin = require("./build-cleanup").plugin;
 
 const {
@@ -321,14 +320,7 @@ function build_files({ files, outdir }) {
 }
 
 function build_style_files({ files, outdir }) {
-	let build_plugins = [
-		ignore_assets,
-		build_cleanup_plugin,
-		postCssPlugin({
-			plugins: [require("autoprefixer")],
-			sassOptions: sass_options,
-		}),
-	];
+	let build_plugins = [ignore_assets, build_cleanup_plugin, style_plugin];
 
 	if (WATCH_MODE) build_plugins.push(watch_plugin);
 	let options = get_build_options(files, outdir, build_plugins);
@@ -509,6 +501,11 @@ async function write_assets_json(metafile) {
 		let asset_path = "/" + path.relative(sites_path, output);
 		if (info.entryPoint) {
 			let key = path.basename(info.entryPoint);
+			// Style bundles are keyed by their compiled extension: the
+			// desk.bundle.scss entry point is "desk.bundle.css" in assets.json.
+			if (asset_path.endsWith(".css")) {
+				key = key.replace(/\.(scss|sass|less|styl|css)$/, ".css");
+			}
 			if (key.endsWith(".css") && asset_path.includes("/css-rtl/")) {
 				rtl = true;
 				key = `rtl_${key}`;
