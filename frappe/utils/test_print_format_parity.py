@@ -37,8 +37,6 @@ CANVAS_SOURCES = sorted(BUILDER_DIR.rglob("*.vue"))
 SERVER_ONLY_CLASSES = {
 	# letterhead HTML is user-authored and rendered server-side only
 	"letter-head",
-	# Chrome PDF overlay wrapper (templates/print_formats/chrome_pdf_header_footer.html)
-	"document-header",
 	# per-section "keep together" is page-break-inside:avoid — a pure pagination
 	# concern with no effect on the non-paginated canvas, so it's print-only
 	"keep-together",

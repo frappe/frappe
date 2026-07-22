@@ -250,6 +250,12 @@
 	accent-color: var(--primary);
 }
 
+.pfb-table-note {
+	text-align: center;
+	font-size: 11px;
+	padding: 6px;
+}
+
 /* bare toggle inside an inspector row: neutralise label.switch-control's
    full-width/padding (it's built for full-row settings pages) */
 .pfb-insp-row .switch-control {

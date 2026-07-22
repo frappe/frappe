@@ -51,11 +51,3 @@ const store = inject("$store");
 const preview_doc = computed(() => store.preview_doc.value);
 const { repeater_cell } = useFieldFormat(props, store, preview_doc);
 </script>
-
-<style scoped>
-.pfb-table-note {
-	text-align: center;
-	font-size: 11px;
-	padding: 6px;
-}
-</style>

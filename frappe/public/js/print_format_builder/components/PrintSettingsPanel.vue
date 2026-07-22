@@ -77,7 +77,7 @@
 		</div>
 
 		<div class="form-group">
-			<label class="pfb-check">
+			<label class="pfb-insp-check">
 				<input
 					type="checkbox"
 					:checked="!!print_format.show_label_colon"
@@ -258,14 +258,5 @@ onMounted(() => {
 
 .pfb-margin-label {
 	font-size: var(--text-tiny);
-}
-
-.pfb-check {
-	display: flex;
-	align-items: center;
-	gap: 6px;
-	margin: 0;
-	font-size: var(--text-sm);
-	cursor: pointer;
 }
 </style>
