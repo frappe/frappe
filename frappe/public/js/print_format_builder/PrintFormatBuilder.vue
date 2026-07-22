@@ -341,11 +341,13 @@ function dismiss_hint() {
 function init_doc_picker() {
 	if (!doc_picker_ref.value) return;
 	const meta = $store.value.meta.value;
-	// cancelled documents can't be printed unless Print Settings allows it, so keep
-	// them out of the picker unless that's turned on (mirrors frappe.model.can_print_doc)
-	const print_settings = frappe.model.get_doc(":Print Settings", "Print Settings") || {};
-	const allow_cancelled = cint(print_settings.allow_print_for_cancelled);
-	const printable_filters = meta?.is_submittable && !allow_cancelled ? { docstatus: ["!=", 2] } : {};
+	// draft/cancelled documents can't be printed unless Print Settings allows it, so
+	// keep them out of the picker unless that's turned on
+	const is_printable_docstatus = (docstatus) =>
+		frappe.model.can_print_docstatus(meta?.name, docstatus);
+	const printable_filters = meta?.is_submittable
+		? { docstatus: ["in", [0, 1, 2].filter(is_printable_docstatus)] }
+		: {};
 	doc_picker_ctrl.value = frappe.ui.form.make_control({
 		parent: doc_picker_ref.value,
 		df: {
@@ -384,7 +386,7 @@ function init_doc_picker() {
 		frappe.db
 			.get_value(meta?.name, saved, ["name", "docstatus"])
 			.then((r) =>
-				r?.message?.name && (allow_cancelled || r.message.docstatus !== 2)
+				r?.message?.name && is_printable_docstatus(r.message.docstatus)
 					? select(saved)
 					: auto_select()
 			);

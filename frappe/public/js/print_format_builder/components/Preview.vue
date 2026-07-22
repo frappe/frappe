@@ -37,8 +37,11 @@
 		<div v-if="!docname" class="pfb-preview-empty">
 			{{ __("Pick a record in the toolbar above to preview it.") }}
 		</div>
-		<div v-else-if="is_cancelled" class="pfb-preview-empty">
+		<div v-else-if="unprintable_reason === 'cancelled'" class="pfb-preview-empty">
 			{{ __("This document is cancelled and cannot be printed.") }}
+		</div>
+		<div v-else-if="unprintable_reason === 'draft'" class="pfb-preview-empty">
+			{{ __("This document is a draft and cannot be printed.") }}
 		</div>
 		<div v-else-if="!preview_loaded" class="pfb-preview-empty">
 			{{ __("Generating preview...") }}
@@ -46,7 +49,7 @@
 		<div
 			ref="viewport"
 			class="pfb-preview-viewport"
-			v-show="docname && preview_loaded && !is_cancelled"
+			v-show="docname && preview_loaded && !unprintable_reason"
 		>
 			<!-- the page renders at its true width and is scaled down to fit the rail -->
 			<div class="pfb-preview-stage" :style="stage_style">
@@ -178,19 +181,20 @@ let docname = computed(() => store.value.preview_doc_name);
 
 let doctype = computed(() => print_format.value.doc_type);
 
-// cancelled documents aren't printable unless Print Settings allows it (see
+// draft/cancelled documents aren't printable unless Print Settings allows it (see
 // printview.validate_print_for_docstatus) — asking the server for a preview would
 // only bounce back a permission error, so skip the round trip and say so directly
 // instead of rendering a generic "broken" message.
-let allow_print_for_cancelled = computed(() =>
-	cint(frappe.model.get_doc(":Print Settings", "Print Settings")?.allow_print_for_cancelled)
+let preview_doc_docstatus = computed(() =>
+	store.value.preview_doc?.name === docname.value ? store.value.preview_doc?.docstatus : null
 );
-let is_cancelled = computed(
-	() =>
-		!allow_print_for_cancelled.value &&
-		store.value.preview_doc?.name === docname.value &&
-		store.value.preview_doc?.docstatus === 2
-);
+
+let unprintable_reason = computed(() => {
+	const docstatus = preview_doc_docstatus.value;
+	if (docstatus == null || frappe.model.can_print_docstatus(doctype.value, docstatus))
+		return null;
+	return docstatus === 2 ? "cancelled" : "draft";
+});
 
 let url = computed(() => {
 	if (!docname.value) return null;
@@ -219,7 +223,7 @@ function write_iframe(html) {
 // laid-out heights, keep-together and table splitting, none of which the browser
 // can work out from the flowed HTML. So the paged view asks the print renderer.
 async function render_pages(seq) {
-	if (is_cancelled.value) {
+	if (unprintable_reason.value) {
 		set_pdf_url(null);
 		preview_loaded.value = true;
 		return;
@@ -267,7 +271,7 @@ function render() {
 	let seq = ++render_seq;
 	if (!docname.value) return;
 	if (type.value === "PDF") return render_pages(seq);
-	if (is_cancelled.value) {
+	if (unprintable_reason.value) {
 		preview_loaded.value = true;
 		return;
 	}
