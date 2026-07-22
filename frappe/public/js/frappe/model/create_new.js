@@ -377,8 +377,16 @@ $.extend(frappe.model, {
 				if (r.exc) {
 					return;
 				}
-				if (!(await frappe.model.should_open_mapped_doc(r.message, opts))) {
-					return;
+				// the request's own freeze lifts as soon as this async callback
+				// yields, so hold our own freeze while guards run; confirmation
+				// dialogs stay usable above the freeze backdrop
+				frappe.dom.freeze(opts.freeze_message || "");
+				try {
+					if (!(await frappe.model.should_open_mapped_doc(r.message, opts))) {
+						return;
+					}
+				} finally {
+					frappe.dom.unfreeze();
 				}
 				frappe.model.sync(r.message);
 				if (opts.run_link_triggers) {
