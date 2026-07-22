@@ -10,11 +10,11 @@ const cliui = require("cliui")();
 const chalk = require("chalk");
 const html_plugin = require("./frappe-html");
 const vue_style_plugin = require("./frappe-vue-style");
-const rtlcss = require("rtlcss");
 const postCssPlugin = require("@frappe/esbuild-plugin-postcss2").default;
+const { derive_rtl_styles } = require("./derive-rtl");
 const ignore_assets = require("./ignore-assets");
 const sass_options = require("./sass_options");
-const build_cleanup_plugin = require("./build-cleanup");
+const build_cleanup_plugin = require("./build-cleanup").plugin;
 
 const {
 	app_list,
@@ -226,7 +226,6 @@ function build_assets_for_apps(apps, files) {
 
 		let file_map = {};
 		let style_file_map = {};
-		let rtl_style_file_map = {};
 		for (let file of files) {
 			let relative_app_path = path.relative(apps_path, file);
 			let app = relative_app_path.split(path.sep)[0];
@@ -248,7 +247,6 @@ function build_assets_for_apps(apps, files) {
 			}
 			if ([".css", ".scss", ".less", ".sass", ".styl"].includes(extension)) {
 				style_file_map[output_name] = file;
-				rtl_style_file_map[output_name.replace("/css/", "/css-rtl/")] = file;
 			} else {
 				file_map[output_name] = file;
 			}
@@ -257,16 +255,20 @@ function build_assets_for_apps(apps, files) {
 			files: file_map,
 			outdir: output_path,
 		});
+		// RTL stylesheets are derived from the compiled LTR CSS instead of
+		// compiling every .bundle.scss a second time. Watch-mode rebuilds derive
+		// again in watch_plugin's onEnd.
 		let style_build = build_style_files({
 			files: style_file_map,
 			outdir: output_path,
+		}).then(async (result) => {
+			let rtl_result = await derive_rtl_styles(result.metafile);
+			return rtl_result ? [result, rtl_result] : [result];
 		});
-		let rtl_style_build = build_style_files({
-			files: rtl_style_file_map,
-			outdir: output_path,
-			rtl_style: true,
-		});
-		return Promise.all([build, style_build, rtl_style_build]);
+		return Promise.all([build, style_build]).then(([build_result, style_results]) => [
+			build_result,
+			...style_results,
+		]);
 	});
 }
 
@@ -318,24 +320,23 @@ function build_files({ files, outdir }) {
 	return build_or_watch(get_build_options(files, outdir, build_plugins));
 }
 
-function build_style_files({ files, outdir, rtl_style = false }) {
-	let plugins = [];
-	if (rtl_style) {
-		plugins.push(rtlcss);
-	}
-
+function build_style_files({ files, outdir }) {
 	let build_plugins = [
 		ignore_assets,
 		build_cleanup_plugin,
 		postCssPlugin({
-			plugins: plugins,
+			plugins: [require("autoprefixer")],
 			sassOptions: sass_options,
 		}),
 	];
 
-	plugins.push(require("autoprefixer"));
 	if (WATCH_MODE) build_plugins.push(watch_plugin);
-	return build_or_watch(get_build_options(files, outdir, build_plugins));
+	let options = get_build_options(files, outdir, build_plugins);
+	// Keep /*!rtl:...*/ control comments (ignore/raw blocks) in place so
+	// derive-rtl.js can honor them; esbuild strips regular comments and moves
+	// legal comments to EOF by default.
+	options.legalComments = "inline";
+	return build_or_watch(options);
 }
 
 // As of esbuild 0.17 the `watch`/`incremental` build options and the
@@ -397,14 +398,26 @@ const watch_plugin = {
 				log(chalk.dim(error.stack));
 				notify_redis({ error });
 			} else {
-				let { new_assets_json, prev_assets_json } = await write_assets_json(
-					result.metafile
-				);
+				let metafiles = [result.metafile];
+				// Style rebuilds must re-derive the RTL variants before
+				// assets-rtl.json is written (no-op for the JS build).
+				let rtl_result = await derive_rtl_styles(result.metafile);
+				if (rtl_result) {
+					metafiles.push(rtl_result.metafile);
+				}
 
 				let changed_files;
-				if (prev_assets_json) {
-					changed_files = get_rebuilt_assets(prev_assets_json, new_assets_json);
+				for (let metafile of metafiles) {
+					let { new_assets_json, prev_assets_json } = await write_assets_json(metafile);
+					if (prev_assets_json) {
+						changed_files = changed_files || [];
+						changed_files.push(
+							...get_rebuilt_assets(prev_assets_json, new_assets_json)
+						);
+					}
+				}
 
+				if (changed_files) {
 					let timestamp = new Date().toLocaleTimeString();
 					let message = `${timestamp}: Compiled ${changed_files.length} files...`;
 					log(chalk.yellow(message));
@@ -485,13 +498,11 @@ function log_built_assets(results) {
 	log(cliui.toString());
 }
 
-// to store previous build's assets.json for comparison
-let prev_assets_json;
-let curr_assets_json;
+// previous build's assets(-rtl).json contents, keyed per file, for comparison
+let assets_json_history = {};
 
 async function write_assets_json(metafile) {
 	let rtl = false;
-	prev_assets_json = curr_assets_json;
 	let out = {};
 	for (let output in metafile.outputs) {
 		let info = metafile.outputs[output];
@@ -509,7 +520,8 @@ async function write_assets_json(metafile) {
 	let { obj: assets_json, path: assets_json_path } = await get_assets_json_path_and_obj(rtl);
 	// update with new values
 	let new_assets_json = Object.assign({}, assets_json, out);
-	curr_assets_json = new_assets_json;
+	let prev_assets_json = assets_json_history[assets_json_path];
+	assets_json_history[assets_json_path] = new_assets_json;
 
 	await fs.promises.writeFile(assets_json_path, JSON.stringify(new_assets_json, null, 4));
 	await update_assets_json_in_cache();

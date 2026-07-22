@@ -144,7 +144,7 @@
 		font-size: $font-size-sm;
 
 		&::before {
-			content: #{"/*!rtl:var(--left-arrow-svg);*/"}var(--right-arrow-svg);
+			content: var(--right-arrow-svg);
 			display: inline-block;
 		}
 	}
@@ -160,6 +160,14 @@
 		}
 	}
 }
+
+// rtlcss value directives don't survive esbuild's CSS printer (comments inside
+// declaration values are dropped), so flip the breadcrumb arrow via a raw block.
+/*!rtl:raw:
+.breadcrumb-item + .breadcrumb-item::before {
+	content: var(--left-arrow-svg);
+}
+*/
 
 a.card {
 	text-decoration: none;

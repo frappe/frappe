@@ -73,7 +73,7 @@
     "quill": "2.0.3",
     "quill-magic-url": "^3.0.0",
     "qz-tray": "^2.0.8",
-    "rtlcss": "^4.0.0",
+    "rtlcss": "^4.3.0",
     "sass": "^1.63.0",
     "showdown": "^2.1.0",
     "socket.io": "^4.7.1",
