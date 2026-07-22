@@ -1,33 +1,17 @@
 import { ref } from "vue";
-import { clone_plain } from "../utils";
+import { clone_plain, read_json, write_json } from "../utils";
 
 const CLIPBOARD_KEY = "pfb_clipboard";
 
-function load_clipboard() {
-	try {
-		return JSON.parse(localStorage.getItem(CLIPBOARD_KEY)) || null;
-	} catch {
-		return null;
-	}
-}
-function persist(value) {
-	try {
-		localStorage.setItem(CLIPBOARD_KEY, JSON.stringify(value));
-		return true;
-	} catch {
-		return false;
-	}
-}
-
-const clipboard = ref(load_clipboard());
+const clipboard = ref(read_json(CLIPBOARD_KEY));
 function set_clipboard(value) {
 	clipboard.value = value;
-	persist(value);
+	write_json(CLIPBOARD_KEY, value);
 }
 
 if (typeof window !== "undefined") {
 	window.addEventListener("storage", (e) => {
-		if (e.key === CLIPBOARD_KEY) clipboard.value = load_clipboard();
+		if (e.key === CLIPBOARD_KEY) clipboard.value = read_json(CLIPBOARD_KEY);
 	});
 }
 
@@ -47,7 +31,7 @@ export function useClipboard({ selection, layout, insert_section, insert_field }
 		else if (selected_section.value) copy_section(selected_section.value);
 	}
 	function paste_clipboard() {
-		const clip = load_clipboard() || clipboard.value;
+		const clip = read_json(CLIPBOARD_KEY) || clipboard.value;
 		clipboard.value = clip;
 		if (!clip || !layout.value) return;
 

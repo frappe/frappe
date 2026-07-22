@@ -2,6 +2,23 @@ export function clone_plain(obj) {
 	return JSON.parse(JSON.stringify(obj));
 }
 
+export function read_json(key, fallback = null) {
+	try {
+		return JSON.parse(localStorage.getItem(key)) || fallback;
+	} catch {
+		return fallback;
+	}
+}
+
+export function write_json(key, value) {
+	try {
+		localStorage.setItem(key, JSON.stringify(value));
+		return true;
+	} catch {
+		return false;
+	}
+}
+
 // Blocks the builder invents — they never map to a docfield on the document type
 export const BLOCK_FIELDTYPES = new Set(["Spacer", "Divider", "Repeater"]);
 
@@ -13,7 +30,7 @@ export function freshen_field(f) {
 
 export function create_default_layout(meta, print_format) {
 	let layout = {
-		header: get_default_header(meta),
+		header: get_default_header(),
 		sections: [],
 	};
 
@@ -56,8 +73,7 @@ export function create_default_layout(meta, print_format) {
 
 	for (let df of meta.fields) {
 		if (df.fieldname) {
-			// make a copy to avoid mutation bugs
-			df = JSON.parse(JSON.stringify(df));
+			df = clone_plain(df);
 		} else {
 			continue;
 		}
@@ -95,7 +111,6 @@ export function create_default_layout(meta, print_format) {
 		}
 	}
 
-	// remove empty sections
 	layout.sections = layout.sections.filter((section) => section.has_fields);
 
 	return layout;
@@ -137,7 +152,7 @@ function get_field_template(print_format, fieldname) {
 	return null;
 }
 
-function get_default_header(meta) {
+function get_default_header() {
 	return { columns: [{ label: "", fields: [] }] };
 }
 
@@ -164,7 +179,7 @@ export function setDragging(active) {
 	if (active) window.getSelection()?.removeAllRanges();
 }
 
-export const TABLE_COLUMN_PLUCK_KEYS = [
+const TABLE_COLUMN_PLUCK_KEYS = [
 	"label",
 	"fieldname",
 	"fieldtype",
@@ -177,7 +192,7 @@ export const TABLE_COLUMN_PLUCK_KEYS = [
 	"column_condition",
 ];
 
-export const FIELD_PLUCK_KEYS = [
+const FIELD_PLUCK_KEYS = [
 	"label",
 	"fieldname",
 	"fieldtype",
@@ -214,7 +229,7 @@ export const FIELD_PLUCK_KEYS = [
 	"show_text",
 ];
 
-export const ZONE_FIELD_PLUCK_KEYS = FIELD_PLUCK_KEYS.filter(
+const ZONE_FIELD_PLUCK_KEYS = FIELD_PLUCK_KEYS.filter(
 	(key) => key !== "table_cell_padding" && key !== "table_radius"
 );
 
