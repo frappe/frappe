@@ -3,6 +3,8 @@
 
 frappe.provide("frappe.perm");
 
+const boot_backed_rights = ["select", "delete", "submit", "cancel"];
+
 // backward compatibilty
 Object.assign(window, {
 	READ: "read",
@@ -84,8 +86,23 @@ $.extend(frappe.perm, {
 		}
 
 		if (!meta) {
-			if (frappe.boot.user.can_read.includes(doctype)) {
+			if (frappe.boot.user?.all_read?.includes(doctype)) {
 				perm[0].read = 1;
+			}
+
+			if (!doc) {
+				for (const right of boot_backed_rights) {
+					if (frappe.boot.user?.["can_" + right]?.includes(doctype)) {
+						perm[0][right] = 1;
+					}
+				}
+
+				if (
+					frappe.boot.user?.can_create?.includes(doctype) ||
+					frappe.boot.user?.in_create?.includes(doctype)
+				) {
+					perm[0].create = 1;
+				}
 			}
 			return perm;
 		}
