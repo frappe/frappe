@@ -406,6 +406,7 @@ const moveBlockIntoSlot = (draggedBlock: Block, parentBlock: Block, slotName: st
 	removeFromParent(draggedBlock)
 	draggedBlock.parentBlock = parentBlock
 	draggedBlock.parentSlotName = slotName
+	if (!Array.isArray(slot.slotContent)) slot.slotContent = []
 	slot.slotContent.push(draggedBlock)
 }
 
