@@ -142,7 +142,7 @@ frappe.ui.misc.about = function () {
 			const version_text = get_version_text(app);
 			const title = `${app_name}: ${app.version}`;
 
-			$(`<div class="about-app-row flex items-center gap-3" title="${title}">
+			$(`<div class="about-app-row flex items-center gap-3 cursor-pointer" role="button" title="${title}">
 					${render_app_icon(app_name, app)}
 					<div class="about-app-info flex-1 min-w-0">
 						<div class="about-app-name text-base-semibold text-ink-gray-8">${__(app.title)}</div>
