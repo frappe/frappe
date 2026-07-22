@@ -38,4 +38,9 @@ def get_model(
 
 register_provider("mock", lambda name, **kwargs: MockModel())
 
+# Import native providers for their registration side effects (Codex auth provider).
+# No `get_model` prefix yet — the Codex model (Responses-API wire) is deferred to the
+# login phase so it can be tested end-to-end; only its auth provider registers here.
+from flow_server.model.providers import codex as _codex  # noqa: E402, F401
+
 __all__ = ["Model", "LiteLLMModel", "MockModel", "get_model", "register_provider"]
