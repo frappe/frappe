@@ -18,6 +18,12 @@ class DesktopPage {
 	constructor(page) {
 		this.page = page;
 		this.desktop_menu_items = [];
+		// Set up the awesomebar + Ctrl+K shortcut only once for the lifetime of the
+		// desktop page. `make()` re-renders on every `on_page_show`, but the click
+		// handler is delegated on `document` and the search modal is reused, so
+		// re-running setup would stack another modal + handler and open duplicate
+		// dialogs on Ctrl+K. Keep this flag out of `make()` so it survives navigation.
+		this.awesomebar_setup = false;
 	}
 	update() {
 		this.make();
@@ -25,7 +31,6 @@ class DesktopPage {
 	make() {
 		this.page.page_head.hide();
 		$(this.page.body).empty();
-		this.awesomebar_setup = false;
 		$(frappe.render_template("desktop")).appendTo(this.page.body);
 		this.render();
 	}
