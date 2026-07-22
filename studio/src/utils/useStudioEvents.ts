@@ -98,13 +98,24 @@ export function useStudioEvents() {
 		if (isTargetEditable(e)) return
 
 		// delete
-		if ((e.key === "Backspace" || e.key === "Delete") && blockController.isAnyBlockSelected()) {
-			for (const block of blockController.getSelectedBlocks()) {
-				canvasStore.activeCanvas?.removeBlock(block, e.shiftKey)
+		if (e.key === "Backspace" || e.key === "Delete") {
+			// a selected slot takes precedence over its (also-selected) parent block
+			const selectedSlot = canvasStore.activeCanvas?.selectedSlot
+			if (selectedSlot) {
+				const parent = canvasStore.activeCanvas?.findBlock(selectedSlot.parentBlockId)
+				parent?.removeSlot(selectedSlot.slotName)
+				e.stopPropagation()
+				return
 			}
-			clearSelection()
-			e.stopPropagation()
-			return
+
+			if (blockController.isAnyBlockSelected()) {
+				for (const block of blockController.getSelectedBlocks()) {
+					canvasStore.activeCanvas?.removeBlock(block, e.shiftKey)
+				}
+				clearSelection()
+				e.stopPropagation()
+				return
+			}
 		}
 
 		// duplicate
