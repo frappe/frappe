@@ -437,19 +437,20 @@ $.extend(frappe.model, {
 		return frappe.boot.user.can_print.indexOf(doctype) !== -1;
 	},
 
+	// whether a document in this docstatus is printable at all, per Print Settings
+	// (submitted documents always are; draft/cancelled only if explicitly allowed)
+	can_print_docstatus: function (doctype, docstatus) {
+		if (!frappe.model.is_submittable(doctype) || docstatus == 1) return true;
+
+		const print_settings = frappe.model.get_doc(":Print Settings", "Print Settings") || {};
+		if (docstatus == 2) return !!cint(print_settings.allow_print_for_cancelled);
+		if (docstatus == 0) return !!cint(print_settings.allow_print_for_draft);
+		return false;
+	},
+
 	can_print_doc: function (frm) {
-		const print_settings = frappe.model.get_doc(":Print Settings", "Print Settings");
-		const allow_print_for_draft = cint(print_settings.allow_print_for_draft);
-		const allow_print_for_cancelled = cint(print_settings.allow_print_for_cancelled);
-
-		const docstatus_allows_print =
-			!frappe.model.is_submittable(frm.doc.doctype) ||
-			frm.doc.docstatus == 1 ||
-			(allow_print_for_cancelled && frm.doc.docstatus == 2) ||
-			(allow_print_for_draft && frm.doc.docstatus == 0);
-
 		return !!(
-			docstatus_allows_print &&
+			frappe.model.can_print_docstatus(frm.doc.doctype, frm.doc.docstatus) &&
 			frappe.model.can_print(null, frm) &&
 			!frm.meta.issingle
 		);
