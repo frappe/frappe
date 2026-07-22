@@ -1,0 +1,182 @@
+import base64
+import hashlib
+import json
+import os
+
+import httpx
+import pytest
+
+from flow_server.model.auth import (
+	NotAuthenticated,
+	account_id_from_tokens,
+	decode_jwt_claims,
+	generate_pkce,
+	get_auth_provider,
+	resolve_auth,
+)
+from flow_server.model.credentials import CredentialStore, OAuthCredential
+from flow_server.model.providers.codex import CLIENT_ID
+
+
+def _jwt(payload: dict) -> str:
+	def seg(obj):
+		raw = json.dumps(obj).encode()
+		return base64.urlsafe_b64encode(raw).decode().rstrip("=")
+
+	return f"{seg({'alg': 'none'})}.{seg(payload)}.sig"
+
+
+def _mock_client(handler):
+	return httpx.AsyncClient(transport=httpx.MockTransport(handler))
+
+
+# --- credential store -----------------------------------------------------
+
+def test_credential_store_roundtrip(tmp_path):
+	store = CredentialStore(str(tmp_path / "creds.json"))
+	assert store.get("codex") is None
+	store.set("codex", OAuthCredential(access="a", refresh="r", expires=123, account_id="acc"))
+	got = store.get("codex")
+	assert got == OAuthCredential(access="a", refresh="r", expires=123, account_id="acc")
+	store.delete("codex")
+	assert store.get("codex") is None
+
+
+def test_credential_store_file_is_0600(tmp_path):
+	path = tmp_path / "sub" / "creds.json"
+	store = CredentialStore(str(path))
+	store.set("codex", OAuthCredential(access="a", refresh="r", expires=1))
+	assert oct(os.stat(path).st_mode & 0o777) == "0o600"
+	assert oct(os.stat(path.parent).st_mode & 0o777) == "0o700"
+
+
+# --- pkce + jwt -----------------------------------------------------------
+
+def test_generate_pkce_is_s256():
+	pkce = generate_pkce()
+	expected = base64.urlsafe_b64encode(hashlib.sha256(pkce.verifier.encode()).digest())
+	assert pkce.challenge == expected.decode().rstrip("=")
+	assert "=" not in pkce.challenge
+
+
+def test_decode_jwt_claims_and_malformed():
+	assert decode_jwt_claims(_jwt({"sub": "x"})) == {"sub": "x"}
+	assert decode_jwt_claims("not-a-jwt") == {}
+	assert decode_jwt_claims("") == {}
+
+
+def test_account_id_extraction_variants():
+	assert account_id_from_tokens(_jwt({"chatgpt_account_id": "top"}), None) == "top"
+	nested = _jwt({"https://api.openai.com/auth": {"chatgpt_account_id": "nested"}})
+	assert account_id_from_tokens(nested, None) == "nested"
+	orgs = _jwt({"organizations": [{"id": "org1"}]})
+	assert account_id_from_tokens(orgs, None) == "org1"
+	# falls through id_token -> access_token
+	assert account_id_from_tokens(None, _jwt({"chatgpt_account_id": "fromaccess"})) == "fromaccess"
+	assert account_id_from_tokens(_jwt({}), _jwt({})) is None
+
+
+# --- codex auth provider --------------------------------------------------
+
+def test_codex_authorize_url():
+	url = get_auth_provider("codex").authorize_url(challenge="CH", state="ST")
+	assert url.startswith("https://auth.openai.com/oauth/authorize?")
+	for fragment in (
+		f"client_id={CLIENT_ID}",
+		"code_challenge=CH",
+		"code_challenge_method=S256",
+		"state=ST",
+		"code_challenge_method=S256",
+		"id_token_add_organizations=true",
+	):
+		assert fragment in url
+
+
+async def test_codex_exchange_builds_credential():
+	captured = {}
+
+	def handler(request):
+		captured["body"] = request.content.decode()
+		return httpx.Response(
+			200,
+			json={
+				"access_token": _jwt({"chatgpt_account_id": "acc-1"}),
+				"refresh_token": "refresh-1",
+				"expires_in": 3600,
+			},
+		)
+
+	async with _mock_client(handler) as client:
+		cred = await get_auth_provider("codex").exchange(
+			"the-code", "the-verifier", client=client, now_ms=1_000
+		)
+
+	assert "grant_type=authorization_code" in captured["body"]
+	assert "code=the-code" in captured["body"]
+	assert "code_verifier=the-verifier" in captured["body"]
+	assert cred.refresh == "refresh-1"
+	assert cred.account_id == "acc-1"
+	assert cred.expires == 1_000 + 3600 * 1000
+
+
+async def test_codex_refresh_keeps_old_refresh_when_absent():
+	def handler(request):
+		assert "grant_type=refresh_token" in request.content.decode()
+		return httpx.Response(200, json={"access_token": _jwt({}), "expires_in": 100})
+
+	old = OAuthCredential(access="old", refresh="keep-me", expires=0, account_id="acc")
+	async with _mock_client(handler) as client:
+		cred = await get_auth_provider("codex").refresh(old, client=client, now_ms=0)
+	assert cred.refresh == "keep-me"
+
+
+def test_codex_runtime_auth_headers():
+	auth = get_auth_provider("codex").runtime_auth(
+		OAuthCredential(access="tok", refresh="r", expires=0, account_id="acc-9")
+	)
+	assert auth.token == "tok"
+	assert auth.base_url == "https://chatgpt.com/backend-api"
+	assert auth.headers["chatgpt-account-id"] == "acc-9"
+	assert auth.headers["originator"] == "flow_server"
+
+
+# --- resolver (refresh-with-skew) -----------------------------------------
+
+async def test_resolve_auth_requires_login(tmp_path):
+	store = CredentialStore(str(tmp_path / "c.json"))
+	with pytest.raises(NotAuthenticated):
+		await resolve_auth(store, "codex")
+
+
+async def test_resolve_auth_skips_refresh_when_fresh(tmp_path):
+	store = CredentialStore(str(tmp_path / "c.json"))
+	store.set("codex", OAuthCredential(access="fresh", refresh="r", expires=10_000_000))
+
+	def handler(request):  # must not be called
+		raise AssertionError("refresh should not run for a fresh credential")
+
+	async with _mock_client(handler) as client:
+		auth = await resolve_auth(store, "codex", client=client, now_ms=1_000)
+	assert auth.token == "fresh"
+
+
+async def test_resolve_auth_refreshes_within_skew(tmp_path):
+	store = CredentialStore(str(tmp_path / "c.json"))
+	store.set("codex", OAuthCredential(access="stale", refresh="r0", expires=50_000))
+
+	def handler(request):
+		return httpx.Response(
+			200,
+			json={
+				"access_token": _jwt({"chatgpt_account_id": "a"}),
+				"refresh_token": "r1",
+				"expires_in": 3600,
+			},
+		)
+
+	# now_ms is within TOKEN_REFRESH_SKEW_MS (60_000) of expiry -> refresh
+	async with _mock_client(handler) as client:
+		auth = await resolve_auth(store, "codex", client=client, now_ms=50_000)
+
+	assert auth.token != "stale"
+	assert store.get("codex").refresh == "r1"  # rotation persisted
