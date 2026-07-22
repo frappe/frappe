@@ -46,7 +46,7 @@
     "cssnano": "^5.0.0",
     "driver.js": "^0.9.8",
     "editorjs-undo": "0.1.6",
-    "esbuild": "^0.28.0",
+    "esbuild": "^0.28.1",
     "esbuild-plugin-vue3": "^0.3.0",
     "fast-deep-equal": "^2.0.1",
     "fast-glob": "^3.2.5",
