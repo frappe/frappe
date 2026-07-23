@@ -52,8 +52,10 @@ class ToolResult(_Event):
 	type: Literal["tool_result"] = "tool_result"
 	tool_call_id: str
 	name: str
-	content: str
+	content: str  # the text the model sees
 	is_error: bool = False
+	# structured render metadata (diff, truncation, exit code, ...); never sent to the model
+	details: dict = Field(default_factory=dict)
 
 
 class Usage(_Event):
