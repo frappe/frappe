@@ -50,7 +50,7 @@ class TestDocType(IntegrationTestCase):
 			doc.delete()
 
 	@skipIf(
-		frappe.conf.db_type == "sqlite",
+		frappe.conf and frappe.conf.db_type == "sqlite",
 		"Not for SQLite for now",
 	)
 	def test_making_sequence_on_change(self):
