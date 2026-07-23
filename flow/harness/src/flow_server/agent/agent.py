@@ -1,0 +1,66 @@
+"""A simple in-process front door over the durable agent loop.
+
+One `Agent` object whose `run()`/`resume()` yield the live event stream — the ergonomic
+path for embedding, the TUI, tests, and scripts. The daemon and remote clients use the
+loop's `run()`/`resume()` functions + the session event log directly; this is a thin
+wrapper over the same engine (subscribe -> spawn the run -> yield events until it ends).
+"""
+
+from __future__ import annotations
+
+import asyncio
+from collections.abc import AsyncIterator, Callable, Coroutine
+from typing import Any
+
+from flow_server.agent.loop import resume as _resume
+from flow_server.agent.loop import run as _run
+from flow_server.events import _Event
+from flow_server.model import Model
+from flow_server.session.store import Session, SessionConfig, SessionStore
+
+
+class Agent:
+	def __init__(
+		self,
+		config: SessionConfig | None = None,
+		*,
+		data_dir: str = ".flow-data",
+		**overrides: Any,
+	):
+		# `model=` may be a name string (goes to config, resolved via get_model) or a
+		# pre-built Model instance (injected directly — used by tests and embedders).
+		injected = overrides.pop("model", None)
+		if isinstance(injected, Model):
+			self._model: Model | None = injected
+		else:
+			self._model = None
+			if injected is not None:
+				overrides["model"] = injected
+		self._session = SessionStore(data_dir).create(config or SessionConfig(**overrides))
+
+	@property
+	def session(self) -> Session:
+		return self._session
+
+	def run(self, message: str, **hooks: Any) -> AsyncIterator[_Event]:
+		"""Start a turn; yields the live event stream until the run ends or pauses."""
+		return self._drive(lambda: _run(self._session, message, model=self._model, **hooks))
+
+	def resume(self, answers: dict[str, str], **hooks: Any) -> AsyncIterator[_Event]:
+		"""Continue a paused run; yields the event stream of the continuation."""
+		return self._drive(lambda: _resume(self._session, answers, model=self._model, **hooks))
+
+	async def _drive(
+		self, make_coro: Callable[[], Coroutine[Any, Any, None]]
+	) -> AsyncIterator[_Event]:
+		q = self._session.subscribe()  # subscribe before the run starts so no event is missed
+		task = asyncio.create_task(make_coro())
+		try:
+			while True:
+				ev = await q.get()
+				yield ev
+				if ev.type == "run_ended":  # always the terminal event
+					break
+		finally:
+			self._session.unsubscribe(q)
+			await task
