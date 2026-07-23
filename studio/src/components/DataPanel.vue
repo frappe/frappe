@@ -180,9 +180,10 @@ const addResource = (resource: Resource) => {
 			parenttype: "Studio Page",
 			parentfield: "resources",
 		})
-		.then(async () => {
+		.then(async (data: any) => {
 			if (store.activePage) {
 				await codeStore.setPageResources(store.activePage, true)
+				store.syncPageModified(data)
 			}
 			showResourceDialog.value = false
 		})
@@ -198,6 +199,7 @@ const deleteResource = async (resource_name: string) => {
 		.then(async () => {
 			if (store.activePage) {
 				await codeStore.setPageResources(store.activePage, true)
+				await store.refreshActivePageModified()
 			}
 			toast.success(`Data Source ${resource_name} deleted successfully`)
 		})
@@ -209,9 +211,10 @@ const deleteResource = async (resource_name: string) => {
 const editResource = async (resource: Resource) => {
 	return studioPageResources.setValue
 		.submit(getResourceValues(resource))
-		.then(async () => {
+		.then(async (data: any) => {
 			if (store.activePage) {
 				await codeStore.setPageResources(store.activePage, true)
+				store.syncPageModified(data)
 			}
 			toast.success(`Data Source ${resource.resource_name} updated successfully`)
 			showResourceDialog.value = false
@@ -313,9 +316,10 @@ const addVariable = (variable: Variable) => {
 			parentfield: "variables",
 		},
 		{
-			async onSuccess() {
+			async onSuccess(data: any) {
 				if (store.activePage) {
 					await codeStore.setPageVariables(store.activePage)
+					store.syncPageModified(data)
 				}
 				showVariableDialog.value = false
 			},
@@ -337,9 +341,10 @@ const editVariable = (variable: Variable) => {
 			variable_type: variable.variable_type,
 			initial_value: initial_value,
 		})
-		.then(async () => {
+		.then(async (data: any) => {
 			if (store.activePage) {
 				await codeStore.setPageVariables(store.activePage)
+				store.syncPageModified(data)
 			}
 			showVariableDialog.value = false
 		})
@@ -353,6 +358,7 @@ const deleteVariable = async (variable: Variable) => {
 			.then(async () => {
 				if (store.activePage) {
 					await codeStore.setPageVariables(store.activePage)
+					await store.refreshActivePageModified()
 				}
 				toast.success(`Variable ${variable.variable_name} deleted successfully`)
 			})

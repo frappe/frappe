@@ -37,7 +37,7 @@ def run_add_data_source(ctx, args: dict) -> str:
 	page.append("resources", _build_row(name, source_type, args))
 	if error := save_page(page):
 		return f"FAILED: {error}"
-	_reload(ctx)
+	_reload(ctx, page)
 	return f"Added {source_type} data source '{name}'. Bind blocks to it with {{{{ {name}.data }}}}."
 
 
@@ -65,7 +65,7 @@ def run_update_data_source(ctx, args: dict) -> str:
 		return "Nothing to update — pass the fields you want to change."
 	if error := save_page(page):
 		return f"FAILED: {error}"
-	_reload(ctx)
+	_reload(ctx, page)
 	return f"Updated data source '{name}' ({', '.join(changed)})."
 
 
@@ -81,7 +81,7 @@ def run_delete_data_source(ctx, args: dict) -> str:
 	page.resources.remove(row)
 	if error := save_page(page):
 		return f"FAILED: {error}"
-	_reload(ctx)
+	_reload(ctx, page)
 
 	warning = dangling_binding_warning(ctx, name)
 	return f"Deleted data source '{name}'." + (f" {warning}" if warning else "")
@@ -140,8 +140,9 @@ def _find_resource(page, name: str):
 	return next((r for r in page.resources if r.resource_name == name), None)
 
 
-def _reload(ctx) -> None:
-	ctx.emit("reload", resources=True)
+def _reload(ctx, page) -> None:
+	# Ship the saved page's modified so the editor re-syncs its optimistic-lock timestamp without an extra fetch
+	ctx.emit("reload", resources=True, modified=page.modified)
 
 
 def _describe_resource(r) -> dict:

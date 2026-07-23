@@ -347,12 +347,13 @@ const controller = new AIChatController({
 	savePage: () => store.savePage(),
 	reloadSession,
 	scrollToBottom,
-	reloadPageData: ({ resources, variables, script }) => {
+	reloadPageData: ({ resources, variables, script, modified }) => {
 		const page = store.activePage
 		if (!page) return
 		if (resources) codeStore.setPageResources(page)
 		if (variables) codeStore.setPageVariables(page)
 		if (script) store.reloadActivePageScript()
+		store.syncPageModified({ modified })
 	},
 })
 

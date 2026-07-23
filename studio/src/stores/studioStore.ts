@@ -32,7 +32,7 @@ import type { LeftPanelOptions, RightPanelOptions, leftPanelComponentTabOptions,
 import ComponentContextMenu from "@/components/ComponentContextMenu.vue"
 import type { Variable, VariableOption } from "@/types/Studio/StudioPageVariable"
 import { toast, dialog } from "frappe-ui"
-import { createResource } from "frappe-ui"
+import { createResource, call } from "frappe-ui"
 
 const useStudioStore = defineStore("store", () => {
 	const studioLayout = useStorage(
@@ -249,8 +249,19 @@ const useStudioStore = defineStore("store", () => {
 	}
 
 	function syncPageModified(response: any) {
-		const modified = response?.docs?.[0]?.modified ?? response?.message
+		const modified = response?.docs?.[0]?.modified ?? response?.modified ?? response?.message
 		if (activePage.value && modified) activePage.value.modified = modified
+	}
+
+	async function refreshActivePageModified() {
+		const pageName = activePage.value?.name
+		if (!pageName) return
+		const page = await call("frappe.client.get_value", {
+			doctype: "Studio Page",
+			filters: pageName,
+			fieldname: "modified",
+		})
+		if (activePage.value?.name === pageName) syncPageModified(page)
 	}
 
 	function handlePageWriteConflict(error: any) {
@@ -631,6 +642,8 @@ const useStudioStore = defineStore("store", () => {
 		setPage,
 		savePage,
 		updateActivePage,
+		syncPageModified,
+		refreshActivePageModified,
 		reloadActivePageScript,
 		publishPage,
 		unpublishPage,
