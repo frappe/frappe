@@ -675,12 +675,16 @@ class Document(BaseDocument):
 
 	def raise_no_permission_to(self, perm_type):
 		"""Raise `frappe.PermissionError`."""
+		doctype, name = self.doctype, self.name
+		if self.meta.istable and self.get("parenttype"):
+			doctype, name = self.parenttype, self.parent
+
 		frappe.flags.error_message = _(
 			"You need the '{0}' permission on {1} {2} to perform this action."
 		).format(
 			_(perm_type),
-			frappe.bold(_(self.doctype)),
-			self.name or "",
+			frappe.bold(_(doctype)),
+			name or "",
 		)
 		raise frappe.PermissionError
 
