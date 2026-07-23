@@ -181,6 +181,29 @@ class Workspace(Document, DeskViews):
 			delete_folder(self.module, "Workspace", self.title)
 
 	@staticmethod
+	def rename_private_workspaces(old_name, new_name):
+		for workspace in frappe.get_all(
+			"Workspace",
+			filters={"for_user": old_name},
+			fields=["name", "title"],
+			limit=0,
+		):
+			new_label = f"{workspace.title}-{new_name}"
+			if workspace.name != new_label:
+				if frappe.db.exists("Workspace", new_label):
+					frappe.db.set_value("Workspace", workspace.name, "for_user", new_name)
+					continue
+				rename_doc(
+					"Workspace",
+					workspace.name,
+					new_label,
+					force=True,
+					show_alert=False,
+					ignore_permissions=True,
+				)
+			frappe.db.set_value("Workspace", new_label, {"for_user": new_name, "label": new_label})
+
+	@staticmethod
 	def get_module_wise_workspaces():
 		workspaces = frappe.get_all(
 			"Workspace",
