@@ -323,6 +323,7 @@ $.extend(frappe.model, {
 	},
 
 	_mapped_doc_guards: [],
+	_running_mapped_doc_guards: 0,
 
 	add_mapped_doc_guard: function (fn) {
 		// fn(mapped_doc, opts) -> boolean | Promise<boolean>; false blocks opening the doc
@@ -352,6 +353,13 @@ $.extend(frappe.model, {
 	},
 
 	open_mapped_doc: function (opts) {
+		// the request's own freeze lifts while guards are still deciding
+		// (a visual freeze there would cover the guards' own dialogs), so
+		// ignore new invocations until pending guards resolve; responses
+		// already in flight are never discarded
+		if (frappe.model._running_mapped_doc_guards) {
+			return;
+		}
 		if (opts.frm && opts.frm.doc.__unsaved) {
 			frappe.throw(
 				__("You have unsaved changes in this form. Please save before you continue.")
@@ -377,20 +385,13 @@ $.extend(frappe.model, {
 				if (r.exc) {
 					return;
 				}
-				// the request's own freeze lifts as soon as this async callback
-				// yields; a flag (not a visual freeze, which would cover the
-				// guards' own dialogs) blocks re-entry from a second click
-				// while guards are still deciding
-				if (frappe.model._running_mapped_doc_guards) {
-					return;
-				}
-				frappe.model._running_mapped_doc_guards = true;
+				frappe.model._running_mapped_doc_guards++;
 				try {
 					if (!(await frappe.model.should_open_mapped_doc(r.message, opts))) {
 						return;
 					}
 				} finally {
-					frappe.model._running_mapped_doc_guards = false;
+					frappe.model._running_mapped_doc_guards--;
 				}
 				frappe.model.sync(r.message);
 				if (opts.run_link_triggers) {
