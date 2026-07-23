@@ -13,7 +13,9 @@ frappe.ui.Sidebar = class Sidebar {
 		this.fields_for_dialog = [];
 		this.workspace_sidebar_items = [];
 		this.$items_container = this.wrapper.find(".sidebar-items");
-		this.$standard_items_sections = this.wrapper.find(".standard-items-sections");
+		// the notification/background-task panels and their trigger buttons live directly on the
+		// body sidebar now (there's no wrapper element), so scope both to it
+		this.$standard_items_sections = this.wrapper.find(".body-sidebar");
 		this.$sidebar = this.wrapper.find(".body-sidebar");
 		this.items = [];
 		this.cards = [];
