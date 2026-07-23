@@ -13,6 +13,8 @@
 				<template #actions>
 					<Combobox
 						:options="availableSlotOptions"
+						:allowCustomValue="true"
+						placeholder="Search or type a dynamic slot name"
 						@update:modelValue="(slot: string) => addSlot(slot)"
 						align="end"
 					>
@@ -104,7 +106,6 @@ import { useStudioCompletions } from "@/utils/useStudioCompletions"
 import type { CompletionContext } from "@codemirror/autocomplete"
 import useStudioStore from "@/stores/studioStore"
 import useCanvasStore from "@/stores/canvasStore"
-import LucidePlus from "~icons/lucide/plus"
 
 const props = defineProps<{
 	block?: Block
@@ -133,25 +134,18 @@ watchEffect(async () => {
 })
 
 type SlotOption = { label: string; value: string }
-// declared slots not yet added to the block
+// declared slots not yet added; typing a name relies on the combobox's allowCustomValue to add a dynamic one
 const availableSlotOptions = computed<SlotOption[]>(() =>
 	declaredSlots.value
 		.filter((name) => !props.block?.getSlot(name))
 		.map((name) => ({ label: name, value: name })),
 )
 
-// a typed name (for a dynamic/runtime slot) can be added when it isn't already a slot
-const slotQuery = ref("")
-const canAddTypedSlot = computed(() => {
-	const name = slotQuery.value.trim()
-	return Boolean(name) && !props.block?.getSlot(name)
-})
-
 const addSlot = (slotName: string) => {
+	slotName = slotName?.trim()
 	if (slotName && !props.block?.getSlot(slotName)) {
 		props.block?.addSlot(slotName)
 	}
-	slotQuery.value = ""
 }
 
 const getSlotSummary = (slotName: string) => {
