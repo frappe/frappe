@@ -249,6 +249,15 @@ class TestRQJob(IntegrationTestCase):
 			limit * 1.2,
 		)
 
+	def test_pickle_lazy_doc_for_rq_job(self):
+		job = frappe.enqueue(test_serialization, user=frappe.get_lazy_doc("User", "Guest"))
+		self.check_status(job, "finished")
+
+
+def test_serialization(user):
+	assert user.roles
+	return True
+
 
 def test_func(fail=False, sleep=0):
 	if fail:
