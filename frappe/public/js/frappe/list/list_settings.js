@@ -65,13 +65,11 @@ export default class ListSettings {
 					me.listview.list_filter
 						.update_layout_columns(layout, me.fields, { debounce: false })
 						.then(async () => {
-							// setup_columns is async (may load linked doctype meta for
-							// link-title columns); wait before rendering the header.
 							await me.listview.setup_columns(me.fields);
-							me.listview.render_header(true);
-							me.listview.apply_column_widths?.();
+							await me.listview.refresh(true);
 							me.dialog.hide();
-						});
+						})
+						.catch((e) => frappe.show_alert({ message: e.message, indicator: "red" }));
 					return;
 				}
 			}
