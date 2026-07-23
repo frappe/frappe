@@ -308,7 +308,9 @@ function get_files_to_build(files) {
 }
 
 function build_files({ files, outdir }) {
-	let build_plugins = [vue(), html_plugin, build_cleanup_plugin, vue_style_plugin];
+	// vue_style before cleanup: it re-hashes bundle filenames after inlining
+	// css, and cleanup must judge staleness against the renamed metafile
+	let build_plugins = [vue(), html_plugin, vue_style_plugin, build_cleanup_plugin];
 	if (WATCH_MODE) build_plugins.push(watch_plugin);
 	return build_or_watch(get_build_options(files, outdir, build_plugins));
 }
