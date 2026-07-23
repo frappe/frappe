@@ -40,7 +40,7 @@
 				/>
 			</template>
 			<template v-else-if="is_barcode_element">
-				<div class="pfb-insp-row">
+				<div class="pfb-insp-row" v-if="selected_field.custom">
 					<span class="pfb-insp-label">{{ __("Value from") }}</span>
 					<select
 						class="pfb-insp-select"
@@ -53,7 +53,10 @@
 						</option>
 					</select>
 				</div>
-				<div class="pfb-insp-row" v-if="!selected_field.barcode_field">
+				<div
+					class="pfb-insp-row"
+					v-if="selected_field.custom && !selected_field.barcode_field"
+				>
 					<span class="pfb-insp-label">{{ __("Value") }}</span>
 					<input
 						type="text"
@@ -63,7 +66,7 @@
 						@change="selected_field.barcode_value = $event.target.value"
 					/>
 				</div>
-				<div class="pfb-insp-row">
+				<div class="pfb-insp-row" v-if="selected_field.custom">
 					<span class="pfb-insp-label">{{ __("Format") }}</span>
 					<select
 						class="pfb-insp-select"
@@ -86,7 +89,10 @@
 						@input="selected_field.width = $event.target.value + 'px'"
 					/>
 				</div>
-				<div class="pfb-insp-row" v-if="selected_field.barcode_format !== 'QR'">
+				<div
+					class="pfb-insp-row"
+					v-if="selected_field.custom && selected_field.barcode_format !== 'QR'"
+				>
 					<span class="pfb-insp-label">{{ __("Value text") }}</span>
 					<label class="pfb-insp-check">
 						<input
@@ -217,11 +223,17 @@ let is_html_field = computed(() => selected_field.value?.fieldtype === "HTML");
 let is_image_element = computed(
 	() => selected_field.value?.fieldtype === "Image" && selected_field.value?.custom
 );
-let is_barcode_element = computed(
-	() => selected_field.value?.fieldtype === "Barcode" && selected_field.value?.custom
-);
+// dragged Barcode docfields get size/align only — value and format come from
+// the field itself
+let is_barcode_element = computed(() => selected_field.value?.fieldtype === "Barcode");
 
-const barcode_formats = ["CODE128", "CODE39", "QR"];
+// QR comes from Barcode docfields with qrcode options, not the block; the
+// option stays visible only on elements saved as QR before that change
+const barcode_formats = computed(() =>
+	selected_field.value?.barcode_format === "QR"
+		? ["CODE128", "CODE39", "QR"]
+		: ["CODE128", "CODE39"]
+);
 
 let store = inject("$store");
 
