@@ -253,12 +253,14 @@ def load_desktop_data(bootinfo):
 	from frappe.desk.doctype.desktop_icon.desktop_icon import get_desktop_icons
 
 	allowed_pages = [d.name for d in bootinfo.workspaces.get("pages")]
+	# A companion app's workspaces resolve their app context (dock + header) to the host app they
+	# were pinned into via `add_to_workspace_dock`, so the companion appears to live inside the
+	# host's rail rather than flipping the desk to a shell of its own. Set regardless of navigation:
+	# the shared `app_data` build reads it to decide on_apps_screen, the v16 apps screen just
+	# ignores it.
+	bootinfo.app_rail_host = get_app_rail_host_map()
 
 	if is_workspace_navigation():
-		# A companion app's workspaces resolve their app context (dock + header) to the host app they
-		# were pinned into via `add_to_workspace_dock`, so the companion appears to live inside the
-		# host's rail rather than flipping the desk to a shell of its own.
-		bootinfo.app_rail_host = get_app_rail_host_map()
 		# The user's curated workspace selection (`User.workspaces`), ordered. Kept separate from
 		# `bootinfo.workspaces` (which holds every permitted workspace link) so the workspace selector
 		# can prefer it when set, without it affecting the full workspace listing.
