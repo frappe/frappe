@@ -1438,6 +1438,7 @@ class TestDotNotationPermission(FrappeTestCase):
 			fields=[
 				{"fieldname": "ifo_link", "fieldtype": "Link", "label": "Ifo Link", "options": cls.CHILD_IFO},
 				{"fieldname": "up_link", "fieldtype": "Link", "label": "Up Link", "options": cls.CHILD_UP},
+				{"fieldname": "user_link", "fieldtype": "Link", "label": "User Link", "options": "User"},
 			],
 			permissions=_perm(),
 		).insert(ignore_permissions=True)
@@ -1464,6 +1465,7 @@ class TestDotNotationPermission(FrappeTestCase):
 		cls.p_mine = ins(ifo_link=cls.ifo_mine.name)
 		cls.p_up_a = ins(up_link=cls.up_a.name)
 		cls.p_up_b = ins(up_link=cls.up_b.name)
+		cls.p_user_link = ins(user_link=cls.USER)
 
 	@classmethod
 	def tearDownClass(cls):
@@ -1549,6 +1551,10 @@ class TestDotNotationPermission(FrappeTestCase):
 			frappe.set_user(self.USER)
 			# hook returns "name = '__no_match__'" → JOIN matches nothing → null
 			self.assertIsNone(self._get(self.p_up_a.name, "up_link.secret"))
+
+	def test_real_user_permission_query_condition_hook_is_aliased(self):
+		frappe.set_user(self.USER)
+		self.assertEqual(self._get(self.p_user_link.name, "user_link.name"), self.USER)
 
 	def test_permission_hook_subquery_does_not_trip_validator(self):
 		"""Permission hooks can legitimately return subqueries. The _user_tables split
