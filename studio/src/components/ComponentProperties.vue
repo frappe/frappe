@@ -32,7 +32,17 @@
 						class="flex w-full cursor-pointer items-center justify-between gap-1 rounded py-0.5"
 						@click="selectSlot(slotName)"
 					>
-						<span class="truncate text-sm text-ink-gray-5">{{ slotName }}</span>
+						<div class="flex min-w-0 items-center gap-1.5">
+							<Tooltip :hoverDelay="0" :text="isDynamicSlot(slotName) ? 'Dynamic slot' : 'Standard slot'">
+								<span class="inline-flex shrink-0">
+									<component
+										:is="isDynamicSlot(slotName) ? LucideZap : LucideHash"
+										class="size-3 text-ink-gray-4"
+									/>
+								</span>
+							</Tooltip>
+							<span class="truncate text-sm text-ink-gray-5">{{ slotName }}</span>
+						</div>
 						<div class="flex shrink-0 items-center gap-2">
 							<Badge
 								theme="gray"
@@ -108,6 +118,9 @@ import type { CompletionContext } from "@codemirror/autocomplete"
 import useStudioStore from "@/stores/studioStore"
 import useCanvasStore from "@/stores/canvasStore"
 
+import LucideZap from "~icons/lucide/zap"
+import LucideHash from "~icons/lucide/hash"
+
 const props = defineProps<{
 	block?: Block
 }>()
@@ -148,6 +161,8 @@ const addSlot = (slotName: string) => {
 		props.block?.addSlot(slotName)
 	}
 }
+
+const isDynamicSlot = (slotName: string) => !declaredSlots.value.includes(slotName)
 
 const getSlotSummary = (slotName: string) => {
 	const count = props.block?.getSlot(slotName)?.slotContent.length
