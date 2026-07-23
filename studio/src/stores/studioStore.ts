@@ -249,11 +249,7 @@ const useStudioStore = defineStore("store", () => {
 	}
 
 	function syncPageModified(response: any) {
-		const modified = response?.docs?.[0]?.modified ?? response?.message
-		if (activePage.value && modified) activePage.value.modified = modified
-	}
-
-	function setActivePageModified(modified?: string) {
+		const modified = response?.docs?.[0]?.modified ?? response?.modified ?? response?.message
 		if (activePage.value && modified) activePage.value.modified = modified
 	}
 
@@ -264,7 +260,7 @@ const useStudioStore = defineStore("store", () => {
 			filters: activePage.value.name,
 			fieldname: "modified",
 		})
-		setActivePageModified(page?.modified)
+		syncPageModified(page)
 	}
 
 	function handlePageWriteConflict(error: any) {
@@ -645,7 +641,7 @@ const useStudioStore = defineStore("store", () => {
 		setPage,
 		savePage,
 		updateActivePage,
-		setActivePageModified,
+		syncPageModified,
 		refreshActivePageModified,
 		reloadActivePageScript,
 		publishPage,

@@ -183,7 +183,7 @@ const addResource = (resource: Resource) => {
 		.then(async (data: any) => {
 			if (store.activePage) {
 				await codeStore.setPageResources(store.activePage, true)
-				store.setActivePageModified(data?.modified)
+				store.syncPageModified(data)
 			}
 			showResourceDialog.value = false
 		})
@@ -214,7 +214,7 @@ const editResource = async (resource: Resource) => {
 		.then(async (data: any) => {
 			if (store.activePage) {
 				await codeStore.setPageResources(store.activePage, true)
-				store.setActivePageModified(data?.modified)
+				store.syncPageModified(data)
 			}
 			toast.success(`Data Source ${resource.resource_name} updated successfully`)
 			showResourceDialog.value = false
@@ -319,7 +319,7 @@ const addVariable = (variable: Variable) => {
 			async onSuccess(data: any) {
 				if (store.activePage) {
 					await codeStore.setPageVariables(store.activePage)
-					store.setActivePageModified(data?.modified)
+					store.syncPageModified(data)
 				}
 				showVariableDialog.value = false
 			},
@@ -344,7 +344,7 @@ const editVariable = (variable: Variable) => {
 		.then(async (data: any) => {
 			if (store.activePage) {
 				await codeStore.setPageVariables(store.activePage)
-				store.setActivePageModified(data?.modified)
+				store.syncPageModified(data)
 			}
 			showVariableDialog.value = false
 		})
