@@ -51,9 +51,7 @@ class PrintFormatBuilder {
 		this.app = app;
 		this.$component = app.mount(this.$wrapper.get(0));
 
-		// autosave persists edits, so the header stays quiet when saved and only
-		// speaks up transiently while saving, or stickily when a save fails —
-		// which the Save button (or Ctrl+S) can retry
+		// quiet when saved; only "Saving…" transiently or a sticky "Save failed"
 		watch(
 			() => this.$component.$store.save_status,
 			(status) => {
