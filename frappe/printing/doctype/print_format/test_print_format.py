@@ -510,6 +510,10 @@ class TestPrintFormatPreview(IntegrationTestCase):
 		previews = self._preview_files()
 		self.assertEqual(len(previews), 1, "regenerating a preview must not accumulate files")
 
+		cooldown_key = f"pf_preview_cooldown::{self.FORMAT_NAME}"
+		self.addCleanup(frappe.cache.delete_value, cooldown_key)
+		self.assertTrue(frappe.cache.get_value(cooldown_key), "a completed render must stamp the cooldown")
+
 		self.assertTrue(frappe.db.exists("File", user_file.name), "user attachment must not be swept")
 
 		url = frappe.db.get_value("Print Format", self.FORMAT_NAME, "preview_image")
@@ -529,6 +533,29 @@ class TestPrintFormatPreview(IntegrationTestCase):
 		result = autosave(frappe.as_json(doc))
 		self.assertEqual(result["name"], self.FORMAT_NAME)
 		self.assertIn("Edited", frappe.db.get_value("Print Format", self.FORMAT_NAME, "format_data"))
+
+	def test_autosave_preview_throttle(self):
+		"""Autosaves refresh the preview at most once per cooldown window; manual
+		saves always refresh."""
+		from unittest.mock import patch
+
+		pf = frappe.get_doc("Print Format", self.FORMAT_NAME)
+		cooldown_key = f"pf_preview_cooldown::{pf.name}"
+		frappe.cache.delete_value(cooldown_key)
+		self.addCleanup(frappe.cache.delete_value, cooldown_key)
+
+		with patch.object(frappe, "in_test", False), patch("frappe.enqueue") as enqueue:
+			pf.flags.pfb_autosave = True
+			pf.enqueue_preview_generation()
+			self.assertEqual(enqueue.call_count, 1, "no cooldown: autosave refreshes")
+
+			frappe.cache.set_value(cooldown_key, 1, expires_in_sec=60)
+			pf.enqueue_preview_generation()
+			self.assertEqual(enqueue.call_count, 1, "cooldown: autosave skips the refresh")
+
+			pf.flags.pfb_autosave = False
+			pf.enqueue_preview_generation()
+			self.assertEqual(enqueue.call_count, 2, "manual save refreshes despite cooldown")
 
 
 class TestPrintFormatChildTableVisibility(IntegrationTestCase):

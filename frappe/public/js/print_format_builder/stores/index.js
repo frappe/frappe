@@ -203,6 +203,14 @@ export function getStore(print_format_name) {
 				const was_dirty = dirty.value;
 				print_format.value.modified = r.message.modified;
 				if (!was_dirty) nextTick(() => (dirty.value = false));
+				if (letterhead.value && letterhead.value._dirty) {
+					return frappe
+						.call("frappe.client.save", { doc: letterhead.value })
+						.then((res) => {
+							letterhead.value.modified = res.message.modified;
+							letterhead.value._dirty = false;
+						});
+				}
 			})
 			.catch(() => {
 				autosave_stopped = true;
@@ -265,6 +273,15 @@ export function getStore(print_format_name) {
 		print_format,
 		() => {
 			dirty.value = true;
+		},
+		{ deep: true }
+	);
+	// letterhead edits flag themselves with _dirty instead of touching `dirty` —
+	// route them into the same autosave pipeline
+	watch(
+		letterhead,
+		() => {
+			if (letterhead.value?._dirty) dirty.value = true;
 		},
 		{ deep: true }
 	);
