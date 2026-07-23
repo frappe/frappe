@@ -1,6 +1,11 @@
 <template>
-	<div class="pfb-preview-dock" :style="{ width: dock_width + 'px' }">
+	<div
+		class="pfb-preview-dock"
+		:class="{ 'pfb-preview-dock--max': maximized }"
+		:style="maximized ? {} : { width: dock_width + 'px' }"
+	>
 		<div
+			v-if="!maximized"
 			class="pfb-preview-resizer"
 			:title="__('Drag to resize')"
 			@pointerdown.prevent="start_resize"
@@ -16,6 +21,12 @@
 				:title="__('Refresh')"
 				@click="refresh"
 				v-html="frappe.utils.icon('refresh-cw', 'xs')"
+			></button>
+			<button
+				class="pfb-preview-btn"
+				:title="maximized ? __('Exit full screen') : __('Full screen')"
+				@click="maximized = !maximized"
+				v-html="frappe.utils.icon(maximized ? 'shrink' : 'expand', 'xs')"
 			></button>
 			<a
 				v-if="url"
@@ -79,6 +90,7 @@ const DOCK_MIN = 320;
 const DOCK_MAX = 1100;
 
 let type = ref("HTML");
+let maximized = ref(false);
 let preview_loaded = ref(false);
 let iframe = ref(null);
 let viewport = ref(null);
@@ -323,10 +335,15 @@ watch(() => layout.value, auto_render, { deep: true });
 // already triggered a render, so re-evaluate once it lands
 watch([docname, type, () => store.value.preview_doc?.docstatus], render, { flush: "post" });
 
+function on_keydown(e) {
+	if (e.key === "Escape" && maximized.value) maximized.value = false;
+}
+
 onMounted(() => {
 	render();
 	resize_observer = new ResizeObserver(fit_preview);
 	if (viewport.value) resize_observer.observe(viewport.value);
+	window.addEventListener("keydown", on_keydown);
 });
 
 onUnmounted(() => {
@@ -334,6 +351,7 @@ onUnmounted(() => {
 	resize_observer?.disconnect();
 	frame_observer?.disconnect();
 	set_pdf_url(null);
+	window.removeEventListener("keydown", on_keydown);
 });
 </script>
 
@@ -348,6 +366,15 @@ onUnmounted(() => {
 	border-left: 1px solid var(--border-color);
 	background: var(--fg-color);
 	overflow: hidden;
+}
+
+/* full screen: same dock, same iframe — only the frame around it grows */
+.pfb-preview-dock--max {
+	position: fixed;
+	inset: 0;
+	z-index: 1040;
+	height: 100vh;
+	border-left: none;
 }
 
 .pfb-preview-resizer {
