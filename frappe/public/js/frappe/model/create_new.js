@@ -378,15 +378,19 @@ $.extend(frappe.model, {
 					return;
 				}
 				// the request's own freeze lifts as soon as this async callback
-				// yields, so hold our own freeze while guards run; confirmation
-				// dialogs stay usable above the freeze backdrop
-				frappe.dom.freeze(opts.freeze_message || "");
+				// yields; a flag (not a visual freeze, which would cover the
+				// guards' own dialogs) blocks re-entry from a second click
+				// while guards are still deciding
+				if (frappe.model._running_mapped_doc_guards) {
+					return;
+				}
+				frappe.model._running_mapped_doc_guards = true;
 				try {
 					if (!(await frappe.model.should_open_mapped_doc(r.message, opts))) {
 						return;
 					}
 				} finally {
-					frappe.dom.unfreeze();
+					frappe.model._running_mapped_doc_guards = false;
 				}
 				frappe.model.sync(r.message);
 				if (opts.run_link_triggers) {
