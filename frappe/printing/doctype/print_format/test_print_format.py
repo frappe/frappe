@@ -515,6 +515,21 @@ class TestPrintFormatPreview(IntegrationTestCase):
 		url = frappe.db.get_value("Print Format", self.FORMAT_NAME, "preview_image")
 		self.assertEqual(frappe.db.get_value("File", previews[0], "file_url"), url)
 
+	def test_autosave(self):
+		from frappe.printing.doctype.print_format.print_format import autosave
+
+		doc = frappe.get_doc("Print Format", self.FORMAT_NAME).as_dict()
+		doc["format_data"] = frappe.as_json(
+			{
+				"sections": [{"label": "Edited", "columns": [{"label": "", "fields": []}]}],
+				"header": {"columns": []},
+				"footer": {"columns": []},
+			}
+		)
+		result = autosave(frappe.as_json(doc))
+		self.assertEqual(result["name"], self.FORMAT_NAME)
+		self.assertIn("Edited", frappe.db.get_value("Print Format", self.FORMAT_NAME, "format_data"))
+
 
 class TestPrintFormatChildTableVisibility(IntegrationTestCase):
 	"""Per-row and per-column conditional visibility for child Table fields."""
