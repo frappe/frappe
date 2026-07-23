@@ -88,7 +88,6 @@
 
 		<!-- ── Blocks ─────────────────────────────────────────── -->
 		<div v-else-if="activeTab === 'blocks'" class="pfb-tab-body">
-			<div class="pfb-group-label">{{ __("Content") }}</div>
 			<draggable
 				:list="draggable_blocks"
 				:group="{ name: 'fields', pull: 'clone', put: false }"
@@ -110,8 +109,10 @@
 				</template>
 			</draggable>
 
-			<div class="pfb-group-label mt-3">{{ __("Page") }}</div>
+			<!-- Page Break drops into the sections container, not a column, so it
+			     stays a separate draggable — just without its own heading -->
 			<draggable
+				class="mt-2"
 				:list="page_break_block"
 				:group="{ name: 'sections', pull: 'clone', put: false }"
 				:sort="false"
