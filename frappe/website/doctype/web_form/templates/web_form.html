@@ -112,6 +112,11 @@
 					{% include "website/doctype/web_form/templates/web_form_skeleton.html" %}
 				</div>
 			</div>
+			{% if web_form_doc.enable_recaptcha and web_form_doc.recaptcha_site_key and is_new %}
+			<div class="web-form-recaptcha mt-4">
+				<div id="web-form-recaptcha-widget"></div>
+			</div>
+			{% endif %}
 			<div class="web-form-footer">
 				<div class="web-form-actions">
 					{{ action_buttons() }}

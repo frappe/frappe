@@ -38,8 +38,39 @@ export default class WebForm extends frappe.ui.FieldGroup {
 		// webform client script
 		frappe.init_client_script && frappe.init_client_script();
 		this.setup_listeners();
+		this.setup_recaptcha();
 		frappe.web_form.events.trigger("after_load");
 		this.after_load && this.after_load();
+	}
+
+	setup_recaptcha() {
+		const el = document.getElementById("web-form-recaptcha-widget");
+		if (!el) return;
+
+		if (window.grecaptcha && typeof grecaptcha.render === "function") {
+			try {
+				grecaptcha.render(el, { sitekey: this.recaptcha_site_key });
+			} catch {
+				// widget already rendered - reset it
+				try {
+					grecaptcha.reset();
+				} catch {
+					// ignore — widget may not be in a renderable state
+				}
+			}
+			return;
+		}
+
+		window.onRecaptchaLoad = () => {
+			grecaptcha.render(el, {
+				sitekey: this.recaptcha_site_key,
+			});
+		};
+
+		const script = document.createElement("script");
+		script.src =
+			"https://www.google.com/recaptcha/api.js?onload=onRecaptchaLoad&render=explicit";
+		document.head.appendChild(script);
 	}
 
 	on(fieldname, handler) {
@@ -406,6 +437,18 @@ export default class WebForm extends frappe.ui.FieldGroup {
 		// TODO: remove this (used for payments app)
 		let for_payment = Boolean(this.accept_payment && !this.doc.paid);
 
+		if (this.enable_recaptcha) {
+			const recaptcha_token = window.grecaptcha?.getResponse();
+			if (!recaptcha_token) {
+				frappe.msgprint({
+					title: __("Verification Required"),
+					message: __("Please complete the reCAPTCHA verification."),
+					indicator: "red",
+				});
+				return false;
+			}
+		}
+
 		Object.assign(this.doc, doc_values);
 		this.doc.doctype = this.doc_type;
 		this.doc.web_form_name = this.name;
@@ -422,6 +465,9 @@ export default class WebForm extends frappe.ui.FieldGroup {
 				web_form: this.name,
 				web_form_request_key: this.web_form_request_key,
 				for_payment,
+				...(this.enable_recaptcha && {
+					recaptcha_token: window.grecaptcha?.getResponse(),
+				}),
 			},
 			btn: $("btn-primary"),
 			freeze: true,
@@ -448,6 +494,7 @@ export default class WebForm extends frappe.ui.FieldGroup {
 			},
 			always: function () {
 				window.saving = false;
+				window.grecaptcha?.reset();
 			},
 		});
 		return false;

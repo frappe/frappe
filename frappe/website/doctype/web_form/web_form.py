@@ -58,6 +58,7 @@ class WebForm(WebsiteGenerator):
 		custom_css: DF.Code | None
 		doc_type: DF.Link
 		dynamic_filters_json: DF.JSON | None
+		enable_recaptcha: DF.Check
 		hide_footer: DF.Check
 		hide_navbar: DF.Check
 		introduction_text: DF.TextEditor | None
@@ -73,6 +74,8 @@ class WebForm(WebsiteGenerator):
 		module: DF.Link | None
 		print_format: DF.Link | None
 		published: DF.Check
+		recaptcha_secret_key: DF.Password | None
+		recaptcha_site_key: DF.Data | None
 		route: DF.Data | None
 		show_attachments: DF.Check
 		show_list: DF.Check
@@ -325,6 +328,33 @@ def get_context(context):
 
 		context.webform_banner_image = context.get("banner_image") or self.banner_image
 		context.pop("banner_image", None)
+
+	def verify_recaptcha(self, token: str | None) -> None:
+		import requests
+
+		if not token:
+			frappe.throw(_("Please complete the reCAPTCHA verification."), title=_("Verification Required"))
+
+		secret_key = self.get_password("recaptcha_secret_key", raise_exception=False)
+		if not secret_key:
+			return
+
+		try:
+			result = requests.post(
+				"https://www.google.com/recaptcha/api/siteverify",
+				data={"secret": secret_key, "response": token},
+				timeout=10,
+			).json()
+			if not result.get("success"):
+				frappe.throw(
+					_("reCAPTCHA verification failed. Please try again."),
+					title=_("Verification Failed"),
+				)
+		except (requests.exceptions.RequestException, ValueError):
+			frappe.throw(
+				_("Could not reach reCAPTCHA verification service. Please try again."),
+				title=_("Verification Failed"),
+			)
 
 	def add_metatags(self, context):
 		description = self.meta_description
@@ -736,7 +766,12 @@ def get_web_form_module(doc):
 
 @frappe.whitelist(methods=["POST", "PUT"], allow_guest=True)
 @rate_limit(key="web_form", limit=10, seconds=60)
-def accept(web_form: str, data: str | dict, web_form_request_key: str | None = None):
+def accept(
+	web_form: str,
+	data: str | dict,
+	web_form_request_key: str | None = None,
+	recaptcha_token: str | None = None,
+):
 	"""Save the web form"""
 	data = frappe._dict(frappe.parse_json(data))
 
@@ -752,6 +787,9 @@ def accept(web_form: str, data: str | dict, web_form_request_key: str | None = N
 		for_update=True,
 		allow_used=bool(data.name) or bool(web_form.allow_multiple),
 	)
+
+	if web_form.enable_recaptcha:
+		web_form.verify_recaptcha(recaptcha_token)
 
 	if web_form.login_required and frappe.session.user == "Guest":
 		frappe.throw(_("You must login to use this form"))

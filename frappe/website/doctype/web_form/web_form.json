@@ -34,6 +34,9 @@
   "print_format",
   "max_attachment_size",
   "show_attachments",
+  "enable_recaptcha",
+  "recaptcha_site_key",
+  "recaptcha_secret_key",
   "column_break_hhec",
   "hide_navbar",
   "hide_footer",
@@ -416,6 +419,29 @@
    "label": "Allowed embedding domains"
   },
   {
+   "default": "0",
+   "description": "Show a reCAPTCHA v2 challenge at the bottom of this form to prevent spam submissions",
+   "fieldname": "enable_recaptcha",
+   "fieldtype": "Check",
+   "label": "Enable reCAPTCHA"
+  },
+  {
+   "depends_on": "eval:doc.enable_recaptcha == 1",
+   "description": "Public site key from your Google reCAPTCHA v2 registration",
+   "fieldname": "recaptcha_site_key",
+   "fieldtype": "Data",
+   "label": "reCAPTCHA Site Key",
+   "mandatory_depends_on": "eval:doc.enable_recaptcha == 1"
+  },
+  {
+   "depends_on": "eval:doc.enable_recaptcha == 1",
+   "description": "Secret key from your Google reCAPTCHA v2 registration. Used server-side only.",
+   "fieldname": "recaptcha_secret_key",
+   "fieldtype": "Password",
+   "label": "reCAPTCHA Secret Key",
+   "mandatory_depends_on": "eval:doc.enable_recaptcha == 1"
+  },
+  {
    "fieldname": "access_control_section",
    "fieldtype": "Section Break",
    "label": "Access Control"
@@ -455,7 +481,7 @@
    "link_fieldname": "web_form"
   }
  ],
- "modified": "2026-06-18 15:58:18.453845",
+ "modified": "2026-07-23 16:42:55.267948",
  "modified_by": "Administrator",
  "module": "Website",
  "name": "Web Form",
