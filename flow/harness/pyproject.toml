@@ -19,6 +19,9 @@ dev = [
     "ruff>=0.9",
 ]
 
+[project.scripts]
+flowd = "flow_server.cli.main:main"
+
 [build-system]
 requires = ["hatchling"]
 build-backend = "hatchling.build"
