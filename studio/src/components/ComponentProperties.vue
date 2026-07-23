@@ -12,10 +12,11 @@
 			<SectionContainer title="Slots" v-show="filteredSections.includes('slots') && !multipleBlocksSelected">
 				<template #actions>
 					<Combobox
+						:key="Object.keys(block?.componentSlots || {}).length"
 						:options="availableSlotOptions"
 						:allowCustomValue="true"
 						placeholder="Search or type a dynamic slot name"
-						@update:modelValue="(slot: string) => addSlot(slot)"
+						@update:modelValue="(slotName: string) => addSlot(slotName)"
 						align="end"
 					>
 						<template #trigger="{ togglePopover }">
@@ -134,7 +135,6 @@ watchEffect(async () => {
 })
 
 type SlotOption = { label: string; value: string }
-// declared slots not yet added; typing a name relies on the combobox's allowCustomValue to add a dynamic one
 const availableSlotOptions = computed<SlotOption[]>(() =>
 	declaredSlots.value
 		.filter((name) => !props.block?.getSlot(name))
@@ -142,6 +142,7 @@ const availableSlotOptions = computed<SlotOption[]>(() =>
 )
 
 const addSlot = (slotName: string) => {
+	if (!slotName) return
 	slotName = slotName?.trim()
 	if (slotName && !props.block?.getSlot(slotName)) {
 		props.block?.addSlot(slotName)
