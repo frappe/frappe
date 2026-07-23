@@ -105,6 +105,16 @@ const dynamicValueOptions = computed(() => {
 				items: store.variableOptions,
 			})
 		}
+
+		// Scoped slot props exposed by the enclosing component (Repeater's dataItem, List's item, ...)
+		const slotScopeOptions = getSlotScopeOptions(props.block?.slotScope)
+		if (slotScopeOptions.length) {
+			groups.push({
+				group: "Slot Scope",
+				items: slotScopeOptions,
+			})
+		}
+
 		// Data Sources group
 		const dataSourceOptions = Object.keys(codeStore.resources).map((resourceName) => {
 			const completion =
@@ -140,15 +150,6 @@ const dynamicValueOptions = computed(() => {
 				items: pageScriptOptions,
 			})
 		}
-	}
-
-	// Scoped slot props exposed by the enclosing component (Repeater's dataItem, List's item, ...)
-	const slotScopeOptions = getSlotScopeOptions(props.block?.slotScope)
-	if (slotScopeOptions.length) {
-		groups.push({
-			group: "Slot Scope",
-			items: slotScopeOptions,
-		})
 	}
 
 	return groups
