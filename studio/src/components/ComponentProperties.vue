@@ -10,51 +10,40 @@
 
 			<!-- slots -->
 			<SectionContainer title="Slots" v-show="filteredSections.includes('slots') && !multipleBlocksSelected">
-				<div class="flex flex-col gap-1">
+				<template #actions>
+					<Combobox
+						:options="availableSlotOptions"
+						@update:modelValue="(slot: string) => addSlot(slot)"
+						align="end"
+					>
+						<template #trigger="{ togglePopover }">
+							<Button @click="togglePopover" size="sm" variant="ghost" icon="lucide-plus" />
+						</template>
+					</Combobox>
+				</template>
+
+				<div v-if="!isObjectEmpty(block?.componentSlots)" class="flex flex-col gap-1">
 					<div
-						v-for="slotName in slotNames"
+						v-for="(slot, slotName) in block?.componentSlots"
 						:key="slotName"
-						class="flex w-full cursor-pointer items-center justify-between gap-2 rounded px-1 py-0.5 hover:bg-surface-gray-2"
+						class="flex w-full cursor-pointer items-center justify-between gap-1 rounded py-0.5"
 						@click="selectSlot(slotName)"
 					>
-						<span
-							class="truncate text-base"
-							:class="isDynamicSlot(slotName) ? 'italic text-ink-gray-5' : 'text-ink-gray-5'"
-							:title="isDynamicSlot(slotName) ? 'Studio cannot verify this slot name' : slotName"
-						>
-							{{ slotName }}
-						</span>
+						<span class="truncate text-sm text-ink-gray-5">{{ slotName }}</span>
 						<div class="flex shrink-0 items-center gap-2">
-							<span class="text-sm text-ink-gray-5">{{ getSlotSummary(slotName) }}</span>
-							<Switch
-								size="sm"
-								:modelValue="block?.getSlot(slotName) !== undefined"
-								@update:modelValue="toggleSlot(slotName)"
-								@click.stop
-							/>
+							<Badge
+								theme="gray"
+								variant="outline"
+								class="text-sm text-ink-gray-5"
+								v-if="getSlotSummary(slotName)"
+							>
+								{{ getSlotSummary(slotName) }}
+							</Badge>
+							<Button variant="ghost" size="sm" icon="lucide-x" @click.stop="removeSlot(slotName)" />
 						</div>
 					</div>
-
-					<TextInput
-						v-if="addingDynamicSlot"
-						ref="dynamicSlotInput"
-						size="sm"
-						variant="ghost"
-						placeholder="Slot name"
-						v-model="dynamicSlotName"
-						@keydown.enter="addDynamicSlot"
-						@keydown.esc="cancelAddingDynamicSlot"
-						@blur="addDynamicSlot"
-					/>
-					<button
-						v-else
-						class="flex items-center gap-1 px-1 py-0.5 text-sm text-ink-gray-4 hover:text-ink-gray-6"
-						@click="startAddingDynamicSlot"
-					>
-						<LucidePlus class="h-3 w-3" />
-						Dynamic slot
-					</button>
 				</div>
+				<EmptyState v-else message="No slots added" />
 			</SectionContainer>
 
 			<!-- Visibility Condition -->
@@ -102,10 +91,8 @@
 </template>
 
 <script setup lang="ts">
-import { ref, computed, nextTick, watchEffect } from "vue"
-import { Switch, TextInput } from "frappe-ui"
+import { ref, computed, watchEffect } from "vue"
 import Block from "@/utils/block"
-
 import { getComponentSlots } from "@/utils/components"
 import PropsEditor from "@/components/PropsEditor.vue"
 import ObjectEditor from "@/components/ObjectEditor.vue"
@@ -134,12 +121,7 @@ const mixedTypeSelection = computed(
 const attributesEditor = ref<InstanceType<typeof ObjectEditor> | null>(null)
 const propsEditor = ref<InstanceType<typeof PropsEditor> | null>(null)
 
-// slots the component declares, plus any dynamic ones already added to this block
 const declaredSlots = ref<string[]>([])
-const slotNames = computed(() => {
-	const added = Object.keys(props.block?.componentSlots || {})
-	return [...declaredSlots.value, ...added.filter((name) => !declaredSlots.value.includes(name))]
-})
 
 watchEffect(async () => {
 	if (!props.block || props.block.isRoot() || props.block.isContainer()) {
@@ -150,25 +132,39 @@ watchEffect(async () => {
 	declaredSlots.value = slots.map((slot) => slot.name)
 })
 
-// a slot named at runtime by the component (e.g. Select's per-option slots) cannot be verified
-const isDynamicSlot = (slotName: string) => !declaredSlots.value.includes(slotName)
+type SlotOption = { label: string; value: string }
+// declared slots not yet added to the block
+const availableSlotOptions = computed<SlotOption[]>(() =>
+	declaredSlots.value
+		.filter((name) => !props.block?.getSlot(name))
+		.map((name) => ({ label: name, value: name })),
+)
+
+// a typed name (for a dynamic/runtime slot) can be added when it isn't already a slot
+const slotQuery = ref("")
+const canAddTypedSlot = computed(() => {
+	const name = slotQuery.value.trim()
+	return Boolean(name) && !props.block?.getSlot(name)
+})
+
+const addSlot = (slotName: string) => {
+	if (slotName && !props.block?.getSlot(slotName)) {
+		props.block?.addSlot(slotName)
+	}
+	slotQuery.value = ""
+}
 
 const getSlotSummary = (slotName: string) => {
 	const count = props.block?.getSlot(slotName)?.slotContent.length
-	if (count === undefined) return ""
 	if (!count) return ""
 	return count === 1 ? "1 block" : `${count} blocks`
 }
 
-// the switch controls whether the slot exists — and so whether it is droppable on the canvas
-const toggleSlot = async (slotName: string) => {
-	const slot = props.block?.getSlot(slotName)
-	if (!slot) return props.block?.addSlot(slotName)
-
-	const count = slot.slotContent.length
+const removeSlot = async (slotName: string) => {
+	const count = props.block?.getSlot(slotName)?.slotContent.length || 0
 	if (
 		count &&
-		!(await confirm(`#${slotName} has ${count === 1 ? "1 block" : `${count} blocks`}. Remove it?`))
+		!(await confirm(`${slotName} slot has ${count === 1 ? "1 block" : `${count} blocks`}. Remove it?`))
 	) {
 		return
 	}
@@ -180,37 +176,13 @@ const selectSlot = (slotName: string) => {
 	if (slot) canvasStore.activeCanvas?.selectSlot(slot)
 }
 
-const addingDynamicSlot = ref(false)
-const dynamicSlotName = ref("")
-const dynamicSlotInput = ref<{ el: HTMLInputElement } | null>(null)
-
-const startAddingDynamicSlot = async () => {
-	addingDynamicSlot.value = true
-	await nextTick()
-	dynamicSlotInput.value?.el?.focus()
-}
-
-const cancelAddingDynamicSlot = () => {
-	dynamicSlotName.value = ""
-	addingDynamicSlot.value = false
-}
-
-const addDynamicSlot = () => {
-	const slotName = dynamicSlotName.value.trim()
-	if (slotName && !props.block?.getSlot(slotName)) {
-		props.block?.addSlot(slotName)
-	}
-	dynamicSlotName.value = ""
-	addingDynamicSlot.value = false
-}
-
 const sections: Record<string, { condition?: any; collapsed?: any; searchKeyWords: string }> = {
 	props: {
 		condition: computed(() => !props.block?.isContainer()),
 		searchKeyWords: "Props, Properties, Inputs",
 	},
 	slots: {
-		condition: computed(() => slotNames.value.length > 0),
+		condition: computed(() => declaredSlots.value.length > 0 || !isObjectEmpty(props.block?.componentSlots)),
 		searchKeyWords: "Slots, Slot, Component Slots, Component Slot, Customize Template",
 	},
 	visibility: {
