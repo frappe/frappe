@@ -85,8 +85,8 @@ def get_mapped_doc(
 		else:
 			target_doc = frappe.new_doc(target_doctype)
 			ret_doc = target_doc
-	elif isinstance(target_doc, str):
-		target_doc = frappe.get_doc(json.loads(target_doc))
+	elif isinstance(target_doc, str | dict):
+		target_doc = frappe.get_doc(frappe.parse_json(target_doc))
 		ret_doc = target_doc
 	else:
 		ret_doc = target_doc
