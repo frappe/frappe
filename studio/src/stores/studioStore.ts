@@ -254,13 +254,14 @@ const useStudioStore = defineStore("store", () => {
 	}
 
 	async function refreshActivePageModified() {
-		if (!activePage.value) return
+		const pageName = activePage.value?.name
+		if (!pageName) return
 		const page = await call("frappe.client.get_value", {
 			doctype: "Studio Page",
-			filters: activePage.value.name,
+			filters: pageName,
 			fieldname: "modified",
 		})
-		syncPageModified(page)
+		if (activePage.value?.name === pageName) syncPageModified(page)
 	}
 
 	function handlePageWriteConflict(error: any) {
