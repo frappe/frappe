@@ -851,6 +851,7 @@ class TestLazyDocument(IntegrationTestCase):
 		import pickle
 
 		# Both an untouched lazy doc and one whose child tables were loaded must round-trip.
+		eager_doc = frappe.get_doc("User", "Guest")
 		for touch_children in (False, True):
 			guest = frappe.get_lazy_doc("User", "Guest")
 			if touch_children:
@@ -861,6 +862,7 @@ class TestLazyDocument(IntegrationTestCase):
 			self.assertEqual(unpickled.doctype, "User")
 			self.assertEqual(unpickled.name, "Guest")
 			self.assertEqual(unpickled.user_type, guest.user_type)
+			self.assertEqual(unpickled.as_dict(), eager_doc.as_dict())
 			# reduced to the non-lazy controller
 			self.assertIsInstance(unpickled, User)
 			self.assertNotIsInstance(unpickled, LazyDocument)
