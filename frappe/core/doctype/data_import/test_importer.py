@@ -152,6 +152,48 @@ class TestImporter(IntegrationTestCase):
 		self.assertEqual(len(preview.data), 4)
 		self.assertEqual(len(preview.columns), 16)
 
+	def test_preview_from_template_uses_server_cache(self):
+		from frappe.core.doctype.data_import.preview_cache import (
+			clear_preview_cache,
+			get_cached_preview,
+			get_preview_cache_key,
+		)
+
+		import_file = get_import_file("sample_import_file")
+		data_import = self.get_importer(doctype_name, import_file)
+		clear_preview_cache(data_import.name)
+
+		first = data_import.get_preview_from_template()
+		cached = get_cached_preview(data_import)
+		self.assertIsNotNone(cached)
+		self.assertEqual(len(cached.data), len(first.data))
+		self.assertEqual(get_preview_cache_key(data_import), get_preview_cache_key(data_import))
+
+		# Second call must hit Redis — no re-parse.
+		second = data_import.get_preview_from_template()
+		self.assertEqual(len(second.data), len(first.data))
+		self.assertEqual(len(second.columns), len(first.columns))
+
+		# Mapping fingerprint change must miss the previous cache entry.
+		key_before = get_preview_cache_key(data_import)
+		data_import.append(
+			"value_mappings",
+			{
+				"column": "Title",
+				"fieldname": "title",
+				"source_value": "mapped-source",
+				"target_value": "mapped-target",
+			},
+		)
+		key_after = get_preview_cache_key(data_import)
+		self.assertNotEqual(key_before, key_after)
+		self.assertIsNone(get_cached_preview(data_import))
+
+		# Recompute under the new fingerprint and cache again.
+		remapped = data_import.get_preview_from_template()
+		self.assertIsNotNone(get_cached_preview(data_import))
+		self.assertEqual(len(remapped.data), len(first.data))
+
 	# ignored on postgres because myisam doesn't exist on pg
 	@unimplemented_for(db_type_is.POSTGRES, db_type_is.SQLITE)
 	def test_data_import_without_mandatory_values(self):

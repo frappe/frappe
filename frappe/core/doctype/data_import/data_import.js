@@ -436,6 +436,10 @@ function is_import_preview_ready_for_source(frm, source_key = get_import_preview
 
 /** Whether refresh / field triggers should auto-fetch the import preview. */
 function should_auto_import_preview(frm, source_key = get_import_preview_source_key(frm)) {
+	// get_preview_from_template needs a real doc name — never call it on unsaved docs.
+	if (frm.is_new?.()) {
+		return false;
+	}
 	if (!frm.has_import_file?.()) {
 		return false;
 	}
@@ -810,8 +814,21 @@ frappe.ui.form.on("Data Import", {
 	 *  `should_auto_import_preview` check below then re-fetches for this document. */
 	reset_stale_document_state(frm) {
 		const docname = frm.doc?.name || null;
-		if (frm._diw_loaded_docname === docname) return;
+		const prev = frm._diw_loaded_docname;
+		if (prev === docname) return;
+
+		// First save renames new-* → real name on the same form — not a doc switch.
+		const is_first_save_rename =
+			prev &&
+			String(prev).startsWith("new-") &&
+			docname &&
+			!String(docname).startsWith("new-");
+
 		frm._diw_loaded_docname = docname;
+		if (is_first_save_rename) {
+			return;
+		}
+
 		frm.events.reset_import_ui_state(frm);
 		frm._wizard_import_progress = null;
 		frm._import_log_filter = null;
@@ -823,6 +840,10 @@ frappe.ui.form.on("Data Import", {
 	after_save(frm) {
 		if (cint(frm.wizard_step) === 2) {
 			frm._data_import_wizard?.refresh_fix_issues?.();
+		}
+		// File may have been attached while the doc was still new — preview was deferred.
+		if (should_auto_import_preview(frm)) {
+			frm.trigger("import_file");
 		}
 	},
 
@@ -930,8 +951,23 @@ frappe.ui.form.on("Data Import", {
 			}
 		};
 
+		// The wizard reads is_tree off the reference DocType meta to choose the tree vs
+		// flat preview. That meta isn't loaded by the doc itself, so load it before
+		// mounting — otherwise a tree import first paints the flat table-only layout and
+		// the Tree/Table tabs pop in a couple seconds later on the next re-render.
+		// with_doctype calls back synchronously once the meta is cached, so there's no
+		// delay after the first load.
+		const mount_wizard_with_meta = () => {
+			const ref_dt = frm.doc?.reference_doctype;
+			if (ref_dt) {
+				frappe.model.with_doctype(ref_dt, mount_wizard);
+			} else {
+				mount_wizard();
+			}
+		};
+
 		if (frappe.ui.DataImportWizard) {
-			mount_wizard();
+			mount_wizard_with_meta();
 		} else {
 			frappe.require("data_import_wizard.bundle.js", () => {
 				if (!frappe.ui.DataImportWizard) {
@@ -941,7 +977,7 @@ frappe.ui.form.on("Data Import", {
 					});
 					return;
 				}
-				mount_wizard();
+				mount_wizard_with_meta();
 			});
 		}
 	},
@@ -1433,6 +1469,16 @@ frappe.ui.form.on("Data Import", {
 
 	reference_doctype(frm) {
 		frm.trigger("toggle_submit_after_import");
+		// Remount Config so the upload dropzone appears once Doc Type is set.
+		if (cint(frm.wizard_step) === 0) {
+			frm._data_import_wizard?.set_step?.(0);
+		}
+	},
+
+	import_type(frm) {
+		if (cint(frm.wizard_step) === 0) {
+			frm._data_import_wizard?.set_step?.(0);
+		}
 	},
 
 	toggle_submit_after_import(frm) {
@@ -1742,6 +1788,13 @@ frappe.ui.form.on("Data Import", {
 	import_file(frm, { force = false } = {}) {
 		if (!frm.has_import_file()) {
 			frm.events.reset_import_ui_state(frm);
+			return Promise.resolve(null);
+		}
+
+		// Setting import_file on a new doc fires this handler before save.
+		// Skip until the doc exists so we never call get_preview_from_template
+		// with a temporary new-* name.
+		if (frm.is_new()) {
 			return Promise.resolve(null);
 		}
 

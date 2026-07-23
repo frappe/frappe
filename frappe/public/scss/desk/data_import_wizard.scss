@@ -366,17 +366,6 @@ body[data-route^="data-import"] {
 	}
 }
 
-.diw-preview-tabs {
-	> .es-tabs__list {
-		padding-left: 0;
-		padding-right: 0;
-	}
-
-	> .es-tabs__panel {
-		padding-top: var(--padding-md);
-	}
-}
-
 .diw-table-preview {
 	.diw-preview-toolbar-meta {
 		margin-left: auto;

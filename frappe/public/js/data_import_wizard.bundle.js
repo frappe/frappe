@@ -135,7 +135,7 @@ function get_import_file_row_meta(frm) {
 		frm.import_preview?.preview_data?.total_number_of_rows ||
 		frm.import_preview?.preview_data?.data?.length;
 	if (!count) return null;
-	return count === 1 ? __("1 row detected") : __("{0} rows detected", [count]);
+	return count === 1 ? __("1 row") : __("{0} rows", [count]);
 }
 
 /** Paint the post-upload file card (replaces default attach row styling). */
@@ -171,7 +171,6 @@ function render_import_file_card(control, frm, $mount) {
 					: frappe.ui.button.html({
 							label: __("Clear"),
 							variant: "outline",
-							icon_left: "x",
 							css_class: "diw-import-file-clear",
 							attrs: { "data-action": "clear_attachment" },
 					  })
@@ -320,17 +319,27 @@ frappe.ui.DataImportWizard = class DataImportWizard {
 	refresh_from_frm() {
 		const frm = this.frm;
 		const current_docname = frm.doc?.name || null;
-		const doc_changed = current_docname !== this._docname;
+		const prev_docname = this._docname;
+		const doc_changed = current_docname !== prev_docname;
 		if (doc_changed) {
-			// Route switches reuse the same frm instance; clear transient wizard state
-			// so the new document computes its own initial step.
+			// First save renames new-* → DI-xxx on the same form session — keep the
+			// user's current step (Config). Only recompute the landing step when
+			// opening a different document.
+			const is_first_save_rename =
+				prev_docname &&
+				String(prev_docname).startsWith("new-") &&
+				current_docname &&
+				!String(current_docname).startsWith("new-");
+
 			this._docname = current_docname;
-			this._step_initialized = false;
-			this._upload_source = null;
-			this._preview_panes = null;
-			// Re-read from the frm: a leftover `true` here would keep Next disabled and
-			// the preview stuck on its loading skeleton for the new document.
-			this._preview_loading = Boolean(frm._import_preview_loading);
+			if (!is_first_save_rename) {
+				this._step_initialized = false;
+				this._upload_source = null;
+				this._preview_panes = null;
+				// Re-read from the frm: a leftover `true` here would keep Next disabled and
+				// the preview stuck on its loading skeleton for the new document.
+				this._preview_loading = Boolean(frm._import_preview_loading);
+			}
 		}
 		let target;
 		if (!this._step_initialized) {
@@ -517,7 +526,20 @@ frappe.ui.DataImportWizard = class DataImportWizard {
 			variant: "outline",
 			onclick: () => frm.events.download_template(frm),
 		});
-		$upload.find(".diw-upload-header-action").empty().append($download_template);
+		if (this.has_import_settings()) {
+			$upload.find(".diw-upload-header-action").empty().append($download_template);
+		}
+
+		if (!this.has_import_settings()) {
+			$upload.append(
+				`<div class="text-sm text-muted py-6">${__(
+					"Select a Document Type to upload a file or Google Sheet."
+				)}</div>`
+			);
+			$step.append($upload);
+			$content.append($step);
+			return;
+		}
 
 		// Tabs only when a source still needs choosing: once a file is attached (or a
 		// Google Sheet URL is saved and unchanged) the source is fixed, so we show just
@@ -565,18 +587,48 @@ frappe.ui.DataImportWizard = class DataImportWizard {
 		$step.append($upload);
 		$content.append($step);
 		frm.layout?.refresh_dependency?.();
+		this.force_show_upload_fields();
 
 		this.enhance_import_file_dropzone(frm.fields_dict.import_file);
 		this.enhance_google_sheets_url(frm.fields_dict.google_sheets_url);
 		this.select_upload_source(initial_source);
 	}
 
+	/** Document Type + Import Type are set (upload UI can show before save). */
+	has_import_settings() {
+		const doc = this.frm.doc;
+		return Boolean(doc?.reference_doctype && doc?.import_type);
+	}
+
+	/**
+	 * Keep Import File / Google Sheets visible on Config once settings are filled,
+	 * including on unsaved (new) docs. Clears dependency-hide from layout refresh.
+	 */
+	force_show_upload_fields() {
+		const frm = this.frm;
+		if (!this.has_import_settings()) return;
+
+		const import_file_df = frm.fields_dict?.import_file?.df;
+		if (import_file_df) {
+			import_file_df.hidden = 0;
+			import_file_df.hidden_due_to_dependency = false;
+			frm.refresh_field("import_file");
+		}
+
+		const sheets_df = frm.fields_dict?.google_sheets_url?.df;
+		if (sheets_df) {
+			sheets_df.hidden = 0;
+			sheets_df.hidden_due_to_dependency = Boolean(frm.doc.import_file);
+			frm.refresh_field("google_sheets_url");
+		}
+	}
+
 	/** Show the source tabs only while the upload source is still undecided. */
 	should_show_upload_tabs() {
 		const frm = this.frm;
+		if (!this.has_import_settings()) return false;
 		if (!frm.fields_dict?.google_sheets_url) return false;
-		// google_sheets_url is hidden (depends_on) once a file is attached or the doc is new.
-		const sheets_selectable = !frm.doc.__islocal && !frm.doc.import_file;
+		const sheets_selectable = !frm.doc.import_file;
 		const has_saved_sheet = Boolean(frm.doc.google_sheets_url) && !frm.is_dirty?.();
 		return sheets_selectable && !has_saved_sheet;
 	}
@@ -597,6 +649,43 @@ frappe.ui.DataImportWizard = class DataImportWizard {
 		}
 	}
 
+	/**
+	 * After FileUploader finishes: attach the file URL, save if the Data Import is
+	 * still new (preview needs a real name), otherwise just persist when dirty and preview.
+	 */
+	bind_import_file_upload_complete(control) {
+		const frm = this.frm;
+		control.on_upload_complete = async function (attachment) {
+			const file_url = attachment?.file_url;
+			if (!file_url) return;
+
+			// Do not call Attach's default handler — it fires an unawaited save and
+			// races preview against a temporary new-* name.
+			await this.parse_validate_and_set_in_model(file_url);
+			frm.attachments?.update_attachment?.(attachment);
+			control._diw_sync_from_doc?.();
+
+			try {
+				if (frm.is_new()) {
+					await frm.save();
+					// after_save triggers preview once the doc has a real name
+					return;
+				}
+				if (frm.is_dirty() && !frappe.ui.form.is_saving) {
+					await frm.save();
+				}
+			} catch (error) {
+				console.error("Auto-save after import file upload failed", error);
+				return;
+			}
+
+			frm.trigger("import_file");
+			frm.trigger("update_primary_action");
+			frm.layout?.refresh_dependency();
+			$(frm.wrapper).triggerHandler("form-refresh", [frm]);
+		};
+	}
+
 	/** Turn the reparented Attach control into a dashed drag-and-drop zone + file card. */
 	enhance_import_file_dropzone(control) {
 		const frm = this.frm;
@@ -605,6 +694,8 @@ frappe.ui.DataImportWizard = class DataImportWizard {
 		// class must be re-added even when the control itself is already enhanced.
 		const $host = control.$wrapper.closest(".diw-frm-field");
 		$host.addClass("diw-file-dropzone-host");
+		// Always rebind upload completion (control survives remounts across code changes).
+		this.bind_import_file_upload_complete(control);
 		if (control._diw_dropzone_enhanced) {
 			control._diw_sync_from_doc?.();
 			return;
@@ -635,7 +726,6 @@ frappe.ui.DataImportWizard = class DataImportWizard {
 		$input_area.append($card_mount);
 
 		const original_set_input = control.set_input.bind(control);
-		const original_on_upload_complete = control.on_upload_complete.bind(control);
 		const is_read_only = () => control.df?.read_only || control.disp_status === "Read";
 
 		const open_uploader = (files) => {
@@ -727,31 +817,6 @@ frappe.ui.DataImportWizard = class DataImportWizard {
 		control.set_input = (value, dataurl) => {
 			original_set_input(value, dataurl);
 			sync_has_file();
-		};
-
-		// Attach an uploaded file, then auto-save (import_file only shows once the doc is
-		// saved, so this never runs on a new doc) so the preview loads without a manual Save.
-		control.on_upload_complete = async function (attachment) {
-			const file_url = attachment?.file_url;
-			await original_on_upload_complete.call(this, attachment);
-			if (!file_url) return;
-			this.value = file_url;
-			original_set_input(file_url);
-			sync_has_file();
-			const finish = () => {
-				frm.trigger("import_file");
-				frm.trigger("update_primary_action");
-				frm.layout?.refresh_dependency();
-				$(frm.wrapper).triggerHandler("form-refresh", [frm]);
-			};
-			if (!frm.is_new() && frm.is_dirty() && !frappe.ui.form.is_saving) {
-				try {
-					await frm.save();
-				} catch (error) {
-					console.error("Auto-save after import file upload failed", error);
-				}
-			}
-			finish();
 		};
 	}
 
@@ -859,8 +924,8 @@ frappe.ui.DataImportWizard = class DataImportWizard {
 			css_class: "diw-preview-tabs",
 			active,
 			tabs: [
-				{ label: __("Tree preview"), icon: "folder-tree", content: $tree_pane },
-				{ label: __("Table preview"), icon: "table-2", content: $table_pane },
+				{ label: __("Tree"), icon: "folder-tree", content: $tree_pane },
+				{ label: __("Table"), icon: "table-2", content: $table_pane },
 			],
 			on_change: (index) => this.select_preview_tab(index === 1 ? "table" : "tree"),
 		});

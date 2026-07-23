@@ -42,9 +42,7 @@ class DataImport(Document):
 		delimiter_options: DF.Data | None
 		google_sheets_url: DF.Data | None
 		import_file: DF.Attach | None
-		import_type: DF.Literal[
-			"", "Insert New Records", "Update Existing Records", "Insert or Update Records"
-		]
+		import_type: DF.Literal["Insert New Records", "Update Existing Records", "Insert or Update Records"]
 		mute_emails: DF.Check
 		payload_count: DF.Int
 		reference_doctype: DF.Link
@@ -156,6 +154,8 @@ class DataImport(Document):
 
 	@frappe.whitelist()
 	def get_preview_from_template(self, import_file: str | None = None, google_sheets_url: str | None = None):
+		from frappe.core.doctype.data_import.preview_cache import get_cached_preview, set_cached_preview
+
 		if import_file:
 			self.import_file = import_file
 
@@ -165,9 +165,14 @@ class DataImport(Document):
 		if not (self.import_file or self.google_sheets_url):
 			return
 
+		cached = get_cached_preview(self)
+		if cached is not None:
+			return cached
+
 		self.set_delimiters_flag()
-		i = self.get_importer()
-		return i.get_data_for_import_preview()
+		preview = self.get_importer().get_data_for_import_preview()
+		set_cached_preview(self, preview)
+		return preview
 
 	def start_import(self):
 		from frappe.utils.scheduler import is_scheduler_inactive
@@ -205,6 +210,9 @@ class DataImport(Document):
 		return Importer(self.reference_doctype, data_import=self, use_sniffer=self.use_csv_sniffer)
 
 	def on_trash(self):
+		from frappe.core.doctype.data_import.preview_cache import clear_preview_cache
+
+		clear_preview_cache(self.name)
 		frappe.db.delete("Data Import Log", {"data_import": self.name})
 
 

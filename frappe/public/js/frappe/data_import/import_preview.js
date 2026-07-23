@@ -262,6 +262,7 @@ frappe.data_import.ImportPreview = class ImportPreview {
 			}
 		}
 
+		let built_new = false;
 		if (!this.datatable) {
 			try {
 				this.datatable = new DataTable(host_el, {
@@ -277,6 +278,7 @@ frappe.data_import.ImportPreview = class ImportPreview {
 					disableReorderColumn: true,
 				});
 				this._datatable_host = host_el;
+				built_new = true;
 			} catch (error) {
 				this.datatable = null;
 				this._datatable_host = null;
@@ -299,6 +301,37 @@ frappe.data_import.ImportPreview = class ImportPreview {
 		this.setup_styles();
 
 		this.setup_wizard_scroll();
+
+		// A datatable freshly built inside the wizard preview can be measured before
+		// its pane has a stable width — for tree doctypes the Table pane is revealed
+		// only when its tab is opened, so the body renders narrower than the header
+		// and columns look misaligned. Nudge frappe-datatable once the pane settles.
+		if (built_new) {
+			this._reconcile_wizard_datatable();
+		}
+	}
+
+	/**
+	 * Re-run the datatable layout once the wizard preview pane width is stable, so a
+	 * table built during a tab reveal ends up with its header and body aligned.
+	 * frappe-datatable reconciles both on refresh; a bare reflow otherwise only
+	 * happens on a later resize/interaction, leaving columns misaligned until then.
+	 */
+	_reconcile_wizard_datatable() {
+		if (!this.$table_preview?.closest(".diw-preview-step").length) return;
+		cancelAnimationFrame(this._wizard_reconcile_raf);
+		this._wizard_reconcile_raf = requestAnimationFrame(() => {
+			this._wizard_reconcile_raf = requestAnimationFrame(() => {
+				this._wizard_reconcile_raf = null;
+				if (!this.datatable || !this._can_render_datatable()) return;
+				try {
+					this.datatable.refresh(this.data, this._get_render_columns());
+					this.setup_wizard_scroll();
+				} catch (error) {
+					// A later interaction will reconcile; avoid throwing mid-frame.
+				}
+			});
+		});
 	}
 
 	/**
