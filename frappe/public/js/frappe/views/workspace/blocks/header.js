@@ -106,13 +106,15 @@ export default class Header extends Block {
 		if (data.text !== undefined) {
 			let text = __(this._data.text) || "";
 			const contains_html_tag = /<[a-z][\s\S]*>/i.test(text);
-
-			// apply translation to header text
-			let div = document.createElement("div");
+			const div = document.createElement("div");
 			div.innerHTML = text;
-			let only_text = div.innerText;
-			only_text = frappe.utils.escape_html(only_text);
-			text = text.replace(only_text, __(only_text));
+			const plain = div.innerText;
+			const translated_plain = __(plain);
+			if (translated_plain !== plain) {
+				const escaped_source = frappe.utils.escape_html(plain);
+				const escaped_translated = frappe.utils.escape_html(translated_plain);
+				text = text.replace(escaped_source, escaped_translated);
+			}
 
 			this._element.innerHTML = contains_html_tag
 				? text
