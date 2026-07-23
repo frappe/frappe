@@ -51,14 +51,15 @@ module.exports = {
 					// from the metafile too, or assets.json records a phantom
 					// entry and cleanup derives delete patterns from it that
 					// match (and remove) the just-written js
-					delete_metafile_output(result.metafile, result.outputFiles[index].path);
+					let css_path = result.outputFiles[index].path;
+					delete_metafile_output(result.metafile, css_path);
 					result.outputFiles.splice(index, 1);
-					if (result.outputFiles[index - 1].path.endsWith(".css.map")) {
-						delete_metafile_output(
-							result.metafile,
-							result.outputFiles[index - 1].path
-						);
-						result.outputFiles.splice(index - 1, 1);
+					let map_index = result.outputFiles.findIndex(
+						(f) => f.path === css_path + ".map"
+					);
+					if (map_index !== -1) {
+						delete_metafile_output(result.metafile, css_path + ".map");
+						result.outputFiles.splice(map_index, 1);
 					}
 				}
 			}
