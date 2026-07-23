@@ -187,6 +187,7 @@ async def _handle_call(
 		return
 
 	if before is not None:
+		# `before` hook must return `HookDecision | None` (sync or async), not a raw dict/string
 		decision = await _maybe_await(before(tc, ctx))
 		if decision is not None and decision.result is not None:
 			_emit_result(session, _result(tc, decision.result, is_error=decision.is_error))
@@ -283,7 +284,7 @@ async def _dispatch(
 			out = await tool(**tc.args, ctx=ctx)  # Tool.__call__ validates/coerces args
 			return _result(tc, out.content, is_error=out.is_error, details=out.details)
 		if session.config.callback_url:
-			resp = await _call_client(session, tc, "execute")
+			resp = await _call_client(session, tc, "execute")  # mode can be "execute" or "confirm"
 			return _result(tc, resp.get("content", ""), is_error=bool(resp.get("is_error", False)))
 		return _result(tc, f"[unknown tool: {tc.name}]", is_error=True)
 	except Exception as e:  # noqa: BLE001 — tool errors go back to the model, not the floor

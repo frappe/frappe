@@ -30,6 +30,21 @@ def test_create_prompt_wait_and_entries(tmp_path):
 	assert types[-1] == "run_ended"
 
 
+def test_run_persists_model_override(tmp_path):
+	c = _client(tmp_path)
+	sid = c.post("/sessions", json={"model": "mock", "cwd": str(tmp_path)}).json()["session_id"]
+	# a run may switch model (+ creds); both mock names stay offline via the mock provider
+	r = c.post(
+		f"/sessions/{sid}/run",
+		params={"wait": "true"},
+		json={"message": "hi", "model": "mock/v2", "api_base": "http://provider"},
+	)
+	assert r.json()["reason"] == "done"
+	cfg = c.get(f"/sessions/{sid}").json()["config"]
+	assert cfg["model"] == "mock/v2"
+	assert cfg["api_base"] == "http://provider"
+
+
 def test_unknown_session_404(tmp_path):
 	assert _client(tmp_path).get("/sessions/nope").status_code == 404
 

@@ -135,11 +135,16 @@ class SessionStore:
 		sid = config.session_id or uuid.uuid4().hex[:16]
 		if not _SID_RE.match(sid):
 			raise ValueError(f"invalid session_id {sid!r} (allowed: letters, digits, - _)")
-		with open(self._meta_path(sid), "w", encoding="utf-8") as f:
-			json.dump(config.model_dump(), f)
 		session = Session(sid, config, SessionLog(self._log_path(sid)), self.event_sink)
+		self.save_meta(session)
 		self._cache[sid] = session
 		return session
+
+	def save_meta(self, session: Session) -> None:
+		"""Persist a session's config so config changes (e.g. a model override on a later
+		turn) survive a restart."""
+		with open(self._meta_path(session.id), "w", encoding="utf-8") as f:
+			json.dump(session.config.model_dump(), f)
 
 	def _validate_cwd(self, cwd: str) -> None:
 		"""Fence a session's cwd to `allowed_roots` (realpath-resolved, so symlink/`..`

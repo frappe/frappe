@@ -25,6 +25,11 @@ from flow_server.session.store import Session, SessionConfig, SessionStore
 
 class RunRequest(BaseModel):
 	message: str
+	# a turn may switch the session's model (and, since a different provider needs its own
+	# auth, its credentials); persisted so the choice sticks for later turns.
+	model: str | None = None
+	api_key: str | None = None
+	api_base: str | None = None
 
 
 class ResumeRequest(BaseModel):
@@ -65,6 +70,7 @@ def create_app(store: SessionStore) -> FastAPI:
 	@app.post("/sessions/{sid}/run")
 	async def run(sid: str, req: RunRequest, wait: bool = False):
 		session = _get(sid)
+		_apply_overrides(store, session, req)
 		if session.is_running:
 			session.steer(req.message)
 			return {"status": "steered"}
@@ -102,6 +108,20 @@ def create_app(store: SessionStore) -> FastAPI:
 		)
 
 	return app
+
+
+def _apply_overrides(store: SessionStore, session: Session, req: RunRequest) -> None:
+	"""Apply a per-run model/credential override to the session and persist it, so switching
+	model on a turn sticks for later turns (like Flow keeps a session's chosen model). Takes
+	effect on the next turn; a model can't be swapped mid-generation."""
+	changed = False
+	for field in ("model", "api_key", "api_base"):
+		value = getattr(req, field)
+		if value is not None and value != getattr(session.config, field):
+			setattr(session.config, field, value)
+			changed = True
+	if changed:
+		store.save_meta(session)
 
 
 async def _launch(session: Session, coro, wait: bool) -> dict:
