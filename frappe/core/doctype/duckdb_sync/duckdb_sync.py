@@ -163,11 +163,14 @@ def sync_data_to_duckdb(docname: str):
 					if len(rows) >= batch_size:
 						batch = pa.RecordBatch.from_pylist(rows, schema=schema)
 						yield batch
-						rows.clear()
+						rows = []
+						del batch
 
 				if rows:
 					batch = pa.RecordBatch.from_pylist(rows, schema=schema)
 					yield batch
+					rows = []
+					del batch
 
 			# streaming RecordBatch on demand
 			# sets backpressure on sql cursor through 'recordbatch_from_list' iterator
@@ -181,6 +184,7 @@ def sync_data_to_duckdb(docname: str):
 					f'insert into "{duck_tb.table_name}" ({field_list}) select {field_list} from arrow_table;'
 				).fetchall()
 				conn.unregister("arrow_table")
+				del arrow_table
 
 		conn.close()
 		# update flag
