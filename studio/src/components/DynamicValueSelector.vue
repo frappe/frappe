@@ -110,7 +110,7 @@ const dynamicValueOptions = computed(() => {
 		const slotScopeOptions = getSlotScopeOptions(props.block?.slotScope)
 		if (slotScopeOptions.length) {
 			groups.push({
-				group: "Slot Scope",
+				group: isInsideRepeater.value ? "Repeater Scope" : "Slot Scope",
 				items: slotScopeOptions,
 			})
 		}
@@ -153,6 +153,16 @@ const dynamicValueOptions = computed(() => {
 	}
 
 	return groups
+})
+
+const isInsideRepeater = computed(() => {
+	if (props.block?.isRepeated()) return true
+	let current = props.block?.getParentBlock() || null
+	while (current) {
+		if (current.isRepeater()) return true
+		current = current.getParentBlock()
+	}
+	return false
 })
 
 function getSlotScopeOptions(slotScope?: SlotScope | null): VariableOption[] {
