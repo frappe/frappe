@@ -285,9 +285,7 @@ body[data-route^="data-import"] {
 }
 
 .diw-file-dropzone-icon,
-.diw-tree-header-icon,
 .diw-tree-filter-icon,
-.diw-tree-node-icon,
 .diw-tree-chevron,
 .diw-tree-warning-icon,
 .diw-tree-legend-icon,
@@ -760,16 +758,51 @@ body[data-route^="data-import"] {
 		}
 	}
 
+	// File-tree guide lines: every nested row indents and connects to its parent
+	// with a vertical guide (aligned under the parent's chevron) plus an elbow;
+	// the last child stops the vertical at its elbow. Top-level roots have no
+	// parent node in the body, so they indent without guide lines.
 	.tree-children {
-		padding-left: 18px;
-		margin-left: 11px;
-		border-left: 1px solid var(--border-color);
+		position: relative;
+		margin-left: 12px;
+		padding-left: 8px;
+	}
+
+	.tree > .tree-children {
+		margin-left: 0;
+		padding-left: 0;
 	}
 
 	.diw-tree-row {
+		position: relative;
 		padding: 5px 8px;
 		border-radius: var(--radius-sm, var(--radius));
 		box-sizing: border-box;
+	}
+
+	.tree-node > .tree-children > .tree-node::before {
+		content: "";
+		position: absolute;
+		left: -4px;
+		top: 0;
+		bottom: 0;
+		width: 1px;
+		background: var(--border-color);
+	}
+
+	.tree-node > .tree-children > .tree-node:last-child::before {
+		bottom: auto;
+		height: 14px;
+	}
+
+	.tree-node > .tree-children > .tree-node > .diw-tree-row::before {
+		content: "";
+		position: absolute;
+		left: -4px;
+		top: 14px;
+		width: 12px;
+		height: 1px;
+		background: var(--border-color);
 	}
 
 	.diw-tree-row-main {
@@ -792,12 +825,6 @@ body[data-route^="data-import"] {
 		color: var(--text-color);
 	}
 
-	.import-tree-row-number {
-		color: var(--text-muted);
-		font-weight: 400;
-		white-space: nowrap;
-	}
-
 	.diw-tree-preview-footer {
 		margin-top: 0;
 		padding: 10px 14px;
@@ -810,7 +837,6 @@ body[data-route^="data-import"] {
 }
 
 .diw-tree-row-meta {
-	min-width: 52px;
 	font-weight: 400;
 }
 
@@ -845,11 +871,7 @@ body[data-route^="data-import"] {
 
 .diw-tree-chevron--spacer {
 	visibility: hidden;
-}
-
-.diw-tree-node-icon--leaf,
-.diw-tree-legend-icon--leaf {
-	color: var(--gray-500, var(--text-muted));
+	pointer-events: none;
 }
 
 // ---- mobile ----

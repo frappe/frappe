@@ -457,6 +457,40 @@ function should_defer_auto_import_preview(frm) {
 	return Boolean(frm._skip_refresh_import_file || frm._wizard_navigation_in_progress);
 }
 
+/**
+ * Save a dirty/new Data Import before wizard navigation.
+ * Returns false on failure so the caller must not advance — frm.save() swallows
+ * rejections, so we also treat still-dirty / still-new as failure.
+ */
+async function save_wizard_form_if_needed(frm) {
+	if (!frm.is_dirty() && !frm.is_new()) {
+		return true;
+	}
+
+	let failed = false;
+	try {
+		await frm.save(
+			null,
+			(r) => {
+				if (r?.exc) {
+					failed = true;
+				}
+			},
+			null,
+			() => {
+				failed = true;
+			}
+		);
+	} catch (_error) {
+		failed = true;
+	}
+
+	if (failed || frm.is_dirty() || frm.is_new()) {
+		return false;
+	}
+	return true;
+}
+
 function table_preview_has_rendered_content(wrapper_el) {
 	if (!wrapper_el) return false;
 	return Boolean(wrapper_el.querySelector(".dt-scrollable, .datatable"));
@@ -1091,24 +1125,21 @@ frappe.ui.form.on("Data Import", {
 			return true;
 		}
 
-		if (frm.is_dirty() || (from_step === 0 && target_step >= 1 && frm.doc.__islocal)) {
-			frappe.show_alert({
-				message: __("Save your changes before moving to the next step."),
-				indicator: "orange",
-			});
-			return false;
-		}
-
 		try {
+			frm._skip_refresh_import_file = true;
+			frm._wizard_navigation_in_progress = true;
+
+			// Save-if-dirty before advancing; stay put when save fails or validation errors.
+			if (!(await save_wizard_form_if_needed(frm))) {
+				return false;
+			}
+
 			if (target_step >= 1) {
 				if (!frm.doc.reference_doctype || !frm.doc.import_type) {
 					frappe.msgprint(__("Please select Document Type and Import Type."));
 					return false;
 				}
 			}
-
-			frm._skip_refresh_import_file = true;
-			frm._wizard_navigation_in_progress = true;
 
 			if (from_step === 0 && target_step >= 1 && !frm.has_import_file?.()) {
 				frappe.msgprint(
@@ -1197,6 +1228,18 @@ frappe.ui.form.on("Data Import", {
 		// frozen, for the whole run. A run stopped by prechecks is corrected by the
 		// `data_import_blocked` handler, which resets this state and returns to Fix Issues.
 		frm.events.begin_import(frm);
+		return true;
+	},
+
+	/** Fix Issues footer Save — persist dirty changes; do not start the import. */
+	async handle_wizard_save(frm) {
+		const ok = await save_wizard_form_if_needed(frm);
+		if (!ok) {
+			return false;
+		}
+		if (frm.has_import_file?.()) {
+			frm.trigger("import_file");
+		}
 		return true;
 	},
 

@@ -1098,9 +1098,11 @@ frappe.ui.DataImportWizard = class DataImportWizard {
 
 		const show_back = step !== 0;
 		const show_next = step === 0 || step === 1 || (step === 2 && is_finished);
-		const next_disabled = loading || is_dirty;
-		const show_apply = step === 2 && can_import && !is_finished;
-		const apply_disabled = is_dirty || loading;
+		const next_disabled = loading;
+		// Fix Issues: Save while dirty; Import only when clean.
+		const show_save = step === 2 && can_import && !is_finished && is_dirty;
+		const show_apply = step === 2 && can_import && !is_finished && !is_dirty;
+		const apply_disabled = loading;
 
 		this.$footer_left.empty();
 		this.$footer_right.empty();
@@ -1121,8 +1123,18 @@ frappe.ui.DataImportWizard = class DataImportWizard {
 					label: __("Next"),
 					icon_right: "arrow-right",
 					disabled: next_disabled,
-					tooltip: is_dirty ? __("Save the form before continuing.") : undefined,
 					onclick: () => this.on_next(),
+				})
+			);
+		}
+
+		if (show_save) {
+			this.$footer_right.append(
+				frappe.ui.button({
+					label: __("Save"),
+					variant: "solid",
+					disabled: loading,
+					onclick: () => this.on_save(),
 				})
 			);
 		}
@@ -1133,7 +1145,6 @@ frappe.ui.DataImportWizard = class DataImportWizard {
 					label: __("Import"),
 					variant: "solid",
 					disabled: apply_disabled,
-					tooltip: is_dirty ? __("Save your changes before importing.") : undefined,
 					onclick: () => this.on_apply(),
 				})
 			);
@@ -1182,6 +1193,16 @@ frappe.ui.DataImportWizard = class DataImportWizard {
 
 	on_back() {
 		this.on_go(this.current_step - 1);
+	}
+
+	/** Fix Issues footer: persist dirty mappings/skips, then swap Save → Import. */
+	async on_save() {
+		const frm = this.frm;
+		const ok = await frm.events.handle_wizard_save?.(frm);
+		if (ok !== false) {
+			frm.trigger("update_primary_action");
+			this.render_footer();
+		}
 	}
 
 	async on_apply() {
