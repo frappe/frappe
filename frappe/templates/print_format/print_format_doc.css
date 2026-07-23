@@ -241,6 +241,12 @@
 	border-bottom: 1px solid var(--gray-300) !important;
 }
 
+/* row lines separate rows — the last row ends open (bordered tables close
+   through the .table-foot cap instead) */
+.print-format-doc .child-table--lined:not(.child-table--bordered) .table tbody tr:last-child td {
+	border-bottom: none !important;
+}
+
 .print-format-doc .child-table--striped .table .even td {
 	background-color: var(--gray-50) !important;
 }
