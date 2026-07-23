@@ -22,6 +22,18 @@ export function write_json(key, value) {
 // Blocks the builder invents — they never map to a docfield on the document type
 export const BLOCK_FIELDTYPES = new Set(["Spacer", "Divider", "Repeater"]);
 
+// Mirrors print_format_generator.is_qr_barcode_options: a Barcode docfield whose
+// options ask for a qr code — "qrcode"/"qr" or JSON like {"format": "qrcode"}
+export function is_qr_barcode_options(options) {
+	options = (options || "").trim();
+	if (["qr", "qrcode"].includes(options.toLowerCase())) return true;
+	try {
+		return ["qr", "qrcode"].includes((JSON.parse(options).format || "").toLowerCase());
+	} catch {
+		return false;
+	}
+}
+
 export function freshen_field(f) {
 	delete f.remove;
 	if (f.custom && f.fieldname) f.fieldname += "_" + frappe.utils.get_random(8);

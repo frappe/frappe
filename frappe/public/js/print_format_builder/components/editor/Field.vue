@@ -43,7 +43,7 @@
 				/>
 				<span v-else class="text-muted">{{ __("No image — set one in the panel") }}</span>
 			</template>
-			<FieldPreviewBarcode v-else-if="df.fieldtype == 'Barcode' && df.custom" :df="df" />
+			<FieldPreviewBarcode v-else-if="df.fieldtype == 'Barcode'" :df="df" />
 			<div
 				v-else-if="df.fieldtype == 'Field Template'"
 				v-html="rendered_template || ''"

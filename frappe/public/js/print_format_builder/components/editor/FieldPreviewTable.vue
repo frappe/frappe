@@ -33,11 +33,6 @@
 				</th>
 			</tr>
 		</thead>
-		<tfoot>
-			<tr>
-				<td class="table-foot" :colspan="df.table_columns?.length || 1"></td>
-			</tr>
-		</tfoot>
 		<tbody>
 			<tr
 				v-for="(row, i) in (preview_doc[df.fieldname] || []).slice(0, 4)"
@@ -115,6 +110,13 @@
 				</td>
 			</tr>
 		</tbody>
+		<!-- after tbody (HTML5 order): user styles that remap tfoot's display can
+		     no longer float the cap up under the header -->
+		<tfoot>
+			<tr>
+				<td class="table-foot" :colspan="df.table_columns?.length || 1"></td>
+			</tr>
+		</tfoot>
 	</table>
 </template>
 

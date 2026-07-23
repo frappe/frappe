@@ -50,6 +50,20 @@ def download_pdf(
 	frappe.local.response.type = "pdf"
 
 
+def is_qr_barcode_options(options: str | None) -> bool:
+	"""Whether a Barcode docfield's options ask for a QR code — either the bare
+	string "qrcode"/"qr" or JsBarcode-style JSON like {"format": "qrcode"}."""
+	import json
+
+	options = (options or "").strip()
+	if options.lower() in ("qr", "qrcode"):
+		return True
+	try:
+		return json.loads(options).get("format", "").lower() in ("qr", "qrcode")
+	except Exception:
+		return False
+
+
 @frappe.whitelist()
 def get_qr_code(value: str) -> str:
 	"""Return a QR code for `value` as an SVG data URI (used by Barcode print elements)."""
@@ -668,7 +682,17 @@ class PrintFormatGenerator:
 
 	def prepare_barcode(self, df):
 		"""Resolve JsBarcode options / QR data URI for Barcode layout elements."""
-		if df.get("fieldtype") != "Barcode" or not df.get("custom"):
+		if df.get("fieldtype") != "Barcode":
+			return
+		if not df.get("custom"):
+			# a dragged Barcode docfield prints whatever it stores; a docfield
+			# whose options ask for a qr code prints its value as one — the
+			# field decides the format, the builder offers no override
+			meta_df = frappe.get_meta(self.doc.doctype).get_field(df.get("fieldname"))
+			value = self.doc.get(df.get("fieldname"))
+			if value and meta_df and is_qr_barcode_options(meta_df.options):
+				df["barcode_format"] = "QR"
+				df["_qr_data_uri"] = get_qr_code(str(value))
 			return
 		if df.get("barcode_format") == "QR":
 			value = (

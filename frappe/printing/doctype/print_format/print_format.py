@@ -153,6 +153,11 @@ class PrintFormat(Document):
 			return
 		if self.print_format_for != "DocType" or not self.doc_type:
 			return
+		# autosaves land every few seconds while the builder is open — refresh the
+		# (slow, Chromium) preview at most once per cooldown window for those;
+		# manual saves always refresh
+		if self.flags.pfb_autosave and frappe.cache.get_value(f"pf_preview_cooldown::{self.name}"):
+			return
 
 		frappe.enqueue(
 			generate_preview,
@@ -263,6 +268,16 @@ def printable_sample(doctype: str) -> str | None:
 	return sample[0] if sample else None
 
 
+@frappe.whitelist()
+def autosave(doc: str | dict):
+	"""Save from the builder's autosave: like frappe.client.save, but the preview
+	image refresh is throttled by a cooldown instead of running on every save."""
+	doc = frappe.get_doc(frappe.parse_json(doc))
+	doc.flags.pfb_autosave = True
+	doc.save()
+	return doc.as_dict()
+
+
 def generate_preview(name: str) -> str | None:
 	"""Render this format against a sample document, screenshot the HTML via the
 	bundled Chromium, and store the result in the format's `preview_image` field.
@@ -290,6 +305,7 @@ def generate_preview(name: str) -> str | None:
 		return None
 
 	fname = f"pf-preview-{frappe.generate_hash(length=10)}.webp"
+	frappe.cache.set_value(f"pf_preview_cooldown::{name}", 1, expires_in_sec=5 * 60)
 	file = save_file(fname, image, "Print Format", name, is_private=1, df="preview_image")
 	# Don't bump `modified` — generating a preview isn't a content edit. Otherwise the
 	# background refresh would stale-date an open form and break its next save with a

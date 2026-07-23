@@ -150,6 +150,57 @@ class TestPrintFormatGenerator(IntegrationTestCase):
 		html = get_html("ToDo", todo.name, pf.name)
 		self.assertIn(todo.description, html)
 
+	def test_qr_barcode_options(self):
+		from frappe.utils.print_format_generator import is_qr_barcode_options
+
+		self.assertTrue(is_qr_barcode_options("qrcode"))
+		self.assertTrue(is_qr_barcode_options("QR"))
+		self.assertTrue(is_qr_barcode_options('{"format": "qrcode"}'))
+		self.assertFalse(is_qr_barcode_options('{"format": "EAN"}'))
+		self.assertFalse(is_qr_barcode_options(None))
+		self.assertFalse(is_qr_barcode_options("random text"))
+
+	def test_barcode_docfield_with_qr_options_renders_qr(self):
+		"""A dragged Barcode docfield whose options ask for a qr code prints one —
+		decided by the field, without a barcode_format on the layout element."""
+		from frappe.utils.print_format_generator import get_html
+
+		fieldname = f"_test_qr_{frappe.generate_hash(length=6)}"
+		custom_field = frappe.get_doc(
+			{
+				"doctype": "Custom Field",
+				"dt": "ToDo",
+				"label": "QR",
+				"fieldname": fieldname,
+				"fieldtype": "Barcode",
+				"options": "qrcode",
+			}
+		).insert(ignore_permissions=True)
+		self.addCleanup(custom_field.delete, ignore_permissions=True)
+
+		layout = {
+			"sections": [
+				{
+					"label": "",
+					"columns": [
+						{
+							"label": "",
+							"fields": [{"fieldtype": "Barcode", "fieldname": fieldname, "label": "QR"}],
+						}
+					],
+				}
+			],
+			"header": {"columns": [{"label": "", "fields": []}]},
+			"footer": {"columns": [{"label": "", "fields": []}]},
+		}
+		pf = self._make_print_format(format_data=json.dumps(layout))
+		todo = self._make_todo()
+		frappe.db.set_value("ToDo", todo.name, fieldname, "HELLO-QR")
+
+		html = get_html("ToDo", todo.name, pf.name)
+		self.assertIn("data:image/svg+xml;base64", html)
+		self.assertNotIn('data-barcode-value="HELLO-QR"', html)
+
 	def test_get_html_applies_margin(self):
 		"""Margin values set on the print format should appear in the rendered CSS."""
 		from frappe.utils.print_format_generator import get_html

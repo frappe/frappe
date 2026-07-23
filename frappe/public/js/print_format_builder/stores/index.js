@@ -171,6 +171,7 @@ export function getStore(print_format_name) {
 			})
 			.then(() => fetch())
 			.then(() => {
+				autosave_stopped = false;
 				frappe.show_alert({ message: __("Saved"), indicator: "green" });
 			})
 			.always(() => {
@@ -180,6 +181,43 @@ export function getStore(print_format_name) {
 	function reset_changes() {
 		fetch();
 	}
+	// Silent, debounced background save: no freeze, no toast, no refetch — the
+	// canvas keeps its selection and undo history. Stops after a failure (e.g.
+	// a timestamp conflict) so the error dialog doesn't loop; a successful
+	// manual save re-arms it.
+	let autosave_stopped = false;
+	function autosave_changes() {
+		if (!dirty.value || autosave_stopped) return;
+		if (document.body.classList.contains("pfb-dragging")) {
+			autosave();
+			return;
+		}
+		dirty.value = false;
+		frappe
+			.call({
+				method: "frappe.printing.doctype.print_format.print_format.autosave",
+				args: { doc: get_preview_format_doc() },
+			})
+			.then((r) => {
+				// only the stamp — the user may have kept editing during the request
+				const was_dirty = dirty.value;
+				print_format.value.modified = r.message.modified;
+				if (!was_dirty) nextTick(() => (dirty.value = false));
+				if (letterhead.value && letterhead.value._dirty) {
+					return frappe
+						.call("frappe.client.save", { doc: letterhead.value })
+						.then((res) => {
+							letterhead.value.modified = res.message.modified;
+							letterhead.value._dirty = false;
+						});
+				}
+			})
+			.catch(() => {
+				autosave_stopped = true;
+				dirty.value = true;
+			});
+	}
+	const autosave = frappe.utils.debounce(autosave_changes, 3000);
 	function get_preview_format_doc() {
 		const snapshot = clone_plain(layout.value);
 		serialize_layout(snapshot);
@@ -238,6 +276,16 @@ export function getStore(print_format_name) {
 		},
 		{ deep: true }
 	);
+	// letterhead edits flag themselves with _dirty instead of touching `dirty` —
+	// route them into the same autosave pipeline
+	watch(
+		letterhead,
+		() => {
+			if (letterhead.value?._dirty) dirty.value = true;
+		},
+		{ deep: true }
+	);
+	watch(dirty, (v) => v && autosave());
 
 	const { style_presets, save_style_preset, apply_style_preset, delete_style_preset } =
 		usePresets(print_format);
