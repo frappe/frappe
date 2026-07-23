@@ -37,7 +37,8 @@ def map_docs(method, source_names, target_doc, args=None):
 
 	e.g. args: "{ 'supplier': 'XYZ' }"
 	"""
-	method = frappe.get_attr(frappe.override_whitelisted_method(method))
+	method_str = frappe.override_whitelisted_method(method)
+	method = frappe.get_attr(method_str)
 
 	frappe.is_whitelisted(method)
 
