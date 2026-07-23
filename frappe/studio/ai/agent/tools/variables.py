@@ -44,7 +44,7 @@ def run_add_variable(ctx, args: dict) -> str:
 	)
 	if error := save_page(page):
 		return f"FAILED: {error}"
-	_reload(ctx)
+	_reload(ctx, page)
 	return f"Added {var_type} variable '{name}'. Bind blocks to it with {{{{ {name} }}}}."
 
 
@@ -84,7 +84,7 @@ def run_update_variable(ctx, args: dict) -> str:
 
 	if error := save_page(page):
 		return f"FAILED: {error}"
-	_reload(ctx)
+	_reload(ctx, page)
 	return f"Updated variable '{name}' ({', '.join(changed)})."
 
 
@@ -100,7 +100,7 @@ def run_delete_variable(ctx, args: dict) -> str:
 	page.variables.remove(row)
 	if error := save_page(page):
 		return f"FAILED: {error}"
-	_reload(ctx)
+	_reload(ctx, page)
 
 	warning = dangling_binding_warning(ctx, name)
 	return f"Deleted variable '{name}'." + (f" {warning}" if warning else "")
@@ -141,8 +141,9 @@ def _encode_initial_value(variable_type: str, value) -> str:
 	return frappe.as_json(value if isinstance(value, str) else str(value))
 
 
-def _reload(ctx) -> None:
-	ctx.emit("reload", variables=True)
+def _reload(ctx, page) -> None:
+	# Ship the saved page's modified so the editor re-syncs its optimistic-lock timestamp without an extra fetch
+	ctx.emit("reload", variables=True, modified=page.modified)
 
 
 # --- tool definitions -----------------------------------------------------

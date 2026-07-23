@@ -23,7 +23,12 @@ export interface AIChatContext {
 	savePage: () => void
 	reloadSession: () => void
 	scrollToBottom: () => void
-	reloadPageData: (opts: { resources?: boolean; variables?: boolean; script?: boolean }) => void
+	reloadPageData: (opts: {
+		resources?: boolean
+		variables?: boolean
+		script?: boolean
+		modified?: string
+	}) => void
 }
 
 /**
@@ -165,6 +170,7 @@ export class AIChatController {
 			resources: !!data.resources,
 			variables: !!data.variables,
 			script: !!data.script,
+			modified: data.modified,
 		})
 	}
 
