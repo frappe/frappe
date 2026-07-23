@@ -31,9 +31,6 @@
 			</tr>
 		</thead>
 		{%- endif -%}
-		<tfoot>
-			<tr class="table-row"><td class="table-foot" colspan="{{ columns|length }}"></td></tr>
-		</tfoot>
 		<tbody>
 			{% for row in _rows %}
 			<tr class="table-row {{ loop.cycle('odd', 'even') }}" data-idx="{{ row.idx }}"{% if row.get("page_break") and not loop.first %} style="page-break-before: always"{% endif %}>
@@ -87,6 +84,11 @@
 			</tr>
 			{% endfor %}
 		</tbody>
+		{# after tbody (HTML5 order): user styles that remap tfoot's display can
+		   no longer float the cap up under the header #}
+		<tfoot>
+			<tr class="table-row"><td class="table-foot" colspan="{{ columns|length }}"></td></tr>
+		</tfoot>
 	</table>
 </div>
 {% endif %}
