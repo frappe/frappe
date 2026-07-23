@@ -719,6 +719,33 @@ class TestPermissions(IntegrationTestCase):
 		doc = user.append("defaults")
 		self.assertRaises(frappe.PermissionError, doc.check_permission)
 
+	def test_child_permission_error_reports_parent_doctype(self):
+		with self.set_user("Administrator"):
+			child_doctype = new_doctype(istable=1).insert().name
+			parent_doctype = (
+				new_doctype(
+					fields=[
+						{
+							"label": "Rows",
+							"fieldname": "rows",
+							"fieldtype": "Table",
+							"options": child_doctype,
+						}
+					]
+				)
+				.insert()
+				.name
+			)
+
+		row = frappe.new_doc(parent_doctype).append("rows", {})
+
+		with self.set_user("test@example.com"):
+			frappe.local.message_log = []
+			self.assertRaises(frappe.PermissionError, row.check_permission, "delete")
+
+			self.assertIn(parent_doctype, frappe.local.message_log[-1]["message"])
+			self.assertIn(parent_doctype, frappe.flags.error_message)
+
 	def test_select_user(self):
 		"""If test3@example.com is restricted by a User Permission to see only
 		users linked to a certain doctype (in this case: Gender "Female"), he
