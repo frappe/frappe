@@ -698,8 +698,13 @@ class Block implements BlockOptions {
 		return this.componentName === "Repeater"
 	}
 
-	isRepeated() {
-		return Boolean(this.getParentBlock()?.isRepeater())
+	isRepeated(): boolean {
+		let current = this.getParentBlock()
+		while (current) {
+			if (current.isRepeater()) return true
+			current = current.getParentBlock()
+		}
+		return false
 	}
 
 	// scoped slots
@@ -727,12 +732,13 @@ class Block implements BlockOptions {
 	}
 
 	getSlotScopeCompletions(): CompletionSource[] {
+		const detail = this.isRepeated() ? "Repeater Scope" : "Slot Scope"
 		return Object.entries(this.slotScope || {}).map(([name, value]) => ({
 			item: value,
 			completion: {
 				label: name,
 				type: "data",
-				detail: "Slot Scope",
+				detail,
 			},
 		}))
 	}
