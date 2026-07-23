@@ -50,7 +50,6 @@ frappe.breadcrumbs = {
 
 	set_tree_breadcrumb(breadcrumbs) {
 		const doctype = breadcrumbs.doctype;
-
 		const tree_title = frappe.treeview_settings?.[doctype]?.title || doctype;
 
 		this.append_breadcrumb_element(
@@ -88,20 +87,15 @@ frappe.breadcrumbs = {
 			// workspace
 			this.set_workspace_breadcrumb(breadcrumbs);
 
+			// form / print
 			let view = frappe.get_route()[0];
 			view = view ? view.toLowerCase() : null;
-			// Use the active sidebar hierarchy for Desk views that are
-			// directly represented by sidebar navigation items.
-			if (breadcrumbs.doctype && ["tree", "list"].includes(view)) {
-    			this.set_sidebar_breadcrumbs(breadcrumbs);
-			}
-			// form / print
 			if (breadcrumbs.doctype && ["print", "form"].includes(view)) {
 				this.set_list_breadcrumb(breadcrumbs);
 				this.set_form_breadcrumb(breadcrumbs, view);
-			}else if (breadcrumbs.doctype && view === "tree"){
+			} else if (breadcrumbs.doctype && view === "tree") {
 				this.set_tree_breadcrumb(breadcrumbs);
-			}else if (breadcrumbs.doctype && view === "list") {
+			} else if (breadcrumbs.doctype && view === "list") {
 				this.set_list_breadcrumb(breadcrumbs);
 				if (breadcrumbs.layout_name) {
 					const layout_info = (frappe.boot.doctype_layouts || []).find(
@@ -147,28 +141,6 @@ frappe.breadcrumbs = {
 
 	get last_route() {
 		return frappe.route_history.slice(-2)[0];
-	},
-
-	set_sidebar_breadcrumbs(breadcrumbs) {
-		if (!frappe.app?.sidebar) {
-			return;
-		}
-
-		const sidebar = frappe.app.sidebar;
-
-		// Current workspace/sidebar, e.g. "Accounts Setup"
-		const sidebar_title = sidebar.sidebar_title;
-
-		if (sidebar_title) {
-			this.append_breadcrumb_element("", __(sidebar_title));
-		}
-
-		// Current section, e.g. "Setup"
-		const section_title = sidebar.active_item?.closest(".section-item").attr("data-id");
-
-		if (section_title && section_title !== sidebar_title) {
-			this.append_breadcrumb_element("", __(section_title));
-		}
 	},
 
 	set_workspace_breadcrumb(breadcrumbs) {
