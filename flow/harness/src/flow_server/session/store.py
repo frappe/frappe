@@ -11,12 +11,18 @@ from __future__ import annotations
 import asyncio
 import json
 import os
+import re
 import uuid
 
 from pydantic import BaseModel, Field
 
+from flow_server import config
 from flow_server.events import _Event, parse_event
 from flow_server.session.log import SessionLog
+
+# client-provided session ids land in on-disk filenames — keep them to a safe slug so a
+# value like "../../etc/x" can't escape the sessions dir (arbitrary file write)
+_SID_RE = re.compile(r"^[A-Za-z0-9_-]{1,64}$")
 
 
 class SessionConfig(BaseModel):
@@ -39,6 +45,7 @@ class SessionConfig(BaseModel):
 		cwd: Current working directory.
 		max_turns: Maximum allowed turns.
 		max_output_tokens: Simple spend cap on output tokens.
+		stream: Consume the model as a token stream (vs a single response).
 	"""
 
 	session_id: str | None = None
@@ -56,6 +63,7 @@ class SessionConfig(BaseModel):
 	cwd: str = "."
 	max_turns: int = 30
 	max_output_tokens: int = 200_000
+	stream: bool = True
 
 	def redacted(self) -> dict:
 		data = self.model_dump()
@@ -108,11 +116,12 @@ class Session:
 
 
 class SessionStore:
-	def __init__(self, data_dir: str, event_sink=None):
+	def __init__(self, data_dir: str, event_sink=None, allowed_roots: list[str] | None = None):
 		self.data_dir = data_dir
 		self.sessions_dir = os.path.join(data_dir, "sessions")
 		os.makedirs(self.sessions_dir, exist_ok=True)
 		self.event_sink = event_sink
+		self.allowed_roots = allowed_roots if allowed_roots is not None else config.ALLOWED_ROOTS
 		self._cache: dict[str, Session] = {}
 
 	def _log_path(self, sid: str) -> str:
@@ -122,12 +131,27 @@ class SessionStore:
 		return os.path.join(self.sessions_dir, f"{sid}.meta.json")
 
 	def create(self, config: SessionConfig) -> Session:
+		self._validate_cwd(config.cwd)
 		sid = config.session_id or uuid.uuid4().hex[:16]
+		if not _SID_RE.match(sid):
+			raise ValueError(f"invalid session_id {sid!r} (allowed: letters, digits, - _)")
 		with open(self._meta_path(sid), "w", encoding="utf-8") as f:
 			json.dump(config.model_dump(), f)
 		session = Session(sid, config, SessionLog(self._log_path(sid)), self.event_sink)
 		self._cache[sid] = session
 		return session
+
+	def _validate_cwd(self, cwd: str) -> None:
+		"""Fence a session's cwd to `allowed_roots` (realpath-resolved, so symlink/`..`
+		escapes can't slip past). Empty roots = unrestricted (dev default)."""
+		if not self.allowed_roots:
+			return
+		target = os.path.realpath(cwd)
+		for root in self.allowed_roots:
+			root_real = os.path.realpath(root)
+			if target == root_real or target.startswith(root_real + os.sep):
+				return
+		raise ValueError(f"cwd {cwd!r} is not under an allowed root")
 
 	def get(self, sid: str) -> Session:
 		if sid in self._cache:

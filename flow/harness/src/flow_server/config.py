@@ -12,6 +12,10 @@ PORT = int(os.environ.get("FLOW_SERVER_PORT", "8787"))
 # external relay (e.g. Flow's bridge -> socketio) can stream to browsers. The channel
 # prefix is a wire contract shared with the Flow bridge, so it stays `harness:`.
 REDIS_URL = os.environ.get("FLOW_SERVER_REDIS_URL") or None
+# Filesystem fence for a session's `cwd`: an os.pathsep-separated list of roots a session
+# may operate under. Empty (the default) = unrestricted (single-user dev). Enforced in
+# SessionStore.create so every session-creation path (HTTP, embedded, Flow) is fenced.
+ALLOWED_ROOTS = [p for p in os.environ.get("FLOW_SERVER_ALLOWED_ROOTS", "").split(os.pathsep) if p]
 # OAuth/subscription tokens (e.g. Codex). User-global, not per-project, so it lives in the
 # home dir rather than under DATA_DIR (which defaults to cwd). Written 0600.
 CREDENTIALS_PATH = os.environ.get(
