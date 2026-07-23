@@ -336,7 +336,10 @@ watch(() => layout.value, auto_render, { deep: true });
 watch([docname, type, () => store.value.preview_doc?.docstatus], render, { flush: "post" });
 
 function on_keydown(e) {
-	if (e.key === "Escape" && maximized.value) maximized.value = false;
+	if (e.key !== "Escape" || !maximized.value) return;
+	// an open dialog owns Escape — one keypress dismisses one layer
+	if (window.cur_dialog?.display) return;
+	maximized.value = false;
 }
 
 onMounted(() => {
