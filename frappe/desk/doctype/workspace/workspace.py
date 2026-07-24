@@ -9,9 +9,6 @@ from frappe import _
 from frappe.boot import get_sidebar_items
 from frappe.desk.desk_views import DeskViews
 from frappe.desk.desktop import get_workspaces, save_new_widget
-from frappe.desk.doctype.workspace_sidebar.workspace_sidebar import add_to_my_workspace
-from frappe.desk.navigation import is_workspace_navigation
-from frappe.desk.sidebar_v16 import get_sidebar_items as get_sidebar_items_v16
 from frappe.desk.utils import validate_route_conflict
 from frappe.model.document import Document
 from frappe.model.rename_doc import rename_doc
@@ -332,7 +329,7 @@ def workspace_payload(**extra):
 	workspaces = get_workspaces()
 	return {
 		"workspace_pages": workspaces,
-		"sidebar_items": sidebar_payload(),
+		"sidebar_items": get_sidebar_items(),
 		"app_data": get_app_data([d.name for d in workspaces.get("pages")]),
 		**extra,
 	}
@@ -362,19 +359,6 @@ def get_link_type(key):
 def get_report_type(report):
 	report_type = frappe.get_value("Report", report, "report_type")
 	return report_type in ["Query Report", "Script Report", "Custom Report"]
-
-
-def sidebar_payload():
-	"""Sidebar items in the shape the site's navigation expects.
-
-	Every endpoint below returns a refreshed sidebar that the client uses to rehydrate
-	`frappe.boot.workspace_sidebar_item`. The two navigation systems read different
-	sources, so the endpoints must not hardcode either resolver.
-	"""
-	if is_workspace_navigation():
-		return get_sidebar_items()
-
-	return get_sidebar_items_v16([page.name for page in get_workspaces()["pages"]])
 
 
 @frappe.whitelist()
@@ -433,11 +417,6 @@ def new_page(new_page: dict):
 			},
 		)
 		doc.save(ignore_permissions=True)
-
-	# A private workspace also gets listed in its owner's "My Workspaces" sidebar, which is
-	# how private workspaces surface under Desktop Icon and Workspace Sidebar navigation.
-	if not doc.public:
-		add_to_my_workspace(doc)
 
 	return workspace_payload()
 

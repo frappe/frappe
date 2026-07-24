@@ -1402,10 +1402,9 @@ Object.assign(frappe.utils, {
 		icon_html.find("svg").css("color", stroke_color);
 		return icon_html.get(0).outerHTML;
 	},
-	// --- Desktop Icon and Workspace Sidebar navigation -------------------------------
-	// Used by the desktop icon grid and the v16 sidebar header. Only reachable when
-	// `System Settings.navigation` is `Desktop Icon and Workspace Sidebar`; they read
-	// `frappe.boot.desktop_icons`, which only that navigation puts in the boot payload.
+	// --- Desktop Icon grid -----------------------------------------------------------
+	// Used by the Desktop Icon grid (Desktop Settings -> Desktop Page = Desktop Icons).
+	// They read `frappe.boot.desktop_icons`, which only that mode puts in the boot payload.
 	get_route_for_icon(desktop_icon) {
 		let route;
 		if (!desktop_icon) return;
@@ -1423,7 +1422,9 @@ Object.assign(frappe.utils, {
 							name: first_link.link_to,
 						};
 
-						if (first_link.report || !frappe.app.sidebar.editor.edit_mode) {
+						// `?.` guards the always-on new sidebar, which has no `editor` (that was the
+						// v16 sidebar's in-place editor). Undefined edit_mode reads as "not editing".
+						if (first_link.report || !frappe.app.sidebar.editor?.edit_mode) {
 							args.is_query_report =
 								first_link.report.report_type === "Query Report" ||
 								first_link.report.report_type == "Script Report";

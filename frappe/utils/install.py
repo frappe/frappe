@@ -187,33 +187,27 @@ def add_standard_navbar_items():
 	navbar_settings.save()
 
 
-def auto_generate_icons_and_sidebar(app_name=None):
-	"""Seed a newly installed app's Desktop Icons and Workspace Sidebars.
+def create_desktop_icons_for_app(app_name=None):
+	"""Seed Desktop Icons after an app is installed.
 
-	`create_desktop_icons` no-ops under workspace navigation (it guards itself); the
-	sidebar half stays unconditional so a site that switches navigation later already has
-	its sidebars rather than an empty desk.
+	No-ops unless Desktop Settings -> Desktop Page is `Desktop Icons` (create_desktop_icons
+	guards itself). Regenerates all icons, which is idempotent -- it only creates the ones
+	that don't already exist.
 	"""
 	from frappe.desk.doctype.desktop_icon.desktop_icon import create_desktop_icons
-	from frappe.desk.doctype.workspace_sidebar.workspace_sidebar import (
-		create_workspace_sidebar_for_workspaces,
-	)
 
 	try:
-		print("Creating Workspace Sidebars")
-		create_workspace_sidebar_for_workspaces()
-		print("Creating Desktop Icons")
 		create_desktop_icons()
 		frappe.db.commit()  # nosemgrep
 	except Exception as e:
-		print(f"Error creating icons {e}")
+		print(f"Error creating desktop icons: {e}")
 
 
-def delete_desktop_icon_and_sidebar(app_name, dry_run=False):
-	"""Remove an uninstalled app's Desktop Icons and Workspace Sidebars."""
+def delete_desktop_icons_for_app(app_name, dry_run=False):
+	"""Remove an uninstalled app's Desktop Icons."""
 	app_title = frappe.get_hooks("app_name", app_name=app_name)[0]
 
-	icons_to_be_deleted = frappe.get_all(
+	icons_to_delete = frappe.get_all(
 		"Desktop Icon",
 		pluck="name",
 		or_filters=[
@@ -221,14 +215,8 @@ def delete_desktop_icon_and_sidebar(app_name, dry_run=False):
 			["Desktop Icon", "parent_icon", "=", app_title],
 		],
 	)
-	print("Deleting Desktop Icons")
-	for icon in icons_to_be_deleted:
+	for icon in icons_to_delete:
 		frappe.delete_doc_if_exists("Desktop Icon", icon)
-
-	sidebar_to_be_deleted = frappe.get_all("Workspace Sidebar", pluck="name", filters={"app": app_name})
-	print("Deleting Workspace Sidebars")
-	for sidebar in sidebar_to_be_deleted:
-		frappe.delete_doc_if_exists("Workspace Sidebar", sidebar)
 
 	if dry_run:
 		frappe.db.commit()  # nosemgrep

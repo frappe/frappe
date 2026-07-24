@@ -1,7 +1,7 @@
 import sys
 
 import frappe
-from frappe.desk.navigation import is_workspace_navigation
+from frappe.desk.doctype.desktop_settings.desktop_settings import is_desktop_icons_page
 
 
 def get_context(context):
@@ -15,10 +15,9 @@ def get_context(context):
 	context.brand_logo = brand_logo
 	context.show_search_bar = frappe.get_cached_value("User", frappe.session.user, "search_bar")
 
-	# The desktop icon grid restores each user's saved arrangement from Desktop Layout.
-	# Workspace navigation has no per-user layout -- its apps screen is ordered by the
-	# `add_to_apps_screen` hook's sequence_id.
-	if not is_workspace_navigation():
+	# The Desktop Icon grid restores each user's saved arrangement from Desktop Layout. The
+	# Apps screen has no per-user layout -- it's ordered by the add_to_apps_screen hook.
+	if is_desktop_icons_page():
 		try:
 			context.desktop_layout = frappe.get_doc("Desktop Layout", frappe.session.user).layout or {}
 		except frappe.DoesNotExistError:

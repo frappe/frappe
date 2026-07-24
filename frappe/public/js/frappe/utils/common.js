@@ -288,16 +288,6 @@ frappe.is_large_screen = function () {
 	return window.innerHeight > 1180;
 };
 
-// True when the site runs workspace-driven navigation: the workspace dock, the
-// hook-driven apps screen, and sidebars authored on `Workspace.sidebar_items`.
-// When false the site renders the desktop icon grid and reads sidebars from the
-// separate `Workspace Sidebar` doctype. Mirrors
-// `frappe.desk.navigation.is_workspace_navigation` -- the raw setting is compared
-// here and nowhere else on the client.
-frappe.is_workspace_navigation = function () {
-	return (frappe.boot.navigation || "Workspace") === "Workspace";
-};
-
 frappe.utils.xss_sanitise = function (string, options) {
 	// Reference - https://www.owasp.org/index.php/XSS_(Cross_Site_Scripting)_Prevention_Cheat_Sheet
 	let sanitised = string; // un-sanitised string.

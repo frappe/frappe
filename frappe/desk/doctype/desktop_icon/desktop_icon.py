@@ -7,7 +7,7 @@ import random
 
 import frappe
 from frappe import _
-from frappe.desk.navigation import is_workspace_navigation
+from frappe.desk.doctype.desktop_settings.desktop_settings import is_desktop_icons_page
 from frappe.model.document import Document
 from frappe.modules.export_file import strip_default_fields
 from frappe.modules.import_file import import_file_by_path
@@ -302,13 +302,13 @@ def create_desktop_icons_from_installed_apps():
 
 
 def create_desktop_icons():
-	"""Seed Desktop Icons for the apps screen of Desktop Icon and Workspace Sidebar navigation.
+	"""Seed Desktop Icons for the Desktop Icon grid.
 
-	Guarded rather than the readers: a workspace-navigation site draws its apps screen
-	from the `add_to_apps_screen` hook and would never read these rows, so generating them
-	on every app install is pure accumulation.
+	Guarded rather than the readers: a site whose desktop page is `Apps` draws that screen
+	from the `add_to_apps_screen` hook and never reads these rows, so generating them on
+	every app install would be pure accumulation.
 	"""
-	if is_workspace_navigation():
+	if not is_desktop_icons_page():
 		return
 
 	create_desktop_icons_from_installed_apps()

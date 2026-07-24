@@ -1,10 +1,11 @@
-// Apps screen for `Desktop Icon and Workspace Sidebar` navigation: the desktop icon
-// grid with folders, drag-to-reorder and edit mode.
+// The Desktop Icon grid: the /app/desktop page when Desktop Settings -> Desktop Page is
+// `Desktop Icons` (folders, drag-to-reorder, edit mode). The default `Apps` mode uses the
+// hook-driven grid in desktop.js instead.
 //
 // Loaded lazily by frappe/desk/page/desktop/desktop.js, because Page.load_assets reads
 // exactly one `<page_name>.js` per page -- a second file in that folder would never be
 // served. Keeping it out of desk.bundle also keeps ~1200 lines off every desk page load.
-import "./frappe/ui/desktop_icon_v16.html";
+import "./frappe/ui/desktop_icons_item.html";
 
 frappe.desktop_utils = {};
 frappe.desktop_grids = [];
@@ -239,7 +240,7 @@ class DesktopPage {
 		this.page.page_head.hide();
 		$(this.page.body).empty();
 		this.awesomebar_setup = false;
-		$(frappe.render_template("desktop_v16")).appendTo(this.page.body);
+		$(frappe.render_template("desktop_icons")).appendTo(this.page.body);
 		if (!this.data) {
 			this.data = JSON.parse($("#desktop-layout").text());
 		}
@@ -858,7 +859,7 @@ class DesktopIcon {
 		let render = this.validate_icon();
 		if (render) {
 			this.icon = $(
-				frappe.render_template("desktop_icon_v16", {
+				frappe.render_template("desktop_icons_item", {
 					icon: this.icon_data,
 					in_folder: in_folder,
 				})
@@ -1263,6 +1264,6 @@ class InlineEditor {
 }
 
 // The page dispatcher constructs this; `DesktopPage` itself stays module-scoped so it
-// can't collide with the workspace-navigation page class of the same name.
+// can't collide with the default apps-grid page class of the same name in desktop.js.
 frappe.provide("frappe.ui");
-frappe.ui.V16DesktopPage = DesktopPage;
+frappe.ui.DesktopIconsPage = DesktopPage;

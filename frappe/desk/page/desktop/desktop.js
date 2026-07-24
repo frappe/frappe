@@ -3,23 +3,21 @@
 const DEFAULT_MENU_ITEM_ORDER = 50;
 
 frappe.pages["desktop"].on_page_load = function (wrapper) {
-	const workspace_nav = frappe.is_workspace_navigation();
 	var page = frappe.ui.make_app_page({
 		parent: wrapper,
 		title: "Desktop",
 		single_column: true,
 		hide_sidebar: true,
-		// only the workspace-navigation shell has a dock to suppress
-		hide_workspace_dock: workspace_nav,
+		hide_workspace_dock: true,
 	});
 
-	if (!workspace_nav) {
-		// The desktop icon grid is ~1200 lines and lives in its own bundle, because
-		// Page.load_assets only ever serves `<page_name>.js` from this folder. Construct
-		// and update inside the callback: on_page_show fires before this resolves on the
-		// first load, so it can't be relied on to do the initial render.
-		frappe.require("desktop_v16.bundle.js").then(() => {
-			frappe.pages["desktop"].desktop_page = new frappe.ui.V16DesktopPage(page);
+	// Desktop Settings -> Desktop Page picks which grid renders here. `Desktop Icons` is the
+	// arrangeable icon grid; it's ~1200 lines in its own bundle (Page.load_assets only serves
+	// one <page_name>.js), so load it lazily. Construct and update inside the callback --
+	// on_page_show fires before this resolves on first load, so it can't do the initial render.
+	if (frappe.boot.desktop_page === "Desktop Icons") {
+		frappe.require("desktop_icons.bundle.js").then(() => {
+			frappe.pages["desktop"].desktop_page = new frappe.ui.DesktopIconsPage(page);
 			frappe.pages["desktop"].desktop_page.update();
 		});
 		return;
@@ -29,7 +27,7 @@ frappe.pages["desktop"].on_page_load = function (wrapper) {
 };
 
 frappe.pages["desktop"].on_page_show = function (wrapper) {
-	// optional-chained: the lazy bundle above may not have resolved yet
+	// optional-chained: the lazy Desktop Icons bundle may not have resolved yet
 	frappe.pages["desktop"].desktop_page?.update();
 };
 

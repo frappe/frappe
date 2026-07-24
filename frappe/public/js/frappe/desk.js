@@ -38,11 +38,9 @@ frappe.Application = class Application {
 
 		this.load_bootinfo();
 		this.load_user_permissions();
-		// Before any navigation chrome renders -- the two navigation systems ship
-		// separate stylesheets and each is scoped to this class.
-		this.set_navigation_class();
 		this.make_nav_bar();
 		this.make_sidebar();
+		this.set_desktop_page_class();
 		this.set_favicon();
 		this.set_fullwidth_if_enabled();
 		this.add_browser_class();
@@ -91,19 +89,8 @@ frappe.Application = class Application {
 		});
 	}
 
-	set_navigation_class() {
-		const workspace_nav = frappe.is_workspace_navigation();
-		// Exactly one of these is always present. Both navigation systems style
-		// `.body-sidebar`, so each stylesheet is scoped to its own class.
-		$("body")
-			.toggleClass("workspace-navigation", workspace_nav)
-			.toggleClass("v16-navigation", !workspace_nav);
-	}
-
 	make_sidebar() {
-		this.sidebar = frappe.is_workspace_navigation()
-			? new frappe.ui.Sidebar({})
-			: new frappe.ui.V16Sidebar({});
+		this.sidebar = new frappe.ui.Sidebar({});
 	}
 
 	setup_theme() {
@@ -503,6 +490,15 @@ frappe.Application = class Application {
 
 	add_browser_class() {
 		$("html").addClass(frappe.utils.get_browser().name.toLowerCase());
+	}
+
+	set_desktop_page_class() {
+		// The two /app/desktop pages share CSS class names (.desktop-wrapper, .desktop-icon),
+		// so desktop.css scopes each set to one of these body classes. Exactly one is present.
+		const desktop_icons = frappe.boot.desktop_page === "Desktop Icons";
+		$("body")
+			.toggleClass("desktop-icons-page", desktop_icons)
+			.toggleClass("apps-page", !desktop_icons);
 	}
 
 	set_fullwidth_if_enabled() {

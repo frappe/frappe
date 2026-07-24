@@ -15,11 +15,10 @@ from frappe.core.doctype.installed_applications.installed_applications import (
 from frappe.core.doctype.navbar_settings.navbar_settings import get_app_logo, get_navbar_settings
 from frappe.core.doctype.permission_type.permission_type import get_doctype_ptype_map
 from frappe.desk.desk_views import DeskViews
+from frappe.desk.doctype.desktop_settings.desktop_settings import get_desktop_page, is_desktop_icons_page
 from frappe.desk.doctype.form_tour.form_tour import get_onboarding_ui_tours
 from frappe.desk.doctype.route_history.route_history import frequently_visited_links
 from frappe.desk.form.load import get_meta_bundle
-from frappe.desk.navigation import get_navigation, is_workspace_navigation
-from frappe.desk.sidebar_v16 import get_sidebar_items as get_sidebar_items_v16
 from frappe.desk.utils import is_item_allowed
 from frappe.email.inbox import get_email_accounts
 from frappe.integrations.frappe_providers.cloud_settings import (
@@ -50,10 +49,6 @@ def get_bootinfo():
 	bootinfo.sitename = frappe.local.site
 	bootinfo.sysdefaults = frappe.defaults.get_defaults()
 	bootinfo.sysdefaults["setup_complete"] = frappe.is_setup_complete()
-	# Set explicitly rather than read off sysdefaults: System Settings only writes a
-	# default row for fields that have been changed, so an untouched `navigation` would
-	# be missing there and every client-side check would silently fall through.
-	bootinfo.navigation = get_navigation()
 
 	bootinfo.server_date = frappe.utils.nowdate()
 
@@ -135,6 +130,7 @@ def get_bootinfo():
 	bootinfo.setup_wizard_completed_apps = get_setup_wizard_completed_apps() or []
 	bootinfo.desktop_icon_urls = get_desktop_icon_urls()
 	bootinfo.desktop_icon_style = get_icon_style() or "Subtle"
+	bootinfo.desktop_page = get_desktop_page()
 	if bootinfo.is_fc_site:
 		bootinfo.site_info = current_site_info()
 	return bootinfo
@@ -250,35 +246,27 @@ DEFAULT_APP_SEQUENCE_ID = 100
 
 def load_desktop_data(bootinfo):
 	from frappe.desk.desktop import get_user_workspaces
-	from frappe.desk.doctype.desktop_icon.desktop_icon import get_desktop_icons
 
 	allowed_pages = [d.name for d in bootinfo.workspaces.get("pages")]
 	# A companion app's workspaces resolve their app context (dock + header) to the host app they
 	# were pinned into via `add_to_workspace_dock`, so the companion appears to live inside the
-	# host's rail rather than flipping the desk to a shell of its own. Set regardless of navigation:
-	# the shared `app_data` build reads it to decide on_apps_screen, the v16 apps screen just
-	# ignores it.
+	# host's rail rather than flipping the desk to a shell of its own.
 	bootinfo.app_rail_host = get_app_rail_host_map()
+	# The user's curated workspace selection (`User.workspaces`), ordered. Kept separate from
+	# `bootinfo.workspaces` (which holds every permitted workspace link) so the workspace selector
+	# can prefer it when set, without it affecting the full workspace listing.
+	bootinfo.user_workspaces = get_user_workspaces()
+	bootinfo.workspace_sidebar_item = get_sidebar_items()
+	bootinfo.default_workspace_map = build_default_workspace_map(bootinfo.workspace_sidebar_item)
+	bootinfo.module_wise_workspaces = get_controller("Workspace").get_module_wise_workspaces()
 
-	if is_workspace_navigation():
-		# The user's curated workspace selection (`User.workspaces`), ordered. Kept separate from
-		# `bootinfo.workspaces` (which holds every permitted workspace link) so the workspace selector
-		# can prefer it when set, without it affecting the full workspace listing.
-		bootinfo.user_workspaces = get_user_workspaces()
-		bootinfo.workspace_sidebar_item = get_sidebar_items()
-		bootinfo.default_workspace_map = build_default_workspace_map(bootinfo.workspace_sidebar_item)
-	else:
-		# `Desktop Icon and Workspace Sidebar` navigation reads the standalone Workspace
-		# Sidebar doctype instead, and has no dock or workspace selector to feed.
-		# `bootinfo.workspaces` is shared: both resolvers return the same shape, and the
-		# workspace-nav reordering by `User.workspaces` is a no-op when that table is empty.
-		bootinfo.workspace_sidebar_item = get_sidebar_items_v16(allowed_pages)
-		bootinfo.dashboards = frappe.get_all("Dashboard")
-		# Must follow `workspace_sidebar_item`: DesktopIcon.is_permitted reads it to decide
-		# whether an icon's sidebar has any item the user may see.
+	# Only the Desktop Icon grid reads these; the default Apps screen builds itself from
+	# `app_data` below. Set after `workspace_sidebar_item`, which DesktopIcon.is_permitted reads.
+	if is_desktop_icons_page():
+		from frappe.desk.doctype.desktop_icon.desktop_icon import get_desktop_icons
+
 		bootinfo.desktop_icons = get_desktop_icons(bootinfo=bootinfo)
 
-	bootinfo.module_wise_workspaces = get_controller("Workspace").get_module_wise_workspaces()
 	bootinfo.app_data = get_app_data(allowed_pages)
 
 
