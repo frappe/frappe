@@ -46,9 +46,8 @@
 				class="pointer-events-none fixed ring-2 ring-inset ring-outline-purple-5"
 				:class="isSlotSelected(slot.slotId) ? 'opacity-100' : 'opacity-65'"
 				:style="{
-					// set min height and width so that slots without content are visible
-					minWidth: `calc(${12}px * ${canvasProps.scale})`,
-					minHeight: `calc(${12}px * ${canvasProps.scale})`,
+					minWidth: `calc(${20}px * ${canvasProps.scale})`,
+					minHeight: `calc(${20}px * ${canvasProps.scale})`,
 				}"
 			>
 				<span

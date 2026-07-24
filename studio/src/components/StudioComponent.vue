@@ -48,10 +48,11 @@
 						:data-component-id="block.componentId"
 					/>
 				</SlotScopeProvider>
-				<!-- drop target for an empty slot -->
+				<!-- drop target for an empty slot: fill the slot's available space so the
+				     overlay spans it (w-full for width; grow/self-stretch fill flex slot areas) -->
 				<div
 					v-else
-					:class="[slotClasses, 'min-h-5 w-full']"
+					:class="[slotClasses, 'min-h-5 w-full grow self-stretch']"
 					:data-slot-id="slot.slotId"
 					:data-slot-name="slotName"
 					:data-component-id="block.componentId"
