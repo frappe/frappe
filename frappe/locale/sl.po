@@ -3,7 +3,7 @@ msgstr ""
 "Project-Id-Version: frappe\n"
 "Report-Msgid-Bugs-To: developers@frappe.io\n"
 "POT-Creation-Date: 2026-07-19 10:02+0000\n"
-"PO-Revision-Date: 2026-07-21 13:54\n"
+"PO-Revision-Date: 2026-07-22 14:19\n"
 "Last-Translator: developers@frappe.io\n"
 "Language-Team: Slovenian\n"
 "MIME-Version: 1.0\n"
@@ -11624,7 +11624,7 @@ msgstr ""
 
 #: frappe/public/js/frappe/ui/permission_dialog.js:350
 msgid "Failed to save permission."
-msgstr ""
+msgstr "Shranjevanje dovoljenja ni uspelo."
 
 #: frappe/email/doctype/email_queue/email_queue.py:356
 msgid "Failed to send email with subject:"
@@ -13193,7 +13193,7 @@ msgstr "Sintaksa markdown v slogu Github"
 
 #: frappe/public/js/frappe/list/list_filter/manage_layouts_dialog.js:48
 msgid "Global"
-msgstr ""
+msgstr "Globalno"
 
 #: frappe/public/js/frappe/list/list_filter/list_filter_menu.js:217
 msgid "Global Layouts"
@@ -14974,19 +14974,19 @@ msgstr "v sekundah"
 
 #: frappe/public/js/frappe/form/save.js:230
 msgid "In {0}, {1} is required in every row."
-msgstr ""
+msgstr "V {0}je v vsaki vrstici obvezno navesti {1}."
 
 #: frappe/public/js/frappe/form/save.js:236
 msgid "In {0}, {1} is required in row {2}."
-msgstr ""
+msgstr "V {0}je {1} potrebno v vrstici {2}."
 
 #: frappe/public/js/frappe/form/save.js:245
 msgid "In {0}, {1} is required in rows {2}."
-msgstr ""
+msgstr "V {0}je {1} potrebno v vrsticah {2}."
 
 #: frappe/public/js/frappe/form/save.js:252
 msgid "In {0}, {1} is required in {2} rows."
-msgstr ""
+msgstr "V {0}je {1} obvezno v {2} vrsticah."
 
 #: frappe/core/doctype/recorder/recorder_list.js:209
 msgid "Inactive"
@@ -20008,11 +20008,11 @@ msgstr "Ni podatkov za izvedbo tega dejanja"
 
 #: frappe/public/js/frappe/form/template_manager.js:262
 msgid "No data to save. Change at least one field before saving."
-msgstr ""
+msgstr "Ni podatkov za shranjevanje. Pred shranjevanjem spremenite vsaj eno polje."
 
 #: frappe/public/js/frappe/form/template_manager.js:200
 msgid "No data to save. Change at least one field first."
-msgstr ""
+msgstr "Ni podatkov za shranjevanje. Najprej spremenite vsaj eno polje."
 
 #: frappe/contacts/doctype/address/address.py:269
 msgid "No default Address Template found. Please create a new one from Setup > Printing and Branding > Address Template."
@@ -20242,7 +20242,7 @@ msgstr ""
 
 #: frappe/public/js/frappe/form/template_manager.js:329
 msgid "No saved templates. Try saving the current form as a template."
-msgstr ""
+msgstr "Ni shranjenih predlog. Poskusite shraniti trenutni obrazec kot predlogo."
 
 #: frappe/public/js/print_format_builder/components/PrintFormatControls.vue:195
 msgid "No sections yet. Add sections to the canvas."
@@ -22843,7 +22843,7 @@ msgstr "Prosimo, vnesite svoje staro geslo."
 
 #: frappe/public/js/frappe/form/save.js:263
 msgid "Please fill the following mandatory fields before saving:"
-msgstr ""
+msgstr "Pred shranjevanjem prosimo, izpolnite naslednja obvezna polja:"
 
 #: frappe/automation/doctype/auto_repeat/auto_repeat.py:446
 msgid "Please find attached {0}: {1}"
@@ -26468,7 +26468,7 @@ msgstr "Shrani prilagoditve"
 
 #: frappe/public/js/print_format_builder/print_format_builder.bundle.js:24
 msgid "Save Print Format"
-msgstr ""
+msgstr "Shrani format tiskanja"
 
 #: frappe/public/js/frappe/views/reports/query_report.js:2142
 msgid "Save Report"
@@ -26476,7 +26476,7 @@ msgstr "Shrani poročilo"
 
 #: frappe/public/js/frappe/form/template_manager.js:63
 msgid "Save as Template"
-msgstr ""
+msgstr "Shrani kot predlogo"
 
 #: frappe/public/js/frappe/views/kanban/kanban_view.js:131
 msgid "Save filters"
@@ -26497,7 +26497,7 @@ msgstr "Shranite dokument."
 
 #: frappe/core/doctype/role/role.js:137
 msgid "Save the role first to view this information."
-msgstr ""
+msgstr "Najprej shranite vlogo, da si lahko ogledate te podatke."
 
 #: frappe/model/rename_doc.py:95 frappe/public/js/frappe/form/toolbar.js:325
 #: frappe/public/js/frappe/ui/user_settings_dialog.js:91
@@ -30598,7 +30598,7 @@ msgstr ""
 
 #: frappe/public/js/frappe/form/template_manager.js:281
 msgid "Template <strong>{0}</strong> saved"
-msgstr ""
+msgstr "Predloga <strong>{0}</strong> shranjeno"
 
 #: frappe/public/js/frappe/form/template_manager.js:208
 msgid "Template <strong>{0}</strong> updated"
@@ -31206,7 +31206,7 @@ msgstr "Ta valuta je onemogočena. Omogočite jo za uporabo v transakcijah"
 
 #: frappe/public/js/frappe/model/model.js:192
 msgid "This DocType has been updated. Save or discard your changes, then reload the page to see the latest version."
-msgstr ""
+msgstr "Ta DocType je bil posodobljen. Shranite ali zavrnite spremembe, nato pa ponovno naložite stran, da si ogledate najnovejšo različico."
 
 #: frappe/public/js/frappe/views/kanban/kanban_view.js:681
 msgid "This Kanban Board will be private"
@@ -32135,7 +32135,7 @@ msgstr "Skupni delovni čas"
 
 #: frappe/public/js/print_format_builder/components/inspector/ConfigureColumns.vue:20
 msgid "Total exceeds 100%. Columns in red will be removed on save."
-msgstr ""
+msgstr "Skupna vrednost presega 100 %. Stolpci v rdeči barvi bodo ob shranjevanju odstranjeni."
 
 #. Description of the 'Initial Sync Count' (Select) field in DocType 'Email
 #. Account'
@@ -32974,7 +32974,7 @@ msgstr "Uspešno posodobljeno"
 
 #: frappe/public/js/frappe/form/grid.js:1377
 msgid "Updated {0} selected {1}. Save the form to keep changes."
-msgstr ""
+msgstr "Posodobljeno: {0} izbrano: {1}. Obrazec shranite, da se spremembe ohranijo."
 
 #: frappe/utils/response.py:363
 msgid "Updating"
