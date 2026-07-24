@@ -131,6 +131,11 @@ class DesktopIcon(Document):
 					# App hooks.py doesn't have add_to_apps_screen
 					return True
 
+		# No installed app matches this icon's app/label (e.g. a leftover icon for an
+		# uninstalled app). Return an explicit bool rather than falling through to None,
+		# which is_permitted would read the same way but is easy to misread as "unset".
+		return False
+
 	# def is_permitted(self):
 	# 	"""Return True if `Has Role` is not set or the user is allowed."""
 	# 	from frappe.utils import has_common
@@ -257,17 +262,18 @@ def create_desktop_icons_from_workspace():
 				if app_icon:
 					icon.parent_icon = app_icon
 
+				# Resolve the parent App icon's link once. It can be missing (App icons don't
+				# always carry a link), so guard the `.startswith` checks below -- calling it on
+				# None raised AttributeError and aborted the whole seeding loop.
+				app_link = frappe.db.get_value("Desktop Icon", app_icon, "link") if app_icon else None
+
 				# Portal App With Desk Workspace
-				if frappe.db.get_value("Desktop Icon", app_icon, "link") and not frappe.db.get_value(
-					"Desktop Icon", app_icon, "link"
-				).startswith("/app"):
+				if app_link and not app_link.startswith("/app"):
 					icon.hidden = 1
 					icon.parent_icon = None
 
 				# If Desk App has one workspace with the same name
-				if icon.label == app_title and (
-					app_icon and frappe.db.get_value("Desktop Icon", app_icon, "link").startswith("/app")
-				):
+				if icon.label == app_title and app_link and app_link.startswith("/app"):
 					icon.hidden = 1
 					icon.parent_icon = None
 

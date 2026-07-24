@@ -368,7 +368,7 @@ body.apps-page .desktop-wrapper[data-mode=Edit] .edit-mode-buttons {
   right: 5%;
 }
 @media screen and (max-width: 570px) {
-  body.apps-page :root {
+  :root {
     --desktop-icon-dimension: 50px;
     --desktop-icon-container: 117px;
     --folder-thumbnail-icon-height:15px;
@@ -888,7 +888,7 @@ body.desktop-icons-page .desktop-wrapper[data-mode=Edit] .edit-mode-buttons {
   right: 5%;
 }
 @media screen and (max-width: 570px) {
-  body.desktop-icons-page :root {
+  :root {
     --desktop-icon-dimension: 50px;
     --desktop-icon-container: 117px;
     --folder-thumbnail-icon-height:15px;
