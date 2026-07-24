@@ -16,9 +16,10 @@ frappe.ui.WorkspaceDock = class WorkspaceDock {
 		)}">
 			<div class="workspace-dock-logo"></div>
 			<div class="workspace-dock-divider" role="separator"></div>
+			<div class="workspace-dock-shortcuts"></div>
+			<div class="workspace-dock-divider" role="separator"></div>
 			<div class="workspace-dock-items"></div>
 			<div class="workspace-dock-divider" role="separator"></div>
-			<div class="workspace-dock-actions"></div>
 			<button class="workspace-dock-user" aria-label="${__("User Menu")}"></button>
 		</div>`);
 
@@ -48,67 +49,99 @@ frappe.ui.WorkspaceDock = class WorkspaceDock {
 		this.$dock.append($expand);
 
 		this.$logo = this.$dock.find(".workspace-dock-logo");
+		this.$shortcuts = this.$dock.find(".workspace-dock-shortcuts");
 		this.$items = this.$dock.find(".workspace-dock-items");
-		this.$actions = this.$dock.find(".workspace-dock-actions");
 		this.$user = this.$dock.find(".workspace-dock-user");
-		this.render_search();
-		this.render_notifications();
-		// only reserve the actions band (and its divider spacing) if something landed in it
-		this.$actions.toggleClass("hidden", this.$actions.children().length === 0);
+		this.render_shortcuts();
 		this.render_user();
 	}
 
-	// Global search trigger, replacing the page header's search button. It carries the
-	// `navbar-modal-search-mobile` class so the AwesomeBar's delegated click handler (see
-	// awesome_bar.js) opens and toggles the same search modal. Set up once (make() runs once).
-	render_search() {
-		if (frappe.session.user === "Guest" || !frappe.boot.desk_settings.search_bar) {
-			return;
-		}
-
-		let $search = $(`<button
-			class="workspace-dock-item navbar-modal-search-mobile"
-			title="${__("Search")}"
-			data-toggle="tooltip"
-			data-placement="right"
-			aria-label="${__("Search")}"
-		>
-			<span class="sidebar-item-icon">${frappe.utils.icon("search", "md")}</span>
-		</button>`);
-
-		$search.tooltip({ boundary: "window", container: "body", trigger: "hover" });
-		this.$actions.append($search);
+	// Icon shortcuts pinned directly under the app logo -- search and notifications, replacing the
+	// page header's buttons. Declared as configuration so the set, order, and each item's tooltip
+	// live in one place; render_shortcuts() turns each entry into a rail button. Every item mirrors
+	// <RailItem variant="ghost">: transparent until hovered.
+	//
+	// Item shape:
+	//   name      identifier
+	//   icon      icon name passed to frappe.utils.icon
+	//   label     tooltip text and accessible label
+	//   css_class extra class(es) on the button (external code hooks off these)
+	//   condition () => bool -- whether to render this shortcut at all
+	//   badge     optional extra markup appended inside the button (e.g. a count dot)
+	//   on_click  optional click handler
+	//   setup     optional ($item) => {} hook run after the button is built
+	get_shortcuts() {
+		return [
+			{
+				name: "search",
+				icon: "search",
+				label: __("Search"),
+				// AwesomeBar's delegated click handler (page.js) opens the shared search modal
+				// off this class -- keep it so search still toggles from the dock.
+				css_class: "navbar-modal-search-mobile",
+				condition: () => frappe.boot.desk_settings.search_bar,
+			},
+			{
+				name: "notifications",
+				icon: "bell",
+				label: __("Notifications"),
+				// the Notifications view keeps the unread count and unseen dot in sync off these
+				// classes (see notifications.js), and toggles the same dropdown the sidebar bell does.
+				css_class: "sidebar-notification",
+				condition: () => frappe.boot.desk_settings.notifications,
+				badge: `<span class="sidebar-notification-count hidden" aria-live="polite"></span>`,
+				on_click: () => this.toggle_notifications(),
+				setup: ($item) => {
+					// seed the badge from boot; the Notifications view keeps it live from here on
+					this.sync_notification_count(
+						$item,
+						frappe.boot.notification_unread_count || 0
+					);
+					if (
+						frappe.boot.notification_settings &&
+						frappe.boot.notification_settings.seen == 0
+					) {
+						$item.find(".sidebar-item-icon").addClass("indicator blue");
+					}
+				},
+			},
+		];
 	}
 
-	// Notification bell pinned above the user avatar. It carries the `sidebar-notification` /
-	// `sidebar-notification-count` classes so the Notifications view keeps its unread count and
-	// unseen indicator in sync here too (see notifications.js), and toggles the same dropdown panel
-	// the sidebar's own bell does. Set up once (make() runs once) so the handler isn't re-bound.
-	render_notifications() {
-		if (frappe.session.user === "Guest" || !frappe.boot.desk_settings.notifications) {
+	// Render the configured shortcuts under the logo, each as an icon button with a hover tooltip.
+	// Set up once (make() runs once) so handlers aren't re-bound.
+	render_shortcuts() {
+		if (frappe.session.user === "Guest") {
 			return;
 		}
 
-		let $bell = $(`<button
-			class="workspace-dock-item sidebar-notification"
-			title="${__("Notifications")}"
-			data-toggle="tooltip"
-			data-placement="right"
-			aria-label="${__("Notifications")}"
-		>
-			<span class="sidebar-item-icon">${frappe.utils.icon("bell", "md")}</span>
-			<span class="sidebar-notification-count hidden" aria-live="polite"></span>
-		</button>`);
+		this.get_shortcuts().forEach((item) => {
+			if (item.condition && !item.condition()) {
+				return;
+			}
 
-		$bell.on("click", () => this.toggle_notifications());
-		$bell.tooltip({ boundary: "window", container: "body", trigger: "hover" });
-		this.$actions.append($bell);
+			let $item = $(`<button
+				class="workspace-dock-item ${item.css_class || ""}"
+				title="${frappe.utils.escape_html(item.label)}"
+				data-toggle="tooltip"
+				data-placement="right"
+				aria-label="${frappe.utils.escape_html(item.label)}"
+			>
+				<span class="sidebar-item-icon">${frappe.utils.icon(item.icon, "md")}</span>
+				${item.badge || ""}
+			</button>`);
 
-		// seed the badge from boot; the Notifications view keeps it live from here on
-		this.sync_notification_count($bell, frappe.boot.notification_unread_count || 0);
-		if (frappe.boot.notification_settings && frappe.boot.notification_settings.seen == 0) {
-			$bell.find(".sidebar-item-icon").addClass("indicator blue");
-		}
+			if (item.on_click) {
+				$item.on("click", item.on_click);
+			}
+			if (item.setup) {
+				item.setup($item);
+			}
+			// icon-only button -- surface its label as a hover tooltip
+			$item.tooltip({ boundary: "window", container: "body", trigger: "hover" });
+
+			this.$shortcuts.append($item);
+		});
 	}
 
 	// The dock shows unread as a small dot, not a number -- just toggle it on whether any exist.
