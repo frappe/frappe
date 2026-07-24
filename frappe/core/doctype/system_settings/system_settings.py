@@ -82,7 +82,6 @@ class SystemSettings(Document):
 		max_report_rows: DF.Int
 		max_signups_allowed_per_hour: DF.Int
 		minimum_password_score: DF.Literal["1", "2", "3", "4"]
-		navigation: DF.Literal["Workspace", "Desktop Icon and Workspace Sidebar"]
 		number_format: DF.Literal[
 			"#,###.##",
 			"#.###,##",
@@ -209,11 +208,6 @@ class SystemSettings(Document):
 	def on_update(self):
 		self.set_defaults()
 		clear_system_settings_cache()
-
-		# Navigation is resolved once per boot and bootinfo is cached per user, so the
-		# settings cache alone isn't enough -- every user's boot has to be rebuilt.
-		if self.has_value_changed("navigation"):
-			frappe.clear_cache()
 
 		if frappe.flags.update_last_reset_password_date:
 			update_last_reset_password_date()

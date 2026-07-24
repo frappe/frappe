@@ -190,10 +190,15 @@ def add_standard_navbar_items():
 def create_desktop_icons_for_app(app_name=None):
 	"""Seed Desktop Icons after an app is installed.
 
-	No-ops unless Desktop Settings -> Desktop Page is `Desktop Icons` (create_desktop_icons
-	guards itself). Regenerates all icons, which is idempotent -- it only creates the ones
-	that don't already exist.
+	Only the Desktop Icon grid reads these rows, so there's nothing to do unless
+	Desktop Settings -> Desktop Page is `Desktop Icons`. Regenerates all icons, which is
+	idempotent -- it only creates the ones that don't already exist.
 	"""
+	from frappe.desk.doctype.desktop_settings.desktop_settings import is_desktop_icons_page
+
+	if not is_desktop_icons_page():
+		return
+
 	from frappe.desk.doctype.desktop_icon.desktop_icon import create_desktop_icons
 
 	try:
@@ -205,7 +210,10 @@ def create_desktop_icons_for_app(app_name=None):
 
 def delete_desktop_icons_for_app(app_name, dry_run=False):
 	"""Remove an uninstalled app's Desktop Icons."""
-	app_title = frappe.get_hooks("app_name", app_name=app_name)[0]
+	# Icons are named/labelled by the app's title (Desktop Icon autoname is `field:label`,
+	# set to app_title in create_desktop_icons_from_installed_apps), not the package name --
+	# so match on the `app_title` hook, else the filters never hit and rows are orphaned.
+	app_title = frappe.get_hooks("app_title", app_name=app_name)[0]
 
 	icons_to_delete = frappe.get_all(
 		"Desktop Icon",
